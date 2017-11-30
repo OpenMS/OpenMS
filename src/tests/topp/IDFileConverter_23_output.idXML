@@ -1124,15 +1124,6 @@
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="SEQUEST:xcorr" higher_score_better="true" significance_threshold="0" MZ="403.298004150391" spectrum_reference="112-112" >
-			<PeptideHit score="0.536684334" sequence="LSPGITSK" charge="2" start="0" end="8" protein_refs="PH_36" >
-				<UserParam type="float" name="MS:1001155" value="0.536684334"/>
-				<UserParam type="float" name="MS:1001156" value="0.42445001"/>
-				<UserParam type="float" name="calcMZ" value="403.487060546875"/>
-				<UserParam type="int" name="pass_threshold" value="1"/>
-				<UserParam type="int" name="start" value="0"/>
-				<UserParam type="int" name="end" value="8"/>
-				<UserParam type="string" name="target_decoy" value="target"/>
-			</PeptideHit>
 			<PeptideHit score="0.682584703" sequence="STAAAQDHSSTK" charge="3" start="0" end="12" protein_refs="PH_46" >
 				<UserParam type="float" name="MS:1001155" value="0.682584703"/>
 				<UserParam type="float" name="MS:1001156" value="0.684228003"/>
@@ -1140,6 +1131,15 @@
 				<UserParam type="int" name="pass_threshold" value="1"/>
 				<UserParam type="int" name="start" value="0"/>
 				<UserParam type="int" name="end" value="12"/>
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</PeptideHit>
+			<PeptideHit score="0.536684334" sequence="LSPGITSK" charge="2" start="0" end="8" protein_refs="PH_36" >
+				<UserParam type="float" name="MS:1001155" value="0.536684334"/>
+				<UserParam type="float" name="MS:1001156" value="0.42445001"/>
+				<UserParam type="float" name="calcMZ" value="403.487060546875"/>
+				<UserParam type="int" name="pass_threshold" value="1"/>
+				<UserParam type="int" name="start" value="0"/>
+				<UserParam type="int" name="end" value="8"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
 			</PeptideHit>
 			<PeptideHit score="0.112234503" sequence="VQVESLK" charge="2" start="0" end="7" protein_refs="PH_8" >
@@ -1151,15 +1151,6 @@
 				<UserParam type="int" name="end" value="7"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
 			</PeptideHit>
-			<PeptideHit score="-0.00164343999" sequence="VNGDAHVISHR" charge="3" start="0" end="11" protein_refs="PH_30" >
-				<UserParam type="float" name="MS:1001155" value="-0.00164343999"/>
-				<UserParam type="float" name="MS:1001156" value="0.469325989"/>
-				<UserParam type="float" name="calcMZ" value="403.377593994141"/>
-				<UserParam type="int" name="pass_threshold" value="1"/>
-				<UserParam type="int" name="start" value="0"/>
-				<UserParam type="int" name="end" value="11"/>
-				<UserParam type="string" name="target_decoy" value="target"/>
-			</PeptideHit>
 			<PeptideHit score="0.110496603" sequence="LAETEIK" charge="2" start="0" end="7" protein_refs="PH_11" >
 				<UserParam type="float" name="MS:1001155" value="0.110496603"/>
 				<UserParam type="float" name="MS:1001156" value="0.000937141012"/>
@@ -1167,15 +1158,6 @@
 				<UserParam type="int" name="pass_threshold" value="1"/>
 				<UserParam type="int" name="start" value="0"/>
 				<UserParam type="int" name="end" value="7"/>
-				<UserParam type="string" name="target_decoy" value="target"/>
-			</PeptideHit>
-			<PeptideHit score="-0.47096923" sequence="TCSSCGYPAAK" charge="3" start="0" end="11" protein_refs="PH_19" >
-				<UserParam type="float" name="MS:1001155" value="-0.47096923"/>
-				<UserParam type="float" name="MS:1001156" value="0"/>
-				<UserParam type="float" name="calcMZ" value="402.337432861328"/>
-				<UserParam type="int" name="pass_threshold" value="1"/>
-				<UserParam type="int" name="start" value="0"/>
-				<UserParam type="int" name="end" value="11"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
 			</PeptideHit>
 			<PeptideHit score="0.109559461" sequence="QLLNGQK" charge="2" start="0" end="7" protein_refs="PH_26" >
@@ -1194,6 +1176,24 @@
 				<UserParam type="int" name="pass_threshold" value="1"/>
 				<UserParam type="int" name="start" value="0"/>
 				<UserParam type="int" name="end" value="7"/>
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</PeptideHit>
+			<PeptideHit score="-0.00164343999" sequence="VNGDAHVISHR" charge="3" start="0" end="11" protein_refs="PH_30" >
+				<UserParam type="float" name="MS:1001155" value="-0.00164343999"/>
+				<UserParam type="float" name="MS:1001156" value="0.469325989"/>
+				<UserParam type="float" name="calcMZ" value="403.377593994141"/>
+				<UserParam type="int" name="pass_threshold" value="1"/>
+				<UserParam type="int" name="start" value="0"/>
+				<UserParam type="int" name="end" value="11"/>
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</PeptideHit>
+			<PeptideHit score="-0.47096923" sequence="TCSSCGYPAAK" charge="3" start="0" end="11" protein_refs="PH_19" >
+				<UserParam type="float" name="MS:1001155" value="-0.47096923"/>
+				<UserParam type="float" name="MS:1001156" value="0"/>
+				<UserParam type="float" name="calcMZ" value="402.337432861328"/>
+				<UserParam type="int" name="pass_threshold" value="1"/>
+				<UserParam type="int" name="start" value="0"/>
+				<UserParam type="int" name="end" value="11"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
 			</PeptideHit>
 		</PeptideIdentification>
@@ -1741,15 +1741,6 @@
 				<UserParam type="int" name="end" value="8"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
 			</PeptideHit>
-			<PeptideHit score="-0.269477665" sequence="TSFFQALGVPTK" charge="3" start="0" end="12" protein_refs="PH_16" >
-				<UserParam type="float" name="MS:1001155" value="-0.269477665"/>
-				<UserParam type="float" name="MS:1001156" value="0.254599005"/>
-				<UserParam type="float" name="calcMZ" value="433.738037109375"/>
-				<UserParam type="int" name="pass_threshold" value="1"/>
-				<UserParam type="int" name="start" value="0"/>
-				<UserParam type="int" name="end" value="12"/>
-				<UserParam type="string" name="target_decoy" value="target"/>
-			</PeptideHit>
 			<PeptideHit score="0.118740581" sequence="FLWMIR" charge="2" start="0" end="6" protein_refs="PH_35" >
 				<UserParam type="float" name="MS:1001155" value="0.118740581"/>
 				<UserParam type="float" name="MS:1001156" value="0.094733201"/>
@@ -1757,15 +1748,6 @@
 				<UserParam type="int" name="pass_threshold" value="1"/>
 				<UserParam type="int" name="start" value="0"/>
 				<UserParam type="int" name="end" value="6"/>
-				<UserParam type="string" name="target_decoy" value="target"/>
-			</PeptideHit>
-			<PeptideHit score="-0.524077058" sequence="QEASQMAAMAEK" charge="3" start="0" end="12" protein_refs="PH_2" >
-				<UserParam type="float" name="MS:1001155" value="-0.524077058"/>
-				<UserParam type="float" name="MS:1001156" value="0"/>
-				<UserParam type="float" name="calcMZ" value="433.363708496094"/>
-				<UserParam type="int" name="pass_threshold" value="1"/>
-				<UserParam type="int" name="start" value="0"/>
-				<UserParam type="int" name="end" value="12"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
 			</PeptideHit>
 			<PeptideHit score="0.0240074005" sequence="LAEWMSK" charge="2" start="0" end="7" protein_refs="PH_51" >
@@ -1786,17 +1768,26 @@
 				<UserParam type="int" name="end" value="8"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
 			</PeptideHit>
-		</PeptideIdentification>
-		<PeptideIdentification score_type="SEQUEST:xcorr" higher_score_better="true" significance_threshold="0" MZ="433.778015136719" spectrum_reference="97-97" >
-			<PeptideHit score="0.374879688" sequence="MSSNAQVK" charge="2" start="0" end="8" protein_refs="PH_54" >
-				<UserParam type="float" name="MS:1001155" value="0.374879688"/>
-				<UserParam type="float" name="MS:1001156" value="0.0876780003"/>
-				<UserParam type="float" name="calcMZ" value="434.4658203125"/>
+			<PeptideHit score="-0.269477665" sequence="TSFFQALGVPTK" charge="3" start="0" end="12" protein_refs="PH_16" >
+				<UserParam type="float" name="MS:1001155" value="-0.269477665"/>
+				<UserParam type="float" name="MS:1001156" value="0.254599005"/>
+				<UserParam type="float" name="calcMZ" value="433.738037109375"/>
 				<UserParam type="int" name="pass_threshold" value="1"/>
 				<UserParam type="int" name="start" value="0"/>
-				<UserParam type="int" name="end" value="8"/>
+				<UserParam type="int" name="end" value="12"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
 			</PeptideHit>
+			<PeptideHit score="-0.524077058" sequence="QEASQMAAMAEK" charge="3" start="0" end="12" protein_refs="PH_2" >
+				<UserParam type="float" name="MS:1001155" value="-0.524077058"/>
+				<UserParam type="float" name="MS:1001156" value="0"/>
+				<UserParam type="float" name="calcMZ" value="433.363708496094"/>
+				<UserParam type="int" name="pass_threshold" value="1"/>
+				<UserParam type="int" name="start" value="0"/>
+				<UserParam type="int" name="end" value="12"/>
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="SEQUEST:xcorr" higher_score_better="true" significance_threshold="0" MZ="433.778015136719" spectrum_reference="97-97" >
 			<PeptideHit score="0.423051775" sequence="TSFFQALGVPTK" charge="3" start="0" end="12" protein_refs="PH_16" >
 				<UserParam type="float" name="MS:1001155" value="0.423051775"/>
 				<UserParam type="float" name="MS:1001156" value="0.224387005"/>
@@ -1804,6 +1795,15 @@
 				<UserParam type="int" name="pass_threshold" value="1"/>
 				<UserParam type="int" name="start" value="0"/>
 				<UserParam type="int" name="end" value="12"/>
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</PeptideHit>
+			<PeptideHit score="0.374879688" sequence="MSSNAQVK" charge="2" start="0" end="8" protein_refs="PH_54" >
+				<UserParam type="float" name="MS:1001155" value="0.374879688"/>
+				<UserParam type="float" name="MS:1001156" value="0.0876780003"/>
+				<UserParam type="float" name="calcMZ" value="434.4658203125"/>
+				<UserParam type="int" name="pass_threshold" value="1"/>
+				<UserParam type="int" name="start" value="0"/>
+				<UserParam type="int" name="end" value="8"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
 			</PeptideHit>
 			<PeptideHit score="0.287201673" sequence="IMDTAGQK" charge="2" start="0" end="8" protein_refs="PH_27" >
@@ -1815,15 +1815,6 @@
 				<UserParam type="int" name="end" value="8"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
 			</PeptideHit>
-			<PeptideHit score="0.198664844" sequence="QEASQMAAMAEK" charge="3" start="0" end="12" protein_refs="PH_2" >
-				<UserParam type="float" name="MS:1001155" value="0.198664844"/>
-				<UserParam type="float" name="MS:1001156" value="0.137443006"/>
-				<UserParam type="float" name="calcMZ" value="433.363708496094"/>
-				<UserParam type="int" name="pass_threshold" value="1"/>
-				<UserParam type="int" name="start" value="0"/>
-				<UserParam type="int" name="end" value="12"/>
-				<UserParam type="string" name="target_decoy" value="target"/>
-			</PeptideHit>
 			<PeptideHit score="0.211027384" sequence="LAEWMSK" charge="2" start="0" end="7" protein_refs="PH_51" >
 				<UserParam type="float" name="MS:1001155" value="0.211027384"/>
 				<UserParam type="float" name="MS:1001156" value="0.0296061002"/>
@@ -1833,13 +1824,13 @@
 				<UserParam type="int" name="end" value="7"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
 			</PeptideHit>
-			<PeptideHit score="0.0612220988" sequence="LNNPAIALMWR" charge="3" start="0" end="11" protein_refs="PH_27" >
-				<UserParam type="float" name="MS:1001155" value="0.0612220988"/>
-				<UserParam type="float" name="MS:1001156" value="0"/>
-				<UserParam type="float" name="calcMZ" value="434.739440917969"/>
+			<PeptideHit score="0.198664844" sequence="QEASQMAAMAEK" charge="3" start="0" end="12" protein_refs="PH_2" >
+				<UserParam type="float" name="MS:1001155" value="0.198664844"/>
+				<UserParam type="float" name="MS:1001156" value="0.137443006"/>
+				<UserParam type="float" name="calcMZ" value="433.363708496094"/>
 				<UserParam type="int" name="pass_threshold" value="1"/>
 				<UserParam type="int" name="start" value="0"/>
-				<UserParam type="int" name="end" value="11"/>
+				<UserParam type="int" name="end" value="12"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
 			</PeptideHit>
 			<PeptideHit score="0.181421325" sequence="VLGTACDK" charge="2" start="0" end="8" protein_refs="PH_2" >
@@ -1860,6 +1851,15 @@
 				<UserParam type="int" name="end" value="7"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
 			</PeptideHit>
+			<PeptideHit score="0.0612220988" sequence="LNNPAIALMWR" charge="3" start="0" end="11" protein_refs="PH_27" >
+				<UserParam type="float" name="MS:1001155" value="0.0612220988"/>
+				<UserParam type="float" name="MS:1001156" value="0"/>
+				<UserParam type="float" name="calcMZ" value="434.739440917969"/>
+				<UserParam type="int" name="pass_threshold" value="1"/>
+				<UserParam type="int" name="start" value="0"/>
+				<UserParam type="int" name="end" value="11"/>
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="SEQUEST:xcorr" higher_score_better="true" significance_threshold="0" MZ="433.787994384766" spectrum_reference="33-33" >
 			<PeptideHit score="0.304391533" sequence="IMDTAGQK" charge="2" start="0" end="8" protein_refs="PH_27" >
@@ -1871,15 +1871,6 @@
 				<UserParam type="int" name="end" value="8"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
 			</PeptideHit>
-			<PeptideHit score="0.174489781" sequence="LNNPAIALMWR" charge="3" start="0" end="11" protein_refs="PH_27" >
-				<UserParam type="float" name="MS:1001155" value="0.174489781"/>
-				<UserParam type="float" name="MS:1001156" value="0.0239998996"/>
-				<UserParam type="float" name="calcMZ" value="434.739440917969"/>
-				<UserParam type="int" name="pass_threshold" value="1"/>
-				<UserParam type="int" name="start" value="0"/>
-				<UserParam type="int" name="end" value="11"/>
-				<UserParam type="string" name="target_decoy" value="target"/>
-			</PeptideHit>
 			<PeptideHit score="0.271142095" sequence="LAEWMSK" charge="2" start="0" end="7" protein_refs="PH_51" >
 				<UserParam type="float" name="MS:1001155" value="0.271142095"/>
 				<UserParam type="float" name="MS:1001156" value="0.151103005"/>
@@ -1887,6 +1878,15 @@
 				<UserParam type="int" name="pass_threshold" value="1"/>
 				<UserParam type="int" name="start" value="0"/>
 				<UserParam type="int" name="end" value="7"/>
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</PeptideHit>
+			<PeptideHit score="0.174489781" sequence="LNNPAIALMWR" charge="3" start="0" end="11" protein_refs="PH_27" >
+				<UserParam type="float" name="MS:1001155" value="0.174489781"/>
+				<UserParam type="float" name="MS:1001156" value="0.0239998996"/>
+				<UserParam type="float" name="calcMZ" value="434.739440917969"/>
+				<UserParam type="int" name="pass_threshold" value="1"/>
+				<UserParam type="int" name="start" value="0"/>
+				<UserParam type="int" name="end" value="11"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
 			</PeptideHit>
 			<PeptideHit score="0.150489897" sequence="TSFFQALGVPTK" charge="3" start="0" end="12" protein_refs="PH_16" >
@@ -1907,15 +1907,6 @@
 				<UserParam type="int" name="end" value="8"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
 			</PeptideHit>
-			<PeptideHit score="-0.0221122596" sequence="QEASQMAAMAEK" charge="3" start="0" end="12" protein_refs="PH_2" >
-				<UserParam type="float" name="MS:1001155" value="-0.0221122596"/>
-				<UserParam type="float" name="MS:1001156" value="0"/>
-				<UserParam type="float" name="calcMZ" value="433.363708496094"/>
-				<UserParam type="int" name="pass_threshold" value="1"/>
-				<UserParam type="int" name="start" value="0"/>
-				<UserParam type="int" name="end" value="12"/>
-				<UserParam type="string" name="target_decoy" value="target"/>
-			</PeptideHit>
 			<PeptideHit score="0.0850697607" sequence="AMASPEEK" charge="2" start="0" end="8" protein_refs="PH_35" >
 				<UserParam type="float" name="MS:1001155" value="0.0850697607"/>
 				<UserParam type="float" name="MS:1001156" value="0.119829997"/>
@@ -1923,6 +1914,15 @@
 				<UserParam type="int" name="pass_threshold" value="1"/>
 				<UserParam type="int" name="start" value="0"/>
 				<UserParam type="int" name="end" value="8"/>
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</PeptideHit>
+			<PeptideHit score="-0.0221122596" sequence="QEASQMAAMAEK" charge="3" start="0" end="12" protein_refs="PH_2" >
+				<UserParam type="float" name="MS:1001155" value="-0.0221122596"/>
+				<UserParam type="float" name="MS:1001156" value="0"/>
+				<UserParam type="float" name="calcMZ" value="433.363708496094"/>
+				<UserParam type="int" name="pass_threshold" value="1"/>
+				<UserParam type="int" name="start" value="0"/>
+				<UserParam type="int" name="end" value="12"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
 			</PeptideHit>
 			<PeptideHit score="-0.0347601995" sequence="NIQHPEK" charge="2" start="0" end="7" protein_refs="PH_46" >
@@ -2071,6 +2071,12 @@
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="SEQUEST:xcorr" higher_score_better="true" significance_threshold="0" MZ="452.217956542969" spectrum_reference="78-78" >
+			<PeptideHit score="0.405608177" sequence="SSSPLAM[15.99]SETLSK" charge="3" >
+				<UserParam type="float" name="MS:1001155" value="0.405608177"/>
+				<UserParam type="float" name="MS:1001156" value="0.374758005"/>
+				<UserParam type="float" name="calcMZ" value="453.055419921875"/>
+				<UserParam type="int" name="pass_threshold" value="1"/>
+			</PeptideHit>
 			<PeptideHit score="0.389462888" sequence="SSFNDISK" charge="2" start="0" end="8" protein_refs="PH_8" >
 				<UserParam type="float" name="MS:1001155" value="0.389462888"/>
 				<UserParam type="float" name="MS:1001156" value="0.141886994"/>
@@ -2079,12 +2085,6 @@
 				<UserParam type="int" name="start" value="0"/>
 				<UserParam type="int" name="end" value="8"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
-			</PeptideHit>
-			<PeptideHit score="0.405608177" sequence="SSSPLAM[15.99]SETLSK" charge="3" >
-				<UserParam type="float" name="MS:1001155" value="0.405608177"/>
-				<UserParam type="float" name="MS:1001156" value="0.374758005"/>
-				<UserParam type="float" name="calcMZ" value="453.055419921875"/>
-				<UserParam type="int" name="pass_threshold" value="1"/>
 			</PeptideHit>
 			<PeptideHit score="0.247575402" sequence="LDDEFMK" charge="2" start="0" end="7" protein_refs="PH_8" >
 				<UserParam type="float" name="MS:1001155" value="0.247575402"/>
@@ -2095,15 +2095,6 @@
 				<UserParam type="int" name="end" value="7"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
 			</PeptideHit>
-			<PeptideHit score="0.0308500193" sequence="DETCESNPFPR" charge="3" start="0" end="11" protein_refs="PH_17" >
-				<UserParam type="float" name="MS:1001155" value="0.0308500193"/>
-				<UserParam type="float" name="MS:1001156" value="0.0870347023"/>
-				<UserParam type="float" name="calcMZ" value="452.357604980469"/>
-				<UserParam type="int" name="pass_threshold" value="1"/>
-				<UserParam type="int" name="start" value="0"/>
-				<UserParam type="int" name="end" value="11"/>
-				<UserParam type="string" name="target_decoy" value="target"/>
-			</PeptideHit>
 			<PeptideHit score="0.181412339" sequence="IFTEEMK" charge="2" start="0" end="7" protein_refs="PH_32" >
 				<UserParam type="float" name="MS:1001155" value="0.181412339"/>
 				<UserParam type="float" name="MS:1001156" value="0.0851048976"/>
@@ -2111,15 +2102,6 @@
 				<UserParam type="int" name="pass_threshold" value="1"/>
 				<UserParam type="int" name="start" value="0"/>
 				<UserParam type="int" name="end" value="7"/>
-				<UserParam type="string" name="target_decoy" value="target"/>
-			</PeptideHit>
-			<PeptideHit score="-0.0561846383" sequence="LVETLPSSYPSR" charge="3" start="0" end="12" protein_refs="PH_51" >
-				<UserParam type="float" name="MS:1001155" value="-0.0561846383"/>
-				<UserParam type="float" name="MS:1001156" value="0"/>
-				<UserParam type="float" name="calcMZ" value="451.408386230469"/>
-				<UserParam type="int" name="pass_threshold" value="1"/>
-				<UserParam type="int" name="start" value="0"/>
-				<UserParam type="int" name="end" value="12"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
 			</PeptideHit>
 			<PeptideHit score="0.0963074788" sequence="MSSDGMNR" charge="2" start="0" end="8" protein_refs="PH_13" >
@@ -2140,17 +2122,26 @@
 				<UserParam type="int" name="end" value="7"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
 			</PeptideHit>
-		</PeptideIdentification>
-		<PeptideIdentification score_type="SEQUEST:xcorr" higher_score_better="true" significance_threshold="0" MZ="452.847961425781" spectrum_reference="82-82" >
-			<PeptideHit score="0.295319974" sequence="ITADYYR" charge="2" start="0" end="7" protein_refs="PH_17" >
-				<UserParam type="float" name="MS:1001155" value="0.295319974"/>
-				<UserParam type="float" name="MS:1001156" value="0.0881235972"/>
-				<UserParam type="float" name="calcMZ" value="452.974365234375"/>
+			<PeptideHit score="0.0308500193" sequence="DETCESNPFPR" charge="3" start="0" end="11" protein_refs="PH_17" >
+				<UserParam type="float" name="MS:1001155" value="0.0308500193"/>
+				<UserParam type="float" name="MS:1001156" value="0.0870347023"/>
+				<UserParam type="float" name="calcMZ" value="452.357604980469"/>
 				<UserParam type="int" name="pass_threshold" value="1"/>
 				<UserParam type="int" name="start" value="0"/>
-				<UserParam type="int" name="end" value="7"/>
+				<UserParam type="int" name="end" value="11"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
 			</PeptideHit>
+			<PeptideHit score="-0.0561846383" sequence="LVETLPSSYPSR" charge="3" start="0" end="12" protein_refs="PH_51" >
+				<UserParam type="float" name="MS:1001155" value="-0.0561846383"/>
+				<UserParam type="float" name="MS:1001156" value="0"/>
+				<UserParam type="float" name="calcMZ" value="451.408386230469"/>
+				<UserParam type="int" name="pass_threshold" value="1"/>
+				<UserParam type="int" name="start" value="0"/>
+				<UserParam type="int" name="end" value="12"/>
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="SEQUEST:xcorr" higher_score_better="true" significance_threshold="0" MZ="452.847961425781" spectrum_reference="82-82" >
 			<PeptideHit score="0.367474943" sequence="GDDEANGATSFDR" charge="3" start="0" end="13" protein_refs="PH_6" >
 				<UserParam type="float" name="MS:1001155" value="0.367474943"/>
 				<UserParam type="float" name="MS:1001156" value="0.243072003"/>
@@ -2158,6 +2149,15 @@
 				<UserParam type="int" name="pass_threshold" value="1"/>
 				<UserParam type="int" name="start" value="0"/>
 				<UserParam type="int" name="end" value="13"/>
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</PeptideHit>
+			<PeptideHit score="0.295319974" sequence="ITADYYR" charge="2" start="0" end="7" protein_refs="PH_17" >
+				<UserParam type="float" name="MS:1001155" value="0.295319974"/>
+				<UserParam type="float" name="MS:1001156" value="0.0881235972"/>
+				<UserParam type="float" name="calcMZ" value="452.974365234375"/>
+				<UserParam type="int" name="pass_threshold" value="1"/>
+				<UserParam type="int" name="start" value="0"/>
+				<UserParam type="int" name="end" value="7"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
 			</PeptideHit>
 			<PeptideHit score="0.207196325" sequence="VLNAPHPR" charge="2" start="0" end="8" protein_refs="PH_4" >
@@ -2169,12 +2169,6 @@
 				<UserParam type="int" name="end" value="8"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
 			</PeptideHit>
-			<PeptideHit score="0.124402657" sequence="SSSPLAM[15.99]SETLSK" charge="3" >
-				<UserParam type="float" name="MS:1001155" value="0.124402657"/>
-				<UserParam type="float" name="MS:1001156" value="0.0268933997"/>
-				<UserParam type="float" name="calcMZ" value="453.055419921875"/>
-				<UserParam type="int" name="pass_threshold" value="1"/>
-			</PeptideHit>
 			<PeptideHit score="0.131824955" sequence="DTGVVDAVK" charge="2" start="0" end="9" protein_refs="PH_7" >
 				<UserParam type="float" name="MS:1001155" value="0.131824955"/>
 				<UserParam type="float" name="MS:1001156" value="0.0551347993"/>
@@ -2183,6 +2177,12 @@
 				<UserParam type="int" name="start" value="0"/>
 				<UserParam type="int" name="end" value="9"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
+			</PeptideHit>
+			<PeptideHit score="0.124402657" sequence="SSSPLAM[15.99]SETLSK" charge="3" >
+				<UserParam type="float" name="MS:1001155" value="0.124402657"/>
+				<UserParam type="float" name="MS:1001156" value="0.0268933997"/>
+				<UserParam type="float" name="calcMZ" value="453.055419921875"/>
+				<UserParam type="int" name="pass_threshold" value="1"/>
 			</PeptideHit>
 			<PeptideHit score="0.0975092426" sequence="YQVTVIDAPGHR" charge="3" start="0" end="12" protein_refs="PH_50" >
 				<UserParam type="float" name="MS:1001155" value="0.0975092426"/>
@@ -2202,15 +2202,6 @@
 				<UserParam type="int" name="end" value="7"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
 			</PeptideHit>
-			<PeptideHit score="-0.0469501801" sequence="GEYHFFQGITR" charge="3" start="0" end="11" protein_refs="PH_25" >
-				<UserParam type="float" name="MS:1001155" value="-0.0469501801"/>
-				<UserParam type="float" name="MS:1001156" value="0.00066664099"/>
-				<UserParam type="float" name="calcMZ" value="453.389526367188"/>
-				<UserParam type="int" name="pass_threshold" value="1"/>
-				<UserParam type="int" name="start" value="0"/>
-				<UserParam type="int" name="end" value="11"/>
-				<UserParam type="string" name="target_decoy" value="target"/>
-			</PeptideHit>
 			<PeptideHit score="0.0517874211" sequence="VIAVTNGTK" charge="2" start="0" end="9" protein_refs="PH_34" >
 				<UserParam type="float" name="MS:1001155" value="0.0517874211"/>
 				<UserParam type="float" name="MS:1001156" value="0.0148831997"/>
@@ -2218,6 +2209,15 @@
 				<UserParam type="int" name="pass_threshold" value="1"/>
 				<UserParam type="int" name="start" value="0"/>
 				<UserParam type="int" name="end" value="9"/>
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</PeptideHit>
+			<PeptideHit score="-0.0469501801" sequence="GEYHFFQGITR" charge="3" start="0" end="11" protein_refs="PH_25" >
+				<UserParam type="float" name="MS:1001155" value="-0.0469501801"/>
+				<UserParam type="float" name="MS:1001156" value="0.00066664099"/>
+				<UserParam type="float" name="calcMZ" value="453.389526367188"/>
+				<UserParam type="int" name="pass_threshold" value="1"/>
+				<UserParam type="int" name="start" value="0"/>
+				<UserParam type="int" name="end" value="11"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
 			</PeptideHit>
 			<PeptideHit score="-0.0476168208" sequence="DETCESNPFPR" charge="3" start="0" end="11" protein_refs="PH_17" >
@@ -2287,15 +2287,6 @@
 				<UserParam type="int" name="end" value="9"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
 			</PeptideHit>
-			<PeptideHit score="0.310427457" sequence="SGDAETAAYDNIK" charge="3" start="0" end="13" protein_refs="PH_46" >
-				<UserParam type="float" name="MS:1001155" value="0.310427457"/>
-				<UserParam type="float" name="MS:1001156" value="0.134288996"/>
-				<UserParam type="float" name="calcMZ" value="453.375610351563"/>
-				<UserParam type="int" name="pass_threshold" value="1"/>
-				<UserParam type="int" name="start" value="0"/>
-				<UserParam type="int" name="end" value="13"/>
-				<UserParam type="string" name="target_decoy" value="target"/>
-			</PeptideHit>
 			<PeptideHit score="0.316090763" sequence="QFWLGPR" charge="2" start="0" end="7" protein_refs="PH_51" >
 				<UserParam type="float" name="MS:1001155" value="0.316090763"/>
 				<UserParam type="float" name="MS:1001156" value="0.0733973011"/>
@@ -2305,10 +2296,10 @@
 				<UserParam type="int" name="end" value="7"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
 			</PeptideHit>
-			<PeptideHit score="0.176138863" sequence="GDDEANGATSFDR" charge="3" start="0" end="13" protein_refs="PH_6" >
-				<UserParam type="float" name="MS:1001155" value="0.176138863"/>
-				<UserParam type="float" name="MS:1001156" value="0.134174004"/>
-				<UserParam type="float" name="calcMZ" value="453.355041503906"/>
+			<PeptideHit score="0.310427457" sequence="SGDAETAAYDNIK" charge="3" start="0" end="13" protein_refs="PH_46" >
+				<UserParam type="float" name="MS:1001155" value="0.310427457"/>
+				<UserParam type="float" name="MS:1001156" value="0.134288996"/>
+				<UserParam type="float" name="calcMZ" value="453.375610351563"/>
 				<UserParam type="int" name="pass_threshold" value="1"/>
 				<UserParam type="int" name="start" value="0"/>
 				<UserParam type="int" name="end" value="13"/>
@@ -2323,13 +2314,13 @@
 				<UserParam type="int" name="end" value="7"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
 			</PeptideHit>
-			<PeptideHit score="0.0419646204" sequence="DETCESNPFPR" charge="3" start="0" end="11" protein_refs="PH_17" >
-				<UserParam type="float" name="MS:1001155" value="0.0419646204"/>
-				<UserParam type="float" name="MS:1001156" value="0.0410737991"/>
-				<UserParam type="float" name="calcMZ" value="452.357604980469"/>
+			<PeptideHit score="0.176138863" sequence="GDDEANGATSFDR" charge="3" start="0" end="13" protein_refs="PH_6" >
+				<UserParam type="float" name="MS:1001155" value="0.176138863"/>
+				<UserParam type="float" name="MS:1001156" value="0.134174004"/>
+				<UserParam type="float" name="calcMZ" value="453.355041503906"/>
 				<UserParam type="int" name="pass_threshold" value="1"/>
 				<UserParam type="int" name="start" value="0"/>
-				<UserParam type="int" name="end" value="11"/>
+				<UserParam type="int" name="end" value="13"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
 			</PeptideHit>
 			<PeptideHit score="0.171776086" sequence="NLALLFGR" charge="2" start="0" end="8" protein_refs="PH_15" >
@@ -2341,15 +2332,6 @@
 				<UserParam type="int" name="end" value="8"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
 			</PeptideHit>
-			<PeptideHit score="0.000890780007" sequence="GMLNVQLLVVNR" charge="3" start="0" end="12" protein_refs="PH_51" >
-				<UserParam type="float" name="MS:1001155" value="0.000890780007"/>
-				<UserParam type="float" name="MS:1001156" value="0.0875917971"/>
-				<UserParam type="float" name="calcMZ" value="453.765777587891"/>
-				<UserParam type="int" name="pass_threshold" value="1"/>
-				<UserParam type="int" name="start" value="0"/>
-				<UserParam type="int" name="end" value="12"/>
-				<UserParam type="string" name="target_decoy" value="target"/>
-			</PeptideHit>
 			<PeptideHit score="0.120219283" sequence="VLNAPHPR" charge="2" start="0" end="8" protein_refs="PH_4" >
 				<UserParam type="float" name="MS:1001155" value="0.120219283"/>
 				<UserParam type="float" name="MS:1001156" value="0.0174707007"/>
@@ -2357,6 +2339,24 @@
 				<UserParam type="int" name="pass_threshold" value="1"/>
 				<UserParam type="int" name="start" value="0"/>
 				<UserParam type="int" name="end" value="8"/>
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</PeptideHit>
+			<PeptideHit score="0.0419646204" sequence="DETCESNPFPR" charge="3" start="0" end="11" protein_refs="PH_17" >
+				<UserParam type="float" name="MS:1001155" value="0.0419646204"/>
+				<UserParam type="float" name="MS:1001156" value="0.0410737991"/>
+				<UserParam type="float" name="calcMZ" value="452.357604980469"/>
+				<UserParam type="int" name="pass_threshold" value="1"/>
+				<UserParam type="int" name="start" value="0"/>
+				<UserParam type="int" name="end" value="11"/>
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</PeptideHit>
+			<PeptideHit score="0.000890780007" sequence="GMLNVQLLVVNR" charge="3" start="0" end="12" protein_refs="PH_51" >
+				<UserParam type="float" name="MS:1001155" value="0.000890780007"/>
+				<UserParam type="float" name="MS:1001156" value="0.0875917971"/>
+				<UserParam type="float" name="calcMZ" value="453.765777587891"/>
+				<UserParam type="int" name="pass_threshold" value="1"/>
+				<UserParam type="int" name="start" value="0"/>
+				<UserParam type="int" name="end" value="12"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
 			</PeptideHit>
 			<PeptideHit score="-0.0867009833" sequence="SSSPLAM[15.99]SETLSK" charge="3" >
@@ -2367,15 +2367,6 @@
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="SEQUEST:xcorr" higher_score_better="true" significance_threshold="0" MZ="452.847961425781" spectrum_reference="73-73" >
-			<PeptideHit score="0.293001294" sequence="VLNAPHPR" charge="2" start="0" end="8" protein_refs="PH_4" >
-				<UserParam type="float" name="MS:1001155" value="0.293001294"/>
-				<UserParam type="float" name="MS:1001156" value="0.0723541006"/>
-				<UserParam type="float" name="calcMZ" value="454.011566162109"/>
-				<UserParam type="int" name="pass_threshold" value="1"/>
-				<UserParam type="int" name="start" value="0"/>
-				<UserParam type="int" name="end" value="8"/>
-				<UserParam type="string" name="target_decoy" value="target"/>
-			</PeptideHit>
 			<PeptideHit score="0.643684924" sequence="GDDEANGATSFDR" charge="3" start="0" end="13" protein_refs="PH_6" >
 				<UserParam type="float" name="MS:1001155" value="0.643684924"/>
 				<UserParam type="float" name="MS:1001156" value="0.219215006"/>
@@ -2383,15 +2374,6 @@
 				<UserParam type="int" name="pass_threshold" value="1"/>
 				<UserParam type="int" name="start" value="0"/>
 				<UserParam type="int" name="end" value="13"/>
-				<UserParam type="string" name="target_decoy" value="target"/>
-			</PeptideHit>
-			<PeptideHit score="0.220647216" sequence="ITADYYR" charge="2" start="0" end="7" protein_refs="PH_17" >
-				<UserParam type="float" name="MS:1001155" value="0.220647216"/>
-				<UserParam type="float" name="MS:1001156" value="0.0533109009"/>
-				<UserParam type="float" name="calcMZ" value="452.974365234375"/>
-				<UserParam type="int" name="pass_threshold" value="1"/>
-				<UserParam type="int" name="start" value="0"/>
-				<UserParam type="int" name="end" value="7"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
 			</PeptideHit>
 			<PeptideHit score="0.424469918" sequence="GMLNVQLLVVNR" charge="3" start="0" end="12" protein_refs="PH_51" >
@@ -2403,15 +2385,6 @@
 				<UserParam type="int" name="end" value="12"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
 			</PeptideHit>
-			<PeptideHit score="0.1673363" sequence="NLALLFGR" charge="2" start="0" end="8" protein_refs="PH_15" >
-				<UserParam type="float" name="MS:1001155" value="0.1673363"/>
-				<UserParam type="float" name="MS:1001156" value="0.0786788985"/>
-				<UserParam type="float" name="calcMZ" value="454.024169921875"/>
-				<UserParam type="int" name="pass_threshold" value="1"/>
-				<UserParam type="int" name="start" value="0"/>
-				<UserParam type="int" name="end" value="8"/>
-				<UserParam type="string" name="target_decoy" value="target"/>
-			</PeptideHit>
 			<PeptideHit score="0.322878897" sequence="DETCESNPFPR" charge="3" start="0" end="11" protein_refs="PH_17" >
 				<UserParam type="float" name="MS:1001155" value="0.322878897"/>
 				<UserParam type="float" name="MS:1001156" value="0.145734996"/>
@@ -2421,13 +2394,22 @@
 				<UserParam type="int" name="end" value="11"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
 			</PeptideHit>
-			<PeptideHit score="0.0886573792" sequence="DTGVVDAVK" charge="2" start="0" end="9" protein_refs="PH_7" >
-				<UserParam type="float" name="MS:1001155" value="0.0886573792"/>
-				<UserParam type="float" name="MS:1001156" value="0.0693745017"/>
-				<UserParam type="float" name="calcMZ" value="453.992706298828"/>
+			<PeptideHit score="0.293001294" sequence="VLNAPHPR" charge="2" start="0" end="8" protein_refs="PH_4" >
+				<UserParam type="float" name="MS:1001155" value="0.293001294"/>
+				<UserParam type="float" name="MS:1001156" value="0.0723541006"/>
+				<UserParam type="float" name="calcMZ" value="454.011566162109"/>
 				<UserParam type="int" name="pass_threshold" value="1"/>
 				<UserParam type="int" name="start" value="0"/>
-				<UserParam type="int" name="end" value="9"/>
+				<UserParam type="int" name="end" value="8"/>
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</PeptideHit>
+			<PeptideHit score="0.220647216" sequence="ITADYYR" charge="2" start="0" end="7" protein_refs="PH_17" >
+				<UserParam type="float" name="MS:1001155" value="0.220647216"/>
+				<UserParam type="float" name="MS:1001156" value="0.0533109009"/>
+				<UserParam type="float" name="calcMZ" value="452.974365234375"/>
+				<UserParam type="int" name="pass_threshold" value="1"/>
+				<UserParam type="int" name="start" value="0"/>
+				<UserParam type="int" name="end" value="7"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
 			</PeptideHit>
 			<PeptideHit score="0.177144036" sequence="YQVTVIDAPGHR" charge="3" start="0" end="12" protein_refs="PH_50" >
@@ -2439,15 +2421,6 @@
 				<UserParam type="int" name="end" value="12"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
 			</PeptideHit>
-			<PeptideHit score="0.0192828998" sequence="STVVSANPK" charge="2" start="0" end="9" protein_refs="PH_3" >
-				<UserParam type="float" name="MS:1001155" value="0.0192828998"/>
-				<UserParam type="float" name="MS:1001156" value="0.0284129009"/>
-				<UserParam type="float" name="calcMZ" value="453.500701904297"/>
-				<UserParam type="int" name="pass_threshold" value="1"/>
-				<UserParam type="int" name="start" value="0"/>
-				<UserParam type="int" name="end" value="9"/>
-				<UserParam type="string" name="target_decoy" value="target"/>
-			</PeptideHit>
 			<PeptideHit score="0.168826073" sequence="SGDAETAAYDNIK" charge="3" start="0" end="13" protein_refs="PH_46" >
 				<UserParam type="float" name="MS:1001155" value="0.168826073"/>
 				<UserParam type="float" name="MS:1001156" value="0.164949998"/>
@@ -2455,6 +2428,33 @@
 				<UserParam type="int" name="pass_threshold" value="1"/>
 				<UserParam type="int" name="start" value="0"/>
 				<UserParam type="int" name="end" value="13"/>
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</PeptideHit>
+			<PeptideHit score="0.1673363" sequence="NLALLFGR" charge="2" start="0" end="8" protein_refs="PH_15" >
+				<UserParam type="float" name="MS:1001155" value="0.1673363"/>
+				<UserParam type="float" name="MS:1001156" value="0.0786788985"/>
+				<UserParam type="float" name="calcMZ" value="454.024169921875"/>
+				<UserParam type="int" name="pass_threshold" value="1"/>
+				<UserParam type="int" name="start" value="0"/>
+				<UserParam type="int" name="end" value="8"/>
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</PeptideHit>
+			<PeptideHit score="0.0886573792" sequence="DTGVVDAVK" charge="2" start="0" end="9" protein_refs="PH_7" >
+				<UserParam type="float" name="MS:1001155" value="0.0886573792"/>
+				<UserParam type="float" name="MS:1001156" value="0.0693745017"/>
+				<UserParam type="float" name="calcMZ" value="453.992706298828"/>
+				<UserParam type="int" name="pass_threshold" value="1"/>
+				<UserParam type="int" name="start" value="0"/>
+				<UserParam type="int" name="end" value="9"/>
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</PeptideHit>
+			<PeptideHit score="0.0192828998" sequence="STVVSANPK" charge="2" start="0" end="9" protein_refs="PH_3" >
+				<UserParam type="float" name="MS:1001155" value="0.0192828998"/>
+				<UserParam type="float" name="MS:1001156" value="0.0284129009"/>
+				<UserParam type="float" name="calcMZ" value="453.500701904297"/>
+				<UserParam type="int" name="pass_threshold" value="1"/>
+				<UserParam type="int" name="start" value="0"/>
+				<UserParam type="int" name="end" value="9"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
 			</PeptideHit>
 		</PeptideIdentification>
@@ -2644,15 +2644,6 @@
 				<UserParam type="float" name="calcMZ" value="468.992248535156"/>
 				<UserParam type="int" name="pass_threshold" value="1"/>
 			</PeptideHit>
-			<PeptideHit score="0.102893203" sequence="ELILLGGTAIEDR" charge="3" start="0" end="13" protein_refs="PH_43" >
-				<UserParam type="float" name="MS:1001155" value="0.102893203"/>
-				<UserParam type="float" name="MS:1001156" value="0.119383998"/>
-				<UserParam type="float" name="calcMZ" value="468.431213378906"/>
-				<UserParam type="int" name="pass_threshold" value="1"/>
-				<UserParam type="int" name="start" value="0"/>
-				<UserParam type="int" name="end" value="13"/>
-				<UserParam type="string" name="target_decoy" value="target"/>
-			</PeptideHit>
 			<PeptideHit score="0.396392673" sequence="VLPGPEVPK" charge="2" start="0" end="9" protein_refs="PH_27" >
 				<UserParam type="float" name="MS:1001155" value="0.396392673"/>
 				<UserParam type="float" name="MS:1001156" value="0.0170549992"/>
@@ -2662,16 +2653,43 @@
 				<UserParam type="int" name="end" value="9"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
 			</PeptideHit>
-			<PeptideHit score="-0.0164906792" sequence="LAEM[15.99]IPQFFYK" charge="3" >
-				<UserParam type="float" name="MS:1001155" value="-0.0164906792"/>
-				<UserParam type="float" name="MS:1001156" value="0.0403986014"/>
-				<UserParam type="float" name="calcMZ" value="469.40576171875"/>
-				<UserParam type="int" name="pass_threshold" value="1"/>
-			</PeptideHit>
 			<PeptideHit score="0.379337668" sequence="LQWM[15.99]VDK" charge="2" >
 				<UserParam type="float" name="MS:1001155" value="0.379337668"/>
 				<UserParam type="float" name="MS:1001156" value="0.215928003"/>
 				<UserParam type="float" name="calcMZ" value="469.983917236328"/>
+				<UserParam type="int" name="pass_threshold" value="1"/>
+			</PeptideHit>
+			<PeptideHit score="0.163409993" sequence="ALTRPFVK" charge="2" start="0" end="8" protein_refs="PH_8" >
+				<UserParam type="float" name="MS:1001155" value="0.163409993"/>
+				<UserParam type="float" name="MS:1001156" value="0.0554330014"/>
+				<UserParam type="float" name="calcMZ" value="468.039794921875"/>
+				<UserParam type="int" name="pass_threshold" value="1"/>
+				<UserParam type="int" name="start" value="0"/>
+				<UserParam type="int" name="end" value="8"/>
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</PeptideHit>
+			<PeptideHit score="0.107977003" sequence="QVSDIVNR" charge="2" start="0" end="8" protein_refs="PH_30" >
+				<UserParam type="float" name="MS:1001155" value="0.107977003"/>
+				<UserParam type="float" name="MS:1001156" value="0.00749586988"/>
+				<UserParam type="float" name="calcMZ" value="467.503784179688"/>
+				<UserParam type="int" name="pass_threshold" value="1"/>
+				<UserParam type="int" name="start" value="0"/>
+				<UserParam type="int" name="end" value="8"/>
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</PeptideHit>
+			<PeptideHit score="0.102893203" sequence="ELILLGGTAIEDR" charge="3" start="0" end="13" protein_refs="PH_43" >
+				<UserParam type="float" name="MS:1001155" value="0.102893203"/>
+				<UserParam type="float" name="MS:1001156" value="0.119383998"/>
+				<UserParam type="float" name="calcMZ" value="468.431213378906"/>
+				<UserParam type="int" name="pass_threshold" value="1"/>
+				<UserParam type="int" name="start" value="0"/>
+				<UserParam type="int" name="end" value="13"/>
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</PeptideHit>
+			<PeptideHit score="-0.0164906792" sequence="LAEM[15.99]IPQFFYK" charge="3" >
+				<UserParam type="float" name="MS:1001155" value="-0.0164906792"/>
+				<UserParam type="float" name="MS:1001156" value="0.0403986014"/>
+				<UserParam type="float" name="calcMZ" value="469.40576171875"/>
 				<UserParam type="int" name="pass_threshold" value="1"/>
 			</PeptideHit>
 			<PeptideHit score="-0.0568892993" sequence="MTSGYYLGELLR" charge="3" start="0" end="12" protein_refs="PH_38" >
@@ -2683,29 +2701,11 @@
 				<UserParam type="int" name="end" value="12"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
 			</PeptideHit>
-			<PeptideHit score="0.163409993" sequence="ALTRPFVK" charge="2" start="0" end="8" protein_refs="PH_8" >
-				<UserParam type="float" name="MS:1001155" value="0.163409993"/>
-				<UserParam type="float" name="MS:1001156" value="0.0554330014"/>
-				<UserParam type="float" name="calcMZ" value="468.039794921875"/>
-				<UserParam type="int" name="pass_threshold" value="1"/>
-				<UserParam type="int" name="start" value="0"/>
-				<UserParam type="int" name="end" value="8"/>
-				<UserParam type="string" name="target_decoy" value="target"/>
-			</PeptideHit>
 			<PeptideHit score="-0.300150365" sequence="M[15.99]NAQGSLSM[15.99]EDGK" charge="3" >
 				<UserParam type="float" name="MS:1001155" value="-0.300150365"/>
 				<UserParam type="float" name="MS:1001156" value="0"/>
 				<UserParam type="float" name="calcMZ" value="468.362548828125"/>
 				<UserParam type="int" name="pass_threshold" value="1"/>
-			</PeptideHit>
-			<PeptideHit score="0.107977003" sequence="QVSDIVNR" charge="2" start="0" end="8" protein_refs="PH_30" >
-				<UserParam type="float" name="MS:1001155" value="0.107977003"/>
-				<UserParam type="float" name="MS:1001156" value="0.00749586988"/>
-				<UserParam type="float" name="calcMZ" value="467.503784179688"/>
-				<UserParam type="int" name="pass_threshold" value="1"/>
-				<UserParam type="int" name="start" value="0"/>
-				<UserParam type="int" name="end" value="8"/>
-				<UserParam type="string" name="target_decoy" value="target"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="SEQUEST:xcorr" higher_score_better="true" significance_threshold="0" MZ="468.798004150391" spectrum_reference="68-68" >
@@ -2714,6 +2714,24 @@
 				<UserParam type="float" name="MS:1001156" value="0.157470003"/>
 				<UserParam type="float" name="calcMZ" value="468.992248535156"/>
 				<UserParam type="int" name="pass_threshold" value="1"/>
+			</PeptideHit>
+			<PeptideHit score="0.375432134" sequence="LWVLTGDK" charge="2" start="0" end="8" protein_refs="PH_43" >
+				<UserParam type="float" name="MS:1001155" value="0.375432134"/>
+				<UserParam type="float" name="MS:1001156" value="0.104200996"/>
+				<UserParam type="float" name="calcMZ" value="468.015991210938"/>
+				<UserParam type="int" name="pass_threshold" value="1"/>
+				<UserParam type="int" name="start" value="0"/>
+				<UserParam type="int" name="end" value="8"/>
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</PeptideHit>
+			<PeptideHit score="0.271230668" sequence="IAPELFLK" charge="2" start="0" end="8" protein_refs="PH_45" >
+				<UserParam type="float" name="MS:1001155" value="0.271230668"/>
+				<UserParam type="float" name="MS:1001156" value="0.0480647013"/>
+				<UserParam type="float" name="calcMZ" value="467.536560058594"/>
+				<UserParam type="int" name="pass_threshold" value="1"/>
+				<UserParam type="int" name="start" value="0"/>
+				<UserParam type="int" name="end" value="8"/>
+				<UserParam type="string" name="target_decoy" value="target"/>
 			</PeptideHit>
 			<PeptideHit score="0.238968655" sequence="ELILLGGTAIEDR" charge="3" start="0" end="13" protein_refs="PH_43" >
 				<UserParam type="float" name="MS:1001155" value="0.238968655"/>
@@ -2724,10 +2742,16 @@
 				<UserParam type="int" name="end" value="13"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
 			</PeptideHit>
-			<PeptideHit score="0.375432134" sequence="LWVLTGDK" charge="2" start="0" end="8" protein_refs="PH_43" >
-				<UserParam type="float" name="MS:1001155" value="0.375432134"/>
-				<UserParam type="float" name="MS:1001156" value="0.104200996"/>
-				<UserParam type="float" name="calcMZ" value="468.015991210938"/>
+			<PeptideHit score="0.223166004" sequence="LQWM[15.99]VDK" charge="2" >
+				<UserParam type="float" name="MS:1001155" value="0.223166004"/>
+				<UserParam type="float" name="MS:1001156" value="0.0257951003"/>
+				<UserParam type="float" name="calcMZ" value="469.983917236328"/>
+				<UserParam type="int" name="pass_threshold" value="1"/>
+			</PeptideHit>
+			<PeptideHit score="0.197370917" sequence="IETGELIR" charge="2" start="0" end="8" protein_refs="PH_15" >
+				<UserParam type="float" name="MS:1001155" value="0.197370917"/>
+				<UserParam type="float" name="MS:1001156" value="0.0111004002"/>
+				<UserParam type="float" name="calcMZ" value="467.516326904297"/>
 				<UserParam type="int" name="pass_threshold" value="1"/>
 				<UserParam type="int" name="start" value="0"/>
 				<UserParam type="int" name="end" value="8"/>
@@ -2742,25 +2766,10 @@
 				<UserParam type="int" name="end" value="12"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
 			</PeptideHit>
-			<PeptideHit score="0.271230668" sequence="IAPELFLK" charge="2" start="0" end="8" protein_refs="PH_45" >
-				<UserParam type="float" name="MS:1001155" value="0.271230668"/>
-				<UserParam type="float" name="MS:1001156" value="0.0480647013"/>
-				<UserParam type="float" name="calcMZ" value="467.536560058594"/>
-				<UserParam type="int" name="pass_threshold" value="1"/>
-				<UserParam type="int" name="start" value="0"/>
-				<UserParam type="int" name="end" value="8"/>
-				<UserParam type="string" name="target_decoy" value="target"/>
-			</PeptideHit>
 			<PeptideHit score="-0.158632085" sequence="LAEM[15.99]IPQFFYK" charge="3" >
 				<UserParam type="float" name="MS:1001155" value="-0.158632085"/>
 				<UserParam type="float" name="MS:1001156" value="0.0346623994"/>
 				<UserParam type="float" name="calcMZ" value="469.40576171875"/>
-				<UserParam type="int" name="pass_threshold" value="1"/>
-			</PeptideHit>
-			<PeptideHit score="0.223166004" sequence="LQWM[15.99]VDK" charge="2" >
-				<UserParam type="float" name="MS:1001155" value="0.223166004"/>
-				<UserParam type="float" name="MS:1001156" value="0.0257951003"/>
-				<UserParam type="float" name="calcMZ" value="469.983917236328"/>
 				<UserParam type="int" name="pass_threshold" value="1"/>
 			</PeptideHit>
 			<PeptideHit score="-0.193294525" sequence="M[15.99]NAQGSLSM[15.99]EDGK" charge="3" >
@@ -2769,26 +2778,8 @@
 				<UserParam type="float" name="calcMZ" value="468.362548828125"/>
 				<UserParam type="int" name="pass_threshold" value="1"/>
 			</PeptideHit>
-			<PeptideHit score="0.197370917" sequence="IETGELIR" charge="2" start="0" end="8" protein_refs="PH_15" >
-				<UserParam type="float" name="MS:1001155" value="0.197370917"/>
-				<UserParam type="float" name="MS:1001156" value="0.0111004002"/>
-				<UserParam type="float" name="calcMZ" value="467.516326904297"/>
-				<UserParam type="int" name="pass_threshold" value="1"/>
-				<UserParam type="int" name="start" value="0"/>
-				<UserParam type="int" name="end" value="8"/>
-				<UserParam type="string" name="target_decoy" value="target"/>
-			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="SEQUEST:xcorr" higher_score_better="true" significance_threshold="0" MZ="474.298004150391" spectrum_reference="59-59" >
-			<PeptideHit score="0.490431994" sequence="AVSYFEVK" charge="2" start="0" end="8" protein_refs="PH_51" >
-				<UserParam type="float" name="MS:1001155" value="0.490431994"/>
-				<UserParam type="float" name="MS:1001156" value="0.21841"/>
-				<UserParam type="float" name="calcMZ" value="473.500183105469"/>
-				<UserParam type="int" name="pass_threshold" value="1"/>
-				<UserParam type="int" name="start" value="0"/>
-				<UserParam type="int" name="end" value="8"/>
-				<UserParam type="string" name="target_decoy" value="target"/>
-			</PeptideHit>
 			<PeptideHit score="0.672343135" sequence="SFKPIIDQEVLK" charge="3" start="0" end="12" protein_refs="PH_4" >
 				<UserParam type="float" name="MS:1001155" value="0.672343135"/>
 				<UserParam type="float" name="MS:1001156" value="0.506339014"/>
@@ -2796,6 +2787,15 @@
 				<UserParam type="int" name="pass_threshold" value="1"/>
 				<UserParam type="int" name="start" value="0"/>
 				<UserParam type="int" name="end" value="12"/>
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</PeptideHit>
+			<PeptideHit score="0.490431994" sequence="AVSYFEVK" charge="2" start="0" end="8" protein_refs="PH_51" >
+				<UserParam type="float" name="MS:1001155" value="0.490431994"/>
+				<UserParam type="float" name="MS:1001156" value="0.21841"/>
+				<UserParam type="float" name="calcMZ" value="473.500183105469"/>
+				<UserParam type="int" name="pass_threshold" value="1"/>
+				<UserParam type="int" name="start" value="0"/>
+				<UserParam type="int" name="end" value="8"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
 			</PeptideHit>
 			<PeptideHit score="0.272022247" sequence="LQTIIDSR" charge="2" start="0" end="8" protein_refs="PH_8" >
@@ -2825,15 +2825,6 @@
 				<UserParam type="int" name="end" value="8"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
 			</PeptideHit>
-			<PeptideHit score="0.079867281" sequence="VLEFHPFDPVSK" charge="3" start="0" end="12" protein_refs="PH_37" >
-				<UserParam type="float" name="MS:1001155" value="0.079867281"/>
-				<UserParam type="float" name="MS:1001156" value="0.122602001"/>
-				<UserParam type="float" name="calcMZ" value="473.4169921875"/>
-				<UserParam type="int" name="pass_threshold" value="1"/>
-				<UserParam type="int" name="start" value="0"/>
-				<UserParam type="int" name="end" value="12"/>
-				<UserParam type="string" name="target_decoy" value="target"/>
-			</PeptideHit>
 			<PeptideHit score="0.139654875" sequence="AGTELGHMK" charge="2" start="0" end="9" protein_refs="PH_46" >
 				<UserParam type="float" name="MS:1001155" value="0.139654875"/>
 				<UserParam type="float" name="MS:1001156" value="0.0159572009"/>
@@ -2843,12 +2834,6 @@
 				<UserParam type="int" name="end" value="9"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
 			</PeptideHit>
-			<PeptideHit score="-0.0427343212" sequence="M[15.99]TSGYYLGELLR" charge="3" >
-				<UserParam type="float" name="MS:1001155" value="-0.0427343212"/>
-				<UserParam type="float" name="MS:1001156" value="0.234053001"/>
-				<UserParam type="float" name="calcMZ" value="474.736083984375"/>
-				<UserParam type="int" name="pass_threshold" value="1"/>
-			</PeptideHit>
 			<PeptideHit score="0.123697698" sequence="LSVATADNR" charge="2" start="0" end="9" protein_refs="PH_18" >
 				<UserParam type="float" name="MS:1001155" value="0.123697698"/>
 				<UserParam type="float" name="MS:1001156" value="0.0447750986"/>
@@ -2857,6 +2842,21 @@
 				<UserParam type="int" name="start" value="0"/>
 				<UserParam type="int" name="end" value="9"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
+			</PeptideHit>
+			<PeptideHit score="0.079867281" sequence="VLEFHPFDPVSK" charge="3" start="0" end="12" protein_refs="PH_37" >
+				<UserParam type="float" name="MS:1001155" value="0.079867281"/>
+				<UserParam type="float" name="MS:1001156" value="0.122602001"/>
+				<UserParam type="float" name="calcMZ" value="473.4169921875"/>
+				<UserParam type="int" name="pass_threshold" value="1"/>
+				<UserParam type="int" name="start" value="0"/>
+				<UserParam type="int" name="end" value="12"/>
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</PeptideHit>
+			<PeptideHit score="-0.0427343212" sequence="M[15.99]TSGYYLGELLR" charge="3" >
+				<UserParam type="float" name="MS:1001155" value="-0.0427343212"/>
+				<UserParam type="float" name="MS:1001156" value="0.234053001"/>
+				<UserParam type="float" name="calcMZ" value="474.736083984375"/>
+				<UserParam type="int" name="pass_threshold" value="1"/>
 			</PeptideHit>
 			<PeptideHit score="-0.276787788" sequence="TLAETNIISADIR" charge="3" start="0" end="13" protein_refs="PH_15" >
 				<UserParam type="float" name="MS:1001155" value="-0.276787788"/>
@@ -3256,15 +3256,6 @@
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="SEQUEST:xcorr" higher_score_better="true" significance_threshold="0" MZ="501.127960205078" spectrum_reference="87-87" >
-			<PeptideHit score="0.474033803" sequence="IAAVGAANGVR" charge="2" start="0" end="11" protein_refs="PH_24" >
-				<UserParam type="float" name="MS:1001155" value="0.474033803"/>
-				<UserParam type="float" name="MS:1001156" value="0.122804001"/>
-				<UserParam type="float" name="calcMZ" value="501.540710449219"/>
-				<UserParam type="int" name="pass_threshold" value="1"/>
-				<UserParam type="int" name="start" value="0"/>
-				<UserParam type="int" name="end" value="11"/>
-				<UserParam type="string" name="target_decoy" value="target"/>
-			</PeptideHit>
 			<PeptideHit score="0.628068268" sequence="AALLNQYFAQAYK" charge="3" start="0" end="13" protein_refs="PH_32" >
 				<UserParam type="float" name="MS:1001155" value="0.628068268"/>
 				<UserParam type="float" name="MS:1001156" value="0.62292999"/>
@@ -3272,6 +3263,15 @@
 				<UserParam type="int" name="pass_threshold" value="1"/>
 				<UserParam type="int" name="start" value="0"/>
 				<UserParam type="int" name="end" value="13"/>
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</PeptideHit>
+			<PeptideHit score="0.474033803" sequence="IAAVGAANGVR" charge="2" start="0" end="11" protein_refs="PH_24" >
+				<UserParam type="float" name="MS:1001155" value="0.474033803"/>
+				<UserParam type="float" name="MS:1001156" value="0.122804001"/>
+				<UserParam type="float" name="calcMZ" value="501.540710449219"/>
+				<UserParam type="int" name="pass_threshold" value="1"/>
+				<UserParam type="int" name="start" value="0"/>
+				<UserParam type="int" name="end" value="11"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
 			</PeptideHit>
 			<PeptideHit score="0.351229727" sequence="EALGELVIR" charge="2" start="0" end="9" protein_refs="PH_1" >
@@ -3283,15 +3283,6 @@
 				<UserParam type="int" name="end" value="9"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
 			</PeptideHit>
-			<PeptideHit score="0.00513818022" sequence="LHHAFFVGDILTK" charge="3" start="0" end="13" protein_refs="PH_51" >
-				<UserParam type="float" name="MS:1001155" value="0.00513818022"/>
-				<UserParam type="float" name="MS:1001156" value="0.135856003"/>
-				<UserParam type="float" name="calcMZ" value="501.111968994141"/>
-				<UserParam type="int" name="pass_threshold" value="1"/>
-				<UserParam type="int" name="start" value="0"/>
-				<UserParam type="int" name="end" value="13"/>
-				<UserParam type="string" name="target_decoy" value="target"/>
-			</PeptideHit>
 			<PeptideHit score="0.236152634" sequence="DTEGDVDMD" charge="2" start="0" end="9" protein_refs="PH_2" >
 				<UserParam type="float" name="MS:1001155" value="0.236152634"/>
 				<UserParam type="float" name="MS:1001156" value="0.0786183029"/>
@@ -3300,12 +3291,6 @@
 				<UserParam type="int" name="start" value="0"/>
 				<UserParam type="int" name="end" value="9"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
-			</PeptideHit>
-			<PeptideHit score="-0.130718142" sequence="NSIGVELSSEYM[15.99]R" charge="3" >
-				<UserParam type="float" name="MS:1001155" value="-0.130718142"/>
-				<UserParam type="float" name="MS:1001156" value="0.0596617013"/>
-				<UserParam type="float" name="calcMZ" value="502.069854736328"/>
-				<UserParam type="int" name="pass_threshold" value="1"/>
 			</PeptideHit>
 			<PeptideHit score="0.157534361" sequence="SSIQLGEHK" charge="2" start="0" end="9" protein_refs="PH_15" >
 				<UserParam type="float" name="MS:1001155" value="0.157534361"/>
@@ -3316,15 +3301,6 @@
 				<UserParam type="int" name="end" value="9"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
 			</PeptideHit>
-			<PeptideHit score="-0.190379798" sequence="SSNYILSQQTNIK" charge="3" start="0" end="13" protein_refs="PH_15" >
-				<UserParam type="float" name="MS:1001155" value="-0.190379798"/>
-				<UserParam type="float" name="MS:1001156" value="0.0508164987"/>
-				<UserParam type="float" name="calcMZ" value="500.429962158203"/>
-				<UserParam type="int" name="pass_threshold" value="1"/>
-				<UserParam type="int" name="start" value="0"/>
-				<UserParam type="int" name="end" value="13"/>
-				<UserParam type="string" name="target_decoy" value="target"/>
-			</PeptideHit>
 			<PeptideHit score="0.132793397" sequence="ETTYDEIK" charge="2" start="0" end="8" protein_refs="PH_29" >
 				<UserParam type="float" name="MS:1001155" value="0.132793397"/>
 				<UserParam type="float" name="MS:1001156" value="0.128120005"/>
@@ -3332,6 +3308,30 @@
 				<UserParam type="int" name="pass_threshold" value="1"/>
 				<UserParam type="int" name="start" value="0"/>
 				<UserParam type="int" name="end" value="8"/>
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</PeptideHit>
+			<PeptideHit score="0.00513818022" sequence="LHHAFFVGDILTK" charge="3" start="0" end="13" protein_refs="PH_51" >
+				<UserParam type="float" name="MS:1001155" value="0.00513818022"/>
+				<UserParam type="float" name="MS:1001156" value="0.135856003"/>
+				<UserParam type="float" name="calcMZ" value="501.111968994141"/>
+				<UserParam type="int" name="pass_threshold" value="1"/>
+				<UserParam type="int" name="start" value="0"/>
+				<UserParam type="int" name="end" value="13"/>
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</PeptideHit>
+			<PeptideHit score="-0.130718142" sequence="NSIGVELSSEYM[15.99]R" charge="3" >
+				<UserParam type="float" name="MS:1001155" value="-0.130718142"/>
+				<UserParam type="float" name="MS:1001156" value="0.0596617013"/>
+				<UserParam type="float" name="calcMZ" value="502.069854736328"/>
+				<UserParam type="int" name="pass_threshold" value="1"/>
+			</PeptideHit>
+			<PeptideHit score="-0.190379798" sequence="SSNYILSQQTNIK" charge="3" start="0" end="13" protein_refs="PH_15" >
+				<UserParam type="float" name="MS:1001155" value="-0.190379798"/>
+				<UserParam type="float" name="MS:1001156" value="0.0508164987"/>
+				<UserParam type="float" name="calcMZ" value="500.429962158203"/>
+				<UserParam type="int" name="pass_threshold" value="1"/>
+				<UserParam type="int" name="start" value="0"/>
+				<UserParam type="int" name="end" value="13"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
 			</PeptideHit>
 			<PeptideHit score="-0.241196305" sequence="YLPNGDCECCGR" charge="3" start="0" end="12" protein_refs="PH_51" >
@@ -3354,15 +3354,6 @@
 				<UserParam type="int" name="end" value="9"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
 			</PeptideHit>
-			<PeptideHit score="0.150597647" sequence="AALLNQYFAQAYK" charge="3" start="0" end="13" protein_refs="PH_32" >
-				<UserParam type="float" name="MS:1001155" value="0.150597647"/>
-				<UserParam type="float" name="MS:1001156" value="0.361856997"/>
-				<UserParam type="float" name="calcMZ" value="502.099731445313"/>
-				<UserParam type="int" name="pass_threshold" value="1"/>
-				<UserParam type="int" name="start" value="0"/>
-				<UserParam type="int" name="end" value="13"/>
-				<UserParam type="string" name="target_decoy" value="target"/>
-			</PeptideHit>
 			<PeptideHit score="0.191947415" sequence="IAAVGAANGVR" charge="2" start="0" end="11" protein_refs="PH_24" >
 				<UserParam type="float" name="MS:1001155" value="0.191947415"/>
 				<UserParam type="float" name="MS:1001156" value="0.059280999"/>
@@ -3372,10 +3363,10 @@
 				<UserParam type="int" name="end" value="11"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
 			</PeptideHit>
-			<PeptideHit score="-0.211259365" sequence="SSNYILSQQTNIK" charge="3" start="0" end="13" protein_refs="PH_15" >
-				<UserParam type="float" name="MS:1001155" value="-0.211259365"/>
-				<UserParam type="float" name="MS:1001156" value="0.118997"/>
-				<UserParam type="float" name="calcMZ" value="500.429962158203"/>
+			<PeptideHit score="0.150597647" sequence="AALLNQYFAQAYK" charge="3" start="0" end="13" protein_refs="PH_32" >
+				<UserParam type="float" name="MS:1001155" value="0.150597647"/>
+				<UserParam type="float" name="MS:1001156" value="0.361856997"/>
+				<UserParam type="float" name="calcMZ" value="502.099731445313"/>
 				<UserParam type="int" name="pass_threshold" value="1"/>
 				<UserParam type="int" name="start" value="0"/>
 				<UserParam type="int" name="end" value="13"/>
@@ -3390,12 +3381,6 @@
 				<UserParam type="int" name="end" value="9"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
 			</PeptideHit>
-			<PeptideHit score="-0.330256552" sequence="NSIGVELSSEYM[15.99]R" charge="3" >
-				<UserParam type="float" name="MS:1001155" value="-0.330256552"/>
-				<UserParam type="float" name="MS:1001156" value="0.0588174015"/>
-				<UserParam type="float" name="calcMZ" value="502.069854736328"/>
-				<UserParam type="int" name="pass_threshold" value="1"/>
-			</PeptideHit>
 			<PeptideHit score="0.102755062" sequence="EAYYWLR" charge="2" start="0" end="7" protein_refs="PH_35" >
 				<UserParam type="float" name="MS:1001155" value="0.102755062"/>
 				<UserParam type="float" name="MS:1001156" value="0.00263091992"/>
@@ -3405,15 +3390,6 @@
 				<UserParam type="int" name="end" value="7"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
 			</PeptideHit>
-			<PeptideHit score="-0.389073968" sequence="LHHAFFVGDILTK" charge="3" start="0" end="13" protein_refs="PH_51" >
-				<UserParam type="float" name="MS:1001155" value="-0.389073968"/>
-				<UserParam type="float" name="MS:1001156" value="0.201774999"/>
-				<UserParam type="float" name="calcMZ" value="501.111968994141"/>
-				<UserParam type="int" name="pass_threshold" value="1"/>
-				<UserParam type="int" name="start" value="0"/>
-				<UserParam type="int" name="end" value="13"/>
-				<UserParam type="string" name="target_decoy" value="target"/>
-			</PeptideHit>
 			<PeptideHit score="0.100124143" sequence="EAAATYGWK" charge="2" start="0" end="9" protein_refs="PH_27" >
 				<UserParam type="float" name="MS:1001155" value="0.100124143"/>
 				<UserParam type="float" name="MS:1001156" value="0.00200117007"/>
@@ -3421,6 +3397,30 @@
 				<UserParam type="int" name="pass_threshold" value="1"/>
 				<UserParam type="int" name="start" value="0"/>
 				<UserParam type="int" name="end" value="9"/>
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</PeptideHit>
+			<PeptideHit score="-0.211259365" sequence="SSNYILSQQTNIK" charge="3" start="0" end="13" protein_refs="PH_15" >
+				<UserParam type="float" name="MS:1001155" value="-0.211259365"/>
+				<UserParam type="float" name="MS:1001156" value="0.118997"/>
+				<UserParam type="float" name="calcMZ" value="500.429962158203"/>
+				<UserParam type="int" name="pass_threshold" value="1"/>
+				<UserParam type="int" name="start" value="0"/>
+				<UserParam type="int" name="end" value="13"/>
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</PeptideHit>
+			<PeptideHit score="-0.330256552" sequence="NSIGVELSSEYM[15.99]R" charge="3" >
+				<UserParam type="float" name="MS:1001155" value="-0.330256552"/>
+				<UserParam type="float" name="MS:1001156" value="0.0588174015"/>
+				<UserParam type="float" name="calcMZ" value="502.069854736328"/>
+				<UserParam type="int" name="pass_threshold" value="1"/>
+			</PeptideHit>
+			<PeptideHit score="-0.389073968" sequence="LHHAFFVGDILTK" charge="3" start="0" end="13" protein_refs="PH_51" >
+				<UserParam type="float" name="MS:1001155" value="-0.389073968"/>
+				<UserParam type="float" name="MS:1001156" value="0.201774999"/>
+				<UserParam type="float" name="calcMZ" value="501.111968994141"/>
+				<UserParam type="int" name="pass_threshold" value="1"/>
+				<UserParam type="int" name="start" value="0"/>
+				<UserParam type="int" name="end" value="13"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
 			</PeptideHit>
 			<PeptideHit score="-0.590848982" sequence="YLPNGDCECCGR" charge="3" start="0" end="12" protein_refs="PH_51" >
@@ -3651,25 +3651,10 @@
 				<UserParam type="float" name="calcMZ" value="559.993408203125"/>
 				<UserParam type="int" name="pass_threshold" value="1"/>
 			</PeptideHit>
-			<PeptideHit score="0.353596032" sequence="TTHPVSHGHSGSSTGPK" charge="3" start="0" end="17" protein_refs="PH_46" >
-				<UserParam type="float" name="MS:1001155" value="0.353596032"/>
-				<UserParam type="float" name="MS:1001156" value="0.54399699"/>
-				<UserParam type="float" name="calcMZ" value="559.771179199219"/>
-				<UserParam type="int" name="pass_threshold" value="1"/>
-				<UserParam type="int" name="start" value="0"/>
-				<UserParam type="int" name="end" value="17"/>
-				<UserParam type="string" name="target_decoy" value="target"/>
-			</PeptideHit>
 			<PeptideHit score="0.438911051" sequence="MM[15.99]M[15.99]TSGQAVK" charge="2" >
 				<UserParam type="float" name="MS:1001155" value="0.438911051"/>
 				<UserParam type="float" name="MS:1001156" value="0.00676757004"/>
 				<UserParam type="float" name="calcMZ" value="559.993408203125"/>
-				<UserParam type="int" name="pass_threshold" value="1"/>
-			</PeptideHit>
-			<PeptideHit score="-0.190400973" sequence="LASYAM[15.99]PSLIVVM[15.99]DK" charge="3" >
-				<UserParam type="float" name="MS:1001155" value="-0.190400973"/>
-				<UserParam type="float" name="MS:1001156" value="0.131853998"/>
-				<UserParam type="float" name="calcMZ" value="558.452880859375"/>
 				<UserParam type="int" name="pass_threshold" value="1"/>
 			</PeptideHit>
 			<PeptideHit score="0.43214348" sequence="M[15.99]M[15.99]MTSGQAVK" charge="2" >
@@ -3678,13 +3663,13 @@
 				<UserParam type="float" name="calcMZ" value="559.993408203125"/>
 				<UserParam type="int" name="pass_threshold" value="1"/>
 			</PeptideHit>
-			<PeptideHit score="-0.322254628" sequence="ITYSSDYFDELYR" charge="3" start="0" end="13" protein_refs="PH_4" >
-				<UserParam type="float" name="MS:1001155" value="-0.322254628"/>
-				<UserParam type="float" name="MS:1001156" value="0.152998999"/>
-				<UserParam type="float" name="calcMZ" value="559.089477539063"/>
+			<PeptideHit score="0.353596032" sequence="TTHPVSHGHSGSSTGPK" charge="3" start="0" end="17" protein_refs="PH_46" >
+				<UserParam type="float" name="MS:1001155" value="0.353596032"/>
+				<UserParam type="float" name="MS:1001156" value="0.54399699"/>
+				<UserParam type="float" name="calcMZ" value="559.771179199219"/>
 				<UserParam type="int" name="pass_threshold" value="1"/>
 				<UserParam type="int" name="start" value="0"/>
-				<UserParam type="int" name="end" value="13"/>
+				<UserParam type="int" name="end" value="17"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
 			</PeptideHit>
 			<PeptideHit score="0.277875274" sequence="FLNWFDDR" charge="2" start="0" end="8" protein_refs="PH_35" >
@@ -3696,15 +3681,6 @@
 				<UserParam type="int" name="end" value="8"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
 			</PeptideHit>
-			<PeptideHit score="-0.475254029" sequence="HEAEWSGLSNDATTR" charge="3" start="0" end="15" protein_refs="PH_46" >
-				<UserParam type="float" name="MS:1001155" value="-0.475254029"/>
-				<UserParam type="float" name="MS:1001156" value="0"/>
-				<UserParam type="float" name="calcMZ" value="559.75537109375"/>
-				<UserParam type="int" name="pass_threshold" value="1"/>
-				<UserParam type="int" name="start" value="0"/>
-				<UserParam type="int" name="end" value="15"/>
-				<UserParam type="string" name="target_decoy" value="target"/>
-			</PeptideHit>
 			<PeptideHit score="0.175063103" sequence="LVDEVVDSLK" charge="2" start="0" end="10" protein_refs="PH_11" >
 				<UserParam type="float" name="MS:1001155" value="0.175063103"/>
 				<UserParam type="float" name="MS:1001156" value="0.123829998"/>
@@ -3712,6 +3688,30 @@
 				<UserParam type="int" name="pass_threshold" value="1"/>
 				<UserParam type="int" name="start" value="0"/>
 				<UserParam type="int" name="end" value="10"/>
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</PeptideHit>
+			<PeptideHit score="-0.190400973" sequence="LASYAM[15.99]PSLIVVM[15.99]DK" charge="3" >
+				<UserParam type="float" name="MS:1001155" value="-0.190400973"/>
+				<UserParam type="float" name="MS:1001156" value="0.131853998"/>
+				<UserParam type="float" name="calcMZ" value="558.452880859375"/>
+				<UserParam type="int" name="pass_threshold" value="1"/>
+			</PeptideHit>
+			<PeptideHit score="-0.322254628" sequence="ITYSSDYFDELYR" charge="3" start="0" end="13" protein_refs="PH_4" >
+				<UserParam type="float" name="MS:1001155" value="-0.322254628"/>
+				<UserParam type="float" name="MS:1001156" value="0.152998999"/>
+				<UserParam type="float" name="calcMZ" value="559.089477539063"/>
+				<UserParam type="int" name="pass_threshold" value="1"/>
+				<UserParam type="int" name="start" value="0"/>
+				<UserParam type="int" name="end" value="13"/>
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</PeptideHit>
+			<PeptideHit score="-0.475254029" sequence="HEAEWSGLSNDATTR" charge="3" start="0" end="15" protein_refs="PH_46" >
+				<UserParam type="float" name="MS:1001155" value="-0.475254029"/>
+				<UserParam type="float" name="MS:1001156" value="0"/>
+				<UserParam type="float" name="calcMZ" value="559.75537109375"/>
+				<UserParam type="int" name="pass_threshold" value="1"/>
+				<UserParam type="int" name="start" value="0"/>
+				<UserParam type="int" name="end" value="15"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
 			</PeptideHit>
 		</PeptideIdentification>
@@ -3936,15 +3936,6 @@
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="SEQUEST:xcorr" higher_score_better="true" significance_threshold="0" MZ="604.288024902344" spectrum_reference="19-19" >
-			<PeptideHit score="-0.0739507005" sequence="VNGDAHVISHR" charge="2" start="0" end="11" protein_refs="PH_30" >
-				<UserParam type="float" name="MS:1001155" value="-0.0739507005"/>
-				<UserParam type="float" name="MS:1001156" value="0.0619612001"/>
-				<UserParam type="float" name="calcMZ" value="604.562744140625"/>
-				<UserParam type="int" name="pass_threshold" value="1"/>
-				<UserParam type="int" name="start" value="0"/>
-				<UserParam type="int" name="end" value="11"/>
-				<UserParam type="string" name="target_decoy" value="target"/>
-			</PeptideHit>
 			<PeptideHit score="1.07310367" sequence="LSAIESLAGVEILCSDK" charge="3" start="0" end="17" protein_refs="PH_37" >
 				<UserParam type="float" name="MS:1001155" value="1.07310367"/>
 				<UserParam type="float" name="MS:1001156" value="0.75049001"/>
@@ -3952,15 +3943,6 @@
 				<UserParam type="int" name="pass_threshold" value="1"/>
 				<UserParam type="int" name="start" value="0"/>
 				<UserParam type="int" name="end" value="17"/>
-				<UserParam type="string" name="target_decoy" value="target"/>
-			</PeptideHit>
-			<PeptideHit score="-0.135911897" sequence="STAAAQDHSSTK" charge="2" start="0" end="12" protein_refs="PH_46" >
-				<UserParam type="float" name="MS:1001155" value="-0.135911897"/>
-				<UserParam type="float" name="MS:1001156" value="0.149514005"/>
-				<UserParam type="float" name="calcMZ" value="604.03369140625"/>
-				<UserParam type="int" name="pass_threshold" value="1"/>
-				<UserParam type="int" name="start" value="0"/>
-				<UserParam type="int" name="end" value="12"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
 			</PeptideHit>
 			<PeptideHit score="0.267749608" sequence="LLNFIDELTNWYIR" charge="3" start="0" end="14" protein_refs="PH_53" >
@@ -3972,15 +3954,6 @@
 				<UserParam type="int" name="end" value="14"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
 			</PeptideHit>
-			<PeptideHit score="-0.285425574" sequence="TCSSCGYPAAK" charge="2" start="0" end="11" protein_refs="PH_19" >
-				<UserParam type="float" name="MS:1001155" value="-0.285425574"/>
-				<UserParam type="float" name="MS:1001156" value="0"/>
-				<UserParam type="float" name="calcMZ" value="603.002502441406"/>
-				<UserParam type="int" name="pass_threshold" value="1"/>
-				<UserParam type="int" name="start" value="0"/>
-				<UserParam type="int" name="end" value="11"/>
-				<UserParam type="string" name="target_decoy" value="target"/>
-			</PeptideHit>
 			<PeptideHit score="0.00448327977" sequence="GYLVAMTGDGVNDAPSLK" charge="3" start="0" end="18" protein_refs="PH_37" >
 				<UserParam type="float" name="MS:1001155" value="0.00448327977"/>
 				<UserParam type="float" name="MS:1001156" value="0.268242002"/>
@@ -3990,6 +3963,24 @@
 				<UserParam type="int" name="end" value="18"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
 			</PeptideHit>
+			<PeptideHit score="-0.0739507005" sequence="VNGDAHVISHR" charge="2" start="0" end="11" protein_refs="PH_30" >
+				<UserParam type="float" name="MS:1001155" value="-0.0739507005"/>
+				<UserParam type="float" name="MS:1001156" value="0.0619612001"/>
+				<UserParam type="float" name="calcMZ" value="604.562744140625"/>
+				<UserParam type="int" name="pass_threshold" value="1"/>
+				<UserParam type="int" name="start" value="0"/>
+				<UserParam type="int" name="end" value="11"/>
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</PeptideHit>
+			<PeptideHit score="-0.135911897" sequence="STAAAQDHSSTK" charge="2" start="0" end="12" protein_refs="PH_46" >
+				<UserParam type="float" name="MS:1001155" value="-0.135911897"/>
+				<UserParam type="float" name="MS:1001156" value="0.149514005"/>
+				<UserParam type="float" name="calcMZ" value="604.03369140625"/>
+				<UserParam type="int" name="pass_threshold" value="1"/>
+				<UserParam type="int" name="start" value="0"/>
+				<UserParam type="int" name="end" value="12"/>
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</PeptideHit>
 			<PeptideHit score="-0.263758987" sequence="LQDGVPDSIALLAEAGIK" charge="3" start="0" end="18" protein_refs="PH_43" >
 				<UserParam type="float" name="MS:1001155" value="-0.263758987"/>
 				<UserParam type="float" name="MS:1001156" value="0"/>
@@ -3997,6 +3988,15 @@
 				<UserParam type="int" name="pass_threshold" value="1"/>
 				<UserParam type="int" name="start" value="0"/>
 				<UserParam type="int" name="end" value="18"/>
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</PeptideHit>
+			<PeptideHit score="-0.285425574" sequence="TCSSCGYPAAK" charge="2" start="0" end="11" protein_refs="PH_19" >
+				<UserParam type="float" name="MS:1001155" value="-0.285425574"/>
+				<UserParam type="float" name="MS:1001156" value="0"/>
+				<UserParam type="float" name="calcMZ" value="603.002502441406"/>
+				<UserParam type="int" name="pass_threshold" value="1"/>
+				<UserParam type="int" name="start" value="0"/>
+				<UserParam type="int" name="end" value="11"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
 			</PeptideHit>
 		</PeptideIdentification>
@@ -4964,15 +4964,6 @@
 				<UserParam type="float" name="calcMZ" value="675.600402832031"/>
 				<UserParam type="int" name="pass_threshold" value="1"/>
 			</PeptideHit>
-			<PeptideHit score="-0.300504655" sequence="LTTSDDIKPYLEELAALK" charge="3" start="0" end="18" protein_refs="PH_11" >
-				<UserParam type="float" name="MS:1001155" value="-0.300504655"/>
-				<UserParam type="float" name="MS:1001156" value="0.0181300007"/>
-				<UserParam type="float" name="calcMZ" value="675.199890136719"/>
-				<UserParam type="int" name="pass_threshold" value="1"/>
-				<UserParam type="int" name="start" value="0"/>
-				<UserParam type="int" name="end" value="18"/>
-				<UserParam type="string" name="target_decoy" value="target"/>
-			</PeptideHit>
 			<PeptideHit score="0.0383608416" sequence="LVETLPSSYPSR" charge="2" start="0" end="12" protein_refs="PH_51" >
 				<UserParam type="float" name="MS:1001155" value="0.0383608416"/>
 				<UserParam type="float" name="MS:1001156" value="0.151751995"/>
@@ -4981,12 +4972,6 @@
 				<UserParam type="int" name="start" value="0"/>
 				<UserParam type="int" name="end" value="12"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
-			</PeptideHit>
-			<PeptideHit score="-0.318634629" sequence="IPDIENSVNM[15.99]VPVDHVAR" charge="3" >
-				<UserParam type="float" name="MS:1001155" value="-0.318634629"/>
-				<UserParam type="float" name="MS:1001156" value="0"/>
-				<UserParam type="float" name="calcMZ" value="675.507202148438"/>
-				<UserParam type="int" name="pass_threshold" value="1"/>
 			</PeptideHit>
 			<PeptideHit score="-0.113390662" sequence="INEIRPLTDFK" charge="2" start="0" end="11" protein_refs="PH_43" >
 				<UserParam type="float" name="MS:1001155" value="-0.113390662"/>
@@ -5014,6 +4999,21 @@
 				<UserParam type="int" name="start" value="0"/>
 				<UserParam type="int" name="end" value="10"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
+			</PeptideHit>
+			<PeptideHit score="-0.300504655" sequence="LTTSDDIKPYLEELAALK" charge="3" start="0" end="18" protein_refs="PH_11" >
+				<UserParam type="float" name="MS:1001155" value="-0.300504655"/>
+				<UserParam type="float" name="MS:1001156" value="0.0181300007"/>
+				<UserParam type="float" name="calcMZ" value="675.199890136719"/>
+				<UserParam type="int" name="pass_threshold" value="1"/>
+				<UserParam type="int" name="start" value="0"/>
+				<UserParam type="int" name="end" value="18"/>
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</PeptideHit>
+			<PeptideHit score="-0.318634629" sequence="IPDIENSVNM[15.99]VPVDHVAR" charge="3" >
+				<UserParam type="float" name="MS:1001155" value="-0.318634629"/>
+				<UserParam type="float" name="MS:1001156" value="0"/>
+				<UserParam type="float" name="calcMZ" value="675.507202148438"/>
+				<UserParam type="int" name="pass_threshold" value="1"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="SEQUEST:xcorr" higher_score_better="true" significance_threshold="0" MZ="691.948974609375" spectrum_reference="70-70" >
