@@ -301,7 +301,7 @@ namespace OpenMS
       "CREATE TABLE PROTEIN(" \
       "ID INT PRIMARY KEY NOT NULL," \
       "PROTEIN_ACCESSION TEXT NOT NULL," \
-      "DECOY INT NOT NULL);" \
+      "DECOY INT NULL);" \
 
       // peptide_protein_mapping table
       // OpenSWATH proteomics workflows
@@ -482,15 +482,12 @@ namespace OpenMS
     endProgress();
 
     // OpenSWATH: Prepare protein inserts
-    std::stringstream insert_protein_sql;
-
     progress = 0;
-    startProgress(0, targeted_exp.getProteins().size(), String("Prepare ") + targeted_exp.getProteins().size() + " proteins");
+    startProgress(0, targeted_exp.getProteins().size(), "Prepare protein mapping");
     for (Size i = 0; i < targeted_exp.getProteins().size(); i++)
     {
       setProgress(progress++);
       OpenMS::TargetedExperiment::Protein protein = targeted_exp.getProteins()[i];
-      insert_protein_sql << "INSERT INTO PROTEIN (ID, PROTEIN_ACCESSION, DECOY) VALUES (" << i << ",'" << protein.id << "',0); ";
       protein_set.push_back(protein.id);
     }
     endProgress();
@@ -557,6 +554,17 @@ namespace OpenMS
     {
       setProgress(progress++);
       insert_peptide_protein_mapping << "INSERT INTO PEPTIDE_PROTEIN_MAPPING (PEPTIDE_ID, PROTEIN_ID) VALUES (" << it->first << "," << it->second << "); ";
+    }
+    endProgress();
+
+    // OpenSWATH: Prepare protein inserts
+    std::stringstream insert_protein_sql;
+    progress = 0;
+    startProgress(0, protein_set.size(), String("Prepare ") + protein_set.size() + " proteins");
+    for (Size i = 0; i < protein_set.size(); i++)
+    {
+      setProgress(progress++);
+      insert_protein_sql << "INSERT INTO PROTEIN (ID, PROTEIN_ACCESSION) VALUES (" << i << ",'" << protein_set[i] << "'); ";
     }
     endProgress();
 
