@@ -89,40 +89,45 @@ namespace OpenMS
     peak_apex_pos_ = -1.0;
     UInt n_points = 0;
     for (auto it=chromatogram.RTBegin(left); it!=chromatogram.RTEnd(right); ++it, ++n_points)
-      ;
+    {
+      if (peak_height_ < it->getIntensity())
+      {
+        peak_height_ = it->getIntensity();
+        peak_apex_pos_ = it->getRT();
+      }
+    }
 
     if (getIntegrationType() == "trapezoid")
     {
       for (auto it=chromatogram.RTBegin(left); it!=chromatogram.RTEnd(right)-1; ++it)
       {
         peak_area_ += ((it+1)->getRT() - it->getRT()) * ((it->getIntensity() + (it+1)->getIntensity()) / 2.0);
-        if (peak_height_ < it->getIntensity())
-        {
-          peak_height_ = it->getIntensity();
-          peak_apex_pos_ = it->getRT();
-        }
       }
     }
     else if (getIntegrationType() == "simpson")
     {
-      if (n_points < 3 || !(n_points % 2))
+      if (n_points < 3)
       {
-        LOG_DEBUG << std::endl << "Error in integratePeak: number of points must be >=3 and odd for Simpson's rule" << std::endl;
+        LOG_DEBUG << std::endl << "Error in integratePeak: number of points must be >=3 for Simpson's rule" << std::endl;
         return;
       }
-      for (auto it=chromatogram.RTBegin(left); it<chromatogram.RTEnd(right)-2; it=it+2)
+      for (auto it=chromatogram.RTBegin(left)+1; it<chromatogram.RTEnd(right)-1; it=it+2)
       {
-        double h = (it+1)->getRT() - it->getRT();
-        double k = (it+2)->getRT() - (it+1)->getRT();
-        double y_h = it->getIntensity();
-        double y_0 = (it+1)->getIntensity();
-        double y_k = (it+2)->getIntensity();
+        const double h = it->getRT() - (it-1)->getRT();
+        const double k = (it+1)->getRT() - it->getRT();
+        const double y_h = (it-1)->getIntensity();
+        const double y_0 = it->getIntensity();
+        const double y_k = (it+1)->getIntensity();
         peak_area_ += (1.0/6.0) * (h+k) * ((2.0-k/h)*y_h + (pow(h+k,2)/(h*k))*y_0 + (2.0-h/k)*y_k);
-        if (peak_height_ < it->getIntensity())
-        {
-          peak_height_ = it->getIntensity();
-          peak_apex_pos_ = it->getRT();
-        }
+      }
+      if (!(n_points % 2) && chromatogram.RTEnd(right) != chromatogram.end()){ // if number of points is even
+        const auto it = chromatogram.RTEnd(right) - 1;
+        const double h = it->getRT() - (it-1)->getRT();
+        const double k = (it+1)->getRT() - it->getRT();
+        const double y_h = (it-1)->getIntensity();
+        const double y_0 = it->getIntensity();
+        const double y_k = (it+1)->getIntensity();
+        peak_area_ = (peak_area_ * 2.0 + (1.0/6.0) * (h+k) * ((2.0-k/h)*y_h + (pow(h+k,2)/(h*k))*y_0 + (2.0-h/k)*y_k)) / 2.0;
       }
     }
     else
@@ -132,11 +137,6 @@ namespace OpenMS
       for (auto it=chromatogram.RTBegin(left); it!=chromatogram.RTEnd(right); ++it)
       {
         intensity_sum += it->getIntensity();
-        if (peak_height_ < it->getIntensity())
-        {
-          peak_height_ = it->getIntensity();
-          peak_apex_pos_ = it->getRT();
-        }
       }
       peak_area_ = intensity_sum / n_points;
     }
