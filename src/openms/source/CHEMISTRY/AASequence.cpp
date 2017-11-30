@@ -107,6 +107,68 @@ namespace OpenMS
     return tmp;
   }
 
+  String AASequence::toUniModString() const
+  {
+    const AASequence & seq = *this;
+
+    String bs;
+    int unimod = -1;
+
+    if (seq.empty()) return bs;
+
+    if (seq.hasNTerminalModification())
+    {
+      const ResidueModification& mod = *(seq.getNTerminalModification());
+      unimod = mod.getUniModRecordId();
+      if (unimod > -1)
+      {
+        bs += ".(UniMod:" + String(unimod) + ")";
+      }
+      else
+      {
+        bs += ".[" + String(mod.getDiffMonoMass()) + "]";
+      }
+    }
+
+    for (Size i = 0; i != seq.size(); ++i)
+    {
+      const Residue& r = seq[i];
+      const String aa = r.getOneLetterCode() != "" ? r.getOneLetterCode() : "X";
+      if (r.isModified())
+      {
+        const ResidueModification& mod = *(r.getModification());
+        unimod = mod.getUniModRecordId();
+        if (unimod > -1)
+        {
+          bs += aa + "(UniMod:" + String(unimod) + ")";
+        }
+        else
+        {
+          bs += aa + "[" + String(r.getMonoWeight(Residue::Internal)) + "]";
+        }
+      }
+      else  // amino acid not modified
+      {
+        bs += aa;
+      }
+    }
+
+    if (seq.hasCTerminalModification())
+    {
+      const ResidueModification& mod = *(seq.getCTerminalModification());
+      unimod = mod.getUniModRecordId();
+      if (unimod > -1)
+      {
+        bs += ".(UniMod:" + String(unimod) + ")";
+      }
+      else
+      {
+        bs += ".[" + String(mod.getDiffMonoMass()) + "]";
+      }
+    }
+    return bs;
+  }
+
   String AASequence::toBracketString(bool integer_mass, const vector<String> & fixed_modifications) const
   {
     const AASequence & seq = *this;
