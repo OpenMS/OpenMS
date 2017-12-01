@@ -51,29 +51,46 @@ namespace OpenMS
     const double& right
   )
   {
-    const double intensity_l = chromatogram.RTBegin(left)->getIntensity();
-    const double intensity_r = (chromatogram.RTEnd(right)-1)->getIntensity();
-    const double delta_int = intensity_r - intensity_l;
+    const double int_l = chromatogram.RTBegin(left)->getIntensity();
+    const double int_r = (chromatogram.RTEnd(right)-1)->getIntensity();
+    const double delta_int = int_r - int_l;
     const double delta_rt = (chromatogram.RTEnd(right)-1)->getRT() - chromatogram.RTBegin(left)->getRT();
     double background = 0.0;
-    if (integration_type_ == "trapezoid" || integration_type_ == "simpson")
+    if (baseline_type_ == "base_to_base")
     {
-      // formula for calculating the background using the trapezoidal rule
-      // background = intensity_min*delta_rt + 0.5*delta_int*delta_rt;
-      background = delta_rt * (std::min(intensity_r, intensity_l) + 0.5 * std::fabs(delta_int));
-    }
-    else
-    {
-      // calculate the background using the formula
-      // y = mx + b where x = retention time, m = slope, b = left intensity
-      // sign of delta_int will determine line direction
-      // background += delta_int / delta_rt * (it->getRT() - left) + intensity_l;
-      UInt i = 0;
-      for (auto it=chromatogram.RTBegin(left); it!=chromatogram.RTEnd(right); ++it, ++i)
+      if (integration_type_ == "trapezoid" || integration_type_ == "simpson")
       {
-        background += it->getRT();
+        // formula for calculating the background using the trapezoidal rule
+        // background = intensity_min*delta_rt + 0.5*delta_int*delta_rt;
+        background = delta_rt * (std::min(int_r, int_l) + 0.5 * std::fabs(delta_int));
       }
-      background = (background - i * chromatogram.RTBegin(left)->getRT()) * delta_int / delta_rt + i * intensity_l;
+      else if (integration_type_ == "intensity_sum")
+      {
+        // calculate the background using the formula
+        // y = mx + b where x = retention time, m = slope, b = left intensity
+        // sign of delta_int will determine line direction
+        // background += delta_int / delta_rt * (it->getRT() - left) + int_l;
+        UInt n_points = 0;
+        for (auto it=chromatogram.RTBegin(left); it!=chromatogram.RTEnd(right); ++it, ++n_points)
+        {
+          background += it->getRT();
+        }
+        background = (background - n_points * chromatogram.RTBegin(left)->getRT()) * delta_int / delta_rt + n_points * int_l;
+      }
+    }
+    else if (baseline_type_ == "vertical_division")
+    {
+      if (integration_type_ == "trapezoid" || integration_type_ == "simpson")
+      {
+        background = delta_rt * std::min(int_r, int_l);
+      }
+      else if (integration_type_ == "intensity_sum")
+      {
+        UInt n_points = 0;
+        for (auto it=chromatogram.RTBegin(left); it!=chromatogram.RTEnd(right); ++it, ++n_points)
+          ;
+        background = std::min(int_r, int_l) * n_points;
+      }
     }
     return background;
   }
@@ -133,12 +150,10 @@ namespace OpenMS
     else
     {
       std::cout << std::endl << "WARNING: intensity_sum method is being used." << std::endl;
-      double intensity_sum = 0.0;
       for (auto it=chromatogram.RTBegin(left); it!=chromatogram.RTEnd(right); ++it)
       {
-        intensity_sum += it->getIntensity();
+        peak_area_ += it->getIntensity();
       }
-      peak_area_ = intensity_sum / n_points;
     }
   }
 

@@ -149,18 +149,32 @@ START_SECTION(estimateBackground())
   setup_toy_chromatogram(chromatogram);
   double left = 2.477966667;
   double right = 3.01895;
-
+  double background = 0.0;
   Param params = ptr->getParameters();
-  params.setValue("integration_type", "trapezoid");
-  ptr->setParameters(params);
-  double background = ptr->estimateBackground(chromatogram, left, right);
-  TEST_REAL_SIMILAR(background, 1140.392865964)
 
+  params.setValue("baseline_type", "base_to_base");
   params.setValue("integration_type", "intensity_sum");
   ptr->setParameters(params);
   background = ptr->estimateBackground(chromatogram, left, right);
   TEST_REAL_SIMILAR(background, 123446.661339019)
 
+  params.setValue("baseline_type", "vertical_division");
+  params.setValue("integration_type", "intensity_sum");
+  ptr->setParameters(params);
+  background = ptr->estimateBackground(chromatogram, left, right);
+  TEST_REAL_SIMILAR(background, 50217)
+
+  params.setValue("baseline_type", "base_to_base");
+  params.setValue("integration_type", "trapezoid");
+  ptr->setParameters(params);
+  background = ptr->estimateBackground(chromatogram, left, right);
+  TEST_REAL_SIMILAR(background, 1140.392865964)
+
+  params.setValue("baseline_type", "vertical_division");
+  params.setValue("integration_type", "trapezoid");
+  ptr->setParameters(params);
+  background = ptr->estimateBackground(chromatogram, left, right);
+  TEST_REAL_SIMILAR(background, 476.606316373)
 }
 END_SECTION
 
@@ -170,19 +184,12 @@ START_SECTION(integratePeak())
   MSChromatogram chromatogram;
   setup_toy_chromatogram(chromatogram);
   const double left = 2.477966667;
-  double right = 3.01895;
-
-  ptr->setIntegrationType("simpson");
-  ptr->integratePeak(chromatogram, left, right);
-  cout << "simpson: " << endl;
-  TEST_REAL_SIMILAR(ptr->getPeakArea(), 71720.443144994)
-  TEST_REAL_SIMILAR(ptr->getPeakHeight(), 966489.0)
-  TEST_REAL_SIMILAR(ptr->getPeakApexPosition(), 2.7045)
+  const double right = 3.01895;
 
   ptr->setIntegrationType("intensity_sum");
   ptr->integratePeak(chromatogram, left, right);
   cout << "intensity_sum: " << endl;
-  TEST_REAL_SIMILAR(ptr->getPeakArea(), 118750.49122807)
+  TEST_REAL_SIMILAR(ptr->getPeakArea(), 6768778)
   TEST_REAL_SIMILAR(ptr->getPeakHeight(), 966489.0)
   TEST_REAL_SIMILAR(ptr->getPeakApexPosition(), 2.7045)
 
@@ -193,9 +200,15 @@ START_SECTION(integratePeak())
   TEST_REAL_SIMILAR(ptr->getPeakHeight(), 966489.0)
   TEST_REAL_SIMILAR(ptr->getPeakApexPosition(), 2.7045)
 
-  right = 3.011416667;
   ptr->setIntegrationType("simpson");
   ptr->integratePeak(chromatogram, left, right);
+  cout << "simpson (odd number of points): " << endl;
+  TEST_REAL_SIMILAR(ptr->getPeakArea(), 71720.443144994)
+  TEST_REAL_SIMILAR(ptr->getPeakHeight(), 966489.0)
+  TEST_REAL_SIMILAR(ptr->getPeakApexPosition(), 2.7045)
+
+  ptr->setIntegrationType("simpson");
+  ptr->integratePeak(chromatogram, left, 3.011416667); // lower "right" is passed, to have 1 less point
   cout << "simpson (even number of points): " << endl;
   TEST_REAL_SIMILAR(ptr->getPeakArea(), 71700.6099355464)
   TEST_REAL_SIMILAR(ptr->getPeakHeight(), 966489.0)
