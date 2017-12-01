@@ -159,7 +159,10 @@ namespace OpenMS
       {
         const TargetedExperimentHelper::Peptide peptide = targeted_exp.getPeptideByRef(transitions[j].getPeptideRef());
         double target_rt = peptide.getRetentionTime();
-        target_rt *= peptide.getRetentionTimeUnit() == TargetedExperimentHelper::RetentionTime::RTUnit::SECOND ? 1.0 : 60.0;
+        if (peptide.getRetentionTimeUnit() == TargetedExperimentHelper::RetentionTime::RTUnit::MINUTE)
+        {
+          target_rt *= 60.0;
+        }
         const double target_mz = transitions[j].getPrecursorMZ();
         if (target_rt >= rt_left_lim && target_rt <= rt_right_lim && target_mz >= mz_left_lim && target_mz <= mz_right_lim)
         {
