@@ -481,7 +481,7 @@ protected:
         * signals whose isotopic pattern is nearly diminishing
         * @param map The experimental map.
         * @param box The box to be extended. */
-    void extendBox_(const PeakMap& map, const Box box);
+    void extendBox_(const PeakMap& map, const Box& box);
 
     /** @brief Returns the monoisotopic mass (with corresponding decimal values) we would expect at @p c_mass.
         * @param c_mass The mass for which we would like to know the averagine decimal places. */
@@ -1546,7 +1546,7 @@ protected:
   }
 
   template <typename PeakType>
-  void IsotopeWaveletTransform<PeakType>::extendBox_(const PeakMap& map, const Box box)
+  void IsotopeWaveletTransform<PeakType>::extendBox_(const PeakMap& map, const Box& box)
   {
 #ifdef OPENMS_DEBUG_ISOTOPE_WAVELET
     std::cout << "**** CHECKING FOR BOX EXTENSIONS ****" << std::endl;
@@ -2209,4 +2209,5 @@ protected:
 
 #pragma clang diagnostic pop
 
-#endif
+#endif // OPENMS_TRANSFORMATIONS_FEATUREFINDER_ISOTOPEWAVELETTRANSFORM_H
+
