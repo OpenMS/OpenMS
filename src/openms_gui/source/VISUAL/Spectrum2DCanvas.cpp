@@ -1073,7 +1073,7 @@ namespace OpenMS
     getLayer_(layer).gradient.fromString(getLayer_(layer).param.getValue("dot:gradient"));
     if (intensity_mode_ == IM_LOG)
     {
-      getLayer_(layer).gradient.activatePrecalculationMode(0.0, std::log(overall_data_range_.maxPosition()[2] + 1), param_.getValue("interpolation_steps"));
+      getLayer_(layer).gradient.activatePrecalculationMode(0.0, std::log1p(overall_data_range_.maxPosition()[2]), param_.getValue("interpolation_steps"));
     }
     else
     {

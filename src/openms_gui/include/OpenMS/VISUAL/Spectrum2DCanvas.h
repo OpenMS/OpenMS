@@ -389,9 +389,9 @@ protected:
     /// stores the linear color gradient for non-log modes
     MultiGradient linear_gradient_;
     
-    double pen_size_min_; //< minimum number of pixels for one data point
-    double pen_size_max_; //< maximum number of pixels for one data point
-    double canvas_coverage_min_; //< minimum coverage of the canvas required; if lower, points are upscaled in size
+    double pen_size_min_; ///< minimum number of pixels for one data point
+    double pen_size_max_; ///< maximum number of pixels for one data point
+    double canvas_coverage_min_; ///< minimum coverage of the canvas required; if lower, points are upscaled in size
 
   private:
     /// Default C'tor hidden

@@ -1758,6 +1758,7 @@ protected:
 
 
 
+  // TODO: why not pass node by const-ref?
   std::pair<_Link_type,size_type>
   _M_get_j_min( std::pair<_Link_type,size_type> const node, size_type const level)
   {
@@ -1787,6 +1788,7 @@ protected:
 
 
 
+  // TODO: why not pass node by const-ref?
   std::pair<_Link_type,size_type>
   _M_get_j_max( std::pair<_Link_type,size_type> const node, size_type const level)
   {

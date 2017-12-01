@@ -81,9 +81,9 @@ class TestTOPPView: public QObject
 			delay(p_delay)
 		{}
 
-		QString keys; //< key sequence
+		QString keys; ///< key sequence
 		QString title;//< expected window title
-		int delay;    //< delay in ms when event is fired off
+		int delay;    ///< delay in ms when event is fired off
 	};
 
 public slots:

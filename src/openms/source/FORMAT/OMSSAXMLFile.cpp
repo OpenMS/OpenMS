@@ -327,14 +327,14 @@ namespace OpenMS
     }
 
     // modifications
-    //<MSHits_mods>
+    ///<MSHits_mods>
     // <MSModHit>
     //  <MSModHit_site>4</MSModHit_site>
     //  <MSModHit_modtype>
     //   <MSMod>2</MSMod>
     //  </MSModHit_modtype>
     // </MSModHit>
-    //</MSHits_mods>
+    ///</MSHits_mods>
 
 
     if (tag_ == "MSHits_mods")

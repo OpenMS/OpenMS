@@ -285,8 +285,8 @@ protected:
         {
           os << "\t\tprocessing action: " << DataProcessing::NamesOfProcessingAction[*paIt] << endl;
         }
+        i++;
       }
-      ++i;
     }
 
     //-------------------------------------------------------------
