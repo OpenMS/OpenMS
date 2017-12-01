@@ -28,8 +28,8 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Mathias Walzer $
-// $Authors: Mathias Walzer $
+// $Maintainer: Douglas McCloskey $
+// $Authors: Douglas McCloskey $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/CsvFile.h>
