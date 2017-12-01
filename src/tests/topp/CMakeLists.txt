@@ -2021,7 +2021,7 @@ add_test("UTILS_IDScoreSwitcher_1" ${TOPP_BIN_PATH}/IDScoreSwitcher -test -in ${
 add_test("UTILS_IDScoreSwitcher_1_out1" ${DIFF} -in1 IDScoreSwitcher_1_output.tmp -in2 ${DATA_DIR_TOPP}/IDFileConverter_13_output.idXML -whitelist "IdentificationRun date")
 set_tests_properties("UTILS_IDScoreSwitcher_1_out1" PROPERTIES DEPENDS "UTILS_IDScoreSwitcher_1")
 # IDScoreSwitcher - switch q-value and protein probability:
-add_test("UTILS_IDScoreSwitcher_2" ${TOPP_BIN_PATH}/IDScoreSwitcher -test -in ${DATA_DIR_TOPP}/FalseDiscoveryRate_5_output.idXML -out IDScoreSwitcher_2_output.tmp -new_score "Posterior Probability_score" -new_score_type "Posterior Probability" -new_score_orientation higher_better -proteins)
+add_test("UTILS_IDScoreSwitcher_2" ${TOPP_BIN_PATH}/IDScoreSwitcher -test -in ${DATA_DIR_TOPP}/IDScoreSwitcher_2_input.idXML -out IDScoreSwitcher_2_output.tmp -new_score "Posterior Probability_score" -new_score_type "Posterior Probability" -new_score_orientation higher_better -proteins)
 add_test("UTILS_IDScoreSwitcher_2_out1" ${DIFF} -in1 IDScoreSwitcher_2_output.tmp -in2 ${DATA_DIR_TOPP}/IDScoreSwitcher_2_output.idXML -whitelist "IdentificationRun date")
 set_tests_properties("UTILS_IDScoreSwitcher_2_out1" PROPERTIES DEPENDS "UTILS_IDScoreSwitcher_2")
 
