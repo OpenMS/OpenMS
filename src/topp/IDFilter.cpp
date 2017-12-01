@@ -35,8 +35,8 @@
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
-#include <OpenMS/CHEMISTRY/EnzymesDB.h>
-#include <OpenMS/CHEMISTRY/EnzymaticDigestion.h>
+#include <OpenMS/CHEMISTRY/ProteaseDB.h>
+#include <OpenMS/CHEMISTRY/ProteaseDigestion.h>
 #include <OpenMS/FORMAT/FASTAFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
@@ -141,7 +141,7 @@ protected:
     StringList all_enzymes;
     StringList specificity;
     ModificationsDB::getInstance()->getAllSearchModifications(all_mods);
-    EnzymesDB::getInstance()->getAllNames(all_enzymes);
+    ProteaseDB::getInstance()->getAllNames(all_enzymes);
     specificity.assign(EnzymaticDigestion::NamesOfSpecificity, EnzymaticDigestion::NamesOfSpecificity + EnzymaticDigestion::SIZE_OF_SPECIFICITY);
 
     registerInputFile_("in", "<file>", "", "input file ");
@@ -199,12 +199,11 @@ protected:
 
     registerTOPPSubsection_("missed_cleavages", "This filter option removes peptide hits which do not confirm with the allowed missed cleavages specified below.");
     registerStringOption_("missed_cleavages:number_of_missed_cleavages", "[min]:[max]", ":",
-                          "range of allowed missed cleavages in the peptide sequences.\n" 
+                          "range of allowed missed cleavages in the peptide sequences.\n"
                           "For example: 0:1 -> peptides with two or more missed cleavages will be removed,\n"
                           "0:0 -> peptides with any missed cleavages will be removed", false);
     registerStringOption_("missed_cleavages:enzyme", "<enzyme>", "Trypsin", "enzyme used for the digestion of the sample", false);
     setValidStrings_("missed_cleavages:enzyme", all_enzymes);
-    
 
     registerTOPPSubsection_("rt", "Filtering by RT predicted by 'RTPredict'");
     registerDoubleOption_("rt:p_value", "<float>", 0.0, "Retention time filtering by the p-value predicted by RTPredict.", false, true);
@@ -433,7 +432,7 @@ protected:
       IDFilter::filterPeptidesByLength(peptides, Size(min_length),
                                        Size(max_length));
     }
-    
+
     // Filter by digestion enzyme product
 
     String protein_fasta = getStringOption_("in_silico_digestion:fasta").trim();
@@ -445,7 +444,7 @@ protected:
       FASTAFile().load(protein_fasta, fasta);
 
       // Configure Enzymatic digestion
-      EnzymaticDigestion digestion;
+      ProteaseDigestion digestion;
       String enzyme = getStringOption_("in_silico_digestion:enzyme").trim();
       if (!enzyme.empty())
       {
@@ -469,7 +468,7 @@ protected:
         }
         digestion.setMissedCleavages(missed_cleavages);
       }
-      
+
       bool methionine_cleavage = false;
       if (getFlag_("in_silico_digestion:methionine_cleavage"))
       {
@@ -477,9 +476,9 @@ protected:
       }
 
       // Build the digest filter function
-      IDFilter::DigestionFilter filter(fasta, 
-                                       digestion, 
-                                       ignore_missed_cleavages, 
+      IDFilter::DigestionFilter filter(fasta,
+                                       digestion,
+                                       ignore_missed_cleavages,
                                        methionine_cleavage);
       // Filter peptides
       filter.filterPeptideEvidences(peptides);
@@ -491,9 +490,9 @@ protected:
     min_cleavages = max_cleavages = IDFilter::PeptideDigestionFilter::disabledValue();
 
     if (parseRange_(getStringOption_("missed_cleavages:number_of_missed_cleavages"), min_cleavages, max_cleavages))
-    {      
+    {
       // Configure Enzymatic digestion
-      EnzymaticDigestion digestion;
+      ProteaseDigestion digestion;
       String enzyme = getStringOption_("missed_cleavages:enzyme");
       if (!enzyme.empty())
       {

@@ -401,7 +401,7 @@ public:
 
 TOPPBaseTest* ptr = 0;
 TOPPBaseTest* nullPointer = 0;
-START_SECTION((TOPPBase(const String& name, const String& description, bool official = true, bool id_tag_support = false, bool require_args = true, const String& version = "")))
+START_SECTION(TOPPBase(const String& name, const String& description, bool official = true, const std::vector<Citation>& citations = {}))
 	ptr = new TOPPBaseTest();
 	TEST_NOT_EQUAL(ptr, nullPointer)
 END_SECTION

@@ -49,6 +49,9 @@ namespace OpenMS
   /**
     @brief This class serves for reading in and writing FASTA files
 
+    If the protein/gene sequence contains unusual symbols (such as translation end (*)),
+    they will be kept!
+
     You can use aggregate methods load() and store() to read/write a
     set of protein sequences at the cost of memory.
     
@@ -150,7 +153,7 @@ public:
     void readStart(const String& filename);
 
     /**
-    @brief Prepares a FASTA file given by 'filename' for streamed reading using readNext().
+    @brief Reads the next FASTA entry from file.
 
     If you want to read all entries in one go, use load().
 

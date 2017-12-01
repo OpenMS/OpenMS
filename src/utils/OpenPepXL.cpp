@@ -45,8 +45,8 @@
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/MzIdentMLFile.h>
-#include <OpenMS/CHEMISTRY/EnzymaticDigestion.h>
-#include <OpenMS/CHEMISTRY/EnzymesDB.h>
+#include <OpenMS/CHEMISTRY/ProteaseDigestion.h>
+#include <OpenMS/CHEMISTRY/ProteaseDB.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/ANALYSIS/RNPXL/ModifiedPeptideGenerator.h>
 #include <OpenMS/ANALYSIS/ID/IDMapper.h>
@@ -225,7 +225,7 @@ protected:
     registerIntOption_("peptide:min_size", "<num>", 5, "Minimum size a peptide must have after digestion to be considered in the search.", false, false);
     registerIntOption_("peptide:missed_cleavages", "<num>", 2, "Number of missed cleavages.", false, false);
     vector<String> all_enzymes;
-    EnzymesDB::getInstance()->getAllNames(all_enzymes);
+    ProteaseDB::getInstance()->getAllNames(all_enzymes);
     registerStringOption_("peptide:enzyme", "<cleavage site>", "Trypsin", "The enzyme used for peptide digestion.", false, false);
     setValidStrings_("peptide:enzyme", all_enzymes);
 
@@ -507,7 +507,7 @@ protected:
     progresslogger.endProgress();
 
     const Size missed_cleavages = getIntOption_("peptide:missed_cleavages");
-    EnzymaticDigestion digestor;
+    ProteaseDigestion digestor;
     String enzyme_name = getStringOption_("peptide:enzyme");
     digestor.setEnzyme(enzyme_name);
     digestor.setMissedCleavages(missed_cleavages);
@@ -588,7 +588,7 @@ protected:
     ProteinIdentification::SearchParameters search_params;
     search_params.charges = "2,3,4,5,6";
     search_params.db = in_fasta;
-    search_params.digestion_enzyme = (*EnzymesDB::getInstance()->getEnzyme(enzyme_name));
+    search_params.digestion_enzyme = *(ProteaseDB::getInstance()->getEnzyme(enzyme_name));
     search_params.fixed_modifications = fixedModNames;
     search_params.variable_modifications = varModNames;
     search_params.mass_type = ProteinIdentification::MONOISOTOPIC;

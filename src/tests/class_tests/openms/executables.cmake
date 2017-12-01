@@ -176,6 +176,7 @@ set(format_executables_list
   InspectOutfile_test
   KroenikFile_test
   LibSVMEncoder_test
+  MRMFeatureQCFile_test
   MS2File_test
   MSPFile_test
   MascotGenericFile_test
@@ -239,6 +240,7 @@ set(format_executables_list
   MSDataStoringConsumer_test
   MSDataAggregatingConsumer_test
   SpectrumAccessQuadMZTransforming_test
+  SpectrumAccessSqMass_test
 )
 
 set(math_executables_list
@@ -354,13 +356,12 @@ set(comparison_executables_list
 set(chemistry_executables_list
   AAIndex_test
   AASequence_test
+  DigestionEnzymeProtein_test
   ElementDB_test
   Element_test
   EmpiricalFormula_test
   EnzymaticDigestionLogModel_test
   EnzymaticDigestion_test
-  Enzyme_test
-  EnzymesDB_test
   FastaIteratorIntern_test
   FastaIterator_test
   IsotopeDistribution_test
@@ -370,6 +371,8 @@ set(chemistry_executables_list
   CrossLinksDB_test
   ModifierRep_test
   PepIterator_test
+  ProteaseDB_test
+  ProteaseDigestion_test
   ResidueDB_test
   ResidueModification_test
   Residue_test
@@ -394,6 +397,10 @@ set(chemistry_executables_list
 
 
 set(analysis_executables_list
+  AbsoluteQuantitation_test
+  AbsoluteQuantitationMethod_test
+  AbsoluteQuantitationMethodFile_test
+  AbsoluteQuantitationStandards_test
   AccurateMassSearchEngine_test
   AScore_test
   BaseGroupFinder_test
@@ -452,6 +459,7 @@ set(analysis_executables_list
   LocalLinearMap_test
   TargetedExperiment_test
   MRMFragmentSelection_test
+  MRMMapping_test
   MapAlignmentAlgorithmIdentification_test
   MapAlignmentAlgorithmKD_test
   MapAlignmentAlgorithmPoseClustering_test
@@ -601,8 +609,11 @@ if(NOT DISABLE_OPENSWATH)
     SpectrumAddition_test
     OpenSwathSpectrumAccessOpenMS_test
     OpenSwathDataAccessHelper_test
+    MasstraceCorrelator_test
     MRMFeatureScoring_test
     MRMFeatureFinderScoring_test
+    MRMFeatureFilter_test
+    MRMFeatureQC_test
     SpectrumHelpers_test
     StatsHelpers_test
     CachedMzML_test

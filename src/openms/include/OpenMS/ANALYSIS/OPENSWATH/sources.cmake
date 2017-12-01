@@ -16,6 +16,7 @@ set(sources_list_h
   MRMFeatureFinderScoring.h
   MRMRTNormalizer.h
   MRMTransitionGroupPicker.h
+  MasstraceCorrelator.h
   OpenSwathHelper.h
   OpenSwathScoring.h
   OpenSwathTSVWriter.h
@@ -27,6 +28,8 @@ set(sources_list_h
   SwathWindowLoader.h
   TransitionTSVReader.h
   TransitionPQPReader.h
+  MRMFeatureQC.h
+  MRMFeatureFilter.h
 )
 
 ### add path to the filenames
