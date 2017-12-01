@@ -75,15 +75,15 @@ public:
     /** @brief Internally used data structure. */
     struct BoxElement
     {
-      double mz; //<The monoisotopic position
-      UInt c; //<Note, this is not the charge (it is charge-1!!!)
-      double score; //<The associated score
-      double intens; //<The transformed intensity at the monoisotopic mass
+      double mz; ///<The monoisotopic position
+      UInt c; ///<Note, this is not the charge (it is charge-1!!!)
+      double score; ///<The associated score
+      double intens; ///<The transformed intensity at the monoisotopic mass
       double ref_intens;
-      double RT; //<The elution time (not the scan index)
-      UInt RT_index; //<The elution time (map) index
-      UInt MZ_begin; //<Index
-      UInt MZ_end; //<Index
+      double RT; ///<The elution time (not the scan index)
+      UInt RT_index; ///<The elution time (map) index
+      UInt MZ_begin; ///<Index
+      UInt MZ_end; ///<Index
     };
 
     typedef std::multimap<UInt, BoxElement> Box; ///<Key: RT index, value: BoxElement
@@ -203,8 +203,8 @@ public:
 
 protected:
 
-      const MSSpectrum* reference_; //<The reference spectrum
-      std::vector<float>* trans_intens_; //<The intensities of the transform
+      const MSSpectrum* reference_; ///<The reference spectrum
+      std::vector<float>* trans_intens_; ///<The intensities of the transform
 
     };
 

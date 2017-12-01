@@ -111,8 +111,8 @@ namespace OpenMS
       String text_finish;
       String category;
       String commandline;
-      String path; //< filename to external tool
-      String working_directory; //< folder where the command will be executed from
+      String path; ///< filename to external tool
+      String working_directory; ///< folder where the command will be executed from
       MappingParam tr_table;
       Param param;
     };

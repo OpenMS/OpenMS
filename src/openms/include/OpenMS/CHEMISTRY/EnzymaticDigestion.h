@@ -64,9 +64,9 @@ public:
     /// when querying for valid digestion products, this determines if the specificity of the two peptide ends is considered important
     enum Specificity
     {
-      SPEC_FULL, //< fully enzyme specific, e.g., tryptic (ends with KR, AA-before is KR), or peptide is at protein terminal ends
-      SPEC_SEMI, //< semi specific, i.e., one of the two cleavage sites must fulfill requirements
-      SPEC_NONE, //< no requirements on start / end
+      SPEC_FULL, ///< fully enzyme specific, e.g., tryptic (ends with KR, AA-before is KR), or peptide is at protein terminal ends
+      SPEC_SEMI, ///< semi specific, i.e., one of the two cleavage sites must fulfill requirements
+      SPEC_NONE, ///< no requirements on start / end
       SIZE_OF_SPECIFICITY
     };
     /// Names of the Specificity
