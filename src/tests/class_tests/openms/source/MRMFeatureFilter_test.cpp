@@ -871,7 +871,7 @@ START_SECTION(void FilterFeatureMap(FeatureMap& features, MRMFeatureQC& filter_c
   subordinates.clear();
   mrmff.FilterFeatureMap(components, qc_criteria, transitions);
   TEST_EQUAL(components[0].getMetaValue("QC_transition_group_pass"), false);
-  TEST_EQUAL(components[0].getMetaValue("QC_transition_group_message"), "ion_ratio_pair");
+  TEST_EQUAL(components[0].getMetaValue("QC_transition_group_message"), "ion_ratio_pair[component1.1.Light/component1.2.Light]");
   TEST_EQUAL(components[0].getSubordinates()[0].getMetaValue("QC_transition_pass"), true);
   TEST_EQUAL(components[0].getSubordinates()[1].getMetaValue("QC_transition_pass"), true);
   TEST_EQUAL(components[0].getSubordinates()[2].getMetaValue("QC_transition_pass"), true);

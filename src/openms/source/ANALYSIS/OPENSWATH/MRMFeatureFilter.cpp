@@ -189,7 +189,7 @@ namespace OpenMS
                   filter_criteria.component_group_qcs[cg_qc_it].ion_ratio_u))
                 {
                   cg_qc_pass = false;
-                  cg_qc_fail_message_vec.push_back("ion_ratio[" + component_name + "/" + component_name + "]");
+                  cg_qc_fail_message_vec.push_back("ion_ratio[" + component_name + "/" + component_name2 + "]");
                 }
               }
             }
