@@ -120,9 +120,9 @@ namespace OpenMS
     {
       const ResidueModification& mod = *(seq.getNTerminalModification());
       unimod = mod.getUniModRecordId();
-      if (unimod > -1)
+      if (mod.getUniModRecordId() > -1)
       {
-        bs += ".(UniMod:" + String(unimod) + ")";
+        bs += ".(" + mod.getUniModAccession() + ")";
       }
       else
       {
@@ -133,14 +133,13 @@ namespace OpenMS
     for (Size i = 0; i != seq.size(); ++i)
     {
       const Residue& r = seq[i];
-      const String aa = r.getOneLetterCode() != "" ? r.getOneLetterCode() : "X";
+      const String aa = r.getOneLetterCode();
       if (r.isModified())
       {
         const ResidueModification& mod = *(r.getModification());
-        unimod = mod.getUniModRecordId();
-        if (unimod > -1)
+        if (mod.getUniModRecordId() > -1)
         {
-          bs += aa + "(UniMod:" + String(unimod) + ")";
+          bs += aa + "(" + mod.getUniModAccession() + ")";
         }
         else
         {
@@ -156,10 +155,9 @@ namespace OpenMS
     if (seq.hasCTerminalModification())
     {
       const ResidueModification& mod = *(seq.getCTerminalModification());
-      unimod = mod.getUniModRecordId();
-      if (unimod > -1)
+      if (mod.getUniModRecordId() > -1)
       {
-        bs += ".(UniMod:" + String(unimod) + ")";
+        bs += ".(" + mod.getUniModAccession() + ")";
       }
       else
       {

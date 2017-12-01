@@ -1398,27 +1398,8 @@ namespace OpenMS
         }
       }
 
-      mytransition.FullPeptideName = "";
-      {
-        // Instead of relying on the full_peptide_name, rather look at the actual modifications!
-        OpenSwath::LightCompound lightpep;
-        OpenSwathDataAccessHelper::convertTargetedCompound(pep, lightpep);
-        for (int loc = -1; loc <= (int)lightpep.sequence.size(); loc++)
-        {
-          if (loc > -1 && loc < (int)lightpep.sequence.size())
-          {
-            mytransition.FullPeptideName += lightpep.sequence[loc];
-          }
-          // C-terminal and N-terminal modifications may be at positions -1 or lightpep.sequence
-          for (Size modloc = 0; modloc < lightpep.modifications.size(); modloc++)
-          {
-            if (lightpep.modifications[modloc].location == loc)
-            {
-              mytransition.FullPeptideName += "(UniMod:" + String(lightpep.modifications[modloc].unimod_id) + ")";
-            }
-          }
-        }
-      }
+      mytransition.FullPeptideName = TargetedExperimentHelper::getAASequence(pep).toUniModString();;
+
       mytransition.precursor_charge = "NA";
       if (pep.hasCharge())
       {
