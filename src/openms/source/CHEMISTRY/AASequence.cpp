@@ -112,14 +112,11 @@ namespace OpenMS
     const AASequence & seq = *this;
 
     String bs;
-    int unimod = -1;
-
     if (seq.empty()) return bs;
 
     if (seq.hasNTerminalModification())
     {
       const ResidueModification& mod = *(seq.getNTerminalModification());
-      unimod = mod.getUniModRecordId();
       if (mod.getUniModRecordId() > -1)
       {
         bs += ".(" + mod.getUniModAccession() + ")";
