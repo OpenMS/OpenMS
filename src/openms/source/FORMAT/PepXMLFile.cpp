@@ -1361,7 +1361,7 @@ namespace OpenMS
     }
     else if (element == "enzymatic_search_constraint") // parent: "search_summary"
     {
-      //<enzymatic_search_constraint enzyme="nonspecific" max_num_internal_cleavages="1" min_number_termini="2"/>
+      ///<enzymatic_search_constraint enzyme="nonspecific" max_num_internal_cleavages="1" min_number_termini="2"/>
       enzyme_ = attributeAsString_(attributes, "enzyme");
       if (enzyme_ == "nonspecific") enzyme_ = "unspecific cleavage";
       if (ProteaseDB::getInstance()->hasEnzyme(enzyme_))

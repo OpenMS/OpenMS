@@ -224,6 +224,8 @@ public:
       std::vector<bool> protein_is_decoy; // protein index -> is decoy?
       std::vector<std::string> protein_accessions; // protein index -> accession
 
+      bool invalid_protein_sequence = false; // check for proteins with modifications, i.e. '[' or '(', and throw an exception
+
       { // new scope - forget data after search
       
         /*
@@ -284,7 +286,6 @@ public:
 
         uint16_t count_j_proteins(0);
         bool has_active_data = true; // becomes false if end of FASTA file is reached
-
         const std::string jumpX(aaa_max_ + 1, 'X'); // jump over stretches of 'X' which cost a lot of time; +1 because  AXXA is a valid hit for aaa_max == 2 (cannot split it)
         this->startProgress(0, proteins.size(), "Aho-Corasick");
 #ifdef _OPENMP
@@ -328,6 +329,14 @@ public:
               String prot = proteins.chunkAt(i).sequence;
 
               prot.remove('*');
+
+              // check for invalid sequences with modifications
+              if (prot.has('[') || prot.has('('))
+              { 
+                 invalid_protein_sequence = true; // not omp-critical because its write-only
+                 // we cannot throw an exception here, since we'd need to catch it within the parallel region
+              }
+              
               // convert  L/J to I; also replace 'J' in proteins
               if (IL_equivalent_)
               {
@@ -356,7 +365,7 @@ public:
                 while ((offset = prot.find(jumpX, offset + 1)) != std::string::npos)
                 {
                   //std::cout << "found X..X at " << offset << " in protein " << proteins[i].identifier << "\n";
-                  addHits_(fuzzyAC, pattern, pep_DB, prot.substr(start, offset + jumpX.size() - start), prot, prot_idx, start, func_threads);
+                  addHits_(fuzzyAC, pattern, pep_DB, prot.substr(start, offset + jumpX.size() - start), prot, prot_idx, (int)start, func_threads);
                   // skip ahead while we encounter more X...
                   while (offset + jumpX.size() < prot.size() && prot[offset + jumpX.size()] == 'X') ++offset;
                   start = offset;
@@ -365,7 +374,7 @@ public:
                 // last chunk
                 if (start < prot.size())
                 {
-                  addHits_(fuzzyAC, pattern, pep_DB, prot.substr(start), prot, prot_idx, start, func_threads);
+                  addHits_(fuzzyAC, pattern, pep_DB, prot.substr(start), prot, prot_idx, (int)start, func_threads);
                 }
               }
               else
@@ -405,8 +414,7 @@ public:
 
         // write some stats
         LOG_INFO << "Peptide hits passing enzyme filter: " << func.filter_passed << "\n"
-          << "     ... rejected by enzyme filter: " << func.filter_rejected << std::endl;
-
+                 << "     ... rejected by enzyme filter: " << func.filter_rejected << std::endl;
 
         if (count_j_proteins)
         {
@@ -417,7 +425,6 @@ public:
         }
 
       } // end local scope
-
 
       //
       //   do mapping 
@@ -432,10 +439,11 @@ public:
       // for peptides --> proteins
       Size stats_matched_unique(0);
       Size stats_matched_multi(0);
-      Size stats_unmatched(0);
-      Size stats_count_m_t(0);
-      Size stats_count_m_d(0);
-      Size stats_count_m_td(0);
+      Size stats_unmatched(0);    // no match to DB
+      Size stats_count_m_t(0);    // match to Target DB
+      Size stats_count_m_d(0);    // match to Decoy DB
+      Size stats_count_m_td(0);   // match to T+D DB
+
       Map<Size, std::set<Size> > runidx_to_protidx; // in which protID do appear which proteins (according to mapped peptides)
 
       Size pep_idx(0);
@@ -494,6 +502,7 @@ public:
             it2->setMetaValue("target_decoy", "decoy");
             ++stats_count_m_d;
           } // else: could match to no protein (i.e. both are false)
+          //else ... // not required (handled below; see stats_unmatched);
 
           if (prot_indices.size() == 1)
           {
@@ -518,10 +527,11 @@ public:
 
       }
 
-      int total_peptides = stats_count_m_t + stats_count_m_d + stats_count_m_td;
+      Size total_peptides = stats_count_m_t + stats_count_m_d + stats_count_m_td + stats_unmatched;
       LOG_INFO << "-----------------------------------\n";
       LOG_INFO << "Peptide statistics\n";
       LOG_INFO << "\n";
+      LOG_INFO << "  unmatched                : " << stats_unmatched << " (" << stats_unmatched * 100 / total_peptides << " %)\n";
       LOG_INFO << "  target/decoy:\n";
       LOG_INFO << "    match to target DB only: " << stats_count_m_t << " (" << stats_count_m_t * 100 / total_peptides << " %)\n";
       LOG_INFO << "    match to decoy DB only : " << stats_count_m_d << " (" << stats_count_m_d * 100 / total_peptides << " %)\n";
@@ -532,38 +542,17 @@ public:
       LOG_INFO << "    unique match (to 1 protein)     : " << stats_matched_unique << "\n";
       LOG_INFO << "    non-unique match (to >1 protein): " << stats_matched_multi << std::endl;
 
-
-      /// exit if no peptides were matched to decoy
-      if ((stats_count_m_d + stats_count_m_td) == 0)
-      {
-        String msg("No peptides were matched to the decoy portion of the database! Did you provide the correct concatenated database? Are your 'decoy_string' (=" + String(decoy_string_) + ") and 'decoy_string_position' (=" + String(param_.getValue("decoy_string_position")) + ") settings correct?");
-        if (missing_decoy_action_ == "error")
-        {
-          LOG_ERROR << "Error: " << msg << "\nSet 'missing_decoy_action' to 'warn' if you are sure this is ok!\nAborting ..." << std::endl;
-          return UNEXPECTED_RESULT;
-        }
-        else
-        {
-          LOG_WARN << "Warn: " << msg << "\nSet 'missing_decoy_action' to 'error' if you want to elevate this to an error!" << std::endl;
-        }
-      }
-
       /// for proteins --> peptides
-
-      int stats_matched_proteins(0);
-      int stats_matched_new_proteins(0);
-      int stats_orphaned_proteins(0);
-      int stats_proteins_target(0);
-      int stats_proteins_decoy(0);
+      Size stats_matched_proteins(0), stats_matched_new_proteins(0), stats_orphaned_proteins(0), stats_proteins_target(0), stats_proteins_decoy(0);
 
       // all peptides contain the correct protein hit references, now update the protein hits
       for (Size run_idx = 0; run_idx < prot_ids.size(); ++run_idx)
       {
-        std::set<Size> masterset = runidx_to_protidx[run_idx]; // all found protein matches
+        std::set<Size> masterset = runidx_to_protidx[run_idx]; // all protein matches from above
 
         std::vector<ProteinHit>& phits = prot_ids[run_idx].getHits();
         {
-          // go through existing hits and count orphaned proteins (with no peptide hits)
+          // go through existing protein hits and count orphaned proteins (with no peptide hits)
           std::vector<ProteinHit> orphaned_hits;
           for (std::vector<ProteinHit>::iterator p_hit = phits.begin(); p_hit != phits.end(); ++p_hit)
           {
@@ -578,10 +567,11 @@ public:
               }
             }
           }
+          // only keep orphaned hits (if any)
           phits = orphaned_hits;
         }
 
-        // add hits
+        // add new protein hits
         FASTAFile::FASTAEntry fe;
         phits.reserve(phits.size() + masterset.size());
         for (std::set<Size>::const_iterator it = masterset.begin(); it != masterset.end(); ++it)
@@ -623,27 +613,61 @@ public:
       LOG_INFO << "\n";
       LOG_INFO << "  total proteins searched: " << proteins.size() << "\n";
       LOG_INFO << "  matched proteins       : " << stats_matched_proteins << " (" << stats_matched_new_proteins << " new)\n";
-      LOG_INFO << "  matched target proteins: " << stats_proteins_target << " (" << stats_proteins_target * 100 / stats_matched_proteins << " %)\n";
-      LOG_INFO << "  matched decoy proteins : " << stats_proteins_decoy << " (" << stats_proteins_decoy * 100 / stats_matched_proteins << " %)\n";
+      if (stats_matched_proteins)
+      { // prevent Division-by-0 Exception
+        LOG_INFO << "  matched target proteins: " << stats_proteins_target << " (" << stats_proteins_target * 100 / stats_matched_proteins << " %)\n";
+        LOG_INFO << "  matched decoy proteins : " << stats_proteins_decoy << " (" << stats_proteins_decoy * 100 / stats_matched_proteins << " %)\n";
+      }
       LOG_INFO << "  orphaned proteins      : " << stats_orphaned_proteins << (keep_unreferenced_proteins_ ? " (all kept)" : " (all removed)\n");
       LOG_INFO << "-----------------------------------" << std::endl;
 
-      if ((!allow_unmatched_) && (stats_unmatched > 0))
-      {
-        LOG_WARN << "PeptideIndexer found unmatched peptides, which could not be associated to a protein.\n"
-          << "Potential solutions:\n"
-          << "   - check your FASTA database for completeness\n"
-          << "   - set 'enzyme:specificity' to match the identification parameters of the search engine\n"
-          << "   - some engines (e.g. X! Tandem) employ loose cutting rules generating non-tryptic peptides;\n"
-          << "     if you trust them, disable enzyme specificity\n"
-          << "   - increase 'aaa_max' to allow more ambiguous amino acids\n"
-          << "   - as a last resort: use the 'allow_unmatched' option to accept unmatched peptides\n"
-          << "     (note that unmatched peptides cannot be used for FDR calculation or quantification)\n";
 
-        LOG_WARN << "Result files will be written, but PeptideIndexer will exit with an error code." << std::endl;
-        return UNEXPECTED_RESULT;
+      /// exit if no peptides were matched to decoy
+      bool has_error = false;
+
+      if (invalid_protein_sequence)
+      {
+        LOG_ERROR << "Error: One or more protein sequences contained the characters '[' or '(', which are illegal in protein sequences."
+                 << "\nPeptide hits might be masked by these characters (which usually indicate presence of modifications).\n";
+        has_error = true;
       }
 
+      if ((stats_count_m_d + stats_count_m_td) == 0)
+      {
+        String msg("No peptides were matched to the decoy portion of the database! Did you provide the correct concatenated database? Are your 'decoy_string' (=" + String(decoy_string_) + ") and 'decoy_string_position' (=" + String(param_.getValue("decoy_string_position")) + ") settings correct?");
+        if (missing_decoy_action_ == "error")
+        {
+          LOG_ERROR << "Error: " << msg << "\nSet 'missing_decoy_action' to 'warn' if you are sure this is ok!\nAborting ..." << std::endl;
+          has_error = true;
+        }
+        else if (missing_decoy_action_ == "warn")
+        {
+          LOG_WARN << "Warn: " << msg << "\nSet 'missing_decoy_action' to 'error' if you want to elevate this to an error!" << std::endl;
+        }
+        else // silent
+        {
+        }
+      }
+
+      if ((!allow_unmatched_) && (stats_unmatched > 0))
+      {
+        LOG_ERROR << "PeptideIndexer found unmatched peptides, which could not be associated to a protein.\n"
+                  << "Potential solutions:\n"
+                  << "   - check your FASTA database for completeness\n"
+                  << "   - set 'enzyme:specificity' to match the identification parameters of the search engine\n"
+                  << "   - some engines (e.g. X! Tandem) employ loose cutting rules generating non-tryptic peptides;\n"
+                  << "     if you trust them, disable enzyme specificity\n"
+                  << "   - increase 'aaa_max' to allow more ambiguous amino acids\n"
+                  << "   - as a last resort: use the 'allow_unmatched' option to accept unmatched peptides\n"
+                  << "     (note that unmatched peptides cannot be used for FDR calculation or quantification)\n";
+        has_error = true;
+      }
+
+      if (has_error)
+      {
+        LOG_ERROR << "Result files will be written, but PeptideIndexer will exit with an error code." << std::endl;
+        return UNEXPECTED_RESULT;
+      }
       return EXECUTION_OK;
     }
 
@@ -751,7 +775,6 @@ protected:
           match.AAAfter = (position + len_pep >= seq_prot.size()) ? PeptideEvidence::C_TERMINAL_AA : seq_prot[position + len_pep];
           pep_to_prot[idx_pep].insert(match);
           ++filter_passed;
-          DEBUG_ONLY std::cerr << "Hit: " << len_pep << " (peplen) with hit to protein " << seq_prot << " at position " << position << std::endl;
         }
         else
         {
