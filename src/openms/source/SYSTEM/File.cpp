@@ -450,11 +450,20 @@ namespace OpenMS
   String File::getTempDirectory()
   {
     Param p = getSystemParameters();
-    if (p.exists("temp_dir") && String(p.getValue("temp_dir")).trim() != "")
+    String dir;
+    if (getenv("OPENMS_TMPDIR") != 0)
     {
-      return p.getValue("temp_dir");
+      dir = getenv("OPENMS_TMPDIR");
     }
-    return String(QDir::tempPath());
+    else if (p.exists("temp_dir") && String(p.getValue("temp_dir")).trim() != "")
+    {
+      dir = p.getValue("temp_dir");
+    }
+    else
+    {
+      dir = String(QDir::tempPath());
+    }
+    return dir;
   }
 
   /// The current OpenMS user data path (for result files)
