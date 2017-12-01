@@ -58,7 +58,6 @@ namespace OpenMS
 
   void TargetedSpectraExtractor::updateMembers_()
   {
-    rt_unit_ = (String)param_.getValue("rt_unit");
     rt_window_ = (double)param_.getValue("rt_window");
     min_score_ = (double)param_.getValue("min_score");
     mz_tolerance_ = (double)param_.getValue("mz_tolerance");
@@ -75,9 +74,6 @@ namespace OpenMS
   void TargetedSpectraExtractor::getDefaultParameters(Param& params)
   {
     params.clear();
-
-    params.setValue("rt_unit", "seconds", "Unit used in the target list file for the RetentionTime column.");
-    params.setValidStrings("rt_unit", ListUtils::create<String>("minutes,seconds"));
 
     params.setValue(
       "rt_window",
@@ -162,21 +158,9 @@ namespace OpenMS
       for (UInt j=0; j<transitions.size(); ++j)
       {
         const TargetedExperimentHelper::Peptide peptide = targeted_exp.getPeptideByRef(transitions[j].getPeptideRef());
-        double target_rt;
-        if (!peptide.rts.empty() &&
-            peptide.rts[0].hasCVTerm("MS:1000895") &&
-            !peptide.rts[0].getCVTerms()["MS:1000895"].empty())
-        {
-          target_rt = peptide.rts[0].getCVTerms()["MS:1000895"][0].getValue().toString().toDouble();
-        }
-        else
-        {
-          target_rt = peptide.getRetentionTime(); // accesses to MS:1000896. TODO: update once https://github.com/OpenMS/OpenMS/pull/3043 is merged
-        }
-        target_rt *= (String)param_.getValue("rt_unit") == "seconds" ? 1.0 : 60.0;
-
+        double target_rt = peptide.getRetentionTime();
+        target_rt *= peptide.getRetentionTimeUnit() == TargetedExperimentHelper::RetentionTime::RTUnit::SECOND ? 1.0 : 60.0;
         const double target_mz = transitions[j].getPrecursorMZ();
-
         if (target_rt >= rt_left_lim && target_rt <= rt_right_lim && target_mz >= mz_left_lim && target_mz <= mz_right_lim)
         {
           LOG_DEBUG << "target_rt: " << target_rt << "\ttarget_mz: " << target_mz << std::endl;

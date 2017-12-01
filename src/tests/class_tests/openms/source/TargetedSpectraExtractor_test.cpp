@@ -323,7 +323,6 @@ ptr = new TargetedSpectraExtractor();
 START_SECTION(getParameters())
 {
   Param params = ptr->getParameters();
-  TEST_EQUAL(params.getValue("rt_unit"), "seconds")
   TEST_EQUAL(params.getValue("rt_window"), 30.0)
   TEST_EQUAL(params.getValue("min_score"), 0.7)
   TEST_EQUAL(params.getValue("mz_tolerance"), 0.1)
@@ -345,7 +344,6 @@ END_SECTION
 START_SECTION(annotateSpectra())
 {
   Param params = ptr->getParameters();
-  params.setValue("rt_unit", "minutes");
   params.setValue("GaussFilter:gaussian_width", 0.25);
   params.setValue("peak_height_min", 15000.0);
   params.setValue("peak_height_max", 110000.0);
@@ -472,7 +470,6 @@ END_SECTION
 START_SECTION(scoreSpectra())
 {
   Param params = ptr->getParameters();
-  params.setValue("rt_unit", "minutes");
   params.setValue("GaussFilter:gaussian_width", 0.25);
   params.setValue("peak_height_min", 15000.0);
   params.setValue("peak_height_max", 110000.0);
@@ -602,7 +599,6 @@ START_SECTION(selectSpectra())
 {
   const double min_score = 15.0;
   Param params = ptr->getParameters();
-  params.setValue("rt_unit", "minutes");
   params.setValue("min_score", min_score);
   params.setValue("GaussFilter:gaussian_width", 0.25);
   params.setValue("peak_height_min", 15000.0);
@@ -668,7 +664,6 @@ END_SECTION
 START_SECTION(extractSpectra())
 {
   Param params = ptr->getParameters();
-  params.setValue("rt_unit", "minutes");
   params.setValue("min_score", 15.0);
   params.setValue("GaussFilter:gaussian_width", 0.25);
   params.setValue("peak_height_min", 15000.0);

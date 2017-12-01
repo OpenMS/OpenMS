@@ -199,11 +199,6 @@ protected:
 
 private:
     /**
-      Unit used in the target list file for the RetentionTime column.
-    */
-    String rt_unit_;
-
-    /**
       Unit to use for mz_tolerance_ and fwhm_threshold_: true for Da, false for ppm.
     */
     bool mz_unit_is_Da_;
