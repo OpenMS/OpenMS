@@ -453,7 +453,6 @@ namespace seqan
     // Bfs Traversal
     typedef typename Iterator<TGraph, BfsIterator>::Type TBfsIterator;
     TBfsIterator it(me.data_graph, root);
-    //std::map<int, int> connectivity;
     typedef typename Size<AAcid>::Type TSize;
     TSize idxAAFirst, idxAALast; // range of unambiguous AAcids: AAcid(idx)
     _getSpawnRange('X', idxAAFirst, idxAALast);
@@ -464,12 +463,15 @@ namespace seqan
     }
 
     goNext(it); // skip root
+
+    // connectivity statistics
+    //std::map<int, int> connectivity;
+
     for (; !atEnd(it); goNext(it))
     {
       const typename GetValue<TBfsIterator>::Type itval = *it; // dereferencing *it will give an index into the property array!
 
-      //int edgecount = outDegree(me.data_graph, itval);
-      //++connectivity[edgecount];
+      //++connectivity[outDegree(me.data_graph, itval)];
 
       // set depth of current node using: depths(parent) + 1
       TVert parent = getProperty(parentMap, itval);
@@ -526,10 +528,10 @@ namespace seqan
     //sw.stop();
     //std::cout << OpenMS::String(" Trie build time: ") + sw.getClockTime() + " s (wall), " + sw.getCPUTime() + " s (CPU)).\n\n";
 
-    //for (std::map<int,int>::const_iterator it = connectivity.begin(); it != connectivity.end(); ++it)
-    //{
-    //  std::cout << "   conn: " << it->first << " : " << it->second << "x\n";
-    //}
+    /*for (std::map<int,int>::const_iterator it = connectivity.begin(); it != connectivity.end(); ++it)
+    {
+      std::cout << "   conn: " << it->first << " : " << it->second << "x\n";
+    }*/
 
   }
 
