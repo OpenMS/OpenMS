@@ -143,7 +143,7 @@ public:
 		@throw Exception::FileNotWritable() if too long (>=255 chars)
 		*/
 		void check_(const QString& filename);
-		QStringList filenames_;   //< filenames passed from upstream node in this round
+		QStringList filenames_;   ///< filenames passed from upstream node in this round
 	};
 	/// Info for one edge and round, to be passed to next node
     struct VertexRoundPackage
@@ -154,8 +154,8 @@ public:
       {
       }
 
-	  TOPPASFilenames filenames; //< filenames passed from upstream node in this round
-      TOPPASEdge* edge;  //< edge that connects the upstream node to the current one
+	  TOPPASFilenames filenames; ///< filenames passed from upstream node in this round
+      TOPPASEdge* edge;  ///< edge that connects the upstream node to the current one
     };
 
 	
