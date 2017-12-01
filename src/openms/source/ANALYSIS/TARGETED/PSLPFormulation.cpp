@@ -595,7 +595,7 @@ namespace OpenMS
           std::cout << "protein " << map_iter->first << " peptide " << p
 
                     << " scan " << curr_rt_index << " weight "
-            //<< curr_rt_weight * map_iter->second[p] * mz_weight
+            ///<< curr_rt_weight * map_iter->second[p] * mz_weight
             // << " = " << curr_rt_weight << " * " << map_iter->second[p]
                     << std::endl;
           //                            << " * "<<mz_weight<<std::endl;
@@ -1175,7 +1175,7 @@ namespace OpenMS
       std::vector<double> entries(stop - start);
       std::vector<Int> indices(stop - start);
 #ifdef DEBUG_OPS
-      std::cout << "feature " << i << " "; //<<features[i].getMZ() <<" "<<features[i].getRT()<<" ";
+      std::cout << "feature " << i << " "; ///<<features[i].getMZ() <<" "<<features[i].getRT()<<" ";
       std::cout << stop - start << "variables in equation\n";
 #endif
       Size c = 0;

@@ -65,8 +65,8 @@ namespace OpenMS
       signal_not_unique(0)
     {}
 
-    std::vector<double> mz_deltas; //< m/z distance between expected and observed reporter ion closest to expected position
-    int signal_not_unique;  //< counts if more than one peak was found within the search window of each reporter position
+    std::vector<double> mz_deltas; ///< m/z distance between expected and observed reporter ion closest to expected position
+    int signal_not_unique;  ///< counts if more than one peak was found within the search window of each reporter position
   };
 
 

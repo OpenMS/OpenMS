@@ -97,7 +97,7 @@ public:
   }
 
 protected:
-  StringList out_formats_; //< valid output formats for image
+  StringList out_formats_; ///< valid output formats for image
 
   Param getSubsectionDefaults_(const String& /*section*/) const
   {

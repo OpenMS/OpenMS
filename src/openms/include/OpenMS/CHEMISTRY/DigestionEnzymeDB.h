@@ -56,7 +56,7 @@ namespace OpenMS
     @p DigestionEnzymeType should be a subclass of DigestionEnzyme.
     @p InstanceType should be a subclass of DigestionEnzymeDB ("Curiously Recurring Template Pattern", see https://stackoverflow.com/a/34519373).
   */
-  template<typename DigestionEnzymeType, typename InstanceType> class OPENMS_DLLAPI DigestionEnzymeDB
+  template<typename DigestionEnzymeType, typename InstanceType> class DigestionEnzymeDB
   {
   public:
 

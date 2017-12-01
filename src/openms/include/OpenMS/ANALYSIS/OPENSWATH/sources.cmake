@@ -29,6 +29,8 @@ set(sources_list_h
   SwathWindowLoader.h
   TransitionTSVReader.h
   TransitionPQPReader.h
+  MRMFeatureQC.h
+  MRMFeatureFilter.h
 )
 
 ### add path to the filenames

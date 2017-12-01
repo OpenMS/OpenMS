@@ -1,0 +1,4 @@
+component_name,component_group_name,n_heavy_l ,n_heavy_u,n_light_l,n_light_u,n_detecting_l,n_detecting_u,n_quantifying_l,n_quantifying_u,n_identifying_l,n_identifying_u,n_transitions_l,n_transitions_u,ion_ratio_pair_name_1,ion_ratio_pair_name_2,ion_ratio_l,ion_ratio_u,retention_time_l,retention_time_u,intensity_l,intensity_u,overall_quality_l,overall_quality_u,metaValue_peak_apex_int_l,metaValue_peak_apex_int_u,metaValue_sn_score_l,metaValue_sn_score_u
+component1,componentGroup1,1,1,1,3,2,4,2,4,0,4,2,4,component1,component2,0.5,0.6,1,2,1000,1000000,2,5,1000,1000000,2,10
+component2,componentGroup2,1,1,1,3,2,4,2,4,0,4,2,4,component1,component2,0.5,0.6,1,2,1000,1000000,2,5,1000,1000000,5,20
+component3,componentGroup3,1,1,1,3,2,4,2,4,0,4,2,4,component1,component2,0.5,0.6,1,2,1000,1000000,2,5,1000,1000000,10,50
