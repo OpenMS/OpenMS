@@ -458,6 +458,7 @@ set(analysis_executables_list
   LabeledPairFinder_test
   LocalLinearMap_test
   TargetedExperiment_test
+  TargetedExperimentHelper_test
   MRMFragmentSelection_test
   MRMMapping_test
   MapAlignmentAlgorithmIdentification_test
@@ -497,7 +498,6 @@ set(analysis_executables_list
   SimplePairFinder_test
   SimpleSVM_test
   StablePairFinder_test
-  #TargetedExperimentHelper_test
   PercolatorFeatureSetHelper_test
   TransformationDescription_test
   TransformationModel_test

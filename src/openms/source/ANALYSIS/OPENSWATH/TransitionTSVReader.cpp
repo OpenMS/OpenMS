@@ -968,60 +968,26 @@ namespace OpenMS
 
   void TransitionTSVReader::interpretRetentionTime_(std::vector<TargetedExperiment::RetentionTime>& retention_times, const OpenMS::DataValue rt_value)
   {
+    TargetedExperiment::RetentionTime retention_time;
+    retention_time.setRT(rt_value);
     if (retentionTimeInterpretation_ == "iRT")
     {
-      TargetedExperiment::RetentionTime retention_time;
-
-      {
-        CVTerm rt;
-        rt.setCVIdentifierRef("MS");
-        rt.setAccession("MS:1000896"); // normalized RT
-        rt.setName("normalized retention time");
-        rt.setValue(rt_value);
-        retention_time.addCVTerm(rt);
-      }
-
-      {
-        CVTerm rt;
-        rt.setCVIdentifierRef("MS");
-        rt.setAccession("MS:1002005"); // iRT
-        rt.setName("iRT retention time normalization standard");
-        retention_time.addCVTerm(rt);
-      }
-
-      retention_times.push_back(retention_time);
+      retention_time.retention_time_type = TargetedExperimentHelper::RetentionTime::RTType::IRT;
+      // no unit, since it is iRT (normalized RT)
     }
     else if (retentionTimeInterpretation_ == "seconds" || retentionTimeInterpretation_ == "minutes")
     {
-      TargetedExperiment::RetentionTime retention_time;
-
+      retention_time.retention_time_type = TargetedExperimentHelper::RetentionTime::RTType::LOCAL;
+      if (retentionTimeInterpretation_ == "seconds")
       {
-        CVTerm rt;
-
-        CVTerm::Unit u;
-        if (retentionTimeInterpretation_ == "seconds")
-        {
-          u.accession = "UO:0000010";
-          u.name = "second";
-          u.cv_ref = "UO";
-        }
-        else if (retentionTimeInterpretation_ == "minutes")
-        {
-          u.accession = "UO:0000031";
-          u.name = "minute";
-          u.cv_ref = "UO";
-        }
-
-        rt.setCVIdentifierRef("MS");
-        rt.setAccession("MS:1000895"); // local RT
-        rt.setName("local retention time");
-        rt.setValue(rt_value);
-        rt.setUnit(u);
-        retention_time.addCVTerm(rt);
+        retention_time.retention_time_unit = TargetedExperimentHelper::RetentionTime::RTUnit::SECOND;
       }
-
-      retention_times.push_back(retention_time);
+      else if (retentionTimeInterpretation_ == "minutes")
+      {
+        retention_time.retention_time_unit = TargetedExperimentHelper::RetentionTime::RTUnit::MINUTE;
+      }
     }
+    retention_times.push_back(retention_time);
   }
 
   void TransitionTSVReader::createPeptide_(std::vector<TSVTransition>::iterator& tr_it, OpenMS::TargetedExperiment::Peptide& peptide)
@@ -1203,16 +1169,12 @@ namespace OpenMS
 
 #ifdef TRANSITIONTSVREADER_TESTING
       LOG_DEBUG << "Peptide rts empty " <<
-      pep.rts.empty()  << " or no cv term " << pep.rts[0].hasCVTerm("MS:1000896") << std::endl;
+      pep.rts.empty()  << " or no cv term " << pep.getRetentionTime() << std::endl;
 #endif
 
-      if (!pep.rts.empty() && pep.rts[0].hasCVTerm("MS:1000896"))
+      if (pep.hasRetentionTime())
       {
-        mytransition.rt_calibrated = pep.rts[0].getCVTerms()["MS:1000896"][0].getValue().toString().toDouble();
-      }
-      else if (!pep.rts.empty() && pep.rts[0].hasCVTerm("MS:1002005")) // iRT
-      {
-        mytransition.rt_calibrated = pep.rts[0].getCVTerms()["MS:1002005"][0].getValue().toString().toDouble();
+        mytransition.rt_calibrated = pep.getRetentionTime();
       }
 
       mytransition.PeptideSequence = pep.sequence;
@@ -1269,13 +1231,9 @@ namespace OpenMS
       const OpenMS::TargetedExperiment::Compound& compound = targeted_exp.getCompoundByRef(it->getCompoundRef());
       mytransition.group_id = it->getCompoundRef();
 
-      if (!compound.rts.empty() && compound.rts[0].hasCVTerm("MS:1000896"))
+      if (compound.hasRetentionTime())
       {
-        mytransition.rt_calibrated = compound.rts[0].getCVTerms()["MS:1000896"][0].getValue().toString().toDouble();
-      }
-      else if (!compound.rts.empty() && compound.rts[0].hasCVTerm("MS:1002005")) // iRT
-      {
-        mytransition.rt_calibrated = compound.rts[0].getCVTerms()["MS:1002005"][0].getValue().toString().toDouble();
+        mytransition.rt_calibrated = compound.getRetentionTime();
       }
 
       mytransition.precursor_charge = "NA";

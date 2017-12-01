@@ -3,7 +3,6 @@ DartConfiguration.tcl
 /*.cmake
 Testing
 CMakeCache.txt
-contrib
 CMakeFiles
 Makefile
 lib
