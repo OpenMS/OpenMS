@@ -87,6 +87,11 @@ private:
     double peak_area_ = 0.0;
     double peak_height_ = -1.0;
     double peak_apex_pos_ = -1.0;
+
+    double simpson(
+      MSChromatogram::ConstIterator pt_begin,
+      MSChromatogram::ConstIterator pt_end
+    ) const;
   };
 }
 

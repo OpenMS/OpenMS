@@ -208,9 +208,9 @@ START_SECTION(integratePeak())
   TEST_REAL_SIMILAR(ptr->getPeakApexPosition(), 2.7045)
 
   ptr->setIntegrationType("simpson");
-  ptr->integratePeak(chromatogram, left, 3.011416667); // lower "right" is passed, to have 1 less point
+  ptr->integratePeak(chromatogram, left, 3.011416667); // a lower value of "right" is passed, to have 1 less point
   cout << "simpson (even number of points): " << endl;
-  TEST_REAL_SIMILAR(ptr->getPeakArea(), 71700.6099355464)
+  TEST_REAL_SIMILAR(ptr->getPeakArea(), 71515.0792609335)
   TEST_REAL_SIMILAR(ptr->getPeakHeight(), 966489.0)
   TEST_REAL_SIMILAR(ptr->getPeakApexPosition(), 2.7045)
 }

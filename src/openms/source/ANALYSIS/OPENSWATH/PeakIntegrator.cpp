@@ -128,23 +128,33 @@ namespace OpenMS
         LOG_DEBUG << std::endl << "Error in integratePeak: number of points must be >=3 for Simpson's rule" << std::endl;
         return;
       }
-      for (auto it=chromatogram.RTBegin(left)+1; it<chromatogram.RTEnd(right)-1; it=it+2)
+      if (n_points % 2)
       {
-        const double h = it->getRT() - (it-1)->getRT();
-        const double k = (it+1)->getRT() - it->getRT();
-        const double y_h = (it-1)->getIntensity();
-        const double y_0 = it->getIntensity();
-        const double y_k = (it+1)->getIntensity();
-        peak_area_ += (1.0/6.0) * (h+k) * ((2.0-k/h)*y_h + (pow(h+k,2)/(h*k))*y_0 + (2.0-h/k)*y_k);
+        peak_area_ = simpson(chromatogram.RTBegin(left), chromatogram.RTEnd(right));
       }
-      if (!(n_points % 2) && chromatogram.RTEnd(right) != chromatogram.end()){ // if number of points is even
-        const auto it = chromatogram.RTEnd(right) - 1;
-        const double h = it->getRT() - (it-1)->getRT();
-        const double k = (it+1)->getRT() - it->getRT();
-        const double y_h = (it-1)->getIntensity();
-        const double y_0 = it->getIntensity();
-        const double y_k = (it+1)->getIntensity();
-        peak_area_ = (peak_area_ * 2.0 + (1.0/6.0) * (h+k) * ((2.0-k/h)*y_h + (pow(h+k,2)/(h*k))*y_0 + (2.0-h/k)*y_k)) / 2.0;
+      else
+      {
+        double areas[4] = {};
+        areas[0] = simpson(chromatogram.RTBegin(left), chromatogram.RTEnd(right) - 1);   // without last point
+        areas[1] = simpson(chromatogram.RTBegin(left) + 1, chromatogram.RTEnd(right));   // without first point
+        if (chromatogram.begin() <= chromatogram.RTBegin(left) - 1)
+        {
+          areas[2] = simpson(chromatogram.RTBegin(left) - 1, chromatogram.RTEnd(right)); // with one more point on the left
+        }
+        if (chromatogram.RTEnd(right) < chromatogram.end())
+        {
+          areas[3] = simpson(chromatogram.RTBegin(left), chromatogram.RTEnd(right) + 1); // with one more point on the right
+        }
+        UInt valids = 0;
+        for (auto area : areas)
+        {
+          if (area)
+          {
+            peak_area_ += area;
+            ++valids;
+          }
+        }
+        peak_area_ /= valids;
       }
     }
     else
@@ -155,6 +165,24 @@ namespace OpenMS
         peak_area_ += it->getIntensity();
       }
     }
+  }
+
+  double PeakIntegrator::simpson(
+    MSChromatogram::ConstIterator pt_begin,
+    MSChromatogram::ConstIterator pt_end
+  ) const
+  {
+    double integral = 0.0;
+    for (auto it=pt_begin+1; it<pt_end-1; it=it+2)
+    {
+      const double h = it->getRT() - (it-1)->getRT();
+      const double k = (it+1)->getRT() - it->getRT();
+      const double y_h = (it-1)->getIntensity();
+      const double y_0 = it->getIntensity();
+      const double y_k = (it+1)->getIntensity();
+      integral += (1.0/6.0) * (h+k) * ((2.0-k/h)*y_h + (pow(h+k,2)/(h*k))*y_0 + (2.0-h/k)*y_k);
+    }
+    return integral;
   }
 
   double PeakIntegrator::getPeakArea() const
