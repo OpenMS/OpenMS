@@ -80,6 +80,7 @@ public:
       double actual_concentration;
       double IS_actual_concentration;
       String concentration_units;
+      double dilution_factor;
     };
 
     /**
@@ -93,10 +94,11 @@ public:
       double actual_concentration;
       double IS_actual_concentration;
       String concentration_units;
+      double dilution_factor;
     };
     
      /**
-       @brief Structure to map runs to components to known concentrations
+       @brief Method to map runs to components to known concentrations
 
        Note that for the method to work, the features must be annotated with
          a metaValue for "run_id"
