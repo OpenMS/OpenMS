@@ -532,7 +532,7 @@ namespace OpenMS
     // corresponding iterator position is then returned.
 
     // debugging:
-    std::cout << "residualOutlierCandidate_: size of component_concentrations: " << std::to_string(component_concentrations_tmp.size()) << std::endl;
+    std::cout << "residualOutlierCandidate_: size of component_concentrations: " << std::to_string(component_concentrations.size()) << std::endl;
     
     // fit the model
     Param optimized_params = fitCalibration(component_concentrations,
