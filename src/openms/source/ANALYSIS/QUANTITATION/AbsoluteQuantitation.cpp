@@ -500,7 +500,7 @@ namespace OpenMS
       std::cout << "jackknifeOutlierCandidate_: size of component_concentrations: " << std::to_string(component_concentrations_tmp.size()) << std::endl;
 
       // fit the model
-      Param optimized_params = AbsoluteQuantitation::fitCalibration(component_concentrations_tmp,
+      Param optimized_params = fitCalibration(component_concentrations_tmp,
         feature_name,
         transformation_model,
         transformation_model_params);
@@ -508,7 +508,7 @@ namespace OpenMS
       // calculate the R2 and bias
       std::vector<double> biases;
       double r2 = 0.0;
-      AbsoluteQuantitation::calculateBiasAndR2(
+      calculateBiasAndR2(
         component_concentrations_tmp,
         feature_name,
         transformation_model,
@@ -532,7 +532,7 @@ namespace OpenMS
     // corresponding iterator position is then returned.
     
     // fit the model
-    Param optimized_params = AbsoluteQuantitation::fitCalibration(component_concentrations,
+    Param optimized_params = fitCalibration(component_concentrations,
       feature_name,
       transformation_model,
       transformation_model_params);
@@ -540,7 +540,7 @@ namespace OpenMS
     // calculate the R2 and bias
     std::vector<double> biases;
     double r2 = 0.0;
-    AbsoluteQuantitation::calculateBiasAndR2(
+    calculateBiasAndR2(
       component_concentrations,
       feature_name,
       transformation_model,
