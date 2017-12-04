@@ -2307,13 +2307,13 @@ namespace OpenMS
       QString html_doc = tool_description_.toQString();
       lines.insert(3, QString("<manual><![CDATA[") + html_doc + "]]></manual>");
       lines.insert(4, QString("<citations>"));
-      lines.insert(5, QString("  <citation doi=\"") + QString::fromStdString(cite_openms_.doi) + "\" url=\"\">");
+      lines.insert(5, QString("  <citation doi=\"") + QString::fromStdString(cite_openms_.doi) + "\" url=\"\" />");
       int l = 5;
       if (!citations_.empty())
       {
         for (Citation c : citations_) 
         {
-          lines.insert(++l, QString("  <citation doi=\"") + QString::fromStdString(c.doi) + "\" url=\"\">");
+          lines.insert(++l, QString("  <citation doi=\"") + QString::fromStdString(c.doi) + "\" url=\"\" />");
         }
       }
       lines.insert(++l, QString("</citations>"));
