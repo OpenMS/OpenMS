@@ -119,8 +119,8 @@ START_SECTION((static MorpheusScore::Result compute(
     theo_spectrum[i].setMZ(mz + 9 * 1e-6 * mz); // +9 ppm error
   }
 
-  TEST_EQUAL(MorpheusScore::compute(0.1, false, exp_spectrum, theo_spectrum).matches, 25);
-  TEST_REAL_SIMILAR(MorpheusScore::compute(0.1, false, exp_spectrum, theo_spectrum).score, 25.7576);
+  TEST_EQUAL(MorpheusScore::compute(0.1, false, exp_spectrum, theo_spectrum).matches, 4);
+  TEST_REAL_SIMILAR(MorpheusScore::compute(0.1, false, exp_spectrum, theo_spectrum).score, 4.1212);
   TEST_EQUAL(MorpheusScore::compute(10, true, exp_spectrum, theo_spectrum).matches, 33);
   TEST_REAL_SIMILAR(MorpheusScore::compute(10, true, exp_spectrum, theo_spectrum).score, 33.0 + 1.0);
 }
