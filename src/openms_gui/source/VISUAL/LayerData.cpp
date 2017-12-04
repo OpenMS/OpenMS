@@ -58,7 +58,6 @@ namespace OpenMS
 
   void LayerData::synchronizePeakAnnotations()
   {
-    // LayerData & current_layer = widget_1D->canvas()->getCurrentLayer();
     int spectrum_index = getCurrentSpectrumIndex();
 
     // Return if no valid peak layer attached
@@ -141,10 +140,12 @@ namespace OpenMS
   void LayerData::updatePeptideHitAnnotations_(PeptideHit& hit)
   {
     // copy user annotations to fragment annotation vector
-    Annotations1DContainer & las = getAnnotations(current_spectrum_);
+    Annotations1DContainer & las = getCurrentAnnotations();
 
-    vector<PeptideHit::PeakAnnotation> fas = hit.getPeakAnnotations();
+    // initialize with an empty vector
+    vector<PeptideHit::PeakAnnotation> fas;
 
+    // do not change PeptideHit annotations, if there are no annotations on the spectrum
     bool annotations_changed(false);
 
     // regular expression for a charge at the end of the annotation
@@ -159,62 +160,81 @@ namespace OpenMS
 
       int tmp_charge(0);
 
-      // if already annotated we want to keep mz, intensity, and charge information
-      bool already_annotated(false);
-      for (auto& tmp_a : fas)
+      // add new fragment annotation
+      QString peak_anno = pa->getText();
+      int match_pos = reg_exp.indexIn(peak_anno);
+      if (match_pos >= 0)
       {
-        if (fabs(tmp_a.mz - pa->getPeakPosition()[0]) < 1e-6)
-        {
-          QString peak_anno = pa->getText();
-          int match_pos = reg_exp.indexIn(peak_anno);
-          // if a charge was found at the annotation, remove it from the annotation string an fill the charge attribute
-          if (match_pos >= 0)
-          {
-            tmp_charge = reg_exp.cap(1).toInt();
-            peak_anno = peak_anno.left(match_pos);
-          }
-
-          if (tmp_a.annotation == String(peak_anno))
-          {
-            already_annotated = true;
-            break;
-          }
-          else // peak annotated but different text (e.g., changed by user)
-          {
-            tmp_a.annotation = peak_anno;
-            // if the new annotation has a charge, use the new one
-            if (tmp_charge != 0)
-            {
-              tmp_a.charge = tmp_charge;
-            }
-            annotations_changed = true;
-            already_annotated = true;
-            break;
-          }
-        }
+        tmp_charge = reg_exp.cap(1).toInt();
+        peak_anno = peak_anno.left(match_pos);
       }
 
-      // add new fragment annotation if peak not yet annotated
-      if (!already_annotated)
-      {
-        QString peak_anno = pa->getText();
-        int match_pos = reg_exp.indexIn(peak_anno);
-        if (match_pos >= 0)
-        {
-          tmp_charge = reg_exp.cap(1).toInt();
-          peak_anno = peak_anno.left(match_pos);
-        }
-
-        PeptideHit::PeakAnnotation fa;
-        fa.charge = tmp_charge;
-        fa.mz = pa->getPeakPosition()[0];
-        fa.intensity = pa->getPeakPosition()[1];
-        fa.annotation = peak_anno;
-        fas.push_back(fa);
-        annotations_changed = true;
-      }
+      PeptideHit::PeakAnnotation fa;
+      fa.charge = tmp_charge;
+      fa.mz = pa->getPeakPosition()[0];
+      fa.intensity = pa->getPeakPosition()[1];
+      fa.annotation = peak_anno;
+      fas.push_back(fa);
+      annotations_changed = true;
     }
     if (annotations_changed) { hit.setPeakAnnotations(fas); }
   }
 
+  void LayerData::removePeakAnnotationsFromPeptideHit(const std::vector<Annotation1DItem*>& selected_annotations)
+  {
+    int spectrum_index = getCurrentSpectrumIndex();
+
+    // Return if no valid peak layer attached
+    if (getPeakData()->size() == 0 || type != LayerData::DT_PEAK) { return; }
+
+    // no ID selected
+    if (peptide_id_index == -1 || peptide_hit_index == -1) { return; }
+
+    MSSpectrum & spectrum = (*getPeakData())[spectrum_index];
+    int ms_level = spectrum.getMSLevel();
+
+    // wrong MS level
+    if (ms_level < 2) { return; }
+
+    // extract Peptideidentification and PeptideHit if possible.
+    // that this function returns prematurely is unlikely,
+    // since we are deleting existing annotations,
+    // that have to be somewhere, but better make sure
+    vector<PeptideIdentification>& pep_ids = spectrum.getPeptideIdentifications();
+    if (pep_ids.empty()) { return; }
+    vector<PeptideHit>& hits = pep_ids[peptide_id_index].getHits();
+    if (hits.empty()) { return; }
+    PeptideHit& hit = hits[peptide_hit_index];
+    vector<PeptideHit::PeakAnnotation> fas = hit.getPeakAnnotations();
+    if (fas.empty()) { return; }
+
+    // all requirements fulfilled, PH in hit and annotations in selected_annotations
+    vector<PeptideHit::PeakAnnotation> to_remove;
+    bool annotations_changed(false);
+
+    // collect annotations, that have to be removed
+    for (auto const& tmp_a : fas)
+    {
+      for (auto const& it : selected_annotations)
+      {
+        Annotation1DPeakItem* pa = dynamic_cast<Annotation1DPeakItem*>(it);
+        // only search for peak annotations
+        if (pa == nullptr) { continue; }
+        if (fabs(tmp_a.mz - pa->getPeakPosition()[0]) < 1e-6)
+        {
+          if (String(pa->getText()).hasPrefix(tmp_a.annotation))
+          {
+            to_remove.push_back(tmp_a);
+            annotations_changed = true;
+          }
+        }
+      }
+    }
+    // remove the collected annotations from the PeptideHit annotations
+    for (auto const& tmp_a : to_remove)
+    {
+      fas.erase(std::remove(fas.begin(), fas.end(), tmp_a), fas.end());
+    }
+    if (annotations_changed) { hit.setPeakAnnotations(fas); }
+  }
 } //Namespace

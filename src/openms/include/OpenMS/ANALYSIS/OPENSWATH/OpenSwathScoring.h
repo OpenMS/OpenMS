@@ -642,4 +642,4 @@ var_yseries_score   -0.0327896378737766
   };
 }
 
-#endif
+#endif // OPENMS_ANALYSIS_OPENSWATH_OPENSWATHSCORING_H

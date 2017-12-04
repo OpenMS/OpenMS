@@ -10,7 +10,7 @@ cdef extern from "<OpenMS/ANALYSIS/MAPMATCHING/TransformationModelInterpolated.h
         #   TransformationModel
 
         TransformationModelInterpolated(TransformationModelInterpolated) nogil except + #wrap-ignore
-        TransformationModelInterpolated(libcpp_vector[ libcpp_pair[double, double] ]& data, Param & params) nogil except +
+        TransformationModelInterpolated(libcpp_vector[TM_DataPoint]& data, Param& params) nogil except +
 
         void getDefaultParameters(Param &)
         double evaluate(double value) nogil except +
@@ -24,5 +24,4 @@ cdef extern from "<OpenMS/ANALYSIS/MAPMATCHING/TransformationModelInterpolated.h
 
       void init(libcpp_vector[double] x, libcpp_vector[double] y)
 
-      double eval(double x) 
-
+      double eval(double x)

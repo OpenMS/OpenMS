@@ -151,7 +151,8 @@ protected:
     // calculations
     //-------------------------------------------------------------
 
-    if (strict) IDFilter::keepBestPeptideHits(identifications, strict);
+    // if (strict)
+    IDFilter::keepBestPeptideHits(identifications, strict);
 
     for (SignedSize j = fdrs.size() - 1; j >= 0; --j)
     {

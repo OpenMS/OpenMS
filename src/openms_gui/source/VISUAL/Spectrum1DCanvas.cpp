@@ -509,6 +509,7 @@ namespace OpenMS
     if (e->key() == Qt::Key_Delete)
     {
       e->accept();
+      getCurrentLayer_().removePeakAnnotationsFromPeptideHit(getCurrentLayer_().getCurrentAnnotations().getSelectedItems());
       getCurrentLayer_().getCurrentAnnotations().removeSelectedItems();
       update_(OPENMS_PRETTY_FUNCTION);
     }
@@ -1336,6 +1337,7 @@ namespace OpenMS
         else if (result->text() == "Edit")
         {
           annot_item->editText();
+          getCurrentLayer_().synchronizePeakAnnotations();
         }
         update_(OPENMS_PRETTY_FUNCTION);
       }
@@ -1915,7 +1917,7 @@ namespace OpenMS
         painter.drawLine(begin_p.x(), height() / 2 - 5, end_p.x(), height() / 2 + 5);
       }
     }
-    else if (!mirror_mode_)
+    else
     {
       painter.setPen(Qt::red);
       QPoint begin_p, end_p;

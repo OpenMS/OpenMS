@@ -17,6 +17,9 @@ function build_contrib {
 
 if [ "${PYOPENMS}" = "ON" ]; then
   # Note: ensure that cmake uses the same python!
+  pyenv versions
+  # select the desired Python version
+  pyenv global 2.7.13
   which pip
   which python
 
@@ -58,7 +61,7 @@ popd
 if [ "${ENABLE_STYLE_TESTING}" = "ON" ]; then
   git clone git://github.com/danmar/cppcheck.git
   pushd cppcheck
-  git checkout 1.65
+  git checkout 1.81
   CXX=clang++ make SRCDIR=build CFGDIR=`pwd`/cfg HAVE_RULES=yes -j4
   popd
 else

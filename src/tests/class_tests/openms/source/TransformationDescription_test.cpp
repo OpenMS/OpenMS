@@ -1,32 +1,32 @@
 // --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry               
+//                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
 // ETH Zurich, and Freie Universitaet Berlin 2002-2017.
-// 
+//
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
 //    notice, this list of conditions and the following disclaimer.
 //  * Redistributions in binary form must reproduce the above copyright
 //    notice, this list of conditions and the following disclaimer in the
 //    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution 
-//    may be used to endorse or promote products derived from this software 
+//  * Neither the name of any author or any participating institution
+//    may be used to endorse or promote products derived from this software
 //    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS. 
+// For a full list of authors, refer to the file AUTHORS.
 // --------------------------------------------------------------------------
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING 
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
+// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
 // $Authors: Hendrik Weisser $
@@ -108,7 +108,29 @@ START_SECTION((void setDataPoints(const DataPoints& data)))
 	TransformationDescription::DataPoints empty;
   empty.clear();
 	td.setDataPoints(empty);
-	TEST_EQUAL(td.getDataPoints().empty(), true)
+	TEST_EQUAL(td.getDataPoints().empty(), true);
+}
+END_SECTION
+
+START_SECTION((void setDataPoints(const vector<pair<double, double> >& data)))
+{
+	TransformationDescription td;
+	td.fitModel("identity", Param());
+	TEST_EQUAL(td.getModelType(), "identity");
+  vector<pair<double, double> > pairs;
+  pairs.push_back(make_pair(0.0, 1.0));
+  pairs.push_back(make_pair(0.25, 1.5));
+  pairs.push_back(make_pair(0.5, 2.0));
+  pairs.push_back(make_pair(1.0, 3.0));
+	td.setDataPoints(pairs);
+	// setting data points clears the model:
+	TEST_EQUAL(td.getModelType(), "none");
+	TEST_EQUAL(td.getDataPoints().size(), 4)
+	TEST_EQUAL(td.getDataPoints() == data, true);
+
+  pairs.clear();
+	td.setDataPoints(pairs);
+	TEST_EQUAL(td.getDataPoints().empty(), true);
 }
 END_SECTION
 
@@ -149,7 +171,7 @@ START_SECTION((void fitModel(const String& model_type, const Param& params=Param
 	TEST_REAL_SIMILAR(td.apply(0.0), 1.0);
 	TEST_REAL_SIMILAR(td.apply(0.5), 2.0);
 	TEST_REAL_SIMILAR(td.apply(1.0), 3.0);
-	
+
   // non-linear model (b spline)
 	td.fitModel("b_spline", params);
 	TEST_EQUAL(td.getModelType(), "b_spline");
@@ -236,6 +258,12 @@ START_SECTION((void getModelParameters(Param& params) const))
 	TEST_EQUAL(params, Param());
 	params.setValue("slope", 2.5);
 	params.setValue("intercept", -100.0);
+  params.setValue("x_weight", "");
+  params.setValue("y_weight", "");
+  params.setValue("x_datum_min", 1e-15);
+  params.setValue("y_datum_min", 1e-15);
+  params.setValue("x_datum_max", 1e15);
+  params.setValue("y_datum_max", 1e15);
 	const Param const_params = params;
 	td.fitModel("linear", const_params);
 	params = td.getModelParameters();
@@ -349,7 +377,7 @@ START_SECTION((void printSummary(std::ostream& os = std::cout) const))
   stringstream ss;
 	TransformationDescription td(data_nonlinear);
   td.printSummary(ss);
-  string expected = 
+  string expected =
     "Number of data points (x/y pairs): 4\n"
     "Data range (x): 0 to 1\n"
     "Data range (y): 1 to 2\n"
@@ -366,7 +394,7 @@ START_SECTION((void printSummary(std::ostream& os = std::cout) const))
   ss.str("");
 	td.fitModel("linear");
   td.printSummary(ss);
-  expected = 
+  expected =
     "Number of data points (x/y pairs): 4\n"
     "Data range (x): 0 to 1\n"
     "Data range (y): 1 to 2\n"

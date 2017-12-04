@@ -171,10 +171,10 @@ protected:
     struct OPENMS_DLLAPI PeakArea_
     {
       typedef MSSpectrum::iterator PeakIterator;
-      PeakIterator left;  //< iterator to the leftmost valid point
-      PeakIterator max;   //< iterator to the maximum position
-      PeakIterator right; //< iterator to the rightmost valid point (inclusive)
-      DPosition<1> centroid_position; //< The estimated centroid position in m/z
+      PeakIterator left;  ///< iterator to the leftmost valid point
+      PeakIterator max;   ///< iterator to the maximum position
+      PeakIterator right; ///< iterator to the rightmost valid point (inclusive)
+      DPosition<1> centroid_position; ///< The estimated centroid position in m/z
     };
 
     /// Computes the peak's left and right area

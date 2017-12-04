@@ -42,6 +42,7 @@
 #include <OpenMS/KERNEL/MassTrace.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -150,6 +151,11 @@ protected:
     String in = getStringOption_("in");
     String out = getStringOption_("out");
     FileTypes::Type out_type = FileTypes::nameToType(getStringOption_("out_type"));
+
+    if (out_type == FileTypes::UNKNOWN)
+    {
+      out_type = FileHandler().getTypeByFileName(out);
+    }
 
     //-------------------------------------------------------------
     // loading input

@@ -60,7 +60,7 @@ namespace OpenMS
   /// Each feature contributes one vote (=state)
   struct OPENMS_DLLAPI AnnotationStatistics
   {
-    std::vector<Size> states; //< count each state, indexing by BaseFeature::AnnotationState
+    std::vector<Size> states; ///< count each state, indexing by BaseFeature::AnnotationState
 
     AnnotationStatistics();
 

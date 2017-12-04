@@ -78,20 +78,31 @@ START_SECTION((static double compute(double fragment_mass_tolerance, bool fragme
 
   AASequence peptide = AASequence::fromString("PEPTIDE");
   
+  // empty spectrum
+  tsg.getSpectrum(theo_spectrum, peptide, 1, 1);
+  TEST_REAL_SIMILAR(HyperScore::compute(0.1, false, exp_spectrum, theo_spectrum), 0.0);
+
   // full match, 11 identical masses, identical intensities (=1)
   tsg.getSpectrum(exp_spectrum, peptide, 1, 1);
-  tsg.getSpectrum(theo_spectrum, peptide, 1, 1);
-  TEST_REAL_SIMILAR(HyperScore::compute(0.1, false, exp_spectrum, theo_spectrum), 13.764638);
-  TEST_REAL_SIMILAR(HyperScore::compute(10, true, exp_spectrum, theo_spectrum), 13.764638);
+  TEST_REAL_SIMILAR(HyperScore::compute(0.1, false, exp_spectrum, theo_spectrum), 13.8516496);
+  TEST_REAL_SIMILAR(HyperScore::compute(10, true, exp_spectrum, theo_spectrum), 13.8516496);
 
+  exp_spectrum.clear(true);
+  theo_spectrum.clear(true);
+
+  // no match
+  tsg.getSpectrum(exp_spectrum, peptide, 1, 3);
+  tsg.getSpectrum(theo_spectrum, AASequence::fromString("YYYYYY"), 1, 3);
+  TEST_REAL_SIMILAR(HyperScore::compute(1e-5, false, exp_spectrum, theo_spectrum), 0.0);
+  
   exp_spectrum.clear(true);
   theo_spectrum.clear(true);
 
   // full match, 33 identical masses, identical intensities (=1)
   tsg.getSpectrum(exp_spectrum, peptide, 1, 3);
   tsg.getSpectrum(theo_spectrum, peptide, 1, 3);
-  TEST_REAL_SIMILAR(HyperScore::compute(0.1, false, exp_spectrum, theo_spectrum), 67.791224);
-  TEST_REAL_SIMILAR(HyperScore::compute(10, true, exp_spectrum, theo_spectrum), 67.791224);
+  TEST_REAL_SIMILAR(HyperScore::compute(0.1, false, exp_spectrum, theo_spectrum), 67.8210771);
+  TEST_REAL_SIMILAR(HyperScore::compute(10, true, exp_spectrum, theo_spectrum), 67.8210771);
 
   // full match if ppm tolerance and partial match for Da tolerance
   for (Size i = 0; i < theo_spectrum.size(); ++i)
@@ -101,8 +112,8 @@ START_SECTION((static double compute(double fragment_mass_tolerance, bool fragme
     theo_spectrum[i].setMZ(mz + 9 * 1e-6 * mz); // +9 ppm error
   }
 
-  TEST_REAL_SIMILAR(HyperScore::compute(0.1, false, exp_spectrum, theo_spectrum), 4.178053);
-  TEST_REAL_SIMILAR(HyperScore::compute(10, true, exp_spectrum, theo_spectrum), 67.791224);
+  TEST_REAL_SIMILAR(HyperScore::compute(0.1, false, exp_spectrum, theo_spectrum), 3.401197);
+  TEST_REAL_SIMILAR(HyperScore::compute(10, true, exp_spectrum, theo_spectrum), 67.8210771);
 }
 END_SECTION
 

@@ -336,7 +336,7 @@ namespace OpenMS
     for (Size j = 0; j < spectrum.size(); j++)
     {
       mz_data.push_back(spectrum[j].getMZ());
-      int_data.push_back(spectrum[j].getIntensity());
+      int_data.push_back(static_cast<double>(spectrum[j].getIntensity()));
     }
 
     ofs.write((char*)&mz_data.front(), mz_data.size() * sizeof(mz_data.front()));

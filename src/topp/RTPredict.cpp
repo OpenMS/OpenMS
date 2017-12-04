@@ -436,7 +436,7 @@ protected:
                                                                      maximum_length);
         it_from = it_to;
       }
-      else if (svm.getIntParameter(SVMWrapper::KERNEL_TYPE) == SVMWrapper::OLIGO)
+      else
       {
         while (temp_counter < max_number_of_peptides && it_to_mod != modified_peptides.end())
         {
