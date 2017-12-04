@@ -2313,7 +2313,7 @@ namespace OpenMS
       {
         for (Citation c : citations_) 
         {
-          lines.insert(++l, QString("  <citation doi=\"") + QString::fromStdString(c.doi) + "\" url=\"\">");
+          lines.insert(++l, QString("  <citation doi=\"") + QString::fromStdString(c.doi) + "\" url=\"\" />");
         }
       }
       lines.insert(++l, QString("</citations>"));
