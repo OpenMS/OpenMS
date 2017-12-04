@@ -64,7 +64,7 @@ namespace OpenMS
         weightData(data_weighted);
       }
 
-      size_t size = data.size();
+      size_t size = data_weighted.size();
       std::vector<Wm5::Vector2d> points;
       if (size == 0) // no data
       {
