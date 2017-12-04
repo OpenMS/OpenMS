@@ -128,8 +128,8 @@ namespace OpenMS
     TransformationModel::DataPoints data;
     TransformationModel::DataPoint point;
     for (size_t i = 0; i < component_concentrations.size(); i++){
-      point.first = component_concentrations[i].actual_concentration;
-      point.second = component_concentrations[i].feature.getMetaValue(feature_name);
+      point.first = component_concentrations[i].actual_concentration/component_concentrations[i].IS_actual_concentration;
+      point.second = calculateRatio(component_concentrations[i].feature, component_concentration[i].IS_feature,feature_name);
       data.push_back(point);
     }
 
