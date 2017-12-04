@@ -133,6 +133,9 @@ namespace OpenMS
       data.push_back(point);
     }
 
+    // debugging:
+    std::cout << "fitCalibration: size of data: " << std::to_string(data.size()) << std::endl;
+
     // fit the data to the model
     AbsoluteQuantitationMethod aqm;
     Param params = aqm.fitTransformationModel(transformation_model, data, transformation_model_params);
