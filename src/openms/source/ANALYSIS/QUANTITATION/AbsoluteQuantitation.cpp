@@ -530,6 +530,9 @@ namespace OpenMS
     // Returns candidate outlier: A linear regression and residuals are calculated for
     // the data points. The one with highest residual error is selected as the outlier candidate. The
     // corresponding iterator position is then returned.
+
+    // debugging:
+    std::cout << "residualOutlierCandidate_: size of component_concentrations: " << std::to_string(component_concentrations_tmp.size()) << std::endl;
     
     // fit the model
     Param optimized_params = fitCalibration(component_concentrations,
