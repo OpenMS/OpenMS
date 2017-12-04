@@ -54,25 +54,27 @@ namespace OpenMS
                                           Size pep_pos,
                                           Size pep_length,
                                           bool ignore_missed_cleavages,
-                                          bool methionine_cleavage) const
+                                          bool allow_nterm_protein_cleavage) const
   {
-    if (methionine_cleavage && (pep_pos == 1) && (protein[0] == 'M'))
+    // for XTandem specific rules (see https://github.com/OpenMS/OpenMS/issues/2497)
+    // M or MX at the N-terminus might have been cleaved.
+    if (allow_nterm_protein_cleavage && (pep_pos <= 2) && (protein[0] == 'M'))
     {
       // check the N-terminal peptide for a C-terminal cleavage site:
+      pep_length += pep_pos;
       pep_pos = 0;
-      pep_length++;
     }
-    return EnzymaticDigestion::isValidProduct(protein, pep_pos, pep_length, ignore_missed_cleavages);
+    return EnzymaticDigestion::isValidProduct(protein, pep_pos, pep_length, ignore_missed_cleavages, true);
   }
 
   bool ProteaseDigestion::isValidProduct(const AASequence& protein,
                                          Size pep_pos,
                                          Size pep_length,
                                          bool ignore_missed_cleavages,
-                                         bool methionine_cleavage) const
+                                         bool allow_nterm_protein_cleavage) const
   {
     String seq = protein.toUnmodifiedString();
-    return isValidProduct(seq, pep_pos, pep_length, ignore_missed_cleavages, methionine_cleavage);
+    return isValidProduct(seq, pep_pos, pep_length, ignore_missed_cleavages, allow_nterm_protein_cleavage);
   }
 
   Size ProteaseDigestion::peptideCount(const AASequence& protein)

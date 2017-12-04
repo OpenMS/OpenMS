@@ -124,7 +124,8 @@ namespace OpenMS
   bool EnzymaticDigestion::isValidProduct(const String& sequence,
                                           Size pos,
                                           Size length,
-                                          bool ignore_missed_cleavages) const
+                                          bool ignore_missed_cleavages,
+                                          bool allow_random_asp_pro_cleavage) const
   {
     if (pos >= sequence.size())
     {
@@ -165,12 +166,20 @@ namespace OpenMS
       { // '0' is included in cleavage_positions, so starting fragments will be found as well
         spec_n = true;
       }
+      else if (allow_random_asp_pro_cleavage && (sequence[pos-1] == 'D') && (sequence[pos] == 'P'))
+      {
+        spec_n = true;
+      }
       // right end (C-term for peptides):
       if (end == sequence.size())
       { // full length match (end of sequence is not in cleavage_positions)
         spec_c = true;
       }
       else if (std::find(cleavage_positions.begin(), cleavage_positions.end(), end) != cleavage_positions.end())
+      {
+        spec_c = true;
+      }
+      else if (allow_random_asp_pro_cleavage && (sequence[end-1] == 'D') && (sequence[end] == 'P'))
       {
         spec_c = true;
       }

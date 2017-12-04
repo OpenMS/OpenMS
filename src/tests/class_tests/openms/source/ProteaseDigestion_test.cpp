@@ -272,7 +272,9 @@ START_SECTION((bool isValidProduct(const AASequence& protein, Size pep_pos, Size
 
     prot = AASequence::fromString("MBCDEFGKABCRAAAKAA"); // starts with Met - we assume the cleaved form without Met occurs in vivo
     TEST_EQUAL(pd.isValidProduct(prot, 1, 7, true, true), true); // valid N-term (since protein starts with Met)
-    TEST_EQUAL(pd.isValidProduct(prot, 1, 7, true, false), false); // invalid N-term (since Met cleavage is not allowpd.)
+    TEST_EQUAL(pd.isValidProduct(prot, 2, 6, true, true), true); // valid N-term (since protein starts with Met and second AA maybe cleaved in XTandem)
+    TEST_EQUAL(pd.isValidProduct(prot, 1, 7, true, false), false); // invalid N-term (since Met cleavage is not allowed.)
+    TEST_EQUAL(pd.isValidProduct(prot, 2, 6, true, false), false); // invalid N-term (since Met cleavage is not allowed.)
     TEST_EQUAL(pd.isValidProduct(prot, 0, prot.size()), true); // the whole thing
 
     //################################################
@@ -297,7 +299,9 @@ START_SECTION((bool isValidProduct(const AASequence& protein, Size pep_pos, Size
 
     prot = AASequence::fromString("MBCDEFGKABCRAAAKAA"); // starts with Met - we assume the cleaved form without Met occurs in vivo
     TEST_EQUAL(pd.isValidProduct(prot, 1, 7, true, true), true); // valid N-term (since protein starts with Met)
-    TEST_EQUAL(pd.isValidProduct(prot, 1, 7, true, false), true); // invalid N-term (since Met cleavage is not allowpd.)
+    TEST_EQUAL(pd.isValidProduct(prot, 2, 6, true, true), true); // valid N-term (since protein starts with Met and second AA maybe cleaved in XTandem)
+    TEST_EQUAL(pd.isValidProduct(prot, 1, 7, true, false), true); // invalid N-term (since Met cleavage is not allowed.)
+    TEST_EQUAL(pd.isValidProduct(prot, 2, 6, true, false), true); // invalid N-term (since Met cleavage is not allowed.)
     TEST_EQUAL(pd.isValidProduct(prot, 0, prot.size()), true); // the whole thing
 
     //################################################
@@ -460,6 +464,69 @@ START_SECTION((bool isValidProduct(const AASequence& protein, Size pep_pos, Size
     pd.setMissedCleavages(5); // allow even more ...
     TEST_EQUAL(pd.isValidProduct(prot, 0, 24, false, false), true); //  boundary case, accepted: 5 allowed, 4 required
     pd.setMissedCleavages(0); // set back to default
+
+    // tests with random Asp-Pro Cleavages
+    pd.setSpecificity(EnzymaticDigestion::SPEC_SEMI);
+    //                                  |6*  |11|14*|18 |22|25 |29* |34*
+    prot = AASequence::fromString("MCABCDPEFGKACDPBCRAAAKAARPBBDPBBCDP"); // 4 real cleavages at {(0),11,18,22,25}
+
+    pd.setMissedCleavages(0); // redundant, by default zero, should be zero
+    TEST_EQUAL(pd.isValidProduct(prot, 0, 2), true); // invalid C-term
+    TEST_EQUAL(pd.isValidProduct(prot, 1, 2, true, true), true); // invalid C-term, M cleavage
+    TEST_EQUAL(pd.isValidProduct(prot, 2, 2, true, true), true); // invalid C-term, MC cleavage
+    TEST_EQUAL(pd.isValidProduct(prot, 3, 2, true, true), false); // invalid N- and C-term
+    TEST_EQUAL(pd.isValidProduct(prot, 6, 3), true); // valid N-term (random D|P cleavage)
+    TEST_EQUAL(pd.isValidProduct(prot, 6, 5), true); // valid fully-tryptic (N-term random D|P)
+    TEST_EQUAL(pd.isValidProduct(prot, 6, 6), true); // valid N-term (random D|P)
+    TEST_EQUAL(pd.isValidProduct(prot, 29, 4), true); // valid fully-tryptic (N-term random D|P)
+    TEST_EQUAL(pd.isValidProduct(prot, 0, prot.size()), true); // the whole thing
+    TEST_EQUAL(pd.isValidProduct(prot, 1, prot.size()-1, true), true); // the whole thing, M cleavage
+    TEST_EQUAL(pd.isValidProduct(prot, 2, prot.size()-2, true), true); // the whole thing, MC cleavage
+
+
+    TEST_EQUAL(pd.isValidProduct(prot, 6, 6, false, false), false);  //  valid N-term (D|P), one real cleavage site skipped (11)
+    TEST_EQUAL(pd.isValidProduct(prot, 6, 8, false, false), false);  //  valid termini (both D|P), one real cleavage site skipped (11)
+    TEST_EQUAL(pd.isValidProduct(prot, 6, 10, false, false), false);  //  valid N-term (D|P), skipped real cleavage (11) and D|P (14)
+    TEST_EQUAL(pd.isValidProduct(prot, 6, 12, false, false), false);  //  valid termini (D|P, real), skipped real cleavage (11) and D|P (14)
+    TEST_EQUAL(pd.isValidProduct(prot, 11, 4, false, false), true);  //  valid N-term (real), one D|P cleavage site skipped (14)
+    TEST_EQUAL(pd.isValidProduct(prot, 11, 7, false, false), true);  //  valid termini (both real), one D|P cleavage site skipped (14)
+    TEST_EQUAL(pd.isValidProduct(prot, 18, 16, false, false), false);  //  valid termini (real, D|P), two real cleavage sites skipped (22,25), one D|P (29)
+    TEST_EQUAL(pd.isValidProduct(prot, 18, 17, false, false), false);  //  valid termini (real, end), two real cleavage sites skipped (22,25), two D|P (35)
+
+    pd.setMissedCleavages(1);
+
+    TEST_EQUAL(pd.isValidProduct(prot, 6, 6, false, false), true);  //  valid N-term (D|P), one real cleavage site skipped (11)
+    TEST_EQUAL(pd.isValidProduct(prot, 6, 8, false, false), true);  //  valid termini (both D|P), one real cleavage site skipped (11)
+    TEST_EQUAL(pd.isValidProduct(prot, 6, 10, false, false), true);  //  valid N-term (D|P), skipped real cleavage (11) and D|P (14)
+    TEST_EQUAL(pd.isValidProduct(prot, 6, 12, false, false), true);  //  valid termini (D|P, real), skipped real cleavage (11) and D|P (14)
+    TEST_EQUAL(pd.isValidProduct(prot, 11, 4, false, false), true);  //  valid N-term (real), one D|P cleavage site skipped (14)
+    TEST_EQUAL(pd.isValidProduct(prot, 11, 7, false, false), true);  //  valid termini (both real), one D|P cleavage site skipped (14)
+    TEST_EQUAL(pd.isValidProduct(prot, 18, 16, false, false), false);  //  valid termini (real, D|P), two real cleavage sites skipped (22,25), one D|P (29)
+    TEST_EQUAL(pd.isValidProduct(prot, 18, 17, false, false), false);  //  valid termini (real, end), two real cleavage sites skipped (22,25), two D|P (35)
+    
+    pd.setMissedCleavages(2);
+
+    TEST_EQUAL(pd.isValidProduct(prot, 6, 6, false, false), true);  //  valid N-term (D|P), one real cleavage site skipped (11)
+    TEST_EQUAL(pd.isValidProduct(prot, 6, 8, false, false), true);  //  valid termini (both D|P), one real cleavage site skipped (11)
+    TEST_EQUAL(pd.isValidProduct(prot, 6, 10, false, false), true);  //  valid N-term (D|P), skipped real cleavage (11) and D|P (14)
+    TEST_EQUAL(pd.isValidProduct(prot, 6, 12, false, false), true);  //  valid termini (D|P, real), skipped real cleavage (11) and D|P (14)
+    TEST_EQUAL(pd.isValidProduct(prot, 11, 4, false, false), true);  //  valid N-term (real), one D|P cleavage site skipped (14)
+    TEST_EQUAL(pd.isValidProduct(prot, 11, 7, false, false), true);  //  valid termini (both real), one D|P cleavage site skipped (14)
+    TEST_EQUAL(pd.isValidProduct(prot, 18, 16, false, false), true);  //  valid termini (real, D|P), two real cleavage sites skipped (22,25), one D|P (29)
+    TEST_EQUAL(pd.isValidProduct(prot, 18, 17, false, false), true);  //  valid termini (real, end), two real cleavage sites skipped (22,25), two D|P (35)
+   
+    // more than needed
+    pd.setMissedCleavages(3);
+
+    TEST_EQUAL(pd.isValidProduct(prot, 6, 6, false, false), true);  //  valid N-term (D|P), one real cleavage site skipped (11)
+    TEST_EQUAL(pd.isValidProduct(prot, 6, 8, false, false), true);  //  valid termini (both D|P), one real cleavage site skipped (11)
+    TEST_EQUAL(pd.isValidProduct(prot, 6, 10, false, false), true);  //  valid N-term (D|P), skipped real cleavage (11) and D|P (14)
+    TEST_EQUAL(pd.isValidProduct(prot, 6, 12, false, false), true);  //  valid termini (D|P, real), skipped real cleavage (11) and D|P (14)
+    TEST_EQUAL(pd.isValidProduct(prot, 11, 4, false, false), true);  //  valid N-term (real), one D|P cleavage site skipped (14)
+    TEST_EQUAL(pd.isValidProduct(prot, 11, 7, false, false), true);  //  valid termini (both real), one D|P cleavage site skipped (14)
+    TEST_EQUAL(pd.isValidProduct(prot, 18, 16, false, false), true);  //  valid termini (real, D|P), two real cleavage sites skipped (22,25), one D|P (29)
+    TEST_EQUAL(pd.isValidProduct(prot, 18, 17, false, false), true);  //  valid termini (real, end), two real cleavage sites skipped (22,25), two D|P (35)
+
 
 END_SECTION
 
