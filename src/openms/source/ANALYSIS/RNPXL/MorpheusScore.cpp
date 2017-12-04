@@ -60,7 +60,7 @@ namespace OpenMS
       const double exp_mz = exp_spectrum[e].getMZ();
       const double d = exp_mz - theo_mz;
       const double max_dist_dalton = fragment_mass_tolerance_unit_ppm ? theo_mz * fragment_mass_tolerance * 1e-6 : fragment_mass_tolerance;
-      if (abs(d) <= max_dist_dalton) // match in tolerance window? 
+      if (fabs(d) <= max_dist_dalton) // match in tolerance window? 
       {
         ++matches;
         ++t;  // count theoretical peak only once
@@ -89,7 +89,7 @@ namespace OpenMS
       const double exp_mz = exp_spectrum[e].getMZ();
       const double d = exp_mz - theo_mz;
       const double max_dist_dalton = fragment_mass_tolerance_unit_ppm ? theo_mz * fragment_mass_tolerance * 1e-6 : fragment_mass_tolerance;
-      if (abs(d) <= max_dist_dalton) // match in tolerance window? 
+      if (fabs(d) <= max_dist_dalton) // match in tolerance window? 
       {
         match_intensity += exp_spectrum[e].getIntensity();
         ++e; // sum up experimental peak intensity only once
