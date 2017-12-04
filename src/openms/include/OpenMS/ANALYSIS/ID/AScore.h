@@ -193,11 +193,11 @@ namespace OpenMS
     virtual void updateMembers_();
 
     // variables:
-    double fragment_mass_tolerance_; //< Fragment mass tolerance for spectrum comparisons
-    bool fragment_tolerance_ppm_; //< Is fragment mass tolerance given in ppm (or Da)?
-    Size max_peptide_length_; //< Limit for peptide lengths that can be analyzed
-    Size max_permutations_; //< Limit for number of sequence permutations that can be handled
-    double unambiguous_score_; //< Score for unambiguous assignments (all sites phosphorylated)
+    double fragment_mass_tolerance_; ///< Fragment mass tolerance for spectrum comparisons
+    bool fragment_tolerance_ppm_; ///< Is fragment mass tolerance given in ppm (or Da)?
+    Size max_peptide_length_; ///< Limit for peptide lengths that can be analyzed
+    Size max_permutations_; ///< Limit for number of sequence permutations that can be handled
+    double unambiguous_score_; ///< Score for unambiguous assignments (all sites phosphorylated)
     
   };
 

@@ -580,7 +580,7 @@ namespace OpenMS
     UInt max_size = 0;
     for (vector<ParameterInformation>::const_iterator it = parameters_.begin(); it != parameters_.end(); ++it)
     {
-      if ((!it->advanced) || (it->advanced && verbose))
+      if (!it->advanced || verbose)
       {
         max_size = max((UInt)max_size, (UInt)(it->name.size() + it->argument.size() + it->required));
       }
@@ -594,10 +594,12 @@ namespace OpenMS
     // PRINT parameters && description, restrictions and default
     for (vector<ParameterInformation>::const_iterator it = parameters_.begin(); it != parameters_.end(); ++it)
     {
-      if (!((!it->advanced) || (it->advanced && verbose)))
+      if (it->advanced && !verbose)
+      {
         continue;
+      }
 
-      //new subsection?
+      // new subsection?
       String subsection = getSubsection_(it->name);
       if (!subsection.empty() && current_TOPP_subsection != subsection)
       {

@@ -281,7 +281,7 @@ protected:
 
       if (!add_to.empty())
       {
-        remove(file_names.begin(), file_names.end(), add_to);
+        file_names.erase(std::remove(file_names.begin(), file_names.end(), add_to), file_names.end());
         file_names.insert(file_names.begin(), add_to);
       }
 

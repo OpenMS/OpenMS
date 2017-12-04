@@ -303,7 +303,7 @@ namespace seqan
     String<KeyWordLengthType> data_node_depth;    // depths of each graph node
 
 #ifndef NDEBUG
-    String<TVert> parentMap;  //< allows to find parent of each node
+    String<TVert> parentMap;  ///< allows to find parent of each node
 #endif
 
     //____________________________________________________________________________
@@ -418,8 +418,8 @@ namespace seqan
     createTrie(me.data_graph, me.data_map_outputNodes, host(me));
 
     // Create parent map
-    String<TVert> parentMap;  //< allows to find parent of each node
-    String<TAlphabet> parentCharMap;      //< allows to find character that led us to current node
+    String<TVert> parentMap;  ///< allows to find parent of each node
+    String<TAlphabet> parentCharMap;      ///< allows to find character that led us to current node
     resizeVertexMap(me.data_graph, parentMap);
     resizeVertexMap(me.data_graph, parentCharMap);
     // init all nodes to Nil
@@ -437,7 +437,7 @@ namespace seqan
     }
     //std::cout << "\nassigned " << count_prop << " props to " << length(parentMap) << " values\n";
 #ifndef NDEBUG    
-    me.parentMap = parentMap;  //< allows to find parent of each node
+    me.parentMap = parentMap;  ///< allows to find parent of each node
 #endif
 
     // Build AC
@@ -453,7 +453,6 @@ namespace seqan
     // Bfs Traversal
     typedef typename Iterator<TGraph, BfsIterator>::Type TBfsIterator;
     TBfsIterator it(me.data_graph, root);
-    //std::map<int, int> connectivity;
     typedef typename Size<AAcid>::Type TSize;
     TSize idxAAFirst, idxAALast; // range of unambiguous AAcids: AAcid(idx)
     _getSpawnRange('X', idxAAFirst, idxAALast);
@@ -464,12 +463,15 @@ namespace seqan
     }
 
     goNext(it); // skip root
+
+    // connectivity statistics
+    //std::map<int, int> connectivity;
+
     for (; !atEnd(it); goNext(it))
     {
       const typename GetValue<TBfsIterator>::Type itval = *it; // dereferencing *it will give an index into the property array!
 
-      //int edgecount = outDegree(me.data_graph, itval);
-      //++connectivity[edgecount];
+      //++connectivity[outDegree(me.data_graph, itval)];
 
       // set depth of current node using: depths(parent) + 1
       TVert parent = getProperty(parentMap, itval);
@@ -526,10 +528,10 @@ namespace seqan
     //sw.stop();
     //std::cout << OpenMS::String(" Trie build time: ") + sw.getClockTime() + " s (wall), " + sw.getCPUTime() + " s (CPU)).\n\n";
 
-    //for (std::map<int,int>::const_iterator it = connectivity.begin(); it != connectivity.end(); ++it)
-    //{
-    //  std::cout << "   conn: " << it->first << " : " << it->second << "x\n";
-    //}
+    /*for (std::map<int,int>::const_iterator it = connectivity.begin(); it != connectivity.end(); ++it)
+    {
+      std::cout << "   conn: " << it->first << " : " << it->second << "x\n";
+    }*/
 
   }
 
@@ -995,9 +997,9 @@ namespace OpenMS
     typedef typename FuzzyACPattern::KeyWordLengthType KeyWordLengthType;
 
     // member
-    ::seqan::Finder<seqan::AAString> finder_; //< locate the next peptide hit in protein
-    ::seqan::AAString protein_;               //< the protein sequence - we need to store it since the finder only keeps a pointer to protein when constructed
-    ::seqan::PatternAuxData<PeptideDB> dh_;   //< auxilliary data to hold a state after searching
+    ::seqan::Finder<seqan::AAString> finder_; ///< locate the next peptide hit in protein
+    ::seqan::AAString protein_;               ///< the protein sequence - we need to store it since the finder only keeps a pointer to protein when constructed
+    ::seqan::PatternAuxData<PeptideDB> dh_;   ///< auxilliary data to hold a state after searching
   }; // class FuzzyAC
 
 } // namespace OpenMS
