@@ -117,14 +117,14 @@ namespace OpenMS
       }
     }
 
-    if (getIntegrationType() == "trapezoid")
+    if (integration_type_ == "trapezoid")
     {
       for (auto it=chromatogram.RTBegin(left); it!=chromatogram.RTEnd(right)-1; ++it)
       {
         peak_area_ += ((it+1)->getRT() - it->getRT()) * ((it->getIntensity() + (it+1)->getIntensity()) / 2.0);
       }
     }
-    else if (getIntegrationType() == "simpson")
+    else if (integration_type_ == "simpson")
     {
       if (n_points < 3)
       {
@@ -329,36 +329,6 @@ namespace OpenMS
   double PeakIntegrator::getBackgroundArea() const
   {
     return background_area_;
-  }
-
-  void PeakIntegrator::setIntegrationType(const String& integration_type)
-  {
-    integration_type_ = integration_type;
-  }
-
-  String PeakIntegrator::getIntegrationType() const
-  {
-    return integration_type_;
-  }
-
-  void PeakIntegrator::setBaselineType(const String& baseline_type)
-  {
-    baseline_type_ = baseline_type;
-  }
-
-  String PeakIntegrator::getBaselineType() const
-  {
-    return baseline_type_;
-  }
-
-  void PeakIntegrator::setPeakModel(const String& peak_model)
-  {
-    peak_model_ = peak_model;
-  }
-
-  String PeakIntegrator::getPeakModel() const
-  {
-    return peak_model_;
   }
 
   void PeakIntegrator::getDefaultParameters(Param& params)

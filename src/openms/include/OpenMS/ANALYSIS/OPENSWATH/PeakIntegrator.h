@@ -125,30 +125,25 @@ public:
     double getBackgroundHeight() const;
     double getBackgroundArea() const;
 
-    void setIntegrationType(const String& integration_type);
-    String getIntegrationType() const;
-
-    void setBaselineType(const String& baseline_type);
-    String getBaselineType() const;
-
-    void setPeakModel(const String& peak_model);
-    String getPeakModel() const;
-
     void getDefaultParameters(Param& params);
 
 protected:
     void updateMembers_();
 
 private:
+    // parameters
     String integration_type_; // intensity_sum, trapezoid, simpson
     String baseline_type_; // vertical_division, base_to_base
     String peak_model_; // none
+
+    // outputs
     double peak_area_ = 0.0;
     double peak_height_ = -1.0;
     double peak_apex_rt_ = -1.0;
     double background_height_ = 0.0;
     double background_area_ = 0.0;
 
+    // helper
     double simpson(
       MSChromatogram::ConstIterator it_begin,
       MSChromatogram::ConstIterator it_end

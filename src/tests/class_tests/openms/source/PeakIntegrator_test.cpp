@@ -123,31 +123,6 @@ START_SECTION(getParameters())
 }
 END_SECTION
 
-START_SECTION(setIntegrationType())
-{
-  TEST_EQUAL(ptr->getIntegrationType(), "trapezoid")
-  ptr->setIntegrationType("intensity_sum");
-  TEST_EQUAL(ptr->getIntegrationType(), "intensity_sum")
-}
-END_SECTION
-
-START_SECTION(setBaselineType())
-{
-  TEST_EQUAL(ptr->getBaselineType(), "vertical_division")
-  ptr->setBaselineType("base_to_base");
-  TEST_EQUAL(ptr->getBaselineType(), "base_to_base")
-}
-END_SECTION
-
-START_SECTION(getPeakModel())
-{
-  TEST_EQUAL(ptr->getPeakModel(), "none")
-  // TODO update this to also test the setter
-  //ptr->setPeakModel("base_to_base");
-  //TEST_EQUAL(ptr->getPeakModel(), "base_to_base")
-}
-END_SECTION
-
 START_SECTION(estimateBackground())
 {
   Param params = ptr->getParameters();
@@ -184,30 +159,33 @@ END_SECTION
 
 START_SECTION(integratePeak())
 {
-  ptr->setIntegrationType("intensity_sum");
+  Param params = ptr->getParameters();
+
+  params.setValue("integration_type", "intensity_sum");
+  ptr->setParameters(params);
   ptr->integratePeak(chromatogram, left, right);
-  cout << "intensity_sum: " << endl;
+  STATUS("Integration type: intensity_sum")
   TEST_REAL_SIMILAR(ptr->getPeakArea(), 6768778)
   TEST_REAL_SIMILAR(ptr->getPeakHeight(), 966489.0)
   TEST_REAL_SIMILAR(ptr->getPeakApexRT(), 2.7045)
 
-  ptr->setIntegrationType("trapezoid");
+  params.setValue("integration_type", "trapezoid");
+  ptr->setParameters(params);
   ptr->integratePeak(chromatogram, left, right);
-  cout << "trapezoid: " << endl;
+  STATUS("Integration type: trapezoid")
   TEST_REAL_SIMILAR(ptr->getPeakArea(), 71540.2)
   TEST_REAL_SIMILAR(ptr->getPeakHeight(), 966489.0)
   TEST_REAL_SIMILAR(ptr->getPeakApexRT(), 2.7045)
 
-  ptr->setIntegrationType("simpson");
+  params.setValue("integration_type", "simpson");
+  ptr->setParameters(params);
   ptr->integratePeak(chromatogram, left, right);
-  cout << "simpson (odd number of points): " << endl;
+  STATUS("Integration type: simpson (ODD number of points)")
   TEST_REAL_SIMILAR(ptr->getPeakArea(), 71720.443144994)
   TEST_REAL_SIMILAR(ptr->getPeakHeight(), 966489.0)
   TEST_REAL_SIMILAR(ptr->getPeakApexRT(), 2.7045)
-
-  ptr->setIntegrationType("simpson");
   ptr->integratePeak(chromatogram, left, 3.011416667); // a lower value of "right" is passed, to have 1 less point
-  cout << "simpson (even number of points): " << endl;
+  STATUS("Integration type: simpson (EVEN number of points)")
   TEST_REAL_SIMILAR(ptr->getPeakArea(), 71515.0792609335)
   TEST_REAL_SIMILAR(ptr->getPeakHeight(), 966489.0)
   TEST_REAL_SIMILAR(ptr->getPeakApexRT(), 2.7045)
