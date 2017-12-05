@@ -136,7 +136,7 @@ namespace OpenMS
     annotated_spectra.clear();
     features.clear(true);
     const std::vector<ReactionMonitoringTransition> transitions = targeted_exp.getTransitions();
-    for (UInt i=0; i<spectra.size(); ++i)
+    for (Size i=0; i<spectra.size(); ++i)
     {
       MSSpectrum spectrum = spectra[i];
       const double spectrum_rt = spectrum.getRT();
@@ -155,7 +155,7 @@ namespace OpenMS
 
       LOG_DEBUG << "[" << i << "]\trt: " << spectrum_rt << "\tmz: " << spectrum_mz << std::endl;
 
-      for (UInt j=0; j<transitions.size(); ++j)
+      for (Size j=0; j<transitions.size(); ++j)
       {
         const TargetedExperimentHelper::Peptide peptide = targeted_exp.getPeptideByRef(transitions[j].getPeptideRef());
         double target_rt = peptide.getRetentionTime();
@@ -267,16 +267,16 @@ namespace OpenMS
   {
     scored_spectra.clear();
     scored_spectra.resize(annotated_spectra.size());
-    for (UInt i=0; i<annotated_spectra.size(); ++i)
+    for (Size i=0; i<annotated_spectra.size(); ++i)
     {
       double total_tic = 0;
-      for (UInt j=0; j<annotated_spectra[i].size(); ++j)
+      for (Size j=0; j<annotated_spectra[i].size(); ++j)
       {
         total_tic += annotated_spectra[i][j].getIntensity();
       }
 
       double avgFWHM = 0;
-      for (UInt j=0; j<picked_spectra[i].getFloatDataArrays()[0].size(); ++j)
+      for (Size j=0; j<picked_spectra[i].getFloatDataArrays()[0].size(); ++j)
       {
         avgFWHM += picked_spectra[i].getFloatDataArrays()[0][j];
       }
@@ -318,7 +318,7 @@ namespace OpenMS
       features[i].setMetaValue("avgSNR", avgSNR);
 
       std::vector<Feature> subordinates(picked_spectra[i].size());
-      for (UInt j=0; j<picked_spectra[i].size(); ++j)
+      for (Size j=0; j<picked_spectra[i].size(); ++j)
       {
         subordinates[j].setMZ(picked_spectra[i][j].getMZ());
         subordinates[j].setIntensity(picked_spectra[i][j].getIntensity());
@@ -336,7 +336,7 @@ namespace OpenMS
   )
   {
     std::unordered_map<std::string,UInt> transition_best_spec;
-    for (UInt i=0; i<scored_spectra.size(); ++i)
+    for (Size i=0; i<scored_spectra.size(); ++i)
     {
       if (scored_spectra[i].getFloatDataArrays()[1][0] < min_score_)
       {
@@ -402,7 +402,7 @@ namespace OpenMS
 
     // pick peaks from annotate spectra
     std::vector<MSSpectrum> picked(annotated.size());
-    for (UInt i=0; i<annotated.size(); ++i)
+    for (Size i=0; i<annotated.size(); ++i)
     {
       pickSpectrum(annotated[i], picked[i]);
     }

@@ -50,228 +50,37 @@ START_TEST(TargetedSpectraExtractor, "$Id$")
 // taken from E. coli grown on glucose M9 during steady-state
 // for flux analysis.
 
+vector<double> mz = {
+  61.92, 68.88, 71.4, 79.56, 84.6, 84.72, 84.84, 84.96, 85.08, 85.2, 85.32,
+  85.44, 85.68, 85.8, 85.92, 86.04, 86.16, 86.28, 86.4, 87.72, 87.96, 88.08,
+  90.36, 94.44, 99.84, 100.8, 101.04, 101.88, 102, 102.96, 110.16, 110.88,
+  111, 111.12, 111.24, 111.84, 111.96, 112.08, 112.2, 112.32, 112.44, 112.56,
+  112.68, 114, 128.16, 128.4, 128.88, 129, 129.12, 129.84, 129.96, 130.08,
+  130.2, 130.32, 130.44, 130.56, 132.12, 138, 139.08, 140.16, 144.12, 146.04,
+  146.16, 156, 156.12, 156.36, 173.76, 174, 174.12, 174.24, 174.36, 174.6, 175.08
+};
+vector<double> intensity = {
+  6705.41660838088, 1676.35415209522, 1676.35415209522, 1676.35415209522, 3352.70830419044,
+  5029.06245628566, 8381.7707604761, 53643.332867047, 51966.9787149518, 6705.41660838088,
+  8381.7707604761, 1676.35415209522, 11734.4790646665, 25145.3122814283, 68730.520235904,
+  112315.72819038, 6705.41660838088, 6705.41660838088, 3352.70830419044, 1676.35415209522,
+  1676.35415209522, 1676.35415209522, 3352.70830419044, 1676.35415209522, 1676.35415209522,
+  1676.35415209522, 5029.06245628566, 3352.70830419044, 3352.70830419044, 3352.70830419044,
+  1676.35415209522, 5029.06245628566, 3352.70830419044, 5029.06245628566, 3352.70830419044,
+  5029.06245628566, 18439.8956730474, 20116.2498251426, 5029.06245628566, 1676.35415209522,
+  1676.35415209522, 3352.70830419044, 3352.70830419044, 3352.70830419044, 6705.41660838088,
+  1676.35415209522, 3352.70830419044, 3352.70830419044, 6705.41660838088, 5029.06245628566,
+  10058.1249125713, 31850.7288898092, 10058.1249125713, 1676.35415209522, 1676.35415209522,
+  3352.70830419044, 1676.35415209522, 1676.35415209522, 1676.35415209522, 3352.70830419044,
+  1676.35415209522, 3352.70830419044, 1676.35415209522, 1676.35415209522, 5029.06245628566,
+  1676.35415209522, 1676.35415209522, 1676.35415209522, 6705.41660838088, 11734.4790646665,
+  6705.41660838088, 1676.35415209522, 1676.35415209522
+};
 MSSpectrum spectrum;
-spectrum.resize(73);
-MSSpectrum::Iterator it = spectrum.begin();
-
-it->setMZ(61.92);
-it++->setIntensity(6705.41660838088f);
-
-it->setMZ(68.88);
-it++->setIntensity(1676.35415209522f);
-
-it->setMZ(71.4);
-it++->setIntensity(1676.35415209522f);
-
-it->setMZ(79.56);
-it++->setIntensity(1676.35415209522f);
-
-it->setMZ(84.6);
-it++->setIntensity(3352.70830419044f);
-
-it->setMZ(84.72);
-it++->setIntensity(5029.06245628566f);
-
-it->setMZ(84.84);
-it++->setIntensity(8381.7707604761f);
-
-it->setMZ(84.96);
-it++->setIntensity(53643.332867047f);
-
-it->setMZ(85.08);
-it++->setIntensity(51966.9787149518f);
-
-it->setMZ(85.2);
-it++->setIntensity(6705.41660838088f);
-
-it->setMZ(85.32);
-it++->setIntensity(8381.7707604761f);
-
-it->setMZ(85.44);
-it++->setIntensity(1676.35415209522f);
-
-it->setMZ(85.68);
-it++->setIntensity(11734.4790646665f);
-
-it->setMZ(85.8);
-it++->setIntensity(25145.3122814283f);
-
-it->setMZ(85.92);
-it++->setIntensity(68730.520235904f);
-
-it->setMZ(86.04);
-it++->setIntensity(112315.72819038f);
-
-it->setMZ(86.16);
-it++->setIntensity(6705.41660838088f);
-
-it->setMZ(86.28);
-it++->setIntensity(6705.41660838088f);
-
-it->setMZ(86.4);
-it++->setIntensity(3352.70830419044f);
-
-it->setMZ(87.72);
-it++->setIntensity(1676.35415209522f);
-
-it->setMZ(87.96);
-it++->setIntensity(1676.35415209522f);
-
-it->setMZ(88.08);
-it++->setIntensity(1676.35415209522f);
-
-it->setMZ(90.36);
-it++->setIntensity(3352.70830419044f);
-
-it->setMZ(94.44);
-it++->setIntensity(1676.35415209522f);
-
-it->setMZ(99.84);
-it++->setIntensity(1676.35415209522f);
-
-it->setMZ(100.8);
-it++->setIntensity(1676.35415209522f);
-
-it->setMZ(101.04);
-it++->setIntensity(5029.06245628566f);
-
-it->setMZ(101.88);
-it++->setIntensity(3352.70830419044f);
-
-it->setMZ(102);
-it++->setIntensity(3352.70830419044f);
-
-it->setMZ(102.96);
-it++->setIntensity(3352.70830419044f);
-
-it->setMZ(110.16);
-it++->setIntensity(1676.35415209522f);
-
-it->setMZ(110.88);
-it++->setIntensity(5029.06245628566f);
-
-it->setMZ(111);
-it++->setIntensity(3352.70830419044f);
-
-it->setMZ(111.12);
-it++->setIntensity(5029.06245628566f);
-
-it->setMZ(111.24);
-it++->setIntensity(3352.70830419044f);
-
-it->setMZ(111.84);
-it++->setIntensity(5029.06245628566f);
-
-it->setMZ(111.96);
-it++->setIntensity(18439.8956730474f);
-
-it->setMZ(112.08);
-it++->setIntensity(20116.2498251426f);
-
-it->setMZ(112.2);
-it++->setIntensity(5029.06245628566f);
-
-it->setMZ(112.32);
-it++->setIntensity(1676.35415209522f);
-
-it->setMZ(112.44);
-it++->setIntensity(1676.35415209522f);
-
-it->setMZ(112.56);
-it++->setIntensity(3352.70830419044f);
-
-it->setMZ(112.68);
-it++->setIntensity(3352.70830419044f);
-
-it->setMZ(114);
-it++->setIntensity(3352.70830419044f);
-
-it->setMZ(128.16);
-it++->setIntensity(6705.41660838088f);
-
-it->setMZ(128.4);
-it++->setIntensity(1676.35415209522f);
-
-it->setMZ(128.88);
-it++->setIntensity(3352.70830419044f);
-
-it->setMZ(129);
-it++->setIntensity(3352.70830419044f);
-
-it->setMZ(129.12);
-it++->setIntensity(6705.41660838088f);
-
-it->setMZ(129.84);
-it++->setIntensity(5029.06245628566f);
-
-it->setMZ(129.96);
-it++->setIntensity(10058.1249125713f);
-
-it->setMZ(130.08);
-it++->setIntensity(31850.7288898092f);
-
-it->setMZ(130.2);
-it++->setIntensity(10058.1249125713f);
-
-it->setMZ(130.32);
-it++->setIntensity(1676.35415209522f);
-
-it->setMZ(130.44);
-it++->setIntensity(1676.35415209522f);
-
-it->setMZ(130.56);
-it++->setIntensity(3352.70830419044f);
-
-it->setMZ(132.12);
-it++->setIntensity(1676.35415209522f);
-
-it->setMZ(138);
-it++->setIntensity(1676.35415209522f);
-
-it->setMZ(139.08);
-it++->setIntensity(1676.35415209522f);
-
-it->setMZ(140.16);
-it++->setIntensity(3352.70830419044f);
-
-it->setMZ(144.12);
-it++->setIntensity(1676.35415209522f);
-
-it->setMZ(146.04);
-it++->setIntensity(3352.70830419044f);
-
-it->setMZ(146.16);
-it++->setIntensity(1676.35415209522f);
-
-it->setMZ(156);
-it++->setIntensity(1676.35415209522f);
-
-it->setMZ(156.12);
-it++->setIntensity(5029.06245628566f);
-
-it->setMZ(156.36);
-it++->setIntensity(1676.35415209522f);
-
-it->setMZ(173.76);
-it++->setIntensity(1676.35415209522f);
-
-it->setMZ(174);
-it++->setIntensity(1676.35415209522f);
-
-it->setMZ(174.12);
-it++->setIntensity(6705.41660838088f);
-
-it->setMZ(174.24);
-it++->setIntensity(11734.4790646665f);
-
-it->setMZ(174.36);
-it++->setIntensity(6705.41660838088f);
-
-it->setMZ(174.6);
-it++->setIntensity(1676.35415209522f);
-
-it->setMZ(175.08);
-it->setIntensity(1676.35415209522f);
+for (Size i = 0; i != mz.size(); ++i)
+{
+  spectrum.push_back(Peak1D(mz[i],intensity[i]));
+}
 
 START_SECTION(getMZ())
 {
@@ -485,7 +294,7 @@ START_SECTION(scoreSpectra())
   TEST_EQUAL(annotated_spectra.size(), 21)
 
   vector<MSSpectrum> picked_spectra(annotated_spectra.size());
-  for (UInt i=0; i<annotated_spectra.size(); ++i)
+  for (Size i=0; i<annotated_spectra.size(); ++i)
   {
     ptr->pickSpectrum(annotated_spectra[i], picked_spectra[i]);
   }
@@ -611,7 +420,7 @@ START_SECTION(selectSpectra())
   FeatureMap features;
   ptr->annotateSpectra(spectra, targeted_exp, annotated, features);
   std::vector<MSSpectrum> picked(annotated.size());
-  for (UInt i=0; i<annotated.size(); ++i)
+  for (Size i=0; i<annotated.size(); ++i)
   {
     ptr->pickSpectrum(annotated[i], picked[i]);
   }
@@ -639,7 +448,7 @@ START_SECTION(selectSpectra())
   ptr->selectSpectra(scored, features, selected_spectra, selected_features);
   TEST_EQUAL(selected_spectra.size(), 2)
   TEST_EQUAL(selected_spectra.size(), selected_features.size())
-  for (UInt i=0; i<selected_spectra.size(); ++i)
+  for (Size i=0; i<selected_spectra.size(); ++i)
   {
     TEST_NOT_EQUAL(selected_spectra[i].getName(), "")
     TEST_EQUAL(selected_spectra[i].getName(), selected_features[i].getMetaValue("transition_name"))
@@ -649,7 +458,7 @@ START_SECTION(selectSpectra())
 
   ptr->selectSpectra(scored, selected_spectra);
   TEST_EQUAL(selected_spectra.size(), 2)
-  for (UInt i=0; i<selected_spectra.size(); ++i)
+  for (Size i=0; i<selected_spectra.size(); ++i)
   {
     TEST_NOT_EQUAL(selected_spectra[i].getName(), "")
     TEST_EQUAL(selected_spectra[i].getFloatDataArrays()[1][0] >= min_score, true)
@@ -684,7 +493,7 @@ START_SECTION(extractSpectra())
   TEST_REAL_SIMILAR(extracted_spectra[1].getFloatDataArrays()[1][0], 16.0294418334961)
 
   STATUS("Printing mapping of transition -> best spectrum:")
-  for (UInt i=0; i<extracted_spectra.size(); ++i)
+  for (Size i=0; i<extracted_spectra.size(); ++i)
   {
     STATUS(extracted_spectra[i].getName() << "\t" << extracted_features[i].getIntensity())
   }
