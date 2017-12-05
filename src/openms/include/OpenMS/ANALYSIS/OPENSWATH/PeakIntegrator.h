@@ -50,7 +50,7 @@ public:
     PeakIntegrator();
     virtual ~PeakIntegrator();
 
-    double estimateBackground(
+    void estimateBackground(
       const MSChromatogram& chromatogram,
       const double& left,
       const double& right
@@ -62,9 +62,68 @@ public:
       const double& right
     );
 
+    // internal structure to represent various peak shape metrics
+    struct PeakShapeMetrics_ {
+      double width_at_5 = 0.0;
+      double width_at_10 = 0.0;
+      double width_at_50 = 0.0;
+      double start_time_at_10 = 0.0;
+      double start_time_at_5 = 0.0;
+      double start_time_at_50 = 0.0;
+      double end_time_at_10 = 0.0;
+      double end_time_at_5 = 0.0;
+      double end_time_at_50 = 0.0;
+      double total_width = 0.0;
+      /**
+        The tailing factor is a measure of peak tailing.
+        It is defined as the distance from the front slope of the peak to the back slope
+        divided by twice the distance from the center line of the peak to the front slope,
+        with all measurements made at 5% of the maximum peak height.
+        tailing_factor = Tf = W0.05/2a
+        where W0.05 is peak width at 5% max peak height
+        a = min width to peak maximum at 5% max peak height
+        b = max width to peak maximum at 5% max peak height
+        0.9 < Tf < 1.2
+        front Tf < 0.9
+        tailing Tf > 1.2
+      */
+      double tailing_factor = 0.0;
+      /**
+        The asymmetry factor is a measure of peak tailing.
+        It is defined as the distance from the center line of the peak to the back slope
+        divided by the distance from the center line of the peak to the front slope,
+        with all measurements made at 10% of the maximum peak height.
+        asymmetry_factor = As = b/a
+        where a is min width to peak maximum at 10% max peak height
+        b is max width to peak maximum at 10% max peak height
+      */
+      double asymmetry_factor = 0.0;
+      /**
+        The change in baseline divided by the height is
+        a way of comparing the influence of the change of baseline on the peak height.
+      */
+      double baseline_delta_2_height = 0.0;
+      /**
+        The slope of the baseline is a measure of slope change.
+        It is approximated as the difference in baselines between the peak start and peak end.
+      */
+      double slope_of_baseline = 0.0;
+      int points_across_baseline = 0;
+      int points_across_half_height = 0;
+    };
+
+    void calculatePeakShapeMetrics(
+      const MSChromatogram& chromatogram,
+      const double& left,
+      const double& right,
+      PeakShapeMetrics_& peakShapeMetrics
+    );
+
     double getPeakArea() const;
     double getPeakHeight() const;
-    double getPeakApexPosition() const;
+    double getPeakApexRT() const;
+    double getBackgroundHeight() const;
+    double getBackgroundArea() const;
 
     void setIntegrationType(const String& integration_type);
     String getIntegrationType() const;
@@ -86,11 +145,13 @@ private:
     String peak_model_; // none
     double peak_area_ = 0.0;
     double peak_height_ = -1.0;
-    double peak_apex_pos_ = -1.0;
+    double peak_apex_rt_ = -1.0;
+    double background_height_ = 0.0;
+    double background_area_ = 0.0;
 
     double simpson(
-      MSChromatogram::ConstIterator pt_begin,
-      MSChromatogram::ConstIterator pt_end
+      MSChromatogram::ConstIterator it_begin,
+      MSChromatogram::ConstIterator it_end
     ) const;
   };
 }
