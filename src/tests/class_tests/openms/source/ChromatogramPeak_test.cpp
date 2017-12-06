@@ -130,6 +130,19 @@ START_SECTION((ChromatogramPeak(const ChromatogramPeak& p)))
   TEST_REAL_SIMILAR(pos2[0], 21.21)
 END_SECTION
 
+START_SECTION((ChromatogramPeak(const PositionType position, const IntensityType intensity)))
+  ChromatogramPeak p1(3.0, 5.0);
+  TEST_REAL_SIMILAR(p1.getPos(), 3.0)
+  TEST_REAL_SIMILAR(p1.getIntensity(), 5.0)
+
+  ChromatogramPeak::PositionType position;
+  position[0] = 2.0;
+  ChromatogramPeak::IntensityType intensity = 4.0;
+  ChromatogramPeak p2(position, intensity);
+  TEST_REAL_SIMILAR(p2.getPos(), 2.0)
+  TEST_REAL_SIMILAR(p2.getIntensity(), 4.0)
+END_SECTION
+
 START_SECTION((ChromatogramPeak& operator = (const ChromatogramPeak& rhs)))
   ChromatogramPeak::PositionType pos;
   pos[0] = 21.21;

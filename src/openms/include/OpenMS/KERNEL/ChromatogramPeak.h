@@ -85,6 +85,12 @@ public:
       intensity_(p.intensity_)
     {}
 
+    /// Constructor with position and intensity
+    inline ChromatogramPeak(const PositionType position, const IntensityType intensity) :
+      position_(position),
+      intensity_(intensity)
+    {}
+
     /**
       @brief Destructor
 
