@@ -59,7 +59,7 @@ namespace OpenMS
 public:
 
     ///Constructor
-    ContactPersonVisualizer(bool editable = false, QWidget * parent = 0);
+    ContactPersonVisualizer(bool editable = false, QWidget * parent = nullptr);
 
 public slots:
 

@@ -229,7 +229,7 @@ public:
   void ProgressLogger::startProgress(SignedSize begin, SignedSize end, const String& label) const
   {
     OPENMS_PRECONDITION(begin <= end, "ProgressLogger::init : invalid range!");
-    last_invoke_ = time(NULL);
+    last_invoke_ = time(nullptr);
     current_logger_->startProgress(begin, end, label, recursion_depth_);
     ++recursion_depth_;
   }
@@ -237,9 +237,9 @@ public:
   void ProgressLogger::setProgress(SignedSize value) const
   {
     // update only if at least 1 second has passed
-    if (last_invoke_ == time(NULL)) return;
+    if (last_invoke_ == time(nullptr)) return;
 
-    last_invoke_ = time(NULL);
+    last_invoke_ = time(nullptr);
     current_logger_->setProgress(value, recursion_depth_);
   }
 

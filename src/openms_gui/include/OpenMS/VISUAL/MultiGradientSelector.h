@@ -70,7 +70,7 @@ namespace OpenMS
     Q_OBJECT
 public:
     ///Constructor
-    MultiGradientSelector(QWidget * parent = 0);
+    MultiGradientSelector(QWidget * parent = nullptr);
     ///Destructor
     ~MultiGradientSelector() override;
 

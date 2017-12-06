@@ -98,8 +98,8 @@ START_TEST(IsobaricQuantitationMethod, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-IsobaricQuantitationMethod* ptr = 0;
-IsobaricQuantitationMethod* null_ptr = 0;
+IsobaricQuantitationMethod* ptr = nullptr;
+IsobaricQuantitationMethod* null_ptr = nullptr;
 START_SECTION(IsobaricQuantitationMethod())
 {
 	ptr = new TestQuantitationMethod();

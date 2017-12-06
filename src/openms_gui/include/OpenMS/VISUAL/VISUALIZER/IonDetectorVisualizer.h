@@ -59,7 +59,7 @@ namespace OpenMS
 public:
 
     ///Constructor
-    IonDetectorVisualizer(bool editable = false, QWidget * parent = 0);
+    IonDetectorVisualizer(bool editable = false, QWidget * parent = nullptr);
 
 public slots:
 

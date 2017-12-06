@@ -56,8 +56,8 @@ START_TEST(MzDataFile, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-MzDataFile * ptr = 0;
-MzDataFile* nullPointer = 0;
+MzDataFile * ptr = nullptr;
+MzDataFile* nullPointer = nullptr;
 START_SECTION((MzDataFile()))
 {
 ptr = new MzDataFile;

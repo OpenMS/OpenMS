@@ -49,8 +49,8 @@ START_TEST(XMLValidator, "XMLValidator")
 using namespace OpenMS;
 using namespace std;
 
-XMLValidator* ptr = 0;
-XMLValidator* nullPointer = 0;
+XMLValidator* ptr = nullptr;
+XMLValidator* nullPointer = nullptr;
 START_SECTION((XMLValidator()))
 	ptr = new XMLValidator;
 	TEST_NOT_EQUAL(ptr, nullPointer)

@@ -115,8 +115,8 @@ START_TEST(MaxLikeliFitter1D, "$Id$")
 
 /////////////////////////////////////////////////////////////
 
-TestModel* ptr = 0;
-TestModel* nullPointer = 0;
+TestModel* ptr = nullptr;
+TestModel* nullPointer = nullptr;
 START_SECTION(MaxLikeliFitter1D())
 {
 	ptr = new TestModel();

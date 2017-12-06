@@ -150,7 +150,7 @@ public:
     {
       VertexRoundPackage() :
         filenames(),
-        edge(0)
+        edge(nullptr)
       {
       }
 

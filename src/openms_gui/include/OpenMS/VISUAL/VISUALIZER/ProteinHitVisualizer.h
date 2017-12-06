@@ -59,7 +59,7 @@ namespace OpenMS
 public:
 
     ///Constructor
-    ProteinHitVisualizer(bool editable = false, QWidget * parent = 0);
+    ProteinHitVisualizer(bool editable = false, QWidget * parent = nullptr);
 
 public slots:
 

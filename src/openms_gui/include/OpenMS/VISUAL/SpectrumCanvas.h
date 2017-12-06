@@ -151,7 +151,7 @@ public:
     //@}
 
     /// Default constructor
-    SpectrumCanvas(const Param & preferences, QWidget * parent = 0);
+    SpectrumCanvas(const Param & preferences, QWidget * parent = nullptr);
 
     /// Destructor
     ~SpectrumCanvas() override;

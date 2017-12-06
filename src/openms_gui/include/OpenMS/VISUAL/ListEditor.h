@@ -76,7 +76,7 @@ public:
     };
 
     ///Constructor
-    ListEditor(QWidget * parent = 0, QString title = "");
+    ListEditor(QWidget * parent = nullptr, QString title = "");
     ///returns modified list
     StringList getList() const;
     ///sets list (and its type)that will be modified by user
@@ -117,7 +117,7 @@ private:
 public:
 
       //Default Constructor
-      ListTable(QWidget * parent = 0);
+      ListTable(QWidget * parent = nullptr);
 
       //returns a list_
       StringList getList();

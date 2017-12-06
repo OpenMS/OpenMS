@@ -70,7 +70,7 @@ namespace OpenMS
 
 public:
     /// Default constructor
-    Spectrum1DWidget(const Param & preferences, QWidget * parent = 0);
+    Spectrum1DWidget(const Param & preferences, QWidget * parent = nullptr);
     ///Destructor
     ~Spectrum1DWidget() override;
 

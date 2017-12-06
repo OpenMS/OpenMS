@@ -59,7 +59,7 @@ namespace OpenMS
 public:
 
     ///Constructor
-    IonSourceVisualizer(bool editable = false, QWidget * parent = 0);
+    IonSourceVisualizer(bool editable = false, QWidget * parent = nullptr);
 
 public slots:
 

@@ -61,7 +61,7 @@ namespace OpenMS
 public:
 
     /// Constructor
-    DataProcessingVisualizer(bool editable = false, QWidget * parent = 0);
+    DataProcessingVisualizer(bool editable = false, QWidget * parent = nullptr);
 
 public slots:
 

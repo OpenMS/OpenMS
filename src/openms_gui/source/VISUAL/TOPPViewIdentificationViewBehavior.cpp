@@ -186,7 +186,7 @@ namespace OpenMS
 
       double peak_int = current_layer.getCurrentSpectrum()[peak_idx].getIntensity();
 
-      Annotation1DCaret* first_dit(0);
+      Annotation1DCaret* first_dit(nullptr);
       // we could have many many hits for different compounds which have the exact same sum formula... so first group by sum formula
       std::map<String, StringList> formula_to_names;
       for (std::vector< PeptideHit >::const_iterator ith = it->getHits().begin();
@@ -244,7 +244,7 @@ namespace OpenMS
         ditem->setSelected(false);
         temporary_annotations_.push_back(ditem); // for removal (no ownership)
         current_layer.getCurrentAnnotations().push_front(ditem); // for visualization (ownership)
-        if (first_dit==0) first_dit = ditem; // remember first item (we append the text, when ready)
+        if (first_dit==nullptr) first_dit = ditem; // remember first item (we append the text, when ready)
 
         // list of compound names  (shorten if required)
         if (ith->second.size() > 3)
@@ -256,7 +256,7 @@ namespace OpenMS
         text += " - " + ListUtils::concatenate(ith->second, "<br> - ") + "<br>\n";
       }
       text += "</body></html>";
-      if (first_dit!=0)
+      if (first_dit!=nullptr)
       {
         first_dit->setRichText(text.toQString());
       }
@@ -273,7 +273,7 @@ namespace OpenMS
     Spectrum1DWidget* widget_1D = tv_->getActive1DWidget();
 
     // return if no active 1D widget is present
-    if (widget_1D == 0) return;
+    if (widget_1D == nullptr) return;
 
     widget_1D->canvas()->activateSpectrum(spectrum_index);
     LayerData& current_layer = widget_1D->canvas()->getCurrentLayer();
@@ -801,7 +801,7 @@ namespace OpenMS
     Spectrum1DWidget* widget_1D = tv_->getActive1DWidget();
 
     // Return if none present
-    if (widget_1D == 0) return;
+    if (widget_1D == nullptr) return;
 
     LayerData& current_layer = widget_1D->canvas()->getCurrentLayer();
 
@@ -993,7 +993,7 @@ namespace OpenMS
   void TOPPViewIdentificationViewBehavior::activateBehavior()
   {
     Spectrum1DWidget* w = tv_->getActive1DWidget();
-    if (w == 0) return;
+    if (w == nullptr) return;
 
     SpectrumCanvas* current_canvas = w->canvas();
     LayerData& current_layer = current_canvas->getCurrentLayer();
@@ -1023,7 +1023,7 @@ namespace OpenMS
     Spectrum1DWidget* widget_1D = tv_->getActive1DWidget();
 
     // return if no active 1D widget is present
-    if (widget_1D == 0) return;
+    if (widget_1D == nullptr) return;
 
     // clear textbox
     widget_1D->canvas()->setTextBox(QString());
@@ -1042,7 +1042,7 @@ namespace OpenMS
     Spectrum1DWidget* widget_1D = tv_->getActive1DWidget();
 
     // return if no active 1D widget is present
-    if (widget_1D == 0) return;
+    if (widget_1D == nullptr) return;
 
     DRange<2> range = tv_->getActive1DWidget()->canvas()->getVisibleArea();
     range.setMinX(l);

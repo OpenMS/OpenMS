@@ -112,8 +112,8 @@ START_TEST(LevMarqFitter1D, "$Id$")
 /////////////////////////////////////////////////////////////
 
 
-TestModel* ptr = 0;
-TestModel* nullPointer = 0;
+TestModel* ptr = nullptr;
+TestModel* nullPointer = nullptr;
 START_SECTION((LevMarqFitter1D()))
 	ptr = new TestModel();
 	TEST_NOT_EQUAL(ptr, nullPointer)

@@ -91,12 +91,12 @@ START_TEST(FeatureFinderAlgorithm, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-FFA* ptr = 0;
-FFA* nullPointer = 0;
+FFA* ptr = nullptr;
+FFA* nullPointer = nullptr;
 
-PeakMap* map_nullPointer = 0;
-FeatureMap*  featureMap_nullPointer = 0;
-FeatureFinder*        ff_nullPointer = 0;
+PeakMap* map_nullPointer = nullptr;
+FeatureMap*  featureMap_nullPointer = nullptr;
+FeatureFinder*        ff_nullPointer = nullptr;
 
 START_SECTION((FeatureFinderAlgorithm()))
   ptr = new FFA();

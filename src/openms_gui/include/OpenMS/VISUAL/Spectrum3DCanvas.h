@@ -74,7 +74,7 @@ namespace OpenMS
 public:
 
     /// Constructor
-    Spectrum3DCanvas(const Param & preferences, QWidget * parent = 0);
+    Spectrum3DCanvas(const Param & preferences, QWidget * parent = nullptr);
     /// Destructor
      ~Spectrum3DCanvas() override;
 
@@ -133,7 +133,7 @@ protected:
     bool finishAdding_() override;
 
     // Reimplementation in order to update the OpenGL widget
-    void update_(const char * caller_name = 0) override;
+    void update_(const char * caller_name = nullptr) override;
 
     ///whether the legend is shown or not
     bool legend_shown_;

@@ -60,7 +60,7 @@ namespace OpenMS
 public:
 
     ///Constructor
-    AcquisitionVisualizer(bool editable = false, QWidget * parent = 0);
+    AcquisitionVisualizer(bool editable = false, QWidget * parent = nullptr);
 
 public slots:
 

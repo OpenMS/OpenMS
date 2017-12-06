@@ -60,7 +60,7 @@ namespace OpenMS
 public:
 
     ///Constructor
-    DigestionVisualizer(bool editable = false, QWidget * parent = 0);
+    DigestionVisualizer(bool editable = false, QWidget * parent = nullptr);
 
 public slots:
 

@@ -68,8 +68,8 @@ START_TEST(MapAlignmentEvaluation, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-MAEA* ptr = 0;
-MAEA* nullPointer = 0;
+MAEA* ptr = nullptr;
+MAEA* nullPointer = nullptr;
 START_SECTION((MapAlignmentEvaluationAlgorithm()))
 	ptr = new MAEA();
 	TEST_NOT_EQUAL(ptr, nullPointer)

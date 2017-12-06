@@ -56,7 +56,7 @@ namespace OpenMS
 
   public:
     /// Constructor
-    TOPPASLogWindow(QWidget * parent = 0);
+    TOPPASLogWindow(QWidget * parent = nullptr);
     /// Destructor
     ~TOPPASLogWindow() override;
 

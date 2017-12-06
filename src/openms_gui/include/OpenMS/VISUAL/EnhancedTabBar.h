@@ -64,7 +64,7 @@ namespace OpenMS
     Q_OBJECT
 public:
     /// Constructor
-    EnhancedTabBar(QWidget * parent = 0);
+    EnhancedTabBar(QWidget * parent = nullptr);
 
     /// Destructor
     ~EnhancedTabBar() override;

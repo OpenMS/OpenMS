@@ -90,7 +90,7 @@ public:
     //@}
 
     /// Default constructor
-    SpectrumWidget(const Param & preferences, QWidget * parent = 0);
+    SpectrumWidget(const Param & preferences, QWidget * parent = nullptr);
     /// Destructor
     ~SpectrumWidget() override;
 

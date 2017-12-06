@@ -75,7 +75,7 @@ namespace OpenMS
 
 public:
     /// Default constructor
-    Spectrum2DCanvas(const Param& preferences, QWidget* parent = 0);
+    Spectrum2DCanvas(const Param& preferences, QWidget* parent = nullptr);
 
     /// Destructor
     ~Spectrum2DCanvas() override;

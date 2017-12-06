@@ -59,7 +59,7 @@ namespace OpenMS
 public:
 
     ///Constructor
-    MassAnalyzerVisualizer(bool editable = false, QWidget * parent = 0);
+    MassAnalyzerVisualizer(bool editable = false, QWidget * parent = nullptr);
 
 public slots:
 

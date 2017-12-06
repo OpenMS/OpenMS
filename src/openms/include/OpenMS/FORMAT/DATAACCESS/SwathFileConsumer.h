@@ -399,7 +399,7 @@ public:
     typedef MapType::ChromatogramType ChromatogramType;
 
     CachedSwathFileConsumer(String cachedir, String basename, Size nr_ms1_spectra, std::vector<int> nr_ms2_spectra) :
-      ms1_consumer_(NULL),
+      ms1_consumer_(nullptr),
       swath_consumers_(),
       cachedir_(cachedir),
       basename_(basename),
@@ -410,7 +410,7 @@ public:
     CachedSwathFileConsumer(std::vector<OpenSwath::SwathMap> known_window_boundaries,
             String cachedir, String basename, Size nr_ms1_spectra, std::vector<int> nr_ms2_spectra) :
       FullSwathFileConsumer(known_window_boundaries),
-      ms1_consumer_(NULL),
+      ms1_consumer_(nullptr),
       swath_consumers_(),
       cachedir_(cachedir),
       basename_(basename),
@@ -426,10 +426,10 @@ public:
         delete swath_consumers_.back();
         swath_consumers_.pop_back();
       }
-      if (ms1_consumer_ != NULL)
+      if (ms1_consumer_ != nullptr)
       {
         delete ms1_consumer_;
-        ms1_consumer_ = NULL;
+        ms1_consumer_ = nullptr;
       }
     }
 
@@ -469,7 +469,7 @@ protected:
 
     void consumeMS1Spectrum_(MapType::SpectrumType& s) override
     {
-      if (ms1_consumer_ == NULL)
+      if (ms1_consumer_ == nullptr)
       {
         addMS1Map_();
       }
@@ -480,7 +480,7 @@ protected:
     void ensureMapsAreFilled_() override
     {
       size_t swath_consumers_size = swath_consumers_.size();
-      bool have_ms1 = (ms1_consumer_ != NULL);
+      bool have_ms1 = (ms1_consumer_ != nullptr);
 
       // Properly delete the MSDataCachedConsumer -> free memory and _close_ file stream
       // The file streams to the cached data on disc can and should be closed
@@ -495,10 +495,10 @@ protected:
         delete swath_consumers_.back();
         swath_consumers_.pop_back();
       }
-      if (ms1_consumer_ != NULL)
+      if (ms1_consumer_ != nullptr)
       {
         delete ms1_consumer_;
-        ms1_consumer_ = NULL;
+        ms1_consumer_ = nullptr;
       }
 
       if (have_ms1)
@@ -553,7 +553,7 @@ public:
     typedef MapType::ChromatogramType ChromatogramType;
 
     MzMLSwathFileConsumer(String cachedir, String basename, Size nr_ms1_spectra, std::vector<int> nr_ms2_spectra) :
-      ms1_consumer_(NULL),
+      ms1_consumer_(nullptr),
       swath_consumers_(),
       cachedir_(cachedir),
       basename_(basename),
@@ -564,7 +564,7 @@ public:
     MzMLSwathFileConsumer(std::vector<OpenSwath::SwathMap> known_window_boundaries,
             String cachedir, String basename, Size nr_ms1_spectra, std::vector<int> nr_ms2_spectra) :
       FullSwathFileConsumer(known_window_boundaries),
-      ms1_consumer_(NULL),
+      ms1_consumer_(nullptr),
       swath_consumers_(),
       cachedir_(cachedir),
       basename_(basename),
@@ -587,10 +587,10 @@ protected:
         delete swath_consumers_.back();
         swath_consumers_.pop_back();
       }
-      if (ms1_consumer_ != NULL)
+      if (ms1_consumer_ != nullptr)
       {
         delete ms1_consumer_;
-        ms1_consumer_ = NULL;
+        ms1_consumer_ = nullptr;
       }
     }
 
@@ -624,7 +624,7 @@ protected:
 
     void consumeMS1Spectrum_(MapType::SpectrumType& s) override
     {
-      if (ms1_consumer_ == NULL)
+      if (ms1_consumer_ == nullptr)
       {
         addMS1Map_();
       }

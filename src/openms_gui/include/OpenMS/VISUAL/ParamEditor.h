@@ -186,7 +186,7 @@ public:
     };
 
     /// constructor
-    ParamEditor(QWidget * parent = 0);
+    ParamEditor(QWidget * parent = nullptr);
     /// load method for Param object
     void load(Param & param);
     /// store edited data in Param object

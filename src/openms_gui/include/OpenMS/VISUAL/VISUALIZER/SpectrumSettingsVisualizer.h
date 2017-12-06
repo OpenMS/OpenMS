@@ -61,7 +61,7 @@ namespace OpenMS
 public:
 
     ///Constructor
-    SpectrumSettingsVisualizer(bool editable = false, QWidget * parent = 0);
+    SpectrumSettingsVisualizer(bool editable = false, QWidget * parent = nullptr);
 
 public slots:
 

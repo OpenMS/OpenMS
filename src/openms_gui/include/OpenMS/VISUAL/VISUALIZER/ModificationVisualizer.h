@@ -58,7 +58,7 @@ namespace OpenMS
 public:
 
     ///Constructor
-    ModificationVisualizer(bool editable = false, QWidget * parent = 0);
+    ModificationVisualizer(bool editable = false, QWidget * parent = nullptr);
 
 public slots:
 

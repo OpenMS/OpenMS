@@ -70,7 +70,7 @@ namespace OpenMS
 
 public:
     /// Constructor
-    HistogramWidget(const Math::Histogram<> & distribution, QWidget * parent = 0);
+    HistogramWidget(const Math::Histogram<> & distribution, QWidget * parent = nullptr);
 
     /// Destructor
     ~HistogramWidget() override;

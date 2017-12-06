@@ -63,7 +63,7 @@ namespace OpenMS
     Q_OBJECT
 public:
     /// Constructor
-    TOPPASTabBar(QWidget * parent = 0);
+    TOPPASTabBar(QWidget * parent = nullptr);
     /// Destructor
     ~TOPPASTabBar() override;
 

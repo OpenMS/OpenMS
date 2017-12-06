@@ -53,8 +53,8 @@ START_TEST(FeatureHandle, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-FeatureHandle* ptr = 0;
-FeatureHandle* nullPointer = 0;
+FeatureHandle* ptr = nullptr;
+FeatureHandle* nullPointer = nullptr;
 START_SECTION((FeatureHandle()))
 	ptr = new FeatureHandle();
 	TEST_NOT_EQUAL(ptr, nullPointer)

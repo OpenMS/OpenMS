@@ -52,8 +52,8 @@ using namespace std;
 
 //InRTRange
 
-InRTRange<MSSpectrum>* ptr = 0;
-InRTRange<MSSpectrum>* nullPointer = 0;
+InRTRange<MSSpectrum>* ptr = nullptr;
+InRTRange<MSSpectrum>* nullPointer = nullptr;
 START_SECTION((InRTRange(double min, double max, bool reverse = false)))
 	ptr = new InRTRange<MSSpectrum>(5,10,false);
 	TEST_NOT_EQUAL(ptr, nullPointer)
@@ -87,8 +87,8 @@ END_SECTION
 
 //MSLevelRange
 
-InMSLevelRange<MSSpectrum>* ptr2 = 0;
-InMSLevelRange<MSSpectrum>* nullPointer2 = 0;
+InMSLevelRange<MSSpectrum>* ptr2 = nullptr;
+InMSLevelRange<MSSpectrum>* nullPointer2 = nullptr;
 START_SECTION((MSLevelRange(const IntList& levels, bool reverse = false)))
 	IntList tmp;
 	ptr2 = new InMSLevelRange<MSSpectrum>(tmp,false);
@@ -126,8 +126,8 @@ END_SECTION
 
 //HasScanMode
 
-HasScanMode<MSSpectrum>* ptr2_1 = 0;
-HasScanMode<MSSpectrum>* nullPointer2_1 = 0;
+HasScanMode<MSSpectrum>* ptr2_1 = nullptr;
+HasScanMode<MSSpectrum>* nullPointer2_1 = nullptr;
 START_SECTION((HasScanMode(Int mode, bool reverse = false)))
 	ptr2_1 = new HasScanMode<MSSpectrum>(1,false);
   TEST_NOT_EQUAL(ptr2_1, nullPointer2_1)
@@ -151,8 +151,8 @@ END_SECTION
 
 //InMzRange
 
-InMzRange<Peak1D >* ptr3 = 0;
-InMzRange<Peak1D >* nullPointer3 = 0;
+InMzRange<Peak1D >* ptr3 = nullptr;
+InMzRange<Peak1D >* nullPointer3 = nullptr;
 START_SECTION((InMzRange(double min, double max, bool reverse = false)))
 	ptr3 = new InMzRange<Peak1D >(5.0,10.0,false);
   TEST_NOT_EQUAL(ptr3, nullPointer3)
@@ -185,8 +185,8 @@ END_SECTION
 
 //IntensityRange
 
-InIntensityRange<Peak1D >* ptr4 = 0;
-InIntensityRange<Peak1D >* nullPointer4 = 0;
+InIntensityRange<Peak1D >* ptr4 = nullptr;
+InIntensityRange<Peak1D >* nullPointer4 = nullptr;
 START_SECTION((IntensityRange(double min, double max, bool reverse = false)))
 	ptr4 = new InIntensityRange<Peak1D >(5.0,10.0,false);
   TEST_NOT_EQUAL(ptr4, nullPointer4)
@@ -220,8 +220,8 @@ END_SECTION
 
 //IsEmptySpectrum
 
-IsEmptySpectrum<MSSpectrum>* ptr47 = 0;
-IsEmptySpectrum<MSSpectrum>* nullPointer47 = 0;
+IsEmptySpectrum<MSSpectrum>* ptr47 = nullptr;
+IsEmptySpectrum<MSSpectrum>* nullPointer47 = nullptr;
 START_SECTION((IsEmptySpectrum(bool reverse = false)))
 	ptr47 = new IsEmptySpectrum<MSSpectrum>();
   TEST_NOT_EQUAL(ptr47, nullPointer47)
@@ -244,8 +244,8 @@ END_SECTION
 
 //IsZoomSpectrum
 
-IsZoomSpectrum<MSSpectrum>* ptr48 = 0;
-IsZoomSpectrum<MSSpectrum>* nullPointer48 = 0;
+IsZoomSpectrum<MSSpectrum>* ptr48 = nullptr;
+IsZoomSpectrum<MSSpectrum>* nullPointer48 = nullptr;
 START_SECTION((IsZoomSpectrum(bool reverse = false)))
 	ptr48 = new IsZoomSpectrum<MSSpectrum>();
   TEST_NOT_EQUAL(ptr48, nullPointer48)
@@ -268,8 +268,8 @@ END_SECTION
 
 //HasActivationMethod
 
-HasActivationMethod<MSSpectrum>* ptr49 = 0;
-HasActivationMethod<MSSpectrum>* nullPointer49 = 0;
+HasActivationMethod<MSSpectrum>* ptr49 = nullptr;
+HasActivationMethod<MSSpectrum>* nullPointer49 = nullptr;
 START_SECTION((HasActivationMethod(const StringList& methods, bool reverse = false)))
 	ptr49 = new HasActivationMethod<MSSpectrum>(ListUtils::create<String>(""));
   TEST_NOT_EQUAL(ptr49, nullPointer49)
@@ -333,8 +333,8 @@ END_SECTION
 
 //InPrecursorMZRange
 
-InPrecursorMZRange<MSSpectrum>* ptr50 = 0;
-InPrecursorMZRange<MSSpectrum>* nullPointer50 = 0;
+InPrecursorMZRange<MSSpectrum>* ptr50 = nullptr;
+InPrecursorMZRange<MSSpectrum>* nullPointer50 = nullptr;
 START_SECTION((InPrecursorMZRange(const double& mz_left, const double& mz_right, bool reverse = false)))
 	ptr50 = new InPrecursorMZRange<MSSpectrum>(100.0, 200.0);
   TEST_NOT_EQUAL(ptr50, nullPointer50)
@@ -382,8 +382,8 @@ END_SECTION
 
 //InPrecursorMZRange
 
-IsInIsolationWindow<MSSpectrum>* ptr500 = 0;
-IsInIsolationWindow<MSSpectrum>* nullPointer500 = 0;
+IsInIsolationWindow<MSSpectrum>* ptr500 = nullptr;
+IsInIsolationWindow<MSSpectrum>* nullPointer500 = nullptr;
 START_SECTION((IsInIsolationWindow(const double& mz_left, const double& mz_right, bool reverse = false)))
   ptr500 = new IsInIsolationWindow<MSSpectrum>(ListUtils::create<double>("100.0, 200.0"));
   TEST_NOT_EQUAL(ptr500, nullPointer500)
@@ -432,8 +432,8 @@ END_SECTION
 
 //HasScanPolarity
 
-HasScanPolarity<MSSpectrum>* ptr51 = 0;
-HasScanPolarity<MSSpectrum>* nullPointer51 = 0;
+HasScanPolarity<MSSpectrum>* ptr51 = nullptr;
+HasScanPolarity<MSSpectrum>* nullPointer51 = nullptr;
 START_SECTION((HasScanPolarity(Int polarity,bool reverse = false)))
   ptr51 = new HasScanPolarity<MSSpectrum>(0);
   TEST_NOT_EQUAL(ptr48, nullPointer51)

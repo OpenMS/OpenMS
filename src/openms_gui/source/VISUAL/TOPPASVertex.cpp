@@ -117,7 +117,7 @@ namespace OpenMS
     pen_color_(),
     brush_color_(),
     dfs_color_(DFS_WHITE),
-    dfs_parent_(0),
+    dfs_parent_(nullptr),
     topo_sort_marked_(false),
     topo_nr_(0),
     round_total_(-1),

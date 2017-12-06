@@ -93,8 +93,8 @@ START_TEST(BaseLabeler, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-BaseLabeler* ptr = 0;
-BaseLabeler* nullPointer = 0;
+BaseLabeler* ptr = nullptr;
+BaseLabeler* nullPointer = nullptr;
 START_SECTION(BaseLabeler())
 {
 	ptr = new DerivedLabeler();

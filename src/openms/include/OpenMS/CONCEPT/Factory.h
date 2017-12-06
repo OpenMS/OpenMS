@@ -161,7 +161,7 @@ private:
   };
 
   template <typename FactoryProduct>
-  Factory<FactoryProduct> * Factory<FactoryProduct>::instance_ptr_ = 0;
+  Factory<FactoryProduct> * Factory<FactoryProduct>::instance_ptr_ = nullptr;
 
 }
 #endif //OPENMS_CONCEPT_FACTORY_H

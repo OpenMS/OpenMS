@@ -152,7 +152,7 @@ namespace OpenMS
                   "INNER JOIN COMPOUND ON PRECURSOR_COMPOUND_MAPPING.COMPOUND_ID = COMPOUND.ID; ";
 
     // Execute SQL select statement
-    sqlite3_prepare(db, select_sql.c_str(), -1, &stmt, NULL);
+    sqlite3_prepare(db, select_sql.c_str(), -1, &stmt, nullptr);
     sqlite3_step( stmt );
 
     // Convert SQLite data to TSVTransition data structure
@@ -281,7 +281,7 @@ namespace OpenMS
   void TransitionPQPReader::writePQPOutput_(const char* filename, OpenMS::TargetedExperiment& targeted_exp)
   {
     sqlite3 *db;
-    char *zErrMsg = 0;
+    char *zErrMsg = nullptr;
     int  rc;
 
     // delete file if present
@@ -375,7 +375,7 @@ namespace OpenMS
       "DECOY INT NOT NULL);";
 
     // Execute SQL create statement
-    rc = sqlite3_exec(db, create_sql, callback, 0, &zErrMsg);
+    rc = sqlite3_exec(db, create_sql, callback, nullptr, &zErrMsg);
     if ( rc != SQLITE_OK )
     {
       sqlite3_free(zErrMsg);
@@ -593,11 +593,11 @@ namespace OpenMS
 
     std::cout << "Write PQP file" << std::endl;
 
-    sqlite3_exec(db, "BEGIN TRANSACTION", NULL, NULL, &zErrMsg);
+    sqlite3_exec(db, "BEGIN TRANSACTION", nullptr, nullptr, &zErrMsg);
 
     // Execute SQL insert statement
     std::string insert_protein_sql_str = insert_protein_sql.str();
-    rc = sqlite3_exec(db, insert_protein_sql_str.c_str(), callback, 0, &zErrMsg);
+    rc = sqlite3_exec(db, insert_protein_sql_str.c_str(), callback, nullptr, &zErrMsg);
     if ( rc != SQLITE_OK )
     {
       sqlite3_free(zErrMsg);
@@ -607,7 +607,7 @@ namespace OpenMS
 
     // Execute SQL insert statement
     std::string insert_peptide_protein_mapping_str = insert_peptide_protein_mapping.str();
-    rc = sqlite3_exec(db, insert_peptide_protein_mapping_str.c_str(), callback, 0, &zErrMsg);
+    rc = sqlite3_exec(db, insert_peptide_protein_mapping_str.c_str(), callback, nullptr, &zErrMsg);
     if ( rc != SQLITE_OK )
     {
       sqlite3_free(zErrMsg);
@@ -617,7 +617,7 @@ namespace OpenMS
 
     // Execute SQL insert statement
     std::string insert_peptide_sql_str = insert_peptide_sql.str();
-    rc = sqlite3_exec(db, insert_peptide_sql_str.c_str(), callback, 0, &zErrMsg);
+    rc = sqlite3_exec(db, insert_peptide_sql_str.c_str(), callback, nullptr, &zErrMsg);
     if ( rc != SQLITE_OK )
     {
       sqlite3_free(zErrMsg);
@@ -627,7 +627,7 @@ namespace OpenMS
 
     // Execute SQL insert statement
     std::string insert_compound_sql_str = insert_compound_sql.str();
-    rc = sqlite3_exec(db, insert_compound_sql_str.c_str(), callback, 0, &zErrMsg);
+    rc = sqlite3_exec(db, insert_compound_sql_str.c_str(), callback, nullptr, &zErrMsg);
     if ( rc != SQLITE_OK )
     {
       sqlite3_free(zErrMsg);
@@ -637,7 +637,7 @@ namespace OpenMS
 
     // Execute SQL insert statement
     std::string insert_precursor_peptide_mapping_str = insert_precursor_peptide_mapping.str();
-    rc = sqlite3_exec(db, insert_precursor_peptide_mapping_str.c_str(), callback, 0, &zErrMsg);
+    rc = sqlite3_exec(db, insert_precursor_peptide_mapping_str.c_str(), callback, nullptr, &zErrMsg);
     if ( rc != SQLITE_OK )
     {
       sqlite3_free(zErrMsg);
@@ -647,7 +647,7 @@ namespace OpenMS
 
     // Execute SQL insert statement
     std::string insert_precursor_compound_mapping_str = insert_precursor_compound_mapping.str();
-    rc = sqlite3_exec(db, insert_precursor_compound_mapping_str.c_str(), callback, 0, &zErrMsg);
+    rc = sqlite3_exec(db, insert_precursor_compound_mapping_str.c_str(), callback, nullptr, &zErrMsg);
     if ( rc != SQLITE_OK )
     {
       sqlite3_free(zErrMsg);
@@ -657,7 +657,7 @@ namespace OpenMS
 
     // Execute SQL insert statement
     std::string insert_precursor_sql_str = insert_precursor_sql.str();
-    rc = sqlite3_exec(db, insert_precursor_sql_str.c_str(), callback, 0, &zErrMsg);
+    rc = sqlite3_exec(db, insert_precursor_sql_str.c_str(), callback, nullptr, &zErrMsg);
     if ( rc != SQLITE_OK )
     {
       sqlite3_free(zErrMsg);
@@ -667,7 +667,7 @@ namespace OpenMS
 
     // Execute SQL insert statement
     std::string insert_transition_sql_str = insert_transition_sql.str();
-    rc = sqlite3_exec(db, insert_transition_sql_str.c_str(), callback, 0, &zErrMsg);
+    rc = sqlite3_exec(db, insert_transition_sql_str.c_str(), callback, nullptr, &zErrMsg);
     if ( rc != SQLITE_OK )
     {
       sqlite3_free(zErrMsg);
@@ -677,7 +677,7 @@ namespace OpenMS
 
     // Execute SQL insert statement
     std::string insert_transition_peptide_mapping_sql_str = insert_transition_peptide_mapping_sql.str();
-    rc = sqlite3_exec(db, insert_transition_peptide_mapping_sql_str.c_str(), callback, 0, &zErrMsg);
+    rc = sqlite3_exec(db, insert_transition_peptide_mapping_sql_str.c_str(), callback, nullptr, &zErrMsg);
     if ( rc != SQLITE_OK )
     {
       sqlite3_free(zErrMsg);
@@ -687,7 +687,7 @@ namespace OpenMS
 
     // Execute SQL insert statement
     std::string insert_transition_precursor_mapping_sql_str = insert_transition_precursor_mapping_sql.str();
-    rc = sqlite3_exec(db, insert_transition_precursor_mapping_sql_str.c_str(), callback, 0, &zErrMsg);
+    rc = sqlite3_exec(db, insert_transition_precursor_mapping_sql_str.c_str(), callback, nullptr, &zErrMsg);
     if ( rc != SQLITE_OK )
     {
       sqlite3_free(zErrMsg);
@@ -695,7 +695,7 @@ namespace OpenMS
           zErrMsg);
     }
 
-    sqlite3_exec(db, "END TRANSACTION", NULL, NULL, &zErrMsg);
+    sqlite3_exec(db, "END TRANSACTION", nullptr, nullptr, &zErrMsg);
 
     sqlite3_close(db);
 

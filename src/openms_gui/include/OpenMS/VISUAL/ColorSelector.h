@@ -65,7 +65,7 @@ namespace OpenMS
 
 public:
     /// Constructor
-    ColorSelector(QWidget * parent = 0);
+    ColorSelector(QWidget * parent = nullptr);
 
     /// Destructor
     ~ColorSelector() override;

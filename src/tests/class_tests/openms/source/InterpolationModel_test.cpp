@@ -135,8 +135,8 @@ using std::stringstream;
 //////////////////////////////////////
 
 // default ctor
-TestModel* ptr = 0;
-TestModel* nullPointer = 0;
+TestModel* ptr = nullptr;
+TestModel* nullPointer = nullptr;
 START_SECTION((InterpolationModel()))
 	ptr = new TestModel();
 	TEST_NOT_EQUAL(ptr, nullPointer)

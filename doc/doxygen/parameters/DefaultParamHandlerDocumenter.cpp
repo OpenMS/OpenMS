@@ -483,9 +483,9 @@ int main(int argc, char** argv)
   DOCME(TOPPViewBase);
   DOCME(TOPPASBase);
 
-  DOCME2(Spectrum1DCanvas, Spectrum1DCanvas(Param(), 0));
-  DOCME2(Spectrum2DCanvas, Spectrum2DCanvas(Param(), 0));
-  DOCME2(Spectrum3DCanvas, Spectrum3DCanvas(Param(), 0));
+  DOCME2(Spectrum1DCanvas, Spectrum1DCanvas(Param(), nullptr));
+  DOCME2(Spectrum2DCanvas, Spectrum2DCanvas(Param(), nullptr));
+  DOCME2(Spectrum3DCanvas, Spectrum3DCanvas(Param(), nullptr));
 #endif
 
   return 0;

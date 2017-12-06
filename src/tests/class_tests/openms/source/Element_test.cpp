@@ -51,8 +51,8 @@ START_TEST(Element, "$Id$")
 
 /////////////////////////////////////////////////////////////
 
-Element* e_ptr = 0;
-Element* e_nullPointer = 0;
+Element* e_ptr = nullptr;
+Element* e_nullPointer = nullptr;
 START_SECTION(Element())
 	e_ptr = new Element;
 	TEST_NOT_EQUAL(e_ptr, e_nullPointer)
@@ -68,7 +68,7 @@ UInt atomic_number(43);
 double average_weight(0.12345);
 double mono_weight(0.123456789);
 
-e_ptr = 0;
+e_ptr = nullptr;
 START_SECTION((Element(const String& name, const String& symbol, UInt atomic_number, double average_weight, double mono_weight, const IsotopeDistribution& isotopes)))
 	e_ptr = new Element(name, symbol, atomic_number, average_weight, mono_weight, dist);	
 	TEST_NOT_EQUAL(e_ptr, e_nullPointer)

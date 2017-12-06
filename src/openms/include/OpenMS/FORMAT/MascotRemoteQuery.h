@@ -65,7 +65,7 @@ public:
     */
     //@{
     /// default constructor
-    OPENMS_DLLAPI MascotRemoteQuery(QObject* parent = 0);
+    OPENMS_DLLAPI MascotRemoteQuery(QObject* parent = nullptr);
 
     /// destructor
     OPENMS_DLLAPI ~MascotRemoteQuery() override;

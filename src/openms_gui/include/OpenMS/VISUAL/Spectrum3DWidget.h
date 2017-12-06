@@ -58,7 +58,7 @@ namespace OpenMS
 
 public:
     ///Constructor
-    Spectrum3DWidget(const Param & preferences, QWidget * parent = 0);
+    Spectrum3DWidget(const Param & preferences, QWidget * parent = nullptr);
 
     /// Destructor
     ~Spectrum3DWidget() override;

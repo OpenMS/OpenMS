@@ -58,7 +58,7 @@ namespace OpenMS
     Q_OBJECT
 public:
     /// Constructor
-    SpectraIdentificationViewWidget(const Param& preferences, QWidget* parent = 0);
+    SpectraIdentificationViewWidget(const Param& preferences, QWidget* parent = nullptr);
     /// Destructor
     ~SpectraIdentificationViewWidget() override;
     /// Attach model

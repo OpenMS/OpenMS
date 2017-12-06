@@ -162,7 +162,7 @@ protected:
         {
           String temp;
           Size x = protein.sequence.size();
-          srand(time(0));
+          srand(time(nullptr));
           while (x != 0)
           {
             Size y = rand() % x;

@@ -128,7 +128,7 @@ protected:
     qd.cd(new_tmp_dir);
     QString tmp_path = qd.absolutePath();
 
-    TOPPASScene ts(0, tmp_path, false);
+    TOPPASScene ts(nullptr, tmp_path, false);
     if (!a.connect(&ts, SIGNAL(entirePipelineFinished()), &a, SLOT(quit()))) return UNKNOWN_ERROR;
 
     if (!a.connect(&ts, SIGNAL(pipelineExecutionFailed()), &a, SLOT(quit()))) return UNKNOWN_ERROR;      // for some reason this slot does not get called, plus it would return "success", which we do not want

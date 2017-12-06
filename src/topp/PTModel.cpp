@@ -221,7 +221,7 @@ protected:
     PeptideHit temp_peptide_hit;
     SVMWrapper svm;
     LibSVMEncoder encoder;
-    svm_problem* encoded_training_sample = 0;
+    svm_problem* encoded_training_sample = nullptr;
     String allowed_amino_acid_characters = "ACDEFGHIKLMNPQRSTVWY";
     map<SVMWrapper::SVM_parameter_type, double> start_values;
     map<SVMWrapper::SVM_parameter_type, double> step_sizes;

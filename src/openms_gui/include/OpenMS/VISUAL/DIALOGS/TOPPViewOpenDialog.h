@@ -61,7 +61,7 @@ namespace OpenMS
 
 public:
     /// Constructor
-    TOPPViewOpenDialog(const String & data_name, bool as_window, bool as_2d, bool cutoff, QWidget * parent = 0);
+    TOPPViewOpenDialog(const String & data_name, bool as_window, bool as_2d, bool cutoff, QWidget * parent = nullptr);
     /// Destructor
     ~TOPPViewOpenDialog() override;
 

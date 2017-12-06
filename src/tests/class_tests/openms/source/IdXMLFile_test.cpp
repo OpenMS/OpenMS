@@ -50,8 +50,8 @@ START_TEST(IdXMLFile, "$Id$")
 using namespace OpenMS;
 using namespace std;
 
-IdXMLFile* ptr = 0;
-IdXMLFile* nullPointer = 0;
+IdXMLFile* ptr = nullptr;
+IdXMLFile* nullPointer = nullptr;
 START_SECTION((IdXMLFile()))
   ptr = new IdXMLFile();
   TEST_NOT_EQUAL(ptr,nullPointer)

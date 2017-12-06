@@ -128,7 +128,7 @@ START_TEST(RangeManager, "RangeManager")
 /////////////////////////////////////////////////////////////
 
 RM* ptr;
-RM* nullPointer = 0;
+RM* nullPointer = nullptr;
 START_SECTION((RangeManager()))
   ptr = new RM();
   TEST_NOT_EQUAL(ptr, nullPointer)

@@ -65,7 +65,7 @@ namespace OpenMS
 
 public:
     ///Constructor
-    MetaInfoVisualizer(bool editable = false, QWidget * parent = 0);
+    MetaInfoVisualizer(bool editable = false, QWidget * parent = nullptr);
 
     //Docu in base class
     void load(MetaInfoInterface & m);

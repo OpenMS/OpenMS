@@ -58,7 +58,7 @@ namespace OpenMS
 
 public:
     ///Constructor
-    Spectrum1DGoToDialog(QWidget * parent = 0);
+    Spectrum1DGoToDialog(QWidget * parent = nullptr);
     ///Destructor
     ~Spectrum1DGoToDialog() override;
 

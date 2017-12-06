@@ -107,8 +107,8 @@ class TestModel : public BaseModel<2>
 START_TEST(BaseModel, "$Id$")
 
 // default ctor
-TestModel* ptr = 0;
-TestModel* nullPointer = 0;
+TestModel* ptr = nullptr;
+TestModel* nullPointer = nullptr;
 START_SECTION((BaseModel()))
 	ptr = new TestModel();
   TEST_NOT_EQUAL(ptr, nullPointer)

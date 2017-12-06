@@ -59,7 +59,7 @@ namespace OpenMS
 public:
 
     ///Constructor
-    PrecursorVisualizer(bool editable = false, QWidget * parent = 0);
+    PrecursorVisualizer(bool editable = false, QWidget * parent = nullptr);
 
 public slots:
 

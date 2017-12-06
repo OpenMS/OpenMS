@@ -48,8 +48,8 @@ START_TEST(ChromatogramExtractor, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-ChromatogramExtractor* ptr = 0;
-ChromatogramExtractor* nullPointer = 0;
+ChromatogramExtractor* ptr = nullptr;
+ChromatogramExtractor* nullPointer = nullptr;
 
 START_SECTION(ChromatogramExtractor())
 {

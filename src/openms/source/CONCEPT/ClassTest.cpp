@@ -63,7 +63,7 @@ namespace OpenMS
       bool test = true;
       bool this_test;
       char line_buffer[65536];
-      const char* version_string = 0;
+      const char* version_string = nullptr;
       double absdiff = 0.;
       double absdiff_max = 0.;
       double absdiff_max_allowed = 1E-5;

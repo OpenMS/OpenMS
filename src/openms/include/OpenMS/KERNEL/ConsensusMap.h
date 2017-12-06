@@ -317,7 +317,7 @@ public:
               - we should restrict the user to first fill the list of maps, before any datapoints can be inserted
 
     */
-    bool isMapConsistent(Logger::LogStream* stream = 0) const;
+    bool isMapConsistent(Logger::LogStream* stream = nullptr) const;
 
 protected:
 

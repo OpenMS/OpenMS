@@ -59,7 +59,7 @@ namespace OpenMS
 public:
 
     ///Constructor
-    PeptideHitVisualizer(bool editable = false, QWidget * parent = 0);
+    PeptideHitVisualizer(bool editable = false, QWidget * parent = nullptr);
 
 public slots:
 

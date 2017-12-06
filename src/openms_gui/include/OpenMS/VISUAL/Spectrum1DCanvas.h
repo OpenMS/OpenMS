@@ -81,7 +81,7 @@ public:
     };
 
     /// Default constructor
-    Spectrum1DCanvas(const Param & preferences, QWidget * parent = 0);
+    Spectrum1DCanvas(const Param & preferences, QWidget * parent = nullptr);
     /// Destructor
     ~Spectrum1DCanvas() override;
 

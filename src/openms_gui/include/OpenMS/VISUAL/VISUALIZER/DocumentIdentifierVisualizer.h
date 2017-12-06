@@ -61,7 +61,7 @@ namespace OpenMS
 public:
 
     ///Constructor
-    DocumentIdentifierVisualizer(bool editable = false, QWidget * parent = 0);
+    DocumentIdentifierVisualizer(bool editable = false, QWidget * parent = nullptr);
 
 public slots:
 

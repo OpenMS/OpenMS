@@ -64,7 +64,7 @@ namespace OpenMS
 public:
 
     ///Constructor
-    GradientVisualizer(bool editable = false, QWidget * parent = 0);
+    GradientVisualizer(bool editable = false, QWidget * parent = nullptr);
 
     //Docu in base class
     void load(Gradient & g);

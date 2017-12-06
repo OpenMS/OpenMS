@@ -61,7 +61,7 @@ namespace OpenMS
     QWidget(parent),
     DefaultParamHandler("SpectraIdentificationViewWidget"),
     ignore_update(false),
-    layer_(0),
+    layer_(nullptr),
     is_ms1_shown_(false)
   {
     // set common defaults
@@ -227,7 +227,7 @@ namespace OpenMS
     /*test for previous == 0 is important - without it,
       the wrong spectrum will be selected after finishing
       the execution of a TOPP tool on the whole data */
-    if (current == 0 || previous == 0)
+    if (current == nullptr || previous == nullptr)
     {
       return;
     }
@@ -273,7 +273,7 @@ namespace OpenMS
   void SpectraIdentificationViewWidget::updateEntries()
   {
     // no valid peak layer attached
-    if (layer_ == 0 || layer_->getPeakData()->size() == 0 || layer_->type != LayerData::DT_PEAK)
+    if (layer_ == nullptr || layer_->getPeakData()->size() == 0 || layer_->type != LayerData::DT_PEAK)
     {
       table_widget_->clear();
       return;
@@ -364,13 +364,13 @@ namespace OpenMS
     table_widget_->setUpdatesEnabled(false);
     table_widget_->blockSignals(true);
 
-    if (layer_ == 0)
+    if (layer_ == nullptr)
     {
       return;
     }
 
-    QTableWidgetItem* item = 0;
-    QTableWidgetItem* selected_item = 0;
+    QTableWidgetItem* item = nullptr;
+    QTableWidgetItem* selected_item = nullptr;
     Size selected_row = 0;
 
     // generate flat list
@@ -745,7 +745,7 @@ namespace OpenMS
     for (int i = 0; i != table_widget_->columnCount(); ++i)
     {
       QTableWidgetItem* ti = table_widget_->horizontalHeaderItem(i);
-      if (ti != 0)
+      if (ti != nullptr)
       {
         header_labels.append(ti->text());
       }
@@ -762,7 +762,7 @@ namespace OpenMS
 
     // show menu and hide selected columns
     QAction* selected = context_menu->exec(table_widget_->mapToGlobal(pos));
-    if (selected != 0)
+    if (selected != nullptr)
     {
       for (int i = 0; i < header_labels.size(); ++i)
       {
@@ -777,7 +777,7 @@ namespace OpenMS
 
   void SpectraIdentificationViewWidget::exportEntries_()
   {
-    if (layer_ == 0 || layer_->getPeakData()->size() == 0 || layer_->type != LayerData::DT_PEAK)
+    if (layer_ == nullptr || layer_->getPeakData()->size() == 0 || layer_->type != LayerData::DT_PEAK)
     {
       return;
     }
@@ -790,7 +790,7 @@ namespace OpenMS
     for (int i = 0; i != table_widget_->columnCount(); ++i)
     {
       QTableWidgetItem* ti = table_widget_->horizontalHeaderItem(i);
-      if (ti != 0)
+      if (ti != nullptr)
       {
         header_labels.append(ti->text());
       }
@@ -859,7 +859,7 @@ namespace OpenMS
   void SpectraIdentificationViewWidget::saveIDs_()
   {
     // no valid peak layer attached
-    if (layer_ == 0 || layer_->getPeakData()->size() == 0 || layer_->type != LayerData::DT_PEAK)
+    if (layer_ == nullptr || layer_->getPeakData()->size() == 0 || layer_->type != LayerData::DT_PEAK)
     {
       return;
     }
@@ -917,7 +917,7 @@ namespace OpenMS
   void SpectraIdentificationViewWidget::updateData_(QTableWidgetItem* item)
   {
     // no valid peak layer attached
-    if (layer_ == 0 || layer_->getPeakData()->size() == 0 || layer_->type != LayerData::DT_PEAK)
+    if (layer_ == nullptr || layer_->getPeakData()->size() == 0 || layer_->type != LayerData::DT_PEAK)
     {
       return;
     }

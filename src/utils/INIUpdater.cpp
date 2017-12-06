@@ -225,7 +225,7 @@ protected:
     String tmp_dir = File::getTempDirectory() + "/" + File::getUniqueName();
     QDir d;
     d.mkpath(tmp_dir.toQString());
-    TOPPASScene ts(0, tmp_dir.toQString(), false);
+    TOPPASScene ts(nullptr, tmp_dir.toQString(), false);
     paramFile.store(tmp_ini_file, p);
     ts.load(tmp_ini_file);
     ts.store(tmp_ini_file);

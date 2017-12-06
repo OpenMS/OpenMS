@@ -62,7 +62,7 @@ namespace OpenMS
 public:
 
     ///Constructor
-    TaggingVisualizer(bool editable = false, QWidget * parent = 0);
+    TaggingVisualizer(bool editable = false, QWidget * parent = nullptr);
 
 public slots:
 

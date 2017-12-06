@@ -181,8 +181,8 @@ public:
         LogStreamNotifier * target;
 
         StreamStruct() :
-          stream(0),
-          target(0)
+          stream(nullptr),
+          target(nullptr)
         {}
 
         /// Delete the notification target.
@@ -317,7 +317,7 @@ public:
         @param  delete_buf
         @param	stream
       */
-      LogStream(LogStreamBuf * buf = 0, bool delete_buf = true, std::ostream * stream = 0);
+      LogStream(LogStreamBuf * buf = nullptr, bool delete_buf = true, std::ostream * stream = nullptr);
 
       /// Clears all message buffers.
       ~LogStream() override;

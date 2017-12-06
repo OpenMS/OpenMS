@@ -77,7 +77,7 @@ public:
     /// Default constructor
     ProductModel() :
       BaseModel<D>(),
-      distributions_(D, 0)
+      distributions_(D, nullptr)
     {
       this->setName(this->getProductName());
 
@@ -97,7 +97,7 @@ public:
     /// copy constructor
     ProductModel(const ProductModel & source) :
       BaseModel<D>(source),
-      distributions_(D, 0),
+      distributions_(D, nullptr),
       scale_(source.scale_)
     {
       for (UInt dim = 0; dim < D; ++dim)
@@ -139,7 +139,7 @@ public:
         }
         else
         {
-          distributions_[dim] = 0;
+          distributions_[dim] = nullptr;
         }
       }
       updateMembers_();
@@ -153,7 +153,7 @@ public:
       IntensityType intens(scale_);
       for (UInt dim = 0; dim < D; ++dim)
       {
-        if (distributions_[dim] == 0)
+        if (distributions_[dim] == nullptr)
         {
           throw Exception::BaseException(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("ProductModel: model for dimension ") + dim + " not set.", "");
         }
@@ -184,7 +184,7 @@ public:
     ProductModel & setModel(UInt dim, BaseModel<1> * dist)
     {
       OPENMS_PRECONDITION(dim < D, "ProductModel<D>:getModel(Position): index overflow!");
-      if (dist == 0 || dist == distributions_[dim])
+      if (dist == nullptr || dist == distributions_[dim])
       {
         return *this;
       }

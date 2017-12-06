@@ -228,7 +228,7 @@ namespace OpenMS
     {
       //check whether there is already an entry in GUI for added metainfo.
       //If index already exists, return and do nothing.
-      if (buttongroup_->button(newindex) != 0)
+      if (buttongroup_->button(newindex) != nullptr)
       {
         return;
       }

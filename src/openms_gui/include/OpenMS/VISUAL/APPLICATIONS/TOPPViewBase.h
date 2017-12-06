@@ -132,7 +132,7 @@ public:
     //@}
 
     ///Constructor
-    TOPPViewBase(QWidget* parent = 0);
+    TOPPViewBase(QWidget* parent = nullptr);
     ///Destructor
     ~TOPPViewBase() override;
 

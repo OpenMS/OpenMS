@@ -60,7 +60,7 @@ namespace OpenMS
 public:
 
     ///Constructor
-    InstrumentSettingsVisualizer(bool editable = false, QWidget * parent = 0);
+    InstrumentSettingsVisualizer(bool editable = false, QWidget * parent = nullptr);
 
 public slots:
 

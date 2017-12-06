@@ -72,8 +72,8 @@ START_TEST(IMSAlphabetParser, "$Id$")
 // test the implementation from above
 
 
-IMSAlphabetParser<>* ptr = 0;
-IMSAlphabetParser<>* null_ptr = 0;
+IMSAlphabetParser<>* ptr = nullptr;
+IMSAlphabetParser<>* null_ptr = nullptr;
 
 START_SECTION(IMSAlphabetParser())
 {

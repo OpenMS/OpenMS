@@ -59,7 +59,7 @@ namespace OpenMS
 public:
 
     ///Constructor
-    MetaInfoDescriptionVisualizer(bool editable = false, QWidget * parent = 0);
+    MetaInfoDescriptionVisualizer(bool editable = false, QWidget * parent = nullptr);
 
 public slots:
 

@@ -59,7 +59,7 @@ namespace OpenMS
 public:
 
     ///Constructor
-    SourceFileVisualizer(bool editable = false, QWidget * parent = 0);
+    SourceFileVisualizer(bool editable = false, QWidget * parent = nullptr);
 
 public slots:
 

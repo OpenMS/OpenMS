@@ -70,7 +70,7 @@ namespace OpenMS
 
 public:
     ///Constructor
-    OPENMS_DLLAPI FileWatcher(QObject * parent = 0);
+    OPENMS_DLLAPI FileWatcher(QObject * parent = nullptr);
 
     ///Destructor
     OPENMS_DLLAPI ~FileWatcher() override;

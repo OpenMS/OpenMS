@@ -60,7 +60,7 @@ namespace OpenMS
 public:
 
     ///Constructor
-    HPLCVisualizer(bool editable = false, QWidget * parent = 0);
+    HPLCVisualizer(bool editable = false, QWidget * parent = nullptr);
 
 public slots:
 

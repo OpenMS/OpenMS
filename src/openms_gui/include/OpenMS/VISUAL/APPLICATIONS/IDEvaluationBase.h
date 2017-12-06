@@ -88,7 +88,7 @@ namespace OpenMS
 public:
 
     ///Constructor
-    IDEvaluationBase(QWidget * parent = 0);
+    IDEvaluationBase(QWidget * parent = nullptr);
     ///Destructor
     ~IDEvaluationBase() override;
 

@@ -62,7 +62,7 @@ namespace OpenMS
 public:
 
     ///Constructor
-    ExperimentalSettingsVisualizer(bool editable = false, QWidget * parent = 0);
+    ExperimentalSettingsVisualizer(bool editable = false, QWidget * parent = nullptr);
 
 public slots:
 

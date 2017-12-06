@@ -81,8 +81,8 @@ elements.push_back(nitrogen);
 double carbon_mass = 12.0;
 IMSElement carbon("carbon", carbon_mass);
 
-IMSAlphabet* ptr = 0;
-IMSAlphabet* null_ptr = 0;
+IMSAlphabet* ptr = nullptr;
+IMSAlphabet* null_ptr = nullptr;
 START_SECTION(IMSAlphabet())
 {
   ptr = new IMSAlphabet();

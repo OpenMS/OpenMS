@@ -50,8 +50,8 @@ START_TEST(RTSimulation, "$Id$")
 /////////////////////////////////////////////////////////////
 
 const unsigned long rnd_gen_seed = 1;
-RTSimulation* ptr = 0;
-RTSimulation* nullPointer = 0;
+RTSimulation* ptr = nullptr;
+RTSimulation* nullPointer = nullptr;
 SimTypes::MutableSimRandomNumberGeneratorPtr empty_rnd_gen (new SimTypes::SimRandomNumberGenerator);
 
 START_SECTION((RTSimulation(const SimTypes::MutableSimRandomNumberGeneratorPtr random_generator)))

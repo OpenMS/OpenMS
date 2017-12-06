@@ -64,7 +64,7 @@ class TOPPBaseTest
 #else
       putenv(var);
 #endif
-      main(0,0);
+      main(0,nullptr);
     }
 
     TOPPBaseTest(int argc ,const char** argv)
@@ -200,7 +200,7 @@ class TOPPBaseTestNOP
 #else
       putenv(var);
 #endif
-      main(0,0);
+      main(0,nullptr);
     }
 
     TOPPBaseTestNOP(int argc , const char** argv)
@@ -274,7 +274,7 @@ class TOPPBaseTestParam: public TOPPBase
 #else
       putenv(var);
 #endif
-      main(0, 0);
+      main(0, nullptr);
     }
 
     void registerOptionsAndFlags_() override
@@ -399,8 +399,8 @@ public:
 
 /////////////////////////////////////////////////////////////
 
-TOPPBaseTest* ptr = 0;
-TOPPBaseTest* nullPointer = 0;
+TOPPBaseTest* ptr = nullptr;
+TOPPBaseTest* nullPointer = nullptr;
 START_SECTION(TOPPBase(const String& name, const String& description, bool official = true, const std::vector<Citation>& citations = {}))
 	ptr = new TOPPBaseTest();
 	TEST_NOT_EQUAL(ptr, nullPointer)

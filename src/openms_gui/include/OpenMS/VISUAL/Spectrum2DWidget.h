@@ -70,7 +70,7 @@ public:
     typedef LayerData::ExperimentSharedPtrType ExperimentSharedPtrType;
 
     /// Default constructor
-    Spectrum2DWidget(const Param & preferences, QWidget * parent = 0);
+    Spectrum2DWidget(const Param & preferences, QWidget * parent = nullptr);
     /// Destructor
     ~Spectrum2DWidget() override;
 

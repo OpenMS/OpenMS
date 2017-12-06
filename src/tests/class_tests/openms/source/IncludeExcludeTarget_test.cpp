@@ -46,8 +46,8 @@ START_TEST(IncludeExcludeTarget, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-IncludeExcludeTarget* ptr = 0;
-IncludeExcludeTarget* null_ptr = 0;
+IncludeExcludeTarget* ptr = nullptr;
+IncludeExcludeTarget* null_ptr = nullptr;
 START_SECTION(IncludeExcludeTarget())
 {
 	ptr = new IncludeExcludeTarget();

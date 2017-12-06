@@ -118,8 +118,8 @@ START_TEST(TraceFitter, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-TraceFitter* ptr = 0;
-TraceFitter* nullPointer = 0;
+TraceFitter* ptr = nullptr;
+TraceFitter* nullPointer = nullptr;
 START_SECTION(TraceFitter())
 {
   ptr = new DerivedTraceFitter();

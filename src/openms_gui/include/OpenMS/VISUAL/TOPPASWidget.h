@@ -67,7 +67,7 @@ namespace OpenMS
 public:
 
     /// Default constructor
-    TOPPASWidget(const Param & preferences, QWidget * parent = 0, const String & tmp_path = "");
+    TOPPASWidget(const Param & preferences, QWidget * parent = nullptr, const String & tmp_path = "");
 
     /// Destructor
     ~TOPPASWidget() override;

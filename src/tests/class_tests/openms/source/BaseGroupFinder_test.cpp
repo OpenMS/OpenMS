@@ -61,8 +61,8 @@ START_TEST(BaseGroupFinder, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-TestPairFinder* ptr = 0;
-TestPairFinder* nullPointer = 0;
+TestPairFinder* ptr = nullptr;
+TestPairFinder* nullPointer = nullptr;
 START_SECTION((BaseGroupFinder()))
 	ptr = new TestPairFinder();
 	TEST_NOT_EQUAL(ptr, nullPointer)

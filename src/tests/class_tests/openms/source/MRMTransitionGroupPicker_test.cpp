@@ -183,8 +183,8 @@ START_TEST(MRMTransitionGroupPicker, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-MRMTransitionGroupPicker* ptr = 0;
-MRMTransitionGroupPicker* nullPointer = 0;
+MRMTransitionGroupPicker* ptr = nullptr;
+MRMTransitionGroupPicker* nullPointer = nullptr;
 
 START_SECTION(MRMTransitionGroupPicker())
 {

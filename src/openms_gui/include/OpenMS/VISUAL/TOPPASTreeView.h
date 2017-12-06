@@ -59,7 +59,7 @@ namespace OpenMS
 
 public:
     /// Constructor
-    TOPPASTreeView(QWidget * parent = 0);
+    TOPPASTreeView(QWidget * parent = nullptr);
     /// Destructor
     ~TOPPASTreeView() override;
 

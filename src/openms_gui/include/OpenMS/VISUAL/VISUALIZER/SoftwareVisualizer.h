@@ -62,7 +62,7 @@ namespace OpenMS
 public:
 
     ///Constructor
-    SoftwareVisualizer(bool editable = false, QWidget * parent = 0);
+    SoftwareVisualizer(bool editable = false, QWidget * parent = nullptr);
 
 public slots:
 

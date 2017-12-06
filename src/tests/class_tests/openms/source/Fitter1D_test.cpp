@@ -106,8 +106,8 @@ using std::stringstream;
 /////////////////////////////////////////////////////////////
 
 
-TestModel* ptr = 0;
-TestModel* nullPointer = 0;
+TestModel* ptr = nullptr;
+TestModel* nullPointer = nullptr;
 START_SECTION(Fitter1D())
 {
 	ptr = new TestModel();
@@ -137,7 +137,7 @@ END_SECTION
 START_SECTION((virtual QualityType fit1d(const  RawDataArrayType &, InterpolationModel *&)))
 	Fitter1D f1d;
   Fitter1D::RawDataArrayType rft;
-  InterpolationModel *ipm = 0;
+  InterpolationModel *ipm = nullptr;
 	TEST_EXCEPTION(Exception::NotImplemented,f1d.fit1d(rft,ipm));
 END_SECTION
 
