@@ -1,73 +1,73 @@
-=========================================================================
-                 OpenMS -- Open Source Mass Spectrometry
-=========================================================================
+--------------------------------------------------------------------------
+                  OpenMS -- Open-Source Mass Spectrometry
+--------------------------------------------------------------------------
 
-The following authors contributed to OpenMS at some point. For the 
-authors contributing to a specific piece of code, please refer to
-the authors tag in the respective file header.
+The following authors at the listed institutions have contributed to OpenMS.
+For the authors contributing to a specific piece of code, please refer to
+the "Authors" tag in the respective file header.
  - Alexandra Scherbart
- - Alexandra Zerck
- - Andreas Bertsch
+ - Alexandra Zerck (Max Planck Institute for Molecular Genetics)
+ - Andreas Bertsch (Eberhard Karls University Tuebingen)
  - Andreas Simon
- - Anton Pervukhin
+ - Anton Pervukhin (Friedrich Schiller University Jena)
  - Bastian Blank
  - Chris Bauer
- - Chris Bielow
- - Christian Ehrlich
- - Clemens Groepl
+ - Chris Bielow (Freie Universitaet Berlin)
+ - Christian Ehrlich (Freie Universitaet Berlin)
+ - Clemens Groepl (Freie Universitaet Berlin)
  - Cornelia Friedle
  - Daniel Jameson
  - Darren Kessner
- - David Wojnar
+ - David Wojnar (Eberhard Karls University Tuebingen)
  - Dilek Dere
  - Dimitri Schachmann
- - Erhan Kenar
- - Eugen Netz
- - Eva Lange
- - Fabian Aicheler
+ - Erhan Kenar (Eberhard Karls University Tuebingen)
+ - Eugen Netz (Max Planck Institute for Developmental Biology)
+ - Eva Lange (Freie Universitaet Berlin)
+ - Fabian Aicheler (Eberhard Karls University Tuebingen)
  - Fabian Kriegel
  - Florian Zeller
  - Frederic Lehnert
- - George Rosenberger
+ - George Rosenberger (ETH Zurich)
  - Guillaume Belz
- - Hannes Roest
- - Hendrik Brauer
- - Hendrik Weisser
- - Holger Franken
+ - Hannes Roest (ETH Zurich, Stanford University)
+ - Hendrik Brauer (Eberhard Karls University Tuebingen)
+ - Hendrik Weisser (ETH Zurich, Wellcome Trust Sanger Institute, STORM Therapeutics Ltd)
+ - Holger Franken (Eberhard Karls University Tuebingen)
  - Holger Plattfaut
  - Immanuel Luhn
  - Johan Teleman
- - Johannes Junker
- - Johannes Veit
- - Julianus Pfeuffer
+ - Johannes Junker (Eberhard Karls University Tuebingen)
+ - Johannes Veit (Eberhard Karls University Tuebingen)
+ - Julianus Pfeuffer (Freie Universitaet Berlin, Eberhard Karls University Tuebingen)
  - Katharina Albers
- - Knut Reinert
- - Lars Nilse
- - Leon Bichmann
- - Lucia Espona
- - Lukas Mueller
+ - Knut Reinert (Freie Universitaet Berlin)
+ - Lars Nilse (Eberhard Karls University Tuebingen, University of Freiburg)
+ - Leon Bichmann (Eberhard Karls University Tuebingen)
+ - Lucia Espona (ETH Zurich)
+ - Lukas Mueller (ETH Zurich)
  - Lukas Zimmermann
  - Marcel Schilling
- - Marc Sturm
+ - Marc Sturm (Eberhard Karls University Tuebingen)
  - Markus Mueller
  - Martin Langwisch
- - Mathias Walzer
- - Matthew The
- - Nico Pfeifer
- - Ole Schulz-Trieglaff
- - Oliver Alka
- - Oliver Kohlbacher
- - Peter Kunszt
- - Petra Gutenbrunner
- - Rene Hussong
- - Samuel Wein
- - Sandro Andreotti
+ - Mathias Walzer (Eberhard Karls University Tuebingen)
+ - Matthew The (KTH Royal Institute of Technology)
+ - Nico Pfeifer (Eberhard Karls University Tuebingen)
+ - Ole Schulz-Trieglaff (Freie Universitaet Berlin)
+ - Oliver Alka (Eberhard Karls University Tuebingen)
+ - Oliver Kohlbacher (Eberhard Karls University Tuebingen)
+ - Peter Kunszt (SystemsX.ch)
+ - Petra Gutenbrunner (Wellcome Trust Sanger Institute)
+ - Rene Hussong (Saarland University)
+ - Samuel Wein (University of Pennsylvania)
+ - Sandro Andreotti (Freie Universitaet Berlin)
  - Steffen Sass
- - Stephan Aiche
- - Sven Nahnsen
- - Timo Sachsenberg
- - Uwe Schmitt
+ - Stephan Aiche (Freie Universitaet Berlin)
+ - Sven Nahnsen (Eberhard Karls University Tuebingen)
+ - Timo Sachsenberg (Eberhard Karls University Tuebingen)
+ - Uwe Schmitt (ETH Zurich)
  - Vipul Patel
  - Volker Mosthaf
- - Witold Wolski
- - Xiao Liang
+ - Witold Wolski (Max Planck Institute for Molecular Genetics, ETH Zurich)
+ - Xiao Liang (Freie Universitaet Berlin)
