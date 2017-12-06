@@ -86,8 +86,8 @@ public:
     {}
 
     /// Constructor with position and intensity
-    inline ChromatogramPeak(const PositionType position, const IntensityType intensity) :
-      position_(position),
+    inline ChromatogramPeak(const PositionType retention_time, const IntensityType intensity) :
+      position_(retention_time),
       intensity_(intensity)
     {}
 
