@@ -61,7 +61,7 @@ namespace OpenMS
     OPENMS_DLLAPI NetworkGetRequest(QObject* parent = 0);
 
     /// destructor
-    OPENMS_DLLAPI virtual ~NetworkGetRequest();
+    OPENMS_DLLAPI ~NetworkGetRequest() override;
     //@}
 
     // set request parameters

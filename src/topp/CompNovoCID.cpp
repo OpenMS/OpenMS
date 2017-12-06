@@ -101,12 +101,12 @@ public:
 
 protected:
 
-  Param getSubsectionDefaults_(const String & /*section*/) const
+  Param getSubsectionDefaults_(const String & /*section*/) const override
   {
     return CompNovoIdentificationCID().getDefaults();
   }
 
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "input file in mzML format", true);
     setValidFormats_("in", ListUtils::create<String>("mzML"));
@@ -119,7 +119,7 @@ protected:
     registerSubsection_("algorithm", "Algorithm section");
   }
 
-  ExitCodes main_(int, const char **)
+  ExitCodes main_(int, const char **) override
   {
     //-------------------------------------------------------------
     // parameter handling

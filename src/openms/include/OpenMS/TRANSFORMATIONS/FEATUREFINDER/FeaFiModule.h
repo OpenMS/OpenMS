@@ -181,7 +181,7 @@ public:
     }
 
     /// destructor
-    virtual ~FeaFiModule()
+    ~FeaFiModule() override
     {
     }
 

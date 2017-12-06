@@ -60,7 +60,7 @@ public:
     /// Constructor
     HistogramDialog(const Math::Histogram<> & distribution, QWidget * parent = 0);
     /// Destructor
-    ~HistogramDialog();
+    ~HistogramDialog() override;
 
     /// Returns the value of the left splitter
     float getLeftSplitter();

@@ -99,7 +99,7 @@ public:
 
 protected:
 
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "input centroided mzML file");
     setValidFormats_("in", ListUtils::create<String>("mzML"));
@@ -113,7 +113,7 @@ protected:
 
   }
 
-  Param getSubsectionDefaults_(const String& /*section*/) const
+  Param getSubsectionDefaults_(const String& /*section*/) const override
   {
     Param combined;
     Param p_com;
@@ -141,7 +141,7 @@ protected:
     return combined;
   }
 
-  ExitCodes main_(int, const char**)
+  ExitCodes main_(int, const char**) override
   {
 
     //-------------------------------------------------------------

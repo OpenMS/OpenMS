@@ -60,7 +60,7 @@ public:
     ///Default constructor
     MzXMLFile();
     ///Destructor
-    ~MzXMLFile();
+    ~MzXMLFile() override;
 
     /// Mutable access to the options for loading/storing
     PeakFileOptions & getOptions();

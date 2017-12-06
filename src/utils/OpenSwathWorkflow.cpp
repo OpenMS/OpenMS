@@ -396,7 +396,7 @@ public:
 
 protected:
 
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     registerInputFileList_("in", "<files>", StringList(), "Input files separated by blank");
     setValidFormats_("in", ListUtils::create<String>("mzML,mzXML,sqMass"));
@@ -471,7 +471,7 @@ protected:
     registerSubsection_("Debugging", "Debugging");
   }
 
-  Param getSubsectionDefaults_(const String& name) const
+  Param getSubsectionDefaults_(const String& name) const override
   {
     if (name == "Scoring")
     {
@@ -672,7 +672,7 @@ protected:
     return trafo_rtnorm;
   }
 
-  ExitCodes main_(int, const char **)
+  ExitCodes main_(int, const char **) override
   {
     ///////////////////////////////////
     // Prepare Parameters

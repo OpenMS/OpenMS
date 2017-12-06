@@ -82,7 +82,7 @@ class RM
       return !(operator==(rhs));
     }
 
-    virtual void updateRanges()
+    void updateRanges() override
     {
       std::vector<Peak2D > vec;
       Peak2D tmp;

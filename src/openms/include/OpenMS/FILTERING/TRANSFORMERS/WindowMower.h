@@ -62,7 +62,7 @@ public:
     /// default constructor
     WindowMower();
     /// destructor
-    virtual ~WindowMower();
+    ~WindowMower() override;
 
     /// copy constructor
     WindowMower(const WindowMower& source);

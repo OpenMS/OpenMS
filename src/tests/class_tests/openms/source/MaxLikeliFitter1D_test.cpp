@@ -60,7 +60,7 @@ class TestModel : public MaxLikeliFitter1D
     updateMembers_();
   }
 
-  virtual ~TestModel()
+  ~TestModel() override
   {
   }
 
@@ -74,12 +74,12 @@ class TestModel : public MaxLikeliFitter1D
     return *this;
   }
 
-  void updateMembers_()
+  void updateMembers_() override
   {
      MaxLikeliFitter1D::updateMembers_();
   }
 
-  QualityType fit1d(const RawDataArrayType& /*range*/, InterpolationModel*&  /*model*/)
+  QualityType fit1d(const RawDataArrayType& /*range*/, InterpolationModel*&  /*model*/) override
   {
 //    double center = 0.0;
 //    center = model->getCenter();

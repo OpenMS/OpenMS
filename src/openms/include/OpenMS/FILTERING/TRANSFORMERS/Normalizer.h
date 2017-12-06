@@ -65,7 +65,7 @@ public:
     /// default constructor
     Normalizer();
     /// destructor
-    virtual ~Normalizer();
+    ~Normalizer() override;
 
     /// assignment operator
     Normalizer & operator=(const Normalizer & source);
@@ -129,7 +129,7 @@ public:
     ///
     void filterPeakMap(PeakMap & exp) const;
 
-    virtual void updateMembers_();
+    void updateMembers_() override;
 
     // @}
 

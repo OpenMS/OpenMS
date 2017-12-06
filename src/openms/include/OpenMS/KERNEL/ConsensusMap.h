@@ -148,7 +148,7 @@ public:
     OPENMS_DLLAPI ConsensusMap(const ConsensusMap& source);
 
     /// Destructor
-    OPENMS_DLLAPI ~ConsensusMap();
+    OPENMS_DLLAPI ~ConsensusMap() override;
 
     /// Creates a ConsensusMap with n elements
     OPENMS_DLLAPI explicit ConsensusMap(Base::size_type n);
@@ -222,7 +222,7 @@ public:
     //@}
 
     // Docu in base class
-    OPENMS_DLLAPI void updateRanges();
+    OPENMS_DLLAPI void updateRanges() override;
 
     /// Swaps the content of this map with the content of @p from
     OPENMS_DLLAPI void swap(ConsensusMap& from);

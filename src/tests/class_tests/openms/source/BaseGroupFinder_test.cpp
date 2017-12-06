@@ -51,7 +51,7 @@ class TestPairFinder
 	{
 		check_defaults_ = false; 
 	}
-	virtual void run(const std::vector<ConsensusMap>&, ConsensusMap&)
+	void run(const std::vector<ConsensusMap>&, ConsensusMap&) override
 	{
 	}
 };

@@ -173,7 +173,7 @@ public:
       /// Default constructor
       XMLHandler(const String & filename, const String & version);
       /// Destructor
-      virtual ~XMLHandler();
+      ~XMLHandler() override;
 
       /// Release internal memory used for parsing (call
       void reset();
@@ -185,9 +185,9 @@ public:
           These methods forward the error message to our own error handlers below.
       */
       //@{
-      void fatalError(const xercesc::SAXParseException & exception);
-      void error(const xercesc::SAXParseException & exception);
-      void warning(const xercesc::SAXParseException & exception);
+      void fatalError(const xercesc::SAXParseException & exception) override;
+      void error(const xercesc::SAXParseException & exception) override;
+      void warning(const xercesc::SAXParseException & exception) override;
       //@}
 
       /// Fatal error handler. Throws a ParseError exception
@@ -198,11 +198,11 @@ public:
       void warning(ActionMode mode, const String & msg, UInt line = 0, UInt column = 0) const;
 
       /// Parsing method for character data
-      virtual void characters(const XMLCh * const chars, const XMLSize_t length);
+      void characters(const XMLCh * const chars, const XMLSize_t length) override;
       /// Parsing method for opening tags
-      virtual void startElement(const XMLCh * const uri, const XMLCh * const localname, const XMLCh * const qname, const xercesc::Attributes & attrs);
+      void startElement(const XMLCh * const uri, const XMLCh * const localname, const XMLCh * const qname, const xercesc::Attributes & attrs) override;
       /// Parsing method for closing tags
-      virtual void endElement(const XMLCh * const uri, const XMLCh * const localname, const XMLCh * const qname);
+      void endElement(const XMLCh * const uri, const XMLCh * const localname, const XMLCh * const qname) override;
 
       /// Writes the contents to a stream.
       virtual void writeTo(std::ostream & /*os*/);

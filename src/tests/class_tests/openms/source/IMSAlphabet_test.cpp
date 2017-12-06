@@ -50,12 +50,12 @@ class IMSAlphabetParserImpl
 private:
   ContainerType elements_;
 public:
-  virtual ContainerType& getElements()
+  ContainerType& getElements() override
   {
     return elements_;
   }
 
-  virtual void parse(std::istream& )
+  void parse(std::istream& ) override
   {
     // ignore istream, just enter something into the map
     elements_.insert(std::make_pair("hydrogen", 1.0));

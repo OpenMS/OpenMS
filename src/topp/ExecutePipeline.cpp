@@ -102,7 +102,7 @@ public:
 
 protected:
 
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "The workflow to be executed.");
     setValidFormats_("in", ListUtils::create<String>("toppas"));
@@ -112,7 +112,7 @@ protected:
     setMinInt_("num_jobs", 1);
   }
 
-  ExitCodes main_(int argc, const char ** argv)
+  ExitCodes main_(int argc, const char ** argv) override
   {
     QString toppas_file = getStringOption_("in").toQString();
     QString out_dir_name = getStringOption_("out_dir").toQString();

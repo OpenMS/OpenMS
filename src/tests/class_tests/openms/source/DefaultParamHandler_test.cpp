@@ -83,7 +83,7 @@ class TestHandler
 			return *this;
 		}
 		
-		void updateMembers_()
+		void updateMembers_() override
 		{
 			string_var = (string)(param_.getValue("string"));
 		}

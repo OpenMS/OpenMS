@@ -64,7 +64,7 @@ class TestTarget
   :  public LogStreamNotifier
 {
   public:
-  virtual void logNotify()
+  void logNotify() override
   {
     notified = true;
     return;

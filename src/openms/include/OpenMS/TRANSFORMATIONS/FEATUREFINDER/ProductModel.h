@@ -113,7 +113,7 @@ public:
     }
 
     /// destructor
-    virtual ~ProductModel()
+    ~ProductModel() override
     {
       for (Size dim = 0; dim < D; ++dim)
       {
@@ -148,7 +148,7 @@ public:
     }
 
     /// intensity equals product of intensities in each dimension
-    IntensityType getIntensity(const PositionType & pos) const
+    IntensityType getIntensity(const PositionType & pos) const override
     {
       IntensityType intens(scale_);
       for (UInt dim = 0; dim < D; ++dim)
@@ -223,7 +223,7 @@ public:
     }
 
     /// get reasonable set of samples from the model (i.e. for printing)
-    void getSamples(SamplesType & cont) const
+    void getSamples(SamplesType & cont) const override
     {
       cont.clear();
       typedef BaseModel<1>::SamplesType Samples1D;
@@ -260,7 +260,7 @@ public:
     }
 
 protected:
-    void updateMembers_()
+    void updateMembers_() override
     {
       BaseModel<D>::updateMembers_();
       scale_ = (double)(this->param_.getValue("intensity_scaling"));

@@ -345,7 +345,7 @@ protected:
     /// Spacing of the resampled data
     bool ppm_;
 
-    virtual void updateMembers_()
+    void updateMembers_() override
     {
       spacing_ =  param_.getValue("spacing");
       ppm_ =  (bool)param_.getValue("ppm").toBool();

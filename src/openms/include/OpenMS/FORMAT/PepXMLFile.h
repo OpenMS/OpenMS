@@ -67,7 +67,7 @@ public:
     PepXMLFile();
 
     /// Destructor
-    virtual ~PepXMLFile();
+    ~PepXMLFile() override;
 
     /**
         @brief Loads peptide sequences with modifications out of a PepXML file
@@ -122,10 +122,10 @@ public:
 protected:
 
     /// Docu in base class
-    virtual void endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname);
+    void endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname) override;
 
     /// Docu in base class
-    virtual void startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes);
+    void startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes) override;
 
 private:
 

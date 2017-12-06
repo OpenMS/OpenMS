@@ -176,7 +176,7 @@ public:
   }
 
 protected:
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "This is the name of the input file (RT prediction). It is assumed that the file type is idXML. Alternatively you can provide a .txt file having a sequence and the corresponding rt per line.\n", false);
     setValidFormats_("in", ListUtils::create<String>("idXML,txt"));
@@ -295,7 +295,7 @@ protected:
     }
   }
 
-  ExitCodes main_(Int, const char**)
+  ExitCodes main_(Int, const char**) override
   {
     vector<ProteinIdentification> protein_identifications;
     vector<PeptideIdentification> identifications;

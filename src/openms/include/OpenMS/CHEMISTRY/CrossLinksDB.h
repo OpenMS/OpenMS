@@ -77,7 +77,7 @@ namespace OpenMS
       CrossLinksDB(const CrossLinksDB& residue_db);
 
       /// Destructor
-      virtual ~CrossLinksDB();
+      ~CrossLinksDB() override;
       //@}
 
       /** @name Assignment

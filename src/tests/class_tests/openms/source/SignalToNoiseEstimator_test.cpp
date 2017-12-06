@@ -67,8 +67,8 @@ class TestSignalToNoiseEstimator
 
   protected:
 
-  virtual void computeSTN_(const PeakIterator& scan_first_, const PeakIterator& scan_last_)
-      throw()
+  void computeSTN_(const PeakIterator& scan_first_, const PeakIterator& scan_last_)
+      throw() override
   {
     if (scan_first_ == scan_last_)
     {

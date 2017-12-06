@@ -65,7 +65,7 @@ public:
     /// Constructor
     TOPPASTabBar(QWidget * parent = 0);
     /// Destructor
-    ~TOPPASTabBar();
+    ~TOPPASTabBar() override;
 
     /// Adds a new tab with the name @p text and the identifier @p id
     int addTab(const String & text, int id);
@@ -90,8 +90,8 @@ signals:
 protected:
     ///@name Reimplemented Qt events
     //@{
-    void mouseDoubleClickEvent(QMouseEvent * e);
-    void contextMenuEvent(QContextMenuEvent * e);
+    void mouseDoubleClickEvent(QMouseEvent * e) override;
+    void contextMenuEvent(QContextMenuEvent * e) override;
     //void dragEnterEvent(QDragEnterEvent* e);
     //void dropEvent(QDropEvent* e);
     //@}

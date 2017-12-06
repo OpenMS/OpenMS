@@ -154,7 +154,7 @@ public:
   }
 
 protected:
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     registerInputFile_("in_positive", "<file>", "", "input file with positive examples");
     setValidFormats_("in_positive", ListUtils::create<String>("idXML"));
@@ -210,7 +210,7 @@ protected:
     registerDoubleOption_("cv:sigma_stop", "<float>", 15, "stopping point of sigma", false);
   }
 
-  ExitCodes main_(Int, const char**)
+  ExitCodes main_(Int, const char**) override
   {
     vector<ProteinIdentification> protein_identifications;
     vector<PeptideIdentification> identifications;

@@ -64,14 +64,14 @@ public:
 
         @return The parsed data.
       */
-      virtual ContainerType & getElements() { return elements_; }
+      ContainerType & getElements() override { return elements_; }
 
       /**
         Parses the input stream @c is.
 
         @param is The input stream to be parsed
       */
-      virtual void parse(std::istream & is);
+      void parse(std::istream & is) override;
     };
 
   } // namespace ims

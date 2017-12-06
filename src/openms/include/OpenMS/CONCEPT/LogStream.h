@@ -126,7 +126,7 @@ public:
       /**
         Destruct the buffer and free all stored messages strings.
       */
-      virtual ~LogStreamBuf();
+      ~LogStreamBuf() override;
 
       //@}
 
@@ -143,13 +143,13 @@ public:
         Incomplete lines (not terminated by "\n" / "\r" are
         stored in incomplete_line_.
       */
-      virtual int sync();
+      int sync() override;
 
       /**
         This method calls sync and <tt>streambuf::overflow(c)</tt> to
         prevent a buffer overflow.
       */
-      virtual int overflow(int c = -1);
+      int overflow(int c = -1) override;
       //@}
 
 
@@ -320,7 +320,7 @@ public:
       LogStream(LogStreamBuf * buf = 0, bool delete_buf = true, std::ostream * stream = 0);
 
       /// Clears all message buffers.
-      virtual ~LogStream();
+      ~LogStream() override;
       //@}
 
       /// @name Stream Methods

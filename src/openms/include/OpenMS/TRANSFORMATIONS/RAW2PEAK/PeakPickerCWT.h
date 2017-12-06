@@ -90,7 +90,7 @@ public:
     PeakPickerCWT();
 
     /// Destructor
-    virtual ~PeakPickerCWT();
+    ~PeakPickerCWT() override;
 
     /**
                 @brief Applies the peak picking algorithm to a single spectrum.
@@ -156,7 +156,7 @@ protected:
     bool two_d_optimization_;
 
 
-    void updateMembers_();
+    void updateMembers_() override;
 
     /**
       @brief Class for the internal peak representation

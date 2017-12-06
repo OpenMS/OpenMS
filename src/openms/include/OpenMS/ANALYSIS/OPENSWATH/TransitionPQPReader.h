@@ -81,7 +81,7 @@ public:
     TransitionPQPReader();
 
     /// Destructor
-    ~TransitionPQPReader();
+    ~TransitionPQPReader() override;
     //@}
 
     /** @brief Write out a targeted experiment (TraML structure) into a PQP file

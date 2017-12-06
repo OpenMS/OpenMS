@@ -97,7 +97,7 @@ public:
   }
 
 protected:
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     registerInputFileList_("in", "<files>", ListUtils::create<String>(""), "Input files");
     setValidFormats_("in", ListUtils::create<String>("mzML"));
@@ -265,7 +265,7 @@ protected:
     return annotated_lib;
   }
 
-  ExitCodes main_(int, const char**)
+  ExitCodes main_(int, const char**) override
   {
     //-------------------------------------------------------------
     // parameter handling

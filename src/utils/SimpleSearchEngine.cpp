@@ -108,7 +108,7 @@ class SimpleSearchEngine :
     }
 
   protected:
-    void registerOptionsAndFlags_()
+    void registerOptionsAndFlags_() override
     {
       registerInputFile_("in", "<file>", "", "input file ");
       setValidFormats_("in", ListUtils::create<String>("mzML"));
@@ -404,7 +404,7 @@ class SimpleSearchEngine :
       protein_ids[0].setSearchParameters(search_parameters);
     }
 
-    ExitCodes main_(int, const char**)
+    ExitCodes main_(int, const char**) override
     {
       ProgressLogger progresslogger;
       progresslogger.setLogType(log_type_);

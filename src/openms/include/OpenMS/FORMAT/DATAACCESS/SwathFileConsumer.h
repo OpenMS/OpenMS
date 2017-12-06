@@ -133,10 +133,10 @@ public:
       use_external_boundaries_ = !swath_map_boundaries_.empty();
     }
 
-    ~FullSwathFileConsumer() {}
+    ~FullSwathFileConsumer() override {}
 
-    void setExpectedSize(Size, Size) {}
-    void setExperimentalSettings(const ExperimentalSettings& exp) {settings_ = exp; }
+    void setExpectedSize(Size, Size) override {}
+    void setExperimentalSettings(const ExperimentalSettings& exp) override {settings_ = exp; }
 
     /**
      * @brief Populate the vector of swath maps after consuming all spectra.
@@ -194,7 +194,7 @@ public:
     }
 
     /// Consume a chromatogram -> should not happen when dealing with SWATH maps
-    void consumeChromatogram(MapType::ChromatogramType&)
+    void consumeChromatogram(MapType::ChromatogramType&) override
     {
       std::cerr << "Read chromatogram while reading SWATH files, did not expect that!" << std::endl;
     }
@@ -204,7 +204,7 @@ public:
      * one of n MS2 (SWATH) scans
      *
      */
-    void consumeSpectrum(MapType::SpectrumType& s)
+    void consumeSpectrum(MapType::SpectrumType& s) override
     {
       if (!consuming_possible_)
       {
@@ -352,7 +352,7 @@ protected:
       swath_maps_.push_back(exp);
     }
 
-    void consumeSwathSpectrum_(MapType::SpectrumType& s, size_t swath_nr)
+    void consumeSwathSpectrum_(MapType::SpectrumType& s, size_t swath_nr) override
     {
       while (swath_maps_.size() <= swath_nr)
       {
@@ -368,7 +368,7 @@ protected:
       ms1_map_ = exp;
     }
 
-    void consumeMS1Spectrum_(MapType::SpectrumType& s)
+    void consumeMS1Spectrum_(MapType::SpectrumType& s) override
     {
       if (!ms1_map_)
       {
@@ -377,7 +377,7 @@ protected:
       ms1_map_->addSpectrum(s);
     }
 
-    void ensureMapsAreFilled_() {}
+    void ensureMapsAreFilled_() override {}
   };
 
   /**
@@ -418,7 +418,7 @@ public:
       nr_ms2_spectra_(nr_ms2_spectra)
     {}
 
-    ~CachedSwathFileConsumer()
+    ~CachedSwathFileConsumer() override
     {
       // Properly delete the MSDataCachedConsumer -> free memory and _close_ file stream
       while (!swath_consumers_.empty())
@@ -447,7 +447,7 @@ protected:
       swath_maps_.push_back(exp);
     }
 
-    void consumeSwathSpectrum_(MapType::SpectrumType& s, size_t swath_nr)
+    void consumeSwathSpectrum_(MapType::SpectrumType& s, size_t swath_nr) override
     {
       while (swath_maps_.size() <= swath_nr)
       {
@@ -467,7 +467,7 @@ protected:
       ms1_map_ = exp;
     }
 
-    void consumeMS1Spectrum_(MapType::SpectrumType& s)
+    void consumeMS1Spectrum_(MapType::SpectrumType& s) override
     {
       if (ms1_consumer_ == NULL)
       {
@@ -477,7 +477,7 @@ protected:
       ms1_map_->addSpectrum(s); // append for the metadata (actual data is deleted)
     }
 
-    void ensureMapsAreFilled_()
+    void ensureMapsAreFilled_() override
     {
       size_t swath_consumers_size = swath_consumers_.size();
       bool have_ms1 = (ms1_consumer_ != NULL);
@@ -572,7 +572,7 @@ public:
       nr_ms2_spectra_(nr_ms2_spectra)
     {}
 
-    ~MzMLSwathFileConsumer()
+    ~MzMLSwathFileConsumer() override
     {
       deleteSetNull_();
     }
@@ -602,7 +602,7 @@ protected:
       swath_consumers_.push_back(consumer);
     }
 
-    void consumeSwathSpectrum_(MapType::SpectrumType& s, size_t swath_nr)
+    void consumeSwathSpectrum_(MapType::SpectrumType& s, size_t swath_nr) override
     {
       // only use swath_maps_ to count how many we have already added
       while (swath_consumers_.size() <= swath_nr)
@@ -622,7 +622,7 @@ protected:
       // ms1_map_ = exp;
     }
 
-    void consumeMS1Spectrum_(MapType::SpectrumType& s)
+    void consumeMS1Spectrum_(MapType::SpectrumType& s) override
     {
       if (ms1_consumer_ == NULL)
       {
@@ -632,7 +632,7 @@ protected:
       s.clear(false);
     }
 
-    void ensureMapsAreFilled_()
+    void ensureMapsAreFilled_() override
     {
       deleteSetNull_();
     }
