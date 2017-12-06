@@ -43,7 +43,7 @@
 
 #include <QtCore/QStringList>
 
-#include <stdio.h>
+#include <cstdio>
 
 namespace OpenMS
 {

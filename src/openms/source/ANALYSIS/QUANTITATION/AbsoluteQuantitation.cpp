@@ -56,7 +56,7 @@
 //Standard library
 #include <cstddef> // for size_t & ptrdiff_t
 #include <vector>
-#include <math.h>
+#include <cmath>
 #include <algorithm>
 
 namespace OpenMS
