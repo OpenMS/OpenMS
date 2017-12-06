@@ -639,6 +639,119 @@ START_SECTION((ConstIterator RTEnd(ConstIterator begin, CoordinateType rt, Const
 }
 END_SECTION
 
+MSChromatogram tmp;
+vector<double> position = {1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0};
+for (Size i=0; i<position.size(); ++i)
+{
+  ChromatogramPeak cp;
+  cp.setPos(position[i]);
+  tmp.push_back(cp);
+}
+
+START_SECTION((Iterator PosBegin(CoordinateType rt)))
+{
+  MSChromatogram::Iterator it;
+  it = tmp.PosBegin(4.5);
+  TEST_EQUAL(it->getPos(), 5.0)
+  it = tmp.PosBegin(5.0);
+  TEST_EQUAL(it->getPos(), 5.0)
+  it = tmp.PosBegin(5.5);
+  TEST_EQUAL(it->getPos(), 6.0)
+}
+END_SECTION
+
+START_SECTION((Iterator PosBegin(Iterator begin, CoordinateType rt, Iterator end)))
+{
+  MSChromatogram::Iterator it;
+  it = tmp.PosBegin(tmp.begin(), 4.5, tmp.end());
+  TEST_EQUAL(it->getPos(), 5.0)
+  it = tmp.PosBegin(tmp.begin(), 5.5, tmp.end());
+  TEST_EQUAL(it->getPos(), 6.0)
+  it = tmp.PosBegin(tmp.begin(), 4.5, tmp.begin());
+  TEST_EQUAL(it->getPos(), tmp.begin()->getPos())
+  it = tmp.PosBegin(tmp.begin(), 8.0, tmp.end());
+  TEST_EQUAL((it-1)->getPos(), (tmp.end()-1)->getPos())
+}
+END_SECTION
+
+START_SECTION((ConstIterator PosBegin(CoordinateType rt) const ))
+{
+  MSChromatogram::ConstIterator it;
+  it = tmp.PosBegin(4.5);
+  TEST_EQUAL(it->getPos(), 5.0)
+  it = tmp.PosBegin(5.0);
+  TEST_EQUAL(it->getPos(), 5.0)
+  it = tmp.PosBegin(5.5);
+  TEST_EQUAL(it->getPos(), 6.0)
+}
+END_SECTION
+
+START_SECTION((ConstIterator PosBegin(ConstIterator begin, CoordinateType rt, ConstIterator end) const ))
+{
+  MSChromatogram::ConstIterator it;
+  it = tmp.PosBegin(tmp.begin(), 3.5, tmp.end());
+  TEST_EQUAL(it->getPos(), 4.0)
+  it = tmp.PosBegin(tmp.begin(), 4.5, tmp.end());
+  TEST_EQUAL(it->getPos(), 5.0)
+  it = tmp.PosBegin(tmp.begin(), 4.5, tmp.begin());
+  TEST_EQUAL(it->getPos(), tmp.begin()->getPos())
+  it = tmp.PosBegin(tmp.begin(), 8.0, tmp.end());
+  TEST_EQUAL((it-1)->getPos(), (tmp.end()-1)->getPos())
+}
+END_SECTION
+
+START_SECTION((Iterator PosEnd(CoordinateType rt)))
+{
+  MSChromatogram::Iterator it;
+  it = tmp.PosEnd(4.5);
+  TEST_EQUAL(it->getPos(), 5.0)
+  it = tmp.PosEnd(5.0);
+  TEST_EQUAL(it->getPos(), 6.0)
+  it = tmp.PosEnd(5.5);
+  TEST_EQUAL(it->getPos(), 6.0)
+}
+END_SECTION
+
+START_SECTION((Iterator PosEnd(Iterator begin, CoordinateType rt, Iterator end)))
+{
+  MSChromatogram::Iterator it;
+  it = tmp.PosEnd(tmp.begin(), 3.5, tmp.end());
+  TEST_EQUAL(it->getPos(), 4.0)
+  it = tmp.PosEnd(tmp.begin(), 4.0, tmp.end());
+  TEST_EQUAL(it->getPos(), 5.0)
+  it = tmp.PosEnd(tmp.begin(), 4.5, tmp.begin());
+  TEST_EQUAL(it->getPos(), tmp.begin()->getPos())
+  it = tmp.PosBegin(tmp.begin(), 8.0, tmp.end());
+  TEST_EQUAL((it-1)->getPos(), (tmp.end()-1)->getPos())
+}
+END_SECTION
+
+START_SECTION((ConstIterator PosEnd(CoordinateType rt) const ))
+{
+  MSChromatogram::ConstIterator it;
+  it = tmp.PosEnd(4.5);
+  TEST_EQUAL(it->getPos(), 5.0)
+  it = tmp.PosEnd(5.0);
+  TEST_EQUAL(it->getPos(), 6.0)
+  it = tmp.PosEnd(5.5);
+  TEST_EQUAL(it->getPos(), 6.0)
+}
+END_SECTION
+
+START_SECTION((ConstIterator PosEnd(ConstIterator begin, CoordinateType rt, ConstIterator end) const ))
+{
+  MSChromatogram::ConstIterator it;
+  it = tmp.PosEnd(tmp.begin(), 4.5, tmp.end());
+  TEST_EQUAL(it->getPos(), 5.0)
+  it = tmp.PosEnd(tmp.begin(), 5.0, tmp.end());
+  TEST_EQUAL(it->getPos(), 6.0)
+  it = tmp.PosEnd(tmp.begin(), 4.5, tmp.begin());
+  TEST_EQUAL(it->getPos(), tmp.begin()->getPos())
+  it = tmp.PosBegin(tmp.begin(), 8.0, tmp.end());
+  TEST_EQUAL((it-1)->getPos(), (tmp.end()-1)->getPos())
+}
+END_SECTION
+
 START_SECTION((MSChromatogram(const MSChromatogram &source)))
 {
   MSChromatogram tmp;

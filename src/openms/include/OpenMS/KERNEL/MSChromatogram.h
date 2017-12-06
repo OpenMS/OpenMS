@@ -339,6 +339,86 @@ public:
     ConstIterator RTEnd(ConstIterator begin, CoordinateType rt, ConstIterator end) const;
 
     /**
+      @brief Binary search for peak range begin
+
+      Alias for RTBegin()
+
+      @note Make sure the chromatogram is sorted with respect to retention time! Otherwise the
+      result is undefined.
+    */
+    Iterator PosBegin(CoordinateType rt);
+
+    /**
+      @brief Binary search for peak range begin
+
+      Alias for RTBegin()
+
+      @note Make sure the chromatogram is sorted with respect to RT! Otherwise the result is
+      undefined.
+    */
+    Iterator PosBegin(Iterator begin, CoordinateType rt, Iterator end);
+
+    /**
+      @brief Binary search for peak range begin
+
+      Alias for RTBegin()
+
+      @note Make sure the chromatogram is sorted with respect to RT! Otherwise the result is
+      undefined.
+    */
+    ConstIterator PosBegin(CoordinateType rt) const;
+
+    /**
+      @brief Binary search for peak range begin
+
+      Alias for RTBegin()
+
+      @note Make sure the chromatogram is sorted with respect to RT! Otherwise the result is
+      undefined.
+    */
+    ConstIterator PosBegin(ConstIterator begin, CoordinateType rt, ConstIterator end) const;
+
+    /**
+      @brief Binary search for peak range end (returns the past-the-end iterator)
+
+      Alias for RTEnd()
+
+      @note Make sure the chromatogram is sorted with respect to RT. Otherwise the result is
+      undefined.
+    */
+    Iterator PosEnd(CoordinateType rt);
+
+    /**
+      @brief Binary search for peak range end (returns the past-the-end iterator)
+
+      Alias for RTEnd()
+
+      @note Make sure the chromatogram is sorted with respect to RT. Otherwise the result is
+      undefined.
+    */
+    Iterator PosEnd(Iterator begin, CoordinateType rt, Iterator end);
+
+    /**
+      @brief Binary search for peak range end (returns the past-the-end iterator)
+
+      Alias for RTEnd()
+
+      @note Make sure the chromatogram is sorted with respect to RT. Otherwise the result is
+      undefined.
+    */
+    ConstIterator PosEnd(CoordinateType rt) const;
+
+    /**
+      @brief Binary search for peak range end (returns the past-the-end iterator)
+
+      Alias for RTEnd()
+
+      @note Make sure the chromatogram is sorted with respect to RT. Otherwise the result is
+      undefined.
+    */
+    ConstIterator PosEnd(ConstIterator begin, CoordinateType rt, ConstIterator end) const;
+
+    /**
       @brief Clears all data and meta data
 
       @param clear_meta_data If @em true, all meta data is cleared in addition to the data.
