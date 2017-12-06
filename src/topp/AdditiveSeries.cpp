@@ -103,7 +103,7 @@ public:
   }
 
 protected:
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     registerInputFileList_("in", "<files>", StringList(), "input files separated by blanks", true);
     setValidFormats_("in", ListUtils::create<String>("featureXML"));
@@ -330,7 +330,7 @@ protected:
     return 0;
   }
 
-  ExitCodes main_(int, const char **)
+  ExitCodes main_(int, const char **) override
   {
     //-------------------------------------------------------------
     // parsing parameters

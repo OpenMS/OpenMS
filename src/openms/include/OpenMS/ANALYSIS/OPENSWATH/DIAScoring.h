@@ -100,7 +100,7 @@ public:
     DIAScoring();
 
     /// Destructor
-    virtual ~DIAScoring();
+    ~DIAScoring() override;
     //@}
 
     ///////////////////////////////////////////////////////////////////////////
@@ -151,7 +151,7 @@ private:
     DIAScoring& operator=(const DIAScoring& rhs);
 
     /// Synchronize members with param class
-    void updateMembers_();
+    void updateMembers_() override;
 
     /// Subfunction of dia_isotope_scores
     void diaIsotopeScoresSub_(const std::vector<TransitionType>& transitions,

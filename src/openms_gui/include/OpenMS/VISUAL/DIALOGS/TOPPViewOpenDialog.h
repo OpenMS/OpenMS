@@ -63,7 +63,7 @@ public:
     /// Constructor
     TOPPViewOpenDialog(const String & data_name, bool as_window, bool as_2d, bool cutoff, QWidget * parent = 0);
     /// Destructor
-    virtual ~TOPPViewOpenDialog();
+    ~TOPPViewOpenDialog() override;
 
     /// Returns true, if 2D mode is to be used for maps
     bool viewMapAs2D() const;

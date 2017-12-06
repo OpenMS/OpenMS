@@ -57,7 +57,7 @@ public:
     /// Constructor
     SpectraViewWidget(QWidget * parent = 0);
     /// Destructor
-    virtual ~SpectraViewWidget();
+    ~SpectraViewWidget() override;
     QTreeWidget * getTreeWidget();
     QComboBox * getComboBox();
     void updateEntries(const LayerData & cl);

@@ -54,7 +54,7 @@ namespace OpenMS
 	 : public FeatureGroupingAlgorithm
 	{
 		public:
-			void group(const vector< FeatureMap >&, ConsensusMap& map)
+			void group(const vector< FeatureMap >&, ConsensusMap& map) override
 			{
 			  map.getFileDescriptions()[0].filename = "bla";
 				map.getFileDescriptions()[0].size = 5;

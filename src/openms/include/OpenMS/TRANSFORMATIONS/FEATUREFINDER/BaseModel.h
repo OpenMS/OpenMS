@@ -76,7 +76,7 @@ public:
     }
 
     /// Destructor
-    virtual ~BaseModel()
+    ~BaseModel() override
     {
     }
 
@@ -155,7 +155,7 @@ public:
 protected:
     IntensityType cut_off_;
 
-    virtual void updateMembers_()
+    void updateMembers_() override
     {
       cut_off_ = (double)param_.getValue("cutoff");
     }

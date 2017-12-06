@@ -59,7 +59,7 @@ public:
     MRMMapping();
 
     /// destructor
-    virtual ~MRMMapping() {};
+    ~MRMMapping() override {};
     //@}
 
     /**
@@ -96,7 +96,7 @@ protected:
     MRMMapping & operator=(const MRMMapping & rhs);
 
     /// Synchronize members with param class
-    void updateMembers_();
+    void updateMembers_() override;
 
     double precursor_tol_;
     double product_tol_;

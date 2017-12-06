@@ -57,7 +57,7 @@ public:
     /// Copy constructor
     Product(const Product & source);
     /// Destructor
-    ~Product();
+    ~Product() override;
 
     /// Assignment operator
     Product & operator=(const Product & source);

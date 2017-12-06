@@ -97,7 +97,7 @@ public:
 
 protected:
 
-  virtual void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     registerInputFileList_("in", "<files>", StringList(), "INI/TOPPAS files that need updating.");
     setValidFormats_("in", ListUtils::create<String>("ini,toppas"));
@@ -355,7 +355,7 @@ protected:
     }
   }
 
-  ExitCodes main_(int, const char**)
+  ExitCodes main_(int, const char**) override
   {
     StringList in  = getStringList_("in");
     StringList out = getStringList_("out");

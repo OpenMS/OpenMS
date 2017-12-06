@@ -60,7 +60,7 @@ public:
     TICFilter(const TICFilter & source);
 
     /// destructor
-    virtual ~TICFilter();
+    ~TICFilter() override;
     // @}
 
     // @name Operators

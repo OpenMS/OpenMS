@@ -86,7 +86,7 @@ public:
     ///Constructor
     TOPPASBase(QWidget* parent = 0);
     ///Destructor
-    virtual ~TOPPASBase();
+    ~TOPPASBase() override;
 
     /**
 @brief Loads the preferences from the filename given.
@@ -263,8 +263,8 @@ protected:
 
     ///@name reimplemented Qt events
     //@{
-    void closeEvent(QCloseEvent* event);
-    void keyPressEvent(QKeyEvent* e);
+    void closeEvent(QCloseEvent* event) override;
+    void keyPressEvent(QKeyEvent* e) override;
     //@}
 
     ///Log message states

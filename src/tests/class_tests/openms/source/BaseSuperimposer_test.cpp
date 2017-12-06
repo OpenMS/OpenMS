@@ -52,7 +52,7 @@ class TestSuperimposer
 		check_defaults_ = false; 
 	}
 
-	virtual void run(const ConsensusMap& , const ConsensusMap& , TransformationDescription& transformation)
+	void run(const ConsensusMap& , const ConsensusMap& , TransformationDescription& transformation) override
 	{
 		Param params;
 		params.setValue("slope",1.1);

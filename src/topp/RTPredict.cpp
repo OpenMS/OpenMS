@@ -115,7 +115,7 @@ public:
   }
 
 protected:
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     // input
     registerInputFile_("in_id", "<file>", "", "Peptides with precursor information", false);
@@ -181,7 +181,7 @@ protected:
     os.close();
   }
 
-  ExitCodes main_(int, const char**)
+  ExitCodes main_(int, const char**) override
   {
     IdXMLFile idXML_file;
     vector<ProteinIdentification> protein_identifications;

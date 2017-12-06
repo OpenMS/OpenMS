@@ -93,7 +93,7 @@ public:
     }
 
     /// destructor
-    virtual ~FeatureFinderAlgorithm()
+    ~FeatureFinderAlgorithm() override
     {
     }
 

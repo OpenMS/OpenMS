@@ -71,7 +71,7 @@ public:
     /// copy constructor
     Modification(const Modification &);
     /// destructor
-    virtual ~Modification();
+    ~Modification() override;
 
     /// assignment operator
     Modification & operator=(const Modification &);
@@ -82,10 +82,10 @@ public:
     Although this operator takes a reference to a SampleTreatment as argument
     it tests for the equality of Tagging instances!
   */
-    virtual bool operator==(const SampleTreatment & rhs) const;
+    bool operator==(const SampleTreatment & rhs) const override;
 
     /// clone method. See SampleTreatment
-    virtual SampleTreatment * clone() const;
+    SampleTreatment * clone() const override;
 
     /// returns the name of the reagent that was used (default: "")
     const String & getReagentName() const;

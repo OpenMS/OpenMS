@@ -71,7 +71,7 @@ private:
     typedef Factory<FactoryProduct> FactoryType;
 
     /// Destructor
-    virtual ~Factory(){}
+    ~Factory() override{}
 
     /// Constructor
     Factory()

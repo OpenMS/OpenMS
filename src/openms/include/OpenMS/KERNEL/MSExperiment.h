@@ -474,7 +474,7 @@ public:
     */
     ///@{
     // Docu in base class
-    virtual void updateRanges()
+    void updateRanges() override
     {
       updateRanges(-1);
     }

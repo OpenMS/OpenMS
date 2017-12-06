@@ -54,7 +54,7 @@ public:
     FilterFunctor(const FilterFunctor & source);
 
     /// destructor
-    virtual ~FilterFunctor();
+    ~FilterFunctor() override;
 
     /// assignment operator
     FilterFunctor & operator=(const FilterFunctor & source);

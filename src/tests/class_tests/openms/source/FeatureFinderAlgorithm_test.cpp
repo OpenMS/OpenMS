@@ -53,16 +53,16 @@ namespace OpenMS
 			{
 			}
 
-			~FFA()
+			~FFA() override
 			{
 			}
 
-			virtual void run()
+			void run() override
 			{
 
 			}
 
-			virtual Param getDefaultParameters() const
+			Param getDefaultParameters() const override
 			{
 				Param tmp;
 				tmp.setValue("bla","bluff");

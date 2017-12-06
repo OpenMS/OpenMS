@@ -61,7 +61,7 @@ class Test: public SampleTreatment
     {
     }
 
-    virtual ~Test()
+    ~Test() override
     {
     }
 
@@ -74,12 +74,12 @@ class Test: public SampleTreatment
       return *this;
     }
 
-    virtual SampleTreatment* clone() const
+    SampleTreatment* clone() const override
     {
       return new Test(*this);
     }
 
-    virtual bool operator== (const SampleTreatment& rhs) const
+    bool operator== (const SampleTreatment& rhs) const override
     {
       if (type_ != rhs.getType()) 
       {

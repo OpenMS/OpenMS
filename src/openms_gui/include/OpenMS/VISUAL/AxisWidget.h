@@ -76,7 +76,7 @@ public:
     AxisWidget(AxisPainter::Alignment alignment, const char * legend = "", QWidget * parent = 0);
 
     /// destructor
-    virtual ~AxisWidget();
+    ~AxisWidget() override;
 
     /// sets the margin on the top/right side (default is 0)
     void setMargin(UInt size);
@@ -166,7 +166,7 @@ protected:
     bool allow_short_numbers_;
 
     /// Reimplemented Qt event (calls paint with "this")
-    void paintEvent(QPaintEvent *);
+    void paintEvent(QPaintEvent *) override;
   };
 } // namespace OpenMS
 

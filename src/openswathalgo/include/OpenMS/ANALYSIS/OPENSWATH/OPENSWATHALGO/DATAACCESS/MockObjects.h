@@ -55,15 +55,15 @@ public:
 
     MockFeature();
 
-    ~MockFeature();
+    ~MockFeature() override;
 
-    void getRT(std::vector<double>& rt);
+    void getRT(std::vector<double>& rt) override;
 
-    void getIntensity(std::vector<double>& intens);
+    void getIntensity(std::vector<double>& intens) override;
 
-    float getIntensity();
+    float getIntensity() override;
 
-    double getRT();
+    double getRT() override;
 
     std::vector<double> m_rt_vec;
     std::vector<double> m_intensity_vec;
@@ -81,21 +81,21 @@ public:
 
     MockMRMFeature();
 
-    ~MockMRMFeature();
+    ~MockMRMFeature() override;
 
-    boost::shared_ptr<OpenSwath::IFeature> getFeature(std::string nativeID);
+    boost::shared_ptr<OpenSwath::IFeature> getFeature(std::string nativeID) override;
 
-    boost::shared_ptr<OpenSwath::IFeature> getPrecursorFeature(std::string nativeID);
+    boost::shared_ptr<OpenSwath::IFeature> getPrecursorFeature(std::string nativeID) override;
 
-    std::vector<std::string> getNativeIDs() const;
+    std::vector<std::string> getNativeIDs() const override;
 
-    std::vector<std::string> getPrecursorIDs() const;
+    std::vector<std::string> getPrecursorIDs() const override;
 
-    float getIntensity();
+    float getIntensity() override;
 
-    double getRT();
+    double getRT() override;
 
-    size_t size();
+    size_t size() override;
 
     std::map<std::string, boost::shared_ptr<MockFeature> > m_features;
     std::map<std::string, boost::shared_ptr<MockFeature> > m_precursor_features;
@@ -113,13 +113,13 @@ public:
 
     MockTransitionGroup();
 
-    ~MockTransitionGroup();
+    ~MockTransitionGroup() override;
 
-    std::size_t size();
+    std::size_t size() override;
 
-    std::vector<std::string> getNativeIDs();
+    std::vector<std::string> getNativeIDs() override;
 
-    void getLibraryIntensities(std::vector<double>& intensities);
+    void getLibraryIntensities(std::vector<double>& intensities) override;
 
     std::size_t m_size;
     std::vector<std::string> m_native_ids;
@@ -136,7 +136,7 @@ public:
 public:
     MockSignalToNoise();
 
-    double getValueAtRT(double /* RT */);
+    double getValueAtRT(double /* RT */) override;
 
     double m_sn_value;
   };

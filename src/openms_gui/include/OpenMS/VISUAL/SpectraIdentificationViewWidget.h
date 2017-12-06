@@ -60,7 +60,7 @@ public:
     /// Constructor
     SpectraIdentificationViewWidget(const Param& preferences, QWidget* parent = 0);
     /// Destructor
-    virtual ~SpectraIdentificationViewWidget();
+    ~SpectraIdentificationViewWidget() override;
     /// Attach model
     void attachLayer(LayerData* model);
     /// Helper function to block outgoing signals

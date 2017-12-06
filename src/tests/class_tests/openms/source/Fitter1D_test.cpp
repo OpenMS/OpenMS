@@ -59,7 +59,7 @@ class TestModel : public Fitter1D
     updateMembers_();
   }
 
-  virtual ~TestModel()
+  ~TestModel() override
   {
   }
 
@@ -73,12 +73,12 @@ class TestModel : public Fitter1D
     return *this;
   }
 
-  void updateMembers_()
+  void updateMembers_() override
   {
     Fitter1D::updateMembers_();
   }
 
-  QualityType fit1d(const RawDataArrayType& /*range*/, InterpolationModel*&  /*model*/)
+  QualityType fit1d(const RawDataArrayType& /*range*/, InterpolationModel*&  /*model*/) override
   {
 //    double center = 0.0;
 //    center = model->getCenter();

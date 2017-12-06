@@ -68,7 +68,7 @@ public:
 public slots:
 
     //Docu in base class
-    void store();
+    void store() override;
 
 protected slots:
 

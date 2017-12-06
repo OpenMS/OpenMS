@@ -124,7 +124,7 @@ protected:
   typedef TargetedExperiment TargetedExpType;
   typedef MRMTransitionGroup<MSChromatogram, TransitionType> MRMTransitionGroupType;
 
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "Input file");
     setValidFormats_("in", ListUtils::create<String>("mzML"));
@@ -138,7 +138,7 @@ protected:
     registerSubsection_("algorithm", "Algorithm parameters section");
   }
 
-  Param getSubsectionDefaults_(const String &) const
+  Param getSubsectionDefaults_(const String &) const override
   {
     return MRMTransitionGroupPicker().getDefaults();
   }
@@ -265,7 +265,7 @@ protected:
     }
   }
 
-  ExitCodes main_(int, const char **)
+  ExitCodes main_(int, const char **) override
   {
 
     String in = getStringOption_("in");
