@@ -355,6 +355,50 @@ MSChromatogram::RTEnd(MSChromatogram::ConstIterator begin, MSChromatogram::Coord
   return upper_bound(begin, end, p, PeakType::PositionLess());
 }
 
+MSChromatogram::Iterator MSChromatogram::PosBegin(MSChromatogram::CoordinateType rt)
+{
+  return RTBegin(rt);
+}
+
+MSChromatogram::Iterator
+MSChromatogram::PosBegin(MSChromatogram::Iterator begin, MSChromatogram::CoordinateType rt, MSChromatogram::Iterator end)
+{
+  return RTBegin(begin, rt, end);
+}
+
+MSChromatogram::Iterator MSChromatogram::PosEnd(MSChromatogram::CoordinateType rt)
+{
+  return RTEnd(rt);
+}
+
+MSChromatogram::Iterator
+MSChromatogram::PosEnd(MSChromatogram::Iterator begin, MSChromatogram::CoordinateType rt, MSChromatogram::Iterator end)
+{
+  return RTEnd(begin, rt, end);
+}
+
+MSChromatogram::ConstIterator MSChromatogram::PosBegin(MSChromatogram::CoordinateType rt) const
+{
+  return RTBegin(rt);
+}
+
+MSChromatogram::ConstIterator
+MSChromatogram::PosBegin(MSChromatogram::ConstIterator begin, MSChromatogram::CoordinateType rt, MSChromatogram::ConstIterator end) const
+{
+  return RTBegin(begin, rt, end);
+}
+
+MSChromatogram::ConstIterator MSChromatogram::PosEnd(MSChromatogram::CoordinateType rt) const
+{
+  return RTEnd(rt);
+}
+
+MSChromatogram::ConstIterator
+MSChromatogram::PosEnd(MSChromatogram::ConstIterator begin, MSChromatogram::CoordinateType rt, MSChromatogram::ConstIterator end) const
+{
+  return RTEnd(begin, rt, end);
+}
+
 MSChromatogram::ConstIterator MSChromatogram::MZEnd(MSChromatogram::CoordinateType rt) const {return RTEnd(rt);}
 
 void MSChromatogram::clear(bool clear_meta_data)
