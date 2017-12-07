@@ -39,17 +39,19 @@
 
   For those libraries/versions often not found in the distro repositories, we provide sources and build scripts.
   The Release tar.gz archive contains the libraries in the contrib/ folder,
-  if you build the development (git) version,
-  you'll have to check them out separately (see below in @ref  build_linux_contrib and in @ref build_linux_noroot).
+  if you build the development (git) version, you'll find an empty submodule in that folder that you have to update first with
+  \code
+    git submodule update --init contrib
+  \endcode
 
-  <b>Here is a list of required packages and libraries:</b>
+  <b>Despite that, in the following is a list of all required packages and libraries:</b>
 
   <ul>
     <li>
       Essential are \b GCC (> 4.0) or other ANSI C++ compiler, \b CMake (> 2.8.3), \b Qt4 (> 4.6 , > 4.7 for the GUI), \b patch, \b autoconf (> 2.60), \b automake (> 1.9), \b libtool (libtoolize/glibtoolize).
     </li>
     <li>
-      For the complete feature set to be enabled, %OpenMS needs recent versions of \b Boost (>= 1.48), \b Eigen3, \b WildMagic5, \b libSVM (2.91 or higher but < 3.15), \b SeqAn (>= 1.4.0 but < 2.0 needed), \b glpk (>= 4.45), \b zlib, \b libbz2, and \b Xerces-C (>= 3.1.1).
+      For the complete feature set to be enabled, %OpenMS needs recent versions of \b Boost (>= 1.48), \b Eigen3, \b WildMagic5, \b libSVM (2.91 or higher but < 3.15), \b SeqAn (>= 1.4.0 but < 2.0 needed), \b glpk (>= 4.45), \b zlib, \b libbz2, and \b Xerces-C (>= 3.1.1). These can be obtained via your package manager (if possible) or build through our contrib build script.
     </li>
     <li>
       Building the documentation from the development version requires doxygen (> 1.5.4) and pdflatex/texlive/texlive-full.
@@ -108,26 +110,36 @@
       libxerces-c-dev libglpk-dev libsvm-dev libbz2-dev
     # use from contrib for compatibility: SEQAN ; COINOR; ZLIB ; WILDMAGIC
       </pre></td>
-    </tr>
+  </tr>
+  <tr>
+      <td><B>Ubuntu/Debian <br/>(17.04)</B></td>
+      <td><pre>
+    sudo apt-get install build-essential cmake autoconf patch libtool automake
+    sudo apt-get install qt4-default libqtwebkit-dev
+    sudo apt-get install libeigen3-dev libsqlite3-dev \
+      libboost-regex1.62-dev libboost-iostreams1.62-dev libboost-date-time1.62-dev libboost-math1.62-dev libboost-random1.62-dev\
+      libxerces-c-dev libglpk-dev libsvm-dev libbz2-dev libwildmagic-dev seqan-dev \
+      coinor-libcoinutils-dev coinor-libcgl-dev coinor-libcbc-dev coinor-libclp-dev coinor-libosi-dev coinor-libvol-dev 
+      # this should eliminate the need to build anything with our contrib scripts
+      </pre></td>
+  </tr>
   </table>
 
   @section build_linux_contrib Building remaining dependencies
 
   You can check which dependencies you still need by attempting to configure %OpenMS (see the next section),
-  it will complain about anything unusual.
-  @note In most cases, the only dependencies left unresolved (e.g. inavailable through your distributions packaging system) at this point are SeqAn and WildMagic.
+  it will complain about anything unusual/missing.
+  @note In most cases, the only dependencies left unresolved (e.g. inavailable through your distributions packaging system) at this point are SeqAn, WildMagic and maybe CoinOR.
   Contact us if you still have trouble with the dependencies \b after these
   instructions.
 
-  The tar.gz of the Release contains the sources of all dependencies in the contrib/ folder.
-  For the development (git) version, this folder is not included,
-  and has to be checked out separately.
-  We generally recommend to keep the contrib separate from the %OpenMS source code.
-  Assuming you have extracted the the %OpenMS source code in a folder <tt>~/Development</tt> (i.e., <tt>~/Development/OpenMS</tt>) we suggest to also put the contrib there (i.e., <tt>~/Development/contrib</tt>).
+  The tar.gz of the Release contains the scripts for building all dependencies in the contrib/ folder.
+  For the development (git) version, this so called submodule folder will be empty and has to be checked out separately.
 
   \code
-  # Assuming you are in ~/Development
-  git clone  https://github.com/OpenMS/contrib.git
+  # Assuming you are in ~/Development/OpenMS
+  git submodule update --init contrib
+  cd ..
   mkdir contrib-build
   cd contrib-build
   \endcode
@@ -145,14 +157,14 @@
   From the <tt>./contrib-build/</tt> folder, execute the following command to show the
   available build types
      \code
-        cmake -DBUILD_TYPE=LIST ../contrib
+        cmake -DBUILD_TYPE=LIST ../OpenMS/contrib
      \endcode
   and then build SeqAn (the other build scripts may or may not be needed to be
   executed depending on if your distribution does not provide a package for the dependency):
       \code
-          cmake -DBUILD_TYPE=SEQAN ../contrib
-          cmake -DBUILD_TYPE=WILDMAGIC ../contrib
-          cmake -DBUILD_TYPE=EIGEN ../contrib
+          cmake -DBUILD_TYPE=SEQAN ../OpenMS/contrib
+          cmake -DBUILD_TYPE=WILDMAGIC ../OpenMS/contrib
+          cmake -DBUILD_TYPE=EIGEN ../OpenMS/contrib
       \endcode
 
   To avoid problems while building the libraries contained in the contrib package,
@@ -160,7 +172,7 @@
   does not provide some of the packages (or in different versions than expected), it is sometimes easier 
   to build all dependencies manually which can solve issues with incompatible versions:
       \code
-          cmake -DBUILD_TYPE=ALL -DNUMBER_OF_JOBS=4 ../contrib
+          cmake -DBUILD_TYPE=ALL -DNUMBER_OF_JOBS=4 ../OpenMS/contrib
       \endcode
   @section build_linux_noroot Building without root privileges
 
@@ -172,8 +184,8 @@
   dependencies from source:
 
   \code
-  cmake -DBUILD_TYPE=LIST ../contrib
-  cmake -DBUILD_TYPE=ALL -DNUMBER_OF_JOBS=4 ../contrib
+  cmake -DBUILD_TYPE=LIST ../OpenMS/contrib
+  cmake -DBUILD_TYPE=ALL -DNUMBER_OF_JOBS=4 ../OpenMS/contrib
   \endcode
 
   Alternatively, you can build one package after the other by providing
@@ -209,7 +221,7 @@
   \endcode
   
   In the %OpenMS build directory we execute %CMake to <i>configure</i> %OpenMS. You
-  should substitute <tt>/PATH/TO/contrib/</tt> with the above path to the build
+  should substitute <tt>/PATH/TO/contrib-build/</tt> with the above path to the built
   contrib. Make sure you use the <i>absolute</i> (and not relative) path for the
   contrib to avoid any potential issues. If you encounter problems with
   previously installed system libraries, consider removing the
@@ -265,11 +277,14 @@
   \endcode
 
     @note When you intend to use thirdparty search- or inference engines like XTandem or Fido, their binaries also
-    need to be in the <b><tt>PATH</tt></b>. Build them or download them from our
-    <a href="https://github.com/OpenMS/THIRDPARTY" target="_blank">thirdparty git repo</a> and adapt
-    the following for every thirdparty tool you want to use (shown for XTandem):
+    need to be in the <b><tt>PATH</tt></b>. Build them or check out prebuilt executables of the versions supported
+    at the time of the release with
     \code
-    export PATH=${YOUR_CLONED_THIRDPARTY_GIT_REPO}/${FOLDER_FOR_YOUR_OS_ARCH}/XTandem:${PATH}
+    git submodule update --init THIRDPARTY
+    \endcode
+    and adapt the following for every thirdparty tool you want to use (shown for XTandem):
+    \code
+    export PATH=~/Development/OpenMS/THIRDPARTY/${FOLDER_FOR_YOUR_OS_ARCH}/XTandem:${PATH}
     \endcode
     If you want to enable the corresponding tests in CMake, this has to happen <b>before</b> you configure and build the
     project.

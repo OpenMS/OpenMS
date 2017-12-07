@@ -3,9 +3,7 @@ set -e
 
 ###################################
 # 1. download and build contrib (if not present already)
-if [ ! -d "contrib" ] ; then
-  git clone https://github.com/OpenMS/contrib.git
-fi
+git submodule update --init contrib
 
 # set contrib absolute path for configure
 CONTRIB_PATH=`pwd`/contrib-build
