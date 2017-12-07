@@ -997,8 +997,7 @@ namespace OpenMS
       }
       else // float mass -> use best-matching modification
       {
-        const ResidueModification* res_mod = nullptr;
-        res_mod = mod_db->getBestModificationByDiffMonoMass(
+        const ResidueModification* res_mod = mod_db->getBestModificationByDiffMonoMass(
           mass, tolerance, residue->getOneLetterCode(),
           ResidueModification::ANYWHERE);
 
