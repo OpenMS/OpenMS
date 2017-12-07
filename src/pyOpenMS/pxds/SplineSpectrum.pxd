@@ -19,3 +19,11 @@ cdef extern from "<OpenMS/FILTERING/DATAREDUCTION/SplineSpectrum.h>" namespace "
         int getSplineCount() nogil except +
 
 
+cdef extern from "<OpenMS/FILTERING/DATAREDUCTION/SplineSpectrum.h>" namespace "OpenMS::SplineSpectrum":
+    
+    cdef cppclass Navigator "OpenMS::SplineSpectrum::Navigator":
+            Navigator(libcpp_vector[SplinePackage]* packages, double mzMin, double mzMax)  nogil except +
+
+            double eval(double mz) nogil except +
+
+            double getNextMz(double mz) nogil except +
