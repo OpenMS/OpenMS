@@ -229,101 +229,56 @@ protected:
     {
       points_across_baseline_ = 0;
       points_across_half_height_ = 0;
-      double start_intensity(0), end_intensity(0);
-      double delta_rt, delta_int, height_5, height_10, height_50;
-
-      for (auto it = p.begin() + 1; it != p.end(); ++it)
+      for (auto it = p.PosBegin(left); it != p.PosEnd(right); ++it)
       {
-        auto it_prev = it;
-        --it_prev; //previous point
-        double intensity = it->getIntensity();
-        double intensity_prev = it_prev->getIntensity();
-        double retention_time = it->getPos();
-        double retention_time_prev = it_prev->getPos();
-
-        // start and end intensities
-        if (retention_time_prev < left && retention_time >= left)
+        const double intensity = it->getIntensity();
+        const double intensity_prev = (it-1)->getIntensity();
+        const double retention_time = it->getPos();
+        const double retention_time_prev = (it-1)->getPos();
+        //start and end retention times
+        if (retention_time < peak_apex_rt_ && points_across_baseline_ > 1) // start rt times
         {
-          start_intensity = intensity_prev;
+          const double d_int_times_d_rt = (intensity - intensity_prev) * (retention_time - retention_time_prev);
+          if (intensity >= 0.05 * peak_height_ && intensity_prev < 0.05 * peak_height_)
+          {
+            const double height_5 = intensity - 0.05 * peak_height_;
+            start_time_at_5_ = retention_time - d_int_times_d_rt / height_5;
+          }
+          if (intensity >= 0.1 * peak_height_ && intensity_prev < 0.1 * peak_height_)
+          {
+            const double height_10 = intensity - 0.1 * peak_height_;
+            start_time_at_10_ = retention_time - d_int_times_d_rt / height_10;
+          }
+          if (intensity >= 0.5 * peak_height_ && intensity_prev < 0.5 * peak_height_)
+          {
+            const double height_50 = intensity - 0.5 * peak_height_;
+            start_time_at_50_ = retention_time - d_int_times_d_rt / height_50;
+          }
         }
-        else if (retention_time_prev < right && retention_time >= right)
+        else if (retention_time > peak_apex_rt_) // end rt times
         {
-          end_intensity = intensity;
+          const double d_int_times_d_rt = (intensity_prev - intensity) * (retention_time - retention_time_prev);
+          if (intensity <= 0.05 * peak_height_ && intensity_prev > 0.05 * peak_height_)
+          {
+            const double height_5 = 0.05 * peak_height_ - intensity;
+            end_time_at_5_ = retention_time - d_int_times_d_rt / height_5;
+          }
+          if (intensity <= 0.1 * peak_height_ && intensity_prev > 0.1 * peak_height_)
+          {
+            const double height_10 = 0.1 * peak_height_ - intensity;
+            end_time_at_10_ = retention_time - d_int_times_d_rt / height_10;
+          }
+          if (intensity <= 0.5 * peak_height_ && intensity_prev > 0.5 * peak_height_)
+          {
+            const double height_50 = 0.5 * peak_height_ - intensity;
+            end_time_at_50_ = retention_time - d_int_times_d_rt / height_50;
+          }
         }
-
-        if (retention_time >= left && retention_time <= right)
+        // points across the peak
+        ++points_across_baseline_;
+        if (intensity >= 0.5 * peak_height_)
         {
-          //start and end retention times
-          if (retention_time < peak_apex_rt_)
-          {
-            // start_time_at_5
-            if (intensity >= 0.05*peak_height_ &&
-              intensity_prev < 0.05*peak_height_ &&
-              points_across_baseline_ > 1)
-            {
-              delta_rt = retention_time - retention_time_prev;
-              delta_int = intensity - intensity_prev;
-              height_5 = intensity - 0.05*peak_height_;
-              start_time_at_5_ = retention_time - delta_int*delta_rt/height_5;
-            }
-            // start_time_at_10
-            if (intensity >= 0.1*peak_height_ &&
-              intensity_prev < 0.1*peak_height_ &&
-              points_across_baseline_ > 1)
-            {
-              delta_rt = retention_time - retention_time_prev;
-              delta_int = intensity - intensity_prev;
-              height_10 = intensity - 0.1*peak_height_;
-              start_time_at_10_ = retention_time - delta_int*delta_rt/height_10;
-            }
-            // start_time_at_50
-            if (intensity >= 0.5*peak_height_ &&
-              intensity_prev < 0.5*peak_height_ &&
-              points_across_baseline_ > 1)
-            {
-              delta_rt = retention_time - retention_time_prev;
-              delta_int = intensity - intensity_prev;
-              height_50 = intensity - 0.5*peak_height_;
-              start_time_at_50_ = retention_time - delta_int*delta_rt/height_50;
-            }
-          }
-          else if (retention_time > peak_apex_rt_)
-          {
-            // end_time_at_5
-            if (intensity <= 0.05*peak_height_ &&
-              intensity_prev > 0.05*peak_height_)
-            {
-              delta_rt = retention_time - retention_time_prev;
-              delta_int = intensity_prev - intensity;
-              height_5 = 0.05*peak_height_ - intensity;
-              end_time_at_5_ = retention_time - delta_int*delta_rt/height_5;
-            }
-            // start_time_at_10
-            if (intensity <= 0.1*peak_height_ &&
-              intensity_prev > 0.1*peak_height_)
-            {
-              delta_rt = retention_time - retention_time_prev;
-              delta_int = intensity_prev - intensity;
-              height_10 = 0.1*peak_height_ - intensity;
-              end_time_at_10_ = retention_time - delta_int*delta_rt/height_10;
-            }
-            // end_time_at_50
-            if (intensity <= 0.5*peak_height_ &&
-            intensity_prev > 0.5*peak_height_)
-            {
-              delta_rt = retention_time - retention_time_prev;
-              delta_int = intensity_prev - intensity;
-              height_50 = 0.5*peak_height_ - intensity;
-              end_time_at_50_ = retention_time - delta_int*delta_rt/height_50;
-            }
-          }
-
-          // points across the peak
-          points_across_baseline_++;
-          if (intensity >= 0.5*peak_height_)
-          {
-            points_across_half_height_++;
-          }
+          ++points_across_half_height_;
         }
       }
 
@@ -332,12 +287,13 @@ protected:
       width_at_10_ = end_time_at_10_ - start_time_at_10_;
       width_at_50_ = end_time_at_50_ - start_time_at_50_;
       total_width_ = right - left;
-      slope_of_baseline_ = end_intensity - start_intensity;
+      slope_of_baseline_ = (p.PosEnd(right)-1)->getIntensity() - p.PosBegin(left)->getIntensity();
       baseline_delta_2_height_ = slope_of_baseline_ / peak_height_;
 
       // other
       tailing_factor_ = width_at_5_ / std::min(peak_apex_rt_ - start_time_at_5_, end_time_at_5_ - peak_apex_rt_);
-      asymmetry_factor_ = std::min(peak_apex_rt_ - start_time_at_10_, end_time_at_10_ - peak_apex_rt_) / std::max(peak_apex_rt_ - start_time_at_10_, end_time_at_10_ - peak_apex_rt_);
+      asymmetry_factor_ = std::min(peak_apex_rt_ - start_time_at_10_, end_time_at_10_ - peak_apex_rt_) /
+        std::max(peak_apex_rt_ - start_time_at_10_, end_time_at_10_ - peak_apex_rt_);
     }
 
 private:

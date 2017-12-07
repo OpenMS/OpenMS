@@ -376,8 +376,8 @@ START_SECTION(calculatePeakShapeMetrics())
   TEST_REAL_SIMILAR(ptr->getTotalWidth(), 0.540983333);
   TEST_REAL_SIMILAR(ptr->getTailingFactor(), 5.86240177860251);
   TEST_REAL_SIMILAR(ptr->getAsymmetryFactor(), 0.864593034054243);
-  TEST_REAL_SIMILAR(ptr->getBaselineDeltaToHeight(), 0.002151537878);
-  TEST_REAL_SIMILAR(ptr->getSlopeOfBaseline(), 2077);
+  TEST_REAL_SIMILAR(ptr->getSlopeOfBaseline(), 2454);
+  TEST_REAL_SIMILAR(ptr->getBaselineDeltaToHeight(), 0.00253908735640033);
   TEST_EQUAL(ptr->getPointsAcrossBaseline(), 57);
   TEST_EQUAL(ptr->getPointsAcrossHalfHeight(), 6);
 
@@ -394,8 +394,8 @@ START_SECTION(calculatePeakShapeMetrics())
   TEST_REAL_SIMILAR(ptr->getTotalWidth(), 0.540983333);
   TEST_REAL_SIMILAR(ptr->getTailingFactor(), 5.86240177860251);
   TEST_REAL_SIMILAR(ptr->getAsymmetryFactor(), 0.864593034054243);
-  TEST_REAL_SIMILAR(ptr->getBaselineDeltaToHeight(), 0.002151537878);
-  TEST_REAL_SIMILAR(ptr->getSlopeOfBaseline(), 2077);
+  TEST_REAL_SIMILAR(ptr->getSlopeOfBaseline(), 2454);
+  TEST_REAL_SIMILAR(ptr->getBaselineDeltaToHeight(), 0.00253908735640033);
   TEST_EQUAL(ptr->getPointsAcrossBaseline(), 57);
   TEST_EQUAL(ptr->getPointsAcrossHalfHeight(), 6);
 }
