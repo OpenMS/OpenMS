@@ -25,6 +25,8 @@ cdef extern from "<OpenMS/FILTERING/DATAREDUCTION/SplineSpectrum.h>" namespace "
 cdef extern from "<OpenMS/FILTERING/DATAREDUCTION/SplineSpectrum.h>" namespace "OpenMS::SplineSpectrum":
     
     cdef cppclass SplineSpectrum_Navigator "OpenMS::SplineSpectrum::Navigator":
+        
+            SplineSpectrum_Navigator(SplineSpectrum_Navigator) nogil except + #wrap-ignore
             SplineSpectrum_Navigator(libcpp_vector[SplinePackage]* packages, double mzMin, double mzMax)  nogil except +
 
             double eval(double mz) nogil except +
