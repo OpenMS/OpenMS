@@ -79,6 +79,12 @@ public:
       intensity_(0)
     {}
 
+    /// construct with position and intensity
+    inline ChromatogramPeak(PositionType a, IntensityType b) :
+      position_(a),
+      intensity_(b)
+    {}
+
     /// Copy constructor
     inline ChromatogramPeak(const ChromatogramPeak & p) :
       position_(p.position_),
