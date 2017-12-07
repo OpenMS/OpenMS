@@ -51,11 +51,33 @@ using namespace std;
 
 namespace OpenMS
 {
-  ModificationsDB::ModificationsDB()
+  bool ModificationsDB::is_instantiated_ = false;
+  
+
+  ModificationsDB::ModificationsDB(OpenMS::String unimod_file, OpenMS::String psimod_file, OpenMS::String xlmod_file)
   {
-    readFromUnimodXMLFile("CHEMISTRY/unimod.xml");
-    readFromOBOFile("CHEMISTRY/PSI-MOD.obo");
-    readFromOBOFile("CHEMISTRY/XLMOD.obo");
+    if (!unimod_file.empty())
+    {
+      readFromUnimodXMLFile(unimod_file);
+    }
+
+    if (!psimod_file.empty())
+    {
+      readFromOBOFile(psimod_file);
+    }
+
+    if (!xlmod_file.empty())
+    {
+      readFromOBOFile(xlmod_file);
+    }
+
+    is_instantiated_ = true;
+  }
+
+
+  bool ModificationsDB::isInstantiated()
+  {
+    return is_instantiated_;
   }
 
 

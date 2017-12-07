@@ -131,6 +131,9 @@ protected:
 
     registerInputFile_("swath_windows_file", "<file>", "", "Tab separated file containing the SWATH windows for exclusion of fragment ions falling into the precursor isolation window: lower_offset upper_offset \\newline 400 425 \\newline ... Note that the first line is a header and will be skipped.", false, true);
     setValidFormats_("swath_windows_file", ListUtils::create<String>("txt"));
+
+    registerInputFile_("unimod_file", "<file>", "", "IPF: (Modified) UniMod XML file (http://www.unimod.org/xml/unimod.xml) describing residue modifiability", false, true);
+    setValidFormats_("unimod_file", ListUtils::create<String>("xml"));
   }
 
   ExitCodes main_(int, const char**)
@@ -156,6 +159,7 @@ protected:
     double product_lower_mz_limit = getDoubleOption_("product_lower_mz_limit");
     double product_upper_mz_limit = getDoubleOption_("product_upper_mz_limit");
     String swath_windows_file = getStringOption_("swath_windows_file");
+    String unimod_file = getStringOption_("unimod_file");
     bool enable_reannotation = getFlag_("enable_reannotation");
 
     std::vector<String> allowed_fragment_types;

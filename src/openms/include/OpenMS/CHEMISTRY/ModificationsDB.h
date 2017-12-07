@@ -65,6 +65,8 @@ namespace OpenMS
       the way described at the unimod.org website and download the file then
       from unimod.org. The same can be done to add support for the modifications
       to search engines, e.g. Mascot.
+
+      In some scenarios, it might be useful to define a different 
   */
   class OPENMS_DLLAPI ModificationsDB
   {
@@ -80,6 +82,9 @@ public:
       }
       return db_;
     }
+
+    /// Check whether ModificationsDB was instantiated before
+    static bool isInstantiated();
 
     friend class CrossLinksDB;
 
@@ -199,6 +204,9 @@ public:
 
 protected:
 
+    /// Stores whether ModificationsDB was instantiated before
+    static bool is_instantiated_;
+
     /// Stores the modifications
     std::vector<ResidueModification*> mods_;
 
@@ -211,10 +219,15 @@ protected:
 private:
 
     /** @name Constructors and Destructors
+
+        @param unimod_file Path to the Unimod XML file
+        @param psimod_file Path to the PSI-MOD OBO file
+        @param xlmod_file Path to the XLMOD OBO file
+
      */
     //@{
     /// Default constructor
-    ModificationsDB();
+    ModificationsDB(OpenMS::String unimod_file = "CHEMISTRY/unimod.xml", OpenMS::String psimod_file = "CHEMISTRY/PSI-MOD.obo", OpenMS::String xlmod_file = "CHEMISTRY/XLMOD.obo");
 
     /// Copy constructor
     ModificationsDB(const ModificationsDB& residue_db);
