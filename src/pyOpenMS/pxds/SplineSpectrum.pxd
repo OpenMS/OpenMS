@@ -1,5 +1,6 @@
 from Types cimport *
 from MSSpectrum cimport *
+from SplinePackage cimport *
 from Peak1D cimport *
 
 cdef extern from "<OpenMS/FILTERING/DATAREDUCTION/SplineSpectrum.h>" namespace "OpenMS":
