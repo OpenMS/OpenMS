@@ -191,16 +191,6 @@ public:
     */
     const ResidueModification* getBestModificationByDiffMonoMass(double mass, double max_error, const String& residue = "", ResidueModification::TermSpecificity term_spec = ResidueModification::NUMBER_OF_TERM_SPECIFICITY);
 
-    /**
-       @brief Adds modifications from a given file in OBO format
-
-       @throw Exception::ParseError if the file cannot be parsed correctly
-    */
-    void readFromOBOFile(const String& filename);
-
-    /// Adds modifications from a given file in Unimod XML format
-    void readFromUnimodXMLFile(const String& filename);
-
     /// Collects all modifications that can be used for identification searches
     void getAllSearchModifications(std::vector<String>& modifications) const;
 
@@ -244,6 +234,17 @@ private:
     /// Assignment operator
     ModificationsDB & operator=(const ModificationsDB& aa);
     //@}
+
+    /**
+       @brief Adds modifications from a given file in OBO format
+
+       @throw Exception::ParseError if the file cannot be parsed correctly
+    */
+    void readFromOBOFile(const String& filename);
+
+    /// Adds modifications from a given file in Unimod XML format
+    void readFromUnimodXMLFile(const String& filename);
+    
   };
 }
 #endif
