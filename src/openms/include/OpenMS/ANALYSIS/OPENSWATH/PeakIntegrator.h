@@ -44,44 +44,189 @@
 
 namespace OpenMS
 {
+  /**
+    @brief Compute the area, background and shape metrics of a peak.
+
+    The containers supported by the methods are MSChromatogram and MSSpectrum.
+  */
   class OPENMS_DLLAPI PeakIntegrator :
     public DefaultParamHandler
   {
 public:
+    /// Constructor
     PeakIntegrator();
+    /// Destructor
     virtual ~PeakIntegrator();
 
+    /**
+      @brief Estimate the background of a peak contained in a MSChromatogram.
+
+      The user can choose to compute one of two background types: "vertical_sum" and "base_to_base".
+      For the former case, the area is computed as a rectangle with delta RT being the base and
+      the minimum intensity on boundaries as the height.
+      For the latter case, the area is computed as a rectangle trapezoid. Similar to the "vertical_sum"
+      solution, this technique also takes into account the area between the intensities on boundaries.
+
+      For both cases, the parameter integration_type_ decides which formula to use to compute the area.
+      The user should make sure to use the same integration_type between calls of estimateBackground() and
+      integratePeak().
+
+      @note Make sure the chromatogram is sorted with respect to retention time.
+
+      @param[in] chromatogram The chromatogram which contains the peak
+      @param[in] left The left retention time boundary
+      @param[in] right The right retention time boundary
+    */
     void estimateBackground(const MSChromatogram& chromatogram, const double& left, const double& right);
+    /**
+      @brief Estimate the background of a peak contained in a MSSpectrum.
+
+      The user can choose to compute one of two background types: "vertical_sum" and "base_to_base".
+      For the former case, the area is computed as a rectangle with delta MZ being the base and
+      the minimum intensity on boundaries as the height.
+      For the latter case, the area is computed as a rectangle trapezoid. Similar to the "vertical_sum"
+      solution, this technique also takes into account the area between the intensities on boundaries.
+
+      For both cases, the parameter integration_type_ decides which formula to use to compute the area.
+      The user should make sure to use the same integration_type between calls of estimateBackground() and
+      integratePeak().
+
+      @note Make sure the spectrum is sorted with respect to mass-to-charge ratio.
+
+      @param[in] spectrum The spectrum which contains the peak
+      @param[in] left The left mass-to-charge ratio boundary
+      @param[in] right The right mass-to-charge ratio boundary
+    */
     void estimateBackground(const MSSpectrum& spectrum, const double& left, const double& right);
 
+    /**
+      @brief Compute the area of a peak contained in a MSChromatogram.
+
+      The value of integration_type_ decides which integration technique to use:
+      - "trapezoid" for the trapezoidal rule
+      - "simpson" for the Simpson's rule (for unequally spaced points, Shklov, 1960)
+      - "intensity_sum" for the simple sum of the intensities
+
+      @note Make sure the chromatogram is sorted with respect to retention time.
+
+      @param[in] chromatogram The chromatogram which contains the peak
+      @param[in] left The left retention time boundary
+      @param[in] right The right retention time boundary
+    */
     void integratePeak(const MSChromatogram& chromatogram, const double& left, const double& right);
+    /**
+      @brief Compute the area of a peak contained in a MSSpectrum.
+
+      The value of integration_type_ decides which integration technique to use:
+      - "trapezoid" for the trapezoidal rule
+      - "simpson" for the Simpson's rule (for unequally spaced points, Shklov, 1960)
+      - "intensity_sum" for the simple sum of the intensities
+
+      @note Make sure the spectrum is sorted with respect to mass-to-charge ratio.
+
+      @param[in] spectrum The spectrum which contains the peak
+      @param[in] left The left mass-to-charge ratio boundary
+      @param[in] right The right mass-to-charge ratio boundary
+    */
     void integratePeak(const MSSpectrum& spectrum, const double& left, const double& right);
 
+    /**
+      @brief Calculate peak's shape metrics.
+
+      The calculated characteristics are the start and end times at 0.05, 0.10 and
+      0.5 the peak's height. Also the widths at those positions are calculated.
+      Other values: the peak's total width, its tailing factor, asymmetry factor,
+      baseline delta to height and the slope of the baseline.
+      The number of points across the baseline and also at half height are saved.
+
+      @note Make sure the chromatogram is sorted with respect to retention time.
+
+      @param[in] chromatogram The chromatogram which contains the peak
+      @param[in] left The left retention time boundary
+      @param[in] right The right retention time boundary
+    */
     void calculatePeakShapeMetrics(const MSChromatogram& chromatogram, const double& left, const double& right);
+    /**
+      @brief Calculate peak's shape metrics.
+
+      The calculated characteristics are the start and end times at 0.05, 0.10 and
+      0.5 the peak's height. Also the widths at those positions are calculated.
+      Other values: the peak's total width, its tailing factor, asymmetry factor,
+      baseline delta to height and the slope of the baseline.
+      The number of points across the baseline and also at half height are saved.
+
+      @note Make sure the spectrum is sorted with respect to mass-to-charge ratio.
+
+      @param[in] spectrum The spectrum which contains the peak
+      @param[in] left The left mass-to-charge ratio boundary
+      @param[in] right The right mass-to-charge ratio boundary
+    */
     void calculatePeakShapeMetrics(const MSSpectrum& spectrum, const double& left, const double& right);
 
+    /// Get the peak area
     double getPeakArea() const;
+
+    /// Get the peak height
     double getPeakHeight() const;
-    double getPeakApexRT() const;
+
+    /// Get the peak's apex position
+    double getPeakApexPos() const;
+
+    /// Get the background height
     double getBackgroundHeight() const;
+
+    /// Get the background area
     double getBackgroundArea() const;
+
+    /// Get the peak's width at 0.05 of peak's height
     double getWidthAt5() const;
+
+    /// Get the peak's width at 0.10 of peak's height
     double getWidthAt10() const;
+
+    /// Get the peak's width at 0.50 of peak's height
     double getWidthAt50() const;
+
+    /// Get the start position at which the intensity is 0.05 of peak's height
     double getStartTimeAt5() const;
+
+    /// Get the start position at which the intensity is 0.10 of peak's height
     double getStartTimeAt10() const;
+
+    /// Get the start position at which the intensity is 0.50 of peak's height
     double getStartTimeAt50() const;
+
+    /// Get the end position at which the intensity is 0.05 of peak's height
     double getEndTimeAt5() const;
+
+    /// Get the end position at which the intensity is 0.10 of peak's height
     double getEndTimeAt10() const;
+
+    /// Get the end position at which the intensity is 0.50 of peak's height
     double getEndTimeAt50() const;
+
+    /// Get the peak's total width
     double getTotalWidth() const;
+
+    /// Get the peaks's tailing factor
     double getTailingFactor() const;
+
+    /// Get the peak's asymmetry factor
     double getAsymmetryFactor() const;
+
+    /// Get the baseline delta divided by the peak's height
     double getBaselineDeltaToHeight() const;
+
+    /// Get the slope of the peak's baseline
     double getSlopeOfBaseline() const;
+
+    /// Get the number of points across the baseline
     Int getPointsAcrossBaseline() const;
+
+    /// Get the number of points across half the peak's height
     Int getPointsAcrossHalfHeight() const;
 
+    /// Get all the informations about the peak's shape metrics
     const std::map<String, double> getPeakShapeMetrics() const;
 
     void getDefaultParameters(Param& params);
@@ -89,234 +234,112 @@ public:
 protected:
     void updateMembers_();
 
-    template<class PeakContainerT>
-    void estimateBackground_(const PeakContainerT& p, const double& left, const double& right)
-    {
-      const double int_l = p.PosBegin(left)->getIntensity();
-      const double int_r = (p.PosEnd(right)-1)->getIntensity();
-      const double delta_int = int_r - int_l;
-      const double delta_rt = (p.PosEnd(right)-1)->getPos() - p.PosBegin(left)->getPos();
-      const double rt_min = int_r <= int_l ? (p.PosEnd(right)-1)->getPos() : p.PosBegin(left)->getPos();
-      const double delta_int_apex = std::fabs(delta_int) * std::fabs(rt_min - peak_apex_rt_) / delta_rt;
-      background_height_ = std::min(int_r, int_l) + delta_int_apex;
-      double background = 0.0;
-      if (baseline_type_ == "base_to_base")
-      {
-        if (integration_type_ == "trapezoid" || integration_type_ == "simpson")
-        {
-          // formula for calculating the background using the trapezoidal rule
-          // background = intensity_min*delta_rt + 0.5*delta_int*delta_rt;
-          background = delta_rt * (std::min(int_r, int_l) + 0.5 * std::fabs(delta_int));
-        }
-        else if (integration_type_ == "intensity_sum")
-        {
-          // calculate the background using the formula
-          // y = mx + b where x = retention time, m = slope, b = left intensity
-          // sign of delta_int will determine line direction
-          // background += delta_int / delta_rt * (it->getPos() - left) + int_l;
-          UInt n_points = 0;
-          for (auto it=p.PosBegin(left); it!=p.PosEnd(right); ++it, ++n_points)
-          {
-            background += it->getPos();
-          }
-          background = (background - n_points * p.PosBegin(left)->getPos()) * delta_int / delta_rt + n_points * int_l;
-        }
-      }
-      else if (baseline_type_ == "vertical_division")
-      {
-        if (integration_type_ == "trapezoid" || integration_type_ == "simpson")
-        {
-          background = delta_rt * std::min(int_r, int_l);
-        }
-        else if (integration_type_ == "intensity_sum")
-        {
-          UInt n_points = 0;
-          for (auto it=p.PosBegin(left); it!=p.PosEnd(right); ++it, ++n_points)
-            ;
-          background = std::min(int_r, int_l) * n_points;
-        }
-      }
-      background_area_ = background;
-    }
+    template <typename PeakContainerT>
+    void estimateBackground_(const PeakContainerT& p, const double& left, const double& right);
 
-    template<class PeakContainerT>
-    void integratePeak_(PeakContainerT p, const double& left, const double& right)
-    {
-      peak_area_ = 0.0;
-      peak_height_ = -1.0;
-      peak_apex_rt_ = -1.0;
-      UInt n_points = 0;
-      for (auto it=p.PosBegin(left); it!=p.PosEnd(right); ++it, ++n_points)
-      {
-        if (peak_height_ < it->getIntensity())
-        {
-          peak_height_ = it->getIntensity();
-          peak_apex_rt_ = it->getPos();
-        }
-      }
+    template <typename PeakContainerT>
+    void integratePeak_(PeakContainerT p, const double& left, const double& right);
 
-      if (integration_type_ == "trapezoid")
-      {
-        for (auto it=p.PosBegin(left); it!=p.PosEnd(right)-1; ++it)
-        {
-          peak_area_ += ((it+1)->getPos() - it->getPos()) * ((it->getIntensity() + (it+1)->getIntensity()) / 2.0);
-        }
-      }
-      else if (integration_type_ == "simpson")
-      {
-        if (n_points < 3)
-        {
-          LOG_DEBUG << std::endl << "Error in integratePeak: number of points must be >=3 for Simpson's rule" << std::endl;
-          return;
-        }
-        if (n_points % 2)
-        {
-          peak_area_ = simpson(p.PosBegin(left), p.PosEnd(right));
-        }
-        else
-        {
-          double areas[4] = {};
-          areas[0] = simpson(p.PosBegin(left), p.PosEnd(right) - 1);   // without last point
-          areas[1] = simpson(p.PosBegin(left) + 1, p.PosEnd(right));   // without first point
-          if (p.begin() <= p.PosBegin(left) - 1)
-          {
-            areas[2] = simpson(p.PosBegin(left) - 1, p.PosEnd(right)); // with one more point on the left
-          }
-          if (p.PosEnd(right) < p.end())
-          {
-            areas[3] = simpson(p.PosBegin(left), p.PosEnd(right) + 1); // with one more point on the right
-          }
-          UInt valids = 0;
-          for (auto area : areas)
-          {
-            if (area)
-            {
-              peak_area_ += area;
-              ++valids;
-            }
-          }
-          peak_area_ /= valids;
-        }
-      }
-      else
-      {
-        std::cout << std::endl << "WARNING: intensity_sum method is being used." << std::endl;
-        for (auto it=p.PosBegin(left); it!=p.PosEnd(right); ++it)
-        {
-          peak_area_ += it->getIntensity();
-        }
-      }
-    }
+    template <typename PeakContainerConstIteratorT>
+    double simpson_(PeakContainerConstIteratorT it_begin, PeakContainerConstIteratorT it_end) const;
 
-    template<class PeakContainerConstIteratorT>
-    double simpson_(PeakContainerConstIteratorT it_begin, PeakContainerConstIteratorT it_end) const
-    {
-      double integral = 0.0;
-      for (auto it=it_begin+1; it<it_end-1; it=it+2)
-      {
-        const double h = it->getPos() - (it-1)->getPos();
-        const double k = (it+1)->getPos() - it->getPos();
-        const double y_h = (it-1)->getIntensity();
-        const double y_0 = it->getIntensity();
-        const double y_k = (it+1)->getIntensity();
-        integral += (1.0/6.0) * (h+k) * ((2.0-k/h)*y_h + (pow(h+k,2)/(h*k))*y_0 + (2.0-h/k)*y_k);
-      }
-      return integral;
-    }
-
-    template<class PeakContainerT>
-    void calculatePeakShapeMetrics_(const PeakContainerT& p, const double& left, const double& right)
-    {
-      points_across_baseline_ = 0;
-      points_across_half_height_ = 0;
-      for (auto it = p.PosBegin(left); it != p.PosEnd(right); ++it)
-      {
-        const double intensity = it->getIntensity();
-        const double intensity_prev = (it-1)->getIntensity();
-        const double retention_time = it->getPos();
-        const double retention_time_prev = (it-1)->getPos();
-        //start and end retention times
-        if (retention_time < peak_apex_rt_ && points_across_baseline_ > 1) // start rt times
-        {
-          const double d_int_times_d_rt = (intensity - intensity_prev) * (retention_time - retention_time_prev);
-          if (intensity >= 0.05 * peak_height_ && intensity_prev < 0.05 * peak_height_)
-          {
-            const double height_5 = intensity - 0.05 * peak_height_;
-            start_time_at_5_ = retention_time - d_int_times_d_rt / height_5;
-          }
-          if (intensity >= 0.1 * peak_height_ && intensity_prev < 0.1 * peak_height_)
-          {
-            const double height_10 = intensity - 0.1 * peak_height_;
-            start_time_at_10_ = retention_time - d_int_times_d_rt / height_10;
-          }
-          if (intensity >= 0.5 * peak_height_ && intensity_prev < 0.5 * peak_height_)
-          {
-            const double height_50 = intensity - 0.5 * peak_height_;
-            start_time_at_50_ = retention_time - d_int_times_d_rt / height_50;
-          }
-        }
-        else if (retention_time > peak_apex_rt_) // end rt times
-        {
-          const double d_int_times_d_rt = (intensity_prev - intensity) * (retention_time - retention_time_prev);
-          if (intensity <= 0.05 * peak_height_ && intensity_prev > 0.05 * peak_height_)
-          {
-            const double height_5 = 0.05 * peak_height_ - intensity;
-            end_time_at_5_ = retention_time - d_int_times_d_rt / height_5;
-          }
-          if (intensity <= 0.1 * peak_height_ && intensity_prev > 0.1 * peak_height_)
-          {
-            const double height_10 = 0.1 * peak_height_ - intensity;
-            end_time_at_10_ = retention_time - d_int_times_d_rt / height_10;
-          }
-          if (intensity <= 0.5 * peak_height_ && intensity_prev > 0.5 * peak_height_)
-          {
-            const double height_50 = 0.5 * peak_height_ - intensity;
-            end_time_at_50_ = retention_time - d_int_times_d_rt / height_50;
-          }
-        }
-        // points across the peak
-        ++points_across_baseline_;
-        if (intensity >= 0.5 * peak_height_)
-        {
-          ++points_across_half_height_;
-        }
-      }
-
-      // peak widths
-      width_at_5_ = end_time_at_5_ - start_time_at_5_;
-      width_at_10_ = end_time_at_10_ - start_time_at_10_;
-      width_at_50_ = end_time_at_50_ - start_time_at_50_;
-      total_width_ = right - left;
-      slope_of_baseline_ = (p.PosEnd(right)-1)->getIntensity() - p.PosBegin(left)->getIntensity();
-      baseline_delta_2_height_ = slope_of_baseline_ / peak_height_;
-
-      // other
-      tailing_factor_ = width_at_5_ / std::min(peak_apex_rt_ - start_time_at_5_, end_time_at_5_ - peak_apex_rt_);
-      asymmetry_factor_ = std::min(peak_apex_rt_ - start_time_at_10_, end_time_at_10_ - peak_apex_rt_) /
-        std::max(peak_apex_rt_ - start_time_at_10_, end_time_at_10_ - peak_apex_rt_);
-    }
+    template <typename PeakContainerT>
+    void calculatePeakShapeMetrics_(const PeakContainerT& p, const double& left, const double& right);
 
 private:
-    // parameters
-    String integration_type_; // intensity_sum, trapezoid, simpson
-    String baseline_type_; // vertical_division, base_to_base
-    String peak_model_; // none
+    /** @name Parameters
+      The user is supposed to select a value for these parameters.
+      By default, the integration_type_ is "intensity_sum" and the baseline_type_ is "base_to_base".
+    */
+    ///@{
+    /**
+      The integration technique to use in integratePeak() and estimateBackground().
+      Possible values are: "trapezoid", "simpson", "intensity_sum".
+    */
+    String integration_type_ = "intensity_sum";
+    /**
+      The baseline type to use in estimateBackground().
+      Possible values are: "vertical_division", "base_to_base".
+    */
+    String baseline_type_ = "base_to_base";
+    ///@}
 
-    // outputs
+    /** @name peakIntegrator() outputs
+      The peakIntegrator() method saves its results into these members.
+    */
+    ///@{
+    /**
+      The peak area computed using the trapezoidal, simpson or intensity_sum method
+    */
     double peak_area_ = 0.0;
+    /**
+      The peak's apex intensity.
+    */
     double peak_height_ = -1.0;
-    double peak_apex_rt_ = -1.0;
+    /**
+      The peak's apex position.
+    */
+    double peak_apex_pos_ = -1.0;
+    ///@}
+
+    /** @name estimateBackground() outputs
+      The estimateBackground() method saves its results into these members.
+    */
+    ///@{
+    /**
+      The background's height (noise level).
+    */
     double background_height_ = 0.0;
+    /**
+      The background area.
+      The method used to compute this area depends both on integration_type_ and baseline_type_.
+    */
     double background_area_ = 0.0;
+    ///@}
+
+    /** @name calculatePeakShapeMetrics() outputs
+      The calculatePeakShapeMetrics() method saves its results into these members.
+    */
+    ///@{
+    /**
+      The width of the peak at 5% the peak's height.
+    */
     double width_at_5_ = 0.0;
+    /**
+      The width of the peak at 10% the peak's height.
+    */
     double width_at_10_ = 0.0;
+    /**
+      The width of the peak at 50% the peak's height.
+    */
     double width_at_50_ = 0.0;
+    /**
+      The start position at which the intensity is 5% the peak's height.
+    */
     double start_time_at_5_ = 0.0;
+    /**
+      The start position at which the intensity is 10% the peak's height.
+    */
     double start_time_at_10_ = 0.0;
+    /**
+      The start position at which the intensity is 50% the peak's height.
+    */
     double start_time_at_50_ = 0.0;
+    /**
+      The end position at which the intensity is 5% the peak's height.
+    */
     double end_time_at_5_ = 0.0;
+    /**
+      The end position at which the intensity is 10% the peak's height.
+    */
     double end_time_at_10_ = 0.0;
+    /**
+      The end position at which the intensity is 50% the peak's height.
+    */
     double end_time_at_50_ = 0.0;
+    /**
+      The peak's total width.
+    */
     double total_width_ = 0.0;
     /**
       The tailing factor is a measure of peak tailing.
@@ -352,12 +375,51 @@ private:
       It is approximated as the difference in baselines between the peak start and peak end.
     */
     double slope_of_baseline_ = 0.0;
+    /**
+      The number of points across the baseline.
+    */
     Int points_across_baseline_ = 0;
+    /**
+      The number of points across half the peak's height.
+    */
     Int points_across_half_height_ = 0;
+    ///@}
 
-    // helpers
+    /** @name Helper methods
+      The Simpson's rule implementations for an odd number of unequally spaced points.
+    */
+    ///@{
+    /**
+      @brief Simpson's rule algorithm
+
+      This implementation expects an odd number of points. The formula used supports
+      unequally spaced points.
+
+      @note Make sure the chromatogram is sorted with respect to retention time.
+
+      @warning An odd number of points is expected!
+
+      @param[in] it_begin The iterator to the first point
+      @param[in] it_end The iterator to the past-the-last point
+      @return The computed area
+    */
     double simpson(MSChromatogram::ConstIterator it_begin, MSChromatogram::ConstIterator it_end) const;
+    /**
+      @brief Simpson's rule algorithm
+
+      This implementation expects an odd number of points. The formula used supports
+      unequally spaced points.
+
+      @note Make sure the spectrum is sorted with respect to mass-to-charge ratio.
+
+      @warning An odd number of points is expected!
+
+      @param[in] it_begin The iterator to the first point
+      @param[in] it_end The iterator to the past-the-last point
+      @return The computed area
+    */
     double simpson(MSSpectrum::ConstIterator it_begin, MSSpectrum::ConstIterator it_end) const;
+    ///@}
   };
 }
 
