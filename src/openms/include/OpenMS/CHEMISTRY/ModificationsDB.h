@@ -66,7 +66,9 @@ namespace OpenMS
       from unimod.org. The same can be done to add support for the modifications
       to search engines, e.g. Mascot.
 
-      In some scenarios, it might be useful to define a different 
+      In some scenarios, it might be useful to define different modification
+      databases. This can be done by providing a path when initializing
+      ModificationsDB.
   */
   class OPENMS_DLLAPI ModificationsDB
   {
