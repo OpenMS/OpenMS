@@ -19,7 +19,7 @@
     </Protein>
   </ProteinList>
   <CompoundList>
-    <Peptide id="P0C0L5;P0C0L4_AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV_3" sequence="AACAQLNDFLQEYGTQGCQV">
+    <Peptide id="AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV_3" sequence="AACAQLNDFLQEYGTQGCQV">
       <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="3"/>
       <userParam name="full_peptide_name" type="xsd:string" value="AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV"/>
       <ProteinRef ref="P0C0L5;P0C0L4"/>
@@ -35,7 +35,7 @@
         </RetentionTime>
       </RetentionTimeList>
     </Peptide>
-    <Peptide id="Q9HCU0_AAC(Carbamidomethyl)GPSSC(Carbamidomethyl)YALFPR_2" sequence="AACGPSSCYALFPR">
+    <Peptide id="AAC(Carbamidomethyl)GPSSC(Carbamidomethyl)YALFPR_2" sequence="AACGPSSCYALFPR">
       <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
       <userParam name="full_peptide_name" type="xsd:string" value="AAC(Carbamidomethyl)GPSSC(Carbamidomethyl)YALFPR"/>
       <ProteinRef ref="Q9HCU0"/>
@@ -51,7 +51,7 @@
         </RetentionTime>
       </RetentionTimeList>
     </Peptide>
-    <Peptide id="Q9BX93_AAC(Carbamidomethyl)IC(Carbamidomethyl)AEEEKEEL_2" sequence="AACICAEEEKEEL">
+    <Peptide id="AAC(Carbamidomethyl)IC(Carbamidomethyl)AEEEKEEL_2" sequence="AACICAEEEKEEL">
       <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
       <userParam name="full_peptide_name" type="xsd:string" value="AAC(Carbamidomethyl)IC(Carbamidomethyl)AEEEKEEL"/>
       <ProteinRef ref="Q9BX93"/>
@@ -67,7 +67,7 @@
         </RetentionTime>
       </RetentionTimeList>
     </Peptide>
-    <Peptide id="P02768_AAC(Carbamidomethyl)LLPK_2" sequence="AACLLPK">
+    <Peptide id="AAC(Carbamidomethyl)LLPK_2" sequence="AACLLPK">
       <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
       <userParam name="full_peptide_name" type="xsd:string" value="AAC(Carbamidomethyl)LLPK"/>
       <ProteinRef ref="P02768"/>
@@ -80,7 +80,7 @@
         </RetentionTime>
       </RetentionTimeList>
     </Peptide>
-    <Peptide id="P02768_AAC(Carbamidomethyl)LLPKLDELRDEGK_3" sequence="AACLLPKLDELRDEGK">
+    <Peptide id="AAC(Carbamidomethyl)LLPKLDELRDEGK_3" sequence="AACLLPKLDELRDEGK">
       <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="3"/>
       <userParam name="full_peptide_name" type="xsd:string" value="AAC(Carbamidomethyl)LLPKLDELRDEGK"/>
       <ProteinRef ref="P02768"/>
@@ -95,7 +95,7 @@
     </Peptide>
   </CompoundList>
   <TransitionList>
-    <Transition id="1_P0C0L5;P0C0L4_AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV_758.3369_303.1122" peptideRef="P0C0L5;P0C0L4_AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV_3">
+    <Transition id="1" peptideRef="AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV_3">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="758.3369" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -115,7 +115,7 @@
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
       <userParam name="annotation" type="xsd:string" value="b3/0.000,m2:4/0.000"/>
     </Transition>
-    <Transition id="2_P0C0L5;P0C0L4_AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV_758.3369_228.1343" peptideRef="P0C0L5;P0C0L4_AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV_3">
+    <Transition id="2" peptideRef="AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV_3">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="758.3369" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -136,7 +136,7 @@
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
       <userParam name="annotation" type="xsd:string" value="y2-18/0.000,m6:7/0.000"/>
     </Transition>
-    <Transition id="4_P0C0L5;P0C0L4_AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV_758.3369_844.3618" peptideRef="P0C0L5;P0C0L4_AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV_3">
+    <Transition id="4" peptideRef="AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV_3">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="758.3369" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -156,7 +156,7 @@
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
       <userParam name="annotation" type="xsd:string" value="b8/0.000"/>
     </Transition>
-    <Transition id="5_P0C0L5;P0C0L4_AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV_758.3369_212.1030" peptideRef="P0C0L5;P0C0L4_AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV_3">
+    <Transition id="5" peptideRef="AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV_3">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="758.3369" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -177,7 +177,7 @@
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
       <userParam name="annotation" type="xsd:string" value="b3-91/0.000"/>
     </Transition>
-    <Transition id="9_P0C0L5;P0C0L4_AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV_758.3369_991.4302" peptideRef="P0C0L5;P0C0L4_AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV_3">
+    <Transition id="9" peptideRef="AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV_3">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="758.3369" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -197,7 +197,7 @@
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
       <userParam name="annotation" type="xsd:string" value="b9/0.000,b18-46^2/-0.000"/>
     </Transition>
-    <Transition id="13_P0C0L5;P0C0L4_AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV_758.3369_615.2919" peptideRef="P0C0L5;P0C0L4_AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV_3">
+    <Transition id="13" peptideRef="AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV_3">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="758.3369" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -217,7 +217,7 @@
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
       <userParam name="annotation" type="xsd:string" value="b6/0.000"/>
     </Transition>
-    <Transition id="14_P0C0L5;P0C0L4_AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV_758.3369_246.1448" peptideRef="P0C0L5;P0C0L4_AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV_3">
+    <Transition id="14" peptideRef="AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV_3">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="758.3369" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -237,7 +237,7 @@
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
       <userParam name="annotation" type="xsd:string" value="y2/0.000"/>
     </Transition>
-    <Transition id="15_P0C0L5;P0C0L4_AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV_758.3369_136.0633" peptideRef="P0C0L5;P0C0L4_AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV_3">
+    <Transition id="15" peptideRef="AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV_3">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="758.3369" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -257,7 +257,7 @@
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
       <userParam name="annotation" type="xsd:string" value="y3^3/0.000,IYA/-0.013"/>
     </Transition>
-    <Transition id="16_P0C0L5;P0C0L4_AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV_758.3369_374.1493" peptideRef="P0C0L5;P0C0L4_AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV_3">
+    <Transition id="16" peptideRef="AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV_3">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="758.3369" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -277,7 +277,7 @@
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
       <userParam name="annotation" type="xsd:string" value="b4/0.000,m7:12^2/-0.020"/>
     </Transition>
-    <Transition id="17_P0C0L5;P0C0L4_AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV_758.3369_229.1183" peptideRef="P0C0L5;P0C0L4_AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV_3">
+    <Transition id="17" peptideRef="AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV_3">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="758.3369" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -298,7 +298,7 @@
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
       <userParam name="annotation" type="xsd:string" value="y2-17/0.000"/>
     </Transition>
-    <Transition id="18_P0C0L5;P0C0L4_AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV_758.3369_749.3247" peptideRef="P0C0L5;P0C0L4_AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV_3">
+    <Transition id="18" peptideRef="AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV_3">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="758.3369" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -318,7 +318,7 @@
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
       <userParam name="annotation" type="xsd:string" value="y7/0.000"/>
     </Transition>
-    <Transition id="20_P0C0L5;P0C0L4_AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV_758.3369_502.2078" peptideRef="P0C0L5;P0C0L4_AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV_3">
+    <Transition id="20" peptideRef="AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV_3">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="758.3369" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -338,7 +338,7 @@
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
       <userParam name="annotation" type="xsd:string" value="b5/0.000"/>
     </Transition>
-    <Transition id="21_P0C0L5;P0C0L4_AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV_758.3369_912.3880" peptideRef="P0C0L5;P0C0L4_AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV_3">
+    <Transition id="21" peptideRef="AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV_3">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="758.3369" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -358,7 +358,7 @@
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
       <userParam name="annotation" type="xsd:string" value="y8/0.000"/>
     </Transition>
-    <Transition id="25_P0C0L5;P0C0L4_AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV_758.3369_283.1401" peptideRef="P0C0L5;P0C0L4_AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV_3">
+    <Transition id="25" peptideRef="AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV_3">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="758.3369" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -379,7 +379,7 @@
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
       <userParam name="annotation" type="xsd:string" value="b4-91/0.000"/>
     </Transition>
-    <Transition id="27_P0C0L5;P0C0L4_AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV_758.3369_1104.5142" peptideRef="P0C0L5;P0C0L4_AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV_3">
+    <Transition id="27" peptideRef="AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV_3">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="758.3369" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -399,7 +399,7 @@
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
       <userParam name="annotation" type="xsd:string" value="b10/0.000"/>
     </Transition>
-    <Transition id="30_P0C0L5;P0C0L4_AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV_758.3369_473.2160" peptideRef="P0C0L5;P0C0L4_AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV_3">
+    <Transition id="30" peptideRef="AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV_3">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="758.3369" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -420,7 +420,7 @@
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
       <userParam name="annotation" type="xsd:string" value="b9-46^2/0.000,m3:6/-0.002"/>
     </Transition>
-    <Transition id="31_P0C0L5;P0C0L4_AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV_758.3369_974.4036" peptideRef="P0C0L5;P0C0L4_AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV_3">
+    <Transition id="31" peptideRef="AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV_3">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="758.3369" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -441,7 +441,7 @@
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
       <userParam name="annotation" type="xsd:string" value="b9-17/0.000"/>
     </Transition>
-    <Transition id="34_P0C0L5;P0C0L4_AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV_758.3369_681.3113" peptideRef="P0C0L5;P0C0L4_AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV_3">
+    <Transition id="34" peptideRef="AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV_3">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="758.3369" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -461,7 +461,7 @@
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
       <userParam name="annotation" type="xsd:string" value="b12^2/0.000"/>
     </Transition>
-    <Transition id="37_P0C0L5;P0C0L4_AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV_758.3369_406.1755" peptideRef="P0C0L5;P0C0L4_AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV_3">
+    <Transition id="37" peptideRef="AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV_3">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="758.3369" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -481,7 +481,7 @@
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
       <userParam name="annotation" type="xsd:string" value="y3/0.000"/>
     </Transition>
-    <Transition id="40_P0C0L5;P0C0L4_AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV_758.3369_389.1489" peptideRef="P0C0L5;P0C0L4_AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV_3">
+    <Transition id="40" peptideRef="AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV_3">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="758.3369" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -502,7 +502,7 @@
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
       <userParam name="annotation" type="xsd:string" value="y3-17/0.000"/>
     </Transition>
-    <Transition id="41_P0C0L5;P0C0L4_AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV_758.3369_463.1969" peptideRef="P0C0L5;P0C0L4_AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV_3">
+    <Transition id="41" peptideRef="AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV_3">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="758.3369" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -522,7 +522,7 @@
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
       <userParam name="annotation" type="xsd:string" value="y4/0.000"/>
     </Transition>
-    <Transition id="42_P0C0L5;P0C0L4_AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV_758.3369_591.2555" peptideRef="P0C0L5;P0C0L4_AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV_3">
+    <Transition id="42" peptideRef="AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV_3">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="758.3369" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -542,7 +542,7 @@
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
       <userParam name="annotation" type="xsd:string" value="y5/0.000"/>
     </Transition>
-    <Transition id="48_P0C0L5;P0C0L4_AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV_758.3369_692.3032" peptideRef="P0C0L5;P0C0L4_AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV_3">
+    <Transition id="48" peptideRef="AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV_3">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="758.3369" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -562,7 +562,7 @@
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
       <userParam name="annotation" type="xsd:string" value="y6/0.000,y12-46^2/-0.019"/>
     </Transition>
-    <Transition id="58_P0C0L5;P0C0L4_AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV_758.3369_1361.6154" peptideRef="P0C0L5;P0C0L4_AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV_3">
+    <Transition id="58" peptideRef="AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV_3">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="758.3369" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -582,7 +582,7 @@
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
       <userParam name="annotation" type="xsd:string" value="b12/0.000"/>
     </Transition>
-    <Transition id="60_P0C0L5;P0C0L4_AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV_758.3369_118.0863" peptideRef="P0C0L5;P0C0L4_AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV_3">
+    <Transition id="60" peptideRef="AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV_3">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="758.3369" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -602,7 +602,7 @@
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
       <userParam name="annotation" type="xsd:string" value="y1/0.000"/>
     </Transition>
-    <Transition id="61_P0C0L5;P0C0L4_AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV_758.3369_729.3348" peptideRef="P0C0L5;P0C0L4_AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV_3">
+    <Transition id="61" peptideRef="AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV_3">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="758.3369" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -622,7 +622,7 @@
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
       <userParam name="annotation" type="xsd:string" value="b7/0.000"/>
     </Transition>
-    <Transition id="62_P0C0L5;P0C0L4_AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV_758.3369_186.0728" peptideRef="P0C0L5;P0C0L4_AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV_3">
+    <Transition id="62" peptideRef="AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV_3">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="758.3369" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -643,7 +643,7 @@
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
       <userParam name="annotation" type="xsd:string" value="y3-35^2/0.000,y5-35^3/-0.005,m16:17/-0.014"/>
     </Transition>
-    <Transition id="63_P0C0L5;P0C0L4_AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV_758.3369_573.2450" peptideRef="P0C0L5;P0C0L4_AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV_3">
+    <Transition id="63" peptideRef="AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV_3">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="758.3369" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -664,7 +664,7 @@
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
       <userParam name="annotation" type="xsd:string" value="y5-18/0.000"/>
     </Transition>
-    <Transition id="64_P0C0L5;P0C0L4_AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV_758.3369_912.4227" peptideRef="P0C0L5;P0C0L4_AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV_3">
+    <Transition id="64" peptideRef="AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV_3">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="758.3369" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -685,7 +685,7 @@
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
       <userParam name="annotation" type="xsd:string" value="b17-44^2/0.000"/>
     </Transition>
-    <Transition id="65_P0C0L5;P0C0L4_AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV_758.3369_275.1172" peptideRef="P0C0L5;P0C0L4_AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV_3">
+    <Transition id="65" peptideRef="AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV_3">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="758.3369" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -705,7 +705,7 @@
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
       <userParam name="annotation" type="xsd:string" value="a3/0.000"/>
     </Transition>
-    <Transition id="68_P0C0L5;P0C0L4_AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV_758.3369_1087.4877" peptideRef="P0C0L5;P0C0L4_AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV_3">
+    <Transition id="68" peptideRef="AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV_3">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="758.3369" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -726,7 +726,7 @@
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
       <userParam name="annotation" type="xsd:string" value="b10-17/0.000"/>
     </Transition>
-    <Transition id="77_P0C0L5;P0C0L4_AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV_758.3369_446.1704" peptideRef="P0C0L5;P0C0L4_AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV_3">
+    <Transition id="77" peptideRef="AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV_3">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="758.3369" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -747,7 +747,7 @@
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
       <userParam name="annotation" type="xsd:string" value="y4-17/0.000"/>
     </Transition>
-    <Transition id="80_P0C0L5;P0C0L4_AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV_758.3369_860.4023" peptideRef="P0C0L5;P0C0L4_AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV_3">
+    <Transition id="80" peptideRef="AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV_3">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="758.3369" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -768,7 +768,7 @@
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
       <userParam name="annotation" type="xsd:string" value="b16-91^2/0.000,m6:12/-0.013"/>
     </Transition>
-    <Transition id="84_P0C0L5;P0C0L4_AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV_758.3369_895.3614" peptideRef="P0C0L5;P0C0L4_AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV_3">
+    <Transition id="84" peptideRef="AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV_3">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="758.3369" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -789,7 +789,7 @@
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
       <userParam name="annotation" type="xsd:string" value="y8-17/0.000"/>
     </Transition>
-    <Transition id="88_P0C0L5;P0C0L4_AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV_758.3369_1344.5889" peptideRef="P0C0L5;P0C0L4_AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV_3">
+    <Transition id="88" peptideRef="AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV_3">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="758.3369" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -810,7 +810,7 @@
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
       <userParam name="annotation" type="xsd:string" value="b12-17/0.000"/>
     </Transition>
-    <Transition id="91_Q9HCU0_AAC(Carbamidomethyl)GPSSC(Carbamidomethyl)YALFPR_778.8529_1197.5721" peptideRef="Q9HCU0_AAC(Carbamidomethyl)GPSSC(Carbamidomethyl)YALFPR_2">
+    <Transition id="91" peptideRef="AAC(Carbamidomethyl)GPSSC(Carbamidomethyl)YALFPR_2">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="778.8529" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -830,7 +830,7 @@
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
       <userParam name="annotation" type="xsd:string" value="y10/0.000"/>
     </Transition>
-    <Transition id="92_Q9HCU0_AAC(Carbamidomethyl)GPSSC(Carbamidomethyl)YALFPR_778.8529_908.4447" peptideRef="Q9HCU0_AAC(Carbamidomethyl)GPSSC(Carbamidomethyl)YALFPR_2">
+    <Transition id="92" peptideRef="AAC(Carbamidomethyl)GPSSC(Carbamidomethyl)YALFPR_2">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="778.8529" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -851,7 +851,7 @@
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
       <userParam name="annotation" type="xsd:string" value="y7-18/0.000"/>
     </Transition>
-    <Transition id="100_Q9HCU0_AAC(Carbamidomethyl)GPSSC(Carbamidomethyl)YALFPR_778.8529_532.3242" peptideRef="Q9HCU0_AAC(Carbamidomethyl)GPSSC(Carbamidomethyl)YALFPR_2">
+    <Transition id="100" peptideRef="AAC(Carbamidomethyl)GPSSC(Carbamidomethyl)YALFPR_2">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="778.8529" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -871,7 +871,7 @@
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
       <userParam name="annotation" type="xsd:string" value="y4/0.000"/>
     </Transition>
-    <Transition id="101_Q9HCU0_AAC(Carbamidomethyl)GPSSC(Carbamidomethyl)YALFPR_778.8529_272.1717" peptideRef="Q9HCU0_AAC(Carbamidomethyl)GPSSC(Carbamidomethyl)YALFPR_2">
+    <Transition id="101" peptideRef="AAC(Carbamidomethyl)GPSSC(Carbamidomethyl)YALFPR_2">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="778.8529" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -891,7 +891,7 @@
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
       <userParam name="annotation" type="xsd:string" value="y2/0.000"/>
     </Transition>
-    <Transition id="104_Q9HCU0_AAC(Carbamidomethyl)GPSSC(Carbamidomethyl)YALFPR_778.8529_1254.5936" peptideRef="Q9HCU0_AAC(Carbamidomethyl)GPSSC(Carbamidomethyl)YALFPR_2">
+    <Transition id="104" peptideRef="AAC(Carbamidomethyl)GPSSC(Carbamidomethyl)YALFPR_2">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="778.8529" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -911,7 +911,7 @@
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
       <userParam name="annotation" type="xsd:string" value="y11/0.000"/>
     </Transition>
-    <Transition id="114_Q9HCU0_AAC(Carbamidomethyl)GPSSC(Carbamidomethyl)YALFPR_778.8529_255.1452" peptideRef="Q9HCU0_AAC(Carbamidomethyl)GPSSC(Carbamidomethyl)YALFPR_2">
+    <Transition id="114" peptideRef="AAC(Carbamidomethyl)GPSSC(Carbamidomethyl)YALFPR_2">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="778.8529" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -932,7 +932,7 @@
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
       <userParam name="annotation" type="xsd:string" value="y2-17/0.000"/>
     </Transition>
-    <Transition id="117_Q9HCU0_AAC(Carbamidomethyl)GPSSC(Carbamidomethyl)YALFPR_778.8529_175.1190" peptideRef="Q9HCU0_AAC(Carbamidomethyl)GPSSC(Carbamidomethyl)YALFPR_2">
+    <Transition id="117" peptideRef="AAC(Carbamidomethyl)GPSSC(Carbamidomethyl)YALFPR_2">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="778.8529" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -952,7 +952,7 @@
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
       <userParam name="annotation" type="xsd:string" value="y1/0.000"/>
     </Transition>
-    <Transition id="121_Q9HCU0_AAC(Carbamidomethyl)GPSSC(Carbamidomethyl)YALFPR_778.8529_303.1122" peptideRef="Q9HCU0_AAC(Carbamidomethyl)GPSSC(Carbamidomethyl)YALFPR_2">
+    <Transition id="121" peptideRef="AAC(Carbamidomethyl)GPSSC(Carbamidomethyl)YALFPR_2">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="778.8529" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -972,7 +972,7 @@
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
       <userParam name="annotation" type="xsd:string" value="b3/0.000"/>
     </Transition>
-    <Transition id="131_Q9HCU0_AAC(Carbamidomethyl)GPSSC(Carbamidomethyl)YALFPR_778.8529_1100.5193" peptideRef="Q9HCU0_AAC(Carbamidomethyl)GPSSC(Carbamidomethyl)YALFPR_2">
+    <Transition id="131" peptideRef="AAC(Carbamidomethyl)GPSSC(Carbamidomethyl)YALFPR_2">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="778.8529" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -992,7 +992,7 @@
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
       <userParam name="annotation" type="xsd:string" value="y9/0.000"/>
     </Transition>
-    <Transition id="135_Q9HCU0_AAC(Carbamidomethyl)GPSSC(Carbamidomethyl)YALFPR_778.8529_419.2401" peptideRef="Q9HCU0_AAC(Carbamidomethyl)GPSSC(Carbamidomethyl)YALFPR_2">
+    <Transition id="135" peptideRef="AAC(Carbamidomethyl)GPSSC(Carbamidomethyl)YALFPR_2">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="778.8529" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -1012,7 +1012,7 @@
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
       <userParam name="annotation" type="xsd:string" value="y3/0.000"/>
     </Transition>
-    <Transition id="149_Q9HCU0_AAC(Carbamidomethyl)GPSSC(Carbamidomethyl)YALFPR_778.8529_138.0623" peptideRef="Q9HCU0_AAC(Carbamidomethyl)GPSSC(Carbamidomethyl)YALFPR_2">
+    <Transition id="149" peptideRef="AAC(Carbamidomethyl)GPSSC(Carbamidomethyl)YALFPR_2">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="778.8529" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -1032,7 +1032,7 @@
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
       <userParam name="annotation" type="xsd:string" value="a3^2/0.000"/>
     </Transition>
-    <Transition id="155_Q9HCU0_AAC(Carbamidomethyl)GPSSC(Carbamidomethyl)YALFPR_778.8529_603.3613" peptideRef="Q9HCU0_AAC(Carbamidomethyl)GPSSC(Carbamidomethyl)YALFPR_2">
+    <Transition id="155" peptideRef="AAC(Carbamidomethyl)GPSSC(Carbamidomethyl)YALFPR_2">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="778.8529" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -1052,7 +1052,7 @@
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
       <userParam name="annotation" type="xsd:string" value="y5/0.000"/>
     </Transition>
-    <Transition id="184_Q9BX93_AAC(Carbamidomethyl)IC(Carbamidomethyl)AEEEKEEL_776.3369_303.1122" peptideRef="Q9BX93_AAC(Carbamidomethyl)IC(Carbamidomethyl)AEEEKEEL_2">
+    <Transition id="184" peptideRef="AAC(Carbamidomethyl)IC(Carbamidomethyl)AEEEKEEL_2">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="776.3369" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -1072,7 +1072,7 @@
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
       <userParam name="annotation" type="xsd:string" value="b3/0.000"/>
     </Transition>
-    <Transition id="196_Q9BX93_AAC(Carbamidomethyl)IC(Carbamidomethyl)AEEEKEEL_776.3369_243.1339" peptideRef="Q9BX93_AAC(Carbamidomethyl)IC(Carbamidomethyl)AEEEKEEL_2">
+    <Transition id="196" peptideRef="AAC(Carbamidomethyl)IC(Carbamidomethyl)AEEEKEEL_2">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="776.3369" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -1093,7 +1093,7 @@
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
       <userParam name="annotation" type="xsd:string" value="y2-18/0.000"/>
     </Transition>
-    <Transition id="197_Q9BX93_AAC(Carbamidomethyl)IC(Carbamidomethyl)AEEEKEEL_776.3369_1136.4776" peptideRef="Q9BX93_AAC(Carbamidomethyl)IC(Carbamidomethyl)AEEEKEEL_2">
+    <Transition id="197" peptideRef="AAC(Carbamidomethyl)IC(Carbamidomethyl)AEEEKEEL_2">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="776.3369" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -1113,7 +1113,7 @@
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
       <userParam name="annotation" type="xsd:string" value="y9/0.000"/>
     </Transition>
-    <Transition id="198_Q9BX93_AAC(Carbamidomethyl)IC(Carbamidomethyl)AEEEKEEL_776.3369_306.1554" peptideRef="Q9BX93_AAC(Carbamidomethyl)IC(Carbamidomethyl)AEEEKEEL_2">
+    <Transition id="198" peptideRef="AAC(Carbamidomethyl)IC(Carbamidomethyl)AEEEKEEL_2">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="776.3369" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -1134,7 +1134,7 @@
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
       <userParam name="annotation" type="xsd:string" value="y5-36^2/0.000"/>
     </Transition>
-    <Transition id="202_Q9BX93_AAC(Carbamidomethyl)IC(Carbamidomethyl)AEEEKEEL_776.3369_212.1030" peptideRef="Q9BX93_AAC(Carbamidomethyl)IC(Carbamidomethyl)AEEEKEEL_2">
+    <Transition id="202" peptideRef="AAC(Carbamidomethyl)IC(Carbamidomethyl)AEEEKEEL_2">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="776.3369" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -1155,7 +1155,7 @@
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
       <userParam name="annotation" type="xsd:string" value="b3-91/0.000"/>
     </Transition>
-    <Transition id="203_Q9BX93_AAC(Carbamidomethyl)IC(Carbamidomethyl)AEEEKEEL_776.3369_976.4469" peptideRef="Q9BX93_AAC(Carbamidomethyl)IC(Carbamidomethyl)AEEEKEEL_2">
+    <Transition id="203" peptideRef="AAC(Carbamidomethyl)IC(Carbamidomethyl)AEEEKEEL_2">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="776.3369" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -1175,7 +1175,7 @@
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
       <userParam name="annotation" type="xsd:string" value="y8/0.000"/>
     </Transition>
-    <Transition id="209_Q9BX93_AAC(Carbamidomethyl)IC(Carbamidomethyl)AEEEKEEL_776.3369_905.4098" peptideRef="Q9BX93_AAC(Carbamidomethyl)IC(Carbamidomethyl)AEEEKEEL_2">
+    <Transition id="209" peptideRef="AAC(Carbamidomethyl)IC(Carbamidomethyl)AEEEKEEL_2">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="776.3369" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -1195,7 +1195,7 @@
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
       <userParam name="annotation" type="xsd:string" value="y7/0.000"/>
     </Transition>
-    <Transition id="212_Q9BX93_AAC(Carbamidomethyl)IC(Carbamidomethyl)AEEEKEEL_776.3369_518.2820" peptideRef="Q9BX93_AAC(Carbamidomethyl)IC(Carbamidomethyl)AEEEKEEL_2">
+    <Transition id="212" peptideRef="AAC(Carbamidomethyl)IC(Carbamidomethyl)AEEEKEEL_2">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="776.3369" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -1215,7 +1215,7 @@
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
       <userParam name="annotation" type="xsd:string" value="y4/0.000"/>
     </Transition>
-    <Transition id="213_Q9BX93_AAC(Carbamidomethyl)IC(Carbamidomethyl)AEEEKEEL_776.3369_776.3672" peptideRef="Q9BX93_AAC(Carbamidomethyl)IC(Carbamidomethyl)AEEEKEEL_2">
+    <Transition id="213" peptideRef="AAC(Carbamidomethyl)IC(Carbamidomethyl)AEEEKEEL_2">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="776.3369" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -1235,7 +1235,7 @@
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
       <userParam name="annotation" type="xsd:string" value="y6/0.000"/>
     </Transition>
-    <Transition id="219_Q9BX93_AAC(Carbamidomethyl)IC(Carbamidomethyl)AEEEKEEL_776.3369_1118.4670" peptideRef="Q9BX93_AAC(Carbamidomethyl)IC(Carbamidomethyl)AEEEKEEL_2">
+    <Transition id="219" peptideRef="AAC(Carbamidomethyl)IC(Carbamidomethyl)AEEEKEEL_2">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="776.3369" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -1256,7 +1256,7 @@
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
       <userParam name="annotation" type="xsd:string" value="y9-18/0.000,m4:12/-0.000"/>
     </Transition>
-    <Transition id="224_Q9BX93_AAC(Carbamidomethyl)IC(Carbamidomethyl)AEEEKEEL_776.3369_325.1870" peptideRef="Q9BX93_AAC(Carbamidomethyl)IC(Carbamidomethyl)AEEEKEEL_2">
+    <Transition id="224" peptideRef="AAC(Carbamidomethyl)IC(Carbamidomethyl)AEEEKEEL_2">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="776.3369" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -1277,7 +1277,7 @@
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
       <userParam name="annotation" type="xsd:string" value="b4-91/0.000"/>
     </Transition>
-    <Transition id="227_Q9BX93_AAC(Carbamidomethyl)IC(Carbamidomethyl)AEEEKEEL_776.3369_1249.5616" peptideRef="Q9BX93_AAC(Carbamidomethyl)IC(Carbamidomethyl)AEEEKEEL_2">
+    <Transition id="227" peptideRef="AAC(Carbamidomethyl)IC(Carbamidomethyl)AEEEKEEL_2">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="776.3369" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -1297,7 +1297,7 @@
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
       <userParam name="annotation" type="xsd:string" value="y10/0.000"/>
     </Transition>
-    <Transition id="232_Q9BX93_AAC(Carbamidomethyl)IC(Carbamidomethyl)AEEEKEEL_776.3369_647.3246" peptideRef="Q9BX93_AAC(Carbamidomethyl)IC(Carbamidomethyl)AEEEKEEL_2">
+    <Transition id="232" peptideRef="AAC(Carbamidomethyl)IC(Carbamidomethyl)AEEEKEEL_2">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="776.3369" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -1317,7 +1317,7 @@
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
       <userParam name="annotation" type="xsd:string" value="y5/0.000"/>
     </Transition>
-    <Transition id="233_Q9BX93_AAC(Carbamidomethyl)IC(Carbamidomethyl)AEEEKEEL_776.3369_416.1962" peptideRef="Q9BX93_AAC(Carbamidomethyl)IC(Carbamidomethyl)AEEEKEEL_2">
+    <Transition id="233" peptideRef="AAC(Carbamidomethyl)IC(Carbamidomethyl)AEEEKEEL_2">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="776.3369" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -1337,7 +1337,7 @@
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
       <userParam name="annotation" type="xsd:string" value="b4/0.000"/>
     </Transition>
-    <Transition id="237_Q9BX93_AAC(Carbamidomethyl)IC(Carbamidomethyl)AEEEKEEL_776.3369_388.2013" peptideRef="Q9BX93_AAC(Carbamidomethyl)IC(Carbamidomethyl)AEEEKEEL_2">
+    <Transition id="237" peptideRef="AAC(Carbamidomethyl)IC(Carbamidomethyl)AEEEKEEL_2">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="776.3369" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -1357,7 +1357,7 @@
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
       <userParam name="annotation" type="xsd:string" value="a4/0.000"/>
     </Transition>
-    <Transition id="239_Q9BX93_AAC(Carbamidomethyl)IC(Carbamidomethyl)AEEEKEEL_776.3369_710.7896" peptideRef="Q9BX93_AAC(Carbamidomethyl)IC(Carbamidomethyl)AEEEKEEL_2">
+    <Transition id="239" peptideRef="AAC(Carbamidomethyl)IC(Carbamidomethyl)AEEEKEEL_2">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="776.3369" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -1377,7 +1377,7 @@
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
       <userParam name="annotation" type="xsd:string" value="b12^2/0.000"/>
     </Transition>
-    <Transition id="240_Q9BX93_AAC(Carbamidomethyl)IC(Carbamidomethyl)AEEEKEEL_776.3369_1291.5293" peptideRef="Q9BX93_AAC(Carbamidomethyl)IC(Carbamidomethyl)AEEEKEEL_2">
+    <Transition id="240" peptideRef="AAC(Carbamidomethyl)IC(Carbamidomethyl)AEEEKEEL_2">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="776.3369" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -1397,7 +1397,7 @@
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
       <userParam name="annotation" type="xsd:string" value="b11/0.000"/>
     </Transition>
-    <Transition id="249_Q9BX93_AAC(Carbamidomethyl)IC(Carbamidomethyl)AEEEKEEL_776.3369_576.2269" peptideRef="Q9BX93_AAC(Carbamidomethyl)IC(Carbamidomethyl)AEEEKEEL_2">
+    <Transition id="249" peptideRef="AAC(Carbamidomethyl)IC(Carbamidomethyl)AEEEKEEL_2">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="776.3369" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -1417,7 +1417,7 @@
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
       <userParam name="annotation" type="xsd:string" value="b5/0.000,m2:6/0.000"/>
     </Transition>
-    <Transition id="265_Q9BX93_AAC(Carbamidomethyl)IC(Carbamidomethyl)AEEEKEEL_776.3369_354.1660" peptideRef="Q9BX93_AAC(Carbamidomethyl)IC(Carbamidomethyl)AEEEKEEL_2">
+    <Transition id="265" peptideRef="AAC(Carbamidomethyl)IC(Carbamidomethyl)AEEEKEEL_2">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="776.3369" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -1438,7 +1438,7 @@
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
       <userParam name="annotation" type="xsd:string" value="y3-36/0.000"/>
     </Transition>
-    <Transition id="270_Q9BX93_AAC(Carbamidomethyl)IC(Carbamidomethyl)AEEEKEEL_776.3369_705.2998" peptideRef="Q9BX93_AAC(Carbamidomethyl)IC(Carbamidomethyl)AEEEKEEL_2">
+    <Transition id="270" peptideRef="AAC(Carbamidomethyl)IC(Carbamidomethyl)AEEEKEEL_2">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="776.3369" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -1458,7 +1458,7 @@
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
       <userParam name="annotation" type="xsd:string" value="y11^2/0.000"/>
     </Transition>
-    <Transition id="271_Q9BX93_AAC(Carbamidomethyl)IC(Carbamidomethyl)AEEEKEEL_776.3369_143.0815" peptideRef="Q9BX93_AAC(Carbamidomethyl)IC(Carbamidomethyl)AEEEKEEL_2">
+    <Transition id="271" peptideRef="AAC(Carbamidomethyl)IC(Carbamidomethyl)AEEEKEEL_2">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="776.3369" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -1478,7 +1478,7 @@
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
       <userParam name="annotation" type="xsd:string" value="b2/0.000"/>
     </Transition>
-    <Transition id="272_Q9BX93_AAC(Carbamidomethyl)IC(Carbamidomethyl)AEEEKEEL_776.3369_275.1172" peptideRef="Q9BX93_AAC(Carbamidomethyl)IC(Carbamidomethyl)AEEEKEEL_2">
+    <Transition id="272" peptideRef="AAC(Carbamidomethyl)IC(Carbamidomethyl)AEEEKEEL_2">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="776.3369" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -1498,7 +1498,7 @@
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
       <userParam name="annotation" type="xsd:string" value="a3/0.000"/>
     </Transition>
-    <Transition id="274_Q9BX93_AAC(Carbamidomethyl)IC(Carbamidomethyl)AEEEKEEL_776.3369_115.0866" peptideRef="Q9BX93_AAC(Carbamidomethyl)IC(Carbamidomethyl)AEEEKEEL_2">
+    <Transition id="274" peptideRef="AAC(Carbamidomethyl)IC(Carbamidomethyl)AEEEKEEL_2">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="776.3369" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -1518,7 +1518,7 @@
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
       <userParam name="annotation" type="xsd:string" value="a2/0.000"/>
     </Transition>
-    <Transition id="281_Q9BX93_AAC(Carbamidomethyl)IC(Carbamidomethyl)AEEEKEEL_776.3369_696.7865" peptideRef="Q9BX93_AAC(Carbamidomethyl)IC(Carbamidomethyl)AEEEKEEL_2">
+    <Transition id="281" peptideRef="AAC(Carbamidomethyl)IC(Carbamidomethyl)AEEEKEEL_2">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="776.3369" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -1539,7 +1539,7 @@
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
       <userParam name="annotation" type="xsd:string" value="y11-17^2/0.000,a12^2/-0.006"/>
     </Transition>
-    <Transition id="294_Q9BX93_AAC(Carbamidomethyl)IC(Carbamidomethyl)AEEEKEEL_776.3369_758.3567" peptideRef="Q9BX93_AAC(Carbamidomethyl)IC(Carbamidomethyl)AEEEKEEL_2">
+    <Transition id="294" peptideRef="AAC(Carbamidomethyl)IC(Carbamidomethyl)AEEEKEEL_2">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="776.3369" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -1560,7 +1560,7 @@
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
       <userParam name="annotation" type="xsd:string" value="y6-18/0.000"/>
     </Transition>
-    <Transition id="295_Q9BX93_AAC(Carbamidomethyl)IC(Carbamidomethyl)AEEEKEEL_776.3369_372.1765" peptideRef="Q9BX93_AAC(Carbamidomethyl)IC(Carbamidomethyl)AEEEKEEL_2">
+    <Transition id="295" peptideRef="AAC(Carbamidomethyl)IC(Carbamidomethyl)AEEEKEEL_2">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="776.3369" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -1581,7 +1581,7 @@
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
       <userParam name="annotation" type="xsd:string" value="y3-18/0.000"/>
     </Transition>
-    <Transition id="296_Q9BX93_AAC(Carbamidomethyl)IC(Carbamidomethyl)AEEEKEEL_776.3369_623.2655" peptideRef="Q9BX93_AAC(Carbamidomethyl)IC(Carbamidomethyl)AEEEKEEL_2">
+    <Transition id="296" peptideRef="AAC(Carbamidomethyl)IC(Carbamidomethyl)AEEEKEEL_2">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="776.3369" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -1602,7 +1602,7 @@
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
       <userParam name="annotation" type="xsd:string" value="b11-46^2/0.000"/>
     </Transition>
-    <Transition id="301_Q9BX93_AAC(Carbamidomethyl)IC(Carbamidomethyl)AEEEKEEL_776.3369_343.1523" peptideRef="Q9BX93_AAC(Carbamidomethyl)IC(Carbamidomethyl)AEEEKEEL_2">
+    <Transition id="301" peptideRef="AAC(Carbamidomethyl)IC(Carbamidomethyl)AEEEKEEL_2">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="776.3369" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -1623,7 +1623,7 @@
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
       <userParam name="annotation" type="xsd:string" value="b7-91^2/0.000"/>
     </Transition>
-    <Transition id="302_Q9BX93_AAC(Carbamidomethyl)IC(Carbamidomethyl)AEEEKEEL_776.3369_485.2177" peptideRef="Q9BX93_AAC(Carbamidomethyl)IC(Carbamidomethyl)AEEEKEEL_2">
+    <Transition id="302" peptideRef="AAC(Carbamidomethyl)IC(Carbamidomethyl)AEEEKEEL_2">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="776.3369" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -1644,7 +1644,7 @@
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
       <userParam name="annotation" type="xsd:string" value="b5-91/0.000"/>
     </Transition>
-    <Transition id="310_Q9BX93_AAC(Carbamidomethyl)IC(Carbamidomethyl)AEEEKEEL_776.3369_646.2683" peptideRef="Q9BX93_AAC(Carbamidomethyl)IC(Carbamidomethyl)AEEEKEEL_2">
+    <Transition id="310" peptideRef="AAC(Carbamidomethyl)IC(Carbamidomethyl)AEEEKEEL_2">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="776.3369" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -1664,7 +1664,7 @@
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
       <userParam name="annotation" type="xsd:string" value="b11^2/0.000"/>
     </Transition>
-    <Transition id="312_Q9BX93_AAC(Carbamidomethyl)IC(Carbamidomethyl)AEEEKEEL_776.3369_439.1808" peptideRef="Q9BX93_AAC(Carbamidomethyl)IC(Carbamidomethyl)AEEEKEEL_2">
+    <Transition id="312" peptideRef="AAC(Carbamidomethyl)IC(Carbamidomethyl)AEEEKEEL_2">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="776.3369" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -1684,7 +1684,7 @@
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
       <userParam name="annotation" type="xsd:string" value="a8^2/0.000"/>
     </Transition>
-    <Transition id="320_Q9BX93_AAC(Carbamidomethyl)IC(Carbamidomethyl)AEEEKEEL_776.3369_261.1445" peptideRef="Q9BX93_AAC(Carbamidomethyl)IC(Carbamidomethyl)AEEEKEEL_2">
+    <Transition id="320" peptideRef="AAC(Carbamidomethyl)IC(Carbamidomethyl)AEEEKEEL_2">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="776.3369" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -1704,7 +1704,7 @@
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
       <userParam name="annotation" type="xsd:string" value="y2/0.000"/>
     </Transition>
-    <Transition id="325_Q9BX93_AAC(Carbamidomethyl)IC(Carbamidomethyl)AEEEKEEL_776.3369_647.2640" peptideRef="Q9BX93_AAC(Carbamidomethyl)IC(Carbamidomethyl)AEEEKEEL_2">
+    <Transition id="325" peptideRef="AAC(Carbamidomethyl)IC(Carbamidomethyl)AEEEKEEL_2">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="776.3369" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -1724,7 +1724,7 @@
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
       <userParam name="annotation" type="xsd:string" value="b6/0.000"/>
     </Transition>
-    <Transition id="332_Q9BX93_AAC(Carbamidomethyl)IC(Carbamidomethyl)AEEEKEEL_776.3369_132.1019" peptideRef="Q9BX93_AAC(Carbamidomethyl)IC(Carbamidomethyl)AEEEKEEL_2">
+    <Transition id="332" peptideRef="AAC(Carbamidomethyl)IC(Carbamidomethyl)AEEEKEEL_2">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="776.3369" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -1744,7 +1744,7 @@
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
       <userParam name="annotation" type="xsd:string" value="y1/0.000"/>
     </Transition>
-    <Transition id="334_P02768_AAC(Carbamidomethyl)LLPK_386.7229_244.1656" peptideRef="P02768_AAC(Carbamidomethyl)LLPK_2">
+    <Transition id="334" peptideRef="AAC(Carbamidomethyl)LLPK_2">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="386.7229" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -1764,7 +1764,7 @@
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
       <userParam name="annotation" type="xsd:string" value="y2/0.000"/>
     </Transition>
-    <Transition id="335_P02768_AAC(Carbamidomethyl)LLPK_386.7229_630.3643" peptideRef="P02768_AAC(Carbamidomethyl)LLPK_2">
+    <Transition id="335" peptideRef="AAC(Carbamidomethyl)LLPK_2">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="386.7229" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -1784,7 +1784,7 @@
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
       <userParam name="annotation" type="xsd:string" value="y5/0.000"/>
     </Transition>
-    <Transition id="337_P02768_AAC(Carbamidomethyl)LLPK_386.7229_115.0866" peptideRef="P02768_AAC(Carbamidomethyl)LLPK_2">
+    <Transition id="337" peptideRef="AAC(Carbamidomethyl)LLPK_2">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="386.7229" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -1804,7 +1804,7 @@
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
       <userParam name="annotation" type="xsd:string" value="a2/0.000"/>
     </Transition>
-    <Transition id="338_P02768_AAC(Carbamidomethyl)LLPK_386.7229_143.0815" peptideRef="P02768_AAC(Carbamidomethyl)LLPK_2">
+    <Transition id="338" peptideRef="AAC(Carbamidomethyl)LLPK_2">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="386.7229" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -1824,7 +1824,7 @@
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
       <userParam name="annotation" type="xsd:string" value="b2/0.000"/>
     </Transition>
-    <Transition id="340_P02768_AAC(Carbamidomethyl)LLPK_386.7229_470.3337" peptideRef="P02768_AAC(Carbamidomethyl)LLPK_2">
+    <Transition id="340" peptideRef="AAC(Carbamidomethyl)LLPK_2">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="386.7229" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -1844,7 +1844,7 @@
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
       <userParam name="annotation" type="xsd:string" value="y4/0.000"/>
     </Transition>
-    <Transition id="342_P02768_AAC(Carbamidomethyl)LLPK_386.7229_701.4014" peptideRef="P02768_AAC(Carbamidomethyl)LLPK_2">
+    <Transition id="342" peptideRef="AAC(Carbamidomethyl)LLPK_2">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="386.7229" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -1864,7 +1864,7 @@
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
       <userParam name="annotation" type="xsd:string" value="y6/0.000"/>
     </Transition>
-    <Transition id="343_P02768_AAC(Carbamidomethyl)LLPK_386.7229_303.1122" peptideRef="P02768_AAC(Carbamidomethyl)LLPK_2">
+    <Transition id="343" peptideRef="AAC(Carbamidomethyl)LLPK_2">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="386.7229" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -1884,7 +1884,7 @@
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
       <userParam name="annotation" type="xsd:string" value="b3/0.000"/>
     </Transition>
-    <Transition id="344_P02768_AAC(Carbamidomethyl)LLPK_386.7229_357.2496" peptideRef="P02768_AAC(Carbamidomethyl)LLPK_2">
+    <Transition id="344" peptideRef="AAC(Carbamidomethyl)LLPK_2">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="386.7229" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -1904,7 +1904,7 @@
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
       <userParam name="annotation" type="xsd:string" value="y3/0.000"/>
     </Transition>
-    <Transition id="346_P02768_AAC(Carbamidomethyl)LLPK_386.7229_315.6858" peptideRef="P02768_AAC(Carbamidomethyl)LLPK_2">
+    <Transition id="346" peptideRef="AAC(Carbamidomethyl)LLPK_2">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="386.7229" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -1924,7 +1924,7 @@
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
       <userParam name="annotation" type="xsd:string" value="y5^2/0.000"/>
     </Transition>
-    <Transition id="348_P02768_AAC(Carbamidomethyl)LLPK_386.7229_147.1128" peptideRef="P02768_AAC(Carbamidomethyl)LLPK_2">
+    <Transition id="348" peptideRef="AAC(Carbamidomethyl)LLPK_2">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="386.7229" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -1944,7 +1944,7 @@
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
       <userParam name="annotation" type="xsd:string" value="y1/0.000"/>
     </Transition>
-    <Transition id="351_P02768_AAC(Carbamidomethyl)LLPK_386.7229_226.1550" peptideRef="P02768_AAC(Carbamidomethyl)LLPK_2">
+    <Transition id="351" peptideRef="AAC(Carbamidomethyl)LLPK_2">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="386.7229" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -1965,7 +1965,7 @@
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
       <userParam name="annotation" type="xsd:string" value="y2-18/0.000"/>
     </Transition>
-    <Transition id="357_P02768_AAC(Carbamidomethyl)LLPK_386.7229_129.1022" peptideRef="P02768_AAC(Carbamidomethyl)LLPK_2">
+    <Transition id="357" peptideRef="AAC(Carbamidomethyl)LLPK_2">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="386.7229" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -1986,7 +1986,7 @@
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
       <userParam name="annotation" type="xsd:string" value="y1-18/0.000"/>
     </Transition>
-    <Transition id="358_P02768_AAC(Carbamidomethyl)LLPK_386.7229_529.2803" peptideRef="P02768_AAC(Carbamidomethyl)LLPK_2">
+    <Transition id="358" peptideRef="AAC(Carbamidomethyl)LLPK_2">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="386.7229" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -2006,7 +2006,7 @@
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
       <userParam name="annotation" type="xsd:string" value="b5/0.000"/>
     </Transition>
-    <Transition id="363_P02768_AAC(Carbamidomethyl)LLPK_386.7229_416.1962" peptideRef="P02768_AAC(Carbamidomethyl)LLPK_2">
+    <Transition id="363" peptideRef="AAC(Carbamidomethyl)LLPK_2">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="386.7229" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -2026,7 +2026,7 @@
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
       <userParam name="annotation" type="xsd:string" value="b4/0.000"/>
     </Transition>
-    <Transition id="365_P02768_AAC(Carbamidomethyl)LLPK_386.7229_351.2044" peptideRef="P02768_AAC(Carbamidomethyl)LLPK_2">
+    <Transition id="365" peptideRef="AAC(Carbamidomethyl)LLPK_2">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="386.7229" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -2046,7 +2046,7 @@
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
       <userParam name="annotation" type="xsd:string" value="y6^2/0.000"/>
     </Transition>
-    <Transition id="370_P02768_AAC(Carbamidomethyl)LLPK_386.7229_130.0863" peptideRef="P02768_AAC(Carbamidomethyl)LLPK_2">
+    <Transition id="370" peptideRef="AAC(Carbamidomethyl)LLPK_2">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="386.7229" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -2067,7 +2067,7 @@
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
       <userParam name="annotation" type="xsd:string" value="y1-17/0.000"/>
     </Transition>
-    <Transition id="371_P02768_AAC(Carbamidomethyl)LLPK_386.7229_325.1870" peptideRef="P02768_AAC(Carbamidomethyl)LLPK_2">
+    <Transition id="371" peptideRef="AAC(Carbamidomethyl)LLPK_2">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="386.7229" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -2088,7 +2088,7 @@
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
       <userParam name="annotation" type="xsd:string" value="b4-91/0.000"/>
     </Transition>
-    <Transition id="377_P02768_AAC(Carbamidomethyl)LLPK_386.7229_212.1030" peptideRef="P02768_AAC(Carbamidomethyl)LLPK_2">
+    <Transition id="377" peptideRef="AAC(Carbamidomethyl)LLPK_2">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="386.7229" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -2109,7 +2109,7 @@
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
       <userParam name="annotation" type="xsd:string" value="b3-91/0.000"/>
     </Transition>
-    <Transition id="386_P02768_AAC(Carbamidomethyl)LLPK_386.7229_501.2854" peptideRef="P02768_AAC(Carbamidomethyl)LLPK_2">
+    <Transition id="386" peptideRef="AAC(Carbamidomethyl)LLPK_2">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="386.7229" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -2129,7 +2129,7 @@
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
       <userParam name="annotation" type="xsd:string" value="a5/0.000"/>
     </Transition>
-    <Transition id="392_P02768_AAC(Carbamidomethyl)LLPK_386.7229_209.1285" peptideRef="P02768_AAC(Carbamidomethyl)LLPK_2">
+    <Transition id="392" peptideRef="AAC(Carbamidomethyl)LLPK_2">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="386.7229" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -2150,7 +2150,7 @@
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
       <userParam name="annotation" type="xsd:string" value="y2-35/0.000"/>
     </Transition>
-    <Transition id="396_P02768_AAC(Carbamidomethyl)LLPK_386.7229_227.1390" peptideRef="P02768_AAC(Carbamidomethyl)LLPK_2">
+    <Transition id="396" peptideRef="AAC(Carbamidomethyl)LLPK_2">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="386.7229" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -2171,7 +2171,7 @@
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
       <userParam name="annotation" type="xsd:string" value="y2-17/0.000,y4-17^2/-0.018"/>
     </Transition>
-    <Transition id="398_P02768_AAC(Carbamidomethyl)LLPK_386.7229_613.3378" peptideRef="P02768_AAC(Carbamidomethyl)LLPK_2">
+    <Transition id="398" peptideRef="AAC(Carbamidomethyl)LLPK_2">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="386.7229" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -2192,7 +2192,7 @@
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
       <userParam name="annotation" type="xsd:string" value="y5-17/0.000"/>
     </Transition>
-    <Transition id="403_P02768_AAC(Carbamidomethyl)LLPK_386.7229_626.3330" peptideRef="P02768_AAC(Carbamidomethyl)LLPK_2">
+    <Transition id="403" peptideRef="AAC(Carbamidomethyl)LLPK_2">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="386.7229" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -2212,7 +2212,7 @@
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
       <userParam name="annotation" type="xsd:string" value="b6/0.000"/>
     </Transition>
-    <Transition id="404_P02768_AAC(Carbamidomethyl)LLPK_386.7229_306.6805" peptideRef="P02768_AAC(Carbamidomethyl)LLPK_2">
+    <Transition id="404" peptideRef="AAC(Carbamidomethyl)LLPK_2">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="386.7229" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -2233,7 +2233,7 @@
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
       <userParam name="annotation" type="xsd:string" value="y5-18^2/0.000"/>
     </Transition>
-    <Transition id="414_P02768_AAC(Carbamidomethyl)LLPKLDELRDEGK_609.9926_650.3488" peptideRef="P02768_AAC(Carbamidomethyl)LLPKLDELRDEGK_3">
+    <Transition id="414" peptideRef="AAC(Carbamidomethyl)LLPKLDELRDEGK_3">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="609.9926" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -2253,7 +2253,7 @@
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
       <userParam name="annotation" type="xsd:string" value="y11^2/0.000"/>
     </Transition>
-    <Transition id="418_P02768_AAC(Carbamidomethyl)LLPKLDELRDEGK_609.9926_303.1122" peptideRef="P02768_AAC(Carbamidomethyl)LLPKLDELRDEGK_3">
+    <Transition id="418" peptideRef="AAC(Carbamidomethyl)LLPKLDELRDEGK_3">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="609.9926" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -2273,7 +2273,7 @@
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
       <userParam name="annotation" type="xsd:string" value="b3/0.000"/>
     </Transition>
-    <Transition id="424_P02768_AAC(Carbamidomethyl)LLPKLDELRDEGK_609.9926_843.4482" peptideRef="P02768_AAC(Carbamidomethyl)LLPKLDELRDEGK_3">
+    <Transition id="424" peptideRef="AAC(Carbamidomethyl)LLPKLDELRDEGK_3">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="609.9926" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -2293,7 +2293,7 @@
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
       <userParam name="annotation" type="xsd:string" value="y14^2/0.000"/>
     </Transition>
-    <Transition id="425_P02768_AAC(Carbamidomethyl)LLPKLDELRDEGK_609.9926_961.4585" peptideRef="P02768_AAC(Carbamidomethyl)LLPKLDELRDEGK_3">
+    <Transition id="425" peptideRef="AAC(Carbamidomethyl)LLPKLDELRDEGK_3">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="609.9926" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -2313,7 +2313,7 @@
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
       <userParam name="annotation" type="xsd:string" value="y8/0.000"/>
     </Transition>
-    <Transition id="426_P02768_AAC(Carbamidomethyl)LLPKLDELRDEGK_609.9926_1074.5425" peptideRef="P02768_AAC(Carbamidomethyl)LLPKLDELRDEGK_3">
+    <Transition id="426" peptideRef="AAC(Carbamidomethyl)LLPKLDELRDEGK_3">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="609.9926" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -2333,7 +2333,7 @@
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
       <userParam name="annotation" type="xsd:string" value="y9/0.000"/>
     </Transition>
-    <Transition id="428_P02768_AAC(Carbamidomethyl)LLPKLDELRDEGK_609.9926_204.1343" peptideRef="P02768_AAC(Carbamidomethyl)LLPKLDELRDEGK_3">
+    <Transition id="428" peptideRef="AAC(Carbamidomethyl)LLPKLDELRDEGK_3">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="609.9926" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -2353,7 +2353,7 @@
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
       <userParam name="annotation" type="xsd:string" value="y2/0.000"/>
     </Transition>
-    <Transition id="429_P02768_AAC(Carbamidomethyl)LLPKLDELRDEGK_609.9926_706.8908" peptideRef="P02768_AAC(Carbamidomethyl)LLPKLDELRDEGK_3">
+    <Transition id="429" peptideRef="AAC(Carbamidomethyl)LLPKLDELRDEGK_3">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="609.9926" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -2373,7 +2373,7 @@
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
       <userParam name="annotation" type="xsd:string" value="y12^2/0.000"/>
     </Transition>
-    <Transition id="431_P02768_AAC(Carbamidomethyl)LLPKLDELRDEGK_609.9926_143.0815" peptideRef="P02768_AAC(Carbamidomethyl)LLPKLDELRDEGK_3">
+    <Transition id="431" peptideRef="AAC(Carbamidomethyl)LLPKLDELRDEGK_3">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="609.9926" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -2393,7 +2393,7 @@
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
       <userParam name="annotation" type="xsd:string" value="b2/0.000"/>
     </Transition>
-    <Transition id="436_P02768_AAC(Carbamidomethyl)LLPKLDELRDEGK_609.9926_1202.6375" peptideRef="P02768_AAC(Carbamidomethyl)LLPKLDELRDEGK_3">
+    <Transition id="436" peptideRef="AAC(Carbamidomethyl)LLPKLDELRDEGK_3">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="609.9926" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -2413,7 +2413,7 @@
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
       <userParam name="annotation" type="xsd:string" value="y10/0.000"/>
     </Transition>
-    <Transition id="437_P02768_AAC(Carbamidomethyl)LLPKLDELRDEGK_609.9926_315.1663" peptideRef="P02768_AAC(Carbamidomethyl)LLPKLDELRDEGK_3">
+    <Transition id="437" peptideRef="AAC(Carbamidomethyl)LLPKLDELRDEGK_3">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="609.9926" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -2434,7 +2434,7 @@
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
       <userParam name="annotation" type="xsd:string" value="y3-18/0.000,y8-18^3/0.012,m9:13^2/0.018"/>
     </Transition>
-    <Transition id="445_P02768_AAC(Carbamidomethyl)LLPKLDELRDEGK_609.9926_763.4328" peptideRef="P02768_AAC(Carbamidomethyl)LLPKLDELRDEGK_3">
+    <Transition id="445" peptideRef="AAC(Carbamidomethyl)LLPKLDELRDEGK_3">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="609.9926" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -2454,7 +2454,7 @@
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
       <userParam name="annotation" type="xsd:string" value="y13^2/0.000"/>
     </Transition>
-    <Transition id="446_P02768_AAC(Carbamidomethyl)LLPKLDELRDEGK_609.9926_212.1030" peptideRef="P02768_AAC(Carbamidomethyl)LLPKLDELRDEGK_3">
+    <Transition id="446" peptideRef="AAC(Carbamidomethyl)LLPKLDELRDEGK_3">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="609.9926" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -2475,7 +2475,7 @@
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
       <userParam name="annotation" type="xsd:string" value="b3-91/0.000"/>
     </Transition>
-    <Transition id="448_P02768_AAC(Carbamidomethyl)LLPKLDELRDEGK_609.9926_846.4315" peptideRef="P02768_AAC(Carbamidomethyl)LLPKLDELRDEGK_3">
+    <Transition id="448" peptideRef="AAC(Carbamidomethyl)LLPKLDELRDEGK_3">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="609.9926" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -2495,7 +2495,7 @@
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
       <userParam name="annotation" type="xsd:string" value="y7/0.000"/>
     </Transition>
-    <Transition id="450_P02768_AAC(Carbamidomethyl)LLPKLDELRDEGK_609.9926_325.1870" peptideRef="P02768_AAC(Carbamidomethyl)LLPKLDELRDEGK_3">
+    <Transition id="450" peptideRef="AAC(Carbamidomethyl)LLPKLDELRDEGK_3">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="609.9926" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -2516,7 +2516,7 @@
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
       <userParam name="annotation" type="xsd:string" value="b4-91/0.000"/>
     </Transition>
-    <Transition id="451_P02768_AAC(Carbamidomethyl)LLPKLDELRDEGK_609.9926_115.0866" peptideRef="P02768_AAC(Carbamidomethyl)LLPKLDELRDEGK_3">
+    <Transition id="451" peptideRef="AAC(Carbamidomethyl)LLPKLDELRDEGK_3">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="609.9926" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -2536,7 +2536,7 @@
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
       <userParam name="annotation" type="xsd:string" value="a2/0.000"/>
     </Transition>
-    <Transition id="452_P02768_AAC(Carbamidomethyl)LLPKLDELRDEGK_609.9926_717.3890" peptideRef="P02768_AAC(Carbamidomethyl)LLPKLDELRDEGK_3">
+    <Transition id="452" peptideRef="AAC(Carbamidomethyl)LLPKLDELRDEGK_3">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="609.9926" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -2556,7 +2556,7 @@
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
       <userParam name="annotation" type="xsd:string" value="y6/0.000"/>
     </Transition>
-    <Transition id="453_P02768_AAC(Carbamidomethyl)LLPKLDELRDEGK_609.9926_562.6345" peptideRef="P02768_AAC(Carbamidomethyl)LLPKLDELRDEGK_3">
+    <Transition id="453" peptideRef="AAC(Carbamidomethyl)LLPKLDELRDEGK_3">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="609.9926" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -2576,7 +2576,7 @@
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
       <userParam name="annotation" type="xsd:string" value="y14^3/0.000"/>
     </Transition>
-    <Transition id="457_P02768_AAC(Carbamidomethyl)LLPKLDELRDEGK_609.9926_416.1962" peptideRef="P02768_AAC(Carbamidomethyl)LLPKLDELRDEGK_3">
+    <Transition id="457" peptideRef="AAC(Carbamidomethyl)LLPKLDELRDEGK_3">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="609.9926" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -2596,7 +2596,7 @@
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
       <userParam name="annotation" type="xsd:string" value="b4/0.000"/>
     </Transition>
-    <Transition id="458_P02768_AAC(Carbamidomethyl)LLPKLDELRDEGK_609.9926_601.8224" peptideRef="P02768_AAC(Carbamidomethyl)LLPKLDELRDEGK_3">
+    <Transition id="458" peptideRef="AAC(Carbamidomethyl)LLPKLDELRDEGK_3">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="609.9926" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -2616,7 +2616,7 @@
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
       <userParam name="annotation" type="xsd:string" value="y10^2/0.000"/>
     </Transition>
-    <Transition id="459_P02768_AAC(Carbamidomethyl)LLPKLDELRDEGK_609.9926_333.1768" peptideRef="P02768_AAC(Carbamidomethyl)LLPKLDELRDEGK_3">
+    <Transition id="459" peptideRef="AAC(Carbamidomethyl)LLPKLDELRDEGK_3">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="609.9926" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -2636,7 +2636,7 @@
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
       <userParam name="annotation" type="xsd:string" value="y3/0.000"/>
     </Transition>
-    <Transition id="465_P02768_AAC(Carbamidomethyl)LLPKLDELRDEGK_609.9926_586.3136" peptideRef="P02768_AAC(Carbamidomethyl)LLPKLDELRDEGK_3">
+    <Transition id="465" peptideRef="AAC(Carbamidomethyl)LLPKLDELRDEGK_3">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="609.9926" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -2656,7 +2656,7 @@
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
       <userParam name="annotation" type="xsd:string" value="y15^3/0.000"/>
     </Transition>
-    <Transition id="475_P02768_AAC(Carbamidomethyl)LLPKLDELRDEGK_609.9926_641.3435" peptideRef="P02768_AAC(Carbamidomethyl)LLPKLDELRDEGK_3">
+    <Transition id="475" peptideRef="AAC(Carbamidomethyl)LLPKLDELRDEGK_3">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="609.9926" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -2677,7 +2677,7 @@
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
       <userParam name="annotation" type="xsd:string" value="y11-18^2/0.000"/>
     </Transition>
-    <Transition id="478_P02768_AAC(Carbamidomethyl)LLPKLDELRDEGK_609.9926_604.3049" peptideRef="P02768_AAC(Carbamidomethyl)LLPKLDELRDEGK_3">
+    <Transition id="478" peptideRef="AAC(Carbamidomethyl)LLPKLDELRDEGK_3">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="609.9926" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -2697,7 +2697,7 @@
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
       <userParam name="annotation" type="xsd:string" value="y5/0.000,p-17^3/-0.012,b11-17^2/-0.018"/>
     </Transition>
-    <Transition id="480_P02768_AAC(Carbamidomethyl)LLPKLDELRDEGK_609.9926_275.1172" peptideRef="P02768_AAC(Carbamidomethyl)LLPKLDELRDEGK_3">
+    <Transition id="480" peptideRef="AAC(Carbamidomethyl)LLPKLDELRDEGK_3">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="609.9926" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -2717,7 +2717,7 @@
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
       <userParam name="annotation" type="xsd:string" value="a3/0.000"/>
     </Transition>
-    <Transition id="484_P02768_AAC(Carbamidomethyl)LLPKLDELRDEGK_609.9926_359.1981" peptideRef="P02768_AAC(Carbamidomethyl)LLPKLDELRDEGK_3">
+    <Transition id="484" peptideRef="AAC(Carbamidomethyl)LLPKLDELRDEGK_3">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="609.9926" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -2737,7 +2737,7 @@
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
       <userParam name="annotation" type="xsd:string" value="y6^2/0.000,b10-36^3/0.006"/>
     </Transition>
-    <Transition id="489_P02768_AAC(Carbamidomethyl)LLPKLDELRDEGK_609.9926_501.2854" peptideRef="P02768_AAC(Carbamidomethyl)LLPKLDELRDEGK_3">
+    <Transition id="489" peptideRef="AAC(Carbamidomethyl)LLPKLDELRDEGK_3">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="609.9926" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -2757,7 +2757,7 @@
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
       <userParam name="annotation" type="xsd:string" value="a5/0.000"/>
     </Transition>
-    <Transition id="490_P02768_AAC(Carbamidomethyl)LLPKLDELRDEGK_609.9926_748.4005" peptideRef="P02768_AAC(Carbamidomethyl)LLPKLDELRDEGK_3">
+    <Transition id="490" peptideRef="AAC(Carbamidomethyl)LLPKLDELRDEGK_3">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="609.9926" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
@@ -2777,7 +2777,7 @@
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
       <userParam name="annotation" type="xsd:string" value="b13^2/0.000"/>
     </Transition>
-    <Transition id="497_P02768_AAC(Carbamidomethyl)LLPKLDELRDEGK_609.9926_812.9218" peptideRef="P02768_AAC(Carbamidomethyl)LLPKLDELRDEGK_3">
+    <Transition id="497" peptideRef="AAC(Carbamidomethyl)LLPKLDELRDEGK_3">
       <Precursor>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="609.9926" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
