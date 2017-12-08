@@ -168,9 +168,11 @@ protected:
 
     // Set specific seed for test mode
     int uis_seed = -1;
+    bool disable_decoy_transitions = false;
     if (is_test)
     {
       uis_seed = 42;
+      disable_decoy_transitions = true;
     }
 
     std::vector<String> allowed_fragment_types;
@@ -254,7 +256,7 @@ protected:
       else {uis_swathes = swathes;}
       
       std::cout << "Generating identifying (UIS) transitions" << std::endl;
-      assays.uisTransitions(targeted_exp, allowed_fragment_types, allowed_fragment_charges, enable_identification_specific_losses, enable_identification_unspecific_losses, enable_identification_ms2_precursors, product_mz_threshold, uis_swathes, -4, max_num_alternative_localizations, uis_seed);
+      assays.uisTransitions(targeted_exp, allowed_fragment_types, allowed_fragment_charges, enable_identification_specific_losses, enable_identification_unspecific_losses, enable_identification_ms2_precursors, product_mz_threshold, uis_swathes, -4, max_num_alternative_localizations, uis_seed, disable_decoy_transitions);
       std::vector<std::pair<double, double> > empty_swathes;
       assays.restrictTransitions(targeted_exp, product_lower_mz_limit, product_upper_mz_limit, empty_swathes);
     }
