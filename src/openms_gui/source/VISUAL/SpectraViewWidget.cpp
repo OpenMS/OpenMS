@@ -346,10 +346,8 @@ namespace OpenMS
             Size parent_index = 0;
             if (parent_stack.size() - level_diff >= 2)
             {
-              QTreeWidgetItem * parent = nullptr;
               parent_index = parent_stack.size() - level_diff - 1;
-              parent = parent_stack[parent_index];
-
+              QTreeWidgetItem * parent = parent_stack[parent_index];
               item = new QTreeWidgetItem(parent, parent_stack[parent_index + 1]);
             }
             else
