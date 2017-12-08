@@ -117,7 +117,7 @@ START_SECTION(LogStream(LogStreamBuf *buf=0, bool delete_buf=true, std::ostream*
   TEST_NOT_EQUAL(l1, nullPointer)
   delete l1;
 
-  LogStream* lb2 = new LogStreamBuf();
+  LogStream* lb2(new LogStreamBuf());
   l2 = new LogStream(lb2);
   TEST_NOT_EQUAL(l2, nullPointer)
   delete l2;
