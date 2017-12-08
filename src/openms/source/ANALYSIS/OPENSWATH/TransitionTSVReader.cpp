@@ -147,7 +147,7 @@ namespace OpenMS
           (String)min_header_size + ". Please check your input file.");
     }
 
-    int requiredFields[5] = { 0, 1, 5};
+    int requiredFields[3] = { 0, 1, 5};
     /*
      * required fields:
      *
@@ -164,7 +164,7 @@ namespace OpenMS
      * for metabolites, also CompoundName is required 
      *
     */
-    for (int i = 0; i < 5; i++)
+    for (int i = 0; i < 3; i++)
     {
       if (header_dict.find(header_names_[requiredFields[i]]) == header_dict.end())
       {
