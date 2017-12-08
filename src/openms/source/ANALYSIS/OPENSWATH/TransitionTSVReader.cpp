@@ -147,15 +147,17 @@ namespace OpenMS
           (String)min_header_size + ". Please check your input file.");
     }
 
-    int requiredFields[5] = { 0, 1, 3, 5, 6};
+    int requiredFields[5] = { 0, 1, 5};
     /*
      * required fields:
      *
      *
      * PrecursorMz
      * ProductMz
-     * transition_name
      * LibraryIntensity
+     *
+     * these fields will be generated if not available:
+     * transition_name
      * transition_group_id
      *
      * for peptides, also PeptideSequence and ProteinName are required
@@ -244,37 +246,63 @@ namespace OpenMS
       }
 
       TSVTransition mytransition;
+      bool skip_transition = false;
 
       // Required columns (they are guaranteed to be present, see getTSVHeader_)
       mytransition.precursor                    = String(tmp_line[header_dict["PrecursorMz"]]).toDouble();
-      mytransition.product                      = String(tmp_line[header_dict["ProductMz"]]).toDouble();
-      mytransition.library_intensity            = String(tmp_line[header_dict["LibraryIntensity"]]).toDouble();
 
-      if (FileTypes::typeToName(filetype) == "mrm")
+      // ProductMz
+      if (header_dict.find("ProductMz") != header_dict.end())
       {
-        std::vector<String> substrings;
-        String(tmp_line[header_dict["SpectraSTFullPeptideName"]]).split("/", substrings);
-        AASequence peptide = AASequence::fromString(substrings[0]);
-
-        mytransition.FullPeptideName = peptide.toString();
-        mytransition.PeptideSequence = peptide.toUnmodifiedString();
-        mytransition.precursor_charge = substrings[1];
-
-        mytransition.transition_name = String(cnt) + ("_") + String(tmp_line[header_dict["ProteinName"]]) +
-                                       String("_") + mytransition.FullPeptideName + String("_") + 
-                                       String(tmp_line[header_dict["PrecursorMz"]]) + "_" + String(tmp_line[header_dict["ProductMz"]]);
-
-        mytransition.group_id = String(tmp_line[header_dict["ProteinName"]]) + 
-                                String("_") + mytransition.FullPeptideName + String("_") + String(mytransition.precursor_charge);
+        mytransition.product                      = String(tmp_line[header_dict["ProductMz"]]).toDouble();
+      }
+      else if (header_dict.find("FragmentMz") != header_dict.end()) // Spectronaut
+      {
+        mytransition.library_intensity            = String(tmp_line[header_dict["FragmentMz"]]).toDouble();
       }
       else
       {
-        mytransition.transition_name = tmp_line[header_dict["transition_name"]];
-        mytransition.group_id = tmp_line[header_dict["transition_group_id"]];
-        mytransition.precursor_charge = "NA";
+        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                         "Expected a header named ProductMz or FragmentMz but found none");
       }
 
-      if (header_dict.find("RetentionTime") != header_dict.end())
+      // LibraryIntensity
+      if (header_dict.find("LibraryIntensity") != header_dict.end())
+      {
+        mytransition.library_intensity            = String(tmp_line[header_dict["LibraryIntensity"]]).toDouble();
+      }
+      else if (header_dict.find("RelativeFragmentIntensity") != header_dict.end()) // Spectronaut
+      {
+        mytransition.library_intensity            = String(tmp_line[header_dict["RelativeFragmentIntensity"]]).toDouble();
+      }
+      else
+      {
+        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                         "Expected a header named LibraryIntensity or RelativeFragmentIntensity but found none");
+      }
+
+      if (header_dict.find("ProteinName") != header_dict.end())
+      {
+        mytransition.ProteinName = tmp_line[header_dict["ProteinName"]];
+      }
+      else if (header_dict.find("ProteinId") != header_dict.end())
+      {
+        mytransition.ProteinName = tmp_line[header_dict["ProteinId"]];
+      }
+
+      if (header_dict.find("RetentionTimeCalculatorScore") != header_dict.end()) // Skyline
+      {
+        mytransition.rt_calibrated = String(tmp_line[header_dict["RetentionTimeCalculatorScore"]]).toDouble();
+      }
+      else if (header_dict.find("iRT") != header_dict.end()) // Spectronaut
+      {
+        mytransition.rt_calibrated = String(tmp_line[header_dict["iRT"]]).toDouble();
+      }
+      else if (header_dict.find("NormalizedRetentionTime") != header_dict.end())
+      {
+        mytransition.rt_calibrated = String(tmp_line[header_dict["NormalizedRetentionTime"]]).toDouble();
+      }
+      else if (header_dict.find("RetentionTime") != header_dict.end())
       {
         mytransition.rt_calibrated = String(tmp_line[header_dict["RetentionTime"]]).toDouble();
       }
@@ -307,7 +335,7 @@ namespace OpenMS
       else
       {
         throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                         "Expected a header named RetentionTime, Tr_recalibrated or SpectraSTRetentionTime but found none");
+                                         "Expected a header named RetentionTime, NormalizedRetentionTime, iRT, RetentionTimeCalculatorScore, Tr_recalibrated or SpectraSTRetentionTime but found none");
       }
 
       if (header_dict.find("CompoundName") != header_dict.end())
@@ -355,13 +383,17 @@ namespace OpenMS
         if  (String(tmp_line[header_dict["quantifying_transition"]]) == "1") { mytransition.quantifying_transition = true; }
         else if (String(tmp_line[header_dict["quantifying_transition"]]) == "0") { mytransition.quantifying_transition = false; }
       }
-      if (header_dict.find("ProteinName") != header_dict.end())
-      {
-        mytransition.ProteinName = tmp_line[header_dict["ProteinName"]];
-      }
       if (header_dict.find("PeptideSequence") != header_dict.end())
       {
         mytransition.PeptideSequence = tmp_line[header_dict["PeptideSequence"]];
+      }
+      else if (header_dict.find("Sequence") != header_dict.end()) // Skyline
+      {
+        mytransition.PeptideSequence = tmp_line[header_dict["Sequence"]];
+      }
+      else if (header_dict.find("StrippedSequence") != header_dict.end()) // Spectronaut
+      {
+        mytransition.PeptideSequence = tmp_line[header_dict["StrippedSequence"]];
       }
       if (header_dict.find("FullUniModPeptideName") != header_dict.end())
       {
@@ -371,6 +403,10 @@ namespace OpenMS
       {
         // previously, only FullPeptideName was used and not FullUniModPeptideName
         mytransition.FullPeptideName              =                             tmp_line[header_dict["FullPeptideName"]];
+      }
+      else if (header_dict.find("ModifiedSequence") != header_dict.end()) // Spectronaut
+      {
+        mytransition.FullPeptideName              =                             tmp_line[header_dict["ModifiedSequence"]];
       }
       if (header_dict.find("PrecursorCharge") != header_dict.end())
       {
@@ -408,6 +444,10 @@ namespace OpenMS
       if (header_dict.find("FragmentSeriesNumber") != header_dict.end())
       {
         mytransition.fragment_nr                  =                      String(tmp_line[header_dict["FragmentSeriesNumber"]]).toInt();
+      }
+      else if (header_dict.find("FragmentNumber") != header_dict.end()) // Spectronaut
+      {
+        mytransition.fragment_nr                  =                      String(tmp_line[header_dict["FragmentNumber"]]).toInt();
       }
       if (header_dict.find("FragmentMzDelta") != header_dict.end())
       {
@@ -478,11 +518,64 @@ namespace OpenMS
 
           mytransition.fragment_mzdelta = String(best_fragment_annotation_with_deviation[1]).toDouble();
         }
+        else
+        {
+          // The fragment ion could not be annotated and will likely not be used for detection transitions;
+          // we thus skip it and reduce the size of the output TraML.
+          skip_transition = true;
+        }
+      }
+
+      // Generate group IDs
+      if (FileTypes::typeToName(filetype) == "mrm")
+      {
+        std::vector<String> substrings;
+        String(tmp_line[header_dict["SpectraSTFullPeptideName"]]).split("/", substrings);
+        AASequence peptide = AASequence::fromString(substrings[0]);
+
+        mytransition.FullPeptideName = peptide.toString();
+        mytransition.PeptideSequence = peptide.toUnmodifiedString();
+        mytransition.precursor_charge = substrings[1];
+
+        mytransition.transition_name = String(cnt) + ("_") + String(tmp_line[header_dict["ProteinName"]]) +
+                                       String("_") + mytransition.FullPeptideName + String("_") + 
+                                       String(tmp_line[header_dict["PrecursorMz"]]) + "_" + String(tmp_line[header_dict["ProductMz"]]);
+
+        mytransition.group_id = String(tmp_line[header_dict["ProteinName"]]) + 
+                                String("_") + mytransition.FullPeptideName + String("_") + String(mytransition.precursor_charge);
+      }
+      else
+      {
+        // Use transition_name if available, else generate from attributes
+        if (header_dict.find("transition_name") != header_dict.end())
+        {
+          mytransition.transition_name = tmp_line[header_dict["transition_name"]];
+        }
+        else
+        {
+          mytransition.transition_name = String(cnt) + ("_") + String(tmp_line[header_dict["ProteinName"]]) +
+                                         String("_") + AASequence::fromString(mytransition.FullPeptideName).toString() + String("_") + 
+                                         String(tmp_line[header_dict["PrecursorMz"]]) + "_" + String(tmp_line[header_dict["ProductMz"]]);
+        }
+
+        // Use transition_group_id if available, else generate from attributes
+        if (header_dict.find("transition_group_id") != header_dict.end())
+        {
+          mytransition.group_id = tmp_line[header_dict["transition_group_id"]];
+        }
+        else
+        {
+          mytransition.group_id = String(tmp_line[header_dict["ProteinName"]]) + 
+                                  String("_") + AASequence::fromString(mytransition.FullPeptideName).toString() + String("_") + String(mytransition.precursor_charge);
+        }
       }
 
       cleanupTransitions_(mytransition);
 
-      transition_list.push_back(mytransition);
+      if (!skip_transition)
+      {
+        transition_list.push_back(mytransition);
+      }
 
 #ifdef TRANSITIONTSVREADER_TESTING
       std::cout << mytransition.precursor << std::endl;
