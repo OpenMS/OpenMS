@@ -342,7 +342,7 @@ namespace OpenMS
       {
         continue;
       }
-      const String transition_name = scored_spectra[i].getName();
+      const std::string transition_name = scored_spectra[i].getName();
       std::unordered_map<std::string,UInt>::const_iterator it = transition_best_spec.find(transition_name);
       if (it == transition_best_spec.end())
       {
