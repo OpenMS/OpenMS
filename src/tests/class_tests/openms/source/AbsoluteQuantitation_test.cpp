@@ -568,7 +568,7 @@ START_SECTION((int residualOutlierCandidate_(
   // y = m*x + b
   // x = (y - b)/m
   Param transformation_model_params;
-  String transformation_model = "TransformationModelLinear"; 
+  // String transformation_model = "TransformationModelLinear"; 
   String transformation_model = "linear"; 
 
   int c1 = absquant.residualOutlierCandidate_(
