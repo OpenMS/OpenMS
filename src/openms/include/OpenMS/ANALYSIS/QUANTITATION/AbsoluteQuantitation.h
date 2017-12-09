@@ -234,7 +234,7 @@ public:
     */ 
     void quantifyComponents(FeatureMap& unknowns);    
 
-protected:
+// protected:
     /**
       @brief This function extractous out the components.
 
