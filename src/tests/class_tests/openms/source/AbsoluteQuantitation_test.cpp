@@ -156,7 +156,8 @@ START_SECTION((double applyCalibration(const Feature & component,
   // x = (y - b)/m
   String transformation_model;
   Param param;
-  transformation_model = "TransformationModelLinear";  
+  // transformation_model = "TransformationModelLinear"; 
+  transformation_model = "linear";  
   param.setValue("slope",2.0);
   param.setValue("intercept",1.0);
 
@@ -218,7 +219,8 @@ START_SECTION((void quantifyComponents(std::vector<FeatureMap>& unknowns)))
   AbsoluteQuantitationMethod aqm;
   String transformation_model;
   Param param;
-  transformation_model = "TransformationModelLinear";  
+  // transformation_model = "TransformationModelLinear";  
+  transformation_model = "linear";  
   param.setValue("slope",1.0);
   param.setValue("intercept",0.0);
   aqm.setTransformationModel(transformation_model);
@@ -322,7 +324,8 @@ START_SECTION((void calculateBiasAndR2(
   // x = (y - b)/m
   String transformation_model;
   Param param;
-  transformation_model = "TransformationModelLinear"; 
+  // transformation_model = "TransformationModelLinear"; 
+  transformation_model = "linear"; 
   param.setValue("slope",1.0);
   param.setValue("intercept",0.0);
   std::vector<double> biases;
@@ -386,7 +389,8 @@ START_SECTION((Param AbsoluteQuantitation::fitCalibration(
 
   String feature_name = "peak_apex_int";
   Param transformation_model_params;
-  String transformation_model = "TransformationModelLinear"; 
+  // String transformation_model = "TransformationModelLinear"; 
+  String transformation_model = "linear"; 
 
   Param param = absquant.fitCalibration(component_concentrations,
     feature_name,
@@ -492,7 +496,8 @@ END_SECTION
 //   // y = m*x + b
 //   // x = (y - b)/m
 //   Param transformation_model_params;
-//   String transformation_model = "TransformationModelLinear"; 
+//  //   String transformation_model = "TransformationModelLinear"; 
+//   String transformation_model = "linear"; 
 
 //   int c1 = absquant.jackknifeOutlierCandidate_(
 //     component_concentrations,
@@ -564,6 +569,7 @@ START_SECTION((int residualOutlierCandidate_(
   // x = (y - b)/m
   Param transformation_model_params;
   String transformation_model = "TransformationModelLinear"; 
+  String transformation_model = "linear"; 
 
   int c1 = absquant.residualOutlierCandidate_(
     component_concentrations,

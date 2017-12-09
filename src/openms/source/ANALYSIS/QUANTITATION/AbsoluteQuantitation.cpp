@@ -44,8 +44,10 @@
 
 //OpenSWATH classes
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMRTNormalizer.h>
+
 //Analysis classes
 #include <OpenMS/ANALYSIS/MAPMATCHING/TransformationModel.h>
+#include <OpenMS/ANALYSIS/MAPMATCHING/TransformationDescription.h>
 #include <OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>
 
 //Quantitation classes
@@ -137,8 +139,11 @@ namespace OpenMS
     std::cout << "fitCalibration: size of data: " << std::to_string(data.size()) << std::endl;
 
     // fit the data to the model
-    AbsoluteQuantitationMethod aqm;
-    Param params = aqm.fitTransformationModel(transformation_model, data, transformation_model_params);
+    TransformationDescription tmd;
+    tmd.fitTransformationModel(transformation_model, data, transformation_model_params);
+    Param params = tmd.getModelParameters();
+    // AbsoluteQuantitationMethod aqm;
+    // Param params = aqm.fitTransformationModel(transformation_model, data, transformation_model_params);
 
     // store the information about the fit
     return params;
@@ -210,9 +215,14 @@ namespace OpenMS
     double ratio = calculateRatio(component, IS_component, feature_name);
 
     // calculate the absolute concentration
-    AbsoluteQuantitationMethod aqm;
-    double calculated_concentration = aqm.evaluateTransformationModel(
-      transformation_model, ratio, transformation_model_params);
+    TransformationDescription tmd;
+    tmd.fitTransformationModel(transformation_model, data, transformation_model_params);
+    tmd.invert();
+    double calculated_concentration = tmd.apply(ratio);
+
+    // AbsoluteQuantitationMethod aqm;
+    // double calculated_concentration = aqm.evaluateTransformationModel(
+    //   transformation_model, ratio, transformation_model_params);
 
     // check for less than zero
     if (calculated_concentration < 0.0)
