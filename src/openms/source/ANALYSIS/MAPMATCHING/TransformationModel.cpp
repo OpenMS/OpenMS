@@ -43,7 +43,7 @@
 namespace OpenMS
 {
 
-  TransformationModel::TransformationModel(const TransformationModel::DataPoints&, const Param& p) :
+  TransformationModel::TransformationModel(const TransformationModel::DataPoints& data, const Param& p) :
     params_(p),
     x_weight_(""),
     x_datum_min_(0),
