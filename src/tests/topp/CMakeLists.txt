@@ -1021,6 +1021,14 @@ add_test("TOPP_MapRTTransformer_6_out1" ${DIFF} -in1 MapRTTransformer_6_output.t
 set_tests_properties("TOPP_MapRTTransformer_6_out1" PROPERTIES DEPENDS "TOPP_MapRTTransformer_6")
 
 #------------------------------------------------------------------------------
+# MetaProSIP tests (single SIP feature with approx. RIA of 1% and 37%)
+add_test("TOPP_MetaProSIP_1" ${TOPP_BIN_PATH}/MetaProSIP -test -in_mzML ${DATA_DIR_TOPP}/MetaProSIP_1_input.mzML -in_fasta ${DATA_DIR_TOPP}/MetaProSIP_1_input.fasta -in_featureXML ${DATA_DIR_TOPP}/MetaProSIP_1_input.featureXML -out_csv MetaProSIP_1_output_1.tmp -out_peptide_centric_csv MetaProSIP_1_output_2.tmp)
+add_test("TOPP_MetaProSIP_1_out1" ${DIFF} -in1 MetaProSIP_1_output_1.tmp -in2 ${DATA_DIR_TOPP}/MetaProSIP_1_output_1.csv )
+set_tests_properties("TOPP_MetaProSIP_1_out1" PROPERTIES DEPENDS "TOPP_MetaProSIP_1")
+add_test("TOPP_MetaProSIP_1_out2" ${DIFF} -in1 MetaProSIP_1_output_2.tmp -in2 ${DATA_DIR_TOPP}/MetaProSIP_1_output_2.csv )
+set_tests_properties("TOPP_MetaProSIP_1_out2" PROPERTIES DEPENDS "TOPP_MetaProSIP_1")
+
+#------------------------------------------------------------------------------
 # MascotAdapter tests
 add_test("TOPP_MascotAdapter_1" ${TOPP_BIN_PATH}/MascotAdapter -test -ini ${DATA_DIR_TOPP}/MascotAdapter_1_parameters.ini -mascot_in -in ${DATA_DIR_TOPP}/MascotAdapter_1_input.mzData)
 add_test("TOPP_MascotAdapter_1_out1" ${DIFF} -in1 MascotAdapter_1_output.tmp -in2 ${DATA_DIR_TOPP}/MascotAdapter_1_output.mascot_in )
@@ -1416,9 +1424,9 @@ set_tests_properties("UTILS_PeakPickerIterative_2_out1" PROPERTIES DEPENDS "UTIL
 add_test("TOPP_LowMemPeakPickerHiRes_1" ${TOPP_BIN_PATH}/LowMemPeakPickerHiRes -test -ini ${DATA_DIR_TOPP}/LowMemPeakPickerHiRes_parameters.ini -in ${DATA_DIR_TOPP}/PeakPickerHiRes_input.mzML -out LowMemPeakPickerHiRes_1.tmp)
 add_test("TOPP_LowMemPeakPickerHiRes_1_out1" ${DIFF} -whitelist ${INDEX_WHITELIST} -in1 LowMemPeakPickerHiRes_1.tmp -in2 ${DATA_DIR_TOPP}/LowMemPeakPickerHiRes_output.mzML)
 set_tests_properties("TOPP_LowMemPeakPickerHiRes_1_out1" PROPERTIES DEPENDS "TOPP_LowMemPeakPickerHiRes_1")
-add_test("TOPP_LowMemPeakPickerHiRes_RandomAccess_1" ${TOPP_BIN_PATH}/LowMemPeakPickerHiRes_RandomAccess -test -ini ${DATA_DIR_TOPP}/LowMemPeakPickerHiRes_RandomAccess_parameters.ini -in ${DATA_DIR_TOPP}/PeakPickerHiRes_RandomAccess_input.mzML -out LowMemPeakPickerHiRes_RandomAccess_1.tmp)
-add_test("TOPP_LowMemPeakPickerHiRes_RandomAccess_1_out1" ${DIFF} -whitelist ${INDEX_WHITELIST} -in1 LowMemPeakPickerHiRes_RandomAccess_1.tmp -in2 ${DATA_DIR_TOPP}/LowMemPeakPickerHiRes_RandomAccess_output.mzML)
-set_tests_properties("TOPP_LowMemPeakPickerHiRes_RandomAccess_1_out1" PROPERTIES DEPENDS "TOPP_LowMemPeakPickerHiRes_RandomAccess_1")
+add_test("TOPP_LowMemPeakPickerHiResRandomAccess_1" ${TOPP_BIN_PATH}/LowMemPeakPickerHiResRandomAccess -test -ini ${DATA_DIR_TOPP}/LowMemPeakPickerHiRes_RandomAccess_parameters.ini -in ${DATA_DIR_TOPP}/PeakPickerHiRes_RandomAccess_input.mzML -out LowMemPeakPickerHiRes_RandomAccess_1.tmp)
+add_test("TOPP_LowMemPeakPickerHiResRandomAccess_1_out1" ${DIFF} -whitelist ${INDEX_WHITELIST} -in1 LowMemPeakPickerHiRes_RandomAccess_1.tmp -in2 ${DATA_DIR_TOPP}/LowMemPeakPickerHiRes_RandomAccess_output.mzML)
+set_tests_properties("TOPP_LowMemPeakPickerHiResRandomAccess_1_out1" PROPERTIES DEPENDS "TOPP_LowMemPeakPickerHiResRandomAccess_1")
 
 if(WITH_GUI)
   #------------------------------------------------------------------------------
