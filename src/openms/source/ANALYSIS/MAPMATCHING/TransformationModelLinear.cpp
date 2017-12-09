@@ -44,7 +44,7 @@ namespace OpenMS
     TransformationModel(data, params) // initializes model
   {
     data_given_ = !data.empty();
-    LOG_DEBUG << "size of data: " << std::to_string(data.size());
+    std::cout << "size of data: " << std::to_string(data.size()) << std::endl;
 
     if (!data_given_ && params.exists("slope") && params.exists("intercept"))
     {
