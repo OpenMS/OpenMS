@@ -140,7 +140,8 @@ namespace OpenMS
 
     // fit the data to the model
     TransformationDescription tmd;
-    tmd.fitModel(transformation_model, data, transformation_model_params);
+    tmd.setDataPoints(data);
+    tmd.fitModel(transformation_model, transformation_model_params);
     Param params = tmd.getModelParameters();
     // AbsoluteQuantitationMethod aqm;
     // Param params = aqm.fitTransformationModel(transformation_model, data, transformation_model_params);
@@ -217,7 +218,8 @@ namespace OpenMS
     // calculate the absolute concentration
     TransformationModel::DataPoints data;
     TransformationDescription tmd;
-    tmd.fitModel(transformation_model, data, transformation_model_params);
+    tmd.setDataPoints(data);
+    tmd.fitModel(transformation_model, transformation_model_params);
     tmd.invert();
     double calculated_concentration = tmd.apply(ratio);
 
