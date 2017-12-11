@@ -189,7 +189,7 @@ namespace OpenMS
       {
         UInt n_points = 0;
         for (auto it=p.PosBegin(left); it!=p.PosEnd(right); ++it, ++n_points)
-          ;
+        { }
         background = std::min(int_r, int_l) * n_points;
       }
     }
