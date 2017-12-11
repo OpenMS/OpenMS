@@ -62,7 +62,7 @@ namespace OpenMS
     return isoforms;
   }
 
-  int MRMAssay::getSwath_(const std::vector<std::pair<double, double> > swathes, const double precursor_mz)
+  int MRMAssay::getSwath_(const std::vector<std::pair<double, double> >& swathes, const double precursor_mz)
   {
     int swath = -1;
 
@@ -85,7 +85,7 @@ namespace OpenMS
     }
   }
 
-  bool MRMAssay::isInSwath_(const std::vector<std::pair<double, double> > swathes, const double precursor_mz, const double product_mz)
+  bool MRMAssay::isInSwath_(const std::vector<std::pair<double, double> >& swathes, const double precursor_mz, const double product_mz)
   {
     int swath_idx = getSwath_(swathes, precursor_mz);
 

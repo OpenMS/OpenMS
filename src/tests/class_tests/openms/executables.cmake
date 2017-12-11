@@ -479,6 +479,7 @@ set(analysis_executables_list
   PeakIntensityPredictor_test
   PScore_test
   HyperScore_test
+  MorpheusScore_test
   OPXLHelper_test
   OPXLSpectrumProcessingAlgorithms_test
   PoseClusteringAffineSuperimposer_test

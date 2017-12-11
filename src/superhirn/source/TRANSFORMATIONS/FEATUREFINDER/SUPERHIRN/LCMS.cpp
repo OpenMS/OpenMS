@@ -215,9 +215,8 @@ namespace OpenMS
     while (p != feature_list.end())
     {
 
-      SHFeature * PEAK = NULL;
       // get the peak at a charge state:
-      PEAK = &(*p);
+      SHFeature * PEAK = &(*p);
 
       if (PEAK != NULL)
       {
