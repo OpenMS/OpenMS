@@ -74,35 +74,32 @@ namespace OpenMS
   {
     "PrecursorMz",
     "ProductMz",
-    "Tr_recalibrated",
-    "transition_name",
-    "CE",
+    "PrecursorCharge",
+    "ProductCharge",
     "LibraryIntensity",
-    "transition_group_id",
-    "decoy",
+    "NormalizedRetentionTime",
     "PeptideSequence",
-    "ProteinName",
-    "Annotation",
-    "FullUniModPeptideName",
+    "ModifiedPeptideSequence",
+    "PeptideGroupLabel",
+    "LabelType",
     "CompoundName",
     "SumFormula",
     "SMILES",
-    "MissedCleavages",
-    "Replicates",
-    "NrModifications",
-    "PrecursorCharge",
-    "PeptideGroupLabel",
-    "LabelType",
-    "UniprotID",
-    "FragmentCharge", 
+    "ProteinId",
+    "UniprotId",
     "FragmentType", 
     "FragmentSeriesNumber",
-    "detecting_transition",
-    "identifying_transition",
-    "quantifying_transition"
+    "Annotation",
+    "CollisionEnergy",
+    "TransitionGroupId",
+    "TransitionId",
+    "Decoy",
+    "DetectingTransition",
+    "IdentifyingTransition",
+    "QuantifyingTransition"
   };
 
-  const std::vector<std::string> TransitionTSVReader::header_names_(strarray_, strarray_ + 28);
+  const std::vector<std::string> TransitionTSVReader::header_names_(strarray_, strarray_ + 25);
 
   void TransitionTSVReader::getTSVHeader_(const std::string& line, char& delimiter,
                                           std::vector<std::string> header, std::map<std::string, int>& header_dict)
@@ -147,7 +144,7 @@ namespace OpenMS
           (String)min_header_size + ". Please check your input file.");
     }
 
-    int requiredFields[3] = { 0, 1, 5};
+    int requiredFields[4] = { 0, 1, 4, 5};
     /*
      * required fields:
      *
@@ -155,12 +152,13 @@ namespace OpenMS
      * PrecursorMz
      * ProductMz
      * LibraryIntensity
+     * NormalizedRetentionTime
      *
      * these fields will be generated if not available:
-     * transition_name
-     * transition_group_id
+     * TransitionId
+     * TransitionGroupId
      *
-     * for peptides, also PeptideSequence and ProteinName are required
+     * for peptides, also PeptideSequence and ProteinId are required
      * for metabolites, also CompoundName is required 
      *
     */
@@ -350,11 +348,19 @@ namespace OpenMS
       {
         mytransition.fragment_type = tmp_line[header_dict["FragmentType"]];
       }
+      else if (header_dict.find("FragmentIonType") != header_dict.end()) // Skyline
+      {
+        mytransition.fragment_type = tmp_line[header_dict["FragmentIonType"]];
+      }
 
       // FragmentCharge
       if (header_dict.find("FragmentCharge") != header_dict.end())
       {
         mytransition.fragment_charge = String(tmp_line[header_dict["FragmentCharge"]]);
+      }
+      else if (header_dict.find("ProductCharge") != header_dict.end())
+      {
+        mytransition.fragment_charge = String(tmp_line[header_dict["ProductCharge"]]);
       }
 
       // FragmentSeriesNumber
@@ -366,12 +372,17 @@ namespace OpenMS
       {
         mytransition.fragment_nr = String(tmp_line[header_dict["FragmentNumber"]]).toInt();
       }
+      else if (header_dict.find("FragmentIonOrdinal") != header_dict.end()) // Skyline
+      {
+        mytransition.fragment_nr = String(tmp_line[header_dict["FragmentIonOrdinal"]]).toInt();
+      }
 
       // FragmentMzDelta
       if (header_dict.find("FragmentMzDelta") != header_dict.end())
       {
         mytransition.fragment_mzdelta = String(tmp_line[header_dict["FragmentMzDelta"]]).toInt();
       }
+
       // FragmentModification
       if (header_dict.find("FragmentModification") != header_dict.end())
       {
@@ -384,7 +395,7 @@ namespace OpenMS
       {
         mytransition.ProteinName = tmp_line[header_dict["ProteinName"]];
       }
-      else if (header_dict.find("ProteinId") != header_dict.end())
+      else if (header_dict.find("ProteinId") != header_dict.end()) // Spectronaut
       {
         mytransition.ProteinName = tmp_line[header_dict["ProteinId"]];
       }
@@ -429,6 +440,10 @@ namespace OpenMS
       {
         mytransition.FullPeptideName = tmp_line[header_dict["ModifiedSequence"]];
       }
+      else if (header_dict.find("ModifiedPeptideSequence") != header_dict.end())
+      {
+        mytransition.FullPeptideName = tmp_line[header_dict["ModifiedPeptideSequence"]];
+      }
 
       // IPF
       // Detecting transition
@@ -466,12 +481,21 @@ namespace OpenMS
         if  (String(tmp_line[header_dict["QuantifyingTransition"]]) == "1") { mytransition.quantifying_transition = true; }
         else if (String(tmp_line[header_dict["QuantifyingTransition"]]) == "0") { mytransition.quantifying_transition = false; }
       }
+      else if (header_dict.find("Quantitative") != header_dict.end()) // Skyline
+      {
+        if  (String(tmp_line[header_dict["Quantitative"]]) == "TRUE") { mytransition.quantifying_transition = true; }
+        else if (String(tmp_line[header_dict["Quantitative"]]) == "FALSE") { mytransition.quantifying_transition = false; }
+      }
 
       // Targeted Metabolomics
       // CompoundName
       if (header_dict.find("CompoundName") != header_dict.end())
       {
         mytransition.CompoundName = tmp_line[header_dict["CompoundName"]];
+      }
+      else if (header_dict.find("CompoundId") != header_dict.end())
+      {
+        mytransition.CompoundName = tmp_line[header_dict["CompoundId"]];
       }
 
       // SumFormula
@@ -493,8 +517,15 @@ namespace OpenMS
         mytransition.Annotation = tmp_line[header_dict["Annotation"]];
       }
 
-      // UniprotID
-      if (header_dict.find("UniprotID") != header_dict.end())
+      // UniprotId
+      if (header_dict.find("UniprotId") != header_dict.end())
+      {
+        if (tmp_line[header_dict["UniprotId"]] != "NA")
+        {
+          mytransition.uniprot_id = tmp_line[header_dict["UniprotId"]];
+        }
+      }
+      else if (header_dict.find("UniprotID") != header_dict.end())
       {
         if (tmp_line[header_dict["UniprotID"]] != "NA")
         {
@@ -520,6 +551,11 @@ namespace OpenMS
       else if (header_dict.find("Decoy") != header_dict.end())
       {
         mytransition.decoy = String(tmp_line[header_dict["Decoy"]]).toInt();
+      }
+      else if (header_dict.find("IsDecoy") != header_dict.end())
+      {
+        if  (String(tmp_line[header_dict["IsDecoy"]]) == "TRUE") { mytransition.decoy = true; }
+        else if (String(tmp_line[header_dict["IsDecoy"]]) == "FALSE") { mytransition.decoy = false; }
       }
 
       // SpectraST
@@ -612,20 +648,36 @@ namespace OpenMS
       // Generate transition_group_id and transition_name if not defined
       else
       {
-        // Use transition_name if available, else generate from attributes
+        // Use TransitionId if available, else generate from attributes
         if (header_dict.find("transition_name") != header_dict.end())
         {
           mytransition.transition_name = tmp_line[header_dict["transition_name"]];
+        }
+        else if (header_dict.find("TransitionName") != header_dict.end())
+        {
+          mytransition.transition_name = tmp_line[header_dict["TransitionName"]];
+        }
+        else if (header_dict.find("TransitionId") != header_dict.end())
+        {
+          mytransition.transition_name = tmp_line[header_dict["TransitionId"]];
         }
         else
         {
           mytransition.transition_name = String(cnt);
         }
 
-        // Use transition_group_id if available, else generate from attributes
+        // Use TransitionGroupId if available, else generate from attributes
         if (header_dict.find("transition_group_id") != header_dict.end())
         {
           mytransition.group_id = tmp_line[header_dict["transition_group_id"]];
+        }
+        else if (header_dict.find("TransitionGroupId") != header_dict.end())
+        {
+          mytransition.group_id = tmp_line[header_dict["TransitionGroupId"]];
+        }
+        else if (header_dict.find("TransitionGroupName") != header_dict.end())
+        {
+          mytransition.group_id = tmp_line[header_dict["TransitionGroupName"]];
         }
         else
         {
@@ -1549,29 +1601,26 @@ namespace OpenMS
       line +=
         (String)it->precursor                + "\t"
         + (String)it->product                  + "\t"
-        + (String)it->rt_calibrated            + "\t"
-        + (String)it->transition_name          + "\t"
-        + (String)it->CE                       + "\t"
+        + (String)it->precursor_charge         + "\t"
+        + (String)it->fragment_charge          + "\t"
         + (String)it->library_intensity        + "\t"
-        + (String)it->group_id                 + "\t"
-        + (String)it->decoy                    + "\t"
+        + (String)it->rt_calibrated            + "\t"
         + (String)it->PeptideSequence          + "\t"
-        + (String)it->ProteinName              + "\t"
-        + (String)it->Annotation               + "\t"
         + (String)it->FullPeptideName          + "\t"
+        + (String)it->peptide_group_label      + "\t"
+        + (String)it->label_type               + "\t"
         + (String)it->CompoundName             + "\t"
         + (String)it->SumFormula               + "\t"
         + (String)it->SMILES                   + "\t"
-        + (String)0                            + "\t"
-        + (String)0                            + "\t"
-        + (String)0                            + "\t"
-        + (String)it->precursor_charge         + "\t"
-        + (String)it->peptide_group_label      + "\t"
-        + (String)it->label_type               + "\t"
+        + (String)it->ProteinName              + "\t"
         + (String)it->uniprot_id               + "\t"
-        + (String)it->fragment_charge          + "\t"
         + (String)it->fragment_type            + "\t"
         + (String)it->fragment_nr              + "\t"
+        + (String)it->Annotation               + "\t"
+        + (String)it->CE                       + "\t"
+        + (String)it->group_id                 + "\t"
+        + (String)it->transition_name          + "\t"
+        + (String)it->decoy                    + "\t"
         + (String)it->detecting_transition     + "\t"
         + (String)it->identifying_transition   + "\t"
         + (String)it->quantifying_transition;
