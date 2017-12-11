@@ -34,6 +34,8 @@
 
 #include <OpenMS/ANALYSIS/OPENSWATH/TargetedSpectraExtractor.h>
 
+#include <boost/unordered_map.hpp> 
+
 namespace OpenMS
 {
   TargetedSpectraExtractor::TargetedSpectraExtractor() :
@@ -335,7 +337,7 @@ namespace OpenMS
     FeatureMap& selected_features
   )
   {
-    std::unordered_map<std::string,UInt> transition_best_spec;
+    boost::unordered_map<std::string,UInt> transition_best_spec;
     for (Size i=0; i<scored_spectra.size(); ++i)
     {
       if (scored_spectra[i].getFloatDataArrays()[1][0] < min_score_)
@@ -343,7 +345,7 @@ namespace OpenMS
         continue;
       }
       const std::string transition_name = scored_spectra[i].getName();
-      std::unordered_map<std::string,UInt>::const_iterator it = transition_best_spec.find(transition_name);
+      boost::unordered_map<std::string,UInt>::const_iterator it = transition_best_spec.find(transition_name);
       if (it == transition_best_spec.end())
       {
         transition_best_spec.insert({transition_name, i});
