@@ -28,7 +28,7 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/PeakIntegrator.h>" namespace "OpenM
 
         double getPeakArea() nogil except +
         double getPeakHeight() nogil except +
-        double getPeakApexRT() nogil except +
+        double getPeakApexPos() nogil except +
         double getBackgroundHeight() nogil except +
         double getBackgroundArea() nogil except +
         double getWidthAt5() nogil except +
