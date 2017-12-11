@@ -295,6 +295,7 @@ START_SECTION((void calculateBiasAndR2(
   component_concentration.IS_feature = IS_component;
   component_concentration.actual_concentration = 1.0;
   component_concentration.IS_actual_concentration = 1.0;
+  component_concentration.dilution_factor = 1.0;
   component_concentrations.push_back(component_concentration);  
   // point #2
   component.setMetaValue("native_id","component");
@@ -305,6 +306,7 @@ START_SECTION((void calculateBiasAndR2(
   component_concentration.IS_feature = IS_component;
   component_concentration.actual_concentration = 2.0;
   component_concentration.IS_actual_concentration = 1.0;
+  component_concentration.dilution_factor = 1.0;
   component_concentrations.push_back(component_concentration);  
   // point #3
   component.setMetaValue("native_id","component");
@@ -315,6 +317,7 @@ START_SECTION((void calculateBiasAndR2(
   component_concentration.IS_feature = IS_component;
   component_concentration.actual_concentration = 3.0;
   component_concentration.IS_actual_concentration = 1.0;
+  component_concentration.dilution_factor = 1.0;
   component_concentrations.push_back(component_concentration);  
 
   String feature_name = "peak_apex_int";
@@ -365,6 +368,7 @@ START_SECTION((Param AbsoluteQuantitation::fitCalibration(
   component_concentration.IS_feature = IS_component;
   component_concentration.actual_concentration = 1.0;
   component_concentration.IS_actual_concentration = 1.0;
+  component_concentration.dilution_factor = 1.0;
   component_concentrations.push_back(component_concentration);  
   // point #2
   component.setMetaValue("native_id","component");
@@ -375,6 +379,7 @@ START_SECTION((Param AbsoluteQuantitation::fitCalibration(
   component_concentration.IS_feature = IS_component;
   component_concentration.actual_concentration = 2.0;
   component_concentration.IS_actual_concentration = 1.0;
+  component_concentration.dilution_factor = 1.0;
   component_concentrations.push_back(component_concentration);  
   // point #3
   component.setMetaValue("native_id","component");
@@ -385,6 +390,7 @@ START_SECTION((Param AbsoluteQuantitation::fitCalibration(
   component_concentration.IS_feature = IS_component;
   component_concentration.actual_concentration = 3.0;
   component_concentration.IS_actual_concentration = 1.0;
+  component_concentration.dilution_factor = 1.0;
   component_concentrations.push_back(component_concentration); 
 
   String feature_name = "peak_apex_int";
@@ -440,6 +446,7 @@ START_SECTION((std::vector<AbsoluteQuantitationStandards::featureConcentration> 
     component_concentration.IS_feature = IS_component;
     component_concentration.actual_concentration = x1[i];
     component_concentration.IS_actual_concentration = 1.0;
+    component_concentration.dilution_factor = 1.0;
     component_concentrations.push_back(component_concentration); 
   }  
 
@@ -487,6 +494,7 @@ END_SECTION
 //     component_concentration.IS_feature = IS_component;
 //     component_concentration.actual_concentration = x1[i];
 //     component_concentration.IS_actual_concentration = 1.0;
+//     component_concentration.dilution_factor = 1.0;
 //     component_concentrations.push_back(component_concentration); 
 //   }  
 
@@ -521,6 +529,7 @@ END_SECTION
 //     component_concentration.IS_feature = IS_component;
 //     component_concentration.actual_concentration = x2[i];
 //     component_concentration.IS_actual_concentration = 1.0;
+//     component_concentration.dilution_factor = 1.0;
 //     component_concentrations.push_back(component_concentration); 
 //   }  
 
@@ -559,6 +568,7 @@ START_SECTION((int residualOutlierCandidate_(
     component_concentration.IS_feature = IS_component;
     component_concentration.actual_concentration = x1[i];
     component_concentration.IS_actual_concentration = 1.0;
+    component_concentration.dilution_factor = 1.0;
     component_concentrations.push_back(component_concentration); 
   }  
 
@@ -593,6 +603,7 @@ START_SECTION((int residualOutlierCandidate_(
     component_concentration.IS_feature = IS_component;
     component_concentration.actual_concentration = x2[i];
     component_concentration.IS_actual_concentration = 1.0;
+    component_concentration.dilution_factor = 1.0;
     component_concentrations.push_back(component_concentration); 
   }  
 
