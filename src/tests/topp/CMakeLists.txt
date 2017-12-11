@@ -1077,6 +1077,12 @@ ${TOPP_BIN_PATH}/OpenSwathDecoyGenerator -test -in ${DATA_DIR_TOPP}/OpenSwathDec
   add_test("TOPP_ConvertTSVToTraML_test_4" ${TOPP_BIN_PATH}/TargetedFileConverter -test -in ${DATA_DIR_TOPP}/ConvertTSVToTraML_4_input.mrm -out ConvertTSVToTraML_4_output.TraML.tmp -out_type TraML)
   add_test("TOPP_ConvertTSVToTraML_test_4_out1" ${DIFF} -in1 ConvertTSVToTraML_4_output.TraML.tmp -in2 ${DATA_DIR_TOPP}/ConvertTSVToTraML_4_output.TraML)
   set_tests_properties("TOPP_ConvertTSVToTraML_test_4_out1" PROPERTIES DEPENDS "TOPP_ConvertTSVToTraML_test_4")
+  add_test("TOPP_ConvertTSVToTraML_test_6" ${TOPP_BIN_PATH}/TargetedFileConverter -test -in ${DATA_DIR_TOPP}/ConvertTSVToTraML_6_input.tsv -out ConvertTSVToTraML_6_output.TraML.tmp -out_type TraML)
+  add_test("TOPP_ConvertTSVToTraML_test_6_out1" ${DIFF} -in1 ConvertTSVToTraML_6_output.TraML.tmp -in2 ${DATA_DIR_TOPP}/ConvertTSVToTraML_6_output.TraML)
+  set_tests_properties("TOPP_ConvertTSVToTraML_test_6_out1" PROPERTIES DEPENDS "TOPP_ConvertTSVToTraML_test_6")
+  add_test("TOPP_ConvertTSVToTraML_test_7" ${TOPP_BIN_PATH}/TargetedFileConverter -test -in ${DATA_DIR_TOPP}/ConvertTSVToTraML_7_input_Skyline.tsv -out ConvertTSVToTraML_7_output.TraML.tmp -out_type TraML)
+  add_test("TOPP_ConvertTSVToTraML_test_7_out1" ${DIFF} -in1 ConvertTSVToTraML_7_output.TraML.tmp -in2 ${DATA_DIR_TOPP}/ConvertTSVToTraML_7_output.TraML)
+  set_tests_properties("TOPP_ConvertTSVToTraML_test_7_out1" PROPERTIES DEPENDS "TOPP_ConvertTSVToTraML_test_7")
 
   # Proteomics PQP - TraML Conversion
   add_test("TOPP_TargetedFileConverter_test_1_prepare" ${TOPP_BIN_PATH}/TargetedFileConverter -test -in ${DATA_DIR_TOPP}/TargetedFileConverter_1_input.TraML -out TargetedFileConverter_1_output.pqp.tmp -out_type pqp)
