@@ -188,7 +188,7 @@ protected:
 
           if (shuffle)
           {
-            LOG_WARN << "Shuffle is not implemented for RNA yet.";
+            random_shuffle(tokenized.begin(),tokenized.end());
           }
           else  // reverse
           {
@@ -201,14 +201,15 @@ protected:
             {
               tokenized.push_back(String("p"));
             }
-            //implode
-            String tempstring = "";
-            for (vector<String>::iterator it = tokenized.begin(); it != tokenized.end(); ++it)
-            {
-              tempstring += *it;
-            }
-            entry.sequence = tempstring;
           }
+          //implode
+          String tempstring = "";
+          for (vector<String>::iterator it = tokenized.begin(); it != tokenized.end(); ++it)
+          {
+            tempstring += *it;
+          }
+          entry.sequence = tempstring;
+
         }
         else
         {
