@@ -406,7 +406,7 @@ protected:
         Uses round brackets when possible (id is known) or square brackets for
         unknown modifications where only the mass is known.
 
-        i.e.: n[43]PEPC(Carbamidomethyl)PEPM[147]PEPRc[16]
+        i.e.: .n[43]PEPC(Carbamidomethyl)PEPM[147]PEPR.[16]
     */
     String toString() const;
 
@@ -419,7 +419,7 @@ protected:
         Uses round brackets when possible (id is known) or square brackets for
         unknown modifications where only the mass is known.
 
-        i.e.: n[43]PEPC(UniMod:4)PEPM[147]PEPRc[16]
+        i.e.: .n[43]PEPC(UniMod:4)PEPM[147]PEPR.[16]
     */
     String toUniModString() const;
 

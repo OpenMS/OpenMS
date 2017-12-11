@@ -1398,7 +1398,7 @@ namespace OpenMS
         }
       }
 
-      mytransition.FullPeptideName = TargetedExperimentHelper::getAASequence(pep).toUniModString();;
+      mytransition.FullPeptideName = TargetedExperimentHelper::getAASequence(pep).toUniModString();
 
       mytransition.precursor_charge = "NA";
       if (pep.hasCharge())
