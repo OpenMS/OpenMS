@@ -277,7 +277,7 @@ public:
           }
         }
 
-        const SpectrumT used_chromatogram;
+        SpectrumT used_chromatogram;
         // resample the current chromatogram
         if (peak_integration_ == "original_intensity_sum")
         {
@@ -395,7 +395,7 @@ public:
         
         const SpectrumT& chromatogram = transition_group.getPrecursorChromatograms()[k];
 
-        const SpectrumT used_chromatogram;
+        SpectrumT used_chromatogram;
         // resample the current chromatogram
         if (peak_integration_ == "original_intensity_sum")
         {
