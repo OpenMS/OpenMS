@@ -217,9 +217,9 @@ namespace OpenMS
     double ratio = calculateRatio(component, IS_component, feature_name);
 
     // calculate the absolute concentration
-    TransformationModel::DataPoints data;
+    // TransformationModel::DataPoints data;
     TransformationDescription tmd;
-    tmd.setDataPoints(data);
+    // tmd.setDataPoints(data);
     tmd.fitModel(transformation_model, transformation_model_params);
     tmd.invert();
     double calculated_concentration = tmd.apply(ratio);
