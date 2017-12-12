@@ -140,8 +140,8 @@ namespace OpenMS
     std::cout << "fitCalibration: size of data: " << std::to_string(data.size()) << std::endl;
 
     // fit the data to the model
-    TransformationDescription tmd;
-    tmd.setDataPoints(data);
+    TransformationDescription tmd(data);
+    // tmd.setDataPoints(data);
     tmd.fitModel(transformation_model, transformation_model_params);
     Param params = tmd.getModelParameters();
     // AbsoluteQuantitationMethod aqm;
