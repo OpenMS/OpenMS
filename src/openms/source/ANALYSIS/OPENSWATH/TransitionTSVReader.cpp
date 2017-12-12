@@ -44,71 +44,70 @@
 namespace OpenMS
 {
 
-template<class T>   // primary template
-bool extractName(T& value, const std::string& header_name,
-                 const std::vector<std::string>& tmp_line,
-                 const std::map<std::string, int>& header_dict)
-{
-  auto tmp = header_dict.find( header_name );
-  if (tmp != header_dict.end())
-	{
-    value = tmp_line[ tmp->second ];
-    // perform cleanup
-    value = value.remove('"');
-    value = value.remove('\'');
-    value = value.remove(',');
-    return true;
-	}
-  return false;
-}
+  template<class T>   // primary template
+  bool extractName(T& value, const std::string& header_name,
+                   const std::vector<std::string>& tmp_line,
+                   const std::map<std::string, int>& header_dict)
+  {
+    auto tmp = header_dict.find( header_name );
+    if (tmp != header_dict.end())
+    {
+      value = tmp_line[ tmp->second ];
+      // perform cleanup
+      value = value.remove('"');
+      value = value.remove('\'');
+      value = value.remove(',');
+      return true;
+    }
+    return false;
+  }
 
-template<>   // specialization for int
-bool extractName<int>(int& value, const std::string& header_name,
-                      const std::vector<std::string>& tmp_line,
-                      const std::map<std::string, int>& header_dict)
-{
-  auto tmp = header_dict.find( header_name );
-  if (tmp != header_dict.end())
-	{
-    value = String(tmp_line[ tmp->second ]).toInt();
-    return true;
-	}
-  return false;
-}
+  template<>   // specialization for int
+  bool extractName<int>(int& value, const std::string& header_name,
+                        const std::vector<std::string>& tmp_line,
+                        const std::map<std::string, int>& header_dict)
+  {
+    auto tmp = header_dict.find( header_name );
+    if (tmp != header_dict.end())
+    {
+      value = String(tmp_line[ tmp->second ]).toInt();
+      return true;
+    }
+    return false;
+  }
 
-template<>   // specialization for double
-bool extractName<double>(double& value, const std::string& header_name,
-                      const std::vector<std::string>& tmp_line,
-                      const std::map<std::string, int>& header_dict)
-{
-  auto tmp = header_dict.find( header_name );
-  if (tmp != header_dict.end())
-	{
-    value = String(tmp_line[ tmp->second ]).toDouble();
-    return true;
-	}
-  return false;
-}
+  template<>   // specialization for double
+  bool extractName<double>(double& value, const std::string& header_name,
+                        const std::vector<std::string>& tmp_line,
+                        const std::map<std::string, int>& header_dict)
+  {
+    auto tmp = header_dict.find( header_name );
+    if (tmp != header_dict.end())
+    {
+      value = String(tmp_line[ tmp->second ]).toDouble();
+      return true;
+    }
+    return false;
+  }
 
-template<>   // specialization for bool
-bool extractName<bool>(bool& value, const std::string& header_name,
-                      const std::vector<std::string>& tmp_line,
-                      const std::map<std::string, int>& header_dict)
-{
-  auto tmp = header_dict.find( header_name );
-  if (tmp != header_dict.end())
-	{
-    auto str_value = tmp_line[ tmp->second ];
-    if (str_value == "1" || str_value == "TRUE") value = true;
-    else if (str_value == "0" || str_value == "FALSE") value = false;
-    else return false;
+  template<>   // specialization for bool
+  bool extractName<bool>(bool& value, const std::string& header_name,
+                        const std::vector<std::string>& tmp_line,
+                        const std::map<std::string, int>& header_dict)
+  {
+    auto tmp = header_dict.find( header_name );
+    if (tmp != header_dict.end())
+    {
+      auto str_value = tmp_line[ tmp->second ];
+      if (str_value == "1" || str_value == "TRUE") value = true;
+      else if (str_value == "0" || str_value == "FALSE") value = false;
+      else return false;
 
-    // all went well, we set the value and can return
-    return true;
-	}
-  return false;
-}
-
+      // all went well, we set the value and can return
+      return true;
+    }
+    return false;
+  }
 
   TransitionTSVReader::TransitionTSVReader() :
     DefaultParamHandler("TransitionTSVReader")
@@ -357,15 +356,12 @@ bool extractName<bool>(bool& value, const std::string& header_name,
       !extractName(mytransition.precursor_charge, "PrecursorCharge", tmp_line, header_dict) &&
       !extractName(mytransition.precursor_charge, "Charge", tmp_line, header_dict); // charge is assumed to be the charge of the precursor
 
-      // FragmentType
       !extractName(mytransition.fragment_type, "FragmentType", tmp_line, header_dict) &&
       !extractName(mytransition.fragment_type, "FragmentIonType", tmp_line, header_dict); // Skyline
 
-      // FragmentCharge
       !extractName(mytransition.fragment_charge, "FragmentCharge", tmp_line, header_dict) &&
       !extractName(mytransition.fragment_charge, "ProductCharge", tmp_line, header_dict);
 
-      // FragmentSeriesNumber
       !extractName<int>(mytransition.fragment_nr, "FragmentSeriesNumber", tmp_line, header_dict) &&
       !extractName<int>(mytransition.fragment_nr, "FragmentNumber", tmp_line, header_dict) &&
       !extractName<int>(mytransition.fragment_nr, "FragmentIonOrdinal", tmp_line, header_dict);
@@ -374,59 +370,44 @@ bool extractName<bool>(bool& value, const std::string& header_name,
       extractName<int>(mytransition.fragment_modification, "FragmentModification", tmp_line, header_dict);
 
       //// Proteomics
-      // ProteinName
       extractName(mytransition.ProteinName, "ProteinName", tmp_line, header_dict) &&
       extractName(mytransition.ProteinName, "ProteinId", tmp_line, header_dict); // Spectronaut
 
-      // PeptideGroupLabel
       extractName(mytransition.peptide_group_label, "PeptideGroupLabel", tmp_line, header_dict);
 
-      // LabelType
       extractName(mytransition.label_type, "LabelType", tmp_line, header_dict);
 
-      // StrippedSequence
       !extractName(mytransition.PeptideSequence, "PeptideSequence", tmp_line, header_dict) &&
       !extractName(mytransition.PeptideSequence, "Sequence", tmp_line, header_dict) && // Skyline
       !extractName(mytransition.PeptideSequence, "StrippedSequence", tmp_line, header_dict); // Spectronaut
 
-      // ModifiedSequence
       !extractName(mytransition.FullPeptideName, "FullUniModPeptideName", tmp_line, header_dict) &&
       !extractName(mytransition.FullPeptideName, "FullPeptideName", tmp_line, header_dict) &&
       !extractName(mytransition.FullPeptideName, "ModifiedSequence", tmp_line, header_dict) && // Spectronaut
       !extractName(mytransition.FullPeptideName, "ModifiedPeptideSequence", tmp_line, header_dict);
 
-      // IPF
-      // Detecting transition
+      //// IPF
       !extractName<bool>(mytransition.detecting_transition, "detecting_transition", tmp_line, header_dict) &&
       !extractName<bool>(mytransition.detecting_transition, "DetectingTransition", tmp_line, header_dict);
-
-      // Identifying transition
       !extractName<bool>(mytransition.identifying_transition, "identifying_transition", tmp_line, header_dict) &&
       !extractName<bool>(mytransition.identifying_transition, "IdentifyingTransition", tmp_line, header_dict);
-
-      // Quantifying transition
       !extractName<bool>(mytransition.quantifying_transition, "quantifying_transition", tmp_line, header_dict) &&
       !extractName<bool>(mytransition.quantifying_transition, "QuantifyingTransition", tmp_line, header_dict) &&
       !extractName<bool>(mytransition.quantifying_transition, "Quantitative", tmp_line, header_dict); // Skyline
 
-      // Targeted Metabolomics
-      // CompoundName
+      //// Targeted Metabolomics
       !extractName(mytransition.CompoundName, "CompoundName", tmp_line, header_dict) &&
       !extractName(mytransition.CompoundName, "CompoundId", tmp_line, header_dict);
       extractName(mytransition.SumFormula, "SumFormula", tmp_line, header_dict);
       extractName(mytransition.SMILES, "SMILES", tmp_line, header_dict);
 
-      // Meta
-      // Annotation
+      //// Meta
       extractName(mytransition.Annotation, "Annotation", tmp_line, header_dict);
-
       // UniprotId
       !extractName(mytransition.uniprot_id, "UniprotId", tmp_line, header_dict) &&
       !extractName(mytransition.uniprot_id, "UniprotID", tmp_line, header_dict);
       if (mytransition.uniprot_id == "NA") mytransition.uniprot_id == "";
 
-      // CollisionEnergy
-      // FragmentSeriesNumber
       !extractName<double>(mytransition.CE, "CE", tmp_line, header_dict) &&
       !extractName<double>(mytransition.CE, "CollisionEnergy", tmp_line, header_dict);
 
@@ -435,8 +416,6 @@ bool extractName<bool>(bool& value, const std::string& header_name,
       !extractName<bool>(mytransition.decoy, "Decoy", tmp_line, header_dict) &&
       !extractName<bool>(mytransition.decoy, "IsDecoy", tmp_line, header_dict);
 
-      // SpectraST
-      // SpectraSTAnnotation
       if (header_dict.find("SpectraSTAnnotation") != header_dict.end())
       {
         skip_transition = spectrastAnnotationExtract(tmp_line[header_dict["SpectraSTAnnotation"]], mytransition);
