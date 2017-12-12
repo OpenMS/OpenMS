@@ -292,6 +292,11 @@ public:
         {
           const SpectrumT used_chromatogram = resampleChromatogram_(smoothed_chroms[k], master_peak_container, best_left, best_right);
         }
+        else
+        {
+          std::cerr << "No peak integration specified.  Defaulting to original." << std::endl;
+          const SpectrumT used_chromatogram = resampleChromatogram_(chromatogram, master_peak_container, best_left, best_right);
+        } 
 
         Feature f;
         double quality = 0;
@@ -404,6 +409,11 @@ public:
         {
           const SpectrumT used_chromatogram = resampleChromatogram_(smoothed_chroms[k], master_peak_container, best_left, best_right);
         }
+        else
+        {
+          std::cerr << "No peak integration specified.  Defaulting to original." << std::endl;
+          const SpectrumT used_chromatogram = resampleChromatogram_(chromatogram, master_peak_container, best_left, best_right);
+        }   
 
         Feature f;
         double quality = 0;
