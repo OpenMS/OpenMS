@@ -255,13 +255,17 @@ namespace OpenMS
         peak_area_ /= valids;
       }
     }
-    else
+    else if (integration_type_ == "intensity_sum")
     {
-      std::cout << std::endl << "WARNING: intensity_sum method is being used." << std::endl;
+      std::cout << "\nWARNING: intensity_sum method is being used.\n";
       for (auto it=p.PosBegin(left); it!=p.PosEnd(right); ++it)
       {
         peak_area_ += it->getIntensity();
       }
+    }
+    else
+    {
+      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Please set a valid value for the parameter \"integration_type\".\n");
     }
   }
 
