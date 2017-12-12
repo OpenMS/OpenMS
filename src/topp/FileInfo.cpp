@@ -925,7 +925,7 @@ protected:
         }
       }
 
-      //Check for corrupt data
+      // Check for corrupt data
       if (getFlag_("c"))
       {
         os << "\n"
