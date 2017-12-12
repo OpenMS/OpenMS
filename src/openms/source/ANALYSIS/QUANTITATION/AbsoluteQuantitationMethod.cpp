@@ -218,7 +218,6 @@ namespace OpenMS
     const TransformationModel::DataPoints& data,
     const Param& transformation_model_params)
   {
-    std::cout << "size of data: " << std::to_string(data.size()) << std::endl;
     Param params;
     if (transformation_model == "TransformationModelLinear")
     {
