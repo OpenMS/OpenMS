@@ -406,7 +406,7 @@ namespace OpenMS
       // UniprotId
       !extractName(mytransition.uniprot_id, "UniprotId", tmp_line, header_dict) &&
       !extractName(mytransition.uniprot_id, "UniprotID", tmp_line, header_dict);
-      if (mytransition.uniprot_id == "NA") mytransition.uniprot_id == "";
+      if (mytransition.uniprot_id == "NA") mytransition.uniprot_id = "";
 
       !extractName<double>(mytransition.CE, "CE", tmp_line, header_dict) &&
       !extractName<double>(mytransition.CE, "CollisionEnergy", tmp_line, header_dict);
