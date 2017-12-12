@@ -99,7 +99,7 @@ protected:
       double CE;
       double library_intensity;
       String group_id;
-      int decoy;
+      bool decoy;
       String PeptideSequence;
       String ProteinName;
       String Annotation;
@@ -127,7 +127,7 @@ protected:
         rt_calibrated(-1),
         CE(-1),
         library_intensity(-1),
-        decoy(0),
+        decoy(false),
         fragment_charge("NA"),
         fragment_nr(-1),
         fragment_mzdelta(-1),
