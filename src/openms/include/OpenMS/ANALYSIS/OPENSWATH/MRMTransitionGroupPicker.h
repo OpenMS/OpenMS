@@ -288,7 +288,7 @@ public:
           std::cerr << "Tried to calculate peak area and height without any smoothed chromatograms" << std::endl;
           const SpectrumT used_chromatogram = resampleChromatogram_(chromatogram, master_peak_container, best_left, best_right);
         }        
-        else if (peak_integration_ == "smoothed_intensity_sum" && smoothed_chroms.size() <= k)
+        else if (peak_integration_ == "smoothed_intensity_sum")
         {
           const SpectrumT used_chromatogram = resampleChromatogram_(smoothed_chroms[k], master_peak_container, best_left, best_right);
         }
@@ -395,15 +395,14 @@ public:
           const SpectrumT used_chromatogram = resampleChromatogram_(chromatogram, master_peak_container, best_left, best_right);
           // const SpectrumT& used_chromatogram = chromatogram; // instead of resampling
         }
+        else if (peak_integration_ == "smoothed_intensity_sum" && smoothed_chroms.size() <= k)
+        {
+          std::cerr << "Tried to calculate peak area and height without any smoothed chromatograms" << std::endl;
+          const SpectrumT used_chromatogram = resampleChromatogram_(chromatogram, master_peak_container, best_left, best_right);
+        }        
         else if (peak_integration_ == "smoothed_intensity_sum")
         {
-          if ((peak_integration_ == "smoothed_intensity_sum") && smoothed_chroms.size() <= k)
-          {
-            std::cerr << "Tried to calculate peak area and height without any smoothed chromatograms" << std::endl;
-            background =  0;
-          }
           const SpectrumT used_chromatogram = resampleChromatogram_(smoothed_chroms[k], master_peak_container, best_left, best_right);
-          // const SpectrumT& used_chromatogram = chromatogram; // instead of resampling
         }
 
         Feature f;
