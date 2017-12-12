@@ -86,6 +86,7 @@ SqMassFile.h
 TextFile.h
 ToolDescriptionFile.h
 TransformationXMLFile.h
+TXTToMzMLConverter.h
 UnimodXMLFile.h
 XMLFile.h
 XTandemInfile.h

@@ -71,6 +71,7 @@ TextFile.cpp
 ToolDescriptionFile.cpp
 TraMLFile.cpp
 TransformationXMLFile.cpp
+TXTToMzMLConverter.cpp
 UnimodXMLFile.cpp
 XMassFile.cpp
 XMLFile.cpp

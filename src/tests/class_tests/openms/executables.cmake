@@ -225,6 +225,7 @@ set(format_executables_list
   ToolDescriptionFile_test
   TraMLFile_test
   TransformationXMLFile_test
+  TXTToMzMLConverter_test
   UnimodXMLFile_test
   XMassFile_test
   XMLFile_test
