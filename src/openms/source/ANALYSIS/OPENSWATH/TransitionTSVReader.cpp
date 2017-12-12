@@ -53,6 +53,10 @@ bool extractName(T& value, const std::string& header_name,
   if (tmp != header_dict.end())
 	{
     value = tmp_line[ tmp->second ];
+    // perform cleanup
+    value = value.remove('"');
+    value = value.remove('\'');
+    value = value.remove(',');
     return true;
 	}
   return false;
@@ -598,46 +602,6 @@ bool extractName<bool>(bool& value, const std::string& header_name,
 
   void TransitionTSVReader::cleanupTransitions_(TSVTransition& mytransition)
   {
-    mytransition.transition_name = mytransition.transition_name.remove('"');
-    mytransition.transition_name = mytransition.transition_name.remove('\'');
-
-    mytransition.PeptideSequence = mytransition.PeptideSequence.remove('"');
-    mytransition.PeptideSequence = mytransition.PeptideSequence.remove('\'');
-
-    mytransition.ProteinName = mytransition.ProteinName.remove('"');
-    mytransition.ProteinName = mytransition.ProteinName.remove('\'');
-    mytransition.ProteinName = mytransition.ProteinName.remove(',');
-
-    mytransition.Annotation = mytransition.Annotation.remove('"');
-    mytransition.Annotation = mytransition.Annotation.remove('\'');
-
-    mytransition.FullPeptideName = mytransition.FullPeptideName.remove('"');
-    mytransition.FullPeptideName = mytransition.FullPeptideName.remove('\'');
-
-    mytransition.CompoundName = mytransition.CompoundName.remove('"');
-    mytransition.CompoundName = mytransition.CompoundName.remove('\'');
-
-    mytransition.SumFormula = mytransition.SumFormula.remove('"');
-    mytransition.SumFormula = mytransition.SumFormula.remove('\'');
-
-    mytransition.SMILES = mytransition.SMILES.remove('"');
-    mytransition.SMILES = mytransition.SMILES.remove('\'');
-
-    mytransition.group_id = mytransition.group_id.remove('"');
-    mytransition.group_id = mytransition.group_id.remove('\'');
-
-    mytransition.peptide_group_label = mytransition.peptide_group_label.remove('"');
-    mytransition.peptide_group_label = mytransition.peptide_group_label.remove('\'');
-
-    mytransition.label_type = mytransition.label_type.remove('"');
-    mytransition.label_type = mytransition.label_type.remove('\'');
-
-    mytransition.fragment_type = mytransition.fragment_type.remove('"');
-    mytransition.fragment_type = mytransition.fragment_type.remove('\'');
-
-    mytransition.uniprot_id = mytransition.uniprot_id.remove('"');
-    mytransition.uniprot_id = mytransition.uniprot_id.remove('\'');
-
     // deal with FullPeptideNames like PEPTIDE/2
     std::vector<String> substrings;
     mytransition.FullPeptideName.split("/", substrings);
