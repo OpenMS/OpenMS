@@ -278,8 +278,21 @@ public:
         }
 
         // resample the current chromatogram
-        const SpectrumT used_chromatogram = resampleChromatogram_(chromatogram, master_peak_container, best_left, best_right);
-        // const SpectrumT& used_chromatogram = chromatogram; // instead of resampling
+        if (peak_integration_ == "original_intensity_sum")
+        {
+          const SpectrumT used_chromatogram = resampleChromatogram_(chromatogram, master_peak_container, best_left, best_right);
+          // const SpectrumT& used_chromatogram = chromatogram; // instead of resampling
+        }
+        else if (peak_integration_ == "smoothed_intensity_sum" && smoothed_chroms.size() <= k)
+        {
+          std::cerr << "Tried to calculate peak area and height without any smoothed chromatograms" << std::endl;
+          if ((peak_integration_ == "smoothed_intensity_sum") && smoothed_chroms.size() > k)
+          {
+            background =  0;
+          }
+          const SpectrumT used_chromatogram = resampleChromatogram_(smoothed_chroms[k], master_peak_container, best_left, best_right);
+          // const SpectrumT& used_chromatogram = chromatogram; // instead of resampling
+        }
 
         Feature f;
         double quality = 0;
@@ -294,24 +307,16 @@ public:
         double background(0), avg_noise_level(0);
         if (background_subtraction_ != "none")
         {
-          if ((background_subtraction_ == "smoothed_average" || background_subtraction_ == "smoothed_exact") && smoothed_chroms.size() <= k)
+          if ((peak_integration_ == "smoothed_intensity_sum") && smoothed_chroms.size() <= k)
           {
             std::cerr << "Tried to calculate background estimation without any smoothed chromatograms" << std::endl;
             background =  0;
           }
-          else if (background_subtraction_ == "smoothed_average")
-          {
-            calculateBgEstimationAverage_(smoothed_chroms[k], best_left, best_right, background, avg_noise_level);
-          }
-          else if (background_subtraction_ == "smoothed_exact")
-          {
-            calculateBgEstimationExact_(smoothed_chroms[k], best_left, best_right, peak_apex_int, background, avg_noise_level);
-          }
-          else if (background_subtraction_ == "original_average")
+          else if (background_subtraction_ == "average")
           {
             calculateBgEstimationAverage_(used_chromatogram, best_left, best_right, background, avg_noise_level);
           }
-          else if (background_subtraction_ == "original_exact")
+          else if (background_subtraction_ == "exact")
           {
             calculateBgEstimationExact_(used_chromatogram, best_left, best_right, peak_apex_int, background, avg_noise_level);
           }
@@ -381,9 +386,25 @@ public:
       // extracted here, only for fragment traces
       for (Size k = 0; k < transition_group.getPrecursorChromatograms().size(); k++)
       {
+        
         const SpectrumT& chromatogram = transition_group.getPrecursorChromatograms()[k];
+
         // resample the current chromatogram
-        const SpectrumT used_chromatogram = resampleChromatogram_(chromatogram, master_peak_container, best_left, best_right);
+        if (peak_integration_ == "original_intensity_sum")
+        {
+          const SpectrumT used_chromatogram = resampleChromatogram_(chromatogram, master_peak_container, best_left, best_right);
+          // const SpectrumT& used_chromatogram = chromatogram; // instead of resampling
+        }
+        else if (peak_integration_ == "smoothed_intensity_sum")
+        {
+          if ((peak_integration_ == "smoothed_intensity_sum") && smoothed_chroms.size() <= k)
+          {
+            std::cerr << "Tried to calculate peak area and height without any smoothed chromatograms" << std::endl;
+            background =  0;
+          }
+          const SpectrumT used_chromatogram = resampleChromatogram_(smoothed_chroms[k], master_peak_container, best_left, best_right);
+          // const SpectrumT& used_chromatogram = chromatogram; // instead of resampling
+        }
 
         Feature f;
         double quality = 0;
@@ -953,6 +974,7 @@ protected:
     //@}
 
     // Members
+    String peak_integration_;
     String background_subtraction_;
     bool recalculate_peaks_;
     bool use_precursors_;
