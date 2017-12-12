@@ -760,10 +760,11 @@ protected:
       writeRangesHumanReadable_(exp, os);
       writeRangesMachineReadable_(exp, os_tsv);
 
+      // write peak types (centroided / profile mode)
+      os << "Peak type metadata (estimated)\n"; 
       for (auto const l : levels)
       {
-        os << "Peak type metadata (estimated)\n" 
-           << "  level " << l << ": " 
+        os << "  level " << l << ": " 
            << SpectrumSettings::NamesOfSpectrumType[level_annotated_picked[l]] << " ("
            << SpectrumSettings::NamesOfSpectrumType[level_estimated_picked[l]] << ")\n";
       }

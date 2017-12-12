@@ -19,7 +19,6 @@ Ranges:
 
 Peak type metadata (estimated)
   level 1: Peak data (Peak data)
-Peak type metadata (estimated)
   level 2: Peak data (Peak data)
 
 -- Meta information --
