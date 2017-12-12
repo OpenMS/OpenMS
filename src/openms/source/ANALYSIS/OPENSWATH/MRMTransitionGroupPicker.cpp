@@ -57,8 +57,8 @@ namespace OpenMS
     defaults_.setValue("stop_after_intensity_ratio", 0.0001, "Stop after reaching intensity ratio");
     defaults_.setValue("min_peak_width", -1.0, "Minimal peak width (s), discard all peaks below this value (-1 means no action).", ListUtils::create<String>("advanced"));
 
-    defaults_.setValue("peak_integration", "original_intensity_sum", "Calculate the peak area and height either the smoothed or the raw chromatogram data using the intensity_sum method.", ListUtils::create<String>("advanced"));
-    defaults_.setValidStrings("peak_integration", ListUtils::create<String>("original_intensity_sum,smoothed_intensity_sum"));
+    defaults_.setValue("peak_integration", "original", "Calculate the peak area and height either the smoothed or the raw chromatogram data.", ListUtils::create<String>("advanced"));
+    defaults_.setValidStrings("peak_integration", ListUtils::create<String>("original,smoothed"));
 
     defaults_.setValue("background_subtraction", "none", "Try to apply a background subtraction to the peak (experimental). The background is estimated at the peak boundaries, either the smoothed or the raw chromatogram data can be used for that.", ListUtils::create<String>("advanced"));
     defaults_.setValidStrings("background_subtraction", ListUtils::create<String>("none,average,exact"));
@@ -106,7 +106,7 @@ namespace OpenMS
   {
     stop_after_feature_ = (int)param_.getValue("stop_after_feature");
     stop_after_intensity_ratio_ = (double)param_.getValue("stop_after_intensity_ratio");
-    peak_integration_ = param_.getValue("background_subtraction");
+    peak_integration_ = param_.getValue("peak_integration");
     background_subtraction_ = param_.getValue("background_subtraction");
     recalculate_peaks_ = (bool)param_.getValue("recalculate_peaks").toBool();
     use_precursors_ = (bool)param_.getValue("use_precursors").toBool();
