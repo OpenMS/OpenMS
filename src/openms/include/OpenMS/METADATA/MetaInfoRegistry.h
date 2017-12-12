@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Andreas Bertsch $
+// $Maintainer: Hendrik Weisser $
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
@@ -78,56 +78,53 @@ public:
     MetaInfoRegistry();
 
     ///copy constructor
-    MetaInfoRegistry(const MetaInfoRegistry & rhs);
+    MetaInfoRegistry(const MetaInfoRegistry& rhs);
 
     ///destructor
     ~MetaInfoRegistry();
 
     ///assignment operator
-    MetaInfoRegistry & operator=(const MetaInfoRegistry & rhs);
+    MetaInfoRegistry& operator=(const MetaInfoRegistry& rhs);
 
     /**
         Registers a string, stores its description and unit, and returns the corresponding index.
         If the string is already registered, it returns the index of the string.
-
-      @note This method is const, because getIndex(..) const must be able to call this method if the requested
-      string is not registered yet. Therefor all changed fields are declared mutable.
     */
-    UInt registerName(const String & name, const String & description, const String & unit = "") const;
+    UInt registerName(const String& name, const String& description = "", const String& unit = "");
 
     /**
       @brief Sets the description (String), corresponding to an index
 
       @exception Exception::InvalidValue is thrown for unregistered indices
     */
-    void setDescription(UInt index, const String & description);
+    void setDescription(UInt index, const String& description);
 
     /**
       @brief Sets the description (String), corresponding to a name
 
       @exception Exception::InvalidValue is thrown for unregistered names
     */
-    void setDescription(const String & name, const String & description);
+    void setDescription(const String& name, const String& description);
 
     /**
       @brief Sets the unit (String), corresponding to an index
 
       @exception Exception::InvalidValue is thrown for unregistered indices
     */
-    void setUnit(UInt index, const String & unit);
+    void setUnit(UInt index, const String& unit);
 
     /**
       @brief Sets the unit (String), corresponding to a name
 
       @exception Exception::InvalidValue is thrown for unregistered names
     */
-    void setUnit(const String & name, const String & unit);
+    void setUnit(const String& name, const String& unit);
 
     /**
-      Returns the corresponding integer to a string. If the string is not registered yet, it
-      registers the string (with empty description and empty unit) and returns the corresponding index.
+      Returns the integer index corresponding to a string. If the string is not
+      registered, returns UInt(-1) (= UINT_MAX).
     */
-    UInt getIndex(const String & name) const;
+    UInt getIndex(const String& name) const;
 
     /**
       @brief Returns the corresponding name to an index
@@ -147,7 +144,7 @@ public:
 
       @exception Exception::InvalidValue is thrown for unregistered names
     */
-    String getDescription(const String & name) const;
+    String getDescription(const String& name) const;
 
     /**
       @brief returns the unit of an index
@@ -160,19 +157,19 @@ public:
 
       @exception Exception::InvalidValue is thrown for unregistered names
     */
-    String getUnit(const String & name) const;
+    String getUnit(const String& name) const;
 
 private:
     /// internal counter, that stores the next index to assign
-    mutable UInt next_index_;
+    UInt next_index_;
     /// map from name to index
-    mutable std::map<String, UInt> name_to_index_;
+    std::map<String, UInt> name_to_index_;
     /// map from index to name
-    mutable std::map<UInt, String> index_to_name_;
+    std::map<UInt, String> index_to_name_;
     /// map from index to description
-    mutable std::map<UInt, String> index_to_description_;
+    std::map<UInt, String> index_to_description_;
     /// map from index to unit
-    mutable std::map<UInt, String> index_to_unit_;
+    std::map<UInt, String> index_to_unit_;
 
   };
 

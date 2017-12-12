@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,55 +34,63 @@
 
 #include <OpenMS/ANALYSIS/OPENSWATH/PeakPickerMRM.h>
 
-#include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerHiRes.h>
-#include <OpenMS/FILTERING/NOISEESTIMATION/SignalToNoiseEstimatorMedian.h>
-#include <OpenMS/FILTERING/SMOOTHING/SavitzkyGolayFilter.h>
-#include <OpenMS/FILTERING/SMOOTHING/GaussFilter.h>
-
 namespace OpenMS
 {
   PeakPickerMRM::PeakPickerMRM() :
     DefaultParamHandler("PeakPickerMRM")
   {
-    // NEW default settings: recommended:
+    // For SWATH-MS data from 5600 TripleTOF, these settings are recommended: 
     //
     // sgolay_frame_length = 9  (29.7s on our data)
     // gauss_width = 30  (if even gauss is used)
     // use_gauss = false
     //
-    //
-    // THIS is the most important change !! this caused a lot of trouble ...
-    // peak_width = -1 (do not force a certain width)
-    // method = corrected
-    //
     defaults_.setValue("sgolay_frame_length", 15, "The number of subsequent data points used for smoothing.\nThis number has to be uneven. If it is not, 1 will be added.");
     defaults_.setValue("sgolay_polynomial_order", 3, "Order of the polynomial that is fitted.");
     defaults_.setValue("gauss_width", 50.0, "Gaussian width in seconds, estimated peak size.");
     defaults_.setValue("use_gauss", "true", "Use Gaussian filter for smoothing (alternative is Savitzky-Golay filter)");
+    defaults_.setValidStrings("use_gauss", ListUtils::create<String>("false,true"));
 
-    defaults_.setValue("peak_width", 40.0, "Force a certain minimal peak_width on the data (e.g. extend the peak at least by this amount on both sides) in seconds. -1 turns this feature off.");
+    defaults_.setValue("peak_width", -1.0, "Force a certain minimal peak_width on the data (e.g. extend the peak at least by this amount on both sides) in seconds. -1 turns this feature off.");
     defaults_.setValue("signal_to_noise", 1.0, "Signal-to-noise threshold at which a peak will not be extended any more. Note that setting this too high (e.g. 1.0) can lead to peaks whose flanks are not fully captured.");
     defaults_.setMinFloat("signal_to_noise", 0.0);
 
     defaults_.setValue("sn_win_len", 1000.0, "Signal to noise window length.");
     defaults_.setValue("sn_bin_count", 30, "Signal to noise bin count.");
+    defaults_.setValue("write_sn_log_messages", "true", "Write out log messages of the signal-to-noise estimator in case of sparse windows or median in rightmost histogram bin");
+    defaults_.setValidStrings("write_sn_log_messages", ListUtils::create<String>("true,false"));
 
     defaults_.setValue("remove_overlapping_peaks", "false", "Try to remove overlapping peaks during peak picking");
     defaults_.setValidStrings("remove_overlapping_peaks", ListUtils::create<String>("false,true"));
 
-    defaults_.setValue("method", "legacy", "Which method to choose for chromatographic peak-picking (OpenSWATH legacy, corrected picking or Crawdad).");
+    defaults_.setValue("method", "corrected", "Which method to choose for chromatographic peak-picking (OpenSWATH legacy on raw data, corrected picking on smoothed chromatogram or Crawdad on smoothed chromatogram).");
     defaults_.setValidStrings("method", ListUtils::create<String>("legacy,corrected,crawdad"));
 
     // write defaults into Param object param_
     defaultsToParam_();
     updateMembers_();
+
+    // PeakPickerHiRes pp_;
+    Param pepi_param = pp_.getDefaults();
+    pepi_param.setValue("signal_to_noise", signal_to_noise_);
+    // disable spacing constraints, since we're dealing with chromatograms
+    pepi_param.setValue("spacing_difference", 0.0);
+    pepi_param.setValue("spacing_difference_gap", 0.0);
+    pp_.setParameters(pepi_param);
+
   }
 
-  void PeakPickerMRM::pickChromatogram(const RichPeakChromatogram& chromatogram, RichPeakChromatogram& picked_chrom)
+  void PeakPickerMRM::pickChromatogram(const MSChromatogram& chromatogram, MSChromatogram& picked_chrom)
+  {
+    MSChromatogram s;
+    pickChromatogram(chromatogram, picked_chrom, s);
+  }
+  
+  void PeakPickerMRM::pickChromatogram(const MSChromatogram& chromatogram, MSChromatogram& picked_chrom, MSChromatogram& smoothed_chrom)
   {
     if (!chromatogram.isSorted())
     {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                        "Chromatogram must be sorted by position");
     }
 
@@ -106,34 +114,19 @@ namespace OpenMS
     }
 
     // Smooth the chromatogram
-    RichPeakChromatogram smoothed_chrom = chromatogram;
+    smoothed_chrom = chromatogram;
     if (!use_gauss_)
     {
-      SavitzkyGolayFilter sgolay;
-      Param filter_parameters = sgolay.getParameters();
-      filter_parameters.setValue("frame_length", sgolay_frame_length_);
-      filter_parameters.setValue("polynomial_order", sgolay_polynomial_order_);
-      sgolay.setParameters(filter_parameters);
-      sgolay.filter(smoothed_chrom);
+      sgolay_.filter(smoothed_chrom);
     }
     else
     {
-      GaussFilter gauss;
-      Param filter_parameters = gauss.getParameters();
-      filter_parameters.setValue("gaussian_width", gauss_width_);
-      gauss.setParameters(filter_parameters);
-      gauss.filter(smoothed_chrom);
+      gauss_.filter(smoothed_chrom);
     }
 
     // Find initial seeds (peak picking)
-    PeakPickerHiRes pp;
-    Param pepi_param = PeakPickerHiRes().getDefaults();
-    pepi_param.setValue("signal_to_noise", signal_to_noise_);
-    // disable spacing constraints, since we're dealing with chromatograms
-    pepi_param.setValue("spacing_difference", 0.0);
-    pepi_param.setValue("spacing_difference_gap", 0.0);
-    pp.setParameters(pepi_param);
-    pp.pick(smoothed_chrom, picked_chrom);
+    pp_.pick(smoothed_chrom, picked_chrom);
+    LOG_DEBUG << "Found " << picked_chrom.size() << " chromatographic peaks." << std::endl;
 
     if (method_ == "legacy")
     {
@@ -172,13 +165,8 @@ namespace OpenMS
     }
   }
 
-  void PeakPickerMRM::pickChromatogram_(const RichPeakChromatogram& chromatogram, RichPeakChromatogram& picked_chrom)
+  void PeakPickerMRM::pickChromatogram_(const MSChromatogram& chromatogram, MSChromatogram& picked_chrom)
   {
-    SignalToNoiseEstimatorMedian<RichPeakChromatogram> snt;
-    Param snt_parameters = snt.getParameters();
-    snt_parameters.setValue("win_len", sn_win_len_);
-    snt_parameters.setValue("bin_count", sn_bin_count_);
-    snt.setParameters(snt_parameters);
 
     integrated_intensities_.clear();
     left_width_.clear();
@@ -189,7 +177,7 @@ namespace OpenMS
 
     if (signal_to_noise_ > 0.0)
     {
-      snt.init(chromatogram);
+      snt_.init(chromatogram);
     }
     Size current_peak = 0;
     for (Size i = 0; i < picked_chrom.size(); i++)
@@ -203,9 +191,8 @@ namespace OpenMS
       while ((min_i - k + 1) > 0
              //&& std::fabs(chromatogram[min_i-k].getMZ() - peak_raw_data.begin()->first) < spacing_difference*min_spacing
             && (chromatogram[min_i - k].getIntensity() < chromatogram[min_i - k + 1].getIntensity()
-               || (peak_width_ > 0.0 && std::fabs(chromatogram[min_i - k].getMZ() - central_peak_mz) < peak_width_)
-                )
-            && (signal_to_noise_ > 0.0 && snt.getSignalToNoise(chromatogram[min_i - k]) >= signal_to_noise_) )
+               || (peak_width_ > 0.0 && std::fabs(chromatogram[min_i - k].getMZ() - central_peak_mz) < peak_width_))
+            && (signal_to_noise_ <= 0.0 || snt_.getSignalToNoise(chromatogram[min_i - k]) >= signal_to_noise_))
       {
         ++k;
       }
@@ -216,9 +203,8 @@ namespace OpenMS
       while ((min_i + k) < chromatogram.size()
              //&& std::fabs(chromatogram[min_i+k].getMZ() - peak_raw_data.rbegin()->first) < spacing_difference*min_spacing
             && (chromatogram[min_i + k].getIntensity() < chromatogram[min_i + k - 1].getIntensity()
-               || (peak_width_ > 0.0 && std::fabs(chromatogram[min_i + k].getMZ() - central_peak_mz) < peak_width_)
-                )
-            && (signal_to_noise_ > 0.0 && snt.getSignalToNoise(chromatogram[min_i + k]) >= signal_to_noise_) )
+               || (peak_width_ > 0.0 && std::fabs(chromatogram[min_i + k].getMZ() - central_peak_mz) < peak_width_))
+            && (signal_to_noise_ <= 0.0 || snt_.getSignalToNoise(chromatogram[min_i + k]) >= signal_to_noise_) )
       {
         ++k;
       }
@@ -236,7 +222,7 @@ namespace OpenMS
   }
 
 #ifdef WITH_CRAWDAD
-  void PeakPickerMRM::pickChromatogramCrawdad_(const RichPeakChromatogram& chromatogram, RichPeakChromatogram& picked_chrom)
+  void PeakPickerMRM::pickChromatogramCrawdad_(const MSChromatogram& chromatogram, MSChromatogram& picked_chrom)
   {
     LOG_DEBUG << "Picking chromatogram using crawdad " << std::endl;
 
@@ -293,17 +279,15 @@ namespace OpenMS
     }
 
   }
-
 #else
-  void PeakPickerMRM::pickChromatogramCrawdad_(const RichPeakChromatogram& /* chromatogram */, RichPeakChromatogram& /* picked_chrom */)
+  void PeakPickerMRM::pickChromatogramCrawdad_(const MSChromatogram& /* chromatogram */, MSChromatogram& /* picked_chrom */)
   {
-    throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+    throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                      "PeakPickerMRM was not compiled with crawdad, please choose a different algorithm!");
   }
 #endif
 
-
-  void PeakPickerMRM::removeOverlappingPeaks_(const RichPeakChromatogram& chromatogram, RichPeakChromatogram& picked_chrom)
+  void PeakPickerMRM::removeOverlappingPeaks_(const MSChromatogram& chromatogram, MSChromatogram& picked_chrom)
   {
     if (picked_chrom.empty()) {return; }
     LOG_DEBUG << "Remove overlapping peaks now (size " << picked_chrom.size() << ")" << std::endl;
@@ -365,7 +349,7 @@ namespace OpenMS
     }
   }
 
-  Size PeakPickerMRM::findClosestPeak_(const RichPeakChromatogram& chromatogram, double central_peak_mz, Size current_peak)
+  Size PeakPickerMRM::findClosestPeak_(const MSChromatogram& chromatogram, double central_peak_mz, Size current_peak)
   {
     while (current_peak < chromatogram.size())
     {
@@ -387,7 +371,7 @@ namespace OpenMS
     return current_peak;
   }
 
-  void PeakPickerMRM::integratePeaks_(const RichPeakChromatogram& chromatogram)
+  void PeakPickerMRM::integratePeaks_(const MSChromatogram& chromatogram)
   {
     for (Size i = 0; i < left_width_.size(); i++)
     {
@@ -415,18 +399,34 @@ namespace OpenMS
     // TODO make list, not boolean
     use_gauss_ = (bool)param_.getValue("use_gauss").toBool();
     remove_overlapping_ = (bool)param_.getValue("remove_overlapping_peaks").toBool();
+    write_sn_log_messages_ = (bool)param_.getValue("write_sn_log_messages").toBool();
     method_ = (String)param_.getValue("method");
 
     if (method_ != "crawdad" && method_ != "corrected" && method_ != "legacy")
     {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                        "Method needs to be one of: crawdad, corrected, legacy");
     }
+
+    Param sg_filter_parameters = sgolay_.getParameters();
+    sg_filter_parameters.setValue("frame_length", sgolay_frame_length_);
+    sg_filter_parameters.setValue("polynomial_order", sgolay_polynomial_order_);
+    sgolay_.setParameters(sg_filter_parameters);
+
+    Param gfilter_parameters = gauss_.getParameters();
+    gfilter_parameters.setValue("gaussian_width", gauss_width_);
+    gauss_.setParameters(gfilter_parameters);
+
+    Param snt_parameters = snt_.getParameters();
+    snt_parameters.setValue("win_len", sn_win_len_);
+    snt_parameters.setValue("bin_count", sn_bin_count_);
+    snt_parameters.setValue("write_log_messages", param_.getValue("write_sn_log_messages"));
+    snt_.setParameters(snt_parameters);
 
 #ifndef WITH_CRAWDAD
     if (method_ == "crawdad")
     {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                        "PeakPickerMRM was not compiled with crawdad, please choose a different algorithm!");
     }
 #endif

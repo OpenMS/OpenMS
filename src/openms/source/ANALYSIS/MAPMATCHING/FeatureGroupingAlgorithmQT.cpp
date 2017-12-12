@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -61,7 +61,7 @@ namespace OpenMS
     // check that the number of maps is ok:
     if (maps.size() < 2)
     {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                        "At least two maps must be given!");
     }
 
@@ -70,11 +70,13 @@ namespace OpenMS
 
     cluster_finder.run(maps, out);
 
+    StringList ms_run_locations;
+
     // add protein IDs and unassigned peptide IDs to the result map here,
     // to keep the same order as the input maps (useful for output later):
     for (typename vector<MapType>::const_iterator map_it = maps.begin();
          map_it != maps.end(); ++map_it)
-    {
+    {      
       // add protein identifications to result map:
       out.getProteinIdentifications().insert(
         out.getProteinIdentifications().end(),

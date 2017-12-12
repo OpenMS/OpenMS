@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,8 +32,8 @@
 // $Authors: Hannes Roest $
 // --------------------------------------------------------------------------
 
-#ifndef OPENSWATH_MACROS_H
-#define OPENSWATH_MACROS_H
+#ifndef OPENMS_ANALYSIS_OPENSWATH_OPENSWATHALGO_MACROS_H
+#define OPENMS_ANALYSIS_OPENSWATH_OPENSWATHALGO_MACROS_H
 
 #include <cassert>
 
@@ -49,4 +49,4 @@
 #define OPENMS_POSTCONDITION(condition, message)\
   assert( (condition) && (message));
 
-#endif // OPENSWATH_MACROS_H
+#endif // OPENMS_ANALYSIS_OPENSWATH_OPENSWATHALGO_MACROS_H

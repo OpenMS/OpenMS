@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -39,6 +39,8 @@
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerMaxima.h>
 ///////////////////////////
 
+#include <OpenMS/KERNEL/MSSpectrum.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <cmath>
 #define PI 3.141592653589793
@@ -47,7 +49,7 @@ using namespace OpenMS;
 using namespace std;
 
 
-std::vector<PeakPickerMaxima::PeakCandidate> ppmax_pick(MSSpectrum<>& spec, PeakPickerMaxima& pp_max)
+std::vector<PeakPickerMaxima::PeakCandidate> ppmax_pick(MSSpectrum& spec, PeakPickerMaxima& pp_max)
 {
   std::vector<PeakPickerMaxima::PeakCandidate> pc;
   std::vector<double> mz_array(spec.size()), int_array(spec.size());
@@ -331,20 +333,20 @@ START_SECTION([EXTRA](pick multiple peaks SN))
     TEST_EQUAL(pc[0].pos, 10)
     TEST_REAL_SIMILAR(pc[0].int_max, 0.07978845608028655*100)
     TEST_REAL_SIMILAR(pc[0].mz_max, 10)
-    TEST_EQUAL(pc[0].left_boundary, 2)
-    TEST_EQUAL(pc[0].right_boundary, 18)
+    TEST_EQUAL(pc[0].left_boundary, 1)
+    TEST_EQUAL(pc[0].right_boundary, 17)
 
     TEST_EQUAL(pc[1].pos, 35)
     TEST_REAL_SIMILAR(pc[1].int_max, 0.07978845608028655*100)
     TEST_REAL_SIMILAR(pc[1].mz_max, 35)
-    TEST_EQUAL(pc[1].left_boundary, 27)
-    TEST_EQUAL(pc[1].right_boundary, 43)
+    TEST_EQUAL(pc[1].left_boundary, 26)
+    TEST_EQUAL(pc[1].right_boundary, 42)
   }
 }
 END_SECTION
 
 TOLERANCE_RELATIVE(1.00001);
-MSExperiment<Peak1D> input, output;
+PeakMap input, output;
 
 /////////////////////////
 // ORBITRAP data tests //
@@ -480,7 +482,7 @@ output.clear(true);
 
 MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("PeakPickerHiRes_ftms_sn4_out_ppmax.mzML"),output);
 
-START_SECTION([EXTRA](template <typename PeakType> void pick(const MSSpectrum<PeakType>& input, MSSpectrum<PeakType>& output)))
+START_SECTION([EXTRA](template <typename PeakType> void pick(const MSSpectrum& input, MSSpectrum& output)))
 {
   // With the new S/N the meaning of the noise value is slightly different:
   //  instead of the mean of the bin where the median can be found it is now

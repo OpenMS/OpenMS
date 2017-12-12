@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Sandro Andreotti $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Stephan Aiche, Chris Bielow, Sandro Andreotti $
 // --------------------------------------------------------------------------
 
@@ -110,6 +110,7 @@ START_SECTION((void generateRawTandemSignals(const SimTypes::FeatureMapSim &, Si
     p.setValue("TandemSim:SVM:hide_losses", "true");
     p.setValue("Precursor:Exclusion:use_dynamic_exclusion", "true");
     p.setValue("Precursor:Exclusion:exclusion_time", 50.0);
+    p.setValue("Precursor:min_mz_peak_distance", 3.0);
     sim.setParameters(p);
 
     sim.generateRawTandemSignals(features, exp_no_ms2, peak_map);
@@ -121,7 +122,11 @@ START_SECTION((void generateRawTandemSignals(const SimTypes::FeatureMapSim &, Si
 
     TEST_EQUAL(exp_with_ms2.size(), exp_no_ms2.size());
     TEST_EQUAL(exp_with_ms2[0].size(), exp_no_ms2[0].size());
+#if OPENMS_BOOST_VERSION_MINOR < 56
     TEST_EQUAL(exp_with_ms2[1].size(), exp_no_ms2[1].size());
+#else
+    TEST_EQUAL(exp_with_ms2[1].size(), exp_no_ms2[1].size()-1);
+#endif
     TEST_REAL_SIMILAR(exp_with_ms2[0].getPrecursors()[0].getMZ(), exp_no_ms2[0].getPrecursors()[0].getMZ());
     TEST_REAL_SIMILAR(exp_with_ms2[1].getPrecursors()[0].getMZ(), exp_no_ms2[1].getPrecursors()[0].getMZ());
     TEST_REAL_SIMILAR(exp_with_ms2[0][0].getIntensity(), exp_no_ms2[0][0].getIntensity());

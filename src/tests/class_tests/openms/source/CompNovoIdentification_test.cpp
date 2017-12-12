@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Sandro Andreotti $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 
@@ -40,6 +40,9 @@
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
 #include <OpenMS/CONCEPT/Constants.h>
 ///////////////////////////
+
+#include <OpenMS/KERNEL/MSSpectrum.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -81,8 +84,8 @@ START_SECTION((void getIdentifications(std::vector< PeptideIdentification > &ids
   tsg_param.setValue("add_isotopes", "true");
   tsg.setParameters(tsg_param);
 
-  RichPeakSpectrum rspec;
-  tsg.getSpectrum(rspec, AASequence::fromString("DFPIANGER"));
+  PeakSpectrum rspec;
+  tsg.getSpectrum(rspec, AASequence::fromString("DFPIANGER"), 1, 1);
 
   PeakSpectrum spec;
   for (Size i = 0; i != rspec.size(); ++i)
@@ -93,9 +96,19 @@ START_SECTION((void getIdentifications(std::vector< PeptideIdentification > &ids
     spec.push_back(p);
   }
 
-  RichPeakSpectrum rspec_ETD;
-  tsg.addPeaks(rspec_ETD, AASequence::fromString("DFPIANGER"), Residue::ZIon, 1);
-  tsg.addPrecursorPeaks(rspec_ETD, AASequence::fromString("DFPIANGER"), 2);
+  PeakSpectrum rspec_ETD;
+
+  tsg_param.setValue("add_b_ions", "false");
+  tsg_param.setValue("add_y_ions", "false");
+  tsg_param.setValue("add_z_ions", "true");
+  tsg.setParameters(tsg_param);
+  tsg.getSpectrum(rspec_ETD, AASequence::fromString("DFPIANGER"), 1, 1);
+
+  tsg_param.setValue("add_z_ions", "false");
+  tsg_param.setValue("add_precursor_peaks", "true");
+  tsg.setParameters(tsg_param);
+  tsg.getSpectrum(rspec_ETD, AASequence::fromString("DFPIANGER"), 2, 2);
+
   PeakSpectrum spec_ETD;
   for (Size i = 0; i != rspec_ETD.size(); ++i)
   {
@@ -124,7 +137,8 @@ START_SECTION((void getIdentifications(std::vector< PeptideIdentification > &ids
   cni.getIdentifications(ids, exp);
   TEST_EQUAL(ids.size(), 1)
   TEST_EQUAL(ids.begin()->getHits().size() > 0, true)
-  TEST_EQUAL(ids.begin()->getHits().begin()->getSequence() == AASequence::fromString("DFPLANGER"), true)
+  // After mass correction for b1 ions (#1440) a different peptide scored best.
+  TEST_EQUAL(ids.begin()->getHits().begin()->getSequence() == AASequence::fromString("DFPDALGQR"), true)
 }
 END_SECTION
 
@@ -136,8 +150,8 @@ START_SECTION((void getIdentification(PeptideIdentification &id, const PeakSpect
   tsg_param.setValue("add_isotopes", "true");
   tsg.setParameters(tsg_param);
 
-  RichPeakSpectrum rspec;
-  tsg.getSpectrum(rspec, AASequence::fromString("DFPIANGER"));
+  PeakSpectrum rspec;
+  tsg.getSpectrum(rspec, AASequence::fromString("DFPIANGER"), 1, 1);
 
   PeakSpectrum spec;
   for (Size i = 0; i != rspec.size(); ++i)
@@ -148,9 +162,19 @@ START_SECTION((void getIdentification(PeptideIdentification &id, const PeakSpect
     spec.push_back(p);
   }
 
-  RichPeakSpectrum rspec_ETD;
-  tsg.addPeaks(rspec_ETD, AASequence::fromString("DFPIANGER"), Residue::ZIon, 1);
-  tsg.addPrecursorPeaks(rspec_ETD, AASequence::fromString("DFPIANGER"), 2);
+  PeakSpectrum rspec_ETD;
+
+  tsg_param.setValue("add_b_ions", "false");
+  tsg_param.setValue("add_y_ions", "false");
+  tsg_param.setValue("add_z_ions", "true");
+  tsg.setParameters(tsg_param);
+  tsg.getSpectrum(rspec_ETD, AASequence::fromString("DFPIANGER"), 1, 1);
+
+  tsg_param.setValue("add_z_ions", "false");
+  tsg_param.setValue("add_precursor_peaks", "true");
+  tsg.setParameters(tsg_param);
+  tsg.getSpectrum(rspec_ETD, AASequence::fromString("DFPIANGER"), 2, 2);
+
   PeakSpectrum spec_ETD;
   for (Size i = 0; i != rspec_ETD.size(); ++i)
   {
@@ -174,7 +198,9 @@ START_SECTION((void getIdentification(PeptideIdentification &id, const PeakSpect
   cni.setParameters(cni_param);
   cni.getIdentification(id, spec, spec_ETD);
   TEST_EQUAL(id.getHits().size() > 0, true)
-  TEST_EQUAL(id.getHits().begin()->getSequence() == AASequence::fromString("DFPLANGER"), true)
+  // After mass correction for b1 ions (#1440) a different peptide scored best.
+  std::cout << id.getHits().begin()->getSequence() << std::endl;
+  TEST_EQUAL(id.getHits().begin()->getSequence() == AASequence::fromString("DFPDALGQR"), true)
 
 }
 END_SECTION

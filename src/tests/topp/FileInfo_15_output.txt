@@ -1,0 +1,9 @@
+
+-- General information --
+
+File name: FileInfo_15_input.mzid
+File type: mzid
+
+Validating mzid file against XML schema version 1.1.0
+Validation error in file 'FileInfo_15_input.mzid' line 327 column 183: value ']' does not match regular expression facet '[ABCDEFGHIJKLMNOPQRSTUVWXYZ?\-]{1}'
+Failed - errors are listed above!

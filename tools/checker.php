@@ -3,7 +3,7 @@
 #                   OpenMS -- Open-Source Mass Spectrometry
 # --------------------------------------------------------------------------
 # Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-# ETH Zurich, and Freie Universitaet Berlin 2002-2012.
+# ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 #
 # This software is released under a three-clause BSD license:
 #  * Redistributions of source code must retain the above copyright
@@ -326,7 +326,7 @@ if (in_array("test_output", $tests) || in_array("topp_output", $tests))
     $log_file = file($lastTestFile);
     foreach ($log_file as $line)
     {
-      if (ereg("[0-9]+/[0-9]+ Testing: (.*)", $line, $parts))
+      if ( preg_match('/[0-9]+\/[0-9]+ Testing: (.*)/', $line, $parts))
       {
         $current_test_name = trim($parts[1]);
       }
@@ -393,8 +393,8 @@ $sourcePaths = array("src/openms/source",
                      "src/topp",
                      "src/utils");
 
-exec("cd $src_path && find ".implode(" ", $includePaths)." -name \"*.h\" ! -name \"ui_*.h\" ! -name \"nnls.h\"", $files);
-exec("cd $src_path && find ".implode(" ", $sourcePaths)." -name \"*.cpp\" ! -regex \".*/EXAMPLES/.*\" ! -regex \".*/tools/.*\" ! -name \"*_moc.cpp\" ! -name \"moc_*.cpp\" ! -name \"*Template.cpp\"", $files);
+exec("cd $src_path && find ".implode(" ", $includePaths)." -name \"*.h\" ! -name \"ui_*.h\" ! -name \"nnls.h\" ! -name \"MSNumpress*.h\"", $files);
+exec("cd $src_path && find ".implode(" ", $sourcePaths)." -name \"*.cpp\" ! -regex \".*/EXAMPLES/.*\" ! -regex \".*/tools/.*\" ! -name \"*_moc.cpp\" ! -name \"moc_*.cpp\" ! -name \"*Template.cpp\" ! -name \"MSNumpress*.cpp\"", $files);
 
 //look up Maintainer in first 40 lines of files
 $GLOBALS["maintainer_info"]  = array();
@@ -498,7 +498,7 @@ if (in_array("doxygen_errors", $tests))
   $errorfile = file("$bin_path/doc/doxygen/doxygen-error.log");
   foreach ($errorfile as $line)
   {
-    if (ereg("(.*/[a-zA-Z0-9_]+\.[hC]):[0-9]+:", $line, $parts))
+    if ( preg_match('/(.*\/[a-zA-Z0-9_]+\.[hC]):[0-9]+:/', $line, $parts))
     {
       //skip warning where doxygen cannot resolve members
       if (strpos($line, "no uniquely matching class member") === FALSE && strpos($line, "no matching class member") === FALSE)
@@ -831,7 +831,7 @@ foreach ($files_todo as $f)
       elseif (endsWith($f, ".cpp"))
       {
         # $h_file = substr($f, 7,-2).".h";
-        $h_file = $src_path."/".str_replace("source", "include/OpenMS", $f);
+        $h_file = $src_path."/".str_replace("/source", "/include/OpenMS", $f);
         $h_file = preg_replace("/cpp$/", "h", $h_file);
         if (!file_exists($h_file))
         {
@@ -1201,7 +1201,7 @@ if ($user == "all" && in_array("doxygen_errors", $tests))
   foreach ($file as $line)
   {
     $line = trim($line);
-    if (ereg("(.*/[a-zA-Z0-9_]+\.doxygen):[0-9]+:", $line, $parts))
+    if ( preg_match('/(.*\/[a-zA-Z0-9_]+\.doxygen):[0-9]+:/', $line, $parts))
     {
       realOutput("Doxygen errors in '".$parts[1]."'", $user, "");
       print "  See 'OpenMS/doc/doxygen/doxygen-error.log'\n";

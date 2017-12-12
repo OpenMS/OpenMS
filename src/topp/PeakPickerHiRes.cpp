@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Alexandra Zerck $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Eva Lange $
 // --------------------------------------------------------------------------
 #include <OpenMS/FORMAT/MzMLFile.h>
@@ -192,6 +192,7 @@ protected:
     // Create new MSDataReader and set our consumer
     ///////////////////////////////////
     MzMLFile mz_data_file;
+    mz_data_file.setLogType(log_type_);
     mz_data_file.transform(in, &pp_consumer);
 
     return EXECUTION_OK;
@@ -224,7 +225,7 @@ protected:
     //-------------------------------------------------------------
     MzMLFile mz_data_file;
     mz_data_file.setLogType(log_type_);
-    MSExperiment<Peak1D> ms_exp_raw;
+    PeakMap ms_exp_raw;
     mz_data_file.load(in, ms_exp_raw);
 
     if (ms_exp_raw.empty() && ms_exp_raw.getChromatograms().size() == 0)
@@ -257,7 +258,7 @@ protected:
     //-------------------------------------------------------------
     // pick
     //-------------------------------------------------------------
-    MSExperiment<> ms_exp_peaks;
+    PeakMap ms_exp_peaks;
     bool check_spectrum_type = !getFlag_("force");
     pp.pickExperiment(ms_exp_raw, ms_exp_peaks, check_spectrum_type);
 

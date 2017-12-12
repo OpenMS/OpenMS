@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -36,6 +36,11 @@
 #define OPENMS_FORMAT_MZTABFILE_H
 
 #include <OpenMS/FORMAT/MzTab.h>
+
+#include <OpenMS/METADATA/PeptideHit.h>
+#include <OpenMS/METADATA/PeptideIdentification.h>
+#include <OpenMS/METADATA/ProteinIdentification.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 #include <boost/math/special_functions/fpclassify.hpp>
 
@@ -91,29 +96,29 @@ protected:
 
     void generateMzTabMetaDataSection_(const MzTabMetaData& map, StringList& sl) const;
 
-    void generateMzTabProteinSection_(const MzTabProteinSectionRows& rows, StringList& sl) const;
+    void generateMzTabProteinSection_(const MzTabProteinSectionRows& rows, StringList& sl, const std::vector<String>& optional_columns) const;
 
     String generateMzTabProteinHeader_(const MzTabProteinSectionRow& reference_row, const Size n_best_search_engine_scores, const std::vector<String>& optional_columns) const;
 
-    String generateMzTabProteinSectionRow_(const MzTabProteinSectionRow& row) const;
+    String generateMzTabProteinSectionRow_(const MzTabProteinSectionRow& row, const std::vector<String>& optional_columns) const;
 
-    void generateMzTabPeptideSection_(const MzTabPeptideSectionRows& rows, StringList& sl) const;
+    void generateMzTabPeptideSection_(const MzTabPeptideSectionRows& rows, StringList& sl, const std::vector<String>& optional_columns) const;
 
     String generateMzTabPeptideHeader_(Size search_ms_runs, Size n_best_search_engine_scores, Size n_search_engine_score, Size assays, Size study_variables, const std::vector<String>& optional_columns) const;
 
-    String generateMzTabPeptideSectionRow_(const MzTabPeptideSectionRow& row) const;
+    String generateMzTabPeptideSectionRow_(const MzTabPeptideSectionRow& row, const std::vector<String>& optional_columns) const;
 
-    void generateMzTabPSMSection_(const MzTabPSMSectionRows& rows, StringList& sl) const;
+    void generateMzTabPSMSection_(const MzTabPSMSectionRows& rows, StringList& sl, const std::vector<String>& optional_columns) const;
 
     String generateMzTabPSMHeader_(Size n_search_engine_scores, const std::vector<String>& optional_columns) const;
 
-    String generateMzTabPSMSectionRow_(const MzTabPSMSectionRow& row) const;
+    String generateMzTabPSMSectionRow_(const MzTabPSMSectionRow& row, const std::vector<String>& optional_columns) const;
 
-    void generateMzTabSmallMoleculeSection_(const MzTabSmallMoleculeSectionRows& map, StringList& sl) const;
+    void generateMzTabSmallMoleculeSection_(const MzTabSmallMoleculeSectionRows& map, StringList& sl, const std::vector<String>& optional_columns) const;
 
     String generateMzTabSmallMoleculeHeader_(Size search_ms_runs, Size n_best_search_engine_scores, Size n_search_engine_score, Size assays, Size study_variables, const std::vector<String>& optional_columns) const;
 
-    String generateMzTabSmallMoleculeSectionRow_(const MzTabSmallMoleculeSectionRow& row) const;
+    String generateMzTabSmallMoleculeSectionRow_(const MzTabSmallMoleculeSectionRow& row, const std::vector<String>& optional_columns) const;
 
     // auxiliary functions
     // extract two integers from string (e.g. search_engine_score[1]_ms_run[2] -> 1,2)
@@ -146,15 +151,15 @@ protected:
     static String mapSearchEngineScoreToCvParam_(const String& openms_search_engine_name, double score, String score_type);
 
     static String extractNumPeptides_(const String& common_identifier, const String& protein_accession,
-                                      const MapAccPepType& map_run_accesion_to_peptides);
+                                      const MapAccPepType& map_run_accession_to_peptides);
 
     // mzTab definition of distinct
     static String extractNumPeptidesDistinct_(String common_identifier, String protein_accession,
-                                              const MapAccPepType& map_run_accesion_to_peptides);
+                                              const MapAccPepType& map_run_accession_to_peptides);
 
     // same as distinct but additional constraint of uniqueness (=maps to exactly one Protein)
     static String extractNumPeptidesUnambiguous_(String common_identifier, String protein_accession,
-                                                 const MapAccPepType& map_run_accesion_to_peptides);
+                                                 const MapAccPepType& map_run_accession_to_peptides);
 
     static std::map<String, Size> extractNumberOfSubSamples_(const std::map<String, std::vector<ProteinIdentification> >& map_run_to_proids);
 
@@ -167,7 +172,7 @@ protected:
                                   Size run_count,
                                   String input_filename,
                                   bool has_coverage,
-                                  const MapAccPepType& map_run_accesion_to_peptides,
+                                  const MapAccPepType& map_run_accession_to_peptides,
                                   const std::map<String, Size>& map_run_to_num_sub
                                   );
 

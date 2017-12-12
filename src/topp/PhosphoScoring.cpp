@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,8 +28,8 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: David Wojnar $
-// $Authors: David Wojnar, Timo Sachsenberg $
+// $Maintainer: Timo Sachsenberg, Petra Gutenbrunner $
+// $Authors: David Wojnar, Timo Sachsenberg, Petra Gutenbrunner $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
@@ -38,6 +38,7 @@
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/ANALYSIS/ID/IDMapper.h>
 #include <OpenMS/ANALYSIS/ID/AScore.h>
+#include <OpenMS/METADATA/SpectrumMetaDataLookup.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -61,16 +62,30 @@ using namespace std;
     </table>
   </CENTER>
 
-  @experimental This TOPP tool is not well tested and some features might not be working correctly.
-
-  This tool performs phosphorylation analysis and site localization.
-  Input files are an LC-MS/MS data file as well as the corresponding identification file.
-  Firstly, the peptide identifications are mapped onto the spectra.
-  Secondly, the tool uses an implementation of the Ascore according to Beausoleil <em>et al.</em> in order to localize the most probable phosphorylation sites.
+  This tool performs phosphorylation analysis and site localization.  Input files are an LC-MS/MS
+  data file as well as the corresponding identification file.  Firstly, the peptide identifications
+  are mapped onto the spectra.  Secondly, the tool uses an implementation of the Ascore according to
+  Beausoleil <em>et al.</em> in order to localize the most probable phosphorylation sites.
 
   For details, see:\n
-  Beausoleil <em>et al.</em>: <a href="http://dx.doi.org/10.1038/nbt1240">A probability-based approach for high-throughput protein phosphorylation analysis and site localization</a> (Nat. Biotechnol., 2006, PMID: 16964243).
+  Beausoleil <em>et al.</em>: <a href="http://dx.doi.org/10.1038/nbt1240">A probability-based
+  approach for high-throughput protein phosphorylation analysis and site localization</a> 
+  (Nat. Biotechnol., 2006, PMID: 16964243).
+  
+  In the output the score of the peptide hit describes the peptide score, which is a weighted
+  average of all ten scores of the selected peptide sequence.  For each phosphorylation site an
+  individual Ascore was calculated and listed as meta value of the peptide hit (e.g. AScore_1,
+  AScore_2).
+  
+  The Ascore results of this TOPP tool differs with the results of the Ascore calculation provided 
+  <a href="http://ascore.med.harvard.edu/ascore.html">on the website</a>, but it seems that the
+  implementation according to Beausoleil <em>et al.</em> has some calculation errors.  It is not
+  possible to recalculate the Ascore using the cumulative binomial probability formula with the
+  given values (see Fig. 3c).  In addition the site determining ions calculation seems not reliable,
+  because in some test cases more site determining ions were calculated than it could be possible.
 
+  @note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool.
+  Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
 
   <B>The command line parameters of this tool are:</B>
   @verbinclude TOPP_PhosphoScoring.cli
@@ -95,7 +110,13 @@ protected:
 
   // spectrum must not contain 0 intensity peaks and must be sorted by m/z
   template <typename SpectrumType>
-  static void deisotopeAndSingleChargeMSSpectrum_(SpectrumType& in, Int min_charge, Int max_charge, double fragment_tolerance, bool fragment_unit_ppm, bool keep_only_deisotoped = false, Size min_isopeaks = 3, Size max_isopeaks = 10, bool make_single_charged = true)
+  static void deisotopeAndSingleChargeMSSpectrum_(SpectrumType& in, Int min_charge, Int max_charge, 
+                                                  double fragment_tolerance, 
+                                                  bool fragment_unit_ppm, 
+                                                  bool keep_only_deisotoped = false, 
+                                                  Size min_isopeaks = 3, 
+                                                  Size max_isopeaks = 10, 
+                                                  bool make_single_charged = true)
   {
     if (in.empty())
     {
@@ -189,7 +210,7 @@ protected:
         }
         else
         {
-          RichPeak1D p = old_spectrum[i];
+          Peak1D p = old_spectrum[i];
           p.setMZ(p.getMZ() * z - (z - 1) * Constants::PROTON_MASS_U);
           in.push_back(p);
         }
@@ -212,7 +233,7 @@ protected:
           }
           else
           {
-            RichPeak1D p = old_spectrum[i];
+            Peak1D p = old_spectrum[i];
             p.setMZ(p.getMZ() * z - (z - 1) * Constants::PROTON_MASS_U);
             in.push_back(p);
           }
@@ -225,20 +246,33 @@ protected:
 
   void registerOptionsAndFlags_()
   {
-    registerInputFile_("in", "<file>", "", "Input file with MS/MS spectra", false);
+    registerInputFile_("in", "<file>", "", "Input file with MS/MS spectra");
     setValidFormats_("in", ListUtils::create<String>("mzML"));
-    registerInputFile_("id", "<file>", "", "Identification input file which contains a search against a concatenated sequence database", false);
+    registerInputFile_("id", "<file>", "", "Identification input file which contains a search against a concatenated sequence database");
     setValidFormats_("id", ListUtils::create<String>("idXML"));
-    registerOutputFile_("out", "<file>", "", "Identification output with annotated phosphorylation scores");
-    registerDoubleOption_("fragment_mass_tolerance", "<tolerance>", 0.05, "Fragment mass error", false);
+    registerOutputFile_("out", "<file>", "", "Identification output annotated with phosphorylation scores");
 
-    StringList fragment_mass_tolerance_unit_valid_strings;
-    fragment_mass_tolerance_unit_valid_strings.push_back("Da");
-    fragment_mass_tolerance_unit_valid_strings.push_back("ppm");
-    registerStringOption_("fragment_mass_unit", "<unit>", "Da", "Unit of fragment mass error", false, false);
-    setValidStrings_("fragment_mass_unit", fragment_mass_tolerance_unit_valid_strings);
-
-    addEmptyLine_();
+    // Ascore algorithm parameters:
+    registerFullParam_(AScore().getDefaults());
+  }
+  
+  // If the score_type has a different name in the meta_values, it is not possible to find it.
+  // E.g. Percolator_qvalue <-> q-value.
+  // Improvement for the future would be to have unique names for the score_types
+  // LuciphorAdapter uses the same strategy to backup previous scores.
+  void addScoreToMetaValues_(PeptideHit& hit, const String score_type)
+  {
+    if (!hit.metaValueExists(score_type) && !hit.metaValueExists(score_type + "_score"))
+    {
+      if (score_type.hasSubstring("score"))
+      {
+        hit.setMetaValue(score_type, hit.getScore());
+      }
+      else
+      {
+        hit.setMetaValue(score_type + "_score", hit.getScore());
+      }
+    }
   }
 
   ExitCodes main_(int, const char**)
@@ -250,19 +284,22 @@ protected:
     String in(getStringOption_("in"));
     String id(getStringOption_("id"));
     String out(getStringOption_("out"));
-    double fragment_mass_tolerance(getDoubleOption_("fragment_mass_tolerance"));
-    bool fragment_mass_unit_ppm = getStringOption_("fragment_mass_unit") == "Da" ? false : true;
-    AScore ascore;
 
-    RichPeakMap exp;
+    AScore ascore;
+    Param ascore_params = ascore.getDefaults();
+    ascore_params.update(getParam_(), false, false, false, false, Log_debug);
+    ascore.setParameters(ascore_params);
+
     //-------------------------------------------------------------
     // loading input
     //-------------------------------------------------------------
+    
     vector<PeptideIdentification> pep_ids;
     vector<ProteinIdentification> prot_ids;
     vector<PeptideIdentification> pep_out;
     IdXMLFile().load(id, prot_ids, pep_ids);
 
+    PeakMap exp;
     MzMLFile f;
     f.setLogType(log_type_);
 
@@ -272,44 +309,34 @@ protected:
     f.getOptions() = options;
     f.load(in, exp);
     exp.sortSpectra(true);
+    
+    SpectrumLookup lookup;
+    lookup.readSpectra(exp.getSpectra());
 
-    for (Size i = 0; i != exp.getNrSpectra(); ++i)
+    for (vector<PeptideIdentification>::iterator pep_id = pep_ids.begin(); pep_id != pep_ids.end(); ++pep_id)
     {
-      deisotopeAndSingleChargeMSSpectrum_(exp.getSpectrum(i), 2, 5, fragment_mass_tolerance, fragment_mass_unit_ppm);
-    }
-
-    //-------------------------------------------------------------
-    // calculations
-    //-------------------------------------------------------------
-    // map the ids to the spectra
-    IDMapper id_mapper;
-    id_mapper.annotate(exp, pep_ids, prot_ids);
-    for (RichPeakMap::iterator it = exp.begin(); it != exp.end(); ++it)
-    {
-      if (it->getPeptideIdentifications().empty())
+      Size scan_id = lookup.findByRT(pep_id->getRT());
+      PeakSpectrum& temp = exp.getSpectrum(scan_id);
+      
+      vector<PeptideHit> scored_peptides;
+      for (vector<PeptideHit>::const_iterator hit = pep_id->getHits().begin(); hit < pep_id->getHits().end(); ++hit)
       {
-        continue;
+        PeptideHit scored_hit = *hit;
+        addScoreToMetaValues_(scored_hit, pep_id->getScoreType()); // backup score value
+        
+        LOG_DEBUG << "starting to compute AScore RT=" << pep_id->getRT() << " SEQUENCE: " << scored_hit.getSequence().toString() << std::endl;
+        
+        PeptideHit phospho_sites = ascore.compute(scored_hit, temp);
+        scored_peptides.push_back(phospho_sites);
       }
 
-      for (vector<PeptideIdentification>::iterator hits = it->getPeptideIdentifications().begin(); hits < it->getPeptideIdentifications().end(); ++hits)
-      {
-        vector<PeptideHit> scored_peptides;
-        for (vector<PeptideHit>::const_iterator hit = hits->getHits().begin(); hit < hits->getHits().end(); ++hit)
-        {
-          PeptideHit scored_hit = *hit;
-          RichPeakSpectrum& temp  = *it;
-
-          PeptideHit phospho_sites;
-          phospho_sites = ascore.compute(scored_hit, temp, fragment_mass_tolerance, fragment_mass_unit_ppm);
-          scored_peptides.push_back(phospho_sites);
-        }
-
-        PeptideIdentification new_hits(*hits);
-        new_hits.setScoreType("PhosphoScore");
-        new_hits.setHits(scored_peptides);
-        pep_out.push_back(new_hits);
-      }
+      PeptideIdentification new_pep_id(*pep_id);
+      new_pep_id.setScoreType("PhosphoScore");
+      new_pep_id.setHigherScoreBetter(true);
+      new_pep_id.setHits(scored_peptides);
+      pep_out.push_back(new_pep_id);
     }
+    
     //-------------------------------------------------------------
     // writing output
     //-------------------------------------------------------------
@@ -317,7 +344,6 @@ protected:
     IdXMLFile().store(out, prot_ids, pep_out);
     return EXECUTION_OK;
   }
-
 };
 
 int main(int argc, const char** argv)

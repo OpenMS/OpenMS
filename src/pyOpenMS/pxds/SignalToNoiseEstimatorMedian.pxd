@@ -10,23 +10,28 @@ cdef extern from "<OpenMS/FILTERING/NOISEESTIMATION/SignalToNoiseEstimatorMedian
 
     cdef cppclass SignalToNoiseEstimatorMedian[SpectrumT]:
         # wrap-instances:
-        #   SignalToNoiseEstimatorMedian := SignalToNoiseEstimatorMedian[MSSpectrum[Peak1D]]
+        #   SignalToNoiseEstimatorMedian := SignalToNoiseEstimatorMedian[MSSpectrum]
 
         SignalToNoiseEstimatorMedian() nogil except +
         SignalToNoiseEstimatorMedian(SignalToNoiseEstimatorMedian) nogil except +
 
-        void init(MSSpectrum[Peak1D] & spectrum) nogil except +
+        void init(MSSpectrum & spectrum) nogil except +
         void getSignalToNoise(Peak1D & data_point) nogil except +
 
-        # Functions for SignalToNoiseEstimatorMedianChrom[MSChromatogram[ChromatogramPeak]]
+        double getSparseWindowPercent() nogil except +
+        double getHistogramRightmostPercent() nogil except +
+
+        # Functions for SignalToNoiseEstimatorMedianChrom[MSChromatogram]
         # use wrap-ignore because autowrap cannot handle them at the moment
         # see addons/SignalToNoiseEstimatorMedianChrom.pyx for the implementation
-        void init(MSChromatogram[ChromatogramPeak] & spectrum) nogil except + #wrap-ignore
+        void init(MSChromatogram & spectrum) nogil except + #wrap-ignore
         void getSignalToNoise(ChromatogramPeak & data_point) nogil except + #wrap-ignore
 
 cdef extern from "<OpenMS/FILTERING/NOISEESTIMATION/SignalToNoiseEstimatorMedian.h>" namespace "OpenMS::SignalToNoiseEstimatorMedian":
 
     cdef enum IntensityThresholdCalculation "OpenMS::SignalToNoiseEstimatorMedianChrom::IntensityThresholdCalculation":
+        # wrap-attach:
+        #     SignalToNoiseEstimatorMedian
         MANUAL
         AUTOMAXBYSTDEV
         AUTOMAXBYPERCENT

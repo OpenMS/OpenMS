@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TraML version="1.0.0" xmlns="http://psi.hupo.org/ms/traml" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://psi.hupo.org/ms/traml TraML1.0.0.xsd">
+  <cvList>
+    <cv id="MS" fullName="Proteomics Standards Initiative Mass Spectrometry Ontology" version="unknown" URI="http://psidev.cvs.sourceforge.net/*checkout*/psidev/psi/psi-ms/mzML/controlledVocabulary/psi-ms.obo"/>
+    <cv id="UO" fullName="Unit Ontology" version="unknown" URI="http://obo.cvs.sourceforge.net/obo/obo/ontology/phenotype/unit.obo"/>
+  </cvList>
+  <ProteinList>
+    <Protein id="1_sp|O75882|ATRN_HUMAN">
+      <Sequence></Sequence>
+    </Protein>
+    <Protein id="1_sp|P05154|IPSP_HUMAN">
+      <Sequence></Sequence>
+    </Protein>
+    <Protein id="1_sp|P02768|ALBU_HUMAN">
+      <Sequence></Sequence>
+    </Protein>
+    <Protein id="1_sp|P0C0L4|CO4A_HUMAN">
+      <Sequence></Sequence>
+    </Protein>
+    <Protein id="1_sp|Q15063|POSTN_HUMAN">
+      <Sequence></Sequence>
+    </Protein>
+    <Protein id="1_sp|Q92954|PRG4_HUMAN">
+      <Sequence></Sequence>
+    </Protein>
+  </ProteinList>
+</TraML>

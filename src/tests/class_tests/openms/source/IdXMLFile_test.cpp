@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Andreas Bertsch $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
@@ -87,11 +87,10 @@ START_SECTION(void load(const String& filename, std::vector<ProteinIdentificatio
   TEST_EQUAL(protein_ids[0].getIdentifier(),"Mascot_2006-01-12T12:13:14")
   TEST_EQUAL(protein_ids[0].getSearchParameters().db,"MSDB")
   TEST_EQUAL(protein_ids[0].getSearchParameters().db_version,"1.0")
-  TEST_EQUAL(protein_ids[0].getSearchParameters().enzyme,ProteinIdentification::TRYPSIN)
   TEST_EQUAL(protein_ids[0].getSearchParameters().charges,"+1, +2")
   TEST_EQUAL(protein_ids[0].getSearchParameters().mass_type,ProteinIdentification::AVERAGE)
-  TEST_REAL_SIMILAR(protein_ids[0].getSearchParameters().peak_mass_tolerance,0.3)
-  TEST_REAL_SIMILAR(protein_ids[0].getSearchParameters().precursor_tolerance,1.0)
+  TEST_REAL_SIMILAR(protein_ids[0].getSearchParameters().fragment_mass_tolerance,0.3)
+  TEST_REAL_SIMILAR(protein_ids[0].getSearchParameters().precursor_mass_tolerance,1.0)
   TEST_EQUAL((String)(protein_ids[0].getMetaValue("name")),"ProteinIdentification")
 
   TEST_EQUAL(protein_ids[0].getProteinGroups().size(), 1);
@@ -173,11 +172,10 @@ START_SECTION(void load(const String& filename, std::vector<ProteinIdentificatio
   TEST_EQUAL(protein_ids[1].getIdentifier(),"Mascot_2007-01-12T12:13:14")
   TEST_EQUAL(protein_ids[1].getSearchParameters().db,"MSDB")
   TEST_EQUAL(protein_ids[1].getSearchParameters().db_version,"1.1")
-  TEST_EQUAL(protein_ids[1].getSearchParameters().enzyme,ProteinIdentification::UNKNOWN_ENZYME)
   TEST_EQUAL(protein_ids[1].getSearchParameters().charges,"+1, +2, +3")
   TEST_EQUAL(protein_ids[1].getSearchParameters().mass_type,ProteinIdentification::MONOISOTOPIC)
-  TEST_REAL_SIMILAR(protein_ids[1].getSearchParameters().peak_mass_tolerance,0.3)
-  TEST_REAL_SIMILAR(protein_ids[1].getSearchParameters().precursor_tolerance,1.0)
+  TEST_REAL_SIMILAR(protein_ids[1].getSearchParameters().fragment_mass_tolerance,0.3)
+  TEST_REAL_SIMILAR(protein_ids[1].getSearchParameters().precursor_mass_tolerance,1.0)
   TEST_EQUAL(protein_ids[1].getSearchParameters().fixed_modifications.size(),2)
   TEST_EQUAL(protein_ids[1].getSearchParameters().fixed_modifications[0],"Fixed")
   TEST_EQUAL(protein_ids[1].getSearchParameters().fixed_modifications[1],"Fixed2")
@@ -207,20 +205,21 @@ END_SECTION
 
 START_SECTION(void store(String filename, const std::vector<ProteinIdentification>& protein_ids, const std::vector<PeptideIdentification>& peptide_ids, const String& document_id="") )
 
-  //store and load data
+  // load, store, and reload data
   std::vector<ProteinIdentification> protein_ids, protein_ids2;
   std::vector<PeptideIdentification> peptide_ids, peptide_ids2;
   String document_id, document_id2;
-  String input_path = OPENMS_GET_TEST_DATA_PATH("IdXMLFile_whole.idXML");
-  IdXMLFile().load(input_path, protein_ids2, peptide_ids2, document_id2);
-  String filename;
-  NEW_TMP_FILE(filename)
-  IdXMLFile().store(filename, protein_ids2, peptide_ids2, document_id2);
+  String target_file = OPENMS_GET_TEST_DATA_PATH("IdXMLFile_whole.idXML");
+  IdXMLFile().load(target_file, protein_ids2, peptide_ids2, document_id2);
+
+  String actual_file;
+  NEW_TMP_FILE(actual_file)
+  IdXMLFile().store(actual_file, protein_ids2, peptide_ids2, document_id2);
 
   FuzzyStringComparator fuzzy;
   fuzzy.setWhitelist(ListUtils::create<String>("<?xml-stylesheet"));
   fuzzy.setAcceptableAbsolute(0.0001);
-  bool result = fuzzy.compareFiles(input_path, filename);
+  bool result = fuzzy.compareFiles(actual_file, target_file);
   TEST_EQUAL(result, true);
 END_SECTION
 
@@ -274,6 +273,22 @@ START_SECTION(([EXTRA] No protein identification bug))
 
 END_SECTION
 
+START_SECTION(([EXTRA] XLMS data labeled cross-linker))
+  vector<ProteinIdentification> protein_ids;
+  vector<PeptideIdentification> peptide_ids;
+
+  String input_file= OPENMS_GET_TEST_DATA_PATH("IdXML_XLMS_labelled.idXML");
+  IdXMLFile().load(input_file, protein_ids, peptide_ids);
+
+  TEST_EQUAL(peptide_ids[0].getHits()[0].getPeakAnnotations()[0].annotation, "[alpha|ci$b2]")
+  TEST_EQUAL(peptide_ids[0].getHits()[0].getPeakAnnotations()[0].charge, 1)
+  TEST_EQUAL(peptide_ids[0].getHits()[0].getPeakAnnotations()[1].annotation, "[alpha|ci$b2]")
+  TEST_EQUAL(peptide_ids[0].getHits()[0].getPeakAnnotations()[8].annotation, "[alpha|xi$b8]")
+  TEST_EQUAL(peptide_ids[0].getHits()[0].getPeakAnnotations()[20].annotation, "[alpha|xi$b9]")
+  TEST_EQUAL(peptide_ids[0].getHits()[0].getPeakAnnotations()[25].charge, 3)
+  TEST_EQUAL(peptide_ids[0].getHits()[0].getPeakAnnotations()[25].annotation, "[alpha|xi$y8]")
+
+END_SECTION
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

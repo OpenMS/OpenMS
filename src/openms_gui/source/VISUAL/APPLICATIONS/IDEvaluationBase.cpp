@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -294,7 +294,7 @@ namespace OpenMS
   }
 
   bool IDEvaluationBase::getPoints(std::vector<PeptideIdentification>& peptides /* cannot be const, to avoid copy */,
-                                   const std::vector<double>& q_value_thresholds, MSSpectrum<>& points)
+                                   const std::vector<double>& q_value_thresholds, MSSpectrum& points)
   {
     points.clear(true);
 
@@ -359,7 +359,7 @@ namespace OpenMS
   }
 
 
-  bool IDEvaluationBase::loadCurve(const String& file_name, MSSpectrum<>& points)
+  bool IDEvaluationBase::loadCurve(const String& file_name, MSSpectrum& points)
   {
     if (FileHandler::getType(file_name) != FileTypes::IDXML)
     {
@@ -379,12 +379,12 @@ namespace OpenMS
 
   bool IDEvaluationBase::addSearchFile(const String& file_name)
   {
-    MSSpectrum<> points;
+    MSSpectrum points;
     if (!loadCurve(file_name, points)) return false;
 
     data_.addSpectrum(points);
 
-    MSExperiment<>* exp = new MSExperiment<>();
+    PeakMap* exp = new PeakMap();
     exp->addSpectrum(points);
     spec_1d_->canvas()->addLayer(SpectrumCanvas::ExperimentSharedPtrType(exp));
     spec_1d_->canvas()->setLayerName(spec_1d_->canvas()->getLayerCount() - 1, points.getMetaValue("search_engine"));
@@ -394,7 +394,7 @@ namespace OpenMS
     return true;
   }
   
-  const MSExperiment<>& IDEvaluationBase::getPoints() const
+  const PeakMap& IDEvaluationBase::getPoints() const
   {
      return data_;
   }

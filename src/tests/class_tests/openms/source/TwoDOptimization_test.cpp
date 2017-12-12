@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // 
 // --------------------------------------------------------------------------
-// $Maintainer: Alexandra Zerck $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: $
 // --------------------------------------------------------------------------
 
@@ -104,11 +104,11 @@ START_SECTION(( template <typename InputSpectrumIterator,typename OutputPeakType
   //******************************************************************
   //test exception with unequal number of scans
   {
-  	MSExperiment<Peak1D> exp_in;
+  	PeakMap exp_in;
 	  exp_in.resize(1);
-	  MSExperiment<Peak1D>::const_iterator first1 = exp_in.begin();
-	  MSExperiment<Peak1D>::const_iterator last1 = exp_in.end();
-	  MSExperiment<> exp_out;
+	  PeakMap::const_iterator first1 = exp_in.begin();
+	  PeakMap::const_iterator last1 = exp_in.end();
+	  PeakMap exp_out;
 		TwoDOptimization opt1;
 		TEST_EXCEPTION(Exception::IllegalArgument, opt1.optimize(first1,last1,exp_out));
   }
@@ -116,11 +116,11 @@ START_SECTION(( template <typename InputSpectrumIterator,typename OutputPeakType
   //******************************************************************
   //test exception when meta data is missing
   {
-  	MSExperiment<Peak1D> exp_in;
+  	PeakMap exp_in;
 	  exp_in.resize(1);
-	  MSExperiment<Peak1D>::const_iterator first1 = exp_in.begin();
-	  MSExperiment<Peak1D>::const_iterator last1 = exp_in.end();
-	  MSExperiment<> exp_out;
+	  PeakMap::const_iterator first1 = exp_in.begin();
+	  PeakMap::const_iterator last1 = exp_in.end();
+	  PeakMap exp_out;
 	  exp_out.resize(1);
 		TwoDOptimization opt1;
 		TEST_EXCEPTION(Exception::IllegalArgument, opt1.optimize(first1,last1,exp_out));
@@ -130,7 +130,7 @@ START_SECTION(( template <typename InputSpectrumIterator,typename OutputPeakType
 // test for 2D optimization
   TOLERANCE_ABSOLUTE(0.04)
   TOLERANCE_RELATIVE(1.001)
-  MSSpectrum<> peaks;
+  MSSpectrum peaks;
   peaks.getFloatDataArrays().resize(6);
   peaks.getFloatDataArrays()[1].setName("maximumIntensity");
   peaks.getFloatDataArrays()[1].push_back(700.); //intensity
@@ -144,7 +144,7 @@ START_SECTION(( template <typename InputSpectrumIterator,typename OutputPeakType
 	peaks.getFloatDataArrays()[3].push_back(12.5f); //left width
 	peaks.getFloatDataArrays()[4].push_back(12.5f); //right width
 	peaks.getFloatDataArrays()[5].push_back(0); //shape
-  MSSpectrum<> peaks2;
+  MSSpectrum peaks2;
   peaks2.getFloatDataArrays().resize(6);
   peaks2.getFloatDataArrays()[1].setName("maximumIntensity");
   peaks2.getFloatDataArrays()[1].push_back(700.); //intensity
@@ -180,14 +180,14 @@ START_SECTION(( template <typename InputSpectrumIterator,typename OutputPeakType
   peak_shape2.type = PeakShape::LORENTZ_PEAK;  
 	peaks.push_back(peak);
 
-  MSExperiment<> ms_exp;
+  PeakMap ms_exp;
 	ms_exp.addSpectrum(peaks);
 	ms_exp.begin()->setRT(100);
 			
   float origin = 499;
   float spacing = 0.1f;
 
-	MSSpectrum<Peak1D >	 raw_spec;
+	MSSpectrum	 raw_spec;
   for (Size i = 0; i < 20 ;++i)
   {
 		Peak1D data_point;
@@ -218,7 +218,7 @@ START_SECTION(( template <typename InputSpectrumIterator,typename OutputPeakType
 	ms_exp.addSpectrum(peaks2);
  (ms_exp.begin()+1)->setRT(101);
 
-  MSSpectrum<Peak1D >	 raw_spec2;
+  MSSpectrum	 raw_spec2;
   for (Size i = 0; i < 20 ;++i)
   {
 		Peak1D data_point;
@@ -227,7 +227,7 @@ START_SECTION(( template <typename InputSpectrumIterator,typename OutputPeakType
     raw_spec2.push_back(data_point);
   }
 
-  MSExperiment<Peak1D > raw_exp;
+  PeakMap raw_exp;
   raw_exp.addSpectrum(raw_spec);
   raw_exp.addSpectrum(raw_spec2);
 	raw_exp.begin()->setRT(100);
@@ -236,7 +236,7 @@ START_SECTION(( template <typename InputSpectrumIterator,typename OutputPeakType
   Param param;
   ParamXMLFile paramFile;
 	paramFile.load(file, param);
-  MSExperiment<Peak1D >::const_iterator first,last;
+  PeakMap::const_iterator first,last;
   first = raw_exp.begin();
   last = raw_exp.end();
   TwoDOptimization opt_2d;

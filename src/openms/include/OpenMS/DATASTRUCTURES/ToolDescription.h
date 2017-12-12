@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: $
+// $Maintainer: Chris Bielow $
 // $Authors: Chris Bielow, Mathias Walzer $
 // --------------------------------------------------------------------------
 
@@ -111,8 +111,8 @@ namespace OpenMS
       String text_finish;
       String category;
       String commandline;
-      String path; //< filename to external tool
-      String working_directory; //< folder where the command will be executed from
+      String path; ///< filename to external tool
+      String working_directory; ///< folder where the command will be executed from
       MappingParam tr_table;
       Param param;
     };

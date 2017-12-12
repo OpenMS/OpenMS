@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,13 +28,14 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Erhan Kenar $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: $
 // --------------------------------------------------------------------------
 
 #ifndef OPENMS_KERNEL_CONVERSIONHELPER_H
 #define OPENMS_KERNEL_CONVERSIONHELPER_H
 
+#include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
@@ -51,7 +52,7 @@ public:
 
       Only the @p n most intense elements are copied.
 
-      Currently MSExperiment<> does not have a unique id but ConsensusMap has
+      Currently PeakMap does not have a unique id but ConsensusMap has
       one, so we assign a new one here.
 
       @param input_map_index The index of the input map.
@@ -60,7 +61,7 @@ public:
       @param n The maximum number of elements to be copied.
     */
     static void convert(UInt64 const input_map_index,
-                        MSExperiment<>& input_map,
+                        PeakMap& input_map,
                         ConsensusMap& output_map,
                         Size n = -1);
 

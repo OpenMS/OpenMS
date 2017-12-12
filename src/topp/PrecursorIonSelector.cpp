@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Alexandra Zerck $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Alexandra Zerck $
 // --------------------------------------------------------------------------
 
@@ -106,14 +106,15 @@ using namespace OpenMS;
     on a complete LC-MS/MS run, e.g. to determine what would have been
     the most efficient strategy.
 
-    @note For mzid in-/out- put, due to legacy reason issues you are temporarily asked to use IDFileConverter as a wrapper.
+    @note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
+
     <B>The command line parameters of this tool are:</B>
     @verbinclude TOPP_PrecursorIonSelector.cli
     <B>INI file documentation of this tool:</B>
     @htmlinclude TOPP_PrecursorIonSelector.html
 
     For the parameters of the algorithm section see the algorithm's documentation: @n
-        @ref OpenMS::PrecursorIonSelection @n
+    @ref OpenMS::PrecursorIonSelection @n
 
 */
 
@@ -142,7 +143,9 @@ protected:
     registerOutputFile_("next_feat", "<output file>", "", "feature map (featureXML) file with the selected precursors", false);
     setValidFormats_("next_feat", ListUtils::create<String>("featureXML"));
 
-    registerStringOption_("ids", "<idxml file>", "", "file containing results of identification (idXML)");
+    registerInputFile_("ids", "<id file>", "", "file containing results of identification");
+    setValidFormats_("ids", ListUtils::create<String>("idXML"));
+    
     registerIntOption_("num_precursors", "<Int>", 1, "number of precursors to be selected", false);
     registerInputFile_("raw_data", "<file>", "", "Input profile data.", false);
     setValidFormats_("raw_data", ListUtils::create<String>("mzML"));
@@ -222,7 +225,7 @@ protected:
       pisp.dbPreprocessing(db_path, rt_model, dt_model, store_preprocessing);
     }
 
-    MSExperiment<> exp;
+    PeakMap exp;
     if (raw_data != "") MzMLFile().load(raw_data, exp);
 
     //-------------------------------------------------------------

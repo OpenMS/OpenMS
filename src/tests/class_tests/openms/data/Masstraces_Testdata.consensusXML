@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<?xml-stylesheet type="text/xsl" href="file:////home/hr/openmsall/gitsvn/OpenMS/share/OpenMS/XSL/ConsensusXML.xsl"?>
+<consensusXML version="1.5" id="cm_11680563561505821301" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/ConsensusXML_1_4.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<dataProcessing completion_time="2012-03-23T20:54:02">
+	</dataProcessing>
+	<mapList count="0">
+	</mapList>
+	<consensusElementList>
+
+		<consensusElement id="e_1" quality="1.0">
+			<centroid rt="5202.0" mz="468.5" it="2000.0"/>
+			<groupedElementList>
+				<element map="0" id="1" rt="5200.0" mz="468.5" it="100.0"/>
+				<element map="0" id="2" rt="5201.0" mz="468.5" it="200.0"/>
+				<element map="0" id="3" rt="5202.0" mz="468.5" it="300.0"/>
+				<element map="0" id="4" rt="5203.0" mz="468.5" it="400.0"/>
+				<element map="0" id="5" rt="5204.0" mz="468.5" it="200.0"/>
+				<element map="0" id="6" rt="5205.0" mz="468.5" it="100.0"/>
+			</groupedElementList>
+			<userParam type="string" name="label" value="This_belongs_to_feature_2"/>
+		</consensusElement>
+
+		<consensusElement id="e_2" quality="1.0">
+			<centroid rt="5201.0" mz="568.5" it="3000.0"/>
+			<groupedElementList>
+				<element map="0" id="1" rt="5199.0" mz="568.5" it="100.0"/>
+				<element map="0" id="2" rt="5200.0" mz="568.5" it="100.0"/>
+				<element map="0" id="3" rt="5201.0" mz="568.5" it="200.0"/>
+				<element map="0" id="4" rt="5202.0" mz="568.5" it="300.0"/>
+				<element map="0" id="5" rt="5203.0" mz="568.5" it="400.0"/>
+				<element map="0" id="6" rt="5204.0" mz="568.5" it="200.0"/>
+			</groupedElementList>            
+			<userParam type="string" name="label" value="This_is_the_first_seed"/>
+		</consensusElement>
+
+		<consensusElement id="e_3" quality="1.0">
+			<centroid rt="5203.0" mz="668.5" it="2500.0"/>
+			<groupedElementList>
+				<element map="0" id="1" rt="5202.0" mz="768.5" it="100.0"/>
+				<element map="0" id="2" rt="5203.0" mz="768.5" it="200.0"/>
+				<element map="0" id="3" rt="5204.0" mz="768.5" it="300.0"/>
+				<element map="0" id="4" rt="5205.0" mz="768.5" it="400.0"/>
+				<element map="0" id="5" rt="5206.0" mz="768.5" it="200.0"/>
+				<element map="0" id="6" rt="5207.0" mz="768.5" it="100.0"/>
+			</groupedElementList>            
+			<userParam type="string" name="label" value="This_is_the_third_seed"/>
+		</consensusElement>
+
+		<consensusElement id="e_4" quality="1.0">
+			<centroid rt="5203.0" mz="668.5" it="1000.0"/>
+			<groupedElementList>
+				<element map="0" id="1" rt="5202.0" mz="668.5" it="100.0"/>
+				<element map="0" id="2" rt="5203.0" mz="668.5" it="200.0"/>
+				<element map="0" id="3" rt="5204.0" mz="668.5" it="300.0"/>
+				<element map="0" id="4" rt="5205.0" mz="668.5" it="400.0"/>
+				<element map="0" id="5" rt="5206.0" mz="668.5" it="200.0"/>
+				<element map="0" id="6" rt="5207.0" mz="668.5" it="100.0"/>
+			</groupedElementList>            
+		</consensusElement>
+
+		<consensusElement id="e_5" quality="1.0">
+			<centroid rt="4203.0" mz="668.5" it="2800.0"/>
+			<groupedElementList>
+				<element map="0" id="1" rt="4the_second_seed202.0" mz="668.5" it="100.0"/>
+				<element map="0" id="2" rt="4203.0" mz="668.5" it="200.0"/>
+				<element map="0" id="3" rt="4204.0" mz="668.5" it="300.0"/>
+				<element map="0" id="4" rt="4205.0" mz="668.5" it="400.0"/>
+				<element map="0" id="5" rt="4206.0" mz="668.5" it="200.0"/>
+				<element map="0" id="6" rt="4207.0" mz="668.5" it="100.0"/>
+			</groupedElementList>            
+			<userParam type="string" name="label" value="This_is_a_single_trace"/>
+		</consensusElement>
+
+
+	</consensusElementList>
+</consensusXML>

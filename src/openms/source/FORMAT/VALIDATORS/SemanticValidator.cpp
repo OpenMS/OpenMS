@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Andreas Bertsch $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Marc Sturm, Andreas Bertsch $
 // --------------------------------------------------------------------------
 
@@ -120,7 +120,7 @@ namespace OpenMS
       //try to open file
       if (!File::exists(filename))
       {
-        throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
+        throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
       }
 
       //initialize
@@ -460,7 +460,7 @@ namespace OpenMS
               int int_value = value.toInt();
               if (int_value >= 0)
               {
-                throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "should be negative");
+                throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "should be negative");
               }
             }
             catch (Exception::ConversionError& /*e*/)
@@ -475,7 +475,7 @@ namespace OpenMS
               int int_value = value.toInt();
               if (int_value <= 0)
               {
-                throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "should be positive");
+                throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "should be positive");
               }
             }
             catch (Exception::ConversionError& /*e*/)
@@ -490,7 +490,7 @@ namespace OpenMS
               int int_value = value.toInt();
               if (int_value < 0)
               {
-                throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "should not be negative");
+                throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "should not be negative");
               }
             }
             catch (Exception::ConversionError& /*e*/)
@@ -505,7 +505,7 @@ namespace OpenMS
               int int_value = value.toInt();
               if (int_value > 0)
               {
-                throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "should not be positive");
+                throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "should not be positive");
               }
             }
             catch (Exception::ConversionError& /*e*/)

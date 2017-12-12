@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -197,28 +197,31 @@ START_SECTION((void updateRanges()))
 END_SECTION
 
 START_SECTION((FeatureMap(const FeatureMap &source)))
-	FeatureMap map1;
-	map1.push_back(feature1);
-	map1.push_back(feature2);
-	map1.push_back(feature3);
-	map1.updateRanges();
-	map1.setIdentifier("lsid");;
-	map1.getDataProcessing().resize(1);
-	map1.getProteinIdentifications().resize(1);
-	map1.getUnassignedPeptideIdentifications().resize(1);
+  FeatureMap map1;
+  map1.setMetaValue("meta",String("value"));
+  map1.push_back(feature1);
+  map1.push_back(feature2);
+  map1.push_back(feature3);
+  map1.updateRanges();
+  map1.setIdentifier("lsid");;
+  map1.getDataProcessing().resize(1);
+  map1.getProteinIdentifications().resize(1);
+  map1.getUnassignedPeptideIdentifications().resize(1);
 
-	FeatureMap map2(map1);
+  FeatureMap map2(map1);
 
-	TEST_EQUAL(map2.size(),3);
+  TEST_EQUAL(map2.size(),3);
+  TEST_EQUAL(map2.getMetaValue("meta").toString(),"value")
   TEST_REAL_SIMILAR(map2.getMaxInt(),1.0)
   TEST_STRING_EQUAL(map2.getIdentifier(),"lsid")
   TEST_EQUAL(map2.getDataProcessing().size(),1)
-	TEST_EQUAL(map2.getProteinIdentifications().size(),1);
-	TEST_EQUAL(map2.getUnassignedPeptideIdentifications().size(),1);
+  TEST_EQUAL(map2.getProteinIdentifications().size(),1);
+  TEST_EQUAL(map2.getUnassignedPeptideIdentifications().size(),1);
 END_SECTION
 
 START_SECTION((FeatureMap& operator = (const FeatureMap& rhs)))
 	FeatureMap map1;
+  map1.setMetaValue("meta",String("value"));
 	map1.push_back(feature1);
 	map1.push_back(feature2);
 	map1.push_back(feature3);
@@ -233,6 +236,7 @@ START_SECTION((FeatureMap& operator = (const FeatureMap& rhs)))
 	map2 = map1;
 
 	TEST_EQUAL(map2.size(),3);
+  TEST_EQUAL(map2.getMetaValue("meta").toString(),"value")
   TEST_REAL_SIMILAR(map2.getMaxInt(),1.0)
   TEST_STRING_EQUAL(map2.getIdentifier(),"lsid")
   TEST_EQUAL(map2.getDataProcessing().size(),1)

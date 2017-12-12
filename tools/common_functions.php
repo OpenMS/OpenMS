@@ -3,7 +3,7 @@
 #                   OpenMS -- Open-Source Mass Spectrometry
 # --------------------------------------------------------------------------
 # Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-# ETH Zurich, and Freie Universitaet Berlin 2002-2012.
+# ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 #
 # This software is released under a three-clause BSD license:
 #  * Redistributions of source code must retain the above copyright
@@ -83,7 +83,7 @@ function includeToGuard($include) {
 	the fielname and path of the include are written into $include if it is given 
 */
 function isIncludeLine($line, &$include) {
-  if(ereg("^#[ \t]*include[ \t]*<(.*)>", ltrim($line), $parts))
+  if(preg_match('/^#[ \t]*include[ \t]*<(.*)>/', ltrim($line), $parts))
   {
     $include = $parts[1];
     return true;

@@ -1,8 +1,6 @@
-from libcpp cimport bool
-from libcpp.vector cimport vector as libcpp_vector
+from Types cimport *
 from DataValue cimport *
 from String cimport *
-from Types cimport *
 from MetaInfoRegistry cimport *
 
 cdef extern from "<OpenMS/METADATA/MetaInfoInterface.h>" namespace "OpenMS":

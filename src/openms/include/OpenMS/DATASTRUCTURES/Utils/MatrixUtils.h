@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Christian Ehrlich $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Christian Ehrlich $
 // --------------------------------------------------------------------------
 
@@ -67,8 +67,6 @@ namespace OpenMS
   static bool
   matrixIsIdentityMatrix(const Matrix<double>& channel_frequency)
   {
-    bool is_identity = true;
-
     for (Matrix<double>::SizeType i = 0; i < channel_frequency.rows(); ++i)
     {
       for (Matrix<double>::SizeType j = 0; j < channel_frequency.rows(); ++j)
@@ -77,14 +75,11 @@ namespace OpenMS
         // i==j -> m(i,j) == 1.0 && i!=j -> m(i,j) == 0.0
         if ((i == j && channel_frequency(i, j) != 1.0) || channel_frequency(i, j) != 0.0)
         {
-          is_identity = false;
-          break;
+          return false;
         }
       }
-      // leave outer loop if we have reached the abortion criteria
-      if (!is_identity) break;
     }
-    return is_identity;
+    return true;
   }
 }//namespace
 

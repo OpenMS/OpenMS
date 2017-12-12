@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,8 +28,8 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Christian Ehrlich $
-// $Authors: Christian Ehrlich $
+// $Maintainer: Timo Sachsenberg $
+// $Authors: Christian Ehrlich, Chris Bielow $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/MATH/STATISTICS/QuadraticRegression.h>
@@ -43,6 +43,8 @@ namespace OpenMS
       a_(0), b_(0), c_(0), chi_squared_(0) {}
 
     double QuadraticRegression::eval(double x) const {return a_ + b_*x + c_*x*x;}
+
+    double QuadraticRegression::eval(double A, double B, double C, double x) {return A + B*x + C*x*x;}
 
     double QuadraticRegression::getA() const {return a_;}
     double QuadraticRegression::getB() const {return b_;}

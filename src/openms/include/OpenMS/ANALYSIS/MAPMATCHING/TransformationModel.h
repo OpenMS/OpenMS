@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Hendrik Weisser $
 // --------------------------------------------------------------------------
 
@@ -36,7 +36,7 @@
 #define OPENMS_ANALYSIS_MAPMATCHING_TRANSFORMATIONMODEL_H
 
 #include <OpenMS/DATASTRUCTURES/Param.h>
-#include <boost/noncopyable.hpp> // to prevent copy/assignment
+#include <OpenMS/KERNEL/StandardTypes.h>
 
 namespace OpenMS
 {
@@ -49,11 +49,37 @@ namespace OpenMS
 
     @ingroup MapAlignment
   */
-  class OPENMS_DLLAPI TransformationModel : boost::noncopyable
+  class OPENMS_DLLAPI TransformationModel
   {
   public:
-    /// Coordinate pair
-    typedef std::pair<double, double> DataPoint;
+    /// Coordinate pair (with optional annotation)
+    struct DataPoint
+    {
+      double first, second;
+      String note;
+
+      DataPoint(double first = 0.0, double second = 0.0,
+                const String& note = ""):
+        first(first), second(second), note(note)
+      {}
+
+      DataPoint(const std::pair<double, double>& pair):
+        first(pair.first), second(pair.second), note("")
+      {}
+
+      bool operator<(const DataPoint& other) const
+      {
+        return (std::tie(first, second, note) <
+                std::tie(other.first, other.second, other.note));
+      }
+
+      bool operator==(const DataPoint& other) const
+      {
+        return (std::tie(first, second, note) ==
+                std::tie(other.first, other.second, other.note));
+      }
+    };
+
     /// Vector of coordinate pairs
     typedef std::vector<DataPoint> DataPoints;
 
@@ -61,6 +87,7 @@ namespace OpenMS
     TransformationModel() {}
 
     /// Alternative constructor (derived classes should implement this one!)
+    /// Both data and params must be provided, since some derived classes require both to create a model!
     TransformationModel(const TransformationModel::DataPoints&, const Param&);
 
     /// Destructor
@@ -68,9 +95,59 @@ namespace OpenMS
 
     /// Evaluates the model at the given value
     virtual double evaluate(double value) const;
+    
+    /**
+    @brief Weight the data by the given weight function
+
+    Currently supported valid weighting functions include the following:
+      - 1 / x.
+      - 1 / x2.
+      - 1 / y.
+      - 1 / y2.
+      - ln x.
+      - ln y.
+    Note that the user needs to ensure valid bounds for the data by setting
+    the x_datum_min/x_datum_max and y_datum_min/y_datum_max params.
+    */
+    virtual void weightData(DataPoints& data);
+     
+    /**
+    @brief Unweight the data by the given weight function
+    */
+    virtual void unWeightData(DataPoints& data);
+    
+    /**
+    @brief Check for a valid wighting function string
+    */
+    bool checkValidWeight(const String& weight, const std::vector<String>& valid_weights) const;
+
+    /**
+    @brief Check that the datum is within the valid min and max bounds.
+
+    The method checks if the datum is within the user specified min and max bounds.
+    If the datum is below the min bounds, the min bound is returned.
+    If the datum is above the max bounds, the max bound is returned.
+    */
+    double checkDatumRange(const double& datum, const double& datum_min, const double& datum_max);
+ 
+    /**
+    @brief Weight the data according to the weighting function
+    */
+    double weightDatum(const double& datum, const String& weight) const;
+
+    /**
+    @brief Apply the reverse of the weighting function to the data
+    */
+    double unWeightDatum(const double& datum, const String& weight) const;
 
     /// Gets the (actual) parameters
     const Param& getParameters() const;
+
+    /// Returns a list of valid x weight function strings
+    std::vector<String> getValidXWeights() const;
+
+    /// Returns a list of valid y weight function strings
+    std::vector<String> getValidYWeights() const;
 
     /// Gets the default parameters
     static void getDefaultParameters(Param& params);
@@ -78,6 +155,22 @@ namespace OpenMS
   protected:
     /// Parameters
     Param params_;
+    /// x weighting
+    String x_weight_;
+    double x_datum_min_;
+    double x_datum_max_;
+    /// y weighting
+    String y_weight_;
+    double y_datum_min_;
+    double y_datum_max_;
+    bool weighting_;
+
+  private:
+    /// do not allow copy
+    TransformationModel(const TransformationModel&);
+    /// do not allow assignment
+    const TransformationModel& operator=(const TransformationModel&);
+
   };
 
 } // end of namespace OpenMS

@@ -3,6 +3,7 @@ set(directory include/OpenMS/ANALYSIS/SVM)
 
 ### list all header files of the directory here
 set(sources_list_h
+SimpleSVM.h
 SVMWrapper.h
 )
 

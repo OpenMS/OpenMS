@@ -42,7 +42,7 @@ Download the latest OpenMS source from SVN (following `the OpenMS documentation`
 
 Install Qt and then start with the dependencies of OpenMS itself::
 
-    $ svn co https://open-ms.svn.sourceforge.net/svnroot/open-ms/contrib
+    $ git clone https://github.com/OpenMS/contrib.git
     $ cmake .
 
 Now you have to install the dependencies of pyOpenMS:
@@ -60,9 +60,9 @@ Now you have to install the dependencies of pyOpenMS:
 
 - Configure and build pyOpenMS::
 
-    $ svn co https://open-ms.svn.sourceforge.net/svnroot/open-ms/OpenMS
+    $ git clone https://github.com/OpenMS/OpenMS.git
     $ cmake -DPYOPENMS=ON .
-    $ make pyopenms_bdist_egg
+    $ make pyopenms
 
 This should build a file like *pyopenms-1.10.1-py2.7-linux-x86_64.egg* the
 folder *./pyOpenMS/dist* of your build directory which you can distribute
@@ -91,7 +91,7 @@ Documentation
 -------------
 
 pyOpenMS follows the `OpenMS
-documentation <http://www-bs2.informatik.uni-tuebingen.de/services/OpenMS/OpenMS-release/html/classes.html>`_ very closely. Additionally, there is also a `pyOpenMS
+documentation <http://ftp.mi.fu-berlin.de/pub/OpenMS/release-documentation/html/classes.html>`_ very closely. Additionally, there is also a `pyOpenMS
 Manual <http://proteomics.ethz.ch/pyOpenMS_Manual.pdf>`_ available. The online
 manual contains a complete record of every wrapped class and function while the
 documentation of the corresponding class or function can be inferred from the
@@ -99,7 +99,7 @@ OpenMS online documentation.
 
 
 
-.. _the OpenMS documentation: http://www-bs2.informatik.uni-tuebingen.de/services/OpenMS/OpenMS-release/html/index.html
+.. _the OpenMS documentation: http://ftp.mi.fu-berlin.de/pub/OpenMS/release-documentation/html/classes.html
 .. _Christoph Gohlkes webpage: http://www.lfd.uci.edu/~gohlke/pythonlibs/#numpy
 .. _setuptools PyPI page: https://pypi.python.org/pypi/setuptools
 

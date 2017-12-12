@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Oliver Kohlbacher, Stephan Aiche $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
@@ -1141,7 +1141,7 @@ namespace OpenMS
 
     if (index >= isotope_distributions_.size())
     {
-      throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "IsotopeDistribution not precalculated. Maximum allowed index is " + String(isotope_distributions_.size()), String(index));
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "IsotopeDistribution not precalculated. Maximum allowed index is " + String(isotope_distributions_.size()), String(index));
     }
 
     //Return distribution
@@ -1455,7 +1455,7 @@ namespace OpenMS
     if (debug_) log_ << "   - Added " << (trace.peaks.size() - peaks_before_extension) << " peaks (abort: " << abort_reason << ")" << std::endl;
   }
 
-  Size FeatureFinderAlgorithmPicked::nearest_(double pos, const MSSpectrum<Peak1D>& spec, Size start) const
+  Size FeatureFinderAlgorithmPicked::nearest_(double pos, const MSSpectrum& spec, Size start) const
   {
     Size index = start;
     double distance = std::fabs(pos - spec[index].getMZ());
@@ -1869,7 +1869,6 @@ namespace OpenMS
     bool feature_ok = true;
 
     //check if the sigma fit was ok (if it is larger than 'max_rt_span')
-    if (feature_ok)
     {
       // 5.0 * sigma > max_rt_span_ * region_rt_span
       if (fitter->checkMaximalRTSpan(max_rt_span_))

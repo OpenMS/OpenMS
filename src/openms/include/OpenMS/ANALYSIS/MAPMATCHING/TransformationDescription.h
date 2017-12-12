@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Clemens Groepl $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Clemens Groepl, Hendrik Weisser $
 // --------------------------------------------------------------------------
 
@@ -37,6 +37,7 @@
 
 #include <OpenMS/DATASTRUCTURES/Param.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/TransformationModel.h>
+#include <iostream>
 
 namespace OpenMS
 {
@@ -50,6 +51,8 @@ namespace OpenMS
     - @p identity: Same as @p none, but intended for reference files (used to indicate that no other model should be fit, because the identity is already optimal).
     - @p linear (TransformationModelLinear): \f$ f(x) = slope * x + intercept \f$
     - @p interpolated (TransformationModelInterpolated): Interpolation between pairs, extrapolation using first and last pair. Supports different interpolation types.
+    - @p b-spline (TransformationModelBSpline): Non-linear smoothing spline, with different options for extrapolation.
+    - @b lowess (TransformationModelLowess): Non-linear smoothing via local regression, with different options for extrapolation.
 
     @remark TransformationDescription stores data points, TransformationModel stores parameters. That way, data can be modeled using different models/parameters, and models can still keep a representation of the data in the format they need (if at all).
 
@@ -102,6 +105,13 @@ public:
     */
     void setDataPoints(const DataPoints& data);
 
+    /**
+      @brief Sets the data points (backwards-compatible overload)
+
+      Removes the model that was previously fitted to the data (if any).
+    */
+    void setDataPoints(const std::vector<std::pair<double, double> >& data);
+
     /// Returns the data points
     const DataPoints& getDataPoints() const;
 
@@ -110,6 +120,19 @@ public:
 
     /// Computes an (approximate) inverse of the transformation
     void invert();
+
+    /**
+       @brief Get the deviations between the data pairs
+
+       @param diffs Output
+       @param do_apply Get deviations after applying the model?
+       @param do_sort Sort @p diffs before returning?
+    */
+    void getDeviations(std::vector<double>& diffs, bool do_apply = false,
+                       bool do_sort = true) const;
+
+    /// Print summary statistics for the transformation
+    void printSummary(std::ostream& os = std::cout) const;
 
 protected:
     /// Data points

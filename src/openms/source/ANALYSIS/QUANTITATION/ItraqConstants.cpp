@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -70,7 +70,7 @@ namespace OpenMS
     {0.27, 7.44, 0.18, 0.00}    //121
   };
 
-  //taken from ThermoFischer Scientific
+  //taken from ThermoFisher Scientific
   // http://www.piercenet.com/coapdfs/CofA-90064-SPECS.pdf
   const double ItraqConstants::ISOTOPECORRECTIONS_TMT_SIXPLEX[6][4] =
   {
@@ -120,7 +120,7 @@ namespace OpenMS
       it->split(':', result);
       if (result.size() != 2)
       {
-        throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "ItraqQuantifier: Invalid entry in Param 'isotope_correction_values'; expected one ':', got this: '" + (*it) + "'");
+        throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "ItraqQuantifier: Invalid entry in Param 'isotope_correction_values'; expected one ':', got this: '" + (*it) + "'");
       }
       result[0] = result[0].trim();       // hold channel name
       result[1] = result[1].trim();       // holds 4 values
@@ -140,7 +140,7 @@ namespace OpenMS
          ||
           (itraq_type == TMT_SIXPLEX && (line < 0 || line > 5)))
       {
-        throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("ItraqQuantifier: Invalid entry in Param 'isotope_correction_values'; channel-name is not valid for ")
+        throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("ItraqQuantifier: Invalid entry in Param 'isotope_correction_values'; channel-name is not valid for ")
                                           + String(
                                             itraq_type == FOURPLEX ? "4plex" : (itraq_type == EIGHTPLEX ? "8plex" : "TMT-6plex")
                                             )
@@ -157,7 +157,7 @@ namespace OpenMS
       result[1].split('/', corrections);
       if (corrections.size() != 4)
       {
-        throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "ItraqQuantifier: Invalid entry in Param 'isotope_correction_values'; expected four correction values separated by '&', got this: '" + result[1] + "'");
+        throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "ItraqQuantifier: Invalid entry in Param 'isotope_correction_values'; expected four correction values separated by '&', got this: '" + result[1] + "'");
       }
 
       // overwrite line in Matrix with custom values
@@ -211,7 +211,7 @@ namespace OpenMS
       info.id = (Int)i;
       if (!reporter_mass_exact.has(info.name))
       {
-        throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Unexpected reporter name during initialization.", String(info.name));
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Unexpected reporter name during initialization.", String(info.name));
       }
       info.center = reporter_mass_exact[info.name];
       info.active = false;
@@ -232,18 +232,18 @@ namespace OpenMS
       it->split(':', result);
       if (result.size() != 2)
       {
-        throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "ItraqConstants: Invalid entry in Param 'channel_active'; expected one semicolon ('" + (*it) + "')");
+        throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "ItraqConstants: Invalid entry in Param 'channel_active'; expected one semicolon ('" + (*it) + "')");
       }
       result[0] = result[0].trim();
       result[1] = result[1].trim();
       if (result[0] == String::EMPTY || result[1] == String::EMPTY)
       {
-        throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "ItraqConstants: Invalid entry in Param 'channel_active'; key or value is empty ('" + (*it) + "')");
+        throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "ItraqConstants: Invalid entry in Param 'channel_active'; key or value is empty ('" + (*it) + "')");
       }
       Int channel = result[0].toInt();
       if (map.find(channel) == map.end())
       {
-        throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "ItraqConstants: Invalid entry in Param 'channel_active'; channel is not valid ('" + String(channel) + "')");
+        throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "ItraqConstants: Invalid entry in Param 'channel_active'; channel is not valid ('" + String(channel) + "')");
       }
       // update name (description) of channel
       map[channel].description = result[1];

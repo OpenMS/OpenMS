@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Stephan Aiche $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Marc Sturm, Clemens Groepl $
 // --------------------------------------------------------------------------
 
@@ -75,7 +75,7 @@ on the same line of code.  */
 void
 throw_a_Precondition_Exception()
 {
-  throw OpenMS::Exception::Precondition(__FILE__,__LINE__, __PRETTY_FUNCTION__,
+  throw OpenMS::Exception::Precondition(__FILE__,__LINE__, OPENMS_PRETTY_FUNCTION,
     "intentional Exception::Preconditon raised by throw_a_Precondition_Exception()");
 }
 
@@ -83,7 +83,7 @@ throw_a_Precondition_Exception()
 void
 throw_a_Postcondition_Exception()
 {
-  throw OpenMS::Exception::Postcondition(__FILE__,__LINE__, __PRETTY_FUNCTION__,
+  throw OpenMS::Exception::Postcondition(__FILE__,__LINE__, OPENMS_PRETTY_FUNCTION,
     "intentional Exception::Postconditon raised by throw_a_Postcondition_Exception()");
 }
 
@@ -785,11 +785,11 @@ START_SECTION("TEST_NOT_EQUAL")
 END_SECTION
 
 START_SECTION("TEST_EXCEPTION")
-	TEST_EXCEPTION(Exception::NullPointer, throw Exception::NullPointer(__FILE__, __LINE__, __PRETTY_FUNCTION__))
+	TEST_EXCEPTION(Exception::NullPointer, throw Exception::NullPointer(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION))
 END_SECTION
 
 START_SECTION("TEST_EXCEPTION_WITH_MESSAGE")
-	TEST_EXCEPTION_WITH_MESSAGE(Exception::NullPointer, throw Exception::NullPointer(__FILE__, __LINE__, __PRETTY_FUNCTION__), "a null pointer was specified")
+	TEST_EXCEPTION_WITH_MESSAGE(Exception::NullPointer, throw Exception::NullPointer(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION), "a null pointer was specified")
 END_SECTION
 
 START_SECTION("TEST_PRECONDITION_VIOLATED")
@@ -822,12 +822,12 @@ START_SECTION("TEST_POSTCONDITION_VIOLATED")
 
   END_SECTION
 
-START_SECTION("__PRETTY_FUNCTION__")
+START_SECTION("OPENMS_PRETTY_FUNCTION")
 	struct Dummy
 	{
-		std::string f_dummy(double, float,int,unsigned,long,unsigned long,char) { return __PRETTY_FUNCTION__; }
+		std::string f_dummy(double, float,int,unsigned,long,unsigned long,char) { return OPENMS_PRETTY_FUNCTION; }
 	} dummy;
-	STATUS("\n\n\tExample for usage of __PRETTY_FUNCTION__ inside a member function of a nested class in main():\n\t" << dummy.f_dummy(0,0,0,0,0,0,0) << '\n')
+	STATUS("\n\n\tExample for usage of OPENMS_PRETTY_FUNCTION inside a member function of a nested class in main():\n\t" << dummy.f_dummy(0,0,0,0,0,0,0) << '\n')
 	NOT_TESTABLE
 END_SECTION
 

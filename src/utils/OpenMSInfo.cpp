@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -56,9 +56,9 @@ namespace OpenMS
   {
 
     enum OpenMS_OS {OS_UNKNOWN, OS_MACOS, OS_WINDOWS, OS_LINUX};
-    std::string OpenMS_OSNames[] = {"unkown", "MacOS", "Windows", "Linux"};
-    enum OpenMS_Architecture {ARCH_UNKOWN, ARCH_32BIT, ARCH_64BIT};
-    std::string OpenMS_ArchNames[] = {"unkown", "32bit", "64bit"};
+    std::string OpenMS_OSNames[] = {"unknown", "MacOS", "Windows", "Linux"};
+    enum OpenMS_Architecture {ARCH_UNKNOWN, ARCH_32BIT, ARCH_64BIT};
+    std::string OpenMS_ArchNames[] = {"unknown", "32 bit", "64 bit"};
 
 #if WIN32
     OpenMS_Architecture getArchOnWin();
@@ -69,8 +69,8 @@ namespace OpenMS
     {
       OpenMSOSInfo() :
         os(OS_UNKNOWN),
-        os_version("unkown"),
-        arch(ARCH_UNKOWN)
+        os_version("unknown"),
+        arch(ARCH_UNKNOWN)
       {}
 
       OpenMS_OS os;
@@ -160,7 +160,7 @@ namespace OpenMS
       {
         if (!fnIsWow64Process(GetCurrentProcess(), &bIsWow64))
         {
-          return ARCH_UNKOWN;
+          return ARCH_UNKNOWN;
         }
       }
       if (bIsWow64)
@@ -185,9 +185,25 @@ namespace OpenMS
 
 #endif // WIN32 API functions
 
+    /*
+      @brief Get Architecture of this binary (simply by looking at size of a pointer, i.e. size_t).
+    */
+    OpenMS_Architecture getBinaryArchitecture()
+    {
+      size_t bytes = sizeof(size_t);
+      switch (bytes)
+      {
+        case 4:
+          return ARCH_32BIT;
+        case 8:
+          return ARCH_64BIT;
+        default:
+          return ARCH_UNKNOWN;
+      }
+    }
+
   } // NS Internal
 } // NS OpenMS
-
 
 // We do not want this class to show up in the docu:
 /// @cond TOPPCLASSES
@@ -212,6 +228,7 @@ int main(int /*argc*/, const char ** /*argv*/)
   cout << "==================" << "\n";
   cout << "Source path  : " << OPENMS_SOURCE_PATH << "\n";
   cout << "Binary path  : " << OPENMS_BINARY_PATH << "\n";
+  cout << "Binary arch  : " << Internal::OpenMS_ArchNames[Internal::getBinaryArchitecture()] << "\n";
   cout << "\n";
 
   OpenMS::Internal::OpenMSOSInfo info = OpenMS::Internal::getOSInfo();

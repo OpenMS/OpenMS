@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // 
 // --------------------------------------------------------------------------
-// $Maintainer: Erhan Kenar $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: $
 // --------------------------------------------------------------------------
 
@@ -85,9 +85,9 @@ END_SECTION
 /////
 
 // Prepare data
-MSExperiment<Peak1D> mse;
+PeakMap mse;
 {
-  MSSpectrum<Peak1D> mss;
+  MSSpectrum mss;
   Peak1D p;
   for ( UInt m = 0; m < 3; ++m )
   {
@@ -103,7 +103,7 @@ MSExperiment<Peak1D> mse;
   }
 }
 
-START_SECTION((static void convert(UInt64 const input_map_index, MSExperiment<> & input_map, ConsensusMap& output_map, Size n = -1)))
+START_SECTION((static void convert(UInt64 const input_map_index, PeakMap & input_map, ConsensusMap& output_map, Size n = -1)))
 {
 
   ConsensusMap cm;

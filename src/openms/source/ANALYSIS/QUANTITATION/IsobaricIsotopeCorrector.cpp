@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Stephan Aiche $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Stephan Aiche, Chris Bielow $
 // --------------------------------------------------------------------------
 
@@ -66,7 +66,7 @@ namespace OpenMS
 
     if (matrixIsIdentityMatrix(correction_matrix))
     {
-      throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                         "IsobaricIsotopeCorrector: The given isotope correction matrix is an identity matrix leading to no correction. "
                                         "Please provide a valid isotope_correction matrix as it was provided with the sample kit!");
     }
@@ -82,7 +82,7 @@ namespace OpenMS
     if (!ludecomp.isInvertible())
     {
       // clean up before we leave
-      throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "IsobaricIsotopeCorrector: The given isotope correction matrix is not invertible!");
+      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "IsobaricIsotopeCorrector: The given isotope correction matrix is not invertible!");
     }
 
     // data structures for NNLS
@@ -105,7 +105,7 @@ namespace OpenMS
       Eigen::MatrixXd e_mx = ludecomp.solve(b);
       if (!((*m) * e_mx).isApprox(b))
       {
-        throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "IsobaricIsotopeCorrector: Cannot multiply!");
+        throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "IsobaricIsotopeCorrector: Cannot multiply!");
       }
       solveNNLS_(correction_matrix, m_b, m_x);
 
@@ -113,7 +113,7 @@ namespace OpenMS
       float cf_intensity = updateOutpuMap_(consensus_map_in, consensus_map_out, i, m_x);
 
       // check consistency
-      computeStats_(m_x, e_mx, cf_intensity, quant_method, stats);
+      computeStats_(m_x, e_mx, cf_intensity, quant_method, stats);    
     }
 
     return stats;
@@ -145,7 +145,7 @@ namespace OpenMS
     Int status = NonNegativeLeastSquaresSolver::solve(correction_matrix, m_b, m_x);
     if (status != NonNegativeLeastSquaresSolver::SOLVED)
     {
-      throw Exception::FailedAPICall(__FILE__, __LINE__, __PRETTY_FUNCTION__, "IsobaricIsotopeCorrector: Failed to find least-squares fit!");
+      throw Exception::FailedAPICall(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "IsobaricIsotopeCorrector: Failed to find least-squares fit!");
     }
   }
 
@@ -165,16 +165,16 @@ namespace OpenMS
       {
         ++s_negative;
       }
-      else if (std::fabs(m_x(index, 0) - x(index)) > 0.000001)
+      else if ((((std::fabs(m_x(index, 0) - x(index)))/m_x(index, 0))*100) > 1)
       {
         ++s_different_count;
         s_different_intensity += std::fabs(m_x(index, 0) - x(index));
       }
     }
 
-    if (s_negative == 0 && s_different_count > 0) // solutions are inconsistent, despite being positive! This should not happen!
+    if (s_negative == 0 && s_different_count > 0) //some solutions are inconsistent, despite being positive
     {
-      throw Exception::Postcondition(__FILE__, __LINE__, __PRETTY_FUNCTION__, "IsobaricIsotopeCorrector: Isotope correction values of alternative method differ!");
+      LOG_WARN << "IsobaricIsotopeCorrector: Isotope correction values of alternative method differ!" << std::endl;
     }
 
     // update global stats

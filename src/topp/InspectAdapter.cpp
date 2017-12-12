@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,12 +28,13 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Andreas Bertsch $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
+#include <OpenMS/CHEMISTRY/ProteaseDB.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/MzXMLFile.h>
 #include <OpenMS/FORMAT/InspectInfile.h>
@@ -123,7 +124,8 @@ using namespace std;
                 </li>
     </ol>
 
-    @note For mzid in-/out- put, due to legacy reason issues you are temporarily asked to use IDFileConverter as a wrapper.
+    @note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
+
     <B>The command line parameters of this tool are:</B>
     @verbinclude TOPP_InspectAdapter.cli
     <B>INI file documentation of this tool:</B>
@@ -356,7 +358,7 @@ protected:
       string_buffer = File::absolutePath(string_buffer);
       if (inspect_in)
       {
-        MSExperiment<Peak1D> experiment;
+        PeakMap experiment;
         String type;
         try
         {
@@ -842,13 +844,21 @@ protected:
         {
           // set the parameters
           ProteinIdentification::SearchParameters sp;
-          if (monoisotopic) sp.mass_type = ProteinIdentification::MONOISOTOPIC;
-          else sp.mass_type = ProteinIdentification::AVERAGE;
-          if (inspect_infile.getEnzyme() == "Trypsin") sp.enzyme = ProteinIdentification::TRYPSIN;
-          else if (inspect_infile.getEnzyme() == "No_Enzyme") sp.enzyme = ProteinIdentification::NO_ENZYME;
-          else sp.enzyme = ProteinIdentification::UNKNOWN_ENZYME;
-          sp.peak_mass_tolerance = inspect_infile.getPeakMassTolerance();
-          sp.precursor_tolerance = inspect_infile.getPrecursorMassTolerance();
+          if (monoisotopic)
+          {
+            sp.mass_type = ProteinIdentification::MONOISOTOPIC;
+          }
+          else
+          {
+            sp.mass_type = ProteinIdentification::AVERAGE;
+          }
+
+          if (ProteaseDB::getInstance()->hasEnzyme(inspect_infile.getEnzyme()))
+          {
+            sp.digestion_enzyme = *(ProteaseDB::getInstance()->getEnzyme(inspect_infile.getEnzyme()));
+          }
+          sp.fragment_mass_tolerance = inspect_infile.getPeakMassTolerance();
+          sp.precursor_mass_tolerance = inspect_infile.getPrecursorMassTolerance();
           protein_identification.setSearchParameters(sp);
 
           try

@@ -1,6 +1,3 @@
-from libcpp cimport bool
-from libcpp.vector cimport vector as libcpp_vector
-from libcpp.pair cimport pair as libcpp_pair
 from libcpp.string cimport string as libcpp_string
 from Types cimport *
 from ProgressLogger cimport *
@@ -13,6 +10,7 @@ cdef extern from "<OpenMS/ANALYSIS/SVM/SVMWrapper.h>" namespace "OpenMS":
     cdef cppclass SVMWrapper "OpenMS::SVMWrapper":
         SVMWrapper() nogil except +
         SVMWrapper(SVMWrapper) nogil except + #wrap-ignore
+
         void setParameter(SVM_parameter_type type_, Int value) nogil except +
         void setParameter(SVM_parameter_type type_, double value) nogil except +
         # Int train(struct svm_problem *problem) nogil except +
@@ -53,6 +51,7 @@ cdef extern from "<OpenMS/ANALYSIS/SVM/SVMWrapper.h>" namespace "OpenMS":
     cdef cppclass SVMData "OpenMS::SVMData":
         SVMData() nogil except +
         SVMData(SVMData) nogil except + #wrap-ignore
+
         # TODO nested STL
         # libcpp_vector[ libcpp_vector[ libcpp_pair[ Int, double ] ] ] sequences
         libcpp_vector[ double ] labels

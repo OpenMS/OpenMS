@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -37,111 +37,111 @@
 /**
 	@page TOPP_general General introduction
 
-		This tutorial will give you a brief overview of the most important TOPP tools.
-		First, we explain some basics that you will need for every TOPP tool,
-		then we show several example pipelines.
+	This tutorial will give you a brief overview of the most important TOPP tools.
+	First, we explain some basics that you will need for every TOPP tool,
+	then we show several example pipelines.
 
 	@section TOPP_fileformats File formats
 
-		The TOPP tools use the HUPO-PSI standard format mzML 1.1.0 as input format.
-		In order to convert other open formats (mzData, mzXML, DTA, ANDI/MS) to mzML, a file converter
-		is provided by TOPP.
+	The TOPP tools use the HUPO-PSI standard format mzML 1.1.0 as input format.
+	In order to convert other open formats (mzData, mzXML, DTA, ANDI/MS) to mzML, a file converter
+	is provided by TOPP.
 
-		Proprietary MS machine formats are not supported. If you need to convert these formats to
-		mzML, mzData or mzXML, please have a look at the <a href="http://sashimi.sourceforge.net" target="blank_">SASHIMI project page</a>
-		or contact your MS machine vendor.
+	Proprietary MS machine formats are not supported. If you need to convert these formats to
+	mzML, mzData or mzXML, please have a look at the <a href="http://sashimi.sourceforge.net" target="blank_">SASHIMI project page</a>
+	or contact your MS machine vendor.
 
-		mzML covers only the output of a mass spectrometry experiment. For further analysis of this data
-		several other file formats are needed. The main file formats used by TOPP are:
-		- @b mzML The HUPO-PSI standard format for mass spectrometry data.
-		- @b featureXML The %OpenMS format for quantitation results.
-		- @b consensusXML The %OpenMS format for grouping features in one map or across several maps.
-		- @b idXML The %OpenMS format for protein and peptide identification.
+	mzML covers only the output of a mass spectrometry experiment. For further analysis of this data
+	several other file formats are needed. The main file formats used by TOPP are:
+	- @b mzML The HUPO-PSI standard format for mass spectrometry data.
+	- @b featureXML The %OpenMS format for quantitation results.
+	- @b consensusXML The %OpenMS format for grouping features in one map or across several maps.
+	- @b idXML The %OpenMS format for protein and peptide identification.
 
-		Documented schemas of the %OpenMS formats can be found at
-		<tt>http://www.openms.de/schemas/</tt> .
+	Documented schemas of the %OpenMS formats can be found at
+	<tt>http://www.openms.de/schemas/</tt> .
 
-		@em idXML files and @em consensusXML files created by %OpenMS can be visualized in a web browser directly.
-		XSLT stylesheets are used to transform the XML to HTML code. The stylesheets are contained
-		in the @em OpenMS/share/OpenMS/XSLT/ folder of your %OpenMS installation.
-		@n If you want to view the file on the computer with the %OpenMS installation, you can just open it in your
-		browser. 
-		@n If you copy the file to another computer, you have must copy the XSLT stylesheet to that computer and
-		change the second line in the XML file. The following example shows how to change the stylesheet location for
-		an idXML file. You simply have to change the *PATH* in the line
-		@code<?xml-stylesheet type="text/xsl" href="file:///*PATH*idXML.xsl"?>@endcode
-		to the folder where the stylesheet resides.
+	@em idXML files and @em consensusXML files created by %OpenMS can be visualized in a web browser directly.
+	XSLT stylesheets are used to transform the XML to HTML code. The stylesheets are contained
+	in the @em OpenMS/share/OpenMS/XSLT/ folder of your %OpenMS installation.
+	@n If you want to view the file on the computer with the %OpenMS installation, you can just open it in your
+	browser. 
+	@n If you copy the file to another computer, you have must copy the XSLT stylesheet to that computer and
+	change the second line in the XML file. The following example shows how to change the stylesheet location for
+	an idXML file. You simply have to change the *PATH* in the line
+	@code<?xml-stylesheet type="text/xsl" href="file:///*PATH*idXML.xsl"?>@endcode
+	to the folder where the stylesheet resides.
 
 	<HR>
 	@section TOPP_common_options Common arguments of the TOPP tools
 
-		The command line and INI file parameters of the TOPP tools vary due to the different tasks of
-		the TOPP tools. However, all TOPP tools share this common interface:
-	  - <b>-ini &lt;file&gt;</b> Use the given TOPP INI file
-	  - <b>-log &lt;file&gt;</b> Location of the log file (default: 'TOPP.log')
-	  - <b>-instance &lt;n&gt;</b> Instance number in the TOPP INI file (default: '1')
-	  - <b>-debug &lt;n&gt;</b> Sets the debug level (default: '0')
-	  - <b>-write_ini &lt;file&gt;</b> Writes an example INI file
-	  - <b>-no_progress</b> Disables progress logging to command line
-	  - <b>--help</b> Shows a help page for the command line and INI file options
+	The command line and INI file parameters of the TOPP tools vary due to the different tasks of
+	the TOPP tools. However, all TOPP tools share this common interface:
+	- @b -ini &lt;file&gt; Use the given TOPP INI file
+	- @b -log &lt;file&gt; Location of the log file (default: 'TOPP.log')
+	- @b -instance &lt;n&gt; Instance number in the TOPP INI file (default: '1')
+	- @b -debug &lt;n&gt; Sets the debug level (default: '0')
+	- @b -write_ini &lt;file&gt; Writes an example INI file
+	- @b -no_progress Disables progress logging to command line
+	- @b --help Shows a help page for the command line and INI file options
 
 	<HR>
 	@section TOPP_parameters TOPP INI files
 
-		Each TOPP tool has its own set of parameters which can be specified at the
-		command line.  However, a more convenient (and persistent) way to handle larger
-		sets of parameters is to use TOPP INI files.  TOPP INI files are XML-based
-		and can contain the configuration of one or several TOPP tools.
+	Each TOPP tool has its own set of parameters which can be specified at the
+	command line.  However, a more convenient (and persistent) way to handle larger
+	sets of parameters is to use TOPP INI files.  TOPP INI files are XML-based
+	and can contain the configuration of one or several TOPP tools.
 
-		The following examples will give an overview of how TOPP tools can be chained
-		in order to create analysis pipelines.  INI files are the recommended way
-		to store all settings of such a pipeline in a single place.
+	The following examples will give an overview of how TOPP tools can be chained
+	in order to create analysis pipelines.  INI files are the recommended way
+	to store all settings of such a pipeline in a single place.
 
-		Note that the issue of finding suitable parameters for the tools is not
-		addressed here. If you encounter problems during the execution of the example
-		pipelines on your data, you probably have to adapt the parameters. Have a
-		look at the documentation of the corresponding TOPP tool in that case.
+	Note that the issue of finding suitable parameters for the tools is not
+	addressed here. If you encounter problems during the execution of the example
+	pipelines on your data, you probably have to adapt the parameters. Have a
+	look at the documentation of the corresponding TOPP tool in that case.
 
 		@subsection TOPP_parameter_documentation Parameter documentation
+	
+	General documentation of a TOPP tool and documentation for the command line parameters,
+	can be displayed using the command line flag @a --help.
 
-			General documentation of  a TOPP tool and documentation for the command line parameters,
-			can be displayed using the command line argument @a --help.
-
-			Some TOPP tools also have subsections of parameters that are internally handed to
-			an algorithm. The documentation of these subsections is not displayed with @a --help.
-			It is however displayed in @b INIFileEditor (see next section).
+	Some TOPP tools also have subsections of parameters that are internally handed to
+	an algorithm. The documentation of these subsections is not displayed with @a --help.
+	It is however displayed in @b INIFileEditor (see next section), or when using @a --helphelp (which also shows advanced parameters).
 
 		@subsection TOPP_parameter_creation Creating an INI file for a TOPP tool
-
-			The easiest way of creating an INI file is to advise the corresponding TOPP
-			tool to write its default	configuration file using the argument '-write_ini' on the command line.
-			Now the INI file can be adapted to your needs
-			using @b INIFileEditor.
-			@image html INIFileEditor.png
-			@image latex INIFileEditor.png "" width=10cm
-
-			In the @subpage TOPP_INIFileEditor, the documentation of the parameters is displayed
-			in the window at the bottom, once you click on the respective parameter.
+	
+	The easiest way of creating an INI file is to advise the corresponding TOPP
+	tool to write its default configuration file using the argument '-write_ini' on the command line.
+	Now the INI file can be adapted to your needs
+	using @b INIFileEditor.
+		
+	@image html INIFileEditor.png
+	@image latex INIFileEditor.png "" width=10cm
+		
+	In the @subpage TOPP_INIFileEditor, the documentation of the parameters is displayed
+	in the window at the bottom, once you click on the respective parameter.
 
 		@subsection TOPP_parameter_update Updating an INI file for a TOPP tool or a whole TOPPAS pipeline
 
-			If you have an old INI file which does not work for a newer OpenMS version 
-			(due to renamed/removed or new) parameters, you can rescue parameter's
-			whose name did not change into the new version by using our @subpage UTILS_INIUpdater tool by
-			calling it with (a list of) outdated INI and/or TOPPAS files. See the INIUpdater tool description for details.
-			This will remove invalid parameters and	add new parameters (if available) while retaining values for unchanged parameters.
+	If you have an old INI file which does not work for a newer OpenMS version 
+	(due to renamed/removed or new) parameters, you can rescue parameters
+	whose name did not change into the new version by using our @subpage UTILS_INIUpdater tool by
+	calling it with (a list of) outdated INI and/or TOPPAS files. See the INIUpdater tool description for details.
+	This will remove invalid parameters and	add new parameters (if available) while retaining values for unchanged parameters.
 
-			
 		@subsection TOPP_parameter_structure General structure of an INI file
-
-		An INI file is always enclosed by the @a &lt;PARAMETERS&gt; tag. Inside this tag, a tree-like hierarchy
-		is created with @a &lt;NODE&gt; tags that represent sections and @a &lt;ITEM&gt; tags, each of which stores one of the
-		parameters.  The first two level of the hierarchy have a special meaning.
-
-		<b>Example:</b> Below is the content of an INI file for @b FileFilter.
-
-		 Several parameter sets for a TOPP tool can be specified in a <i>tool section</i>.
-			The tool section is always named after the program itself, in this case "FileFilter".
+		
+	An INI file is always enclosed by the @a &lt;PARAMETERS&gt; tag. Inside this tag, a tree-like hierarchy
+	is created with @a &lt;NODE&gt; tags that represent sections and @a &lt;ITEM&gt; tags, each of which stores one of the
+	parameters. The first two level of the hierarchy have a special meaning.
+		
+	@b Example: Below is the content of an INI file for @b FileFilter.
+		
+	Several parameter sets for a TOPP tool can be specified in a <i>tool section</i>.
+	The tool section is always named after the program itself, in this case "FileFilter".
 		- In order to make storing several parameter sets for the same tool in one
 			INI file possible, the tool section contains one or several
 			<i>numbered instance subsections</i> ('1', '2', ...). These numbers are
@@ -150,11 +150,11 @@
 		- Within each instance section, the actual parameters of the TOPP tool are given.
 			INI files for complex tools	can contain nested subsections in order to
 			group related parameters.
-		-	If a parameter is not found in the instance section, the <i>tool-specific
+		- If a parameter is not found in the instance section, the <i>tool-specific
 			common section</i> is considered.
 		- Finally, we look if the <i>general common	section</i> contains a value
 			for the parameter.
-
+		
 		Imagine we call the @b FileFilter tool with the INI file given below and instance number '2'.
 		The FileFilter parameters @a rt and @a mz are looked up by the tool.
 		@a mz can be found in section @b FileFilter - @a 2. @a rt is not specified in this section,
@@ -195,88 +195,90 @@
 
 		@section TOPP_files_info General information about peak and feature maps
 
-			If you want some general information about a peak or feature map, use the @b FileInfo tool.
-			- It can print RT, m/z and intensity ranges, the overall number of peaks, and the distribution of MS levels
-			- It can print a statistical summary of intensities
-			- It can print some meta information
-			- It can validate XML files against their schema
-			- It can check for corrupt data in peak files
-			See the 'FileInfo --help' for details.
+	If you want some general information about a peak or feature map, use the @b FileInfo tool.
+		- It can print RT, m/z and intensity ranges, the overall number of peaks, and the distribution of MS levels
+		- It can print a statistical summary of intensities
+		- It can print some meta information
+		- It can validate XML files against their schema
+		- It can check for corrupt data in peak files
+	See the 'FileInfo --help' for details.
 
 		@section TOPP_files_info2 Problems with input files
 
-			If you are experiencing problems while processing an XML file you can check if the file 
-			does validate against the XML schema:
-			@code
+	If you are experiencing problems while processing an XML file you can check if the file 
+	does validate against the XML schema:
+		@code
 FileInfo -v -in infile.mzML
-			@endcode
-			Validation is available for several file formats including mzML, mzData, mzXML, featureXML and idXML.
+		@endcode
+	Validation is available for several file formats including mzML, mzData, mzXML, featureXML and idXML.
 			
-			Another frequently-occurring problem is corrupt data. You can check for corrupt data in peak files
-			with @b FileInfo as well:
-			@code
+	Another frequently-occurring problem is corrupt data. You can check for corrupt data in peak files
+	with @b FileInfo as well:
+		@code
 FileInfo -c -in infile.mzML
-			@endcode
+		@endcode
 			
 		@section TOPP_files_conversion Converting your files to mzML
 
-			The TOPP tools work only on the HUPO-PSI @a mzML format. If you need to convert @a mzData, @a mzXML or @a ANDI/MS
-			data to @a mzML, you can do that using the @b FileConverter, e.g.
-			@code
+	The TOPP tools work only on the HUPO-PSI @a mzML format. If you need to convert @a mzData, @a mzXML or @a ANDI/MS
+	data to @a mzML, you can do that using the @b FileConverter, e.g.
+		@code
 FileConverter -in infile.mzXML -out outfile.mzML
-			@endcode
-			If you use the format names as file extension, the tool derives the format from the extension.
-			For other extensions, the file formats of the input and output file can be given explicitly.
+		@endcode
+	If you use the format names as file extension, the tool derives the format from the extension.
+	For other extensions, the file formats of the input and output file can be given explicitly.
 
 		@section TOPP_files_dta Converting between DTA and mzML
 
-			Sequest DTA files can be extracted from a mzML file using the @b DTAExtractor:
-			@code
+	Sequest DTA files can be extracted from a mzML file using the @b DTAExtractor:
+		@code
 DTAExtractor -in infile.mzML -out outfile
-			@endcode
-			The retention time of a scan, the precursor mass-to-charge ratio (for MS/MS scans) and the file
-			extension are appended to the output file name.
+		@endcode
+	The retention time of a scan, the precursor mass-to-charge ratio (for MS/MS scans) and the file
+	extension are appended to the output file name.
 
-			To combine several files (e.g. DTA files) to an mzML file use the @b FileMerger:
-			@code
+	To combine several files (e.g. DTA files) to an mzML file use the @b FileMerger:
+		@code
 FileMerger -in infile_list.txt -out outfile.mzML
-			@endcode
-			The retention times of the scans can be generated, taken from the @a infile_list.txt or can be extracted
-			from the DTA file names. See the FileMerger documentation for details.
+		@endcode
+	The retention times of the scans can be generated, taken from the @a infile_list.txt or can be extracted
+	from the DTA file names. See the FileMerger documentation for details.
 
 		@section TOPP_files_filter Extracting part of the data from a file
 
-			If you want to extract part of the data from an mzML file, you can use the
-			@b FileFilter tool. It allows filtering for RT, m/z and intensity range or for MS level.
-			To extract the MS/MS scans between retention time 100 and 1500, you would use the following command:
-			@code
+	If you want to extract part of the data from an mzML file, you can use the
+	@b FileFilter tool. It allows filtering for RT, m/z and intensity range or for MS level.
+	To extract the MS/MS scans between retention time 100 and 1500, you would use the following command:
+		@code
 FileFilter -in infile.mzML -levels 2 -rt 100:1500 -out outfile.mzML
-			@endcode
+		@endcode
 */
 
 //##############################################################################
 
 /**
 	@page TOPP_example_signalprocessing Profile data processing
+	
+		@section TOPP_profile_data_processing Profile data processing
 
-		@b Goal: You want to find all peaks in your profile data.
+	@b Goal: You want to find all peaks in your profile data.
 
-		The first step shown here is the elimination of noise using a @b NoiseFilter. The
-		now smoothed profile data can be further processed by subtracting the baseline
-		with the @b BaselineFilter. Then use one of the @b PeakPickers to find all peaks in the
-		baseline-reduced profile data.
+	The first step shown here is the elimination of noise using a @b NoiseFilter. The
+	now smoothed profile data can be further processed by subtracting the baseline
+	with the @b BaselineFilter. Then use one of the @b PeakPickers to find all peaks in the
+	baseline-reduced profile data.
 
-		@image html TOPP_raw_data.png
-		@image latex TOPP_raw_data.png "" width=10cm
+	@image html TOPP_raw_data.png
+	@image latex TOPP_raw_data.png "" width=10cm
 
-		We offer two different smoothing filters: NoiseFilterGaussian and NoiseFilterSGolay. If you want
-		to use the Savitzky Golay filter, or our @b BaselineFilter with non equally spaced profile data,
-		e.g. TOF data, you have to generate equally spaced data using the @b Resampler tool.
+	We offer two different smoothing filters: NoiseFilterGaussian and NoiseFilterSGolay. If you want
+	to use the Savitzky Golay filter, or our @b BaselineFilter with non equally spaced profile data,
+	e.g. TOF data, you have to generate equally spaced data using the @b Resampler tool.
 
 		@section TOPP_example_signalprocessing_peakpicker Picking peaks with a PeakPicker
 
-		The @b PeakPicker tools allow for picking peaks in profile data. Currently, there are two 
-		different TOPP tools available, PeakPickerWavelet and PeakPickerHiRes.
+	The @b PeakPicker tools allow for picking peaks in profile data. Currently, there are two 
+	different TOPP tools available, PeakPickerWavelet and PeakPickerHiRes.
 
 	<TABLE border=1>
 	
@@ -345,33 +347,37 @@ FileFilter -in infile.mzML -levels 2 -rt 100:1500 -out outfile.mzML
 /**
 	@page TOPP_example_id Consensus peptide identification
 
-		@b Goal: Use several identification engines in order to compute a consensus
-		identification for a HPLC-MS\\MS experiment.
+		@section TOPP_example_consensus_id Consensus peptide identification
 
-		%OpenMS offers adapters for the following commercial and free peptide identification engines:
-		Sequest, Mascot, OMSSA, PepNovo, XTandem and Inspect.@n
-		The adapters allow setting the input parameters and data for the identification
-		engine and return the result in the %OpenMS idXML format.
+	@b Goal: Use several identification engines in order to compute a consensus
+	identification for a HPLC-MS\\MS experiment.
 
-		In order to improve the identification accuracy, several identification engines
-		can be used and a consensus identification can be calculated from the results.
-		The image below shows an example where Mascot and OMSSA results are fed to
-		the @b ConsensusID tool (ConsensusID is currently usable for Mascot, OMSSA and XTandem).
+	%OpenMS offers adapters for the following commercial and free peptide identification engines:
+	Sequest, Mascot, OMSSA, PepNovo, XTandem and Inspect.@n
+	The adapters allow setting the input parameters and data for the identification
+	engine and return the result in the %OpenMS idXML format.
 
-		@image html TOPP_consensus_id.png
-		@image latex TOPP_consensus_id.png "" width=14cm
+	In order to improve the identification accuracy, several identification engines
+	can be used and a consensus identification can be calculated from the results.
+	The image below shows an example where Mascot and OMSSA results are fed to
+	the @b ConsensusID tool (ConsensusID is currently usable for Mascot, OMSSA and XTandem).
 
-		@b Goal: Combine quantitation and identification results.
+	@image html TOPP_consensus_id.png
+	@image latex TOPP_consensus_id.png "" width=14cm
+
+	@b Goal: Combine quantitation and identification results.
 		
-		Protein/peptide identifications can be annotated to quantitation results (featureXML, consensusXML)
-		by the @b IDMapper tool. The combined results can then be exported by the @b TextExporter tool: @ref TOPP_example_convert .
+	Protein/peptide identifications can be annotated to quantitation results (featureXML, consensusXML)
+	by the @b IDMapper tool. The combined results can then be exported by the @b TextExporter tool: @ref TOPP_example_convert .
 */
 
 //##############################################################################
 
 /**
 	@page TOPP_example_mapalignment Map alignment
-	
+
+		@section TOPP_example_mapaligment_section Map alignment
+
 	The goal of map alignment is to transform different HPLC-MS maps (or derived maps) to a common retention time axis.
 	It corrects for shifted and scaled retention times, which may result from changes of the chromatography.
 	
@@ -447,7 +453,9 @@ FileFilter -in infile.mzML -levels 2 -rt 100:1500 -out outfile.mzML
 //##############################################################################
 
 /**
-@page TOPP_example_featuredetection Feature detection
+	@page TOPP_example_featuredetection Feature detection
+
+		@section TOPP_example_featuredetection_section Feature detection
 
 	For quantitation, the @b FeatureFinder tools are used. They extract the
 	features from profile data or centroided data. TOPP offers different types of @b FeatureFinders:
@@ -536,6 +544,8 @@ FileFilter -in infile.mzML -levels 2 -rt 100:1500 -out outfile.mzML
 /**
 	@page TOPP_example_featuregrouping Feature grouping
 
+		@section TOPP_example_featuregrouping_section Feature grouping
+
 	In order to quantify differences across maps (label-free) or within a map (isotope-labeled),
 	groups of corresponding features have to be found.  The @b FeatureLinker TOPP tools support both approaches.
 	These groups are represented by consensus features, which contain information about the constituting features
@@ -543,33 +553,33 @@ FileFilter -in infile.mzML -levels 2 -rt 100:1500 -out outfile.mzML
 	
 	@section TOPP_example_featuregrouping_isotope_labeled Isotope-labeled quantitation
 
-		@b Goal: You want to differentially quantify the features of an isotope-labeled HPLC-MS map.
+	@b Goal: You want to differentially quantify the features of an isotope-labeled HPLC-MS map.
 
-		The first step in this pipeline is to find the features of the HPLC-MS map. The FeatureFinder
-		applications calculate the features from profile data or centroided data.
+	The first step in this pipeline is to find the features of the HPLC-MS map. The FeatureFinder
+	applications calculate the features from profile data or centroided data.
 
-		In the second step, the labeled pairs (e.g. light/heavy labels of ICAT) are determined by the 
-		@b FeatureLinkerLabeled application.
-		@b FeatureLinkerLabeled first determines all possible pairs according to a given optimal shift and deviations in RT and m/z.
-		Then it resolves ambiguous pairs using a greedy-algorithm that prefers pairs with a higher score.
-		The score of a pair is the product of:
-		- feature quality of feature 1
-		- feature quality of feature 2
-		- quality measure for the shift (how near is it to the optimal shift)
+	In the second step, the labeled pairs (e.g. light/heavy labels of ICAT) are determined by the 
+	@b FeatureLinkerLabeled application.
+	@b FeatureLinkerLabeled first determines all possible pairs according to a given optimal shift and deviations in RT and m/z.
+	Then it resolves ambiguous pairs using a greedy-algorithm that prefers pairs with a higher score.
+	The score of a pair is the product of:
+	- feature quality of feature 1
+	- feature quality of feature 2
+	- quality measure for the shift (how near is it to the optimal shift)
 
-		@image html TOPP_labeled_quant.png
-		@image latex TOPP_labeled_quant.png "" width=14cm
+	@image html TOPP_labeled_quant.png
+	@image latex TOPP_labeled_quant.png "" width=14cm
 
 	@section TOPP_example_featuregrouping_labelfree Label-free quantitation
 
-		@b Goal: You want to differentially quantify the features of two or more label-free HPLC-MS map.
+	@b Goal: You want to differentially quantify the features of two or more label-free HPLC-MS map.
 
-		@image html TOPP_labelfree_quant.png
-		@image latex TOPP_labelfree_quant.png "" width=14cm
+	@image html TOPP_labelfree_quant.png
+	@image latex TOPP_labelfree_quant.png "" width=14cm
 
-		@note This algorithm assumes that the retention time axes of all input maps are very similar.
-		If you need to correct for retention time distortions, please have a look at @ref TOPP_example_mapalignment .	
-		
+	@note This algorithm assumes that the retention time axes of all input maps are very similar.
+	If you need to correct for retention time distortions, please have a look at @ref TOPP_example_mapalignment .	
+	
 */
 
 
@@ -578,6 +588,8 @@ FileFilter -in infile.mzML -levels 2 -rt 100:1500 -out outfile.mzML
 
 /**
 	@page TOPP_example_calibration Calibration
+
+		@section TOPP_example_calibration_section Calibration
 
 	We offer two calibration methods: an internal and an external calibration. Both
 	can handle peak data as well as profile data. If you want to calibrate profile data,
@@ -607,6 +619,8 @@ FileFilter -in infile.mzML -levels 2 -rt 100:1500 -out outfile.mzML
 
 /**
 	@page TOPP_example_ppp Peptide property prediction
+
+		@section TOPP_example_ppp_section Peptide property prediction
 
 	You can train a model for retention time prediction as well as for the prediction of
 	proteotypic peptides. 
@@ -683,61 +697,62 @@ FileFilter -in infile.mzML -levels 2 -rt 100:1500 -out outfile.mzML
 /**
 	@page TOPP_example_convert Conversion between OpenMS XML formats and text formats 
 
-	@section TOPP_example_convert_export Export of OpenMS XML formats
+		@section TOPP_example_convert_export Export of OpenMS XML formats
 		
-		As TOPP offers no functionality for statistical analysis, this step is normally done using external statistics packages.
-		@n In order to export the %OpenMS XML formats into an appropriate format for these packages the
-		TOPP @b TextExporter can be used.
+	As TOPP offers no functionality for statistical analysis, this step is normally done using external statistics packages.
+	@n In order to export the %OpenMS XML formats into an appropriate format for these packages the
+	TOPP @b TextExporter can be used.
 		
-		It converts the the following %OpenMS XML formats to text files:
-		- featureXML
-		- idXML
-		- consensusXML
+	It converts the the following %OpenMS XML formats to text files:
+	- featureXML
+	- idXML
+	- consensusXML
 		
-		The use of the @b TextExporter is very simple:
+	The use of the @b TextExporter is very simple:
 		@code
 TextExporter -in infile.idXML -out outfile.txt
 		@endcode
 
 
-	@section TOPP_example_convert_import_feature Import of feature data to OpenMS
+		@section TOPP_example_convert_import_feature Import of feature data to OpenMS
 
-		%OpenMS offers a lot of visualization and analysis functionality for feature data.
-		@n Feature data in text format, e.g. from other analysis tools, can be imported using the @b TextImporter. The default mode accepts comma separated values
-		containing the following columns: RT, m/z, intensity. Additionally meta data columns may follow. If meta data is used, meta data column names have to be specified in a header line.
-		Without headers:
+	%OpenMS offers a lot of visualization and analysis functionality for feature data.
+	@n Feature data in text format, e.g. from other analysis tools, can be imported using the @b TextImporter. The default mode accepts comma separated values
+	containing the following columns: RT, m/z, intensity. Additionally meta data columns may follow.
+	If meta data is used, meta data column names have to be specified in a header line.
+	Without headers:
 		@verbatim
 1201	503.123	1435000
 1201	1006.246	1235200
 		@endverbatim
-		Or with headers:
+	Or with headers:
 		@verbatim
 RT	m/z	Int	isHeavy	myMeta
 1201	503.123	1435000	true	2
 1201	1006.246	1235200	maybe	1
 		@endverbatim
 		
-Example invocation:
+	Example invocation:
 		@code
 TextImporter -in infile.txt -out outfile.featureXML
 		@endcode
 
-		The tool also supports data from msInspect,SpecArray and Kroenik(Hardkloer sibling), just specify the -mode option accordingly.
+	The tool also supports data from msInspect,SpecArray and Kroenik(Hardkloer sibling), just specify the -mode option accordingly.
 		
-	@section TOPP_example_convert_import_id Import of protein/peptide identification data to OpenMS
+		@section TOPP_example_convert_import_id Import of protein/peptide identification data to OpenMS
 		
-		Peptide/protein identification data from several identification engines can be converted to idXML format using the @b IDFileConverter tool.
+	Peptide/protein identification data from several identification engines can be converted to idXML format using the @b IDFileConverter tool.
 		
-		It can currently read the following formats:
-		- Sequest output folder
-		- pepXML file
-		- idXML file
+	It can currently read the following formats:
+	- Sequest output folder
+	- pepXML file
+	- idXML file
 
-		It can currently write the following formats:
-		- pepXML
-		- idXML
+	It can currently write the following formats:
+	- pepXML
+	- idXML
 		
-		This example shows how to convert pepXML to idXML:
+	This example shows how to convert pepXML to idXML:
 		@code
 IDFileConverter -in infile.pepXML -out outfile.idXML
 		@endcode

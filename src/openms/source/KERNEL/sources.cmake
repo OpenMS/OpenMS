@@ -9,7 +9,6 @@ ConsensusFeature.cpp
 ConsensusMap.cpp
 ConversionHelper.cpp
 DPeak.cpp
-DRichPeak.cpp
 Feature.cpp
 FeatureHandle.cpp
 FeatureMap.cpp
@@ -23,12 +22,12 @@ Peak1D.cpp
 Peak2D.cpp
 PeakIndex.cpp
 RangeManager.cpp
-RichPeak1D.cpp
 RichPeak2D.cpp
 StandardTypes.cpp
 ChromatogramPeak.cpp
 MSChromatogram.cpp
 ChromatogramTools.cpp
+SpectrumHelper.cpp
 )
 
 ### add path to the filenames

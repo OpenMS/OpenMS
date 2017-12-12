@@ -1,8 +1,9 @@
+#!/bin/bash
 # --------------------------------------------------------------------------
 #                   OpenMS -- Open-Source Mass Spectrometry               
 # --------------------------------------------------------------------------
 # Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-# ETH Zurich, and Freie Universitaet Berlin 2002-2012.
+# ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 # 
 # This software is released under a three-clause BSD license:
 #  * Redistributions of source code must retain the above copyright
@@ -28,57 +29,112 @@
 # ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 # 
 # --------------------------------------------------------------------------
-# $Maintainer: $
-# $Authors: Marc Sturm $
+# $Maintainer: Julianus Pfeuffer$
+# $Authors: Marc Sturm, Julianus Pfeuffer $
 # --------------------------------------------------------------------------
 
-#Make sure a SVN path is given as first argument
-#Make sure the path to the documentation is given as second argument
-if test ! $1 || test ! $2 || test ! $3; then 
-	echo "Use: make_dist.sh <branch> <documentation> <version>";
- 	echo "";
- 	echo "Pass the SVN path inside the OpenMS repository as first argument.";
- 	echo "For the 1.2 release branch that would be 'branches/Release1.2'.";
- 	echo "";
- 	echo "Pass the path to an OpenMS/doc directory containing the current";
- 	echo "documentation as the second argument.";
- 	echo "";
- 	echo "Pass the release version as third argument.";
- 	echo "";
- 	exit;
+# Takes source and contrib (freshly checked out from given branch or by specifying git folders),
+# as well as a prebuilt documentation (should include tutorials), copies it
+# to one folder and 
+
+while [[ $# > 1 ]]
+do
+key="$1"
+
+case $key in
+    -s|--source)
+    SOURCEPATH="$2"
+    shift # past argument
+    ;;
+    -c|--contrib)
+    CONTRIBPATH="$2"
+    shift # past argument
+    ;;
+    -d|--docs)
+    DOCPATH="$2"
+    shift # past argument
+    ;;
+    -b|--branch)
+    BRANCH="$2"
+    shift # past argument
+    ;;
+    -r|--releaseversion)
+    RELVERSION="$2"
+    shift # past argument
+    ;;
+    *)
+    # unknown option
+    ;;
+esac
+
+shift # past argument or value
+done
+
+if [[ -z $BRANCH ]]; then
+    # branch defaults to master
+    BRANCH=master
 fi
 
+if [[ -z $CONTRIBPATH ]]; then
+    # Following line: to work on LNX and OSX
+    mycontribtmpdir=`mktemp -d 2>/dev/null || mktemp -d -t 'mycontribtmpdir'`
 
-# create a dummy directory and extract the branch of OpenMS
-echo "####################################################"
-echo "extracting OpenMS"
-cd /tmp
-rm -rf OpenMS-dist
-mkdir OpenMS-dist
-cd /tmp/OpenMS-dist
-svn export https://open-ms.svn.sourceforge.net/svnroot/open-ms/$1 || ( echo "could not extract OpenMS" >&0 && exit )
-mv `basename $1` OpenMS
-echo ""
+    echo "Cloning contrib master to $mycontribtmpdir/contrib"
+    # needs git
+    git clone https://github.com/OpenMS/contrib/ $mycontribtmpdir/contrib || {
+     echo "Can not clone contrib to $mycontribtmpdir/contrib. Specify an already cloned contrib path via -c or make sure the folder is empty. Also check internet connection";
+     exit ${LINENO} 
+    } >&2
+    
+    CONTRIBPATH="$mycontribtmpdir/contrib"
+fi
+
+# If source not given, clone here
+if [[ -z $SOURCEPATH ]]; then
+    # Following line: to work on LNX and OSX
+    mysourcetmpdir=`mktemp -d 2>/dev/null || mktemp -d -t 'mysourcetmpdir'`
+
+    echo "Cloning OpenMS sources of branch $BRANCH to $mysourcetmpdir/OpenMS-$RELVERSION"
+
+    # needs git
+    git clone https://github.com/OpenMS/OpenMS/ $mysourcetmpdir/OpenMS-$RELVERSION || {
+     echo "Can not clone sources to $mysourcetmpdir/OpenMS-$RELVERSION. Specify an already cloned OpenMS source path via -s or make sure the folder is empty. Also check internet connection";
+     exit ${LINENO} 
+    } >&2
+    
+    SOURCEPATH="$mysourcetmpdir/OpenMS-$RELVERSION"
+fi
+
+if [[ -z $DOCPATH ]]; then
+     echo "Path to documentation not specified. Please build the documentation with tutorials and specify path with -d";
+     exit ${LINENO}
+fi
+
+## Release version can be empty. Only affects name of the tarball
+
+echo Used the following variables:
+echo SOURCE  = "${SOURCEPATH}"
+echo CONTRIB     = "${CONTRIBPATH}"
+echo DOCU    = "${DOCPATH}"
+echo BRANCH    = "${BRANCH}"
+echo RELVER  = "${RELVERSION}"
 
 # copy documentation
 echo "####################################################"
 echo "copying documentation to release"
-mv $2/OpenMS_tutorial.pdf OpenMS/doc/
-mv $2/TOPP_tutorial.pdf OpenMS/doc/
-mv $2/html OpenMS/doc/
+cp $DOCPATH/OpenMS_tutorial.pdf $SOURCEPATH/doc/
+cp $DOCPATH/TOPP_tutorial.pdf $SOURCEPATH/doc/
+cp -r $DOCPATH/html $SOURCEPATH/doc/
 
-# extract the current SVN version of contrib
+# move contrib
 echo "####################################################"
-echo "extracting contrib"
-cd OpenMS
-svn export https://open-ms.svn.sourceforge.net/svnroot/open-ms/contrib || ( echo "cannot extract contrib" >&0 && exit )
+echo "moving contrib into sources"
+cp -r $CONTRIBPATH $SOURCEPATH
 
 # create archive
 echo "####################################################"
 echo "creating archive"
-DIR="OpenMS-$3"
-FILE="${DIR}.tar.gz"
-cd /tmp/OpenMS-dist/
-mv OpenMS ${DIR}
-echo "creating archive /tmp/OpenMS-dist/${FILE}"
-tar zcf ${FILE} ${DIR}
+TARNAME="OpenMS-$RELVERSION"
+FILE="${TARNAME}-sources.tar.gz"
+echo "creating archive $PWD/${FILE}"
+tar zcf ${FILE} -C ${SOURCEPATH} ..

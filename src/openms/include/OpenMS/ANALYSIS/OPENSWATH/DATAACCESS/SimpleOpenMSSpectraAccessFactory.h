@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Hannes Roest, Witold Wolski $
+// $Maintainer: Hannes Roest $
 // $Authors:  Hannes Roest, Witold Wolski $
 // --------------------------------------------------------------------------
 
@@ -38,6 +38,7 @@
 #include <fstream>
 
 #include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/ISpectrumAccess.h>
+#include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <boost/shared_ptr.hpp>
 
@@ -50,11 +51,12 @@ namespace OpenMS
   {
     public:
     /// Simple Factory method to get a SpectrumAccess Ptr from an MSExperiment
-    static OpenSwath::SpectrumAccessPtr getSpectrumAccessOpenMSPtr(boost::shared_ptr<OpenMS::MSExperiment<OpenMS::Peak1D> > exp);
+    static OpenSwath::SpectrumAccessPtr getSpectrumAccessOpenMSPtr(boost::shared_ptr<OpenMS::PeakMap> exp);
 
     private:
-    static bool isExperimentCached(boost::shared_ptr<OpenMS::MSExperiment<OpenMS::Peak1D> > exp);
+    static bool isExperimentCached(boost::shared_ptr<OpenMS::PeakMap> exp);
   };
 }
 
-#endif
+#endif // OPENMS_ANALYSIS_OPENSWATH_DATAACCESS_SIMPLEOPENMSSPECTRAACCESSFACTORY_H
+

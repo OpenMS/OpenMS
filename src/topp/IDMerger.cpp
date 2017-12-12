@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Nico Pfeifer $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Hendrik Weisser $
 // --------------------------------------------------------------------------
 
@@ -75,7 +75,8 @@ using namespace std;
 
   Alternatively, with the @p pepxml_protxml option, results from corresponding PeptideProphet and ProteinProphet runs can be combined. In this case, exactly two idXML files are expected as input: one containing data from a pepXML file, and the other containing data from a protXML file that was created based on the pepXML (meaningful results can only be obtained for matching files!). pepXML or protXML can be converted to idXML with the @ref TOPP_IDFileConverter tool.
 
-  @note For mzid in-/out- put, due to legacy reason issues you are temporarily asked to use IDFileConverter as a wrapper.
+  @note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
+
   <B>The command line parameters of this tool are:</B>
   @verbinclude TOPP_IDMerger.cli
   <B>INI file documentation of this tool:</B>
@@ -111,7 +112,7 @@ protected:
       idxml.load(filenames[1], protxml_proteins, protxml_peptides);
       if (protxml_proteins[0].getProteinGroups().empty())
       {
-        throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "None of the input files seems to be derived from a protXML file (information about protein groups is missing).");
+        throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "None of the input files seems to be derived from a protXML file (information about protein groups is missing).");
       }
     }
     else // first idXML contains data from the protXML
@@ -123,7 +124,7 @@ protected:
 
     if ((protxml_peptides.size() > 1) || (protxml_proteins.size() > 1))
     {
-      throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "The idXML derived from a protXML file should contain only one 'ProteinIdentification' and one 'PeptideIdentification' instance.");
+      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "The idXML derived from a protXML file should contain only one 'ProteinIdentification' and one 'PeptideIdentification' instance.");
     }
 
     // peptide information comes from the pepXML (additional information in
@@ -182,7 +183,14 @@ protected:
   {
     do
     {
-      date_time = date_time.addSecs(1);
+      if (date_time.isValid())
+      {
+        date_time = date_time.addSecs(1);
+      }
+      else
+      {
+        date_time = DateTime::now();
+      }
       new_id = search_engine + "_" + date_time.toString(Qt::ISODate);
     }
     while (used_ids.find(new_id) != used_ids.end());
@@ -190,8 +198,9 @@ protected:
 
   void annotateFileOrigin_(vector<ProteinIdentification>& proteins,
                            vector<PeptideIdentification>& peptides,
-                           const String& filename)
+                           String filename)
   {
+    if (test_mode_) filename = File::basename(filename);
     for (vector<ProteinIdentification>::iterator prot_it = proteins.begin();
          prot_it != proteins.end(); ++prot_it)
     {
@@ -272,7 +281,7 @@ protected:
 
       if (!add_to.empty())
       {
-        remove(file_names.begin(), file_names.end(), add_to);
+        file_names.erase(std::remove(file_names.begin(), file_names.end(), add_to), file_names.end());
         file_names.insert(file_names.begin(), add_to);
       }
 
@@ -374,7 +383,7 @@ protected:
             pep_it->getHits().resize(1); // restrict to best hit for simplicity
             peptides.push_back(*pep_it);
 
-            set<String> protein_accessions = hit.extractProteinAccessions();
+            set<String> protein_accessions = hit.extractProteinAccessionsSet();
 
             // copy over proteins:
             for (set<String>::const_iterator acc_it = protein_accessions.begin(); acc_it != protein_accessions.end(); ++acc_it)

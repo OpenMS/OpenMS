@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Stephan Aiche $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Andreas Bertsch, Marc Sturm, Stephan Aiche $
 // --------------------------------------------------------------------------
 
@@ -71,6 +71,7 @@ namespace OpenMS
       TOPPAS,             ///< %OpenMS parameters file with workflow information (.toppas)
       TRANSFORMATIONXML,  ///< Transformation description file (.trafoXML)
       MZML,               ///< MzML file (.mzML)
+      CACHEDMZML,         ///< CachedMzML file (.cachedmzML)
       MS2,                ///< MS2 file (.ms2)
       PEPXML,             ///< TPP pepXML file (.pepXML)
       PROTXML,            ///< TPP protXML file (.protXML)
@@ -99,6 +100,13 @@ namespace OpenMS
       XSD,                ///< XSD schema format
       PSQ,                ///< NCBI binary blast db
       MRM,                ///< SpectraST MRM List
+      SQMASS,             ///< SqLite format for mass and chromatograms
+      PQP,                ///< OpenSWATH Peptide Query Parameter (PQP) SQLite DB
+      OSW,                ///< OpenSWATH OpenSWATH report (OSW) SQLite DB
+      PSMS,               ///< Percolator tab-delimited output (PSM level)
+      PIN,                ///< Percolator tab-delimited input (PSM level)
+      PARAMXML,           ///< internal format for writing and reading parameters (also used as part of CTD)
+      SPLIB,              ///< SpectraST binary spectral library file (sptxt is the equivalent text-based format, similar to the MSP format)
       SIZE_OF_TYPE        ///< No file type. Simply stores the number of types
     };
 

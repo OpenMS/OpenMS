@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Andreas Bertsch $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
@@ -55,12 +55,22 @@ public:
     ///Destructor
     ~PeakFileOptions();
 
-    ///@name Meta data option
+    ///@name Meta data and file format option
     //@{
     ///sets whether or not to load only meta data
     void setMetadataOnly(bool only);
     ///returns whether or not to load only meta data
     bool getMetadataOnly() const;
+    
+    /// [mzXML only!] Whether to write a scan-index and meta data to indicate a Thermo FTMS/ITMS instrument (required to have parameter control in MQ)
+    void setForceMQCompatability(bool forceMQ);
+    /// [mzXML only!] Whether to write a scan-index and meta data to indicate a Thermo FTMS/ITMS instrument (required to have parameter control in MQ)
+    bool getForceMQCompatability() const;
+
+    /// [mzML only!] Whether to skip writing the <isolationWindow> tag so that TPP finds the correct precursor m/z
+    void setForceTPPCompatability(bool forceTPP);
+    /// [mzML only!] Whether to skip writing the <isolationWindow> tag so that TPP finds the correct precursor m/z
+    bool getForceTPPCompatability() const;
     //@}
 
     ///@name Supplemental data option
@@ -148,6 +158,10 @@ public:
     void setFillData(bool only);
     ///returns whether to fill the actual data into the container (spectrum/chromatogram)
     bool getFillData() const;
+    ///sets whether to skip some XML checks and be fast instead
+    void setSkipXMLChecks(bool only);
+    ///returns whether to skip some XML checks and be fast instead
+    bool getSkipXMLChecks() const;
 
     /// @name sort peaks in spectra / chromatograms by position
     ///sets whether or not to sort peaks in spectra
@@ -162,12 +176,15 @@ public:
     /**
         @name Precision options
 
+        Note that m/z and RT are controlled with the same flag (for spectra and
+        chromatograms) while there is a separate flag for intensity.
+
         @note This option is ignored if the format does not support multiple precisions
     */
     //@{
-    //Sets if mz-data should be stored with 32bit or 64bit precision
+    //Sets if mz-data and rt-data should be stored with 32bit or 64bit precision
     void setMz32Bit(bool mz_32_bit);
-    //returns @c true, if mz-data should be stored with 32bit precision
+    //returns @c true, if mz-data and rt-data should be stored with 32bit precision
     bool getMz32Bit() const;
     //Sets if intensity data should be stored with 32bit or 64bit precision
     void setIntensity32Bit(bool int_32_bit);
@@ -207,6 +224,8 @@ public:
 
 private:
     bool metadata_only_;
+    bool force_maxquant_compatibility_; ///< for mzXML-writing only: set a fixed vendor (Thermo Scientific), mass analyzer (FTMS)
+    bool force_tpp_compatibility_; ///< for mzML-writing only: work around some bugs in TPP file parsers
     bool write_supplemental_data_;
     bool has_rt_range_;
     bool has_mz_range_;
@@ -220,6 +239,7 @@ private:
     bool zlib_compression_;
     bool size_only_;
     bool always_append_data_;
+    bool skip_xml_checks_;
     bool sort_spectra_by_mz_;
     bool sort_chromatograms_by_rt_;
     bool fill_data_;
@@ -227,6 +247,7 @@ private:
     MSNumpressCoder::NumpressConfig np_config_mz_;
     MSNumpressCoder::NumpressConfig np_config_int_;
     Size maximal_data_pool_size_;
+
   };
 
 } // namespace OpenMS

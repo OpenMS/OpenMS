@@ -8,14 +8,22 @@ from IsotopeDistribution cimport *
 cdef extern from "<OpenMS/CHEMISTRY/ElementDB.h>" namespace "OpenMS":
     
     cdef cppclass ElementDB "OpenMS::ElementDB":
+        # wrap-manual-memory:
+        #    cdef AutowrapConstPtrHolder[_ElementDB] inst
+
         ElementDB(ElementDB) nogil except + #wrap-ignore
-        # Cannot get ElementDB since its destructor is private ... 
-        # POINTER # ElementDB * getInstance() nogil except +
-        # POINTER # Map[ String, Element * ]  getNames() nogil except +
-        # POINTER # Map[ String, Element * ]  getSymbols() nogil except +
-        # POINTER # Map[ UInt, Element * ]  getAtomicNumbers() nogil except +
-        # CONST POINTER # Element * getElement(String & name) nogil except +
-        # CONST POINTER # Element * getElement(UInt atomic_number) nogil except +
+
+        # No wrapping of const ref
+        # const Map[ String, Element * ]  getNames() nogil except +
+        # const Map[ String, Element * ] getSymbols() nogil except +
+        # const Map[unsigned int, Element * ] getAtomicNumbers() nogil except +
+        const Element * getElement(String & name) nogil except +
+        const Element * getElement(UInt atomic_number) nogil except +
         bool hasElement(String & name) nogil except +
         bool hasElement(UInt atomic_number) nogil except +
+
+## wrap static methods
+cdef extern from "<OpenMS/CHEMISTRY/ElementDB.h>" namespace "OpenMS::ElementDB":
+    
+    const ElementDB* getInstance() nogil except + # wrap-ignore
 

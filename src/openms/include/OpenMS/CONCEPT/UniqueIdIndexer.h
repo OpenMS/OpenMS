@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -146,7 +146,7 @@ public:
         ss << "Duplicate valid unique ids detected!   RandomAccessContainer has size()==" << getBase_().size();
         ss << ", num_valid_unique_id==" << num_valid_unique_id;
         ss << ", uniqueid_to_index_.size()==" << uniqueid_to_index_.size();
-        throw Exception::Postcondition(__FILE__, __LINE__, __PRETTY_FUNCTION__, ss.str());
+        throw Exception::Postcondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, ss.str());
       }
       return;
     }

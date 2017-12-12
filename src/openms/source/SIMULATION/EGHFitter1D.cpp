@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Stephan Aiche $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Stephan Aiche $
 // --------------------------------------------------------------------------
 
@@ -175,22 +175,22 @@ namespace OpenMS
   EGHFitter1D::QualityType EGHFitter1D::fit1d(const RawDataArrayType& set, InterpolationModel*& model)
   {
     // Calculate bounding box
-    min_ = max_ = set[0].getPos();
+    CoordinateType min_bb = set[0].getPos(), max_bb = set[0].getPos();
     for (Size pos = 1; pos < set.size(); ++pos)
     {
       CoordinateType tmp = set[pos].getPos();
-      if (min_ > tmp)
-        min_ = tmp;
-      if (max_ < tmp)
-        max_ = tmp;
+      if (min_bb > tmp)
+        min_bb = tmp;
+      if (max_bb < tmp)
+        max_bb = tmp;
     }
 
     // Enlarge the bounding box by a few multiples of the standard deviation
-    {
-      stdev1_ = sqrt(statistics_.variance()) * tolerance_stdev_box_;
-      min_ -= stdev1_;
-      max_ += stdev1_;
-    }
+
+    const CoordinateType stdev = sqrt(statistics_.variance()) * tolerance_stdev_box_;
+    min_bb -= stdev;
+    max_bb += stdev;
+
 
     // Set advanced parameters for residual_  und jacobian_ method
     EGHFitter1D::Data d;
@@ -232,8 +232,8 @@ namespace OpenMS
     tmp.setValue("statistics:mean", statistics_.mean());
 
     tmp.setValue("bounding_box:compute", "false"); // disable auto computation of bounding box
-    tmp.setValue("bounding_box:min", min_);
-    tmp.setValue("bounding_box:max", max_);
+    tmp.setValue("bounding_box:min", min_bb);
+    tmp.setValue("bounding_box:max", max_bb);
 
     tmp.setValue("egh:height", height_);
     tmp.setValue("egh:retention", retention_);

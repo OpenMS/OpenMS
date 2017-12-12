@@ -1,14 +1,11 @@
-from Peak1D cimport *
 from ChromatogramPeak cimport *
-from TransformationDescription cimport *
-from MSExperiment cimport *
-from String cimport *
-from Param cimport *
+from DefaultParamHandler cimport *
 from Feature cimport *
 from FeatureMap cimport *
+from MSExperiment cimport *
+from Peak1D cimport *
 from ProgressLogger cimport *
-from DefaultParamHandler cimport *
-from Types cimport *
+from TransformationDescription cimport *
 
 cdef extern from "<OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmPoseClustering.h>" namespace "OpenMS":
 
@@ -23,12 +20,11 @@ cdef extern from "<OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmPoseClusteri
                    TransformationDescription &
                    ) nogil except +
 
-        void align(MSExperiment[Peak1D,ChromatogramPeak],
+        void align(MSExperiment,
                    TransformationDescription &
                    ) nogil except +
 
         void setReference (FeatureMap) nogil except +
-        void setReference (MSExperiment[Peak1D,ChromatogramPeak]) nogil except +
-        String getProductName() nogil except +
+        void setReference (MSExperiment) nogil except +
 
 

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // 
 // --------------------------------------------------------------------------
-// $Maintainer: Sandro Andreotti $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 
@@ -40,6 +40,9 @@
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
 #include <OpenMS/CONCEPT/Constants.h>
 ///////////////////////////
+
+#include <OpenMS/KERNEL/MSSpectrum.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -82,8 +85,8 @@ START_SECTION((void scoreSpectra(Map< double, IonScore > &CID_ion_scores, PeakSp
   tsg_param.setValue("add_isotopes", "true");
   tsg.setParameters(tsg_param);
 
-  RichPeakSpectrum rspec;
-  tsg.getSpectrum(rspec, AASequence::fromString("DFPIANGER"));
+  PeakSpectrum rspec;
+  tsg.getSpectrum(rspec, AASequence::fromString("DFPIANGER"), 1, 1);
 
   PeakSpectrum spec;
   for (Size i = 0; i != rspec.size(); ++i)
@@ -94,9 +97,19 @@ START_SECTION((void scoreSpectra(Map< double, IonScore > &CID_ion_scores, PeakSp
     spec.push_back(p);
   }
 
-  RichPeakSpectrum rspec_ETD;
-  tsg.addPeaks(rspec_ETD, AASequence::fromString("DFPIANGER"), Residue::ZIon, 1);
-  tsg.addPrecursorPeaks(rspec_ETD, AASequence::fromString("DFPIANGER"), 2);
+  PeakSpectrum rspec_ETD;
+
+  tsg_param.setValue("add_b_ions", "false");
+  tsg_param.setValue("add_y_ions", "false");
+  tsg_param.setValue("add_z_ions", "true");
+  tsg.setParameters(tsg_param);
+  tsg.getSpectrum(rspec_ETD, AASequence::fromString("DFPIANGER"), 1, 1);
+
+  tsg_param.setValue("add_z_ions", "false");
+  tsg_param.setValue("add_precursor_peaks", "true");
+  tsg.setParameters(tsg_param);
+  tsg.getSpectrum(rspec_ETD, AASequence::fromString("DFPIANGER"), 2, 2);
+
   PeakSpectrum spec_ETD;
   for (Size i = 0; i != rspec_ETD.size(); ++i)
   {
@@ -157,7 +170,11 @@ b8 844.383559313971
         fabs(it->first - 544.276575040171) < 0.001 ||
         fabs(it->first - 658.319502490971) < 0.001 ||
         fabs(it->first - 715.340966216371) < 0.001 ||
-        fabs(it->first - 844.383559313971) < 0.001)
+        fabs(it->first - 844.383559313971) < 0.001 ||
+        //After introducing mass fix, other peaks also match (PR #1440)
+        fabs(it->first - 474.248) < 0.001 ||
+        fabs(it->first - 545.285) < 0.001)
+
     {
       TEST_EQUAL(it->second.score > 1, true)
     }

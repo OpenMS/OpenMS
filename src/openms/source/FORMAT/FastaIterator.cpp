@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Clemens Groepl, Andreas Bertsch $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Chris Bauer $
 // --------------------------------------------------------------------------
 
@@ -67,14 +67,14 @@ namespace OpenMS
 
   PepIterator* FastaIterator::operator++(int) // this operator requires copying, which we cannot support!
   {
-    throw Exception::NotImplemented(__FILE__, __LINE__, __PRETTY_FUNCTION__);
+    throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
   }
 
   FASTAEntry FastaIterator::operator*()
   {
     if (last_header_ == "")
     {
-      throw Exception::InvalidIterator(__FILE__, __LINE__, __PRETTY_FUNCTION__);
+      throw Exception::InvalidIterator(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
     }
     return FASTAEntry(last_header_, actual_seq_);
   }
@@ -83,7 +83,7 @@ namespace OpenMS
   {
     if (last_header_ == "")
     {
-      throw Exception::InvalidIterator(__FILE__, __LINE__, __PRETTY_FUNCTION__);
+      throw Exception::InvalidIterator(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
     }
     actual_seq_ = next_();
     return *this;
@@ -95,7 +95,7 @@ namespace OpenMS
     fs.open(f.c_str(), std::fstream::in);
     if (!fs.is_open())
     {
-      throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, f);
+      throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, f);
     }
     fs.close();
     fasta_file_ = f;
@@ -130,7 +130,7 @@ namespace OpenMS
   {
     if (fasta_file_ == "")
     {
-      throw Exception::InvalidIterator(__FILE__, __LINE__, __PRETTY_FUNCTION__);
+      throw Exception::InvalidIterator(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
     }
     input_file_.open(fasta_file_.c_str(), std::fstream::in);
 

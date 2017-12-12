@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Stephan Aiche$
+// $Maintainer: Timo Sachsenberg$
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
@@ -120,9 +120,9 @@ public:
     virtual ~DataValue();
     //@}
 
-    ///@name cast operators
+    ///@name Cast operators
     ///These methods are used when the DataType is known.
-    ///If they are applied to a DataValue with the wrong DataType, an exception is thrown.
+    ///If they are applied to a DataValue with the wrong DataType, an exception (Exception::ConversionError) is thrown. In particular, none of these operators will work for an empty DataValue (DataType EMPTY_VALUE) - except toChar(), which will return 0.
     //@{
 
     /**
@@ -356,7 +356,11 @@ public:
     /// assignment operator
     DataValue& operator=(const DataValue&);
 
-    /// test if the value is empty
+    /**
+       @brief Test if the value is empty
+
+       @note A DataValue containing an empty string ("") does not count as empty!
+    */
     inline bool isEmpty() const
     {
       return value_type_ == EMPTY_VALUE;

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -46,8 +46,8 @@ using namespace OpenMS;
 
 void wait (int seconds)
 {
-   clock_t endwait = clock () + seconds * CLOCKS_PER_SEC;
-   while (clock () < endwait) {}
+    clock_t endwait = clock () + seconds * CLOCKS_PER_SEC;
+    while (clock () < endwait) {}
 }
 
 START_TEST(StopWatch, "$Id$")
@@ -176,14 +176,13 @@ START_SECTION((double getCPUTime() const ))
   wait(3);
   s.stop();
 
-  //std::cerr << "CPU TIME: " << s.getCPUTime() << " "<< s.getUserTime() << "  "<< s.getSystemTime() << "\n\n";
-
   TEST_EQUAL(s.getCPUTime() > 0.1, true) // waiting costs CPU time... just not sure how much...
   TEST_EQUAL(s.getClockTime() > 2, true) // and must consume wall time
   TEST_EQUAL(s.getClockTime() < 4, true)
   TEST_EQUAL(s.getUserTime() > 0.1, true) //  and some user time
   TEST_EQUAL(s.getUserTime() < 4, true)
-  TEST_EQUAL(s.getSystemTime() < 0.5, true) // but no system time
+  TEST_EQUAL(s.getSystemTime() < 3, true) // and usually quite few system time
+  //(not guaranteed on VMs, therefore do a trivial check)
 END_SECTION
 
 START_SECTION((double getClockTime() const ))

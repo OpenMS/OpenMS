@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -55,25 +55,32 @@ namespace OpenMS
   {
 public:
     /// Convert a SpectrumPtr to an OpenMS Spectrum
-    static void convertToOpenMSSpectrum(const OpenSwath::SpectrumPtr sptr, OpenMS::MSSpectrum<> & spectrum);
+    static void convertToOpenMSSpectrum(const OpenSwath::SpectrumPtr sptr, OpenMS::MSSpectrum & spectrum);
 
     /// Convert an OpenMS Spectrum to an SpectrumPtr
-    static OpenSwath::SpectrumPtr convertToSpectrumPtr(const OpenMS::MSSpectrum<> & spectrum);
+    static OpenSwath::SpectrumPtr convertToSpectrumPtr(const OpenMS::MSSpectrum & spectrum);
 
     /// Convert a ChromatogramPtr to an OpenMS Chromatogram
-    static void convertToOpenMSChromatogram(OpenMS::MSChromatogram<> & chromatogram, const OpenSwath::ChromatogramPtr cptr);
+    static void convertToOpenMSChromatogram(const OpenSwath::ChromatogramPtr cptr, OpenMS::MSChromatogram & chromatogram);
+
+    static void convertToOpenMSChromatogramFilter(OpenMS::MSChromatogram & chromatogram, const OpenSwath::ChromatogramPtr cptr,
+                                                  double rt_min, double rt_max);
 
     /// convert from the OpenMS TargetedExperiment to the LightTargetedExperiment
     static void convertTargetedExp(const OpenMS::TargetedExperiment & transition_exp_, OpenSwath::LightTargetedExperiment & transition_exp);
 
     /// convert from the OpenMS TargetedExperiment Peptide to the LightTargetedExperiment Peptide
-    static void convertTargetedPeptide(const TargetedExperiment::Peptide& pep, OpenSwath::LightPeptide & p);
+    static void convertTargetedCompound(const TargetedExperiment::Peptide& pep, OpenSwath::LightCompound& comp);
 
-    /// convert from the LightPeptide to an OpenMS AASequence (with correct modifications)
-    static void convertPeptideToAASequence(const OpenSwath::LightPeptide & peptide, AASequence & aa_sequence);
+    /// convert from the OpenMS TargetedExperiment Compound to the LightTargetedExperiment Compound
+    static void convertTargetedCompound(const TargetedExperiment::Compound& compound, OpenSwath::LightCompound& comp);
+
+    /// convert from the LightCompound to an OpenMS AASequence (with correct modifications)
+    static void convertPeptideToAASequence(const OpenSwath::LightCompound & peptide, AASequence & aa_sequence);
 
   };
 
 } //end namespace OpenMS
 
-#endif
+#endif // OPENMS_ANALYSIS_OPENSWATH_DATAACCESS_DATAACCESSHELPER_H
+

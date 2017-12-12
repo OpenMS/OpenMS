@@ -26,23 +26,55 @@ cdef extern from "<OpenMS/ANALYSIS/MRM/ReactionMonitoringTransition.h>" namespac
 
         void setCompoundRef(String & compound_ref)nogil except +
         String  getCompoundRef()nogil except +
+
+        bool hasPrecursorCVTerms() nogil except +
         void setPrecursorCVTermList(CVTermList & list_)nogil except +
         void addPrecursorCVTerm(CVTerm & cv_term)nogil except +
-        CVTermList  getPrecursorCVTermList()nogil except +
+        CVTermList getPrecursorCVTermList()nogil except +
+
         void addProductCVTerm(CVTerm & cv_term)nogil except +
+
         libcpp_vector[ TraMLProduct ]  getIntermediateProducts()nogil except +
         void addIntermediateProduct(TraMLProduct product)nogil except +
         void setIntermediateProducts(libcpp_vector[ TraMLProduct ] & products)nogil except +
+
         void setProduct(TraMLProduct product)nogil except +
-        TraMLProduct  getProduct()nogil except +
+        TraMLProduct getProduct()nogil except +
         void setRetentionTime(RetentionTime rt)nogil except +
-        RetentionTime  getRetentionTime()nogil except +
+        RetentionTime getRetentionTime()nogil except +
+
         void setPrediction(Prediction & prediction)nogil except +
         void addPredictionTerm(CVTerm & prediction)nogil except +
-        Prediction  getPrediction()nogil except +
+        bool hasPrediction() nogil except +
+        Prediction getPrediction()nogil except +
+
         void setDecoyTransitionType(DecoyTransitionType & d)nogil except +
+
         double getLibraryIntensity()nogil except +
         void setLibraryIntensity(double intensity)nogil except +
+
+        int getProductChargeState() nogil except +
+        bool isProductChargeStateSet() nogil except +
+
+        bool isDetectingTransition() nogil except +
+        void setDetectingTransition(bool val) nogil except +
+
+        bool isIdentifyingTransition() nogil except +
+        void setIdentifyingTransition(bool val) nogil except +
+
+        bool isQuantifyingTransition() nogil except +
+        void setQuantifyingTransition(bool val) nogil except +
+
+        void getKeys(libcpp_vector[String] & keys)
+        void getKeys(libcpp_vector[unsigned int] & keys)
+        DataValue getMetaValue(unsigned int) nogil except +
+        DataValue getMetaValue(String) nogil except +
+        void setMetaValue(unsigned int, DataValue) nogil except +
+        void setMetaValue(String, DataValue) nogil except +
+        bool metaValueExists(String) nogil except +
+        bool metaValueExists(unsigned int) nogil except +
+        void removeMetaValue(String) nogil except +
+        void removeMetaValue(unsigned int) nogil except +
 
 cdef extern from "<OpenMS/ANALYSIS/MRM/ReactionMonitoringTransition.h>" namespace "OpenMS::ReactionMonitoringTransition":
 

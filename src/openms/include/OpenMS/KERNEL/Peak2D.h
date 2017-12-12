@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Stephan Aiche$
+// $Maintainer: Timo Sachsenberg$
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
@@ -135,6 +135,12 @@ public:
     Peak2D() :
       position_(),
       intensity_(0)
+    {}
+
+    /// Member constructor
+    explicit Peak2D(const PositionType& pos, const IntensityType in) :
+      position_(pos),
+      intensity_(in)
     {}
 
     /// Copy constructor
@@ -355,7 +361,7 @@ public:
 protected:
 
     /// The data point position
-    PositionType    position_;
+    PositionType position_;
     /// The data point intensity
     IntensityType intensity_;
   };

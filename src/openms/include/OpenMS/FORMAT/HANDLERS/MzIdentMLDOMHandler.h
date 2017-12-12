@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -44,6 +44,7 @@
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/METADATA/CVTermList.h>
 
 #include <xercesc/dom/DOM.hpp>
 #include <xercesc/dom/DOMDocument.hpp>
@@ -146,12 +147,14 @@ protected:
       void parseAnalysisSoftwareList_(xercesc::DOMNodeList* analysisSoftwareElements);
       void parseDBSequenceElements_(xercesc::DOMNodeList* dbSequenceElements);
       void parsePeptideElements_(xercesc::DOMNodeList* peptideElements);
-      AASequence parsePeptideSiblings_(xercesc::DOMNodeList* peptideSiblings);
+      //AASequence parsePeptideSiblings_(xercesc::DOMNodeList* peptideSiblings);
+      AASequence parsePeptideSiblings_(xercesc::DOMElement* peptide);
       void parsePeptideEvidenceElements_(xercesc::DOMNodeList* peptideEvidenceElements);
       void parseSpectrumIdentificationElements_(xercesc::DOMNodeList* spectrumIdentificationElements);
       void parseSpectrumIdentificationProtocolElements_(xercesc::DOMNodeList* spectrumIdentificationProtocolElements);
       void parseInputElements_(xercesc::DOMNodeList* inputElements);
       void parseSpectrumIdentificationListElements_(xercesc::DOMNodeList* spectrumIdentificationListElements);
+      void parseSpectrumIdentificationItemSetXLMS(std::set<String>::const_iterator set_it, std::multimap<String, int> xl_val_map, xercesc::DOMElement* element_res, String spectrumID);
       void parseSpectrumIdentificationItemElement_(xercesc::DOMElement* spectrumIdentificationItemElement, PeptideIdentification& spectrum_identification, String& spectrumIdentificationList_ref);
       void parseProteinDetectionHypothesisElement_(xercesc::DOMElement* proteinDetectionHypothesisElement, ProteinIdentification& protein_identification);
       void parseProteinAmbiguityGroupElement_(xercesc::DOMElement* proteinAmbiguityGroupElement, ProteinIdentification& protein_identification);
@@ -176,13 +179,13 @@ private:
       MzIdentMLDOMHandler(const MzIdentMLDOMHandler& rhs);
       MzIdentMLDOMHandler& operator=(const MzIdentMLDOMHandler& rhs);
 
-
-
+      ///Struct to hold the used analysis software for that file
       struct AnalysisSoftware
       {
         String name;
         String version;
       };
+      ///Struct to hold the PeptideEvidence information
       struct PeptideEvidence
       {
         int start;
@@ -191,6 +194,7 @@ private:
         char post;
         bool idec;
       };
+      ///Struct to hold the information from the DBSequence xml tag
       struct DBSequence
       {
         String sequence;
@@ -198,6 +202,7 @@ private:
         String accession;
         CVTermList cvs;
       };
+      ///Struct to hold the information from the SpectrumIdentification xml tag
       struct SpectrumIdentification
       {
         String spectra_data_ref;
@@ -205,6 +210,7 @@ private:
         String spectrum_identification_protocol_ref;
         String spectrum_identification_list_ref;
       };
+      ///Struct to hold the information from the ModificationParam xml tag
       struct ModificationParam
       {
         String fixed_mod;
@@ -213,6 +219,7 @@ private:
         CVTermList modification_param_cvs;
         CVTermList specificities;
       };
+      ///Struct to hold the information from the SpectrumIdentificationProtocol xml tag
       struct SpectrumIdentificationProtocol
       {
         CVTerm searchtype;
@@ -226,6 +233,7 @@ private:
         CVTermList threshold_cvs;
         std::map<String, DataValue> threshold_ups;
       };
+      ///Struct to hold the information from the DatabaseInput xml tag
       struct DatabaseInput
       {
         String name;
@@ -234,9 +242,9 @@ private:
         DateTime date;
       };
 
-      XMLCh* TAG_root;
-      XMLCh* TAG_CV;
-      XMLCh* ATTR_name;
+      XMLCh* xml_root_tag_ptr_;
+      XMLCh* xml_cvparam_tag_ptr_;
+      XMLCh* xml_name_attr_ptr_;
 
       xercesc::XercesDOMParser mzid_parser_;
 
@@ -266,6 +274,15 @@ private:
       std::map<String, DBSequence> db_sq_map_; //mapping DBSequence id -> Sequence
 
       std::list<std::list<String> > hit_pev_; //writing help only
+
+      bool xl_ms_search_; //is true when reading a file containing Cross-Linking MS search results
+      std::map<String, String> xl_id_donor_map_; //mapping Peptide id -> cross-link donor value
+      //std::map<String, String> xl_id_acceptor_map_; //mapping Peptide id -> cross-link acceptor value
+      std::map<String, String> xl_id_acceptor_map_; //mapping  peptide id of acceptor peptide -> cross-link acceptor value
+      std::map<String, SignedSize> xl_donor_pos_map_; //mapping donor value -> cross-link modification location
+      std::map<String, SignedSize> xl_acceptor_pos_map_; //mapping acceptor value -> cross-link modification location
+      std::map<String, double> xl_mass_map_; //mapping Peptide id -> crosslink mass
+      std::map<String, String> xl_mod_map_; //mapping peptide id -> cross-linking reagent name
 
     };
   } // namespace Internal

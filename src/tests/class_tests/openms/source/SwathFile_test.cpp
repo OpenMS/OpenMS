@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -55,9 +55,9 @@ using namespace OpenMS;
 
 void storeSwathFile(String filename, int nr_swathes=32)
 {
-  MSExperiment<> exp;
+  PeakMap exp;
   {
-    MSSpectrum<> s;
+    MSSpectrum s;
     s.setMSLevel(1);
     Peak1D p; p.setMZ(101); p.setIntensity(201);
     s.push_back(p);
@@ -65,7 +65,7 @@ void storeSwathFile(String filename, int nr_swathes=32)
   }
   for (int i = 0; i< nr_swathes; i++)
   {
-    MSSpectrum<> s;
+    MSSpectrum s;
     s.setMSLevel(2);
     std::vector<Precursor> prec(1);
     prec[0].setIsolationWindowLowerOffset(12.5);
@@ -82,8 +82,8 @@ void storeSwathFile(String filename, int nr_swathes=32)
 void storeSplitSwathFile(std::vector<String> filenames)
 {
   {
-    MSExperiment<> exp;
-    MSSpectrum<> s;
+    PeakMap exp;
+    MSSpectrum s;
     s.setMSLevel(1);
     Peak1D p; p.setMZ(101); p.setIntensity(201);
     s.push_back(p);
@@ -92,8 +92,8 @@ void storeSplitSwathFile(std::vector<String> filenames)
   }
   for (Size i = 0; i< filenames.size() -1; i++)
   {
-    MSExperiment<> exp;
-    MSSpectrum<> s;
+    PeakMap exp;
+    MSSpectrum s;
     s.setMSLevel(2);
     std::vector<Precursor> prec(1);
     prec[0].setIsolationWindowLowerOffset(12.5);

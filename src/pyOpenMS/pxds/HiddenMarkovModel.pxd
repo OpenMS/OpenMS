@@ -42,6 +42,11 @@ cdef extern from "<OpenMS/ANALYSIS/ID/HiddenMarkovModel.h>" namespace "OpenMS":
         HMMState() nogil except +
         HMMState(HMMState) nogil except +
         HMMState(String & name, bool hidden) nogil except +
+
+        # They dont exist ...
+        # bool operator==(HMMState) nogil except +
+        # bool operator!=(HMMState) nogil except +
+
         void setName(String & name) nogil except +
         String  getName() nogil except +
         void setHidden(bool hidden) nogil except +
@@ -50,7 +55,6 @@ cdef extern from "<OpenMS/ANALYSIS/ID/HiddenMarkovModel.h>" namespace "OpenMS":
         void deletePredecessorState(HMMState * state) nogil except +
         void addSuccessorState(HMMState * state) nogil except +
         void deleteSuccessorState(HMMState * state) nogil except +
-        # TODO needs autowrap > 0.5.1 
-        # libcpp_set[ HMMState * ]  getPredecessorStates() nogil except +
-        # libcpp_set[ HMMState * ]  getSuccessorStates() nogil except +
+        libcpp_set[ HMMState * ]  getPredecessorStates() nogil except +
+        libcpp_set[ HMMState * ]  getSuccessorStates() nogil except +
 

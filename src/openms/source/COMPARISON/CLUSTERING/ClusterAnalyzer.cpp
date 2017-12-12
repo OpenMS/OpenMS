@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -69,7 +69,7 @@ namespace OpenMS
     //throw exception if cannot be legal clustering
     if (tree.size() < 1)
     {
-      throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "tree is empty but minimal clustering hirachy has at least one level");
+      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "tree is empty but minimal clustering hirachy has at least one level");
     }
 
     std::vector<float> average_silhouette_widths;       //for each step from the average silhouette widths of the clusters
@@ -97,22 +97,22 @@ namespace OpenMS
 
 
     //initial values for interdis_i and cluster_with_interdist
-    std::set<Size>::iterator it = leafs.begin();
-    ++it;
-    for (; it != leafs.end(); ++it)
+    std::set<Size>::iterator leafs_it = leafs.begin();
+    ++leafs_it;
+    for (; leafs_it != leafs.end(); ++leafs_it)
     {
       std::set<Size>::iterator jt = leafs.begin();
-      for (; *jt < *it; ++jt)
+      for (; *jt < *leafs_it; ++jt)
       {
-        if (original.getValue(*it, *jt) < interdist_i[*it])
+        if (original.getValue(*leafs_it, *jt) < interdist_i[*leafs_it])
         {
-          interdist_i[*it] = original.getValue(*it, *jt);
-          cluster_with_interdist[*it] = *jt;
+          interdist_i[*leafs_it] = original.getValue(*leafs_it, *jt);
+          cluster_with_interdist[*leafs_it] = *jt;
         }
-        if (original.getValue(*it, *jt) < interdist_i[*jt])
+        if (original.getValue(*leafs_it, *jt) < interdist_i[*jt])
         {
-          interdist_i[*jt] = original.getValue(*it, *jt);
-          cluster_with_interdist[*jt] = *it;
+          interdist_i[*jt] = original.getValue(*leafs_it, *jt);
+          cluster_with_interdist[*jt] = *leafs_it;
         }
       }
     }
@@ -344,7 +344,7 @@ namespace OpenMS
     //throw exception if cannot be legal clustering
     if (tree.size() < 1)
     {
-      throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "tree is empty but minimal clustering hirachy has at least one level");
+      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "tree is empty but minimal clustering hirachy has at least one level");
     }
 
     std::vector<float> all_dunn_indices;
@@ -532,11 +532,11 @@ namespace OpenMS
   {
     if (cluster_quantity == 0)
     {
-      throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "You requested 0 clusters. Minimal partitioning contains one cluster, not zero.");
+      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "You requested 0 clusters. Minimal partitioning contains one cluster, not zero.");
     }
     if (cluster_quantity > tree.size() + 1)
     {
-      throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Cluster count exceeds node count. No partitioning exists.");
+      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Cluster count exceeds node count. No partitioning exists.");
     }
 
     std::set<Size> leafs;
@@ -591,11 +591,11 @@ namespace OpenMS
   {
     if (cluster_quantity == 0)
     {
-      throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "minimal partition contains one cluster, not zero");
+      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "minimal partition contains one cluster, not zero");
     }
     if (cluster_quantity >= tree.size() + 1)
     {
-      throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "maximal partition contains singleton clusters, further separation is not possible");
+      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "maximal partition contains singleton clusters, further separation is not possible");
     }
     subtrees.clear();
     subtrees.resize(cluster_quantity);
@@ -630,11 +630,11 @@ namespace OpenMS
   {
     if (cluster_quantity == 0)
     {
-      throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "minimal partition contains one cluster, not zero");
+      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "minimal partition contains one cluster, not zero");
     }
     if (cluster_quantity >= tree.size() + 1)
     {
-      throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "maximal partition contains singleton clusters, further separation is not possible");
+      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "maximal partition contains singleton clusters, further separation is not possible");
     }
     std::vector<float> average_sizes;
     average_sizes.reserve(tree.size() + 1);
@@ -677,7 +677,7 @@ namespace OpenMS
   {
     if (clusters.empty() || clusters.size() > original.dimensionsize())
     {
-      throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "invalid clustering");
+      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "invalid clustering");
     }
 
     float av_dist(0);     // average of all pairwise distances

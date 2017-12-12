@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Stephan Aiche $
+// $Maintainer: Chris Bielow $
 // $Authors: Stephan Aiche, Chris Bielow $
 // --------------------------------------------------------------------------
 
@@ -38,6 +38,7 @@
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/KERNEL/Peak2D.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/KERNEL/StandardTypes.h>
 
 namespace OpenMS
 {
@@ -89,37 +90,37 @@ public:
       @param ms_exp_data Raw data to search for isobaric quantitation channels.
       @param consensus_map Output map containing the identified channels and the corresponding intensities.
     */
-    void extractChannels(const MSExperiment<Peak1D>& ms_exp_data, ConsensusMap& consensus_map);
+    void extractChannels(const PeakMap& ms_exp_data, ConsensusMap& consensus_map);
 
 private:
     /**
       @brief Small struct to capture the current state of the purity computation.
 
       It basically contains two iterators pointing to the current potential
-      ms1 precursor scan of an ms2 scan and the ms1 scan immediately
-      following the current ms2 scan.
+      MS1 precursor scan of an MS2 scan and the MS1 scan immediately
+      following the current MS2 scan.
     */
     struct PuritySate_
     {
-      /// Iterator pointing to the potential ms1 precursor scan
-      MSExperiment<Peak1D>::ConstIterator precursorScan;
-      /// Iterator pointing to the potential follow up ms1 scan
-      MSExperiment<Peak1D>::ConstIterator followUpScan;
+      /// Iterator pointing to the potential MS1 precursor scan
+      PeakMap::ConstIterator precursorScan;
+      /// Iterator pointing to the potential follow up MS1 scan
+      PeakMap::ConstIterator followUpScan;
 
       /// Indicates if a follow up scan was found
       bool hasFollowUpScan;
       /// reference to the experiment to analyze
-      const MSExperiment<Peak1D>& baseExperiment;
+      const PeakMap& baseExperiment;
 
       /**
         @brief C'tor taking the experiment that will be analyzed.
 
         @param targetExp The experiment that will be analyzed.
       */
-      PuritySate_(const MSExperiment<>& targetExp);
+      PuritySate_(const PeakMap& targetExp);
 
       /**
-        @brief Searches the experiment for the next ms1 spectrum with a retention time bigger then @p rt.
+        @brief Searches the experiment for the next MS1 spectrum with a retention time bigger then @p rt.
 
         @param rt The next follow up scan should have a retention bigger then this value.
       */
@@ -160,7 +161,7 @@ private:
     /// Max. allowed deviation between theoretical and observed isotopic peaks of the precursor peak in the isolation window to be counted as part of the precursor.
     double max_precursor_isotope_deviation_;
 
-    /// Flag if precursor purity will solely be computed based on the precursor scan (false), or interpolated between the precursor- and the following ms1 scan.
+    /// Flag if precursor purity will solely be computed based on the precursor scan (false), or interpolated between the precursor- and the following MS1 scan.
     bool interpolate_precursor_purity_;
 
     /// add channel information to the map after it has been filled
@@ -185,20 +186,36 @@ private:
     /**
       @brief Computes the purity of the precursor given an iterator pointing to the MS/MS spectrum and one to the precursor spectrum.
 
-      @param ms2_spec Iterator pointing to the ms2 spectrum.
+      @param ms2_spec Iterator pointing to the MS2 spectrum.
       @param precursor Iterator pointing to the precursor spectrum of ms2_spec.
       @return Fraction of the total intensity in the isolation window of the precursor spectrum that was assigned to the precursor.
     */
-    double computePrecursorPurity_(const MSExperiment<Peak1D>::ConstIterator& ms2_spec, const PuritySate_& pState) const;
+    double computePrecursorPurity_(const PeakMap::ConstIterator& ms2_spec, const PuritySate_& pState) const;
 
     /**
       @brief Computes the purity of the precursor given an iterator pointing to the MS/MS spectrum and a reference to the potential precursor spectrum.
 
-      @param ms2_spec Iterator pointing to the ms2 spectrum.
+      @param ms2_spec Iterator pointing to the MS2 spectrum.
       @param precursor Iterator pointing to the precursor spectrum of ms2_spec.
       @return Fraction of the total intensity in the isolation window of the precursor spectrum that was assigned to the precursor.
     */
-    double computeSingleScanPrecursorPurity_(const MSExperiment<Peak1D>::ConstIterator& ms2_spec, const MSExperiment<Peak1D>::SpectrumType& precursor_spec) const;
+    double computeSingleScanPrecursorPurity_(const PeakMap::ConstIterator& ms2_spec, const PeakMap::SpectrumType& precursor_spec) const;
+
+    /**
+      @brief Get the first (of potentially many) activation methods (HCD,CID,...) of this spectrum.
+
+      @param s The spectrum
+      @return Entry from Precursor::NamesOfActivationMethod or empty string.
+    */
+    String getActivationMethod_(const PeakMap::SpectrumType& s) const
+    {
+      for (std::vector<Precursor>::const_iterator it = s.getPrecursors().begin(); it != s.getPrecursors().end(); ++it)
+      {
+        if (!it->getActivationMethods().empty()) return Precursor::NamesOfActivationMethod[*(it->getActivationMethods().begin())];
+      }
+      return "";
+    }
+
 
 protected:
     /// implemented for DefaultParamHandler

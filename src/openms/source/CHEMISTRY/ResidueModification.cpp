@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,12 +28,14 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Andreas Bertsch $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 //
 
 #include <OpenMS/CHEMISTRY/ResidueModification.h>
+#include <OpenMS/CONCEPT/Exception.h>
+
 
 #include <iostream>
 
@@ -43,7 +45,9 @@ namespace OpenMS
 {
 
   ResidueModification::ResidueModification() :
+    unimod_record_id_(-1),
     term_spec_(ResidueModification::ANYWHERE),
+    origin_('X'),
     classification_(ResidueModification::ARTIFACT),
     average_mass_(0.0),
     mono_mass_(0.0),
@@ -54,11 +58,11 @@ namespace OpenMS
   {
   }
 
-  ResidueModification::ResidueModification(const ResidueModification & rhs) :
+  ResidueModification::ResidueModification(const ResidueModification& rhs) :
     id_(rhs.id_),
     full_id_(rhs.full_id_),
     psi_mod_accession_(rhs.psi_mod_accession_),
-    unimod_accession_(rhs.unimod_accession_),
+    unimod_record_id_(rhs.unimod_record_id_),
     full_name_(rhs.full_name_),
     name_(rhs.name_),
     term_spec_(rhs.term_spec_),
@@ -77,14 +81,14 @@ namespace OpenMS
   {
   }
 
-  ResidueModification & ResidueModification::operator=(const ResidueModification & rhs)
+  ResidueModification & ResidueModification::operator=(const ResidueModification& rhs)
   {
     if (this != &rhs)
     {
       id_ = rhs.id_;
       full_id_ = rhs.full_id_;
       psi_mod_accession_ = rhs.psi_mod_accession_;
-      unimod_accession_ = rhs.unimod_accession_;
+      unimod_record_id_ = rhs.unimod_record_id_;
       full_name_ = rhs.full_name_;
       name_ = rhs.name_;
       term_spec_ = rhs.term_spec_;
@@ -105,12 +109,12 @@ namespace OpenMS
     return *this;
   }
 
-  bool ResidueModification::operator==(const ResidueModification & rhs) const
+  bool ResidueModification::operator==(const ResidueModification& rhs) const
   {
     return id_ == rhs.id_ &&
            full_id_ == rhs.full_id_ &&
            psi_mod_accession_ == rhs.psi_mod_accession_ &&
-           unimod_accession_ == rhs.unimod_accession_ &&
+           unimod_record_id_ == rhs.unimod_record_id_ &&
            full_name_ == rhs.full_name_ &&
            name_ == rhs.name_ &&
            term_spec_ == rhs.term_spec_ &&
@@ -128,108 +132,140 @@ namespace OpenMS
            neutral_loss_average_mass_ == rhs.neutral_loss_average_mass_;
   }
 
-  bool ResidueModification::operator!=(const ResidueModification & rhs) const
+  bool ResidueModification::operator!=(const ResidueModification& rhs) const
   {
     return !(*this == rhs);
   }
 
   ResidueModification::~ResidueModification()
   {
-
   }
 
-  void ResidueModification::setId(const String & id)
+  void ResidueModification::setId(const String& id)
   {
     id_ = id;
   }
 
-  const String & ResidueModification::getId() const
+  const String& ResidueModification::getId() const
   {
     return id_;
   }
 
-  void ResidueModification::setFullId(const String & full_id)
+  void ResidueModification::setFullId(const String& full_id)
   {
-    full_id_ = full_id;
+    if (full_id.empty())
+    {
+      if (id_.empty())
+      {
+        throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Cannot create full ID for modification with missing (short) ID.");
+      }
+      String specificity;
+      if (term_spec_ != ResidueModification::ANYWHERE)
+      {
+        specificity = getTermSpecificityName(); // "C-term" or "N-term"
+      }
+      if (!specificity.empty() && (origin_ != 'X'))
+      {
+        specificity += " " + String(origin_);
+      }
+      else if (specificity.empty())
+      {
+        specificity = origin_; // shouldn't be "X" in this case
+      }
+      full_id_ = id_ + " (" + specificity + ")";
+    }
+    else
+    {
+      full_id_ = full_id;
+    }
   }
 
-  const String & ResidueModification::getFullId() const
+  const String& ResidueModification::getFullId() const
   {
     return full_id_;
   }
 
-  void ResidueModification::setPSIMODAccession(const String & id)
+  void ResidueModification::setPSIMODAccession(const String& id)
   {
     psi_mod_accession_ = id;
   }
 
-  const String & ResidueModification::getPSIMODAccession() const
+  const String& ResidueModification::getPSIMODAccession() const
   {
     return psi_mod_accession_;
   }
 
-  void ResidueModification::setUniModAccession(const String & id)
+  void ResidueModification::setUniModRecordId(const Int& id)
   {
-    unimod_accession_ = id;
+    unimod_record_id_ = id;
   }
 
-  const String & ResidueModification::getUniModAccession() const
+  const Int& ResidueModification::getUniModRecordId() const
   {
-    return unimod_accession_;
+    return unimod_record_id_;
   }
 
-  void ResidueModification::setFullName(const String & full_name)
+  const String ResidueModification::getUniModAccession() const
+  {
+    if (unimod_record_id_ < 0) return "";
+    return String("UniMod:") + unimod_record_id_; // return copy of temp object
+  }
+
+  void ResidueModification::setFullName(const String& full_name)
   {
     full_name_ = full_name;
   }
 
-  const String & ResidueModification::getFullName() const
+  const String& ResidueModification::getFullName() const
   {
     return full_name_;
   }
 
-  void ResidueModification::setName(const String & name)
+  void ResidueModification::setName(const String& name)
   {
     name_ = name;
   }
 
-  const String & ResidueModification::getName() const
+  const String& ResidueModification::getName() const
   {
     return name_;
   }
 
-  void ResidueModification::setTermSpecificity(Term_Specificity term_spec)
+  void ResidueModification::setTermSpecificity(TermSpecificity term_spec)
   {
+    if (term_spec == NUMBER_OF_TERM_SPECIFICITY)
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Not a valid terminal specificity", String(term_spec));
+    }
     term_spec_ = term_spec;
   }
 
-  void ResidueModification::setTermSpecificity(const String & term_spec)
+  void ResidueModification::setTermSpecificity(const String& term_spec)
   {
     if (term_spec == "C-term")
     {
       term_spec_ = C_TERM;
-      return;
     }
-    if (term_spec == "N-term")
+    else if (term_spec == "N-term")
     {
       term_spec_ = N_TERM;
-      return;
     }
-    if (term_spec == "none")
+    else if (term_spec == "none")
     {
       term_spec_ = ANYWHERE;
-      return;
     }
-    cerr << "ResidueModification: cannot convert '" << term_spec << "' into term specificity!" << endl;
-    return;
+    else
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Not a valid terminal specificity", term_spec);
+    }
   }
 
-  ResidueModification::Term_Specificity ResidueModification::getTermSpecificity() const
+  ResidueModification::TermSpecificity ResidueModification::getTermSpecificity() const
   {
     return term_spec_;
   }
 
-  String ResidueModification::getTermSpecificityName(Term_Specificity term_spec) const
+  String ResidueModification::getTermSpecificityName(TermSpecificity term_spec) const
   {
     if (term_spec == NUMBER_OF_TERM_SPECIFICITY)
     {
@@ -241,31 +277,41 @@ namespace OpenMS
 
     case N_TERM: return "N-term";
 
-    default:         // ANYWHERE
-      if (term_spec != ANYWHERE)
-      {
-        cerr << "ResidueModification: cannot convert '" << term_spec << "' into term specificity name!" << endl;
-      }
-      return "none";
+    case ANYWHERE: return "none";
+     
+    default: break; // shouldn't happen
+    }
+    throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No name for this terminal specificity", String(term_spec));
+  }
+
+  void ResidueModification::setOrigin(char origin)
+  {
+    if ((origin >= 'A') && (origin <= 'Y') && (origin != 'B') && (origin != 'J'))
+    {
+      origin_ = origin;
+    }
+    else if ((origin >= 'a') && (origin <= 'y') && (origin != 'b') && (origin != 'j'))
+    {
+      origin_ = toupper(origin);
+    }
+    else
+    {
+      String msg = "Modification '" + id_ + "': origin must be a letter from A to Y, excluding B and J.";
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, msg, String(origin));
     }
   }
 
-  void ResidueModification::setOrigin(const String & origin)
-  {
-    origin_ = origin;
-  }
-
-  const String & ResidueModification::getOrigin() const
+  char ResidueModification::getOrigin() const
   {
     return origin_;
   }
 
-  void ResidueModification::setSourceClassification(Source_Classification classification)
+  void ResidueModification::setSourceClassification(SourceClassification classification)
   {
     classification_ = classification;
   }
 
-  void ResidueModification::setSourceClassification(const String & classification)
+  void ResidueModification::setSourceClassification(const String& classification)
   {
     String c = classification;
     c.toLower();
@@ -351,12 +397,12 @@ namespace OpenMS
     return;
   }
 
-  ResidueModification::Source_Classification ResidueModification::getSourceClassification() const
+  ResidueModification::SourceClassification ResidueModification::getSourceClassification() const
   {
     return classification_;
   }
 
-  String ResidueModification::getSourceClassificationName(Source_Classification classification) const
+  String ResidueModification::getSourceClassificationName(SourceClassification classification) const
   {
     if (classification == NUMBER_OF_SOURCE_CLASSIFICATIONS)
     {
@@ -441,47 +487,47 @@ namespace OpenMS
     return diff_mono_mass_;
   }
 
-  void ResidueModification::setFormula(const String & formula)
+  void ResidueModification::setFormula(const String& formula)
   {
     formula_ = formula;
   }
 
-  const String & ResidueModification::getFormula() const
+  const String& ResidueModification::getFormula() const
   {
     return formula_;
   }
 
-  void ResidueModification::setDiffFormula(const EmpiricalFormula & diff_formula)
+  void ResidueModification::setDiffFormula(const EmpiricalFormula& diff_formula)
   {
     diff_formula_ = diff_formula;
   }
 
-  const EmpiricalFormula & ResidueModification::getDiffFormula() const
+  const EmpiricalFormula& ResidueModification::getDiffFormula() const
   {
     return diff_formula_;
   }
 
-  void ResidueModification::addSynonym(const String & synonym)
+  void ResidueModification::addSynonym(const String& synonym)
   {
     synonyms_.insert(synonym);
   }
 
-  void ResidueModification::setSynonyms(const set<String> & synonyms)
+  void ResidueModification::setSynonyms(const set<String>& synonyms)
   {
     synonyms_ = synonyms;
   }
 
-  const set<String> & ResidueModification::getSynonyms() const
+  const set<String>& ResidueModification::getSynonyms() const
   {
     return synonyms_;
   }
 
-  void ResidueModification::setNeutralLossDiffFormula(const EmpiricalFormula & diff_formula)
+  void ResidueModification::setNeutralLossDiffFormula(const EmpiricalFormula& diff_formula)
   {
     neutral_loss_diff_formula_ = diff_formula;
   }
 
-  const EmpiricalFormula & ResidueModification::getNeutralLossDiffFormula() const
+  const EmpiricalFormula& ResidueModification::getNeutralLossDiffFormula() const
   {
     return neutral_loss_diff_formula_;
   }
@@ -509,6 +555,11 @@ namespace OpenMS
   bool ResidueModification::hasNeutralLoss() const
   {
     return !neutral_loss_diff_formula_.isEmpty() && !neutral_loss_diff_formula_.isCharged();
+  }
+
+  bool ResidueModification::isUserDefined() const
+  {
+    return id_.empty() && !full_id_.empty();
   }
 
 }

@@ -1,7 +1,11 @@
+#!/usr/bin/env python
+# -*- coding: utf-8  -*-
 from __future__ import print_function
 
 import pyopenms
 import copy
+
+from pyopenms import String as s
 
 print(b"IMPORTED b", pyopenms.__file__)
 
@@ -135,8 +139,8 @@ def testSpectrumAlignment():
     p.setIntensity(200.0)
     spec.push_back(p)
 
-    rich_spec = pyopenms.RichMSSpectrum()
-    p = pyopenms.RichPeak1D()
+    rich_spec = pyopenms.MSSpectrum()
+    p = pyopenms.Peak1D()
     p.setMZ(1000.001)
     p.setIntensity(200.0)
     rich_spec.push_back(p)
@@ -178,8 +182,8 @@ def testAASequence():
      AASequence.__add__
      AASequence.__radd__
      AASequence.__iadd__
-     AASequence.getCTerminalModification
-     AASequence.getNTerminalModification
+     AASequence.getCTerminalModificationName
+     AASequence.getNTerminalModificationName
      AASequence.setCTerminalModification
      AASequence.setModification
      AASequence.setNTerminalModification
@@ -193,8 +197,8 @@ def testAASequence():
 
     aas.__doc__
     aas = pyopenms.AASequence.fromString(b"DFPIANGER", True)
-    assert aas.getCTerminalModification() == b""
-    assert aas.getNTerminalModification() == b""
+    assert aas.getCTerminalModificationName() == b""
+    assert aas.getNTerminalModificationName() == b""
     aas.setCTerminalModification(b"")
     aas.setNTerminalModification(b"")
     assert aas.toString() == b"DFPIANGER"
@@ -234,6 +238,42 @@ def testElement():
     ins.setSymbol(b"C")
     ins.getSymbol()
 
+    e = pyopenms.Element()
+    e.setSymbol("blah")
+    e.setSymbol(b"blah")
+    e.setSymbol(u"blah")
+    e.setSymbol(str("blah"))
+    oms_string = s(b"blub")
+    e.setSymbol(oms_string)
+    assert oms_string
+    assert oms_string.toString() == "blub"
+
+    evil = u"blüb"
+    evil8 = evil.encode("utf8")
+    evil1 = evil.encode("latin1")
+
+
+    e.setSymbol(evil.encode("utf8"))
+    assert e.getSymbol().decode("utf8") == u"blüb"
+    e.setSymbol(evil.encode("latin1"))
+    assert e.getSymbol().decode("latin1") == u"blüb"
+
+    # If we get the raw symbols, we get bytes (which we would need to decode first)
+    e.setSymbol(evil8.decode("utf8"))
+    assert e.getSymbol() == b'bl\xc3\xbcb'
+    assert e.getSymbol() == u"blüb".encode("utf8")
+    # OpenMS strings, however, understand the decoding
+    assert s(e.getSymbol()) == s(u"blüb")
+    assert s(e.getSymbol()).toString() == u"blüb"
+
+    # What if you use the wrong decoding ?
+    e.setSymbol(evil1)
+    #print(e.getSymbol().decode("latin1"))
+    assert e.getSymbol().decode("latin1") == u"blüb"
+    e.setSymbol(evil8)
+    #print(e.getSymbol().decode("utf8"))
+    assert e.getSymbol().decode("latin1") == u"blüb".encode("utf8").decode("latin1")
+
 @report
 def testResidue():
     """
@@ -248,16 +288,10 @@ def testResidue():
     pyopenms.Residue.ResidueType.CTerminal
     pyopenms.Residue.ResidueType.AIon
     pyopenms.Residue.ResidueType.BIon
-    pyopenms.Residue.ResidueType.CIonMinusOne
     pyopenms.Residue.ResidueType.CIon
-    pyopenms.Residue.ResidueType.CIonPlusOne
-    pyopenms.Residue.ResidueType.CIonPlusTwo
     pyopenms.Residue.ResidueType.XIon
     pyopenms.Residue.ResidueType.YIon
-    pyopenms.Residue.ResidueType.ZIonMinusOne
     pyopenms.Residue.ResidueType.ZIon
-    pyopenms.Residue.ResidueType.ZIonPlusOne
-    pyopenms.Residue.ResidueType.ZIonPlusTwo
     pyopenms.Residue.ResidueType.SizeOfResidueType
 
 @report
@@ -336,6 +370,9 @@ def testIdentificationHit():
     assert pyopenms.IdentificationHit().getRank is not None
 
     f.setId(b"test_id")
+    assert f.getId() == b"test_id"
+
+    f.setId("test_id")
     assert f.getId() == b"test_id"
 
     f.setCharge(5)
@@ -731,7 +768,62 @@ def testXTandemXMLFile():
     """
     f = pyopenms.XTandemXMLFile()
     assert f.load is not None
-    assert f.setModificationDefinitionsSet is not None
+
+@report
+def testXTandemInfile():
+    """
+    """
+    f = pyopenms.XTandemInfile()
+
+    f.setFragmentMassTolerance is not None
+    f.getFragmentMassTolerance is not None
+
+    f.setPrecursorMassTolerancePlus is not None
+    f.getPrecursorMassTolerancePlus is not None
+    f.setPrecursorMassToleranceMinus is not None
+    f.getPrecursorMassToleranceMinus is not None
+
+    f.setPrecursorErrorType is not None
+    f.getPrecursorErrorType is not None
+
+    f.setFragmentMassErrorUnit is not None
+    f.getFragmentMassErrorUnit is not None
+    f.setPrecursorMassErrorUnit is not None
+    f.getPrecursorMassErrorUnit is not None
+
+    f.setNumberOfThreads is not None
+    f.getNumberOfThreads is not None
+
+    f.setModifications is not None
+    f.getModifications is not None
+
+    f.setOutputFilename is not None
+    f.getOutputFilename is not None
+    f.setInputFilename is not None
+    f.getInputFilename is not None
+    f.setTaxonomyFilename is not None
+    f.getTaxonomyFilename is not None
+    f.setDefaultParametersFilename is not None
+    f.getDefaultParametersFilename is not None
+
+
+    f.setTaxon(b"testTaxon")
+    assert f.getTaxon() == b"testTaxon"
+
+    assert f.setMaxPrecursorCharge is not None
+    assert f.getMaxPrecursorCharge is not None
+
+    assert f.setNumberOfMissedCleavages is not None
+    assert f.getNumberOfMissedCleavages is not None
+
+    assert f.setMaxValidEValue is not None
+    assert f.getMaxValidEValue is not None
+
+    assert f.setSemiCleavage is not None
+    assert f.setAllowIsotopeError is not None
+    assert f.write is not None
+    assert f.setCleavageSite is not None
+    assert f.getCleavageSite is not None
 
 @report
 def testSignalToNoiseEstimatorMedian():
@@ -812,7 +904,9 @@ def testDataProcessing(dp=pyopenms.DataProcessing()):
     dp.getMetaValue
     ac = dp.getProcessingActions()
     assert ac == set(())
+    ac = set([ pyopenms.ProcessingAction.PEAK_PICKING, pyopenms.ProcessingAction.BASELINE_REDUCTION])
     dp.setProcessingActions(ac)
+    assert len(dp.getProcessingActions() ) == 2
     assert isinstance(dp.getSoftware().getName(), bytes)
     assert isinstance(dp.getSoftware().getVersion(), bytes)
     dp.isMetaEmpty()
@@ -894,7 +988,7 @@ def testDataValue():
     assert a.toStringList() == [b"1.0"]
     assert a.valueType() == pyopenms.DataType.STRING_LIST
 
-    assert pyopenms.MSSpectrum().getMetaValue("nonexisingkey") is None
+    assert pyopenms.MSSpectrum().getMetaValue(b"nonexisingkey") is None
 
 @report
 def testAdduct():
@@ -1397,47 +1491,7 @@ def testItraqConstants():
     assert constants.translateIsotopeMatrix is not None
 
 @report
-def testItraqChannelExtractor():
-    """
-    @tests:
-     ItraqChannelExtractor.__init__
-    """
-    extractor = pyopenms.ItraqChannelExtractor()
-    p = extractor.getDefaults()
-    _testParam(p)
 
-
-    # Note that using TMT_SIXPLEX will not work here
-    p = extractor.getDefaults()
-    pyopenms.ItraqChannelExtractor(pyopenms.ITRAQ_TYPES.FOURPLEX, p)
-    assert pyopenms.ItraqChannelExtractor().run is not None
-
-    assert extractor.getIsotopeMatrixAsStringList is not None
-    assert extractor.updateIsotopeMatrixFromStringList is not None
-    assert extractor.translateIsotopeMatrix is not None
-
-@report
-def testItraqQuantifier():
-    """
-    @tests:
-     ItraqQuantifier.__init__
-    """
-    ff = pyopenms.ItraqQuantifier()
-    p = ff.getDefaults()
-    _testParam(p)
-
-    assert pyopenms.ItraqQuantifier().run is not None
-
-    # Note that using TMT_SIXPLEX will not work here
-    p = ff.getDefaults()
-    pyopenms.ItraqQuantifier(pyopenms.ITRAQ_TYPES.FOURPLEX, p)
-    assert pyopenms.ItraqChannelExtractor().run is not None
-
-    assert ff.getIsotopeMatrixAsStringList is not None
-    assert ff.updateIsotopeMatrixFromStringList is not None
-    assert ff.translateIsotopeMatrix is not None
-
-@report
 def testLinearResampler():
     """
     @tests:
@@ -1489,23 +1543,24 @@ def testTOFCalibration():
     assert pyopenms.TOFCalibration().calibrate is not None
     assert pyopenms.TOFCalibration().pickAndCalibrate is not None
 
-@report
-def testConsensusID():
-    """
-    @tests:
-     ConsensusID.__init__
-    """
-    ff = pyopenms.ConsensusID()
-    p = ff.getDefaults()
-    _testParam(p)
+# TODO: re-enable as soon as ConsensusIDAlgorithm classes are wrapped
+# @report
+# def testConsensusID():
+#     """
+#     @tests:
+#      ConsensusID.__init__
+#     """
+#     ff = pyopenms.ConsensusID()
+#     p = ff.getDefaults()
+#     _testParam(p)
 
-    assert pyopenms.ConsensusID().apply is not None
+#     assert pyopenms.ConsensusID().apply is not None
 
 @report
 def testFalseDiscoveryRate():
     """
     @tests:
-     ConsensusID.__init__
+     FalseDiscoveryRate.__init__
     """
     ff = pyopenms.FalseDiscoveryRate()
     p = ff.getDefaults()
@@ -1609,7 +1664,6 @@ def testConsensusMapNormalizerAlgorithmMedian():
     """
     ff = pyopenms.ConsensusMapNormalizerAlgorithmMedian()
 
-    assert pyopenms.ConsensusMapNormalizerAlgorithmMedian().computeNormalizationFactors is not None
     assert pyopenms.ConsensusMapNormalizerAlgorithmMedian().normalizeMaps is not None
 
 @report
@@ -1677,10 +1731,10 @@ def testAScore():
     ff = pyopenms.AScore()
 
     hit = pyopenms.PeptideHit()
-    richspectrum = pyopenms.RichMSSpectrum()
+    spectrum = pyopenms.MSSpectrum()
 
-    ff.compute(hit, richspectrum, 5.0, 1)
-    ff.computeCumulativeScore(1,1,0.5)
+    ff.compute(hit, spectrum)
+    # ff.computeCumulativeScore(1,1,0.5)
 
 @report
 def testIDRipper():
@@ -1725,8 +1779,9 @@ def testInternalCalibration():
     """
     ff = pyopenms.InternalCalibration()
 
-    assert pyopenms.InternalCalibration().calibrateMapSpectrumwise is not None
-    assert pyopenms.InternalCalibration().calibrateMapGlobally is not None
+    assert pyopenms.InternalCalibration().fillCalibrants is not None
+    assert pyopenms.InternalCalibration().getCalibrationPoints is not None
+    assert pyopenms.InternalCalibration().calibrate is not None
 
 @report
 def testTransitionTSVReader():
@@ -1743,50 +1798,47 @@ def testTransitionTSVReader():
     assert pyopenms.TransitionTSVReader().validateTargetedExperiment is not None
 
 @report
-def testEnzymaticDigestion():
+def testProteaseDigestion():
     """
     @tests:
-     EnzymaticDigestion.__init__
-     EnzymaticDigestion.getMissedCleavages()
-     EnzymaticDigestion.setMissedCleavages()
-     EnzymaticDigestion.getEnzyme()
-     EnzymaticDigestion.setEnzyme()
-     EnzymaticDigestion.getEnzymeByName()
-     EnzymaticDigestion.digest()
-     EnzymaticDigestion.peptideCount()
-     EnzymaticDigestion.isLogModelEnabled()
-     EnzymaticDigestion.setLogModelEnabled()
-     EnzymaticDigestion.getLogThreshold()
-     EnzymaticDigestion.setLogThreshold()
+     ProteaseDigestion.__init__
+     ProteaseDigestion.getMissedCleavages()
+     ProteaseDigestion.setMissedCleavages()
+     ProteaseDigestion.digest()
+     ProteaseDigestion.peptideCount()
     """
-    ff = pyopenms.EnzymaticDigestion()
-    enz = pyopenms.EnzymaticDigestion().Enzyme()
+    # removed due to name clashes
+    # ProteaseDigestion.getEnzyme()
+    # ProteaseDigestion.setEnzyme()
+    # ProteaseDigestion.getEnzymeByName()
 
-    assert pyopenms.EnzymaticDigestion().getMissedCleavages is not None
-    assert pyopenms.EnzymaticDigestion().setMissedCleavages is not None
-    assert pyopenms.EnzymaticDigestion().getEnzyme is not None
-    assert pyopenms.EnzymaticDigestion().setEnzyme is not None
-    assert pyopenms.EnzymaticDigestion().getEnzymeByName is not None
+    ff = pyopenms.ProteaseDigestion()
+    #enz = pyopenms.ProteaseDigestion().Enzyme()
 
-    assert pyopenms.EnzymaticDigestion().digest is not None
-    assert pyopenms.EnzymaticDigestion().peptideCount is not None
+    assert pyopenms.ProteaseDigestion().getMissedCleavages is not None
+    assert pyopenms.ProteaseDigestion().setMissedCleavages is not None
+    #assert pyopenms.ProteaseDigestion().getEnzyme is not None
+    #assert pyopenms.ProteaseDigestion().setEnzyme is not None
+    #assert pyopenms.ProteaseDigestion().getEnzymeByName is not None
 
-    assert pyopenms.EnzymaticDigestion().isLogModelEnabled is not None
-    assert pyopenms.EnzymaticDigestion().setLogModelEnabled is not None
-    assert pyopenms.EnzymaticDigestion().getLogThreshold  is not None
-    assert pyopenms.EnzymaticDigestion().setLogThreshold is not None
+    assert pyopenms.ProteaseDigestion().digest is not None
+    assert pyopenms.ProteaseDigestion().peptideCount is not None
 
-    ff.setLogThreshold(5) 
-    assert ff.getLogThreshold() == 5 
+    ff.setMissedCleavages(5)
+    assert ff.getMissedCleavages() == 5
 
-    ff.setMissedCleavages(5) 
-    assert ff.getMissedCleavages() == 5 
+    #ff.setEnzyme(enz.TRYPSIN)
+    #assert ff.getEnzyme() == enz.TRYPSIN
 
-    ff.setEnzyme(enz.TRYPSIN) 
-    assert ff.getEnzyme() == enz.TRYPSIN
-
-    ff.setLogModelEnabled(True) 
-    assert ff.isLogModelEnabled() == True
+@report
+def testEnzymaticDigestionLogModel():
+    ff = pyopenms.EnzymaticDigestionLogModel()
+    assert pyopenms.EnzymaticDigestionLogModel().getLogThreshold is not None
+    assert pyopenms.EnzymaticDigestionLogModel().setLogThreshold is not None
+    assert pyopenms.EnzymaticDigestionLogModel().digest is not None
+    assert pyopenms.EnzymaticDigestionLogModel().peptideCount is not None
+    ff.setLogThreshold(0.25)
+    assert ff.getLogThreshold() == 0.25
 
 @report
 def testIDDecoyProbability():
@@ -2809,6 +2861,114 @@ def testMSSpectrum():
 
     assert int(spec.isSorted()) in  (0,1)
 
+    # get data arrays
+    assert len(spec.getStringDataArrays()) == 0
+    string_da = [ pyopenms.StringDataArray() ]
+    string_da[0].push_back("hello")
+    string_da[0].push_back("world")
+    string_da.append( pyopenms.StringDataArray() )
+    string_da[1].push_back("other")
+    spec.setStringDataArrays( string_da )
+    assert len(spec.getStringDataArrays()) == 2
+    assert spec.getStringDataArrays()[0][0] == b"hello"
+    assert spec.getStringDataArrays()[1][0] == b"other"
+
+    assert len(spec.getIntegerDataArrays()) == 0
+    # int_da = [ [5, 6], [8] ]
+    int_da = [ pyopenms.IntegerDataArray() ]
+    int_da[0].push_back(5)
+    int_da[0].push_back(6)
+    int_da.append( pyopenms.IntegerDataArray() )
+    int_da[1].push_back(8)
+    spec.setIntegerDataArrays( int_da )
+    assert len(spec.getIntegerDataArrays()) == 2
+    assert spec.getIntegerDataArrays()[0][0] == 5
+    assert spec.getIntegerDataArrays()[1][0] == 8
+
+    assert len(spec.getFloatDataArrays()) == 0
+    # int_da = [ [5, 6], [8] ]
+    int_da = [ pyopenms.FloatDataArray() ]
+    int_da[0].push_back(5.0)
+    int_da[0].push_back(6.0)
+    int_da.append( pyopenms.FloatDataArray() )
+    int_da[1].push_back(8.0)
+    spec.setFloatDataArrays( int_da )
+    assert len(spec.getFloatDataArrays()) == 2.0
+    assert spec.getFloatDataArrays()[0][0] == 5.0
+    assert spec.getIntegerDataArrays()[1][0] == 8
+
+@report
+def testStringDataArray():
+    """
+    @tests:
+     """
+    da = pyopenms.StringDataArray()
+    assert da.size() == 0
+    da.push_back("hello")
+    da.push_back("world")
+    assert da.size() == 2
+    assert da[0] == b"hello"
+    assert da[1] == b"world"
+    da[1] = "hello world"
+    assert da[1] == b"hello world", da[1]
+    da.clear()
+    assert da.size() == 0
+    da.push_back("hello")
+    assert da.size() == 1
+    da.resize(3)
+    da[0] = "hello"
+    da[1] = ""
+    da[2] = "world"
+    assert da.size() == 3
+
+@report
+def testIntegerDataArray():
+    """
+    @tests:
+     """
+    da = pyopenms.IntegerDataArray()
+    assert da.size() == 0
+    da.push_back(1)
+    da.push_back(4)
+    assert da.size() == 2
+    assert da[0] == 1
+    assert da[1] == 4
+    da[1] = 7
+    assert da[1] == 7
+    da.clear()
+    assert da.size() == 0
+    da.push_back(1)
+    assert da.size() == 1
+    da.resize(3)
+    da[0] = 1
+    da[1] = 2
+    da[2] = 3
+    assert da.size() == 3
+
+@report
+def testFloatDataArray():
+    """
+    @tests:
+     """
+    da = pyopenms.FloatDataArray()
+    assert da.size() == 0
+    da.push_back(1.0)
+    da.push_back(4.0)
+    assert da.size() == 2
+    assert da[0] == 1.0
+    assert da[1] == 4.0
+    da[1] = 7.0
+    assert da[1] == 7.0
+    da.clear()
+    assert da.size() == 0
+    da.push_back(1.0)
+    assert da.size() == 1
+    da.resize(3)
+    da[0] = 1.0
+    da[1] = 2.0
+    da[2] = 3.0
+    assert da.size() == 3
+
 @report
 def testMSChromatogram():
     """
@@ -2891,7 +3051,6 @@ def testMRMDecoy():
     mrmdecoy = pyopenms.MRMDecoy()
     assert mrmdecoy is not None
 
-    assert pyopenms.MRMDecoy().restrictTransitions is not None
     assert pyopenms.MRMDecoy().generateDecoys is not None
 
 @report
@@ -2899,7 +3058,7 @@ def testMRMTransitionGroup():
     """
     @tests:
      """
-    mrmgroup = pyopenms.MRMTransitionGroup()
+    mrmgroup = pyopenms.MRMTransitionGroupCP()
     assert mrmgroup is not None
 
     mrmgroup.setTransitionGroupID(b"this_id")
@@ -2945,6 +3104,67 @@ def testTargetedExperiment():
 
 
 @report
+def testTargetedExperimentHelper():
+    """
+    @tests: TargetedExperimentHelper
+     """
+    rtu = pyopenms.RetentionTime.RTUnit()
+    rtu = pyopenms.RetentionTime.RTUnit.SECOND
+    rtu = pyopenms.RetentionTime.RTUnit.MINUTE
+    rtt = pyopenms.RetentionTime.RTType()
+    rtt = pyopenms.RetentionTime.RTType.LOCAL
+    rtt = pyopenms.RetentionTime.RTType.NORMALIZED
+    rtt = pyopenms.RetentionTime.RTType.IRT
+
+    rt = pyopenms.RetentionTime()
+    assert rt.software_ref is not None
+    assert not rt.isRTset()
+    rt.setRT(5.0)
+    rt.retention_time_unit = pyopenms.RetentionTime.RTUnit.SECOND
+    rt.retention_time_type = pyopenms.RetentionTime.RTType.NORMALIZED
+    assert rt.isRTset()
+    assert rt.getRT() == 5.0
+
+    p = pyopenms.Peptide()
+    assert p.rts is not None
+    assert p.id is not None
+    assert p.protein_refs is not None
+    assert p.evidence is not None
+    assert p.sequence is not None
+    assert p.mods is not None
+
+    assert not p.hasCharge()
+    p.setChargeState(5)
+    assert p.hasCharge()
+    assert p.getChargeState() == 5
+
+    assert not p.hasRetentionTime()
+    p.rts = [rt]
+    assert p.hasRetentionTime()
+    assert p.getRetentionTime() == 5.0
+    assert p.getRetentionTimeUnit() == pyopenms.RetentionTime.RTUnit.SECOND
+    assert p.getRetentionTimeType() == pyopenms.RetentionTime.RTType.NORMALIZED
+
+    c = pyopenms.Compound()
+    assert c.rts is not None
+    assert c.id is not None
+    assert c.molecular_formula is not None
+    assert c.smiles_string is not None
+    assert c.theoretical_mass is not None
+
+    assert not c.hasCharge()
+    c.setChargeState(5)
+    assert c.hasCharge()
+    assert c.getChargeState() == 5
+
+    assert not c.hasRetentionTime()
+    c.rts = [rt]
+    assert c.hasRetentionTime()
+    assert c.getRetentionTime() == 5.0
+    assert c.getRetentionTimeUnit() == pyopenms.RetentionTime.RTUnit.SECOND
+    assert c.getRetentionTimeType() == pyopenms.RetentionTime.RTType.NORMALIZED
+
+@report
 def testMapAlignment():
 
     """
@@ -2964,10 +3184,7 @@ def testMapAlignment():
      MapAlignmentAlgorithmPoseClustering.setProgress
      MapAlignmentAlgorithmPoseClustering.startProgress
 
-     MapAlignmentTransformer.transformFeatureMaps
-     MapAlignmentTransformer.transformPeakMaps
-     MapAlignmentTransformer.transformSingleFeatureMap
-     MapAlignmentTransformer.transformSinglePeakMap
+     MapAlignmentTransformer.transformRetentionTimes
      """
     ma = pyopenms.MapAlignmentAlgorithmPoseClustering()
     assert isinstance(ma.getDefaults(), pyopenms.Param)
@@ -2984,11 +3201,7 @@ def testMapAlignment():
     ma.setReference
     ma.align
 
-
-    pyopenms.MapAlignmentTransformer.transformPeakMaps
-    pyopenms.MapAlignmentTransformer.transformFeatureMaps
-    pyopenms.MapAlignmentTransformer.transformSinglePeakMap
-    pyopenms.MapAlignmentTransformer.transformSingleFeatureMap
+    pyopenms.MapAlignmentTransformer.transformRetentionTimes
 
 @report
 def testMapAlignmentIdentification():
@@ -2999,12 +3212,8 @@ def testMapAlignmentIdentification():
      """
     ma = pyopenms.MapAlignmentAlgorithmIdentification()
 
-    assert pyopenms.MapAlignmentAlgorithmIdentification().alignPeakMaps is not None
-    assert pyopenms.MapAlignmentAlgorithmIdentification().alignFeatureMaps is not None
-    assert pyopenms.MapAlignmentAlgorithmIdentification().alignConsensusMaps is not None
-    assert pyopenms.MapAlignmentAlgorithmIdentification().alignPeptideIdentifications is not None
+    assert pyopenms.MapAlignmentAlgorithmIdentification().align is not None
     assert pyopenms.MapAlignmentAlgorithmIdentification().setReference is not None
-    assert pyopenms.MapAlignmentAlgorithmIdentification().fitModel is not None
 
 @report
 def testMapAlignmentTransformer():
@@ -3015,15 +3224,7 @@ def testMapAlignmentTransformer():
      """
     ma = pyopenms.MapAlignmentTransformer()
 
-    assert pyopenms.MapAlignmentTransformer().transformPeakMaps is not None
-    assert pyopenms.MapAlignmentTransformer().transformFeatureMaps is not None
-    assert pyopenms.MapAlignmentTransformer().transformConsensusMaps is not None
-    # assert pyopenms.MapAlignmentTransformer().transformPeptideIdentifications is not None
-    assert pyopenms.MapAlignmentTransformer().transformSinglePeakMap is not None
-    assert pyopenms.MapAlignmentTransformer().transformSingleFeatureMap is not None
-    assert pyopenms.MapAlignmentTransformer().transformSingleConsensusMap is not None
-    assert pyopenms.MapAlignmentTransformer().transformSinglePeptideIdentification is not None
-
+    assert pyopenms.MapAlignmentTransformer().transformRetentionTimes is not None
 
 @report
 def testMxxxFile():
@@ -3196,6 +3397,36 @@ def testPeakFileOptions():
     pfo.setMetadataOnly
     pfo.setWriteSupplementalData
 
+@report
+def testMRMMapping():
+    """
+    @tests:
+     MRMMapping.__init__
+     MRMMapping.map
+    """
+
+    p = pyopenms.MRMMapping()
+    assert p.mapExperiment is not None
+    e = pyopenms.MSExperiment()
+    c = pyopenms.MSChromatogram()
+    e.addChromatogram(c)
+    assert e.getNrChromatograms() == 1
+
+    o = pyopenms.MSExperiment()
+    t = pyopenms.TargetedExperiment()
+    p.mapExperiment(e, t, o)
+    assert o.getNrChromatograms() == 0 # not so easy to test
+
+@report
+def testPeakPickerMRM():
+    """
+    @tests:
+     PeakPickerMRM.__init__
+     PeakPickerMRM.pickChromatogram
+    """
+
+    p = pyopenms.PeakPickerMRM()
+    assert p.pickChromatogram is not None
 
 @report
 def testPeakPickerHiRes():
@@ -3215,6 +3446,10 @@ def testPeakPickerHiRes():
      PeakPickerHiRes.setProgress
      PeakPickerHiRes.startProgress
     """
+
+    p = pyopenms.PeakPickerHiRes()
+    assert p.pick is not None
+    assert p.pickExperiment is not None
 
 @report
 def testPeakTypeEstimator():
@@ -3308,9 +3543,9 @@ def testPeptideEvidence():
     assert pe.getProteinAccession() == b"B_id"
 
     pe.setAABefore(b'B')
-    assert pe.getAABefore() == b"B"
+    assert pe.getAABefore() == 'B'
     pe.setAAAfter(b'C')
-    assert pe.getAAAfter() == b'C'
+    assert pe.getAAAfter() == 'C'
 
     pe.setStart(5)
     assert pe.getStart() == 5
@@ -3577,7 +3812,6 @@ def testProteinHit():
 def testProteinIdentification():
     """
     @tests:
-     ProteinIdentification.DigestionEnzyme
      ProteinIdentification.PeakMassType
      ProteinIdentification.__init__
      ProteinIdentification.clearMetaInfo
@@ -3614,18 +3848,6 @@ def testProteinIdentification():
 
     assert isinstance(pyopenms.ProteinIdentification.PeakMassType.MONOISOTOPIC, int)
     assert isinstance(pyopenms.ProteinIdentification.PeakMassType.AVERAGE, int)
-
-    assert isinstance(pyopenms.ProteinIdentification.DigestionEnzyme.TRYPSIN,
-            int)
-    assert isinstance(pyopenms.ProteinIdentification.DigestionEnzyme.PEPSIN_A, int)
-    assert isinstance(pyopenms.ProteinIdentification.DigestionEnzyme.PROTEASE_K,
-            int)
-    assert isinstance(pyopenms.ProteinIdentification.DigestionEnzyme.CHYMOTRYPSIN,
-            int)
-    assert isinstance(pyopenms.ProteinIdentification.DigestionEnzyme.NO_ENZYME, int)
-    assert isinstance(pyopenms.ProteinIdentification.DigestionEnzyme.UNKNOWN_ENZYME,
-            int)
-
 
 @report
 def testRichPeak():
@@ -3676,14 +3898,6 @@ def testRichPeak():
      RichPeak2D.__lt__
      RichPeak2D.__ne__
      """
-    p1 = pyopenms.RichPeak1D()
-    _testMetaInfoInterface(p1)
-    assert p1 == p1
-    assert not p1 != p1
-    p1.setMZ(12.0)
-    p1.setIntensity(23.0)
-    assert p1.getMZ() == (12.0)
-    assert p1.getIntensity() == (23.0)
 
     p2 = pyopenms.RichPeak2D()
     _testMetaInfoInterface(p2)
@@ -3835,11 +4049,15 @@ def testTransformationModels():
      TransformationModelLinear.getParameters
     """
     for clz in [pyopenms.TransformationModelLinear,
+                pyopenms.TransformationModelBSpline,
                 pyopenms.TransformationModelInterpolated]:
-        mod = clz()
         p = pyopenms.Param()
+        data = [ pyopenms.TM_DataPoint(9.0, 8.9),
+                 pyopenms.TM_DataPoint(5.0, 6.0),
+                 pyopenms.TM_DataPoint(8.0, 8.0) ]
+        mod = clz(data, p)
+        mod.evaluate(7.0)
         mod.getDefaultParameters(p)
-
 
 @report
 def testTransformationXMLFile():
@@ -3919,37 +4137,37 @@ def testType():
      Type.XMASS
     """
     for ti in  [
-      pyopenms.Type.CONSENSUSXML
-     ,pyopenms.Type.DTA
-     ,pyopenms.Type.DTA2D
-     ,pyopenms.Type.EDTA
-     ,pyopenms.Type.FASTA
-     ,pyopenms.Type.FEATUREXML
-     ,pyopenms.Type.GELML
-     ,pyopenms.Type.HARDKLOER
-     ,pyopenms.Type.IDXML
-     ,pyopenms.Type.INI
-     ,pyopenms.Type.KROENIK
-     ,pyopenms.Type.MASCOTXML
-     ,pyopenms.Type.MGF
-     ,pyopenms.Type.MS2
-     ,pyopenms.Type.MSP
-     ,pyopenms.Type.MZDATA
-     ,pyopenms.Type.MZIDENTML
-     ,pyopenms.Type.MZML
-     ,pyopenms.Type.MZXML
-     ,pyopenms.Type.OMSSAXML
-     ,pyopenms.Type.PEPLIST
-     ,pyopenms.Type.PEPXML
-     ,pyopenms.Type.PNG
-     ,pyopenms.Type.PROTXML
-     ,pyopenms.Type.SIZE_OF_TYPE
-     ,pyopenms.Type.TOPPAS
-     ,pyopenms.Type.TRAML
-     ,pyopenms.Type.TRANSFORMATIONXML
-     ,pyopenms.Type.TSV
-     ,pyopenms.Type.UNKNOWN
-     ,pyopenms.Type.XMASS]:
+      pyopenms.FileType.CONSENSUSXML
+     ,pyopenms.FileType.DTA
+     ,pyopenms.FileType.DTA2D
+     ,pyopenms.FileType.EDTA
+     ,pyopenms.FileType.FASTA
+     ,pyopenms.FileType.FEATUREXML
+     ,pyopenms.FileType.GELML
+     ,pyopenms.FileType.HARDKLOER
+     ,pyopenms.FileType.IDXML
+     ,pyopenms.FileType.INI
+     ,pyopenms.FileType.KROENIK
+     ,pyopenms.FileType.MASCOTXML
+     ,pyopenms.FileType.MGF
+     ,pyopenms.FileType.MS2
+     ,pyopenms.FileType.MSP
+     ,pyopenms.FileType.MZDATA
+     ,pyopenms.FileType.MZIDENTML
+     ,pyopenms.FileType.MZML
+     ,pyopenms.FileType.MZXML
+     ,pyopenms.FileType.OMSSAXML
+     ,pyopenms.FileType.PEPLIST
+     ,pyopenms.FileType.PEPXML
+     ,pyopenms.FileType.PNG
+     ,pyopenms.FileType.PROTXML
+     ,pyopenms.FileType.SIZE_OF_TYPE
+     ,pyopenms.FileType.TOPPAS
+     ,pyopenms.FileType.TRAML
+     ,pyopenms.FileType.TRANSFORMATIONXML
+     ,pyopenms.FileType.TSV
+     ,pyopenms.FileType.UNKNOWN
+     ,pyopenms.FileType.XMASS]:
         assert isinstance(ti, int)
 
 @report
@@ -3986,60 +4204,6 @@ def testVersion():
     assert not vd > vd
 
     assert  isinstance(pyopenms.version.version, str)
-
-
-@report
-def testPILISCrossValidation():
-    """
-    @tests:
-     PILISCrossValidation.__init__
-    """
-    inst = pyopenms.PILISCrossValidation()
-
-    assert inst.apply is not None
-    assert inst.setOption is not None
-
-@report
-def testPILIS_Peptide():
-    """
-    @tests:
-     PILIS_Peptide.__init__
-    """
-    inst = pyopenms.PILIS_Peptide()
-
-    assert inst.sequence is not None
-    assert inst.charge is not None
-    assert inst.spec is not None
-    assert inst.hits is not None
-    
-@report
-def testPILIS_Option():
-    """
-    @tests:
-     PILIS_Option.__init__
-    """
-    inst = pyopenms.PILIS_Option()
-
-    assert inst.type is not None
-    assert inst.int_min is not None
-    assert inst.int_max is not None
-    assert inst.int_stepsize is not None
-    assert inst.dbl_min is not None
-    assert inst.dbl_max is not None
-    assert inst.dbl_stepsize is not None
-
-@report
-def testPILIS_Option_Type():
-    """
-    @tests:
-     PILIS_Option_Type.__init__
-    """
-    inst = pyopenms.PILIS_Option.PILIS_Option_Type()
-
-    assert inst.INT is not None
-    assert inst.DOUBLE is not None
-    assert inst.BOOL is not None
-    assert inst.STRINGLIST is not None
 
 @report
 def testInspectInfile():
@@ -4146,7 +4310,7 @@ def testKernelMassTrace():
     assert trace.getTraceLength is not None
     assert trace.getFWHMborders is not None
     assert trace.getSmoothedIntensities is not None
-    assert trace.getScanTime is not None
+    assert trace.getAverageMS1CycleTime is not None
 
     assert trace.computeSmoothedPeakArea is not None
     assert trace.computePeakArea is not None
@@ -4154,8 +4318,8 @@ def testKernelMassTrace():
     assert trace.estimateFWHM is not None
     assert trace.computeFwhmArea is not None
     assert trace.computeFwhmAreaSmooth is not None
-    assert trace.computeFwhmAreaRobust is not None
-    assert trace.computeFwhmAreaSmoothRobust is not None
+    # assert trace.computeFwhmAreaRobust is not None
+    # assert trace.computeFwhmAreaSmoothRobust is not None
     assert trace.getIntensity is not None
     assert trace.getMaxIntensity is not None
 
@@ -4192,9 +4356,12 @@ def testElutionPeakDetection():
 @report
 def testIndexedMzMLDecoder():
     decoder = pyopenms.IndexedMzMLDecoder()
-    pos = decoder.findIndexListOffset(b"abcde", 100)
-    assert isinstance(pos, pyopenms.streampos)
-    assert long(pos) == -1   # not found
+
+    try:
+        pos = decoder.findIndexListOffset(b"abcde", 100)
+        raise Exception("Should raise an error")
+    except RuntimeError:
+        pass
 
 def test_streampos():
     p = long(pyopenms.streampos())
@@ -4250,5 +4417,345 @@ def test_BSpline2d():
 
     assert spline.ok()
     assert abs(spline.eval(6.0) - 5.0 < 0.01)
+
+
+@report
+def testConsensusIDAlgorithmAverage():
+    algo = pyopenms.ConsensusIDAlgorithmAverage()
+    assert algo.apply
+
+@report
+def testConsensusIDAlgorithmBest():
+    algo = pyopenms.ConsensusIDAlgorithmBest()
+    assert algo.apply
+
+@report
+def testConsensusIDAlgorithmIdentity():
+    algo = pyopenms.ConsensusIDAlgorithmIdentity()
+    assert algo.apply
+
+@report
+def testConsensusIDAlgorithmPEPIons():
+    algo = pyopenms.ConsensusIDAlgorithmPEPIons()
+    assert algo.apply
+
+@report
+def testConsensusIDAlgorithmPEPMatrix():
+    algo = pyopenms.ConsensusIDAlgorithmPEPMatrix()
+    assert algo.apply
+
+@report
+def testConsensusIDAlgorithmRanks():
+    algo = pyopenms.ConsensusIDAlgorithmRanks()
+    assert algo.apply
+
+@report
+def testConsensusIDAlgorithmSimilarity():
+    algo = pyopenms.ConsensusIDAlgorithmSimilarity()
+    assert algo.apply
+
+@report
+def testConsensusIDAlgorithmWorst():
+    algo = pyopenms.ConsensusIDAlgorithmWorst()
+    assert algo.apply
+
+@report
+def testDigestionEnzymeProtein():
+    f = pyopenms.EmpiricalFormula()
+
+    regex_description = b""
+    psi_id = b""
+    xtandem_id = b""
+    comet_id = 0
+    omssa_id = 0
+    e = pyopenms.DigestionEnzymeProtein(b"testEnzyme", "K", set([]), regex_description,
+                                 f, f, psi_id, xtandem_id, comet_id, omssa_id)
+
+@report
+def testMRMAssay():
+    e = pyopenms.MRMAssay()
+    assert e
+
+@report
+def testMRMIonSeries():
+    e = pyopenms.MRMIonSeries()
+    assert e
+
+@report
+def testPeptideIndexing():
+    e = pyopenms.PeptideIndexing()
+    assert e
+
+@report
+def testPeptideProteinResolution():
+    e = pyopenms.PeptideProteinResolution(False)
+    assert e
+
+@report
+def testPercolatorOutfile():
+    e = pyopenms.PercolatorOutfile()
+    assert e
+
+
+
+@report
+def testHiddenMarkovModel():
+    hmm = pyopenms.HiddenMarkovModel()
+    assert hmm
+
+    assert hmm.getNumberOfStates() == 0
+
+    ss = s("testState")
+    hmm.addNewState(ss)
+
+    assert hmm.getNumberOfStates() == 1
+
+    e = pyopenms.HMMState()
+    # hmm.addNewState(e) # Segfault !
+
+    r = hmm.getState(s("testState"))
+    assert r
+    ## assert r == ss # requires ==
+
+@report
+def testHMMState():
+    e = pyopenms.HMMState()
+    assert e
+    e.setName(s("somename"))
+    assert e.getName() == b"somename", e.getName()
+    e.setHidden(True)
+    assert e.isHidden()
+
+    pre = pyopenms.HMMState()
+    pre.setName(s("pre"))
+    suc = pyopenms.HMMState()
+    suc.setName(s("suc"))
+
+    e.addPredecessorState(pre)
+    e.addSuccessorState(suc)
+
+    assert e.getPredecessorStates()
+    assert e.getSuccessorStates()
+
+
+
+@report
+def testProteaseDB():
+    edb = pyopenms.ProteaseDB()
+
+    f = pyopenms.EmpiricalFormula()
+    synonyms = set([b"dummy", b"other"])
+
+    assert edb.hasEnzyme(pyopenms.String("Trypsin"))
+
+    trypsin = edb.getEnzyme(pyopenms.String("Trypsin"))
+
+    names = []
+    edb.getAllNames(names)
+    assert b"Trypsin" in names
+
+
+@report
+def testElementDB():
+    edb = pyopenms.ElementDB()
+    del edb
+
+    # create a second instance of ElementDB without anything bad happening
+    edb = pyopenms.ElementDB()
+
+    assert edb.hasElement(16)
+    edb.hasElement(pyopenms.String(b"O"))
+
+    e = edb.getElement(16)
+
+    assert e.getName() == b"Sulfur"
+    assert e.getSymbol() == b"S"
+    assert e.getIsotopeDistribution()
+
+    e2 = edb.getElement(pyopenms.String(b"O"))
+
+    assert e2.getName() == b"Oxygen"
+    assert e2.getSymbol() == b"O"
+    assert e2.getIsotopeDistribution()
+
+    # assert e == e2
+
+    #  not yet implemented
+    #
+    # const Map[ String, Element * ]  getNames() nogil except +
+    # const Map[ String, Element * ] getSymbols() nogil except +
+    # const Map[unsigned int, Element * ] getAtomicNumbers() nogil except +
+
+
+@report
+def testDPosition():
+    dp = pyopenms.DPosition1()
+    dp = pyopenms.DPosition1(1.0)
+    assert dp[0] == 1.0
+
+    dp = pyopenms.DPosition2()
+    dp = pyopenms.DPosition2(1.0, 2.0)
+
+    assert dp[0] == 1.0
+    assert dp[1] == 2.0
+
+@report
+def testResidueDB():
+    rdb = pyopenms.ResidueDB()
+    del rdb
+
+    # create a second instance of ResidueDB without anything bad happening
+    rdb = pyopenms.ResidueDB()
+
+    assert rdb.getNumberOfResidues() >= 20
+    assert len(rdb.getResidueSets() ) >= 1
+    el = rdb.getResidues(pyopenms.String(rdb.getResidueSets().pop()))
+
+    assert len(el) >= 1
+
+    assert rdb.hasResidue(s(b"Glycine"))
+    glycine = rdb.getResidue(s(b"Glycine"))
+
+    nrr = rdb.getNumberOfResidues()
+
+    r = pyopenms.Residue()
+    rdb.addResidue(r)
+    assert rdb.getNumberOfResidues() == nrr+1
+
+@report
+def testModificationsDB():
+    mdb = pyopenms.ModificationsDB()
+    del mdb
+
+    # create a second instance of ModificationsDB without anything bad happening
+    mdb = pyopenms.ModificationsDB()
+
+    assert mdb.getNumberOfModifications() > 1
+    m = mdb.getModification(1)
+
+    assert mdb.getNumberOfModifications() > 1
+    m = mdb.getModification(1)
+    assert m is not None
+
+    mods = set([])
+    mdb.searchModifications(mods, s("Phosphorylation"), s("T"), pyopenms.ResidueModification.TermSpecificity.ANYWHERE)
+    assert len(mods) == 1
+
+    mods = set([])
+    mdb.searchModifications(mods, s("NIC"), s("T"), pyopenms.ResidueModification.TermSpecificity.N_TERM)
+    assert len(mods) == 1
+
+    mods = set([])
+    mdb.searchModifications(mods, s("NIC"), s("T"), pyopenms.ResidueModification.TermSpecificity.N_TERM)
+    assert len(mods) == 1
+
+    mods = set([])
+    mdb.searchModifications(mods, s("Acetyl"), s("T"), pyopenms.ResidueModification.TermSpecificity.N_TERM)
+    assert len(mods) == 1
+    assert list(mods)[0].getFullId() == b"Acetyl (N-term)"
+
+    m = mdb.getModification(s("Carboxymethyl (C)"), "", pyopenms.ResidueModification.TermSpecificity.NUMBER_OF_TERM_SPECIFICITY)
+    assert m.getFullId() == b"Carboxymethyl (C)"
+
+    m = mdb.getModification( s("Phosphorylation"), s("S"), pyopenms.ResidueModification.TermSpecificity.ANYWHERE)
+    assert m.getId() == b"Phospho"
+
+    # get out all mods (there should be many, some known ones as well!)
+    mods = []
+    m = mdb.getAllSearchModifications(mods)
+    assert len(mods) > 100
+
+    assert b"Phospho (S)" in mods
+    assert b"Sulfo (S)" in mods
+    assert not (b"Phospho" in mods)
+
+    # search for specific modifications by mass
+    m = mdb.getBestModificationByDiffMonoMass( 80.0, 1.0, b"T", pyopenms.ResidueModification.TermSpecificity.ANYWHERE)
+    assert m is not None
+    assert m.getId() == b"Phospho"
+    assert m.getFullName() == b"Phosphorylation"
+    assert m.getUniModAccession() == b"UniMod:21"
+
+    m = mdb.getBestModificationByDiffMonoMass(80, 100, b"T", pyopenms.ResidueModification.TermSpecificity.ANYWHERE)
+    assert m is not None
+    assert m.getId() == b"Phospho"
+    assert m.getFullName() == b"Phosphorylation"
+    assert m.getUniModAccession() == b"UniMod:21"
+
+    m = mdb.getBestModificationByDiffMonoMass(16, 1.0, b"M", pyopenms.ResidueModification.TermSpecificity.ANYWHERE)
+    assert m is not None
+    assert m.getId() == b"Oxidation", m.getId()
+    assert m.getFullName() == b"Oxidation or Hydroxylation", m.getFullName()
+    assert m.getUniModAccession() == b"UniMod:35"
+
+    ###
+
+    m = mdb.getBestModificationByMonoMass(80, 20, b"T", pyopenms.ResidueModification.TermSpecificity.ANYWHERE)
+    assert m is not None
+    assert m.getId() == b"MOD:00439"
+    assert m.getFullName() == b"O-phospho-L-threonine with neutral loss of phosphate", m.getFullName() # something crazy
+    assert m.getUniModAccession() == b"" # no unimod for crazyness ...
+
+    m = mdb.getBestModificationByMonoMass(147, 20, b"M", pyopenms.ResidueModification.TermSpecificity.ANYWHERE)
+    assert m is not None
+    assert m.getUniModAccession() == b"", m.getUniModAccession()
+    assert m.getId() == b"MOD:00719", m.getId()
+    assert m.getFullName() == b"oxidation to L-methionine sulfoxide", m.getFullName()
+
+    m = mdb.getBestModificationByMonoMass( 96, 20, b"T", pyopenms.ResidueModification.TermSpecificity.ANYWHERE)
+    assert m is not None
+    assert m.getId() == b"MOD:00252", m.getId()
+    assert m.getFullName() == b"keratan sulfate D-glucuronosyl-D-galactosyl-D-galactosyl-D-xylosyl-L-threonine", m.getFullName() # something crazy
+    assert m.getUniModAccession() == b"", m.getUniModAccession() # no unimod for crazyness ...
+
+    # Test NULL ptr
+    m = mdb.getBestModificationByMonoMass( 999999999, 0.20, b"T", pyopenms.ResidueModification.TermSpecificity.ANYWHERE)
+    assert m is None
+
+def testString():
+    pystr = pyopenms.String()
+    pystr = pyopenms.String("blah")
+    assert (pystr.toString() == "blah")
+    pystr = pyopenms.String(b"blah")
+    assert (pystr.toString() == "blah")
+    pystr = pyopenms.String(u"blah")
+    assert (pystr.toString() == "blah")
+    pystr = pyopenms.String(pystr)
+    assert (pystr.toString() == "blah")
+    assert (len(pystr.toString()) == 4)
+    cstr = pystr.c_str()
+
+    # Printing should work ...
+    print(cstr)
+    print(pystr)
+    print(pystr.toString())
+    assert (pystr.toString() == "blah")
+
+    pystr = pyopenms.String("bläh")
+    assert (pystr.toString() == u"bläh")
+    # pystr = pyopenms.String(b"bläh") # Not Python 3 compatible
+    pystr = pyopenms.String(u"bläh")
+    assert (pystr.toString() == u"bläh")
+    pystr = pyopenms.String(pystr)
+    assert (pystr.toString() == u"bläh")
+    cstr = pystr.c_str()
+
+    # Printing should work ...
+    print(cstr)
+    print(pystr)
+    print(pystr.toString().encode("utf8"))
+
+    assert len(pystr.toString()) == 4
+    assert len(pystr.c_str()) == 5 # C does not know about Unicode, so be careful with c_str
+    print(pystr) # this prints the C string, due to Py 2/3 compatibility
+    print(pystr.toString().encode("utf8")) # this prints the correct String
+
+    pystr1 = pyopenms.String("bläh")
+    pystr2 = pyopenms.String("bläh")
+    assert(pystr1 == pystr2)
+
+    pystr1 = pyopenms.String(u"bläh")
+    pystr2 = pyopenms.String(u"bläh")
+    assert(pystr1 == pystr2)
 
 

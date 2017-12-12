@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -64,10 +64,11 @@ public:
 
     struct ExtractionCoordinates
     {
-      double mz; /// mz around which should be extracted
-      double rt_start; /// rt start of extraction (in seconds)
-      double rt_end; /// rt end of extraction (in seconds)
-      std::string id; /// identifier
+      double mz; ///< m/z value around which should be extracted
+      double mz_precursor; ///< precursor m/z value (is currently ignored by the algorithm)
+      double rt_start; ///< rt start of extraction (in seconds)
+      double rt_end; ///< rt end of extraction (in seconds)
+      std::string id; ///< identifier
 
       static bool SortExtractionCoordinatesByMZ(
           const ChromatogramExtractorAlgorithm::ExtractionCoordinates& left,
@@ -131,4 +132,5 @@ private:
 
 }
 
-#endif
+#endif // OPENMS_ANALYSIS_OPENSWATH_CHROMATOGRAMEXTRACTORALGORITHM_H
+

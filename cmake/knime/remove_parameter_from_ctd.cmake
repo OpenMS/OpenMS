@@ -2,7 +2,7 @@
 #                   OpenMS -- Open-Source Mass Spectrometry
 # --------------------------------------------------------------------------
 # Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-# ETH Zurich, and Freie Universitaet Berlin 2002-2012.
+# ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 #
 # This software is released under a three-clause BSD license:
 #  * Redistributions of source code must retain the above copyright
@@ -49,7 +49,7 @@ string(REGEX REPLACE "\n" ";" contents "${contents}")
 set(APPEND_TO_FILE FALSE)
 foreach(line ${contents})
   set(pos -1) 
-  if(line MATCHES ".*${PARAM}.*") 
+  if(line MATCHES ".*name=\"${PARAM}\".*") 
     string(LENGTH "${CMAKE_MATCH_1}" pos) 
   endif() 
   

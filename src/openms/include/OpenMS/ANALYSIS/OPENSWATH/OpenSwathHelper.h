@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -35,6 +35,7 @@
 #ifndef OPENMS_ANALYSIS_OPENSWATH_OPENSWATHHELPER_H
 #define OPENMS_ANALYSIS_OPENSWATH_OPENSWATHHELPER_H
 
+#include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/TransitionExperiment.h>
@@ -81,14 +82,14 @@ public:
 
       @throw throws IllegalArgument exception if the sanity checks fail.
     */
-    static void checkSwathMap(const OpenMS::MSExperiment<Peak1D>& swath_map,
+    static void checkSwathMap(const OpenMS::PeakMap& swath_map,
                               double& lower, double& upper);
 
     /**
       @brief Check the map and select transition in one function
     */
     template <class TargetedExperimentT>
-    static bool checkSwathMapAndSelectTransitions(const OpenMS::MSExperiment<Peak1D>& exp,
+    static bool checkSwathMapAndSelectTransitions(const OpenMS::PeakMap& exp,
                                                   const TargetedExperimentT& targeted_exp, TargetedExperimentT& transition_exp_used, double min_upper_edge_dist)
     {
       if (exp.size() == 0 || exp[0].getPrecursors().size() == 0)
@@ -122,14 +123,16 @@ public:
     /**
       @brief Simple method to extract the best Feature for each transition group (e.g. for RT alignment)
 
-      @param transition_group_map Input data
-      @param pairs Output (containing pairs of  mapping  data
+      @param transition_group_map Input data containing the picked and scored map
+      @param useQualCutoff Whether to apply a quality cutoff to the data
+      @param qualCutoff When applying a quality cutoff, what it should be
+
+      @return Result of the best scoring peaks (stored as map of peptide id and RT)
 
     */
     static std::map<std::string, double> simpleFindBestFeature(
         OpenMS::MRMFeatureFinderScoring::TransitionGroupMapType & transition_group_map, 
         bool useQualCutoff = false, double qualCutoff = 0.0);
-
   };
 }
-#endif
+#endif // OPENMS_ANALYSIS_OPENSWATH_OPENSWATHHELPER_H

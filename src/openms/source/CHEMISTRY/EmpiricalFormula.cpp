@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -37,6 +37,7 @@
 #include <OpenMS/CHEMISTRY/Element.h>
 #include <OpenMS/CHEMISTRY/ElementDB.h>
 #include <OpenMS/CONCEPT/Constants.h>
+#include <OpenMS/MATH/MISC/MathFunctions.h>
 
 #include <iostream>
 
@@ -100,6 +101,59 @@ namespace OpenMS
     return weight;
   }
 
+  bool EmpiricalFormula::estimateFromWeightAndCompAndS(double average_weight, UInt S, double C, double H, double N, double O, double P)
+  {
+    const ElementDB* db = ElementDB::getInstance();
+
+    double remaining_weight = average_weight - S * db->getElement("S")->getAverageWeight();
+
+    // The number of sulfurs is set to 0 because we're explicitly specifying their count.
+    // We propagate the return value to let the programmer know if the approximation succeeded
+    // without requesting a negative number of hydrogens.
+    bool ret = estimateFromWeightAndComp(remaining_weight, C, H, N, O, 0.0, P);
+
+    formula_.at(db->getElement("S")) = S;
+
+    return ret;
+  }
+
+  bool EmpiricalFormula::estimateFromWeightAndComp(double average_weight, double C, double H, double N, double O, double S, double P)
+  {
+    const ElementDB* db = ElementDB::getInstance();
+
+    double avgTotal = (C * db->getElement("C")->getAverageWeight() +
+                       H * db->getElement("H")->getAverageWeight() +
+                       N * db->getElement("N")->getAverageWeight() +
+                       O * db->getElement("O")->getAverageWeight() +
+                       S * db->getElement("S")->getAverageWeight() +
+                       P * db->getElement("P")->getAverageWeight());
+
+    double factor = average_weight / avgTotal;
+
+    formula_.clear();
+
+    formula_.insert(make_pair(db->getElement("C"), (SignedSize) Math::round(C * factor)));
+    formula_.insert(make_pair(db->getElement("N"), (SignedSize) Math::round(N * factor)));
+    formula_.insert(make_pair(db->getElement("O"), (SignedSize) Math::round(O * factor)));
+    formula_.insert(make_pair(db->getElement("S"), (SignedSize) Math::round(S * factor)));
+    formula_.insert(make_pair(db->getElement("P"), (SignedSize) Math::round(P * factor)));
+
+    double remaining_mass = average_weight-getAverageWeight();
+    SignedSize adjusted_H = Math::round(remaining_mass / db->getElement("H")->getAverageWeight());
+
+    // It's possible for a very small mass to get a negative value here.
+    if (adjusted_H < 0)
+    {
+      // The approximation can still be useful, but we set the return flag to false to explicitly notify the programmer.
+      return false;
+    }
+
+    // Only insert hydrogens if their number is not negative.
+    formula_.insert(make_pair(db->getElement("H"), adjusted_H));
+    // The approximation had no issues.
+    return true;
+  }
+
   IsotopeDistribution EmpiricalFormula::getIsotopeDistribution(UInt max_depth) const
   {
     IsotopeDistribution result(max_depth);
@@ -111,6 +165,26 @@ namespace OpenMS
       result += tmp * it->second;
     }
     result.renormalize();
+    return result;
+  }
+
+  IsotopeDistribution EmpiricalFormula::getConditionalFragmentIsotopeDist(const EmpiricalFormula& precursor, const std::set<UInt>& precursor_isotopes) const
+  {
+    // A fragment's isotopes can only be as high as the largest isolated precursor isotope.
+    UInt max_depth = *std::max_element(precursor_isotopes.begin(), precursor_isotopes.end())+1;
+
+    // Treat *this as the fragment molecule
+    EmpiricalFormula complementary_fragment = precursor-*this;
+
+    IsotopeDistribution fragment_isotope_dist = getIsotopeDistribution(max_depth);
+    IsotopeDistribution comp_fragment_isotope_dist = complementary_fragment.getIsotopeDistribution(max_depth);
+
+    IsotopeDistribution result;
+    result.calcFragmentIsotopeDist(fragment_isotope_dist, comp_fragment_isotope_dist, precursor_isotopes);
+
+    // Renormalize to make these conditional probabilities (conditioned on the isolated precursor isotopes)
+    result.renormalize();
+
     return result;
   }
 
@@ -410,7 +484,7 @@ namespace OpenMS
           }
           else
           {
-            throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, formula, "Cannot parse charge part of formula!");
+            throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, formula, "Cannot parse charge part of formula!");
           }
         }
 
@@ -482,7 +556,7 @@ namespace OpenMS
       }
       else
       {
-        throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, formula, "This formula does not begin with an element!");
+        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, formula, "This formula does not begin with an element!");
       }
     }
 
@@ -531,7 +605,7 @@ namespace OpenMS
       }
       else
       {
-        throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Unknown element '" + split + "'", "'" + symbol + "' found. Please use only valid element identifiers or modify share/OpenMS/CHEMISTRY/Elements.xml!");
+        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Unknown element '" + split + "'", "'" + symbol + "' found. Please use only valid element identifiers or modify share/OpenMS/CHEMISTRY/Elements.xml!");
       }
     }
 

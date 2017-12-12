@@ -1,0 +1,9 @@
+
+/* for ALL widgets where items can be selected: make background more prominent when they loose focus (i.e. are not active) */
+
+*::item:selected:!active{
+  background-color: lightblue;
+}
+
+/* more customizations here */
+  

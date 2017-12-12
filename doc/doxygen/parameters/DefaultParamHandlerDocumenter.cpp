@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,16 +32,17 @@
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
+#include <OpenMS/ANALYSIS/ID/AScore.h>
 #include <OpenMS/ANALYSIS/ID/IDMapper.h>
-#include <OpenMS/ANALYSIS/ID/ConsensusID.h>
-#include <OpenMS/ANALYSIS/ID/PILISScoring.h>
-#include <OpenMS/ANALYSIS/ID/PILISModel.h>
-#include <OpenMS/ANALYSIS/ID/PILISModelGenerator.h>
-#include <OpenMS/ANALYSIS/ID/PILISNeutralLossModel.h>
-#include <OpenMS/ANALYSIS/ID/PILISCrossValidation.h>
-#include <OpenMS/ANALYSIS/ID/PILISIdentification.h>
+#include <OpenMS/ANALYSIS/ID/ConsensusIDAlgorithm.h>
+#include <OpenMS/ANALYSIS/ID/ConsensusIDAlgorithmAverage.h>
+#include <OpenMS/ANALYSIS/ID/ConsensusIDAlgorithmBest.h>
+#include <OpenMS/ANALYSIS/ID/ConsensusIDAlgorithmPEPIons.h>
+#include <OpenMS/ANALYSIS/ID/ConsensusIDAlgorithmRanks.h>
+#include <OpenMS/ANALYSIS/ID/ConsensusIDAlgorithmWorst.h>
 #include <OpenMS/ANALYSIS/ID/ProtonDistributionModel.h>
 #include <OpenMS/ANALYSIS/ID/FalseDiscoveryRate.h>
+#include <OpenMS/ANALYSIS/SVM/SimpleSVM.h>
 #include <OpenMS/ANALYSIS/TARGETED/PrecursorIonSelection.h>
 #include <OpenMS/ANALYSIS/TARGETED/PrecursorIonSelectionPreprocessing.h>
 #include <OpenMS/ANALYSIS/TARGETED/OfflinePrecursorIonSelection.h>
@@ -60,7 +61,6 @@
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmSpectrumAlignment.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmPoseClustering.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmIdentification.h>
-#include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmIdentification.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmLabeled.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmQT.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmUnlabeled.h>
@@ -70,8 +70,6 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMFeatureFinderScoring.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMTransitionGroupPicker.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/PeakPickerMRM.h>
-#include <OpenMS/ANALYSIS/QUANTITATION/ItraqChannelExtractor.h>
-#include <OpenMS/ANALYSIS/QUANTITATION/ItraqQuantifier.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/IsobaricChannelExtractor.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/IsobaricQuantifier.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/ItraqFourPlexQuantitationMethod.h>
@@ -117,6 +115,7 @@
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/BiGaussFitter1D.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/BiGaussModel.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/EGHTraceFitter.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/ElutionModelFitter.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/EmgFitter1D.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/EmgModel.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/ExtendedIsotopeFitter1D.h>
@@ -170,6 +169,12 @@
 #include <OpenMS/VISUAL/APPLICATIONS/TOPPASBase.h>
 #include <OpenMS/VISUAL/APPLICATIONS/TOPPViewBase.h>
 #endif
+
+// include this file after the GUI stuff, or there will be a conflict between
+// "LayerData.h" (via "Spectrum1DCanvas.h") and "SeqanIncludeWrapper.h"!
+// (see https://github.com/OpenMS/OpenMS/issues/1327)
+#include <OpenMS/ANALYSIS/ID/ConsensusIDAlgorithmPEPMatrix.h>
+
 
 #include <fstream>
 
@@ -338,6 +343,7 @@ int main(int argc, char** argv)
   // Simple cases
   //////////////////////////////////
 
+  DOCME(AScore);
   DOCME(BernNorm);
   DOCME(BiGaussFitter1D);
   DOCME(BiGaussModel);
@@ -346,10 +352,16 @@ int main(int argc, char** argv)
   DOCME(BinnedSumAgreeingIntensities);
   DOCME(ComplementFilter);
   DOCME(ComplementMarker);
-  DOCME(ConsensusID);
+  DOCME(ConsensusIDAlgorithmAverage);
+  DOCME(ConsensusIDAlgorithmBest);
+  DOCME(ConsensusIDAlgorithmPEPIons);
+  DOCME(ConsensusIDAlgorithmPEPMatrix);
+  DOCME(ConsensusIDAlgorithmRanks);
+  DOCME(ConsensusIDAlgorithmWorst);
   DOCME(DetectabilitySimulation);
   DOCME(DIAScoring);
   DOCME(DigestSimulation);
+  DOCME(ElutionModelFitter);
   DOCME(EmgFitter1D);
   DOCME(EmgModel);
   DOCME(ExtendedIsotopeFitter1D);
@@ -357,7 +369,6 @@ int main(int argc, char** argv)
   DOCME(FalseDiscoveryRate);
   DOCME(FeatureDeconvolution);
   DOCME(FeatureDistance);
-  DOCME(FeatureGroupingAlgorithmIdentification); // deprecated
   DOCME(FeatureGroupingAlgorithmLabeled);
   DOCME(FeatureGroupingAlgorithmQT);
   DOCME(FeatureGroupingAlgorithmUnlabeled);
@@ -366,14 +377,11 @@ int main(int argc, char** argv)
   DOCME(GaussModel);
   DOCME(GoodDiffFilter);
   DOCME(IDMapper);
-  DOCME(InternalCalibration);
   DOCME(InterpolationModel);
   DOCME(IsotopeDiffFilter);
   DOCME(IsotopeFitter1D);
   DOCME(IsotopeMarker);
   DOCME(IsotopeModel);
-  DOCME(ItraqChannelExtractor);
-  DOCME(ItraqQuantifier);
   DOCME(TMTSixPlexQuantitationMethod);
   DOCME(ItraqEightPlexQuantitationMethod);
   DOCME(ItraqFourPlexQuantitationMethod);
@@ -383,7 +391,6 @@ int main(int argc, char** argv)
   DOCME(MSSim);
   DOCME(MapAlignmentAlgorithmPoseClustering);
   DOCME(MapAlignmentAlgorithmSpectrumAlignment);
-  DOCME(MapAlignmentAlgorithmIdentification);
   DOCME(MRMFeatureFinderScoring);
   DOCME(MRMTransitionGroupPicker);
   DOCME(NLargest);
@@ -391,8 +398,6 @@ int main(int argc, char** argv)
   DOCME(NeutralLossMarker);
   DOCME(Normalizer);
   DOCME(OptimizePeakDeconvolution);
-  DOCME(PILISScoring);
-  DOCME(PILISIdentification);
   DOCME(ParentPeakMower);
   DOCME(PeakAlignment);
   DOCME(PeakPickerCWT);
@@ -404,6 +409,7 @@ int main(int argc, char** argv)
   DOCME(SavitzkyGolayFilter);
   DOCME(LowessSmoothing);
   DOCME(SimplePairFinder);
+  DOCME(SimpleSVM);
   DOCME(StablePairFinder);
   DOCME(SpectrumAlignment);
   DOCME(SpectrumAlignmentScore);
@@ -428,15 +434,10 @@ int main(int argc, char** argv)
   DOCME(CompNovoIdentification);
   DOCME(CompNovoIdentificationCID);
   DOCME(MassDecompositionAlgorithm);
-  DOCME(PILISModel);
   DOCME(MRMFragmentSelection);
-  DOCME(PILISCrossValidation);
   DOCME(ProtonDistributionModel);
   DOCME(MascotRemoteQuery);
   DOCME(MascotGenericFile);
-  DOCME(PILISNeutralLossModel);
-  DOCME(PILISModelGenerator);
-  DOCME(FeatureGroupingAlgorithmIdentification);
   DOCME(OfflinePrecursorIonSelection);
   DOCME(Fitter1D);
   DOCME(EGHModel);
@@ -457,7 +458,11 @@ int main(int argc, char** argv)
   // More complicated cases
   //////////////////////////////////
 
-  DOCME2(FeatureFinderAlgorithmIsotopeWavelet, (FeatureFinderAlgorithmIsotopeWavelet()))
+  // ConsensusIDAlgorithm...: abstract base classes, get param. from subclass:
+  DOCME2(ConsensusIDAlgorithm, (ConsensusIDAlgorithmBest()));
+  DOCME2(ConsensusIDAlgorithmIdentity, (ConsensusIDAlgorithmBest()));
+  DOCME2(ConsensusIDAlgorithmSimilarity, (ConsensusIDAlgorithmBest()));
+  DOCME2(FeatureFinderAlgorithmIsotopeWavelet, (FeatureFinderAlgorithmIsotopeWavelet()));
   DOCME2(FeatureFinderAlgorithmPicked, (FeatureFinderAlgorithmPicked()));
   DOCME2(FeatureFinderAlgorithmMRM, (FeatureFinderAlgorithmMRM()))
   DOCME2(ProductModel, ProductModel<2>());
@@ -469,9 +474,6 @@ int main(int argc, char** argv)
   DOCME2(RTSimulation, RTSimulation(SimTypes::MutableSimRandomNumberGeneratorPtr()))
   DOCME2(GaussTraceFitter, (GaussTraceFitter()))
   DOCME2(EGHTraceFitter, (EGHTraceFitter()))
-
-  DOCME2(IsobaricChannelExtractor, IsobaricChannelExtractor(new ItraqFourPlexQuantitationMethod()));
-  DOCME2(IsobaricQuantifier, IsobaricQuantifier(new ItraqFourPlexQuantitationMethod()));
 
   // handle GUI documentation separately
 #ifdef WITH_GUI

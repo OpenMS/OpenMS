@@ -9,7 +9,7 @@
 			<cvParam cvRef="MS" accession="MS:1000580" name="MSn spectrum" />
 		</fileContent>
 		<sourceFileList count="1">
-			<sourceFile id="sf_ru_0" name="KKramer_150612_yeastTAP_4_120min.raw" location="file://.">
+			<sourceFile id="sf_ru_0" name="test_file_name.raw" location="file:///C:/testing/test_file_path">
 				<cvParam cvRef="MS" accession="MS:1000569" name="SHA-1" value="4c6e60e96ba4799cdf6024e0fdc121366fe39458" />
 				<cvParam cvRef="MS" accession="MS:1000563" name="Thermo RAW format" />
 				<cvParam cvRef="MS" accession="MS:1000768" name="Thermo nativeID format" />

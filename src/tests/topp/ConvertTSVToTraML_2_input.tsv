@@ -1,0 +1,7 @@
+PrecursorMz	ProductMz	RetentionTime	transition_name	CollisionEnergy	LibraryIntensity	transition_group_id	decoy	PeptideSequence	ProteinName	Annotation	FullUniModPeptideName	MissedCleavages	Replicates	NrModifications	PrecursorCharge	GroupLabel	UniprotID	FragmentType	FragmentCharge	FragmentSeriesNumber
+500	628.435	44	tr1	1	1	tr_gr1	0	PEPTIDEA	ProteinA	y5	PEPTIDEA	0	0	0	2	light	uniprot_nr_1	b	2	1
+500	654.38	44	tr2	1	2	tr_gr1	0	PEPTIDEA	ProteinA	y6	PEPTIDEA	0	0	0	2	light	uniprot_nr_1	b	2	2
+501	618.31	20	tr3	1	10000	tr_gr2	0	PEPTIDECE	ProteinA	y4	PEPT(Phospho)IDEC(Carbamidomethyl)E	0	0	0	2	light	uniprot_nr_1	y	2	3
+501	628.435	20	tr4	1	2000	tr_gr2	0	PEPTIDECE	ProteinA	y5	PEPT(Phospho)IDEC(Carbamidomethyl)E	0	0	0	2	light	uniprot_nr_1	y	2	4
+501	651.3	20	tr5	1	4300	tr_gr2	0	PEPTIDECE	ProteinA	y6	PEPT(Phospho)IDEC(Carbamidomethyl)E	0	0	0	2	light	uniprot_nr_1	y	3	5
+722.685	358.179	52.2	454	-1	2714	78	0	QVFIGCPASVADQDAFERM	ProteinC	b3	(UniMod:5)QVFIGC(UniMod:4)PASVADQDAFERM(UniMod:11)	0	0	0	3	light	uniprot_nr_2	a	2	6

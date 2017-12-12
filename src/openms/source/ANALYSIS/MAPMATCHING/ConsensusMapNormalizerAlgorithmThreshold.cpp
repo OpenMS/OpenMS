@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -33,6 +33,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/ConsensusMapNormalizerAlgorithmThreshold.h>
+#include <OpenMS/ANALYSIS/MAPMATCHING/ConsensusMapNormalizerAlgorithmMedian.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include "OpenMS/MATH/STATISTICS/StatisticFunctions.h"
 
@@ -50,11 +51,12 @@ namespace OpenMS
 
   }
 
-  vector<double> ConsensusMapNormalizerAlgorithmThreshold::computeCorrelation(const ConsensusMap& map, const double& ratio_threshold)
+  vector<double> ConsensusMapNormalizerAlgorithmThreshold::computeCorrelation(const ConsensusMap& map, const double& ratio_threshold, const String& acc_filter, const String& desc_filter)
   {
     Size number_of_features = map.size();
     Size number_of_maps = map.getFileDescriptions().size();
     vector<vector<double> > feature_int(number_of_maps);
+
     //get map with most features, resize feature_int
     UInt map_with_most_features_idx = 0;
     ConsensusMap::FileDescriptions::const_iterator map_with_most_features = map.getFileDescriptions().find(0);
@@ -68,17 +70,28 @@ namespace OpenMS
         map_with_most_features_idx = i;
       }
     }
+
     //fill feature_int with intensities
+    Size pass_counter = 0;
     ConsensusMap::ConstIterator cf_it;
     UInt idx = 0;
     for (cf_it = map.begin(); cf_it != map.end(); ++cf_it, ++idx)
     {
+      if (!ConsensusMapNormalizerAlgorithmMedian::passesFilters_(cf_it, map, acc_filter, desc_filter))
+      {
+        continue;
+      }
+      ++pass_counter;
+
       ConsensusFeature::HandleSetType::const_iterator f_it;
       for (f_it = cf_it->getFeatures().begin(); f_it != cf_it->getFeatures().end(); ++f_it)
       {
         feature_int[f_it->getMapIndex()][idx] = f_it->getIntensity();
       }
     }
+
+    LOG_INFO << endl << "Using " << pass_counter << "/" << map.size() <<  " consensus features for computing normalization coefficients" << endl << endl;
+
     //determine ratio
     vector<double> ratio_vector(number_of_maps);
     for (UInt j = 0; j < number_of_maps; j++)
@@ -94,6 +107,11 @@ namespace OpenMS
             ratios.push_back(ratio);
           }
         }
+      }
+      if (ratios.empty())
+      {
+        LOG_WARN << endl << "Not enough features passing filters. Cannot compute normalization coefficients for all maps. Result will be unnormalized." << endl << endl;
+        return vector<double>(number_of_maps, 1.0);
       }
       ratio_vector[j] = Math::mean(ratios.begin(), ratios.end());
     }

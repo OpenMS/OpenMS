@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -33,6 +33,10 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/RNPXL/RNPxlModificationsGenerator.h>
+#include <OpenMS/CHEMISTRY/ElementDB.h>
+#include <OpenMS/CHEMISTRY/ResidueDB.h>
+#include <OpenMS/CHEMISTRY/ResidueModification.h>
+#include <OpenMS/CHEMISTRY/ModificationsDB.h>
 
 using namespace std;
 
@@ -71,7 +75,7 @@ RNPxlModificationMassesResult RNPxlModificationsGenerator::initModificationMasse
   String original_sequence_restriction = sequence_restriction;
 
   // 152 modification
-  const String cysteine_adduct_string("C1H2N3O6");
+  const String cysteine_adduct_string("C4H8S2O2");
   const EmpiricalFormula cysteine_adduct_formula(cysteine_adduct_string); // 152 modification
 
   RNPxlModificationMassesResult result;
@@ -394,6 +398,7 @@ RNPxlModificationMassesResult RNPxlModificationsGenerator::initModificationMasse
 
   // output index  -> empirical formula -> (ambiguous) nucleotide formulas
   // nucleotide formulas which only differ in nucleotide ordering are only printed once
+  // e.g. 5 C19H24N7O12P1 573.122 ( AU-H1O3P1 )
   double pseudo_rt = 1;
   for (Map<String, double>::ConstIterator mit = result.mod_masses.begin(); mit != result.mod_masses.end(); ++mit)
   {
@@ -441,17 +446,17 @@ RNPxlModificationMassesResult RNPxlModificationsGenerator::initModificationMasse
 }
 
 //static
-void  RNPxlModificationsGenerator::generateTargetSequences(const String& res_seq, Size pos, const map<char, vector<char> >& map_source2target, StringList& target_sequences)
+void  RNPxlModificationsGenerator::generateTargetSequences(const String& res_seq, Size param_pos, const map<char, vector<char> >& map_source2target, StringList& target_sequences)
 {
   typedef map<char, vector<char> >::const_iterator TConstMapIterator;
 
-  while (pos < res_seq.size())
+  while (param_pos < res_seq.size())
   {
     // check if current character is in source 2 target map
-    TConstMapIterator target_iterator = map_source2target.find(res_seq[pos]);
+    TConstMapIterator target_iterator = map_source2target.find(res_seq[param_pos]);
     if (target_iterator == map_source2target.end())
     {
-      ++pos;
+      ++param_pos;
     }
     else // yes?
     {
@@ -460,13 +465,13 @@ void  RNPxlModificationsGenerator::generateTargetSequences(const String& res_seq
       {
         // modify sequence
         String mod_seq = res_seq;
-        if (mod_seq[pos] != targets[i])
+        if (mod_seq[param_pos] != targets[i])
         {
-          mod_seq[pos] = targets[i];
-          generateTargetSequences(mod_seq, pos + 1, map_source2target, target_sequences);
+          mod_seq[param_pos] = targets[i];
+          generateTargetSequences(mod_seq, param_pos + 1, map_source2target, target_sequences);
         }
       }
-      ++pos;
+      ++param_pos;
     }
   }
 
@@ -497,5 +502,6 @@ void  RNPxlModificationsGenerator::generateTargetSequences(const String& res_seq
     target_sequences.push_back(res_seq);
   }
 }
+
 }
 

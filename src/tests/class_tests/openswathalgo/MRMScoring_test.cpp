@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -191,27 +191,35 @@ BOOST_AUTO_TEST_CASE(initializeXCorrMatrix)
 
   TEST_EQUAL(mrmscore.getXCorrMatrix().size(), 2)
   TEST_EQUAL(mrmscore.getXCorrMatrix()[0].size(), 2)
-  TEST_EQUAL(mrmscore.getXCorrMatrix()[0][0].size(), 23)
+  TEST_EQUAL(mrmscore.getXCorrMatrix()[0][0].data.size(), 23)
 
   // test auto-correlation = xcorrmatrix_0_0
-  const std::map<int, double> auto_correlation =
+  const OpenSwath::Scoring::XCorrArrayType auto_correlation =
       mrmscore.getXCorrMatrix()[0][0];
-  TEST_REAL_SIMILAR(auto_correlation.find(0)->second, 1)
-  TEST_REAL_SIMILAR(auto_correlation.find(1)->second, -0.227352707759245)
-  TEST_REAL_SIMILAR(auto_correlation.find(-1)->second, -0.227352707759245)
-  TEST_REAL_SIMILAR(auto_correlation.find(2)->second, -0.07501116)
-  TEST_REAL_SIMILAR(auto_correlation.find(-2)->second, -0.07501116)
+
+  TEST_EQUAL(auto_correlation.data[11].first, 0)
+  TEST_EQUAL(auto_correlation.data[12].first, 1)
+  TEST_EQUAL(auto_correlation.data[10].first, -1)
+  TEST_EQUAL(auto_correlation.data[13].first, 2)
+  TEST_EQUAL(auto_correlation.data[ 9].first, -2)
+
+  TEST_REAL_SIMILAR(auto_correlation.data[11].second , 1)                   // find(0)->second, 
+  TEST_REAL_SIMILAR(auto_correlation.data[12].second , -0.227352707759245)  // find(1)->second, 
+  TEST_REAL_SIMILAR(auto_correlation.data[10].second ,  -0.227352707759245) // find(-1)->second,
+  TEST_REAL_SIMILAR(auto_correlation.data[13].second , -0.07501116)         // find(2)->second, 
+  TEST_REAL_SIMILAR(auto_correlation.data[ 9].second ,  -0.07501116)        // find(-2)->second,
 
   // test cross-correlation = xcorrmatrix_0_1
-  const std::map<int, double> cross_correlation =
+  const OpenSwath::Scoring::XCorrArrayType cross_correlation =
       mrmscore.getXCorrMatrix()[0][1];
-  TEST_REAL_SIMILAR(cross_correlation.find(2)->second, -0.31165141)
-  TEST_REAL_SIMILAR(cross_correlation.find(1)->second, -0.35036919)
-  TEST_REAL_SIMILAR(cross_correlation.find(0)->second, 0.03129565)
-  TEST_REAL_SIMILAR(cross_correlation.find(-1)->second, 0.30204049)
-  TEST_REAL_SIMILAR(cross_correlation.find(-2)->second, 0.13012441)
-  TEST_REAL_SIMILAR(cross_correlation.find(-3)->second, 0.39698322)
-  TEST_REAL_SIMILAR(cross_correlation.find(-4)->second, 0.16608774)
+
+  TEST_REAL_SIMILAR(cross_correlation.data[13].second, -0.31165141)   // find(2)->second, 
+  TEST_REAL_SIMILAR(cross_correlation.data[12].second, -0.35036919)   // find(1)->second, 
+  TEST_REAL_SIMILAR(cross_correlation.data[11].second, 0.03129565)    // find(0)->second, 
+  TEST_REAL_SIMILAR(cross_correlation.data[10].second,  0.30204049)   // find(-1)->second,
+  TEST_REAL_SIMILAR(cross_correlation.data[ 9].second,  0.13012441)   // find(-2)->second,
+  TEST_REAL_SIMILAR(cross_correlation.data[ 8].second,  0.39698322)   // find(-3)->second,
+  TEST_REAL_SIMILAR(cross_correlation.data[ 7].second,  0.16608774)   // find(-4)->second,
 }
 END_SECTION
 
@@ -230,6 +238,43 @@ BOOST_AUTO_TEST_CASE(initializeMS1XCorr)
 }
 END_SECTION
 
+BOOST_AUTO_TEST_CASE(initializeXCorrIdMatrix)
+{
+  MockMRMFeature * imrmfeature = new MockMRMFeature();
+  MRMScoring mrmscore;
+
+  std::vector<std::string> native_ids;
+  fill_mock_objects(imrmfeature, native_ids);
+
+  //initialize the XCorr Matrix
+  mrmscore.initializeXCorrIdMatrix(imrmfeature, native_ids, native_ids);
+
+  TEST_EQUAL(mrmscore.getXCorrMatrix().size(), 2)
+  TEST_EQUAL(mrmscore.getXCorrMatrix()[0].size(), 2)
+  TEST_EQUAL(mrmscore.getXCorrMatrix()[0][0].data.size(), 23)
+
+  // test auto-correlation = xcorrmatrix_0_0
+  const OpenSwath::Scoring::XCorrArrayType auto_correlation =
+      mrmscore.getXCorrMatrix()[0][0];
+  TEST_REAL_SIMILAR(auto_correlation.data[11].second, 1)                     // find(0)->second,
+  TEST_REAL_SIMILAR(auto_correlation.data[12].second, -0.227352707759245)    // find(1)->second, 
+  TEST_REAL_SIMILAR(auto_correlation.data[10].second,  -0.227352707759245)   // find(-1)->second,
+  TEST_REAL_SIMILAR(auto_correlation.data[13].second, -0.07501116)           // find(2)->second, 
+  TEST_REAL_SIMILAR(auto_correlation.data[ 9].second,  -0.07501116)          // find(-2)->second,
+
+  // // test cross-correlation = xcorrmatrix_0_1
+  const OpenSwath::Scoring::XCorrArrayType cross_correlation =
+      mrmscore.getXCorrMatrix()[0][1];
+  TEST_REAL_SIMILAR(cross_correlation.data[13].second, -0.31165141)   // find(2)->second, 
+  TEST_REAL_SIMILAR(cross_correlation.data[12].second, -0.35036919)   // find(1)->second, 
+  TEST_REAL_SIMILAR(cross_correlation.data[11].second, 0.03129565)    // find(0)->second, 
+  TEST_REAL_SIMILAR(cross_correlation.data[10].second,  0.30204049)   // find(-1)->second,
+  TEST_REAL_SIMILAR(cross_correlation.data[ 9].second,  0.13012441)   // find(-2)->second,
+  TEST_REAL_SIMILAR(cross_correlation.data[ 8].second,  0.39698322)   // find(-3)->second,
+  TEST_REAL_SIMILAR(cross_correlation.data[ 7].second,  0.16608774)   // find(-4)->second,
+}
+END_SECTION
+
 BOOST_AUTO_TEST_CASE(test_calcXcorrCoelutionScore)
 {
   MockMRMFeature * imrmfeature = new MockMRMFeature();
@@ -238,6 +283,17 @@ BOOST_AUTO_TEST_CASE(test_calcXcorrCoelutionScore)
   fill_mock_objects(imrmfeature, native_ids);
   mrmscore.initializeXCorrMatrix(imrmfeature, native_ids);
   TEST_REAL_SIMILAR(mrmscore.calcXcorrCoelutionScore(), 1 + std::sqrt(3.0)) // mean + std deviation
+}
+END_SECTION
+
+BOOST_AUTO_TEST_CASE(test_calcIndXcorrIdCoelutionScore)
+{
+  MockMRMFeature * imrmfeature = new MockMRMFeature();
+  MRMScoring mrmscore;
+  std::vector<std::string> native_ids;
+  fill_mock_objects(imrmfeature, native_ids);
+  mrmscore.initializeXCorrIdMatrix(imrmfeature, native_ids, native_ids);
+  TEST_EQUAL(mrmscore.calcIndXcorrIdCoelutionScore(), "1.5;1.5")
 }
 END_SECTION
 
@@ -265,6 +321,17 @@ BOOST_AUTO_TEST_CASE(test_calcXcorrShape_score)
   fill_mock_objects(imrmfeature, native_ids);
   mrmscore.initializeXCorrMatrix(imrmfeature, native_ids);
   TEST_REAL_SIMILAR(mrmscore.calcXcorrShape_score(), (1.0 + 0.3969832 + 1.0)/3.0) // mean + std deviation
+}
+END_SECTION
+
+BOOST_AUTO_TEST_CASE(test_calcIndXcorrIdShape_score)
+{
+  MockMRMFeature * imrmfeature = new MockMRMFeature();
+  MRMScoring mrmscore;
+  std::vector<std::string> native_ids;
+  fill_mock_objects(imrmfeature, native_ids);
+  mrmscore.initializeXCorrIdMatrix(imrmfeature, native_ids, native_ids);
+  TEST_EQUAL(mrmscore.calcIndXcorrIdShape_score(), "0.698492;0.698492")
 }
 END_SECTION
 
@@ -404,7 +471,7 @@ END_SECTION
 BOOST_AUTO_TEST_CASE(test_RT_score)
 {
   MRMScoring mrmscore;
-  OpenSwath::LightPeptide pep;
+  OpenSwath::LightCompound pep;
   pep.rt = 100;
   TEST_REAL_SIMILAR(mrmscore.calcRTScore(pep, 100), 0)
   TEST_REAL_SIMILAR(mrmscore.calcRTScore(pep, 0), 100)
@@ -433,6 +500,7 @@ BOOST_AUTO_TEST_CASE(test_SN_score)
   imrmfeature.m_features = features;
 
   TEST_REAL_SIMILAR(mrmscore.calcSNScore(&imrmfeature, sn_estimators), 1000.0)
+  TEST_EQUAL(mrmscore.calcIndSNScore(&imrmfeature, sn_estimators), "6.21461;7.31322")
 }
 END_SECTION
 

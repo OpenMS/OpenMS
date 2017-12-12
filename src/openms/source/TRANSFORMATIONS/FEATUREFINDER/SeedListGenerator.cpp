@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -42,16 +42,16 @@ namespace OpenMS
   {
   }
 
-  void SeedListGenerator::generateSeedList(const MSExperiment<>& experiment,
+  void SeedListGenerator::generateSeedList(const PeakMap& experiment,
                                            SeedList& seeds)
   {
     seeds.clear();
-    for (MSExperiment<>::ConstIterator exp_it = experiment.begin();
+    for (PeakMap::ConstIterator exp_it = experiment.begin();
          exp_it != experiment.end(); ++exp_it)
     {
       if (exp_it->getMSLevel() == 2) // MS2 spectrum -> look for precursor
       {
-        MSExperiment<>::ConstIterator prec_it =
+        PeakMap::ConstIterator prec_it =
           experiment.getPrecursorSpectrum(exp_it);
         const vector<Precursor>& precursors = exp_it->getPrecursors();
         DPosition<2> point(prec_it->getRT(), precursors[0].getMZ());

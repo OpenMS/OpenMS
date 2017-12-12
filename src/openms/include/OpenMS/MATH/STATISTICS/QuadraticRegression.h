@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,8 +28,8 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Christian Ehrlich $
-// $Authors: Christian Ehrlich $
+// $Maintainer: Timo Sachsenberg $
+// $Authors: Christian Ehrlich, Chris Bielow $
 // --------------------------------------------------------------------------
 
 #ifndef OPENMS_MATH_STATISTICS_QUADRATICREGRESSION_H
@@ -49,6 +49,15 @@ namespace OpenMS
 {
   namespace Math
   {
+    /*
+      @brief Estimates model parameters for a quadratic equation
+
+      The quadratic equation is of the form 
+       y = a + b*x + c*x^2
+
+      Weighted inputs are supported. 
+
+    */
     class OPENMS_DLLAPI QuadraticRegression
     {
 public:
@@ -56,20 +65,21 @@ public:
 
       /** compute the quadratic regression over 2D points */
       template <typename Iterator>
-      void computeRegression(Iterator x_begin, Iterator x_end,
-                             Iterator y_begin);
+      void computeRegression(Iterator x_begin, Iterator x_end, Iterator y_begin);
 
       /** compute the weighted quadratic regression over 2D points */
       template <typename Iterator>
-      void computeRegressionWeighted(
-        Iterator x_begin, Iterator x_end, Iterator y_begin, Iterator w_begin);
+      void computeRegressionWeighted(Iterator x_begin, Iterator x_end, Iterator y_begin, Iterator w_begin);
 
       /** evaluate the quadratic function */
       double eval(double x) const;
 
-      double getA() const;
-      double getB() const;
-      double getC() const;
+      /** evaluate using external coefficients */
+      static double eval(double A, double B, double C, double x);
+
+      double getA() const; /// A = the intercept
+      double getB() const; /// B*X
+      double getC() const; /// C*X^2
       double getChiSquared() const;
 
 protected:
@@ -83,26 +93,23 @@ protected:
     {
       //x, y must be of same size
       template <typename Iterator>
-      double computeChiSquareWeighted(
-        Iterator x_begin, Iterator x_end, Iterator y_begin, Iterator w_begin,
-        double a, double b, double c)
+      double computeChiSquareWeighted_(
+        Iterator x_begin, const Iterator& x_end, Iterator y_begin, Iterator w_begin,
+        const double a, const double b, const double c)
       {
-        double chi_squared = 0.0;
-        Iterator xIter = x_begin;
-        Iterator yIter = y_begin;
-        Iterator wIter = w_begin;
-        for (; xIter != x_end; ++xIter, ++yIter, ++wIter)
+        double chi_squared(0.0);
+        for (; x_begin != x_end; ++x_begin, ++y_begin, ++w_begin)
         {
-          double x = *xIter;
-          double y = *yIter;
-          double weigth = *wIter;
-          chi_squared += weigth * std::pow(y - a - b * x - c * x * x, 2);
+          const double& x = *x_begin;
+          const double& y = *y_begin;
+          const double& weight = *w_begin;
+          chi_squared += weight * std::pow(y - a - b * x - c * x * x, 2);
         }
 
         return chi_squared;
       }
 
-    }
+    } // anonymous namespace
 
     template <typename Iterator>
     void QuadraticRegression::computeRegression(Iterator x_begin, Iterator x_end, Iterator y_begin)
@@ -165,11 +172,11 @@ protected:
         a_ = X[0];
         b_ = X[1];
         c_ = X[2];
-        chi_squared_ = computeChiSquareWeighted(x_begin, x_end, y_begin, w_begin, a_, b_, c_);
+        chi_squared_ = computeChiSquareWeighted_(x_begin, x_end, y_begin, w_begin, a_, b_, c_);
       }
       else
       {
-        throw Exception::UnableToFit(__FILE__, __LINE__, __PRETTY_FUNCTION__, "UnableToFit-QuadraticRegression", "Could not fit a linear model to the data");
+        throw Exception::UnableToFit(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "UnableToFit-QuadraticRegression", "Could not fit a linear model to the data");
       }
     }
 

@@ -15,6 +15,7 @@
  <mimetype name="PEPXML" binary="false" description="TPP pepXML file" ext="pepXML"/>
  <mimetype name="PROTXML" binary="false" description="TPP protXML file" ext="protXML"/>
  <mimetype name="MZIDENTML" binary="false" description="mzIdentML (HUPO PSI AnalysisXML followup format)" ext="mzid"/>
+ <mimetype name="MZTAB" binary="false" description="mzTab (HUPO PSI data exchange format)" ext="mzTab"/>
  <mimetype name="GELML" binary="false" description="GelML (HUPO PSI format)" ext="GelML"/>
  <mimetype name="TRAML" binary="false" description="TraML (HUPO PSI format) for transitions" ext="TraML"/>
  <mimetype name="MSP" binary="false" description="NIST spectra library file format" ext="msp"/>
@@ -33,4 +34,5 @@
  <mimetype name="EXE" binary="true" description="Executable files" ext="exe"/>
  <mimetype name="MZQUANTML" binary="false" description="mzQuantML" ext="mzq"/>
  <mimetype name="QCML" binary="false" description="qcML (will undergo standardisation maybe) (.qcml)" ext="qcml"/>
+ <mimetype name="PARAMXML" binary="false" description="paramXML (subset of the general %OpenMS ini parameter files)" ext="paramXML"/>
 </mimetypes>

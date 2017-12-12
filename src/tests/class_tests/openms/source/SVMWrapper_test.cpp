@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // 
 // --------------------------------------------------------------------------
-// $Maintainer: Sandro Andreotti $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Nico Pfeifer, Chris Bielow $
 // --------------------------------------------------------------------------
 
@@ -1041,8 +1041,9 @@ START_SECTION((void getSVCProbabilities(struct svm_problem *problem, std::vector
 							|| (predicted_labels[i] > 0 && probabilities[i] >= 0.5), true)
 	}
 	labels.clear();
-	labels.resize(4, -1);
-	labels.resize(8, 1);
+	// Start with -1 as "first" label
+	labels.resize(count / 2, -1);
+	labels.resize(count, 1);
 	problem = encoder.encodeLibSVMProblem(encoded_vectors, labels);
 	svm.train(problem);
 	svm.predict(problem, predicted_labels);
@@ -1051,6 +1052,8 @@ START_SECTION((void getSVCProbabilities(struct svm_problem *problem, std::vector
 	TEST_EQUAL(predicted_labels.size() == probabilities.size(), true)
 	for (Size i = 0; i < predicted_labels.size(); ++i)
 	{
+		// At probability 0.5, LibSVM will assign the first encountered label in the training data
+		// in this case "-1"
 		TEST_EQUAL((predicted_labels[i] < 0 && probabilities[i] <= 0.5)
 							|| (predicted_labels[i] > 0 && probabilities[i] > 0.5), true)
 	}

@@ -10,7 +10,10 @@ LinearInterpolation.h
 MathFunctions.h
 NonNegativeLeastSquaresSolver.h
 MSNumpress.h
-Spline2d.h
+RANSAC.h
+RANSACModel.h
+RANSACModelLinear.h
+RANSACModelQuadratic.h
 )
 
 ### add path to the filenames

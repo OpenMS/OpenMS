@@ -2,7 +2,7 @@
 #                   OpenMS -- Open-Source Mass Spectrometry
 # --------------------------------------------------------------------------
 # Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-# ETH Zurich, and Freie Universitaet Berlin 2002-2012.
+# ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 #
 # This software is released under a three-clause BSD license:
 #  * Redistributions of source code must retain the above copyright
@@ -39,15 +39,16 @@
 #------------------------------------------------------------------------------
 
 #------------------------------------------------------------------------------
-# emit warning if CMAKE_FIND_ROOT_PATH is used instead of CMAKE_PREFIX_PATH
-if(NOT "${CMAKE_FIND_ROOT_PATH}" STREQUAL "" AND "${CMAKE_PREFIX_PATH}" STREQUAL "")
-  set(CMAKE_PREFIX_PATH "${CMAKE_FIND_ROOT_PATH}")
-  message(STATUS "Please use CMAKE_PREFIX_PATH instead of CMAKE_FIND_ROOT_PATH ")
+# Specify the path to the contrib-build. Will be added to CMAKE_PREFIX_PATH
+# for searching and as first entry in the includes/libraries to avoid
+# mismatches with installed system libraries
+if(NOT OPENMS_CONTRIB_LIBS)
+  message(WARNING "Unless you are certain that you have all contributing libraries in system paths, please specify an explicit path to the built contrib libraries via
+-DOPENMS_CONTRIB_LIBS")
+else()
+  list(INSERT CMAKE_PREFIX_PATH 0 ${OPENMS_CONTRIB_LIBS})
+  list(REMOVE_DUPLICATES CMAKE_PREFIX_PATH)
 endif()
-
-#------------------------------------------------------------------------------
-# add contrib location of source package <source>/contrib
-list(APPEND CMAKE_PREFIX_PATH ${OPENMS_HOST_DIRECTORY}/contrib/)
 
 #------------------------------------------------------------------------------
 # Ensure Qt includes it's libs as SYSTEM

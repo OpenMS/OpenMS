@@ -1,0 +1,187 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="http://open-ms.sourceforge.net/XSL/IdXML.xsl" ?>
+<IdXML version="1.5" xsi:noNamespaceSchemaLocation="https://www.openms.de/xml-schema/IdXML_1_5.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<SearchParameters id="SP_0" db="rnpxl_cas_1.fasta" db_version="" taxonomy="" mass_type="monoisotopic" charges="2:5" enzyme="unknown_enzyme" missed_cleavages="1" precursor_peak_tolerance="20" peak_mass_tolerance="20" >
+	</SearchParameters>
+	<IdentificationRun date="2015-09-07T16:15:38" search_engine="RNPxlSearch" search_engine_version="2.0.0" search_parameters_ref="SP_0" >
+		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0" >
+			<ProteinHit id="PH_0" accession="Cse1" score="0" sequence="" >
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</ProteinHit>
+			<ProteinHit id="PH_1" accession="Cse2" score="0" sequence="" >
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</ProteinHit>
+			<ProteinHit id="PH_2" accession="Cas7" score="0" sequence="" >
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</ProteinHit>
+			<ProteinHit id="PH_3" accession="Cas5" score="0" sequence="" >
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</ProteinHit>
+			<ProteinHit id="PH_4" accession="Cas6e" score="0" sequence="" >
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</ProteinHit>
+		</ProteinIdentification>
+		<PeptideIdentification score_type="hyperscore" higher_score_better="true" significance_threshold="0" MZ="712.782836914063" RT="17.7875061035156" >
+			<PeptideHit score="2.33490416097798" sequence="AEADNLDDKK" charge="2" aa_before="K" aa_after="L" protein_refs="PH_2" >
+				<UserParam type="string" name="RNPxl:RNA" value="U-H2O1"/>
+				<UserParam type="float" name="RNPxl:RNA_MASS_z0" value="306.0253048409"/>
+				<UserParam type="float" name="RNPxl:best_localization_score" value="1.87158872621755"/>
+				<UserParam type="string" name="RNPxl:best_localization" value="AEADNLDDkK"/>
+				<UserParam type="float" name="RNPxl:peptide_mass_z0" value="1117.5251393925"/>
+				<UserParam type="float" name="RNPxl:xl_mass_z0" value="1423.5504442334"/>
+				<UserParam type="float" name="A_136.06231" value="4.78868037462234"/>
+				<UserParam type="float" name="A_330.06033" value="0"/>
+				<UserParam type="float" name="C_112.05108" value="2.99854949116707"/>
+				<UserParam type="float" name="C_306.0491" value="0"/>
+				<UserParam type="float" name="G_152.05723" value="0"/>
+				<UserParam type="float" name="G_346.05525" value="0"/>
+				<UserParam type="float" name="U_113.03509" value="0"/>
+				<UserParam type="float" name="U_307.03311" value="0"/>
+				<UserParam type="float" name="RNPxl:Da difference" value="-0.000338330592057901"/>
+				<UserParam type="float" name="RNPxl:ppm difference" value="-0.474661755486804"/>
+				<UserParam type="float" name="RNPxl:z1 mass" value="1424.55772070017"/>
+				<UserParam type="float" name="RNPxl:z2 mass" value="712.782498583471"/>
+				<UserParam type="float" name="RNPxl:z3 mass" value="475.524091211238"/>
+				<UserParam type="float" name="RNPxl:z4 mass" value="356.894887525121"/>
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="string" name="protein_references" value="unique"/>
+			</PeptideHit>
+			<UserParam type="int" name="scan_index" value="0"/>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="hyperscore" higher_score_better="true" significance_threshold="0" MZ="590.766052246094" RT="18.3059501647949" >
+			<PeptideHit score="2.00579096477783" sequence="LDSKGNIK" charge="2" aa_before="R" aa_after="R" protein_refs="PH_4" >
+				<UserParam type="string" name="RNPxl:RNA" value="U-H2O1"/>
+				<UserParam type="float" name="RNPxl:RNA_MASS_z0" value="306.0253048409"/>
+				<UserParam type="float" name="RNPxl:best_localization_score" value="2.17606346362403"/>
+				<UserParam type="string" name="RNPxl:best_localization" value="LDSkGNIK"/>
+				<UserParam type="float" name="RNPxl:peptide_mass_z0" value="873.4919861373"/>
+				<UserParam type="float" name="RNPxl:xl_mass_z0" value="1179.5172909782"/>
+				<UserParam type="float" name="A_136.06231" value="23.8672107458115"/>
+				<UserParam type="float" name="A_330.06033" value="0"/>
+				<UserParam type="float" name="C_112.05108" value="8.43987464904785"/>
+				<UserParam type="float" name="C_306.0491" value="0"/>
+				<UserParam type="float" name="G_152.05723" value="0"/>
+				<UserParam type="float" name="G_346.05525" value="0"/>
+				<UserParam type="float" name="U_113.03509" value="0"/>
+				<UserParam type="float" name="U_307.03311" value="0"/>
+				<UserParam type="float" name="RNPxl:Da difference" value="-0.000130290222955409"/>
+				<UserParam type="float" name="RNPxl:ppm difference" value="-0.22054458138691"/>
+				<UserParam type="float" name="RNPxl:z1 mass" value="1180.52456744497"/>
+				<UserParam type="float" name="RNPxl:z2 mass" value="590.765921955871"/>
+				<UserParam type="float" name="RNPxl:z3 mass" value="394.179706792838"/>
+				<UserParam type="float" name="RNPxl:z4 mass" value="295.886599211321"/>
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="string" name="protein_references" value="unique"/>
+			</PeptideHit>
+			<UserParam type="int" name="scan_index" value="1"/>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="hyperscore" higher_score_better="true" significance_threshold="0" MZ="678.284423828125" RT="26.2365341186523" >
+			<PeptideHit score="3.01672363684849" sequence="DYHTVLGAR" charge="2" aa_before="R" aa_after="E" protein_refs="PH_3" >
+				<UserParam type="string" name="RNPxl:RNA" value="U"/>
+				<UserParam type="float" name="RNPxl:RNA_MASS_z0" value="324.0358699047"/>
+				<UserParam type="float" name="RNPxl:best_localization_score" value="0.88477588747628"/>
+				<UserParam type="string" name="RNPxl:best_localization" value="DyHTVLGAR"/>
+				<UserParam type="float" name="RNPxl:peptide_mass_z0" value="1030.519598233"/>
+				<UserParam type="float" name="RNPxl:xl_mass_z0" value="1354.5554681377"/>
+				<UserParam type="float" name="A_136.06231" value="69.618159532547"/>
+				<UserParam type="float" name="A_330.06033" value="15.7811895012856"/>
+				<UserParam type="float" name="C_112.05108" value="11.5055873990059"/>
+				<UserParam type="float" name="C_306.0491" value="0"/>
+				<UserParam type="float" name="G_152.05723" value="3.87108437716961"/>
+				<UserParam type="float" name="G_346.05525" value="0"/>
+				<UserParam type="float" name="U_113.03509" value="0"/>
+				<UserParam type="float" name="U_307.03311" value="0"/>
+				<UserParam type="float" name="RNPxl:Da difference" value="0.000586707496154304"/>
+				<UserParam type="float" name="RNPxl:ppm difference" value="0.864986675278286"/>
+				<UserParam type="float" name="RNPxl:z1 mass" value="1355.56274460447"/>
+				<UserParam type="float" name="RNPxl:z2 mass" value="678.285010535621"/>
+				<UserParam type="float" name="RNPxl:z3 mass" value="452.525765846004"/>
+				<UserParam type="float" name="RNPxl:z4 mass" value="339.646143501196"/>
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="string" name="protein_references" value="unique"/>
+			</PeptideHit>
+			<UserParam type="int" name="scan_index" value="3"/>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="hyperscore" higher_score_better="true" significance_threshold="0" MZ="791.859008789063" RT="26.4131374359131" >
+			<PeptideHit score="2.10516378468165" sequence="KSEQTTGISLGR" charge="2" aa_before="K" aa_after="A" protein_refs="PH_1" >
+				<UserParam type="string" name="RNPxl:RNA" value="U-H2O1"/>
+				<UserParam type="float" name="RNPxl:RNA_MASS_z0" value="306.0253048409"/>
+				<UserParam type="float" name="RNPxl:best_localization_score" value="0.149626377165656"/>
+				<UserParam type="string" name="RNPxl:best_localization" value="KsEQTTGISLGR"/>
+				<UserParam type="float" name="RNPxl:peptide_mass_z0" value="1275.6782859667"/>
+				<UserParam type="float" name="RNPxl:xl_mass_z0" value="1581.7035908076"/>
+				<UserParam type="float" name="A_136.06231" value="100"/>
+				<UserParam type="float" name="A_330.06033" value="18.3581411838531"/>
+				<UserParam type="float" name="C_112.05108" value="1.60713978111744"/>
+				<UserParam type="float" name="C_306.0491" value="0"/>
+				<UserParam type="float" name="G_152.05723" value="0"/>
+				<UserParam type="float" name="G_346.05525" value="0"/>
+				<UserParam type="float" name="U_113.03509" value="0"/>
+				<UserParam type="float" name="U_307.03311" value="0"/>
+				<UserParam type="float" name="RNPxl:Da difference" value="6.30815079603053e-05"/>
+				<UserParam type="float" name="RNPxl:ppm difference" value="0.079662543754523"/>
+				<UserParam type="float" name="RNPxl:z1 mass" value="1582.71086727437"/>
+				<UserParam type="float" name="RNPxl:z2 mass" value="791.859071870571"/>
+				<UserParam type="float" name="RNPxl:z3 mass" value="528.241806735971"/>
+				<UserParam type="float" name="RNPxl:z4 mass" value="396.433174168671"/>
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="string" name="protein_references" value="unique"/>
+			</PeptideHit>
+			<UserParam type="int" name="scan_index" value="4"/>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="hyperscore" higher_score_better="true" significance_threshold="0" MZ="828.696105957031" RT="28.4869823455811" >
+			<PeptideHit score="3.12100769461214" sequence="VEDVHPISERPQYFSGDGK" charge="3" aa_before="R" aa_after="S" protein_refs="PH_4" >
+				<UserParam type="string" name="RNPxl:RNA" value="U"/>
+				<UserParam type="float" name="RNPxl:RNA_MASS_z0" value="324.0358699047"/>
+				<UserParam type="float" name="RNPxl:best_localization_score" value="2.01849083954261"/>
+				<UserParam type="string" name="RNPxl:best_localization" value="VEDVHPISERPQyFSGDGK"/>
+				<UserParam type="float" name="RNPxl:peptide_mass_z0" value="2159.0283585298"/>
+				<UserParam type="float" name="RNPxl:xl_mass_z0" value="2483.0642284345"/>
+				<UserParam type="float" name="A_136.06231" value="51.1079072952271"/>
+				<UserParam type="float" name="A_330.06033" value="11.7230296134949"/>
+				<UserParam type="float" name="C_112.05108" value="1.86482723802328"/>
+				<UserParam type="float" name="C_306.0491" value="0"/>
+				<UserParam type="float" name="G_152.05723" value="0"/>
+				<UserParam type="float" name="G_346.05525" value="0"/>
+				<UserParam type="float" name="U_113.03509" value="0"/>
+				<UserParam type="float" name="U_307.03311" value="0"/>
+				<UserParam type="float" name="RNPxl:Da difference" value="-0.000753345426460328"/>
+				<UserParam type="float" name="RNPxl:ppm difference" value="-0.909074033160903"/>
+				<UserParam type="float" name="RNPxl:z1 mass" value="2484.07150490127"/>
+				<UserParam type="float" name="RNPxl:z2 mass" value="1242.53939068402"/>
+				<UserParam type="float" name="RNPxl:z3 mass" value="828.695352611605"/>
+				<UserParam type="float" name="RNPxl:z4 mass" value="621.773333575396"/>
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="string" name="protein_references" value="unique"/>
+			</PeptideHit>
+			<UserParam type="int" name="scan_index" value="5"/>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="hyperscore" higher_score_better="true" significance_threshold="0" MZ="656.794921875" RT="28.67844581604" >
+			<PeptideHit score="1.75247453675492" sequence="FDQKIIDK" charge="2" aa_before="R" aa_after="T" protein_refs="PH_2" >
+				<UserParam type="string" name="RNPxl:RNA" value="U-H2O1"/>
+				<UserParam type="float" name="RNPxl:RNA_MASS_z0" value="306.0253048409"/>
+				<UserParam type="float" name="RNPxl:best_localization_score" value="0.680211805073278"/>
+				<UserParam type="string" name="RNPxl:best_localization" value="FDQkIIDK"/>
+				<UserParam type="float" name="RNPxl:peptide_mass_z0" value="1005.5495013925"/>
+				<UserParam type="float" name="RNPxl:xl_mass_z0" value="1311.5748062334"/>
+				<UserParam type="float" name="A_136.06231" value="100"/>
+				<UserParam type="float" name="A_330.06033" value="19.7569414973259"/>
+				<UserParam type="float" name="C_112.05108" value="27.786260843277"/>
+				<UserParam type="float" name="C_306.0491" value="1.10274739563465"/>
+				<UserParam type="float" name="G_152.05723" value="8.62349197268486"/>
+				<UserParam type="float" name="G_346.05525" value="0"/>
+				<UserParam type="float" name="U_113.03509" value="0"/>
+				<UserParam type="float" name="U_307.03311" value="0"/>
+				<UserParam type="float" name="RNPxl:Da difference" value="-0.000242291528934402"/>
+				<UserParam type="float" name="RNPxl:ppm difference" value="-0.368899956814601"/>
+				<UserParam type="float" name="RNPxl:z1 mass" value="1312.58208270017"/>
+				<UserParam type="float" name="RNPxl:z2 mass" value="656.794679583471"/>
+				<UserParam type="float" name="RNPxl:z3 mass" value="438.198878544571"/>
+				<UserParam type="float" name="RNPxl:z4 mass" value="328.900978025121"/>
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="string" name="protein_references" value="unique"/>
+			</PeptideHit>
+			<UserParam type="int" name="scan_index" value="6"/>
+		</PeptideIdentification>
+	</IdentificationRun>
+</IdXML>

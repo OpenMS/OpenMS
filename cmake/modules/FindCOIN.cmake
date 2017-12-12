@@ -1,16 +1,16 @@
 # - Try to find COIN
 # Once done this will define
 #
-#  COIN_FOUND - system has XercesC
-#  COIN_INCLUDE_DIRS - the XercesC include directory
-#  COIN_LIBRARIES - Link these to use XercesC
+#  COIN_FOUND - system has Coin
+#  COIN_INCLUDE_DIRS - the Coin include directory
+#  COIN_LIBRARIES - Link these to use Coin
 #
 # Inspired by LEMON's FindCOIN
 # https://lemon.cs.elte.hu/trac/lemon/browser/lemon/cmake/FindCOIN.cmake
 #
 #=============================================================================
 # Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-# ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+# ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 #
 # This software is released under a three-clause BSD license:
 #  * Redistributions of source code must retain the above copyright

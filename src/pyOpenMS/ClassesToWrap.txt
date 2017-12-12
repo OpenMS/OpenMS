@@ -51,7 +51,6 @@ x    IDRTCalibration.cpp # 100 lines
 x    InclusionExclusionListCreator.cpp # TODO should we wrap this? 347 lines
 x    InspectAdapter.cpp # 750 lines
 ok   InternalCalibration.cpp
-ok   ITRAQAnalyzer.cpp
 ok   MapAlignerIdentification.cpp
 ok   MapAlignerPoseClustering.cpp
 n    MapAlignerSpectrum.cpp
@@ -78,10 +77,6 @@ ok   PeakPickerWavelet.cpp
 x    PepNovoAdapter.cpp   # 300 lines
 x    PeptideIndexer.cpp   # 500 lines
 xx   PhosphoScoring.cpp # AScore.pxd TODO , RichPeakSpectrum doesnt work
-n    PILISIdentification.cpp
-n    PILISModelCV.cpp
-n    PILISModelTrainer.cpp
-n    PILISSpectraGenerator.cpp
 n    PrecursorIonSelector.cpp
 x    PrecursorMassCorrector.cpp #Isotope Wavelet is wrapped, 200 lines
 x    ProteinInference.cpp    # 200 lines
@@ -106,7 +101,6 @@ ok   SpectraFilterThresholdMower.cpp
 ok   SpectraFilterWindowMower.cpp
 ok   SpectraMerger.cpp
 x    TextExporter.cpp   # 1000 lines
-ok   TMTAnalyzer.cpp # in theory ok, Itraq Extractor and Quantifier are wrapped
 ok   TOFCalibration.cpp
 x    XTandemAdapter.cpp  # 300 lines
 
@@ -115,8 +109,6 @@ UTILS
 
 so far, 3 are wrapped
 
-ok   ConvertTraMLToTSV.cpp
-ok   ConvertTSVToTraML.cpp
 x    CVInspector.cpp   # 400 lines
 x    DecoyDatabase.cpp # 200 lines
 x    DeMeanderize.cpp  # 100 lines
@@ -134,7 +126,6 @@ n    IDSplitter.cpp
 n    ImageCreator.cpp
 n    INIUpdater.cpp
 n    LabeledEval.cpp
-n    MapAlignmentEvaluation.cpp
 n    MassCalculator.cpp
 n    MRMPairFinder.cpp
 ?    MSSimulator.cpp  # 250 lines =
@@ -204,7 +195,6 @@ Quantitation
 x   AdditiveSeries - Computes an additive series to quantify a peptide in a set of samples. # all in TOPP Tool
 ok  Decharger - Decharges and merges different feature charge variants of the same chemical entity.
 ok  FeatureFinder - Detects two-dimensional features in LC-MS data.
-ok  ITRAQAnalyzer - Extracts and normalizes iTRAQ information from an MS experiment.
 ok  ProteinQuantifier - Computes protein abundances from annotated feature/consensus maps # done with PeptideAndProteinQuant
 x   SeedListGenerator - Generates seed lists for feature detection. # needs more work
 

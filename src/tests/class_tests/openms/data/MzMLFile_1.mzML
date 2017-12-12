@@ -234,6 +234,7 @@
             <cvParam cvRef="MS" accession="MS:1000015" name="scan rate" value="17.17" unitAccession="MS:1000807" unitName="Th/s" unitCvRef="MS"/>
             <cvParam cvRef="MS" accession="MS:1000800" name="mass resolving power" value="4.299"/>
             <cvParam cvRef="MS" accession="MS:1000011" name="mass resolution" value="4.3"/>
+            <cvParam cvRef="MS" accession="MS:1002476" name="ion mobility drift time" value="7.1" unitCvRef="UO" unitAccession="UO:0000028" unitName="millisecond"/>
           	<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="5.1" unitAccession="UO:0000010" unitName="second" unitCvRef="UO"/>
         		<cvParam cvRef="MS" accession="MS:1000826" name="elution time" value="55.11" unitAccession="UO:0000010" unitName="second" unitCvRef="UO"/>
         		<cvParam cvRef="MS" accession="MS:1000512" name="filter string" value="+ c NSI Full ms [ 400.00-1800.00]"/>
@@ -322,6 +323,7 @@
                 <cvParam cvRef="MS" accession="MS:1000633" name="possible charge state" value="1"/>
                 <cvParam cvRef="MS" accession="MS:1000633" name="possible charge state" value="3"/>
                 <cvParam cvRef="MS" accession="MS:1000633" name="possible charge state" value="4"/>
+                <cvParam cvRef="MS" accession="MS:1002476" name="ion mobility drift time" value="8.1" unitCvRef="UO" unitAccession="UO:0000028" unitName="millisecond"/>
       					<userParam name="siname" value="selectedion1"/>
               </selectedIon>
             </selectedIonList>

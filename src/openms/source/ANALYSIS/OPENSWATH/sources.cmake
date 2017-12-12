@@ -3,22 +3,34 @@ set(directory source/ANALYSIS/OPENSWATH)
 
 ### list all header files of the directory here
 set(sources_list
+MRMIonSeries.cpp
+MRMAssay.cpp
 MRMDecoy.cpp
 MRMRTNormalizer.cpp
 TransitionTSVReader.cpp
+TransitionPQPReader.cpp
+SwathMapMassCorrection.cpp
 OpenSwathHelper.cpp
 OpenSwathScoring.cpp
+OpenSwathTSVWriter.cpp
+OpenSwathOSWWriter.cpp
+OpenSwathWorkflow.cpp
 ChromatogramExtractor.cpp
 ChromatogramExtractorAlgorithm.cpp
 SpectrumAddition.cpp
+TargetedSpectraExtractor.cpp
 MRMTransitionGroupPicker.cpp
 DIAHelper.cpp
 DIAScoring.cpp
+SONARScoring.cpp
 DIAPrescoring.cpp
 MRMFeatureFinderScoring.cpp
+MasstraceCorrelator.cpp
 ConfidenceScoring.cpp
 PeakPickerMRM.cpp
 SwathWindowLoader.cpp
+MRMFeatureFilter.cpp
+MRMFeatureQC.cpp
 )
 
 ### add path to the filenames

@@ -8,6 +8,7 @@ from IMSAlphabetParser cimport *
 #         #  IMSAlphabetParser
 #         IMSAlphabetTextParser() nogil except + 
 #         IMSAlphabetTextParser(IMSAlphabetTextParser) nogil except + #wrap-ignore
+
 #         # ContainerType  getElements() nogil except +
 #         # NAMESPACE # void parse(std::istream & is_) nogil except +
 # 

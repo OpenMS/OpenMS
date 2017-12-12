@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Andreas Bertsch $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 
@@ -53,17 +53,55 @@ namespace OpenMS
   /**
       @brief Representation of a peptide/protein sequence
 
-      This class represents amino acid sequences in %OpenMS. An AASequence instance primarily contains a sequence of residues. The residues are represented as instances of Residue. Each amino acid has only one instance, which is accessible using the ResidueDB instance (singleton).
+      This class represents amino acid sequences in %OpenMS. An AASequence
+      instance primarily contains a sequence of residues. The sequence is
+      represented as a vector of pointers to instances of Residue. Each amino
+      acid has only one instance, which is accessible using the ResidueDB
+      instance (singleton).
 
-      To create an AASequence instance for a specific amino acid sequence, use the AASequence::fromString function. For example, <tt>AASequence::fromString("DFPIANGER")</tt> produces an instance of AASequence for the peptide "DFPIANGER".
+      To create an AASequence instance for a specific amino acid sequence, use
+      the AASequence::fromString function. For example,
+      <tt>AASequence::fromString(".DFPIANGER.")</tt> produces an instance of
+      AASequence for the peptide "DFPIANGER". Please note that both the N- and
+      the C-terminal are explicitly represented by dots.
 
-      A critical property of amino acid sequences is that they can be modified. Which means that one or more amino acids are chemically modified, e.g. oxidized. This is represented via Residue instances which carry a ResidueModification object. This is also handled in the ResidueDB.
+      A critical property of amino acid sequences is that they can be modified.
+      Which means that one or more amino acids are chemically modified, e.g.
+      oxidized. This is represented via Residue instances which carry a
+      ResidueModification object. This is also handled in the ResidueDB.
 
-      Modifications are specified using a unique string identifier present in the ModificationsDB in brackets after the modified amino acid or by providing the mass of the residue in square brackets. For example <tt>AASequence::fromString("DFPIAM(Oxidation)GER")</tt> creates an instance of the peptide "DFPIAMGER" with an oxidized methionine (<tt>AASequence::fromString("DFPIAM[+16]GER")</tt> and <tt>AASequence::fromString("DFPIAM[147]GER")</tt> are equivalent). N-terminal modifications are specified by writing the modification as prefix to the sequence. C-terminal modifications are specified by writing the modification as suffix. C-terminal modifications are distinguished from modifications of the last amino acid by considering the specificity of the modification as stored in ModificationsDB.
+      Modifications are specified using a unique string identifier present in
+      the ModificationsDB in round brackets after the modified amino acid or by
+      providing the mass of the residue in square brackets. For example
+      <tt>AASequence::fromString(".DFPIAM(Oxidation)GER.")</tt> creates an
+      instance of the peptide "DFPIAMGER" with an oxidized methionine
+      (<tt>AASequence::fromString(".DFPIAM(UniMod:35)GER.")</tt>,
+      <tt>AASequence::fromString(".DFPIAM[+16]GER.")</tt> and
+      <tt>AASequence::fromString(".DFPIAM[147]GER.")</tt> are all equivalent).
+      N- and C-terminal modifications are represented by brackets to the right
+      of the dots terminating the sequence. For example,
+      <tt>".(Dimethyl)DFPIAMGER."</tt> and <tt>".DFPIAMGER.(Label:18O(2))"</tt>
+      represent the labelling of the N- and C-terminus respectively, but
+      <tt>".DFPIAMGER(Phospho)."</tt> will be interpreted as a phosphorylation
+      of the last arginine at its side chain. 
 
-      Note there is a subtle difference between <tt>AASequence::fromString("DFPIAM[+16]GER")</tt> and <tt>AASequence::fromString("DFPIAM[+15.9949]GER")</tt> -- while the former will try to find the @e first modification matching to a mass difference of 16 +/- 0.5, the latter will try to find the @e closest matching modification to the exact mass. This usually gives the intended results.
-
-      Arbitrary/unknown amino acids (usually due to an unknown modification) can be specified using tags preceded by X: "X[weight]". This indicates a new amino acid ("X") with the specified weight, e.g. "RX[148.5]T"". Note that this tag does not alter the amino acids to the left (R) or right (T).  Rather, X represents an amino acid on its own. Be careful when converting AASequence to an EmpiricalFormula using getFormula(), as tags will not be considered in this case (there exists no formula for them). However, they have an influence on getMonoWeight() and getAverageWeight()!
+      Note there is a subtle difference between
+      <tt>AASequence::fromString(".DFPIAM[+16]GER.")</tt> and
+      <tt>AASequence::fromString(".DFPIAM[+15.9949]GER.")</tt> -- while the
+      former will try to find the @e first modification matching to a mass
+      difference of 16 +/- 0.5, the latter will try to find the @e closest
+      matching modification to the exact mass. This usually gives the intended
+      results while the first approach may not.
+      
+      Arbitrary/unknown amino acids (usually due to an unknown modification)
+      can be specified using tags preceded by X: "X[weight]". This indicates a
+      new amino acid ("X") with the specified weight, e.g. "RX[148.5]T"". Note
+      that this tag does not alter the amino acids to the left (R) or right
+      (T).  Rather, X represents an amino acid on its own. Be careful when
+      converting such AASequence objects to an EmpiricalFormula using
+      getFormula(), as tags will not be considered in this case (there exists
+      no formula for them).  However, they have an influence on getMonoWeight()
+      and getAverageWeight()!
 
       @ingroup Chemistry
   */
@@ -361,31 +399,62 @@ protected:
     /** @name Accessors
     */
     //@{
-    /// returns the peptide as string with modifications embedded in brackets
+
+    /**
+        @brief returns the peptide as string with modifications embedded in brackets
+
+        Uses round brackets when possible (id is known) or square brackets for
+        unknown modifications where only the mass is known.
+
+        i.e.: .n[43]PEPC(Carbamidomethyl)PEPM[147]PEPR.[16]
+    */
     String toString() const;
 
     /// returns the peptide as string without any modifications
     String toUnmodifiedString() const;
 
-    /// set the modification of the residue at position index
+    /**
+        @brief returns the peptide as string with UniMod-style modifications embedded in brackets
+
+        Uses round brackets when possible (id is known) or square brackets for
+        unknown modifications where only the mass is known.
+
+        i.e.: .n[43]PEPC(UniMod:4)PEPM[147]PEPR.[16]
+    */
+    String toUniModString() const;
+
+    /**
+        @brief create a TPP compatible string of the modified sequence using bracket notation.
+
+        Instead of using the modification names, it writes the modification masses in brackets
+
+        i.e.: n[35]RQLNK[162]LQHK[162]GEA
+    */
+    String toBracketString(bool integer_mass = true, const std::vector<String> & fixed_modifications = std::vector<String>()) const;
+
+    /// set the modification of the residue at position index.
+    /// if an empty string is passed replaces the residue with its unmodified version 
     void setModification(Size index, const String& modification);
 
     /// sets the N-terminal modification
     void setNTerminalModification(const String& modification);
 
-    /// returns the Id of the N-term modification; an empty string is returned if none was set
-    const String& getNTerminalModification() const;
+    /// returns the name (ID) of the N-terminal modification, or an empty string if none is set
+    const String& getNTerminalModificationName() const;
+
+    /// returns a pointer to the N-terminal modification, or zero if none is set
+    const ResidueModification* getNTerminalModification() const;
 
     /// sets the C-terminal modification
     void setCTerminalModification(const String& modification);
 
-    /// returns the Id of the C-term modification; an empty string is returned if none was set
-    const String& getCTerminalModification() const;
+    /// returns the name (ID) of the C-terminal modification, or an empty string if none is set
+    const String& getCTerminalModificationName() const;
 
-    /// returns a pointer to the residue, which is at position index
-    const Residue& getResidue(SignedSize index) const;
+    /// returns a pointer to the C-terminal modification, or zero if none is set
+    const ResidueModification* getCTerminalModification() const;
 
-    /// returns a pointer to the residue, which is at position index
+    /// returns a pointer to the residue at position @p index
     const Residue& getResidue(Size index) const;
 
     /// returns the formula of the peptide
@@ -394,11 +463,11 @@ protected:
     /// returns the average weight of the peptide
     double getAverageWeight(Residue::ResidueType type = Residue::Full, Int charge = 0) const;
 
-    /// returns the mono isotopic weight of the peptide
+    /// returns the mono isotopic weight of the peptide in the given ionic form
+    /// @note will not (and cannot) control whether the required ion can exist
+    /// (e.g. x/c ions for monomers) as it does not do fragmentation but rather
+    /// supplementing/deduction of the sequence to its ionic form.
     double getMonoWeight(Residue::ResidueType type = Residue::Full, Int charge = 0) const;
-
-    /// returns a pointer to the residue at given position
-    const Residue& operator[](SignedSize index) const;
 
     /// returns a pointer to the residue at given position
     const Residue& operator[](Size index) const;
@@ -456,11 +525,8 @@ protected:
     /// predicate which is true if the peptide is C-term modified
     bool hasCTerminalModification() const;
 
-    /// returns true if any of the residues is modified
+    /// returns true if any of the residues or termini are modified
     bool isModified() const;
-
-    /// returns true if the residue at the position is modified
-    bool isModified(Size index) const;
 
     /// equality operator. Two sequences are equal iff all amino acids including PTMs are equal
     bool operator==(const AASequence& rhs) const;
@@ -496,8 +562,10 @@ protected:
 
     /** 
       @brief create AASequence object by parsing an OpenMS string
+
       @param s Input string
       @param permissive If set, skip spaces and replace stop codon symbols ("*", "#", "+") by "X" (unknown amino acid) during parsing
+
       @throws Exception::ParseError if an invalid string representation of an AA sequence is passed
     */
     static AASequence fromString(const String& s, 
@@ -505,8 +573,10 @@ protected:
 
     /** 
       @brief create AASequence object by parsing a C string (character array)
+
       @param s Input string
       @param permissive If set, skip spaces and replace stop codon symbols ("*", "#", "+") by "X" (unknown amino acid) during parsing
+
       @throws Exception::ParseError if an invalid string representation of an AA sequence is passed
     */
     static AASequence fromString(const char* s, 
@@ -519,11 +589,39 @@ protected:
 
     const ResidueModification* c_term_mod_;
 
-    static String::ConstIterator parseModRoundBrackets_(
-      const String::ConstIterator str_it, const String& str, AASequence& aas);
+    /** 
+      @brief Parses modifications in round brackets (an identifier)
 
+      If dot notation is used it resolves cterm ambiguity based on the presence
+      of the dot.
+
+      @param str_it Current position in the string to be parsed
+      @param str Full input string
+      @param aas Current AASequence object (will be modified with the correct residue added)
+      @param dot_notation Whether "dot notation" is used (e.g. ".PEPTIDE.")
+      @param dot_terminal Whether the previous character was a dot
+
+      @return Position at which to continue parsing
+    */
+    static String::ConstIterator parseModRoundBrackets_(
+      const String::ConstIterator str_it, const String& str, AASequence& aas, bool dot_notation, bool dot_terminal);
+
+    /** 
+      @brief Parses modifications in square brackets (a mass)
+
+      If dot notation is used it resolves cterm ambiguity based on the presence
+      of the dot.
+
+      @param str_it Current position in the string to be parsed
+      @param str Full input string
+      @param aas Current AASequence object (will be modified with the correct residue added)
+      @param specificity Whether the current modification should be interpreted as N- or C-terminal
+
+      @return Position at which to continue parsing
+    */
     static String::ConstIterator parseModSquareBrackets_(
-      const String::ConstIterator str_it, const String& str, AASequence& aas);
+      const String::ConstIterator str_it, const String& str, AASequence& aas, 
+      const ResidueModification::TermSpecificity& specificity);
 
     static void parseString_(const String& peptide, AASequence& aas,
                              bool permissive = true);

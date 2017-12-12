@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -49,9 +49,9 @@ START_SECTION(const TheoreticalIsotopePattern& getIsotopeDistribution(double mas
   IsotopeDistributionCache c(1000, 10);
   const IsotopeDistributionCache::TheoreticalIsotopePattern &p(c.getIsotopeDistribution(500));
   TEST_REAL_SIMILAR(p.intensity[0], 1);
-  TEST_REAL_SIMILAR(p.intensity[1], 0.2668);
-  TEST_REAL_SIMILAR(p.intensity[2], 0.04864);
-  TEST_REAL_SIMILAR(p.intensity[3], 0.006652);
+  TEST_REAL_SIMILAR(p.intensity[1], 0.267834);
+  TEST_REAL_SIMILAR(p.intensity[2], 0.048924);
+  TEST_REAL_SIMILAR(p.intensity[3], 0.006703);
   TEST_EQUAL(&p == &c.getIsotopeDistribution(509.9), true);
   TEST_EQUAL(&p != &c.getIsotopeDistribution(510.0), true);
   TEST_EQUAL(&p != &c.getIsotopeDistribution(499.9), true);

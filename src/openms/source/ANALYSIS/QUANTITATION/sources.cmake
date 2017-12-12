@@ -9,17 +9,20 @@ IsobaricNormalizer.cpp
 IsobaricQuantifier.cpp
 IsobaricQuantifierStatistics.cpp
 IsobaricQuantitationMethod.cpp
-ItraqChannelExtractor.cpp
 ItraqConstants.cpp
 ItraqEightPlexQuantitationMethod.cpp
 ItraqFourPlexQuantitationMethod.cpp
-ItraqQuantifier.cpp
+KDTreeFeatureMaps.cpp
+KDTreeFeatureNode.cpp
 PeptideAndProteinQuant.cpp
 ProteinInference.cpp
 ProteinResolver.cpp
 QuantitativeExperimentalDesign.cpp
+TMTElevenPlexQuantitationMethod.cpp
 TMTSixPlexQuantitationMethod.cpp
 TMTTenPlexQuantitationMethod.cpp
+AbsoluteQuantitation.cpp
+AbsoluteQuantitationMethod.cpp
 )
 
 ### add path to the filenames

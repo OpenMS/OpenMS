@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,6 +34,8 @@
 
 #ifndef OPENMS_DATASTRUCTURES_SEQANINCLUDEWRAPPER_H
 #define OPENMS_DATASTRUCTURES_SEQANINCLUDEWRAPPER_H
+
+#include <cstdio> // required to prevent Seqan from defining std functions which later conflict
 
 #ifdef _MSC_VER // disable some seqan warnings that distract from ours
 #   pragma warning( push ) // save warning state

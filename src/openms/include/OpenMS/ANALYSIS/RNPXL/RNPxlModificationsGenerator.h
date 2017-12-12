@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -35,13 +35,18 @@
 #ifndef OPENMS_ANALYSIS_RNPXL_RNPXLMODIFICATIONSGENERATOR_H
 #define OPENMS_ANALYSIS_RNPXL_RNPXLMODIFICATIONSGENERATOR_H
 
+#include <OpenMS/KERNEL/StandardTypes.h>
+#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <vector>
 #include <map>
 #include <set>
-#include <OpenMS/KERNEL/StandardTypes.h>
+#include <iostream>
 
 namespace OpenMS
 {  
+  class AASequence;
+
   struct OPENMS_DLLAPI RNPxlModificationMassesResult
   {
     std::map<String, double> mod_masses; // empirical formula -> mass
@@ -55,8 +60,9 @@ namespace OpenMS
       static RNPxlModificationMassesResult initModificationMassesRNA(StringList target_nucleotides, StringList mappings, StringList restrictions, StringList modifications, String sequence_restriction, bool cysteine_adduct, Int max_length = 4);
     private:
       static bool notInSeq(String res_seq, String query);
-      static void generateTargetSequences(const String& res_seq, Size pos, const std::map<char, std::vector<char> >& map_source2target, StringList& target_sequences);
+      static void generateTargetSequences(const String& res_seq, Size param_pos, const std::map<char, std::vector<char> >& map_source2target, StringList& target_sequences);
     };
 }
 
 #endif // OPENMS_ANALYSIS_RNPXL_RNPXLMODIFICATIONSGENERATOR_H
+

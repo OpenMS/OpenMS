@@ -56,6 +56,9 @@ cdef extern from "<OpenMS/FORMAT/OPTIONS/PeakFileOptions.h>" namespace "OpenMS":
         void setFillData(bool only) nogil except +
         bool getFillData() nogil except +
 
+        void setSkipXMLChecks(bool only) nogil except +
+        bool getSkipXMLChecks() nogil except +
+
         bool getWriteIndex() nogil except +
         void setWriteIndex(bool write_index) nogil except +
 

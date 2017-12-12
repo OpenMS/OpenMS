@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<?xml-stylesheet type="text/xsl" href="file:///C:/Program Files/OpenMS-head/share/OpenMS/XSL/ConsensusXML.xsl"?>
+<consensusXML version="1.7" id="cm_12450090396616959169" experiment_type="labeled_MS1" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/ConsensusXML_1_7.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<dataProcessing completion_time="2015-07-19T18:46:46">
+		<software name="IDMapper" version="2.0.0" />
+		<processingAction name="Identification mapping" />
+		<UserParam type="string" name="parameter: id" value="D:/data/Lars/temp/2015-07-19_124437_ukmz1005immz_11652_1/TOPPAS_tmp/peptide_id_and_mapping/013_IDFilter/out/WL384.idXML"/>
+		<UserParam type="string" name="parameter: in" value="D:\data\Lars\20150719_FFPE_TAILS\WL383-388\peptide_quant\WL384.consensusXML"/>
+		<UserParam type="string" name="parameter: out" value="D:\data\Lars\temp\2015-07-19_124437_ukmz1005immz_11652_1\TOPPAS_tmp\peptide_id_and_mapping\014_IDMapper\out\WL384.idXML_tmp139"/>
+		<UserParam type="float" name="parameter: rt_tolerance" value="50"/>
+		<UserParam type="float" name="parameter: mz_tolerance" value="30"/>
+		<UserParam type="string" name="parameter: mz_measure" value="ppm"/>
+		<UserParam type="string" name="parameter: mz_reference" value="precursor"/>
+		<UserParam type="string" name="parameter: ignore_charge" value="true"/>
+		<UserParam type="string" name="parameter: log" value=""/>
+		<UserParam type="int" name="parameter: debug" value="0"/>
+		<UserParam type="int" name="parameter: threads" value="1"/>
+		<UserParam type="string" name="parameter: no_progress" value="true"/>
+		<UserParam type="string" name="parameter: force" value="false"/>
+		<UserParam type="string" name="parameter: test" value="false"/>
+		<UserParam type="string" name="parameter: ini" value="D:\data\Lars\temp\2015-07-19_124437_ukmz1005immz_11652_1\TOPPAS_tmp\peptide_id_and_mapping\014_IDMapper\IDMapper.ini"/>
+		<UserParam type="string" name="parameter: feature:use_centroid_rt" value="false"/>
+		<UserParam type="string" name="parameter: feature:use_centroid_mz" value="false"/>
+		<UserParam type="string" name="parameter: consensus:use_subelements" value="true"/>
+		<UserParam type="string" name="parameter: consensus:annotate_ids_with_subelements" value="false"/>
+	</dataProcessing>
+	<dataProcessing completion_time="2015-07-19T18:46:56">
+		<software name="IDConflictResolver" version="2.0.0" />
+		<processingAction name="Data filtering" />
+		<UserParam type="string" name="parameter: in" value="D:/data/Lars/temp/2015-07-19_124437_ukmz1005immz_11652_1/TOPPAS_tmp/peptide_id_and_mapping/014_IDMapper/out/WL384.consensusXML"/>
+		<UserParam type="string" name="parameter: out" value="D:\data\Lars\temp\2015-07-19_124437_ukmz1005immz_11652_1\TOPPAS_tmp\peptide_id_and_mapping\016_IDConflictResolver\out\WL384.consensusXML_tmp146"/>
+		<UserParam type="string" name="parameter: log" value=""/>
+		<UserParam type="int" name="parameter: debug" value="0"/>
+		<UserParam type="int" name="parameter: threads" value="1"/>
+		<UserParam type="string" name="parameter: no_progress" value="true"/>
+		<UserParam type="string" name="parameter: force" value="false"/>
+		<UserParam type="string" name="parameter: test" value="false"/>
+		<UserParam type="string" name="parameter: ini" value="D:\data\Lars\temp\2015-07-19_124437_ukmz1005immz_11652_1\TOPPAS_tmp\peptide_id_and_mapping\016_IDConflictResolver\IDConflictResolver.ini"/>
+	</dataProcessing>
+	<dataProcessing completion_time="2015-07-19T18:47:04">
+		<software name="FileFilter" version="2.0.0" />
+		<processingAction name="Data filtering" />
+		<UserParam type="string" name="parameter: in" value="D:/data/Lars/temp/2015-07-19_124437_ukmz1005immz_11652_1/TOPPAS_tmp/peptide_id_and_mapping/016_IDConflictResolver/out/WL384.consensusXML"/>
+		<UserParam type="string" name="parameter: out" value="D:\data\Lars\temp\2015-07-19_124437_ukmz1005immz_11652_1\TOPPAS_tmp\peptide_id_and_mapping\021_FileFilter\out\WL384.consensusXML_tmp153"/>
+		<UserParam type="string" name="parameter: log" value=""/>
+		<UserParam type="int" name="parameter: debug" value="0"/>
+		<UserParam type="int" name="parameter: threads" value="1"/>
+		<UserParam type="string" name="parameter: no_progress" value="true"/>
+		<UserParam type="string" name="parameter: force" value="false"/>
+		<UserParam type="string" name="parameter: test" value="false"/>
+		<UserParam type="string" name="parameter: ini" value="D:\data\Lars\temp\2015-07-19_124437_ukmz1005immz_11652_1\TOPPAS_tmp\peptide_id_and_mapping\021_FileFilter\FileFilter.ini"/>
+		<UserParam type="string" name="parameter: in_type" value=""/>
+	</dataProcessing>
+	<dataProcessing completion_time="2015-07-20T15:11:08">
+		<software name="FileFilter" version="2.0.0" />
+		<processingAction name="Data filtering" />
+		<UserParam type="string" name="parameter: in" value="D:\data\Lars\20150719_FFPE_TAILS\WL383-388\peptide_id_and_mapping\TOPPAS_out\peptide_quant_with_id\WL384.consensusXML"/>
+		<UserParam type="string" name="parameter: out" value="D:\data\Lars\temp\2015-07-20_150305_ukmz1005immz_18036_1\TOPPAS_tmp\find_sequences\002_FileFilter\out\WL384.consensusXML_tmp2"/>
+		<UserParam type="string" name="parameter: log" value=""/>
+		<UserParam type="int" name="parameter: debug" value="0"/>
+	</dataProcessing>
+	<IdentificationRun id="PI_0" date="2015-07-19T18:40:43" search_engine="OpenMS/ConsensusID_best" search_engine_version="2.0.0">
+		<SearchParameters db="" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="unknown_enzyme" missed_cleavages="0" precursor_peak_tolerance="0" peak_mass_tolerance="0" >
+		</SearchParameters>
+		<ProteinIdentification score_type="q-value" higher_score_better="false" significance_threshold="0">
+			<ProteinHit id="PH_0" accession="dec_sp|Q9D0D5|T2EA_MOUSE" score="0.934704005718231" sequence="YAAFCCVENIPVTDTSESPTRIRSAGEIVIRYAVEMPPDAAEMPRLDFYEDSYEVGRNREAIPNQRAESFVLVDRDLPRGMKTANTNAVVEETYNTRLRARAADIYVNKPPEKADLSSYPCHTMLLIAGLGEVAEDTEEEIEHADQDMKTMAPRDVDYFCDPSRQDEFSKSYATWIILDAGRKQEESHETDLRNFETPDALALDEATKYKFHSEGASKDSKLKKTQERIARLAFPWVCKNNEVDRGLEDELTIFVREYILEGKELLGRLVVELDEPRPAAQAVQPAEPVRGTEKDDLGSASMEMEFSLVNYVRATVVAANEATDHQAIKTHSDKLRHRPNEADSMFHFKTFGHSEKDFNIGCMPVRNAGEESLKSTEEQKLFTTTSAGPPELCMADMGIQLGECRIMPLKEAAQAELGKTLHNGADVREEPVHEVDDDYR">
+				<UserParam type="string" name="target_decoy" value="decoy"/>
+				<UserParam type="string" name="Description" value="General transcription factor IIE subunit 1 OS=Mus musculus GN=Gtf2e1 PE=2 SV=1"/>
+				<UserParam type="float" name="_score" value="0"/>
+			</ProteinHit>
+			<ProteinHit id="PH_1" accession="sp|A2AJ76|HMCN2_MOUSE" score="0.934704005718231" sequence="MTPGAQLLPLLVAISTAVAAVVTSDAPTK">
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="string" name="Description" value="Hemicentin-2 OS=Mus musculus GN=Hmcn2 PE=2 SV=1"/>
+				<UserParam type="float" name="_score" value="0"/>
+			</ProteinHit>
+			<ProteinHit id="PH_2" accession="sp|A2ATU0|DHTK1_MOUSE" score="0.934704005718231" sequence="MASAATVAAAGRALRRAVLLLRRGYQTER">
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="string" name="Description" value="Probable 2-oxoglutarate dehydrogenase E1 component DHKTD1, mitochondrial OS=Mus musculus GN=Dhtkd1 PE=2 SV=1"/>
+				<UserParam type="float" name="_score" value="0"/>
+			</ProteinHit>
+			<ProteinHit id="PH_3" accession="sp|B5X0G2|MUP17_MOUSE" score="0.934704005718231" sequence="MKMLLLLCLGLTLVCVHAEEASSTGRNFNVEKINGEWHTIILASDKREKIEEHGNFRLFLEQIHVLENSLVLKVHTVRDEECSELSMVADKTEKAGEYSVTYDGFNTFTIPKTDYDNFLMAHLINEKDGETFQLMGLYGREPDLSSDIKERFAQLCEEHGILRENIIDLSNANRCLQARE">
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="string" name="Description" value="Major urinary protein 17 OS=Mus musculus GN=Mup17 PE=2 SV=2"/>
+				<UserParam type="float" name="_score" value="0"/>
+			</ProteinHit>
+			<ProteinHit id="PH_4" accession="sp|O08573|LEG9_MOUSE" score="0.934704005718231" sequence="MALFSAQSPYINPIIPFTGPIQGGLQEGLQ">
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="string" name="Description" value="Galectin-9 OS=Mus musculus GN=Lgals9 PE=1 SV=1"/>
+				<UserParam type="float" name="_score" value="0"/>
+			</ProteinHit>
+			<ProteinHit id="PH_5" accession="sp|O08600|NUCG_MOUSE" score="0.934704005718231" sequence="MRALRAGLTLALGAGLGAAAEHWRRREGKA">
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="string" name="Description" value="Endonuclease G, mitochondrial OS=Mus musculus GN=Endog PE=2 SV=1"/>
+				<UserParam type="float" name="_score" value="0"/>
+			</ProteinHit>
+			<ProteinHit id="PH_6" accession="sp|O08601|MTP_MOUSE" score="0.934704005718231" sequence="MILLAVLFLCFFSSYSASVKGHTTGLSLNNE">
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="string" name="Description" value="Microsomal triglyceride transfer protein large subunit OS=Mus musculus GN=Mttp PE=2 SV=2"/>
+				<UserParam type="float" name="_score" value="0"/>
+			</ProteinHit>
+		</ProteinIdentification>
+	</IdentificationRun>
+	<mapList count="2">
+		<map id="0" name="D:\data\Lars\temp\2015-05-21_082116_ukmz1005immz_11636_1\TOPPAS_tmp\peptide_quant\002_FeatureFinderMultiplex\out\WL384.mzML_tmp2" label="Dimethyl0" size="8035">
+		</map>
+		<map id="1" name="D:\data\Lars\temp\2015-05-21_082116_ukmz1005immz_11636_1\TOPPAS_tmp\peptide_quant\002_FeatureFinderMultiplex\out\WL384.mzML_tmp2" label="Dimethyl6" size="8035">
+		</map>
+	</mapList>
+	<consensusElementList>
+	</consensusElementList>
+</consensusXML>

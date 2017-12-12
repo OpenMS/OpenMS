@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: David Wojnar $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: David Wojnar $
 // --------------------------------------------------------------------------
 
@@ -36,6 +36,7 @@
 #define OPENMS_FORMAT_GZIPIFSTREAM_H
 
 #include <OpenMS/config.h>
+
 #include <zlib.h>
 
 namespace OpenMS
@@ -48,43 +49,50 @@ namespace OpenMS
 public:
     ///Default Constructor
     GzipIfstream();
+
     /// Detailed constructor with filename
     explicit GzipIfstream(const char * filename);
+
     ///Destructor
     virtual ~GzipIfstream();
 
     /**
-            @brief reads n bytes from the gzip compressed file into buffer s
-
-            @param s will be filled with bytes
-            @param n is the size of the buffer s
-            @return the number of actually read bytes. If it is 0 the end of the file was reached and the stream is closed
-
-            @exception Exception::ConversionError is thrown if decompression fails
-            @exception Exception::IllegalArgument is thrown if no file for decompression is given. This can happen even happen if a file was already open but read until the end.
+      * @brief Reads n bytes from the bzip2 compressed file into buffer s
+      * 
+      * @param s Buffer to be filled with the output 
+      * @param n The size of the buffer s
+      * @return The number of actually read bytes. If it is less than n, the end of the file was reached and the stream is closed
+      * 
+      * @note This returns a raw byte stream that is *not* null-terminated. Be careful here.
+      * @note The length of the buffer needs to at least n
+      * @note Closes the stream if the end of file is reached. Check isOpen before reading from the file again
+      * 
+      * @exception Exception::ConversionError is thrown if decompression fails
+      * @exception Exception::IllegalArgument is thrown if no file for decompression is given. This can happen even happen if a file was already open but read until the end.
     */
     size_t read(char * s, size_t n);
 
     /**
-        @brief indicates whether the read function can be used safely
-
-        @return true if end of file was reached. Otherwise false.
+      * @brief indicates whether the read function can be used safely
+      *
+      * @return true if end of file was reached. Otherwise false.
     */
     bool streamEnd() const;
 
     /**
-        @brief returns whether a file is open.
+      * @brief returns whether a file is open.
     */
     bool isOpen() const;
 
     /**
-        @brief opens a file for reading (decompression)
-        @note any previous open files will be closed first!
+      * @brief opens a file for reading (decompression)
+      *
+      * @note any previous open files will be closed first!
     */
     void open(const char * filename);
 
     /**
-        @brief closes current file.
+      * @brief closes current file.
     */
     void close();
 
@@ -111,9 +119,9 @@ protected:
     ///a gzFile object(void*) . Necessary for decompression
     gzFile gzfile_;
     ///counts the last read duffer
-    int     n_buffer_;
+    int n_buffer_;
     ///saves the last returned error by the read function
-    int     gzerror_;
+    int gzerror_;
     ///true if end of file is reached
     bool stream_at_end_;
 

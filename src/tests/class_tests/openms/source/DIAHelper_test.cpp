@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -57,6 +57,8 @@
 #include <iterator>
 #include <iomanip>
 
+#include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
+
 using namespace std;
 using namespace OpenMS;
 //using namespace OpenMS::OpenSWATH;
@@ -70,12 +72,18 @@ START_TEST(DIAHelper, "$Id$")
 
 START_SECTION([EXTRA] getBYSeries_test)
 {
+  TheoreticalSpectrumGenerator generator;
+  Param p;
+  p.setValue("add_metainfo", "true",
+      "Adds the type of peaks as metainfo to the peaks, like y8+, [M-H2O+2H]++");
+  generator.setParameters(p);
+
   String sequence = "SYVAWDR";
   std::vector<double> bseries, yseries;
   OpenMS::AASequence a = OpenMS::AASequence::fromString(sequence);
-  OpenMS::DIAHelpers::getBYSeries(a, bseries, yseries);
+  OpenMS::DIAHelpers::getBYSeries(a, bseries, yseries, &generator);
   bseries.clear();
-  OpenMS::DIAHelpers::getTheorMasses(a, bseries);
+  OpenMS::DIAHelpers::getTheorMasses(a, bseries, &generator);
 
 }
 END_SECTION
@@ -89,7 +97,7 @@ START_SECTION([EXTRA] getAveragineIsotopeDistribution_test)
 
   double mass1[] = { 100, 101.00048, 102.00096, 103.00144 };
   double int1[] =
-      { 0.9512718332, 0.04579662689, 0.002828078664, 0.0001016459634 };
+      { 0.9496341, 0.0473560, 0.0029034, 0.0001064 };
 
   double * mm = &mass1[0];
   double * ii = &int1[0];
@@ -104,7 +112,7 @@ START_SECTION([EXTRA] getAveragineIsotopeDistribution_test)
   tmp.clear();
   OpenMS::DIAHelpers::getAveragineIsotopeDistribution(30., tmp);
   double mass2[] = { 30, 31.0005, 32.001, 33.0014 };
-  double int2[] = { 0.989072, 0.010925, 2.4738e-06, 1.41508e-10 };
+  double int2[] = { 0.987254, 0.012721, 2.41038e-05, 2.28364e-08 };
   mm = &mass2[0];
   ii = &int2[0];
   for (unsigned int i = 0; i < tmp.size(); ++i, ++mm, ++ii) {
@@ -150,11 +158,18 @@ END_SECTION
 
 START_SECTION([EXTRA] simulateSpectrumFromAASequence_test)
 {
+  TheoreticalSpectrumGenerator generator;
+  Param p;
+  p.setValue("add_metainfo", "false",
+             "Adds the type of peaks as metainfo to the peaks, like y8+, [M-H2O+2H]++");
+  p.setValue("add_precursor_peaks", "true", "Adds peaks of the precursor to the spectrum, which happen to occur sometimes");
+  generator.setParameters(p);
+
   String sequence = "SYVAWDR";
   OpenMS::AASequence a = OpenMS::AASequence::fromString(sequence);
   std::vector<double> masses1;
   std::vector<std::pair<double, double> > tmp, out;
-  OpenMS::DIAHelpers::simulateSpectrumFromAASequence(a, masses1, tmp);
+  OpenMS::DIAHelpers::simulateSpectrumFromAASequence(a, masses1, tmp, &generator);
 
   std::copy(masses1.begin(), masses1.end(),
       std::ostream_iterator<double>(std::cout, " "));

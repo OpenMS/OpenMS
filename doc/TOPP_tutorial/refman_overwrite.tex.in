@@ -1,13 +1,23 @@
 \documentclass[a4paper]{article}
-\usepackage{a4wide}
+\usepackage{geometry}
+\geometry{
+  includeheadfoot,
+  margin=2.54cm
+}
 \usepackage{makeidx}
 \usepackage{fancyhdr}
 \usepackage{graphicx}
 \usepackage{multicol}
 \usepackage{float}
-\usepackage{textcomp}
 \usepackage{alltt}
-\usepackage{times}
+\usepackage{newtxtext, newtxmath}
+% newtxtext loads textcomp only in newer versions and with differing options between versions
+% @commands need to be enclosed by makeatletter and makeatother
+\makeatletter
+\@ifpackageloaded{textcomp} 
+  {} % do nothing if loaded by the previous package to avoid option clashes
+  {\usepackage{textcomp}} % otherwise load the package
+\makeatother
 \ifx\pdfoutput\undefined
 \usepackage[ps2pdf,
             pagebackref=true,

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,7 +28,8 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Erhan Kenar $
+// $Author: Erhan Kenar $
+// $Maintainer: Timo Sachsenberg $
 // --------------------------------------------------------------------------
 
 #ifndef OPENMS_TRANSFORMATIONS_RAW2PEAK_PEAKPICKERHIRES_H
@@ -98,8 +99,20 @@ public:
      * @param input  input spectrum in profile mode
      * @param output  output spectrum with picked peaks
      */
-    template <typename PeakType>
-    void pick(const MSSpectrum<PeakType>& input, MSSpectrum<PeakType>& output) const
+    void pick(const MSSpectrum& input, MSSpectrum& output) const
+    {
+      std::vector<PeakBoundary> boundaries;
+      pick(input, output, boundaries);
+    }
+
+     /**
+     * @brief Applies the peak-picking algorithm to a single chromatogram
+     * (MSChromatogram). The resulting picked peaks are written to the output chromatogram.
+     *
+     * @param input  input chromatogram in profile mode
+     * @param output  output chromatogram with picked peaks
+     */
+    void pick(const MSChromatogram& input, MSChromatogram& output) const
     {
       std::vector<PeakBoundary> boundaries;
       pick(input, output, boundaries);
@@ -115,8 +128,7 @@ public:
      * @param boundaries  boundaries of the picked peaks
      * @param check_spacings  check spacing constraints? (yes for spectra, no for chromatograms)
      */
-    template <typename PeakType>
-      void pick(const MSSpectrum<PeakType>& input, MSSpectrum<PeakType>& output, std::vector<PeakBoundary>& boundaries, bool check_spacings = true) const
+    void pick(const MSSpectrum& input, MSSpectrum& output, std::vector<PeakBoundary>& boundaries, bool check_spacings = true) const
     {
       // copy meta data of the input spectrum
       output.clear(true);
@@ -126,7 +138,12 @@ public:
       output.setMSLevel(input.getMSLevel());
       output.setName(input.getName());
       output.setType(SpectrumSettings::PEAKS);
-
+      if (report_FWHM_)
+      {
+        output.getFloatDataArrays().resize(1);
+        output.getFloatDataArrays()[0].setName( report_FWHM_as_ppm_ ? "FWHM_ppm" : "FWHM");
+      }
+      
       // don't pick a spectrum with less than 5 data points
       if (input.size() < 5) return;
 
@@ -138,7 +155,7 @@ public:
       }
 
       // signal-to-noise estimation
-      SignalToNoiseEstimatorMedian<MSSpectrum<PeakType> > snt;
+      SignalToNoiseEstimatorMedian<MSSpectrum > snt;
       snt.setParameters(param_.copy("SignalToNoise:", true));
 
       if (signal_to_noise_ > 0.0)
@@ -197,7 +214,8 @@ public:
           }
 
           // checking signal-to-noise?
-          if ((i + 2 < input.size()) &&
+          if ((i > 1) &&
+              (i + 2 < input.size()) &&
               (left_neighbor_int < input[i - 2].getIntensity()) &&
               (right_neighbor_int < input[i + 2].getIntensity()) &&
               (act_snt_l2 >= signal_to_noise_) &&
@@ -300,8 +318,8 @@ public:
             ++k;
           }
 
-          //skip if the minimal number of 3 points for fitting is not reached
-          if (peak_raw_data.size() < 4) continue;
+          // skip if the minimal number of 3 points for fitting is not reached
+          if (peak_raw_data.size() < 3) continue;
 
           CubicSpline2d peak_spline (peak_raw_data);
 
@@ -341,18 +359,78 @@ public:
           }
           while (righthand - lefthand > threshold);
 
-          // sanity check?
           max_peak_mz = (lefthand + righthand) / 2;
           max_peak_int = peak_spline.eval(max_peak_mz);
 
+          //
+          // compute FWHM
+          //
+          if (report_FWHM_)
+          {
+            double fwhm_int = max_peak_int / 2.0;
+            threshold = 0.01 * fwhm_int;
+            double mz_mid, int_mid; 
+            // left:
+            double mz_left = peak_raw_data.begin()->first;
+            double mz_center = max_peak_mz;
+            if (peak_spline.eval(mz_left) > fwhm_int)
+            { // the spline ends before half max is reached -- take the leftmost point (probably an underestimation)
+              mz_mid = mz_left;
+            } else
+            {
+              do 
+              {
+                mz_mid = mz_left / 2 + mz_center / 2;
+                int_mid = peak_spline.eval(mz_mid);
+                if (int_mid < fwhm_int)
+                {
+                  mz_left = mz_mid;
+                }
+                else
+                {
+                  mz_center = mz_mid;
+                }
+              } while(fabs(int_mid - fwhm_int) > threshold);
+            }
+            const double fwhm_left_mz = mz_mid;
+
+            // right ...
+            double mz_right = peak_raw_data.rbegin()->first;
+            mz_center = max_peak_mz;
+            if (peak_spline.eval(mz_right) > fwhm_int)
+            { // the spline ends before half max is reached -- take the rightmost point (probably an underestimation)
+              mz_mid = mz_right;
+            } else
+              {
+              do 
+              {
+                mz_mid = mz_right / 2 + mz_center / 2;
+                int_mid = peak_spline.eval(mz_mid);
+                if (int_mid < fwhm_int)
+                {
+                  mz_right = mz_mid;
+                }
+                else
+                {
+                  mz_center = mz_mid;
+                }
+
+              } while(fabs(int_mid - fwhm_int) > threshold);
+            }
+            const double fwhm_right_mz = mz_mid;
+            const double fwhm_absolute = fwhm_right_mz - fwhm_left_mz;
+            output.getFloatDataArrays()[0].push_back( report_FWHM_as_ppm_ ? fwhm_absolute / max_peak_mz  * 1e6 : fwhm_absolute);
+          } // FWHM
+
           // save picked peak into output spectrum
-          PeakType peak;
+          Peak1D peak;
           PeakBoundary peak_boundary;
           peak.setMZ(max_peak_mz);
           peak.setIntensity(max_peak_int);
           peak_boundary.mz_min = input[left_boundary].getMZ();
           peak_boundary.mz_max = input[right_boundary].getMZ();
           output.push_back(peak);
+          
           boundaries.push_back(peak_boundary);
 
           // jump over raw data points that have been considered already
@@ -363,19 +441,6 @@ public:
       return;
     }
 
-     /**
-     * @brief Applies the peak-picking algorithm to a single chromatogram
-     * (MSChromatogram). The resulting picked peaks are written to the output chromatogram.
-     *
-     * @param input  input chromatogram in profile mode
-     * @param output  output chromatogram with picked peaks
-     */
-    template <typename PeakType>
-    void pick(const MSChromatogram<PeakType>& input, MSChromatogram<PeakType>& output) const
-    {
-      std::vector<PeakBoundary> boundaries;
-      pick(input, output, boundaries);
-    }
 
     /**
      * @brief Applies the peak-picking algorithm to a single chromatogram
@@ -385,8 +450,7 @@ public:
      * @param output  output chromatogram with picked peaks
      * @param boundaries  boundaries of the picked peaks
      */
-    template <typename PeakType>
-    void pick(const MSChromatogram<PeakType>& input, MSChromatogram<PeakType>& output, std::vector<PeakBoundary>& boundaries) const
+    void pick(const MSChromatogram& input, MSChromatogram& output, std::vector<PeakBoundary>& boundaries) const
     {
       // copy meta data of the input chromatogram
       output.clear(true);
@@ -394,16 +458,32 @@ public:
       output.MetaInfoInterface::operator=(input);
       output.setName(input.getName());
 
-      MSSpectrum<PeakType> input_spectrum;
-      MSSpectrum<PeakType> output_spectrum;
-      for (typename MSChromatogram<PeakType>::const_iterator it = input.begin(); it != input.end(); ++it)
+      MSSpectrum input_spectrum;
+      MSSpectrum output_spectrum;
+      for (MSChromatogram::const_iterator it = input.begin(); it != input.end(); ++it)
       {
-        input_spectrum.push_back(*it);
+        Peak1D p;
+        p.setMZ(it->getRT());
+        p.setIntensity(it->getIntensity());
+        input_spectrum.push_back(p);
       }
+
       pick(input_spectrum, output_spectrum, boundaries, false); // no spacing checks!
-      for (typename MSSpectrum<PeakType>::const_iterator it = output_spectrum.begin(); it != output_spectrum.end(); ++it)
+
+      for (MSSpectrum::const_iterator it = output_spectrum.begin(); it != output_spectrum.end(); ++it)
       {
-        output.push_back(*it);
+        ChromatogramPeak p;
+        p.setRT(it->getMZ());
+        p.setIntensity(it->getIntensity());
+        output.push_back(p);
+      }
+
+      // copy float data arrays (for FWHM)
+      output.getFloatDataArrays().resize(output_spectrum.getFloatDataArrays().size());
+      for (Size i = 0; i < output_spectrum.getFloatDataArrays().size(); ++i)
+      {
+        output.getFloatDataArrays()[i].insert(output.getFloatDataArrays()[i].begin(), output_spectrum.getFloatDataArrays()[i].begin(), output_spectrum.getFloatDataArrays()[i].end());
+        output.getFloatDataArrays()[i].setName(output_spectrum.getFloatDataArrays()[i].getName());
       }
     }
 
@@ -414,10 +494,9 @@ public:
      *
      * @param input  input map in profile mode
      * @param output  output map with picked peaks
-     * @param check_spectrum_type  if set, checks spectrum type and throws an exception if a centoided spectrum is passed 
+     * @param check_spectrum_type  if set, checks spectrum type and throws an exception if a centroided spectrum is passed 
      */
-    template <typename PeakType, typename ChromatogramPeakT>
-    void pickExperiment(const MSExperiment<PeakType, ChromatogramPeakT>& input, MSExperiment<PeakType, ChromatogramPeakT>& output, const bool check_spectrum_type = true) const
+    void pickExperiment(const PeakMap& input, PeakMap& output, const bool check_spectrum_type = true) const
     {
         std::vector<std::vector<PeakBoundary> > boundaries_spec;
         std::vector<std::vector<PeakBoundary> > boundaries_chrom;
@@ -435,8 +514,7 @@ public:
      * @param boundaries_chrom  boundaries of the picked peaks in chromatograms
      * @param check_spectrum_type  if set, checks spectrum type and throws an exception if a centroided spectrum is passed 
      */
-    template <typename PeakType, typename ChromatogramPeakT>
-    void pickExperiment(const MSExperiment<PeakType, ChromatogramPeakT>& input, MSExperiment<PeakType, ChromatogramPeakT>& output, std::vector<std::vector<PeakBoundary> >& boundaries_spec, std::vector<std::vector<PeakBoundary> >& boundaries_chrom, const bool check_spectrum_type = true) const
+    void pickExperiment(const PeakMap& input, PeakMap& output, std::vector<std::vector<PeakBoundary> >& boundaries_spec, std::vector<std::vector<PeakBoundary> >& boundaries_chrom, const bool check_spectrum_type = true) const
     {
       // make sure that output is clear
       output.clear(true);
@@ -480,7 +558,7 @@ public:
 
       for (Size i = 0; i < input.getChromatograms().size(); ++i)
       {
-        MSChromatogram<ChromatogramPeakT> chromatogram;
+        MSChromatogram chromatogram;
         std::vector<PeakBoundary> boundaries_c; // peak boundaries of a single chromatogram
         pick(input.getChromatograms()[i], chromatogram, boundaries_c);
         output.addChromatogram(chromatogram);
@@ -499,8 +577,7 @@ public:
 
       Currently we have to give up const-correctness but we know that everything on disc is constant
     */
-    template <typename PeakType, typename ChromatogramPeakT>
-    void pickExperiment(/* const */ OnDiscMSExperiment<PeakType, ChromatogramPeakT>& input, MSExperiment<PeakType, ChromatogramPeakT>& output, const bool check_spectrum_type = true) const
+    void pickExperiment(/* const */ OnDiscPeakMap& input, PeakMap& output, const bool check_spectrum_type = true) const
     {
       // make sure that output is clear
       output.clear(true);
@@ -525,7 +602,7 @@ public:
           }
           else
           {
-            MSSpectrum<PeakType> s = input[scan_idx];
+            MSSpectrum s = input[scan_idx];
             s.sortByPosition();
 
             // determine type of spectral data (profile or centroided)
@@ -544,7 +621,7 @@ public:
 
       for (Size i = 0; i < input.getNrChromatograms(); ++i)
       {
-        MSChromatogram<ChromatogramPeakT> chromatogram;
+        MSChromatogram chromatogram;
         pick(input.getChromatogram(i), chromatogram);
         output.addChromatogram(chromatogram);
         setProgress(++progress);
@@ -569,6 +646,12 @@ protected:
 
     // MS levels to which peak picking is applied
     std::vector<Int> ms_levels_;
+
+    /// add floatDataArray 'FWHM'/'FWHM_ppm' to spectra with peak FWHM
+    bool report_FWHM_;
+
+    /// unit of 'FWHM' float data array (can be absolute or ppm).
+    bool report_FWHM_as_ppm_;
 
     // docu in base class
     void updateMembers_();

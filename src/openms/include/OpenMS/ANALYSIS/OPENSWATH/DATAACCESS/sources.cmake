@@ -5,9 +5,13 @@ set(directory include/OpenMS/ANALYSIS/OPENSWATH/DATAACCESS)
 set(sources_list_h
 DataAccessHelper.h
 MRMFeatureAccessOpenMS.h
+SimpleOpenMSSpectraAccessFactory.h
 SpectrumAccessOpenMS.h
 SpectrumAccessOpenMSCached.h
-SimpleOpenMSSpectraAccessFactory.h
+SpectrumAccessOpenMSInMemory.h
+SpectrumAccessSqMass.h
+SpectrumAccessTransforming.h
+SpectrumAccessQuadMZTransforming.h
 )
 
 ### add path to the filenames

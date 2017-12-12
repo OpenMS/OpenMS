@@ -61,6 +61,7 @@ cdef extern from "<OpenMS/FORMAT/ControlledVocabulary.h>" namespace "OpenMS::Con
       String toXMLString(String ref, String value) nogil except +
       String toXMLString(String ref, DataValue value) nogil except +
       String getXRefTypeName(XRefType_CVTerm_ControlledVocabulary type) nogil except +
+      bool isHigherBetterScore(CVTerm_ControlledVocabulary term) nogil except +
 
 cdef extern from "<OpenMS/FORMAT/ControlledVocabulary.h>" namespace "OpenMS::ControlledVocabulary::CVTerm":
 

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -73,13 +73,10 @@ namespace OpenMS
     }
 
     /// Get the retention time of an assay
-    double ConfidenceScoring::getAssayRT_(const TargetedExperiment::Peptide& assay,
-                           const String& cv_accession)
+    double ConfidenceScoring::getAssayRT_(const TargetedExperiment::Peptide& assay)
     {
-      OPENMS_PRECONDITION(assay.rts.size() > 0, "More than zero RTs needed")
-      OPENMS_PRECONDITION(assay.rts[0].getCVTerms()[cv_accession].size() >  0, "More than zero cv terms of retention time needed")
-      String value = assay.rts[0].getCVTerms()[cv_accession][0].getValue();
-      return value.toDouble();
+      OPENMS_PRECONDITION(assay.hasRetentionTime(), "More than zero RTs needed")
+      return assay.getRetentionTime();
     }
 
     /// Extract the @p n_transitions highest intensities from @p intensity_map,
@@ -140,12 +137,12 @@ namespace OpenMS
 
       if (feature_intensities.empty())
       {
-        throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                          "Feature intensities were empty - please provide feature subordinate with intensities");
       }
       if (feature_intensities.size()!=assay_intensities.size())
       {
-        throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
           "Did not find a feature for each assay provided - each feature needs "
           "to have n subordinates with the meta-value 'native_id' set to the corresponding transition.");
       }
@@ -207,7 +204,7 @@ namespace OpenMS
       LOG_DEBUG << "True assay (ID '" << true_id << "')" << endl;
       if (true_id.empty())
       {
-        throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                          "Feature does not contain meta value 'PeptideRef' (reference to assay)");
       }
       scores.push_back(scoreAssay_(library_.getPeptideByRef(true_id), feature_rt,

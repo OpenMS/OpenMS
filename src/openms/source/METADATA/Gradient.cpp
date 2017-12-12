@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Andreas Bertsch $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
@@ -91,7 +91,7 @@ namespace OpenMS
     std::vector<String>::iterator elu_it = find(eluents_.begin(), eluents_.end(), eluent);
     if (elu_it != eluents_.end())
     {
-      throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "A eluent with this name already exists!", eluent);
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "A eluent with this name already exists!", eluent);
     }
 
     eluents_.push_back(eluent);
@@ -113,7 +113,7 @@ namespace OpenMS
   {
     if ((times_.size() > 0) && (timepoint <= times_[times_.size() - 1]))
     {
-      throw Exception::OutOfRange(__FILE__, __LINE__, __PRETTY_FUNCTION__);
+      throw Exception::OutOfRange(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
     }
     times_.push_back(timepoint);
 
@@ -142,20 +142,20 @@ namespace OpenMS
     std::vector<String>::iterator elu_it = find(eluents_.begin(), eluents_.end(), eluent);
     if (elu_it == eluents_.end())
     {
-      throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "The given eluent does not exist in the list of eluents!", eluent);
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "The given eluent does not exist in the list of eluents!", eluent);
     }
 
     //check if the timepoint is valid
     std::vector<Int>::iterator time_it = find(times_.begin(), times_.end(), timepoint);
     if (time_it == times_.end())
     {
-      throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "The given timepoint does not exist in the list of timepoints!", String(timepoint));
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "The given timepoint does not exist in the list of timepoints!", String(timepoint));
     }
 
     // percentage is valid?
     if (percentage > 100)
     {
-      throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "The percentage should be between 0 and 100!", String(percentage));
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "The percentage should be between 0 and 100!", String(percentage));
     }
 
     // (2) Look up indices
@@ -193,14 +193,14 @@ namespace OpenMS
     std::vector<String>::const_iterator elu_it = find(eluents_.begin(), eluents_.end(), eluent);
     if (elu_it == eluents_.end())
     {
-      throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "The given eluent does not exist in the list of eluents!", eluent);
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "The given eluent does not exist in the list of eluents!", eluent);
     }
 
     //check if the timepoint is valid
     std::vector<Int>::const_iterator time_it = find(times_.begin(), times_.end(), timepoint);
     if (time_it == times_.end())
     {
-      throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "The given timepoint does not exist in the list of timepoints!", String(timepoint));
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "The given timepoint does not exist in the list of timepoints!", String(timepoint));
     }
 
     // (2) Look up indices

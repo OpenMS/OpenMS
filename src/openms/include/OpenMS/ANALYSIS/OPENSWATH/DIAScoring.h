@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -46,6 +46,8 @@
 
 namespace OpenMS
 {
+  class TheoreticalSpectrumGenerator;
+
   /**
     @brief Scoring of an spectrum at the peak apex of an chromatographic elution peak.
 
@@ -88,8 +90,6 @@ namespace OpenMS
     typedef OpenSwath::SpectrumPtr SpectrumPtrType;
     /// Transition interface (Transition, Peptide, Protein)
     typedef OpenSwath::LightTransition TransitionType;
-    typedef OpenSwath::LightPeptide PeptideType;
-    typedef OpenSwath::LightProtein ProteinType;
     //@}
 
 public:
@@ -100,14 +100,7 @@ public:
     DIAScoring();
 
     /// Destructor
-    virtual ~DIAScoring() {}
-    //@}
-
-    ///@name Accessors
-    //@{
-    /// set parameters for the algorithm
-    void set_dia_parameters(double dia_extract_window, double dia_centroided,
-                            double dia_byseries_intensity_min, double dia_byseries_ppm_diff, double dia_nr_isotopes, double dia_nr_charges);
+    virtual ~DIAScoring();
     //@}
 
     ///////////////////////////////////////////////////////////////////////////
@@ -136,10 +129,9 @@ public:
     bool dia_ms1_massdiff_score(double precursor_mz, SpectrumPtrType spectrum,
                                 double& ppm_score);
 
-    /// Precursor isotope scores
+    /// Precursor isotope scores for precursors (peptides and metabolites)
     void dia_ms1_isotope_scores(double precursor_mz, SpectrumPtrType spectrum, size_t charge_state, 
-                                double& isotope_corr, double& isotope_overlap);
-
+                                double& isotope_corr, double& isotope_overlap, std::string sum_formula = "");
 
     /// b/y ion scores
     void dia_by_ion_score(SpectrumPtrType spectrum, AASequence& sequence,
@@ -186,11 +178,11 @@ private:
       @param spectrum The spectrum (MS1 or MS2)
       @param mono_mz The m/z value where a monoisotopic is expected
       @param mono_int The intensity of the monoisotopic peak (peak at mono_mz)
-      @param nr_occurences Will contain the count of how often a peak is found at lower m/z than mono_mz with an intensity higher than mono_int. Multiple charge states are tested, see class parameter dia_nr_charges_
-      @param nr_occurences Will contain the maximum ratio of a peaks intensity compared to the monoisotopic peak intensity how often a peak is found at lower m/z than mono_mz with an intensity higher than mono_int. Multiple charge states are tested, see class parameter dia_nr_charges_
+      @param nr_occurrences Will contain the count of how often a peak is found at lower m/z than mono_mz with an intensity higher than mono_int. Multiple charge states are tested, see class parameter dia_nr_charges_
+      @param nr_occurrences Will contain the maximum ratio of a peaks intensity compared to the monoisotopic peak intensity how often a peak is found at lower m/z than mono_mz with an intensity higher than mono_int. Multiple charge states are tested, see class parameter dia_nr_charges_
 
     */
-    void largePeaksBeforeFirstIsotope_(SpectrumPtrType spectrum, double mono_mz, double mono_int, int& nr_occurences, double& max_ratio);
+    void largePeaksBeforeFirstIsotope_(SpectrumPtrType spectrum, double mono_mz, double mono_int, int& nr_occurrences, double& max_ratio);
 
     /**
       @brief Compare an experimental isotope pattern to a theoretical one
@@ -200,7 +192,8 @@ private:
       model. The returned value is a Pearson correlation between the
       experimental and theoretical pattern.
     */
-    double scoreIsotopePattern_(double product_mz, const std::vector<double>& isotopes_int, int putative_fragment_charge);
+    double scoreIsotopePattern_(double product_mz, const std::vector<double>& isotopes_int, 
+                                int putative_fragment_charge, std::string sum_formula = "");
 
     // Parameters
     double dia_extract_window_;
@@ -210,7 +203,11 @@ private:
     double dia_nr_isotopes_;
     double dia_nr_charges_;
     double peak_before_mono_max_ppm_diff_;
+    bool dia_extraction_ppm_;
+
+    TheoreticalSpectrumGenerator * generator;
   };
 }
 
-#endif
+#endif // OPENMS_ANALYSIS_OPENSWATH_DIASCORING_H
+

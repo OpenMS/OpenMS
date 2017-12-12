@@ -9,17 +9,20 @@ IsobaricNormalizer.h
 IsobaricQuantifier.h
 IsobaricQuantifierStatistics.h
 IsobaricQuantitationMethod.h
-ItraqChannelExtractor.h
 ItraqConstants.h
 ItraqEightPlexQuantitationMethod.h
 ItraqFourPlexQuantitationMethod.h
-ItraqQuantifier.h
+KDTreeFeatureMaps.h
+KDTreeFeatureNode.h
 PeptideAndProteinQuant.h
 ProteinInference.h
 ProteinResolver.h
 QuantitativeExperimentalDesign.h
+TMTElevenPlexQuantitationMethod.h
 TMTSixPlexQuantitationMethod.h
 TMTTenPlexQuantitationMethod.h
+AbsoluteQuantitation.h
+AbsoluteQuantitationMethod.h
 )
 
 ### add path to the filenames

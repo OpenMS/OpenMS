@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -70,7 +70,7 @@ END_SECTION
 START_SECTION(OpenSwathDataAccessHelper::convertToSpectrumPtr(sptr))
 {
 
-  MSSpectrum<> sptr,omsptr;
+  MSSpectrum sptr,omsptr;
   Peak1D p1;
   p1.setIntensity(1.0f);
   p1.setMZ(2.0);
@@ -101,9 +101,9 @@ START_SECTION(OpenSwathDataAccessHelper::convertToSpectrumPtr(sptr))
 }
 END_SECTION
 
-START_SECTION(OpenSwathDataAccessHelper::convertToOpenMSChromatogram(chromatogram,cptr))
+START_SECTION(OpenSwathDataAccessHelper::convertToOpenMSChromatogram(cptr, chromatogram))
 {
-  //void OpenSwathDataAccessHelper::convertToOpenMSChromatogram(OpenMS::MSChromatogram<> & chromatogram,
+  //void OpenSwathDataAccessHelper::convertToOpenMSChromatogram(OpenMS::MSChromatogram & chromatogram,
   //                                                          const OpenSwath::ChromatogramPtr cptr)
   OpenSwath::ChromatogramPtr cptr(new OpenSwath::Chromatogram());
   cptr->getTimeArray()->data.push_back(1.0);
@@ -116,8 +116,8 @@ START_SECTION(OpenSwathDataAccessHelper::convertToOpenMSChromatogram(chromatogra
   cptr->getIntensityArray()->data.push_back(2.0);
   cptr->getIntensityArray()->data.push_back(1.0);
 
-  MSChromatogram<> chromatogram;
-  OpenSwathDataAccessHelper::convertToOpenMSChromatogram(chromatogram,cptr);
+  MSChromatogram chromatogram;
+  OpenSwathDataAccessHelper::convertToOpenMSChromatogram(cptr, chromatogram);
 
   TEST_REAL_SIMILAR(chromatogram[0].getRT(),1.);
   TEST_REAL_SIMILAR(chromatogram[0].getIntensity(),4.);
@@ -142,7 +142,7 @@ START_SECTION(convertToOpenMSSpectrum(spectrum,sptr))
   cptr->getIntensityArray()->data.push_back(2.0);
   cptr->getIntensityArray()->data.push_back(1.0);
 
-  MSSpectrum<> spectrum;
+  MSSpectrum spectrum;
   OpenSwathDataAccessHelper::convertToOpenMSSpectrum(cptr, spectrum);
 
   TEST_REAL_SIMILAR(spectrum[0].getMZ(),1.);

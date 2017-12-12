@@ -1,13 +1,13 @@
-from libcpp.vector cimport vector as libcpp_vector
-from libcpp.set cimport set as libcpp_set
-from libcpp cimport bool
 from Types cimport *
 from String cimport *
 from EmpiricalFormula cimport *
+from ResidueModification cimport *
 
 cdef extern from "<OpenMS/CHEMISTRY/Residue.h>" namespace "OpenMS":
 
     cdef cppclass Residue:
+        # wrap-hash:
+        #   getName().c_str()
 
         Residue() nogil except +
         Residue(Residue) nogil except + # wrap-ignore
@@ -18,110 +18,16 @@ cdef extern from "<OpenMS/CHEMISTRY/Residue.h>" namespace "OpenMS":
                 String one_letter_code,
                 EmpiricalFormula formula) nogil except +
 
-        # Internal
+        # Conversions
         EmpiricalFormula getInternalToFull() nogil except +
-
-        double getInternalToFullAverageWeight() nogil except +
-
-        double getInternalToFullMonoWeight() nogil except +
-
-        # N-terminal
-        EmpiricalFormula getNTerminalToFull() nogil except +
-
-        double getNTerminalToFullAverageWeight() nogil except +
-
-        double getNTerminalToFullMonoWeight() nogil except +
-
-        # C-terminal
-        EmpiricalFormula getCTerminalToFull() nogil except +
-
-        double getCTerminalToFullAverageWeight() nogil except +
-
-        double getCTerminalToFullMonoWeight() nogil except +
-
-        # b ion
-        EmpiricalFormula getBIonToFull() nogil except +
-
-        double getBIonToFullAverageWeight() nogil except +
-
-        double getBIonToFullMonoWeight() nogil except +
-
-        # a ion
-        EmpiricalFormula getAIonToFull() nogil except +
-
-        double getAIonToFullAverageWeight() nogil except +
-
-        double getAIonToFullMonoWeight() nogil except +
-
-        # y ion
-        EmpiricalFormula getYIonToFull() nogil except +
-
-        double getYIonToFullAverageWeight() nogil except +
-
-        double getYIonToFullMonoWeight() nogil except +
-
-        # c ion
-        EmpiricalFormula getCIonToFull() nogil except +
-
-        double getCIonToFullAverageWeight() nogil except +
-
-        double getCIonToFullMonoWeight() nogil except +
-
-        # c-1 ion
-        EmpiricalFormula getCIonMinusOneToFull() nogil except +
-
-        double getCIonMinusOneToFullAverageWeight() nogil except +
-
-        double getCIonMinusOneToFullMonoWeight() nogil except +
-
-        # c+1 ion
-        EmpiricalFormula getCIonPlusOneToFull() nogil except +
-
-        double getCIonPlusOneToFullAverageWeight() nogil except +
-
-        double getCIonPlusOneToFullMonoWeight() nogil except +
-
-        # c+2 ion
-        EmpiricalFormula getCIonPlusTwoToFull() nogil except +
-
-        double getCIonPlusTwoToFullAverageWeight() nogil except +
-
-        double getCIonPlusTwoToFullMonoWeight() nogil except +
-
-        # x ion
-        EmpiricalFormula getXIonToFull() nogil except +
-
-        double getXIonToFullAverageWeight() nogil except +
-
-        double getXIonToFullMonoWeight() nogil except +
-
-        # z ion
-        EmpiricalFormula getZIonToFull() nogil except +
-
-        double getZIonToFullAverageWeight() nogil except +
-
-        double getZIonToFullMonoWeight() nogil except +
-
-        # z-1 ion
-        EmpiricalFormula getZIonMinusOneToFull() nogil except +
-
-        double getZIonMinusOneToFullAverageWeight() nogil except +
-
-        double getZIonMinusOneToFullMonoWeight() nogil except +
-
-        # z+1 ion
-        EmpiricalFormula getZIonPlusOneToFull() nogil except +
-
-        double getZIonPlusOneToFullAverageWeight() nogil except +
-
-        double getZIonPlusOneToFullMonoWeight() nogil except +
-
-        # z+2 ion
-        EmpiricalFormula getZIonPlusTwoToFull() nogil except +
-
-        double getZIonPlusTwoToFullAverageWeight() nogil except +
-
-        double getZIonPlusTwoToFullMonoWeight() nogil except +
+        EmpiricalFormula getInternalToNTerm() nogil except +
+        EmpiricalFormula getInternalToCTerm() nogil except +
+        EmpiricalFormula getInternalToAIon() nogil except +
+        EmpiricalFormula getInternalToBIon() nogil except +
+        EmpiricalFormula getInternalToCIon() nogil except +
+        EmpiricalFormula getInternalToXIon() nogil except +
+        EmpiricalFormula getInternalToYIon() nogil except +
+        EmpiricalFormula getInternalToZIon() nogil except +
 
         # returns the ion name given as a residue type
         String getResidueTypeName(ResidueType res_type) nogil except +
@@ -207,17 +113,19 @@ cdef extern from "<OpenMS/CHEMISTRY/Residue.h>" namespace "OpenMS":
         # returns average weight of the residue
         double getAverageWeight(ResidueType res_type) nogil except +
 
-        # sets mono weight of the residue (must be full, with N and C-terminus)
+        # sets monoisotopic weight of the residue (must be full, with N and C-terminus)
         void setMonoWeight(double weight) nogil except +
 
-        # returns mono weight of the residue
+        # returns monoisotopic weight of the residue
         double getMonoWeight(ResidueType res_type) nogil except +
 
-        # sets by the name, this mod should be present in ModificationsDB
+        const ResidueModification * getModification() nogil except +
+
+        # sets the modification by name; the mod should be present in ModificationsDB
         void setModification(String name) nogil except +
 
         # returns the name of the modification to the modification
-        String getModification() nogil except +
+        String getModificationName() nogil except +
 
         # sets the low mass marker ions as a vector of formulas
         void setLowMassIons(libcpp_vector[EmpiricalFormula] low_mass_ions) nogil except +
@@ -302,21 +210,22 @@ cdef extern from "<OpenMS/CHEMISTRY/Residue.h>" namespace "OpenMS::Residue":
     cdef enum ResidueType:
       # wrap-attach:
       #   Residue
-      Full = 0,           # with N-terminus and C-terminus
-      Internal,           # internal, without any termini
-      NTerminal,           # only N-terminus
-      CTerminal,           # only C-terminus
-      AIon,           # N-terminus up to the C-alpha/carbonyl carbon bond
-      BIon,           # N-terminus up to the peptide bond
-      CIonMinusOne,           # N-terminus up to the amide/C-alpha bond
-      CIon,           # N-terminus up to the amide/C-alpha bond
-      CIonPlusOne,           # N-terminus up to the amide/C-alpha bond
-      CIonPlusTwo,           # N-terminus up to the amide/C-alpha bond
-      XIon,           # amide/C-alpha bond up to the C-terminus
-      YIon,           # peptide bond up to the C-terminus
-      ZIonMinusOne,           # C-alpha/carbonyl carbon bond
-      ZIon,            # C-alpha/carbonyl carbon bond
-      ZIonPlusOne,            # C-alpha/carbonyl carbon bond
-      ZIonPlusTwo,            # C-alpha/carbonyl carbon bond
+      Full = 0,       # with N-terminus and C-terminus
+      Internal,       # internal, without any termini
+      NTerminal,      # only N-terminus
+      CTerminal,      # only C-terminus
+      AIon,           # MS:1001229 N-terminus up to the C-alpha/carbonyl carbon bond
+      BIon,           # MS:1001224 N-terminus up to the peptide bond
+      CIon,           # MS:1001231 N-terminus up to the amide/C-alpha bond
+      XIon,           # MS:1001228 amide/C-alpha bond up to the C-terminus
+      YIon,           # MS:1001220 peptide bond up to the C-terminus
+      ZIon,           # MS:1001230 C-alpha/carbonyl carbon bond
+      Precursor_ion,  # MS:1001523 Precursor ion
+      BIonMinusH20,   # MS:1001222 b ion without water
+      YIonMinusH20,   # MS:1001223 y ion without water
+      BIonMinusNH3,   # MS:1001232 b ion without ammonia
+      YIonMinusNH3,   # MS:1001233 y ion without ammonia
+      NonIdentified,  # MS:1001240 Non-identified ion
+      Unannotated,    # no stored annotation 
       SizeOfResidueType
 

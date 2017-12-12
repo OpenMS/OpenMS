@@ -1,0 +1,29 @@
+
+-- General information --
+
+File name: FileInfo_16_input.trafoXML
+File type: trafoXML
+
+Transformation model: linear
+Number of data points (x/y pairs): 129
+Data range (x): 902.001 to 1541.69
+Data range (y): 1816 to 3095.38
+Summary of x/y deviations before transformation:
+- 100% of data points within (+/-)1553.69
+-  99% of data points within (+/-)1401.35
+-  95% of data points within (+/-)1379.46
+-  90% of data points within (+/-)1366.43
+-  75% of data points within (+/-)1310.06
+-  50% of data points within (+/-)1252.2
+-  25% of data points within (+/-)1099.32
+Summary of x/y deviations after applying 'linear' transformation:
+- 100% of data points within (+/-)0.00987904
+-  99% of data points within (+/-)0.00406472
+-  95% of data points within (+/-)0.00211101
+-  90% of data points within (+/-)0.00190896
+-  75% of data points within (+/-)0.000152794
+-  50% of data points within (+/-)0.000106608
+-  25% of data points within (+/-)6.04682e-05
+
+
+

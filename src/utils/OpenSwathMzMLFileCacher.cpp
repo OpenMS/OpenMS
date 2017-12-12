@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,13 +32,20 @@
 // $Authors: Hannes Roest $
 // --------------------------------------------------------------------------
 
-#include "OpenMS/FORMAT/CachedMzML.h"
+#include <OpenMS/FORMAT/CachedMzML.h>
+#include <OpenMS/FORMAT/SqMassFile.h>
 
+#include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 
 #include <fstream>
+
+#include <OpenMS/FORMAT/DATAACCESS/MSDataWritingConsumer.h>
+#include <OpenMS/FORMAT/DATAACCESS/MSDataCachedConsumer.h>
+#include <OpenMS/FORMAT/DATAACCESS/MSDataSqlConsumer.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -84,31 +91,132 @@ class TOPPOpenSwathMzMLFileCacher
   {
   }
 
- typedef MSExperiment<Peak1D> MapType;
+ typedef PeakMap MapType;
 
  protected:
 
   void registerOptionsAndFlags_()
   {
-    registerInputFile_("in","<file>","","transition file ('csv')");
-    setValidFormats_("in", ListUtils::create<String>("mzML"));
+    registerInputFile_("in","<file>","","Input mzML file");
+    registerStringOption_("in_type", "<type>", "", "input file type -- default: determined from file extension or content\n", false);
+    String formats("mzML,sqMass");
+    setValidFormats_("in", ListUtils::create<String>(formats));
+    setValidStrings_("in_type", ListUtils::create<String>(formats));
 
-    registerOutputFile_("out","<file>","","output file");
+    formats = "mzML,sqMass";
+    registerOutputFile_("out", "<file>", "", "Output file");
+    setValidFormats_("out", ListUtils::create<String>(formats));
+    registerStringOption_("out_type", "<type>", "", "Output file type -- default: determined from file extension or content\nNote: that not all conversion paths work or make sense.", false);
+    setValidStrings_("out_type", ListUtils::create<String>(formats));
 
     //registerStringOption_("out_meta","<file>","","output file", false);
     //setValidFormats_("out_meta",ListUtils::create<String>("mzML"));
 
     registerFlag_("convert_back", "Convert back to mzML");
 
+    registerStringOption_("lossy_compression", "<type>", "true", "Use numpress compression to achieve optimally small file size (attention: may cause small loss of precision; only for mzML data).", false);
+    setValidStrings_("lossy_compression", ListUtils::create<String>("true,false"));
+    registerStringOption_("full_meta", "<type>", "true", "Write full meta information into sqMass file (may require large amounts of memory)", false);
+    setValidStrings_("full_meta", ListUtils::create<String>("true,false"));
+
+    registerDoubleOption_("lossy_mass_accuracy", "<error>", -1.0, "Desired (absolute) m/z accuracy for lossy compression (e.g. use 0.0001 for a mass accuracy of 0.2 ppm at 500 m/z, default uses -1.0 for maximal accuracy).", false, true);
+
+    registerFlag_("process_lowmemory", "Whether to process the file on the fly without loading the whole file into memory first (only for conversions of mzXML/mzML to mzML).\nNote: this flag will prevent conversion from spectra to chromatograms.", true);
+    registerIntOption_("lowmem_batchsize", "<number>", 500, "The batch size of the low memory conversion", false, true);
+    setMinInt_("lowmem_batchsize", 0);
   }
 
   ExitCodes main_(int , const char**)
   {
-    String in = getStringOption_("in");
     String out_meta = getStringOption_("out");
-    String in_cached = in + ".cached";
     String out_cached = out_meta + ".cached";
     bool convert_back =  getFlag_("convert_back");
+    bool process_lowmemory = getFlag_("process_lowmemory");
+    int batchSize = (int)getIntOption_("lowmem_batchsize");
+
+    bool full_meta = (getStringOption_("full_meta") == "true");
+    bool lossy_compression = (getStringOption_("lossy_compression") == "true");
+    double mass_acc = getDoubleOption_("lossy_mass_accuracy");
+
+    FileHandler fh;
+
+    //input file type
+    String in = getStringOption_("in");
+    String in_cached = in + ".cached";
+    FileTypes::Type in_type = FileTypes::nameToType(getStringOption_("in_type"));
+
+    if (in_type == FileTypes::UNKNOWN)
+    {
+      in_type = fh.getType(in);
+      writeDebug_(String("Input file type: ") + FileTypes::typeToName(in_type), 2);
+    }
+
+    if (in_type == FileTypes::UNKNOWN)
+    {
+      writeLog_("Error: Could not determine input file type!");
+      return PARSE_ERROR;
+    }
+
+    //output file names and types
+    String out = getStringOption_("out");
+    FileTypes::Type out_type = FileTypes::nameToType(getStringOption_("out_type"));
+
+    if (out_type == FileTypes::UNKNOWN)
+    {
+      out_type = fh.getTypeByFileName(out);
+    }
+
+    if (out_type == FileTypes::UNKNOWN)
+    {
+      writeLog_("Error: Could not determine output file type!");
+      return PARSE_ERROR;
+    }
+
+    if (in_type == FileTypes::SQMASS && out_type == FileTypes::MZML)
+    {
+      MapType exp;
+      SqMassFile sqfile;
+      MzMLFile f;
+      sqfile.load(in, exp);
+      f.store(out, exp);
+      return EXECUTION_OK;
+    }
+    else if (in_type == FileTypes::MZML && out_type == FileTypes::SQMASS && process_lowmemory)
+    {
+      MSDataSqlConsumer consumer(out, batchSize, full_meta, lossy_compression, mass_acc);
+      MzMLFile f;
+      PeakFileOptions opt = f.getOptions();
+      opt.setMaxDataPoolSize(batchSize); 
+      f.setOptions(opt);
+      f.transform(in, &consumer, true, true);
+      return EXECUTION_OK;
+    }
+    else if (in_type == FileTypes::SQMASS && out_type == FileTypes::SQMASS && process_lowmemory)
+    {
+      PlainMSDataWritingConsumer consumer(out);
+      consumer.getOptions().setWriteIndex(true);
+      SqMassFile f;
+      f.transform(in, &consumer, true, true);
+      return EXECUTION_OK;
+    }
+    else if (in_type == FileTypes::MZML && out_type == FileTypes::SQMASS)
+    {
+      MzMLFile f;
+
+      SqMassFile::SqMassConfig config;
+      config.write_full_meta = full_meta;
+      config.use_lossy_numpress = lossy_compression;
+      config.linear_fp_mass_acc = mass_acc;
+
+      SqMassFile sqfile;
+      sqfile.setConfig(config);
+
+      MapType exp;
+      f.load(in, exp);
+      sqfile.store(out, exp);
+      return EXECUTION_OK;
+    }
+
 
     if (!convert_back)
     {
@@ -121,23 +229,7 @@ class TOPPOpenSwathMzMLFileCacher
 
       f.load(in,exp);
       cacher.writeMemdump(exp, out_cached);
-
-      DataProcessing dp;
-      std::set<DataProcessing::ProcessingAction> actions;
-      actions.insert(DataProcessing::FORMAT_CONVERSION);
-      dp.setProcessingActions(actions);
-      dp.setMetaValue("cached_data", "true");
-      for (Size i=0; i<exp.size(); ++i)
-      {
-        exp[i].getDataProcessing().push_back(dp);
-      }
-      std::vector<MSChromatogram<ChromatogramPeak> > chromatograms = exp.getChromatograms();
-      for (Size i=0; i<chromatograms.size(); ++i)
-      {
-        chromatograms[i].getDataProcessing().push_back(dp);
-      }
-      exp.setChromatograms(chromatograms);
-      cacher.writeMetadata(exp, out_meta);
+      cacher.writeMetadata(exp, out_meta, true);
     }
     else
     {
@@ -159,23 +251,20 @@ class TOPPOpenSwathMzMLFileCacher
       {
         for (Size j = 0; j < meta_exp[i].getDataProcessing().size(); j++)
         {
-          DataProcessing& dp = meta_exp[i].getDataProcessing()[j];
-          if (dp.metaValueExists("cached_data"))
+          if (meta_exp[i].getDataProcessing()[j]->metaValueExists("cached_data"))
           {
-            dp.removeMetaValue("cached_data");
+            meta_exp[i].getDataProcessing()[j]->removeMetaValue("cached_data");
           }
         }
       }
 
-      std::vector<MSChromatogram<ChromatogramPeak> > chromatograms = meta_exp.getChromatograms();
-      for (Size i=0; i<chromatograms.size(); ++i)
+      for (Size i=0; i < meta_exp.getNrChromatograms(); ++i)
       {
-        for (Size j = 0; j < chromatograms[i].getDataProcessing().size(); j++)
+        for (Size j = 0; j < meta_exp.getChromatogram(i).getDataProcessing().size(); j++)
         {
-          DataProcessing& dp = chromatograms[i].getDataProcessing()[j];
-          if (dp.metaValueExists("cached_data"))
+          if (meta_exp.getChromatogram(i).getDataProcessing()[j]->metaValueExists("cached_data"))
           {
-            dp.removeMetaValue("cached_data");
+            meta_exp.getChromatogram(i).getDataProcessing()[j]->removeMetaValue("cached_data");
           }
         }
       }
@@ -193,8 +282,8 @@ class TOPPOpenSwathMzMLFileCacher
           meta_exp[i].push_back(exp_reading[i][j]);
         }
       }
-      std::vector<MSChromatogram<ChromatogramPeak> > chromatograms = exp_reading.getChromatograms();
-      std::vector<MSChromatogram<ChromatogramPeak> > old_chromatograms = meta_exp.getChromatograms();
+      std::vector<MSChromatogram > chromatograms = exp_reading.getChromatograms();
+      std::vector<MSChromatogram > old_chromatograms = meta_exp.getChromatograms();
       for (Size i=0; i<chromatograms.size(); ++i)
       {
         for (Size j = 0; j < chromatograms[i].size(); j++)

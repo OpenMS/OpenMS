@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -37,6 +37,8 @@
 
 #include <OpenMS/FORMAT/Base64.h>
 
+#include <string>
+
 namespace OpenMS
 {
   const double BinaryDataEncoder_default_numpressErrorTolerance = .0001; // 1/100th of one percent
@@ -55,7 +57,9 @@ namespace OpenMS
 
 public:
 
-    enum NumpressCompression { NONE, LINEAR, PIC, SLOF };
+    enum NumpressCompression { NONE, LINEAR, PIC, SLOF, SIZE_OF_NUMPRESSCOMPRESSION };
+    /// Names of compression schemes
+    static const std::string NamesOfNumpressCompression[SIZE_OF_NUMPRESSCOMPRESSION];
 
     /**
       @brief Configuration class for MSNumpress
@@ -68,13 +72,34 @@ public:
       double numpressErrorTolerance;  /// check error tolerance after encoding, guarantee abs(1.0-(encoded/decoded)) <= this, 0=do not guarantee anything
       NumpressCompression np_compression; /// which compression schema to use
       bool estimate_fixed_point; /// whether to estimate the fixed point or use the one proved with numpressFixedPoint
+      double linear_fp_mass_acc; /// desired mass accuracy for linear encoding (-1 no effect, use 0.0001 for 0.2 ppm accuracy @ 500 m/z)
 
       NumpressConfig () :
         numpressFixedPoint(0.0),
         numpressErrorTolerance(BinaryDataEncoder_default_numpressErrorTolerance),
         np_compression(NONE),
-        estimate_fixed_point(false)
+        estimate_fixed_point(false),
+        linear_fp_mass_acc(-1)
       {
+      }
+
+      /**
+        @brief set compression using a string mapping to enum NumpressCompression.
+
+        @param compression A string from NamesOfNumpressCompression[]
+
+        @throws Exception::InvalidParameter if compression is unknown.
+      */
+      void setCompression(const std::string& compression)
+      {
+        const std::string* match = std::find(NamesOfNumpressCompression, NamesOfNumpressCompression + SIZE_OF_NUMPRESSCOMPRESSION, compression);
+        
+        if (match == NamesOfNumpressCompression + SIZE_OF_NUMPRESSCOMPRESSION) // == end()
+        {
+          throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Value '" + compression + "' is not a valid Numpress compression scheme.");
+        }
+        
+        np_compression = (NumpressCompression)std::distance(NamesOfNumpressCompression, match);
       }
 
     };
@@ -104,28 +129,11 @@ public:
      *
     */
     void encodeNP(const std::vector<double> & in, String & result,
-        bool zlib_compression, const NumpressConfig & config)
-    {
-      result.clear();
-      encodeNP_(in, result, config);
-      if (result.empty())
-      {
-        return;
-      }
-
-      // Encode in base64 and compress
-      std::vector<String> tmp;
-      tmp.push_back(result);
-      base64coder_.encodeStrings(tmp, result, zlib_compression, false);
-    }
+        bool zlib_compression, const NumpressConfig & config);
 
     /// encodeNP from a float (convert first to double)
     void encodeNP(const std::vector<float> & in, String & result,
-        bool zlib_compression, const NumpressConfig & config)
-    {
-      std::vector<double> dvector(in.begin(), in.end());
-      encodeNP(dvector, result, zlib_compression, config);
-    }
+        bool zlib_compression, const NumpressConfig & config);
 
     /**
      * @brief Decodes a Base64 string to a vector of floating point numbers using numpress
@@ -146,42 +154,50 @@ public:
      *
     */
     void decodeNP(const String & in, std::vector<double> & out,
-        bool zlib_compression, const NumpressConfig & config)
-    {
-      QByteArray base64_uncompressed;
-      base64coder_.decodeSingleString(in, base64_uncompressed, zlib_compression);
-
-      // Create a temporary string (*not* null-terminated) to hold the data
-      std::string tmpstring(base64_uncompressed.constData(), base64_uncompressed.size());
-      decodeNP_(tmpstring, out, config);
-
-      // NOTE: it is possible (and likely faster) to call directly the const
-      // unsigned char * function but this would make it necessary to deal with
-      // reinterpret_cast ugliness here ... 
-      //
-      // decodeNP_internal_(reinterpret_cast<const unsigned char*>(base64_uncompressed.constData()), base64_uncompressed.size(), out, config);
-    }
-
-private:
+        bool zlib_compression, const NumpressConfig & config);
 
     /**
-     * @brief Encode the vector in to the result string using numpress
+     * @brief Encode the vector in to the result string using numpress (unsafe)
      *
      * @note In case of error, result is given back unmodified
      *
+     * This performs the raw numpress encoding on a set of data and does no
+     * Base64 encoding on the result. Therefore the result string is likely
+     * *unsafe* to handle and is basically a byte container.
+     *
+     * Please use the safe versions above unless you need access to the raw
+     * byte arrays.
+     *
+     * @param in The vector of floating point numbers to be encoded
+     * @param result The resulting string
+     * @param config The numpress configuration defining the compression strategy
+     *
     */
-    void encodeNP_(const std::vector<double> & in, String & result, const NumpressConfig & config);
+    void encodeNPRaw(const std::vector<double> & in, String & result, const NumpressConfig & config);
 
     /**
-     * @brief Decode the (not necessary null terminated) string in to the result vector out
+     * @brief Decode the (not necessary null terminated) string in to the result vector out (unsafe)
      *
      * @note that the string in should *only* contain the data and _no_ extra
      * null terminating byte (unless of course the last data byte is null)
      *
+     * This performs the raw numpress decoding on a raw byte array (not Base64
+     * encoded). Therefore the input string is likely *unsafe* to handle and is
+     * basically a byte container.
+     *
+     * Please use the safe versions above unless you only have the raw byte
+     * arrays.
+     *
+     * @param in The base64 encoded string
+     * @param out The resulting vector of doubles
+     * @param config The numpress configuration defining the compression strategy
+     *
      * @throw throws Exception::ConversionError if the string cannot be converted
      *
     */
-    void decodeNP_(const std::string & in, std::vector<double> & out, const NumpressConfig & config);
+    void decodeNPRaw(const std::string & in, std::vector<double> & out, const NumpressConfig & config);
+
+private:
 
     void decodeNPInternal_(const unsigned char* in, size_t in_size, std::vector<double>& out, const NumpressConfig & config);
 
@@ -191,3 +207,4 @@ private:
 } //namespace OpenMS
 
 #endif /* OPENMS_FORMAT_MSNUMPRESSCODER_H */
+

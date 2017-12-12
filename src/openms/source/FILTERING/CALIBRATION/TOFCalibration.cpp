@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Alexandra Zerck $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: $
 // --------------------------------------------------------------------------
 
@@ -50,7 +50,7 @@ namespace OpenMS
   {
   }
 
-  void TOFCalibration::calculateCalibCoeffs_(MSExperiment<> & calib_spectra)
+  void TOFCalibration::calculateCalibCoeffs_(PeakMap & calib_spectra)
   {
     // flight times are needed later
     calib_peaks_ft_ = calib_spectra;
@@ -119,7 +119,7 @@ namespace OpenMS
     if (coeff_quad_fit_.empty())
     {
       String mess = String("Data can't be calibrated, not enough reference masses found: ") + coeff_quad_fit_.size() / 3;
-      throw Exception::UnableToCalibrate(__FILE__, __LINE__, __PRETTY_FUNCTION__, "UnableToCalibrate", mess.c_str());
+      throw Exception::UnableToCalibrate(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "UnableToCalibrate", mess.c_str());
     }
     averageErrors_();
     averageCoefficients_();
@@ -160,7 +160,7 @@ namespace OpenMS
     }
   }
 
-  void TOFCalibration::matchMasses_(MSExperiment<> & calib_peaks,
+  void TOFCalibration::matchMasses_(PeakMap & calib_peaks,
                                     std::vector<std::vector<unsigned int> > & monoiso_peaks,
                                     std::vector<unsigned int> & obs_masses,
                                     std::vector<double> & exp_masses, unsigned int idx)
@@ -192,11 +192,12 @@ namespace OpenMS
 #endif
   }
 
-  void TOFCalibration::getMonoisotopicPeaks_(MSExperiment<> & calib_peaks, std::vector<std::vector<unsigned int> > & monoiso_peaks)
+  void TOFCalibration::getMonoisotopicPeaks_(PeakMap & calib_peaks, std::vector<std::vector<unsigned int> > & monoiso_peaks)
   {
 
-    MSExperiment<>::iterator spec_iter = calib_peaks.begin();
-    MSExperiment<>::SpectrumType::iterator peak_iter, help_iter;
+    PeakMap::iterator spec_iter;
+    PeakMap::SpectrumType::iterator peak_iter, help_iter;
+
 #ifdef DEBUG_CALIBRATION
     spec_iter = calib_peaks.begin();
     std::cout << "\n\nbefore---------\n\n";
@@ -210,8 +211,8 @@ namespace OpenMS
         std::cout << peak_iter->getMZ() << std::endl;
       }
     }
-
 #endif
+
     spec_iter = calib_peaks.begin();
     // iterate through all spectra
     for (; spec_iter != calib_peaks.end(); ++spec_iter)
@@ -255,10 +256,10 @@ namespace OpenMS
 #endif
   }
 
-  void TOFCalibration::applyTOFConversion_(MSExperiment<> & calib_spectra)
+  void TOFCalibration::applyTOFConversion_(PeakMap & calib_spectra)
   {
-    MSExperiment<>::iterator spec_iter = calib_spectra.begin();
-    MSExperiment<>::SpectrumType::iterator peak_iter;
+    PeakMap::iterator spec_iter = calib_spectra.begin();
+    PeakMap::SpectrumType::iterator peak_iter;
     unsigned int idx = 0;
 
     //two point conversion
@@ -320,4 +321,104 @@ namespace OpenMS
 
   }
 
-} //namespace openms
+  void TOFCalibration::pickAndCalibrate(PeakMap & calib_spectra, PeakMap & exp, std::vector<double> & exp_masses)
+  {
+    PeakMap p_calib_spectra;
+
+    // pick peaks
+    PeakPickerCWT pp;
+    pp.setParameters(param_.copy("PeakPicker:", true));
+    pp.pickExperiment(calib_spectra, p_calib_spectra);
+
+    //calibrate
+    calibrate(p_calib_spectra, exp, exp_masses);
+  }
+
+  void TOFCalibration::calibrate(PeakMap & calib_spectra, PeakMap & exp, std::vector<double> & exp_masses)
+  {
+    exp_masses_ = exp_masses;
+    calculateCalibCoeffs_(calib_spectra);
+
+    CubicSpline2d spline(calib_masses_, error_medians_);
+
+#ifdef DEBUG_CALIBRATION
+    std::cout << "fehler nach spline fitting" << std::endl;
+
+    for (unsigned int spec = 0; spec <  calib_peaks_ft_.size(); ++spec)
+    {
+
+      std::vector<double> exp_masses;
+      std::vector<unsigned int> monoiso;
+      matchMasses_(calib_spectra, monoiso_peaks, monoiso, exp_masses, spec);
+      for (unsigned int p = 0; p < monoiso.size(); ++p)
+      {
+        double xi = mQ_(calib_peaks_ft_[spec][monoiso[p]].getMZ(), spec);
+        if (xi > calib_masses[error_medians_.size() - 1])
+          continue;
+        if (xi < calib_masses[0])
+          continue;
+        std::cout << exp_masses[p] << "\t"
+                  << Math::getPPM(xi - spline(xi), exp_masses[p])
+                  << std::endl;
+
+      }
+
+    }
+
+
+    double xi;
+    std::cout << "interpolation \n\n";
+    for (xi = calib_masses[0]; xi < calib_masses[error_medians_.size() - 1]; xi += 0.01)
+    {
+      double yi = spline(xi);
+      std::cout << xi << "\t" << yi << std::endl;
+    }
+    std::cout << "--------------\nend interpolation \n\n";
+#endif
+
+//    delete[] calib_masses;
+//    delete[] error_medians;
+
+    // get parameters for linear extrapolation to low mass
+    double m_min0 = calib_masses_[0];
+    double m_min1 = calib_masses_[1];
+    double y_min0 = spline.eval(m_min0);
+    double y_min1 = spline.eval(m_min1);
+    double min_slope = (y_min1 - y_min0) / (m_min1 - m_min0);
+
+    // get parameters for linear extrapolation to high mass
+    Size size = calib_masses_.size();
+    double m_max0 = calib_masses_[size - 1];
+    double m_max1 = calib_masses_[size - 2];
+    double y_max0 = spline.eval(m_max0); // in this case, the max0 is the right side
+    double y_max1 = spline.eval(m_max1);
+    double max_slope = (y_max0 - y_max1) / (m_max0 - m_max1);
+
+    double m, y;
+
+    for (unsigned int spec = 0; spec < exp.size(); ++spec)
+    {
+      for (unsigned int peak = 0; peak < exp[spec].size(); ++peak)
+      {
+        m = mQAv_(exp[spec][peak].getMZ());
+
+        if (m < m_min0)
+        {
+          y = y_min0 + min_slope * (m - m_min0); 
+          exp[spec][peak].setPos(m - y);
+        }
+        else if (m > m_max0)
+        {
+          y = y_max0 + max_slope * (m - m_max0);
+          exp[spec][peak].setPos(m - y);
+        }
+        else
+        {
+          exp[spec][peak].setPos(m - spline.eval(m));
+        }
+      }
+    }
+  }
+
+} //namespace OpenMS
+

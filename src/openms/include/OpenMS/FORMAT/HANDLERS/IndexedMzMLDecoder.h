@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -97,8 +97,13 @@ namespace OpenMS
       @param in Filename of the input indexedmzML file
       @param buffersize How many bytes of the input file should be searched for the tag
 
-      @return A positive integer containing the content of the indexListOffset tag, returns -1 in case of failure no tag was found
+      @return A positive integer containing the content of the indexListOffset
+      tag, returns -1 in case of failure no tag was found (you can re-try with
+      a larger buffersize but most likely its not an indexed mzML). Using -1 is
+      what the reference docu recommends: http://en.cppreference.com/w/cpp/io/streamoff
 
+      @throw FileNotFound is thrown if file cannot be found
+      @throw ParseError if offset cannot be parsed
     */
     std::streampos findIndexListOffset(String filename, int buffersize = 1023);
 

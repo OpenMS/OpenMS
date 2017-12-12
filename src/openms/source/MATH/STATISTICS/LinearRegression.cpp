@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,10 +28,11 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Clemens Groepl  $
+// $Maintainer: Timo Sachsenberg  $
 // $Authors: $
 // --------------------------------------------------------------------------
 
+#include <OpenMS/CONCEPT/Macros.h>
 #include <OpenMS/MATH/STATISTICS/LinearRegression.h>
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
 
@@ -107,30 +108,35 @@ namespace OpenMS
 
     void LinearRegression::computeGoodness_(const std::vector<Wm5::Vector2d>& points, double confidence_interval_P)
     {
+      OPENMS_PRECONDITION(static_cast<unsigned>(points.size()) > 2, 
+          "Cannot compute goodness of fit for regression with less than 3 data points");
+      // specifically, boost throws an exception for a t-distribution with zero df
+
       unsigned N = static_cast<unsigned>(points.size());
       std::vector<double> X; X.reserve(N);
       std::vector<double> Y; Y.reserve(N);
       for (unsigned i = 0; i < N; ++i)
       {
-        X.push_back(points.at(i).X());
-        Y.push_back(points.at(i).Y());
+        X.push_back(points[i].X());
+        Y.push_back(points[i].Y());
       }
-      // Variance and Covariances
-      double var_X = Math::variance(X.begin(), X.end());
-      double var_Y = Math::variance(Y.begin(), Y.end());
-      double cov_XY = Math::covariance(X.begin(), X.end(), Y.begin(), Y.end());
 
       // Mean of abscissa and ordinate values
       double x_mean = Math::mean(X.begin(), X.end());
       double y_mean = Math::mean(Y.begin(), Y.end());
 
+      // Variance and Covariances
+      double var_X = Math::variance(X.begin(), X.end(), x_mean);
+      double var_Y = Math::variance(Y.begin(), Y.end(), y_mean);
+      double cov_XY = Math::covariance(X.begin(), X.end(), Y.begin(), Y.end());
+
       // S_xx
-      double s_XX = 0;
-      for (unsigned i = 0; i < N; ++i)
+      double s_XX = var_X * (N-1);
+      /*for (unsigned i = 0; i < N; ++i)
       {
         double d = (X[i] - x_mean);
         s_XX += d * d;
-      }
+      }*/
 
       // Compute the squared Pearson coefficient
       r_squared_ = (cov_XY * cov_XY) / (var_X * var_Y);
@@ -155,7 +161,7 @@ namespace OpenMS
       boost::math::students_t tdist(N - 2);
       t_star_ = boost::math::quantile(tdist, P);
 
-      //Compute the asymmetric 95% confidence intervall of around the X-intercept
+      //Compute the asymmetric 95% confidence interval of around the X-intercept
       double g = (t_star_ / (slope_ / stand_error_slope_));
       g *= g;
       double left = (x_intercept_ - x_mean) * g;
@@ -163,7 +169,7 @@ namespace OpenMS
       double d = (x_intercept_ - x_mean);
       double right = t_star_ * (stand_dev_residuals_ / slope_) * sqrt((d * d) / s_XX + (bottom / N));
 
-      // Confidence intervall lower_ <= X_intercept <= upper_
+      // Confidence interval lower_ <= X_intercept <= upper_
       lower_ = x_intercept_ + (left + right) / bottom;
       upper_ = x_intercept_ + (left - right) / bottom;
 
@@ -213,3 +219,4 @@ namespace OpenMS
 
   }
 }
+

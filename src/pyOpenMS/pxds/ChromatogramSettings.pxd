@@ -1,21 +1,12 @@
-from libcpp.vector cimport vector as libcpp_vector
-from libcpp.string cimport string as libcpp_string
+from Types cimport *
+from String cimport *
 from InstrumentSettings cimport *
-from Precursor cimport *
-from Peak1D cimport *
 from SourceFile cimport *
 from PeptideIdentification cimport *
-from libcpp cimport bool
-from libcpp.vector cimport vector as libcpp_vector
-from DataValue cimport *
-from String cimport *
-from Types cimport *
 from DataProcessing cimport *
-
 from Product cimport *
 from AcquisitionInfo cimport *
-from InstrumentSettings cimport *
-from SourceFile cimport *
+from Precursor cimport *
 
 cdef extern from "<OpenMS/METADATA/ChromatogramSettings.h>" namespace "OpenMS":
 
@@ -57,15 +48,15 @@ cdef extern from "<OpenMS/METADATA/ChromatogramSettings.h>" namespace "OpenMS":
         # sets the precursors
         void setPrecursor(Precursor precursor) nogil except +
 
-        # returns a reference to the description of the applied processing
-        libcpp_vector[DataProcessing] getDataProcessing() nogil except +
+        # returns a mutable reference to the description of the applied processing
+        libcpp_vector[ shared_ptr[DataProcessing] ] getDataProcessing() nogil except +
         # sets the description of the applied processing
-        void setDataProcessing(libcpp_vector[DataProcessing]) nogil except +
+        void setDataProcessing(libcpp_vector[ shared_ptr[DataProcessing] ])   nogil except +
 
-        # returns the chromatogram type, e.g. a SRM chromatogram
-        ChromatogramType getChromatogramType() nogil except +
         # sets the chromatogram type
-        void setChromatogramType(ChromatogramType chrom_type) nogil except +
+        void setChromatogramType(ChromatogramType type) nogil except +
+        ChromatogramType getChromatogramType() nogil except +
+
 
 cdef extern from "<OpenMS/METADATA/ChromatogramSettings.h>" namespace "OpenMS::ChromatogramSettings":
 

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,8 +28,8 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Clemens Groepl, Andreas Bertsch $
-// $Authors: Clemens Groepl, Andreas Bertsch $
+// $Maintainer: Chris Bielow $
+// $Authors: Clemens Groepl, Andreas Bertsch, Chris Bielow $
 // --------------------------------------------------------------------------
 //
 #include <cmath>
@@ -39,9 +39,7 @@
 #include <limits>
 
 #include <OpenMS/CHEMISTRY/IsotopeDistribution.h>
-#include <OpenMS/CHEMISTRY/ElementDB.h>
-#include <OpenMS/CHEMISTRY/Element.h>
-#include <OpenMS/MATH/MISC/MathFunctions.h>
+#include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
 
 using namespace std;
 
@@ -166,37 +164,91 @@ namespace OpenMS
 
   void IsotopeDistribution::estimateFromPeptideWeight(double average_weight)
   {
-    const ElementDB * db = ElementDB::getInstance();
+    // Element counts are from Senko's Averagine model
+    estimateFromWeightAndComp(average_weight, 4.9384, 7.7583, 1.3577, 1.4773, 0.0417, 0);
+  }
 
-    vector<String> names;
-    names.push_back("C");
-    names.push_back("H");
-    names.push_back("N");
-    names.push_back("O");
-    names.push_back("S");
+  void IsotopeDistribution::estimateFromPeptideWeightAndS(double average_weight, UInt S)
+  {
+    // Element counts are from Senko's Averagine model, excluding sulfur.
+    estimateFromWeightAndCompAndS(average_weight, S, 4.9384, 7.7583, 1.3577, 1.4773, 0);
+  }
 
-    //Averagine element count divided by averagine weight
-    vector<double> factors;
-    factors.push_back(4.9384 / 111.1254);
-    factors.push_back(7.7583 / 111.1254);
-    factors.push_back(1.3577 / 111.1254);
-    factors.push_back(1.4773 / 111.1254);
-    factors.push_back(0.0417 / 111.1254);
+  void IsotopeDistribution::estimateFromRNAWeight(double average_weight)
+  {
+    estimateFromWeightAndComp(average_weight, 9.75, 12.25, 3.75, 7, 0, 1);
+  }
 
-    //initialize distribution
-    distribution_.clear();
-    distribution_.push_back(make_pair(0u, 1.0));
+  void IsotopeDistribution::estimateFromDNAWeight(double average_weight)
+  {
+    estimateFromWeightAndComp(average_weight, 9.75, 12.25, 3.75, 6, 0, 1);
+  }
 
-    for (Size i = 0; i != names.size(); ++i)
-    {
-      ContainerType single, conv_dist;
-      //calculate distribution for single element
-      ContainerType dist(db->getElement(names[i])->getIsotopeDistribution().getContainer());
-      convolvePow_(single, dist, (Size) Math::round(average_weight * factors[i]));
-      //convolve it with the existing distributions
-      conv_dist = distribution_;
-      convolve_(distribution_, single, conv_dist);
-    }
+  void IsotopeDistribution::estimateFromWeightAndComp(double average_weight, double C, double H, double N, double O, double S, double P)
+  {
+      EmpiricalFormula ef;
+      ef.estimateFromWeightAndComp(average_weight, C, H, N, O, S, P);
+      distribution_ = ef.getIsotopeDistribution(max_isotope_).getContainer();
+  }
+
+  void IsotopeDistribution::estimateFromWeightAndCompAndS(double average_weight, UInt S, double C, double H, double N, double O, double P)
+  {
+    EmpiricalFormula ef;
+    ef.estimateFromWeightAndCompAndS(average_weight, S, C, H, N, O, P);
+    distribution_ = ef.getIsotopeDistribution(max_isotope_).getContainer();
+  }
+
+  void IsotopeDistribution::estimateForFragmentFromPeptideWeight(double average_weight_precursor, double average_weight_fragment, const std::set<UInt>& precursor_isotopes)
+  {
+    // Element counts are from Senko's Averagine model
+    estimateForFragmentFromWeightAndComp(average_weight_precursor, average_weight_fragment, precursor_isotopes, 4.9384, 7.7583, 1.3577, 1.4773, 0.0417, 0);
+  }
+
+  void IsotopeDistribution::estimateForFragmentFromPeptideWeightAndS(double average_weight_precursor, UInt S_precursor, double average_weight_fragment, UInt S_fragment, const std::set<UInt>& precursor_isotopes)
+  {
+    UInt max_depth = *std::max_element(precursor_isotopes.begin(), precursor_isotopes.end())+1;
+
+    double average_weight_comp_fragment = average_weight_precursor - average_weight_fragment;
+    double S_comp_fragment = S_precursor - S_fragment;
+
+    IsotopeDistribution id_comp_fragment(max_depth), id_fragment(max_depth);
+
+    id_fragment.estimateFromPeptideWeightAndS(average_weight_fragment, S_fragment);
+    id_comp_fragment.estimateFromPeptideWeightAndS(average_weight_comp_fragment, S_comp_fragment);
+
+    calcFragmentIsotopeDist(id_fragment, id_comp_fragment, precursor_isotopes);
+  }
+
+  void IsotopeDistribution::estimateForFragmentFromRNAWeight(double average_weight_precursor, double average_weight_fragment, const std::set<UInt>& precursor_isotopes)
+  {
+    estimateForFragmentFromWeightAndComp(average_weight_precursor, average_weight_fragment, precursor_isotopes, 9.75, 12.25, 3.75, 7, 0, 1);
+  }
+
+  void IsotopeDistribution::estimateForFragmentFromDNAWeight(double average_weight_precursor, double average_weight_fragment, const std::set<UInt>& precursor_isotopes)
+  {
+    estimateForFragmentFromWeightAndComp(average_weight_precursor, average_weight_fragment, precursor_isotopes, 9.75, 12.25, 3.75, 6, 0, 1);
+  }
+
+  void IsotopeDistribution::estimateForFragmentFromWeightAndComp(double average_weight_precursor, double average_weight_fragment, const std::set<UInt>& precursor_isotopes, double C, double H, double N, double O, double S, double P)
+  {
+    UInt max_depth = *std::max_element(precursor_isotopes.begin(), precursor_isotopes.end()) + 1;
+
+    EmpiricalFormula ef_fragment;
+    ef_fragment.estimateFromWeightAndComp(average_weight_fragment, C, H, N, O, S, P);
+    IsotopeDistribution id_fragment = ef_fragment.getIsotopeDistribution(max_depth);
+
+    EmpiricalFormula ef_comp_frag;
+    ef_comp_frag.estimateFromWeightAndComp(average_weight_precursor-average_weight_fragment, C, H, N, O, S, P);
+    IsotopeDistribution id_comp_fragment = ef_comp_frag.getIsotopeDistribution(max_depth);
+
+    calcFragmentIsotopeDist(id_fragment, id_comp_fragment, precursor_isotopes);
+  }
+
+  void IsotopeDistribution::calcFragmentIsotopeDist(const IsotopeDistribution& fragment_isotope_dist, const IsotopeDistribution& comp_fragment_isotope_dist, const std::set<UInt>& precursor_isotopes)
+  {
+    ContainerType result;
+    calcFragmentIsotopeDist_(result, fragment_isotope_dist.distribution_, comp_fragment_isotope_dist.distribution_, precursor_isotopes);
+    distribution_ = result;
   }
 
   bool IsotopeDistribution::operator==(const IsotopeDistribution & isotope_distribution) const
@@ -210,6 +262,25 @@ namespace OpenMS
     return !(isotope_distribution == *this);
   }
 
+  IsotopeDistribution::ContainerType IsotopeDistribution::fillGaps_(const IsotopeDistribution::ContainerType& id) const
+  {
+    ContainerType id_gapless;
+    Size mass = id.begin()->first;
+    for (ContainerType::const_iterator it = id.begin(); it < id.end(); ++mass) // go through all masses
+    {
+      if (it->first != mass) 
+      { // missing an entry
+        id_gapless.push_back(make_pair(mass, 0.0));
+      }
+      else 
+      { // mass is registered already
+        id_gapless.push_back(*it); // copy
+        ++it;  // ... and advance
+      }
+    }
+    return id_gapless;
+  }
+
   void IsotopeDistribution::convolve_(ContainerType & result, const ContainerType & left, const ContainerType & right) const
   {
     if (left.empty() || right.empty())
@@ -218,46 +289,40 @@ namespace OpenMS
       return;
     }
 
-    ContainerType::size_type r_max = left.size() + right.size() - 1;
+    
+    // ensure the isotope cluster has no gaps 
+    // (e.g. from Bromine there is only Bromine-79 & Bromine-81, so we need to insert Bromine-80 with zero probability)
+    ContainerType left_l = fillGaps_(left);
+    ContainerType right_l = fillGaps_(right);
+
+    ContainerType::size_type r_max = left_l.size() + right_l.size() - 1;
 
     if ((ContainerType::size_type)max_isotope_ != 0 && r_max > (ContainerType::size_type)max_isotope_)
     {
       r_max = (ContainerType::size_type)max_isotope_;
     }
 
+    // pre-fill result with masses
     result.resize(r_max);
     for (ContainerType::size_type i = 0; i != r_max; ++i)
     {
-      result[i] = make_pair(left[0].first + right[0].first + i, 0);
+      result[i] = make_pair(left_l[0].first + right_l[0].first + i, 0);
     }
 
-    // we loop backwards because then the small products tend to come first
-    // (for better numerics)
-    for (SignedSize i = left.size() - 1; i >= 0; --i)
+    // fill result with probabilities
+    // (we loop backwards because then the small products tend to come first, for better numerics)
+    for (SignedSize i = left_l.size() - 1; i >= 0; --i)
     {
-      for (SignedSize j = min<SignedSize>(r_max - i, right.size()) - 1; j >= 0; --j)
+      for (SignedSize j = min<SignedSize>(r_max - i, right_l.size()) - 1; j >= 0; --j)
       {
-        result[i + j].second += left[i].second * right[j].second;
+        result[i + j].second += left_l[i].second * right_l[j].second;
       }
     }
   }
 
   void IsotopeDistribution::convolvePow_(ContainerType & result, const ContainerType & input, Size n) const
   {
-    /*
-    // my code
-    ContainerType tmp, tmp_result;
-    tmp.push_back(make_pair<Size, double>(0, 1));
-    for (Size i=0; i!=n; ++i)
-    {
-        convolve(tmp_result, input, tmp);
-        swap(tmp_result, tmp);
-    }
-    swap(tmp, result);
-    */
-
-
-    // Clemens' code begin
+    // TODO: Maybe use FFT convolve
     if (n == 1)
     {
       result = input;
@@ -278,11 +343,12 @@ namespace OpenMS
       }
     }
 
+    ContainerType input_l = fillGaps_(input);
 
     // get started
     if (n & 1)
     {
-      result = input;
+      result = input_l;
     }
     else
     {
@@ -295,7 +361,7 @@ namespace OpenMS
     // to avoid taking unnecessary squares, we check the loop condition
     // somewhere in the middle
     ContainerType convolution_power;
-    convolveSquare_(convolution_power, input);
+    convolveSquare_(convolution_power, input_l);
     for (Size i = 1;; ++i)
     {
       if (n & (Size(1) << i))
@@ -311,7 +377,6 @@ namespace OpenMS
       convolveSquare_(intermediate, convolution_power);
       swap(intermediate, convolution_power);
     }
-    // Clemens' code end
   }
 
   void IsotopeDistribution::convolveSquare_(ContainerType & result, const ContainerType & input) const
@@ -343,17 +408,91 @@ namespace OpenMS
     return;
   }
 
+  void IsotopeDistribution::calcFragmentIsotopeDist_(ContainerType& result, const ContainerType& fragment_isotope_dist, const ContainerType& comp_fragment_isotope_dist, const std::set<UInt>& precursor_isotopes)
+  {
+    if (fragment_isotope_dist.empty() || comp_fragment_isotope_dist.empty())
+    {
+      result.clear();
+      return;
+    }
+
+    // ensure the isotope cluster has no gaps
+    // (e.g. from Bromine there is only Bromine-79 & Bromine-81, so we need to insert Bromine-80 with zero probability)
+    ContainerType fragment_isotope_dist_l = fillGaps_(fragment_isotope_dist);
+    ContainerType comp_fragment_isotope_dist_l = fillGaps_(comp_fragment_isotope_dist);
+
+    ContainerType::size_type r_max = fragment_isotope_dist_l.size();
+
+    if ((ContainerType::size_type)max_isotope_ != 0 && r_max > (ContainerType::size_type)max_isotope_)
+    {
+      r_max = (ContainerType::size_type)max_isotope_;
+    }
+
+    // pre-fill result with masses
+    result.resize(r_max);
+    for (ContainerType::size_type i = 0; i != r_max; ++i)
+    {
+      result[i] = make_pair(fragment_isotope_dist_l[0].first + i, 0);
+    }
+
+    // Example: Let the Precursor formula be C2, and assume precursors M0, M+1, and M+2 were isolated.
+    // Let the fragment formula be C1, and therefore the complementary fragment formula is also C1
+    //
+    // let fi = fragment formula's isotope, pi = precursor formula's isotope, ci = complementary fragment formula's isotope
+    // let P(fi=x) be the probability of the formula existing as isotope x in precursor form (i.e. random sample from the universe)
+    //
+    // We want to calculate the probability the fragment will be isotope x given that we isolated precursors M0,M+1,M+2
+    //
+    // P(fi=0|pi=0 or pi=1 or pi=2) = P(fi=0) * P(pi=0 or pi=1 or pi=2|fi=0) / P(pi=0 or pi=1 or pi=2)  // bayes' theorem
+    //        = P(fi=0) * (P(pi=0|fi=0) + P(pi=1|fi=0) + P(pi=2|fi=0)) / (P(pi=0) + P(pi=1) + P(pi=2))  // mutually exclusive events
+    //        = P(fi=0) * (P(ci=0) + P(ci=1) + P(ci=2)) / (P(pi=0) + P(pi=1) + P(pi=2))                 // The only way pi=x|fi=y, is if ci=x-y
+    //        = P(fi=0) * (P(ci=0) + P(ci=1) + P(ci=2))                                                 // ignore normalization for now
+    //          ^this is the form we're calculating in the code, which is technically P(fi=0 and (pi=0 or pi=1 or pi=2)) because we didn't normalize
+    //        = 0.9893 * (0.9893 + 0.0107 + 0)
+    //          Note: In this example, P(ci=2)=0 because the complementary fragment is just C and cannot exist with 2 extra neutrons
+    //
+    // P(fi=1|pi=0 or pi=1 or pi=2) = P(fi=1) * P(pi=0 or pi=1 or pi=2|fi=1) / P(pi=0 or pi=1 or pi=2)
+    //        = P(fi=1) * (P(pi=0|fi=1) + P(pi=1|fi=1) + P(pi=2|fi=1)) / (P(pi=0) + P(pi=1) + P(pi=2))
+    //        = P(fi=1) * (P(ci=-1) + P(ci=0) + P(ci=1)) / (P(pi=0) + P(pi=1) + P(pi=2))
+    //          Note: P(ci<0)=0
+    //        = P(fi=1) * (P(ci=0) + P(ci=1))
+    //          ^this is the form we're calculating in the code
+    //        = 0.0107 * (0.9893 + 0.0107)
+    //
+    // P(fi=2|pi=0 or pi=1 or pi=2) = P(fi=2) * P(pi=0 or pi=1 or pi=2|fi=2) / P(pi=0 or pi=1 or pi=2)
+    //        = P(fi=2) * (P(pi=0|fi=2) + P(pi=1|fi=2) + P(pi=2|fi=2)) / (P(pi=0) + P(pi=1) + P(pi=2))
+    //        = P(fi=2) * (P(ci=-2) + P(ci=-1) + P(ci=0)) / (P(pi=0) + P(pi=1) + P(pi=2))
+    //        = P(fi=2) * P(ci=0)
+    //          ^this is the form we're calculating in the code
+    //        = 0 * (0.9893)
+    //          Note: In this example, P(fi=2)=0 because the fragment is just C and cannot exist with 2 extra neutrons.
+    //
+    // normalization is needed to get true conditional probabilities if desired.
+    //
+    for (Size i = 0; i < fragment_isotope_dist_l.size(); ++i)
+    {
+      for (std::set<UInt>::const_iterator precursor_itr = precursor_isotopes.begin(); precursor_itr != precursor_isotopes.end(); ++precursor_itr)
+      {
+        if (*precursor_itr >= i &&
+                (*precursor_itr-i) < comp_fragment_isotope_dist_l.size())
+        {
+          result[i].second += comp_fragment_isotope_dist_l[*precursor_itr-i].second;
+        }
+      }
+      result[i].second *= fragment_isotope_dist_l[i].second;
+    }
+  }
+
   void IsotopeDistribution::renormalize()
   {
     if (distribution_.size() != 0)
     {
       double sum(0);
       // loop backwards as most distributions contains a lot of small values at the end
-      for (ConstIterator it = distribution_.end() - 1; it != distribution_.begin(); --it)
+      for (ContainerType::const_reverse_iterator it = distribution_.rbegin(); it != distribution_.rend(); ++it)
       {
         sum += it->second;
       }
-      sum += distribution_.begin()->second;
 
       for (Iterator it = distribution_.begin(); it != distribution_.end(); ++it)
       {

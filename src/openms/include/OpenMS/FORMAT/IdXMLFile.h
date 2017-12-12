@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,13 +28,14 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Andreas Bertsch $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
 #ifndef OPENMS_FORMAT_IDXMLFILE_H
 #define OPENMS_FORMAT_IDXMLFILE_H
 
+#include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
@@ -50,11 +51,11 @@ namespace OpenMS
     This class is used to load and store documents that implement
     the schema of idXML files.
 
-        A documented schema for this format can be found at http://open-ms.sourceforge.net/schemas/.
+    A documented schema for this format can be found at http://open-ms.sourceforge.net/schemas/.
 
-        One file can contain several ProteinIdentification runs. Each run consists of peptide hits stored in
-        PeptideIdentification and (optional) protein hits stored in Identification. Peptide and protein
-        hits are connected via a string identifier. We use the search engine and the date as identifier.
+    One file can contain several ProteinIdentification runs. Each run consists of peptide hits stored in
+    PeptideIdentification and (optional) protein hits stored in Identification. Peptide and protein
+    hits are connected via a string identifier. We use the search engine and the date as identifier.
 
     @note This format will eventually be replaced by the HUPO-PSI (mzIdentML and mzQuantML)) AnalysisXML formats!
 
@@ -62,9 +63,13 @@ namespace OpenMS
   */
   class OPENMS_DLLAPI IdXMLFile :
     protected Internal::XMLHandler,
-    public Internal::XMLFile
+    public Internal::XMLFile,
+    public ProgressLogger
   {
 public:
+    // both ConsensusXMLFile and FeatureXMLFile use some protected IdXML helper functions to parse identifications without code duplication
+    friend class ConsensusXMLFile;
+    friend class FeatureXMLFile;
 
     /// Constructor
     IdXMLFile();
@@ -94,11 +99,12 @@ public:
     /**
         @brief Stores the data in an idXML file
 
-        The data is read in and stored in the file 'filename'.
+        The data is read in and stored in the file 'filename'. PeptideHits are sorted by score.
 
         @exception Exception::UnableToCreateFile is thrown if the file could not be created
     */
     void store(String filename, const std::vector<ProteinIdentification>& protein_ids, const std::vector<PeptideIdentification>& peptide_ids, const String& document_id = "");
+  
 
 protected:
     // Docu in base class
@@ -112,6 +118,31 @@ protected:
 
     /// Read and store ProteinGroup data
     void getProteinGroups_(std::vector<ProteinIdentification::ProteinGroup>& groups, const String& group_name);
+
+    /**
+      * Helper function to create the XML string for the amino acids before and after the peptide position in a protein.
+      * Can be reused by e.g. ConsensusXML, FeatureXML to write PeptideHit elements  
+      */
+    static String createFlankingAAXMLString_(const std::vector<PeptideEvidence> & pes);
+
+    /**
+      * Helper function to create the XML string for the position of the peptide in a protein.
+      * Can be reused by e.g. ConsensusXML, FeatureXML to write PeptideHit elements  
+      */
+    static String createPositionXMLString_(const std::vector<PeptideEvidence> & pes);
+
+
+    /**
+      * Helper function to write out fragment annotations as user param fragment_annotation
+      */  
+    static void writeFragmentAnnotations_(const String & tag_name, std::ostream & os, 
+                                          std::vector<PeptideHit::PeakAnnotation> annotations, UInt indent); 
+
+    /**
+      * Helper function to parse fragment annotations from string
+      */  
+    static void parseFragmentAnnotation_(const String& s, std::vector<PeptideHit::PeakAnnotation> & annotations);
+    
 
     /// @name members for loading data
     //@{

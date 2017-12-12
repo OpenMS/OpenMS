@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Stephan Aiche$
+// $Maintainer: Timo Sachsenberg$
 // $Authors: Marc Sturm, Chris Bielow $
 // --------------------------------------------------------------------------
 
@@ -41,6 +41,7 @@
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/METADATA/Precursor.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 
 namespace OpenMS
 {
@@ -58,12 +59,12 @@ namespace OpenMS
 
     @code
     //data
-    std::vector< MSSpectrum<> > spectra;
+    std::vector< MSSpectrum> spectra;
 
     //... spectra are added to the vector ...
 
     //range from 0.0 to 36.0 s
-    InRTRange< MSSpectrum<> > range(0.0, 36.0);
+    InRTRange< MSSpectrum> range(0.0, 36.0);
 
     //remove the range
     spectra.erase(remove_if(spectra.begin(), spectra.end(), range), spectra.end());
@@ -73,7 +74,7 @@ namespace OpenMS
 
     @code
     //data
-    MSSpectrum<> spectrum;
+    MSSpectrum spectrum;
 
     //... peaks are added to the spectrum ...
 
@@ -649,6 +650,62 @@ public:
 
 private:
     double min_size_, max_size_;
+    bool reverse_;
+  };
+
+    /**
+    @brief Predicate that determines if the isolation window covers ANY of the given m/z values.
+    @note This predicate will return always true for spectra with getMSLevel() = 1.
+
+    @ingroup RangeUtils
+  */
+  template <class SpectrumType>
+  class IsInIsolationWindow :
+    std::unary_function<SpectrumType, bool>
+  {
+
+public:
+    /**
+      @brief Constructor
+
+      @param vec_mz Vector of m/z values, of which at least one needs to be covered
+      @param reverse if @p reverse is true, operator() returns true if the isolation window is outside for ALL m/z values.
+    */
+    IsInIsolationWindow(std::vector<double> vec_mz, bool reverse = false) :
+      vec_mz_(vec_mz),
+      reverse_(reverse)
+    {
+      std::sort(vec_mz_.begin(), vec_mz_.end());
+    }
+
+    inline bool operator()(const SpectrumType& s) const
+    {
+      // leave non-fragmentation spectra untouched
+      if (s.getMSLevel() == 1) return false;
+
+      bool isIn = false;
+      for (std::vector<Precursor>::const_iterator it = s.getPrecursors().begin(); it != s.getPrecursors().end(); ++it)
+      {
+        if (it->getIsolationWindowLowerOffset() == 0 || it->getIsolationWindowUpperOffset() == 0)
+        {
+          LOG_WARN << "IsInIsolationWindow(): Lower/Upper Offset for Precursor Isolation Window is Zero! " << 
+            "Filtering will probably be too strict (unless you hit the exact precursor m/z)!" << std::endl;
+        }
+        const double lower_mz = it->getMZ() - it->getIsolationWindowLowerOffset();
+        std::vector<double>::const_iterator it_mz = std::lower_bound(vec_mz_.begin(), vec_mz_.end(), lower_mz);
+        if (it_mz != vec_mz_.end()) // left side ok
+        { // right side?
+          const double upper_mz = it->getMZ() + it->getIsolationWindowUpperOffset();
+          isIn |= (*it_mz <= upper_mz);
+        }
+      }
+
+      if (reverse_) return !isIn;
+      else return isIn;
+    }
+
+private:
+    std::vector<double> vec_mz_;
     bool reverse_;
   };
 

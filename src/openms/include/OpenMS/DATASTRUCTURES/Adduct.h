@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -93,13 +93,13 @@ public:
     //}
 
 private:
-    Int charge_; //< usually +1
-    Int amount_; //< number of entities
-    double singleMass_; //< mass of a single entity
-    double log_prob_; //< log probability of observing a single entity of this adduct
-    String formula_; //< chemical formula (parsable by EmpiricalFormula)
-    double rt_shift_; //< RT shift induced by a single entity of this adduct (this is for adducts attached prior to ESI, e.g. labeling)
-    String label_; //< Label for this adduct (can be used to indicate heavy labels)
+    Int charge_; ///< usually +1
+    Int amount_; ///< number of entities
+    double singleMass_; ///< mass of a single entity
+    double log_prob_; ///< log probability of observing a single entity of this adduct
+    String formula_; ///< chemical formula (parsable by EmpiricalFormula)
+    double rt_shift_; ///< RT shift induced by a single entity of this adduct (this is for adducts attached prior to ESI, e.g. labeling)
+    String label_; ///< Label for this adduct (can be used to indicate heavy labels)
 
     String checkFormula_(const String& formula);
 

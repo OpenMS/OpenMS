@@ -1,7 +1,5 @@
 from Types cimport *
 from Param cimport *
-from libcpp.pair cimport pair as libcpp_pair
-from libcpp.vector cimport vector as libcpp_vector
 
 from TransformationModel cimport *
 
@@ -11,6 +9,9 @@ cdef extern from "<OpenMS/ANALYSIS/MAPMATCHING/TransformationModelInterpolated.h
         # wrap-inherits:
         #   TransformationModel
 
+        TransformationModelInterpolated(TransformationModelInterpolated) nogil except + #wrap-ignore
+        TransformationModelInterpolated(libcpp_vector[TM_DataPoint]& data, Param& params) nogil except +
+
         void getDefaultParameters(Param &)
         double evaluate(double value) nogil except +
 
@@ -19,8 +20,8 @@ cdef extern from "<OpenMS/ANALYSIS/MAPMATCHING/TransformationModelInterpolated.h
     cdef cppclass Interpolator:
         # wrap-ignore
         # ABSTRACT
+        # no-pxd-import
 
       void init(libcpp_vector[double] x, libcpp_vector[double] y)
 
-      double eval(double x) 
-
+      double eval(double x)

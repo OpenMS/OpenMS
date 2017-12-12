@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -59,7 +59,6 @@
 
 //QT
 #include <QtGui/QApplication>
-#include <QtGui/QStyleFactory>
 #include <QtGui/QSplashScreen>
 #include <QtCore/QDir>
 
@@ -163,19 +162,6 @@ int main(int argc, const char** argv)
 
     QApplicationTOPP a(argc, const_cast<char**>(argv));
     a.connect(&a, SIGNAL(lastWindowClosed()), &a, SLOT(quit()));
-    // set plastique style unless windows / mac style is available
-    if (QStyleFactory::keys().contains("windowsxp", Qt::CaseInsensitive))
-    {
-      a.setStyle("windowsxp");
-    }
-    else if (QStyleFactory::keys().contains("macintosh", Qt::CaseInsensitive))
-    {
-      a.setStyle("macintosh");
-    }
-    else if (QStyleFactory::keys().contains("plastique", Qt::CaseInsensitive))
-    {
-      a.setStyle("plastique");
-    }
 
     TOPPASBase* mw = new TOPPASBase();
     mw->show();
