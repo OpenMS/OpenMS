@@ -211,6 +211,10 @@ private:
     */
     void readUnstructuredTSVInput_(const char* filename, FileTypes::Type filetype, std::vector<TSVTransition>& transition_list);
 
+    void spectrastRTExtract(const String str_inp, double & value, bool & spectrast_legacy);
+
+    bool spectrastAnnotationExtract(const String str_inp, TSVTransition & mytransition);
+
     /** @brief Cleanup of the read fields (removing quotes etc.)
     */
     void cleanupTransitions_(TSVTransition& mytransition);

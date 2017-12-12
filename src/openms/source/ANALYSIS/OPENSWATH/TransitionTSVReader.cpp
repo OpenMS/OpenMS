@@ -279,7 +279,7 @@ bool extractName<bool>(bool& value, const std::string& header_name,
       getTSVHeader_(line, delimiter, header, header_dict);
     }
 
-    bool spectrast_legacy = 0; // we will check below if SpectraST was run in legacy (<5.0) mode or if the RT normalization was forgotten.
+    bool spectrast_legacy = false; // we will check below if SpectraST was run in legacy (<5.0) mode or if the RT normalization was forgotten.
     int cnt = 0;
     while (std::getline(data, line))
     {
@@ -344,25 +344,7 @@ bool extractName<bool>(bool& value, const std::string& header_name,
       {
         if (header_dict.find("SpectraSTRetentionTime") != header_dict.end())
         {
-          // If SpectraST was run in RT normalization mode, the retention time is annotated as following: "3887.50(57.30)"
-          // 3887.50 refers to the non-normalized RT of the individual or consensus run, and 57.30 refers to the normalized
-          // iRT.
-          size_t start_position = tmp_line[header_dict["SpectraSTRetentionTime"]].find("(");
-          if (start_position != std::string::npos)
-          {
-            ++start_position;
-            size_t end_position = tmp_line[header_dict["SpectraSTRetentionTime"]].find(")");
-            if (end_position != std::string::npos)
-            {
-              mytransition.rt_calibrated = String(tmp_line[header_dict["SpectraSTRetentionTime"]].substr(start_position, end_position - start_position)).toDouble();
-            }
-          }
-          else
-          {
-            // SpectraST was run without RT Normalization mode
-            spectrast_legacy = 1;
-            mytransition.rt_calibrated = String(tmp_line[header_dict["SpectraSTRetentionTime"]]).toDouble();
-          }
+          spectrastRTExtract(tmp_line[header_dict["SpectraSTRetentionTime"]], mytransition.rt_calibrated, spectrast_legacy);
         }
         else
         {
@@ -457,71 +439,7 @@ bool extractName<bool>(bool& value, const std::string& header_name,
       // SpectraSTAnnotation
       if (header_dict.find("SpectraSTAnnotation") != header_dict.end())
       {
-        // Parses SpectraST fragment ion annotations
-        // Example: y13^2/0.000,b16-18^2/-0.013,y7-45/0.000
-        // Important: m2:8 are not yet supported! See SpectraSTPeakList::annotateInternalFragments for further information
-        mytransition.Annotation = tmp_line[header_dict["SpectraSTAnnotation"]];
-
-        std::vector<String> all_fragment_annotations;
-        String(tmp_line[header_dict["SpectraSTAnnotation"]]).split(",", all_fragment_annotations);
-
-        if (all_fragment_annotations[0].find("[") == std::string::npos && // non-unique peak annotation
-            all_fragment_annotations[0].find("]") == std::string::npos && // non-unique peak annotation
-            all_fragment_annotations[0].find("I") == std::string::npos && // immonium ion
-            all_fragment_annotations[0].find("p") == std::string::npos && // precursor ion
-            all_fragment_annotations[0].find("i") == std::string::npos && // isotope ion
-            all_fragment_annotations[0].find("m") == std::string::npos &&
-            all_fragment_annotations[0].find("?") == std::string::npos
-            )
-        {
-          std::vector<String> best_fragment_annotation_with_deviation;
-          all_fragment_annotations[0].split("/", best_fragment_annotation_with_deviation);
-          String best_fragment_annotation = best_fragment_annotation_with_deviation[0];
-
-          if (best_fragment_annotation.find("^") != std::string::npos)
-          {
-            std::vector<String> best_fragment_annotation_charge;
-            best_fragment_annotation.split("^", best_fragment_annotation_charge);
-            mytransition.fragment_charge = String(best_fragment_annotation_charge[1]);
-            best_fragment_annotation = best_fragment_annotation_charge[0];
-          }
-          else
-          {
-            mytransition.fragment_charge = 1; // assume 1 (most frequent charge state)
-          }
-
-          if (best_fragment_annotation.find("-") != std::string::npos)
-          {
-            std::vector<String> best_fragment_annotation_modification;
-            best_fragment_annotation.split("-", best_fragment_annotation_modification);
-            mytransition.fragment_type = best_fragment_annotation_modification[0].substr(0, 1);
-            mytransition.fragment_nr = String(best_fragment_annotation_modification[0].substr(1)).toInt();
-            mytransition.fragment_modification = -1 * String(best_fragment_annotation_modification[1]).toInt();
-
-          }
-          else if (best_fragment_annotation.find("+") != std::string::npos)
-          {
-            std::vector<String> best_fragment_annotation_modification;
-            best_fragment_annotation.split("+", best_fragment_annotation_modification);
-            mytransition.fragment_type = best_fragment_annotation_modification[0].substr(0, 1);
-            mytransition.fragment_nr = String(best_fragment_annotation_modification[0].substr(1)).toInt();
-            mytransition.fragment_modification = String(best_fragment_annotation_modification[1]).toInt();
-          }
-          else
-          {
-            mytransition.fragment_type = best_fragment_annotation.substr(0, 1);
-            mytransition.fragment_nr = String(best_fragment_annotation.substr(1)).toInt();
-            mytransition.fragment_modification = 0;
-          }
-
-          mytransition.fragment_mzdelta = String(best_fragment_annotation_with_deviation[1]).toDouble();
-        }
-        else
-        {
-          // The fragment ion could not be annotated and will likely not be used for detection transitions;
-          // we thus skip it and reduce the size of the output TraML.
-          skip_transition = true;
-        }
+        skip_transition = spectrastAnnotationExtract(tmp_line[header_dict["SpectraSTAnnotation"]], mytransition);
       }
 
       //// Generate Group IDs
@@ -598,6 +516,100 @@ bool extractName<bool>(bool& value, const std::string& header_name,
       std::cout << "Warning: SpectraST was not run in RT normalization mode but the converted list was interpreted to have iRT units. Check whether you need to adapt the parameter -algorithm:retentionTimeInterpretation. You can ignore this warning if you used a legacy SpectraST 4.0 file." << std::endl;
 
     }
+  }
+
+  void TransitionTSVReader::spectrastRTExtract(const String str_inp, double & value, bool & spectrast_legacy)
+  {
+    // If SpectraST was run in RT normalization mode, the retention time is annotated as following: "3887.50(57.30)"
+    // 3887.50 refers to the non-normalized RT of the individual or consensus run, and 57.30 refers to the normalized
+    // iRT.
+    size_t start_position = str_inp.find("(");
+    if (start_position != std::string::npos)
+    {
+      ++start_position;
+      size_t end_position = str_inp.find(")");
+      if (end_position != std::string::npos)
+      {
+        value = String(str_inp.substr(start_position, end_position - start_position)).toDouble();
+      }
+    }
+    else
+    {
+      // SpectraST was run without RT Normalization mode
+      spectrast_legacy = true;
+      value = str_inp.toDouble();
+    }
+  }
+
+  bool TransitionTSVReader::spectrastAnnotationExtract(const String str_inp, TSVTransition & mytransition)
+  {
+    // Parses SpectraST fragment ion annotations
+    // Example: y13^2/0.000,b16-18^2/-0.013,y7-45/0.000
+    // Important: m2:8 are not yet supported! See SpectraSTPeakList::annotateInternalFragments for further information
+    mytransition.Annotation = str_inp;
+
+    std::vector<String> all_fragment_annotations;
+    str_inp.split(",", all_fragment_annotations);
+
+    if (all_fragment_annotations[0].find("[") == std::string::npos && // non-unique peak annotation
+        all_fragment_annotations[0].find("]") == std::string::npos && // non-unique peak annotation
+        all_fragment_annotations[0].find("I") == std::string::npos && // immonium ion
+        all_fragment_annotations[0].find("p") == std::string::npos && // precursor ion
+        all_fragment_annotations[0].find("i") == std::string::npos && // isotope ion
+        all_fragment_annotations[0].find("m") == std::string::npos &&
+        all_fragment_annotations[0].find("?") == std::string::npos
+        )
+    {
+      std::vector<String> best_fragment_annotation_with_deviation;
+      all_fragment_annotations[0].split("/", best_fragment_annotation_with_deviation);
+      String best_fragment_annotation = best_fragment_annotation_with_deviation[0];
+
+      if (best_fragment_annotation.find("^") != std::string::npos)
+      {
+        std::vector<String> best_fragment_annotation_charge;
+        best_fragment_annotation.split("^", best_fragment_annotation_charge);
+        mytransition.fragment_charge = String(best_fragment_annotation_charge[1]);
+        best_fragment_annotation = best_fragment_annotation_charge[0];
+      }
+      else
+      {
+        mytransition.fragment_charge = 1; // assume 1 (most frequent charge state)
+      }
+
+      if (best_fragment_annotation.find("-") != std::string::npos)
+      {
+        std::vector<String> best_fragment_annotation_modification;
+        best_fragment_annotation.split("-", best_fragment_annotation_modification);
+        mytransition.fragment_type = best_fragment_annotation_modification[0].substr(0, 1);
+        mytransition.fragment_nr = String(best_fragment_annotation_modification[0].substr(1)).toInt();
+        mytransition.fragment_modification = -1 * String(best_fragment_annotation_modification[1]).toInt();
+
+      }
+      else if (best_fragment_annotation.find("+") != std::string::npos)
+      {
+        std::vector<String> best_fragment_annotation_modification;
+        best_fragment_annotation.split("+", best_fragment_annotation_modification);
+        mytransition.fragment_type = best_fragment_annotation_modification[0].substr(0, 1);
+        mytransition.fragment_nr = String(best_fragment_annotation_modification[0].substr(1)).toInt();
+        mytransition.fragment_modification = String(best_fragment_annotation_modification[1]).toInt();
+      }
+      else
+      {
+        mytransition.fragment_type = best_fragment_annotation.substr(0, 1);
+        mytransition.fragment_nr = String(best_fragment_annotation.substr(1)).toInt();
+        mytransition.fragment_modification = 0;
+      }
+
+      mytransition.fragment_mzdelta = String(best_fragment_annotation_with_deviation[1]).toDouble();
+    }
+    else
+    {
+      // The fragment ion could not be annotated and will likely not be used for detection transitions;
+      // we thus skip it and reduce the size of the output TraML.
+      return true;
+    }
+
+    return false;
   }
 
   void TransitionTSVReader::cleanupTransitions_(TSVTransition& mytransition)
