@@ -65,24 +65,7 @@ using namespace std;
 
 
 vector< pair<EmpiricalFormula, double> > formulas;
-//formulas.push_back(make_pair(EmpiricalFormula("C"),0));
-//formulas.push_back(make_pair(EmpiricalFormula("(13)C100(2)H100(15)N100"),0));
-//formulas.push_back(make_pair(EmpiricalFormula("CHNO"),0));
-
-//formulas.push_back(make_pair(EmpiricalFormula("C10H10"),0));
-//formulas.push_back(make_pair(EmpiricalFormula("C100H100"),0));
-//formulas.push_back(make_pair(EmpiricalFormula("C1000H1000"),0));
-//formulas.push_back(make_pair(EmpiricalFormula("C10000H10000"),0));
-
-//formulas.push_back(make_pair(EmpiricalFormula("C10H10N10"),0));
-//formulas.push_back(make_pair(EmpiricalFormula("C100H100N100"),0));
-//formulas.push_back(make_pair(EmpiricalFormula("C1000H1000N1000"),0));
-
-//formulas.push_back(make_pair(EmpiricalFormula("C10H10N10O10"),0));
-//formulas.push_back(make_pair(EmpiricalFormula("C100H100N100O100"),0));
 formulas.push_back(make_pair(EmpiricalFormula("C1000H1000N1000O1000"),0));
-//formulas.push_back(make_pair(EmpiricalFormula("C10000H10000N10000O10000"),0));
-
 
 IsotopePatternGenerator* id;
 double probability_cutoff = 0.00005;
@@ -90,195 +73,46 @@ double grid_resolution = 0.5;
 SysInfo::MemUsage memory_watch;
 StopWatch timer;
 
-// ofstream out("/home/main/fgid_results/results.csv");
-// out << "Algorithm,Formula,TheoreticalIsotopes,IsotopesFound,MeanSkew,Runtime,Memory"<<endl;
-// START_SECTION(Ecipex(double,double))
-  
-//   LOG_INFO <<"--------------" <<endl;
-//   LOG_INFO <<"---Ecipex-----" <<endl;
-  
-//   for(auto& f : formulas)
-//   {
-//     LOG_INFO << f.first.toString() << endl;
-//     f.second = f.first.calculateTheoreticalIsotopesNumber();
-//     timer.reset();
-//     memory_watch.reset();
-//     timer.start();
-    
-
-//     id = new Ecipex(0.00001, probability_cutoff);
-//     id->run(f.first);
-//     id->merge(grid_resolution);
-//     timer.stop();
-//     UInt64 memory_kb;
-//     SysInfo::getProcessMemoryConsumption(memory_kb);
-//     double time_lapsed = timer.getClockTime();
-    
-//     out << "Ecipex," << f.first.toString() << "," << f.second << "," << id->size() << "," <<id->averageMass() - f.first.getAverageWeight()<<","<< time_lapsed <<"," << memory_kb << endl;
-//     LOG_INFO << "Size " << id->size() << endl;
-//     delete id;
-//   }
-  
-
-// END_SECTION
-
-// START_SECTION(MIDAsFFTID(double, double))
-
-//   LOG_INFO <<"--------------" <<endl;
-//   LOG_INFO <<"--MIDAsFFT----" <<endl;
-//   for(auto& f : formulas)
-//   {
-//     LOG_INFO << f.first.toString();
-//     f.second = f.first.calculateTheoreticalIsotopesNumber();
-//     timer.reset();
-//     memory_watch.reset();
-//     timer.start();
-    
-//     id = new MIDAsFFTID(0.00001, probability_cutoff);
-//     id->run(f.first);
-//     LOG_INFO << id->averageMass() - f.first.getAverageWeight()<< endl;
-//     id->merge(grid_resolution);
-//     timer.stop();
-//     UInt64 memory_kb;
-//     SysInfo::getProcessMemoryConsumption(memory_kb);
-//     double time_lapsed = timer.getClockTime();
-//     out << "MIDAsFFT," << f.first.toString() << "," << f.second << "," << id->size() << "," <<id->averageMass() - f.first.getAverageWeight()<<","<< time_lapsed <<"," << memory_kb<< endl;
-//     LOG_INFO << "Size " << id->size() << endl;
-//     delete id;
-//   }
-// END_SECTION
-
-// START_SECTION(MIDAsPolynomialID(double,double))
-//       LOG_INFO <<"--------------" <<endl;
-//   LOG_INFO <<"--MIDAsPolynomiaID----" <<endl;
-//   for(auto& f : formulas)
-//   {
-//     LOG_INFO << f.first.toString();
-//     f.second = f.first.calculateTheoreticalIsotopesNumber();
-//     timer.reset();
-//     memory_watch.reset();
-//     timer.start();
-//     id = new MIDAsPolynomialID(0.00001, probability_cutoff);
-//     id->run(f.first);
-//     LOG_INFO << id->averageMass() - f.first.getAverageWeight()<< endl;
-//     id->merge(grid_resolution);
-//     timer.stop();
-//     UInt64 memory_kb;
-//     SysInfo::getProcessMemoryConsumption(memory_kb);
-//     double time_lapsed = timer.getClockTime();
-    
-//     out << "MIDAsPolynomial," << f.first.toString() << "," << f.second << "," << id->size() << "," <<id->averageMass() - f.first.getAverageWeight()<<","<< time_lapsed << ","<< memory_kb << endl;
-//     LOG_INFO << "Size " << id->size() << endl;
-//     delete id;
-//   }
-// END_SECTION
-
-// out.close();
-
 
 START_SECTION(Ecipex(double,double))
-  
-  LOG_INFO <<"--------------" <<endl;
-  LOG_INFO <<"---Ecipex-----" <<endl;
   
   for(auto& f : formulas)
   {
     LOG_INFO << f.first.toString() << endl;
-    f.second = f.first.calculateTheoreticalIsotopesNumber();
-    timer.reset();
-    memory_watch.reset();
-    timer.start();
-
-
-
     id = new Ecipex(0.00001, probability_cutoff);
     id->run(f.first);
-    LOG_INFO << id->averageMass() - f.first.getAverageWeight()<< endl;
     id->merge(grid_resolution);
-    ofstream out("/home/main/fgid_results/ecipex.txt");
-        for(auto& sample : id->getContainer())
-          {
-            out << sample.getMZ() << " "<<sample.getIntensity()<<endl;
-          }
-
-        out.close();
-
-    timer.stop();
-    UInt64 memory_kb;
-    SysInfo::getProcessMemoryConsumption(memory_kb);
-    double time_lapsed = timer.getClockTime();
-    
-    //out << "Ecipex," << f.first.toString() << "," << f.second << "," << id->size() << "," <<id->averageMass() - f.first.getAverageWeight()<<","<< time_lapsed <<"," << memory_kb << endl;
-    LOG_INFO << "Size " << id->size() << endl;
     delete id;
   }
   
 
 END_SECTION
 
-START_SECTION(MIDAsFFTID(double, double))
-
-  LOG_INFO <<"--------------" <<endl;
-  LOG_INFO <<"--MIDAsFFT----" <<endl;
+START_SECTION(MIDAsFFTID(double,double))
+  
   for(auto& f : formulas)
   {
-    LOG_INFO << f.first.toString();
-    f.second = f.first.calculateTheoreticalIsotopesNumber();
-    timer.reset();
-    memory_watch.reset();
-    timer.start();
-    
+    LOG_INFO << f.first.toString() << endl;
     id = new MIDAsFFTID(0.00001, probability_cutoff);
     id->run(f.first);
-    LOG_INFO << id->averageMass() - f.first.getAverageWeight()<< endl;
     id->merge(grid_resolution);
-        ofstream out("/home/main/fgid_results/midas_fft.txt");
-        for(auto& sample : id->getContainer())
-          {
-            out << sample.getMZ() << " "<<sample.getIntensity()<<endl;
-          }
-
-        out.close();
-    timer.stop();
-    UInt64 memory_kb;
-    SysInfo::getProcessMemoryConsumption(memory_kb);
-    double time_lapsed = timer.getClockTime();
-    //out << "MIDAsFFT," << f.first.toString() << "," << f.second << "," << id->size() << "," <<id->averageMass() - f.first.getAverageWeight()<<","<< time_lapsed <<"," << memory_kb<< endl;
-    LOG_INFO << "Size " << id->size() << endl;
     delete id;
   }
+  
+
 END_SECTION
 
 START_SECTION(MIDAsPolynomialID(double,double))
-      LOG_INFO <<"--------------" <<endl;
-  LOG_INFO <<"--MIDAsPolynomiaID----" <<endl;
+  
   for(auto& f : formulas)
   {
-    LOG_INFO << f.first.toString();
-    f.second = f.first.calculateTheoreticalIsotopesNumber();
-    timer.reset();
-    memory_watch.reset();
-    timer.start();
+    LOG_INFO << f.first.toString() << endl;
     id = new MIDAsPolynomialID(0.00001, probability_cutoff);
     id->run(f.first);
-    LOG_INFO << id->averageMass() - f.first.getAverageWeight()<< endl;
     id->merge(grid_resolution);
-    ofstream out("/home/main/fgid_results/midas_pol.txt");
-        for(auto& sample : id->getContainer())
-          {
-            out << sample.getMZ() << " "<<sample.getIntensity()<<endl;
-          }
-
-        out.close();
-    timer.stop();
-    UInt64 memory_kb;
-    SysInfo::getProcessMemoryConsumption(memory_kb);
-    double time_lapsed = timer.getClockTime();
-    
-    //out << "MIDAsPolynomial," << f.first.toString() << "," << f.second << "," << id->size() << "," <<id->averageMass() - f.first.getAverageWeight()<<","<< time_lapsed << ","<< memory_kb << endl;
-    LOG_INFO << "Size " << id->size() << endl;
     delete id;
   }
+  
 END_SECTION
 
 

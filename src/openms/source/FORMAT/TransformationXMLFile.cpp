@@ -138,7 +138,7 @@ namespace OpenMS
     // close tag
     os << "\t</Transformation>\n";
 
-    //write barter
+    //write footer
     os << "</TrafoXML>" << "\n";
 
     //close stream
