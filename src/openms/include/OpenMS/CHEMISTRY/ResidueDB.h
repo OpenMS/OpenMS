@@ -36,9 +36,9 @@
 #define OPENMS_CHEMISTRY_RESIDUEDB_H
 
 #include <OpenMS/DATASTRUCTURES/Map.h>
-#include <boost/unordered_map.hpp>
 #include <OpenMS/DATASTRUCTURES/String.h>
 
+#include <unordered_map>
 #include <set>
 
 namespace OpenMS
@@ -210,7 +210,7 @@ protected:
 
     void addResidue_(Residue* residue);
 
-    boost::unordered_map<String, Residue*> residue_names_;
+    std::unordered_map<std::string, Residue*> residue_names_;
 
     // fast lookup table for residues
     Residue* residue_by_one_letter_code_[256];
