@@ -242,9 +242,14 @@ namespace OpenMS
 
   void Spectrum3DOpenGLCanvas::paintGL()
   {
+    // Start a painter for renderText here? If you add this you will
+    // get errors and nothing but axes will be painted.
+    // We need to create a painter here, otherwise we got a lot of flicker but
+    // we do not need to call begin() and end() on it as this will be handled
+    // by construction and destruction. See Qt docu.
     QPainter painter(this);
-    painter.begin(this);
-    painter.beginNativePainting();
+    // painter.begin(this);
+    // painter.beginNativePainting();
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glLoadIdentity();
@@ -272,12 +277,10 @@ namespace OpenMS
         glCallList(stickdata_);
       }
     }
-    painter.endNativePainting();
-
     if (canvas_3d_.getLayerCount() != 0) { drawAxesLegend(); }
 
-    // Start a painter for renderText here? If you add this you will
-    painter.end();
+    // Close painter
+    // painter.end();
     update();
   }
 
