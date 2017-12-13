@@ -459,6 +459,8 @@ namespace OpenMS
       if (bias_check && r2 > min_r2_)
       {
         LOG_INFO << "Valid calibration found for " << component_concentrations_sub[0].feature.getMetaValue("native_id") << " .";
+        LOG_INFO << "R2 = " << std::to_string(r2) << ".";
+        LOG_INFO << "n_points = " << std::to_string(component_concentrations_sorted_indices.size()) << ".";
 
         // copy over the final optimized points before exiting
         component_concentrations = component_concentrations_sub;
