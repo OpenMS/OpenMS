@@ -90,46 +90,7 @@ namespace OpenMS
   double PeakIntegrator::getPeakApexPos() const { return peak_apex_pos_; }
   double PeakIntegrator::getBackgroundHeight() const { return background_height_; }
   double PeakIntegrator::getBackgroundArea() const { return background_area_; }
-  double PeakIntegrator::getWidthAt5() const { return width_at_5_; }
-  double PeakIntegrator::getWidthAt10() const { return width_at_10_; }
-  double PeakIntegrator::getWidthAt50() const { return width_at_50_; }
-  double PeakIntegrator::getStartTimeAt5() const { return start_time_at_5_; }
-  double PeakIntegrator::getStartTimeAt10() const { return start_time_at_10_; }
-  double PeakIntegrator::getStartTimeAt50() const { return start_time_at_50_; }
-  double PeakIntegrator::getEndTimeAt5() const { return end_time_at_5_; }
-  double PeakIntegrator::getEndTimeAt10() const { return end_time_at_10_; }
-  double PeakIntegrator::getEndTimeAt50() const { return end_time_at_50_; }
-  double PeakIntegrator::getTotalWidth() const { return total_width_; }
-  double PeakIntegrator::getTailingFactor() const { return tailing_factor_; }
-  double PeakIntegrator::getAsymmetryFactor() const { return asymmetry_factor_; }
-  double PeakIntegrator::getBaselineDeltaToHeight() const { return baseline_delta_2_height_; }
-  double PeakIntegrator::getSlopeOfBaseline() const { return slope_of_baseline_; }
-  Int PeakIntegrator::getPointsAcrossBaseline() const { return points_across_baseline_; }
-  Int PeakIntegrator::getPointsAcrossHalfHeight() const { return points_across_half_height_; }
-
-  const std::map<String, double> PeakIntegrator::getPeakShapeMetrics() const
-  {
-    std::map<String, double> m
-    {
-      { "width_at_5", width_at_5_ },
-      { "width_at_10", width_at_10_ },
-      { "width_at_50", width_at_50_ },
-      { "start_time_at_5", start_time_at_5_ },
-      { "start_time_at_10", start_time_at_10_ },
-      { "start_time_at_50", start_time_at_50_ },
-      { "end_time_at_5", end_time_at_5_ },
-      { "end_time_at_10", end_time_at_10_ },
-      { "end_time_at_50", end_time_at_50_ },
-      { "total_width", total_width_ },
-      { "tailing_factor", tailing_factor_ },
-      { "asymmetry_factor", asymmetry_factor_ },
-      { "baseline_delta_to_height", baseline_delta_2_height_ },
-      { "slope_of_baseline", slope_of_baseline_ },
-      { "points_across_baseline", points_across_baseline_ },
-      { "points_across_half_height", points_across_half_height_ },
-    };
-    return m;
-  }
+  PeakIntegrator::PeakShapeMetrics PeakIntegrator::getPeakShapeMetrics() const { return psm_; }
 
   void PeakIntegrator::getDefaultParameters(Param& params)
   {
@@ -288,8 +249,8 @@ namespace OpenMS
   template <typename PeakContainerT>
   void PeakIntegrator::calculatePeakShapeMetrics_(const PeakContainerT& p, const double& left, const double& right)
   {
-    points_across_baseline_ = 0;
-    points_across_half_height_ = 0;
+    psm_.points_across_baseline = 0;
+    psm_.points_across_half_height = 0;
     for (auto it = p.PosBegin(left); it != p.PosEnd(right); ++it)
     {
       const double intensity = it->getIntensity();
@@ -297,23 +258,23 @@ namespace OpenMS
       const double position = it->getPos();
       const double position_prev = (it-1)->getPos();
       // start and end positions (rt or mz)
-      if (position < peak_apex_pos_ && points_across_baseline_ > 1) // start positions
+      if (position < peak_apex_pos_ && psm_.points_across_baseline > 1) // start positions
       {
         const double d_int_times_d_rt = (intensity - intensity_prev) * (position - position_prev);
         if (intensity >= 0.05 * peak_height_ && intensity_prev < 0.05 * peak_height_)
         {
           const double height_5 = intensity - 0.05 * peak_height_;
-          start_time_at_5_ = position - d_int_times_d_rt / height_5;
+          psm_.start_time_at_5 = position - d_int_times_d_rt / height_5;
         }
         if (intensity >= 0.1 * peak_height_ && intensity_prev < 0.1 * peak_height_)
         {
           const double height_10 = intensity - 0.1 * peak_height_;
-          start_time_at_10_ = position - d_int_times_d_rt / height_10;
+          psm_.start_time_at_10 = position - d_int_times_d_rt / height_10;
         }
         if (intensity >= 0.5 * peak_height_ && intensity_prev < 0.5 * peak_height_)
         {
           const double height_50 = intensity - 0.5 * peak_height_;
-          start_time_at_50_ = position - d_int_times_d_rt / height_50;
+          psm_.start_time_at_50 = position - d_int_times_d_rt / height_50;
         }
       }
       else if (position > peak_apex_pos_) // end positions
@@ -322,38 +283,38 @@ namespace OpenMS
         if (intensity <= 0.05 * peak_height_ && intensity_prev > 0.05 * peak_height_)
         {
           const double height_5 = 0.05 * peak_height_ - intensity;
-          end_time_at_5_ = position - d_int_times_d_rt / height_5;
+          psm_.end_time_at_5 = position - d_int_times_d_rt / height_5;
         }
         if (intensity <= 0.1 * peak_height_ && intensity_prev > 0.1 * peak_height_)
         {
           const double height_10 = 0.1 * peak_height_ - intensity;
-          end_time_at_10_ = position - d_int_times_d_rt / height_10;
+          psm_.end_time_at_10 = position - d_int_times_d_rt / height_10;
         }
         if (intensity <= 0.5 * peak_height_ && intensity_prev > 0.5 * peak_height_)
         {
           const double height_50 = 0.5 * peak_height_ - intensity;
-          end_time_at_50_ = position - d_int_times_d_rt / height_50;
+          psm_.end_time_at_50 = position - d_int_times_d_rt / height_50;
         }
       }
       // points across the peak
-      ++points_across_baseline_;
+      ++(psm_.points_across_baseline);
       if (intensity >= 0.5 * peak_height_)
       {
-        ++points_across_half_height_;
+        ++(psm_.points_across_half_height);
       }
     }
 
     // peak widths
-    width_at_5_ = end_time_at_5_ - start_time_at_5_;
-    width_at_10_ = end_time_at_10_ - start_time_at_10_;
-    width_at_50_ = end_time_at_50_ - start_time_at_50_;
-    total_width_ = (p.PosEnd(right)-1)->getPos() - p.PosBegin(left)->getPos();
-    slope_of_baseline_ = (p.PosEnd(right)-1)->getIntensity() - p.PosBegin(left)->getIntensity();
-    baseline_delta_2_height_ = slope_of_baseline_ / peak_height_;
+    psm_.width_at_5 = psm_.end_time_at_5 - psm_.start_time_at_5;
+    psm_.width_at_10 = psm_.end_time_at_10 - psm_.start_time_at_10;
+    psm_.width_at_50 = psm_.end_time_at_50 - psm_.start_time_at_50;
+    psm_.total_width = (p.PosEnd(right)-1)->getPos() - p.PosBegin(left)->getPos();
+    psm_.slope_of_baseline = (p.PosEnd(right)-1)->getIntensity() - p.PosBegin(left)->getIntensity();
+    psm_.baseline_delta_2_height = psm_.slope_of_baseline / peak_height_;
 
     // other
-    tailing_factor_ = width_at_5_ / std::min(peak_apex_pos_ - start_time_at_5_, end_time_at_5_ - peak_apex_pos_);
-    asymmetry_factor_ = std::min(peak_apex_pos_ - start_time_at_10_, end_time_at_10_ - peak_apex_pos_) /
-      std::max(peak_apex_pos_ - start_time_at_10_, end_time_at_10_ - peak_apex_pos_);
+    psm_.tailing_factor = psm_.width_at_5 / std::min(peak_apex_pos_ - psm_.start_time_at_5, psm_.end_time_at_5 - peak_apex_pos_);
+    psm_.asymmetry_factor = std::min(peak_apex_pos_ - psm_.start_time_at_10, psm_.end_time_at_10 - peak_apex_pos_) /
+      std::max(peak_apex_pos_ - psm_.start_time_at_10, psm_.end_time_at_10 - peak_apex_pos_);
   }
 }

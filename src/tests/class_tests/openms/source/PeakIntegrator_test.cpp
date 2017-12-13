@@ -115,151 +115,25 @@ START_SECTION(getParameters())
 }
 END_SECTION
 
-START_SECTION(getPeakArea())
+START_SECTION(PeakShapeMetrics getPeakShapeMetrics() const)
 {
-  TEST_REAL_SIMILAR(ptr->getPeakArea(), 0.0)
-}
-END_SECTION
-
-START_SECTION(getPeakHeight())
-{
-  TEST_REAL_SIMILAR(ptr->getPeakHeight(), -1.0)
-}
-END_SECTION
-
-START_SECTION(getPeakApexPos())
-{
-  TEST_REAL_SIMILAR(ptr->getPeakApexPos(), -1.0)
-}
-END_SECTION
-
-START_SECTION(getBackgroundHeight())
-{
-  TEST_REAL_SIMILAR(ptr->getBackgroundHeight(), 0.0)
-}
-END_SECTION
-
-START_SECTION(getBackgroundArea())
-{
-  TEST_REAL_SIMILAR(ptr->getBackgroundArea(), 0.0)
-}
-END_SECTION
-
-START_SECTION(getWidthAt5())
-{
-  TEST_REAL_SIMILAR(ptr->getWidthAt5(), 0.0)
-}
-END_SECTION
-
-START_SECTION(getWidthAt10())
-{
-  TEST_REAL_SIMILAR(ptr->getWidthAt10(), 0.0)
-}
-END_SECTION
-
-START_SECTION(getWidthAt50())
-{
-  TEST_REAL_SIMILAR(ptr->getWidthAt50(), 0.0)
-}
-END_SECTION
-
-START_SECTION(getStartTimeAt5())
-{
-  TEST_REAL_SIMILAR(ptr->getStartTimeAt5(), 0.0)
-}
-END_SECTION
-
-START_SECTION(getStartTimeAt10())
-{
-  TEST_REAL_SIMILAR(ptr->getStartTimeAt10(), 0.0)
-}
-END_SECTION
-
-START_SECTION(getStartTimeAt50())
-{
-  TEST_REAL_SIMILAR(ptr->getStartTimeAt50(), 0.0)
-}
-END_SECTION
-
-START_SECTION(getEndTimeAt5())
-{
-  TEST_REAL_SIMILAR(ptr->getEndTimeAt5(), 0.0)
-}
-END_SECTION
-
-START_SECTION(getEndTimeAt10())
-{
-  TEST_REAL_SIMILAR(ptr->getEndTimeAt10(), 0.0)
-}
-END_SECTION
-
-START_SECTION(getEndTimeAt50())
-{
-  TEST_REAL_SIMILAR(ptr->getEndTimeAt50(), 0.0)
-}
-END_SECTION
-
-START_SECTION(getTotalWidth())
-{
-  TEST_REAL_SIMILAR(ptr->getTotalWidth(), 0.0)
-}
-END_SECTION
-
-START_SECTION(getTailingFactor())
-{
-  TEST_REAL_SIMILAR(ptr->getTailingFactor(), 0.0)
-}
-END_SECTION
-
-START_SECTION(getAsymmetryFactor())
-{
-  TEST_REAL_SIMILAR(ptr->getAsymmetryFactor(), 0.0)
-}
-END_SECTION
-
-START_SECTION(getBaselineDeltaToHeight())
-{
-  TEST_REAL_SIMILAR(ptr->getBaselineDeltaToHeight(), 0.0)
-}
-END_SECTION
-
-START_SECTION(getSlopeOfBaseline())
-{
-  TEST_REAL_SIMILAR(ptr->getSlopeOfBaseline(), 0.0)
-}
-END_SECTION
-
-START_SECTION(getPointsAcrossBaseline())
-{
-  TEST_EQUAL(ptr->getPointsAcrossBaseline(), 0)
-}
-END_SECTION
-
-START_SECTION(getPointsAcrossHalfHeight())
-{
-  TEST_EQUAL(ptr->getPointsAcrossHalfHeight(), 0)
-}
-END_SECTION
-
-START_SECTION(getPeakShapeMetrics())
-{
-  std::map<String, double> m = ptr->getPeakShapeMetrics();
-  TEST_REAL_SIMILAR(m.at("width_at_5"), 0.0)
-  TEST_REAL_SIMILAR(m.at("width_at_10"), 0.0)
-  TEST_REAL_SIMILAR(m.at("width_at_50"), 0.0)
-  TEST_REAL_SIMILAR(m.at("start_time_at_5"), 0.0)
-  TEST_REAL_SIMILAR(m.at("start_time_at_10"), 0.0)
-  TEST_REAL_SIMILAR(m.at("start_time_at_50"), 0.0)
-  TEST_REAL_SIMILAR(m.at("end_time_at_5"), 0.0)
-  TEST_REAL_SIMILAR(m.at("end_time_at_10"), 0.0)
-  TEST_REAL_SIMILAR(m.at("end_time_at_50"), 0.0)
-  TEST_REAL_SIMILAR(m.at("total_width"), 0.0)
-  TEST_REAL_SIMILAR(m.at("tailing_factor"), 0.0)
-  TEST_REAL_SIMILAR(m.at("asymmetry_factor"), 0.0)
-  TEST_REAL_SIMILAR(m.at("baseline_delta_to_height"), 0.0)
-  TEST_REAL_SIMILAR(m.at("slope_of_baseline"), 0.0)
-  TEST_EQUAL(m.at("points_across_baseline"), 0)
-  TEST_EQUAL(m.at("points_across_half_height"), 0)
+  PeakIntegrator::PeakShapeMetrics psm = ptr->getPeakShapeMetrics();
+  TEST_REAL_SIMILAR(psm.width_at_5, 0.0)
+  TEST_REAL_SIMILAR(psm.width_at_10, 0.0)
+  TEST_REAL_SIMILAR(psm.width_at_50, 0.0)
+  TEST_REAL_SIMILAR(psm.start_time_at_5, 0.0)
+  TEST_REAL_SIMILAR(psm.start_time_at_10, 0.0)
+  TEST_REAL_SIMILAR(psm.start_time_at_50, 0.0)
+  TEST_REAL_SIMILAR(psm.end_time_at_5, 0.0)
+  TEST_REAL_SIMILAR(psm.end_time_at_10, 0.0)
+  TEST_REAL_SIMILAR(psm.end_time_at_50, 0.0)
+  TEST_REAL_SIMILAR(psm.total_width, 0.0)
+  TEST_REAL_SIMILAR(psm.tailing_factor, 0.0)
+  TEST_REAL_SIMILAR(psm.asymmetry_factor, 0.0)
+  TEST_REAL_SIMILAR(psm.slope_of_baseline, 0.0)
+  TEST_REAL_SIMILAR(psm.baseline_delta_2_height, 0.0)
+  TEST_EQUAL(psm.points_across_baseline, 0.0)
+  TEST_EQUAL(psm.points_across_half_height, 0.0)
 }
 END_SECTION
 
@@ -404,44 +278,46 @@ END_SECTION
 START_SECTION(void calculatePeakShapeMetrics(const MSChromatogram& chromatogram, const double& left, const double& right))
 {
   ptr->calculatePeakShapeMetrics(chromatogram, left, right);
-  TEST_REAL_SIMILAR(ptr->getWidthAt5(), 0.231263425125414);
-  TEST_REAL_SIMILAR(ptr->getWidthAt10(), 0.134762234301732);
-  TEST_REAL_SIMILAR(ptr->getWidthAt50(), 0.0595791540757924);
-  TEST_REAL_SIMILAR(ptr->getStartTimeAt5(), 2.51268515480125);
-  TEST_REAL_SIMILAR(ptr->getStartTimeAt10(), 2.63222565817823);
-  TEST_REAL_SIMILAR(ptr->getStartTimeAt50(), 2.65391757114759);
-  TEST_REAL_SIMILAR(ptr->getEndTimeAt5(), 2.74394857992666);
-  TEST_REAL_SIMILAR(ptr->getEndTimeAt10(), 2.76698789247996);
-  TEST_REAL_SIMILAR(ptr->getEndTimeAt50(), 2.71349672522338);
-  TEST_REAL_SIMILAR(ptr->getTotalWidth(), 0.540983333);
-  TEST_REAL_SIMILAR(ptr->getTailingFactor(), 5.86240177860251);
-  TEST_REAL_SIMILAR(ptr->getAsymmetryFactor(), 0.864593034054243);
-  TEST_REAL_SIMILAR(ptr->getSlopeOfBaseline(), 2454);
-  TEST_REAL_SIMILAR(ptr->getBaselineDeltaToHeight(), 0.00253908735640033);
-  TEST_EQUAL(ptr->getPointsAcrossBaseline(), 57);
-  TEST_EQUAL(ptr->getPointsAcrossHalfHeight(), 6);
+  PeakIntegrator::PeakShapeMetrics psm = ptr->getPeakShapeMetrics();
+  TEST_REAL_SIMILAR(psm.width_at_5, 0.231263425125414)
+  TEST_REAL_SIMILAR(psm.width_at_10, 0.134762234301732)
+  TEST_REAL_SIMILAR(psm.width_at_50, 0.0595791540757924)
+  TEST_REAL_SIMILAR(psm.start_time_at_5, 2.51268515480125)
+  TEST_REAL_SIMILAR(psm.start_time_at_10, 2.63222565817823)
+  TEST_REAL_SIMILAR(psm.start_time_at_50, 2.65391757114759)
+  TEST_REAL_SIMILAR(psm.end_time_at_5, 2.74394857992666)
+  TEST_REAL_SIMILAR(psm.end_time_at_10, 2.76698789247996)
+  TEST_REAL_SIMILAR(psm.end_time_at_50, 2.71349672522338)
+  TEST_REAL_SIMILAR(psm.total_width, 0.540983333)
+  TEST_REAL_SIMILAR(psm.tailing_factor, 5.86240177860251)
+  TEST_REAL_SIMILAR(psm.asymmetry_factor, 0.864593034054243)
+  TEST_REAL_SIMILAR(psm.slope_of_baseline, 2454)
+  TEST_REAL_SIMILAR(psm.baseline_delta_2_height, 0.00253908735640033)
+  TEST_EQUAL(psm.points_across_baseline, 57)
+  TEST_EQUAL(psm.points_across_half_height, 6)
 }
 END_SECTION
 
 START_SECTION(void calculatePeakShapeMetrics(const MSSpectrum& spectrum, const double& left, const double& right))
 {
   ptr->calculatePeakShapeMetrics(spectrum, left, right);
-  TEST_REAL_SIMILAR(ptr->getWidthAt5(), 0.231263425125414);
-  TEST_REAL_SIMILAR(ptr->getWidthAt10(), 0.134762234301732);
-  TEST_REAL_SIMILAR(ptr->getWidthAt50(), 0.0595791540757924);
-  TEST_REAL_SIMILAR(ptr->getStartTimeAt5(), 2.51268515480125);
-  TEST_REAL_SIMILAR(ptr->getStartTimeAt10(), 2.63222565817823);
-  TEST_REAL_SIMILAR(ptr->getStartTimeAt50(), 2.65391757114759);
-  TEST_REAL_SIMILAR(ptr->getEndTimeAt5(), 2.74394857992666);
-  TEST_REAL_SIMILAR(ptr->getEndTimeAt10(), 2.76698789247996);
-  TEST_REAL_SIMILAR(ptr->getEndTimeAt50(), 2.71349672522338);
-  TEST_REAL_SIMILAR(ptr->getTotalWidth(), 0.540983333);
-  TEST_REAL_SIMILAR(ptr->getTailingFactor(), 5.86240177860251);
-  TEST_REAL_SIMILAR(ptr->getAsymmetryFactor(), 0.864593034054243);
-  TEST_REAL_SIMILAR(ptr->getSlopeOfBaseline(), 2454);
-  TEST_REAL_SIMILAR(ptr->getBaselineDeltaToHeight(), 0.00253908735640033);
-  TEST_EQUAL(ptr->getPointsAcrossBaseline(), 57);
-  TEST_EQUAL(ptr->getPointsAcrossHalfHeight(), 6);
+  PeakIntegrator::PeakShapeMetrics psm = ptr->getPeakShapeMetrics();
+  TEST_REAL_SIMILAR(psm.width_at_5, 0.231263425125414)
+  TEST_REAL_SIMILAR(psm.width_at_10, 0.134762234301732)
+  TEST_REAL_SIMILAR(psm.width_at_50, 0.0595791540757924)
+  TEST_REAL_SIMILAR(psm.start_time_at_5, 2.51268515480125)
+  TEST_REAL_SIMILAR(psm.start_time_at_10, 2.63222565817823)
+  TEST_REAL_SIMILAR(psm.start_time_at_50, 2.65391757114759)
+  TEST_REAL_SIMILAR(psm.end_time_at_5, 2.74394857992666)
+  TEST_REAL_SIMILAR(psm.end_time_at_10, 2.76698789247996)
+  TEST_REAL_SIMILAR(psm.end_time_at_50, 2.71349672522338)
+  TEST_REAL_SIMILAR(psm.total_width, 0.540983333)
+  TEST_REAL_SIMILAR(psm.tailing_factor, 5.86240177860251)
+  TEST_REAL_SIMILAR(psm.asymmetry_factor, 0.864593034054243)
+  TEST_REAL_SIMILAR(psm.slope_of_baseline, 2454)
+  TEST_REAL_SIMILAR(psm.baseline_delta_2_height, 0.00253908735640033)
+  TEST_EQUAL(psm.points_across_baseline, 57)
+  TEST_EQUAL(psm.points_across_half_height, 6)
 }
 END_SECTION
 

@@ -163,6 +163,99 @@ public:
     */
     void calculatePeakShapeMetrics(const MSSpectrum& spectrum, const double& left, const double& right);
 
+    void getDefaultParameters(Param& params);
+
+    /** @name calculatePeakShapeMetrics() outputs
+      The calculatePeakShapeMetrics() method uses this struct to save its results.
+    */
+    ///@{
+    struct PeakShapeMetrics
+    {
+      /**
+        The width of the peak at 5% the peak's height.
+      */
+      double width_at_5 = 0.0;
+      /**
+        The width of the peak at 10% the peak's height.
+      */
+      double width_at_10 = 0.0;
+      /**
+        The width of the peak at 50% the peak's height.
+      */
+      double width_at_50 = 0.0;
+      /**
+        The start position at which the intensity is 5% the peak's height.
+      */
+      double start_time_at_5 = 0.0;
+      /**
+        The start position at which the intensity is 10% the peak's height.
+      */
+      double start_time_at_10 = 0.0;
+      /**
+        The start position at which the intensity is 50% the peak's height.
+      */
+      double start_time_at_50 = 0.0;
+      /**
+        The end position at which the intensity is 5% the peak's height.
+      */
+      double end_time_at_5 = 0.0;
+      /**
+        The end position at which the intensity is 10% the peak's height.
+      */
+      double end_time_at_10 = 0.0;
+      /**
+        The end position at which the intensity is 50% the peak's height.
+      */
+      double end_time_at_50 = 0.0;
+      /**
+        The peak's total width.
+      */
+      double total_width = 0.0;
+      /**
+        The tailing factor is a measure of peak tailing.
+        It is defined as the distance from the front slope of the peak to the back slope
+        divided by twice the distance from the center line of the peak to the front slope,
+        with all measurements made at 5% of the maximum peak height.
+        tailing_factor = Tf = W0.05/2a
+        where W0.05 is peak width at 5% max peak height
+        a = min width to peak maximum at 5% max peak height
+        b = max width to peak maximum at 5% max peak height
+        0.9 < Tf < 1.2
+        front Tf < 0.9
+        tailing Tf > 1.2
+      */
+      double tailing_factor = 0.0;
+      /**
+        The asymmetry factor is a measure of peak tailing.
+        It is defined as the distance from the center line of the peak to the back slope
+        divided by the distance from the center line of the peak to the front slope,
+        with all measurements made at 10% of the maximum peak height.
+        asymmetry_factor = As = b/a
+        where a is min width to peak maximum at 10% max peak height
+        b is max width to peak maximum at 10% max peak height
+      */
+      double asymmetry_factor = 0.0;
+      /**
+        The slope of the baseline is a measure of slope change.
+        It is approximated as the difference in baselines between the peak start and peak end.
+      */
+      double slope_of_baseline = 0.0;
+      /**
+        The change in baseline divided by the height is
+        a way of comparing the influence of the change of baseline on the peak height.
+      */
+      double baseline_delta_2_height = 0.0;
+      /**
+        The number of points across the baseline.
+      */
+      Int points_across_baseline = 0;
+      /**
+        The number of points across half the peak's height.
+      */
+      Int points_across_half_height = 0;
+      ///@}
+    };
+
     /// Get the peak area
     double getPeakArea() const;
 
@@ -178,58 +271,8 @@ public:
     /// Get the background area
     double getBackgroundArea() const;
 
-    /// Get the peak's width at 0.05 of peak's height
-    double getWidthAt5() const;
-
-    /// Get the peak's width at 0.10 of peak's height
-    double getWidthAt10() const;
-
-    /// Get the peak's width at 0.50 of peak's height
-    double getWidthAt50() const;
-
-    /// Get the start position at which the intensity is 0.05 of peak's height
-    double getStartTimeAt5() const;
-
-    /// Get the start position at which the intensity is 0.10 of peak's height
-    double getStartTimeAt10() const;
-
-    /// Get the start position at which the intensity is 0.50 of peak's height
-    double getStartTimeAt50() const;
-
-    /// Get the end position at which the intensity is 0.05 of peak's height
-    double getEndTimeAt5() const;
-
-    /// Get the end position at which the intensity is 0.10 of peak's height
-    double getEndTimeAt10() const;
-
-    /// Get the end position at which the intensity is 0.50 of peak's height
-    double getEndTimeAt50() const;
-
-    /// Get the peak's total width
-    double getTotalWidth() const;
-
-    /// Get the peaks's tailing factor
-    double getTailingFactor() const;
-
-    /// Get the peak's asymmetry factor
-    double getAsymmetryFactor() const;
-
-    /// Get the baseline delta divided by the peak's height
-    double getBaselineDeltaToHeight() const;
-
-    /// Get the slope of the peak's baseline
-    double getSlopeOfBaseline() const;
-
-    /// Get the number of points across the baseline
-    Int getPointsAcrossBaseline() const;
-
-    /// Get the number of points across half the peak's height
-    Int getPointsAcrossHalfHeight() const;
-
-    /// Get all the informations about the peak's shape metrics
-    const std::map<String, double> getPeakShapeMetrics() const;
-
-    void getDefaultParameters(Param& params);
+    /// Get the peak's shape metrics
+    PeakShapeMetrics getPeakShapeMetrics() const;
 
 protected:
     void updateMembers_();
@@ -297,93 +340,10 @@ private:
     double background_area_ = 0.0;
     ///@}
 
-    /** @name calculatePeakShapeMetrics() outputs
-      The calculatePeakShapeMetrics() method saves its results into these members.
-    */
-    ///@{
     /**
-      The width of the peak at 5% the peak's height.
+      The calculatePeakShapeMetrics() method uses this struct to save its results.
     */
-    double width_at_5_ = 0.0;
-    /**
-      The width of the peak at 10% the peak's height.
-    */
-    double width_at_10_ = 0.0;
-    /**
-      The width of the peak at 50% the peak's height.
-    */
-    double width_at_50_ = 0.0;
-    /**
-      The start position at which the intensity is 5% the peak's height.
-    */
-    double start_time_at_5_ = 0.0;
-    /**
-      The start position at which the intensity is 10% the peak's height.
-    */
-    double start_time_at_10_ = 0.0;
-    /**
-      The start position at which the intensity is 50% the peak's height.
-    */
-    double start_time_at_50_ = 0.0;
-    /**
-      The end position at which the intensity is 5% the peak's height.
-    */
-    double end_time_at_5_ = 0.0;
-    /**
-      The end position at which the intensity is 10% the peak's height.
-    */
-    double end_time_at_10_ = 0.0;
-    /**
-      The end position at which the intensity is 50% the peak's height.
-    */
-    double end_time_at_50_ = 0.0;
-    /**
-      The peak's total width.
-    */
-    double total_width_ = 0.0;
-    /**
-      The tailing factor is a measure of peak tailing.
-      It is defined as the distance from the front slope of the peak to the back slope
-      divided by twice the distance from the center line of the peak to the front slope,
-      with all measurements made at 5% of the maximum peak height.
-      tailing_factor = Tf = W0.05/2a
-      where W0.05 is peak width at 5% max peak height
-      a = min width to peak maximum at 5% max peak height
-      b = max width to peak maximum at 5% max peak height
-      0.9 < Tf < 1.2
-      front Tf < 0.9
-      tailing Tf > 1.2
-    */
-    double tailing_factor_ = 0.0;
-    /**
-      The asymmetry factor is a measure of peak tailing.
-      It is defined as the distance from the center line of the peak to the back slope
-      divided by the distance from the center line of the peak to the front slope,
-      with all measurements made at 10% of the maximum peak height.
-      asymmetry_factor = As = b/a
-      where a is min width to peak maximum at 10% max peak height
-      b is max width to peak maximum at 10% max peak height
-    */
-    double asymmetry_factor_ = 0.0;
-    /**
-      The change in baseline divided by the height is
-      a way of comparing the influence of the change of baseline on the peak height.
-    */
-    double baseline_delta_2_height_ = 0.0;
-    /**
-      The slope of the baseline is a measure of slope change.
-      It is approximated as the difference in baselines between the peak start and peak end.
-    */
-    double slope_of_baseline_ = 0.0;
-    /**
-      The number of points across the baseline.
-    */
-    Int points_across_baseline_ = 0;
-    /**
-      The number of points across half the peak's height.
-    */
-    Int points_across_half_height_ = 0;
-    ///@}
+    PeakShapeMetrics psm_;
 
     /** @name Helper methods
       The Simpson's rule implementations for an odd number of unequally spaced points.
