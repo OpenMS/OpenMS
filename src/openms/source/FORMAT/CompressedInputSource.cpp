@@ -31,7 +31,9 @@
 // $Maintainer: Timo Sachsenberg $
 // $Authors: David Wojnar $
 // --------------------------------------------------------------------------
+
 #include <OpenMS/FORMAT/CompressedInputSource.h>
+
 #include <OpenMS/FORMAT/GzipInputStream.h>
 #include <OpenMS/FORMAT/Bzip2InputStream.h>
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
@@ -60,13 +62,13 @@ namespace OpenMS
     //  it as is.
     //
     Internal::StringManager strman;
-    XMLCh * file = strman.convert(file_path.c_str());
-    if (xercesc::XMLPlatformUtils::isRelative(file, manager))
+    auto file = strman.convert(file_path.c_str());
+    if (xercesc::XMLPlatformUtils::isRelative(file.c_str(), manager))
     {
       XMLCh * curDir = xercesc::XMLPlatformUtils::getCurrentDirectory(manager);
 
       XMLSize_t curDirLen = XMLString::stringLen(curDir);
-      XMLSize_t filePathLen = XMLString::stringLen(file);
+      XMLSize_t filePathLen = XMLString::stringLen(file.c_str());
       XMLCh * fullDir = (XMLCh *) manager->allocate
                         (
         (curDirLen + filePathLen + 2) * sizeof(XMLCh)
@@ -74,7 +76,7 @@ namespace OpenMS
 
       XMLString::copyString(fullDir, curDir);
       fullDir[curDirLen] = chForwardSlash;
-      XMLString::copyString(&fullDir[curDirLen + 1], file);
+      XMLString::copyString(&fullDir[curDirLen + 1], file.c_str());
 
       XMLPlatformUtils::removeDotSlash(fullDir, manager);
       XMLPlatformUtils::removeDotDotSlash(fullDir, manager);
@@ -86,7 +88,7 @@ namespace OpenMS
     }
     else
     {
-      XMLCh * tmpBuf = XMLString::replicate(file, manager);
+      XMLCh * tmpBuf = XMLString::replicate(file.c_str(), manager);
       XMLPlatformUtils::removeDotSlash(tmpBuf, manager);
       setSystemId(tmpBuf);
       manager->deallocate(tmpBuf);  //delete [] tmpBuf;

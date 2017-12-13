@@ -125,7 +125,7 @@
       <userParam name="full_peptide_name" type="xsd:string" value="AAAAAAAAAASGAAIPPLIPPRRVITLYQC(UniMod:4)FSVSQR"/>
       <ProteinRef ref="DECOY_O14654"/>
       <Modification location="6" monoisotopicMassDelta="57.021464" averageMassDelta="57.0513">
-           <cvParam cvRef="UNIMOD" accession="UNIMOD:4" name="Carbamidomethyl"/>
+        <cvParam cvRef="UNIMOD" accession="UNIMOD:4" name="Carbamidomethyl"/>
       </Modification>
       <RetentionTimeList>
         <RetentionTime>

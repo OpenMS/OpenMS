@@ -49,7 +49,10 @@ namespace OpenMS
   /**
     @brief This class serves for reading in and writing FASTA files
 
-    You can use aggegate methods load() and store() to read/write a
+    If the protein/gene sequence contains unusual symbols (such as translation end (*)),
+    they will be kept!
+
+    You can use aggregate methods load() and store() to read/write a
     set of protein sequences at the cost of memory.
     
     Or use single read/write of protein sequences using readStart(), readNext()
@@ -71,7 +74,7 @@ public:
       from the next line until the next > (exclusive) is stored
       in sequence.
     */
-  struct FASTAEntry
+    struct FASTAEntry
   {
       String identifier;
       String description;
@@ -150,7 +153,7 @@ public:
     void readStart(const String& filename);
 
     /**
-    @brief Prepares a FASTA file given by 'filename' for streamed reading using readNext().
+    @brief Reads the next FASTA entry from file.
 
     If you want to read all entries in one go, use load().
 
@@ -160,6 +163,14 @@ public:
     */
     bool readNext(FASTAEntry& protein);
 
+    /// current stream position
+    std::streampos position() const;
+
+    /// is stream at EOF?
+    bool atEnd() const;
+
+    /// seek stream to @p pos
+    bool setPosition(const std::streampos& pos);
 
     /**
     @brief Prepares a FASTA file given by 'filename' for streamed writing using writeNext().
@@ -204,10 +215,10 @@ public:
     void static store(const String& filename, const std::vector<FASTAEntry>& data);
 
 protected:
-    std::fstream infile_;   //< filestream for reading; init using FastaFile::readStart()
-    std::ofstream outfile_; //< filestream for writing; init using FastaFile::writeStart()
-    std::unique_ptr<void, std::function<void(void*) > > reader_; //< filestream for reading; init using FastaFile::readStart(); needs to be a pointer, since its not copy-constructable; we use void* here, to avoid pulling in seqan includes
-    Size entries_read_; //< some internal book-keeping during reading
+    std::fstream infile_;   ///< filestream for reading; init using FastaFile::readStart()
+    std::ofstream outfile_; ///< filestream for writing; init using FastaFile::writeStart()
+    std::unique_ptr<void, std::function<void(void*) > > reader_; ///< filestream for reading; init using FastaFile::readStart(); needs to be a pointer, since its not copy-constructable; we use void* here, to avoid pulling in seqan includes
+    Size entries_read_; ///< some internal book-keeping during reading
   };
 
 } // namespace OpenMS

@@ -139,19 +139,60 @@ namespace OpenMS
 
     };
 
+    /**
+      @brief This class stores a retention time structure that is used in TargetedExperiment (representing a TraML file)
+
+      According to the standard, each retention time tag can have one or more
+      CV terms describing the retention time in question. The unit and type of
+      retention time are stored using the RTUnit and RTType structure while the
+      actual value is stored in retention_time_ and can be accessed by getRT /
+      setRT. Currently support for RT windows or lower/upper limits is not
+      implemented but is available via CV terms.
+    */
     class OPENMS_DLLAPI RetentionTime :
       public CVTermListInterface
     {
 public:
 
+      enum class RTUnit : std::int8_t
+      {
+        SECOND = 0,        // RT stored in seconds
+        MINUTE,            // RT stored in minutes
+        UNKNOWN,           // no stored annotation
+        SIZE_OF_RTUNIT
+      };
+
+      enum class RTType : std::int8_t
+      {
+        LOCAL = 0,        // undefined local chromatography
+        NORMALIZED,       // standardized reference chromatography
+        PREDICTED,        // predicted by referenced software
+        HPINS,            // H-PINS "The de facto standard providing the retention times"
+        IRT,              // iRT retention time standard
+        UNKNOWN,          // no stored annotation
+        SIZE_OF_RTTYPE
+      };
+
       RetentionTime() :
-        CVTermListInterface()
+        CVTermListInterface(),
+        software_ref(""),
+        retention_time_unit(RTUnit::SIZE_OF_RTUNIT),
+        retention_time_type(RTType::SIZE_OF_RTTYPE),
+        retention_time_set_(false),
+        retention_time_(0.0)
+        // retention_time_width(0.0),
+        // retention_time_lower(0.0),
+        // retention_time_upper(0.0)
       {
       }
 
       RetentionTime(const RetentionTime & rhs) :
         CVTermListInterface(rhs),
-        software_ref(rhs.software_ref)
+        software_ref(rhs.software_ref),
+        retention_time_unit(rhs.retention_time_unit),
+        retention_time_type(rhs.retention_time_type),
+        retention_time_set_(rhs.retention_time_set_),
+        retention_time_(rhs.retention_time_)
       {
       }
 
@@ -165,6 +206,10 @@ public:
         {
           CVTermListInterface::operator=(rhs);
           software_ref = rhs.software_ref;
+          retention_time_unit = rhs.retention_time_unit;
+          retention_time_type = rhs.retention_time_type;
+          retention_time_set_ = rhs.retention_time_set_;
+          retention_time_ = rhs.retention_time_;
         }
         return *this;
       }
@@ -172,90 +217,147 @@ public:
       bool operator==(const RetentionTime & rhs) const
       {
         return CVTermListInterface::operator==(rhs) &&
-               software_ref == rhs.software_ref;
+               software_ref == rhs.software_ref &&
+               retention_time_unit == rhs.retention_time_unit &&
+               retention_time_type == rhs.retention_time_type &&
+               retention_time_set_ == rhs.retention_time_set_ &&
+               retention_time_ == rhs.retention_time_;
+      }
+
+      bool isRTset() const 
+      {
+        return retention_time_set_;
+      }
+      void setRT(double rt)
+      {
+        retention_time_ = rt;
+        retention_time_set_ = true;
+      }
+      double getRT() const
+      {
+        OPENMS_PRECONDITION(isRTset(), "RT needs to be set")
+        return retention_time_;
       }
 
       String software_ref;
+      RTUnit retention_time_unit;
+      RTType retention_time_type;
+
+private:
+
+      bool retention_time_set_;
+      double retention_time_;
+      // double retention_time_width;
+      // double retention_time_lower;
+      // double retention_time_upper;
     };
 
-    class OPENMS_DLLAPI Compound :
+    class OPENMS_DLLAPI PeptideCompound :
       public CVTermList
     {
 public:
 
-      Compound() :
+      PeptideCompound() :
         CVTermList(),
-        theoretical_mass(0.0),
         charge_(0),
         charge_set_(false)
       {
       }
 
-      Compound(const Compound & rhs) :
+      PeptideCompound(const PeptideCompound & rhs) :
         CVTermList(rhs),
         id(rhs.id),
         rts(rhs.rts),
-        molecular_formula(rhs.molecular_formula),
-        smiles_string(rhs.smiles_string),
-        theoretical_mass(rhs.theoretical_mass),
         charge_(rhs.charge_),
         charge_set_(rhs.charge_set_)
       {
       }
 
-      Compound & operator=(const Compound & rhs)
+      PeptideCompound & operator=(const PeptideCompound & rhs)
       {
         if (this != &rhs)
         {
           CVTermList::operator=(rhs);
-          id = rhs.id;
           rts = rhs.rts;
-          molecular_formula = rhs.molecular_formula;
-          smiles_string = rhs.smiles_string;
-          theoretical_mass = rhs.theoretical_mass;
+          id = rhs.id;
           charge_ = rhs.charge_;
           charge_set_ = rhs.charge_set_;
         }
         return *this;
       }
 
-      bool operator==(const Compound & rhs) const
+      bool operator==(const PeptideCompound & rhs) const
       {
         return CVTermList::operator==(rhs) &&
-               id == rhs.id &&
                rts == rhs.rts &&
-               molecular_formula == rhs.molecular_formula &&
-               smiles_string == rhs.smiles_string &&
-               theoretical_mass == rhs.theoretical_mass &&
+               id == rhs.id &&
                charge_ == rhs.charge_ &&
                charge_set_ == rhs.charge_set_;
       }
 
-      /// Set the peptide charge state
+      /// Set the peptide or compound charge state
       void setChargeState(int charge)
       {
         charge_ = charge;
         charge_set_ = true;
       }
 
-      /// Whether compound has set charge state
+      /// Whether peptide or compound has set charge state
       bool hasCharge() const
       {
         return charge_set_;
       }
 
-      /// Return the compound charge state
+      /// Return the peptide or compound charge state
       int getChargeState() const
       {
         OPENMS_PRECONDITION(charge_set_, "Cannot return charge which was never set")
         return charge_;
       }
 
+      //@{
+
+      /// Get compound or peptide retentiontime
+      bool hasRetentionTime() const
+      {
+        return (!rts.empty() && rts[0].isRTset());
+      }
+
+      double getRetentionTime() const
+      {
+        if (!hasRetentionTime())
+        {
+          throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+              "No retention time information available");
+        }
+        return rts[0].getRT();
+      }
+
+      /// Get compound or peptide retentiontime type
+      RetentionTime::RTType getRetentionTimeType() const
+      {
+        if (!hasRetentionTime())
+        {
+          throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+              "No retention time information available");
+        }
+        return rts[0].retention_time_type;
+      }
+
+      /// Get compound or peptide retentiontime unit (minute/seconds)
+      RetentionTime::RTUnit getRetentionTimeUnit() const
+      {
+        if (!hasRetentionTime())
+        {
+          throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+              "No retention time information available");
+        }
+        return rts[0].retention_time_unit;
+      }
+      //@}
+
       String id;
       std::vector<RetentionTime> rts;
-      String molecular_formula;
-      String smiles_string;
-      double theoretical_mass;
 
 protected:
       int charge_;
@@ -263,8 +365,54 @@ protected:
 
     };
 
+    class OPENMS_DLLAPI Compound :
+      public PeptideCompound
+    {
+public:
+
+      Compound() :
+        theoretical_mass(0.0)
+      {
+      }
+
+      Compound(const Compound & rhs) :
+        PeptideCompound(rhs),
+        molecular_formula(rhs.molecular_formula),
+        smiles_string(rhs.smiles_string),
+        theoretical_mass(rhs.theoretical_mass)
+      {
+      }
+
+      Compound & operator=(const Compound & rhs)
+      {
+        if (this != &rhs)
+        {
+          PeptideCompound::operator=(rhs);
+          molecular_formula = rhs.molecular_formula;
+          smiles_string = rhs.smiles_string;
+          theoretical_mass = rhs.theoretical_mass;
+        }
+        return *this;
+      }
+
+      bool operator==(const Compound & rhs) const
+      {
+        return PeptideCompound::operator==(rhs) &&
+               molecular_formula == rhs.molecular_formula &&
+               smiles_string == rhs.smiles_string &&
+               theoretical_mass == rhs.theoretical_mass;
+      }
+
+      String molecular_formula;
+      String smiles_string;
+      double theoretical_mass;
+
+protected:
+
+    };
+
     class OPENMS_DLLAPI Peptide :
-      public CVTermList
+      public PeptideCompound
     {
 public:
 
@@ -286,22 +434,16 @@ public:
       };
 
       Peptide() :
-        CVTermList(),
-        charge_(0),
-        charge_set_(false)
+        PeptideCompound()
       {
       }
 
       Peptide(const Peptide & rhs) :
-        CVTermList(rhs),
-        rts(rhs.rts),
-        id(rhs.id),
+        PeptideCompound(rhs),
         protein_refs(rhs.protein_refs),
         evidence(rhs.evidence),
         sequence(rhs.sequence),
         mods(rhs.mods),
-        charge_(rhs.charge_),
-        charge_set_(rhs.charge_set_),
         peptide_group_label_(rhs.peptide_group_label_)
       {
       }
@@ -310,15 +452,11 @@ public:
       {
         if (this != &rhs)
         {
-          CVTermList::operator=(rhs);
-          rts = rhs.rts;
-          id = rhs.id;
+          PeptideCompound::operator=(rhs);
           protein_refs = rhs.protein_refs;
           evidence = rhs.evidence;
           sequence = rhs.sequence;
           mods = rhs.mods;
-          charge_ = rhs.charge_;
-          charge_set_ = rhs.charge_set_;
           peptide_group_label_ = rhs.peptide_group_label_;
         }
         return *this;
@@ -326,36 +464,12 @@ public:
 
       bool operator==(const Peptide & rhs) const
       {
-        return CVTermList::operator==(rhs) &&
-               rts == rhs.rts &&
-               id == rhs.id &&
+        return PeptideCompound::operator==(rhs) &&
                protein_refs == rhs.protein_refs &&
                evidence == rhs.evidence &&
                sequence == rhs.sequence &&
                mods == rhs.mods &&
-               charge_ == rhs.charge_ &&
-               charge_set_ == rhs.charge_set_ &&
                peptide_group_label_ == rhs.peptide_group_label_;
-      }
-
-      /// Set the peptide charge state
-      void setChargeState(int charge)
-      {
-        charge_ = charge;
-        charge_set_ = true;
-      }
-
-      /// Whether peptide has set charge state
-      bool hasCharge() const
-      {
-        return charge_set_;
-      }
-
-      /// Return the peptide charge state
-      int getChargeState() const
-      {
-        OPENMS_PRECONDITION(charge_set_, "Cannot return charge which was never set")
-        return charge_;
       }
 
       /** @name The peptide group label specifies to non-labeled peptide group to which the peptide belongs
@@ -381,28 +495,12 @@ public:
       }
       //@}
 
-      double getRetentionTime() const
-      {
-        // some guesstimate which would be the retention time that the user
-        // would like to have...
-        if (rts.empty() || rts[0].getCVTerms()["MS:1000896"].empty())
-        {
-          throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-              "No retention time information (CV term 1000896) available");
-        }
-        return rts[0].getCVTerms()["MS:1000896"][0].getValue().toString().toDouble();
-      }
-
-      std::vector<RetentionTime> rts;
-      String id;
       std::vector<String> protein_refs;
       CVTermList evidence;
       String sequence;
       std::vector<Modification> mods;
 
 protected:
-      int charge_;
-      bool charge_set_;
       String peptide_group_label_;
     };
 
@@ -544,7 +642,7 @@ protected:
         BIonMinusNH3,   // MS:1001232 b ion without ammonia
         YIonMinusNH3,   // MS:1001233 y ion without ammonia
         NonIdentified,  // MS:1001240 Non-identified ion
-        Unannotated,    // no stored annotation 
+        Unannotated,    // no stored annotation
         SizeOfResidueType
       };
       */
@@ -704,7 +802,7 @@ private:
     /// helper function that converts a Peptide object to a AASequence object
     OPENMS_DLLAPI OpenMS::AASequence getAASequence(const Peptide& peptide);
 
-    /// helper function that sets a modification on a AASequence object 
+    /// helper function that sets a modification on a AASequence object
     OPENMS_DLLAPI void setModification(int location, int max_size, String modification, OpenMS::AASequence & aas);
 
   }

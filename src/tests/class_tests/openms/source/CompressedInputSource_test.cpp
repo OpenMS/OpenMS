@@ -49,13 +49,13 @@ START_TEST(CompressedInputSource, "$Id$")
 
 CompressedInputSource* ptr = 0;
 CompressedInputSource* nullPointer = 0;
-START_SECTION(CompressedInputSource(const   String& file_path, const char * header,xercesc::MemoryManager* const manager = xercesc::XMLPlatformUtils::fgMemoryManager))
+START_SECTION(CompressedInputSource(const String& file_path, const char * header,xercesc::MemoryManager* const manager = xercesc::XMLPlatformUtils::fgMemoryManager))
   char header[3];
   header[0] = 'B';
   header[1] = 'Z';
   header[2] = '\0';
   String bz = String(header);
-  ptr = new CompressedInputSource(OPENMS_GET_TEST_DATA_PATH("Bzip2IfStream_1.bz2"),bz);
+  ptr = new CompressedInputSource(OPENMS_GET_TEST_DATA_PATH("Bzip2IfStream_1.bz2"), bz);
   TEST_NOT_EQUAL(ptr, nullPointer)
 END_SECTION
 
@@ -70,7 +70,7 @@ START_SECTION(CompressedInputSource(const XMLCh *const file_path, const char *he
   header[2] = '\0';
   String bz = String(header);
   String filename(OPENMS_GET_TEST_DATA_PATH("Bzip2IfStream_1.bz2"));
-  ptr = new CompressedInputSource(Internal::StringManager().convert(filename.c_str()),bz);
+  ptr = new CompressedInputSource(Internal::StringManager().convert(filename.c_str()).c_str(), bz);
   TEST_NOT_EQUAL(ptr, nullPointer)
   delete ptr;
 END_SECTION
@@ -82,7 +82,7 @@ START_SECTION(virtual xercesc::BinInputStream* makeStream() const)
   header[1] = 'Z';
   header[2] = '\0';
   String bz = String(header);
-  CompressedInputSource source(OPENMS_GET_TEST_DATA_PATH("ThisFileDoesNotExist"),bz);
+  CompressedInputSource source(OPENMS_GET_TEST_DATA_PATH("ThisFileDoesNotExist"), bz);
   TEST_EXCEPTION(Exception::FileNotFound,source.makeStream())
 END_SECTION
 

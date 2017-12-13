@@ -37,7 +37,7 @@
 #include <OpenMS/FORMAT/FASTAFile.h>
 #include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
-#include <OpenMS/CHEMISTRY/EnzymaticDigestion.h>
+#include <OpenMS/CHEMISTRY/ProteaseDigestion.h>
 #include <OpenMS/SIMULATION/DetectabilitySimulation.h>
 #include <OpenMS/SIMULATION/RTSimulation.h>
 
@@ -293,7 +293,7 @@ namespace OpenMS
     std::cout << "Parameters: " << param_.getValue("preprocessed_db_path")
               << "\t" << param_.getValue("precursor_mass_tolerance")
               << " " << param_.getValue("precursor_mass_tolerance_unit")
-      //<< "\t"<<param_.getValue("rt_tolerance")
+      ///<< "\t"<<param_.getValue("rt_tolerance")
               << "\t" << param_.getValue("missed_cleavages")
               << "\t" << param_.getValue("taxonomy")
               << "\t" << param_.getValue("tmp_dir") << "---"
@@ -303,7 +303,7 @@ namespace OpenMS
     FASTAFile fasta_file;
     std::vector<FASTAFile::FASTAEntry> entries;
     fasta_file.load(db_path, entries);
-    EnzymaticDigestion digest;
+    ProteaseDigestion digest;
     digest.setMissedCleavages(param_.getValue("missed_cleavages"));
     std::map<String, std::vector<std::pair<String, Size> > > tmp_peptide_map;
 
@@ -630,7 +630,7 @@ namespace OpenMS
     FASTAFile fasta_file;
     std::vector<FASTAFile::FASTAEntry> entries;
     fasta_file.load(db_path, entries);
-    EnzymaticDigestion digest;
+    ProteaseDigestion digest;
     digest.setMissedCleavages(param_.getValue("missed_cleavages"));
 
     // first get all protein sequences and calculate digest
@@ -927,7 +927,7 @@ namespace OpenMS
     FASTAFile fasta_file;
     std::vector<FASTAFile::FASTAEntry> entries;
     fasta_file.load(db_path, entries);
-    EnzymaticDigestion digest;
+    ProteaseDigestion digest;
     digest.setMissedCleavages(param_.getValue("missed_cleavages"));
 
     // first get all protein sequences and calculate digest

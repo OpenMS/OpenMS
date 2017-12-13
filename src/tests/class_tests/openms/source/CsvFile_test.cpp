@@ -111,6 +111,21 @@ START_SECTION(bool getRow(Size row,StringList &list))
 
 END_SECTION
 
+START_SECTION(void fstore(const String& filename))
+	CsvFile f1,f2;
+	StringList list;
+
+	f1.fload(OPENMS_GET_TEST_DATA_PATH("CsvFile_2.csv"),'\t',true); // load from a file
+	f1.fstore(OPENMS_GET_TEST_DATA_PATH("CsvFile_3.csv"));          // store into a new one
+	f2.fload(OPENMS_GET_TEST_DATA_PATH("CsvFile_3.csv"),'\t',true); // load the new one
+	f2.getRow(0,list);
+	TEST_EQUAL(list,ListUtils::create<String>("hello,world"))
+	f2.getRow(1,list);
+	TEST_EQUAL(list,ListUtils::create<String>("the,dude"))
+	f2.getRow(2,list);
+	TEST_EQUAL(list,ListUtils::create<String>("spectral,search"))
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

@@ -64,6 +64,11 @@ namespace OpenMS
     load(filename, true, first_n);
   }
 
+  void CsvFile::fstore(const String& filename)
+  {
+    store(filename);
+  }
+
   bool CsvFile::getRow(Size row, StringList& list)
   {
     if (row > TextFile::buffer_.size())

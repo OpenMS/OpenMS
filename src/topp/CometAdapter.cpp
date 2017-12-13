@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -45,7 +45,7 @@
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/CHEMISTRY/ModificationDefinitionsSet.h>
-#include <OpenMS/CHEMISTRY/EnzymesDB.h>
+#include <OpenMS/CHEMISTRY/ProteaseDB.h>
 
 #include <QtCore/QFile>
 #include <QtCore/QProcess>
@@ -148,7 +148,7 @@ protected:
 
     //Search Enzyme
     vector<String> all_enzymes;
-    EnzymesDB::getInstance()->getAllCometNames(all_enzymes);
+    ProteaseDB::getInstance()->getAllCometNames(all_enzymes);
     registerStringOption_("enzyme", "<cleavage site>", "Trypsin", "The enzyme used for peptide digestion.", false, false);
     setValidStrings_("enzyme", all_enzymes);
     registerStringOption_("num_enzyme_termini", "<choice>", "fully", "1 semi-digested, 2 fully digested, (default), 8 C-term unspecific, 9 N-term unspecific", false, false);
@@ -158,7 +158,7 @@ protected:
     //Fragment Ions
     registerDoubleOption_("fragment_bin_tolerance", "<tolerance>", 1.0005, "fragment_mass_tolerance (MSGF+), fragment_bin_tol (Comet)", false, true);
     registerDoubleOption_("fragment_bin_offset", "<tolerance>", 0.25, "fragment_bin_offset (Comet)", false, true);
-    registerStringOption_("instrument", "<choice>", "high_res", "comets theoretical_fragment_ions parameter: theoretical fragment ion peak representation, high res ms/ms: sum of intensites plus flanking bins, ion trap ms/ms: sum of intensities of central bin only", false, true);
+    registerStringOption_("instrument", "<choice>", "high_res", "comets theoretical_fragment_ions parameter: theoretical fragment ion peak representation, high res ms/ms: sum of intensities plus flanking bins, ion trap ms/ms: sum of intensities of central bin only", false, true);
     setValidStrings_("instrument", ListUtils::create<String>("low_res,high_res"));
     registerStringOption_("use_A_ions", "<num>", "false", "use A ions for PSM", false, true);
     setValidStrings_("use_A_ions", ListUtils::create<String>("true,false"));
@@ -195,7 +195,7 @@ protected:
     registerStringOption_("clip_nterm_methionine", "<num>", "false", "0=leave sequences as-is; 1=also consider sequence w/o N-term methionine", false, false);
     setValidStrings_("clip_nterm_methionine", ListUtils::create<String>("true,false"));
     registerIntOption_("spectrum_batch_size", "<num>", 1000, "max. // of spectra to search at a time; 0 to search the entire scan range in one loop", false, true);
-    registerDoubleOption_("mass_offsets", "<offset>", 0, "one or more mass offsets to search (values substracted from deconvoluted precursor mass)", false, true);
+    registerDoubleOption_("mass_offsets", "<offset>", 0, "one or more mass offsets to search (values subtracted from deconvoluted precursor mass)", false, true);
 
     // spectral processing
     registerIntOption_("minimum_peaks", "<num>", 10, "required minimum number of peaks in spectrum to search (default 10)", false, true);
@@ -231,7 +231,7 @@ protected:
 
   void removeTempDir_(const String& tmp_dir)
   {
-    if (tmp_dir.empty()) {return;} // no temp. dir. created
+    if (tmp_dir.empty()) {return;} // no temporary directory created
 
     if (debug_level_ >= 2)
     {
@@ -277,7 +277,7 @@ protected:
     // search enzyme
 
     String enzyme_name = getStringOption_("enzyme");
-    String enzyme_number = String(EnzymesDB::getInstance()->getEnzyme(enzyme_name)->getCometID());
+    String enzyme_number = String(ProteaseDB::getInstance()->getEnzyme(enzyme_name)->getCometID());
 
     map<string,int> num_enzyme_termini;
     num_enzyme_termini["semi"] = 1;
@@ -306,7 +306,7 @@ protected:
     {
       const ResidueModification mod = variable_modifications[var_mod_index];
       double mass = mod.getDiffMonoMass();
-      String residues = mod.getOrigin();  // TODO: check if origin contains C-term string or similar. Should not be passed to commet as residue string
+      String residues = mod.getOrigin();  // TODO: check if origin contains C-term string or similar. Should not be passed to comet as residue string
       String variable = "0";
       String max_mods_per_peptide = "3";
       String term_distance = "-1";
@@ -408,7 +408,7 @@ protected:
 
     os << "digest_mass_range = " << digest_mass_range_min << " " << digest_mass_range_max << "\n";        // MH+ peptide mass range to analyze
     os << "num_results = " << 100 << "\n";                       // number of search hits to store internally
-    os << "skip_researching = " << 1 << "\n";                    // for '.out' file output only, 0=search everything again (default), 1=dont search if .out exists
+    os << "skip_researching = " << 1 << "\n";                    // for '.out' file output only, 0=search everything again (default), 1=don't search if .out exists
     os << "max_fragment_charge = " << getIntOption_("max_fragment_charge") << "\n";                 // set maximum fragment charge state to analyze (allowed max 5)
     os << "max_precursor_charge = " << getStringOption_("max_precursor_charge") << "\n";                // set maximum precursor charge state to analyze (allowed max 9)
     os << "nucleotide_reading_frame = " << 0 << "\n";            // 0=proteinDB, 1-6, 7=forward three, 8=reverse three, 9=all six
@@ -416,7 +416,7 @@ protected:
     os << "spectrum_batch_size = " << getIntOption_("spectrum_batch_size") << "\n";                 // max. // of spectra to search at a time; 0 to search the entire scan range in one loop
     os << "decoy_prefix = " << "rev_" << "\n";                 // decoy entries are denoted by this string which is pre-pended to each protein accession
     os << "output_suffix = " << "" << "\n";                      // add a suffix to output base names i.e. suffix "-C" generates base-C.pep.xml from base.mzXML input
-    os << "mass_offsets = " << getDoubleOption_("mass_offsets") << "\n";                       // one or more mass offsets to search (values substracted from deconvoluted precursor mass)
+    os << "mass_offsets = " << getDoubleOption_("mass_offsets") << "\n";                       // one or more mass offsets to search (values subtracted from deconvoluted precursor mass)
 
     // spectral processing
     map<string,int> remove_precursor_peak;
@@ -434,7 +434,7 @@ protected:
     os << "clear_mz_range = " << clear_mz_range_min << " " << clear_mz_range_max << "\n";                // for iTRAQ/TMT type data; will clear out all peaks in the specified m/z range
 
 
-    // write fixed modifictations - if not specified residue paramter is zero
+    // write fixed modifications - if not specified residue parameter is zero
     // Aminoacid:
     //      add_AA.OneletterCode_AA.ThreeLetterCode = xxx
     // Terminus:

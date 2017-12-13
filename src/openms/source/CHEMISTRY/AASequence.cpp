@@ -107,6 +107,63 @@ namespace OpenMS
     return tmp;
   }
 
+  String AASequence::toUniModString() const
+  {
+    const AASequence & seq = *this;
+
+    String bs;
+    if (seq.empty()) return bs;
+
+    if (seq.hasNTerminalModification())
+    {
+      const ResidueModification& mod = *(seq.getNTerminalModification());
+      if (mod.getUniModRecordId() > -1)
+      {
+        bs += ".(" + mod.getUniModAccession() + ")";
+      }
+      else
+      {
+        bs += ".[" + String(mod.getDiffMonoMass()) + "]";
+      }
+    }
+
+    for (Size i = 0; i != seq.size(); ++i)
+    {
+      const Residue& r = seq[i];
+      const String aa = r.getOneLetterCode();
+      if (r.isModified())
+      {
+        const ResidueModification& mod = *(r.getModification());
+        if (mod.getUniModRecordId() > -1)
+        {
+          bs += aa + "(" + mod.getUniModAccession() + ")";
+        }
+        else
+        {
+          bs += aa + "[" + String(r.getMonoWeight(Residue::Internal)) + "]";
+        }
+      }
+      else  // amino acid not modified
+      {
+        bs += aa;
+      }
+    }
+
+    if (seq.hasCTerminalModification())
+    {
+      const ResidueModification& mod = *(seq.getCTerminalModification());
+      if (mod.getUniModRecordId() > -1)
+      {
+        bs += ".(" + mod.getUniModAccession() + ")";
+      }
+      else
+      {
+        bs += ".[" + String(mod.getDiffMonoMass()) + "]";
+      }
+    }
+    return bs;
+  }
+
   String AASequence::toBracketString(bool integer_mass, const vector<String> & fixed_modifications) const
   {
     const AASequence & seq = *this;
@@ -1076,6 +1133,7 @@ namespace OpenMS
         ResidueModification * new_mod = new ResidueModification();
         new_mod->setFullId(residue_name); // setting FullId but not Id makes it a user-defined mod
         new_mod->setDiffMonoMass(mass);
+        new_mod->setTermSpecificity(ResidueModification::N_TERM);
         // new_mod->setMonoMass(mass);
         // new_mod->setAverageMass(mass);
         mod_db->addModification(new_mod);
@@ -1099,6 +1157,7 @@ namespace OpenMS
         ResidueModification * new_mod = new ResidueModification();
         new_mod->setFullId(residue_name); // setting FullId but not Id makes it a user-defined mod
         new_mod->setDiffMonoMass(mass);
+        new_mod->setTermSpecificity(ResidueModification::C_TERM);
         // new_mod->setMonoMass(mass);
         // new_mod->setAverageMass(mass);
         mod_db->addModification(new_mod);
@@ -1121,7 +1180,11 @@ namespace OpenMS
         // create new modification
         ResidueModification * new_mod = new ResidueModification();
         new_mod->setFullId(modification_name); // setting FullId but not Id makes it a user-defined mod
-        new_mod->setOrigin(aas.peptide_.back()->getOneLetterCode()[0]);
+
+        // We cannot set origin if we want to use the same modification name
+        // also at other AA (and since we have no information here, it is safer
+        // to assume that this may happen).
+        // new_mod->setOrigin(aas.peptide_.back()->getOneLetterCode()[0]);
 
         // set masses
         if (delta_mass)

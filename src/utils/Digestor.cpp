@@ -29,7 +29,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Chris Bielow $
-// $Authors: Nico Pfeiffer, Chris Bielow $
+// $Authors: Nico Pfeifer, Chris Bielow $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/FileHandler.h>
@@ -37,8 +37,8 @@
 #include <OpenMS/FORMAT/FASTAFile.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
-#include <OpenMS/CHEMISTRY/EnzymaticDigestion.h>
-#include <OpenMS/CHEMISTRY/EnzymesDB.h>
+#include <OpenMS/CHEMISTRY/ProteaseDigestion.h>
+#include <OpenMS/CHEMISTRY/ProteaseDB.h>
 
 #include <map>
 
@@ -68,9 +68,9 @@ using namespace std;
 </CENTER>
 
     This application is used to digest a protein database to get all
-    peptides given a cleavage enzyme. At the moment only trypsin is supported.
+    peptides given a cleavage enzyme.
 
-    The output can be used as a blacklist filter input to @ref TOPP_IDFilter, to remove certain peptides.
+    The output can be used e.g. as a blacklist filter input to @ref TOPP_IDFilter, to remove certain peptides.
 
     @note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
 
@@ -108,7 +108,7 @@ protected:
     registerIntOption_("min_length", "<number>", 6, "Minimum length of peptide", false);
     registerIntOption_("max_length", "<number>", 40, "Maximum length of peptide", false);
     vector<String> all_enzymes;
-    EnzymesDB::getInstance()->getAllNames(all_enzymes);
+    ProteaseDB::getInstance()->getAllNames(all_enzymes);
     registerStringOption_("enzyme", "<string>", "Trypsin", "The type of digestion enzyme", false);
     setValidStrings_("enzyme", all_enzymes);
   }
@@ -132,7 +132,7 @@ protected:
     String inputfile_name = getStringOption_("in");
     String outputfile_name = getStringOption_("out");
 
-    //input file type
+    // output file type
     FileHandler fh;
     FileTypes::Type out_type = FileTypes::nameToType(getStringOption_("out_type"));
 
@@ -167,10 +167,10 @@ protected:
     // This should be updated if more cleavage enzymes are available
     ProteinIdentification::SearchParameters search_parameters;
     String enzyme = getStringOption_("enzyme");
-    EnzymaticDigestion digestor;
+    ProteaseDigestion digestor;
     digestor.setEnzyme(enzyme);
     digestor.setMissedCleavages(missed_cleavages);
-    search_parameters.digestion_enzyme = *EnzymesDB::getInstance()->getEnzyme(enzyme);
+    search_parameters.digestion_enzyme = *ProteaseDB::getInstance()->getEnzyme(enzyme);
 
     PeptideHit temp_peptide_hit;
     PeptideEvidence temp_pe;

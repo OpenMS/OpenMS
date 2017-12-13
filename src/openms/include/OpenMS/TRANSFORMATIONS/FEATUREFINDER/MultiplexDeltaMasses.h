@@ -110,7 +110,7 @@ namespace OpenMS
     /**
      * @brief converts a label set to a string
      */
-    static String labelSetToString(const LabelSet ls);
+    static String labelSetToString(const LabelSet& ls);
     
     private:
    
@@ -126,4 +126,5 @@ namespace OpenMS
   
 }
 
-#endif /* MULTIPLEXDELTAMASSES_H */
+#endif // OPENMS_TRANSFORMATIONS_FEATUREFINDER_MULTIPLEXDELTAMASSES_H
+

@@ -62,7 +62,7 @@ namespace OpenMS
     return isoforms;
   }
 
-  int MRMAssay::getSwath_(const std::vector<std::pair<double, double> > swathes, const double precursor_mz)
+  int MRMAssay::getSwath_(const std::vector<std::pair<double, double> >& swathes, const double precursor_mz)
   {
     int swath = -1;
 
@@ -85,7 +85,7 @@ namespace OpenMS
     }
   }
 
-  bool MRMAssay::isInSwath_(const std::vector<std::pair<double, double> > swathes, const double precursor_mz, const double product_mz)
+  bool MRMAssay::isInSwath_(const std::vector<std::pair<double, double> >& swathes, const double precursor_mz, const double product_mz)
   {
     int swath_idx = getSwath_(swathes, precursor_mz);
 
@@ -692,8 +692,10 @@ namespace OpenMS
       OpenMS::AASequence target_peptide_sequence = TargetedExperimentHelper::getAASequence(target_peptide);
 
       // Generate new ID (transition_group_id) for target peptide
+      String peprt = "NA";
+      if (target_peptide.hasRetentionTime()) peprt = String(target_peptide.getRetentionTime());
       target_peptide.id = String(target_peptide.protein_refs[0]) + String("_") + TargetedExperimentHelper::getAASequence(target_peptide).toString() + 
-          String("_") + String(precursor_charge) + "_" + target_peptide.rts[0].getCVTerms()["MS:1000896"][0].getValue().toString();
+          String("_") + String(precursor_charge) + "_" + peprt;
 
       // Annotate transition: Either set correct CV terms from annotation or
       // (if enable_reannotation == true) do annotation using theoretical ion
