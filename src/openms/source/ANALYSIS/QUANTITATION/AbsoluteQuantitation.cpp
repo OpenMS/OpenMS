@@ -390,14 +390,6 @@ namespace OpenMS
     const Param & transformation_model_params,
     Param & optimized_params)
   {
-    
-    //TODO use internal params
-    size_t min_points_ = 4;
-    double max_bias_ = 30.0;
-    double min_r2_ = 0.9; 
-    size_t max_iters_ = 100;
-    String outlier_detection_method_ = "iter_jackknife";
-    bool use_chauvenet_ = true;
 
     std::vector<AbsoluteQuantitationStandards::featureConcentration>::const_iterator component_start_it;
     std::vector<AbsoluteQuantitationStandards::featureConcentration>::const_iterator component_end_it;
@@ -448,7 +440,7 @@ namespace OpenMS
       std::vector<double> biases;
       double r2 = 0.0;
       calculateBiasAndR2(
-        component_concentrations,
+        component_concentrations_sub,
         feature_name,
         transformation_model,
         optimized_params,
@@ -457,7 +449,7 @@ namespace OpenMS
 
       // check R2 and biases
       bool bias_check = true;
-      for (size_t bias_it = 0; bias_it != biases.size(); --bias_it)
+      for (size_t bias_it = 0; bias_it < biases.size(); ++bias_it)
       {
         if (biases[bias_it] > max_bias_)
         {
