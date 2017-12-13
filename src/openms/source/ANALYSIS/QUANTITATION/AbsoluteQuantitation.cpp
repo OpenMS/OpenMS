@@ -396,7 +396,7 @@ namespace OpenMS
     }
 
     // starting parameters
-    optimized_params = transformation_model;
+    optimized_params = transformation_model_params;
 
     for (size_t n_iters = 0; n_iters < max_iters; ++n_iters)
     {
