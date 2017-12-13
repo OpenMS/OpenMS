@@ -453,7 +453,7 @@ START_SECTION((void optimizeCalibrationCurveIterative(
   absquant_params.setValue("min_r2", 0.9);
   absquant_params.setValue("max_iters", 100);
   absquant_params.setValue("outlier_detection_method", "iter_jackknife");
-  absquant_params.setValue("use_chauvenet", true);
+  absquant_params.setValue("use_chauvenet", false);
 
   // set-up the function parameters
   const String feature_name = "peak_apex_int";
