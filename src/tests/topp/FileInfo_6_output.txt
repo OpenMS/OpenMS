@@ -31,18 +31,20 @@ Meta data array:
 -- Detailed spectrum listing --
 
 Spectrum 1:
-  mslevel:  1
-  scanMode: Unknown
-  peaks:    4
-  RT:       474.558
-  m/z:      937.297 .. 940.279
+  mslevel:    1
+  scanMode:   Unknown
+  peaks:      4
+  RT:         474.558
+  m/z:        937.297 .. 940.279
+Precursors:  0
 
 Spectrum 2:
-  mslevel:  1
-  scanMode: Unknown
-  peaks:    5
-  RT:       475.321
-  m/z:      937.276 .. 941.2
+  mslevel:    1
+  scanMode:   Unknown
+  peaks:      5
+  RT:         475.321
+  m/z:        937.276 .. 941.2
+Precursors:  0
 
 -- Statistics --
 
