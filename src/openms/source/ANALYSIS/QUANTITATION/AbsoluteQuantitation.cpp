@@ -447,10 +447,6 @@ namespace OpenMS
         biases,
         r2);
 
-      //DEBUG
-      std::cout << "R2 = " << std::to_string(r2) << "." << std::endl;
-      std::cout << "n_points = " << std::to_string(component_concentrations_sorted_indices.size()) << "." << std::endl;
-
       // check R2 and biases
       bool bias_check = true;
       for (size_t bias_it = 0; bias_it < biases.size(); ++bias_it)
@@ -509,6 +505,13 @@ namespace OpenMS
       {
         break;
       }
+
+      //DEBUG
+      std::cout << "R2 = " << std::to_string(r2) << "." << std::endl;
+      std::cout << "n_points = " << std::to_string(component_concentrations_sorted_indices.size()) << "." << std::endl;
+      std::cout << "position removed = " << std::to_string(pos) << "." << std::endl;
+
+
     }
   }
 
