@@ -460,6 +460,8 @@ START_SECTION((void optimizeCalibrationCurveIterative(
   const String feature_name = "peak_apex_int";
   const String transformation_model = "linear";
   const Param transformation_model_params;
+  transformation_model_params.setValue("x_weight", "ln(x)");
+  transformation_model_params.setValue("y_weight", "ln(y)");
   Param optimized_params;
 
   absquant.optimizeCalibrationCurveIterative(
