@@ -462,6 +462,10 @@ START_SECTION((void optimizeCalibrationCurveIterative(
   Param transformation_model_params;
   transformation_model_params.setValue("x_weight", "ln(x)");
   transformation_model_params.setValue("y_weight", "ln(y)");
+  transformation_model_params.setValue("x_datum_min". -1e12);
+  transformation_model_params.setValue("x_datum_max");
+  transformation_model_params.setValue("y_datum_min");
+  transformation_model_params.setValue("y_datum_max");
   Param optimized_params;
 
   absquant.optimizeCalibrationCurveIterative(
