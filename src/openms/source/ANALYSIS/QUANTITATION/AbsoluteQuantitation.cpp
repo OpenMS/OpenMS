@@ -364,7 +364,6 @@ namespace OpenMS
     std::vector<AbsoluteQuantitationStandards::featureConcentration> & component_concentrations,
     const String & feature_name,
     const String & transformation_model,
-    const Param & transformation_model_params,
     Param & optimized_params)
   {
     
@@ -395,6 +394,9 @@ namespace OpenMS
       component_concentrations_sorted_indices.push_back(index);
     }
 
+    // starting parameters
+    optimized_params = transformation_model;
+
     for (size_t n_iters = 0; n_iters < max_iters; ++n_iters)
     {
 
@@ -413,7 +415,7 @@ namespace OpenMS
       optimized_params = fitCalibration(component_concentrations_sub,
         feature_name,
         transformation_model,
-        transformation_model_params);
+        optimized_params);
         
       // calculate the R2 and bias
       std::vector<double> biases;
@@ -422,7 +424,7 @@ namespace OpenMS
         component_concentrations,
         feature_name,
         transformation_model,
-        transformation_model_params,
+        optimized_params,
         biases,
         r2);
 
@@ -453,7 +455,7 @@ namespace OpenMS
           component_concentrations_sub,
           feature_name,
           transformation_model,
-          transformation_model_params);
+          optimized_params);
       }
       else if (outlier_detection_method == "iter_residual")
       {
@@ -462,7 +464,7 @@ namespace OpenMS
           component_concentrations_sub,
           feature_name,
           transformation_model,
-          transformation_model_params);
+          optimized_params);
       }
       else
       {
@@ -507,6 +509,7 @@ namespace OpenMS
     // highest rsq is considered corresponding to the outlier candidate. The
     // corresponding iterator position is then returned.
     std::vector<double> rsq_tmp;
+    Param optimized_params = transformation_model_params;
 
     for (Size i = 0; i < component_concentrations.size(); i++)
     {
@@ -517,10 +520,10 @@ namespace OpenMS
       std::cout << "jackknifeOutlierCandidate_: size of component_concentrations: " << std::to_string(component_concentrations_tmp.size()) << std::endl;
 
       // fit the model
-      Param optimized_params = fitCalibration(component_concentrations_tmp,
+      optimized_params = fitCalibration(component_concentrations_tmp,
         feature_name,
         transformation_model,
-        transformation_model_params);
+        optimized_params);
       
       // calculate the R2 and bias
       std::vector<double> biases;
@@ -529,7 +532,7 @@ namespace OpenMS
         component_concentrations_tmp,
         feature_name,
         transformation_model,
-        transformation_model_params,
+        optimized_params,
         biases,
         r2);
 
@@ -564,7 +567,7 @@ namespace OpenMS
       component_concentrations,
       feature_name,
       transformation_model,
-      transformation_model_params,
+      optimized_params,
       biases,
       r2);
 
