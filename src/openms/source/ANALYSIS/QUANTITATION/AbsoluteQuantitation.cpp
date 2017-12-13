@@ -98,6 +98,7 @@ namespace OpenMS
     max_iters_ = (size_t)param_.getValue("max_iters");
     outlier_detection_method_ = param_.getValue("outlier_detection_method");
     use_chauvenet_ = (bool)param_.getValue("use_chauvenet").toBool();
+  }
   
   AbsoluteQuantitation::~AbsoluteQuantitation()
   {
