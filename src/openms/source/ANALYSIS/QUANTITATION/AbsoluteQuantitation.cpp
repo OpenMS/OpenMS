@@ -369,12 +369,12 @@ namespace OpenMS
   {
     
     //TODO use internal params
-    size_t min_points = 4;
-    double max_bias = 30.0;
-    double min_r2 = 0.9; 
-    size_t max_iters = 100;
-    String outlier_detection_method = "iter_jackknife";
-    bool use_chauvenet = true;
+    size_t min_points_ = 4;
+    double max_bias_ = 30.0;
+    double min_r2_ = 0.9; 
+    size_t max_iters_ = 100;
+    String outlier_detection_method_ = "iter_jackknife";
+    bool use_chauvenet_ = true;
 
     std::vector<AbsoluteQuantitationStandards::featureConcentration>::const_iterator component_start_it;
     std::vector<AbsoluteQuantitationStandards::featureConcentration>::const_iterator component_end_it;
@@ -398,7 +398,7 @@ namespace OpenMS
     // starting parameters
     optimized_params = transformation_model_params;
 
-    for (size_t n_iters = 0; n_iters < max_iters; ++n_iters)
+    for (size_t n_iters = 0; n_iters < max_iters_; ++n_iters)
     {
 
       // extract out components
@@ -406,7 +406,7 @@ namespace OpenMS
         component_concentrations_sorted, component_concentrations_sorted_indices);
 
       // check if the min number of calibration points has been broken
-      if (component_concentrations_sorted_indices.size() < min_points)
+      if (component_concentrations_sorted_indices.size() < min_points_)
       {        
         LOG_INFO << "No optimal calibration found for " << component_concentrations_sub[0].feature.getMetaValue("native_id") << " .";
         break;
@@ -433,12 +433,12 @@ namespace OpenMS
       bool bias_check = true;
       for (size_t bias_it = 0; bias_it != biases.size(); --bias_it)
       {
-        if (biases[bias_it] > max_bias)
+        if (biases[bias_it] > max_bias_)
         {
           bias_check = false;
         }
       }
-      if (bias_check && r2 > min_r2)
+      if (bias_check && r2 > min_r2_)
       {
         LOG_INFO << "Valid calibration found for " << component_concentrations_sub[0].feature.getMetaValue("native_id") << " .";
 
@@ -449,7 +449,7 @@ namespace OpenMS
 
       // R2 and biases check failed, determine potential outlier
       int pos;
-      if (outlier_detection_method == "iter_jackknife")
+      if (outlier_detection_method_ == "iter_jackknife")
       {
         // get candidate outlier: removal of which datapoint results in best rsq?
         pos = jackknifeOutlierCandidate_(
@@ -458,7 +458,7 @@ namespace OpenMS
           transformation_model,
           optimized_params);
       }
-      else if (outlier_detection_method == "iter_residual")
+      else if (outlier_detection_method_ == "iter_residual")
       {
         // get candidate outlier: removal of datapoint with largest residual?
         pos = residualOutlierCandidate_(
@@ -470,12 +470,12 @@ namespace OpenMS
       else
       {
         throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-          String("Method ") + outlier_detection_method + " is not a valid method for optimizeCalibrationCurveIterative");
+          String("Method ") + outlier_detection_method_ + " is not a valid method for optimizeCalibrationCurveIterative");
       }
 
       // remove if residual is an outlier according to Chauvenet's criterion
       // or if testing is turned off
-      if (!use_chauvenet || MRMRTNormalizer::chauvenet(biases, pos))
+      if (!use_chauvenet_ || MRMRTNormalizer::chauvenet(biases, pos))
       {
         component_concentrations_sorted_indices.erase(component_concentrations_sorted_indices.begin() + pos);
       }

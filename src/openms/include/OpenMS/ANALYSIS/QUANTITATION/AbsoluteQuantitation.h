@@ -292,6 +292,13 @@ public:
 private:  
     void findIS_();
     
+    size_t min_points_;
+    double max_bias_;
+    double min_r2_; 
+    size_t max_iters_;
+    String outlier_detection_method_;
+    bool use_chauvenet_;
+    
     // members
     /// map between components and quantitation methods
     std::map<String,AbsoluteQuantitationMethod> quant_methods_;

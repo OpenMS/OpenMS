@@ -409,12 +409,67 @@ START_SECTION((Param AbsoluteQuantitation::fitCalibration(
 END_SECTION
 
 START_SECTION((void optimizeCalibrationCurveIterative(
-  const std::vector<AbsoluteQuantitationStandards::featureConcentration> & component_concentrations,
+  std::vector<AbsoluteQuantitationStandards::featureConcentration> & component_concentrations,
   const String & feature_name,
   const String & transformation_model,
-  const Param & transformation_model_params)))
+  const Param & transformation_model_params,
+  Param & optimized_params)))
   
   AbsoluteQuantitation absquant;
+
+  // TEST 1: ser-L
+  static const double arrx1[] = {2.32E+04,2.45E+04,1.78E+04,2.11E+04,1.91E+04,2.06E+04,1.85E+04,1.53E+04,1.40E+04,1.03E+04,1.07E+04,6.68E+03,5.27E+03,2.83E+03}
+  std::vector<double> x1 (arrx1, arrx1 + sizeof(arrx1) / sizeof(arrx1[0]) );
+  static const double arry1[] = {4.94E+03,6.55E+03,7.37E+03,1.54E+04,2.87E+04,5.41E+04,1.16E+05,1.85E+05,3.41E+05,7.54E+05,9.76E+05,1.42E+06,1.93E+06,2.23E+06}
+  std::vector<double> y1 (arry1, arry1 + sizeof(arry1) / sizeof(arry1[0]) ); 
+  static const double arrz1[] = {1.00E-02,2.00E-02,4.00E-02,1.00E-01,2.00E-01,4.00E-01,1.00E+00,2.00E+00,4.00E+00,1.00E+01,2.00E+01,4.00E+01,1.00E+02,2.00E+02}
+  std::vector<double> z1 (arrz1, arrz1 + sizeof(arrz1) / sizeof(arrz1[0]) ); 
+
+  // set-up the features
+  std::vector<AbsoluteQuantitationStandards::featureConcentration> component_concentrations;
+  AbsoluteQuantitationStandards::featureConcentration component_concentration;
+  Feature component, IS_component;
+  for (size_t i = 0; i < x1.size(); ++i)
+  {
+    component.setMetaValue("native_id","ser-L.ser-L_1.Light");
+    component.setMetaValue("peak_apex_int",x1[i]);
+    IS_component.setMetaValue("native_id","IS");
+    IS_component.setMetaValue("peak_apex_int",y1[i]);
+    component_concentration.feature = component;
+    component_concentration.IS_feature = IS_component;
+    component_concentration.actual_concentration = z1[i];
+    component_concentration.IS_actual_concentration = 1.0;
+    component_concentration.dilution_factor = 1.0;
+    component_concentrations.push_back(component_concentration); 
+  }  
+
+  // set-up the class parameters 
+  Param absquant_params; 
+  absquant_params.setValue("min_points", 4);
+  absquant_params.setValue("max_bias", 30.0);
+  absquant_params.setValue("min_r2", 0.9);
+  absquant_params.setValue("max_iters", 100);
+  absquant_params.setValue("outlier_detection_method", "iter_jackknife");
+  absquant_params.setValue("use_chauvenet", true);
+  
+  // set-up the function parameters
+  const String feature_name = "peak_apex_int";
+  const String transformation_model "linear";
+  const Param transformation_model_params;
+  Param optimized_params;
+
+  absquant.optimizeCalibrationCurveIterative(
+    component_concentrations,
+    feature_name,
+    transformation_model,
+    transformation_model_params,
+    optimized_params);
+
+  TEST_REAL_SIMILAR(component_concentrations[0].actual_concentration, 0.01);
+  TEST_REAL_SIMILAR(component_concentrations[8].actual_concentration, 4.0);
+  TEST_REAL_SIMILAR(optimized_params.getValue("slope", 1.0);
+  TEST_REAL_SIMILAR(optimized_params.getValue("intercept", 1.0);
+  
 
 END_SECTION
 
