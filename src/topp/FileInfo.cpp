@@ -888,26 +888,45 @@ protected:
            << "-- Detailed spectrum listing --"
            << "\n";
         UInt count = 0;
-        for (PeakMap::iterator it = exp.begin(); it != exp.end(); ++it)
+        for (auto const& spectrum : exp)
         {
           ++count;
           os << "\n"
              << "Spectrum " << count << ":"
              << "\n"
-             << "  mslevel:  " << it->getMSLevel() << "\n"
-             << "  scanMode: " << InstrumentSettings::NamesOfScanMode[it->getInstrumentSettings().getScanMode()] << "\n"
-             << "  peaks:    " << it->size() << "\n"
-             << "  RT:       " << it->getRT() << "\n"
-             << "  m/z:      ";
-          if (!it->empty())
+             << "  mslevel:    " << spectrum.getMSLevel() << "\n"
+             << "  scanMode:   " << InstrumentSettings::NamesOfScanMode[spectrum.getInstrumentSettings().getScanMode()] << "\n"
+             << "  peaks:      " << spectrum.size() << "\n"
+             << "  RT:         " << spectrum.getRT() << "\n"
+             << "  m/z:        ";
+
+          if (!spectrum.empty())
           {
-            os << it->begin()->getMZ() << " .. " << it->rbegin()->getMZ();
+            os << spectrum.begin()->getMZ() << " .. " << spectrum.rbegin()->getMZ() << "\n";
           }
-          os << "\n";
+
+          os << "Precursors:  " << spectrum.getPrecursors().size() <<  "\n";
+
+          auto pc_count = UInt{0};
+          for (auto const& pc : spectrum.getPrecursors())
+          {
+            os << "Precursor[" << pc_count << "]\n"
+               << "  charge: " << pc.getCharge() << "\n"
+               << "  mz:     " << pc.getMZ() << "\n"
+               << "  activation methods: \n";
+            for (auto const& am : pc.getActivationMethods())
+            {
+              os << "    " << Precursor::NamesOfActivationMethodShort[am] << " (" << Precursor::NamesOfActivationMethod[am] << ")\n";
+            }
+
+            os << "\n";
+
+            ++pc_count;
+          }
         }
       }
 
-      //Check for corrupt data
+      // Check for corrupt data
       if (getFlag_("c"))
       {
         os << "\n"
