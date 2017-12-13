@@ -72,11 +72,13 @@ using namespace OpenMS;
   This module generates assays for targeted proteomics using a set of rules
   that was found to improve the sensitivity and selectivity for detection
   of typical peptides (Schubert et al., 2015). The tool operates on TraML
-  files, which can come from TargetedFileConverter or any other tool. If the
-  TraML is annotated with the CV terms for fragment ion annotation, it can
-  directly filter the transitions according to the set rules. If this is not
-  the case (e.g. if an older version of TargetedFileConverter was used), the
-  option -enable_reannotation can do the reannotation.
+  files, which can come from TargetedFileConverter or any other tool. In a
+  first step, the tool will annotate all transitions according to the
+  predefined criteria. In a second step, the transitions will be filtered
+  to improve sensitivity for detection of peptides.
+
+  Optionally, theoretical identification transitions can be generated when
+  the TraML will be used for IPF scoring in OpenSWATH.
 
   <B>The command line parameters of this tool are:</B>
   @verbinclude TOPP_OpenSwathAssayGenerator.cli
@@ -121,7 +123,6 @@ protected:
     registerFlag_("enable_ms1_uis_scoring", "set this flag if MS1-UIS assays for UIS scoring should be generated");
     registerFlag_("enable_ms2_uis_scoring", "set this flag if MS2-UIS assays for UIS scoring should be generated");
     registerIntOption_("max_num_alternative_localizations", "<int>", 20, "maximum number of site-localization permutations", false);
-    registerFlag_("enable_reannotation", "set this flag if reannotation of fragment ions should be allowed.");
     registerDoubleOption_("precursor_mz_threshold", "<double>", 0.025, "MZ threshold in Thomson for precursor ion selection", false);
     registerDoubleOption_("precursor_lower_mz_limit", "<double>", 400, "lower MZ limit for precursor ions", false);
     registerDoubleOption_("precursor_upper_mz_limit", "<double>", 1200, "upper MZ limit for precursor ions", false);
@@ -156,7 +157,6 @@ protected:
     double product_lower_mz_limit = getDoubleOption_("product_lower_mz_limit");
     double product_upper_mz_limit = getDoubleOption_("product_upper_mz_limit");
     String swath_windows_file = getStringOption_("swath_windows_file");
-    bool enable_reannotation = getFlag_("enable_reannotation");
 
     std::vector<String> allowed_fragment_types;
     allowed_fragment_types_string.split(",", allowed_fragment_types);
@@ -197,7 +197,7 @@ protected:
     assays.setLogType(ProgressLogger::CMD);
 
     LOG_INFO << "Annotating transitions" << std::endl;
-    assays.reannotateTransitions(targeted_exp, precursor_mz_threshold, product_mz_threshold, allowed_fragment_types, allowed_fragment_charges, enable_reannotation, enable_detection_specific_losses, enable_detection_unspecific_losses);
+    assays.reannotateTransitions(targeted_exp, precursor_mz_threshold, product_mz_threshold, allowed_fragment_types, allowed_fragment_charges, enable_detection_specific_losses, enable_detection_unspecific_losses);
 
     LOG_INFO << "Annotating detecting transitions" << std::endl;
     assays.restrictTransitions(targeted_exp, product_lower_mz_limit, product_upper_mz_limit, swathes);
