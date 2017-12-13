@@ -457,7 +457,7 @@ START_SECTION((void optimizeCalibrationCurveIterative(
 
   // set-up the function parameters
   const String feature_name = "peak_apex_int";
-  const String transformation_model "linear";
+  const String transformation_model = "linear";
   const Param transformation_model_params;
   Param optimized_params;
 
