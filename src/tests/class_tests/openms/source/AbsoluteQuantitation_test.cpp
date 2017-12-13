@@ -484,6 +484,34 @@ START_SECTION((void optimizeCalibrationCurveIterative(
   8.00E-02,2.00E-01,4.00E-01,8.00E-01,2.00E+00,4.00E+00,8.00E+00,2.00E+01,4.00E+01};
   std::vector<double> z2 (arrz2, arrz2 + sizeof(arrz2) / sizeof(arrz2[0]) );
 
+  // set-up the features
+  component_concentrations.clear();
+  for (size_t i = 0; i < x2.size(); ++i)
+  {
+    component.setMetaValue("native_id","amp.amp_1.Light");
+    component.setMetaValue("peak_apex_int",x2[i]);
+    IS_component.setMetaValue("native_id","IS");
+    IS_component.setMetaValue("peak_apex_int",y2[i]);
+    component_concentration.feature = component;
+    component_concentration.IS_feature = IS_component;
+    component_concentration.actual_concentration = z2[i];
+    component_concentration.IS_actual_concentration = 1.0;
+    component_concentration.dilution_factor = 1.0;
+    component_concentrations.push_back(component_concentration); 
+  }  
+
+  absquant.optimizeCalibrationCurveIterative(
+    component_concentrations,
+    feature_name,
+    transformation_model,
+    transformation_model_params,
+    optimized_params);
+
+  TEST_REAL_SIMILAR(component_concentrations[0].actual_concentration, 0.01);
+  TEST_REAL_SIMILAR(component_concentrations[8].actual_concentration, 4.0);
+  TEST_REAL_SIMILAR(optimized_params.getValue("slope"), 1.0);
+  TEST_REAL_SIMILAR(optimized_params.getValue("intercept"), 1.0);
+
   // TEST 3: atp
   static const double arrx3[] = {8.28E+02,1.32E+03,1.57E+03,1.63E+03,1.48E+03,
   2.43E+03,4.44E+03,1.03E+04,1.75E+04,6.92E+04,1.97E+05,2.69E+05,3.20E+05,3.22E+05};
@@ -494,6 +522,34 @@ START_SECTION((void optimizeCalibrationCurveIterative(
   static const double arrz3[] = {2.00E-03,4.00E-03,8.00E-03,2.00E-02,4.00E-02,
   8.00E-02,2.00E-01,4.00E-01,8.00E-01,2.00E+00,4.00E+00,8.00E+00,2.00E+01,4.00E+01};
   std::vector<double> z3 (arrz3, arrz3 + sizeof(arrz3) / sizeof(arrz3[0]) ); 
+
+  // set-up the features
+  component_concentrations.clear();
+  for (size_t i = 0; i < x3.size(); ++i)
+  {
+    component.setMetaValue("native_id","amp.amp_1.Light");
+    component.setMetaValue("peak_apex_int",x3[i]);
+    IS_component.setMetaValue("native_id","IS");
+    IS_component.setMetaValue("peak_apex_int",y3[i]);
+    component_concentration.feature = component;
+    component_concentration.IS_feature = IS_component;
+    component_concentration.actual_concentration = z3[i];
+    component_concentration.IS_actual_concentration = 1.0;
+    component_concentration.dilution_factor = 1.0;
+    component_concentrations.push_back(component_concentration); 
+  }  
+
+  absquant.optimizeCalibrationCurveIterative(
+    component_concentrations,
+    feature_name,
+    transformation_model,
+    transformation_model_params,
+    optimized_params);
+
+  TEST_REAL_SIMILAR(component_concentrations[0].actual_concentration, 0.01);
+  TEST_REAL_SIMILAR(component_concentrations[8].actual_concentration, 4.0);
+  TEST_REAL_SIMILAR(optimized_params.getValue("slope"), 1.0);
+  TEST_REAL_SIMILAR(optimized_params.getValue("intercept"), 1.0);
   
 
 END_SECTION
