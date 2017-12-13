@@ -162,9 +162,6 @@ namespace OpenMS
       data.push_back(point);
     }
 
-    // debugging:
-    std::cout << "fitCalibration: size of data: " << std::to_string(data.size()) << std::endl;
-
     // fit the data to the model
     TransformationDescription tmd(data);
     // tmd.setDataPoints(data);
@@ -430,6 +427,9 @@ namespace OpenMS
       // extract out components
       const std::vector<AbsoluteQuantitationStandards::featureConcentration> component_concentrations_sub = extractComponents_(
         component_concentrations_sorted, component_concentrations_sorted_indices);
+
+      // debugging:
+      std::cout << "size of data: " << std::to_string(component_concentrations_sub.size()) << std::endl;
 
       // check if the min number of calibration points has been broken
       if (component_concentrations_sorted_indices.size() < min_points_)

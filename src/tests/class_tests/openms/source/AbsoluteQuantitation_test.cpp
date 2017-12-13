@@ -472,6 +472,28 @@ START_SECTION((void optimizeCalibrationCurveIterative(
   TEST_REAL_SIMILAR(component_concentrations[8].actual_concentration, 4.0);
   TEST_REAL_SIMILAR(optimized_params.getValue("slope"), 1.0);
   TEST_REAL_SIMILAR(optimized_params.getValue("intercept"), 1.0);
+
+  // TEST 2: amp
+  static const double arrx2[] = {2.15E+05,2.32E+05,2.69E+05,2.53E+05,2.50E+05,
+  2.75E+05,2.67E+05,3.31E+05,3.15E+05,3.04E+05,3.45E+05,3.91E+05,4.62E+05,3.18E+05};
+  std::vector<double> x2 (arrx2, arrx2 + sizeof(arrx2) / sizeof(arrx2[0]) );
+  static const double arry2[] = {4.40E+02,1.15E+03,1.53E+03,2.01E+03,4.47E+03,
+  7.36E+03,2.18E+04,4.46E+04,8.50E+04,2.33E+05,5.04E+05,1.09E+06,2.54E+06,3.64E+06};
+  std::vector<double> y2 (arry2, arry2 + sizeof(arry2) / sizeof(arry2[0]) ); 
+  static const double arrz2[] = {2.00E-03,4.00E-03,8.00E-03,2.00E-02,4.00E-02,
+  8.00E-02,2.00E-01,4.00E-01,8.00E-01,2.00E+00,4.00E+00,8.00E+00,2.00E+01,4.00E+01};
+  std::vector<double> z2 (arrz2, arrz2 + sizeof(arrz2) / sizeof(arrz2[0]) );
+
+  // TEST 3: atp
+  static const double arrx3[] = {8.28E+02,1.32E+03,1.57E+03,1.63E+03,1.48E+03,
+  2.43E+03,4.44E+03,1.03E+04,1.75E+04,6.92E+04,1.97E+05,2.69E+05,3.20E+05,3.22E+05};
+  std::vector<double> x3 (arrx3, arrx3 + sizeof(arrx3) / sizeof(arrx3[0]) );
+  static const double arry3[] = {2.21E+02,4.41E+02,3.31E+02,2.21E+02,3.09E+02,
+  5.96E+02,1.26E+03,2.49E+03,1.12E+04,8.79E+04,4.68E+05,1.38E+06,3.46E+06,4.19E+06};
+  std::vector<double> y3 (arry3, arry3 + sizeof(arry3) / sizeof(arry3[0]) ); 
+  static const double arrz3[] = {2.00E-03,4.00E-03,8.00E-03,2.00E-02,4.00E-02,
+  8.00E-02,2.00E-01,4.00E-01,8.00E-01,2.00E+00,4.00E+00,8.00E+00,2.00E+01,4.00E+01};
+  std::vector<double> z3 (arrz3, arrz3 + sizeof(arrz3) / sizeof(arrz3[0]) ); 
   
 
 END_SECTION
