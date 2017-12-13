@@ -31,7 +31,7 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/PeakIntegrator.h>" namespace "OpenM
         double getBackgroundHeight() nogil except +
         double getBackgroundArea() nogil except +
 
-        getPeakShapeMetrics() nogil except +
+        PeakShapeMetrics getPeakShapeMetrics() nogil except +
 
 cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/PeakIntegrator.h>" namespace "OpenMS::PeakIntegrator":
 
