@@ -495,6 +495,11 @@ namespace OpenMS
           String("Method ") + outlier_detection_method_ + " is not a valid method for optimizeCalibrationCurveIterative");
       }
 
+      //DEBUG
+      std::cout << "R2 = " << std::to_string(r2) << "." << std::endl;
+      std::cout << "n_points = " << std::to_string(component_concentrations_sorted_indices.size()) << "." << std::endl;
+      std::cout << "actual_concentration = " << std::to_string(component_concentrations_sub[pos].actual_concentration) << "." << std::endl;
+
       // remove if residual is an outlier according to Chauvenet's criterion
       // or if testing is turned off
       if (!use_chauvenet_ || MRMRTNormalizer::chauvenet(biases, pos))
@@ -505,13 +510,6 @@ namespace OpenMS
       {
         break;
       }
-
-      //DEBUG
-      std::cout << "R2 = " << std::to_string(r2) << "." << std::endl;
-      std::cout << "n_points = " << std::to_string(component_concentrations_sorted_indices.size()) << "." << std::endl;
-      std::cout << "position removed = " << std::to_string(pos) << "." << std::endl;
-
-
     }
   }
 
