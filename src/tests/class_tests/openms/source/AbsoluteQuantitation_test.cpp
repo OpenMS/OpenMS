@@ -470,8 +470,8 @@ START_SECTION((void optimizeCalibrationCurveIterative(
 
   TEST_REAL_SIMILAR(component_concentrations[0].actual_concentration, 0.01);
   TEST_REAL_SIMILAR(component_concentrations[8].actual_concentration, 4.0);
-  TEST_REAL_SIMILAR(optimized_params.getValue("slope", 1.0);
-  TEST_REAL_SIMILAR(optimized_params.getValue("intercept", 1.0);
+  TEST_REAL_SIMILAR(optimized_params.getValue("slope"), 1.0);
+  TEST_REAL_SIMILAR(optimized_params.getValue("intercept"), 1.0);
   
 
 END_SECTION
