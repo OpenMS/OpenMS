@@ -71,8 +71,33 @@ namespace OpenMS
   AbsoluteQuantitation::AbsoluteQuantitation() :
   DefaultParamHandler("AbsoluteQuantitation")
   {
-    //todo:  see MRMTransitionGroupPicker.cpp
+    defaults_.setValue("min_points", 4, "The minimum number of calibrator points.");
+
+    defaults_.setValue("max_bias", 30.0, "The maximum percent bias of any point in the calibration curve.");
+    
+    defaults_.setValue("min_r2", 0.9, "The minimum RSquared value of the calibration curve.");
+    
+    defaults_.setValue("max_iters", 100, "The maximum number of iterations to find an optimal set of calibration curve points and parameters.");
+    
+    defaults_.setValue("outlier_detection_method", "iter_jackknife", "Outlier detection method to find and remove bad calibration points.");
+    defaults_.setValidStrings("outlier_detection_method", ListUtils::create<String>("iter_jackknife,iter_residual"));
+    
+    defaults_.setValue("use_chauvenet", "true", "Whether to only remove outliers that fulfill Chauvenet's criterion for outliers (otherwise it will remove any outlier candidate regardless of the criterion).");
+    defaults_.setValidStrings("use_chauvenet", ListUtils::create<String>("true,false"));
+
+    // write defaults into Param object param_
+    defaultsToParam_();
+    updateMembers_();
   }
+
+  void AbsoluteQuantitation::updateMembers_()
+  {
+    min_points_ = (size_t)param_.getValue("min_points");
+    max_bias_ = (double)param_.getValue("max_bias");
+    min_r2_ = (double)param_.getValue("min_r2");
+    max_iters_ = (size_t)param_.getValue("max_iters");
+    outlier_detection_method_ = param_.getValue("outlier_detection_method");
+    use_chauvenet_ = (bool)param_.getValue("use_chauvenet").toBool();
   
   AbsoluteQuantitation::~AbsoluteQuantitation()
   {

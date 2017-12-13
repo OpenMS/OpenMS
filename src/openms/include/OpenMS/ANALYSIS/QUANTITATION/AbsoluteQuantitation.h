@@ -234,7 +234,7 @@ public:
     */ 
     void quantifyComponents(FeatureMap& unknowns);    
 
-// protected:
+protected:
     /**
       @brief This function extractous out the components.
 
@@ -290,6 +290,9 @@ public:
       const Param & transformation_model_params);
      
 private:  
+    /// Synchronize members with param class
+    void updateMembers_();
+
     void findIS_();
     
     size_t min_points_;
