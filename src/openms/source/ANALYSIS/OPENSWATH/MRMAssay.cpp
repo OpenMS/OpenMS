@@ -701,10 +701,6 @@ namespace OpenMS
       double precursor_mz = target_peptide_sequence.getMonoWeight(Residue::Full, precursor_charge) / precursor_charge;
       precursor_mz = Math::roundDecimal(precursor_mz, round_decPow);
 
-      // Append precursor / peptide
-      peptides.push_back(target_peptide);
-      LOG_DEBUG << "[selected] " <<  target_peptide_sequence.toString() << std::endl;
-
       for (Size i = 0; i < pep_it->second.size(); i++)
       {
         setProgress(++progress);
@@ -746,19 +742,11 @@ namespace OpenMS
 
         // Append transition
         transitions.push_back(tr);
-
-        // Append precursor / peptide
-        if (std::find(peptides.begin(), peptides.end(), target_peptide) == peptides.end())
-        {
-          peptides.push_back(target_peptide);
-          LOG_DEBUG << "[selected] " <<  target_peptide_sequence.toString() << std::endl;
-        }
       }
     }
     endProgress();
 
     exp.setTransitions(transitions);
-    exp.setPeptides(peptides);
   }
 
   void MRMAssay::restrictTransitions(OpenMS::TargetedExperiment& exp, double lower_mz_limit, double upper_mz_limit, std::vector<std::pair<double, double> > swathes)
