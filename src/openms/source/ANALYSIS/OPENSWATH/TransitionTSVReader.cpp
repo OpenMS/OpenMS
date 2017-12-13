@@ -44,6 +44,71 @@
 namespace OpenMS
 {
 
+  template<class T>   // primary template
+  bool extractName(T& value, const std::string& header_name,
+                   const std::vector<std::string>& tmp_line,
+                   const std::map<std::string, int>& header_dict)
+  {
+    auto tmp = header_dict.find( header_name );
+    if (tmp != header_dict.end())
+    {
+      value = tmp_line[ tmp->second ];
+      // perform cleanup
+      value = value.remove('"');
+      value = value.remove('\'');
+      value = value.remove(',');
+      return true;
+    }
+    return false;
+  }
+
+  template<>   // specialization for int
+  bool extractName<int>(int& value, const std::string& header_name,
+                        const std::vector<std::string>& tmp_line,
+                        const std::map<std::string, int>& header_dict)
+  {
+    auto tmp = header_dict.find( header_name );
+    if (tmp != header_dict.end())
+    {
+      value = String(tmp_line[ tmp->second ]).toInt();
+      return true;
+    }
+    return false;
+  }
+
+  template<>   // specialization for double
+  bool extractName<double>(double& value, const std::string& header_name,
+                        const std::vector<std::string>& tmp_line,
+                        const std::map<std::string, int>& header_dict)
+  {
+    auto tmp = header_dict.find( header_name );
+    if (tmp != header_dict.end())
+    {
+      value = String(tmp_line[ tmp->second ]).toDouble();
+      return true;
+    }
+    return false;
+  }
+
+  template<>   // specialization for bool
+  bool extractName<bool>(bool& value, const std::string& header_name,
+                        const std::vector<std::string>& tmp_line,
+                        const std::map<std::string, int>& header_dict)
+  {
+    auto tmp = header_dict.find( header_name );
+    if (tmp != header_dict.end())
+    {
+      auto str_value = tmp_line[ tmp->second ];
+      if (str_value == "1" || str_value == "TRUE") value = true;
+      else if (str_value == "0" || str_value == "FALSE") value = false;
+      else return false;
+
+      // all went well, we set the value and can return
+      return true;
+    }
+    return false;
+  }
+
   TransitionTSVReader::TransitionTSVReader() :
     DefaultParamHandler("TransitionTSVReader")
   {
@@ -87,7 +152,7 @@ namespace OpenMS
     "SMILES",
     "ProteinId",
     "UniprotId",
-    "FragmentType", 
+    "FragmentType",
     "FragmentSeriesNumber",
     "Annotation",
     "CollisionEnergy",
@@ -213,7 +278,7 @@ namespace OpenMS
       getTSVHeader_(line, delimiter, header, header_dict);
     }
 
-    bool spectrast_legacy = 0; // we will check below if SpectraST was run in legacy (<5.0) mode or if the RT normalization was forgotten.
+    bool spectrast_legacy = false; // we will check below if SpectraST was run in legacy (<5.0) mode or if the RT normalization was forgotten.
     int cnt = 0;
     while (std::getline(data, line))
     {
@@ -253,30 +318,16 @@ namespace OpenMS
       mytransition.precursor = String(tmp_line[header_dict["PrecursorMz"]]).toDouble();
 
       // ProductMz
-      if (header_dict.find("ProductMz") != header_dict.end())
-      {
-        mytransition.product = String(tmp_line[header_dict["ProductMz"]]).toDouble();
-      }
-      else if (header_dict.find("FragmentMz") != header_dict.end()) // Spectronaut
-      {
-        mytransition.library_intensity = String(tmp_line[header_dict["FragmentMz"]]).toDouble();
-      }
-      else
+      if (!extractName<double>(mytransition.product, "ProductMz", tmp_line, header_dict) &&
+          !extractName<double>(mytransition.product, "FragmentMz", tmp_line, header_dict)) // Spectronaut
       {
         throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                          "Expected a header named ProductMz or FragmentMz but found none");
       }
 
       // LibraryIntensity
-      if (header_dict.find("LibraryIntensity") != header_dict.end())
-      {
-        mytransition.library_intensity = String(tmp_line[header_dict["LibraryIntensity"]]).toDouble();
-      }
-      else if (header_dict.find("RelativeFragmentIntensity") != header_dict.end()) // Spectronaut
-      {
-        mytransition.library_intensity = String(tmp_line[header_dict["RelativeFragmentIntensity"]]).toDouble();
-      }
-      else
+      if (!extractName<double>(mytransition.library_intensity, "LibraryIntensity", tmp_line, header_dict) &&
+          !extractName<double>(mytransition.library_intensity, "RelativeFragmentIntensity", tmp_line, header_dict)) // Spectronaut
       {
         throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                          "Expected a header named LibraryIntensity or RelativeFragmentIntensity but found none");
@@ -284,349 +335,90 @@ namespace OpenMS
 
       //// Additional columns for both proteomics and metabolomics
       // NormalizedRetentionTime
-      if (header_dict.find("RetentionTimeCalculatorScore") != header_dict.end()) // Skyline
+      if (!extractName<double>(mytransition.rt_calibrated, "RetentionTimeCalculatorScore", tmp_line, header_dict) && // Skyline
+          !extractName<double>(mytransition.rt_calibrated, "iRT", tmp_line, header_dict) && // Spectronaut
+          !extractName<double>(mytransition.rt_calibrated, "NormalizedRetentionTime", tmp_line, header_dict) &&
+          !extractName<double>(mytransition.rt_calibrated, "RetentionTime", tmp_line, header_dict) &&
+          !extractName<double>(mytransition.rt_calibrated, "Tr_recalibrated", tmp_line, header_dict))
       {
-        mytransition.rt_calibrated = String(tmp_line[header_dict["RetentionTimeCalculatorScore"]]).toDouble();
-      }
-      else if (header_dict.find("iRT") != header_dict.end()) // Spectronaut
-      {
-        mytransition.rt_calibrated = String(tmp_line[header_dict["iRT"]]).toDouble();
-      }
-      else if (header_dict.find("NormalizedRetentionTime") != header_dict.end())
-      {
-        mytransition.rt_calibrated = String(tmp_line[header_dict["NormalizedRetentionTime"]]).toDouble();
-      }
-      else if (header_dict.find("RetentionTime") != header_dict.end())
-      {
-        mytransition.rt_calibrated = String(tmp_line[header_dict["RetentionTime"]]).toDouble();
-      }
-      else if (header_dict.find("Tr_recalibrated") != header_dict.end())
-      {
-        mytransition.rt_calibrated = String(tmp_line[header_dict["Tr_recalibrated"]]).toDouble();
-      }
-      else if (header_dict.find("SpectraSTRetentionTime") != header_dict.end())
-      {
-        // If SpectraST was run in RT normalization mode, the retention time is annotated as following: "3887.50(57.30)"
-        // 3887.50 refers to the non-normalized RT of the individual or consensus run, and 57.30 refers to the normalized
-        // iRT.
-        size_t start_position = tmp_line[header_dict["SpectraSTRetentionTime"]].find("(");
-        if (start_position != std::string::npos)
+        if (header_dict.find("SpectraSTRetentionTime") != header_dict.end())
         {
-          ++start_position;
-          size_t end_position = tmp_line[header_dict["SpectraSTRetentionTime"]].find(")");
-          if (end_position != std::string::npos)
-          {
-            mytransition.rt_calibrated = String(tmp_line[header_dict["SpectraSTRetentionTime"]].substr(start_position, end_position - start_position)).toDouble();
-          }
+          spectrastRTExtract(tmp_line[header_dict["SpectraSTRetentionTime"]], mytransition.rt_calibrated, spectrast_legacy);
         }
         else
         {
-          // SpectraST was run without RT Normalization mode
-          spectrast_legacy = 1;
-          mytransition.rt_calibrated = String(tmp_line[header_dict["SpectraSTRetentionTime"]]).toDouble();
+          throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                           "Expected a header named RetentionTime, NormalizedRetentionTime, iRT, RetentionTimeCalculatorScore, Tr_recalibrated or SpectraSTRetentionTime but found none");
         }
-      }
-      else
-      {
-        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                         "Expected a header named RetentionTime, NormalizedRetentionTime, iRT, RetentionTimeCalculatorScore, Tr_recalibrated or SpectraSTRetentionTime but found none");
       }
 
       // PrecursorCharge
-      if (header_dict.find("PrecursorCharge") != header_dict.end())
-      {
-        mytransition.precursor_charge = String(tmp_line[header_dict["PrecursorCharge"]]);
-      }
-      else if (header_dict.find("Charge") != header_dict.end())
-      {
-        // charge is assumed to be the charge of the precursor
-        mytransition.precursor_charge = String(tmp_line[header_dict["Charge"]]);
-      }
+      !extractName(mytransition.precursor_charge, "PrecursorCharge", tmp_line, header_dict) &&
+      !extractName(mytransition.precursor_charge, "Charge", tmp_line, header_dict); // charge is assumed to be the charge of the precursor
 
-      // FragmentType
-      if (header_dict.find("FragmentType") != header_dict.end())
-      {
-        mytransition.fragment_type = tmp_line[header_dict["FragmentType"]];
-      }
-      else if (header_dict.find("FragmentIonType") != header_dict.end()) // Skyline
-      {
-        mytransition.fragment_type = tmp_line[header_dict["FragmentIonType"]];
-      }
+      !extractName(mytransition.fragment_type, "FragmentType", tmp_line, header_dict) &&
+      !extractName(mytransition.fragment_type, "FragmentIonType", tmp_line, header_dict); // Skyline
 
-      // FragmentCharge
-      if (header_dict.find("FragmentCharge") != header_dict.end())
-      {
-        mytransition.fragment_charge = String(tmp_line[header_dict["FragmentCharge"]]);
-      }
-      else if (header_dict.find("ProductCharge") != header_dict.end())
-      {
-        mytransition.fragment_charge = String(tmp_line[header_dict["ProductCharge"]]);
-      }
+      !extractName(mytransition.fragment_charge, "FragmentCharge", tmp_line, header_dict) &&
+      !extractName(mytransition.fragment_charge, "ProductCharge", tmp_line, header_dict);
 
-      // FragmentSeriesNumber
-      if (header_dict.find("FragmentSeriesNumber") != header_dict.end())
-      {
-        mytransition.fragment_nr = String(tmp_line[header_dict["FragmentSeriesNumber"]]).toInt();
-      }
-      else if (header_dict.find("FragmentNumber") != header_dict.end()) // Spectronaut
-      {
-        mytransition.fragment_nr = String(tmp_line[header_dict["FragmentNumber"]]).toInt();
-      }
-      else if (header_dict.find("FragmentIonOrdinal") != header_dict.end()) // Skyline
-      {
-        mytransition.fragment_nr = String(tmp_line[header_dict["FragmentIonOrdinal"]]).toInt();
-      }
+      !extractName<int>(mytransition.fragment_nr, "FragmentSeriesNumber", tmp_line, header_dict) &&
+      !extractName<int>(mytransition.fragment_nr, "FragmentNumber", tmp_line, header_dict) &&
+      !extractName<int>(mytransition.fragment_nr, "FragmentIonOrdinal", tmp_line, header_dict);
 
-      // FragmentMzDelta
-      if (header_dict.find("FragmentMzDelta") != header_dict.end())
-      {
-        mytransition.fragment_mzdelta = String(tmp_line[header_dict["FragmentMzDelta"]]).toInt();
-      }
-
-      // FragmentModification
-      if (header_dict.find("FragmentModification") != header_dict.end())
-      {
-        mytransition.fragment_modification = String(tmp_line[header_dict["FragmentModification"]]).toInt();
-      }
+      extractName<double>(mytransition.fragment_mzdelta, "FragmentMzDelta", tmp_line, header_dict);
+      extractName<int>(mytransition.fragment_modification, "FragmentModification", tmp_line, header_dict);
 
       //// Proteomics
-      // ProteinName
-      if (header_dict.find("ProteinName") != header_dict.end())
-      {
-        mytransition.ProteinName = tmp_line[header_dict["ProteinName"]];
-      }
-      else if (header_dict.find("ProteinId") != header_dict.end()) // Spectronaut
-      {
-        mytransition.ProteinName = tmp_line[header_dict["ProteinId"]];
-      }
+      extractName(mytransition.ProteinName, "ProteinName", tmp_line, header_dict) &&
+      extractName(mytransition.ProteinName, "ProteinId", tmp_line, header_dict); // Spectronaut
 
-      // PeptideGroupLabel
-      if (header_dict.find("PeptideGroupLabel") != header_dict.end()) 
-      {
-        mytransition.peptide_group_label = tmp_line[header_dict["PeptideGroupLabel"]];
-      }
+      extractName(mytransition.peptide_group_label, "PeptideGroupLabel", tmp_line, header_dict);
 
-      // LabelType
-      if (header_dict.find("LabelType") != header_dict.end())
-      {
-        mytransition.label_type = tmp_line[header_dict["LabelType"]];
-      }
+      extractName(mytransition.label_type, "LabelType", tmp_line, header_dict);
 
-      // StrippedSequence
-      if (header_dict.find("PeptideSequence") != header_dict.end())
-      {
-        mytransition.PeptideSequence = tmp_line[header_dict["PeptideSequence"]];
-      }
-      else if (header_dict.find("Sequence") != header_dict.end()) // Skyline
-      {
-        mytransition.PeptideSequence = tmp_line[header_dict["Sequence"]];
-      }
-      else if (header_dict.find("StrippedSequence") != header_dict.end()) // Spectronaut
-      {
-        mytransition.PeptideSequence = tmp_line[header_dict["StrippedSequence"]];
-      }
+      !extractName(mytransition.PeptideSequence, "PeptideSequence", tmp_line, header_dict) &&
+      !extractName(mytransition.PeptideSequence, "Sequence", tmp_line, header_dict) && // Skyline
+      !extractName(mytransition.PeptideSequence, "StrippedSequence", tmp_line, header_dict); // Spectronaut
 
-      // ModifiedSequence
-      if (header_dict.find("FullUniModPeptideName") != header_dict.end())
-      {
-        mytransition.FullPeptideName = tmp_line[header_dict["FullUniModPeptideName"]];
-      }
-      else if (header_dict.find("FullPeptideName") != header_dict.end())
-      {
-        // previously, only FullPeptideName was used and not FullUniModPeptideName
-        mytransition.FullPeptideName = tmp_line[header_dict["FullPeptideName"]];
-      }
-      else if (header_dict.find("ModifiedSequence") != header_dict.end()) // Spectronaut
-      {
-        mytransition.FullPeptideName = tmp_line[header_dict["ModifiedSequence"]];
-      }
-      else if (header_dict.find("ModifiedPeptideSequence") != header_dict.end())
-      {
-        mytransition.FullPeptideName = tmp_line[header_dict["ModifiedPeptideSequence"]];
-      }
+      !extractName(mytransition.FullPeptideName, "FullUniModPeptideName", tmp_line, header_dict) &&
+      !extractName(mytransition.FullPeptideName, "FullPeptideName", tmp_line, header_dict) &&
+      !extractName(mytransition.FullPeptideName, "ModifiedSequence", tmp_line, header_dict) && // Spectronaut
+      !extractName(mytransition.FullPeptideName, "ModifiedPeptideSequence", tmp_line, header_dict);
 
-      // IPF
-      // Detecting transition
-      if (header_dict.find("detecting_transition") != header_dict.end())
-      {
-        if  (String(tmp_line[header_dict["detecting_transition"]]) == "1") { mytransition.detecting_transition = true; }
-        else if (String(tmp_line[header_dict["detecting_transition"]]) == "0") { mytransition.detecting_transition = false; }
-      }
-      else if (header_dict.find("DetectingTransition") != header_dict.end())
-      {
-        if  (String(tmp_line[header_dict["DetectingTransition"]]) == "1") { mytransition.detecting_transition = true; }
-        else if (String(tmp_line[header_dict["DetectingTransition"]]) == "0") { mytransition.detecting_transition = false; }
-      }
+      //// IPF
+      !extractName<bool>(mytransition.detecting_transition, "detecting_transition", tmp_line, header_dict) &&
+      !extractName<bool>(mytransition.detecting_transition, "DetectingTransition", tmp_line, header_dict);
+      !extractName<bool>(mytransition.identifying_transition, "identifying_transition", tmp_line, header_dict) &&
+      !extractName<bool>(mytransition.identifying_transition, "IdentifyingTransition", tmp_line, header_dict);
+      !extractName<bool>(mytransition.quantifying_transition, "quantifying_transition", tmp_line, header_dict) &&
+      !extractName<bool>(mytransition.quantifying_transition, "QuantifyingTransition", tmp_line, header_dict) &&
+      !extractName<bool>(mytransition.quantifying_transition, "Quantitative", tmp_line, header_dict); // Skyline
 
-      // Identifying transition
-      if (header_dict.find("identifying_transition") != header_dict.end())
-      {
-        if  (String(tmp_line[header_dict["identifying_transition"]]) == "1") { mytransition.identifying_transition = true; }
-        else if (String(tmp_line[header_dict["identifying_transition"]]) == "0") { mytransition.identifying_transition = false; }
-      }
-      else if (header_dict.find("IdentifyingTransition") != header_dict.end())
-      {
-        if  (String(tmp_line[header_dict["IdentifyingTransition"]]) == "1") { mytransition.identifying_transition = true; }
-        else if (String(tmp_line[header_dict["IdentifyingTransition"]]) == "0") { mytransition.identifying_transition = false; }
-      }
+      //// Targeted Metabolomics
+      !extractName(mytransition.CompoundName, "CompoundName", tmp_line, header_dict) &&
+      !extractName(mytransition.CompoundName, "CompoundId", tmp_line, header_dict);
+      extractName(mytransition.SumFormula, "SumFormula", tmp_line, header_dict);
+      extractName(mytransition.SMILES, "SMILES", tmp_line, header_dict);
 
-      // Quantifying transition
-      if (header_dict.find("quantifying_transition") != header_dict.end())
-      {
-        if  (String(tmp_line[header_dict["quantifying_transition"]]) == "1") { mytransition.quantifying_transition = true; }
-        else if (String(tmp_line[header_dict["quantifying_transition"]]) == "0") { mytransition.quantifying_transition = false; }
-      }
-      else if (header_dict.find("QuantifyingTransition") != header_dict.end())
-      {
-        if  (String(tmp_line[header_dict["QuantifyingTransition"]]) == "1") { mytransition.quantifying_transition = true; }
-        else if (String(tmp_line[header_dict["QuantifyingTransition"]]) == "0") { mytransition.quantifying_transition = false; }
-      }
-      else if (header_dict.find("Quantitative") != header_dict.end()) // Skyline
-      {
-        if  (String(tmp_line[header_dict["Quantitative"]]) == "TRUE") { mytransition.quantifying_transition = true; }
-        else if (String(tmp_line[header_dict["Quantitative"]]) == "FALSE") { mytransition.quantifying_transition = false; }
-      }
-
-      // Targeted Metabolomics
-      // CompoundName
-      if (header_dict.find("CompoundName") != header_dict.end())
-      {
-        mytransition.CompoundName = tmp_line[header_dict["CompoundName"]];
-      }
-      else if (header_dict.find("CompoundId") != header_dict.end())
-      {
-        mytransition.CompoundName = tmp_line[header_dict["CompoundId"]];
-      }
-
-      // SumFormula
-      if (header_dict.find("SumFormula") != header_dict.end())
-      {
-        mytransition.SumFormula = tmp_line[header_dict["SumFormula"]];
-      }
-
-      // SMILES
-      if (header_dict.find("SMILES") != header_dict.end())
-      {
-        mytransition.SMILES = tmp_line[header_dict["SMILES"]];
-      }
-
-      // Meta
-      // Annotation
-      if (header_dict.find("Annotation") != header_dict.end())
-      {
-        mytransition.Annotation = tmp_line[header_dict["Annotation"]];
-      }
-
+      //// Meta
+      extractName(mytransition.Annotation, "Annotation", tmp_line, header_dict);
       // UniprotId
-      if (header_dict.find("UniprotId") != header_dict.end())
-      {
-        if (tmp_line[header_dict["UniprotId"]] != "NA")
-        {
-          mytransition.uniprot_id = tmp_line[header_dict["UniprotId"]];
-        }
-      }
-      else if (header_dict.find("UniprotID") != header_dict.end())
-      {
-        if (tmp_line[header_dict["UniprotID"]] != "NA")
-        {
-          mytransition.uniprot_id = tmp_line[header_dict["UniprotID"]];
-        }
-      }
+      !extractName(mytransition.uniprot_id, "UniprotId", tmp_line, header_dict) &&
+      !extractName(mytransition.uniprot_id, "UniprotID", tmp_line, header_dict);
+      if (mytransition.uniprot_id == "NA") mytransition.uniprot_id = "";
 
-      // CollisionEnergy
-      if (header_dict.find("CE") != header_dict.end())
-      {
-        mytransition.CE = String(tmp_line[header_dict["CE"]]).toDouble();
-      }
-      else if (header_dict.find("CollisionEnergy") != header_dict.end())
-      {
-        mytransition.CE = String(tmp_line[header_dict["CollisionEnergy"]]).toDouble();
-      }
+      !extractName<double>(mytransition.CE, "CE", tmp_line, header_dict) &&
+      !extractName<double>(mytransition.CE, "CollisionEnergy", tmp_line, header_dict);
 
       // Decoy
-      if (header_dict.find("decoy") != header_dict.end())
-      {
-        mytransition.decoy = String(tmp_line[header_dict["decoy"]]).toInt();
-      }
-      else if (header_dict.find("Decoy") != header_dict.end())
-      {
-        mytransition.decoy = String(tmp_line[header_dict["Decoy"]]).toInt();
-      }
-      else if (header_dict.find("IsDecoy") != header_dict.end())
-      {
-        if  (String(tmp_line[header_dict["IsDecoy"]]) == "TRUE") { mytransition.decoy = true; }
-        else if (String(tmp_line[header_dict["IsDecoy"]]) == "FALSE") { mytransition.decoy = false; }
-      }
+      !extractName<bool>(mytransition.decoy, "decoy", tmp_line, header_dict) &&
+      !extractName<bool>(mytransition.decoy, "Decoy", tmp_line, header_dict) &&
+      !extractName<bool>(mytransition.decoy, "IsDecoy", tmp_line, header_dict);
 
-      // SpectraST
-      // SpectraSTAnnotation
       if (header_dict.find("SpectraSTAnnotation") != header_dict.end())
       {
-        // Parses SpectraST fragment ion annotations
-        // Example: y13^2/0.000,b16-18^2/-0.013,y7-45/0.000
-        // Important: m2:8 are not yet supported! See SpectraSTPeakList::annotateInternalFragments for further information
-        mytransition.Annotation = tmp_line[header_dict["SpectraSTAnnotation"]];
-
-        std::vector<String> all_fragment_annotations;
-        String(tmp_line[header_dict["SpectraSTAnnotation"]]).split(",", all_fragment_annotations);
-
-        if (all_fragment_annotations[0].find("[") == std::string::npos && // non-unique peak annotation
-            all_fragment_annotations[0].find("]") == std::string::npos && // non-unique peak annotation
-            all_fragment_annotations[0].find("I") == std::string::npos && // immonium ion
-            all_fragment_annotations[0].find("p") == std::string::npos && // precursor ion
-            all_fragment_annotations[0].find("i") == std::string::npos && // isotope ion
-            all_fragment_annotations[0].find("m") == std::string::npos &&
-            all_fragment_annotations[0].find("?") == std::string::npos
-            )
-        {
-          std::vector<String> best_fragment_annotation_with_deviation;
-          all_fragment_annotations[0].split("/", best_fragment_annotation_with_deviation);
-          String best_fragment_annotation = best_fragment_annotation_with_deviation[0];
-
-          if (best_fragment_annotation.find("^") != std::string::npos)
-          {
-            std::vector<String> best_fragment_annotation_charge;
-            best_fragment_annotation.split("^", best_fragment_annotation_charge);
-            mytransition.fragment_charge = String(best_fragment_annotation_charge[1]);
-            best_fragment_annotation = best_fragment_annotation_charge[0];
-          }
-          else
-          {
-            mytransition.fragment_charge = 1; // assume 1 (most frequent charge state)
-          }
-
-          if (best_fragment_annotation.find("-") != std::string::npos)
-          {
-            std::vector<String> best_fragment_annotation_modification;
-            best_fragment_annotation.split("-", best_fragment_annotation_modification);
-            mytransition.fragment_type = best_fragment_annotation_modification[0].substr(0, 1);
-            mytransition.fragment_nr = String(best_fragment_annotation_modification[0].substr(1)).toInt();
-            mytransition.fragment_modification = -1 * String(best_fragment_annotation_modification[1]).toInt();
-
-          }
-          else if (best_fragment_annotation.find("+") != std::string::npos)
-          {
-            std::vector<String> best_fragment_annotation_modification;
-            best_fragment_annotation.split("+", best_fragment_annotation_modification);
-            mytransition.fragment_type = best_fragment_annotation_modification[0].substr(0, 1);
-            mytransition.fragment_nr = String(best_fragment_annotation_modification[0].substr(1)).toInt();
-            mytransition.fragment_modification = String(best_fragment_annotation_modification[1]).toInt();
-          }
-          else
-          {
-            mytransition.fragment_type = best_fragment_annotation.substr(0, 1);
-            mytransition.fragment_nr = String(best_fragment_annotation.substr(1)).toInt();
-            mytransition.fragment_modification = 0;
-          }
-
-          mytransition.fragment_mzdelta = String(best_fragment_annotation_with_deviation[1]).toDouble();
-        }
-        else
-        {
-          // The fragment ion could not be annotated and will likely not be used for detection transitions;
-          // we thus skip it and reduce the size of the output TraML.
-          skip_transition = true;
-        }
+        skip_transition = spectrastAnnotationExtract(tmp_line[header_dict["SpectraSTAnnotation"]], mytransition);
       }
 
       //// Generate Group IDs
@@ -649,37 +441,17 @@ namespace OpenMS
       else
       {
         // Use TransitionId if available, else generate from attributes
-        if (header_dict.find("transition_name") != header_dict.end())
-        {
-          mytransition.transition_name = tmp_line[header_dict["transition_name"]];
-        }
-        else if (header_dict.find("TransitionName") != header_dict.end())
-        {
-          mytransition.transition_name = tmp_line[header_dict["TransitionName"]];
-        }
-        else if (header_dict.find("TransitionId") != header_dict.end())
-        {
-          mytransition.transition_name = tmp_line[header_dict["TransitionId"]];
-        }
-        else
+        if (!extractName(mytransition.transition_name, "transition_name", tmp_line, header_dict) &&
+            !extractName(mytransition.transition_name, "TransitionName", tmp_line, header_dict) &&
+            !extractName(mytransition.transition_name, "TransitionId", tmp_line, header_dict))
         {
           mytransition.transition_name = String(cnt);
         }
 
         // Use TransitionGroupId if available, else generate from attributes
-        if (header_dict.find("transition_group_id") != header_dict.end())
-        {
-          mytransition.group_id = tmp_line[header_dict["transition_group_id"]];
-        }
-        else if (header_dict.find("TransitionGroupId") != header_dict.end())
-        {
-          mytransition.group_id = tmp_line[header_dict["TransitionGroupId"]];
-        }
-        else if (header_dict.find("TransitionGroupName") != header_dict.end())
-        {
-          mytransition.group_id = tmp_line[header_dict["TransitionGroupName"]];
-        }
-        else
+        if (!extractName(mytransition.group_id, "transition_group_id", tmp_line, header_dict) &&
+            !extractName(mytransition.group_id, "TransitionGroupId", tmp_line, header_dict) &&
+            !extractName(mytransition.group_id, "TransitionGroupName", tmp_line, header_dict))
         {
           mytransition.group_id = AASequence::fromString(mytransition.FullPeptideName).toString() + String("_") + String(mytransition.precursor_charge);
         }
@@ -725,48 +497,102 @@ namespace OpenMS
     }
   }
 
+  void TransitionTSVReader::spectrastRTExtract(const String str_inp, double & value, bool & spectrast_legacy)
+  {
+    // If SpectraST was run in RT normalization mode, the retention time is annotated as following: "3887.50(57.30)"
+    // 3887.50 refers to the non-normalized RT of the individual or consensus run, and 57.30 refers to the normalized
+    // iRT.
+    size_t start_position = str_inp.find("(");
+    if (start_position != std::string::npos)
+    {
+      ++start_position;
+      size_t end_position = str_inp.find(")");
+      if (end_position != std::string::npos)
+      {
+        value = String(str_inp.substr(start_position, end_position - start_position)).toDouble();
+      }
+    }
+    else
+    {
+      // SpectraST was run without RT Normalization mode
+      spectrast_legacy = true;
+      value = str_inp.toDouble();
+    }
+  }
+
+  bool TransitionTSVReader::spectrastAnnotationExtract(const String str_inp, TSVTransition & mytransition)
+  {
+    // Parses SpectraST fragment ion annotations
+    // Example: y13^2/0.000,b16-18^2/-0.013,y7-45/0.000
+    // Important: m2:8 are not yet supported! See SpectraSTPeakList::annotateInternalFragments for further information
+    mytransition.Annotation = str_inp;
+
+    std::vector<String> all_fragment_annotations;
+    str_inp.split(",", all_fragment_annotations);
+
+    if (all_fragment_annotations[0].find("[") == std::string::npos && // non-unique peak annotation
+        all_fragment_annotations[0].find("]") == std::string::npos && // non-unique peak annotation
+        all_fragment_annotations[0].find("I") == std::string::npos && // immonium ion
+        all_fragment_annotations[0].find("p") == std::string::npos && // precursor ion
+        all_fragment_annotations[0].find("i") == std::string::npos && // isotope ion
+        all_fragment_annotations[0].find("m") == std::string::npos &&
+        all_fragment_annotations[0].find("?") == std::string::npos
+        )
+    {
+      std::vector<String> best_fragment_annotation_with_deviation;
+      all_fragment_annotations[0].split("/", best_fragment_annotation_with_deviation);
+      String best_fragment_annotation = best_fragment_annotation_with_deviation[0];
+
+      if (best_fragment_annotation.find("^") != std::string::npos)
+      {
+        std::vector<String> best_fragment_annotation_charge;
+        best_fragment_annotation.split("^", best_fragment_annotation_charge);
+        mytransition.fragment_charge = String(best_fragment_annotation_charge[1]);
+        best_fragment_annotation = best_fragment_annotation_charge[0];
+      }
+      else
+      {
+        mytransition.fragment_charge = 1; // assume 1 (most frequent charge state)
+      }
+
+      if (best_fragment_annotation.find("-") != std::string::npos)
+      {
+        std::vector<String> best_fragment_annotation_modification;
+        best_fragment_annotation.split("-", best_fragment_annotation_modification);
+        mytransition.fragment_type = best_fragment_annotation_modification[0].substr(0, 1);
+        mytransition.fragment_nr = String(best_fragment_annotation_modification[0].substr(1)).toInt();
+        mytransition.fragment_modification = -1 * String(best_fragment_annotation_modification[1]).toInt();
+
+      }
+      else if (best_fragment_annotation.find("+") != std::string::npos)
+      {
+        std::vector<String> best_fragment_annotation_modification;
+        best_fragment_annotation.split("+", best_fragment_annotation_modification);
+        mytransition.fragment_type = best_fragment_annotation_modification[0].substr(0, 1);
+        mytransition.fragment_nr = String(best_fragment_annotation_modification[0].substr(1)).toInt();
+        mytransition.fragment_modification = String(best_fragment_annotation_modification[1]).toInt();
+      }
+      else
+      {
+        mytransition.fragment_type = best_fragment_annotation.substr(0, 1);
+        mytransition.fragment_nr = String(best_fragment_annotation.substr(1)).toInt();
+        mytransition.fragment_modification = 0;
+      }
+
+      mytransition.fragment_mzdelta = String(best_fragment_annotation_with_deviation[1]).toDouble();
+    }
+    else
+    {
+      // The fragment ion could not be annotated and will likely not be used for detection transitions;
+      // we thus skip it and reduce the size of the output TraML.
+      return true;
+    }
+
+    return false;
+  }
+
   void TransitionTSVReader::cleanupTransitions_(TSVTransition& mytransition)
   {
-    mytransition.transition_name = mytransition.transition_name.remove('"');
-    mytransition.transition_name = mytransition.transition_name.remove('\'');
-
-    mytransition.PeptideSequence = mytransition.PeptideSequence.remove('"');
-    mytransition.PeptideSequence = mytransition.PeptideSequence.remove('\'');
-
-    mytransition.ProteinName = mytransition.ProteinName.remove('"');
-    mytransition.ProteinName = mytransition.ProteinName.remove('\'');
-    mytransition.ProteinName = mytransition.ProteinName.remove(',');
-
-    mytransition.Annotation = mytransition.Annotation.remove('"');
-    mytransition.Annotation = mytransition.Annotation.remove('\'');
-
-    mytransition.FullPeptideName = mytransition.FullPeptideName.remove('"');
-    mytransition.FullPeptideName = mytransition.FullPeptideName.remove('\'');
-
-    mytransition.CompoundName = mytransition.CompoundName.remove('"');
-    mytransition.CompoundName = mytransition.CompoundName.remove('\'');
-
-    mytransition.SumFormula = mytransition.SumFormula.remove('"');
-    mytransition.SumFormula = mytransition.SumFormula.remove('\'');
-
-    mytransition.SMILES = mytransition.SMILES.remove('"');
-    mytransition.SMILES = mytransition.SMILES.remove('\'');
-
-    mytransition.group_id = mytransition.group_id.remove('"');
-    mytransition.group_id = mytransition.group_id.remove('\'');
-
-    mytransition.peptide_group_label = mytransition.peptide_group_label.remove('"');
-    mytransition.peptide_group_label = mytransition.peptide_group_label.remove('\'');
-
-    mytransition.label_type = mytransition.label_type.remove('"');
-    mytransition.label_type = mytransition.label_type.remove('\'');
-
-    mytransition.fragment_type = mytransition.fragment_type.remove('"');
-    mytransition.fragment_type = mytransition.fragment_type.remove('\'');
-
-    mytransition.uniprot_id = mytransition.uniprot_id.remove('"');
-    mytransition.uniprot_id = mytransition.uniprot_id.remove('\'');
-
     // deal with FullPeptideNames like PEPTIDE/2
     std::vector<String> substrings;
     mytransition.FullPeptideName.split("/", substrings);
@@ -865,15 +691,7 @@ namespace OpenMS
         transition.fragment_charge = tr_it->fragment_charge.toInt();
       }
 
-      if (tr_it->decoy == 0)
-      {
-        transition.decoy = false;
-      }
-      else
-      {
-        transition.decoy = true;
-      }
-
+      transition.decoy = tr_it->decoy;
       transition.detecting_transition = tr_it->detecting_transition;
       transition.identifying_transition = tr_it->identifying_transition;
       transition.quantifying_transition = tr_it->quantifying_transition;
@@ -1130,7 +948,7 @@ namespace OpenMS
       rm_trans.addCVTerm(CE);
     }
 
-    if (tr_it->decoy == 0)
+    if (!tr_it->decoy)
     {
       rm_trans.setDecoyTransitionType(ReactionMonitoringTransition::TARGET);
     }
@@ -1523,14 +1341,14 @@ namespace OpenMS
     {
       mytransition.library_intensity = it->getLibraryIntensity();
     }
-    mytransition.decoy = 0;
+    mytransition.decoy = false;
     if (it->getDecoyTransitionType() == ReactionMonitoringTransition::TARGET)
     {
-      mytransition.decoy = 0;
+      mytransition.decoy = false;
     }
     else if (it->getDecoyTransitionType() == ReactionMonitoringTransition::DECOY)
     {
-      mytransition.decoy = 1;
+      mytransition.decoy = true;
     }
     mytransition.Annotation = "NA";
     if (it->metaValueExists("annotation"))
