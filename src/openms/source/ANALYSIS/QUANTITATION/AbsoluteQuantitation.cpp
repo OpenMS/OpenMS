@@ -421,7 +421,7 @@ namespace OpenMS
         component_concentrations_sorted, component_concentrations_sorted_indices);
 
       // debugging:
-      std::cout << "size of data: " << std::to_string(component_concentrations_sub.size()) << std::endl;
+      // std::cout << "size of data: " << std::to_string(component_concentrations_sub.size()) << std::endl;
 
       // check if the min number of calibration points has been broken
       if (component_concentrations_sorted_indices.size() < min_points_)
@@ -446,6 +446,10 @@ namespace OpenMS
         optimized_params,
         biases,
         r2);
+
+      //DEBUG
+      std::cout << "R2 = " << std::to_string(r2) << "." << std::endl;
+      std::cout << "n_points = " << std::to_string(component_concentrations_sorted_indices.size()) << "." << std::endl;
 
       // check R2 and biases
       bool bias_check = true;
@@ -540,7 +544,7 @@ namespace OpenMS
       component_concentrations_tmp.erase(component_concentrations_tmp.begin() + i);
 
       // debugging:
-      std::cout << "jackknifeOutlierCandidate_: size of component_concentrations: " << std::to_string(component_concentrations_tmp.size()) << std::endl;
+      // std::cout << "jackknifeOutlierCandidate_: size of component_concentrations: " << std::to_string(component_concentrations_tmp.size()) << std::endl;
 
       // fit the model
       optimized_params = fitCalibration(component_concentrations_tmp,
@@ -575,7 +579,7 @@ namespace OpenMS
     // corresponding iterator position is then returned.
 
     // debugging:
-    std::cout << "residualOutlierCandidate_: size of component_concentrations: " << std::to_string(component_concentrations.size()) << std::endl;
+    // std::cout << "residualOutlierCandidate_: size of component_concentrations: " << std::to_string(component_concentrations.size()) << std::endl;
     
     // fit the model
     Param optimized_params = fitCalibration(component_concentrations,
