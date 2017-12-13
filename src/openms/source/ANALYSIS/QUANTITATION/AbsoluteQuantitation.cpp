@@ -364,6 +364,7 @@ namespace OpenMS
     std::vector<AbsoluteQuantitationStandards::featureConcentration> & component_concentrations,
     const String & feature_name,
     const String & transformation_model,
+    const Param & transformation_model_params,
     Param & optimized_params)
   {
     
