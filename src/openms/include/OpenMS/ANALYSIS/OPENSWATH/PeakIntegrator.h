@@ -149,7 +149,7 @@ public:
     /**
       @brief Calculate peak's shape metrics.
 
-      The calculated characteristics are the start and end times at 0.05, 0.10 and
+      The calculated characteristics are the start and end positions at 0.05, 0.10 and
       0.5 the peak's height. Also the widths at those positions are calculated.
       Other values: the peak's total width, its tailing factor, asymmetry factor,
       baseline delta to height and the slope of the baseline.
@@ -186,27 +186,27 @@ public:
       /**
         The start position at which the intensity is 5% the peak's height.
       */
-      double start_time_at_5 = 0.0;
+      double start_position_at_5 = 0.0;
       /**
         The start position at which the intensity is 10% the peak's height.
       */
-      double start_time_at_10 = 0.0;
+      double start_position_at_10 = 0.0;
       /**
         The start position at which the intensity is 50% the peak's height.
       */
-      double start_time_at_50 = 0.0;
+      double start_position_at_50 = 0.0;
       /**
         The end position at which the intensity is 5% the peak's height.
       */
-      double end_time_at_5 = 0.0;
+      double end_position_at_5 = 0.0;
       /**
         The end position at which the intensity is 10% the peak's height.
       */
-      double end_time_at_10 = 0.0;
+      double end_position_at_10 = 0.0;
       /**
         The end position at which the intensity is 50% the peak's height.
       */
-      double end_time_at_50 = 0.0;
+      double end_position_at_50 = 0.0;
       /**
         The peak's total width.
       */

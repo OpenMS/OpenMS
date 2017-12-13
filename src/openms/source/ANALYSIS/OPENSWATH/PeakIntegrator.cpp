@@ -260,40 +260,40 @@ namespace OpenMS
       // start and end positions (rt or mz)
       if (position < peak_apex_pos_ && psm_.points_across_baseline > 1) // start positions
       {
-        const double d_int_times_d_rt = (intensity - intensity_prev) * (position - position_prev);
+        const double d_int_times_d_pos = (intensity - intensity_prev) * (position - position_prev);
         if (intensity >= 0.05 * peak_height_ && intensity_prev < 0.05 * peak_height_)
         {
           const double height_5 = intensity - 0.05 * peak_height_;
-          psm_.start_time_at_5 = position - d_int_times_d_rt / height_5;
+          psm_.start_position_at_5 = position - d_int_times_d_pos / height_5;
         }
         if (intensity >= 0.1 * peak_height_ && intensity_prev < 0.1 * peak_height_)
         {
           const double height_10 = intensity - 0.1 * peak_height_;
-          psm_.start_time_at_10 = position - d_int_times_d_rt / height_10;
+          psm_.start_position_at_10 = position - d_int_times_d_pos / height_10;
         }
         if (intensity >= 0.5 * peak_height_ && intensity_prev < 0.5 * peak_height_)
         {
           const double height_50 = intensity - 0.5 * peak_height_;
-          psm_.start_time_at_50 = position - d_int_times_d_rt / height_50;
+          psm_.start_position_at_50 = position - d_int_times_d_pos / height_50;
         }
       }
       else if (position > peak_apex_pos_) // end positions
       {
-        const double d_int_times_d_rt = (intensity_prev - intensity) * (position - position_prev);
+        const double d_int_times_d_pos = (intensity_prev - intensity) * (position - position_prev);
         if (intensity <= 0.05 * peak_height_ && intensity_prev > 0.05 * peak_height_)
         {
           const double height_5 = 0.05 * peak_height_ - intensity;
-          psm_.end_time_at_5 = position - d_int_times_d_rt / height_5;
+          psm_.end_position_at_5 = position - d_int_times_d_pos / height_5;
         }
         if (intensity <= 0.1 * peak_height_ && intensity_prev > 0.1 * peak_height_)
         {
           const double height_10 = 0.1 * peak_height_ - intensity;
-          psm_.end_time_at_10 = position - d_int_times_d_rt / height_10;
+          psm_.end_position_at_10 = position - d_int_times_d_pos / height_10;
         }
         if (intensity <= 0.5 * peak_height_ && intensity_prev > 0.5 * peak_height_)
         {
           const double height_50 = 0.5 * peak_height_ - intensity;
-          psm_.end_time_at_50 = position - d_int_times_d_rt / height_50;
+          psm_.end_position_at_50 = position - d_int_times_d_pos / height_50;
         }
       }
       // points across the peak
@@ -305,16 +305,16 @@ namespace OpenMS
     }
 
     // peak widths
-    psm_.width_at_5 = psm_.end_time_at_5 - psm_.start_time_at_5;
-    psm_.width_at_10 = psm_.end_time_at_10 - psm_.start_time_at_10;
-    psm_.width_at_50 = psm_.end_time_at_50 - psm_.start_time_at_50;
+    psm_.width_at_5 = psm_.end_position_at_5 - psm_.start_position_at_5;
+    psm_.width_at_10 = psm_.end_position_at_10 - psm_.start_position_at_10;
+    psm_.width_at_50 = psm_.end_position_at_50 - psm_.start_position_at_50;
     psm_.total_width = (p.PosEnd(right)-1)->getPos() - p.PosBegin(left)->getPos();
     psm_.slope_of_baseline = (p.PosEnd(right)-1)->getIntensity() - p.PosBegin(left)->getIntensity();
     psm_.baseline_delta_2_height = psm_.slope_of_baseline / peak_height_;
 
     // other
-    psm_.tailing_factor = psm_.width_at_5 / std::min(peak_apex_pos_ - psm_.start_time_at_5, psm_.end_time_at_5 - peak_apex_pos_);
-    psm_.asymmetry_factor = std::min(peak_apex_pos_ - psm_.start_time_at_10, psm_.end_time_at_10 - peak_apex_pos_) /
-      std::max(peak_apex_pos_ - psm_.start_time_at_10, psm_.end_time_at_10 - peak_apex_pos_);
+    psm_.tailing_factor = psm_.width_at_5 / std::min(peak_apex_pos_ - psm_.start_position_at_5, psm_.end_position_at_5 - peak_apex_pos_);
+    psm_.asymmetry_factor = std::min(peak_apex_pos_ - psm_.start_position_at_10, psm_.end_position_at_10 - peak_apex_pos_) /
+      std::max(peak_apex_pos_ - psm_.start_position_at_10, psm_.end_position_at_10 - peak_apex_pos_);
   }
 }
