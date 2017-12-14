@@ -149,7 +149,7 @@ namespace OpenMS
     {
       // Block tryptic residues and N-/C-terminus from shuffling
       IndexType idx = MRMDecoy::find_all_tryptic_and_term(peptide.sequence);
-      
+
       shuffled = peptide;
       std::vector<Size> peptide_index;
       for (Size i = 0; i < peptide.sequence.size(); i++)
@@ -365,6 +365,8 @@ namespace OpenMS
     startProgress(0, exp.getPeptides().size(), "Generating decoy peptides");
     for (Size pep_idx = 0; pep_idx < exp.getPeptides().size(); ++pep_idx)
     {
+      setProgress(++progress);
+
       OpenMS::TargetedExperiment::Peptide peptide = exp.getPeptides()[pep_idx];
 
       peptide.id = decoy_tag + peptide.id;
@@ -415,7 +417,6 @@ namespace OpenMS
       }
 
       peptides.push_back(peptide);
-      setProgress(++progress);
     }
     endProgress();
     dec.setPeptides(peptides); // temporary set peptides, overwrite later again!
@@ -432,6 +433,8 @@ namespace OpenMS
     for (MRMDecoy::PeptideTransitionMapType::iterator pep_it = peptide_trans_map.begin();
          pep_it != peptide_trans_map.end(); ++pep_it)
     {
+      setProgress(++progress);
+
       String peptide_ref = pep_it->first;
       String decoy_peptide_ref = decoy_tag + pep_it->first; // see above, the decoy peptide id is computed deterministically from the target id
       const TargetedExperiment::Peptide target_peptide = exp.getPeptideByRef(peptide_ref);
@@ -497,7 +500,6 @@ namespace OpenMS
           LOG_DEBUG << "[peptide] Skipping " << decoy_tr.getPeptideRef() << " due to missing annotation" << std::endl;
         }
       } // end loop over transitions
-      setProgress(++progress);
     } // end loop over peptides
     endProgress();
 

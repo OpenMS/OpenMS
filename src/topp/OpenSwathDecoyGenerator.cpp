@@ -36,6 +36,7 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/TransitionTSVReader.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/TransitionPQPReader.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
+#include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/FORMAT/TraMLFile.h>
@@ -129,7 +130,7 @@ protected:
     registerDoubleOption_("min_decoy_fraction", "<double>", 0.8, "Minimum fraction of decoy / target peptides and proteins", false, true);
 
     registerIntOption_("shuffle_max_attempts", "<int>", 100, "shuffle: maximum attempts to lower the amino acid sequence identity between target and decoy for the shuffle algorithm", false, true);
-    registerDoubleOption_("shuffle_sequence_identity_threshold", "<double>", 0.3, "shuffle: target-decoy amino acid sequence identity threshold for the shuffle algorithm", false, true);
+    registerDoubleOption_("shuffle_sequence_identity_threshold", "<double>", 0.1, "shuffle: target-decoy amino acid sequence identity threshold for the shuffle algorithm", false, true);
     registerDoubleOption_("shift_precursor_mz_shift", "<double>", 0.0, "shift: precursor ion MZ shift in Thomson for shift decoy method", false, true);
     registerDoubleOption_("shift_product_mz_shift", "<double>", 20, "shift: fragment ion MZ shift in Thomson for shift decoy method", false, true);
 
@@ -212,7 +213,7 @@ protected:
     TargetedExperiment targeted_decoy;
 
     // Load data
-    LOG_INFO << "Loading " << in << std::endl;
+    LOG_INFO << "Loading targets from file: " << in << std::endl;
     if (in_type == FileTypes::TSV || in_type == FileTypes::MRM)
     {
       const char* tr_file = in.c_str();
@@ -240,6 +241,7 @@ protected:
     }
 
     MRMDecoy decoys = MRMDecoy();
+    decoys.setLogType(ProgressLogger::CMD);
 
     LOG_INFO << "Generate decoys" << std::endl;
     decoys.generateDecoys(targeted_exp, targeted_decoy, method, decoy_tag, identity_threshold, max_attempts, product_mz_threshold, product_mz_shift, similarity_threshold, precursor_mz_shift, allowed_fragment_types, allowed_fragment_charges, enable_detection_specific_losses, enable_detection_unspecific_losses);
@@ -258,14 +260,15 @@ protected:
     TargetedExperiment targeted_merged;
     if (separate)
     {
+      LOG_INFO << "Writing only decoys to file: " << out << std::endl;
       targeted_merged = targeted_decoy;
     }
     else
     {
+      LOG_INFO << "Writing targets and decoys to file: " << out << std::endl;
       targeted_merged = targeted_exp + targeted_decoy;
     }
 
-    LOG_INFO << "Writing decoys" << out << std::endl;
     if (out_type == FileTypes::TSV)
     {
       const char* tr_file = out.c_str();
