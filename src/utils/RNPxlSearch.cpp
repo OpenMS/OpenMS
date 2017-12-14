@@ -258,6 +258,84 @@ protected:
     registerDoubleOption_("RNPxl:marker_ions_tolerance", "<tolerance>", 0.05, "Tolerance used to determine marker ions (Da).", false, true);
   }
 
+  struct FragmentAdductDefinition_
+  {
+    EmpiricalFormula formula; // formula
+    String name;  // name used in annotation
+    double mass = 0;
+
+    FragmentAdductDefinition_() = default;
+
+    FragmentAdductDefinition_(const FragmentAdductDefinition_&) = default;
+
+    FragmentAdductDefinition_(FragmentAdductDefinition_&&) = default;
+
+    FragmentAdductDefinition_& operator=(const FragmentAdductDefinition_&) = default;
+
+    FragmentAdductDefinition_& operator=(FragmentAdductDefinition_&&) = default;
+
+    bool operator<(const FragmentAdductDefinition_& other) const
+    {
+      String fa = formula.toString();
+      String fb = other.formula.toString();
+      return std::tie(mass, fa, name) < std::tie(other.mass, fb, other.name);
+    }
+
+    bool operator==(const FragmentAdductDefinition_& other) const
+    {
+      return std::tie(formula, name) == std::tie(other.formula, other.name);
+    }
+
+  };
+
+  // fast (flat) data structure to store feasible x-,y-,a-ion fragment adducts and observable marker ions
+  using NucleotideToFeasibleFragmentAdducts = pair<char, vector<FragmentAdductDefinition_> >;
+
+  // stores the fragment adducts and marker ions for a given precursor adduct
+  struct MS2AdductsOfSinglePrecursorAdduct
+  {
+    vector<NucleotideToFeasibleFragmentAdducts> feasible_adducts;
+    vector<FragmentAdductDefinition_> marker_ions;
+  };
+
+  // helper struct to facilitate parsing of parameters (modifications, nucleotide adducts, ...)
+  struct RNPxlParameterParsing
+  {
+    /// Query ResidueModifications (given as strings) from ModificationsDB
+    static vector<ResidueModification> getModifications(StringList modNames);
+
+    // Map a nucleotide (e.g. U to all possible fragment adducts)
+    using NucleotideToFragmentAdductMap = map<char, set<FragmentAdductDefinition_> >;
+    // @brief Parse tool parameter to create map from target nucleotide to all its fragment adducts
+    // It maps a single letter nucleotide (e.g., 'T', 'C', ...)
+    // to the maximum set of fragment adducts that may arise if the nucleotide is cross-linked.
+    // Losses, that might reduce this set, are not considered in this data structure and handled later
+    // when specific precursor adducts are considered.
+    static NucleotideToFragmentAdductMap getTargetNucleotideToFragmentAdducts(StringList fragment_adducts);
+
+
+    // @brief Determines the fragment adducts and marker ions for a given precursor.
+    // The precursor adduct (the oligo including losses, e.g.: "TC-H3PO4") is mapped to all contained nucleotides
+    // and their marker ions. In addition, each cross-linkable nucleotide is mapped to its chemically feasible fragment adducts.
+    // Chemical feasible means in this context, that the fragment or marker ion adduct is a subformula of the precursor adduct.
+    static MS2AdductsOfSinglePrecursorAdduct getFeasibleFragmentAdducts(
+      const String& exp_pc_adduct,
+      const String& exp_pc_formula,
+      const NucleotideToFragmentAdductMap& nucleotide_to_fragment_adducts,
+      const set<char>& can_xl
+    );
+
+    // Maps a precursor adduct (e.g.: "UU-H2O") to all chemically feasible fragment adducts.
+    using PrecursorsToMS2Adducts = map<String, MS2AdductsOfSinglePrecursorAdduct>;
+
+    // @brief Calculate all chemically feasible fragment adducts for all possible precursor adducts
+    // Same as getFeasibleFragmentAdducts but calculated from all precursor adducts
+    static PrecursorsToMS2Adducts getAllFeasibleFragmentAdducts(const RNPxlModificationMassesResult& precursor_adducts,
+                                                          const NucleotideToFragmentAdductMap& nucleotide_to_fragment_adducts,
+                                                          const set<char>& can_xl);
+    
+  };
+
   /// Slimmer structure as storing all scored candidates in PeptideHit objects takes too much space
   struct AnnotatedHit
   {
@@ -303,34 +381,7 @@ protected:
     }
   };
 
-  /// Query ResidueModifications (given as strings) from ModificationsDB
-  vector<ResidueModification> getModifications_(StringList modNames)
-  {
-    vector<ResidueModification> modifications;
 
-    // iterate over modification names and add to vector
-    for (String modification : modNames)
-    {
-      ResidueModification rm;
-      if (modification.hasSubstring(" (N-term)"))
-      {
-        modification.substitute(" (N-term)", "");
-        rm = ModificationsDB::getInstance()->getModification(modification, "", ResidueModification::N_TERM);
-      }
-      else if (modification.hasSubstring(" (C-term)"))
-      {
-        modification.substitute(" (C-term)", "");
-        rm = ModificationsDB::getInstance()->getModification(modification, "", ResidueModification::C_TERM);
-      }
-      else
-      {
-        rm = ModificationsDB::getInstance()->getModification(modification);
-      }
-      modifications.push_back(rm);
-    }
-
-    return modifications;
-  }
 
   /* @brief Filter spectra to remove noise.
      Parameter are passed to spectra filter.
@@ -427,451 +478,52 @@ protected:
   }
 
 
-  struct FragmentAdductDefinition_
-  {
-    EmpiricalFormula formula; // formula
-    String name;  // name used in annotation
-    double mass = 0; 
-
-    FragmentAdductDefinition_() = default;
-
-    FragmentAdductDefinition_(const FragmentAdductDefinition_&) = default;
-
-    FragmentAdductDefinition_(FragmentAdductDefinition_&&) = default;
- 
-    FragmentAdductDefinition_& operator=(const FragmentAdductDefinition_&) = default;
-
-    FragmentAdductDefinition_& operator=(FragmentAdductDefinition_&&) = default;
-
-    bool operator<(const FragmentAdductDefinition_& other) const
-    {
-      String fa = formula.toString();
-      String fb = other.formula.toString();
-      return std::tie(mass, fa, name) < std::tie(other.mass, fb, other.name);
-    }
-
-    bool operator==(const FragmentAdductDefinition_& other) const
-    {
-      return std::tie(formula, name) == std::tie(other.formula, other.name);
-    }
-
-  };
-
-  // map a nucleotide (e.g. U to all possible fragment adducts)
-  using NucleotideToFragmentAdductMap = map<char, set<FragmentAdductDefinition_> >;
-
-  // fast (flat) data structure to store feasible x-,y-,a-ion fragment adducts and observable marker ions
-  using NucleotideToFeasibleFragmentAdducts = pair<char, vector<FragmentAdductDefinition_> >;
-
-  // stores the fragment adducts and marker ions for a given precursor adduct
-  struct MS2AdductsOfSinglePrecursorAdduct
-  {
-    vector<NucleotideToFeasibleFragmentAdducts> feasible_adducts;
-    vector<FragmentAdductDefinition_> marker_ions;
-  };
-
-  // Determines the fragment adducts and marker ions for a given precursor.
-  // Fragment adducts are only added if they can (chemically feasible) be generated from the precursor adduct
-  MS2AdductsOfSinglePrecursorAdduct getFeasibleFragmentAdducts_(
-    const String& exp_pc_adduct, 
-    const String& exp_pc_formula, 
-    const NucleotideToFragmentAdductMap& nucleotide_to_fragment_adducts,
-    const set<char>& can_xl
-    )
-  {
-   // #ifdef DEBUG_RNPXLSEARCH
-    LOG_DEBUG << "Generating fragment adducts for precursor adduct: '" << exp_pc_adduct << "'" << endl;
-  //  #endif
-
-    MS2AdductsOfSinglePrecursorAdduct ret{};
-
-    // no precursor adduct? no fragment adducts or marker ions are expected!
-    if (exp_pc_formula.empty()) { return ret; } 
-
-    // count nucleotides in precursor adduct (e.g.: "TCA-H2O" yields map: T->1, C->1, A->1)
-    // and determine the set of cross-linkable nucleotides in the precursor adduct
-    size_t nt_count(0);
-    map<char, Size> exp_pc_nucleotide_count;
-    set<char> exp_pc_xl_nts; 
-    String::const_iterator exp_pc_it = exp_pc_adduct.begin();
-    for (; exp_pc_it != exp_pc_adduct.end(); ++exp_pc_it, ++nt_count)
-    {
-      // we are finished with nucleotides in string if first loss/gain is encountered
-      if (*exp_pc_it == '+' || *exp_pc_it == '-') break;
-
-      // count occurence of nucleotide
-      if (exp_pc_nucleotide_count.count(*exp_pc_it) == 0)
-      {
-        exp_pc_nucleotide_count[*exp_pc_it] = 1;
-        if (can_xl.count(*exp_pc_it)) { exp_pc_xl_nts.insert(*exp_pc_it); };
-      }
-      else
-      {
-        exp_pc_nucleotide_count[*exp_pc_it]++;
-      }
-    }
-
-    // check if at least one nucleotide present that can cross link
-    bool has_xl_nt(false);
-    for (auto const & m : exp_pc_nucleotide_count) { if (can_xl.count(m.first)) { has_xl_nt = true; break; } }
-
-    LOG_DEBUG << exp_pc_adduct << " has cross-linkable nucleotide (0 = false, 1 = true): " << has_xl_nt << endl;
-
-    // no cross-linkable nt contained in the precursor adduct? Return an empty fragment adduct definition set
-    if (!has_xl_nt) { return ret; }
-
-    // HERE: at least one cross-linkable nt present in precursor adduct
-
-    // extract loss string from precursor adduct (e.g.: "-H2O")
-    // String exp_pc_loss_string(exp_pc_it, exp_pc_adduct.end());
-
-    LOG_DEBUG << exp_pc_adduct << " is monomer (1 = true, >1 = false): " << nt_count << endl;
-
-    // Handle the cases of monomer or oligo nucleotide bound to the precursor.
-    // This distinction is made because potential losses on the precursor only allows us to reduce the set of chemical feasible fragment adducts if they are on a monomer.
-    // In the case of an oligo we can't be sure if the cross-linked amino acid or any other in the oligo had the loss.
-    if (nt_count > 1)  // No monomer? For every nucleotide that can be cross-linked: Create all fragment adducts without restriction by losses (no restriction as the loss could be on the other nts) 
-    {
-      // for each nucleotide and potential set of fragment adducts
-      for (auto const & n2fa : nucleotide_to_fragment_adducts)
-      {
-        const char & nucleotide = n2fa.first; // the nucleotide without any associated loss
-        const set<FragmentAdductDefinition_>& fragment_adducts = n2fa.second; // all potential fragment adducts that may arise from the unmodified nucleotide
-        LOG_DEBUG << exp_pc_adduct << " nucleotide: " << String(nucleotide) << " has fragment_adducts: " << fragment_adducts.size() << endl;
-
-        // is the current nucleotide cross-linkable?
-        if (exp_pc_xl_nts.find(nucleotide) != exp_pc_xl_nts.end())
-        {
-          LOG_DEBUG << exp_pc_adduct << " found nucleotide: " << String(nucleotide) << " in precursor RNA." << endl;
-
-          // store feasible adducts associated with a cross-link with character nucleotide
-          vector<FragmentAdductDefinition_> faa;
-          std::copy(fragment_adducts.begin(), fragment_adducts.end(), back_inserter(faa));
-          ret.feasible_adducts.emplace_back(make_pair(nucleotide, faa));
-        }
-      }
- 
-      // Create set of marker ions for all nucleotides contained in the precursor (including those that do not cross-link.)
-      // Note: The non-cross-linked nt in the precursor adduct are more likely to produce the marker ions (=more fragile than the cross-linked nt).
-      set<FragmentAdductDefinition_> marker_ion_set;
-      for (auto const & n2fa : nucleotide_to_fragment_adducts)
-      {
-        const char & nucleotide = n2fa.first; // the nucleotide without any associated loss
-        if (exp_pc_nucleotide_count.find(nucleotide) != exp_pc_nucleotide_count.end()) { marker_ion_set.insert(n2fa.second.begin(), n2fa.second.end()); }
-      }
-      std::move(std::begin(marker_ion_set), std::end(marker_ion_set), std::back_inserter(ret.marker_ions));
-    }
-    else // nt_count == 1: monomer. We need to check if the neutral loss reduces the set of feasible (e.g., chemically sound) fragment adducts
-    {
-      for (auto const & n2fa : nucleotide_to_fragment_adducts)
-      {
-        const char & nucleotide = n2fa.first; // one letter code of the nt
-        set<FragmentAdductDefinition_> fas = n2fa.second; // all potential fragment adducts that may arise from nt (if no losses are considered)
-
-        // check chemical feasibility by checking if subtraction of adduct would result in negative elemental composition
-        for (auto it = fas.begin(); it != fas.end(); ) 
-        {
-          bool negative_elements = (EmpiricalFormula(exp_pc_formula) - it->formula).toString().hasSubstring("-");
-          
-          if (negative_elements) // fragment adduct can't be subformula of precursor adduct
-          {
-            it = fas.erase(it);
-          } 
-          else 
-          {
-            ++it; // STL erase idiom (mind the pre-increment)
-          }
-        }
-
-        // store feasible adducts associated with a cross-link with character nucleotide[0]
-        vector<FragmentAdductDefinition_> faa;
-        std::copy(fas.begin(), fas.end(), back_inserter(faa));
-        ret.feasible_adducts.emplace_back(make_pair(nucleotide, faa));
-
-        // store feasible marker ions (in this case (monomer) we also restrict them on the nt on the precursor)
-        // Note that these peaks are likely missing or of very low intensity, 
-        std::copy(std::begin(fas), std::end(fas), std::back_inserter(ret.marker_ions));
-      }
-    }
-
-    // print feasible fragment adducts
-    for (auto const & ffa : ret.feasible_adducts)
-    {
-      const char & nucleotide = ffa.first;
-      LOG_DEBUG << "  Cross-linkable nucleotide '" << nucleotide << "' and feasible fragment adducts:" << endl;
-      for (auto const & a : ffa.second)
-      {
-        LOG_DEBUG << "    " << a.name << "\t" << a.formula.toString() << "\t" << a.mass << "\n";
-      }
-    }
-
-    return ret; 
-  }
-
-  // calculate all feasible fragment adducts from all possible precursor adducts
-  using PrecursorsToMS2Adducts = map<String, MS2AdductsOfSinglePrecursorAdduct>;
-  PrecursorsToMS2Adducts getAllFeasibleFragmentAdducts_(const RNPxlModificationMassesResult& precursor_adducts, 
-                                                        const NucleotideToFragmentAdductMap& nucleotide_to_fragment_adducts,
-                                                        const set<char>& can_xl)
-  {
-    PrecursorsToMS2Adducts all_pc_all_feasible_adducts;
-
-    // for all possible precursor adducts
-    for (auto const & pa : precursor_adducts.mod_masses)
-    {
-      const String& ef = pa.first;
-      const set<String>& ambiguities = precursor_adducts.mod_combinations.at(ef);
-
-      // for each ambiguous precursor adduct (stored as nucleotide formula e.g.: "AU-H2O")
-      for (auto const & pc_adduct : ambiguities)
-      {
-        // calculate feasible fragment adducts and store them for lookup
-        auto feasible_adducts = getFeasibleFragmentAdducts_(pc_adduct, ef, nucleotide_to_fragment_adducts, can_xl);
-        // TODO: check if needed anymore - std::sort(feasible_adducts.begin(), feasible_adducts.end());
-        all_pc_all_feasible_adducts[pc_adduct] = feasible_adducts;
-        break; // only store one precursor adduct for multiple ambiguities (e.g. AUG, AGU, UAG..)
-      }
-    }
-
-    // print feasible fragment adducts and marker ions
-    for (auto const & fa : all_pc_all_feasible_adducts)
-    {
-      LOG_DEBUG << "Precursor adduct: " << fa.first << "\n";
-
-      for (auto const & ffa : fa.second.feasible_adducts)
-      {
-        const char & nucleotide = ffa.first;
-        LOG_DEBUG << "  Cross-linkable nucleotide '" << nucleotide << "' and feasible fragment adducts:" << endl;
-        for (auto const & a : ffa.second)
-        {
-          LOG_DEBUG << "    " << a.name << "\t" << a.formula.toString() << "\t" << a.mass << "\n";
-        }
-      }
-
-      LOG_DEBUG << "  Marker ions." << endl;
-      for (auto const & ffa : fa.second.marker_ions)
-      {
-        LOG_DEBUG << "    "  << ffa.name << "\t" << ffa.formula.toString() << "\t" << ffa.mass << "\n";
-      }
-    }
-    LOG_DEBUG << endl;
-
-    return all_pc_all_feasible_adducts;
-  }
 
   // prefix used to denote marker ions in fragment  annotations
   static constexpr const char* ANNOTATIONS_MARKER_ION_PREFIX = "MI:";
 
-  // add RNA-marker ions of charge 1
-  // this includes the protonated nitrogenous base and all shifts (e.g., U-H2O, U'-H20, ...)
-  void addMS2MarkerIons(
-    const vector<FragmentAdductDefinition_>& marker_ions,
-    const bool is_decoy,
-    PeakSpectrum& spectrum,                                      
-    PeakSpectrum::IntegerDataArray& spectrum_charge,             
-    PeakSpectrum::StringDataArray& spectrum_annotation)
+  // helper class that adds special ions not covered by TheoreticalSpectrumGenerator
+  class RNPxlFragmentIonGenerator
   {
-    for (auto const & m : marker_ions)
-    { 
-      double mz = m.mass + Constants::PROTON_MASS_U;
-      if (is_decoy) { mz += DECOY_FRAGMENT_SHIFT; }
- 
-      spectrum.emplace_back(mz, 1.0);
-      spectrum_charge.emplace_back(1);
-      spectrum_annotation.emplace_back(ANNOTATIONS_MARKER_ION_PREFIX + m.name);  // add name (e.g., MI:U-H2O)
-    }
-  }
+    public:
+    // add RNA-marker ions of charge 1
+    // this includes the protonated nitrogenous base and all shifts (e.g., U-H2O, U'-H20, ...)
+    static void addMS2MarkerIons(
+      const vector<FragmentAdductDefinition_>& marker_ions,
+      const bool is_decoy,
+      PeakSpectrum& spectrum,
+      PeakSpectrum::IntegerDataArray& spectrum_charge,
+      PeakSpectrum::StringDataArray& spectrum_annotation);
 
-  void addShiftedImmoniumIons(
-    const String & unmodified_sequence,
-    const String & fragment_shift_name,
-    const double fragment_shift_mass,
-    const bool is_decoy, 
-    PeakSpectrum & partial_loss_spectrum, 
-    PeakSpectrum::IntegerDataArray& partial_loss_spectrum_charge, 
-    PeakSpectrum::StringDataArray& partial_loss_spectrum_annotation)
-  {
-    const double fragment_shift_mass_td = is_decoy ? fragment_shift_mass + DECOY_FRAGMENT_SHIFT : 0; 
+    static void addShiftedImmoniumIons(
+      const String & unmodified_sequence,
+      const String & fragment_shift_name,
+      const double fragment_shift_mass,
+      const bool is_decoy,
+      PeakSpectrum & partial_loss_spectrum,
+      PeakSpectrum::IntegerDataArray& partial_loss_spectrum_charge,
+      PeakSpectrum::StringDataArray& partial_loss_spectrum_annotation);
 
-    if (unmodified_sequence.hasSubstring("Y"))
-    {
-      const double immonium_ion_mz = EmpiricalFormula("C8H10NO").getMonoWeight() + fragment_shift_mass_td;
-      partial_loss_spectrum.emplace_back(immonium_ion_mz, 1.0);
-      partial_loss_spectrum_charge.emplace_back(1);
-      partial_loss_spectrum_annotation.emplace_back(FragmentAnnotationHelper::getAnnotatedImmoniumIon('Y', fragment_shift_name));
-    }
-    else if (unmodified_sequence.hasSubstring("W"))
-    {
-      const double immonium_ion_mz = EmpiricalFormula("C10H11N2").getMonoWeight() + fragment_shift_mass_td;
-      partial_loss_spectrum.emplace_back(immonium_ion_mz, 1.0);
-      partial_loss_spectrum_charge.emplace_back(1);
-      partial_loss_spectrum_annotation.emplace_back(FragmentAnnotationHelper::getAnnotatedImmoniumIon('W', fragment_shift_name));
-    }
-    else if (unmodified_sequence.hasSubstring("F"))
-    {
-      const double immonium_ion_mz = EmpiricalFormula("C8H10N").getMonoWeight() + fragment_shift_mass_td;
-      partial_loss_spectrum.emplace_back(immonium_ion_mz, 1.0);
-      partial_loss_spectrum_charge.emplace_back(1);
-      partial_loss_spectrum_annotation.emplace_back(FragmentAnnotationHelper::getAnnotatedImmoniumIon('F', fragment_shift_name));
-    }
-    else if (unmodified_sequence.hasSubstring("H"))
-    {
-      const double immonium_ion_mz = EmpiricalFormula("C5H8N3").getMonoWeight() + fragment_shift_mass_td;
-      partial_loss_spectrum.emplace_back(immonium_ion_mz, 1.0);
-      partial_loss_spectrum_charge.emplace_back(1);
-      partial_loss_spectrum_annotation.emplace_back(FragmentAnnotationHelper::getAnnotatedImmoniumIon('H', fragment_shift_name));
-    }
-    else if (unmodified_sequence.hasSubstring("C"))
-    {
-      const double immonium_ion_mz = EmpiricalFormula("C2H6NS").getMonoWeight() + fragment_shift_mass_td;
-      partial_loss_spectrum.emplace_back(immonium_ion_mz, 1.0);
-      partial_loss_spectrum_charge.emplace_back(1);
-      partial_loss_spectrum_annotation.emplace_back(FragmentAnnotationHelper::getAnnotatedImmoniumIon('C', fragment_shift_name));
-    }
-    else if (unmodified_sequence.hasSubstring("P"))
-    {
-      const double immonium_ion_mz = EmpiricalFormula("C4H8N").getMonoWeight() + fragment_shift_mass_td;
-      partial_loss_spectrum.emplace_back(immonium_ion_mz, 1.0);
-      partial_loss_spectrum_charge.emplace_back(1);
-      partial_loss_spectrum_annotation.emplace_back(FragmentAnnotationHelper::getAnnotatedImmoniumIon('P', fragment_shift_name));
-    }
-    else if (unmodified_sequence.hasSubstring("L") || unmodified_sequence.hasSubstring("I"))
-    {
-      const double immonium_ion_mz = EmpiricalFormula("C5H12N").getMonoWeight() + fragment_shift_mass_td;
-      partial_loss_spectrum.emplace_back(immonium_ion_mz, 1.0);
-      partial_loss_spectrum_charge.emplace_back(1);
-      partial_loss_spectrum_annotation.emplace_back(FragmentAnnotationHelper::getAnnotatedImmoniumIon('L', fragment_shift_name));
-    }
-    else if (unmodified_sequence.hasSubstring("K"))
-    {
-      const double immonium_ion_mz = 101.10732 + fragment_shift_mass_td;
-      partial_loss_spectrum.emplace_back(immonium_ion_mz, 1.0);
-      partial_loss_spectrum_charge.emplace_back(1);
-      partial_loss_spectrum_annotation.emplace_back(FragmentAnnotationHelper::getAnnotatedImmoniumIon('K', fragment_shift_name));
+    static void generatePartialLossSpectrum(const String& unmodified_sequence,
+                                     const AASequence& fixed_and_variable_modified_peptide,
+                                     const double& fixed_and_variable_modified_peptide_weight,
+                                     const String& precursor_rna_adduct,
+                                     const double& precursor_rna_weight,
+                                     const int& precursor_charge,
+                                     const vector<FragmentAdductDefinition_>& partial_loss_modification,
+                                     const TheoreticalSpectrumGenerator& partial_loss_spectrum_generator,
+                                     const bool is_decoy,
+                                     PeakSpectrum& partial_loss_spectrum);
+    static void addPrecursorWithCompleteRNA_(const double fixed_and_variable_modified_peptide_weight,
+                                      const String & precursor_rna_adduct,
+                                      const double precursor_rna_weight,
+                                      const int charge,
+                                      const bool is_decoy,
+                                      PeakSpectrum & partial_loss_spectrum,
+                                      MSSpectrum::IntegerDataArray & partial_loss_spectrum_charge,
+                                      MSSpectrum::StringDataArray & partial_loss_spectrum_annotation);
+  };
 
-      // TODO: check if only DNA specific and if also other shifts are observed
-      const double immonium_ion2_mz = 84.0808 + fragment_shift_mass_td; // according to A. Stuetzer mainly observed with C‘-NH3 (94.0167 Da)
-      partial_loss_spectrum.emplace_back(immonium_ion2_mz, 1.0);
-      partial_loss_spectrum_charge.emplace_back(1);
-      partial_loss_spectrum_annotation.emplace_back(FragmentAnnotationHelper::getAnnotatedImmoniumIon('K', fragment_shift_name));
-    }
-    else if (unmodified_sequence.hasSubstring("M"))
-    {
-      const double immonium_ion_mz = 104.05285 + fragment_shift_mass_td;
-      partial_loss_spectrum.emplace_back(immonium_ion_mz, 1.0);
-      partial_loss_spectrum_charge.emplace_back(1);
-      partial_loss_spectrum_annotation.emplace_back(FragmentAnnotationHelper::getAnnotatedImmoniumIon('M', fragment_shift_name));
-    }
-  }
-
-  void generatePartialLossSpectrum(const String& unmodified_sequence,
-                                   const AASequence& fixed_and_variable_modified_peptide,
-                                   const double& fixed_and_variable_modified_peptide_weight,
-                                   const String& precursor_rna_adduct,
-                                   const double& precursor_rna_weight,
-                                   const int& precursor_charge,
-                                   const vector<FragmentAdductDefinition_>& partial_loss_modification,
-                                   const TheoreticalSpectrumGenerator& partial_loss_spectrum_generator,
-                                   const bool is_decoy,
-                                   PeakSpectrum& partial_loss_spectrum) 
-  {
-    partial_loss_spectrum.getIntegerDataArrays().resize(1);
-    PeakSpectrum::IntegerDataArray& partial_loss_spectrum_charge = partial_loss_spectrum.getIntegerDataArrays()[0];
-
-    partial_loss_spectrum.getStringDataArrays().resize(1); // annotation
-    PeakSpectrum::StringDataArray& partial_loss_spectrum_annotation = partial_loss_spectrum.getStringDataArrays()[0];
-
-    // ADD: (mainly for ETD) MS2 precursor peaks of the MS1 adduct (total RNA) carrying peptide for all z <= precursor charge
-    // For decoys, we also shift the precursor ions
-    for (int charge = 1; charge <= static_cast<int>(precursor_charge); ++charge)
-    {
-      addPrecursorWithCompleteRNA_(fixed_and_variable_modified_peptide_weight,
-                                   precursor_rna_adduct,
-                                   precursor_rna_weight,
-                                   charge,
-                                   is_decoy,
-                                   partial_loss_spectrum,
-                                   partial_loss_spectrum_charge,
-                                   partial_loss_spectrum_annotation);
-    }
-
-    // 0 for target peptides, DECOY_FRAGMENT_SHIFT for decoy peptides
-    const double td_shift = is_decoy ? DECOY_FRAGMENT_SHIFT : 0;
-
-    for (Size i = 0; i != partial_loss_modification.size(); ++i)
-    {
-      // get name and mass of fragment adduct
-      const String& fragment_shift_name = partial_loss_modification[i].name; // e.g. U-H2O
-      const double fragment_shift_mass = partial_loss_modification[i].mass;
-
-      // ADD: shifted immonium ion peaks of charge 1 (if the amino acid is present in the sequence)
-      addShiftedImmoniumIons(
-        unmodified_sequence,
-        fragment_shift_name,
-        fragment_shift_mass,
-        is_decoy,
-        partial_loss_spectrum, 
-        partial_loss_spectrum_charge, 
-        partial_loss_spectrum_annotation);
-
-      // annotate generated a,b,y ions with fragment shift name
-      PeakSpectrum shifted_series_peaks;
-      shifted_series_peaks.getStringDataArrays().resize(1); // annotation
-      shifted_series_peaks.getIntegerDataArrays().resize(1); // charge
-
-      PeakSpectrum::StringDataArray& shifted_series_annotations = shifted_series_peaks.getStringDataArrays()[0];
-      PeakSpectrum::IntegerDataArray& shifted_series_charges = shifted_series_peaks.getIntegerDataArrays()[0];
-
-      // For every charge state
-      for (int z = 1; z <= precursor_charge; ++z)
-      {
-        // 1. create unshifted peaks (a,b,y, MS2 precursor ions up to pc charge)
-        PeakSpectrum tmp_shifted_series_peaks;
-        partial_loss_spectrum_generator.getSpectrum(tmp_shifted_series_peaks, fixed_and_variable_modified_peptide, z, z);
-
-        PeakSpectrum::StringDataArray& tmp_shifted_series_annotations = tmp_shifted_series_peaks.getStringDataArrays()[0];
-        PeakSpectrum::IntegerDataArray& tmp_shifted_series_charges = tmp_shifted_series_peaks.getIntegerDataArrays()[0];
-
-        // 2. shift peaks (additional shift for decoys)
-        // TODO: check if decoy shift is in m/z or Da
-        for (auto & p : tmp_shifted_series_peaks) { p.setMZ(p.getMZ() + fragment_shift_mass / static_cast<double>(z) + td_shift); }
-
-        // 3. add shifted peaks to shifted_series_peaks
-        shifted_series_peaks.insert(shifted_series_peaks.end(), tmp_shifted_series_peaks.begin(), tmp_shifted_series_peaks.end());
-        shifted_series_annotations.insert(
-          shifted_series_annotations.end(),
-          tmp_shifted_series_annotations.begin(),
-          tmp_shifted_series_annotations.end()
-        );
-        shifted_series_charges.insert(
-          shifted_series_charges.end(),
-          tmp_shifted_series_charges.begin(),
-          tmp_shifted_series_charges.end()
-        );
-      }
-
-      // 4. add fragment shift name to annotation of shifted peaks
-      for (Size j = 0; j != shifted_series_annotations.size(); ++j)
-      {
-        shifted_series_annotations[j] = shifted_series_annotations[j] + " " + fragment_shift_name;
-      }
-     
-      // append shifted and annotated ion series to partial loss spectrum
-      partial_loss_spectrum.insert(partial_loss_spectrum.end(), shifted_series_peaks.begin(), shifted_series_peaks.end());
-      partial_loss_spectrum_annotation.insert(
-        partial_loss_spectrum_annotation.end(),
-        shifted_series_annotations.begin(),
-        shifted_series_annotations.end()
-      );
-      partial_loss_spectrum.getIntegerDataArrays()[0].insert(
-        partial_loss_spectrum_charge.end(),
-        shifted_series_charges.begin(),
-        shifted_series_charges.end()
-      );
-    }
-
-    partial_loss_spectrum.sortByPosition();
-  }
 
   /* @brief Localization step of the cross-link identification engine.
    * Given a top scoring candidate (based on total loss spectrum) it:
@@ -889,7 +541,7 @@ protected:
                       Size max_variable_mods_per_peptide, 
                       const TheoreticalSpectrumGenerator& partial_loss_spectrum_generator, 
                       double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, 
-                      const PrecursorsToMS2Adducts & all_feasible_adducts)
+                      const RNPxlParameterParsing::PrecursorsToMS2Adducts & all_feasible_adducts)
   {
     assert(exp.size() == annotated_hits.size());
 
@@ -982,7 +634,7 @@ protected:
 
         // for post-scoring and localization we don't annotate additional decoy shifts
         PeakSpectrum partial_loss_spectrum;
-        generatePartialLossSpectrum(unmodified_sequence,
+        RNPxlFragmentIonGenerator::generatePartialLossSpectrum(unmodified_sequence,
                                     fixed_and_variable_modified_peptide,
                                     fixed_and_variable_modified_peptide_weight,
                                     precursor_rna_adduct,
@@ -994,7 +646,7 @@ protected:
                                     partial_loss_spectrum);
 
          // add shifted marker ions
-         addMS2MarkerIons(
+         RNPxlFragmentIonGenerator::addMS2MarkerIons(
            marker_ions,
            false, // no decoy shifts
            partial_loss_spectrum,
@@ -1494,25 +1146,7 @@ protected:
   }
 
 
-  void addPrecursorWithCompleteRNA_(const double fixed_and_variable_modified_peptide_weight,
-                                    const String & precursor_rna_adduct,
-                                    const double precursor_rna_weight,
-                                    const int charge,
-                                    const bool is_decoy,
-                                    PeakSpectrum & partial_loss_spectrum,
-                                    MSSpectrum::IntegerDataArray & partial_loss_spectrum_charge,
-                                    MSSpectrum::StringDataArray & partial_loss_spectrum_annotation)
-  {
-    const double td_shift = is_decoy ? DECOY_FRAGMENT_SHIFT : 0;
 
-    double xl_mz = (fixed_and_variable_modified_peptide_weight + precursor_rna_weight + 
-                   static_cast<double>(charge) * Constants::PROTON_MASS_U) 
-                   / static_cast<double>(charge)
-                   + td_shift;  // fixed shift TODO: check if m/z or Da should be used for this shift
-    partial_loss_spectrum.push_back(Peak1D(xl_mz, 1.0));
-    partial_loss_spectrum_charge.push_back(charge);
-    partial_loss_spectrum_annotation.push_back(String("[M+") + precursor_rna_adduct + "]");
-  }
 
   /// Filter by top scoring hits, reconstruct original peptide from memory efficient structure, and add additional meta information.
   void postProcessHits_(const PeakMap& exp, 
@@ -1694,91 +1328,6 @@ protected:
       name = new_name;
    }
 
-  // parse tool parameter to create map from target nucleotide to all its fragment adducts
-  NucleotideToFragmentAdductMap getTargetNucleotideToFragmentAdducts_(StringList fragment_adducts)
-  {
-    NucleotideToFragmentAdductMap nucleotide_to_fragment_adducts;
-    for (String t : fragment_adducts)
-    {
-      t.removeWhitespaces();
-       
-      EmpiricalFormula formula;
-      String name;
-
-      // format is: target_nucletide:formula;name
-      char target_nucleotide = t[0];
-      if (t[1] != ':') 
-      { 
-        LOG_WARN << "Missing ':'. Wrong format of fragment_adduct string: " << t << endl; 
-        return NucleotideToFragmentAdductMap(); 
-      }
-      
-      // remove target nucleotide and : character from t
-      t = t.substr(2);
-
-      // split into formula and name   
-      vector<String> fs;
-      t.split(";", fs);
-      if (fs.size() == 1) // no name provided so we just take the formula as name
-      {
-        formula = EmpiricalFormula(fs[0]);
-        name = formula.toString();
-      }
-      else if (fs.size() == 2)
-      {
-        formula = EmpiricalFormula(fs[0]);
-        name = fs[1];         
-      }
-      else
-      {
-        LOG_WARN << "Wrong format of fragment_adduct string: " << t << endl;
-        return NucleotideToFragmentAdductMap(); 
-      }
-
-      FragmentAdductDefinition_ fad;
-      fad.name = name;
-      fad.formula = formula;
-      fad.mass = formula.getMonoWeight();
-
-      nucleotide_to_fragment_adducts[target_nucleotide].insert(fad);
-
-      // register all fragment adducts as N- and C-terminal modification (if not already registered)
-      if (!ModificationsDB::getInstance()->has(name))
-      {
-        ResidueModification * c_term = new ResidueModification();
-        c_term->setId(name);
-        c_term->setName(name);
-        c_term->setFullId(name + " (C-term)");
-        c_term->setTermSpecificity(ResidueModification::C_TERM);
-        c_term->setDiffMonoMass(fad.mass);
-        ModificationsDB::getInstance()->addModification(c_term);
-
-        ResidueModification * n_term = new ResidueModification();
-        n_term->setId(name);
-        n_term->setName(name);
-        n_term->setFullId(name + " (N-term)");
-        n_term->setTermSpecificity(ResidueModification::N_TERM);
-        n_term->setDiffMonoMass(fad.mass);
-        ModificationsDB::getInstance()->addModification(n_term);
-      }
-    }
-
-    #ifdef DEBUG_RNPXLSEARCH
-    for (auto const & p2fas : precursor_to_fragment_adducts)
-    {
-      for (auto const & p2fa : p2fas.second)
-      {
-        cout << "nucleotide:" << p2fas.first 
-             << " fragment adduct:" << p2fa.formula.toString() 
-             << " fragment adduct mass:" << p2fa.mass 
-             << " name:" <<  p2fa.name << endl;
-      }
-    }
-    #endif
-
-    return nucleotide_to_fragment_adducts;
-  }
-
   void mapPrecursorMassesToScans(Int min_precursor_charge, Int max_precursor_charge, const IntList &precursor_isotopes,
                                double small_peptide_mass_filter_threshold, Size peptide_min_size, PeakMap &spectra,
                                multimap<double, pair<Size, int>> &multimap_mass_2_scan_index) const
@@ -1948,8 +1497,8 @@ protected:
       return ILLEGAL_PARAMETERS;
     }
 
-    vector<ResidueModification> fixed_modifications = getModifications_(fixedModNames);
-    vector<ResidueModification> variable_modifications = getModifications_(varModNames);
+    vector<ResidueModification> fixed_modifications = RNPxlParameterParsing::getModifications(fixedModNames);
+    vector<ResidueModification> variable_modifications = RNPxlParameterParsing::getModifications(varModNames);
     Size max_variable_mods_per_peptide = getIntOption_("modifications:variable_max_per_peptide");
 
     size_t report_top_hits = (size_t)getIntOption_("report:top_hits");
@@ -1996,10 +1545,10 @@ protected:
     // parse tool parameter and generate all fragment adducts
 
     // first, we determine which fragments adducts can be generated from a single nucleotide (that has no losses)
-    NucleotideToFragmentAdductMap nucleotide_to_fragment_adducts = getTargetNucleotideToFragmentAdducts_(getStringList_("RNPxl:fragment_adducts"));
+    RNPxlParameterParsing::NucleotideToFragmentAdductMap nucleotide_to_fragment_adducts = RNPxlParameterParsing::getTargetNucleotideToFragmentAdducts(getStringList_("RNPxl:fragment_adducts"));
 
     // calculate all feasible fragment adducts from all possible precursor adducts
-    PrecursorsToMS2Adducts all_feasible_fragment_adducts = getAllFeasibleFragmentAdducts_(mm, nucleotide_to_fragment_adducts, can_xl);
+    RNPxlParameterParsing::PrecursorsToMS2Adducts all_feasible_fragment_adducts = RNPxlParameterParsing::getAllFeasibleFragmentAdducts(mm, nucleotide_to_fragment_adducts, can_xl);
 
     // load MS2 map
     PeakMap spectra;
@@ -2320,7 +1869,7 @@ protected:
                   {
                     // shifted b- / y- / a-ions
                     // generate shifted_immonium_ions_sub_score_spectrum.empty
-                    generatePartialLossSpectrum(unmodified_sequence,
+                    RNPxlFragmentIonGenerator::generatePartialLossSpectrum(unmodified_sequence,
                                                 fixed_and_variable_modified_peptide,
                                                 current_peptide_mass_without_RNA,
                                                 precursor_rna_adduct,
@@ -2332,7 +1881,7 @@ protected:
                                                 partial_loss_spectrum_z1);
                     for (auto& n : partial_loss_spectrum_z1.getStringDataArrays()[0]) { n[0] = 'y'; } // hyperscore hack
 
-                    generatePartialLossSpectrum(unmodified_sequence,
+                    RNPxlFragmentIonGenerator::generatePartialLossSpectrum(unmodified_sequence,
                                                 fixed_and_variable_modified_peptide,
                                                 current_peptide_mass_without_RNA,
                                                 precursor_rna_adduct,
@@ -2348,7 +1897,7 @@ protected:
                   // add shifted marker ions
                   marker_ions_sub_score_spectrum_z1.getStringDataArrays().resize(1); // annotation
                   marker_ions_sub_score_spectrum_z1.getIntegerDataArrays().resize(1); // annotation
-                  addMS2MarkerIons(
+                  RNPxlFragmentIonGenerator::addMS2MarkerIons(
                     marker_ions,
                     is_decoy,
                     marker_ions_sub_score_spectrum_z1,
@@ -2746,6 +2295,521 @@ protected:
   }
 
 };
+
+vector<ResidueModification> RNPxlSearch::RNPxlParameterParsing::getModifications(StringList modNames) {
+  vector<ResidueModification> modifications;
+
+  // iterate over modification names and add to vector
+  for (String modification : modNames)
+  {
+    ResidueModification rm;
+    if (modification.hasSubstring(" (N-term)"))
+    {
+      modification.substitute(" (N-term)", "");
+      rm = ModificationsDB::getInstance()->getModification(modification, "", ResidueModification::N_TERM);
+    }
+    else if (modification.hasSubstring(" (C-term)"))
+    {
+      modification.substitute(" (C-term)", "");
+      rm = ModificationsDB::getInstance()->getModification(modification, "", ResidueModification::C_TERM);
+    }
+    else
+    {
+      rm = ModificationsDB::getInstance()->getModification(modification);
+    }
+    modifications.push_back(rm);
+  }
+
+  return modifications;
+}
+
+RNPxlSearch::RNPxlParameterParsing::PrecursorsToMS2Adducts
+RNPxlSearch::RNPxlParameterParsing::getAllFeasibleFragmentAdducts(
+  const RNPxlModificationMassesResult &precursor_adducts,
+  const RNPxlSearch::RNPxlParameterParsing::NucleotideToFragmentAdductMap &nucleotide_to_fragment_adducts,
+  const set<char> &can_xl) {
+  PrecursorsToMS2Adducts all_pc_all_feasible_adducts;
+
+  // for all possible precursor adducts
+  for (auto const & pa : precursor_adducts.mod_masses)
+  {
+    const String& ef = pa.first;
+    const set<String>& ambiguities = precursor_adducts.mod_combinations.at(ef);
+
+    // for each ambiguous precursor adduct (stored as nucleotide formula e.g.: "AU-H2O")
+    for (auto const & pc_adduct : ambiguities)
+    {
+      // calculate feasible fragment adducts and store them for lookup
+      auto feasible_adducts = getFeasibleFragmentAdducts(pc_adduct, ef, nucleotide_to_fragment_adducts, can_xl);
+      // TODO: check if needed anymore - std::sort(feasible_adducts.begin(), feasible_adducts.end());
+      all_pc_all_feasible_adducts[pc_adduct] = feasible_adducts;
+      break; // only store one precursor adduct for multiple ambiguities (e.g. AUG, AGU, UAG..)
+    }
+  }
+
+  // print feasible fragment adducts and marker ions
+  for (auto const & fa : all_pc_all_feasible_adducts)
+  {
+    LOG_DEBUG << "Precursor adduct: " << fa.first << "\n";
+
+    for (auto const & ffa : fa.second.feasible_adducts)
+    {
+      const char & nucleotide = ffa.first;
+      LOG_DEBUG << "  Cross-linkable nucleotide '" << nucleotide << "' and feasible fragment adducts:" << endl;
+      for (auto const & a : ffa.second)
+      {
+        LOG_DEBUG << "    " << a.name << "\t" << a.formula.toString() << "\t" << a.mass << "\n";
+      }
+    }
+
+    LOG_DEBUG << "  Marker ions." << endl;
+    for (auto const & ffa : fa.second.marker_ions)
+    {
+      LOG_DEBUG << "    "  << ffa.name << "\t" << ffa.formula.toString() << "\t" << ffa.mass << "\n";
+    }
+  }
+  LOG_DEBUG << endl;
+
+  return all_pc_all_feasible_adducts;
+}
+
+RNPxlSearch::RNPxlParameterParsing::NucleotideToFragmentAdductMap
+RNPxlSearch::RNPxlParameterParsing::getTargetNucleotideToFragmentAdducts(StringList fragment_adducts)
+{
+  NucleotideToFragmentAdductMap nucleotide_to_fragment_adducts;
+  for (String t : fragment_adducts)
+  {
+    t.removeWhitespaces();
+
+    EmpiricalFormula formula;
+    String name;
+
+    // format is: target_nucletide:formula;name
+    char target_nucleotide = t[0];
+    if (t[1] != ':')
+    {
+      LOG_WARN << "Missing ':'. Wrong format of fragment_adduct string: " << t << endl;
+      return NucleotideToFragmentAdductMap();
+    }
+
+    // remove target nucleotide and : character from t
+    t = t.substr(2);
+
+    // split into formula and name
+    vector<String> fs;
+    t.split(";", fs);
+    if (fs.size() == 1) // no name provided so we just take the formula as name
+    {
+      formula = EmpiricalFormula(fs[0]);
+      name = formula.toString();
+    }
+    else if (fs.size() == 2)
+    {
+      formula = EmpiricalFormula(fs[0]);
+      name = fs[1];
+    }
+    else
+    {
+      LOG_WARN << "Wrong format of fragment_adduct string: " << t << endl;
+      return NucleotideToFragmentAdductMap();
+    }
+
+    FragmentAdductDefinition_ fad;
+    fad.name = name;
+    fad.formula = formula;
+    fad.mass = formula.getMonoWeight();
+
+    nucleotide_to_fragment_adducts[target_nucleotide].insert(fad);
+
+    // register all fragment adducts as N- and C-terminal modification (if not already registered)
+    if (!ModificationsDB::getInstance()->has(name))
+    {
+      ResidueModification * c_term = new ResidueModification();
+      c_term->setId(name);
+      c_term->setName(name);
+      c_term->setFullId(name + " (C-term)");
+      c_term->setTermSpecificity(ResidueModification::C_TERM);
+      c_term->setDiffMonoMass(fad.mass);
+      ModificationsDB::getInstance()->addModification(c_term);
+
+      ResidueModification * n_term = new ResidueModification();
+      n_term->setId(name);
+      n_term->setName(name);
+      n_term->setFullId(name + " (N-term)");
+      n_term->setTermSpecificity(ResidueModification::N_TERM);
+      n_term->setDiffMonoMass(fad.mass);
+      ModificationsDB::getInstance()->addModification(n_term);
+    }
+  }
+
+#ifdef DEBUG_RNPXLSEARCH
+  for (auto const & p2fas : precursor_to_fragment_adducts)
+    {
+      for (auto const & p2fa : p2fas.second)
+      {
+        cout << "nucleotide:" << p2fas.first
+             << " fragment adduct:" << p2fa.formula.toString()
+             << " fragment adduct mass:" << p2fa.mass
+             << " name:" <<  p2fa.name << endl;
+      }
+    }
+#endif
+
+  return nucleotide_to_fragment_adducts;
+}
+
+RNPxlSearch::MS2AdductsOfSinglePrecursorAdduct
+RNPxlSearch::RNPxlParameterParsing::getFeasibleFragmentAdducts(const String &exp_pc_adduct,
+                                                               const String &exp_pc_formula,
+                                                               const RNPxlSearch::RNPxlParameterParsing::NucleotideToFragmentAdductMap &nucleotide_to_fragment_adducts,
+                                                               const set<char> &can_xl)
+{
+  // #ifdef DEBUG_RNPXLSEARCH
+  LOG_DEBUG << "Generating fragment adducts for precursor adduct: '" << exp_pc_adduct << "'" << endl;
+  //  #endif
+
+  MS2AdductsOfSinglePrecursorAdduct ret;
+
+  // no precursor adduct? no fragment adducts or marker ions are expected!
+  if (exp_pc_formula.empty()) { return ret; }
+
+  // count nucleotides in precursor adduct (e.g.: "TCA-H2O" yields map: T->1, C->1, A->1)
+  // and determine the set of cross-linkable nucleotides in the precursor adduct
+  size_t nt_count(0);
+  map<char, Size> exp_pc_nucleotide_count;
+  set<char> exp_pc_xl_nts;
+  String::const_iterator exp_pc_it = exp_pc_adduct.begin();
+  for (; exp_pc_it != exp_pc_adduct.end(); ++exp_pc_it, ++nt_count)
+  {
+    // we are finished with nucleotides in string if first loss/gain is encountered
+    if (*exp_pc_it == '+' || *exp_pc_it == '-') break;
+
+    // count occurence of nucleotide
+    if (exp_pc_nucleotide_count.count(*exp_pc_it) == 0)
+    {
+      exp_pc_nucleotide_count[*exp_pc_it] = 1;
+      if (can_xl.count(*exp_pc_it)) { exp_pc_xl_nts.insert(*exp_pc_it); };
+    }
+    else
+    {
+      exp_pc_nucleotide_count[*exp_pc_it]++;
+    }
+  }
+
+  // check if at least one nucleotide present that can cross link
+  bool has_xl_nt(false);
+  for (auto const & m : exp_pc_nucleotide_count) { if (can_xl.count(m.first)) { has_xl_nt = true; break; } }
+
+  LOG_DEBUG << exp_pc_adduct << " has cross-linkable nucleotide (0 = false, 1 = true): " << has_xl_nt << endl;
+
+  // no cross-linkable nt contained in the precursor adduct? Return an empty fragment adduct definition set
+  if (!has_xl_nt) { return ret; }
+
+  // HERE: at least one cross-linkable nt present in precursor adduct
+
+  // extract loss string from precursor adduct (e.g.: "-H2O")
+  // String exp_pc_loss_string(exp_pc_it, exp_pc_adduct.end());
+
+  LOG_DEBUG << exp_pc_adduct << " is monomer (1 = true, >1 = false): " << nt_count << endl;
+
+  // Handle the cases of monomer or oligo nucleotide bound to the precursor.
+  // This distinction is made because potential losses on the precursor only allows us to reduce the set of chemical feasible fragment adducts if they are on a monomer.
+  // In the case of an oligo we can't be sure if the cross-linked amino acid or any other in the oligo had the loss.
+  if (nt_count > 1)  // No monomer? For every nucleotide that can be cross-linked: Create all fragment adducts without restriction by losses (no restriction as the loss could be on the other nts)
+  {
+    // for each nucleotide and potential set of fragment adducts
+    for (auto const & n2fa : nucleotide_to_fragment_adducts)
+    {
+      const char & nucleotide = n2fa.first; // the nucleotide without any associated loss
+      const set<FragmentAdductDefinition_>& fragment_adducts = n2fa.second; // all potential fragment adducts that may arise from the unmodified nucleotide
+      LOG_DEBUG << exp_pc_adduct << " nucleotide: " << String(nucleotide) << " has fragment_adducts: " << fragment_adducts.size() << endl;
+
+      // is the current nucleotide cross-linkable?
+      if (exp_pc_xl_nts.find(nucleotide) != exp_pc_xl_nts.end())
+      {
+        LOG_DEBUG << exp_pc_adduct << " found nucleotide: " << String(nucleotide) << " in precursor RNA." << endl;
+
+        // store feasible adducts associated with a cross-link with character nucleotide
+        vector<FragmentAdductDefinition_> faa;
+        std::copy(fragment_adducts.begin(), fragment_adducts.end(), back_inserter(faa));
+        ret.feasible_adducts.emplace_back(make_pair(nucleotide, faa));
+      }
+    }
+
+    // Create set of marker ions for all nucleotides contained in the precursor (including those that do not cross-link.)
+    // Note: The non-cross-linked nt in the precursor adduct are more likely to produce the marker ions (=more fragile than the cross-linked nt).
+    set<FragmentAdductDefinition_> marker_ion_set;
+    for (auto const & n2fa : nucleotide_to_fragment_adducts)
+    {
+      const char & nucleotide = n2fa.first; // the nucleotide without any associated loss
+      if (exp_pc_nucleotide_count.find(nucleotide) != exp_pc_nucleotide_count.end()) { marker_ion_set.insert(n2fa.second.begin(), n2fa.second.end()); }
+    }
+    std::move(std::begin(marker_ion_set), std::end(marker_ion_set), std::back_inserter(ret.marker_ions));
+  }
+  else // nt_count == 1: monomer. We need to check if the neutral loss reduces the set of feasible (e.g., chemically sound) fragment adducts
+  {
+    for (auto const & n2fa : nucleotide_to_fragment_adducts)
+    {
+      const char & nucleotide = n2fa.first; // one letter code of the nt
+      set<FragmentAdductDefinition_> fas = n2fa.second; // all potential fragment adducts that may arise from nt (if no losses are considered)
+
+      // check chemical feasibility by checking if subtraction of adduct would result in negative elemental composition
+      for (auto it = fas.begin(); it != fas.end(); )
+      {
+        bool negative_elements = (EmpiricalFormula(exp_pc_formula) - it->formula).toString().hasSubstring("-");
+
+        if (negative_elements) // fragment adduct can't be subformula of precursor adduct
+        {
+          it = fas.erase(it);
+        }
+        else
+        {
+          ++it; // STL erase idiom (mind the pre-increment)
+        }
+      }
+
+      // store feasible adducts associated with a cross-link with character nucleotide[0]
+      vector<FragmentAdductDefinition_> faa;
+      std::copy(fas.begin(), fas.end(), back_inserter(faa));
+      ret.feasible_adducts.emplace_back(make_pair(nucleotide, faa));
+
+      // store feasible marker ions (in this case (monomer) we also restrict them on the nt on the precursor)
+      // Note that these peaks are likely missing or of very low intensity,
+      std::copy(std::begin(fas), std::end(fas), std::back_inserter(ret.marker_ions));
+    }
+  }
+
+  // print feasible fragment adducts
+  for (auto const & ffa : ret.feasible_adducts)
+  {
+    const char & nucleotide = ffa.first;
+    LOG_DEBUG << "  Cross-linkable nucleotide '" << nucleotide << "' and feasible fragment adducts:" << endl;
+    for (auto const & a : ffa.second)
+    {
+      LOG_DEBUG << "    " << a.name << "\t" << a.formula.toString() << "\t" << a.mass << "\n";
+    }
+  }
+
+  return ret;
+}
+
+void RNPxlSearch::RNPxlFragmentIonGenerator::addMS2MarkerIons(
+  const vector<RNPxlSearch::FragmentAdductDefinition_> &marker_ions, const bool is_decoy, PeakSpectrum &spectrum,
+  PeakSpectrum::IntegerDataArray &spectrum_charge, PeakSpectrum::StringDataArray &spectrum_annotation) {
+  for (auto const & m : marker_ions)
+  {
+    double mz = m.mass + Constants::PROTON_MASS_U;
+    if (is_decoy) { mz += DECOY_FRAGMENT_SHIFT; }
+
+    spectrum.emplace_back(mz, 1.0);
+    spectrum_charge.emplace_back(1);
+    spectrum_annotation.emplace_back(ANNOTATIONS_MARKER_ION_PREFIX + m.name);  // add name (e.g., MI:U-H2O)
+  }
+}
+
+void RNPxlSearch::RNPxlFragmentIonGenerator::addShiftedImmoniumIons(const String &unmodified_sequence,
+                                                                    const String &fragment_shift_name,
+                                                                    const double fragment_shift_mass,
+                                                                    const bool is_decoy,
+                                                                    PeakSpectrum &partial_loss_spectrum,
+                                                                    PeakSpectrum::IntegerDataArray &partial_loss_spectrum_charge,
+                                                                    PeakSpectrum::StringDataArray &partial_loss_spectrum_annotation) {
+  const double fragment_shift_mass_td = is_decoy ? fragment_shift_mass + DECOY_FRAGMENT_SHIFT : 0;
+
+  if (unmodified_sequence.hasSubstring("Y"))
+  {
+    const double immonium_ion_mz = EmpiricalFormula("C8H10NO").getMonoWeight() + fragment_shift_mass_td;
+    partial_loss_spectrum.emplace_back(immonium_ion_mz, 1.0);
+    partial_loss_spectrum_charge.emplace_back(1);
+    partial_loss_spectrum_annotation.emplace_back(FragmentAnnotationHelper::getAnnotatedImmoniumIon('Y', fragment_shift_name));
+  }
+  else if (unmodified_sequence.hasSubstring("W"))
+  {
+    const double immonium_ion_mz = EmpiricalFormula("C10H11N2").getMonoWeight() + fragment_shift_mass_td;
+    partial_loss_spectrum.emplace_back(immonium_ion_mz, 1.0);
+    partial_loss_spectrum_charge.emplace_back(1);
+    partial_loss_spectrum_annotation.emplace_back(FragmentAnnotationHelper::getAnnotatedImmoniumIon('W', fragment_shift_name));
+  }
+  else if (unmodified_sequence.hasSubstring("F"))
+  {
+    const double immonium_ion_mz = EmpiricalFormula("C8H10N").getMonoWeight() + fragment_shift_mass_td;
+    partial_loss_spectrum.emplace_back(immonium_ion_mz, 1.0);
+    partial_loss_spectrum_charge.emplace_back(1);
+    partial_loss_spectrum_annotation.emplace_back(FragmentAnnotationHelper::getAnnotatedImmoniumIon('F', fragment_shift_name));
+  }
+  else if (unmodified_sequence.hasSubstring("H"))
+  {
+    const double immonium_ion_mz = EmpiricalFormula("C5H8N3").getMonoWeight() + fragment_shift_mass_td;
+    partial_loss_spectrum.emplace_back(immonium_ion_mz, 1.0);
+    partial_loss_spectrum_charge.emplace_back(1);
+    partial_loss_spectrum_annotation.emplace_back(FragmentAnnotationHelper::getAnnotatedImmoniumIon('H', fragment_shift_name));
+  }
+  else if (unmodified_sequence.hasSubstring("C"))
+  {
+    const double immonium_ion_mz = EmpiricalFormula("C2H6NS").getMonoWeight() + fragment_shift_mass_td;
+    partial_loss_spectrum.emplace_back(immonium_ion_mz, 1.0);
+    partial_loss_spectrum_charge.emplace_back(1);
+    partial_loss_spectrum_annotation.emplace_back(FragmentAnnotationHelper::getAnnotatedImmoniumIon('C', fragment_shift_name));
+  }
+  else if (unmodified_sequence.hasSubstring("P"))
+  {
+    const double immonium_ion_mz = EmpiricalFormula("C4H8N").getMonoWeight() + fragment_shift_mass_td;
+    partial_loss_spectrum.emplace_back(immonium_ion_mz, 1.0);
+    partial_loss_spectrum_charge.emplace_back(1);
+    partial_loss_spectrum_annotation.emplace_back(FragmentAnnotationHelper::getAnnotatedImmoniumIon('P', fragment_shift_name));
+  }
+  else if (unmodified_sequence.hasSubstring("L") || unmodified_sequence.hasSubstring("I"))
+  {
+    const double immonium_ion_mz = EmpiricalFormula("C5H12N").getMonoWeight() + fragment_shift_mass_td;
+    partial_loss_spectrum.emplace_back(immonium_ion_mz, 1.0);
+    partial_loss_spectrum_charge.emplace_back(1);
+    partial_loss_spectrum_annotation.emplace_back(FragmentAnnotationHelper::getAnnotatedImmoniumIon('L', fragment_shift_name));
+  }
+  else if (unmodified_sequence.hasSubstring("K"))
+  {
+    const double immonium_ion_mz = 101.10732 + fragment_shift_mass_td;
+    partial_loss_spectrum.emplace_back(immonium_ion_mz, 1.0);
+    partial_loss_spectrum_charge.emplace_back(1);
+    partial_loss_spectrum_annotation.emplace_back(FragmentAnnotationHelper::getAnnotatedImmoniumIon('K', fragment_shift_name));
+
+    // TODO: check if only DNA specific and if also other shifts are observed
+    const double immonium_ion2_mz = 84.0808 + fragment_shift_mass_td; // according to A. Stuetzer mainly observed with C‘-NH3 (94.0167 Da)
+    partial_loss_spectrum.emplace_back(immonium_ion2_mz, 1.0);
+    partial_loss_spectrum_charge.emplace_back(1);
+    partial_loss_spectrum_annotation.emplace_back(FragmentAnnotationHelper::getAnnotatedImmoniumIon('K', fragment_shift_name));
+  }
+  else if (unmodified_sequence.hasSubstring("M"))
+  {
+    const double immonium_ion_mz = 104.05285 + fragment_shift_mass_td;
+    partial_loss_spectrum.emplace_back(immonium_ion_mz, 1.0);
+    partial_loss_spectrum_charge.emplace_back(1);
+    partial_loss_spectrum_annotation.emplace_back(FragmentAnnotationHelper::getAnnotatedImmoniumIon('M', fragment_shift_name));
+  }
+}
+
+void RNPxlSearch::RNPxlFragmentIonGenerator::generatePartialLossSpectrum(const String &unmodified_sequence,
+                                                                         const AASequence &fixed_and_variable_modified_peptide,
+                                                                         const double &fixed_and_variable_modified_peptide_weight,
+                                                                         const String &precursor_rna_adduct,
+                                                                         const double &precursor_rna_weight,
+                                                                         const int &precursor_charge,
+                                                                         const vector<RNPxlSearch::FragmentAdductDefinition_> &partial_loss_modification,
+                                                                         const TheoreticalSpectrumGenerator &partial_loss_spectrum_generator,
+                                                                         const bool is_decoy,
+                                                                         PeakSpectrum &partial_loss_spectrum) {
+  partial_loss_spectrum.getIntegerDataArrays().resize(1);
+  PeakSpectrum::IntegerDataArray& partial_loss_spectrum_charge = partial_loss_spectrum.getIntegerDataArrays()[0];
+
+  partial_loss_spectrum.getStringDataArrays().resize(1); // annotation
+  PeakSpectrum::StringDataArray& partial_loss_spectrum_annotation = partial_loss_spectrum.getStringDataArrays()[0];
+
+  // ADD: (mainly for ETD) MS2 precursor peaks of the MS1 adduct (total RNA) carrying peptide for all z <= precursor charge
+  // For decoys, we also shift the precursor ions
+  for (int charge = 1; charge <= static_cast<int>(precursor_charge); ++charge)
+  {
+    addPrecursorWithCompleteRNA_(fixed_and_variable_modified_peptide_weight,
+                                 precursor_rna_adduct,
+                                 precursor_rna_weight,
+                                 charge,
+                                 is_decoy,
+                                 partial_loss_spectrum,
+                                 partial_loss_spectrum_charge,
+                                 partial_loss_spectrum_annotation);
+  }
+
+  // 0 for target peptides, DECOY_FRAGMENT_SHIFT for decoy peptides
+  const double td_shift = is_decoy ? DECOY_FRAGMENT_SHIFT : 0;
+
+  for (Size i = 0; i != partial_loss_modification.size(); ++i)
+  {
+    // get name and mass of fragment adduct
+    const String& fragment_shift_name = partial_loss_modification[i].name; // e.g. U-H2O
+    const double fragment_shift_mass = partial_loss_modification[i].mass;
+
+    // ADD: shifted immonium ion peaks of charge 1 (if the amino acid is present in the sequence)
+    RNPxlFragmentIonGenerator::addShiftedImmoniumIons(
+      unmodified_sequence,
+      fragment_shift_name,
+      fragment_shift_mass,
+      is_decoy,
+      partial_loss_spectrum,
+      partial_loss_spectrum_charge,
+      partial_loss_spectrum_annotation);
+
+    // annotate generated a,b,y ions with fragment shift name
+    PeakSpectrum shifted_series_peaks;
+    shifted_series_peaks.getStringDataArrays().resize(1); // annotation
+    shifted_series_peaks.getIntegerDataArrays().resize(1); // charge
+
+    PeakSpectrum::StringDataArray& shifted_series_annotations = shifted_series_peaks.getStringDataArrays()[0];
+    PeakSpectrum::IntegerDataArray& shifted_series_charges = shifted_series_peaks.getIntegerDataArrays()[0];
+
+    // For every charge state
+    for (int z = 1; z <= precursor_charge; ++z)
+    {
+      // 1. create unshifted peaks (a,b,y, MS2 precursor ions up to pc charge)
+      PeakSpectrum tmp_shifted_series_peaks;
+      partial_loss_spectrum_generator.getSpectrum(tmp_shifted_series_peaks, fixed_and_variable_modified_peptide, z, z);
+
+      PeakSpectrum::StringDataArray& tmp_shifted_series_annotations = tmp_shifted_series_peaks.getStringDataArrays()[0];
+      PeakSpectrum::IntegerDataArray& tmp_shifted_series_charges = tmp_shifted_series_peaks.getIntegerDataArrays()[0];
+
+      // 2. shift peaks (additional shift for decoys)
+      // TODO: check if decoy shift is in m/z or Da
+      for (auto & p : tmp_shifted_series_peaks) { p.setMZ(p.getMZ() + fragment_shift_mass / static_cast<double>(z) + td_shift); }
+
+      // 3. add shifted peaks to shifted_series_peaks
+      shifted_series_peaks.insert(shifted_series_peaks.end(), tmp_shifted_series_peaks.begin(), tmp_shifted_series_peaks.end());
+      shifted_series_annotations.insert(
+        shifted_series_annotations.end(),
+        tmp_shifted_series_annotations.begin(),
+        tmp_shifted_series_annotations.end()
+      );
+      shifted_series_charges.insert(
+        shifted_series_charges.end(),
+        tmp_shifted_series_charges.begin(),
+        tmp_shifted_series_charges.end()
+      );
+    }
+
+    // 4. add fragment shift name to annotation of shifted peaks
+    for (Size j = 0; j != shifted_series_annotations.size(); ++j)
+    {
+      shifted_series_annotations[j] = shifted_series_annotations[j] + " " + fragment_shift_name;
+    }
+
+    // append shifted and annotated ion series to partial loss spectrum
+    partial_loss_spectrum.insert(partial_loss_spectrum.end(), shifted_series_peaks.begin(), shifted_series_peaks.end());
+    partial_loss_spectrum_annotation.insert(
+      partial_loss_spectrum_annotation.end(),
+      shifted_series_annotations.begin(),
+      shifted_series_annotations.end()
+    );
+    partial_loss_spectrum.getIntegerDataArrays()[0].insert(
+      partial_loss_spectrum_charge.end(),
+      shifted_series_charges.begin(),
+      shifted_series_charges.end()
+    );
+  }
+
+  partial_loss_spectrum.sortByPosition();
+}
+
+void RNPxlSearch::RNPxlFragmentIonGenerator::addPrecursorWithCompleteRNA_(
+  const double fixed_and_variable_modified_peptide_weight, const String &precursor_rna_adduct,
+  const double precursor_rna_weight, const int charge, const bool is_decoy, PeakSpectrum &partial_loss_spectrum,
+  MSSpectrum::IntegerDataArray &partial_loss_spectrum_charge,
+  MSSpectrum::StringDataArray &partial_loss_spectrum_annotation) {
+  const double td_shift = is_decoy ? DECOY_FRAGMENT_SHIFT : 0;
+
+  double xl_mz = (fixed_and_variable_modified_peptide_weight + precursor_rna_weight +
+                  static_cast<double>(charge) * Constants::PROTON_MASS_U)
+                 / static_cast<double>(charge)
+                 + td_shift;  // fixed shift TODO: check if m/z or Da should be used for this shift
+  partial_loss_spectrum.push_back(Peak1D(xl_mz, 1.0));
+  partial_loss_spectrum_charge.push_back(charge);
+  partial_loss_spectrum_annotation.push_back(String("[M+") + precursor_rna_adduct + "]");
+}
 
 int main(int argc, const char** argv)
 {
