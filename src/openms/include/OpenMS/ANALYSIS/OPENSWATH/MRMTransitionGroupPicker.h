@@ -286,8 +286,8 @@ public:
         }
         else if (peak_integration_ == "smoothed" && smoothed_chroms.size() <= k)
         {
-          std::cerr << "Tried to calculate peak area and height without any smoothed chromatograms" << std::endl;
-          used_chromatogram = resampleChromatogram_(chromatogram, master_peak_container, best_left, best_right);
+          throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+            "Tried to calculate peak area and height without any smoothed chromatograms");
         }        
         else if (peak_integration_ == "smoothed")
         {
@@ -314,9 +314,8 @@ public:
         {
           if ((peak_integration_ == "smoothed") && smoothed_chroms.size() <= k)
           {
-            std::cerr << "Tried to calculate background estimation without any smoothed chromatograms" << std::endl;
-            background =  0;
-            avg_noise_level = 0;
+            throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+              "Tried to calculate background estimation without any smoothed chromatograms");
           }
           else if (background_subtraction_ == "average")
           {
@@ -404,8 +403,8 @@ public:
         }
         else if (peak_integration_ == "smoothed" && smoothed_chroms.size() <= k)
         {
-          std::cerr << "Tried to calculate peak area and height without any smoothed chromatograms" << std::endl;
-          used_chromatogram = resampleChromatogram_(chromatogram, master_peak_container, best_left, best_right);
+          throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+            "Tried to calculate peak area and height without any smoothed chromatograms");
         }        
         else if (peak_integration_ == "smoothed")
         {
