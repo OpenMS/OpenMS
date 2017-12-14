@@ -295,8 +295,8 @@ public:
         }
         else
         {
-          std::cerr << "No peak integration specified.  Defaulting to original." << std::endl;
-          used_chromatogram = resampleChromatogram_(chromatogram, master_peak_container, best_left, best_right);
+          throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+            String("Peak integration chromatogram ") + peak_integration_ + " is not a valid method for MRMTransitionGroupPicker");
         } 
 
         Feature f;
@@ -413,8 +413,8 @@ public:
         }
         else
         {
-          std::cerr << "No peak integration specified.  Defaulting to original." << std::endl;
-          used_chromatogram = resampleChromatogram_(chromatogram, master_peak_container, best_left, best_right);
+          throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+            String("Peak integration chromatogram ") + peak_integration_ + " is not a valid method for MRMTransitionGroupPicker");
         }   
 
         Feature f;

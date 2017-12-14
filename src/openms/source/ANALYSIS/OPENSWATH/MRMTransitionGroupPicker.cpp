@@ -60,7 +60,7 @@ namespace OpenMS
     defaults_.setValue("peak_integration", "original", "Calculate the peak area and height either the smoothed or the raw chromatogram data.", ListUtils::create<String>("advanced"));
     defaults_.setValidStrings("peak_integration", ListUtils::create<String>("original,smoothed"));
 
-    defaults_.setValue("background_subtraction", "none", "Try to apply a background subtraction to the peak (experimental). The background is estimated at the peak boundaries, either the smoothed or the raw chromatogram data can be used for that.", ListUtils::create<String>("advanced"));
+    defaults_.setValue("background_subtraction", "none", "Try to apply a background subtraction to the peak (experimental). The background is estimated as the average noise at the peak boundaries (average) or at the exact left and right peak positions (exact).  The same original or smoothed chromatogram specified by peak_integration will be used for background estimation.", ListUtils::create<String>("advanced"));
     defaults_.setValidStrings("background_subtraction", ListUtils::create<String>("none,average,exact"));
 
     defaults_.setValue("recalculate_peaks", "false", "Tries to get better peak picking by looking at peak consistency of all picked peaks. Tries to use the consensus (median) peak border if theof variation within the picked peaks is too large.", ListUtils::create<String>("advanced"));
