@@ -32,8 +32,11 @@
 // $Authors: Marc Sturm, Chris Bielow $
 // --------------------------------------------------------------------------
 
+#include <OpenMS/CHEMISTRY/RibonucleotideDB.h>
 #include <OpenMS/CHEMISTRY/RNaseDigestion.h>
 #include <OpenMS/CHEMISTRY/RNaseDB.h>
+
+#include <boost/regex.hpp>
 
 using namespace std;
 
@@ -126,6 +129,75 @@ namespace OpenMS
           ((max_length == 0) || (actual_length <= max_length)))
       {
         output.push_back(fragment);
+      }
+    }
+  }
+
+
+  void RNaseDigestion::digest(const NASequence& rna, vector<NASequence>& output,
+                              Size min_length, Size max_length) const
+  {
+    output.clear();
+    if (rna.empty()) return;
+
+    String five_prime_code =
+      dynamic_cast<const DigestionEnzymeRNA*>(enzyme_)->getFivePrimeGain();
+    if (five_prime_code == "p") five_prime_code = "5'-p";
+    String three_prime_code =
+      dynamic_cast<const DigestionEnzymeRNA*>(enzyme_)->getThreePrimeGain();
+    if (three_prime_code == "p") three_prime_code = "3'-p";
+
+    static RibonucleotideDB* ribo_db = RibonucleotideDB::getInstance();
+    const Ribonucleotide* five_prime_gain =
+      (five_prime_code.empty() ? nullptr :
+       ribo_db->getRibonucleotide(five_prime_code));
+    const Ribonucleotide* three_prime_gain =
+      (three_prime_code.empty() ? nullptr :
+       ribo_db->getRibonucleotide(three_prime_code));
+
+    boost::regex cuts_after_regex(
+      dynamic_cast<const DigestionEnzymeRNA*>(enzyme_)->getCutsAfterRegEx());
+    boost::regex cuts_before_regex(
+      dynamic_cast<const DigestionEnzymeRNA*>(enzyme_)->getCutsBeforeRegEx());
+    // @TODO: add special case for unspecific cleavage?
+
+    vector<Size> fragment_pos(1, 0);
+    if (!cuts_after_regex.empty() && !cuts_before_regex.empty())
+    {
+      for (Size i = 1; i < rna.size(); ++i)
+      {
+        if (boost::regex_search(rna[i - 1]->getCode(), cuts_after_regex) &&
+            boost::regex_search(rna[i]->getCode(), cuts_before_regex))
+        {
+          fragment_pos.push_back(i);
+          // cout << cuts_after_regex.str() << " cuts after " << rna[i - 1]->getCode() << " at pos. " << i - 1 << endl;
+        }
+      }
+    }
+    fragment_pos.push_back(rna.size());
+
+    // "fragment_pos" has at least two elements (zero and "rna.size()"):
+    for (Size start_pos = 0; start_pos < fragment_pos.size() - 1; ++start_pos)
+    {
+      for (Size offset = 0; offset <= missed_cleavages_; ++offset)
+      {
+        Size end_pos = start_pos + offset + 1;
+        if (end_pos >= fragment_pos.size()) break;
+
+        Size length = fragment_pos[end_pos] - fragment_pos[start_pos];
+        if (((min_length == 0) || (length >= min_length)) &&
+            ((max_length == 0) || (length <= max_length)))
+        {
+          output.push_back(rna.getSubsequence(fragment_pos[start_pos], length));
+          if (start_pos != 0)
+          {
+            output.back().setFivePrimeMod(five_prime_gain);
+          }
+          if (fragment_pos[end_pos] != rna.size())
+          {
+            output.back().setThreePrimeMod(three_prime_gain);
+          }
+        }
       }
     }
   }
