@@ -379,6 +379,7 @@ set(chemistry_executables_list
   ResidueModification_test
   Residue_test
   RibonucleotideDB_test
+  RNaseDigestion_test
   SpectrumAnnotator_test
   SvmTheoreticalSpectrumGenerator_test
   SvmTheoreticalSpectrumGeneratorTrainer_test
