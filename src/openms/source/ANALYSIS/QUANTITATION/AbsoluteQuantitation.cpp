@@ -231,10 +231,10 @@ namespace OpenMS
     std::vector<double> concentration_ratios_weighted, feature_amounts_ratios_weighted;
     for (size_t i = 0; i < data.size(); ++i)
     {
-      concentration_ratios_weighted.append(data[i].first);
-      feature_amounts_ratios_weighted.append(data[i].second);
+      concentration_ratios_weighted.push_back(data[i].first);
+      feature_amounts_ratios_weighted.push_back(data[i].second);
     }
-    
+
     // calculate the R2 (R2 = Pearson_R^2)
     double r_value = Math::pearsonCorrelationCoefficient(
       concentration_ratios_weighted.begin(), concentration_ratios_weighted.begin() + concentration_ratios_weighted.size(),
