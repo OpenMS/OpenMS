@@ -125,9 +125,9 @@ namespace OpenMS
   void PeakIntegrator::getDefaultParameters(Param& params)
   {
     params.clear();
-    params.setValue("integration_type", "intensity_sum", "The integration technique to use in integratePeak() and estimateBackground().");
+    params.setValue("integration_type", INTEGRATION_TYPE_INTENSITYSUM, "The integration technique to use in integratePeak() and estimateBackground().");
     params.setValidStrings("integration_type", ListUtils::create<String>("intensity_sum,simpson,trapezoid"));
-    params.setValue("baseline_type", "base_to_base", "The baseline type to use in estimateBackground().");
+    params.setValue("baseline_type", BASELINE_TYPE_BASETOBASE, "The baseline type to use in estimateBackground().");
     params.setValidStrings("baseline_type", ListUtils::create<String>("base_to_base,vertical_division"));
   }
 
@@ -148,15 +148,15 @@ namespace OpenMS
     const double delta_int_apex = std::fabs(delta_int) * std::fabs(min_int_pos - peak_apex_pos_) / delta_pos;
     background_height_ = std::min(int_r, int_l) + delta_int_apex;
     double background = 0.0;
-    if (baseline_type_ == "base_to_base")
+    if (baseline_type_ == BASELINE_TYPE_BASETOBASE)
     {
-      if (integration_type_ == "trapezoid" || integration_type_ == "simpson")
+      if (integration_type_ == INTEGRATION_TYPE_TRAPEZOID || integration_type_ == INTEGRATION_TYPE_SIMPSON)
       {
         // formula for calculating the background using the trapezoidal rule
         // background = intensity_min*delta_pos + 0.5*delta_int*delta_pos;
         background = delta_pos * (std::min(int_r, int_l) + 0.5 * std::fabs(delta_int));
       }
-      else if (integration_type_ == "intensity_sum")
+      else if (integration_type_ == INTEGRATION_TYPE_INTENSITYSUM)
       {
         // calculate the background using the formula
         // y = mx + b where x = rt or mz, m = slope, b = left intensity
@@ -170,19 +170,23 @@ namespace OpenMS
         background = (background - n_points * p.PosBegin(left)->getPos()) * delta_int / delta_pos + n_points * int_l;
       }
     }
-    else if (baseline_type_ == "vertical_division")
+    else if (baseline_type_ == BASELINE_TYPE_VERTICALDIVISION)
     {
-      if (integration_type_ == "trapezoid" || integration_type_ == "simpson")
+      if (integration_type_ == INTEGRATION_TYPE_TRAPEZOID || integration_type_ == INTEGRATION_TYPE_SIMPSON)
       {
         background = delta_pos * std::min(int_r, int_l);
       }
-      else if (integration_type_ == "intensity_sum")
+      else if (integration_type_ == INTEGRATION_TYPE_INTENSITYSUM)
       {
         UInt n_points = 0;
         for (auto it=p.PosBegin(left); it!=p.PosEnd(right); ++it, ++n_points)
         { }
         background = std::min(int_r, int_l) * n_points;
       }
+    }
+    else
+    {
+      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Please set a valid value for the parameter \"baseline_type\".\n");
     }
     background_area_ = background;
   }
@@ -203,14 +207,14 @@ namespace OpenMS
       }
     }
 
-    if (integration_type_ == "trapezoid")
+    if (integration_type_ == INTEGRATION_TYPE_TRAPEZOID)
     {
       for (auto it=p.PosBegin(left); it!=p.PosEnd(right)-1; ++it)
       {
         peak_area_ += ((it+1)->getPos() - it->getPos()) * ((it->getIntensity() + (it+1)->getIntensity()) / 2.0);
       }
     }
-    else if (integration_type_ == "simpson")
+    else if (integration_type_ == INTEGRATION_TYPE_SIMPSON)
     {
       if (n_points < 3)
       {
@@ -246,7 +250,7 @@ namespace OpenMS
         peak_area_ /= valids;
       }
     }
-    else if (integration_type_ == "intensity_sum")
+    else if (integration_type_ == INTEGRATION_TYPE_INTENSITYSUM)
     {
       std::cout << "\nWARNING: intensity_sum method is being used.\n";
       for (auto it=p.PosBegin(left); it!=p.PosEnd(right); ++it)

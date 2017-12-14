@@ -410,12 +410,12 @@ private:
       The integration technique to use in integratePeak() and estimateBackground().
       Possible values are: "trapezoid", "simpson", "intensity_sum".
     */
-    String integration_type_ = "intensity_sum";
+    String integration_type_ = INTEGRATION_TYPE_INTENSITYSUM;
     /**
       The baseline type to use in estimateBackground().
       Possible values are: "vertical_division", "base_to_base".
     */
-    String baseline_type_ = "base_to_base";
+    String baseline_type_ = BASELINE_TYPE_BASETOBASE;
     ///@}
 
     /** @name peakIntegrator() outputs
@@ -491,6 +491,12 @@ private:
     */
     double simpson(MSSpectrum::ConstIterator it_begin, MSSpectrum::ConstIterator it_end) const;
     ///@}
+
+    static constexpr const char* INTEGRATION_TYPE_INTENSITYSUM = "intensity_sum";
+    static constexpr const char* INTEGRATION_TYPE_TRAPEZOID = "trapezoid";
+    static constexpr const char* INTEGRATION_TYPE_SIMPSON = "simpson";
+    static constexpr const char* BASELINE_TYPE_BASETOBASE = "base_to_base";
+    static constexpr const char* BASELINE_TYPE_VERTICALDIVISION = "vertical_division";
   };
 }
 
