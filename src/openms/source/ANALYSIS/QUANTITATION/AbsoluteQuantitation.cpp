@@ -414,12 +414,12 @@ namespace OpenMS
 
     // sort from min to max concentration
     std::vector<AbsoluteQuantitationStandards::featureConcentration> component_concentrations_sorted = component_concentrations;
-    std::sort(component_concentrations_sorted.begin(), component_concentrations_sorted.end(),
-      [](AbsoluteQuantitationStandards::featureConcentration lhs, AbsoluteQuantitationStandards::featureConcentration rhs)
-      {
-        return lhs.actual_concentration < rhs.actual_concentration; //ascending order
-      }
-    );
+    // std::sort(component_concentrations_sorted.begin(), component_concentrations_sorted.end(),
+    //   [](AbsoluteQuantitationStandards::featureConcentration lhs, AbsoluteQuantitationStandards::featureConcentration rhs)
+    //   {
+    //     return lhs.actual_concentration < rhs.actual_concentration; //ascending order
+    //   }
+    // );
 
     // indices of component_concentrations
     std::vector<size_t> component_concentrations_sorted_indices;// loop from all points to min_points

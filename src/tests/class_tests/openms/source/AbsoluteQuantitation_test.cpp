@@ -395,8 +395,8 @@ START_SECTION((Param AbsoluteQuantitation::fitCalibration(
     transformation_model,
     transformation_model_params);
 
-  TEST_EQUAL(param.getValue("slope"),0.5);
-  TEST_EQUAL(param.getValue("intercept"),0.0);
+  TEST_REAL_SIMILAR(param.getValue("slope"),0.5);
+  TEST_REAL_SIMILAR(param.getValue("intercept"),0.0);
 
   // TEST 2:
   static const double arrx2[] = {0.25,0.5,1,2,3,4,5,6};
@@ -430,10 +430,8 @@ START_SECTION((Param AbsoluteQuantitation::fitCalibration(
     transformation_model,
     transformation_model_params);
 
-  TEST_EQUAL(param.getValue("slope"), 1.0);
-  TEST_EQUAL(param.getValue("intercept"), -0.6931);
-
-
+  TEST_REAL_SIMILAR(param.getValue("slope"), 1.0);
+  TEST_REAL_SIMILAR(param.getValue("intercept"), -0.6931);
 
 END_SECTION
 
