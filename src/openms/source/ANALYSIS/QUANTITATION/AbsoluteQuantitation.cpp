@@ -211,12 +211,13 @@ namespace OpenMS
       feature_amounts_ratios.push_back(feature_amount_ratio);
       
       // DEBUG
-      std::cout << "calculated_concentration_ratio = " << calculated_concentration_ratio << "." << std::endl;
-      std::cout << "actual_concentration_ratio = " << actual_concentration_ratio << "." << std::endl;
-      std::cout << "bias = " << bias << "." << std::endl;
-      std::cout << "feature_amount = " << (String)component_concentrations[i].feature.getMetaValue(feature_name) << "." << std::endl;
-      std::cout << "IS_feature_amount = " << (String)component_concentrations[i].IS_feature.getMetaValue(feature_name) << "." << std::endl;
-      std::cout << "feature_amount_ratio = " << bias << "." << std::endl;
+      std::cout << "calculated_concentration_ratio[1]actual_concentration_ratio[2]bias[3]feature_amount[4]IS_feature_amount[5]feature_amount_ratio[6]" << std::endl;
+      std::cout << std::to_string(calculated_concentration_ratio) << "[1]" 
+        << std::to_string(calculated_concentration_ratio) << "[2]" 
+        << std::to_string(bias) << "[3]" 
+        << (String)component_concentrations[i].feature.getMetaValue(feature_name) << "[4]" 
+        << (String)component_concentrations[i].IS_feature.getMetaValue(feature_name) << "[5]" 
+        << std::to_string(feature_amount_ratio) << "[6]" << std::endl;
     }
 
     // calculate the R2 (R2 = Pearson_R^2)
@@ -498,10 +499,10 @@ namespace OpenMS
       }
 
       //DEBUG
-      std::cout << "R2 = " << std::to_string(r2) << "." << std::endl;
-      std::cout << "n_points = " << std::to_string(component_concentrations_sorted_indices.size()) << "." << std::endl;
-      std::cout << "actual_concentration = " << std::to_string(component_concentrations_sub[pos].actual_concentration) << "." << std::endl;
-      std::cout << "bias_check = " << std::to_string(bias_check) << "." << std::endl;
+      std::cout << "R2 = " << std::to_string(r2) << ".  "
+        << "n_points = " << std::to_string(component_concentrations_sorted_indices.size()) << ".  "
+        << "actual_concentration = " << std::to_string(component_concentrations_sub[pos].actual_concentration) << ".  "
+        << "bias_check = " << std::to_string(bias_check) << "." << std::endl;
 
       // remove if residual is an outlier according to Chauvenet's criterion
       // or if testing is turned off
