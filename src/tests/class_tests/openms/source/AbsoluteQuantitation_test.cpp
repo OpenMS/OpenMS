@@ -425,7 +425,7 @@ START_SECTION((Param AbsoluteQuantitation::fitCalibration(
   transformation_model_params.setValue("x_weight", "ln(x)");
   transformation_model_params.setValue("y_weight", "ln(y)");
 
-  Param param = absquant.fitCalibration(component_concentrations,
+  param = absquant.fitCalibration(component_concentrations,
     feature_name,
     transformation_model,
     transformation_model_params);
