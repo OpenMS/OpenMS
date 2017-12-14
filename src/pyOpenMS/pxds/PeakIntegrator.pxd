@@ -40,12 +40,12 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/PeakIntegrator.h>" namespace "OpenM
         double width_at_5
         double width_at_10
         double width_at_50
-        double start_time_at_5
-        double start_time_at_10
-        double start_time_at_50
-        double end_time_at_5
-        double end_time_at_10
-        double end_time_at_50
+        double start_position_at_5
+        double start_position_at_10
+        double start_position_at_50
+        double end_position_at_5
+        double end_position_at_10
+        double end_position_at_50
         double total_width
         double tailing_factor
         double asymmetry_factor
