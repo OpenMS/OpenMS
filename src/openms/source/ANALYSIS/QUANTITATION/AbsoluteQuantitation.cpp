@@ -414,12 +414,12 @@ namespace OpenMS
 
     // sort from min to max concentration
     std::vector<AbsoluteQuantitationStandards::featureConcentration> component_concentrations_sorted = component_concentrations;
-    // std::sort(component_concentrations_sorted.begin(), component_concentrations_sorted.end(),
-    //   [](AbsoluteQuantitationStandards::featureConcentration lhs, AbsoluteQuantitationStandards::featureConcentration rhs)
-    //   {
-    //     return lhs.actual_concentration < rhs.actual_concentration; //ascending order
-    //   }
-    // );
+    std::sort(component_concentrations_sorted.begin(), component_concentrations_sorted.end(),
+      [](AbsoluteQuantitationStandards::featureConcentration lhs, AbsoluteQuantitationStandards::featureConcentration rhs)
+      {
+        return lhs.actual_concentration < rhs.actual_concentration; //ascending order
+      }
+    );
 
     // indices of component_concentrations
     std::vector<size_t> component_concentrations_sorted_indices;// loop from all points to min_points
@@ -477,10 +477,6 @@ namespace OpenMS
       if (bias_check && r2 > min_r2_)
       {
         LOG_INFO << "Valid calibration found for " << component_concentrations_sub[0].feature.getMetaValue("native_id") << " .";
-        
-        //DEBUG
-        std::cout << "R2 = " << std::to_string(r2) << "." << std::endl;
-        std::cout << "n_points = " << std::to_string(component_concentrations_sorted_indices.size()) << "." << std::endl;
 
         // copy over the final optimized points before exiting
         component_concentrations = component_concentrations_sub;

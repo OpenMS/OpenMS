@@ -431,7 +431,7 @@ START_SECTION((Param AbsoluteQuantitation::fitCalibration(
     transformation_model_params);
 
   TEST_REAL_SIMILAR(param.getValue("slope"), 1.0);
-  TEST_REAL_SIMILAR(param.getValue("intercept"), -0.6931);
+  TEST_REAL_SIMILAR(param.getValue("intercept"), -0.69314718);
 
 END_SECTION
 
@@ -583,8 +583,7 @@ START_SECTION((void optimizeCalibrationCurveIterative(
   TEST_REAL_SIMILAR(component_concentrations[0].actual_concentration, 0.02);
   TEST_REAL_SIMILAR(component_concentrations[8].actual_concentration, 0.8);
   TEST_REAL_SIMILAR(optimized_params.getValue("slope"), -0.623040824);
-  TEST_REAL_SIMILAR(optimized_params.getValue("intercept"), -0.36130172586);
-  
+  TEST_REAL_SIMILAR(optimized_params.getValue("intercept"), -0.36130172586);  
 
 END_SECTION
 
