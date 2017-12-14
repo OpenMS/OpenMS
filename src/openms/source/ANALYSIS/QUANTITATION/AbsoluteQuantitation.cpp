@@ -182,9 +182,11 @@ namespace OpenMS
     std::vector<double> & biases,
     double & r2_value)
   {
-    
+   
     // extract out the calibration points
     std::vector<double> concentration_ratios, feature_amounts_ratios;
+    TransformationModel::DataPoints data;
+    TransformationModel::DataPoint point;
     for (size_t i = 0; i < component_concentrations.size(); ++i)
     {
 
@@ -196,34 +198,47 @@ namespace OpenMS
         transformation_model_params);
 
       double actual_concentration_ratio = component_concentrations[i].actual_concentration/
-        component_concentrations[i].IS_actual_concentration/
-        component_concentrations[i].dilution_factor;
+        component_concentrations[i].IS_actual_concentration;
       concentration_ratios.push_back(component_concentrations[i].actual_concentration);
+
+      // extract out the feature amount ratios
+      double feature_amount_ratio = calculateRatio(component_concentrations[i].feature,
+        component_concentrations[i].IS_feature,
+        feature_name)/component_concentrations[i].dilution_factor;
+      feature_amounts_ratios.push_back(feature_amount_ratio);
 
       // calculate the bias
       double bias = calculateBias(actual_concentration_ratio, calculated_concentration_ratio);
       biases.push_back(bias);
 
-      // extract out the feature amount ratios
-      double feature_amount_ratio = calculateRatio(component_concentrations[i].feature,
-        component_concentrations[i].IS_feature,
-        feature_name);
-      feature_amounts_ratios.push_back(feature_amount_ratio);
+      point.first = actual_concentration_ratio;
+      point.second = feature_amount_ratio;
+      data.push_back(point);
       
-      // DEBUG
-      std::cout << "calculated_concentration_ratio[1]actual_concentration_ratio[2]bias[3]feature_amount[4]IS_feature_amount[5]feature_amount_ratio[6]" << std::endl;
-      std::cout << std::to_string(calculated_concentration_ratio) << "[1]" 
-        << std::to_string(calculated_concentration_ratio) << "[2]" 
-        << std::to_string(bias) << "[3]" 
-        << (String)component_concentrations[i].feature.getMetaValue(feature_name) << "[4]" 
-        << (String)component_concentrations[i].IS_feature.getMetaValue(feature_name) << "[5]" 
-        << std::to_string(feature_amount_ratio) << "[6]" << std::endl;
+      // // DEBUG
+      // std::cout << "calculated_concentration_ratio[1]actual_concentration_ratio[2]bias[3]feature_amount[4]IS_feature_amount[5]feature_amount_ratio[6]" << std::endl;
+      // std::cout << std::to_string(calculated_concentration_ratio) << "[1]" 
+      //   << std::to_string(calculated_concentration_ratio) << "[2]" 
+      //   << std::to_string(bias) << "[3]" 
+      //   << (String)component_concentrations[i].feature.getMetaValue(feature_name) << "[4]" 
+      //   << (String)component_concentrations[i].IS_feature.getMetaValue(feature_name) << "[5]" 
+      //   << std::to_string(feature_amount_ratio) << "[6]" << std::endl;
     }
 
+    // apply weighting to the feature amounts and actual concentration ratios
+    TransformationModel tm(data, transformation_model_params);
+    tm.weightData(data);    
+    std::vector<double> concentration_ratios_weighted, feature_amounts_ratios_weighted;
+    for (size_t i = 0; i < data.size(); ++i)
+    {
+      concentration_ratios_weighted.append(data[i].first);
+      feature_amounts_ratios_weighted.append(data[i].second);
+    }
+    
     // calculate the R2 (R2 = Pearson_R^2)
     double r_value = Math::pearsonCorrelationCoefficient(
-      concentration_ratios.begin(), concentration_ratios.begin() + concentration_ratios.size(),
-      feature_amounts_ratios.begin(), feature_amounts_ratios.begin() + feature_amounts_ratios.size()
+      concentration_ratios_weighted.begin(), concentration_ratios_weighted.begin() + concentration_ratios_weighted.size(),
+      feature_amounts_ratios_weighted.begin(), feature_amounts_ratios_weighted.begin() + feature_amounts_ratios_weighted.size()
     ); 
     r2_value = r_value*r_value;
 
