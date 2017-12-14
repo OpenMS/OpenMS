@@ -483,7 +483,7 @@ protected:
     LOG_DEBUG << "Generating fragment adducts for precursor adduct: '" << exp_pc_adduct << "'" << endl;
   //  #endif
 
-    MS2AdductsOfSinglePrecursorAdduct ret;
+    MS2AdductsOfSinglePrecursorAdduct ret{};
 
     // no precursor adduct? no fragment adducts or marker ions are expected!
     if (exp_pc_formula.empty()) { return ret; } 
@@ -676,9 +676,9 @@ protected:
       double mz = m.mass + Constants::PROTON_MASS_U;
       if (is_decoy) { mz += DECOY_FRAGMENT_SHIFT; }
  
-      spectrum.push_back(Peak1D(mz, 1.0));
-      spectrum_charge.push_back(1); 
-      spectrum_annotation.push_back(ANNOTATIONS_MARKER_ION_PREFIX + m.name);  // add name (e.g., MI:U-H2O)
+      spectrum.emplace_back(mz, 1.0);
+      spectrum_charge.emplace_back(1);
+      spectrum_annotation.emplace_back(ANNOTATIONS_MARKER_ION_PREFIX + m.name);  // add name (e.g., MI:U-H2O)
     }
   }
 
@@ -696,71 +696,71 @@ protected:
     if (unmodified_sequence.hasSubstring("Y"))
     {
       const double immonium_ion_mz = EmpiricalFormula("C8H10NO").getMonoWeight() + fragment_shift_mass_td;
-      partial_loss_spectrum.push_back(Peak1D(immonium_ion_mz, 1.0));
-      partial_loss_spectrum_charge.push_back(1); 
-      partial_loss_spectrum_annotation.push_back(FragmentAnnotationHelper::getAnnotatedImmoniumIon('Y', fragment_shift_name)); 
+      partial_loss_spectrum.emplace_back(immonium_ion_mz, 1.0);
+      partial_loss_spectrum_charge.emplace_back(1);
+      partial_loss_spectrum_annotation.emplace_back(FragmentAnnotationHelper::getAnnotatedImmoniumIon('Y', fragment_shift_name));
     }
     else if (unmodified_sequence.hasSubstring("W"))
     {
       const double immonium_ion_mz = EmpiricalFormula("C10H11N2").getMonoWeight() + fragment_shift_mass_td;
-      partial_loss_spectrum.push_back(Peak1D(immonium_ion_mz, 1.0));
-      partial_loss_spectrum_charge.push_back(1); 
-      partial_loss_spectrum_annotation.push_back(FragmentAnnotationHelper::getAnnotatedImmoniumIon('W', fragment_shift_name)); 
+      partial_loss_spectrum.emplace_back(immonium_ion_mz, 1.0);
+      partial_loss_spectrum_charge.emplace_back(1);
+      partial_loss_spectrum_annotation.emplace_back(FragmentAnnotationHelper::getAnnotatedImmoniumIon('W', fragment_shift_name));
     }
     else if (unmodified_sequence.hasSubstring("F"))
     {
       const double immonium_ion_mz = EmpiricalFormula("C8H10N").getMonoWeight() + fragment_shift_mass_td;
-      partial_loss_spectrum.push_back(Peak1D(immonium_ion_mz, 1.0));
-      partial_loss_spectrum_charge.push_back(1);
-      partial_loss_spectrum_annotation.push_back(FragmentAnnotationHelper::getAnnotatedImmoniumIon('F', fragment_shift_name));
+      partial_loss_spectrum.emplace_back(immonium_ion_mz, 1.0);
+      partial_loss_spectrum_charge.emplace_back(1);
+      partial_loss_spectrum_annotation.emplace_back(FragmentAnnotationHelper::getAnnotatedImmoniumIon('F', fragment_shift_name));
     }
     else if (unmodified_sequence.hasSubstring("H"))
     {
       const double immonium_ion_mz = EmpiricalFormula("C5H8N3").getMonoWeight() + fragment_shift_mass_td;
-      partial_loss_spectrum.push_back(Peak1D(immonium_ion_mz, 1.0));
-      partial_loss_spectrum_charge.push_back(1);
-      partial_loss_spectrum_annotation.push_back(FragmentAnnotationHelper::getAnnotatedImmoniumIon('H', fragment_shift_name));
+      partial_loss_spectrum.emplace_back(immonium_ion_mz, 1.0);
+      partial_loss_spectrum_charge.emplace_back(1);
+      partial_loss_spectrum_annotation.emplace_back(FragmentAnnotationHelper::getAnnotatedImmoniumIon('H', fragment_shift_name));
     }
     else if (unmodified_sequence.hasSubstring("C"))
     {
       const double immonium_ion_mz = EmpiricalFormula("C2H6NS").getMonoWeight() + fragment_shift_mass_td;
-      partial_loss_spectrum.push_back(Peak1D(immonium_ion_mz, 1.0));
-      partial_loss_spectrum_charge.push_back(1);
-      partial_loss_spectrum_annotation.push_back(FragmentAnnotationHelper::getAnnotatedImmoniumIon('C', fragment_shift_name));
+      partial_loss_spectrum.emplace_back(immonium_ion_mz, 1.0);
+      partial_loss_spectrum_charge.emplace_back(1);
+      partial_loss_spectrum_annotation.emplace_back(FragmentAnnotationHelper::getAnnotatedImmoniumIon('C', fragment_shift_name));
     }
     else if (unmodified_sequence.hasSubstring("P"))
     {
       const double immonium_ion_mz = EmpiricalFormula("C4H8N").getMonoWeight() + fragment_shift_mass_td;
-      partial_loss_spectrum.push_back(Peak1D(immonium_ion_mz, 1.0));
-      partial_loss_spectrum_charge.push_back(1);
-      partial_loss_spectrum_annotation.push_back(FragmentAnnotationHelper::getAnnotatedImmoniumIon('P', fragment_shift_name));
+      partial_loss_spectrum.emplace_back(immonium_ion_mz, 1.0);
+      partial_loss_spectrum_charge.emplace_back(1);
+      partial_loss_spectrum_annotation.emplace_back(FragmentAnnotationHelper::getAnnotatedImmoniumIon('P', fragment_shift_name));
     }
     else if (unmodified_sequence.hasSubstring("L") || unmodified_sequence.hasSubstring("I"))
     {
       const double immonium_ion_mz = EmpiricalFormula("C5H12N").getMonoWeight() + fragment_shift_mass_td;
-      partial_loss_spectrum.push_back(Peak1D(immonium_ion_mz, 1.0));
-      partial_loss_spectrum_charge.push_back(1);
-      partial_loss_spectrum_annotation.push_back(FragmentAnnotationHelper::getAnnotatedImmoniumIon('L', fragment_shift_name));
+      partial_loss_spectrum.emplace_back(immonium_ion_mz, 1.0);
+      partial_loss_spectrum_charge.emplace_back(1);
+      partial_loss_spectrum_annotation.emplace_back(FragmentAnnotationHelper::getAnnotatedImmoniumIon('L', fragment_shift_name));
     }
     else if (unmodified_sequence.hasSubstring("K"))
     {
       const double immonium_ion_mz = 101.10732 + fragment_shift_mass_td;
-      partial_loss_spectrum.push_back(Peak1D(immonium_ion_mz, 1.0));
-      partial_loss_spectrum_charge.push_back(1);
-      partial_loss_spectrum_annotation.push_back(FragmentAnnotationHelper::getAnnotatedImmoniumIon('K', fragment_shift_name));
+      partial_loss_spectrum.emplace_back(immonium_ion_mz, 1.0);
+      partial_loss_spectrum_charge.emplace_back(1);
+      partial_loss_spectrum_annotation.emplace_back(FragmentAnnotationHelper::getAnnotatedImmoniumIon('K', fragment_shift_name));
 
       // TODO: check if only DNA specific and if also other shifts are observed
       const double immonium_ion2_mz = 84.0808 + fragment_shift_mass_td; // according to A. Stuetzer mainly observed with C‘-NH3 (94.0167 Da)
-      partial_loss_spectrum.push_back(Peak1D(immonium_ion2_mz, 1.0));
-      partial_loss_spectrum_charge.push_back(1);
-      partial_loss_spectrum_annotation.push_back(FragmentAnnotationHelper::getAnnotatedImmoniumIon('K', fragment_shift_name));
+      partial_loss_spectrum.emplace_back(immonium_ion2_mz, 1.0);
+      partial_loss_spectrum_charge.emplace_back(1);
+      partial_loss_spectrum_annotation.emplace_back(FragmentAnnotationHelper::getAnnotatedImmoniumIon('K', fragment_shift_name));
     }
     else if (unmodified_sequence.hasSubstring("M"))
     {
       const double immonium_ion_mz = 104.05285 + fragment_shift_mass_td;
-      partial_loss_spectrum.push_back(Peak1D(immonium_ion_mz, 1.0));
-      partial_loss_spectrum_charge.push_back(1);
-      partial_loss_spectrum_annotation.push_back(FragmentAnnotationHelper::getAnnotatedImmoniumIon('M', fragment_shift_name));
+      partial_loss_spectrum.emplace_back(immonium_ion_mz, 1.0);
+      partial_loss_spectrum_charge.emplace_back(1);
+      partial_loss_spectrum_annotation.emplace_back(FragmentAnnotationHelper::getAnnotatedImmoniumIon('M', fragment_shift_name));
     }
   }
 
@@ -900,14 +900,7 @@ protected:
     SpectrumAlignment spectrum_aligner;
     Param pa = spectrum_aligner.getParameters();
     pa.setValue("tolerance", fragment_mass_tolerance, "Defines the absolute (in Da) or relative (in ppm) tolerance in the alignment");
-    if (fragment_mass_tolerance_unit_ppm)
-    {
-      pa.setValue("is_relative_tolerance", "true");
-    } 
-    else
-    {
-      pa.setValue("is_relative_tolerance", "false");
-    } 
+    pa.setValue("is_relative_tolerance", fragment_mass_tolerance_unit_ppm ? "true" : "false");
   
     spectrum_aligner.setParameters(pa);
 
@@ -918,7 +911,7 @@ protected:
     for (SignedSize scan_index = 0; scan_index < (SignedSize)annotated_hits.size(); ++scan_index)
     {
       // sort and keeps n best elements according to score
-      Size topn = top_hits > annotated_hits[scan_index].size() ? annotated_hits[scan_index].size() : top_hits;
+      const Size topn = top_hits > annotated_hits[scan_index].size() ? annotated_hits[scan_index].size() : top_hits;
       std::partial_sort(annotated_hits[scan_index].begin(), annotated_hits[scan_index].begin() + topn, annotated_hits[scan_index].end(), AnnotatedHit::hasBetterScore);
       annotated_hits[scan_index].resize(topn);
       annotated_hits[scan_index].shrink_to_fit();
