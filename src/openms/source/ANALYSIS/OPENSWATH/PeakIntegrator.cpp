@@ -141,10 +141,10 @@ namespace OpenMS
   void PeakIntegrator::estimateBackground_(const PeakContainerT& p, const double& left, const double& right)
   {
     const double int_l = p.PosBegin(left)->getIntensity();
-    const double int_r = (p.PosEnd(right)-1)->getIntensity();
+    const double int_r = (p.PosEnd(right) - 1)->getIntensity();
     const double delta_int = int_r - int_l;
-    const double delta_pos = (p.PosEnd(right)-1)->getPos() - p.PosBegin(left)->getPos();
-    const double min_int_pos = int_r <= int_l ? (p.PosEnd(right)-1)->getPos() : p.PosBegin(left)->getPos();
+    const double delta_pos = (p.PosEnd(right) - 1)->getPos() - p.PosBegin(left)->getPos();
+    const double min_int_pos = int_r <= int_l ? (p.PosEnd(right) - 1)->getPos() : p.PosBegin(left)->getPos();
     const double delta_int_apex = std::fabs(delta_int) * std::fabs(min_int_pos - peak_apex_pos_) / delta_pos;
     background_height_ = std::min(int_r, int_l) + delta_int_apex;
     double background = 0.0;
@@ -163,7 +163,7 @@ namespace OpenMS
         // sign of delta_int will determine line direction
         // background += delta_int / delta_pos * (it->getPos() - left) + int_l;
         UInt n_points = 0;
-        for (auto it=p.PosBegin(left); it!=p.PosEnd(right); ++it, ++n_points)
+        for (auto it = p.PosBegin(left); it != p.PosEnd(right); ++it, ++n_points)
         {
           background += it->getPos();
         }
@@ -179,7 +179,7 @@ namespace OpenMS
       else if (integration_type_ == INTEGRATION_TYPE_INTENSITYSUM)
       {
         UInt n_points = 0;
-        for (auto it=p.PosBegin(left); it!=p.PosEnd(right); ++it, ++n_points)
+        for (auto it = p.PosBegin(left); it != p.PosEnd(right); ++it, ++n_points)
         { }
         background = std::min(int_r, int_l) * n_points;
       }
@@ -198,7 +198,7 @@ namespace OpenMS
     peak_height_ = -1.0;
     peak_apex_pos_ = -1.0;
     UInt n_points = 0;
-    for (auto it=p.PosBegin(left); it!=p.PosEnd(right); ++it, ++n_points)
+    for (auto it = p.PosBegin(left); it != p.PosEnd(right); ++it, ++n_points)
     {
       if (peak_height_ < it->getIntensity())
       {
@@ -209,9 +209,9 @@ namespace OpenMS
 
     if (integration_type_ == INTEGRATION_TYPE_TRAPEZOID)
     {
-      for (auto it=p.PosBegin(left); it!=p.PosEnd(right)-1; ++it)
+      for (auto it = p.PosBegin(left); it != p.PosEnd(right) - 1; ++it)
       {
-        peak_area_ += ((it+1)->getPos() - it->getPos()) * ((it->getIntensity() + (it+1)->getIntensity()) / 2.0);
+        peak_area_ += ((it + 1)->getPos() - it->getPos()) * ((it->getIntensity() + (it + 1)->getIntensity()) / 2.0);
       }
     }
     else if (integration_type_ == INTEGRATION_TYPE_SIMPSON)
@@ -253,7 +253,7 @@ namespace OpenMS
     else if (integration_type_ == INTEGRATION_TYPE_INTENSITYSUM)
     {
       std::cout << "\nWARNING: intensity_sum method is being used.\n";
-      for (auto it=p.PosBegin(left); it!=p.PosEnd(right); ++it)
+      for (auto it = p.PosBegin(left); it != p.PosEnd(right); ++it)
       {
         peak_area_ += it->getIntensity();
       }
@@ -268,14 +268,14 @@ namespace OpenMS
   double PeakIntegrator::simpson_(PeakContainerConstIteratorT it_begin, PeakContainerConstIteratorT it_end) const
   {
     double integral = 0.0;
-    for (auto it=it_begin+1; it<it_end-1; it=it+2)
+    for (auto it = it_begin + 1; it < it_end - 1; it = it + 2)
     {
-      const double h = it->getPos() - (it-1)->getPos();
-      const double k = (it+1)->getPos() - it->getPos();
-      const double y_h = (it-1)->getIntensity();
+      const double h = it->getPos() - (it - 1)->getPos();
+      const double k = (it + 1)->getPos() - it->getPos();
+      const double y_h = (it - 1)->getIntensity();
       const double y_0 = it->getIntensity();
-      const double y_k = (it+1)->getIntensity();
-      integral += (1.0/6.0) * (h+k) * ((2.0-k/h)*y_h + (pow(h+k,2)/(h*k))*y_0 + (2.0-h/k)*y_k);
+      const double y_k = (it + 1)->getIntensity();
+      integral += (1.0 / 6.0) * (h + k) * ((2.0 - k / h) * y_h + (pow(h + k, 2) / (h * k)) * y_0 + (2.0 - h / k) * y_k);
     }
     return integral;
   }
@@ -288,9 +288,9 @@ namespace OpenMS
     for (auto it = p.PosBegin(left); it != p.PosEnd(right); ++it)
     {
       const double intensity = it->getIntensity();
-      const double intensity_prev = (it-1)->getIntensity();
+      const double intensity_prev = (it - 1)->getIntensity();
       const double position = it->getPos();
-      const double position_prev = (it-1)->getPos();
+      const double position_prev = (it - 1)->getPos();
       // start and end positions (rt or mz)
       if (position < peak_apex_pos_ && psm_.points_across_baseline > 1) // start positions
       {
@@ -342,8 +342,8 @@ namespace OpenMS
     psm_.width_at_5 = psm_.end_position_at_5 - psm_.start_position_at_5;
     psm_.width_at_10 = psm_.end_position_at_10 - psm_.start_position_at_10;
     psm_.width_at_50 = psm_.end_position_at_50 - psm_.start_position_at_50;
-    psm_.total_width = (p.PosEnd(right)-1)->getPos() - p.PosBegin(left)->getPos();
-    psm_.slope_of_baseline = (p.PosEnd(right)-1)->getIntensity() - p.PosBegin(left)->getIntensity();
+    psm_.total_width = (p.PosEnd(right) - 1)->getPos() - p.PosBegin(left)->getPos();
+    psm_.slope_of_baseline = (p.PosEnd(right) - 1)->getIntensity() - p.PosBegin(left)->getIntensity();
     psm_.baseline_delta_2_height = psm_.slope_of_baseline / peak_height_;
 
     // other

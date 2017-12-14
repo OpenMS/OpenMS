@@ -86,10 +86,10 @@ vector<double> intensity = {
 
 MSChromatogram chromatogram;
 MSSpectrum spectrum;
-for (Size i=0; i<position.size(); ++i)
+for (Size i = 0; i < position.size(); ++i)
 {
-  chromatogram.push_back(ChromatogramPeak(position[i],intensity[i]));
-  spectrum.push_back(Peak1D(position[i],intensity[i]));
+  chromatogram.push_back(ChromatogramPeak(position[i], intensity[i]));
+  spectrum.push_back(Peak1D(position[i], intensity[i]));
 }
 
 MSChromatogram::ConstIterator chrom_left_it = chromatogram.RTBegin(left);
