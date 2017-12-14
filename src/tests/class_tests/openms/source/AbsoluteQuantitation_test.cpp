@@ -355,46 +355,38 @@ START_SECTION((Param AbsoluteQuantitation::fitCalibration(
   
   AbsoluteQuantitation absquant;
 
+  // TEST 1: ser-L
+  static const double arrx1[] = {-1, -2, -3, 1, 2, 3};
+  std::vector<double> x1 (arrx1, arrx1 + sizeof(arrx1) / sizeof(arrx1[0]) );
+  static const double arry1[] = {1, 1, 1, 1, 1, 1};
+  std::vector<double> y1 (arry1, arry1 + sizeof(arry1) / sizeof(arry1[0]) ); 
+  static const double arrz1[] = {-2, -4, -6, 2, 4, 6};
+  std::vector<double> z1 (arrz1, arrz1 + sizeof(arrz1) / sizeof(arrz1[0]) ); 
+
   // set-up the features
   std::vector<AbsoluteQuantitationStandards::featureConcentration> component_concentrations;
   AbsoluteQuantitationStandards::featureConcentration component_concentration;
   Feature component, IS_component;
-  // point #1
-  component.setMetaValue("native_id","component");
-  component.setMetaValue("peak_apex_int",1.0);
-  IS_component.setMetaValue("native_id","IS");
-  IS_component.setMetaValue("peak_apex_int",1.0);
-  component_concentration.feature = component;
-  component_concentration.IS_feature = IS_component;
-  component_concentration.actual_concentration = 2.0;
-  component_concentration.IS_actual_concentration = 1.0;
-  component_concentration.dilution_factor = 1.0;
-  component_concentrations.push_back(component_concentration);  
-  // point #2
-  component.setMetaValue("native_id","component");
-  component.setMetaValue("peak_apex_int",2.0);
-  IS_component.setMetaValue("native_id","IS");
-  IS_component.setMetaValue("peak_apex_int",1.0);
-  component_concentration.feature = component;
-  component_concentration.IS_feature = IS_component;
-  component_concentration.actual_concentration = 4.0;
-  component_concentration.IS_actual_concentration = 1.0;
-  component_concentration.dilution_factor = 1.0;
-  component_concentrations.push_back(component_concentration);  
-  // point #3
-  component.setMetaValue("native_id","component");
-  component.setMetaValue("peak_apex_int",3.0);
-  IS_component.setMetaValue("native_id","IS");
-  IS_component.setMetaValue("peak_apex_int",1.0);
-  component_concentration.feature = component;
-  component_concentration.IS_feature = IS_component;
-  component_concentration.actual_concentration = 6.0;
-  component_concentration.IS_actual_concentration = 1.0;
-  component_concentration.dilution_factor = 1.0;
-  component_concentrations.push_back(component_concentration); 
+  for (size_t i = 0; i < x1.size(); ++i)
+  {
+    component.setMetaValue("native_id","ser-L.ser-L_1.Light");
+    component.setMetaValue("peak_apex_int",x1[i]);
+    IS_component.setMetaValue("native_id","IS");
+    IS_component.setMetaValue("peak_apex_int",y1[i]);
+    component_concentration.feature = component;
+    component_concentration.IS_feature = IS_component;
+    component_concentration.actual_concentration = z1[i];
+    component_concentration.IS_actual_concentration = 1.0;
+    component_concentration.dilution_factor = 1.0;
+    component_concentrations.push_back(component_concentration); 
+  }  
 
   String feature_name = "peak_apex_int";
   Param transformation_model_params;
+  transformation_model_params.setValue("x_datum_min", -1e12);
+  transformation_model_params.setValue("x_datum_max", 1e12);
+  transformation_model_params.setValue("y_datum_min", -1e12);
+  transformation_model_params.setValue("y_datum_max", 1e12);
   // String transformation_model = "TransformationModelLinear"; 
   String transformation_model = "linear"; 
 
