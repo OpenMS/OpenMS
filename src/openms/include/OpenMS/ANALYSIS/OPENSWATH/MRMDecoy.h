@@ -110,12 +110,11 @@ public:
     void generateDecoys(OpenMS::TargetedExperiment& exp,
                         OpenMS::TargetedExperiment& dec, String method, String decoy_tag,
                         double identity_threshold, int max_attempts, double mz_threshold,
-                        double mz_shift, bool exclude_similar,
-                        double similarity_threshold, bool remove_CNterm_mods,
+                        double mz_shift,
+                        double similarity_threshold,
                         double precursor_mass_shift, std::vector<String> fragment_types,
                         std::vector<size_t> fragment_charges, bool enable_specific_losses,
-                        bool enable_unspecific_losses, bool remove_unannotated,
-                        int round_decPow = -4);
+                        bool enable_unspecific_losses, int round_decPow = -4);
 
     typedef std::vector<OpenMS::TargetedExperiment::Protein> ProteinVectorType;
     typedef std::vector<OpenMS::TargetedExperiment::Peptide> PeptideVectorType;

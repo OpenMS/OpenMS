@@ -308,11 +308,10 @@ namespace OpenMS
 
   void MRMDecoy::generateDecoys(OpenMS::TargetedExperiment& exp, OpenMS::TargetedExperiment& dec,
                                 String method, String decoy_tag, double identity_threshold, int max_attempts,
-                                double mz_threshold, double mz_shift, bool exclude_similar,
-                                double similarity_threshold, bool remove_CNterminal_mods, double precursor_mass_shift,
+                                double mz_threshold, double mz_shift,
+                                double similarity_threshold, double precursor_mass_shift,
                                 std::vector<String> fragment_types, std::vector<size_t> fragment_charges,
-                                bool enable_specific_losses, bool enable_unspecific_losses, bool remove_unannotated,
-                                int round_decPow)
+                                bool enable_specific_losses, bool enable_unspecific_losses, int round_decPow)
   {
     MRMIonSeries mrmis;
     MRMDecoy::PeptideVectorType peptides, decoy_peptides;
@@ -329,11 +328,12 @@ namespace OpenMS
     // Go through all peptides and apply the decoy method to the sequence
     // (pseudo-reverse, reverse or shuffle). Then set the peptides and proteins of the decoy
     // experiment.
+    Size progress = 0;
+    startProgress(0, exp.getPeptides().size(), "Generating decoy peptides");
     for (Size pep_idx = 0; pep_idx < exp.getPeptides().size(); ++pep_idx)
     {
       OpenMS::TargetedExperiment::Peptide peptide = exp.getPeptides()[pep_idx];
-      // continue if the peptide has C/N terminal modifications and we should exclude them
-      if (remove_CNterminal_mods && MRMDecoy::has_CNterminal_mods(peptide)) {continue; }
+
       peptide.id = decoy_tag + peptide.id;
       OpenMS::String original_sequence = peptide.sequence;
       if (!peptide.getPeptideGroupLabel().empty())
@@ -343,10 +343,14 @@ namespace OpenMS
 
       if (method == "pseudo-reverse")
       {
+        // exclude peptide if it has C/N terminal modifications because we can't do a (partial) reverse
+        if (MRMDecoy::has_CNterminal_mods(peptide)) {continue; }
         peptide = MRMDecoy::pseudoreversePeptide(peptide);
       }
       else if (method == "reverse")
       {
+        // exclude peptide if it has C/N terminal modifications because we can't do a full reverse
+        if (MRMDecoy::has_CNterminal_mods(peptide)) {continue; }
         peptide = MRMDecoy::reversePeptide(peptide);
       }
       else if (method == "shuffle")
@@ -358,21 +362,10 @@ namespace OpenMS
         peptide.protein_refs[prot_idx] = decoy_tag + peptide.protein_refs[prot_idx];
       }
 
-      if (MRMDecoy::AASequenceIdentity(original_sequence, peptide.sequence) > identity_threshold)
-      {
-        if (!exclude_similar)
-        {
-          std::cout << "Target sequence: " << original_sequence << " Decoy sequence: " << peptide.sequence  << " Sequence identity: " << MRMDecoy::AASequenceIdentity(original_sequence, peptide.sequence) << " Identity threshold: " << identity_threshold << std::endl;
-          throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "AA Sequences are too similar. Either decrease identity_threshold and increase max_attempts for the shuffle method or set flag exclude_similar.");
-        }
-        else
-        {
-          exclusion_peptides.push_back(peptide.id);
-        }
-      }
-
       peptides.push_back(peptide);
+      setProgress(++progress);
     }
+    endProgress();
     dec.setPeptides(peptides); // temporary set peptides, overwrite later again!
 
     // hash of the peptide reference containing all transitions
@@ -382,16 +375,14 @@ namespace OpenMS
       peptide_trans_map[exp.getTransitions()[i].getPeptideRef()].push_back(&exp.getTransitions()[i]);
     }
 
-    Size progress = 0;
-    startProgress(0, exp.getTransitions().size(), "Creating decoys");
+    progress = 0;
+    startProgress(0, peptide_trans_map.size(), "Generating decoy transitions");
     for (MRMDecoy::PeptideTransitionMapType::iterator pep_it = peptide_trans_map.begin();
          pep_it != peptide_trans_map.end(); ++pep_it)
     {
       String peptide_ref = pep_it->first;
       String decoy_peptide_ref = decoy_tag + pep_it->first; // see above, the decoy peptide id is computed deterministically from the target id
       const TargetedExperiment::Peptide target_peptide = exp.getPeptideByRef(peptide_ref);
-      // continue if the peptide has C/N terminal modifications and we should exclude them
-      if (remove_CNterminal_mods && MRMDecoy::has_CNterminal_mods(target_peptide)) {continue;}
 
       const TargetedExperiment::Peptide decoy_peptide = dec.getPeptideByRef(decoy_peptide_ref);
       OpenMS::AASequence target_peptide_sequence = TargetedExperimentHelper::getAASequence(target_peptide);
@@ -407,7 +398,6 @@ namespace OpenMS
 
       for (Size i = 0; i < pep_it->second.size(); i++)
       {
-        setProgress(++progress);
         const ReactionMonitoringTransition tr = *(pep_it->second[i]);
 
         if (!tr.isDetectingTransition() || tr.getDecoyTransitionType() == ReactionMonitoringTransition::DECOY)
@@ -442,30 +432,20 @@ namespace OpenMS
           {
             if (std::fabs(tr.getProductMZ() - decoy_tr.getProductMZ()) < similarity_threshold)
             {
-              if (!exclude_similar)
-              {
-                throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Fragment ions are too similar. Either decrease similarity_threshold or set flag exclude_similar.");
-              }
-              else
-              {
-                exclusion_peptides.push_back(decoy_tr.getPeptideRef());
-              } 
+              exclusion_peptides.push_back(decoy_tr.getPeptideRef());
+              LOG_DEBUG << "[peptide] Skipping " << decoy_tr.getPeptideRef() << " due to reaching fragment ion similarity threshold" << std::endl;
            }
           }
           decoy_transitions.push_back(decoy_tr);
         }
         else
         {
-          if (remove_unannotated)
-          {
-            exclusion_peptides.push_back(decoy_tr.getPeptideRef());
-          }
-          else
-          {
-            throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Decoy fragment ion for target fragment ion " + String(targetion.first) + " of peptide " + target_peptide_sequence.toString() + " with precursor charge " + String(target_peptide.getChargeState()) + " could not be mapped. Please check whether it is a valid ion and enable losses or removal of terminal modifications if necessary. Skipping of unannotated target assays is available as last resort.");
-          }
+          // transition could not be annotated, remove whole peptide
+          exclusion_peptides.push_back(decoy_tr.getPeptideRef());
+          LOG_DEBUG << "[peptide] Skipping " << decoy_tr.getPeptideRef() << " due to missing annotation" << std::endl;
         }
       } // end loop over transitions
+      setProgress(++progress);
     } // end loop over peptides
     endProgress();
 
@@ -495,7 +475,7 @@ namespace OpenMS
       }
       else
       {
-        LOG_DEBUG << "[peptide] Skipping " << peptide.id << std::endl;
+        LOG_DEBUG << "[peptide] Skipping " << peptide.id << " due to missing transitions" << std::endl;
       }
     }
 
@@ -510,7 +490,7 @@ namespace OpenMS
       }
       else
       {
-        LOG_DEBUG << "[protein] Skipping " << protein.id << std::endl;
+        LOG_DEBUG << "[protein] Skipping " << protein.id << " due to missing peptides" << std::endl;
       }
     }
 
