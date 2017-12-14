@@ -355,7 +355,7 @@ START_SECTION((Param AbsoluteQuantitation::fitCalibration(
   
   AbsoluteQuantitation absquant;
 
-  // TEST 1: ser-L
+  // TEST 1:
   static const double arrx1[] = {-1, -2, -3, 1, 2, 3};
   std::vector<double> x1 (arrx1, arrx1 + sizeof(arrx1) / sizeof(arrx1[0]) );
   static const double arry1[] = {1, 1, 1, 1, 1, 1};
@@ -397,6 +397,43 @@ START_SECTION((Param AbsoluteQuantitation::fitCalibration(
 
   TEST_EQUAL(param.getValue("slope"),0.5);
   TEST_EQUAL(param.getValue("intercept"),0.0);
+
+  // TEST 2:
+  static const double arrx2[] = {-1, -2, -3, 1, 2, 3};
+  std::vector<double> x2 (arrx2, arrx2 + sizeof(arrx2) / sizeof(arrx2[0]) );
+  static const double arry2[] = {1, 1, 1, 1, 1, 1};
+  std::vector<double> y2 (arry2, arry2 + sizeof(arry2) / sizeof(arry2[0]) ); 
+  static const double arrz2[] = {-2, -4, -6, 2, 4, 6};
+  std::vector<double> z2 (arrz2, arrz2 + sizeof(arrz2) / sizeof(arrz2[0]) ); 
+
+  // set-up the features
+  component_concentrations.clear();
+  for (size_t i = 0; i < x2.size(); ++i)
+  {
+    component.setMetaValue("native_id","ser-L.ser-L_1.Light");
+    component.setMetaValue("peak_apex_int",x2[i]);
+    IS_component.setMetaValue("native_id","IS");
+    IS_component.setMetaValue("peak_apex_int",y2[i]);
+    component_concentration.feature = component;
+    component_concentration.IS_feature = IS_component;
+    component_concentration.actual_concentration = z2[i];
+    component_concentration.IS_actual_concentration = 1.0;
+    component_concentration.dilution_factor = 1.0;
+    component_concentrations.push_back(component_concentration); 
+  }  
+
+  transformation_model_params.setValue("x_weight", "ln(x)");
+  transformation_model_params.setValue("y_weight", "ln(y)");
+
+  Param param = absquant.fitCalibration(component_concentrations,
+    feature_name,
+    transformation_model,
+    transformation_model_params);
+
+  TEST_EQUAL(param.getValue("slope"), 1.0);
+  TEST_EQUAL(param.getValue("intercept"), -0.6931);
+
+
 
 END_SECTION
 
