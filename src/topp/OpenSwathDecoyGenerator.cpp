@@ -80,8 +80,10 @@ using namespace OpenMS;
   to the one described in Lam, Henry, et al. (2010). "Artificial decoy spectral
   libraries for false discovery rate estimation in spectral library searching in
   proteomics".  Journal of Proteome Research 9, 605-610. It shuffles the amino
-  acid sequence and shuffles the fragment ion intensities accordingly, however
-  for this to work the fragment ions need to be matched to annotated before.
+  acid sequence (excluding N-/C-terminal and K/R/P) and shuffles the fragment 
+  ion intensities accordingly. If the new sequence does not reach a threshold of
+  identity within a set number of trials, a random amino acid (not N-/C-terminal
+  or modified) is "mutated" to a random other amino acid.
 
   <B>The command line parameters of this tool are:</B>
   @verbinclude TOPP_OpenSwathDecoyGenerator.cli
@@ -121,8 +123,8 @@ protected:
     registerStringOption_("out_type", "<type>", "", "Output file type -- default: determined from file extension or content\n", false);
     setValidStrings_("out_type", ListUtils::create<String>(formats));
 
-    registerStringOption_("method", "<type>", "shuffle", "decoy generation method ('shuffle','shuffle-mutated','pseudo-reverse','reverse','shift')", false);
-    setValidStrings_("method", ListUtils::create<String>(String("shuffle,shuffle-mutated,pseudo-reverse,reverse,shift")));
+    registerStringOption_("method", "<type>", "shuffle", "decoy generation method ('shuffle','pseudo-reverse','reverse','shift')", false);
+    setValidStrings_("method", ListUtils::create<String>(String("shuffle,pseudo-reverse,reverse,shift")));
 
     registerStringOption_("decoy_tag", "<type>", "DECOY_", "decoy tag", false);
 

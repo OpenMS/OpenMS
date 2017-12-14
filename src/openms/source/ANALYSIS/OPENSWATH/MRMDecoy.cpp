@@ -117,7 +117,7 @@ namespace OpenMS
 
   OpenMS::TargetedExperiment::Peptide MRMDecoy::shufflePeptide(
     OpenMS::TargetedExperiment::Peptide peptide, double identity_threshold, int seed,
-    int max_attempts, bool replace_aa_instead_append)
+    int max_attempts)
   {
 #ifdef DEBUG_MRMDECOY
     std::cout << " shuffle peptide " << peptide.sequence << std::endl;
@@ -217,53 +217,41 @@ namespace OpenMS
 
       ++attempts;
 
-      // If our attempts have failed so far, we will insert two random AA to
+      // If our attempts have failed so far, we will mutate a random AA of
       // the sequence and see whether we can achieve sufficient shuffling with
-      // these additional AA added to the sequence.
+      // the new sequence.
       if (attempts % 10 == 9)
       {
-        if (replace_aa_instead_append)
+        OpenMS::AASequence shuffled_sequence = TargetedExperimentHelper::getAASequence(shuffled);
+        int res_pos = (pseudoRNG() % aa_size);
+        int pep_pos = -1;
+        size_t pos_trials = 0;
+        while (pep_pos < 0 && pos_trials < shuffled_sequence.size())
         {
-          OpenMS::AASequence shuffled_sequence = TargetedExperimentHelper::getAASequence(shuffled);
-          int res_pos = (pseudoRNG() % aa_size);
-          int pep_pos = -1;
-          size_t pos_trials = 0;
-          while (pep_pos < 0 && pos_trials < shuffled_sequence.size())
+          pep_pos = (pseudoRNG() % shuffled_sequence.size());
+          if (shuffled_sequence[pep_pos].isModified() || (pep_pos == 0) || (pep_pos == (int)(shuffled_sequence.size() - 1)))
           {
-            pep_pos = (pseudoRNG() % shuffled_sequence.size());
-            if (shuffled_sequence[pep_pos].isModified() || (pep_pos == 0) || (pep_pos == (int)(shuffled_sequence.size() - 1)))
+            pep_pos = -1;
+          }
+          else
+          {
+            if (pep_pos == 0)
             {
-              pep_pos = -1;
+              shuffled_sequence = AASequence::fromString(aa[res_pos]) + shuffled_sequence.getSuffix(shuffled_sequence.size() - pep_pos - 1);
+            }
+            else if (pep_pos == (int)(shuffled_sequence.size() - 1))
+            {
+              shuffled_sequence = shuffled_sequence.getPrefix(pep_pos) + AASequence::fromString(aa[res_pos]);
             }
             else
             {
-              if (pep_pos == 0)
-              {
-                shuffled_sequence = AASequence::fromString(aa[res_pos]) + shuffled_sequence.getSuffix(shuffled_sequence.size() - pep_pos - 1);
-              }
-              else if (pep_pos == (int)(shuffled_sequence.size() - 1))
-              {
-                shuffled_sequence = shuffled_sequence.getPrefix(pep_pos) + AASequence::fromString(aa[res_pos]);
-              }
-              else
-              {
-                shuffled_sequence = shuffled_sequence.getPrefix(pep_pos) + AASequence::fromString(aa[res_pos]) + shuffled_sequence.getSuffix(shuffled_sequence.size() - pep_pos - 1);
-              }
+              shuffled_sequence = shuffled_sequence.getPrefix(pep_pos) + AASequence::fromString(aa[res_pos]) + shuffled_sequence.getSuffix(shuffled_sequence.size() - pep_pos - 1);
             }
-            ++pos_trials;
           }
-          shuffled.sequence = shuffled_sequence.toUnmodifiedString();
-          peptide = shuffled;
+          ++pos_trials;
         }
-        else
-        {
-          int pos = (pseudoRNG() % aa_size);
-          peptide.sequence.insert(peptide.sequence.size()-3, aa[pos]);
-          pos = (pseudoRNG() % aa_size);
-          peptide.sequence.insert(peptide.sequence.size()-3, aa[pos]);
-          // now make the shuffled peptide the same length as the new peptide
-          shuffled = peptide;
-        }
+        shuffled.sequence = shuffled_sequence.toUnmodifiedString();
+        peptide = shuffled;
       }
     }
 
@@ -405,10 +393,6 @@ namespace OpenMS
       else if (method == "shuffle")
       {
         peptide = MRMDecoy::shufflePeptide(peptide, identity_threshold, -1, max_attempts);
-      }
-      else if (method == "shuffle-mutated")
-      {
-        peptide = MRMDecoy::shufflePeptide(peptide, identity_threshold, -1, max_attempts, true);
       }
 
       for (Size prot_idx = 0; prot_idx < peptide.protein_refs.size(); ++prot_idx)

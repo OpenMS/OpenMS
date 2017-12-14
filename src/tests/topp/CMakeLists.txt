@@ -1055,7 +1055,7 @@ ${TOPP_BIN_PATH}/OpenSwathDecoyGenerator -test -in ${DATA_DIR_TOPP}/OpenSwathDec
   add_test("TOPP_OpenSwathDecoyGenerator_test_1_out1" ${DIFF} -whitelist "id=" -in1 OpenSwathDecoyGenerator.TraML.tmp -in2 ${DATA_DIR_TOPP}/OpenSwathDecoyGenerator_output.TraML)
   set_tests_properties("TOPP_OpenSwathDecoyGenerator_test_1_out1" PROPERTIES DEPENDS "TOPP_OpenSwathDecoyGenerator_test_1")
   add_test("TOPP_OpenSwathDecoyGenerator_test_2"
-${TOPP_BIN_PATH}/OpenSwathDecoyGenerator -test -in ${DATA_DIR_TOPP}/OpenSwathDecoyGenerator_input_2.TraML -out OpenSwathDecoyGenerator_2.TraML.tmp -out_type TraML -method pseudo-reverse -mz_threshold 0.8)
+${TOPP_BIN_PATH}/OpenSwathDecoyGenerator -test -in ${DATA_DIR_TOPP}/OpenSwathDecoyGenerator_input_2.TraML -out OpenSwathDecoyGenerator_2.TraML.tmp -out_type TraML -method pseudo-reverse -product_mz_threshold 0.8)
   add_test("TOPP_OpenSwathDecoyGenerator_test_2_out1" ${DIFF} -in1 OpenSwathDecoyGenerator_2.TraML.tmp -in2 ${DATA_DIR_TOPP}/OpenSwathDecoyGenerator_output_2.TraML)
   set_tests_properties("TOPP_OpenSwathDecoyGenerator_test_2_out1" PROPERTIES DEPENDS "TOPP_OpenSwathDecoyGenerator_test_2")
   add_test("TOPP_OpenSwathDecoyGenerator_test_3"

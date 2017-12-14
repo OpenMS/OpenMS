@@ -153,7 +153,7 @@ public:
     */
     OpenMS::TargetedExperiment::Peptide shufflePeptide(
       OpenMS::TargetedExperiment::Peptide peptide, double identity_threshold, int seed = -1,
-      int max_attempts = 10, bool replace_aa_instead_append = false);
+      int max_attempts = 100);
 
     /**
       @brief Pseudo-reverse a peptide sequence (with its modifications)
