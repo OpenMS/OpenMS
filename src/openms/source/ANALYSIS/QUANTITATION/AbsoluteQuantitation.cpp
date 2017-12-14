@@ -195,7 +195,9 @@ namespace OpenMS
         transformation_model,
         transformation_model_params);
 
-      double actual_concentration_ratio = component_concentrations[i].actual_concentration/component_concentrations[i].IS_actual_concentration;
+      double actual_concentration_ratio = component_concentrations[i].actual_concentration/
+        component_concentrations[i].IS_actual_concentration/
+        component_concentrations[i].dilution_factor;
       concentration_ratios.push_back(component_concentrations[i].actual_concentration);
 
       // calculate the bias
@@ -208,13 +210,13 @@ namespace OpenMS
         feature_name);
       feature_amounts_ratios.push_back(feature_amount_ratio);
       
-      //DEBUG
-      // std::cout << "calculated_concentration_ratio = " << calculated_concentration_ratio << "." << std::endl;
-      // std::cout << "actual_concentration_ratio = " << actual_concentration_ratio << "." << std::endl;
-      // std::cout << "bias = " << bias << "." << std::endl;
-      // std::cout << "feature_amount = " << (String)component_concentrations[i].feature.getMetaValue(feature_name) << "." << std::endl;
-      // std::cout << "IS_feature_amount = " << (String)component_concentrations[i].IS_feature.getMetaValue(feature_name) << "." << std::endl;
-      // std::cout << "feature_amount_ratio = " << bias << "." << std::endl;
+      // DEBUG
+      std::cout << "calculated_concentration_ratio = " << calculated_concentration_ratio << "." << std::endl;
+      std::cout << "actual_concentration_ratio = " << actual_concentration_ratio << "." << std::endl;
+      std::cout << "bias = " << bias << "." << std::endl;
+      std::cout << "feature_amount = " << (String)component_concentrations[i].feature.getMetaValue(feature_name) << "." << std::endl;
+      std::cout << "IS_feature_amount = " << (String)component_concentrations[i].IS_feature.getMetaValue(feature_name) << "." << std::endl;
+      std::cout << "feature_amount_ratio = " << bias << "." << std::endl;
     }
 
     // calculate the R2 (R2 = Pearson_R^2)

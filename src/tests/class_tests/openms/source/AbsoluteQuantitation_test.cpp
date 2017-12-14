@@ -462,9 +462,9 @@ START_SECTION((void optimizeCalibrationCurveIterative(
   Param transformation_model_params;
   transformation_model_params.setValue("x_weight", "ln(x)");
   transformation_model_params.setValue("y_weight", "ln(y)");
-  transformation_model_params.setValue("x_datum_min", 1e-12);
+  transformation_model_params.setValue("x_datum_min", -1e12);
   transformation_model_params.setValue("x_datum_max", 1e12);
-  transformation_model_params.setValue("y_datum_min", 1e-12);
+  transformation_model_params.setValue("y_datum_min", -1e12);
   transformation_model_params.setValue("y_datum_max", 1e12);
   Param optimized_params;
 
