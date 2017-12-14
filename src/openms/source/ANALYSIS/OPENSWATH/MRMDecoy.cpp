@@ -67,6 +67,36 @@ namespace OpenMS
     return idx;
   }
 
+  std::vector<std::pair<std::string::size_type, std::string> > MRMDecoy::find_all_tryptic_and_term(std::string sequence)
+  {
+    // also blocks both N- and C-terminus from shuffling
+    std::vector<std::pair<std::string::size_type, std::string> > idx;
+    std::vector<std::string> pattern;
+    pattern.push_back("K");
+    pattern.push_back("R");
+    pattern.push_back("P");
+
+    for (Size i = 0; i < sequence.size(); i++)
+    {
+      if (i == 0 || i + 1 == sequence.size())
+      {
+        std::pair<std::string::size_type, std::string> idx_pair(i, String(sequence[i]));
+        idx.push_back(idx_pair);
+        continue;
+      }
+
+      for (Size j = 0; j < pattern.size(); j++)
+      {
+        if (sequence.substr(i, 1) == pattern[j])
+        {
+          std::pair<std::string::size_type, std::string> idx_pair(i, pattern[j]);
+          idx.push_back(idx_pair);
+        }
+      }
+    }
+    return idx;
+  }
+
   float MRMDecoy::AASequenceIdentity(const String& sequence, const String& decoy)
   {
     OPENMS_PRECONDITION(sequence.size() == decoy.size(), "Cannot compare two sequences of unequal length");
@@ -104,7 +134,7 @@ namespace OpenMS
     boost::variate_generator<boost::mt19937&, boost::uniform_int<> > pseudoRNG(generator, uni_dist);
 
     typedef std::vector<std::pair<std::string::size_type, std::string> > IndexType;
-    IndexType idx = MRMDecoy::find_all_tryptic(peptide.sequence);
+
     std::string aa[] =
     {
       "A", "N", "D", "C", "E", "Q", "G", "H", "I", "L", "M", "F", "S", "T", "W",
@@ -117,6 +147,9 @@ namespace OpenMS
     while (MRMDecoy::AASequenceIdentity(peptide.sequence, shuffled.sequence) > identity_threshold &&
            attempts < max_attempts)
     {
+      // Block tryptic residues and N-/C-terminus from shuffling
+      IndexType idx = MRMDecoy::find_all_tryptic_and_term(peptide.sequence);
+      
       shuffled = peptide;
       std::vector<Size> peptide_index;
       for (Size i = 0; i < peptide.sequence.size(); i++)
@@ -155,7 +188,7 @@ namespace OpenMS
         peptide_index.insert(peptide_index.begin() + it->first, it->first);
       }
 
-      // use the shuffled index to create the get the new peptide sequence and
+      // use the shuffled index to create the new peptide sequence and
       // then to place the modifications at their appropriate places (at the
       // same, shuffled AA where they were before).
       for (Size i = 0; i < peptide_index.size(); i++)
@@ -184,7 +217,7 @@ namespace OpenMS
 
       ++attempts;
 
-      // If our attempts have failed so far, we will append two random AA to
+      // If our attempts have failed so far, we will insert two random AA to
       // the sequence and see whether we can achieve sufficient shuffling with
       // these additional AA added to the sequence.
       if (attempts % 10 == 9)
@@ -198,7 +231,7 @@ namespace OpenMS
           while (pep_pos < 0 && pos_trials < shuffled_sequence.size())
           {
             pep_pos = (pseudoRNG() % shuffled_sequence.size());
-            if (shuffled_sequence[pep_pos].isModified() || (shuffled_sequence.hasNTerminalModification() && pep_pos == 0) || (shuffled_sequence.hasNTerminalModification() && pep_pos == (int)(shuffled_sequence.size() - 1)))
+            if (shuffled_sequence[pep_pos].isModified() || (pep_pos == 0) || (pep_pos == (int)(shuffled_sequence.size() - 1)))
             {
               pep_pos = -1;
             }
@@ -225,9 +258,9 @@ namespace OpenMS
         else
         {
           int pos = (pseudoRNG() % aa_size);
-          peptide.sequence.append(aa[pos]);
+          peptide.sequence.insert(peptide.sequence.size()-3, aa[pos]);
           pos = (pseudoRNG() % aa_size);
-          peptide.sequence.append(aa[pos]);
+          peptide.sequence.insert(peptide.sequence.size()-3, aa[pos]);
           // now make the shuffled peptide the same length as the new peptide
           shuffled = peptide;
         }
@@ -335,7 +368,7 @@ namespace OpenMS
       OpenMS::TargetedExperiment::Peptide peptide = exp.getPeptides()[pep_idx];
 
       peptide.id = decoy_tag + peptide.id;
-      OpenMS::String original_sequence = peptide.sequence;
+
       if (!peptide.getPeptideGroupLabel().empty())
       {
         peptide.setPeptideGroupLabel(decoy_tag + peptide.getPeptideGroupLabel());
@@ -344,19 +377,38 @@ namespace OpenMS
       if (method == "pseudo-reverse")
       {
         // exclude peptide if it has C/N terminal modifications because we can't do a (partial) reverse
-        if (MRMDecoy::has_CNterminal_mods(peptide)) {continue; }
-        peptide = MRMDecoy::pseudoreversePeptide(peptide);
+        if (MRMDecoy::has_CNterminal_mods(peptide))
+        {
+          LOG_DEBUG << "[peptide] Skipping " << peptide.id << " due to C/N-terminal modifications" << std::endl;
+          exclusion_peptides.push_back(peptide.id);
+        }
+        else
+        {
+          peptide = MRMDecoy::pseudoreversePeptide(peptide);
+        }
       }
       else if (method == "reverse")
       {
-        // exclude peptide if it has C/N terminal modifications because we can't do a full reverse
-        if (MRMDecoy::has_CNterminal_mods(peptide)) {continue; }
-        peptide = MRMDecoy::reversePeptide(peptide);
+        // exclude peptide if it has C/N terminal modifications because we can't do a (partial) reverse
+        if (MRMDecoy::has_CNterminal_mods(peptide))
+        {
+          LOG_DEBUG << "[peptide] Skipping " << peptide.id << " due to C/N-terminal modifications" << std::endl;
+          exclusion_peptides.push_back(peptide.id);
+        }
+        else
+        {
+          peptide = MRMDecoy::reversePeptide(peptide);
+        }
       }
       else if (method == "shuffle")
       {
         peptide = MRMDecoy::shufflePeptide(peptide, identity_threshold, -1, max_attempts);
       }
+      else if (method == "shuffle-mutated")
+      {
+        peptide = MRMDecoy::shufflePeptide(peptide, identity_threshold, -1, max_attempts, true);
+      }
+
       for (Size prot_idx = 0; prot_idx < peptide.protein_refs.size(); ++prot_idx)
       {
         peptide.protein_refs[prot_idx] = decoy_tag + peptide.protein_refs[prot_idx];

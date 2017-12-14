@@ -129,6 +129,12 @@ public:
       std::string sequence);
 
     /**
+      @brief Find all tryptic sites in a sequence and C- and N-terminus
+    */
+    std::vector<std::pair<std::string::size_type, std::string> > find_all_tryptic_and_term(
+      std::string sequence);
+
+    /**
       @brief Compute relative identity (relative number of matches of amino acids at the same position) between two sequences
     */
     float AASequenceIdentity(const String& sequence, const String& decoy);

@@ -120,10 +120,13 @@ protected:
     registerStringOption_("out_type", "<type>", "", "Output file type -- default: determined from file extension or content\n", false);
     setValidStrings_("out_type", ListUtils::create<String>(formats));
 
-    registerStringOption_("method", "<type>", "shuffle", "decoy generation method ('shuffle','pseudo-reverse','reverse','shift')", false);
+    registerStringOption_("method", "<type>", "shuffle", "decoy generation method ('shuffle','shuffle-mutated','pseudo-reverse','reverse','shift')", false);
+    setValidStrings_("method", ListUtils::create<String>(String("shuffle,shuffle-mutated,pseudo-reverse,reverse,shift")));
+
     registerStringOption_("decoy_tag", "<type>", "DECOY_", "decoy tag", false);
 
     registerDoubleOption_("product_mz_similarity_threshold", "<double>", 0.05, "Similarity threshold for absolute difference of the product mz of target and decoy assays for exclusion in Dalton. Suggested value: 0.05", false, true);
+    registerDoubleOption_("min_decoy_fraction", "<double>", 0.8, "Minimum fraction of decoy / target peptides and proteins", false, true);
 
     registerIntOption_("shuffle_max_attempts", "<int>", 100, "shuffle: maximum attempts to lower the amino acid sequence identity between target and decoy for the shuffle algorithm", false, true);
     registerDoubleOption_("shuffle_sequence_identity_threshold", "<double>", 0.3, "shuffle: target-decoy amino acid sequence identity threshold for the shuffle algorithm", false, true);
@@ -176,17 +179,22 @@ protected:
 
     String method = getStringOption_("method");
     String decoy_tag = getStringOption_("decoy_tag");
-    double product_mz_threshold = getDoubleOption_("product_mz_threshold");
+
     double similarity_threshold = getDoubleOption_("product_mz_similarity_threshold");
-    bool separate = getFlag_("separate");
-    double identity_threshold = getDoubleOption_("shuffle_sequence_identity_threshold");
+    double min_decoy_fraction = getDoubleOption_("min_decoy_fraction");
+
     Int max_attempts = getIntOption_("shuffle_max_attempts");
+    double identity_threshold = getDoubleOption_("shuffle_sequence_identity_threshold");
     double precursor_mz_shift = getDoubleOption_("shift_precursor_mz_shift");
     double product_mz_shift = getDoubleOption_("shift_product_mz_shift");
+
+    double product_mz_threshold = getDoubleOption_("product_mz_threshold");
     String allowed_fragment_types_string = getStringOption_("allowed_fragment_types");
     String allowed_fragment_charges_string = getStringOption_("allowed_fragment_charges");
     bool enable_detection_specific_losses = getFlag_("enable_detection_specific_losses");
     bool enable_detection_unspecific_losses = getFlag_("enable_detection_unspecific_losses");
+
+    bool separate = getFlag_("separate");
 
     std::vector<String> allowed_fragment_types;
     allowed_fragment_types_string.split(",", allowed_fragment_types);
@@ -198,11 +206,6 @@ protected:
     {
       size_t charge = std::atoi(allowed_fragment_charges_string_vector.at(i).c_str());
       allowed_fragment_charges.push_back(charge);
-    }
-
-    if (method != "shuffle" && method != "pseudo-reverse" && method != "reverse" && method != "shift")
-    {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No valid decoy generation method selected!");
     }
 
     TargetedExperiment targeted_exp;
@@ -247,9 +250,9 @@ protected:
     LOG_INFO << "Number of target proteins: " << targeted_exp.getProteins().size() << std::endl;
     LOG_INFO << "Number of decoy proteins: " << targeted_decoy.getProteins().size() << std::endl;
 
-    if ((float)targeted_decoy.getPeptides().size() / (float)targeted_exp.getPeptides().size() < 0.8 || (float)targeted_decoy.getProteins().size() / (float)targeted_exp.getProteins().size() < 0.8)
+    if ((float)targeted_decoy.getPeptides().size() / (float)targeted_exp.getPeptides().size() < min_decoy_fraction || (float)targeted_decoy.getProteins().size() / (float)targeted_exp.getProteins().size() < min_decoy_fraction)
     {
-       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "The number of decoys for peptides or proteins is below the recommended threshold of 80% of the number of targets. If you used the 'shuffle' method, consider increasing the number of attempts.");
+       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "The number of decoys for peptides or proteins is below the threshold of " + String(min_decoy_fraction * 100) + "% of the number of targets. If you used the 'shuffle' method, consider increasing the number of attempts.");
     }
 
     TargetedExperiment targeted_merged;
@@ -268,19 +271,19 @@ protected:
       const char* tr_file = out.c_str();
       TransitionTSVReader tsv_reader = TransitionTSVReader();
       tsv_reader.setLogType(log_type_);
-      tsv_reader.convertTargetedExperimentToTSV(tr_file, targeted_exp);
+      tsv_reader.convertTargetedExperimentToTSV(tr_file, targeted_merged);
     }
     if (out_type == FileTypes::PQP)
     {
       const char * tr_file = out.c_str();
       TransitionPQPReader pqp_reader = TransitionPQPReader();
       pqp_reader.setLogType(log_type_);
-      pqp_reader.convertTargetedExperimentToPQP(tr_file, targeted_exp);
+      pqp_reader.convertTargetedExperimentToPQP(tr_file, targeted_merged);
     }
     else if (out_type == FileTypes::TRAML)
     {
       TraMLFile traml;
-      traml.store(out, targeted_exp);
+      traml.store(out, targeted_merged);
     }
 
     return EXECUTION_OK;
