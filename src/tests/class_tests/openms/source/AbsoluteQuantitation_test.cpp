@@ -366,7 +366,7 @@ START_SECTION((Param AbsoluteQuantitation::fitCalibration(
   IS_component.setMetaValue("peak_apex_int",1.0);
   component_concentration.feature = component;
   component_concentration.IS_feature = IS_component;
-  component_concentration.actual_concentration = 1.0;
+  component_concentration.actual_concentration = 2.0;
   component_concentration.IS_actual_concentration = 1.0;
   component_concentration.dilution_factor = 1.0;
   component_concentrations.push_back(component_concentration);  
@@ -377,7 +377,7 @@ START_SECTION((Param AbsoluteQuantitation::fitCalibration(
   IS_component.setMetaValue("peak_apex_int",1.0);
   component_concentration.feature = component;
   component_concentration.IS_feature = IS_component;
-  component_concentration.actual_concentration = 2.0;
+  component_concentration.actual_concentration = 4.0;
   component_concentration.IS_actual_concentration = 1.0;
   component_concentration.dilution_factor = 1.0;
   component_concentrations.push_back(component_concentration);  
@@ -388,7 +388,7 @@ START_SECTION((Param AbsoluteQuantitation::fitCalibration(
   IS_component.setMetaValue("peak_apex_int",1.0);
   component_concentration.feature = component;
   component_concentration.IS_feature = IS_component;
-  component_concentration.actual_concentration = 3.0;
+  component_concentration.actual_concentration = 6.0;
   component_concentration.IS_actual_concentration = 1.0;
   component_concentration.dilution_factor = 1.0;
   component_concentrations.push_back(component_concentration); 
@@ -403,7 +403,7 @@ START_SECTION((Param AbsoluteQuantitation::fitCalibration(
     transformation_model,
     transformation_model_params);
 
-  TEST_EQUAL(param.getValue("slope"),1.0);
+  TEST_EQUAL(param.getValue("slope"),0.5);
   TEST_EQUAL(param.getValue("intercept"),0.0);
 
 END_SECTION
@@ -475,10 +475,10 @@ START_SECTION((void optimizeCalibrationCurveIterative(
     transformation_model_params,
     optimized_params);
 
-  TEST_REAL_SIMILAR(component_concentrations[0].actual_concentration, 0.01);
-  TEST_REAL_SIMILAR(component_concentrations[8].actual_concentration, 4.0);
-  TEST_REAL_SIMILAR(optimized_params.getValue("slope"), 1.0);
-  TEST_REAL_SIMILAR(optimized_params.getValue("intercept"), 1.0);
+  TEST_REAL_SIMILAR(component_concentrations[0].actual_concentration, 0.04);
+  TEST_REAL_SIMILAR(component_concentrations[8].actual_concentration, 40.0);
+  TEST_REAL_SIMILAR(optimized_params.getValue("slope"), -0.9011392589);
+  TEST_REAL_SIMILAR(optimized_params.getValue("intercept"), -1.870185076);
 
   // TEST 2: amp
   static const double arrx2[] = {2.15E+05,2.32E+05,2.69E+05,2.53E+05,2.50E+05,
@@ -514,10 +514,10 @@ START_SECTION((void optimizeCalibrationCurveIterative(
     transformation_model_params,
     optimized_params);
 
-  TEST_REAL_SIMILAR(component_concentrations[0].actual_concentration, 0.002);
-  TEST_REAL_SIMILAR(component_concentrations[8].actual_concentration, 0.8);
-  TEST_REAL_SIMILAR(optimized_params.getValue("slope"), 1.0);
-  TEST_REAL_SIMILAR(optimized_params.getValue("intercept"), 1.0);
+  TEST_REAL_SIMILAR(component_concentrations[0].actual_concentration, 0.02);
+  TEST_REAL_SIMILAR(component_concentrations[8].actual_concentration, 8.);
+  TEST_REAL_SIMILAR(optimized_params.getValue("slope"), -0.95799683);
+  TEST_REAL_SIMILAR(optimized_params.getValue("intercept"), 1.047543387);
 
   // TEST 3: atp
   static const double arrx3[] = {8.28E+02,1.32E+03,1.57E+03,1.63E+03,1.48E+03,
@@ -553,10 +553,10 @@ START_SECTION((void optimizeCalibrationCurveIterative(
     transformation_model_params,
     optimized_params);
 
-  TEST_REAL_SIMILAR(component_concentrations[0].actual_concentration, 0.002);
+  TEST_REAL_SIMILAR(component_concentrations[0].actual_concentration, 0.02);
   TEST_REAL_SIMILAR(component_concentrations[8].actual_concentration, 0.8);
-  TEST_REAL_SIMILAR(optimized_params.getValue("slope"), 1.0);
-  TEST_REAL_SIMILAR(optimized_params.getValue("intercept"), 1.0);
+  TEST_REAL_SIMILAR(optimized_params.getValue("slope"), -0.623040824);
+  TEST_REAL_SIMILAR(optimized_params.getValue("intercept"), -0.36130172586);
   
 
 END_SECTION
