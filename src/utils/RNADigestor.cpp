@@ -130,15 +130,16 @@ protected:
     digestor.setMissedCleavages(missed_cleavages);
 
     std::vector<FASTAFile::FASTAEntry> all_fragments;
-    set<String> unique_fragments;
+    set<NASequence> unique_fragments;
 
     for (vector<FASTAFile::FASTAEntry>::const_iterator fa_it = seq_data.begin();
          fa_it != seq_data.end(); ++fa_it)
     {
-      vector<String> fragments;
-      digestor.digest(fa_it->sequence, fragments, min_size, max_size);
+      vector<NASequence> fragments;
+      NASequence seq = NASequence::fromString(fa_it->sequence);
+      digestor.digest(seq, fragments, min_size, max_size);
       Size counter = 1;
-      for (vector<String>::const_iterator frag_it = fragments.begin();
+      for (vector<NASequence>::const_iterator frag_it = fragments.begin();
            frag_it != fragments.end(); ++frag_it)
       {
         if (!unique || !unique_fragments.count(*frag_it))
@@ -147,7 +148,7 @@ protected:
           String desc;
           if (!fa_it->description.empty()) desc = fa_it->description + " ";
           desc += "(fragment " + String(counter) + ")";
-          FASTAFile::FASTAEntry fragment(id, desc, *frag_it);
+          FASTAFile::FASTAEntry fragment(id, desc, frag_it->toString());
           all_fragments.push_back(fragment);
           unique_fragments.insert(*frag_it);
           counter++;
