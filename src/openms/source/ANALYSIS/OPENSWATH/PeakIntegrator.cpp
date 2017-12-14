@@ -50,9 +50,19 @@ namespace OpenMS
     estimateBackground_(chromatogram, left, right);
   }
 
+  void PeakIntegrator::estimateBackground(const MSChromatogram& chromatogram, MSChromatogram::ConstIterator& left, MSChromatogram::ConstIterator& right)
+  {
+    estimateBackground_(chromatogram, left->getRT(), right->getRT());
+  }
+
   void PeakIntegrator::estimateBackground(const MSSpectrum& spectrum, const double& left, const double& right)
   {
     estimateBackground_(spectrum, left, right);
+  }
+
+  void PeakIntegrator::estimateBackground(const MSSpectrum& spectrum, MSSpectrum::ConstIterator& left, MSSpectrum::ConstIterator& right)
+  {
+    estimateBackground_(spectrum, left->getMZ(), right->getMZ());
   }
 
   void PeakIntegrator::integratePeak(const MSChromatogram& chromatogram, const double& left, const double& right)
@@ -60,9 +70,19 @@ namespace OpenMS
     integratePeak_(chromatogram, left, right);
   }
 
+  void PeakIntegrator::integratePeak(const MSChromatogram& chromatogram, MSChromatogram::ConstIterator& left, MSChromatogram::ConstIterator& right)
+  {
+    integratePeak_(chromatogram, left->getRT(), right->getRT());
+  }
+
   void PeakIntegrator::integratePeak(const MSSpectrum& spectrum, const double& left, const double& right)
   {
     integratePeak_(spectrum, left, right);
+  }
+
+  void PeakIntegrator::integratePeak(const MSSpectrum& spectrum, MSSpectrum::ConstIterator& left, MSSpectrum::ConstIterator& right)
+  {
+    integratePeak_(spectrum, left->getMZ(), right->getMZ());
   }
 
   double PeakIntegrator::simpson(MSChromatogram::ConstIterator it_begin, MSChromatogram::ConstIterator it_end) const
@@ -80,9 +100,19 @@ namespace OpenMS
     calculatePeakShapeMetrics_(chromatogram, left, right);
   }
 
+  void PeakIntegrator::calculatePeakShapeMetrics(const MSChromatogram& chromatogram, MSChromatogram::ConstIterator& left, MSChromatogram::ConstIterator& right)
+  {
+    calculatePeakShapeMetrics_(chromatogram, left->getRT(), right->getRT());
+  }
+
   void PeakIntegrator::calculatePeakShapeMetrics(const MSSpectrum& spectrum, const double& left, const double& right)
   {
     calculatePeakShapeMetrics_(spectrum, left, right);
+  }
+
+  void PeakIntegrator::calculatePeakShapeMetrics(const MSSpectrum& spectrum, MSSpectrum::ConstIterator& left, MSSpectrum::ConstIterator& right)
+  {
+    calculatePeakShapeMetrics_(spectrum, left->getMZ(), right->getMZ());
   }
 
   double PeakIntegrator::getPeakArea() const { return peak_area_; }
