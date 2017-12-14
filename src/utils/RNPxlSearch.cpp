@@ -333,7 +333,7 @@ protected:
     static PrecursorsToMS2Adducts getAllFeasibleFragmentAdducts(const RNPxlModificationMassesResult& precursor_adducts,
                                                           const NucleotideToFragmentAdductMap& nucleotide_to_fragment_adducts,
                                                           const set<char>& can_xl);
-    
+
   };
 
   /// Slimmer structure as storing all scored candidates in PeptideHit objects takes too much space
@@ -1278,59 +1278,13 @@ protected:
     protein_ids[0].setSearchParameters(search_parameters);
   }
 
-   void normalizeAdductName_(String& name)
-   {
-     if (!(name.hasSubstring("+") || name.hasSubstring("-"))) // no loss formula contained? only nucleotides (e.g. "AU")
-     {
-       bool alpha_only = true;
-       for (Size i = 0; i != name.size(); ++i)
-       {
-         if (!isalpha(name[i])) alpha_only = false;
-       }
-
-       if (alpha_only) // sort nucleotides alphabetically (if no special characters like "'" are contained)
-       {
-         std::sort(name.begin(), name.end());  // just sort nucleotides
-       }
-       return;
-     }
-
-      // name has at least one loss formula. Tokenize left of +/- sign
-      boost::regex re("(?=[\\+\\-])");
-      boost::sregex_token_iterator begin(name.begin(), name.end(), re, -1);
-      boost::sregex_token_iterator end;
-      vector<string> ss;
-      ss.insert(ss.end(), begin, end);
-
-      bool alpha_only = true;
-      for (Size i = 0; i != ss[0].size(); ++i)
-      {
-        if (!isalpha(ss[0][i])) alpha_only = false;
-      }
-
-      if (alpha_only) // sort nucleotides alphabetically (if no special characters are contained)
-      {
-        std::sort(ss[0].begin(), ss[0].end());
-      }
-
-      String new_name;
-      new_name += ss[0];
-
-      // sort loss formulas
-      std::sort(ss.begin() + 1, ss.end());
-
-      for (Size i = 1; i < ss.size(); ++i)
-      {
-        String without_sign(ss[i].begin() + 1, ss[i].end());
-        EmpiricalFormula loss_formula(without_sign);
-        new_name += ss[i][0] + loss_formula.toString(); // readd sign
-      }
-      name = new_name;
-   }
-
-  void mapPrecursorMassesToScans(Int min_precursor_charge, Int max_precursor_charge, const IntList &precursor_isotopes,
-                               double small_peptide_mass_filter_threshold, Size peptide_min_size, PeakMap &spectra,
-                               multimap<double, pair<Size, int>> &multimap_mass_2_scan_index) const
+  void mapPrecursorMassesToScans(const Int min_precursor_charge,
+                                 const Int max_precursor_charge,
+                                 const IntList &precursor_isotopes,
+                                 const double small_peptide_mass_filter_threshold,
+                                 const Size peptide_min_size,
+                                 const PeakMap & spectra,
+                                 multimap<double, pair<Size, int>> & multimap_mass_2_scan_index) const
   {
     Size fractional_mass_filtered(0), small_peptide_mass_filtered(0);
 
@@ -1571,8 +1525,12 @@ protected:
     // build multimap of precursor mass to scan index (and perform some mass and length based filtering)
     using MassToScanMultiMap = multimap<double, pair<Size, int>>;
     MassToScanMultiMap multimap_mass_2_scan_index;  // map precursor mass to scan index and (potential) isotopic missassignment
-    mapPrecursorMassesToScans(min_precursor_charge, max_precursor_charge, precursor_isotopes,
-                              small_peptide_mass_filter_threshold, peptide_min_size, spectra,
+    mapPrecursorMassesToScans(min_precursor_charge,
+                              max_precursor_charge,
+                              precursor_isotopes,
+                              small_peptide_mass_filter_threshold,
+                              peptide_min_size,
+                              spectra,
                               multimap_mass_2_scan_index);
 
     // initialize spectrum generators (generated ions, etc.)
@@ -2595,7 +2553,8 @@ RNPxlSearch::RNPxlParameterParsing::getFeasibleFragmentAdducts(const String &exp
 
 void RNPxlSearch::RNPxlFragmentIonGenerator::addMS2MarkerIons(
   const vector<RNPxlSearch::FragmentAdductDefinition_> &marker_ions, const bool is_decoy, PeakSpectrum &spectrum,
-  PeakSpectrum::IntegerDataArray &spectrum_charge, PeakSpectrum::StringDataArray &spectrum_annotation) {
+  PeakSpectrum::IntegerDataArray &spectrum_charge, PeakSpectrum::StringDataArray &spectrum_annotation)
+{
   for (auto const & m : marker_ions)
   {
     double mz = m.mass + Constants::PROTON_MASS_U;
@@ -2696,7 +2655,8 @@ void RNPxlSearch::RNPxlFragmentIonGenerator::generatePartialLossSpectrum(const S
                                                                          const vector<RNPxlSearch::FragmentAdductDefinition_> &partial_loss_modification,
                                                                          const TheoreticalSpectrumGenerator &partial_loss_spectrum_generator,
                                                                          const bool is_decoy,
-                                                                         PeakSpectrum &partial_loss_spectrum) {
+                                                                         PeakSpectrum &partial_loss_spectrum)
+{
   partial_loss_spectrum.getIntegerDataArrays().resize(1);
   PeakSpectrum::IntegerDataArray& partial_loss_spectrum_charge = partial_loss_spectrum.getIntegerDataArrays()[0];
 
@@ -2799,7 +2759,8 @@ void RNPxlSearch::RNPxlFragmentIonGenerator::addPrecursorWithCompleteRNA_(
   const double fixed_and_variable_modified_peptide_weight, const String &precursor_rna_adduct,
   const double precursor_rna_weight, const int charge, const bool is_decoy, PeakSpectrum &partial_loss_spectrum,
   MSSpectrum::IntegerDataArray &partial_loss_spectrum_charge,
-  MSSpectrum::StringDataArray &partial_loss_spectrum_annotation) {
+  MSSpectrum::StringDataArray &partial_loss_spectrum_annotation)
+{
   const double td_shift = is_decoy ? DECOY_FRAGMENT_SHIFT : 0;
 
   double xl_mz = (fixed_and_variable_modified_peptide_weight + precursor_rna_weight +
