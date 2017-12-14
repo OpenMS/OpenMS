@@ -463,6 +463,7 @@ namespace OpenMS
         //DEBUG
         std::cout << "R2 = " << std::to_string(r2) << "." << std::endl;
         std::cout << "n_points = " << std::to_string(component_concentrations_sorted_indices.size()) << "." << std::endl;
+        std::cout << "bias_check = " << std::to_string(bias_check.size()) << "." << std::endl;
 
         // copy over the final optimized points before exiting
         component_concentrations = component_concentrations_sub;
