@@ -131,7 +131,7 @@ START_SECTION((bool operator==(const NASequence& rhs) const))
 }
 END_SECTION
 
-START_SECTION((bool operator<(const NASequence& rhs) const ))
+START_SECTION((bool operator<(const NASequence& rhs) const))
 {
   NASequence aaa = NASequence::fromString("AAA");
   NASequence aaaa = NASequence::fromString("AAAA");
@@ -238,7 +238,7 @@ START_SECTION((bool hasFivePrimeMod() const ))
 }
 END_SECTION
 
-START_SECTION((void setFivePrimeMod(const RibonucleotideChainEnd *r)))
+START_SECTION((void setFivePrimeMod(const RibonucleotideChainEnd* r)))
 {
   NASequence aaa = NASequence::fromString("AAA");
   TEST_EQUAL(aaa.hasFivePrimeMod(), false);
@@ -249,7 +249,7 @@ START_SECTION((void setFivePrimeMod(const RibonucleotideChainEnd *r)))
 }
 END_SECTION
 
-START_SECTION((const RibonucleotideChainEnd* getFivePrimeMod() const ))
+START_SECTION((const RibonucleotideChainEnd* getFivePrimeMod() const))
 {
   // tested via (const RibonucleotideChainEnd* getFivePrimeMod() const )
   TEST_EQUAL(true, true);
@@ -267,14 +267,14 @@ START_SECTION((void setThreePrimeMod(const RibonucleotideChainEnd* r)))
 }
 END_SECTION
 
-START_SECTION((const RibonucleotideChainEnd* getThreePrimeMod() const ))
+START_SECTION((const RibonucleotideChainEnd* getThreePrimeMod() const))
 {
   // tested via (void setThreePrimeMod(const RibonucleotideChainEnd* r))
   NOT_TESTABLE
 }
 END_SECTION
 
-START_SECTION((bool hasThreePrimeMod() const ))
+START_SECTION((bool hasThreePrimeMod() const))
 {
   // tested via (void setThreePrimeMod(const RibonucleotideChainEnd* r))
   NOT_TESTABLE
@@ -353,14 +353,14 @@ START_SECTION((EmpiricalFormula getFormula(NASequence::NASFragmentType type = NA
 }
 END_SECTION
 
-START_SECTION((static NASequence fromString(const String &s)))
+START_SECTION((static NASequence fromString(const String& s)))
 {
   NASequence seq = NASequence::fromString(String("CUA"));
   TEST_STRING_EQUAL(seq.toString(), "CUA");
 }
 END_SECTION
 
-START_SECTION((static NASequence fromString(const char *s)))
+START_SECTION((static NASequence fromString(const char* s)))
 {
   NASequence seq = NASequence::fromString("GG");
   TEST_STRING_EQUAL(seq.toString(), "GG");
@@ -384,6 +384,16 @@ END_SECTION
 START_SECTION((NASequence getSuffix(Size length) const))
 {
   // TODO
+}
+END_SECTION
+
+START_SECTION((NASequence getSubsequence(Size start, Size length) const))
+{
+  NASequence seq = NASequence::fromString("pAUCGp");
+  TEST_STRING_EQUAL(seq.getSubsequence().toString(), "pAUCGp");
+  TEST_STRING_EQUAL(seq.getSubsequence(1).toString(), "UCGp");
+  TEST_STRING_EQUAL(seq.getSubsequence(0, 2).toString(), "pAU");
+  TEST_STRING_EQUAL(seq.getSubsequence(2, 1).toString(), "C");
 }
 END_SECTION
 
@@ -537,13 +547,13 @@ START_SECTION(([NASequence::Iterator] virtual ~Iterator()))
 }
 END_SECTION
 
-START_SECTION(([NASequence::Iterator] const_reference operator*() const ))
+START_SECTION(([NASequence::Iterator] const_reference operator*() const))
 {
   // TODO
 }
 END_SECTION
 
-START_SECTION(([NASequence::Iterator] const_pointer operator->() const ))
+START_SECTION(([NASequence::Iterator] const_pointer operator->() const))
 {
   // TODO
 }
@@ -555,31 +565,31 @@ START_SECTION(([NASequence::Iterator] pointer operator->()))
 }
 END_SECTION
 
-START_SECTION(([NASequence::Iterator] const Iterator operator+(difference_type diff) const ))
+START_SECTION(([NASequence::Iterator] const Iterator operator+(difference_type diff) const))
 {
   // TODO
 }
 END_SECTION
 
-START_SECTION(([NASequence::Iterator] difference_type operator-(Iterator rhs) const ))
+START_SECTION(([NASequence::Iterator] difference_type operator-(Iterator rhs) const))
 {
   // TODO
 }
 END_SECTION
 
-START_SECTION(([NASequence::Iterator] const Iterator operator-(difference_type diff) const ))
+START_SECTION(([NASequence::Iterator] const Iterator operator-(difference_type diff) const))
 {
   // TODO
 }
 END_SECTION
 
-START_SECTION(([NASequence::Iterator] bool operator==(const Iterator& rhs) const ))
+START_SECTION(([NASequence::Iterator] bool operator==(const Iterator& rhs) const))
 {
   // TODO
 }
 END_SECTION
 
-START_SECTION(([NASequence::Iterator] bool operator!=(const Iterator& rhs) const ))
+START_SECTION(([NASequence::Iterator] bool operator!=(const Iterator& rhs) const))
 {
   // TODO
 }
