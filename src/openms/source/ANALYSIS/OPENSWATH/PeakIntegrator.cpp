@@ -162,11 +162,11 @@ namespace OpenMS
         // y = mx + b where x = rt or mz, m = slope, b = left intensity
         // sign of delta_int will determine line direction
         // background += delta_int / delta_pos * (it->getPos() - left) + int_l;
-        UInt n_points = 0;
-        for (auto it = p.PosBegin(left); it != p.PosEnd(right); ++it, ++n_points)
+        for (auto it = p.PosBegin(left); it != p.PosEnd(right); ++it)
         {
           background += it->getPos();
         }
+        UInt n_points = std::distance(p.PosBegin(left), p.PosEnd(right));
         background = (background - n_points * p.PosBegin(left)->getPos()) * delta_int / delta_pos + n_points * int_l;
       }
     }
@@ -178,10 +178,9 @@ namespace OpenMS
       }
       else if (integration_type_ == INTEGRATION_TYPE_INTENSITYSUM)
       {
-        UInt n_points = 0;
-        for (auto it = p.PosBegin(left); it != p.PosEnd(right); ++it, ++n_points)
+        for (auto it = p.PosBegin(left); it != p.PosEnd(right); ++it)
         { }
-        background = std::min(int_r, int_l) * n_points;
+        background = std::min(int_r, int_l) * std::distance(p.PosBegin(left), p.PosEnd(right));;
       }
     }
     else
@@ -197,8 +196,8 @@ namespace OpenMS
     peak_area_ = 0.0;
     peak_height_ = -1.0;
     peak_apex_pos_ = -1.0;
-    UInt n_points = 0;
-    for (auto it = p.PosBegin(left); it != p.PosEnd(right); ++it, ++n_points)
+    UInt n_points = std::distance(p.PosBegin(left), p.PosEnd(right));
+    for (auto it = p.PosBegin(left); it != p.PosEnd(right); ++it)
     {
       if (peak_height_ < it->getIntensity())
       {
