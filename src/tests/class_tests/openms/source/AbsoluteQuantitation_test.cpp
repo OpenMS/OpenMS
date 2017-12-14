@@ -399,11 +399,11 @@ START_SECTION((Param AbsoluteQuantitation::fitCalibration(
   TEST_EQUAL(param.getValue("intercept"),0.0);
 
   // TEST 2:
-  static const double arrx2[] = {-1, -2, -3, 1, 2, 3};
+  static const double arrx2[] = {0.25,0.5,1,2,3,4,5,6};
   std::vector<double> x2 (arrx2, arrx2 + sizeof(arrx2) / sizeof(arrx2[0]) );
-  static const double arry2[] = {1, 1, 1, 1, 1, 1};
+  static const double arry2[] = {1,1,1,1,1,1,1,1};
   std::vector<double> y2 (arry2, arry2 + sizeof(arry2) / sizeof(arry2[0]) ); 
-  static const double arrz2[] = {-2, -4, -6, 2, 4, 6};
+  static const double arrz2[] = {0.5,1,2,4,6,8,10,12};
   std::vector<double> z2 (arrz2, arrz2 + sizeof(arrz2) / sizeof(arrz2[0]) ); 
 
   // set-up the features
