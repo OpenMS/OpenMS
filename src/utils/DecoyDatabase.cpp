@@ -203,13 +203,13 @@ protected:
           {
             tokenized.push_back(String("p"));
           }
-          entry.sequence = ListUtils::concatenate(tokenized,"");
+          entry.sequence = ListUtils::concatenate(tokenized, "");
         }
         else
         {
           if (shuffle)
           {
-            random_shuffle(entry.sequence.begin(),entry.sequence.end());
+            random_shuffle(entry.sequence.begin(), entry.sequence.end());
           }
           else // reverse
           {
