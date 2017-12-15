@@ -80,29 +80,33 @@ namespace OpenMS
     return result;
   }
 
-  double XQuestScores::matchOddsScore(const PeakSpectrum& theoretical_spec,  const std::vector< std::pair< Size, Size > >& matched_spec, double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, bool is_xlink_spectrum, Size n_charges)
+  double XQuestScores::matchOddsScore(const PeakSpectrum& theoretical_spec,  const std::vector< std::pair< Size, Size > >& matched_spec, double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm)
   {
     using boost::math::binomial;
 
     Size matched_size = matched_spec.size();
     Size theo_size = theoretical_spec.size();
+    vector<double> log_transf_spec;
 
     if (matched_size < 1 || theo_size < 1)
     {
       return 0;
     }
 
-    double range = theoretical_spec[theo_size-1].getMZ() -  theoretical_spec[0].getMZ();
+    double range;
+    double mean(0);
 
-    // Compute fragment tolerance in Da for the mean of MZ values, if tolerance in ppm (rough approximation)
-    // TODO if we keep this score, think of a way to make it compatible with ppm tolerances
-    double mean = 0.0;
-    for (Size i = 0; i < theo_size; ++i)
+    if (fragment_mass_tolerance_unit_ppm)
     {
-      mean += theoretical_spec[i].getMZ();
+      for (Peak1D peak : theoretical_spec)
+      {
+        log_transf_spec.push_back(std::log(peak.getMZ()));
+      }
+
+      range = log_transf_spec.back() - log_transf_spec[0];
     }
-    mean = mean / theo_size;
-    double tolerance_Th = fragment_mass_tolerance_unit_ppm ? mean * 1e-6 * fragment_mass_tolerance : fragment_mass_tolerance;
+    // mean = mean / theo_size;
+    // double tolerance_Th = fragment_mass_tolerance_unit_ppm ? mean * 1e-6 * fragment_mass_tolerance : fragment_mass_tolerance;
 
     // A priori probability of a random match given info about the theoretical spectrum
     double a_priori_p = 0;
