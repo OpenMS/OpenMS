@@ -179,11 +179,14 @@ namespace OpenMS
         {
           MoleculeQueryMatch match;
           match.charge = hit.getCharge();
-          match.peak_annotations = hit.getPeakAnnotations();
           static_cast<MetaInfoInterface&>(match) = hit;
           pos = query_matches.insert(make_pair(psm_key, match)).first;
         }
         MoleculeQueryMatch& match = pos->second;
+        if (!hit.getPeakAnnotations().empty())
+        {
+          match.peak_annotations[step_key] = hit.getPeakAnnotations();
+        }
         match.processing_steps.push_back(step_key);
 
         // analysis results from pepXML:
@@ -251,7 +254,6 @@ namespace OpenMS
       PeptideHit hit;
       hit.setSequence(identified_peptides.left.at(molecule_key));
       hit.setCharge(match.charge);
-      hit.setPeakAnnotations(match.peak_annotations);
       ParentMatchMap::const_iterator pos = parent_matches.find(molecule_key);
       if (pos != parent_matches.end())
       {
@@ -276,6 +278,11 @@ namespace OpenMS
              match.processing_steps.begin(); step_it !=
              match.processing_steps.end(); ++step_it)
       {
+        auto pos = match.peak_annotations.find(*step_it);
+        if (pos != match.peak_annotations.end())
+        {
+          hit.setPeakAnnotations(pos->second);
+        }
         const DataProcessingStep& step = processing_steps.left.at(*step_it);
         // give priority to "later" scores:
         for (ScoreList::const_reverse_iterator score_it = match.scores.rbegin();
@@ -857,7 +864,7 @@ namespace OpenMS
 
   pair<IdentificationData::IdentifiedMoleculeKey, bool>
   IdentificationData::registerPeptide(const AASequence& seq,
-                                      IdentifiedMetaData meta_data)
+                                      const IdentifiedMetaData& meta_data)
   {
     if (seq.empty())
     {
@@ -874,15 +881,10 @@ namespace OpenMS
 
     pair<IdentifiedMoleculeKey, bool> result =
       insertIntoBimap_(seq, identified_peptides);
-    if (result.second)
-    {
-      checkScoreTypes_(meta_data.scores);
-      checkProcessingSteps_(meta_data.processing_steps);
-      // @TODO: this prevents passing "meta_data" by const ref. - any
-      // workaround?
-      addCurrentProcessingStep_(meta_data.processing_steps);
-      identified_meta_data.insert(make_pair(result.first, meta_data));
-    }
+
+    insertMetaData_(meta_data, identified_meta_data, result.first,
+                    result.second);
+
     return result;
   }
 
@@ -890,7 +892,7 @@ namespace OpenMS
   pair<IdentificationData::IdentifiedMoleculeKey, bool>
   IdentificationData::registerCompound(const String& id,
                                        const CompoundMetaData& compound_meta,
-                                       IdentifiedMetaData id_meta)
+                                       const IdentifiedMetaData& id_meta)
   {
     if (id.empty())
     {
@@ -907,23 +909,21 @@ namespace OpenMS
 
     pair<IdentifiedMoleculeKey, bool> result =
       insertIntoBimap_(id, identified_compounds);
-    if (result.second)
+    if (result.second) // new compound
     {
-      checkScoreTypes_(id_meta.scores);
-      checkProcessingSteps_(id_meta.processing_steps);
-      // @TODO: this prevents passing "id_meta" by const ref. - any workaround?
-      addCurrentProcessingStep_(id_meta.processing_steps);
-      identified_meta_data.insert(make_pair(result.first, id_meta));
       // @TODO: insert "compound_meta" even if it's empty?
       compound_meta_data.insert(make_pair(result.first, compound_meta));
     }
+
+    insertMetaData_(id_meta, identified_meta_data, result.first, result.second);
+
     return result;
   }
 
 
   pair<IdentificationData::IdentifiedMoleculeKey, bool>
   IdentificationData::registerOligo(const NASequence& seq,
-                                    IdentifiedMetaData meta_data)
+                                    const IdentifiedMetaData& meta_data)
   {
     if (seq.empty())
     {
@@ -940,22 +940,17 @@ namespace OpenMS
 
     pair<IdentifiedMoleculeKey, bool> result =
       insertIntoBimap_(seq, identified_oligos);
-    if (result.second)
-    {
-      checkScoreTypes_(meta_data.scores);
-      checkProcessingSteps_(meta_data.processing_steps);
-      // @TODO: this prevents passing "meta_data" by const ref. - any
-      // workaround?
-      addCurrentProcessingStep_(meta_data.processing_steps);
-      identified_meta_data.insert(make_pair(result.first, meta_data));
-    }
+
+    insertMetaData_(meta_data, identified_meta_data, result.first,
+                    result.second);
+
     return result;
   }
 
 
   pair<IdentificationData::ParentMoleculeKey, bool>
   IdentificationData::registerParentMolecule(const String& accession,
-                                             ParentMetaData meta_data)
+                                             const ParentMetaData& meta_data)
   {
     if (accession.empty())
     {
@@ -963,16 +958,29 @@ namespace OpenMS
       throw Exception::IllegalArgument(__FILE__, __LINE__,
                                        OPENMS_PRETTY_FUNCTION, msg);
     }
+    checkScoreTypes_(meta_data.scores);
+    checkProcessingSteps_(meta_data.processing_steps);
 
     pair<ParentMoleculeKey, bool> result =
       insertIntoBimap_(accession, parent_molecules);
-    if (result.second)
+
+    insertMetaData_(meta_data, parent_meta_data, result.first,
+                    result.second);
+    if (!result.second) // existing protein - any new information about it?
     {
-      checkScoreTypes_(meta_data.scores);
-      checkProcessingSteps_(meta_data.processing_steps);
-      addCurrentProcessingStep_(meta_data.processing_steps);
-      parent_meta_data.insert(make_pair(result.first, meta_data));
+      ParentMetaData& stored_meta = parent_meta_data.at(result.first);
+      if (stored_meta.sequence.empty())
+      {
+        stored_meta.sequence = meta_data.sequence;
+      }
+      if (stored_meta.description.empty())
+      {
+        stored_meta.description = meta_data.description;
+      }
+      // @TODO: what about coverage? (not reliable if we're merging data)
+      if (!stored_meta.is_decoy) stored_meta.is_decoy = meta_data.is_decoy;
     }
+
     return result;
   }
 
@@ -1011,7 +1019,8 @@ namespace OpenMS
 
   bool IdentificationData::addMoleculeQueryMatch(
     IdentifiedMoleculeKey molecule_key, DataQueryKey query_key,
-    MoleculeQueryMatch meta_data)
+    const MoleculeQueryMatch& meta_data,
+    const PeakAnnotations& peak_annotations)
   {
     if (!UniqueIdInterface::isValid(molecule_key) ||
         // don't know which "identified_[type]" to check, so check meta data:
@@ -1028,14 +1037,33 @@ namespace OpenMS
       throw Exception::IllegalArgument(__FILE__, __LINE__,
                                        OPENMS_PRETTY_FUNCTION, msg);
     }
-    checkScoreTypes_(meta_data.scores);
-    checkProcessingSteps_(meta_data.processing_steps);
-    // @TODO: this prevents passing "meta_data" by const ref. - any workaround?
-    addCurrentProcessingStep_(meta_data.processing_steps);
-    // @TODO: disallow charge zero in "meta_data"?
 
     QueryMatchKey match_key = make_pair(molecule_key, query_key);
-    return query_matches.insert(make_pair(match_key, meta_data)).second;
+    bool new_item = (query_matches.find(match_key) == query_matches.end());
+
+    insertMetaData_(meta_data, query_matches, match_key, new_item);
+    if (!peak_annotations.empty())
+    {
+      ProcessingStepKey step_key = current_step_key_;
+      if (!UniqueIdInterface::isValid(step_key) &&
+          !meta_data.processing_steps.empty())
+      {
+        step_key = meta_data.processing_steps.back();
+      }
+      if (UniqueIdInterface::isValid(step_key))
+      {
+        query_matches.at(match_key).peak_annotations[step_key] =
+          peak_annotations;
+      }
+    }
+    if (!new_item && (meta_data.charge != 0))
+    {
+      // @TODO: disallow charge zero in "meta_data"?
+      MoleculeQueryMatch& stored_meta = query_matches.at(match_key);
+      if (stored_meta.charge == 0) stored_meta.charge = meta_data.charge;
+    }
+
+    return new_item;
   }
 
 

@@ -54,7 +54,7 @@ namespace OpenMS
   class OPENMS_DLLAPI IdentificationData: public MetaInfoInterface
   {
   public:
-    typedef UInt64 UniqueKey; // in case 64 bit isn't enough
+    typedef UInt64 UniqueKey; // easy to change in case 64 bit isn't enough
 
     // Input files that were processed:
     typedef UniqueKey InputFileKey;
@@ -267,6 +267,62 @@ namespace OpenMS
     QueryBimap data_queries;
 
 
+    /// Base class for data with scores and processing steps (and meta info)
+    struct ScoredProcessingResult: public MetaInfoInterface
+    {
+      ScoreList scores;
+
+      std::vector<ProcessingStepKey> processing_steps;
+
+      ScoredProcessingResult& operator+=(const ScoredProcessingResult& other)
+      {
+        // merge processing steps:
+        for (auto step_key : other.processing_steps)
+        {
+          if (std::find(processing_steps.begin(), processing_steps.end(),
+                        step_key) == processing_steps.end())
+          {
+            processing_steps.push_back(step_key);
+          }
+        }
+        // merge scores:
+        for (auto score_pair : other.scores)
+        {
+          // @TODO: should we overwrite scores?
+          if (std::find(scores.begin(), scores.end(), score_pair) ==
+              scores.end())
+          {
+            scores.push_back(score_pair);
+          }
+        }
+        // merge meta info:
+        std::vector<UInt> keys;
+        other.getKeys(keys);
+        for (const UInt key : keys)
+        {
+          // @TODO: should we overwrite meta values?
+          if (!metaValueExists(key))
+          {
+            setMetaValue(key, other.getMetaValue(key));
+          }
+        }
+
+        return *this;
+      }
+
+    protected:
+      explicit ScoredProcessingResult(
+        const ScoreList& scores = ScoreList(),
+        const std::vector<ProcessingStepKey>& processing_steps =
+        std::vector<ProcessingStepKey>()):
+        scores(scores), processing_steps(processing_steps)
+      {
+      }
+
+      ScoredProcessingResult(const ScoredProcessingResult& other) = default;
+    };
+
+
     // Identified molecules - at the moment, peptides or small molecules:
     typedef UniqueKey IdentifiedMoleculeKey;
     typedef boost::bimap<IdentifiedMoleculeKey, AASequence> PeptideBimap;
@@ -287,21 +343,17 @@ namespace OpenMS
     /*!
       Meta data for an identified molecule.
     */
-    struct IdentifiedMetaData: public MetaInfoInterface
+    struct IdentifiedMetaData: public ScoredProcessingResult
     {
       enum MoleculeType molecule_type; // @TODO: do we need this?
-
-      ScoreList scores;
-
-      std::vector<ProcessingStepKey> processing_steps;
 
       explicit IdentifiedMetaData(
         enum MoleculeType molecule_type = MT_PROTEIN,
         const ScoreList& scores = ScoreList(),
         const std::vector<ProcessingStepKey>& processing_steps =
         std::vector<ProcessingStepKey>()):
-        molecule_type(molecule_type), scores(scores),
-        processing_steps(processing_steps)
+        ScoredProcessingResult(scores, processing_steps),
+        molecule_type(molecule_type)
       {
       }
 
@@ -343,25 +395,25 @@ namespace OpenMS
     /*!
       Meta data for a search hit (e.g. peptide-spectrum match).
     */
-    struct MoleculeQueryMatch: public MetaInfoInterface
+
+    // @TODO: move "PeakAnnotation" out of "PeptideHit"
+    typedef std::vector<PeptideHit::PeakAnnotation> PeakAnnotations;
+
+    struct MoleculeQueryMatch: public ScoredProcessingResult
     {
       Int charge;
 
-      ScoreList scores;
-
-      // ordered list of references to data processing steps:
-      std::vector<ProcessingStepKey> processing_steps;
-
-      // @TODO: move "PeakAnnotation" out of "PeptideHit"
-      std::vector<PeptideHit::PeakAnnotation> peak_annotations;
+      // peak annotations (fragment ion matches), potentially from different
+      // data processing steps:
+      std::map<ProcessingStepKey, PeakAnnotations> peak_annotations;
 
       explicit MoleculeQueryMatch(
-        Int charge = 0, ScoreList scores = ScoreList(),
-        std::vector<ProcessingStepKey> processing_steps =
+        Int charge = 0, const ScoreList& scores = ScoreList(),
+        const std::vector<ProcessingStepKey>& processing_steps =
         std::vector<ProcessingStepKey>(),
-        std::vector<PeptideHit::PeakAnnotation> peak_annotations =
-        std::vector<PeptideHit::PeakAnnotation>()):
-        charge(charge), scores(scores), processing_steps(processing_steps),
+        const std::map<ProcessingStepKey, PeakAnnotations>& peak_annotations =
+        std::map<ProcessingStepKey, PeakAnnotations>()):
+        ScoredProcessingResult(scores, processing_steps), charge(charge),
         peak_annotations(peak_annotations)
       {
       }
@@ -385,7 +437,7 @@ namespace OpenMS
     /*!
       Representation of a parent molecule that is identified only indirectly (e.g. a protein).
     */
-    struct ParentMetaData: public MetaInfoInterface
+    struct ParentMetaData: public ScoredProcessingResult
     {
       enum MoleculeType molecule_type;
 
@@ -395,20 +447,18 @@ namespace OpenMS
 
       double coverage;
 
-      ScoreList scores;
-
-      // ordered list of references to data processing steps:
-      std::vector<ProcessingStepKey> processing_steps;
+      bool is_decoy;
 
       explicit ParentMetaData(
         enum MoleculeType molecule_type = MT_PROTEIN,
         const String& sequence = "", const String& description = "",
-        double coverage = 0.0, const ScoreList& scores = ScoreList(),
+        double coverage = 0.0, bool is_decoy = false,
+        const ScoreList& scores = ScoreList(),
         const std::vector<ProcessingStepKey>& processing_steps =
         std::vector<ProcessingStepKey>()):
+        ScoredProcessingResult(scores, processing_steps),
         molecule_type(molecule_type), sequence(sequence),
-        description(description), coverage(coverage), scores(scores),
-        processing_steps(processing_steps)
+        description(description), coverage(coverage), is_decoy(is_decoy)
       {
       }
 
@@ -589,6 +639,26 @@ namespace OpenMS
     /// Export to mzTab format
     MzTab exportMzTab() const;
 
+    /// Helper function to store meta data (derived from ScoreProcessingResult)
+    template <typename MetaDataMap>
+    void insertMetaData_(const typename MetaDataMap::mapped_type& meta_data,
+                         MetaDataMap& meta_data_map,
+                         typename MetaDataMap::key_type key, bool new_item)
+    {
+      checkScoreTypes_(meta_data.scores);
+      checkProcessingSteps_(meta_data.processing_steps);
+
+      if (new_item)
+      {
+        meta_data_map.insert(std::make_pair(key, meta_data));
+      }
+      else
+      {
+        meta_data_map.at(key) += meta_data;
+      }
+      addCurrentProcessingStep_(meta_data_map.at(key).processing_steps);
+    }
+
     std::pair<InputFileKey, bool> registerInputFile(const String& file);
 
     std::pair<ProcessingSoftwareKey, bool> registerDataProcessingSoftware(
@@ -606,19 +676,20 @@ namespace OpenMS
 
     std::pair<IdentifiedMoleculeKey, bool> registerPeptide(
       const AASequence& seq,
-      IdentifiedMetaData meta_data = IdentifiedMetaData());
+      const IdentifiedMetaData& meta_data = IdentifiedMetaData());
 
     std::pair<IdentifiedMoleculeKey, bool> registerCompound(
       const String& id,
       const CompoundMetaData& compound_meta = CompoundMetaData(),
-      IdentifiedMetaData id_meta = IdentifiedMetaData(MT_COMPOUND));
+      const IdentifiedMetaData& id_meta = IdentifiedMetaData(MT_COMPOUND));
 
     std::pair<IdentifiedMoleculeKey, bool> registerOligo(
       const NASequence& seq,
-      IdentifiedMetaData meta_data = IdentifiedMetaData(MT_RNA));
+      const IdentifiedMetaData& meta_data = IdentifiedMetaData(MT_RNA));
 
     std::pair<ParentMoleculeKey, bool> registerParentMolecule(
-      const String& accession, ParentMetaData meta_data = ParentMetaData());
+      const String& accession,
+      const ParentMetaData& meta_data = ParentMetaData());
 
     // these ones are called "add..." instead of "register..." because they
     // don't return a key:
@@ -629,7 +700,8 @@ namespace OpenMS
 
     bool addMoleculeQueryMatch(
       IdentifiedMoleculeKey molecule_key, DataQueryKey query_key,
-      MoleculeQueryMatch meta_data = MoleculeQueryMatch());
+      const MoleculeQueryMatch& meta_data = MoleculeQueryMatch(),
+      const PeakAnnotations& peak_annotations = PeakAnnotations());
 
     /*!
       @brief Set a data processing step that will apply to all subsequent "register..." calls.
