@@ -624,7 +624,8 @@ namespace OpenMS
     return max_element(biases.begin(), biases.end()) - biases.begin();
   }
 
-  void AbsoluteQuantitation::optimizeCalibrationCurves(std::map<String, std::vector<AbsoluteQuantitationStandards::featureConcentration>> & components_concentrations)
+  void AbsoluteQuantitation::optimizeCalibrationCurves(
+    std::map<String, std::vector<AbsoluteQuantitationStandards::featureConcentration>> & components_concentrations)
   {
 
     for (auto const& quant_method : quant_methods_)
@@ -658,7 +659,11 @@ namespace OpenMS
         quant_method.second.setTransformationModelParams(optimized_params);
 
         quant_method.second.setNPoints(component_concentrations[quant_method.first].size());
-        
+      }
+      else if (optimization_method_ != "iterative")
+      {
+        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+          "Unsupported calibration curve optimization method '" + optimization_method_ + "'.");
       }
     }
   } 
