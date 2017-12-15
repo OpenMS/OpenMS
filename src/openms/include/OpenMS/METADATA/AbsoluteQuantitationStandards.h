@@ -38,7 +38,7 @@
 #include <OpenMS/config.h>
 
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
-#include <OpenMS/KERNEL/Feature.h>
+#include <OpenMS/KERNEL/FeatureMap.h>
 
 #include <cstddef> // for size_t & ptrdiff_t
 #include <vector>
@@ -72,7 +72,7 @@ public:
       @brief Structure to map runs to components to known concentrations
 
     */ 
-    struct runConcentrations
+    struct runConcentration
     {
       String run_id;
       String component_id;
@@ -104,14 +104,13 @@ public:
          a metaValue for "run_id"
  
      */ 
-     void mapConcentrationsToComponents();
-                                     
-private:
+     void mapConcentrationsToComponents(const std::vector<runConcentrations> & run_concentrations,
+      const FeatureMap & features);
+
     // members
     std::map<String,std::vector<featureConcentration>> components_to_concentrations;
 
   };
-
 }
 #endif // OPENMS_METADATA_ABSOLUTEQUANTITATIONSTANDARDS_H
 

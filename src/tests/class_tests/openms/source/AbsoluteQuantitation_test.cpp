@@ -272,13 +272,13 @@ START_SECTION((void quantifyComponents(std::vector<FeatureMap>& unknowns)))
   TEST_STRING_EQUAL(unknown_feature_map[2].getSubordinates()[0].getMetaValue("concentration_units"),"uM");
 END_SECTION
 
-START_SECTION((void calculateBiasAndR2(
+START_SECTION((void (
   const std::vector<AbsoluteQuantitationStandards::featureConcentration> & component_concentrations,
   const String & feature_name,
   const String & transformation_model,
   const Param & transformation_model_params,
   std::vector<double> & biases,
-  double & r2)))
+  double & correlation_coefficient)))
   
   AbsoluteQuantitation absquant;
 
@@ -332,18 +332,18 @@ START_SECTION((void calculateBiasAndR2(
   param.setValue("slope",1.0);
   param.setValue("intercept",0.0);
   std::vector<double> biases;
-  double r2;
+  double correlation_coefficient;
 
-  absquant.calculateBiasAndR2(
+  absquant.calculateBiasAndR(
     component_concentrations,
     feature_name, 
     transformation_model, 
     param,
     biases, 
-    r2);
+    correlation_coefficient);
   
   TEST_REAL_SIMILAR(biases[0],0.0);  
-  TEST_REAL_SIMILAR(r2,1.0);  
+  TEST_REAL_SIMILAR(correlation_coefficient,1.0);  
   
 END_SECTION
 
@@ -477,7 +477,7 @@ START_SECTION((void optimizeCalibrationCurveIterative(
   Param absquant_params; 
   absquant_params.setValue("min_points", 4);
   absquant_params.setValue("max_bias", 30.0);
-  absquant_params.setValue("min_r2", 0.9);
+  absquant_params.setValue("min_correlation_coefficient", 0.9);
   absquant_params.setValue("max_iters", 100);
   absquant_params.setValue("outlier_detection_method", "iter_jackknife");
   absquant_params.setValue("use_chauvenet", "false");
@@ -584,6 +584,16 @@ START_SECTION((void optimizeCalibrationCurveIterative(
   TEST_REAL_SIMILAR(component_concentrations[8].actual_concentration, 0.8);
   TEST_REAL_SIMILAR(optimized_params.getValue("slope"), -0.623040824);
   TEST_REAL_SIMILAR(optimized_params.getValue("intercept"), -0.36130172586);  
+
+END_SECTION
+
+START_SECTION(void optimizeCalibrationCurves(AbsoluteQuantitationStandards::components_to_concentrations & components_concentrations))
+  
+  AbsoluteQuantitation absquant;
+
+  
+  absquant.setQuantMethods(quant_methods);
+  absquant.optimizeCalibrationCurves();
 
 END_SECTION
 

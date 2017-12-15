@@ -75,7 +75,7 @@ namespace OpenMS
 
     defaults_.setValue("max_bias", 30.0, "The maximum percent bias of any point in the calibration curve.");
     
-    defaults_.setValue("min_r2", 0.9, "The minimum RSquared value of the calibration curve.");
+    defaults_.setValue("min_correlation_coefficient", 0.9, "The minimum correlation coefficient value of the calibration curve.");
     
     defaults_.setValue("max_iters", 100, "The maximum number of iterations to find an optimal set of calibration curve points and parameters.");
     
@@ -84,6 +84,9 @@ namespace OpenMS
     
     defaults_.setValue("use_chauvenet", "true", "Whether to only remove outliers that fulfill Chauvenet's criterion for outliers (otherwise it will remove any outlier candidate regardless of the criterion).");
     defaults_.setValidStrings("use_chauvenet", ListUtils::create<String>("true,false"));
+    
+    defaults_.setValue("optimization_method", "iterative", "Calibrator optimization method to find the best set of calibration points for each method.");
+    defaults_.setValidStrings("optimization_method", ListUtils::create<String>("iterative"));
 
     // write defaults into Param object param_
     defaultsToParam_();
@@ -94,23 +97,46 @@ namespace OpenMS
   {
     min_points_ = (size_t)param_.getValue("min_points");
     max_bias_ = (double)param_.getValue("max_bias");
-    min_r2_ = (double)param_.getValue("min_r2");
+    min_correlation_coefficient_ = (double)param_.getValue("min_correlation_coefficient");
     max_iters_ = (size_t)param_.getValue("max_iters");
     outlier_detection_method_ = param_.getValue("outlier_detection_method");
     use_chauvenet_ = (bool)param_.getValue("use_chauvenet").toBool();
+    optimization_method_ = param_.getValue("optimization_method");
   }
   
   AbsoluteQuantitation::~AbsoluteQuantitation()
   {
   }
 
-  void AbsoluteQuantitation::setQuantMethods(std::vector<AbsoluteQuantitationMethod>& quant_methods)
+  void AbsoluteQuantitation::setQuantMethods(const std::vector<AbsoluteQuantitationMethod>& quant_methods)
   {
     quant_methods_.clear();
     for (size_t i = 0; i < quant_methods.size(); i++)
     {
       String component_name = quant_methods[i].getComponentName();
       quant_methods_[component_name] = quant_methods[i];
+    }
+  }
+
+  std::vector<AbsoluteQuantitationMethod> AbsoluteQuantitation::getQuantMethods()
+  {
+    std::vector<AbsoluteQuantitationMethod> quant_methods;
+    for (auto const& quant_method : quant_methods_)
+    {
+      quant_methods.push_back(quant_method.second);
+    }
+    return quant_methods;
+  }
+
+
+  //[NOT NEEDED!]
+  void AbsoluteQuantitation::setComponentConcentrations(const std::vector<AbsoluteQuantitationStandards::featureConcentration>& feature_concentrations)
+  {
+    components_concentrations_.clear();
+    for (size_t i = 0; i < feature_concentrations.size(); i++)
+    {
+      String component_name = feature_concentrations[i].component_name;
+      components_concentrations_[component_name] = feature_concentrations[i];
     }
   }
 
@@ -174,13 +200,13 @@ namespace OpenMS
     return params;
   }
   
-  void AbsoluteQuantitation::calculateBiasAndR2(
+  void AbsoluteQuantitation::calculateBiasAndR(
     const std::vector<AbsoluteQuantitationStandards::featureConcentration> & component_concentrations,
     const String & feature_name,
     const String & transformation_model,
     const Param & transformation_model_params,
     std::vector<double> & biases,
-    double & r2_value)
+    double & correlation_coefficient)
   {
    
     // extract out the calibration points
@@ -240,11 +266,11 @@ namespace OpenMS
       concentration_ratios_weighted.begin(), concentration_ratios_weighted.begin() + concentration_ratios_weighted.size(),
       feature_amounts_ratios_weighted.begin(), feature_amounts_ratios_weighted.begin() + feature_amounts_ratios_weighted.size()
     ); 
-    r2_value = r_value*r_value;
+    correlation_coefficient = r_value*r_value;
 
     //DEBUG
     // std::cout << "r_value = " << r_value << "." << std::endl;
-    // std::cout << "r2_value = " << r2_value << "." << std::endl;
+    // std::cout << "correlation_coefficient = " << correlation_coefficient << "." << std::endl;
 
   }
   
@@ -392,21 +418,14 @@ namespace OpenMS
     // }
   }
 
-  void AbsoluteQuantitation::findIS_()
-  {
-    //TODO: possible refactor the method to include a seperate function to find the IS
-  }
-
-  /** TODO: this method is incomplete
-   * 1. interface with MRMRTNormalizer
-   * 2. make tests
-   */
   void AbsoluteQuantitation::optimizeCalibrationCurveIterative(
     std::vector<AbsoluteQuantitationStandards::featureConcentration> & component_concentrations,
     const String & feature_name,
     const String & transformation_model,
     const Param & transformation_model_params,
-    Param & optimized_params)
+    Param & optimized_params,
+    double & correlation_coefficient,
+    std::vector<double> & biases)
   {
 
     std::vector<AbsoluteQuantitationStandards::featureConcentration>::const_iterator component_start_it;
@@ -455,15 +474,15 @@ namespace OpenMS
         optimized_params);
         
       // calculate the R2 and bias
-      std::vector<double> biases;
-      double r2 = 0.0;
-      calculateBiasAndR2(
+      // std::vector<double> biases; // not needed (method parameters)
+      // double correlation_coefficient = 0.0; // not needed (method parameters)
+      calculateBiasAndR(
         component_concentrations_sub,
         feature_name,
         transformation_model,
         optimized_params,
         biases,
-        r2);
+        correlation_coefficient);
 
       // check R2 and biases
       bool bias_check = true;
@@ -474,7 +493,7 @@ namespace OpenMS
           bias_check = false;
         }
       }
-      if (bias_check && r2 > min_r2_)
+      if (bias_check && correlation_coefficient > min_correlation_coefficient_)
       {
         LOG_INFO << "Valid calibration found for " << component_concentrations_sub[0].feature.getMetaValue("native_id") << " .";
 
@@ -510,7 +529,7 @@ namespace OpenMS
       }
 
       //DEBUG
-      std::cout << "R2 = " << std::to_string(r2) << ".  "
+      std::cout << "R2 = " << std::to_string(correlation_coefficient) << ".  "
         << "n_points = " << std::to_string(component_concentrations_sorted_indices.size()) << ".  "
         << "actual_concentration = " << std::to_string(component_concentrations_sub[pos].actual_concentration) << ".  "
         << "bias_check = " << std::to_string(bias_check) << "." << std::endl;
@@ -570,16 +589,16 @@ namespace OpenMS
       
       // calculate the R2 and bias
       std::vector<double> biases;
-      double r2 = 0.0;
-      calculateBiasAndR2(
+      double correlation_coefficient = 0.0;
+      calculateBiasAndR(
         component_concentrations_tmp,
         feature_name,
         transformation_model,
         optimized_params,
         biases,
-        r2);
+        correlation_coefficient);
 
-      rsq_tmp.push_back(r2);
+      rsq_tmp.push_back(correlation_coefficient);
     }
     return max_element(rsq_tmp.begin(), rsq_tmp.end()) - rsq_tmp.begin();
   }
@@ -605,17 +624,52 @@ namespace OpenMS
 
     // calculate the R2 and bias
     std::vector<double> biases;
-    double r2 = 0.0;
-    calculateBiasAndR2(
+    double correlation_coefficient = 0.0;
+    calculateBiasAndR(
       component_concentrations,
       feature_name,
       transformation_model,
       optimized_params,
       biases,
-      r2);
+      correlation_coefficient);
 
     return max_element(biases.begin(), biases.end()) - biases.begin();
   }
+
+  void AbsoluteQuantitation::optimizeCalibrationCurves(AbsoluteQuantitationStandards::components_to_concentrations & components_concentrations)
+  {
+
+    for (auto const& quant_method : quant_methods_)
+    {
+      if (components_concentrations.count(quant_method.first)>0 && optimization_method_ == "iterative")
+      { 
+        // optimize the calibraiton curve for the component
+        Param optimized_params;
+        std::vector<double> biases;
+        double correlation_coefficient = 0.0;
+        optimizeCalibrationCurveIterative(
+          component_concentrations[quant_method.first],
+          quant_method.getFeatureName(),
+          quant_method.getTransformationModel(),
+          quant_method.getTransformationModelParams(),
+          optimized_params,
+          correlation_coefficient,
+          baises);
+
+        // record the updated information
+        quant_method.second.setCorrelationCoefficient(correlation_coefficient);
+        quant_method.second.setLLOQ(std::min_element(
+          std::begin(component_concentrations[quant_method.first]),
+          std::end(component_concentrations[quant_method.first])));
+        quant_method.second.setULOQ(std::max_element(
+          std::begin(component_concentrations[quant_method.first]),
+          std::end(component_concentrations[quant_method.first])));
+        quant_method.second.setTransformationModelParams(optimized_params);
+        quant_method.second.setNPoints(component_concentrations[quant_method.first].size());
+        
+      }
+    }
+  } 
 
 } // namespace
 

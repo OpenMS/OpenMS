@@ -101,7 +101,21 @@ public:
 
       @param quant_methods A list of AbsoluteQuantitationMethod classes
     */ 
-    void setQuantMethods(std::vector<AbsoluteQuantitationMethod>& quant_methods);
+    void setQuantMethods(const std::vector<AbsoluteQuantitationMethod>& quant_methods);
+
+ 
+    /**
+      @brief quant_method getter.  A list of AbsoluteQuantitationMethod classes are returned.
+    */ 
+    std::vector<AbsoluteQuantitationMethod> getQuantMethods();
+ 
+    /**
+      @brief components_concentrations setter.  A list of AbsoluteQuantitationStandards::featureConcentration structs are given as input
+        and a map is constructed based on their component_name member.
+
+      @param feature_concentrations A list of AbsoluteQuantitationStandards::featureConcentration structs
+    */ 
+    void setComponentConcentrations(const std::vector<AbsoluteQuantitationStandards::featureConcentration>& feature_concentrations);
  
     /**
       @brief This function calculates the ratio between features.
@@ -153,24 +167,24 @@ public:
       const Param & transformation_model_params);
       
     /**
-      @brief This function calculates the biases and R2 value of the calibration points.
+      @brief This function calculates the biases and the correlation coefficient of the calibration points.
 
       @param component_concentrations list of structures with features and concentrations
       @param feature_name name of the feature to calculate the absolute concentration.
       @param transformation_model model used to fit the calibration points
       @param transformation_model_params parameters used by the transformation_model
       @param biases Vector of point biases
-      @param r2_value R2-value
+      @param correlation_coefficient Pearson's R
 
       @exception None
     */ 
-    void calculateBiasAndR2(
+    void calculateBiasAndR(
       const std::vector<AbsoluteQuantitationStandards::featureConcentration> & component_concentrations,
       const String & feature_name,
       const String & transformation_model,
       const Param & transformation_model_params,
       std::vector<double> & biases,
-      double & r2_value);
+      double & correlation_coefficient);
       
     /**
       @brief This function optimizes the parameters of the calibration for a 
@@ -182,6 +196,8 @@ public:
       @param transformation_model model used to fit the calibration points
       @param transformation_model_params parameters used by the transformation_model
       @param optimized_params optimized parameters
+      @param correlation_coefficient optimized Pearson's R
+      @param biases optimized biases of the calibration points
 
       @exception Exception::UnableToFit
     */ 
@@ -190,14 +206,20 @@ public:
       const String & feature_name,
       const String & transformation_model,
       const Param & transformation_model_params,
-      Param & optimized_params);
+      Param & optimized_params,
+      double & correlation_coefficient,
+      std::vector<double> & biases);
         
     /**
       @brief This function optimizes the parameters of the calibration for a 
         all components.
 
+      @param components_concentrations An AbsoluteQuantitationStandards::components_to_concentrations type.
+        Note that the method will update the list of featureConcentrations in place.  The resulting
+        components_concentrations will reflect the optimal set of points for downstream QC/QA.
+
     */ 
-    void optimizeCalibrationCurves();    
+    void optimizeCalibrationCurves(AbsoluteQuantitationStandards::components_to_concentrations & components_concentrations);    
 
     /**
       @brief This function applies the calibration curve to the component.
@@ -292,22 +314,21 @@ protected:
 private:  
     /// Synchronize members with param class
     void updateMembers_();
-
-    void findIS_();
     
     size_t min_points_;
     double max_bias_;
-    double min_r2_; 
+    double min_correlation_coefficient_; 
     size_t max_iters_;
     String outlier_detection_method_;
     bool use_chauvenet_;
+    String optimization_method_;
     
     // members
     /// map between components and quantitation methods
-    std::map<String,AbsoluteQuantitationMethod> quant_methods_;
+    std::map<String, AbsoluteQuantitationMethod> quant_methods_;
 
-    /// map between components and known concentrations (the calibrators)
-    std::map<String,AbsoluteQuantitationStandards> standards_concentrations_;
+    /// map between components and known concentrations (the calibrators) [NOT NEEDED!]
+    std::map<String, AbsoluteQuantitationStandards::featureConcentration> components_concentrations_;
 
   };
 
