@@ -49,12 +49,12 @@ namespace OpenMS
     {
     }
 
-    void AbsoluteQuantitationStandards::mapConcentrationsToComponents(
-      const std::vector<runConcentration> & run_concentrations,
-      const FeatureMap & features)
-    {
-        //todo
-    }
+    // void AbsoluteQuantitationStandards::mapConcentrationsToComponents(
+    //   const std::vector<runConcentration> & run_concentrations,
+    //   const FeatureMap & features)
+    // {
+    //     //todo
+    // }
 
 } // namespace
 

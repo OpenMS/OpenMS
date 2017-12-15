@@ -624,7 +624,7 @@ namespace OpenMS
     return max_element(biases.begin(), biases.end()) - biases.begin();
   }
 
-  void AbsoluteQuantitation::optimizeCalibrationCurves(std::map<String, std::vector<AbsoluteQuantitationStandards::featureConcentration>> & components_concentrations & components_concentrations)
+  void AbsoluteQuantitation::optimizeCalibrationCurves(std::map<String, std::vector<AbsoluteQuantitationStandards::featureConcentration>> & components_concentrations)
   {
 
     for (auto const& quant_method : quant_methods_)
