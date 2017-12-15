@@ -255,16 +255,10 @@ namespace OpenMS
     }
 
     // calculate the R2 (R2 = Pearson_R^2)
-    double r_value = Math::pearsonCorrelationCoefficient(
+    correlation_coefficient = Math::pearsonCorrelationCoefficient(
       concentration_ratios_weighted.begin(), concentration_ratios_weighted.begin() + concentration_ratios_weighted.size(),
       feature_amounts_ratios_weighted.begin(), feature_amounts_ratios_weighted.begin() + feature_amounts_ratios_weighted.size()
     ); 
-    correlation_coefficient = r_value*r_value;
-
-    //DEBUG
-    // std::cout << "r_value = " << r_value << "." << std::endl;
-    // std::cout << "correlation_coefficient = " << correlation_coefficient << "." << std::endl;
-
   }
   
   double AbsoluteQuantitation::applyCalibration(const Feature & component,
