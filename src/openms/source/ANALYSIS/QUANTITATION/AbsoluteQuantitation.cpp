@@ -622,7 +622,7 @@ namespace OpenMS
     std::map<String, std::vector<AbsoluteQuantitationStandards::featureConcentration>> & components_concentrations)
   {
 
-    for (auto quant_method : quant_methods_)
+    for (auto& quant_method : quant_methods_)
     {
       if (components_concentrations.count(quant_method.first)>0 && optimization_method_ == "iterative")
       { 
