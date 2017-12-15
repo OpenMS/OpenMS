@@ -35,6 +35,7 @@
 
 #include <OpenMS/ANALYSIS/XLMS/XQuestScores.h>
 #include <OpenMS/MATH/STATISTICS/CumulativeBinomial.h>
+#include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
 #include <boost/math/distributions/binomial.hpp>
 #include <numeric>
 
@@ -80,11 +81,11 @@ namespace OpenMS
     return result;
   }
 
-  double XQuestScores::matchOddsScore(const PeakSpectrum& theoretical_spec,  const std::vector< std::pair< Size, Size > >& matched_spec, double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm)
+  double XQuestScores::matchOddsScore(const PeakSpectrum& theoretical_spec,  const Size matched_size, double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm)
   {
     using boost::math::binomial;
 
-    Size matched_size = matched_spec.size();
+    // Size matched_size = matched_spec.size();
     Size theo_size = theoretical_spec.size();
     vector<double> log_transf_spec;
 
@@ -93,20 +94,17 @@ namespace OpenMS
       return 0;
     }
 
-    double range;
-    double mean(0);
+    double range = theoretical_spec[theo_size-1].getMZ() -  theoretical_spec[0].getMZ();
 
-    if (fragment_mass_tolerance_unit_ppm)
+    // Compute fragment tolerance in Da for the mean of MZ values, if tolerance in ppm (rough approximation)
+    // TODO if we keep this score, think of a way to make it compatible with ppm tolerances
+    double mean = 0.0;
+    for (Size i = 0; i < theo_size; ++i)
     {
-      for (Peak1D peak : theoretical_spec)
-      {
-        log_transf_spec.push_back(std::log(peak.getMZ()));
-      }
-
-      range = log_transf_spec.back() - log_transf_spec[0];
+      mean += theoretical_spec[i].getMZ();
     }
-    // mean = mean / theo_size;
-    // double tolerance_Th = fragment_mass_tolerance_unit_ppm ? mean * 1e-6 * fragment_mass_tolerance : fragment_mass_tolerance;
+    mean = mean / theo_size;
+    double tolerance_Th = fragment_mass_tolerance_unit_ppm ? mean * 1e-6 * fragment_mass_tolerance : fragment_mass_tolerance;
 
     // A priori probability of a random match given info about the theoretical spectrum
     double a_priori_p = 0;
@@ -129,6 +127,44 @@ namespace OpenMS
 
 //     cout << "TEST a_priori_prob: " << a_priori_p << " | tolerance: " << tolerance_Th << " | theo_size: " << theo_size << " | matched_size: " << matched_size << " | cumul_binom: " << cumulativeBinomial_(theo_size, matched_size, a_priori_p)
 //              << " | match_odds: " << match_odds << endl;
+
+    // score lower than 0 does not make sense, but can happen if cfd = 0, -log( 1 + min() ) < 0
+    if (match_odds >= 0.0)
+    {
+      return match_odds;
+    }
+    else
+    {
+      return 0;
+    }
+  }
+
+  double XQuestScores::logOccupancyProb(const PeakSpectrum& theoretical_spec,  const Size matched_size, double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm)
+  {
+    using boost::math::binomial;
+    Size theo_size = theoretical_spec.size();
+
+    if (matched_size < 1 || theo_size < 1)
+    {
+      return 0;
+    }
+
+    // log transform theoretical spectrum for more accurate a_priori_p estimation
+    vector<double> log_theo_spec;
+    for (auto peak : theoretical_spec)
+    {
+      log_theo_spec.push_back(log(peak.getMZ()));
+    }
+    double range = log_theo_spec[theo_size-1] - log_theo_spec[0];
+
+    // A priori probability of a random match given info about the theoretical spectrum
+    double a_priori_p = 0;
+    a_priori_p = 1 - pow(1 - 2 * fragment_mass_tolerance / range,  static_cast<double>(theo_size));
+
+    double match_odds = 0;
+    binomial flip(theo_size, a_priori_p);
+    // min double number to avoid 0 values, causing scores with the value "inf"
+    match_odds = -log(1 - cdf(flip, matched_size) + std::numeric_limits<double>::min());
 
     // score lower than 0 does not make sense, but can happen if cfd = 0, -log( 1 + min() ) < 0
     if (match_odds >= 0.0)
