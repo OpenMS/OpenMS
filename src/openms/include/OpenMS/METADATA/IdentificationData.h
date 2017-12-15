@@ -45,9 +45,7 @@
 #include <OpenMS/METADATA/Software.h>
 
 #include <boost/bimap.hpp>
-#include <boost/functional/hash.hpp> // for "unordered_map<pair<...>, ...>"
 #include <unordered_map>
-#include <unordered_set>
 
 namespace OpenMS
 {
@@ -421,17 +419,10 @@ namespace OpenMS
       MoleculeQueryMatch(const MoleculeQueryMatch& other) = default;
     };
 
-    typedef std::pair<IdentifiedMoleculeKey, DataQueryKey> QueryMatchKey;
-    // standard lib. doesn't include a hash function for pairs, but Boost does:
-    typedef boost::hash<QueryMatchKey> QueryMatchHash;
-    typedef std::unordered_map<QueryMatchKey, MoleculeQueryMatch,
-                               QueryMatchHash> QueryMatchMap;
-    // @TODO: change QueryMatchMap to the following for better access by data
-    // query (e.g. to get top hit per query)?
-    // std::unordered_map<DataQueryKey,
-    //                    std::unordered_map<IdentifiedMoleculeKey,
-    //                                       MoleculeQueryMatch> QueryMatchMap;
-     QueryMatchMap query_matches;
+    // all matches for the same data query should be consecutive!
+    typedef std::pair<DataQueryKey, IdentifiedMoleculeKey> QueryMatchKey;
+    typedef std::map<QueryMatchKey, MoleculeQueryMatch> QueryMatchMap;
+    QueryMatchMap query_matches;
 
 
     /*!
