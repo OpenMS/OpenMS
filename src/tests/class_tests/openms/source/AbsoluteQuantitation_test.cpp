@@ -570,13 +570,17 @@ START_SECTION((void optimizeCalibrationCurveIterative(
   transformation_model_params.setValue("y_datum_min", -1e12);
   transformation_model_params.setValue("y_datum_max", 1e12);
   Param optimized_params;
+    std::vector<double> biases;
+    double correlation_coefficient = 0.0;
 
   absquant.optimizeCalibrationCurveIterative(
     component_concentrations,
     feature_name,
     transformation_model,
     transformation_model_params,
-    optimized_params);
+    optimized_params,
+    correlation_coefficient,
+    biases);
 
   TEST_REAL_SIMILAR(component_concentrations[0].actual_concentration, 0.04);
   TEST_REAL_SIMILAR(component_concentrations[8].actual_concentration, 40.0);
@@ -665,21 +669,22 @@ START_SECTION((void optimizeCalibrationCurves(AbsoluteQuantitationStandards::com
   components_concentrations["atp.atp_1.Light"] = make_atp_standards();
 
   absquant.optimizeCalibrationCurves(components_concentrations);
+  std::map<String, AbsoluteQuantitationMethod> quant_methods_map = absquant.getQuantMethodsAsMap();
 
   TEST_REAL_SIMILAR(component_concentrations["ser-L.ser-L_1.Light"][0].actual_concentration, 0.04);
   TEST_REAL_SIMILAR(component_concentrations["ser-L.ser-L_1.Light"][8].actual_concentration, 40.0);
-  TEST_REAL_SIMILAR(absquant.quant_methods_["ser-L.ser-L_1.Light"].getTransformationModelParams().getValue("slope"), -0.9011392589);
-  TEST_REAL_SIMILAR(absquant.quant_methods_["ser-L.ser-L_1.Light"].getTransformationModelParams().getValue("intercept"), -1.87018507); 
+  TEST_REAL_SIMILAR(quant_methods_map["ser-L.ser-L_1.Light"].getTransformationModelParams().getValue("slope"), -0.9011392589);
+  TEST_REAL_SIMILAR(quant_methods_map["ser-L.ser-L_1.Light"].getTransformationModelParams().getValue("intercept"), -1.87018507); 
 
   TEST_REAL_SIMILAR(component_concentrations["amp.amp_1.Light"][0].actual_concentration, 0.02);
   TEST_REAL_SIMILAR(component_concentrations["amp.amp_1.Light"][8].actual_concentration, 8.0);
-  TEST_REAL_SIMILAR(absquant.quant_methods_["amp.amp_1.Light"].getTransformationModelParams().getValue("slope"), -0.95799683);
-  TEST_REAL_SIMILAR(absquant.quant_methods_["amp.amp_1.Light"].getTransformationModelParams().getValue("intercept"), 1.047543387); 
+  TEST_REAL_SIMILAR(quant_methods_map["amp.amp_1.Light"].getTransformationModelParams().getValue("slope"), -0.95799683);
+  TEST_REAL_SIMILAR(quant_methods_map["amp.amp_1.Light"].getTransformationModelParams().getValue("intercept"), 1.047543387); 
 
   TEST_REAL_SIMILAR(component_concentrations["atp.atp_1.Light"][0].actual_concentration, 0.02);
   TEST_REAL_SIMILAR(component_concentrations["atp.atp_1.Light"][8].actual_concentration, 0.8);
-  TEST_REAL_SIMILAR(absquant.quant_methods_["atp.atp_1.Light"].getTransformationModelParams().getValue("slope"), -0.623040824);
-  TEST_REAL_SIMILAR(absquant.quant_methods_["atp.atp_1.Light"].getTransformationModelParams().getValue("intercept"), -0.36130172586); 
+  TEST_REAL_SIMILAR(quant_methods_map["atp.atp_1.Light"].getTransformationModelParams().getValue("slope"), -0.623040824);
+  TEST_REAL_SIMILAR(quant_methods_map["atp.atp_1.Light"].getTransformationModelParams().getValue("intercept"), -0.36130172586); 
 
 END_SECTION
 

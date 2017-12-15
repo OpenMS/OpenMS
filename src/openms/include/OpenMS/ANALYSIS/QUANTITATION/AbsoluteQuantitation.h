@@ -108,6 +108,7 @@ public:
       @brief quant_method getter.  A list of AbsoluteQuantitationMethod classes are returned.
     */ 
     std::vector<AbsoluteQuantitationMethod> getQuantMethods();
+    std::map<String, AbsoluteQuantitationMethod> getQuantMethodsAsMap();
  
     /**
       @brief This function calculates the ratio between features.

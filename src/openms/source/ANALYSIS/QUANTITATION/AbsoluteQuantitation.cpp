@@ -128,6 +128,11 @@ namespace OpenMS
     return quant_methods;
   }
 
+  std::map<String, AbsoluteQuantitationMethod> AbsoluteQuantitation::getQuantMethodsAsMap()
+  {
+    return quant_methods_;
+  }
+
   double AbsoluteQuantitation::calculateRatio(const Feature & component_1, const Feature & component_2, const String & feature_name)
   {
     double ratio = 0.0;
