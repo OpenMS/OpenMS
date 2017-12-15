@@ -836,9 +836,9 @@ protected:
           theoretical_spec_beta = OPXLSpectrumProcessingAlgorithms::mergeAnnotatedSpectra(theoretical_spec_common_beta, theoretical_spec_xlinks_beta);
         }
 
-        Size matched_peaks = matched_spec_linear_alpha.size() + matched_spec_linear_beta.size() + matched_spec_xlinks_alpha.size() + matched_spec_xlinks_beta.size();
+        Size matched_peaks = matched_spec_common_alpha.size() + matched_spec_common_beta.size() + matched_spec_xlinks_alpha.size() + matched_spec_xlinks_beta.size();
         double log_occupancy_full_spec = XQuestScores::logOccupancyProb(theoretical_spec, matched_peaks, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm);
-        
+
         vector< double > xcorrx = XQuestScores::xCorrelation(spectrum, theoretical_spec_xlinks, 5, 0.3);
         vector< double > xcorrc = XQuestScores::xCorrelation(spectrum, theoretical_spec_common, 5, 0.2);
 
@@ -1036,4 +1036,3 @@ int main(int argc, const char** argv)
 
   return tool.main(argc, argv);
 }
-
