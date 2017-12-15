@@ -2609,7 +2609,7 @@ void RNPxlSearch::RNPxlFragmentIonGenerator::addShiftedImmoniumIons(const String
                                                                     PeakSpectrum &partial_loss_spectrum,
                                                                     PeakSpectrum::IntegerDataArray &partial_loss_spectrum_charge,
                                                                     PeakSpectrum::StringDataArray &partial_loss_spectrum_annotation) {
-  const double fragment_shift_mass_td = is_decoy ? fragment_shift_mass + DECOY_FRAGMENT_SHIFT : 0;
+  const double fragment_shift_mass_td = is_decoy ? fragment_shift_mass + DECOY_FRAGMENT_SHIFT : fragment_shift_mass;
 
   if (unmodified_sequence.hasSubstring("Y"))
   {
