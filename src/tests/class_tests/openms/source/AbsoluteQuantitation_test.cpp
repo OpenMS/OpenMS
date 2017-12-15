@@ -570,8 +570,8 @@ START_SECTION((void optimizeCalibrationCurveIterative(
   transformation_model_params.setValue("y_datum_min", -1e12);
   transformation_model_params.setValue("y_datum_max", 1e12);
   Param optimized_params;
-    std::vector<double> biases;
-    double correlation_coefficient = 0.0;
+  std::vector<double> biases;
+  double correlation_coefficient = 0.0;
 
   absquant.optimizeCalibrationCurveIterative(
     component_concentrations,
@@ -595,7 +595,9 @@ START_SECTION((void optimizeCalibrationCurveIterative(
     feature_name,
     transformation_model,
     transformation_model_params,
-    optimized_params);
+    optimized_params,
+    correlation_coefficient,
+    biases);
 
   TEST_REAL_SIMILAR(component_concentrations[0].actual_concentration, 0.02);
   TEST_REAL_SIMILAR(component_concentrations[8].actual_concentration, 8.0);
@@ -610,7 +612,9 @@ START_SECTION((void optimizeCalibrationCurveIterative(
     feature_name,
     transformation_model,
     transformation_model_params,
-    optimized_params);
+    optimized_params,
+    correlation_coefficient,
+    biases);
 
   TEST_REAL_SIMILAR(component_concentrations[0].actual_concentration, 0.02);
   TEST_REAL_SIMILAR(component_concentrations[8].actual_concentration, 0.8);
