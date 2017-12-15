@@ -36,6 +36,7 @@
 #include <OpenMS/FORMAT/FASTAFile.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
+#include <regex>
 
 
 using namespace OpenMS;
@@ -99,6 +100,8 @@ protected:
     registerFlag_("only_decoy", "Write only decoy proteins to the output database instead of a combined database.", false);
     registerStringOption_("method", "<enum>", "reverse", "Method by which decoy sequences are generated from target sequences.", false);
     setValidStrings_("method", ListUtils::create<String>("reverse,shuffle"));
+    registerStringOption_("type", "<enum>", "protein", "Type of sequence. RNA sequences may contain modification codes, which will be handled correctly if this is set to 'RNA'.", false);
+    setValidStrings_("type", ListUtils::create<String>("protein,RNA"));
   }
 
   String getIdentifier_(const String & identifier, const String & decoy_string, const bool as_prefix)
@@ -112,13 +115,18 @@ protected:
     //-------------------------------------------------------------
     // parsing parameters
     //-------------------------------------------------------------
+    enum seq_type {protein, RNA};
     StringList in(getStringList_("in"));
     String out(getStringOption_("out"));
     bool append = (!getFlag_("only_decoy"));
     bool shuffle = (getStringOption_("method") == "shuffle");
     String decoy_string(getStringOption_("decoy_string"));
     bool decoy_string_position_prefix = (String(getStringOption_("decoy_string_position")) == "prefix" ? true : false);
-
+    seq_type input_type = seq_type::protein; //default to protein
+    if (getStringOption_("type") == "RNA")
+    {
+      input_type = seq_type::RNA;
+    }
     //-------------------------------------------------------------
     // reading input
     //-------------------------------------------------------------
@@ -132,7 +140,7 @@ protected:
 
     FASTAFile f;
     f.writeStart(out);
-    FASTAFile::FASTAEntry protein;
+    FASTAFile::FASTAEntry entry;
       
     for (Size i = 0; i < in.size(); ++i)
     {
@@ -141,45 +149,77 @@ protected:
       //-------------------------------------------------------------
       // calculations
       //-------------------------------------------------------------
-      while (f.readNext(protein))
+      while (f.readNext(entry))
       {
-        if (identifiers.find(protein.identifier) != identifiers.end())
+        if (identifiers.find(entry.identifier) != identifiers.end())
         {
-          LOG_WARN << "DecoyDatabase: Warning, identifier '" << protein.identifier << "' occurs more than once!" << endl;
+          LOG_WARN << "DecoyDatabase: Warning, identifier '" << entry.identifier << "' occurs more than once!" << endl;
         }
-        identifiers.insert(protein.identifier);
+        identifiers.insert(entry.identifier);
 
         if (append)
         {
-          f.writeNext(protein);
+          f.writeNext(entry);
         }
       
         // identifier
-        protein.identifier = getIdentifier_(protein.identifier, decoy_string, decoy_string_position_prefix);
-      
+        entry.identifier = getIdentifier_(entry.identifier, decoy_string, decoy_string_position_prefix);
+
         // sequence
-        if (shuffle)
+        if (input_type == seq_type::RNA)
         {
-          String temp;
-          Size x = protein.sequence.size();
-          srand(time(0));
-          while (x != 0)
+          string quick_seq = entry.sequence;
+          bool five_p = (entry.sequence.front() == 'p');
+          bool three_p = (entry.sequence.back() == 'p');
+          if (five_p) //we don't want to reverse terminal phosphates
           {
-            Size y = rand() % x;
-            temp += protein.sequence[y];
-            --x;
-            protein.sequence[y] = protein.sequence[x]; // overwrite consumed position with last position (about to go out of scope for next dice roll)
+            quick_seq.erase(0, 1);
           }
+          if (three_p)
+          {
+            quick_seq.pop_back();
+          }
+          vector<String> tokenized;
+          smatch m;
+          while (regex_search(quick_seq, m, std::regex("[^\\[]|(\\[[^\\[\\]]*\\])")))
+          {
+            tokenized.push_back(m.str(0));
+            quick_seq = m.suffix();
+          }
+
+          if (shuffle)
+          {
+            random_shuffle(tokenized.begin(), tokenized.end());
+          }
+          else  // reverse
+          {
+            reverse (tokenized.begin(), tokenized.end()); //reverse the tokens
+          }
+          if (five_p)  //add back 5'
+          {
+            tokenized.insert(tokenized.begin(), String("p"));
+          }
+          if (three_p) //add back 3'
+          {
+            tokenized.push_back(String("p"));
+          }
+          entry.sequence = ListUtils::concatenate(tokenized, "");
         }
-        else // reverse
+        else
         {
-          protein.sequence.reverse();
+          if (shuffle)
+          {
+            random_shuffle(entry.sequence.begin(), entry.sequence.end());
+          }
+          else // reverse
+          {
+            entry.sequence.reverse();
+          }
         }
         //-------------------------------------------------------------
         // writing output
         //-------------------------------------------------------------
-        f.writeNext(protein);
-      
+        f.writeNext(entry);
       } // next protein
     } // input files
 
