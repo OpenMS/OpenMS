@@ -67,9 +67,9 @@ std::vector<AbsoluteQuantitationStandards::featureConcentration> make_serL_stand
   for (size_t i = 0; i < x1.size(); ++i)
   {
     component.setMetaValue("native_id","ser-L.ser-L_1.Light");
-    component.setMetaValue("peak_apex_int",x1[i]);
+    component.setMetaValue("peak_apex_int",y1[i]);
     IS_component.setMetaValue("native_id","IS");
-    IS_component.setMetaValue("peak_apex_int",y1[i]);
+    IS_component.setMetaValue("peak_apex_int",x1[i]);
     component_concentration.feature = component;
     component_concentration.IS_feature = IS_component;
     component_concentration.actual_concentration = z1[i];
@@ -100,9 +100,9 @@ std::vector<AbsoluteQuantitationStandards::featureConcentration> make_amp_standa
   for (size_t i = 0; i < x2.size(); ++i)
   {
     component.setMetaValue("native_id","amp.amp_1.Light");
-    component.setMetaValue("peak_apex_int",x2[i]);
+    component.setMetaValue("peak_apex_int",y2[i]);
     IS_component.setMetaValue("native_id","IS");
-    IS_component.setMetaValue("peak_apex_int",y2[i]);
+    IS_component.setMetaValue("peak_apex_int",x2[i]);
     component_concentration.feature = component;
     component_concentration.IS_feature = IS_component;
     component_concentration.actual_concentration = z2[i];
@@ -133,9 +133,9 @@ std::vector<AbsoluteQuantitationStandards::featureConcentration> make_atp_standa
   for (size_t i = 0; i < x3.size(); ++i)
   {
     component.setMetaValue("native_id","atp.atp_1.Light");
-    component.setMetaValue("peak_apex_int",x3[i]);
+    component.setMetaValue("peak_apex_int",y3[i]);
     IS_component.setMetaValue("native_id","IS");
-    IS_component.setMetaValue("peak_apex_int",y3[i]);
+    IS_component.setMetaValue("peak_apex_int",x3[i]);
     component_concentration.feature = component;
     component_concentration.IS_feature = IS_component;
     component_concentration.actual_concentration = z3[i];

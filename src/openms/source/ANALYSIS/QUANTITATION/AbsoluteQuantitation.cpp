@@ -415,9 +415,6 @@ namespace OpenMS
     Param & optimized_params)
   {
 
-    std::vector<AbsoluteQuantitationStandards::featureConcentration>::const_iterator component_start_it;
-    std::vector<AbsoluteQuantitationStandards::featureConcentration>::const_iterator component_end_it;
-
     // sort from min to max concentration
     std::vector<AbsoluteQuantitationStandards::featureConcentration> component_concentrations_sorted = component_concentrations;
     std::sort(component_concentrations_sorted.begin(), component_concentrations_sorted.end(),
@@ -437,15 +434,13 @@ namespace OpenMS
     // starting parameters
     optimized_params = transformation_model_params;
 
-    for (size_t n_iters = 0; n_iters < max_iters_; ++n_iters)
+    // for (size_t n_iters = 0; n_iters < max_iters_; ++n_iters)
+    for (size_t n_iters = 0; n_iters < component_concentrations_sorted.size(); ++n_iters)
     {
 
       // extract out components
       const std::vector<AbsoluteQuantitationStandards::featureConcentration> component_concentrations_sub = extractComponents_(
         component_concentrations_sorted, component_concentrations_sorted_indices);
-
-      // debugging:
-      // std::cout << "size of data: " << std::to_string(component_concentrations_sub.size()) << std::endl;
 
       // check if the min number of calibration points has been broken
       if (component_concentrations_sorted_indices.size() < min_points_)
