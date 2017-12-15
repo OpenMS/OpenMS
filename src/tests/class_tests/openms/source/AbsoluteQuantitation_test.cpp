@@ -50,14 +50,14 @@ using namespace std;
 std::vector<AbsoluteQuantitationStandards::featureConcentration> make_serL_standards()
 {
   // TEST 1: ser-L
-  static const double arrx1[] = {2.32E+04,2.45E+04,1.78E+04,2.11E+04,1.91E+04,
-    2.06E+04,1.85E+04,1.53E+04,1.40E+04,1.03E+04,1.07E+04,6.68E+03,5.27E+03,2.83E+03};
+  static const double arrx1[] = {2.32e4,2.45e4,1.78e4,2.11e4,1.91e4,
+    2.06e4,1.85e4,1.53e4,1.40e4,1.03e4,1.07e4,6.68e3,5.27e3,2.83e3};
   std::vector<double> x1 (arrx1, arrx1 + sizeof(arrx1) / sizeof(arrx1[0]) );
-  static const double arry1[] = {4.94E+03,6.55E+03,7.37E+03,1.54E+04,2.87E+04,
-    5.41E+04,1.16E+05,1.85E+05,3.41E+05,7.54E+05,9.76E+05,1.42E+06,1.93E+06,2.23E+06};
+  static const double arry1[] = {4.94e3,6.55e3,7.37e3,1.54e4,2.87e4,
+    5.41e4,1.16e5,1.85e5,3.41e5,7.54e5,9.76e5,1.42e6,1.93e6,2.23e6};
   std::vector<double> y1 (arry1, arry1 + sizeof(arry1) / sizeof(arry1[0]) ); 
-  static const double arrz1[] = {1.00E-02,2.00E-02,4.00E-02,1.00E-01,2.00E-01,
-    4.00E-01,1.00E+00,2.00E+00,4.00E+00,1.00E+01,2.00E+01,4.00E+01,1.00E+02,2.00E+02};
+  static const double arrz1[] = {1.00e-2,2.00e-2,4.00e-2,1.00e-1,2.00e-1,
+    4.00e-1,1.00e0,2.00e0,4.00e0,1.00e1,2.00e1,4.00e1,1.00e2,2.00e2};
   std::vector<double> z1 (arrz1, arrz1 + sizeof(arrz1) / sizeof(arrz1[0]) ); 
 
   // set-up the features
@@ -83,14 +83,14 @@ std::vector<AbsoluteQuantitationStandards::featureConcentration> make_serL_stand
 std::vector<AbsoluteQuantitationStandards::featureConcentration> make_amp_standards()
 {
   // TEST 2: amp
-  static const double arrx2[] = {2.15E+05,2.32E+05,2.69E+05,2.53E+05,2.50E+05,
-  2.75E+05,2.67E+05,3.31E+05,3.15E+05,3.04E+05,3.45E+05,3.91E+05,4.62E+05,3.18E+05};
+  static const double arrx2[] = {2.15e5,2.32e5,2.69e5,2.53e5,2.50e5,
+  2.75e5,2.67e5,3.31e5,3.15e5,3.04e5,3.45e5,3.91e5,4.62e5,3.18e5};
   std::vector<double> x2 (arrx2, arrx2 + sizeof(arrx2) / sizeof(arrx2[0]) );
-  static const double arry2[] = {4.40E+02,1.15E+03,1.53E+03,2.01E+03,4.47E+03,
-  7.36E+03,2.18E+04,4.46E+04,8.50E+04,2.33E+05,5.04E+05,1.09E+06,2.54E+06,3.64E+06};
+  static const double arry2[] = {4.40e2,1.15e3,1.53e3,2.01e3,4.47e3,
+  7.36e3,2.18e4,4.46e4,8.50e4,2.33e5,5.04e5,1.09e6,2.54e6,3.64e6};
   std::vector<double> y2 (arry2, arry2 + sizeof(arry2) / sizeof(arry2[0]) ); 
-  static const double arrz2[] = {2.00E-03,4.00E-03,8.00E-03,2.00E-02,4.00E-02,
-  8.00E-02,2.00E-01,4.00E-01,8.00E-01,2.00E+00,4.00E+00,8.00E+00,2.00E+01,4.00E+01};
+  static const double arrz2[] = {2.00e-3,4.00e-3,8.00e-3,2.00e-2,4.00e-2,
+  8.00e-2,2.00e-1,4.00e-1,8.00e-1,2.00e0,4.00e0,8.00e0,2.00e1,4.00e1};
   std::vector<double> z2 (arrz2, arrz2 + sizeof(arrz2) / sizeof(arrz2[0]) );
 
   // set-up the features
@@ -116,14 +116,14 @@ std::vector<AbsoluteQuantitationStandards::featureConcentration> make_amp_standa
 std::vector<AbsoluteQuantitationStandards::featureConcentration> make_atp_standards()
 {
   // TEST 3: atp
-  static const double arrx3[] = {8.28E+02,1.32E+03,1.57E+03,1.63E+03,1.48E+03,
-  2.43E+03,4.44E+03,1.03E+04,1.75E+04,6.92E+04,1.97E+05,2.69E+05,3.20E+05,3.22E+05};
+  static const double arrx3[] = {8.28e2,1.32e3,1.57e3,1.63e3,1.48e3,
+  2.43e3,4.44e3,1.03e4,1.75e4,6.92e4,1.97e5,2.69e5,3.20e5,3.22e5};
   std::vector<double> x3 (arrx3, arrx3 + sizeof(arrx3) / sizeof(arrx3[0]) );
-  static const double arry3[] = {2.21E+02,4.41E+02,3.31E+02,2.21E+02,3.09E+02,
-  5.96E+02,1.26E+03,2.49E+03,1.12E+04,8.79E+04,4.68E+05,1.38E+06,3.46E+06,4.19E+06};
+  static const double arry3[] = {2.21e2,4.41e2,3.31e2,2.21e2,3.09e2,
+  5.96e2,1.26e3,2.49e3,1.12e4,8.79e4,4.68e5,1.38e6,3.46e6,4.19e6};
   std::vector<double> y3 (arry3, arry3 + sizeof(arry3) / sizeof(arry3[0]) ); 
-  static const double arrz3[] = {2.00E-03,4.00E-03,8.00E-03,2.00E-02,4.00E-02,
-  8.00E-02,2.00E-01,4.00E-01,8.00E-01,2.00E+00,4.00E+00,8.00E+00,2.00E+01,4.00E+01};
+  static const double arrz3[] = {2.00e-3,4.00e-3,8.00e-3,2.00e-2,4.00e-2,
+  8.00e-2,2.00e-1,4.00e-1,8.00e-1,2.00e0,4.00e0,8.00e0,2.00e1,4.00e1};
   std::vector<double> z3 (arrz3, arrz3 + sizeof(arrz3) / sizeof(arrz3[0]) ); 
 
   // set-up the features
