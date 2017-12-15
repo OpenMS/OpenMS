@@ -16,29 +16,23 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/PeakIntegrator.h>" namespace "OpenM
 
         void getDefaultParameters(Param) nogil except +
 
-        void estimateBackground(MSChromatogram, double, double) nogil except +
-        void estimateBackground(MSSpectrum, double, double) nogil except +
+        # void estimateBackground(MSChromatogram, double, double) nogil except +
+        # void estimateBackground(MSSpectrum, double, double) nogil except +
 
-        void integratePeak(MSChromatogram, double, double) nogil except +
-        void integratePeak(MSSpectrum, double, double) nogil except +
+        # void integratePeak(MSChromatogram, double, double) nogil except +
+        # void integratePeak(MSSpectrum, double, double) nogil except +
 
-        void calculatePeakShapeMetrics(MSChromatogram, double, double) nogil except +
-        void calculatePeakShapeMetrics(MSSpectrum, double, double) nogil except +
+        # void calculatePeakShapeMetrics(MSChromatogram, double, double) nogil except +
+        # void calculatePeakShapeMetrics(MSSpectrum spectrum, double left, double right, double peak_height) nogil except +
 
-        double getPeakArea() nogil except +
-        double getPeakHeight() nogil except +
-        double getPeakApexPos() nogil except +
-        double getBackgroundHeight() nogil except +
-        double getBackgroundArea() nogil except +
-
-        PI_PeakShapeMetrics getPeakShapeMetrics() nogil except +
+        # PI_PeakShapeMetrics getPeakShapeMetrics() nogil except +
 
 cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/PeakIntegrator.h>" namespace "OpenMS::PeakIntegrator":
 
     cdef cppclass PI_PeakShapeMetrics "OpenMS::PeakIntegrator::PeakShapeMetrics":
 
-        PeakShapeMetrics() nogil except +
-        PeakShapeMetrics(PeakShapeMetrics) nogil except +
+        PI_PeakShapeMetrics() nogil except +
+        PI_PeakShapeMetrics(PI_PeakShapeMetrics) nogil except +
         
         double width_at_5
         double width_at_10
