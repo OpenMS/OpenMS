@@ -586,7 +586,12 @@ protected:
     protein_ids[0].setMetaValue("SpectrumIdentificationProtocol", DataValue("MS:1002494")); // cross-linking search = MS:1002494
 
     ProteinIdentification::SearchParameters search_params;
-    search_params.charges = "2,3,4,5,6";
+    String searched_charges((String(min_precursor_charge)));
+    for (int ch = min_precursor_charge+1; ch <= max_precursor_charge; ++ch)
+    {
+      searched_charges += "," + String(ch);
+    }
+    search_params.charges = searched_charges;
     search_params.db = in_fasta;
     search_params.digestion_enzyme = *(ProteaseDB::getInstance()->getEnzyme(enzyme_name));
     search_params.fixed_modifications = fixedModNames;
