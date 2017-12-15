@@ -317,7 +317,7 @@ public:
             throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
               "Tried to calculate background estimation without any smoothed chromatograms");
           }
-          else if (background_subtraction_ == "average")
+          else if (background_subtraction_ == "original")
           {
             calculateBgEstimationAverage_(used_chromatogram, best_left, best_right, background, avg_noise_level);
           }
