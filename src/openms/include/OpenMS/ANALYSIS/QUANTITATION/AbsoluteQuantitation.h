@@ -101,7 +101,7 @@ public:
 
       @param quant_methods A list of AbsoluteQuantitationMethod classes
     */ 
-    void setQuantMethods(const std::vector<AbsoluteQuantitationMethod>& quant_methods);
+    void setQuantMethods(std::vector<AbsoluteQuantitationMethod>& quant_methods);
 
  
     /**

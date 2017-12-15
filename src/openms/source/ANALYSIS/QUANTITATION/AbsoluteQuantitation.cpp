@@ -108,7 +108,7 @@ namespace OpenMS
   {
   }
 
-  void AbsoluteQuantitation::setQuantMethods(const std::vector<AbsoluteQuantitationMethod>& quant_methods)
+  void AbsoluteQuantitation::setQuantMethods(std::vector<AbsoluteQuantitationMethod>& quant_methods)
   {
     quant_methods_.clear();
     for (size_t i = 0; i < quant_methods.size(); i++)
