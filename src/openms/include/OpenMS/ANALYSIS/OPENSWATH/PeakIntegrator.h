@@ -58,224 +58,6 @@ public:
     /// Destructor
     virtual ~PeakIntegrator();
 
-    /**
-      @brief Estimate the background of a peak contained in a MSChromatogram.
-
-      The user can choose to compute one of two background types: "vertical_sum" and "base_to_base".
-      For the former case, the area is computed as a rectangle with delta RT being the base and
-      the minimum intensity on boundaries as the height.
-      For the latter case, the area is computed as a rectangle trapezoid. Similar to the "vertical_sum"
-      solution, this technique also takes into account the area between the intensities on boundaries.
-
-      For both cases, the parameter integration_type_ decides which formula to use to compute the area.
-      The user should make sure to use the same integration_type between calls of estimateBackground() and
-      integratePeak().
-
-      @note Make sure the chromatogram is sorted with respect to retention time.
-
-      @param[in] chromatogram The chromatogram which contains the peak
-      @param[in] left The left retention time boundary
-      @param[in] right The right retention time boundary
-    */
-    void estimateBackground(const MSChromatogram& chromatogram, const double& left, const double& right);
-
-    /**
-      @brief Estimate the background of a peak contained in a MSChromatogram.
-
-      The user can choose to compute one of two background types: "vertical_sum" and "base_to_base".
-      For the former case, the area is computed as a rectangle with delta RT being the base and
-      the minimum intensity on boundaries as the height.
-      For the latter case, the area is computed as a rectangle trapezoid. Similar to the "vertical_sum"
-      solution, this technique also takes into account the area between the intensities on boundaries.
-
-      For both cases, the parameter integration_type_ decides which formula to use to compute the area.
-      The user should make sure to use the same integration_type between calls of estimateBackground() and
-      integratePeak().
-
-      @note Make sure the chromatogram is sorted with respect to retention time.
-
-      @param[in] chromatogram The chromatogram which contains the peak
-      @param[in] left The iterator to the first point
-      @param[in] right The iterator to the last point
-    */
-    void estimateBackground(const MSChromatogram& chromatogram, MSChromatogram::ConstIterator& left, MSChromatogram::ConstIterator& right);
-
-    /**
-      @brief Estimate the background of a peak contained in a MSSpectrum.
-
-      The user can choose to compute one of two background types: "vertical_sum" and "base_to_base".
-      For the former case, the area is computed as a rectangle with delta MZ being the base and
-      the minimum intensity on boundaries as the height.
-      For the latter case, the area is computed as a rectangle trapezoid. Similar to the "vertical_sum"
-      solution, this technique also takes into account the area between the intensities on boundaries.
-
-      For both cases, the parameter integration_type_ decides which formula to use to compute the area.
-      The user should make sure to use the same integration_type between calls of estimateBackground() and
-      integratePeak().
-
-      @note Make sure the spectrum is sorted with respect to mass-to-charge ratio.
-
-      @param[in] spectrum The spectrum which contains the peak
-      @param[in] left The left mass-to-charge ratio boundary
-      @param[in] right The right mass-to-charge ratio boundary
-    */
-    void estimateBackground(const MSSpectrum& spectrum, const double& left, const double& right);
-
-    /**
-      @brief Estimate the background of a peak contained in a MSSpectrum.
-
-      The user can choose to compute one of two background types: "vertical_sum" and "base_to_base".
-      For the former case, the area is computed as a rectangle with delta MZ being the base and
-      the minimum intensity on boundaries as the height.
-      For the latter case, the area is computed as a rectangle trapezoid. Similar to the "vertical_sum"
-      solution, this technique also takes into account the area between the intensities on boundaries.
-
-      For both cases, the parameter integration_type_ decides which formula to use to compute the area.
-      The user should make sure to use the same integration_type between calls of estimateBackground() and
-      integratePeak().
-
-      @note Make sure the spectrum is sorted with respect to mass-to-charge ratio.
-
-      @param[in] spectrum The spectrum which contains the peak
-      @param[in] left The iterator to the first point
-      @param[in] right The iterator to the last point
-    */
-    void estimateBackground(const MSSpectrum& spectrum, MSSpectrum::ConstIterator& left, MSSpectrum::ConstIterator& right);
-
-    /**
-      @brief Compute the area of a peak contained in a MSChromatogram.
-
-      The value of integration_type_ decides which integration technique to use:
-      - "trapezoid" for the trapezoidal rule
-      - "simpson" for the Simpson's rule (for unequally spaced points, Shklov, 1960)
-      - "intensity_sum" for the simple sum of the intensities
-
-      @note Make sure the chromatogram is sorted with respect to retention time.
-
-      @param[in] chromatogram The chromatogram which contains the peak
-      @param[in] left The left retention time boundary
-      @param[in] right The right retention time boundary
-    */
-    void integratePeak(const MSChromatogram& chromatogram, const double& left, const double& right);
-
-    /**
-      @brief Compute the area of a peak contained in a MSChromatogram.
-
-      The value of integration_type_ decides which integration technique to use:
-      - "trapezoid" for the trapezoidal rule
-      - "simpson" for the Simpson's rule (for unequally spaced points, Shklov, 1960)
-      - "intensity_sum" for the simple sum of the intensities
-
-      @note Make sure the chromatogram is sorted with respect to retention time.
-
-      @param[in] chromatogram The chromatogram which contains the peak
-      @param[in] left The iterator to the first point
-      @param[in] right The iterator to the last point
-    */
-    void integratePeak(const MSChromatogram& chromatogram, MSChromatogram::ConstIterator& left, MSChromatogram::ConstIterator& right);
-
-    /**
-      @brief Compute the area of a peak contained in a MSSpectrum.
-
-      The value of integration_type_ decides which integration technique to use:
-      - "trapezoid" for the trapezoidal rule
-      - "simpson" for the Simpson's rule (for unequally spaced points, Shklov, 1960)
-      - "intensity_sum" for the simple sum of the intensities
-
-      @note Make sure the spectrum is sorted with respect to mass-to-charge ratio.
-
-      @param[in] spectrum The spectrum which contains the peak
-      @param[in] left The left mass-to-charge ratio boundary
-      @param[in] right The right mass-to-charge ratio boundary
-    */
-    void integratePeak(const MSSpectrum& spectrum, const double& left, const double& right);
-
-    /**
-      @brief Compute the area of a peak contained in a MSSpectrum.
-
-      The value of integration_type_ decides which integration technique to use:
-      - "trapezoid" for the trapezoidal rule
-      - "simpson" for the Simpson's rule (for unequally spaced points, Shklov, 1960)
-      - "intensity_sum" for the simple sum of the intensities
-
-      @note Make sure the spectrum is sorted with respect to mass-to-charge ratio.
-
-      @param[in] spectrum The spectrum which contains the peak
-      @param[in] left The iterator to the first point
-      @param[in] right The iterator to the last point
-    */
-    void integratePeak(const MSSpectrum& spectrum, MSSpectrum::ConstIterator& left, MSSpectrum::ConstIterator& right);
-
-    /**
-      @brief Calculate peak's shape metrics.
-
-      The calculated characteristics are the start and end times at 0.05, 0.10 and
-      0.5 the peak's height. Also the widths at those positions are calculated.
-      Other values: the peak's total width, its tailing factor, asymmetry factor,
-      baseline delta to height and the slope of the baseline.
-      The number of points across the baseline and also at half height are saved.
-
-      @note Make sure the chromatogram is sorted with respect to retention time.
-
-      @param[in] chromatogram The chromatogram which contains the peak
-      @param[in] left The left retention time boundary
-      @param[in] right The right retention time boundary
-    */
-    void calculatePeakShapeMetrics(const MSChromatogram& chromatogram, const double& left, const double& right);
-
-    /**
-      @brief Calculate peak's shape metrics.
-
-      The calculated characteristics are the start and end times at 0.05, 0.10 and
-      0.5 the peak's height. Also the widths at those positions are calculated.
-      Other values: the peak's total width, its tailing factor, asymmetry factor,
-      baseline delta to height and the slope of the baseline.
-      The number of points across the baseline and also at half height are saved.
-
-      @note Make sure the chromatogram is sorted with respect to retention time.
-
-      @param[in] chromatogram The chromatogram which contains the peak
-      @param[in] left The iterator to the first point
-      @param[in] right The iterator to the last point
-    */
-    void calculatePeakShapeMetrics(const MSChromatogram& chromatogram, MSChromatogram::ConstIterator& left, MSChromatogram::ConstIterator& right);
-
-    /**
-      @brief Calculate peak's shape metrics.
-
-      The calculated characteristics are the start and end positions at 0.05, 0.10 and
-      0.5 the peak's height. Also the widths at those positions are calculated.
-      Other values: the peak's total width, its tailing factor, asymmetry factor,
-      baseline delta to height and the slope of the baseline.
-      The number of points across the baseline and also at half height are saved.
-
-      @note Make sure the spectrum is sorted with respect to mass-to-charge ratio.
-
-      @param[in] spectrum The spectrum which contains the peak
-      @param[in] left The left mass-to-charge ratio boundary
-      @param[in] right The right mass-to-charge ratio boundary
-    */
-    void calculatePeakShapeMetrics(const MSSpectrum& spectrum, const double& left, const double& right);
-
-    /**
-      @brief Calculate peak's shape metrics.
-
-      The calculated characteristics are the start and end positions at 0.05, 0.10 and
-      0.5 the peak's height. Also the widths at those positions are calculated.
-      Other values: the peak's total width, its tailing factor, asymmetry factor,
-      baseline delta to height and the slope of the baseline.
-      The number of points across the baseline and also at half height are saved.
-
-      @note Make sure the spectrum is sorted with respect to mass-to-charge ratio.
-
-      @param[in] spectrum The spectrum which contains the peak
-      @param[in] left The iterator to the first point
-      @param[in] right The iterator to the last point
-    */
-    void calculatePeakShapeMetrics(const MSSpectrum& spectrum, MSSpectrum::ConstIterator& left, MSSpectrum::ConstIterator& right);
-
-    void getDefaultParameters(Param& params);
-
     /** @name calculatePeakShapeMetrics() outputs
       The calculatePeakShapeMetrics() method uses this struct to save its results.
     */
@@ -367,38 +149,244 @@ public:
       ///@}
     };
 
-    /// Get the peak area
-    double getPeakArea() const;
+    /**
+      @brief Estimate the background of a peak contained in a MSChromatogram.
 
-    /// Get the peak height
-    double getPeakHeight() const;
+      The user can choose to compute one of two background types: "vertical_sum" and "base_to_base".
+      For the former case, the area is computed as a rectangle with delta RT being the base and
+      the minimum intensity on boundaries as the height.
+      For the latter case, the area is computed as a rectangle trapezoid. Similar to the "vertical_sum"
+      solution, this technique also takes into account the area between the intensities on boundaries.
 
-    /// Get the peak's apex position
-    double getPeakApexPos() const;
+      For both cases, the parameter integration_type_ decides which formula to use to compute the area.
+      The user should make sure to use the same integration_type between calls of estimateBackground() and
+      integratePeak().
 
-    /// Get the background height
-    double getBackgroundHeight() const;
+      @note Make sure the chromatogram is sorted with respect to retention time.
 
-    /// Get the background area
-    double getBackgroundArea() const;
+      @param[in] chromatogram The chromatogram which contains the peak
+      @param[in] left The left retention time boundary
+      @param[in] right The right retention time boundary
+    */
+    void estimateBackground(
+      const MSChromatogram& chromatogram, const double& left, const double& right, const double& peak_apex_pos,
+      double& background_area, double& background_height
+    ) const;
 
-    /// Get the peak's shape metrics
-    PeakShapeMetrics getPeakShapeMetrics() const;
+    /**
+      @brief Estimate the background of a peak contained in a MSChromatogram.
+
+      The user can choose to compute one of two background types: "vertical_sum" and "base_to_base".
+      For the former case, the area is computed as a rectangle with delta RT being the base and
+      the minimum intensity on boundaries as the height.
+      For the latter case, the area is computed as a rectangle trapezoid. Similar to the "vertical_sum"
+      solution, this technique also takes into account the area between the intensities on boundaries.
+
+      For both cases, the parameter integration_type_ decides which formula to use to compute the area.
+      The user should make sure to use the same integration_type between calls of estimateBackground() and
+      integratePeak().
+
+      @note Make sure the chromatogram is sorted with respect to retention time.
+
+      @param[in] chromatogram The chromatogram which contains the peak
+      @param[in] left The iterator to the first point
+      @param[in] right The iterator to the last point
+    */
+    void estimateBackground(
+      const MSChromatogram& chromatogram, MSChromatogram::ConstIterator& left, MSChromatogram::ConstIterator& right, const double& peak_apex_pos,
+      double& background_area, double& background_height
+    ) const;
+
+    /**
+      @brief Estimate the background of a peak contained in a MSSpectrum.
+
+      The user can choose to compute one of two background types: "vertical_sum" and "base_to_base".
+      For the former case, the area is computed as a rectangle with delta MZ being the base and
+      the minimum intensity on boundaries as the height.
+      For the latter case, the area is computed as a rectangle trapezoid. Similar to the "vertical_sum"
+      solution, this technique also takes into account the area between the intensities on boundaries.
+
+      For both cases, the parameter integration_type_ decides which formula to use to compute the area.
+      The user should make sure to use the same integration_type between calls of estimateBackground() and
+      integratePeak().
+
+      @note Make sure the spectrum is sorted with respect to mass-to-charge ratio.
+
+      @param[in] spectrum The spectrum which contains the peak
+      @param[in] left The left mass-to-charge ratio boundary
+      @param[in] right The right mass-to-charge ratio boundary
+    */
+    void estimateBackground(const MSSpectrum& spectrum, const double& left, const double& right, const double& peak_apex_pos, double& background_area, double& background_height) const;
+
+    /**
+      @brief Estimate the background of a peak contained in a MSSpectrum.
+
+      The user can choose to compute one of two background types: "vertical_sum" and "base_to_base".
+      For the former case, the area is computed as a rectangle with delta MZ being the base and
+      the minimum intensity on boundaries as the height.
+      For the latter case, the area is computed as a rectangle trapezoid. Similar to the "vertical_sum"
+      solution, this technique also takes into account the area between the intensities on boundaries.
+
+      For both cases, the parameter integration_type_ decides which formula to use to compute the area.
+      The user should make sure to use the same integration_type between calls of estimateBackground() and
+      integratePeak().
+
+      @note Make sure the spectrum is sorted with respect to mass-to-charge ratio.
+
+      @param[in] spectrum The spectrum which contains the peak
+      @param[in] left The iterator to the first point
+      @param[in] right The iterator to the last point
+    */
+    void estimateBackground(const MSSpectrum& spectrum, MSSpectrum::ConstIterator& left, MSSpectrum::ConstIterator& right, const double& peak_apex_pos, double& background_area, double& background_height) const;
+
+    /**
+      @brief Compute the area of a peak contained in a MSChromatogram.
+
+      The value of integration_type_ decides which integration technique to use:
+      - "trapezoid" for the trapezoidal rule
+      - "simpson" for the Simpson's rule (for unequally spaced points, Shklov, 1960)
+      - "intensity_sum" for the simple sum of the intensities
+
+      @note Make sure the chromatogram is sorted with respect to retention time.
+
+      @param[in] chromatogram The chromatogram which contains the peak
+      @param[in] left The left retention time boundary
+      @param[in] right The right retention time boundary
+    */
+    void integratePeak(const MSChromatogram& chromatogram, const double& left, const double& right, double& peak_area, double& peak_height, double& peak_apex_pos) const;
+
+    /**
+      @brief Compute the area of a peak contained in a MSChromatogram.
+
+      The value of integration_type_ decides which integration technique to use:
+      - "trapezoid" for the trapezoidal rule
+      - "simpson" for the Simpson's rule (for unequally spaced points, Shklov, 1960)
+      - "intensity_sum" for the simple sum of the intensities
+
+      @note Make sure the chromatogram is sorted with respect to retention time.
+
+      @param[in] chromatogram The chromatogram which contains the peak
+      @param[in] left The iterator to the first point
+      @param[in] right The iterator to the last point
+    */
+    void integratePeak(const MSChromatogram& chromatogram, MSChromatogram::ConstIterator& left, MSChromatogram::ConstIterator& right, double& peak_area, double& peak_height, double& peak_apex_pos) const;
+
+    /**
+      @brief Compute the area of a peak contained in a MSSpectrum.
+
+      The value of integration_type_ decides which integration technique to use:
+      - "trapezoid" for the trapezoidal rule
+      - "simpson" for the Simpson's rule (for unequally spaced points, Shklov, 1960)
+      - "intensity_sum" for the simple sum of the intensities
+
+      @note Make sure the spectrum is sorted with respect to mass-to-charge ratio.
+
+      @param[in] spectrum The spectrum which contains the peak
+      @param[in] left The left mass-to-charge ratio boundary
+      @param[in] right The right mass-to-charge ratio boundary
+    */
+    void integratePeak(const MSSpectrum& spectrum, const double& left, const double& right, double& peak_area, double& peak_height, double& peak_apex_pos) const;
+
+    /**
+      @brief Compute the area of a peak contained in a MSSpectrum.
+
+      The value of integration_type_ decides which integration technique to use:
+      - "trapezoid" for the trapezoidal rule
+      - "simpson" for the Simpson's rule (for unequally spaced points, Shklov, 1960)
+      - "intensity_sum" for the simple sum of the intensities
+
+      @note Make sure the spectrum is sorted with respect to mass-to-charge ratio.
+
+      @param[in] spectrum The spectrum which contains the peak
+      @param[in] left The iterator to the first point
+      @param[in] right The iterator to the last point
+    */
+    void integratePeak(const MSSpectrum& spectrum, MSSpectrum::ConstIterator& left, MSSpectrum::ConstIterator& right, double& peak_area, double& peak_height, double& peak_apex_pos) const;
+
+    /**
+      @brief Calculate peak's shape metrics.
+
+      The calculated characteristics are the start and end times at 0.05, 0.10 and
+      0.5 the peak's height. Also the widths at those positions are calculated.
+      Other values: the peak's total width, its tailing factor, asymmetry factor,
+      baseline delta to height and the slope of the baseline.
+      The number of points across the baseline and also at half height are saved.
+
+      @note Make sure the chromatogram is sorted with respect to retention time.
+
+      @param[in] chromatogram The chromatogram which contains the peak
+      @param[in] left The left retention time boundary
+      @param[in] right The right retention time boundary
+    */
+    void calculatePeakShapeMetrics(const MSChromatogram& chromatogram, const double& left, const double& right, const double& peak_height, const double& peak_apex_pos, PeakShapeMetrics& psm) const;
+
+    /**
+      @brief Calculate peak's shape metrics.
+
+      The calculated characteristics are the start and end times at 0.05, 0.10 and
+      0.5 the peak's height. Also the widths at those positions are calculated.
+      Other values: the peak's total width, its tailing factor, asymmetry factor,
+      baseline delta to height and the slope of the baseline.
+      The number of points across the baseline and also at half height are saved.
+
+      @note Make sure the chromatogram is sorted with respect to retention time.
+
+      @param[in] chromatogram The chromatogram which contains the peak
+      @param[in] left The iterator to the first point
+      @param[in] right The iterator to the last point
+    */
+    void calculatePeakShapeMetrics(const MSChromatogram& chromatogram, MSChromatogram::ConstIterator& left, MSChromatogram::ConstIterator& right, const double& peak_height, const double& peak_apex_pos, PeakShapeMetrics& psm) const;
+
+    /**
+      @brief Calculate peak's shape metrics.
+
+      The calculated characteristics are the start and end positions at 0.05, 0.10 and
+      0.5 the peak's height. Also the widths at those positions are calculated.
+      Other values: the peak's total width, its tailing factor, asymmetry factor,
+      baseline delta to height and the slope of the baseline.
+      The number of points across the baseline and also at half height are saved.
+
+      @note Make sure the spectrum is sorted with respect to mass-to-charge ratio.
+
+      @param[in] spectrum The spectrum which contains the peak
+      @param[in] left The left mass-to-charge ratio boundary
+      @param[in] right The right mass-to-charge ratio boundary
+    */
+    void calculatePeakShapeMetrics(const MSSpectrum& spectrum, const double& left, const double& right, const double& peak_height, const double& peak_apex_pos, PeakShapeMetrics& psm) const;
+
+    /**
+      @brief Calculate peak's shape metrics.
+
+      The calculated characteristics are the start and end positions at 0.05, 0.10 and
+      0.5 the peak's height. Also the widths at those positions are calculated.
+      Other values: the peak's total width, its tailing factor, asymmetry factor,
+      baseline delta to height and the slope of the baseline.
+      The number of points across the baseline and also at half height are saved.
+
+      @note Make sure the spectrum is sorted with respect to mass-to-charge ratio.
+
+      @param[in] spectrum The spectrum which contains the peak
+      @param[in] left The iterator to the first point
+      @param[in] right The iterator to the last point
+    */
+    void calculatePeakShapeMetrics(const MSSpectrum& spectrum, MSSpectrum::ConstIterator& left, MSSpectrum::ConstIterator& right, const double& peak_height, const double& peak_apex_pos, PeakShapeMetrics& psm) const;
+
+    void getDefaultParameters(Param& params);
 
 protected:
     void updateMembers_();
 
     template <typename PeakContainerT>
-    void estimateBackground_(const PeakContainerT& p, const double& left, const double& right);
+    void estimateBackground_(const PeakContainerT& p, const double& left, const double& right, const double& peak_apex_pos, double& background_area, double& background_height) const;
 
     template <typename PeakContainerT>
-    void integratePeak_(PeakContainerT p, const double& left, const double& right);
+    void integratePeak_(const PeakContainerT& p, const double& left, const double& right, double& peak_area, double& peak_height, double& peak_apex_pos) const;
 
     template <typename PeakContainerConstIteratorT>
     double simpson_(PeakContainerConstIteratorT it_begin, PeakContainerConstIteratorT it_end) const;
 
     template <typename PeakContainerT>
-    void calculatePeakShapeMetrics_(const PeakContainerT& p, const double& left, const double& right);
+    void calculatePeakShapeMetrics_(const PeakContainerT& p, const double& left, const double& right, const double& peak_height, const double& peak_apex_pos, PeakShapeMetrics& psm) const;
 
 private:
     /** @name Parameters
@@ -417,44 +405,6 @@ private:
     */
     String baseline_type_ = BASELINE_TYPE_BASETOBASE;
     ///@}
-
-    /** @name peakIntegrator() outputs
-      The peakIntegrator() method saves its results into these members.
-    */
-    ///@{
-    /**
-      The peak area computed using the trapezoidal, simpson or intensity_sum method
-    */
-    double peak_area_ = 0.0;
-    /**
-      The peak's apex intensity.
-    */
-    double peak_height_ = -1.0;
-    /**
-      The peak's apex position.
-    */
-    double peak_apex_pos_ = -1.0;
-    ///@}
-
-    /** @name estimateBackground() outputs
-      The estimateBackground() method saves its results into these members.
-    */
-    ///@{
-    /**
-      The background's height (noise level).
-    */
-    double background_height_ = 0.0;
-    /**
-      The background area.
-      The method used to compute this area depends both on integration_type_ and baseline_type_.
-    */
-    double background_area_ = 0.0;
-    ///@}
-
-    /**
-      The calculatePeakShapeMetrics() method uses this struct to save its results.
-    */
-    PeakShapeMetrics psm_;
 
     /** @name Helper methods
       The Simpson's rule implementations for an odd number of unequally spaced points.

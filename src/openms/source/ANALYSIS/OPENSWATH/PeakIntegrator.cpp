@@ -45,44 +45,44 @@ namespace OpenMS
 
   PeakIntegrator::~PeakIntegrator() {}
 
-  void PeakIntegrator::estimateBackground(const MSChromatogram& chromatogram, const double& left, const double& right)
+  void PeakIntegrator::estimateBackground(const MSChromatogram& chromatogram, const double& left, const double& right, const double& peak_apex_pos, double& background_area, double& background_height) const
   {
-    estimateBackground_(chromatogram, left, right);
+    estimateBackground_(chromatogram, left, right, peak_apex_pos, background_area, background_height);
   }
 
-  void PeakIntegrator::estimateBackground(const MSChromatogram& chromatogram, MSChromatogram::ConstIterator& left, MSChromatogram::ConstIterator& right)
+  void PeakIntegrator::estimateBackground(const MSChromatogram& chromatogram, MSChromatogram::ConstIterator& left, MSChromatogram::ConstIterator& right, const double& peak_apex_pos, double& background_area, double& background_height) const
   {
-    estimateBackground_(chromatogram, left->getRT(), right->getRT());
+    estimateBackground_(chromatogram, left->getRT(), right->getRT(), peak_apex_pos, background_area, background_height);
   }
 
-  void PeakIntegrator::estimateBackground(const MSSpectrum& spectrum, const double& left, const double& right)
+  void PeakIntegrator::estimateBackground(const MSSpectrum& spectrum, const double& left, const double& right, const double& peak_apex_pos, double& background_area, double& background_height) const
   {
-    estimateBackground_(spectrum, left, right);
+    estimateBackground_(spectrum, left, right, peak_apex_pos, background_area, background_height);
   }
 
-  void PeakIntegrator::estimateBackground(const MSSpectrum& spectrum, MSSpectrum::ConstIterator& left, MSSpectrum::ConstIterator& right)
+  void PeakIntegrator::estimateBackground(const MSSpectrum& spectrum, MSSpectrum::ConstIterator& left, MSSpectrum::ConstIterator& right, const double& peak_apex_pos, double& background_area, double& background_height) const
   {
-    estimateBackground_(spectrum, left->getMZ(), right->getMZ());
+    estimateBackground_(spectrum, left->getMZ(), right->getMZ(), peak_apex_pos, background_area, background_height);
   }
 
-  void PeakIntegrator::integratePeak(const MSChromatogram& chromatogram, const double& left, const double& right)
+  void PeakIntegrator::integratePeak(const MSChromatogram& chromatogram, const double& left, const double& right, double& peak_area, double& peak_height, double& peak_apex_pos) const
   {
-    integratePeak_(chromatogram, left, right);
+    integratePeak_(chromatogram, left, right, peak_area, peak_height, peak_apex_pos);
   }
 
-  void PeakIntegrator::integratePeak(const MSChromatogram& chromatogram, MSChromatogram::ConstIterator& left, MSChromatogram::ConstIterator& right)
+  void PeakIntegrator::integratePeak(const MSChromatogram& chromatogram, MSChromatogram::ConstIterator& left, MSChromatogram::ConstIterator& right, double& peak_area, double& peak_height, double& peak_apex_pos) const
   {
-    integratePeak_(chromatogram, left->getRT(), right->getRT());
+    integratePeak_(chromatogram, left->getRT(), right->getRT(), peak_area, peak_height, peak_apex_pos);
   }
 
-  void PeakIntegrator::integratePeak(const MSSpectrum& spectrum, const double& left, const double& right)
+  void PeakIntegrator::integratePeak(const MSSpectrum& spectrum, const double& left, const double& right, double& peak_area, double& peak_height, double& peak_apex_pos) const
   {
-    integratePeak_(spectrum, left, right);
+    integratePeak_(spectrum, left, right, peak_area, peak_height, peak_apex_pos);
   }
 
-  void PeakIntegrator::integratePeak(const MSSpectrum& spectrum, MSSpectrum::ConstIterator& left, MSSpectrum::ConstIterator& right)
+  void PeakIntegrator::integratePeak(const MSSpectrum& spectrum, MSSpectrum::ConstIterator& left, MSSpectrum::ConstIterator& right, double& peak_area, double& peak_height, double& peak_apex_pos) const
   {
-    integratePeak_(spectrum, left->getMZ(), right->getMZ());
+    integratePeak_(spectrum, left->getMZ(), right->getMZ(), peak_area, peak_height, peak_apex_pos);
   }
 
   double PeakIntegrator::simpson(MSChromatogram::ConstIterator it_begin, MSChromatogram::ConstIterator it_end) const
@@ -95,32 +95,25 @@ namespace OpenMS
     return simpson_(it_begin, it_end);
   }
 
-  void PeakIntegrator::calculatePeakShapeMetrics(const MSChromatogram& chromatogram, const double& left, const double& right)
+  void PeakIntegrator::calculatePeakShapeMetrics(const MSChromatogram& chromatogram, const double& left, const double& right, const double& peak_height, const double& peak_apex_pos, PeakShapeMetrics& psm) const
   {
-    calculatePeakShapeMetrics_(chromatogram, left, right);
+    calculatePeakShapeMetrics_(chromatogram, left, right, peak_height, peak_apex_pos, psm);
   }
 
-  void PeakIntegrator::calculatePeakShapeMetrics(const MSChromatogram& chromatogram, MSChromatogram::ConstIterator& left, MSChromatogram::ConstIterator& right)
+  void PeakIntegrator::calculatePeakShapeMetrics(const MSChromatogram& chromatogram, MSChromatogram::ConstIterator& left, MSChromatogram::ConstIterator& right, const double& peak_height, const double& peak_apex_pos, PeakShapeMetrics& psm) const
   {
-    calculatePeakShapeMetrics_(chromatogram, left->getRT(), right->getRT());
+    calculatePeakShapeMetrics_(chromatogram, left->getRT(), right->getRT(), peak_height, peak_apex_pos, psm);
   }
 
-  void PeakIntegrator::calculatePeakShapeMetrics(const MSSpectrum& spectrum, const double& left, const double& right)
+  void PeakIntegrator::calculatePeakShapeMetrics(const MSSpectrum& spectrum, const double& left, const double& right, const double& peak_height, const double& peak_apex_pos, PeakShapeMetrics& psm) const
   {
-    calculatePeakShapeMetrics_(spectrum, left, right);
+    calculatePeakShapeMetrics_(spectrum, left, right, peak_height, peak_apex_pos, psm);
   }
 
-  void PeakIntegrator::calculatePeakShapeMetrics(const MSSpectrum& spectrum, MSSpectrum::ConstIterator& left, MSSpectrum::ConstIterator& right)
+  void PeakIntegrator::calculatePeakShapeMetrics(const MSSpectrum& spectrum, MSSpectrum::ConstIterator& left, MSSpectrum::ConstIterator& right, const double& peak_height, const double& peak_apex_pos, PeakShapeMetrics& psm) const
   {
-    calculatePeakShapeMetrics_(spectrum, left->getMZ(), right->getMZ());
+    calculatePeakShapeMetrics_(spectrum, left->getMZ(), right->getMZ(), peak_height, peak_apex_pos, psm);
   }
-
-  double PeakIntegrator::getPeakArea() const { return peak_area_; }
-  double PeakIntegrator::getPeakHeight() const { return peak_height_; }
-  double PeakIntegrator::getPeakApexPos() const { return peak_apex_pos_; }
-  double PeakIntegrator::getBackgroundHeight() const { return background_height_; }
-  double PeakIntegrator::getBackgroundArea() const { return background_area_; }
-  PeakIntegrator::PeakShapeMetrics PeakIntegrator::getPeakShapeMetrics() const { return psm_; }
 
   void PeakIntegrator::getDefaultParameters(Param& params)
   {
@@ -138,15 +131,15 @@ namespace OpenMS
   }
 
   template <typename PeakContainerT>
-  void PeakIntegrator::estimateBackground_(const PeakContainerT& p, const double& left, const double& right)
+  void PeakIntegrator::estimateBackground_(const PeakContainerT& p, const double& left, const double& right, const double& peak_apex_pos, double& background_area, double& background_height) const
   {
     const double int_l = p.PosBegin(left)->getIntensity();
     const double int_r = (p.PosEnd(right) - 1)->getIntensity();
     const double delta_int = int_r - int_l;
     const double delta_pos = (p.PosEnd(right) - 1)->getPos() - p.PosBegin(left)->getPos();
     const double min_int_pos = int_r <= int_l ? (p.PosEnd(right) - 1)->getPos() : p.PosBegin(left)->getPos();
-    const double delta_int_apex = std::fabs(delta_int) * std::fabs(min_int_pos - peak_apex_pos_) / delta_pos;
-    background_height_ = std::min(int_r, int_l) + delta_int_apex;
+    const double delta_int_apex = std::fabs(delta_int) * std::fabs(min_int_pos - peak_apex_pos) / delta_pos;
+    background_height = std::min(int_r, int_l) + delta_int_apex;
     double background = 0.0;
     if (baseline_type_ == BASELINE_TYPE_BASETOBASE)
     {
@@ -187,22 +180,22 @@ namespace OpenMS
     {
       throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Please set a valid value for the parameter \"baseline_type\".\n");
     }
-    background_area_ = background;
+    background_area = background;
   }
 
   template <typename PeakContainerT>
-  void PeakIntegrator::integratePeak_(PeakContainerT p, const double& left, const double& right)
+  void PeakIntegrator::integratePeak_(const PeakContainerT& p, const double& left, const double& right, double& peak_area, double& peak_height, double& peak_apex_pos) const
   {
-    peak_area_ = 0.0;
-    peak_height_ = -1.0;
-    peak_apex_pos_ = -1.0;
+    peak_area = 0.0;
+    peak_height = -1.0;
+    peak_apex_pos = -1.0;
     UInt n_points = std::distance(p.PosBegin(left), p.PosEnd(right));
     for (auto it = p.PosBegin(left); it != p.PosEnd(right); ++it)
     {
-      if (peak_height_ < it->getIntensity())
+      if (peak_height < it->getIntensity())
       {
-        peak_height_ = it->getIntensity();
-        peak_apex_pos_ = it->getPos();
+        peak_height = it->getIntensity();
+        peak_apex_pos = it->getPos();
       }
     }
 
@@ -210,7 +203,7 @@ namespace OpenMS
     {
       for (auto it = p.PosBegin(left); it != p.PosEnd(right) - 1; ++it)
       {
-        peak_area_ += ((it + 1)->getPos() - it->getPos()) * ((it->getIntensity() + (it + 1)->getIntensity()) / 2.0);
+        peak_area += ((it + 1)->getPos() - it->getPos()) * ((it->getIntensity() + (it + 1)->getIntensity()) / 2.0);
       }
     }
     else if (integration_type_ == INTEGRATION_TYPE_SIMPSON)
@@ -222,7 +215,7 @@ namespace OpenMS
       }
       if (n_points % 2)
       {
-        peak_area_ = simpson(p.PosBegin(left), p.PosEnd(right));
+        peak_area = simpson(p.PosBegin(left), p.PosEnd(right));
       }
       else
       {
@@ -242,11 +235,11 @@ namespace OpenMS
         {
           if (area != -1.0)
           {
-            peak_area_ += area;
+            peak_area += area;
             ++valids;
           }
         }
-        peak_area_ /= valids;
+        peak_area /= valids;
       }
     }
     else if (integration_type_ == INTEGRATION_TYPE_INTENSITYSUM)
@@ -254,7 +247,7 @@ namespace OpenMS
       std::cout << "\nWARNING: intensity_sum method is being used.\n";
       for (auto it = p.PosBegin(left); it != p.PosEnd(right); ++it)
       {
-        peak_area_ += it->getIntensity();
+        peak_area += it->getIntensity();
       }
     }
     else
@@ -280,10 +273,10 @@ namespace OpenMS
   }
 
   template <typename PeakContainerT>
-  void PeakIntegrator::calculatePeakShapeMetrics_(const PeakContainerT& p, const double& left, const double& right)
+  void PeakIntegrator::calculatePeakShapeMetrics_(const PeakContainerT& p, const double& left, const double& right, const double& peak_height, const double& peak_apex_pos, PeakShapeMetrics& psm) const
   {
-    psm_.points_across_baseline = 0;
-    psm_.points_across_half_height = 0;
+    psm.points_across_baseline = 0;
+    psm.points_across_half_height = 0;
     for (auto it = p.PosBegin(left); it != p.PosEnd(right); ++it)
     {
       const double intensity = it->getIntensity();
@@ -291,63 +284,63 @@ namespace OpenMS
       const double position = it->getPos();
       const double position_prev = (it - 1)->getPos();
       // start and end positions (rt or mz)
-      if (position < peak_apex_pos_ && psm_.points_across_baseline > 1) // start positions
+      if (position < peak_apex_pos && psm.points_across_baseline > 1) // start positions
       {
         const double d_int_times_d_pos = (intensity - intensity_prev) * (position - position_prev);
-        if (intensity >= 0.05 * peak_height_ && intensity_prev < 0.05 * peak_height_)
+        if (intensity >= 0.05 * peak_height && intensity_prev < 0.05 * peak_height)
         {
-          const double height_5 = intensity - 0.05 * peak_height_;
-          psm_.start_position_at_5 = position - d_int_times_d_pos / height_5;
+          const double height_5 = intensity - 0.05 * peak_height;
+          psm.start_position_at_5 = position - d_int_times_d_pos / height_5;
         }
-        if (intensity >= 0.1 * peak_height_ && intensity_prev < 0.1 * peak_height_)
+        if (intensity >= 0.1 * peak_height && intensity_prev < 0.1 * peak_height)
         {
-          const double height_10 = intensity - 0.1 * peak_height_;
-          psm_.start_position_at_10 = position - d_int_times_d_pos / height_10;
+          const double height_10 = intensity - 0.1 * peak_height;
+          psm.start_position_at_10 = position - d_int_times_d_pos / height_10;
         }
-        if (intensity >= 0.5 * peak_height_ && intensity_prev < 0.5 * peak_height_)
+        if (intensity >= 0.5 * peak_height && intensity_prev < 0.5 * peak_height)
         {
-          const double height_50 = intensity - 0.5 * peak_height_;
-          psm_.start_position_at_50 = position - d_int_times_d_pos / height_50;
+          const double height_50 = intensity - 0.5 * peak_height;
+          psm.start_position_at_50 = position - d_int_times_d_pos / height_50;
         }
       }
-      else if (position > peak_apex_pos_) // end positions
+      else if (position > peak_apex_pos) // end positions
       {
         const double d_int_times_d_pos = (intensity_prev - intensity) * (position - position_prev);
-        if (intensity <= 0.05 * peak_height_ && intensity_prev > 0.05 * peak_height_)
+        if (intensity <= 0.05 * peak_height && intensity_prev > 0.05 * peak_height)
         {
-          const double height_5 = 0.05 * peak_height_ - intensity;
-          psm_.end_position_at_5 = position - d_int_times_d_pos / height_5;
+          const double height_5 = 0.05 * peak_height - intensity;
+          psm.end_position_at_5 = position - d_int_times_d_pos / height_5;
         }
-        if (intensity <= 0.1 * peak_height_ && intensity_prev > 0.1 * peak_height_)
+        if (intensity <= 0.1 * peak_height && intensity_prev > 0.1 * peak_height)
         {
-          const double height_10 = 0.1 * peak_height_ - intensity;
-          psm_.end_position_at_10 = position - d_int_times_d_pos / height_10;
+          const double height_10 = 0.1 * peak_height - intensity;
+          psm.end_position_at_10 = position - d_int_times_d_pos / height_10;
         }
-        if (intensity <= 0.5 * peak_height_ && intensity_prev > 0.5 * peak_height_)
+        if (intensity <= 0.5 * peak_height && intensity_prev > 0.5 * peak_height)
         {
-          const double height_50 = 0.5 * peak_height_ - intensity;
-          psm_.end_position_at_50 = position - d_int_times_d_pos / height_50;
+          const double height_50 = 0.5 * peak_height - intensity;
+          psm.end_position_at_50 = position - d_int_times_d_pos / height_50;
         }
       }
       // points across the peak
-      ++(psm_.points_across_baseline);
-      if (intensity >= 0.5 * peak_height_)
+      ++(psm.points_across_baseline);
+      if (intensity >= 0.5 * peak_height)
       {
-        ++(psm_.points_across_half_height);
+        ++(psm.points_across_half_height);
       }
     }
 
     // peak widths
-    psm_.width_at_5 = psm_.end_position_at_5 - psm_.start_position_at_5;
-    psm_.width_at_10 = psm_.end_position_at_10 - psm_.start_position_at_10;
-    psm_.width_at_50 = psm_.end_position_at_50 - psm_.start_position_at_50;
-    psm_.total_width = (p.PosEnd(right) - 1)->getPos() - p.PosBegin(left)->getPos();
-    psm_.slope_of_baseline = (p.PosEnd(right) - 1)->getIntensity() - p.PosBegin(left)->getIntensity();
-    psm_.baseline_delta_2_height = psm_.slope_of_baseline / peak_height_;
+    psm.width_at_5 = psm.end_position_at_5 - psm.start_position_at_5;
+    psm.width_at_10 = psm.end_position_at_10 - psm.start_position_at_10;
+    psm.width_at_50 = psm.end_position_at_50 - psm.start_position_at_50;
+    psm.total_width = (p.PosEnd(right) - 1)->getPos() - p.PosBegin(left)->getPos();
+    psm.slope_of_baseline = (p.PosEnd(right) - 1)->getIntensity() - p.PosBegin(left)->getIntensity();
+    psm.baseline_delta_2_height = psm.slope_of_baseline / peak_height;
 
     // other
-    psm_.tailing_factor = psm_.width_at_5 / std::min(peak_apex_pos_ - psm_.start_position_at_5, psm_.end_position_at_5 - peak_apex_pos_);
-    psm_.asymmetry_factor = std::min(peak_apex_pos_ - psm_.start_position_at_10, psm_.end_position_at_10 - peak_apex_pos_) /
-      std::max(peak_apex_pos_ - psm_.start_position_at_10, psm_.end_position_at_10 - peak_apex_pos_);
+    psm.tailing_factor = psm.width_at_5 / std::min(peak_apex_pos - psm.start_position_at_5, psm.end_position_at_5 - peak_apex_pos);
+    psm.asymmetry_factor = std::min(peak_apex_pos - psm.start_position_at_10, psm.end_position_at_10 - peak_apex_pos) /
+      std::max(peak_apex_pos - psm.start_position_at_10, psm.end_position_at_10 - peak_apex_pos);
   }
 }

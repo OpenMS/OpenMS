@@ -126,310 +126,311 @@ START_SECTION(getParameters())
 }
 END_SECTION
 
-START_SECTION(PeakShapeMetrics getPeakShapeMetrics() const)
+START_SECTION(void estimateBackground(const MSChromatogram& chromatogram, const double& left, const double& right, const double& peak_apex_pos, double& background_area, double& background_height) const)
 {
-  PeakIntegrator::PeakShapeMetrics psm = ptr->getPeakShapeMetrics();
-  TEST_REAL_SIMILAR(psm.width_at_5, 0.0)
-  TEST_REAL_SIMILAR(psm.width_at_10, 0.0)
-  TEST_REAL_SIMILAR(psm.width_at_50, 0.0)
-  TEST_REAL_SIMILAR(psm.start_position_at_5, 0.0)
-  TEST_REAL_SIMILAR(psm.start_position_at_10, 0.0)
-  TEST_REAL_SIMILAR(psm.start_position_at_50, 0.0)
-  TEST_REAL_SIMILAR(psm.end_position_at_5, 0.0)
-  TEST_REAL_SIMILAR(psm.end_position_at_10, 0.0)
-  TEST_REAL_SIMILAR(psm.end_position_at_50, 0.0)
-  TEST_REAL_SIMILAR(psm.total_width, 0.0)
-  TEST_REAL_SIMILAR(psm.tailing_factor, 0.0)
-  TEST_REAL_SIMILAR(psm.asymmetry_factor, 0.0)
-  TEST_REAL_SIMILAR(psm.slope_of_baseline, 0.0)
-  TEST_REAL_SIMILAR(psm.baseline_delta_2_height, 0.0)
-  TEST_EQUAL(psm.points_across_baseline, 0.0)
-  TEST_EQUAL(psm.points_across_half_height, 0.0)
+  Param params = ptr->getParameters();
+  double background_area, background_height;
+  const double peak_apex_pos = -1 ;//2.7045; // input
+// I VECCHI TEST AVEVANO UN PEAK_APEX_POS PARI A -1, DEVO RICALCOLARE I TEST
+  params.setValue("baseline_type", BASELINE_TYPE_BASETOBASE);
+  params.setValue("integration_type", INTEGRATION_TYPE_INTENSITYSUM);
+  ptr->setParameters(params);
+  ptr->estimateBackground(chromatogram, left, right, peak_apex_pos, background_area, background_height);
+  TEST_REAL_SIMILAR(background_area, 123446.661339019)
+  TEST_REAL_SIMILAR(background_height, 16657.6971368377)
+
+  params.setValue("baseline_type", BASELINE_TYPE_VERTICALDIVISION);
+  params.setValue("integration_type", INTEGRATION_TYPE_INTENSITYSUM);
+  ptr->setParameters(params);
+  ptr->estimateBackground(chromatogram, left, right, peak_apex_pos, background_area, background_height);
+  TEST_REAL_SIMILAR(background_area, 50217)
+  TEST_REAL_SIMILAR(background_height, 16657.6971368377)
+
+  params.setValue("baseline_type", BASELINE_TYPE_BASETOBASE);
+  params.setValue("integration_type", INTEGRATION_TYPE_TRAPEZOID);
+  ptr->setParameters(params);
+  ptr->estimateBackground(chromatogram, left, right, peak_apex_pos, background_area, background_height);
+  TEST_REAL_SIMILAR(background_area, 1140.392865964)
+  TEST_REAL_SIMILAR(background_height, 16657.6971368377)
+
+  params.setValue("baseline_type", BASELINE_TYPE_VERTICALDIVISION);
+  params.setValue("integration_type", INTEGRATION_TYPE_TRAPEZOID);
+  ptr->setParameters(params);
+  ptr->estimateBackground(chromatogram, left, right, peak_apex_pos, background_area, background_height);
+  TEST_REAL_SIMILAR(background_area, 476.606316373)
+  TEST_REAL_SIMILAR(background_height, 16657.6971368377)
 }
 END_SECTION
 
-START_SECTION(void estimateBackground(const MSChromatogram& chromatogram, const double& left, const double& right))
+START_SECTION(void estimateBackground(
+  const MSChromatogram& chromatogram, MSChromatogram::ConstIterator& left, MSChromatogram::ConstIterator& right, const double& peak_apex_pos,
+  double& background_area, double& background_height
+) const)
 {
   Param params = ptr->getParameters();
+  double background_area, background_height;
+  const double peak_apex_pos = -1.0; // 2.7045; // input
 
   params.setValue("baseline_type", BASELINE_TYPE_BASETOBASE);
   params.setValue("integration_type", INTEGRATION_TYPE_INTENSITYSUM);
   ptr->setParameters(params);
-  ptr->estimateBackground(chromatogram, left, right);
-  TEST_REAL_SIMILAR(ptr->getBackgroundArea(), 123446.661339019)
-  TEST_REAL_SIMILAR(ptr->getBackgroundHeight(), 16657.6971368377)
+  ptr->estimateBackground(chromatogram, chrom_left_it, chrom_right_it, peak_apex_pos, background_area, background_height);
+  TEST_REAL_SIMILAR(background_area, 123446.661339019)
+  TEST_REAL_SIMILAR(background_height, 16657.6971368377)
 
   params.setValue("baseline_type", BASELINE_TYPE_VERTICALDIVISION);
   params.setValue("integration_type", INTEGRATION_TYPE_INTENSITYSUM);
   ptr->setParameters(params);
-  ptr->estimateBackground(chromatogram, left, right);
-  TEST_REAL_SIMILAR(ptr->getBackgroundArea(), 50217)
-  TEST_REAL_SIMILAR(ptr->getBackgroundHeight(), 16657.6971368377)
+  ptr->estimateBackground(chromatogram, chrom_left_it, chrom_right_it, peak_apex_pos, background_area, background_height);
+  TEST_REAL_SIMILAR(background_area, 50217)
+  TEST_REAL_SIMILAR(background_height, 16657.6971368377)
 
   params.setValue("baseline_type", BASELINE_TYPE_BASETOBASE);
   params.setValue("integration_type", INTEGRATION_TYPE_TRAPEZOID);
   ptr->setParameters(params);
-  ptr->estimateBackground(chromatogram, left, right);
-  TEST_REAL_SIMILAR(ptr->getBackgroundArea(), 1140.392865964)
-  TEST_REAL_SIMILAR(ptr->getBackgroundHeight(), 16657.6971368377)
+  ptr->estimateBackground(chromatogram, chrom_left_it, chrom_right_it, peak_apex_pos, background_area, background_height);
+  TEST_REAL_SIMILAR(background_area, 1140.392865964)
+  TEST_REAL_SIMILAR(background_height, 16657.6971368377)
 
   params.setValue("baseline_type", BASELINE_TYPE_VERTICALDIVISION);
   params.setValue("integration_type", INTEGRATION_TYPE_TRAPEZOID);
   ptr->setParameters(params);
-  ptr->estimateBackground(chromatogram, left, right);
-  TEST_REAL_SIMILAR(ptr->getBackgroundArea(), 476.606316373)
-  TEST_REAL_SIMILAR(ptr->getBackgroundHeight(), 16657.6971368377)
+  ptr->estimateBackground(chromatogram, chrom_left_it, chrom_right_it, peak_apex_pos, background_area, background_height);
+  TEST_REAL_SIMILAR(background_area, 476.606316373)
+  TEST_REAL_SIMILAR(background_height, 16657.6971368377)
 }
 END_SECTION
 
-START_SECTION(void estimateBackground(const MSChromatogram& chromatogram, MSChromatogram::ConstIterator& left, MSChromatogram::ConstIterator& right))
+START_SECTION(void estimateBackground(
+  const MSSpectrum& spectrum, const double& left, const double& right, const double& peak_apex_pos,
+  double& background_area, double& background_height
+) const)
 {
   Param params = ptr->getParameters();
+  double background_area, background_height;
+  const double peak_apex_pos = -1.0; // 2.7045; // input
 
   params.setValue("baseline_type", BASELINE_TYPE_BASETOBASE);
   params.setValue("integration_type", INTEGRATION_TYPE_INTENSITYSUM);
   ptr->setParameters(params);
-  ptr->estimateBackground(chromatogram, chrom_left_it, chrom_right_it);
-  TEST_REAL_SIMILAR(ptr->getBackgroundArea(), 123446.661339019)
-  TEST_REAL_SIMILAR(ptr->getBackgroundHeight(), 16657.6971368377)
+  ptr->estimateBackground(spectrum, left, right, peak_apex_pos, background_area, background_height);
+  TEST_REAL_SIMILAR(background_area, 123446.661339019)
+  TEST_REAL_SIMILAR(background_height, 16657.6971368377)
 
   params.setValue("baseline_type", BASELINE_TYPE_VERTICALDIVISION);
   params.setValue("integration_type", INTEGRATION_TYPE_INTENSITYSUM);
   ptr->setParameters(params);
-  ptr->estimateBackground(chromatogram, chrom_left_it, chrom_right_it);
-  TEST_REAL_SIMILAR(ptr->getBackgroundArea(), 50217)
-  TEST_REAL_SIMILAR(ptr->getBackgroundHeight(), 16657.6971368377)
+  ptr->estimateBackground(spectrum, left, right, peak_apex_pos, background_area, background_height);
+  TEST_REAL_SIMILAR(background_area, 50217)
+  TEST_REAL_SIMILAR(background_height, 16657.6971368377)
 
   params.setValue("baseline_type", BASELINE_TYPE_BASETOBASE);
   params.setValue("integration_type", INTEGRATION_TYPE_TRAPEZOID);
   ptr->setParameters(params);
-  ptr->estimateBackground(chromatogram, chrom_left_it, chrom_right_it);
-  TEST_REAL_SIMILAR(ptr->getBackgroundArea(), 1140.392865964)
-  TEST_REAL_SIMILAR(ptr->getBackgroundHeight(), 16657.6971368377)
+  ptr->estimateBackground(spectrum, left, right, peak_apex_pos, background_area, background_height);
+  TEST_REAL_SIMILAR(background_area, 1140.392865964)
+  TEST_REAL_SIMILAR(background_height, 16657.6971368377)
 
   params.setValue("baseline_type", BASELINE_TYPE_VERTICALDIVISION);
   params.setValue("integration_type", INTEGRATION_TYPE_TRAPEZOID);
   ptr->setParameters(params);
-  ptr->estimateBackground(chromatogram, chrom_left_it, chrom_right_it);
-  TEST_REAL_SIMILAR(ptr->getBackgroundArea(), 476.606316373)
-  TEST_REAL_SIMILAR(ptr->getBackgroundHeight(), 16657.6971368377)
+  ptr->estimateBackground(spectrum, left, right, peak_apex_pos, background_area, background_height);
+  TEST_REAL_SIMILAR(background_area, 476.606316373)
+  TEST_REAL_SIMILAR(background_height, 16657.6971368377)
 }
 END_SECTION
 
-START_SECTION(void estimateBackground(const MSSpectrum& spectrum, const double& left, const double& right))
+START_SECTION(void estimateBackground(
+  const MSSpectrum& spectrum, MSSpectrum::ConstIterator& left, MSSpectrum::ConstIterator& right, const double& peak_apex_pos,
+  double& background_area, double& background_height
+) const)
 {
   Param params = ptr->getParameters();
+  double background_area, background_height;
+  const double peak_apex_pos = -1.0; // 2.7045; // input
 
   params.setValue("baseline_type", BASELINE_TYPE_BASETOBASE);
   params.setValue("integration_type", INTEGRATION_TYPE_INTENSITYSUM);
   ptr->setParameters(params);
-  ptr->estimateBackground(spectrum, left, right);
-  TEST_REAL_SIMILAR(ptr->getBackgroundArea(), 123446.661339019)
-  TEST_REAL_SIMILAR(ptr->getBackgroundHeight(), 16657.6971368377)
+  ptr->estimateBackground(spectrum, spec_left_it, spec_right_it, peak_apex_pos, background_area, background_height);
+  TEST_REAL_SIMILAR(background_area, 123446.661339019)
+  TEST_REAL_SIMILAR(background_height, 16657.6971368377)
 
   params.setValue("baseline_type", BASELINE_TYPE_VERTICALDIVISION);
   params.setValue("integration_type", INTEGRATION_TYPE_INTENSITYSUM);
   ptr->setParameters(params);
-  ptr->estimateBackground(spectrum, left, right);
-  TEST_REAL_SIMILAR(ptr->getBackgroundArea(), 50217)
-  TEST_REAL_SIMILAR(ptr->getBackgroundHeight(), 16657.6971368377)
+  ptr->estimateBackground(spectrum, spec_left_it, spec_right_it, peak_apex_pos, background_area, background_height);
+  TEST_REAL_SIMILAR(background_area, 50217)
+  TEST_REAL_SIMILAR(background_height, 16657.6971368377)
 
   params.setValue("baseline_type", BASELINE_TYPE_BASETOBASE);
   params.setValue("integration_type", INTEGRATION_TYPE_TRAPEZOID);
   ptr->setParameters(params);
-  ptr->estimateBackground(spectrum, left, right);
-  TEST_REAL_SIMILAR(ptr->getBackgroundArea(), 1140.392865964)
-  TEST_REAL_SIMILAR(ptr->getBackgroundHeight(), 16657.6971368377)
+  ptr->estimateBackground(spectrum, spec_left_it, spec_right_it, peak_apex_pos, background_area, background_height);
+  TEST_REAL_SIMILAR(background_area, 1140.392865964)
+  TEST_REAL_SIMILAR(background_height, 16657.6971368377)
 
   params.setValue("baseline_type", BASELINE_TYPE_VERTICALDIVISION);
   params.setValue("integration_type", INTEGRATION_TYPE_TRAPEZOID);
   ptr->setParameters(params);
-  ptr->estimateBackground(spectrum, left, right);
-  TEST_REAL_SIMILAR(ptr->getBackgroundArea(), 476.606316373)
-  TEST_REAL_SIMILAR(ptr->getBackgroundHeight(), 16657.6971368377)
+  ptr->estimateBackground(spectrum, spec_left_it, spec_right_it, peak_apex_pos, background_area, background_height);
+  TEST_REAL_SIMILAR(background_area, 476.606316373)
+  TEST_REAL_SIMILAR(background_height, 16657.6971368377)
 }
 END_SECTION
 
-START_SECTION(void estimateBackground(const MSSpectrum& spectrum, MSSpectrum::ConstIterator& left, MSSpectrum::ConstIterator& right))
+START_SECTION(void integratePeak(const MSChromatogram& chromatogram, const double& left, const double& right, double& peak_area, double& peak_height, double& peak_apex_pos) const)
 {
   Param params = ptr->getParameters();
-
-  params.setValue("baseline_type", BASELINE_TYPE_BASETOBASE);
-  params.setValue("integration_type", INTEGRATION_TYPE_INTENSITYSUM);
-  ptr->setParameters(params);
-  ptr->estimateBackground(spectrum, spec_left_it, spec_right_it);
-  TEST_REAL_SIMILAR(ptr->getBackgroundArea(), 123446.661339019)
-  TEST_REAL_SIMILAR(ptr->getBackgroundHeight(), 16657.6971368377)
-
-  params.setValue("baseline_type", BASELINE_TYPE_VERTICALDIVISION);
-  params.setValue("integration_type", INTEGRATION_TYPE_INTENSITYSUM);
-  ptr->setParameters(params);
-  ptr->estimateBackground(spectrum, spec_left_it, spec_right_it);
-  TEST_REAL_SIMILAR(ptr->getBackgroundArea(), 50217)
-  TEST_REAL_SIMILAR(ptr->getBackgroundHeight(), 16657.6971368377)
-
-  params.setValue("baseline_type", BASELINE_TYPE_BASETOBASE);
-  params.setValue("integration_type", INTEGRATION_TYPE_TRAPEZOID);
-  ptr->setParameters(params);
-  ptr->estimateBackground(spectrum, spec_left_it, spec_right_it);
-  TEST_REAL_SIMILAR(ptr->getBackgroundArea(), 1140.392865964)
-  TEST_REAL_SIMILAR(ptr->getBackgroundHeight(), 16657.6971368377)
-
-  params.setValue("baseline_type", BASELINE_TYPE_VERTICALDIVISION);
-  params.setValue("integration_type", INTEGRATION_TYPE_TRAPEZOID);
-  ptr->setParameters(params);
-  ptr->estimateBackground(spectrum, spec_left_it, spec_right_it);
-  TEST_REAL_SIMILAR(ptr->getBackgroundArea(), 476.606316373)
-  TEST_REAL_SIMILAR(ptr->getBackgroundHeight(), 16657.6971368377)
-}
-END_SECTION
-
-START_SECTION(void integratePeak(const MSChromatogram& chromatogram, const double& left, const double& right))
-{
-  Param params = ptr->getParameters();
+  double peak_area, peak_height, peak_apex_pos;
 
   params.setValue("integration_type", INTEGRATION_TYPE_INTENSITYSUM);
   ptr->setParameters(params);
   STATUS("Integration type: intensity_sum")
-  ptr->integratePeak(chromatogram, left, right);
-  TEST_REAL_SIMILAR(ptr->getPeakArea(), 6768778)
-  TEST_REAL_SIMILAR(ptr->getPeakHeight(), 966489.0)
-  TEST_REAL_SIMILAR(ptr->getPeakApexPos(), 2.7045)
+  ptr->integratePeak(chromatogram, left, right, peak_area, peak_height, peak_apex_pos);
+  TEST_REAL_SIMILAR(peak_area, 6768778)
+  TEST_REAL_SIMILAR(peak_height, 966489.0)
+  TEST_REAL_SIMILAR(peak_apex_pos, 2.7045)
 
   params.setValue("integration_type", INTEGRATION_TYPE_TRAPEZOID);
   ptr->setParameters(params);
   STATUS("Integration type: trapezoid")
-  ptr->integratePeak(chromatogram, left, right);
-  TEST_REAL_SIMILAR(ptr->getPeakArea(), 71540.2)
-  TEST_REAL_SIMILAR(ptr->getPeakHeight(), 966489.0)
-  TEST_REAL_SIMILAR(ptr->getPeakApexPos(), 2.7045)
+  ptr->integratePeak(chromatogram, left, right, peak_area, peak_height, peak_apex_pos);
+  TEST_REAL_SIMILAR(peak_area, 71540.2)
+  TEST_REAL_SIMILAR(peak_height, 966489.0)
+  TEST_REAL_SIMILAR(peak_apex_pos, 2.7045)
 
   params.setValue("integration_type", INTEGRATION_TYPE_SIMPSON);
   ptr->setParameters(params);
   STATUS("Integration type: simpson (ODD number of points)")
-  ptr->integratePeak(chromatogram, left, right);
-  TEST_REAL_SIMILAR(ptr->getPeakArea(), 71720.443144994)
-  TEST_REAL_SIMILAR(ptr->getPeakHeight(), 966489.0)
-  TEST_REAL_SIMILAR(ptr->getPeakApexPos(), 2.7045)
+  ptr->integratePeak(chromatogram, left, right, peak_area, peak_height, peak_apex_pos);
+  TEST_REAL_SIMILAR(peak_area, 71720.443144994)
+  TEST_REAL_SIMILAR(peak_height, 966489.0)
+  TEST_REAL_SIMILAR(peak_apex_pos, 2.7045)
   STATUS("Integration type: simpson (EVEN number of points)")
-  ptr->integratePeak(chromatogram, left, 3.011416667); // a lower value of "right" is passed, to have 1 less point
-  TEST_REAL_SIMILAR(ptr->getPeakArea(), 71515.0792609335)
-  TEST_REAL_SIMILAR(ptr->getPeakHeight(), 966489.0)
-  TEST_REAL_SIMILAR(ptr->getPeakApexPos(), 2.7045)
+  ptr->integratePeak(chromatogram, left, 3.011416667, peak_area, peak_height, peak_apex_pos); // a lower value of "right" is passed, to have 1 less point
+  TEST_REAL_SIMILAR(peak_area, 71515.0792609335)
+  TEST_REAL_SIMILAR(peak_height, 966489.0)
+  TEST_REAL_SIMILAR(peak_apex_pos, 2.7045)
 }
 END_SECTION
 
-START_SECTION(void integratePeak(const MSChromatogram& chromatogram, MSChromatogram::ConstIterator& left, MSChromatogram::ConstIterator& right))
+START_SECTION(void integratePeak(const MSChromatogram& chromatogram, MSChromatogram::ConstIterator& left, MSChromatogram::ConstIterator& right, double& peak_area, double& peak_height, double& peak_apex_pos) const)
 {
   Param params = ptr->getParameters();
+  double peak_area, peak_height, peak_apex_pos;
 
   params.setValue("integration_type", INTEGRATION_TYPE_INTENSITYSUM);
   ptr->setParameters(params);
   STATUS("Integration type: intensity_sum")
-  ptr->integratePeak(chromatogram, chrom_left_it, chrom_right_it);
-  TEST_REAL_SIMILAR(ptr->getPeakArea(), 6768778)
-  TEST_REAL_SIMILAR(ptr->getPeakHeight(), 966489.0)
-  TEST_REAL_SIMILAR(ptr->getPeakApexPos(), 2.7045)
+  ptr->integratePeak(chromatogram, chrom_left_it, chrom_right_it, peak_area, peak_height, peak_apex_pos);
+  TEST_REAL_SIMILAR(peak_area, 6768778)
+  TEST_REAL_SIMILAR(peak_height, 966489.0)
+  TEST_REAL_SIMILAR(peak_apex_pos, 2.7045)
 
   params.setValue("integration_type", INTEGRATION_TYPE_TRAPEZOID);
   ptr->setParameters(params);
   STATUS("Integration type: trapezoid")
-  ptr->integratePeak(chromatogram, chrom_left_it, chrom_right_it);
-  TEST_REAL_SIMILAR(ptr->getPeakArea(), 71540.2)
-  TEST_REAL_SIMILAR(ptr->getPeakHeight(), 966489.0)
-  TEST_REAL_SIMILAR(ptr->getPeakApexPos(), 2.7045)
+  ptr->integratePeak(chromatogram, chrom_left_it, chrom_right_it, peak_area, peak_height, peak_apex_pos);
+  TEST_REAL_SIMILAR(peak_area, 71540.2)
+  TEST_REAL_SIMILAR(peak_height, 966489.0)
+  TEST_REAL_SIMILAR(peak_apex_pos, 2.7045)
 
   params.setValue("integration_type", INTEGRATION_TYPE_SIMPSON);
   ptr->setParameters(params);
   STATUS("Integration type: simpson (ODD number of points)")
-  ptr->integratePeak(chromatogram, chrom_left_it, chrom_right_it);
-  TEST_REAL_SIMILAR(ptr->getPeakArea(), 71720.443144994)
-  TEST_REAL_SIMILAR(ptr->getPeakHeight(), 966489.0)
-  TEST_REAL_SIMILAR(ptr->getPeakApexPos(), 2.7045)
+  ptr->integratePeak(chromatogram, chrom_left_it, chrom_right_it, peak_area, peak_height, peak_apex_pos);
+  TEST_REAL_SIMILAR(peak_area, 71720.443144994)
+  TEST_REAL_SIMILAR(peak_height, 966489.0)
+  TEST_REAL_SIMILAR(peak_apex_pos, 2.7045)
   STATUS("Integration type: simpson (EVEN number of points)")
   MSChromatogram::ConstIterator chrom_right_it_less = chrom_right_it - 1;
-  ptr->integratePeak(chromatogram, chrom_left_it, chrom_right_it_less); // a lower value of "right" is passed, to have 1 less point
-  TEST_REAL_SIMILAR(ptr->getPeakArea(), 71515.0792609335)
-  TEST_REAL_SIMILAR(ptr->getPeakHeight(), 966489.0)
-  TEST_REAL_SIMILAR(ptr->getPeakApexPos(), 2.7045)
+  ptr->integratePeak(chromatogram, chrom_left_it, chrom_right_it_less, peak_area, peak_height, peak_apex_pos); // a lower value of "right" is passed, to have 1 less point
+  TEST_REAL_SIMILAR(peak_area, 71515.0792609335)
+  TEST_REAL_SIMILAR(peak_height, 966489.0)
+  TEST_REAL_SIMILAR(peak_apex_pos, 2.7045)
 }
 END_SECTION
 
-START_SECTION(void integratePeak(const MSSpectrum& spectrum, const double& left, const double& right))
+START_SECTION(void integratePeak(const MSSpectrum& spectrum, const double& left, const double& right, double& peak_area, double& peak_height, double& peak_apex_pos) const)
 {
   Param params = ptr->getParameters();
+  double peak_area, peak_height, peak_apex_pos;
 
   params.setValue("integration_type", INTEGRATION_TYPE_INTENSITYSUM);
   ptr->setParameters(params);
   STATUS("Integration type: intensity_sum")
-  ptr->integratePeak(spectrum, left, right);
-  TEST_REAL_SIMILAR(ptr->getPeakArea(), 6768778)
-  TEST_REAL_SIMILAR(ptr->getPeakHeight(), 966489.0)
-  TEST_REAL_SIMILAR(ptr->getPeakApexPos(), 2.7045)
+  ptr->integratePeak(spectrum, left, right, peak_area, peak_height, peak_apex_pos);
+  TEST_REAL_SIMILAR(peak_area, 6768778)
+  TEST_REAL_SIMILAR(peak_height, 966489.0)
+  TEST_REAL_SIMILAR(peak_apex_pos, 2.7045)
 
   params.setValue("integration_type", INTEGRATION_TYPE_TRAPEZOID);
   ptr->setParameters(params);
   STATUS("Integration type: trapezoid")
-  ptr->integratePeak(spectrum, left, right);
-  TEST_REAL_SIMILAR(ptr->getPeakArea(), 71540.2)
-  TEST_REAL_SIMILAR(ptr->getPeakHeight(), 966489.0)
-  TEST_REAL_SIMILAR(ptr->getPeakApexPos(), 2.7045)
+  ptr->integratePeak(spectrum, left, right, peak_area, peak_height, peak_apex_pos);
+  TEST_REAL_SIMILAR(peak_area, 71540.2)
+  TEST_REAL_SIMILAR(peak_height, 966489.0)
+  TEST_REAL_SIMILAR(peak_apex_pos, 2.7045)
 
   params.setValue("integration_type", INTEGRATION_TYPE_SIMPSON);
   ptr->setParameters(params);
   STATUS("Integration type: simpson (ODD number of points)")
-  ptr->integratePeak(spectrum, left, right);
-  TEST_REAL_SIMILAR(ptr->getPeakArea(), 71720.443144994)
-  TEST_REAL_SIMILAR(ptr->getPeakHeight(), 966489.0)
-  TEST_REAL_SIMILAR(ptr->getPeakApexPos(), 2.7045)
+  ptr->integratePeak(spectrum, left, right, peak_area, peak_height, peak_apex_pos);
+  TEST_REAL_SIMILAR(peak_area, 71720.443144994)
+  TEST_REAL_SIMILAR(peak_height, 966489.0)
+  TEST_REAL_SIMILAR(peak_apex_pos, 2.7045)
   STATUS("Integration type: simpson (EVEN number of points)")
-  ptr->integratePeak(spectrum, left, 3.011416667); // a lower value of "right" is passed, to have 1 less point
-  TEST_REAL_SIMILAR(ptr->getPeakArea(), 71515.0792609335)
-  TEST_REAL_SIMILAR(ptr->getPeakHeight(), 966489.0)
-  TEST_REAL_SIMILAR(ptr->getPeakApexPos(), 2.7045)
+  ptr->integratePeak(spectrum, left, 3.011416667, peak_area, peak_height, peak_apex_pos); // a lower value of "right" is passed, to have 1 less point
+  TEST_REAL_SIMILAR(peak_area, 71515.0792609335)
+  TEST_REAL_SIMILAR(peak_height, 966489.0)
+  TEST_REAL_SIMILAR(peak_apex_pos, 2.7045)
 }
 END_SECTION
 
-START_SECTION(void integratePeak(const MSSpectrum& spectrum, MSSpectrum::ConstIterator& left, MSSpectrum::ConstIterator& right))
+START_SECTION(void integratePeak(const MSSpectrum& spectrum, MSSpectrum::ConstIterator& left, MSSpectrum::ConstIterator& right, double& peak_area, double& peak_height, double& peak_apex_pos) const)
 {
   Param params = ptr->getParameters();
+  double peak_area, peak_height, peak_apex_pos;
 
   params.setValue("integration_type", INTEGRATION_TYPE_INTENSITYSUM);
   ptr->setParameters(params);
   STATUS("Integration type: intensity_sum")
-  ptr->integratePeak(spectrum, spec_left_it, spec_right_it);
-  TEST_REAL_SIMILAR(ptr->getPeakArea(), 6768778)
-  TEST_REAL_SIMILAR(ptr->getPeakHeight(), 966489.0)
-  TEST_REAL_SIMILAR(ptr->getPeakApexPos(), 2.7045)
+  ptr->integratePeak(spectrum, spec_left_it, spec_right_it, peak_area, peak_height, peak_apex_pos);
+  TEST_REAL_SIMILAR(peak_area, 6768778)
+  TEST_REAL_SIMILAR(peak_height, 966489.0)
+  TEST_REAL_SIMILAR(peak_apex_pos, 2.7045)
 
   params.setValue("integration_type", INTEGRATION_TYPE_TRAPEZOID);
   ptr->setParameters(params);
   STATUS("Integration type: trapezoid")
-  ptr->integratePeak(spectrum, spec_left_it, spec_right_it);
-  TEST_REAL_SIMILAR(ptr->getPeakArea(), 71540.2)
-  TEST_REAL_SIMILAR(ptr->getPeakHeight(), 966489.0)
-  TEST_REAL_SIMILAR(ptr->getPeakApexPos(), 2.7045)
+  ptr->integratePeak(spectrum, spec_left_it, spec_right_it, peak_area, peak_height, peak_apex_pos);
+  TEST_REAL_SIMILAR(peak_area, 71540.2)
+  TEST_REAL_SIMILAR(peak_height, 966489.0)
+  TEST_REAL_SIMILAR(peak_apex_pos, 2.7045)
 
   params.setValue("integration_type", INTEGRATION_TYPE_SIMPSON);
   ptr->setParameters(params);
   STATUS("Integration type: simpson (ODD number of points)")
-  ptr->integratePeak(spectrum, spec_left_it, spec_right_it);
-  TEST_REAL_SIMILAR(ptr->getPeakArea(), 71720.443144994)
-  TEST_REAL_SIMILAR(ptr->getPeakHeight(), 966489.0)
-  TEST_REAL_SIMILAR(ptr->getPeakApexPos(), 2.7045)
+  ptr->integratePeak(spectrum, spec_left_it, spec_right_it, peak_area, peak_height, peak_apex_pos);
+  TEST_REAL_SIMILAR(peak_area, 71720.443144994)
+  TEST_REAL_SIMILAR(peak_height, 966489.0)
+  TEST_REAL_SIMILAR(peak_apex_pos, 2.7045)
   STATUS("Integration type: simpson (EVEN number of points)")
   MSSpectrum::ConstIterator spec_right_it_less = spec_right_it - 1;
-  ptr->integratePeak(spectrum, spec_left_it, spec_right_it_less); // a lower value of "right" is passed, to have 1 less point
-  TEST_REAL_SIMILAR(ptr->getPeakArea(), 71515.0792609335)
-  TEST_REAL_SIMILAR(ptr->getPeakHeight(), 966489.0)
-  TEST_REAL_SIMILAR(ptr->getPeakApexPos(), 2.7045)
+  ptr->integratePeak(spectrum, spec_left_it, spec_right_it_less, peak_area, peak_height, peak_apex_pos); // a lower value of "right" is passed, to have 1 less point
+  TEST_REAL_SIMILAR(peak_area, 71515.0792609335)
+  TEST_REAL_SIMILAR(peak_height, 966489.0)
+  TEST_REAL_SIMILAR(peak_apex_pos, 2.7045)
 }
 END_SECTION
 
-START_SECTION(void calculatePeakShapeMetrics(const MSChromatogram& chromatogram, const double& left, const double& right))
+START_SECTION(void calculatePeakShapeMetrics(const MSChromatogram& chromatogram, const double& left, const double& right, const double& peak_height, const double& peak_apex_pos, PeakShapeMetrics& psm) const)
 {
-  ptr->calculatePeakShapeMetrics(chromatogram, left, right);
-  PeakIntegrator::PeakShapeMetrics psm = ptr->getPeakShapeMetrics();
+  const double peak_height = 966489.0; // 0.0;
+  const double peak_apex_pos = 2.7045;
+  PeakIntegrator::PeakShapeMetrics psm;
+  ptr->calculatePeakShapeMetrics(chromatogram, left, right, peak_height, peak_apex_pos, psm);
   TEST_REAL_SIMILAR(psm.width_at_5, 0.231263425125414)
   TEST_REAL_SIMILAR(psm.width_at_10, 0.134762234301732)
   TEST_REAL_SIMILAR(psm.width_at_50, 0.0595791540757924)
@@ -449,10 +450,12 @@ START_SECTION(void calculatePeakShapeMetrics(const MSChromatogram& chromatogram,
 }
 END_SECTION
 
-START_SECTION(void calculatePeakShapeMetrics(const MSChromatogram& chromatogram, MSChromatogram::ConstIterator& left, MSChromatogram::ConstIterator& right))
+START_SECTION(void calculatePeakShapeMetrics(const MSChromatogram& chromatogram, MSChromatogram::ConstIterator& left, MSChromatogram::ConstIterator& right, double& peak_height, double& peak_apex_pos, PeakShapeMetrics& psm) const)
 {
-  ptr->calculatePeakShapeMetrics(chromatogram, chrom_left_it, chrom_right_it);
-  PeakIntegrator::PeakShapeMetrics psm = ptr->getPeakShapeMetrics();
+  const double peak_height = 966489.0; // 0.0;
+  const double peak_apex_pos = 2.7045;
+  PeakIntegrator::PeakShapeMetrics psm;
+  ptr->calculatePeakShapeMetrics(chromatogram, chrom_left_it, chrom_right_it, peak_height, peak_apex_pos, psm);
   TEST_REAL_SIMILAR(psm.width_at_5, 0.231263425125414)
   TEST_REAL_SIMILAR(psm.width_at_10, 0.134762234301732)
   TEST_REAL_SIMILAR(psm.width_at_50, 0.0595791540757924)
@@ -472,10 +475,12 @@ START_SECTION(void calculatePeakShapeMetrics(const MSChromatogram& chromatogram,
 }
 END_SECTION
 
-START_SECTION(void calculatePeakShapeMetrics(const MSSpectrum& spectrum, const double& left, const double& right))
+START_SECTION(void calculatePeakShapeMetrics(const MSSpectrum& spectrum, const double& left, const double& right, const double& peak_height, const double& peak_apex_pos, PeakShapeMetrics& psm) const)
 {
-  ptr->calculatePeakShapeMetrics(spectrum, left, right);
-  PeakIntegrator::PeakShapeMetrics psm = ptr->getPeakShapeMetrics();
+  const double peak_height = 966489.0; // 0.0;
+  const double peak_apex_pos = 2.7045;
+  PeakIntegrator::PeakShapeMetrics psm;
+  ptr->calculatePeakShapeMetrics(spectrum, left, right, peak_height, peak_apex_pos, psm);
   TEST_REAL_SIMILAR(psm.width_at_5, 0.231263425125414)
   TEST_REAL_SIMILAR(psm.width_at_10, 0.134762234301732)
   TEST_REAL_SIMILAR(psm.width_at_50, 0.0595791540757924)
@@ -495,10 +500,12 @@ START_SECTION(void calculatePeakShapeMetrics(const MSSpectrum& spectrum, const d
 }
 END_SECTION
 
-START_SECTION(void calculatePeakShapeMetrics(const MSSpectrum& spectrum, MSSpectrum::ConstIterator& left, MSSpectrum::ConstIterator& right))
+START_SECTION(void calculatePeakShapeMetrics(const MSSpectrum& spectrum, MSSpectrum::ConstIterator& left, MSSpectrum::ConstIterator& right, const double& peak_height, const double& peak_apex_pos, PeakShapeMetrics& psm) const)
 {
-  ptr->calculatePeakShapeMetrics(spectrum, spec_left_it, spec_right_it);
-  PeakIntegrator::PeakShapeMetrics psm = ptr->getPeakShapeMetrics();
+  const double peak_height = 966489.0; // 0.0;
+  const double peak_apex_pos = 2.7045;
+  PeakIntegrator::PeakShapeMetrics psm;
+  ptr->calculatePeakShapeMetrics(spectrum, spec_left_it, spec_right_it, peak_height, peak_apex_pos, psm);
   TEST_REAL_SIMILAR(psm.width_at_5, 0.231263425125414)
   TEST_REAL_SIMILAR(psm.width_at_10, 0.134762234301732)
   TEST_REAL_SIMILAR(psm.width_at_50, 0.0595791540757924)
