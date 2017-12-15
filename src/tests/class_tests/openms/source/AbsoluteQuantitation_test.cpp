@@ -47,47 +47,6 @@ using namespace std;
 
 ///////////////////////////
 
-START_TEST(AbsoluteQuantitation, "$Id$")
-
-/////////////////////////////////////////////////////////////
-
-class AbsoluteQuantitation_test : public AbsoluteQuantitation
-{
-  public :
-
-    int jackknifeOutlierCandidate_(const std::vector<AbsoluteQuantitationStandards::featureConcentration>& component_concentrations,
-      const String & feature_name,
-      const String & transformation_model,
-      const Param & transformation_model_params)
-    {
-      return AbsoluteQuantitation::jackknifeOutlierCandidate_(component_concentrations,
-        feature_name,
-        transformation_model,
-        transformation_model_params);
-    }
-
-    int residualOutlierCandidate_(const std::vector<AbsoluteQuantitationStandards::featureConcentration>& component_concentrations,
-      const String & feature_name,
-      const String & transformation_model,
-      const Param & transformation_model_params)
-    {
-      return AbsoluteQuantitation::residualOutlierCandidate_(component_concentrations,
-        feature_name,
-        transformation_model,
-        transformation_model_params);
-    }
-
-    std::vector<AbsoluteQuantitationStandards::featureConcentration> extractComponents_(
-      const std::vector<AbsoluteQuantitationStandards::featureConcentration> & component_concentrations,
-      std::vector<size_t> component_concentrations_indices)
-    {
-      return AbsoluteQuantitation::extractComponents_(
-        component_concentrations,
-        component_concentrations_indices);
-    }
-
-};
-
 std::vector<AbsoluteQuantitationStandards::featureConcentration> make_serL_standards()
 {
   // TEST 1: ser-L
@@ -187,6 +146,49 @@ std::vector<AbsoluteQuantitationStandards::featureConcentration> make_atp_standa
 
   return component_concentrations;
 }
+
+/////////////////////////////////////////////////////////////
+
+START_TEST(AbsoluteQuantitation, "$Id$")
+
+/////////////////////////////////////////////////////////////
+
+class AbsoluteQuantitation_test : public AbsoluteQuantitation
+{
+  public :
+
+    int jackknifeOutlierCandidate_(const std::vector<AbsoluteQuantitationStandards::featureConcentration>& component_concentrations,
+      const String & feature_name,
+      const String & transformation_model,
+      const Param & transformation_model_params)
+    {
+      return AbsoluteQuantitation::jackknifeOutlierCandidate_(component_concentrations,
+        feature_name,
+        transformation_model,
+        transformation_model_params);
+    }
+
+    int residualOutlierCandidate_(const std::vector<AbsoluteQuantitationStandards::featureConcentration>& component_concentrations,
+      const String & feature_name,
+      const String & transformation_model,
+      const Param & transformation_model_params)
+    {
+      return AbsoluteQuantitation::residualOutlierCandidate_(component_concentrations,
+        feature_name,
+        transformation_model,
+        transformation_model_params);
+    }
+
+    std::vector<AbsoluteQuantitationStandards::featureConcentration> extractComponents_(
+      const std::vector<AbsoluteQuantitationStandards::featureConcentration> & component_concentrations,
+      std::vector<size_t> component_concentrations_indices)
+    {
+      return AbsoluteQuantitation::extractComponents_(
+        component_concentrations,
+        component_concentrations_indices);
+    }
+
+};
 
 /////////////////////////////////////////////////////////////
 
@@ -613,7 +615,7 @@ START_SECTION((void optimizeCalibrationCurveIterative(
 
 END_SECTION
 
-START_SECTION(void optimizeCalibrationCurves(AbsoluteQuantitationStandards::components_to_concentrations & components_concentrations))
+START_SECTION((void optimizeCalibrationCurves(AbsoluteQuantitationStandards::components_to_concentrations & components_concentrations)))
   
   AbsoluteQuantitation absquant;
 
