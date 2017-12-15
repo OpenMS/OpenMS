@@ -637,7 +637,7 @@ namespace OpenMS
         std::vector<double> biases;
         double correlation_coefficient = 0.0;
         optimizeCalibrationCurveIterative(
-          component_concentrations[quant_method.first],
+          components_concentrations[quant_method.first],
           quant_method.getFeatureName(),
           quant_method.getTransformationModel(),
           quant_method.getTransformationModelParams(),
@@ -649,16 +649,16 @@ namespace OpenMS
         quant_method.second.setCorrelationCoefficient(correlation_coefficient);
 
         quant_method.second.setLLOQ(std::min_element(
-          std::begin(component_concentrations[quant_method.first]),
-          std::end(component_concentrations[quant_method.first])));
+          std::begin(components_concentrations[quant_method.first]),
+          std::end(components_concentrations[quant_method.first])));
 
         quant_method.second.setULOQ(std::max_element(
-          std::begin(component_concentrations[quant_method.first]),
-          std::end(component_concentrations[quant_method.first])));
+          std::begin(components_concentrations[quant_method.first]),
+          std::end(components_concentrations[quant_method.first])));
 
         quant_method.second.setTransformationModelParams(optimized_params);
 
-        quant_method.second.setNPoints(component_concentrations[quant_method.first].size());
+        quant_method.second.setNPoints(components_concentrations[quant_method.first].size());
       }
       else if (optimization_method_ != "iterative")
       {

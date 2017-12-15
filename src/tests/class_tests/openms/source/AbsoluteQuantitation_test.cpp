@@ -592,7 +592,7 @@ START_SECTION((void optimizeCalibrationCurveIterative(
     optimized_params);
 
   TEST_REAL_SIMILAR(component_concentrations[0].actual_concentration, 0.02);
-  TEST_REAL_SIMILAR(component_concentrations[8].actual_concentration, 8.);
+  TEST_REAL_SIMILAR(component_concentrations[8].actual_concentration, 8.0);
   TEST_REAL_SIMILAR(optimized_params.getValue("slope"), -0.95799683);
   TEST_REAL_SIMILAR(optimized_params.getValue("intercept"), 1.047543387);
 
@@ -664,15 +664,15 @@ START_SECTION(void optimizeCalibrationCurves(AbsoluteQuantitationStandards::comp
 
   absquant.optimizeCalibrationCurves(components_concentrations);
 
-  TEST_REAL_SIMILAR(component_concentrations["ser-L.ser-L_1.Light"][0].actual_concentration, 0.02);
-  TEST_REAL_SIMILAR(component_concentrations["ser-L.ser-L_1.Light"][8].actual_concentration, 0.8);
-  TEST_REAL_SIMILAR(absquant.quant_methods_["ser-L.ser-L_1.Light"].getTransformationModelParams().getValue("slope"), -0.623040824);
-  TEST_REAL_SIMILAR(absquant.quant_methods_["ser-L.ser-L_1.Light"].getTransformationModelParams().getValue("intercept"), -0.36130172586); 
+  TEST_REAL_SIMILAR(component_concentrations["ser-L.ser-L_1.Light"][0].actual_concentration, 0.04);
+  TEST_REAL_SIMILAR(component_concentrations["ser-L.ser-L_1.Light"][8].actual_concentration, 40.0);
+  TEST_REAL_SIMILAR(absquant.quant_methods_["ser-L.ser-L_1.Light"].getTransformationModelParams().getValue("slope"), -0.9011392589);
+  TEST_REAL_SIMILAR(absquant.quant_methods_["ser-L.ser-L_1.Light"].getTransformationModelParams().getValue("intercept"), -1.87018507); 
 
   TEST_REAL_SIMILAR(component_concentrations["amp.amp_1.Light"][0].actual_concentration, 0.02);
-  TEST_REAL_SIMILAR(component_concentrations["amp.amp_1.Light"][8].actual_concentration, 0.8);
-  TEST_REAL_SIMILAR(absquant.quant_methods_["amp.amp_1.Light"].getTransformationModelParams().getValue("slope"), -0.623040824);
-  TEST_REAL_SIMILAR(absquant.quant_methods_["amp.amp_1.Light"].getTransformationModelParams().getValue("intercept"), -0.36130172586); 
+  TEST_REAL_SIMILAR(component_concentrations["amp.amp_1.Light"][8].actual_concentration, 8.0);
+  TEST_REAL_SIMILAR(absquant.quant_methods_["amp.amp_1.Light"].getTransformationModelParams().getValue("slope"), -0.95799683);
+  TEST_REAL_SIMILAR(absquant.quant_methods_["amp.amp_1.Light"].getTransformationModelParams().getValue("intercept"), 1.047543387); 
 
   TEST_REAL_SIMILAR(component_concentrations["atp.atp_1.Light"][0].actual_concentration, 0.02);
   TEST_REAL_SIMILAR(component_concentrations["atp.atp_1.Light"][8].actual_concentration, 0.8);
