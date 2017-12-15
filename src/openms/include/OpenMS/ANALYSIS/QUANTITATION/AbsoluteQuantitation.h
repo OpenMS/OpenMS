@@ -189,8 +189,6 @@ public:
       @param transformation_model model used to fit the calibration points
       @param transformation_model_params parameters used by the transformation_model
       @param optimized_params optimized parameters
-      @param correlation_coefficient optimized Pearson's R
-      @param biases optimized biases of the calibration points
 
       @exception Exception::UnableToFit
     */ 
@@ -199,9 +197,7 @@ public:
       const String & feature_name,
       const String & transformation_model,
       const Param & transformation_model_params,
-      Param & optimized_params,
-      double & correlation_coefficient,
-      std::vector<double> & biases);
+      Param & optimized_params);
         
     /**
       @brief This function optimizes the parameters of the calibration for a 

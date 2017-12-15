@@ -412,9 +412,7 @@ namespace OpenMS
     const String & feature_name,
     const String & transformation_model,
     const Param & transformation_model_params,
-    Param & optimized_params,
-    double & correlation_coefficient,
-    std::vector<double> & biases)
+    Param & optimized_params)
   {
 
     std::vector<AbsoluteQuantitationStandards::featureConcentration>::const_iterator component_start_it;
@@ -463,8 +461,8 @@ namespace OpenMS
         optimized_params);
         
       // calculate the R2 and bias
-      // std::vector<double> biases; // not needed (method parameters)
-      // double correlation_coefficient = 0.0; // not needed (method parameters)
+      std::vector<double> biases; // not needed (method parameters)
+      double correlation_coefficient = 0.0; // not needed (method parameters)
       calculateBiasAndR(
         component_concentrations_sub,
         feature_name,
@@ -518,7 +516,7 @@ namespace OpenMS
       }
 
       //DEBUG
-      std::cout << "R2 = " << std::to_string(correlation_coefficient) << ".  "
+      std::cout << "R = " << std::to_string(correlation_coefficient) << ".  "
         << "n_points = " << std::to_string(component_concentrations_sorted_indices.size()) << ".  "
         << "actual_concentration = " << std::to_string(component_concentrations_sub[pos].actual_concentration) << ".  "
         << "bias_check = " << std::to_string(bias_check) << "." << std::endl;
@@ -635,16 +633,23 @@ namespace OpenMS
       { 
         // optimize the calibraiton curve for the component
         Param optimized_params;
-        std::vector<double> biases;
-        double correlation_coefficient = 0.0;
         optimizeCalibrationCurveIterative(
           components_concentrations[quant_method.first],
           quant_method.second.getFeatureName(),
           quant_method.second.getTransformationModel(),
           quant_method.second.getTransformationModelParams(),
+          optimized_params);
+
+        // calculate the R2 and bias
+        std::vector<double> biases;
+        double correlation_coefficient = 0.0;
+        calculateBiasAndR(
+          components_concentrations[quant_method.first],
+          quant_method.second.getFeatureName(),
+          quant_method.second.getTransformationModel(),
           optimized_params,
-          correlation_coefficient,
-          biases);
+          biases,
+          correlation_coefficient);
 
         // record the updated information
         quant_method.second.setCorrelationCoefficient(correlation_coefficient);
