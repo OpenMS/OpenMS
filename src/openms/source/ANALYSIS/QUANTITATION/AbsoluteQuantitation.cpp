@@ -643,7 +643,7 @@ namespace OpenMS
           quant_method.second.getTransformationModelParams(),
           optimized_params,
           correlation_coefficient,
-          baises);
+          biases);
 
         // record the updated information
         quant_method.second.setCorrelationCoefficient(correlation_coefficient);
