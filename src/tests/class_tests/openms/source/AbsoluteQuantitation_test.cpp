@@ -588,7 +588,7 @@ START_SECTION((void optimizeCalibrationCurveIterative(
   TEST_REAL_SIMILAR(optimized_params.getValue("intercept"), -1.870185076);
 
   // TEST 2: amp
-  component_concentrations = make_amp_standards()
+  component_concentrations = make_amp_standards();
 
   absquant.optimizeCalibrationCurveIterative(
     component_concentrations,
@@ -603,7 +603,7 @@ START_SECTION((void optimizeCalibrationCurveIterative(
   TEST_REAL_SIMILAR(optimized_params.getValue("intercept"), 1.047543387);
 
   // TEST 3: atp
-  component_concentrations = make_atp_standards()
+  component_concentrations = make_atp_standards();
 
   absquant.optimizeCalibrationCurveIterative(
     component_concentrations,
