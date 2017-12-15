@@ -110,14 +110,6 @@ public:
     std::vector<AbsoluteQuantitationMethod> getQuantMethods();
  
     /**
-      @brief components_concentrations setter.  A list of AbsoluteQuantitationStandards::featureConcentration structs are given as input
-        and a map is constructed based on their component_name member.
-
-      @param feature_concentrations A list of AbsoluteQuantitationStandards::featureConcentration structs
-    */ 
-    void setComponentConcentrations(const std::vector<AbsoluteQuantitationStandards::featureConcentration>& feature_concentrations);
- 
-    /**
       @brief This function calculates the ratio between features.
 
       @param component_1 component of the numerator
@@ -219,7 +211,7 @@ public:
         components_concentrations will reflect the optimal set of points for downstream QC/QA.
 
     */ 
-    void optimizeCalibrationCurves(AbsoluteQuantitationStandards::components_to_concentrations & components_concentrations);    
+    void optimizeCalibrationCurves(std::map<String,std::vector<AbsoluteQuantitationStandards::featureConcentration>> & components_concentrations);    
 
     /**
       @brief This function applies the calibration curve to the component.
@@ -326,9 +318,6 @@ private:
     // members
     /// map between components and quantitation methods
     std::map<String, AbsoluteQuantitationMethod> quant_methods_;
-
-    /// map between components and known concentrations (the calibrators) [NOT NEEDED!]
-    std::map<String, AbsoluteQuantitationStandards::featureConcentration> components_concentrations_;
 
   };
 

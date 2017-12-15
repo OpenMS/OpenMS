@@ -128,18 +128,6 @@ namespace OpenMS
     return quant_methods;
   }
 
-
-  //[NOT NEEDED!]
-  void AbsoluteQuantitation::setComponentConcentrations(const std::vector<AbsoluteQuantitationStandards::featureConcentration>& feature_concentrations)
-  {
-    components_concentrations_.clear();
-    for (size_t i = 0; i < feature_concentrations.size(); i++)
-    {
-      String component_name = feature_concentrations[i].component_name;
-      components_concentrations_[component_name] = feature_concentrations[i];
-    }
-  }
-
   double AbsoluteQuantitation::calculateRatio(const Feature & component_1, const Feature & component_2, const String & feature_name)
   {
     double ratio = 0.0;
@@ -636,7 +624,7 @@ namespace OpenMS
     return max_element(biases.begin(), biases.end()) - biases.begin();
   }
 
-  void AbsoluteQuantitation::optimizeCalibrationCurves(AbsoluteQuantitationStandards::components_to_concentrations & components_concentrations)
+  void AbsoluteQuantitation::optimizeCalibrationCurves(std::map<String, std::vector<AbsoluteQuantitationStandards::featureConcentration>> & components_concentrations & components_concentrations)
   {
 
     for (auto const& quant_method : quant_methods_)
@@ -658,13 +646,17 @@ namespace OpenMS
 
         // record the updated information
         quant_method.second.setCorrelationCoefficient(correlation_coefficient);
+
         quant_method.second.setLLOQ(std::min_element(
           std::begin(component_concentrations[quant_method.first]),
           std::end(component_concentrations[quant_method.first])));
+
         quant_method.second.setULOQ(std::max_element(
           std::begin(component_concentrations[quant_method.first]),
           std::end(component_concentrations[quant_method.first])));
+
         quant_method.second.setTransformationModelParams(optimized_params);
+
         quant_method.second.setNPoints(component_concentrations[quant_method.first].size());
         
       }

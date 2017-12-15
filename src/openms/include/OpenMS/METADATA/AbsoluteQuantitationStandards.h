@@ -36,8 +36,6 @@
 #define OPENMS_METADATA_ABSOLUTEQUANTITATIONSTANDARDS_H
 
 #include <OpenMS/config.h>
-
-#include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 
 #include <cstddef> // for size_t & ptrdiff_t
@@ -55,8 +53,7 @@ namespace OpenMS
     of the components in the run are required to build a calibration curve that is
     required for absolute quantitation.
   */
-  class OPENMS_DLLAPI AbsoluteQuantitationStandards :
-  public DefaultParamHandler
+  class OPENMS_DLLAPI AbsoluteQuantitationStandards
   {
 
 public:    
@@ -104,7 +101,7 @@ public:
          a metaValue for "run_id"
  
      */ 
-     void mapConcentrationsToComponents(const std::vector<runConcentrations> & run_concentrations,
+     void mapConcentrationsToComponents(const std::vector<runConcentration> & run_concentrations,
       const FeatureMap & features);
 
     // members
