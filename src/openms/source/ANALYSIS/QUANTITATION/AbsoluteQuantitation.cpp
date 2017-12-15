@@ -638,27 +638,19 @@ namespace OpenMS
         double correlation_coefficient = 0.0;
         optimizeCalibrationCurveIterative(
           components_concentrations[quant_method.first],
-          quant_method.getFeatureName(),
-          quant_method.getTransformationModel(),
-          quant_method.getTransformationModelParams(),
+          quant_method.second->getFeatureName(),
+          quant_method.second->getTransformationModel(),
+          quant_method.second->getTransformationModelParams(),
           optimized_params,
           correlation_coefficient,
           baises);
 
         // record the updated information
-        quant_method.second.setCorrelationCoefficient(correlation_coefficient);
-
-        quant_method.second.setLLOQ(std::min_element(
-          std::begin(components_concentrations[quant_method.first]),
-          std::end(components_concentrations[quant_method.first])));
-
-        quant_method.second.setULOQ(std::max_element(
-          std::begin(components_concentrations[quant_method.first]),
-          std::end(components_concentrations[quant_method.first])));
-
-        quant_method.second.setTransformationModelParams(optimized_params);
-
-        quant_method.second.setNPoints(components_concentrations[quant_method.first].size());
+        quant_method.second->setCorrelationCoefficient(correlation_coefficient);
+        quant_method.second->setLLOQ(components_concentrations[quant_method.first][0].actual_concentration); //due to ascending sort
+        quant_method.second->setULOQ(components_concentrations[quant_method.first][components_concentrations[quant_method.first].size()-1].actual_concentration); //due to ascending sort
+        quant_method.second->setTransformationModelParams(optimized_params);
+        quant_method.second->setNPoints(components_concentrations[quant_method.first].size());
       }
       else if (optimization_method_ != "iterative")
       {
