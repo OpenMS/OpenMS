@@ -41,6 +41,7 @@
 #include <OpenMS/CONCEPT/VersionInfo.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/DATASTRUCTURES/StringUtils.h>
+#include <OpenMS/CHEMISTRY/ModificationsDB.h>
 
 #include <boost/assign/list_of.hpp>
 #include <iostream>
@@ -64,7 +65,8 @@ namespace OpenMS
     std::map< String, UInt> XQuestResultXMLHandler::months = boost::assign::map_list_of("Jan", 1)
         ("Feb", 2) ("Mar", 3) ("Apr", 4) ("May", 5) ("Jun", 6) ("Jul", 7) ("Aug", 8) ("Sep", 9) ("Oct", 10) ("Nov", 11)("Dec", 12);
 
-    const String XQuestResultXMLHandler::decoy_string = "decoy_";
+    // initialize default value
+    String decoy_string_ = "decoy_";
 
     // reader
     XQuestResultXMLHandler::XQuestResultXMLHandler(const String &filename,
@@ -94,8 +96,8 @@ namespace OpenMS
       // Fetch the enzymes database
       this->enzymes_db_ = ProteaseDB::getInstance();
 
-      // Produce some warnings that are associated with the reading of xQuest result files
-      LOG_WARN << "WARNING: Fixed modifications are not available in the xQuest input file and will thus be not present in the loaded data!\n" << std::endl;
+      // TODO Produce some warnings that are associated with the reading of xQuest result files
+      // LOG_WARN << "WARNING: Fixed modifications are not available in the xQuest input file and will thus be not present in the loaded data!\n" << std::endl;
     }
 
     // writer
@@ -122,7 +124,7 @@ namespace OpenMS
     {
       StringList xquest_datetime_string_split;
       StringUtils::split(xquest_datetime_string,' ', xquest_datetime_string_split);
-      if (this->is_openproxl_)
+      if (this->is_openpepxl_)
       {
         // Example: 2017-03-17 23:04:50
         date_time.setDate(xquest_datetime_string_split[0]);
@@ -260,19 +262,18 @@ namespace OpenMS
       }
       else if (tag == "xquest_results")
       {
-        ProteinIdentification::SearchParameters search_params((*this->prot_ids_)[0].getSearchParameters());
-        //search_params.charges = ListUtils::concatenate(this->charges_, ",");
-        //search_params.setMetaValue("precursor:min_charge", this->min_precursor_charge_);
-        //search_params.setMetaValue("precursor:max_charge", this->max_precursor_charge_);
-        DoubleList monolink_masses_list(this->monolinks_masses_.size());
-        for (std::set<double>::const_iterator monolink_masses_it = this->monolinks_masses_.begin();
-             monolink_masses_it != this->monolinks_masses_.end(); ++monolink_masses_it)
+        if (!this->is_openpepxl_)
         {
-          monolink_masses_list.push_back(*monolink_masses_it);
-        }
-        search_params.setMetaValue("cross_link:mass_monolink", DataValue(monolink_masses_list));
+          ProteinIdentification::SearchParameters search_params((*this->prot_ids_)[0].getSearchParameters());
+          search_params.charges = ListUtils::concatenate(this->charges_, ",");
 
-        (*this->prot_ids_)[0].setSearchParameters(search_params);
+          // min and max searched precursor charge not written out in xQuest
+          // determination by charges in found results is not as clean, but is the best we can do
+          search_params.setMetaValue("precursor:min_charge", this->min_precursor_charge_);
+          search_params.setMetaValue("precursor:max_charge", this->max_precursor_charge_);
+
+          (*this->prot_ids_)[0].setSearchParameters(search_params);
+        }
       }
     }
 
@@ -282,9 +283,9 @@ namespace OpenMS
       // Extract meta information from the xquest_results tag
       if (tag == "xquest_results")
       {
-        // Decide whether this Block is original xQuest or OpenProXL
+        // Decide whether this Block is original xQuest or OpenPepXL
         String xquest_version = this->attributeAsString_(attributes, "xquest_version");
-        this->is_openproxl_ = xquest_version.hasSubstring("XL");
+        this->is_openpepxl_ = xquest_version.hasSubstring("OpenPepXL");
 
         // Date and Time of Search
         DateTime date_time;
@@ -295,7 +296,7 @@ namespace OpenMS
         ProteinIdentification::SearchParameters search_params;
 
         // General
-        if (this->is_openproxl_) // Enzyme via name
+        if (this->is_openpepxl_) // Enzyme via name
         {
           search_params.digestion_enzyme = dynamic_cast<const DigestionEnzymeProtein&>(*this->enzymes_db_->getEnzyme(this->attributeAsString_(attributes, "enzyme_name")));
         }
@@ -307,34 +308,130 @@ namespace OpenMS
         search_params.missed_cleavages = this->attributeAsInt_(attributes, "missed_cleavages");
         search_params.db = this->attributeAsString_(attributes, "database");
         search_params.precursor_mass_tolerance = this->attributeAsDouble_(attributes, "ms1tolerance");
-        String tolerancemeasure = this->attributeAsString_(attributes, this->is_openproxl_ ? "tolerancemeasure_ms1" : "tolerancemeasure");
-        search_params.precursor_mass_tolerance_ppm = tolerancemeasure == "ppm";
+        String tolerancemeasure_ms1 = this->attributeAsString_(attributes, this->is_openpepxl_ ? "tolerancemeasure_ms1" : "tolerancemeasure");
+        search_params.precursor_mass_tolerance_ppm = tolerancemeasure_ms1 == "ppm";
         search_params.fragment_mass_tolerance = this->attributeAsDouble_(attributes, "ms2tolerance");
         String tolerancemeasure_ms2 = this->attributeAsString_(attributes, "tolerancemeasure_ms2");
         search_params.fragment_mass_tolerance_ppm = tolerancemeasure_ms2 != "Da";
 
-        // Modifications
+        // variable Modifications
         vector< String > variable_mod_list;
         vector< String > variable_mod_split;
         StringUtils::split(this->attributeAsString_(attributes, "variable_mod"), ",", variable_mod_split);
-
-        // Oxidation of M
-        if (variable_mod_split[0] == "M")
+        if (variable_mod_split[0].size() == 1) // xQuest style mods=  "one-letter-code,mass"
         {
-          variable_mod_list.push_back("Oxidation (M)");
+          // ModificationsDB modsDB = ModificationsDB().getInstance();
+          double mod_mass = double(DataValue(variable_mod_split[1]));
+          std::vector<String> mods;
+          ModificationsDB::getInstance()->searchModificationsByDiffMonoMass(mods, mod_mass, 0.01, variable_mod_split[0]);
+          if (mods.size() > 0)
+          {
+            variable_mod_list.push_back(mods[0]);
+          }
         }
+        // fixed Modifications
+        String fixed_mod_string;
+        StringList fixed_mod_list;
+        if (this->optionalAttributeAsString_(fixed_mod_string, attributes, "fixed_mod"))
+        {
+          fixed_mod_list = ListUtils::create<String>(fixed_mod_string);
+          search_params.fixed_modifications = fixed_mod_list;
+        }
+
         search_params.variable_modifications = variable_mod_list;
+        // search_params.fixed_modifications = fixed_mod_list;
+
+        String decoy_prefix;
+        // if this info is not available, we can assume the decoy string is a prefix, since that is the standard way
+        if(!this->optionalAttributeAsString_(decoy_prefix, attributes, "decoy_prefix"))
+        {
+          decoy_prefix = "1";
+        }
+        String current_decoy_string;
+        if(this->optionalAttributeAsString_(current_decoy_string, attributes, "decoy_string"))
+        {
+          decoy_string_ = current_decoy_string;
+        }
+
+        // do some stringstream magic to turn "1" or "0" strings into booleans
+        bool decoy_prefix_bool;
+        std::istringstream is(decoy_prefix);
+        is >> decoy_prefix_bool;
 
         // Meta Values
         search_params.setMetaValue("input_decoys", DataValue(this->attributeAsString_(attributes, "database_dc")));
-        search_params.setMetaValue("decoy_prefix", DataValue(1));
-        search_params.setMetaValue("decoy_string", DataValue(XQuestResultXMLHandler::decoy_string));
+        search_params.setMetaValue("decoy_prefix", DataValue(decoy_prefix_bool));
+        search_params.setMetaValue("decoy_string", DataValue(decoy_string_));
         search_params.setMetaValue("fragment:mass_tolerance_xlinks", DataValue(this->attributeAsDouble_(attributes, "xlink_ms2tolerance")));
+        StringList monolink_masses_string = ListUtils::create<String>(this->attributeAsString_(attributes, "monolinkmw"));
+        DoubleList monolink_masses;
+        for (String monolink_string : monolink_masses_string)
+        {
+          monolink_masses.push_back(monolink_string.trim().toDouble());
+        }
+        search_params.setMetaValue("cross_link:mass_monolink", monolink_masses);
+        search_params.setMetaValue("cross_link:mass_mass", DataValue(this->attributeAsDouble_(attributes, "xlinkermw")));
+        search_params.setMetaValue("cross_link:name", DataValue(this->attributeAsString_(attributes, "crosslinkername")));
+        String iso_shift = this->attributeAsString_(attributes, "cp_isotopediff");
+        if (iso_shift.size() > 0)
+        {
+          search_params.setMetaValue("cross_link:mass_isoshift", iso_shift.toDouble());
+        }
+
+        bool ntermxlinkable;
+        std::istringstream is_nterm(this->attributeAsString_(attributes, "ntermxlinkable"));
+        is_nterm >> ntermxlinkable;
+
+        String aarequired;
+        // this->optionalAttributeAsString_(aarequired, attributes, "AArequired");
+        // older xQuest versions only allowed homobifunctional cross-linkers
+        if (this->optionalAttributeAsString_(aarequired, attributes, "AArequired"))
+        {
+          if (ntermxlinkable)
+          {
+            aarequired += ",N-term";
+          }
+          search_params.setMetaValue("cross_link:residue1", ListUtils::create<String>(aarequired));
+          search_params.setMetaValue("cross_link:residue2", ListUtils::create<String>(aarequired));
+        }
+        else
+        {
+          String aarequired1 = this->attributeAsString_(attributes, "AArequired1");
+          String aarequired2 = this->attributeAsString_(attributes, "AArequired2");
+          if (ntermxlinkable)
+          {
+            if ( !(aarequired1.hasSubstring("N-term") || aarequired2.hasSubstring("N-term")) )
+            {
+              aarequired1 += ",N-term";
+              aarequired2 += ",N-term";
+            }
+          }
+          search_params.setMetaValue("cross_link:residue1", ListUtils::create<String>(aarequired1));
+          search_params.setMetaValue("cross_link:residue2", ListUtils::create<String>(aarequired2));
+        }
+
+        if (this->is_openpepxl_)
+        {
+          String searched_charges = this->attributeAsString_(attributes, "charges");
+          search_params.charges = searched_charges;
+          IntList charge_ints = ListUtils::create<Int>(searched_charges);
+          std::sort(charge_ints.begin(), charge_ints.end());
+          Int min_charge = charge_ints[0];
+          Int max_charge = charge_ints.back();
+          search_params.setMetaValue("precursor:min_charge", min_charge);
+          search_params.setMetaValue("precursor:max_charge", max_charge);
+
+          StringList ms_run = ListUtils::create<String>(this->attributeAsString_(attributes, "run_path"));
+        }
 
         (*this->prot_ids_)[0].setSearchParameters(search_params);
       }
       else if (tag == "spectrum_search")
       {
+
+        // <spectrum_search spectrum="GUA1354-S15-A-LRRK2_DSG_A4.light.2616_GUA1354-S15-A-LRRK2_DSG_A4.heavy.2481" mz_precursor="590.556396484375" scantype="light_heavy" charge_precursor="4" Mr_precursor="2358.19648007042" rtsecscans="2231.988:2194.8258"                mzscans="590.556396484375:592.065673828125" >
+        // <spectrum_search spectrum="GUA1354-S15-A-LRRK2_DSG_A4.light.1327_GUA1354-S15-A-LRRK2_DSG_A4.heavy.1327" mz_precursor="1008.83288574219" scantype="light"       charge_precursor="3" Mr_precursor="3023.47682782626" rtsecscans="2796.68020000002:2796.68020000002" mzscans="1008.83288574219:1008.83288574219" >
+        // <spectrum_search Mr_precursor="1465.880913324" addedMass="0" apriori_pmatch_common="0.0311" apriori_pmatch_xlink="0.0658" charge_precursor="3" ionintensity_stdev="5.73" iontag_ncandidates="240" mean_ionintensity="2.28" mz_precursor="489.63479614" mzscans="489.63479614:493.6600647" ncommonions="71" nxlinkions="102" rtsecscans="2491:2477" scantype="light_heavy" spectrum="aleitner_M1012_006.c.02942.02942.3_aleitner_M1012_006.c.02913.02913.3">
 
         // Update retention time of light
         StringList rt_split;
@@ -343,20 +440,55 @@ namespace OpenMS
 
         // Update min and max precursor charge
         UInt charge_precursor = this->attributeAsInt_(attributes, "charge_precursor");
-        if (charge_precursor < this->min_precursor_charge_)
+        if (!this->is_openpepxl_)
         {
-          this->min_precursor_charge_ = charge_precursor;
+          if (charge_precursor < this->min_precursor_charge_)
+          {
+            this->min_precursor_charge_ = charge_precursor;
+          }
+          if (charge_precursor > this->max_precursor_charge_)
+          {
+            this->max_precursor_charge_ = charge_precursor;
+          }
+          this->charges_.insert(charge_precursor);
+
+          String spectrum = this->attributeAsString_(attributes, "spectrum");
+          vector<String> split_spectrum;
+
+
+          // spectrum="aleitner_M1012_006.c.02942.02942.3_aleitner_M1012_006.c.02913.02913.3"
+          // read input filename (will not contain file type this way)
+          StringUtils::split(spectrum, ".c.", split_spectrum);
+          String file_name = split_spectrum[0];
+          if (std::find(ms_run_path_.begin(), ms_run_path_.end(), file_name) == ms_run_path_.end())
+          {
+            ms_run_path_.push_back(file_name);
+          }
+          // split_spectrum.clear();
+
+          // read spectrum indices
+          vector<String> split_spectrum2;
+          vector<String> split_spectrum3;
+          StringUtils::split(split_spectrum[1], ".", split_spectrum2);
+          StringUtils::split(split_spectrum[2], ".", split_spectrum3);
+          // Size light_index = split_spectrum2[0].toInt();
+          // Size heavy_index = split_spectrum3[1].toInt();
+          spectrum_index_light_ = split_spectrum2[0].toInt();
+          spectrum_index_heavy_ = split_spectrum3[1].toInt();
+
         }
-        if (charge_precursor > this->max_precursor_charge_)
+        else
         {
-          this->max_precursor_charge_ = charge_precursor;
+          spectrum_index_light_ = this->attributeAsString_(attributes, "scan_index_light");
+          spectrum_index_heavy_ = this->attributeAsString_(attributes, "scan_index_heavy");
         }
+
       }
       else if (tag == "search_hit")
       {
         // Keep track of the charge if this hit
         UInt charge = this->attributeAsInt_(attributes, "charge");
-        this->charges_.insert(charge);
+        // this->charges_.insert(charge);
 
         this->n_hits_++;
         PeptideIdentification peptide_identification;
@@ -509,8 +641,8 @@ namespace OpenMS
               String s2 = *it2;
               s1.substitute("reverse_", "");
               s2.substitute("reverse_", "");
-              s1.substitute(XQuestResultXMLHandler::decoy_string, "");
-              s2.substitute(XQuestResultXMLHandler::decoy_string, "");
+              s1.substitute(XQuestResultXMLHandler::decoy_string_, "");
+              s2.substitute(XQuestResultXMLHandler::decoy_string_, "");
 
               this->setMetaValue_((s1.compare(s2) == 0) ? "OpenXQuest:is_intraprotein" : "OpenXQuest:is_interprotein",
                                  DataValue(), peptide_identification, peptide_hit_alpha, peptide_hit_beta);
@@ -530,8 +662,8 @@ namespace OpenMS
         }
         else if (xlink_type_string == "monolink")
         {
-          // Set the monolink mass
-          this->monolinks_masses_.insert(this->attributeAsDouble_(attributes, "xlinkermass"));
+          // TODO Set the xl_mass and xl_mod MetaValues instead
+          // this->monolinks_masses_.insert(this->attributeAsDouble_(attributes, "xlinkermass"));
 
           // xl_type
           this->setMetaValue_("xl_type", DataValue("mono-link"),peptide_identification,peptide_hit_alpha);
@@ -622,6 +754,14 @@ namespace OpenMS
       }
       fixed_mods = fixed_mods.chop(1);
 
+      String decoy_prefix = search_params.getMetaValue("decoy_prefix").toString();
+      String decoy_string = search_params.getMetaValue("decoy_string").toString();
+
+      String searched_charges = search_params.charges;
+      StringList ms_runs;
+      (*this->cpro_id_)[0].getPrimaryMSRunPath(ms_runs);
+      String ms_runs_string = ListUtils::concatenate(ms_runs, ",");
+
       os << "<xquest_results xquest_version=\"OpenPepXL 1.0\" date=\"" << timestring <<
                "\" author=\"Eugen Netz\" tolerancemeasure_ms1=\"" << precursor_mass_tolerance_unit  <<
                "\" tolerancemeasure_ms2=\"" << fragment_mass_tolerance_unit << "\" ms1tolerance=\"" << precursor_mass_tolerance <<
@@ -630,9 +770,12 @@ namespace OpenMS
                "\" monolinkmw=\"" << mono_masses << "\" database=\"" << in_fasta << "\" database_dc=\"" << in_decoy_fasta <<
                "\" xlinktypes=\"1111\" AArequired1=\"" << aarequired1 << "\" AArequired2=\"" << aarequired2 <<  "\" cp_isotopediff=\"" << cross_link_mass_iso_shift <<
                "\" enzyme_name=\"" << enzyme_name << "\" outputpath=\"" << spec_xml_name <<
-               "\" Iontag_charges_for_index=\"1\" missed_cleavages=\"" << missed_cleavages <<
+               "\" missed_cleavages=\"" << missed_cleavages <<
                "\" ntermxlinkable=\"" << ntermxlinkable << "\" CID_match2ndisotope=\"1" <<
-               "\" variable_mod=\"" << variable_mods << "\" fixed_mod=\"" << fixed_mods << "\" nocutatxlink=\"1\" xcorrdelay=\"5\" >" << std::endl;
+               "\" variable_mod=\"" << variable_mods << "\" fixed_mod=\"" << fixed_mods <<
+               "\" decoy_prefix=\"" << decoy_prefix << "\" decoy_string=\"" << decoy_string <<
+               "\" charges=\"" << searched_charges << "\" run_path=\"" << ms_runs_string <<
+               "\" nocutatxlink=\"1\">" << std::endl;
 
       String current_spectrum_light("");
       String current_spectrum_heavy("");
@@ -701,7 +844,9 @@ namespace OpenMS
 
 
           os << "<spectrum_search spectrum=\"" << spectrum_name << "\" mz_precursor=\"" << precursor_mz << "\" scantype=\"" << scantype << "\" charge_precursor=\"" << precursor_charge
-              << "\" Mr_precursor=\"" << precursor_mass <<  "\" rtsecscans=\"" << rt_scans << "\" mzscans=\"" << mz_scans << "\" >" << std::endl;
+              << "\" Mr_precursor=\"" << precursor_mass <<  "\" rtsecscans=\"" << rt_scans << "\" mzscans=\"" << mz_scans
+              << "\" scan_index_light=\"" << scan_index_light << "\" scan_index_heavy=\"" << scan_index_heavy
+              << "\" >" << std::endl;
 
           // TODO values missing, most of them probably unimportant:
           // mean_ionintensity = mean ion intensity of each MS2 spectrum
@@ -863,6 +1008,7 @@ namespace OpenMS
         // apriori_match_probs
         // apriori_match_probs_log
       }
+      os << "</spectrum_search>" << std::endl;
       os << "</xquest_results>" << std::endl;
     }
   }   // namespace Internal

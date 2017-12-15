@@ -62,9 +62,6 @@ namespace OpenMS
       // Maps String encoding month to the numeric value
       static std::map<String, UInt> months;
 
-      // Decoy string used by xQuest
-      static const String decoy_string;
-
       /// Constructor for a read-only handler for internal identification structures
       XQuestResultXMLHandler(const String & filename,
                              std::vector< std::vector< PeptideIdentification > > & pep_ids,
@@ -114,6 +111,11 @@ namespace OpenMS
       /// Progress logger
       const ProgressLogger& logger_;
 
+      // Decoy string used by xQuest
+      String decoy_string_;
+      Size spectrum_index_light_;
+      Size spectrum_index_heavy_;
+
       // Main data structures that are populated during loading the file
       std::vector< std::vector< PeptideIdentification > >* pep_ids_;
       std::vector< ProteinIdentification >* prot_ids_;
@@ -131,8 +133,8 @@ namespace OpenMS
       Size min_n_ions_per_spectrum_;
       bool load_to_peptideHit_;  // Whether Meta data of peptide identification should also be loaded to peptide hit
 
-      // Whether or not current xquest result tag comes from OpenProXL (xQuest otherwise)
-      bool is_openproxl_;
+      // Whether or not current xquest result tag comes from OpenPepXL (xQuest otherwise)
+      bool is_openpepxl_;
 
       // Set of all protein accessions that are within the ProteinHits.
       std::set< String > accessions_;
@@ -149,7 +151,10 @@ namespace OpenMS
       double rt_light_;
 
       // The masses of the Monolinks
-      std::set< double > monolinks_masses_;
+      // DoubleList monolinks_masses_;
+
+      // primary MS run path
+      StringList ms_run_path_;
 
       // The current spectrum search
       std::vector< PeptideIdentification > current_spectrum_search_;
