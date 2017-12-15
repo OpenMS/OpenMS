@@ -167,9 +167,13 @@ public:
       @param[in] chromatogram The chromatogram which contains the peak
       @param[in] left The left retention time boundary
       @param[in] right The right retention time boundary
+      @param[in] peak_apex_pos The position of the point with highest intensity
+      @param[out] background_area The background area estimation
+      @param[out] background_height The background's height
     */
     void estimateBackground(
-      const MSChromatogram& chromatogram, const double& left, const double& right, const double& peak_apex_pos,
+      const MSChromatogram& chromatogram, const double& left, const double& right,
+      const double& peak_apex_pos,
       double& background_area, double& background_height
     ) const;
 
@@ -191,9 +195,13 @@ public:
       @param[in] chromatogram The chromatogram which contains the peak
       @param[in] left The iterator to the first point
       @param[in] right The iterator to the last point
+      @param[in] peak_apex_pos The position of the point with highest intensity
+      @param[out] background_area The background area estimation
+      @param[out] background_height The background's height
     */
     void estimateBackground(
-      const MSChromatogram& chromatogram, MSChromatogram::ConstIterator& left, MSChromatogram::ConstIterator& right, const double& peak_apex_pos,
+      const MSChromatogram& chromatogram, MSChromatogram::ConstIterator& left, MSChromatogram::ConstIterator& right,
+      const double& peak_apex_pos,
       double& background_area, double& background_height
     ) const;
 
@@ -215,8 +223,15 @@ public:
       @param[in] spectrum The spectrum which contains the peak
       @param[in] left The left mass-to-charge ratio boundary
       @param[in] right The right mass-to-charge ratio boundary
+      @param[in] peak_apex_pos The position of the point with highest intensity
+      @param[out] background_area The background area estimation
+      @param[out] background_height The background's height
     */
-    void estimateBackground(const MSSpectrum& spectrum, const double& left, const double& right, const double& peak_apex_pos, double& background_area, double& background_height) const;
+    void estimateBackground(
+      const MSSpectrum& spectrum, const double& left, const double& right,
+      const double& peak_apex_pos,
+      double& background_area, double& background_height
+    ) const;
 
     /**
       @brief Estimate the background of a peak contained in a MSSpectrum.
@@ -236,8 +251,15 @@ public:
       @param[in] spectrum The spectrum which contains the peak
       @param[in] left The iterator to the first point
       @param[in] right The iterator to the last point
+      @param[in] peak_apex_pos The position of the point with highest intensity
+      @param[out] background_area The background area estimation
+      @param[out] background_height The background's height
     */
-    void estimateBackground(const MSSpectrum& spectrum, MSSpectrum::ConstIterator& left, MSSpectrum::ConstIterator& right, const double& peak_apex_pos, double& background_area, double& background_height) const;
+    void estimateBackground(
+      const MSSpectrum& spectrum, MSSpectrum::ConstIterator& left, MSSpectrum::ConstIterator& right,
+      const double& peak_apex_pos,
+      double& background_area, double& background_height
+    ) const;
 
     /**
       @brief Compute the area of a peak contained in a MSChromatogram.
@@ -252,8 +274,14 @@ public:
       @param[in] chromatogram The chromatogram which contains the peak
       @param[in] left The left retention time boundary
       @param[in] right The right retention time boundary
+      @param[out] peak_area The peak's computed area
+      @param[out] peak_height The peak's highest intensity
+      @param[out] peak_apex_pos The position of the point with highest intensity
     */
-    void integratePeak(const MSChromatogram& chromatogram, const double& left, const double& right, double& peak_area, double& peak_height, double& peak_apex_pos) const;
+    void integratePeak(
+      const MSChromatogram& chromatogram, const double& left, const double& right,
+      double& peak_area, double& peak_height, double& peak_apex_pos
+    ) const;
 
     /**
       @brief Compute the area of a peak contained in a MSChromatogram.
@@ -268,8 +296,14 @@ public:
       @param[in] chromatogram The chromatogram which contains the peak
       @param[in] left The iterator to the first point
       @param[in] right The iterator to the last point
+      @param[out] peak_area The peak's computed area
+      @param[out] peak_height The peak's highest intensity
+      @param[out] peak_apex_pos The position of the point with highest intensity
     */
-    void integratePeak(const MSChromatogram& chromatogram, MSChromatogram::ConstIterator& left, MSChromatogram::ConstIterator& right, double& peak_area, double& peak_height, double& peak_apex_pos) const;
+    void integratePeak(
+      const MSChromatogram& chromatogram, MSChromatogram::ConstIterator& left, MSChromatogram::ConstIterator& right,
+      double& peak_area, double& peak_height, double& peak_apex_pos
+    ) const;
 
     /**
       @brief Compute the area of a peak contained in a MSSpectrum.
@@ -284,8 +318,14 @@ public:
       @param[in] spectrum The spectrum which contains the peak
       @param[in] left The left mass-to-charge ratio boundary
       @param[in] right The right mass-to-charge ratio boundary
+      @param[out] peak_area The peak's computed area
+      @param[out] peak_height The peak's highest intensity
+      @param[out] peak_apex_pos The position of the point with highest intensity
     */
-    void integratePeak(const MSSpectrum& spectrum, const double& left, const double& right, double& peak_area, double& peak_height, double& peak_apex_pos) const;
+    void integratePeak(
+      const MSSpectrum& spectrum, const double& left, const double& right,
+      double& peak_area, double& peak_height, double& peak_apex_pos
+    ) const;
 
     /**
       @brief Compute the area of a peak contained in a MSSpectrum.
@@ -300,8 +340,14 @@ public:
       @param[in] spectrum The spectrum which contains the peak
       @param[in] left The iterator to the first point
       @param[in] right The iterator to the last point
+      @param[out] peak_area The peak's computed area
+      @param[out] peak_height The peak's highest intensity
+      @param[out] peak_apex_pos The position of the point with highest intensity
     */
-    void integratePeak(const MSSpectrum& spectrum, MSSpectrum::ConstIterator& left, MSSpectrum::ConstIterator& right, double& peak_area, double& peak_height, double& peak_apex_pos) const;
+    void integratePeak(
+      const MSSpectrum& spectrum, MSSpectrum::ConstIterator& left, MSSpectrum::ConstIterator& right,
+      double& peak_area, double& peak_height, double& peak_apex_pos
+    ) const;
 
     /**
       @brief Calculate peak's shape metrics.
@@ -317,8 +363,15 @@ public:
       @param[in] chromatogram The chromatogram which contains the peak
       @param[in] left The left retention time boundary
       @param[in] right The right retention time boundary
+      @param[in] peak_height The peak's highest intensity
+      @param[in] peak_apex_pos The position of the point with highest intensity
+      @param[out] psm The calculated peak shape metrics
     */
-    void calculatePeakShapeMetrics(const MSChromatogram& chromatogram, const double& left, const double& right, const double& peak_height, const double& peak_apex_pos, PeakShapeMetrics& psm) const;
+    void calculatePeakShapeMetrics(
+      const MSChromatogram& chromatogram, const double& left, const double& right,
+      const double& peak_height, const double& peak_apex_pos,
+      PeakShapeMetrics& psm
+    ) const;
 
     /**
       @brief Calculate peak's shape metrics.
@@ -334,8 +387,15 @@ public:
       @param[in] chromatogram The chromatogram which contains the peak
       @param[in] left The iterator to the first point
       @param[in] right The iterator to the last point
+      @param[in] peak_height The peak's highest intensity
+      @param[in] peak_apex_pos The position of the point with highest intensity
+      @param[out] psm The calculated peak shape metrics
     */
-    void calculatePeakShapeMetrics(const MSChromatogram& chromatogram, MSChromatogram::ConstIterator& left, MSChromatogram::ConstIterator& right, const double& peak_height, const double& peak_apex_pos, PeakShapeMetrics& psm) const;
+    void calculatePeakShapeMetrics(
+      const MSChromatogram& chromatogram, MSChromatogram::ConstIterator& left, MSChromatogram::ConstIterator& right,
+      const double& peak_height, const double& peak_apex_pos,
+      PeakShapeMetrics& psm
+    ) const;
 
     /**
       @brief Calculate peak's shape metrics.
@@ -351,8 +411,15 @@ public:
       @param[in] spectrum The spectrum which contains the peak
       @param[in] left The left mass-to-charge ratio boundary
       @param[in] right The right mass-to-charge ratio boundary
+      @param[in] peak_height The peak's highest intensity
+      @param[in] peak_apex_pos The position of the point with highest intensity
+      @param[out] psm The calculated peak shape metrics
     */
-    void calculatePeakShapeMetrics(const MSSpectrum& spectrum, const double& left, const double& right, const double& peak_height, const double& peak_apex_pos, PeakShapeMetrics& psm) const;
+    void calculatePeakShapeMetrics(
+      const MSSpectrum& spectrum, const double& left, const double& right,
+      const double& peak_height, const double& peak_apex_pos,
+      PeakShapeMetrics& psm
+    ) const;
 
     /**
       @brief Calculate peak's shape metrics.
@@ -368,8 +435,15 @@ public:
       @param[in] spectrum The spectrum which contains the peak
       @param[in] left The iterator to the first point
       @param[in] right The iterator to the last point
+      @param[in] peak_height The peak's highest intensity
+      @param[in] peak_apex_pos The position of the point with highest intensity
+      @param[out] psm The calculated peak shape metrics
     */
-    void calculatePeakShapeMetrics(const MSSpectrum& spectrum, MSSpectrum::ConstIterator& left, MSSpectrum::ConstIterator& right, const double& peak_height, const double& peak_apex_pos, PeakShapeMetrics& psm) const;
+    void calculatePeakShapeMetrics(
+      const MSSpectrum& spectrum, MSSpectrum::ConstIterator& left, MSSpectrum::ConstIterator& right,
+      const double& peak_height, const double& peak_apex_pos,
+      PeakShapeMetrics& psm
+    ) const;
 
     void getDefaultParameters(Param& params);
 
@@ -377,16 +451,27 @@ protected:
     void updateMembers_();
 
     template <typename PeakContainerT>
-    void estimateBackground_(const PeakContainerT& p, const double& left, const double& right, const double& peak_apex_pos, double& background_area, double& background_height) const;
+    void estimateBackground_(
+      const PeakContainerT& p, const double& left, const double& right,
+      const double& peak_apex_pos,
+      double& background_area, double& background_height
+    ) const;
 
     template <typename PeakContainerT>
-    void integratePeak_(const PeakContainerT& p, const double& left, const double& right, double& peak_area, double& peak_height, double& peak_apex_pos) const;
+    void integratePeak_(
+      const PeakContainerT& p, const double& left, const double& right,
+      double& peak_area, double& peak_height, double& peak_apex_pos
+    ) const;
 
     template <typename PeakContainerConstIteratorT>
     double simpson_(PeakContainerConstIteratorT it_begin, PeakContainerConstIteratorT it_end) const;
 
     template <typename PeakContainerT>
-    void calculatePeakShapeMetrics_(const PeakContainerT& p, const double& left, const double& right, const double& peak_height, const double& peak_apex_pos, PeakShapeMetrics& psm) const;
+    void calculatePeakShapeMetrics_(
+      const PeakContainerT& p, const double& left, const double& right,
+      const double& peak_height, const double& peak_apex_pos,
+      PeakShapeMetrics& psm
+    ) const;
 
 private:
     /** @name Parameters

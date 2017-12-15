@@ -275,6 +275,8 @@ namespace OpenMS
   template <typename PeakContainerT>
   void PeakIntegrator::calculatePeakShapeMetrics_(const PeakContainerT& p, const double& left, const double& right, const double& peak_height, const double& peak_apex_pos, PeakShapeMetrics& psm) const
   {
+    // TODO: remove the following line
+    // std::cout << std::endl << "peak_height: " << peak_height << " \t peak_apex_pos: " << peak_apex_pos << std::endl;
     psm.points_across_baseline = 0;
     psm.points_across_half_height = 0;
     for (auto it = p.PosBegin(left); it != p.PosEnd(right); ++it)
