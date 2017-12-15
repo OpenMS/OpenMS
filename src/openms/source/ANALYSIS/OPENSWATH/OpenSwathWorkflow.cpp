@@ -669,7 +669,7 @@ namespace OpenMS
   void OpenSwathWorkflow::scoreAllChromatograms(
     const OpenSwath::SpectrumAccessPtr input,
     const std::map< std::string, OpenSwath::ChromatogramPtr > & ms1_chromatograms,
-    const std::vector< OpenSwath::SwathMap > swath_maps,
+    const std::vector< OpenSwath::SwathMap >& swath_maps,
     OpenSwath::LightTargetedExperiment& transition_exp,
     const Param& feature_finder_param,
     TransformationDescription trafo,
@@ -739,10 +739,16 @@ namespace OpenMS
 
       // Go through all transitions, for each transition get chromatogram and
       // the chromatogram and the assay to the MRMTransitionGroup
+      int detection_assay_it = -1; // store index for the last detection transition
       for (Size i = 0; i < assay_it->second.size(); i++)
       {
         const TransitionType* transition = assay_it->second[i];
         precursor_mz = transition->getPrecursorMZ();
+
+        if (transition->isDetectingTransition())
+        {
+          detection_assay_it = i;
+        }
 
         // continue if we only have MS1 (we wont have any chromatograms for
         // the transitions)
@@ -800,11 +806,18 @@ namespace OpenMS
       trgroup_picker.pickTransitionGroup(transition_group);
       featureFinder.scorePeakgroups(transition_group, trafo, swath_maps, output, ms1only);
 
+      // Ensure that a detection transition is used to derive features for output
+      if (detection_assay_it < 0 && output.size() > 0)
+      {
+          throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+              "Error, did not find any detection transition for feature " + id );
+      }
+
       // Add to the output tsv if given
       if (tsv_writer.isActive())
       {
         const OpenSwath::LightCompound pep = transition_exp.getCompounds()[ assay_peptide_map[id] ];
-        const TransitionType* transition = assay_it->second[0];
+        const TransitionType* transition = assay_it->second[detection_assay_it];
         to_tsv_output.push_back(tsv_writer.prepareLine(pep, transition, output, id));
       }
 
@@ -812,7 +825,7 @@ namespace OpenMS
       if (osw_writer.isActive())
       {
         const OpenSwath::LightCompound pep = transition_exp.getCompounds()[ assay_peptide_map[id] ];
-        const TransitionType* transition = assay_it->second[0];
+        const TransitionType* transition = assay_it->second[detection_assay_it];
         to_osw_output.push_back(osw_writer.prepareLine(pep, transition, output, id));
       }
     }

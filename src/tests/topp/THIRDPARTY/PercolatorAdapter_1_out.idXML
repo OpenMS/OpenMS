@@ -41,7 +41,7 @@
 				<UserParam type="string" name="Percolator:decoy-pattern" value="random"/>
 				<UserParam type="int" name="Percolator:post-processing-tdc" value="0"/>
 	</SearchParameters>
-	<IdentificationRun date="2017-10-09T18:33:43" search_engine="Comet" search_engine_version="" search_parameters_ref="SP_0" >
+	<IdentificationRun date="2017-12-04T18:33:08" search_engine="Comet" search_engine_version="" search_parameters_ref="SP_0" >
 		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0" >
 			<ProteinHit id="PH_0" accession="sp|Q02952|AKA12_HUMAN" score="0" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
@@ -52,7 +52,7 @@
 			<UserParam type="string" name="percolator" value="PercolatorAdapter"/>
 		</ProteinIdentification>
 		<PeptideIdentification score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="514.2804560319" RT="721.4" spectrum_reference="controllerType=0 controllerNumber=1 scan=3" >
-			<PeptideHit score="0.1" sequence="EAVPAQKERRRRGAH" charge="2" aa_before="A" aa_after="P" start="1211" end="1219" protein_refs="PH_0" >
+			<PeptideHit score="0.357143" sequence="EAVPAQKERRRRGAH" charge="2" aa_before="A" aa_after="P" start="1211" end="1219" protein_refs="PH_0" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="string" name="MS:1002258" value="9"/>
 				<UserParam type="string" name="MS:1002259" value="16"/>
@@ -69,13 +69,13 @@
 				<UserParam type="float" name="COMET:lnNumSP" value="9.38479775371334"/>
 				<UserParam type="float" name="COMET:lnRankSP" value="0"/>
 				<UserParam type="float" name="COMET:IonFrac" value="0.5625"/>
-				<UserParam type="float" name="MS:1001492" value="0"/>
-				<UserParam type="float" name="MS:1001491" value="0.1"/>
-				<UserParam type="float" name="MS:1001493" value="0.524527"/>
+				<UserParam type="float" name="MS:1001492" value="-0.657375"/>
+				<UserParam type="float" name="MS:1001491" value="0.357143"/>
+				<UserParam type="float" name="MS:1001493" value="0.868362"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="499.6107780319" RT="721.7" spectrum_reference="controllerType=0 controllerNumber=1 scan=4" >
-			<PeptideHit score="0.1" sequence="TRILKHGAKDKDDLHKY" charge="3" aa_before="F F F" aa_after="] ] ]" start="159 158 159" end="171 170 171" protein_refs="PH_0" >
+			<PeptideHit score="0.357143" sequence="TRILKHGAKDKDDLHKY" charge="3" aa_before="F F F" aa_after="] ] ]" start="159 158 159" end="171 170 171" protein_refs="PH_0" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="string" name="MS:1002258" value="10"/>
 				<UserParam type="string" name="MS:1002259" value="48"/>
@@ -92,13 +92,13 @@
 				<UserParam type="float" name="COMET:lnNumSP" value="9.48311183169221"/>
 				<UserParam type="float" name="COMET:lnRankSP" value="0"/>
 				<UserParam type="float" name="COMET:IonFrac" value="0.208333333333333"/>
-				<UserParam type="float" name="MS:1001492" value="0"/>
-				<UserParam type="float" name="MS:1001491" value="0.1"/>
-				<UserParam type="float" name="MS:1001493" value="0.524527"/>
+				<UserParam type="float" name="MS:1001492" value="0.343995"/>
+				<UserParam type="float" name="MS:1001491" value="0.357143"/>
+				<UserParam type="float" name="MS:1001493" value="0.157704"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="545.7501825319" RT="721.9" spectrum_reference="controllerType=0 controllerNumber=1 scan=5" >
-			<PeptideHit score="0.1" sequence="AAGGEAEHQRAY" charge="2" aa_before="A" aa_after="L" start="171" end="179" protein_refs="PH_0" >
+			<PeptideHit score="0.357143" sequence="AAGGEAEHQRAY" charge="2" aa_before="A" aa_after="L" start="171" end="179" protein_refs="PH_0" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="string" name="MS:1002258" value="6"/>
 				<UserParam type="string" name="MS:1002259" value="16"/>
@@ -116,12 +116,12 @@
 				<UserParam type="float" name="COMET:lnRankSP" value="0"/>
 				<UserParam type="float" name="COMET:IonFrac" value="0.375"/>
 				<UserParam type="float" name="MS:1001492" value="0"/>
-				<UserParam type="float" name="MS:1001491" value="0.1"/>
-				<UserParam type="float" name="MS:1001493" value="0.524527"/>
+				<UserParam type="float" name="MS:1001491" value="0.357143"/>
+				<UserParam type="float" name="MS:1001493" value="0.286744"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="527.3117670319" RT="722.1" spectrum_reference="controllerType=0 controllerNumber=1 scan=6" >
-			<PeptideHit score="1" sequence="TQVVVSHLLKL" charge="2" aa_before="Q" aa_after="S" start="327" end="335" protein_refs="PH_0" >
+			<PeptideHit score="0.357143" sequence="TQVVVSHLLKL" charge="2" aa_before="Q" aa_after="S" start="327" end="335" protein_refs="PH_0" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="string" name="MS:1002258" value="4"/>
 				<UserParam type="string" name="MS:1002259" value="16"/>
@@ -138,13 +138,13 @@
 				<UserParam type="float" name="COMET:lnNumSP" value="8.49902922078857"/>
 				<UserParam type="float" name="COMET:lnRankSP" value="0"/>
 				<UserParam type="float" name="COMET:IonFrac" value="0.25"/>
-				<UserParam type="float" name="MS:1001492" value="-1.22222"/>
-				<UserParam type="float" name="MS:1001491" value="1"/>
+				<UserParam type="float" name="MS:1001492" value="-0.80373"/>
+				<UserParam type="float" name="MS:1001491" value="0.357143"/>
 				<UserParam type="float" name="MS:1001493" value="1"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="561.2817375319" RT="722.3" spectrum_reference="controllerType=0 controllerNumber=1 scan=7" >
-			<PeptideHit score="1" sequence="AGIYR" charge="2" aa_before="N" aa_after="C" start="82" end="91" protein_refs="PH_0" >
+			<PeptideHit score="0.833333" sequence="AGIYR" charge="2" aa_before="N" aa_after="C" start="82" end="91" protein_refs="PH_0" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="string" name="MS:1002258" value="1"/>
 				<UserParam type="string" name="MS:1002259" value="18"/>
@@ -161,13 +161,13 @@
 				<UserParam type="float" name="COMET:lnNumSP" value="9.73115592977152"/>
 				<UserParam type="float" name="COMET:lnRankSP" value="1.6094379124341"/>
 				<UserParam type="float" name="COMET:IonFrac" value="0.0555555555555556"/>
-				<UserParam type="float" name="MS:1001492" value="-1.21622"/>
-				<UserParam type="float" name="MS:1001491" value="1"/>
+				<UserParam type="float" name="MS:1001492" value="-1.05638"/>
+				<UserParam type="float" name="MS:1001491" value="0.833333"/>
 				<UserParam type="float" name="MS:1001493" value="1"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="514.7599480319" RT="722.7" spectrum_reference="controllerType=0 controllerNumber=1 scan=9" >
-			<PeptideHit score="0.1" sequence="SVSSKRGHASSYRR" charge="2" aa_before="R" aa_after="M" start="4" end="12" protein_refs="PH_0" >
+			<PeptideHit score="0.357143" sequence="SVSSKRGHASSYRR" charge="2" aa_before="R" aa_after="M" start="4" end="12" protein_refs="PH_0" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="string" name="MS:1002258" value="8"/>
 				<UserParam type="string" name="MS:1002259" value="16"/>
@@ -184,11 +184,11 @@
 				<UserParam type="float" name="COMET:lnNumSP" value="9.46141032593123"/>
 				<UserParam type="float" name="COMET:lnRankSP" value="0"/>
 				<UserParam type="float" name="COMET:IonFrac" value="0.5"/>
-				<UserParam type="float" name="MS:1001492" value="0.394277"/>
-				<UserParam type="float" name="MS:1001491" value="0.1"/>
-				<UserParam type="float" name="MS:1001493" value="0.28695"/>
+				<UserParam type="float" name="MS:1001492" value="0"/>
+				<UserParam type="float" name="MS:1001491" value="0.357143"/>
+				<UserParam type="float" name="MS:1001493" value="0.286744"/>
 			</PeptideHit>
-			<PeptideHit score="0.1" sequence="AGGDPAAKGERLHFY" charge="2" aa_before="G" aa_after="W" start="2239" end="2249" protein_refs="PH_0" >
+			<PeptideHit score="0.357143" sequence="AGGDPAAKGERLHFY" charge="2" aa_before="G" aa_after="W" start="2239" end="2249" protein_refs="PH_0" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="string" name="MS:1002258" value="6"/>
 				<UserParam type="string" name="MS:1002259" value="20"/>
@@ -205,13 +205,13 @@
 				<UserParam type="float" name="COMET:lnNumSP" value="9.46141032593123"/>
 				<UserParam type="float" name="COMET:lnRankSP" value="1.09861228866811"/>
 				<UserParam type="float" name="COMET:IonFrac" value="0.3"/>
-				<UserParam type="float" name="MS:1001492" value="0.310016"/>
-				<UserParam type="float" name="MS:1001491" value="0.1"/>
-				<UserParam type="float" name="MS:1001493" value="0.326692"/>
+				<UserParam type="float" name="MS:1001492" value="0"/>
+				<UserParam type="float" name="MS:1001491" value="0.357143"/>
+				<UserParam type="float" name="MS:1001493" value="0.286744"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="570.8154900319" RT="723.1" spectrum_reference="controllerType=0 controllerNumber=1 scan=11" >
-			<PeptideHit score="1" sequence="GKRGAAARGEPGGV" charge="2" aa_before="E" aa_after="G" start="488" end="499" protein_refs="PH_0" >
+			<PeptideHit score="0.833333" sequence="GKRGAAARGEPGGV" charge="2" aa_before="E" aa_after="G" start="488" end="499" protein_refs="PH_0" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="string" name="MS:1002258" value="2"/>
 				<UserParam type="string" name="MS:1002259" value="22"/>
@@ -228,13 +228,13 @@
 				<UserParam type="float" name="COMET:lnNumSP" value="9.22857314023724"/>
 				<UserParam type="float" name="COMET:lnRankSP" value="0.693147180559945"/>
 				<UserParam type="float" name="COMET:IonFrac" value="0.0909090909090909"/>
-				<UserParam type="float" name="MS:1001492" value="-2.18215"/>
-				<UserParam type="float" name="MS:1001491" value="1"/>
+				<UserParam type="float" name="MS:1001492" value="-1.29232"/>
+				<UserParam type="float" name="MS:1001491" value="0.833333"/>
 				<UserParam type="float" name="MS:1001493" value="1"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="528.2542105319" RT="723.5" spectrum_reference="controllerType=0 controllerNumber=1 scan=13" >
-			<PeptideHit score="1" sequence="EVFHSGHSFHLAY" charge="2" aa_before="E" aa_after="N" start="219" end="227" protein_refs="PH_0" >
+			<PeptideHit score="0.357143" sequence="EVFHSGHSFHLAY" charge="2" aa_before="E" aa_after="N" start="219" end="227" protein_refs="PH_0" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="string" name="MS:1002258" value="4"/>
 				<UserParam type="string" name="MS:1002259" value="16"/>
@@ -251,13 +251,13 @@
 				<UserParam type="float" name="COMET:lnNumSP" value="9.40211708754089"/>
 				<UserParam type="float" name="COMET:lnRankSP" value="0"/>
 				<UserParam type="float" name="COMET:IonFrac" value="0.25"/>
-				<UserParam type="float" name="MS:1001492" value="-1.7796"/>
-				<UserParam type="float" name="MS:1001491" value="1"/>
+				<UserParam type="float" name="MS:1001492" value="-0.814315"/>
+				<UserParam type="float" name="MS:1001491" value="0.357143"/>
 				<UserParam type="float" name="MS:1001493" value="1"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="514.2804560319" RT="721.4" spectrum_reference="controllerType=0 controllerNumber=1 scan=3" >
-			<PeptideHit score="0.1" sequence="EAVPAACQKERRRRGAH" charge="2" aa_before="A" aa_after="P" start="1211" end="1219" protein_refs="PH_0" >
+			<PeptideHit score="0.357143" sequence="EAVPAACQKERRRRGAH" charge="2" aa_before="A" aa_after="P" start="1211" end="1219" protein_refs="PH_0" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="string" name="MS:1002258" value="9"/>
 				<UserParam type="string" name="MS:1002259" value="16"/>
@@ -274,13 +274,13 @@
 				<UserParam type="float" name="COMET:lnNumSP" value="9.38479775371334"/>
 				<UserParam type="float" name="COMET:lnRankSP" value="0"/>
 				<UserParam type="float" name="COMET:IonFrac" value="0.5625"/>
-				<UserParam type="float" name="MS:1001492" value="0"/>
-				<UserParam type="float" name="MS:1001491" value="0.1"/>
-				<UserParam type="float" name="MS:1001493" value="0.524527"/>
+				<UserParam type="float" name="MS:1001492" value="-0.657375"/>
+				<UserParam type="float" name="MS:1001491" value="0.357143"/>
+				<UserParam type="float" name="MS:1001493" value="0.868362"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="499.6107780319" RT="721.7" spectrum_reference="controllerType=0 controllerNumber=1 scan=4" >
-			<PeptideHit score="0.1" sequence="TRILKHGGFAAKDKDDLHKY" charge="3" aa_before="F F F" aa_after="] ] ]" start="159 158 159" end="171 170 171" protein_refs="PH_0" >
+			<PeptideHit score="0.357143" sequence="TRILKHGGFAAKDKDDLHKY" charge="3" aa_before="F F F" aa_after="] ] ]" start="159 158 159" end="171 170 171" protein_refs="PH_0" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="string" name="MS:1002258" value="10"/>
 				<UserParam type="string" name="MS:1002259" value="48"/>
@@ -297,13 +297,13 @@
 				<UserParam type="float" name="COMET:lnNumSP" value="9.48311183169221"/>
 				<UserParam type="float" name="COMET:lnRankSP" value="0"/>
 				<UserParam type="float" name="COMET:IonFrac" value="0.208333333333333"/>
-				<UserParam type="float" name="MS:1001492" value="0"/>
-				<UserParam type="float" name="MS:1001491" value="0.1"/>
-				<UserParam type="float" name="MS:1001493" value="0.524527"/>
+				<UserParam type="float" name="MS:1001492" value="0.343995"/>
+				<UserParam type="float" name="MS:1001491" value="0.357143"/>
+				<UserParam type="float" name="MS:1001493" value="0.157704"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="545.7501825319" RT="721.9" spectrum_reference="controllerType=0 controllerNumber=1 scan=5" >
-			<PeptideHit score="0.1" sequence="AAGGEAEHQASDRAY" charge="2" aa_before="A" aa_after="L" start="171" end="179" protein_refs="PH_0" >
+			<PeptideHit score="0.357143" sequence="AAGGEAEHQASDRAY" charge="2" aa_before="A" aa_after="L" start="171" end="179" protein_refs="PH_0" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="string" name="MS:1002258" value="6"/>
 				<UserParam type="string" name="MS:1002259" value="16"/>
@@ -321,12 +321,12 @@
 				<UserParam type="float" name="COMET:lnRankSP" value="0"/>
 				<UserParam type="float" name="COMET:IonFrac" value="0.375"/>
 				<UserParam type="float" name="MS:1001492" value="0"/>
-				<UserParam type="float" name="MS:1001491" value="0.1"/>
-				<UserParam type="float" name="MS:1001493" value="0.524527"/>
+				<UserParam type="float" name="MS:1001491" value="0.357143"/>
+				<UserParam type="float" name="MS:1001493" value="0.286744"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="527.3117670319" RT="722.1" spectrum_reference="controllerType=0 controllerNumber=1 scan=6" >
-			<PeptideHit score="1" sequence="TQVASDVVSHLLKL" charge="2" aa_before="Q" aa_after="S" start="327" end="335" protein_refs="PH_0" >
+			<PeptideHit score="0.357143" sequence="TQVASDVVSHLLKL" charge="2" aa_before="Q" aa_after="S" start="327" end="335" protein_refs="PH_0" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="string" name="MS:1002258" value="4"/>
 				<UserParam type="string" name="MS:1002259" value="16"/>
@@ -343,13 +343,13 @@
 				<UserParam type="float" name="COMET:lnNumSP" value="8.49902922078857"/>
 				<UserParam type="float" name="COMET:lnRankSP" value="0"/>
 				<UserParam type="float" name="COMET:IonFrac" value="0.25"/>
-				<UserParam type="float" name="MS:1001492" value="-1.22222"/>
-				<UserParam type="float" name="MS:1001491" value="1"/>
+				<UserParam type="float" name="MS:1001492" value="-0.80373"/>
+				<UserParam type="float" name="MS:1001491" value="0.357143"/>
 				<UserParam type="float" name="MS:1001493" value="1"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="561.2817375319" RT="722.3" spectrum_reference="controllerType=0 controllerNumber=1 scan=7" >
-			<PeptideHit score="1" sequence="AGIYGFR" charge="2" aa_before="N" aa_after="C" start="82" end="91" protein_refs="PH_0" >
+			<PeptideHit score="0.833333" sequence="AGIYGFR" charge="2" aa_before="N" aa_after="C" start="82" end="91" protein_refs="PH_0" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="string" name="MS:1002258" value="1"/>
 				<UserParam type="string" name="MS:1002259" value="18"/>
@@ -366,13 +366,13 @@
 				<UserParam type="float" name="COMET:lnNumSP" value="9.73115592977152"/>
 				<UserParam type="float" name="COMET:lnRankSP" value="1.6094379124341"/>
 				<UserParam type="float" name="COMET:IonFrac" value="0.0555555555555556"/>
-				<UserParam type="float" name="MS:1001492" value="-1.21622"/>
-				<UserParam type="float" name="MS:1001491" value="1"/>
+				<UserParam type="float" name="MS:1001492" value="-1.05638"/>
+				<UserParam type="float" name="MS:1001491" value="0.833333"/>
 				<UserParam type="float" name="MS:1001493" value="1"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="514.7599480319" RT="722.7" spectrum_reference="controllerType=0 controllerNumber=1 scan=9" >
-			<PeptideHit score="0.1" sequence="SVSSAASDKRGHASSYRR" charge="2" aa_before="R" aa_after="M" start="4" end="12" protein_refs="PH_0" >
+			<PeptideHit score="0.357143" sequence="SVSSAASDKRGHASSYRR" charge="2" aa_before="R" aa_after="M" start="4" end="12" protein_refs="PH_0" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="string" name="MS:1002258" value="8"/>
 				<UserParam type="string" name="MS:1002259" value="16"/>
@@ -389,11 +389,11 @@
 				<UserParam type="float" name="COMET:lnNumSP" value="9.46141032593123"/>
 				<UserParam type="float" name="COMET:lnRankSP" value="0"/>
 				<UserParam type="float" name="COMET:IonFrac" value="0.5"/>
-				<UserParam type="float" name="MS:1001492" value="0.394277"/>
-				<UserParam type="float" name="MS:1001491" value="0.1"/>
-				<UserParam type="float" name="MS:1001493" value="0.28695"/>
+				<UserParam type="float" name="MS:1001492" value="0"/>
+				<UserParam type="float" name="MS:1001491" value="0.357143"/>
+				<UserParam type="float" name="MS:1001493" value="0.286744"/>
 			</PeptideHit>
-			<PeptideHit score="0.1" sequence="AGGDASDFPAAKGERLHFY" charge="2" aa_before="G" aa_after="W" start="2239" end="2249" protein_refs="PH_0" >
+			<PeptideHit score="0.357143" sequence="AGGDASDFPAAKGERLHFY" charge="2" aa_before="G" aa_after="W" start="2239" end="2249" protein_refs="PH_0" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="string" name="MS:1002258" value="6"/>
 				<UserParam type="string" name="MS:1002259" value="20"/>
@@ -410,13 +410,13 @@
 				<UserParam type="float" name="COMET:lnNumSP" value="9.46141032593123"/>
 				<UserParam type="float" name="COMET:lnRankSP" value="1.09861228866811"/>
 				<UserParam type="float" name="COMET:IonFrac" value="0.3"/>
-				<UserParam type="float" name="MS:1001492" value="0.310016"/>
-				<UserParam type="float" name="MS:1001491" value="0.1"/>
-				<UserParam type="float" name="MS:1001493" value="0.326692"/>
+				<UserParam type="float" name="MS:1001492" value="0"/>
+				<UserParam type="float" name="MS:1001491" value="0.357143"/>
+				<UserParam type="float" name="MS:1001493" value="0.286744"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="570.8154900319" RT="723.1" spectrum_reference="controllerType=0 controllerNumber=1 scan=11" >
-			<PeptideHit score="1" sequence="GKRGAAARGEPGASDFGV" charge="2" aa_before="E" aa_after="G" start="488" end="499" protein_refs="PH_0" >
+			<PeptideHit score="0.833333" sequence="GKRGAAARGEPGASDFGV" charge="2" aa_before="E" aa_after="G" start="488" end="499" protein_refs="PH_0" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="string" name="MS:1002258" value="2"/>
 				<UserParam type="string" name="MS:1002259" value="22"/>
@@ -433,13 +433,13 @@
 				<UserParam type="float" name="COMET:lnNumSP" value="9.22857314023724"/>
 				<UserParam type="float" name="COMET:lnRankSP" value="0.693147180559945"/>
 				<UserParam type="float" name="COMET:IonFrac" value="0.0909090909090909"/>
-				<UserParam type="float" name="MS:1001492" value="-2.18215"/>
-				<UserParam type="float" name="MS:1001491" value="1"/>
+				<UserParam type="float" name="MS:1001492" value="-1.29232"/>
+				<UserParam type="float" name="MS:1001491" value="0.833333"/>
 				<UserParam type="float" name="MS:1001493" value="1"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="528.2542105319" RT="723.5" spectrum_reference="controllerType=0 controllerNumber=1 scan=13" >
-			<PeptideHit score="1" sequence="EVFASDFHSGHSFHLAY" charge="2" aa_before="E" aa_after="N" start="219" end="227" protein_refs="PH_0" >
+			<PeptideHit score="0.357143" sequence="EVFASDFHSGHSFHLAY" charge="2" aa_before="E" aa_after="N" start="219" end="227" protein_refs="PH_0" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="string" name="MS:1002258" value="4"/>
 				<UserParam type="string" name="MS:1002259" value="16"/>
@@ -456,13 +456,13 @@
 				<UserParam type="float" name="COMET:lnNumSP" value="9.40211708754089"/>
 				<UserParam type="float" name="COMET:lnRankSP" value="0"/>
 				<UserParam type="float" name="COMET:IonFrac" value="0.25"/>
-				<UserParam type="float" name="MS:1001492" value="-1.7796"/>
-				<UserParam type="float" name="MS:1001491" value="1"/>
+				<UserParam type="float" name="MS:1001492" value="-0.814315"/>
+				<UserParam type="float" name="MS:1001491" value="0.357143"/>
 				<UserParam type="float" name="MS:1001493" value="1"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="556.3450920319" RT="724.9" spectrum_reference="controllerType=0 controllerNumber=1 scan=17" >
-			<PeptideHit score="1" sequence="SAAGHLASDFKQQAL" charge="2" aa_before="K" aa_after="L" start="1099" end="1108" protein_refs="PH_1" >
+			<PeptideHit score="0.642857" sequence="SAAGHLASDFKQQAL" charge="2" aa_before="K" aa_after="L" start="1099" end="1108" protein_refs="PH_1" >
 				<UserParam type="string" name="target_decoy" value="decoy"/>
 				<UserParam type="string" name="MS:1002258" value="2"/>
 				<UserParam type="string" name="MS:1002259" value="18"/>
@@ -479,13 +479,13 @@
 				<UserParam type="float" name="COMET:lnNumSP" value="8.10772006191053"/>
 				<UserParam type="float" name="COMET:lnRankSP" value="0"/>
 				<UserParam type="float" name="COMET:IonFrac" value="0.111111111111111"/>
-				<UserParam type="float" name="MS:1001492" value="-1"/>
-				<UserParam type="float" name="MS:1001491" value="1"/>
+				<UserParam type="float" name="MS:1001492" value="-0.944281"/>
+				<UserParam type="float" name="MS:1001491" value="0.642857"/>
 				<UserParam type="float" name="MS:1001493" value="1"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="563.7900995319" RT="726.3" spectrum_reference="controllerType=0 controllerNumber=1 scan=22" >
-			<PeptideHit score="1" sequence="GSYC(Carbamidomethyl)HSGAFALKPI" charge="2" aa_before="A" aa_after="F" start="187" end="197" protein_refs="PH_1" >
+			<PeptideHit score="0.833333" sequence="GSYC(Carbamidomethyl)HSGAFALKPI" charge="2" aa_before="A" aa_after="F" start="187" end="197" protein_refs="PH_1" >
 				<UserParam type="string" name="target_decoy" value="decoy"/>
 				<UserParam type="string" name="MS:1002258" value="0"/>
 				<UserParam type="string" name="MS:1002259" value="20"/>
@@ -502,13 +502,13 @@
 				<UserParam type="float" name="COMET:lnNumSP" value="9.41589005488934"/>
 				<UserParam type="float" name="COMET:lnRankSP" value="2.39789527279837"/>
 				<UserParam type="float" name="COMET:IonFrac" value="0"/>
-				<UserParam type="float" name="MS:1001492" value="-1.22018"/>
-				<UserParam type="float" name="MS:1001491" value="1"/>
+				<UserParam type="float" name="MS:1001492" value="-1"/>
+				<UserParam type="float" name="MS:1001491" value="0.833333"/>
 				<UserParam type="float" name="MS:1001493" value="1"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="614.8654165319" RT="726.7" spectrum_reference="controllerType=0 controllerNumber=1 scan=24" >
-			<PeptideHit score="0.9" sequence="KGRVRRKKKRRKEEA" charge="2" aa_before="P" aa_after="K" start="504" end="513" protein_refs="PH_1" >
+			<PeptideHit score="1" sequence="KGRVRRKKKRRKEEA" charge="2" aa_before="P" aa_after="K" start="504" end="513" protein_refs="PH_1" >
 				<UserParam type="string" name="target_decoy" value="decoy"/>
 				<UserParam type="string" name="MS:1002258" value="2"/>
 				<UserParam type="string" name="MS:1002259" value="18"/>
@@ -525,13 +525,13 @@
 				<UserParam type="float" name="COMET:lnNumSP" value="8.79482492801452"/>
 				<UserParam type="float" name="COMET:lnRankSP" value="0"/>
 				<UserParam type="float" name="COMET:IonFrac" value="0.111111111111111"/>
-				<UserParam type="float" name="MS:1001492" value="-0.958772"/>
-				<UserParam type="float" name="MS:1001491" value="0.9"/>
+				<UserParam type="float" name="MS:1001492" value="-3.83124"/>
+				<UserParam type="float" name="MS:1001491" value="1"/>
 				<UserParam type="float" name="MS:1001493" value="1"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="584.8013300319" RT="727.2" spectrum_reference="controllerType=0 controllerNumber=1 scan=26" >
-			<PeptideHit score="1" sequence="QTKGTGASGSFKHHLAKY" charge="2" aa_before="V V V V V" aa_after="L L L L L" start="97 94 94 95 97" end="108 105 105 106 108" protein_refs="PH_1" >
+			<PeptideHit score="0.944444" sequence="QTKGTGASGSFKHHLAKY" charge="2" aa_before="V V V V V" aa_after="L L L L L" start="97 94 94 95 97" end="108 105 105 106 108" protein_refs="PH_1" >
 				<UserParam type="string" name="target_decoy" value="decoy"/>
 				<UserParam type="string" name="MS:1002258" value="5"/>
 				<UserParam type="string" name="MS:1002259" value="22"/>
@@ -548,13 +548,13 @@
 				<UserParam type="float" name="COMET:lnNumSP" value="9.78908629222615"/>
 				<UserParam type="float" name="COMET:lnRankSP" value="0"/>
 				<UserParam type="float" name="COMET:IonFrac" value="0.227272727272727"/>
-				<UserParam type="float" name="MS:1001492" value="-1"/>
-				<UserParam type="float" name="MS:1001491" value="1"/>
+				<UserParam type="float" name="MS:1001492" value="-1.4494"/>
+				<UserParam type="float" name="MS:1001491" value="0.944444"/>
 				<UserParam type="float" name="MS:1001493" value="1"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="455.7484125319" RT="727.6" spectrum_reference="controllerType=0 controllerNumber=1 scan=28" >
-			<PeptideHit score="0.7" sequence="VVGANRASHVVAAGGYY" charge="2" aa_before="F" aa_after="R" start="974" end="982" protein_refs="PH_1" >
+			<PeptideHit score="0.357143" sequence="VVGANRASHVVAAGGYY" charge="2" aa_before="F" aa_after="R" start="974" end="982" protein_refs="PH_1" >
 				<UserParam type="string" name="target_decoy" value="decoy"/>
 				<UserParam type="string" name="MS:1002258" value="5"/>
 				<UserParam type="string" name="MS:1002259" value="16"/>
@@ -571,13 +571,13 @@
 				<UserParam type="float" name="COMET:lnNumSP" value="9.18850367736701"/>
 				<UserParam type="float" name="COMET:lnRankSP" value="1.09861228866811"/>
 				<UserParam type="float" name="COMET:IonFrac" value="0.3125"/>
-				<UserParam type="float" name="MS:1001492" value="-0.775956"/>
-				<UserParam type="float" name="MS:1001491" value="0.7"/>
-				<UserParam type="float" name="MS:1001493" value="1"/>
+				<UserParam type="float" name="MS:1001492" value="0"/>
+				<UserParam type="float" name="MS:1001491" value="0.357143"/>
+				<UserParam type="float" name="MS:1001493" value="0.286744"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="562.3155510319" RT="727.8" spectrum_reference="controllerType=0 controllerNumber=1 scan=29" >
-			<PeptideHit score="1" sequence="FQSMKIILLFQSMH" charge="2" aa_before="D" aa_after="N" start="78" end="86" protein_refs="PH_1" >
+			<PeptideHit score="0.5" sequence="FQSMKIILLFQSMH" charge="2" aa_before="D" aa_after="N" start="78" end="86" protein_refs="PH_1" >
 				<UserParam type="string" name="target_decoy" value="decoy"/>
 				<UserParam type="string" name="MS:1002258" value="1"/>
 				<UserParam type="string" name="MS:1002259" value="16"/>
@@ -594,13 +594,13 @@
 				<UserParam type="float" name="COMET:lnNumSP" value="9.18543273627"/>
 				<UserParam type="float" name="COMET:lnRankSP" value="1.09861228866811"/>
 				<UserParam type="float" name="COMET:IonFrac" value="0.0625"/>
-				<UserParam type="float" name="MS:1001492" value="-1.04298"/>
-				<UserParam type="float" name="MS:1001491" value="1"/>
+				<UserParam type="float" name="MS:1001492" value="-0.918262"/>
+				<UserParam type="float" name="MS:1001491" value="0.5"/>
 				<UserParam type="float" name="MS:1001493" value="1"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="558.7988885319" RT="728.7" spectrum_reference="controllerType=0 controllerNumber=1 scan=33" >
-			<PeptideHit score="0.5" sequence="QQKGRLHSYQQLLAG" charge="2" aa_before="W" aa_after="]" start="210" end="218" protein_refs="PH_1" >
+			<PeptideHit score="0.833333" sequence="QQKGRLHSYQQLLAG" charge="2" aa_before="W" aa_after="]" start="210" end="218" protein_refs="PH_1" >
 				<UserParam type="string" name="target_decoy" value="decoy"/>
 				<UserParam type="string" name="MS:1002258" value="2"/>
 				<UserParam type="string" name="MS:1002259" value="16"/>
@@ -617,13 +617,13 @@
 				<UserParam type="float" name="COMET:lnNumSP" value="9.76226955062059"/>
 				<UserParam type="float" name="COMET:lnRankSP" value="1.6094379124341"/>
 				<UserParam type="float" name="COMET:IonFrac" value="0.125"/>
-				<UserParam type="float" name="MS:1001492" value="-0.702703"/>
-				<UserParam type="float" name="MS:1001491" value="0.5"/>
+				<UserParam type="float" name="MS:1001492" value="-1"/>
+				<UserParam type="float" name="MS:1001491" value="0.833333"/>
 				<UserParam type="float" name="MS:1001493" value="1"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="544.7874140319" RT="729.8" spectrum_reference="controllerType=0 controllerNumber=1 scan=37" >
-			<PeptideHit score="1" sequence="KAAPGHSRQH" charge="2" aa_before="P" aa_after="T" start="72" end="81" protein_refs="PH_1" >
+			<PeptideHit score="0.833333" sequence="KAAPGHSRQH" charge="2" aa_before="P" aa_after="T" start="72" end="81" protein_refs="PH_1" >
 				<UserParam type="string" name="target_decoy" value="decoy"/>
 				<UserParam type="string" name="MS:1002258" value="1"/>
 				<UserParam type="string" name="MS:1002259" value="18"/>
@@ -640,8 +640,8 @@
 				<UserParam type="float" name="COMET:lnNumSP" value="9.72507833256209"/>
 				<UserParam type="float" name="COMET:lnRankSP" value="1.79175946922805"/>
 				<UserParam type="float" name="COMET:IonFrac" value="0.0555555555555556"/>
-				<UserParam type="float" name="MS:1001492" value="-2.65756"/>
-				<UserParam type="float" name="MS:1001491" value="1"/>
+				<UserParam type="float" name="MS:1001492" value="-1"/>
+				<UserParam type="float" name="MS:1001491" value="0.833333"/>
 				<UserParam type="float" name="MS:1001493" value="1"/>
 			</PeptideHit>
 		</PeptideIdentification>
@@ -663,7 +663,7 @@
 				<UserParam type="float" name="COMET:lnNumSP" value="6.91968384984741"/>
 				<UserParam type="float" name="COMET:lnRankSP" value="0"/>
 				<UserParam type="float" name="COMET:IonFrac" value="0.111111111111111"/>
-				<UserParam type="float" name="MS:1001492" value="-1"/>
+				<UserParam type="float" name="MS:1001492" value="-4.35069"/>
 				<UserParam type="float" name="MS:1001491" value="1"/>
 				<UserParam type="float" name="MS:1001493" value="1"/>
 			</PeptideHit>
@@ -686,13 +686,13 @@
 				<UserParam type="float" name="COMET:lnNumSP" value="9.92397621896344"/>
 				<UserParam type="float" name="COMET:lnRankSP" value="0"/>
 				<UserParam type="float" name="COMET:IonFrac" value="0.03125"/>
-				<UserParam type="float" name="MS:1001492" value="-1.11129"/>
+				<UserParam type="float" name="MS:1001492" value="-2.97276"/>
 				<UserParam type="float" name="MS:1001491" value="1"/>
 				<UserParam type="float" name="MS:1001493" value="1"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="554.7780145319" RT="732.2" spectrum_reference="controllerType=0 controllerNumber=1 scan=45" >
-			<PeptideHit score="0.3" sequence="ALKAAHPTASDFNVQR" charge="2" aa_before="F" aa_after="L" start="114" end="123" protein_refs="PH_1" >
+			<PeptideHit score="0.357143" sequence="ALKAAHPTASDFNVQR" charge="2" aa_before="F" aa_after="L" start="114" end="123" protein_refs="PH_1" >
 				<UserParam type="string" name="target_decoy" value="decoy"/>
 				<UserParam type="string" name="MS:1002258" value="5"/>
 				<UserParam type="string" name="MS:1002259" value="18"/>
@@ -709,13 +709,13 @@
 				<UserParam type="float" name="COMET:lnNumSP" value="9.83016388811729"/>
 				<UserParam type="float" name="COMET:lnRankSP" value="0"/>
 				<UserParam type="float" name="COMET:IonFrac" value="0.277777777777778"/>
-				<UserParam type="float" name="MS:1001492" value="-0.355263"/>
-				<UserParam type="float" name="MS:1001491" value="0.3"/>
-				<UserParam type="float" name="MS:1001493" value="0.874929"/>
+				<UserParam type="float" name="MS:1001492" value="-0.500436"/>
+				<UserParam type="float" name="MS:1001491" value="0.357143"/>
+				<UserParam type="float" name="MS:1001493" value="0.669637"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="556.3450920319" RT="724.9" spectrum_reference="controllerType=0 controllerNumber=1 scan=17" >
-			<PeptideHit score="1" sequence="SAAGHLASDFKQQASDFAL" charge="2" aa_before="K" aa_after="L" start="1099" end="1108" protein_refs="PH_1" >
+			<PeptideHit score="0.642857" sequence="SAAGHLASDFKQQASDFAL" charge="2" aa_before="K" aa_after="L" start="1099" end="1108" protein_refs="PH_1" >
 				<UserParam type="string" name="target_decoy" value="decoy"/>
 				<UserParam type="string" name="MS:1002258" value="2"/>
 				<UserParam type="string" name="MS:1002259" value="18"/>
@@ -732,13 +732,13 @@
 				<UserParam type="float" name="COMET:lnNumSP" value="8.10772006191053"/>
 				<UserParam type="float" name="COMET:lnRankSP" value="0"/>
 				<UserParam type="float" name="COMET:IonFrac" value="0.111111111111111"/>
-				<UserParam type="float" name="MS:1001492" value="-1"/>
-				<UserParam type="float" name="MS:1001491" value="1"/>
+				<UserParam type="float" name="MS:1001492" value="-0.944281"/>
+				<UserParam type="float" name="MS:1001491" value="0.642857"/>
 				<UserParam type="float" name="MS:1001493" value="1"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="563.7900995319" RT="726.3" spectrum_reference="controllerType=0 controllerNumber=1 scan=22" >
-			<PeptideHit score="1" sequence="GSYC(Carbamidomethyl)HSASDFGAFALKPI" charge="2" aa_before="A" aa_after="F" start="187" end="197" protein_refs="PH_1" >
+			<PeptideHit score="0.833333" sequence="GSYC(Carbamidomethyl)HSASDFGAFALKPI" charge="2" aa_before="A" aa_after="F" start="187" end="197" protein_refs="PH_1" >
 				<UserParam type="string" name="target_decoy" value="decoy"/>
 				<UserParam type="string" name="MS:1002258" value="0"/>
 				<UserParam type="string" name="MS:1002259" value="20"/>
@@ -755,13 +755,13 @@
 				<UserParam type="float" name="COMET:lnNumSP" value="9.41589005488934"/>
 				<UserParam type="float" name="COMET:lnRankSP" value="2.39789527279837"/>
 				<UserParam type="float" name="COMET:IonFrac" value="0"/>
-				<UserParam type="float" name="MS:1001492" value="-1.22018"/>
-				<UserParam type="float" name="MS:1001491" value="1"/>
+				<UserParam type="float" name="MS:1001492" value="-1"/>
+				<UserParam type="float" name="MS:1001491" value="0.833333"/>
 				<UserParam type="float" name="MS:1001493" value="1"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="614.8654165319" RT="726.7" spectrum_reference="controllerType=0 controllerNumber=1 scan=24" >
-			<PeptideHit score="0.9" sequence="KGRVRRASDFKKKRRKEEA" charge="2" aa_before="P" aa_after="K" start="504" end="513" protein_refs="PH_1" >
+			<PeptideHit score="1" sequence="KGRVRRASDFKKKRRKEEA" charge="2" aa_before="P" aa_after="K" start="504" end="513" protein_refs="PH_1" >
 				<UserParam type="string" name="target_decoy" value="decoy"/>
 				<UserParam type="string" name="MS:1002258" value="2"/>
 				<UserParam type="string" name="MS:1002259" value="18"/>
@@ -778,13 +778,13 @@
 				<UserParam type="float" name="COMET:lnNumSP" value="8.79482492801452"/>
 				<UserParam type="float" name="COMET:lnRankSP" value="0"/>
 				<UserParam type="float" name="COMET:IonFrac" value="0.111111111111111"/>
-				<UserParam type="float" name="MS:1001492" value="-0.958772"/>
-				<UserParam type="float" name="MS:1001491" value="0.9"/>
+				<UserParam type="float" name="MS:1001492" value="-3.83124"/>
+				<UserParam type="float" name="MS:1001491" value="1"/>
 				<UserParam type="float" name="MS:1001493" value="1"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="584.8013300319" RT="727.2" spectrum_reference="controllerType=0 controllerNumber=1 scan=26" >
-			<PeptideHit score="1" sequence="QTKASDFGTGASGSFKHHLAKY" charge="2" aa_before="V V V V V" aa_after="L L L L L" start="97 94 94 95 97" end="108 105 105 106 108" protein_refs="PH_1" >
+			<PeptideHit score="0.944444" sequence="QTKASDFGTGASGSFKHHLAKY" charge="2" aa_before="V V V V V" aa_after="L L L L L" start="97 94 94 95 97" end="108 105 105 106 108" protein_refs="PH_1" >
 				<UserParam type="string" name="target_decoy" value="decoy"/>
 				<UserParam type="string" name="MS:1002258" value="5"/>
 				<UserParam type="string" name="MS:1002259" value="22"/>
@@ -801,13 +801,13 @@
 				<UserParam type="float" name="COMET:lnNumSP" value="9.78908629222615"/>
 				<UserParam type="float" name="COMET:lnRankSP" value="0"/>
 				<UserParam type="float" name="COMET:IonFrac" value="0.227272727272727"/>
-				<UserParam type="float" name="MS:1001492" value="-1"/>
-				<UserParam type="float" name="MS:1001491" value="1"/>
+				<UserParam type="float" name="MS:1001492" value="-1.4494"/>
+				<UserParam type="float" name="MS:1001491" value="0.944444"/>
 				<UserParam type="float" name="MS:1001493" value="1"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="455.7484125319" RT="727.6" spectrum_reference="controllerType=0 controllerNumber=1 scan=28" >
-			<PeptideHit score="0.7" sequence="VVGANRASASDFHVVAAGGYY" charge="2" aa_before="F" aa_after="R" start="974" end="982" protein_refs="PH_1" >
+			<PeptideHit score="0.357143" sequence="VVGANRASASDFHVVAAGGYY" charge="2" aa_before="F" aa_after="R" start="974" end="982" protein_refs="PH_1" >
 				<UserParam type="string" name="target_decoy" value="decoy"/>
 				<UserParam type="string" name="MS:1002258" value="5"/>
 				<UserParam type="string" name="MS:1002259" value="16"/>
@@ -824,13 +824,13 @@
 				<UserParam type="float" name="COMET:lnNumSP" value="9.18850367736701"/>
 				<UserParam type="float" name="COMET:lnRankSP" value="1.09861228866811"/>
 				<UserParam type="float" name="COMET:IonFrac" value="0.3125"/>
-				<UserParam type="float" name="MS:1001492" value="-0.775956"/>
-				<UserParam type="float" name="MS:1001491" value="0.7"/>
-				<UserParam type="float" name="MS:1001493" value="1"/>
+				<UserParam type="float" name="MS:1001492" value="0"/>
+				<UserParam type="float" name="MS:1001491" value="0.357143"/>
+				<UserParam type="float" name="MS:1001493" value="0.286744"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="562.3155510319" RT="727.8" spectrum_reference="controllerType=0 controllerNumber=1 scan=29" >
-			<PeptideHit score="1" sequence="FQSMKIILASDFLFQSMH" charge="2" aa_before="D" aa_after="N" start="78" end="86" protein_refs="PH_1" >
+			<PeptideHit score="0.5" sequence="FQSMKIILASDFLFQSMH" charge="2" aa_before="D" aa_after="N" start="78" end="86" protein_refs="PH_1" >
 				<UserParam type="string" name="target_decoy" value="decoy"/>
 				<UserParam type="string" name="MS:1002258" value="1"/>
 				<UserParam type="string" name="MS:1002259" value="16"/>
@@ -847,13 +847,13 @@
 				<UserParam type="float" name="COMET:lnNumSP" value="9.18543273627"/>
 				<UserParam type="float" name="COMET:lnRankSP" value="1.09861228866811"/>
 				<UserParam type="float" name="COMET:IonFrac" value="0.0625"/>
-				<UserParam type="float" name="MS:1001492" value="-1.04298"/>
-				<UserParam type="float" name="MS:1001491" value="1"/>
+				<UserParam type="float" name="MS:1001492" value="-0.918262"/>
+				<UserParam type="float" name="MS:1001491" value="0.5"/>
 				<UserParam type="float" name="MS:1001493" value="1"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="558.7988885319" RT="728.7" spectrum_reference="controllerType=0 controllerNumber=1 scan=33" >
-			<PeptideHit score="0.5" sequence="QQKGRLHSASDFYQQLLAG" charge="2" aa_before="W" aa_after="]" start="210" end="218" protein_refs="PH_1" >
+			<PeptideHit score="0.833333" sequence="QQKGRLHSASDFYQQLLAG" charge="2" aa_before="W" aa_after="]" start="210" end="218" protein_refs="PH_1" >
 				<UserParam type="string" name="target_decoy" value="decoy"/>
 				<UserParam type="string" name="MS:1002258" value="2"/>
 				<UserParam type="string" name="MS:1002259" value="16"/>
@@ -870,13 +870,13 @@
 				<UserParam type="float" name="COMET:lnNumSP" value="9.76226955062059"/>
 				<UserParam type="float" name="COMET:lnRankSP" value="1.6094379124341"/>
 				<UserParam type="float" name="COMET:IonFrac" value="0.125"/>
-				<UserParam type="float" name="MS:1001492" value="-0.702703"/>
-				<UserParam type="float" name="MS:1001491" value="0.5"/>
+				<UserParam type="float" name="MS:1001492" value="-1"/>
+				<UserParam type="float" name="MS:1001491" value="0.833333"/>
 				<UserParam type="float" name="MS:1001493" value="1"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="544.7874140319" RT="729.8" spectrum_reference="controllerType=0 controllerNumber=1 scan=37" >
-			<PeptideHit score="1" sequence="KAAPGHSRQASDFH" charge="2" aa_before="P" aa_after="T" start="72" end="81" protein_refs="PH_1" >
+			<PeptideHit score="0.833333" sequence="KAAPGHSRQASDFH" charge="2" aa_before="P" aa_after="T" start="72" end="81" protein_refs="PH_1" >
 				<UserParam type="string" name="target_decoy" value="decoy"/>
 				<UserParam type="string" name="MS:1002258" value="1"/>
 				<UserParam type="string" name="MS:1002259" value="18"/>
@@ -893,8 +893,8 @@
 				<UserParam type="float" name="COMET:lnNumSP" value="9.72507833256209"/>
 				<UserParam type="float" name="COMET:lnRankSP" value="1.79175946922805"/>
 				<UserParam type="float" name="COMET:IonFrac" value="0.0555555555555556"/>
-				<UserParam type="float" name="MS:1001492" value="-2.65756"/>
-				<UserParam type="float" name="MS:1001491" value="1"/>
+				<UserParam type="float" name="MS:1001492" value="-1"/>
+				<UserParam type="float" name="MS:1001491" value="0.833333"/>
 				<UserParam type="float" name="MS:1001493" value="1"/>
 			</PeptideHit>
 		</PeptideIdentification>
@@ -916,7 +916,7 @@
 				<UserParam type="float" name="COMET:lnNumSP" value="6.91968384984741"/>
 				<UserParam type="float" name="COMET:lnRankSP" value="0"/>
 				<UserParam type="float" name="COMET:IonFrac" value="0.111111111111111"/>
-				<UserParam type="float" name="MS:1001492" value="-1"/>
+				<UserParam type="float" name="MS:1001492" value="-4.35069"/>
 				<UserParam type="float" name="MS:1001491" value="1"/>
 				<UserParam type="float" name="MS:1001493" value="1"/>
 			</PeptideHit>
@@ -939,13 +939,13 @@
 				<UserParam type="float" name="COMET:lnNumSP" value="9.92397621896344"/>
 				<UserParam type="float" name="COMET:lnRankSP" value="0"/>
 				<UserParam type="float" name="COMET:IonFrac" value="0.03125"/>
-				<UserParam type="float" name="MS:1001492" value="-1.11129"/>
+				<UserParam type="float" name="MS:1001492" value="-2.97276"/>
 				<UserParam type="float" name="MS:1001491" value="1"/>
 				<UserParam type="float" name="MS:1001493" value="1"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="554.7780145319" RT="732.2" spectrum_reference="controllerType=0 controllerNumber=1 scan=45" >
-			<PeptideHit score="0.3" sequence="ALKAAASDFHPTNVQR" charge="2" aa_before="F" aa_after="L" start="114" end="123" protein_refs="PH_1" >
+			<PeptideHit score="0.357143" sequence="ALKAAASDFHPTNVQR" charge="2" aa_before="F" aa_after="L" start="114" end="123" protein_refs="PH_1" >
 				<UserParam type="string" name="target_decoy" value="decoy"/>
 				<UserParam type="string" name="MS:1002258" value="5"/>
 				<UserParam type="string" name="MS:1002259" value="18"/>
@@ -962,9 +962,9 @@
 				<UserParam type="float" name="COMET:lnNumSP" value="9.83016388811729"/>
 				<UserParam type="float" name="COMET:lnRankSP" value="0"/>
 				<UserParam type="float" name="COMET:IonFrac" value="0.277777777777778"/>
-				<UserParam type="float" name="MS:1001492" value="-0.355263"/>
-				<UserParam type="float" name="MS:1001491" value="0.3"/>
-				<UserParam type="float" name="MS:1001493" value="0.874929"/>
+				<UserParam type="float" name="MS:1001492" value="-0.500436"/>
+				<UserParam type="float" name="MS:1001491" value="0.357143"/>
+				<UserParam type="float" name="MS:1001493" value="0.669637"/>
 			</PeptideHit>
 		</PeptideIdentification>
 	</IdentificationRun>

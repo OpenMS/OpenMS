@@ -175,7 +175,7 @@ protected:
 
       @value index of swath where precursor_mz falls into
     */
-    int getSwath_(const std::vector<std::pair<double, double> > swathes, const double precursor_mz);
+    int getSwath_(const std::vector<std::pair<double, double> >& swathes, const double precursor_mz);
 
     /**
       @brief Check whether the product m/z of a transition falls into the precursor isolation window
@@ -186,7 +186,7 @@ protected:
 
       @value whether product m/z falls into precursor isolation window
     */
-    bool isInSwath_(const std::vector<std::pair<double, double> > swathes, const double precursor_mz, const double product_mz);
+    bool isInSwath_(const std::vector<std::pair<double, double> >& swathes, const double precursor_mz, const double product_mz);
 
     /**
       @brief Generates random peptide sequence

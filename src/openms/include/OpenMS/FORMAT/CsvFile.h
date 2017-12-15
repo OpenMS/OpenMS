@@ -82,6 +82,8 @@ public:
     */
     void fload(const String& filename, char is = ',', bool ie = false, Int first_n = -1);
 
+    void fstore(const String& filename);
+
     /**
       @brief writes all items from a row to list
 

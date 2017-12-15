@@ -458,6 +458,7 @@ set(analysis_executables_list
   LabeledPairFinder_test
   LocalLinearMap_test
   TargetedExperiment_test
+  TargetedExperimentHelper_test
   MRMFragmentSelection_test
   MRMMapping_test
   MapAlignmentAlgorithmIdentification_test
@@ -478,6 +479,7 @@ set(analysis_executables_list
   PeakIntensityPredictor_test
   PScore_test
   HyperScore_test
+  MorpheusScore_test
   OPXLHelper_test
   OPXLSpectrumProcessingAlgorithms_test
   PoseClusteringAffineSuperimposer_test
@@ -497,7 +499,6 @@ set(analysis_executables_list
   SimplePairFinder_test
   SimpleSVM_test
   StablePairFinder_test
-  #TargetedExperimentHelper_test
   PercolatorFeatureSetHelper_test
   TransformationDescription_test
   TransformationModel_test
@@ -607,6 +608,7 @@ if(NOT DISABLE_OPENSWATH)
     DIAPrescoring_test
     OpenSwathMRMFeatureAccessOpenMS_test
     SpectrumAddition_test
+    TargetedSpectraExtractor_test
     OpenSwathSpectrumAccessOpenMS_test
     OpenSwathDataAccessHelper_test
     MasstraceCorrelator_test

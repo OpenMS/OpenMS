@@ -31,6 +31,9 @@ New tools:
 Deprecated and removed tools:
   - None
 
+Renamed tool:
+  - LowMemPeakPickerHiRes_RandomAccess was renamed to LowMemPeakPickerHiResRandomAccess
+
 Major changes in functionality:
   - Experimental design
     - Add support for fractions

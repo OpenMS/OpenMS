@@ -87,7 +87,7 @@ public:
   }
 
 protected:
-  StringList out_formats_; //< valid output formats for image
+  StringList out_formats_; ///< valid output formats for image
 
   void addPoint_(int x, int y, QImage & image, QColor color = Qt::black,
                  Size size = 2)

@@ -73,13 +73,10 @@ namespace OpenMS
     }
 
     /// Get the retention time of an assay
-    double ConfidenceScoring::getAssayRT_(const TargetedExperiment::Peptide& assay,
-                           const String& cv_accession)
+    double ConfidenceScoring::getAssayRT_(const TargetedExperiment::Peptide& assay)
     {
-      OPENMS_PRECONDITION(assay.rts.size() > 0, "More than zero RTs needed")
-      OPENMS_PRECONDITION(assay.rts[0].getCVTerms()[cv_accession].size() >  0, "More than zero cv terms of retention time needed")
-      String value = assay.rts[0].getCVTerms()[cv_accession][0].getValue();
-      return value.toDouble();
+      OPENMS_PRECONDITION(assay.hasRetentionTime(), "More than zero RTs needed")
+      return assay.getRetentionTime();
     }
 
     /// Extract the @p n_transitions highest intensities from @p intensity_map,
