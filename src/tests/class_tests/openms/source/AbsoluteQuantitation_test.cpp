@@ -576,7 +576,7 @@ START_SECTION((void optimizeCalibrationCurveIterative(
     feature_name,
     transformation_model,
     transformation_model_params,
-    optimized_paramss);
+    optimized_params);
 
   TEST_REAL_SIMILAR(component_concentrations[0].actual_concentration, 0.04);
   TEST_REAL_SIMILAR(component_concentrations[8].actual_concentration, 40.0);
