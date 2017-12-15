@@ -100,8 +100,8 @@ protected:
     registerFlag_("only_decoy", "Write only decoy proteins to the output database instead of a combined database.", false);
     registerStringOption_("method", "<enum>", "reverse", "Method by which decoy sequences are generated from target sequences.", false);
     setValidStrings_("method", ListUtils::create<String>("reverse,shuffle"));
-    registerStringOption_("type", "<enum>", "peptide", "Type of sequence.", false);
-    setValidStrings_("type", ListUtils::create<String>("peptide,RNA"));
+    registerStringOption_("type", "<enum>", "protein", "Type of sequence. RNA sequences may contain modification codes, which will be handled correctly if this is set to 'RNA'.", false);
+    setValidStrings_("type", ListUtils::create<String>("protein,RNA"));
   }
 
   String getIdentifier_(const String & identifier, const String & decoy_string, const bool as_prefix)
@@ -115,14 +115,14 @@ protected:
     //-------------------------------------------------------------
     // parsing parameters
     //-------------------------------------------------------------
-    enum seq_type {peptide, RNA};
+    enum seq_type {protein, RNA};
     StringList in(getStringList_("in"));
     String out(getStringOption_("out"));
     bool append = (!getFlag_("only_decoy"));
     bool shuffle = (getStringOption_("method") == "shuffle");
     String decoy_string(getStringOption_("decoy_string"));
     bool decoy_string_position_prefix = (String(getStringOption_("decoy_string_position")) == "prefix" ? true : false);
-    seq_type input_type = seq_type::peptide; //default to peptide
+    seq_type input_type = seq_type::protein; //default to protein
     if (getStringOption_("type") == "RNA")
     {
       input_type = seq_type::RNA;
@@ -173,7 +173,7 @@ protected:
           bool three_p = (entry.sequence.back() == 'p');
           if (five_p) //we don't want to reverse terminal phosphates
           {
-            quick_seq.erase(0,1);
+            quick_seq.erase(0, 1);
           }
           if (three_p)
           {
@@ -181,50 +181,35 @@ protected:
           }
           vector<String> tokenized;
           smatch m;
-          while (regex_search(quick_seq, m, std::regex("[^\\[]|(\\[[^\\[\\]]*\\])"))){
+          while (regex_search(quick_seq, m, std::regex("[^\\[]|(\\[[^\\[\\]]*\\])")))
+          {
             tokenized.push_back(m.str(0));
             quick_seq = m.suffix();
           }
 
           if (shuffle)
           {
-            random_shuffle(tokenized.begin(),tokenized.end());
+            random_shuffle(tokenized.begin(), tokenized.end());
           }
           else  // reverse
           {
             reverse (tokenized.begin(), tokenized.end()); //reverse the tokens
-            if (five_p)  //add back 5'
-            {
-              tokenized.insert(tokenized.begin(),String("p"));
-            }
-            if (three_p) //add back 3'
-            {
-              tokenized.push_back(String("p"));
-            }
           }
-          //implode
-          String tempstring = "";
-          for (vector<String>::iterator it = tokenized.begin(); it != tokenized.end(); ++it)
+          if (five_p)  //add back 5'
           {
-            tempstring += *it;
+            tokenized.insert(tokenized.begin(), String("p"));
           }
-          entry.sequence = tempstring;
-
+          if (three_p) //add back 3'
+          {
+            tokenized.push_back(String("p"));
+          }
+          entry.sequence = ListUtils::concatenate(tokenized,"");
         }
         else
         {
           if (shuffle)
           {
-            String temp;
-            Size x = entry.sequence.size();
-            srand(time(0));
-            while (x != 0)
-            {
-              Size y = rand() % x;
-              temp += entry.sequence[y];
-              --x;
-              entry.sequence[y] = entry.sequence[x]; // overwrite consumed position with last position (about to go out of scope for next dice roll)
-            }
+            random_shuffle(entry.sequence.begin(),entry.sequence.end());
           }
           else // reverse
           {
@@ -235,7 +220,6 @@ protected:
         // writing output
         //-------------------------------------------------------------
         f.writeNext(entry);
-
       } // next protein
     } // input files
 
