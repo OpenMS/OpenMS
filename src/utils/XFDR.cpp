@@ -343,14 +343,14 @@ protected:
             String alpha_prot = alpha_ev_it->getProteinAccession();
             String beta_prot = beta_ev_it->getProteinAccession();
 
-            // alpha_prot.substitute("reverse_", "");
-            // alpha_prot.substitute(decoy_string, "");
-            // beta_prot.substitute("reverse_", "");
-            // beta_prot.substitute(decoy_string, "");
-            // assert(alpha_prot.hasSubstring("reverse") == false);
-            // assert(beta_prot.hasSubstring("reverse") == false);
-            // assert(alpha_prot.hasSubstring(decoy_string) == false);
-            // assert(beta_prot.hasSubstring(decoy_string) == false);
+            alpha_prot.substitute("reverse_", "");
+            alpha_prot.substitute(decoy_string, "");
+            beta_prot.substitute("reverse_", "");
+            beta_prot.substitute(decoy_string, "");
+            assert(alpha_prot.hasSubstring("reverse") == false);
+            assert(beta_prot.hasSubstring("reverse") == false);
+            assert(alpha_prot.hasSubstring(decoy_string) == false);
+            assert(beta_prot.hasSubstring(decoy_string) == false);
             pep_id.setMetaValue( alpha_prot == beta_prot ? "OpenXQuest:is_intraprotein" : "OpenXQuest:is_interprotein" , DataValue());
           }
         }
