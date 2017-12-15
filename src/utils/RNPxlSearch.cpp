@@ -95,6 +95,16 @@ class RNPxlSearch :
   // additional shift used to generate cross-linked fragment ions for decoy peptides
   static constexpr double DECOY_FRAGMENT_SHIFT = 20.0;
 
+  // fast or all-shifts scoring mode
+  bool fast_scoring_ = true;
+
+  // if localization should be performed
+  bool localization_ = false;
+
+  // nucleotides can form cross-link
+  set<char> can_xl_;
+
+
 public:
   RNPxlSearch() :
     TOPPBase("RNPxlSearch", "Annotate RNA/DNA-peptide cross-links in MS/MS spectra.", false)
@@ -569,6 +579,29 @@ protected:
       annotated_hits[scan_index].shrink_to_fit();
     }
 
+    // If we did a (total-loss) only fast scoring, PSMs were not associated with a nucleotide.
+    // To make the localization code work for both fast and slow (all-shifts) scoring,
+    // we copy PSMs for every cross-linkable nucleotide.
+    if (fast_scoring_)
+    {
+      for (SignedSize scan_index = 0; scan_index < (SignedSize)annotated_hits.size(); ++scan_index)
+      {
+        vector<AnnotatedHit> new_hits;
+        // for each PSM
+        for (Size i = 0; i != annotated_hits[scan_index].size(); ++i)
+        {
+          // copy PSM information for each cross-linkable nucleotides
+          for (auto const & c : can_xl_)
+          {
+            AnnotatedHit a(annotated_hits[scan_index][i]);
+            a.cross_linked_nucleotide = c;
+            new_hits.push_back(a);
+          }
+        }
+        annotated_hits[scan_index].swap(new_hits);
+      }
+    }
+
 #ifdef _OPENMP
 #pragma omp parallel for
 #endif
@@ -605,7 +638,7 @@ protected:
         const String precursor_rna_adduct = *mod_combinations_it->second.begin();
         const double precursor_rna_weight = EmpiricalFormula(mod_combinations_it->first).getMonoWeight();
 
-        // we don't post-score non-cross-links for now
+        // we don't localize on non-cross-links
         if (precursor_rna_adduct == "none") { continue; }
 
         // generate all partial loss spectra (excluding the complete loss spectrum) merged into one spectrum
@@ -621,9 +654,9 @@ protected:
             return (item.first == a.cross_linked_nucleotide);
           });
 
-        const vector<FragmentAdductDefinition_>& partial_loss_modification = nt_to_adducts->second;
+        OPENMS_POSTCONDITION(nt_to_adducts != feasible_MS2_adducts.end(), "Nucleotide not found in mapping to feasible adducts.")
 
-        OPENMS_POSTCONDITION(!partial_loss_modification.empty(), "Nucleotide not found in mapping to feasible adducts.")
+        const vector<FragmentAdductDefinition_>& partial_loss_modification = nt_to_adducts->second;
 
         // get marker ions (these are not specific to the cross-linked nucleotide but also depend on the whole oligo bound to the precursor)
         const vector<FragmentAdductDefinition_>& marker_ions = all_feasible_adducts.at(precursor_rna_adduct).marker_ions;
@@ -1159,17 +1192,21 @@ protected:
     const vector<ResidueModification>& variable_modifications, 
     Size max_variable_mods_per_peptide)
   {
-  // remove all but top n scoring
+    // For localization and post-scoring we already filtered for top n hits so skip this step here.
+    if (!localization_)
+    {
+      // remove all but top n scoring
 #ifdef _OPENMP
 #pragma omp parallel for
 #endif
-    for (SignedSize scan_index = 0; scan_index < (SignedSize)annotated_hits.size(); ++scan_index)
-    {
-      // sort and keeps n best elements according to score
-      Size topn = top_hits > annotated_hits[scan_index].size() ? annotated_hits[scan_index].size() : top_hits;
-      std::partial_sort(annotated_hits[scan_index].begin(), annotated_hits[scan_index].begin() + topn, annotated_hits[scan_index].end(), AnnotatedHit::hasBetterScore);
-      annotated_hits[scan_index].resize(topn);
-      annotated_hits.shrink_to_fit();
+      for (SignedSize scan_index = 0; scan_index < (SignedSize)annotated_hits.size(); ++scan_index)
+      {
+        // sort and keeps n best elements according to score
+        Size topn = top_hits > annotated_hits[scan_index].size() ? annotated_hits[scan_index].size() : top_hits;
+        std::partial_sort(annotated_hits[scan_index].begin(), annotated_hits[scan_index].begin() + topn, annotated_hits[scan_index].end(), AnnotatedHit::hasBetterScore);
+        annotated_hits[scan_index].resize(topn);
+        annotated_hits.shrink_to_fit();
+      }
     }
 
 #ifdef _OPENMP
@@ -1415,7 +1452,7 @@ protected:
     String out_idxml = getStringOption_("out");
     String out_csv = getStringOption_("out_tsv");
 
-    bool fast_scoring = getStringOption_("RNPxl:scoring") == "fast" ? true : false;
+    fast_scoring_ = getStringOption_("RNPxl:scoring") == "fast" ? true : false;
 
     bool generate_decoys = getFlag_("RNPxl:decoys");
 
@@ -1466,8 +1503,7 @@ protected:
     // read list of nucleotides that can directly cross-link
     // these are responsible for shifted fragment ions. Their fragment adducts thus determine which shifts will be observed on b-,a-,y-ions
     String can_cross_link = getStringOption_("RNPxl:can_cross_link");
-    set<char> can_xl;
-    for (auto c : can_cross_link) { can_xl.insert(c); } 
+    for (auto c : can_cross_link) { can_xl_.insert(c); }
 
     StringList modifications = getStringList_("RNPxl:modifications");
 
@@ -1477,7 +1513,7 @@ protected:
 
     bool cysteine_adduct = getFlag_("RNPxl:CysteineAdduct");
 
-    bool localization = getFlag_("RNPxl:localization");
+    localization_ = getFlag_("RNPxl:localization");
 
     // generate all precursor adducts
     RNPxlModificationMassesResult mm;
@@ -1485,7 +1521,7 @@ protected:
     {
       mm = RNPxlModificationsGenerator::initModificationMassesRNA(
             target_nucleotides,
-            can_xl,
+            can_xl_,
             mappings,
             modifications, 
             sequence_restriction, 
@@ -1502,7 +1538,7 @@ protected:
     RNPxlParameterParsing::NucleotideToFragmentAdductMap nucleotide_to_fragment_adducts = RNPxlParameterParsing::getTargetNucleotideToFragmentAdducts(getStringList_("RNPxl:fragment_adducts"));
 
     // calculate all feasible fragment adducts from all possible precursor adducts
-    RNPxlParameterParsing::PrecursorsToMS2Adducts all_feasible_fragment_adducts = RNPxlParameterParsing::getAllFeasibleFragmentAdducts(mm, nucleotide_to_fragment_adducts, can_xl);
+    RNPxlParameterParsing::PrecursorsToMS2Adducts all_feasible_fragment_adducts = RNPxlParameterParsing::getAllFeasibleFragmentAdducts(mm, nucleotide_to_fragment_adducts, can_xl_);
 
     // load MS2 map
     PeakMap spectra;
@@ -1628,9 +1664,9 @@ protected:
 #pragma omp critical (processed_peptides_access)
 #endif
         {
+          // skip peptide (and all modified variants) if already processed
           if (processed_petides.find(*cit) != processed_petides.end())
           {
-            // peptide (and all modified variants) already processed so skip it
             already_processed = true;
           }
         }
@@ -1714,7 +1750,7 @@ protected:
               a_ion_sub_score_spectrum_generator.getSpectrum(a_ion_sub_score_spectrum, fixed_and_variable_modified_peptide, 1, 1);
             }
 
-            if (!fast_scoring)
+            if (!fast_scoring_)
             {
               PeakSpectrum marker_ions_sub_score_spectrum_z1;
               //shifted_immonium_ions_sub_score_spectrum;
@@ -1946,7 +1982,7 @@ protected:
                 } // for every nucleotide in the precursor
               }
             }
-            else // if (fast_scoring)
+            else // fast scoring
             {
               for (auto l = low_it; l != up_it; ++l)
               {
@@ -2030,7 +2066,7 @@ protected:
     vector<ProteinIdentification> protein_ids;
     progresslogger.startProgress(0, 1, "Post-processing PSMs...");
 
-    if (localization)
+    if (localization_)
     {
       // reload spectra from disc with same settings as before (important to keep same spectrum indices)
       spectra.clear(true);
