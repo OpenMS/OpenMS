@@ -51,7 +51,8 @@ namespace OpenMS
 
     // void AbsoluteQuantitationStandards::mapConcentrationsToComponents(
     //   const std::vector<runConcentration> & run_concentrations,
-    //   const FeatureMap & features)
+    //   const std::vector<FeatureMap> & features,
+    //   std::map<String,std::vector<featureConcentration>> components_to_concentrations)
     // {
     //     //todo
     // }

@@ -142,38 +142,6 @@ public:
   /// statistics getter
   int getNPoints();
   double getCorrelationCoefficient();
-
-  ////////////////////////////////////////////////////////
-  // DEPRECATED: using TransformationDescription interface
-  ////////////////////////////////////////////////////////
-  // /**
-  // @brief This function fits the transformation model with the data
-  //   and parameters
-
-  // @param transformation_model name of the transformation model
-  // @param data data to fit to the model
-  // @param transformation_model_params model parameters
-
-  // @return updated parameters.
-  // */ 
-  // Param fitTransformationModel(const String & transformation_model,
-  //   const TransformationModel::DataPoints& data,
-  //   const Param& transformation_model_params);
-
-  // /**
-  // @brief This function inverts and evaluates the transformation model
-  //   with the empty data and fitted parameters
-
-  // @param transformation_model name of the transformation model
-  // @param datum datum to evaluate the model at
-  // @param transformation_model_params model parameters
-
-  // @return evaluated datum.
-  // */ 
-  // double evaluateTransformationModel(const String & transformation_model,
-  //   const double& datum,
-  //   const Param& transformation_model_params);
-  ////////////////////////////////////////////////////////
            
 private:
   // members

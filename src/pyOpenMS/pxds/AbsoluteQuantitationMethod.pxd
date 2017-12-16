@@ -46,6 +46,3 @@ cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/AbsoluteQuantitationMethod.h>" n
         int getNPoints() nogil except +
         double getCorrelationCoefficient() nogil except +
 
-        Param fitTransformationModel(String transformation_model, libcpp_vector[TM_DataPoint]data, Param transformation_model_params) nogil except +
-        double evaluateTransformationModel(String transformation_model, double datum, Param transformation_model_params) nogil except +
-

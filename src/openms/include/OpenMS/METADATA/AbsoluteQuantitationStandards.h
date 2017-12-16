@@ -99,10 +99,15 @@ public:
 
        Note that for the method to work, the features must be annotated with
          a metaValue for "run_id"
+
+      @param run_concentrations a list of runConcentration structs (e.g., from file upload).
+      @param features a list of corresponding features for each of the unique runs in run_concentrations
+      @param components_to_concentrations A map that links run data to feature data
  
      */ 
      void mapConcentrationsToComponents(const std::vector<runConcentration> & run_concentrations,
-      const FeatureMap & features);
+      const std::vector<FeatureMap> & features,
+      std::map<String,std::vector<featureConcentration>> components_to_concentrations);
 
     // members
     std::map<String,std::vector<featureConcentration>> components_to_concentrations;
