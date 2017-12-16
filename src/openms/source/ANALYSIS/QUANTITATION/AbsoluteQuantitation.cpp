@@ -624,6 +624,9 @@ namespace OpenMS
 
     for (auto& quant_method : quant_methods_)
     {
+      // DEBUGGING
+      std::cout << "optimizing calibration curves for " << quant_method.first << "." << std::endl;
+
       if (components_concentrations.count(quant_method.first)>0 && optimization_method_ == "iterative")
       { 
         // optimize the calibraiton curve for the component
@@ -660,7 +663,7 @@ namespace OpenMS
       }
       else
       {
-        LOG_INFO << "Warning: Standards found for component " << quant_method.first << ".";
+        LOG_INFO << "Warning: Standards not found for component " << quant_method.first << ".";
       }
     }
   } 
