@@ -696,7 +696,7 @@ START_SECTION((void optimizeCalibrationCurves(AbsoluteQuantitationStandards::com
   TEST_EQUAL(quant_methods_map["amp.amp_1.Light"].getNPoints(), 11); 
 
   TEST_REAL_SIMILAR(components_concentrations["atp.atp_1.Light"][0].actual_concentration, 0.02);
-  TEST_REAL_SIMILAR(components_concentrations["atp.atp_1.Light"][3].actual_concentration, 0.8);
+  TEST_REAL_SIMILAR(components_concentrations["atp.atp_1.Light"][3].actual_concentration, 8.0);
   TEST_REAL_SIMILAR(quant_methods_map["atp.atp_1.Light"].getTransformationModelParams().getValue("slope"), 0.623040824);
   TEST_REAL_SIMILAR(quant_methods_map["atp.atp_1.Light"].getTransformationModelParams().getValue("intercept"), 0.36130172586); 
   TEST_REAL_SIMILAR(quant_methods_map["atp.atp_1.Light"].getCorrelationCoefficient(), 0.998208402);
