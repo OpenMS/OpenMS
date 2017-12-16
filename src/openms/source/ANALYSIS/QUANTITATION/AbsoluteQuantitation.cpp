@@ -658,6 +658,10 @@ namespace OpenMS
         throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
           "Unsupported calibration curve optimization method '" + optimization_method_ + "'.");
       }
+      else
+      {
+        LOG_INFO << "Warning: Standards found for component " << quant_method.first << ".";
+      }
     }
   } 
 
