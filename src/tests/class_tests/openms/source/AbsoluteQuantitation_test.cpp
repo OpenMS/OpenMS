@@ -618,6 +618,16 @@ END_SECTION
 START_SECTION((void optimizeCalibrationCurves(AbsoluteQuantitationStandards::components_to_concentrations & components_concentrations)))
   
   AbsoluteQuantitation absquant;
+  
+  // set-up the class parameters 
+  Param absquant_params; 
+  absquant_params.setValue("min_points", 4);
+  absquant_params.setValue("max_bias", 30.0);
+  absquant_params.setValue("min_correlation_coefficient", 0.9);
+  absquant_params.setValue("max_iters", 100);
+  absquant_params.setValue("outlier_detection_method", "iter_jackknife");
+  absquant_params.setValue("use_chauvenet", "false");
+  absquant.setParameters(absquant_params);
 
   // set up the quantitation method 
   AbsoluteQuantitationMethod aqm;
