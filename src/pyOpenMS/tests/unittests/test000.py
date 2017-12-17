@@ -1733,7 +1733,7 @@ def testAScore():
     hit = pyopenms.PeptideHit()
     spectrum = pyopenms.MSSpectrum()
 
-    ff.compute(hit, spectrum, 5.0, 1)
+    ff.compute(hit, spectrum)
     # ff.computeCumulativeScore(1,1,0.5)
 
 @report
@@ -3104,6 +3104,67 @@ def testTargetedExperiment():
 
 
 @report
+def testTargetedExperimentHelper():
+    """
+    @tests: TargetedExperimentHelper
+     """
+    rtu = pyopenms.RetentionTime.RTUnit()
+    rtu = pyopenms.RetentionTime.RTUnit.SECOND
+    rtu = pyopenms.RetentionTime.RTUnit.MINUTE
+    rtt = pyopenms.RetentionTime.RTType()
+    rtt = pyopenms.RetentionTime.RTType.LOCAL
+    rtt = pyopenms.RetentionTime.RTType.NORMALIZED
+    rtt = pyopenms.RetentionTime.RTType.IRT
+
+    rt = pyopenms.RetentionTime()
+    assert rt.software_ref is not None
+    assert not rt.isRTset()
+    rt.setRT(5.0)
+    rt.retention_time_unit = pyopenms.RetentionTime.RTUnit.SECOND
+    rt.retention_time_type = pyopenms.RetentionTime.RTType.NORMALIZED
+    assert rt.isRTset()
+    assert rt.getRT() == 5.0
+
+    p = pyopenms.Peptide()
+    assert p.rts is not None
+    assert p.id is not None
+    assert p.protein_refs is not None
+    assert p.evidence is not None
+    assert p.sequence is not None
+    assert p.mods is not None
+
+    assert not p.hasCharge()
+    p.setChargeState(5)
+    assert p.hasCharge()
+    assert p.getChargeState() == 5
+
+    assert not p.hasRetentionTime()
+    p.rts = [rt]
+    assert p.hasRetentionTime()
+    assert p.getRetentionTime() == 5.0
+    assert p.getRetentionTimeUnit() == pyopenms.RetentionTime.RTUnit.SECOND
+    assert p.getRetentionTimeType() == pyopenms.RetentionTime.RTType.NORMALIZED
+
+    c = pyopenms.Compound()
+    assert c.rts is not None
+    assert c.id is not None
+    assert c.molecular_formula is not None
+    assert c.smiles_string is not None
+    assert c.theoretical_mass is not None
+
+    assert not c.hasCharge()
+    c.setChargeState(5)
+    assert c.hasCharge()
+    assert c.getChargeState() == 5
+
+    assert not c.hasRetentionTime()
+    c.rts = [rt]
+    assert c.hasRetentionTime()
+    assert c.getRetentionTime() == 5.0
+    assert c.getRetentionTimeUnit() == pyopenms.RetentionTime.RTUnit.SECOND
+    assert c.getRetentionTimeType() == pyopenms.RetentionTime.RTType.NORMALIZED
+
+@report
 def testMapAlignment():
 
     """
@@ -3336,6 +3397,36 @@ def testPeakFileOptions():
     pfo.setMetadataOnly
     pfo.setWriteSupplementalData
 
+@report
+def testMRMMapping():
+    """
+    @tests:
+     MRMMapping.__init__
+     MRMMapping.map
+    """
+
+    p = pyopenms.MRMMapping()
+    assert p.mapExperiment is not None
+    e = pyopenms.MSExperiment()
+    c = pyopenms.MSChromatogram()
+    e.addChromatogram(c)
+    assert e.getNrChromatograms() == 1
+
+    o = pyopenms.MSExperiment()
+    t = pyopenms.TargetedExperiment()
+    p.mapExperiment(e, t, o)
+    assert o.getNrChromatograms() == 0 # not so easy to test
+
+@report
+def testPeakPickerMRM():
+    """
+    @tests:
+     PeakPickerMRM.__init__
+     PeakPickerMRM.pickChromatogram
+    """
+
+    p = pyopenms.PeakPickerMRM()
+    assert p.pickChromatogram is not None
 
 @report
 def testPeakPickerHiRes():
@@ -3355,6 +3446,10 @@ def testPeakPickerHiRes():
      PeakPickerHiRes.setProgress
      PeakPickerHiRes.startProgress
     """
+
+    p = pyopenms.PeakPickerHiRes()
+    assert p.pick is not None
+    assert p.pickExperiment is not None
 
 @report
 def testPeakTypeEstimator():

@@ -18,15 +18,19 @@ OpenSwathWorkflow.cpp
 ChromatogramExtractor.cpp
 ChromatogramExtractorAlgorithm.cpp
 SpectrumAddition.cpp
+TargetedSpectraExtractor.cpp
 MRMTransitionGroupPicker.cpp
 DIAHelper.cpp
 DIAScoring.cpp
 SONARScoring.cpp
 DIAPrescoring.cpp
 MRMFeatureFinderScoring.cpp
+MasstraceCorrelator.cpp
 ConfidenceScoring.cpp
 PeakPickerMRM.cpp
 SwathWindowLoader.cpp
+MRMFeatureFilter.cpp
+MRMFeatureQC.cpp
 )
 
 ### add path to the filenames

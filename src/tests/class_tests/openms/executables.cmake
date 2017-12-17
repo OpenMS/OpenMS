@@ -176,6 +176,7 @@ set(format_executables_list
   InspectOutfile_test
   KroenikFile_test
   LibSVMEncoder_test
+  MRMFeatureQCFile_test
   MS2File_test
   MSPFile_test
   MascotGenericFile_test
@@ -239,6 +240,7 @@ set(format_executables_list
   MSDataStoringConsumer_test
   MSDataAggregatingConsumer_test
   SpectrumAccessQuadMZTransforming_test
+  SpectrumAccessSqMass_test
 )
 
 set(math_executables_list
@@ -395,6 +397,10 @@ set(chemistry_executables_list
 
 
 set(analysis_executables_list
+  AbsoluteQuantitation_test
+  AbsoluteQuantitationMethod_test
+  AbsoluteQuantitationMethodFile_test
+  AbsoluteQuantitationStandards_test
   AccurateMassSearchEngine_test
   AScore_test
   BaseGroupFinder_test
@@ -452,7 +458,9 @@ set(analysis_executables_list
   LabeledPairFinder_test
   LocalLinearMap_test
   TargetedExperiment_test
+  TargetedExperimentHelper_test
   MRMFragmentSelection_test
+  MRMMapping_test
   MapAlignmentAlgorithmIdentification_test
   MapAlignmentAlgorithmKD_test
   MapAlignmentAlgorithmPoseClustering_test
@@ -471,6 +479,7 @@ set(analysis_executables_list
   PeakIntensityPredictor_test
   PScore_test
   HyperScore_test
+  MorpheusScore_test
   OPXLHelper_test
   OPXLSpectrumProcessingAlgorithms_test
   PoseClusteringAffineSuperimposer_test
@@ -490,7 +499,6 @@ set(analysis_executables_list
   SimplePairFinder_test
   SimpleSVM_test
   StablePairFinder_test
-  #TargetedExperimentHelper_test
   PercolatorFeatureSetHelper_test
   TransformationDescription_test
   TransformationModel_test
@@ -600,10 +608,14 @@ if(NOT DISABLE_OPENSWATH)
     DIAPrescoring_test
     OpenSwathMRMFeatureAccessOpenMS_test
     SpectrumAddition_test
+    TargetedSpectraExtractor_test
     OpenSwathSpectrumAccessOpenMS_test
     OpenSwathDataAccessHelper_test
+    MasstraceCorrelator_test
     MRMFeatureScoring_test
     MRMFeatureFinderScoring_test
+    MRMFeatureFilter_test
+    MRMFeatureQC_test
     SpectrumHelpers_test
     StatsHelpers_test
     CachedMzML_test

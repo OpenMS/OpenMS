@@ -72,10 +72,9 @@ namespace OpenSwath
   }
 
   /// integrate all masses in window
-  bool integrateWindow(const OpenSwath::SpectrumPtr spectrum, double mz_start,
-                       double mz_end, double & mz, double & intensity, bool centroided)
+  bool integrateWindow(const OpenSwath::SpectrumPtr spectrum, double mz_start, double mz_end,
+                       double & mz, double & intensity, bool centroided)
   {
-    //check precondtion
     OPENSWATH_PRECONDITION( std::adjacent_find(spectrum->getMZArray()->data.begin(),
             spectrum->getMZArray()->data.end(), std::greater<double>()) == spectrum->getMZArray()->data.end(),
           "Precondition violated: m/z vector needs to be sorted!" )
@@ -85,19 +84,20 @@ namespace OpenSwath
     {
       // get the weighted average for noncentroided data.
       // TODO this is not optimal if there are two peaks in this window (e.g. if the window is too large)
+      typedef std::vector<double>::const_iterator itType;
       mz = 0;
       intensity = 0;
 
-      std::vector<double>::const_iterator mz_arr_end = spectrum->getMZArray()->data.end();
-      std::vector<double>::const_iterator int_it = spectrum->getIntensityArray()->data.begin();
+      itType mz_arr_end = spectrum->getMZArray()->data.end();
+      itType int_it = spectrum->getIntensityArray()->data.begin();
 
       // this assumes that the spectra are sorted!
-      std::vector<double>::const_iterator mz_it = std::lower_bound(spectrum->getMZArray()->data.begin(),
+      itType mz_it = std::lower_bound(spectrum->getMZArray()->data.begin(),
         spectrum->getMZArray()->data.end(), mz_start);
-      std::vector<double>::const_iterator mz_it_end = std::lower_bound(mz_it, mz_arr_end, mz_end);
+      itType mz_it_end = std::lower_bound(mz_it, mz_arr_end, mz_end);
 
       // also advance intensity iterator now
-      std::iterator_traits< std::vector<double>::const_iterator >::difference_type iterator_pos = std::distance((std::vector<double>::const_iterator)spectrum->getMZArray()->data.begin(), mz_it);
+      std::iterator_traits< itType >::difference_type iterator_pos = std::distance((itType)spectrum->getMZArray()->data.begin(), mz_it);
       std::advance(int_it, iterator_pos);
 
       for (; mz_it != mz_it_end; ++mz_it, ++int_it)

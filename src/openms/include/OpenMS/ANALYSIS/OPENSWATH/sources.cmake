@@ -16,6 +16,7 @@ set(sources_list_h
   MRMFeatureFinderScoring.h
   MRMRTNormalizer.h
   MRMTransitionGroupPicker.h
+  MasstraceCorrelator.h
   OpenSwathHelper.h
   OpenSwathScoring.h
   OpenSwathTSVWriter.h
@@ -23,10 +24,13 @@ set(sources_list_h
   OpenSwathWorkflow.h
   SONARScoring.h
   SpectrumAddition.h
+  TargetedSpectraExtractor.h
   SwathMapMassCorrection.h
   SwathWindowLoader.h
   TransitionTSVReader.h
   TransitionPQPReader.h
+  MRMFeatureQC.h
+  MRMFeatureFilter.h
 )
 
 ### add path to the filenames
@@ -40,4 +44,3 @@ source_group("Header Files\\OpenMS\\ANALYSIS\\OPENSWATH" FILES ${sources_h})
 set_source_files_properties(${directory}/sources.cmake PROPERTIES HEADER_FILE_ONLY TRUE)
 
 set(OpenMS_sources_h ${OpenMS_sources_h} ${sources_h})
-

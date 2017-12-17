@@ -170,6 +170,8 @@ protected:
       // subfunctions of write
       void writeTarget_(std::ostream & os, const std::vector<IncludeExcludeTarget>::const_iterator & it) const;
 
+      void writeRetentionTime_(std::ostream& os, const TargetedExperimentHelper::RetentionTime& rt) const;
+
       void writeProduct_(std::ostream & os, const std::vector<ReactionMonitoringTransition::Product>::const_iterator & prod_it) const;
 
       void writeConfiguration_(std::ostream & os, const std::vector<ReactionMonitoringTransition::Configuration>::const_iterator & cit) const;

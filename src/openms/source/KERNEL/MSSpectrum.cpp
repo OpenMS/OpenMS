@@ -503,6 +503,50 @@ namespace OpenMS
     return lower_bound(ContainerType::begin(), ContainerType::end(), p, PeakType::PositionLess());
   }
 
+  MSSpectrum::Iterator MSSpectrum::PosBegin(MSSpectrum::CoordinateType mz)
+  {
+    return MZBegin(mz);
+  }
+
+  MSSpectrum::Iterator
+  MSSpectrum::PosBegin(MSSpectrum::Iterator begin, MSSpectrum::CoordinateType mz, MSSpectrum::Iterator end)
+  {
+    return MZBegin(begin, mz, end);
+  }
+
+  MSSpectrum::Iterator MSSpectrum::PosEnd(MSSpectrum::CoordinateType mz)
+  {
+    return MZEnd(mz);
+  }
+
+  MSSpectrum::Iterator
+  MSSpectrum::PosEnd(MSSpectrum::Iterator begin, MSSpectrum::CoordinateType mz, MSSpectrum::Iterator end)
+  {
+    return MZEnd(begin, mz, end);
+  }
+
+  MSSpectrum::ConstIterator MSSpectrum::PosBegin(MSSpectrum::CoordinateType mz) const
+  {
+    return MZBegin(mz);
+  }
+
+  MSSpectrum::ConstIterator
+  MSSpectrum::PosBegin(MSSpectrum::ConstIterator begin, MSSpectrum::CoordinateType mz, MSSpectrum::ConstIterator end) const
+  {
+    return MZBegin(begin, mz, end);
+  }
+
+  MSSpectrum::ConstIterator MSSpectrum::PosEnd(MSSpectrum::CoordinateType mz) const
+  {
+    return MZEnd(mz);
+  }
+
+  MSSpectrum::ConstIterator
+  MSSpectrum::PosEnd(MSSpectrum::ConstIterator begin, MSSpectrum::CoordinateType mz, MSSpectrum::ConstIterator end) const
+  {
+    return MZEnd(begin, mz, end);
+  }
+
   bool MSSpectrum::RTLess::operator()(const MSSpectrum &a, const MSSpectrum &b) const {
     return a.getRT() < b.getRT();
   }

@@ -64,9 +64,7 @@ namespace OpenMS
     default_dir_(default_dir)
   {
     QGridLayout* main_grid = new QGridLayout(this);
-    QLabel* label = NULL;
-
-    label = new QLabel("TOPP tool:");
+    QLabel* label = new QLabel("TOPP tool:");
     main_grid->addWidget(label, 0, 0);
     QStringList list;
 

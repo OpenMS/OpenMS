@@ -180,7 +180,7 @@ public:
     /// sets the unimod record id
     void setUniModRecordId(const Int& id);
 
-    /// sets the unimod record id
+    /// gets the unimod record id
     const Int& getUniModRecordId() const;
 
     /// returns the unimod accession if available

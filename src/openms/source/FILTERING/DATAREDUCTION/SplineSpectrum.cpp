@@ -221,6 +221,10 @@ namespace OpenMS
   {
   }
 
+  SplineSpectrum::Navigator::Navigator()
+  {
+  }
+
   SplineSpectrum::Navigator::~Navigator()
   {
   }

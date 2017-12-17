@@ -57,6 +57,8 @@
 #include <iterator>
 #include <iomanip>
 
+#include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
+
 using namespace std;
 using namespace OpenMS;
 //using namespace OpenMS::OpenSWATH;
@@ -70,12 +72,18 @@ START_TEST(DIAHelper, "$Id$")
 
 START_SECTION([EXTRA] getBYSeries_test)
 {
+  TheoreticalSpectrumGenerator generator;
+  Param p;
+  p.setValue("add_metainfo", "true",
+      "Adds the type of peaks as metainfo to the peaks, like y8+, [M-H2O+2H]++");
+  generator.setParameters(p);
+
   String sequence = "SYVAWDR";
   std::vector<double> bseries, yseries;
   OpenMS::AASequence a = OpenMS::AASequence::fromString(sequence);
-  OpenMS::DIAHelpers::getBYSeries(a, bseries, yseries);
+  OpenMS::DIAHelpers::getBYSeries(a, bseries, yseries, &generator);
   bseries.clear();
-  OpenMS::DIAHelpers::getTheorMasses(a, bseries);
+  OpenMS::DIAHelpers::getTheorMasses(a, bseries, &generator);
 
 }
 END_SECTION
@@ -150,11 +158,18 @@ END_SECTION
 
 START_SECTION([EXTRA] simulateSpectrumFromAASequence_test)
 {
+  TheoreticalSpectrumGenerator generator;
+  Param p;
+  p.setValue("add_metainfo", "false",
+             "Adds the type of peaks as metainfo to the peaks, like y8+, [M-H2O+2H]++");
+  p.setValue("add_precursor_peaks", "true", "Adds peaks of the precursor to the spectrum, which happen to occur sometimes");
+  generator.setParameters(p);
+
   String sequence = "SYVAWDR";
   OpenMS::AASequence a = OpenMS::AASequence::fromString(sequence);
   std::vector<double> masses1;
   std::vector<std::pair<double, double> > tmp, out;
-  OpenMS::DIAHelpers::simulateSpectrumFromAASequence(a, masses1, tmp);
+  OpenMS::DIAHelpers::simulateSpectrumFromAASequence(a, masses1, tmp, &generator);
 
   std::copy(masses1.begin(), masses1.end(),
       std::ostream_iterator<double>(std::cout, " "));

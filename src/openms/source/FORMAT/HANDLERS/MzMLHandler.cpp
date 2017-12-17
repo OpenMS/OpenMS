@@ -655,6 +655,7 @@ namespace OpenMS
       //~ static const XMLCh * s_cvref = xercesc::XMLString::transcode("cvRef"); TODO
       static const XMLCh* s_ref = xercesc::XMLString::transcode("ref");
       static const XMLCh* s_version = xercesc::XMLString::transcode("version");
+      static const XMLCh* s_version_mzml = xercesc::XMLString::transcode("mzML:version");
       static const XMLCh* s_order = xercesc::XMLString::transcode("order");
       static const XMLCh* s_location = xercesc::XMLString::transcode("location");
       static const XMLCh* s_sample_ref = xercesc::XMLString::transcode("sampleRef");
@@ -902,7 +903,11 @@ namespace OpenMS
         chromatogram_count = 0;
 
         //check file version against schema version
-        String file_version = attributeAsString_(attributes, s_version);
+        String file_version;
+        if (!(optionalAttributeAsString_(file_version, attributes, s_version) || optionalAttributeAsString_(file_version, attributes, s_version_mzml)) )
+        {
+          warning(LOAD, "No version attribute in mzML");
+        }
 
         VersionInfo::VersionDetails current_version = VersionInfo::VersionDetails::create(file_version);
         static VersionInfo::VersionDetails mzML_min_version = VersionInfo::VersionDetails::create("1.1.0");
@@ -3478,12 +3483,17 @@ namespace OpenMS
       //--------------------------------------------------------------------------------------------
       //selected ion list (optional)
       //--------------------------------------------------------------------------------------------
-      if (precursor.getCharge() != 0 || precursor.getIntensity() > 0.0 || precursor.getDriftTime() >= 0.0 || precursor.getPossibleChargeStates().size() > 0)
+      //
+      if (options_.getForceTPPCompatability() ||
+          precursor.getCharge() != 0 ||
+          precursor.getIntensity() > 0.0 ||
+          precursor.getDriftTime() >= 0.0 ||
+          precursor.getPossibleChargeStates().size() > 0)
       {
         os << "\t\t\t\t\t\t<selectedIonList count=\"1\">\n";
         os << "\t\t\t\t\t\t\t<selectedIon>\n";
         os << "\t\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000744\" name=\"selected ion m/z\" value=\"" << precursor.getMZ() << "\" unitAccession=\"MS:1000040\" unitName=\"m/z\" unitCvRef=\"MS\" />\n";
-        if ( precursor.getCharge() != 0)
+        if (options_.getForceTPPCompatability() || precursor.getCharge() != 0)
         {
           os << "\t\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000041\" name=\"charge state\" value=\"" << precursor.getCharge() << "\" />\n";
         }

@@ -223,7 +223,7 @@ protected:
                                                                      allowed_amino_acid_characters,
                                                                      maximum_length);
       }
-      else if (svm.getIntParameter(SVMWrapper::KERNEL_TYPE) == SVMWrapper::OLIGO)
+      else
       {
         prediction_data = encoder.encodeLibSVMProblemWithOligoBorderVectors(temp_peptides,
                                                                             temp_labels,

@@ -1,16 +1,16 @@
-PrecursorMz	ProductMz	Tr_recalibrated	transition_name	CE	LibraryIntensity	transition_group_id	decoy	PeptideSequence	ProteinName	Annotation	FullUniModPeptideName	CompoundName	SumFormula	SMILES	MissedCleavages	Replicates	NrModifications	PrecursorCharge	PeptideGroupLabel	LabelType	UniprotID	FragmentCharge	FragmentType	FragmentSeriesNumber	detecting_transition	identifying_transition	quantifying_transition
-278.1245	89.02496338	-1	tr5	1	0.0628155785	compound_1	0			NA		N-(1-Deoxy-1-fructosyl)valine	C11H21NO7		0	0	0	-1				NA		-1	1	0	1
-278.1245	96.08149719	-1	tr6	1	0.5492898082	compound_1	0			NA		N-(1-Deoxy-1-fructosyl)valine	C11H21NO7		0	0	0	-1				NA		-1	1	0	1
-278.1245	101.0606232	-1	tr7	1	0.0987432789	compound_1	0			NA		N-(1-Deoxy-1-fructosyl)valine	C11H21NO7		0	0	0	-1				NA		-1	1	0	1
-278.1245	109.0291519	-1	tr8	1	0.0861687031	compound_1	0			NA		N-(1-Deoxy-1-fructosyl)valine	C11H21NO7		0	0	0	-1				NA		-1	1	0	1
-278.1245	116.0711136	-1	tr9	1	0.2576379826	compound_1	0			NA		N-(1-Deoxy-1-fructosyl)valine	C11H21NO7		0	0	0	-1				NA		-1	1	0	1
-278.1245	120.0812531	-1	tr10	1	0.0653417551	compound_1	0			NA		N-(1-Deoxy-1-fructosyl)valine	C11H21NO7		0	0	0	-1				NA		-1	1	0	1
-278.1245	126.0915756	-1	tr11	1	0.1081274607	compound_1	0			NA		N-(1-Deoxy-1-fructosyl)valine	C11H21NO7		0	0	0	-1				NA		-1	1	0	1
-278.1245	138.0920258	-1	tr12	1	0.2081801254	compound_1	0			NA		N-(1-Deoxy-1-fructosyl)valine	C11H21NO7		0	0	0	-1				NA		-1	1	0	1
-278.1245	156.1025848	-1	tr13	1	0.1051499068	compound_1	0			NA		N-(1-Deoxy-1-fructosyl)valine	C11H21NO7		0	0	0	-1				NA		-1	1	0	1
-278.1245	158.0813293	-1	tr14	1	1	compound_1	0			NA		N-(1-Deoxy-1-fructosyl)valine	C11H21NO7		0	0	0	-1				NA		-1	1	0	1
-278.1245	180.10165405	-1	tr15	1	0.0612758683	compound_1	0			NA		N-(1-Deoxy-1-fructosyl)valine	C11H21NO7		0	0	0	-1				NA		-1	1	0	1
-278.1245	234.133316	-1	tr16	1	0.0515150041	compound_1	0			NA		N-(1-Deoxy-1-fructosyl)valine	C11H21NO7		0	0	0	-1				NA		-1	1	0	1
-244.123	158.0813293	-1	tr17	1	0.25	compound_2	0			NA		valine	C5H11NO2		0	0	0	NA				-1		-1	1	0	1
-244.123	180.10165405	-1	tr18	1	1	compound_2	0			NA		valine	C5H11NO2		0	0	0	NA				-1		-1	1	0	1
-244.123	234.133316	-1	tr19	1	0.3	compound_2	0			NA		valine	C5H11NO2		0	0	0	NA				-1		-1	1	0	1
+PrecursorMz	ProductMz	PrecursorCharge	ProductCharge	LibraryIntensity	NormalizedRetentionTime	PeptideSequence	ModifiedPeptideSequence	PeptideGroupLabel	LabelType	CompoundName	SumFormula	SMILES	ProteinId	UniprotId	FragmentType	FragmentSeriesNumber	Annotation	CollisionEnergy	TransitionGroupId	TransitionId	Decoy	DetectingTransition	IdentifyingTransition	QuantifyingTransition
+278.1245	89.02496338	-1	NA	0.0628155785	-1					N-(1-Deoxy-1-fructosyl)valine	C11H21NO7					-1	NA	1	compound_1	tr5	0	1	0	1
+278.1245	96.08149719	-1	NA	0.5492898082	-1					N-(1-Deoxy-1-fructosyl)valine	C11H21NO7					-1	NA	1	compound_1	tr6	0	1	0	1
+278.1245	101.0606232	-1	NA	0.0987432789	-1					N-(1-Deoxy-1-fructosyl)valine	C11H21NO7					-1	NA	1	compound_1	tr7	0	1	0	1
+278.1245	109.0291519	-1	NA	0.0861687031	-1					N-(1-Deoxy-1-fructosyl)valine	C11H21NO7					-1	NA	1	compound_1	tr8	0	1	0	1
+278.1245	116.0711136	-1	NA	0.2576379826	-1					N-(1-Deoxy-1-fructosyl)valine	C11H21NO7					-1	NA	1	compound_1	tr9	0	1	0	1
+278.1245	120.0812531	-1	NA	0.0653417551	-1					N-(1-Deoxy-1-fructosyl)valine	C11H21NO7					-1	NA	1	compound_1	tr10	0	1	0	1
+278.1245	126.0915756	-1	NA	0.1081274607	-1					N-(1-Deoxy-1-fructosyl)valine	C11H21NO7					-1	NA	1	compound_1	tr11	0	1	0	1
+278.1245	138.0920258	-1	NA	0.2081801254	-1					N-(1-Deoxy-1-fructosyl)valine	C11H21NO7					-1	NA	1	compound_1	tr12	0	1	0	1
+278.1245	156.1025848	-1	NA	0.1051499068	-1					N-(1-Deoxy-1-fructosyl)valine	C11H21NO7					-1	NA	1	compound_1	tr13	0	1	0	1
+278.1245	158.0813293	-1	NA	1	-1					N-(1-Deoxy-1-fructosyl)valine	C11H21NO7					-1	NA	1	compound_1	tr14	0	1	0	1
+278.1245	180.10165405	-1	NA	0.0612758683	-1					N-(1-Deoxy-1-fructosyl)valine	C11H21NO7					-1	NA	1	compound_1	tr15	0	1	0	1
+278.1245	234.133316	-1	NA	0.0515150041	-1					N-(1-Deoxy-1-fructosyl)valine	C11H21NO7					-1	NA	1	compound_1	tr16	0	1	0	1
+244.123	158.0813293	NA	-1	0.25	-1					valine	C5H11NO2					-1	NA	1	compound_2	tr17	0	1	0	1
+244.123	180.10165405	NA	-1	1	-1					valine	C5H11NO2					-1	NA	1	compound_2	tr18	0	1	0	1
+244.123	234.133316	NA	-1	0.3	-1					valine	C5H11NO2					-1	NA	1	compound_2	tr19	0	1	0	1
