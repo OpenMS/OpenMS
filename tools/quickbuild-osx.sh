@@ -3,6 +3,9 @@ set -e
 
 echo `pwd`
 
+read -p "Please specify how many jobs you want to use: " numberOfJobs
+echo "Number of jobs: " $numberOfJobs
+
 ###################################
 # 1. download and build contrib (if not present already)
 git submodule update --init contrib
@@ -13,7 +16,7 @@ CONTRIB_PATH=`pwd`/contrib-build
 if [ ! -d "contrib-build" ] ; then
   mkdir -p contrib-build
   cd contrib-build
-  cmake -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_C_COMPILER=clang -DBUILD_TYPE=ALL ../contrib
+  cmake -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_C_COMPILER=clang -DNUMBER_OF_JOBS=$numberOfJobs -DBUILD_TYPE=ALL ../contrib
   cd ..
 fi
 
@@ -24,8 +27,8 @@ mkdir -p openms-build
 cd openms-build
 
 # contrib path needs to be an absolute path!
-cmake -DOPENMS_CONTRIB_LIBS="$CONTRIB_PATH" -DBOOST_USE_STATIC=On ../
-make $@
+cmake -DOPENMS_CONTRIB_LIBS="$CONTRIB_PATH" -DNUMBER_OF_JOBS=$numberOfJobs -DBOOST_USE_STATIC=On ../
+make -j $numberOfJobs $@
 
 cd ..
 
