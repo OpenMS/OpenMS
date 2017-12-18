@@ -133,8 +133,8 @@ START_SECTION(void estimateBackground(
 ) const)
 {
   Param params = ptr->getParameters();
-  double peak_area, peak_height, peak_apex_pos;
-  double background_area, background_height; // outputs
+  double peak_area(0.0), peak_height(0.0), peak_apex_pos(0.0);
+  double background_area(0.0), background_height(0.0); // outputs
 
   params.setValue("baseline_type", BASELINE_TYPE_BASETOBASE);
   params.setValue("integration_type", INTEGRATION_TYPE_INTENSITYSUM);
@@ -177,8 +177,8 @@ START_SECTION(void estimateBackground(
 ) const)
 {
   Param params = ptr->getParameters();
-  double peak_area, peak_height, peak_apex_pos;
-  double background_area, background_height; // outputs
+  double peak_area(0.0), peak_height(0.0), peak_apex_pos(0.0);
+  double background_area(0.0), background_height(0.0); // outputs
 
   params.setValue("baseline_type", BASELINE_TYPE_BASETOBASE);
   params.setValue("integration_type", INTEGRATION_TYPE_INTENSITYSUM);
@@ -221,8 +221,8 @@ START_SECTION(void estimateBackground(
 ) const)
 {
   Param params = ptr->getParameters();
-  double peak_area, peak_height, peak_apex_pos;
-  double background_area, background_height; // outputs
+  double peak_area(0.0), peak_height(0.0), peak_apex_pos(0.0);
+  double background_area(0.0), background_height(0.0); // outputs
 
   params.setValue("baseline_type", BASELINE_TYPE_BASETOBASE);
   params.setValue("integration_type", INTEGRATION_TYPE_INTENSITYSUM);
@@ -265,8 +265,8 @@ START_SECTION(void estimateBackground(
 ) const)
 {
   Param params = ptr->getParameters();
-  double peak_area, peak_height, peak_apex_pos;
-  double background_area, background_height; // outputs
+  double peak_area(0.0), peak_height(0.0), peak_apex_pos(0.0);
+  double background_area(0.0), background_height(0.0); // outputs
 
   params.setValue("baseline_type", BASELINE_TYPE_BASETOBASE);
   params.setValue("integration_type", INTEGRATION_TYPE_INTENSITYSUM);
@@ -308,7 +308,7 @@ START_SECTION(void integratePeak(
 ) const)
 {
   Param params = ptr->getParameters();
-  double peak_area, peak_height, peak_apex_pos;
+  double peak_area(0.0), peak_height(0.0), peak_apex_pos(0.0);
 
   params.setValue("integration_type", INTEGRATION_TYPE_INTENSITYSUM);
   ptr->setParameters(params);
@@ -347,7 +347,7 @@ START_SECTION(void integratePeak(
 ) const)
 {
   Param params = ptr->getParameters();
-  double peak_area, peak_height, peak_apex_pos;
+  double peak_area(0.0), peak_height(0.0), peak_apex_pos(0.0);
 
   params.setValue("integration_type", INTEGRATION_TYPE_INTENSITYSUM);
   ptr->setParameters(params);
@@ -387,7 +387,7 @@ START_SECTION(void integratePeak(
 ) const)
 {
   Param params = ptr->getParameters();
-  double peak_area, peak_height, peak_apex_pos;
+  double peak_area(0.0), peak_height(0.0), peak_apex_pos(0.0);
 
   params.setValue("integration_type", INTEGRATION_TYPE_INTENSITYSUM);
   ptr->setParameters(params);
@@ -426,7 +426,7 @@ START_SECTION(void integratePeak(
 ) const)
 {
   Param params = ptr->getParameters();
-  double peak_area, peak_height, peak_apex_pos;
+  double peak_area(0.0), peak_height(0.0), peak_apex_pos(0.0);
 
   params.setValue("integration_type", INTEGRATION_TYPE_INTENSITYSUM);
   ptr->setParameters(params);
@@ -466,7 +466,7 @@ START_SECTION(void calculatePeakShapeMetrics(
   PeakShapeMetrics& psm
 ) const)
 {
-  double peak_area, peak_height, peak_apex_pos;
+  double peak_area(0.0), peak_height(0.0), peak_apex_pos(0.0);
   PeakIntegrator::PeakShapeMetrics psm; // output
   ptr->integratePeak(chromatogram, left, right, peak_area, peak_height, peak_apex_pos);
   ptr->calculatePeakShapeMetrics(chromatogram, left, right, peak_height, peak_apex_pos, psm);
@@ -495,7 +495,7 @@ START_SECTION(void calculatePeakShapeMetrics(
   PeakShapeMetrics& psm
 ) const)
 {
-  double peak_area, peak_height, peak_apex_pos;
+  double peak_area(0.0), peak_height(0.0), peak_apex_pos(0.0);
   PeakIntegrator::PeakShapeMetrics psm; // output
   ptr->integratePeak(chromatogram, chrom_left_it, chrom_right_it, peak_area, peak_height, peak_apex_pos);
   ptr->calculatePeakShapeMetrics(chromatogram, chrom_left_it, chrom_right_it, peak_height, peak_apex_pos, psm);
@@ -524,7 +524,7 @@ START_SECTION(void calculatePeakShapeMetrics(
   PeakShapeMetrics& psm
 ) const)
 {
-  double peak_area, peak_height, peak_apex_pos;
+  double peak_area(0.0), peak_height(0.0), peak_apex_pos(0.0);
   PeakIntegrator::PeakShapeMetrics psm; // output
   ptr->integratePeak(spectrum, left, right, peak_area, peak_height, peak_apex_pos);
   ptr->calculatePeakShapeMetrics(spectrum, left, right, peak_height, peak_apex_pos, psm);
@@ -553,10 +553,8 @@ START_SECTION(void calculatePeakShapeMetrics(
   PeakShapeMetrics& psm
 ) const)
 {
-  double peak_area, peak_height, peak_apex_pos;
+  double peak_area(0.0), peak_height(0.0), peak_apex_pos(0.0);
   PeakIntegrator::PeakShapeMetrics psm; // output
-  // TODO: remove the following line
-  // std::cout << "IN TESTS: peak_height: " << peak_height << " \t peak_apex_pos: " << peak_apex_pos << std::endl;
   ptr->integratePeak(spectrum, spec_left_it, spec_right_it, peak_area, peak_height, peak_apex_pos);
   ptr->calculatePeakShapeMetrics(spectrum, spec_left_it, spec_right_it, peak_height, peak_apex_pos, psm);
   TEST_REAL_SIMILAR(psm.width_at_5, 0.231263425125414)
