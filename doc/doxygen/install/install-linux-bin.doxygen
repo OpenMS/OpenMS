@@ -7,10 +7,15 @@
   @section package_managers_linux Install via package managers
   Currently there are packaged versions of %OpenMS provided for Fedora, OpenSUSE, Debian, and Ubuntu <a href="https://pkgs.org/search/openms">available in the corresponding package managers</a> of these distributions (they might require a lookup in thirdparty "science" repositories).
   For other GNU/Linux distributions or to obtain the most recent version of the library you need to build your own %OpenMS.
+  
+  To ensure the tool functionality please add the OPENMS_DATA_PATH variable. 
+  \code
+  export OPENMS_DATA_PATH=/usr/shared/OpenMS 
+  \endcode
 
   @note Please note that these packages are not directly maintained by us and we can not guarantee the same behaviour as when building it on your own.
   Also their availability is subject to change and support might be limited (due to unforeseen or untested behaviour).
-
+  
   @section build_your_own_linux Build it on your own
   Please check <a href="http://www.openms.de/">OpenMS.de</a> for details on how to obtain the source code and @subpage install_linux on how to build %OpenMS.
 
