@@ -74,12 +74,12 @@ START_SECTION(~MRMDecoy())
 
 END_SECTION
 
-START_SECTION((std::vector<std::pair<std::string::size_type, std::string> > find_all_tryptic(std::string sequence)))
+START_SECTION((std::vector<std::pair<std::string::size_type, std::string> > findFixedResidues(std::string sequence)))
 {
   MRMDecoy gen;
 
   String sequence = "TRESTPEPTIKDE";
-  std::vector<pair<std::string::size_type, std::string> > tryptic_results = gen.find_all_tryptic(sequence);
+  std::vector<pair<std::string::size_type, std::string> > tryptic_results = gen.findFixedResidues(sequence);
   std::vector<pair<std::string::size_type, std::string> > tryptic_control = boost::assign::list_of(std::make_pair(1, "R")) (std::make_pair(5, "P")) (std::make_pair(7, "P")) (std::make_pair(10, "K"));
 
   for (Size i = 0; i < tryptic_results.size(); i++)
@@ -93,12 +93,12 @@ START_SECTION((std::vector<std::pair<std::string::size_type, std::string> > find
 
 END_SECTION
 
-START_SECTION((std::vector<std::pair<std::string::size_type, std::string> > find_all_tryptic_and_term(std::string sequence)))
+START_SECTION((std::vector<std::pair<std::string::size_type, std::string> > findFixedAndTermResidues(std::string sequence)))
 {
   MRMDecoy gen;
 
   String sequence = "TRESTPEPTIKDE";
-  std::vector<pair<std::string::size_type, std::string> > tryptic_results = gen.find_all_tryptic_and_term(sequence);
+  std::vector<pair<std::string::size_type, std::string> > tryptic_results = gen.findFixedAndTermResidues(sequence);
   std::vector<pair<std::string::size_type, std::string> > tryptic_control = boost::assign::list_of(std::make_pair(0, "T")) (std::make_pair(1, "R")) (std::make_pair(5, "P")) (std::make_pair(7, "P")) (std::make_pair(10, "K")) (std::make_pair(12, "E"));
 
   for (Size i = 0; i < tryptic_results.size(); i++)

@@ -45,7 +45,7 @@
 
 namespace OpenMS
 {
-  std::vector<std::pair<std::string::size_type, std::string> > MRMDecoy::find_all_tryptic(std::string sequence)
+  std::vector<std::pair<std::string::size_type, std::string> > MRMDecoy::findFixedResidues(std::string sequence)
   {
     std::vector<std::pair<std::string::size_type, std::string> > idx;
     std::vector<std::string> pattern;
@@ -67,7 +67,7 @@ namespace OpenMS
     return idx;
   }
 
-  std::vector<std::pair<std::string::size_type, std::string> > MRMDecoy::find_all_tryptic_and_term(std::string sequence)
+  std::vector<std::pair<std::string::size_type, std::string> > MRMDecoy::findFixedAndTermResidues(std::string sequence)
   {
     // also blocks both N- and C-terminus from shuffling
     std::vector<std::pair<std::string::size_type, std::string> > idx;
@@ -148,7 +148,7 @@ namespace OpenMS
            attempts < max_attempts)
     {
       // Block tryptic residues and N-/C-terminus from shuffling
-      IndexType idx = MRMDecoy::find_all_tryptic_and_term(peptide.sequence);
+      IndexType idx = MRMDecoy::findFixedAndTermResidues(peptide.sequence);
 
       shuffled = peptide;
       std::vector<Size> peptide_index;
@@ -315,7 +315,7 @@ namespace OpenMS
     return peptide;
   }
 
-  bool MRMDecoy::has_CNterminal_mods(const OpenMS::TargetedExperiment::Peptide& peptide)
+  bool MRMDecoy::hasCNterminalMods(const OpenMS::TargetedExperiment::Peptide& peptide)
   {
     for (Size j = 0; j < peptide.mods.size(); j++)
     {
@@ -367,7 +367,7 @@ namespace OpenMS
       if (method == "pseudo-reverse")
       {
         // exclude peptide if it has C/N terminal modifications because we can't do a (partial) reverse
-        if (MRMDecoy::has_CNterminal_mods(peptide))
+        if (MRMDecoy::hasCNterminalMods(peptide))
         {
           LOG_DEBUG << "[peptide] Skipping " << peptide.id << " due to C/N-terminal modifications" << std::endl;
           exclusion_peptides.push_back(peptide.id);
@@ -380,7 +380,7 @@ namespace OpenMS
       else if (method == "reverse")
       {
         // exclude peptide if it has C/N terminal modifications because we can't do a (partial) reverse
-        if (MRMDecoy::has_CNterminal_mods(peptide))
+        if (MRMDecoy::hasCNterminalMods(peptide))
         {
           LOG_DEBUG << "[peptide] Skipping " << peptide.id << " due to C/N-terminal modifications" << std::endl;
           exclusion_peptides.push_back(peptide.id);
