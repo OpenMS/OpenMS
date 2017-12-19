@@ -1,3 +1,4 @@
+from ConvexHull2D cimport *
 from DefaultParamHandler cimport *
 from MSChromatogram cimport *
 from MSSpectrum cimport *
@@ -33,6 +34,7 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/PeakIntegrator.h>" namespace "OpenM
         double area
         double height
         double apex_pos
+        ConvexHull2D hull_points
 
     cdef cppclass PI_PeakBackground "OpenMS::PeakIntegrator::PeakBackground":
 

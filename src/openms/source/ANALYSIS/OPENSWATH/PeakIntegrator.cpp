@@ -134,9 +134,11 @@ namespace OpenMS
   PeakIntegrator::PeakArea PeakIntegrator::integratePeak_(const PeakContainerT& p, const double left, const double right) const
   {
     double peak_area(0.0), peak_height(0.0), peak_apex_pos(0.0);
+    ConvexHull2D::PointArrayType hull_points;
     UInt n_points = std::distance(p.PosBegin(left), p.PosEnd(right));
     for (auto it = p.PosBegin(left); it != p.PosEnd(right); ++it)
     {
+      hull_points.push_back(DPosition<2>(it->getPos(), it->getIntensity()));
       if (peak_height < it->getIntensity())
       {
         peak_height = it->getIntensity();
@@ -202,6 +204,7 @@ namespace OpenMS
     pa.area = peak_area;
     pa.height = peak_height;
     pa.apex_pos = peak_apex_pos;
+    pa.hull_points = hull_points;
     return pa;
   }
 

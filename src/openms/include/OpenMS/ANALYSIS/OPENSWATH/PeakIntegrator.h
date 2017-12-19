@@ -37,6 +37,7 @@
 
 #include <OpenMS/config.h> // OPENMS_DLLAPI
 #include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/DATASTRUCTURES/ConvexHull2D.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/KERNEL/MSChromatogram.h>
@@ -76,6 +77,10 @@ public:
         The position of the point with highest intensity
       */
       double apex_pos = 0.0;
+      /**
+        The peak's hull points
+      */
+      ConvexHull2D::PointArrayType hull_points;
     };
     ///@}
 

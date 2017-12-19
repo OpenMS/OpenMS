@@ -304,6 +304,7 @@ START_SECTION(PeakArea integratePeak(
 {
   Param params = ptr->getParameters();
   PeakIntegrator::PeakArea pa;
+  MSChromatogram::ConstIterator it;
 
   params.setValue("integration_type", INTEGRATION_TYPE_INTENSITYSUM);
   ptr->setParameters(params);
@@ -312,6 +313,12 @@ START_SECTION(PeakArea integratePeak(
   TEST_REAL_SIMILAR(pa.area, 6768778)
   TEST_REAL_SIMILAR(pa.height, 966489.0)
   TEST_REAL_SIMILAR(pa.apex_pos, 2.7045)
+  it = chromatogram.RTBegin(left);
+  for (Size i = 0; i < pa.hull_points.size(); ++i, ++it)
+  {
+    TEST_REAL_SIMILAR(pa.hull_points[i][0], it->getRT())
+    TEST_REAL_SIMILAR(pa.hull_points[i][1], it->getIntensity())
+  }
 
   params.setValue("integration_type", INTEGRATION_TYPE_TRAPEZOID);
   ptr->setParameters(params);
@@ -320,6 +327,12 @@ START_SECTION(PeakArea integratePeak(
   TEST_REAL_SIMILAR(pa.area, 71540.2)
   TEST_REAL_SIMILAR(pa.height, 966489.0)
   TEST_REAL_SIMILAR(pa.apex_pos, 2.7045)
+  it = chromatogram.RTBegin(left);
+  for (Size i = 0; i < pa.hull_points.size(); ++i, ++it)
+  {
+    TEST_REAL_SIMILAR(pa.hull_points[i][0], it->getRT())
+    TEST_REAL_SIMILAR(pa.hull_points[i][1], it->getIntensity())
+  }
 
   params.setValue("integration_type", INTEGRATION_TYPE_SIMPSON);
   ptr->setParameters(params);
@@ -328,11 +341,23 @@ START_SECTION(PeakArea integratePeak(
   TEST_REAL_SIMILAR(pa.area, 71720.443144994)
   TEST_REAL_SIMILAR(pa.height, 966489.0)
   TEST_REAL_SIMILAR(pa.apex_pos, 2.7045)
+  it = chromatogram.RTBegin(left);
+  for (Size i = 0; i < pa.hull_points.size(); ++i, ++it)
+  {
+    TEST_REAL_SIMILAR(pa.hull_points[i][0], it->getRT())
+    TEST_REAL_SIMILAR(pa.hull_points[i][1], it->getIntensity())
+  }
   STATUS("Integration type: simpson (EVEN number of points)")
   pa = ptr->integratePeak(chromatogram, left, 3.011416667); // a lower value of "right" is passed, to have 1 less point
   TEST_REAL_SIMILAR(pa.area, 71515.0792609335)
   TEST_REAL_SIMILAR(pa.height, 966489.0)
   TEST_REAL_SIMILAR(pa.apex_pos, 2.7045)
+  it = chromatogram.RTBegin(left);
+  for (Size i = 0; i < pa.hull_points.size(); ++i, ++it)
+  {
+    TEST_REAL_SIMILAR(pa.hull_points[i][0], it->getRT())
+    TEST_REAL_SIMILAR(pa.hull_points[i][1], it->getIntensity())
+  }
 }
 END_SECTION
 
@@ -342,6 +367,7 @@ START_SECTION(PeakArea integratePeak(
 {
   Param params = ptr->getParameters();
   PeakIntegrator::PeakArea pa;
+  MSChromatogram::ConstIterator it;
 
   params.setValue("integration_type", INTEGRATION_TYPE_INTENSITYSUM);
   ptr->setParameters(params);
@@ -350,6 +376,12 @@ START_SECTION(PeakArea integratePeak(
   TEST_REAL_SIMILAR(pa.area, 6768778)
   TEST_REAL_SIMILAR(pa.height, 966489.0)
   TEST_REAL_SIMILAR(pa.apex_pos, 2.7045)
+  it = chromatogram.RTBegin(left);
+  for (Size i = 0; i < pa.hull_points.size(); ++i, ++it)
+  {
+    TEST_REAL_SIMILAR(pa.hull_points[i][0], it->getRT())
+    TEST_REAL_SIMILAR(pa.hull_points[i][1], it->getIntensity())
+  }
 
   params.setValue("integration_type", INTEGRATION_TYPE_TRAPEZOID);
   ptr->setParameters(params);
@@ -358,6 +390,12 @@ START_SECTION(PeakArea integratePeak(
   TEST_REAL_SIMILAR(pa.area, 71540.2)
   TEST_REAL_SIMILAR(pa.height, 966489.0)
   TEST_REAL_SIMILAR(pa.apex_pos, 2.7045)
+  it = chromatogram.RTBegin(left);
+  for (Size i = 0; i < pa.hull_points.size(); ++i, ++it)
+  {
+    TEST_REAL_SIMILAR(pa.hull_points[i][0], it->getRT())
+    TEST_REAL_SIMILAR(pa.hull_points[i][1], it->getIntensity())
+  }
 
   params.setValue("integration_type", INTEGRATION_TYPE_SIMPSON);
   ptr->setParameters(params);
@@ -366,12 +404,24 @@ START_SECTION(PeakArea integratePeak(
   TEST_REAL_SIMILAR(pa.area, 71720.443144994)
   TEST_REAL_SIMILAR(pa.height, 966489.0)
   TEST_REAL_SIMILAR(pa.apex_pos, 2.7045)
+  it = chromatogram.RTBegin(left);
+  for (Size i = 0; i < pa.hull_points.size(); ++i, ++it)
+  {
+    TEST_REAL_SIMILAR(pa.hull_points[i][0], it->getRT())
+    TEST_REAL_SIMILAR(pa.hull_points[i][1], it->getIntensity())
+  }
   STATUS("Integration type: simpson (EVEN number of points)")
   MSChromatogram::ConstIterator chrom_right_it_less = chrom_right_it - 1;
   pa = ptr->integratePeak(chromatogram, chrom_left_it, chrom_right_it_less); // a lower value of "right" is passed, to have 1 less point
   TEST_REAL_SIMILAR(pa.area, 71515.0792609335)
   TEST_REAL_SIMILAR(pa.height, 966489.0)
   TEST_REAL_SIMILAR(pa.apex_pos, 2.7045)
+  it = chromatogram.RTBegin(left);
+  for (Size i = 0; i < pa.hull_points.size(); ++i, ++it)
+  {
+    TEST_REAL_SIMILAR(pa.hull_points[i][0], it->getRT())
+    TEST_REAL_SIMILAR(pa.hull_points[i][1], it->getIntensity())
+  }
 }
 END_SECTION
 
@@ -381,6 +431,7 @@ START_SECTION(PeakArea integratePeak(
 {
   Param params = ptr->getParameters();
   PeakIntegrator::PeakArea pa;
+  MSSpectrum::ConstIterator it;
 
   params.setValue("integration_type", INTEGRATION_TYPE_INTENSITYSUM);
   ptr->setParameters(params);
@@ -389,6 +440,12 @@ START_SECTION(PeakArea integratePeak(
   TEST_REAL_SIMILAR(pa.area, 6768778)
   TEST_REAL_SIMILAR(pa.height, 966489.0)
   TEST_REAL_SIMILAR(pa.apex_pos, 2.7045)
+  it = spectrum.MZBegin(left);
+  for (Size i = 0; i < pa.hull_points.size(); ++i, ++it)
+  {
+    TEST_REAL_SIMILAR(pa.hull_points[i][0], it->getMZ())
+    TEST_REAL_SIMILAR(pa.hull_points[i][1], it->getIntensity())
+  }
 
   params.setValue("integration_type", INTEGRATION_TYPE_TRAPEZOID);
   ptr->setParameters(params);
@@ -397,6 +454,12 @@ START_SECTION(PeakArea integratePeak(
   TEST_REAL_SIMILAR(pa.area, 71540.2)
   TEST_REAL_SIMILAR(pa.height, 966489.0)
   TEST_REAL_SIMILAR(pa.apex_pos, 2.7045)
+  it = spectrum.MZBegin(left);
+  for (Size i = 0; i < pa.hull_points.size(); ++i, ++it)
+  {
+    TEST_REAL_SIMILAR(pa.hull_points[i][0], it->getMZ())
+    TEST_REAL_SIMILAR(pa.hull_points[i][1], it->getIntensity())
+  }
 
   params.setValue("integration_type", INTEGRATION_TYPE_SIMPSON);
   ptr->setParameters(params);
@@ -405,11 +468,23 @@ START_SECTION(PeakArea integratePeak(
   TEST_REAL_SIMILAR(pa.area, 71720.443144994)
   TEST_REAL_SIMILAR(pa.height, 966489.0)
   TEST_REAL_SIMILAR(pa.apex_pos, 2.7045)
+  it = spectrum.MZBegin(left);
+  for (Size i = 0; i < pa.hull_points.size(); ++i, ++it)
+  {
+    TEST_REAL_SIMILAR(pa.hull_points[i][0], it->getMZ())
+    TEST_REAL_SIMILAR(pa.hull_points[i][1], it->getIntensity())
+  }
   STATUS("Integration type: simpson (EVEN number of points)")
   pa = ptr->integratePeak(spectrum, left, 3.011416667); // a lower value of "right" is passed, to have 1 less point
   TEST_REAL_SIMILAR(pa.area, 71515.0792609335)
   TEST_REAL_SIMILAR(pa.height, 966489.0)
   TEST_REAL_SIMILAR(pa.apex_pos, 2.7045)
+  it = spectrum.MZBegin(left);
+  for (Size i = 0; i < pa.hull_points.size(); ++i, ++it)
+  {
+    TEST_REAL_SIMILAR(pa.hull_points[i][0], it->getMZ())
+    TEST_REAL_SIMILAR(pa.hull_points[i][1], it->getIntensity())
+  }
 }
 END_SECTION
 
@@ -419,6 +494,7 @@ START_SECTION(PeakArea integratePeak(
 {
   Param params = ptr->getParameters();
   PeakIntegrator::PeakArea pa;
+  MSSpectrum::ConstIterator it;
 
   params.setValue("integration_type", INTEGRATION_TYPE_INTENSITYSUM);
   ptr->setParameters(params);
@@ -427,6 +503,12 @@ START_SECTION(PeakArea integratePeak(
   TEST_REAL_SIMILAR(pa.area, 6768778)
   TEST_REAL_SIMILAR(pa.height, 966489.0)
   TEST_REAL_SIMILAR(pa.apex_pos, 2.7045)
+  it = spectrum.MZBegin(left);
+  for (Size i = 0; i < pa.hull_points.size(); ++i, ++it)
+  {
+    TEST_REAL_SIMILAR(pa.hull_points[i][0], it->getMZ())
+    TEST_REAL_SIMILAR(pa.hull_points[i][1], it->getIntensity())
+  }
 
   params.setValue("integration_type", INTEGRATION_TYPE_TRAPEZOID);
   ptr->setParameters(params);
@@ -435,6 +517,12 @@ START_SECTION(PeakArea integratePeak(
   TEST_REAL_SIMILAR(pa.area, 71540.2)
   TEST_REAL_SIMILAR(pa.height, 966489.0)
   TEST_REAL_SIMILAR(pa.apex_pos, 2.7045)
+  it = spectrum.MZBegin(left);
+  for (Size i = 0; i < pa.hull_points.size(); ++i, ++it)
+  {
+    TEST_REAL_SIMILAR(pa.hull_points[i][0], it->getMZ())
+    TEST_REAL_SIMILAR(pa.hull_points[i][1], it->getIntensity())
+  }
 
   params.setValue("integration_type", INTEGRATION_TYPE_SIMPSON);
   ptr->setParameters(params);
@@ -443,12 +531,24 @@ START_SECTION(PeakArea integratePeak(
   TEST_REAL_SIMILAR(pa.area, 71720.443144994)
   TEST_REAL_SIMILAR(pa.height, 966489.0)
   TEST_REAL_SIMILAR(pa.apex_pos, 2.7045)
+  it = spectrum.MZBegin(left);
+  for (Size i = 0; i < pa.hull_points.size(); ++i, ++it)
+  {
+    TEST_REAL_SIMILAR(pa.hull_points[i][0], it->getMZ())
+    TEST_REAL_SIMILAR(pa.hull_points[i][1], it->getIntensity())
+  }
   STATUS("Integration type: simpson (EVEN number of points)")
   MSSpectrum::ConstIterator spec_right_it_less = spec_right_it - 1;
   pa = ptr->integratePeak(spectrum, spec_left_it, spec_right_it_less); // a lower value of "right" is passed, to have 1 less point
   TEST_REAL_SIMILAR(pa.area, 71515.0792609335)
   TEST_REAL_SIMILAR(pa.height, 966489.0)
   TEST_REAL_SIMILAR(pa.apex_pos, 2.7045)
+  it = spectrum.MZBegin(left);
+  for (Size i = 0; i < pa.hull_points.size(); ++i, ++it)
+  {
+    TEST_REAL_SIMILAR(pa.hull_points[i][0], it->getMZ())
+    TEST_REAL_SIMILAR(pa.hull_points[i][1], it->getIntensity())
+  }
 }
 END_SECTION
 
