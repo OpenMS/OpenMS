@@ -31,6 +31,6 @@ cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/AbsoluteQuantitation.h>" namespa
             Param & optimized_params) nogil except +
 
         void optimizeCalibrationCurves(
-           libcpp_map[ String, libcpp_vector[ AQS_featureConcentration ]] & components_concentrations) nogil except +
+           libcpp_map[ String, libcpp_vector[ AQS_featureConcentration ]] & components_concentrations) nogil except + # wrap-ignore
 
 
