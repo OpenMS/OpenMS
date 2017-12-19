@@ -400,7 +400,7 @@ namespace OpenMS
     {
       setProgress(progress++);
       OpenMS::TargetedExperiment::Peptide peptide = targeted_exp.getPeptides()[i];
-      std::string peptide_sequence = TargetedExperimentHelper::getAASequence(peptide).toString();
+      std::string peptide_sequence = TargetedExperimentHelper::getAASequence(peptide).toUniModString();
       peptide_set.push_back(peptide_sequence);
       group_set.push_back(peptide.id);
     }
@@ -505,7 +505,7 @@ namespace OpenMS
     {
       setProgress(progress++);
       OpenMS::TargetedExperiment::Peptide peptide = targeted_exp.getPeptides()[i];
-      std::string peptide_sequence = TargetedExperimentHelper::getAASequence(peptide).toString();
+      std::string peptide_sequence = TargetedExperimentHelper::getAASequence(peptide).toUniModString();
       int group_set_index = std::distance(group_set.begin(),std::find(group_set.begin(), group_set.end(), peptide.id));
       int peptide_set_index = std::distance(peptide_set.begin(), std::find(peptide_set.begin(), peptide_set.end(), peptide_sequence));
 

@@ -25,6 +25,7 @@ set(sources_list_h
   PeakIntegrator.h
   SONARScoring.h
   SpectrumAddition.h
+  TargetedSpectraExtractor.h
   SwathMapMassCorrection.h
   SwathWindowLoader.h
   TransitionTSVReader.h
