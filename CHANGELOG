@@ -44,7 +44,7 @@ Major changes in functionality:
   - FileInfo
     - For idXML files, the tool computes the average length of contained peptides
   - TopPerc
-    - Renamed in PercolatorAdapter
+    - Renamed in PercolatorAdapter (still experimental)
   - OpenSWATH:
     - RT normalization now allows more models
     - Add S/N ratio for each ion trace
@@ -68,7 +68,7 @@ Databases:
 
 Third-party software:
   - New: Comet "2016.01 rev. 3" for Windows 32bit/64bit, Linux 64bit, and MacOS 64bit
-  - New: Percolator 3.1.2 for Windows 32bit/64bit, Linux 64bit, and MacOS 64bit
+  - New: Percolator 3.1.2 for Windows 32bit/64bit, Linux 64bit, and MacOS 64bit (still experimental)
   - New: Sirius 3.5.1 for Windows 64bit, Linux 64bit, and MacOS 64bit
   - New: SpectraST 5.0 for Windows 64bit, Linux 64bit, and MacOS 64bit
   - Update MS-GF+ to Release (v2017.07.21)
