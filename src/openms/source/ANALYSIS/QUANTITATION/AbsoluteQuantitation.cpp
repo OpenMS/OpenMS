@@ -511,10 +511,10 @@ namespace OpenMS
       }
 
       //DEBUG
-      std::cout << "R = " << std::to_string(correlation_coefficient) << ".  "
-        << "n_points = " << std::to_string(component_concentrations_sorted_indices.size()) << ".  "
-        << "actual_concentration = " << std::to_string(component_concentrations_sub[pos].actual_concentration) << ".  "
-        << "bias_check = " << std::to_string(bias_check) << "." << std::endl;
+      // std::cout << "R = " << std::to_string(correlation_coefficient) << ".  "
+      //   << "n_points = " << std::to_string(component_concentrations_sorted_indices.size()) << ".  "
+      //   << "actual_concentration = " << std::to_string(component_concentrations_sub[pos].actual_concentration) << ".  "
+      //   << "bias_check = " << std::to_string(bias_check) << "." << std::endl;
 
       // remove if residual is an outlier according to Chauvenet's criterion
       // or if testing is turned off
@@ -625,7 +625,7 @@ namespace OpenMS
     for (auto& quant_method : quant_methods_)
     {
       // DEBUGGING
-      std::cout << "optimizing calibration curves for " << quant_method.first << "." << std::endl;
+      // std::cout << "optimizing calibration curves for " << quant_method.first << "." << std::endl;
 
       if (components_concentrations.count(quant_method.first)>0 && optimization_method_ == "iterative")
       { 
