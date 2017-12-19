@@ -48,6 +48,9 @@
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
 #include <OpenMS/FORMAT/MzIdentMLFile.h>
 
+#include <OpenMS/FORMAT/DATAACCESS/MSDataWritingConsumer.h>
+#include <OpenMS/FORMAT/DATAACCESS/MSDataCachedConsumer.h>
+
 #include <QtCore/QFile>
 #include <QtCore/QProcess>
 #include <QDir>
@@ -65,21 +68,21 @@ using namespace std;
 /**
     @page TOPP_CruxAdapter CruxAdapter
 
-    @brief Identifies peptides in MS/MS spectra via Crux.
+    @brief Identifies peptides in MS/MS spectra via Crux and tide-search.
 
-<CENTER>
-    <table>
-        <tr>
-            <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
-            <td VALIGN="middle" ROWSPAN=2> \f$ \longrightarrow \f$ CruxAdapter \f$ \longrightarrow \f$</td>
-            <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
-        </tr>
-        <tr>
-            <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> any signal-/preprocessing tool @n (in mzML format)</td>
-            <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_IDFilter or @n any protein/peptide processing tool</td>
-        </tr>
-    </table>
-</CENTER>
+    <CENTER>
+        <table>
+            <tr>
+                <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
+                <td VALIGN="middle" ROWSPAN=2> \f$ \longrightarrow \f$ CruxAdapter \f$ \longrightarrow \f$</td>
+                <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
+            </tr>
+            <tr>
+                <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> any signal-/preprocessing tool @n (in mzML format)</td>
+                <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_IDFilter or @n any protein/peptide processing tool</td>
+            </tr>
+        </table>
+    </CENTER>
 
     @em Crux must be installed before this wrapper can be used. 
 
@@ -100,7 +103,7 @@ class TOPPCruxAdapter :
 {
 public:
   TOPPCruxAdapter() :
-    TOPPBase("CruxAdapter", "Annotates MS/MS spectra using Crux.")
+    TOPPBase("CruxAdapter", "Identifies MS/MS spectra using Crux.")
   {
   }
 
@@ -193,6 +196,7 @@ protected:
     //-------------------------------------------------------------
 
     bool deisotope = getFlag_("deisotope");
+    bool report_decoys = getFlag_("report_decoys");
     String inputfile_name = getStringOption_("in");
     writeDebug_(String("Input file: ") + inputfile_name, 1);
     if (inputfile_name.empty())
@@ -231,9 +235,7 @@ protected:
       db_name = full_db_name;
     }
 
-    //tmp_dir
-    //const String tmp_dir = QDir::toNativeSeparators((File::getTempDirectory() + "/").toQString());
-    const String tmp_dir = makeTempDirectory_(); //OpenMS::File::getTempDirectory() + "/";
+    const String tmp_dir = makeTempDirectory_();
 
     String output_dir = tmp_dir + "crux-output";
     String out_dir_q = QDir::toNativeSeparators((output_dir + "/").toQString());
@@ -252,7 +254,6 @@ protected:
     mzml_file.setLogType(log_type_);
     mzml_file.load(inputfile_name, exp);
 
-#if 0
     // Low memory conversion
     {
       PlainMSDataWritingConsumer consumer(tmp_xml);
@@ -261,12 +262,6 @@ protected:
       bool skip_full_count = true;
       mzml_file.setLogType(log_type_);
       mzml_file.transform(inputfile_name, &consumer, skip_full_count);
-    }
-#endif 
-    // TODO: check if we really need to convert for TPP compatibility
-    {
-      mzml_file.getOptions().setForceTPPCompatability(true);
-      mzml_file.store(tmp_xml, exp);
     }
 
     //
@@ -334,7 +329,7 @@ protected:
     // run crux tide-search
     {
       String tool = "tide-search";
-      String params = "--overwrite T --file-column F   --num-threads " + String(getIntOption_("threads"));
+      String params = "--overwrite T --file-column F --num-threads " + String(getIntOption_("threads"));
       params += " --output-dir " + output_dir;
       String debug_args = " --verbosity 30 ";
       if (debug_level_ > 5) debug_args = " --verbosity 60 ";
@@ -379,9 +374,8 @@ protected:
     }
     std::cout << " Done running tide-search ... " << std::endl;
 
-    // run crux percolator
+    // run crux percolator (currently we dont have much choice in the matter)
     bool run_percolator = true;
-    //run_percolator = false;
     if (run_percolator)
     {
       // $ ~/bin/crux-3.1.Linux.x86_64/bin/crux  percolator --overwrite T --train-fdr 0.05 --test-fdr 0.05 crux-output/tide-search.target.txt 
@@ -396,9 +390,10 @@ protected:
       String extra_args = concat;
       params += extra_args;
 
-      params += " --mzid-output T";
+      params += " --mzid-output T --decoy-xml-output T ";
 			params += " --test-fdr " + String(getDoubleOption_("test_fdr"));
 			params += " --train-fdr " + String(getDoubleOption_("train_fdr"));
+			params += " --decoy-prefix " + getStringOption_("decoy_prefix");
       params += " --overwrite T ";
 
 			if (!getStringOption_("extra_percolator_args").empty()) params += " " + argumentPassthrough(getStringOption_("extra_percolator_args"));
@@ -435,20 +430,40 @@ protected:
     vector<PeptideIdentification> peptide_identifications;
     vector<ProteinIdentification> protein_identifications;
 
-    String mzid = out_dir_q + "tide-search.mzid";
-    writeDebug_("load mzIdentml", 1);
-    Identification target_id;
-    Identification decoy_id;
-    MzIdentMLFile().load(mzid, protein_identifications, peptide_identifications);
-    writeDebug_("write idXMLFile", 1);
-    writeDebug_(out, 1);
+    std::cout << " will load file now " << std::endl;
+    if (run_percolator)
+    {
+      String mzid = out_dir_q + "percolator.target.mzid";
+      String mzid_decoy = out_dir_q + "percolator.decoy.mzid";
+      MzIdentMLFile().load(mzid, protein_identifications, peptide_identifications);
+
+      // also load the decoys
+      if (report_decoys)
+      {
+        MzIdentMLFile().load(mzid_decoy, protein_identifications, peptide_identifications);
+      }
+    }
+    else
+    {
+
+      // TODO: does not work yet
+      String mzid = out_dir_q + "tide-search.mzid";
+      writeDebug_("load mzIdentml", 1);
+      Identification target_id;
+      Identification decoy_id;
+      MzIdentMLFile().load(mzid, protein_identifications, peptide_identifications);
+      writeDebug_("write idXMLFile", 1);
+      writeDebug_(out, 1);
+
+    }
+
     IdXMLFile().store(out, protein_identifications, peptide_identifications);
 
     // remove tempdir
     if (this->debug_level_ == 0)
     {
         removeTempDir_(tmp_dir);
-        LOG_WARN << "Set debug level to >=2 to keep the temporary files at '" << tmp_dir << "'" << std::endl;
+        LOG_WARN << "Set debug level to >=1 to keep the temporary files at '" << tmp_dir << "'" << std::endl;
     }
     else
     {
