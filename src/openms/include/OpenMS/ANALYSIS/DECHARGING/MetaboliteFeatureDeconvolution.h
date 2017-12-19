@@ -83,7 +83,7 @@ public:
     MetaboliteFeatureDeconvolution& operator=(const MetaboliteFeatureDeconvolution& source);
 
     /// destructor
-    virtual ~MetaboliteFeatureDeconvolution();
+    ~MetaboliteFeatureDeconvolution() override;
     //@}
 
     /**
@@ -101,7 +101,7 @@ public:
 
 protected:
 
-    void updateMembers_();
+    void updateMembers_() override;
 
     /**
       @brief 1-sided Compomer for a feature

@@ -81,7 +81,7 @@ public:
     Feature(const Feature& feature);
 
     /// Destructor
-    ~Feature();
+    ~Feature() override;
     //@}
 
     /// @name Model and quality methods

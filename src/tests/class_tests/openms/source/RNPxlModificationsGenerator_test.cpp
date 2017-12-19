@@ -46,8 +46,8 @@ START_TEST(RNPxlModificationsGenerator, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-RNPxlModificationsGenerator* ptr = 0;
-RNPxlModificationsGenerator* null_ptr = 0;
+RNPxlModificationsGenerator* ptr = nullptr;
+RNPxlModificationsGenerator* null_ptr = nullptr;
 START_SECTION(RNPxlModificationsGenerator())
 {
 	ptr = new RNPxlModificationsGenerator();

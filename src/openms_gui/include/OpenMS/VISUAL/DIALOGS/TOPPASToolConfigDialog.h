@@ -79,7 +79,7 @@ public:
     */
     TOPPASToolConfigDialog(QWidget * parent, Param & param, const String& default_dir, const String& tool_name, const String& tool_type, const String& tool_desc, const QVector<String>& hidden_entries);
     ///Destructor
-    ~TOPPASToolConfigDialog();
+    ~TOPPASToolConfigDialog() override;
 
 private:
     /// ParamEditor for reading ini-files

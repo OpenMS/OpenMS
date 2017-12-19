@@ -82,7 +82,7 @@ public:
     ElutionPeakDetection();
 
     /// Destructor
-    virtual ~ElutionPeakDetection();
+    ~ElutionPeakDetection() override;
 
     /** @brief Extracts chromatographic peaks from a single MassTrace and
      *         stores the resulting split traces in a vector of new mass traces.
@@ -149,7 +149,7 @@ public:
     void smoothData(MassTrace& mt, int win_size) const;
 
 protected:
-    virtual void updateMembers_();
+    void updateMembers_() override;
 
 private:
     double chrom_fwhm_;

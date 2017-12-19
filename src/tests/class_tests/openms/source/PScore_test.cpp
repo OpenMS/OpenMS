@@ -51,8 +51,8 @@ START_TEST(PScore, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-PScore* ptr = 0;
-PScore* null_ptr = 0;
+PScore* ptr = nullptr;
+PScore* null_ptr = nullptr;
 START_SECTION(PScore())
 {
 	ptr = new PScore();

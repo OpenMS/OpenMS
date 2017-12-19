@@ -77,7 +77,7 @@ public:
     MapAlignmentAlgorithmPoseClustering();
 
     /// Destructor
-    virtual ~MapAlignmentAlgorithmPoseClustering();
+    ~MapAlignmentAlgorithmPoseClustering() override;
 
     void align(const FeatureMap& map, TransformationDescription& trafo);
     void align(const PeakMap& map, TransformationDescription& trafo);
@@ -93,7 +93,7 @@ public:
 
 protected:
 
-    virtual void updateMembers_();
+    void updateMembers_() override;
 
     PoseClusteringAffineSuperimposer superimposer_;
 

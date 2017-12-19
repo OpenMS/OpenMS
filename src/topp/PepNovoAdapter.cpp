@@ -123,7 +123,7 @@ class TOPPPepNovoAdapter :
 
   protected:
 
-    void registerOptionsAndFlags_()
+    void registerOptionsAndFlags_() override
     {
       registerInputFile_("in", "<file>", "", "input file ");
       setValidFormats_("in", ListUtils::create<String>("mzML"));
@@ -160,7 +160,7 @@ class TOPPPepNovoAdapter :
       setValidStrings_("variable_modifications", all_possible_modifications);
     }
 
-    ExitCodes main_(int , const char**)
+    ExitCodes main_(int , const char**) override
     {
 
       // path to the log file

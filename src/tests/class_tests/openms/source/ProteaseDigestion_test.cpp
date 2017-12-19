@@ -47,8 +47,8 @@ using namespace std;
 START_TEST(ProteaseDigestion, "$Id$")
 
 /////////////////////////////////////////////////////////////
-ProteaseDigestion* pd_ptr = 0;
-ProteaseDigestion* pd_null = 0;
+ProteaseDigestion* pd_ptr = nullptr;
+ProteaseDigestion* pd_null = nullptr;
 
 START_SECTION(([EXTRA] ProteaseDigestion()))
     pd_ptr = new ProteaseDigestion;

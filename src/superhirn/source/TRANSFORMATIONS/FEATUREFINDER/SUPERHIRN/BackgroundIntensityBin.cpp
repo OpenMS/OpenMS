@@ -126,14 +126,14 @@ namespace OpenMS
     }
 
     addIntensity(peak->get_intensity());
-    peak = NULL;
+    peak = nullptr;
     return true;
   }
 
   void BackgroundIntensityBin::addMSPeak(MSPeak * peak)
   {
     addIntensity(peak->get_intensity());
-    peak = NULL;
+    peak = nullptr;
   }
 
   void BackgroundIntensityBin::addIntensity(double intens)

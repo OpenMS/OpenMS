@@ -51,8 +51,8 @@ START_TEST(SwathWindowLoader, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-SwathWindowLoader* ptr = 0;
-SwathWindowLoader* nullPointer = 0;
+SwathWindowLoader* ptr = nullptr;
+SwathWindowLoader* nullPointer = nullptr;
 
 START_SECTION(SwathWindowLoader())
   ptr = new SwathWindowLoader;

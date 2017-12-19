@@ -48,8 +48,8 @@ START_TEST(MassTraceDetection, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-MassTraceDetection* ptr = 0;
-MassTraceDetection* null_ptr = 0;
+MassTraceDetection* ptr = nullptr;
+MassTraceDetection* null_ptr = nullptr;
 START_SECTION(MassTraceDetection())
 {
     ptr = new MassTraceDetection();

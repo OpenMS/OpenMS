@@ -63,7 +63,7 @@ public:
     PeakSpectrumCompareFunctor(const PeakSpectrumCompareFunctor & source);
 
     /// destructor
-    virtual ~PeakSpectrumCompareFunctor();
+    ~PeakSpectrumCompareFunctor() override;
 
     /// assignment operator
     PeakSpectrumCompareFunctor & operator=(const PeakSpectrumCompareFunctor & source);

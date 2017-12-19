@@ -273,7 +273,7 @@ namespace OpenMS
                       "LEFT JOIN RUN_EXTRA ON RUN.ID = RUN_EXTRA.RUN_ID " \
                       ";";
 
-        sqlite3_prepare(db, select_sql.c_str(), -1, &stmt, NULL);
+        sqlite3_prepare(db, select_sql.c_str(), -1, &stmt, nullptr);
         sqlite3_step( stmt );
 
         // read data (throw exception if we find multiple runs)
@@ -389,7 +389,7 @@ namespace OpenMS
       Size ret(0);
       std::string select_sql;
       select_sql = "SELECT COUNT(*) FROM SPECTRUM;";
-      sqlite3_prepare(db, select_sql.c_str(), -1, &stmt, NULL);
+      sqlite3_prepare(db, select_sql.c_str(), -1, &stmt, nullptr);
       sqlite3_step(stmt);
       if (sqlite3_column_type(stmt, 0) != SQLITE_NULL) ret = sqlite3_column_int(stmt, 0);
 
@@ -437,7 +437,7 @@ namespace OpenMS
       if (deltaRT <= 0.0) {select_sql += " LIMIT 1";} // only take the first spectrum larger than RT
       select_sql += ";";
 
-      sqlite3_prepare(db, select_sql.c_str(), -1, &stmt, NULL);
+      sqlite3_prepare(db, select_sql.c_str(), -1, &stmt, nullptr);
       sqlite3_step(stmt);
 
       while (sqlite3_column_type( stmt, 0 ) != SQLITE_NULL)
@@ -461,7 +461,7 @@ namespace OpenMS
       Size ret(0);
       std::string select_sql;
       select_sql = "SELECT COUNT(*) FROM CHROMATOGRAM;";
-      sqlite3_prepare(db, select_sql.c_str(), -1, &stmt, NULL);
+      sqlite3_prepare(db, select_sql.c_str(), -1, &stmt, nullptr);
       sqlite3_step( stmt );
       if (sqlite3_column_type(stmt, 0) != SQLITE_NULL) ret = sqlite3_column_int(stmt, 0);
 
@@ -490,7 +490,7 @@ namespace OpenMS
 
 
       // Execute SQL statement
-      rc = sqlite3_prepare(db, select_sql.c_str(), -1, &stmt, NULL);
+      rc = sqlite3_prepare(db, select_sql.c_str(), -1, &stmt, nullptr);
       if (rc != SQLITE_OK)
       {
         std::cerr << "SQL error after sqlite3_prepare" << std::endl;
@@ -530,7 +530,7 @@ namespace OpenMS
       select_sql += String(indices[indices.size()-1]) + ");";
 
       // Execute SQL statement
-      rc = sqlite3_prepare(db, select_sql.c_str(), -1, &stmt, NULL);
+      rc = sqlite3_prepare(db, select_sql.c_str(), -1, &stmt, nullptr);
       if (rc != SQLITE_OK)
       {
         std::cerr << "SQL error after sqlite3_prepare" << std::endl;
@@ -561,7 +561,7 @@ namespace OpenMS
 
 
       // Execute SQL statement
-      rc = sqlite3_prepare(db, select_sql.c_str(), -1, &stmt, NULL);
+      rc = sqlite3_prepare(db, select_sql.c_str(), -1, &stmt, nullptr);
       if (rc != SQLITE_OK)
       {
         std::cerr << "SQL error after sqlite3_prepare" << std::endl;
@@ -601,7 +601,7 @@ namespace OpenMS
       select_sql += String(indices[indices.size()-1]) + ");";
 
       // Execute SQL statement
-      rc = sqlite3_prepare(db, select_sql.c_str(), -1, &stmt, NULL);
+      rc = sqlite3_prepare(db, select_sql.c_str(), -1, &stmt, nullptr);
       if (rc != SQLITE_OK)
       {
         std::cerr << "SQL error after sqlite3_prepare" << std::endl;
@@ -653,7 +653,7 @@ namespace OpenMS
       // from sqlite3_column_blob(), sqlite3_column_text(), etc. into
       // sqlite3_free().
 
-      sqlite3_prepare(db, select_sql.c_str(), -1, &stmt, NULL);
+      sqlite3_prepare(db, select_sql.c_str(), -1, &stmt, nullptr);
       sqlite3_step( stmt );
 
       while (sqlite3_column_type( stmt, 0 ) != SQLITE_NULL)
@@ -735,7 +735,7 @@ namespace OpenMS
       // from sqlite3_column_blob(), sqlite3_column_text(), etc. into
       // sqlite3_free().
 
-      sqlite3_prepare(db, select_sql.c_str(), -1, &stmt, NULL);
+      sqlite3_prepare(db, select_sql.c_str(), -1, &stmt, nullptr);
       sqlite3_step( stmt );
 
       while (sqlite3_column_type( stmt, 0 ) != SQLITE_NULL)
@@ -806,7 +806,7 @@ namespace OpenMS
       sqlite3 *db = openDB();
 
       // store run information
-      char *zErrMsg = 0;
+      char *zErrMsg = nullptr;
 
       // prepare streams and set required precision (default is 6 digits)
       std::stringstream insert_run_sql;
@@ -814,9 +814,9 @@ namespace OpenMS
       std::string native_id = exp.getLoadedFilePath(); // TODO escape stuff like ' (SQL inject)
       insert_run_sql << "INSERT INTO RUN (ID, FILENAME, NATIVE_ID) VALUES (" <<
           run_id << ",'" << native_id << "','" << native_id << "'); ";
-      sqlite3_exec(db, "BEGIN TRANSACTION", NULL, NULL, &zErrMsg);
+      sqlite3_exec(db, "BEGIN TRANSACTION", nullptr, nullptr, &zErrMsg);
       executeSql_(db, insert_run_sql);
-      sqlite3_exec(db, "END TRANSACTION", NULL, NULL, &zErrMsg);
+      sqlite3_exec(db, "END TRANSACTION", nullptr, nullptr, &zErrMsg);
 
       if (write_full_meta)
       {
@@ -933,9 +933,9 @@ namespace OpenMS
         ");";
 
       // Execute SQL statement
-      char *zErrMsg = 0;
+      char *zErrMsg = nullptr;
       int rc;
-      rc = sqlite3_exec(db, create_sql, callback, 0, &zErrMsg);
+      rc = sqlite3_exec(db, create_sql, callback, nullptr, &zErrMsg);
       if (rc != SQLITE_OK)
       {
         sqlite3_free(zErrMsg);
@@ -973,9 +973,9 @@ namespace OpenMS
         "CREATE INDEX precursor_sp_idx ON DATA(SPECTRUM_ID);";
 
       // Execute SQL statement
-      char *zErrMsg = 0;
+      char *zErrMsg = nullptr;
       int rc;
-      rc = sqlite3_exec(db, create_sql, callback, 0, &zErrMsg);
+      rc = sqlite3_exec(db, create_sql, callback, nullptr, &zErrMsg);
       if (rc != SQLITE_OK)
       {
         sqlite3_free(zErrMsg);
@@ -990,7 +990,7 @@ namespace OpenMS
       // prevent writing of empty data which would throw an SQL exception
       if (spectra.empty()) return;
 
-      char *zErrMsg = 0;
+      char *zErrMsg = nullptr;
 
       sqlite3 *db = openDB();
 
@@ -1190,13 +1190,13 @@ namespace OpenMS
         executeBlobBind_(db, prepare_statement, data);
       }
 
-      sqlite3_exec(db, "BEGIN TRANSACTION", NULL, NULL, &zErrMsg);
+      sqlite3_exec(db, "BEGIN TRANSACTION", nullptr, nullptr, &zErrMsg);
 
       executeSql_(db, insert_spectra_sql);
       if (nr_precursors > 0) executeSql_(db, insert_precursor_sql);
       if (nr_products > 0) executeSql_(db, insert_product_sql);
 
-      sqlite3_exec(db, "END TRANSACTION", NULL, NULL, &zErrMsg);
+      sqlite3_exec(db, "END TRANSACTION", nullptr, nullptr, &zErrMsg);
 
       sqlite3_close(db);
     }
@@ -1206,7 +1206,7 @@ namespace OpenMS
       // prevent writing of empty data which would throw an SQL exception
       if (chroms.empty()) return;
 
-      char *zErrMsg = 0;
+      char *zErrMsg = nullptr;
 
       sqlite3 *db = openDB();
 
@@ -1385,13 +1385,13 @@ namespace OpenMS
         executeBlobBind_(db, prepare_statement, data);
       }
 
-      sqlite3_exec(db, "BEGIN TRANSACTION", NULL, NULL, &zErrMsg);
+      sqlite3_exec(db, "BEGIN TRANSACTION", nullptr, nullptr, &zErrMsg);
 
       executeSql_(db, insert_chrom_sql);
       executeSql_(db, insert_precursor_sql);
       executeSql_(db, insert_product_sql);
 
-      sqlite3_exec(db, "END TRANSACTION", NULL, NULL, &zErrMsg);
+      sqlite3_exec(db, "END TRANSACTION", nullptr, nullptr, &zErrMsg);
 
       sqlite3_close(db);
     }
@@ -1401,7 +1401,7 @@ namespace OpenMS
       int rc;
 
       // The calling procedure is responsible for deleting the compiled SQL statement using sqlite3_finalize() after it has finished with it.
-      sqlite3_stmt *stmt = NULL;
+      sqlite3_stmt *stmt = nullptr;
       const char *curr_loc;
       rc = sqlite3_prepare_v2(db, prepare_statement.c_str(), prepare_statement.size(), &stmt, &curr_loc);
       if (rc != SQLITE_OK)
@@ -1439,9 +1439,9 @@ namespace OpenMS
 
     void MzMLSqliteHandler::executeSql_(sqlite3 *db, const std::stringstream& statement)
     {
-      char *zErrMsg = 0;
+      char *zErrMsg = nullptr;
       std::string insert_str = statement.str();
-      int rc = sqlite3_exec(db, insert_str.c_str(), callback, 0, &zErrMsg);
+      int rc = sqlite3_exec(db, insert_str.c_str(), callback, nullptr, &zErrMsg);
       if (rc != SQLITE_OK)
       {
         std::cerr << "Error message after sqlite3_exec" << std::endl;

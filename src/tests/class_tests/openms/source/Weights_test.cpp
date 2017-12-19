@@ -58,8 +58,8 @@ START_TEST(Weights, "$Id$")
 /////////////////////////////////////////////////////////////
 
 
-Weights* ptr = 0;
-Weights* null_ptr = 0;
+Weights* ptr = nullptr;
+Weights* null_ptr = nullptr;
 
 Weights::alphabet_masses_type masses;
 masses.push_back(71.0456);

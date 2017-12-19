@@ -52,8 +52,8 @@ START_TEST(SqrtMower, "$Id$")
 
 /////////////////////////////////////////////////////////////
 
-SqrtMower* e_ptr = 0;
-SqrtMower* e_nullPointer = 0;
+SqrtMower* e_ptr = nullptr;
+SqrtMower* e_nullPointer = nullptr;
 START_SECTION((SqrtMower()))
 	e_ptr = new SqrtMower;
 	TEST_NOT_EQUAL(e_ptr, e_nullPointer)

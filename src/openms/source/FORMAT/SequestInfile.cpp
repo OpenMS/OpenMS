@@ -196,7 +196,7 @@ namespace OpenMS
     float dyn_n_term_mod(0.0), dyn_c_term_mod(0.0), stat_n_term_mod(0.0), stat_c_term_mod(0.0), stat_n_term_prot_mod(0.0), stat_c_term_prot_mod(0.0);
 
     map<char, float> stat_mods, dyn_mods;
-    map<char, float> * mods_p = NULL;
+    map<char, float> * mods_p = nullptr;
 
     // compute the masses for the amino acids, divided into fixed and optional modifications
     float mass(0.0);

@@ -100,12 +100,12 @@ public:
 
 protected:
 
-  Param getSubsectionDefaults_(const String& /*section*/) const
+  Param getSubsectionDefaults_(const String& /*section*/) const override
   {
     return FalseDiscoveryRate().getDefaults();
   }
 
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "Identifications from searching a target-decoy database.");
     setValidFormats_("in", ListUtils::create<String>("idXML"));
@@ -126,7 +126,7 @@ protected:
     registerSubsection_("algorithm", "Parameter section for the FDR calculation algorithm");
   }
 
-  ExitCodes main_(int, const char**)
+  ExitCodes main_(int, const char**) override
   {
     //-------------------------------------------------------------
     // parameter handling

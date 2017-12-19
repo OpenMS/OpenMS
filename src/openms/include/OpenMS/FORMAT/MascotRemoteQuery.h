@@ -65,10 +65,10 @@ public:
     */
     //@{
     /// default constructor
-    OPENMS_DLLAPI MascotRemoteQuery(QObject* parent = 0);
+    OPENMS_DLLAPI MascotRemoteQuery(QObject* parent = nullptr);
 
     /// destructor
-    OPENMS_DLLAPI virtual ~MascotRemoteQuery();
+    OPENMS_DLLAPI ~MascotRemoteQuery() override;
     //@}
 
 
@@ -89,7 +89,7 @@ public:
 
 protected:
 
-    OPENMS_DLLAPI virtual void updateMembers_();
+    OPENMS_DLLAPI void updateMembers_() override;
 
 public slots:
 

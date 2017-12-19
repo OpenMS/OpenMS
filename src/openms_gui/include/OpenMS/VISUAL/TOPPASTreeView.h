@@ -59,18 +59,18 @@ namespace OpenMS
 
 public:
     /// Constructor
-    TOPPASTreeView(QWidget * parent = 0);
+    TOPPASTreeView(QWidget * parent = nullptr);
     /// Destructor
-    ~TOPPASTreeView();
+    ~TOPPASTreeView() override;
 
 protected:
     ///@name Reimplemented Qt events
     //@{
-    void mousePressEvent(QMouseEvent * e);
-    void mouseMoveEvent(QMouseEvent * e);
-    void keyPressEvent(QKeyEvent * e);
-    void leaveEvent(QEvent * e);
-    void enterEvent(QEvent * e);
+    void mousePressEvent(QMouseEvent * e) override;
+    void mouseMoveEvent(QMouseEvent * e) override;
+    void keyPressEvent(QKeyEvent * e) override;
+    void leaveEvent(QEvent * e) override;
+    void enterEvent(QEvent * e) override;
     //@}
 
     /// The drag start position

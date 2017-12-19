@@ -439,7 +439,7 @@ public:
 
     static String random(UInt length)
     {
-      srand(time(0));
+      srand(time(nullptr));
       String tmp(length, '.');
       size_t random;
       for (Size i = 0; i < length; ++i)

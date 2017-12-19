@@ -49,8 +49,8 @@ START_TEST(AbsoluteQuantitationStandards, "$Id$")
 
 /////////////////////////////////////////////////////////////
 
-AbsoluteQuantitationStandards* ptr = 0;
-AbsoluteQuantitationStandards* nullPointer = 0;
+AbsoluteQuantitationStandards* ptr = nullptr;
+AbsoluteQuantitationStandards* nullPointer = nullptr;
 START_SECTION((AbsoluteQuantitationStandards()))
 	ptr = new AbsoluteQuantitationStandards();
 	TEST_NOT_EQUAL(ptr, nullPointer)

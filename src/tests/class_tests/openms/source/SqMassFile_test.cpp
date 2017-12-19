@@ -57,8 +57,8 @@ START_TEST(SqMassFile, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-SqMassFile* ptr = 0;
-SqMassFile* nullPointer = 0;
+SqMassFile* ptr = nullptr;
+SqMassFile* nullPointer = nullptr;
 START_SECTION((SqMassFile()))
   ptr = new SqMassFile;
   TEST_NOT_EQUAL(ptr, nullPointer)

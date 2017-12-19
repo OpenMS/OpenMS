@@ -48,8 +48,8 @@ START_TEST(SpectrumSettings, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-SpectrumSettings* ptr = 0;
-SpectrumSettings* nullPointer = 0;
+SpectrumSettings* ptr = nullptr;
+SpectrumSettings* nullPointer = nullptr;
 
 START_SECTION((SpectrumSettings()))
 	ptr = new SpectrumSettings();

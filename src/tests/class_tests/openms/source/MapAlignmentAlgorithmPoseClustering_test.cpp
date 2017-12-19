@@ -52,8 +52,8 @@ START_TEST(MapAlignmentAlgorithmPoseClustering, "$Id$")
 /////////////////////////////////////////////////////////////
 
 
-MapAlignmentAlgorithmPoseClustering* ptr = 0;
-MapAlignmentAlgorithmPoseClustering* nullPointer = 0;
+MapAlignmentAlgorithmPoseClustering* ptr = nullptr;
+MapAlignmentAlgorithmPoseClustering* nullPointer = nullptr;
 START_SECTION((MapAlignmentAlgorithmPoseClustering()))
 	ptr = new MapAlignmentAlgorithmPoseClustering();
 	TEST_NOT_EQUAL(ptr, nullPointer)

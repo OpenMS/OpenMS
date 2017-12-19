@@ -102,7 +102,7 @@ public:
 
 protected:
 
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "input file ('traML')");
     setValidFormats_("in", ListUtils::create<String>("traML"));
@@ -139,7 +139,7 @@ protected:
     setValidFormats_("unimod_file", ListUtils::create<String>("xml"));
   }
 
-  ExitCodes main_(int, const char**)
+  ExitCodes main_(int, const char**) override
   {
     String in = getStringOption_("in");
     String out = getStringOption_("out");

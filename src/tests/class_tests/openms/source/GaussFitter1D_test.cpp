@@ -49,8 +49,8 @@ START_TEST(GaussFitter1D, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-GaussFitter1D* ptr = 0;
-GaussFitter1D* nullPointer = 0;
+GaussFitter1D* ptr = nullptr;
+GaussFitter1D* nullPointer = nullptr;
 START_SECTION(GaussFitter1D())
 {
 	ptr = new GaussFitter1D();

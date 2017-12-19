@@ -115,7 +115,7 @@ public:
   }
 
 protected:
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     // input
     registerInputFile_("in_id", "<file>", "", "Peptides with precursor information", false);
@@ -181,7 +181,7 @@ protected:
     os.close();
   }
 
-  ExitCodes main_(int, const char**)
+  ExitCodes main_(int, const char**) override
   {
     IdXMLFile idXML_file;
     vector<ProteinIdentification> protein_identifications;
@@ -196,7 +196,7 @@ protected:
     vector<double> all_predicted_retention_times;
     map<String, double> predicted_data;
     map<AASequence, double> predicted_modified_data;
-    svm_problem* prediction_data = NULL;
+    svm_problem* prediction_data = nullptr;
     SVMData training_samples;
     SVMData prediction_samples;
     UInt border_length = 0;

@@ -84,7 +84,7 @@ class TOPPMassCalculator :
 public:
 
   TOPPMassCalculator() :
-    TOPPBase("MassCalculator", "Calculates masses and mass-to-charge ratios of peptide sequences", false), use_avg_mass_(false), output_(0), format_(), res_type_(Residue::Full)
+    TOPPBase("MassCalculator", "Calculates masses and mass-to-charge ratios of peptide sequences", false), use_avg_mass_(false), output_(nullptr), format_(), res_type_(Residue::Full)
   {
     for (Size i = 0; i < Residue::SizeOfResidueType; i++)
     {
@@ -101,7 +101,7 @@ protected:
   Residue::ResidueType res_type_;
   map<String, Residue::ResidueType> res_type_names_;
 
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "Input file with peptide sequences and optionally charge numbers (mutually exclusive to 'in_seq')", false);
     setValidFormats_("in",ListUtils::create<String>("txt"));
@@ -240,7 +240,7 @@ protected:
     input.close();
   }
 
-  ExitCodes main_(int, const char**)
+  ExitCodes main_(int, const char**) override
   {
     String in = getStringOption_("in");
     StringList in_seq = getStringList_("in_seq");

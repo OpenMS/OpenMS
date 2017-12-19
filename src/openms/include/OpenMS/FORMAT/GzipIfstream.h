@@ -137,7 +137,7 @@ protected:
 
   inline bool GzipIfstream::isOpen() const
   {
-    return gzfile_ != NULL;
+    return gzfile_ != nullptr;
   }
 
   inline bool GzipIfstream::streamEnd() const

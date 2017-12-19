@@ -52,45 +52,68 @@ using namespace OpenMS;
 /**
   @page UTILS_TargetedFileConverter TargetedFileConverter
 
-  @brief Converts different transition files for targeted proteomics and metabolomics analysis.
+  @brief Converts different spectral libraries / transition files for targeted proteomics and metabolomics analysis.
   
-  Can convert multiple formats to and from TraML (standardized transition
-  format). It supports the OpenSWATH TSV format as well as the PQP format for
-  transitions.
-  
-  The OpenSWATH transition TSV files need to have the following headers, all fields need to be separated by tabs:
+  Can convert multiple formats to and from TraML (standardized transition format). The following formats are supported:
+
+        <ul>
+          <li> TraML </li>
+          <li> OpenSWATH TSV transition lists </li>
+          <li> OpenSWATH PQP SQLite files </li>
+          <li> SpectraST MRM transition lists </li>
+          <li> Skyline transition lists </li>
+          <li> Spectronaut transition lists </li>
+        </ul>
+
+  Transition lists can be either comma- or tab-separated. Modifications should be provided in UniMod format<sup>1</sup>, but can also be provided in TPP format. The following columns are required:
 
         <ul>
           <li> PrecursorMz* (float) </li>
-          <li> ProductMz* (float) </li>
-          <li> Tr_recalibrated (float) (normalized retention time) </li>
-          <li> transition_name* (free text, needs to be unique for each transition [in this file]) </li>
-          <li> CollisionEnergy (float) </li>
-          <li> LibraryIntensity* (float) </li>
-          <li> transition_group_id* (free text, designates the transition group [e.g. peptide] to which this transition belongs) </li>
-          <li> decoy (1==decoy, 0== no decoy; determines whether the transition is a decoy transition or not) </li>
-          <li> PeptideSequence** (free text, sequence only (no modifications) ) </li>
-          <li> ProteinName** (free text) </li>
-          <li> Annotation (free text, e.g. y7) </li>
-          <li> FullUniModPeptideName  (free text, should contain modifications<sup>1</sup>)  </li>
-          <li> PrecursorCharge (integer, contains the charge of the precursor) </li>
-          <li> PeptideGroupLabel (free text, designates to which peptide label group (as defined in MS:1000893) the peptide belongs to<sup>2</sup>) </li>
-          <li> LabelType (free text, optional description of which label was used, e.g. heavy or light) </li>
-          <li> UniprotID (free text) </li>
-          <li> FragmentType (free text, contains the type of the fragment, e.g. "b" or "y") </li>
-          <li> FragmentCharge (integer, contains the fragment charge) </li>
-          <li> FragmentSeriesNumber (integer, e.g. for y7 use "7" here) </li>
+          <li> ProductMz* (float; synonyms: FragmentMz) </li>
+          <li> LibraryIntensity* (float; synonyms: RelativeFragmentIntensity) </li>
+          <li> NormalizedRetentionTime* (float; synonyms: RetentionTime, Tr_recalibrated, iRT, RetentionTimeCalculatorScore) (normalized retention time) </li>
         </ul>
 
-  For targeted metabolomics files, the following CSV fields are also supported
+  For targeted proteomics files, the following additional columns should be provided:
+        <ul>
+          <li> ProteinId** (free text; synonyms: ProteinName) </li>
+          <li> PeptideSequence** (free text, sequence only (no modifications); synonyms: Sequence, StrippedSequence) </li>
+          <li> ModifiedPeptideSequence** (free text, should contain modifications<sup>1</sup>; synonyms: FullUniModPeptideName, FullPeptideName, ModifiedSequence)  </li>
+          <li> PrecursorCharge** (integer, contains the charge of the precursorl synonyms: Charge) </li>
+          <li> ProductCharge** (integer, contains the fragment charge; synonyms: FragmentCharge) </li>
+          <li> FragmentType (free text, contains the type of the fragment, e.g. "b" or "y") </li>
+          <li> FragmentSeriesNumber (integer, e.g. for y7 use "7" here; synonyms: FragmentNumber) </li>
+        </ul>
+
+  OpenSWATH uses grouped transitions to detect candidate analyte signals. These groups are by default generated based on the input, but can also be manually specified:
 
         <ul>
-          <li> CompoundName** </li>
+          <li> TransitionGroupId (free text, designates the transition group [e.g. peptide] to which this transition belongs; synomys: TransitionGroupName, transition_group_id) </li>
+          <li> TransitionId (free text, needs to be unique for each transition [in this file]; synonyms: TransitionName, transition_name) </li>
+          <li> Decoy (1: decoy, 0: target, i.e. no decoy; determines whether the transition is a decoy transition or not, synomys: decoy, isDecoy) </li>
+          <li> PeptideGroupLabel (free text, designates to which peptide label group (as defined in MS:1000893) the peptide belongs to<sup>2</sup>) </li>
+          <li> DetectingTransition (1: use transition to detect peak group, 0: don't use transition for detection; synonyms: detecting_transition) </li>
+          <li> IdentifyingTransition (1: use transition for peptidoform inference using IPF, 0: don't use transition for identification; synonyms: identifying_transition) </li>
+          <li> QuantifyingTransition (1: use transition to quantify peak group, 0: don't use transition for quantification; synonyms: quantifying_transition) </li>
+        </ul>
+
+  Optionally, the following columns can be specified but they are not actively used by OpenSWATH:
+        <ul>
+          <li> CollisionEnergy (float; synonyms: CE) </li>
+          <li> Annotation (free text, e.g. y7) </li>
+          <li> UniprotId (free text; synonyms: UniprotID) </li>
+          <li> LabelType (free text, optional description of which label was used, e.g. heavy or light) </li>
+        </ul>
+
+  For targeted metabolomics files, the following fields are also supported:
+
+        <ul>
+          <li> CompoundName** (synonyms: CompoundId) </li>
           <li> SMILES </li>
           <li> SumFormula </li>
         </ul>
 
-  Fields indicated with * are required while fields indicated with **
+  Fields indicated with * are strictly required while fields indicated with **
   are only required in the specific context (proteomics or metabolomics).
 
 <p>
@@ -137,7 +160,7 @@ public:
 
 protected:
 
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "Input file to convert.\n "
                                            "See http://www.openms.de/current_doxygen/html/UTILS_TargetedFileConverter.html for format of OpenSWATH transition TSV file or SpectraST MRM file.");
@@ -157,12 +180,12 @@ protected:
 
   }
 
-  Param getSubsectionDefaults_(const String&) const
+  Param getSubsectionDefaults_(const String&) const override
   {
     return TransitionTSVReader().getDefaults();
   }
 
-  ExitCodes main_(int, const char**)
+  ExitCodes main_(int, const char**) override
   {
     FileHandler fh;
 

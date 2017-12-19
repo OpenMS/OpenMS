@@ -47,8 +47,8 @@ START_TEST(SpectrumMetaDataLookup, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-SpectrumMetaDataLookup* ptr = 0;
-SpectrumMetaDataLookup* null_ptr = 0;
+SpectrumMetaDataLookup* ptr = nullptr;
+SpectrumMetaDataLookup* null_ptr = nullptr;
 
 START_SECTION((SpectrumMetaDataLookup()))
 {

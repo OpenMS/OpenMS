@@ -54,9 +54,9 @@ using namespace std;
 
 typedef FeatureFinderAlgorithmPicked FFPP;
 
-FFPP* ptr = 0;
-FFPP* nullPointer = 0;
-FeatureFinderAlgorithm* ffA_nullPointer = 0;
+FFPP* ptr = nullptr;
+FFPP* nullPointer = nullptr;
+FeatureFinderAlgorithm* ffA_nullPointer = nullptr;
 
 START_SECTION((FeatureFinderAlgorithmPicked()))
   ptr = new FFPP;

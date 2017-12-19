@@ -61,8 +61,8 @@ START_TEST(AccurateMassSearchEngine, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-AccurateMassSearchEngine* ptr = 0;
-AccurateMassSearchEngine* null_ptr = 0;
+AccurateMassSearchEngine* ptr = nullptr;
+AccurateMassSearchEngine* null_ptr = nullptr;
 START_SECTION(AccurateMassSearchEngine())
 {
     ptr = new AccurateMassSearchEngine();

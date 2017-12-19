@@ -325,7 +325,7 @@ namespace OpenMS
 
     // defaultArrayLength is a required attribute for the spectrum and the
     // chromatogram tag (but still check for it first to be safe).
-    if (elementRoot->getAttributeNode(default_array_length_tag) == NULL)
+    if (elementRoot->getAttributeNode(default_array_length_tag) == nullptr)
     {
       delete parser;
       throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,

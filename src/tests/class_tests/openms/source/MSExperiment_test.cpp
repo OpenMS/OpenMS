@@ -53,8 +53,8 @@ START_TEST(MSExperiment, "$Id$");
 using namespace OpenMS;
 using namespace std;
 
-PeakMap* ptr = 0;
-PeakMap* nullPointer = 0;
+PeakMap* ptr = nullptr;
+PeakMap* nullPointer = nullptr;
 START_SECTION((MSExperiment()))
 {
 	ptr = new PeakMap;

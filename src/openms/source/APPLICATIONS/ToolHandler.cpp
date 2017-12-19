@@ -363,7 +363,7 @@ namespace OpenMS
     paths << (getExternalToolsPath() + "/LINUX").toQString();
 #endif
     // additional environment
-    if (getenv("OPENMS_TTD_PATH") != 0)
+    if (getenv("OPENMS_TTD_PATH") != nullptr)
     {
       paths << String(getenv("OPENMS_TTD_PATH")).toQString();
     }
@@ -395,7 +395,7 @@ namespace OpenMS
     paths << (getInternalToolsPath() + "/LINUX").toQString();
 #endif
     // additional environment
-    if (getenv("OPENMS_TTD_INTERNAL_PATH") != 0)
+    if (getenv("OPENMS_TTD_INTERNAL_PATH") != nullptr)
     {
       paths << String(getenv("OPENMS_TTD_INTERNAL_PATH")).toQString();
     }

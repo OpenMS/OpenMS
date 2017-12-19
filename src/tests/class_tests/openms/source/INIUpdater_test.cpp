@@ -49,8 +49,8 @@ START_TEST(INIUpdater, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-INIUpdater* ptr = 0;
-INIUpdater* null_ptr = 0;
+INIUpdater* ptr = nullptr;
+INIUpdater* null_ptr = nullptr;
 START_SECTION(INIUpdater())
 {
 	ptr = new INIUpdater();

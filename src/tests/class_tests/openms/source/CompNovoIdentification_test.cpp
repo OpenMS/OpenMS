@@ -52,8 +52,8 @@ START_TEST(CompNovoIdentification, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-CompNovoIdentification* ptr = 0;
-CompNovoIdentification* nullPointer = 0;
+CompNovoIdentification* ptr = nullptr;
+CompNovoIdentification* nullPointer = nullptr;
 START_SECTION(CompNovoIdentification())
 {
   ptr = new CompNovoIdentification();

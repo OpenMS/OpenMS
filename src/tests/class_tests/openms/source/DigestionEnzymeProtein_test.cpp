@@ -50,8 +50,8 @@ START_TEST(DigestionEnzymeProtein, "$Id$")
 
 /////////////////////////////////////////////////////////////
 
-DigestionEnzymeProtein* e_ptr = 0;
-DigestionEnzymeProtein* e_null = 0;
+DigestionEnzymeProtein* e_ptr = nullptr;
+DigestionEnzymeProtein* e_null = nullptr;
 
 START_SECTION((DigestionEnzymeProtein()))
 	e_ptr = new DigestionEnzymeProtein();

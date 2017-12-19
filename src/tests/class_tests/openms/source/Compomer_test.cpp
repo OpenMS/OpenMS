@@ -48,8 +48,8 @@ START_TEST(Compomer, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-Compomer* ptr = 0;
-Compomer* nullPointer = 0;
+Compomer* ptr = nullptr;
+Compomer* nullPointer = nullptr;
 START_SECTION(Compomer())
 {
 	ptr = new Compomer();

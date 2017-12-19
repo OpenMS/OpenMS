@@ -99,7 +99,7 @@ protected:
       double CE;
       double library_intensity;
       String group_id;
-      int decoy;
+      bool decoy;
       String PeptideSequence;
       String ProteinName;
       String Annotation;
@@ -127,7 +127,7 @@ protected:
         rt_calibrated(-1),
         CE(-1),
         library_intensity(-1),
-        decoy(0),
+        decoy(false),
         fragment_charge("NA"),
         fragment_nr(-1),
         fragment_mzdelta(-1),
@@ -175,7 +175,7 @@ protected:
     TransitionTSVReader::TSVTransition convertTransition_(const ReactionMonitoringTransition* it, OpenMS::TargetedExperiment& targeted_exp);
 
     /// Synchronize members with param class
-    void updateMembers_();
+    void updateMembers_() override;
 
 private:
     /// Members
@@ -210,6 +210,10 @@ private:
      *
     */
     void readUnstructuredTSVInput_(const char* filename, FileTypes::Type filetype, std::vector<TSVTransition>& transition_list);
+
+    void spectrastRTExtract(const String str_inp, double & value, bool & spectrast_legacy);
+
+    bool spectrastAnnotationExtract(const String str_inp, TSVTransition & mytransition);
 
     /** @brief Cleanup of the read fields (removing quotes etc.)
     */
@@ -262,7 +266,7 @@ public:
     TransitionTSVReader();
 
     /// Destructor
-    ~TransitionTSVReader();
+    ~TransitionTSVReader() override;
     //@}
 
     /** @brief Write out a targeted experiment (TraML structure) into a tsv file

@@ -65,7 +65,7 @@ namespace OpenMS
       XMLHandler(filename, version),
       logger_(logger),
       //~ ms_exp_(0),
-      id_(0),
+      id_(nullptr),
       cid_(&id)
     {
       cv_.loadFromOBO("PSI-MS", File::find("/CV/psi-ms.obo"));
@@ -77,7 +77,7 @@ namespace OpenMS
       logger_(logger),
       //~ ms_exp_(0),
       id_(&id),
-      cid_(0)
+      cid_(nullptr)
     {
       cv_.loadFromOBO("PSI-MS", File::find("/CV/psi-ms.obo"));
       unimod_.loadFromOBO("PSI-MS", File::find("/CV/unimod.obo"));
@@ -87,8 +87,8 @@ namespace OpenMS
       XMLHandler(filename, version),
       logger_(logger),
       //~ ms_exp_(0),
-      pro_id_(0),
-      pep_id_(0),
+      pro_id_(nullptr),
+      pep_id_(nullptr),
       cpro_id_(&pro_id),
       cpep_id_(&pep_id)
     {
@@ -102,8 +102,8 @@ namespace OpenMS
       //~ ms_exp_(0),
       pro_id_(&pro_id),
       pep_id_(&pep_id),
-      cpro_id_(0),
-      cpep_id_(0)
+      cpro_id_(nullptr),
+      cpep_id_(nullptr)
     {
       cv_.loadFromOBO("PSI-MS", File::find("/CV/psi-ms.obo"));
       unimod_.loadFromOBO("PSI-MS", File::find("/CV/unimod.obo"));
@@ -839,7 +839,7 @@ namespace OpenMS
             if (jt->getSequence().isModified() || jt->metaValueExists("xl_chain"))
             {
               const ResidueModification* n_term_mod = jt->getSequence().getNTerminalModification();
-              if (n_term_mod != 0)
+              if (n_term_mod != nullptr)
               {
                 p += "\t\t<Modification location=\"0\">\n";
                 String acc = n_term_mod->getUniModAccession();
@@ -866,7 +866,7 @@ namespace OpenMS
                 p += "\n\t\t</Modification>\n";
               }
               const ResidueModification* c_term_mod = jt->getSequence().getCTerminalModification();
-              if (c_term_mod != 0)
+              if (c_term_mod != nullptr)
               {
                 p += "\t\t<Modification location=\"" + String(jt->getSequence().size()) + "\">\n";
                 String acc = c_term_mod->getUniModAccession();
@@ -895,7 +895,7 @@ namespace OpenMS
               for (Size i = 0; i < jt->getSequence().size(); ++i)
               {
                 const ResidueModification* mod = jt->getSequence()[i].getModification(); // "UNIMOD:" prefix??
-                if (mod != 0)
+                if (mod != nullptr)
                 {
                   //~ p += jt->getSequence()[i].getModification() + "\t" +  jt->getSequence()[i].getOneLetterCode()  + "\t" +  x +   "\n" ;
                   p += "\t\t<Modification location=\"" + String(i + 1);

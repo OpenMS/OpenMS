@@ -47,8 +47,8 @@ START_TEST(IsobaricQuantifierStatistics, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-IsobaricQuantifierStatistics* ptr = 0;
-IsobaricQuantifierStatistics* null_ptr = 0;
+IsobaricQuantifierStatistics* ptr = nullptr;
+IsobaricQuantifierStatistics* null_ptr = nullptr;
 START_SECTION(IsobaricQuantifierStatistics())
 {
 	ptr = new IsobaricQuantifierStatistics();

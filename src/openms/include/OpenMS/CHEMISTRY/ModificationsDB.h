@@ -77,8 +77,8 @@ public:
     /// Returns a pointer to the modifications DB (singleton)
     inline static ModificationsDB* getInstance(OpenMS::String unimod_file = "CHEMISTRY/unimod.xml", OpenMS::String psimod_file = "CHEMISTRY/PSI-MOD.obo", OpenMS::String xlmod_file = "CHEMISTRY/XLMOD.obo")
     {
-      static ModificationsDB* db_ = 0;
-      if (db_ == 0)
+      static ModificationsDB* db_ = nullptr;
+      if (db_ == nullptr)
       {
         db_ = new ModificationsDB(unimod_file, psimod_file, xlmod_file);
       }

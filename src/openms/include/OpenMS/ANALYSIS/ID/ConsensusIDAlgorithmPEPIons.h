@@ -67,10 +67,10 @@ namespace OpenMS
     ConsensusIDAlgorithmPEPIons& operator=(const ConsensusIDAlgorithmPEPIons&);
 
     /// Docu in base class
-    virtual void updateMembers_();
+    void updateMembers_() override;
 
     /// Sequence similarity based on matching ions
-    virtual double getSimilarity_(AASequence seq1, AASequence seq2);
+    double getSimilarity_(AASequence seq1, AASequence seq2) override;
 
   };
 

@@ -133,7 +133,7 @@ namespace OpenMS
     if (this->allow_output_recycling_)
     {
       painter->setPen(Qt::green);
-      QSvgRenderer* svg_renderer = new QSvgRenderer(QString(":/Recycling_symbol.svg"), 0);
+      QSvgRenderer* svg_renderer = new QSvgRenderer(QString(":/Recycling_symbol.svg"), nullptr);
       svg_renderer->render(painter, QRectF(-7, -32, 14, 14));
     }
 

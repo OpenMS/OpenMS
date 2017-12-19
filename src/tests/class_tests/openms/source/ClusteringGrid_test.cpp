@@ -52,7 +52,7 @@ for (double i = 0; i <=10; ++i)
     grid_spacing_y.push_back(i);
 }
 
-ClusteringGrid* nullPointer = 0;
+ClusteringGrid* nullPointer = nullptr;
 ClusteringGrid* ptr;
 
 START_SECTION(ClusteringGrid(const std::vector<double> &grid_spacing_x, const std::vector<double> &grid_spacing_y))
