@@ -5,6 +5,7 @@ from AbsoluteQuantitationStandards cimport *
 from Feature cimport *
 from FeatureMap cimport *
 from String cimport *
+from DefaultParamHandler cimport *
 
 cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/AbsoluteQuantitation.h>" namespace "OpenMS":
 
