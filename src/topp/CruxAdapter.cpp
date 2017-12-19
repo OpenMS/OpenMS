@@ -120,6 +120,9 @@ protected:
     //
     // Optional parameters //
     //
+    registerStringOption_("extra_index_args", "<choice>", "", "Extra arguments to be passed to tide-index", false, false);
+    registerStringOption_("extra_search_args", "<choice>", "", "Extra arguments to be passed to tide-search", false, false);
+    registerStringOption_("extra_percolator_args", "<choice>", "", "Extra arguments to be passed to percolator", false, false);
 
     //Files
     registerOutputFile_("pin_out", "<file>", "", "Output file - for Percolator input", false);
@@ -127,13 +130,235 @@ protected:
 
     //Masses
     registerDoubleOption_("precursor_mass_tolerance", "<tolerance>", 10.0, "Precursor monoisotopic mass tolerance (Crux parameter: peptide_mass_tolerance)", false, false);
-    registerStringOption_("precursor_error_units", "<choice>", "ppm", "peptide_mass_units 0=amu, 1=mmu, 2=ppm", false, false);
-    setValidStrings_("precursor_error_units", ListUtils::create<String>("amu,ppm,Da"));
-    //registerIntOption_("mass_type_parent", "<num>", 1, "0=average masses, 1=monoisotopic masses", false, true);
-    //registerIntOption_("mass_type_fragment", "<num>", 1, "0=average masses, 1=monoisotopic masses", false, true);
-    //registerIntOption_("precursor_tolerance_type", "<num>", 0, "0=average masses, 1=monoisotopic masses", false, false);
-    registerStringOption_("isotope_error", "<choice>", "off", "0=off, 1=on -1/0/1/2/3 (standard C13 error), 2= -8/-4/0/4/8 (for +4/+8 labeling)", false, false);
-    setValidStrings_("isotope_error", ListUtils::create<String>("off,-1/0/1/2/3,-8/-4/0/4/8"));
+    registerStringOption_("precursor_mass_units", "<choice>", "ppm", "Unit of precursor mass tolerance (amu, m/z or ppm)", false, false);
+    setValidStrings_("precursor_mass_units", ListUtils::create<String>("mass,mz,ppm"));
+    registerDoubleOption_("fragment_bin_offset", "<offset>", 0.0, "In the discretization of the m/z axes of the observed and theoretical spectra, this parameter specifies the location of the left edge of the first bin, relative to mass = 0 (i.e., mz-bin-offset = 0.xx means the left edge of the first bin will be located at +0.xx Da).", false, false);
+    registerDoubleOption_("fragment_bin_width", "<width>", 0.02, "Before calculation of the XCorr score, the m/z axes of the observed and theoretical spectra are discretized. This parameter specifies the size of each bin. The exact formula for computing the discretized m/z value is floor((x/mz-bin-width) + 1.0 - mz-bin-offset), where x is the observed m/z value. For low resolution ion trap ms/ms data 1.0005079 and for high resolution ms/ms 0.02 is recommended.", false, false);
+    registerStringOption_("isotope_error", "<choice>", "", "List of positive, non-zero integers.", false, false);
+
+    //Search Enzyme
+    registerStringOption_("enzyme", "<cleavage site>", "trypsin", "The enzyme used for peptide digestion.", false, false);
+    setValidStrings_("enzyme", ListUtils::create<String>("no-enzyme,trypsin,trypsin/p,chymotrypsin,elastase,clostripain,cyanogen-bromide,iodosobenzoate,proline-endopeptidase,staph-protease,asp-n,lys-c,lys-n,arg-c,glu-c,pepsin-a,elastase-trypsin-chymotrypsin,custom-enzyme"));
+    registerStringOption_("digestion", "<choice>", "full-digest", "Full, partial or non specific digestion", false, false);
+    setValidStrings_("digestion", ListUtils::create<String>("full-digest,partial-digest,non-specific-digest"));
+    registerIntOption_("allowed_missed_cleavages", "<num>", 0, "Number of possible cleavage sites missed by the enzyme, maximum value is 5; for enzyme search", false, false);
+    registerStringOption_("custom_enzyme", "<enzyme description>", "", "Specify rules for in silico digestion of protein sequences. Overrides the enzyme option. Two lists of residues are given enclosed in square brackets or curly braces and separated by a |. The first list contains residues required/prohibited before the cleavage site and the second list is residues after the cleavage site.  ", false, false); 
+    registerStringOption_("decoy_prefix", "<decoy_prefix>", "decoy_", "Specifies the prefix of the protein names that indicate a decoy", false, false); 
+
+    //Modifications
+    registerStringOption_("cterm_modifications", "<mods>", "", "Specifies C-terminal static and variable mass modifications on peptides.  Specify a comma-separated list of C-terminal modification sequences of the form: X+21.9819 Default = <empty>.", false, false);
+    registerStringOption_("nterm_modifications", "<mods>", "", "Specifies N-terminal static and variable mass modifications on peptides.  Specify a comma-separated list of N-terminal modification sequences of the form: 1E-18.0106,C-17.0265 Default = <empty>.", false, false);
+    registerStringOption_("modifications", "<mods>", "", "Expression for static and variable mass modifications to include. Specify a comma-separated list of modification sequences of the form: C+57.02146,2M+15.9949,1STY+79.966331,... Default = C+57.02146.", false, false);
+     
+    // Percolator
+    registerDoubleOption_("test_fdr", "<fdr>", 0.01, "False discovery rate threshold used in selecting hyperparameters during internal cross-validation and for reporting the final results.", false, false);
+    registerDoubleOption_("train_fdr", "<fdr>", 0.01, "False discovery rate threshold to define positive examples in training.", false, false);
+
+    registerFlag_("deisotope", "Deisotope spectra before searching", true);
+  }
+
+/*
+  
+FATAL: Expected 1 arguments, but found 0
+
+USAGE:
+
+  crux percolator [options] <peptide-spectrum matches>
+
+REQUIRED ARGUMENTS:
+
+  <peptide-spectrum matches> A collection of target and decoy peptide-spectrum
+  matches (PSMs). Input may be in one of five formats: PIN, SQT, pepXML, Crux
+  tab-delimited text, or a list of files (when list-of-files=T). Note that if
+  the input is provided as SQT, pepXML, or Crux tab-delimited text, then a PIN
+  file will be generated in the output directory prior to execution.Crux
+  determines the format of the input file by examining its filename extension.  
+
+OPTIONAL ARGUMENTS:
+
+  [--fileroot <string>]
+     The fileroot string will be added as a prefix to all output file names.
+     Default = <empty>.
+  [--output-dir <string>]
+     The name of the directory where output files will be created. Default =
+     crux-output.
+  [--overwrite T|F]
+     Replace existing files if true or fail when trying to overwrite a file if
+     false. Default = false.
+  [--txt-output T|F]
+     Output a tab-delimited results file to the output directory. Default =
+     true.
+  [--pout-output T|F]
+     Output a Percolator pout.xml format results file to the output directory.
+     Default = false.
+  [--mzid-output T|F]
+     Output an mzIdentML results file to the output directory. Default = false.
+  [--pepxml-output T|F]
+     Output a pepXML results file to the output directory. Default = false.
+  [--feature-file-out T|F]
+     Output the computed features in tab-delimited text format. Default = false.
+  [--list-of-files T|F]
+     Specify that the search results are provided as lists of files, rather than
+     as individual files. Default = false.
+  [--parameter-file <string>]
+     A file containing parameters.  Default = <empty>.
+  [--feature-file-in T|F]
+     When set to T, interpret the input file as a PIN file. Default = false.
+  [--picked-protein <string>]
+     Use the picked protein-level FDR to infer protein probabilities, provide
+     the fasta file as the argument to this flag. Default = <empty>.
+  [--protein-enzyme no_enzyme|elastase|pepsin|proteinasek|thermolysin|trypsinp|chymotrypsin|lys-n|lys-c|arg-c|asp-n|glu-c|trypsin]
+     Type of enzyme Default = trypsin.
+  [--protein-report-fragments T|F]
+     By default, if the peptides associated with protein A are a proper subset
+     of the peptides associated with protein B, then protein A is eliminated and
+     all the peptides are considered as evidence for protein B. Note that this
+     filtering is done based on the complete set of peptides in the database,
+     not based on the identified peptides in the search results. Alternatively,
+     if this option is set and if all of the identified peptides associated with
+     protein B are also associated with protein A, then Percolator will report a
+     comma-separated list of protein IDs, where the full-length protein B is
+     first in the list and the fragment protein A is listed second. Not
+     available for Fido. Default = false.
+  [--protein-report-duplicates T|F]
+     If multiple database proteins contain exactly the same set of peptides,
+     then Percolator will randomly discard all but one of the proteins. If this
+     option is set, then the IDs of these duplicated proteins will be reported
+     as a comma-separated list. Not available for Fido. Default = false.
+  [--protein T|F]
+     Use the Fido algorithm to infer protein probabilities. Must be true to use
+     any of the Fido options. Default = false.
+  [--decoy-xml-output T|F]
+     Include decoys (PSMs, peptides, and/or proteins) in the XML output. Default
+     = false.
+  [--decoy-prefix <string>]
+     Specifies the prefix of the protein names that indicate a decoy. Default =
+     decoy_.
+  [--subset-max-train <integer>]
+     Only train Percolator on a subset of PSMs, and use the resulting score
+     vector to evaluate the other PSMs. Recommended when analyzing huge numbers
+     (>1 million) of PSMs. When set to 0, all PSMs are used for training as
+     normal. Default = 0.
+  [--c-pos <float>]
+     Penalty for mistakes made on positive examples. If this value is set to 0,
+     then it is set via cross validation over the values {0.1, 1, 10}, selecting
+     the value that yields the largest number of PSMs identified at the q-value
+     threshold set via the --test-fdr parameter. Default = 0.
+  [--c-neg <float>]
+     Penalty for mistake made on negative examples. If not specified, then this
+     value is set by cross validation over {0.1, 1, 10}. Default = 0.
+  [--train-fdr <float>]
+     False discovery rate threshold to define positive examples in training.
+     Default = 0.01.
+  [--test-fdr <float>]
+     False discovery rate threshold used in selecting hyperparameters during
+     internal cross-validation and for reporting the final results. Default =
+     0.01.
+  [--maxiter <integer>]
+     Maximum number of iterations for training. Default = 10.
+  [--quick-validation T|F]
+     Quicker execution by reduced internal cross-validation. Default = false.
+  [--output-weights T|F]
+     Output final weights to a file named "percolator.weights.txt". Default =
+     false.
+  [--init-weights <string>]
+     Read initial weights from the given file (one per line). Default = <empty>.
+  [--default-direction <string>]
+     In its initial round of training, Percolator uses one feature to induce a
+     ranking of PSMs. By default, Percolator will select the feature that
+     produces the largest set of target PSMs at a specified FDR threshold (cf.
+     --train-fdr). This option allows the user to specify which feature is used
+     for the initial ranking, using the name as a string. The name can be
+     preceded by a hyphen (e.g. "-XCorr") to indicate that a lower value is
+     better. Default = <empty>.
+  [--unitnorm T|F]
+     Use unit normalization (i.e., linearly rescale each PSM's feature vector to
+     have a Euclidean length of 1), instead of standard deviation normalization.
+     Default = false.
+  [--fido-alpha <float>]
+     Specify the probability with which a present protein emits an associated
+     peptide. Set by grid search (see --fido-gridsearch-depth parameter) if not
+     specified. Default = 0.
+  [--fido-beta <float>]
+     Specify the probability of the creation of a peptide from noise. Set by
+     grid search (see --fido-gridsearch-depth parameter) if not specified.
+     Default = 0.
+  [--fido-gamma <float>]
+     Specify the prior probability that a protein is present in the sample. Set
+     by grid search (see --fido-gridsearch-depth parameter) if not specified.
+     Default = 0.
+  [--test-each-iteration T|F]
+     Measure performance on test set each iteration. Default = false.
+  [--override T|F]
+     By default, Percolator will examine the learned weights for each feature,
+     and if the weight appears to be problematic, then percolator will discard
+     the learned weights and instead employ a previously trained, static score
+     vector. This switch allows this error checking to be overriden. Default =
+     false.
+  [--percolator-seed <string>]
+     When given a unsigned integer value seeds the random number generator with
+     that value. When given the string "time" seeds the random number generator
+     with the system time. Default = 1.
+  [--klammer T|F]
+     Use retention time features calculated as in "Improving tandem mass
+     spectrum identification using peptide retention time prediction across
+     diverse chromatography conditions" by Klammer AA, Yi X, MacCoss MJ and
+     Noble WS. (Analytical Chemistry. 2007 Aug 15;79(16):6111-8.). Default =
+     false.
+  [--only-psms T|F]
+     Do not remove redundant peptides; keep all PSMs and exclude peptide level
+     probability. Default = false.
+  [--fido-empirical-protein-q T|F]
+     Estimate empirical p-values and q-values for proteins using target-decoy
+     analysis. Default = false.
+  [--fido-gridsearch-depth <integer>]
+     Set depth of the grid search for alpha, beta and gamma estimation. Default
+     = 0.
+  [--fido-gridsearch-mse-threshold <float>]
+     Q-value threshold that will be used in the computation of the MSE and ROC
+     AUC score in the grid search. Default = 0.05.
+  [--fido-fast-gridsearch <float>]
+     Apply the specified threshold to PSM, peptide and protein probabilities to
+     obtain a faster estimate of the alpha, beta and gamma parameters. Default =
+     0.
+  [--fido-protein-truncation-threshold <float>]
+     To speed up inference, proteins for which none of the associated peptides
+     has a probability exceeding the specified threshold will be assigned
+     probability = 0. Default = 0.01.
+  [--fido-no-split-large-components T|F]
+     Do not approximate the posterior distribution by allowing large graph
+     components to be split into subgraphs. The splitting is done by duplicating
+     peptides with low probabilities. Splitting continues until the number of
+     possible configurations of each subgraph is below 2^18 Default = false.
+  [--tdc T|F]
+     Use target-decoy competition to assign q-values and PEPs. When set to F,
+     the mix-max method, which estimates the proportion pi0 of incorrect target
+     PSMs, is used instead. Default = true.
+  [--verbosity <integer>]
+     Specify the verbosity of the current processes. Each level prints the
+     following messages, including all those at lower verbosity levels: 0-fatal
+     errors, 10-non-fatal errors, 20-warnings, 30-information on the progress of
+     execution, 40-more progress information, 50-debug info, 60-detailed debug
+     info. Default = 30.
+  [--top-match <integer>]
+     Specify the number of matches to report for each spectrum. Default = 5.
+  [--search-input auto|separate|concatenated]
+     Specify the type of target-decoy search. Using 'auto', percolator attempts
+     to detect the search type automatically.  Using 'separate' specifies two
+     searches: one against target and one against decoy protein db. Using
+     'concatenated' specifies a single search on concatenated target-decoy
+     protein db. Default = auto.
+
+*/
+
+  String argumentPassthrough(const String& arg_)
+  {
+    String arg = arg_;
+    if (arg.hasPrefix('\\'))
+    {
+      arg = arg.substr(1, arg.size());
+    }
+    return arg;
   }
 
   void removeTempDir_(const String& tmp_dir)
@@ -160,6 +385,7 @@ protected:
     // parsing parameters
     //-------------------------------------------------------------
 
+    bool deisotope = getFlag_("deisotope");
     String inputfile_name = getStringOption_("in");
     writeDebug_(String("Input file: ") + inputfile_name, 1);
     if (inputfile_name.empty())
@@ -211,7 +437,6 @@ protected:
     String tmp_xml = tmp_dir + "input.mzML";
     String tmp_pepxml = tmp_dir + "result.pep.xml";
     String tmp_pin = tmp_dir + "result.pin";
-    String default_params = getStringOption_("default_params_file");
     String tmp_file;
 
     PeakMap exp;
@@ -220,7 +445,18 @@ protected:
     mzml_file.setLogType(log_type_);
     mzml_file.load(inputfile_name, exp);
 
-    // TODO: check if we need to convert for TPP compatibility
+#if 0
+    // Low memory conversion
+    {
+      PlainMSDataWritingConsumer consumer(tmp_xml);
+      // consumer.getOptions().setWriteIndex(write_scan_index);
+      consumer.getOptions().setForceTPPCompatability(true);
+      bool skip_full_count = true;
+      mzml_file.setLogType(log_type_);
+      mzml_file.transform(inputfile_name, &consumer, skip_full_count);
+    }
+#endif 
+    // TODO: check if we really need to convert for TPP compatibility
     {
       mzml_file.getOptions().setForceTPPCompatability(true);
       mzml_file.store(tmp_xml, exp);
@@ -252,9 +488,18 @@ protected:
 
     // create index
     {
-      // $ ~/projects/crux-toolkit/src/crux tide-index --overwrite T --peptide-list T spyo_combined_withiRT.fasta spyo_idx
       String tool = "tide-index";
-      String params = "--overwrite T --peptide-list T";
+      String params = "--overwrite T --peptide-list T --num-threads " + String(getIntOption_("threads"));
+      params += " --missed-cleavages " + String(getIntOption_("allowed_missed_cleavages"));
+      params += " --digestion " + getStringOption_("digestion");
+			if (!getStringOption_("custom_enzyme").empty()) params += " --custom-enzyme " + getStringOption_("custom_enzyme");
+			if (!getStringOption_("modifications").empty()) params += " --mods-spec " + getStringOption_("modifications");
+			if (!getStringOption_("cterm_modifications").empty()) params += " --cterm-peptide-mods-spec " + getStringOption_("cterm_modifications");
+			if (!getStringOption_("nterm_modifications").empty()) params += " --nterm-peptide-mods-spec " + getStringOption_("nterm_modifications");
+
+			if (!getStringOption_("extra_index_args").empty()) params += " " + argumentPassthrough(getStringOption_("extra_index_args"));
+
+      params.trim();
       params.simplify();
 
       vector<String> substrings;
@@ -277,20 +522,34 @@ protected:
       }
     }
 
+    std::cout << " Done running tide-index ... " << std::endl;
+
     // run crux tide-search
     {
-      // $ ~/projects/crux-toolkit/src/crux tide-search --overwrite T --file-column F --spectrum-charge  all /tmp/out.mzML spyo_idx --precursor-window 3  --precursor-window-type mass --spectrum-parser mstoolkit
-      // String params = "--overwrite T --peptide-list T" + tmp_file;
       String tool = "tide-search";
-      String output = " --output-dir " + output_dir;
-      String debug_args = "--verbosity 30";
-      if (debug_level_ > 0) debug_args = " --verbosity 60";
+      String params = "--overwrite T --file-column F   --num-threads " + String(getIntOption_("threads"));
+      params += " --output-dir " + output_dir;
+      String debug_args = " --verbosity 30 ";
+      if (debug_level_ > 5) debug_args = " --verbosity 60 ";
+      params += debug_args;
 
-      String extra_args = " --spectrum-charge all --precursor-window 3    --precursor-window-type mass  " + debug_args;
-      extra_args += " --mzid-output T" + concat;
+      String extra_args;
+      // extra_args += " --mzid-output T";
+      params += concat;
+      params += extra_args;
+      params += parser;
 
-      String params = "--overwrite T --file-column F  " + parser + " " + extra_args + " " + output;
+			params += " --precursor-window " + String(getDoubleOption_("precursor_mass_tolerance"));
+			params += " --precursor-window-type " + getStringOption_("precursor_mass_units");
+			params += " --mz-bin-offset " + String(getDoubleOption_("fragment_bin_offset"));
+			params += " --mz-bin-width " + String(getDoubleOption_("fragment_bin_width"));
+      if (deisotope) params += " --deisotope ";
+			if (!getStringOption_("isotope_error").empty()) params += " --isotope-error " + getStringOption_("isotope_error");
+
+			if (!getStringOption_("extra_search_args").empty()) params += " " + argumentPassthrough(getStringOption_("extra_search_args"));
+
       params.simplify();
+      params.trim();
 
       vector<String> substrings;
       QStringList process_params;
@@ -306,28 +565,39 @@ protected:
       int status = QProcess::execute(crux_executable.toQString(), process_params); // does automatic escaping etc...
       if (status != 0)
       {
-        writeLog_("Crux problem. Aborting! Calling command was: '" + crux_executable + " \"" + inputfile_name + "\"'.\nDoes the Crux executable exist?");
+        writeLog_("Crux problem. Aborting! Calling command was: '" + 
+            crux_executable + " \"" + params + " " + tmp_xml + " " + idx_name + "\"'.\nDoes the Crux executable exist?");
         return EXTERNAL_PROGRAM_ERROR;
       }
     }
+    std::cout << " Done running tide-search ... " << std::endl;
 
     // run crux percolator
     bool run_percolator = true;
+    //run_percolator = false;
     if (run_percolator)
     {
       // $ ~/bin/crux-3.1.Linux.x86_64/bin/crux  percolator --overwrite T --train-fdr 0.05 --test-fdr 0.05 crux-output/tide-search.target.txt 
       // String params = "--overwrite T --peptide-list T" + tmp_file;
       String tool = "percolator";
-      String output = " --output-dir " + output_dir;
-      // output = "";
-      String debug_args = "--verbosity 30";
+      String params = " --output-dir " + output_dir;
       String input = out_dir_q + "tide-search.txt";
-      if (debug_level_ > 0) debug_args = " --verbosity 60";
-      String extra_args = "" + debug_args + concat;
-      // extra_args += " --mzid-output T";
+      String debug_args = " --verbosity 30 ";
+      if (debug_level_ > 5) debug_args = " --verbosity 60 ";
+      params += debug_args;
 
-      String params = "--overwrite T --train-fdr 0.05 --test-fdr 0.05 " + extra_args + output;
+      String extra_args = concat;
+      params += extra_args;
+
+      params += " --mzid-output T";
+			params += " --test-fdr " + String(getDoubleOption_("test_fdr"));
+			params += " --train-fdr " + String(getDoubleOption_("train_fdr"));
+      params += " --overwrite T ";
+
+			if (!getStringOption_("extra_percolator_args").empty()) params += " " + argumentPassthrough(getStringOption_("extra_percolator_args"));
+
       params.simplify();
+      params.trim();
 
       vector<String> substrings;
       QStringList process_params;
@@ -347,6 +617,8 @@ protected:
         return EXTERNAL_PROGRAM_ERROR;
       }
     }
+
+    std::cout << " Done running percolator ... " << std::endl;
 
     //-------------------------------------------------------------
     // writing IdXML output
