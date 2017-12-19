@@ -82,7 +82,7 @@ public:
     PeakPickerHiRes();
 
     /// Destructor
-    virtual ~PeakPickerHiRes();
+    ~PeakPickerHiRes() override;
 
     /// structure for peak boundaries
     struct PeakBoundary
@@ -654,7 +654,7 @@ protected:
     bool report_FWHM_as_ppm_;
 
     // docu in base class
-    void updateMembers_();
+    void updateMembers_() override;
 
   }; // end PeakPickerHiRes
 

@@ -45,8 +45,8 @@ using namespace OpenMS;
 
 START_TEST(GzipIfstream, "$Id$")
 
-GzipIfstream* ptr = 0;
-GzipIfstream* nullPointer = 0;
+GzipIfstream* ptr = nullptr;
+GzipIfstream* nullPointer = nullptr;
 START_SECTION((GzipIfstream()))
 	ptr = new GzipIfstream;
 	TEST_NOT_EQUAL(ptr, nullPointer)

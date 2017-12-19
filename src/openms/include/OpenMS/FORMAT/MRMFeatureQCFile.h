@@ -57,7 +57,7 @@ public:
   ///Default constructor
   MRMFeatureQCFile();
   ///Destructor
-  virtual ~MRMFeatureQCFile();
+  ~MRMFeatureQCFile() override;
 
   /**
     @brief Loads an MRMFeatureQC file.

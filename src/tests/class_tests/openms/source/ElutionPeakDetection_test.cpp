@@ -50,8 +50,8 @@ START_TEST(ElutionPeakDetection, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-ElutionPeakDetection* ptr = 0;
-ElutionPeakDetection* null_ptr = 0;
+ElutionPeakDetection* ptr = nullptr;
+ElutionPeakDetection* null_ptr = nullptr;
 START_SECTION(ElutionPeakDetection())
 {
   ptr = new ElutionPeakDetection();

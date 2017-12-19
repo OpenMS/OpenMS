@@ -82,9 +82,9 @@ namespace OpenMS
   /// reset members
   void ProtXMLFile::resetMembers_()
   {
-    prot_id_ = 0;
-    pep_id_ = 0;
-    pep_hit_ = 0;
+    prot_id_ = nullptr;
+    pep_id_ = nullptr;
+    pep_hit_ = nullptr;
     protein_group_ = ProteinGroup();
   }
 

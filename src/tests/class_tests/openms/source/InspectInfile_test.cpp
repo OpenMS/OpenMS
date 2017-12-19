@@ -51,8 +51,8 @@ START_TEST(InspectInfile, "$Id$")
 
 /////////////////////////////////////////////////////////////
 
-InspectInfile* ptr = 0;
-InspectInfile* nullPointer = 0;
+InspectInfile* ptr = nullptr;
+InspectInfile* nullPointer = nullptr;
 START_SECTION(InspectInfile())
 	ptr = new InspectInfile();
 	TEST_NOT_EQUAL(ptr, nullPointer)

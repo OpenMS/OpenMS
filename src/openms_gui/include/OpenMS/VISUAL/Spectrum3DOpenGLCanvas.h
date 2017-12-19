@@ -79,13 +79,13 @@ public:
 
         Destroys the OpenGLWidget and all associated data.
     */
-    virtual ~Spectrum3DOpenGLCanvas();
+    ~Spectrum3DOpenGLCanvas() override;
     ///virtual function provided from QGLWidget
-    void initializeGL();
+    void initializeGL() override;
     /// virtual function provided from QGLWidget
-    void resizeGL(int w, int h);
+    void resizeGL(int w, int h) override;
     /// virtual function provided from QGLWidget
-    void paintGL();
+    void paintGL() override;
     /// Builds up a display list for the 3D view
     GLuint makeDataAsStick();
     /// Builds up a display list for the axes
@@ -103,10 +103,10 @@ public:
 
     /** @name Reimplemented QT events */
     //@{
-    void mouseMoveEvent(QMouseEvent * e);
-    void mouseReleaseEvent(QMouseEvent * e);
-    void mousePressEvent(QMouseEvent * e);
-    void focusOutEvent(QFocusEvent * e);
+    void mouseMoveEvent(QMouseEvent * e) override;
+    void mouseReleaseEvent(QMouseEvent * e) override;
+    void mousePressEvent(QMouseEvent * e) override;
+    void focusOutEvent(QFocusEvent * e) override;
     //@}
 
     /// computes the dataset supposed to be drawn when a section has been selected in zoom mode

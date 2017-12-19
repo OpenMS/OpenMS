@@ -194,7 +194,7 @@ protected:
     return true;
   }
 
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "Input file ");
     setValidFormats_("in", ListUtils::create<String>("mzML"));
@@ -388,7 +388,7 @@ protected:
     registerIntOption_("chunk_size", "<Integer>", 0, "Number of spectra to submit in one chunk to OMSSA. Chunks with more than 30k spectra will likely cause memory allocation issues with 32bit OMSSA versions (which is usually the case on Windows). To disable chunking (i.e. submit all spectra in one big chunk), set it to '0'.", false, true);
   }
 
-  ExitCodes main_(int, const char**)
+  ExitCodes main_(int, const char**) override
   {
     StringList parameters;
     // path to the log file

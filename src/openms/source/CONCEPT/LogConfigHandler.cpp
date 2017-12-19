@@ -388,11 +388,11 @@ namespace OpenMS
     return os;
   }
 
-  LogConfigHandler * LogConfigHandler::instance_ = NULL;
+  LogConfigHandler * LogConfigHandler::instance_ = nullptr;
 
   LogConfigHandler & LogConfigHandler::getInstance()
   {
-    if (LogConfigHandler::instance_ == 0)
+    if (LogConfigHandler::instance_ == nullptr)
     {
       LogConfigHandler::instance_ = new LogConfigHandler();
     }

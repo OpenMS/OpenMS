@@ -56,7 +56,7 @@ public:
     CsvFile();
 
     /// destructor
-    virtual ~CsvFile();
+    ~CsvFile() override;
 
     /**
       @brief Constructor with filename

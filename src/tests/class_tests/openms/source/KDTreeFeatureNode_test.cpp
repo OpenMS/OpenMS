@@ -73,8 +73,8 @@ p.setValue("mz_unit", "ppm");
 
 KDTreeFeatureMaps* kd_data_ptr = new KDTreeFeatureMaps(fmaps, p);
 
-KDTreeFeatureNode* ptr = 0;
-KDTreeFeatureNode* nullPointer = 0;
+KDTreeFeatureNode* ptr = nullptr;
+KDTreeFeatureNode* nullPointer = nullptr;
 
 START_SECTION((KDTreeFeatureNode(KDTreeFeatureMaps* data, Size idx)))
   ptr = new KDTreeFeatureNode(kd_data_ptr, 0);

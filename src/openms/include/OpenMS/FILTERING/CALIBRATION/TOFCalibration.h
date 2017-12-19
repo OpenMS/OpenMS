@@ -74,7 +74,7 @@ public:
     TOFCalibration();
 
     /// Destructor
-    ~TOFCalibration();
+    ~TOFCalibration() override;
 
 
     /*

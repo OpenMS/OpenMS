@@ -62,7 +62,7 @@ public:
     explicit SpectrumAccessOpenMS(boost::shared_ptr<MSExperimentType> ms_experiment);
 
     /// Destructor
-    ~SpectrumAccessOpenMS();
+    ~SpectrumAccessOpenMS() override;
 
     /**
       @brief Copy constructor
@@ -82,28 +82,28 @@ public:
       the same underlying MSExperiment.
 
     */
-    boost::shared_ptr<OpenSwath::ISpectrumAccess> lightClone() const;
+    boost::shared_ptr<OpenSwath::ISpectrumAccess> lightClone() const override;
 
-    OpenSwath::SpectrumPtr getSpectrumById(int id);
+    OpenSwath::SpectrumPtr getSpectrumById(int id) override;
 
-    OpenSwath::SpectrumMeta getSpectrumMetaById(int id) const;
+    OpenSwath::SpectrumMeta getSpectrumMetaById(int id) const override;
 
-    std::vector<std::size_t> getSpectraByRT(double RT, double deltaRT) const;
+    std::vector<std::size_t> getSpectraByRT(double RT, double deltaRT) const override;
 
-    size_t getNrSpectra() const;
+    size_t getNrSpectra() const override;
 
     SpectrumSettings getSpectraMetaInfo(int id) const;
 
-    OpenSwath::ChromatogramPtr getChromatogramById(int id);
+    OpenSwath::ChromatogramPtr getChromatogramById(int id) override;
 
     // FEATURE ?
     // ChromatogramPtr getChromatogramByPrecursorMZ(double mz, double deltaMZ);
 
-    size_t getNrChromatograms() const;
+    size_t getNrChromatograms() const override;
 
     ChromatogramSettings getChromatogramMetaInfo(int id) const;
 
-    std::string getChromatogramNativeID(int id) const;
+    std::string getChromatogramNativeID(int id) const override;
 
 private:
     boost::shared_ptr<MSExperimentType> ms_experiment_;

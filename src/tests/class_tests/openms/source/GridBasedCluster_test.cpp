@@ -55,7 +55,7 @@ propB.push_back(1);
 propB.push_back(2);
 propB.push_back(3);
 
-GridBasedCluster* nullPointer = 0;
+GridBasedCluster* nullPointer = nullptr;
 GridBasedCluster* ptr;
 
 START_SECTION(GridBasedCluster(const Point &centre, const Rectangle &bounding_box, const std::vector<int> &point_indices, const int &property_A, const std::vector<int> &properties_B))

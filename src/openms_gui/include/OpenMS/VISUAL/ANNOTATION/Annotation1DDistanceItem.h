@@ -53,13 +53,13 @@ public:
     /// Copy constructor
     Annotation1DDistanceItem(const Annotation1DDistanceItem & rhs);
     /// Destructor
-    virtual ~Annotation1DDistanceItem();
+    ~Annotation1DDistanceItem() override;
     // Docu in base class
-    virtual void ensureWithinDataRange(Spectrum1DCanvas * const canvas);
+    void ensureWithinDataRange(Spectrum1DCanvas * const canvas) override;
     // Docu in base class
-    virtual void draw(Spectrum1DCanvas * const canvas, QPainter & painter, bool flipped = false);
+    void draw(Spectrum1DCanvas * const canvas, QPainter & painter, bool flipped = false) override;
     // Docu in base class
-    virtual void move(const PointType & delta);
+    void move(const PointType & delta) override;
     /// Sets the start point of the measured distance line
     void setStartPoint(const PointType & start);
     /// Sets the peak index of the end peak of the measurement

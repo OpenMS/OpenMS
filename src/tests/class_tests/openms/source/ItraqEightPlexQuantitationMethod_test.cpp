@@ -50,8 +50,8 @@ START_TEST(ItraqEightPlexQuantitationMethod, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-ItraqEightPlexQuantitationMethod* ptr = 0;
-ItraqEightPlexQuantitationMethod* null_ptr = 0;
+ItraqEightPlexQuantitationMethod* ptr = nullptr;
+ItraqEightPlexQuantitationMethod* null_ptr = nullptr;
 START_SECTION(ItraqEightPlexQuantitationMethod())
 {
 	ptr = new ItraqEightPlexQuantitationMethod();

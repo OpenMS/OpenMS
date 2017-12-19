@@ -47,8 +47,8 @@ START_TEST(Instrument, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-Instrument* ptr = 0;
-Instrument* nullPointer = 0;
+Instrument* ptr = nullptr;
+Instrument* nullPointer = nullptr;
 START_SECTION(Instrument())
 	ptr = new Instrument();
 	TEST_NOT_EQUAL(ptr, nullPointer)

@@ -69,10 +69,10 @@ START_SECTION([EXTRA] typedefs )
 	LIFD::ContainerType * container = new LIFD::ContainerType();
 	LIFD::ContainerType::value_type * containerValue = new LIFD::ContainerType::value_type();
 
-	LIFD::ValueType     * nullValue = 0;
-	LIFD::KeyType       * nullKey = 0;
-	LIFD::ContainerType * nullContainer = 0;
-	LIFD::ContainerType::value_type * nullContainerValue = 0;
+	LIFD::ValueType     * nullValue = nullptr;
+	LIFD::KeyType       * nullKey = nullptr;
+	LIFD::ContainerType * nullContainer = nullptr;
+	LIFD::ContainerType::value_type * nullContainerValue = nullptr;
 
   TEST_NOT_EQUAL(value, nullValue)
   TEST_NOT_EQUAL(key, nullKey)
@@ -102,11 +102,11 @@ START_SECTION((LinearInterpolation(KeyType scale=1., KeyType offset=0.)))
 }
 END_SECTION
 
-LIFD * lifd_nullPointer = 0;
+LIFD * lifd_nullPointer = nullptr;
 
 START_SECTION(~LinearInterpolation())
 {
-	LIFD * lifd_ptr = 0;
+	LIFD * lifd_ptr = nullptr;
 	lifd_ptr = new LIFD;
   TEST_NOT_EQUAL(lifd_ptr,lifd_nullPointer);
 	delete lifd_ptr;

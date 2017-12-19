@@ -58,7 +58,7 @@ std::vector<std::vector<PeakPickerHiRes::PeakBoundary> > boundaries_exp_c;
 PeakMap exp_picked;
 picker.pickExperiment(exp, exp_picked, boundaries_exp_s, boundaries_exp_c);
 
-PeakWidthEstimator* nullPointer = 0;
+PeakWidthEstimator* nullPointer = nullptr;
 PeakWidthEstimator* ptr;
 
 START_SECTION(PeakWidthEstimator(const PeakMap & exp_picked, const std::vector<std::vector<PeakPickerHiRes::PeakBoundary> > & boundaries))

@@ -50,7 +50,7 @@ START_TEST(TransformationModelLowess, "$Id$")
 using namespace OpenMS;
 using namespace std;
 
-TransformationModelLowess* ptr = 0;
+TransformationModelLowess* ptr = nullptr;
 
 TransformationModel::DataPoints data, empty;
 data.push_back(make_pair(1.2, 5.2));

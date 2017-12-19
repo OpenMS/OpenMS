@@ -51,8 +51,8 @@ START_TEST(IsobaricQuantifier, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-IsobaricQuantifier* ptr = 0;
-IsobaricQuantifier* null_ptr = 0;
+IsobaricQuantifier* ptr = nullptr;
+IsobaricQuantifier* null_ptr = nullptr;
 
 ItraqFourPlexQuantitationMethod quant_meth;
 

@@ -56,7 +56,7 @@ using namespace std;
 
 OMSSAXMLFile xml_file;
 OMSSAXMLFile* ptr;
-OMSSAXMLFile* nullPointer = 0;
+OMSSAXMLFile* nullPointer = nullptr;
 ProteinIdentification protein_identification;
 vector<PeptideIdentification> peptide_identifications;
 vector<PeptideIdentification> peptide_identifications2;

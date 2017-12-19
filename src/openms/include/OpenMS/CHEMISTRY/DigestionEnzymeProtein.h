@@ -73,7 +73,7 @@ namespace OpenMS
                                     UInt omssa_id = 0);
 
     /// destructor
-    virtual ~DigestionEnzymeProtein();
+    ~DigestionEnzymeProtein() override;
     //@}
 
     /** @name Assignment
@@ -154,7 +154,7 @@ namespace OpenMS
 
        Returns whether the key was recognized and the value set successfully.
     */
-    bool setValueFromFile(const String& key, const String& value);
+    bool setValueFromFile(const String& key, const String& value) override;
 
     /// ostream iterator to write the enzyme to a stream
     friend OPENMS_DLLAPI std::ostream& operator<<(std::ostream& os, const DigestionEnzymeProtein& enzyme);

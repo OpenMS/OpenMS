@@ -54,7 +54,7 @@ using namespace std;
 
 LibSVMEncoder* ptr;
 LibSVMEncoder encoder;
-LibSVMEncoder* nullPointer = 0;
+LibSVMEncoder* nullPointer = nullptr;
 
 START_SECTION((LibSVMEncoder()))
   ptr = new LibSVMEncoder();

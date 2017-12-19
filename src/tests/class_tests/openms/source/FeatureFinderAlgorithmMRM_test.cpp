@@ -50,9 +50,9 @@ START_TEST(FeatureFinderAlgorithmMRM, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-FeatureFinderAlgorithmMRM* ptr = 0;
-FeatureFinderAlgorithmMRM* nullPointer = 0;
-FeatureFinderAlgorithm* ffA_nullPointer = 0;
+FeatureFinderAlgorithmMRM* ptr = nullptr;
+FeatureFinderAlgorithmMRM* nullPointer = nullptr;
+FeatureFinderAlgorithm* ffA_nullPointer = nullptr;
 
 START_SECTION(FeatureFinderAlgorithmMRM())
 {
@@ -103,7 +103,7 @@ END_SECTION
 
 START_SECTION((static FeatureFinderAlgorithm<PeakType>* create()))
 {
-  FeatureFinderAlgorithm* ptr2 = 0;
+  FeatureFinderAlgorithm* ptr2 = nullptr;
   ptr2 = FeatureFinderAlgorithmMRM::create();
   TEST_NOT_EQUAL(ptr2, ffA_nullPointer)
 }

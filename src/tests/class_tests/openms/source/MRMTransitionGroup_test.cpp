@@ -55,8 +55,8 @@ START_TEST(MRMTransitionGroup, "$Id$")
 
 /////////////////////////////////////////////////////////////
 
-MRMTransitionGroupType* ptr = 0;
-MRMTransitionGroupType* nullPointer = 0;
+MRMTransitionGroupType* ptr = nullptr;
+MRMTransitionGroupType* nullPointer = nullptr;
 
 START_SECTION(MRMTransitionGroup())
 {

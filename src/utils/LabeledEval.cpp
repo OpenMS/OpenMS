@@ -70,7 +70,7 @@ public:
 
 protected:
 
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "Feature result file");
     setValidFormats_("in", ListUtils::create<String>("featureXML"));
@@ -93,7 +93,7 @@ protected:
     return fiveNumbers(errors, decimal_places);
   }
 
-  ExitCodes main_(int, const char **)
+  ExitCodes main_(int, const char **) override
   {
     //load input features
     FeatureMap input;

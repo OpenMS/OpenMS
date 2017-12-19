@@ -136,7 +136,7 @@ public:
     PeptideIndexing();
 
     /// Default destructor
-    virtual ~PeptideIndexing();
+    ~PeptideIndexing() override;
 
     /// forward for old interface and pyOpenMS; use run<T>() for more control
     inline ExitCodes run(std::vector<FASTAFile::FASTAEntry>& proteins, std::vector<ProteinIdentification>& prot_ids, std::vector<PeptideIdentification>& pep_ids)
@@ -797,7 +797,7 @@ protected:
 
     }
 
-    virtual void updateMembers_();
+    void updateMembers_() override;
 
     String decoy_string_;
     bool prefix_;

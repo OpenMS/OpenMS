@@ -124,7 +124,7 @@ protected:
     registerFlag_("model:symmetric_regression", "Only for 'linear' model: Perform linear regression on 'y - x' vs. 'y + x', instead of on 'y' vs. 'x'.", true);
   }
 
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "",
                        "input file containing the chromatograms." /* , false */);
@@ -163,12 +163,12 @@ protected:
 
   }
 
-  Param getSubsectionDefaults_(const String &) const
+  Param getSubsectionDefaults_(const String &) const override
   {
     return MRMFeatureFinderScoring().getDefaults();
   }
 
-  ExitCodes main_(int, const char **)
+  ExitCodes main_(int, const char **) override
   {
 
     StringList file_list = getStringList_("swath_files");

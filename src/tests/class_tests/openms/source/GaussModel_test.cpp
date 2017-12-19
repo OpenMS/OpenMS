@@ -51,8 +51,8 @@ using namespace OpenMS::Math;
 using std::stringstream;
 
 // default ctor
-GaussModel* ptr = 0;
-GaussModel* nullPointer = 0;
+GaussModel* ptr = nullptr;
+GaussModel* nullPointer = nullptr;
 START_SECTION((GaussModel()))
 	ptr = new GaussModel();
   TEST_EQUAL(ptr->getName(), "GaussModel")

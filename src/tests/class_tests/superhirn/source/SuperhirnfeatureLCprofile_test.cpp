@@ -51,8 +51,8 @@ START_TEST(FeatureLCProfile, "$Id$")
 using namespace OpenMS;
 using namespace std;
 
-FeatureLCProfile* ptr = 0;
-FeatureLCProfile* nullPtr = 0;
+FeatureLCProfile* ptr = nullptr;
+FeatureLCProfile* nullPtr = nullptr;
 
 START_SECTION((FeatureLCProfile()))
 	ptr = new FeatureLCProfile();

@@ -48,8 +48,8 @@ START_TEST(EnzymaticDigestionLogModel, "$Id$")
 
 /////////////////////////////////////////////////////////////
 
-EnzymaticDigestionLogModel * e_ptr = 0;
-EnzymaticDigestionLogModel* e_nullPointer = 0;
+EnzymaticDigestionLogModel * e_ptr = nullptr;
+EnzymaticDigestionLogModel* e_nullPointer = nullptr;
 START_SECTION((EnzymaticDigestionLogModel()))
 e_ptr = new EnzymaticDigestionLogModel;
 TEST_NOT_EQUAL(e_ptr, e_nullPointer)

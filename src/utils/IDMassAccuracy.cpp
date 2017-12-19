@@ -105,7 +105,7 @@ public:
   }
 
 protected:
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     registerInputFileList_("in", "<file list>", StringList(), "Input mzML file list, containing the spectra.");
     setValidFormats_("in", ListUtils::create<String>("mzML"));
@@ -145,7 +145,7 @@ protected:
     return error;
   }
 
-  ExitCodes main_(int, const char **)
+  ExitCodes main_(int, const char **) override
   {
     //-------------------------------------------------------------
     // parsing parameters

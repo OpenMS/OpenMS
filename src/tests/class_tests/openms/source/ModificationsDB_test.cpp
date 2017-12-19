@@ -57,8 +57,8 @@ START_TEST(ModificationsDB, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-ModificationsDB* ptr = 0;
-ModificationsDB* nullPointer = 0;
+ModificationsDB* ptr = nullptr;
+ModificationsDB* nullPointer = nullptr;
 START_SECTION(ModificationsDB* getInstance())
 {
 	ptr = ModificationsDB::getInstance();

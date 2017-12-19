@@ -70,7 +70,7 @@ namespace OpenMS
       }
 
       // Execute SQL select statement
-      sqlite3_prepare(db, select_sql.c_str(), -1, &stmt, NULL);
+      sqlite3_prepare(db, select_sql.c_str(), -1, &stmt, nullptr);
       sqlite3_step( stmt );
 
       int cols = sqlite3_column_count(stmt);
@@ -225,7 +225,7 @@ namespace OpenMS
 
       // Conduct SQLite operations
       sqlite3 *db;
-      char *zErrMsg = 0;
+      char *zErrMsg = nullptr;
       int  rc;
 
       // Open database
@@ -236,24 +236,24 @@ namespace OpenMS
       }
 
       // Execute SQL create statement
-      rc = sqlite3_exec(db, create_sql.c_str(), callback, 0, &zErrMsg);
+      rc = sqlite3_exec(db, create_sql.c_str(), callback, nullptr, &zErrMsg);
       if ( rc != SQLITE_OK )
       {
         sqlite3_free(zErrMsg);
       }
 
-      sqlite3_exec(db, "BEGIN TRANSACTION", NULL, NULL, &zErrMsg);
+      sqlite3_exec(db, "BEGIN TRANSACTION", nullptr, nullptr, &zErrMsg);
 
       for (size_t i = 0; i < insert_sqls.size(); i++)
       {
-        rc = sqlite3_exec(db, insert_sqls[i].c_str(), callback, 0, &zErrMsg);
+        rc = sqlite3_exec(db, insert_sqls[i].c_str(), callback, nullptr, &zErrMsg);
         if ( rc != SQLITE_OK )
         {
           sqlite3_free(zErrMsg);
         }
       }
 
-      sqlite3_exec(db, "END TRANSACTION", NULL, NULL, &zErrMsg);
+      sqlite3_exec(db, "END TRANSACTION", nullptr, nullptr, &zErrMsg);
       sqlite3_close(db);
     }
 

@@ -47,8 +47,8 @@ START_TEST(CVReference, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-CVReference* ptr = 0;
-CVReference* nullPointer = 0;
+CVReference* ptr = nullptr;
+CVReference* nullPointer = nullptr;
 START_SECTION(CVReference())
 {
 	ptr = new CVReference();

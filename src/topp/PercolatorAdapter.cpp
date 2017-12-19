@@ -202,7 +202,7 @@ protected:
     }
   };
   
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     static const bool is_required(true);
     static const bool is_advanced_option(true);
@@ -653,7 +653,7 @@ protected:
     return EXECUTION_OK;
   }
 
-  ExitCodes main_(int, const char**)
+  ExitCodes main_(int, const char**) override
   {
     //-------------------------------------------------------------
     // general variables and data to perform PercolatorAdapter

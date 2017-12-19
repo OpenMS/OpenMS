@@ -61,8 +61,8 @@ IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("IDFilter_test.idXML"), protein_ident
 PeptideIdentification identification = identifications[0];
 ProteinIdentification protein_identification = protein_identifications[0];
 
-IDRipper* ptr = 0;
-IDRipper* null_ptr = 0;
+IDRipper* ptr = nullptr;
+IDRipper* null_ptr = nullptr;
 START_SECTION(IDRipper())
 {
   ptr = new IDRipper();

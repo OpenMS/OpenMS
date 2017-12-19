@@ -52,8 +52,8 @@ START_TEST(ProtonDistributionModel, "$Id$")
 using namespace OpenMS;
 using namespace std;
 
-ProtonDistributionModel* ptr = 0;
-ProtonDistributionModel* nullPointer = 0;
+ProtonDistributionModel* ptr = nullptr;
+ProtonDistributionModel* nullPointer = nullptr;
 
 START_SECTION(ProtonDistributionModel())
   ptr = new ProtonDistributionModel();

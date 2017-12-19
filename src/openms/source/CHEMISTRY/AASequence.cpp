@@ -54,8 +54,8 @@ using namespace std;
 namespace OpenMS
 {
   AASequence::AASequence() :
-    n_term_mod_(0),
-    c_term_mod_(0)
+    n_term_mod_(nullptr),
+    c_term_mod_(nullptr)
   {
   }
 
@@ -314,7 +314,7 @@ namespace OpenMS
       ef.setCharge(charge);
 
       // terminal modifications
-      if (n_term_mod_ != 0 &&
+      if (n_term_mod_ != nullptr &&
         (type == Residue::Full || type == Residue::AIon ||
          type == Residue::BIon || type == Residue::CIon ||
          type == Residue::NTerminal))
@@ -323,7 +323,7 @@ namespace OpenMS
       }
 
 
-      if (c_term_mod_ != 0 &&
+      if (c_term_mod_ != nullptr &&
         (type == Residue::Full || type == Residue::XIon ||
          type == Residue::YIon || type == Residue::ZIon ||
          type == Residue::CTerminal))
@@ -408,7 +408,7 @@ namespace OpenMS
       double mono_weight(Constants::PROTON_MASS_U * charge);
 
       // terminal modifications
-      if (n_term_mod_ != 0 &&
+      if (n_term_mod_ != nullptr &&
           (type == Residue::Full || type == Residue::AIon ||
            type == Residue::BIon || type == Residue::CIon ||
            type == Residue::NTerminal))
@@ -416,7 +416,7 @@ namespace OpenMS
         mono_weight += n_term_mod_->getDiffMonoMass();
       }
 
-      if (c_term_mod_ != 0 && 
+      if (c_term_mod_ != nullptr && 
           (type == Residue::Full || type == Residue::XIon ||
            type == Residue::YIon || type == Residue::ZIon ||
            type == Residue::CTerminal))
@@ -780,7 +780,7 @@ namespace OpenMS
 
   bool AASequence::isModified() const
   {
-    if (n_term_mod_ != 0 || c_term_mod_ != 0)
+    if (n_term_mod_ != nullptr || c_term_mod_ != nullptr)
     {
       return true;
     }
@@ -800,7 +800,7 @@ namespace OpenMS
     // this is basically the implementation of toString
 
     // deal with N-terminal modifications first
-    if (peptide.n_term_mod_ != 0)
+    if (peptide.n_term_mod_ != nullptr)
     {
       if (peptide.n_term_mod_->isUserDefined())
       {
@@ -864,7 +864,7 @@ namespace OpenMS
     }
     
     // deal with C-terminal modifications
-    if (peptide.c_term_mod_ != 0)
+    if (peptide.c_term_mod_ != nullptr)
     {
       if (peptide.c_term_mod_->isUserDefined())
       {
@@ -973,7 +973,7 @@ namespace OpenMS
     bool delta_mass = (mod[0] == '+') || (mod[0] == '-');
     ModificationsDB* mod_db = ModificationsDB::getInstance();
 
-    const Residue* residue = 0;
+    const Residue* residue = nullptr;
 
     // handle N-term modification
     if (specificity == ResidueModification::N_TERM) 
@@ -1054,8 +1054,7 @@ namespace OpenMS
       }
       else // float mass -> use best-matching modification
       {
-        const ResidueModification* res_mod = 0;
-        res_mod = mod_db->getBestModificationByDiffMonoMass(
+        const ResidueModification* res_mod = mod_db->getBestModificationByDiffMonoMass(
           mass, tolerance, residue->getOneLetterCode(),
           ResidueModification::ANYWHERE);
 
@@ -1365,7 +1364,7 @@ namespace OpenMS
   {
     if (modification == "")
     {
-      n_term_mod_ = 0;
+      n_term_mod_ = nullptr;
       return;
     }
 
@@ -1376,7 +1375,7 @@ namespace OpenMS
   {
     if (modification == "")
     {
-      c_term_mod_ = 0;
+      c_term_mod_ = nullptr;
       return;
     }
     c_term_mod_ = &ModificationsDB::getInstance()->getModification(modification, "", ResidueModification::C_TERM);
@@ -1384,7 +1383,7 @@ namespace OpenMS
 
   const String& AASequence::getNTerminalModificationName() const
   {
-    if (n_term_mod_ == 0) return String::EMPTY;
+    if (n_term_mod_ == nullptr) return String::EMPTY;
     return n_term_mod_->getId();
   }
 
@@ -1400,18 +1399,18 @@ namespace OpenMS
 
   const String& AASequence::getCTerminalModificationName() const
   {
-    if (c_term_mod_ == 0) return String::EMPTY;
+    if (c_term_mod_ == nullptr) return String::EMPTY;
     return c_term_mod_->getId();
   }
 
   bool AASequence::hasNTerminalModification() const
   {
-    return n_term_mod_ != 0;
+    return n_term_mod_ != nullptr;
   }
 
   bool AASequence::hasCTerminalModification() const
   {
-    return c_term_mod_ != 0;
+    return c_term_mod_ != nullptr;
   }
 
   AASequence AASequence::fromString(const String& s, bool permissive)
