@@ -34,7 +34,7 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/PeakIntegrator.h>" namespace "OpenM
         double area
         double height
         double apex_pos
-        ConvexHull2D hull_points
+        libcpp_vector[DPosition2] hull_points
 
     cdef cppclass PI_PeakBackground "OpenMS::PeakIntegrator::PeakBackground":
 
