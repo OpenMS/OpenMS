@@ -38,9 +38,6 @@ cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/AbsoluteQuantitationMethod.h>" n
         String getTransformationModel() nogil except +
         Param getTransformationModelParams() nogil except +
 
-        void setActualConcentration(double actual_concentration) nogil except +
-        double getActualConcentration() nogil except +
-
         void setNPoints(int n_points) nogil except +
         void setCorrelationCoefficient(double correlation_coefficient) nogil except +
         int getNPoints() nogil except +
