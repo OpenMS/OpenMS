@@ -1,6 +1,6 @@
 from Types cimport *
 from Param cimport *
-from Feature import *
+from Feature cimport *
 
 cdef extern from "<OpenMS/METADATA/AbsoluteQuantitationStandards.h>" namespace "OpenMS":    
 
