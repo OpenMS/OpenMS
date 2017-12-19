@@ -126,6 +126,32 @@ START_SECTION(void fstore(const String& filename))
 	TEST_EQUAL(list,ListUtils::create<String>("spectral,search"))
 END_SECTION
 
+START_SECTION(void addRow(const StringList& list))
+	CsvFile f1, f2;
+	StringList list;
+
+	f1.addRow(ListUtils::create<String>("first,second,third"));
+	f1.addRow(ListUtils::create<String>("4,5,6"));
+
+	f1.fstore(OPENMS_GET_TEST_DATA_PATH("CsvFile_4.csv"));
+	f2.fload(OPENMS_GET_TEST_DATA_PATH("CsvFile_4.csv"), ',', false);
+	f2.getRow(0,list);
+	TEST_EQUAL(list, ListUtils::create<String>("first,second,third"))
+	f2.getRow(1,list);
+	TEST_EQUAL(list, ListUtils::create<String>("4,5,6"))
+END_SECTION
+
+START_SECTION(void clearBuffer())
+	CsvFile f1;
+	StringList list;
+
+	f1.addRow(ListUtils::create<String>("hello,world"));
+	f1.getRow(0, list);
+	TEST_EQUAL(list, ListUtils::create<String>("hello,world"))
+	f1.clearBuffer();
+	TEST_EXCEPTION(Exception::InvalidIterator, f1.getRow(0, list))
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

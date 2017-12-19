@@ -82,7 +82,26 @@ public:
     */
     void fload(const String& filename, char is = ',', bool ie = false, Int first_n = -1);
 
+    /**
+      @brief Stores the buffer's content into a file.
+
+      @param filename The output filename.
+    */
     void fstore(const String& filename);
+
+    /**
+      @brief Add a row to the buffer.
+
+      @param list StringList which will contain all items of the row to add
+    */
+    void addRow(const StringList& list);
+
+    /**
+      @brief Clears the buffer
+
+      Clears TextFile::buffer_
+    */
+    void clearBuffer();
 
     /**
       @brief writes all items from a row to list

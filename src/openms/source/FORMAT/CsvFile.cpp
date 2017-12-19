@@ -69,6 +69,26 @@ namespace OpenMS
     store(filename);
   }
 
+  void CsvFile::addRow(const StringList& list)
+  {
+    StringList elements = list;
+    if (itemenclosed_)
+    {
+      for (Size i = 0; i < elements.size(); ++i)
+      {
+        elements[i].quote('"', String::NONE);
+      }
+    }
+    String line;
+    line.concatenate(elements.begin(), elements.end(), itemseperator_);
+    addLine(line);
+  }
+
+  void CsvFile::clearBuffer()
+  {
+    buffer_.clear();
+  }
+
   bool CsvFile::getRow(Size row, StringList& list)
   {
     if (row > TextFile::buffer_.size())
