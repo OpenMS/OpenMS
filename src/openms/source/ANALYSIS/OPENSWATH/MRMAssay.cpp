@@ -523,9 +523,9 @@ namespace OpenMS
   {
     MRMIonSeries mrmis;
 
-    // Step 3: Generate target UIS assays
+    // Step 3: Generate target identification transitions
     Size progress = 0;
-    startProgress(0, TargetPeptideMap.size(), "Generation of target UIS assays");
+    startProgress(0, TargetPeptideMap.size(), "Generation of target identification transitions");
 
     // Iterate over all target peptides
     int transition_index = 0;
@@ -594,9 +594,9 @@ namespace OpenMS
   {
     MRMIonSeries mrmis;
 
-    // Step 4: Generate decoys UIS assays
+    // Step 4: Generate decoy identification transitions
     Size progress = 0;
-    startProgress(0, DecoyPeptideMap.size(), "Generation of decoy UIS assays");
+    startProgress(0, DecoyPeptideMap.size(), "Generation of decoy identification transitions");
 
     // Iterate over all decoy peptides
     int transition_index = 0;
@@ -942,7 +942,7 @@ namespace OpenMS
     // Step 1: Generate target in silico peptide map containing theoretical transitions
     generateTargetInSilicoMap_(exp, fragment_types, fragment_charges, enable_specific_losses, enable_unspecific_losses, enable_ms2_precursors, swathes, round_decPow, max_num_alternative_localizations, TargetSequenceMap, TargetIonMap, TargetPeptideMap);
 
-    // Step 2: Generate target UIS assays
+    // Step 2: Generate target identification transitions
     generateTargetAssays_(exp, transitions, mz_threshold, swathes, round_decPow, TargetPeptideMap, TargetIonMap);
 
     if (!disable_decoy_transitions)
@@ -953,7 +953,7 @@ namespace OpenMS
       // Step 2b: Generate decoy in silico peptide map containing theoretical transitions
       generateDecoyInSilicoMap_(exp, fragment_types, fragment_charges, enable_specific_losses, enable_unspecific_losses, enable_ms2_precursors, swathes, round_decPow, TargetDecoyMap, TargetPeptideMap, DecoySequenceMap, DecoyIonMap, DecoyPeptideMap);
 
-      // Step 4: Generate decoys UIS assays
+      // Step 4: Generate decoy identification transitions
       generateDecoyAssays_(exp, transitions, mz_threshold, swathes, round_decPow, DecoyPeptideMap, TargetDecoyMap, DecoyIonMap, TargetIonMap);
     }
 
