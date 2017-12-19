@@ -150,7 +150,7 @@ public:
     {}
 
     /// Destructor
-    virtual ~MSChromatogram()
+    ~MSChromatogram() override
     {}
 
     /// Assignment operator
@@ -166,7 +166,7 @@ public:
     }
 
     // Docu in base class (RangeManager)
-    virtual void updateRanges()
+    void updateRanges() override
     {
       this->clearRanges();
       updateRanges_(ContainerType::begin(), ContainerType::end());

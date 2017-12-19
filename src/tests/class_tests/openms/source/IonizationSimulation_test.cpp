@@ -52,8 +52,8 @@ TOPPBase::setMaxNumberOfThreads(1);
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-IonizationSimulation* ptr = 0;
-IonizationSimulation* nullPointer = 0;
+IonizationSimulation* ptr = nullptr;
+IonizationSimulation* nullPointer = nullptr;
 const unsigned long rnd_gen_seed = 1;
 SimTypes::MutableSimRandomNumberGeneratorPtr rnd_gen (new SimTypes::SimRandomNumberGenerator);
 

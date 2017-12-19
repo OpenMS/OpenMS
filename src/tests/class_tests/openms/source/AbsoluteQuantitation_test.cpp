@@ -192,8 +192,9 @@ class AbsoluteQuantitation_test : public AbsoluteQuantitation
 
 /////////////////////////////////////////////////////////////
 
-AbsoluteQuantitation* ptr = 0;
-AbsoluteQuantitation* nullPointer = 0;
+AbsoluteQuantitation* ptr = nullptr;
+AbsoluteQuantitation* nullPointer = nullptr;
+
 
 START_SECTION((AbsoluteQuantitation()))
 	ptr = new AbsoluteQuantitation();

@@ -63,8 +63,8 @@ START_TEST(MRMFeatureQCFile, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-MRMFeatureQCFile* ptr = 0;
-MRMFeatureQCFile* nullPointer = 0;
+MRMFeatureQCFile* ptr = nullptr;
+MRMFeatureQCFile* nullPointer = nullptr;
 
 START_SECTION(MRMFeatureQCFile())
 {

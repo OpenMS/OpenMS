@@ -87,7 +87,7 @@ public:
   }
 
 protected:
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     registerInputFileList_("in", "<file(s)>", ListUtils::create<String>(""), "Input FASTA file(s), each containing a database. It is recommended to include a contaminant database as well.");
     setValidFormats_("in", ListUtils::create<String>("fasta"));
@@ -107,7 +107,7 @@ protected:
     else return identifier + decoy_string;
   }
 
-  ExitCodes main_(int, const char **)
+  ExitCodes main_(int, const char **) override
   {
     //-------------------------------------------------------------
     // parsing parameters
@@ -162,7 +162,7 @@ protected:
         {
           String temp;
           Size x = protein.sequence.size();
-          srand(time(0));
+          srand(time(nullptr));
           while (x != 0)
           {
             Size y = rand() % x;

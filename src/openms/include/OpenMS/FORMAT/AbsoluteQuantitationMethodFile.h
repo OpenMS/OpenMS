@@ -57,7 +57,7 @@ public:
     ///Default constructor
     AbsoluteQuantitationMethodFile();
     ///Destructor
-    virtual ~AbsoluteQuantitationMethodFile();
+    ~AbsoluteQuantitationMethodFile() override;
 
     /**
         @brief Loads an AbsoluteQuantitationMethod file.

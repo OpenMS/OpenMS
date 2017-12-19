@@ -43,7 +43,7 @@ namespace OpenMS
     MzDataHandler::MzDataHandler(MapType & exp, const String & filename, const String & version, ProgressLogger & logger) :
       XMLHandler(filename, version),
       exp_(&exp),
-      cexp_(0),
+      cexp_(nullptr),
       peak_count_(0),
       meta_id_descs_(),
       decoder_(),
@@ -55,7 +55,7 @@ namespace OpenMS
 
     MzDataHandler::MzDataHandler(const MapType & exp, const String & filename, const String & version, const ProgressLogger & logger) :
       XMLHandler(filename, version),
-      exp_(0),
+      exp_(nullptr),
       cexp_(&exp),
       peak_count_(0),
       meta_id_descs_(),

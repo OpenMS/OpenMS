@@ -55,9 +55,9 @@ namespace OpenMS
     Q_OBJECT
 public:
     /// Constructor
-    SpectraViewWidget(QWidget * parent = 0);
+    SpectraViewWidget(QWidget * parent = nullptr);
     /// Destructor
-    virtual ~SpectraViewWidget();
+    ~SpectraViewWidget() override;
     QTreeWidget * getTreeWidget();
     QComboBox * getComboBox();
     void updateEntries(const LayerData & cl);

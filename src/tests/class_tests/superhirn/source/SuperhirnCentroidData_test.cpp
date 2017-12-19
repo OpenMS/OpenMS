@@ -51,8 +51,8 @@ START_TEST(CentroidData, "$Id$")
 using namespace OpenMS;
 using namespace std;
 
-CentroidData* ptr = 0;
-CentroidData* nullPtr = 0;
+CentroidData* ptr = nullptr;
+CentroidData* nullPtr = nullptr;
 
 vector<double>* centroidMasses = new vector<double>(); // Centroided masses
 vector<double>* centroidIntens = new vector<double>(); // Centroided intensities

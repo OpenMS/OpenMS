@@ -47,8 +47,8 @@ START_TEST(MRMMapping, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-MRMMapping* ptr = 0;
-MRMMapping* nullPointer = 0;
+MRMMapping* ptr = nullptr;
+MRMMapping* nullPointer = nullptr;
 
 START_SECTION(MRMMapping())
 {

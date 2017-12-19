@@ -56,10 +56,10 @@ START_TEST(FASTAFile, "$Id$")
 using namespace OpenMS;
 using namespace std;
 
-FASTAFile* ptr = 0;
+FASTAFile* ptr = nullptr;
 START_SECTION((FASTAFile()))
   ptr = new FASTAFile();
-  TEST_EQUAL(ptr == 0, false)
+  TEST_EQUAL(ptr == nullptr, false)
 END_SECTION
 
 START_SECTION((~FASTAFile()))
@@ -69,7 +69,7 @@ END_SECTION
 START_SECTION([FASTAFile::FASTAEntry] FASTAEntry())
   FASTAFile::FASTAEntry * ptr_e;
   ptr_e = new FASTAFile::FASTAEntry();
-  TEST_EQUAL(ptr_e == 0, false)
+  TEST_EQUAL(ptr_e == nullptr, false)
 END_SECTION
 
 START_SECTION([FASTAFile::FASTAEntry] FASTAEntry(String id, String desc, String seq))

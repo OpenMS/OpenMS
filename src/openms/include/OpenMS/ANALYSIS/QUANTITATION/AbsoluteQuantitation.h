@@ -92,7 +92,7 @@ public:
     AbsoluteQuantitation();
 
     /// Destructor
-    ~AbsoluteQuantitation();
+    ~AbsoluteQuantitation() override;
     //@}
  
     /**

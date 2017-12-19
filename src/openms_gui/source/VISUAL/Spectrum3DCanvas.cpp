@@ -249,7 +249,7 @@ namespace OpenMS
       return;
 
     QMenu * context_menu = new QMenu(this);
-    QAction * result = 0;
+    QAction * result = nullptr;
 
     //Display name and warn if current layer invisible
     String layer_name = String("Layer: ") + getCurrentLayer().name;

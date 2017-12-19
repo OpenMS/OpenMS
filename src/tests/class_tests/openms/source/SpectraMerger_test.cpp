@@ -52,8 +52,8 @@ START_TEST(SpectraMerger, "$Id$")
 
 /////////////////////////////////////////////////////////////
 
-SpectraMerger* e_ptr = 0;
-SpectraMerger* e_nullPointer = 0;
+SpectraMerger* e_ptr = nullptr;
+SpectraMerger* e_nullPointer = nullptr;
 START_SECTION((SpectraMerger()))
 	e_ptr = new SpectraMerger;
 	TEST_NOT_EQUAL(e_ptr, e_nullPointer)

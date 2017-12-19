@@ -116,7 +116,7 @@ private:
   // section "labels"
   map<String, double> label_mass_shift_;
   
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "Peptide multiplets with assigned sequence information");
     setValidFormats_("in", ListUtils::create<String>("consensusXML"));
@@ -131,7 +131,7 @@ private:
   }
   
   // create parameters for sections (set default values and restrictions)
-  Param getSubsectionDefaults_(const String& section) const
+  Param getSubsectionDefaults_(const String& section) const override
   {
     Param defaults;
 
@@ -520,7 +520,7 @@ public:
   {
   }
 
-  ExitCodes main_(int, const char**)
+  ExitCodes main_(int, const char**) override
   {
     /**
      * handle parameters

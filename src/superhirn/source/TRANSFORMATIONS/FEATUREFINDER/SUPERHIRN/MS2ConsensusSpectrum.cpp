@@ -376,7 +376,7 @@ namespace OpenMS
       return &((candidates.begin())->second->second);
     }
 
-    return NULL;
+    return nullptr;
 
   }
 

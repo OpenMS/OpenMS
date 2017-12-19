@@ -49,8 +49,8 @@ START_TEST(Example, "$Id$")
 using namespace std;
 using namespace OpenMS;
 
-MetaInfoInterface* test = 0;
-MetaInfoInterface* nullPointer = 0;
+MetaInfoInterface* test = nullptr;
+MetaInfoInterface* nullPointer = nullptr;
 START_SECTION((MetaInfoInterface()))
 	test = new MetaInfoInterface;
   TEST_NOT_EQUAL(test, nullPointer)

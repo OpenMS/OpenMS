@@ -66,7 +66,7 @@ StrangeMixedLessOfIntAndString : std::binary_function < int, string, bool >
 	bool
 	operator () ( int const & i, string const & s ) const
 	{
-		return i < strtol ( s.c_str(), 0, 10 );
+		return i < strtol ( s.c_str(), nullptr, 10 );
 	}
 };
 

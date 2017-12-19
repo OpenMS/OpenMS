@@ -53,8 +53,8 @@ START_TEST(String, "$Id$")
 
 /////////////////////////////////////////////////////////////
 
-PeakTypeEstimator* ptr = 0;
-PeakTypeEstimator* nullPointer = 0;
+PeakTypeEstimator* ptr = nullptr;
+PeakTypeEstimator* nullPointer = nullptr;
 
 START_SECTION(([EXTRA]PeakTypeEstimator()))
 	ptr = new PeakTypeEstimator();

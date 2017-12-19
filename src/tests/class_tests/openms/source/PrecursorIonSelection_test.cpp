@@ -50,8 +50,8 @@ START_TEST(PrecursorIonSelection, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-PrecursorIonSelection* ptr = 0;
-PrecursorIonSelection* nullPointer = 0;
+PrecursorIonSelection* ptr = nullptr;
+PrecursorIonSelection* nullPointer = nullptr;
 START_SECTION(PrecursorIonSelection())
   ptr = new PrecursorIonSelection();
 	TEST_NOT_EQUAL(ptr, nullPointer)

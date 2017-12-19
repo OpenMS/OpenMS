@@ -58,8 +58,8 @@ using namespace OpenMS;
 using namespace std;
 using namespace OpenMS::Math;
 
-ROCCurve* rcp = 0;
-ROCCurve* rcp_nullPointer = 0;
+ROCCurve* rcp = nullptr;
+ROCCurve* rcp_nullPointer = nullptr;
 
 START_SECTION((ROCCurve()))
   rcp = new ROCCurve();
@@ -67,7 +67,7 @@ START_SECTION((ROCCurve()))
 END_SECTION
 
 START_SECTION((void insertPair(double score, bool clas)))
-  srand((unsigned)time(NULL));
+  srand((unsigned)time(nullptr));
   for (Size i = 0; i < 1000; ++i)
   {
     double score = (double)rand()/RAND_MAX;

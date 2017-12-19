@@ -150,7 +150,7 @@ public:
     {
       VertexRoundPackage() :
         filenames(),
-        edge(0)
+        edge(nullptr)
       {
       }
 
@@ -193,7 +193,7 @@ public:
     /// Copy constructor
     TOPPASVertex(const TOPPASVertex & rhs);
     /// Destructor
-    virtual ~TOPPASVertex();
+    ~TOPPASVertex() override;
     /// Assignment operator
     TOPPASVertex & operator=(const TOPPASVertex & rhs);
 
@@ -206,11 +206,11 @@ public:
     bool isUpstreamFinished() const;
 
     /// Returns the bounding rectangle of this item
-    virtual QRectF boundingRect() const = 0;
+    QRectF boundingRect() const override = 0;
     /// Returns a more precise shape
-    virtual QPainterPath shape() const = 0;
+    QPainterPath shape() const override = 0;
     /// Paints the item
-    virtual void paint(QPainter * painter, const QStyleOptionGraphicsItem * option, QWidget * widget) = 0;
+    void paint(QPainter * painter, const QStyleOptionGraphicsItem * option, QWidget * widget) override = 0;
     /// Returns begin() iterator of outgoing edges
     ConstEdgeIterator outEdgesBegin() const;
     /// Returns end() iterator of outgoing edges
@@ -357,11 +357,11 @@ protected:
 
     ///@name reimplemented Qt events
     //@{
-    void mouseReleaseEvent(QGraphicsSceneMouseEvent * e);
-    void mousePressEvent(QGraphicsSceneMouseEvent * e);
-    void mouseDoubleClickEvent(QGraphicsSceneMouseEvent * e);
-    void mouseMoveEvent(QGraphicsSceneMouseEvent * e);
-    void contextMenuEvent(QGraphicsSceneContextMenuEvent * event);
+    void mouseReleaseEvent(QGraphicsSceneMouseEvent * e) override;
+    void mousePressEvent(QGraphicsSceneMouseEvent * e) override;
+    void mouseDoubleClickEvent(QGraphicsSceneMouseEvent * e) override;
+    void mouseMoveEvent(QGraphicsSceneMouseEvent * e) override;
+    void contextMenuEvent(QGraphicsSceneContextMenuEvent * event) override;
     //@}
 
     /// Moves the target pos of the edge which is just being created to @p pos

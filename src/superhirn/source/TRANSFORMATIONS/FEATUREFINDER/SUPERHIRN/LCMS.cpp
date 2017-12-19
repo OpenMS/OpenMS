@@ -199,7 +199,7 @@ namespace OpenMS
       ++p;
     }
 
-    return NULL;
+    return nullptr;
   }
 
 //////////////////////////////////////////////////
@@ -218,7 +218,7 @@ namespace OpenMS
       // get the peak at a charge state:
       SHFeature * PEAK = &(*p);
 
-      if (PEAK != NULL)
+      if (PEAK != nullptr)
       {
         if (PEAK->get_nb_common_match() == count)
         {

@@ -70,7 +70,7 @@ public:
     ProteinResolver & operator=(const ProteinResolver & rhs);
 
     //destructor
-    virtual ~ProteinResolver();
+    ~ProteinResolver() override;
 
 
     struct ProteinEntry;

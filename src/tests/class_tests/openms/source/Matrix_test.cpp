@@ -52,8 +52,8 @@ START_TEST(Matrix, "$Id$");
 using namespace OpenMS;
 using namespace std;
 
-Matrix<int>* ptr = 0;
-Matrix<int>* nullPointer = 0;
+Matrix<int>* ptr = nullptr;
+Matrix<int>* nullPointer = nullptr;
 START_SECTION((Matrix()))
 {
 	ptr = new Matrix<int>;

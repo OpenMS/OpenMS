@@ -175,7 +175,7 @@ protected:
     TransitionTSVReader::TSVTransition convertTransition_(const ReactionMonitoringTransition* it, OpenMS::TargetedExperiment& targeted_exp);
 
     /// Synchronize members with param class
-    void updateMembers_();
+    void updateMembers_() override;
 
 private:
     /// Members
@@ -266,7 +266,7 @@ public:
     TransitionTSVReader();
 
     /// Destructor
-    ~TransitionTSVReader();
+    ~TransitionTSVReader() override;
     //@}
 
     /** @brief Write out a targeted experiment (TraML structure) into a tsv file

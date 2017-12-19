@@ -77,7 +77,7 @@ namespace OpenMS
     AScore();
 
     ///Destructor
-    ~AScore();
+    ~AScore() override;
 
     /**
         @brief Computes the AScore and returns all computed phospho-sites. The saved sequences contain only phospho information. All other modifications are dropped due to simplicity.
@@ -190,7 +190,7 @@ namespace OpenMS
     std::multimap<double, Size> rankWeightedPermutationPeptideScores_(const std::vector<std::vector<double>>& peptide_site_scores) const;
 
     /// Reimplemented from @ref DefaultParamHandler
-    virtual void updateMembers_();
+    void updateMembers_() override;
 
     // variables:
     double fragment_mass_tolerance_; ///< Fragment mass tolerance for spectrum comparisons

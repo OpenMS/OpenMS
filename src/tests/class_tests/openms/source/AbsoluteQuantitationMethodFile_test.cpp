@@ -68,8 +68,8 @@ START_TEST(AbsoluteQuantitationMethodFile, "$Id$")
 
 /////////////////////////////////////////////////////////////
 
-AbsoluteQuantitationMethodFile* ptr = 0;
-AbsoluteQuantitationMethodFile* nullPointer = 0;
+AbsoluteQuantitationMethodFile* ptr = nullptr;
+AbsoluteQuantitationMethodFile* nullPointer = nullptr;
 
 START_SECTION((AbsoluteQuantitationMethodFile()))
 	ptr = new AbsoluteQuantitationMethodFile();

@@ -137,7 +137,7 @@ public:
       defaultsToParam_();
     }
 
-    void updateMembers_()
+    void updateMembers_() override
     {
       signal_to_noise_ = (double)param_.getValue("signal_to_noise_");
       peak_width_ = (double)param_.getValue("peak_width");
@@ -150,7 +150,7 @@ public:
     }
 
     /// Destructor
-    ~PeakPickerIterative() {}
+    ~PeakPickerIterative() override {}
 
 private:
 

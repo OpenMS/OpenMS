@@ -118,7 +118,7 @@ public:
   }
 
 protected:
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
 
     registerInputFile_("in", "<file>", "", "Input file containing MS2 spectra");
@@ -183,7 +183,7 @@ protected:
     registerDoubleOption_("max_valid_expect", "<value>", 0.1, "Maximal E-Value of a hit to be reported (only evaluated if 'output_result' is 'valid' or 'stochastic')", false);
   }
 
-  ExitCodes main_(int, const char**)
+  ExitCodes main_(int, const char**) override
   {
     //-------------------------------------------------------------
     // parsing parameters

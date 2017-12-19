@@ -53,8 +53,8 @@ START_TEST(PosteriorErrorProbabilityModel, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-PosteriorErrorProbabilityModel* ptr = 0;
-PosteriorErrorProbabilityModel* nullPointer = 0;
+PosteriorErrorProbabilityModel* ptr = nullptr;
+PosteriorErrorProbabilityModel* nullPointer = nullptr;
 START_SECTION(PosteriorErrorProbabilityModel())
 {
 	ptr = new PosteriorErrorProbabilityModel();

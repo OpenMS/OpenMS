@@ -49,8 +49,8 @@ START_TEST(BinnedSpectralContrastAngle, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-BinnedSpectralContrastAngle* ptr = 0;
-BinnedSpectralContrastAngle* nullPointer = 0;
+BinnedSpectralContrastAngle* ptr = nullptr;
+BinnedSpectralContrastAngle* nullPointer = nullptr;
 START_SECTION(BinnedSpectralContrastAngle())
 {
 	ptr = new BinnedSpectralContrastAngle();

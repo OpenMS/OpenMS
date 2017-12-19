@@ -48,8 +48,8 @@ START_TEST(IMSIsotopeDistribution, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-IMSIsotopeDistribution* ptr = 0;
-IMSIsotopeDistribution* null_ptr = 0;
+IMSIsotopeDistribution* ptr = nullptr;
+IMSIsotopeDistribution* null_ptr = nullptr;
 START_SECTION(IMSIsotopeDistribution())
 {
 	ptr = new IMSIsotopeDistribution();

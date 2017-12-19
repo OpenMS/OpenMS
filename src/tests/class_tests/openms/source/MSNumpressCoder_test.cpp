@@ -142,8 +142,8 @@ START_TEST(MSNumpressCoder, "$Id$")
 using namespace OpenMS;
 
 // default ctor
-MSNumpressCoder* ptr = 0;
-MSNumpressCoder* nullPointer = 0;
+MSNumpressCoder* ptr = nullptr;
+MSNumpressCoder* nullPointer = nullptr;
 
 START_SECTION((MSNumpressCoder()))
 	ptr = new MSNumpressCoder;
@@ -202,7 +202,7 @@ END_SECTION
 START_SECTION(([MSNumpressCoder::NumpressConfig] NumpressConfig()))
 {
   MSNumpressCoder::NumpressConfig * config = new MSNumpressCoder::NumpressConfig();
-  MSNumpressCoder::NumpressConfig * nullConfigPtr = 0;
+  MSNumpressCoder::NumpressConfig * nullConfigPtr = nullptr;
 	TEST_NOT_EQUAL(config, nullConfigPtr)
   delete config;
 }

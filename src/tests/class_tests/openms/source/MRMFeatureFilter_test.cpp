@@ -49,8 +49,8 @@ START_TEST(MRMFeatureFilter, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-MRMFeatureFilter* ptr = 0;
-MRMFeatureFilter* nullPointer = 0;
+MRMFeatureFilter* ptr = nullptr;
+MRMFeatureFilter* nullPointer = nullptr;
 
 START_SECTION(MRMFeatureFilter())
 {

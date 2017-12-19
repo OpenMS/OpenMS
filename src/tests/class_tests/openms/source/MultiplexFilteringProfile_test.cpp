@@ -93,7 +93,7 @@ for (int c = charge_max; c >= charge_min; --c)
     patterns.push_back(pattern2);
 }
 
-MultiplexFilteringProfile* nullPointer = 0;
+MultiplexFilteringProfile* nullPointer = nullptr;
 MultiplexFilteringProfile* ptr;
 
 START_SECTION(MultiplexFilteringProfile(const PeakMap& exp_profile, const PeakMap& exp_picked, const std::vector<std::vector<PeakPickerHiRes::PeakBoundary> >& boundaries, const std::vector<MultiplexIsotopicPeakPattern> patterns, int peaks_per_peptide_min, int peaks_per_peptide_max, bool missing_peaks, double intensity_cutoff, double mz_tolerance, bool mz_tolerance_unit, double peptide_similarity, double averagine_similarity, double averagine_similarity_scaling))

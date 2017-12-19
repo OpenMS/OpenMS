@@ -78,7 +78,7 @@ public:
 
 protected:
 
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     registerInputFileList_("in", "<files>", StringList(), "Input file (SWATH/DIA file)");
     setValidFormats_("in", ListUtils::create<String>("mzML,mzXML"));
@@ -113,7 +113,7 @@ protected:
     }
   }
 
-  ExitCodes main_(int, const char **)
+  ExitCodes main_(int, const char **) override
   {
     ///////////////////////////////////
     // Prepare Parameters

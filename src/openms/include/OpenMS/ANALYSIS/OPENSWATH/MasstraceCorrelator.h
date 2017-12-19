@@ -60,7 +60,7 @@ namespace OpenMS
 
     MasstraceCorrelator();
 
-    ~MasstraceCorrelator();
+    ~MasstraceCorrelator() override;
 
     // a mass trace is a vector of pairs in (RT, Intensity)
     typedef std::vector<std::pair<double, double> > MasstracePointsType;

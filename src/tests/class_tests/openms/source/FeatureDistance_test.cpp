@@ -49,8 +49,8 @@ START_TEST(FeatureDistance, "$Id$")
 using namespace OpenMS;
 using namespace std;
 
-FeatureDistance* d_ptr = 0;
-FeatureDistance* d_nullPointer = 0;
+FeatureDistance* d_ptr = nullptr;
+FeatureDistance* d_nullPointer = nullptr;
 START_SECTION((FeatureDistance(double max_intensity=1.0, bool force_constraints=false)))
 {
 	d_ptr = new FeatureDistance();

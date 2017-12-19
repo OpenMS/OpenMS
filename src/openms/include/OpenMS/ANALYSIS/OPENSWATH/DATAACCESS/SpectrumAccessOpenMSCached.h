@@ -82,31 +82,31 @@ public:
     /**
       @brief Destructor
     */
-    ~SpectrumAccessOpenMSCached();
+    ~SpectrumAccessOpenMSCached() override;
 
     /// Copy constructor
     SpectrumAccessOpenMSCached(const SpectrumAccessOpenMSCached & rhs);
 
     /// Light clone operator (actual data will not get copied)
-    boost::shared_ptr<OpenSwath::ISpectrumAccess> lightClone() const;
+    boost::shared_ptr<OpenSwath::ISpectrumAccess> lightClone() const override;
 
-    OpenSwath::SpectrumPtr getSpectrumById(int id);
+    OpenSwath::SpectrumPtr getSpectrumById(int id) override;
 
-    OpenSwath::SpectrumMeta getSpectrumMetaById(int id) const;
+    OpenSwath::SpectrumMeta getSpectrumMetaById(int id) const override;
 
-    std::vector<std::size_t> getSpectraByRT(double RT, double deltaRT) const;
+    std::vector<std::size_t> getSpectraByRT(double RT, double deltaRT) const override;
 
-    size_t getNrSpectra() const;
+    size_t getNrSpectra() const override;
 
     SpectrumSettings getSpectraMetaInfo(int id) const;
 
-    OpenSwath::ChromatogramPtr getChromatogramById(int id);
+    OpenSwath::ChromatogramPtr getChromatogramById(int id) override;
 
-    size_t getNrChromatograms() const;
+    size_t getNrChromatograms() const override;
 
     ChromatogramSettings getChromatogramMetaInfo(int id) const;
 
-    std::string getChromatogramNativeID(int id) const;
+    std::string getChromatogramNativeID(int id) const override;
 
 private:
 

@@ -47,8 +47,8 @@ START_TEST(Software, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-Software* ptr = 0;
-Software* nullPointer = 0;
+Software* ptr = nullptr;
+Software* nullPointer = nullptr;
 START_SECTION(Software())
 	ptr = new Software();
 	TEST_NOT_EQUAL(ptr, nullPointer)

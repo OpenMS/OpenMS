@@ -47,8 +47,8 @@ START_TEST(DigestSimulation, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-DigestSimulation* ptr = 0;
-DigestSimulation* nullPointer = 0;
+DigestSimulation* ptr = nullptr;
+DigestSimulation* nullPointer = nullptr;
 START_SECTION(DigestSimulation())
 {
   ptr = new DigestSimulation();

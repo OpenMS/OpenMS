@@ -200,7 +200,7 @@ private:
   }
 
 protected:
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<path/file>", "",
                        "Input file or directory containing the data to convert. This may be:\n"
@@ -232,7 +232,7 @@ protected:
     registerDoubleOption_("add_ionmatch_annotation", "<tolerance>", 0,"[+mz_file only] Will annotate the contained identifications with their matches in the given mz_file. Will take quite some while. Match tolerance is .4", false, true);
   }
 
-  ExitCodes main_(int, const char**)
+  ExitCodes main_(int, const char**) override
   {
     //-------------------------------------------------------------
     // general variables and data

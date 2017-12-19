@@ -136,7 +136,7 @@ public:
   }
 
 protected:
-  virtual void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "input file ");
     setValidFormats_("in", ListUtils::create<String>("mzData,mzXML,mzML,dta,dta2d,mgf,featureXML,consensusXML,idXML,pepXML,fid,mzid,trafoXML,fasta"));
@@ -1481,7 +1481,7 @@ protected:
     return EXECUTION_OK;
   }
 
-  ExitCodes main_(int, const char **)
+  ExitCodes main_(int, const char **) override
   {
     String out = getStringOption_("out");
     String out_tsv = getStringOption_("out_tsv");

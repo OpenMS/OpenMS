@@ -70,11 +70,11 @@ public:
     MRMFeatureFilter();
 
     /// Destructor
-    ~MRMFeatureFilter();
+    ~MRMFeatureFilter() override;
     //@}
 
     /// Synchronize members with param class
-    void updateMembers_();
+    void updateMembers_() override;
 
     /**
       @brief Flags or filters features and subordinates in a FeatureMap

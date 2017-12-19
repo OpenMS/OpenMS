@@ -65,7 +65,7 @@ public:
     BaseSuperimposer();
 
     /// Destructor
-    virtual ~BaseSuperimposer();
+    ~BaseSuperimposer() override;
 
     /**
     @brief Estimates the transformation between input @p maps and returns the
