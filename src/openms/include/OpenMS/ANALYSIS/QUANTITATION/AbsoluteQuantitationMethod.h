@@ -128,12 +128,6 @@ public:
   /// transformation_model and transformation_model_params getter
   String getTransformationModel();
   Param getTransformationModelParams();
-
-  /// actual concentration setter
-  void setActualConcentration(const double& actual_concentration);
-  
-  /// actual concentration getter
-  double getActualConcentration();
   
   /// statistics setter
   void setNPoints(const int& n_points);

@@ -163,17 +163,6 @@ namespace OpenMS
     return transformation_model_params_;
   }
   
-  //Actual concentration getter and setter
-  void AbsoluteQuantitationMethod::setActualConcentration(const double& actual_concentration)
-  {
-    actual_concentration_ = actual_concentration;
-  }
-
-  double AbsoluteQuantitationMethod::getActualConcentration()
-  {
-    return actual_concentration_;
-  }
-  
   //Statistics getters and setters
   void AbsoluteQuantitationMethod::setNPoints(const int& n_points)
   {
