@@ -45,44 +45,24 @@ namespace OpenMS
 
   PeakIntegrator::~PeakIntegrator() {}
 
-  void PeakIntegrator::estimateBackground(const MSChromatogram& chromatogram, const double& left, const double& right, const double& peak_apex_pos, double& background_area, double& background_height) const
+  PeakIntegrator::PeakArea PeakIntegrator::integratePeak(const MSChromatogram& chromatogram, const double left, const double right) const
   {
-    estimateBackground_(chromatogram, left, right, peak_apex_pos, background_area, background_height);
+    return integratePeak_(chromatogram, left, right);
   }
 
-  void PeakIntegrator::estimateBackground(const MSChromatogram& chromatogram, MSChromatogram::ConstIterator& left, MSChromatogram::ConstIterator& right, const double& peak_apex_pos, double& background_area, double& background_height) const
+  PeakIntegrator::PeakArea PeakIntegrator::integratePeak(const MSChromatogram& chromatogram, MSChromatogram::ConstIterator& left, MSChromatogram::ConstIterator& right) const
   {
-    estimateBackground_(chromatogram, left->getRT(), right->getRT(), peak_apex_pos, background_area, background_height);
+    return integratePeak_(chromatogram, left->getRT(), right->getRT());
   }
 
-  void PeakIntegrator::estimateBackground(const MSSpectrum& spectrum, const double& left, const double& right, const double& peak_apex_pos, double& background_area, double& background_height) const
+  PeakIntegrator::PeakArea PeakIntegrator::integratePeak(const MSSpectrum& spectrum, const double left, const double right) const
   {
-    estimateBackground_(spectrum, left, right, peak_apex_pos, background_area, background_height);
+    return integratePeak_(spectrum, left, right);
   }
 
-  void PeakIntegrator::estimateBackground(const MSSpectrum& spectrum, MSSpectrum::ConstIterator& left, MSSpectrum::ConstIterator& right, const double& peak_apex_pos, double& background_area, double& background_height) const
+  PeakIntegrator::PeakArea PeakIntegrator::integratePeak(const MSSpectrum& spectrum, MSSpectrum::ConstIterator& left, MSSpectrum::ConstIterator& right) const
   {
-    estimateBackground_(spectrum, left->getMZ(), right->getMZ(), peak_apex_pos, background_area, background_height);
-  }
-
-  void PeakIntegrator::integratePeak(const MSChromatogram& chromatogram, const double& left, const double& right, double& peak_area, double& peak_height, double& peak_apex_pos) const
-  {
-    integratePeak_(chromatogram, left, right, peak_area, peak_height, peak_apex_pos);
-  }
-
-  void PeakIntegrator::integratePeak(const MSChromatogram& chromatogram, MSChromatogram::ConstIterator& left, MSChromatogram::ConstIterator& right, double& peak_area, double& peak_height, double& peak_apex_pos) const
-  {
-    integratePeak_(chromatogram, left->getRT(), right->getRT(), peak_area, peak_height, peak_apex_pos);
-  }
-
-  void PeakIntegrator::integratePeak(const MSSpectrum& spectrum, const double& left, const double& right, double& peak_area, double& peak_height, double& peak_apex_pos) const
-  {
-    integratePeak_(spectrum, left, right, peak_area, peak_height, peak_apex_pos);
-  }
-
-  void PeakIntegrator::integratePeak(const MSSpectrum& spectrum, MSSpectrum::ConstIterator& left, MSSpectrum::ConstIterator& right, double& peak_area, double& peak_height, double& peak_apex_pos) const
-  {
-    integratePeak_(spectrum, left->getMZ(), right->getMZ(), peak_area, peak_height, peak_apex_pos);
+    return integratePeak_(spectrum, left->getMZ(), right->getMZ());
   }
 
   double PeakIntegrator::simpson(MSChromatogram::ConstIterator it_begin, MSChromatogram::ConstIterator it_end) const
@@ -95,24 +75,44 @@ namespace OpenMS
     return simpson_(it_begin, it_end);
   }
 
-  void PeakIntegrator::calculatePeakShapeMetrics(const MSChromatogram& chromatogram, const double& left, const double& right, const double& peak_height, const double& peak_apex_pos, PeakShapeMetrics& psm) const
+  PeakIntegrator::PeakBackground PeakIntegrator::estimateBackground(const MSChromatogram& chromatogram, const double left, const double right, const double peak_apex_pos) const
   {
-    calculatePeakShapeMetrics_(chromatogram, left, right, peak_height, peak_apex_pos, psm);
+    return estimateBackground_(chromatogram, left, right, peak_apex_pos);
   }
 
-  void PeakIntegrator::calculatePeakShapeMetrics(const MSChromatogram& chromatogram, MSChromatogram::ConstIterator& left, MSChromatogram::ConstIterator& right, const double& peak_height, const double& peak_apex_pos, PeakShapeMetrics& psm) const
+  PeakIntegrator::PeakBackground PeakIntegrator::estimateBackground(const MSChromatogram& chromatogram, MSChromatogram::ConstIterator& left, MSChromatogram::ConstIterator& right, const double peak_apex_pos) const
   {
-    calculatePeakShapeMetrics_(chromatogram, left->getRT(), right->getRT(), peak_height, peak_apex_pos, psm);
+    return estimateBackground_(chromatogram, left->getRT(), right->getRT(), peak_apex_pos);
   }
 
-  void PeakIntegrator::calculatePeakShapeMetrics(const MSSpectrum& spectrum, const double& left, const double& right, const double& peak_height, const double& peak_apex_pos, PeakShapeMetrics& psm) const
+  PeakIntegrator::PeakBackground PeakIntegrator::estimateBackground(const MSSpectrum& spectrum, const double left, const double right, const double peak_apex_pos) const
   {
-    calculatePeakShapeMetrics_(spectrum, left, right, peak_height, peak_apex_pos, psm);
+    return estimateBackground_(spectrum, left, right, peak_apex_pos);
   }
 
-  void PeakIntegrator::calculatePeakShapeMetrics(const MSSpectrum& spectrum, MSSpectrum::ConstIterator& left, MSSpectrum::ConstIterator& right, const double& peak_height, const double& peak_apex_pos, PeakShapeMetrics& psm) const
+  PeakIntegrator::PeakBackground PeakIntegrator::estimateBackground(const MSSpectrum& spectrum, MSSpectrum::ConstIterator& left, MSSpectrum::ConstIterator& right, const double peak_apex_pos) const
   {
-    calculatePeakShapeMetrics_(spectrum, left->getMZ(), right->getMZ(), peak_height, peak_apex_pos, psm);
+    return estimateBackground_(spectrum, left->getMZ(), right->getMZ(), peak_apex_pos);
+  }
+
+  PeakIntegrator::PeakShapeMetrics PeakIntegrator::calculatePeakShapeMetrics(const MSChromatogram& chromatogram, const double left, const double right, const double peak_height, const double peak_apex_pos) const
+  {
+    return calculatePeakShapeMetrics_(chromatogram, left, right, peak_height, peak_apex_pos);
+  }
+
+  PeakIntegrator::PeakShapeMetrics PeakIntegrator::calculatePeakShapeMetrics(const MSChromatogram& chromatogram, MSChromatogram::ConstIterator& left, MSChromatogram::ConstIterator& right, const double peak_height, const double peak_apex_pos) const
+  {
+    return calculatePeakShapeMetrics_(chromatogram, left->getRT(), right->getRT(), peak_height, peak_apex_pos);
+  }
+
+  PeakIntegrator::PeakShapeMetrics PeakIntegrator::calculatePeakShapeMetrics(const MSSpectrum& spectrum, const double left, const double right, const double peak_height, const double peak_apex_pos) const
+  {
+    return calculatePeakShapeMetrics_(spectrum, left, right, peak_height, peak_apex_pos);
+  }
+
+  PeakIntegrator::PeakShapeMetrics PeakIntegrator::calculatePeakShapeMetrics(const MSSpectrum& spectrum, MSSpectrum::ConstIterator& left, MSSpectrum::ConstIterator& right, const double peak_height, const double peak_apex_pos) const
+  {
+    return calculatePeakShapeMetrics_(spectrum, left->getMZ(), right->getMZ(), peak_height, peak_apex_pos);
   }
 
   void PeakIntegrator::getDefaultParameters(Param& params)
@@ -131,64 +131,9 @@ namespace OpenMS
   }
 
   template <typename PeakContainerT>
-  void PeakIntegrator::estimateBackground_(const PeakContainerT& p, const double& left, const double& right, const double& peak_apex_pos, double& background_area, double& background_height) const
+  PeakIntegrator::PeakArea PeakIntegrator::integratePeak_(const PeakContainerT& p, const double left, const double right) const
   {
-    const double int_l = p.PosBegin(left)->getIntensity();
-    const double int_r = (p.PosEnd(right) - 1)->getIntensity();
-    const double delta_int = int_r - int_l;
-    const double delta_pos = (p.PosEnd(right) - 1)->getPos() - p.PosBegin(left)->getPos();
-    const double min_int_pos = int_r <= int_l ? (p.PosEnd(right) - 1)->getPos() : p.PosBegin(left)->getPos();
-    const double delta_int_apex = std::fabs(delta_int) * std::fabs(min_int_pos - peak_apex_pos) / delta_pos;
-    background_height = std::min(int_r, int_l) + delta_int_apex;
-    double background = 0.0;
-    if (baseline_type_ == BASELINE_TYPE_BASETOBASE)
-    {
-      if (integration_type_ == INTEGRATION_TYPE_TRAPEZOID || integration_type_ == INTEGRATION_TYPE_SIMPSON)
-      {
-        // formula for calculating the background using the trapezoidal rule
-        // background = intensity_min*delta_pos + 0.5*delta_int*delta_pos;
-        background = delta_pos * (std::min(int_r, int_l) + 0.5 * std::fabs(delta_int));
-      }
-      else if (integration_type_ == INTEGRATION_TYPE_INTENSITYSUM)
-      {
-        // calculate the background using the formula
-        // y = mx + b where x = rt or mz, m = slope, b = left intensity
-        // sign of delta_int will determine line direction
-        // background += delta_int / delta_pos * (it->getPos() - left) + int_l;
-        for (auto it = p.PosBegin(left); it != p.PosEnd(right); ++it)
-        {
-          background += it->getPos();
-        }
-        UInt n_points = std::distance(p.PosBegin(left), p.PosEnd(right));
-        background = (background - n_points * p.PosBegin(left)->getPos()) * delta_int / delta_pos + n_points * int_l;
-      }
-    }
-    else if (baseline_type_ == BASELINE_TYPE_VERTICALDIVISION)
-    {
-      if (integration_type_ == INTEGRATION_TYPE_TRAPEZOID || integration_type_ == INTEGRATION_TYPE_SIMPSON)
-      {
-        background = delta_pos * std::min(int_r, int_l);
-      }
-      else if (integration_type_ == INTEGRATION_TYPE_INTENSITYSUM)
-      {
-        for (auto it = p.PosBegin(left); it != p.PosEnd(right); ++it)
-        { }
-        background = std::min(int_r, int_l) * std::distance(p.PosBegin(left), p.PosEnd(right));;
-      }
-    }
-    else
-    {
-      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Please set a valid value for the parameter \"baseline_type\".\n");
-    }
-    background_area = background;
-  }
-
-  template <typename PeakContainerT>
-  void PeakIntegrator::integratePeak_(const PeakContainerT& p, const double& left, const double& right, double& peak_area, double& peak_height, double& peak_apex_pos) const
-  {
-    peak_area = 0.0;
-    peak_height = -1.0;
-    peak_apex_pos = -1.0;
+    double peak_area(0.0), peak_height(0.0), peak_apex_pos(0.0);
     UInt n_points = std::distance(p.PosBegin(left), p.PosEnd(right));
     for (auto it = p.PosBegin(left); it != p.PosEnd(right); ++it)
     {
@@ -198,7 +143,6 @@ namespace OpenMS
         peak_apex_pos = it->getPos();
       }
     }
-
     if (integration_type_ == INTEGRATION_TYPE_TRAPEZOID)
     {
       for (auto it = p.PosBegin(left); it != p.PosEnd(right) - 1; ++it)
@@ -211,7 +155,7 @@ namespace OpenMS
       if (n_points < 3)
       {
         LOG_DEBUG << std::endl << "Error in integratePeak: number of points must be >=3 for Simpson's rule" << std::endl;
-        return;
+        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "The number of points must be >= 3.");
       }
       if (n_points % 2)
       {
@@ -252,8 +196,13 @@ namespace OpenMS
     }
     else
     {
-      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Please set a valid value for the parameter \"integration_type\".\n");
+      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Please set a valid value for the parameter \"integration_type\".");
     }
+    PeakArea pa;
+    pa.area = peak_area;
+    pa.height = peak_height;
+    pa.apex_pos = peak_apex_pos;
+    return pa;
   }
 
   template <typename PeakContainerConstIteratorT>
@@ -273,8 +222,70 @@ namespace OpenMS
   }
 
   template <typename PeakContainerT>
-  void PeakIntegrator::calculatePeakShapeMetrics_(const PeakContainerT& p, const double& left, const double& right, const double& peak_height, const double& peak_apex_pos, PeakShapeMetrics& psm) const
+  PeakIntegrator::PeakBackground PeakIntegrator::estimateBackground_(
+    const PeakContainerT& p, const double left, const double right,
+    const double peak_apex_pos
+  ) const
   {
+    const double int_l = p.PosBegin(left)->getIntensity();
+    const double int_r = (p.PosEnd(right) - 1)->getIntensity();
+    const double delta_int = int_r - int_l;
+    const double delta_pos = (p.PosEnd(right) - 1)->getPos() - p.PosBegin(left)->getPos();
+    const double min_int_pos = int_r <= int_l ? (p.PosEnd(right) - 1)->getPos() : p.PosBegin(left)->getPos();
+    const double delta_int_apex = std::fabs(delta_int) * std::fabs(min_int_pos - peak_apex_pos) / delta_pos;
+    double background = 0.0;
+    if (baseline_type_ == BASELINE_TYPE_BASETOBASE)
+    {
+      if (integration_type_ == INTEGRATION_TYPE_TRAPEZOID || integration_type_ == INTEGRATION_TYPE_SIMPSON)
+      {
+        // formula for calculating the background using the trapezoidal rule
+        // background = intensity_min*delta_pos + 0.5*delta_int*delta_pos;
+        background = delta_pos * (std::min(int_r, int_l) + 0.5 * std::fabs(delta_int));
+      }
+      else if (integration_type_ == INTEGRATION_TYPE_INTENSITYSUM)
+      {
+        // calculate the background using the formula
+        // y = mx + b where x = rt or mz, m = slope, b = left intensity
+        // sign of delta_int will determine line direction
+        // background += delta_int / delta_pos * (it->getPos() - left) + int_l;
+        for (auto it = p.PosBegin(left); it != p.PosEnd(right); ++it)
+        {
+          background += it->getPos();
+        }
+        UInt n_points = std::distance(p.PosBegin(left), p.PosEnd(right));
+        background = (background - n_points * p.PosBegin(left)->getPos()) * delta_int / delta_pos + n_points * int_l;
+      }
+    }
+    else if (baseline_type_ == BASELINE_TYPE_VERTICALDIVISION)
+    {
+      if (integration_type_ == INTEGRATION_TYPE_TRAPEZOID || integration_type_ == INTEGRATION_TYPE_SIMPSON)
+      {
+        background = delta_pos * std::min(int_r, int_l);
+      }
+      else if (integration_type_ == INTEGRATION_TYPE_INTENSITYSUM)
+      {
+        for (auto it = p.PosBegin(left); it != p.PosEnd(right); ++it)
+        { }
+        background = std::min(int_r, int_l) * std::distance(p.PosBegin(left), p.PosEnd(right));;
+      }
+    }
+    else
+    {
+      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Please set a valid value for the parameter \"baseline_type\".");
+    }
+    PeakBackground pb;
+    pb.area = background;
+    pb.height = std::min(int_r, int_l) + delta_int_apex;
+    return pb;
+  }
+
+  template <typename PeakContainerT>
+  PeakIntegrator::PeakShapeMetrics PeakIntegrator::calculatePeakShapeMetrics_(
+    const PeakContainerT& p, const double left, const double right,
+    const double peak_height, const double peak_apex_pos
+  ) const
+  {
+    PeakShapeMetrics psm;
     psm.points_across_baseline = 0;
     psm.points_across_half_height = 0;
     for (auto it = p.PosBegin(left); it != p.PosEnd(right); ++it)
@@ -329,7 +340,6 @@ namespace OpenMS
         ++(psm.points_across_half_height);
       }
     }
-
     // peak widths
     psm.width_at_5 = psm.end_position_at_5 - psm.start_position_at_5;
     psm.width_at_10 = psm.end_position_at_10 - psm.start_position_at_10;
@@ -337,10 +347,10 @@ namespace OpenMS
     psm.total_width = (p.PosEnd(right) - 1)->getPos() - p.PosBegin(left)->getPos();
     psm.slope_of_baseline = (p.PosEnd(right) - 1)->getIntensity() - p.PosBegin(left)->getIntensity();
     psm.baseline_delta_2_height = psm.slope_of_baseline / peak_height;
-
     // other
     psm.tailing_factor = psm.width_at_5 / std::min(peak_apex_pos - psm.start_position_at_5, psm.end_position_at_5 - peak_apex_pos);
     psm.asymmetry_factor = std::min(peak_apex_pos - psm.start_position_at_10, psm.end_position_at_10 - peak_apex_pos) /
       std::max(peak_apex_pos - psm.start_position_at_10, psm.end_position_at_10 - peak_apex_pos);
+    return psm;
   }
 }

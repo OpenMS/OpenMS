@@ -1,9 +1,7 @@
 from DefaultParamHandler cimport *
-from String cimport *
 from MSChromatogram cimport *
 from MSSpectrum cimport *
 from Types cimport *
-from String cimport *
 
 cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/PeakIntegrator.h>" namespace "OpenMS":
 
@@ -16,24 +14,39 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/PeakIntegrator.h>" namespace "OpenM
 
         void getDefaultParameters(Param) nogil except +
 
-        # void estimateBackground(MSChromatogram, double, double) nogil except +
-        # void estimateBackground(MSSpectrum, double, double) nogil except +
+        PI_PeakArea integratePeak(MSChromatogram chromatogram, double left, double right) nogil except +
+        PI_PeakArea integratePeak(MSSpectrum spectrum, double left, double right) nogil except +
 
-        # void integratePeak(MSChromatogram, double, double) nogil except +
-        # void integratePeak(MSSpectrum, double, double) nogil except +
+        PI_PeakBackground estimateBackground(MSChromatogram chromatogram, double left, double right, double peak_apex_pos) nogil except +
+        PI_PeakBackground estimateBackground(MSSpectrum spectrum, double left, double right, double peak_apex_pos) nogil except +
 
-        # void calculatePeakShapeMetrics(MSChromatogram, double, double) nogil except +
-        # void calculatePeakShapeMetrics(MSSpectrum spectrum, double left, double right, double peak_height) nogil except +
-
-        # PI_PeakShapeMetrics getPeakShapeMetrics() nogil except +
+        PI_PeakShapeMetrics calculatePeakShapeMetrics(MSChromatogram chromatogram, double left, double right, double peak_height, double peak_apex_pos) nogil except +
+        PI_PeakShapeMetrics calculatePeakShapeMetrics(MSSpectrum spectrum, double left, double right, double peak_height, double peak_apex_pos) nogil except +
 
 cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/PeakIntegrator.h>" namespace "OpenMS::PeakIntegrator":
+
+    cdef cppclass PI_PeakArea "OpenMS::PeakIntegrator::PeakArea":
+
+        PI_PeakArea() nogil except +
+        PI_PeakArea(PI_PeakArea) nogil except +
+
+        double area
+        double height
+        double apex_pos
+
+    cdef cppclass PI_PeakBackground "OpenMS::PeakIntegrator::PeakBackground":
+
+        PI_PeakBackground() nogil except +
+        PI_PeakBackground(PI_PeakBackground) nogil except +
+
+        double area
+        double height
 
     cdef cppclass PI_PeakShapeMetrics "OpenMS::PeakIntegrator::PeakShapeMetrics":
 
         PI_PeakShapeMetrics() nogil except +
         PI_PeakShapeMetrics(PI_PeakShapeMetrics) nogil except +
-        
+
         double width_at_5
         double width_at_10
         double width_at_50

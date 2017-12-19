@@ -58,7 +58,45 @@ public:
     /// Destructor
     virtual ~PeakIntegrator();
 
-    /** @name calculatePeakShapeMetrics() outputs
+    /** @name integratePeak() output
+      The integratePeak() method uses this struct to save its results.
+    */
+    ///@{
+    struct PeakArea
+    {
+      /**
+        The peak's computed area
+      */
+      double area = 0.0;
+      /**
+        The peak's highest intensity
+      */
+      double height = 0.0;
+      /**
+        The position of the point with highest intensity
+      */
+      double apex_pos = 0.0;
+    };
+    ///@}
+
+    /** @name estimateBackground() output
+      The estimateBackground() method uses this struct to save its results.
+    */
+    ///@{
+    struct PeakBackground
+    {
+      /**
+        The background area estimation
+      */
+      double area = 0.0;
+      /**
+        The background height
+      */
+      double height = 0.0;
+    };
+    ///@}
+
+    /** @name calculatePeakShapeMetrics() output
       The calculatePeakShapeMetrics() method uses this struct to save its results.
     */
     ///@{
@@ -146,8 +184,88 @@ public:
         The number of points across half the peak's height.
       */
       Int points_across_half_height = 0;
-      ///@}
     };
+    ///@}
+
+    /**
+      @brief Compute the area of a peak contained in a MSChromatogram.
+
+      The value of integration_type_ decides which integration technique to use:
+      - "trapezoid" for the trapezoidal rule
+      - "simpson" for the Simpson's rule (for unequally spaced points, Shklov, 1960)
+      - "intensity_sum" for the simple sum of the intensities
+
+      @note Make sure the chromatogram is sorted with respect to retention time.
+
+      @param[in] chromatogram The chromatogram which contains the peak
+      @param[in] left The left retention time boundary
+      @param[in] right The right retention time boundary
+
+      @return A struct containing the informations about the peak's area, height and position
+    */
+    PeakArea integratePeak(
+      const MSChromatogram& chromatogram, const double left, const double right
+    ) const;
+
+    /**
+      @brief Compute the area of a peak contained in a MSChromatogram.
+
+      The value of integration_type_ decides which integration technique to use:
+      - "trapezoid" for the trapezoidal rule
+      - "simpson" for the Simpson's rule (for unequally spaced points, Shklov, 1960)
+      - "intensity_sum" for the simple sum of the intensities
+
+      @note Make sure the chromatogram is sorted with respect to retention time.
+
+      @param[in] chromatogram The chromatogram which contains the peak
+      @param[in] left The iterator to the first point
+      @param[in] right The iterator to the last point
+
+      @return A struct containing the informations about the peak's area, height and position
+    */
+    PeakArea integratePeak(
+      const MSChromatogram& chromatogram, MSChromatogram::ConstIterator& left, MSChromatogram::ConstIterator& right
+    ) const;
+
+    /**
+      @brief Compute the area of a peak contained in a MSSpectrum.
+
+      The value of integration_type_ decides which integration technique to use:
+      - "trapezoid" for the trapezoidal rule
+      - "simpson" for the Simpson's rule (for unequally spaced points, Shklov, 1960)
+      - "intensity_sum" for the simple sum of the intensities
+
+      @note Make sure the spectrum is sorted with respect to mass-to-charge ratio.
+
+      @param[in] spectrum The spectrum which contains the peak
+      @param[in] left The left mass-to-charge ratio boundary
+      @param[in] right The right mass-to-charge ratio boundary
+
+      @return A struct containing the informations about the peak's area, height and position
+    */
+    PeakArea integratePeak(
+      const MSSpectrum& spectrum, const double left, const double right
+    ) const;
+
+    /**
+      @brief Compute the area of a peak contained in a MSSpectrum.
+
+      The value of integration_type_ decides which integration technique to use:
+      - "trapezoid" for the trapezoidal rule
+      - "simpson" for the Simpson's rule (for unequally spaced points, Shklov, 1960)
+      - "intensity_sum" for the simple sum of the intensities
+
+      @note Make sure the spectrum is sorted with respect to mass-to-charge ratio.
+
+      @param[in] spectrum The spectrum which contains the peak
+      @param[in] left The iterator to the first point
+      @param[in] right The iterator to the last point
+
+      @return A struct containing the informations about the peak's area, height and position
+    */
+    PeakArea integratePeak(
+      const MSSpectrum& spectrum, MSSpectrum::ConstIterator& left, MSSpectrum::ConstIterator& right
+    ) const;
 
     /**
       @brief Estimate the background of a peak contained in a MSChromatogram.
@@ -168,13 +286,12 @@ public:
       @param[in] left The left retention time boundary
       @param[in] right The right retention time boundary
       @param[in] peak_apex_pos The position of the point with highest intensity
-      @param[out] background_area The background area estimation
-      @param[out] background_height The background's height
+
+      @return A struct containing the informations about the peak's background area and height
     */
-    void estimateBackground(
-      const MSChromatogram& chromatogram, const double& left, const double& right,
-      const double& peak_apex_pos,
-      double& background_area, double& background_height
+    PeakBackground estimateBackground(
+      const MSChromatogram& chromatogram, const double left, const double right,
+      const double peak_apex_pos
     ) const;
 
     /**
@@ -196,13 +313,12 @@ public:
       @param[in] left The iterator to the first point
       @param[in] right The iterator to the last point
       @param[in] peak_apex_pos The position of the point with highest intensity
-      @param[out] background_area The background area estimation
-      @param[out] background_height The background's height
+
+      @return A struct containing the informations about the peak's background area and height
     */
-    void estimateBackground(
+    PeakBackground estimateBackground(
       const MSChromatogram& chromatogram, MSChromatogram::ConstIterator& left, MSChromatogram::ConstIterator& right,
-      const double& peak_apex_pos,
-      double& background_area, double& background_height
+      const double peak_apex_pos
     ) const;
 
     /**
@@ -224,13 +340,12 @@ public:
       @param[in] left The left mass-to-charge ratio boundary
       @param[in] right The right mass-to-charge ratio boundary
       @param[in] peak_apex_pos The position of the point with highest intensity
-      @param[out] background_area The background area estimation
-      @param[out] background_height The background's height
+
+      @return A struct containing the informations about the peak's background area and height
     */
-    void estimateBackground(
-      const MSSpectrum& spectrum, const double& left, const double& right,
-      const double& peak_apex_pos,
-      double& background_area, double& background_height
+    PeakBackground estimateBackground(
+      const MSSpectrum& spectrum, const double left, const double right,
+      const double peak_apex_pos
     ) const;
 
     /**
@@ -252,101 +367,12 @@ public:
       @param[in] left The iterator to the first point
       @param[in] right The iterator to the last point
       @param[in] peak_apex_pos The position of the point with highest intensity
-      @param[out] background_area The background area estimation
-      @param[out] background_height The background's height
+
+      @return A struct containing the informations about the peak's background area and height
     */
-    void estimateBackground(
+    PeakBackground estimateBackground(
       const MSSpectrum& spectrum, MSSpectrum::ConstIterator& left, MSSpectrum::ConstIterator& right,
-      const double& peak_apex_pos,
-      double& background_area, double& background_height
-    ) const;
-
-    /**
-      @brief Compute the area of a peak contained in a MSChromatogram.
-
-      The value of integration_type_ decides which integration technique to use:
-      - "trapezoid" for the trapezoidal rule
-      - "simpson" for the Simpson's rule (for unequally spaced points, Shklov, 1960)
-      - "intensity_sum" for the simple sum of the intensities
-
-      @note Make sure the chromatogram is sorted with respect to retention time.
-
-      @param[in] chromatogram The chromatogram which contains the peak
-      @param[in] left The left retention time boundary
-      @param[in] right The right retention time boundary
-      @param[out] peak_area The peak's computed area
-      @param[out] peak_height The peak's highest intensity
-      @param[out] peak_apex_pos The position of the point with highest intensity
-    */
-    void integratePeak(
-      const MSChromatogram& chromatogram, const double& left, const double& right,
-      double& peak_area, double& peak_height, double& peak_apex_pos
-    ) const;
-
-    /**
-      @brief Compute the area of a peak contained in a MSChromatogram.
-
-      The value of integration_type_ decides which integration technique to use:
-      - "trapezoid" for the trapezoidal rule
-      - "simpson" for the Simpson's rule (for unequally spaced points, Shklov, 1960)
-      - "intensity_sum" for the simple sum of the intensities
-
-      @note Make sure the chromatogram is sorted with respect to retention time.
-
-      @param[in] chromatogram The chromatogram which contains the peak
-      @param[in] left The iterator to the first point
-      @param[in] right The iterator to the last point
-      @param[out] peak_area The peak's computed area
-      @param[out] peak_height The peak's highest intensity
-      @param[out] peak_apex_pos The position of the point with highest intensity
-    */
-    void integratePeak(
-      const MSChromatogram& chromatogram, MSChromatogram::ConstIterator& left, MSChromatogram::ConstIterator& right,
-      double& peak_area, double& peak_height, double& peak_apex_pos
-    ) const;
-
-    /**
-      @brief Compute the area of a peak contained in a MSSpectrum.
-
-      The value of integration_type_ decides which integration technique to use:
-      - "trapezoid" for the trapezoidal rule
-      - "simpson" for the Simpson's rule (for unequally spaced points, Shklov, 1960)
-      - "intensity_sum" for the simple sum of the intensities
-
-      @note Make sure the spectrum is sorted with respect to mass-to-charge ratio.
-
-      @param[in] spectrum The spectrum which contains the peak
-      @param[in] left The left mass-to-charge ratio boundary
-      @param[in] right The right mass-to-charge ratio boundary
-      @param[out] peak_area The peak's computed area
-      @param[out] peak_height The peak's highest intensity
-      @param[out] peak_apex_pos The position of the point with highest intensity
-    */
-    void integratePeak(
-      const MSSpectrum& spectrum, const double& left, const double& right,
-      double& peak_area, double& peak_height, double& peak_apex_pos
-    ) const;
-
-    /**
-      @brief Compute the area of a peak contained in a MSSpectrum.
-
-      The value of integration_type_ decides which integration technique to use:
-      - "trapezoid" for the trapezoidal rule
-      - "simpson" for the Simpson's rule (for unequally spaced points, Shklov, 1960)
-      - "intensity_sum" for the simple sum of the intensities
-
-      @note Make sure the spectrum is sorted with respect to mass-to-charge ratio.
-
-      @param[in] spectrum The spectrum which contains the peak
-      @param[in] left The iterator to the first point
-      @param[in] right The iterator to the last point
-      @param[out] peak_area The peak's computed area
-      @param[out] peak_height The peak's highest intensity
-      @param[out] peak_apex_pos The position of the point with highest intensity
-    */
-    void integratePeak(
-      const MSSpectrum& spectrum, MSSpectrum::ConstIterator& left, MSSpectrum::ConstIterator& right,
-      double& peak_area, double& peak_height, double& peak_apex_pos
+      const double peak_apex_pos
     ) const;
 
     /**
@@ -365,12 +391,12 @@ public:
       @param[in] right The right retention time boundary
       @param[in] peak_height The peak's highest intensity
       @param[in] peak_apex_pos The position of the point with highest intensity
-      @param[out] psm The calculated peak shape metrics
+
+      @return A struct containing the calculated peak shape metrics
     */
-    void calculatePeakShapeMetrics(
-      const MSChromatogram& chromatogram, const double& left, const double& right,
-      const double& peak_height, const double& peak_apex_pos,
-      PeakShapeMetrics& psm
+    PeakShapeMetrics calculatePeakShapeMetrics(
+      const MSChromatogram& chromatogram, const double left, const double right,
+      const double peak_height, const double peak_apex_pos
     ) const;
 
     /**
@@ -389,12 +415,12 @@ public:
       @param[in] right The iterator to the last point
       @param[in] peak_height The peak's highest intensity
       @param[in] peak_apex_pos The position of the point with highest intensity
-      @param[out] psm The calculated peak shape metrics
+
+      @return A struct containing the calculated peak shape metrics
     */
-    void calculatePeakShapeMetrics(
+    PeakShapeMetrics calculatePeakShapeMetrics(
       const MSChromatogram& chromatogram, MSChromatogram::ConstIterator& left, MSChromatogram::ConstIterator& right,
-      const double& peak_height, const double& peak_apex_pos,
-      PeakShapeMetrics& psm
+      const double peak_height, const double peak_apex_pos
     ) const;
 
     /**
@@ -413,12 +439,12 @@ public:
       @param[in] right The right mass-to-charge ratio boundary
       @param[in] peak_height The peak's highest intensity
       @param[in] peak_apex_pos The position of the point with highest intensity
-      @param[out] psm The calculated peak shape metrics
+
+      @return A struct containing the calculated peak shape metrics
     */
-    void calculatePeakShapeMetrics(
-      const MSSpectrum& spectrum, const double& left, const double& right,
-      const double& peak_height, const double& peak_apex_pos,
-      PeakShapeMetrics& psm
+    PeakShapeMetrics calculatePeakShapeMetrics(
+      const MSSpectrum& spectrum, const double left, const double right,
+      const double peak_height, const double peak_apex_pos
     ) const;
 
     /**
@@ -437,12 +463,12 @@ public:
       @param[in] right The iterator to the last point
       @param[in] peak_height The peak's highest intensity
       @param[in] peak_apex_pos The position of the point with highest intensity
-      @param[out] psm The calculated peak shape metrics
+
+      @return A struct containing the calculated peak shape metrics
     */
-    void calculatePeakShapeMetrics(
+    PeakShapeMetrics calculatePeakShapeMetrics(
       const MSSpectrum& spectrum, MSSpectrum::ConstIterator& left, MSSpectrum::ConstIterator& right,
-      const double& peak_height, const double& peak_apex_pos,
-      PeakShapeMetrics& psm
+      const double peak_height, const double peak_apex_pos
     ) const;
 
     void getDefaultParameters(Param& params);
@@ -451,26 +477,23 @@ protected:
     void updateMembers_();
 
     template <typename PeakContainerT>
-    void estimateBackground_(
-      const PeakContainerT& p, const double& left, const double& right,
-      const double& peak_apex_pos,
-      double& background_area, double& background_height
+    PeakArea integratePeak_(
+      const PeakContainerT& p, const double left, const double right
     ) const;
 
     template <typename PeakContainerT>
-    void integratePeak_(
-      const PeakContainerT& p, const double& left, const double& right,
-      double& peak_area, double& peak_height, double& peak_apex_pos
+    PeakBackground estimateBackground_(
+      const PeakContainerT& p, const double left, const double right,
+      const double peak_apex_pos
     ) const;
 
     template <typename PeakContainerConstIteratorT>
     double simpson_(PeakContainerConstIteratorT it_begin, PeakContainerConstIteratorT it_end) const;
 
     template <typename PeakContainerT>
-    void calculatePeakShapeMetrics_(
-      const PeakContainerT& p, const double& left, const double& right,
-      const double& peak_height, const double& peak_apex_pos,
-      PeakShapeMetrics& psm
+    PeakShapeMetrics calculatePeakShapeMetrics_(
+      const PeakContainerT& p, const double left, const double right,
+      const double peak_height, const double peak_apex_pos
     ) const;
 
 private:
