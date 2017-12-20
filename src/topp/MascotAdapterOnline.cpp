@@ -77,19 +77,35 @@ using namespace std;
     </table>
 </CENTER>
 
-    This wrapper application generates peptide identifications for MS/MS spectra using the search engine Mascot. It communicates with the Mascot server over the network (i.e. it does not have to run on the server itself).
+    This wrapper application generates peptide identifications for MS/MS
+    spectra using the search engine Mascot. It communicates with the Mascot
+    server over the network (i.e. it does not have to run on the server
+    itself).
 
-    The adapter supports Mascot security features as well as proxy connections. Mascot versions 2.2.x up to 2.4.1 are supported and have been successfully tested (to varying degrees).
+    The adapter supports Mascot security features as well as proxy connections.
+    Mascot versions 2.2.x up to 2.4.1 are supported and have been successfully
+    tested (to varying degrees).
 
     @bug Running the adapter on Mascot 2.4 (possibly also other versions) produces the following error messages, which should be ignored:\n
     MascotRemoteQuery: An error occurred (requestId=11): Request aborted (QT Error Code: 7)\n
     MascotRemoteQuery: An error occurred (requestId=12): Request aborted (QT Error Code: 7)
 
-    @note Some Mascot server instances seem to fail without reporting back an error message. In such cases, try to run the search on another Mascot server or change/validate the search parameters (e.g. using modifications that are known to Mascot and can thus be set in the INI file, but which are unknown to Mascot, might pose a problem).
+    @note Some Mascot server instances seem to fail without reporting back an
+    error message. In such cases, try to run the search on another Mascot
+    server or change/validate the search parameters (e.g. using modifications
+    that are known to Mascot and can thus be set in the INI file, but which are
+    unknown to Mascot, might pose a problem).
 
-    @note Mascot returns incomplete/incorrect protein assignments for most identified peptides (due to protein-level grouping/filtering). By default the protein associations are therefore not included in the output of this adapter, only the peptide sequences. @ref TOPP_PeptideIndexer should be run after this tool to get correct assignments. The flag @p keep_protein_links can be used to override this behavior.
+    @note Mascot returns incomplete/incorrect protein assignments for most
+    identified peptides (due to protein-level grouping/filtering). By default
+    the protein associations are therefore not included in the output of this
+    adapter, only the peptide sequences. @ref TOPP_PeptideIndexer should be run
+    after this tool to get correct assignments. The flag @p keep_protein_links
+    can be used to override this behavior.
 
-    @note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
+    @note Currently mzIdentML (mzid) is not directly supported as an
+    input/output format of this tool. Convert mzid files to/from idXML using
+    @ref TOPP_IDFileConverter if necessary.
 
     <B>The command line parameters of this tool are:</B>
     @verbinclude TOPP_MascotAdapterOnline.cli
@@ -286,7 +302,7 @@ protected:
     String search_number = mascot_query->getSearchIdentifier();
     if (search_number.empty())
     {
-      writeLog_("Error: Failed to extract the Mascot search number.");
+      writeLog_("Error: Failed to extract the Mascot search identifier (search number).");
       if (mascot_query_param.exists("skip_export") &&
           mascot_query_param.getValue("skip_export").toBool())
       {
