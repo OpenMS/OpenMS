@@ -36,14 +36,19 @@
 using namespace OpenMS;
 using namespace std;
 
-int main()
+int main(int argc, const char** argv)
 {
+  
+  if (argc < 2) return 1;
+  
+  // the path to the data should be given on the command line
+  String tutorial_data_path(argv[1]);
   
   MSExperiment spectra;
   MzMLFile f;
 
   // load mzML from code examples folder
-  f.load("/data/Tutorial_GaussFilter.mzML", spectra);
+  f.load(tutorial_data_path + "/data/Tutorial_GaussFilter.mzML", spectra);
 
   // iterate over map and output MS2 precursor information
   for (auto s_it = spectra.begin(); s_it != spectra.end(); ++s_it)
