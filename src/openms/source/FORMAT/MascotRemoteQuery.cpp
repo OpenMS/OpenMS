@@ -497,9 +497,9 @@ namespace OpenMS
     QByteArray new_bytes = http_->readAll();
 #ifdef MASCOTREMOTEQUERY_DEBUG
     cerr << "Response of query: " << "\n";
-    QTextDocument doc;
-    doc.setHtml(new_bytes.constData());
-    cerr << doc.toPlainText().toStdString() << "\n";
+    cerr << "-----------------------------------" << "\n";
+    cerr << QString(new_bytes.constData()).toStdString() << "\n";
+    cerr << "-----------------------------------" << "\n";
 #endif
 
     if (QString(new_bytes).trimmed().size() == 0 && !(http_->lastResponse().isValid() && http_->lastResponse().statusCode() == 303))
