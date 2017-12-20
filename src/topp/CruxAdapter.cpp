@@ -202,6 +202,8 @@ protected:
 
     bool deisotope = getFlag_("deisotope");
     bool report_decoys = getFlag_("report_decoys");
+    bool run_percolator = getStringOption_("run_percolator") == "true";
+
     String inputfile_name = getStringOption_("in");
     writeDebug_(String("Input file: ") + inputfile_name, 1);
     if (inputfile_name.empty())
@@ -248,43 +250,17 @@ protected:
     String parser = " --spectrum-parser mstoolkit "; // only this parser correctly parses our .mzML files
 
     writeDebug_("Creating temporary directory '" + tmp_dir + "'", 1);
-    String tmp_xml = tmp_dir + "input.mzML";
-    String tmp_pepxml = tmp_dir + "result.pep.xml";
-    String tmp_pin = tmp_dir + "result.pin";
-    String tmp_file;
-
-    PeakMap exp;
-    MzMLFile mzml_file;
-    mzml_file.getOptions().addMSLevel(2); // only load msLevel 2 //TO DO: setMSLevels or clearMSLevels
-    mzml_file.setLogType(log_type_);
-    mzml_file.load(inputfile_name, exp);
+    String tmp_mzml = tmp_dir + "input.mzML";
 
     // Low memory conversion
     {
-      PlainMSDataWritingConsumer consumer(tmp_xml);
-      // consumer.getOptions().setWriteIndex(write_scan_index);
+      MzMLFile mzml_file;
+
+      PlainMSDataWritingConsumer consumer(tmp_mzml);
       consumer.getOptions().setForceTPPCompatability(true);
+      consumer.getOptions().addMSLevel(2); // only load msLevel 2
       bool skip_full_count = true;
-      mzml_file.setLogType(log_type_);
       mzml_file.transform(inputfile_name, &consumer, skip_full_count);
-    }
-
-    //
-    if (exp.getSpectra().empty())
-    {
-      throw OpenMS::Exception::FileEmpty(__FILE__, __LINE__, __FUNCTION__, "Error: No MS2 spectra in input file.");
-    }
-
-    // determine type of spectral data (profile or centroided)
-    SpectrumSettings::SpectrumType spectrum_type = exp[0].getType();
-
-    if (spectrum_type == SpectrumSettings::RAWDATA)
-    {
-      if (!getFlag_("force"))
-      {
-        throw OpenMS::Exception::IllegalArgument(__FILE__, __LINE__, __FUNCTION__,
-            "Error: Profile data provided but centroided MS2 spectra expected. To enforce processing of the data set the -force flag.");
-      }
     }
 
     //-------------------------------------------------------------
@@ -325,14 +301,13 @@ protected:
       int status = QProcess::execute(crux_executable.toQString(), process_params); // does automatic escaping etc...
       if (status != 0)
       {
-        writeLog_("Crux problem. Aborting! Calling command was: '" + crux_executable + " \"" + inputfile_name + "\"'.\nDoes the Crux executable exist?");
+        writeLog_("Crux problem. Aborting! Calling command was: '" + 
+            crux_executable + " \"" + params + " " + db_name + " " + idx_name + "\"'.\nDoes the Crux executable exist?");
         return EXTERNAL_PROGRAM_ERROR;
       }
     }
 
     std::cout << " Done running tide-index ... " << std::endl;
-
-    bool run_percolator = getStringOption_("run_percolator") == "true";
 
     // run crux tide-search
     {
@@ -371,14 +346,14 @@ protected:
       {
         process_params << s.toQString();
       }
-      process_params << tmp_xml.toQString() << idx_name.toQString();
+      process_params << tmp_mzml.toQString() << idx_name.toQString();
       qDebug() << process_params;
 
       int status = QProcess::execute(crux_executable.toQString(), process_params); // does automatic escaping etc...
       if (status != 0)
       {
         writeLog_("Crux problem. Aborting! Calling command was: '" + 
-            crux_executable + " \"" + params + " " + tmp_xml + " " + idx_name + "\"'.\nDoes the Crux executable exist?");
+            crux_executable + " \"" + params + " " + tmp_mzml + " " + idx_name + "\"'.\nDoes the Crux executable exist?");
         return EXTERNAL_PROGRAM_ERROR;
       }
     }
@@ -454,14 +429,8 @@ protected:
     }
     else
     {
-
-      // TODO: does not work yet
       String mzid = out_dir_q + "tide-search.mzid";
-      writeDebug_("load mzIdentml", 1);
       MzIdentMLFile().load(mzid, protein_identifications, peptide_identifications);
-      writeDebug_("write idXMLFile", 1);
-      writeDebug_(out, 1);
-
     }
 
     IdXMLFile().store(out, protein_identifications, peptide_identifications);
