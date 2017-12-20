@@ -74,6 +74,10 @@ OPENMS_FINDBINARY(FIDOCHOOSEPARAMS_BINARY "FidoChooseParameters" "FidoChoosePara
 OPENMS_FINDBINARY(SIRIUS_BINARY "sirius;sirius-console-64.exe" "Sirius")
 
 #------------------------------------------------------------------------------
+# Crux
+OPENMS_FINDBINARY(CRUX_BINARY "crux;crux.exe" "Crux")
+
+#------------------------------------------------------------------------------
 # Spectrast
 OPENMS_FINDBINARY(SPECTRAST_BINARY "spectrast" "SpectraST")
 
@@ -119,6 +123,14 @@ if (NOT (${MSGFPLUS_BINARY} STREQUAL "MSGFPLUS_BINARY-NOTFOUND"))
   set_tests_properties("TOPP_MSGFPlusAdapter_1_out1" PROPERTIES DEPENDS "TOPP_MSGFPlusAdapter_1")
   add_test("TOPP_MSGFPlusAdapter_1_out2" ${DIFF} -in1 MSGFPlusAdapter_1_out2.tmp.mzid -in2 ${DATA_DIR_TOPP}/THIRDPARTY/MSGFPlusAdapter_1_out.mzid -whitelist "creationDate=" "SearchDatabase numDatabaseSequences=\"10\" location=" "SpectraData location=" "AnalysisSoftware")
   set_tests_properties("TOPP_MSGFPlusAdapter_1_out2" PROPERTIES DEPENDS "TOPP_MSGFPlusAdapter_1")
+endif()
+
+#------------------------------------------------------------------------------
+if (NOT (${CRUX_BINARY} STREQUAL "CRUX_BINARY-NOTFOUND"))
+  ### NOT needs to be added after the binarys have been included
+  add_test("TOPP_CruxAdapter_1" ${TOPP_BIN_PATH}/CruxAdapter -test -ini ${DATA_DIR_TOPP}/THIRDPARTY/CruxAdapter_1.ini -database ${DATA_DIR_TOPP}/THIRDPARTY/proteins.fasta -in ${DATA_DIR_TOPP}/THIRDPARTY/spectra_comet.mzML -out CruxAdapter_1_out1.tmp -pin_out CruxAdapter_1_out2.tmp.csv -crux_executable "${CRUX_BINARY}" -run_percolator false)
+  add_test("TOPP_CruxAdapter_1_out1" ${DIFF} -in1 CruxAdapter_1_out1.tmp -in2 ${DATA_DIR_TOPP}/THIRDPARTY/CruxAdapter_1_out.idXML -whitelist "IdentificationRun date" "SearchParameters id=\"SP_0\" db=" "UserParam type=\"stringList\" name=\"spectra_data\" value=")
+  set_tests_properties("TOPP_CruxAdapter_1_out1" PROPERTIES DEPENDS "TOPP_CruxAdapter_1")
 endif()
 
 #------------------------------------------------------------------------------
