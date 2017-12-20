@@ -137,7 +137,8 @@ namespace OpenMS
     }
     manager_ = new QNetworkAccessManager(this);
 
-    if (use_ssl_)
+
+    if (!use_ssl_)
     {
       manager_->connectToHost(host_name_.c_str(), (UInt)param_.getValue("host_port"));
     }
