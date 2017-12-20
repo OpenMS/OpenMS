@@ -55,8 +55,8 @@ using namespace std;
 
 typedef FeatureFinderAlgorithmSH FFSH;
 
-FFSH* ptr = 0;
-FFSH* nullPtr = 0;
+FFSH* ptr = nullptr;
+FFSH* nullPtr = nullptr;
 
 START_SECTION((FeatureFinderAlgorithmSH()))
   ptr = new FFSH;

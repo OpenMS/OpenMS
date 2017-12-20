@@ -66,7 +66,7 @@ public:
     AverageLinkage(const AverageLinkage & source);
 
     /// destructor
-    virtual ~AverageLinkage();
+    ~AverageLinkage() override;
 
     /// assignment operator
     AverageLinkage & operator=(const AverageLinkage & source);
@@ -82,7 +82,7 @@ public:
         The clustering method is average linkage, where the updated distances after merging two clusters are each the average distances between the elements of their clusters. After @p threshold is exceeded, @p cluster_tree is filled with dummy clusteringsteps (children: (0,1), distance: -1) to the root.
         @see ClusterFunctor , BinaryTreeNode
     */
-    void operator()(DistanceMatrix<float> & original_distance, std::vector<BinaryTreeNode> & cluster_tree, const float threshold = 1) const;
+    void operator()(DistanceMatrix<float> & original_distance, std::vector<BinaryTreeNode> & cluster_tree, const float threshold = 1) const override;
 
     /// creates a new instance of a AverageLinkage object
     static ClusterFunctor * create();

@@ -105,7 +105,7 @@ public:
   }
 
 protected:
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "Input qcml file", false);
     setValidFormats_("in", ListUtils::create<String>("qcML"));
@@ -117,7 +117,7 @@ protected:
     setValidFormats_("out", ListUtils::create<String>("qcML"));
   }
 
-  ExitCodes main_(int, const char**)
+  ExitCodes main_(int, const char**) override
   {
     //-------------------------------------------------------------
     // parsing parameters

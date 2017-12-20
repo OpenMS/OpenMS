@@ -263,8 +263,8 @@ double expected_tau = 0.0;
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-EGHTraceFitter* ptr = 0;
-EGHTraceFitter* nullPointer = 0;
+EGHTraceFitter* ptr = nullptr;
+EGHTraceFitter* nullPointer = nullptr;
 START_SECTION(EGHTraceFitter())
 {
   ptr = new EGHTraceFitter();

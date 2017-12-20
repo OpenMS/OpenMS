@@ -61,7 +61,7 @@ public:
     ///Default constructor
     MzMLFile();
     ///Destructor
-    ~MzMLFile();
+    ~MzMLFile() override;
 
     /// Mutable access to the options for loading/storing
     PeakFileOptions& getOptions();

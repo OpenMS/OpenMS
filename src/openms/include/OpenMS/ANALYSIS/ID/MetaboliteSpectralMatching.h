@@ -157,7 +157,7 @@ namespace OpenMS
     MetaboliteSpectralMatching();
 
     /// Default destructor
-    virtual ~MetaboliteSpectralMatching();
+    ~MetaboliteSpectralMatching() override;
 
     /// hyperscore computation
     double computeHyperScore(MSSpectrum, MSSpectrum, const double&, const double&);
@@ -166,7 +166,7 @@ namespace OpenMS
     void run(PeakMap &, PeakMap &, MzTab &);
 
   protected:
-    virtual void updateMembers_();
+    void updateMembers_() override;
 
   private:
     /// private member functions

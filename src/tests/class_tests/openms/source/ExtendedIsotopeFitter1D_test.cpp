@@ -49,8 +49,8 @@ START_TEST(ExtendedIsotopeFitter1D, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-ExtendedIsotopeFitter1D* ptr = 0;
-ExtendedIsotopeFitter1D* nullPointer = 0;
+ExtendedIsotopeFitter1D* ptr = nullptr;
+ExtendedIsotopeFitter1D* nullPointer = nullptr;
 START_SECTION(ExtendedIsotopeFitter1D())
 {
 	ptr = new ExtendedIsotopeFitter1D();

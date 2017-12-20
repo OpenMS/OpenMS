@@ -56,7 +56,7 @@ public:
     EmgFitter1D(const EmgFitter1D& source);
 
     /// destructor
-    virtual ~EmgFitter1D();
+    ~EmgFitter1D() override;
 
     /// assignment operator
     virtual EmgFitter1D& operator=(const EmgFitter1D& source);
@@ -74,7 +74,7 @@ public:
     }
 
     /// return interpolation model
-    QualityType fit1d(const RawDataArrayType& range, InterpolationModel*& model);
+    QualityType fit1d(const RawDataArrayType& range, InterpolationModel*& model) override;
 
 protected:
     /// Helper struct (contains the size of an area and a raw data container)
@@ -97,9 +97,9 @@ public:
         m_data(data)
       {}
 
-      int operator()(const Eigen::VectorXd& x, Eigen::VectorXd& fvec);
+      int operator()(const Eigen::VectorXd& x, Eigen::VectorXd& fvec) override;
       // compute Jacobian matrix for the different parameters
-      int df(const Eigen::VectorXd& x, Eigen::MatrixXd& J);
+      int df(const Eigen::VectorXd& x, Eigen::MatrixXd& J) override;
 
 protected:
       const EmgFitter1D::Data* m_data;
@@ -117,7 +117,7 @@ protected:
     /// Parameter of emg - peak retention time
     CoordinateType retention_;
 
-    void updateMembers_();
+    void updateMembers_() override;
   };
 
 }

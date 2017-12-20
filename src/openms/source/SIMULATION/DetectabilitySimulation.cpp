@@ -167,7 +167,7 @@ namespace OpenMS
     }
     // loading training data
     String sample_file = dt_model_file_ + "_samples";
-    svm_problem* training_data = NULL;
+    svm_problem* training_data = nullptr;
     if (File::readable(sample_file))
     {
       training_data = encoder.loadLibSVMProblem(sample_file);

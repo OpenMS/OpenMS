@@ -53,51 +53,51 @@ namespace OpenMS
     //--------------------------------------------------------------------------------
 
     // this cannot be moved into a function as VS2008 does not allow more than 31 static members in a function .. don't ask...
-    const XMLCh * MzXMLHandler::s_value_ = 0;
-    const XMLCh * MzXMLHandler::s_count_ = 0;
-    const XMLCh * MzXMLHandler::s_type_ = 0;
-    const XMLCh * MzXMLHandler::s_name_ = 0;
-    const XMLCh * MzXMLHandler::s_version_ = 0;
-    const XMLCh * MzXMLHandler::s_filename_ = 0;
-    const XMLCh * MzXMLHandler::s_filetype_ = 0;
-    const XMLCh * MzXMLHandler::s_filesha1_ = 0;
-    const XMLCh * MzXMLHandler::s_completiontime_ = 0;
-    const XMLCh * MzXMLHandler::s_precision_ = 0;
-    const XMLCh * MzXMLHandler::s_byteorder_ = 0;
-    const XMLCh * MzXMLHandler::s_contentType_ = 0;
-    const XMLCh * MzXMLHandler::s_compressionType_ = 0;
-    const XMLCh * MzXMLHandler::s_precursorintensity_ = 0;
-    const XMLCh * MzXMLHandler::s_precursorcharge_ = 0;
-    const XMLCh * MzXMLHandler::s_windowwideness_ = 0;
-    const XMLCh * MzXMLHandler::s_mslevel_ = 0;
-    const XMLCh * MzXMLHandler::s_peakscount_ = 0;
-    const XMLCh * MzXMLHandler::s_polarity_ = 0;
-    const XMLCh * MzXMLHandler::s_scantype_ = 0;
-    const XMLCh * MzXMLHandler::s_filterline_ = 0;
-    const XMLCh * MzXMLHandler::s_retentiontime_ = 0;
-    const XMLCh * MzXMLHandler::s_startmz_ = 0;
-    const XMLCh * MzXMLHandler::s_endmz_ = 0;
-    const XMLCh * MzXMLHandler::s_first_ = 0;
-    const XMLCh * MzXMLHandler::s_last_ = 0;
-    const XMLCh * MzXMLHandler::s_phone_ = 0;
-    const XMLCh * MzXMLHandler::s_email_ = 0;
-    const XMLCh * MzXMLHandler::s_uri_ = 0;
-    const XMLCh * MzXMLHandler::s_num_ = 0;
-    const XMLCh * MzXMLHandler::s_intensitycutoff_ = 0;
-    const XMLCh * MzXMLHandler::s_centroided_ = 0;
-    const XMLCh * MzXMLHandler::s_deisotoped_ = 0;
-    const XMLCh * MzXMLHandler::s_chargedeconvoluted_ = 0;
+    const XMLCh * MzXMLHandler::s_value_ = nullptr;
+    const XMLCh * MzXMLHandler::s_count_ = nullptr;
+    const XMLCh * MzXMLHandler::s_type_ = nullptr;
+    const XMLCh * MzXMLHandler::s_name_ = nullptr;
+    const XMLCh * MzXMLHandler::s_version_ = nullptr;
+    const XMLCh * MzXMLHandler::s_filename_ = nullptr;
+    const XMLCh * MzXMLHandler::s_filetype_ = nullptr;
+    const XMLCh * MzXMLHandler::s_filesha1_ = nullptr;
+    const XMLCh * MzXMLHandler::s_completiontime_ = nullptr;
+    const XMLCh * MzXMLHandler::s_precision_ = nullptr;
+    const XMLCh * MzXMLHandler::s_byteorder_ = nullptr;
+    const XMLCh * MzXMLHandler::s_contentType_ = nullptr;
+    const XMLCh * MzXMLHandler::s_compressionType_ = nullptr;
+    const XMLCh * MzXMLHandler::s_precursorintensity_ = nullptr;
+    const XMLCh * MzXMLHandler::s_precursorcharge_ = nullptr;
+    const XMLCh * MzXMLHandler::s_windowwideness_ = nullptr;
+    const XMLCh * MzXMLHandler::s_mslevel_ = nullptr;
+    const XMLCh * MzXMLHandler::s_peakscount_ = nullptr;
+    const XMLCh * MzXMLHandler::s_polarity_ = nullptr;
+    const XMLCh * MzXMLHandler::s_scantype_ = nullptr;
+    const XMLCh * MzXMLHandler::s_filterline_ = nullptr;
+    const XMLCh * MzXMLHandler::s_retentiontime_ = nullptr;
+    const XMLCh * MzXMLHandler::s_startmz_ = nullptr;
+    const XMLCh * MzXMLHandler::s_endmz_ = nullptr;
+    const XMLCh * MzXMLHandler::s_first_ = nullptr;
+    const XMLCh * MzXMLHandler::s_last_ = nullptr;
+    const XMLCh * MzXMLHandler::s_phone_ = nullptr;
+    const XMLCh * MzXMLHandler::s_email_ = nullptr;
+    const XMLCh * MzXMLHandler::s_uri_ = nullptr;
+    const XMLCh * MzXMLHandler::s_num_ = nullptr;
+    const XMLCh * MzXMLHandler::s_intensitycutoff_ = nullptr;
+    const XMLCh * MzXMLHandler::s_centroided_ = nullptr;
+    const XMLCh * MzXMLHandler::s_deisotoped_ = nullptr;
+    const XMLCh * MzXMLHandler::s_chargedeconvoluted_ = nullptr;
 
     /// Constructor for a read-only handler
     MzXMLHandler::MzXMLHandler(MapType& exp, const String& filename, const String& version, ProgressLogger& logger) :
       XMLHandler(filename, version),
       exp_(&exp),
-      cexp_(0),
+      cexp_(nullptr),
       decoder_(),
       nesting_level_(0),
       skip_spectrum_(false),
       spec_write_counter_(1),
-      consumer_(NULL),
+      consumer_(nullptr),
       scan_count_(0),
       logger_(logger)
     {
@@ -107,13 +107,13 @@ namespace OpenMS
     /// Constructor for a write-only handler
     MzXMLHandler::MzXMLHandler(const MapType& exp, const String& filename, const String& version, const ProgressLogger& logger) :
       XMLHandler(filename, version),
-      exp_(0),
+      exp_(nullptr),
       cexp_(&exp),
       decoder_(),
       nesting_level_(0),
       skip_spectrum_(false),
       spec_write_counter_(1),
-      consumer_(NULL),
+      consumer_(nullptr),
       scan_count_(0),
       logger_(logger)
     {
@@ -1257,7 +1257,7 @@ namespace OpenMS
       // Append all spectra
       for (Size i = 0; i < spectrum_data_.size(); i++)
       {
-        if (consumer_ != NULL)
+        if (consumer_ != nullptr)
         {
           consumer_->consumeSpectrum(spectrum_data_[i].spectrum);
           if (options_.getAlwaysAppendData())

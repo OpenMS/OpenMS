@@ -51,8 +51,8 @@ START_TEST(ToolDescriptionFile, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-ToolDescriptionFile* ptr = 0;
-ToolDescriptionFile* null_ptr = 0;
+ToolDescriptionFile* ptr = nullptr;
+ToolDescriptionFile* null_ptr = nullptr;
 START_SECTION(ToolDescriptionFile())
 {
 	ptr = new ToolDescriptionFile();

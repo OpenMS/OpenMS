@@ -47,8 +47,8 @@ START_TEST(QuadraticRegression, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-QuadraticRegression* ptr = 0;
-QuadraticRegression* null_ptr = 0;
+QuadraticRegression* ptr = nullptr;
+QuadraticRegression* null_ptr = nullptr;
 START_SECTION(QuadraticRegression())
 {
 	ptr = new QuadraticRegression();

@@ -53,8 +53,8 @@ START_TEST(IntensityBalanceFilter, "$Id$")
 
 /////////////////////////////////////////////////////////////
 
-IntensityBalanceFilter* e_ptr = 0;
-IntensityBalanceFilter* e_nullPointer = 0;
+IntensityBalanceFilter* e_ptr = nullptr;
+IntensityBalanceFilter* e_nullPointer = nullptr;
 
 START_SECTION((IntensityBalanceFilter()))
 	e_ptr = new IntensityBalanceFilter;

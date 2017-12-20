@@ -51,8 +51,8 @@ START_TEST(SeedListGenerator, "$Id$")
 
 /////////////////////////////////////////////////////////////
 
-SeedListGenerator* slg_ptr = 0;
-SeedListGenerator* slg_nullPointer = 0;
+SeedListGenerator* slg_ptr = nullptr;
+SeedListGenerator* slg_nullPointer = nullptr;
 
 START_SECTION((SeedListGenerator()))
 {

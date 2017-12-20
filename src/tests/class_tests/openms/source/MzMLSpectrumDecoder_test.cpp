@@ -51,8 +51,8 @@ START_TEST(MzMLSpectrumDecoder, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-MzMLSpectrumDecoder* ptr = 0;
-MzMLSpectrumDecoder* nullPointer = 0;
+MzMLSpectrumDecoder* ptr = nullptr;
+MzMLSpectrumDecoder* nullPointer = nullptr;
 START_SECTION((MzMLSpectrumDecoder() ))
 {
   ptr = new MzMLSpectrumDecoder();

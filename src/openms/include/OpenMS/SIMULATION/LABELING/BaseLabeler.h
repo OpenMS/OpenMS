@@ -56,7 +56,7 @@ public:
     BaseLabeler();
 
     /// destructor
-    virtual ~BaseLabeler();
+    ~BaseLabeler() override;
 
     /// register all derived classes here (implemented in file BaseLabeler_impl.h)
     static void registerChildren();

@@ -110,7 +110,7 @@ public:
   }
 
 protected:
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
 
     registerInputFile_("in", "<file>", "", "Input file");
@@ -179,17 +179,17 @@ protected:
     registerIntOption_("num_hits", "<num>", 5, "Number of peptide hits in output file", false, false);
 
     //mzXML/mzML parameters
-    registerStringOption_("precursor_charge", "0:0", ":", "charge range to search: 0 0 == search all charges, 2 6 == from +2 to +6, 3 3 == +3", false, false);
+    registerStringOption_("precursor_charge", "0:0", "0:0", "charge range to search: 0:0 == search all charges, 2:6 == from +2 to +6, 3:3 == +3", false, false);
     registerStringOption_("override_charge", "<choice>", "keep any known", "0 = keep any known precursor charge state, 1 = ignore known precursor charge state and use precursor_charge parameter, 2 = ignore precursor charges outside precursor_charge range, 3 = keep any known precursor charge state. For unknown charge states, search as singly charged if there is no signal above the precursor m/z or use the precursor_charge range", false, false);
     setValidStrings_("override_charge", ListUtils::create<String>("keep any known,ignore known,ignore outside range,keep known search unknown"));
     registerIntOption_("ms_level", "<num>", 2, "MS level to analyze, valid are levels 2 (default) or 3", false, false);
-    setMinInt_("ms_level",2);
-    setMaxInt_("ms_level",3);
+    setMinInt_("ms_level", 2);
+    setMaxInt_("ms_level", 3);
     registerStringOption_("activation_method", "<method>", "ALL", "activation method; used if activation method set; allowed ALL, CID, ECD, ETD, PQD, HCD, IRMPD", false, false);
     setValidStrings_("activation_method", ListUtils::create<String>("ALL,CID,ECD,ETD,PQD,HCD,IRMPD"));
 
     //Misc. parameters
-    registerStringOption_("digest_mass_range", "600:5000", ":", "MH+ peptide mass range to analyze", false, true);
+    registerStringOption_("digest_mass_range", "600:5000", "600:5000", "MH+ peptide mass range to analyze", false, true);
     registerIntOption_("max_fragment_charge", "<num>", 3, "set maximum fragment charge state to analyze (allowed max 5)", false, false);
     registerStringOption_("max_precursor_charge", "<num>", "0+", "set maximum precursor charge state to analyze (allowed max 9)", false, true);
     registerStringOption_("clip_nterm_methionine", "<num>", "false", "0=leave sequences as-is; 1=also consider sequence w/o N-term methionine", false, false);
@@ -203,7 +203,7 @@ protected:
     registerStringOption_("remove_precursor_peak", "<choice>", "no", "0=no, 1=yes, 2=all charge reduced precursor peaks (for ETD)", false, true);
     setValidStrings_("remove_precursor_peak", ListUtils::create<String>("no,yes,all"));
     registerIntOption_("remove_precursor_tolerance", "<num>", 1.5, "+- Da tolerance for precursor removal", false, true);
-    registerStringOption_("clear_mz_range", "0:0", ":", "for iTRAQ/TMT type data; will clear out all peaks in the specified m/z range", false, true);
+    registerStringOption_("clear_mz_range", "0:0", "0:0", "for iTRAQ/TMT type data; will clear out all peaks in the specified m/z range", false, true);
 
     //Modifications
     registerStringList_("fixed_modifications", "<mods>", vector<String>(), "Fixed modifications, specified using UniMod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)' or 'Oxidation (M)'", false, false);
@@ -393,8 +393,11 @@ protected:
     override_charge["ignore outside range"] = 2;
     override_charge["keep known search unknown"] = 3;
 
-    int precursor_charge_min, precursor_charge_max;
-    parseRange_(getStringOption_("precursor_charge"), precursor_charge_min, precursor_charge_max);
+    int precursor_charge_min(0), precursor_charge_max(0);
+    if (!parseRange_(getStringOption_("precursor_charge"), precursor_charge_min, precursor_charge_max))
+    {
+      LOG_INFO << "precursor_charge range not set. Defaulting to 0:0 (disable charge filtering)." << endl;
+    }
 
     os << "scan_range = " << "0 0" << "\n";                        // start and scan scan range to search; 0 as 1st entry ignores parameter
     os << "precursor_charge = " << precursor_charge_min << " " << precursor_charge_max << "\n";                  // precursor charge range to analyze; does not override any existing charge; 0 as 1st entry ignores parameter
@@ -403,8 +406,11 @@ protected:
     os << "activation_method = " << getStringOption_("activation_method") << "\n";                 // activation method; used if activation method set; allowed ALL, CID, ECD, ETD, PQD, HCD, IRMPD
 
     // misc parameters
-    int digest_mass_range_min, digest_mass_range_max;
-    parseRange_(getStringOption_("digest_mass_range"), digest_mass_range_min, digest_mass_range_max);
+    double digest_mass_range_min(600.0), digest_mass_range_max(5000.0);
+    if (!parseRange_(getStringOption_("digest_mass_range"), digest_mass_range_min, digest_mass_range_max))
+    {
+      LOG_INFO << "digest_mass_range not set. Defaulting to 600.0 5000.0." << endl;
+    }
 
     os << "digest_mass_range = " << digest_mass_range_min << " " << digest_mass_range_max << "\n";        // MH+ peptide mass range to analyze
     os << "num_results = " << 100 << "\n";                       // number of search hits to store internally
@@ -424,8 +430,11 @@ protected:
     remove_precursor_peak["yes"] = 1;
     remove_precursor_peak["all"] = 2;
 
-    double clear_mz_range_min, clear_mz_range_max;
-    parseRange_(getStringOption_("clear_mz_range"), clear_mz_range_min, clear_mz_range_max);
+    double clear_mz_range_min(0.0), clear_mz_range_max(0.0);
+    if (!parseRange_(getStringOption_("clear_mz_range"), clear_mz_range_min, clear_mz_range_max))
+    {
+      LOG_INFO << "clear_mz_range not set. Defaulting to 0:0 (disable m/z filter)." << endl;
+    }
 
     os << "minimum_peaks = " << getIntOption_("minimum_peaks") << "\n";                      // required minimum number of peaks in spectrum to search (default 10)
     os << "minimum_intensity = " << getIntOption_("minimum_intensity") << "\n";                   // minimum intensity value to read in
@@ -471,7 +480,7 @@ protected:
     os << "10. Chymotrypsin           1      FWYL        P" << "\n";
   }
 
-  ExitCodes main_(int, const char**)
+  ExitCodes main_(int, const char**) override
   {
     //-------------------------------------------------------------
     // parsing parameters

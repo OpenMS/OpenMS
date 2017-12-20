@@ -66,8 +66,8 @@ namespace OpenMS
     MzIdentMLDOMHandler::MzIdentMLDOMHandler(const vector<ProteinIdentification>& pro_id, const vector<PeptideIdentification>& pep_id, const String& version, const ProgressLogger& logger) :
       logger_(logger),
       //~ ms_exp_(0),
-      pro_id_(0),
-      pep_id_(0),
+      pro_id_(nullptr),
+      pep_id_(nullptr),
       cpro_id_(&pro_id),
       cpep_id_(&pep_id),
       schema_version_(version),
@@ -101,8 +101,8 @@ namespace OpenMS
       //~ ms_exp_(0),
       pro_id_(&pro_id),
       pep_id_(&pep_id),
-      cpro_id_(0),
-      cpep_id_(0),
+      cpro_id_(nullptr),
+      cpep_id_(nullptr),
       schema_version_(version),
       mzid_parser_(),
       xl_ms_search_(false)
@@ -297,14 +297,14 @@ namespace OpenMS
     void MzIdentMLDOMHandler::writeMzIdentMLFile(const std::string& mzid_file)
     {
       DOMImplementation* impl =  DOMImplementationRegistry::getDOMImplementation(XMLString::transcode("XML 1.0")); //XML 3?!
-      if (impl != NULL)
+      if (impl != nullptr)
       {
         try
         {
           xercesc::DOMDocument* xmlDoc = impl->createDocument(
             XMLString::transcode("http://psidev.info/psi/pi/mzIdentML/1.1"),
             XMLString::transcode("MzIdentML"), // root element name
-            0); // document type object (DTD).
+            nullptr); // document type object (DTD).
 
           DOMElement* rootElem = xmlDoc->getDocumentElement();
           rootElem->setAttribute(XMLString::transcode("version"),
@@ -2670,7 +2670,7 @@ namespace OpenMS
           for (AASequence::ConstIterator res = peps->second.begin(); res != peps->second.end(); ++res, ++i)
           {
             const ResidueModification* mod = res->getModification();
-            if (mod == 0) continue;
+            if (mod == nullptr) continue;
             DOMElement* current_mod = current_pep->getOwnerDocument()->createElement(XMLString::transcode("Modification"));
             DOMElement* current_cv = current_pep->getOwnerDocument()->createElement(XMLString::transcode("cvParam"));
             current_mod->setAttribute(XMLString::transcode("location"), XMLString::transcode(String(i).c_str()));

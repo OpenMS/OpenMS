@@ -47,8 +47,8 @@ START_TEST(RawMSSignalSimulation, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-RawMSSignalSimulation* ptr = 0;
-RawMSSignalSimulation* nullPointer = 0;
+RawMSSignalSimulation* ptr = nullptr;
+RawMSSignalSimulation* nullPointer = nullptr;
 SimTypes::MutableSimRandomNumberGeneratorPtr empty_rnd_gen (new SimTypes::SimRandomNumberGenerator);
 //const unsigned long rnd_gen_seed = 1;
 

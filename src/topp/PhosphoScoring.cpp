@@ -244,7 +244,7 @@ protected:
     in.sortByPosition();
   }
 
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "Input file with MS/MS spectra");
     setValidFormats_("in", ListUtils::create<String>("mzML"));
@@ -275,7 +275,7 @@ protected:
     }
   }
 
-  ExitCodes main_(int, const char**)
+  ExitCodes main_(int, const char**) override
   {
     //-------------------------------------------------------------
     // parameter handling

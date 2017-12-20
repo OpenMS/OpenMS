@@ -66,7 +66,7 @@ public:
     /// Copy constructor
     TOPPASResource(const TOPPASResource & rhs);
     /// Destructor
-    virtual ~TOPPASResource();
+    ~TOPPASResource() override;
     /// Assignment operator
     TOPPASResource & operator=(const TOPPASResource & rhs);
     /// Writes this resource to the local file @p file

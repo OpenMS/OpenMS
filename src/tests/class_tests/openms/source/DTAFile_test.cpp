@@ -49,8 +49,8 @@ START_TEST(DTAFile, "$Id$")
 
 using namespace OpenMS;
 
-DTAFile* ptr = 0;
-DTAFile* nullPointer = 0;
+DTAFile* ptr = nullptr;
+DTAFile* nullPointer = nullptr;
 START_SECTION(DTAFile())
 	ptr = new DTAFile;
 	TEST_NOT_EQUAL(ptr, nullPointer)

@@ -61,7 +61,7 @@ public:
     MapAlignmentAlgorithmSpectrumAlignment();
 
     /// Destructor
-    virtual ~MapAlignmentAlgorithmSpectrumAlignment();
+    ~MapAlignmentAlgorithmSpectrumAlignment() override;
 
     /// Align peak maps
     virtual void align(std::vector<PeakMap >&, std::vector<TransformationDescription>&);
@@ -330,7 +330,7 @@ private:
     ///Container holding the score of each cell(matchmatrix,insertmatrix, traceback)
     std::vector<float> scoredistribution_; //save the cell i, j , matchscore, insertscore, traceback
     //docu in base class
-    void updateMembers_();
+    void updateMembers_() override;
   };
 
 } // namespace OpenMS

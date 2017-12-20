@@ -48,8 +48,8 @@ START_TEST(PeakPickerCWT, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-PeakPickerCWT* ptr = 0;
-PeakPickerCWT* nullPointer = 0;
+PeakPickerCWT* ptr = nullptr;
+PeakPickerCWT* nullPointer = nullptr;
 START_SECTION((PeakPickerCWT()))
   ptr = new PeakPickerCWT();
 	TEST_NOT_EQUAL(ptr, nullPointer)

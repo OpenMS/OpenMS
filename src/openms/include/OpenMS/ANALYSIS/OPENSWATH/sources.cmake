@@ -22,6 +22,7 @@ set(sources_list_h
   OpenSwathTSVWriter.h
   OpenSwathOSWWriter.h
   OpenSwathWorkflow.h
+  PeakIntegrator.h
   SONARScoring.h
   SpectrumAddition.h
   TargetedSpectraExtractor.h

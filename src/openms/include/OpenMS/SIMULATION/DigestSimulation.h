@@ -68,7 +68,7 @@ public:
     DigestSimulation(const DigestSimulation& source);
 
     /// Destructor
-    virtual ~DigestSimulation();
+    ~DigestSimulation() override;
     //@}
 
     /// Assignment operator

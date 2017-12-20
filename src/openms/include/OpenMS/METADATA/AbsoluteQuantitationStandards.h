@@ -106,7 +106,7 @@ public:
                                      
 private:
     // members
-    std::map<String,std::vector<featureConcentration>> components_to_concentrations;
+    std::map<String, std::vector<featureConcentration>> components_to_concentrations;
 
   };
 

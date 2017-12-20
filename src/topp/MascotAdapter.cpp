@@ -229,7 +229,7 @@ public:
   }
 
 protected:
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "input file in mzData format.\n"
                                            "Note: In mode 'mascot_out' a Mascot results file (.mascotXML) is read");
@@ -267,7 +267,7 @@ protected:
     registerStringOption_("temp_data_directory", "<dir>", "", "a directory in which some temporary files can be stored", false);
   }
 
-  ExitCodes main_(int, const char **)
+  ExitCodes main_(int, const char **) override
   {
     // path to the log file
     String logfile = "mascot.log";

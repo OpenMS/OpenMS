@@ -54,8 +54,8 @@ using namespace std;
 TOLERANCE_ABSOLUTE(0.001)
 
 // default ctor
-Modification* dv_ptr = 0;
-Modification* dv_nullPointer = 0;
+Modification* dv_ptr = nullptr;
+Modification* dv_nullPointer = nullptr;
 START_SECTION((Modification()))
 	dv_ptr = new Modification;
   TEST_NOT_EQUAL(dv_ptr, dv_nullPointer)

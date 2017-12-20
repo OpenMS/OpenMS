@@ -381,7 +381,7 @@ namespace OpenMS
     // Step 2a: Generate decoy sequences that share peptidoform properties with targets
     if (shuffle_seed == -1)
     {
-      shuffle_seed = time(0);
+      shuffle_seed = time(nullptr);
     }
 
     boost::mt19937 generator(shuffle_seed);

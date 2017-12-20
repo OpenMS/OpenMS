@@ -38,6 +38,6 @@ namespace OpenMS
 {
 
   // unique instance of the SingletonRegistry!
-  SingletonRegistry * SingletonRegistry::singletonRegistryInstance_ = 0;
+  SingletonRegistry * SingletonRegistry::singletonRegistryInstance_ = nullptr;
 
 } // namespace openms

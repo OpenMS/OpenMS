@@ -53,8 +53,8 @@ START_TEST(SteinScottImproveScore, "$Id$")
 using namespace OpenMS;
 using namespace std;
 
-SteinScottImproveScore* ptr = 0;
-SteinScottImproveScore* nullPointer = 0;
+SteinScottImproveScore* ptr = nullptr;
+SteinScottImproveScore* nullPointer = nullptr;
 
 START_SECTION(SteinScottImproveScore())
 	ptr = new SteinScottImproveScore();

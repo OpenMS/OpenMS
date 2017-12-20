@@ -166,7 +166,7 @@ public:
   }
 
 protected:
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     // input files
     registerInputFile_("in", "<file>", "", "Input file containing the spectra.", true, false);
@@ -261,7 +261,7 @@ protected:
     return modifications;
   }
 
-  ExitCodes main_(int, const char**)
+  ExitCodes main_(int, const char**) override
   {
     ProgressLogger progresslogger;
     progresslogger.setLogType(log_type_);

@@ -77,7 +77,7 @@ public:
     SpectrumAlignment(const SpectrumAlignment & source);
 
     /// destructor
-    virtual ~SpectrumAlignment();
+    ~SpectrumAlignment() override;
 
     /// assignment operator
     SpectrumAlignment & operator=(const SpectrumAlignment & source);

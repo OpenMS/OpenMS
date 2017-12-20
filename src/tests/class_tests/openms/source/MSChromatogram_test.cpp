@@ -47,8 +47,8 @@ START_TEST(MSChromatogram, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-MSChromatogram* ptr = 0;
-MSChromatogram* nullPointer = 0;
+MSChromatogram* ptr = nullptr;
+MSChromatogram* nullPointer = nullptr;
 START_SECTION(MSChromatogram())
 {
 	ptr = new MSChromatogram();

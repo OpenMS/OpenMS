@@ -74,7 +74,7 @@ public:
 public:
       IncompatibleBinning(const char* file, int line, const char* function, const char* message
                             = "compared spectra have different settings in binsize and/or binspread")  throw();
-      virtual ~IncompatibleBinning() throw();
+      ~IncompatibleBinning() throw() override;
     };
 
     /// default constructor
@@ -84,7 +84,7 @@ public:
     BinnedSpectrumCompareFunctor(const BinnedSpectrumCompareFunctor& source);
 
     /// destructor
-    virtual ~BinnedSpectrumCompareFunctor();
+    ~BinnedSpectrumCompareFunctor() override;
 
     /// assignment operator
     BinnedSpectrumCompareFunctor& operator=(const BinnedSpectrumCompareFunctor& source);

@@ -82,7 +82,7 @@ public:
   }
 
 protected:
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     registerInputFile_("info", "<file>", "", "Holds id, peptide, retention time etc.");
     setValidFormats_("info", ListUtils::create<String>("csv"));
@@ -98,7 +98,7 @@ protected:
     setValidFormats_("out", ListUtils::create<String>("msp"));
   }
 
-  ExitCodes main_(int, const char**)
+  ExitCodes main_(int, const char**) override
   {
     //-------------------------------------------------------------
     // parameter handling

@@ -100,7 +100,7 @@ public:
 
       /** Default constructor */
       TransSpectrum() :
-        reference_(NULL), trans_intens_(NULL)
+        reference_(nullptr), trans_intens_(nullptr)
       {
       }
 

@@ -160,7 +160,7 @@ public:
 
 protected:
 
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "Input file to convert.\n "
                                            "See http://www.openms.de/current_doxygen/html/UTILS_TargetedFileConverter.html for format of OpenSWATH transition TSV file or SpectraST MRM file.");
@@ -180,12 +180,12 @@ protected:
 
   }
 
-  Param getSubsectionDefaults_(const String&) const
+  Param getSubsectionDefaults_(const String&) const override
   {
     return TransitionTSVReader().getDefaults();
   }
 
-  ExitCodes main_(int, const char**)
+  ExitCodes main_(int, const char**) override
   {
     FileHandler fh;
 

@@ -46,8 +46,8 @@ START_TEST(QuantitativeExperimentalDesign, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-QuantitativeExperimentalDesign* ptr = 0;
-QuantitativeExperimentalDesign* null_ptr = 0;
+QuantitativeExperimentalDesign* ptr = nullptr;
+QuantitativeExperimentalDesign* null_ptr = nullptr;
 START_SECTION(QuantitativeExperimentalDesign())
 {
 	ptr = new QuantitativeExperimentalDesign();

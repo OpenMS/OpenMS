@@ -53,8 +53,8 @@ START_TEST(SpectrumAlignmentScore, "$Id$")
 using namespace OpenMS;
 using namespace std;
 
-SpectrumAlignmentScore* ptr = 0;
-SpectrumAlignmentScore* nullPointer = 0;
+SpectrumAlignmentScore* ptr = nullptr;
+SpectrumAlignmentScore* nullPointer = nullptr;
 
 START_SECTION(SpectrumAlignmentScore())
 	ptr = new SpectrumAlignmentScore();
