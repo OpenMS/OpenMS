@@ -85,8 +85,8 @@ public:
     /// returns the error message, if hasError can be used to check whether an error has occurred
     OPENMS_DLLAPI const String& getErrorMessage() const;
 
-	/// returns the search number
-    OPENMS_DLLAPI Int getSearchNumber() const;
+    /// returns the search number
+    OPENMS_DLLAPI String getSearchIdentifier() const;
 
 protected:
 
@@ -143,7 +143,8 @@ private:
     */
     void removeHostName_(QString& url);
 
-    OPENMS_DLLAPI Int getSearchNumberFromFilePath_(const String& path) const;
+    OPENMS_DLLAPI String getSearchIdentifierFromFilePath(const String& path) const;
+
 
     /// parse new response header
     OPENMS_DLLAPI void readResponseHeader(const QNetworkReply* reply);
@@ -156,7 +157,7 @@ private:
     String error_message_;
     QTimer timeout_;
     Int to_;
-    Int search_number_;
+    String search_identifier_;
 
     /// Path on mascot server
     String server_path_;
