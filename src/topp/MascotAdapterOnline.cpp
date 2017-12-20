@@ -283,8 +283,8 @@ protected:
       }
     }
 
-    Int search_number = mascot_query->getSearchNumber();
-    if (search_number == 0)
+    String search_number = mascot_query->getSearchIdentifier();
+    if (search_number.empty())
     {
       writeLog_("Error: Failed to extract the Mascot search number.");
       if (mascot_query_param.exists("skip_export") &&
