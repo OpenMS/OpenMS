@@ -32,17 +32,17 @@
 // $Authors: George Rosenberger, Hannes Roest $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/ANALYSIS/OPENSWATH/TransitionPQPReader.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/TransitionPQPFile.h>
 
 namespace OpenMS
 {
 
-  TransitionPQPReader::TransitionPQPReader() :
-    TransitionTSVReader()
+  TransitionPQPFile::TransitionPQPFile() :
+    TransitionTSVFile()
   {
   }
 
-  TransitionPQPReader::~TransitionPQPReader()
+  TransitionPQPFile::~TransitionPQPFile()
   {
   }
 
@@ -56,7 +56,7 @@ namespace OpenMS
     return(0);
   }
 
-  void TransitionPQPReader::readPQPInput_(const char* filename, std::vector<TSVTransition>& transition_list, bool legacy_traml_id)
+  void TransitionPQPFile::readPQPInput_(const char* filename, std::vector<TSVTransition>& transition_list, bool legacy_traml_id)
   {
     sqlite3 *db;
     char *zErrMsg = nullptr;
@@ -290,7 +290,7 @@ namespace OpenMS
 
   }
 
-  void TransitionPQPReader::writePQPOutput_(const char* filename, OpenMS::TargetedExperiment& targeted_exp)
+  void TransitionPQPFile::writePQPOutput_(const char* filename, OpenMS::TargetedExperiment& targeted_exp)
   {
     sqlite3 *db;
     char *zErrMsg = nullptr;
@@ -429,10 +429,10 @@ namespace OpenMS
     for (auto const & x : group_vec) { group_map[x] = group_map_idx; group_map_idx++; }
 
     // IPF: Loop through all transitions and generate peptidoform data structures
-    std::vector<TransitionPQPReader::TSVTransition > transitions;
+    std::vector<TransitionPQPFile::TSVTransition > transitions;
     for (Size i = 0; i < targeted_exp.getTransitions().size(); i++)
     {
-      TransitionPQPReader::TSVTransition transition = convertTransition_(&targeted_exp.getTransitions()[i], targeted_exp);
+      TransitionPQPFile::TSVTransition transition = convertTransition_(&targeted_exp.getTransitions()[i], targeted_exp);
       transitions.push_back(transition);
 
       std::copy( transition.peptidoforms.begin(), transition.peptidoforms.end(), std::inserter( peptide_vec, peptide_vec.end() ) );
@@ -476,7 +476,7 @@ namespace OpenMS
     // OpenSWATH: Prepare transition inserts
     for (Size i = 0; i < transitions.size(); i++)
     {
-      TransitionPQPReader::TSVTransition transition = transitions[i];
+      TransitionPQPFile::TSVTransition transition = transitions[i];
 
       // IPF: Generate transition-peptide mapping tables (one identification transition can map to multiple peptidoforms)
       for (Size j = 0; j < transition.peptidoforms.size(); j++)
@@ -697,7 +697,7 @@ namespace OpenMS
   }
 
   // public methods
-  void TransitionPQPReader::convertTargetedExperimentToPQP(const char* filename, OpenMS::TargetedExperiment& targeted_exp)
+  void TransitionPQPFile::convertTargetedExperimentToPQP(const char* filename, OpenMS::TargetedExperiment& targeted_exp)
   {
     if (targeted_exp.containsInvalidReferences())
     {
@@ -707,14 +707,14 @@ namespace OpenMS
     writePQPOutput_(filename, targeted_exp);
   }
 
-  void TransitionPQPReader::convertPQPToTargetedExperiment(const char* filename, OpenMS::TargetedExperiment& targeted_exp, bool legacy_traml_id)
+  void TransitionPQPFile::convertPQPToTargetedExperiment(const char* filename, OpenMS::TargetedExperiment& targeted_exp, bool legacy_traml_id)
   {
     std::vector<TSVTransition> transition_list;
     readPQPInput_(filename, transition_list, legacy_traml_id);
     TSVToTargetedExperiment_(transition_list, targeted_exp);
   }
 
-  void TransitionPQPReader::convertPQPToTargetedExperiment(const char* filename, OpenSwath::LightTargetedExperiment& targeted_exp, bool legacy_traml_id)
+  void TransitionPQPFile::convertPQPToTargetedExperiment(const char* filename, OpenSwath::LightTargetedExperiment& targeted_exp, bool legacy_traml_id)
   {
     std::vector<TSVTransition> transition_list;
     readPQPInput_(filename, transition_list, legacy_traml_id);
