@@ -621,7 +621,7 @@ namespace OpenMS
     resolveMixedSequenceGroups_(transition_list);
 
     Size progress = 0;
-    startProgress(0, transition_list.size(), "converting to TraML format");
+    startProgress(0, transition_list.size(), "conversion to internal data representation");
     for (std::vector<TSVTransition>::iterator tr_it = transition_list.begin(); tr_it != transition_list.end(); ++tr_it)
     {
 
@@ -676,7 +676,7 @@ namespace OpenMS
     resolveMixedSequenceGroups_(transition_list);
 
     Size progress = 0;
-    startProgress(0, transition_list.size(), "converting to Transition List Format");
+    startProgress(0, transition_list.size(), "conversion to internal data representation");
     for (std::vector<TSVTransition>::iterator tr_it = transition_list.begin(); tr_it != transition_list.end(); ++tr_it)
     {
       OpenSwath::LightTransition transition;
@@ -1371,7 +1371,7 @@ namespace OpenMS
     std::vector<TSVTransition> mytransitions;
 
     Size progress = 0;
-    startProgress(0, targeted_exp.getTransitions().size(), "converting to OpenSWATH transition TSV format");
+    startProgress(0, targeted_exp.getTransitions().size(), "writing OpenSWATH Transition List TSV file");
     for (Size i = 0; i < targeted_exp.getTransitions().size(); i++)
     {
       TransitionTSVReader::TSVTransition mytransition = convertTransition_(&targeted_exp.getTransitions()[i],targeted_exp);
