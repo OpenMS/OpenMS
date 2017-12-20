@@ -113,14 +113,12 @@ LogStream* nullPointer = nullptr;
 
 START_SECTION(LogStream(LogStreamBuf *buf=0, bool delete_buf=true, std::ostream* stream))
 {
-  LogStream* l1 = nullptr;
-  l1 = new LogStream((LogStreamBuf*)nullptr);
+  LogStream* l1 = new LogStream((LogStreamBuf*)nullptr);
   TEST_NOT_EQUAL(l1, nullPointer)
   delete l1;
 
-  LogStream* l2 = nullptr;
-  LogStreamBuf* lb2 = new LogStreamBuf();
-  l2 = new LogStream(lb2);
+  LogStreamBuf* lb2(new LogStreamBuf());
+  LogStream* l2 = new LogStream(lb2);
   TEST_NOT_EQUAL(l2, nullPointer)
   delete l2;
 }

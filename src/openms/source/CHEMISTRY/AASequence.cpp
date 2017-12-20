@@ -107,6 +107,63 @@ namespace OpenMS
     return tmp;
   }
 
+  String AASequence::toUniModString() const
+  {
+    const AASequence & seq = *this;
+
+    String bs;
+    if (seq.empty()) return bs;
+
+    if (seq.hasNTerminalModification())
+    {
+      const ResidueModification& mod = *(seq.getNTerminalModification());
+      if (mod.getUniModRecordId() > -1)
+      {
+        bs += ".(" + mod.getUniModAccession() + ")";
+      }
+      else
+      {
+        bs += ".[" + String(mod.getDiffMonoMass()) + "]";
+      }
+    }
+
+    for (Size i = 0; i != seq.size(); ++i)
+    {
+      const Residue& r = seq[i];
+      const String aa = r.getOneLetterCode();
+      if (r.isModified())
+      {
+        const ResidueModification& mod = *(r.getModification());
+        if (mod.getUniModRecordId() > -1)
+        {
+          bs += aa + "(" + mod.getUniModAccession() + ")";
+        }
+        else
+        {
+          bs += aa + "[" + String(r.getMonoWeight(Residue::Internal)) + "]";
+        }
+      }
+      else  // amino acid not modified
+      {
+        bs += aa;
+      }
+    }
+
+    if (seq.hasCTerminalModification())
+    {
+      const ResidueModification& mod = *(seq.getCTerminalModification());
+      if (mod.getUniModRecordId() > -1)
+      {
+        bs += ".(" + mod.getUniModAccession() + ")";
+      }
+      else
+      {
+        bs += ".[" + String(mod.getDiffMonoMass()) + "]";
+      }
+    }
+    return bs;
+  }
+
   String AASequence::toBracketString(bool integer_mass, const vector<String> & fixed_modifications) const
   {
     const AASequence & seq = *this;
@@ -997,8 +1054,7 @@ namespace OpenMS
       }
       else // float mass -> use best-matching modification
       {
-        const ResidueModification* res_mod = nullptr;
-        res_mod = mod_db->getBestModificationByDiffMonoMass(
+        const ResidueModification* res_mod = mod_db->getBestModificationByDiffMonoMass(
           mass, tolerance, residue->getOneLetterCode(),
           ResidueModification::ANYWHERE);
 

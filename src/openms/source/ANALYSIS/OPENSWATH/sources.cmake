@@ -18,6 +18,7 @@ OpenSwathWorkflow.cpp
 ChromatogramExtractor.cpp
 ChromatogramExtractorAlgorithm.cpp
 SpectrumAddition.cpp
+TargetedSpectraExtractor.cpp
 MRMTransitionGroupPicker.cpp
 DIAHelper.cpp
 DIAScoring.cpp
@@ -27,6 +28,7 @@ MRMFeatureFinderScoring.cpp
 MasstraceCorrelator.cpp
 ConfidenceScoring.cpp
 PeakPickerMRM.cpp
+PeakIntegrator.cpp
 SwathWindowLoader.cpp
 MRMFeatureFilter.cpp
 MRMFeatureQC.cpp
