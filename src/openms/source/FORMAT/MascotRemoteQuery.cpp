@@ -536,7 +536,7 @@ namespace OpenMS
       QRegExp rx("file=(.+/\\d+/\\w+\\.dat)");
       rx.setMinimal(true);
       rx.indexIn(response);
-      search_number_ = getSearchNumberFromFilePath_(rx.cap(1));
+      search_identifier_ = getSearchIdentifierFromFilePath(rx.cap(1));
 
       if (param_.exists("skip_export") && 
           (param_.getValue("skip_export") == "true"))
@@ -640,9 +640,9 @@ namespace OpenMS
     return error_message_;
   }
 
-  Int MascotRemoteQuery::getSearchNumber() const
+  String MascotRemoteQuery::getSearchIdentifier() const
   {
-    return search_number_;
+    return search_identifier_;
   }
 
   void MascotRemoteQuery::updateMembers_()
@@ -720,13 +720,19 @@ namespace OpenMS
          << "<<<< Header to " << what << " (end)." << endl;
   }
 
-  Int MascotRemoteQuery::getSearchNumberFromFilePath_(const String& path) const
+  String MascotRemoteQuery::getSearchIdentifierFromFilePath(const String& path) const
   {
+#ifdef MASCOTREMOTEQUERY_DEBUG
+    std::cerr << "MascotRemoteQuery::getSearchIdentifierFromFilePath " << path << std::endl;
+#endif
     int pos = path.find_last_of("/\\");
     String tmp = path.substr(pos + 1);
     pos = tmp.find_last_of(".");
     tmp = tmp.substr(1, pos - 1);
 
-    return tmp.toInt();
+#ifdef MASCOTREMOTEQUERY_DEBUG
+    std::cerr << "MascotRemoteQuery::getSearchIdentifierFromFilePath will return" << tmp << std::endl;
+#endif
+    return tmp;
   }
 }
