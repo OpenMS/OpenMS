@@ -126,6 +126,8 @@ signals:
 
     OPENMS_DLLAPI void gotRedirect(QNetworkReply * reply);
 
+    OPENMS_DLLAPI void done();
+
 private:
     /// assignment operator
     OPENMS_DLLAPI MascotRemoteQuery& operator=(const MascotRemoteQuery& rhs);
