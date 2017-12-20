@@ -28,6 +28,7 @@ MRMFeatureFinderScoring.cpp
 MasstraceCorrelator.cpp
 ConfidenceScoring.cpp
 PeakPickerMRM.cpp
+PeakIntegrator.cpp
 SwathWindowLoader.cpp
 MRMFeatureFilter.cpp
 MRMFeatureQC.cpp
