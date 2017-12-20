@@ -12,6 +12,11 @@
   \code
   export OPENMS_DATA_PATH=/usr/share/OpenMS 
   \endcode
+  
+  Executables for THIRDPARTY applications can be found in:
+  \code 
+  /usr/bin/SEARCHENGINES
+  \endcode 
 
   @note Please note that these packages are not directly maintained by us and we can not guarantee the same behaviour as when building it on your own.
   Also their availability is subject to change and support might be limited (due to unforeseen or untested behaviour).
