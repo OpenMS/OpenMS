@@ -54,19 +54,19 @@ namespace OpenMS
   CsvFile::CsvFile(const String& filename, char is, bool ie, Int first_n) :
     TextFile(), itemseperator_(is), itemenclosed_(ie)
   {
-    load(filename, false, first_n);
+    TextFile::load(filename, false, first_n);
   }
 
-  void CsvFile::fload(const String& filename, char is, bool ie, Int first_n)
+  void CsvFile::load(const String& filename, char is, bool ie, Int first_n)
   {
     itemseperator_ = is;
     itemenclosed_ = ie;
-    load(filename, true, first_n);
+    TextFile::load(filename, true, first_n);
   }
 
-  void CsvFile::fstore(const String& filename)
+  void CsvFile::store(const String& filename)
   {
-    store(filename);
+    TextFile::store(filename);
   }
 
   void CsvFile::addRow(const StringList& list)
@@ -84,7 +84,7 @@ namespace OpenMS
     addLine(line);
   }
 
-  void CsvFile::clearBuffer()
+  void CsvFile::clear()
   {
     buffer_.clear();
   }
@@ -96,7 +96,7 @@ namespace OpenMS
     {
       throw Exception::InvalidIterator(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
     }
-    bool splitted = TextFile::buffer_.operator[](row).split(itemseperator_, list);
+    bool splitted = buffer_[row].split(itemseperator_, list);
     if (!splitted)
     {
       return splitted;

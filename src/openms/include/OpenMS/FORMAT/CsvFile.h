@@ -80,14 +80,14 @@ public:
 
       @exception Exception::FileNotFound is thrown if the file could not be opened.
     */
-    void fload(const String& filename, char is = ',', bool ie = false, Int first_n = -1);
+    void load(const String& filename, char is = ',', bool ie = false, Int first_n = -1);
 
     /**
       @brief Stores the buffer's content into a file.
 
       @param filename The output filename.
     */
-    void fstore(const String& filename);
+    void store(const String& filename);
 
     /**
       @brief Add a row to the buffer.
@@ -101,7 +101,7 @@ public:
 
       Clears TextFile::buffer_
     */
-    void clearBuffer();
+    void clear();
 
     /**
       @brief writes all items from a row to list
