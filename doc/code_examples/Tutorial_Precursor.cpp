@@ -1,4 +1,4 @@
-// --------------------------------------------------------------------------
+//---------------------------------------------------------------------------
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
@@ -26,37 +26,53 @@
 // WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
 // OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
 
-#include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
-#include <OpenMS/CHEMISTRY/ElementDB.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/METADATA/Precursor.h>
+#include <OpenMS/FORMAT/MzMLFile.h>
+#include <OpenMS/CONCEPT/Exception.h>
 #include <iostream>
 
 using namespace OpenMS;
 using namespace std;
 
-Int main()
+int main()
 {
-  EmpiricalFormula methanol("CH3OH"), water("H2O");
+  
+  MSExperiment spectra;
+  MzMLFile f;
 
-  // sum up empirical formula
-  EmpiricalFormula sum = methanol + water;
+  // load mzML from code examples folder
+  f.load("/data/Tutorial_GaussFilter.mzML", spectra);
 
-  // get element from ElementDB
-  const Element * carbon = ElementDB::getInstance()->getElement("Carbon");
-
-  // output number of carbon atoms and average weight 
-  cout << sum << " "
-       << sum.getNumberOf(carbon) << " "
-       << sum.getAverageWeight() << endl;
-
-  // extract the isotope distribution
-  IsotopeDistribution iso_dist = sum.getIsotopeDistribution(3);
-
-  for (IsotopeDistribution::ConstIterator it = iso_dist.begin(); it != iso_dist.end(); ++it)
+  // iterate over map and output MS2 precursor information
+  for (auto s_it = spectra.begin(); s_it != spectra.end(); ++s_it)
   {
-    cout << it->first << " " << it->second << endl;
-  }
+    // we are only interested in MS2 spectra so we skip all other levels
+    if (s_it->getMSLevel() != 2) continue;
 
+    // get a reference to the precursor information
+    const MSSpectrum& spectrum = *s_it;
+    const vector<Precursor>& precursors = spectrum.getPrecursors();
+
+    // size check & throw exception if needed 
+    if (precursors.empty()) throw Exception::InvalidSize(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, precursors.size());
+
+    // get m/z and intensity of precursor
+    double precursor_mz = precursors[0].getMZ();
+    float precursor_int = precursors[0].getIntensity();
+  
+    // retrieve the precursor spectrum (the most recent MS1 spectrum)
+    PeakMap::ConstIterator precursor_spectrum = spectra.getPrecursorSpectrum(s_it);
+    double precursor_rt = precursor_spectrum->getRT();
+  
+    // output precursor information
+    std::cout << " precusor m/z: " << precursor_mz
+              << " intensity: " << precursor_int
+              << " retention time (sec.): " << precursor_rt 
+              << std::endl;
+   }
+                                                            
   return 0;
-} //end of main
+} // end of main
+

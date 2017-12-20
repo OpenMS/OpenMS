@@ -1,4 +1,4 @@
-// --------------------------------------------------------------------------
+//---------------------------------------------------------------------------
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
@@ -26,37 +26,32 @@
 // WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
 // OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
 
-#include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
-#include <OpenMS/CHEMISTRY/ElementDB.h>
-#include <iostream>
+#include <OpenMS/KERNEL/MSChromatogram.h>
+#include <OpenMS/METADATA/ChromatogramSettings.h>
+#include <OpenMS/KERNEL/ChromatogramPeak.h>
 
 using namespace OpenMS;
 using namespace std;
 
-Int main()
+int main()
 {
-  EmpiricalFormula methanol("CH3OH"), water("H2O");
+  // create a chromatogram 
+  MSChromatogram chromatogram;
 
-  // sum up empirical formula
-  EmpiricalFormula sum = methanol + water;
-
-  // get element from ElementDB
-  const Element * carbon = ElementDB::getInstance()->getElement("Carbon");
-
-  // output number of carbon atoms and average weight 
-  cout << sum << " "
-       << sum.getNumberOf(carbon) << " "
-       << sum.getAverageWeight() << endl;
-
-  // extract the isotope distribution
-  IsotopeDistribution iso_dist = sum.getIsotopeDistribution(3);
-
-  for (IsotopeDistribution::ConstIterator it = iso_dist.begin(); it != iso_dist.end(); ++it)
+  // fill it with metadata information
+  chromatogram.setNativeID("transition_300.9_188.0");
+  chromatogram.getProduct().setMZ(188.0);
+  chromatogram.getPrecursor().setMZ(300.9);
+ 
+  // fill chromatogram with peaks
+  ChromatogramPeak peak;
+  peak.setIntensity(1.0);
+  for (float rt = 200.0; rt >= 100; rt -= 1.0)
   {
-    cout << it->first << " " << it->second << endl;
+    peak.setRT(rt);
+    chromatogram.push_back(peak);
   }
 
   return 0;
-} //end of main
+} // end of main
