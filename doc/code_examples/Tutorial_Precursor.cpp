@@ -27,31 +27,52 @@
 // OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#include <OpenMS/KERNEL/MSChromatogram.h>
-#include <OpenMS/METADATA/ChromatogramSettings.h>
-#include <OpenMS/KERNEL/ChromatogramPeak.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/METADATA/Precursor.h>
+#include <OpenMS/FORMAT/MzMLFile.h>
+#include <OpenMS/CONCEPT/Exception.h>
+#include <iostream>
 
 using namespace OpenMS;
 using namespace std;
 
 int main()
 {
-  // create a chromatogram 
-  MSChromatogram chromatogram;
+  
+  MSExperiment spectra;
+  MzMLFile f;
 
-  // fill it with metadata information
-  chromatogram.setNativeID("transition_300.9_188.0");
-  chromatogram.getProduct().setMZ(188.0);
-  chromatogram.getPrecursor().setMZ(300.9);
- 
-  // fill chromatogram with peaks
-  ChromatogramPeak peak;
-  peak.setIntensity(1.0);
-  for (float rt = 200.0; rt >= 100; rt -= 1.0)
+  // load mzML from code examples folder
+  f.load("/data/Tutorial_GaussFilter.mzML", spectra);
+
+  // iterate over map and output MS2 precursor information
+  for (auto s_it = spectra.begin(); s_it != spectra.end(); ++s_it)
   {
-    peak.setRT(rt);
-    chromatogram.push_back(peak);
-  }
+    // we are only interested in MS2 spectra so we skip all other levels
+    if (s_it->getMSLevel() != 2) continue;
 
+    // get a reference to the precursor information
+    const MSSpectrum& spectrum = *s_it;
+    const vector<Precursor>& precursors = spectrum.getPrecursors();
+
+    // size check & throw exception if needed 
+    if (precursors.empty()) throw Exception::InvalidSize(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, precursors.size());
+
+    // get m/z and intensity of precursor
+    double precursor_mz = precursors[0].getMZ();
+    float precursor_int = precursors[0].getIntensity();
+  
+    // retrieve the precursor spectrum (the most recent MS1 spectrum)
+    PeakMap::ConstIterator precursor_spectrum = spectra.getPrecursorSpectrum(s_it);
+    double precursor_rt = precursor_spectrum->getRT();
+  
+    // output precursor information
+    std::cout << " precusor m/z: " << precursor_mz
+              << " intensity: " << precursor_int
+              << " retention time (sec.): " << precursor_rt 
+              << std::endl;
+   }
+                                                            
   return 0;
 } // end of main
+

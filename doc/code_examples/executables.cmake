@@ -19,12 +19,14 @@ Tutorial_FileIO_mzML
 Tutorial_FileIO_Consumer
 Tutorial_GaussFilter
 Tutorial_Labeled
+Tutorial_MSChromatogram
 Tutorial_MSExperiment
 Tutorial_MSSpectrum
 Tutorial_MapAlignment
 Tutorial_MetaInfo
 Tutorial_Param
 Tutorial_PeakPickerCWT
+Tutorial_Precursor
 Tutorial_RangeManager
 Tutorial_Residue
 Tutorial_SavitzkyGolayFilter
