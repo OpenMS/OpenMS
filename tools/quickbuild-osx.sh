@@ -1,10 +1,13 @@
 #!/bin/sh
 set -e
 
-echo `pwd`
-
-read -p "Please specify how many jobs you want to use: " numberOfJobs
-echo "Number of jobs: " $numberOfJobs
+# first argument used for number of jobs
+if [ ! -z "$1" ]
+then
+  numberOfJobs=$1
+else
+  numberOfJobs=1
+fi
 
 ###################################
 # 1. download and build contrib (if not present already)
