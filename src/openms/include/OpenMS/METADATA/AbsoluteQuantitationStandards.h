@@ -65,7 +65,7 @@ public:
     AbsoluteQuantitationStandards();
 
     /// Destructor
-    ~AbsoluteQuantitationStandards() override;
+    ~AbsoluteQuantitationStandards();
     //@}
    
     /**
@@ -106,7 +106,7 @@ public:
                                      
 private:
     // members
-    std::map<String,std::vector<featureConcentration>> components_to_concentrations;
+    std::map<String, std::vector<featureConcentration>> components_to_concentrations;
 
   };
 
