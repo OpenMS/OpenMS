@@ -120,6 +120,7 @@ protected:
       // choose the default value according to the platform where it will be executed
       "crux.exe",
       "Crux executable of the installation e.g. 'Crux.exe'", true, false, ListUtils::create<String>("skipexists"));
+
     //
     // Optional parameters //
     //
@@ -158,11 +159,12 @@ protected:
     registerDoubleOption_("train_fdr", "<fdr>", 0.01, "False discovery rate threshold to define positive examples in training.", false, false);
 
     registerFlag_("deisotope", "Deisotope spectra before searching", true);
-    registerFlag_("report_decoys", "Include decoys in the report", true);
+    registerFlag_("report_decoys", "Include decoys in the final reported dataset", true);
   }
 
   String argumentPassthrough(const String& arg_)
   {
+    // get arguments that are passed to the tools directly (first escape the argument)
     String arg = arg_;
     if (arg.hasPrefix('\\'))
     {
@@ -294,12 +296,13 @@ protected:
       String params = "--overwrite T --peptide-list T --num-threads " + String(getIntOption_("threads"));
       params += " --missed-cleavages " + String(getIntOption_("allowed_missed_cleavages"));
       params += " --digestion " + getStringOption_("digestion");
-			if (!getStringOption_("custom_enzyme").empty()) params += " --custom-enzyme " + getStringOption_("custom_enzyme");
-			if (!getStringOption_("modifications").empty()) params += " --mods-spec " + getStringOption_("modifications");
-			if (!getStringOption_("cterm_modifications").empty()) params += " --cterm-peptide-mods-spec " + getStringOption_("cterm_modifications");
-			if (!getStringOption_("nterm_modifications").empty()) params += " --nterm-peptide-mods-spec " + getStringOption_("nterm_modifications");
+      if (!getStringOption_("custom_enzyme").empty()) params += " --custom-enzyme " + getStringOption_("custom_enzyme");
+      if (!getStringOption_("modifications").empty()) params += " --mods-spec " + getStringOption_("modifications");
+      if (!getStringOption_("cterm_modifications").empty()) params += " --cterm-peptide-mods-spec " + getStringOption_("cterm_modifications");
+      if (!getStringOption_("nterm_modifications").empty()) params += " --nterm-peptide-mods-spec " + getStringOption_("nterm_modifications");
 
-			if (!getStringOption_("extra_index_args").empty()) params += " " + argumentPassthrough(getStringOption_("extra_index_args"));
+      // add extra arguments passed on the command-line (pass through args)
+      if (!getStringOption_("extra_index_args").empty()) params += " " + argumentPassthrough(getStringOption_("extra_index_args"));
 
       params.trim();
       params.simplify();
@@ -336,19 +339,20 @@ protected:
       params += debug_args;
 
       String extra_args;
-      // extra_args += " --mzid-output T";
+      // extra_args += " --mzid-output T"; // too slow
       params += concat;
       params += extra_args;
       params += parser;
 
-			params += " --precursor-window " + String(getDoubleOption_("precursor_mass_tolerance"));
-			params += " --precursor-window-type " + getStringOption_("precursor_mass_units");
-			params += " --mz-bin-offset " + String(getDoubleOption_("fragment_bin_offset"));
-			params += " --mz-bin-width " + String(getDoubleOption_("fragment_bin_width"));
+      params += " --precursor-window " + String(getDoubleOption_("precursor_mass_tolerance"));
+      params += " --precursor-window-type " + getStringOption_("precursor_mass_units");
+      params += " --mz-bin-offset " + String(getDoubleOption_("fragment_bin_offset"));
+      params += " --mz-bin-width " + String(getDoubleOption_("fragment_bin_width"));
       if (deisotope) params += " --deisotope ";
-			if (!getStringOption_("isotope_error").empty()) params += " --isotope-error " + getStringOption_("isotope_error");
+      if (!getStringOption_("isotope_error").empty()) params += " --isotope-error " + getStringOption_("isotope_error");
 
-			if (!getStringOption_("extra_search_args").empty()) params += " " + argumentPassthrough(getStringOption_("extra_search_args"));
+      // add extra arguments passed on the command-line (pass through args)
+      if (!getStringOption_("extra_search_args").empty()) params += " " + argumentPassthrough(getStringOption_("extra_search_args"));
 
       params.simplify();
       params.trim();
@@ -372,14 +376,13 @@ protected:
         return EXTERNAL_PROGRAM_ERROR;
       }
     }
+
     std::cout << " Done running tide-search ... " << std::endl;
 
     // run crux percolator (currently we dont have much choice in the matter)
     bool run_percolator = true;
     if (run_percolator)
     {
-      // $ ~/bin/crux-3.1.Linux.x86_64/bin/crux  percolator --overwrite T --train-fdr 0.05 --test-fdr 0.05 crux-output/tide-search.target.txt 
-      // String params = "--overwrite T --peptide-list T" + tmp_file;
       String tool = "percolator";
       String params = " --output-dir " + output_dir;
       String input = out_dir_q + "tide-search.txt";
@@ -391,12 +394,13 @@ protected:
       params += extra_args;
 
       params += " --mzid-output T --decoy-xml-output T ";
-			params += " --test-fdr " + String(getDoubleOption_("test_fdr"));
-			params += " --train-fdr " + String(getDoubleOption_("train_fdr"));
-			params += " --decoy-prefix " + getStringOption_("decoy_prefix");
+      params += " --test-fdr " + String(getDoubleOption_("test_fdr"));
+      params += " --train-fdr " + String(getDoubleOption_("train_fdr"));
+      params += " --decoy-prefix " + getStringOption_("decoy_prefix");
       params += " --overwrite T ";
 
-			if (!getStringOption_("extra_percolator_args").empty()) params += " " + argumentPassthrough(getStringOption_("extra_percolator_args"));
+      // add extra arguments passed on the command-line (pass through args)
+      if (!getStringOption_("extra_percolator_args").empty()) params += " " + argumentPassthrough(getStringOption_("extra_percolator_args"));
 
       params.simplify();
       params.trim();
@@ -460,15 +464,7 @@ protected:
     IdXMLFile().store(out, protein_identifications, peptide_identifications);
 
     // remove tempdir
-    if (this->debug_level_ == 0)
-    {
-        removeTempDir_(tmp_dir);
-        LOG_WARN << "Set debug level to >=1 to keep the temporary files at '" << tmp_dir << "'" << std::endl;
-    }
-    else
-    {
-      LOG_WARN << "Keeping the temporary files at '" << tmp_pepxml << "'. Set debug level to 0 to remove them." << std::endl;
-    }
+    removeTempDir_(tmp_dir);
 
     return EXECUTION_OK;
   }
