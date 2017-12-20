@@ -19,6 +19,7 @@ Tutorial_FileIO
 Tutorial_FileIO_mzML
 Tutorial_FileIO_Consumer
 Tutorial_GaussFilter
+Tutorial_IdentificationClasses
 Tutorial_Labeled
 Tutorial_MSExperiment
 Tutorial_MSSpectrum
