@@ -140,6 +140,9 @@ protected:
     registerDoubleOption_("fragment_bin_width", "<width>", 0.02, "Before calculation of the XCorr score, the m/z axes of the observed and theoretical spectra are discretized. This parameter specifies the size of each bin. The exact formula for computing the discretized m/z value is floor((x/mz-bin-width) + 1.0 - mz-bin-offset), where x is the observed m/z value. For low resolution ion trap ms/ms data 1.0005079 and for high resolution ms/ms 0.02 is recommended.", false, false);
     registerStringOption_("isotope_error", "<choice>", "", "List of positive, non-zero integers.", false, false);
 
+    registerStringOption_("run_percolator", "<true/false>", "true", "Whether to run percolator after tide-search", false, false);
+    setValidStrings_("run_percolator", ListUtils::create<String>("true,false"));
+
     //Search Enzyme
     registerStringOption_("enzyme", "<cleavage site>", "trypsin", "The enzyme used for peptide digestion.", false, false);
     setValidStrings_("enzyme", ListUtils::create<String>("no-enzyme,trypsin,trypsin/p,chymotrypsin,elastase,clostripain,cyanogen-bromide,iodosobenzoate,proline-endopeptidase,staph-protease,asp-n,lys-c,lys-n,arg-c,glu-c,pepsin-a,elastase-trypsin-chymotrypsin,custom-enzyme"));
@@ -329,6 +332,8 @@ protected:
 
     std::cout << " Done running tide-index ... " << std::endl;
 
+    bool run_percolator = getStringOption_("run_percolator") == "true";
+
     // run crux tide-search
     {
       String tool = "tide-search";
@@ -339,7 +344,8 @@ protected:
       params += debug_args;
 
       String extra_args;
-      // extra_args += " --mzid-output T"; // too slow
+      if (!run_percolator) extra_args += " --mzid-output T"; // not recommended, too slow
+
       params += concat;
       params += extra_args;
       params += parser;
@@ -380,7 +386,6 @@ protected:
     std::cout << " Done running tide-search ... " << std::endl;
 
     // run crux percolator (currently we dont have much choice in the matter)
-    bool run_percolator = true;
     if (run_percolator)
     {
       String tool = "percolator";
@@ -453,8 +458,6 @@ protected:
       // TODO: does not work yet
       String mzid = out_dir_q + "tide-search.mzid";
       writeDebug_("load mzIdentml", 1);
-      Identification target_id;
-      Identification decoy_id;
       MzIdentMLFile().load(mzid, protein_identifications, peptide_identifications);
       writeDebug_("write idXMLFile", 1);
       writeDebug_(out, 1);
