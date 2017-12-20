@@ -58,9 +58,10 @@ namespace OpenMS
 
   void TransitionPQPReader::readPQPInput_(const char* filename, std::vector<TSVTransition>& transition_list, bool legacy_traml_id)
   {
+    std::cout << "Reading PQP file" << std::endl;
     sqlite3 *db;
     sqlite3_stmt * stmt;
-    int  rc;
+    int rc;
     std::string select_sql;
 
     // Use legacy TraML identifiers for precursors (transition_group_id) and transitions (transition_name)?
@@ -386,7 +387,8 @@ namespace OpenMS
     // Prepare insert statements
 
     // Index maps
-    std::vector<std::string> group_set, peptide_set, compound_set, protein_set;
+    std::vector<std::string> group_vec, peptide_vec, compound_vec, protein_vec;
+    std::map<std::string, int > group_map, peptide_map, compound_map, protein_map;
     std::map<int,double> precursor_mz_map;
     std::map<int,bool> precursor_decoy_map;
 
@@ -401,8 +403,8 @@ namespace OpenMS
       setProgress(progress++);
       OpenMS::TargetedExperiment::Peptide peptide = targeted_exp.getPeptides()[i];
       std::string peptide_sequence = TargetedExperimentHelper::getAASequence(peptide).toUniModString();
-      peptide_set.push_back(peptide_sequence);
-      group_set.push_back(peptide.id);
+      peptide_vec.push_back(peptide_sequence);
+      group_vec.push_back(peptide.id);
     }
     endProgress();
 
@@ -413,13 +415,15 @@ namespace OpenMS
     {
       setProgress(progress++);
       OpenMS::TargetedExperiment::Compound compound = targeted_exp.getCompounds()[i];
-      compound_set.push_back(compound.id);
-      group_set.push_back(compound.id);
+      compound_vec.push_back(compound.id);
+      group_vec.push_back(compound.id);
     }
     endProgress();
 
     // OpenSWATH: Group set must be unique
-    boost::erase(group_set, boost::unique<boost::return_found_end>(boost::sort(group_set)));
+    boost::erase(group_vec, boost::unique<boost::return_found_end>(boost::sort(group_vec)));
+    int group_map_idx = 0;
+    for (auto const & x : group_vec) { group_map[x] = group_map_idx; group_map_idx++; }
 
     // IPF: Loop through all transitions and generate peptidoform data structures
     progress = 0;
@@ -431,9 +435,9 @@ namespace OpenMS
       TransitionPQPReader::TSVTransition transition = convertTransition_(&targeted_exp.getTransitions()[i], targeted_exp);
       transitions.push_back(transition);
 
-      std::copy( transition.peptidoforms.begin(), transition.peptidoforms.end(), std::inserter( peptide_set, peptide_set.end() ) );
+      std::copy( transition.peptidoforms.begin(), transition.peptidoforms.end(), std::inserter( peptide_vec, peptide_vec.end() ) );
 
-      int group_set_index = std::distance(group_set.begin(),std::find(group_set.begin(), group_set.end(), transition.group_id));
+      int group_set_index = group_map[transition.group_id];
 
       if (precursor_mz_map.find(group_set_index) == precursor_mz_map.end())
       {
@@ -450,8 +454,29 @@ namespace OpenMS
     endProgress();
 
     // OpenSWATH: Peptide and compound sets must be unique
-    boost::erase(peptide_set, boost::unique<boost::return_found_end>(boost::sort(peptide_set)));
-    boost::erase(compound_set, boost::unique<boost::return_found_end>(boost::sort(compound_set)));
+    boost::erase(peptide_vec, boost::unique<boost::return_found_end>(boost::sort(peptide_vec)));
+    int peptide_map_idx = 0;
+    for (auto const & x : peptide_vec) { peptide_map[x] = peptide_map_idx; peptide_map_idx++; }
+
+    boost::erase(compound_vec, boost::unique<boost::return_found_end>(boost::sort(compound_vec)));
+    int compound_map_idx = 0;
+    for (auto const & x : compound_vec) { compound_map[x] = compound_map_idx; compound_map_idx++; }
+
+    // OpenSWATH: Loop through TargetedExperiment to generate index maps for proteins
+    progress = 0;
+    startProgress(0, targeted_exp.getProteins().size(), "Prepare protein mapping");
+    for (Size i = 0; i < targeted_exp.getProteins().size(); i++)
+    {
+      setProgress(progress++);
+      OpenMS::TargetedExperiment::Protein protein = targeted_exp.getProteins()[i];
+      protein_vec.push_back(protein.id);
+    }
+    endProgress();
+
+    // OpenSWATH: Protein set must be unique
+    boost::erase(protein_vec, boost::unique<boost::return_found_end>(boost::sort(protein_vec)));
+    int protein_map_idx = 0;
+    for (auto const & x : protein_vec) { protein_map[x] = protein_map_idx; protein_map_idx++; }
 
     // OpenSWATH: Prepare transition inserts
     progress = 0;
@@ -464,11 +489,11 @@ namespace OpenMS
       // IPF: Generate transition-peptide mapping tables (one identification transition can map to multiple peptidoforms)
       for (Size j = 0; j < transition.peptidoforms.size(); j++)
       {
-        insert_transition_peptide_mapping_sql << "INSERT INTO TRANSITION_PEPTIDE_MAPPING (TRANSITION_ID, PEPTIDE_ID) VALUES (" << i << "," << std::distance(peptide_set.begin(),std::find(peptide_set.begin(), peptide_set.end(), transition.peptidoforms[j])) << "); ";
+        insert_transition_peptide_mapping_sql << "INSERT INTO TRANSITION_PEPTIDE_MAPPING (TRANSITION_ID, PEPTIDE_ID) VALUES (" << i << "," << peptide_map[transition.peptidoforms[j]] << "); ";
       }
 
       // OpenSWATH: Associate transitions with their precursors
-      insert_transition_precursor_mapping_sql << "INSERT INTO TRANSITION_PRECURSOR_MAPPING (TRANSITION_ID, PRECURSOR_ID) VALUES (" << i << "," << std::distance(group_set.begin(), std::find(group_set.begin(), group_set.end(),transition.group_id)) << "); ";
+      insert_transition_precursor_mapping_sql << "INSERT INTO TRANSITION_PRECURSOR_MAPPING (TRANSITION_ID, PRECURSOR_ID) VALUES (" << i << "," << group_map[transition.group_id] << "); ";
 
       std::string transition_charge = "NULL"; // workaround for compounds with missing charge
       if (transition.fragment_charge != "NA")
@@ -480,19 +505,6 @@ namespace OpenMS
       insert_transition_sql << "INSERT INTO TRANSITION (ID, TRAML_ID, PRODUCT_MZ, CHARGE, TYPE, ORDINAL, DETECTING, IDENTIFYING, QUANTIFYING, LIBRARY_INTENSITY, DECOY) VALUES (" << i << ",'" << transition.transition_name << "'," << transition.product << "," << transition_charge << ",'" << transition.fragment_type<< "'," << transition.fragment_nr << "," << transition.detecting_transition << "," << transition.identifying_transition << "," << transition.quantifying_transition << "," << transition.library_intensity << "," << transition.decoy << "); ";
     }
     endProgress();
-
-    // OpenSWATH: Prepare protein inserts
-    progress = 0;
-    startProgress(0, targeted_exp.getProteins().size(), "Prepare protein mapping");
-    for (Size i = 0; i < targeted_exp.getProteins().size(); i++)
-    {
-      setProgress(progress++);
-      OpenMS::TargetedExperiment::Protein protein = targeted_exp.getProteins()[i];
-      protein_set.push_back(protein.id);
-    }
-    endProgress();
-
-    boost::erase(protein_set, boost::unique<boost::return_found_end>(boost::sort(protein_set)));
 
     std::stringstream insert_precursor_sql, insert_precursor_peptide_mapping, insert_precursor_compound_mapping;
     insert_precursor_sql.precision(11);
@@ -506,13 +518,12 @@ namespace OpenMS
       setProgress(progress++);
       OpenMS::TargetedExperiment::Peptide peptide = targeted_exp.getPeptides()[i];
       std::string peptide_sequence = TargetedExperimentHelper::getAASequence(peptide).toUniModString();
-      int group_set_index = std::distance(group_set.begin(),std::find(group_set.begin(), group_set.end(), peptide.id));
-      int peptide_set_index = std::distance(peptide_set.begin(), std::find(peptide_set.begin(), peptide_set.end(), peptide_sequence));
+      int group_set_index = group_map[peptide.id];
+      int peptide_set_index = peptide_map[peptide_sequence];
 
       for (std::vector<String>::iterator it = peptide.protein_refs.begin(); it != peptide.protein_refs.end(); ++it)
       {
-        int protein_set_index = std::distance(protein_set.begin(),std::find(protein_set.begin(), protein_set.end(), *it));
-        peptide_protein_map.push_back(std::make_pair(peptide_set_index,protein_set_index));
+        peptide_protein_map.push_back(std::make_pair(peptide_set_index,protein_map[*it]));
       }
 
       insert_precursor_sql << "INSERT INTO PRECURSOR (ID, TRAML_ID, GROUP_LABEL, PRECURSOR_MZ, CHARGE, LIBRARY_INTENSITY, LIBRARY_RT, DECOY) VALUES (" << group_set_index << ",'" << peptide.id << "','" << peptide.getPeptideGroupLabel() << "'," << precursor_mz_map[group_set_index] << "," << peptide.getChargeState() << ",NULL," << peptide.getRetentionTime() << "," << precursor_decoy_map[group_set_index] << "); ";
@@ -529,8 +540,8 @@ namespace OpenMS
     {
       setProgress(progress++);
       OpenMS::TargetedExperiment::Compound compound = targeted_exp.getCompounds()[i];
-      int group_set_index = std::distance(group_set.begin(),std::find(group_set.begin(), group_set.end(), compound.id));
-      int compound_set_index = std::distance(compound_set.begin(), std::find(compound_set.begin(), compound_set.end(), compound.id));
+      int group_set_index = group_map[compound.id];
+      int compound_set_index = compound_map[compound.id];
 
       std::string compound_charge = "NULL"; // workaround for compounds with missing charge
       if (compound.hasCharge())
@@ -560,38 +571,38 @@ namespace OpenMS
     // OpenSWATH: Prepare protein inserts
     std::stringstream insert_protein_sql;
     progress = 0;
-    startProgress(0, protein_set.size(), String("Prepare ") + protein_set.size() + " proteins");
-    for (Size i = 0; i < protein_set.size(); i++)
+    startProgress(0, protein_map.size(), String("Prepare ") + protein_map.size() + " proteins");
+    for (std::map<std::string, int >::iterator it = protein_map.begin(); it != protein_map.end(); ++it)
     {
       setProgress(progress++);
-      insert_protein_sql << "INSERT INTO PROTEIN (ID, PROTEIN_ACCESSION) VALUES (" << i << ",'" << protein_set[i] << "'); ";
+      insert_protein_sql << "INSERT INTO PROTEIN (ID, PROTEIN_ACCESSION) VALUES (" << it->second << ",'" << it->first << "'); ";
     }
     endProgress();
 
     // OpenSWATH: Prepare peptide inserts
     std::stringstream insert_peptide_sql;
     progress = 0;
-    startProgress(0, peptide_set.size(), String("Prepare ") + peptide_set.size() + " peptides");
-    for (std::vector<std::string>::iterator it = peptide_set.begin(); it != peptide_set.end(); ++it)
+    startProgress(0, peptide_map.size(), String("Prepare ") + peptide_map.size() + " peptides");
+    for (std::map<std::string, int >::iterator it = peptide_map.begin(); it != peptide_map.end(); ++it)
     {
       setProgress(progress++);
-      insert_peptide_sql << "INSERT INTO PEPTIDE (ID, UNMODIFIED_SEQUENCE, MODIFIED_SEQUENCE, DECOY) VALUES (" << std::distance(peptide_set.begin(),std::find(peptide_set.begin(), peptide_set.end(),*it)) << ",'" << AASequence::fromString(*it).toUnmodifiedString() << "','" << *it << "'," << 0 <<"); ";
+      insert_peptide_sql << "INSERT INTO PEPTIDE (ID, UNMODIFIED_SEQUENCE, MODIFIED_SEQUENCE, DECOY) VALUES (" << it->second << ",'" << AASequence::fromString(it->first).toUnmodifiedString() << "','" << it->first << "'," << 0 <<"); ";
     }
     endProgress();
 
     // OpenSWATH: Prepare compound inserts
     std::stringstream insert_compound_sql;
     progress = 0;
-    startProgress(0, compound_set.size(), String("Prepare ") + compound_set.size() + " compounds");
-    for (std::vector<std::string>::iterator it = compound_set.begin(); it != compound_set.end(); ++it)
+    startProgress(0, compound_map.size(), String("Prepare ") + compound_map.size() + " compounds");
+    for (std::map<std::string, int >::iterator it = compound_map.begin(); it != compound_map.end(); ++it)
     {
       setProgress(progress++);
-      OpenMS::TargetedExperiment::Compound compound = targeted_exp.getCompoundByRef(*it);
-      insert_compound_sql << "INSERT INTO COMPOUND (ID, COMPOUND_NAME, SUM_FORMULA, SMILES, DECOY) VALUES (" << std::distance(compound_set.begin(),std::find(compound_set.begin(), compound_set.end(),*it)) << ",'" << compound.id << "','" << compound.molecular_formula << "','" << compound.smiles_string << "'," << 0 <<"); ";
+      OpenMS::TargetedExperiment::Compound compound = targeted_exp.getCompoundByRef(it->first);
+      insert_compound_sql << "INSERT INTO COMPOUND (ID, COMPOUND_NAME, SUM_FORMULA, SMILES, DECOY) VALUES (" << it->second << ",'" << compound.id << "','" << compound.molecular_formula << "','" << compound.smiles_string << "'," << 0 <<"); ";
     }
     endProgress();
 
-    std::cout << "Write PQP file" << std::endl;
+    std::cout << "Writing PQP file" << std::endl;
 
     sqlite3_exec(db, "BEGIN TRANSACTION", nullptr, nullptr, &zErrMsg);
 
