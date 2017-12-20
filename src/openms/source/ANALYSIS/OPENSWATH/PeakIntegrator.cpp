@@ -267,8 +267,6 @@ namespace OpenMS
       }
       else if (integration_type_ == INTEGRATION_TYPE_INTENSITYSUM)
       {
-        for (auto it = p.PosBegin(left); it != p.PosEnd(right); ++it)
-        { }
         background = std::min(int_r, int_l) * std::distance(p.PosBegin(left), p.PosEnd(right));;
       }
     }
