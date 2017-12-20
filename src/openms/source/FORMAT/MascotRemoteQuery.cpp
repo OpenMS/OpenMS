@@ -360,7 +360,7 @@ namespace OpenMS
       cerr << "MascotRemoteQuery: An error occurred: " << r->errorString().toStdString() << " (QT Error Code: " << int(r->error()) << ")\n";
     }
 #ifdef MASCOTREMOTEQUERY_DEBUG
-    cerr << "Error: " << error << "(" << r->errorString().toStdString() << ")" << "\n";
+    cerr << "Error: " << r->error() << "(" << r->errorString().toStdString() << ")" << "\n";
 #endif
   }
 
@@ -454,15 +454,17 @@ namespace OpenMS
       http_->clearPendingRequests();
       http_->close();
     }
-    emit done();
 */
+
+    // for consumers of this class
+    emit done();
   }
 
   void MascotRemoteQuery::queryFinished(QNetworkReply* reply)
   {
 #ifdef MASCOTREMOTEQUERY_DEBUG
     cerr << "void MascotRemoteQuery::httpDone(const QNetworkReply* reply): ";
-    if (reply->error)
+    if (reply->error())
     {
       cerr << "'" << reply->errorString().toStdString() << "'" << "\n";
     }
@@ -484,9 +486,9 @@ namespace OpenMS
     QByteArray new_bytes = reply->readAll();
 #ifdef MASCOTREMOTEQUERY_DEBUG
     cerr << "Response of query: " << "\n";
-    QTextDocument doc;
-    doc.setHtml(new_bytes.constData());
-    cerr << doc.toPlainText().toStdString() << "\n";
+    cerr << "-----------------------------------" << "\n";
+    cerr << QString(new_bytes.constData()).toStdString() << "\n";
+    cerr << "-----------------------------------" << "\n";
 #endif
 
     int status = reply->attribute( QNetworkRequest::HttpStatusCodeAttribute ).toInt();
@@ -647,7 +649,6 @@ namespace OpenMS
 
     host_name_ = param_.getValue("hostname");
     use_ssl_ = param_.getValue("use_ssl").toBool();
-
 
     boundary_ = param_.getValue("boundary");
     cookie_ = "";
