@@ -715,6 +715,21 @@ namespace OpenMS
     cerr << "<<<< Header to " << what << " (end)." << endl;
   }
 
+  void MascotRemoteQuery::logHeader_(const QNetworkReply* header, const String& what)
+  {
+  }
+
+  void MascotRemoteQuery::logHeader_(const QNetworkRequest header, const String& what)
+  {
+    QList<QByteArray> header_list = header.rawHeaderList();
+    cerr << ">>>> Header to " << what << " (begin):\n";
+    foreach (QByteArray rawHeader, header_list) 
+    {
+      cerr << rawHeader.toStdString() << " : " << header.rawHeader(rawHeader).toStdString() << std::endl;
+    }
+    cerr << "<<<< Header to " << what << " (end)." << endl;
+  }
+
   String MascotRemoteQuery::getSearchIdentifierFromFilePath(const String& path) const
   {
 #ifdef MASCOTREMOTEQUERY_DEBUG

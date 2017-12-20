@@ -138,6 +138,12 @@ private:
 
     /// Write HTTP header to error stream (for debugging)
     OPENMS_DLLAPI void logHeader_(const QList<QNetworkReply::RawHeaderPair> header , const String& what);
+
+    OPENMS_DLLAPI void logHeader_(const QNetworkRequest header, const String& what);
+
+    OPENMS_DLLAPI void logHeader_(const QNetworkReply* header, const String& what);
+
+
     /**
       @brief Remove host name information from an url, e.g., "http://www.google.de/search" -> "search"
 
