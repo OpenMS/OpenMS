@@ -11,6 +11,7 @@ Tutorial_ComparatorUtils
 Tutorial_DPosition
 Tutorial_DRange
 Tutorial_Element
+Tutorial_Enzyme
 Tutorial_EmpiricalFormula
 Tutorial_FeatureFinder
 Tutorial_FeatureMap
