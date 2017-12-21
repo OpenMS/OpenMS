@@ -960,7 +960,7 @@ private:
     bool centroided;
     if (spectrum_type_=="automatic")
     {
-      centroided = spectrum_type == SpectrumSettings::PEAKS;
+      centroided = spectrum_type == SpectrumSettings::CENTROID;
     }
     else if (spectrum_type_=="centroid")
     {

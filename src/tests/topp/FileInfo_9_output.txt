@@ -18,8 +18,8 @@ Ranges:
   intensity:      1.00 .. 20.00
 
 Peak type metadata (estimated)
-  level 1: Peak data (Raw data)
-  level 2: Peak data (Unknown)
+  level 1: Centroid (Profile)
+  level 2: Centroid (Unknown)
 Meta data array:
   charge array:          1 spectra
   signal to noise array: 1 spectra
