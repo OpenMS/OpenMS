@@ -271,7 +271,7 @@ namespace OpenMS
 
         // calculate fdr for the forward scores
         bool higher_score_better(ids.begin()->isHigherScoreBetter());
-        Map<double, double> score_to_fdr;
+        map<double, double> score_to_fdr;
         calculateFDRs_(score_to_fdr, target_scores, decoy_scores, q_value, higher_score_better);
 
         // annotate fdr
@@ -367,7 +367,7 @@ namespace OpenMS
     bool higher_score_better = fwd_ids.begin()->isHigherScoreBetter();
     bool add_decoy_peptides = param_.getValue("add_decoy_peptides").toBool();
     // calculate fdr for the forward scores
-    Map<double, double> score_to_fdr;
+    map<double, double> score_to_fdr;
     calculateFDRs_(score_to_fdr, target_scores, decoy_scores, q_value, higher_score_better);
 
     // annotate fdr
@@ -466,7 +466,7 @@ namespace OpenMS
     bool higher_score_better = ids.begin()->isHigherScoreBetter();
 
     // calculate fdr for the forward scores
-    Map<double, double> score_to_fdr;
+    map<double, double> score_to_fdr;
     calculateFDRs_(score_to_fdr, target_scores, decoy_scores, q_value, higher_score_better);
 
     // annotate fdr
@@ -520,7 +520,7 @@ namespace OpenMS
     bool q_value = !param_.getValue("no_qvalues").toBool();
     bool higher_score_better = fwd_ids.begin()->isHigherScoreBetter();
     // calculate fdr for the forward scores
-    Map<double, double> score_to_fdr;
+    map<double, double> score_to_fdr;
     calculateFDRs_(score_to_fdr, target_scores, decoy_scores, q_value, higher_score_better);
 
     // annotate fdr
@@ -548,7 +548,71 @@ namespace OpenMS
     return;
   }
 
-  void FalseDiscoveryRate::calculateFDRs_(Map<double, double>& score_to_fdr, vector<double>& target_scores, vector<double>& decoy_scores, bool q_value, bool higher_score_better)
+  void FalseDiscoveryRate::applyToQueryMatches(IdentificationData& id_data, IdentificationData::ScoreTypeKey score_key)
+  {
+    bool use_all_hits = param_.getValue("use_all_hits").toBool();
+    vector<double> target_scores, decoy_scores;
+    // @TODO: replace map with "[boost::]unordered_map"?
+    map<IdentificationData::QueryMatchKey, double> match_to_score;
+    // @TODO: cache the "allParentsAreDecoys" results?
+    if (use_all_hits)
+    {
+      for (const auto& match_pair : id_data.query_matches)
+      {
+        pair<double, bool> score = match_pair.second.getScore(score_key);
+        if (!score.second) continue; // no score of this type
+        match_to_score[match_pair.first] = score.first;
+        if (id_data.allParentsAreDecoys(match_pair.first.second))
+        {
+          decoy_scores.push_back(score.first);
+        }
+        else
+        {
+          target_scores.push_back(score.first);
+        }
+      }
+    }
+    else
+    {
+      vector<IdentificationData::QueryMatchKey> best_matches =
+        id_data.getBestMatchPerQuery(score_key);
+      for (auto match_key : best_matches)
+      {
+        IdentificationData::MoleculeQueryMatch& match =
+          id_data.query_matches.at(match_key);
+        double score = match.getScore(score_key).first;
+        match_to_score[match_key] = score;
+        if (id_data.allParentsAreDecoys(match_key.second))
+        {
+          decoy_scores.push_back(score);
+        }
+        else
+        {
+          target_scores.push_back(score);
+        }
+      }
+    }
+
+    map<double, double> score_to_fdr;
+    bool higher_better = id_data.score_types.left.at(score_key).higher_better;
+    calculateFDRs_(score_to_fdr, target_scores, decoy_scores, true,
+                   higher_better);
+
+    IdentificationData::ScoreType fdr_score("q-value", false);
+    fdr_score.cv_term = CVTerm("MS:1002354", "PSM-level q-value", "MS");
+    IdentificationData::ScoreTypeKey fdr_key =
+      id_data.registerScoreType(fdr_score).first;
+    for (auto& match_pair : id_data.query_matches)
+    {
+      auto pos = match_to_score.find(match_pair.first);
+      if (pos == match_to_score.end()) continue; // @TODO: add score of 1 or -1?
+      double fdr = score_to_fdr.at(pos->second);
+      match_pair.second.scores.push_back(make_pair(fdr_key, fdr));
+    }
+  }
+
+
+  void FalseDiscoveryRate::calculateFDRs_(map<double, double>& score_to_fdr, vector<double>& target_scores, vector<double>& decoy_scores, bool q_value, bool higher_score_better)
   {
     Size number_of_target_scores = target_scores.size();
     // sort the scores
@@ -657,7 +721,6 @@ namespace OpenMS
       }
     }
 
-
     // assign q-value of decoy_score to closest target_score
     for (Size i = 0; i != decoy_scores.size(); ++i)
     {
@@ -665,7 +728,7 @@ namespace OpenMS
 
       // advance target index until score is better than decoy score
       size_t k{0};
-      while (k != target_scores.size() && 
+      while (k != target_scores.size() &&
              ((target_scores[k] <= ds && higher_score_better) ||
               (target_scores[k] >= ds && !higher_score_better)))
       {
@@ -676,7 +739,7 @@ namespace OpenMS
       if (k == 0) { score_to_fdr[ds] = score_to_fdr[target_scores[0]]; continue; }
 
       if (k == target_scores.size()) { score_to_fdr[ds] = score_to_fdr[target_scores.back()]; continue; }
-      
+
       if (fabs(target_scores[k] - ds) < fabs(target_scores[k - 1] - ds))
       {
         score_to_fdr[ds] = score_to_fdr[target_scores[k]];

@@ -36,6 +36,7 @@
 #define OPENMS_ANALYSIS_ID_FALSEDISCOVERYRATE_H
 
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
+#include <OpenMS/METADATA/IdentificationData.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 
@@ -92,15 +93,17 @@ public:
     */
     void apply(std::vector<ProteinIdentification>& ids);
 
-private:
+    void applyToQueryMatches(IdentificationData& id_data, IdentificationData::ScoreTypeKey score_key);
+
+  private:
     /// Not implemented
     FalseDiscoveryRate(const FalseDiscoveryRate&);
 
     /// Not implemented
-    FalseDiscoveryRate & operator=(const FalseDiscoveryRate&);
+    FalseDiscoveryRate& operator=(const FalseDiscoveryRate&);
 
     /// calculates the FDR, given two vectors of scores
-    void calculateFDRs_(Map<double, double>& score_to_fdr, std::vector<double>& target_scores, std::vector<double>& decoy_scores, bool q_value, bool higher_score_better);
+    void calculateFDRs_(std::map<double, double>& score_to_fdr, std::vector<double>& target_scores, std::vector<double>& decoy_scores, bool q_value, bool higher_score_better);
 
   };
 
