@@ -945,6 +945,10 @@ protected:
       proteins[0].setDateTime(DateTime::now());
       proteins[0].setSearchEngine(toolName_());
       map<IdentificationData::DataQueryKey, PeptideIdentification> id_map;
+      String score_name = "hyperscore";
+      IdentificationData::ScoreTypeKey score_key =
+        id_data.findScoreType(score_name);
+      // @TODO: write out q-values, if available?
       for (const auto& osm : id_data.query_matches)
       {
         IdentificationData::DataQueryKey query_key = osm.first.first;
@@ -953,7 +957,7 @@ protected:
         const NASequence& seq = id_data.identified_oligos.left.at(oligo_key);
         PeptideHit hit;
         hit.setMetaValue("label", seq.toString());
-        hit.setScore(match.scores.back().second);
+        hit.setScore(match.getScore(score_key).first);
         hit.setCharge(match.charge);
         hit.setPeakAnnotations(match.peak_annotations.begin()->second);
         double precursor_error_ppm =
@@ -962,7 +966,6 @@ protected:
                          precursor_error_ppm);
         id_map[query_key].insertHit(hit);
       }
-      // there should be only one score type:
       const IdentificationData::ScoreType& score_type =
         id_data.score_types.left.begin()->second;
       for (auto& id_pair : id_map)
@@ -973,7 +976,7 @@ protected:
         peptide.setRT(query.rt);
         peptide.setMZ(query.mz);
         peptide.setMetaValue("spectrum_reference", query.data_id);
-        peptide.setScoreType(score_type.name);
+        peptide.setScoreType(score_name);
         peptide.setHigherScoreBetter(score_type.higher_better);
         peptide.setIdentifier("id");
         peptides.push_back(peptide);
