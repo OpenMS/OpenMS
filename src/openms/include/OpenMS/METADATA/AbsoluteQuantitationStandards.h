@@ -65,7 +65,7 @@ public:
     AbsoluteQuantitationStandards();
 
     /// Destructor
-    ~AbsoluteQuantitationStandards() override;
+    ~AbsoluteQuantitationStandards();
     //@}
    
     /**
