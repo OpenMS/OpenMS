@@ -328,9 +328,8 @@ namespace OpenMS
   }
 
   void MRMDecoy::generateDecoys(OpenMS::TargetedExperiment& exp, OpenMS::TargetedExperiment& dec,
-                                String method, String decoy_tag, double identity_threshold, int max_attempts,
-                                double mz_threshold, double mz_shift,
-                                double similarity_threshold, double precursor_mass_shift,
+                                String method, String decoy_tag, int max_attempts, double identity_threshold,
+                                double precursor_mz_shift, double product_mz_shift, double product_mz_threshold,
                                 std::vector<String> fragment_types, std::vector<size_t> fragment_charges,
                                 bool enable_specific_losses, bool enable_unspecific_losses, int round_decPow)
   {
@@ -448,16 +447,16 @@ namespace OpenMS
 
         decoy_tr.setNativeID(decoy_tag + tr.getNativeID());
         decoy_tr.setDecoyTransitionType(ReactionMonitoringTransition::DECOY);
-        decoy_tr.setPrecursorMZ(tr.getPrecursorMZ() + precursor_mass_shift); // fix for TOPPView: Duplicate precursor MZ is not displayed.
+        decoy_tr.setPrecursorMZ(tr.getPrecursorMZ() + precursor_mz_shift); // fix for TOPPView: Duplicate precursor MZ is not displayed.
 
         // determine the current annotation for the target ion and then select
         // the appropriate decoy ion for this target transition
-        std::pair<String, double> targetion = mrmis.annotateIon(target_ionseries, tr.getProductMZ(), mz_threshold);
+        std::pair<String, double> targetion = mrmis.annotateIon(target_ionseries, tr.getProductMZ(), product_mz_threshold);
         std::pair<String, double> decoyion = mrmis.getIon(decoy_ionseries, targetion.first);
 
         if (method == "shift")
         {
-          decoy_tr.setProductMZ(decoyion.second + mz_shift);
+          decoy_tr.setProductMZ(decoyion.second + product_mz_shift);
         }
         else
         {
@@ -467,14 +466,6 @@ namespace OpenMS
 
         if (decoyion.second > 0)
         {
-          if (similarity_threshold >= 0)
-          {
-            if (std::fabs(tr.getProductMZ() - decoy_tr.getProductMZ()) < similarity_threshold)
-            {
-              exclusion_peptides.push_back(decoy_tr.getPeptideRef());
-              LOG_DEBUG << "[peptide] Skipping " << decoy_tr.getPeptideRef() << " due to reaching fragment ion similarity threshold" << std::endl;
-           }
-          }
           decoy_transitions.push_back(decoy_tr);
         }
         else

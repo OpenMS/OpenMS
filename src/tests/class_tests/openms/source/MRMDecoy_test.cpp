@@ -415,20 +415,22 @@ START_SECTION(OpenMS::TargetedExperiment::Peptide reversePeptide(OpenMS::Targete
 END_SECTION
 
 /// Public methods
-START_SECTION((void generateDecoys(OpenMS::TargetedExperiment & exp,
-                                   OpenMS::TargetedExperiment & dec, String method, String decoy_tag,
-                                   double identity_threshold, int max_attempts, double mz_threshold,
-                                   double mz_shift, double similarity_threshold, double precursor_mass_shift,
+
+
+
+START_SECTION((void generateDecoys(OpenMS::TargetedExperiment& exp, OpenMS::TargetedExperiment& dec,
+                                   String method, String decoy_tag, int max_attempts, double identity_threshold,
+                                   double precursor_mz_shift, double product_mz_shift, double product_mz_threshold,
                                    std::vector<String> fragment_types, std::vector<size_t> fragment_charges,
-                                   bool enable_specific_losses, bool enable_unspecific_losses); ))
+                                   bool enable_specific_losses, bool enable_unspecific_losses, int round_decPow); ))
 {
   String method = "pseudo-reverse";
   double identity_threshold = 0.7;
   Int max_attempts = 5;
-  double mz_threshold = 0.8;
-  double mz_shift = 20;
+  double product_mz_threshold = 0.8;
+  double precursor_mz_shift = 0.1;
+  double product_mz_shift = 20;
   String decoy_tag = "DECOY_";
-  double similarity_threshold = 0.1;
   std::vector<String> fragment_types;
   fragment_types.push_back(String("b"));
   fragment_types.push_back(String("y"));
@@ -460,12 +462,11 @@ START_SECTION((void generateDecoys(OpenMS::TargetedExperiment & exp,
                         targeted_decoy,
                         method,
                         decoy_tag,
-                        identity_threshold,
                         max_attempts,
-                        mz_threshold,
-                        mz_shift, 
-                        similarity_threshold,
-                        0.1,
+                        identity_threshold,
+                        precursor_mz_shift, 
+                        product_mz_shift, 
+                        product_mz_threshold,
                         fragment_types, 
                         fragment_charges,
                         enable_specific_losses, 

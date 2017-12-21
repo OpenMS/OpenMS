@@ -107,14 +107,11 @@ public:
       mz_threshold is used for the matching of theoretical ion series to the observed one
 
     */
-    void generateDecoys(OpenMS::TargetedExperiment& exp,
-                        OpenMS::TargetedExperiment& dec, String method, String decoy_tag,
-                        double identity_threshold, int max_attempts, double mz_threshold,
-                        double mz_shift,
-                        double similarity_threshold,
-                        double precursor_mass_shift, std::vector<String> fragment_types,
-                        std::vector<size_t> fragment_charges, bool enable_specific_losses,
-                        bool enable_unspecific_losses, int round_decPow = -4);
+    void generateDecoys(OpenMS::TargetedExperiment& exp, OpenMS::TargetedExperiment& dec,
+                        String method, String decoy_tag, int max_attempts, double identity_threshold,
+                        double precursor_mz_shift, double product_mz_shift, double product_mz_threshold,
+                        std::vector<String> fragment_types, std::vector<size_t> fragment_charges,
+                        bool enable_specific_losses, bool enable_unspecific_losses, int round_decPow = -4);
 
     typedef std::vector<OpenMS::TargetedExperiment::Protein> ProteinVectorType;
     typedef std::vector<OpenMS::TargetedExperiment::Peptide> PeptideVectorType;

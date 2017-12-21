@@ -128,11 +128,11 @@ protected:
 
     registerStringOption_("decoy_tag", "<type>", "DECOY_", "decoy tag", false);
 
-    registerDoubleOption_("product_mz_similarity_threshold", "<double>", 0.05, "Similarity threshold for absolute difference of the product mz of target and decoy assays for exclusion in Dalton. Suggested value: 0.05", false, true);
     registerDoubleOption_("min_decoy_fraction", "<double>", 0.8, "Minimum fraction of decoy / target peptides and proteins", false, true);
 
-    registerIntOption_("shuffle_max_attempts", "<int>", 100, "shuffle: maximum attempts to lower the amino acid sequence identity between target and decoy for the shuffle algorithm", false, true);
-    registerDoubleOption_("shuffle_sequence_identity_threshold", "<double>", 0.1, "shuffle: target-decoy amino acid sequence identity threshold for the shuffle algorithm", false, true);
+    registerIntOption_("shuffle_max_attempts", "<int>", 30, "shuffle: maximum attempts to lower the amino acid sequence identity between target and decoy for the shuffle algorithm", false, true);
+    registerDoubleOption_("shuffle_sequence_identity_threshold", "<double>", 0.5, "shuffle: target-decoy amino acid sequence identity threshold for the shuffle algorithm", false, true);
+
     registerDoubleOption_("shift_precursor_mz_shift", "<double>", 0.0, "shift: precursor ion MZ shift in Thomson for shift decoy method", false, true);
     registerDoubleOption_("shift_product_mz_shift", "<double>", 20, "shift: fragment ion MZ shift in Thomson for shift decoy method", false, true);
 
@@ -183,11 +183,11 @@ protected:
     String method = getStringOption_("method");
     String decoy_tag = getStringOption_("decoy_tag");
 
-    double similarity_threshold = getDoubleOption_("product_mz_similarity_threshold");
     double min_decoy_fraction = getDoubleOption_("min_decoy_fraction");
 
     Int max_attempts = getIntOption_("shuffle_max_attempts");
     double identity_threshold = getDoubleOption_("shuffle_sequence_identity_threshold");
+
     double precursor_mz_shift = getDoubleOption_("shift_precursor_mz_shift");
     double product_mz_shift = getDoubleOption_("shift_product_mz_shift");
 
@@ -246,7 +246,7 @@ protected:
     decoys.setLogType(ProgressLogger::CMD);
 
     LOG_INFO << "Generate decoys" << std::endl;
-    decoys.generateDecoys(targeted_exp, targeted_decoy, method, decoy_tag, identity_threshold, max_attempts, product_mz_threshold, product_mz_shift, similarity_threshold, precursor_mz_shift, allowed_fragment_types, allowed_fragment_charges, enable_detection_specific_losses, enable_detection_unspecific_losses);
+    decoys.generateDecoys(targeted_exp, targeted_decoy, method, decoy_tag, max_attempts, identity_threshold, precursor_mz_shift, product_mz_shift, product_mz_threshold, allowed_fragment_types, allowed_fragment_charges, enable_detection_specific_losses, enable_detection_unspecific_losses);
 
     // Check if we have enough peptides left
     LOG_INFO << "Number of target peptides: " << targeted_exp.getPeptides().size() << std::endl;
@@ -256,7 +256,7 @@ protected:
 
     if ((float)targeted_decoy.getPeptides().size() / (float)targeted_exp.getPeptides().size() < min_decoy_fraction || (float)targeted_decoy.getProteins().size() / (float)targeted_exp.getProteins().size() < min_decoy_fraction)
     {
-       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "The number of decoys for peptides or proteins is below the threshold of " + String(min_decoy_fraction * 100) + "% of the number of targets. If you used the 'shuffle' method, consider increasing the number of attempts.");
+       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "The number of decoys for peptides or proteins is below the threshold of " + String(min_decoy_fraction * 100) + "% of the number of targets.");
     }
 
     TargetedExperiment targeted_merged;
