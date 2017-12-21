@@ -154,6 +154,15 @@ namespace OpenMS
     }
   }
 
+  void MzMLFile::loadBuffer(const std::string& buffer, PeakMap& map)
+  {
+    map.reset();
+
+    Internal::MzMLHandler handler(map, "memory", getVersion(), *this);
+    handler.setOptions(options_);
+    parseBuffer_(buffer, &handler);
+  }
+
   void MzMLFile::load(const String& filename, PeakMap& map)
   {
     map.reset();
@@ -172,6 +181,22 @@ namespace OpenMS
     Internal::MzMLHandler handler(map, filename, getVersion(), *this);
     handler.setOptions(options_);
     save_(filename, &handler);
+  }
+
+  void MzMLFile::storeBuffer(std::string & output, const PeakMap& map) const
+  {
+    Internal::MzMLHandler handler(map, "dummy", getVersion(), *this);
+    handler.setOptions(options_);
+    {
+      std::stringstream os;
+
+      //set high precision for writing of floating point numbers
+      os.precision(writtenDigits(double()));
+
+      // write data and close stream
+      handler.writeTo(os);
+      output = os.str();
+    }
   }
 
   void MzMLFile::transform(const String& filename_in, Interfaces::IMSDataConsumer* consumer, bool skip_full_count, bool skip_first_pass)

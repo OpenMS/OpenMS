@@ -46,8 +46,8 @@ START_TEST(PeakPickerIterative, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-PeakPickerIterative* ptr = 0;
-PeakPickerIterative* null_ptr = 0;
+PeakPickerIterative* ptr = nullptr;
+PeakPickerIterative* null_ptr = nullptr;
 START_SECTION(PeakPickerIterative())
 {
 	ptr = new PeakPickerIterative();
@@ -73,7 +73,7 @@ START_SECTION((~PeakPickerIterative()))
 }
 END_SECTION
 
-START_SECTION((template < typename PeakType > void pick(const MSSpectrum< PeakType > &input, MSSpectrum< PeakType > &output)))
+START_SECTION((template < typename PeakType > void pick(const MSSpectrum &input, MSSpectrum &output)))
 {
   // TODO
 }

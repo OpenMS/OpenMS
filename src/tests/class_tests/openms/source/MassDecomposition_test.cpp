@@ -47,8 +47,8 @@ START_TEST(MassDecomposition, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-MassDecomposition* ptr = 0;
-MassDecomposition* nullPointer = 0;
+MassDecomposition* ptr = nullptr;
+MassDecomposition* nullPointer = nullptr;
 START_SECTION(MassDecomposition())
 {
 	ptr = new MassDecomposition();

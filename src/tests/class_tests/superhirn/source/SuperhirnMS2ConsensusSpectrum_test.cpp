@@ -52,8 +52,8 @@ START_TEST(MS2ConsensusSpectrum, "$Id$")
 using namespace OpenMS;
 using namespace std;
 
-MS2ConsensusSpectrum* ptr = 0;
-MS2ConsensusSpectrum* nullPtr = 0;
+MS2ConsensusSpectrum* ptr = nullptr;
+MS2ConsensusSpectrum* nullPtr = nullptr;
 
 START_SECTION((MS2ConsensusSpectrum()))
 	ptr = new MS2ConsensusSpectrum();

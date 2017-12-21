@@ -46,8 +46,8 @@ START_TEST(PeptideEvidence, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-PeptideEvidence* ptr = 0;
-PeptideEvidence* null_ptr = 0;
+PeptideEvidence* ptr = nullptr;
+PeptideEvidence* null_ptr = nullptr;
 START_SECTION(PeptideEvidence())
 {
 	ptr = new PeptideEvidence();

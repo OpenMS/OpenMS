@@ -56,19 +56,19 @@ public:
       PTMXMLHandler(std::map<String, std::pair<String, String> > & ptm_informations, const String & filename);
 
       /// Destructor
-      virtual ~PTMXMLHandler();
+      ~PTMXMLHandler() override;
 
       /// Writes the xml file to the ostream 'os'
-      void writeTo(std::ostream & os);
+      void writeTo(std::ostream & os) override;
 
       // Docu in base class
-      virtual void endElement(const XMLCh * const /*uri*/, const XMLCh * const /*local_name*/, const XMLCh * const qname);
+      void endElement(const XMLCh * const /*uri*/, const XMLCh * const /*local_name*/, const XMLCh * const qname) override;
 
       // Docu in base class
-      virtual void startElement(const XMLCh * const /*uri*/, const XMLCh * const /*local_name*/, const XMLCh * const qname, const xercesc::Attributes & attributes);
+      void startElement(const XMLCh * const /*uri*/, const XMLCh * const /*local_name*/, const XMLCh * const qname, const xercesc::Attributes & attributes) override;
 
       // Docu in base class
-      virtual void characters(const XMLCh * const chars, const XMLSize_t /*length*/);
+      void characters(const XMLCh * const chars, const XMLSize_t /*length*/) override;
 
 protected:
       std::map<String, std::pair<String, String> > & ptm_informations_;

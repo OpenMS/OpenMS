@@ -48,8 +48,8 @@ START_TEST(ConsensusIDAlgorithmPEPIons, "$Id$")
 
 /////////////////////////////////////////////////////////////
 
-ConsensusIDAlgorithm* ptr = 0;
-ConsensusIDAlgorithm* null_pointer = 0;
+ConsensusIDAlgorithm* ptr = nullptr;
+ConsensusIDAlgorithm* null_pointer = nullptr;
 START_SECTION(ConsensusIDAlgorithmPEPIons())
 {
   ptr = new ConsensusIDAlgorithmPEPIons();

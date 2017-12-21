@@ -109,7 +109,7 @@ public:
     DeNovoIonScoring();
 
     /// destructor
-    virtual ~DeNovoIonScoring();
+    ~DeNovoIonScoring() override;
 
     /// copy constructor
     DeNovoIonScoring(const DeNovoIonScoring & rhs);

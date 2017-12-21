@@ -57,7 +57,7 @@ namespace OpenMS
     std::list<Annotation1DItem *>()
   {
     //copy annotations
-    Annotation1DItem * new_item = 0;
+    Annotation1DItem * new_item = nullptr;
     for (ConstIterator it = rhs.begin(); it != rhs.end(); ++it)
     {
       const Annotation1DDistanceItem * distance_item = dynamic_cast<const Annotation1DDistanceItem *>(*it);
@@ -96,7 +96,7 @@ namespace OpenMS
       //clear list
       clear();
       //copy annotations
-      Annotation1DItem * new_item = 0;
+      Annotation1DItem * new_item = nullptr;
       for (ConstIterator it = rhs.begin(); it != rhs.end(); ++it)
       {
         const Annotation1DDistanceItem * distance_item = dynamic_cast<const Annotation1DDistanceItem *>(*it);
@@ -142,13 +142,13 @@ namespace OpenMS
         return *it;
       }
     }
-    return 0;
+    return nullptr;
   }
 
   void Annotations1DContainer::selectItemAt(const QPoint & pos)
   {
     Annotation1DItem * item = getItemAt(pos);
-    if (item != 0)
+    if (item != nullptr)
     {
       item->setSelected(true);
     }
@@ -157,7 +157,7 @@ namespace OpenMS
   void Annotations1DContainer::deselectItemAt(const QPoint & pos)
   {
     Annotation1DItem * item = getItemAt(pos);
-    if (item != 0)
+    if (item != nullptr)
     {
       item->setSelected(false);
     }
@@ -193,6 +193,18 @@ namespace OpenMS
         ++it;
       }
     }
+  }
+
+  std::vector<Annotation1DItem*> Annotations1DContainer::getSelectedItems()
+  {
+    // initialize with maximal possible size
+    std::vector<Annotation1DItem*> annotation_items(size());
+    // copy if is selected
+    auto it = std::copy_if(begin(), end(), annotation_items.begin(), [](Annotation1DItem* anno){return anno->isSelected();});
+    // resize to number of actually copied items
+    annotation_items.resize(std::distance(annotation_items.begin(), it));
+
+    return annotation_items;
   }
 
 } //Namespace

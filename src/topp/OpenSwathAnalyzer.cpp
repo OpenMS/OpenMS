@@ -80,9 +80,10 @@ using namespace std;
         </table>
     </CENTER>
 
- The idea of the MRM peak-picker is to analyze a series of chromatograms
+ The idea of the OpenSwath Analyzer is to analyze a series of chromatograms
  together with the associated meta information (stored in TraML format) in
- order to determine likely places of elution of a peptide in MRM/SRM.
+ order to determine likely places of elution of a peptide in targeted
+ proteomics data (derived from SWATH-MS or MRM/SRM).
 
  <B>The command line parameters of this tool are:</B>
  @verbinclude TOPP_OpenSwathAnalyzer.cli
@@ -101,7 +102,7 @@ public:
 
   TOPPOpenSwathAnalyzer() :
   TOPPBase("OpenSwathAnalyzer",
-           "Picks peaks and finds features in an SRM experiment.", true)
+           "Picks peaks and finds features in an SWATH-MS or SRM experiment.", true)
   {
   }
 
@@ -123,7 +124,7 @@ protected:
     registerFlag_("model:symmetric_regression", "Only for 'linear' model: Perform linear regression on 'y - x' vs. 'y + x', instead of on 'y' vs. 'x'.", true);
   }
 
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "",
                        "input file containing the chromatograms." /* , false */);
@@ -162,12 +163,12 @@ protected:
 
   }
 
-  Param getSubsectionDefaults_(const String &) const
+  Param getSubsectionDefaults_(const String &) const override
   {
     return MRMFeatureFinderScoring().getDefaults();
   }
 
-  ExitCodes main_(int, const char **)
+  ExitCodes main_(int, const char **) override
   {
 
     StringList file_list = getStringList_("swath_files");

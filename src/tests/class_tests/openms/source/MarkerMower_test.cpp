@@ -52,8 +52,8 @@ START_TEST(MarkerMower, "$Id$")
 
 /////////////////////////////////////////////////////////////
 
-MarkerMower* e_ptr = 0;
-MarkerMower* e_nullPointer = 0;
+MarkerMower* e_ptr = nullptr;
+MarkerMower* e_nullPointer = nullptr;
 
 START_SECTION((MarkerMower()))
 	e_ptr = new MarkerMower;

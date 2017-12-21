@@ -49,8 +49,8 @@ START_TEST(BinnedSharedPeakCount, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-BinnedSharedPeakCount* ptr = 0;
-BinnedSharedPeakCount* nullPointer = 0;
+BinnedSharedPeakCount* ptr = nullptr;
+BinnedSharedPeakCount* nullPointer = nullptr;
 START_SECTION(BinnedSharedPeakCount())
 {
 	ptr = new BinnedSharedPeakCount();

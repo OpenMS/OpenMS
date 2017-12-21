@@ -109,7 +109,7 @@ namespace OpenMS
   IDEvaluationBase::IDEvaluationBase(QWidget* parent) :
     QMainWindow(parent),
     DefaultParamHandler("IDEvaluationBase"),
-    spec_1d_(0)
+    spec_1d_(nullptr)
   {
     for (double d = 0.0; d <= 1.0; d += (1.0) / 100)
     {
@@ -293,7 +293,7 @@ namespace OpenMS
   }
 
   bool IDEvaluationBase::getPoints(std::vector<PeptideIdentification>& peptides /* cannot be const, to avoid copy */,
-                                   const std::vector<double>& q_value_thresholds, MSSpectrum<>& points)
+                                   const std::vector<double>& q_value_thresholds, MSSpectrum& points)
   {
     points.clear(true);
 
@@ -358,7 +358,7 @@ namespace OpenMS
   }
 
 
-  bool IDEvaluationBase::loadCurve(const String& file_name, MSSpectrum<>& points)
+  bool IDEvaluationBase::loadCurve(const String& file_name, MSSpectrum& points)
   {
     if (FileHandler::getType(file_name) != FileTypes::IDXML)
     {
@@ -378,7 +378,7 @@ namespace OpenMS
 
   bool IDEvaluationBase::addSearchFile(const String& file_name)
   {
-    MSSpectrum<> points;
+    MSSpectrum points;
     if (!loadCurve(file_name, points)) return false;
 
     data_.addSpectrum(points);

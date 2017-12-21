@@ -140,7 +140,7 @@ protected:
       pp_ = pp;
     }
 
-    void processSpectrum_(MapType::SpectrumType& s)
+    void processSpectrum_(MapType::SpectrumType& s) override
     {
       if (!ListUtils::contains(ms_levels_, s.getMSLevel())) {return;}
 
@@ -149,7 +149,7 @@ protected:
       s = sout;  // todo: swap? (requires implementation)
     }
 
-    void processChromatogram_(MapType::ChromatogramType & c)
+    void processChromatogram_(MapType::ChromatogramType & c) override
     {
       MapType::ChromatogramType c_out;
       pp_.pick(c, c_out);
@@ -162,7 +162,7 @@ protected:
     std::vector<Int> ms_levels_;
   };
 
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "input profile data file ");
     setValidFormats_("in", ListUtils::create<String>("mzML"));
@@ -175,7 +175,7 @@ protected:
     registerSubsection_("algorithm", "Algorithm parameters section");
   }
 
-  Param getSubsectionDefaults_(const String & /*section*/) const
+  Param getSubsectionDefaults_(const String & /*section*/) const override
   {
     return PeakPickerHiRes().getDefaults();
   }
@@ -198,7 +198,7 @@ protected:
     return EXECUTION_OK;
   }
 
-  ExitCodes main_(int, const char **)
+  ExitCodes main_(int, const char **) override
   {
     //-------------------------------------------------------------
     // parameter handling

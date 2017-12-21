@@ -49,8 +49,8 @@ START_TEST(TMTTenPlexQuantitationMethod, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-TMTTenPlexQuantitationMethod* ptr = 0;
-TMTTenPlexQuantitationMethod* null_ptr = 0;
+TMTTenPlexQuantitationMethod* ptr = nullptr;
+TMTTenPlexQuantitationMethod* null_ptr = nullptr;
 START_SECTION(TMTTenPlexQuantitationMethod())
 {
 	ptr = new TMTTenPlexQuantitationMethod();
@@ -120,7 +120,7 @@ START_SECTION((const IsobaricChannelList& getChannelInformation() const ))
   TEST_EQUAL(channel_list[3].id, 3)
   TEST_EQUAL(channel_list[3].center, 128.128116)
   TEST_EQUAL(channel_list[3].channel_id_minus_2, -1)
-  TEST_EQUAL(channel_list[3].channel_id_minus_1, 2)
+  TEST_EQUAL(channel_list[3].channel_id_minus_1, 1)
   TEST_EQUAL(channel_list[3].channel_id_plus_1, 5)
   TEST_EQUAL(channel_list[3].channel_id_plus_2, 7)
 

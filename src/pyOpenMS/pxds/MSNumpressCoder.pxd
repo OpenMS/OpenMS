@@ -26,8 +26,6 @@ cdef extern from "<OpenMS/FORMAT/MSNumpressCoder.h>" namespace "OpenMS::MSNumpre
       SIZE_OF_NUMPRESSCOMPRESSION
 
     cdef cppclass NumpressConfig:
-      # wrap-attach:
-      #     MSNumpressCoder
 
       NumpressConfig() nogil except +
       NumpressConfig(NumpressConfig) nogil except +

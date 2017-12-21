@@ -10,8 +10,7 @@
       <userParam name="CompoundName" type="xsd:string" value="compound_2"/>
       <RetentionTimeList>
         <RetentionTime>
-          <cvParam cvRef="MS" accession="MS:1000896" name="normalized retention time" value="-1"/>
-          <cvParam cvRef="MS" accession="MS:1002005" name="iRT retention time normalization standard"/>
+          <cvParam cvRef="MS" accession="MS:1002005" name="iRT retention time normalization standard" value="-1"/>
         </RetentionTime>
       </RetentionTimeList>
     </Compound>
@@ -21,8 +20,7 @@
       <userParam name="CompoundName" type="xsd:string" value="compound_1"/>
       <RetentionTimeList>
         <RetentionTime>
-          <cvParam cvRef="MS" accession="MS:1000896" name="normalized retention time" value="-1"/>
-          <cvParam cvRef="MS" accession="MS:1002005" name="iRT retention time normalization standard"/>
+          <cvParam cvRef="MS" accession="MS:1002005" name="iRT retention time normalization standard" value="-1"/>
         </RetentionTime>
       </RetentionTimeList>
     </Compound>

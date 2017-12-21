@@ -108,15 +108,14 @@ namespace OpenMS
     getNormalized_library_intensities_(transitions, normalized_library_intensity);
 
     // find spectrum that is closest to the apex of the peak using binary search
-    OpenSwath::SpectrumPtr spectrum_ = getAddedSpectra_(used_swath_maps, imrmfeature->getRT(), add_up_spectra_);
-    OpenSwath::SpectrumPtr* spectrum = &spectrum_;
+    OpenSwath::SpectrumPtr spectrum = getAddedSpectra_(used_swath_maps, imrmfeature->getRT(), add_up_spectra_);
 
     // Mass deviation score
-    diascoring.dia_massdiff_score(transitions, (*spectrum), normalized_library_intensity,
+    diascoring.dia_massdiff_score(transitions, spectrum, normalized_library_intensity,
         scores.massdev_score, scores.weighted_massdev_score);
 
     // DIA dotproduct and manhattan score based on library intensity
-    diascoring.score_with_isotopes((*spectrum), transitions, scores.dotprod_score_dia, scores.manhatt_score_dia);
+    diascoring.score_with_isotopes(spectrum, transitions, scores.dotprod_score_dia, scores.manhatt_score_dia);
 
     // Isotope correlation / overlap score: Is this peak part of an
     // isotopic pattern or is it the monoisotopic peak in an isotopic
@@ -124,7 +123,7 @@ namespace OpenMS
     // Currently this is computed for an averagine model of a peptide so its
     // not optimal for metabolites - but better than nothing, given that for
     // most fragments we dont really know their composition
-    diascoring.dia_isotope_scores(transitions, (*spectrum), imrmfeature, scores.isotope_correlation, scores.isotope_overlap);
+    diascoring.dia_isotope_scores(transitions, spectrum, imrmfeature, scores.isotope_correlation, scores.isotope_overlap);
 
     // Peptide-specific scores
     if (compound.isPeptide())
@@ -133,7 +132,7 @@ namespace OpenMS
       OpenMS::AASequence aas;
       int by_charge_state = 1; // for which charge states should we check b/y series
       OpenSwathDataAccessHelper::convertPeptideToAASequence(compound, aas);
-      diascoring.dia_by_ion_score((*spectrum), aas, by_charge_state, scores.bseries_score, scores.yseries_score);
+      diascoring.dia_by_ion_score(spectrum, aas, by_charge_state, scores.bseries_score, scores.yseries_score);
     }
 
     // FEATURE we should not punish so much when one transition is missing!
@@ -214,8 +213,7 @@ namespace OpenMS
     }
 
     // find spectrum that is closest to the apex of the peak using binary search
-    OpenSwath::SpectrumPtr spectrum_ = getAddedSpectra_(used_swath_maps, imrmfeature->getRT(), add_up_spectra_);
-    OpenSwath::SpectrumPtr* spectrum = &spectrum_;
+    OpenSwath::SpectrumPtr spectrum = getAddedSpectra_(used_swath_maps, imrmfeature->getRT(), add_up_spectra_);
 
     // If no charge is given, we assume it to be 1
     int putative_product_charge = 1;
@@ -227,9 +225,9 @@ namespace OpenMS
     // Isotope correlation / overlap score: Is this peak part of an
     // isotopic pattern or is it the monoisotopic peak in an isotopic
     // pattern?
-    diascoring.dia_ms1_isotope_scores(transition.getProductMZ(), (*spectrum), putative_product_charge, scores.isotope_correlation, scores.isotope_overlap);
+    diascoring.dia_ms1_isotope_scores(transition.getProductMZ(), spectrum, putative_product_charge, scores.isotope_correlation, scores.isotope_overlap);
     // Mass deviation score
-    diascoring.dia_ms1_massdiff_score(transition.getProductMZ(), (*spectrum), scores.massdev_score);
+    diascoring.dia_ms1_massdiff_score(transition.getProductMZ(), spectrum, scores.massdev_score);
   }
 
   void OpenSwathScoring::calculateChromatographicScores(

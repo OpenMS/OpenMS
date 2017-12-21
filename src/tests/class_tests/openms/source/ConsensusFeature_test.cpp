@@ -53,8 +53,8 @@ START_TEST(ConsensusFeature, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-ConsensusFeature* ptr = 0;
-ConsensusFeature* nullPointer = 0;
+ConsensusFeature* ptr = nullptr;
+ConsensusFeature* nullPointer = nullptr;
 START_SECTION((ConsensusFeature()))
 	ptr = new ConsensusFeature();
 	TEST_NOT_EQUAL(ptr, nullPointer)

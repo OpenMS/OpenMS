@@ -102,7 +102,7 @@ public:
 
 protected:
 
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "The workflow to be executed.");
     setValidFormats_("in", ListUtils::create<String>("toppas"));
@@ -112,7 +112,7 @@ protected:
     setMinInt_("num_jobs", 1);
   }
 
-  ExitCodes main_(int argc, const char ** argv)
+  ExitCodes main_(int argc, const char ** argv) override
   {
     QString toppas_file = getStringOption_("in").toQString();
     QString out_dir_name = getStringOption_("out_dir").toQString();
@@ -128,7 +128,7 @@ protected:
     qd.cd(new_tmp_dir);
     QString tmp_path = qd.absolutePath();
 
-    TOPPASScene ts(0, tmp_path, false);
+    TOPPASScene ts(nullptr, tmp_path, false);
     if (!a.connect(&ts, SIGNAL(entirePipelineFinished()), &a, SLOT(quit()))) return UNKNOWN_ERROR;
 
     if (!a.connect(&ts, SIGNAL(pipelineExecutionFailed()), &a, SLOT(quit()))) return UNKNOWN_ERROR;      // for some reason this slot does not get called, plus it would return "success", which we do not want

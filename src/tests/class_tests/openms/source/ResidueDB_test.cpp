@@ -50,8 +50,8 @@ START_TEST(ResidueDB, "$Id$")
 
 /////////////////////////////////////////////////////////////
 
-ResidueDB* ptr = 0;
-ResidueDB* nullPointer = 0;
+ResidueDB* ptr = nullptr;
+ResidueDB* nullPointer = nullptr;
 START_SECTION(ResidueDB* getInstance())
 	ptr = ResidueDB::getInstance();
 	TEST_NOT_EQUAL(ptr, nullPointer)
@@ -171,8 +171,8 @@ END_SECTION
 
 START_SECTION(Size getNumberOfModifiedResidues() const)
 	TEST_EQUAL(ptr->getNumberOfModifiedResidues(), 1)
-	const Residue* mod_res = 0;
-    const Residue* mod_res_nullPointer = 0;
+	const Residue* mod_res = nullptr;
+    const Residue* mod_res_nullPointer = nullptr;
 	mod_res = ptr->getModifiedResidue("Carbamidomethyl (C)");
     TEST_NOT_EQUAL(mod_res, mod_res_nullPointer)
 	TEST_EQUAL(ptr->getNumberOfModifiedResidues(), 2)

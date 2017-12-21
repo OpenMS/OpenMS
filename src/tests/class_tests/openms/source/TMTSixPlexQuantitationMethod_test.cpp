@@ -49,8 +49,8 @@ START_TEST(TMTSixPlexQuantitationMethod, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-TMTSixPlexQuantitationMethod* ptr = 0;
-TMTSixPlexQuantitationMethod* null_ptr = 0;
+TMTSixPlexQuantitationMethod* ptr = nullptr;
+TMTSixPlexQuantitationMethod* null_ptr = nullptr;
 START_SECTION(TMTSixPlexQuantitationMethod())
 {
 	ptr = new TMTSixPlexQuantitationMethod();

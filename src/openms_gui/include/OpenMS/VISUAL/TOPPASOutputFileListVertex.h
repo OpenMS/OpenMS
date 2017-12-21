@@ -59,21 +59,21 @@ public:
     /// Copy constructor
     TOPPASOutputFileListVertex(const TOPPASOutputFileListVertex & rhs);
     /// Destructor
-    virtual ~TOPPASOutputFileListVertex();
+    ~TOPPASOutputFileListVertex() override;
     /// Assignment operator
     TOPPASOutputFileListVertex & operator=(const TOPPASOutputFileListVertex & rhs);
     /// returns "OutputVertex"
-    virtual String getName() const;
+    String getName() const override;
     // documented in base class
-    virtual void paint(QPainter * painter, const QStyleOptionGraphicsItem * option, QWidget * widget);
+    void paint(QPainter * painter, const QStyleOptionGraphicsItem * option, QWidget * widget) override;
     // documented in base class
-    virtual QRectF boundingRect() const;
+    QRectF boundingRect() const override;
     // documented in base class
-    virtual QPainterPath shape() const;
+    QPainterPath shape() const override;
     // documented in base class
-    virtual void reset(bool reset_all_files = false);
+    void reset(bool reset_all_files = false) override;
     /// Called when the parent node has finished execution
-    virtual void run();
+    void run() override;
     /// Returns the full directory (including preceding output path as selected by user)
     String getFullOutputDirectory() const;
     /// Returns the directory where the output files are stored
@@ -81,7 +81,7 @@ public:
     /// Creates the output directory for this node
     String createOutputDir();
     /// Sets the topological sort number and removes invalidated tmp files
-    virtual void setTopoNr(UInt nr);
+    void setTopoNr(UInt nr) override;
     /// Opens the folders of the output files
     void openContainingFolder();
     /// Sets a custom output folder name, which will be integrated into 'getOutputDir()' and 'getFullOutputDirectory()' calls.
@@ -93,7 +93,7 @@ public:
 public slots:
 
     //documented in base class
-    virtual void inEdgeHasChanged();
+    void inEdgeHasChanged() override;
 
 signals:
     /// Emitted when an output file was written
@@ -107,10 +107,10 @@ protected:
     // custom output folder name
     QString output_folder_name_;
 
-    static bool copy_(const QString & from, const QString & to); //< STATIC(!) function which calls QFile::copy(); needs to be static, since we need to pass a function pointer (which does not work on member functions)
+    static bool copy_(const QString & from, const QString & to); ///< STATIC(!) function which calls QFile::copy(); needs to be static, since we need to pass a function pointer (which does not work on member functions)
     // convenience members, not required for operation, but for progress during copying
-    int files_written_;       //< files that were already written
-    int files_total_;     //< total number of files from upstream
+    int files_written_;       ///< files that were already written
+    int files_total_;     ///< total number of files from upstream
   };
 }
 

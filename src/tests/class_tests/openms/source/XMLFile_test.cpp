@@ -51,8 +51,8 @@ using namespace OpenMS;
 using namespace OpenMS::Internal;
 using namespace std;
 
-XMLFile* ptr = 0;
-XMLFile* nullPointer = 0;
+XMLFile* ptr = nullptr;
+XMLFile* nullPointer = nullptr;
 
 START_SECTION(XMLFile())
 	ptr = new XMLFile();

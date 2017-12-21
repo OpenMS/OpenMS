@@ -57,16 +57,16 @@ public:
       UnimodXMLHandler(std::vector<ResidueModification*>& mods, const String& filename);
 
       /// Destructor
-      virtual ~UnimodXMLHandler();
+      ~UnimodXMLHandler() override;
 
       // Docu in base class
-      void endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname);
+      void endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname) override;
 
       // Docu in base class
-      void startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes);
+      void startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes) override;
 
       // Docu in base class
-      void characters(const XMLCh* const chars, const XMLSize_t /*length*/);
+      void characters(const XMLCh* const chars, const XMLSize_t /*length*/) override;
 
 private:
 

@@ -184,6 +184,8 @@ namespace OpenMS
 
     util_map["AccurateMassSearch"] = Internal::ToolDescription("AccurateMassSearch", util_category);
     util_map["CVInspector"] = Internal::ToolDescription("CVInspector", util_category);
+    util_map["ClusterMassTraces"] = Internal::ToolDescription("ClusterMassTraces", util_category);
+    util_map["ClusterMassTracesByPrecursor"] = Internal::ToolDescription("ClusterMassTracesByPrecursor", util_category);
     util_map["DecoyDatabase"] = Internal::ToolDescription("DecoyDatabase", util_category);
     util_map["DatabaseFilter"]= Internal::ToolDescription("DatabaseFilter", util_category);
     util_map["DeMeanderize"] = Internal::ToolDescription("DeMeanderize", util_category);
@@ -199,7 +201,7 @@ namespace OpenMS
     util_map["IDSplitter"] = Internal::ToolDescription("IDSplitter", util_category);
     util_map["LabeledEval"] = Internal::ToolDescription("LabeledEval", util_category);
     util_map["LowMemPeakPickerHiRes"] = Internal::ToolDescription("LowMemPeakPickerHiRes", util_category);
-    util_map["LowMemPeakPickerHiRes_RandomAccess"] = Internal::ToolDescription("LowMemPeakPickerHiRes_RandomAccess", util_category);
+    util_map["LowMemPeakPickerHiResRandomAccess"] = Internal::ToolDescription("LowMemPeakPickerHiResRandomAccess", util_category);
     util_map["MassCalculator"] = Internal::ToolDescription("MassCalculator", util_category);
     util_map["MetaboliteAdductDecharger"] = Internal::ToolDescription("MetaboliteAdductDecharger", util_category);
     util_map["MetaboliteSpectralMatcher"] = Internal::ToolDescription("MetaboliteSpectralMatcher", util_category);
@@ -227,6 +229,7 @@ namespace OpenMS
     util_map["QCImporter"] = Internal::ToolDescription("QCImporter", util_category);
     util_map["QCMerger"] = Internal::ToolDescription("QCMerger", util_category);
     util_map["QCShrinker"] = Internal::ToolDescription("QCExporter", util_category);
+    util_map["RNADigestor"] = Internal::ToolDescription("RNADigestor", util_category);
     util_map["RNPxl"] = Internal::ToolDescription("RNPxl", util_category);
     util_map["RNPxlSearch"] = Internal::ToolDescription("RNPxlSearch", util_category);
     util_map["RNPxlXICFilter"] = Internal::ToolDescription("RNPxlXICFilter", util_category);
@@ -236,6 +239,7 @@ namespace OpenMS
     util_map["SpecLibCreator"] = Internal::ToolDescription("SpecLibCreator", util_category);
     util_map["SpectraSTSearchAdapter"] = Internal::ToolDescription("SpectraSTSearchAdapter", util_category);
     util_map["SimpleSearchEngine"] = Internal::ToolDescription("SimpleSearchEngine", util_category);
+    util_map["SiriusAdapter"] = Internal::ToolDescription("SiriusAdapter", util_category);
     util_map["SvmTheoreticalSpectrumGeneratorTrainer"] = Internal::ToolDescription("SvmTheoreticalSpectrumGeneratorTrainer", util_category);
     util_map["TICCalculator"] = Internal::ToolDescription("TICCalculator", util_category);
     util_map["TransformationEvaluation"] = Internal::ToolDescription("TransformationEvaluation", util_category);
@@ -359,7 +363,7 @@ namespace OpenMS
     paths << (getExternalToolsPath() + "/LINUX").toQString();
 #endif
     // additional environment
-    if (getenv("OPENMS_TTD_PATH") != 0)
+    if (getenv("OPENMS_TTD_PATH") != nullptr)
     {
       paths << String(getenv("OPENMS_TTD_PATH")).toQString();
     }
@@ -391,7 +395,7 @@ namespace OpenMS
     paths << (getInternalToolsPath() + "/LINUX").toQString();
 #endif
     // additional environment
-    if (getenv("OPENMS_TTD_INTERNAL_PATH") != 0)
+    if (getenv("OPENMS_TTD_INTERNAL_PATH") != nullptr)
     {
       paths << String(getenv("OPENMS_TTD_INTERNAL_PATH")).toQString();
     }

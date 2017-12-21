@@ -4,7 +4,7 @@
 	<SearchParameters id="SP_0" db="/nfs/wsi/abi/old-data/sachsenb/OpenMS_IDE/src/tests/topp/THIRDPARTY/proteins.fasta" db_version="" taxonomy="0" mass_type="monoisotopic" charges="+1-+3" enzyme="trypsin" missed_cleavages="1" precursor_peak_tolerance="5" precursor_peak_tolerance_ppm="true" peak_mass_tolerance="0.3" peak_mass_tolerance_ppm="false" >
 		<VariableModification name="Oxidation (M)" />
 	</SearchParameters>
-	<IdentificationRun date="2016-12-20T17:14:00" search_engine="OMSSA" search_engine_version="2.1.8" search_parameters_ref="SP_0" >
+	<IdentificationRun date="2017-11-28T11:40:56" search_engine="OMSSA" search_engine_version="2.1.8" search_parameters_ref="SP_0" >
 		<ProteinIdentification score_type="OMSSA" higher_score_better="false" significance_threshold="0" >
 			<ProteinHit id="PH_0" accession="BSA2" score="0" sequence="" >
 			</ProteinHit>

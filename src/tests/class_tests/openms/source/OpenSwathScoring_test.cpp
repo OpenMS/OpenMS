@@ -58,8 +58,8 @@ START_TEST(OpenSwathScoring, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-OpenSwathScoring* ptr = 0;
-OpenSwathScoring* nullPointer = 0;
+OpenSwathScoring* ptr = nullptr;
+OpenSwathScoring* nullPointer = nullptr;
 
 START_SECTION(OpenSwathScoring())
 {
@@ -136,7 +136,7 @@ START_SECTION((OpenSwath::SpectrumPtr getAddedSpectra_(OpenSwath::SpectrumAccess
   // test result for map with single spectrum
   {
     PeakMap* eptr = new PeakMap;
-    MSSpectrum<> s;
+    MSSpectrum s;
     Peak1D p;
     p.setMZ(20.0);
     p.setIntensity(200.0);
@@ -160,7 +160,7 @@ START_SECTION((OpenSwath::SpectrumPtr getAddedSpectra_(OpenSwath::SpectrumAccess
   // test result for map with three spectra
   {
     PeakMap* eptr = new PeakMap;
-    MSSpectrum<> s;
+    MSSpectrum s;
     Peak1D p;
     p.setMZ(20.0);
     p.setIntensity(200.0);
@@ -188,7 +188,7 @@ START_SECTION((OpenSwath::SpectrumPtr getAddedSpectra_(OpenSwath::SpectrumAccess
   // test result for map with uneven number of spectra
   {
     PeakMap* eptr = new PeakMap;
-    MSSpectrum<> s;
+    MSSpectrum s;
     Peak1D p;
     p.setMZ(20.0);
     p.setIntensity(200.0);

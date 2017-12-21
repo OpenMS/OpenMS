@@ -37,6 +37,8 @@
 
 #include <OpenMS/KERNEL/MSExperiment.h>
 
+#include <OpenMS/INTERFACES/IMSDataConsumer.h>
+
 namespace OpenMS
 {
 
@@ -44,12 +46,30 @@ namespace OpenMS
     @brief An class that uses on-disk SQLite database to read and write spectra and chromatograms
 
     This class provides functions to read and write spectra and chromatograms
-    to disk using a SQLite database.
-
+    to disk using a SQLite database and store them in sqMass format. This
+    allows users to access, select and filter spectra and chromatograms
+    on-demand even in a large collection of data.
   */
   class OPENMS_DLLAPI SqMassFile
   {
 public:
+
+  /**
+    @brief Configuration class for SqMassFile
+
+    Contains configuration options for SQLite file
+  */
+    struct OPENMS_DLLAPI SqMassConfig 
+    {
+      bool write_full_meta; /// write full meta data
+      bool use_lossy_numpress; /// use lossy numpress compression
+      double linear_fp_mass_acc; /// desired mass accuracy for numpress linear encoding (-1 no effect, use 0.0001 for 0.2 ppm accuracy @ 500 m/z)
+
+      SqMassConfig () :
+        write_full_meta(true),
+        use_lossy_numpress(false),
+        linear_fp_mass_acc(-1) {}
+    };
 
     typedef MSExperiment MapType;
 
@@ -71,6 +91,13 @@ public:
 
     void store(const String& filename, MapType& map);
 
+    void transform(const String& filename_in, Interfaces::IMSDataConsumer * consumer, bool skip_full_count = false, bool skip_first_pass = false);
+
+    void setConfig(SqMassConfig config) 
+    {
+      config_ = config;
+    }
+
     // maybe later ...
     // static inline void readSpectrumFast(OpenSwath::BinaryDataArrayPtr data1,
     //                                     OpenSwath::BinaryDataArrayPtr data2, std::ifstream& ifs, int& ms_level,
@@ -80,6 +107,8 @@ public:
     //                                        OpenSwath::BinaryDataArrayPtr data2, std::ifstream& ifs)
 
 protected:
+
+      SqMassConfig config_;
 
   };
 }

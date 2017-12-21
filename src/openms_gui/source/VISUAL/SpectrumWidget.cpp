@@ -52,7 +52,7 @@ namespace OpenMS
 
   SpectrumWidget::SpectrumWidget(const Param& /*preferences*/, QWidget* parent) :
     QWidget(parent),
-    canvas_(0)
+    canvas_(nullptr)
   {
     setAttribute(Qt::WA_DeleteOnClose);
     grid_ = new QGridLayout(this);

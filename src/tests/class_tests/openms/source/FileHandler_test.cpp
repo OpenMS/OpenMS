@@ -242,7 +242,7 @@ TEST_EQUAL(tmp.loadFeatures(OPENMS_GET_TEST_DATA_PATH("FeatureXMLFile_2_options.
 TEST_EQUAL(map.size(), 7);
 END_SECTION
 
-START_SECTION((template <class PeakType> void storeExperiment(const String &filename, const MSExperiment<PeakType>&exp, ProgressLogger::LogType log = ProgressLogger::NONE)))
+START_SECTION((void storeExperiment(const String &filename, const MSExperiment<>&exp, ProgressLogger::LogType log = ProgressLogger::NONE)))
 FileHandler fh;
 PeakMap exp;
 fh.loadExperiment(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"), exp);

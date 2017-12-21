@@ -48,8 +48,8 @@ START_TEST(IMSAlphabetTextParser, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-IMSAlphabetTextParser* ptr = 0;
-IMSAlphabetTextParser* null_ptr = 0;
+IMSAlphabetTextParser* ptr = nullptr;
+IMSAlphabetTextParser* null_ptr = nullptr;
 START_SECTION(IMSAlphabetTextParser())
 {
 	ptr = new IMSAlphabetTextParser();

@@ -131,7 +131,7 @@ protected:
 
   typedef PeakMap MapType;
 
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     registerInputFileList_("in", "<files>", StringList(), "Input files separated by blank");
     setValidFormats_("in", ListUtils::create<String>("mzML"));
@@ -177,7 +177,7 @@ protected:
     registerFlag_("model:symmetric_regression", "Only for 'linear' model: Perform linear regression on 'y - x' vs. 'y + x', instead of on 'y' vs. 'x'.");
   }
 
-  ExitCodes main_(int, const char **)
+  ExitCodes main_(int, const char **) override
   {
     StringList file_list = getStringList_("in");
     String tr_file_str = getStringOption_("tr");
@@ -211,7 +211,7 @@ protected:
     const char * tr_file = tr_file_str.c_str();
 
     MapType out_exp;
-    std::vector< OpenMS::MSChromatogram<> > chromatograms;
+    std::vector< OpenMS::MSChromatogram > chromatograms;
     TraMLFile traml;
     OpenMS::TargetedExperiment targeted_exp;
 

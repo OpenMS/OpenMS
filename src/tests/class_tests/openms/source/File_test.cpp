@@ -53,54 +53,54 @@ START_TEST(TextFile, "$Id$")
 /////////////////////////////////////////////////////////////
 
 START_SECTION((static String getExecutablePath()))
-	TEST_NOT_EQUAL(File::getExecutablePath().size(), 0)
+  TEST_NOT_EQUAL(File::getExecutablePath().size(), 0)
 END_SECTION
 
 START_SECTION((static bool exists(const String &file)))
-	TEST_EQUAL(File::exists("does_not_exists.txt"), false)
-	TEST_EQUAL(File::exists(""), false)
-	TEST_EQUAL(File::exists(OPENMS_GET_TEST_DATA_PATH("File_test_text.txt")), true)
+  TEST_EQUAL(File::exists("does_not_exists.txt"), false)
+  TEST_EQUAL(File::exists(""), false)
+  TEST_EQUAL(File::exists(OPENMS_GET_TEST_DATA_PATH("File_test_text.txt")), true)
 END_SECTION
 
 START_SECTION((static bool empty(const String &file)))
-	TEST_EQUAL(File::empty("does_not_exists.txt"), true)
-	TEST_EQUAL(File::empty(OPENMS_GET_TEST_DATA_PATH("File_test_empty.txt")), true)
-	TEST_EQUAL(File::empty(OPENMS_GET_TEST_DATA_PATH("File_test_text.txt")), false)
+  TEST_EQUAL(File::empty("does_not_exists.txt"), true)
+  TEST_EQUAL(File::empty(OPENMS_GET_TEST_DATA_PATH("File_test_empty.txt")), true)
+  TEST_EQUAL(File::empty(OPENMS_GET_TEST_DATA_PATH("File_test_text.txt")), false)
 END_SECTION
 
 START_SECTION((static bool remove(const String &file)))
-	//deleting non-existing file
-	TEST_EQUAL(File::remove("does_not_exists.txt"), true)
+  //deleting non-existing file
+  TEST_EQUAL(File::remove("does_not_exists.txt"), true)
 
-	//deleting existing file
-	String filename;
-	NEW_TMP_FILE(filename);
-	ofstream os;
-	os.open (filename.c_str(), ofstream::out);
-	os << "File_test dummy file to delete" << endl;
-	os.close();
-	TEST_EQUAL(File::remove(filename), true)
+  //deleting existing file
+  String filename;
+  NEW_TMP_FILE(filename);
+  ofstream os;
+  os.open (filename.c_str(), ofstream::out);
+  os << "File_test dummy file to delete" << endl;
+  os.close();
+  TEST_EQUAL(File::remove(filename), true)
 END_SECTION
 
 START_SECTION((static bool readable(const String &file)))
-	TEST_EQUAL(File::readable("does_not_exists.txt"), false)
-	TEST_EQUAL(File::readable(OPENMS_GET_TEST_DATA_PATH("File_test_empty.txt")), true)
-	TEST_EQUAL(File::readable(OPENMS_GET_TEST_DATA_PATH("File_test_text.txt")), true)
-	TEST_EQUAL(File::readable(""), false)
+  TEST_EQUAL(File::readable("does_not_exists.txt"), false)
+  TEST_EQUAL(File::readable(OPENMS_GET_TEST_DATA_PATH("File_test_empty.txt")), true)
+  TEST_EQUAL(File::readable(OPENMS_GET_TEST_DATA_PATH("File_test_text.txt")), true)
+  TEST_EQUAL(File::readable(""), false)
 END_SECTION
 
 START_SECTION((static bool writable(const String &file)))
-	TEST_EQUAL(File::writable("/this/file/cannot/be/written.txt"), false)
-	TEST_EQUAL(File::writable(OPENMS_GET_TEST_DATA_PATH("File_test_empty.txt")), true)
-	TEST_EQUAL(File::writable(OPENMS_GET_TEST_DATA_PATH("File_test_imaginary.txt")), true)
+  TEST_EQUAL(File::writable("/this/file/cannot/be/written.txt"), false)
+  TEST_EQUAL(File::writable(OPENMS_GET_TEST_DATA_PATH("File_test_empty.txt")), true)
+  TEST_EQUAL(File::writable(OPENMS_GET_TEST_DATA_PATH("File_test_imaginary.txt")), true)
 
-	String filename;
-	NEW_TMP_FILE(filename);
-	TEST_EQUAL(File::writable(filename), true)
+  String filename;
+  NEW_TMP_FILE(filename);
+  TEST_EQUAL(File::writable(filename), true)
 END_SECTION
 
 START_SECTION((static String find(const String &filename, StringList directories=StringList())))
-	TEST_EXCEPTION(Exception::FileNotFound, File::find("File.h"))
+  TEST_EXCEPTION(Exception::FileNotFound, File::find("File.h"))
   String s_obo = File::find("CV/psi-ms.obo");
   TEST_EQUAL(s_obo.empty(), false);
   TEST_EQUAL(File::find(s_obo), s_obo); // iterative finding should return the identical file
@@ -109,7 +109,7 @@ START_SECTION((static String find(const String &filename, StringList directories
 END_SECTION
 
 START_SECTION((static String findDoc(const String& filename)))
-	TEST_EXCEPTION(Exception::FileNotFound,File::findDoc("non-existing-documentation"))
+  TEST_EXCEPTION(Exception::FileNotFound,File::findDoc("non-existing-documentation"))
   // should exist in every valid source tree (we cannot test for Doxyfile since doxygen might not be installed)
   TEST_EQUAL(File::findDoc("doxygen/Doxyfile.in").hasSuffix("Doxyfile.in"), true)
   // a file from the build tree
@@ -117,54 +117,56 @@ START_SECTION((static String findDoc(const String& filename)))
 END_SECTION
 
 START_SECTION((static String absolutePath(const String &file)))
-	NOT_TESTABLE
+  NOT_TESTABLE
 END_SECTION
 
 START_SECTION((static String path(const String &file)))
-	NOT_TESTABLE
+  NOT_TESTABLE
 END_SECTION
 
 START_SECTION((static String basename(const String &file)))
-	TEST_EQUAL(File::basename("/souce/config/bla/bluff.h"), "bluff.h");
+  TEST_EQUAL(File::basename("/souce/config/bla/bluff.h"), "bluff.h");
 END_SECTION
 
 START_SECTION((static bool fileList(const String &dir, const String &file_pattern, StringList &output, bool full_path=false)))
-StringList vec;
-TEST_EQUAL(File::fileList(OPENMS_GET_TEST_DATA_PATH(""), "*.bliblaluff", vec), false);
-TEST_EQUAL(File::fileList(OPENMS_GET_TEST_DATA_PATH(""), "File_test_text.txt", vec), true);
-TEST_EQUAL(vec[0], "File_test_text.txt");
-TEST_EQUAL(File::fileList(OPENMS_GET_TEST_DATA_PATH(""), "File_test_text.txt", vec, true), true);
-// can't use "path + separator + filename", because sep. might be "/" or "\\"
-TEST_EQUAL(vec[0].hasPrefix(OPENMS_GET_TEST_DATA_PATH("")), true);
-TEST_EQUAL(vec[0].hasSuffix("File_test_text.txt"), true);
+  StringList vec;
+  TEST_EQUAL(File::fileList(OPENMS_GET_TEST_DATA_PATH(""), "*.bliblaluff", vec), false);
+  TEST_EQUAL(File::fileList(OPENMS_GET_TEST_DATA_PATH(""), "File_test_text.txt", vec), true);
+  TEST_EQUAL(vec[0], "File_test_text.txt");
+  TEST_EQUAL(File::fileList(OPENMS_GET_TEST_DATA_PATH(""), "File_test_text.txt", vec, true), true);
+  // can't use "path + separator + filename", because sep. might be "/" or "\\"
+  TEST_EQUAL(vec[0].hasPrefix(OPENMS_GET_TEST_DATA_PATH("")), true);
+  TEST_EQUAL(vec[0].hasSuffix("File_test_text.txt"), true);
 END_SECTION
 
-START_SECTION((static String getUniqueName()))
-	String unique_name = File::getUniqueName();
-
-	// test if the string consists of three parts
-	StringList split;
-	unique_name.split('_', split);
-	TEST_EQUAL(split.size() >= 4, true) // if name of machine also contains '_' ...
+START_SECTION((static String getUniqueName(bool include_hostname = true)))
+  String unique_name = File::getUniqueName();
+  String unique_name_no_host = File::getUniqueName(false);
+  TEST_EQUAL(unique_name.size() > unique_name_no_host.size(), true)
+  
+  // test if the string consists of four parts
+  StringList split;
+  unique_name.split('_', split);
+  TEST_EQUAL(split.size() >= 4, true) // if name of machine also contains '_' ...
 END_SECTION
 
 START_SECTION((static String getOpenMSDataPath()))
-	NOT_TESTABLE
+  NOT_TESTABLE
 END_SECTION
 
 START_SECTION((static String removeExtension(const String& file)))
-	TEST_STRING_EQUAL(File::removeExtension(""),"")
-	TEST_STRING_EQUAL(File::removeExtension("/home/doe/file"),"/home/doe/file")
-	TEST_STRING_EQUAL(File::removeExtension("/home/doe/file.txt"),"/home/doe/file")
-	TEST_STRING_EQUAL(File::removeExtension("/home/doe/file.txt.tgz"),"/home/doe/file.txt")
+  TEST_STRING_EQUAL(File::removeExtension(""),"")
+  TEST_STRING_EQUAL(File::removeExtension("/home/doe/file"),"/home/doe/file")
+  TEST_STRING_EQUAL(File::removeExtension("/home/doe/file.txt"),"/home/doe/file")
+  TEST_STRING_EQUAL(File::removeExtension("/home/doe/file.txt.tgz"),"/home/doe/file.txt")
 END_SECTION
 
 START_SECTION((static bool isDirectory(const String& path)))
-	TEST_EQUAL(File::isDirectory(""),false)
-	TEST_EQUAL(File::isDirectory("."),true)
-	TEST_EQUAL(File::isDirectory(OPENMS_GET_TEST_DATA_PATH("")),true)
-	TEST_EQUAL(File::isDirectory(OPENMS_GET_TEST_DATA_PATH("does_not_exists.txt")),false)
-	TEST_EQUAL(File::isDirectory(OPENMS_GET_TEST_DATA_PATH("File_test_text.txt")),false)
+  TEST_EQUAL(File::isDirectory(""),false)
+  TEST_EQUAL(File::isDirectory("."),true)
+  TEST_EQUAL(File::isDirectory(OPENMS_GET_TEST_DATA_PATH("")),true)
+  TEST_EQUAL(File::isDirectory(OPENMS_GET_TEST_DATA_PATH("does_not_exists.txt")),false)
+  TEST_EQUAL(File::isDirectory(OPENMS_GET_TEST_DATA_PATH("File_test_text.txt")),false)
 END_SECTION
 
 START_SECTION(static bool removeDirRecursively(const String &dir_name))
@@ -217,8 +219,8 @@ END_SECTION
 
 START_SECTION(static String findExecutable(const OpenMS::String& toolName))
 {
-	TEST_EXCEPTION(Exception::FileNotFound, File::findExecutable("executable_does_not_exist"))
-	TEST_EQUAL(File::path(File::findExecutable("File_test")) + "/", File::getExecutablePath())
+  TEST_EXCEPTION(Exception::FileNotFound, File::findExecutable("executable_does_not_exist"))
+  TEST_EQUAL(File::path(File::findExecutable("File_test")) + "/", File::getExecutablePath())
 }
 END_SECTION
 /////////////////////////////////////////////////////////////

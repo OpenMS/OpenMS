@@ -34,7 +34,7 @@
 
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/CHEMISTRY/ResidueDB.h>
-#include <OpenMS/CHEMISTRY/EnzymesDB.h>
+#include <OpenMS/CHEMISTRY/ProteaseDB.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/UniqueIdGenerator.h>
 #include <OpenMS/FORMAT/ProtXMLFile.h>
@@ -82,9 +82,9 @@ namespace OpenMS
   /// reset members
   void ProtXMLFile::resetMembers_()
   {
-    prot_id_ = 0;
-    pep_id_ = 0;
-    pep_hit_ = 0;
+    prot_id_ = nullptr;
+    pep_id_ = nullptr;
+    pep_hit_ = nullptr;
     protein_group_ = ProteinGroup();
   }
 
@@ -99,7 +99,7 @@ namespace OpenMS
       ProteinIdentification::SearchParameters sp = prot_id_->getSearchParameters();
       sp.db = db;
       // find a matching enzyme name
-      sp.digestion_enzyme = *EnzymesDB::getInstance()->getEnzyme(enzyme);
+      sp.digestion_enzyme = *(ProteaseDB::getInstance()->getEnzyme(enzyme));
       prot_id_->setSearchParameters(sp);
       prot_id_->setScoreType("ProteinProphet probability");
       prot_id_->setHigherScoreBetter(true);

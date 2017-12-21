@@ -49,8 +49,8 @@ START_TEST(BinnedSumAgreeingIntensities, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-BinnedSumAgreeingIntensities* ptr = 0;
-BinnedSumAgreeingIntensities* nullPointer = 0;
+BinnedSumAgreeingIntensities* ptr = nullptr;
+BinnedSumAgreeingIntensities* nullPointer = nullptr;
 START_SECTION(BinnedSumAgreeingIntensities())
 {
 	ptr = new BinnedSumAgreeingIntensities();

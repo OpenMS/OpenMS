@@ -48,8 +48,8 @@ START_TEST(GaussFilterAlgorithm<D>, "$Id$")
 
 using namespace OpenMS;
 
-GaussFilterAlgorithm* dgauss_ptr = 0;
-GaussFilterAlgorithm* dgauss_nullPointer = 0;
+GaussFilterAlgorithm* dgauss_ptr = nullptr;
+GaussFilterAlgorithm* dgauss_nullPointer = nullptr;
 
 START_SECTION((GaussFilterAlgorithm()))
   dgauss_ptr = new GaussFilterAlgorithm;

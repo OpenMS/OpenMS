@@ -67,7 +67,7 @@ public:
     {
 public:
       InsufficientInput(const char * file, int line, const char * function, const char * message = "not enough data points to cluster anything") throw();
-      virtual ~InsufficientInput() throw();
+      ~InsufficientInput() throw() override;
     };
 
 

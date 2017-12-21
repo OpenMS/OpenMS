@@ -108,8 +108,8 @@ namespace OpenMS
     */
 
 	typedef PeakMap MapType;
-	typedef MSSpectrum<> SpectrumType;
-	typedef MSChromatogram<> ChromatogramType;
+	typedef MSSpectrum SpectrumType;
+	typedef MSChromatogram ChromatogramType;
 
     class OPENMS_DLLAPI MzMLHandler :
       public XMLHandler
@@ -125,23 +125,23 @@ public:
       MzMLHandler(const MapType& exp, const String& filename, const String& version, const ProgressLogger& logger);
 
       /// Destructor
-      virtual ~MzMLHandler();
+      ~MzMLHandler() override;
       //@}
 
       /**@name XML Handling functions and output writing */
       //@{
 
       // Docu in base class
-      virtual void endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname);
+      void endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname) override;
 
       // Docu in base class
-      virtual void startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes);
+      void startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes) override;
 
       // Docu in base class
-      virtual void characters(const XMLCh* const chars, const XMLSize_t length);
+      void characters(const XMLCh* const chars, const XMLSize_t length) override;
 
       //Docu in base class
-      virtual void writeTo(std::ostream& os);
+      void writeTo(std::ostream& os) override;
 
       //@}
 
@@ -192,9 +192,9 @@ protected:
       /// Chromatogram peak type
       typedef MapType::ChromatogramPeakType ChromatogramPeakType;
       /// Spectrum type
-      typedef MSSpectrum<PeakType> SpectrumType;
+      typedef MSSpectrum SpectrumType;
       /// Spectrum type
-      typedef MSChromatogram<ChromatogramPeakType> ChromatogramType;
+      typedef MSChromatogram ChromatogramType;
 
       typedef MzMLHandlerHelper::BinaryData BinaryData;
 

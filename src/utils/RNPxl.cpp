@@ -103,7 +103,7 @@ public:
   }
 
 protected:
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     // input files
     registerInputFile_("in_mzML", "<file>", "", "Input file");
@@ -151,7 +151,7 @@ protected:
     setValidFormats_("out_csv", ListUtils::create<String>("csv"));
   }
 
-  ExitCodes main_(int, const char**)
+  ExitCodes main_(int, const char**) override
   {
     const string in_mzml(getStringOption_("in_mzML"));
 

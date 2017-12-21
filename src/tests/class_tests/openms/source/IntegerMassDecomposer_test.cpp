@@ -81,8 +81,8 @@ START_TEST(IntegerMassDecomposer, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-IntegerMassDecomposer<>* ptr = 0;
-IntegerMassDecomposer<>* null_ptr = 0;
+IntegerMassDecomposer<>* ptr = nullptr;
+IntegerMassDecomposer<>* null_ptr = nullptr;
 
 START_SECTION((IntegerMassDecomposer(const Weights &alphabet_)))
 {

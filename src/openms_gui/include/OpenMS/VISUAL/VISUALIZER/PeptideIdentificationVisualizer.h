@@ -59,20 +59,20 @@ namespace OpenMS
     Q_OBJECT
 
 public:
-    ///Constructor
-    PeptideIdentificationVisualizer(bool editable = false, QWidget * parent = 0, MetaDataBrowser * caller = 0);
+    /// Constructor
+    PeptideIdentificationVisualizer(bool editable = false, QWidget * parent = nullptr, MetaDataBrowser * caller = nullptr);
 
     /// Loads the meta data from the object to the viewer. Gets the id of the item in the tree as parameter.
     void load(PeptideIdentification & s, int tree_item_id);
 
 public slots:
 
-    //Docu in base class
-    void store();
+    // Docu in base class
+    void store() override;
 
 protected slots:
 
-    ///Undo the changes made in the GUI.
+    /// Undo the changes made in the GUI.
     void undo_();
 
     /**

@@ -13,4 +13,4 @@ cdef extern from "<OpenMS/COMPARISON/SPECTRA/SpectrumAlignment.h>" namespace "Op
         SpectrumAlignment() nogil except +
         SpectrumAlignment(SpectrumAlignment) nogil except +
 
-        void getSpectrumAlignment(libcpp_vector[ libcpp_pair[ Size, Size ] ] & alignment, MSSpectrum[Peak1D] & s1, MSSpectrum[Peak1D] & s2) nogil except +  # wrap-ignore
+        void getSpectrumAlignment(libcpp_vector[ libcpp_pair[ Size, Size ] ] & alignment, MSSpectrum & s1, MSSpectrum & s2) nogil except +  # wrap-ignore

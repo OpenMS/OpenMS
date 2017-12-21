@@ -94,7 +94,7 @@ namespace OpenMS
 #ifndef OPENMS_WINDOWSPLATFORM
       // if the environment variable declared in OPENMS_CORE_DUMP_ENVNAME
       // is set, provoke a core dump (this is helpful to get a stack traceback)
-      if (getenv(OPENMS_CORE_DUMP_ENVNAME) != 0)
+      if (getenv(OPENMS_CORE_DUMP_ENVNAME) != nullptr)
       {
 #ifdef OPENMS_HAS_KILL
         std::cout << "dumping core file.... (to avoid this, unset " << OPENMS_CORE_DUMP_ENVNAME

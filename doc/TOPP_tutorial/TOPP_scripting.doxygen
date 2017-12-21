@@ -589,7 +589,7 @@ FileFilter -in infile.mzML -levels 2 -rt 100:1500 -out outfile.mzML
 /**
 	@page TOPP_example_calibration Calibration
 
-		@setion TOPP_example_calibration_section Calibration
+		@section TOPP_example_calibration_section Calibration
 
 	We offer two calibration methods: an internal and an external calibration. Both
 	can handle peak data as well as profile data. If you want to calibrate profile data,

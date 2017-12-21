@@ -75,7 +75,7 @@ namespace OpenMS
     return delta_masses_;
   }
   
-  String MultiplexDeltaMasses::labelSetToString(const MultiplexDeltaMasses::LabelSet ls)
+  String MultiplexDeltaMasses::labelSetToString(const MultiplexDeltaMasses::LabelSet& ls)
   {
     std::stringstream ss;
     

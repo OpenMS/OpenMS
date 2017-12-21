@@ -75,7 +75,7 @@ public:
 
 protected:
 
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "Input file");
     setValidFormats_("in", ListUtils::create<String>("mzML"));
@@ -92,7 +92,7 @@ protected:
     registerFlag_("no_spec", "Remove spectra, keep only chromatograms.");
   }
 
-  ExitCodes main_(int, const char **)
+  ExitCodes main_(int, const char **) override
   {
     String in = getStringOption_("in"), out = getStringOption_("out");
 
@@ -130,8 +130,8 @@ protected:
     PeakMap experiment;
     MzMLFile().load(in, experiment);
 
-    vector<MSSpectrum<Peak1D> > spectra;
-    vector<MSChromatogram<ChromatogramPeak> > chromatograms;
+    vector<MSSpectrum > spectra;
+    vector<MSChromatogram > chromatograms;
 
     if (no_spec)
     {

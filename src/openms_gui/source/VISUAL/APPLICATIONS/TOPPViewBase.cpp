@@ -131,7 +131,7 @@ namespace OpenMS
   TOPPViewBase::TOPPViewBase(QWidget* parent) :
     QMainWindow(parent),
     DefaultParamHandler("TOPPViewBase"),
-    watcher_(0),
+    watcher_(nullptr),
     watcher_msgbox_(false)
   {
 #if defined(__APPLE__)
@@ -585,7 +585,7 @@ namespace OpenMS
     restoreGeometry(settings.value("geometry").toByteArray());
     restoreState(settings.value("windowState").toByteArray());
 
-    topp_.process = 0;
+    topp_.process = nullptr;
 
     //######################### File System Watcher ###########################################
     watcher_ = new FileWatcher(this);
@@ -613,22 +613,22 @@ namespace OpenMS
     defaults_.setValue("preferences:topp_cleanup", "true", "If the temporary files for calling of TOPP tools should be removed after the call.");
     defaults_.setValidStrings("preferences:topp_cleanup", ListUtils::create<String>("true,false"));
     // 1d view
-    Spectrum1DCanvas* def1 = new Spectrum1DCanvas(Param(), 0);
+    Spectrum1DCanvas* def1 = new Spectrum1DCanvas(Param(), nullptr);
     defaults_.insert("preferences:1d:", def1->getDefaults());
     delete def1;
     defaults_.setSectionDescription("preferences:1d", "Settings for single spectrum view.");
     // 2d view
-    Spectrum2DCanvas* def2 = new Spectrum2DCanvas(Param(), 0);
+    Spectrum2DCanvas* def2 = new Spectrum2DCanvas(Param(), nullptr);
     defaults_.insert("preferences:2d:", def2->getDefaults());
     defaults_.setSectionDescription("preferences:2d", "Settings for 2D map view.");
     delete def2;
     // 3d view
-    Spectrum3DCanvas* def3 = new Spectrum3DCanvas(Param(), 0);
+    Spectrum3DCanvas* def3 = new Spectrum3DCanvas(Param(), nullptr);
     defaults_.insert("preferences:3d:", def3->getDefaults());
     delete def3;
     defaults_.setSectionDescription("preferences:3d", "Settings for 3D map view.");
     // identification view
-    SpectraIdentificationViewWidget* def4 = new SpectraIdentificationViewWidget(Param(), 0);
+    SpectraIdentificationViewWidget* def4 = new SpectraIdentificationViewWidget(Param(), nullptr);
     defaults_.insert("preferences:idview:", def4->getDefaults());
     delete def4;
     defaults_.setSectionDescription("preferences:idview", "Settings for identification view.");
@@ -679,7 +679,7 @@ namespace OpenMS
 
     float noise = 0.0;
     UInt count = 0;
-    srand(time(0));
+    srand(time(nullptr));
     while (count < n_scans)
     {
       UInt scan = (UInt)((double)rand() / ((double)(RAND_MAX)+1.0f) * (double)(exp.size() - 1));
@@ -1029,7 +1029,7 @@ namespace OpenMS
       QWidget* w = wl[i];
       // iterate over all widgets
       const SpectrumWidget* sw = qobject_cast<const SpectrumWidget*>(w);
-      if (sw != 0)
+      if (sw != nullptr)
       {
         Size lc = sw->canvas()->getLayerCount();
         // iterate over all layers
@@ -1241,7 +1241,7 @@ namespace OpenMS
     // cast to SpectrumWidget
     SpectrumWidget* target_window = dynamic_cast<SpectrumWidget*>(tab_bar_target);
 
-    if (tab_bar_target == 0)
+    if (tab_bar_target == nullptr)
     {
       target_window = getActiveSpectrumWidget();
     }
@@ -1254,7 +1254,7 @@ namespace OpenMS
     TOPPViewOpenDialog dialog(caption, as_new_window, maps_as_2d, use_intensity_cutoff, this);
 
     //disable opening in new window when there is no active window or feature/ID data is to be opened, but the current window is a 3D window
-    if (target_window == 0 || (mergeable && dynamic_cast<Spectrum3DWidget*>(target_window) != 0))
+    if (target_window == nullptr || (mergeable && dynamic_cast<Spectrum3DWidget*>(target_window) != nullptr))
     {
       dialog.disableLocation(true);
     }
@@ -1272,7 +1272,7 @@ namespace OpenMS
     }
 
     //enable merge layers if a feature layer is opened and there are already features layers to merge it to
-    if (mergeable && target_window != 0) //TODO merge
+    if (mergeable && target_window != nullptr) //TODO merge
     {
       SpectrumCanvas* open_canvas = target_window->canvas();
       Map<Size, String> layers;
@@ -1472,7 +1472,7 @@ namespace OpenMS
         return w;
       }
     }
-    return 0;
+    return nullptr;
   }
 
   void TOPPViewBase::closeByTab(int id)
@@ -1603,7 +1603,7 @@ namespace OpenMS
   void TOPPViewBase::resetZoom()
   {
     SpectrumWidget* w = getActiveSpectrumWidget();
-    if (w != 0)
+    if (w != nullptr)
     {
       w->canvas()->resetZoom();
     }
@@ -1836,13 +1836,13 @@ namespace OpenMS
     // reset
     layer_manager_->clear();
     SpectrumCanvas* cc = getActiveCanvas();
-    if (cc == 0)
+    if (cc == nullptr)
     {
       return;
     }
 
     // determine if this is a 1D view (for text color)
-    bool is_1d_view = (dynamic_cast<Spectrum1DCanvas*>(cc) != 0);
+    bool is_1d_view = (dynamic_cast<Spectrum1DCanvas*>(cc) != nullptr);
 
     layer_manager_->blockSignals(true);
     for (Size i = 0; i < cc->getLayerCount(); ++i)
@@ -1890,7 +1890,7 @@ namespace OpenMS
     SpectrumCanvas* cc = getActiveCanvas();
     int layer_row = layer_manager_->currentRow();
 
-    if (layer_row == -1 || cc == 0)
+    if (layer_row == -1 || cc == nullptr)
     {
       if (spectra_view_widget_)
       {
@@ -1900,7 +1900,7 @@ namespace OpenMS
 
       if (spectra_identification_view_widget_)
       {
-        spectra_identification_view_widget_->attachLayer(0);
+        spectra_identification_view_widget_->attachLayer(nullptr);
         // remove all entries
         QTableWidget* w = spectra_identification_view_widget_->getTableWidget();
         for (int i = w->rowCount() - 1; i >= 0; --i)
@@ -1975,7 +1975,7 @@ namespace OpenMS
     QListWidgetItem* item = layer_manager_->itemAt(pos);
     if (item)
     {
-      QAction* new_action = 0;
+      QAction* new_action = nullptr;
       int layer = layer_manager_->row(item);
       QMenu* context_menu = new QMenu(layer_manager_);
       context_menu->addAction("Rename");
@@ -1999,12 +1999,12 @@ namespace OpenMS
 
       QAction* selected = context_menu->exec(layer_manager_->mapToGlobal(pos));
       //delete layer
-      if (selected != 0 && selected->text() == "Delete")
+      if (selected != nullptr && selected->text() == "Delete")
       {
         getActiveCanvas()->removeLayer(layer);
       }
       //rename layer
-      else if (selected != 0 && selected->text() == "Rename")
+      else if (selected != nullptr && selected->text() == "Rename")
       {
         QString name = QInputDialog::getText(this, "Rename layer", "Name:", QLineEdit::Normal, getActiveCanvas()->getLayerName(layer).toQString());
         if (name != "")
@@ -2013,18 +2013,18 @@ namespace OpenMS
         }
       }
       // flip layer up/downwards
-      else if (selected != 0 && selected->text() == "Flip downwards (1D)")
+      else if (selected != nullptr && selected->text() == "Flip downwards (1D)")
       {
         getActive1DWidget()->canvas()->flipLayer(layer);
         getActive1DWidget()->canvas()->setMirrorModeActive(true);
       }
-      else if (selected != 0 && selected->text() == "Flip upwards (1D)")
+      else if (selected != nullptr && selected->text() == "Flip upwards (1D)")
       {
         getActive1DWidget()->canvas()->flipLayer(layer);
         bool b = getActive1DWidget()->canvas()->flippedLayersExist();
         getActive1DWidget()->canvas()->setMirrorModeActive(b);
       }
-      else if (selected != 0 && selected->text() == "Preferences")
+      else if (selected != nullptr && selected->text() == "Preferences")
       {
         getActiveCanvas()->showCurrentLayerPreferences();
       }
@@ -2059,7 +2059,7 @@ namespace OpenMS
     QAction* selected = context_menu->exec(log_->mapToGlobal(pos));
 
     //clear text
-    if (selected != 0 && selected->text() == "Clear")
+    if (selected != nullptr && selected->text() == "Clear")
     {
       log_->clear();
     }
@@ -2069,7 +2069,7 @@ namespace OpenMS
   void TOPPViewBase::filterContextMenu(const QPoint& pos)
   {
     //do nothing if no window is open
-    if (getActiveCanvas() == 0)
+    if (getActiveCanvas() == nullptr)
       return;
 
     //do nothing if no layer is loaded into the canvas
@@ -2100,7 +2100,7 @@ namespace OpenMS
     }
     //results
     QAction* selected = context_menu->exec(filters_->mapToGlobal(pos));
-    if (selected != 0)
+    if (selected != nullptr)
     {
       if (selected->text() == "Delete")
       {
@@ -2153,7 +2153,7 @@ namespace OpenMS
     filters_->clear();
 
     SpectrumCanvas* canvas = getActiveCanvas();
-    if (canvas == 0)
+    if (canvas == nullptr)
       return;
 
     if (canvas->getLayerCount() == 0)
@@ -2306,15 +2306,15 @@ namespace OpenMS
     Spectrum2DWidget* sw2 = qobject_cast<Spectrum2DWidget*>(w);
     Spectrum3DWidget* sw3 = qobject_cast<Spectrum3DWidget*>(w);
     int widget_dimension = -1;
-    if (sw1 != 0)
+    if (sw1 != nullptr)
     {
       widget_dimension = 1;
     }
-    else if (sw2 != 0)
+    else if (sw2 != nullptr)
     {
       widget_dimension = 2;
     }
-    else if (sw3 != 0)
+    else if (sw3 != nullptr)
     {
       // dont link 3D
       widget_dimension = 3;
@@ -2434,7 +2434,7 @@ namespace OpenMS
 
     // 1D spectrum specific signals
     Spectrum1DWidget* sw1 = qobject_cast<Spectrum1DWidget*>(sw);
-    if (sw1 != 0)
+    if (sw1 != nullptr)
     {
       connect(sw1, SIGNAL(showCurrentPeaksAs2D()), this, SLOT(showCurrentPeaksAs2D()));
       connect(sw1, SIGNAL(showCurrentPeaksAs3D()), this, SLOT(showCurrentPeaksAs3D()));
@@ -2442,7 +2442,7 @@ namespace OpenMS
 
     // 2D spectrum specific signals
     Spectrum2DWidget* sw2 = qobject_cast<Spectrum2DWidget*>(sw);
-    if (sw2 != 0)
+    if (sw2 != nullptr)
     {
       connect(sw2->getHorizontalProjection(), SIGNAL(sendCursorStatus(double, double)), this, SLOT(showCursorStatus(double, double)));
       connect(sw2->getVerticalProjection(), SIGNAL(sendCursorStatus(double, double)), this, SLOT(showCursorStatusInvert(double, double)));
@@ -2454,7 +2454,7 @@ namespace OpenMS
 
     // 3D spectrum specific signals
     Spectrum3DWidget* sw3 = qobject_cast<Spectrum3DWidget*>(sw);
-    if (sw3 != 0)
+    if (sw3 != nullptr)
     {
       connect(sw3, SIGNAL(showCurrentPeaksAs2D()), this, SLOT(showCurrentPeaksAs2D()));
     }
@@ -2506,21 +2506,22 @@ namespace OpenMS
   {
     if (!ws_->activeSubWindow())
     {
-      return 0;
+      return nullptr;
     }
     return qobject_cast<SpectrumWidget*>(ws_->activeSubWindow()->widget());
   }
 
   SpectrumCanvas* TOPPViewBase::getActiveCanvas() const
   {
-    if (ws_->currentSubWindow() == 0)
+    if (ws_->currentSubWindow() == nullptr)
     {
-      return 0;
+      return nullptr;
     }
+
     SpectrumWidget* sw = qobject_cast<SpectrumWidget*>(ws_->currentSubWindow()->widget());
-    if (sw == 0)
+    if (sw == nullptr)
     {
-      return 0;
+      return nullptr;
     }
     return sw->canvas();
   }
@@ -2887,7 +2888,7 @@ namespace OpenMS
 
       // re-enable Apply TOPP tool menues
       delete topp_.process;
-      topp_.process = 0;
+      topp_.process = nullptr;
       updateMenu();
 
       return;
@@ -2923,7 +2924,7 @@ namespace OpenMS
 
     //clean up
     delete topp_.process;
-    topp_.process = 0;
+    topp_.process = nullptr;
     updateMenu();
 
     //clean up temporary files
@@ -2938,9 +2939,9 @@ namespace OpenMS
   const LayerData* TOPPViewBase::getCurrentLayer() const
   {
     SpectrumCanvas* canvas = getActiveCanvas();
-    if (canvas == 0)
+    if (canvas == nullptr)
     {
-      return 0;
+      return nullptr;
     }
     return &(canvas->getCurrentLayer());
   }
@@ -3470,7 +3471,7 @@ namespace OpenMS
       //kill and delete the process
       topp_.process->terminate();
       delete topp_.process;
-      topp_.process = 0;
+      topp_.process = nullptr;
 
       //finish log with new line
       log_->append("");
@@ -3483,7 +3484,7 @@ namespace OpenMS
   {
     //is there a canvas?
     bool canvas_exists = false;
-    if (getActiveCanvas() != 0)
+    if (getActiveCanvas() != nullptr)
     {
       canvas_exists = true;
     }
@@ -3495,7 +3496,7 @@ namespace OpenMS
     }
     //is there a TOPP tool running
     bool topp_running = false;
-    if (topp_.process != 0)
+    if (topp_.process != nullptr)
     {
       topp_running = true;
     }
@@ -3576,7 +3577,7 @@ namespace OpenMS
       }
       else if (*it == "@bw")
       {
-        if ((getActive2DWidget() != 0 || getActive3DWidget() != 0) && getActiveCanvas() != 0)
+        if ((getActive2DWidget() != nullptr || getActive3DWidget() != nullptr) && getActiveCanvas() != nullptr)
         {
           Param tmp = getActiveCanvas()->getCurrentLayer().param;
           tmp.setValue("dot:gradient", "Linear|0,#ffffff;100,#000000");
@@ -3585,7 +3586,7 @@ namespace OpenMS
       }
       else if (*it == "@bg")
       {
-        if ((getActive2DWidget() != 0 || getActive3DWidget() != 0) && getActiveCanvas() != 0)
+        if ((getActive2DWidget() != nullptr || getActive3DWidget() != nullptr) && getActiveCanvas() != nullptr)
         {
           Param tmp = getActiveCanvas()->getCurrentLayer().param;
           tmp.setValue("dot:gradient", "Linear|0,#dddddd;100,#000000");
@@ -3594,7 +3595,7 @@ namespace OpenMS
       }
       else if (*it == "@b")
       {
-        if ((getActive2DWidget() != 0 || getActive3DWidget() != 0) && getActiveCanvas() != 0)
+        if ((getActive2DWidget() != nullptr || getActive3DWidget() != nullptr) && getActiveCanvas() != nullptr)
         {
           Param tmp = getActiveCanvas()->getCurrentLayer().param;
           tmp.setValue("dot:gradient", "Linear|0,#000000;100,#000000");
@@ -3603,7 +3604,7 @@ namespace OpenMS
       }
       else if (*it == "@r")
       {
-        if ((getActive2DWidget() != 0 || getActive3DWidget() != 0) && getActiveCanvas() != 0)
+        if ((getActive2DWidget() != nullptr || getActive3DWidget() != nullptr) && getActiveCanvas() != nullptr)
         {
           Param tmp = getActiveCanvas()->getCurrentLayer().param;
           tmp.setValue("dot:gradient", "Linear|0,#ff0000;100,#ff0000");
@@ -3612,7 +3613,7 @@ namespace OpenMS
       }
       else if (*it == "@g")
       {
-        if ((getActive2DWidget() != 0 || getActive3DWidget() != 0) && getActiveCanvas() != 0)
+        if ((getActive2DWidget() != nullptr || getActive3DWidget() != nullptr) && getActiveCanvas() != nullptr)
         {
           Param tmp = getActiveCanvas()->getCurrentLayer().param;
           tmp.setValue("dot:gradient", "Linear|0,#00ff00;100,#00ff00");
@@ -3621,7 +3622,7 @@ namespace OpenMS
       }
       else if (*it == "@m")
       {
-        if ((getActive2DWidget() != 0 || getActive3DWidget() != 0) && getActiveCanvas() != 0)
+        if ((getActive2DWidget() != nullptr || getActive3DWidget() != nullptr) && getActiveCanvas() != nullptr)
         {
           Param tmp = getActiveCanvas()->getCurrentLayer().param;
           tmp.setValue("dot:gradient", "Linear|0,#ff00ff;100,#ff00ff");
@@ -3766,7 +3767,7 @@ namespace OpenMS
       {
         const LayerData& layer = getActiveCanvas()->getCurrentLayer();
         QTreeWidgetItem* item = spectra_view_treewidget->currentItem();
-        if (item != 0)
+        if (item != nullptr)
         {
           Size index = (Size)(item->text(3).toInt());
           const ExperimentType::SpectrumType spectrum = (*layer.getPeakData())[index];
@@ -3779,7 +3780,7 @@ namespace OpenMS
           addData(f_dummy, c_dummy, p_dummy, new_exp_sptr, LayerData::DT_CHROMATOGRAM, false, false, true, layer.filename, layer.name, new_id);
         }
       }
-      else if (source == 0)
+      else if (source == nullptr)
       {
         // drag source is external
         if (data->hasUrls())
@@ -3842,7 +3843,7 @@ namespace OpenMS
       //std::cout << "Number of windows: " << ws_->subWindowList().count() << std::endl;
       QWidget* w = wl[i];
       const SpectrumWidget* sw = qobject_cast<const SpectrumWidget*>(w);
-      if (sw != 0)
+      if (sw != nullptr)
       {
         Size lc = sw->canvas()->getLayerCount();
 
@@ -4013,12 +4014,12 @@ namespace OpenMS
     abortTOPPTool();
 
     // dispose behavior
-    if (identificationview_behavior_ != 0)
+    if (identificationview_behavior_ != nullptr)
     {
       delete(identificationview_behavior_);
     }
 
-    if (spectraview_behavior_ != 0)
+    if (spectraview_behavior_ != nullptr)
     {
       delete(spectraview_behavior_);
     }
