@@ -206,7 +206,6 @@ protected:
     String swath_windows_file = getStringOption_("swath_windows_file");
 
     String unimod_file = getStringOption_("unimod_file");
-    bool enable_reannotation = getFlag_("enable_reannotation");
     bool is_test = getFlag_("test");
 
     // Set specific seed for test mode
