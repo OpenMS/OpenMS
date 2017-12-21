@@ -84,7 +84,7 @@ public:
     Fitter1D(const Fitter1D& source);
 
     /// destructor
-    virtual ~Fitter1D()
+    ~Fitter1D() override
     {
     }
 
@@ -106,7 +106,7 @@ protected:
     /// interpolation step size
     CoordinateType interpolation_step_;
 
-    virtual void updateMembers_();
+    void updateMembers_() override;
 
   };
 

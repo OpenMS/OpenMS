@@ -75,8 +75,8 @@ START_TEST(PeakFileOptions, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-PeakFileOptions* ptr = 0;
-PeakFileOptions* nullPointer = 0;
+PeakFileOptions* ptr = nullptr;
+PeakFileOptions* nullPointer = nullptr;
 START_SECTION((PeakFileOptions()))
 	ptr = new PeakFileOptions();
 	TEST_NOT_EQUAL(ptr, nullPointer)

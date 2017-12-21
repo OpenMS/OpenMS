@@ -82,22 +82,22 @@ namespace OpenMS
   {
 public:
     /// Raw data iterator type
-    typedef MSSpectrum<>::iterator PeakIterator;
+    typedef MSSpectrum::iterator PeakIterator;
     /// Const raw data iterator type
-    typedef MSSpectrum<>::const_iterator ConstPeakIterator;
+    typedef MSSpectrum::const_iterator ConstPeakIterator;
 
     /// Constructor
     PeakPickerCWT();
 
     /// Destructor
-    virtual ~PeakPickerCWT();
+    ~PeakPickerCWT() override;
 
     /**
                 @brief Applies the peak picking algorithm to a single spectrum.
 
                 Picks the peaks in the input spectrum and writes the resulting peaks to the output container.
     */
-    void pick(const MSSpectrum<> & input, MSSpectrum<> & output) const;
+    void pick(const MSSpectrum & input, MSSpectrum & output) const;
 
     /**
                 @brief Picks the peaks in an MSExperiment.
@@ -156,7 +156,7 @@ protected:
     bool two_d_optimization_;
 
 
-    void updateMembers_();
+    void updateMembers_() override;
 
     /**
       @brief Class for the internal peak representation
@@ -170,11 +170,11 @@ protected:
     */
     struct OPENMS_DLLAPI PeakArea_
     {
-      typedef MSSpectrum<>::iterator PeakIterator;
-      PeakIterator left;  //< iterator to the leftmost valid point
-      PeakIterator max;   //< iterator to the maximum position
-      PeakIterator right; //< iterator to the rightmost valid point (inclusive)
-      DPosition<1> centroid_position; //< The estimated centroid position in m/z
+      typedef MSSpectrum::iterator PeakIterator;
+      PeakIterator left;  ///< iterator to the leftmost valid point
+      PeakIterator max;   ///< iterator to the maximum position
+      PeakIterator right; ///< iterator to the rightmost valid point (inclusive)
+      DPosition<1> centroid_position; ///< The estimated centroid position in m/z
     };
 
     /// Computes the peak's left and right area

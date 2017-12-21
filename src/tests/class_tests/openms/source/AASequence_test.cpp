@@ -58,8 +58,8 @@ START_TEST(AASequence, "$Id$")
 // cout << seq.size() << endl;
 // cout << ModificationsDB::getInstance()->getModification("Acetyl", "", ResidueModification::N_TERM).getOrigin() << endl;
 
-AASequence* ptr = 0;
-AASequence* nullPointer = 0;
+AASequence* ptr = nullptr;
+AASequence* nullPointer = nullptr;
 START_SECTION(AASequence())
   ptr = new AASequence();
   TEST_NOT_EQUAL(ptr, nullPointer)
@@ -472,6 +472,14 @@ START_SECTION(String toUnmodifiedString() const)
   TEST_STRING_EQUAL(seq3.toUnmodifiedString(), "DFPIANGER")
 END_SECTION
 
+START_SECTION(String toUniModString() const)
+  AASequence s = AASequence::fromString("PEPC(Carbamidomethyl)PEPM(Oxidation)PEPR");
+  TEST_STRING_EQUAL(s.toUniModString(), "PEPC(UniMod:4)PEPM(UniMod:35)PEPR");
+  s.setNTerminalModification("Acetyl (N-term)");
+  s.setCTerminalModification("Amidated (C-term)");
+  TEST_STRING_EQUAL(s.toUniModString(), ".(UniMod:1)PEPC(UniMod:4)PEPM(UniMod:35)PEPR.(UniMod:2)");
+END_SECTION
+
 START_SECTION(String toBracketString(const std::vector<String> & fixed_modifications = std::vector<String>()) const)
   AASequence s = AASequence::fromString("PEPC(Carbamidomethyl)PEPM(Oxidation)PEPR");
   TEST_STRING_EQUAL(s.toBracketString(), "PEPC[160]PEPM[147]PEPR");
@@ -804,6 +812,7 @@ START_SECTION([EXTRA] Arbitrary tag in peptides using square brackets)
   AASequence test6 = AASequence::fromString("PEPTX[1600.230654]IDE");
   TEST_EQUAL(test6.size(), 8)
   TEST_EQUAL(test6.toString(), "PEPTX[1600.230654]IDE")
+  TEST_EQUAL(test6.toUniModString(), "PEPTX[1600.230654]IDE")
   TEST_EQUAL(test6.toBracketString(), "PEPTX[1600]IDE")
   TEST_EQUAL(test6.toBracketString(false), "PEPTX[1600.230654]IDE")
   TEST_EQUAL(test6.toUnmodifiedString(), "PEPTXIDE")
@@ -817,6 +826,7 @@ START_SECTION([EXTRA] Arbitrary tag in peptides using square brackets)
   AASequence test7 = AASequence::fromString(test6.toString());
   TEST_EQUAL(test7.size(), 8)
   TEST_EQUAL(test7.toString(), "PEPTX[1600.230654]IDE")
+  TEST_EQUAL(test7.toUniModString(), "PEPTX[1600.230654]IDE")
   TEST_EQUAL(test7.toBracketString(), "PEPTX[1600]IDE")
   TEST_EQUAL(test7.toBracketString(false), "PEPTX[1600.230654]IDE")
   TEST_EQUAL(test7.toUnmodifiedString(), "PEPTXIDE")
@@ -827,6 +837,7 @@ START_SECTION([EXTRA] Arbitrary tag in peptides using square brackets)
     AASequence test_seq = AASequence::fromString("PEPTN[1600.230654]IDE");
     TEST_EQUAL(test_seq.size(), 8)
     TEST_EQUAL(test_seq.toString(), "PEPTN[1600.230654]IDE")
+    TEST_EQUAL(test_seq.toUniModString(), "PEPTN[1600.230654]IDE")
     TEST_EQUAL(test_seq.toBracketString(false), "PEPTN[1600.230654]IDE")
     TEST_EQUAL(test_seq.toUnmodifiedString(), "PEPTNIDE")
     TEST_REAL_SIMILAR(test_seq.getMonoWeight(), aa_original.getMonoWeight() + 1600.230654)
@@ -835,6 +846,7 @@ START_SECTION([EXTRA] Arbitrary tag in peptides using square brackets)
     AASequence test_other = AASequence::fromString(test_seq.toString());
     TEST_EQUAL(test_other.size(), 8)
     TEST_EQUAL(test_other.toString(), "PEPTN[1600.230654]IDE")
+    TEST_EQUAL(test_other.toUniModString(), "PEPTN[1600.230654]IDE")
     TEST_EQUAL(test_other.toBracketString(false), "PEPTN[1600.230654]IDE")
     TEST_EQUAL(test_other.toUnmodifiedString(), "PEPTNIDE")
 
@@ -844,6 +856,7 @@ START_SECTION([EXTRA] Arbitrary tag in peptides using square brackets)
     test_other = AASequence::fromString(test_seq.toBracketString(false));
     TEST_EQUAL(test_other.size(), 8)
     TEST_EQUAL(test_other.toString(), "PEPTN[1600.230654]IDE")
+    TEST_EQUAL(test_other.toUniModString(), "PEPTN[1600.230654]IDE")
     TEST_EQUAL(test_other.toBracketString(false), "PEPTN[1600.230654]IDE")
     TEST_EQUAL(test_other.toUnmodifiedString(), "PEPTNIDE")
 
@@ -855,12 +868,20 @@ START_SECTION([EXTRA] Arbitrary tag in peptides using square brackets)
     AASequence test_seq = AASequence::fromString("[1600.230654]IDE");
     TEST_EQUAL(test_seq.size(), 3)
     TEST_EQUAL(test_seq.toString(), ".[1600.230654]IDE")
+    TEST_EQUAL(test_seq.toUniModString(), ".[1600.230654]IDE")
     TEST_EQUAL(test_seq.toBracketString(false), "n[1600.230654]IDE")
     TEST_EQUAL(test_seq.toUnmodifiedString(), "IDE")
     TEST_REAL_SIMILAR(test_seq.getMonoWeight(), aa_half.getMonoWeight() + 1600.230654)
 
     // test that we can re-read the string
     AASequence test_other = AASequence::fromString(test_seq.toString());
+    TEST_EQUAL(test_other.size(), 3)
+    TEST_EQUAL(test_other.toString(), ".[1600.230654]IDE")
+
+    TEST_EQUAL(test_seq, test_other) // the peptides should be equal
+
+    // test that we can re-read the string from UniModString
+    test_other = AASequence::fromString(test_seq.toUniModString());
     TEST_EQUAL(test_other.size(), 3)
     TEST_EQUAL(test_other.toString(), ".[1600.230654]IDE")
 
@@ -879,12 +900,20 @@ START_SECTION([EXTRA] Arbitrary tag in peptides using square brackets)
     AASequence test_seq = AASequence::fromString("IDE.[1600.230654]");
     TEST_EQUAL(test_seq.size(), 3)
     TEST_EQUAL(test_seq.toString(), "IDE.[1600.230654]")
+    TEST_EQUAL(test_seq.toUniModString(), "IDE.[1600.230654]")
     TEST_EQUAL(test_seq.toBracketString(false), "IDEc[1600.230654]")
     TEST_EQUAL(test_seq.toUnmodifiedString(), "IDE")
     TEST_REAL_SIMILAR(test_seq.getMonoWeight(), aa_half.getMonoWeight() + 1600.230654)
 
     // test that we can re-read the string
     AASequence test_other = AASequence::fromString(test_seq.toString());
+    TEST_EQUAL(test_other.size(), 3)
+    TEST_EQUAL(test_other.toString(), "IDE.[1600.230654]")
+
+    TEST_EQUAL(test_seq, test_other) // the peptides should be equal
+
+    // test that we can re-read the UniModString
+    test_other = AASequence::fromString(test_seq.toUniModString());
     TEST_EQUAL(test_other.size(), 3)
     TEST_EQUAL(test_other.toString(), "IDE.[1600.230654]")
 
@@ -909,6 +938,7 @@ START_SECTION([EXTRA] Arbitrary tag in peptides using square brackets)
     AASequence test_seq = AASequence::fromString("DFPANGERX[113.0840643509]");
     TEST_EQUAL(test_seq.size(), 9)
     TEST_EQUAL(test_seq.toString(), "DFPANGERX[113.0840643509]")
+    TEST_EQUAL(test_seq.toUniModString(), "DFPANGERX[113.0840643509]")
     TEST_EQUAL(test_seq.toBracketString(true), "DFPANGERX[113]")
     TEST_EQUAL(test_seq.toBracketString(false), "DFPANGERX[113.0840643509]")
     TEST_EQUAL(test_seq.toUnmodifiedString(), "DFPANGERX")

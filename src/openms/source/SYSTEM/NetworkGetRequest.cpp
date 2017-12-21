@@ -47,7 +47,7 @@ namespace OpenMS
 {
 
   NetworkGetRequest::NetworkGetRequest(QObject* parent) :
-    QObject(parent), reply_(0)
+    QObject(parent), reply_(nullptr)
   {
     manager_ = new QNetworkAccessManager(this);
   }
@@ -63,7 +63,7 @@ namespace OpenMS
 
   void NetworkGetRequest::run()
   {
-    if (reply_ == 0)
+    if (reply_ == nullptr)
     {
       error_ = QNetworkReply::NoError;
       error_string_ = "";
@@ -77,7 +77,7 @@ namespace OpenMS
 
   void NetworkGetRequest::replyFinished(QNetworkReply* reply)
   {
-    if (reply_ != 0)
+    if (reply_ != nullptr)
     {
       error_ = reply->error();
       error_string_ = error_ != QNetworkReply::NoError ? reply->errorString() : "";
@@ -90,7 +90,7 @@ namespace OpenMS
 
   void NetworkGetRequest::timeOut()
   {
-    if (reply_ != 0)
+    if (reply_ != nullptr)
     {
       error_ = QNetworkReply::TimeoutError;
       error_string_ = "TimeoutError: the connection to the remote server timed out";

@@ -97,11 +97,11 @@ namespace OpenMS
     AdductInfo();
 
     /// members
-    String name_; //< arbitrary name, only used for error reporting
-    EmpiricalFormula ef_; //< EF for the actual adduct e.g. 'H' in 2M+H;+1
-    double mass_; //< computed from ef_.getMonoWeight(), but stored explicitly for efficiency
-    int charge_;  //< negative or positive charge; must not be 0
-    UInt mol_multiplier_; //< Mol multiplier, e.g. 2 in 2M+H;+1
+    String name_; ///< arbitrary name, only used for error reporting
+    EmpiricalFormula ef_; ///< EF for the actual adduct e.g. 'H' in 2M+H;+1
+    double mass_; ///< computed from ef_.getMonoWeight(), but stored explicitly for efficiency
+    int charge_;  ///< negative or positive charge; must not be 0
+    UInt mol_multiplier_; ///< Mol multiplier, e.g. 2 in 2M+H;+1
   };
 
   class OPENMS_DLLAPI AccurateMassSearchResult
@@ -262,7 +262,7 @@ public:
     AccurateMassSearchEngine();
 
     /// Default destructor
-    virtual ~AccurateMassSearchEngine();
+    ~AccurateMassSearchEngine() override;
 
     /**
       @brief search for a specific observed mass by enumerating all possible adducts and search M+X against database
@@ -285,7 +285,7 @@ public:
     void init();
 
 protected:
-    virtual void updateMembers_();
+    void updateMembers_() override;
 
 private:
     /// private member functions
@@ -386,7 +386,7 @@ private:
 
     HMDBPropsMapping hmdb_properties_mapping_;
 
-    bool is_initialized_; //< true if init_() was called without any subsequent param changes
+    bool is_initialized_; ///< true if init_() was called without any subsequent param changes
 
     /// parameter stuff
     double mass_error_value_;

@@ -49,8 +49,8 @@ START_TEST(ControlledVocabulary, "$Id$")
 using namespace OpenMS;
 using namespace std;
 
-ControlledVocabulary* ptr = 0;
-ControlledVocabulary* nullPointer = 0;
+ControlledVocabulary* ptr = nullptr;
+ControlledVocabulary* nullPointer = nullptr;
 START_SECTION((ControlledVocabulary()))
 	ptr = new ControlledVocabulary();
 	TEST_NOT_EQUAL(ptr, nullPointer)
@@ -81,7 +81,7 @@ START_SECTION(bool exists(const String& id) const)
 END_SECTION
 
 START_SECTION(const CVTerm& getTerm(const String& id) const)
-	const ControlledVocabulary::CVTerm* term=0;
+	const ControlledVocabulary::CVTerm* term=nullptr;
 	//Auto
 	term = &(cv.getTerm("OpenMS:1"));
 	TEST_EQUAL(term->id,"OpenMS:1")
@@ -181,8 +181,8 @@ START_SECTION((void getAllChildTerms(std::set<String>& terms, const String& pare
 END_SECTION
 
 
-ControlledVocabulary::CVTerm * cvterm = 0;
-ControlledVocabulary::CVTerm * cvtermNullPointer = 0;
+ControlledVocabulary::CVTerm * cvterm = nullptr;
+ControlledVocabulary::CVTerm * cvtermNullPointer = nullptr;
 
 START_SECTION(([ControlledVocabulary::CVTerm] CVTerm()))
 {

@@ -73,7 +73,7 @@ public:
     ///Default constructor
     MzIdentMLFile();
     ///Destructor
-    virtual ~MzIdentMLFile();
+    ~MzIdentMLFile() override;
 
     /**
         @brief Loads the identifications from a MzIdentML file.

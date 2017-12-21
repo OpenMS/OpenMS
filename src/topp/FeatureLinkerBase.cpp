@@ -73,7 +73,7 @@ public:
   }
 
 protected:
-  void registerOptionsAndFlags_()   // only for "unlabeled" algorithms!
+  void registerOptionsAndFlags_() override   // only for "unlabeled" algorithms!
   {
     registerInputFileList_("in", "<files>", ListUtils::create<String>(""), "input files separated by blanks", true);
     setValidFormats_("in", ListUtils::create<String>("featureXML,consensusXML"));

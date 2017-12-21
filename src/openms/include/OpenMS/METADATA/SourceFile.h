@@ -64,7 +64,7 @@ public:
     /// Copy constructor
     SourceFile(const SourceFile& source);
     /// Destructor
-    ~SourceFile();
+    ~SourceFile() override;
     /// Assignment operator
     SourceFile& operator=(const SourceFile& source);
 

@@ -54,7 +54,7 @@ namespace OpenMS
   }
 
   GUIProgressLoggerImpl::GUIProgressLoggerImpl() :
-    dlg_(0),
+    dlg_(nullptr),
     begin_(0),
     end_(0)
   {

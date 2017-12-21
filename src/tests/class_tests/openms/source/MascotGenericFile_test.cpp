@@ -51,8 +51,8 @@ START_TEST(MascotGenericFile, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-MascotGenericFile* ptr = 0;
-MascotGenericFile* nullPointer = 0;
+MascotGenericFile* ptr = nullptr;
+MascotGenericFile* nullPointer = nullptr;
 START_SECTION(MascotGenericFile())
 {
   ptr = new MascotGenericFile();
@@ -121,7 +121,7 @@ START_SECTION((void store(std::ostream &os, const String &filename, const PeakMa
   ptr->setParameters(ptr->getDefaults()); // reset parameters
 
   // test compact format:
-  MSSpectrum<> spec;
+  MSSpectrum spec;
   spec.setNativeID("ident");
   spec.setMSLevel(2);
   spec.setRT(234.5678901);

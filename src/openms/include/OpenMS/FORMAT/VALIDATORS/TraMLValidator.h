@@ -59,7 +59,7 @@ public:
       TraMLValidator(const CVMappings & mapping, const ControlledVocabulary & cv);
 
       /// Destructor
-      virtual ~TraMLValidator();
+      ~TraMLValidator() override;
 
 private:
 

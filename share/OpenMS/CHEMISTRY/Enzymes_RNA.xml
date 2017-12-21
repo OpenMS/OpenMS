@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<PARAMETERS>
+  <NODE name="Enzymes">
+    <NODE name="RNase_T1">
+      <ITEM name="Name" value="RNase_T1" type="string" />
+      <ITEM name="RegEx" value="(?&lt;=G)" type="string" />
+      <ITEM name="RegExDescription" value="RNase T1 cuts after G." type="string" />
+      <ITEM name="ThreePrimeGain" value="p" type="string" />
+      <ITEM name="FivePrimeGain" value="" type="string" />
+    </NODE>
+    <NODE name="no cleavage">
+      <ITEM name="Name" value="no cleavage" type="string" />
+      <ITEM name="RegEx" value="()" type="string" />
+      <ITEM name="RegExDescription" value="No cleavage." type="string" />
+    </NODE>
+    <NODE name="unspecific cleavage">
+      <ITEM name="Name" value="unspecific cleavage" type="string" />
+      <ITEM name="RegEx" value="(?&lt;=[A-Z])" type="string" />
+      <ITEM name="RegExDescription" value="Unspecific cleavage cuts at every site." type="string" />
+    </NODE>
+  </NODE>
+</PARAMETERS>

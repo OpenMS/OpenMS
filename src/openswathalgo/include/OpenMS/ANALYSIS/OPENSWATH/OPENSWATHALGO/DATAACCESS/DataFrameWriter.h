@@ -63,9 +63,9 @@ public:
     DataMatrix();
 
     void store(const std::string& rowname,
-               const std::vector<double>& values);
+               const std::vector<double>& values) override;
 
-    void colnames(const std::vector<std::string>& colnames);
+    void colnames(const std::vector<std::string>& colnames) override;
 
   };
 
@@ -81,11 +81,11 @@ public:
     explicit CSVWriter(std::string filename);
 
     void store(const std::string& rowname,
-               const std::vector<double>& values);
+               const std::vector<double>& values) override;
 
-    virtual ~CSVWriter();
+    ~CSVWriter() override;
 
-    void colnames(const std::vector<std::string>& colnames);
+    void colnames(const std::vector<std::string>& colnames) override;
 
   };
 }

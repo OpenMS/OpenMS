@@ -48,7 +48,7 @@ namespace OpenMS
 {
   XMLValidator::XMLValidator() :
     valid_(true),
-    os_(0)
+    os_(nullptr)
   {
   }
 
@@ -82,16 +82,16 @@ namespace OpenMS
 
     //set this class as error handler
     parser->setErrorHandler(this);
-    parser->setContentHandler(NULL);
-    parser->setEntityResolver(NULL);
+    parser->setContentHandler(nullptr);
+    parser->setEntityResolver(nullptr);
 
     //load schema
-    LocalFileInputSource schema_file(Internal::StringManager().convert(schema));
+    LocalFileInputSource schema_file(Internal::StringManager().convert(schema).c_str());
     parser->loadGrammar(schema_file, Grammar::SchemaGrammarType, true);
     parser->setFeature(XMLUni::fgXercesUseCachedGrammarInParse, true);
 
     // try to parse file
-    LocalFileInputSource source(Internal::StringManager().convert(filename.c_str()));
+    LocalFileInputSource source(Internal::StringManager().convert(filename.c_str()).c_str());
 
     try
     {

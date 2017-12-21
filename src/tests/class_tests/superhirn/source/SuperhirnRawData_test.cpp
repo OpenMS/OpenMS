@@ -51,8 +51,8 @@ START_TEST(RawData, "$Id$")
 using namespace OpenMS;
 using namespace std;
 
-RawData* ptr = 0;
-RawData* nullPtr = 0;
+RawData* ptr = nullptr;
+RawData* nullPtr = nullptr;
 
 START_SECTION((RawData()))
 	ptr = new RawData();

@@ -39,7 +39,7 @@
 
 namespace OpenMS
 {
-  void OpenSwathDataAccessHelper::convertToOpenMSSpectrum(const OpenSwath::SpectrumPtr sptr, OpenMS::MSSpectrum<> & spectrum)
+  void OpenSwathDataAccessHelper::convertToOpenMSSpectrum(const OpenSwath::SpectrumPtr sptr, OpenMS::MSSpectrum & spectrum)
   {
     spectrum.reserve(sptr->getMZArray()->data.size());
 
@@ -54,11 +54,11 @@ namespace OpenMS
     }
   }
 
-  OpenSwath::SpectrumPtr OpenSwathDataAccessHelper::convertToSpectrumPtr(const OpenMS::MSSpectrum<> & spectrum)
+  OpenSwath::SpectrumPtr OpenSwathDataAccessHelper::convertToSpectrumPtr(const OpenMS::MSSpectrum & spectrum)
   {
     OpenSwath::BinaryDataArrayPtr intensity_array(new OpenSwath::BinaryDataArray);
     OpenSwath::BinaryDataArrayPtr mz_array(new OpenSwath::BinaryDataArray);
-    for (MSSpectrum<>::const_iterator it = spectrum.begin(); it != spectrum.end(); ++it)
+    for (MSSpectrum::const_iterator it = spectrum.begin(); it != spectrum.end(); ++it)
     {
       mz_array->data.push_back(it->getMZ());
       intensity_array->data.push_back(it->getIntensity());
@@ -70,7 +70,7 @@ namespace OpenMS
     return sptr;
   }
 
-  void OpenSwathDataAccessHelper::convertToOpenMSChromatogram(const OpenSwath::ChromatogramPtr cptr, OpenMS::MSChromatogram<> & chromatogram)
+  void OpenSwathDataAccessHelper::convertToOpenMSChromatogram(const OpenSwath::ChromatogramPtr cptr, OpenMS::MSChromatogram & chromatogram)
   {
     chromatogram.reserve(cptr->getTimeArray()->data.size());
 
@@ -85,7 +85,7 @@ namespace OpenMS
     }
   }
 
-  void OpenSwathDataAccessHelper::convertToOpenMSChromatogramFilter(OpenMS::MSChromatogram<> & chromatogram, const OpenSwath::ChromatogramPtr cptr, 
+  void OpenSwathDataAccessHelper::convertToOpenMSChromatogramFilter(OpenMS::MSChromatogram & chromatogram, const OpenSwath::ChromatogramPtr cptr,
                                                                     double rt_min, double rt_max)
   {
     chromatogram.reserve(cptr->getTimeArray()->data.size());
@@ -198,13 +198,9 @@ namespace OpenMS
     OpenSwath::LightModification light_mod;
 
     p.id = pep.id;
-    if (!pep.rts.empty() && pep.rts[0].hasCVTerm("MS:1000896"))
+    if (pep.hasRetentionTime())
     {
-      p.rt = pep.rts[0].getCVTerms()["MS:1000896"][0].getValue().toString().toDouble();
-    }
-    else if (!pep.rts.empty() && pep.rts[0].hasCVTerm("MS:1002005")) // iRT
-    {
-      p.rt = pep.rts[0].getCVTerms()["MS:1002005"][0].getValue().toString().toDouble();
+      p.rt = pep.getRetentionTime();
     }
 
     if (pep.hasCharge())
@@ -269,13 +265,9 @@ namespace OpenMS
   void OpenSwathDataAccessHelper::convertTargetedCompound(const TargetedExperiment::Compound& compound, OpenSwath::LightCompound & comp)
   {
     comp.id = compound.id;
-    if (!compound.rts.empty() && compound.rts[0].hasCVTerm("MS:1000896"))
+    if (compound.hasRetentionTime())
     {
-      comp.rt = compound.rts[0].getCVTerms()["MS:1000896"][0].getValue().toString().toDouble();
-    }
-    else if (!compound.rts.empty() && compound.rts[0].hasCVTerm("MS:1002005")) // iRT
-    {
-      comp.rt = compound.rts[0].getCVTerms()["MS:1002005"][0].getValue().toString().toDouble();
+      comp.rt = compound.getRetentionTime();
     }
 
     if (compound.hasCharge())

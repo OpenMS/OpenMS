@@ -38,7 +38,7 @@
 #include <OpenMS/METADATA/ProteinHit.h>
 #include <OpenMS/METADATA/MetaInfoInterface.h>
 #include <OpenMS/DATASTRUCTURES/DateTime.h>
-#include <OpenMS/CHEMISTRY/Enzyme.h>
+#include <OpenMS/CHEMISTRY/DigestionEnzymeProtein.h>
 #include <set>
 
 namespace OpenMS
@@ -116,13 +116,13 @@ public:
       bool fragment_mass_tolerance_ppm; ///< Mass tolerance unit of fragment ions (true: ppm, false: Dalton)
       double precursor_mass_tolerance; ///< Mass tolerance of precursor ions (Dalton or ppm)
       bool precursor_mass_tolerance_ppm; ///< Mass tolerance unit of precursor ions (true: ppm, false: Dalton)
-      Enzyme digestion_enzyme; ///< The cleavage site information in details (from EnzymesDB)
-      
+      Protease digestion_enzyme; ///< The cleavage site information in details (from ProteaseDB)
+
       SearchParameters();
 
-      bool operator==(const SearchParameters & rhs) const;
+      bool operator==(const SearchParameters& rhs) const;
 
-      bool operator!=(const SearchParameters & rhs) const;
+      bool operator!=(const SearchParameters& rhs) const;
 
     };
 
@@ -134,13 +134,13 @@ public:
     /// Destructor
     virtual ~ProteinIdentification();
     /// Copy constructor
-    ProteinIdentification(const ProteinIdentification & source);
+    ProteinIdentification(const ProteinIdentification& source);
     /// Assignment operator
-    ProteinIdentification & operator=(const ProteinIdentification & source);
+    ProteinIdentification& operator=(const ProteinIdentification& source);
     /// Equality operator
-    bool operator==(const ProteinIdentification & rhs) const;
+    bool operator==(const ProteinIdentification& rhs) const;
     /// Inequality operator
-    bool operator!=(const ProteinIdentification & rhs) const;
+    bool operator!=(const ProteinIdentification& rhs) const;
     //@}
 
     ///@name Protein hit information (public members)
@@ -152,38 +152,38 @@ public:
     /// Appends a protein hit
     void insertHit(const ProteinHit & input);
 
-    /** 
+    /**
         @brief Sets the protein hits
-        
+
         @note This may invalidate (indistinguishable) protein groups! If necessary, use e.g. @p IDFilter::updateProteinGroups to update the groupings.
      */
-    void setHits(const std::vector<ProteinHit> & hits);
+    void setHits(const std::vector<ProteinHit>& hits);
 
     /// Finds a protein hit by accession (returns past-the-end iterator if not found)
-    std::vector<ProteinHit>::iterator findHit(const String & accession);
+    std::vector<ProteinHit>::iterator findHit(const String& accession);
 
     /// Returns the protein groups
-    const std::vector<ProteinGroup> & getProteinGroups() const;
+    const std::vector<ProteinGroup>& getProteinGroups() const;
     /// Returns the protein groups (mutable)
-    std::vector<ProteinGroup> & getProteinGroups();
+    std::vector<ProteinGroup>& getProteinGroups();
     /// Appends a new protein group
     void insertProteinGroup(const ProteinGroup & group);
 
     /// Returns the indistinguishable proteins
-    const std::vector<ProteinGroup> & getIndistinguishableProteins() const;
+    const std::vector<ProteinGroup>& getIndistinguishableProteins() const;
     /// Returns the indistinguishable proteins (mutable)
-    std::vector<ProteinGroup> & getIndistinguishableProteins();
+    std::vector<ProteinGroup>& getIndistinguishableProteins();
     /// Appends new indistinguishable proteins
-    void insertIndistinguishableProteins(const ProteinGroup & group);
+    void insertIndistinguishableProteins(const ProteinGroup& group);
 
     /// Returns the protein significance threshold value
     double getSignificanceThreshold() const;
     /// Sets the protein significance threshold value
     void setSignificanceThreshold(double value);
     /// Returns the protein score type
-    const String & getScoreType() const;
+    const String& getScoreType() const;
     /// Sets the protein score type
-    void setScoreType(const String & type);
+    void setScoreType(const String& type);
     /// Returns true if a higher score represents a better score
     bool isHigherScoreBetter() const;
     /// Sets the orientation of the score (is higher better?)
@@ -199,31 +199,31 @@ public:
 
        Does not return anything but stores the coverage inside the ProteinHit objects
     */
-    void computeCoverage(const std::vector<PeptideIdentification> & pep_ids);
+    void computeCoverage(const std::vector<PeptideIdentification>& pep_ids);
     //@}
 
     ///@name General information
     //@{
     /// Returns the date of the protein identification run
-    const DateTime & getDateTime() const;
+    const DateTime& getDateTime() const;
     /// Sets the date of the protein identification run
-    void setDateTime(const DateTime & date);
+    void setDateTime(const DateTime& date);
     /// Sets the search engine type
-    void setSearchEngine(const String & search_engine);
+    void setSearchEngine(const String& search_engine);
     /// Returns the type of search engine used
-    const String & getSearchEngine() const;
+    const String& getSearchEngine() const;
     /// Sets the search engine version
-    void setSearchEngineVersion(const String & search_engine_version);
+    void setSearchEngineVersion(const String& search_engine_version);
     /// Returns the search engine version
-    const String & getSearchEngineVersion() const;
+    const String& getSearchEngineVersion() const;
     /// Sets the search parameters
-    void setSearchParameters(const SearchParameters & search_parameters);
+    void setSearchParameters(const SearchParameters& search_parameters);
     /// Returns the search parameters
-    const SearchParameters & getSearchParameters() const;
+    const SearchParameters& getSearchParameters() const;
     /// Returns the identifier
-    const String & getIdentifier() const;
+    const String& getIdentifier() const;
     /// Sets the identifier
-    void setIdentifier(const String & id);
+    void setIdentifier(const String& id);
     /// set the file path to the primary MS run (usually the mzML file obtained after data conversion from raw files)
     void setPrimaryMSRunPath(const StringList& s);
     /// get the file path to the first MS run

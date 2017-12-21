@@ -146,7 +146,7 @@ public:
         // use 0 as default seed to get reproducible experiments
         if (biological_random)
         {
-          biological_rng_ = boost::random::mt19937_64(std::time(0));
+          biological_rng_ = boost::random::mt19937_64(std::time(nullptr));
         }
         else
         {
@@ -155,7 +155,7 @@ public:
 
         if (technical_random)
         {
-          technical_rng_ = boost::random::mt19937_64(std::time(0));
+          technical_rng_ = boost::random::mt19937_64(std::time(nullptr));
         }
         else
         {

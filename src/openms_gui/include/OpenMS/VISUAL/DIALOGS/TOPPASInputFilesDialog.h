@@ -64,9 +64,9 @@ public:
     ~TOPPASInputFilesDialog();
 
     /// support drag'n'drop of files from OS window manager
-    void dragEnterEvent(QDragEnterEvent *e);
+    void dragEnterEvent(QDragEnterEvent *e) override;
     /// support drag'n'drop of files from OS window manager
-    void dropEvent(QDropEvent *e);
+    void dropEvent(QDropEvent *e) override;
 
 
     /// Stores the list of all filenames in the list widget in @p files
@@ -76,7 +76,7 @@ public:
     const QString& getCWD() const;
 
     /// support Ctrl+C to copy currently selected items to clipboard
-    virtual void keyPressEvent(QKeyEvent *e);
+    void keyPressEvent(QKeyEvent *e) override;
 
 public slots:
 

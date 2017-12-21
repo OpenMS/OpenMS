@@ -8,6 +8,7 @@ cdef extern from "<OpenMS/ANALYSIS/MAPMATCHING/BaseGroupFinder.h>" namespace "Op
     
     cdef cppclass BaseGroupFinder(DefaultParamHandler,ProgressLogger) :
         # wrap-ignore
+        # no-pxd-import
         # ABSTRACT class
         # wrap-inherits:
         #  DefaultParamHandler

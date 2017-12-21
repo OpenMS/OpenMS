@@ -21,6 +21,7 @@ cdef extern from "<OpenMS/DATASTRUCTURES/Param.h>" namespace "OpenMS":
 
          void setValue(String key, DataValue val, String desc, StringList tags) nogil except +
          void setValue(String key, DataValue val, String desc) nogil except +
+         void setValue(String key, DataValue val) nogil except +
          DataValue getValue(String key) nogil except +
          ParamEntry getEntry(String) nogil except +
          int exists(String key) nogil except +
@@ -76,6 +77,7 @@ cdef extern from "<OpenMS/DATASTRUCTURES/Param.h>" namespace "OpenMS::Param":
 
     cdef cppclass ParamIterator:
         # wrap-ignore
+        # no-pxd-import
         ParamIterator operator++() nogil except +
         ParamIterator operator--() nogil except +
         String getName() nogil except +

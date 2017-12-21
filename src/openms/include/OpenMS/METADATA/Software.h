@@ -55,7 +55,7 @@ public:
     /// Copy constructor
     Software(const Software & source);
     /// Destructor
-    virtual ~Software();
+    ~Software() override;
 
     /// Assignment operator
     Software & operator=(const Software & source);

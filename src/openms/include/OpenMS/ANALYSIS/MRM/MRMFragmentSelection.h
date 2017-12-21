@@ -72,7 +72,7 @@ public:
     MRMFragmentSelection(const MRMFragmentSelection & rhs);
 
     /// destructor
-    virtual ~MRMFragmentSelection();
+    ~MRMFragmentSelection() override;
     //@}
 
     /// assignment operator

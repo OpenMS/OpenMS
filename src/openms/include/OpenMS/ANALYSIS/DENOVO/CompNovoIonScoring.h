@@ -78,7 +78,7 @@ public:
     CompNovoIonScoring(const CompNovoIonScoring & source);
 
     /// destructor
-    virtual ~CompNovoIonScoring();
+    ~CompNovoIonScoring() override;
     //@}
 
     /// assignment operator
@@ -94,7 +94,7 @@ protected:
 
     void scoreETDFeatures_(Size charge, double precursor_weight, Map<double, IonScore> & CID_nodes, const PeakSpectrum & CID_orig_spec, const PeakSpectrum & ETD_orig_spec);
 
-    void scoreWitnessSet_(Size charge, double precursor_weight, Map<double, IonScore> & CID_nodes, const PeakSpectrum & CID_orig_spec);
+    void scoreWitnessSet_(Size charge, double precursor_weight, Map<double, IonScore> & CID_nodes, const PeakSpectrum & CID_orig_spec) override;
 
   };
 

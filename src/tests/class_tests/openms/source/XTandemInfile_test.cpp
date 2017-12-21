@@ -50,7 +50,7 @@ using namespace OpenMS;
 using namespace std;
 
 XTandemInfile* ptr;
-XTandemInfile* nullPointer = 0;
+XTandemInfile* nullPointer = nullptr;
 
 START_SECTION((XTandemInfile()))
 	ptr = new XTandemInfile();

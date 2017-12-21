@@ -109,7 +109,7 @@ public:
       BaseException(const BaseException& exception) noexcept;
 
       /// Destructor
-      virtual ~BaseException() noexcept;
+      ~BaseException() noexcept override;
       //@}
 
       /**	@name	Accessors
@@ -120,7 +120,7 @@ public:
       const char* getName() const noexcept;
 
       /// Returns the error message of the exception
-      virtual const char* what() const noexcept;
+      const char* what() const noexcept override;
 
       /// Returns the line number where it occurred
       int getLine() const noexcept;
@@ -638,7 +638,7 @@ public:
       public BaseException
     {
 public:
-      UnableToCreateFile(const char* file, int line, const char* function, const std::string& filename) noexcept;
+      UnableToCreateFile(const char* file, int line, const char* function, const std::string& filename, const std::string& message = "") noexcept;
     };
 
     /**

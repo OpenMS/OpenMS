@@ -71,7 +71,7 @@ public:
     PoseClusteringShiftSuperimposer();
 
     /// Destructor
-    virtual ~PoseClusteringShiftSuperimposer()
+    ~PoseClusteringShiftSuperimposer() override
     {}
 
     /**
@@ -88,7 +88,7 @@ public:
 
       @exception IllegalArgument is thrown if the input maps are invalid.
     */
-    virtual void run(const ConsensusMap & map_model, const ConsensusMap & map_scene, TransformationDescription & transformation);
+    void run(const ConsensusMap & map_model, const ConsensusMap & map_scene, TransformationDescription & transformation) override;
 
     /// Returns an instance of this class
     static BaseSuperimposer * create()

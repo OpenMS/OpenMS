@@ -51,8 +51,8 @@ START_TEST(PeakMarker, "$Id$")
 
 /////////////////////////////////////////////////////////////
 
-PeakMarker* e_ptr = 0;
-PeakMarker* e_nullPointer = 0;
+PeakMarker* e_ptr = nullptr;
+PeakMarker* e_nullPointer = nullptr;
 
 START_SECTION((PeakMarker()))
 	e_ptr = new PeakMarker;

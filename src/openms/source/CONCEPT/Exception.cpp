@@ -279,8 +279,8 @@ namespace OpenMS
     {
       stringstream ss;
       ss << "the file '" << filename << "' is too long (" << filename.size() << " chars) "
-         << "and exceeds the allowed limit of " << max_length << ". "
-         << "Use shorter filenames and/or less sub-directories.";
+         << "and exceeds the allowed limit of " << max_length << "; "
+         << "use shorter filenames and/or fewer subdirectories.";
       what_ = ss.str();
       GlobalExceptionHandler::getInstance().setMessage(what_);
     }
@@ -310,7 +310,7 @@ namespace OpenMS
       BaseException(file, line, function, "InvalidValue", "")
     {
       stringstream ss;
-      ss << "The value '" << value << "' was used but is not valid! " << message;
+      ss << "the value '" << value << "' was used but is not valid; " << message;
       what_ = ss.str();
       GlobalExceptionHandler::getInstance().setMessage(what_);
     }
@@ -320,10 +320,11 @@ namespace OpenMS
     {
     }
 
-    UnableToCreateFile::UnableToCreateFile(const char* file, int line, const char* function, const std::string& filename) noexcept :
+    UnableToCreateFile::UnableToCreateFile(const char* file, int line, const char* function, const std::string& filename, const std::string& message) noexcept :
       BaseException(file, line, function, "UnableToCreateFile", "")
     {
       what_ = "the file '" + filename + "' could not be created";
+      if (!message.empty()) what_ += "; " + message;
       GlobalExceptionHandler::getInstance().setMessage(what_);
     }
 

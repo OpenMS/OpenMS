@@ -130,9 +130,9 @@ public:
     //@}
 
     ///Constructor
-    TOPPViewBase(QWidget* parent = 0);
+    TOPPViewBase(QWidget* parent = nullptr);
     ///Destructor
-    ~TOPPViewBase();
+    ~TOPPViewBase() override;
 
     /**
       @brief Opens and displays data from a file
@@ -504,7 +504,7 @@ protected:
     void checkPreferences_();
     ///@name reimplemented Qt events
     //@{
-    void closeEvent(QCloseEvent* event);
+    void closeEvent(QCloseEvent* event) override;
     //@}
 
     ///Log message states

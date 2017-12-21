@@ -47,8 +47,8 @@ START_TEST(ToolHandler, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-ToolHandler* ptr = 0;
-ToolHandler* null_ptr = 0;
+ToolHandler* ptr = nullptr;
+ToolHandler* null_ptr = nullptr;
 START_SECTION(ToolHandler())
 {
 	ptr = new ToolHandler();

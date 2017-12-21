@@ -8,6 +8,7 @@ cdef extern from "<OpenMS/CHEMISTRY/PepIterator.h>" namespace "OpenMS":
     cdef cppclass PepIterator "OpenMS::PepIterator":
         # wrap-ignore
         # ABSTRACT class
+        # no-pxd-import
         PepIterator() nogil except +
         PepIterator(PepIterator) nogil except +
         # POINTER # FASTAEntry operator*() nogil except +

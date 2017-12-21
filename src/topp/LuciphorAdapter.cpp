@@ -125,7 +125,7 @@ protected:
   // lists of allowed parameter values:
   vector<String> fragment_methods_, fragment_error_units_, score_selection_method_;
 
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "Input spectrum file");
     setValidFormats_("in", ListUtils::create<String>("mzML"));
@@ -483,7 +483,7 @@ protected:
     return selection_method;
   }
   
-  ExitCodes main_(int, const char**)
+  ExitCodes main_(int, const char**) override
   {
     String java_executable = getStringOption_("java_executable");
     if (!getFlag_("force"))

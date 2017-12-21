@@ -65,10 +65,10 @@ namespace OpenMS
 
 public:
     /// Constructor
-    ColorSelector(QWidget * parent = 0);
+    ColorSelector(QWidget * parent = nullptr);
 
     /// Destructor
-    ~ColorSelector();
+    ~ColorSelector() override;
 
     /// Returns the selected color
     const QColor & getColor();
@@ -77,12 +77,12 @@ public:
     void setColor(const QColor &);
 
     /// Qt size hint
-    QSize sizeHint() const;
+    QSize sizeHint() const override;
 protected:
     ///@name Reimplemented Qt events
     //@{
-    void paintEvent(QPaintEvent * e);
-    void mousePressEvent(QMouseEvent * e);
+    void paintEvent(QPaintEvent * e) override;
+    void mousePressEvent(QMouseEvent * e) override;
     //@}
     QColor color_;
   };

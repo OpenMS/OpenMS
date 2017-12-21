@@ -70,23 +70,23 @@ public:
     /// Copy constructor
     TOPPASMergerVertex(const TOPPASMergerVertex& rhs);
     /// Destructor
-    virtual ~TOPPASMergerVertex();
+    ~TOPPASMergerVertex() override;
     /// Assignment operator
     TOPPASMergerVertex& operator=(const TOPPASMergerVertex& rhs);
     /// returns "MergerVertex"
-    virtual String getName() const;
+    String getName() const override;
     /// check if upstream nodes are finished and call downstream nodes
-    virtual void run();
+    void run() override;
     /// Determines whether this merger is merging round based or merging all inputs into one list
     bool roundBasedMode();
     // documented in base class
-    virtual void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget);
+    void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override;
     // documented in base class
-    virtual QRectF boundingRect() const;
+    QRectF boundingRect() const override;
     // documented in base class
-    virtual QPainterPath shape() const;
+    QPainterPath shape() const override;
     // documented in base class
-    virtual void markUnreachable();
+    void markUnreachable() override;
 
 public slots:
 
@@ -101,7 +101,7 @@ protected:
 
     ///@name reimplemented Qt events
     //@{
-    void mouseDoubleClickEvent(QGraphicsSceneMouseEvent* e);
+    void mouseDoubleClickEvent(QGraphicsSceneMouseEvent* e) override;
     //@}
 
 
