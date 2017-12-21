@@ -173,7 +173,7 @@ namespace OpenMS
         IdentifiedMetaData& meta = identified_meta_data.at(result.first);
         meta.processing_steps.push_back(step_key);
 
-        QueryMatchKey psm_key = make_pair(result.first, query_key);
+        QueryMatchKey psm_key = make_pair(query_key, result.first);
         QueryMatchMap::iterator pos = query_matches.find(psm_key);
         if (pos == query_matches.end()) // new PSM
         {
@@ -476,8 +476,8 @@ namespace OpenMS
     for (const pair<QueryMatchKey, MoleculeQueryMatch>& match_pair :
            query_matches)
     {
-      IdentifiedMoleculeKey molecule_key = match_pair.first.first;
-      DataQueryKey query_key = match_pair.first.second;
+      DataQueryKey query_key = match_pair.first.first;
+      IdentifiedMoleculeKey molecule_key = match_pair.first.second;
       const MoleculeQueryMatch& match = match_pair.second;
       const IdentifiedMetaData& id_meta = identified_meta_data.at(molecule_key);
       // @TODO: what about small molecules?
@@ -527,7 +527,7 @@ namespace OpenMS
   {
     for (const pair<ScoreTypeKey, double>& score_pair : scores)
     {
-      if (score_map.count(score_pair.first) == 0) // new score type
+      if (!score_map.count(score_pair.first)) // new score type
       {
         score_map.insert(make_pair(score_pair.first, score_map.size() + 1));
       }
@@ -614,19 +614,6 @@ namespace OpenMS
     vector<MzTabPeptideSectionRow>& /* output */) const
   {
     // do nothing here
-  }
-
-
-  double IdentificationData::findScore_(ScoreTypeKey key,
-                                        const ScoreList& scores)
-  {
-    // give priority to "later" scores in the list:
-    for (ScoreList::const_reverse_iterator it = scores.rbegin();
-         it != scores.rend(); ++it)
-    {
-      if (it->first == key) return it->second;
-    }
-    return numeric_limits<double>::quiet_NaN(); // or throw an exception?
   }
 
 
@@ -1038,7 +1025,7 @@ namespace OpenMS
                                        OPENMS_PRETTY_FUNCTION, msg);
     }
 
-    QueryMatchKey match_key = make_pair(molecule_key, query_key);
+    QueryMatchKey match_key = make_pair(query_key, molecule_key);
     bool new_item = (query_matches.find(match_key) == query_matches.end());
 
     insertMetaData_(meta_data, query_matches, match_key, new_item);
@@ -1083,6 +1070,77 @@ namespace OpenMS
   void IdentificationData::clearCurrentProcessingStep()
   {
     current_step_key_ = 0;
+  }
+
+
+  IdentificationData::ScoreTypeKey IdentificationData::findScoreType(
+    const String& score_name, ProcessingSoftwareKey software_key)
+  {
+    for (const auto& pair : score_types.left)
+    {
+      if ((pair.second.name == score_name) &&
+          (!UniqueIdInterface::isValid(software_key) ||
+           (pair.second.software_key == software_key)))
+      {
+        return pair.first;
+      }
+    }
+    return 0;
+  }
+
+
+  vector<IdentificationData::QueryMatchKey>
+  IdentificationData::getBestMatchPerQuery(ScoreTypeKey score_key)
+  {
+    vector<QueryMatchKey> results;
+    bool higher_better = score_types.left.at(score_key).higher_better;
+    pair<double, bool> best_score = make_pair(0.0, false);
+    QueryMatchKey best_key = make_pair(0, 0);
+    for (const auto& match : query_matches)
+    {
+      pair<double, bool> current_score = match.second.getScore(score_key);
+      if (match.first.first != best_key.first) // finalize previous query
+      {
+        if (best_score.second) results.push_back(best_key);
+        best_score = current_score;
+        best_key = match.first;
+      }
+      else if (current_score.second &&
+               (!best_score.second ||
+                isBetterScore_(current_score.first, best_score.first,
+                               higher_better)))
+      {
+        // new best score for the current query:
+        best_score = current_score;
+        best_key = match.first;
+      }
+    }
+    // finalize last query:
+    if (best_score.second) results.push_back(best_key);
+
+    return results;
+  }
+
+
+  bool IdentificationData::allParentsAreDecoys(IdentifiedMoleculeKey
+                                               molecule_key)
+  {
+    ParentMatchMap::const_iterator pos =
+      parent_matches.find(molecule_key);
+    if ((pos == parent_matches.end()) || pos->second.empty())
+    {
+      String msg = "no parent registered for identified molecule with key " +
+        String(molecule_key);
+      throw Exception::MissingInformation(__FILE__, __LINE__,
+                                          OPENMS_PRETTY_FUNCTION, msg);
+    }
+    for (const auto& parent_pair : pos->second)
+    {
+      const ParentMetaData& meta =
+        parent_meta_data.at(parent_pair.first);
+      if (!meta.is_decoy) return false;
+    }
+    return true;
   }
 
 } // end namespace OpenMS

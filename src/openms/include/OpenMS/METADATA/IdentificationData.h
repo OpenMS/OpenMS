@@ -308,6 +308,17 @@ namespace OpenMS
         return *this;
       }
 
+      std::pair<double, bool> getScore(ScoreTypeKey key) const
+      {
+        // give priority to "later" scores in the list:
+        for (ScoreList::const_reverse_iterator it = scores.rbegin();
+             it != scores.rend(); ++it)
+        {
+          if (it->first == key) return std::make_pair(it->second, true);
+        }
+        return std::make_pair(std::numeric_limits<double>::quiet_NaN(), false);
+      }
+
     protected:
       explicit ScoredProcessingResult(
         const ScoreList& scores = ScoreList(),
@@ -630,7 +641,7 @@ namespace OpenMS
     /// Export to mzTab format
     MzTab exportMzTab() const;
 
-    /// Helper function to store meta data (derived from ScoreProcessingResult)
+    /// Helper function to store meta data (derived from ScoredProcessingResult)
     template <typename MetaDataMap>
     void insertMetaData_(const typename MetaDataMap::mapped_type& meta_data,
                          MetaDataMap& meta_data_map,
@@ -709,6 +720,12 @@ namespace OpenMS
     */
     void clearCurrentProcessingStep();
 
+    std::vector<QueryMatchKey> getBestMatchPerQuery(ScoreTypeKey score_key);
+
+    ScoreTypeKey findScoreType(const String& score_name,
+                               ProcessingSoftwareKey software_key = 0);
+
+    bool allParentsAreDecoys(IdentifiedMoleculeKey molecule_key);
 
   protected:
 
@@ -863,8 +880,12 @@ namespace OpenMS
       const MzTabPeptideSectionRow& molecule,
       std::vector<MzTabPeptideSectionRow>& output) const;
 
-    /// Helper function to find a score value by its key
-    double findScore_(ScoreTypeKey key, const ScoreList& scores);
+    /// Helper function to compare two scores
+    static bool isBetterScore_(double first, double second, bool higher_better)
+    {
+      if (higher_better) return first > second;
+      return first < second;
+    }
 
     /// Helper function to import DB search parameters from legacy format
     SearchParamsKey importDBSearchParameters_(
