@@ -230,7 +230,7 @@ protected:
     }
 
     // Load Unimod file
-    if (enable_ms1_uis_scoring || enable_ms2_uis_scoring)
+    if (enable_ipf)
     {
       if (!ModificationsDB::isInstantiated()) // We need to ensure that ModificationsDB was not instantiated before!
       {
