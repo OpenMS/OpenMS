@@ -846,7 +846,7 @@ namespace OpenMS
       xsm.retention_time.set(rts);
       xsm.charge.set(match.charge);
       xsm.exp_mass_to_charge.set(query.mz);
-      xsm.calc_mass_to_charge.set(calc_mass / match.charge);
+      xsm.calc_mass_to_charge.set(calc_mass / abs(match.charge));
       xsm.spectra_ref.setMSFile(file_map[query.input_file_key]);
       xsm.spectra_ref.setSpecRef(query.data_id);
       // don't repeat data from the peptide section (e.g. accessions)

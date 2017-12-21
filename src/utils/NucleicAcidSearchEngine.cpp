@@ -456,7 +456,8 @@ protected:
                         const vector<ConstRibonucleotidePtr>& variable_modifications,
                         Size max_variable_mods_per_oligo,
                         const vector<FASTAFile::FASTAEntry>& fasta_db,
-                        const map<NASequence, set<Size>>& oligo_map)
+                        const map<NASequence, set<Size>>& oligo_map,
+                        bool negative_mode)
   {
     // remove all but top n scoring
 #ifdef _OPENMP
@@ -481,7 +482,8 @@ protected:
       if (!annotated_hits[scan_index].empty())
       {
         const MSSpectrum& spectrum = exp.getSpectrum(scan_index);
-        Size charge = spectrum.getPrecursors()[0].getCharge();
+        Int charge = spectrum.getPrecursors()[0].getCharge();
+        if ((charge > 0) && negative_mode) charge = -charge;
 
         IdentificationData::DataQuery query(spectrum.getNativeID(), file_key, spectrum.getRT(), spectrum.getPrecursors()[0].getMZ());
         query.setMetaValue("scan_index", static_cast<unsigned int>(scan_index));
@@ -909,7 +911,7 @@ protected:
     postProcessHits_(spectra, annotated_hits, id_data, file_key,
                      report_top_hits, fixed_modifications,
                      variable_modifications, max_variable_mods_per_oligo,
-                     fasta_db, processed_oligos);
+                     fasta_db, processed_oligos, negative_mode);
     progresslogger.endProgress();
 
     // FDR:
