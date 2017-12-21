@@ -163,17 +163,6 @@ namespace OpenMS
     return transformation_model_params_;
   }
   
-  //Actual concentration getter and setter
-  void AbsoluteQuantitationMethod::setActualConcentration(const double& actual_concentration)
-  {
-    actual_concentration_ = actual_concentration;
-  }
-
-  double AbsoluteQuantitationMethod::getActualConcentration()
-  {
-    return actual_concentration_;
-  }
-  
   //Statistics getters and setters
   void AbsoluteQuantitationMethod::setNPoints(const int& n_points)
   {
@@ -212,79 +201,6 @@ namespace OpenMS
       bracketted = true;
     }
     return bracketted;
-  }
-
-  Param AbsoluteQuantitationMethod::fitTransformationModel(const String & transformation_model,
-    const TransformationModel::DataPoints& data,
-    const Param& transformation_model_params)
-  {
-    Param params;
-    if (transformation_model == "TransformationModelLinear")
-    {
-      TransformationModelLinear tm(data, transformation_model_params);
-      params = tm.getParameters();
-    }
-    else if (transformation_model == "TransformationModelBSpline")
-    {
-      TransformationModelBSpline tm(data, transformation_model_params);
-      params = tm.getParameters();
-    }
-    else if (transformation_model == "TransformationModelInterpolated")
-    {
-      TransformationModelInterpolated tm(data, transformation_model_params);
-      params = tm.getParameters();
-    }
-    else if (transformation_model == "TransformationModelLowess")
-    {
-      TransformationModelLowess tm(data, transformation_model_params);
-      params = tm.getParameters();
-    }
-    else
-    {
-      LOG_INFO << "TransformationModel " << transformation_model << " is not supported.";
-      LOG_INFO << "default TransformationModel will be used.";
-      TransformationModel tm(data, transformation_model_params);
-      params = tm.getParameters();
-    }
-    return params;
-  }
-  
-  double AbsoluteQuantitationMethod::evaluateTransformationModel(const String & transformation_model,
-    const double& datum,
-    const Param& transformation_model_params)
-  {
-    double result = datum;
-    TransformationModel::DataPoints data;
-    if (transformation_model == "TransformationModelLinear")
-    {
-      TransformationModelLinear tm(data, transformation_model_params);
-      tm.invert();
-      result = tm.evaluate(datum);
-    }
-    else if (transformation_model == "TransformationModelBSpline")
-    {
-      TransformationModelBSpline tm(data, transformation_model_params);
-      // tm.invert(); // not supported
-      result = tm.evaluate(datum);
-    }
-    else if (transformation_model == "TransformationModelInterpolated")
-    {
-      TransformationModelInterpolated tm(data, transformation_model_params);
-      // tm.invert(); // not supported
-      result = tm.evaluate(datum);
-    }
-    else if (transformation_model == "TransformationModelLowess")
-    {
-      TransformationModelLowess tm(data, transformation_model_params);
-      // tm.invert(); // not supported
-      result = tm.evaluate(datum);
-    }
-    else
-    {
-      LOG_INFO << "TransformationModel " << transformation_model << " is not supported.";
-      LOG_INFO << "The original datum will be returned.";
-    }
-    return result;
   }
 
 } // namespace

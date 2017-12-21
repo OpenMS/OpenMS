@@ -1415,11 +1415,11 @@ namespace OpenMS
         //spectrum representation
         else if (accession == "MS:1000127") //centroid spectrum
         {
-          spec_.setType(SpectrumSettings::PEAKS);
+          spec_.setType(SpectrumSettings::CENTROID);
         }
         else if (accession == "MS:1000128") //profile spectrum
         {
-          spec_.setType(SpectrumSettings::RAWDATA);
+          spec_.setType(SpectrumSettings::PROFILE);
         }
         else if (accession == "MS:1000525") //spectrum representation
         {
@@ -4652,11 +4652,11 @@ namespace OpenMS
       os << ">\n";
 
       //spectrum representation
-      if (spec.getType() == SpectrumSettings::PEAKS)
+      if (spec.getType() == SpectrumSettings::CENTROID)
       {
         os << "\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000127\" name=\"centroid spectrum\" />\n";
       }
-      else if (spec.getType() == SpectrumSettings::RAWDATA)
+      else if (spec.getType() == SpectrumSettings::PROFILE)
       {
         os << "\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000128\" name=\"profile spectrum\" />\n";
       }
