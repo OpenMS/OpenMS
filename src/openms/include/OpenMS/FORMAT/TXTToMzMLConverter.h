@@ -53,8 +53,6 @@ public:
     virtual ~TXTToMzMLConverter();
 
     MSExperiment loadInputFile(const String& filename) const;
-
-    void storeMzMLFile(const String& filename, const MSExperiment& experiment) const;
   };
 }
 

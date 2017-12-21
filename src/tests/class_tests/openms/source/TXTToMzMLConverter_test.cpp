@@ -86,14 +86,9 @@ START_SECTION(MSExperiment loadInputFile(const String& filename) const)
   TEST_REAL_SIMILAR(c[2640].getIntensity(), -0.485941)
   TEST_REAL_SIMILAR(c[3300].getRT(), 11.0)
   TEST_REAL_SIMILAR(c[3300].getIntensity(), -0.130904)
-}
-END_SECTION
 
-START_SECTION(void storeMzMLFile(const String& filename, const MSExperiment& experiment) const)
-{
-  const MSExperiment experiment = ptr->loadInputFile(input_filepath);
-  ptr->storeMzMLFile(output_filepath, experiment);
   MzMLFile mzml;
+  mzml.store(output_filepath, experiment);
   MSExperiment read_exp;
   mzml.load(output_filepath, read_exp);
   const MSChromatogram c1 = experiment.getChromatograms()[0];

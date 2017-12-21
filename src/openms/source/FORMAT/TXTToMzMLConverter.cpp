@@ -83,10 +83,4 @@ namespace OpenMS
     experiment.addChromatogram(chromatogram);
     return experiment;
   }
-
-  void TXTToMzMLConverter::storeMzMLFile(const String& filename, const MSExperiment& experiment) const
-  {
-    MzMLFile mzml;
-    mzml.store(filename, experiment);
-  }
 }
