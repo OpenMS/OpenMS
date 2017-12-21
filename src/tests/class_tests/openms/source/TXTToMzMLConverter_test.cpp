@@ -49,6 +49,8 @@ START_TEST(TXTToMzMLConverter, "$Id$")
 
 TXTToMzMLConverter* ptr = 0;
 TXTToMzMLConverter* null_ptr = 0;
+const String input_filepath = OPENMS_GET_TEST_DATA_PATH("20171013_HMP_C61_ISO_P1_GA1_UV_VIS_2.txt");
+const String output_filepath = OPENMS_GET_TEST_DATA_PATH("20171013_HMP_C61_ISO_P1_GA1_UV_VIS_2.mzML");
 
 START_SECTION(TXTToMzMLConverter())
 {
@@ -62,6 +64,50 @@ START_SECTION(~TXTToMzMLConverter())
   delete ptr;
 }
 END_SECTION
+
+ptr = new TXTToMzMLConverter();
+
+START_SECTION(MSExperiment loadInputFile(const String& filename) const)
+{
+  const MSExperiment experiment = ptr->loadInputFile(input_filepath);
+  const vector<MSChromatogram> chromatograms = experiment.getChromatograms();
+  TEST_EQUAL(chromatograms.size(), 1);
+  TEST_EQUAL(chromatograms[0].size(), 3301);
+  const MSChromatogram& c = chromatograms[0];
+  TEST_REAL_SIMILAR(c[0].getRT(), 0.0)
+  TEST_REAL_SIMILAR(c[0].getIntensity(), 0.0)
+  TEST_REAL_SIMILAR(c[660].getRT(), 2.2)
+  TEST_REAL_SIMILAR(c[660].getIntensity(), -0.812998)
+  TEST_REAL_SIMILAR(c[1320].getRT(), 4.4)
+  TEST_REAL_SIMILAR(c[1320].getIntensity(), -0.791189)
+  TEST_REAL_SIMILAR(c[1980].getRT(), 6.6)
+  TEST_REAL_SIMILAR(c[1980].getIntensity(), -0.285533)
+  TEST_REAL_SIMILAR(c[2640].getRT(), 8.8)
+  TEST_REAL_SIMILAR(c[2640].getIntensity(), -0.485941)
+  TEST_REAL_SIMILAR(c[3300].getRT(), 11.0)
+  TEST_REAL_SIMILAR(c[3300].getIntensity(), -0.130904)
+}
+END_SECTION
+
+START_SECTION(void storeMzMLFile(const String& filename, const MSExperiment& experiment) const)
+{
+  const MSExperiment experiment = ptr->loadInputFile(input_filepath);
+  ptr->storeMzMLFile(output_filepath, experiment);
+  MzMLFile mzml;
+  MSExperiment read_exp;
+  mzml.load(output_filepath, read_exp);
+  const MSChromatogram c1 = experiment.getChromatograms()[0];
+  const MSChromatogram c2 = read_exp.getChromatograms()[0];
+  TEST_EQUAL(c1.size(), c2.size())
+  for (Size i = 0; i < c1.size(); ++i)
+  {
+    TEST_REAL_SIMILAR(c1[i].getRT(), c2[i].getRT())
+    TEST_REAL_SIMILAR(c1[i].getIntensity(), c2[i].getIntensity())
+  }
+}
+END_SECTION
+
+delete ptr;
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

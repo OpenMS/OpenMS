@@ -31,14 +31,16 @@
 // $Maintainer: Douglas McCloskey, Pasquale Domenico Colaianni $
 // $Authors: Douglas McCloskey, Pasquale Domenico Colaianni $
 // --------------------------------------------------------------------------
-
+// TODO make sure these preprocessor macros are correct
 #ifndef OPENMS_FORMAT_TXTTOMZMLCONVERTER_H
 #define OPENMS_FORMAT_TXTTOMZMLCONVERTER_H
 
 // TODO remove unnecessary dependencies here
 #include <OpenMS/config.h> // OPENMS_DLLAPI
 #include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
+#include <fstream>
 
 namespace OpenMS
 {
@@ -50,12 +52,9 @@ public:
     /// Destructor
     virtual ~TXTToMzMLConverter();
 
-    void loadTextFile(const String& filename);
+    MSExperiment loadInputFile(const String& filename) const;
 
-    void storeMzML(const String& filename);
-
-private:
-    MSExperiment exp_;
+    void storeMzMLFile(const String& filename, const MSExperiment& experiment) const;
   };
 }
 

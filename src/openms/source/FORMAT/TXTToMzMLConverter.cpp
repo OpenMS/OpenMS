@@ -36,8 +36,57 @@
 
 namespace OpenMS
 {
-  TXTToMzMLConverter::TXTToMzMLConverter()
-  { }
+  TXTToMzMLConverter::TXTToMzMLConverter() {}
 
   TXTToMzMLConverter::~TXTToMzMLConverter() {}
+
+  MSExperiment TXTToMzMLConverter::loadInputFile(const String& filename) const
+  {
+    std::ifstream ifs(filename, std::ifstream::in);
+    if (!ifs.is_open())
+    {
+      throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
+    }
+    const Size BUFSIZE = 65536;
+    char line[BUFSIZE];
+    bool header_found = false;
+    String header("Time (min)\tStep (s)\tValue (mAU)");
+    while (!header_found && !ifs.eof())
+    {
+      ifs.getline(line, BUFSIZE);
+      String s(line);
+      if (std::strncmp(header.c_str(), line, header.size()) == 0)
+      {
+        header_found = true;
+      }
+    }
+    MSChromatogram chromatogram;
+    while (!ifs.eof())
+    {
+      ifs.getline(line, BUFSIZE);
+      double rt, intensity;
+      int ret = std::sscanf(line, "%lf\t%*f\t%lf", &rt, &intensity);
+      if (ret == 2)
+      {
+        chromatogram.push_back(ChromatogramPeak(rt, intensity));
+      }
+      else if (!strcmp(line, "\r") || !strcmp(line, ""))
+      {
+        break;
+      }
+      else
+      {
+        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, std::string(line), "Couldn't parse the raw data.");
+      }
+    }
+    MSExperiment experiment;
+    experiment.addChromatogram(chromatogram);
+    return experiment;
+  }
+
+  void TXTToMzMLConverter::storeMzMLFile(const String& filename, const MSExperiment& experiment) const
+  {
+    MzMLFile mzml;
+    mzml.store(filename, experiment);
+  }
 }
