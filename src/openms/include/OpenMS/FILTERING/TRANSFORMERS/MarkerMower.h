@@ -62,7 +62,7 @@ public:
     /// default constructor
     MarkerMower();
     /// destructor
-    virtual ~MarkerMower();
+    ~MarkerMower() override;
 
     /// copy constructor
     MarkerMower(const MarkerMower & source);

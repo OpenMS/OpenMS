@@ -67,8 +67,8 @@ START_TEST(MSDataChainingConsumer, "$Id$")
 
 using namespace OpenMS;
 
-MSDataChainingConsumer* chaining_consumer_ptr = 0;
-MSDataChainingConsumer* chaining_consumer_nullPointer = 0;
+MSDataChainingConsumer* chaining_consumer_ptr = nullptr;
+MSDataChainingConsumer* chaining_consumer_nullPointer = nullptr;
 
 START_SECTION((MSDataChainingConsumer()))
   chaining_consumer_ptr = new MSDataChainingConsumer();

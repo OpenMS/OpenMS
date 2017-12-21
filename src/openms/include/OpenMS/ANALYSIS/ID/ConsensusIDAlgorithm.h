@@ -73,7 +73,7 @@ namespace OpenMS
                Size number_of_runs = 0);
 
     /// Virtual destructor
-    virtual ~ConsensusIDAlgorithm();
+    ~ConsensusIDAlgorithm() override;
 
   protected:
     /// Mapping: peptide sequence -> (charge, scores)
@@ -105,7 +105,7 @@ namespace OpenMS
                         SequenceGrouping& results) = 0;
 
     /// Docu in base class
-    virtual void updateMembers_();
+    void updateMembers_() override;
 
     /// Compare (and possibly update) charge state information
     void compareChargeStates_(Int& recorded_charge, Int new_charge, 

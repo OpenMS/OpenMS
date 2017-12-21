@@ -54,7 +54,7 @@ namespace OpenMS
     MzQuantMLHandler::MzQuantMLHandler(const MSQuantifications& msq, const String& filename, const String& version, const ProgressLogger& logger) :
       XMLHandler(filename, version),
       logger_(logger),
-      msq_(0),
+      msq_(nullptr),
       cmsq_(&msq)
     {
       cv_.loadFromOBO("MS", File::find("/CV/psi-ms.obo")); //TODO unimod -> then automatise CVList writing
@@ -64,7 +64,7 @@ namespace OpenMS
       XMLHandler(filename, version),
       logger_(logger),
       msq_(&msq),
-      cmsq_(0)
+      cmsq_(nullptr)
     {
       cv_.loadFromOBO("MS", File::find("/CV/psi-ms.obo"));
     }

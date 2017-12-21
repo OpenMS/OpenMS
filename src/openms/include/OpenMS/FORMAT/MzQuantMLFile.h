@@ -57,7 +57,7 @@ public:
     ///Default constructor
     MzQuantMLFile();
     ///Destructor
-    virtual ~MzQuantMLFile();
+    ~MzQuantMLFile() override;
 
     /**
         @brief Loads a map from a MzQuantML file.

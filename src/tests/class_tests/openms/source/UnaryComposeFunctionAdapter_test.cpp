@@ -67,8 +67,8 @@ typedef std::const_mem_fun_ref_t<const std::string&, Element> T_MEMBER_FUNCTIOM;
 
 typedef UnaryComposeFunctionAdapter<T_BINDER_2ND, T_MEMBER_FUNCTIOM> UCFA;
 
-UCFA* ptr = 0;
-UCFA* null_ptr = 0;
+UCFA* ptr = nullptr;
+UCFA* null_ptr = nullptr;
 START_SECTION((UnaryComposeFunctionAdapter(const OP1 &o1, const OP2 &o2)))
 {
   ptr = new UCFA(bind2nd(equal_to<string>(), "3"), mem_fun_ref(&Element::getA));

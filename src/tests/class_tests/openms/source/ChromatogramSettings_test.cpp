@@ -47,8 +47,8 @@ START_TEST(ChromatogramSettings, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-ChromatogramSettings* ptr = 0;
-ChromatogramSettings* nullPointer = 0;
+ChromatogramSettings* ptr = nullptr;
+ChromatogramSettings* nullPointer = nullptr;
 START_SECTION(ChromatogramSettings())
 {
   ptr = new ChromatogramSettings();

@@ -51,8 +51,8 @@ START_TEST(ProteaseDB, "$Id$")
 
 /////////////////////////////////////////////////////////////
 
-ProteaseDB* ptr = 0;
-ProteaseDB* nullPointer = 0;
+ProteaseDB* ptr = nullptr;
+ProteaseDB* nullPointer = nullptr;
 String RKP("(?<=R)(?!P)");
 START_SECTION(ProteaseDB* getInstance())
     ptr = ProteaseDB::getInstance();

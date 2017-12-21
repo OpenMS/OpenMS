@@ -107,7 +107,7 @@ public:
 
 protected:
 
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "Input file, in which the protein/peptide identifications must be tagged with 'file_origin'");
     setValidFormats_("in", ListUtils::create<String>("idXML"));
@@ -116,7 +116,7 @@ protected:
     registerStringOption_("out_path", "<file>", "", "Directory for the output files after ripping according to 'file_origin'. If 'out_path' is set, 'out' is ignored.", false, false);
   }
 
-  ExitCodes main_(int, const char **)
+  ExitCodes main_(int, const char **) override
   {
     //-------------------------------------------------------------
     // parameter handling

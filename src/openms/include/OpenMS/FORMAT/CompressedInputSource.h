@@ -53,13 +53,13 @@ public:
     ///Constructor
     CompressedInputSource(const   XMLCh * const file_path, const String & header, xercesc::MemoryManager * const manager = xercesc::XMLPlatformUtils::fgMemoryManager);
     ///Constructor
-    virtual ~CompressedInputSource();
+    ~CompressedInputSource() override;
 
     /**
        @brief Depending on the header in the Constructor a Bzip2InputStream or a GzipInputStream object is returned
        @note InputSource interface implementation
     */
-    virtual xercesc::BinInputStream * makeStream() const;
+    xercesc::BinInputStream * makeStream() const override;
 
 private:
     String head_;

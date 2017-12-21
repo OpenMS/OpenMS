@@ -56,8 +56,8 @@ START_TEST(TheoreticalSpectrumGenerator, "$Id$")
 using namespace OpenMS;
 using namespace std;
 
-TheoreticalSpectrumGenerator* ptr = 0;
-TheoreticalSpectrumGenerator* nullPointer = 0;
+TheoreticalSpectrumGenerator* ptr = nullptr;
+TheoreticalSpectrumGenerator* nullPointer = nullptr;
 
 START_SECTION(TheoreticalSpectrumGenerator())
   ptr = new TheoreticalSpectrumGenerator();

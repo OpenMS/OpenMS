@@ -41,7 +41,7 @@
 namespace OpenMS
 {
 
-  SuperHirnParameters * SuperHirnParameters::instance_ = NULL;
+  SuperHirnParameters * SuperHirnParameters::instance_ = nullptr;
   bool SuperHirnParameters::haveInstance_ = false;
 
   SuperHirnParameters::SuperHirnParameters()

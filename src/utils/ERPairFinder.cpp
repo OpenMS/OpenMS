@@ -130,7 +130,7 @@ public:
   }
 
 protected:
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "Input mzML file containing the ER spectra.");
     setValidFormats_("in", ListUtils::create<String>("mzML"));
@@ -163,7 +163,7 @@ protected:
     setMinFloat_("expansion_range", 0.0);
   }
 
-  ExitCodes main_(int, const char**)
+  ExitCodes main_(int, const char**) override
   {
     //-------------------------------------------------------------
     // parsing parameters

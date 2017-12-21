@@ -60,8 +60,8 @@ START_TEST(CrossLinksDB, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-CrossLinksDB* ptr = 0;
-CrossLinksDB* nullPointer = 0;
+CrossLinksDB* ptr = nullptr;
+CrossLinksDB* nullPointer = nullptr;
 START_SECTION(CrossLinksDB* getInstance())
 {
 	ptr = CrossLinksDB::getInstance();

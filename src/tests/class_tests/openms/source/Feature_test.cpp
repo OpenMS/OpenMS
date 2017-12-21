@@ -51,8 +51,8 @@ using namespace std;
 
 typedef OpenMS::BaseFeature::QualityType QualityType;
 
-Feature* d_ptr = 0;
-Feature* nullPointer = 0;
+Feature* d_ptr = nullptr;
+Feature* nullPointer = nullptr;
 START_SECTION((Feature()))
 {
 	d_ptr = new Feature;

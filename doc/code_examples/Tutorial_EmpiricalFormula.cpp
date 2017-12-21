@@ -39,14 +39,18 @@ Int main()
 {
   EmpiricalFormula methanol("CH3OH"), water("H2O");
 
+  // sum up empirical formula
   EmpiricalFormula sum = methanol + water;
 
+  // get element from ElementDB
   const Element * carbon = ElementDB::getInstance()->getElement("Carbon");
 
+  // output number of carbon atoms and average weight 
   cout << sum << " "
        << sum.getNumberOf(carbon) << " "
        << sum.getAverageWeight() << endl;
 
+  // extract the isotope distribution
   IsotopeDistribution iso_dist = sum.getIsotopeDistribution(3);
 
   for (IsotopeDistribution::ConstIterator it = iso_dist.begin(); it != iso_dist.end(); ++it)

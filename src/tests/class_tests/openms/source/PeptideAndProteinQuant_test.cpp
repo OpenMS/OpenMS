@@ -48,8 +48,8 @@ START_TEST(PeptideAndProteinQuant, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-PeptideAndProteinQuant* ptr = 0;
-PeptideAndProteinQuant* nullPointer = 0;
+PeptideAndProteinQuant* ptr = nullptr;
+PeptideAndProteinQuant* nullPointer = nullptr;
 START_SECTION((PeptideAndProteinQuant()))
   ptr = new PeptideAndProteinQuant();
   TEST_NOT_EQUAL(ptr, nullPointer)

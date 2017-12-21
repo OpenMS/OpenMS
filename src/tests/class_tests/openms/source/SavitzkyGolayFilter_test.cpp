@@ -49,8 +49,8 @@ START_TEST(SavitzkyGolayFilter<D>, "$Id$")
 
 using namespace OpenMS;
 
-SavitzkyGolayFilter* dsg_ptr = 0;
-SavitzkyGolayFilter* dsg_nullPointer = 0;
+SavitzkyGolayFilter* dsg_ptr = nullptr;
+SavitzkyGolayFilter* dsg_nullPointer = nullptr;
 START_SECTION((SavitzkyGolayFilter()))
   dsg_ptr = new SavitzkyGolayFilter;
   TEST_NOT_EQUAL(dsg_ptr, dsg_nullPointer)

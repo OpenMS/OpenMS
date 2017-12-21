@@ -47,8 +47,8 @@ using namespace std;
 
 START_TEST(Bzip2Ifstream_test, "$Id$")
 
-Bzip2Ifstream* ptr = 0;
-Bzip2Ifstream* nullPointer = 0;
+Bzip2Ifstream* ptr = nullptr;
+Bzip2Ifstream* nullPointer = nullptr;
 START_SECTION((Bzip2Ifstream()))
 	ptr = new Bzip2Ifstream;
 	TEST_NOT_EQUAL(ptr, nullPointer)

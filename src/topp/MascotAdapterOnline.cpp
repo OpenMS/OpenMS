@@ -117,7 +117,7 @@ public:
 
 protected:
 
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "input file in mzML format.\n");
     setValidFormats_("in", ListUtils::create<String>("mzML"));
@@ -129,7 +129,7 @@ protected:
     registerFlag_("keep_protein_links", "The Mascot response file usually returns incomplete/wrong protein hits, so re-indexing the peptide hits is required. To avoid confusion why there are so few protein hits and force re-indexing, no proteins should be reported. To see the original (wrong) list, enable this flag.", true);
   }
 
-  Param getSubsectionDefaults_(const String& section) const
+  Param getSubsectionDefaults_(const String& section) const override
   {
     if (section == "Mascot_server")
     {
@@ -148,7 +148,7 @@ protected:
     return Param();
   }
 
-  ExitCodes main_(int argc, const char** argv)
+  ExitCodes main_(int argc, const char** argv) override
   {
     //-------------------------------------------------------------
     // parameter handling

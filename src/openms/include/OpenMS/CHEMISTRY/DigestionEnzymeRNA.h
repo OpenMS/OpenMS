@@ -65,7 +65,7 @@ namespace OpenMS
 
        Returns whether the key was recognized and the value set successfully.
     */
-    bool setValueFromFile(const String& key, const String& value);
+    bool setValueFromFile(const String& key, const String& value) override;
 
   protected:
     String three_prime_gain_;

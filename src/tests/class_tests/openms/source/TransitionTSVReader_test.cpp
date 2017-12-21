@@ -51,8 +51,8 @@ START_TEST(TransitionTSVReader, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-TransitionTSVReader* ptr = 0;
-TransitionTSVReader* nullPointer = 0;
+TransitionTSVReader* ptr = nullptr;
+TransitionTSVReader* nullPointer = nullptr;
 
 START_SECTION(TransitionTSVReader())
 {

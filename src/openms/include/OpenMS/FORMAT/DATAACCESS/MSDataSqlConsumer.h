@@ -85,7 +85,7 @@ namespace OpenMS
   
         Flushes the data for good.
       */
-      ~MSDataSqlConsumer();
+      ~MSDataSqlConsumer() override;
 
       /**
         @brief Flushes the data for good.
@@ -98,16 +98,16 @@ namespace OpenMS
       /**
         @brief Write a spectrum to the output file
       */
-      void consumeSpectrum(SpectrumType & s);
+      void consumeSpectrum(SpectrumType & s) override;
 
       /**
         @brief Write a chromatogram to the output file
       */
-      void consumeChromatogram(ChromatogramType & c);
+      void consumeChromatogram(ChromatogramType & c) override;
 
-      void setExpectedSize(Size /* expectedSpectra */, Size /* expectedChromatograms */);
+      void setExpectedSize(Size /* expectedSpectra */, Size /* expectedChromatograms */) override;
 
-      void setExperimentalSettings(const ExperimentalSettings& /* exp */);
+      void setExperimentalSettings(const ExperimentalSettings& /* exp */) override;
 
     protected:
 

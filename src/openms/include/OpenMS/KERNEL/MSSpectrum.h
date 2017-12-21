@@ -118,6 +118,7 @@ public:
     using ContainerType::resize;
     using ContainerType::size;
     using ContainerType::push_back;
+    using ContainerType::emplace_back;
     using ContainerType::pop_back;
     using ContainerType::empty;
     using ContainerType::front;
@@ -145,7 +146,7 @@ public:
     MSSpectrum(const MSSpectrum& source);
 
     /// Destructor
-    ~MSSpectrum()
+    ~MSSpectrum() override
     {}
 
     /// Assignment operator
@@ -164,7 +165,7 @@ public:
     }
 
     // Docu in base class (RangeManager)
-    virtual void updateRanges();
+    void updateRanges() override;
 
     ///@name Accessors for meta information
     ///@{

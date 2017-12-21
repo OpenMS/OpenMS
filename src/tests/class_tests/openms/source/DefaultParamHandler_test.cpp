@@ -83,7 +83,7 @@ class TestHandler
 			return *this;
 		}
 		
-		void updateMembers_()
+		void updateMembers_() override
 		{
 			string_var = (string)(param_.getValue("string"));
 		}
@@ -91,8 +91,8 @@ class TestHandler
 		String string_var;
 };
 
-DefaultParamHandler* ptr = 0;
-DefaultParamHandler* nullPointer = 0;
+DefaultParamHandler* ptr = nullptr;
+DefaultParamHandler* nullPointer = nullptr;
 START_SECTION((DefaultParamHandler(const String& name)))
 	ptr = new DefaultParamHandler("dummy");
 	TEST_NOT_EQUAL(ptr, nullPointer)

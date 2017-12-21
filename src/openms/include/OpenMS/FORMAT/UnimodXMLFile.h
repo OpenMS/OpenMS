@@ -55,7 +55,7 @@ public:
     UnimodXMLFile();
 
     /// Destructor
-    virtual ~UnimodXMLFile();
+    ~UnimodXMLFile() override;
     /**
       @brief loads data from unimod.xml file
 

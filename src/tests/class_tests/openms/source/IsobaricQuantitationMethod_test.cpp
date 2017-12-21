@@ -63,30 +63,30 @@ public:
     name = "TestQuantitationMethod";
   }
 
-  virtual ~TestQuantitationMethod()
+  ~TestQuantitationMethod() override
   {}
 
-  const String& getName() const
+  const String& getName() const override
   {
     return name;
   }
 
-  const IsobaricChannelList& getChannelInformation() const
+  const IsobaricChannelList& getChannelInformation() const override
   {
     return channel_list;
   }
 
-  Size getNumberOfChannels() const
+  Size getNumberOfChannels() const override
   {
     return 4;
   }
 
-  Matrix<double> getIsotopeCorrectionMatrix() const
+  Matrix<double> getIsotopeCorrectionMatrix() const override
   {
     return stringListToIsotopCorrectionMatrix_(correction_list);
   }
 
-  Size getReferenceChannel() const
+  Size getReferenceChannel() const override
   {
     return 0;
   }
@@ -98,8 +98,8 @@ START_TEST(IsobaricQuantitationMethod, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-IsobaricQuantitationMethod* ptr = 0;
-IsobaricQuantitationMethod* null_ptr = 0;
+IsobaricQuantitationMethod* ptr = nullptr;
+IsobaricQuantitationMethod* null_ptr = nullptr;
 START_SECTION(IsobaricQuantitationMethod())
 {
 	ptr = new TestQuantitationMethod();

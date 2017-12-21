@@ -83,7 +83,7 @@ public:
   }
 
 protected:
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "Input file containing RNA sequences");
     setValidFormats_("in", ListUtils::create<String>("fasta"));
@@ -101,7 +101,7 @@ protected:
     registerFlag_("unique", "Report each unique sequence fragment only once");
   }
 
-  ExitCodes main_(int, const char**)
+  ExitCodes main_(int, const char**) override
   {
     //-------------------------------------------------------------
     // parsing parameters

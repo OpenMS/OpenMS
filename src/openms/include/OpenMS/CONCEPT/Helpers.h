@@ -62,11 +62,11 @@ namespace OpenMS
     {
        // We are not interested whether the pointers are equal but whether the
        // contents are equal
-      if (a == NULL && b == NULL)
+      if (a == nullptr && b == nullptr)
       {
         return true;
       }
-      else if (a == NULL || b == NULL)
+      else if (a == nullptr || b == nullptr)
       {
         return false; // one is null the other is not
       }

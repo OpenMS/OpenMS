@@ -96,13 +96,13 @@ public:
 protected:
   StringList out_formats_; ///< valid output formats for image
 
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     registerInputFileList_("in", "<file>", ListUtils::create<String>(""), "Input file(s)", false);
     setValidFormats_("in", ListUtils::create<String>("idXML"));
   }
 
-  ExitCodes main_(int argc, const char ** argv)
+  ExitCodes main_(int argc, const char ** argv) override
   {
     //----------------------------------------------------------------
     // load data

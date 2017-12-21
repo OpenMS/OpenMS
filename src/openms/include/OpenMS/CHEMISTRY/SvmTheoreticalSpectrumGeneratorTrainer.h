@@ -99,7 +99,7 @@ public:
     SvmTheoreticalSpectrumGeneratorTrainer(const SvmTheoreticalSpectrumGeneratorTrainer & source);
 
     /// Destructor
-    virtual ~SvmTheoreticalSpectrumGeneratorTrainer();
+    ~SvmTheoreticalSpectrumGeneratorTrainer() override;
     //@}
 
     /// Assignment operator

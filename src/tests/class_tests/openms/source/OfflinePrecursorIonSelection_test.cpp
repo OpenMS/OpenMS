@@ -50,8 +50,8 @@ START_TEST(OfflinePrecursorIonSelection, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-OfflinePrecursorIonSelection* ptr = 0;
-OfflinePrecursorIonSelection* nullPointer = 0;
+OfflinePrecursorIonSelection* ptr = nullptr;
+OfflinePrecursorIonSelection* nullPointer = nullptr;
 START_SECTION(OfflinePrecursorIonSelection())
 	ptr = new OfflinePrecursorIonSelection();
 	TEST_NOT_EQUAL(ptr, nullPointer)

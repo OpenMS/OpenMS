@@ -73,8 +73,8 @@ public:
     /// Returns a pointer to the modifications DB (singleton)
     inline static ModificationsDB* getInstance()
     {
-      static ModificationsDB* db_ = 0;
-      if (db_ == 0)
+      static ModificationsDB* db_ = nullptr;
+      if (db_ == nullptr)
       {
         db_ = new ModificationsDB;
       }

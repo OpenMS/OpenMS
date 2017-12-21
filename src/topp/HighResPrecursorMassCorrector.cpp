@@ -101,7 +101,7 @@ class TOPPHiResPrecursorMassCorrector :
     }
 
   protected:
-    void registerOptionsAndFlags_()
+    void registerOptionsAndFlags_() override
     {
       // input files
       registerInputFile_("in", "<file>", "", "Input file (centroided data)");
@@ -502,7 +502,7 @@ class TOPPHiResPrecursorMassCorrector :
       return corrected_precursors;
     }
 
-    ExitCodes main_(int, const char **)
+    ExitCodes main_(int, const char **) override
     {
       const string in_mzml(getStringOption_("in"));
       const string in_feature(getStringOption_("feature:in"));

@@ -50,8 +50,8 @@ START_TEST(LinearResampler, "$Id$")
 
 using namespace OpenMS;
 
-LinearResampler* lr_ptr = 0;
-LinearResampler* lr_nullPointer = 0;
+LinearResampler* lr_ptr = nullptr;
+LinearResampler* lr_nullPointer = nullptr;
 
 START_SECTION((LinearResampler()))
   lr_ptr = new LinearResampler;

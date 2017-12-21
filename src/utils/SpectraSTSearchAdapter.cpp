@@ -97,7 +97,7 @@ protected:
 
   // this function will be used to register the tool parameters
   // it gets automatically called on tool execution
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
       StringList empty;
 
@@ -146,7 +146,7 @@ protected:
   }
 
   // the main_ function is called after all parameters are read
-  ExitCodes main_(int, const char **)
+  ExitCodes main_(int, const char **) override
   {
      // Assemble command line for SpectraST
      QStringList arguments;

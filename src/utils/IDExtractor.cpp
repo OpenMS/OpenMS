@@ -91,7 +91,7 @@ public:
   }
 
 protected:
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "input file");
     setValidFormats_("in", ListUtils::create<String>("idXML"));
@@ -104,7 +104,7 @@ protected:
     registerFlag_("best_hits", "If this flag is set the best n peptides are chosen.");
   }
 
-  ExitCodes main_(int, const char**)
+  ExitCodes main_(int, const char**) override
   {
     IdXMLFile idXML_file;
     vector<ProteinIdentification> protein_identifications;

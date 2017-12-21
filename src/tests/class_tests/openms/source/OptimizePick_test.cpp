@@ -47,8 +47,8 @@ START_TEST(OptimizePick, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-OptimizePick* ptr = 0;
-OptimizePick* nullPointer = 0;
+OptimizePick* ptr = nullptr;
+OptimizePick* nullPointer = nullptr;
 START_SECTION((OptimizePick( )))
 	ptr = new OptimizePick();
 	TEST_NOT_EQUAL(ptr, nullPointer)

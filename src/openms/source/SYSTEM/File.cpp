@@ -358,7 +358,7 @@ namespace OpenMS
 
     String found_path_from;
     bool from_env(false);
-    if (getenv("OPENMS_DATA_PATH") != 0)
+    if (getenv("OPENMS_DATA_PATH") != nullptr)
     {
       path = getenv("OPENMS_DATA_PATH");
       from_env = true;
@@ -462,7 +462,7 @@ namespace OpenMS
   {
     Param p = getSystemParameters();
     String dir;
-    if (getenv("OPENMS_HOME_PATH") != 0)
+    if (getenv("OPENMS_HOME_PATH") != nullptr)
     {
       dir = getenv("OPENMS_HOME_PATH");
     }
@@ -500,7 +500,7 @@ namespace OpenMS
   {
     String home_path;
     // set path where OpenMS.ini is found from environment or use default
-    if (getenv("OPENMS_HOME_PATH") != 0)
+    if (getenv("OPENMS_HOME_PATH") != nullptr)
     {
       home_path = getenv("OPENMS_HOME_PATH");
     }

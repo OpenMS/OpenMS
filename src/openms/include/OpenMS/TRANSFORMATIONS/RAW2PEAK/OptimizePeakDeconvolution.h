@@ -132,7 +132,7 @@ public:
       charge_(opt.charge_){}
 
     ///Destructor
-    virtual ~OptimizePeakDeconvolution(){}
+    ~OptimizePeakDeconvolution() override{}
     //@}
 
     /**	@name Assignment
@@ -189,7 +189,7 @@ protected:
     /// A function to determine the number of peaks that lie in the current m/z interval given the distance between the peaks by the current charge state.
     void setNumberOfPeaks_(Data & data, const std::vector<PeakShape> & temp_shapes, Int charge);
 
-    void updateMembers_();
+    void updateMembers_() override;
   }; // class
 
 } // namespace OpenMS

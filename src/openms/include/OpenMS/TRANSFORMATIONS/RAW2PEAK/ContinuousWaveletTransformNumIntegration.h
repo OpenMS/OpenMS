@@ -76,7 +76,7 @@ public:
     {}
 
     /// Destructor.
-    virtual ~ContinuousWaveletTransformNumIntegration() {}
+    ~ContinuousWaveletTransformNumIntegration() override {}
 
     /**
         @brief Computes the wavelet transform of a given raw data interval [begin_input,end_input)
@@ -173,7 +173,7 @@ public:
         decays fast. We take 5*scale, since at that point the wavelet
         has dropped to ~ -10^-4
     */
-    virtual void init(double scale, double spacing);
+    void init(double scale, double spacing) override;
 
 protected:
 

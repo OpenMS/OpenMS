@@ -46,8 +46,8 @@ START_TEST(TargetedExperimentHelper, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-TargetedExperimentHelper::Peptide* ptr = 0;
-TargetedExperimentHelper::Peptide* null_ptr = 0;
+TargetedExperimentHelper::Peptide* ptr = nullptr;
+TargetedExperimentHelper::Peptide* null_ptr = nullptr;
 START_SECTION(TargetedExperimentHelper::Peptide())
 {
 	ptr = new TargetedExperimentHelper::Peptide();

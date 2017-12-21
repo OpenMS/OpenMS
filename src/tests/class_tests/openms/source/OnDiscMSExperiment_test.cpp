@@ -49,8 +49,8 @@ START_TEST(OnDiscMSExperiment, "$Id$");
 using namespace OpenMS;
 using namespace std;
 
-OnDiscPeakMap* ptr = 0;
-OnDiscPeakMap* nullPointer = 0;
+OnDiscPeakMap* ptr = nullptr;
+OnDiscPeakMap* nullPointer = nullptr;
 START_SECTION((OnDiscMSExperiment()))
 {
   ptr = new OnDiscPeakMap();

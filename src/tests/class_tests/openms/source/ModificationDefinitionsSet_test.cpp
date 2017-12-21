@@ -47,8 +47,8 @@ START_TEST(ModificationDefinitionsSet, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-ModificationDefinitionsSet* ptr = 0;
-ModificationDefinitionsSet* nullPointer = 0;
+ModificationDefinitionsSet* ptr = nullptr;
+ModificationDefinitionsSet* nullPointer = nullptr;
 START_SECTION(ModificationDefinitionsSet())
 {
   ptr = new ModificationDefinitionsSet();

@@ -49,8 +49,8 @@ START_TEST(GaussFilter<D>, "$Id$")
 
 using namespace OpenMS;
 
-GaussFilter* dgauss_ptr = 0;
-GaussFilter* dgauss_nullPointer = 0;
+GaussFilter* dgauss_ptr = nullptr;
+GaussFilter* dgauss_nullPointer = nullptr;
 
 START_SECTION((GaussFilter()))
   dgauss_ptr = new GaussFilter;

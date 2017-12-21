@@ -80,15 +80,15 @@ namespace OpenMS
         @note It is essential to not delete the underlying next_consumer before
         deleting this object, otherwise we risk a memory error
       */
-      virtual ~MSDataAggregatingConsumer();
+      ~MSDataAggregatingConsumer() override;
 
-      virtual void setExpectedSize(Size, Size) {}
+      void setExpectedSize(Size, Size) override {}
 
-      virtual void consumeSpectrum(SpectrumType & s);
+      void consumeSpectrum(SpectrumType & s) override;
 
-      virtual void consumeChromatogram(ChromatogramType & c);
+      void consumeChromatogram(ChromatogramType & c) override;
 
-      virtual void setExperimentalSettings(const OpenMS::ExperimentalSettings&) {}
+      void setExperimentalSettings(const OpenMS::ExperimentalSettings&) override {}
 
     };
 

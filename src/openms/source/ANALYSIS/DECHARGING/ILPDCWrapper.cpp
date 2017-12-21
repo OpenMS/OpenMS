@@ -518,7 +518,7 @@ namespace OpenMS
   {
     double score;
     String e;
-    if (getenv("M") != 0)
+    if (getenv("M") != nullptr)
       e = String(getenv("M"));
     if (e == "")
     {

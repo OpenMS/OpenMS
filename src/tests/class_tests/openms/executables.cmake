@@ -602,6 +602,7 @@ if(NOT DISABLE_OPENSWATH)
     ChromatogramExtractorAlgorithm_test
     OpenSwathHelper_test
     OpenSwathScoring_test
+    PeakIntegrator_test
     PeakPickerMRM_test
     MRMTransitionGroupPicker_test
     DIAHelper_test
@@ -609,6 +610,7 @@ if(NOT DISABLE_OPENSWATH)
     DIAPrescoring_test
     OpenSwathMRMFeatureAccessOpenMS_test
     SpectrumAddition_test
+    TargetedSpectraExtractor_test
     OpenSwathSpectrumAccessOpenMS_test
     OpenSwathDataAccessHelper_test
     MasstraceCorrelator_test

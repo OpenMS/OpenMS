@@ -83,7 +83,7 @@ public:
     ProtonDistributionModel(const ProtonDistributionModel & model);
 
     /// destructor
-    virtual ~ProtonDistributionModel();
+    ~ProtonDistributionModel() override;
     //@}
 
     /// assignment operator
