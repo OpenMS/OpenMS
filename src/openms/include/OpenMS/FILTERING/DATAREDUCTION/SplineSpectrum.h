@@ -108,6 +108,11 @@ class OPENMS_DLLAPI SplineSpectrum
         Navigator(const std::vector<SplinePackage> * packages, double mzMin, double mzMax);
 
         /**
+        * @brief constructor (for pyOpenMS)
+        */
+        Navigator();
+
+        /**
         * @brief destructor
         */
         ~Navigator();
@@ -183,4 +188,4 @@ class OPENMS_DLLAPI SplineSpectrum
 
 }
 
-#endif /* SPLINESPECTRUM_H_ */
+#endif // OPENMS_FILTERING_DATAREDUCTION_SPLINESPECTRUM_H

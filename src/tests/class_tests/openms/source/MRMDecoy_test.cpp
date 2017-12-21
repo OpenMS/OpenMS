@@ -57,8 +57,8 @@ START_TEST(MRMDecoy, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-MRMDecoy * ptr = 0;
-MRMDecoy* nullPointer = 0;
+MRMDecoy * ptr = nullptr;
+MRMDecoy* nullPointer = nullptr;
 
 START_SECTION(MRMDecoy())
 {

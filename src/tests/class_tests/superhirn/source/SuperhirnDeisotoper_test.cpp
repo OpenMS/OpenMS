@@ -52,8 +52,8 @@ START_TEST(Deisotoper, "$Id$")
 using namespace OpenMS;
 using namespace std;
 
-Deisotoper* ptr = 0;
-Deisotoper* nullPtr = 0;
+Deisotoper* ptr = nullptr;
+Deisotoper* nullPtr = nullptr;
 
 START_SECTION((Deisotoper()))
 	ptr = new Deisotoper();

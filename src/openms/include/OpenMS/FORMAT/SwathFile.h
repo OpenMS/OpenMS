@@ -333,7 +333,7 @@ protected:
     }
 
     /// Counts the number of scans in a full Swath file (e.g. concatenated non-split file)
-    void countScansInSwath_(const std::vector<MSSpectrum> exp,
+    void countScansInSwath_(const std::vector<MSSpectrum>& exp,
                             std::vector<int>& swath_counter, int& nr_ms1_spectra, 
                             std::vector<OpenSwath::SwathMap>& known_window_boundaries)
     {

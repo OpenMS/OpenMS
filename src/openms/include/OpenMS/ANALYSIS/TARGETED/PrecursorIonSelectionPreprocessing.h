@@ -59,7 +59,7 @@ namespace OpenMS
 public:
     PrecursorIonSelectionPreprocessing();
     PrecursorIonSelectionPreprocessing(const PrecursorIonSelectionPreprocessing & source);
-    ~PrecursorIonSelectionPreprocessing();
+    ~PrecursorIonSelectionPreprocessing() override;
 
     PrecursorIonSelectionPreprocessing & operator=(const PrecursorIonSelectionPreprocessing & source);
 
@@ -146,7 +146,7 @@ protected:
     Int getScanNumber_(double rt);
     double getRTProbability_(double min_obs_rt, double max_obs_rt, double pred_rt);
     /// update members method from DefaultParamHandler to update the members
-    void updateMembers_();
+    void updateMembers_() override;
 
     /// all tryptic masses of the distinct peptides in the database
     std::vector<double> masses_;

@@ -113,7 +113,7 @@ protected:
   //return bzip2file???!!!!????
   inline bool Bzip2Ifstream::isOpen() const
   {
-    return file_ != NULL;
+    return file_ != nullptr;
   }
 
   inline bool Bzip2Ifstream::streamEnd() const

@@ -67,7 +67,7 @@ public:
     FeatureGroupingAlgorithmUnlabeled();
 
     /// Destructor
-    virtual ~FeatureGroupingAlgorithmUnlabeled();
+    ~FeatureGroupingAlgorithmUnlabeled() override;
 
     /**
         @brief Sets the reference map for the algorithm
@@ -95,7 +95,7 @@ public:
 
         @exception IllegalArgument is thrown if less than two input maps are given.
     */
-    virtual void group(const std::vector<FeatureMap > & maps, ConsensusMap & out);
+    void group(const std::vector<FeatureMap > & maps, ConsensusMap & out) override;
 
     /**
         @brief Adds one map to the group

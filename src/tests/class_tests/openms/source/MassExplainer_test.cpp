@@ -49,8 +49,8 @@ START_TEST(MassExplainer, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-MassExplainer* ptr = 0;
-MassExplainer* nullPointer = 0;
+MassExplainer* ptr = nullptr;
+MassExplainer* nullPointer = nullptr;
 START_SECTION(MassExplainer())
 {
   ptr = new MassExplainer();

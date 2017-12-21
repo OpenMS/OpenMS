@@ -56,8 +56,8 @@ START_TEST(InclusionExclusionList, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-InclusionExclusionList* ptr = 0;
-InclusionExclusionList* nullPointer = 0;
+InclusionExclusionList* ptr = nullptr;
+InclusionExclusionList* nullPointer = nullptr;
 START_SECTION(InclusionExclusionList())
 {
 	ptr = new InclusionExclusionList();

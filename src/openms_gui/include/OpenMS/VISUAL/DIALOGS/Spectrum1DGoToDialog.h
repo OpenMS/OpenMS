@@ -58,9 +58,9 @@ namespace OpenMS
 
 public:
     ///Constructor
-    Spectrum1DGoToDialog(QWidget * parent = 0);
+    Spectrum1DGoToDialog(QWidget * parent = nullptr);
     ///Destructor
-    ~Spectrum1DGoToDialog();
+    ~Spectrum1DGoToDialog() override;
 
     ///Sets the m/z range displayed initially
     void setRange(float min, float max);

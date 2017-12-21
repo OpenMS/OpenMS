@@ -52,8 +52,8 @@ START_TEST(PeakPickerHiRes, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-PeakPickerHiRes* ptr = 0;
-PeakPickerHiRes* nullPointer = 0;
+PeakPickerHiRes* ptr = nullptr;
+PeakPickerHiRes* nullPointer = nullptr;
 START_SECTION((PeakPickerHiRes()))
   ptr = new PeakPickerHiRes();
   TEST_NOT_EQUAL(ptr, nullPointer)

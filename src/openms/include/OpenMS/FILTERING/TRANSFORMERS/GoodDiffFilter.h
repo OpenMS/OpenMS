@@ -65,7 +65,7 @@ public:
     GoodDiffFilter(const GoodDiffFilter & source);
 
     /// destructor
-    virtual ~GoodDiffFilter();
+    ~GoodDiffFilter() override;
     // @}
 
     // @name Operators

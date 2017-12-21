@@ -71,7 +71,7 @@ public:
       return "CMD";
     }
 
-    void startProgress(const SignedSize begin, const SignedSize end, const String& label, const int current_recursion_depth) const
+    void startProgress(const SignedSize begin, const SignedSize end, const String& label, const int current_recursion_depth) const override
     {
       begin_ = begin;
       end_ = end;
@@ -81,7 +81,7 @@ public:
       stop_watch_.start();
     }
 
-    void setProgress(const SignedSize value, const int current_recursion_depth) const
+    void setProgress(const SignedSize value, const int current_recursion_depth) const override
     {
       if (begin_ == end_)
       {
@@ -99,7 +99,7 @@ public:
       }
     }
 
-    void endProgress(const int current_recursion_depth) const
+    void endProgress(const int current_recursion_depth) const override
     {
       stop_watch_.stop();
       if (current_recursion_depth)
@@ -131,15 +131,15 @@ public:
       return "NONE";
     }
 
-    void startProgress(const SignedSize /* begin */, const SignedSize /* end */, const String& /* label */, const int /* current_recursion_depth */) const
+    void startProgress(const SignedSize /* begin */, const SignedSize /* end */, const String& /* label */, const int /* current_recursion_depth */) const override
     {
     }
 
-    void setProgress(const SignedSize /* value */, const int /* current_recursion_depth */) const
+    void setProgress(const SignedSize /* value */, const int /* current_recursion_depth */) const override
     {
     }
 
-    void endProgress(const int /* current_recursion_depth */) const
+    void endProgress(const int /* current_recursion_depth */) const override
     {
     }
 
@@ -229,7 +229,7 @@ public:
   void ProgressLogger::startProgress(SignedSize begin, SignedSize end, const String& label) const
   {
     OPENMS_PRECONDITION(begin <= end, "ProgressLogger::init : invalid range!");
-    last_invoke_ = time(NULL);
+    last_invoke_ = time(nullptr);
     current_logger_->startProgress(begin, end, label, recursion_depth_);
     ++recursion_depth_;
   }
@@ -237,9 +237,9 @@ public:
   void ProgressLogger::setProgress(SignedSize value) const
   {
     // update only if at least 1 second has passed
-    if (last_invoke_ == time(NULL)) return;
+    if (last_invoke_ == time(nullptr)) return;
 
-    last_invoke_ = time(NULL);
+    last_invoke_ = time(nullptr);
     current_logger_->setProgress(value, recursion_depth_);
   }
 

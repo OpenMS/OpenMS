@@ -46,8 +46,8 @@ START_TEST(ConsensusMapNormalizerAlgorithmMedian, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-ConsensusMapNormalizerAlgorithmMedian* ptr = 0;
-ConsensusMapNormalizerAlgorithmMedian* null_ptr = 0;
+ConsensusMapNormalizerAlgorithmMedian* ptr = nullptr;
+ConsensusMapNormalizerAlgorithmMedian* null_ptr = nullptr;
 START_SECTION(ConsensusMapNormalizerAlgorithmMedian())
 {
 	ptr = new ConsensusMapNormalizerAlgorithmMedian();

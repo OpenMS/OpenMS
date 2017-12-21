@@ -79,6 +79,26 @@ namespace OpenMS
     static constexpr const float MIN_MZ_ = 1.0;
 
 public:
+    /** Sensible default values and notes from doi:10.1007/s13361-015-1179-x
+      * Low-resolution MS/MS data:
+      *   bin width = 1.0005     
+      *   offset = 0.4
+      *   spread should be 0
+      *   	@TODO: Offset is currently not implemented
+      *
+      * High-resolution MS/MS data:
+      *   bin width = 0.02   
+      *   offset = 0.0
+      *   spread should be 0 
+      *   Note: in sum scores, intensities from neighboring bins should be considered with half intensity of each flanking bin.
+      *         @TODO: Weighted intensity spread is currently not implemented(but could replace the spread parameter).
+      */ 
+ 
+    // default bin width for low-resolution data (adapted from doi:10.1007/s13361-015-1179-x)
+    static constexpr const float DEFAULT_BIN_WIDTH_LOWRES = 1.0005;
+
+    // default bin width for high-resolution data (adapted from doi:10.1007/s13361-015-1179-x)
+    static constexpr const float DEFAULT_BIN_WIDTH_HIRES = 0.02;
     /// typedef for the underlying sparse vector
     using SparseVectorType = Eigen::SparseVector<float>;
 

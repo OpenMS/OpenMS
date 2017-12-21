@@ -49,8 +49,8 @@ START_TEST(PeakShape, "$Id$")
 
 using namespace OpenMS;
 
-PeakShape* peakshape_ptr = 0;
-PeakShape* peakshape_nullPointer = 0;
+PeakShape* peakshape_ptr = nullptr;
+PeakShape* peakshape_nullPointer = nullptr;
 
 START_SECTION((PeakShape()))
   peakshape_ptr = new PeakShape;

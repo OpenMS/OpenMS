@@ -64,7 +64,7 @@ class TestModel : public LevMarqFitter1D
     updateMembers_();
   }
 
-  virtual ~TestModel()
+  ~TestModel() override
   {
   }
 
@@ -78,12 +78,12 @@ class TestModel : public LevMarqFitter1D
     return *this;
   }
 
-  void updateMembers_()
+  void updateMembers_() override
   {
      LevMarqFitter1D::updateMembers_();
   }
 
-  QualityType fit1d(const RawDataArrayType& /*range*/, InterpolationModel*&  /*model*/)
+  QualityType fit1d(const RawDataArrayType& /*range*/, InterpolationModel*&  /*model*/) override
   {
 //    double center = 0.0;
 //    center = model->getCenter();
@@ -112,8 +112,8 @@ START_TEST(LevMarqFitter1D, "$Id$")
 /////////////////////////////////////////////////////////////
 
 
-TestModel* ptr = 0;
-TestModel* nullPointer = 0;
+TestModel* ptr = nullptr;
+TestModel* nullPointer = nullptr;
 START_SECTION((LevMarqFitter1D()))
 	ptr = new TestModel();
 	TEST_NOT_EQUAL(ptr, nullPointer)

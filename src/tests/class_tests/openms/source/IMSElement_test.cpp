@@ -50,8 +50,8 @@ START_TEST(IMSElement, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-IMSElement* ptr = 0;
-IMSElement* null_ptr = 0;
+IMSElement* ptr = nullptr;
+IMSElement* null_ptr = nullptr;
 
 IMSIsotopeDistribution::peaks_container peaks;
 peaks.push_back(IMSIsotopeDistribution::peak_type(0.0078250319,.999885));
@@ -74,7 +74,7 @@ START_SECTION(~IMSElement())
 END_SECTION
 
 
-IMSElement * hydrogen = 0;
+IMSElement * hydrogen = nullptr;
 
 START_SECTION((IMSElement(const name_type &name, const isotopes_type &isotopes)))
 {

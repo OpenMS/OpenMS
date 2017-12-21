@@ -110,7 +110,7 @@ namespace OpenMS
   IDEvaluationBase::IDEvaluationBase(QWidget* parent) :
     QMainWindow(parent),
     DefaultParamHandler("IDEvaluationBase"),
-    spec_1d_(0)
+    spec_1d_(nullptr)
   {
     for (double d = 0.0; d <= 1.0; d += (1.0) / 100)
     {

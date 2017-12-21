@@ -80,14 +80,14 @@ namespace OpenMS
       }
 
       /// Default destructor
-      virtual ~MSDataTransformingConsumer() { }
+      ~MSDataTransformingConsumer() override { }
 
-      virtual void setExpectedSize(Size /* expectedSpectra */, Size /* expectedChromatograms */)
+      void setExpectedSize(Size /* expectedSpectra */, Size /* expectedChromatograms */) override
       {
         // do nothing
       }
 
-      virtual void consumeSpectrum(SpectrumType & s)
+      void consumeSpectrum(SpectrumType & s) override
       {
         // apply the given function to it
         (*sprocessing_ptr_)(s);
@@ -98,7 +98,7 @@ namespace OpenMS
         sprocessing_ptr_ = sproptr;
       }
 
-      virtual void consumeChromatogram(ChromatogramType & c)
+      void consumeChromatogram(ChromatogramType & c) override
       {
         // apply the given function to it
         (*cprocessing_ptr_)(c);
@@ -109,7 +109,7 @@ namespace OpenMS
         cprocessing_ptr_ = cproptr;
       }
 
-      virtual void setExperimentalSettings(const OpenMS::ExperimentalSettings&) {}
+      void setExperimentalSettings(const OpenMS::ExperimentalSettings&) override {}
 
     protected:
       void (*sprocessing_ptr_)(SpectrumType&);

@@ -49,8 +49,8 @@ START_TEST(DocumentIDTagger, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-DocumentIDTagger* ptr = 0;
-DocumentIDTagger* nullPointer = 0;
+DocumentIDTagger* ptr = nullptr;
+DocumentIDTagger* nullPointer = nullptr;
 START_SECTION(DocumentIDTagger())
 {
 	ptr = new DocumentIDTagger("someTOPPTool");

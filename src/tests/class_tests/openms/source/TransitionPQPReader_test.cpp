@@ -51,8 +51,8 @@ START_TEST(TransitionPQPReader, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-TransitionPQPReader* ptr = 0;
-TransitionPQPReader* nullPointer = 0;
+TransitionPQPReader* ptr = nullptr;
+TransitionPQPReader* nullPointer = nullptr;
 
 START_SECTION(TransitionPQPReader())
 {

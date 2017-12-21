@@ -47,8 +47,8 @@ START_TEST(TargetedExperiment, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-TargetedExperiment* ptr = 0;
-TargetedExperiment* nullPointer = 0;
+TargetedExperiment* ptr = nullptr;
+TargetedExperiment* nullPointer = nullptr;
 START_SECTION(TargetedExperiment())
 {
 	ptr = new TargetedExperiment();

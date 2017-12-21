@@ -318,7 +318,7 @@ namespace OpenMS
     //execute
     QAction * result = menu.exec(mapToGlobal(pos));
     //change according to selected value
-    if (result != 0)
+    if (result != nullptr)
     {
       if (result->text() == "Normal mode")
       {

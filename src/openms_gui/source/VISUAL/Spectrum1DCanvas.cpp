@@ -1284,7 +1284,7 @@ namespace OpenMS
       return;
 
     QMenu * context_menu = new QMenu(this);
-    QAction * result = 0;
+    QAction * result = nullptr;
 
     Annotations1DContainer & annots_1d = getCurrentLayer_().getCurrentAnnotations();
     Annotation1DItem * annot_item = annots_1d.getItemAt(e->pos());
@@ -1917,7 +1917,7 @@ namespace OpenMS
         painter.drawLine(begin_p.x(), height() / 2 - 5, end_p.x(), height() / 2 + 5);
       }
     }
-    else if (!mirror_mode_)
+    else
     {
       painter.setPen(Qt::red);
       QPoint begin_p, end_p;

@@ -81,7 +81,7 @@ public:
     GaussFilter();
 
     /// Destructor
-    virtual ~GaussFilter();
+    ~GaussFilter() override;
 
       /**
         @brief Smoothes an MSSpectrum containing profile data.
@@ -216,7 +216,7 @@ protected:
     double spacing_;
 
     // Docu in base class
-    virtual void updateMembers_();
+    void updateMembers_() override;
   };
 
 } // namespace OpenMS

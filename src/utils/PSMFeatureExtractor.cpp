@@ -109,7 +109,7 @@ public:
   }
 
 protected:
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     registerInputFileList_("in", "<files>", StringList(), "Input file(s)", true);
     setValidFormats_("in", ListUtils::create<String>("mzid,idXML"));
@@ -126,7 +126,7 @@ protected:
     registerFlag_("limit_imputation", "Will impute missing scores with the worst numerical limit (instead of min/max observed) of the respective score. Only valid together with -multiple_search_engines flag.", true);
   }
   
-  ExitCodes main_(int, const char**)
+  ExitCodes main_(int, const char**) override
   {
     //-------------------------------------------------------------
     // general variables and data to perform PSMFeatureExtractor

@@ -77,7 +77,7 @@ public:
     PeakPickerMRM();
 
     /// Destructor
-    ~PeakPickerMRM() {}
+    ~PeakPickerMRM() override {}
     //@}
 
     /**
@@ -88,6 +88,16 @@ public:
       This function will return a picked chromatogram
     */
     void pickChromatogram(const MSChromatogram& chromatogram, MSChromatogram& picked_chrom);
+    
+
+    /**
+      @brief Finds peaks in a single chromatogram and annotates left/right borders
+
+      It uses a modified algorithm of the PeakPickerHiRes
+
+      This function will return a picked chromatogram and a smoothed chromatogram
+    */
+    void pickChromatogram(const MSChromatogram& chromatogram, MSChromatogram& picked_chrom, MSChromatogram& smoothed_chrom);
 
 protected:
 
@@ -118,7 +128,7 @@ protected:
 
 
     /// Synchronize members with param class
-    void updateMembers_();
+    void updateMembers_() override;
 
     /// Assignment operator is protected for algorithm
     PeakPickerMRM& operator=(const PeakPickerMRM& rhs);

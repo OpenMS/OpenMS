@@ -47,8 +47,8 @@ START_TEST(NonNegativeLeastSquaresSolver, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-NonNegativeLeastSquaresSolver* ptr = 0;
-NonNegativeLeastSquaresSolver* nullPointer = 0;
+NonNegativeLeastSquaresSolver* ptr = nullptr;
+NonNegativeLeastSquaresSolver* nullPointer = nullptr;
 START_SECTION(NonNegativeLeastSquaresSolver())
 {
 	ptr = new NonNegativeLeastSquaresSolver();

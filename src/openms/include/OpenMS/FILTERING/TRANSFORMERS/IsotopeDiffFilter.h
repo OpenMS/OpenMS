@@ -62,7 +62,7 @@ public:
     IsotopeDiffFilter(const IsotopeDiffFilter & source);
 
     /// destructor
-    virtual ~IsotopeDiffFilter();
+    ~IsotopeDiffFilter() override;
     // @}
 
     // @name Operators

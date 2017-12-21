@@ -51,8 +51,8 @@ START_TEST(MzIdentMLFile, "$Id")
 /////////////////////////////////////////////////////////////
 
 
-MzIdentMLFile* ptr = 0;
-MzIdentMLFile* nullPointer = 0;
+MzIdentMLFile* ptr = nullptr;
+MzIdentMLFile* nullPointer = nullptr;
 START_SECTION((MzIdentMLFile()))
     ptr = new MzIdentMLFile;
     TEST_NOT_EQUAL(ptr, nullPointer)

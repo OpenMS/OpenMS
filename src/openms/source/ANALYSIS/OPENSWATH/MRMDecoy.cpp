@@ -95,7 +95,7 @@ namespace OpenMS
 #endif
     if (seed == -1)
     {
-      seed = time(0);
+      seed = time(nullptr);
     }
     OpenMS::TargetedExperiment::Peptide shuffled = peptide;
 

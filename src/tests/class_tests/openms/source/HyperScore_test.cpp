@@ -50,8 +50,8 @@ START_TEST(HyperScore, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-HyperScore* ptr = 0;
-HyperScore* null_ptr = 0;
+HyperScore* ptr = nullptr;
+HyperScore* null_ptr = nullptr;
 
 TheoreticalSpectrumGenerator tsg;
 Param param = tsg.getParameters();

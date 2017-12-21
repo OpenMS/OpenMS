@@ -85,8 +85,8 @@ START_TEST(UniqueIdIndexer, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-DummyVectorIndexed* ptr = 0;
-DummyVectorIndexed* nullPointer = 0;
+DummyVectorIndexed* ptr = nullptr;
+DummyVectorIndexed* nullPointer = nullptr;
 START_SECTION((UniqueIdIndexer()))
 {
   ptr = new DummyVectorIndexed();

@@ -48,7 +48,7 @@ namespace OpenMS
       XMLHandler(filename, "2.0"),
       avge_mass_(0.0),
       mono_mass_(0.0),
-      modification_(0),
+      modification_(nullptr),
       modifications_(mods)
     {
     }

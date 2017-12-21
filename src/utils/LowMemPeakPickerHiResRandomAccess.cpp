@@ -48,7 +48,7 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-  @page UTILS_LowMemPeakPickerHiRes_RandomAccess LowMemPeakPickerHiRes_RandomAccess
+  @page UTILS_LowMemPeakPickerHiResRandomAccess LowMemPeakPickerHiResRandomAccess
 
   @brief A tool for peak detection in profile data. Executes the peak picking with @ref OpenMS::PeakPickerHiRes "high_res" algorithm.
 
@@ -111,18 +111,18 @@ using namespace std;
 // We do not want this class to show up in the docu:
 /// @cond TOPPCLASSES
 //
-class TOPPLowMemPeakPickerHiRes_RandomAccess :
+class TOPPLowMemPeakPickerHiResRandomAccess :
   public TOPPBase
 {
 public:
-  TOPPLowMemPeakPickerHiRes_RandomAccess() :
-    TOPPBase("LowMemPeakPickerHiRes_RandomAccess", "Finds mass spectrometric peaks in profile mass spectra.", false)
+  TOPPLowMemPeakPickerHiResRandomAccess() :
+    TOPPBase("LowMemPeakPickerHiResRandomAccess", "Finds mass spectrometric peaks in profile mass spectra.", false)
   {
   }
 
 protected:
 
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "input profile data file ");
     setValidFormats_("in", ListUtils::create<String>("mzML"));
@@ -132,12 +132,12 @@ protected:
     registerSubsection_("algorithm", "Algorithm parameters section");
   }
 
-  Param getSubsectionDefaults_(const String& /*section*/) const
+  Param getSubsectionDefaults_(const String& /*section*/) const override
   {
     return PeakPickerHiRes().getDefaults();
   }
 
-  ExitCodes main_(int, const char**)
+  ExitCodes main_(int, const char**) override
   {
     //-------------------------------------------------------------
     // parameter handling
@@ -233,7 +233,7 @@ protected:
 
 int main(int argc, const char** argv)
 {
-  TOPPLowMemPeakPickerHiRes_RandomAccess tool;
+  TOPPLowMemPeakPickerHiResRandomAccess tool;
   return tool.main(argc, argv);
 }
 

@@ -57,8 +57,8 @@ START_TEST(IndexedMzMLFileLoader, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-IndexedMzMLFileLoader* ptr = 0;
-IndexedMzMLFileLoader* nullPointer = 0;
+IndexedMzMLFileLoader* ptr = nullptr;
+IndexedMzMLFileLoader* nullPointer = nullptr;
 START_SECTION((IndexedMzMLFileLoader()))
   ptr = new IndexedMzMLFileLoader;
   TEST_NOT_EQUAL(ptr, nullPointer)

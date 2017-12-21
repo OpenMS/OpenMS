@@ -182,7 +182,7 @@ public:
     }
 
     /// Destructor
-    virtual ~MorphologicalFilter()
+    ~MorphologicalFilter() override
     {
     }
 
