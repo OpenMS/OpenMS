@@ -1600,6 +1600,24 @@ namespace OpenMS
       sl.push_back(s);
     }
 
+    for (map<Size, MzTabParameter>::const_iterator it = md.nucleic_acid_search_engine_score.begin(); it != md.nucleic_acid_search_engine_score.end(); ++it)
+    {
+      String s = "MTD\tnucleic_acid_search_engine_score[" + String(it->first) + "]\t" + it->second.toCellString();
+      sl.push_back(s);
+    }
+
+    for (map<Size, MzTabParameter>::const_iterator it = md.oligonucleotide_search_engine_score.begin(); it != md.oligonucleotide_search_engine_score.end(); ++it)
+    {
+      String s = "MTD\toligonucleotide_search_engine_score[" + String(it->first) + "]\t" + it->second.toCellString();
+      sl.push_back(s);
+    }
+
+    for (map<Size, MzTabParameter>::const_iterator it = md.osm_search_engine_score.begin(); it != md.osm_search_engine_score.end(); ++it)
+    {
+      String s = "MTD\tosm_search_engine_score[" + String(it->first) + "]\t" + it->second.toCellString();
+      sl.push_back(s);
+    }
+
     for (map<Size, MzTabInstrumentMetaData>::const_iterator it = md.instrument.begin(); it != md.instrument.end(); ++it)
     {
       const MzTabInstrumentMetaData & imd = it->second;
