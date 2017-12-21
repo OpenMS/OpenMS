@@ -79,6 +79,7 @@ namespace OpenMS
         throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, std::string(line), "Couldn't parse the raw data.");
       }
     }
+    ifs.close();
     MSExperiment experiment;
     experiment.addChromatogram(chromatogram);
     return experiment;
