@@ -49,7 +49,7 @@ namespace OpenMS
   /**
     @brief This class represents the abstract base class of a signal to noise estimator.
 
-    A signal to noise estimator should provide the signal to noise ratio of all raw data points
+    A signal to noise estimator should provide the signal to noise ratio of all profile data points
     in a given interval [first_,last_).
   */
 
@@ -106,7 +106,7 @@ public:
     {}
 
 
-    /// Set the start and endpoint of the raw data interval, for which signal to noise ratios will be estimated immediately
+    /// Set the start and endpoint of the profile data interval, for which signal to noise ratios will be estimated immediately
     virtual void init(const PeakIterator & it_begin, const PeakIterator & it_end)
     {
       first_ = it_begin;
@@ -115,7 +115,7 @@ public:
       is_result_valid_ = true;
     }
 
-    /// Set the start and endpoint of the raw data interval, for which signal to noise ratios will be estimated immediately
+    /// Set the start and endpoint of the profile data interval, for which signal to noise ratios will be estimated immediately
     virtual void init(const Container & c)
     {
       init(c.begin(), c.end());
@@ -207,9 +207,9 @@ protected:
     /// stores the noise estimate for each peak
     std::map<PeakType, double, typename PeakType::PositionLess> stn_estimates_;
 
-    /// points to the first raw data point in the interval
+    /// points to the first profile data point in the interval
     PeakIterator first_;
-    /// points to the right position next to the last raw data point in the interval
+    /// points to the right position next to the last profile data point in the interval
     PeakIterator last_;
     /// flag: set to true if SignalToNoise estimates are calculated and none of the params were changed. otherwise false.
     mutable bool is_result_valid_;

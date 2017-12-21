@@ -17,7 +17,7 @@ Ranges:
   intensity:      1639.00 .. 18025.00
 
 Peak type metadata (estimated)
-  level 1: Peak data (Unknown)
+  level 1: Centroid (Unknown)
 Meta data array:
   SignalToNoise: 2 spectra
   area:          2 spectra

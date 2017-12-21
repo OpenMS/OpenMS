@@ -70,11 +70,11 @@ public:
     typedef Feature::CoordinateType CoordinateType;
     /// Quality of a feature
     typedef Feature::QualityType QualityType;
-    /// Raw data point type
+    /// Profile data point type
     typedef Peak1D PeakType;
-    /// Raw data container type using for the temporary storage of the input data
+    /// Profile data container type using for the temporary storage of the input data
     typedef std::vector<PeakType> RawDataArrayType;
-    /// Raw data iterator
+    /// Profile data iterator
     typedef RawDataArrayType::iterator PeakIterator;
 
     /// Default constructor.

@@ -516,7 +516,7 @@ namespace OpenMS
     peak_left_index = distance(first, area.left);
     peak_right_index = distance(first, area.right);
 
-    // The minimal raw data points per peak should be 2
+    // The minimal profile data points per peak should be 2
     if ((distance(area.left, area.max) > 0) && (distance(area.max, area.right) > 0))
     {
 #ifdef DEBUG_PEAK_PICKING
@@ -857,7 +857,7 @@ namespace OpenMS
     // put peak into peak vector using default values for the widths and peak type
     peaks_DC.push_back(PeakShape(0, 0, left_width, right_width, 0, PeakShape::SECH_PEAK));
 
-    // adjust the positions and get their initial intensities from the raw data
+    // adjust the positions and get their initial intensities from the profile data
     for (Size i = 0; i < num_peaks; ++i)
     {
       peaks_DC[i].mz_position = area.left->getMZ() + dist / 2 + i * dist;
@@ -1103,7 +1103,7 @@ namespace OpenMS
     output.setMSLevel(input.getMSLevel());
     output.setName(input.getName());
     //make sure the data type is set correctly
-    output.setType(SpectrumSettings::PEAKS);
+    output.setType(SpectrumSettings::CENTROID);
 
     // nearly empty spectra shouldn't be picked
     if (input.size() < 2)
@@ -1139,7 +1139,7 @@ namespace OpenMS
     // vector of peak endpoint positions
     // std::vector<double> peak_endpoints;
 
-    // copy the raw data into a std::vector<Peak1D>
+    // copy the profile data into a std::vector<Peak1D>
     MSSpectrum raw_peak_array;
     // signal to noise estimator
     SignalToNoiseEstimatorMeanIterative<MSSpectrum> sne;
