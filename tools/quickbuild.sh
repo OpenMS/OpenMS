@@ -31,7 +31,7 @@ cd openms-build
 
 # contrib path needs to be an absolute path!
 cmake -DOPENMS_CONTRIB_LIBS="$CONTRIB_PATH" -DNUMBER_OF_JOBS=$numberOfJobs -DBOOST_USE_STATIC=On ../
-make -j $numberOfJobs $@
+make -j $numberOfJobs
 
 cd ..
 
