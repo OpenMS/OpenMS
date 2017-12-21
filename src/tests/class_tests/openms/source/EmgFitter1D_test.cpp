@@ -54,8 +54,8 @@ START_TEST(EmgFitter1D, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-EmgFitter1D* ptr = 0;
-EmgFitter1D* nullPointer = 0;
+EmgFitter1D* ptr = nullptr;
+EmgFitter1D* nullPointer = nullptr;
 START_SECTION(EmgFitter1D())
 {
   ptr = new EmgFitter1D();
@@ -129,7 +129,7 @@ START_SECTION((QualityType fit1d(const  RawDataArrayType &range, InterpolationMo
   em.getSamples(samples);
   //fit the data
   EmgFitter1D ef = EmgFitter1D();
-	InterpolationModel* em_fitted = NULL;
+	InterpolationModel* em_fitted = nullptr;
 	EmgFitter1D::QualityType correlation = ef.fit1d(samples, em_fitted);
 
 	//check the fitted model on the exact data
@@ -153,7 +153,7 @@ START_SECTION((QualityType fit1d(const  RawDataArrayType &range, InterpolationMo
   }
   //fit the data
   EmgFitter1D ef1 = EmgFitter1D();
-  InterpolationModel* em_fitted1 = NULL;
+  InterpolationModel* em_fitted1 = nullptr;
   EmgFitter1D::QualityType correlation1 = ef1.fit1d(unexact_samples, em_fitted1);
   TOLERANCE_RELATIVE(1.01)
 	TEST_REAL_SIMILAR(correlation1, 1);

@@ -51,7 +51,7 @@ using namespace Math;
 using namespace std;
 
 LinearRegression* ptr;
-LinearRegression* nullPointer = 0;
+LinearRegression* nullPointer = nullptr;
 START_SECTION((LinearRegression()))
   ptr = new LinearRegression;
 	TEST_NOT_EQUAL(ptr, nullPointer)

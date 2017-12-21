@@ -60,8 +60,8 @@ START_TEST(FeatureXMLFile, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-FeatureXMLFile * ptr = 0;
-FeatureXMLFile* nullPointer = 0;
+FeatureXMLFile * ptr = nullptr;
+FeatureXMLFile* nullPointer = nullptr;
 START_SECTION((FeatureXMLFile()))
 {
   ptr = new FeatureXMLFile();

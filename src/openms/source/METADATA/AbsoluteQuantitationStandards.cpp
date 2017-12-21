@@ -41,20 +41,21 @@
 namespace OpenMS
 {
     
-    AbsoluteQuantitationStandards::AbsoluteQuantitationStandards() :
-    DefaultParamHandler("AbsoluteQuantitationStandards")
+    AbsoluteQuantitationStandards::AbsoluteQuantitationStandards()
     {
-      //todo:  see MRMTransitionGroupPicker.cpp
     }
     
     AbsoluteQuantitationStandards::~AbsoluteQuantitationStandards()
     {
     }
 
-    void AbsoluteQuantitationStandards::mapConcentrationsToComponents()
-    {
-        //todo
-    }
+    // void AbsoluteQuantitationStandards::mapConcentrationsToComponents(
+    //   const std::vector<runConcentration> & run_concentrations,
+    //   const std::vector<FeatureMap> & features,
+    //   std::map<String,std::vector<featureConcentration>> components_to_concentrations)
+    // {
+    //     //todo
+    // }
 
 } // namespace
 

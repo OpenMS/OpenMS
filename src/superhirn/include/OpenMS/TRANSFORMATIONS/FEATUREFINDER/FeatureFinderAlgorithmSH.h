@@ -111,7 +111,7 @@ public:
 
     unsigned int getNativeScanId(String native_id);
 
-    virtual void run();
+    void run() override;
 
     static FeatureFinderAlgorithm* create();
 

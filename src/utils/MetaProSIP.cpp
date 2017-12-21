@@ -2046,7 +2046,7 @@ protected:
   std::string FEATURE_STRING;
   std::string UNASSIGNED_ID_STRING;
   std::string UNIDENTIFIED_STRING;
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     registerInputFile_("in_mzML", "<file>", "", "Centroided MS1 data");
     setValidFormats_("in_mzML", ListUtils::create<String>("mzML"));
@@ -2920,7 +2920,7 @@ protected:
     return sum_incorporated / sum;
   }
 
-  ExitCodes main_(int, const char**)
+  ExitCodes main_(int, const char**) override
   {
     String file_extension_ = getStringOption_("plot_extension");
     Int debug_level = getIntOption_("debug");

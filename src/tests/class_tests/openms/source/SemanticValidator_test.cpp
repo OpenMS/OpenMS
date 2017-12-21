@@ -62,8 +62,8 @@ cv.loadFromOBO("UO",File::find("/CV/unit.obo"));
 cv.loadFromOBO("brenda",File::find("/CV/brenda.obo"));
 cv.loadFromOBO("GO",File::find("/CV/goslim_goa.obo"));
 
-SemanticValidator* ptr = 0;
-SemanticValidator* nullPointer = 0;
+SemanticValidator* ptr = nullptr;
+SemanticValidator* nullPointer = nullptr;
 START_SECTION((SemanticValidator(const CVMappings& mapping, const ControlledVocabulary& cv)))
 	ptr = new SemanticValidator(mapping,cv);
 	TEST_NOT_EQUAL(ptr, nullPointer)

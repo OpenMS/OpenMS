@@ -267,7 +267,7 @@ namespace OpenMS
 #endif
           this->ff_->setProgress(++progress_counter_);
 
-          delete (new_spec); new_spec = NULL;
+          delete (new_spec); new_spec = nullptr;
         }
       }
 

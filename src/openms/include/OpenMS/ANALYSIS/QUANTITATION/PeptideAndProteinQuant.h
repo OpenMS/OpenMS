@@ -127,7 +127,7 @@ public:
     PeptideAndProteinQuant();
 
     /// Destructor
-    ~PeptideAndProteinQuant() {}
+    ~PeptideAndProteinQuant() override {}
 
     /**
          @brief Read quantitative data from a feature map.
@@ -268,7 +268,7 @@ private:
     void countPeptides_(std::vector<PeptideIdentification>& peptides);
 
     /// Clear all data when parameters are set
-    void updateMembers_();
+    void updateMembers_() override;
 
   };   // class
 

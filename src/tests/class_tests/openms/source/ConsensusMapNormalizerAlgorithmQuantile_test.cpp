@@ -46,8 +46,8 @@ START_TEST(ConsensusMapNormalizerAlgorithmQuantile, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-ConsensusMapNormalizerAlgorithmQuantile* ptr = 0;
-ConsensusMapNormalizerAlgorithmQuantile* null_ptr = 0;
+ConsensusMapNormalizerAlgorithmQuantile* ptr = nullptr;
+ConsensusMapNormalizerAlgorithmQuantile* null_ptr = nullptr;
 START_SECTION(ConsensusMapNormalizerAlgorithmQuantile())
 {
 	ptr = new ConsensusMapNormalizerAlgorithmQuantile();

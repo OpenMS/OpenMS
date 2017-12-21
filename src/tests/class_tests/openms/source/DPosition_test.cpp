@@ -55,8 +55,8 @@ START_TEST(DPosition<D>, "$Id$")
 std::cout.precision(writtenDigits<>(double()));
 std::cerr.precision(writtenDigits<>(double()));
 
-DPosition<10>* d10_ptr = 0;
-DPosition<10>* d10_nullPointer = 0;
+DPosition<10>* d10_ptr = nullptr;
+DPosition<10>* d10_nullPointer = nullptr;
 
 START_SECTION((DPosition()))
 	d10_ptr = new DPosition<10>;

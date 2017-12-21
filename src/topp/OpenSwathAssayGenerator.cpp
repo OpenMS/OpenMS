@@ -46,6 +46,7 @@
 #include <OpenMS/MATH/MISC/MathFunctions.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/FileTypes.h>
+#include <OpenMS/CHEMISTRY/ModificationsDB.h>
 
 #include <iostream>
 
@@ -107,7 +108,7 @@ public:
 
 protected:
 
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "Input file");
     registerStringOption_("in_type", "<type>", "", "Input file type -- default: determined from file extension or content\n", false);
@@ -144,9 +145,12 @@ protected:
     registerFlag_("disable_identification_specific_losses", "IPF: set this flag if specific neutral losses for identification fragment ions should not be allowed", true);
     registerFlag_("enable_identification_unspecific_losses", "IPF: set this flag if unspecific neutral losses (H2O1, H3N1, C1H2N2, C1H2N1O1) for identification fragment ions should be allowed", true);
     registerFlag_("enable_swath_specifity", "IPF: set this flag if identification transitions without precursor specificity (i.e. across whole precursor isolation window instead of precursor MZ) should be generated.", true);
+
+    registerInputFile_("unimod_file", "<file>", "", "IPF: (Modified) Unimod XML file (http://www.unimod.org/xml/unimod.xml) describing residue modifiability", false, false);
+    setValidFormats_("unimod_file", ListUtils::create<String>("xml"));
   }
 
-  ExitCodes main_(int, const char**)
+  ExitCodes main_(int, const char**) override
   {
     FileHandler fh;
 
@@ -201,6 +205,19 @@ protected:
     double product_upper_mz_limit = getDoubleOption_("product_upper_mz_limit");
     String swath_windows_file = getStringOption_("swath_windows_file");
 
+    String unimod_file = getStringOption_("unimod_file");
+    bool enable_reannotation = getFlag_("enable_reannotation");
+    bool is_test = getFlag_("test");
+
+    // Set specific seed for test mode
+    int uis_seed = -1;
+    bool disable_decoy_transitions = false;
+    if (is_test)
+    {
+      uis_seed = 42;
+      disable_decoy_transitions = true;
+    }
+
     std::vector<String> allowed_fragment_types;
     allowed_fragment_types_string.split(",", allowed_fragment_types);
 
@@ -211,6 +228,27 @@ protected:
     {
       size_t charge = std::atoi(allowed_fragment_charges_string_vector.at(i).c_str());
       allowed_fragment_charges.push_back(charge);
+    }
+
+    // Load Unimod file
+    if (enable_ms1_uis_scoring || enable_ms2_uis_scoring)
+    {
+      if (!ModificationsDB::isInstantiated()) // We need to ensure that ModificationsDB was not instantiated before!
+      {
+        if (!unimod_file.empty()) // We always require a provided Unimod XML file when running in IPF mode
+        {
+          ModificationsDB* ptr = ModificationsDB::getInstance(unimod_file, String(""), String(""));
+          LOG_INFO << "Unimod XML: " << ptr->getNumberOfModifications() << " modification types and residue specificities imported from file: " << unimod_file << std::endl;
+        }
+        else
+        {
+          throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Please provide a valid Unimod XML file.");
+        }
+      }
+      else
+      {
+        throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "ModificationsDB has been instantiated before and can not be generated from the provided Unimod XML file.");
+      }
     }
 
     std::vector<std::pair<double, double> > swathes;
@@ -285,7 +323,7 @@ protected:
       else {uis_swathes = swathes;}
       
       LOG_INFO << "Generating identifying transitions for IPF" << std::endl;
-      assays.uisTransitions(targeted_exp, allowed_fragment_types, allowed_fragment_charges, enable_identification_specific_losses, enable_identification_unspecific_losses, enable_identification_ms2_precursors, product_mz_threshold, uis_swathes, -4, max_num_alternative_localizations, -1);
+      assays.uisTransitions(targeted_exp, allowed_fragment_types, allowed_fragment_charges, enable_identification_specific_losses, enable_identification_unspecific_losses, enable_identification_ms2_precursors, product_mz_threshold, uis_swathes, -4, max_num_alternative_localizations, uis_seed, disable_decoy_transitions);
       std::vector<std::pair<double, double> > empty_swathes;
       assays.restrictTransitions(targeted_exp, product_lower_mz_limit, product_upper_mz_limit, empty_swathes);
     }

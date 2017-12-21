@@ -47,8 +47,8 @@ START_TEST(WeightWrapper, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-WeightWrapper* ptr = 0;
-WeightWrapper* null_ptr = 0;
+WeightWrapper* ptr = nullptr;
+WeightWrapper* null_ptr = nullptr;
 START_SECTION(WeightWrapper())
 {
   ptr = new WeightWrapper();

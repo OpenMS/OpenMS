@@ -97,7 +97,7 @@ class TOPPCorrelateMasstraces
 
  protected:
 
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     registerInputFile_("in_ms1","<file>","","MS1 mass traces");
     setValidFormats_("in_ms1",ListUtils::create<String>("consensusXML"));
@@ -122,7 +122,7 @@ class TOPPCorrelateMasstraces
 
  public:
 
-  ExitCodes main_(int , const char**)
+  ExitCodes main_(int , const char**) override
   {
     setLogType(log_type_); 
 

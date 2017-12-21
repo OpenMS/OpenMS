@@ -59,9 +59,9 @@ namespace OpenMS
 
 public:
     ///Constructor
-    Spectrum2DGoToDialog(QWidget * parent = 0);
+    Spectrum2DGoToDialog(QWidget * parent = nullptr);
     ///Destructor
-    ~Spectrum2DGoToDialog();
+    ~Spectrum2DGoToDialog() override;
 
     /// Returns if a range should be display (true) or if a feature should be displayed (false)
     bool showRange() const;

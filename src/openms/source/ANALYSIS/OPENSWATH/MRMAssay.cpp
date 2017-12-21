@@ -381,7 +381,7 @@ namespace OpenMS
     // Step 2a: Generate decoy sequences that share peptidoform properties with targets
     if (shuffle_seed == -1)
     {
-      shuffle_seed = time(0);
+      shuffle_seed = time(nullptr);
     }
 
     boost::mt19937 generator(shuffle_seed);
@@ -523,9 +523,9 @@ namespace OpenMS
   {
     MRMIonSeries mrmis;
 
-    // Step 3: Generate target UIS assays
+    // Step 3: Generate target identification transitions
     Size progress = 0;
-    startProgress(0, TargetPeptideMap.size(), "Generation of target UIS assays");
+    startProgress(0, TargetPeptideMap.size(), "Generation of target identification transitions");
 
     // Iterate over all target peptides
     int transition_index = 0;
@@ -594,9 +594,9 @@ namespace OpenMS
   {
     MRMIonSeries mrmis;
 
-    // Step 4: Generate decoys UIS assays
+    // Step 4: Generate decoy identification transitions
     Size progress = 0;
-    startProgress(0, DecoyPeptideMap.size(), "Generation of decoy UIS assays");
+    startProgress(0, DecoyPeptideMap.size(), "Generation of decoy identification transitions");
 
     // Iterate over all decoy peptides
     int transition_index = 0;
@@ -929,7 +929,8 @@ namespace OpenMS
                       std::vector<std::pair<double, double> > swathes,
                       int round_decPow,
                       size_t max_num_alternative_localizations,
-                      int shuffle_seed)
+                      int shuffle_seed,
+                      bool disable_decoy_transitions)
   {
     OpenMS::MRMIonSeries mrmis;
 
@@ -948,17 +949,20 @@ namespace OpenMS
     // Step 1: Generate target in silico peptide map containing theoretical transitions
     generateTargetInSilicoMap_(exp, fragment_types, fragment_charges, enable_specific_losses, enable_unspecific_losses, enable_ms2_precursors, swathes, round_decPow, max_num_alternative_localizations, TargetSequenceMap, TargetIonMap, TargetPeptideMap);
 
-    // Step 2a: Generate decoy sequences that share peptidoform properties with targets
-    generateDecoySequences_(TargetSequenceMap, DecoySequenceMap, shuffle_seed);
-
-    // Step 2b: Generate decoy in silico peptide map containing theoretical transitions
-    generateDecoyInSilicoMap_(exp, fragment_types, fragment_charges, enable_specific_losses, enable_unspecific_losses, enable_ms2_precursors, swathes, round_decPow, TargetDecoyMap, TargetPeptideMap, DecoySequenceMap, DecoyIonMap, DecoyPeptideMap);
-
-    // Step 3: Generate target UIS assays
+    // Step 2: Generate target identification transitions
     generateTargetAssays_(exp, transitions, mz_threshold, swathes, round_decPow, TargetPeptideMap, TargetIonMap);
 
-    // Step 4: Generate decoys UIS assays
-    generateDecoyAssays_(exp, transitions, mz_threshold, swathes, round_decPow, DecoyPeptideMap, TargetDecoyMap, DecoyIonMap, TargetIonMap);
+    if (!disable_decoy_transitions)
+    {
+      // Step 3a: Generate decoy sequences that share peptidoform properties with targets
+      generateDecoySequences_(TargetSequenceMap, DecoySequenceMap, shuffle_seed);
+
+      // Step 2b: Generate decoy in silico peptide map containing theoretical transitions
+      generateDecoyInSilicoMap_(exp, fragment_types, fragment_charges, enable_specific_losses, enable_unspecific_losses, enable_ms2_precursors, swathes, round_decPow, TargetDecoyMap, TargetPeptideMap, DecoySequenceMap, DecoyIonMap, DecoyPeptideMap);
+
+      // Step 4: Generate decoy identification transitions
+      generateDecoyAssays_(exp, transitions, mz_threshold, swathes, round_decPow, DecoyPeptideMap, TargetDecoyMap, DecoyIonMap, TargetIonMap);
+    }
 
     exp.setTransitions(transitions);
   }

@@ -77,7 +77,7 @@ public:
     PeakPickerMRM();
 
     /// Destructor
-    ~PeakPickerMRM() {}
+    ~PeakPickerMRM() override {}
     //@}
 
     /**
@@ -128,7 +128,7 @@ protected:
 
 
     /// Synchronize members with param class
-    void updateMembers_();
+    void updateMembers_() override;
 
     /// Assignment operator is protected for algorithm
     PeakPickerMRM& operator=(const PeakPickerMRM& rhs);

@@ -71,7 +71,7 @@ namespace OpenMS
       output[scan_idx].setRT(input[scan_idx].getRT());
       output[scan_idx].setMSLevel(input[scan_idx].getMSLevel());
       output[scan_idx].setName(input[scan_idx].getName());
-      output[scan_idx].setType(SpectrumSettings::PEAKS);
+      output[scan_idx].setType(SpectrumSettings::CENTROID);
 
       if (input[scan_idx].getMSLevel() != 1)
       {

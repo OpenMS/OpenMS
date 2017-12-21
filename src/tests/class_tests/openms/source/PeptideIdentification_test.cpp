@@ -66,8 +66,8 @@ MascotXMLFile xml_file;
 peptide_hits.push_back(peptide_hit);
 
 
-PeptideIdentification* ptr = 0;
-PeptideIdentification* nullPointer = 0;
+PeptideIdentification* ptr = nullptr;
+PeptideIdentification* nullPointer = nullptr;
 START_SECTION((PeptideIdentification()))
   ptr = new PeptideIdentification();
   TEST_NOT_EQUAL(ptr, nullPointer)

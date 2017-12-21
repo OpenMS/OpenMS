@@ -81,7 +81,7 @@ public:
     ReactionMonitoringTransition(const ReactionMonitoringTransition & rhs);
 
     /// destructor
-    virtual ~ReactionMonitoringTransition();
+    ~ReactionMonitoringTransition() override;
     //@}
 
     /// assignment operator

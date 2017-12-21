@@ -61,8 +61,8 @@ namespace OpenMS
     ConsensusIDAlgorithmBest& operator=(const ConsensusIDAlgorithmBest&);
 
     /// Aggregate peptide scores into one final score (by taking the best score)
-    virtual double getAggregateScore_(std::vector<double>& scores,
-                                      bool higher_better);
+    double getAggregateScore_(std::vector<double>& scores,
+                                      bool higher_better) override;
   };
 
 } // namespace OpenMS

@@ -549,7 +549,7 @@ namespace OpenMS
 
     if (maps.size() != file_description_.size())
     {
-      if (stream != 0)
+      if (stream != nullptr)
       {
         *stream << "Map descriptions (file name + label) in ConsensusMap are not unique:\n" << all_maps << std::endl;
       }
@@ -573,7 +573,7 @@ namespace OpenMS
 
     if (stats_wrongMID > 0)
     {
-      if (stream != 0)
+      if (stream != nullptr)
       {
         *stream << "ConsensusMap contains " << stats_wrongMID << " invalid references to maps:\n";
         for (Map<Size, Size>::ConstIterator it = wrong_ID_count.begin(); it != wrong_ID_count.end(); ++it)

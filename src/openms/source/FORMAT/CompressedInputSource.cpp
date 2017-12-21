@@ -152,7 +152,7 @@ namespace OpenMS
       if (!retStrm->getIsOpen())
       {
         delete retStrm;
-        return 0;
+        return nullptr;
       }
       return retStrm;
     }
@@ -162,7 +162,7 @@ namespace OpenMS
       if (!retStrm->getIsOpen())
       {
         delete retStrm;
-        return 0;
+        return nullptr;
       }
       return retStrm;
     }

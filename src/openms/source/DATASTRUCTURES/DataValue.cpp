@@ -585,7 +585,7 @@ namespace OpenMS
     {
     case DataValue::STRING_VALUE: return const_cast<const char*>(data_.str_->c_str());
 
-    case DataValue::EMPTY_VALUE: return NULL;
+    case DataValue::EMPTY_VALUE: return nullptr;
 
     default: throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Could not convert DataValue to char*");
     }

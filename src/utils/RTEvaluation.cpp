@@ -82,7 +82,7 @@ public:
   enum State {TP, FP, TN, FN, NE};
 
 protected:
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "Input file");
     setValidFormats_("in", ListUtils::create<String>("idXML"));
@@ -97,7 +97,7 @@ protected:
     setMaxFloat_("p_value_dim_2", 1);
   }
 
-  ExitCodes main_(int, const char**)
+  ExitCodes main_(int, const char**) override
   {
     vector<ProteinIdentification> protein_identifications;
     vector<PeptideIdentification> identifications;

@@ -47,8 +47,8 @@ START_TEST(ConsensusMapNormalizerAlgorithmThreshold, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-ConsensusMapNormalizerAlgorithmThreshold* ptr = 0;
-ConsensusMapNormalizerAlgorithmThreshold* nullPointer = 0;
+ConsensusMapNormalizerAlgorithmThreshold* ptr = nullptr;
+ConsensusMapNormalizerAlgorithmThreshold* nullPointer = nullptr;
 START_SECTION(ConsensusMapNormalizerAlgorithmThreshold())
 {
   ptr = new ConsensusMapNormalizerAlgorithmThreshold();

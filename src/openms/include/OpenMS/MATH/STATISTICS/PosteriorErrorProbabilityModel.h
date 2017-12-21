@@ -69,7 +69,7 @@ public:
       PosteriorErrorProbabilityModel();
 
       ///Destructor
-      virtual ~PosteriorErrorProbabilityModel();
+      ~PosteriorErrorProbabilityModel() override;
 
       /**
           @brief fits the distributions to the data points(search_engine_scores). Estimated parameters for the distributions are saved in member variables. computeProbability can be used afterwards.

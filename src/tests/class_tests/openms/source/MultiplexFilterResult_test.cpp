@@ -63,7 +63,7 @@ results_raw.push_back(result2_raw);
 MultiplexFilterResultRaw result3_raw(817.2, mz_shifts, intensities);
 results_raw.push_back(result3_raw);
 
-MultiplexFilterResult* nullPointer = 0;
+MultiplexFilterResult* nullPointer = nullptr;
 MultiplexFilterResult* ptr;
 
 START_SECTION(MultiplexFilterResult())

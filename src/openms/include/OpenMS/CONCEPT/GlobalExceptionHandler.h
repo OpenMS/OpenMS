@@ -90,7 +90,7 @@ public:
       {
         static GlobalExceptionHandler * globalExceptionHandler_;
 
-        if (globalExceptionHandler_ == 0)
+        if (globalExceptionHandler_ == nullptr)
         {
           globalExceptionHandler_ = new GlobalExceptionHandler;
         }
@@ -153,8 +153,8 @@ protected:
       /// wrapper for static member file_
       static std::string & file_()
       {
-        static std::string * file_ = 0;
-        if (file_ == 0)
+        static std::string * file_ = nullptr;
+        if (file_ == nullptr)
         {
           file_  = new std::string;
           *file_ = "unknown";
@@ -165,8 +165,8 @@ protected:
       /// wrapper for static member line_
       static int & line_()
       {
-        static int * line_ = 0;
-        if (line_ == 0)
+        static int * line_ = nullptr;
+        if (line_ == nullptr)
         {
           line_  = new int;
           *line_ = -1;
@@ -177,8 +177,8 @@ protected:
       /// wrapper for static member function_
       static std::string & function_()
       {
-        static std::string * function_ = 0;
-        if (function_ == 0)
+        static std::string * function_ = nullptr;
+        if (function_ == nullptr)
         {
           function_  = new std::string;
           *function_ = "unknown";
@@ -189,8 +189,8 @@ protected:
       /// wrapper for static member name_
       static std::string & name_()
       {
-        static std::string * name_ = 0;
-        if (name_ == 0)
+        static std::string * name_ = nullptr;
+        if (name_ == nullptr)
         {
           name_  = new std::string;
           *name_ = "unknown exception";
@@ -201,8 +201,8 @@ protected:
       /// wrapper for static member what_
       static std::string & what_()
       {
-        static std::string * what_ = 0;
-        if (what_ == 0)
+        static std::string * what_ = nullptr;
+        if (what_ == nullptr)
         {
           what_  = new std::string;
           *what_ = " - ";

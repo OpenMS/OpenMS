@@ -88,7 +88,7 @@ public:
     /// Constructor
     SimplePairFinder();
     /// Destructor
-    virtual ~SimplePairFinder()
+    ~SimplePairFinder() override
     {
     }
 
@@ -112,12 +112,12 @@ public:
 
       @exception Exception::IllegalArgument is thrown if the input data is not valid.
     */
-    virtual void run(const std::vector<ConsensusMap> & input_maps, ConsensusMap & result_map);
+    void run(const std::vector<ConsensusMap> & input_maps, ConsensusMap & result_map) override;
 
 protected:
 
     //docu in base class
-    virtual void updateMembers_();
+    void updateMembers_() override;
 
     /// A parameter for similarity_().
     double diff_exponent_[2];

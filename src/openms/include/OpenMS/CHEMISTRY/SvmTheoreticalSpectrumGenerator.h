@@ -207,7 +207,7 @@ public:
 
 
     /// Destructor
-    virtual ~SvmTheoreticalSpectrumGenerator();
+    ~SvmTheoreticalSpectrumGenerator() override;
     //@}
 
 
@@ -265,7 +265,7 @@ protected:
     /// flag to indicate if the hydrophobicity, helicity, and basicity maps were already initialized
     static bool initializedMaps_;
 
-    void updateMembers_();
+    void updateMembers_() override;
   };
 
   void inline SvmTheoreticalSpectrumGenerator::scaleSingleFeature_(double & value, double lower, double upper, double feature_min, double feature_max)

@@ -70,8 +70,8 @@ namespace OpenMS
     /// this member function serves as a replacement of the constructor
     static InstanceType* getInstance()
     {
-      static InstanceType* db_ = 0;
-      if (db_ == 0)
+      static InstanceType* db_ = nullptr;
+      if (db_ == nullptr)
       {
         db_ = new InstanceType;
       }

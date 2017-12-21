@@ -112,8 +112,8 @@ START_TEST(SwathFile, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-SwathFile* swath_file_ptr = 0;
-SwathFile* swath_file_nullPointer = 0;
+SwathFile* swath_file_ptr = nullptr;
+SwathFile* swath_file_nullPointer = nullptr;
 
 START_SECTION((SwathFile()))
   swath_file_ptr = new SwathFile;

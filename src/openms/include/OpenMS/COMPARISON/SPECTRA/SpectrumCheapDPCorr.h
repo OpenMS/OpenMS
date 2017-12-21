@@ -72,7 +72,7 @@ public:
     SpectrumCheapDPCorr(const SpectrumCheapDPCorr & source);
 
     /// destructor
-    virtual ~SpectrumCheapDPCorr();
+    ~SpectrumCheapDPCorr() override;
     // @}
 
     // @name Operators
@@ -80,9 +80,9 @@ public:
     /// assignment operator
     SpectrumCheapDPCorr & operator=(const SpectrumCheapDPCorr & source);
 
-    double operator()(const PeakSpectrum & a, const PeakSpectrum & b) const;
+    double operator()(const PeakSpectrum & a, const PeakSpectrum & b) const override;
 
-    double operator()(const PeakSpectrum & a) const;
+    double operator()(const PeakSpectrum & a) const override;
     // @}
 
     // @name Accessors

@@ -83,8 +83,8 @@ signals:
 
 
     protected:
-        virtual void   focusOutEvent ( QFocusEvent * e );
-        virtual void   focusInEvent ( QFocusEvent * e );
+        void   focusOutEvent ( QFocusEvent * e ) override;
+        void   focusInEvent ( QFocusEvent * e ) override;
     };
     /**
         @brief Internal delegate class for QTreeWidget
@@ -100,13 +100,13 @@ public:
       ///Constructor
       ParamEditorDelegate(QObject * parent);
       /// Returns the widget(combobox or QLineEdit) used to edit the item specified by index for editing. Prevents edit operations on nodes' values and types
-      QWidget * createEditor(QWidget * parent, const QStyleOptionViewItem & option, const QModelIndex & index) const;
+      QWidget * createEditor(QWidget * parent, const QStyleOptionViewItem & option, const QModelIndex & index) const override;
       /// Sets the data to be displayed and edited by the editor for the item specified by index.
-      void setEditorData(QWidget * editor, const QModelIndex & index) const;
+      void setEditorData(QWidget * editor, const QModelIndex & index) const override;
       /// Sets the data for the specified model and item index from that supplied by the editor. If data changed in a cell, that is if it is different from an initial value, then set its background color to yellow and emit the modified signal otherwise make it white
-      void setModelData(QWidget * editor, QAbstractItemModel * model, const QModelIndex & index) const;
+      void setModelData(QWidget * editor, QAbstractItemModel * model, const QModelIndex & index) const override;
       /// Updates the editor for the item specified by index according to the style option given.
-      void updateEditorGeometry(QWidget * editor, const QStyleOptionViewItem & option, const QModelIndex & index) const;
+      void updateEditorGeometry(QWidget * editor, const QStyleOptionViewItem & option, const QModelIndex & index) const override;
 
       /// true if the underlying tree has an open QLineEdit which has uncommitted data
       bool hasUncommittedData() const;
@@ -146,7 +146,7 @@ public:
       ///Constructor
       ParamTree(QWidget * parent);
       /// Overloaded edit method to activate F2 use
-      bool edit(const QModelIndex & index, EditTrigger trigger, QEvent * event);
+      bool edit(const QModelIndex & index, EditTrigger trigger, QEvent * event) override;
 
 signals:
       ///Signal that is emitted when a new item is selected
@@ -154,7 +154,7 @@ signals:
 
 protected slots:
       /// Reimplemented virtual slot
-      void selectionChanged(const QItemSelection & selected, const QItemSelection &);
+      void selectionChanged(const QItemSelection & selected, const QItemSelection &) override;
     };
 
   }
@@ -186,7 +186,7 @@ public:
     };
 
     /// constructor
-    ParamEditor(QWidget * parent = 0);
+    ParamEditor(QWidget * parent = nullptr);
     /// load method for Param object
     void load(Param & param);
     /// store edited data in Param object

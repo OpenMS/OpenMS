@@ -95,7 +95,7 @@ class TOPPOpenSwathMzMLFileCacher
 
  protected:
 
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     registerInputFile_("in","<file>","","Input mzML file");
     registerStringOption_("in_type", "<type>", "", "input file type -- default: determined from file extension or content\n", false);
@@ -126,7 +126,7 @@ class TOPPOpenSwathMzMLFileCacher
     setMinInt_("lowmem_batchsize", 0);
   }
 
-  ExitCodes main_(int , const char**)
+  ExitCodes main_(int , const char**) override
   {
     String out_meta = getStringOption_("out");
     String out_cached = out_meta + ".cached";

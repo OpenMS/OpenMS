@@ -47,8 +47,8 @@ using namespace OpenMS;
 
 START_TEST(CompressedInputSource, "$Id$")
 
-CompressedInputSource* ptr = 0;
-CompressedInputSource* nullPointer = 0;
+CompressedInputSource* ptr = nullptr;
+CompressedInputSource* nullPointer = nullptr;
 START_SECTION(CompressedInputSource(const String& file_path, const char * header,xercesc::MemoryManager* const manager = xercesc::XMLPlatformUtils::fgMemoryManager))
   char header[3];
   header[0] = 'B';

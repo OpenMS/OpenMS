@@ -68,7 +68,7 @@ namespace OpenMS
       TheoreticalSpectrumGeneratorXLMS(const TheoreticalSpectrumGeneratorXLMS & source);
 
       /// destructor
-      virtual ~TheoreticalSpectrumGeneratorXLMS();
+      ~TheoreticalSpectrumGeneratorXLMS() override;
       //@}
 
       /// assignment operator
@@ -116,7 +116,7 @@ namespace OpenMS
       virtual void getXLinkIonSpectrum(PeakSpectrum & spectrum, AASequence peptide, Size link_pos, double precursor_mass, bool frag_alpha, int mincharge, int maxcharge, Size link_pos_2 = 0) const;
 
       /// overwrite
-      void updateMembers_();
+      void updateMembers_() override;
 
     protected:
 

@@ -57,8 +57,8 @@ START_TEST(Param, "$Id$")
 //////////////////// Param::ParamEntry /////////////////////////////
 ////////////////////////////////////////////////////////////////////
 
-Param::ParamEntry* pe_ptr = 0;
-Param::ParamEntry* pe_nullPointer = 0;
+Param::ParamEntry* pe_ptr = nullptr;
+Param::ParamEntry* pe_nullPointer = nullptr;
 START_SECTION(([Param::ParamEntry] ParamEntry()))
 	pe_ptr = new Param::ParamEntry();
   TEST_NOT_EQUAL(pe_ptr,pe_nullPointer)
@@ -153,8 +153,8 @@ END_SECTION
 ////////////////// Param::ParamNode ////////////////////////////////
 ////////////////////////////////////////////////////////////////////
 
-Param::ParamNode* pn_ptr = 0;
-Param::ParamNode* pn_nullPointer = 0;
+Param::ParamNode* pn_ptr = nullptr;
+Param::ParamNode* pn_nullPointer = nullptr;
 START_SECTION(([Param::ParamNode] ParamNode()))
 	pn_ptr = new Param::ParamNode();
   TEST_NOT_EQUAL(pn_ptr,pn_nullPointer)
@@ -349,8 +349,8 @@ END_SECTION
 ////////////////////////////////////////////////////////////////////
 
 
-Param::ParamIterator* pi_ptr = 0;
-Param::ParamIterator* pi_nullPointer = 0;
+Param::ParamIterator* pi_ptr = nullptr;
+Param::ParamIterator* pi_nullPointer = nullptr;
 START_SECTION(([Param::ParamIterator] ParamIterator()))
 	pi_ptr = new Param::ParamIterator();
   TEST_NOT_EQUAL(pi_ptr,pi_nullPointer)
@@ -635,8 +635,8 @@ END_SECTION
 
 
 
-Param* d10_ptr = 0;
-Param* d10_nullPointer = 0;
+Param* d10_ptr = nullptr;
+Param* d10_nullPointer = nullptr;
 START_SECTION((Param()))
 	d10_ptr = new Param();
   TEST_NOT_EQUAL(d10_ptr, d10_nullPointer)

@@ -48,8 +48,8 @@ START_TEST(MRMFeature, "$Id$")
 
 /////////////////////////////////////////////////////////////
 
-MRMFeature* ptr = 0;
-MRMFeature* nullPointer = 0;
+MRMFeature* ptr = nullptr;
+MRMFeature* nullPointer = nullptr;
 
 START_SECTION(MRMFeature())
 {

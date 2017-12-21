@@ -53,8 +53,8 @@ START_TEST(GoodDiffFilter, "$Id$")
 
 /////////////////////////////////////////////////////////////
 
-GoodDiffFilter* e_ptr = 0;
-GoodDiffFilter* e_nullPointer = 0;
+GoodDiffFilter* e_ptr = nullptr;
+GoodDiffFilter* e_nullPointer = nullptr;
 
 START_SECTION((GoodDiffFilter()))
 	e_ptr = new GoodDiffFilter;

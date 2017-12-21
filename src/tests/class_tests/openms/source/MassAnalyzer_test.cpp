@@ -47,8 +47,8 @@ START_TEST(MassAnalyzer, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-MassAnalyzer* ptr = 0;
-MassAnalyzer* nullPointer = 0;
+MassAnalyzer* ptr = nullptr;
+MassAnalyzer* nullPointer = nullptr;
 START_SECTION((MassAnalyzer()))
 	ptr = new MassAnalyzer();
 	TEST_NOT_EQUAL(ptr, nullPointer)

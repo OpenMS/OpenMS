@@ -54,7 +54,7 @@ namespace OpenMS
 	 : public MapAlignmentEvaluationAlgorithm
 	{
 		public:
-			void evaluate(const ConsensusMap&, const ConsensusMap&, const double&, const double&, const Peak2D::IntensityType&, const bool use_charge, double& real)
+			void evaluate(const ConsensusMap&, const ConsensusMap&, const double&, const double&, const Peak2D::IntensityType&, const bool use_charge, double& real) override
 			{
 				bool x = use_charge;
 				x=!x;
@@ -68,8 +68,8 @@ START_TEST(MapAlignmentEvaluation, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-MAEA* ptr = 0;
-MAEA* nullPointer = 0;
+MAEA* ptr = nullptr;
+MAEA* nullPointer = nullptr;
 START_SECTION((MapAlignmentEvaluationAlgorithm()))
 	ptr = new MAEA();
 	TEST_NOT_EQUAL(ptr, nullPointer)

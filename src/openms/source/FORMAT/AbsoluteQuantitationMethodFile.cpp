@@ -55,7 +55,7 @@ namespace OpenMS
     char is = ',';
     bool ie = false; 
     Int first_n = -1;
-    fload(filename, is, ie, first_n);
+    CsvFile::load(filename, is, ie, first_n);
 
     // parse the file
     std::map<String,int> headers;
@@ -91,7 +91,6 @@ namespace OpenMS
     headers["lloq"] = -1;
     headers["uloq"] = -1;
     headers["correlation_coefficient"] = -1;
-    headers["actual_concentration"] = -1;
     headers["n_points"] = -1;
     headers["transformation_model"] = -1;
     String param_header = "transformation_model_param_";
@@ -162,14 +161,6 @@ namespace OpenMS
       uloq = (line[headers["uloq"]].empty()) ? 0.0 : std::stod(line[headers["uloq"]]);
     }
     aqm.setULOQ(uloq);
-
-    // actual concentration
-    double actual_concentration = 0.0;
-    if (headers["actual_concentration"] != -1)
-    {
-      actual_concentration = (line[headers["actual_concentration"]].empty()) ? 0.0 : std::stod(line[headers["actual_concentration"]]);
-    }
-    aqm.setActualConcentration(actual_concentration);
 
     // concentration units
     String concentration_units = "";

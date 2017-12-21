@@ -47,8 +47,8 @@ START_TEST(MRMAssay, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-MRMAssay * ptr = 0;
-MRMAssay* nullPointer = 0;
+MRMAssay * ptr = nullptr;
+MRMAssay* nullPointer = nullptr;
 
 class MRMAssay_test :
   public MRMAssay

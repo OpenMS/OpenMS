@@ -48,8 +48,8 @@ START_TEST(ProtXMLFile, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-ProtXMLFile* ptr = 0;
-ProtXMLFile* nullPointer = 0;
+ProtXMLFile* ptr = nullptr;
+ProtXMLFile* nullPointer = nullptr;
 ProtXMLFile file;
 START_SECTION(ProtXMLFile())
   ptr = new ProtXMLFile();
