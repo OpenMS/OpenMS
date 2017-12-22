@@ -36,10 +36,13 @@
 #include <OpenMS/CONCEPT/Constants.h>
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/DATASTRUCTURES/Param.h>
+#include <OpenMS/DATASTRUCTURES/String.h>
 
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
+#include <OpenMS/KERNEL/Peak1D.h>
 #include <OpenMS/METADATA/SpectrumSettings.h>
 #include <OpenMS/METADATA/IdentificationData.h>
 
@@ -59,7 +62,7 @@
 #include <OpenMS/CHEMISTRY/ModifiedNASequenceGenerator.h>
 #include <OpenMS/CHEMISTRY/NASequence.h>
 
-// preprocessing and filtering
+// preprocessing and filtering of spectra
 #include <OpenMS/FILTERING/TRANSFORMERS/ThresholdMower.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/NLargest.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/WindowMower.h>
@@ -69,10 +72,9 @@
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
 #include <OpenMS/COMPARISON/SPECTRA/SpectrumAlignment.h>
 
-#include <OpenMS/DATASTRUCTURES/ListUtils.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
-#include <OpenMS/KERNEL/Peak1D.h>
+// post-processing of results
 #include <OpenMS/ANALYSIS/ID/FalseDiscoveryRate.h>
+#include <OpenMS/FILTERING/ID/IDFilter.h>
 
 #include <boost/regex.hpp>
 
@@ -191,7 +193,7 @@ protected:
     registerDoubleOption_("fdr:cutoff", "<value>", 1.0, "Cut-off for FDR filtering; search hits with higher q-values will be removed.", false);
     setMinFloat_("fdr:cutoff", 0.0);
     setMaxFloat_("fdr:cutoff", 1.0);
-    registerFlag_("fdr:remove_decoys", "Remove hits to decoy sequences before writing the results");
+    registerFlag_("fdr:remove_decoys", "Do not score hits to decoy sequences and remove them when filtering");
   }
 
 
@@ -546,8 +548,8 @@ protected:
   }
 
 
-  void calculateFDR_(IdentificationData& id_data, const String& decoy_pattern,
-                     bool only_top_hits)
+  void calculateAndFilterFDR_(IdentificationData& id_data,
+                              const String& decoy_pattern, bool only_top_hits)
   {
     for (const auto& pair : id_data.parent_molecules.left)
     {
@@ -561,19 +563,20 @@ protected:
     IdentificationData::ScoreTypeKey score_key =
       id_data.findScoreType("hyperscore");
     FalseDiscoveryRate fdr;
-    if (only_top_hits) // no filtering necessary
+    Param fdr_params = fdr.getDefaults();
+    fdr_params.setValue("use_all_hits", only_top_hits ? "true" : "false");
+    bool remove_decoys = getFlag_("fdr:remove_decoys");
+    fdr_params.setValue("add_decoy_peptides", remove_decoys ? "false" : "true");
+    fdr.setParameters(fdr_params);
+    IdentificationData::ScoreTypeKey fdr_key =
+      fdr.applyToQueryMatches(id_data, score_key);
+    double fdr_cutoff = getDoubleOption_("fdr:cutoff");
+    if (fdr_cutoff < 1.0)
     {
-      Param fdr_params = fdr.getDefaults();
-      fdr_params.setValue("use_all_hits", "true");
-      fdr.setParameters(fdr_params);
+      IDFilter::filterQueryMatchesByScore(id_data, fdr_key, fdr_cutoff);
+      LOG_INFO << "Search hits after FDR filtering: "
+               << id_data.query_matches.size() << endl;
     }
-    fdr.applyToQueryMatches(id_data, score_key);
-  }
-
-
-  void filterFDR_(IdentificationData& id_data, double fdr_cutoff)
-  {
-
   }
 
 
@@ -919,12 +922,7 @@ protected:
     if (!decoy_pattern.empty())
     {
       LOG_INFO << "Performing FDR calculations..." << endl;
-      calculateFDR_(id_data, decoy_pattern, report_top_hits == 1);
-      double fdr_cutoff = getDoubleOption_("fdr:cutoff");
-      if (fdr_cutoff < 1.0)
-      {
-        filterFDR_(id_data, fdr_cutoff);
-      }
+      calculateAndFilterFDR_(id_data, decoy_pattern, report_top_hits == 1);
     }
 
     // store results
