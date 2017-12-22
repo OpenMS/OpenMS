@@ -1074,7 +1074,7 @@ namespace OpenMS
 
 
   IdentificationData::ScoreTypeKey IdentificationData::findScoreType(
-    const String& score_name, ProcessingSoftwareKey software_key)
+    const String& score_name, ProcessingSoftwareKey software_key) const
   {
     for (const auto& pair : score_types.left)
     {
@@ -1090,7 +1090,7 @@ namespace OpenMS
 
 
   vector<IdentificationData::QueryMatchKey>
-  IdentificationData::getBestMatchPerQuery(ScoreTypeKey score_key)
+  IdentificationData::getBestMatchPerQuery(ScoreTypeKey score_key) const
   {
     vector<QueryMatchKey> results;
     bool higher_better = score_types.left.at(score_key).higher_better;
@@ -1107,8 +1107,8 @@ namespace OpenMS
       }
       else if (current_score.second &&
                (!best_score.second ||
-                isBetterScore_(current_score.first, best_score.first,
-                               higher_better)))
+                isBetterScore(current_score.first, best_score.first,
+                              higher_better)))
       {
         // new best score for the current query:
         best_score = current_score;
@@ -1123,7 +1123,7 @@ namespace OpenMS
 
 
   bool IdentificationData::allParentsAreDecoys(IdentifiedMoleculeKey
-                                               molecule_key)
+                                               molecule_key) const
   {
     ParentMatchMap::const_iterator pos =
       parent_matches.find(molecule_key);

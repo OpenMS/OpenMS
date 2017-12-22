@@ -720,12 +720,20 @@ namespace OpenMS
     */
     void clearCurrentProcessingStep();
 
-    std::vector<QueryMatchKey> getBestMatchPerQuery(ScoreTypeKey score_key);
+    std::vector<QueryMatchKey> getBestMatchPerQuery(ScoreTypeKey
+                                                    score_key) const;
 
     ScoreTypeKey findScoreType(const String& score_name,
-                               ProcessingSoftwareKey software_key = 0);
+                               ProcessingSoftwareKey software_key = 0) const;
 
-    bool allParentsAreDecoys(IdentifiedMoleculeKey molecule_key);
+    bool allParentsAreDecoys(IdentifiedMoleculeKey molecule_key) const;
+
+    /// Helper function to compare two scores
+    static bool isBetterScore(double first, double second, bool higher_better)
+    {
+      if (higher_better) return first > second;
+      return first < second;
+    }
 
   protected:
 
@@ -879,13 +887,6 @@ namespace OpenMS
       const std::set<MoleculeParentMatch>& matches,
       const MzTabPeptideSectionRow& molecule,
       std::vector<MzTabPeptideSectionRow>& output) const;
-
-    /// Helper function to compare two scores
-    static bool isBetterScore_(double first, double second, bool higher_better)
-    {
-      if (higher_better) return first > second;
-      return first < second;
-    }
 
     /// Helper function to import DB search parameters from legacy format
     SearchParamsKey importDBSearchParameters_(
