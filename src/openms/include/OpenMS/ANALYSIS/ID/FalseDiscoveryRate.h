@@ -93,7 +93,15 @@ public:
     */
     void apply(std::vector<ProteinIdentification>& ids);
 
-    void applyToQueryMatches(IdentificationData& id_data, IdentificationData::ScoreTypeKey score_key);
+    /**
+       @brief Calculate FDR on the level of molecule-query matches (e.g. peptide-spectrum matches) for "general" identification data
+
+       @param id_data Identification data
+       @param score_key Key of the score to use for FDR calculation
+
+       @return Key of the FDR score
+    */
+    IdentificationData::ScoreTypeKey applyToQueryMatches(IdentificationData& id_data, IdentificationData::ScoreTypeKey score_key);
 
   private:
     /// Not implemented
@@ -105,6 +113,14 @@ public:
     /// calculates the FDR, given two vectors of scores
     void calculateFDRs_(std::map<double, double>& score_to_fdr, std::vector<double>& target_scores, std::vector<double>& decoy_scores, bool q_value, bool higher_score_better);
 
+    /// Helper function for applyToQueryMatches()
+    void handleQueryMatch_(
+        const IdentificationData::QueryMatchMap::value_type& match_pair,
+        const IdentificationData& id_data,
+        IdentificationData::ScoreTypeKey score_key,
+        std::vector<double>& target_scores, std::vector<double>& decoy_scores,
+        std::map<IdentificationData::IdentifiedMoleculeKey, bool>& molecule_to_decoy,
+        std::map<IdentificationData::QueryMatchKey, double>& match_to_score);
   };
 
 } // namespace OpenMS

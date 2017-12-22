@@ -548,28 +548,57 @@ namespace OpenMS
     return;
   }
 
-  void FalseDiscoveryRate::applyToQueryMatches(IdentificationData& id_data, IdentificationData::ScoreTypeKey score_key)
+
+  void FalseDiscoveryRate::handleQueryMatch_(
+    const IdentificationData::QueryMatchMap::value_type& match_pair,
+    const IdentificationData& id_data,
+    IdentificationData::ScoreTypeKey score_key,
+    vector<double>& target_scores, vector<double>& decoy_scores,
+    map<IdentificationData::IdentifiedMoleculeKey, bool>& molecule_to_decoy,
+    map<IdentificationData::QueryMatchKey, double>& match_to_score)
+  {
+    pair<double, bool> score = match_pair.second.getScore(score_key);
+    if (!score.second) return; // no score of this type
+    match_to_score[match_pair.first] = score.first;
+    IdentificationData::IdentifiedMoleculeKey molecule_key =
+      match_pair.first.second;
+    auto pos = molecule_to_decoy.find(molecule_key);
+    bool is_decoy;
+    if (pos == molecule_to_decoy.end()) // new molecule
+    {
+      is_decoy = id_data.allParentsAreDecoys(molecule_key);
+      molecule_to_decoy[molecule_key] = is_decoy;
+    }
+    else
+    {
+      is_decoy = pos->second;
+    }
+    if (is_decoy)
+    {
+      decoy_scores.push_back(score.first);
+    }
+    else
+    {
+      target_scores.push_back(score.first);
+    }
+  }
+
+
+  IdentificationData::ScoreTypeKey FalseDiscoveryRate::applyToQueryMatches(
+    IdentificationData& id_data, IdentificationData::ScoreTypeKey score_key)
   {
     bool use_all_hits = param_.getValue("use_all_hits").toBool();
+    bool include_decoys = param_.getValue("add_decoy_peptides").toBool();
     vector<double> target_scores, decoy_scores;
-    // @TODO: replace map with "[boost::]unordered_map"?
+    // @TODO: replace maps with "[boost::]unordered_map"?
+    map<IdentificationData::IdentifiedMoleculeKey, bool> molecule_to_decoy;
     map<IdentificationData::QueryMatchKey, double> match_to_score;
-    // @TODO: cache the "allParentsAreDecoys" results?
     if (use_all_hits)
     {
       for (const auto& match_pair : id_data.query_matches)
       {
-        pair<double, bool> score = match_pair.second.getScore(score_key);
-        if (!score.second) continue; // no score of this type
-        match_to_score[match_pair.first] = score.first;
-        if (id_data.allParentsAreDecoys(match_pair.first.second))
-        {
-          decoy_scores.push_back(score.first);
-        }
-        else
-        {
-          target_scores.push_back(score.first);
-        }
+        handleQueryMatch_(match_pair, id_data, score_key, target_scores,
+                          decoy_scores, molecule_to_decoy, match_to_score);
       }
     }
     else
@@ -578,37 +607,45 @@ namespace OpenMS
         id_data.getBestMatchPerQuery(score_key);
       for (auto match_key : best_matches)
       {
-        IdentificationData::MoleculeQueryMatch& match =
-          id_data.query_matches.at(match_key);
-        double score = match.getScore(score_key).first;
-        match_to_score[match_key] = score;
-        if (id_data.allParentsAreDecoys(match_key.second))
-        {
-          decoy_scores.push_back(score);
-        }
-        else
-        {
-          target_scores.push_back(score);
-        }
+        auto pos = id_data.query_matches.find(match_key);
+        handleQueryMatch_(*pos, id_data, score_key, target_scores,
+                          decoy_scores, molecule_to_decoy, match_to_score);
       }
     }
 
     map<double, double> score_to_fdr;
     bool higher_better = id_data.score_types.left.at(score_key).higher_better;
-    calculateFDRs_(score_to_fdr, target_scores, decoy_scores, true,
+    bool use_qvalue = !param_.getValue("no_qvalues").toBool();
+    calculateFDRs_(score_to_fdr, target_scores, decoy_scores, use_qvalue,
                    higher_better);
 
-    IdentificationData::ScoreType fdr_score("q-value", false);
-    fdr_score.cv_term = CVTerm("MS:1002354", "PSM-level q-value", "MS");
+    IdentificationData::ScoreType fdr_score;
+    fdr_score.higher_better = false;
+    if (use_qvalue)
+    {
+      fdr_score.name = "q-value";
+      fdr_score.cv_term = CVTerm("MS:1002354", "PSM-level q-value", "MS");
+    }
+    else
+    {
+      fdr_score.name = "FDR";
+      fdr_score.cv_term = CVTerm("MS:1002355", "PSM-level FDRScore", "MS");
+    }
     IdentificationData::ScoreTypeKey fdr_key =
       id_data.registerScoreType(fdr_score).first;
     for (auto& match_pair : id_data.query_matches)
     {
+      if (!include_decoys)
+      {
+        auto pos = molecule_to_decoy.find(match_pair.first.second);
+        if ((pos != molecule_to_decoy.end()) && pos->second) continue;
+      }
       auto pos = match_to_score.find(match_pair.first);
-      if (pos == match_to_score.end()) continue; // @TODO: add score of 1 or -1?
+      if (pos == match_to_score.end()) continue;
       double fdr = score_to_fdr.at(pos->second);
       match_pair.second.scores.push_back(make_pair(fdr_key, fdr));
     }
+    return fdr_key;
   }
 
 
