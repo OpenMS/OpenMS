@@ -37,6 +37,7 @@
 
 #include <OpenMS/config.h>
 #include <OpenMS/CHEMISTRY/ProteaseDigestion.h>
+#include <OpenMS/METADATA/IdentificationData.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/METADATA/PeptideEvidence.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
@@ -1081,6 +1082,39 @@ public:
 
     ///@}
 
+
+    /// @name Filter functions for class IdentificationData
+    ///@{
+    static void keepBestMatchPerQuery(
+      IdentificationData& id_data,
+      IdentificationData::ScoreTypeKey score_key = 0,
+      const String& score_type = "");
+
+    static void filterQueryMatchesByScore(
+      IdentificationData& id_data,
+      IdentificationData::ScoreTypeKey score_key, double cutoff);
+
+    static void removeMoleculesParentsQueriesWithoutMatches(
+      IdentificationData& id_data);
+
+    template <typename MapType>
+    static void removeNonmatchingKeys_(
+      MapType& map, const std::set<IdentificationData::UniqueKey>& keys)
+    {
+      for (auto it = map.begin(); it != map.end(); )
+      {
+        if (!keys.count(it->first))
+        {
+          it = map.erase(it);
+        }
+        else
+        {
+          ++it;
+        }
+      }
+    }
+
+    ///@}
 
   };
 
