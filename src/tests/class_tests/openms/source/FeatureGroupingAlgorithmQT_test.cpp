@@ -49,8 +49,8 @@ START_TEST(FeatureGroupingAlgorithmQT, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-FeatureGroupingAlgorithmQT* ptr = 0;
-FeatureGroupingAlgorithmQT* nullPointer = 0;
+FeatureGroupingAlgorithmQT* ptr = nullptr;
+FeatureGroupingAlgorithmQT* nullPointer = nullptr;
 START_SECTION((FeatureGroupingAlgorithmQT()))
 	ptr = new FeatureGroupingAlgorithmQT();
 	TEST_NOT_EQUAL(ptr, nullPointer)
@@ -61,8 +61,8 @@ START_SECTION((virtual ~FeatureGroupingAlgorithmQT()))
 END_SECTION
 
 START_SECTION((static FeatureGroupingAlgorithm* create()))
-	FeatureGroupingAlgorithm* ptr2 = 0;
-  FeatureGroupingAlgorithm* base_NullPointer = 0;
+	FeatureGroupingAlgorithm* ptr2 = nullptr;
+  FeatureGroupingAlgorithm* base_NullPointer = nullptr;
 	ptr2 = FeatureGroupingAlgorithmQT::create();
   TEST_NOT_EQUAL(ptr2, base_NullPointer)
 END_SECTION

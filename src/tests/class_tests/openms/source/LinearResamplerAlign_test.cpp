@@ -45,19 +45,19 @@
 using namespace OpenMS;
 using namespace std;
 
-template <template <typename> class SpectrumT, typename PeakT>
-void check_results(SpectrumT<PeakT> spec)
+template <class SpectrumT>
+void check_results(SpectrumT spec)
 {
   double sum = 0.0;
-  for (Size i=0; i<spec.size(); ++i)
+  for (Size i = 0; i < spec.size(); ++i)
   {
     sum += spec[i].getIntensity();
   }
   TEST_REAL_SIMILAR(sum, 20);
 
-  TEST_REAL_SIMILAR(spec[0].getIntensity(), 3+2);
-  TEST_REAL_SIMILAR(spec[1].getIntensity(), 4+2.0/3*8);
-  TEST_REAL_SIMILAR(spec[2].getIntensity(), 1.0/3*8+2+1.0/3);
+  TEST_REAL_SIMILAR(spec[0].getIntensity(), 3 + 2);
+  TEST_REAL_SIMILAR(spec[1].getIntensity(), 4 + 2.0 / 3 * 8);
+  TEST_REAL_SIMILAR(spec[2].getIntensity(), 1.0 / 3 *8 +2 + 1.0 / 3);
   TEST_REAL_SIMILAR(spec[3].getIntensity(), 2.0 / 3);
 }
 
@@ -68,7 +68,7 @@ START_TEST(LinearResamplerAlign, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-MSSpectrum< Peak1D > input_spectrum;
+MSSpectrum input_spectrum;
 input_spectrum.resize(5);
 input_spectrum[0].setMZ(0);
 input_spectrum[0].setIntensity(3.0f);
@@ -90,13 +90,13 @@ double default_spacing = 0.75;
 START_SECTION(( template < template< typename > class SpecT, typename PeakType > void raster(SpecT< PeakType > &spectrum)))
 {
 
-  MSSpectrum< Peak1D > spec = input_spectrum;
+  MSSpectrum spec = input_spectrum;
 
   LinearResamplerAlign lr;
   Param param;
   param.setValue("spacing", default_spacing);
   lr.setParameters(param);
-	lr.raster(spec);
+  lr.raster(spec);
 
   double sum = 0.0;
   for (Size i=0; i<spec.size(); ++i)
@@ -115,7 +115,7 @@ END_SECTION
 // it should also work with chromatograms
 START_SECTION([EXTRA] test_linear_res_chromat)
 {
-  MSChromatogram< Peak1D > spec;
+  MSChromatogram spec;
   spec.resize(5);
   spec[0].setMZ(0);
   spec[0].setIntensity(3.0f);
@@ -132,7 +132,7 @@ START_SECTION([EXTRA] test_linear_res_chromat)
   Param param;
   param.setValue("spacing",default_spacing);
   lr.setParameters(param);
-	lr.raster(spec);
+  lr.raster(spec);
 
   check_results(spec);
 }
@@ -141,8 +141,8 @@ END_SECTION
 START_SECTION(( void raster(ConstPeakTypeIterator raw_it, ConstPeakTypeIterator raw_end, PeakTypeIterator resample_it, PeakTypeIterator resample_end)))
 {
 
-  MSSpectrum< Peak1D > spec = input_spectrum;
-  MSSpectrum< Peak1D > output_spectrum;
+  MSSpectrum spec = input_spectrum;
+  MSSpectrum output_spectrum;
   output_spectrum.resize(4);
 
   // We want to resample the input spectrum at these m/z positions: 0, 0.75, 1.5 and 2.25
@@ -157,7 +157,7 @@ START_SECTION(( void raster(ConstPeakTypeIterator raw_it, ConstPeakTypeIterator 
   Param param;
   param.setValue("spacing", default_spacing);
   lr.setParameters(param);
-	lr.raster(spec.begin(), spec.end(), output_spectrum.begin(), output_spectrum.end());
+  lr.raster(spec.begin(), spec.end(), output_spectrum.begin(), output_spectrum.end());
 
   check_results(output_spectrum);
 }
@@ -173,7 +173,7 @@ START_SECTION( ( template <typename PeakTypeIterator, typename ConstPeakTypeIter
        )
     ))
 {
-  MSChromatogram< Peak1D > spec;
+  MSChromatogram spec;
 
   std::vector<double> mz_data(5);
   std::vector<double> int_data(5);
@@ -202,8 +202,8 @@ START_SECTION( ( template <typename PeakTypeIterator, typename ConstPeakTypeIter
   param.setValue("spacing", default_spacing);
   lr.setParameters(param);
 
-	lr.raster(mz_data.begin(), mz_data.end(), int_data.begin(), int_data.end(),
-      mz_res_data.begin(), mz_res_data.end(), int_res_data.begin(), int_res_data.end());
+  lr.raster(mz_data.begin(), mz_data.end(), int_data.begin(), int_data.end(),
+  mz_res_data.begin(), mz_res_data.end(), int_res_data.begin(), int_res_data.end());
 
   // check_results(spec);
   double sum = 0.0;
@@ -223,14 +223,14 @@ END_SECTION
 // it should work with alignment to 0, 1.8 and give the same result
 START_SECTION((template < template< typename > class SpecT, typename PeakType > void raster_align(SpecT< PeakType > &spectrum, double start_pos, double end_pos)))
 {
-  MSSpectrum< Peak1D > spec = input_spectrum;
+  MSSpectrum spec = input_spectrum;
 
   LinearResamplerAlign lr;
   Param param;
   param.setValue("spacing",0.75);
   lr.setParameters(param);
 
-	lr.raster_align(spec, 0, 1.8);
+  lr.raster_align(spec, 0, 1.8);
   check_results(spec);
 }
 END_SECTION
@@ -238,13 +238,13 @@ END_SECTION
 // it should work with alignment to -0.25, 1.8
 START_SECTION([EXTRA] test_linear_res_align_3)
 {
-  MSSpectrum< Peak1D > spec = input_spectrum;
+  MSSpectrum spec = input_spectrum;
 
   LinearResamplerAlign lr;
   Param param;
   param.setValue("spacing",0.5);
   lr.setParameters(param);
-	lr.raster_align(spec, -0.25, 1.8);
+  lr.raster_align(spec, -0.25, 1.8);
 
   double sum = 0.0;
   for (Size i=0; i<spec.size(); ++i)
@@ -265,13 +265,13 @@ END_SECTION
 // it should work with alignment to -2.25, 1.8
 START_SECTION([EXTRA] test_linear_res_align_4)
 {
-  MSSpectrum< Peak1D > spec = input_spectrum;
+  MSSpectrum spec = input_spectrum;
 
   LinearResamplerAlign lr;
   Param param;
   param.setValue("spacing",0.75);
   lr.setParameters(param);
-	lr.raster_align(spec, -2.25, 1.8);
+  lr.raster_align(spec, -2.25, 1.8);
 
   double sum = 0.0;
   for (Size i=0; i<spec.size(); ++i)
@@ -293,7 +293,7 @@ END_SECTION
 // it should work with alignment to -0.25, 1.25
 START_SECTION([EXTRA] test_linear_res_align_5)
 {
-  MSSpectrum< Peak1D > spec = input_spectrum;
+  MSSpectrum spec = input_spectrum;
 
   LinearResamplerAlign lr;
   Param param;
@@ -318,7 +318,7 @@ END_SECTION
 // it should work with alignment to 0.25, 1.8
 START_SECTION([EXTRA] test_linear_res_align_6)
 {
-  MSSpectrum< Peak1D > spec = input_spectrum;
+  MSSpectrum spec = input_spectrum;
 
   LinearResamplerAlign lr;
   Param param;
@@ -343,7 +343,7 @@ END_SECTION
 // it should also work when we scale the m/z
 START_SECTION([EXTRA] test_linear_res_align_scaling)
 {
-  MSSpectrum< Peak1D > spec = input_spectrum;
+  MSSpectrum spec = input_spectrum;
   for (Size i = 0; i < spec.size(); i++)
   {
     spec[i].setMZ( spec[i].getMZ()*10 );
@@ -373,7 +373,7 @@ END_SECTION
 // it should work with ppm scaling
 START_SECTION([EXTRA] test_linear_res_align_7)
 {
-  MSSpectrum< Peak1D > spec = input_spectrum;
+  MSSpectrum spec = input_spectrum;
 
   // int = [3,6,8,2,1]
   // mz = [100, 101, 102, 103, 104]
@@ -408,7 +408,7 @@ END_SECTION
 
 START_SECTION([EXTRA] test_linear_res_align_8)
 {
-  MSSpectrum< Peak1D > spec = input_spectrum;
+  MSSpectrum spec = input_spectrum;
 
   // int = [3,6,8,2,1]
   // mz = [100, 101, 102, 103, 104]
@@ -445,8 +445,8 @@ END_SECTION
 // also the interpolation should work
 START_SECTION((template < typename PeakTypeIterator > void raster_interpolate(PeakTypeIterator raw_it, PeakTypeIterator raw_end, PeakTypeIterator it, PeakTypeIterator resampled_end)))
 {
-  MSSpectrum< Peak1D > spec = input_spectrum;
-  MSSpectrum< Peak1D > resampled;
+  MSSpectrum spec = input_spectrum;
+  MSSpectrum resampled;
 
   int i = 0;
   double start_pos = 0.25;
@@ -454,7 +454,7 @@ START_SECTION((template < typename PeakTypeIterator > void raster_interpolate(Pe
   double spacing = 0.5;
   int number_resampled_points = (int)(ceil((end_pos -start_pos) / spacing + 1));
   resampled.resize(number_resampled_points);
-  for (MSSpectrum<Peak1D>::iterator it = resampled.begin(); it != resampled.end(); it++)
+  for (MSSpectrum::iterator it = resampled.begin(); it != resampled.end(); it++)
   {
       it->setMZ( start_pos + i*spacing);
       ++i;
@@ -484,8 +484,8 @@ END_SECTION
 START_SECTION(( template < typename PeakTypeIterator, typename ConstPeakTypeIterator > void raster(ConstPeakTypeIterator raw_it, ConstPeakTypeIterator raw_end, PeakTypeIterator resample_it, PeakTypeIterator resample_end)))
 {
 
-  MSSpectrum< Peak1D > spec = input_spectrum;
-  MSSpectrum< Peak1D > resampled;
+  MSSpectrum spec = input_spectrum;
+  MSSpectrum resampled;
 
   int i = 0;
   double start_pos = 0;
@@ -493,7 +493,7 @@ START_SECTION(( template < typename PeakTypeIterator, typename ConstPeakTypeIter
   double spacing = 0.75;
   int number_resampled_points = (int)(ceil((end_pos -start_pos) / spacing + 1));
   resampled.resize(number_resampled_points);
-  for (MSSpectrum<Peak1D>::iterator it = resampled.begin(); it != resampled.end(); it++)
+  for (MSSpectrum::iterator it = resampled.begin(); it != resampled.end(); it++)
   {
       it->setMZ( start_pos + i*spacing);
       ++i;
@@ -528,14 +528,14 @@ END_SECTION
 // it should accept nonsense input values
 START_SECTION([EXTRA] test_linear_res_align_input)
 {
-  MSSpectrum< Peak1D > spec = input_spectrum;
+  MSSpectrum spec = input_spectrum;
 
   LinearResamplerAlign lr;
   Param param;
   param.setValue("spacing",0.5);
   lr.setParameters(param);
 
-	lr.raster_align(spec, 2.25, 1.8);
+  lr.raster_align(spec, 2.25, 1.8);
   double sum = 0.0;
   for (Size i=0; i<spec.size(); ++i)
   {

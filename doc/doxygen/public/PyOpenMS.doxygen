@@ -149,13 +149,13 @@ officially supported.
 
      @code
      $ cd pyOpenMS
-     $ run_nose.py
+     $ python run_nose.py
      @endcode
 
      run mem leak test:
 
      @code
-     $ run_memleaks.py
+     $ python run_memleaks.py
      @endcode
   </li>
 

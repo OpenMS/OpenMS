@@ -63,7 +63,7 @@ public:
     NeutralLossMarker(const NeutralLossMarker & source);
 
     /// destructor
-    virtual ~NeutralLossMarker();
+    ~NeutralLossMarker() override;
     // @}
 
     // @name Operators

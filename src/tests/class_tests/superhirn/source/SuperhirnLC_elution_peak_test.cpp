@@ -51,8 +51,8 @@ START_TEST(LCElutionPeak, "$Id$")
 using namespace OpenMS;
 using namespace std;
 
-LCElutionPeak* ptr = 0;
-LCElutionPeak* nullPtr = 0;
+LCElutionPeak* ptr = nullptr;
+LCElutionPeak* nullPtr = nullptr;
 
 START_SECTION((LCElutionPeak()))
 	ptr = new LCElutionPeak();

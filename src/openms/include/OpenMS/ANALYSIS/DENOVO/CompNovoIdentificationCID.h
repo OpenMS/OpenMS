@@ -67,7 +67,7 @@ public:
     CompNovoIdentificationCID(const CompNovoIdentificationCID & source);
 
     /// destructor
-    virtual ~CompNovoIdentificationCID();
+    ~CompNovoIdentificationCID() override;
     //@}
 
     ///
@@ -77,7 +77,7 @@ public:
      */
     //@{
     /// performs an ProteinIdentification run on a PeakMap
-    void getIdentifications(std::vector<PeptideIdentification> & ids, const PeakMap & exp);
+    void getIdentifications(std::vector<PeptideIdentification> & ids, const PeakMap & exp) override;
 
     /// performs an ProteinIdentification run on a PeakSpectrum
     void getIdentification(PeptideIdentification & id, const PeakSpectrum & CID_spec);
@@ -96,7 +96,7 @@ protected:
     /// reduces the given number of permuts by scoring the permutations to the CID and ETD spec
     void reducePermuts_(std::set<String> & permuts, const PeakSpectrum & CID_orig_spec, double prefix, double suffix);
 
-    void updateMembers_();
+    void updateMembers_() override;
 
     double precursor_mass_tolerance_;
   };

@@ -63,7 +63,7 @@ namespace OpenMS
       bool test = true;
       bool this_test;
       char line_buffer[65536];
-      const char* version_string = 0;
+      const char* version_string = nullptr;
       double absdiff = 0.;
       double absdiff_max = 0.;
       double absdiff_max_allowed = 1E-5;
@@ -441,10 +441,6 @@ namespace OpenMS
             }
           }
         }
-        // We should never get here ... must have forgotten an condition branch above ... and then we need to fix that.
-        fuzzy_message
-          = "error: ClassTest.cpp:  You should never see this message.  Please report this bug along with the data that produced it.";
-        return false;
       }
 
       void

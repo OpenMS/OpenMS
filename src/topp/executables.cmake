@@ -52,7 +52,7 @@ MapNormalizer
 MapRTTransformer
 MapStatistics
 MascotAdapter
-MascotAdapterOnline
+###MascotAdapterOnline
 MassTraceExtractor
 MRMMapper
 MSGFPlusAdapter

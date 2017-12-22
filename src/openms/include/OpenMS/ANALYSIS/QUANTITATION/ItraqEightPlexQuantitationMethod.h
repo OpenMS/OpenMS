@@ -54,7 +54,7 @@ public:
     ItraqEightPlexQuantitationMethod();
 
     /// d'tor
-    ~ItraqEightPlexQuantitationMethod();
+    ~ItraqEightPlexQuantitationMethod() override;
 
     /// Copy c'tor
     ItraqEightPlexQuantitationMethod(const ItraqEightPlexQuantitationMethod& other);
@@ -65,15 +65,15 @@ public:
     /// @brief Methods to implement from IsobaricQuantitationMethod
     /// @{
 
-    const String& getName() const;
+    const String& getName() const override;
 
-    const IsobaricChannelList& getChannelInformation() const;
+    const IsobaricChannelList& getChannelInformation() const override;
 
-    Size getNumberOfChannels() const;
+    Size getNumberOfChannels() const override;
 
-    virtual Matrix<double> getIsotopeCorrectionMatrix() const;
+    Matrix<double> getIsotopeCorrectionMatrix() const override;
 
-    Size getReferenceChannel() const;
+    Size getReferenceChannel() const override;
 
     /// @}
 
@@ -92,7 +92,7 @@ public:
     void setDefaultParams_();
 
     /// implemented for DefaultParamHandler
-    void updateMembers_();
+    void updateMembers_() override;
   };
 } // namespace
 

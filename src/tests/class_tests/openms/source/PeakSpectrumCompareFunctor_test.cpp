@@ -29,7 +29,7 @@
 // 
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
-// $Authors: Voker Mosthaf, Andreas Bertsch $
+// $Authors: Volker Mosthaf, Andreas Bertsch $
 // --------------------------------------------------------------------------
 //
 

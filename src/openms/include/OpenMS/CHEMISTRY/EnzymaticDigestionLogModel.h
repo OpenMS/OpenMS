@@ -37,7 +37,7 @@
 
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
-#include <OpenMS/CHEMISTRY/Enzyme.h>
+#include <OpenMS/CHEMISTRY/DigestionEnzyme.h>
 
 #include <string>
 #include <vector>
@@ -130,7 +130,7 @@ protected:
     bool isCleavageSite_(const AASequence& sequence, const AASequence::ConstIterator& p) const;
 
     /// Used enzyme
-    Enzyme enzyme_;
+    const DigestionEnzyme* enzyme_;
 
     /// Threshold to decide if position is cleaved or missed (only for the model)
     double log_model_threshold_;

@@ -47,8 +47,8 @@ START_TEST(SparseVector, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-SparseVector<double>* ptr = 0;
-SparseVector<double>* nullPointer = 0;
+SparseVector<double>* ptr = nullptr;
+SparseVector<double>* nullPointer = nullptr;
 START_SECTION(SparseVector())
 {
 	ptr = new SparseVector<double>();

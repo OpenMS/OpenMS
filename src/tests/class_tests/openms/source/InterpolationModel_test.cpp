@@ -65,7 +65,7 @@ class TestModel : public InterpolationModel
     updateMembers_();
   }
 
-  virtual ~TestModel()
+  ~TestModel() override
   {
   }
 
@@ -79,12 +79,12 @@ class TestModel : public InterpolationModel
     return *this;
   }
 
-  void updateMembers_()
+  void updateMembers_() override
   {
      InterpolationModel::updateMembers_();
   }
 
-  IntensityType getIntensity(const PositionType& pos) const
+  IntensityType getIntensity(const PositionType& pos) const override
   {
     return pos[0]*3.0;
   }
@@ -94,7 +94,7 @@ class TestModel : public InterpolationModel
     return coord*3.0;
   }
 
-  bool isContained(const PositionType& pos) const
+  bool isContained(const PositionType& pos) const override
   {
     return getIntensity(pos)>cut_off_;
   }
@@ -104,15 +104,15 @@ class TestModel : public InterpolationModel
     peak.setIntensity(getIntensity(peak.getPosition()));
   }
 
-  void getSamples(SamplesType& /*cont*/) const
+  void getSamples(SamplesType& /*cont*/) const override
   {
   }
 
-  void setSamples()
+  void setSamples() override
   {
   }
 
-  CoordinateType getCenter() const
+  CoordinateType getCenter() const override
   {
     return 10.0;
   }
@@ -135,8 +135,8 @@ using std::stringstream;
 //////////////////////////////////////
 
 // default ctor
-TestModel* ptr = 0;
-TestModel* nullPointer = 0;
+TestModel* ptr = nullptr;
+TestModel* nullPointer = nullptr;
 START_SECTION((InterpolationModel()))
 	ptr = new TestModel();
 	TEST_NOT_EQUAL(ptr, nullPointer)

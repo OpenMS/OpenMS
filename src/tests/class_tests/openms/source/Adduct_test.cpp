@@ -46,8 +46,8 @@ START_TEST(Adduct, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-Adduct* ptr = 0;
-Adduct* nullPointer = 0;
+Adduct* ptr = nullptr;
+Adduct* nullPointer = nullptr;
 START_SECTION(Adduct())
 {
 	ptr = new Adduct();

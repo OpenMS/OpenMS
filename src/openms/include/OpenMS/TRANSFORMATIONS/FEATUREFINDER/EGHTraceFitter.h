@@ -65,12 +65,12 @@ public:
       EGHTraceFunctor(int dimensions,
                       const TraceFitter::ModelData* data);
 
-      virtual ~EGHTraceFunctor();
+      ~EGHTraceFunctor() override;
 
-      int operator()(const Eigen::VectorXd& x, Eigen::VectorXd& fvec);
+      int operator()(const Eigen::VectorXd& x, Eigen::VectorXd& fvec) override;
 
       // compute Jacobian matrix for the different parameters
-      int df(const Eigen::VectorXd& x, Eigen::MatrixXd& J);
+      int df(const Eigen::VectorXd& x, Eigen::MatrixXd& J) override;
 
 protected:
       const TraceFitter::ModelData* m_data;
@@ -82,34 +82,34 @@ protected:
 
     EGHTraceFitter& operator=(const EGHTraceFitter& source);
 
-    virtual ~EGHTraceFitter();
+    ~EGHTraceFitter() override;
 
     // override important methods
-    void fit(FeatureFinderAlgorithmPickedHelperStructs::MassTraces& traces);
+    void fit(FeatureFinderAlgorithmPickedHelperStructs::MassTraces& traces) override;
 
-    double getLowerRTBound() const;
+    double getLowerRTBound() const override;
 
     double getTau() const;
 
-    double getUpperRTBound() const;
+    double getUpperRTBound() const override;
 
-    double getHeight() const;
+    double getHeight() const override;
 
     double getSigma() const;
 
-    double getCenter() const;
+    double getCenter() const override;
 
-    bool checkMaximalRTSpan(const double max_rt_span);
+    bool checkMaximalRTSpan(const double max_rt_span) override;
 
-    bool checkMinimalRTSpan(const std::pair<double, double>& rt_bounds, const double min_rt_span);
+    bool checkMinimalRTSpan(const std::pair<double, double>& rt_bounds, const double min_rt_span) override;
 
-    double getValue(double rt) const;
+    double getValue(double rt) const override;
 
-    double getArea();
+    double getArea() override;
 
-    double getFWHM() const;
+    double getFWHM() const override;
 
-    String getGnuplotFormula(const FeatureFinderAlgorithmPickedHelperStructs::MassTrace& trace, const char function_name, const double baseline, const double rt_shift);
+    String getGnuplotFormula(const FeatureFinderAlgorithmPickedHelperStructs::MassTrace& trace, const char function_name, const double baseline, const double rt_shift) override;
 
 protected:
     double apex_rt_;
@@ -134,11 +134,11 @@ protected:
      */
     std::pair<double, double> getAlphaBoundaries_(const double alpha) const;
 
-    void getOptimizedParameters_(const Eigen::VectorXd& x_init);
+    void getOptimizedParameters_(const Eigen::VectorXd& x_init) override;
 
     void setInitialParameters_(FeatureFinderAlgorithmPickedHelperStructs::MassTraces& traces);
 
-    virtual void updateMembers_();
+    void updateMembers_() override;
   };
 
 } // namespace OpenMS

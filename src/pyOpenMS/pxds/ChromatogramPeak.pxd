@@ -6,6 +6,7 @@ cdef extern from "<OpenMS/KERNEL/ChromatogramPeak.h>" namespace "OpenMS::Chromat
 
     ctypedef double IntensityType
     ctypedef double CoordinateType
+    ctypedef DPosition1 PositionType
 
 cdef extern from "<OpenMS/KERNEL/ChromatogramPeak.h>" namespace "OpenMS":
 
@@ -13,6 +14,7 @@ cdef extern from "<OpenMS/KERNEL/ChromatogramPeak.h>" namespace "OpenMS":
 
         ChromatogramPeak() nogil except +
         ChromatogramPeak(ChromatogramPeak &) nogil except +
+        ChromatogramPeak(PositionType retention_time, IntensityType intensity) nogil except +
         bool operator==(ChromatogramPeak) nogil except +
         bool operator!=(ChromatogramPeak) nogil except +
 

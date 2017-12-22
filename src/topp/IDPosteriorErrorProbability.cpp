@@ -113,7 +113,7 @@ public:
   }
 
 protected:
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "input file ");
     setValidFormats_("in", ListUtils::create<String>("idXML"));
@@ -132,7 +132,7 @@ protected:
   }
 
   //there is only one parameter at the moment
-  Param getSubsectionDefaults_(const String& /*section*/) const
+  Param getSubsectionDefaults_(const String& /*section*/) const override
   {
     Param p = PosteriorErrorProbabilityModel().getParameters();
     if (p.exists("out_plot"))
@@ -223,7 +223,7 @@ protected:
     return std::numeric_limits<double>::max();
   }
 
-  ExitCodes main_(int, const char**)
+  ExitCodes main_(int, const char**) override
   {
     //-------------------------------------------------------------
     // parsing parameters

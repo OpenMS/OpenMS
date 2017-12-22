@@ -93,7 +93,7 @@ for (int c = charge_max; c >= charge_min; --c)
     patterns.push_back(pattern2);
 }
 
-MultiplexFilteringCentroided* nullPointer = 0;
+MultiplexFilteringCentroided* nullPointer = nullptr;
 MultiplexFilteringCentroided* ptr;
 
 START_SECTION(MultiplexFilteringCentroided(const PeakMap& exp_picked, const std::vector<MultiplexIsotopicPeakPattern> patterns, int peaks_per_peptide_min, int peaks_per_peptide_max, bool missing_peaks, double intensity_cutoff, double mz_tolerance, bool mz_tolerance_unit, double peptide_similarity, double averagine_similarity, double averagine_similarity_scaling))

@@ -70,9 +70,9 @@ public:
     typedef LayerData::ExperimentSharedPtrType ExperimentSharedPtrType;
 
     /// Default constructor
-    Spectrum2DWidget(const Param & preferences, QWidget * parent = 0);
+    Spectrum2DWidget(const Param & preferences, QWidget * parent = nullptr);
     /// Destructor
-    virtual ~Spectrum2DWidget();
+    ~Spectrum2DWidget() override;
 
     /// This method is overwritten to make the class specific members accessible
     inline Spectrum2DCanvas * canvas()
@@ -91,13 +91,13 @@ public:
 
 public slots:
     // Docu in base class
-    virtual void recalculateAxes_();
+    void recalculateAxes_() override;
     /// Shows/hides the projections
     void toggleProjections();
     /// Updates and shows the projections
     void updateProjections();
     // Docu in base class
-    virtual void showGoToDialog();
+    void showGoToDialog() override;
 
 signals:
     /**
@@ -114,9 +114,9 @@ signals:
 
 protected:
     // Docu in base class
-    virtual Math::Histogram<> createIntensityDistribution_() const;
+    Math::Histogram<> createIntensityDistribution_() const override;
     // Docu in base class
-    virtual Math::Histogram<> createMetaDistribution_(const String & name) const;
+    Math::Histogram<> createMetaDistribution_(const String & name) const override;
 
     /// Vertical projection widget
     Spectrum1DWidget * projection_vert_;

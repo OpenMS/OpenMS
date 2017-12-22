@@ -123,10 +123,10 @@ public:
     /// Pipeline status after refreshParameters() was called
     enum RefreshStatus
     {
-      ST_REFRESH_NOCHANGE,        //< no updates required
-      ST_REFRESH_CHANGED,         //< some parameters were updated, but pipeline is ok
-      ST_REFRESH_CHANGEINVALID,   //< updating made pipeline invalid
-      ST_REFRESH_REMAINSINVALID   //< pipeline was not valid before and is invalid afterwards
+      ST_REFRESH_NOCHANGE,        ///< no updates required
+      ST_REFRESH_CHANGED,         ///< some parameters were updated, but pipeline is ok
+      ST_REFRESH_CHANGEINVALID,   ///< updating made pipeline invalid
+      ST_REFRESH_REMAINSINVALID   ///< pipeline was not valid before and is invalid afterwards
     };
 
 
@@ -147,7 +147,7 @@ public:
     TOPPASScene(QObject * parent, const QString & tmp_path, bool gui = true);
 
     /// Destructor
-    virtual ~TOPPASScene();
+    ~TOPPASScene() override;
 
     /// Adds a vertex
     void addVertex(TOPPASVertex * tv);
@@ -377,7 +377,7 @@ protected:
 
     ///@name reimplemented Qt events
     //@{
-    void contextMenuEvent(QGraphicsSceneContextMenuEvent * event);
+    void contextMenuEvent(QGraphicsSceneContextMenuEvent * event) override;
     //@}
 
     ///Writes the @p text to the logfile

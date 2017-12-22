@@ -105,6 +105,13 @@ public:
     */
     void setDataPoints(const DataPoints& data);
 
+    /**
+      @brief Sets the data points (backwards-compatible overload)
+
+      Removes the model that was previously fitted to the data (if any).
+    */
+    void setDataPoints(const std::vector<std::pair<double, double> >& data);
+
     /// Returns the data points
     const DataPoints& getDataPoints() const;
 

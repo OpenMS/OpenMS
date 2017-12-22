@@ -33,6 +33,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/SYSTEM/SysInfo.h>
+#include <cstdlib>
 
 #ifdef OPENMS_WINDOWSPLATFORM
 #include "windows.h"
@@ -40,10 +41,12 @@
 #elif __APPLE__
 #include <mach/mach.h>
 #include <mach/mach_init.h>
+#include <cstdlib>
 #else
 #include <cstdio>
 #include <unistd.h>
-#include <stdlib.h>
+#include <cstdlib>
+
 #define OMS_USELINUXMEMORYPLATFORM
 #endif
 
@@ -107,7 +110,7 @@ namespace OpenMS
     {
       return false;
     }
-    mem_virtual = pmc.PrivateUsage / 1024; // byte to KB
+    mem_virtual = pmc.WorkingSetSize / 1024; // byte to KB
 #elif __APPLE__
     struct task_basic_info_64 t_info;
     mach_msg_type_number_t t_info_count = TASK_BASIC_INFO_64_COUNT;
@@ -129,5 +132,81 @@ namespace OpenMS
 #endif
     return true;
   }
+
+  bool SysInfo::getProcessPeakMemoryConsumption(size_t& mem_virtual)
+  {
+    mem_virtual = 0;
+#ifdef OPENMS_WINDOWSPLATFORM
+    PROCESS_MEMORY_COUNTERS_EX pmc;
+    if (!GetProcessMemoryInfo(GetCurrentProcess(), (PROCESS_MEMORY_COUNTERS*)&pmc, sizeof(pmc)))
+    {
+      return false;
+    }
+    mem_virtual = pmc.PeakWorkingSetSize / 1024; // byte to KB
+    return true;
+#elif __APPLE__
+    //todo: find a good API to do this
+    return false;
+#else // Linux
+    //todo: find a good API to do this
+    return false;
+#endif
+  }
+
+  SysInfo::MemUsage::MemUsage()
+    : mem_before(0), mem_before_peak(0), mem_after(0), mem_after_peak(0)
+  {
+    before();
+  }
+
+  void SysInfo::MemUsage::reset()
+  {
+    mem_before = mem_before_peak = mem_after = mem_after_peak = 0;
+  }
+
+  void SysInfo::MemUsage::before()
+  {
+    SysInfo::getProcessMemoryConsumption(mem_before);
+    SysInfo::getProcessPeakMemoryConsumption(mem_before_peak);
+  }
+
+  void SysInfo::MemUsage::after()
+  {
+    SysInfo::getProcessMemoryConsumption(mem_after);
+    SysInfo::getProcessPeakMemoryConsumption(mem_after_peak);
+  }
+
+  String SysInfo::MemUsage::delta(const String& event)
+  {
+    if (mem_after == 0) after(); // collect data if missing; do not test using mem_after_peak, since it might be unsupported on the platform
+    String s = String("Memory usage (") + event + "): ";
+    s += diff_str_(mem_before, mem_after) + " (working set delta)";
+    if (mem_after_peak > 0)
+    { // only if supported
+      s+= ", " + diff_str_(mem_before_peak, mem_after_peak) + " (peak working set delta)";
+    }
+    return s;
+  }
+
+  String SysInfo::MemUsage::usage()
+  {
+    if (mem_after == 0) after(); // collect data if missing; do not test using mem_after_peak, since it might be unsupported on the platform
+    String s("Memory usage: ");
+    s += diff_str_(0, mem_after) + " (working set)";
+    if (mem_after_peak > 0)
+    { // only if supported
+      s += ", " + diff_str_(0, mem_after_peak) + " (peak working set)";
+    }
+    return s;
+  }
+
+  String SysInfo::MemUsage::diff_str_(size_t mem_before, size_t mem_after)
+  {
+    String s;
+    if (mem_after < mem_before) s += String("-");
+    s = String(std::abs(((long long)mem_after - (long long)mem_before) / 1024)) + " MB";
+    return s;
+  }
+
 
 } // namespace OpenMS

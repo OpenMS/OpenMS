@@ -48,8 +48,8 @@ START_TEST(ChromatogramExtractor, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-ChromatogramExtractor* ptr = 0;
-ChromatogramExtractor* nullPointer = 0;
+ChromatogramExtractor* ptr = nullptr;
+ChromatogramExtractor* nullPointer = nullptr;
 
 START_SECTION(ChromatogramExtractor())
 {
@@ -81,16 +81,8 @@ START_SECTION((template <typename ExperimentT> void extractChromatograms(const E
 
   TargetedExperiment::Peptide firstpeptide = transitions.getPeptides()[0];
   TEST_EQUAL(firstpeptide.rts.size(), 1);
-  TEST_EQUAL(firstpeptide.rts[0].getCVTerms().count("MS:1000896"), 1);
-  TEST_EQUAL(firstpeptide.rts[0].getCVTerms()["MS:1000896"].size(), 1);
-
-  OpenMS::DataValue v = firstpeptide.rts[0].getCVTerms()["MS:1000896"][0].getValue();
-  if(v.valueType() == 0) {  //data value is a string, e.g. "1042.42" and needs to be converted to double
-    TEST_EQUAL( (String(v)).toDouble(), 44);
-  }
-  else { 
-    TEST_EQUAL( (double)v, 44);
-  }
+  TEST_EQUAL(firstpeptide.hasRetentionTime(), true);
+  TEST_REAL_SIMILAR(firstpeptide.getRetentionTime(), 44.0)
 
   TEST_EQUAL(transitions.getTransitions().size(), 3)
   TEST_EQUAL(transitions.getTransitions()[0].getPrecursorMZ(), 500)
@@ -119,7 +111,7 @@ START_SECTION((template <typename ExperimentT> void extractChromatograms(const E
   TEST_EQUAL(out_exp.size(), 0)
   TEST_EQUAL(out_exp.getChromatograms().size(), 3)
 
-  MSChromatogram<ChromatogramPeak> chrom = out_exp.getChromatograms()[0];
+  MSChromatogram chrom = out_exp.getChromatograms()[0];
 
   TEST_EQUAL(chrom.size(), 59);
   // we sort/reorder 
@@ -129,7 +121,7 @@ START_SECTION((template <typename ExperimentT> void extractChromatograms(const E
 
   double max_value = -1; double foundat = -1;
   chrom = out_exp.getChromatograms()[firstchromat];
-  for(MSChromatogram<ChromatogramPeak>::iterator it = chrom.begin(); it != chrom.end(); it++)
+  for(MSChromatogram::iterator it = chrom.begin(); it != chrom.end(); it++)
   {
     if(it->getIntensity() > max_value)
     {
@@ -142,7 +134,7 @@ START_SECTION((template <typename ExperimentT> void extractChromatograms(const E
 
   max_value = -1; foundat = -1;
   chrom = out_exp.getChromatograms()[secondchromat];
-  for(MSChromatogram<ChromatogramPeak>::iterator it = chrom.begin(); it != chrom.end(); it++)
+  for(MSChromatogram::iterator it = chrom.begin(); it != chrom.end(); it++)
   {
     if(it->getIntensity() > max_value)
     {
@@ -156,7 +148,7 @@ START_SECTION((template <typename ExperimentT> void extractChromatograms(const E
 
   max_value = -1; foundat = -1;
   chrom = out_exp.getChromatograms()[thirdchromat];
-  for(MSChromatogram<ChromatogramPeak>::iterator it = chrom.begin(); it != chrom.end(); it++)
+  for(MSChromatogram::iterator it = chrom.begin(); it != chrom.end(); it++)
   {
     if(it->getIntensity() > max_value)
     {
@@ -240,7 +232,7 @@ START_SECTION(void prepare_coordinates(std::vector< OpenSwath::ChromatogramPtr >
 }
 END_SECTION
 
-START_SECTION((template < typename TransitionExpT > static void return_chromatogram(std::vector< OpenSwath::ChromatogramPtr > &chromatograms, std::vector< ExtractionCoordinates > &coordinates, TransitionExpT &transition_exp_used, SpectrumSettings settings, std::vector< OpenMS::MSChromatogram<> > &output_chromatograms, bool ms1)))
+START_SECTION((template < typename TransitionExpT > static void return_chromatogram(std::vector< OpenSwath::ChromatogramPtr > &chromatograms, std::vector< ExtractionCoordinates > &coordinates, TransitionExpT &transition_exp_used, SpectrumSettings settings, std::vector< OpenMS::MSChromatogram > &output_chromatograms, bool ms1)))
 {
   double extract_window = 0.05;
   double ppm = false;
@@ -262,7 +254,7 @@ START_SECTION((template < typename TransitionExpT > static void return_chromatog
   extractor.extractChromatograms(expptr, output_chromatograms, coordinates, 
       extract_window, ppm, extraction_function);
   
-  std::vector< OpenMS::MSChromatogram<> > chromatograms;
+  std::vector< OpenMS::MSChromatogram > chromatograms;
   extractor.return_chromatogram(output_chromatograms, coordinates, transitions, (*exp)[0], chromatograms, false);
 
   TEST_EQUAL(chromatograms.size(), 3)
@@ -333,7 +325,7 @@ START_SECTION(( template < typename SpectrumT > void extract_value_tophat(const 
   std::vector<double> intensities (int_arr, int_arr + sizeof(int_arr) / sizeof(int_arr[0]) );
 
   // convert the data into a spectrum
-  MSSpectrum<Peak1D> spectrum;
+  MSSpectrum spectrum;
   for(Size i=0; i<mz.size(); ++i)
   {
     Peak1D peak;
@@ -406,7 +398,7 @@ START_SECTION( ( template < typename SpectrumT > void extract_value_bartlett(con
   std::vector<double> intensities (int_arr, int_arr + sizeof(int_arr) / sizeof(int_arr[0]) );
 
   // convert the data into a spectrum
-  MSSpectrum<Peak1D> spectrum;
+  MSSpectrum spectrum;
   for(Size i=0; i<mz.size(); ++i)
   {
     Peak1D peak;

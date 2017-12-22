@@ -35,6 +35,8 @@
 #ifndef OPENMS_DATASTRUCTURES_SEQANINCLUDEWRAPPER_H
 #define OPENMS_DATASTRUCTURES_SEQANINCLUDEWRAPPER_H
 
+#include <cstdio> // required to prevent Seqan from defining std functions which later conflict
+
 #ifdef _MSC_VER // disable some seqan warnings that distract from ours
 #   pragma warning( push ) // save warning state
 #   pragma warning( disable : 4244 4267 4390 4521 4522 4800)

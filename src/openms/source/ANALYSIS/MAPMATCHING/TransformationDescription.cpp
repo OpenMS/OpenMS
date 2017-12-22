@@ -48,7 +48,7 @@ using namespace std;
 namespace OpenMS
 {
   TransformationDescription::TransformationDescription() :
-    data_(TransformationDescription::DataPoints()), 
+    data_(TransformationDescription::DataPoints()),
     model_type_("none"),
     model_(new TransformationModel())
   {
@@ -71,7 +71,7 @@ namespace OpenMS
   {
     data_ = rhs.data_;
     model_type_ = "none";
-    model_ = 0; // initialize this before the "delete" call in "fitModel"!
+    model_ = nullptr; // initialize this before the "delete" call in "fitModel"!
     Param params = rhs.getModelParameters();
     fitModel(rhs.model_type_, params);
   }
@@ -97,7 +97,7 @@ namespace OpenMS
     if (model_type_ == "identity") return;
 
     delete model_;
-    model_ = 0; // avoid segmentation fault in case of exception
+    model_ = nullptr; // avoid segmentation fault in case of exception
     if ((model_type == "none") || (model_type == "identity"))
     {
       model_ = new TransformationModel();
@@ -154,6 +154,18 @@ namespace OpenMS
     model_ = new TransformationModel();
   }
 
+  void TransformationDescription::setDataPoints(const vector<pair<double, double> >& data)
+  {
+    data_.resize(data.size());
+    for (Size i = 0; i < data.size(); ++i)
+    {
+      data_[i] = data[i];
+    }
+    model_type_ = "none"; // reset the model even if it was "identity"
+    delete model_;
+    model_ = new TransformationModel();
+  }
+
   const TransformationDescription::DataPoints&
   TransformationDescription::getDataPoints() const
   {
@@ -170,7 +182,8 @@ namespace OpenMS
     for (TransformationDescription::DataPoints::iterator it = data_.begin();
          it != data_.end(); ++it)
     {
-      *it = make_pair(it->second, it->first);
+      *it = TransformationDescription::DataPoint(it->second, it->first,
+                                                 it->note);
     }
     // ugly hack for linear model with explicit slope/intercept parameters:
     if ((model_type_ == "linear") && data_.empty())
@@ -239,7 +252,7 @@ namespace OpenMS
     }
     // else:
     getDeviations(diffs, true);
-    os << "Summary of x/y deviations after applying '" << model_type_ 
+    os << "Summary of x/y deviations after applying '" << model_type_
        << "' transformation:\n";
     for (Size i = 0; i < 7; ++i)
     {

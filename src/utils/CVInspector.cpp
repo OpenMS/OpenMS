@@ -77,7 +77,7 @@ public:
 
 protected:
 
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     registerInputFileList_("cv_files", "<files>", StringList(), "List of ontology files in OBO format.");
     setValidFormats_("cv_files", ListUtils::create<String>("obo"));
@@ -143,7 +143,7 @@ protected:
     }
   }
 
-  ExitCodes main_(int, const char**)
+  ExitCodes main_(int, const char**) override
   {
     StringList cv_files = getStringList_("cv_files");
     StringList cv_names = getStringList_("cv_names");

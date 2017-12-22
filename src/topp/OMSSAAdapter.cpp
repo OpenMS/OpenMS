@@ -36,7 +36,7 @@
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/CHEMISTRY/ModificationDefinitionsSet.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
-#include <OpenMS/CHEMISTRY/EnzymesDB.h>
+#include <OpenMS/CHEMISTRY/ProteaseDB.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/DATASTRUCTURES/ListUtilsIO.h>
 #include <OpenMS/FORMAT/FileHandler.h>
@@ -194,15 +194,16 @@ protected:
     return true;
   }
 
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "Input file ");
     setValidFormats_("in", ListUtils::create<String>("mzML"));
     registerOutputFile_("out", "<file>", "", "Output file ");
     setValidFormats_("out", ListUtils::create<String>("idXML"));
 
-    registerDoubleOption_("precursor_mass_tolerance", "<tolerance>", 1.5, "Precursor mass tolerance (Default: Dalton)", false);
-    registerFlag_("precursor_mass_tolerance_unit_ppm", "If this flag is set, ppm is used as precursor mass tolerance unit");
+    registerDoubleOption_("precursor_mass_tolerance", "<tolerance>", 10.0, "Precursor monoisotopic mass tolerance", false);
+    registerStringOption_("precursor_error_units", "<choice>", "ppm", "Unit of precursor mass tolerance", false);
+    setValidStrings_("precursor_error_units", ListUtils::create<String>("Da,ppm"));
     registerDoubleOption_("fragment_mass_tolerance", "<tolerance>", 0.3, "Fragment mass error in Dalton", false);
     registerInputFile_("database", "<psq or fasta>", "", "NCBI formatted FASTA files. The .psq filename should be given, e.g. 'SwissProt.fasta.psq'. If the filename does not end in '.psq' (e.g., SwissProt.fasta) the psq suffix will be added automatically. Non-existing relative file-names are looked up via'OpenMS.ini:id_db_dir'", true, false, ListUtils::create<String>("skipexists"));
     setValidFormats_("database", ListUtils::create<String>("psq,fasta"));
@@ -312,7 +313,7 @@ protected:
     //-nox <Integer> maximum size of peptides for no-enzyme and semi-tryptic searches
     registerIntOption_("v", "<Integer>", 1, "number of missed cleavages allowed", false);
     vector<String> all_enzymes;
-    EnzymesDB::getInstance()->getAllOMSSANames(all_enzymes);
+    ProteaseDB::getInstance()->getAllOMSSANames(all_enzymes);
     registerStringOption_("enzyme", "<enzyme>", "Trypsin", "The enzyme used for peptide digestion.", false);
     setValidStrings_("enzyme", all_enzymes);
     //registerIntOption_("e", "<Integer>", 0, "id number of enzyme to use (0 (i.e. trypsin) is the default, 17 would be no enzyme (i.e. unspecific digestion). Please refer to 'omssacl -el' for a listing.", false);
@@ -387,7 +388,7 @@ protected:
     registerIntOption_("chunk_size", "<Integer>", 0, "Number of spectra to submit in one chunk to OMSSA. Chunks with more than 30k spectra will likely cause memory allocation issues with 32bit OMSSA versions (which is usually the case on Windows). To disable chunking (i.e. submit all spectra in one big chunk), set it to '0'.", false, true);
   }
 
-  ExitCodes main_(int, const char**)
+  ExitCodes main_(int, const char**) override
   {
     StringList parameters;
     // path to the log file
@@ -501,11 +502,11 @@ protected:
     parameters << "-to" << String(getDoubleOption_("fragment_mass_tolerance")); //String(getDoubleOption_("to"));
     parameters << "-hs" << String(getIntOption_("hs"));
     parameters << "-te" << String(getDoubleOption_("precursor_mass_tolerance")); //String(getDoubleOption_("te"));
-    if (getFlag_("precursor_mass_tolerance_unit_ppm"))
+    if (getStringOption_("precursor_error_units") == "ppm")
     {
       if (omssa_version_i < OMSSAVersion(2, 1, 8))
       {
-        writeLog_("This OMSSA version (" + omssa_version + ") does not support the 'precursor_mass_tolerance_unit_ppm' flag."
+        writeLog_("This OMSSA version (" + omssa_version + ") does not support ppm tolerances."
                   + " Please disable it and set the precursor tolerance in Da."
                   + " Required version is 2.1.8 and above.\n");
         return ILLEGAL_PARAMETERS;
@@ -532,7 +533,7 @@ protected:
     parameters << "-i" << getStringOption_("i");
     parameters << "-z1" << String(getDoubleOption_("z1"));
     parameters << "-v" << String(getIntOption_("v"));
-    parameters << "-e" << String(EnzymesDB::getInstance()->getEnzyme(getStringOption_("enzyme"))->getOMSSAID());
+    parameters << "-e" << String(ProteaseDB::getInstance()->getEnzyme(getStringOption_("enzyme"))->getOMSSAID());
     parameters << "-tez" << String(getIntOption_("tez"));
 
 
@@ -1019,13 +1020,13 @@ protected:
     search_parameters.mass_type = mass_type;
     search_parameters.fixed_modifications = getStringList_("fixed_modifications");
     search_parameters.variable_modifications = getStringList_("variable_modifications");
-    search_parameters.digestion_enzyme = *EnzymesDB::getInstance()->getEnzyme(getStringOption_("enzyme"));
+    search_parameters.digestion_enzyme = *(ProteaseDB::getInstance()->getEnzyme(getStringOption_("enzyme")));
     search_parameters.missed_cleavages = getIntOption_("v");
     search_parameters.fragment_mass_tolerance = getDoubleOption_("fragment_mass_tolerance");
     search_parameters.precursor_mass_tolerance = getDoubleOption_("precursor_mass_tolerance");
-    search_parameters.precursor_mass_tolerance_ppm = getFlag_("precursor_mass_tolerance_unit_ppm");
+    search_parameters.precursor_mass_tolerance_ppm = getStringOption_("precursor_error_units") == "ppm";
     search_parameters.fragment_mass_tolerance_ppm = false; // OMSSA doesn't support ppm fragment mass tolerance
-    
+
     protein_identification.setSearchParameters(search_parameters);
     protein_identification.setSearchEngineVersion(omssa_version);
     protein_identification.setSearchEngine("OMSSA");

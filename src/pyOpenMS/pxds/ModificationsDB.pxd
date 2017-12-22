@@ -7,7 +7,8 @@ from ResidueModification cimport *
 cdef extern from "<OpenMS/CHEMISTRY/ModificationsDB.h>" namespace "OpenMS":
     
     cdef cppclass ModificationsDB "OpenMS::ModificationsDB":
-        # wrap-manual-memory
+        # wrap-manual-memory:
+        #   cdef AutowrapPtrHolder[_ModificationsDB] inst
 
         ModificationsDB(ModificationsDB) nogil except + #wrap-ignore
 

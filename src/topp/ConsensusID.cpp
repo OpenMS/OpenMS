@@ -141,7 +141,7 @@ protected:
 
   String algorithm_; // algorithm for consensus calculation (input parameter)
 
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "input file");
     setValidFormats_("in", ListUtils::create<String>("idXML,featureXML,consensusXML"));
@@ -178,7 +178,7 @@ protected:
   }
 
 
-  Param getSubsectionDefaults_(const String& section) const
+  Param getSubsectionDefaults_(const String& section) const override
   {
     Param algo_params;
     if (section == "PEPMatrix")
@@ -273,7 +273,7 @@ protected:
   }
 
 
-  ExitCodes main_(int, const char**)
+  ExitCodes main_(int, const char**) override
   {
     String in = getStringOption_("in");
     FileTypes::Type in_type = FileHandler::getType(in);

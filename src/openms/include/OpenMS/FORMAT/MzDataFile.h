@@ -62,7 +62,7 @@ public:
     ///Default constructor
     MzDataFile();
     ///Destructor
-    ~MzDataFile();
+    ~MzDataFile() override;
 
     /// Mutable access to the options for loading/storing
     PeakFileOptions & getOptions();

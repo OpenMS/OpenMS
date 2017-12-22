@@ -52,8 +52,8 @@ START_TEST(String, "$Id$")
 
 /////////////////////////////////////////////////////////////
 
-PepNovoOutfile* ptr = 0;
-PepNovoOutfile* nullPointer = 0;
+PepNovoOutfile* ptr = nullptr;
+PepNovoOutfile* nullPointer = nullptr;
 START_SECTION(PepNovoOutfile())
   ptr = new PepNovoOutfile();
   TEST_NOT_EQUAL(ptr, nullPointer)

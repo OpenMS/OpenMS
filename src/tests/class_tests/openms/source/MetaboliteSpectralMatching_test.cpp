@@ -46,8 +46,8 @@ START_TEST(MetaboliteSpectralMatching, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-MetaboliteSpectralMatching* ptr = 0;
-MetaboliteSpectralMatching* null_ptr = 0;
+MetaboliteSpectralMatching* ptr = nullptr;
+MetaboliteSpectralMatching* null_ptr = nullptr;
 START_SECTION(MetaboliteSpectralMatching())
 {
 	ptr = new MetaboliteSpectralMatching();
@@ -67,7 +67,7 @@ START_SECTION((virtual ~MetaboliteSpectralMatching()))
 }
 END_SECTION
 
-START_SECTION((double computeHyperScore(MSSpectrum< Peak1D >, MSSpectrum< Peak1D >, const double &, const double &)))
+START_SECTION((double computeHyperScore(MSSpectrum, MSSpectrum, const double &, const double &)))
 {
   // TODO
 }

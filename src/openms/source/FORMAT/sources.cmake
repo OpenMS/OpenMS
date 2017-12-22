@@ -3,6 +3,7 @@ set(directory source/FORMAT)
 
 ### list all filenames of the directory here
 set(sources_list
+AbsoluteQuantitationMethodFile.cpp
 Base64.cpp
 Bzip2Ifstream.cpp
 Bzip2InputStream.cpp
@@ -31,12 +32,13 @@ InspectInfile.cpp
 InspectOutfile.cpp
 KroenikFile.cpp
 LibSVMEncoder.cpp
+MRMFeatureQCFile.cpp
 MS2File.cpp
 MSNumpressCoder.cpp
 MSPFile.cpp
 MascotInfile.cpp
 MascotGenericFile.cpp
-MascotRemoteQuery.cpp
+###MascotRemoteQuery.cpp
 MascotXMLFile.cpp
 MsInspectFile.cpp
 MzDataFile.cpp
@@ -48,6 +50,7 @@ MzTabFile.cpp
 MzXMLFile.cpp
 OMSSACSVFile.cpp
 OMSSAXMLFile.cpp
+OSWFile.cpp
 ParamXMLFile.cpp
 PTMXMLFile.cpp
 PeakTypeEstimator.cpp

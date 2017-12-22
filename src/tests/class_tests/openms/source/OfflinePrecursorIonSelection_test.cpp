@@ -50,8 +50,8 @@ START_TEST(OfflinePrecursorIonSelection, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-OfflinePrecursorIonSelection* ptr = 0;
-OfflinePrecursorIonSelection* nullPointer = 0;
+OfflinePrecursorIonSelection* ptr = nullptr;
+OfflinePrecursorIonSelection* nullPointer = nullptr;
 START_SECTION(OfflinePrecursorIonSelection())
 	ptr = new OfflinePrecursorIonSelection();
 	TEST_NOT_EQUAL(ptr, nullPointer)
@@ -128,7 +128,7 @@ START_SECTION((template < typename InputPeakType > void getMassRanges(const Feat
   /// test for empty experiment
   PeakMap empty_map;
   TEST_EXCEPTION(Exception::InvalidSize, ptr->getMassRanges(map,empty_map,indices));
-  MSSpectrum<> spec;
+  MSSpectrum spec;
   Peak1D p;
   p.setMZ(337.);
   spec.push_back(p);

@@ -107,7 +107,7 @@ namespace OpenMS
   {
     if (!dirNameValid(ui_->line_edit->text()))
     {
-      QMessageBox::warning(0, "Invalid directory", "Either the specified path is no directory, or you have no permission to write there.");
+      QMessageBox::warning(nullptr, "Invalid directory", "Either the specified path is no directory, or you have no permission to write there.");
       return;
     }
 

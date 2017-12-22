@@ -52,8 +52,8 @@ START_TEST(PSLPFormulation, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-PSLPFormulation* ptr = 0;
-PSLPFormulation* nullPointer = 0;
+PSLPFormulation* ptr = nullptr;
+PSLPFormulation* nullPointer = nullptr;
 START_SECTION(PSLPFormulation())
 {
 	ptr = new PSLPFormulation();

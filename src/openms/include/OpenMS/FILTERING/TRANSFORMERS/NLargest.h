@@ -65,7 +65,7 @@ public:
     /// detailed constructor
     NLargest(UInt n);
     /// destructor
-    virtual ~NLargest();
+    ~NLargest() override;
 
     /// copy constructor
     NLargest(const NLargest & source);
@@ -101,7 +101,7 @@ public:
     // @}
 
 protected:
-    void updateMembers_();
+    void updateMembers_() override;
     UInt peakcount_;
 
     /// handles the initialization of the default parameters for the 2 constructors

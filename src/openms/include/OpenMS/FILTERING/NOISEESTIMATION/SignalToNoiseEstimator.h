@@ -53,7 +53,7 @@ namespace OpenMS
     in a given interval [first_,last_).
   */
 
-  template <typename Container = MSSpectrum<> >
+  template <typename Container = MSSpectrum>
   class SignalToNoiseEstimator :
     public DefaultParamHandler, public ProgressLogger
   {
@@ -102,7 +102,7 @@ public:
     }
 
     /// Destructor
-    virtual ~SignalToNoiseEstimator()
+    ~SignalToNoiseEstimator() override
     {}
 
 

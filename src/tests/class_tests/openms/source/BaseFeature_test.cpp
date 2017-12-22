@@ -51,8 +51,8 @@ using namespace std;
 
 typedef BaseFeature::QualityType QualityType;
 typedef BaseFeature::WidthType WidthType;
-BaseFeature* feat_ptr = 0;
-BaseFeature* feat_nullPointer = 0;
+BaseFeature* feat_ptr = nullptr;
+BaseFeature* feat_nullPointer = nullptr;
 
 START_SECTION((BaseFeature()))
 {

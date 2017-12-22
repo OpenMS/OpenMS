@@ -34,57 +34,75 @@
 
 #include <OpenMS/FORMAT/DATAACCESS/MSDataSqlConsumer.h>
 
+#include <OpenMS/FORMAT/HANDLERS/MzMLSqliteHandler.h>
+
 namespace OpenMS
 {
 
-  MSDataSqlConsumer::MSDataSqlConsumer(String filename, bool clearData, int flush_after) :
-        sql_writer_(filename),
-        clearData_(clearData),
-        flush_after_(flush_after)
-      {
-        sql_writer_.createTables();
-      }
+  MSDataSqlConsumer::MSDataSqlConsumer(String filename, int flush_after, bool full_meta, bool lossy_compression, double linear_mass_acc) :
+        filename_(filename),
+        handler_(new OpenMS::Internal::MzMLSqliteHandler(filename) ),
+        flush_after_(flush_after),
+        full_meta_(full_meta)
+  {
+    spectra_.reserve(flush_after_);
+    chromatograms_.reserve(flush_after_);
+
+    handler_->setConfig(full_meta, lossy_compression, linear_mass_acc, flush_after_);
+    handler_->createTables();
+  }
 
   MSDataSqlConsumer::~MSDataSqlConsumer()
   {
     flush();
+
+    // Write run level information into the file (e.g. run id, run name and mzML structure)
+    bool write_full_meta = full_meta_;
+    int run_id = 0;
+    peak_meta_.setLoadedFilePath(filename_);
+    handler_->writeRunLevelInformation(peak_meta_, write_full_meta, run_id);
+
+    delete handler_;
   }
 
   void MSDataSqlConsumer::flush()
   {
-    sql_writer_.writeSpectra(spectra_);
-    spectra_.clear();
-    sql_writer_.writeChromatograms(chromatograms_);
-    chromatograms_.clear();
+    if (!spectra_.empty() ) 
+    {
+      handler_->writeSpectra(spectra_);
+      spectra_.clear();
+      spectra_.reserve(flush_after_);
+    }
+
+    if (!chromatograms_.empty() ) 
+    {
+      handler_->writeChromatograms(chromatograms_);
+      chromatograms_.clear();
+      chromatograms_.reserve(flush_after_);
+    }
   }
 
   void MSDataSqlConsumer::consumeSpectrum(SpectrumType & s)
   {
     spectra_.push_back(s);
-    if (spectra_.size() >= flush_after_)
-    {
-      sql_writer_.writeSpectra(spectra_);
-      spectra_.clear();
-    }
-    if (clearData_) {s.clear(false);}
+    s.clear(false);
+    if (full_meta_) peak_meta_.addSpectrum(s);
+
+    if (spectra_.size() >= flush_after_) {flush();}
   }
 
   void MSDataSqlConsumer::consumeChromatogram(ChromatogramType & c)
   {
     chromatograms_.push_back(c);
-    if (chromatograms_.size() >= flush_after_)
-    {
-      sql_writer_.writeChromatograms(chromatograms_);
-      chromatograms_.clear();
-    }
-    if (clearData_) {c.clear(false);}
+    c.clear(false);
+    if (full_meta_) peak_meta_.addChromatogram(c);
+
+    if (chromatograms_.size() >= flush_after_) {flush();}
   }
 
   void MSDataSqlConsumer::setExpectedSize(Size /* expectedSpectra */, Size /* expectedChromatograms */) {;}
 
   void MSDataSqlConsumer::setExperimentalSettings(const ExperimentalSettings& /* exp */) {;}
-
-
 
 } // namespace OpenMS
 

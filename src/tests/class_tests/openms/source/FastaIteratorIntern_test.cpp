@@ -50,8 +50,8 @@ START_TEST(FastaIteratorIntern, "$Id$")
 /////////////////////////////////////////////////////////////
 typedef std::pair <String, String> FASTAEntry;
 
-FastaIteratorIntern* ptr = 0;
-FastaIteratorIntern* nullPointer = 0;
+FastaIteratorIntern* ptr = nullptr;
+FastaIteratorIntern* nullPointer = nullptr;
 
 START_SECTION(FastaIteratorIntern())
 	ptr = new FastaIteratorIntern();

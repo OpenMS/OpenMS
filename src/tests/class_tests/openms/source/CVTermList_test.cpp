@@ -47,8 +47,8 @@ START_TEST(CVTermList, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-CVTermList* ptr = 0;
-CVTermList* nullPointer = 0;
+CVTermList* ptr = nullptr;
+CVTermList* nullPointer = nullptr;
 START_SECTION(CVTermList())
 {
 	ptr = new CVTermList();

@@ -64,10 +64,10 @@ namespace OpenMS
     Q_OBJECT
 public:
     /// Constructor
-    EnhancedTabBar(QWidget * parent = 0);
+    EnhancedTabBar(QWidget * parent = nullptr);
 
     /// Destructor
-    ~EnhancedTabBar();
+    ~EnhancedTabBar() override;
 
     /// Adds a new tab with the name @p text and the identifier @p id
     int addTab(const String & text, int id);
@@ -95,10 +95,10 @@ signals:
 protected:
     ///@name Reimplemented Qt events
     //@{
-    void mouseDoubleClickEvent(QMouseEvent * e);
-    void contextMenuEvent(QContextMenuEvent * e);
-    void dragEnterEvent(QDragEnterEvent * e);
-    void dropEvent(QDropEvent * e);
+    void mouseDoubleClickEvent(QMouseEvent * e) override;
+    void contextMenuEvent(QContextMenuEvent * e) override;
+    void dragEnterEvent(QDragEnterEvent * e) override;
+    void dropEvent(QDropEvent * e) override;
     //@}
 
     /// Returns the QTabBar index of the tab at position @p pos. If there is no tab at that position -1 is returned.

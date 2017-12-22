@@ -4,7 +4,7 @@ import numpy as np
 
     def get_peaks(self):
 
-        cdef _MSChromatogram[_ChromatogramPeak] * chrom_ = self.inst.get()
+        cdef _MSChromatogram * chrom_ = self.inst.get()
 
         cdef unsigned int n = chrom_.size()
         cdef np.ndarray[np.float64_t, ndim=1] rts
@@ -31,7 +31,7 @@ import numpy as np
         rts, intensities = peaks
         assert len(rts) == len(intensities), "Input vectors for set_peaks need to have the same length (rt and intensity vector)"
 
-        cdef _MSChromatogram[_ChromatogramPeak] * chrom_ = self.inst.get()
+        cdef _MSChromatogram * chrom_ = self.inst.get()
 
         chrom_.clear(0) # empty vector, keep meta data
         # chrom_.reserve(<int>len(rts)) # allocate space for incoming data

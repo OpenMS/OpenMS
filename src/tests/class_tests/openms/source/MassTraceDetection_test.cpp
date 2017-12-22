@@ -48,8 +48,8 @@ START_TEST(MassTraceDetection, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-MassTraceDetection* ptr = 0;
-MassTraceDetection* null_ptr = 0;
+MassTraceDetection* ptr = nullptr;
+MassTraceDetection* null_ptr = nullptr;
 START_SECTION(MassTraceDetection())
 {
     ptr = new MassTraceDetection();
@@ -140,7 +140,7 @@ START_SECTION((void run(const PeakMap &, std::vector< MassTrace > &)))
     // Test by adding MS2 spectra to the input
     {
       PeakMap input_new;
-      MSSpectrum<> s;
+      MSSpectrum s;
       s.setMSLevel(2);
       {
         Peak1D p;

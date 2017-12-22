@@ -17,6 +17,7 @@ set(OpenMS_sources ${OpenMS_sources} ${sources})
 
 ### list all header files of the directory here
 set(sources_list_h
+AbsoluteQuantitationMethodFile.h
 Base64.h
 Bzip2Ifstream.h
 Bzip2InputStream.h
@@ -44,12 +45,13 @@ InspectInfile.h
 InspectOutfile.h
 KroenikFile.h
 LibSVMEncoder.h
+MRMFeatureQCFile.h
 MS2File.h
 MSNumpressCoder.h
 MSPFile.h
 MascotInfile.h
 MascotGenericFile.h
-MascotRemoteQuery.h
+###MascotRemoteQuery.h
 MascotXMLFile.h
 MsInspectFile.h
 MzDataFile.h
@@ -59,6 +61,7 @@ MzTabFile.h
 MzXMLFile.h
 OMSSACSVFile.h
 OMSSAXMLFile.h
+OSWFile.h
 ParamXMLFile.h
 PTMXMLFile.h
 PeakTypeEstimator.h

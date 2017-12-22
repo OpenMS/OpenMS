@@ -72,7 +72,7 @@ public:
     RTSimulation(const RTSimulation& source);
 
     /// Destructor
-    virtual ~RTSimulation();
+    ~RTSimulation() override;
     //@}
 
     /// Assignment operator
@@ -160,7 +160,7 @@ protected:
     SimTypes::MutableSimRandomNumberGeneratorPtr rnd_gen_;
 
     /// Synchronize members with param class
-    void updateMembers_();
+    void updateMembers_() override;
 
   };
 

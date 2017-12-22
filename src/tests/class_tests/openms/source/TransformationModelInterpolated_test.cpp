@@ -52,8 +52,8 @@ START_TEST(TransformationModelInterpolated, "$Id$")
 using namespace OpenMS;
 using namespace std;
 
-TransformationModelInterpolated* ptr = 0;
-TransformationModelInterpolated* nullPointer = 0;
+TransformationModelInterpolated* ptr = nullptr;
+TransformationModelInterpolated* nullPointer = nullptr;
 
 TransformationModel::DataPoints dummy_data;
 dummy_data.push_back(make_pair(0.0, 1.0));

@@ -90,8 +90,8 @@ START_TEST(AsymmetricStatistics, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-AsymmetricStatistics<double>* ptr = 0;
-AsymmetricStatistics<double>* nullPointer = 0;
+AsymmetricStatistics<double>* ptr = nullptr;
+AsymmetricStatistics<double>* nullPointer = nullptr;
 START_SECTION(AsymmetricStatistics())
 {
 	ptr = new AsymmetricStatistics<double>();

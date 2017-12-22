@@ -90,7 +90,7 @@ public:
   }
 
 protected:
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "input file ");
     setValidFormats_("in", ListUtils::create<String>("idXML"));
@@ -101,7 +101,7 @@ protected:
     registerIntOption_("max_number_of_peptides", "<int>", 100000, "the maximum number of peptides considered at once (bigger number will lead to faster results but needs more memory).\n", false);
   }
 
-  ExitCodes main_(int, const char**)
+  ExitCodes main_(int, const char**) override
   {
     IdXMLFile idXML_file;
     vector<ProteinIdentification> protein_identifications;
@@ -114,7 +114,7 @@ protected:
     vector<double> predicted_likelihoods;
     vector<double> predicted_labels;
     map<String, double> predicted_data;
-    svm_problem* training_data = NULL;
+    svm_problem* training_data = nullptr;
     UInt border_length = 0;
     UInt k_mer_length = 0;
     double sigma = 0;
@@ -213,7 +213,7 @@ protected:
       temp_peptides.insert(temp_peptides.end(), it_from, it_to);
       temp_labels.resize(temp_peptides.size(), 0);
 
-      svm_problem* prediction_data = NULL;
+      svm_problem* prediction_data = nullptr;
 
       if (svm.getIntParameter(SVMWrapper::KERNEL_TYPE) != SVMWrapper::OLIGO)
       {
@@ -223,7 +223,7 @@ protected:
                                                                      allowed_amino_acid_characters,
                                                                      maximum_length);
       }
-      else if (svm.getIntParameter(SVMWrapper::KERNEL_TYPE) == SVMWrapper::OLIGO)
+      else
       {
         prediction_data = encoder.encodeLibSVMProblemWithOligoBorderVectors(temp_peptides,
                                                                             temp_labels,

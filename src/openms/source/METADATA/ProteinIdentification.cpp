@@ -82,7 +82,7 @@ namespace OpenMS
     fragment_mass_tolerance_ppm(false),
     precursor_mass_tolerance(0.0),
     precursor_mass_tolerance_ppm(false),
-    digestion_enzyme("unknown_enzyme","")
+    digestion_enzyme("unknown_enzyme", "")
   {
   }
 
@@ -358,7 +358,7 @@ namespace OpenMS
         }
       }
     }
-    
+
     for (Size i = 0; i < protein_hits_.size(); ++i)
     {
       const Size protein_length = protein_hits_[i].getSequence().length();
@@ -367,7 +367,7 @@ namespace OpenMS
         throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, " ProteinHits do not contain a protein sequence. Cannot compute coverage! Use PeptideIndexer to annotate proteins with sequence information.");
       }
       vector<bool> covered_amino_acids(protein_length, false);
-      
+
       const String & accession = protein_hits_[i].getAccession();
       double coverage = 0.0;
       if (map_acc_2_evidence.find(accession) != map_acc_2_evidence.end())
@@ -377,22 +377,22 @@ namespace OpenMS
         {
           int start = sit->getStart();
           int stop = sit->getEnd();
-          
+
           if (start == PeptideEvidence::UNKNOWN_POSITION || stop == PeptideEvidence::UNKNOWN_POSITION)
           {
-            throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
+            throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
               " PeptideEvidence does not contain start or end position. Cannot compute coverage!");
           }
 
           if (start < 0 || stop < start || stop > static_cast<int>(protein_length))
           {
             const String message = " PeptideEvidence (start/end) (" + String(start) + "/" + String(stop) +
-                                   " ) are invalid or point outside of protein '" + accession + 
-                                   "' (length: " + String(protein_length) + 
+                                   " ) are invalid or point outside of protein '" + accession +
+                                   "' (length: " + String(protein_length) +
                                    "). Cannot compute coverage!";
             throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, message);
           }
-          
+
           std::fill(covered_amino_acids.begin() + start, covered_amino_acids.begin() + stop + 1, true);
         }
         coverage = 100.0 * (double) std::accumulate(covered_amino_acids.begin(), covered_amino_acids.end(), 0) / protein_length;

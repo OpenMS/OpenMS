@@ -79,9 +79,9 @@ struct _Node_base
   _Base_ptr _M_left;
   _Base_ptr _M_right;
 
-  _Node_base(_Base_ptr const __PARENT = NULL,
-             _Base_ptr const __LEFT = NULL,
-             _Base_ptr const __RIGHT = NULL)
+  _Node_base(_Base_ptr const __PARENT = nullptr,
+             _Base_ptr const __LEFT = nullptr,
+             _Base_ptr const __RIGHT = nullptr)
     : _M_parent(__PARENT), _M_left(__LEFT), _M_right(__RIGHT) {}
 
   static _Base_ptr
@@ -108,9 +108,9 @@ struct _Node : public _Node_base
   _Val _M_value;
 
   _Node(_Val const& __VALUE = _Val(),
-        _Base_ptr const __PARENT = NULL,
-        _Base_ptr const __LEFT = NULL,
-        _Base_ptr const __RIGHT = NULL)
+        _Base_ptr const __PARENT = nullptr,
+        _Base_ptr const __LEFT = nullptr,
+        _Base_ptr const __RIGHT = nullptr)
     : _Node_base(__PARENT, __LEFT, __RIGHT), _M_value(__VALUE) {}
 
 #ifdef KDTREE_DEFINE_OSTREAM_OPERATORS
@@ -544,7 +544,7 @@ public:
     NoLeakAlloc(_Alloc_base * b) : base(b), new_node(base->_M_allocate_node()) {}
 
     _Node_ * get() { return new_node; }
-    void disconnect() { new_node = NULL; }
+    void disconnect() { new_node = nullptr; }
 
     ~NoLeakAlloc() { if (new_node) base->_M_deallocate_node(new_node); }
   };
@@ -649,7 +649,7 @@ protected:
   typedef _Node_base::_Base_const_ptr _Base_const_ptr;
   _Base_const_ptr _M_node;
 
-  inline _Base_iterator(_Base_const_ptr const __N = NULL)
+  inline _Base_iterator(_Base_const_ptr const __N = nullptr)
     : _M_node(__N) {}
   inline _Base_iterator(_Base_iterator const& __THAT)
     : _M_node(__THAT._M_node) {}
@@ -1032,7 +1032,7 @@ struct _Region
 
 
 //
-//  This number is guarenteed to change with every release.
+//  This number is guaranteed to change with every release.
 //
 //  KDTREE_VERSION % 100 is the patch level
 //  KDTREE_VERSION / 100 % 1000 is the minor version
@@ -1233,7 +1233,7 @@ public:
     _M_erase_subtree(_M_get_root());
     _M_set_leftmost(&_M_header);
     _M_set_rightmost(&_M_header);
-    _M_set_root(NULL);
+    _M_set_root(nullptr);
     _M_count = 0;
   }
 
@@ -1626,8 +1626,8 @@ protected:
   {
     _M_set_leftmost(&_M_header);
     _M_set_rightmost(&_M_header);
-    _M_header._M_parent = NULL;
-    _M_set_root(NULL);
+    _M_header._M_parent = nullptr;
+    _M_set_root(nullptr);
   }
 
   iterator
@@ -1758,6 +1758,7 @@ protected:
 
 
 
+  // TODO: why not pass node by const-ref?
   std::pair<_Link_type,size_type>
   _M_get_j_min( std::pair<_Link_type,size_type> const node, size_type const level)
   {
@@ -1787,6 +1788,7 @@ protected:
 
 
 
+  // TODO: why not pass node by const-ref?
   std::pair<_Link_type,size_type>
   _M_get_j_max( std::pair<_Link_type,size_type> const node, size_type const level)
   {
@@ -2141,9 +2143,9 @@ protected:
 
   _Link_type
   _M_new_node(const_reference __V, //  = value_type(),
-              _Base_ptr const __PARENT = NULL,
-              _Base_ptr const __LEFT = NULL,
-              _Base_ptr const __RIGHT = NULL)
+              _Base_ptr const __PARENT = nullptr,
+              _Base_ptr const __LEFT = nullptr,
+              _Base_ptr const __RIGHT = nullptr)
   {
     typename _Base::NoLeakAlloc noleak(this);
     _Link_type new_node = noleak.get();

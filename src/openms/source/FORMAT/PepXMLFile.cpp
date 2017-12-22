@@ -37,7 +37,7 @@
 #include <OpenMS/CHEMISTRY/ElementDB.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/CHEMISTRY/ResidueDB.h>
-#include <OpenMS/CHEMISTRY/EnzymesDB.h>
+#include <OpenMS/CHEMISTRY/ProteaseDB.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/FileTypes.h>
@@ -60,9 +60,9 @@ namespace OpenMS
   PepXMLFile::PepXMLFile() :
     XMLHandler("", "1.12"),
     XMLFile("/SCHEMAS/pepXML_v114.xsd", "1.14"),
-    proteins_(NULL),
-    peptides_(NULL),
-    lookup_(NULL),
+    proteins_(nullptr),
+    peptides_(nullptr),
+    lookup_(nullptr),
     scan_map_(),
     analysis_summary_(false),
     keep_native_name_(false),
@@ -617,7 +617,7 @@ namespace OpenMS
 
     if (!rt_present) // get RT from experiment
     {
-      if (lookup_ == NULL || lookup_->empty())
+      if (lookup_ == nullptr || lookup_->empty())
       {
         // no lookup given, report non-fatal error
         error(LOAD, "Cannot get RT information - no spectra given");
@@ -710,9 +710,9 @@ namespace OpenMS
     exp_name_.clear();
     prot_id_.clear();
     date_.clear();
-    proteins_ = NULL;
-    peptides_ = NULL;
-    lookup_ = NULL;
+    proteins_ = nullptr;
+    peptides_ = nullptr;
+    lookup_ = nullptr;
     scan_map_.clear();
   }
 
@@ -1295,7 +1295,7 @@ namespace OpenMS
       fixed_modifications_.clear();
       variable_modifications_.clear();
       params_ = ProteinIdentification::SearchParameters();
-      params_.digestion_enzyme = *EnzymesDB::getInstance()->getEnzyme(enzyme_);
+      params_.digestion_enzyme = *(ProteaseDB::getInstance()->getEnzyme(enzyme_));
       String mass_type = attributeAsString_(attributes, "precursor_mass_type");
       if (mass_type == "monoisotopic")
       {
@@ -1354,19 +1354,19 @@ namespace OpenMS
     { // special case: search parameter that occurs *before* "search_summary"!
       enzyme_ = attributeAsString_(attributes, "name");
       if (enzyme_ == "nonspecific") enzyme_ = "unspecific cleavage";
-      if (EnzymesDB::getInstance()->hasEnzyme(enzyme_.toLower()))
+      if (ProteaseDB::getInstance()->hasEnzyme(enzyme_.toLower()))
       {
-        params_.digestion_enzyme = *EnzymesDB::getInstance()->getEnzyme(enzyme_);
+        params_.digestion_enzyme = *(ProteaseDB::getInstance()->getEnzyme(enzyme_));
       }
     }
     else if (element == "enzymatic_search_constraint") // parent: "search_summary"
     {
-      //<enzymatic_search_constraint enzyme="nonspecific" max_num_internal_cleavages="1" min_number_termini="2"/>
+      ///<enzymatic_search_constraint enzyme="nonspecific" max_num_internal_cleavages="1" min_number_termini="2"/>
       enzyme_ = attributeAsString_(attributes, "enzyme");
       if (enzyme_ == "nonspecific") enzyme_ = "unspecific cleavage";
-      if (EnzymesDB::getInstance()->hasEnzyme(enzyme_))
+      if (ProteaseDB::getInstance()->hasEnzyme(enzyme_))
       {
-        params_.digestion_enzyme = *EnzymesDB::getInstance()->getEnzyme(enzyme_.toLower());
+        params_.digestion_enzyme = *(ProteaseDB::getInstance()->getEnzyme(enzyme_.toLower()));
       }
 
       int mc = attributeAsInt_(attributes, "max_num_internal_cleavages");
@@ -1461,7 +1461,7 @@ namespace OpenMS
       {
         const Residue* residue = ResidueDB::getInstance()->getResidue(it->aminoacid);
 
-        if (residue == 0)
+        if (residue == nullptr)
         {
           double new_mass = it->massdiff.toDouble();
           if (it->aminoacid == "" && it->terminus =="n")

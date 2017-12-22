@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <featureMap version="1.9" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/FeatureXML_1_9.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-	<IdentificationRun id="PI_0" date="2016-12-20T18:14:41" search_engine="AccurateMassSearch" search_engine_version="">
+	<IdentificationRun id="PI_0" date="2017-09-01T14:16:44" search_engine="AccurateMassSearch" search_engine_version="">
 		<SearchParameters db="" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="unknown_enzyme" missed_cleavages="0" precursor_peak_tolerance="0" precursor_peak_tolerance_ppm="false" peak_mass_tolerance="0" peak_mass_tolerance_ppm="false" >
 		</SearchParameters>
 		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0">
@@ -73,42 +73,48 @@
 					<UserParam type="stringList" name="description" value="[Panaxydol chlorohydrin]"/>
 					<UserParam type="string" name="modifications" value="M+H+Na;2+"/>
 					<UserParam type="string" name="chemical_formula" value="C17H25ClO2"/>
-					<UserParam type="float" name="ppm_mz_error" value="-2.47953607880854"/>
+					<UserParam type="float" name="mz_error_ppm" value="-2.47953607880854"/>
+					<UserParam type="float" name="mz_error_Da" value="-0.00039691273570952"/>
 				</PeptideHit>
 				<PeptideHit score="0" sequence="" charge="2">
 					<UserParam type="stringList" name="identifier" value="[HMDB:HMDB28803,HMDB:HMDB28971,HMDB:HMDB28987,HMDB:HMDB29155]"/>
 					<UserParam type="stringList" name="description" value="[Glutaminyl-Methionine,Methionyl-Glutamine,Methionyl-Gamma-glutamate,Gamma-glutamyl-Methionine]"/>
 					<UserParam type="string" name="modifications" value="M+CH3CN+2H;2+"/>
 					<UserParam type="string" name="chemical_formula" value="C10H19N3O4S"/>
-					<UserParam type="float" name="ppm_mz_error" value="-2.24182582410076"/>
+					<UserParam type="float" name="mz_error_ppm" value="-2.24182582410076"/>
+					<UserParam type="float" name="mz_error_Da" value="-0.000358861085715034"/>
 				</PeptideHit>
 				<PeptideHit score="0" sequence="" charge="2">
 					<UserParam type="stringList" name="identifier" value="[HMDB:HMDB33355,HMDB:HMDB34110]"/>
 					<UserParam type="stringList" name="description" value="[Dehydroaporheine,Murrayacine]"/>
 					<UserParam type="string" name="modifications" value="M+CH3CN+2H;2+"/>
 					<UserParam type="string" name="chemical_formula" value="C18H15NO2"/>
-					<UserParam type="float" name="ppm_mz_error" value="-4.27813295178491"/>
+					<UserParam type="float" name="mz_error_ppm" value="-4.27813295178491"/>
+					<UserParam type="float" name="mz_error_Da" value="-0.000684825085727425"/>
 				</PeptideHit>
 				<PeptideHit score="0" sequence="" charge="2">
 					<UserParam type="stringList" name="identifier" value="[HMDB:HMDB28982,HMDB:HMDB29045]"/>
 					<UserParam type="stringList" name="description" value="[Methionyl-Serine,Serinyl-Methionine]"/>
 					<UserParam type="string" name="modifications" value="M+2CH3CN+2H;2+"/>
 					<UserParam type="string" name="chemical_formula" value="C8H16N2O4S"/>
-					<UserParam type="float" name="ppm_mz_error" value="-2.24180926936209"/>
+					<UserParam type="float" name="mz_error_ppm" value="-2.24180926953964"/>
+					<UserParam type="float" name="mz_error_Da" value="-0.00035885843573169"/>
 				</PeptideHit>
 				<PeptideHit score="0" sequence="" charge="1">
 					<UserParam type="stringList" name="identifier" value="[HMDB:HMDB01190]"/>
 					<UserParam type="stringList" name="description" value="[Indoleacetaldehyde]"/>
 					<UserParam type="string" name="modifications" value="M+H;1+"/>
 					<UserParam type="string" name="chemical_formula" value="C10H9NO"/>
-					<UserParam type="float" name="ppm_mz_error" value="-4.27814950645615"/>
+					<UserParam type="float" name="mz_error_ppm" value="-4.27814950645615"/>
+					<UserParam type="float" name="mz_error_Da" value="-0.000684827735739191"/>
 				</PeptideHit>
 				<PeptideHit score="0" sequence="" charge="1">
 					<UserParam type="stringList" name="identifier" value="[HMDB:HMDB15400]"/>
 					<UserParam type="stringList" name="description" value="[Hydralazine]"/>
 					<UserParam type="string" name="modifications" value="M;1+"/>
 					<UserParam type="string" name="chemical_formula" value="C8H8N4"/>
-					<UserParam type="float" name="ppm_mz_error" value="4.10961015143698"/>
+					<UserParam type="float" name="mz_error_ppm" value="4.10961015143698"/>
+					<UserParam type="float" name="mz_error_Da" value="0.000657843164276528"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="label" value="T141"/>
@@ -406,14 +412,16 @@
 					<UserParam type="stringList" name="description" value="[Indoleacetaldehyde]"/>
 					<UserParam type="string" name="modifications" value="M+H;1+"/>
 					<UserParam type="string" name="chemical_formula" value="C10H9NO"/>
-					<UserParam type="float" name="ppm_mz_error" value="-4.19995386045077"/>
+					<UserParam type="float" name="mz_error_ppm" value="-4.19995386045077"/>
+					<UserParam type="float" name="mz_error_Da" value="-0.000672310513721186"/>
 				</PeptideHit>
 				<PeptideHit score="0" sequence="" charge="1">
 					<UserParam type="stringList" name="identifier" value="[HMDB:HMDB15400]"/>
 					<UserParam type="stringList" name="description" value="[Hydralazine]"/>
 					<UserParam type="string" name="modifications" value="M;1+"/>
 					<UserParam type="string" name="chemical_formula" value="C8H8N4"/>
-					<UserParam type="float" name="ppm_mz_error" value="4.18780645333146"/>
+					<UserParam type="float" name="mz_error_ppm" value="4.18780645333146"/>
+					<UserParam type="float" name="mz_error_Da" value="0.000670360386294533"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="label" value="T10_T33_T94"/>
@@ -699,7 +707,8 @@
 					<UserParam type="stringList" name="description" value="[null]"/>
 					<UserParam type="string" name="modifications" value="null"/>
 					<UserParam type="string" name="chemical_formula" value=""/>
-					<UserParam type="float" name="ppm_mz_error" value="nan"/>
+					<UserParam type="float" name="mz_error_ppm" value="nan"/>
+					<UserParam type="float" name="mz_error_Da" value="nan"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="label" value="T43_T106_T170"/>
@@ -1099,7 +1108,8 @@
 					<UserParam type="stringList" name="description" value="[6-Methylcoumarin,Viburtinal,7-Methyl-2-benzofurancarboxaldehyde]"/>
 					<UserParam type="string" name="modifications" value="M+H;1+"/>
 					<UserParam type="string" name="chemical_formula" value="C10H8O2"/>
-					<UserParam type="float" name="ppm_mz_error" value="3.26443251694974"/>
+					<UserParam type="float" name="mz_error_ppm" value="3.26443251694974"/>
+					<UserParam type="float" name="mz_error_Da" value="0.000525768541280058"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="label" value="T4_T13_T49"/>
@@ -1171,7 +1181,8 @@
 					<UserParam type="stringList" name="description" value="[null]"/>
 					<UserParam type="string" name="modifications" value="null"/>
 					<UserParam type="string" name="chemical_formula" value=""/>
-					<UserParam type="float" name="ppm_mz_error" value="nan"/>
+					<UserParam type="float" name="mz_error_ppm" value="nan"/>
+					<UserParam type="float" name="mz_error_Da" value="nan"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="label" value="T160"/>
@@ -1371,7 +1382,8 @@
 					<UserParam type="stringList" name="description" value="[null]"/>
 					<UserParam type="string" name="modifications" value="null"/>
 					<UserParam type="string" name="chemical_formula" value=""/>
-					<UserParam type="float" name="ppm_mz_error" value="nan"/>
+					<UserParam type="float" name="mz_error_ppm" value="nan"/>
+					<UserParam type="float" name="mz_error_Da" value="nan"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="label" value="T41_T102"/>
@@ -1536,7 +1548,8 @@
 					<UserParam type="stringList" name="description" value="[null]"/>
 					<UserParam type="string" name="modifications" value="null"/>
 					<UserParam type="string" name="chemical_formula" value=""/>
-					<UserParam type="float" name="ppm_mz_error" value="nan"/>
+					<UserParam type="float" name="mz_error_ppm" value="nan"/>
+					<UserParam type="float" name="mz_error_Da" value="nan"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="label" value="T69_T134"/>
@@ -2319,7 +2332,8 @@
 					<UserParam type="stringList" name="description" value="[null]"/>
 					<UserParam type="string" name="modifications" value="null"/>
 					<UserParam type="string" name="chemical_formula" value=""/>
-					<UserParam type="float" name="ppm_mz_error" value="nan"/>
+					<UserParam type="float" name="mz_error_ppm" value="nan"/>
+					<UserParam type="float" name="mz_error_Da" value="nan"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="label" value="T3_T12_T48_T61_T101"/>
@@ -2531,7 +2545,8 @@
 					<UserParam type="stringList" name="description" value="[Promazine,Promethazine]"/>
 					<UserParam type="string" name="modifications" value="M+2Na;2+"/>
 					<UserParam type="string" name="chemical_formula" value="C17H20N2S"/>
-					<UserParam type="float" name="ppm_mz_error" value="-2.08288389896333"/>
+					<UserParam type="float" name="mz_error_ppm" value="-2.08288389896333"/>
+					<UserParam type="float" name="mz_error_Da" value="-0.000343793693701855"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="label" value="T59"/>
@@ -2603,7 +2618,8 @@
 					<UserParam type="stringList" name="description" value="[Promazine,Promethazine]"/>
 					<UserParam type="string" name="modifications" value="M+2Na;2+"/>
 					<UserParam type="string" name="chemical_formula" value="C17H20N2S"/>
-					<UserParam type="float" name="ppm_mz_error" value="3.51941211892098"/>
+					<UserParam type="float" name="mz_error_ppm" value="3.51941211892098"/>
+					<UserParam type="float" name="mz_error_Da" value="0.000580902129314609"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="label" value="T121"/>

@@ -117,7 +117,7 @@ public:
     ///Default constructor
     QcMLFile();
     ///Destructor
-    ~QcMLFile();
+    ~QcMLFile() override;
 
     String map2csv(const std::map< String, std::map<String, String> >& cvs_table, const String& separator) const;
     String exportIDstats(const String& filename) const;
@@ -173,13 +173,13 @@ public:
 
 protected:
     // Docu in base class
-    virtual void endElement(const XMLCh * const /*uri*/, const XMLCh * const /*local_name*/, const XMLCh * const qname);
+    void endElement(const XMLCh * const /*uri*/, const XMLCh * const /*local_name*/, const XMLCh * const qname) override;
 
     // Docu in base class
-    virtual void startElement(const XMLCh * const /*uri*/, const XMLCh * const /*local_name*/, const XMLCh * const qname, const xercesc::Attributes & attributes);
+    void startElement(const XMLCh * const /*uri*/, const XMLCh * const /*local_name*/, const XMLCh * const qname, const xercesc::Attributes & attributes) override;
 
     // Docu in base class
-    virtual void characters(const XMLCh * const chars, const XMLSize_t length);
+    void characters(const XMLCh * const chars, const XMLSize_t length) override;
 
     std::map<String, std::vector< QualityParameter > > runQualityQPs_; //TODO run name attribute to schema of RunQuality
     std::map<String, std::vector< Attachment > > runQualityAts_;

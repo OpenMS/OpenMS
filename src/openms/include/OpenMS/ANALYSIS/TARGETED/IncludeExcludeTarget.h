@@ -69,7 +69,7 @@ public:
     IncludeExcludeTarget(const IncludeExcludeTarget & rhs);
 
     /// destructor
-    virtual ~IncludeExcludeTarget();
+    ~IncludeExcludeTarget() override;
     //@}
 
     /// assignment operator

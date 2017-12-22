@@ -70,10 +70,10 @@ namespace OpenMS
 
 public:
     /// Constructor
-    HistogramWidget(const Math::Histogram<> & distribution, QWidget * parent = 0);
+    HistogramWidget(const Math::Histogram<> & distribution, QWidget * parent = nullptr);
 
     /// Destructor
-    virtual ~HistogramWidget();
+    ~HistogramWidget() override;
 
     /// Returns the value f the lower splitter
     double getLeftSplitter();
@@ -130,11 +130,11 @@ protected:
 
     ///@name reimplemented Qt events
     //@{
-    void paintEvent(QPaintEvent *);
-    void mousePressEvent(QMouseEvent *);
-    void mouseReleaseEvent(QMouseEvent *);
-    void mouseMoveEvent(QMouseEvent *);
-    void resizeEvent(QResizeEvent *);
+    void paintEvent(QPaintEvent *) override;
+    void mousePressEvent(QMouseEvent *) override;
+    void mouseReleaseEvent(QMouseEvent *) override;
+    void mouseMoveEvent(QMouseEvent *) override;
+    void resizeEvent(QResizeEvent *) override;
     //@}
 
 protected slots:
