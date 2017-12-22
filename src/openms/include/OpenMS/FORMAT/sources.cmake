@@ -51,7 +51,7 @@ MSNumpressCoder.h
 MSPFile.h
 MascotInfile.h
 MascotGenericFile.h
-MascotRemoteQuery.h
+###MascotRemoteQuery.h
 MascotXMLFile.h
 MsInspectFile.h
 MzDataFile.h
