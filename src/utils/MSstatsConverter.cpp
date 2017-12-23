@@ -41,6 +41,7 @@
 
 #include <regex>
 
+
 using namespace OpenMS;
 using namespace std;
 
@@ -98,10 +99,10 @@ protected:
   {
     // Input consensusXML
     this->registerInputFile_(TOPPMSstatsConverter::param_in, "<in>", "", "Input consensusXML or featureXML with peptide intensities", true, false);
-    this->setValidFormats_(TOPPMSstatsConverter::param_in, ListUtils::create<String>("consensusXML,featureXML"), true);
+    this->setValidFormats_(TOPPMSstatsConverter::param_in, ListUtils::create<String>("consensusXML"), true);
 
-    this->_registerExperimentalDesignInputFile(TOPPMSstatsConverter::param_in_design_run, "<in_design_run>", "TSV file containing the run description (run table)");
-    this->_registerExperimentalDesignInputFile(TOPPMSstatsConverter::param_in_design_condition, "<in_design_condition>", "TSV file containing the condition description (condition table)");
+    this->registerExperimentalDesignInputFile_(TOPPMSstatsConverter::param_in_design_run, "<in_design_run>", "TSV file containing the run description (run table)");
+    this->registerExperimentalDesignInputFile_(TOPPMSstatsConverter::param_in_design_condition, "<in_design_condition>", "TSV file containing the condition description (condition table)");
 
     this->registerStringOption_(TOPPMSstatsConverter::param_msstats_bioreplicate, "<msstats_bioreplicate>", "Biological Replicate", "Which column in the condition table should be used for MSstats 'BioReplicate'", false, false);
     this->registerStringOption_(TOPPMSstatsConverter::param_msstats_condition, "<msstats_condition>", "", "Which column in the condition table should be used for MSstats 'Condition'", true, false);
@@ -122,107 +123,97 @@ protected:
   {
     try
     {
-      // Output CSV file
+      // Tool arguments
       const String arg_out(this->getStringOption_(TOPPMSstatsConverter::param_out));
+      const String &arg_msstats_condition = this->getStringOption_(TOPPMSstatsConverter::param_msstats_condition);
+      const String &arg_msstats_bioreplicate = this->getStringOption_(TOPPMSstatsConverter::param_msstats_bioreplicate);
 
       // Load the experimental design
       DesignFile file_run(this->getStringOption_(TOPPMSstatsConverter::param_in_design_run), ListUtils::create<String>("Run,Condition"), "Spectra File");
       DesignFile file_condition(this->getStringOption_(TOPPMSstatsConverter::param_in_design_condition), ListUtils::create<String>("Biological Replicate"), "Condition");
-
-      const String & arg_msstats_condition = this->getStringOption_(TOPPMSstatsConverter::param_msstats_condition);
-      const String & arg_msstats_bioreplicate = this->getStringOption_(TOPPMSstatsConverter::param_msstats_bioreplicate);
-
-      _conditionalFatalError(
+      conditionalFatalError_(
     		  "At least one of the specified column names is not part of condition table!",
     		  file_condition.isColumnName(arg_msstats_condition) == false || file_condition.isColumnName(arg_msstats_bioreplicate) ==  false,
 			  ILLEGAL_PARAMETERS);
 
+      // Load the filenames of the design run file
+      std::vector< String > design_run_filenames;
+      file_run.getRowNames(design_run_filenames);
+
+      conditionalFatalError_(
+    		  "File Names in Design Run File are not unique. Cannot continue.",
+			  this->checkUnique_(design_run_filenames) == false,
+			  ILLEGAL_PARAMETERS);
+
+      // Add the header line (With fraction if that has been specified in the experimental design)
+      const bool has_fraction(file_run.isColumnName("Fraction"));
+
       // Input file, must be featureXML or consensusXML
       const String arg_in(this->getStringOption_(TOPPMSstatsConverter::param_in));
-      const FileTypes::Type in_type = FileHandler::getType(arg_in);
-      const bool in_is_featureXML = in_type == FileTypes::FEATUREXML;
-      _conditionalFatalError(
-    		  "The input file is neither consensusXML nor featureXML!",
-			   (in_is_featureXML == false) && (in_type != FileTypes::CONSENSUSXML),
-			   ILLEGAL_PARAMETERS
-      );
+      const FileTypes::Type in_type(FileHandler::getType(arg_in));
 
-      // Determine the features and the protein identifications
-      std::vector< ProteinIdentification > prot_ids;
+      conditionalFatalError_(
+    		  "Input type is not consensusXML!",
+			   (in_type != FileTypes::CONSENSUSXML),
+			   ILLEGAL_PARAMETERS);
+
       std::vector< OpenMS::BaseFeature> features;
       std::vector< OpenMS::String > spectra_paths;
 
-      // FeatureXML
-      if (in_is_featureXML)
+      // For each ConsensusFeature, store the filenames
+      std::vector< std::vector< String > > consensus_feature_filenames;
+      // For each ConsensusFeature, store the intensities
+      std::vector< std::vector< OpenMS::Peak2D::IntensityType > > consensus_feature_intensites;
+
+      ConsensusMap consensus_map;
+      features.reserve(consensus_map.size());
+      ConsensusXMLFile().load(arg_in, consensus_map);
+      consensus_map.getPrimaryMSRunPath(spectra_paths);
+
+      // Reduce spectra path to the basename of the files
+      for (Size i = 0; i < spectra_paths.size(); ++i)
       {
-    	 FeatureMap feature_map;
-    	 FeatureXMLFile().load(arg_in, feature_map);
-    	 prot_ids = feature_map.getProteinIdentifications();
-    	 for (const OpenMS::Feature& feature : feature_map)
-    	 {
-    		 features.push_back(feature);
-    	 }
-    	 feature_map.getPrimaryMSRunPath(spectra_paths);
+    	spectra_paths[i] = File::basename(spectra_paths[i]);
       }
-      // ConsensusXML
-      else
-      {
-    	ConsensusMap consensus_map;
-    	ConsensusXMLFile().load(arg_in, consensus_map);
-    	prot_ids = consensus_map.getProteinIdentifications();
-    	for (const OpenMS::ConsensusFeature consensus_feature : consensus_map)
-    	{
-    	  features.push_back(consensus_feature);
-    	}
-    	consensus_map.getPrimaryMSRunPath(spectra_paths);
-      }
-      const Size n_spectra_path = spectra_paths.size();
-      _conditionalFatalError(
-          		  "Multiple Primary MSRun Path found. Experimental design is not applicable in this case!",
-      			   n_spectra_path > 1,
-      			   ILLEGAL_PARAMETERS
-       );
-      const bool has_default_spectra_path(n_spectra_path == 1);
-      const String default_spectra_path(has_default_spectra_path ? File::basename(spectra_paths[0]) : "");
+      conditionalFatalError_(
+          "The number of files in the consensusXML does not coincide with the number of files in the experimental design!",
+    	  spectra_paths.size() != design_run_filenames.size(),
+          ILLEGAL_PARAMETERS);
+
+      conditionalFatalError_(
+    	  "The spectra file names in the consensusXML are not unique!",
+		  this->checkUnique_(spectra_paths) == false,
+    	  ILLEGAL_PARAMETERS);
+
+      conditionalFatalError_(
+    	  "The filenames in the consensusXML file are not the same as in the experimental design",
+    	  this->checkUnorderedContent_(spectra_paths, design_run_filenames) == false,
+    	  ILLEGAL_PARAMETERS);
+
+	  for (const OpenMS::ConsensusFeature consensus_feature : consensus_map)
+	  {
+	    features.push_back(consensus_feature);
+
+		std::vector< String > filenames;
+		std::vector< OpenMS::Peak2D::IntensityType > intensities;
+
+		// Store the file names and the run intensities of this feature
+		const ConsensusFeature::HandleSetType fs(consensus_feature.getFeatures());
+		for (ConsensusFeature::HandleSetType::const_iterator fit = fs.begin(); fit != fs.end(); ++fit)
+		{
+		  filenames.push_back(spectra_paths[fit->getMapIndex()]);
+		  intensities.push_back(fit->getIntensity());
+		}
+		consensus_feature_filenames.push_back(filenames);
+		consensus_feature_intensites.push_back(intensities);
+	  }
 
       // The output file of the MSstats converter (TODO Change to CSV file once store for CSV files has been implemented)
       TextFile csv_out;
-
-      // Add the header line (With fraction if that has been specified in the experimental design)
-      const bool has_fraction = file_run.isColumnName("Fraction");
-
       csv_out.addLine("ProteinName,PeptideSequence,PrecursorCharge,FragmentIon,ProductCharge,IsotopeLabelType,Condition,BioReplicate,Run,Intensity" + String(has_fraction ? ",Fraction" : ""));
 
       // Regex definition for fragment ions
       std::regex regex_msstats_FragmentIon("[abcxyz][0-9]+");
-
-      // Iterate protein identifications and collect spectra_data metavalue and ID
-      std::map< String, std::set< String> > protid_to_filenames;
-      for (const OpenMS::ProteinIdentification & protein_identification : prot_ids)
-      {
-        const String & identifier = protein_identification.getIdentifier();
-
-        // Prefer the filename in the protein identification for the experimental design if it exists
-        if (protein_identification.metaValueExists(TOPPMSstatsConverter::meta_value_exp_design_key))
-        {
-          const StringList &exp_design_key = protein_identification.getMetaValue(TOPPMSstatsConverter::meta_value_exp_design_key).toStringList();
-          for (const String &meta_value : exp_design_key)
-          {
-            protid_to_filenames[identifier].insert(File::basename(meta_value));
-          }
-        }
-        // otherwise use the PrimaryMSRunPath file path
-        else if (has_default_spectra_path)
-        {
-          protid_to_filenames[identifier].insert(default_spectra_path);
-        }
-        // In all other cases, the spectrum can not matched to the experimental design
-        else
-        {
-          LOG_ERROR << "FATAL: No file name available for protein " << identifier << ". Cannot continue!" << std::endl;
-          return ILLEGAL_PARAMETERS;
-        }
-      }
 
       // These are placeholder fragment annotations and peptide evidences in case the original ones are empty
 
@@ -247,31 +238,12 @@ protected:
       // Stores all the lines that will be present in the final MSstats output,
       std::map< String, std::set<String > > peptideseq_to_outputlines;
 
-      // Store strings to determine the 'run' value in MSstats (runs are the enumeration of the (condition, bioreplicate, fraction) triple)
-      std::map < String, Size > condition_bioreplicate_fraction_to_run;
-
-      for (const OpenMS::BaseFeature & base_feature : features)
+      for (Size i = 0; i < features.size(); ++i)
       {
-        Peak2D::IntensityType intensity = base_feature.getIntensity();
-        assert(intensity > 0);
+        const OpenMS::BaseFeature &base_feature = features[i];
 
-        for (const OpenMS::PeptideIdentification & pep_id : base_feature.getPeptideIdentifications())
+        for (const OpenMS::PeptideIdentification &pep_id : base_feature.getPeptideIdentifications())
         {
-          // Get runs that belong to this identifier
-          std::set< String > filenames;
-          assert(protid_to_filenames.find(pep_id.getIdentifier()) != protid_to_filenames.end());
-
-          for (const String & filename : protid_to_filenames[pep_id.getIdentifier()])
-          {
-            // Test whether the experimental design specifies the encountered filename
-            if (file_run.isRowName(filename) == false)
-            {
-              LOG_FATAL_ERROR << "FATAL: Experimental design does not contain information on file " << filename << ". Cannot continue!" << std::endl;
-              return ILLEGAL_PARAMETERS;
-            }
-            filenames.insert(filename);
-          }
-
           for (const OpenMS::PeptideHit & pep_hit : pep_id.getHits())
           {
             const std::vector< PeptideHit::PeakAnnotation > & original_fragment_annotations = pep_hit.getPeakAnnotations();
@@ -308,24 +280,19 @@ protected:
               }
               const Int frag_charge = (std::max)(frag_ann.charge, 0);
 
-              for (const OpenMS::PeptideEvidence & pep_ev : peptide_evidences)
+              for (const OpenMS::PeptideEvidence &pep_ev : peptide_evidences)
               {
-                // Write new line for each protein accession and for each run
-                for (const String & filename : filenames)
+                // Write new line for each run
+                for (Size j = 0; j < consensus_feature_filenames[i].size(); j++)
                 {
+                  const String &filename = consensus_feature_filenames[i][j];
+                  const OpenMS::Peak2D::IntensityType intensity(consensus_feature_intensites[i][j]);
                   const String & accession = pep_ev.getProteinAccession();
                   peptideseq_to_accessions[sequence].insert(accession);
+
                   const String & condition = file_run.get(filename, "Condition");
                   const String & bioreplicate = file_condition.get(condition, arg_msstats_bioreplicate);
                   const String & fraction = String(has_fraction ? ("," + file_run.get(filename, "Fraction")) : "");
-
-                  // Add the condition_bioreplicate_run
-                  const String triple(condition + ':' + bioreplicate + ':' + fraction);
-                  if (condition_bioreplicate_fraction_to_run.find(triple) == condition_bioreplicate_fraction_to_run.end())
-                  {
-                    Size run_counter(condition_bioreplicate_fraction_to_run.size() + 1);
-                    condition_bioreplicate_fraction_to_run[triple] = run_counter;
-                  }
 
                   peptideseq_to_outputlines[sequence].insert(accession
                                                              + delim + sequence
@@ -335,7 +302,7 @@ protected:
                                                              + delim + isotope_label_type
                                                              + delim + file_condition.get(condition, arg_msstats_condition)
                                                              + delim + bioreplicate
-                                                             + delim + String(condition_bioreplicate_fraction_to_run[triple])
+                                                             + delim + file_run.get(filename, "Run")
                                                              + delim + intensity
                                                              + fraction);
                 }
@@ -382,7 +349,7 @@ protected:
 
 private:
 
-  static void _conditionalFatalError(const String & message, bool error_condition, int exit_code)
+  static void conditionalFatalError_(const String & message, bool error_condition, int exit_code)
   {
     if (error_condition)
     {
@@ -417,15 +384,15 @@ private:
         for (Size i = 0; i < n_entries; ++i)
         {
           line[i] = line[i].trim();
-          _conditionalFatalError("Entry in design table is not allowed to be empty!", line[i].empty(), INPUT_FILE_CORRUPT);
+          conditionalFatalError_("Entry in design table is not allowed to be empty!", line[i].empty(), INPUT_FILE_CORRUPT);
         }
 
         // Line is record
         if (this->_n_columns > 0)
         {
-          _conditionalFatalError("Conflicting number of entries in design table: " + String(n_entries) + " vs. " + String(this->_n_columns), n_entries != this->_n_columns, INPUT_FILE_CORRUPT);
+          conditionalFatalError_("Conflicting number of entries in design table: " + String(n_entries) + " vs. " + String(this->_n_columns), n_entries != this->_n_columns, INPUT_FILE_CORRUPT);
           const String & row_name = line[this->_columnname_to_columnindex[index_column]];
-          _conditionalFatalError("Row name " + row_name + " appears multiple times!", row_names.find(row_name) != row_names.end(), INPUT_FILE_CORRUPT);
+          conditionalFatalError_("Row name " + row_name + " appears multiple times!", row_names.find(row_name) != row_names.end(), INPUT_FILE_CORRUPT);
           this->_entries.push_back(line);
           this->_rowname_to_rowindex[row_name] = row_names.size();
           row_names.insert(row_name);
@@ -438,7 +405,7 @@ private:
             // Ensure that the header lines are unique
             for (Size j = 0; j < i; ++j)
             {
-              _conditionalFatalError("Header names in design table must be unique, but " + line[i] + " appears several times!", line[i] == line[j], INPUT_FILE_CORRUPT);
+              conditionalFatalError_("Header names in design table must be unique, but " + line[i] + " appears several times!", line[i] == line[j], INPUT_FILE_CORRUPT);
             }
             // Remember the index at which this header appears
             this->_columnname_to_columnindex[line[i]] = i;
@@ -447,10 +414,10 @@ private:
           // Make sure that all required headers exist
           for (const String & header : required_headers)
           {
-            _conditionalFatalError("Header '" + header + "' does not exist in input design file!", std::find(line.begin(), line.end(), header) == line.end(), INPUT_FILE_CORRUPT);
+            conditionalFatalError_("Header '" + header + "' does not exist in input design file!", std::find(line.begin(), line.end(), header) == line.end(), INPUT_FILE_CORRUPT);
           }
           // Make sure that the index column appears in the header
-          _conditionalFatalError("Index column is not a header!", std::find(line.begin(), line.end(), index_column) == line.end(), INPUT_FILE_CORRUPT);
+          conditionalFatalError_("Index column is not a header!", std::find(line.begin(), line.end(), index_column) == line.end(), INPUT_FILE_CORRUPT);
           this->_n_columns = n_entries;
         }
       }
@@ -458,7 +425,7 @@ private:
 
     inline String get(const String & row_name, const String & column_name)
     {
-      _conditionalFatalError("Tried to access invalid row or column name!", this->isRowName(row_name) == false || this->isColumnName(column_name) == false, ExitCodes::INCOMPATIBLE_INPUT_DATA);
+      conditionalFatalError_("Tried to access invalid row or column name!", this->isRowName(row_name) == false || this->isColumnName(column_name) == false, ExitCodes::INCOMPATIBLE_INPUT_DATA);
       return (this->_entries[this->_rowname_to_rowindex[row_name]])[this->_columnname_to_columnindex[column_name]];
     }
 
@@ -470,6 +437,16 @@ private:
     inline bool isColumnName(const String & column_name) const
     {
       return this->_columnname_to_columnindex.find(column_name) != this->_columnname_to_columnindex.end();
+    }
+
+    void getRowNames(std::vector< String > &rownames) const
+    {
+    	rownames.clear();
+    	rownames.resize(this->_rowname_to_rowindex.size());
+    	for (const std::pair< String, Size >  &pair : this->_rowname_to_rowindex)
+    	{
+    	  rownames[pair.second] = pair.first;
+    	}
     }
 
 
@@ -488,11 +465,45 @@ private:
     std::map< String, Size > _columnname_to_columnindex;
   };
 
-  void _registerExperimentalDesignInputFile(const String & param_name, const String & argument, const String & description)
+  void registerExperimentalDesignInputFile_(const String & param_name, const String & argument, const String & description)
   {
     static const StringList valid_formats = ListUtils::create<String>("tsv");
     this->registerInputFile_(param_name, argument, "", description, true, false);
     this->setValidFormats_(param_name, valid_formats, true);
+  }
+
+  bool checkUnorderedContent_(const std::vector< String> &first, const std::vector< String > &second)
+  {
+    for (const String &entry : first)
+	{
+	  if (std::find(second.begin(), second.end(), entry) == second.end())
+	  {
+	    return false;
+	  }
+	}
+	for (const String &entry : second)
+	{
+	  if (std::find(first.begin(), first.end(), entry) == first.end())
+	  {
+	    return false;
+	  }
+	}
+    return true;
+  }
+
+  bool checkUnique_(const std::vector< String > &vec) const
+  {
+    for (Size i = 0; i < vec.size(); ++i)
+	{
+	  for (Size j = i + 1; j < vec.size(); ++j)
+	  {
+	    if (vec[i] == vec[j])
+		{
+		  return false;
+		}
+	  }
+	}
+	return true;
   }
 };
 
