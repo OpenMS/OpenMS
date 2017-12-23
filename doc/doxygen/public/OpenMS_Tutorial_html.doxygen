@@ -37,8 +37,9 @@
 	@page OpenMS_tutorial OpenMS tutorial (Quickstart guide for developers)
 
 	First, we give a small introduction to this tutorial and %OpenMS:
-	- @subpage tutorial_general
+	- @subpage tutorial_introduction
 	- @subpage tutorial_structure
+        - @subpage tutorial_buildingOpenMS
 	- @subpage tutorial_terms
 
 	Then you should read about the basic classes and concepts of %OpenMS:
