@@ -87,9 +87,9 @@ public:
   static const String meta_value_exp_design_key;
 
   TOPPMSstatsConverter() :
-      TOPPBase("MSstatsConverter", "Converter to input for MSstats", false)
-      {
-      }
+    TOPPBase("MSstatsConverter", "Converter to input for MSstats", false)
+  {
+  }
 
 protected:
 
@@ -120,7 +120,7 @@ protected:
 
   // the main_ function is called after all parameters are read
   ExitCodes main_(int, const char **) final override
-  {
+      {
     try
     {
       // Tool arguments
@@ -132,18 +132,18 @@ protected:
       DesignFile file_run(this->getStringOption_(TOPPMSstatsConverter::param_in_design_run), ListUtils::create<String>("Run,Condition"), "Spectra File");
       DesignFile file_condition(this->getStringOption_(TOPPMSstatsConverter::param_in_design_condition), ListUtils::create<String>("Biological Replicate"), "Condition");
       conditionalFatalError_(
-    		  "At least one of the specified column names is not part of condition table!",
-    		  file_condition.isColumnName(arg_msstats_condition) == false || file_condition.isColumnName(arg_msstats_bioreplicate) ==  false,
-			  ILLEGAL_PARAMETERS);
+          "At least one of the specified column names is not part of condition table!",
+          file_condition.isColumnName(arg_msstats_condition) == false || file_condition.isColumnName(arg_msstats_bioreplicate) ==  false,
+          ILLEGAL_PARAMETERS);
 
       // Load the filenames of the design run file
       std::vector< String > design_run_filenames;
       file_run.getRowNames(design_run_filenames);
 
       conditionalFatalError_(
-    		  "File Names in Design Run File are not unique. Cannot continue.",
-			  this->checkUnique_(design_run_filenames) == false,
-			  ILLEGAL_PARAMETERS);
+          "File Names in Design Run File are not unique. Cannot continue.",
+          this->checkUnique_(design_run_filenames) == false,
+          ILLEGAL_PARAMETERS);
 
       // Add the header line (With fraction if that has been specified in the experimental design)
       const bool has_fraction(file_run.isColumnName("Fraction"));
@@ -153,9 +153,9 @@ protected:
       const FileTypes::Type in_type(FileHandler::getType(arg_in));
 
       conditionalFatalError_(
-    		  "Input type is not consensusXML!",
-			   (in_type != FileTypes::CONSENSUSXML),
-			   ILLEGAL_PARAMETERS);
+          "Input type is not consensusXML!",
+          (in_type != FileTypes::CONSENSUSXML),
+          ILLEGAL_PARAMETERS);
 
       std::vector< OpenMS::BaseFeature> features;
       std::vector< OpenMS::String > spectra_paths;
@@ -173,40 +173,40 @@ protected:
       // Reduce spectra path to the basename of the files
       for (Size i = 0; i < spectra_paths.size(); ++i)
       {
-    	spectra_paths[i] = File::basename(spectra_paths[i]);
+        spectra_paths[i] = File::basename(spectra_paths[i]);
       }
       conditionalFatalError_(
           "The number of files in the consensusXML does not coincide with the number of files in the experimental design!",
-    	  spectra_paths.size() != design_run_filenames.size(),
+          spectra_paths.size() != design_run_filenames.size(),
           ILLEGAL_PARAMETERS);
 
       conditionalFatalError_(
-    	  "The spectra file names in the consensusXML are not unique!",
-		  this->checkUnique_(spectra_paths) == false,
-    	  ILLEGAL_PARAMETERS);
+          "The spectra file names in the consensusXML are not unique!",
+          this->checkUnique_(spectra_paths) == false,
+          ILLEGAL_PARAMETERS);
 
       conditionalFatalError_(
-    	  "The filenames in the consensusXML file are not the same as in the experimental design",
-    	  this->checkUnorderedContent_(spectra_paths, design_run_filenames) == false,
-    	  ILLEGAL_PARAMETERS);
+          "The filenames in the consensusXML file are not the same as in the experimental design",
+          this->checkUnorderedContent_(spectra_paths, design_run_filenames) == false,
+          ILLEGAL_PARAMETERS);
 
-	  for (const OpenMS::ConsensusFeature consensus_feature : consensus_map)
-	  {
-	    features.push_back(consensus_feature);
+      for (const OpenMS::ConsensusFeature consensus_feature : consensus_map)
+      {
+        features.push_back(consensus_feature);
 
-		std::vector< String > filenames;
-		std::vector< OpenMS::Peak2D::IntensityType > intensities;
+        std::vector< String > filenames;
+        std::vector< OpenMS::Peak2D::IntensityType > intensities;
 
-		// Store the file names and the run intensities of this feature
-		const ConsensusFeature::HandleSetType fs(consensus_feature.getFeatures());
-		for (ConsensusFeature::HandleSetType::const_iterator fit = fs.begin(); fit != fs.end(); ++fit)
-		{
-		  filenames.push_back(spectra_paths[fit->getMapIndex()]);
-		  intensities.push_back(fit->getIntensity());
-		}
-		consensus_feature_filenames.push_back(filenames);
-		consensus_feature_intensites.push_back(intensities);
-	  }
+        // Store the file names and the run intensities of this feature
+        const ConsensusFeature::HandleSetType fs(consensus_feature.getFeatures());
+        for (ConsensusFeature::HandleSetType::const_iterator fit = fs.begin(); fit != fs.end(); ++fit)
+        {
+          filenames.push_back(spectra_paths[fit->getMapIndex()]);
+          intensities.push_back(fit->getIntensity());
+        }
+        consensus_feature_filenames.push_back(filenames);
+        consensus_feature_intensites.push_back(intensities);
+      }
 
       // The output file of the MSstats converter (TODO Change to CSV file once store for CSV files has been implemented)
       TextFile csv_out;
@@ -441,12 +441,12 @@ private:
 
     void getRowNames(std::vector< String > &rownames) const
     {
-    	rownames.clear();
-    	rownames.resize(this->_rowname_to_rowindex.size());
-    	for (const std::pair< String, Size >  &pair : this->_rowname_to_rowindex)
-    	{
-    	  rownames[pair.second] = pair.first;
-    	}
+      rownames.clear();
+      rownames.resize(this->_rowname_to_rowindex.size());
+      for (const std::pair< String, Size >  &pair : this->_rowname_to_rowindex)
+      {
+        rownames[pair.second] = pair.first;
+      }
     }
 
 
@@ -475,35 +475,35 @@ private:
   bool checkUnorderedContent_(const std::vector< String> &first, const std::vector< String > &second)
   {
     for (const String &entry : first)
-	{
-	  if (std::find(second.begin(), second.end(), entry) == second.end())
-	  {
-	    return false;
-	  }
-	}
-	for (const String &entry : second)
-	{
-	  if (std::find(first.begin(), first.end(), entry) == first.end())
-	  {
-	    return false;
-	  }
-	}
+    {
+      if (std::find(second.begin(), second.end(), entry) == second.end())
+      {
+        return false;
+      }
+    }
+    for (const String &entry : second)
+    {
+      if (std::find(first.begin(), first.end(), entry) == first.end())
+      {
+        return false;
+      }
+    }
     return true;
   }
 
   bool checkUnique_(const std::vector< String > &vec) const
   {
     for (Size i = 0; i < vec.size(); ++i)
-	{
-	  for (Size j = i + 1; j < vec.size(); ++j)
-	  {
-	    if (vec[i] == vec[j])
-		{
-		  return false;
-		}
-	  }
-	}
-	return true;
+    {
+      for (Size j = i + 1; j < vec.size(); ++j)
+      {
+        if (vec[i] == vec[j])
+        {
+          return false;
+        }
+      }
+    }
+    return true;
   }
 };
 
