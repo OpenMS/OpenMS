@@ -160,7 +160,7 @@ The extensible OpenMS library implements common mass spectrometric data processi
 @section lib_overview Overview on Central Algorithms and Methods
 
 OpenMS provides algorithms in many fields of computational metabolomics and proteomics. <b>The following list is intended to algorithm and tool developers a starting point to tools and classes relevant to their scientific question at hand</b>. This list does not include third-party tools but only tools that were implemented in OpenMS. 
-<p style="text-indent: 40px">This text is indented.</p>
+<br>
 Proteomics:
     - Signal processing:
         - Conversion from profile to centroided spectra (Tool PeakPickerHiRes)
@@ -197,31 +197,77 @@ Proteomics:
             - Analysis of data-independent acquisition or SWATH-MS data (Tool OpenSWATH)
         - Misc:
             - Theoretical spectra generators
-
+<br>
 Metabolomics:
-&bull;	Quantification
-&bull;	Small molecule feature detection:
-&bull;	Untargeted, label-free (Tool FeatureFinderMetabo)
-&bull;	Retention Time Alignment:
-&bull;	Linear map alignment (Tool MagAlignerPoseClustering)
-&bull;	Small molecule feature linking:
-&bull;	QT based clustering and linking (Tool FeatureLinkerUnlabeledQT)
-&bull;	fast, KD-tree based linking (Tool FeatureLinkerUnlabeledKD)
-&bull;	Adduct decharing:
-&bull;	Linear programming based determination of small molecule ion adducts and charges (Tool MetboliteAdductDecharger)
-&bull;	Targeted data extraction 
-&bull;	Analysis of data-independent acquisition or SWATH-MS data (Tool OpenSWATH)
-&bull;	Identification
-&bull;	Spectral library search:
-&bull;	Tool MetaboliteSpectralMatcher
-&bull;	Accurate mass search: 
-&bull;	Tool AccurateMassSearch 
-
-
+    - Quantification:
+        - Small molecule feature detection:
+            - Untargeted, label-free (Tool FeatureFinderMetabo)
+        - Retention Time Alignment:
+            - Linear map alignment (Tool MagAlignerPoseClustering)
+        - Small molecule feature linking:
+            - QT based clustering and linking (Tool FeatureLinkerUnlabeledQT)
+            - fast, KD-tree based linking (Tool FeatureLinkerUnlabeledKD)
+        - Adduct decharing:
+            - Linear programming based determination of small molecule ion adducts and charges (Tool MetboliteAdductDecharger)
+        - Targeted data extraction: 
+            - Analysis of data-independent acquisition or SWATH-MS data (Tool OpenSWATH)
+    - Identification:
+        - Spectral library search:
+            - Tool MetaboliteSpectralMatcher
+        - Accurate mass search: 
+            - Tool AccurateMassSearch 
+<br>
 General:
-&bull;	Mass decomposition algorithms
-&bull;	Isotope pattern generators
-&bull;	Quality control (Tools QCCalculator, QCExtractor) metrics and file format (QcML)
+    - Mass decomposition algorithms
+    - Isotope pattern generators
+    - Quality control (Tools QCCalculator, QCExtractor) metrics and file format (QcML)
+
+<br>
+<table>
+<caption id="multi_row">Directory strucrture of src folder (/src)</caption>
+ <tr><th>Folder        <th>Description
+ <tr><td>openms</td><td>Source code of core library</td></tr>
+ <tr><td>openms_gui</td><td>Source code of GUI applications (e.g.: TOPPView)</td></tr>
+ <tr><td>topp</td><td>Source code of (stable) OpenMS Tools</td></tr>
+ <tr><td>util</td><td>Source code of (experimental) OpenMS Tools</td></tr>
+ <tr><td>pyOpenMS</td><td>Source files providing the python bindings</td></tr>
+ <tr><td>tests</td><td>Source code of class and tool tests</td></tr>
+</table >
+<br>
+<table>
+<caption id="multi_row">Directory strucrture of core library (/src/openms)</caption>
+ <tr><th>Folder        <th>Description
+ <tr><td>ANALYSIS</td><td>Source code of high-level analysis like PeakPicking, Quantitation, Identification, MapAlignment</td></tr>
+ <tr><td>APPLICATIONS</td><td>Source code for tool base and handling</td></tr>
+ <tr><td>CHEMISTRY</td><td>Source code dealing with Elements, Enzymes, Residues, Modifications, Isotope distibutions and amino acid sequences</td></tr>
+ <tr><td>COMPARISON</td><td>Different scoring functions for clustering and spectra comparison</td></tr>
+ <tr><td>CONCEPT</td><td>OpenMS concepts (types, macros, ...)</td></tr>
+ <tr><td>DATASTRUCTURES</td><td>Auxiliary datastructures</td></tr>
+ <tr><td>FILTERING</td><td>Filter</td></tr>
+ <tr><td>FORMAT</td><td>Source code for I/O classes and file formats</td></tr>
+ <tr><td>INTERFACES_IMPL</td><td>Interfaces (WIP)</td></tr>
+ <tr><td>KERNEL</td<td>Core data structures</td></tr>
+ <tr><td>MATH</td><td>Source code for math functions and classes</td></tr>
+ <tr><td>METADATA</td><td>Source code for classes that capture metadata about a MS or HPLC-MS experiment</td></tr>
+ <tr><td>SIMULATION</td><td>Source code of MS simulator</td></tr>
+ <tr><td>SYSTEM</td><td>Source code for basic functionality (file system, stopwatch)</td></tr>
+ <tr><td>TEST</td><td>Unit tests</td></tr>
+ <tr><td>TRANSFORMATIONS</td><td>Feature detection</td></tr>
+</table>
+<br>
+
+For the sake of completeness you will find a short list of the THIRDPARTY tools, which are integrated via wrappers into the OpenMS framework (usually called -Adapter e.g. SiriusAdapter)
+
+Wrapper to thid-party tools:
+    - Search Engines (MSGFPLUS, XTandem, OMSSA, Comet, MyriMatch)
+    - Protein Inference (Fido)
+    - Spectral Library Search (SpectraST)
+    - Metabolite Identification (Sirius)
+    -  Score calibration and FDR calculation (Percolator)
+
+@section lib_kernelclass Kernel Classes
+
+TODO:
 
 
 */
