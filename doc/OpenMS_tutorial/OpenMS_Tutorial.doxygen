@@ -83,8 +83,6 @@ Since %OpenMS is based on several <b>external libraries</b> it is designed for t
 
 The following image shows the overall structure of %OpenMS:
 
-TODO: Update Images 
-
 @image html Structure.png "Overall design of %OpenMS."
 @image latex Structure.png "Overall design of %OpenMS." width=14cm
 
@@ -108,11 +106,11 @@ TODO: Insert links
 
 Before you get started coding with OpenMS you need to build it for your operating system. Please follow the <b>build instructions</b> from the documentation.
 <br>
-<A <b>Building OpenMS on GNU/LInux</b>="http://ftp.mi.fu-berlin.de/pub/OpenMS/release-documentation/html/install_linux.html">
+<<b>Building OpenMS on GNU/LInux</b>="http://ftp.mi.fu-berlin.de/pub/OpenMS/release-documentation/html/install_linux.html">
 <br>
-<A <b>Building OpenMS on Mac OS X</b>="http://ftp.mi.fu-berlin.de/pub/OpenMS/release-documentation/html/install_mac_bin.html">
+<<b>Building OpenMS on Mac OS X</b>="http://ftp.mi.fu-berlin.de/pub/OpenMS/release-documentation/html/install_mac_bin.html">
 <br>
-<A <b>Building OpenMS on Windows</b>="http://ftp.mi.fu-berlin.de/pub/OpenMS/release-documentation/html/install_win_bin.html">
+<<b>Building OpenMS on Windows</b>="http://ftp.mi.fu-berlin.de/pub/OpenMS/release-documentation/html/install_win_bin.html">
 <br>
 Note that for development purposes, you might want to set the variable <i>CMAKE_BUILD_TYPE</i> to <i>Debug</i>. Otherwise, the default <i>Release</i> will be applied and disables pre-condition and post-condition checks, and assertions.
 <br>
@@ -263,7 +261,7 @@ Wrapper to thid-party tools:
     - Protein Inference (Fido)
     - Spectral Library Search (SpectraST)
     - Metabolite Identification (Sirius)
-    -  Score calibration and FDR calculation (Percolator)
+    - Score calibration and FDR calculation (Percolator)
 
 @section lib_kernelclass Kernel Classes
 

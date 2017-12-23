@@ -43,9 +43,9 @@
 	- @subpage tutorial_terms
 
 	Then you should read about the basic classes and concepts of %OpenMS:
-	- @subpage tutorial_concept
-	- @subpage tutorial_datastructures
-	- @subpage tutorial_kernel
+	- @subpage tutorial_library
+	- @subpage lib_overview
+	- @subpage lib_kernelclass
 	- @subpage tutorial_metadata
 	- @subpage tutorial_chemistry
 	- @subpage tutorial_format
