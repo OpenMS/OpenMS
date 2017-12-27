@@ -81,13 +81,12 @@ namespace OpenMS
     return result;
   }
 
-  double XQuestScores::matchOddsScore(const PeakSpectrum& theoretical_spec,  const Size matched_size, double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm)
+  double XQuestScores::matchOddsScore(const PeakSpectrum& theoretical_spec,  const Size matched_size, double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, bool is_xlink_spectrum, Size n_charges)
   {
     using boost::math::binomial;
 
     // Size matched_size = matched_spec.size();
     Size theo_size = theoretical_spec.size();
-    vector<double> log_transf_spec;
 
     if (matched_size < 1 || theo_size < 1)
     {
@@ -97,7 +96,6 @@ namespace OpenMS
     double range = theoretical_spec[theo_size-1].getMZ() -  theoretical_spec[0].getMZ();
 
     // Compute fragment tolerance in Da for the mean of MZ values, if tolerance in ppm (rough approximation)
-    // TODO if we keep this score, think of a way to make it compatible with ppm tolerances
     double mean = 0.0;
     for (Size i = 0; i < theo_size; ++i)
     {
@@ -109,24 +107,23 @@ namespace OpenMS
     // A priori probability of a random match given info about the theoretical spectrum
     double a_priori_p = 0;
 
-    // if (is_xlink_spectrum)
-    // {
-    a_priori_p = 1 - pow(1 - 2 * tolerance_Th / range,  static_cast<double>(theo_size));
-    // }
-    // else
-    // {
-    //   a_priori_p = (1 - ( pow( (1 - 2 * tolerance_Th / range),  static_cast<int>(theo_size))));
-    // }
+    if (is_xlink_spectrum)
+    {
+      a_priori_p = (1 - ( pow( (1 - 2 * tolerance_Th / (0.5 * range)),  (static_cast<double>(theo_size) / static_cast<double>(n_charges)))));
+    }
+    else
+    {
+      a_priori_p = (1 - ( pow( (1 - 2 * tolerance_Th / (0.5 * range)),  static_cast<int>(theo_size))));
+    }
 
     double match_odds = 0;
-    //match_odds = -log(1 - Math::CumulativeBinomial::compute(theo_size, matched_size, a_priori_p) + 1e-5);
 
     binomial flip(theo_size, a_priori_p);
     // min double number to avoid 0 values, causing scores with the value "inf"
     match_odds = -log(1 - cdf(flip, matched_size) + std::numeric_limits<double>::min());
 
-//     cout << "TEST a_priori_prob: " << a_priori_p << " | tolerance: " << tolerance_Th << " | theo_size: " << theo_size << " | matched_size: " << matched_size << " | cumul_binom: " << cumulativeBinomial_(theo_size, matched_size, a_priori_p)
-//              << " | match_odds: " << match_odds << endl;
+    //     cout << "TEST a_priori_prob: " << a_priori_p << " | tolerance: " << tolerance_Th << " | theo_size: " << theo_size << " | matched_size: " << matched_size << " | cumul_binom: " << cumulativeBinomial_(theo_size, matched_size, a_priori_p)
+    //              << " | match_odds: " << match_odds << endl;
 
     // score lower than 0 does not make sense, but can happen if cfd = 0, -log( 1 + min() ) < 0
     if (match_odds >= 0.0)
