@@ -139,15 +139,16 @@ protected:
     registerInputFile_("swath_windows_file", "<file>", "", "Tab separated file containing the SWATH windows for exclusion of fragment ions falling into the precursor isolation window: lower_offset upper_offset \\newline 400 425 \\newline ... Note that the first line is a header and will be skipped.", false, false);
     setValidFormats_("swath_windows_file", ListUtils::create<String>("txt"));
 
-    registerFlag_("enable_ipf", "IPF: set this flag if identification transitions should be generated for IPF.");
+    registerInputFile_("unimod_file", "<file>", "", "(Modified) Unimod XML file (http://www.unimod.org/xml/unimod.xml) describing residue modifiability", false, false);
+    setValidFormats_("unimod_file", ListUtils::create<String>("xml"));
+
+    registerFlag_("enable_ipf", "IPF: set this flag if identification transitions should be generated for IPF. Note: Requires setting 'unimod_file'.");
     registerIntOption_("max_num_alternative_localizations", "<int>", 10000, "IPF: maximum number of site-localization permutations", false, true);
     registerFlag_("disable_identification_ms2_precursors", "IPF: set this flag if MS2-level precursor ions for identification should not be allowed for extraction of the precursor signal from the fragment ion data (MS2-level).", true);
     registerFlag_("disable_identification_specific_losses", "IPF: set this flag if specific neutral losses for identification fragment ions should not be allowed", true);
     registerFlag_("enable_identification_unspecific_losses", "IPF: set this flag if unspecific neutral losses (H2O1, H3N1, C1H2N2, C1H2N1O1) for identification fragment ions should be allowed", true);
     registerFlag_("enable_swath_specifity", "IPF: set this flag if identification transitions without precursor specificity (i.e. across whole precursor isolation window instead of precursor MZ) should be generated.", true);
 
-    registerInputFile_("unimod_file", "<file>", "", "IPF: (Modified) Unimod XML file (http://www.unimod.org/xml/unimod.xml) describing residue modifiability", false, false);
-    setValidFormats_("unimod_file", ListUtils::create<String>("xml"));
   }
 
   ExitCodes main_(int, const char**) override
@@ -229,20 +230,19 @@ protected:
       allowed_fragment_charges.push_back(charge);
     }
 
+    // Require Unimod XML file when running IPF to prevent accidential mistakes
+    if (enable_ipf && unimod_file.empty())
+    {
+      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Please provide a valid Unimod XML file for IPF.");
+    }
+
     // Load Unimod file
-    if (enable_ipf)
+    if (!unimod_file.empty())
     {
       if (!ModificationsDB::isInstantiated()) // We need to ensure that ModificationsDB was not instantiated before!
       {
-        if (!unimod_file.empty()) // We always require a provided Unimod XML file when running in IPF mode
-        {
-          ModificationsDB* ptr = ModificationsDB::getInstance(unimod_file, String(""), String(""));
-          LOG_INFO << "Unimod XML: " << ptr->getNumberOfModifications() << " modification types and residue specificities imported from file: " << unimod_file << std::endl;
-        }
-        else
-        {
-          throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Please provide a valid Unimod XML file.");
-        }
+        ModificationsDB* ptr = ModificationsDB::getInstance(unimod_file, String(""), String(""));
+        LOG_INFO << "Unimod XML: " << ptr->getNumberOfModifications() << " modification types and residue specificities imported from file: " << unimod_file << std::endl;
       }
       else
       {
