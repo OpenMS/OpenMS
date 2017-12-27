@@ -56,8 +56,8 @@ START_TEST(SpectraSTSimilarityScore, "$Id$")
 using namespace OpenMS;
 using namespace std;
 
-SpectraSTSimilarityScore* ptr = 0;
-SpectraSTSimilarityScore* nullPointer = 0;
+SpectraSTSimilarityScore* ptr = nullptr;
+SpectraSTSimilarityScore* nullPointer = nullptr;
 
 START_SECTION(SpectraSTSimilarityScore())
 	ptr = new SpectraSTSimilarityScore();

@@ -70,9 +70,9 @@ namespace OpenMS
     Q_OBJECT
 public:
     ///Constructor
-    MultiGradientSelector(QWidget * parent = 0);
+    MultiGradientSelector(QWidget * parent = nullptr);
     ///Destructor
-    ~MultiGradientSelector();
+    ~MultiGradientSelector() override;
 
     ///returns a const reference to the gradient
     const MultiGradient & gradient() const;
@@ -91,13 +91,13 @@ public slots:
 protected:
     ///@name re-implemented Qt events
     //@{
-    void paintEvent(QPaintEvent * e);
-    void mousePressEvent(QMouseEvent * e);
-    void mouseMoveEvent(QMouseEvent * e);
-    void mouseReleaseEvent(QMouseEvent * e);
-    void mouseDoubleClickEvent(QMouseEvent * e);
-    void keyPressEvent(QKeyEvent * e);
-    void contextMenuEvent(QContextMenuEvent * e);
+    void paintEvent(QPaintEvent * e) override;
+    void mousePressEvent(QMouseEvent * e) override;
+    void mouseMoveEvent(QMouseEvent * e) override;
+    void mouseReleaseEvent(QMouseEvent * e) override;
+    void mouseDoubleClickEvent(QMouseEvent * e) override;
+    void keyPressEvent(QKeyEvent * e) override;
+    void contextMenuEvent(QContextMenuEvent * e) override;
     //@}
 
     // the actual gradient

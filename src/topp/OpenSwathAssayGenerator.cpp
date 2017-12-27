@@ -42,6 +42,7 @@
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/SwathWindowLoader.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
+#include <OpenMS/CHEMISTRY/ModificationsDB.h>
 
 #include <iostream>
 
@@ -101,7 +102,7 @@ public:
 
 protected:
 
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "input file ('traML')");
     setValidFormats_("in", ListUtils::create<String>("traML"));
@@ -115,13 +116,7 @@ protected:
     registerStringOption_("allowed_fragment_charges", "<type>", "1,2,3,4", "allowed fragment charge states", false);
     registerFlag_("enable_detection_specific_losses", "set this flag if specific neutral losses for detection fragment ions should be allowed");
     registerFlag_("enable_detection_unspecific_losses", "set this flag if unspecific neutral losses (H2O1, H3N1, C1H2N2, C1H2N1O1) for detection fragment ions should be allowed");
-    registerFlag_("enable_identification_specific_losses", "set this flag if specific neutral losses for identification fragment ions should be allowed");
-    registerFlag_("enable_identification_unspecific_losses", "set this flag if unspecific neutral losses (H2O1, H3N1, C1H2N2, C1H2N1O1) for identification fragment ions should be allowed");
-    registerFlag_("enable_identification_ms2_precursors", "set this flag if MS2-level precursor ions for identification should be allowed to enable extraction of the precursor signal from the fragment ion data (MS2-level). This may help in identification if the MS1 signal is weak.");
-    registerFlag_("enable_ms1_uis_scoring", "set this flag if MS1-UIS assays for UIS scoring should be generated");
-    registerFlag_("enable_ms2_uis_scoring", "set this flag if MS2-UIS assays for UIS scoring should be generated");
-    registerIntOption_("max_num_alternative_localizations", "<int>", 20, "maximum number of site-localization permutations", false);
-    registerFlag_("enable_reannotation", "set this flag if reannotation of fragment ions should be allowed.");
+
     registerDoubleOption_("precursor_mz_threshold", "<double>", 0.025, "MZ threshold in Thomson for precursor ion selection", false);
     registerDoubleOption_("precursor_lower_mz_limit", "<double>", 400, "lower MZ limit for precursor ions", false);
     registerDoubleOption_("precursor_upper_mz_limit", "<double>", 1200, "upper MZ limit for precursor ions", false);
@@ -129,11 +124,22 @@ protected:
     registerDoubleOption_("product_lower_mz_limit", "<double>", 350, "lower MZ limit for fragment ions", false);
     registerDoubleOption_("product_upper_mz_limit", "<double>", 2000, "upper MZ limit for fragment ions", false);
 
-    registerInputFile_("swath_windows_file", "<file>", "", "Tab separated file containing the SWATH windows for exclusion of fragment ions falling into the precursor isolation window: lower_offset upper_offset \\newline 400 425 \\newline ... Note that the first line is a header and will be skipped.", false, true);
+    registerInputFile_("swath_windows_file", "<file>", "", "Tab separated file containing the SWATH windows for exclusion of fragment ions falling into the precursor isolation window: lower_offset upper_offset \\newline 400 425 \\newline ... Note that the first line is a header and will be skipped.", false, false);
     setValidFormats_("swath_windows_file", ListUtils::create<String>("txt"));
+
+    registerFlag_("enable_reannotation", "set this flag if reannotation of fragment ions should be allowed.");
+
+    registerFlag_("enable_ms1_uis_scoring", "IPF: set this flag if identification transitions with precursor specificity should be generated");
+    registerFlag_("enable_ms2_uis_scoring", "IPF: set this flag if identification transitions without precursor specificity (i.e. across whole pecursor isolation window) be generated");
+    registerIntOption_("max_num_alternative_localizations", "<int>", 10000, "IPF: maximum number of site-localization permutations", false);
+    registerFlag_("enable_identification_specific_losses", "IPF: set this flag if specific neutral losses for identification fragment ions should be allowed");
+    registerFlag_("enable_identification_unspecific_losses", "IPF: set this flag if unspecific neutral losses (H2O1, H3N1, C1H2N2, C1H2N1O1) for identification fragment ions should be allowed");
+    registerFlag_("enable_identification_ms2_precursors", "IPF: set this flag if MS2-level precursor ions for identification should be allowed to enable extraction of the precursor signal from the fragment ion data (MS2-level). This may help in identification if the MS1 signal is weak.");
+    registerInputFile_("unimod_file", "<file>", "", "IPF: (Modified) Unimod XML file (http://www.unimod.org/xml/unimod.xml) describing residue modifiability", false, false);
+    setValidFormats_("unimod_file", ListUtils::create<String>("xml"));
   }
 
-  ExitCodes main_(int, const char**)
+  ExitCodes main_(int, const char**) override
   {
     String in = getStringOption_("in");
     String out = getStringOption_("out");
@@ -156,7 +162,18 @@ protected:
     double product_lower_mz_limit = getDoubleOption_("product_lower_mz_limit");
     double product_upper_mz_limit = getDoubleOption_("product_upper_mz_limit");
     String swath_windows_file = getStringOption_("swath_windows_file");
+    String unimod_file = getStringOption_("unimod_file");
     bool enable_reannotation = getFlag_("enable_reannotation");
+    bool is_test = getFlag_("test");
+
+    // Set specific seed for test mode
+    int uis_seed = -1;
+    bool disable_decoy_transitions = false;
+    if (is_test)
+    {
+      uis_seed = 42;
+      disable_decoy_transitions = true;
+    }
 
     std::vector<String> allowed_fragment_types;
     allowed_fragment_types_string.split(",", allowed_fragment_types);
@@ -168,6 +185,27 @@ protected:
     {
       size_t charge = std::atoi(allowed_fragment_charges_string_vector.at(i).c_str());
       allowed_fragment_charges.push_back(charge);
+    }
+
+    // Load Unimod file
+    if (enable_ms1_uis_scoring || enable_ms2_uis_scoring)
+    {
+      if (!ModificationsDB::isInstantiated()) // We need to ensure that ModificationsDB was not instantiated before!
+      {
+        if (!unimod_file.empty()) // We always require a provided Unimod XML file when running in IPF mode
+        {
+          ModificationsDB* ptr = ModificationsDB::getInstance(unimod_file, String(""), String(""));
+          LOG_INFO << "Unimod XML: " << ptr->getNumberOfModifications() << " modification types and residue specificities imported from file: " << unimod_file << std::endl;
+        }
+        else
+        {
+          throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Please provide a valid Unimod XML file.");
+        }
+      }
+      else
+      {
+        throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "ModificationsDB has been instantiated before and can not be generated from the provided Unimod XML file.");
+      }
     }
 
     std::vector<std::pair<double, double> > swathes;
@@ -218,7 +256,7 @@ protected:
       else {uis_swathes = swathes;}
       
       std::cout << "Generating identifying (UIS) transitions" << std::endl;
-      assays.uisTransitions(targeted_exp, allowed_fragment_types, allowed_fragment_charges, enable_identification_specific_losses, enable_identification_unspecific_losses, enable_identification_ms2_precursors, product_mz_threshold, uis_swathes, -4, max_num_alternative_localizations, -1);
+      assays.uisTransitions(targeted_exp, allowed_fragment_types, allowed_fragment_charges, enable_identification_specific_losses, enable_identification_unspecific_losses, enable_identification_ms2_precursors, product_mz_threshold, uis_swathes, -4, max_num_alternative_localizations, uis_seed, disable_decoy_transitions);
       std::vector<std::pair<double, double> > empty_swathes;
       assays.restrictTransitions(targeted_exp, product_lower_mz_limit, product_upper_mz_limit, empty_swathes);
     }

@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<views>
+  <view name="OpenSWATH" rowsource="pwiz.Skyline.Model.Databinding.Entities.Transition" sublist="Results!*">
+    <column name="Precursor.Peptide.Protein.Name" caption="ProteinName" />
+    <column name="Precursor.Peptide.Sequence" caption="PeptideSequence" />
+    <column name="Precursor.Peptide.ModifiedSequence.UnimodIds" caption="ModifiedSequence" />
+    <column name="Precursor.Peptide.RetentionTimeCalculatorScore" caption="RetentionTimeCalculatorScore" />
+    <column name="Precursor.Mz" caption="PrecursorMz" />
+    <column name="Precursor.Charge" caption="PrecursorCharge" />
+    <column name="ProductMz" caption="ProductMz" />
+    <column name="ProductCharge" caption="ProductCharge" />
+    <column name="LibraryIntensity" caption="LibraryIntensity" />
+    <column name="FragmentIonType" caption="FragmentIonType" />
+    <column name="FragmentIonOrdinal" caption="FragmentIonOrdinal" />
+    <column name="Precursor.CollisionEnergy" caption="CollisionEnergy" />
+    <column name="Precursor.IsotopeLabelType" caption="IsotopeLabelType" />
+    <column name="Precursor.IsDecoy" caption="IsDecoy" />
+    <column name="Quantitative" caption="Quantitative" />
+  </view>
+</views>

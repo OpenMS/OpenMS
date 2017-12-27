@@ -48,25 +48,27 @@
 namespace OpenMS
 {
 
-  struct TFI_File; //< template parameter for file-based FASTA access
-  struct TFI_Vector; //< template parameter for vector-based FASTA access
+  struct TFI_File; ///< template parameter for file-based FASTA access
+  struct TFI_Vector; ///< template parameter for vector-based FASTA access
 
   /**
   @brief This class allows for a chunk-wise single linear read over a (large) FASTA file, 
          with spurious (since potentially slow) access to earlier entries which are currently
          not in the active chunk.
   
-  FASTAContainer supports two template specializations @em TFI_File and @em TFI_Vector.
+  Internally uses FASTAFile class to read single sequences.
+
+  FASTAContainer supports two template specializations FASTAContainer<TFI_File> and FASTAContainer<TFI_Vector>.
   
-  TFI_File will make FASTA entries available chunk-wise from start to end by loading it from a FASTA file.
+  FASTAContainer<TFI_File> will make FASTA entries available chunk-wise from start to end by loading it from a FASTA file.
   This avoids having to load the full file into memory. While loading, the container will
   memorize the file offsets of each entry, allowing to read an arbitrary i'th entry again from disk.
   If possible, only entries from the currently cached chunk should be queried, otherwise access will be slow.
   
-  TFI_Vector simply takes an existing vector of FASTAEntries and provides the same interface
-  (with a potentially huge speed benefit since it does not need disk access, but at the cost of memory).
+  FASTAContainer<TFI_Vector> simply takes an existing vector of FASTAEntries and provides the same interface
+  (with a potentially huge speed benefit over FASTAContainer<TFI_File> since it does not need disk access, but at the cost of memory).
 
-  If an algorithm searches through a FASTA file linearly, you can use TFI_File to pre-load a small chunk
+  If an algorithm searches through a FASTA file linearly, you can use FASTAContainer<TFI_File> to pre-load a small chunk
   and start working, while loading the next chunk in a background thread and swap it in when the active chunk 
   was processed.
 
@@ -74,6 +76,14 @@ namespace OpenMS
 template<typename TBackend>
 class FASTAContainer; // prototype
 
+/**
+  @brief FASTAContainer<TFI_File> will make FASTA entries available chunk-wise from start to end by loading it from a FASTA file.
+  This avoids having to load the full file into memory. While loading, the container will
+  memorize the file offsets of each entry, allowing to read an arbitrary i'th entry again from disk.
+  If possible, only entries from the currently cached chunk should be queried, otherwise access will be slow.
+
+  Internally uses FASTAFile class to read single sequences.
+*/
 template<>
 class FASTAContainer<TFI_File>
 {
@@ -97,10 +107,12 @@ public:
     return chunk_offset_;
   }
 
-  /// swaps in the background cache of entries, read previously via @p cacheChunk()
-  /// If you call this function without a prior call to @p cacheChunk(), the cache will be empty.
-  /// @return true if cache contains data; false if empty
-  /// @note Should be invoked by a single thread, followed by a barrier to sync access of subsequent chunkAt()
+  /** @brief Swaps in the background cache of entries, read previously via @p cacheChunk()
+      
+      If you call this function without a prior call to @p cacheChunk(), the cache will be empty.
+      @return true if cache contains data; false if empty
+      @note Should be invoked by a single thread, followed by a barrier to sync access of subsequent calls to chunkAt()
+  */
   bool activateCache()
   {
     chunk_offset_ += data_fg_.size();
@@ -109,9 +121,12 @@ public:
     return !data_fg_.empty();
   }
 
-  /// prefetched a new cache in the background, with up to @p suggestedSize entries (or fewer upon reaching EOF)
-  /// Call @p activateCache() afterwards to make the data available via @p chunkAt() or @p readAt().
-  /// @param suggested_size Number of FASTA entries to read from disk
+  /** @brief Prefetch a new cache in the background, with up to @p suggestedSize entries (or fewer upon reaching EOF)
+
+     Call @p activateCache() afterwards to make the data available via @p chunkAt() or @p readAt().
+     @param suggested_size Number of FASTA entries to read from disk
+     @return true if new data is available; false if background data is empty
+  */
   bool cacheChunk(int suggested_size)
   {
     data_bg_.clear();
@@ -133,18 +148,31 @@ public:
     return data_fg_.size();
   }
 
-  /// retrieve a FASTA entry at cache position @p pos (fast)
-  /// @note: can be used by multiple threads at a time (until activateCache() is called)
+  /** @brief Retrieve a FASTA entry at cache position @p pos (fast)
+      
+      Requires prior call to activateCache().
+      Index @p pos must be smaller than chunkSize().
+
+      @note: can be used by multiple threads at a time (until activateCache() is called)
+  */
   const FASTAFile::FASTAEntry& chunkAt(size_t pos) const
   {
     return data_fg_[pos];
   }
 
-  /// retrieve a FASTA entry at global position @pos (must not be behind the currently active chunk)
-  /// This query is fast, if @pos hits the currently active chunk, and slow (read from disk) for
-  /// earlier entries. Can be used before cacheChunk() and activateCache() reached the end of the file,
-  /// since it will reset the file position after its done reading (if reading from disk is required).
-  /// @note: not multi-threading safe (use chunkAt())!
+  /** @brief Retrieve a FASTA entry at global position @pos (must not be behind the currently active chunk, but can be smaller)
+
+    This query is fast, if @pos hits the currently active chunk, and slow (read from disk) for
+    earlier entries. Can be used before reaching the end of the file,
+    since it will reset the file position after its done reading (if reading from disk is required), but
+    must not be used for entries beyond the active chunk (unseen data).
+    
+    @param protein Return value
+    @param pos Absolute entry number in FASTA file
+    @return true if reading was successful; false otherwise (e.g. EOF)
+    @throw Exception::IndexOverflow if @p pos is beyond active chunk
+    @note: not multi-threading safe (use chunkAt())!
+  */
   bool readAt(FASTAFile::FASTAEntry& protein, size_t pos)
   {
     // check if position is currently cached...
@@ -171,30 +199,41 @@ public:
     return f_.atEnd() && offsets_.empty();
   }
 
-  /// NOT the size, but merely the number of already read entries (since we do not know how many are still to come)
-  /// @note Data in the background cache is included here, i.e. access to size()-1 using readAt() might be slow 
-  ///       if activateCache() was not called yet.
+  /** @brief NOT the number of entries in the FASTA file, but merely the number of already read entries (since we do not know how many are still to come)
+
+      @note Data in the background cache is included here, i.e. access to size()-1 using readAt() might be slow 
+            if activateCache() was not called yet.
+  */
   size_t size() const
   {
     return offsets_.size();
   }
 
 private:
-  FASTAFile f_;
-  std::vector<std::streampos> offsets_; /// internal byte offsets into FASTA file for random access reading of previous entries.
-  std::vector<FASTAFile::FASTAEntry> data_fg_; /// active (foreground) data
-  std::vector<FASTAFile::FASTAEntry> data_bg_; /// prefetched (background) data; will become the next active data
-  size_t chunk_offset_; /// number of entries before the current chunk
+  FASTAFile f_; ///< FASTA file connection
+  std::vector<std::streampos> offsets_; ///< internal byte offsets into FASTA file for random access reading of previous entries.
+  std::vector<FASTAFile::FASTAEntry> data_fg_; ///< active (foreground) data
+  std::vector<FASTAFile::FASTAEntry> data_bg_; ///< prefetched (background) data; will become the next active data
+  size_t chunk_offset_; ///< number of entries before the current chunk
 };
 
+/**
+@brief 
+FASTAContainer<TFI_Vector> simply takes an existing vector of FASTAEntries and provides the same interface
+with a potentially huge speed benefit over FASTAContainer<TFI_File> since it does not need disk access, but at the cost of memory.
+
+*/
 template<>
 class FASTAContainer<TFI_Vector>
 {
 public:
   FASTAContainer() = delete;
 
-  /// C'tor for already existing data. An internal reference will be kept
-  /// Make sure the data is not deleted during the lifetime of FASTAContainer
+  /** @brief C'tor for already existing data (by reference). 
+  
+   An internal reference will be kept. Make sure the data is not deleted during the lifetime of FASTAContainer
+
+  */
   FASTAContainer(const std::vector<FASTAFile::FASTAEntry>& data)
     : data_(data)
   {
@@ -206,8 +245,10 @@ public:
     return 0;
   }
 
-  /// no-op (since data is already fully available as vector)
-  /// @return true only on the first call; false on subsequent calls
+  /** @brief no-op (since data is already fully available as vector)
+
+     @return true only on the first call; false on subsequent calls
+  */
   bool activateCache()
   {
     static int count = 0;
@@ -215,8 +256,9 @@ public:
     return (count == 1); // only true on first call.
   }
 
-  /// no-op (since data is already fully available as vector)
-  /// @return true only on the first call; false on subsequent calls
+  /** @brief no-op (since data is already fully available as vector)
+     @return true only on the first call; false on subsequent calls
+  */
   bool cacheChunk(int /*suggested_size*/)
   {
     // NOOP, since we already have all the data...
@@ -225,14 +267,16 @@ public:
     return (count == 1); // only true on first call.
   }
 
-  /// active data spans the full range, i.e. size of container
-  /// @return the size of the underlying vector
+  /** @brief active data spans the full range, i.e. size of container
+      
+      @return the size of the underlying vector
+  */
   size_t chunkSize() const
   {
     return data_.size();
   }
 
-  /// fast access to chunked (here: all) entries
+  /// fast access to chunked (i.e. all) entries
   const FASTAFile::FASTAEntry& chunkAt(size_t pos) const
   {
     return data_[pos];
@@ -258,7 +302,7 @@ public:
   }
 
 private:
-  const std::vector<FASTAFile::FASTAEntry>& data_; //< reference to existing data
+  const std::vector<FASTAFile::FASTAEntry>& data_; ///< reference to existing data
 };
 
 } // namespace OpenMS

@@ -87,8 +87,8 @@ namespace OpenMS
     ConsensusIDAlgorithmIdentity& operator=(const ConsensusIDAlgorithmIdentity&);
 
     /// Consensus scoring
-    virtual void apply_(std::vector<PeptideIdentification>& ids,
-                        SequenceGrouping& results);
+    void apply_(std::vector<PeptideIdentification>& ids,
+                        SequenceGrouping& results) override;
   };
 
 } // namespace OpenMS

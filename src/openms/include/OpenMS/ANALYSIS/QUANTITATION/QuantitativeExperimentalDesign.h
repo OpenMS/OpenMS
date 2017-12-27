@@ -63,7 +63,7 @@ public:
     QuantitativeExperimentalDesign();
 
     //Destructor
-    virtual ~QuantitativeExperimentalDesign();
+    ~QuantitativeExperimentalDesign() override;
 
     /**
         @brief xxxxxxx

@@ -46,8 +46,8 @@ START_TEST(ControlledVocabulary, "$Id$")
 
 /////////////////////////////////////////////////////////////
 
-FileWatcher* ptr = 0;
-FileWatcher* nullPointer = 0;
+FileWatcher* ptr = nullptr;
+FileWatcher* nullPointer = nullptr;
 START_SECTION(FileWatcher(QObject *parent=0))
 	ptr = new FileWatcher();
 	TEST_NOT_EQUAL(ptr, nullPointer)

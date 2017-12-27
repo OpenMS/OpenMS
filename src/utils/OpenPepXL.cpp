@@ -169,7 +169,7 @@ public:
   }
 
 protected:
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     // name, argument, default, description, required, advanced
     // input files
@@ -406,7 +406,7 @@ protected:
     return preprocessed_pair_spectra;
   }
 
-  ExitCodes main_(int, const char**)
+  ExitCodes main_(int, const char**) override
   {
     ProgressLogger progresslogger;
     progresslogger.setLogType(log_type_);

@@ -48,8 +48,8 @@ START_TEST(DiaPrescore2, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-DiaPrescore* ptr = 0;
-DiaPrescore* nullPointer = 0;
+DiaPrescore* ptr = nullptr;
+DiaPrescore* nullPointer = nullptr;
 
 START_SECTION(DiaPrescore())
 {

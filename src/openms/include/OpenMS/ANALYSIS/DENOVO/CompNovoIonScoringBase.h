@@ -96,7 +96,7 @@ public:
     CompNovoIonScoringBase(const CompNovoIonScoringBase & source);
 
     /// destructor
-    virtual ~CompNovoIonScoringBase();
+    ~CompNovoIonScoringBase() override;
     //@}
 
     ///
@@ -111,7 +111,7 @@ public:
 protected:
 
     /// update members method from DefaultParamHandler to update the members
-    void updateMembers_();
+    void updateMembers_() override;
 
 
     IsotopeType classifyIsotopes_(const PeakSpectrum & spec, PeakSpectrum::ConstIterator it);

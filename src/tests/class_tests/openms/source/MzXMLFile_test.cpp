@@ -58,8 +58,8 @@ START_TEST(MzXMLFile, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-MzXMLFile* ptr = 0;
-MzXMLFile* nullPointer = 0;
+MzXMLFile* ptr = nullptr;
+MzXMLFile* nullPointer = nullptr;
 START_SECTION((MzXMLFile()))
 	ptr = new MzXMLFile;
 	TEST_NOT_EQUAL(ptr, nullPointer)

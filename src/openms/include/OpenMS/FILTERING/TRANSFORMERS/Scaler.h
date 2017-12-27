@@ -59,7 +59,7 @@ public:
     /// default constructor
     Scaler();
     /// destructor
-    virtual ~Scaler();
+    ~Scaler() override;
 
     /// copy constructor
     Scaler(const Scaler & source);

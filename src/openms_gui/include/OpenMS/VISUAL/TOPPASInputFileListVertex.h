@@ -61,21 +61,21 @@ public:
     /// Copy constructor
     TOPPASInputFileListVertex(const TOPPASInputFileListVertex & rhs);
     /// Destructor
-    virtual ~TOPPASInputFileListVertex();
+    ~TOPPASInputFileListVertex() override;
     /// Assignment operator
     TOPPASInputFileListVertex & operator=(const TOPPASInputFileListVertex & rhs);
     /// returns "InputVertex"
-    virtual String getName() const;
+    String getName() const override;
     /// Sets the list of files
     void setFilenames(const QStringList & files);
     /// Starts all tools below this node
-    virtual void run();
+    void run() override;
     // documented in base class
-    virtual void paint(QPainter * painter, const QStyleOptionGraphicsItem * option, QWidget * widget);
+    void paint(QPainter * painter, const QStyleOptionGraphicsItem * option, QWidget * widget) override;
     // documented in base class
-    virtual QRectF boundingRect() const;
+    QRectF boundingRect() const override;
     // documented in base class
-    virtual QPainterPath shape() const;
+    QPainterPath shape() const override;
     /// Checks if the given list of file names is valid
     bool fileNamesValid();
     /// Shows the dialog for editing the files
@@ -89,7 +89,7 @@ public:
 
 public slots:
     /// Called by an outgoing edge when it has changed
-    virtual void outEdgeHasChanged();
+    void outEdgeHasChanged() override;
 
 protected:
 
@@ -101,7 +101,7 @@ protected:
 
     ///@name reimplemented Qt events
     //@{
-    void mouseDoubleClickEvent(QGraphicsSceneMouseEvent * e);
+    void mouseDoubleClickEvent(QGraphicsSceneMouseEvent * e) override;
     //@}
 
   };

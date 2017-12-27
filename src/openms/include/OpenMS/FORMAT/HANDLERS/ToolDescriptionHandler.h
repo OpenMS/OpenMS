@@ -63,21 +63,21 @@ public:
       ToolDescriptionHandler(const String & filename, const String & version);
 
       /// Destructor
-      virtual ~ToolDescriptionHandler();
+      ~ToolDescriptionHandler() override;
       //@}
 
 
       // Docu in base class
-      virtual void endElement(const XMLCh * const /*uri*/, const XMLCh * const /*local_name*/, const XMLCh * const qname);
+      void endElement(const XMLCh * const /*uri*/, const XMLCh * const /*local_name*/, const XMLCh * const qname) override;
 
       // Docu in base class
-      virtual void startElement(const XMLCh * const /*uri*/, const XMLCh * const /*local_name*/, const XMLCh * const qname, const xercesc::Attributes & attributes);
+      void startElement(const XMLCh * const /*uri*/, const XMLCh * const /*local_name*/, const XMLCh * const qname, const xercesc::Attributes & attributes) override;
 
       // Docu in base class
-      virtual void characters(const XMLCh * const chars, const XMLSize_t length);
+      void characters(const XMLCh * const chars, const XMLSize_t length) override;
 
       // NOT IMPLEMENTED
-      virtual void writeTo(std::ostream & os);
+      void writeTo(std::ostream & os) override;
 
       // Retrieve parsed tool description
       const std::vector<ToolDescription> & getToolDescriptions() const;

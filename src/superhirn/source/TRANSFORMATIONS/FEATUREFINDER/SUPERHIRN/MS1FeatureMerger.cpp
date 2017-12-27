@@ -85,7 +85,7 @@ namespace OpenMS
 // class desctructor
   MS1FeatureMerger::~MS1FeatureMerger()
   {
-    lcmsMap = NULL;
+    lcmsMap = nullptr;
   }
 
 //////////////////////////////////////////////////
@@ -222,7 +222,7 @@ namespace OpenMS
   bool MS1FeatureMerger::compareMZFeatureBeloning(SHFeature * A, SHFeature * B)
   {
 
-    if ((A->getLCelutionProfile() == NULL) || (B->getLCelutionProfile() == NULL))
+    if ((A->getLCelutionProfile() == nullptr) || (B->getLCelutionProfile() == nullptr))
     {
       return false;
     }

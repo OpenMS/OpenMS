@@ -105,7 +105,7 @@ public:
     IsobaricQuantitationMethod();
 
     /// @brief d'tor
-    virtual ~IsobaricQuantitationMethod();
+    ~IsobaricQuantitationMethod() override;
 
     typedef std::vector<IsobaricChannelInformation> IsobaricChannelList;
 

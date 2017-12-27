@@ -53,8 +53,8 @@ START_TEST(IsobaricChannelExtractor, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-IsobaricChannelExtractor * ptr = 0;
-IsobaricChannelExtractor* null_ptr = 0;
+IsobaricChannelExtractor * ptr = nullptr;
+IsobaricChannelExtractor* null_ptr = nullptr;
 IsobaricQuantitationMethod* q_method = new ItraqFourPlexQuantitationMethod();
 
 START_SECTION((IsobaricChannelExtractor(const IsobaricQuantitationMethod * const quant_method)))

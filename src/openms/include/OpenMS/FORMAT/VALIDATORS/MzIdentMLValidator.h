@@ -59,7 +59,7 @@ public:
       MzIdentMLValidator(const CVMappings & mapping, const ControlledVocabulary & cv);
 
       /// Destructor
-      virtual ~MzIdentMLValidator();
+      ~MzIdentMLValidator() override;
 
 private:
 

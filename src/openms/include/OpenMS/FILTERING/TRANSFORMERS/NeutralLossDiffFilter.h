@@ -63,7 +63,7 @@ public:
     NeutralLossDiffFilter(const NeutralLossDiffFilter & source);
 
     /// destructor
-    virtual ~NeutralLossDiffFilter();
+    ~NeutralLossDiffFilter() override;
     // @}
 
     // @name Operators

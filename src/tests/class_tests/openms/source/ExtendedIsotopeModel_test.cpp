@@ -53,8 +53,8 @@ using namespace OpenMS;
 using std::stringstream;
 
 // default ctor
-ExtendedIsotopeModel* ptr = 0;
-ExtendedIsotopeModel* nullPointer = 0;
+ExtendedIsotopeModel* ptr = nullptr;
+ExtendedIsotopeModel* nullPointer = nullptr;
 START_SECTION((ExtendedIsotopeModel()))
 	ptr = new ExtendedIsotopeModel();
   TEST_EQUAL(ptr->getName(), "ExtendedIsotopeModel")

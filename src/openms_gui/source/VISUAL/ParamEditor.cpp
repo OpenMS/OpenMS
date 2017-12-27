@@ -134,7 +134,7 @@ namespace OpenMS
         else if (dtype == "string list" || dtype == "int list" || dtype == "double list" || dtype == "input file list" || dtype == "output file list")   // for lists
         {
           QString str = "<" + index.sibling(index.row(), 0).data(Qt::DisplayRole).toString() + "> " + "(<" + dtype + ">)";
-          ListEditor * editor = new ListEditor(0, str);
+          ListEditor * editor = new ListEditor(nullptr, str);
           editor->setTypeName(index.sibling(index.row(), 0).data(Qt::DisplayRole).toString());
           editor->setModal(true);
           connect(editor, SIGNAL(accepted()), this, SLOT(commitAndCloseListEditor_()));
@@ -151,7 +151,7 @@ namespace OpenMS
           return editor;
         }
       }
-      return 0;
+      return nullptr;
     }
 
     void ParamEditorDelegate::setEditorData(QWidget * editor, const QModelIndex & index) const
@@ -286,7 +286,7 @@ namespace OpenMS
             new_value.toString().toLong(&ok);
             if (!ok)
             {
-              QMessageBox::warning(0, "Invalid value", QString("Cannot convert '%1' to integer number!").arg(new_value.toString()));
+              QMessageBox::warning(nullptr, "Invalid value", QString("Cannot convert '%1' to integer number!").arg(new_value.toString()));
               new_value = present_value;
             }
             //restrictions
@@ -309,7 +309,7 @@ namespace OpenMS
             new_value.toString().toDouble(&ok);
             if (!ok)
             {
-              QMessageBox::warning(0, "Invalid value", QString("Cannot convert '%1' to floating point number!").arg(new_value.toString()));
+              QMessageBox::warning(nullptr, "Invalid value", QString("Cannot convert '%1' to floating point number!").arg(new_value.toString()));
               new_value = present_value;
             }
             //restrictions
@@ -328,7 +328,7 @@ namespace OpenMS
           }
           if (!restrictions_met)
           {
-            QMessageBox::warning(0, "Invalid value", QString("Value restrictions not met: %1").arg(index.sibling(index.row(), 3).data(Qt::DisplayRole).toString()));
+            QMessageBox::warning(nullptr, "Invalid value", QString("Value restrictions not met: %1").arg(index.sibling(index.row(), 3).data(Qt::DisplayRole).toString()));
             new_value = present_value;
           }
         }
@@ -446,7 +446,7 @@ namespace OpenMS
 
   ParamEditor::ParamEditor(QWidget * parent) :
     QWidget(parent),
-    param_(0),
+    param_(nullptr),
     modified_(false),
     advanced_mode_(false)
   {
@@ -477,7 +477,7 @@ namespace OpenMS
     tree_->clear();
 
     QTreeWidgetItem * parent = tree_->invisibleRootItem();
-    QTreeWidgetItem * item = NULL;
+    QTreeWidgetItem * item = nullptr;
 
     for (Param::ParamIterator it = param.begin(); it != param.end(); ++it)
     {
@@ -497,7 +497,7 @@ namespace OpenMS
           //role
           item->setData(0, Qt::UserRole, NODE);
           //flags
-          if (param_ != NULL)
+          if (param_ != nullptr)
           {
             item->setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled | Qt::ItemIsEditable);
           }
@@ -510,7 +510,7 @@ namespace OpenMS
         else         //closed node
         {
           parent = parent->parent();
-          if (parent == NULL)
+          if (parent == nullptr)
             parent = tree_->invisibleRootItem();
         }
       }
@@ -713,7 +713,7 @@ namespace OpenMS
       //description
       item->setData(1, Qt::UserRole, it->description.toQString());
       //flags
-      if (param_ != NULL)
+      if (param_ != nullptr)
       {
         item->setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled | Qt::ItemIsEditable);
       }
@@ -738,7 +738,7 @@ namespace OpenMS
 
     // store only if no line-edit is opened (in which case data is uncommitted and will not be saved)
     // this applies only to INIFileEditor, where pressing Ctrl-s results in saving the current (but outdated) param
-    if (param_ != NULL &&
+    if (param_ != nullptr &&
         !static_cast<Internal::ParamEditorDelegate*>(this->tree_->itemDelegate())->hasUncommittedData())
     {
       //std::cerr << "and done!...\n";

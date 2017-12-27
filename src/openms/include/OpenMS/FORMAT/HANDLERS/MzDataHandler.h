@@ -75,7 +75,7 @@ public:
       MzDataHandler(const MapType & exp, const String & filename, const String & version, const ProgressLogger & logger);
 
       /// Destructor
-      virtual ~MzDataHandler()
+      ~MzDataHandler() override
       {
       }
 
@@ -83,16 +83,16 @@ public:
 
 
       // Docu in base class
-      virtual void endElement(const XMLCh * const /*uri*/, const XMLCh * const /*local_name*/, const XMLCh * const qname);
+      void endElement(const XMLCh * const /*uri*/, const XMLCh * const /*local_name*/, const XMLCh * const qname) override;
 
       // Docu in base class
-      virtual void startElement(const XMLCh * const /*uri*/, const XMLCh * const /*local_name*/, const XMLCh * const qname, const xercesc::Attributes & attributes);
+      void startElement(const XMLCh * const /*uri*/, const XMLCh * const /*local_name*/, const XMLCh * const qname, const xercesc::Attributes & attributes) override;
 
       // Docu in base class
-      virtual void characters(const XMLCh * const chars, const XMLSize_t length);
+      void characters(const XMLCh * const chars, const XMLSize_t length) override;
 
       /// Writes the contents to a stream
-      void writeTo(std::ostream & os);
+      void writeTo(std::ostream & os) override;
 
       ///Sets the options
       void setOptions(const PeakFileOptions & options)

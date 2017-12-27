@@ -111,7 +111,7 @@ protected:
 
   double rt_gap_, rt_offset_; // parameters for RT concatenation
 
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     StringList valid_in = ListUtils::create<String>("mzData,mzXML,mzML,dta,dta2d,mgf,featureXML,consensusXML,fid,traML,FASTA");
     registerInputFileList_("in", "<files>", StringList(), "Input files separated by blank");
@@ -164,7 +164,7 @@ protected:
     }
   }
 
-  ExitCodes main_(int, const char**)
+  ExitCodes main_(int, const char**) override
   {
 
     //-------------------------------------------------------------

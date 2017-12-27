@@ -81,8 +81,8 @@ IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("IDFilter_test.idXML"),
                  global_proteins, global_peptides);
 global_peptides[0].sort(); // makes it easier to compare results
 
-IDFilter* ptr = 0;
-IDFilter* nullPointer = 0;
+IDFilter* ptr = nullptr;
+IDFilter* nullPointer = nullptr;
 
 START_SECTION((IDFilter()))
   ptr = new IDFilter();

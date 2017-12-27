@@ -127,7 +127,7 @@ public:
     PeptideAndProteinQuant();
 
     /// Destructor
-    ~PeptideAndProteinQuant() {}
+    ~PeptideAndProteinQuant() override {}
 
     /**
          @brief Read quantitative data from a feature map.
@@ -214,7 +214,7 @@ private:
          The keys of @p abundances are stored ordered in @p result, best first.
     */
     template <typename T>
-    void orderBest_(const std::map<T, SampleAbundances> abundances,
+    void orderBest_(const std::map<T, SampleAbundances> & abundances,
                     std::vector<T>& result)
     {
       typedef std::pair<Size, double> PairType;
@@ -268,7 +268,7 @@ private:
     void countPeptides_(std::vector<PeptideIdentification>& peptides);
 
     /// Clear all data when parameters are set
-    void updateMembers_();
+    void updateMembers_() override;
 
   };   // class
 

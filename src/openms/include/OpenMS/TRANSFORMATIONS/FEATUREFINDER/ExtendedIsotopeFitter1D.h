@@ -56,7 +56,7 @@ public:
     ExtendedIsotopeFitter1D(const ExtendedIsotopeFitter1D & source);
 
     /// destructor
-    virtual ~ExtendedIsotopeFitter1D();
+    ~ExtendedIsotopeFitter1D() override;
 
     /// assignment operator
     virtual ExtendedIsotopeFitter1D & operator=(const ExtendedIsotopeFitter1D & source);
@@ -74,7 +74,7 @@ public:
     }
 
     /// return interpolation model
-    QualityType fit1d(const RawDataArrayType & range, InterpolationModel * & model);
+    QualityType fit1d(const RawDataArrayType & range, InterpolationModel * & model) override;
 
 protected:
 
@@ -87,7 +87,7 @@ protected:
     /// maximum isotopic rank to be considered
     Int max_isotope_;
 
-    void updateMembers_();
+    void updateMembers_() override;
   };
 }
 

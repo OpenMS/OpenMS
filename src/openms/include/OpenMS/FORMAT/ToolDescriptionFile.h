@@ -58,7 +58,7 @@ public:
     ///Default constructor
     ToolDescriptionFile();
     ///Destructor
-    virtual ~ToolDescriptionFile();
+    ~ToolDescriptionFile() override;
 
     /**
         @brief Loads a map from a ToolDescriptor file.

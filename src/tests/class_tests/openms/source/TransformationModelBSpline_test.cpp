@@ -50,7 +50,7 @@ START_TEST(TransformationModelBSpline, "$Id$")
 using namespace OpenMS;
 using namespace std;
 
-TransformationModelBSpline* ptr = 0;
+TransformationModelBSpline* ptr = nullptr;
 
 TransformationModel::DataPoints data, empty;
 data.push_back(make_pair(1.2, 5.2));

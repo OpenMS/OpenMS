@@ -123,7 +123,7 @@ public:
 
     DeconvPeak & operator=(const DeconvPeak &);
 
-    virtual ~DeconvPeak();
+    ~DeconvPeak() override;
 
     // shows the info of the peak:
     void show_info();

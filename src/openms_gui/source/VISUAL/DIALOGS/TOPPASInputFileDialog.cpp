@@ -81,7 +81,7 @@ namespace OpenMS
     // are searched in other paths via OpenMS.ini:id_db_dir
     if (!fileNameValid(line_edit->text()))
     {
-      QMessageBox::warning(0, "Invalid file name", "Warning: filename does not exist!");
+      QMessageBox::warning(nullptr, "Invalid file name", "Warning: filename does not exist!");
     }
 
     accept();

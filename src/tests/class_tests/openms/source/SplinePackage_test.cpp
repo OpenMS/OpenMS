@@ -68,7 +68,7 @@ intensity2.push_back(100.2);
 
 SplinePackage sp1(mz, intensity, 0.7);
 
-SplinePackage* nullPointer = 0;
+SplinePackage* nullPointer = nullptr;
 
 START_SECTION(SplinePackage(std::vector<double> mz, std::vector<double> intensity, double scaling))
   SplinePackage* sp2 = new SplinePackage(mz, intensity, 0.7);

@@ -48,8 +48,8 @@ using namespace std;
 START_TEST(EnzymaticDigestion, "$Id$")
 
 /////////////////////////////////////////////////////////////
-EnzymaticDigestion* ed_ptr = 0;
-EnzymaticDigestion* ed_null = 0;
+EnzymaticDigestion* ed_ptr = nullptr;
+EnzymaticDigestion* ed_null = nullptr;
 
 START_SECTION((EnzymaticDigestion()))
     ed_ptr = new EnzymaticDigestion;

@@ -231,7 +231,7 @@ protected:
   Param resolver_params_; // parameters for ProteinResolver
   Param design_params_; // parameters for QuantitativeExperimentalDesign
 
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     registerInputFile_("fasta", "<file>", "", "Input database file", true, false);
     setValidFormats_("fasta", ListUtils::create<String>("fasta"));
@@ -492,7 +492,7 @@ protected:
     return basename;
   }
 
-  ExitCodes main_(int, const char**)
+  ExitCodes main_(int, const char**) override
   {
     //-------------------------------------------------------------
     // parsing parameters

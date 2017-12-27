@@ -81,7 +81,7 @@ public:
   }
 
 protected:
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "FASTA input file");
     setValidFormats_("in", ListUtils::create<String>("fasta"));
@@ -99,7 +99,7 @@ protected:
     setMinInt_("missed_cleavages", 0);
   }
 
-  ExitCodes main_(int, const char**)
+  ExitCodes main_(int, const char**) override
   {
     vector<ProteinIdentification> protein_identifications;
     vector<PeptideIdentification> identifications;

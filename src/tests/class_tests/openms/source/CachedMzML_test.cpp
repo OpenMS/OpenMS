@@ -72,8 +72,8 @@ START_TEST(CachedmzML, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-CachedmzML* ptr = 0;
-CachedmzML* nullPointer = 0;
+CachedmzML* ptr = nullptr;
+CachedmzML* nullPointer = nullptr;
 
 START_SECTION(CachedmzML())
 {

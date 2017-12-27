@@ -54,7 +54,7 @@ using namespace std;
 
 UnimodXMLFile xml_file;
 UnimodXMLFile* ptr;
-UnimodXMLFile* nullPointer = 0;
+UnimodXMLFile* nullPointer = nullptr;
 
 START_SECTION((UnimodXMLFile()))
 	ptr = new UnimodXMLFile();

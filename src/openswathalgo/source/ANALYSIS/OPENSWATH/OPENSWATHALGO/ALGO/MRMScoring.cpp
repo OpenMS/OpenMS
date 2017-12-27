@@ -425,7 +425,7 @@ namespace OpenSwath
     std::vector<double> sn_score;
     if (signal_noise_estimators.size() == 0)
     {
-      return 0;
+      return nullptr;
     }
 
     for (std::size_t k = 0; k < signal_noise_estimators.size(); k++)

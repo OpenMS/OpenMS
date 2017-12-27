@@ -13,5 +13,6 @@ cdef extern from "<OpenMS/KERNEL/ChromatogramTools.h>" namespace "OpenMS":
 
         void convertSpectraToChromatograms(
                 MSExperiment & epx,
-                int remove_spectra
+                bool remove_spectra,
+                bool force_conversion
                 ) nogil except +

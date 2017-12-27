@@ -60,7 +60,7 @@ namespace OpenMS
 
 public:
     ///Constructor
-    ProteinIdentificationVisualizer(bool editable = FALSE, QWidget * parent = 0, MetaDataBrowser * caller = 0);
+    ProteinIdentificationVisualizer(bool editable = FALSE, QWidget * parent = nullptr, MetaDataBrowser * caller = nullptr);
 
     /// Loads the meta data from the object to the viewer. Gets the id of the item in the tree as parameter.
     void load(ProteinIdentification & s, int tree_item_id);
@@ -68,7 +68,7 @@ public:
 public slots:
 
     //Docu in base class
-    void store();
+    void store() override;
 
 protected slots:
 

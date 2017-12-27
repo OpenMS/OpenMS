@@ -94,7 +94,7 @@ CubicSpline2d sp2(mz_intensity);
 CubicSpline2d sp5(x, y);
 CubicSpline2d sp6(x_y);
 
-CubicSpline2d* nullPointer = 0;
+CubicSpline2d* nullPointer = nullptr;
 
 START_SECTION(CubicSpline2d(const std::vector<double>& x, const std::vector<double>& y))
   CubicSpline2d* sp3 = new CubicSpline2d(mz, intensity);

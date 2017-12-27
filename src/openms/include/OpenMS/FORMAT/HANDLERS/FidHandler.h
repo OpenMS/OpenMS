@@ -63,7 +63,7 @@ public:
       explicit FidHandler(const String & filename);
 
       /// Destructor
-      virtual ~FidHandler();
+      ~FidHandler() override;
 
       /// Get index of current position (without position moving).
       Size getIndex();

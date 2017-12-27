@@ -84,21 +84,21 @@ public:
       MzIdentMLHandler(std::vector<ProteinIdentification>& pro_id, std::vector<PeptideIdentification>& pep_id, const String& filename, const String& version, const ProgressLogger& logger);
 
       /// Destructor
-      virtual ~MzIdentMLHandler();
+      ~MzIdentMLHandler() override;
       //@}
 
 
       // Docu in base class
-      virtual void endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname);
+      void endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname) override;
 
       // Docu in base class
-      virtual void startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes);
+      void startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes) override;
 
       // Docu in base class
-      virtual void characters(const XMLCh* const chars, const XMLSize_t length);
+      void characters(const XMLCh* const chars, const XMLSize_t length) override;
 
       //Docu in base class
-      virtual void writeTo(std::ostream& os);
+      void writeTo(std::ostream& os) override;
 
 protected:
       /// Progress logger

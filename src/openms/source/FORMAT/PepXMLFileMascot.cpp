@@ -46,7 +46,7 @@ namespace OpenMS
   PepXMLFileMascot::PepXMLFileMascot() :
     XMLHandler("", "1.8"),
     XMLFile("/SCHEMAS/PepXML_1_8.xsd", "1.8"),
-    peptides_(0)
+    peptides_(nullptr)
   {
 
   }
@@ -66,7 +66,7 @@ namespace OpenMS
     actual_title_ = "";
     actual_sequence_ = "";
     actual_modifications_ = vector<pair<String, UInt> >();
-    peptides_ = 0;
+    peptides_ = nullptr;
     variable_modifications_ = vector<pair<String, double> >();
     fixed_modifications_ = vector<String>();
   }

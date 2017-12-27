@@ -73,7 +73,7 @@ public:
 
 protected:
 
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     addEmptyLine_();
     registerInputFile_("in1", "<file>", "", "first input file", true, false);
@@ -105,7 +105,7 @@ protected:
     setMinInt_("first_column", 0);
   }
 
-  ExitCodes main_(int, const char **)
+  ExitCodes main_(int, const char **) override
   {
 
     //-------------------------------------------------------------

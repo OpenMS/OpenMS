@@ -50,8 +50,8 @@ START_TEST(Date, "$Id$")
 
 /////////////////////////////////////////////////////////////
 
-Date* s_ptr = 0;
-Date* s_nullPointer= 0;
+Date* s_ptr = nullptr;
+Date* s_nullPointer= nullptr;
 
 START_SECTION((Date()))
 	s_ptr = new Date();

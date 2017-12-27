@@ -51,8 +51,8 @@ START_TEST(NLargest, "$Id$")
 
 /////////////////////////////////////////////////////////////
 
-NLargest* e_ptr = 0;
-NLargest* e_nullPointer = 0;
+NLargest* e_ptr = nullptr;
+NLargest* e_nullPointer = nullptr;
 
 START_SECTION((NLargest()))
 	e_ptr = new NLargest;

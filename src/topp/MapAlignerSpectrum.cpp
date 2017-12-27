@@ -98,7 +98,7 @@ public:
   }
 
 protected:
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     String formats = "mzML";
     // no support for a reference file yet:
@@ -107,7 +107,7 @@ protected:
     registerSubsection_("model", "Options to control the modeling of retention time transformations from data");
   }
 
-  Param getSubsectionDefaults_(const String& section) const
+  Param getSubsectionDefaults_(const String& section) const override
   {
     if (section == "algorithm")
     {
@@ -121,7 +121,7 @@ protected:
     return Param(); // shouldn't happen
   }
 
-  ExitCodes main_(int, const char**)
+  ExitCodes main_(int, const char**) override
   {
     ExitCodes ret = checkParameters_();
     if (ret != EXECUTION_OK) return ret;

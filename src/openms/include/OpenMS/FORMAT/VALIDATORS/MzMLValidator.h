@@ -59,18 +59,18 @@ public:
       MzMLValidator(const CVMappings & mapping, const ControlledVocabulary & cv);
 
       /// Destructor
-      virtual ~MzMLValidator();
+      ~MzMLValidator() override;
 
 protected:
 
       // Docu in base class
-      void startElement(const XMLCh * const /*uri*/, const XMLCh * const /*local_name*/, const XMLCh * const qname, const xercesc::Attributes & attributes);
+      void startElement(const XMLCh * const /*uri*/, const XMLCh * const /*local_name*/, const XMLCh * const qname, const xercesc::Attributes & attributes) override;
 
       // Docu in base class
-      virtual String getPath_(UInt remove_from_end = 0) const;
+      String getPath_(UInt remove_from_end = 0) const override;
 
       // Docu in base class
-      virtual void handleTerm_(const String & path, const CVTerm & parsed_term);
+      void handleTerm_(const String & path, const CVTerm & parsed_term) override;
 
       ///CV terms which can have a value (term => value type)
       Map<String, std::vector<CVTerm> > param_groups_;

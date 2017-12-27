@@ -98,7 +98,7 @@ public:
     TwoDOptimization(const TwoDOptimization& opt);
 
     /// Destructor
-    virtual ~TwoDOptimization(){}
+    ~TwoDOptimization() override{}
 
     /// Assignment operator
     TwoDOptimization& operator=(const TwoDOptimization& opt);
@@ -264,7 +264,7 @@ protected:
     //@}
 
     /// update members method from DefaultParamHandler to update the members
-    void updateMembers_();
+    void updateMembers_() override;
   };
 
 

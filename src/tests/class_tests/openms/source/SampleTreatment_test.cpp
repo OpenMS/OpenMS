@@ -61,7 +61,7 @@ class Test: public SampleTreatment
     {
     }
 
-    virtual ~Test()
+    ~Test() override
     {
     }
 
@@ -74,12 +74,12 @@ class Test: public SampleTreatment
       return *this;
     }
 
-    virtual SampleTreatment* clone() const
+    SampleTreatment* clone() const override
     {
       return new Test(*this);
     }
 
-    virtual bool operator== (const SampleTreatment& rhs) const
+    bool operator== (const SampleTreatment& rhs) const override
     {
       if (type_ != rhs.getType()) 
       {
@@ -98,8 +98,8 @@ START_TEST(SampleTreatment, "$Id$")
 
 TOLERANCE_ABSOLUTE(0.001)
 
-Test* dv_ptr = 0;
-Test* dv_nullPointer = 0;
+Test* dv_ptr = nullptr;
+Test* dv_nullPointer = nullptr;
 START_SECTION((SampleTreatment(const String& type)))
 	dv_ptr = new Test;
   TEST_NOT_EQUAL(dv_ptr, dv_nullPointer)

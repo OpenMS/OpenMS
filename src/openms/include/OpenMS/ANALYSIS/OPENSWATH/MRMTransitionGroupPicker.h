@@ -87,7 +87,7 @@ public:
     MRMTransitionGroupPicker();
 
     /// Destructor
-    ~MRMTransitionGroupPicker();
+    ~MRMTransitionGroupPicker() override;
     //@}
 
     /**
@@ -277,9 +277,27 @@ public:
           }
         }
 
+        SpectrumT used_chromatogram;
         // resample the current chromatogram
-        const SpectrumT used_chromatogram = resampleChromatogram_(chromatogram, master_peak_container, best_left, best_right);
-        // const SpectrumT& used_chromatogram = chromatogram; // instead of resampling
+        if (peak_integration_ == "original")
+        {
+          used_chromatogram = resampleChromatogram_(chromatogram, master_peak_container, best_left, best_right);
+          // const SpectrumT& used_chromatogram = chromatogram; // instead of resampling
+        }
+        else if (peak_integration_ == "smoothed" && smoothed_chroms.size() <= k)
+        {
+          throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+            "Tried to calculate peak area and height without any smoothed chromatograms");
+        }        
+        else if (peak_integration_ == "smoothed")
+        {
+          used_chromatogram = resampleChromatogram_(smoothed_chroms[k], master_peak_container, best_left, best_right);
+        }
+        else
+        {
+          throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+            String("Peak integration chromatogram ") + peak_integration_ + " is not a valid method for MRMTransitionGroupPicker");
+        } 
 
         Feature f;
         double quality = 0;
@@ -294,24 +312,16 @@ public:
         double background(0), avg_noise_level(0);
         if (background_subtraction_ != "none")
         {
-          if ((background_subtraction_ == "smoothed_average" || background_subtraction_ == "smoothed_exact") && smoothed_chroms.size() <= k)
+          if ((peak_integration_ == "smoothed") && smoothed_chroms.size() <= k)
           {
-            std::cerr << "Tried to calculate background estimation without any smoothed chromatograms" << std::endl;
-            background =  0;
+            throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+              "Tried to calculate background estimation without any smoothed chromatograms");
           }
-          else if (background_subtraction_ == "smoothed_average")
-          {
-            calculateBgEstimationAverage_(smoothed_chroms[k], best_left, best_right, background, avg_noise_level);
-          }
-          else if (background_subtraction_ == "smoothed_exact")
-          {
-            calculateBgEstimationExact_(smoothed_chroms[k], best_left, best_right, peak_apex_int, background, avg_noise_level);
-          }
-          else if (background_subtraction_ == "original_average")
+          else if (background_subtraction_ == "original")
           {
             calculateBgEstimationAverage_(used_chromatogram, best_left, best_right, background, avg_noise_level);
           }
-          else if (background_subtraction_ == "original_exact")
+          else if (background_subtraction_ == "exact")
           {
             calculateBgEstimationExact_(used_chromatogram, best_left, best_right, peak_apex_int, background, avg_noise_level);
           }
@@ -381,9 +391,30 @@ public:
       // extracted here, only for fragment traces
       for (Size k = 0; k < transition_group.getPrecursorChromatograms().size(); k++)
       {
+        
         const SpectrumT& chromatogram = transition_group.getPrecursorChromatograms()[k];
+
+        SpectrumT used_chromatogram;
         // resample the current chromatogram
-        const SpectrumT used_chromatogram = resampleChromatogram_(chromatogram, master_peak_container, best_left, best_right);
+        if (peak_integration_ == "original")
+        {
+          used_chromatogram = resampleChromatogram_(chromatogram, master_peak_container, best_left, best_right);
+          // const SpectrumT& used_chromatogram = chromatogram; // instead of resampling
+        }
+        else if (peak_integration_ == "smoothed" && smoothed_chroms.size() <= k)
+        {
+          throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+            "Tried to calculate peak area and height without any smoothed chromatograms");
+        }        
+        else if (peak_integration_ == "smoothed")
+        {
+          used_chromatogram = resampleChromatogram_(smoothed_chroms[k], master_peak_container, best_left, best_right);
+        }
+        else
+        {
+          throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+            String("Peak integration chromatogram ") + peak_integration_ + " is not a valid method for MRMTransitionGroupPicker");
+        }   
 
         Feature f;
         double quality = 0;
@@ -595,7 +626,7 @@ public:
 protected:
 
     /// Synchronize members with param class
-    void updateMembers_();
+    void updateMembers_() override;
 
     /// Assignment operator is protected for algorithm
     MRMTransitionGroupPicker& operator=(const MRMTransitionGroupPicker& rhs);
@@ -953,6 +984,7 @@ protected:
     //@}
 
     // Members
+    String peak_integration_;
     String background_subtraction_;
     bool recalculate_peaks_;
     bool use_precursors_;

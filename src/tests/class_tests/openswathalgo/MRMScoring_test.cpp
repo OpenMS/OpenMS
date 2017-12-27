@@ -113,8 +113,8 @@ START_TEST(MRMScoring, "$Id$")
 
 #ifndef USE_BOOST_UNIT_TEST
 {
-MRMScoring* ptr = 0;
-MRMScoring* nullPointer = 0;
+MRMScoring* ptr = nullptr;
+MRMScoring* nullPointer = nullptr;
 
 START_SECTION(MRMScoring())
 {

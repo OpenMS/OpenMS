@@ -50,8 +50,8 @@ START_TEST(DIntervalBase, "$Id$")
 /////////////////////////////////////////////////////////////
 	
 //1D check
-DIntervalBase<1>* ptr1 = 0;
-DIntervalBase<1>* nullPointer1 = 0;
+DIntervalBase<1>* ptr1 = nullptr;
+DIntervalBase<1>* nullPointer1 = nullptr;
 
 START_SECTION((DIntervalBase()))
 	ptr1 = new DIntervalBase<1>;
@@ -63,8 +63,8 @@ START_SECTION((~DIntervalBase()))
 END_SECTION
 
 //2D check
-DIntervalBase<2>* ptr2 = 0;
-DIntervalBase<2>* nullPointer2 = 0;
+DIntervalBase<2>* ptr2 = nullptr;
+DIntervalBase<2>* nullPointer2 = nullptr;
 
 START_SECTION([EXTRA] DIntervalBase())
 	ptr2 = new DIntervalBase<2>;

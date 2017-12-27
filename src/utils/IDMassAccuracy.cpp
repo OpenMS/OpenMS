@@ -88,10 +88,10 @@ using namespace Math;
 // measured and expected masses
 struct MassDifference
 {
-  double exp_mz;
-  Int charge;
-  double theo_mz;
-  double intensity;
+  double exp_mz = 0.0;
+  Int charge = 0;
+  double theo_mz = 0.0;
+  double intensity = 0.0;
 };
 
 class TOPPIDMassAccuracy :
@@ -105,7 +105,7 @@ public:
   }
 
 protected:
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     registerInputFileList_("in", "<file list>", StringList(), "Input mzML file list, containing the spectra.");
     setValidFormats_("in", ListUtils::create<String>("mzML"));
@@ -145,7 +145,7 @@ protected:
     return error;
   }
 
-  ExitCodes main_(int, const char **)
+  ExitCodes main_(int, const char **) override
   {
     //-------------------------------------------------------------
     // parsing parameters

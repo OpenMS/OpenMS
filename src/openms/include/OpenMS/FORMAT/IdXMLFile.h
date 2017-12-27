@@ -99,7 +99,7 @@ public:
     /**
         @brief Stores the data in an idXML file
 
-        The data is read in and stored in the file 'filename'.
+        The data is read in and stored in the file 'filename'. PeptideHits are sorted by score.
 
         @exception Exception::UnableToCreateFile is thrown if the file could not be created
     */
@@ -108,10 +108,10 @@ public:
 
 protected:
     // Docu in base class
-    virtual void endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname);
+    void endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname) override;
 
     // Docu in base class
-    virtual void startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes);
+    void startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes) override;
 
     /// Add data from ProteinGroups to a MetaInfoInterface
     void addProteinGroups_(MetaInfoInterface& meta, const std::vector<ProteinIdentification::ProteinGroup>& groups, const String& group_name, const std::map<String, UInt>& accession_to_id);

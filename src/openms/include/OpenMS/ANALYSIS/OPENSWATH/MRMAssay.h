@@ -140,6 +140,7 @@ public:
       @param round_decPow round product m/z values to decimal power (default: -4)
       @param max_num_alternative_localizations maximum number of allowed peptide sequence permutations
       @param shuffle_seed set seed for shuffle (-1: select seed based on time)
+      @param disable_decoy_transitions whether to disable generation of decoy UIS transitions
     */
     void uisTransitions(OpenMS::TargetedExperiment& exp,
                         std::vector<String> fragment_types,
@@ -151,7 +152,8 @@ public:
                         std::vector<std::pair<double, double> > swathes,
                         int round_decPow = -4,
                         size_t max_num_alternative_localizations = 20,
-                        int shuffle_seed = -1);
+                        int shuffle_seed = -1,
+                        bool disable_decoy_transitions = false);
 
 protected:
     /**
@@ -175,7 +177,7 @@ protected:
 
       @value index of swath where precursor_mz falls into
     */
-    int getSwath_(const std::vector<std::pair<double, double> > swathes, const double precursor_mz);
+    int getSwath_(const std::vector<std::pair<double, double> >& swathes, const double precursor_mz);
 
     /**
       @brief Check whether the product m/z of a transition falls into the precursor isolation window
@@ -186,7 +188,7 @@ protected:
 
       @value whether product m/z falls into precursor isolation window
     */
-    bool isInSwath_(const std::vector<std::pair<double, double> > swathes, const double precursor_mz, const double product_mz);
+    bool isInSwath_(const std::vector<std::pair<double, double> >& swathes, const double precursor_mz, const double product_mz);
 
     /**
       @brief Generates random peptide sequence
