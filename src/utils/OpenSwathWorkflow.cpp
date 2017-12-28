@@ -417,9 +417,6 @@ protected:
     registerInputFile_("swath_windows_file", "<file>", "", "Optional, tab separated file containing the SWATH windows for extraction: lower_offset upper_offset \\newline 400 425 \\newline ... Note that the first line is a header and will be skipped.", false, true);
     registerFlag_("sort_swath_maps", "Sort of input SWATH files when matching to SWATH windows from swath_windows_file", true);
 
-    registerFlag_("enable_ms1", "MS1: Set this flag if precursor ion trace(s) should be extracted and used for scoring", false);
-    registerFlag_("enable_ipf", "IPF: Set this flag if IPF transition-level scoring should be conducted", false);
-
     // one of the following two needs to be set
     registerOutputFile_("out_features", "<file>", "", "output file", false);
     setValidFormats_("out_features", ListUtils::create<String>("featureXML"));
@@ -432,6 +429,11 @@ protected:
 
     registerOutputFile_("out_chrom", "<file>", "", "Also output all computed chromatograms output in mzML (chrom.mzML) or sqMass (SQLite format)", false, true);
     setValidFormats_("out_chrom", ListUtils::create<String>("mzML,sqMass"));
+
+    registerStringOption_("enable_ms1", "<bool>", "true", "MS1: Set this flag if precursor ion trace(s) should be extracted and used for scoring", false, true);
+    setValidStrings_("enable_ms1", ListUtils::create<String>("true,false"));
+    registerStringOption_("enable_ipf", "<bool>", "true", "IPF: Set this flag if IPF transition-level scoring should be conducted", false, true);
+    setValidStrings_("enable_ipf", ListUtils::create<String>("true,false"));
 
     registerDoubleOption_("min_upper_edge_dist", "<double>", -1, "Minimal distance to the edge to still consider a precursor, in Thomson (-1 means that the parameter is estimated automatically from the input). This parameter is disabled in SONAR mode.", false, true);
     registerDoubleOption_("rt_extraction_window", "<double>", 600.0, "Only extract RT around this value (-1 means extract over the whole range, a value of 600 means to extract around +/- 300 s of the expected elution).", false);
@@ -714,8 +716,10 @@ protected:
     bool force = getFlag_("force");
     bool sonar = getFlag_("sonar");
     bool sort_swath_maps = getFlag_("sort_swath_maps");
-    bool enable_ms1 = getFlag_("enable_ms1");
-    bool enable_ipf = getFlag_("enable_ipf");
+    bool enable_ms1 = false;
+    if (getStringOption_("enable_ms1") == String("true")) {enable_ms1 = true;}
+    bool enable_ipf = false;
+    if (getStringOption_("enable_ipf") == String("true")) {enable_ipf = true;}
     double min_upper_edge_dist = getDoubleOption_("min_upper_edge_dist");
     double mz_extraction_window = getDoubleOption_("mz_extraction_window");
     double irt_mz_extraction_window = getDoubleOption_("irt_mz_extraction_window");
@@ -907,9 +911,9 @@ protected:
       min_upper_edge_dist = 0.0;
     }
 
+    double tmp_min_upper_edge_dist = 0.0;
     if (min_upper_edge_dist == -1)
     {
-      double tmp_min_upper_edge_dist;
       for (Size i = 1; i < sw_windows.size(); i++)
       {
         if (i==1)
