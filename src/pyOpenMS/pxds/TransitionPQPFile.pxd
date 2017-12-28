@@ -1,21 +1,21 @@
 from Types cimport *
 from libcpp cimport bool
-from TransitionTSVReader cimport *
+from TransitionTSVFile cimport *
 from TargetedExperiment cimport *
 from LightTargetedExperiment cimport *
 
-cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/TransitionPQPReader.h>" namespace "OpenMS":
+cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/TransitionPQPFile.h>" namespace "OpenMS":
 
-    cdef cppclass TransitionPQPReader:
+    cdef cppclass TransitionPQPFile:
 
-        TransitionPQPReader() nogil except +
-        TransitionPQPReader(TransitionPQPReader) nogil except + #wrap-ignore
+        TransitionPQPFile() nogil except +
+        TransitionPQPFile(TransitionPQPFile) nogil except + #wrap-ignore
 
         void convertTargetedExperimentToPQP(char * filename, TargetedExperiment & targeted_exp) nogil except +
         void convertPQPToTargetedExperiment(char * filename, TargetedExperiment & targeted_exp, bool legacy_traml_id) nogil except +
         void convertPQPToTargetedExperiment(char * filename, LightTargetedExperiment & targeted_exp, bool legacy_traml_id) nogil except +
 
-        # inherited from TransitionTSVReader
+        # inherited from TransitionTSVFile
         # due to issues with Cython and overloaded inheritance
         void convertTargetedExperimentToTSV(char * filename, TargetedExperiment& targeted_exp) nogil except +
 

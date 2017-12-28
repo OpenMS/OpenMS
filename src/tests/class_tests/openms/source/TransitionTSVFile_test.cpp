@@ -40,28 +40,28 @@
 #include <boost/assign/list_of.hpp>
 
 ///////////////////////////
-#include <OpenMS/ANALYSIS/OPENSWATH/TransitionTSVReader.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/TransitionTSVFile.h>
 ///////////////////////////
 
 using namespace OpenMS;
 using namespace std;
 
-START_TEST(TransitionTSVReader, "$Id$")
+START_TEST(TransitionTSVFile, "$Id$")
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-TransitionTSVReader* ptr = nullptr;
-TransitionTSVReader* nullPointer = nullptr;
+TransitionTSVFile* ptr = nullptr;
+TransitionTSVFile* nullPointer = nullptr;
 
-START_SECTION(TransitionTSVReader())
+START_SECTION(TransitionTSVFile())
 {
-  ptr = new TransitionTSVReader();
+  ptr = new TransitionTSVFile();
   TEST_NOT_EQUAL(ptr, nullPointer)
 }
 END_SECTION
 
-START_SECTION(~TransitionTSVReader())
+START_SECTION(~TransitionTSVFile())
 {
   delete ptr;
 }

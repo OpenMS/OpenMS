@@ -33,8 +33,8 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMDecoy.h>
-#include <OpenMS/ANALYSIS/OPENSWATH/TransitionTSVReader.h>
-#include <OpenMS/ANALYSIS/OPENSWATH/TransitionPQPReader.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/TransitionTSVFile.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/TransitionPQPFile.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/CONCEPT/Exception.h>
@@ -220,7 +220,7 @@ protected:
     {
       const char* tr_file = in.c_str();
       Param reader_parameters = getParam_().copy("algorithm:", true);
-      TransitionTSVReader tsv_reader = TransitionTSVReader();
+      TransitionTSVFile tsv_reader = TransitionTSVFile();
       tsv_reader.setLogType(log_type_);
       tsv_reader.setParameters(reader_parameters);
       tsv_reader.convertTSVToTargetedExperiment(tr_file, in_type, targeted_exp);
@@ -229,7 +229,7 @@ protected:
     else if (in_type == FileTypes::PQP)
     {
       const char* tr_file = in.c_str();
-      TransitionPQPReader pqp_reader = TransitionPQPReader();
+      TransitionPQPFile pqp_reader = TransitionPQPFile();
       Param reader_parameters = getParam_().copy("algorithm:", true);
       pqp_reader.setLogType(log_type_);
       pqp_reader.setParameters(reader_parameters);
@@ -274,14 +274,14 @@ protected:
     if (out_type == FileTypes::TSV)
     {
       const char* tr_file = out.c_str();
-      TransitionTSVReader tsv_reader = TransitionTSVReader();
+      TransitionTSVFile tsv_reader = TransitionTSVFile();
       tsv_reader.setLogType(log_type_);
       tsv_reader.convertTargetedExperimentToTSV(tr_file, targeted_merged);
     }
     if (out_type == FileTypes::PQP)
     {
       const char * tr_file = out.c_str();
-      TransitionPQPReader pqp_reader = TransitionPQPReader();
+      TransitionPQPFile pqp_reader = TransitionPQPFile();
       pqp_reader.setLogType(log_type_);
       pqp_reader.convertTargetedExperimentToPQP(tr_file, targeted_merged);
     }

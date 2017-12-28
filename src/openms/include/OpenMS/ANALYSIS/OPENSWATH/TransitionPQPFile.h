@@ -32,10 +32,10 @@
 // $Authors: George Rosenberger, Hannes Roest $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_OPENSWATH_TRANSITIONPQPREADER_H
-#define OPENMS_ANALYSIS_OPENSWATH_TRANSITIONPQPREADER_H
+#ifndef OPENMS_ANALYSIS_OPENSWATH_TRANSITIONPQPFILE_H
+#define OPENMS_ANALYSIS_OPENSWATH_TRANSITIONPQPFILE_H
 
-#include <OpenMS/ANALYSIS/OPENSWATH/TransitionTSVReader.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/TransitionTSVFile.h>
 
 #include <boost/range/algorithm.hpp>
 #include <boost/range/algorithm_ext/erase.hpp>
@@ -50,11 +50,11 @@ namespace OpenMS
 
       The PQP files are SQLite databases consisting of several tables representing the data contained in TraML files.
 
-  @htmlinclude OpenMS_TransitionPQPReader.parameters
+  @htmlinclude OpenMS_TransitionPQPFile.parameters
 
   */
-  class OPENMS_DLLAPI TransitionPQPReader :
-    public TransitionTSVReader
+  class OPENMS_DLLAPI TransitionPQPFile :
+    public TransitionTSVFile
   {
 
 private:
@@ -78,10 +78,10 @@ public:
 
     //@{
     /// Constructor
-    TransitionPQPReader();
+    TransitionPQPFile();
 
     /// Destructor
-    ~TransitionPQPReader() override;
+    ~TransitionPQPFile() override;
     //@}
 
     /** @brief Write out a targeted experiment (TraML structure) into a PQP file

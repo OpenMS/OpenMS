@@ -32,8 +32,8 @@
 // $Authors: Hannes Roest $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_OPENSWATH_TRANSITIONTSVREADER_H
-#define OPENMS_ANALYSIS_OPENSWATH_TRANSITIONTSVREADER_H
+#ifndef OPENMS_ANALYSIS_OPENSWATH_TRANSITIONTSVFILE_H
+#define OPENMS_ANALYSIS_OPENSWATH_TRANSITIONTSVFILE_H
 
 #include <OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/TransitionExperiment.h>
@@ -75,10 +75,10 @@ namespace OpenMS
       identifying_transition (bool, should this transition be used for UIS identification together with the detecting transitions?)
       quantifying_transition (bool, should this transition be used for quantification?)
 
-  @htmlinclude OpenMS_TransitionTSVReader.parameters
+  @htmlinclude OpenMS_TransitionTSVFile.parameters
 
   */
-  class OPENMS_DLLAPI TransitionTSVReader :
+  class OPENMS_DLLAPI TransitionTSVFile :
     public ProgressLogger,
     public DefaultParamHandler
   {
@@ -172,7 +172,7 @@ protected:
    */
     //@{
 
-    TransitionTSVReader::TSVTransition convertTransition_(const ReactionMonitoringTransition* it, OpenMS::TargetedExperiment& targeted_exp);
+    TransitionTSVFile::TSVTransition convertTransition_(const ReactionMonitoringTransition* it, OpenMS::TargetedExperiment& targeted_exp);
 
     /// Synchronize members with param class
     void updateMembers_() override;
@@ -263,10 +263,10 @@ public:
 
     //@{
     /// Constructor
-    TransitionTSVReader();
+    TransitionTSVFile();
 
     /// Destructor
-    ~TransitionTSVReader() override;
+    ~TransitionTSVFile() override;
     //@}
 
     /** @brief Write out a targeted experiment (TraML structure) into a tsv file

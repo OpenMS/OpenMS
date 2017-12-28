@@ -40,28 +40,28 @@
 #include <boost/assign/list_of.hpp>
 
 ///////////////////////////
-#include <OpenMS/ANALYSIS/OPENSWATH/TransitionPQPReader.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/TransitionPQPFile.h>
 ///////////////////////////
 
 using namespace OpenMS;
 using namespace std;
 
-START_TEST(TransitionPQPReader, "$Id$")
+START_TEST(TransitionPQPFile, "$Id$")
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-TransitionPQPReader* ptr = nullptr;
-TransitionPQPReader* nullPointer = nullptr;
+TransitionPQPFile* ptr = nullptr;
+TransitionPQPFile* nullPointer = nullptr;
 
-START_SECTION(TransitionPQPReader())
+START_SECTION(TransitionPQPFile())
 {
-  ptr = new TransitionPQPReader();
+  ptr = new TransitionPQPFile();
   TEST_NOT_EQUAL(ptr, nullPointer)
 }
 END_SECTION
 
-START_SECTION(~TransitionPQPReader())
+START_SECTION(~TransitionPQPFile())
 {
   delete ptr;
 }
