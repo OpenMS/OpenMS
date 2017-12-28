@@ -895,8 +895,8 @@ def testDataProcessing(dp=pyopenms.DataProcessing()):
     assert dp == dp
     assert not dp != dp
 
-    assert isinstance(dp.getCompletionTime().getDate(), bytes)
-    assert isinstance(dp.getCompletionTime().getTime(), bytes)
+    # assert isinstance(dp.getCompletionTime().getDate(), bytes)
+    # assert isinstance(dp.getCompletionTime().getTime(), bytes)
     dp.clearMetaInfo()
     k = []
     dp.getKeys(k)
@@ -912,7 +912,7 @@ def testDataProcessing(dp=pyopenms.DataProcessing()):
     dp.isMetaEmpty()
     dp.metaValueExists
     dp.removeMetaValue
-    dp.setCompletionTime(pyopenms.DateTime.now())
+    # dp.setCompletionTime(pyopenms.DateTime.now())
     s = dp.getSoftware()
     s.setName(b"pyopenms")
     dp.setSoftware(s)
@@ -1077,25 +1077,25 @@ def testSemanticValidator():
     assert val.setCheckUnits is not None
 
 
-@report
-def testDateTime():
-    """
-    @tests: DateTime
-     DateTime.__init__
-     DateTime.getDate
-     DateTime.getTime
-     DateTime.now
-    """
-    d = pyopenms.DateTime()
-    assert isinstance( d.getDate(), bytes)
-    assert isinstance( d.getTime(), bytes)
-    d = pyopenms.DateTime.now()
-    assert isinstance( d.getDate(), bytes)
-    assert isinstance( d.getTime(), bytes)
-
-    d.clear()
-    d.set(b"01.01.2001 11:11:11")
-    assert d.get() == b"2001-01-01 11:11:11"
+# @report
+# def testDateTime():
+#     """
+#     @tests: DateTime
+#      DateTime.__init__
+#      DateTime.getDate
+#      DateTime.getTime
+#      DateTime.now
+#     """
+#     d = pyopenms.DateTime()
+#     assert isinstance( d.getDate(), bytes)
+#     assert isinstance( d.getTime(), bytes)
+#     d = pyopenms.DateTime.now()
+#     assert isinstance( d.getDate(), bytes)
+#     assert isinstance( d.getTime(), bytes)
+# 
+#     d.clear()
+#     d.set(b"01.01.2001 11:11:11")
+#     assert d.get() == b"2001-01-01 11:11:11"
 
 @report
 def testFeature():
