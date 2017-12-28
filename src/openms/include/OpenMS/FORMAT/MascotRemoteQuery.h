@@ -72,7 +72,6 @@ public:
     OPENMS_DLLAPI virtual ~MascotRemoteQuery();
     //@}
 
-
     /// sets the query spectra, given in MGF file format
     OPENMS_DLLAPI void setQuerySpectra(const String& exp);
 
@@ -98,51 +97,48 @@ public slots:
 
 private slots:
 
+    /// slot connected to QTimer (timeout_)
     OPENMS_DLLAPI void timedOut();
 
-    OPENMS_DLLAPI void readyRead();
-
-    /// called after the login finished
-    OPENMS_DLLAPI void loginFinished(QNetworkReply* reply);
-
-    /// called after the query finished
-    OPENMS_DLLAPI void queryFinished(QNetworkReply* reply);
+    /// slot connected to the QNetworkAccessManager::finished signal
+    OPENMS_DLLAPI void readResponse(QNetworkReply* reply);
 
     /// slot connected to signal downloadProgress
-    OPENMS_DLLAPI void downloadProgress(int bytes_read, int bytes_total);
+    OPENMS_DLLAPI void downloadProgress(qint64 bytes_read, qint64 bytes_total);
 
-    /// slot connected to signal dataSendProgress of QHttp
-    OPENMS_DLLAPI void httpDataSendProgress(int bytes_sent, int bytes_total);
+    /// slot connected to signal uploadProgress
+    OPENMS_DLLAPI void uploadProgress(qint64 bytes_read, qint64 bytes_total);
 
-    OPENMS_DLLAPI void login();
-
-    OPENMS_DLLAPI void execQuery();
-
-    OPENMS_DLLAPI void getResults(QString results_path);
-
+    /// slot connected to signal gotRedirect
     OPENMS_DLLAPI void followRedirect(QNetworkReply * reply);
 
 signals:
 
+    /// signal when class got a redirect
     OPENMS_DLLAPI void gotRedirect(QNetworkReply * reply);
 
+    /// signal when class is done and results can be collected
     OPENMS_DLLAPI void done();
 
 private:
+
+    /// login to Mascot server
+    void login();
+
+    /// execute query (upload file)
+    void execQuery();
+
+    /// download result file
+    void getResults(QString results_path);
+
     /// assignment operator
     OPENMS_DLLAPI MascotRemoteQuery& operator=(const MascotRemoteQuery& rhs);
+
     /// copy constructor
     OPENMS_DLLAPI MascotRemoteQuery(const MascotRemoteQuery& rhs);
 
+    /// finish a run and emit "done"
     OPENMS_DLLAPI void endRun_();
-
-    /// Write HTTP header to error stream (for debugging)
-    OPENMS_DLLAPI void logHeader_(const QList<QNetworkReply::RawHeaderPair> header , const String& what);
-
-    OPENMS_DLLAPI void logHeader_(const QNetworkRequest header, const String& what);
-
-    OPENMS_DLLAPI void logHeader_(const QNetworkReply* header, const String& what);
-
 
     /**
       @brief Remove host name information from an url, e.g., "http://www.google.de/search" -> "search"
@@ -151,20 +147,30 @@ private:
     */
     void removeHostName_(QString& url);
 
-    OPENMS_DLLAPI String getSearchIdentifierFromFilePath(const String& path) const;
+    /// helper function to build URL
+    QUrl buildUrl_(std::string path);
 
+    /// Write HTTP header to error stream (for debugging)
+    OPENMS_DLLAPI void logHeader_(const QNetworkRequest header, const String& what);
+
+    /// Write HTTP header to error stream (for debugging)
+    OPENMS_DLLAPI void logHeader_(const QNetworkReply* header, const String& what);
+
+    OPENMS_DLLAPI String getSearchIdentifierFromFilePath(const String& path) const;
 
     /// parse new response header
     OPENMS_DLLAPI void readResponseHeader(const QNetworkReply* reply);
 
     QNetworkAccessManager* manager_;
-    QNetworkReply* reply_;
+
+    // Input / Output data
     String query_spectra_;
     QByteArray mascot_xml_;
+
+    // Internal data structures
     QString cookie_;
     String error_message_;
     QTimer timeout_;
-    Int to_;
     String search_identifier_;
 
     /// Path on mascot server
@@ -177,7 +183,10 @@ private:
     bool use_ssl_;
     /// boundary string that will be embedded into the HTTP requests
     String boundary_;
+    /// Timeout after these many seconds
+    Int to_;
   };
 
 }
 #endif /*OPENMS_FORMAT_MASCOTREMOTEQUERY_H*/
+
