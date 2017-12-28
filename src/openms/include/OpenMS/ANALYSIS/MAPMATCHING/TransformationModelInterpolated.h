@@ -83,7 +83,7 @@ public:
     TransformationModelInterpolated(const DataPoints& data, const Param& params);
 
     /// Destructor
-    ~TransformationModelInterpolated();
+    ~TransformationModelInterpolated() override;
 
     /**
      * @brief Evaluate the interpolation model at the given value
@@ -92,7 +92,7 @@ public:
      *
      * @return The interpolated value.
      */
-    double evaluate(double value) const;
+    double evaluate(double value) const override;
 
     /// Gets the default parameters
     static void getDefaultParameters(Param& params);

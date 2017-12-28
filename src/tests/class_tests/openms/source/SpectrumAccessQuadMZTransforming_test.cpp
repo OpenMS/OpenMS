@@ -48,7 +48,7 @@ using namespace std;
 boost::shared_ptr<PeakMap > getData()
 {
   boost::shared_ptr<PeakMap > exp2(new PeakMap);
-  MSSpectrum<Peak1D> spec;
+  MSSpectrum spec;
   Peak1D p;
   p.setMZ(100);
   p.setIntensity(50);
@@ -65,8 +65,8 @@ START_TEST(SpectrumAccessQuadMZTransforming, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-SpectrumAccessQuadMZTransforming* ptr = 0;
-SpectrumAccessQuadMZTransforming* nullPointer = 0;
+SpectrumAccessQuadMZTransforming* ptr = nullptr;
+SpectrumAccessQuadMZTransforming* nullPointer = nullptr;
 
 boost::shared_ptr<PeakMap > exp(new PeakMap);
 OpenSwath::SpectrumAccessPtr expptr = SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(exp);

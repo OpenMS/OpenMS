@@ -132,7 +132,7 @@ namespace OpenMS
 
   void SourceFile::setFileSize(float file_size)
   {
-    file_size_ = file_size;
+    file_size_ = static_cast<double>(file_size);
   }
 
   const String& SourceFile::getFileType() const

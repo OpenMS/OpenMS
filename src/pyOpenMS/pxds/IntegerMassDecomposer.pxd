@@ -7,6 +7,7 @@ cdef extern from "<OpenMS/CHEMISTRY/MASSDECOMPOSITION/IMS/IntegerMassDecomposer.
     
     cdef cppclass IntegerMassDecomposer[ValueType,DecompositionValueType]:
         # wrap-ignore
+        # no-pxd-import
 
         # We could get this to work but only with int,int and not with long
         # unsigned int,unsigned int and then we may run into all kinds of

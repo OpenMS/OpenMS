@@ -65,7 +65,7 @@ public:
     explicit ConfidenceScoring(bool test_mode_=false) :
       generator_(), rand_gen_(generator_, boost::uniform_int<>())
     {
-      if (!test_mode_) rand_gen_.engine().seed(time(0)); // seed with current time
+      if (!test_mode_) rand_gen_.engine().seed(time(nullptr)); // seed with current time
     }
 
     virtual ~ConfidenceScoring() {}
@@ -128,8 +128,7 @@ protected:
     double manhattanDist_(DoubleList x, DoubleList y);
 
     /// Get the retention time of an assay
-    double getAssayRT_(const TargetedExperiment::Peptide& assay,
-                           const String& cv_accession = "MS:1000896");
+    double getAssayRT_(const TargetedExperiment::Peptide& assay);
 
     /// Extract the @p n_transitions highest intensities from @p intensity_map,
     /// store them in @p intensities
@@ -239,3 +238,4 @@ public:
 }
 
 #endif // OPENMS_ANALYSIS_OPENSWATH_CONFIDENCESCORING
+

@@ -46,8 +46,8 @@ START_TEST(SpectrumAnnotator, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-SpectrumAnnotator* ptr = 0;
-SpectrumAnnotator* null_ptr = 0;
+SpectrumAnnotator* ptr = nullptr;
+SpectrumAnnotator* null_ptr = nullptr;
 START_SECTION(SpectrumAnnotator())
 {
 	ptr = new SpectrumAnnotator();
@@ -106,7 +106,7 @@ START_SECTION((void SpectrumAnnotator::annotateMatches(PeakSpectrum& spec, const
   TEST_REAL_SIMILAR(spec.getMetaValue("fragment_mass_tolerance"),0.1)
 END_SECTION
 
-START_SECTION((void SpectrumAnnotator::addIonMatchStatistics(PeptideIdentification& pi, const MSSpectrum<Peak1D>& spec, const TheoreticalSpectrumGenerator& tg, const SpectrumAlignment& sa) const))
+START_SECTION((void SpectrumAnnotator::addIonMatchStatistics(PeptideIdentification& pi, const MSSpectrum& spec, const TheoreticalSpectrumGenerator& tg, const SpectrumAlignment& sa) const))
 
   annot.addIonMatchStatistics(pi,spec,tg,sa);
   for (size_t i = 0; i < pi.getHits().size(); ++i)

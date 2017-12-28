@@ -175,7 +175,7 @@ namespace OpenMS
             new_value.toString().toLong(&ok);
             if (!ok)
             {
-              QMessageBox::warning(0, "Invalid value", QString("Cannot convert '%1' to integer number!").arg(new_value.toString()));
+              QMessageBox::warning(nullptr, "Invalid value", QString("Cannot convert '%1' to integer number!").arg(new_value.toString()));
               new_value = present_value;
               if (new_value == "")
                 new_value = 0;
@@ -203,7 +203,7 @@ namespace OpenMS
             new_value.toString().toDouble(&ok);
             if (!ok)
             {
-              QMessageBox::warning(0, "Invalid value", QString("Cannot convert '%1' to floating point number!").arg(new_value.toString()));
+              QMessageBox::warning(nullptr, "Invalid value", QString("Cannot convert '%1' to floating point number!").arg(new_value.toString()));
               new_value = present_value;
               if (new_value == "")
                 new_value = 0;
@@ -231,7 +231,7 @@ namespace OpenMS
           }
           if (!restrictions_met)
           {
-            QMessageBox::warning(0, "Invalid value", QString("Value restrictions not met: %1").arg(index.sibling(index.row(), 3).data(Qt::DisplayRole).toString()));
+            QMessageBox::warning(nullptr, "Invalid value", QString("Value restrictions not met: %1").arg(index.sibling(index.row(), 3).data(Qt::DisplayRole).toString()));
             new_value = present_value;
           }
         }
@@ -312,7 +312,7 @@ namespace OpenMS
     void ListTable::createNewRow()
     {
 
-      QListWidgetItem * item = 0;
+      QListWidgetItem * item = nullptr;
       switch (type_)
       {
       case ListEditor::INT:

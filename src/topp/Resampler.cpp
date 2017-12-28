@@ -92,7 +92,7 @@ public:
 
 protected:
 
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "input file ");
     setValidFormats_("in", ListUtils::create<String>("mzML"));
@@ -112,7 +112,7 @@ protected:
 
   }
 
-  ExitCodes main_(int, const char **)
+  ExitCodes main_(int, const char **) override
   {
     //----------------------------------------------------------------
     // load data
@@ -185,7 +185,7 @@ protected:
     {
       for (Size i = 0; i < exp.size(); ++i)
       {
-        MSSpectrum<> tmp = exp[i];
+        MSSpectrum tmp = exp[i];
         tmp.clear(false);
         for (Size j = 0; j < exp[i].size(); j++)
         {

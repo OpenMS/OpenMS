@@ -50,20 +50,26 @@ namespace OpenMS
   {
     setName("FeatureGroupingAlgorithmKD");
 
-    defaults_.setValue("rt_tol", 60.0, "Width of RT tolerance window (sec)");
-    defaults_.setMinFloat("rt_tol", 0.0);
-    defaults_.setValue("mz_tol", 15.0, "m/z tolerance (in ppm or Da)");
-    defaults_.setMinFloat("mz_tol", 0.0);
+    defaults_.setValue("warp:enabled", "true", "Whether or not to internally warp feature RTs using LOWESS transformation before linking (reported RTs in results will always be the original RTs)");
+    defaults_.setValidStrings("warp:enabled", ListUtils::create<String>("true,false"));
+    defaults_.setValue("warp:rt_tol", 100.0, "Width of RT tolerance window (sec)");
+    defaults_.setMinFloat("warp:rt_tol", 0.0);
+    defaults_.setValue("warp:mz_tol", 5.0, "m/z tolerance (in ppm or Da)");
+    defaults_.setMinFloat("warp:mz_tol", 0.0);
+    defaults_.setValue("warp:max_pairwise_log_fc", 0.5, "Maximum absolute log10 fold change between two compatible signals during compatibility graph construction. Two signals from different maps will not be connected by an edge in the compatibility graph if absolute log fold change exceeds this limit (they might still end up in the same connected component, however). Note: this does not limit fold changes in the linking stage, only during RT alignment, where we try to find high-quality alignment anchor points. Setting this to a value < 0 disables the FC check.", ListUtils::create<String>("advanced"));
+    defaults_.setValue("warp:min_rel_cc_size", 0.5, "Only connected components containing compatible features from at least max(2, (warp_min_occur * number_of_input_maps)) input maps are considered for computing the warping function", ListUtils::create<String>("advanced"));
+    defaults_.setMinFloat("warp:min_rel_cc_size", 0.0);
+    defaults_.setMaxFloat("warp:min_rel_cc_size", 1.0);
+    defaults_.setValue("warp:max_nr_conflicts", 0, "Allow up to this many conflicts (features from the same map) per connected component to be used for alignment (-1 means allow any number of conflicts)", ListUtils::create<String>("advanced"));
+    defaults_.setMinInt("warp:max_nr_conflicts", -1);
+
+    defaults_.setValue("link:rt_tol", 30.0, "Width of RT tolerance window (sec)");
+    defaults_.setMinFloat("link:rt_tol", 0.0);
+    defaults_.setValue("link:mz_tol", 10.0, "m/z tolerance (in ppm or Da)");
+    defaults_.setMinFloat("link:mz_tol", 0.0);
+
     defaults_.setValue("mz_unit", "ppm", "Unit of m/z tolerance");
     defaults_.setValidStrings("mz_unit", ListUtils::create<String>("ppm,Da"));
-    defaults_.setValue("warp", "true", "Whether or not to internally warp feature RTs using LOWESS transformation before linking (reported RTs in results will always be the original RTs)");
-    defaults_.setValidStrings("warp", ListUtils::create<String>("true,false"));
-    defaults_.setValue("max_pairwise_log_fc", 0.5, "Only relevant during RT alignment ('warp' set to 'true'): Maximum absolute log10 fold change between two compatible signals during compatibility graph construction. Two signals from different maps will not be connected by an edge in the compatibility graph if absolute log fold change exceeds this limit (they might still end up in the same connected component, however). Note: this does not limit fold changes in the linking stage, only during RT alignment, where we try to find high-quality alignment anchor points. Setting this to a value < 0 disables the FC check.", ListUtils::create<String>("advanced"));
-    defaults_.setValue("min_rel_cc_size", 0.5, "Only relevant during RT alignment ('warp' set to 'true'): Only connected components containing compatible features from at least max(2, (warp_min_occur * number_of_input_maps)) input maps are considered for computing the warping function", ListUtils::create<String>("advanced"));
-    defaults_.setMinFloat("min_rel_cc_size", 0.0);
-    defaults_.setMaxFloat("min_rel_cc_size", 1.0);
-    defaults_.setValue("max_nr_conflicts", 0, "Only relevant during RT alignment ('warp' set to 'true'): Allow up to this many conflicts (features from the same map) per connected component to be used for alignment (-1 means allow any number of conflicts)", ListUtils::create<String>("advanced"));
-    defaults_.setMinInt("max_nr_conflicts", -1);
     defaults_.setValue("nr_partitions", 100, "Number of partitions in m/z space");
     defaults_.setMinInt("nr_partitions", 1);
 
@@ -88,7 +94,7 @@ namespace OpenMS
       const_cast<Param::ParamEntry&>(*it).tags.insert("advanced");
     }
     defaults_.insert("LOWESS:", lowess_defaults);
-    defaults_.setSectionDescription("LOWESS", "LOWESS parameters for internal RT transformations (only relevant if 'warp' is set to 'true')");
+    defaults_.setSectionDescription("LOWESS", "LOWESS parameters for internal RT transformations (only relevant if 'warp:enabled' is set to 'true')");
 
     defaultsToParam_();
     setLogType(CMD);
@@ -105,8 +111,8 @@ namespace OpenMS
     // set parameters
     String mz_unit(param_.getValue("mz_unit").toString());
     mz_ppm_ = mz_unit == "ppm";
-    mz_tol_ = (double)(param_.getValue("mz_tol"));
-    rt_tol_secs_ = (double)(param_.getValue("rt_tol"));
+    mz_tol_ = (double)(param_.getValue("link:mz_tol"));
+    rt_tol_secs_ = (double)(param_.getValue("link:rt_tol"));
 
     // check that the number of maps is ok:
     if (input_maps.size() < 2)
@@ -152,13 +158,16 @@ namespace OpenMS
     sort(massrange.begin(), massrange.end());
     int pts_per_partition = massrange.size() / (int)(param_.getValue("nr_partitions"));
 
+    double warp_mz_tol = (double)(param_.getValue("warp:mz_tol"));
+    double max_mz_tol = max(mz_tol_, warp_mz_tol);
+
     // compute partition boundaries
     vector<double> partition_boundaries;
     partition_boundaries.push_back(massrange.front());
     for (size_t j = 0; j < massrange.size()-1; j++)
     {
       // minimal differences between two m/z values
-      double massrange_diff = mz_ppm_ ? mz_tol_ * 1e-6 * massrange[j+1] : mz_tol_;
+      double massrange_diff = mz_ppm_ ? max_mz_tol * 1e-6 * massrange[j+1] : max_mz_tol;
 
       if (fabs(massrange[j] - massrange[j+1]) > massrange_diff)
       {
@@ -174,7 +183,7 @@ namespace OpenMS
     // ------------ compute RT transformation models ------------
 
     MapAlignmentAlgorithmKD aligner(input_maps.size(), param_);
-    bool align = param_.getValue("warp").toString() == "true";
+    bool align = param_.getValue("warp:enabled").toString() == "true";
     if (align)
     {
       Size progress = 0;
@@ -342,7 +351,7 @@ namespace OpenMS
       for (vector<Size>::const_iterator f_it = cf_indices.begin(); f_it != cf_indices.end(); ++f_it)
       {
         vector<Size> f_neighbors;
-        kd_data.getNeighborhood(*f_it, f_neighbors, true);
+        kd_data.getNeighborhood(*f_it, f_neighbors, rt_tol_secs_, mz_tol_, mz_ppm_, true);
         for (vector<Size>::const_iterator it = f_neighbors.begin(); it != f_neighbors.end(); ++it)
         {
           if (!assigned[*it])
@@ -388,7 +397,7 @@ namespace OpenMS
     // map index -> corresponding points
     map<Size, vector<Size> > points_for_map_index;
     vector<Size> neighbors;
-    kd_data.getNeighborhood(i, neighbors, true);
+    kd_data.getNeighborhood(i, neighbors, rt_tol_secs_, mz_tol_, mz_ppm_, true);
     Int charge_i = kd_data.charge(i);
     for (vector<Size>::const_iterator it = neighbors.begin(); it != neighbors.end(); ++it)
     {

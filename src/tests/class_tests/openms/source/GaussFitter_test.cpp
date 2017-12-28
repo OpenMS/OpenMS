@@ -48,8 +48,8 @@ START_TEST(GaussFitter, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-GaussFitter* ptr = 0;
-GaussFitter* nullPointer = 0;
+GaussFitter* ptr = nullptr;
+GaussFitter* nullPointer = nullptr;
 START_SECTION(GaussFitter())
 {
 	ptr = new GaussFitter();

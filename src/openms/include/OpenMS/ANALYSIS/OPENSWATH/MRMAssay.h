@@ -81,6 +81,8 @@ public:
     typedef std::vector<OpenMS::TargetedExperiment::Peptide> PeptideVectorType;
     typedef std::vector<OpenMS::ReactionMonitoringTransition> TransitionVectorType;
 
+    typedef std::map<String, std::vector<const ReactionMonitoringTransition*> > PeptideTransitionMapType;
+
     typedef boost::unordered_map<size_t, boost::unordered_map<String, std::set<std::string> > > SequenceMapT;
     typedef boost::unordered_map<size_t, boost::unordered_map<String, std::vector<std::pair<double, std::string> > > > IonMapT;
     typedef std::map<String, std::vector<std::pair<std::string, double> > > PeptideMapT;
@@ -96,13 +98,12 @@ public:
       @param product_mz_threshold the product m/z threshold in Th for annotation
       @param fragment_types the fragment types to consider for annotation
       @param fragment_charges the fragment charges to consider for annotation
-      @param enable_reannotation whether the original annotation should be taken
       @param enable_specific_losses whether specific neutral losses should be considered
       @param enable_unspecific_losses whether unspecific neutral losses (H2O1, H3N1, C1H2N2, C1H2N1O1) should be considered
       @param round_decPow round product m/z values to decimal power (default: -4)
 
     */
-    void reannotateTransitions(OpenMS::TargetedExperiment& exp, double precursor_mz_threshold, double product_mz_threshold, std::vector<String> fragment_types, std::vector<size_t> fragment_charges, bool enable_reannotation, bool enable_specific_losses, bool enable_unspecific_losses, int round_decPow = -4);
+    void reannotateTransitions(OpenMS::TargetedExperiment& exp, double precursor_mz_threshold, double product_mz_threshold, std::vector<String> fragment_types, std::vector<size_t> fragment_charges, bool enable_specific_losses, bool enable_unspecific_losses, int round_decPow = -4);
 
     /**
       @brief Restrict and filter transitions in a TargetedExperiment
@@ -140,6 +141,7 @@ public:
       @param round_decPow round product m/z values to decimal power (default: -4)
       @param max_num_alternative_localizations maximum number of allowed peptide sequence permutations
       @param shuffle_seed set seed for shuffle (-1: select seed based on time)
+      @param disable_decoy_transitions whether to disable generation of decoy UIS transitions
     */
     void uisTransitions(OpenMS::TargetedExperiment& exp,
                         std::vector<String> fragment_types,
@@ -151,7 +153,8 @@ public:
                         std::vector<std::pair<double, double> > swathes,
                         int round_decPow = -4,
                         size_t max_num_alternative_localizations = 20,
-                        int shuffle_seed = -1);
+                        int shuffle_seed = -1,
+                        bool disable_decoy_transitions = false);
 
 protected:
     /**
@@ -175,7 +178,7 @@ protected:
 
       @value index of swath where precursor_mz falls into
     */
-    int getSwath_(const std::vector<std::pair<double, double> > swathes, const double precursor_mz);
+    int getSwath_(const std::vector<std::pair<double, double> >& swathes, const double precursor_mz);
 
     /**
       @brief Check whether the product m/z of a transition falls into the precursor isolation window
@@ -186,7 +189,7 @@ protected:
 
       @value whether product m/z falls into precursor isolation window
     */
-    bool isInSwath_(const std::vector<std::pair<double, double> > swathes, const double precursor_mz, const double product_mz);
+    bool isInSwath_(const std::vector<std::pair<double, double> >& swathes, const double precursor_mz, const double product_mz);
 
     /**
       @brief Generates random peptide sequence

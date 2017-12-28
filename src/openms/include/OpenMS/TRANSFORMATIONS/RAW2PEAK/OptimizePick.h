@@ -38,8 +38,8 @@
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakShape.h>
 #include <OpenMS/KERNEL/Peak1D.h>
 
-#include <eigen3/Eigen/Core>
-#include <eigen3/unsupported/Eigen/NonLinearOptimization>
+#include <Eigen/Core>
+#include <unsupported/Eigen/NonLinearOptimization>
 
 #include <vector>
 
@@ -47,9 +47,9 @@ namespace OpenMS
 {
   namespace OptimizationFunctions
   {
-    /// Raw data vector type
+    /// Profile data vector type
     typedef std::vector<Peak1D> RawDataVector;
-    /// Raw data iterator type
+    /// Profile data iterator type
     typedef RawDataVector::iterator PeakIterator;
 
     /** @brief Class for the penalty factors used during the optimization.
@@ -99,7 +99,7 @@ public:
 
     struct Data
     {
-      /// Positions and intensity values of the raw data
+      /// Positions and intensity values of the profile data
       std::vector<double> positions;
       std::vector<double> signal;
       /// This container contains the peak shapes to be optimized
@@ -127,9 +127,9 @@ public:
       const Data * m_data;
     };
 
-    /// Raw data vector type
+    /// Profile data vector type
     typedef std::vector<Peak1D> RawDataVector;
-    /// Raw data iterator type
+    /// Profile data iterator type
     typedef RawDataVector::iterator PeakIterator;
 
 

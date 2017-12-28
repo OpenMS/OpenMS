@@ -71,7 +71,7 @@ namespace OpenMS
       ExperimentSharedPtrType chrom_exp_sptr(new ExperimentType());
       chrom_exp_sptr->setMetaValue("is_chromatogram", "true"); //this is a hack to store that we have chromatogram data
       SpectrumType spectrum;
-      const MSChromatogram<ChromatogramPeak> & current_chrom = exp_sptr->getChromatograms()[index];
+      const MSChromatogram & current_chrom = exp_sptr->getChromatograms()[index];
       for (Size i = 0; i != current_chrom.size(); ++i)
       {
         const ChromatogramPeak & cpeak = current_chrom[i];
@@ -173,7 +173,7 @@ namespace OpenMS
       if (layer.type == LayerData::DT_CHROMATOGRAM)
       {
 
-        const MSChromatogram<ChromatogramPeak> & current_chrom = exp_sptr->getChromatograms()[indices[index]];
+        const MSChromatogram & current_chrom = exp_sptr->getChromatograms()[indices[index]];
         for (Size i = 0; i != current_chrom.size(); ++i)
         {
           const ChromatogramPeak & cpeak = current_chrom[i];
@@ -227,7 +227,7 @@ namespace OpenMS
     Spectrum1DWidget * widget_1d = tv_->getActive1DWidget();
 
     // return if no active 1D widget is present or no layers are present (e.g. the addLayer call failed)
-    if (widget_1d == 0) return;
+    if (widget_1d == nullptr) return;
     if (widget_1d->canvas()->getLayerCount() == 0) return;
 
     widget_1d->canvas()->activateSpectrum(index);
@@ -255,7 +255,7 @@ namespace OpenMS
       // create a managed pointer fill it with a spectrum containing the chromatographic data
       ExperimentSharedPtrType chrom_exp_sptr(new ExperimentType());
       SpectrumType spectrum;
-      const MSChromatogram<ChromatogramPeak> & current_chrom = exp_sptr->getChromatograms()[index];
+      const MSChromatogram & current_chrom = exp_sptr->getChromatograms()[index];
       for (Size i = 0; i != current_chrom.size(); ++i)
       {
         const ChromatogramPeak & cpeak = current_chrom[i];
@@ -303,7 +303,7 @@ namespace OpenMS
     Spectrum1DWidget * widget_1d = tv_->getActive1DWidget();
 
     // return if no active 1D widget is present or no layers are present (e.g. the addLayer call failed)
-    if (widget_1d == 0) return;
+    if (widget_1d == nullptr) return;
     if (widget_1d->canvas()->getLayerCount() == 0) return;
 
     // If we have a chromatogram, we cannot just simply activate this spectrum.
@@ -329,7 +329,7 @@ namespace OpenMS
         // create a managed pointer fill it with a spectrum containing the chromatographic data
         ExperimentSharedPtrType chrom_exp_sptr(new ExperimentType());
         SpectrumType spectrum;
-        const MSChromatogram<ChromatogramPeak> & current_chrom = exp_sptr->getChromatograms()[indices[index]];
+        const MSChromatogram & current_chrom = exp_sptr->getChromatograms()[indices[index]];
         for (Size i = 0; i != current_chrom.size(); ++i)
         {
           const ChromatogramPeak & cpeak = current_chrom[i];

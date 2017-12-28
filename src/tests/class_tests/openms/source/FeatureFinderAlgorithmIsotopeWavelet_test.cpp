@@ -44,9 +44,9 @@ using namespace std;
 
 typedef FeatureFinderAlgorithmIsotopeWavelet FFASS;
 
-FFASS* ptr = 0;
-FFASS* nullPointer = 0;
-FeatureFinderAlgorithm* ffA_nullPointer = 0;
+FFASS* ptr = nullptr;
+FFASS* nullPointer = nullptr;
+FeatureFinderAlgorithm* ffA_nullPointer = nullptr;
 
 START_SECTION((FeatureFinderAlgorithmIsotopeWavelet()))
 	ptr = new FFASS;
@@ -57,7 +57,7 @@ START_SECTION(IsotopeWaveletTransform<PeakType>::TransSpectrum* prepareHRDataCud
 	NOT_TESTABLE
 END_SECTION
 
-START_SECTION(MSSpectrum<PeakType>* createHRData(const UInt i))
+START_SECTION(MSSpectrum* createHRData(const UInt i))
 	NOT_TESTABLE
 END_SECTION
 

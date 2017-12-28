@@ -52,8 +52,8 @@ using namespace std;
 using namespace OpenMS;
 using namespace OpenSwath;
 
-OpenSwathHelper* ptr = 0;
-OpenSwathHelper* nullPointer = 0;
+OpenSwathHelper* ptr = nullptr;
+OpenSwathHelper* nullPointer = nullptr;
 
 START_SECTION(OpenSwathHelper())
 {
@@ -130,7 +130,7 @@ END_SECTION
 START_SECTION(static void checkSwathMap(const OpenMS::PeakMap &swath_map, double &lower, double &upper))
 {
   OpenMS::PeakMap swath_map;
-  OpenMS::MSSpectrum<Peak1D> spectrum;
+  OpenMS::MSSpectrum spectrum;
   OpenMS::Precursor prec;
   std::vector<Precursor> precursors;
   prec.setMZ(250);

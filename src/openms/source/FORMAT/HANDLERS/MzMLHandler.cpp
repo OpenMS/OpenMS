@@ -46,7 +46,7 @@ namespace OpenMS
     MzMLHandler::MzMLHandler(MapType& exp, const String& filename, const String& version, ProgressLogger& logger) :
       XMLHandler(filename, version),
       exp_(&exp),
-      cexp_(0),
+      cexp_(nullptr),
       options_(),
       spec_(),
       chromatogram_(),
@@ -55,7 +55,7 @@ namespace OpenMS
       in_spectrum_list_(false),
       decoder_(),
       logger_(logger),
-      consumer_(NULL),
+      consumer_(nullptr),
       scan_count(0),
       chromatogram_count(0),
       skip_chromatogram_(false),
@@ -82,7 +82,7 @@ namespace OpenMS
     /// Constructor for a write-only handler
     MzMLHandler::MzMLHandler(const MapType& exp, const String& filename, const String& version, const ProgressLogger& logger) :
       XMLHandler(filename, version),
-      exp_(0),
+      exp_(nullptr),
       cexp_(&exp),
       options_(),
       spec_(),
@@ -92,7 +92,7 @@ namespace OpenMS
       in_spectrum_list_(false),
       decoder_(),
       logger_(logger),
-      consumer_(NULL),
+      consumer_(nullptr),
       scan_count(0),
       chromatogram_count(0),
       skip_chromatogram_(false),
@@ -162,7 +162,7 @@ namespace OpenMS
       // Append all spectra to experiment / consumer
       for (Size i = 0; i < spectrum_data_.size(); i++)
       {
-        if (consumer_ != NULL)
+        if (consumer_ != nullptr)
         {
           consumer_->consumeSpectrum(spectrum_data_[i].spectrum);
           if (options_.getAlwaysAppendData())
@@ -215,7 +215,7 @@ namespace OpenMS
       // Append all chromatograms to experiment / consumer
       for (Size i = 0; i < chromatogram_data_.size(); i++)
       {
-        if (consumer_ != NULL)
+        if (consumer_ != nullptr)
         {
           consumer_->consumeChromatogram(chromatogram_data_[i].chromatogram);
           if (options_.getAlwaysAppendData())
@@ -631,11 +631,13 @@ namespace OpenMS
       }
       else
       {
-        char* transcoded_chars = sm_.convert(chars);
-        String transcoded_chars2 = transcoded_chars;
+        String transcoded_chars2 = sm_.convert(chars);
         transcoded_chars2.trim();
         if (transcoded_chars2 != "")
-          warning(LOAD, String("Unhandled character content in tag '") + current_tag + "': " + transcoded_chars2);
+        {
+          warning(LOAD, String("Unhandled character content in tag '") + current_tag + "': " +
+              transcoded_chars2);
+        }
       }
     }
 
@@ -653,6 +655,7 @@ namespace OpenMS
       //~ static const XMLCh * s_cvref = xercesc::XMLString::transcode("cvRef"); TODO
       static const XMLCh* s_ref = xercesc::XMLString::transcode("ref");
       static const XMLCh* s_version = xercesc::XMLString::transcode("version");
+      static const XMLCh* s_version_mzml = xercesc::XMLString::transcode("mzML:version");
       static const XMLCh* s_order = xercesc::XMLString::transcode("order");
       static const XMLCh* s_location = xercesc::XMLString::transcode("location");
       static const XMLCh* s_sample_ref = xercesc::XMLString::transcode("sampleRef");
@@ -900,7 +903,11 @@ namespace OpenMS
         chromatogram_count = 0;
 
         //check file version against schema version
-        String file_version = attributeAsString_(attributes, s_version);
+        String file_version;
+        if (!(optionalAttributeAsString_(file_version, attributes, s_version) || optionalAttributeAsString_(file_version, attributes, s_version_mzml)) )
+        {
+          warning(LOAD, "No version attribute in mzML");
+        }
 
         VersionInfo::VersionDetails current_version = VersionInfo::VersionDetails::create(file_version);
         static VersionInfo::VersionDetails mzML_min_version = VersionInfo::VersionDetails::create("1.1.0");
@@ -1200,8 +1207,6 @@ namespace OpenMS
         populateSpectraWithData();
         populateChromatogramsWithData();
       }
-
-      sm_.clear();
     }
 
     void MzMLHandler::handleCVParam_(const String& parent_parent_tag, const String& parent_tag, /* const String & cvref,  */ const String& accession, const String& name, const String& value, const String& unit_accession)
@@ -1385,7 +1390,7 @@ namespace OpenMS
         }
         else if (accession == "MS:1000806") //absorption spectrum
         {
-          spec_.getInstrumentSettings().setScanMode(InstrumentSettings::ABSORBTION);
+          spec_.getInstrumentSettings().setScanMode(InstrumentSettings::ABSORPTION);
         }
         else if (accession == "MS:1000325") //constant neutral gain spectrum
         {
@@ -1410,11 +1415,11 @@ namespace OpenMS
         //spectrum representation
         else if (accession == "MS:1000127") //centroid spectrum
         {
-          spec_.setType(SpectrumSettings::PEAKS);
+          spec_.setType(SpectrumSettings::CENTROID);
         }
         else if (accession == "MS:1000128") //profile spectrum
         {
-          spec_.setType(SpectrumSettings::RAWDATA);
+          spec_.setType(SpectrumSettings::PROFILE);
         }
         else if (accession == "MS:1000525") //spectrum representation
         {
@@ -3456,7 +3461,10 @@ namespace OpenMS
       //--------------------------------------------------------------------------------------------
       //isolation window (optional)
       //--------------------------------------------------------------------------------------------
-      if (precursor.getMZ() > 0.0)
+
+      // Note that TPP parsers break when the isolation window is written out
+      // in mzML files and the precursorMZ gets set to zero.
+      if (precursor.getMZ() > 0.0 && !options_.getForceTPPCompatability() )
       {
         os << "\t\t\t\t\t\t<isolationWindow>\n";
         os << "\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000827\" name=\"isolation window target m/z\" value=\"" << precursor.getMZ() << "\" unitAccession=\"MS:1000040\" unitName=\"m/z\" unitCvRef=\"MS\" />\n";
@@ -3475,12 +3483,17 @@ namespace OpenMS
       //--------------------------------------------------------------------------------------------
       //selected ion list (optional)
       //--------------------------------------------------------------------------------------------
-      if (precursor.getCharge() != 0 || precursor.getIntensity() > 0.0 || precursor.getDriftTime() >= 0.0 || precursor.getPossibleChargeStates().size() > 0)
+      //
+      if (options_.getForceTPPCompatability() ||
+          precursor.getCharge() != 0 ||
+          precursor.getIntensity() > 0.0 ||
+          precursor.getDriftTime() >= 0.0 ||
+          precursor.getPossibleChargeStates().size() > 0)
       {
         os << "\t\t\t\t\t\t<selectedIonList count=\"1\">\n";
         os << "\t\t\t\t\t\t\t<selectedIon>\n";
         os << "\t\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000744\" name=\"selected ion m/z\" value=\"" << precursor.getMZ() << "\" unitAccession=\"MS:1000040\" unitName=\"m/z\" unitCvRef=\"MS\" />\n";
-        if ( precursor.getCharge() != 0)
+        if (options_.getForceTPPCompatability() || precursor.getCharge() != 0)
         {
           os << "\t\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000041\" name=\"charge state\" value=\"" << precursor.getCharge() << "\" />\n";
         }
@@ -3740,7 +3753,7 @@ namespace OpenMS
       {
         os << "\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000805\" name=\"emission spectrum\" />\n";
       }
-      if (file_content.has(InstrumentSettings::ABSORBTION))
+      if (file_content.has(InstrumentSettings::ABSORPTION))
       {
         os << "\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000806\" name=\"absorption spectrum\" />\n";
       }
@@ -4639,11 +4652,11 @@ namespace OpenMS
       os << ">\n";
 
       //spectrum representation
-      if (spec.getType() == SpectrumSettings::PEAKS)
+      if (spec.getType() == SpectrumSettings::CENTROID)
       {
         os << "\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000127\" name=\"centroid spectrum\" />\n";
       }
-      else if (spec.getType() == SpectrumSettings::RAWDATA)
+      else if (spec.getType() == SpectrumSettings::PROFILE)
       {
         os << "\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000128\" name=\"profile spectrum\" />\n";
       }
@@ -4707,7 +4720,7 @@ namespace OpenMS
       {
         os << "\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000805\" name=\"emission spectrum\" />\n";
       }
-      else if (spec.getInstrumentSettings().getScanMode() == InstrumentSettings::ABSORBTION)
+      else if (spec.getInstrumentSettings().getScanMode() == InstrumentSettings::ABSORPTION)
       {
         os << "\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000806\" name=\"absorption spectrum\" />\n";
       }

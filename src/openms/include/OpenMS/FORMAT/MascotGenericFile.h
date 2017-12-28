@@ -69,10 +69,10 @@ public:
     MascotGenericFile();
 
     /// destructor
-    virtual ~MascotGenericFile();
+    ~MascotGenericFile() override;
 
     /// docu in base class
-    virtual void updateMembers_();
+    void updateMembers_() override;
 
     /// stores the experiment data in a MascotGenericFile that can be used as input for MASCOT shell execution (optionally a compact format is used: no zero-intensity peaks, limited number of decimal places)
     void store(const String& filename, const PeakMap& experiment, 

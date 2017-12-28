@@ -74,15 +74,25 @@ public:
       The separators "|" and "$" are used to separate the parts easily when parsing the annotation.
 
    */
-  struct FragmentAnnotation
+  struct PeakAnnotation
   {
     String annotation;  // e.g. [alpha|ci$y3-H2O-NH3]
     int charge;
     double mz;
     double intensity;
 
-    bool operator<(const PeptideHit::FragmentAnnotation& other) const
+    bool operator<(const PeptideHit::PeakAnnotation& other) const
     {
+      // sensible to sort first by m/z and charge
+      if (mz < other.mz)
+      {
+        return true;
+      }
+      else if (mz > other.mz)
+      {
+        return false;
+      }
+
       if (charge < other.charge)
       {
         return true;
@@ -92,20 +102,11 @@ public:
         return false;
       }
 
-      if (annotation< other.annotation)
+      if (annotation < other.annotation)
       {
         return true;
       }
-      else if (annotation> other.annotation)
-      {
-        return false;
-      }
-
-      if (mz < other.mz)
-      {
-        return true;
-      }
-      else if (mz > other.mz)
+      else if (annotation > other.annotation)
       {
         return false;
       }
@@ -122,7 +123,7 @@ public:
       return false;
     }
 
-    bool operator==(const PeptideHit::FragmentAnnotation& other) const
+    bool operator==(const PeptideHit::PeakAnnotation& other) const
     {
       if (charge != other.charge || mz != other.mz || 
           intensity != other.intensity || annotation != other.annotation) return false;
@@ -286,10 +287,10 @@ public:
     void setRank(UInt newrank);
 
     /// returns the fragment annotations
-    std::vector<PeptideHit::FragmentAnnotation> getFragmentAnnotations() const;
+    std::vector<PeptideHit::PeakAnnotation> getPeakAnnotations() const;
 
     /// sets the fragment annotations
-    void setFragmentAnnotations(std::vector<PeptideHit::FragmentAnnotation> frag_annotations);
+    void setPeakAnnotations(std::vector<PeptideHit::PeakAnnotation> frag_annotations);
 
     //@}
 
@@ -315,7 +316,7 @@ protected:
     std::vector<PeptideEvidence> peptide_evidences_;
 
     /// annotations of fragments in the corresponding spectrum
-    std::vector<PeptideHit::FragmentAnnotation> fragment_annotations_;
+    std::vector<PeptideHit::PeakAnnotation> fragment_annotations_;
   };
 
 } // namespace OpenMS

@@ -55,7 +55,7 @@ using namespace std;
 
 namespace OpenMS
 {
-  TOPPViewIdentificationViewBehavior::TOPPViewIdentificationViewBehavior(TOPPViewBase * parent) :
+  TOPPViewIdentificationViewBehavior::TOPPViewIdentificationViewBehavior(TOPPViewBase* parent) :
     tv_(parent)
   {
   }
@@ -69,13 +69,13 @@ namespace OpenMS
   void TOPPViewIdentificationViewBehavior::showSpectrumAs1D(int spectrum_index, int peptide_id_index, int peptide_hit_index)
   {
     // basic behavior 1
-    const LayerData & layer = tv_->getActiveCanvas()->getCurrentLayer();
+    const LayerData& layer = tv_->getActiveCanvas()->getCurrentLayer();
     ExperimentSharedPtrType exp_sptr = layer.getPeakData();
 
     if (layer.type == LayerData::DT_PEAK)
     {
       // open new 1D widget with the current default parameters
-      Spectrum1DWidget* w = new Spectrum1DWidget(tv_->getSpectrumParameters(1), (QWidget *)tv_->getWorkspace());
+      Spectrum1DWidget* w = new Spectrum1DWidget(tv_->getSpectrumParameters(1), (QWidget*)tv_->getWorkspace());
       // add data
       if (!w->canvas()->addLayer(exp_sptr, layer.filename) || (Size)spectrum_index >= w->canvas()->getCurrentLayer().getPeakData()->size())
       {
@@ -102,22 +102,24 @@ namespace OpenMS
       tv_->showSpectrumWidgetInWindow(w, caption);
 
       // special behavior
+      if (peptide_id_index == -1 || peptide_hit_index == -1) { return; }
+
       const vector<PeptideIdentification>& pis = w->canvas()->getCurrentLayer().getCurrentSpectrum().getPeptideIdentifications();
       if (!pis.empty())
       {
         switch (ms_level)
         {
-          // mass fingerprint annotation of name etc 
+          // mass fingerprint annotation of name etc
           case 1: { addPeakAnnotations_(pis); break; }
-          // annotation with stored fragments or synthesized theoretical spectrum 
-          case 2: 
+          // annotation with stored fragments or synthesized theoretical spectrum
+          case 2:
           {
             // check if index in bounds and hits are present
             if (peptide_id_index < static_cast<int>(pis.size()) && peptide_hit_index < static_cast<int>(pis[peptide_id_index].getHits().size()))
             {
               // get hit
               PeptideHit ph = pis[peptide_id_index].getHits()[peptide_hit_index];
-              if (ph.getFragmentAnnotations().empty())
+              if (ph.getPeakAnnotations().empty())
               {
                 // if no fragment annotations are stored, create a theoretical spectrum
                 addTheoreticalSpectrumLayer_(ph);
@@ -125,7 +127,7 @@ namespace OpenMS
               else
               {
                 // otherwise, use stored fragment annotations
-                addFragmentAnnotations_(ph);
+                addAnnotationsSpectrumLayer_(ph);
               }
             }
             break;
@@ -143,55 +145,6 @@ namespace OpenMS
     // else if (layer.type == LayerData::DT_CHROMATOGRAM)
   }
 
-  void TOPPViewIdentificationViewBehavior::addFragmentAnnotations_(const PeptideHit& ph)
-  {
-    // called anew for every click on a spectrum
-    LayerData & current_layer = tv_->getActive1DWidget()->canvas()->getCurrentLayer();
-
-    if (current_layer.getCurrentSpectrum().empty())
-    {
-      LOG_WARN << "Spectrum is empty! Nothing to annotate!" << std::endl;
-    }
-
-    if (!current_layer.getCurrentSpectrum().isSorted())
-    {
-      QMessageBox::warning(tv_, "Error", "The spectrum is not sorted! Aborting!");
-      return;
-    }
-
-    typedef std::vector<PeptideHit::FragmentAnnotation> FragmentAnnotations;
-
-    const FragmentAnnotations & fa = ph.getFragmentAnnotations();
-
-    for (FragmentAnnotations::const_iterator it = fa.begin(); it!= fa.end(); ++it)
-    {
-      // query closest peak to expected position
-      int peak_idx = current_layer.getCurrentSpectrum().findNearest(it->mz, 1e-2);
-        
-      // check if m/z fits
-      if (peak_idx == -1) 
-      {
-        LOG_WARN << "Annotation present for missing peak.  m/z: " << it->mz << std::endl;
-        continue;
-      }
-
-      const double peak_int = current_layer.getCurrentSpectrum()[peak_idx].getIntensity();
-      DPosition<2> position = DPosition<2>(it->mz, peak_int);
-      String annotation = it->annotation + "+" + it->charge;
-      Annotation1DItem * item;
-      if (annotation.hasSubstring("|ci$"))
-      {
-        item = new Annotation1DPeakItem(position, annotation.toQString(), Qt::darkGreen);
-      }
-      else
-      {
-        item = new Annotation1DPeakItem(position, annotation.toQString(), Qt::darkRed);
-      }
-      item->setSelected(false);
-      temporary_annotations_.push_back(item); // for removal (no ownership)
-      current_layer.getCurrentAnnotations().push_front(item); // for visualization (ownership)
-    }
-  }
 
   void TOPPViewIdentificationViewBehavior::addPeakAnnotations_(const std::vector<PeptideIdentification>& ph)
   {
@@ -227,13 +180,13 @@ namespace OpenMS
       if (!it->hasMZ()) continue;
       double mz = it->getMZ();
       Size peak_idx = current_layer.getCurrentSpectrum().findNearest(mz);
-        
+
       // m/z fits ?
       if (Math::getPPMAbs(mz, current_layer.getCurrentSpectrum()[peak_idx].getMZ()) > ppm) continue;
 
       double peak_int = current_layer.getCurrentSpectrum()[peak_idx].getIntensity();
 
-      Annotation1DCaret* first_dit(0);
+      Annotation1DCaret* first_dit(nullptr);
       // we could have many many hits for different compounds which have the exact same sum formula... so first group by sum formula
       std::map<String, StringList> formula_to_names;
       for (std::vector< PeptideHit >::const_iterator ith = it->getHits().begin();
@@ -243,7 +196,7 @@ namespace OpenMS
         if (ith->metaValueExists("identifier") && ith->metaValueExists("chemical_formula"))
         {
           String name = ith->getMetaValue("identifier");
-          if (name.length() > 20) 
+          if (name.length() > 20)
           {
             name = name.substr(0, 17) + "...";
           }
@@ -291,7 +244,7 @@ namespace OpenMS
         ditem->setSelected(false);
         temporary_annotations_.push_back(ditem); // for removal (no ownership)
         current_layer.getCurrentAnnotations().push_front(ditem); // for visualization (ownership)
-        if (first_dit==0) first_dit = ditem; // remember first item (we append the text, when ready)
+        if (first_dit==nullptr) first_dit = ditem; // remember first item (we append the text, when ready)
 
         // list of compound names  (shorten if required)
         if (ith->second.size() > 3)
@@ -303,7 +256,7 @@ namespace OpenMS
         text += " - " + ListUtils::concatenate(ith->second, "<br> - ") + "<br>\n";
       }
       text += "</body></html>";
-      if (first_dit!=0)
+      if (first_dit!=nullptr)
       {
         first_dit->setRichText(text.toQString());
       }
@@ -317,24 +270,26 @@ namespace OpenMS
 
   void TOPPViewIdentificationViewBehavior::activate1DSpectrum(int spectrum_index, int peptide_id_index, int peptide_hit_index)
   {
-    Spectrum1DWidget * widget_1D = tv_->getActive1DWidget();
+    Spectrum1DWidget* widget_1D = tv_->getActive1DWidget();
 
     // return if no active 1D widget is present
-    if (widget_1D == 0) return;
+    if (widget_1D == nullptr) return;
 
     widget_1D->canvas()->activateSpectrum(spectrum_index);
-    const LayerData & current_layer = widget_1D->canvas()->getCurrentLayer();
+    LayerData& current_layer = widget_1D->canvas()->getCurrentLayer();
+    current_layer.peptide_id_index = peptide_id_index;
+    current_layer.peptide_hit_index = peptide_hit_index;
 
     if (current_layer.type == LayerData::DT_PEAK)
     {
       UInt ms_level = current_layer.getCurrentSpectrum().getMSLevel();
 
-      const vector<PeptideIdentification> & pis = current_layer.getCurrentSpectrum().getPeptideIdentifications();
+      const vector<PeptideIdentification>& pis = current_layer.getCurrentSpectrum().getPeptideIdentifications();
       switch (ms_level)
       {
         case 1: // mass fingerprint annotation of name etc and precursor labels
-        { 
-          addPeakAnnotations_(pis); 
+        {
+          addPeakAnnotations_(pis);
           vector<Precursor> precursors;
 
           // collect all MS2 spectra precursor till next MS1 spectrum is encountered
@@ -352,7 +307,7 @@ namespace OpenMS
           addPrecursorLabels1D_(precursors);
           break;
         }
-        case 2: // annotation with stored fragments or synthesized theoretical spectrum 
+        case 2: // annotation with stored fragments or synthesized theoretical spectrum
         {
           // check if index in bounds and hits are present
           if (peptide_id_index < static_cast<int>(pis.size()) && peptide_hit_index < static_cast<int>(pis[peptide_id_index].getHits().size()))
@@ -360,7 +315,7 @@ namespace OpenMS
             // get selected hit
             PeptideHit ph = pis[peptide_id_index].getHits()[peptide_hit_index];
 
-            if (ph.getFragmentAnnotations().empty())
+            if (ph.getPeakAnnotations().empty())
             {
               // if no fragment annotations are stored, create a theoretical spectrum
               addTheoreticalSpectrumLayer_(ph);
@@ -368,7 +323,7 @@ namespace OpenMS
             else
             {
               // otherwise, use stored fragment annotations
-              addFragmentAnnotations_(ph);
+              addAnnotationsSpectrumLayer_(ph);
 
               if (ph.metaValueExists("xl_chain")) // if this meta value exists, this should be an XLMS annotation
               {
@@ -385,7 +340,7 @@ namespace OpenMS
 
                   String alpha_cov;
                   String beta_cov;
-                  extractCoverageStrings(ph.getFragmentAnnotations(), alpha_cov, beta_cov, seq_alpha.size(), 0);
+                  extractCoverageStrings(ph.getPeakAnnotations(), alpha_cov, beta_cov, seq_alpha.size(), 0);
 
                   // String formatting
                   box_text += alpha_cov + "<br>" +  seq_alpha +  "<br>" + String(xl_pos_alpha, ' ') +  vert_bar + n_times(xl_pos_beta, hor_bar) + vert_bar;
@@ -409,7 +364,7 @@ namespace OpenMS
 
                   String alpha_cov;
                   String beta_cov;
-                  extractCoverageStrings(ph_alpha.getFragmentAnnotations(), alpha_cov, beta_cov, seq_alpha.size(), seq_beta.size());
+                  extractCoverageStrings(ph_alpha.getPeakAnnotations(), alpha_cov, beta_cov, seq_alpha.size(), seq_beta.size());
 
                   box_text += String(alpha_space, ' ') + alpha_cov + "<br>" + String(alpha_space, ' ') + seq_alpha + "<br>" + String(prefix_length, ' ') + vert_bar + "<br>" + String(beta_space, ' ') + seq_beta + "<br>" + String(beta_space, ' ') + beta_cov;
                   // color: <font color=\"green\">&boxur;</font>
@@ -422,7 +377,7 @@ namespace OpenMS
 
                   String alpha_cov;
                   String beta_cov;
-                  extractCoverageStrings(ph.getFragmentAnnotations(), alpha_cov, beta_cov, seq_alpha.size(), 0);
+                  extractCoverageStrings(ph.getPeakAnnotations(), alpha_cov, beta_cov, seq_alpha.size(), 0);
 
                   box_text += alpha_cov + "<br>" + seq_alpha + "<br>" + String(prefix_length, ' ') + vert_bar;
 
@@ -432,7 +387,9 @@ namespace OpenMS
               }
               else
               {
-                widget_1D->canvas()->setTextBox(ph.getSequence().toString().toQString());
+                String seq = ph.getSequence().toString();
+                if (seq.empty()) seq = ph.getMetaValue("label");
+                widget_1D->canvas()->setTextBox(seq.toQString());
               }
             }
           }
@@ -456,7 +413,7 @@ namespace OpenMS
     return result;
   }
 
-  // Helper function, that collapses a vector of Strings into one String
+  // Helper function that collapses a vector of strings into one string
   String TOPPViewIdentificationViewBehavior::collapseStringVector(vector<String> strings)
   {
     String result;
@@ -467,8 +424,8 @@ namespace OpenMS
     return result;
   }
 
-  // Helper function, that turns fragment annotations into coverage Strings for visuaization with the sequence
-  void TOPPViewIdentificationViewBehavior::extractCoverageStrings(vector<PeptideHit::FragmentAnnotation> frag_annotations, String& alpha_string, String& beta_string, Size alpha_size, Size beta_size)
+  // Helper function that turns fragment annotations into coverage strings for visualization with the sequence
+  void TOPPViewIdentificationViewBehavior::extractCoverageStrings(vector<PeptideHit::PeakAnnotation> frag_annotations, String& alpha_string, String& beta_string, Size alpha_size, Size beta_size)
   {
     vector<String> alpha_strings(alpha_size, " ");
     vector<String> beta_strings(beta_size, " ");
@@ -478,93 +435,112 @@ namespace OpenMS
 
     for (Size i = 0; i < frag_annotations.size(); ++i)
     {
-      vector<String> dol_split;
-      frag_annotations[i].annotation.split("$", dol_split);
-
-      vector<String> bar_split;
-      dol_split[0].split("|", bar_split);
-
-      bool alpha = bar_split[0] == "[alpha";
-      bool ci = bar_split[1] == "ci";
-
-      int pos = dol_split[1].suffix(dol_split[1].size()-1).prefix(dol_split[1].size()-2).toInt()-1;
-      String frag_type = dol_split[1][0];
-      //bool left = (frag_type == "a" || frag_type == "b" || frag_type == "c");
-      int direction;
-      if (frag_type == "a" || frag_type == "b" || frag_type == "c")
+      bool has_alpha = frag_annotations[i].annotation.hasSubstring(String("alpha|"));
+      bool has_beta = frag_annotations[i].annotation.hasSubstring(String("beta|"));
+      // if it has both, it is a complex fragment and more difficult to parse
+      // those are ignored for the coverage indicator for now
+      if ( has_alpha != has_beta )
       {
-        direction = -1;
-      }
-      else
-      {
-        direction = 1;
-      }
+        vector<String> dol_split;
+        frag_annotations[i].annotation.split("$", dol_split);
 
-      if (direction == 1)
-      {
-        if (alpha)
+        vector<String> bar_split;
+        dol_split[0].split("|", bar_split);
+
+        bool alpha = bar_split[0] == "[alpha";
+        bool ci = bar_split[1] == "ci";
+
+        vector<String> loss_split;
+        dol_split[1].split("-", loss_split);
+        String pos_string = loss_split[0].suffix(loss_split[0].size()-1);
+        int pos;
+        if (pos_string.hasSubstring("]"))
         {
-          pos = alpha_size - pos - 1;
+          pos = pos_string.prefix(pos_string.size()-1).toInt()-1;
         }
         else
         {
-          pos = beta_size - pos - 1;
+          pos = pos_string.toInt()-1;
         }
-      }
 
-      String arrow;
-      if (ci)
-      {
-        arrow += "<font color=\"green\">";
-      }
-      else
-      {
-        arrow += "<font color=\"red\">";
-      }
-
-      if (direction == -1)
-      {
-        arrow += "&#8636;</font>";
-      }
-      else
-      {
-        arrow += "&#8641;</font>";
-      }
-
-      if (alpha)
-      {
-        if (alpha_direction[pos] == 0) // no arrow assigned yet
+        String frag_type = dol_split[1][0];
+        //bool left = (frag_type == "a" || frag_type == "b" || frag_type == "c");
+        int direction;
+        if (frag_type == "a" || frag_type == "b" || frag_type == "c")
         {
-          alpha_strings[pos] = arrow;
-          alpha_direction[pos] = direction;
+          direction = -1;
         }
-        else if (alpha_direction[pos] != direction && alpha_direction[pos] != 2) // assigned arrow has different direction, make bidirectional arrow
+        else
         {
-          alpha_strings[pos] = String("<font color=\"blue\">&#8651;</font>");
-          alpha_direction[pos] = 2;
-        } // otherwise an arrow with the correct direction is already assigned
-      }
-      else
-      {
-        if (beta_direction[pos] == 0) // no arrow assigned yet
-        {
-          beta_strings[pos] = arrow;
-          beta_direction[pos] = direction;
+          direction = 1;
         }
-        else if (beta_direction[pos] != direction && beta_direction[pos] != 2) // assigned arrow has different direction, make bidirectional arrow
+
+        if (direction == 1)
         {
-          beta_strings[pos] = String("<font color=\"blue\">&#8651;</font>");
-          beta_direction[pos] = 2;
-        } // otherwise an arrow with the correct direction is already assigned
+          if (alpha)
+          {
+            pos = alpha_size - pos - 1;
+          }
+          else
+          {
+            pos = beta_size - pos - 1;
+          }
+        }
+
+        String arrow;
+        if (ci)
+        {
+          arrow += "<font color=\"green\">";
+        }
+        else
+        {
+          arrow += "<font color=\"red\">";
+        }
+
+        if (direction == -1)
+        {
+          arrow += "&#8636;</font>";
+        }
+        else
+        {
+          arrow += "&#8641;</font>";
+        }
+
+        if (alpha)
+        {
+          if (alpha_direction[pos] == 0) // no arrow assigned yet
+          {
+            alpha_strings[pos] = arrow;
+            alpha_direction[pos] = direction;
+          }
+          else if (alpha_direction[pos] != direction && alpha_direction[pos] != 2) // assigned arrow has different direction, make bidirectional arrow
+          {
+            alpha_strings[pos] = String("<font color=\"blue\">&#8651;</font>");
+            alpha_direction[pos] = 2;
+          } // otherwise an arrow with the correct direction is already assigned
+        }
+        else
+        {
+          if (beta_direction[pos] == 0) // no arrow assigned yet
+          {
+            beta_strings[pos] = arrow;
+            beta_direction[pos] = direction;
+          }
+          else if (beta_direction[pos] != direction && beta_direction[pos] != 2) // assigned arrow has different direction, make bidirectional arrow
+          {
+            beta_strings[pos] = String("<font color=\"blue\">&#8651;</font>");
+            beta_direction[pos] = 2;
+          } // otherwise an arrow with the correct direction is already assigned
+        }
       }
     }
     alpha_string = "<font style=\"\">" + collapseStringVector(alpha_strings) + "</font>";
     beta_string = collapseStringVector(beta_strings);
   }
 
-  void TOPPViewIdentificationViewBehavior::addPrecursorLabels1D_(const vector<Precursor> & pcs)
+  void TOPPViewIdentificationViewBehavior::addPrecursorLabels1D_(const vector<Precursor>& pcs)
   {
-    LayerData & current_layer = tv_->getActive1DWidget()->canvas()->getCurrentLayer();
+    LayerData& current_layer = tv_->getActive1DWidget()->canvas()->getCurrentLayer();
 
     if (current_layer.type == LayerData::DT_PEAK)
     {
@@ -593,7 +569,7 @@ namespace OpenMS
         DPosition<2> lower_position = DPosition<2>(isolation_window_lower_mz, max_intensity);
         DPosition<2> upper_position = DPosition<2>(isolation_window_upper_mz, max_intensity);
 
-        Annotation1DDistanceItem * item = new Annotation1DDistanceItem(QString::number(it->getCharge()), lower_position, upper_position);
+        Annotation1DDistanceItem* item = new Annotation1DDistanceItem(QString::number(it->getCharge()), lower_position, upper_position);
         // add additional tick at precursor target position (e.g. to show if isolation window is asymmetric)
         vector<double> ticks;
         ticks.push_back(it->getMZ());
@@ -616,10 +592,10 @@ namespace OpenMS
     cout << "removePrecursorLabels1D_ " << spectrum_index << endl;
 #endif
     // Delete annotations added by IdentificationView (but not user added annotations)
-    LayerData & current_layer = tv_->getActive1DWidget()->canvas()->getCurrentLayer();
-    const vector<Annotation1DItem *> & cas = temporary_annotations_;
-    Annotations1DContainer & las = current_layer.getAnnotations(spectrum_index);
-    for (vector<Annotation1DItem *>::const_iterator it = cas.begin(); it != cas.end(); ++it)
+    LayerData& current_layer = tv_->getActive1DWidget()->canvas()->getCurrentLayer();
+    const vector<Annotation1DItem*>& cas = temporary_annotations_;
+    Annotations1DContainer& las = current_layer.getAnnotations(spectrum_index);
+    for (vector<Annotation1DItem*>::const_iterator it = cas.begin(); it != cas.end(); ++it)
     {
       Annotations1DContainer::iterator i = find(las.begin(), las.end(), *it);
       if (i != las.end())
@@ -631,11 +607,11 @@ namespace OpenMS
     temporary_annotations_.clear();
   }
 
-  void TOPPViewIdentificationViewBehavior::addTheoreticalSpectrumLayer_(const PeptideHit & ph)
+  void TOPPViewIdentificationViewBehavior::addTheoreticalSpectrumLayer_(const PeptideHit& ph)
   {
-    SpectrumCanvas * current_canvas = tv_->getActive1DWidget()->canvas();
-    LayerData & current_layer = current_canvas->getCurrentLayer();
-    SpectrumType & current_spectrum = current_layer.getCurrentSpectrum();
+    SpectrumCanvas* current_canvas = tv_->getActive1DWidget()->canvas();
+    LayerData& current_layer = current_canvas->getCurrentLayer();
+    SpectrumType& current_spectrum = current_layer.getCurrentSpectrum();
 
     AASequence aa_sequence = ph.getSequence();
 
@@ -643,7 +619,7 @@ namespace OpenMS
     Size current_spectrum_layer_index = current_canvas->activeLayerIndex();
     Size current_spectrum_index = current_layer.getCurrentSpectrumIndex();
 
-    const Param & tv_params = tv_->getParameters();
+    const Param& tv_params = tv_->getParameters();
 
     PeakSpectrum spectrum;
     TheoreticalSpectrumGenerator generator;
@@ -684,7 +660,7 @@ namespace OpenMS
       generator.getSpectrum(spectrum, aa_sequence, 1, max_charge);
 
     }
-    catch (Exception::BaseException & e)
+    catch (Exception::BaseException& e)
     {
       QMessageBox::warning(tv_, "Error", QString("Spectrum generation failed! (") + e.what() + "). Please report this to the developers (specify what input you used)!");
       return;
@@ -723,13 +699,13 @@ namespace OpenMS
 
         if (s.at(0) == 'y')
         {
-          Annotation1DItem * item = new Annotation1DPeakItem(position, s, Qt::darkRed);
+          Annotation1DItem* item = new Annotation1DPeakItem(position, s, Qt::darkRed);
           item->setSelected(false);
           tv_->getActive1DWidget()->canvas()->getCurrentLayer().getCurrentAnnotations().push_front(item);
         }
         else if (s.at(0) == 'b')
         {
-          Annotation1DItem * item = new Annotation1DPeakItem(position, s, Qt::darkGreen);
+          Annotation1DItem* item = new Annotation1DPeakItem(position, s, Qt::darkGreen);
           item->setSelected(false);
           tv_->getActive1DWidget()->canvas()->getCurrentLayer().getCurrentAnnotations().push_front(item);
         }
@@ -785,7 +761,7 @@ namespace OpenMS
             }
           }
           s.append(aa_ss);
-          Annotation1DItem * item = tv_->getActive1DWidget()->canvas()->addPeakAnnotation(pi, s, Qt::darkRed);
+          Annotation1DItem* item = tv_->getActive1DWidget()->canvas()->addPeakAnnotation(pi, s, Qt::darkRed);
           temporary_annotations_.push_back(item);
         }
         else if (s.at(0) == 'b')
@@ -801,13 +777,14 @@ namespace OpenMS
           aa_ss.replace(QRegExp("[(].*[)]"), "*");
           // append to label
           s.append(aa_ss);
-          Annotation1DItem * item = tv_->getActive1DWidget()->canvas()->addPeakAnnotation(pi, s, Qt::darkGreen);
+          Annotation1DItem* item = tv_->getActive1DWidget()->canvas()->addPeakAnnotation(pi, s, Qt::darkGreen);
           // save label for later removal
           temporary_annotations_.push_back(item);
-        } else
+        }
+        else
         {
           s.append("\n");
-          Annotation1DItem * item = tv_->getActive1DWidget()->canvas()->addPeakAnnotation(pi, s, Qt::black);
+          Annotation1DItem* item = tv_->getActive1DWidget()->canvas()->addPeakAnnotation(pi, s, Qt::black);
           // save label for later removal
           temporary_annotations_.push_back(item);
         }
@@ -820,33 +797,181 @@ namespace OpenMS
 
   void TOPPViewIdentificationViewBehavior::deactivate1DSpectrum(int spectrum_index)
   {
-    Spectrum1DWidget * widget_1D = tv_->getActive1DWidget();
+    // Retrieve active 1D widget
+    Spectrum1DWidget* widget_1D = tv_->getActive1DWidget();
 
-    // return if no active 1D widget is present
-    if (widget_1D == 0) return;
+    // Return if none present
+    if (widget_1D == nullptr) return;
 
-    LayerData & current_layer = widget_1D->canvas()->getCurrentLayer();
-    int ms_level = (*current_layer.getPeakData())[spectrum_index].getMSLevel();
+    LayerData& current_layer = widget_1D->canvas()->getCurrentLayer();
 
-    removeTemporaryAnnotations_(spectrum_index);
+    // Return if no valid peak layer attached
+    if (current_layer.getPeakData()->size() == 0 || current_layer.type != LayerData::DT_PEAK) { return; }
+
+    MSSpectrum& spectrum = (*current_layer.getPeakData())[spectrum_index];
+    int ms_level = spectrum.getMSLevel();
 
     if (ms_level == 2)
     {
+      // synchronize PeptideHits with the annotations in the spectrum
+      current_layer.synchronizePeakAnnotations();
+
+      // remove all graphical peak annotations as these will be recreated from the stored peak annotations
+      Annotations1DContainer& las = current_layer.getAnnotations(spectrum_index);
+      auto new_end = std::remove_if(las.begin(), las.end(),
+                              [](const Annotation1DItem* a)
+                              { return dynamic_cast<const Annotation1DPeakItem*>(a) != nullptr; });
+      las.erase(new_end, las.end());
+
       removeTheoreticalSpectrumLayer_();
     }
 
-    widget_1D->canvas()->setTextBox(QString());
+    removeTemporaryAnnotations_(spectrum_index);
 
-    // the next line is meant to be disabled to allow switching between spectra without loosing the current view range (to compare across spectra)
-    // tv_->getActive1DWidget()->canvas()->resetZoom();
+    // reset selected id indices
+    current_layer.peptide_id_index = -1;
+    current_layer.peptide_hit_index = -1;
+
+    widget_1D->canvas()->setTextBox(QString());
   }
+
+  void TOPPViewIdentificationViewBehavior::addAnnotationsSpectrumLayer_(const PeptideHit& hit, bool align)
+  {
+    const vector<PeptideHit::PeakAnnotation>& annotations =
+      hit.getPeakAnnotations();
+    String seq = hit.getSequence().toString();
+    if (seq.empty()) seq = hit.getMetaValue("label");
+
+    SpectrumCanvas* current_canvas = tv_->getActive1DWidget()->canvas();
+    LayerData& current_layer = current_canvas->getCurrentLayer();
+    Size current_spectrum_layer_index = current_canvas->activeLayerIndex();
+    Size current_spectrum_index = current_layer.getCurrentSpectrumIndex();
+
+    const MSSpectrum& current_spectrum = current_layer.getCurrentSpectrum();
+    if (align)
+    {
+      if (current_spectrum.empty())
+      {
+        LOG_WARN << "Spectrum is empty! Nothing to annotate!" << std::endl;
+      }
+      else if (!current_spectrum.isSorted())
+      {
+        QMessageBox::warning(tv_, "Error", "The spectrum is not sorted! Aborting!"); // @TODO: improve error message
+        return;
+      }
+    }
+
+    MSSpectrum ann_spectrum;
+    vector<String> labels;
+    for (const auto& ann : annotations) // NOLINT
+    {
+      Peak1D peak(ann.mz, ann.intensity);
+      if (align) // align to the measured spectrum
+      {
+        // @TODO: avoid magic constant (m/z tolerance)
+        Int peak_idx = current_spectrum.findNearest(ann.mz, 1e-2);
+        if (peak_idx == -1) // no match
+        {
+          LOG_WARN << "Annotation present for missing peak. m/z: " << ann.mz
+                   << endl;
+          continue;
+        }
+        peak = current_spectrum[peak_idx];
+      }
+      ann_spectrum.push_back(peak);
+
+      String label = ann.annotation;
+      // write out positive and negative charges with the correct sign at the end of the annotation string
+      switch (ann.charge)
+      {
+      case 0: break;
+      case 1: label += "+"; break;
+      case 2: label += "++"; break;
+      case -1: label += "-"; break;
+      case -2: label += "--"; break;
+      default: label += ((ann.charge > 0) ? "+" : "") + String(ann.charge);
+      }
+      labels.push_back(label);
+    }
+    ann_spectrum.sortByPosition();
+
+    if (ann_spectrum.getMaxInt() <= 1.0) // undo scaling of intensities
+    {
+      double max_int = current_layer.getCurrentSpectrum().getMaxInt();
+      for (auto& peak : ann_spectrum)
+      {
+        peak.setIntensity(peak.getIntensity() * max_int);
+      }
+    }
+
+    PeakMap new_exp;
+    new_exp.addSpectrum(ann_spectrum);
+    ExperimentSharedPtrType new_exp_sptr(new PeakMap(new_exp));
+    FeatureMapSharedPtrType f_dummy(new FeatureMapType());
+    ConsensusMapSharedPtrType c_dummy(new ConsensusMapType());
+    vector<PeptideIdentification> p_dummy;
+
+    // Block update events for identification widget
+    tv_->getSpectraIdentificationViewWidget()->ignore_update = true;
+
+    String layer_caption = seq + " (identification view)";
+    tv_->addData(f_dummy, c_dummy, p_dummy, new_exp_sptr, LayerData::DT_PEAK, true, false, false, "", layer_caption);
+
+    // get layer index of new layer
+    Size theoretical_spectrum_layer_index = tv_->getActive1DWidget()->canvas()->activeLayerIndex();
+
+    // kind of a hack to check whether adding the layer was successful
+    if (current_spectrum_layer_index != theoretical_spectrum_layer_index)
+    {
+      // Ensure theoretical spectrum is drawn as sticks
+      tv_->setDrawMode1D(Spectrum1DCanvas::DM_PEAKS);
+      // ensure intensities are on the same scale as the measured spectrum:
+      tv_->setIntensityMode(SpectrumCanvas::IM_SNAP);
+
+      // Add ion names to the annotations spectrum
+      for (Size i = 0; i != ann_spectrum.size(); ++i)
+      {
+        DPosition<2> position(ann_spectrum[i].getMZ(),
+                              ann_spectrum[i].getIntensity());
+        const String& label = labels[i];
+        QColor color;
+        // XL-MS specific coloring of the labels, green for linear fragments and red for cross-linked fragments
+        if (label.hasSubstring("[alpha|") || label.hasSubstring("[beta|"))
+        {
+          if (label.hasSubstring("|ci$"))
+          {
+            color = Qt::darkGreen;
+          }
+          else if (label.hasSubstring("|xi$"))
+          {
+            color = Qt::darkRed;
+          }
+        }
+        else // different colors for left/right fragments (e.g. b/y ions)
+        {
+          color = (label.at(0) < 'n') ? Qt::darkRed : Qt::darkGreen;
+        }
+
+        Annotation1DItem* item = new Annotation1DPeakItem(position, label.toQString(), color);
+        item->setSelected(false);
+        tv_->getActive1DWidget()->canvas()->getCurrentLayer().getCurrentAnnotations().push_front(item);
+      }
+
+      tv_->getActive1DWidget()->canvas()->activateLayer(current_spectrum_layer_index);
+      tv_->getActive1DWidget()->canvas()->getCurrentLayer().setCurrentSpectrumIndex(current_spectrum_index);
+
+      tv_->updateLayerBar();
+      tv_->getSpectraIdentificationViewWidget()->ignore_update = false;
+    }
+  }
+
 
   void TOPPViewIdentificationViewBehavior::removeTheoreticalSpectrumLayer_()
   {
-    Spectrum1DWidget * spectrum_widget_1D = tv_->getActive1DWidget();
+    Spectrum1DWidget* spectrum_widget_1D = tv_->getActive1DWidget();
     if (spectrum_widget_1D)
     {
-      Spectrum1DCanvas * canvas_1D = spectrum_widget_1D->canvas();
+      Spectrum1DCanvas* canvas_1D = spectrum_widget_1D->canvas();
 
       // Find the automatically generated layer with theoretical spectrum and remove it and the associated alignment.
       // before activating the next normal spectrum
@@ -868,11 +993,11 @@ namespace OpenMS
   void TOPPViewIdentificationViewBehavior::activateBehavior()
   {
     Spectrum1DWidget* w = tv_->getActive1DWidget();
-    if (w == 0) return;
+    if (w == nullptr) return;
 
-    SpectrumCanvas * current_canvas = w->canvas();
-    LayerData & current_layer = current_canvas->getCurrentLayer();
-    SpectrumType & current_spectrum = current_layer.getCurrentSpectrum();
+    SpectrumCanvas* current_canvas = w->canvas();
+    LayerData& current_layer = current_canvas->getCurrentLayer();
+    SpectrumType& current_spectrum = current_layer.getCurrentSpectrum();
 
     // find first MS2 spectrum with peptide identification and set current spectrum to it
     if (current_spectrum.getMSLevel() == 1)  // no fragment spectrum
@@ -895,25 +1020,29 @@ namespace OpenMS
 
   void TOPPViewIdentificationViewBehavior::deactivateBehavior()
   {
-    Spectrum1DWidget * widget_1D = tv_->getActive1DWidget();
+    Spectrum1DWidget* widget_1D = tv_->getActive1DWidget();
 
     // return if no active 1D widget is present
-    if (widget_1D == 0) return;
+    if (widget_1D == nullptr) return;
 
+    // clear textbox
     widget_1D->canvas()->setTextBox(QString());
 
     // remove precusor labels, theoretical spectra and trigger repaint
-    removeTemporaryAnnotations_(tv_->getActive1DWidget()->canvas()->getCurrentLayer().getCurrentSpectrumIndex());
+    LayerData& cl = tv_->getActive1DWidget()->canvas()->getCurrentLayer();
+    removeTemporaryAnnotations_(cl.getCurrentSpectrumIndex());
     removeTheoreticalSpectrumLayer_();
+    cl.peptide_id_index = -1;
+    cl.peptide_hit_index = -1;
     tv_->getActive1DWidget()->canvas()->repaint();
   }
 
   void TOPPViewIdentificationViewBehavior::setVisibleArea1D(double l, double h)
   {
-    Spectrum1DWidget * widget_1D = tv_->getActive1DWidget();
+    Spectrum1DWidget* widget_1D = tv_->getActive1DWidget();
 
     // return if no active 1D widget is present
-    if (widget_1D == 0) return;
+    if (widget_1D == nullptr) return;
 
     DRange<2> range = tv_->getActive1DWidget()->canvas()->getVisibleArea();
     range.setMinX(l);

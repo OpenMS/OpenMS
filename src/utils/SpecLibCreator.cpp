@@ -82,7 +82,7 @@ public:
   }
 
 protected:
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     registerInputFile_("info", "<file>", "", "Holds id, peptide, retention time etc.");
     setValidFormats_("info", ListUtils::create<String>("csv"));
@@ -98,7 +98,7 @@ protected:
     setValidFormats_("out", ListUtils::create<String>("msp"));
   }
 
-  ExitCodes main_(int, const char**)
+  ExitCodes main_(int, const char**) override
   {
     //-------------------------------------------------------------
     // parameter handling
@@ -235,7 +235,7 @@ protected:
           cout << "Found Peptide " << list[i][peptide] << " with id: " << list[i][Experimental_id] << "\n";
           cout << "rt: " << it->getRT() << " and mz: " << it->getPrecursors()[0].getMZ() << "\n";
 
-          MSSpectrum<Peak1D> speci;
+          MSSpectrum speci;
           speci.setRT(it->getRT());
           speci.setMSLevel(2);
           speci.setPrecursors(it->getPrecursors());

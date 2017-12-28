@@ -76,7 +76,7 @@ namespace OpenMS
     TheoreticalSpectrumGenerator(const TheoreticalSpectrumGenerator & source);
 
     /// destructor
-    virtual ~TheoreticalSpectrumGenerator();
+    ~TheoreticalSpectrumGenerator() override;
     //@}
 
     /// assignment operator
@@ -89,7 +89,7 @@ namespace OpenMS
     virtual void getSpectrum(PeakSpectrum & spec, const AASequence & peptide, Int min_charge, Int max_charge) const;
 
     /// overwrite
-    void updateMembers_();
+    void updateMembers_() override;
 
     //@}
 

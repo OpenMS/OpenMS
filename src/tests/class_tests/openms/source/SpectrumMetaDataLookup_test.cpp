@@ -47,8 +47,8 @@ START_TEST(SpectrumMetaDataLookup, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-SpectrumMetaDataLookup* ptr = 0;
-SpectrumMetaDataLookup* null_ptr = 0;
+SpectrumMetaDataLookup* ptr = nullptr;
+SpectrumMetaDataLookup* null_ptr = nullptr;
 
 START_SECTION((SpectrumMetaDataLookup()))
 {
@@ -64,8 +64,8 @@ START_SECTION((~SpectrumMetaDataLookup()))
 }
 END_SECTION
 
-vector<MSSpectrum<> > spectra;
-MSSpectrum<> spectrum;
+vector<MSSpectrum> spectra;
+MSSpectrum spectrum;
 spectrum.setNativeID("spectrum=0");
 spectrum.setRT(1.0);
 spectrum.setMSLevel(1);
@@ -115,7 +115,7 @@ START_SECTION((void getSpectrumMetaData(Size, SpectrumMetaData&) const))
 }
 END_SECTION
 
-START_SECTION((static void getSpectrumMetaData(const MSSpectrum<>&, SpectrumMetaData&, const boost::regex&, const map<Size, double>&)))
+START_SECTION((static void getSpectrumMetaData(const MSSpectrum&, SpectrumMetaData&, const boost::regex&, const map<Size, double>&)))
 {
   SpectrumMetaDataLookup::SpectrumMetaData meta;
   SpectrumMetaDataLookup::getSpectrumMetaData(spectrum, meta);

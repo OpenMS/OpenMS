@@ -61,7 +61,7 @@ public:
     DeNovoAlgorithm();
 
     /// destructor
-    virtual ~DeNovoAlgorithm();
+    ~DeNovoAlgorithm() override;
 
     /// copy constructor
     DeNovoAlgorithm(const DeNovoAlgorithm & rhs);

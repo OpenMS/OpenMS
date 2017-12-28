@@ -119,6 +119,7 @@ namespace OpenMS
         (*iter).second->hide();
         (*iter).second = 0;
         delete(*iter).second;
+        // cppcheck-suppress eraseDereference
         metalabels_.erase(iter);
       }
     }
@@ -133,6 +134,7 @@ namespace OpenMS
         (*iter2).second->hide();
         (*iter2).second = 0;
         delete(*iter2).second;
+        // cppcheck-suppress eraseDereference
         metainfoptr_.erase(iter2);
       }
 
@@ -226,7 +228,7 @@ namespace OpenMS
     {
       //check whether there is already an entry in GUI for added metainfo.
       //If index already exists, return and do nothing.
-      if (buttongroup_->button(newindex) != 0)
+      if (buttongroup_->button(newindex) != nullptr)
       {
         return;
       }

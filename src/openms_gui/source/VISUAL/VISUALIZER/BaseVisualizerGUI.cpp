@@ -49,8 +49,8 @@ namespace OpenMS
 {
   BaseVisualizerGUI::BaseVisualizerGUI(bool editable, QWidget * parent) :
     QWidget(parent),
-    undo_button_(0),
-    mainlayout_(0),
+    undo_button_(nullptr),
+    mainlayout_(nullptr),
     row_(0),
     editable_(editable)
   {

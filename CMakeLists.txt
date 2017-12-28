@@ -72,6 +72,7 @@ include(Dart)
 # ADDRESS_SANITIZER
 # OPENMS_COVERAGE
 #------------------------------------------------------------------------------
+option(MT_ENABLE_TBB "Enable Intel TBB support" OFF)
 option(MT_ENABLE_OPENMP "Enable OpenMP support" ON)
 option(BOOST_USE_STATIC "Use Boost static libraries." ON)
 option(HAS_XSERVER "Indicates if an X server is available. If set to Off it will disable certain tests and the doc target." ON)
@@ -93,7 +94,7 @@ list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake/Windows")
 #------------------------------------------------------------------------------
 
 set(OPENMS_PACKAGE_VERSION_MAJOR "2")
-set(OPENMS_PACKAGE_VERSION_MINOR "2")
+set(OPENMS_PACKAGE_VERSION_MINOR "3")
 set(OPENMS_PACKAGE_VERSION_PATCH "0")
 
 #------------------------------------------------------------------------------
@@ -184,6 +185,11 @@ if(ADDRESS_SANITIZER)
 endif()
 
 #------------------------------------------------------------------------------
+# Enable fingerid_test
+#------------------------------------------------------------------------------
+option(ENABLE_FINGERID_TEST "Enable test for fingerid (SiriusAdapter)" OFF)
+
+#------------------------------------------------------------------------------
 # Enable Coverage
 #------------------------------------------------------------------------------
 option(OPENMS_COVERAGE "[Clang/GCC only] Enable Coverage testing with gcov/lcov. Requires the Debug build type,
@@ -247,7 +253,7 @@ if("${PACKAGE_TYPE}" STREQUAL "dmg")
                          "This disables codesigning and might lead to problems with Gatekeeper on target machines.")
   else()
     ## CPack has a special variable for it.
-    set(CPACK_BUNDLE_APPLE_CERT_APP ${SIGNING_IDENTITY})
+    set(CPACK_BUNDLE_APPLE_CERT_APP "${SIGNING_IDENTITY}")
   endif()
 endif()
 

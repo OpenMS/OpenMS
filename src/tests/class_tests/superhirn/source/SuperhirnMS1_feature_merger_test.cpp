@@ -69,8 +69,8 @@ START_TEST(MS1FeatureMerger, "$Id$")
 using namespace OpenMS;
 using namespace std;
 
-MS1FeatureMerger* ptr = 0;
-MS1FeatureMerger* nullPtr = 0;
+MS1FeatureMerger* ptr = nullptr;
+MS1FeatureMerger* nullPtr = nullptr;
 
 START_SECTION((MS1FeatureMerger()))
 	LCMS lcms;

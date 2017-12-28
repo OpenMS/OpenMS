@@ -47,8 +47,8 @@ START_TEST(MRMAssay, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-MRMAssay * ptr = 0;
-MRMAssay* nullPointer = 0;
+MRMAssay * ptr = nullptr;
+MRMAssay* nullPointer = nullptr;
 
 class MRMAssay_test :
   public MRMAssay
@@ -407,7 +407,6 @@ START_SECTION(void reannotateTransitions(OpenMS::TargetedExperiment& exp, double
   fragment_types1.push_back(String("y"));
   std::vector<size_t> fragment_charges1;
   fragment_charges1.push_back(2);
-  bool enable_reannotation1 = true;
   bool enable_losses1 = false;
 
   String out1 = "MRMAssay_reannotateTransitions_output_1.TraML";
@@ -416,7 +415,7 @@ START_SECTION(void reannotateTransitions(OpenMS::TargetedExperiment& exp, double
 
   mrma.reannotateTransitions(targeted_exp1, precursor_mz_threshold1,
       product_mz_threshold1, fragment_types1, fragment_charges1,
-      enable_reannotation1, enable_losses1, enable_losses1);
+      enable_losses1, enable_losses1);
 
   String test1;
   NEW_TMP_FILE(test1);
@@ -432,41 +431,19 @@ START_SECTION(void reannotateTransitions(OpenMS::TargetedExperiment& exp, double
   std::vector<size_t> fragment_charges2;
   fragment_charges2.push_back(2);
   fragment_charges2.push_back(3);
-  bool enable_reannotation2 = true;
   bool enable_losses2 = true;
 
   String out2 = "MRMAssay_reannotateTransitions_output_2.TraML";
 
   TargetedExperiment targeted_exp2 = targeted_exp;
 
-  mrma.reannotateTransitions(targeted_exp2, precursor_mz_threshold2, product_mz_threshold2, fragment_types2, fragment_charges2, enable_reannotation2, enable_losses2, enable_losses2);
+  mrma.reannotateTransitions(targeted_exp2, precursor_mz_threshold2, product_mz_threshold2, fragment_types2, fragment_charges2, enable_losses2, enable_losses2);
 
   String test2;
   NEW_TMP_FILE(test2);
   traml.store(test2, targeted_exp2);
 
   TEST_FILE_EQUAL(test2.c_str(), OPENMS_GET_TEST_DATA_PATH(out2))
-
-  double precursor_mz_threshold3 = 0.05;
-  double product_mz_threshold3 = 0.05;
-  std::vector<String> fragment_types3;
-  fragment_types3.push_back(String("y"));
-  std::vector<size_t> fragment_charges3;
-  fragment_charges3.push_back(2);
-  bool enable_reannotation3 = false; // if no reannotation is conducted, all unannotated transitions will be removed
-  bool enable_losses3 = false;
-
-  String out3 = "MRMAssay_reannotateTransitions_output_3.TraML";
-
-  TargetedExperiment targeted_exp3 = targeted_exp;
-
-  mrma.reannotateTransitions(targeted_exp3, precursor_mz_threshold3, product_mz_threshold3, fragment_types3, fragment_charges3, enable_reannotation3, enable_losses3, enable_losses3);
-
-  String test3;
-  NEW_TMP_FILE(test3);
-  traml.store(test3, targeted_exp3);
-
-  TEST_FILE_EQUAL(test3.c_str(), OPENMS_GET_TEST_DATA_PATH(out3))
 }
 
 END_SECTION

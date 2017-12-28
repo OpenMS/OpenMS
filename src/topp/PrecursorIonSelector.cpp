@@ -132,7 +132,7 @@ public:
 
 protected:
 
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<input file>", "", "Input feature map file (featureXML)");
     setValidFormats_("in", ListUtils::create<String>("featureXML"));
@@ -166,14 +166,14 @@ protected:
 
   }
 
-  Param getSubsectionDefaults_(const String & /* section*/) const
+  Param getSubsectionDefaults_(const String & /* section*/) const override
   {
     Param param = PrecursorIonSelection().getDefaults();
     //    param.insert("",PrecursorIonSelection().getDefaults().copy(""));
     return param;
   }
 
-  ExitCodes main_(int, const char **)
+  ExitCodes main_(int, const char **) override
   {
     //-------------------------------------------------------------
     // parameter handling

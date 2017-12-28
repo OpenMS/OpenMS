@@ -70,7 +70,7 @@ public:
     RawTandemMSSignalSimulation(const RawTandemMSSignalSimulation& source);
 
     /// Destructor
-    virtual ~RawTandemMSSignalSimulation();
+    ~RawTandemMSSignalSimulation() override;
     //@}
 
     RawTandemMSSignalSimulation& operator=(const RawTandemMSSignalSimulation& source);

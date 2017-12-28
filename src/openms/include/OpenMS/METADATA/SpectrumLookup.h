@@ -111,7 +111,7 @@ namespace OpenMS
       setScanRegExp_(scan_regexp);
       for (Size i = 0; i < n_spectra_; ++i)
       {
-        const MSSpectrum<>& spectrum = spectra[i];
+        const MSSpectrum& spectrum = spectra[i];
         String native_id = spectrum.getNativeID();
         Int scan_no = -1;
         if (!scan_regexp.empty())

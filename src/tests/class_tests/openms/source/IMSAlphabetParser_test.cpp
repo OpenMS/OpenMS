@@ -49,12 +49,12 @@ class IMSAlphabetParserImpl
 private:
   ContainerType elements_;
 public:
-  virtual ContainerType& getElements()
+  ContainerType& getElements() override
   {
     return elements_;
   }
 
-  virtual void parse(std::istream& )
+  void parse(std::istream& ) override
   {
     // ignore istream, just enter something into the map
     elements_.insert(std::make_pair("A", 71.03711));
@@ -72,8 +72,8 @@ START_TEST(IMSAlphabetParser, "$Id$")
 // test the implementation from above
 
 
-IMSAlphabetParser<>* ptr = 0;
-IMSAlphabetParser<>* null_ptr = 0;
+IMSAlphabetParser<>* ptr = nullptr;
+IMSAlphabetParser<>* null_ptr = nullptr;
 
 START_SECTION(IMSAlphabetParser())
 {
