@@ -101,7 +101,7 @@ namespace OpenMS
   void Spectrum3DOpenGLCanvas::renderText(double x, double y, double z, const QString & text, const QFont & font = QFont()) 
   {
     // Identify x and y locations to render text within widget
-    int height = this->height();
+    // int height = this->height();
 
    //GLdouble textPosX = 0, textPosY = 0, textPosZ = 0;
    //project(x, y, z, &textPosX, &textPosY, &textPosZ);
