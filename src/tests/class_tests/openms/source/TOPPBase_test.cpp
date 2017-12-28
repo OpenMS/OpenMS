@@ -44,7 +44,7 @@
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/DATASTRUCTURES/ListUtilsIO.h>
 
-#include <stdlib.h>
+#include <cstdlib>
 ///////////////////////////
 
 using namespace OpenMS;

@@ -71,7 +71,7 @@
 
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathWorkflow.h>
 
-#include <assert.h>
+#include <cassert>
 #include <limits>
 
 // #define OPENSWATH_WORKFLOW_DEBUG
