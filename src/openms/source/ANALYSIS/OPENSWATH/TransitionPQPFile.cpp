@@ -59,7 +59,6 @@ namespace OpenMS
   void TransitionPQPFile::readPQPInput_(const char* filename, std::vector<TSVTransition>& transition_list, bool legacy_traml_id)
   {
     sqlite3 *db;
-    char *zErrMsg = nullptr;
     sqlite3_stmt * cntstmt;
     sqlite3_stmt * stmt;
     int rc;
