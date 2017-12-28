@@ -146,8 +146,9 @@ static bool SortPairDoubleByFirst(const std::pair<double,double> & left, const s
   -mz_extraction_window to your instrument resolution, which can be in Th or
   ppm (using -ppm).
 
-  Furthermore, if you wish to use MS1 information, use the -use_ms1_traces flag
-  and provide an MS1 map in addition to the SWATH data.
+  Furthermore, if you wish to use MS1 information, use the -enable_ms1 flag
+  and provide an MS1 map in addition to the SWATH data. If IPF transition-
+  level scoring should be conducted, set the -enable_ipf flag.
 
   If you encounter issues with peak picking, try to disable peak filtering by
   setting -Scoring:TransitionGroupPicker:compute_peak_quality false which will
@@ -416,8 +417,8 @@ protected:
     registerInputFile_("swath_windows_file", "<file>", "", "Optional, tab separated file containing the SWATH windows for extraction: lower_offset upper_offset \\newline 400 425 \\newline ... Note that the first line is a header and will be skipped.", false, true);
     registerFlag_("sort_swath_maps", "Sort of input SWATH files when matching to SWATH windows from swath_windows_file", true);
 
-    registerFlag_("use_ms1_traces", "Extract the precursor ion trace(s) and use for scoring", true);
-    registerFlag_("enable_uis_scoring", "Enable additional scoring of identification assays", true);
+    registerFlag_("enable_ms1", "MS1: Set this flag if precursor ion trace(s) should be extracted and used for scoring", false);
+    registerFlag_("enable_ipf", "IPF: Set this flag if IPF transition-level scoring should be conducted", false);
 
     // one of the following two needs to be set
     registerOutputFile_("out_features", "<file>", "", "output file", false);
@@ -432,7 +433,7 @@ protected:
     registerOutputFile_("out_chrom", "<file>", "", "Also output all computed chromatograms output in mzML (chrom.mzML) or sqMass (SQLite format)", false, true);
     setValidFormats_("out_chrom", ListUtils::create<String>("mzML,sqMass"));
 
-    registerDoubleOption_("min_upper_edge_dist", "<double>", 0.0, "Minimal distance to the edge to still consider a precursor, in Thomson", false, true);
+    registerDoubleOption_("min_upper_edge_dist", "<double>", -1, "Minimal distance to the edge to still consider a precursor, in Thomson (-1 means that the parameter is estimated automatically from the input). This parameter is disabled in SONAR mode.", false, true);
     registerDoubleOption_("rt_extraction_window", "<double>", 600.0, "Only extract RT around this value (-1 means extract over the whole range, a value of 600 means to extract around +/- 300 s of the expected elution).", false);
     registerDoubleOption_("extra_rt_extraction_window", "<double>", 0.0, "Output an XIC with a RT-window that by this much larger (e.g. to visually inspect a larger area of the chromatogram)", false, true);
     registerDoubleOption_("mz_extraction_window", "<double>", 0.05, "Extraction window used (in Thomson, to use ppm see -ppm flag)", false);
@@ -488,6 +489,7 @@ protected:
       feature_finder_param.remove("TransitionGroupPicker:stop_after_intensity_ratio");
 
       // Peak Picker
+      feature_finder_param.setValue("TransitionGroupPicker:PeakPickerMRM:stop_after_feature", 5);
       feature_finder_param.setValue("TransitionGroupPicker:PeakPickerMRM:use_gauss", "false");
       feature_finder_param.setValue("TransitionGroupPicker:PeakPickerMRM:sgolay_polynomial_order", 3);
       feature_finder_param.setValue("TransitionGroupPicker:PeakPickerMRM:sgolay_frame_length", 11);
@@ -504,7 +506,6 @@ protected:
       feature_finder_param.setValue("uis_threshold_peak_area",0);
       feature_finder_param.remove("TransitionGroupPicker:PeakPickerMRM:sn_win_len");
       feature_finder_param.remove("TransitionGroupPicker:PeakPickerMRM:sn_bin_count");
-      feature_finder_param.remove("TransitionGroupPicker:PeakPickerMRM:stop_after_feature");
 
       // EMG Scoring - turn off by default since it is very CPU-intensive
       feature_finder_param.remove("Scores:use_elution_model_score");
@@ -713,8 +714,8 @@ protected:
     bool force = getFlag_("force");
     bool sonar = getFlag_("sonar");
     bool sort_swath_maps = getFlag_("sort_swath_maps");
-    bool use_ms1_traces = getFlag_("use_ms1_traces");
-    bool enable_uis_scoring = getFlag_("enable_uis_scoring");
+    bool enable_ms1 = getFlag_("enable_ms1");
+    bool enable_ipf = getFlag_("enable_ipf");
     double min_upper_edge_dist = getDoubleOption_("min_upper_edge_dist");
     double mz_extraction_window = getDoubleOption_("mz_extraction_window");
     double irt_mz_extraction_window = getDoubleOption_("irt_mz_extraction_window");
@@ -788,7 +789,6 @@ protected:
     }
 
     ChromExtractParams cp;
-    cp.min_upper_edge_dist   = min_upper_edge_dist;
     cp.mz_extraction_window  = mz_extraction_window;
     cp.ppm                   = ppm;
     cp.rt_extraction_window  = rt_extraction_window,
@@ -810,12 +810,12 @@ protected:
     {
       feature_finder_param.setValue("Scores:use_elution_model_score", "false");
     }
-    if (use_ms1_traces)
+    if (enable_ms1)
     {
       feature_finder_param.setValue("Scores:use_ms1_correlation", "true");
       feature_finder_param.setValue("Scores:use_ms1_fullscan", "true");
     }
-    if (enable_uis_scoring)
+    if (enable_ipf)
     {
       feature_finder_param.setValue("Scores:use_uis_scores", "true");
     }
@@ -900,6 +900,38 @@ protected:
       }
     }
     std::sort(sw_windows.begin(), sw_windows.end(), SortPairDoubleByFirst);
+
+    // (iv) Estimate min_upper_edge_dist from swathes
+    if (sonar) // We skip this step in SONAR-mode
+    {
+      min_upper_edge_dist = 0.0;
+    }
+
+    if (min_upper_edge_dist == -1)
+    {
+      double tmp_min_upper_edge_dist;
+      for (Size i = 1; i < sw_windows.size(); i++)
+      {
+        if (i==1)
+        {
+          tmp_min_upper_edge_dist = sw_windows[i-1].second - sw_windows[i].first; // lower_map_end - upper_map_start
+        }
+        else
+        {
+          if (tmp_min_upper_edge_dist != sw_windows[i-1].second - sw_windows[i].first)
+          {
+            LOG_ERROR << "Estimation of min_upper_edge_dist failed because the overlap is not equal between all swathes." << std::endl;
+            LOG_ERROR << "Set -min_upper_edge_dist manually and/or set -force." << std::endl;
+            return PARSE_ERROR;
+          }
+        }
+      }
+      LOG_DEBUG << "Estimated min_upper_edge_dist: " << tmp_min_upper_edge_dist << std::endl;
+      min_upper_edge_dist = tmp_min_upper_edge_dist;
+    }
+
+    // Set min_upper_edge_dist for chromatogram extraction
+    cp.min_upper_edge_dist = min_upper_edge_dist;
 
     for (Size i = 1; i < sw_windows.size(); i++)
     {
@@ -993,19 +1025,19 @@ protected:
     ///////////////////////////////////
     FeatureMap out_featureFile;
 
-    OpenSwathTSVWriter tsvwriter(out_tsv, file_list[0], use_ms1_traces, sonar, enable_uis_scoring); // only active if filename not empty
-    OpenSwathOSWWriter oswwriter(out_osw, file_list[0], use_ms1_traces, sonar, enable_uis_scoring); // only active if filename not empty
+    OpenSwathTSVWriter tsvwriter(out_tsv, file_list[0], enable_ms1, sonar, enable_ipf); // only active if filename not empty
+    OpenSwathOSWWriter oswwriter(out_osw, file_list[0], enable_ms1, sonar, enable_ipf); // only active if filename not empty
 
     if (sonar)
     {
-      OpenSwathWorkflowSonar wf(use_ms1_traces);
+      OpenSwathWorkflowSonar wf(enable_ms1);
       wf.setLogType(log_type_);
       wf.performExtractionSonar(swath_maps, trafo_rtnorm, cp, feature_finder_param, transition_exp,
           out_featureFile, !out.empty(), tsvwriter, oswwriter, chromatogramConsumer, batchSize, load_into_memory);
     }
     else
     {
-      OpenSwathWorkflow wf(use_ms1_traces);
+      OpenSwathWorkflow wf(enable_ms1);
       wf.setLogType(log_type_);
       wf.performExtraction(swath_maps, trafo_rtnorm, cp, feature_finder_param, transition_exp,
           out_featureFile, !out.empty(), tsvwriter, oswwriter, chromatogramConsumer, batchSize, load_into_memory);
