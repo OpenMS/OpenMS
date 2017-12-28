@@ -56,7 +56,6 @@ build_contrib SQLITE
 # leave contrib
 popd
 
-
 # build custom cppcheck if we want to perform style tests
 if [ "${ENABLE_STYLE_TESTING}" = "ON" ]; then
   git clone git://github.com/danmar/cppcheck.git
@@ -69,5 +68,4 @@ else
   svn export --force https://github.com/OpenMS/THIRDPARTY/trunk/Linux/64bit/ _thirdparty
   svn export --force https://github.com/OpenMS/THIRDPARTY/trunk/All/ _thirdparty
 fi
-
 

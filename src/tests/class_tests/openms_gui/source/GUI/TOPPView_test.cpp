@@ -44,6 +44,7 @@
 #include <OpenMS/CONCEPT/Factory.h>
 #include <OpenMS/VISUAL/GUIProgressLoggerImpl.h>
 
+
 using namespace OpenMS;
 
 void TestTOPPView::scheduleModalWidget_(const QString& key_sequence, const QString& title, const int delay)
@@ -87,7 +88,6 @@ void TestTOPPView::waitForModalWidget(const int max_wait, const String& line)
 
 void TestTOPPView::simulateClick_()
 {
-<<<<<<< HEAD
     if (!modal_key_sequence_.isEmpty ())
     {
       ScheduleInfo entry = modal_key_sequence_.head();
@@ -117,37 +117,6 @@ void TestTOPPView::simulateClick_()
       std::cerr << "Q not empty... rescheduling...\n";
       QTimer::singleShot(modal_key_sequence_.head().delay, this, SLOT(simulateClick_()));
     }
-=======
-		if (!modal_key_sequence_.isEmpty ())
-		{
-			ScheduleInfo entry = modal_key_sequence_.head();
-			std::cerr << "processing entry: '" << entry.keys.toStdString() << "' with dialog title '" << entry.title.toStdString() << "'\n";
-
-			// search for a window
-			QWidget * dialog = QApplication::activeModalWidget();
-			if (!dialog) dialog = QApplication::activePopupWidget();
-			if (!dialog) dialog = QApplication::activeWindow();
-
-			if (!dialog || (dialog->windowTitle() != entry.title))
-			{
-				std::cerr << "item not found rescheduling...\n";
-				QTimer::singleShot(100, this, SLOT(simulateClick_()));
-				return;
-			}
-			QTest::keyClicks(nullptr,entry.keys,Qt::NoModifier,20);
-			QTest::keyClick(nullptr,Qt::Key_Return,Qt::NoModifier,20);
-			QApplication::processEvents();
-
-			// remove from queue
-			modal_key_sequence_.dequeue();
-		}
-
-		if (!modal_key_sequence_.isEmpty ())
-		{
-			std::cerr << "Q not empty... rescheduling...\n";
-			QTimer::singleShot(modal_key_sequence_.head().delay, this, SLOT(simulateClick_()));
-		}
->>>>>>> develop
 }
 
 void TestTOPPView::testGui()

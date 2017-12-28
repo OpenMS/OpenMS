@@ -69,10 +69,9 @@ if [ "$ENABLE_STYLE_TESTING" = "ON" ]; then
   export PATH=${SOURCE_DIRECTORY}/cppcheck:$PATH
 fi
 
-<<<<<<< HEAD
 QT_ENV_SCRIPT=$(find /opt -name 'qt*-env.sh')
 source $QT_ENV_SCRIPT
-=======
+
 # Make sure we use the same python as before to install all the pip packages
 # cmake tends to have a different opinion of where python is...
 which pip
@@ -80,7 +79,6 @@ which python
 which pyenv
 pyenv versions
 export PYTHON_EXE=`which python`
->>>>>>> develop
 
 # set os dependent folder for preinstalled libraries
 export OS_PREFIX_PATH=/usr
