@@ -913,7 +913,7 @@ protected:
 
     if (min_upper_edge_dist == -1)
     {
-      double tmp_min_upper_edge_dist;
+      double tmp_min_upper_edge_dist = 0.0;
       for (Size i = 1; i < sw_windows.size(); i++)
       {
         if (i==1)
