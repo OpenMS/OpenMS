@@ -36,5 +36,5 @@
 
 namespace OpenMS
 {
-  FeaFiModule<Peak1D> feafimodule_default(0, 0, 0);
+  FeaFiModule<Peak1D> feafimodule_default(nullptr, nullptr, nullptr);
 }

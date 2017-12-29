@@ -54,7 +54,7 @@ using namespace OpenMS;
 using namespace std;
 
 XTandemXMLFile* ptr;
-XTandemXMLFile* nullPointer = 0;
+XTandemXMLFile* nullPointer = nullptr;
 ProteinIdentification protein_identification;
 vector<PeptideIdentification> peptide_identifications;
 

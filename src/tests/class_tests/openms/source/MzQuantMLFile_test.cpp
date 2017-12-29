@@ -46,8 +46,8 @@ START_TEST(MzQuantMLFile, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-MzQuantMLFile* ptr = 0;
-MzQuantMLFile* null_ptr = 0;
+MzQuantMLFile* ptr = nullptr;
+MzQuantMLFile* null_ptr = nullptr;
 START_SECTION(MzQuantMLFile())
 {
 	ptr = new MzQuantMLFile();

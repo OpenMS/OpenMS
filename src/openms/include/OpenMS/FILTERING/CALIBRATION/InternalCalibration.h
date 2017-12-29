@@ -73,9 +73,9 @@ namespace OpenMS
     /// helper class, describing a lock mass
     struct LockMass
     {
-      double mz; //< m/z of the lock mass (incl. adducts)
-      unsigned int ms_level;   //< MS level where it occurs
-      int charge;     //< charge of the ion (to find isotopes)
+      double mz; ///< m/z of the lock mass (incl. adducts)
+      unsigned int ms_level;   ///< MS level where it occurs
+      int charge;     ///< charge of the ion (to find isotopes)
 
       LockMass(double mz_, int lvl_, int charge_)
         : mz(mz_),

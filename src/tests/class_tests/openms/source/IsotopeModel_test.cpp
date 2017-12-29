@@ -55,8 +55,8 @@ using namespace OpenMS;
 using std::stringstream;
 
 // default ctor
-IsotopeModel* ptr = 0;
-IsotopeModel* nullPointer = 0;
+IsotopeModel* ptr = nullptr;
+IsotopeModel* nullPointer = nullptr;
 START_SECTION((IsotopeModel()))
 	ptr = new IsotopeModel();
   TEST_EQUAL(ptr->getName(), "IsotopeModel")

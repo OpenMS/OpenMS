@@ -54,8 +54,8 @@ START_TEST(LowessSmoothing, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-LowessSmoothing* ptr = 0;
-LowessSmoothing* null_ptr = 0;
+LowessSmoothing* ptr = nullptr;
+LowessSmoothing* null_ptr = nullptr;
 START_SECTION(LowessSmoothing())
 {
 	ptr = new LowessSmoothing();

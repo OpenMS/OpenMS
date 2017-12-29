@@ -56,9 +56,9 @@ namespace OpenMS
 
   public:
     /// Constructor
-    TOPPASLogWindow(QWidget * parent = 0);
+    TOPPASLogWindow(QWidget * parent = nullptr);
     /// Destructor
-    ~TOPPASLogWindow();
+    ~TOPPASLogWindow() override;
 
     /// read max_length
     int maxLength() const;
@@ -68,7 +68,7 @@ namespace OpenMS
   protected:
     ///@name Reimplemented Qt events
     //@{
-    void contextMenuEvent(QContextMenuEvent * e);
+    void contextMenuEvent(QContextMenuEvent * e) override;
     //@}
 
     /// Members:

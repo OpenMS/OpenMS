@@ -45,8 +45,8 @@
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/MzIdentMLFile.h>
-#include <OpenMS/CHEMISTRY/EnzymaticDigestion.h>
-#include <OpenMS/CHEMISTRY/EnzymesDB.h>
+#include <OpenMS/CHEMISTRY/ProteaseDigestion.h>
+#include <OpenMS/CHEMISTRY/ProteaseDB.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/ANALYSIS/RNPXL/ModifiedPeptideGenerator.h>
 #include <OpenMS/ANALYSIS/ID/IDMapper.h>
@@ -169,7 +169,7 @@ public:
   }
 
 protected:
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     // name, argument, default, description, required, advanced
     // input files
@@ -225,7 +225,7 @@ protected:
     registerIntOption_("peptide:min_size", "<num>", 5, "Minimum size a peptide must have after digestion to be considered in the search.", false, false);
     registerIntOption_("peptide:missed_cleavages", "<num>", 2, "Number of missed cleavages.", false, false);
     vector<String> all_enzymes;
-    EnzymesDB::getInstance()->getAllNames(all_enzymes);
+    ProteaseDB::getInstance()->getAllNames(all_enzymes);
     registerStringOption_("peptide:enzyme", "<cleavage site>", "Trypsin", "The enzyme used for peptide digestion.", false, false);
     setValidStrings_("peptide:enzyme", all_enzymes);
 
@@ -406,7 +406,7 @@ protected:
     return preprocessed_pair_spectra;
   }
 
-  ExitCodes main_(int, const char**)
+  ExitCodes main_(int, const char**) override
   {
     ProgressLogger progresslogger;
     progresslogger.setLogType(log_type_);
@@ -507,7 +507,7 @@ protected:
     progresslogger.endProgress();
 
     const Size missed_cleavages = getIntOption_("peptide:missed_cleavages");
-    EnzymaticDigestion digestor;
+    ProteaseDigestion digestor;
     String enzyme_name = getStringOption_("peptide:enzyme");
     digestor.setEnzyme(enzyme_name);
     digestor.setMissedCleavages(missed_cleavages);
@@ -588,7 +588,7 @@ protected:
     ProteinIdentification::SearchParameters search_params;
     search_params.charges = "2,3,4,5,6";
     search_params.db = in_fasta;
-    search_params.digestion_enzyme = (*EnzymesDB::getInstance()->getEnzyme(enzyme_name));
+    search_params.digestion_enzyme = *(ProteaseDB::getInstance()->getEnzyme(enzyme_name));
     search_params.fixed_modifications = fixedModNames;
     search_params.variable_modifications = varModNames;
     search_params.mass_type = ProteinIdentification::MONOISOTOPIC;
@@ -1055,7 +1055,7 @@ protected:
 
           // write fragment annotations
           LOG_DEBUG << "Start writing annotations" << endl;
-          vector<PeptideHit::FragmentAnnotation> frag_annotations;
+          vector<PeptideHit::PeakAnnotation> frag_annotations;
 
           OPXLHelper::buildFragmentAnnotations(frag_annotations, matched_spec_common_alpha, theoretical_spec_common_alpha, common_peaks);
           OPXLHelper::buildFragmentAnnotations(frag_annotations, matched_spec_common_beta, theoretical_spec_common_beta, common_peaks);
@@ -1065,7 +1065,7 @@ protected:
 
           // make annotations unique
           sort(frag_annotations.begin(), frag_annotations.end());
-          vector<PeptideHit::FragmentAnnotation>::iterator last_unique_anno = unique(frag_annotations.begin(), frag_annotations.end());
+          vector<PeptideHit::PeakAnnotation>::iterator last_unique_anno = unique(frag_annotations.begin(), frag_annotations.end());
           if (last_unique_anno != frag_annotations.end())
           {
             frag_annotations.erase(last_unique_anno, frag_annotations.end());

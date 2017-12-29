@@ -86,14 +86,14 @@ public:
     /// default constructor
     FeatureFinderAlgorithm() :
       DefaultParamHandler("FeatureFinderAlgorithm"),
-      map_(0),
-      features_(0),
-      ff_(0)
+      map_(nullptr),
+      features_(nullptr),
+      ff_(nullptr)
     {
     }
 
     /// destructor
-    virtual ~FeatureFinderAlgorithm()
+    ~FeatureFinderAlgorithm() override
     {
     }
 

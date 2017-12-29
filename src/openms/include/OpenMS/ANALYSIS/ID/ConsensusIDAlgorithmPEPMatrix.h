@@ -182,10 +182,10 @@ namespace OpenMS
     ConsensusIDAlgorithmPEPMatrix& operator=(const ConsensusIDAlgorithmPEPMatrix&);
 
     /// Docu in base class
-    virtual void updateMembers_();
+    void updateMembers_() override;
 
     /// Sequence similarity based on substitution matrix (ignores PTMs)
-    virtual double getSimilarity_(AASequence seq1, AASequence seq2);
+    double getSimilarity_(AASequence seq1, AASequence seq2) override;
 
   };
 

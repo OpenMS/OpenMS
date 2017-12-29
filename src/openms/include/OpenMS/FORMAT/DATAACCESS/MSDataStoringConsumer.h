@@ -62,23 +62,23 @@ namespace OpenMS
 
     MSDataStoringConsumer() {}
 
-    void setExperimentalSettings(const ExperimentalSettings & settings) 
+    void setExperimentalSettings(const ExperimentalSettings & settings) override 
     {
       exp_ = settings; // only override the settings, keep the data
     }
 
-    void setExpectedSize(Size s_size, Size c_size) 
+    void setExpectedSize(Size s_size, Size c_size) override 
     {
       exp_.reserveSpaceSpectra(s_size);
       exp_.reserveSpaceChromatograms(c_size);
     }
 
-    void consumeSpectrum(SpectrumType & s) 
+    void consumeSpectrum(SpectrumType & s) override 
     {
       exp_.addSpectrum(s);
     }
 
-    void consumeChromatogram(ChromatogramType & c) 
+    void consumeChromatogram(ChromatogramType & c) override 
     {
       exp_.addChromatogram(c);
     }

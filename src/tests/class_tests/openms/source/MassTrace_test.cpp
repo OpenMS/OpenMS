@@ -58,8 +58,8 @@ START_TEST(MassTrace, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-MassTrace* d_ptr = 0;
-MassTrace* nullPointer = 0;
+MassTrace* d_ptr = nullptr;
+MassTrace* nullPointer = nullptr;
 START_SECTION((MassTrace()))
 {
     d_ptr = new MassTrace;

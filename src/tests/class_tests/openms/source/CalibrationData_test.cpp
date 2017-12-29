@@ -48,8 +48,8 @@ START_TEST(Adduct, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-CalibrationData* ptr = 0;
-CalibrationData* nullPointer = 0;
+CalibrationData* ptr = nullptr;
+CalibrationData* nullPointer = nullptr;
 START_SECTION(CalibrationData())
 {
 	ptr = new CalibrationData();

@@ -42,7 +42,7 @@ using namespace std;
 namespace OpenMS
 {
 
-  const std::string SpectrumSettings::NamesOfSpectrumType[] = {"Unknown", "Peak data", "Raw data"};
+  const std::string SpectrumSettings::NamesOfSpectrumType[] = {"Unknown", "Centroid", "Profile"};
 
   SpectrumSettings::SpectrumSettings() :
     MetaInfoInterface(),

@@ -51,8 +51,8 @@ START_TEST(PeakIndex, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-PeakIndex* ptr = 0;
-PeakIndex* nullPointer = 0;
+PeakIndex* ptr = nullptr;
+PeakIndex* nullPointer = nullptr;
 START_SECTION((PeakIndex()))
 {
 	ptr = new PeakIndex();

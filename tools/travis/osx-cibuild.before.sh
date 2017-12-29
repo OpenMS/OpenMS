@@ -40,7 +40,5 @@ build_contrib EIGEN
 popd
 
 # regular builds .. get the search engine executables via githubs SVN interface (as git doesn't allow single folder checkouts)
-svn checkout http://github.com/OpenMS/THIRDPARTY/trunk/MacOS/64bit/ _thirdparty || true
-# remove .svn otherwise we can't check out the other search engines into the same directory
-rm _thirdparty/.svn -R -f || true
-svn checkout http://github.com/OpenMS/THIRDPARTY/trunk/All/ _thirdparty || true
+svn export --force http://github.com/OpenMS/THIRDPARTY/trunk/MacOS/64bit/ _thirdparty || true
+svn export --force http://github.com/OpenMS/THIRDPARTY/trunk/All/ _thirdparty || true

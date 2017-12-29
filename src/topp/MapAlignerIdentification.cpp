@@ -240,7 +240,7 @@ private:
     return Int(reference_index) - 1; // internally, we count from zero
   }
 
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     String formats = "featureXML,consensusXML,idXML";
     TOPPMapAlignerBase::registerOptionsAndFlags_(formats, REF_FLEXIBLE);
@@ -251,7 +251,7 @@ private:
     registerSubsection_("model", "Options to control the modeling of retention time transformations from data");
   }
 
-  Param getSubsectionDefaults_(const String & section) const
+  Param getSubsectionDefaults_(const String & section) const override
   {
     if (section == "algorithm")
     {
@@ -266,7 +266,7 @@ private:
     return Param(); // this shouldn't happen
   }
 
-  ExitCodes main_(int, const char**)
+  ExitCodes main_(int, const char**) override
   {
     ExitCodes return_code = TOPPMapAlignerBase::checkParameters_();
     if (return_code != EXECUTION_OK) return return_code;

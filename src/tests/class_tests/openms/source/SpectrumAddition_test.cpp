@@ -127,7 +127,7 @@ START_SECTION((static OpenSwath::SpectrumPtr addUpSpectra(std::vector< OpenSwath
 }
 END_SECTION
 
-START_SECTION((static OpenMS::MSSpectrum<> addUpSpectra(std::vector< OpenMS::Spectrum<> all_spectra, double sampling_rate, bool filter_zeros) ))
+START_SECTION((static OpenMS::MSSpectrum addUpSpectra(std::vector< OpenMS::Spectrum<> all_spectra, double sampling_rate, bool filter_zeros) ))
 {
   // Intensity
   static const double arr1[] = {
@@ -149,36 +149,36 @@ START_SECTION((static OpenMS::MSSpectrum<> addUpSpectra(std::vector< OpenMS::Spe
   };
   std::vector<double> mass2_ (arr4, arr4 + sizeof(arr4) / sizeof(arr4[0]) );
 
-  OpenMS::MSSpectrum<> s1;
+  OpenMS::MSSpectrum s1;
   for (Size k = 0; k < mass1_.size(); k++)
   {
     s1.push_back(Peak1D(mass1_[k], intensity1_[k]));
   }
 
-  OpenMS::MSSpectrum<> s2;
+  OpenMS::MSSpectrum s2;
   for (Size k = 0; k < mass2_.size(); k++)
   {
     s2.push_back(Peak1D(mass2_[k], intensity2_[k]));
   }
 
-  std::vector<MSSpectrum <> > all_spectra;
-  MSSpectrum<> empty_result = SpectrumAddition::addUpSpectra(all_spectra, 0.1, false);
+  std::vector<MSSpectrum> all_spectra;
+  MSSpectrum empty_result = SpectrumAddition::addUpSpectra(all_spectra, 0.1, false);
   TEST_EQUAL(empty_result.empty(), true);
 
   all_spectra.clear();
-  all_spectra.push_back( MSSpectrum<>() );
-  all_spectra.push_back( MSSpectrum<>() );
+  all_spectra.push_back( MSSpectrum() );
+  all_spectra.push_back( MSSpectrum() );
   std::cout << " to do here " << std::endl;
-  MSSpectrum<> empty2 = SpectrumAddition::addUpSpectra(all_spectra, 0.1, false);
+  MSSpectrum empty2 = SpectrumAddition::addUpSpectra(all_spectra, 0.1, false);
   TEST_EQUAL(empty2.size(), 0);
 
   all_spectra.clear();
   all_spectra.push_back(s1);
   all_spectra.push_back(s2);
-  MSSpectrum<> result = SpectrumAddition::addUpSpectra(all_spectra, 0.1, false);
+  MSSpectrum result = SpectrumAddition::addUpSpectra(all_spectra, 0.1, false);
   TEST_EQUAL(result.size(), 25);
 
-  MSSpectrum<> result_filtered = SpectrumAddition::addUpSpectra(all_spectra, 0.1, true);
+  MSSpectrum result_filtered = SpectrumAddition::addUpSpectra(all_spectra, 0.1, true);
   TEST_EQUAL(result_filtered.size(), 9);
   TEST_REAL_SIMILAR(result_filtered[0].getMZ(), 100.0);
   TEST_REAL_SIMILAR(result_filtered[0].getIntensity(), 2);
@@ -188,7 +188,7 @@ START_SECTION((static OpenMS::MSSpectrum<> addUpSpectra(std::vector< OpenMS::Spe
   // automatic spacing should be the min distance found in the data in each
   // spectrum individually, i.e. it should not decrease the resolution
   result_filtered = SpectrumAddition::addUpSpectra(all_spectra, 0.01, true);
-  MSSpectrum<> result_filtered_auto = SpectrumAddition::addUpSpectra(all_spectra, -1, true);
+  MSSpectrum result_filtered_auto = SpectrumAddition::addUpSpectra(all_spectra, -1, true);
   // this has some numerical stability issues
   // TEST_EQUAL(result_filtered, result_filtered_auto)
 

@@ -70,7 +70,7 @@ namespace OpenMS
 public:
 
     ///Constructor
-    BaseVisualizerGUI(bool editable = false, QWidget * parent = 0);
+    BaseVisualizerGUI(bool editable = false, QWidget * parent = nullptr);
 
     /// Returns if the values are editable
     bool isEditable() const;

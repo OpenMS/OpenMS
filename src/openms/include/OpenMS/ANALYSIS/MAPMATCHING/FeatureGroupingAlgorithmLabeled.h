@@ -56,7 +56,7 @@ public:
     FeatureGroupingAlgorithmLabeled();
 
     /// Destructor
-    virtual ~FeatureGroupingAlgorithmLabeled();
+    ~FeatureGroupingAlgorithmLabeled() override;
 
     /**
         @brief Applies the algorithm
@@ -67,7 +67,7 @@ public:
 
         @exception Exception::IllegalArgument is thrown if the input data is not valid.
     */
-    virtual void group(const std::vector<FeatureMap > & maps, ConsensusMap & out);
+    void group(const std::vector<FeatureMap > & maps, ConsensusMap & out) override;
 
     ///Creates a new instance of this class (for Factory)
     static FeatureGroupingAlgorithm * create()

@@ -96,7 +96,7 @@ public:
     explicit BaseFeature(const RichPeak2D& point);
 
     /// Destructor
-    ~BaseFeature();
+    ~BaseFeature() override;
     //@}
 
     /// @name Quality methods

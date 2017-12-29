@@ -111,7 +111,7 @@ protected:
 
   double rt_gap_, rt_offset_; // parameters for RT concatenation
 
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     StringList valid_in = ListUtils::create<String>("mzData,mzXML,mzML,dta,dta2d,mgf,featureXML,consensusXML,fid,traML,FASTA");
     registerInputFileList_("in", "<files>", StringList(), "Input files separated by blank");
@@ -164,7 +164,7 @@ protected:
     }
   }
 
-  ExitCodes main_(int, const char**)
+  ExitCodes main_(int, const char**) override
   {
 
     //-------------------------------------------------------------
@@ -245,8 +245,18 @@ protected:
     {
       ConsensusMap out;
       ConsensusXMLFile fh;
+      // load the metadata from the first file
       fh.load(file_list[0], out);
-      // skip first file
+      // but annotate the origins
+      if (annotate_file_origin)
+      {
+        for (ConsensusMap::iterator it = out.begin(); it != out.end(); ++it)
+        {
+          it->setMetaValue("file_origin", DataValue(file_list[0]));
+        }
+      }
+
+      // skip first file for adding
       for (Size i = 1; i < file_list.size(); ++i)
       {
         ConsensusMap map;
@@ -296,14 +306,14 @@ protected:
       for (loopiter = entries.begin(); loopiter != entries.end(); loopiter = std::next(loopiter))
       {
 
-        iter = find_if(entries.begin(), loopiter, bind1st(mem_fun(&FASTAFile::FASTAEntry::headerMatches), &(*loopiter)));
+        iter = find_if(entries.begin(), loopiter, [&loopiter](const FASTAFile::FASTAEntry& entry) { return entry.headerMatches(*loopiter); });
 
         if (iter != loopiter)
         {
           std::cout << "Warning: Duplicate header, Number: " << std::distance(entries.begin(), loopiter) + 1 << ", ID: " << loopiter->identifier << " is same as Number: " << std::distance(entries.begin(), iter) << ", ID: " << iter->identifier << "\n";
         }
 
-        iter = find_if(entries.begin(), loopiter, bind1st(mem_fun(&FASTAFile::FASTAEntry::sequenceMatches), &(*loopiter)));
+        iter = find_if(entries.begin(), loopiter, [&loopiter](const FASTAFile::FASTAEntry& entry) { return entry.sequenceMatches(*loopiter); });
 
         if (iter != loopiter && iter != entries.end())
         {
@@ -444,7 +454,7 @@ protected:
           out.addSpectrum(*spec_it);
         }
         // also add the chromatograms
-        for (vector<MSChromatogram<ChromatogramPeak> >::const_iterator
+        for (vector<MSChromatogram >::const_iterator
                chrom_it = in.getChromatograms().begin(); chrom_it != 
                in.getChromatograms().end(); ++chrom_it)
         {

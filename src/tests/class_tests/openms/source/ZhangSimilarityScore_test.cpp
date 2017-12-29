@@ -53,8 +53,8 @@ START_TEST(ZhangSimilarityScore, "$Id$")
 using namespace OpenMS;
 using namespace std;
 
-ZhangSimilarityScore* ptr = 0;
-ZhangSimilarityScore* nullPointer = 0;
+ZhangSimilarityScore* ptr = nullptr;
+ZhangSimilarityScore* nullPointer = nullptr;
 
 START_SECTION(ZhangSimilarityScore())
 	ptr = new ZhangSimilarityScore();

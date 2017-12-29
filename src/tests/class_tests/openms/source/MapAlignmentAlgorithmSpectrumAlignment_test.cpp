@@ -49,8 +49,8 @@ START_TEST(MapAlignmentAlgorithmSpectrumAlignment, "$Id$")
 /////////////////////////////////////////////////////////////
 
 
-MapAlignmentAlgorithmSpectrumAlignment* ptr = 0;
-MapAlignmentAlgorithmSpectrumAlignment* nullPointer = 0;
+MapAlignmentAlgorithmSpectrumAlignment* ptr = nullptr;
+MapAlignmentAlgorithmSpectrumAlignment* nullPointer = nullptr;
 START_SECTION((MapAlignmentAlgorithmSpectrumAlignment()))
 	ptr = new MapAlignmentAlgorithmSpectrumAlignment();
 	TEST_NOT_EQUAL(ptr, nullPointer)

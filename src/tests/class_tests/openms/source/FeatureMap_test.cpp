@@ -60,8 +60,8 @@ START_TEST(FeatureMap, "$Id$")
 /////////////////////////////////////////////////////////////
 
 
-FeatureMap* pl_ptr = 0;
-FeatureMap* nullPointer = 0;
+FeatureMap* pl_ptr = nullptr;
+FeatureMap* nullPointer = nullptr;
 START_SECTION((FeatureMap()))
 	pl_ptr = new FeatureMap();
   TEST_NOT_EQUAL(pl_ptr, nullPointer)

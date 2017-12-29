@@ -103,13 +103,13 @@ namespace OpenMS
       std::cerr << "Starting feature finding #chromatograms=" << map_->getChromatograms().size() << ", #spectra=" << map_->size() << std::endl;
     }
 
-    std::vector<MSChromatogram<ChromatogramPeak> >::const_iterator first_it = map_->getChromatograms().begin();
+    std::vector<MSChromatogram >::const_iterator first_it = map_->getChromatograms().begin();
     for (; first_it != map_->getChromatograms().end(); ++first_it)
     {
       // throw the peaks into a "spectrum" where the m/z values are RTs in reality (more a chromatogram)
       PeakSpectrum chromatogram;
       //typename std::vector<std::pair<double, Peak1D> >::const_iterator it3 = it2->second.begin();
-      for (MSChromatogram<ChromatogramPeak>::const_iterator it = first_it->begin(); it != first_it->end(); ++it)
+      for (MSChromatogram::const_iterator it = first_it->begin(); it != first_it->end(); ++it)
       {
         Peak1D peak;
         peak.setMZ(it->getRT());
@@ -308,7 +308,7 @@ namespace OpenMS
             p.setIntensity(filter_spec[j].getIntensity());
             data_to_fit.push_back(p);
           }
-          InterpolationModel* model_rt = 0;
+          InterpolationModel* model_rt = nullptr;
           double quality = fitRT_(data_to_fit, model_rt);
 
           Feature f;

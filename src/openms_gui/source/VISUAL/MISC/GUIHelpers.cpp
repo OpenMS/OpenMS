@@ -66,7 +66,7 @@ namespace OpenMS
 #else
     if (!QDir(folder).exists() || (!QDesktopServices::openUrl(QUrl("file:///" + folder, QUrl::TolerantMode))))
     {
-      QMessageBox::warning(0, "Open Folder Error", "The folder '" + folder + "' could not be opened!");
+      QMessageBox::warning(nullptr, "Open Folder Error", "The folder '" + folder + "' could not be opened!");
     }
 #endif
   }
@@ -138,7 +138,7 @@ namespace OpenMS
 
     if (!QDesktopServices::openUrl(url_target))
     {
-      QMessageBox::warning(0,
+      QMessageBox::warning(nullptr,
                            QObject::tr("Error"),
                            QObject::tr("Unable to open\n") + target + 
                            QObject::tr("\n\nPossible reason: security settings or misconfigured Operating System"));

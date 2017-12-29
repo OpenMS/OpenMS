@@ -47,8 +47,8 @@ START_TEST(DistanceMatrix, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-DistanceMatrix<double>* ptr = 0;
-DistanceMatrix<double>* nullPointer = 0;
+DistanceMatrix<double>* ptr = nullptr;
+DistanceMatrix<double>* nullPointer = nullptr;
 START_SECTION(DistanceMatrix())
 {
 	ptr = new DistanceMatrix<double>();

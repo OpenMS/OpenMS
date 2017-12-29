@@ -81,7 +81,7 @@ public:
     }
 
     /// destructor
-    virtual ~InterpolationModel()
+    ~InterpolationModel() override
     {
     }
 
@@ -99,7 +99,7 @@ public:
     }
 
     /// access model predicted intensity at position @p pos
-    IntensityType getIntensity(const PositionType & pos) const
+    IntensityType getIntensity(const PositionType & pos) const override
     {
       return interpolation_.value(pos[0]);
     }
@@ -137,7 +137,7 @@ public:
     }
 
     /// get reasonable set of samples from the model (i.e. for printing)
-    void getSamples(SamplesType & cont) const
+    void getSamples(SamplesType & cont) const override
     {
       cont = SamplesType();
       BaseModel<1>::PeakType peak;
@@ -186,7 +186,7 @@ protected:
     CoordinateType interpolation_step_;
     CoordinateType scaling_;
 
-    void updateMembers_()
+    void updateMembers_() override
     {
       BaseModel<1>::updateMembers_();
       interpolation_step_ = this->param_.getValue("interpolation_step");

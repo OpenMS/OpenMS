@@ -47,8 +47,8 @@ START_TEST(ScanWindow, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-ScanWindow* ptr = 0;
-ScanWindow* nullPointer = 0;
+ScanWindow* ptr = nullptr;
+ScanWindow* nullPointer = nullptr;
 START_SECTION((ScanWindow()))
 	ptr = new ScanWindow();
 	TEST_NOT_EQUAL(ptr, nullPointer)

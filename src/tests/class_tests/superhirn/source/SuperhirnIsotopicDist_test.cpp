@@ -51,8 +51,8 @@ START_TEST(IsotopicDist, "$Id$")
 using namespace OpenMS;
 using namespace std;
 
-IsotopicDist* ptr = 0;
-IsotopicDist* nullPtr = 0;
+IsotopicDist* ptr = nullptr;
+IsotopicDist* nullPtr = nullptr;
 
 START_SECTION((IsotopicDist()))
 	ptr = new IsotopicDist();

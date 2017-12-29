@@ -50,8 +50,8 @@ START_TEST(MsInspectFile, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-MsInspectFile* ptr = 0;
-MsInspectFile* null_ptr = 0;
+MsInspectFile* ptr = nullptr;
+MsInspectFile* null_ptr = nullptr;
 START_SECTION(MsInspectFile())
 {
 	ptr = new MsInspectFile();
@@ -91,7 +91,7 @@ END_SECTION
 START_SECTION((template < typename SpectrumType > void store(const String &filename, const SpectrumType &spectrum) const ))
 {
   MsInspectFile f;
-  MSSpectrum<> spec;
+  MSSpectrum spec;
   TEST_EXCEPTION(Exception::NotImplemented, f.store("bla", spec))
 }
 END_SECTION

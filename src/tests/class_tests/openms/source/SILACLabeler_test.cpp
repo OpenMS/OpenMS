@@ -171,8 +171,8 @@ START_TEST(SILACLabeler, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-SILACLabeler* ptr = 0;
-SILACLabeler* nullPtr = 0;
+SILACLabeler* ptr = nullptr;
+SILACLabeler* nullPtr = nullptr;
 START_SECTION(SILACLabeler())
 {
   ptr = new SILACLabeler();
@@ -371,7 +371,7 @@ END_SECTION
 START_SECTION((static BaseLabeler* create()))
 {
   BaseLabeler* labeler = SILACLabeler::create();
-  BaseLabeler* nullPointer = 0;
+  BaseLabeler* nullPointer = nullptr;
   TEST_NOT_EQUAL(labeler, nullPointer)
   delete labeler;
 }

@@ -97,9 +97,9 @@ public:
   }
 
 protected:
-  StringList out_formats_; //< valid output formats for image
+  StringList out_formats_; ///< valid output formats for image
 
-  Param getSubsectionDefaults_(const String& /*section*/) const
+  Param getSubsectionDefaults_(const String& /*section*/) const override
   {
     Param p_my;
 
@@ -110,7 +110,7 @@ protected:
     return p_my;
   }
 
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     registerInputFileList_("in", "<file>", ListUtils::create<String>(""), "Input file(s)", false);
     setValidFormats_("in", ListUtils::create<String>("idXML"));
@@ -131,7 +131,7 @@ protected:
     registerSubsection_("algorithm", "Additional parameters for FDR and image sizes.");
   }
 
-  ExitCodes main_(int, const char**)
+  ExitCodes main_(int, const char**) override
   {
     //----------------------------------------------------------------
     // load data
@@ -203,7 +203,7 @@ protected:
       TextFile tf;
       for (Size i = 0; i < mw->getPoints().size(); ++i)
       {
-        MSSpectrum<> s = mw->getPoints()[i];
+        MSSpectrum s = mw->getPoints()[i];
         StringList sl1;
         StringList sl2;
         for (Size j = 0; j < s.size(); ++j)

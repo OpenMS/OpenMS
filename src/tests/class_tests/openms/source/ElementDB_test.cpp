@@ -50,9 +50,9 @@ START_TEST(ElementDB, "$Id$")
 
 /////////////////////////////////////////////////////////////
 
-const ElementDB* e_ptr = 0;
-const ElementDB* e_nullPointer = 0;
-const Element * elem_nullPointer = 0;
+const ElementDB* e_ptr = nullptr;
+const ElementDB* e_nullPointer = nullptr;
+const Element * elem_nullPointer = nullptr;
 
 START_SECTION(static const ElementDB* getInstance())
 	e_ptr = ElementDB::getInstance();

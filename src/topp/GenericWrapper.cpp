@@ -328,14 +328,14 @@ protected:
     return return_code;
   }
 
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     registerSubsection_("ETool", "tool specific parameters");
     registerStringOption_("type", "", "", "Which external tool configuration to load?! See '" + ToolHandler::getExternalToolsPath() + "'.", true, false);
     setValidStrings_("type", ToolHandler::getTypes(toolName_()));
   }
 
-  Param getSubsectionDefaults_(const String & /*section*/) const
+  Param getSubsectionDefaults_(const String & /*section*/) const override
   {
     String type = getStringOption_("type"); // this will throw() if not set in param_
     // find params for 'type'
@@ -351,7 +351,7 @@ protected:
     throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "The value of 'Type' is invalid! Are you missing a TTD?", type);
   }
 
-  ExitCodes main_(int, const char **)
+  ExitCodes main_(int, const char **) override
   {
     // find the config for the tool:
     String type = getStringOption_("type");

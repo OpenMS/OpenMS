@@ -59,7 +59,7 @@ public:
     /// default constructor
     ThresholdMower();
     /// destructor
-    virtual ~ThresholdMower();
+    ~ThresholdMower() override;
 
     /// copy constructor
     ThresholdMower(const ThresholdMower & source);

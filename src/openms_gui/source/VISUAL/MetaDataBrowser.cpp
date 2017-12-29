@@ -200,7 +200,7 @@ namespace OpenMS
     labels << "Acquisition Info" << QString::number(ws_->addWidget(visualizer));
 
     QTreeWidgetItem * item;
-    if (parent == 0)
+    if (parent == nullptr)
     {
       item = new QTreeWidgetItem(treeview_, labels);
     }
@@ -227,7 +227,7 @@ namespace OpenMS
     labels << "Acquisition" << QString::number(ws_->addWidget(visualizer));
 
     QTreeWidgetItem * item;
-    if (parent == 0)
+    if (parent == nullptr)
     {
       item = new QTreeWidgetItem(treeview_, labels);
     }
@@ -251,7 +251,7 @@ namespace OpenMS
     labels << "ContactPerson" << QString::number(ws_->addWidget(visualizer));
 
     QTreeWidgetItem * item;
-    if (parent == 0)
+    if (parent == nullptr)
     {
       item = new QTreeWidgetItem(treeview_, labels);
     }
@@ -275,7 +275,7 @@ namespace OpenMS
     labels << "Digestion" << QString::number(ws_->addWidget(visualizer));
 
     QTreeWidgetItem * item;
-    if (parent == 0)
+    if (parent == nullptr)
     {
       item = new QTreeWidgetItem(treeview_, labels);
     }
@@ -299,7 +299,7 @@ namespace OpenMS
     labels << "ExperimentalSettings" << QString::number(ws_->addWidget(visualizer));
 
     QTreeWidgetItem * item;
-    if (parent == 0)
+    if (parent == nullptr)
     {
       item = new QTreeWidgetItem(treeview_, labels);
     }
@@ -342,7 +342,7 @@ namespace OpenMS
     QStringList labels;
     labels << "Gradient" << QString::number(ws_->addWidget(visualizer));
 
-    if (parent == 0)
+    if (parent == nullptr)
     {
       new QTreeWidgetItem(treeview_, labels);
     }
@@ -363,7 +363,7 @@ namespace OpenMS
     labels << "HPLC" << QString::number(ws_->addWidget(visualizer));
 
     QTreeWidgetItem * item;
-    if (parent == 0)
+    if (parent == nullptr)
     {
       item = new QTreeWidgetItem(treeview_, labels);
     }
@@ -390,7 +390,7 @@ namespace OpenMS
     visualizer->load(meta, id);
 
     QTreeWidgetItem * item;
-    if (parent == 0)
+    if (parent == nullptr)
     {
       item = new QTreeWidgetItem(treeview_, labels);
     }
@@ -425,7 +425,7 @@ namespace OpenMS
     visualizer->load(meta, id);
 
     QTreeWidgetItem * item;
-    if (parent == 0)
+    if (parent == nullptr)
     {
       item = new QTreeWidgetItem(treeview_, labels);
     }
@@ -457,7 +457,7 @@ namespace OpenMS
     labels << "InstrumentSettings" << QString::number(ws_->addWidget(visualizer));
 
     QTreeWidgetItem * item;
-    if (parent == 0)
+    if (parent == nullptr)
     {
       item = new QTreeWidgetItem(treeview_, labels);
     }
@@ -484,7 +484,7 @@ namespace OpenMS
     labels << "Instrument" << QString::number(ws_->addWidget(visualizer));
 
     QTreeWidgetItem * item;
-    if (parent == 0)
+    if (parent == nullptr)
     {
       item = new QTreeWidgetItem(treeview_, labels);
     }
@@ -520,7 +520,7 @@ namespace OpenMS
     labels << "IonDetector" << QString::number(ws_->addWidget(visualizer));
 
     QTreeWidgetItem * item;
-    if (parent == 0)
+    if (parent == nullptr)
     {
       item = new QTreeWidgetItem(treeview_, labels);
     }
@@ -544,7 +544,7 @@ namespace OpenMS
     labels << "IonSource" << QString::number(ws_->addWidget(visualizer));
 
     QTreeWidgetItem * item;
-    if (parent == 0)
+    if (parent == nullptr)
     {
       item = new QTreeWidgetItem(treeview_, labels);
     }
@@ -568,7 +568,7 @@ namespace OpenMS
     labels << "MassAnalyzer" << QString::number(ws_->addWidget(visualizer));
 
     QTreeWidgetItem * item;
-    if (parent == 0)
+    if (parent == nullptr)
     {
       item = new QTreeWidgetItem(treeview_, labels);
     }
@@ -593,7 +593,7 @@ namespace OpenMS
     labels << name.c_str() << QString::number(ws_->addWidget(visualizer));
 
     QTreeWidgetItem * item;
-    if (parent == 0)
+    if (parent == nullptr)
     {
       item = new QTreeWidgetItem(treeview_, labels);
     }
@@ -619,7 +619,7 @@ namespace OpenMS
     QStringList labels;
     labels << "MetaInfo" << QString::number(ws_->addWidget(visualizer));
 
-    if (parent == 0)
+    if (parent == nullptr)
     {
       new QTreeWidgetItem(treeview_, labels);
     }
@@ -640,7 +640,7 @@ namespace OpenMS
     labels << "Modification" << QString::number(ws_->addWidget(visualizer));
 
     QTreeWidgetItem * item;
-    if (parent == 0)
+    if (parent == nullptr)
     {
       item = new QTreeWidgetItem(treeview_, labels);
     }
@@ -667,7 +667,7 @@ namespace OpenMS
     labels << qs_name << QString::number(ws_->addWidget(visualizer)) << QString::number(meta.getScore());
 
     QTreeWidgetItem * item;
-    if (parent == 0)
+    if (parent == nullptr)
     {
       item = new QTreeWidgetItem(treeview_, labels);
     }
@@ -691,7 +691,7 @@ namespace OpenMS
     labels << "Precursor" << QString::number(ws_->addWidget(visualizer));
 
     QTreeWidgetItem * item;
-    if (parent == 0)
+    if (parent == nullptr)
     {
       item = new QTreeWidgetItem(treeview_, labels);
     }
@@ -715,7 +715,7 @@ namespace OpenMS
     labels << "Product" << QString::number(ws_->addWidget(visualizer));
 
     QTreeWidgetItem * item;
-    if (parent == 0)
+    if (parent == nullptr)
     {
       item = new QTreeWidgetItem(treeview_, labels);
     }
@@ -739,7 +739,7 @@ namespace OpenMS
     labels << "DataProcessing" << QString::number(ws_->addWidget(visualizer));
 
     QTreeWidgetItem * item;
-    if (parent == 0)
+    if (parent == nullptr)
     {
       item = new QTreeWidgetItem(treeview_, labels);
     }
@@ -769,7 +769,7 @@ namespace OpenMS
     labels << qs_name << QString::number(ws_->addWidget(visualizer)) << QString::number(meta.getScore());
 
     QTreeWidgetItem * item;
-    if (parent == 0)
+    if (parent == nullptr)
     {
       item = new QTreeWidgetItem(treeview_, labels);
     }
@@ -793,7 +793,7 @@ namespace OpenMS
     labels << "Scan window" << QString::number(ws_->addWidget(visualizer));
 
     QTreeWidgetItem * item;
-    if (parent == 0)
+    if (parent == nullptr)
     {
       item = new QTreeWidgetItem(treeview_, labels);
     }
@@ -816,7 +816,7 @@ namespace OpenMS
     QStringList labels;
     labels << (String("Sample ") + meta.getName()).c_str() << QString::number(ws_->addWidget(visualizer));
     QTreeWidgetItem * item;
-    if (parent == 0)
+    if (parent == nullptr)
     {
       item = new QTreeWidgetItem(treeview_, labels);
     }
@@ -865,7 +865,7 @@ namespace OpenMS
     labels << "Software" << QString::number(ws_->addWidget(visualizer));
 
     QTreeWidgetItem * item;
-    if (parent == 0)
+    if (parent == nullptr)
     {
       item = new QTreeWidgetItem(treeview_, labels);
     }
@@ -889,7 +889,7 @@ namespace OpenMS
     labels << "SourceFile" << QString::number(ws_->addWidget(visualizer));
 
     QTreeWidgetItem * item;
-    if (parent == 0)
+    if (parent == nullptr)
     {
       item = new QTreeWidgetItem(treeview_, labels);
     }
@@ -913,7 +913,7 @@ namespace OpenMS
     labels << "SpectrumSettings" << QString::number(ws_->addWidget(visualizer));
 
     QTreeWidgetItem * item;
-    if (parent == 0)
+    if (parent == nullptr)
     {
       item = new QTreeWidgetItem(treeview_, labels);
     }
@@ -959,7 +959,7 @@ namespace OpenMS
     QStringList labels;
     labels << "Tagging" << QString::number(ws_->addWidget(visualizer));
 
-    if (parent == 0)
+    if (parent == nullptr)
     {
       new QTreeWidgetItem(treeview_, labels);
     }
@@ -979,7 +979,7 @@ namespace OpenMS
     QStringList labels;
     labels << "DocumentIdentifier" << QString::number(ws_->addWidget(visualizer));
 
-    if (parent == 0)
+    if (parent == nullptr)
     {
       new QTreeWidgetItem(treeview_, labels);
     }

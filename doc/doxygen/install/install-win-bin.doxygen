@@ -4,12 +4,12 @@
 
 	In order to install the binary package of %OpenMS & TOPP, simply download and execute the installer from <a href="http://www.OpenMS.de">OpenMS.de</a> and follow its instructions.
 	Run the installer under the user account that later runs %OpenMS - do \b not install using your admin account!
-	You will be asked for an admin authentification, but only \b after you start the installer as normal user. The windows binary version works with most versions of windows including Win2000, WinXP, VISTA, Win7 and Win8.
+	You will be asked for an admin authentification, but only \b after you start the installer as normal user. The windows binary version works with most versions of windows from Win7 to Win10 (older versions might still work but are untested).
 
 	@note
 	If you are running Win8 or later, windows will report an error while installing .net4 as it's mostly included.
 	But it might occur that .net3.5 does not get properly installed in the course.
-	You can simply fix this by enabling the .NET Framework 3.5 yourself through Control Panel. See this <a href="https://msdn.microsoft.com/de-de/library/hh506443(v=vs.110).aspx#ControlPanel">microsoft help page</a> for detailed information.   This does not affect the functionality of %OpenMS, except for executability of included thirdparty tools (ProteoWizard).
+	You can simply fix this by enabling the .NET Framework 3.5 yourself through Control Panel. See this <a href="https://msdn.microsoft.com/de-de/library/hh506443(v=vs.110).aspx#ControlPanel">microsoft help page</a> for detailed information. Even if this step fails, this does not affect the functionality of %OpenMS, except for the executability of included thirdparty tools (ProteoWizard).
 
 
 	<H2>Known Issues:</H2><br>
