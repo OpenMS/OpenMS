@@ -474,36 +474,19 @@ private:
 
   bool checkUnorderedContent_(const std::vector< String> &first, const std::vector< String > &second)
   {
-    for (const String &entry : first)
-    {
-      if (std::find(second.begin(), second.end(), entry) == second.end())
-      {
-        return false;
-      }
-    }
-    for (const String &entry : second)
-    {
-      if (std::find(first.begin(), first.end(), entry) == first.end())
-      {
-        return false;
-      }
-    }
-    return true;
+    const std::set< String > lhs(first.begin(), first.end());
+    const std::set< String > rhs(second.begin(), second.end());
+    return lhs.size() == rhs.size()
+        && std::equal(lhs.begin(), lhs.end(), rhs.begin());
   }
 
-  bool checkUnique_(const std::vector< String > &vec) const
+  /**
+   * Checks whether the elements in a vector of OpenMS::String are all unique
+   */
+  bool checkUnique_(const OpenMS::StringList &vec) const
   {
-    for (Size i = 0; i < vec.size(); ++i)
-    {
-      for (Size j = i + 1; j < vec.size(); ++j)
-      {
-        if (vec[i] == vec[j])
-        {
-          return false;
-        }
-      }
-    }
-    return true;
+    const std::set< String > vec_set(vec.begin(), vec.end());
+    return vec_set.size() == vec.size();
   }
 };
 
