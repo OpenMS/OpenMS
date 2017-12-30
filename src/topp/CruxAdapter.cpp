@@ -128,10 +128,6 @@ protected:
     registerStringOption_("extra_search_args", "<choice>", "", "Extra arguments to be passed to tide-search", false, false);
     registerStringOption_("extra_percolator_args", "<choice>", "", "Extra arguments to be passed to percolator", false, false);
 
-    //Files
-    registerOutputFile_("pin_out", "<file>", "", "Output file - for Percolator input", false);
-    setValidFormats_("pin_out", ListUtils::create<String>("csv"));
-
     //Masses
     registerDoubleOption_("precursor_mass_tolerance", "<tolerance>", 10.0, "Precursor monoisotopic mass tolerance (Crux parameter: peptide_mass_tolerance)", false, false);
     registerStringOption_("precursor_mass_units", "<choice>", "ppm", "Unit of precursor mass tolerance (amu, m/z or ppm)", false, false);
@@ -144,8 +140,10 @@ protected:
     setValidStrings_("run_percolator", ListUtils::create<String>("true,false"));
 
     //Search Enzyme
+    vector<String> all_enzymes;
+    ProteaseDB::getInstance()->getAllCruxNames(all_enzymes);
     registerStringOption_("enzyme", "<cleavage site>", "trypsin", "The enzyme used for peptide digestion.", false, false);
-    setValidStrings_("enzyme", ListUtils::create<String>("no-enzyme,trypsin,trypsin/p,chymotrypsin,elastase,clostripain,cyanogen-bromide,iodosobenzoate,proline-endopeptidase,staph-protease,asp-n,lys-c,lys-n,arg-c,glu-c,pepsin-a,elastase-trypsin-chymotrypsin,custom-enzyme"));
+    setValidStrings_("enzyme", all_enzymes);
     registerStringOption_("digestion", "<choice>", "full-digest", "Full, partial or non specific digestion", false, false);
     setValidStrings_("digestion", ListUtils::create<String>("full-digest,partial-digest,non-specific-digest"));
     registerIntOption_("allowed_missed_cleavages", "<num>", 0, "Number of possible cleavage sites missed by the enzyme, maximum value is 5; for enzyme search", false, false);
