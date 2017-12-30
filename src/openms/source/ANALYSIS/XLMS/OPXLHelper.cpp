@@ -781,11 +781,6 @@ namespace OpenMS
       ph_alpha.setMetaValue("OpenXQuest:intsum", top_csms_spectrum[i].int_sum);
       ph_alpha.setMetaValue("OpenXQuest:wTIC", top_csms_spectrum[i].wTIC);
 
-      ph_alpha.setMetaValue("OpenXQuest:log_occupancy", top_csms_spectrum[i].log_occupancy);
-      ph_alpha.setMetaValue("OpenXQuest:log_occupancy_alpha", top_csms_spectrum[i].log_occupancy_alpha);
-      ph_alpha.setMetaValue("OpenXQuest:log_occupancy_beta", top_csms_spectrum[i].log_occupancy_beta);
-      ph_alpha.setMetaValue("OpenXQuest:log_occupancy_full_spec", top_csms_spectrum[i].log_occupancy_full_spec);
-
       ph_alpha.setMetaValue("OpenPepXL:HyperCommon",top_csms_spectrum[i].HyperCommon);
       ph_alpha.setMetaValue("OpenPepXL:HyperXlink",top_csms_spectrum[i].HyperXlink);
       ph_alpha.setMetaValue("OpenPepXL:HyperAlpha", top_csms_spectrum[i].HyperAlpha);
@@ -828,11 +823,6 @@ namespace OpenMS
         ph_beta.setMetaValue("OpenXQuest:match-odds", top_csms_spectrum[i].match_odds);
         ph_beta.setMetaValue("OpenXQuest:intsum", top_csms_spectrum[i].int_sum);
         ph_beta.setMetaValue("OpenXQuest:wTIC", top_csms_spectrum[i].wTIC);
-
-        ph_beta.setMetaValue("OpenXQuest:log_occupancy", top_csms_spectrum[i].log_occupancy);
-        ph_beta.setMetaValue("OpenXQuest:log_occupancy_alpha", top_csms_spectrum[i].log_occupancy_alpha);
-        ph_beta.setMetaValue("OpenXQuest:log_occupancy_beta", top_csms_spectrum[i].log_occupancy_beta);
-        ph_beta.setMetaValue("OpenXQuest:log_occupancy_full_spec", top_csms_spectrum[i].log_occupancy_full_spec);
 
         ph_beta.setMetaValue("OpenPepXL:HyperCommon",top_csms_spectrum[i].HyperCommon);
         ph_beta.setMetaValue("OpenPepXL:HyperXlink",top_csms_spectrum[i].HyperXlink);
