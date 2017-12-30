@@ -275,6 +275,7 @@ protected:
       String params = "--overwrite T --peptide-list T --num-threads " + String(getIntOption_("threads"));
       params += " --missed-cleavages " + String(getIntOption_("allowed_missed_cleavages"));
       params += " --digestion " + getStringOption_("digestion");
+      if (!getStringOption_("enzyme").empty()) params += " --enzyme " + getStringOption_("enzyme");
       if (!getStringOption_("custom_enzyme").empty()) params += " --custom-enzyme " + getStringOption_("custom_enzyme");
       if (!getStringOption_("modifications").empty()) params += " --mods-spec " + getStringOption_("modifications");
       if (!getStringOption_("cterm_modifications").empty()) params += " --cterm-peptide-mods-spec " + getStringOption_("cterm_modifications");
