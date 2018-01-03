@@ -615,6 +615,7 @@ namespace OpenMS
           mrmfeature->setMetaValue("id_target_ind_isotope_correlation", idscores.ind_isotope_correlation);
           mrmfeature->setMetaValue("id_target_ind_isotope_overlap", idscores.ind_isotope_overlap);
           mrmfeature->setMetaValue("id_target_ind_massdev_score", idscores.ind_massdev_score);
+          mrmfeature->setMetaValue("id_target_ind_mi_score", idscores.ind_mi_score);
         }
 
         if (su_.use_uis_scores && transition_group_identification_decoy.getTransitions().size() > 0)
@@ -638,6 +639,7 @@ namespace OpenMS
           mrmfeature->setMetaValue("id_decoy_ind_isotope_correlation", idscores.ind_isotope_correlation);
           mrmfeature->setMetaValue("id_decoy_ind_isotope_overlap", idscores.ind_isotope_overlap);
           mrmfeature->setMetaValue("id_decoy_ind_massdev_score", idscores.ind_massdev_score);
+          mrmfeature->setMetaValue("id_decoy_ind_mi_score", idscores.ind_mi_score);
         }
 
         if (su_.use_coelution_score_)
@@ -685,6 +687,12 @@ namespace OpenMS
           }
         }
 
+        if (su_.use_mi_score_)
+        {
+          mrmfeature->addScore("var_mi_score", scores.mi_score);
+          mrmfeature->addScore("var_mi_weighted_score", scores.weighted_mi_score);
+        }
+
         // TODO get it working with imrmfeature
         if (su_.use_elution_model_score_)
         {
@@ -723,6 +731,10 @@ namespace OpenMS
           {
             mrmfeature->addScore("var_ms1_xcorr_shape", scores.xcorr_ms1_shape_score);
             mrmfeature->addScore("var_ms1_xcorr_coelution", scores.xcorr_ms1_coelution_score);
+          }
+          if (su_.use_ms1_mi)
+          {
+            mrmfeature->addScore("var_ms1_mi_score", scores.ms1_mi_score);
           }
           if (su_.use_ms1_fullscan)
           {

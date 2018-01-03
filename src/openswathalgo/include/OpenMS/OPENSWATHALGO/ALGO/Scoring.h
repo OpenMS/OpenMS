@@ -39,7 +39,7 @@
 #include <vector>
 
 #include <OpenMS/OPENSWATHALGO/OpenSwathAlgoConfig.h>
-#include "MIToolbox/MutualInformation.h"
+#include <MIToolbox/MutualInformation.h>
 
 namespace OpenSwath
 {

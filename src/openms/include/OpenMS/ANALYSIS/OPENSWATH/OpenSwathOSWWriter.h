@@ -130,6 +130,7 @@ namespace OpenMS
         "AREA_INTENSITY REAL NOT NULL," \
         "APEX_INTENSITY REAL NOT NULL," \
         "VAR_MASSDEV_SCORE REAL NOT NULL," \
+        "VAR_MI_SCORE REAL NOT NULL," \
         "VAR_ISOTOPE_CORRELATION_SCORE REAL NOT NULL," \
         "VAR_ISOTOPE_OVERLAP_SCORE REAL NOT NULL," \
         "VAR_XCORR_COELUTION REAL NOT NULL," \
@@ -154,6 +155,8 @@ namespace OpenMS
         "VAR_MANHATTAN_SCORE REAL NOT NULL," \
         "VAR_MASSDEV_SCORE REAL NOT NULL," \
         "VAR_MASSDEV_SCORE_WEIGHTED REAL NOT NULL," \
+        "VAR_MI_SCORE REAL NOT NULL," \
+        "VAR_MI_WEIGHTED_SCORE REAL NOT NULL," \
         "VAR_NORM_RT_SCORE REAL NOT NULL," \
         "VAR_XCORR_COELUTION REAL NOT NULL," \
         "VAR_XCORR_COELUTION_WEIGHTED REAL NOT NULL," \
@@ -178,6 +181,7 @@ namespace OpenMS
         "VAR_XCORR_SHAPE REAL NULL," \
         "VAR_LOG_SN_SCORE REAL NULL," \
         "VAR_MASSDEV_SCORE REAL NULL," \
+        "VAR_MI_SCORE REAL NULL," \
         "VAR_ISOTOPE_CORRELATION_SCORE REAL NULL," \
         "VAR_ISOTOPE_OVERLAP_SCORE REAL NULL); " ;
 
@@ -248,11 +252,12 @@ namespace OpenMS
           }
           else if (sub_it->metaValueExists("FeatureLevel") && sub_it->getMetaValue("FeatureLevel") == "MS1")
           {
-            sql_feature_ms1 << "INSERT INTO FEATURE_MS1 (FEATURE_ID, AREA_INTENSITY, APEX_INTENSITY, VAR_MASSDEV_SCORE, VAR_ISOTOPE_CORRELATION_SCORE, VAR_ISOTOPE_OVERLAP_SCORE, VAR_XCORR_COELUTION, VAR_XCORR_SHAPE) VALUES (" 
+            sql_feature_ms1 << "INSERT INTO FEATURE_MS1 (FEATURE_ID, AREA_INTENSITY, APEX_INTENSITY, VAR_MASSDEV_SCORE, VAR_MI_SCORE, VAR_ISOTOPE_CORRELATION_SCORE, VAR_ISOTOPE_OVERLAP_SCORE, VAR_XCORR_COELUTION, VAR_XCORR_SHAPE) VALUES (" 
                             << feature_id << ", " 
                             << sub_it->getIntensity() << ", " 
                             << sub_it->getMetaValue("peak_apex_int") << ", " 
                             << feature_it->getMetaValue("var_ms1_ppm_diff") << ", " 
+                            << feature_it->getMetaValue("var_ms1_mi_score") << ", " 
                             << feature_it->getMetaValue("var_ms1_isotope_correlation") << ", " 
                             << feature_it->getMetaValue("var_ms1_isotope_overlap") << ", " 
                             << feature_it->getMetaValue("var_ms1_xcorr_coelution") << ", " 
@@ -301,7 +306,7 @@ namespace OpenMS
           var_sonar_rsq = feature_it->getMetaValue("var_sonar_rsq").toString();
         }
 
-        sql_feature_ms2 << "INSERT INTO FEATURE_MS2 (FEATURE_ID, AREA_INTENSITY, APEX_INTENSITY, VAR_BSERIES_SCORE, VAR_DOTPROD_SCORE, VAR_INTENSITY_SCORE, VAR_ISOTOPE_CORRELATION_SCORE, VAR_ISOTOPE_OVERLAP_SCORE, VAR_LIBRARY_CORR, VAR_LIBRARY_DOTPROD, VAR_LIBRARY_MANHATTAN, VAR_LIBRARY_RMSD, VAR_LIBRARY_ROOTMEANSQUARE, VAR_LIBRARY_SANGLE, VAR_LOG_SN_SCORE, VAR_MANHATTAN_SCORE, VAR_MASSDEV_SCORE, VAR_MASSDEV_SCORE_WEIGHTED, VAR_NORM_RT_SCORE, VAR_XCORR_COELUTION,VAR_XCORR_COELUTION_WEIGHTED, VAR_XCORR_SHAPE, VAR_XCORR_SHAPE_WEIGHTED, VAR_YSERIES_SCORE, VAR_ELUTION_MODEL_FIT_SCORE, VAR_SONAR_LAG, VAR_SONAR_SHAPE, VAR_SONAR_LOG_SN, VAR_SONAR_LOG_DIFF, VAR_SONAR_LOG_TREND, VAR_SONAR_RSQ) VALUES (" 
+        sql_feature_ms2 << "INSERT INTO FEATURE_MS2 (FEATURE_ID, AREA_INTENSITY, APEX_INTENSITY, VAR_BSERIES_SCORE, VAR_DOTPROD_SCORE, VAR_INTENSITY_SCORE, VAR_ISOTOPE_CORRELATION_SCORE, VAR_ISOTOPE_OVERLAP_SCORE, VAR_LIBRARY_CORR, VAR_LIBRARY_DOTPROD, VAR_LIBRARY_MANHATTAN, VAR_LIBRARY_RMSD, VAR_LIBRARY_ROOTMEANSQUARE, VAR_LIBRARY_SANGLE, VAR_LOG_SN_SCORE, VAR_MANHATTAN_SCORE, VAR_MASSDEV_SCORE, VAR_MASSDEV_SCORE_WEIGHTED, VAR_MI_SCORE, VAR_MI_WEIGHTED_SCORE, VAR_NORM_RT_SCORE, VAR_XCORR_COELUTION,VAR_XCORR_COELUTION_WEIGHTED, VAR_XCORR_SHAPE, VAR_XCORR_SHAPE_WEIGHTED, VAR_YSERIES_SCORE, VAR_ELUTION_MODEL_FIT_SCORE, VAR_SONAR_LAG, VAR_SONAR_SHAPE, VAR_SONAR_LOG_SN, VAR_SONAR_LOG_DIFF, VAR_SONAR_LOG_TREND, VAR_SONAR_RSQ) VALUES (" 
                         << feature_id << ", " 
                         << feature_it->getIntensity() << ", " 
                         << feature_it->getMetaValue("peak_apices_sum") << ", " 
@@ -320,6 +325,8 @@ namespace OpenMS
                         << feature_it->getMetaValue("var_manhatt_score") << ", " 
                         << feature_it->getMetaValue("var_massdev_score") << ", " 
                         << feature_it->getMetaValue("var_massdev_score_weighted") << ", " 
+                        << feature_it->getMetaValue("var_mi_score") << ", " 
+                        << feature_it->getMetaValue("var_mi_weighted_score") << ", " 
                         << feature_it->getMetaValue("var_norm_rt_score") << ", " 
                         << feature_it->getMetaValue("var_xcorr_coelution") << ", " 
                         << feature_it->getMetaValue("var_xcorr_coelution_weighted") << ", " 
@@ -344,6 +351,7 @@ namespace OpenMS
           std::vector<double> id_target_ind_xcorr_shape = ListUtils::create<double>((String)feature_it->getMetaValue("id_target_ind_xcorr_shape"),';');
           std::vector<double> id_target_ind_log_sn_score = ListUtils::create<double>((String)feature_it->getMetaValue("id_target_ind_log_sn_score"),';');
           std::vector<double> id_target_ind_massdev_score = ListUtils::create<double>((String)feature_it->getMetaValue("id_target_ind_massdev_score"),';');
+          std::vector<double> id_target_ind_mi_score = ListUtils::create<double>((String)feature_it->getMetaValue("id_target_ind_mi_score"),';');
           std::vector<double> id_target_ind_isotope_correlation = ListUtils::create<double>((String)feature_it->getMetaValue("id_target_ind_isotope_correlation"),';');
           std::vector<double> id_target_ind_isotope_overlap = ListUtils::create<double>((String)feature_it->getMetaValue("id_target_ind_isotope_overlap"),';');
 
@@ -351,7 +359,7 @@ namespace OpenMS
           {
             for (int i = 0; i < feature_it->getMetaValue("id_target_num_transitions").toString().toInt(); ++i)
             {
-              sql_feature_uis_transition  << "INSERT INTO FEATURE_TRANSITION (FEATURE_ID, TRANSITION_ID, AREA_INTENSITY, APEX_INTENSITY, VAR_LOG_INTENSITY, VAR_XCORR_COELUTION, VAR_XCORR_SHAPE, VAR_LOG_SN_SCORE, VAR_MASSDEV_SCORE, VAR_ISOTOPE_CORRELATION_SCORE, VAR_ISOTOPE_OVERLAP_SCORE) VALUES (" 
+              sql_feature_uis_transition  << "INSERT INTO FEATURE_TRANSITION (FEATURE_ID, TRANSITION_ID, AREA_INTENSITY, APEX_INTENSITY, VAR_LOG_INTENSITY, VAR_XCORR_COELUTION, VAR_XCORR_SHAPE, VAR_LOG_SN_SCORE, VAR_MASSDEV_SCORE, VAR_MI_SCORE, VAR_ISOTOPE_CORRELATION_SCORE, VAR_ISOTOPE_OVERLAP_SCORE) VALUES (" 
                                           << feature_id << ", " 
                                           << id_target_transition_names[i] << ", " 
                                           << id_target_area_intensity[i] << ", " 
@@ -361,6 +369,7 @@ namespace OpenMS
                                           << id_target_ind_xcorr_shape[i] << ", " 
                                           << id_target_ind_log_sn_score[i] << ", " 
                                           << id_target_ind_massdev_score[i] << ", " 
+                                          << id_target_ind_mi_score[i] << ", " 
                                           << id_target_ind_isotope_correlation[i] << ", " 
                                           << id_target_ind_isotope_overlap[i] << "); ";
             }
@@ -374,6 +383,7 @@ namespace OpenMS
           std::vector<double> id_decoy_ind_xcorr_shape = ListUtils::create<double>((String)feature_it->getMetaValue("id_decoy_ind_xcorr_shape"),';');
           std::vector<double> id_decoy_ind_log_sn_score = ListUtils::create<double>((String)feature_it->getMetaValue("id_decoy_ind_log_sn_score"),';');
           std::vector<double> id_decoy_ind_massdev_score = ListUtils::create<double>((String)feature_it->getMetaValue("id_decoy_ind_massdev_score"),';');
+          std::vector<double> id_decoy_ind_mi_score = ListUtils::create<double>((String)feature_it->getMetaValue("id_decoy_ind_mi_score"),';');
           std::vector<double> id_decoy_ind_isotope_correlation = ListUtils::create<double>((String)feature_it->getMetaValue("id_decoy_ind_isotope_correlation"),';');
           std::vector<double> id_decoy_ind_isotope_overlap = ListUtils::create<double>((String)feature_it->getMetaValue("id_decoy_ind_isotope_overlap"),';');
 
@@ -381,7 +391,7 @@ namespace OpenMS
           {
             for (int i = 0; i < feature_it->getMetaValue("id_decoy_num_transitions").toString().toInt(); ++i)
             {
-              sql_feature_uis_transition  << "INSERT INTO FEATURE_TRANSITION (FEATURE_ID, TRANSITION_ID, AREA_INTENSITY, APEX_INTENSITY, VAR_LOG_INTENSITY, VAR_XCORR_COELUTION, VAR_XCORR_SHAPE, VAR_LOG_SN_SCORE, VAR_MASSDEV_SCORE, VAR_ISOTOPE_CORRELATION_SCORE, VAR_ISOTOPE_OVERLAP_SCORE) VALUES (" 
+              sql_feature_uis_transition  << "INSERT INTO FEATURE_TRANSITION (FEATURE_ID, TRANSITION_ID, AREA_INTENSITY, APEX_INTENSITY, VAR_LOG_INTENSITY, VAR_XCORR_COELUTION, VAR_XCORR_SHAPE, VAR_LOG_SN_SCORE, VAR_MASSDEV_SCORE, VAR_MI_SCORE, VAR_ISOTOPE_CORRELATION_SCORE, VAR_ISOTOPE_OVERLAP_SCORE) VALUES (" 
                                           << feature_id << ", " 
                                           << id_decoy_transition_names[i] << ", " 
                                           << id_decoy_area_intensity[i] << ", " 
@@ -391,6 +401,7 @@ namespace OpenMS
                                           << id_decoy_ind_xcorr_shape[i] << ", " 
                                           << id_decoy_ind_log_sn_score[i] << ", " 
                                           << id_decoy_ind_massdev_score[i] << ", " 
+                                          << id_decoy_ind_mi_score[i] << ", " 
                                           << id_decoy_ind_isotope_correlation[i] << ", " 
                                           << id_decoy_ind_isotope_overlap[i] << "); ";
             }
