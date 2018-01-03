@@ -174,7 +174,7 @@
 			<UserParam type="float" name="main_var_xx_swath_prelim_score" value="4.10837632628648"/>
 			<UserParam type="float" name="PrecursorMZ" value="258.108448945271"/>
 			<UserParam type="float" name="xx_swath_prelim_score" value="0"/>
-			<UserParam type="string" name="formula" value="C10H15N3O5"/>
+			<UserParam type="string" name="sum_formula" value="C10H15N3O5"/>
 			<UserParam type="float" name="rt_deviation" value="2.11580164054294"/>
 			<UserParam type="float" name="model_height" value="24934464.4525902"/>
 			<UserParam type="float" name="model_FWHM" value="4.01900138307153"/>
@@ -351,7 +351,7 @@
 			<UserParam type="float" name="main_var_xx_swath_prelim_score" value="4.25538549879083"/>
 			<UserParam type="float" name="PrecursorMZ" value="272.087713881471"/>
 			<UserParam type="float" name="xx_swath_prelim_score" value="0"/>
-			<UserParam type="string" name="formula" value="C10O6N3H13"/>
+			<UserParam type="string" name="sum_formula" value="C10O6N3H13"/>
 			<UserParam type="float" name="rt_deviation" value="-0.532559521199232"/>
 			<UserParam type="float" name="model_height" value="6546077.79722183"/>
 			<UserParam type="float" name="model_FWHM" value="3.53385366068514"/>
@@ -530,7 +530,7 @@
 			<UserParam type="float" name="main_var_xx_swath_prelim_score" value="4.20874094373112"/>
 			<UserParam type="float" name="PrecursorMZ" value="259.092464913371"/>
 			<UserParam type="float" name="xx_swath_prelim_score" value="0"/>
-			<UserParam type="string" name="formula" value="C10H14N2O6"/>
+			<UserParam type="string" name="sum_formula" value="C10H14N2O6"/>
 			<UserParam type="float" name="rt_deviation" value="0.37453002891823"/>
 			<UserParam type="float" name="model_height" value="4182421.94446582"/>
 			<UserParam type="float" name="model_FWHM" value="3.65190219658734"/>
@@ -709,7 +709,7 @@
 			<UserParam type="float" name="main_var_xx_swath_prelim_score" value="3.93443026230914"/>
 			<UserParam type="float" name="PrecursorMZ" value="268.104031881471"/>
 			<UserParam type="float" name="xx_swath_prelim_score" value="0"/>
-			<UserParam type="string" name="formula" value="C10H13N5O4"/>
+			<UserParam type="string" name="sum_formula" value="C10H13N5O4"/>
 			<UserParam type="float" name="rt_deviation" value="1.29841560823922"/>
 			<UserParam type="float" name="model_height" value="102596550.478107"/>
 			<UserParam type="float" name="model_FWHM" value="3.64890162303047"/>
@@ -900,7 +900,7 @@
 			<UserParam type="float" name="main_var_xx_swath_prelim_score" value="4.06291691693264"/>
 			<UserParam type="float" name="PrecursorMZ" value="252.109116881471"/>
 			<UserParam type="float" name="xx_swath_prelim_score" value="0"/>
-			<UserParam type="string" name="formula" value="C10H13N5O3"/>
+			<UserParam type="string" name="sum_formula" value="C10H13N5O3"/>
 			<UserParam type="float" name="rt_deviation" value="1.54641951199437"/>
 			<UserParam type="float" name="model_height" value="37874274.6359942"/>
 			<UserParam type="float" name="model_FWHM" value="4.13336864255968"/>
@@ -1073,7 +1073,7 @@
 			<UserParam type="float" name="main_var_xx_swath_prelim_score" value="4.28008687803181"/>
 			<UserParam type="float" name="PrecursorMZ" value="269.088047849571"/>
 			<UserParam type="float" name="xx_swath_prelim_score" value="0"/>
-			<UserParam type="string" name="formula" value="C10H12N4O5"/>
+			<UserParam type="string" name="sum_formula" value="C10H12N4O5"/>
 			<UserParam type="float" name="rt_deviation" value="0.697462747235249"/>
 			<UserParam type="float" name="model_height" value="6380144.20247445"/>
 			<UserParam type="float" name="model_FWHM" value="3.63600204404322"/>

@@ -91,21 +91,21 @@ using namespace std;
    The targets to quantify have to be specified in a tab-separated text file that is passed via the @p id parameter.
    This file has to start with the following header line, defining its columns:
    <pre>
-   <TT>Name    Formula    Mass    Charge    RT    RT_range    Iso_distrib</TT>
+   <TT>CompoundName    SumFormula    Mass    Charge    RetentionTime    RetentionTimeRange    IsoDistribution</TT>
    </pre>
 
    Every subsequent line defines a target.
    (Except lines starting with "#", which are considered as comments and skipped.)
    The following requirements apply:
-   - @p Name: unique name for the target compound
-   - @p Formula: chemical sum formula (see @ref OpenMS::EmpiricalFormula), optional
+   - @p CompoundName: unique name for the target compound
+   - @p SumFormula: chemical sum formula (see @ref OpenMS::EmpiricalFormula), optional
    - @p Mass: neutral mass; if zero calculated from @p Formula
    - @p Charge: charge state, or comma-separated list of multiple charges
-   - @p RT: retention time (RT), or comma-separated list of multiple RTs
-   - @p RT_range: RT window around @p RT for chromatogram extraction, either one value or one per @p RT entry; if zero parameter @p extract:rt_window is used
-   - @p Iso_distrib: comma-separated list of relative abundances of isotopologues (see @ref OpenMS::IsotopeDistribution); if zero calculated from @p Formula
+   - @p RetentionTime: retention time (RT), or comma-separated list of multiple RTs
+   - @p RetentionTimeRange: RT window around @p RetentionTime for chromatogram extraction, either one value or one per @p RT entry; if zero parameter @p extract:rt_window is used
+   - @p IsoDistribution: comma-separated list of relative abundances of isotopologues (see @ref OpenMS::IsotopeDistribution); if zero calculated from @p Formula
 
-   In the simplest case, only @p Name, @p Formula, @p Charge and @p RT need to be given, all other values may be zero.
+   In the simplest case, only @p CompoundName, @p SumFormula, @p Charge and @p RetentionTime need to be given, all other values may be zero.
    Every combination of compound (mass), RT and charge defines one target for feature detection.
 
    <B>Output format</B>
@@ -116,7 +116,7 @@ using namespace std;
    Positions of targets for which no feature was detected can be shown by clicking the "Show unassigned peptide identifications" button and selecting "Show label meta data".
 
    To export the data from the featureXML file to a tabular text file (CSV), use @ref TOPP_TextExporter with the options @p no_ids and <TT>feature:add_metavalues 0</TT> (to include all meta data annotations).
-   In the result, the information from the @p Name, @p Formula, @p Charge and @p RT columns from the input will be in the @p label, @p formula, @p charge and @p expected_rt columns, respectively.
+   In the result, the information from the @p CompoundName, @p SumFormula, @p Charge and @p RetentionTime columns from the input will be in the @p label, @p sum_formula, @p charge and @p expected_rt columns, respectively.
 
    <B>The command line parameters of this tool are:</B>
    @verbinclude UTILS_FeatureFinderMetaboIdent.cli
@@ -246,7 +246,7 @@ protected:
   void readTargets_(const String& in_path)
   {
     const string header =
-      "Name\tFormula\tMass\tCharge\tRT\tRT_range\tIso_distrib";
+      "CompoundName\tSumFormula\tMass\tCharge\tRetentionTime\tRetentionTimeRange\tIsoDistribution";
     ifstream source(in_path.c_str());
     if (!source.is_open())
     {
@@ -706,7 +706,7 @@ protected:
       ensureConvexHulls_(*feat_it);
       feat_it->getPeptideIdentifications().clear();
       feat_it->setMetaValue("label", compound.getMetaValue("name"));
-      feat_it->setMetaValue("formula", compound.molecular_formula);
+      feat_it->setMetaValue("sum_formula", compound.molecular_formula);
       feat_it->setMetaValue("expected_rt",
                             compound.getMetaValue("expected_rt"));
       // annotate subordinates with theoretical isotope intensities:
