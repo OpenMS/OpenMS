@@ -185,7 +185,7 @@ endif()
 
 #------------------------------------------------------------------------------
 # MSFragger
-if (NOT (${MSFRAGGER_BINARY} STREQUAL "MSFragger_BINARY-NOTFOUND"))
+if (NOT (${MSFRAGGER_BINARY} STREQUAL "MSFRAGGER_BINARY-NOTFOUND"))
   add_test("TOPP_MSFraggerAdapter_7" ${TOPP_BIN_PATH}/MSFraggerAdapter -test -in ${DATA_DIR_TOPP}/THIRDPARTY/spectra.mzML -executable "${MSFRAGGER_BINARY}" -database ${DATA_DIR_TOPP}/THIRDPARTY/proteins.fasta -out MSFraggerAdapter_7_out_tmp.pepXML -varmod:enable_common -digest:num_enzyme_termini semi)
   add_test("TOPP_MSFraggerAdapter_7_out" ${DIFF} -in1 MSFraggerAdapter_7_out_tmp.pepXML -in2 ${DATA_DIR_TOPP}/THIRDPARTY/MSFraggerAdapter_7_out.pepXML -whitelist "date" "search_database") # Because MSFragger links the search database in a temporary directory
   set_tests_properties("TOPP_MSFraggerAdapter_7_out" PROPERTIES DEPENDS "TOPP_MSFraggerAdapter_7")
