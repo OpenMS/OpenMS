@@ -49,7 +49,7 @@
 #include <list>
 #include <vector>
 #include <algorithm>
-#include <string.h>
+#include <cstring>
 #include <cstdio>
 
 namespace OpenMS

@@ -40,7 +40,7 @@
 #include <OpenMS/KERNEL/Peak1D.h>
 #include <OpenMS/FORMAT/MzDataFile.h>
 
-#include <math.h>
+#include <cmath>
 #include <fstream>
 
 using namespace OpenMS;
