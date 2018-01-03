@@ -138,9 +138,6 @@ public:
     keep_chromatograms_(false), keep_library_(false), rt_window_(0.0),
     mz_window_(0.0), mz_window_ppm_(false), isotope_pmin_(0.0), n_isotopes_(0)
   {
-    rt_term_.setCVIdentifierRef("MS");
-    rt_term_.setAccession("MS:1000896");
-    rt_term_.setName("normalized retention time");
   }
 
 protected:
@@ -235,7 +232,6 @@ protected:
   bool keep_chromatograms_; // keep chromatogram data for output?
   TargetedExperiment library_; // accumulated assays for targets
   bool keep_library_; // keep assay data for output?
-  CVTerm rt_term_; // controlled vocabulary term for reference RT
   double rt_window_; // RT window width
   double mz_window_; // m/z window width
   bool mz_window_ppm_; // m/z window width is given in PPM (not Da)?
@@ -454,9 +450,12 @@ protected:
 
   void addTargetRT_(TargetedExperiment::Compound& target, double rt)
   {
-    rt_term_.setValue(rt);
     TargetedExperiment::RetentionTime te_rt;
-    te_rt.addCVTerm(rt_term_);
+    te_rt.retention_time_unit =
+      TargetedExperimentHelper::RetentionTime::RTUnit::SECOND;
+    te_rt.retention_time_type =
+      TargetedExperimentHelper::RetentionTime::RTType::LOCAL;
+    te_rt.setRT(rt);
     target.rts.push_back(te_rt);
   }
 
