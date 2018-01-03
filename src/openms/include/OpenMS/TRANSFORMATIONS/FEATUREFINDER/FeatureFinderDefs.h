@@ -75,7 +75,7 @@ public:
         Exception::GlobalExceptionHandler::getInstance().setMessage(what_);
       }
 
-      virtual ~NoSuccessor() throw()
+      ~NoSuccessor() throw() override
       {
       }
 

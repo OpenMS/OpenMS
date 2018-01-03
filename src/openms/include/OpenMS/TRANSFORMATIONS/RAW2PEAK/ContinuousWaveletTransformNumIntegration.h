@@ -58,7 +58,7 @@ namespace OpenMS
     public ContinuousWaveletTransform
   {
 public:
-    /// Raw data const iterator type
+    /// Profile data const iterator type
     typedef ContinuousWaveletTransform::PeakConstIterator PeakConstIterator;
 
     using ContinuousWaveletTransform::signal_;
@@ -76,14 +76,14 @@ public:
     {}
 
     /// Destructor.
-    virtual ~ContinuousWaveletTransformNumIntegration() {}
+    ~ContinuousWaveletTransformNumIntegration() override {}
 
     /**
-        @brief Computes the wavelet transform of a given raw data interval [begin_input,end_input)
+        @brief Computes the wavelet transform of a given profile data interval [begin_input,end_input)
 
-        - Resolution = 1: the wavelet transform will be computed at every position of the raw data,
-        - Resolution = 2: the wavelet transform will be computed at 2x(number of raw data positions) positions
-            (the raw data are interpolated to get the intensity for missing positions)
+        - Resolution = 1: the wavelet transform will be computed at every position of the Profile data,
+        - Resolution = 2: the wavelet transform will be computed at 2x(number of Profile data positions) positions
+            (the profile data are interpolated to get the intensity for missing positions)
         .
 
         @note The InputPeakIterator should point to a Peak1D or a class derived from Peak1D.
@@ -173,11 +173,11 @@ public:
         decays fast. We take 5*scale, since at that point the wavelet
         has dropped to ~ -10^-4
     */
-    virtual void init(double scale, double spacing);
+    void init(double scale, double spacing) override;
 
 protected:
 
-    /// Computes the convolution of the wavelet and the raw data at position x with resolution = 1
+    /// Computes the convolution of the wavelet and the profile data at position x with resolution = 1
     template <typename InputPeakIterator>
     double integrate_(InputPeakIterator x, InputPeakIterator first, InputPeakIterator last)
     {
@@ -290,7 +290,7 @@ protected:
       return v / sqrt(scale_);
     }
 
-    /// Computes the convolution of the wavelet and the raw data at position x with resolution > 1
+    /// Computes the convolution of the wavelet and the profile data at position x with resolution > 1
     double integrate_(const std::vector<double> & processed_input, double spacing_data, int index);
 
     /// Computes the Marr wavelet at position x

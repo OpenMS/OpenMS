@@ -214,7 +214,7 @@ protected:
     }
   }
 
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     registerInputFileList_("in", "<files>", StringList(), "Input files separated by blanks");
     setValidFormats_("in", ListUtils::create<String>("idXML"));
@@ -226,7 +226,7 @@ protected:
     registerFlag_("pepxml_protxml", "Merge idXML files derived from a pepXML and corresponding protXML file.\nExactly two input files are expected in this case. Not compatible with 'add_to'.");
   }
 
-  ExitCodes main_(int, const char**)
+  ExitCodes main_(int, const char**) override
   {
     //-------------------------------------------------------------
     // parameter handling
@@ -281,7 +281,7 @@ protected:
 
       if (!add_to.empty())
       {
-        remove(file_names.begin(), file_names.end(), add_to);
+        file_names.erase(std::remove(file_names.begin(), file_names.end(), add_to), file_names.end());
         file_names.insert(file_names.begin(), add_to);
       }
 

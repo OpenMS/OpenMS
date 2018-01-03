@@ -54,7 +54,7 @@ using namespace OpenMS;
 using namespace std;
 
 SVMWrapper* ptr;
-SVMWrapper* nullPointer = 0;
+SVMWrapper* nullPointer = nullptr;
 SVMWrapper svm;
 
 START_SECTION((SVMWrapper()))
@@ -430,7 +430,7 @@ START_SECTION((double performCrossValidation(svm_problem *problem_ul, const SVMD
 	step_sizes.insert(make_pair(SVMWrapper::DEGREE, 1));
 	end_values.insert(make_pair(SVMWrapper::DEGREE, 3));
 
-  cv_quality = svm2.performCrossValidation(0, problem, true, start_values, step_sizes, end_values, 2, 1, parameters, true, false);
+  cv_quality = svm2.performCrossValidation(nullptr, problem, true, start_values, step_sizes, end_values, 2, 1, parameters, true, false);
 
   TEST_NOT_EQUAL(parameters.size(), 0)
   // cv_quality is nan
@@ -1041,8 +1041,9 @@ START_SECTION((void getSVCProbabilities(struct svm_problem *problem, std::vector
 							|| (predicted_labels[i] > 0 && probabilities[i] >= 0.5), true)
 	}
 	labels.clear();
-	labels.resize(4, -1);
-	labels.resize(8, 1);
+	// Start with -1 as "first" label
+	labels.resize(count / 2, -1);
+	labels.resize(count, 1);
 	problem = encoder.encodeLibSVMProblem(encoded_vectors, labels);
 	svm.train(problem);
 	svm.predict(problem, predicted_labels);
@@ -1051,8 +1052,10 @@ START_SECTION((void getSVCProbabilities(struct svm_problem *problem, std::vector
 	TEST_EQUAL(predicted_labels.size() == probabilities.size(), true)
 	for (Size i = 0; i < predicted_labels.size(); ++i)
 	{
-		TEST_EQUAL((predicted_labels[i] < 0 && probabilities[i] < 0.5)
-							|| (predicted_labels[i] > 0 && probabilities[i] >= 0.5), true)
+		// At probability 0.5, LibSVM will assign the first encountered label in the training data
+		// in this case "-1"
+		TEST_EQUAL((predicted_labels[i] < 0 && probabilities[i] <= 0.5)
+							|| (predicted_labels[i] > 0 && probabilities[i] > 0.5), true)
 	}
 
 END_SECTION

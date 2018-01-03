@@ -63,7 +63,7 @@ public:
     ComplementMarker(const ComplementMarker & source);
 
     /// destructor
-    virtual ~ComplementMarker();
+    ~ComplementMarker() override;
     //@}
 
     // @name Operators

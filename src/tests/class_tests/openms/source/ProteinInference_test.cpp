@@ -48,8 +48,8 @@ START_TEST(ProteinInference, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-ProteinInference* ptr = 0;
-ProteinInference* nullPointer = 0;
+ProteinInference* ptr = nullptr;
+ProteinInference* nullPointer = nullptr;
 START_SECTION(ProteinInference())
 {
 	ptr = new ProteinInference();

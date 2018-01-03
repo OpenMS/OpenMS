@@ -41,8 +41,6 @@
 #include <OpenMS/FORMAT/FASTAFile.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
-#include <OpenMS/CHEMISTRY/EnzymaticDigestion.h>
-
 
 namespace OpenMS
 {
@@ -72,7 +70,7 @@ public:
     ProteinResolver & operator=(const ProteinResolver & rhs);
 
     //destructor
-    virtual ~ProteinResolver();
+    ~ProteinResolver() override;
 
 
     struct ProteinEntry;

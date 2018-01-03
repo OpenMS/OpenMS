@@ -49,8 +49,8 @@ START_TEST(BigString, "$Id$")
 /////////////////////////////////////////////////////////////
 typedef std::pair <String, String> FASTAEntry;
 
-BigString* ptr = 0;
-BigString* nullPointer = 0;
+BigString* ptr = nullptr;
+BigString* nullPointer = nullptr;
 
 START_SECTION(BigString())
 	ptr = new BigString();

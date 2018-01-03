@@ -62,7 +62,7 @@ results_raw.push_back(result2_raw);
 MultiplexFilterResultRaw result3_raw(817.2, mz_shifts, intensities);
 results_raw.push_back(result3_raw);
 
-MultiplexFilterResultPeak* nullPointer = 0;
+MultiplexFilterResultPeak* nullPointer = nullptr;
 MultiplexFilterResultPeak* ptr;
 
 START_SECTION(MultiplexFilterResultPeak(double mz, double rt, std::vector<double> mz_shifts, std::vector<double> intensities, std::vector<MultiplexFilterResultRaw> rawDataPoints))

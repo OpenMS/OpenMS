@@ -109,7 +109,7 @@ public:
       BaseException(const BaseException& exception) noexcept;
 
       /// Destructor
-      virtual ~BaseException() noexcept;
+      ~BaseException() noexcept override;
       //@}
 
       /**	@name	Accessors
@@ -120,7 +120,7 @@ public:
       const char* getName() const noexcept;
 
       /// Returns the error message of the exception
-      virtual const char* what() const noexcept;
+      const char* what() const noexcept override;
 
       /// Returns the line number where it occurred
       int getLine() const noexcept;

@@ -79,7 +79,7 @@ public:
     MSSim();
 
     /// Destructor
-    virtual ~MSSim();
+    ~MSSim() override;
     //@}
 
     /**
@@ -148,7 +148,7 @@ protected:
     void createFeatureMap_(const SimTypes::SampleProteins& peptides, SimTypes::FeatureMapSim& features, Size map_index);
 
     /// Synchronize members with param class
-    void updateMembers_();
+    void updateMembers_() override;
 
 private:
     /// Holds the simulated data

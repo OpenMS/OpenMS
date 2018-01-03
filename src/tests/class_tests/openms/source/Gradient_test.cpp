@@ -48,8 +48,8 @@ START_TEST(Gradient, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-Gradient* ptr = 0;
-Gradient* nullPointer = 0;
+Gradient* ptr = nullptr;
+Gradient* nullPointer = nullptr;
 START_SECTION((Gradient()))
 	ptr = new Gradient();
 	TEST_NOT_EQUAL(ptr, nullPointer)

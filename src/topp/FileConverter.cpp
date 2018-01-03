@@ -158,7 +158,7 @@ public:
 
 protected:
 
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "Input file to convert.");
     registerStringOption_("in_type", "<type>", "", "Input file type -- default: determined from file extension or content\n", false, true); // for TOPPAS
@@ -178,6 +178,8 @@ protected:
     registerFlag_("TIC_DTA2D", "Export the TIC instead of the entire experiment in mzML/mzData/mzXML -> DTA2D conversions.", true);
     registerFlag_("MGF_compact", "Use a more compact format when writing MGF (no zero-intensity peaks, limited number of decimal places)", true);
     registerFlag_("force_MaxQuant_compatibility", "[mzXML output only] Make sure that MaxQuant can read the mzXML and set the msManufacturer to 'Thermo Scientific'.", true);
+    registerFlag_("convert_to_chromatograms", "[mzML output only] Assumes that the provided spectra represent data in SRM mode or targeted MS1 mode and converts them to chromatogram data.", true);
+    registerFlag_("force_TPP_compatibility", "[mzML output only] Make sure that TPP parsers can read the mzML and the precursor ion m/z in the file (otherwise it will be set to zero by the TPP).", true);
 
     registerStringOption_("write_scan_index", "<toogle>", "true", "Append an index when writing mzML or mzXML files. Some external tools might rely on it.", false, true);
     setValidStrings_("write_scan_index", ListUtils::create<String>("true,false"));
@@ -187,7 +189,7 @@ protected:
     registerFlag_("process_lowmemory", "Whether to process the file on the fly without loading the whole file into memory first (only for conversions of mzXML/mzML to mzML).\nNote: this flag will prevent conversion from spectra to chromatograms.", true);
   }
 
-  ExitCodes main_(int, const char**)
+  ExitCodes main_(int, const char**) override
   {
     //-------------------------------------------------------------
     // parameter handling
@@ -197,6 +199,8 @@ protected:
     String in = getStringOption_("in");
     bool write_scan_index = getStringOption_("write_scan_index") == "true" ? true : false;
     bool force_MaxQuant_compatibility = getFlag_("force_MaxQuant_compatibility");
+    bool force_TPP_compatibility = getFlag_("force_TPP_compatibility");
+    bool convert_to_chromatograms = getFlag_("convert_to_chromatograms");
     bool lossy_compression = getFlag_("lossy_compression");
     double mass_acc = getDoubleOption_("lossy_mass_accuracy");
 
@@ -422,6 +426,7 @@ protected:
       MzMLFile f;
       f.setLogType(log_type_);
       f.getOptions().setWriteIndex(write_scan_index);
+      f.getOptions().setForceTPPCompatability(force_TPP_compatibility);
       // numpress compression
       if (lossy_compression)
       {
@@ -430,7 +435,14 @@ protected:
         f.getOptions().setCompression(true);
       }
 
-      ChromatogramTools().convertSpectraToChromatograms(exp, true);
+      if (convert_to_chromatograms)
+      {
+        for (auto & s : exp)
+        {
+          s.getInstrumentSettings().setScanMode(InstrumentSettings::SRM);
+        }
+      }
+      ChromatogramTools().convertSpectraToChromatograms(exp, true, convert_to_chromatograms);
       f.store(out, exp);
     }
     else if (out_type == FileTypes::MZDATA)

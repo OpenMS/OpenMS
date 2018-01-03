@@ -57,7 +57,7 @@ public:
     PeakMarker(const PeakMarker & source);
 
     /// destructor
-    virtual ~PeakMarker();
+    ~PeakMarker() override;
 
     /// assignment operator
     PeakMarker & operator=(const PeakMarker & source);

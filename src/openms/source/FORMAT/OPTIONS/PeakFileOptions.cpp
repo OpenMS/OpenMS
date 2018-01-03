@@ -44,6 +44,7 @@ namespace OpenMS
   PeakFileOptions::PeakFileOptions() :
     metadata_only_(false),
     force_maxquant_compatibility_(false),
+    force_tpp_compatibility_(false),
     write_supplemental_data_(true),
     has_rt_range_(false),
     has_mz_range_(false),
@@ -71,6 +72,7 @@ namespace OpenMS
   PeakFileOptions::PeakFileOptions(const PeakFileOptions& options) :
     metadata_only_(options.metadata_only_),
     force_maxquant_compatibility_(options.force_maxquant_compatibility_),
+    force_tpp_compatibility_(options.force_tpp_compatibility_),
     write_supplemental_data_(options.write_supplemental_data_),
     has_rt_range_(options.has_rt_range_),
     has_mz_range_(options.has_mz_range_),
@@ -117,6 +119,16 @@ namespace OpenMS
   bool PeakFileOptions::getForceMQCompatability() const
   {
     return force_maxquant_compatibility_;
+  }
+
+  void PeakFileOptions::setForceTPPCompatability(bool forceTPP)
+  {
+    force_tpp_compatibility_ = forceTPP;
+  }
+  
+  bool PeakFileOptions::getForceTPPCompatability() const
+  {
+    return force_tpp_compatibility_;
   }
 
   void PeakFileOptions::setWriteSupplementalData(bool write)

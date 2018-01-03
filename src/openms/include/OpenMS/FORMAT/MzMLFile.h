@@ -61,7 +61,7 @@ public:
     ///Default constructor
     MzMLFile();
     ///Destructor
-    ~MzMLFile();
+    ~MzMLFile() override;
 
     /// Mutable access to the options for loading/storing
     PeakFileOptions& getOptions();
@@ -84,6 +84,16 @@ public:
     void load(const String& filename, PeakMap& map);
 
     /**
+      @brief Loads a map from a MzML file stored in a buffer (in memory).
+
+      @p filename The buffer with the data
+      @p map Is an MSExperiment
+
+      @exception Exception::ParseError is thrown if an error occurs during parsing
+    */
+    void loadBuffer(const std::string& buffer, PeakMap& map);
+
+    /**
       @brief Only count the number of spectra and chromatograms from a file
     */
     void loadSize(const String & filename, Size& scount, Size& ccount);
@@ -96,6 +106,14 @@ public:
       @exception Exception::UnableToCreateFile is thrown if the file could not be created
     */
     void store(const String& filename, const PeakMap& map) const;
+
+    /**
+      @brief Stores a map in an output string.
+
+      @p output An empty string to store the result
+      @p map has to be an MSExperiment
+    */
+    void storeBuffer(std::string & output, const PeakMap& map) const;
 
     /**
       @brief Transforms a map while loading using the supplied MSDataConsumer.

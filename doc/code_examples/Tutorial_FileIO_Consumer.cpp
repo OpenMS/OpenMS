@@ -49,13 +49,13 @@ public:
     { TIC = 0.0; nr_spectra = 0;}
 
   // Add a data processing step for spectra before they are written to disk
-  void processSpectrum_(MSDataWritingConsumer::SpectrumType & s)
+  void processSpectrum_(MSDataWritingConsumer::SpectrumType & s) override
   {
     for (Size i = 0; i < s.size(); i++) { TIC += s[i].getIntensity(); }
     nr_spectra++;
   }
   // Empty chromatogram data processing
-  void processChromatogram_(MSDataWritingConsumer::ChromatogramType& /* c */) {}
+  void processChromatogram_(MSDataWritingConsumer::ChromatogramType& /* c */) override {}
 };
 
 int main(int argc, const char** argv)

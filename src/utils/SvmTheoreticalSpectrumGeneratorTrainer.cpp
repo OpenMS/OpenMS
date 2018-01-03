@@ -81,7 +81,7 @@ public:
   }
 
 protected:
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     // I/O settings
     registerInputFile_("in_spectra", "<file>", "", "Input Training Spectra in mzML", true);
@@ -99,14 +99,14 @@ protected:
     registerSubsection_("algorithm", "");
   }
 
-  Param getSubsectionDefaults_(const String & /* section*/) const
+  Param getSubsectionDefaults_(const String & /* section*/) const override
   {
     Param tmp = SvmTheoreticalSpectrumGeneratorTrainer().getDefaults();
     tmp.remove("write_training_files");
     return tmp;
   }
 
-  ExitCodes main_(int, const char **)
+  ExitCodes main_(int, const char **) override
   {
     //-------------------------------------------------------------
     // parameter handling

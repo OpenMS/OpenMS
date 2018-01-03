@@ -53,8 +53,8 @@ START_TEST(PTMXMLFile, "$Id$")
 using namespace OpenMS;
 using namespace std;
 
-PTMXMLFile* ptr = 0;
-PTMXMLFile* nullPointer = 0;
+PTMXMLFile* ptr = nullptr;
+PTMXMLFile* nullPointer = nullptr;
 PTMXMLFile xml_file;
 
 START_SECTION((PTMXMLFile()))

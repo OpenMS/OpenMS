@@ -64,7 +64,7 @@ namespace OpenMS
 public:
 
     ///Constructor
-    GradientVisualizer(bool editable = false, QWidget * parent = 0);
+    GradientVisualizer(bool editable = false, QWidget * parent = nullptr);
 
     //Docu in base class
     void load(Gradient & g);
@@ -72,7 +72,7 @@ public:
 public slots:
 
     //Docu in base class
-    void store();
+    void store() override;
 
 protected slots:
 
@@ -133,7 +133,7 @@ protected:
     QGridLayout * viewlayout_;
 
     //Docu in base class
-    void update_();
+    void update_() override;
   };
 
 

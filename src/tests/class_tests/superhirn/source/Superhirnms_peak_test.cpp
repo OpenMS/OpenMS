@@ -52,8 +52,8 @@ START_TEST(MSPeak, "$Id$")
 using namespace OpenMS;
 using namespace std;
 
-MSPeak* ptr = 0;
-MSPeak* nullPtr = 0;
+MSPeak* ptr = nullptr;
+MSPeak* nullPtr = nullptr;
 
 START_SECTION((MSPeak()))
 	ptr = new MSPeak();

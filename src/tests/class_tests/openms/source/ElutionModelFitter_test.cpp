@@ -48,8 +48,8 @@ START_TEST(ElutionModelFitter, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-ElutionModelFitter* ptr = 0;
-ElutionModelFitter* null_ptr = 0;
+ElutionModelFitter* ptr = nullptr;
+ElutionModelFitter* null_ptr = nullptr;
 
 START_SECTION((ElutionModelFitter()))
 {

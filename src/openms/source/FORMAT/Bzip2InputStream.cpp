@@ -77,7 +77,7 @@ namespace OpenMS
 
   const XMLCh * Bzip2InputStream::getContentType() const
   {
-    return 0;
+    return nullptr;
   }
 
 } // namespace OpenMS

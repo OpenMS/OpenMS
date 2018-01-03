@@ -77,6 +77,7 @@
   - @subpage UTILS_RNPxl - Tool for RNP cross linking experiment analysis.
   - @subpage UTILS_SequenceCoverageCalculator - Prints information about idXML files.
   - @subpage UTILS_SpecLibCreator - Creates an MSP-formatted spectral library.
+  - @subpage UTILS_SpectraSTSearchAdapter - An interface to the 'SEARCH' mode of the SpectraST program (external, beta).
   - @subpage UTILS_PSMFeatureExtractor - Creates search engine specific features for PercolatorAdapter input.
   
 

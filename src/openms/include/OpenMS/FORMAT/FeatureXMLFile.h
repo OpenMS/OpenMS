@@ -79,7 +79,7 @@ public:
     ///Default constructor
     FeatureXMLFile();
     ///Destructor
-    ~FeatureXMLFile();
+    ~FeatureXMLFile() override;
     //@}
 
     /**
@@ -114,13 +114,13 @@ protected:
     void resetMembers_();
 
     // Docu in base class
-    virtual void endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname);
+    void endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname) override;
 
     // Docu in base class
-    virtual void startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes);
+    void startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes) override;
 
     // Docu in base class
-    virtual void characters(const XMLCh* const chars, const XMLSize_t length);
+    void characters(const XMLCh* const chars, const XMLSize_t length) override;
 
     /// Writes a feature to a stream
     void writeFeature_(const String& filename, std::ostream& os, const Feature& feat, const String& identifier_prefix, UInt64 identifier, UInt indentation_level);

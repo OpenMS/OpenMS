@@ -171,9 +171,9 @@ public:
     ///Constructor
     FeaFiModule(const PeakMap * map, FeatureMap* features, FeatureFinder * ff) :
       DefaultParamHandler("FeaFiModule"),
-      map_(0),
-      features_(0),
-      ff_(0)
+      map_(nullptr),
+      features_(nullptr),
+      ff_(nullptr)
     {
       map_ = map;
       features_ = features;
@@ -181,7 +181,7 @@ public:
     }
 
     /// destructor
-    virtual ~FeaFiModule()
+    ~FeaFiModule() override
     {
     }
 

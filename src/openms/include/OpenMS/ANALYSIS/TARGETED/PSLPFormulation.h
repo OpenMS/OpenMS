@@ -63,7 +63,7 @@ public:
 
     PSLPFormulation();
 
-    virtual ~PSLPFormulation();
+    ~PSLPFormulation() override;
 
     /**
       @brief Struct that holds the indices of the precursors in the feature map and the ilp formulation.

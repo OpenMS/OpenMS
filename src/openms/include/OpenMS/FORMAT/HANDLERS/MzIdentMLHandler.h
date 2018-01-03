@@ -43,7 +43,7 @@
 #include <OpenMS/METADATA/Identification.h>
 #include <OpenMS/METADATA/ProteinHit.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
-#include <OpenMS/CHEMISTRY/Enzyme.h>
+#include <OpenMS/CHEMISTRY/DigestionEnzymeProtein.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 
@@ -84,21 +84,21 @@ public:
       MzIdentMLHandler(std::vector<ProteinIdentification>& pro_id, std::vector<PeptideIdentification>& pep_id, const String& filename, const String& version, const ProgressLogger& logger);
 
       /// Destructor
-      virtual ~MzIdentMLHandler();
+      ~MzIdentMLHandler() override;
       //@}
 
 
       // Docu in base class
-      virtual void endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname);
+      void endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname) override;
 
       // Docu in base class
-      virtual void startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes);
+      void startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes) override;
 
       // Docu in base class
-      virtual void characters(const XMLCh* const chars, const XMLSize_t length);
+      void characters(const XMLCh* const chars, const XMLSize_t length) override;
 
       //Docu in base class
-      virtual void writeTo(std::ostream& os);
+      void writeTo(std::ostream& os) override;
 
 protected:
       /// Progress logger
@@ -147,7 +147,7 @@ protected:
       //void writeSourceFile_(std::ostream& os, const String& id, const SourceFile& software);
 
       /// Helper method that writes the Enzymes
-      void writeEnzyme_(String& s, Enzyme enzy, UInt miss, UInt indent) const;
+      void writeEnzyme_(String& s, DigestionEnzymeProtein enzy, UInt miss, UInt indent) const;
 
       /// Helper method that writes the modification search params (fixed or variable)
       void writeModParam_(String& s, const std::vector<String>& mod_names, bool fixed, UInt indent) const;

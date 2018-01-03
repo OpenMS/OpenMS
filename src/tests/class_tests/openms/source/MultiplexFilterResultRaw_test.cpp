@@ -53,7 +53,7 @@ intensities.push_back(1492.1012);
 intensities.push_back(333.1105);
 intensities.push_back(325.0520);
 
-MultiplexFilterResultRaw* nullPointer = 0;
+MultiplexFilterResultRaw* nullPointer = nullptr;
 MultiplexFilterResultRaw* ptr;
 
 START_SECTION(MultiplexFilterResultRaw(double mz, std::vector<double> mz_shifts, std::vector<double> intensities))

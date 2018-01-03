@@ -71,11 +71,17 @@
   The contrib package is contained in the %OpenMS release package and is
   available inside the <tt>contrib</tt> directory in the %OpenMS directory.
 
-  If you are using the developer version of %OpenMS, you have to clone the
-  contrib from github using
-
+  If you are using the developer version of %OpenMS via
     \code
-      git clone  https://github.com/OpenMS/contrib.git
+      cd ~
+      mkdir openms-development
+      cd openms-development
+      git clone https://github.com/OpenMS/OpenMS
+    \endcode
+  you have to checkout the empty folder by calling the following command:
+    \code
+      cd OpenMS
+      git submodule update --init contrib
     \endcode
 
   CMake is used to check your system and build the contrib libraries.
@@ -95,14 +101,14 @@
 
         \code
         cd <path_to_contrib_build>
-        cmake -DBUILD_TYPE=ALL -DNUMBER_OF_JOBS=4 -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_C_COMPILER=clang <path_to_contrib>
+        cmake -DBUILD_TYPE=ALL -DNUMBER_OF_JOBS=4 -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_C_COMPILER=clang <path_to_OpenMS_contrib>
         \endcode
 
     Example:
 
         \code
         cd ~/openms-development/contrib_build
-        cmake -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_C_COMPILER=clang ~/openms-development/contrib
+        cmake -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_C_COMPILER=clang ~/openms-development/OpenMS/contrib
         \endcode
     </li>
   </ol>
@@ -144,11 +150,12 @@
  The rest needs to be installed via the contrib.
 
     \code
-      # assuming you start in ~/openms-development
-      git clone https://github.com/OpenMS/contrib.git
-      mkdir contrib-build
-      cd contrib-build
-      cmake -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_C_COMPILER=clang -DBUILD_TYPE=SEQAN ~/openms-development/contrib
+      # assuming you cloned OpenMS to ~/openms-development/OpenMS
+      cd ~/openms-development/OpenMS
+      git submodule update --init contrib
+      mkdir ../contrib-build
+      cd ../contrib-build
+      cmake -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_C_COMPILER=clang -DBUILD_TYPE=SEQAN ~/openms-development/OpenMS/contrib
       cmake -DBUILD_TYPE=COINOR .
       cmake -DBUILD_TYPE=WILDMAGIC .
     \endcode
@@ -159,19 +166,8 @@
 
   @section install_mac_openms Installing OpenMS
 
-  Assuming you have successfully installed the required libraries, you need to
-  get the %OpenMS source code. The latest stable version of %OpenMS can be
-  found on the %OpenMS
-  <a href="http://www.openms.de/downloads/" target="_blank">download</a> page.
-  If you want to work with the latest development version you need to obtain
-  the code via git.
-
-    \code
-      # assuming you start in ~/openms-development
-      git clone https://github.com/OpenMS/OpenMS.git
-    \endcode
-
-  Then, for building %OpenMS, execute the following steps:
+  Assuming you have successfully cloned OpenMS and installed the required libraries,
+  you can now build OpenMS. Therefore execute the following steps:
 
   <ol>
     <li>Open a Terminal (<tt>/Applications/Utilities/Terminal.app</tt>)</li>

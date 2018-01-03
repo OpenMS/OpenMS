@@ -65,21 +65,28 @@ namespace OpenMS
       the way described at the unimod.org website and download the file then
       from unimod.org. The same can be done to add support for the modifications
       to search engines, e.g. Mascot.
+
+      In some scenarios, it might be useful to define different modification
+      databases. This can be done by providing a path when initializing
+      ModificationsDB.
   */
   class OPENMS_DLLAPI ModificationsDB
   {
 public:
 
     /// Returns a pointer to the modifications DB (singleton)
-    inline static ModificationsDB* getInstance()
+    inline static ModificationsDB* getInstance(OpenMS::String unimod_file = "CHEMISTRY/unimod.xml", OpenMS::String psimod_file = "CHEMISTRY/PSI-MOD.obo", OpenMS::String xlmod_file = "CHEMISTRY/XLMOD.obo")
     {
-      static ModificationsDB* db_ = 0;
-      if (db_ == 0)
+      static ModificationsDB* db_ = nullptr;
+      if (db_ == nullptr)
       {
-        db_ = new ModificationsDB;
+        db_ = new ModificationsDB(unimod_file, psimod_file, xlmod_file);
       }
       return db_;
     }
+
+    /// Check whether ModificationsDB was instantiated before
+    static bool isInstantiated();
 
     friend class CrossLinksDB;
 
@@ -184,20 +191,13 @@ public:
     */
     const ResidueModification* getBestModificationByDiffMonoMass(double mass, double max_error, const String& residue = "", ResidueModification::TermSpecificity term_spec = ResidueModification::NUMBER_OF_TERM_SPECIFICITY);
 
-    /**
-       @brief Adds modifications from a given file in OBO format
-
-       @throw Exception::ParseError if the file cannot be parsed correctly
-    */
-    void readFromOBOFile(const String& filename);
-
-    /// Adds modifications from a given file in Unimod XML format
-    void readFromUnimodXMLFile(const String& filename);
-
     /// Collects all modifications that can be used for identification searches
     void getAllSearchModifications(std::vector<String>& modifications) const;
 
 protected:
+
+    /// Stores whether ModificationsDB was instantiated before
+    static bool is_instantiated_;
 
     /// Stores the modifications
     std::vector<ResidueModification*> mods_;
@@ -211,10 +211,15 @@ protected:
 private:
 
     /** @name Constructors and Destructors
+
+        @param unimod_file Path to the Unimod XML file
+        @param psimod_file Path to the PSI-MOD OBO file
+        @param xlmod_file Path to the XLMOD OBO file
+
      */
     //@{
     /// Default constructor
-    ModificationsDB();
+    ModificationsDB(OpenMS::String unimod_file = "CHEMISTRY/unimod.xml", OpenMS::String psimod_file = "CHEMISTRY/PSI-MOD.obo", OpenMS::String xlmod_file = "CHEMISTRY/XLMOD.obo");
 
     /// Copy constructor
     ModificationsDB(const ModificationsDB& residue_db);
@@ -229,6 +234,17 @@ private:
     /// Assignment operator
     ModificationsDB & operator=(const ModificationsDB& aa);
     //@}
+
+    /**
+       @brief Adds modifications from a given file in OBO format
+
+       @throw Exception::ParseError if the file cannot be parsed correctly
+    */
+    void readFromOBOFile(const String& filename);
+
+    /// Adds modifications from a given file in Unimod XML format
+    void readFromUnimodXMLFile(const String& filename);
+    
   };
 }
 #endif

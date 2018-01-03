@@ -33,6 +33,8 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMAssay.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/TransitionTSVFile.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/TransitionPQPFile.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
@@ -42,6 +44,9 @@
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/SwathWindowLoader.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
+#include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/FORMAT/FileTypes.h>
+#include <OpenMS/CHEMISTRY/ModificationsDB.h>
 
 #include <iostream>
 
@@ -72,11 +77,13 @@ using namespace OpenMS;
   This module generates assays for targeted proteomics using a set of rules
   that was found to improve the sensitivity and selectivity for detection
   of typical peptides (Schubert et al., 2015). The tool operates on TraML
-  files, which can come from TargetedFileConverter or any other tool. If the
-  TraML is annotated with the CV terms for fragment ion annotation, it can
-  directly filter the transitions according to the set rules. If this is not
-  the case (e.g. if an older version of TargetedFileConverter was used), the
-  option -enable_reannotation can do the reannotation.
+  files, which can come from TargetedFileConverter or any other tool. In a
+  first step, the tool will annotate all transitions according to the
+  predefined criteria. In a second step, the transitions will be filtered
+  to improve sensitivity for detection of peptides.
+
+  Optionally, theoretical identification transitions can be generated when
+  the TraML will be used for IPF scoring in OpenSWATH.
 
   <B>The command line parameters of this tool are:</B>
   @verbinclude TOPP_OpenSwathAssayGenerator.cli
@@ -101,13 +108,19 @@ public:
 
 protected:
 
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
-    registerInputFile_("in", "<file>", "", "input file ('traML')");
-    setValidFormats_("in", ListUtils::create<String>("traML"));
+    registerInputFile_("in", "<file>", "", "Input file");
+    registerStringOption_("in_type", "<type>", "", "Input file type -- default: determined from file extension or content\n", false);
+    String formats("tsv,mrm,pqp,TraML");
+    setValidFormats_("in", ListUtils::create<String>(formats));
+    setValidStrings_("in_type", ListUtils::create<String>(formats));
 
-    registerOutputFile_("out", "<file>", "", "output file");
-    setValidFormats_("out", ListUtils::create<String>("traML"));
+    formats = "tsv,pqp,TraML";
+    registerOutputFile_("out", "<file>", "", "Output file");
+    setValidFormats_("out", ListUtils::create<String>(formats));
+    registerStringOption_("out_type", "<type>", "", "Output file type -- default: determined from file extension or content\n", false);
+    setValidStrings_("out_type", ListUtils::create<String>(formats));
 
     registerIntOption_("min_transitions", "<int>", 6, "minimal number of transitions", false);
     registerIntOption_("max_transitions", "<int>", 6, "maximal number of transitions", false);
@@ -115,13 +128,7 @@ protected:
     registerStringOption_("allowed_fragment_charges", "<type>", "1,2,3,4", "allowed fragment charge states", false);
     registerFlag_("enable_detection_specific_losses", "set this flag if specific neutral losses for detection fragment ions should be allowed");
     registerFlag_("enable_detection_unspecific_losses", "set this flag if unspecific neutral losses (H2O1, H3N1, C1H2N2, C1H2N1O1) for detection fragment ions should be allowed");
-    registerFlag_("enable_identification_specific_losses", "set this flag if specific neutral losses for identification fragment ions should be allowed");
-    registerFlag_("enable_identification_unspecific_losses", "set this flag if unspecific neutral losses (H2O1, H3N1, C1H2N2, C1H2N1O1) for identification fragment ions should be allowed");
-    registerFlag_("enable_identification_ms2_precursors", "set this flag if MS2-level precursor ions for identification should be allowed to enable extraction of the precursor signal from the fragment ion data (MS2-level). This may help in identification if the MS1 signal is weak.");
-    registerFlag_("enable_ms1_uis_scoring", "set this flag if MS1-UIS assays for UIS scoring should be generated");
-    registerFlag_("enable_ms2_uis_scoring", "set this flag if MS2-UIS assays for UIS scoring should be generated");
-    registerIntOption_("max_num_alternative_localizations", "<int>", 20, "maximum number of site-localization permutations", false);
-    registerFlag_("enable_reannotation", "set this flag if reannotation of fragment ions should be allowed.");
+
     registerDoubleOption_("precursor_mz_threshold", "<double>", 0.025, "MZ threshold in Thomson for precursor ion selection", false);
     registerDoubleOption_("precursor_lower_mz_limit", "<double>", 400, "lower MZ limit for precursor ions", false);
     registerDoubleOption_("precursor_upper_mz_limit", "<double>", 1200, "upper MZ limit for precursor ions", false);
@@ -129,25 +136,67 @@ protected:
     registerDoubleOption_("product_lower_mz_limit", "<double>", 350, "lower MZ limit for fragment ions", false);
     registerDoubleOption_("product_upper_mz_limit", "<double>", 2000, "upper MZ limit for fragment ions", false);
 
-    registerInputFile_("swath_windows_file", "<file>", "", "Tab separated file containing the SWATH windows for exclusion of fragment ions falling into the precursor isolation window: lower_offset upper_offset \\newline 400 425 \\newline ... Note that the first line is a header and will be skipped.", false, true);
+    registerInputFile_("swath_windows_file", "<file>", "", "Tab separated file containing the SWATH windows for exclusion of fragment ions falling into the precursor isolation window: lower_offset upper_offset \\newline 400 425 \\newline ... Note that the first line is a header and will be skipped.", false, false);
     setValidFormats_("swath_windows_file", ListUtils::create<String>("txt"));
+
+    registerInputFile_("unimod_file", "<file>", "", "(Modified) Unimod XML file (http://www.unimod.org/xml/unimod.xml) describing residue modifiability", false, false);
+    setValidFormats_("unimod_file", ListUtils::create<String>("xml"));
+
+    registerFlag_("enable_ipf", "IPF: set this flag if identification transitions should be generated for IPF. Note: Requires setting 'unimod_file'.");
+    registerIntOption_("max_num_alternative_localizations", "<int>", 10000, "IPF: maximum number of site-localization permutations", false, true);
+    registerFlag_("disable_identification_ms2_precursors", "IPF: set this flag if MS2-level precursor ions for identification should not be allowed for extraction of the precursor signal from the fragment ion data (MS2-level).", true);
+    registerFlag_("disable_identification_specific_losses", "IPF: set this flag if specific neutral losses for identification fragment ions should not be allowed", true);
+    registerFlag_("enable_identification_unspecific_losses", "IPF: set this flag if unspecific neutral losses (H2O1, H3N1, C1H2N2, C1H2N1O1) for identification fragment ions should be allowed", true);
+    registerFlag_("enable_swath_specifity", "IPF: set this flag if identification transitions without precursor specificity (i.e. across whole precursor isolation window instead of precursor MZ) should be generated.", true);
+
   }
 
-  ExitCodes main_(int, const char**)
+  ExitCodes main_(int, const char**) override
   {
+    FileHandler fh;
+
+    //input file type
     String in = getStringOption_("in");
+    FileTypes::Type in_type = FileTypes::nameToType(getStringOption_("in_type"));
+
+    if (in_type == FileTypes::UNKNOWN)
+    {
+      in_type = fh.getType(in);
+      writeDebug_(String("Input file type: ") + FileTypes::typeToName(in_type), 2);
+    }
+
+    if (in_type == FileTypes::UNKNOWN)
+    {
+      writeLog_("Error: Could not determine input file type!");
+      return PARSE_ERROR;
+    }
+
+    //output file names and types
     String out = getStringOption_("out");
+    FileTypes::Type out_type = FileTypes::nameToType(getStringOption_("out_type"));
+
+    if (out_type == FileTypes::UNKNOWN)
+    {
+      out_type = fh.getTypeByFileName(out);
+    }
+
+    if (out_type == FileTypes::UNKNOWN)
+    {
+      writeLog_("Error: Could not determine output file type!");
+      return PARSE_ERROR;
+    }
+
     Int min_transitions = getIntOption_("min_transitions");
     Int max_transitions = getIntOption_("max_transitions");
     String allowed_fragment_types_string = getStringOption_("allowed_fragment_types");
     String allowed_fragment_charges_string = getStringOption_("allowed_fragment_charges");
     bool enable_detection_specific_losses = getFlag_("enable_detection_specific_losses");
     bool enable_detection_unspecific_losses = getFlag_("enable_detection_unspecific_losses");
-    bool enable_identification_specific_losses = getFlag_("enable_identification_specific_losses");
+    bool enable_identification_specific_losses = !getFlag_("disable_identification_specific_losses");
     bool enable_identification_unspecific_losses = getFlag_("enable_identification_unspecific_losses");
-    bool enable_identification_ms2_precursors = getFlag_("enable_identification_ms2_precursors");
-    bool enable_ms1_uis_scoring = getFlag_("enable_ms1_uis_scoring");
-    bool enable_ms2_uis_scoring = getFlag_("enable_ms2_uis_scoring");
+    bool enable_identification_ms2_precursors = !getFlag_("disable_identification_ms2_precursors");
+    bool enable_ipf = getFlag_("enable_ipf");
+    bool enable_swath_specifity = getFlag_("enable_swath_specifity");
     size_t max_num_alternative_localizations = getIntOption_("max_num_alternative_localizations");
     double precursor_mz_threshold = getDoubleOption_("precursor_mz_threshold");
     double precursor_lower_mz_limit = getDoubleOption_("precursor_lower_mz_limit");
@@ -156,7 +205,18 @@ protected:
     double product_lower_mz_limit = getDoubleOption_("product_lower_mz_limit");
     double product_upper_mz_limit = getDoubleOption_("product_upper_mz_limit");
     String swath_windows_file = getStringOption_("swath_windows_file");
-    bool enable_reannotation = getFlag_("enable_reannotation");
+
+    String unimod_file = getStringOption_("unimod_file");
+    bool is_test = getFlag_("test");
+
+    // Set specific seed for test mode
+    int uis_seed = -1;
+    bool disable_decoy_transitions = false;
+    if (is_test)
+    {
+      uis_seed = 42;
+      disable_decoy_transitions = true;
+    }
 
     std::vector<String> allowed_fragment_types;
     allowed_fragment_types_string.split(",", allowed_fragment_types);
@@ -168,6 +228,26 @@ protected:
     {
       size_t charge = std::atoi(allowed_fragment_charges_string_vector.at(i).c_str());
       allowed_fragment_charges.push_back(charge);
+    }
+
+    // Require Unimod XML file when running IPF to prevent accidential mistakes
+    if (enable_ipf && unimod_file.empty())
+    {
+      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Please provide a valid Unimod XML file for IPF.");
+    }
+
+    // Load Unimod file
+    if (!unimod_file.empty())
+    {
+      if (!ModificationsDB::isInstantiated()) // We need to ensure that ModificationsDB was not instantiated before!
+      {
+        ModificationsDB* ptr = ModificationsDB::getInstance(unimod_file, String(""), String(""));
+        LOG_INFO << "Unimod XML: " << ptr->getNumberOfModifications() << " modification types and residue specificities imported from file: " << unimod_file << std::endl;
+      }
+      else
+      {
+        throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "ModificationsDB has been instantiated before and can not be generated from the provided Unimod XML file.");
+      }
     }
 
     std::vector<std::pair<double, double> > swathes;
@@ -187,27 +267,51 @@ protected:
       }
     }
 
-    TraMLFile traml;
     TargetedExperiment targeted_exp;
 
+    // Load data
     LOG_INFO << "Loading " << in << std::endl;
-    traml.load(in, targeted_exp);
+    if (in_type == FileTypes::TSV || in_type == FileTypes::MRM)
+    {
+      const char* tr_file = in.c_str();
+      Param reader_parameters = getParam_().copy("algorithm:", true);
+      TransitionTSVFile tsv_reader = TransitionTSVFile();
+      tsv_reader.setLogType(log_type_);
+      tsv_reader.setParameters(reader_parameters);
+      tsv_reader.convertTSVToTargetedExperiment(tr_file, in_type, targeted_exp);
+      tsv_reader.validateTargetedExperiment(targeted_exp);
+    }
+    else if (in_type == FileTypes::PQP)
+    {
+      const char* tr_file = in.c_str();
+      TransitionPQPFile pqp_reader = TransitionPQPFile();
+      Param reader_parameters = getParam_().copy("algorithm:", true);
+      pqp_reader.setLogType(log_type_);
+      pqp_reader.setParameters(reader_parameters);
+      pqp_reader.convertPQPToTargetedExperiment(tr_file, targeted_exp);
+      pqp_reader.validateTargetedExperiment(targeted_exp);
+    }
+    else if (in_type == FileTypes::TRAML)
+    {
+      TraMLFile traml;
+      traml.load(in, targeted_exp);
+    }
 
     MRMAssay assays = MRMAssay();
     assays.setLogType(ProgressLogger::CMD);
 
     LOG_INFO << "Annotating transitions" << std::endl;
-    assays.reannotateTransitions(targeted_exp, precursor_mz_threshold, product_mz_threshold, allowed_fragment_types, allowed_fragment_charges, enable_reannotation, enable_detection_specific_losses, enable_detection_unspecific_losses);
+    assays.reannotateTransitions(targeted_exp, precursor_mz_threshold, product_mz_threshold, allowed_fragment_types, allowed_fragment_charges, enable_detection_specific_losses, enable_detection_unspecific_losses);
 
     LOG_INFO << "Annotating detecting transitions" << std::endl;
     assays.restrictTransitions(targeted_exp, product_lower_mz_limit, product_upper_mz_limit, swathes);
     assays.detectingTransitions(targeted_exp, min_transitions, max_transitions);
 
-    if (enable_ms1_uis_scoring || enable_ms2_uis_scoring)
+    if (enable_ipf)
     {
       std::vector<std::pair<double, double> > uis_swathes;
 
-      if (enable_ms1_uis_scoring)
+      if (!enable_swath_specifity)
       {
         int num_precursor_windows = static_cast<int>(Math::round((precursor_upper_mz_limit - precursor_lower_mz_limit) / precursor_mz_threshold));
         for (int i = 0; i < num_precursor_windows; i++)
@@ -217,14 +321,33 @@ protected:
       }
       else {uis_swathes = swathes;}
       
-      std::cout << "Generating identifying (UIS) transitions" << std::endl;
-      assays.uisTransitions(targeted_exp, allowed_fragment_types, allowed_fragment_charges, enable_identification_specific_losses, enable_identification_unspecific_losses, enable_identification_ms2_precursors, product_mz_threshold, uis_swathes, -4, max_num_alternative_localizations, -1);
+      LOG_INFO << "Generating identifying transitions for IPF" << std::endl;
+      assays.uisTransitions(targeted_exp, allowed_fragment_types, allowed_fragment_charges, enable_identification_specific_losses, enable_identification_unspecific_losses, enable_identification_ms2_precursors, product_mz_threshold, uis_swathes, -4, max_num_alternative_localizations, uis_seed, disable_decoy_transitions);
       std::vector<std::pair<double, double> > empty_swathes;
       assays.restrictTransitions(targeted_exp, product_lower_mz_limit, product_upper_mz_limit, empty_swathes);
     }
 
-    std::cout << "Writing assays " << out << std::endl;
-    traml.store(out, targeted_exp);
+    LOG_INFO << "Writing assays " << out << std::endl;
+    if (out_type == FileTypes::TSV)
+    {
+      const char* tr_file = out.c_str();
+      TransitionTSVFile tsv_reader = TransitionTSVFile();
+      tsv_reader.setLogType(log_type_);
+      tsv_reader.convertTargetedExperimentToTSV(tr_file, targeted_exp);
+    }
+    if (out_type == FileTypes::PQP)
+    {
+      const char * tr_file = out.c_str();
+      TransitionPQPFile pqp_reader = TransitionPQPFile();
+      pqp_reader.setLogType(log_type_);
+      pqp_reader.convertTargetedExperimentToPQP(tr_file, targeted_exp);
+    }
+    else if (out_type == FileTypes::TRAML)
+    {
+      TraMLFile traml;
+      traml.store(out, targeted_exp);
+    }
+
     return EXECUTION_OK;
   }
 

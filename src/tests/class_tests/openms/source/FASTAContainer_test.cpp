@@ -50,8 +50,8 @@ START_TEST(FASTAContainer, "$Id$")
 typedef FASTAContainer<TFI_Vector> FCVec;
 typedef FASTAContainer<TFI_File> FCFile;
 
-FCVec* ptr = 0;
-FCVec* nullPointer = 0;
+FCVec* ptr = nullptr;
+FCVec* nullPointer = nullptr;
 START_SECTION(FASTAContainer())
 {
   ptr = new FCVec(std::vector<FASTAFile::FASTAEntry>());

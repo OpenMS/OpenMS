@@ -50,8 +50,8 @@ START_TEST(CVMappingFile, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-CVMappingFile* ptr = 0;
-CVMappingFile* nullPointer = 0;
+CVMappingFile* ptr = nullptr;
+CVMappingFile* nullPointer = nullptr;
 START_SECTION(CVMappingFile())
 {
 	ptr = new CVMappingFile();

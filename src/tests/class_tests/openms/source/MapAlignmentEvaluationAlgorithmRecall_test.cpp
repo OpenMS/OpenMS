@@ -51,8 +51,8 @@ START_TEST(MapAlignmentEvaluationAlgorithmRecall, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-MapAlignmentEvaluationAlgorithmRecall* ptr = 0;
-MapAlignmentEvaluationAlgorithmRecall* nullPointer = 0;
+MapAlignmentEvaluationAlgorithmRecall* ptr = nullptr;
+MapAlignmentEvaluationAlgorithmRecall* nullPointer = nullptr;
 
 START_SECTION((MapAlignmentEvaluationAlgorithmRecall()))
 	ptr = new MapAlignmentEvaluationAlgorithmRecall();
@@ -63,9 +63,9 @@ START_SECTION((virtual ~MapAlignmentEvaluationAlgorithmRecall()))
 	delete ptr;
 END_SECTION
 
-MapAlignmentEvaluationAlgorithm* base_nullPointer = 0;
+MapAlignmentEvaluationAlgorithm* base_nullPointer = nullptr;
 START_SECTION((static MapAlignmentEvaluationAlgorithm* create()))
-	MapAlignmentEvaluationAlgorithm* ptr2 = 0;
+	MapAlignmentEvaluationAlgorithm* ptr2 = nullptr;
 	ptr2 = MapAlignmentEvaluationAlgorithmRecall::create();
   TEST_NOT_EQUAL(ptr2, base_nullPointer)
 END_SECTION

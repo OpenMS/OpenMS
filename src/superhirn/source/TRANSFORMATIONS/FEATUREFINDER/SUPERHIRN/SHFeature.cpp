@@ -44,7 +44,7 @@
 
 #include <iostream>
 #include <map>
-#include <stdio.h>
+#include <cstdio>
 #include <cmath>
 
 //#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/MSPeak.h>
@@ -111,8 +111,8 @@ namespace OpenMS
     MONO_MZ_START = -1;
     MONO_MZ_END = -1;
     feature_match_status = false;
-    LCprofile = NULL;
-    MS2TraceFeature = NULL;
+    LCprofile = nullptr;
+    MS2TraceFeature = nullptr;
     PI = 0;
   }
 
@@ -146,8 +146,8 @@ namespace OpenMS
     feature_match_status = false;
     PI = 0;
 
-    LCprofile = NULL;
-    MS2TraceFeature = NULL;
+    LCprofile = nullptr;
+    MS2TraceFeature = nullptr;
 
   }
 
@@ -181,8 +181,8 @@ namespace OpenMS
     feature_match_status = false;
     PI = 0;
 
-    LCprofile = NULL;
-    MS2TraceFeature = NULL;
+    LCprofile = nullptr;
+    MS2TraceFeature = nullptr;
 
     addMS2Feature(ms2);
 
@@ -216,8 +216,8 @@ namespace OpenMS
     feature_match_status = false;
     PI = 0;
 
-    LCprofile = NULL;
-    MS2TraceFeature = NULL;
+    LCprofile = nullptr;
+    MS2TraceFeature = nullptr;
   }
 
 ////////////////////////////////////////////////
@@ -254,14 +254,14 @@ namespace OpenMS
     PI = tmp.PI;
     featureExtraInformation = tmp.featureExtraInformation;
 
-    MS2TraceFeature = NULL;
-    if (tmp.MS2TraceFeature != NULL)
+    MS2TraceFeature = nullptr;
+    if (tmp.MS2TraceFeature != nullptr)
     {
       MS2TraceFeature = new MS2Feature(tmp.MS2TraceFeature);
     }
 
-    LCprofile = NULL;
-    if (tmp.LCprofile != NULL)
+    LCprofile = nullptr;
+    if (tmp.LCprofile != nullptr)
     {
       LCprofile = new FeatureLCProfile(tmp.LCprofile);
     }
@@ -301,16 +301,16 @@ namespace OpenMS
     PI = tmp->PI;
     featureExtraInformation = tmp->featureExtraInformation;
 
-    MS2TraceFeature = NULL;
-    if (tmp->MS2TraceFeature != NULL)
+    MS2TraceFeature = nullptr;
+    if (tmp->MS2TraceFeature != nullptr)
     {
       MS2TraceFeature = new MS2Feature(tmp->MS2TraceFeature);
     }
 
     /////////////////////////////////
     // copy the elution profile:
-    LCprofile = NULL;
-    if (tmp->LCprofile != NULL)
+    LCprofile = nullptr;
+    if (tmp->LCprofile != nullptr)
     {
       LCprofile = new FeatureLCProfile(tmp->LCprofile);
     }
@@ -331,16 +331,16 @@ namespace OpenMS
       MS2_SCANS.clear();
     }
 
-    if (MS2TraceFeature != NULL)
+    if (MS2TraceFeature != nullptr)
     {
       delete MS2TraceFeature;
-      MS2TraceFeature = NULL;
+      MS2TraceFeature = nullptr;
     }
 
-    if (LCprofile != NULL)
+    if (LCprofile != nullptr)
     {
       delete LCprofile;
-      LCprofile = NULL;
+      LCprofile = nullptr;
     }
 
   }
@@ -378,23 +378,23 @@ namespace OpenMS
     PI = tmp.PI;
     featureExtraInformation = tmp.featureExtraInformation;
 
-    if (MS2TraceFeature != NULL)
+    if (MS2TraceFeature != nullptr)
     {
       delete MS2TraceFeature;
-      MS2TraceFeature = NULL;
+      MS2TraceFeature = nullptr;
     }
-    if (tmp.MS2TraceFeature != NULL)
+    if (tmp.MS2TraceFeature != nullptr)
     {
       MS2TraceFeature = new MS2Feature(tmp.MS2TraceFeature);
     }
 
-    if (LCprofile != NULL)
+    if (LCprofile != nullptr)
     {
       delete LCprofile;
-      LCprofile = NULL;
+      LCprofile = nullptr;
     }
 
-    if (tmp.LCprofile != NULL)
+    if (tmp.LCprofile != nullptr)
     {
       LCprofile = new FeatureLCProfile(tmp.LCprofile);
     }
@@ -461,7 +461,7 @@ namespace OpenMS
     //printf(",M.ID:%d",get_MASTER_ID());
     printf("\n");
     MS2Info * tmp = get_best_MS2_SCAN(0.0);
-    if (tmp != NULL)
+    if (tmp != nullptr)
     {
       tmp->show_info();
     }
@@ -484,7 +484,7 @@ namespace OpenMS
 // show MS/MS spectra info:
   void SHFeature::showMS2consensSpectraInfo()
   {
-    if (getMS2Feature() != NULL)
+    if (getMS2Feature() != nullptr)
     {
       getMS2Feature()->show_info();
     }
@@ -495,7 +495,7 @@ namespace OpenMS
   void SHFeature::add_MS2_info(MS2Info * in)
   {
 
-    if (in != NULL)
+    if (in != nullptr)
     {
 
       //////////////////////////////////////
@@ -503,7 +503,7 @@ namespace OpenMS
       // if StoreAllLowProbMS2Scans is true, then store all
       // low quality scans unless a high quality is available
       // otherwise use only the one with the highest peptide probaility
-      MS2Info * thisMS2 = NULL;
+      MS2Info * thisMS2 = nullptr;
       if (SuperHirnParameters::instance()->storeAllLowProbabilityMS2Scans())
       {
         thisMS2 = get_best_MS2_SCAN();
@@ -515,7 +515,7 @@ namespace OpenMS
 
       /////////////////////////////////////////
       // compare with already available MS2 scans:
-      if (thisMS2 != NULL)
+      if (thisMS2 != nullptr)
       {
 
         // only save the new scan if its of better quality:
@@ -527,13 +527,13 @@ namespace OpenMS
         else
         {
           // is of lower quality, so through it away:
-          in = NULL;
+          in = nullptr;
         }
       }
 
       /////////////////////////////////////////
       // insert the MS2 scan if its not null:
-      if (in != NULL)
+      if (in != nullptr)
       {
 
         map<double, vector<MS2Info> >::iterator F = MS2_SCANS.find(in->get_PEP_PROB());
@@ -550,7 +550,7 @@ namespace OpenMS
 
       }
 
-      in = NULL;
+      in = nullptr;
     }
   }
 
@@ -571,7 +571,7 @@ namespace OpenMS
       }
       ++P;
     }
-    in = NULL;
+    in = nullptr;
   }
 
 //////////////////////////////////////////////////
@@ -634,7 +634,7 @@ namespace OpenMS
       insert_ID += (int) matched_feature_list.size();
     }
     matched_feature_list.insert(pair<int, SHFeature>(insert_ID, *in));
-    in = NULL;
+    in = nullptr;
 
   }
 
@@ -670,7 +670,7 @@ namespace OpenMS
   MS2Info * SHFeature::get_best_MS2_SCAN()
   {
 
-    MS2Info * out = NULL;
+    MS2Info * out = nullptr;
     if (get_MS2_info())
     {
 
@@ -681,7 +681,7 @@ namespace OpenMS
       while (P != matched_feature_list.end())
       {
         MS2Info * TMP = (*P).second.get_best_MS2_SCAN();
-        if (TMP != NULL)
+        if (TMP != nullptr)
         {
           if (TMP->get_PEP_PROB() > out->get_PEP_PROB())
           {
@@ -699,7 +699,7 @@ namespace OpenMS
   MS2Info * SHFeature::get_best_MS2_SCAN(double PP_T)
   {
 
-    MS2Info * out = NULL;
+    MS2Info * out = nullptr;
     if (get_MS2_info(PP_T))
     {
 
@@ -711,7 +711,7 @@ namespace OpenMS
       {
 // MS2Info* TMP = (*P).second.get_best_MS2_SCAN(PP_T);    PKUNSZT THIS SHOULD BE THE CORRECT LINE?
         MS2Info * TMP = (*P).second.get_best_MS2_SCAN();
-        if (TMP != NULL)
+        if (TMP != nullptr)
         {
           if (TMP->get_PEP_PROB() > out->get_PEP_PROB())
           {
@@ -800,7 +800,7 @@ namespace OpenMS
       return &((*P).second);
     }
 
-    return NULL;
+    return nullptr;
 
   }
 
@@ -919,8 +919,8 @@ namespace OpenMS
   void SHFeature::deriveChargeStates(SHFeature * in)
   {
 
-    SHFeature * deriveFeature = NULL;
-    SHFeature * adjustFeature = NULL;
+    SHFeature * deriveFeature = nullptr;
+    SHFeature * adjustFeature = nullptr;
 
     // find the feature to derive:
     if (in->get_charge_state() == -1)
@@ -943,7 +943,7 @@ namespace OpenMS
     }
 
     // make a derived charge state:
-    if ((deriveFeature != NULL) && (adjustFeature != NULL))
+    if ((deriveFeature != nullptr) && (adjustFeature != nullptr))
     {
 
       adjustFeature->set_charge_state(deriveFeature->get_charge_state());
@@ -957,8 +957,8 @@ namespace OpenMS
       }
     }
 
-    deriveFeature = NULL;
-    adjustFeature = NULL;
+    deriveFeature = nullptr;
+    adjustFeature = nullptr;
 
   }
 
@@ -1195,7 +1195,7 @@ namespace OpenMS
     void SHFeature::addMS2Feature(MS2Feature * in)
     {   MS2TraceFeature = new MS2Feature(in); }
     void SHFeature::removeMS2Feature()
-    {   delete MS2TraceFeature; MS2TraceFeature = NULL; }
+    {   delete MS2TraceFeature; MS2TraceFeature = nullptr; }
     MS2Feature * SHFeature::getMS2Feature()
     {   return MS2TraceFeature; }
 

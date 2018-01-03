@@ -50,7 +50,7 @@ namespace OpenMS
     name_("unknown"),
     average_weight_(0.0f),
     mono_weight_(0.0f),
-    modification_(0),
+    modification_(nullptr),
     loss_average_weight_(0.0f),
     loss_mono_weight_(0.0f),
     pka_(0.0),
@@ -69,7 +69,7 @@ namespace OpenMS
     formula_(formula),
     average_weight_(0),
     mono_weight_(0),
-    modification_(0),
+    modification_(nullptr),
     loss_average_weight_(0.0f),
     loss_mono_weight_(0.0f),
     pka_(0.0),
@@ -576,7 +576,7 @@ namespace OpenMS
 
   const String& Residue::getModificationName() const
   {
-    if (modification_ == 0) return String::EMPTY;
+    if (modification_ == nullptr) return String::EMPTY;
     return modification_->getId();
   }
 
@@ -637,7 +637,7 @@ namespace OpenMS
 
   bool Residue::isModified() const
   {
-    return modification_ != 0;
+    return modification_ != nullptr;
   }
 
   bool Residue::hasNeutralLoss() const

@@ -63,7 +63,7 @@ public:
     ComplementFilter(const ComplementFilter & source);
 
     /// destructor
-    virtual ~ComplementFilter();
+    ~ComplementFilter() override;
     //@}
 
     // @name Operators

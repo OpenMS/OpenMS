@@ -170,13 +170,13 @@ public:
     FeatureFindingMetabo();
 
     /// Default destructor
-    virtual ~FeatureFindingMetabo();
+    ~FeatureFindingMetabo() override;
 
     /// main method of FeatureFindingMetabo
     void run(std::vector<MassTrace>& input_mtraces, FeatureMap& output_featmap, std::vector<std::vector< OpenMS::MSChromatogram > >& output_chromatograms);
 
 protected:
-    virtual void updateMembers_();
+    void updateMembers_() override;
 
 private:
     /** @brief Computes the cosine similarity between two vectors

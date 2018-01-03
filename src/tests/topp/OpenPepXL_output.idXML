@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?xml-stylesheet type="text/xsl" href="https://www.openms.de/xml-stylesheet/IdXML.xsl" ?>
 <IdXML version="1.5" xsi:noNamespaceSchemaLocation="https://www.openms.de/xml-schema/IdXML_1_5.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-	<SearchParameters id="SP_0" db="/nfs/wsi/abi/old-data/sachsenb/OpenMS_IDE/src/tests/topp/OpenPepXL_input.fasta" db_version="" taxonomy="" mass_type="monoisotopic" charges="2,3,4,5,6" enzyme="trypsin" missed_cleavages="2" precursor_peak_tolerance="10" precursor_peak_tolerance_ppm="true" peak_mass_tolerance="0.2" peak_mass_tolerance_ppm="false" >
-				<UserParam type="string" name="input_consensusXML" value="/nfs/wsi/abi/old-data/sachsenb/OpenMS_IDE/src/tests/topp/OpenPepXL_input.consensusXML"/>
-				<UserParam type="string" name="input_mzML" value="/nfs/wsi/abi/old-data/sachsenb/OpenMS_IDE/src/tests/topp/OpenPepXL_input.mzML"/>
+	<SearchParameters id="SP_0" db="/home/eugen/Development/OpenMS/src/tests/topp/OpenPepXL_input.fasta" db_version="" taxonomy="" mass_type="monoisotopic" charges="2,3,4,5,6" enzyme="trypsin" missed_cleavages="2" precursor_peak_tolerance="10" precursor_peak_tolerance_ppm="true" peak_mass_tolerance="0.2" peak_mass_tolerance_ppm="false" >
+				<UserParam type="string" name="input_consensusXML" value="/home/eugen/Development/OpenMS/src/tests/topp/OpenPepXL_input.consensusXML"/>
+				<UserParam type="string" name="input_mzML" value="/home/eugen/Development/OpenMS/src/tests/topp/OpenPepXL_input.mzML"/>
 				<UserParam type="string" name="input_decoys" value=""/>
 				<UserParam type="int" name="decoy_prefix" value="0"/>
 				<UserParam type="string" name="decoy_string" value="decoy"/>
@@ -19,7 +19,7 @@
 				<UserParam type="int" name="modifications:variable_max_per_peptide" value="2"/>
 				<UserParam type="int" name="MS:1001029" value="329"/>
 	</SearchParameters>
-	<IdentificationRun date="2017-08-07T12:43:53" search_engine="OpenXQuest" search_engine_version="2.2.0" search_parameters_ref="SP_0" >
+	<IdentificationRun date="2017-12-27T12:35:05" search_engine="OpenXQuest" search_engine_version="2.3.0" search_parameters_ref="SP_0" >
 		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0" >
 			<ProteinHit id="PH_0" accession="Protein1" score="0" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
@@ -33,7 +33,7 @@
 			<UserParam type="string" name="SpectrumIdentificationProtocol" value="MS:1002494"/>
 		</ProteinIdentification>
 		<PeptideIdentification score_type="OpenXQuest:combined score" higher_score_better="true" significance_threshold="0" MZ="541.064880371094" RT="2101.32348632812" spectrum_reference="spectrum=54,spectrum=40" >
-			<PeptideHit score="25.7955841375734" sequence="FIVKASSGPR" charge="4" aa_before="R" aa_after="Y" start="67" end="76" protein_refs="PH_0" >
+			<PeptideHit score="26.8538460428154" sequence="FIVKASSGPR" charge="4" aa_before="R" aa_after="Y" start="67" end="76" protein_refs="PH_0" >
 				<UserParam type="string" name="fragment_annotation" value="329.25048828125,0.177601501345634,1,&quot;[alpha|ci$y3]&quot;|363.302978515625,0.225260227918625,1,&quot;[beta|ci$y3]&quot;|371.220031738281,0.127944990992546,1,&quot;[beta|ci$b4]&quot;|416.274291992188,0.250927746295929,1,&quot;[alpha|ci$y4]&quot;|464.282836914062,0.588942646980286,1,&quot;[beta|ci$y4]&quot;|503.178283691406,0.405435562133789,1,&quot;[alpha|ci$y5]&quot;|574.275268554688,0.43561378121376,1,&quot;[alpha|ci$y6]&quot;|668.474914550781,0.419826328754425,3,&quot;[beta|xi$y7]&quot;"/>
 				<UserParam type="string" name="spectrum_reference" value="spectrum=54"/>
 				<UserParam type="string" name="xl_mod" value="DSS"/>
@@ -49,14 +49,18 @@
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="1.73411703302438"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.162473242929906"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="0.656090707433842"/>
-				<UserParam type="float" name="OpenXQuest:match-odds" value="0.811493072604136"/>
+				<UserParam type="float" name="OpenXQuest:match-odds" value="1.34786504687783"/>
 				<UserParam type="float" name="OpenXQuest:intsum" value="2.63155278563499"/>
 				<UserParam type="float" name="OpenXQuest:wTIC" value="0.396954220850271"/>
-				<UserParam type="float" name="OpenPepXL:HyperCommon" value="12.2343614000658"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="9.08423368635255"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="4.51358783729074"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="13.0872685590974"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="22.4387984745239"/>
+				<UserParam type="float" name="OpenXQuest:log_occupancy" value="2.68722449908122"/>
+				<UserParam type="float" name="OpenXQuest:log_occupancy_alpha" value="2.85372682486816"/>
+				<UserParam type="float" name="OpenXQuest:log_occupancy_beta" value="2.52072217329429"/>
+				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec" value="0.885479377526886"/>
+				<UserParam type="float" name="OpenPepXL:HyperCommon" value="12.5650697679762"/>
+				<UserParam type="float" name="OpenPepXL:HyperXlink" value="8.28473988317518"/>
+				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="4.05297537403953"/>
+				<UserParam type="float" name="OpenPepXL:HyperBeta" value="12.2918665538169"/>
+				<UserParam type="float" name="OpenPepXL:HyperBoth" value="22.5977780606451"/>
 				<UserParam type="float" name="OpenPepXL:PScoreCommon" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
@@ -66,7 +70,7 @@
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="string" name="protein_references" value="unique"/>
 			</PeptideHit>
-			<PeptideHit score="25.7955841375734" sequence="SAVIKTSTR" charge="4" aa_before="K" aa_after="Q" start="119" end="127" protein_refs="PH_1" >
+			<PeptideHit score="26.8538460428154" sequence="SAVIKTSTR" charge="4" aa_before="K" aa_after="Q" start="119" end="127" protein_refs="PH_1" >
 				<UserParam type="string" name="spectrum_reference" value="spectrum=54"/>
 				<UserParam type="string" name="xl_chain" value="MS:1002510"/>
 				<UserParam type="int" name="xl_pos" value="4"/>
@@ -77,14 +81,18 @@
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="1.73411703302438"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.162473242929906"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="0.656090707433842"/>
-				<UserParam type="float" name="OpenXQuest:match-odds" value="0.811493072604136"/>
+				<UserParam type="float" name="OpenXQuest:match-odds" value="1.34786504687783"/>
 				<UserParam type="float" name="OpenXQuest:intsum" value="2.63155278563499"/>
 				<UserParam type="float" name="OpenXQuest:wTIC" value="0.396954220850271"/>
-				<UserParam type="float" name="OpenPepXL:HyperCommon" value="12.2343614000658"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="9.08423368635255"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="4.51358783729074"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="13.0872685590974"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="22.4387984745239"/>
+				<UserParam type="float" name="OpenXQuest:log_occupancy" value="2.68722449908122"/>
+				<UserParam type="float" name="OpenXQuest:log_occupancy_alpha" value="2.85372682486816"/>
+				<UserParam type="float" name="OpenXQuest:log_occupancy_beta" value="2.52072217329429"/>
+				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec" value="0.885479377526886"/>
+				<UserParam type="float" name="OpenPepXL:HyperCommon" value="12.5650697679762"/>
+				<UserParam type="float" name="OpenPepXL:HyperXlink" value="8.28473988317518"/>
+				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="4.05297537403953"/>
+				<UserParam type="float" name="OpenPepXL:HyperBeta" value="12.2918665538169"/>
+				<UserParam type="float" name="OpenPepXL:HyperBoth" value="22.5977780606451"/>
 				<UserParam type="float" name="OpenPepXL:PScoreCommon" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
@@ -96,7 +104,7 @@
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="OpenXQuest:combined score" higher_score_better="true" significance_threshold="0" MZ="541.064880371094" RT="2101.32348632812" spectrum_reference="spectrum=54,spectrum=120" >
-			<PeptideHit score="28.6944954966563" sequence="FIVKASSGPR" charge="4" aa_before="R" aa_after="Y" start="67" end="76" protein_refs="PH_0" >
+			<PeptideHit score="29.9556259201995" sequence="FIVKASSGPR" charge="4" aa_before="R" aa_after="Y" start="67" end="76" protein_refs="PH_0" >
 				<UserParam type="string" name="fragment_annotation" value="258.172271728516,0.127446562051773,1,&quot;[beta|ci$b3]&quot;|276.082397460938,0.113416388630867,1,&quot;[beta|ci$y2]&quot;|329.25048828125,0.177601501345634,1,&quot;[alpha|ci$y3]&quot;|363.302978515625,0.225260227918625,1,&quot;[beta|ci$y3]&quot;|371.220031738281,0.127944990992546,1,&quot;[beta|ci$b4]&quot;|416.274291992188,0.250927746295929,1,&quot;[alpha|ci$y4]&quot;|464.282836914062,0.588942646980286,1,&quot;[beta|ci$y4]&quot;|503.178283691406,0.405435562133789,1,&quot;[alpha|ci$y5]&quot;|574.275268554688,0.43561378121376,1,&quot;[alpha|ci$y6]&quot;|668.474914550781,0.419826328754425,3,&quot;[beta|xi$y7]&quot;"/>
 				<UserParam type="string" name="spectrum_reference" value="spectrum=54"/>
 				<UserParam type="string" name="xl_mod" value="DSS"/>
@@ -112,14 +120,18 @@
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="1.73411703302438"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.274384184482009"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="0.687855890993178"/>
-				<UserParam type="float" name="OpenXQuest:match-odds" value="1.32056596920873"/>
+				<UserParam type="float" name="OpenXQuest:match-odds" value="1.95976030450686"/>
 				<UserParam type="float" name="OpenXQuest:intsum" value="2.87241573631763"/>
 				<UserParam type="float" name="OpenXQuest:wTIC" value="0.43644221362543"/>
-				<UserParam type="float" name="OpenPepXL:HyperCommon" value="13.381719245832"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="9.08423368635255"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="4.51358783729074"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="12.808939451714"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="23.5591339262547"/>
+				<UserParam type="float" name="OpenXQuest:log_occupancy" value="3.63467776766593"/>
+				<UserParam type="float" name="OpenXQuest:log_occupancy_alpha" value="2.85372682486816"/>
+				<UserParam type="float" name="OpenXQuest:log_occupancy_beta" value="4.41562871046371"/>
+				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec" value="1.69456434987807"/>
+				<UserParam type="float" name="OpenPepXL:HyperCommon" value="13.6989402028631"/>
+				<UserParam type="float" name="OpenPepXL:HyperXlink" value="8.28473988317518"/>
+				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="4.05297537403953"/>
+				<UserParam type="float" name="OpenPepXL:HyperBeta" value="13.0083208179101"/>
+				<UserParam type="float" name="OpenPepXL:HyperBoth" value="23.7149499390773"/>
 				<UserParam type="float" name="OpenPepXL:PScoreCommon" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
@@ -129,7 +141,7 @@
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="string" name="protein_references" value="unique"/>
 			</PeptideHit>
-			<PeptideHit score="28.6944954966563" sequence="SAVIKTSTR" charge="4" aa_before="K" aa_after="Q" start="119" end="127" protein_refs="PH_1" >
+			<PeptideHit score="29.9556259201995" sequence="SAVIKTSTR" charge="4" aa_before="K" aa_after="Q" start="119" end="127" protein_refs="PH_1" >
 				<UserParam type="string" name="spectrum_reference" value="spectrum=54"/>
 				<UserParam type="string" name="xl_chain" value="MS:1002510"/>
 				<UserParam type="int" name="xl_pos" value="4"/>
@@ -140,14 +152,18 @@
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="1.73411703302438"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.274384184482009"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="0.687855890993178"/>
-				<UserParam type="float" name="OpenXQuest:match-odds" value="1.32056596920873"/>
+				<UserParam type="float" name="OpenXQuest:match-odds" value="1.95976030450686"/>
 				<UserParam type="float" name="OpenXQuest:intsum" value="2.87241573631763"/>
 				<UserParam type="float" name="OpenXQuest:wTIC" value="0.43644221362543"/>
-				<UserParam type="float" name="OpenPepXL:HyperCommon" value="13.381719245832"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="9.08423368635255"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="4.51358783729074"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="12.808939451714"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="23.5591339262547"/>
+				<UserParam type="float" name="OpenXQuest:log_occupancy" value="3.63467776766593"/>
+				<UserParam type="float" name="OpenXQuest:log_occupancy_alpha" value="2.85372682486816"/>
+				<UserParam type="float" name="OpenXQuest:log_occupancy_beta" value="4.41562871046371"/>
+				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec" value="1.69456434987807"/>
+				<UserParam type="float" name="OpenPepXL:HyperCommon" value="13.6989402028631"/>
+				<UserParam type="float" name="OpenPepXL:HyperXlink" value="8.28473988317518"/>
+				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="4.05297537403953"/>
+				<UserParam type="float" name="OpenPepXL:HyperBeta" value="13.0083208179101"/>
+				<UserParam type="float" name="OpenPepXL:HyperBoth" value="23.7149499390773"/>
 				<UserParam type="float" name="OpenPepXL:PScoreCommon" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
@@ -159,7 +175,7 @@
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="OpenXQuest:combined score" higher_score_better="true" significance_threshold="0" MZ="541.064880371094" RT="2132.78686523438" spectrum_reference="spectrum=132,spectrum=40" >
-			<PeptideHit score="20.2878260868532" sequence="FIVKASSGPR" charge="4" aa_before="R" aa_after="Y" start="67" end="76" protein_refs="PH_0" >
+			<PeptideHit score="21.2714178947937" sequence="FIVKASSGPR" charge="4" aa_before="R" aa_after="Y" start="67" end="76" protein_refs="PH_0" >
 				<UserParam type="string" name="fragment_annotation" value="329.206848144531,0.142659738659859,1,&quot;[alpha|ci$y3]&quot;|371.037475585938,0.0897389277815819,1,&quot;[beta|ci$b4]&quot;|416.272338867188,0.185629785060883,1,&quot;[alpha|ci$y4]&quot;|464.2607421875,0.639200270175934,1,&quot;[beta|ci$y4]&quot;|503.17431640625,0.368112057447433,1,&quot;[alpha|ci$y5]&quot;|574.307067871094,0.279668509960175,1,&quot;[alpha|ci$y6]&quot;|668.490417480469,0.310192316770554,3,&quot;[beta|xi$y7]&quot;|672.179260253906,0.0471798181533813,3,&quot;[alpha|xi$y9]&quot;"/>
 				<UserParam type="string" name="spectrum_reference" value="spectrum=132"/>
 				<UserParam type="string" name="xl_mod" value="DSS"/>
@@ -175,14 +191,18 @@
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="1.73411703302438"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.255812133172784"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="0.47668680593951"/>
-				<UserParam type="float" name="OpenXQuest:match-odds" value="0.649742753110708"/>
+				<UserParam type="float" name="OpenXQuest:match-odds" value="1.14826875814896"/>
 				<UserParam type="float" name="OpenXQuest:intsum" value="2.0623814240098"/>
 				<UserParam type="float" name="OpenXQuest:wTIC" value="0.351837083235437"/>
-				<UserParam type="float" name="OpenPepXL:HyperCommon" value="10.2123004542122"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="13.1115355865716"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="5.81047549051542"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="8.74900626483028"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="19.9479209003274"/>
+				<UserParam type="float" name="OpenXQuest:log_occupancy" value="2.44028657970436"/>
+				<UserParam type="float" name="OpenXQuest:log_occupancy_alpha" value="3.13559491013192"/>
+				<UserParam type="float" name="OpenXQuest:log_occupancy_beta" value="1.7449782492768"/>
+				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec" value="0.885479377526886"/>
+				<UserParam type="float" name="OpenPepXL:HyperCommon" value="9.6197722715887"/>
+				<UserParam type="float" name="OpenPepXL:HyperXlink" value="12.311687744963"/>
+				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="5.49219682733782"/>
+				<UserParam type="float" name="OpenPepXL:HyperBeta" value="8.01937149303993"/>
+				<UserParam type="float" name="OpenPepXL:HyperBoth" value="19.1594788737984"/>
 				<UserParam type="float" name="OpenPepXL:PScoreCommon" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
@@ -192,7 +212,7 @@
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="string" name="protein_references" value="unique"/>
 			</PeptideHit>
-			<PeptideHit score="20.2878260868532" sequence="SAVIKTSTR" charge="4" aa_before="K" aa_after="Q" start="119" end="127" protein_refs="PH_1" >
+			<PeptideHit score="21.2714178947937" sequence="SAVIKTSTR" charge="4" aa_before="K" aa_after="Q" start="119" end="127" protein_refs="PH_1" >
 				<UserParam type="string" name="spectrum_reference" value="spectrum=132"/>
 				<UserParam type="string" name="xl_chain" value="MS:1002510"/>
 				<UserParam type="int" name="xl_pos" value="4"/>
@@ -203,14 +223,18 @@
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="1.73411703302438"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.255812133172784"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="0.47668680593951"/>
-				<UserParam type="float" name="OpenXQuest:match-odds" value="0.649742753110708"/>
+				<UserParam type="float" name="OpenXQuest:match-odds" value="1.14826875814896"/>
 				<UserParam type="float" name="OpenXQuest:intsum" value="2.0623814240098"/>
 				<UserParam type="float" name="OpenXQuest:wTIC" value="0.351837083235437"/>
-				<UserParam type="float" name="OpenPepXL:HyperCommon" value="10.2123004542122"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="13.1115355865716"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="5.81047549051542"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="8.74900626483028"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="19.9479209003274"/>
+				<UserParam type="float" name="OpenXQuest:log_occupancy" value="2.44028657970436"/>
+				<UserParam type="float" name="OpenXQuest:log_occupancy_alpha" value="3.13559491013192"/>
+				<UserParam type="float" name="OpenXQuest:log_occupancy_beta" value="1.7449782492768"/>
+				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec" value="0.885479377526886"/>
+				<UserParam type="float" name="OpenPepXL:HyperCommon" value="9.6197722715887"/>
+				<UserParam type="float" name="OpenPepXL:HyperXlink" value="12.311687744963"/>
+				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="5.49219682733782"/>
+				<UserParam type="float" name="OpenPepXL:HyperBeta" value="8.01937149303993"/>
+				<UserParam type="float" name="OpenPepXL:HyperBoth" value="19.1594788737984"/>
 				<UserParam type="float" name="OpenPepXL:PScoreCommon" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
@@ -222,7 +246,7 @@
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="OpenXQuest:combined score" higher_score_better="true" significance_threshold="0" MZ="541.064880371094" RT="2132.78686523438" spectrum_reference="spectrum=132,spectrum=120" >
-			<PeptideHit score="21.4858742396459" sequence="FIVKASSGPR" charge="4" aa_before="R" aa_after="Y" start="67" end="76" protein_refs="PH_0" >
+			<PeptideHit score="22.65092554914" sequence="FIVKASSGPR" charge="4" aa_before="R" aa_after="Y" start="67" end="76" protein_refs="PH_0" >
 				<UserParam type="string" name="fragment_annotation" value="258.161224365234,0.117963738739491,1,&quot;[beta|ci$b3]&quot;|276.103637695312,0.0549341179430485,1,&quot;[beta|ci$y2]&quot;|329.206848144531,0.142659738659859,1,&quot;[alpha|ci$y3]&quot;|363.125854492188,0.228076443076134,1,&quot;[beta|ci$y3]&quot;|416.272338867188,0.185629785060883,1,&quot;[alpha|ci$y4]&quot;|464.2607421875,0.639200270175934,1,&quot;[beta|ci$y4]&quot;|503.17431640625,0.368112057447433,1,&quot;[alpha|ci$y5]&quot;|574.307067871094,0.279668509960175,1,&quot;[alpha|ci$y6]&quot;|668.490417480469,0.310192316770554,3,&quot;[beta|xi$y7]&quot;"/>
 				<UserParam type="string" name="spectrum_reference" value="spectrum=132"/>
 				<UserParam type="string" name="xl_mod" value="DSS"/>
@@ -238,14 +262,18 @@
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="1.73411703302438"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.192280315288488"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="0.449638872419585"/>
-				<UserParam type="float" name="OpenXQuest:match-odds" value="1.03898893171825"/>
+				<UserParam type="float" name="OpenXQuest:match-odds" value="1.6294863009499"/>
 				<UserParam type="float" name="OpenXQuest:intsum" value="2.32643697783351"/>
 				<UserParam type="float" name="OpenXQuest:wTIC" value="0.405495636964018"/>
-				<UserParam type="float" name="OpenPepXL:HyperCommon" value="12.0786685085882"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="9.06505318510127"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="4.24307376521432"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="10.7267964846518"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="19.6754060335916"/>
+				<UserParam type="float" name="OpenXQuest:log_occupancy" value="3.13495827869519"/>
+				<UserParam type="float" name="OpenXQuest:log_occupancy_alpha" value="2.85372682486816"/>
+				<UserParam type="float" name="OpenXQuest:log_occupancy_beta" value="3.41618973252222"/>
+				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec" value="1.25401287331375"/>
+				<UserParam type="float" name="OpenPepXL:HyperCommon" value="12.4557239863681"/>
+				<UserParam type="float" name="OpenPepXL:HyperXlink" value="8.26907162356069"/>
+				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="3.90423933427245"/>
+				<UserParam type="float" name="OpenPepXL:HyperBeta" value="9.98970069914597"/>
+				<UserParam type="float" name="OpenPepXL:HyperBoth" value="19.8805068625479"/>
 				<UserParam type="float" name="OpenPepXL:PScoreCommon" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
@@ -255,7 +283,7 @@
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="string" name="protein_references" value="unique"/>
 			</PeptideHit>
-			<PeptideHit score="21.4858742396459" sequence="SAVIKTSTR" charge="4" aa_before="K" aa_after="Q" start="119" end="127" protein_refs="PH_1" >
+			<PeptideHit score="22.65092554914" sequence="SAVIKTSTR" charge="4" aa_before="K" aa_after="Q" start="119" end="127" protein_refs="PH_1" >
 				<UserParam type="string" name="spectrum_reference" value="spectrum=132"/>
 				<UserParam type="string" name="xl_chain" value="MS:1002510"/>
 				<UserParam type="int" name="xl_pos" value="4"/>
@@ -266,14 +294,18 @@
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="1.73411703302438"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.192280315288488"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="0.449638872419585"/>
-				<UserParam type="float" name="OpenXQuest:match-odds" value="1.03898893171825"/>
+				<UserParam type="float" name="OpenXQuest:match-odds" value="1.6294863009499"/>
 				<UserParam type="float" name="OpenXQuest:intsum" value="2.32643697783351"/>
 				<UserParam type="float" name="OpenXQuest:wTIC" value="0.405495636964018"/>
-				<UserParam type="float" name="OpenPepXL:HyperCommon" value="12.0786685085882"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="9.06505318510127"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="4.24307376521432"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="10.7267964846518"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="19.6754060335916"/>
+				<UserParam type="float" name="OpenXQuest:log_occupancy" value="3.13495827869519"/>
+				<UserParam type="float" name="OpenXQuest:log_occupancy_alpha" value="2.85372682486816"/>
+				<UserParam type="float" name="OpenXQuest:log_occupancy_beta" value="3.41618973252222"/>
+				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec" value="1.25401287331375"/>
+				<UserParam type="float" name="OpenPepXL:HyperCommon" value="12.4557239863681"/>
+				<UserParam type="float" name="OpenPepXL:HyperXlink" value="8.26907162356069"/>
+				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="3.90423933427245"/>
+				<UserParam type="float" name="OpenPepXL:HyperBeta" value="9.98970069914597"/>
+				<UserParam type="float" name="OpenPepXL:HyperBoth" value="19.8805068625479"/>
 				<UserParam type="float" name="OpenPepXL:PScoreCommon" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
@@ -285,7 +317,7 @@
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="OpenXQuest:combined score" higher_score_better="true" significance_threshold="0" MZ="728.411010742188" RT="2120.05249023438" spectrum_reference="spectrum=99,spectrum=48" >
-			<PeptideHit score="2.23349759264485" sequence="MSERDTALEK" charge="3" aa_before="[" aa_after="Y" start="0" end="9" protein_refs="PH_0" >
+			<PeptideHit score="2.53021326742868" sequence="MSERDTALEK" charge="3" aa_before="[" aa_after="Y" start="0" end="9" protein_refs="PH_0" >
 				<UserParam type="string" name="fragment_annotation" value="1028.02502441406,0.0859605744481087,2,&quot;[beta|xi$y7]&quot;"/>
 				<UserParam type="string" name="spectrum_reference" value="spectrum=99"/>
 				<UserParam type="string" name="xl_mod" value="DSS"/>
@@ -301,14 +333,18 @@
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="3.68496975184722"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.0530856084417849"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="0.0746142296755867"/>
-				<UserParam type="float" name="OpenXQuest:match-odds" value="0.0668016022404448"/>
+				<UserParam type="float" name="OpenXQuest:match-odds" value="0.217189678664084"/>
 				<UserParam type="float" name="OpenXQuest:intsum" value="0.0859605744481087"/>
 				<UserParam type="float" name="OpenXQuest:wTIC" value="0.0177079905174123"/>
+				<UserParam type="float" name="OpenXQuest:log_occupancy" value="0.455818777439756"/>
+				<UserParam type="float" name="OpenXQuest:log_occupancy_alpha" value="0"/>
+				<UserParam type="float" name="OpenXQuest:log_occupancy_beta" value="0.911637554879511"/>
+				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec" value="0.0370266572578086"/>
 				<UserParam type="float" name="OpenPepXL:HyperCommon" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0"/>
+				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0.0824649173979771"/>
 				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="0"/>
+				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0.0824649173979771"/>
+				<UserParam type="float" name="OpenPepXL:HyperBoth" value="0.0824649173979771"/>
 				<UserParam type="float" name="OpenPepXL:PScoreCommon" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
@@ -318,7 +354,7 @@
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="string" name="protein_references" value="unique"/>
 			</PeptideHit>
-			<PeptideHit score="2.23349759264485" sequence="KLGVKPPK" charge="3" aa_before="R" aa_after="G" start="212" end="219" protein_refs="PH_1" >
+			<PeptideHit score="2.53021326742868" sequence="KLGVKPPK" charge="3" aa_before="R" aa_after="G" start="212" end="219" protein_refs="PH_1" >
 				<UserParam type="string" name="spectrum_reference" value="spectrum=99"/>
 				<UserParam type="string" name="xl_chain" value="MS:1002510"/>
 				<UserParam type="int" name="xl_pos" value="4"/>
@@ -329,14 +365,18 @@
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="3.68496975184722"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.0530856084417849"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="0.0746142296755867"/>
-				<UserParam type="float" name="OpenXQuest:match-odds" value="0.0668016022404448"/>
+				<UserParam type="float" name="OpenXQuest:match-odds" value="0.217189678664084"/>
 				<UserParam type="float" name="OpenXQuest:intsum" value="0.0859605744481087"/>
 				<UserParam type="float" name="OpenXQuest:wTIC" value="0.0177079905174123"/>
+				<UserParam type="float" name="OpenXQuest:log_occupancy" value="0.455818777439756"/>
+				<UserParam type="float" name="OpenXQuest:log_occupancy_alpha" value="0"/>
+				<UserParam type="float" name="OpenXQuest:log_occupancy_beta" value="0.911637554879511"/>
+				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec" value="0.0370266572578086"/>
 				<UserParam type="float" name="OpenPepXL:HyperCommon" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0"/>
+				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0.0824649173979771"/>
 				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="0"/>
+				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0.0824649173979771"/>
+				<UserParam type="float" name="OpenPepXL:HyperBoth" value="0.0824649173979771"/>
 				<UserParam type="float" name="OpenPepXL:PScoreCommon" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
@@ -348,7 +388,7 @@
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="OpenXQuest:combined score" higher_score_better="true" significance_threshold="0" MZ="728.411010742188" RT="2120.05249023438" spectrum_reference="spectrum=99,spectrum=48" >
-			<PeptideHit score="0.932863054031326" sequence="LAAPQLVQMFIGDGAK(Xlink:DSS)LVR" charge="3" aa_before="K" aa_after="D" start="249" end="267" protein_refs="PH_1" >
+			<PeptideHit score="0.936605209529642" sequence="LAAPQLVQMFIGDGAK(Xlink:DSS)LVR" charge="3" aa_before="K" aa_after="D" start="249" end="267" protein_refs="PH_1" >
 				<UserParam type="string" name="fragment_annotation" value="1004.99096679688,0.334201395511627,2,&quot;[alpha|xi$b18]&quot;"/>
 				<UserParam type="string" name="spectrum_reference" value="spectrum=99"/>
 				<UserParam type="string" name="xl_chain" value="MS:1002509"/>
@@ -362,14 +402,18 @@
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-66665.7792280486"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.000333623265276995"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="-0.0259976562688046"/>
-				<UserParam type="float" name="OpenXQuest:match-odds" value="0.000228211390356841"/>
+				<UserParam type="float" name="OpenXQuest:match-odds" value="0.00212489435959964"/>
 				<UserParam type="float" name="OpenXQuest:intsum" value="0.334201395511627"/>
 				<UserParam type="float" name="OpenXQuest:wTIC" value="0.0688459236181392"/>
+				<UserParam type="float" name="OpenXQuest:log_occupancy" value="0.0564614974779924"/>
+				<UserParam type="float" name="OpenXQuest:log_occupancy_alpha" value="0.0564614974779924"/>
+				<UserParam type="float" name="OpenXQuest:log_occupancy_beta" value="0"/>
+				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec" value="0.0231329371940407"/>
 				<UserParam type="float" name="OpenPepXL:HyperCommon" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0.903988512848557"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="2.99091414238751"/>
+				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0.288332907246581"/>
+				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="2.58943363761124"/>
 				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="2.99091414238751"/>
+				<UserParam type="float" name="OpenPepXL:HyperBoth" value="2.58943363761124"/>
 				<UserParam type="float" name="OpenPepXL:PScoreCommon" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
@@ -381,7 +425,7 @@
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="OpenXQuest:combined score" higher_score_better="true" significance_threshold="0" MZ="721.084655761719" RT="2100.65356445312" spectrum_reference="spectrum=52,spectrum=23" >
-			<PeptideHit score="30.7427414099783" sequence="FIVKASSGPR" charge="3" aa_before="R" aa_after="Y" start="67" end="76" protein_refs="PH_0" >
+			<PeptideHit score="32.0620934805603" sequence="FIVKASSGPR" charge="3" aa_before="R" aa_after="Y" start="67" end="76" protein_refs="PH_0" >
 				<UserParam type="string" name="fragment_annotation" value="416.172302246094,0.113435924053192,1,&quot;[alpha|ci$y4]&quot;|464.272094726562,0.299913018941879,1,&quot;[beta|ci$y4]&quot;|503.233581542969,0.284903049468994,1,&quot;[alpha|ci$y5]&quot;|574.276184082031,0.394180774688721,1,&quot;[alpha|ci$y6]&quot;|634.600646972656,0.972340881824493,3,&quot;[alpha|xi$y8]&quot;|668.669494628906,0.491430699825287,3,&quot;[beta|xi$y7]&quot;|794.382385253906,0.0895268097519875,2,&quot;[alpha|xi$b4]&quot;|896.231628417969,0.640620291233063,2,&quot;[beta|xi$y5]&quot;|901.765808105469,0.843465268611908,2,&quot;[alpha|xi$y7]&quot;"/>
 				<UserParam type="string" name="spectrum_reference" value="spectrum=52"/>
 				<UserParam type="string" name="xl_mod" value="DSS"/>
@@ -397,14 +441,18 @@
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="2.53107322829242"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.399394053053609"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="0.513182739174348"/>
-				<UserParam type="float" name="OpenXQuest:match-odds" value="0.695707754294939"/>
+				<UserParam type="float" name="OpenXQuest:match-odds" value="1.36441128728123"/>
 				<UserParam type="float" name="OpenXQuest:intsum" value="4.12981671839952"/>
 				<UserParam type="float" name="OpenXQuest:wTIC" value="0.781255905117072"/>
-				<UserParam type="float" name="OpenPepXL:HyperCommon" value="7.7893135280886"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="13.3938995237745"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="6.43794591908544"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="2.65323541899987"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="12.6295877869546"/>
+				<UserParam type="float" name="OpenXQuest:log_occupancy" value="2.92191036386181"/>
+				<UserParam type="float" name="OpenXQuest:log_occupancy_alpha" value="3.76174501794352"/>
+				<UserParam type="float" name="OpenXQuest:log_occupancy_beta" value="2.08207570978011"/>
+				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec" value="2.88337902337839"/>
+				<UserParam type="float" name="OpenPepXL:HyperCommon" value="7.38293521117503"/>
+				<UserParam type="float" name="OpenPepXL:HyperXlink" value="12.5484024106411"/>
+				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="5.85784550030881"/>
+				<UserParam type="float" name="OpenPepXL:HyperBeta" value="2.418041323402"/>
+				<UserParam type="float" name="OpenPepXL:HyperBoth" value="11.9361911344104"/>
 				<UserParam type="float" name="OpenPepXL:PScoreCommon" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
@@ -414,7 +462,7 @@
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="string" name="protein_references" value="unique"/>
 			</PeptideHit>
-			<PeptideHit score="30.7427414099783" sequence="SAVIKTSTR" charge="3" aa_before="K" aa_after="Q" start="119" end="127" protein_refs="PH_1" >
+			<PeptideHit score="32.0620934805603" sequence="SAVIKTSTR" charge="3" aa_before="K" aa_after="Q" start="119" end="127" protein_refs="PH_1" >
 				<UserParam type="string" name="spectrum_reference" value="spectrum=52"/>
 				<UserParam type="string" name="xl_chain" value="MS:1002510"/>
 				<UserParam type="int" name="xl_pos" value="4"/>
@@ -425,14 +473,18 @@
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="2.53107322829242"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.399394053053609"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="0.513182739174348"/>
-				<UserParam type="float" name="OpenXQuest:match-odds" value="0.695707754294939"/>
+				<UserParam type="float" name="OpenXQuest:match-odds" value="1.36441128728123"/>
 				<UserParam type="float" name="OpenXQuest:intsum" value="4.12981671839952"/>
 				<UserParam type="float" name="OpenXQuest:wTIC" value="0.781255905117072"/>
-				<UserParam type="float" name="OpenPepXL:HyperCommon" value="7.7893135280886"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="13.3938995237745"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="6.43794591908544"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="2.65323541899987"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="12.6295877869546"/>
+				<UserParam type="float" name="OpenXQuest:log_occupancy" value="2.92191036386181"/>
+				<UserParam type="float" name="OpenXQuest:log_occupancy_alpha" value="3.76174501794352"/>
+				<UserParam type="float" name="OpenXQuest:log_occupancy_beta" value="2.08207570978011"/>
+				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec" value="2.88337902337839"/>
+				<UserParam type="float" name="OpenPepXL:HyperCommon" value="7.38293521117503"/>
+				<UserParam type="float" name="OpenPepXL:HyperXlink" value="12.5484024106411"/>
+				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="5.85784550030881"/>
+				<UserParam type="float" name="OpenPepXL:HyperBeta" value="2.418041323402"/>
+				<UserParam type="float" name="OpenPepXL:HyperBoth" value="11.9361911344104"/>
 				<UserParam type="float" name="OpenPepXL:PScoreCommon" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
@@ -444,7 +496,7 @@
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="OpenXQuest:combined score" higher_score_better="true" significance_threshold="0" MZ="721.084655761719" RT="2100.65356445312" spectrum_reference="spectrum=52,spectrum=113" >
-			<PeptideHit score="30.9075949247173" sequence="FIVKASSGPR" charge="3" aa_before="R" aa_after="Y" start="67" end="76" protein_refs="PH_0" >
+			<PeptideHit score="32.535993018484" sequence="FIVKASSGPR" charge="3" aa_before="R" aa_after="Y" start="67" end="76" protein_refs="PH_0" >
 				<UserParam type="string" name="fragment_annotation" value="416.172302246094,0.113435924053192,1,&quot;[alpha|ci$y4]&quot;|464.272094726562,0.299913018941879,1,&quot;[beta|ci$y4]&quot;|503.233581542969,0.284903049468994,1,&quot;[alpha|ci$y5]&quot;|574.276184082031,0.394180774688721,1,&quot;[alpha|ci$y6]&quot;|668.669494628906,0.491430699825287,3,&quot;[beta|xi$y7]&quot;|794.382385253906,0.0895268097519875,2,&quot;[alpha|xi$b4]&quot;|896.231628417969,0.640620291233063,2,&quot;[beta|xi$y5]&quot;|901.765808105469,0.843465268611908,2,&quot;[alpha|xi$y7]&quot;|951.238830566406,1,2,&quot;[alpha|xi$y8]&quot;|952.323486328125,0.521720707416534,2,&quot;[beta|xi$y6]&quot;|953.127502441406,0.443184226751328,2,&quot;[beta|xi$y6]&quot;|1002.26873779297,0.238677591085434,2,&quot;[beta|xi$y7]&quot;"/>
 				<UserParam type="string" name="spectrum_reference" value="spectrum=52"/>
 				<UserParam type="string" name="xl_mod" value="DSS"/>
@@ -460,14 +512,18 @@
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="2.53107322829242"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.461911974784838"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="0.407998596816918"/>
-				<UserParam type="float" name="OpenXQuest:match-odds" value="1.39268746822049"/>
+				<UserParam type="float" name="OpenXQuest:match-odds" value="2.21802862066184"/>
 				<UserParam type="float" name="OpenXQuest:intsum" value="5.36105836182833"/>
 				<UserParam type="float" name="OpenXQuest:wTIC" value="0.676504666279161"/>
-				<UserParam type="float" name="OpenPepXL:HyperCommon" value="7.7893135280886"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="22.7888973339347"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="8.64960496953687"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="6.25740310956051"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="19.7031399984613"/>
+				<UserParam type="float" name="OpenXQuest:log_occupancy" value="4.26985523382388"/>
+				<UserParam type="float" name="OpenXQuest:log_occupancy_alpha" value="3.76174501794352"/>
+				<UserParam type="float" name="OpenXQuest:log_occupancy_beta" value="4.77796544970424"/>
+				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec" value="5.4289394615515"/>
+				<UserParam type="float" name="OpenPepXL:HyperCommon" value="7.38293521117503"/>
+				<UserParam type="float" name="OpenPepXL:HyperXlink" value="22.9034891768035"/>
+				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="7.94442689027721"/>
+				<UserParam type="float" name="OpenPepXL:HyperBeta" value="5.74294641191393"/>
+				<UserParam type="float" name="OpenPepXL:HyperBoth" value="19.9031557384379"/>
 				<UserParam type="float" name="OpenPepXL:PScoreCommon" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
@@ -477,7 +533,7 @@
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="string" name="protein_references" value="unique"/>
 			</PeptideHit>
-			<PeptideHit score="30.9075949247173" sequence="SAVIKTSTR" charge="3" aa_before="K" aa_after="Q" start="119" end="127" protein_refs="PH_1" >
+			<PeptideHit score="32.535993018484" sequence="SAVIKTSTR" charge="3" aa_before="K" aa_after="Q" start="119" end="127" protein_refs="PH_1" >
 				<UserParam type="string" name="spectrum_reference" value="spectrum=52"/>
 				<UserParam type="string" name="xl_chain" value="MS:1002510"/>
 				<UserParam type="int" name="xl_pos" value="4"/>
@@ -488,14 +544,18 @@
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="2.53107322829242"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.461911974784838"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="0.407998596816918"/>
-				<UserParam type="float" name="OpenXQuest:match-odds" value="1.39268746822049"/>
+				<UserParam type="float" name="OpenXQuest:match-odds" value="2.21802862066184"/>
 				<UserParam type="float" name="OpenXQuest:intsum" value="5.36105836182833"/>
 				<UserParam type="float" name="OpenXQuest:wTIC" value="0.676504666279161"/>
-				<UserParam type="float" name="OpenPepXL:HyperCommon" value="7.7893135280886"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="22.7888973339347"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="8.64960496953687"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="6.25740310956051"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="19.7031399984613"/>
+				<UserParam type="float" name="OpenXQuest:log_occupancy" value="4.26985523382388"/>
+				<UserParam type="float" name="OpenXQuest:log_occupancy_alpha" value="3.76174501794352"/>
+				<UserParam type="float" name="OpenXQuest:log_occupancy_beta" value="4.77796544970424"/>
+				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec" value="5.4289394615515"/>
+				<UserParam type="float" name="OpenPepXL:HyperCommon" value="7.38293521117503"/>
+				<UserParam type="float" name="OpenPepXL:HyperXlink" value="22.9034891768035"/>
+				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="7.94442689027721"/>
+				<UserParam type="float" name="OpenPepXL:HyperBeta" value="5.74294641191393"/>
+				<UserParam type="float" name="OpenPepXL:HyperBoth" value="19.9031557384379"/>
 				<UserParam type="float" name="OpenPepXL:PScoreCommon" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
@@ -507,7 +567,7 @@
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="OpenXQuest:combined score" higher_score_better="true" significance_threshold="0" MZ="721.084594726563" RT="2132.47583007812" spectrum_reference="spectrum=131,spectrum=23" >
-			<PeptideHit score="38.0729656572994" sequence="FIVKASSGPR" charge="3" aa_before="R" aa_after="Y" start="67" end="76" protein_refs="PH_0" >
+			<PeptideHit score="39.8515533232104" sequence="FIVKASSGPR" charge="3" aa_before="R" aa_after="Y" start="67" end="76" protein_refs="PH_0" >
 				<UserParam type="string" name="fragment_annotation" value="363.278503417969,0.147204279899597,1,&quot;[beta|ci$y3]&quot;|371.366638183594,0.0215564668178558,1,&quot;[beta|ci$b4]&quot;|416.203674316406,0.127343788743019,1,&quot;[alpha|ci$y4]&quot;|464.295043945312,0.436179101467133,1,&quot;[beta|ci$y4]&quot;|503.325561523438,0.366594970226288,1,&quot;[alpha|ci$y5]&quot;|574.280883789062,0.684320747852325,1,&quot;[alpha|ci$y6]&quot;|634.51025390625,0.953487992286682,3,&quot;[alpha|xi$y8]&quot;|668.63134765625,0.677057325839996,3,&quot;[beta|xi$y7]&quot;|794.655395507812,0.20633727312088,2,&quot;[alpha|xi$b4]&quot;|896.307189941406,1,2,&quot;[beta|xi$y5]&quot;|901.445617675781,0.530827462673187,2,&quot;[alpha|xi$y7]&quot;|951.509765625,0.779896795749664,2,&quot;[alpha|xi$y8]&quot;|1002.68341064453,0.208705112338066,2,&quot;[beta|xi$y7]&quot;"/>
 				<UserParam type="string" name="spectrum_reference" value="spectrum=131"/>
 				<UserParam type="string" name="xl_mod" value="DSS"/>
@@ -523,14 +583,18 @@
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="2.44642947666162"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.554227564017473"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="0.61939514013582"/>
-				<UserParam type="float" name="OpenXQuest:match-odds" value="1.31951038704145"/>
+				<UserParam type="float" name="OpenXQuest:match-odds" value="2.22097397848137"/>
 				<UserParam type="float" name="OpenXQuest:intsum" value="6.13951131701469"/>
 				<UserParam type="float" name="OpenXQuest:wTIC" value="0.768526301879695"/>
-				<UserParam type="float" name="OpenPepXL:HyperCommon" value="9.92801567205764"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="15.7458583329561"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="12.866017170325"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="6.22243131450051"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="26.1913060026206"/>
+				<UserParam type="float" name="OpenXQuest:log_occupancy" value="4.41062768458409"/>
+				<UserParam type="float" name="OpenXQuest:log_occupancy_alpha" value="4.53999031260935"/>
+				<UserParam type="float" name="OpenXQuest:log_occupancy_beta" value="4.28126505655884"/>
+				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec" value="6.42996939232125"/>
+				<UserParam type="float" name="OpenPepXL:HyperCommon" value="10.3279912107947"/>
+				<UserParam type="float" name="OpenPepXL:HyperXlink" value="14.8796248308368"/>
+				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="13.0553193219031"/>
+				<UserParam type="float" name="OpenPepXL:HyperBeta" value="5.72157119395302"/>
+				<UserParam type="float" name="OpenPepXL:HyperBoth" value="26.3376974389005"/>
 				<UserParam type="float" name="OpenPepXL:PScoreCommon" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
@@ -540,7 +604,7 @@
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="string" name="protein_references" value="unique"/>
 			</PeptideHit>
-			<PeptideHit score="38.0729656572994" sequence="SAVIKTSTR" charge="3" aa_before="K" aa_after="Q" start="119" end="127" protein_refs="PH_1" >
+			<PeptideHit score="39.8515533232104" sequence="SAVIKTSTR" charge="3" aa_before="K" aa_after="Q" start="119" end="127" protein_refs="PH_1" >
 				<UserParam type="string" name="spectrum_reference" value="spectrum=131"/>
 				<UserParam type="string" name="xl_chain" value="MS:1002510"/>
 				<UserParam type="int" name="xl_pos" value="4"/>
@@ -551,14 +615,18 @@
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="2.44642947666162"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.554227564017473"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="0.61939514013582"/>
-				<UserParam type="float" name="OpenXQuest:match-odds" value="1.31951038704145"/>
+				<UserParam type="float" name="OpenXQuest:match-odds" value="2.22097397848137"/>
 				<UserParam type="float" name="OpenXQuest:intsum" value="6.13951131701469"/>
 				<UserParam type="float" name="OpenXQuest:wTIC" value="0.768526301879695"/>
-				<UserParam type="float" name="OpenPepXL:HyperCommon" value="9.92801567205764"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="15.7458583329561"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="12.866017170325"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="6.22243131450051"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="26.1913060026206"/>
+				<UserParam type="float" name="OpenXQuest:log_occupancy" value="4.41062768458409"/>
+				<UserParam type="float" name="OpenXQuest:log_occupancy_alpha" value="4.53999031260935"/>
+				<UserParam type="float" name="OpenXQuest:log_occupancy_beta" value="4.28126505655884"/>
+				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec" value="6.42996939232125"/>
+				<UserParam type="float" name="OpenPepXL:HyperCommon" value="10.3279912107947"/>
+				<UserParam type="float" name="OpenPepXL:HyperXlink" value="14.8796248308368"/>
+				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="13.0553193219031"/>
+				<UserParam type="float" name="OpenPepXL:HyperBeta" value="5.72157119395302"/>
+				<UserParam type="float" name="OpenPepXL:HyperBoth" value="26.3376974389005"/>
 				<UserParam type="float" name="OpenPepXL:PScoreCommon" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
@@ -570,7 +638,7 @@
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="OpenXQuest:combined score" higher_score_better="true" significance_threshold="0" MZ="721.084594726563" RT="2132.47583007812" spectrum_reference="spectrum=131,spectrum=113" >
-			<PeptideHit score="35.9776408572636" sequence="FIVKASSGPR" charge="3" aa_before="R" aa_after="Y" start="67" end="76" protein_refs="PH_0" >
+			<PeptideHit score="37.8673416739221" sequence="FIVKASSGPR" charge="3" aa_before="R" aa_after="Y" start="67" end="76" protein_refs="PH_0" >
 				<UserParam type="string" name="fragment_annotation" value="276.242279052734,0.054167415946722,1,&quot;[beta|ci$y2]&quot;|329.274536132812,0.093634158372879,1,&quot;[alpha|ci$y3]&quot;|363.278503417969,0.147204279899597,1,&quot;[beta|ci$y3]&quot;|416.203674316406,0.127343788743019,1,&quot;[alpha|ci$y4]&quot;|464.295043945312,0.436179101467133,1,&quot;[beta|ci$y4]&quot;|503.325561523438,0.366594970226288,1,&quot;[alpha|ci$y5]&quot;|574.280883789062,0.684320747852325,1,&quot;[alpha|ci$y6]&quot;|794.655395507812,0.20633727312088,2,&quot;[alpha|xi$b4]&quot;|896.307189941406,1,2,&quot;[beta|xi$y5]&quot;|901.445617675781,0.530827462673187,2,&quot;[alpha|xi$y7]&quot;|951.509765625,0.779896795749664,2,&quot;[alpha|xi$y8]&quot;|952.359069824219,0.845827639102936,2,&quot;[beta|xi$y6]&quot;|953.13818359375,0.589936316013336,2,&quot;[beta|xi$y6]&quot;|1002.68341064453,0.208705112338066,2,&quot;[beta|xi$y7]&quot;"/>
 				<UserParam type="string" name="spectrum_reference" value="spectrum=131"/>
 				<UserParam type="string" name="xl_mod" value="DSS"/>
@@ -586,14 +654,18 @@
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="2.44642947666162"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.463871564656573"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="0.579953892500178"/>
-				<UserParam type="float" name="OpenXQuest:match-odds" value="1.58684476206822"/>
+				<UserParam type="float" name="OpenXQuest:match-odds" value="2.54462520639591"/>
 				<UserParam type="float" name="OpenXQuest:intsum" value="6.07097506150603"/>
 				<UserParam type="float" name="OpenXQuest:wTIC" value="0.656644298044688"/>
-				<UserParam type="float" name="OpenPepXL:HyperCommon" value="12.3436275609857"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="20.633228936281"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="12.866017170325"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="12.7168321462213"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="33.4241767521521"/>
+				<UserParam type="float" name="OpenXQuest:log_occupancy" value="4.9028425783752"/>
+				<UserParam type="float" name="OpenXQuest:log_occupancy_alpha" value="4.62031155594519"/>
+				<UserParam type="float" name="OpenXQuest:log_occupancy_beta" value="5.1853736008052"/>
+				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec" value="7.50091945390769"/>
+				<UserParam type="float" name="OpenPepXL:HyperCommon" value="11.7340328312971"/>
+				<UserParam type="float" name="OpenPepXL:HyperXlink" value="19.7454211585198"/>
+				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="13.0553193219031"/>
+				<UserParam type="float" name="OpenPepXL:HyperBeta" value="12.0011273237485"/>
+				<UserParam type="float" name="OpenPepXL:HyperBoth" value="33.5442326418358"/>
 				<UserParam type="float" name="OpenPepXL:PScoreCommon" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
@@ -603,7 +675,7 @@
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="string" name="protein_references" value="unique"/>
 			</PeptideHit>
-			<PeptideHit score="35.9776408572636" sequence="SAVIKTSTR" charge="3" aa_before="K" aa_after="Q" start="119" end="127" protein_refs="PH_1" >
+			<PeptideHit score="37.8673416739221" sequence="SAVIKTSTR" charge="3" aa_before="K" aa_after="Q" start="119" end="127" protein_refs="PH_1" >
 				<UserParam type="string" name="spectrum_reference" value="spectrum=131"/>
 				<UserParam type="string" name="xl_chain" value="MS:1002510"/>
 				<UserParam type="int" name="xl_pos" value="4"/>
@@ -614,14 +686,18 @@
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="2.44642947666162"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.463871564656573"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="0.579953892500178"/>
-				<UserParam type="float" name="OpenXQuest:match-odds" value="1.58684476206822"/>
+				<UserParam type="float" name="OpenXQuest:match-odds" value="2.54462520639591"/>
 				<UserParam type="float" name="OpenXQuest:intsum" value="6.07097506150603"/>
 				<UserParam type="float" name="OpenXQuest:wTIC" value="0.656644298044688"/>
-				<UserParam type="float" name="OpenPepXL:HyperCommon" value="12.3436275609857"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="20.633228936281"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="12.866017170325"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="12.7168321462213"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="33.4241767521521"/>
+				<UserParam type="float" name="OpenXQuest:log_occupancy" value="4.9028425783752"/>
+				<UserParam type="float" name="OpenXQuest:log_occupancy_alpha" value="4.62031155594519"/>
+				<UserParam type="float" name="OpenXQuest:log_occupancy_beta" value="5.1853736008052"/>
+				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec" value="7.50091945390769"/>
+				<UserParam type="float" name="OpenPepXL:HyperCommon" value="11.7340328312971"/>
+				<UserParam type="float" name="OpenPepXL:HyperXlink" value="19.7454211585198"/>
+				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="13.0553193219031"/>
+				<UserParam type="float" name="OpenPepXL:HyperBeta" value="12.0011273237485"/>
+				<UserParam type="float" name="OpenPepXL:HyperBoth" value="33.5442326418358"/>
 				<UserParam type="float" name="OpenPepXL:PScoreCommon" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
@@ -633,7 +709,7 @@
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="OpenXQuest:combined score" higher_score_better="true" significance_threshold="0" MZ="467.945617675781" RT="2129.23608398438" spectrum_reference="spectrum=123,spectrum=77" >
-			<PeptideHit score="27.2316852999329" sequence="GGVHVK(Xlink:DSS)LAHLSK" charge="3" aa_before="R" aa_after="H" start="292" end="303" protein_refs="PH_2" >
+			<PeptideHit score="28.2731402412177" sequence="GGVHVK(Xlink:DSS)LAHLSK" charge="3" aa_before="R" aa_after="H" start="292" end="303" protein_refs="PH_2" >
 				<UserParam type="string" name="fragment_annotation" value="396.987884521484,0.384458035230637,3,&quot;[alpha|xi$y9]&quot;|449.323913574219,0.387931138277054,3,&quot;[alpha|xi$y11]&quot;|450.284820556641,0.393777251243591,1,&quot;[alpha|ci$b5]&quot;|484.207611083984,0.215591758489609,1,&quot;[alpha|ci$y4]&quot;|555.274353027344,0.297201305627823,1,&quot;[alpha|ci$y5]&quot;|595.053527832031,1,2,&quot;[alpha|xi$y9]&quot;|668.345275878906,0.243629142642021,1,&quot;[alpha|ci$y6]&quot;"/>
 				<UserParam type="string" name="spectrum_reference" value="spectrum=123"/>
 				<UserParam type="string" name="xl_chain" value="MS:1002509"/>
@@ -647,14 +723,18 @@
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-100055.236818812"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.237457299396362"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="0.529048564861274"/>
-				<UserParam type="float" name="OpenXQuest:match-odds" value="0.83711027456976"/>
+				<UserParam type="float" name="OpenXQuest:match-odds" value="1.3649637673649"/>
 				<UserParam type="float" name="OpenXQuest:intsum" value="2.92258863151073"/>
 				<UserParam type="float" name="OpenXQuest:wTIC" value="0.660300024858228"/>
-				<UserParam type="float" name="OpenPepXL:HyperCommon" value="6.00933745221316"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="4.94670136016877"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="12.7101139810948"/>
+				<UserParam type="float" name="OpenXQuest:log_occupancy" value="3.16483711801473"/>
+				<UserParam type="float" name="OpenXQuest:log_occupancy_alpha" value="3.16483711801473"/>
+				<UserParam type="float" name="OpenXQuest:log_occupancy_beta" value="0"/>
+				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec" value="2.33666522248801"/>
+				<UserParam type="float" name="OpenPepXL:HyperCommon" value="5.59770114368979"/>
+				<UserParam type="float" name="OpenPepXL:HyperXlink" value="4.32762764114041"/>
+				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="11.9960758128656"/>
 				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="12.7101139810948"/>
+				<UserParam type="float" name="OpenPepXL:HyperBoth" value="11.9960758128656"/>
 				<UserParam type="float" name="OpenPepXL:PScoreCommon" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
@@ -666,7 +746,7 @@
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="OpenXQuest:combined score" higher_score_better="true" significance_threshold="0" MZ="656.050903320313" RT="2228.50292963107" spectrum_reference="spectrum=238,spectrum=219" >
-			<PeptideHit score="28.6736907450245" sequence="EVIELPLK(Xlink:DSS)NPELFLR" charge="3" aa_before="R" aa_after="V" start="145" end="159" protein_refs="PH_0" >
+			<PeptideHit score="30.0056519661123" sequence="EVIELPLK(Xlink:DSS)NPELFLR" charge="3" aa_before="R" aa_after="V" start="145" end="159" protein_refs="PH_0" >
 				<UserParam type="string" name="fragment_annotation" value="387.815673828125,0.215708956122398,2,&quot;[alpha|ci$y6]&quot;|435.218322753906,0.0836383178830147,1,&quot;[alpha|ci$y3]&quot;|444.946411132812,0.119465403258801,2,&quot;[alpha|ci$y7]&quot;|471.207763671875,0.061412189155817,1,&quot;[alpha|ci$b4]&quot;|584.244018554688,0.203754380345345,1,&quot;[alpha|ci$b5]&quot;|692.068786621094,1,2,&quot;[alpha|xi$y10]&quot;|748.578674316406,0.292433172464371,2,&quot;[alpha|xi$y11]&quot;|774.424987792969,0.361789405345917,1,&quot;[alpha|ci$y6]&quot;|812.867004394531,0.152033895254135,2,&quot;[alpha|xi$y12]&quot;|839.981567382812,0.125570505857468,2,&quot;[alpha|xi$b13]&quot;|888.39013671875,0.356793075799942,1,&quot;[alpha|ci$y7]&quot;|896.316162109375,0.0581442341208458,2,&quot;[alpha|xi$b14]&quot;"/>
 				<UserParam type="string" name="spectrum_reference" value="spectrum=238"/>
 				<UserParam type="string" name="xl_chain" value="MS:1002509"/>
@@ -680,14 +760,18 @@
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-73470.0271881252"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.389891893192958"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="0.462351176037813"/>
-				<UserParam type="float" name="OpenXQuest:match-odds" value="1.91795419754295"/>
+				<UserParam type="float" name="OpenXQuest:match-odds" value="2.59304858228082"/>
 				<UserParam type="float" name="OpenXQuest:intsum" value="3.03074353560805"/>
 				<UserParam type="float" name="OpenXQuest:wTIC" value="0.672367841921044"/>
-				<UserParam type="float" name="OpenPepXL:HyperCommon" value="7.62461140376791"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="4.14362514382879"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="17.1160865924937"/>
+				<UserParam type="float" name="OpenXQuest:log_occupancy" value="5.62904796479063"/>
+				<UserParam type="float" name="OpenXQuest:log_occupancy_alpha" value="5.62904796479063"/>
+				<UserParam type="float" name="OpenXQuest:log_occupancy_beta" value="0"/>
+				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec" value="5.33167976719043"/>
+				<UserParam type="float" name="OpenPepXL:HyperCommon" value="8.15707933298946"/>
+				<UserParam type="float" name="OpenPepXL:HyperXlink" value="4.59543196178458"/>
+				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="17.3945020752073"/>
 				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="17.1160865924937"/>
+				<UserParam type="float" name="OpenPepXL:HyperBoth" value="17.3945020752073"/>
 				<UserParam type="float" name="OpenPepXL:PScoreCommon" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>

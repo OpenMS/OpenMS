@@ -40,7 +40,7 @@
 #include <string>
 
 #include <OpenMS/CHEMISTRY/AASequence.h>
-#include <OpenMS/CHEMISTRY/EnzymaticDigestion.h>
+#include <OpenMS/CHEMISTRY/ProteaseDigestion.h>
 #include <OpenMS/FILTERING/ID/IDFilter.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
@@ -81,8 +81,8 @@ IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("IDFilter_test.idXML"),
                  global_proteins, global_peptides);
 global_peptides[0].sort(); // makes it easier to compare results
 
-IDFilter* ptr = 0;
-IDFilter* nullPointer = 0;
+IDFilter* ptr = nullptr;
+IDFilter* nullPointer = nullptr;
 
 START_SECTION((IDFilter()))
   ptr = new IDFilter();
@@ -184,7 +184,7 @@ END_SECTION
 
 START_SECTION((class PeptideDigestionFilter::operator(PeptideHit& hit)))
 {
-  EnzymaticDigestion digestion;
+  ProteaseDigestion digestion;
   digestion.setEnzyme("Trypsin");
   
   IDFilter::PeptideDigestionFilter filter(digestion, 0, 1);

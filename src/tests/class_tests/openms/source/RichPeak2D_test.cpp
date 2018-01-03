@@ -48,8 +48,8 @@ START_TEST(RichPeak2D<D>, "$Id$")
 
 using namespace OpenMS;
 
-RichPeak2D* d10_ptr = 0;
-RichPeak2D* d10_nullPointer = 0;
+RichPeak2D* d10_ptr = nullptr;
+RichPeak2D* d10_nullPointer = nullptr;
 START_SECTION((RichPeak2D()))
 	d10_ptr = new RichPeak2D;
   TEST_NOT_EQUAL(d10_ptr, d10_nullPointer)

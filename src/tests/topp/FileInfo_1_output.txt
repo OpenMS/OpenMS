@@ -1,23 +1,22 @@
 
 -- General information --
 
-File name: /home/hendrik/Software/OpenMS/source/TEST/TOPP/FileInfo_1_input.txt
+File name: /nfs/wsi/abi/old-data/sachsenb/OpenMS_IDE/src/tests/topp/FileInfo_1_input.dta
 File type: dta
 
-Peak type (metadata): Unknown
-Peak type (estimated): Peak data
-
+MS levels: 2
 Number of spectra: 1
 Number of peaks: 57
+
+Number of spectra per MS level:
+  level 2: 1
 
 Ranges:
   retention time: -1.00 .. -1.00
   mass-to-charge: 261.30 .. 783.50
   intensity:      3672.00 .. 272411.00
 
-MS levels: 2
-Number of spectra per MS level:
-  level 2: 1
-
+Peak type metadata (estimated)
+  level 2: Unknown (Centroid)
 
 

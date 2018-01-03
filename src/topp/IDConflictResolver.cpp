@@ -146,7 +146,7 @@ protected:
     }
   }
 
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "Input file (data annotated with identifications)");
     setValidFormats_("in", ListUtils::create<String>("featureXML,consensusXML"));
@@ -154,7 +154,7 @@ protected:
     setValidFormats_("out", ListUtils::create<String>("featureXML,consensusXML"));
   }
 
-  ExitCodes main_(int, const char **)
+  ExitCodes main_(int, const char **) override
   {
     String in = getStringOption_("in"), out = getStringOption_("out");
     FileTypes::Type in_type = FileHandler::getType(in);

@@ -51,8 +51,8 @@ START_TEST(IsobaricNormalizer, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-IsobaricNormalizer* ptr = 0;
-IsobaricNormalizer* null_ptr = 0;
+IsobaricNormalizer* ptr = nullptr;
+IsobaricNormalizer* null_ptr = nullptr;
 
 // 
 ItraqFourPlexQuantitationMethod quant_meth;

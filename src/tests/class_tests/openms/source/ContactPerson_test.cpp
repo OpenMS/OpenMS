@@ -47,8 +47,8 @@ START_TEST(ContactPerson, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-ContactPerson* ptr = 0;
-ContactPerson* nullPointer = 0;
+ContactPerson* ptr = nullptr;
+ContactPerson* nullPointer = nullptr;
 START_SECTION(ContactPerson())
 	ptr = new ContactPerson();
 	TEST_NOT_EQUAL(ptr, nullPointer)
