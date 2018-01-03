@@ -224,7 +224,7 @@ public:
                retention_time_ == rhs.retention_time_;
       }
 
-      bool isRTset() const 
+      bool isRTset() const
       {
         return retention_time_set_;
       }
