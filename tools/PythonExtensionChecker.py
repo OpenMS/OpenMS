@@ -653,8 +653,8 @@ class DoxygenCppFunction(object):
 #
 class IgnoreFile(object):
     """
-    Describes the ignore file (e.g. which classes we should skip) 
-    """ 
+    Describes the ignore file (e.g. which classes we should skip)
+    """
 
     def __init__(self):
         self.data = {
@@ -1049,7 +1049,7 @@ def checkPythonPxdHeader(src_path, bin_path, ignorefilename, pxds_out, print_pxd
             if f.find(generate_pxd) == -1:
                 continue
 
-        if verbose: 
+        if verbose:
             print "Working on file", f
 
         # Try to parse the doxygen file
