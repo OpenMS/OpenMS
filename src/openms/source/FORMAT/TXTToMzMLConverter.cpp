@@ -40,7 +40,7 @@ namespace OpenMS
 
   TXTToMzMLConverter::~TXTToMzMLConverter() {}
 
-  MSExperiment TXTToMzMLConverter::loadInputFile(const String& filename) const
+  void TXTToMzMLConverter::load(const String& filename, MSExperiment& experiment) const
   {
     std::ifstream ifs(filename, std::ifstream::in);
     if (!ifs.is_open())
@@ -49,18 +49,70 @@ namespace OpenMS
     }
     const Size BUFSIZE = 65536;
     char line[BUFSIZE];
-    bool header_found = false;
-    String header("Time (min)\tStep (s)\tValue (mAU)");
-    while (!header_found && !ifs.eof())
+    experiment.clear(true);
+    MSChromatogram chromatogram;
+    std::cmatch m;
+    std::regex re_injection("^Injection\t(.+)", std::regex::optimize);
+    std::regex re_processing_method("^Processing Method\t(.+)", std::regex::optimize);
+    std::regex re_instrument_method("^Instrument Method\t(.+)", std::regex::optimize);
+    std::regex re_injection_date("^Injection Date\t(.+)", std::regex::optimize);
+    std::regex re_injection_time("^Injection Time\t(.+)", std::regex::optimize);
+    std::regex re_detector("^Detector\t(.+)", std::regex::optimize);
+    std::regex re_signal_quantity("^Signal Quantity\t(.+)", std::regex::optimize);
+    std::regex re_signal_unit("^Signal Unit\t(.+)", std::regex::optimize);
+    std::regex re_signal_info("^Signal Info\t(.+)", std::regex::optimize);
+    std::regex re_raw_data("^Raw Data:", std::regex::optimize);
+    while (!ifs.eof())
     {
       ifs.getline(line, BUFSIZE);
-      String s(line);
-      if (std::strncmp(header.c_str(), line, header.size()) == 0)
+      if (std::regex_search(line, m, re_injection))
       {
-        header_found = true;
+        std::cout << std::endl << "re_injection START" << std::endl;
+        for (Size i = 0; i < m.size(); ++i)
+        {
+          std::cout << "[" << i << "] " << m[i] << std::endl;
+        }
+        std::cout << "re_injection END" << std::endl;
+        experiment.setMetaValue("mzml_id", std::string(m[1]));
+      }
+      else if (std::regex_search(line, m, re_processing_method))
+      {
+        // save this info somewhere
+      }
+      else if (std::regex_search(line, m, re_instrument_method))
+      {
+        // save this info somewhere
+      }
+      else if (std::regex_search(line, m, re_injection_date))
+      {
+        // save this info somewhere
+      }
+      else if (std::regex_search(line, m, re_injection_time))
+      {
+        // save this info somewhere
+      }
+      else if (std::regex_search(line, m, re_detector))
+      {
+        // save this info somewhere
+      }
+      else if (std::regex_search(line, m, re_signal_quantity))
+      {
+        // save this info somewhere
+      }
+      else if (std::regex_search(line, m, re_signal_unit))
+      {
+        // save this info somewhere
+      }
+      else if (std::regex_search(line, m, re_signal_info))
+      {
+        // save this info somewhere
+      }
+      else if (std::regex_search(line, m, re_raw_data))
+      {
+        ifs.getline(line, BUFSIZE); // remove the subsequent line, right before the data
+        break;
       }
     }
-    MSChromatogram chromatogram;
     while (!ifs.eof())
     {
       ifs.getline(line, BUFSIZE);
@@ -72,7 +124,7 @@ namespace OpenMS
       }
       else if (!strcmp(line, "\r") || !strcmp(line, ""))
       {
-        break;
+        continue; // skips eventual empty lines
       }
       else
       {
@@ -80,8 +132,6 @@ namespace OpenMS
       }
     }
     ifs.close();
-    MSExperiment experiment;
     experiment.addChromatogram(chromatogram);
-    return experiment;
   }
 }

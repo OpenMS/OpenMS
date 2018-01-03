@@ -41,6 +41,7 @@
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <fstream>
+#include <regex>
 
 namespace OpenMS
 {
@@ -52,7 +53,7 @@ public:
     /// Destructor
     virtual ~TXTToMzMLConverter();
 
-    MSExperiment loadInputFile(const String& filename) const;
+    void load(const String& filename, MSExperiment& experiment) const;
   };
 }
 
