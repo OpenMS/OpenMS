@@ -1,6 +1,14 @@
-# --------------------------------------------------------------------------
-#                   OpenMS -- Open-Source Mass Spectrometry
-# --------------------------------------------------------------------------
+# - Try to find MITOOLBOX
+# Once done this will define
+#
+#  MITOOLBOX_FOUND - system has MITOOLBOX
+#  MITOOLBOX_INCLUDE_DIR - the MITOOLBOX include directory
+#  MITOOLBOX_LIBRARIES - Link these to use MITOOLBOX
+#  MITOOLBOX_VERSION_STRING - the version of MITOOLBOX found
+#
+# Inspired by Julien Schueller <schueller at phimeca dot com>
+#
+#=============================================================================
 # Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
 # ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 #
@@ -26,37 +34,28 @@
 # WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
 # OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 # ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-#
-# --------------------------------------------------------------------------
-# $Maintainer: Stephan Aiche, Chris Bielow, Hannes Röst $
-# $Authors: Hannes Röst, Stephan Aiche $
-# --------------------------------------------------------------------------
+#=============================================================================
 
-project("OpenSWATHAlgo")
-cmake_minimum_required(VERSION 3.0.0 FATAL_ERROR)
+# set MITOOLBOX_INCLUDE_DIR
+find_path(MITOOLBOX_INCLUDE_DIR MIToolbox.h PATH_SUFFIXES ./include/MIToolbox)
 
-#------------------------------------------------------------------------------
-# Find Boost lib
-#------------------------------------------------------------------------------
-find_boost()
-
-if(NOT Boost_FOUND)
-  message(FATAL_ERROR "Boost was not found!")
+# extract version
+if (MITOOLBOX_INCLUDE_DIR)
+  file (STRINGS "${MITOOLBOX_INCLUDE_DIR}/MIToolbox.h" _VERSION_STRING REGEX ".*MITOOLBOX_VERSION.*")
 endif()
 
-#------------------------------------------------------------------------------
-# get information regarding the openswath files
-include(source/OPENSWATHALGO/OpenSwathAlgoFiles.cmake)
+# find MITOOLBOX_LIBRARY
+find_library (MITOOLBOX_LIBRARY NAMES libMIToolbox MITOOLBOX "MITOOLBOX library location" )
 
-#------------------------------------------------------------------------------
-# add the library
-openms_add_library(TARGET_NAME OpenSwathAlgo
-                   SOURCE_FILES ${OpenSwathAlgoFiles}
-                   HEADER_FILES ${OpenSwathAlgoHeaders}
-                   INTERNAL_INCLUDES ${PROJECT_SOURCE_DIR}/include ${PROJECT_BINARY_DIR}/include
-                   EXTERNAL_INCLUDES ${Boost_INCLUDE_DIRS}
-                   DLL_EXPORT_PATH "OpenMS/OPENSWATHALGO/")
+include(${CMAKE_CURRENT_LIST_DIR}/SelectLibraryConfigurations.cmake)
+select_library_configurations(MITOOLBOX)
 
-target_link_libraries(OpenSwathAlgo MIToolbox)
-
-openms_doc_path("${PROJECT_SOURCE_DIR}/include")
+include (FindPackageHandleStandardArgs)
+find_package_handle_standard_args (MITOOLBOX
+                                  REQUIRED_VARS MITOOLBOX_LIBRARY MITOOLBOX_INCLUDE_DIR
+                                  VERSION_VAR MITOOLBOX_VERSION)
+mark_as_advanced (
+  MITOOLBOX_LIBRARY
+  MITOOLBOX_INCLUDE_DIR
+  MITOOLBOX_VERSION
+)

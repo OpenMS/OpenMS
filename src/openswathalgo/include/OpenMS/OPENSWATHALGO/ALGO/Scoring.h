@@ -39,6 +39,7 @@
 #include <vector>
 
 #include <OpenMS/OPENSWATHALGO/OpenSwathAlgoConfig.h>
+#include "MIToolbox/MutualInformation.h"
 
 namespace OpenSwath
 {
@@ -129,6 +130,12 @@ public:
 
     /// divide each element of x by the sum of the vector
     OPENSWATHALGO_DLLAPI void normalize_sum(double x[], unsigned int n);
+
+    OPENSWATHALGO_DLLAPI static void computeRank(std::vector<double> & w);
+
+    /// Calculate rank-transformed mutual information between two vectors of data points
+    OPENSWATHALGO_DLLAPI double rankedMutualInformation(std::vector<double>& data1, std::vector<double>& data2);
+
     //@}
 
   }
