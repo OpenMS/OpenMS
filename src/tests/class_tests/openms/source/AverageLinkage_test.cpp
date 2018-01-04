@@ -51,8 +51,8 @@ START_TEST(AverageLinkage, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-AverageLinkage* ptr = 0;
-AverageLinkage* nullPointer = 0;
+AverageLinkage* ptr = nullptr;
+AverageLinkage* nullPointer = nullptr;
 START_SECTION(AverageLinkage())
 {
 	ptr = new AverageLinkage();

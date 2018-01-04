@@ -470,7 +470,7 @@ public:
 
 protected:
 
-    void registerOptionsAndFlags_()
+    void registerOptionsAndFlags_() override
     {
       registerInputFile_("in", "<file>", "", "Input file ");
       setValidFormats_("in", ListUtils::create<String>("featureXML,consensusXML,idXML,mzML"));
@@ -515,7 +515,7 @@ protected:
       registerFlag_("consensus:sort_by_size", "Apply a stable sort by decreasing size (i.e., the number of elements)", false);
     }
 
-    ExitCodes main_(int, const char**)
+    ExitCodes main_(int, const char**) override
     {
       //-------------------------------------------------------------
       // parameter handling

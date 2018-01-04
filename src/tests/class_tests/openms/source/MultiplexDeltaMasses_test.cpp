@@ -41,7 +41,7 @@ using namespace OpenMS;
 
 START_TEST(MultiplexDeltaMasses, "$Id$")
 
-MultiplexDeltaMasses* nullPointer = 0;
+MultiplexDeltaMasses* nullPointer = nullptr;
 MultiplexDeltaMasses* ptr;
 
 START_SECTION(MultiplexDeltaMasses())

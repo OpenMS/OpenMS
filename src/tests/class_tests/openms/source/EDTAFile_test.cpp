@@ -52,8 +52,8 @@ START_TEST(EDTAFile, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-EDTAFile* ptr = 0;
-EDTAFile* null_ptr = 0;
+EDTAFile* ptr = nullptr;
+EDTAFile* null_ptr = nullptr;
 START_SECTION(EDTAFile())
 {
 	ptr = new EDTAFile();

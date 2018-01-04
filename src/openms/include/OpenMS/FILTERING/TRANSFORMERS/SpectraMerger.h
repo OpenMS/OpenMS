@@ -86,7 +86,7 @@ public:
         defaultsToParam_();
       }
 
-      void updateMembers_()
+      void updateMembers_() override
       {
         rt_max_ = (double) param_.getValue("rt_tolerance");
         mz_max_ = (double) param_.getValue("mz_tolerance");
@@ -141,7 +141,7 @@ public:
     SpectraMerger(const SpectraMerger& source);
 
     /// destructor
-    virtual ~SpectraMerger();
+    ~SpectraMerger() override;
     // @}
 
     // @name Operators
@@ -463,15 +463,15 @@ public:
       }
       else if (spectrum_type == "profile")
       {
-        type = SpectrumSettings::RAWDATA;
+        type = SpectrumSettings::PROFILE;
       }
       else if (spectrum_type == "centroid")
       {
-        type = SpectrumSettings::PEAKS;
+        type = SpectrumSettings::CENTROID;
       }
 
       // generate new spectra
-      if (type == SpectrumSettings::PEAKS)
+      if (type == SpectrumSettings::CENTROID)
       {
         averageCentroidSpectra_(exp, spectra_to_average_over, ms_level);
       }

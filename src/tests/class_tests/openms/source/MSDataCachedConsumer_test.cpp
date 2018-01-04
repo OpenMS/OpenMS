@@ -50,8 +50,8 @@ START_TEST(MSDataCachedConsumer, "$Id$")
 
 using namespace OpenMS;
 
-MSDataCachedConsumer* cached_consumer_ptr = 0;
-MSDataCachedConsumer* cached_consumer_nullPointer = 0;
+MSDataCachedConsumer* cached_consumer_ptr = nullptr;
+MSDataCachedConsumer* cached_consumer_nullPointer = nullptr;
 
 START_SECTION((MSDataCachedConsumer()))
   std::string tmp_filename;

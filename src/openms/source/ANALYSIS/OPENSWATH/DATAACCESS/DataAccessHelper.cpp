@@ -198,13 +198,9 @@ namespace OpenMS
     OpenSwath::LightModification light_mod;
 
     p.id = pep.id;
-    if (!pep.rts.empty() && pep.rts[0].hasCVTerm("MS:1000896"))
+    if (pep.hasRetentionTime())
     {
-      p.rt = pep.rts[0].getCVTerms()["MS:1000896"][0].getValue().toString().toDouble();
-    }
-    else if (!pep.rts.empty() && pep.rts[0].hasCVTerm("MS:1002005")) // iRT
-    {
-      p.rt = pep.rts[0].getCVTerms()["MS:1002005"][0].getValue().toString().toDouble();
+      p.rt = pep.getRetentionTime();
     }
 
     if (pep.hasCharge())
@@ -269,13 +265,9 @@ namespace OpenMS
   void OpenSwathDataAccessHelper::convertTargetedCompound(const TargetedExperiment::Compound& compound, OpenSwath::LightCompound & comp)
   {
     comp.id = compound.id;
-    if (!compound.rts.empty() && compound.rts[0].hasCVTerm("MS:1000896"))
+    if (compound.hasRetentionTime())
     {
-      comp.rt = compound.rts[0].getCVTerms()["MS:1000896"][0].getValue().toString().toDouble();
-    }
-    else if (!compound.rts.empty() && compound.rts[0].hasCVTerm("MS:1002005")) // iRT
-    {
-      comp.rt = compound.rts[0].getCVTerms()["MS:1002005"][0].getValue().toString().toDouble();
+      comp.rt = compound.getRetentionTime();
     }
 
     if (compound.hasCharge())

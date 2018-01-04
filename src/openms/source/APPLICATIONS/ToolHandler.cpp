@@ -55,6 +55,7 @@ namespace OpenMS
     tools_map["ConsensusID"] = Internal::ToolDescription("ConsensusID", "ID Processing");
     tools_map["ConsensusMapNormalizer"] = Internal::ToolDescription("ConsensusMapNormalizer", "Map Alignment");
     tools_map["CometAdapter"] = Internal::ToolDescription("CometAdapter", "Identification");
+    tools_map["CruxAdapter"] = Internal::ToolDescription("CruxAdapter", "Identification");
     tools_map["Decharger"] = Internal::ToolDescription("Decharger", "Quantitation");
     tools_map["DTAExtractor"] = Internal::ToolDescription("DTAExtractor", "File Handling");
     tools_map["EICExtractor"] = Internal::ToolDescription("EICExtractor", "Quantitation");
@@ -201,7 +202,7 @@ namespace OpenMS
     util_map["IDSplitter"] = Internal::ToolDescription("IDSplitter", util_category);
     util_map["LabeledEval"] = Internal::ToolDescription("LabeledEval", util_category);
     util_map["LowMemPeakPickerHiRes"] = Internal::ToolDescription("LowMemPeakPickerHiRes", util_category);
-    util_map["LowMemPeakPickerHiRes_RandomAccess"] = Internal::ToolDescription("LowMemPeakPickerHiRes_RandomAccess", util_category);
+    util_map["LowMemPeakPickerHiResRandomAccess"] = Internal::ToolDescription("LowMemPeakPickerHiResRandomAccess", util_category);
     util_map["MassCalculator"] = Internal::ToolDescription("MassCalculator", util_category);
     util_map["MetaboliteAdductDecharger"] = Internal::ToolDescription("MetaboliteAdductDecharger", util_category);
     util_map["MetaboliteSpectralMatcher"] = Internal::ToolDescription("MetaboliteSpectralMatcher", util_category);
@@ -367,7 +368,7 @@ namespace OpenMS
     paths << (getExternalToolsPath() + "/LINUX").toQString();
 #endif
     // additional environment
-    if (getenv("OPENMS_TTD_PATH") != 0)
+    if (getenv("OPENMS_TTD_PATH") != nullptr)
     {
       paths << String(getenv("OPENMS_TTD_PATH")).toQString();
     }
@@ -399,7 +400,7 @@ namespace OpenMS
     paths << (getInternalToolsPath() + "/LINUX").toQString();
 #endif
     // additional environment
-    if (getenv("OPENMS_TTD_INTERNAL_PATH") != 0)
+    if (getenv("OPENMS_TTD_INTERNAL_PATH") != nullptr)
     {
       paths << String(getenv("OPENMS_TTD_INTERNAL_PATH")).toQString();
     }

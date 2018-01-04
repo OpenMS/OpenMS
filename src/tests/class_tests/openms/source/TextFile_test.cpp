@@ -50,8 +50,8 @@ START_TEST(String, "$Id$")
 
 /////////////////////////////////////////////////////////////
 
-TextFile* ptr = 0;
-TextFile* nullPointer = 0;
+TextFile* ptr = nullptr;
+TextFile* nullPointer = nullptr;
 
 START_SECTION((TextFile()))
   ptr = new TextFile();

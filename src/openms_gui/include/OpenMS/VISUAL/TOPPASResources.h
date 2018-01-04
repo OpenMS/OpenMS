@@ -65,7 +65,7 @@ public:
     /// Copy constructor
     TOPPASResources(const TOPPASResources & rhs);
     /// Destructor
-    virtual ~TOPPASResources();
+    ~TOPPASResources() override;
     /// Assignment operator
     TOPPASResources & operator=(const TOPPASResources & rhs);
     /// Adds the (key,resource_list) pair to the dictionary

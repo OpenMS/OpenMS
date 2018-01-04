@@ -89,7 +89,7 @@ public:
 
 protected:
 
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "file to validate");
     setValidFormats_("in", ListUtils::create<String>("mzML,mzData,featureXML,mzid,idXML,consensusXML,mzXML,ini,pepXML,TraML,xml"));
@@ -97,7 +97,7 @@ protected:
     setValidFormats_("schema", ListUtils::create<String>("xsd"));
   }
 
-  ExitCodes main_(int, const char**)
+  ExitCodes main_(int, const char**) override
   {
     String in = getStringOption_("in");
     String schema = getStringOption_("schema");

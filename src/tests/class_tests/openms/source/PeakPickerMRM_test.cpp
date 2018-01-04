@@ -82,8 +82,8 @@ START_TEST(PeakPickerMRM, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-PeakPickerMRM* ptr = 0;
-PeakPickerMRM* nullPointer = 0;
+PeakPickerMRM* ptr = nullptr;
+PeakPickerMRM* nullPointer = nullptr;
 
 START_SECTION(PeakPickerMRM())
 {

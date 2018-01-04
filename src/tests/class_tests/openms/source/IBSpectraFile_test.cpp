@@ -44,8 +44,8 @@ using namespace std;
 
 START_TEST(IBSpectraFile, "$Id$")
 
-IBSpectraFile* ptr = 0;
-IBSpectraFile* nullPointer = 0;
+IBSpectraFile* ptr = nullptr;
+IBSpectraFile* nullPointer = nullptr;
 
 START_SECTION((IBSpectraFile()))
 {

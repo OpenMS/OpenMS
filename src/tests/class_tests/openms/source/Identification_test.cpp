@@ -46,8 +46,8 @@ START_TEST(Identification, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-Identification* ptr = 0;
-Identification* null_ptr = 0;
+Identification* ptr = nullptr;
+Identification* null_ptr = nullptr;
 START_SECTION(Identification())
 {
 	ptr = new Identification();

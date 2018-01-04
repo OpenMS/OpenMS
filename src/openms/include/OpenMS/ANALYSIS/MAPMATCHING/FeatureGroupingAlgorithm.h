@@ -55,7 +55,7 @@ public:
     FeatureGroupingAlgorithm();
 
     /// Destructor
-    virtual ~FeatureGroupingAlgorithm();
+    ~FeatureGroupingAlgorithm() override;
 
     ///Applies the algorithm. The features in the input @p maps are grouped and the output is written to the consensus map @p out
     virtual void group(const std::vector<FeatureMap > & maps, ConsensusMap & out) = 0;

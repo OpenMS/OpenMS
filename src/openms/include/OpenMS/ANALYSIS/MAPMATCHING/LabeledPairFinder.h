@@ -64,7 +64,7 @@ public:
     LabeledPairFinder();
 
     /// Destructor
-    inline virtual ~LabeledPairFinder()
+    inline ~LabeledPairFinder() override
     {
     }
 
@@ -90,7 +90,7 @@ public:
 
       @exception Exception::IllegalArgument is thrown if the input data is not valid.
     */
-    virtual void run(const std::vector<ConsensusMap> & input_maps, ConsensusMap & result_map);
+    void run(const std::vector<ConsensusMap> & input_maps, ConsensusMap & result_map) override;
 
 protected:
 

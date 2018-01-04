@@ -23,8 +23,7 @@
       <ProteinRef ref="ProteinA"/>
       <RetentionTimeList>
         <RetentionTime>
-          <cvParam cvRef="MS" accession="MS:1000896" name="normalized retention time" value="0.44"/>
-          <cvParam cvRef="MS" accession="MS:1002005" name="iRT retention time normalization standard"/>
+          <cvParam cvRef="MS" accession="MS:1002005" name="iRT retention time normalization standard" value="0.44"/>
         </RetentionTime>
       </RetentionTimeList>
     </Peptide>
@@ -42,8 +41,7 @@
       </Modification>
       <RetentionTimeList>
         <RetentionTime>
-          <cvParam cvRef="MS" accession="MS:1000896" name="normalized retention time" value="0.2"/>
-          <cvParam cvRef="MS" accession="MS:1002005" name="iRT retention time normalization standard"/>
+          <cvParam cvRef="MS" accession="MS:1002005" name="iRT retention time normalization standard" value="0.2"/>
         </RetentionTime>
       </RetentionTimeList>
     </Peptide>
@@ -64,8 +62,7 @@
       </Modification>
       <RetentionTimeList>
         <RetentionTime>
-          <cvParam cvRef="MS" accession="MS:1000896" name="normalized retention time" value="52.2"/>
-          <cvParam cvRef="MS" accession="MS:1002005" name="iRT retention time normalization standard"/>
+          <cvParam cvRef="MS" accession="MS:1002005" name="iRT retention time normalization standard" value="52.2"/>
         </RetentionTime>
       </RetentionTimeList>
     </Peptide>
@@ -80,8 +77,7 @@
       </Modification>
       <RetentionTimeList>
         <RetentionTime>
-          <cvParam cvRef="MS" accession="MS:1000896" name="normalized retention time" value="0.44"/>
-          <cvParam cvRef="MS" accession="MS:1002005" name="iRT retention time normalization standard"/>
+          <cvParam cvRef="MS" accession="MS:1002005" name="iRT retention time normalization standard" value="0.44"/>
         </RetentionTime>
       </RetentionTimeList>
     </Peptide>
@@ -102,8 +98,7 @@
       </Modification>
       <RetentionTimeList>
         <RetentionTime>
-          <cvParam cvRef="MS" accession="MS:1000896" name="normalized retention time" value="0.2"/>
-          <cvParam cvRef="MS" accession="MS:1002005" name="iRT retention time normalization standard"/>
+          <cvParam cvRef="MS" accession="MS:1002005" name="iRT retention time normalization standard" value="0.2"/>
         </RetentionTime>
       </RetentionTimeList>
     </Peptide>
@@ -121,8 +116,7 @@
       </Modification>
       <RetentionTimeList>
         <RetentionTime>
-          <cvParam cvRef="MS" accession="MS:1000896" name="normalized retention time" value="0.2"/>
-          <cvParam cvRef="MS" accession="MS:1002005" name="iRT retention time normalization standard"/>
+          <cvParam cvRef="MS" accession="MS:1002005" name="iRT retention time normalization standard" value="0.2"/>
         </RetentionTime>
       </RetentionTimeList>
     </Peptide>

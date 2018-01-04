@@ -53,8 +53,8 @@ START_TEST(ComplementFilter, "$Id$")
 
 /////////////////////////////////////////////////////////////
 
-ComplementFilter* e_ptr = 0;
-ComplementFilter* e_nullPointer = 0;
+ComplementFilter* e_ptr = nullptr;
+ComplementFilter* e_nullPointer = nullptr;
 
 START_SECTION((ComplementFilter()))
 	e_ptr = new ComplementFilter;

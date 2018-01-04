@@ -53,8 +53,8 @@ START_TEST(MapAlignmentTransformer, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-MapAlignmentTransformer* ptr = 0;
-MapAlignmentTransformer* null_ptr = 0;
+MapAlignmentTransformer* ptr = nullptr;
+MapAlignmentTransformer* null_ptr = nullptr;
 
 TransformationDescription::DataPoints data;
 data.push_back(make_pair(0.0, 1.0));

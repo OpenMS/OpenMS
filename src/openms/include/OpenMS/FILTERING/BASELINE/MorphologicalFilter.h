@@ -182,7 +182,7 @@ public:
     }
 
     /// Destructor
-    virtual ~MorphologicalFilter()
+    ~MorphologicalFilter() override
     {
     }
 
@@ -286,7 +286,7 @@ public:
     void filter(MSSpectrum & spectrum)
     {
       //make sure the right peak type is set
-      spectrum.setType(SpectrumSettings::RAWDATA);
+      spectrum.setType(SpectrumSettings::PROFILE);
 
       //Abort if there is nothing to do
       if (spectrum.size() <= 1) { return; }

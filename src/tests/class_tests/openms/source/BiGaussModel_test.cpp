@@ -52,8 +52,8 @@ using namespace OpenMS::Math;
 using std::stringstream;
 
 // default ctor
-BiGaussModel* ptr = 0;
-BiGaussModel* nullPointer = 0;
+BiGaussModel* ptr = nullptr;
+BiGaussModel* nullPointer = nullptr;
 START_SECTION((BiGaussModel()))
 	ptr = new BiGaussModel();
         TEST_EQUAL(ptr->getName(), "BiGaussModel")

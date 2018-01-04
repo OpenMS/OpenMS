@@ -52,8 +52,8 @@ START_TEST(ModelDescription<2>, "$Id$")
 using namespace OpenMS;
 using std::stringstream;
 
-ModelDescription<2>* ptr = 0;
-ModelDescription<2>* nullPointer = 0;
+ModelDescription<2>* ptr = nullptr;
+ModelDescription<2>* nullPointer = nullptr;
 START_SECTION((ModelDescription()))
 	ptr = new ModelDescription<2>();
 	TEST_NOT_EQUAL(ptr, nullPointer)
@@ -65,7 +65,7 @@ END_SECTION
 
 START_SECTION(BaseModel<D>* createModel())
 	BaseModel<2>* ptr = ModelDescription<2>().createModel();
-  BaseModel<2>* baseModel_nullPointer = 0;
+  BaseModel<2>* baseModel_nullPointer = nullptr;
   TEST_EQUAL(ptr, baseModel_nullPointer)	// no name is set, should be zero pointer
 END_SECTION
 

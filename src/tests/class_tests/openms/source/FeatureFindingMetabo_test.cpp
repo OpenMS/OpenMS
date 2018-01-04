@@ -53,8 +53,8 @@ START_TEST(FeatureFindingMetabo, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-FeatureFindingMetabo* ptr = 0;
-FeatureFindingMetabo* null_ptr = 0;
+FeatureFindingMetabo* ptr = nullptr;
+FeatureFindingMetabo* null_ptr = nullptr;
 START_SECTION(FeatureFindingMetabo())
 {
     ptr = new FeatureFindingMetabo();

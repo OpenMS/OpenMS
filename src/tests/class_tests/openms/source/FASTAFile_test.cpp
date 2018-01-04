@@ -29,7 +29,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
-// $Authors: Nico Pfeifer $
+// $Authors: Nico Pfeifer, Chris Bielow $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
@@ -56,25 +56,20 @@ START_TEST(FASTAFile, "$Id$")
 using namespace OpenMS;
 using namespace std;
 
-FASTAFile* ptr = 0;
+FASTAFile* ptr = nullptr;
 START_SECTION((FASTAFile()))
   ptr = new FASTAFile();
-  TEST_EQUAL(ptr == 0, false)
+  TEST_EQUAL(ptr == nullptr, false)
 END_SECTION
 
 START_SECTION((~FASTAFile()))
   delete(ptr);
 END_SECTION
 
-FASTAFile file;
-vector< FASTAFile::FASTAEntry > sequences;
-vector< FASTAFile::FASTAEntry >::const_iterator sequences_iterator;
-FASTAFile::FASTAEntry temp_entry;
-
 START_SECTION([FASTAFile::FASTAEntry] FASTAEntry())
   FASTAFile::FASTAEntry * ptr_e;
   ptr_e = new FASTAFile::FASTAEntry();
-  TEST_EQUAL(ptr_e == 0, false)
+  TEST_EQUAL(ptr_e == nullptr, false)
 END_SECTION
 
 START_SECTION([FASTAFile::FASTAEntry] FASTAEntry(String id, String desc, String seq))
@@ -85,22 +80,12 @@ START_SECTION([FASTAFile::FASTAEntry] FASTAEntry(String id, String desc, String 
 END_SECTION
 
 START_SECTION([FASTAFile::FASTAEntry] bool operator==(const FASTAEntry &rhs) const)
-  FASTAFile::FASTAEntry entry1("ID", "DESC", "DAVLDELNER");
-  FASTAFile::FASTAEntry entry2("ID", "DESC", "DAVLDELNER");
-  FASTAFile::FASTAEntry entry3("ID2", "DESC", "DAVLDELNER");
+  FASTAFile::FASTAEntry entry1("ID", "DESC", "DAV*LDELNER");
+  FASTAFile::FASTAEntry entry2("ID", "DESC", "DAV*LDELNER");
+  FASTAFile::FASTAEntry entry3("ID2", "DESC", "DAV*LDELNER");
   TEST_EQUAL(entry1==entry2, true)
   TEST_EQUAL(entry1==entry3, false)
 END_SECTION
-
-temp_entry.identifier = String("P68509|1433F_BOVIN");
-temp_entry.description = String("This is the description of the first protein");
-temp_entry.sequence = String("GDREQLLQRARLAEQAERYDDMASAMKAVTEL") +
-String("NEPLSNEDRNLLSVAYKNVVGARRSSWRVISSIEQKTMADGNEKKLEKVKAYREKIEKELETVC") +
-String("NDVLALLDKFLIKNCNDFQYESKVFYLKMKGDYYRYLAEVASGEKKNSVVEASEAAYKEAFEIS") +
-String("KEHMQPTHPIRLGLALNFSVFYYEIQNAPEQACLLAKQAFDDAIAELDTLNEDSYKDSTLIMQL") +
-String("LRDNLTLWTSDQQDEEAGEGN");
-
-sequences.push_back(temp_entry);
 
 
 START_SECTION((void load(const String& filename, std::vector< FASTAEntry > &data)))
@@ -110,7 +95,7 @@ START_SECTION((void load(const String& filename, std::vector< FASTAEntry > &data
   TEST_EXCEPTION(Exception::FileNotFound, file.load("FASTAFile_test_this_file_does_not_exist",data))
 
   file.load(OPENMS_GET_TEST_DATA_PATH("FASTAFile_test.fasta"),data);
-  sequences_iterator = data.begin();
+  vector< FASTAFile::FASTAEntry >::const_iterator sequences_iterator = data.begin();
   TEST_EQUAL(data.size(), 5)
   TEST_EQUAL(sequences_iterator->identifier, String("P68509|1433F_BOVIN"))
   TEST_EQUAL(sequences_iterator->description, String("This is the description of the first protein"))
@@ -180,6 +165,28 @@ START_SECTION((void store(const String& filename, const std::vector< FASTAEntry 
   file.store(tmp_filename,data);
   file.load(tmp_filename,data2);
   TEST_EQUAL(data==data2,true);
+END_SECTION
+
+START_SECTION([EXTRA] test_strange_symbols_in_sequence)
+  // test if * is read correctly (not changed into something weird like 'X')
+  String tmp_filename;
+  NEW_TMP_FILE(tmp_filename);
+  FASTAFile file;
+  vector<FASTAFile::FASTAEntry> data, data2;
+  FASTAFile::FASTAEntry temp_entry;
+  temp_entry.identifier = String("P68509|1433F_BOVIN");
+  temp_entry.description = String("This is the description of the first protein");
+  temp_entry.sequence = String("GDREQLLQRAR*LAEQ*AERYDDMASAMKAVTEL");
+  data.push_back(temp_entry);
+  data.push_back(temp_entry); // twice
+
+  file.store(tmp_filename, data);
+  file.load(tmp_filename, data2);
+  
+  ABORT_IF(data2.size() != 2);
+  TEST_EQUAL(data2[0] == temp_entry, true);
+  TEST_EQUAL(data2[1] == temp_entry, true);
+
 END_SECTION
 
 /////////////////////////////////////////////////////////////

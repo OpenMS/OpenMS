@@ -60,11 +60,11 @@ namespace OpenMS
     {
       /// Default constructor
       RANSACParam()
-        : n(0), k(0), t(0), d(0), relative_d(false), rng(NULL)
+        : n(0), k(0), t(0), d(0), relative_d(false), rng(nullptr)
         {
         }
       /// Full constructor
-      RANSACParam(size_t p_n, size_t p_k, double p_t, size_t p_d, bool p_relative_d = false, int (*p_rng)(int) = NULL)
+      RANSACParam(size_t p_n, size_t p_k, double p_t, size_t p_d, bool p_relative_d = false, int (*p_rng)(int) = nullptr)
         : n(p_n), k(p_k), t(p_t), d(p_d), relative_d(p_relative_d), rng(p_rng)
       {
         if (relative_d)
@@ -80,12 +80,12 @@ namespace OpenMS
         return r.str();
       }
 
-      size_t n; //< data points: The minimum number of data points required to fit the model
-      size_t k; //< iterations: The maximum number of iterations allowed in the algorithm 
-      double t; //< Threshold value: for determining when a data point fits a model. Corresponds to the maximal squared deviation in units of the _second_ dimension (dim2).
-      size_t d; //< The number of close data values (according to 't') required to assert that a model fits well to data
-      bool relative_d; //< Should 'd' be interpreted as percentages (0-100) of data input size.
-      int (*rng)(int); //< Optional RNG function (useful for testing with fixed seeds)
+      size_t n; ///< data points: The minimum number of data points required to fit the model
+      size_t k; ///< iterations: The maximum number of iterations allowed in the algorithm 
+      double t; ///< Threshold value: for determining when a data point fits a model. Corresponds to the maximal squared deviation in units of the _second_ dimension (dim2).
+      size_t d; ///< The number of close data values (according to 't') required to assert that a model fits well to data
+      bool relative_d; ///< Should 'd' be interpreted as percentages (0-100) of data input size.
+      int (*rng)(int); ///< Optional RNG function (useful for testing with fixed seeds)
     };
 
     /**
@@ -144,7 +144,7 @@ public:
           double t, 
           size_t d, 
           bool relative_d = false,
-          int (*rng)(int) = NULL)
+          int (*rng)(int) = nullptr)
       {
         // translate relative percentages into actual numbers
         if (relative_d)
@@ -178,7 +178,7 @@ public:
           // check if the model already includes all points
           if (bestdata.size() == pairs.size()) break;
 
-          if (rng != NULL)
+          if (rng != nullptr)
           { // use portable RNG in test mode
             std::random_shuffle(pairs_shuffled.begin(), pairs_shuffled.end(), rng);
           } else {

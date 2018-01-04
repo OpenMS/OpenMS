@@ -91,7 +91,7 @@ public:
   }
 
 protected:
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "Input file", true);
     setValidFormats_("in", ListUtils::create<String>("featureXML"));
@@ -100,14 +100,14 @@ protected:
     registerSubsection_("algorithm", "Algorithm parameters section");
   }
 
-  Param getSubsectionDefaults_(const String & /*section*/) const
+  Param getSubsectionDefaults_(const String & /*section*/) const override
   {
     FeatureGroupingAlgorithmLabeled algo;
     Param p = algo.getParameters();
     return p;
   }
 
-  ExitCodes main_(int, const char **)
+  ExitCodes main_(int, const char **) override
   {
     FeatureGroupingAlgorithmLabeled algo;
     return TOPPFeatureLinkerBase::common_main_(&algo, true);

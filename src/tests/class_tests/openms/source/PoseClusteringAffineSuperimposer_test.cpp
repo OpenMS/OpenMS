@@ -52,9 +52,9 @@ START_TEST(PoseClusteringAffineSuperimposer, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-PoseClusteringAffineSuperimposer* ptr = 0;
-PoseClusteringAffineSuperimposer* nullPointer = 0;
-BaseSuperimposer* base_nullPointer = 0;
+PoseClusteringAffineSuperimposer* ptr = nullptr;
+PoseClusteringAffineSuperimposer* nullPointer = nullptr;
+BaseSuperimposer* base_nullPointer = nullptr;
 
 START_SECTION((PoseClusteringAffineSuperimposer()))
 {
@@ -71,7 +71,7 @@ END_SECTION
 
 START_SECTION((static BaseSuperimposer* create()))
 {
-  BaseSuperimposer* base_ptr = 0;
+  BaseSuperimposer* base_ptr = nullptr;
   base_ptr = PoseClusteringAffineSuperimposer::create();
   TEST_NOT_EQUAL(base_ptr, base_nullPointer)
 }

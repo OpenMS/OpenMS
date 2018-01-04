@@ -52,8 +52,8 @@ START_TEST(LabeledPairFinder, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-LabeledPairFinder* ptr = 0;
-LabeledPairFinder* nullPointer = 0;
+LabeledPairFinder* ptr = nullptr;
+LabeledPairFinder* nullPointer = nullptr;
 START_SECTION((LabeledPairFinder()))
 	ptr = new LabeledPairFinder();
 	TEST_NOT_EQUAL(ptr, nullPointer)
@@ -64,8 +64,8 @@ START_SECTION((virtual ~LabeledPairFinder()))
 END_SECTION
 
 START_SECTION((static BaseGroupFinder* create()))
-	BaseGroupFinder* base_ptr = 0;
-  BaseGroupFinder* base_nullPointer = 0;
+	BaseGroupFinder* base_ptr = nullptr;
+  BaseGroupFinder* base_nullPointer = nullptr;
 	base_ptr = LabeledPairFinder::create();
   TEST_NOT_EQUAL(base_ptr, base_nullPointer)
 END_SECTION

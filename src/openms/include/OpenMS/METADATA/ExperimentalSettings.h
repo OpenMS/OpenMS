@@ -66,7 +66,7 @@ public:
     ///Copy constructor
     ExperimentalSettings(const ExperimentalSettings & source);
     ///Destructor
-    ~ExperimentalSettings();
+    ~ExperimentalSettings() override;
 
     ///Assignment operator
     ExperimentalSettings & operator=(const ExperimentalSettings & source);

@@ -533,9 +533,12 @@ foreach (t ${pyopenms_integrationtest_testfiles})
 endforeach(t)
 
 # Finally add the memory leaks test (in folder tests/memoryleaktests/)
-add_test(NAME pyopenms_test_memoryleaktests
-  COMMAND ${PYTHON_EXECUTABLE} -c  "import nose; nose.run_exit()" ${CMAKE_BINARY_DIR}/pyOpenMS/tests/memoryleaktests/ -s -v
-  WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS)
-if(NOT WIN32)
-    set_tests_properties(pyopenms_test_memoryleaktests PROPERTIES ENVIRONMENT "LD_LIBRARY_PATH=${CMAKE_BINARY_DIR}/lib")
+if(NOT PY_MEMLEAK_DISABLE)
+  add_test(NAME pyopenms_test_memoryleaktests
+    COMMAND ${PYTHON_EXECUTABLE} -c  "import nose; nose.run_exit()" ${CMAKE_BINARY_DIR}/pyOpenMS/tests/memoryleaktests/ -s -v
+    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS)
+  if(NOT WIN32)
+      set_tests_properties(pyopenms_test_memoryleaktests PROPERTIES ENVIRONMENT "LD_LIBRARY_PATH=${CMAKE_BINARY_DIR}/lib")
+  endif()
 endif()
+

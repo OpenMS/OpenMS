@@ -52,8 +52,8 @@ START_TEST(LCMSCData, "$Id$")
 using namespace OpenMS;
 using namespace std;
 
-LCMSCData* ptr = 0;
-LCMSCData* nullPtr = 0;
+LCMSCData* ptr = nullptr;
+LCMSCData* nullPtr = nullptr;
 
 START_SECTION((LCMSCData()))
 	ptr = new LCMSCData();

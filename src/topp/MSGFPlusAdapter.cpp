@@ -138,7 +138,7 @@ protected:
   // primary MS run referenced in the mzML file
   StringList primary_ms_run_path_;
 
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "Input file (MS-GF+ parameter '-s')");
     setValidFormats_("in", ListUtils::create<String>("mzML,mzXML,mgf,ms2"));
@@ -312,7 +312,7 @@ protected:
       // determine type of spectral data (profile or centroided)
       SpectrumSettings::SpectrumType spectrum_type = exp[0].getType();
 
-      if (spectrum_type == SpectrumSettings::RAWDATA)
+      if (spectrum_type == SpectrumSettings::PROFILE)
       {
         if (!getFlag_("force"))
         {
@@ -398,7 +398,7 @@ protected:
     id.setHigherScoreBetter(false);
   }
 
-  ExitCodes main_(int, const char**)
+  ExitCodes main_(int, const char**) override
   {
     //-------------------------------------------------------------
     // parse parameters

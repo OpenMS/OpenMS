@@ -70,11 +70,11 @@ namespace OpenMS
     zoom_pos_(zoom_stack_.end()),
     update_buffer_(false),
     current_layer_(0),
-    spectrum_widget_(0),
+    spectrum_widget_(nullptr),
     percentage_factor_(1.0),
     snap_factors_(1, 1.0),
     rubber_band_(QRubberBand::Rectangle, this),
-    context_add_(0),
+    context_add_(nullptr),
     show_timing_(false),
     selected_peak_(),
     measurement_start_()

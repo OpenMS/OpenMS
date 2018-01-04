@@ -51,8 +51,8 @@ START_TEST(MS2Info, "$Id$")
 using namespace OpenMS;
 using namespace std;
 
-MS2Info* ptr = 0;
-MS2Info* nullPtr = 0;
+MS2Info* ptr = nullptr;
+MS2Info* nullPtr = nullptr;
 
 START_SECTION((MS2Info()))
 	ptr = new MS2Info();

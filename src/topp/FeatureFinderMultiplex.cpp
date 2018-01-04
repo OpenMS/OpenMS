@@ -173,7 +173,7 @@ public:
 
   typedef std::vector<double> MassPattern; // list of mass shifts
 
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "LC-MS dataset in centroid or profile mode");
     setValidFormats_("in", ListUtils::create<String>("mzML"));
@@ -190,7 +190,7 @@ public:
   }
 
   // create parameters for sections (set default values and restrictions)
-  Param getSubsectionDefaults_(const String& section) const
+  Param getSubsectionDefaults_(const String& section) const override
   {
     Param defaults;
 
@@ -909,7 +909,7 @@ private:
   };
 
 
-  ExitCodes main_(int, const char**)
+  ExitCodes main_(int, const char**) override
   {
 
     /**
@@ -957,7 +957,7 @@ private:
     bool centroided;
     if (spectrum_type_=="automatic")
     {
-      centroided = spectrum_type == SpectrumSettings::PEAKS;
+      centroided = spectrum_type == SpectrumSettings::CENTROID;
     }
     else if (spectrum_type_=="centroid")
     {

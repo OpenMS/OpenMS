@@ -83,7 +83,7 @@ public:
     FeatureDeconvolution& operator=(const FeatureDeconvolution& source);
 
     /// destructor
-    virtual ~FeatureDeconvolution();
+    ~FeatureDeconvolution() override;
     //@}
 
     /**
@@ -100,7 +100,7 @@ public:
 
 protected:
 
-    void updateMembers_();
+    void updateMembers_() override;
 
     /**
       @brief 1-sided Compomer for a feature

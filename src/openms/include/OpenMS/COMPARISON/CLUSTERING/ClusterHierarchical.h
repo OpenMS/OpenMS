@@ -200,7 +200,7 @@ public:
 public:
     UnnormalizedComparator(const char * file, int line, const char * function, const char * message
                              = "Clustering with unnormalized similarity measurement requested, normalized is mandatory") throw();
-    virtual ~UnnormalizedComparator() throw();
+    ~UnnormalizedComparator() throw() override;
   };
 
 }

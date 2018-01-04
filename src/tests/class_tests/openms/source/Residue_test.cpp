@@ -50,8 +50,8 @@ START_TEST(Residue, "$Id$")
 
 /////////////////////////////////////////////////////////////
 
-Residue* e_ptr = 0;
-Residue* e_nullPointer = 0;
+Residue* e_ptr = nullptr;
+Residue* e_nullPointer = nullptr;
 START_SECTION((Residue()))
 	e_ptr = new Residue();
 	TEST_NOT_EQUAL(e_ptr, e_nullPointer)

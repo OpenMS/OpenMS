@@ -168,8 +168,8 @@ START_TEST(ClusterHierarchical, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-ClusterHierarchical* ptr = 0;
-ClusterHierarchical* nullPointer = 0;
+ClusterHierarchical* ptr = nullptr;
+ClusterHierarchical* nullPointer = nullptr;
 START_SECTION(ClusterHierarchical())
 {
 	ptr = new ClusterHierarchical();

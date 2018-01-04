@@ -53,8 +53,8 @@ START_TEST(String, "$Id$")
 
 /////////////////////////////////////////////////////////////
 
-PeakTypeEstimator* ptr = 0;
-PeakTypeEstimator* nullPointer = 0;
+PeakTypeEstimator* ptr = nullptr;
+PeakTypeEstimator* nullPointer = nullptr;
 
 START_SECTION(([EXTRA]PeakTypeEstimator()))
 	ptr = new PeakTypeEstimator();
@@ -79,9 +79,9 @@ START_SECTION((template<typename PeakConstIterator> SpectrumSettings::SpectrumTy
 	//too few data points
 	exp[3].resize(4);
 	
-	TEST_EQUAL(pte.estimateType(exp[0].begin(),exp[0].end()), SpectrumSettings::RAWDATA);
-	TEST_EQUAL(pte.estimateType(exp[1].begin(),exp[1].end()), SpectrumSettings::RAWDATA);
-	TEST_EQUAL(pte.estimateType(exp[2].begin(),exp[2].end()), SpectrumSettings::PEAKS);
+	TEST_EQUAL(pte.estimateType(exp[0].begin(),exp[0].end()), SpectrumSettings::PROFILE);
+	TEST_EQUAL(pte.estimateType(exp[1].begin(),exp[1].end()), SpectrumSettings::PROFILE);
+	TEST_EQUAL(pte.estimateType(exp[2].begin(),exp[2].end()), SpectrumSettings::CENTROID);
 	TEST_EQUAL(pte.estimateType(exp[3].begin(),exp[3].end()), SpectrumSettings::UNKNOWN);
 END_SECTION
 

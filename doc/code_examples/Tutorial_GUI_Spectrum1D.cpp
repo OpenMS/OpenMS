@@ -49,7 +49,7 @@ Int main(int argc, const char ** argv)
   exp.resize(1);
   DTAFile().load(tutorial_data_path + "/data/Tutorial_Spectrum1D.dta", exp[0]);
   LayerData::ExperimentSharedPtrType exp_sptr(new PeakMap(exp));
-  Spectrum1DWidget * widget = new Spectrum1DWidget(Param(), 0);
+  Spectrum1DWidget * widget = new Spectrum1DWidget(Param(), nullptr);
   widget->canvas()->addLayer(exp_sptr);
   widget->show();
 
