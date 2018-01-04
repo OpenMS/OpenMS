@@ -152,6 +152,7 @@ set(format_executables_list
   BigString_test
   Bzip2Ifstream_test
   Bzip2InputStream_test
+  ChromeleonFile_test
   CVMappingFile_test
   CompressedInputSource_test
   ConsensusXMLFile_test
@@ -225,7 +226,6 @@ set(format_executables_list
   ToolDescriptionFile_test
   TraMLFile_test
   TransformationXMLFile_test
-  TXTToMzMLConverter_test
   UnimodXMLFile_test
   XMassFile_test
   XMLFile_test

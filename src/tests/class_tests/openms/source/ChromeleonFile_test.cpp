@@ -36,36 +36,37 @@
 #include <OpenMS/test_config.h>
 
 ///////////////////////////
-#include <OpenMS/FORMAT/TXTToMzMLConverter.h>
+#include <OpenMS/FORMAT/ChromeleonFile.h>
+#include <OpenMS/FORMAT/MzMLFile.h>
 ///////////////////////////
 
 using namespace OpenMS;
 using namespace std;
 
-START_TEST(TXTToMzMLConverter, "$Id$")
+START_TEST(ChromeleonFile, "$Id$")
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-TXTToMzMLConverter* ptr = 0;
-TXTToMzMLConverter* null_ptr = 0;
+ChromeleonFile* ptr = 0;
+ChromeleonFile* null_ptr = 0;
 const String input_filepath = OPENMS_GET_TEST_DATA_PATH("20171013_HMP_C61_ISO_P1_GA1_UV_VIS_2.txt");
 const String output_filepath = OPENMS_GET_TEST_DATA_PATH("20171013_HMP_C61_ISO_P1_GA1_UV_VIS_2.mzML");
 
-START_SECTION(TXTToMzMLConverter())
+START_SECTION(ChromeleonFile())
 {
-  ptr = new TXTToMzMLConverter();
+  ptr = new ChromeleonFile();
   TEST_NOT_EQUAL(ptr, null_ptr)
 }
 END_SECTION
 
-START_SECTION(~TXTToMzMLConverter())
+START_SECTION(~ChromeleonFile())
 {
   delete ptr;
 }
 END_SECTION
 
-ptr = new TXTToMzMLConverter();
+ptr = new ChromeleonFile();
 
 START_SECTION(void load(const String& filename, MSExperiment& experiment) const)
 {

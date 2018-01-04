@@ -32,29 +32,28 @@
 // $Authors: Douglas McCloskey, Pasquale Domenico Colaianni $
 // --------------------------------------------------------------------------
 // TODO make sure these preprocessor macros are correct
-#ifndef OPENMS_FORMAT_TXTTOMZMLCONVERTER_H
-#define OPENMS_FORMAT_TXTTOMZMLCONVERTER_H
+#ifndef OPENMS_FORMAT_CHROMELEONFILE_H
+#define OPENMS_FORMAT_CHROMELEONFILE_H
 
 // TODO remove unnecessary dependencies here
 #include <OpenMS/config.h> // OPENMS_DLLAPI
 #include <OpenMS/DATASTRUCTURES/String.h>
-#include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <fstream>
 #include <regex>
 
 namespace OpenMS
 {
-  class OPENMS_DLLAPI TXTToMzMLConverter
+  class OPENMS_DLLAPI ChromeleonFile
   {
 public:
     /// Constructor
-    TXTToMzMLConverter();
+    ChromeleonFile();
     /// Destructor
-    virtual ~TXTToMzMLConverter();
+    virtual ~ChromeleonFile();
 
     void load(const String& filename, MSExperiment& experiment) const;
   };
 }
 
-#endif // OPENMS_FORMAT_TXTTOMZMLCONVERTER_H
+#endif // OPENMS_FORMAT_CHROMELEONFILE_H

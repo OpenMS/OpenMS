@@ -32,15 +32,15 @@
 // $Authors: Douglas McCloskey, Pasquale Domenico Colaianni $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/FORMAT/TXTToMzMLConverter.h>
+#include <OpenMS/FORMAT/ChromeleonFile.h>
 
 namespace OpenMS
 {
-  TXTToMzMLConverter::TXTToMzMLConverter() {}
+  ChromeleonFile::ChromeleonFile() {}
 
-  TXTToMzMLConverter::~TXTToMzMLConverter() {}
+  ChromeleonFile::~ChromeleonFile() {}
 
-  void TXTToMzMLConverter::load(const String& filename, MSExperiment& experiment) const
+  void ChromeleonFile::load(const String& filename, MSExperiment& experiment) const
   {
     std::ifstream ifs(filename, std::ifstream::in);
     if (!ifs.is_open())

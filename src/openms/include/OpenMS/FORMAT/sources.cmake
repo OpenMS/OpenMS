@@ -27,6 +27,7 @@ Base64.h
 Bzip2Ifstream.h
 Bzip2InputStream.h
 CachedMzML.h
+ChromeleonFile.h
 CompressedInputSource.h
 CVMappingFile.h
 ConsensusXMLFile.h
@@ -86,7 +87,6 @@ SqMassFile.h
 TextFile.h
 ToolDescriptionFile.h
 TransformationXMLFile.h
-TXTToMzMLConverter.h
 UnimodXMLFile.h
 XMLFile.h
 XTandemInfile.h
