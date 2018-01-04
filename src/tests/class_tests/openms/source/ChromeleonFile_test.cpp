@@ -73,15 +73,15 @@ START_SECTION(void load(const String& filename, MSExperiment& experiment) const)
   MSExperiment experiment;
   ptr->load(input_filepath, experiment);
   // TODO fill following values to test
-  TEST_EQUAL(experiment.getMetaValue("mzml_id"), "")
-  TEST_EQUAL(experiment.getExperimentalSettings().getInstrument().getName(), "")
-  TEST_EQUAL(experiment.getExperimentalSettings().getInstrument().getSoftware().getName(), "")
-  TEST_EQUAL(experiment.getMetaValue("injection_date"), "")
-  TEST_EQUAL(experiment.getMetaValue("injection_time"), "")
-  TEST_EQUAL(experiment.getMetaValue("detector"), "")
-  TEST_EQUAL(experiment.getMetaValue("signal_quantity"), "")
-  TEST_EQUAL(experiment.getMetaValue("signal_unit"), "")
-  TEST_EQUAL(experiment.getMetaValue("signal_info"), "")
+  TEST_EQUAL(experiment.getMetaValue("mzml_id"), "20171013_C61_ISO_P1_GA1")
+  TEST_EQUAL(experiment.getExperimentalSettings().getInstrument().getName(), "HM_metode_ZorBax_0,02%_Acetic_acid_ver6")
+  TEST_EQUAL(experiment.getExperimentalSettings().getInstrument().getSoftware().getName(), "New ProcMethod")
+  TEST_EQUAL(experiment.getMetaValue("injection_date"), "10/13/2017")
+  TEST_EQUAL(experiment.getMetaValue("injection_time"), "6:28:26 PM")
+  TEST_EQUAL(experiment.getMetaValue("detector"), "UV")
+  TEST_EQUAL(experiment.getMetaValue("signal_quantity"), "Absorbance")
+  TEST_EQUAL(experiment.getMetaValue("signal_unit"), "mAU")
+  TEST_EQUAL(experiment.getMetaValue("signal_info"), "WVL:280 nm")
   const vector<MSChromatogram> chromatograms = experiment.getChromatograms();
   TEST_EQUAL(chromatograms.size(), 1);
   TEST_EQUAL(chromatograms[0].size(), 3301);
