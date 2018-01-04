@@ -537,9 +537,10 @@ protected:
                            const IdentificationData::DBSearchParameters& search_params)
   {
     IdentificationData::InputFileKey file_key = id_data.registerInputFile(in_mzml).first;
-    IdentificationData::DataProcessingSoftware software(toolName_(), version_); // @TODO: add suitable processing action
+    Software software(toolName_(), version_);
     IdentificationData::ProcessingSoftwareKey software_key = id_data.registerDataProcessingSoftware(software).first;
     IdentificationData::SearchParamsKey search_key = id_data.registerDBSearchParameters(search_params).first;
+    // @TODO: add suitable data processing action
     IdentificationData::DataProcessingStep step(software_key, vector<IdentificationData::InputFileKey>(1, file_key), primary_files);
     IdentificationData::ProcessingStepKey step_key = id_data.registerDataProcessingStep(step, search_key).first;
     // reference this step in all following ID data items, if applicable:

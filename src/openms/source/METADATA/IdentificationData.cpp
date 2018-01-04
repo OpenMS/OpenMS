@@ -55,8 +55,7 @@ namespace OpenMS
     // ProteinIdentification:
     for (const ProteinIdentification& prot : proteins)
     {
-      DataProcessingSoftware software(prot.getSearchEngine(),
-                                      prot.getSearchEngineVersion());
+      Software software(prot.getSearchEngine(), prot.getSearchEngineVersion());
       ProcessingSoftwareKey software_key =
         registerDataProcessingSoftware(software).first;
 
@@ -193,8 +192,8 @@ namespace OpenMS
         for (const PeptideHit::PepXMLAnalysisResult& ana_res :
                hit.getAnalysisResults())
         {
-          DataProcessingSoftware software;
-          software.tool.setName(ana_res.score_type); // e.g. "peptideprophet"
+          Software software;
+          software.setName(ana_res.score_type); // e.g. "peptideprophet"
           ProcessingSoftwareKey software_key =
             registerDataProcessingSoftware(software).first;
           DataProcessingStep sub_step;
@@ -363,10 +362,9 @@ namespace OpenMS
       const DataProcessingStep& step = processing_steps.left.at(*step_it);
       protein.setDateTime(step.date_time);
       protein.setPrimaryMSRunPath(step.primary_files);
-      const DataProcessingSoftware& software =
-        processing_software.left.at(step.software_key);
-      protein.setSearchEngine(software.tool.getName());
-      protein.setSearchEngineVersion(software.tool.getVersion());
+      const Software& software = processing_software.left.at(step.software_key);
+      protein.setSearchEngine(software.getName());
+      protein.setSearchEngineVersion(software.getVersion());
       map<ProcessingStepKey, pair<vector<ProteinHit>, ScoreTypeKey>>::
         const_iterator pd_pos = prot_data.find(*step_it);
       if (pd_pos != prot_data.end())
@@ -395,8 +393,8 @@ namespace OpenMS
     for (const auto& sw_pair : processing_software)
     {
       MzTabSoftwareMetaData sw_meta;
-      sw_meta.software.setName(sw_pair.right.tool.getName());
-      sw_meta.software.setValue(sw_pair.right.tool.getVersion());
+      sw_meta.software.setName(sw_pair.right.getName());
+      sw_meta.software.setValue(sw_pair.right.getVersion());
       meta.software[counter] = sw_meta;
       ++counter;
     }
@@ -544,11 +542,10 @@ namespace OpenMS
     for (const ProcessingStepKey& step_key : steps)
     {
       const DataProcessingStep& step = processing_steps.left.at(step_key);
-      const DataProcessingSoftware& sw =
-        processing_software.left.at(step.software_key);
+      const Software& sw = processing_software.left.at(step.software_key);
       MzTabParameter param;
-      param.setName(sw.tool.getName());
-      param.setValue(sw.tool.getVersion());
+      param.setName(sw.getName());
+      param.setValue(sw.getVersion());
       search_engines.push_back(param);
     }
     output.set(search_engines);
@@ -744,8 +741,7 @@ namespace OpenMS
 
 
   pair<IdentificationData::ProcessingSoftwareKey, bool>
-  IdentificationData::registerDataProcessingSoftware(
-    const DataProcessingSoftware& software)
+  IdentificationData::registerDataProcessingSoftware(const Software& software)
   {
     return insertIntoBimap_(software, processing_software);
   }

@@ -66,51 +66,8 @@ namespace OpenMS
       If the same processing is applied to multiple ID runs, e.g. if multiple files (fractions, replicates) are searched with the same search engine, store the
  software information only once.
     */
-    struct DataProcessingSoftware
-    {
-      Software tool; // also captures CV terms and meta data (MetaInfoInterface)
-
-      // @TODO: add processing actions that are relevant for ID data
-      std::set<DataProcessing::ProcessingAction> actions;
-
-      explicit DataProcessingSoftware(
-        const Software& tool = Software(),
-        std::set<DataProcessing::ProcessingAction> actions =
-        std::set<DataProcessing::ProcessingAction>()):
-        tool(tool), actions(actions)
-      {
-      }
-
-      explicit DataProcessingSoftware(
-        const String& tool_name, const String& tool_version = "",
-        std::set<DataProcessing::ProcessingAction> actions =
-        std::set<DataProcessing::ProcessingAction>()):
-        tool(), actions(actions)
-      {
-        tool.setName(tool_name);
-        tool.setVersion(tool_version);
-      }
-
-      DataProcessingSoftware(const DataProcessingSoftware& other) = default;
-
-      bool operator<(const DataProcessingSoftware& other) const
-      {
-        return (std::tie(tool.getName(), tool.getVersion(), actions) <
-                std::tie(other.tool.getName(), other.tool.getVersion(),
-                         other.actions));
-      }
-
-      bool operator==(const DataProcessingSoftware& other) const
-      {
-        return (std::tie(tool.getName(), tool.getVersion(), actions) ==
-                std::tie(other.tool.getName(), other.tool.getVersion(),
-                         other.actions));
-      }
-    };
-
     typedef UniqueKey ProcessingSoftwareKey;
-    typedef boost::bimap<ProcessingSoftwareKey,
-                         DataProcessingSoftware> SoftwareBimap;
+    typedef boost::bimap<ProcessingSoftwareKey, Software> SoftwareBimap;
     SoftwareBimap processing_software;
 
 
@@ -127,13 +84,18 @@ namespace OpenMS
 
       DateTime date_time;
 
+      // @TODO: add processing actions that are relevant for ID data
+      std::set<DataProcessing::ProcessingAction> actions;
+
       explicit DataProcessingStep(
         ProcessingSoftwareKey software_key = 0,
         const std::vector<InputFileKey>& input_files =
         std::vector<InputFileKey>(), const std::vector<String>& primary_files =
-        std::vector<String>(), const DateTime& date_time = DateTime::now()):
+        std::vector<String>(), const DateTime& date_time = DateTime::now(),
+        std::set<DataProcessing::ProcessingAction> actions =
+        std::set<DataProcessing::ProcessingAction>()):
         software_key(software_key), input_files(input_files),
-        primary_files(primary_files), date_time(date_time)
+        primary_files(primary_files), date_time(date_time), actions(actions)
       {
       }
 
@@ -141,16 +103,18 @@ namespace OpenMS
 
       bool operator<(const DataProcessingStep& other) const
       {
-        return (std::tie(software_key, input_files, primary_files, date_time) <
+        return (std::tie(software_key, input_files, primary_files, date_time,
+                         actions) <
                 std::tie(other.software_key, other.input_files,
-                         other.primary_files, other.date_time));
+                         other.primary_files, other.date_time, other.actions));
       }
 
       bool operator==(const DataProcessingStep& other) const
       {
-        return (std::tie(software_key, input_files, primary_files, date_time) ==
+        return (std::tie(software_key, input_files, primary_files, date_time,
+                         actions) ==
                 std::tie(other.software_key, other.input_files,
-                         other.primary_files, other.date_time));
+                         other.primary_files, other.date_time, other.actions));
       }
     };
 
@@ -173,7 +137,8 @@ namespace OpenMS
       // reference to the software that assigned the score:
       ProcessingSoftwareKey software_key;
       // @TODO: scores assigned by different software tools/versions are
-      // considered as different scores - does that make sense?
+      // considered as different scores (even if they have the same name) -
+      // does that make sense?
 
       ScoreType():
         higher_better(true), software_key(0)
@@ -215,6 +180,8 @@ namespace OpenMS
 
     typedef UniqueKey ScoreTypeKey;
     typedef boost::bimap<ScoreTypeKey, ScoreType> ScoreTypeBimap;
+    // @TODO: use a "boost::multi_index_container" to allow efficient access in
+    // sequence and by key?
     typedef std::vector<std::pair<ScoreTypeKey, double>> ScoreList;
     ScoreTypeBimap score_types;
 
@@ -224,7 +191,7 @@ namespace OpenMS
     */
     struct DataQuery: public MetaInfoInterface
     {
-      // spectrum or feature ID (from the file reference by "input_file_key"):
+      // spectrum or feature ID (from the file referenced by "input_file_key"):
       String data_id;
 
       InputFileKey input_file_key; // reference into "input_files"
@@ -332,7 +299,7 @@ namespace OpenMS
     };
 
 
-    // Identified molecules - at the moment, peptides or small molecules:
+    // Identified molecules:
     typedef UniqueKey IdentifiedMoleculeKey;
     typedef boost::bimap<IdentifiedMoleculeKey, AASequence> PeptideBimap;
     typedef boost::bimap<IdentifiedMoleculeKey, String> CompoundBimap;
@@ -664,7 +631,7 @@ namespace OpenMS
     std::pair<InputFileKey, bool> registerInputFile(const String& file);
 
     std::pair<ProcessingSoftwareKey, bool> registerDataProcessingSoftware(
-      const DataProcessingSoftware& software);
+      const Software& software);
 
     std::pair<SearchParamsKey, bool> registerDBSearchParameters(
       const DBSearchParameters& params);
