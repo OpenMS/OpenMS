@@ -4,6 +4,7 @@ set(directory source/FORMAT)
 ### list all filenames of the directory here
 set(sources_list
 AbsoluteQuantitationMethodFile.cpp
+AbsoluteQuantitationStandardsFile.cpp
 Base64.cpp
 Bzip2Ifstream.cpp
 Bzip2InputStream.cpp
