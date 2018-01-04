@@ -67,45 +67,39 @@ namespace OpenMS
       ifs.getline(line, BUFSIZE);
       if (std::regex_search(line, m, re_injection))
       {
-        std::cout << std::endl << "re_injection START" << std::endl;
-        for (Size i = 0; i < m.size(); ++i)
-        {
-          std::cout << "[" << i << "] " << m[i] << std::endl;
-        }
-        std::cout << "re_injection END" << std::endl;
         experiment.setMetaValue("mzml_id", std::string(m[1]));
       }
       else if (std::regex_search(line, m, re_processing_method))
       {
-        // TODO save this info somewhere
+        experiment.getExperimentalSettings().getInstrument().getSoftware().setName(String(m[1]));
       }
       else if (std::regex_search(line, m, re_instrument_method))
       {
-        // save this info somewhere
+        experiment.getExperimentalSettings().getInstrument().setName(String(m[1]));
       }
       else if (std::regex_search(line, m, re_injection_date))
       {
-        // save this info somewhere
+        experiment.setMetaValue("injection_date", std::string(m[1]));
       }
       else if (std::regex_search(line, m, re_injection_time))
       {
-        // save this info somewhere
+        experiment.setMetaValue("injection_time", std::string(m[1]));
       }
       else if (std::regex_search(line, m, re_detector))
       {
-        // save this info somewhere
+        experiment.setMetaValue("detector", std::string(m[1]));
       }
       else if (std::regex_search(line, m, re_signal_quantity))
       {
-        // save this info somewhere
+        experiment.setMetaValue("signal_quantity", std::string(m[1]));
       }
       else if (std::regex_search(line, m, re_signal_unit))
       {
-        // save this info somewhere
+        experiment.setMetaValue("signal_unit", std::string(m[1]));
       }
       else if (std::regex_search(line, m, re_signal_info))
       {
-        // save this info somewhere
+        experiment.setMetaValue("signal_info", std::string(m[1]));
       }
       else if (std::regex_search(line, m, re_raw_data))
       {

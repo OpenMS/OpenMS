@@ -72,6 +72,16 @@ START_SECTION(void load(const String& filename, MSExperiment& experiment) const)
 {
   MSExperiment experiment;
   ptr->load(input_filepath, experiment);
+  // TODO fill following values to test
+  TEST_EQUAL(experiment.getMetaValue("mzml_id"), "")
+  TEST_EQUAL(experiment.getExperimentalSettings().getInstrument().getName(), "")
+  TEST_EQUAL(experiment.getExperimentalSettings().getInstrument().getSoftware().getName(), "")
+  TEST_EQUAL(experiment.getMetaValue("injection_date"), "")
+  TEST_EQUAL(experiment.getMetaValue("injection_time"), "")
+  TEST_EQUAL(experiment.getMetaValue("detector"), "")
+  TEST_EQUAL(experiment.getMetaValue("signal_quantity"), "")
+  TEST_EQUAL(experiment.getMetaValue("signal_unit"), "")
+  TEST_EQUAL(experiment.getMetaValue("signal_info"), "")
   const vector<MSChromatogram> chromatograms = experiment.getChromatograms();
   TEST_EQUAL(chromatograms.size(), 1);
   TEST_EQUAL(chromatograms[0].size(), 3301);
