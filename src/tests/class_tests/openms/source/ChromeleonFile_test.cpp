@@ -93,14 +93,22 @@ START_SECTION(void load(const String& filename, MSExperiment& experiment) const)
   mzml.store(output_filepath, experiment);
   MSExperiment read_exp;
   mzml.load(output_filepath, read_exp);
-  const MSChromatogram c1 = experiment.getChromatograms()[0];
-  const MSChromatogram c2 = read_exp.getChromatograms()[0];
+  TEST_EQUAL(read_exp.getChromatograms().size(), 1);
+  const MSChromatogram& c1 = experiment.getChromatograms()[0];
+  const MSChromatogram& c2 = read_exp.getChromatograms()[0];
   TEST_EQUAL(c1.size(), c2.size())
-  // for (Size i = 0; i < c1.size(); ++i)
-  // {
-  //   TEST_REAL_SIMILAR(c1[i].getRT(), c2[i].getRT())
-  //   TEST_REAL_SIMILAR(c1[i].getIntensity(), c2[i].getIntensity())
-  // }
+  TEST_REAL_SIMILAR(c1[0].getRT(), c2[0].getRT())
+  TEST_REAL_SIMILAR(c1[0].getIntensity(), c2[0].getIntensity())
+  TEST_REAL_SIMILAR(c1[660].getRT(), c2[660].getRT())
+  TEST_REAL_SIMILAR(c1[660].getIntensity(), c2[660].getIntensity())
+  TEST_REAL_SIMILAR(c1[1320].getRT(), c2[1320].getRT())
+  TEST_REAL_SIMILAR(c1[1320].getIntensity(), c2[1320].getIntensity())
+  TEST_REAL_SIMILAR(c1[1980].getRT(), c2[1980].getRT())
+  TEST_REAL_SIMILAR(c1[1980].getIntensity(), c2[1980].getIntensity())
+  TEST_REAL_SIMILAR(c1[2640].getRT(), c2[2640].getRT())
+  TEST_REAL_SIMILAR(c1[2640].getIntensity(), c2[2640].getIntensity())
+  TEST_REAL_SIMILAR(c1[3300].getRT(), c2[3300].getRT())
+  TEST_REAL_SIMILAR(c1[3300].getIntensity(), c2[3300].getIntensity())
 }
 END_SECTION
 

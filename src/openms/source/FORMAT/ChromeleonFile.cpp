@@ -77,7 +77,7 @@ namespace OpenMS
       }
       else if (std::regex_search(line, m, re_processing_method))
       {
-        // save this info somewhere
+        // TODO save this info somewhere
       }
       else if (std::regex_search(line, m, re_instrument_method))
       {
@@ -109,7 +109,7 @@ namespace OpenMS
       }
       else if (std::regex_search(line, m, re_raw_data))
       {
-        ifs.getline(line, BUFSIZE); // remove the subsequent line, right before the data
+        ifs.getline(line, BUFSIZE); // remove the subsequent line, right before the raw data
         break;
       }
     }
@@ -124,7 +124,7 @@ namespace OpenMS
       }
       else if (!strcmp(line, "\r") || !strcmp(line, ""))
       {
-        continue; // skips eventual empty lines
+        continue; // skips eventual empty lines, eg. the last before EOF
       }
       else
       {

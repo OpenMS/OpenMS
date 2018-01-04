@@ -31,11 +31,10 @@
 // $Maintainer: Douglas McCloskey, Pasquale Domenico Colaianni $
 // $Authors: Douglas McCloskey, Pasquale Domenico Colaianni $
 // --------------------------------------------------------------------------
-// TODO make sure these preprocessor macros are correct
+
 #ifndef OPENMS_FORMAT_CHROMELEONFILE_H
 #define OPENMS_FORMAT_CHROMELEONFILE_H
 
-// TODO remove unnecessary dependencies here
 #include <OpenMS/config.h> // OPENMS_DLLAPI
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
