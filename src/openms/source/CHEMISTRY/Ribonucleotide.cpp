@@ -51,28 +51,17 @@ namespace OpenMS
   Ribonucleotide::Ribonucleotide(
     const String& name, const String& code, const String& new_code,
     const String& html_code, const EmpiricalFormula& formula, char origin,
-    double mono_mass, double avg_mass, enum TermSpecificity term_spec):
+    double mono_mass, double avg_mass, enum TermSpecificity term_spec,
+    const EmpiricalFormula& baseloss_formula):
     name_(name), code_(code), new_code_(new_code), html_code_(html_code),
     formula_(formula), origin_(origin), mono_mass_(mono_mass),
-    avg_mass_(avg_mass), term_spec_(term_spec)
+    avg_mass_(avg_mass), term_spec_(term_spec),
+    baseloss_formula_(baseloss_formula)
   {
   }
 
   Ribonucleotide::~Ribonucleotide()
   {
-  }
-
-  Ribonucleotide& Ribonucleotide::operator=(const Ribonucleotide& ribo)
-  {
-    name_ = ribo.name_;
-    code_ = ribo.code_;
-    new_code_ = ribo.new_code_;
-    html_code_ = ribo.html_code_;
-    formula_ = ribo.formula_;
-    origin_ = ribo.origin_;
-    mono_mass_ = ribo.mono_mass_;
-    avg_mass_ = ribo.avg_mass_;
-    return *this;
   }
 
   const String Ribonucleotide::getCode() const
@@ -169,6 +158,16 @@ namespace OpenMS
                                     msg, "NUMBER_OF_TERM_SPECIFICITY");
     }
     term_spec_ = term_spec;
+  }
+
+  const EmpiricalFormula Ribonucleotide::getBaselossFormula() const
+  {
+    return baseloss_formula_;
+  }
+
+  void Ribonucleotide::setBaselossFormula(const EmpiricalFormula& formula)
+  {
+    baseloss_formula_ = formula;
   }
 
   bool Ribonucleotide::isModified() const

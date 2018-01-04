@@ -75,7 +75,8 @@ namespace OpenMS
                    char origin = '.',
                    double mono_mass = 0.0,
                    double avg_mass = 0.0,
-                   enum TermSpecificity term_spec = ANYWHERE);
+                   enum TermSpecificity term_spec = ANYWHERE,
+                   const EmpiricalFormula& baseloss_formula = EmpiricalFormula());
 
     /// Copy constructor
     Ribonucleotide(const Ribonucleotide& ribo) = default;
@@ -88,7 +89,7 @@ namespace OpenMS
      */
     //@{
     /// assignment operator
-    Ribonucleotide& operator=(const Ribonucleotide& ribo);
+    Ribonucleotide& operator=(const Ribonucleotide& ribo) = default;
     //@}
 
 
@@ -102,28 +103,28 @@ namespace OpenMS
     /// Set the short name
     void setCode(const String& code);
 
-    /// Get the name of the Ribonucleotide
+    /// Get the name of the ribonucleotide
     const String getName() const;
 
-    /// Set the name of the Ribonucleotide
+    /// Set the name of the ribonucleotide
     void setName(const String& name);
 
-    /// Get formula for the RiboNucleotide
+    /// Get formula for the ribonucleotide
     const EmpiricalFormula getFormula() const;
 
-    /// Set the empirical formula for the Ribonucleotide
+    /// Set the empirical formula for the ribonucleotide
     void setFormula(const EmpiricalFormula& formula);
 
-    /// Get the monoisotopic mass of the Ribonucleotide
+    /// Get the monoisotopic mass of the ribonucleotide
     double getMonoMass() const;
 
-    /// Set the monoisotopic mass of the Ribonucleotide
+    /// Set the monoisotopic mass of the ribonucleotide
     void setMonoMass(double mono_mass);
 
-    /// Set the average mass of the Ribonucleotide
+    /// Set the average mass of the ribonucleotide
     double getAvgMass() const;
 
-    /// Get the average mass of the Ribonucleotide
+    /// Get the average mass of the ribonucleotide
     void setAvgMass(double avg_mass);
 
     /// Get new code
@@ -141,35 +142,46 @@ namespace OpenMS
     /// Set the code of the unmodified base (e.g., "A", "C", ...)
     void setOrigin(char origin);
 
+    /// Set the HTML (RNAMods) code
     String getHTMLCode() const;
 
+    /// Get the HTML (RNAMods) code
     void setHTMLCode(const String& html_code);
 
+    /// Get the terminal specificity
     enum TermSpecificity getTermSpecificity() const;
 
+    /// Set the terminal specificity
     void setTermSpecificity(enum TermSpecificity term_spec);
+
+    /// Get sum formula after loss of the nucleobase
+    const EmpiricalFormula getBaselossFormula() const;
+
+    /// Set the sum formula after loss of the nucleobase
+    void setBaselossFormula(const EmpiricalFormula& formula);
 
     //@}
 
-    ///Return true if this is a modified Ribonucleotide and false otherwise
+    /// Return true if this is a modified ribonucleotide and false otherwise
     bool isModified() const;
 
   protected:
-    String name_;
-    String code_; // short name
-    String new_code_;
-    String html_code_; // RNAMods code
-    EmpiricalFormula formula_;
-    char origin_;  // character of unmodified version of Ribonucleotide
-    double mono_mass_;
-    double avg_mass_;
-    enum TermSpecificity term_spec_;
+    String name_; //< full name
+    String code_; //< short name
+    String new_code_; //< Modomics code
+    String html_code_; //< RNAMods code
+    EmpiricalFormula formula_; //< sum formula
+    char origin_; //< character of unmodified version of ribonucleotide
+    double mono_mass_; //< monoisotopic mass
+    double avg_mass_; //< average mass
+    enum TermSpecificity term_spec_; //< terminal specificity
+    EmpiricalFormula baseloss_formula_; //< sum formula after loss of the nucleobase
   };
 
-
+  /// Stream output operator
   OPENMS_DLLAPI std::ostream& operator<<(std::ostream& os, const Ribonucleotide& ribo);
 
-  // Dummy nucleotide used to represent 5' and 3' chain ends. Usually, just the phosphates.
+  /// Dummy nucleotide used to represent 5' and 3' chain ends. Usually, just the phosphates.
   using RibonucleotideChainEnd = Ribonucleotide;
 
 }

@@ -156,7 +156,7 @@ namespace OpenMS
     static const EmpiricalFormula x_ion_to_full = EmpiricalFormula("H-1PO2");
     static const EmpiricalFormula y_ion_to_full = EmpiricalFormula("");
     static const EmpiricalFormula z_ion_to_full = EmpiricalFormula("H-2O-1");
-    static const EmpiricalFormula aminusB_ion_to_full = EmpiricalFormula("C5H6O3");
+    static const EmpiricalFormula aminusB_ion_to_full = EmpiricalFormula("H-4O-2");
     static const EmpiricalFormula phosphate_form = EmpiricalFormula("HPO3");
     // static const EmpiricalFormula abasicform_RNA = EmpiricalFormula("C5H8O4");
     // static const EmpiricalFormula abasicform_DNA = EmpiricalFormula("C5H7O5P");
@@ -192,8 +192,7 @@ namespace OpenMS
     //   return our_form - five_prime_to_full + OH_form + (H_form * charge) + local_three_prime;
 
     case AminusB:
-      return our_form + (H_form * charge) + local_five_prime + aminusB_ion_to_full - seq_.back()->getFormula();
-      // @TODO: deal with mods on the ribose
+      return our_form + (H_form * charge) + local_five_prime + aminusB_ion_to_full - seq_.back()->getFormula() + seq_.back()->getBaselossFormula();
 
     case AIon:
       return our_form + (H_form * charge) + local_five_prime + a_ion_to_full;
