@@ -51,6 +51,12 @@ public:
       const String& filename,
       std::vector<AbsoluteQuantitationStandards::runConcentration>& run_concentrations
     ) const;
+
+protected:
+    AbsoluteQuantitationStandards::runConcentration extractRunFromLine_(
+      const StringList& line,
+      const std::map<String, Size>& headers
+    ) const;
   };
 }
 
