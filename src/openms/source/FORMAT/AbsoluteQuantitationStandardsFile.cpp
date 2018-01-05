@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -39,4 +39,32 @@ namespace OpenMS
   AbsoluteQuantitationStandardsFile::AbsoluteQuantitationStandardsFile() {}
 
   AbsoluteQuantitationStandardsFile::~AbsoluteQuantitationStandardsFile() {}
+
+  void AbsoluteQuantitationStandardsFile::load(
+    const String& filename,
+    std::vector<AbsoluteQuantitationStandards::runConcentration>& run_concentrations
+  ) const
+  {
+    CsvFile csv(filename);
+    StringList sl;
+    std::map<String, Size> headers_i;
+    csv.getRow(0, sl);
+    for (Size i = 0; i < sl.size(); ++i)
+    {
+      headers_i[sl[i]] = i;
+    }
+    for (Size i = 1; i < csv.rowCount(); ++i)
+    {
+      csv.getRow(i, sl);
+      AbsoluteQuantitationStandards::runConcentration rc;
+      rc.sample_name = sl[headers_i.at("sample_name")];
+      rc.component_name = sl[headers_i.at("component_name")];
+      rc.IS_component_name = sl[headers_i.at("IS_component_name")];
+      rc.actual_concentration = sl[headers_i.at("actual_concentration")].toDouble();
+      rc.IS_actual_concentration = sl[headers_i.at("IS_actual_concentration")].toDouble();
+      rc.concentration_units = sl[headers_i.at("concentration_units")];
+      rc.dilution_factor = sl[headers_i.at("dilution_factor")].toDouble();
+      run_concentrations.push_back(rc);
+    }
+  }
 }
