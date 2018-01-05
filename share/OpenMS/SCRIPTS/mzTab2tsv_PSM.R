@@ -80,7 +80,7 @@ readMzTabPSM <- function(file) {
   first.row <- startSection(file, "PSH")
   
   # read entire mzTab
-  data <- read.table(file, sep="\t", skip=first.row-1, fill=TRUE, header=TRUE, quote="", na.strings=c("null","NA"), stringsAsFactors=FALSE)
+  data <- read.table(file, sep="\t", skip=first.row-1, fill=TRUE, header=TRUE, quote="", na.strings=c("null","NA"), stringsAsFactors=FALSE, check.names=FALSE)
   
   # extract PSM data
   psm.data <- data[which(data[,1]=="PSM"),]
