@@ -195,7 +195,7 @@ protected:
     // determine type of spectral data (profile or centroided)
     SpectrumSettings::SpectrumType spectrum_type = ms_peakmap[0].getType();
 
-    if (spectrum_type == SpectrumSettings::RAWDATA)
+    if (spectrum_type == SpectrumSettings::PROFILE)
     {
       if (!getFlag_("force"))
       {

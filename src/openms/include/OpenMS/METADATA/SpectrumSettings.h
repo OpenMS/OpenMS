@@ -71,8 +71,8 @@ public:
     enum SpectrumType
     {
       UNKNOWN,          ///< Unknown spectrum type
-      PEAKS,            ///< Peak data (also called centroided data or stick data)
-      RAWDATA,          ///< Raw data (also called profile data)
+      CENTROID,         ///< centroid data or stick data
+      PROFILE,          ///< profile data
       SIZE_OF_SPECTRUMTYPE
     };
     /// Names of spectrum types

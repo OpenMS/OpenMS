@@ -5,10 +5,13 @@ from AbsoluteQuantitationStandards cimport *
 from Feature cimport *
 from FeatureMap cimport *
 from String cimport *
+from DefaultParamHandler cimport *
 
 cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/AbsoluteQuantitation.h>" namespace "OpenMS":
 
-    cdef cppclass AbsoluteQuantitation:
+    cdef cppclass AbsoluteQuantitation(DefaultParamHandler) :
+        # wrap-inherits:
+        #  DefaultParamHandler
 
         AbsoluteQuantitation() nogil except +
         AbsoluteQuantitation(AbsoluteQuantitation)  nogil except + #wrap-ignore
@@ -19,4 +22,15 @@ cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/AbsoluteQuantitation.h>" namespa
         double applyCalibration(Feature & component, Feature & IS_component, String & feature_name, 
                                 String & transformation_model, Param & transformation_model_params) nogil except +
         void quantifyComponents(FeatureMap& unknowns) nogil except +
+
+        void optimizeCalibrationCurveIterative(
+            libcpp_vector[ AQS_featureConcentration ] & component_concentrations,
+            String & feature_name,
+            String & transformation_model,
+            Param & transformation_model_params,
+            Param & optimized_params) nogil except +
+
+        void optimizeCalibrationCurves(
+           libcpp_map[ String, libcpp_vector[ AQS_featureConcentration ]] & components_concentrations) nogil except + # wrap-ignore
+
 
