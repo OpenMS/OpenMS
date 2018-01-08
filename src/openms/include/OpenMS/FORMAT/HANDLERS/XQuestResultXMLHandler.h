@@ -147,8 +147,13 @@ namespace OpenMS
       UInt min_precursor_charge_;
       UInt max_precursor_charge_;
 
-      // Current Retention time of light spectrum
+      // Current Retention time of spectrum pair
       double rt_light_;
+      double rt_heavy_;
+
+      // Current experimental m/z of spectrum pair
+      double mz_light_;
+      double mz_heavy_;
 
       // The masses of the Monolinks
       // DoubleList monolinks_masses_;

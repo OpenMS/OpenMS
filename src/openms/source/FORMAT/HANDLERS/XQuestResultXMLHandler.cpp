@@ -428,7 +428,7 @@ namespace OpenMS
       }
       else if (tag == "spectrum_search")
       {
-
+        // Examples
         // <spectrum_search spectrum="GUA1354-S15-A-LRRK2_DSG_A4.light.2616_GUA1354-S15-A-LRRK2_DSG_A4.heavy.2481" mz_precursor="590.556396484375" scantype="light_heavy" charge_precursor="4" Mr_precursor="2358.19648007042" rtsecscans="2231.988:2194.8258"                mzscans="590.556396484375:592.065673828125" >
         // <spectrum_search spectrum="GUA1354-S15-A-LRRK2_DSG_A4.light.1327_GUA1354-S15-A-LRRK2_DSG_A4.heavy.1327" mz_precursor="1008.83288574219" scantype="light"       charge_precursor="3" Mr_precursor="3023.47682782626" rtsecscans="2796.68020000002:2796.68020000002" mzscans="1008.83288574219:1008.83288574219" >
         // <spectrum_search Mr_precursor="1465.880913324" addedMass="0" apriori_pmatch_common="0.0311" apriori_pmatch_xlink="0.0658" charge_precursor="3" ionintensity_stdev="5.73" iontag_ncandidates="240" mean_ionintensity="2.28" mz_precursor="489.63479614" mzscans="489.63479614:493.6600647" ncommonions="71" nxlinkions="102" rtsecscans="2491:2477" scantype="light_heavy" spectrum="aleitner_M1012_006.c.02942.02942.3_aleitner_M1012_006.c.02913.02913.3">
@@ -437,6 +437,12 @@ namespace OpenMS
         StringList rt_split;
         StringUtils::split(this->attributeAsString_(attributes, "rtsecscans"), ":", rt_split);
         this->rt_light_ = rt_split[0].toDouble();
+        this->rt_heavy_ = rt_split[1].toDouble();
+
+        StringList mz_split;
+        StringUtils::split(this->attributeAsString_(attributes, "mzscans"), ":", mz_split);
+        this->mz_light_ = mz_split[0].toDouble();
+        this->mz_heavy_ = mz_split[1].toDouble();
 
         // Update min and max precursor charge
         UInt charge_precursor = this->attributeAsInt_(attributes, "charge_precursor");
@@ -479,39 +485,58 @@ namespace OpenMS
         }
         else
         {
-          spectrum_index_light_ = this->attributeAsString_(attributes, "scan_index_light");
-          spectrum_index_heavy_ = this->attributeAsString_(attributes, "scan_index_heavy");
+          spectrum_index_light_ = this->attributeAsInt_(attributes, "scan_index_light");
+          spectrum_index_heavy_ = this->attributeAsInt_(attributes, "scan_index_heavy");
         }
 
       }
       else if (tag == "search_hit")
       {
-        // Keep track of the charge if this hit
-        UInt charge = this->attributeAsInt_(attributes, "charge");
-        // this->charges_.insert(charge);
+        // Examples
 
-        this->n_hits_++;
+        // <search_hit search_hit_rank="1" id="DNSTMGYMAAKK-RDVEKFLSK-a11-b5" type="xlink" structure="DNSTMGYMAAKK-RDVEKFLSK" seq1="DNSTM(Oxidation)GYM(Oxidation)AAKK" seq2="RDVEKFLSK" prot1="tr|Q8TBA7|Q8TBA7_HUMAN" prot2="sp|Q5S007-v1|LRRK2_HUMAN" topology="a11-b5" xlinkposition="11,5" Mr="2564.2250873787" mz="855.748972259671" charge="3" xlinkermass="96.0211294" measured_mass="2564.22762128328"
+        // error="0.000844634859959115" error_rel="0.987012415251626" xlinkions_matched="6" backboneions_matched="1" xcorrx="0.312314444528579" xcorrb="-0.0506118717404067" match_odds="0.794234705691207" prescore="0.0369274467229843" num_of_matched_ions_alpha="3" num_of_matched_ions_beta="4" num_of_matched_common_ions_alpha="1" num_of_matched_common_ions_beta="0" num_of_matched_xlink_ions_alpha="2" num_of_matched_xlink_ions_beta="4"
+        // TIC="0.0292408974147396" wTIC="0.026377408862402" intsum="0.397526955232024" HyperCommon="0.743940400979002" HyperXlink="34.1231158133129" HyperAlpha="16.0630790689233" HyperBeta="6.84199589723582" HyperBoth="31.1180197102582" selected="false" target_decoy="target" protein_references="unique" annotated_spec="" score="2.32103769126514" >
+
+        // <search_hit search_hit_rank="3" id="MGIKTSEGTPGFRAPEVAR-HKMSYSGR-a4-b2" type="xlink" structure="MGIKTSEGTPGFRAPEVAR-HKMSYSGR" seq1="M(Oxidation)GIKTSEGTPGFRAPEVAR" seq2="HKMSYSGR" prot1="sp|Q5S007-v1|LRRK2_HUMAN" prot2="sp|Q5S007-v1|LRRK2_HUMAN" topology="a4-b2" xlinkposition="4,2" Mr="3079.4967874314" mz="770.881473324621" charge="4" xlinkermass="96.0211294" measured_mass="3079.49506405479"
+        // error="-0.000430844152219834" error_rel="-0.558898049996855" xlinkions_matched="14" backboneions_matched="6" xcorrx="0.198434093695336" xcorrb="0.00514737154810852" match_odds="1.45901170826174" prescore="0.0599999986588955" num_of_matched_ions_alpha="15" num_of_matched_ions_beta="5" num_of_matched_common_ions_alpha="5" num_of_matched_common_ions_beta="1" num_of_matched_xlink_ions_alpha="10" num_of_matched_xlink_ions_beta="4"
+        // TIC="0.0562770907575218" wTIC="0.0370273112047904" intsum="0.818966233637184" HyperCommon="6.80908719125821" HyperXlink="33.1079286508253" HyperAlpha="15.5319805998036" HyperBeta="1.62767939400878" HyperBoth="23.997840801109" selected="false" target_decoy="target" protein_references="unique" annotated_spec="" score="2.69829871110556" >
+
+        // <search_hit Mr="2145.18339" TIC="0.08237" TIC_alpha="0.03287" TIC_beta="0.04951" annotated_spec="" apriori_match_probs="0.99970" apriori_match_probs_log="-0.00013" backboneions_matched="" charge="3" error="1.6" error_rel="-1.6" id="KSKTLQYFA-KQYSAKAK-a1-b1" intsum="91.91980" match_error_mean="-8.04546309837745" match_error_stdev="278.931294616457" match_odds="2.85579" match_odds_alphacommon="1.77210" match_odds_alphaxlink="1.98118"
+        // match_odds_betacommon="2.35354" match_odds_betaxlink="5.31633" measured_mass="2145.1800" mz="716.06781" num_of_matched_common_ions_alpha="1" num_of_matched_common_ions_beta="1" num_of_matched_ions_alpha="3" num_of_matched_ions_beta="5" num_of_matched_xlink_ions_alpha="2" num_of_matched_xlink_ions_beta="4" prescore="0.11625" prescore_alpha="0.08108" prescore_beta="0.16667"
+        // prot1="sp|O14126|PRS6A_SCHPO" prot2="decoy_reverse_sp|Q9UUB6|UBLH2_SCHPO" score="8.93" search_hit_rank="2" seq1="KSKTLQYFA" seq2="KQYSAKAK" series_score_mean="2.48843" structure="KSKTLQYFA-KQYSAKAK" topology="a1-b1" type="xlink" wTIC="0.01521" weighted_matchodds_mean="1.31713728336586" weighted_matchodds_sum="0.658568641682928" xcorrall="0.00000" xcorrb="0.05442" xcorrx="0.11647" xlinkermass="138.0680796" xlinkions_matched="" xlinkposition="1,1">
+
+
         PeptideIdentification peptide_identification;
+
+        PeptideHit peptide_hit_alpha;
+        PeptideHit peptide_hit_beta;
+        vector<PeptideHit> peptide_hits;
+
+        String seq1 = String(this->attributeAsString_(attributes, "seq1"));
+        peptide_hit_alpha.setSequence(AASequence::fromString(seq1.substitute("X", "M(Oxidation)")));
+
+        UInt charge = this->attributeAsInt_(attributes, "charge");
+        peptide_hit_alpha.setCharge(charge);
+
+        // Set xl_chain meta value for alpha
+        peptide_hit_alpha.setMetaValue("xl_chain", "MS:1002509");
 
         // Set Attributes of Peptide Identification
         peptide_identification.setMZ(this->attributeAsDouble_(attributes, "mz"));
         peptide_identification.setRT(this->rt_light_);
         peptide_identification.setScoreType("OpenXQuest:combined score"); // Needed, since hard-coded in MzIdentMLHandler
 
-        PeptideHit peptide_hit_alpha;
-        PeptideHit peptide_hit_beta;
-        vector<PeptideHit> peptide_hits;
         // XL Type, determined by "type"
         String xlink_type_string = this->attributeAsString_(attributes, "type");
         String prot1_string = this->attributeAsString_(attributes, "prot1");
 
         // Decide if decoy for alpha
-        DataValue target_decoy = DataValue(prot1_string.hasSubstring("decoy") ? "decoy" : "target");
+        DataValue target_decoy = DataValue(prot1_string.hasSubstring(decoy_string_) ? "decoy" : "target");
         peptide_identification.setMetaValue("target_decoy", target_decoy);
         peptide_hit_alpha.setMetaValue("target_decoy", target_decoy);
 
-        // Set xl_chain meta value for alpha
-        peptide_hit_alpha.setMetaValue("xl_chain", "MS:1002509");
+
 
         // Attributes of peptide_hit_alpha
         double score = this->attributeAsDouble_(attributes, "score");
@@ -528,17 +553,13 @@ namespace OpenMS
         }
         peptide_hit_alpha.setScore(score);
 
-        String seq1 = String(this->attributeAsString_(attributes, "seq1"));
-        peptide_hit_alpha.setSequence(AASequence::fromString(seq1.substitute("X", "M(Oxidation)")));
-        peptide_hit_alpha.setCharge(charge);
-
         // Get common attributes of Peptide Identification
         this->peptide_id_meta_values_["OpenXQuest:id"] = DataValue(this->attributeAsString_(attributes, "id"));
         this->peptide_id_meta_values_["OpenXQuest:xlinkermass"] = xlinkermass;
         this->peptide_id_meta_values_["OpenXQuest:wTIC"] = DataValue(this->attributeAsDouble_(attributes, "wTIC"));
         this->peptide_id_meta_values_["OpenXQuest:percTIC"] = DataValue(this->attributeAsDouble_(attributes, "TIC"));
         this->peptide_id_meta_values_["xl_rank"] = DataValue(this->attributeAsInt_(attributes, "search_hit_rank"));
-        this->peptide_id_meta_values_["OpenXQuest:intsum"] = DataValue(this->attributeAsDouble_(attributes, "intsum")/100);
+        this->peptide_id_meta_values_["OpenXQuest:intsum"] = DataValue(this->attributeAsDouble_(attributes, "intsum"));
         this->peptide_id_meta_values_["OpenXQuest:match-odds"] = DataValue(this->attributeAsDouble_(attributes, "match_odds"));
         this->peptide_id_meta_values_["OpenXQuest:score"] = DataValue(score);
         this->peptide_id_meta_values_["OpenXQuest:error_rel"] = DataValue(this->attributeAsDouble_(attributes, "error_rel"));
@@ -555,14 +576,14 @@ namespace OpenMS
         assert(this->peptide_id_meta_values_["OpenXQuest:error_rel"] != DataValue::EMPTY);
         assert(this->peptide_id_meta_values_["OpenXQuest:structure"] != DataValue::EMPTY);
 
-        this->addMetaValues_(peptide_identification);
+        // this->addMetaValues_(peptide_identification);
 
         // Store common attributes in Peptide Identification
         // If requested, also write to the peptide_hit_alpha
-        if (this->load_to_peptideHit_)
-        {
-          this->addMetaValues_(peptide_hit_alpha);
-        }
+        // if (this->load_to_peptideHit_)
+        // {
+        this->addMetaValues_(peptide_hit_alpha);
+        // }
 
         // Store specific stuff for peptide hit alpha
         peptide_hit_alpha.setMetaValue("OpenXQuest:num_of_matched_ions",
@@ -689,6 +710,7 @@ namespace OpenMS
         peptide_identification.setHits(peptide_hits);
         this->peptide_id_meta_values_.clear();
         this->current_spectrum_search_.push_back(peptide_identification);
+        this->n_hits_++;
       }
     }
 
