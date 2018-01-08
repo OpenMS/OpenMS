@@ -1,4 +1,4 @@
-from AbsoluteQuantitationStandards import *
+from AbsoluteQuantitationStandards cimport *
 from String cimport *
 from Types cimport *
 
