@@ -41,18 +41,40 @@
 
 namespace OpenMS
 {
+  /**
+    @brief Load files containing runConcentration data.
+  */
   class OPENMS_DLLAPI AbsoluteQuantitationStandardsFile
   {
 public:
     AbsoluteQuantitationStandardsFile();
     virtual ~AbsoluteQuantitationStandardsFile();
 
+    /**
+      @brief Load runConcentration data from a file and save it in memory.
+
+      @param[in] filename The file path from which the method is reading the data
+      @param[out] run_concentrations Where the runConcentration data is going to be saved
+    */
     void load(
       const String& filename,
       std::vector<AbsoluteQuantitationStandards::runConcentration>& run_concentrations
     ) const;
 
 protected:
+    /**
+      @brief Extract one runConcentration from a single line
+
+      Any missing information is going to be filled with default data:
+      - an empty string for String data
+      - the value 0.0 for concentration values
+      - the value 1.0 for dilution factor
+
+      The `headers` argument makes sure that the data is taken from the correct column/position in `line`.
+
+      @param[in] line A list of strings each containing a column's info
+      @param[in] headers A mapping from header name to position in the StringList given in input
+    */
     AbsoluteQuantitationStandards::runConcentration extractRunFromLine_(
       const StringList& line,
       const std::map<String, Size>& headers
