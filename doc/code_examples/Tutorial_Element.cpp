@@ -28,6 +28,8 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 
+//! [Element]
+
 #include <OpenMS/CHEMISTRY/ElementDB.h>
 #include <OpenMS/CHEMISTRY/Element.h>
 #include <iostream>
@@ -51,3 +53,5 @@ Int main()
 
   return 0;
 } //end of main
+
+//! [Element]

@@ -28,6 +28,8 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 
+//! [EmpiricalFormula]
+
 #include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
 #include <OpenMS/CHEMISTRY/ElementDB.h>
 #include <iostream>
@@ -60,3 +62,5 @@ Int main()
 
   return 0;
 } //end of main
+
+//! [EmpiricalFormula]

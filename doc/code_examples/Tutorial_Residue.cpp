@@ -28,6 +28,8 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 
+//! [Residue]
+
 #include <OpenMS/CHEMISTRY/ResidueDB.h>
 #include <OpenMS/CHEMISTRY/Residue.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
@@ -68,3 +70,4 @@ int main()
   return 0;
 } //end of main
 
+//! [Residue]

@@ -55,4 +55,29 @@
 	- @subpage tutorial_library_kernelclasses_map
 	- @subpage tutorial_library_kernelclasses_mse
 	- @subpage tutorial_library_kernelclasses_fmap
+        - @subpage tutorial_fileformat
+        - @subpage tutorial_logging
+        - @subpage tutorial_identifications
+        - @subpage tutorial_chemistry
+        - @subpage tutorial_element
+        - @subpage tutorial_aaseq
+        - @subpage tutorial_residue
+        - @subpage tutorial_residuemod
+        - @subpage tutorial_tsg
+        - @subpage tutorial_dep
+        - @subpage tutorial_topp
+        - @subpage tutorial_create
+        - @subpage tutorial_param_def
+        - @subpage tutorial_param_read
+        - @subpage tutorial_read
+        - @subpage tutorial_add
+        - @subpage tutorial_write
+        - @subpage tutorial_test
+        - @subpage tutorial_doc 
+        - @subpage tutorial_polish
+        - @subpage tutorial_pull
+        - @subpage tutorial_appendix
+        - @subpage tutorial_d_dim
+        - @subpage tutorial_ext_project
+
 */
