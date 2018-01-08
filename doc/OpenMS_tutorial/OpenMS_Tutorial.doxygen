@@ -258,8 +258,8 @@ General:
  <tr><th>Folder        <th>Description
  <tr><td>openms</td><td>Source code of core library</td></tr>
  <tr><td>openms_gui</td><td>Source code of GUI applications (e.g.: TOPPView)</td></tr>
- <tr><td>topp</td><td>Source code of (stable) OpenMS Tools</td></tr>
- <tr><td>util</td><td>Source code of (experimental) OpenMS Tools</td></tr>
+ <tr><td>topp</td><td>Source code of (stable) %OpenMS Tools</td></tr>
+ <tr><td>util</td><td>Source code of (experimental) %OpenMS Tools</td></tr>
  <tr><td>pyOpenMS</td><td>Source files providing the python bindings</td></tr>
  <tr><td>tests</td><td>Source code of class and tool tests</td></tr>
 </table >
@@ -271,7 +271,7 @@ General:
  <tr><td>APPLICATIONS</td><td>Source code for tool base and handling</td></tr>
  <tr><td>CHEMISTRY</td><td>Source code dealing with Elements, Enzymes, Residues, Modifications, Isotope distibutions and amino acid sequences</td></tr>
  <tr><td>COMPARISON</td><td>Different scoring functions for clustering and spectra comparison</td></tr>
- <tr><td>CONCEPT</td><td>OpenMS concepts (types, macros, ...)</td></tr>
+ <tr><td>CONCEPT</td><td>%OpenMS concepts (types, macros, ...)</td></tr>
  <tr><td>DATASTRUCTURES</td><td>Auxiliary datastructures</td></tr>
  <tr><td>FILTERING</td><td>Filter</td></tr>
  <tr><td>FORMAT</td><td>Source code for I/O classes and file formats</td></tr>
@@ -367,7 +367,6 @@ The base class of the two-dimensional data points is Peak2D. It provides the sam
 
 For information on d-dimensional data points see the appendix.
 
-<br>
 <b>Example: Tutorial_MSSpectrum.cpp</b>
 <br>
 In this example, we create MS1 spectrum at 1 minute and insert peaks with descending mass-to-charge ratios (for educational reasons). We sort the peaks according to ascending mass-to-charge ratio. Finally we print the peak positions of those peaks between 800 and 1000 Thomson. For printing all the peaks in the spectrum, we simply would have used the STL-conform methods begin() and end(). In addition to the iterator access, we can also directly access the peaks via vector indices (e.g. spectrum[0] is the first Peak1D object of the MSSpectrum). 
@@ -377,7 +376,6 @@ In this example, we create MS1 spectrum at 1 minute and insert peaks with descen
 @section tutorial_library_kernelclasses_chrom  Chromatograms
 The most important container for targeted analysis / XIC data is MSChromatogram. The elements of a MSChromatogram are chromatogram peaks (Peak1D). MSChromatogram is derived from ChromatogramSettings, a container for the metadata of a chromatogram (e.g. containing precursor and product information), similarly to SpectrumSettings. In the following example (Tutorial_MSChromatogram.cpp) program, a MSChromatogram is filled with chromatographic peaks, sorted according to retention time and a selection of peak positions is displayed. 
 
-<br>
 <b>Example: Tutorial_MSChromatogram</b>
 <br>
 Fill MSChromatogram with chromatographic peaks, sorted according to retention time
@@ -388,7 +386,6 @@ Since much of the functionality is shared between MSChromatogram and MSSpectrum,
 @section tutorial_library_kernelclasses_precursor  Precursor
 The precursor data stored along with MS/MS spectra contains invaluable information for MS/MS analysis (e.g, m/z, charge, activation mode, collision energy). This information is stored in Precursor objects that can be retrieved from each spectrum. For a complete list of functions please see the Precursor class documentation.
 
-<br>
 <b>Example: Tutorial_Precursor</b>
 <br>
 Retrieve precursor information
@@ -398,7 +395,6 @@ Retrieve precursor information
 @section tutorial_library_kernelclasses_mrm MRMTransitionGroup
 The targeted analysis of SRM or DIA (SWATH-MS) type of data requires a set of targeted assays as well as raw data chromatograms. The MRMTransitionGroup class allows users to map these two types of information and store them together with identified features conveniently in a single object. 
 
-<br>
 <b>Example: Tutorial_MRMTransitionGroup</b>
 <br>
 Create an empty MRMTransitionGroup with two dummy transitions
@@ -416,7 +412,6 @@ Although MSExperiment and FeatureMap differ in the data they store, they also ha
 @section tutorial_library_kernelclasses_mse  MSExperiment
 MSExperiment contains ExperimentalSettings (metadata of the MS run) and a vector<MSSpectrum>. The one-dimensional spectrum MSSpectrum is derived from SpectrumSettings (metadata of a spectrum).
 
-<br>
 <b>Example: Tutorial_MSExperiment.cpp</b>
 <br>
 The following example creates a MSExperiment containing four MSSpectrum instances. We then iterate over RT range (2,3) and m/z range (603,802) and print the peak positions using an AreaIterator. Then we show how we iterate over all spectra and peaks. In the commented out part, we show how to load/store all spectra and associated metadata from/to an mzML file.
@@ -426,7 +421,6 @@ The following example creates a MSExperiment containing four MSSpectrum instance
 @section tutorial_library_kernelclasses_fmap FeatureMap
 FeatureMap, the container for features, is simply a vector<Feature>. Additionally, it is derived from ExperimentalSettings, to store the meta information. All peak and feature containers (MSSpectrum, MSExperiment, FeatureMap) are also derived from RangeManager. This class facilitates the handling of MS data ranges. It allows to calculate and store both the position range and the intensity range of the container.
 
-<br>
 <b>Example: Tutorial_FeatureMap.cpp</b>
 <br>
 The following examples creates a FeatureMap containing two Feature instances. Then we iterate over all features and output the retention time and m/z. We then show, how to use the underlying range manager to retrieve FeatureMap boundaries in rt, m/z, and intensity.
@@ -440,10 +434,10 @@ The following examples creates a FeatureMap containing two Feature instances. Th
  <tr><td>mzIdentML</td><td>The HUPO-PSI standard format for identification results data from any search engines</td></tr>
  <tr><td>mzTAB</td><td>The HUPO-PSI standard format for reporting MS-based proteomics and metabolomics results</td></tr>
  <tr><td>traML</td><td>The HUPO-PSI standard format for exchange and transmission lists for selected reaction monitoring (SRM) experiments</td></tr>
- <tr><td>featureXML</td><td>The OpenMS format for quantitation results</td></tr>
- <tr><td>consensusXML</td><td>The OpenMS format for grouping features in one map or across several maps</td></tr>
- <tr><td>idXML</td><td>The OpenMS format for identification results</td></tr>
- <tr><td>trafoXML</td><td>The OpenMS format for storing of transformations</td></tr>
+ <tr><td>featureXML</td><td>The %OpenMS format for quantitation results</td></tr>
+ <tr><td>consensusXML</td><td>The %OpenMS format for grouping features in one map or across several maps</td></tr>
+ <tr><td>idXML</td><td>The %OpenMS format for identification results</td></tr>
+ <tr><td>trafoXML</td><td>The %OpenMS format for storing of transformations</td></tr>
  <tr><td>OpenSWATH</td><td></td></tr>
 </table>
 
@@ -467,12 +461,11 @@ which should be used instead of the less descriptive std::out and std::err strea
 
 If you are writing an %OpenMS tool, you can also use the ProgressLogger to indicate how many percent of the processing has already been performed:
 
-<br>
 <b>Example: Tutorial_Logger.cpp</b>
 <br>
 Logging the Tool Progress
 
-\snippet Tutorial_Logger Logger
+\snippet Tutorial_Logger.cpp Logger
 
 Depending on how the user configures the tool, this output is written to the command line or a log file.
 
@@ -481,24 +474,21 @@ Identifications of proteins, peptides, and the mapping between peptides and prot
 The highest-level structure is ProteinIdentification. It stores all identified proteins of an identification run as ProteinHit objects + additional metadata (search parameters, etc.).
 Each ProteinHit contains the actual Proteinaccession, an associated score, and (optionally) the protein sequence. A ProteinIdentification object stores the data corresponding to a single identified spectrum or feature. It has members for the retention time, m/z, and a vector of PeptideHits. Each PeptideHit stores the information of a specific peptide-to-spectrum match (e.g., the score and the peptide sequence). Each PeptideHit also contains a vector of PeptideEvidence objects which store the reference to one (or in the case the peptide maps to multiple proteins multiple) Proteins and the position therein.
 
-<br>
 <b>Example: Tutorial_IdentificationClasses.cpp</b>
 <br>
 Create all identification data needed to store an idXML file
 
-\snippet Tutorial_IdentificationClasses Identification
+\snippet Tutorial_IdentificationClasses.cpp Identification
 
 @section tutorial_chemistry Chemistry
 @section tutorial_element Element, ElementDB, EmpiricalFormula 
 An Element object is the representation of an element. It can store the name, symbol and mass (average/mono) and natural abundances of isotopes. Elements are retrieved from the ElementDB singleton which is created from the file “/OpenMS/CHEMISTRY/Elements.xml”. The EmpiricalFormula object can be used to represent the empirical formula of a compound as well as to extract its natural isotope abundance and weight. 
 
-<br>
 <b>Example: Tutorial_Element.cpp</b>
 <br>
 Work with Element object
 \snippet Tutorial_Element.cpp Element
 
-<br>
 <b>Example: Tutorial_EmpiricalFormula.cpp</b>
 <br>
 Extract isotope distribution and monoisotopic weight of an EmpiricalFormula object
@@ -510,7 +500,6 @@ An AASequence object stores a (potentially chemically modified) peptide.
 It can conveniently be constructed from the amino acid sequence (e.g., a string or a string literal “DEFIANGR”). Modifications may be encoded using the unimod name.
 Once constructed, many convenient functions are available to calculate peptide or ion properties.
 
-<br>
 <b>Example: Tutorial_AASequence.cpp</b>
 <br>
 Compute and output basic AASequence properties
@@ -522,7 +511,6 @@ Internally, an AASequence object is composed of Residues.
 @section tutorial_residue Residue, ResidueDB
 Residues are the building blocks of AASequence objects. They store physico-chemical properties of specific amino acids. ResidueDB stores that data and is initialized from the file “data/CHEMISTRY/residues.xml”.
 
-<br>
 <b>Example: Tutorial_Residue.cpp</b>
 <br>
 Compute and output basic Residue properties
@@ -535,7 +523,6 @@ The ResidueModification class stores information about chemical modifications of
 Each ResidueModification has an ID, the residue that can be modified with this modification and the difference in mass between the unmodified and the modified residue, among other information. The Residue class allows to set one modification per residue and the mass difference of the modification is accounted for in the mass of the residue.
 The class ModificationsDB is a database of ResidueModifications. These are mostly initialized from the file “/share/CHEMISTRY/unimod.xml” containing a slightly modified version of the UniMod database of modifications. ModificationsDB has functions to search for modifications by name or mass.
 
-<br>
 <b>Example: Tutorial_ResidueModification.cpp</b>
 <br>
 Set a ResidueModification on a Residue
@@ -545,7 +532,6 @@ Set a ResidueModification on a Residue
 @section tutorial_tsg TheoreticalSpectrumGenerator
 The TheoreticalSpectrumGenerator generates ion ladders from AASequences.
 
-<br>
 <b>Example: Tutorial_TheoreticalSpectrumGenerator.cpp</b>
 <br>
 Generate theoretical spectra
@@ -555,7 +541,6 @@ Generate theoretical spectra
 @section tutorial_dep DigestionEnzymeProtein, ProteaseDB and ProteaseDigestion
 %OpenMS provides the most common digestion enzymes (DigestionEnzymeProtein) used in MS. They are stored in the ProteaseDB singleton and loaded from “/share/CHEMISTRY/Enzymes.xml”. 
 
-<br>
 <b>Example: Tutorial_Enzyme.cpp</b>
 <br>
 Digest amino acid sequence
@@ -578,7 +563,6 @@ The DatabaseFilter tool should provide functionality to reduce a fasta database 
 - Create an empty file src/utils/DatabaseFilter.cpp
 - Add the scaffold code for a minimal TOPP tool. Text in bold will later be adapted to our DatabaseFilter tool. 
 
-<br>
 <b>Example: Tutorial_Template.cpp</b>
 <br>
 Template for OpenMS tool development
@@ -594,7 +578,6 @@ This creates a manual (doxygen) page with the information –help output of the 
 @section tutorial_param_def Define tool parameters
 Define tool parameters Each TOPP tool defines a set of parameters that will be available from the command line, KNIME, and other workflow systems. This is done in the void registerOptionsAndFlags_() method. In our case we want to read a protein database (fasta format), a file containing identification data (idXML format), and an option to switch between keeping (whitelisting) and removing (blacklisting) entries based on the filter result. This is our input. The reduced database forms the output and should be written to a protein database in fasta format. This is easily done by adding following lines to:
 
-<br>
 <b>Example: Tutorial_Register.cpp</b>
 <br>
 Registration of tool parameters
@@ -606,7 +589,6 @@ Functions, classes and references can be checked in the OpenMS / TOPP documentat
 @section tutorial_param_read Read tool parameters
 After a tool is executed, the registered parameters are available in the main_ function of the TOPP tool and can be read using the getStringOption_ method. Special methods for integers, lists and floating point parameters exist and are in the TOPPBase documentation but are not needed for this example.
 
-<br>
 <b>Example: Tutorial_InputParam.cpp</b>
 <br>
 
@@ -615,17 +597,12 @@ After a tool is executed, the registered parameters are available in the main_ f
 @section tutorial_read Read Input Files
 First the different file formats and data structures for peptide identifications have to be included at the top of the file.
 
-<br>
 <b>Example: Tutorial_InputRead.cpp</b>
-<br>
-
-<br>
 <b> Add essential includes </b>
 <br>
 
 \snippet Tutorial_InputRead InputRead_1
 
-<br>
 <b> Read the input files </b>
 <br>
 
@@ -638,7 +615,6 @@ First, the accessions are extracted from the IdXML file. Here knowledge of the d
 
 To store all proteins accessions in the set id_accessions, we write: 
 
-<br>
 <b>Example: Tutorial_ToolFunctionality.cpp</b>
 <br>
 Store protein accessions
@@ -647,14 +623,12 @@ Store protein accessions
 
 Now that we assembled the set of all protein accessions we are ready to compare them to the fasta_accessions. If they are similar and the method whitelist or they are different and the method blacklist was chosen, the fasta entries are copied to the new fasta database.
 
-<br>
 <b>Example: Tutorial_ToolFunctionality.cpp</b>
 <br>
 Add method functionality
 \snippet Tutorial_ToolFunctionality.cpp functionality_2
 
 @section tutorial_write Write Output Files 
-<br>
 <b>Example: Tutorial_ToolFunctionality.cpp</b>
 <br>
 Write the output
@@ -666,9 +640,6 @@ Write the output
 Testing your tools is essential and required to promote your experimental util to an official TOPP tool.
 For this test a .fasta and a compatible .idXML file have to be added to /src/tests/topp/. Further the test procedure has to be added to CMakeLists.txt in the same folder.
 
-TODO: write add test.cpp
-TODO: add test.cpp
-<br>
 <b>Example: Tutorial_Test.cpp</b>
 <br>
 Add tests
@@ -688,7 +659,6 @@ The support for different formats was extended (idXML and MZIdentML).
 
 Since different filter criteria could be used in the future, the structure was slightly changed with a function for the filtering by ID (filterByProteinIDs_).
 
-<br>
 <b>Example: Tutorial_final.cpp</b>
 <br>
 Polish your code - add additional functionality
