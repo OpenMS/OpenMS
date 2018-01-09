@@ -1,3 +1,5 @@
+#!/usr/bin/env bash
+
 # Create manylinux packages from current release using the docker image
 #
 # based on https://github.com/pypa/python-manylinux-demo/blob/master/travis/build-wheels.sh
@@ -28,7 +30,7 @@ mkdir /data/wheelhouse/
 # compile and configure OpenMS
 for PYBIN in /opt/python/cp27* /opt/python/cp3[4-9]*; do
 
-  PYVER=`basename $PYBIN`
+  PYVER=$(basename $PYBIN)
   mkdir /openms-build-$PYVER
   cd /openms-build-$PYVER
 
@@ -37,7 +39,7 @@ for PYBIN in /opt/python/cp27* /opt/python/cp3[4-9]*; do
   make -j6 pyopenms
 
   # create final wheel ready for bundling (and make sure we find the OpenMS libs)
-  export LD_LIBRARY_PATH=`pwd`/lib
+  export LD_LIBRARY_PATH=$(pwd)/lib
   cd pyOpenMS
   "$PYBIN/bin/pip" wheel . -w wheelhouse_tmp
 
