@@ -43,6 +43,9 @@
 
 namespace OpenMS
 {
+  /**
+    @brief Load Chromeleon HPLC text file and save it into a `MSExperiment`.
+  */
   class OPENMS_DLLAPI ChromeleonFile
   {
 public:
@@ -51,6 +54,12 @@ public:
     /// Destructor
     virtual ~ChromeleonFile();
 
+    /**
+      @brief Load the file's data and metadata, and save it into a `MSExperiment`.
+
+      @param[in] filename The filepath to the file containing the informations
+      @param[out] experiment The variable into which the extracted informations will be saved
+    */
     void load(const String& filename, MSExperiment& experiment) const;
   };
 }
