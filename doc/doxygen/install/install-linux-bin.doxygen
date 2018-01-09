@@ -3,14 +3,26 @@
 
   @section deb_package_linux Install Debian package
   If you are using a Debian-based Linux we suggest to use the deb-package provided by us in our <a href="https://abibuilder.informatik.uni-tuebingen.de/archive/openms/OpenMSInstaller/release/latest">archive</a>.
+  To ensure the tool functionality please add the OPENMS_DATA_PATH variable to your environment as follows: 
+  \code
+  export OPENMS_DATA_PATH=/usr/share/OpenMS 
+  \endcode
+  
+  Executables for THIRDPARTY applications can be found in:
+  \code 
+  /usr/share/OpenMS/THIRDPARTY
+  \endcode
+  Add the folders inside to your PATH for a convenient use of our adapters.
 
   @section package_managers_linux Install via package managers
-  Currently there are packaged versions of %OpenMS provided for Fedora, OpenSUSE, Debian, and Ubuntu <a href="https://pkgs.org/search/openms">available in the corresponding package managers</a> of these distributions (they might require a lookup in thirdparty "science" repositories).
+  Currently there are also packaged versions of %OpenMS provided for Fedora, OpenSUSE, Debian, and Ubuntu <a href="https://pkgs.org/search/openms">available in the corresponding package managers</a> of these distributions (they might require a lookup in thirdparty "science" repositories).
   For other GNU/Linux distributions or to obtain the most recent version of the library you need to build your own %OpenMS.
-
+  
+  
   @note Please note that these packages are not directly maintained by us and we can not guarantee the same behaviour as when building it on your own.
-  Also their availability is subject to change and support might be limited (due to unforeseen or untested behaviour).
-
+  Also their availability is subject to change and support might be limited (due to unforeseen or untested behaviour). We also suggest not to install
+  them parallel to our Debian package.
+  
   @section build_your_own_linux Build it on your own
   Please check <a href="http://www.openms.de/">OpenMS.de</a> for details on how to obtain the source code and @subpage install_linux on how to build %OpenMS.
 
