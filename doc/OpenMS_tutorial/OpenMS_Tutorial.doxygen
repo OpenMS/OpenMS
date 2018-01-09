@@ -1,4 +1,4 @@
-// --------------------------------------------------------------------------
+/ --------------------------------------------------------------------------
 //                   %OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The %OpenMS Team -- Eberhard Karls University Tuebingen,
@@ -53,7 +53,10 @@
 
 /**
 
-@page tutorial_introduction Introduction
+@page tutorial %OpenMS Developer Tutorial
+
+@section tutorial_introduction Introduction
+@subsection tutorial_gf General Information
 
 Mass spectrometry (MS) is an essential analytical technique for high-throughput analysis in proteomics and metabolomics. The development of new separation techniques, precise mass analyzers and experimental protocols is a very active field of research. This leads to more complex experimental setups yielding ever increasing amounts of data. Consequently, analysis of the data is currently often the bottleneck for experimental studies. Although software tools for many data analysis tasks are available today, they are often hard to combine with each other or not flexible enough to allow for rapid prototyping of a new analysis workflow. <br>
 
@@ -73,13 +76,8 @@ Since %OpenMS is based on several <b>external libraries</b> it is designed for t
 
 <b>Portability:</b>
 %OpenMS supports <b>Windows</b>, <b>Linux</b>, and <b>OS X</b> platforms. <br>
-*/
 
-//####################################### STRUCTURE #######################################
-
-/**
-
-@page tutorial_structure The structure of the %OpenMS Framework
+@subsection tutorial_structure The structure of the OpenMS Framework
 
 The following image shows the overall structure of %OpenMS:
 
@@ -95,18 +93,12 @@ The %OpenMS software framework consists of three main layers:
 - <b>Workflow:</b> a set of over 185 different tools for common mass spectrometric tasks can be accessed by routine users through the KNIME, and Galaxy workflow systems. <br>
 Each level of increasing abstraction provides better usability, but limits the extensibility as the Python and workflow levels only have access to the exposed Python API or the available set of TOPP tools respectively. Increasing abstraction, however, makes it easier to design and execute complex analyses, even across multiple omics types. By following a layered design the different needs of bioinformaticians and life scientists are addressed. <br>
 
-*/
-
-//####################################### Developing with OpenMS #######################################
-
-/**
-
-@page tutorial_developing Developing with OpenMS
+@subsection tutorial_developing Developing with OpenMS
 
 Before we get started developing with %OpenMS, we would like to point to some information on the development model and conventions we follow to maintain a coherent code base.
 
 <b>Development model</b><br>
-%OpenMS follows the Gitflow development workflow which is excellently describedI <a href="http://nvie.com/posts/a-successful-git-branching-model/">here</a>. Additionally we encourage every developer (even if he is eligible to push directly to OpenMS) to create his own fork (e.g. @username). The GitHub people provide superb documentation on <a href="https://help.github.com/articles/fork-a-repo">forking</a> and how to keep your fork <a href="https://help.github.com/articles/syncing-a-fork">up-to-date</a>. With your own fork you can follow the Gitflow development model directly, but instead of merging into "develop" in your own fork you can open a <a href="https://help.github.com/articles/using-pull-requests">pull request</a>. Before opening the pull request, please check the <a href="https://github.com/OpenMS/OpenMS/wiki/Pull-Request-Checklist">checklist</a>.
+%OpenMS follows the Gitflow development workflow which is excellently describedI <a href="http://nvie.com/posts/a-successful-git-branching-model/">here</a>. Additionally we encourage every developer (even if he is eligible to push directly to %OpenMS) to create his own fork (e.g. @username). The GitHub people provide superb documentation on <a href="https://help.github.com/articles/fork-a-repo">forking</a> and how to keep your fork <a href="https://help.github.com/articles/syncing-a-fork">up-to-date</a>. With your own fork you can follow the Gitflow development model directly, but instead of merging into "develop" in your own fork you can open a <a href="https://help.github.com/articles/using-pull-requests">pull request</a>. Before opening the pull request, please check the <a href="https://github.com/OpenMS/OpenMS/wiki/Pull-Request-Checklist">checklist</a>.
 <br>
 Some more details and tips are collected here.
 <br>
@@ -118,23 +110,26 @@ We automatically test for common coding convention violations using a modified v
 
 <b>Commit Messages</b><br>
 In order to ease the creation of a CHANGELOG we use a defined format for our commit messages.
-See the manual for proper commit messages: <a href="https://github.com/OpenMS/OpenMS/wiki/HowTo---Write-Commit-Messages">How to write commit messages</a>.
+See the manual for proper commit messages: <a href="https://github.com/OpenMS/OpenMS/wiki/HowTo---Write-Commit-Messages">How to write commit messages</a>.<br>
 <br>
 <b>Automated Unit Tests</b><br>
 Pull requests are automatically tested using our continuous integration platform. In addition we perform nightly test runs covering different platforms. Even if everything compiled well on your machine and all tests passed, please check if you broke another platform on the next day.
 Nightly tests: <a href="http://cdash.openms.de/index.php?project=OpenMS">CDASH</a>
 <br>
+<br>
 <b>Experimental Installers</b><br>
 We automatically build installers for different platforms. These usually contain unstable or partially untested code - so use them at your own risk.
 The nightly (unstable) installers are available <a href="http://ftp.mi.fu-berlin.de/OpenMS/nightly_binaries/">here</a>.
+<br>
 <br>
 <b>Technical Documentation</b><br>
 Documentation of classes and tools is automatically generated using doxygen:
 See the documentation for <a href="http://www.openms.de/current_doxygen/html/">HEAD</a>
 See the documentation for the latest <a href="https://abibuilder.informatik.uni-tuebingen.de/archive/openms/Documentation/release/latest/html/index.html">release branch</a>
 <br>
+<br>
 <b>Building %OpenMS</b><br>
-Before you get started coding with OpenMS you need to build it for your operating system. Please follow the <b>build instructions</b> from the documentation.
+Before you get started coding with %OpenMS you need to build it for your operating system. Please follow the <b>build instructions</b> from the documentation.
 <br>
 <a href="http://ftp.mi.fu-berlin.de/pub/OpenMS/release-documentation/html/install_linux.html"><b>Building %OpenMS on GNU/Linux</b></a>
 <br>
@@ -144,23 +139,16 @@ Before you get started coding with OpenMS you need to build it for your operatin
 <br>
 Note that for development purposes, you might want to set the variable <i>CMAKE_BUILD_TYPE</i> to <i>Debug</i>. Otherwise, the default <i>Release</i> will be applied and disables pre-condition and post-condition checks, and assertions.
 <br>
+<br>
 <b>Choice of an IDE</b> <br>
 You are, of course, free to choose your favorite (or even no) IDE for %OpenMS development but given the size of %OpenMS, not all IDEs perform equally well. We have good experiences with Qt Creator on Linux and Mac, because it can directly import CMake Projects and is rather fast in indexing all files. On Windows, Visual Studio is currently the preferred solution. Additionally, you may want to try JetBrains CLion (it’s free for students, teachers and open source projects). Another option is Eclipse with C++ support, which can also import CMake projects directly with the respective CMake generator.
 
-*/
-
-//####################################### TERMS #######################################
-
-/**
-
-@page tutorial_terms Mass spectrometry terms
+@subsection tutorial_terms Mass spectrometry terms
 
  The following terms for MS-related data are used in this tutorial and the %%OpenMS class documentation:
  - <b>Raw or profile peak</b>: a typically Gaussian shaped mass peak measured by the instrument. <br>
  - <b>Centroid or picked peak</b>: a single m/z, intensity pair as obtained after using a peak picking (also: peak centroiding) algorithm. <br>
  - <b>Spectrum / Scan</b>: a mass spectrum containing profile or centroided peaks (profile spectrum) or centroided peaks (peak spectrum). E.g. a low resolution profile (blue) and a centroided peak spectrum (pink) are shown in the figure below. <br>
-
-TODO: update images
 
   @image html Terms_Spectrum.png "Part of a raw spectrum (blue) with three peaks (red)"
   @image latex Terms_Spectrum.png "Part of a raw spectrum (blue) with three peaks (red)" width=12cm
@@ -170,22 +158,16 @@ TODO: update images
 
 The image below shows a peak map and the red circle highlights a feature. 
 
-TODO: Update Image 
-
   @image html Terms_Map.png "Peak map with a marked feature (red)"
   @image latex Terms_Map.png "Peak map with a marked feature (red)" width=14cm
 
-*/
 
-//####################################### OpenMS Library #######################################
 
-/**
-
-@page tutorial_library %OpenMS Library
+@section tutorial_library OpenMS Library
 
 The extensible %OpenMS library implements common mass spectrometric data processing tasks through a well defined API in C++ and Python using standardized open data formats.
 
-@section tutorial_library_overview Overview on Central Algorithms and Methods
+@subsection tutorial_library_overview Overview on Central Algorithms and Methods
 
 %OpenMS provides algorithms in many fields of computational metabolomics and proteomics. <b>The following list is intended to algorithm and tool developers a starting point to tools and classes relevant to their scientific question at hand</b>. This list does not include third-party tools but only tools that were implemented in %OpenMS. 
 <br>
@@ -295,7 +277,7 @@ Wrapper to thid-party tools:
     - Metabolite Identification (Sirius)
     - Score calibration and FDR calculation (Percolator)
 
-@section tutorial_library_kernelclasses Kernel Classes
+@subsection tutorial_library_kernelclasses Kernel Classes
 
 The %OpenMS kernel contains the data structures that store the actual MS data.
 
@@ -339,10 +321,11 @@ To store identified peptides %OpenMS has classes
 </table>
 <br>
 
-@section tutorial_library_kernelclasses_peaks Peaks
+@subsection tutorial_library_kernelclasses_peaks Peaks
 %OpenMS provides one-, two- and d-dimensional data points, either with or without metadata attached to them.
 
-TODO: Insert picture
+  @image html Kernel_DataPoints.png "Data structure for MS data points"
+  @image latex Kernel_DataPoints.png "Data structure for MS data points" width=14cm
 
 One-dimensional data points:
 One-dimensional data points (Peak1D) are the most important ones and used throughout %OpenMS. The two-dimensional and d-dimensional data points are needed rarely and used for special purposes only. 
@@ -355,8 +338,8 @@ The base class of the two-dimensional data points is Peak2D. It provides the sam
 
 For information on d-dimensional data points see the appendix.
 
-@section tutorial_library_kernelclasses_spectra Spectra
-The most important container for raw/profile data and centroided peaks is MSSpectrum. The elements of a MSSpectrum are peaks (Peak1D). In fact it is so common that it has its own typedef PeakSpectrum. MSSpectrum is derived from SpectrumSettings, a container for the metadata of a spectrum (e.g. precursor information). Here, only MS data handling is explained, SpectrumSettings is described in section meta data of a spectrum. In the following example (Tutorial_MSSpectrum.cpp) program, a MSSpectrum is filled with peaks, sorted according to mass-to-charge ratio and a selection of peak positions is displaOne-dimensional data points:
+@subsection tutorial_library_kernelclasses_spectra Spectra
+The most important container for raw/profile data and centroided peaks is MSSpectrum. The elements of a MSSpectrum are peaks (Peak1D). In fact it is so common that it has its own typedef PeakSpectrum. MSSpectrum is derived from SpectrumSettings, a container for the metadata of a spectrum (e.g. precursor information). Here, only MS data handling is explained, SpectrumSettings is described in subsection meta data of a spectrum. In the following example (Tutorial_MSSpectrum.cpp) program, a MSSpectrum is filled with peaks, sorted according to mass-to-charge ratio and a selection of peak positions is displaOne-dimensional data points:
 One-dimensional data points (Peak1D) are the most important ones and used throughout %OpenMS. The two-dimensional and d-dimensional data points are needed rarely and used for special purposes only. 
 Peak1D provides getter and setter methods to store the mass-to-charge ratio and intensity. 
 
@@ -373,7 +356,7 @@ In this example, we create MS1 spectrum at 1 minute and insert peaks with descen
 
 \snippet Tutorial_MSSpectrum.cpp MSSpectrum
 
-@section tutorial_library_kernelclasses_chrom  Chromatograms
+@subsection tutorial_library_kernelclasses_chrom  Chromatograms
 The most important container for targeted analysis / XIC data is MSChromatogram. The elements of a MSChromatogram are chromatogram peaks (Peak1D). MSChromatogram is derived from ChromatogramSettings, a container for the metadata of a chromatogram (e.g. containing precursor and product information), similarly to SpectrumSettings. In the following example (Tutorial_MSChromatogram.cpp) program, a MSChromatogram is filled with chromatographic peaks, sorted according to retention time and a selection of peak positions is displayed. 
 
 <b>Example: Tutorial_MSChromatogram</b>
@@ -381,9 +364,9 @@ The most important container for targeted analysis / XIC data is MSChromatogram.
 Fill MSChromatogram with chromatographic peaks, sorted according to retention time
 \snippet Tutorial_MSChromatogram.cpp MSChromatogram
 
-Since much of the functionality is shared between MSChromatogram and MSSpectrum, further examples can be gathered from the MSSpectrum section.
+Since much of the functionality is shared between MSChromatogram and MSSpectrum, further examples can be gathered from the MSSpectrum subsection.
 
-@section tutorial_library_kernelclasses_precursor  Precursor
+@subsection tutorial_library_kernelclasses_precursor  Precursor
 The precursor data stored along with MS/MS spectra contains invaluable information for MS/MS analysis (e.g, m/z, charge, activation mode, collision energy). This information is stored in Precursor objects that can be retrieved from each spectrum. For a complete list of functions please see the Precursor class documentation.
 
 <b>Example: Tutorial_Precursor</b>
@@ -392,7 +375,7 @@ Retrieve precursor information
 
 \snippet Tutorial_Precursor.cpp Precursor
 
-@section tutorial_library_kernelclasses_mrm MRMTransitionGroup
+@subsection tutorial_library_kernelclasses_mrm MRMTransitionGroup
 The targeted analysis of SRM or DIA (SWATH-MS) type of data requires a set of targeted assays as well as raw data chromatograms. The MRMTransitionGroup class allows users to map these two types of information and store them together with identified features conveniently in a single object. 
 
 <b>Example: Tutorial_MRMTransitionGroup</b>
@@ -403,13 +386,13 @@ Create an empty MRMTransitionGroup with two dummy transitions
 
 Note how the identifiers of the chromatograms and the assay information (ReactionMonitoringTransition) are matched so that downstream algorithms can utilize the meta-information stored in the assays for data analysis.
 
-@section tutorial_library_kernelclasses_map   Maps
+@subsection tutorial_library_kernelclasses_map   Maps
 Although raw data maps, peak maps and feature maps are conceptually very similar they are stored in different data types. For raw data and peak maps, the default container is MSExperiment, which is an array of MSSpectrum instances. 
 In contrast to raw data and peak maps, feature maps are not a collection of one-dimensional spectra, but an array of two-dimensional feature instances. The main data structure for feature maps is called FeatureMap.
 
 Although MSExperiment and FeatureMap differ in the data they store, they also have things in common. Both store metadata that is valid for the whole map, i.e. sample description and instrument description. This data is stored in the common base class ExperimentalSettings.
 
-@section tutorial_library_kernelclasses_mse  MSExperiment
+@subsection tutorial_library_kernelclasses_mse  MSExperiment
 MSExperiment contains ExperimentalSettings (metadata of the MS run) and a vector<MSSpectrum>. The one-dimensional spectrum MSSpectrum is derived from SpectrumSettings (metadata of a spectrum).
 
 <b>Example: Tutorial_MSExperiment.cpp</b>
@@ -418,7 +401,7 @@ The following example creates a MSExperiment containing four MSSpectrum instance
 
 \snippet Tutorial_MSExperiment.cpp MSExperiment
 
-@section tutorial_library_kernelclasses_fmap FeatureMap
+@subsection tutorial_library_kernelclasses_fmap FeatureMap
 FeatureMap, the container for features, is simply a vector<Feature>. Additionally, it is derived from ExperimentalSettings, to store the meta information. All peak and feature containers (MSSpectrum, MSExperiment, FeatureMap) are also derived from RangeManager. This class facilitates the handling of MS data ranges. It allows to calculate and store both the position range and the intensity range of the container.
 
 <b>Example: Tutorial_FeatureMap.cpp</b>
@@ -427,7 +410,7 @@ The following examples creates a FeatureMap containing two Feature instances. Th
 
 \snippet Tutorial_FeatureMap.cpp FeatureMap
 
-@section tutorial_fileformat File Formats
+@subsection tutorial_fileformat File Formats
 
 <table>
  <tr><td>mzML</td><td>The HUPO-PSI standard format for mass spectrometry data</td></tr>
@@ -444,7 +427,7 @@ The following examples creates a FeatureMap containing two Feature instances. Th
 For further information of the HUPO Proteomics Standards Initiative please visit:
 http://www.psidev.info/
 
-@section tutorial_logging Logging
+@subsection tutorial_logging Logging
 To make direct output to std::out and std::err more consistent, %OpenMS provides several low-level macros:
 <br>
 LOG_FATAL_ERROR, 
@@ -469,7 +452,7 @@ Logging the Tool Progress
 
 Depending on how the user configures the tool, this output is written to the command line or a log file.
 
-@section tutorial_identifications Identifications 
+@subsection tutorial_identifications Identifications 
 Identifications of proteins, peptides, and the mapping between peptides and proteins (or groups of proteins) are stored in dedicated data structures. These data structures are typically stored to disc as idXML or mzIdentML file.
 The highest-level structure is ProteinIdentification. It stores all identified proteins of an identification run as ProteinHit objects + additional metadata (search parameters, etc.).
 Each ProteinHit contains the actual Proteinaccession, an associated score, and (optionally) the protein sequence. A ProteinIdentification object stores the data corresponding to a single identified spectrum or feature. It has members for the retention time, m/z, and a vector of PeptideHits. Each PeptideHit stores the information of a specific peptide-to-spectrum match (e.g., the score and the peptide sequence). Each PeptideHit also contains a vector of PeptideEvidence objects which store the reference to one (or in the case the peptide maps to multiple proteins multiple) Proteins and the position therein.
@@ -480,8 +463,8 @@ Create all identification data needed to store an idXML file
 
 \snippet Tutorial_IdentificationClasses.cpp Identification
 
-@section tutorial_chemistry Chemistry
-@section tutorial_element Element, ElementDB, EmpiricalFormula 
+@subsection tutorial_chemistry Chemistry
+@subsection tutorial_element Element, ElementDB, EmpiricalFormula 
 An Element object is the representation of an element. It can store the name, symbol and mass (average/mono) and natural abundances of isotopes. Elements are retrieved from the ElementDB singleton which is created from the file “/OpenMS/CHEMISTRY/Elements.xml”. The EmpiricalFormula object can be used to represent the empirical formula of a compound as well as to extract its natural isotope abundance and weight. 
 
 <b>Example: Tutorial_Element.cpp</b>
@@ -495,7 +478,7 @@ Extract isotope distribution and monoisotopic weight of an EmpiricalFormula obje
 
 \snippet Tutorial_EmpiricalFormula.cpp EmpiricalFormula
 
-@section tutorial_aaseq AASequence - Representing a Peptide 
+@subsection tutorial_aaseq AASequence - Representing a Peptide 
 An AASequence object stores a (potentially chemically modified) peptide.
 It can conveniently be constructed from the amino acid sequence (e.g., a string or a string literal “DEFIANGR”). Modifications may be encoded using the unimod name.
 Once constructed, many convenient functions are available to calculate peptide or ion properties.
@@ -508,7 +491,7 @@ Compute and output basic AASequence properties
 
 Internally, an AASequence object is composed of Residues.
 
-@section tutorial_residue Residue, ResidueDB
+@subsection tutorial_residue Residue, ResidueDB
 Residues are the building blocks of AASequence objects. They store physico-chemical properties of specific amino acids. ResidueDB stores that data and is initialized from the file “data/CHEMISTRY/residues.xml”.
 
 <b>Example: Tutorial_Residue.cpp</b>
@@ -517,7 +500,7 @@ Compute and output basic Residue properties
 
 \snippet Tutorial_Residue.cpp Residue
 
-@section tutorial_residuemod ResidueModification, ModificationsDB
+@subsection tutorial_residuemod ResidueModification, ModificationsDB
 If a residue is modified (e.g. phosphorylation of an amino acid) it can be stored in the ResidueModification class.
 The ResidueModification class stores information about chemical modifications of residues.
 Each ResidueModification has an ID, the residue that can be modified with this modification and the difference in mass between the unmodified and the modified residue, among other information. The Residue class allows to set one modification per residue and the mass difference of the modification is accounted for in the mass of the residue.
@@ -529,7 +512,7 @@ Set a ResidueModification on a Residue
 
 \snippet Tutorial_ResidueModification.cpp ResidueModification
 
-@section tutorial_tsg TheoreticalSpectrumGenerator
+@subsection tutorial_tsg TheoreticalSpectrumGenerator
 The TheoreticalSpectrumGenerator generates ion ladders from AASequences.
 
 <b>Example: Tutorial_TheoreticalSpectrumGenerator.cpp</b>
@@ -538,7 +521,7 @@ Generate theoretical spectra
 
 \snippet Tutorial_TheoreticalSpectrumGenerator.cpp TSG
 
-@section tutorial_dep DigestionEnzymeProtein, ProteaseDB and ProteaseDigestion
+@subsection tutorial_dep DigestionEnzymeProtein, ProteaseDB and ProteaseDigestion
 %OpenMS provides the most common digestion enzymes (DigestionEnzymeProtein) used in MS. They are stored in the ProteaseDB singleton and loaded from “/share/CHEMISTRY/Enzymes.xml”. 
 
 <b>Example: Tutorial_Enzyme.cpp</b>
@@ -547,35 +530,34 @@ Digest amino acid sequence
 
 \snippet Tutorial_Enzyme.cpp Enzyme
 
-@section tutorial_topp TOPP-Tool
+@section tutorial_tooldev Tool development
+@subsection tutorial_topp TOPP-Tool
 TOPP (The %OpenMS Pipeline) tools are small command line applications built using the %OpenMS library. They act as building blocks for complex analysis workflows and may perform e.g. simple signal processing tasks like filtering, up to more complex tasks like protein inference and quantitation over several MS runs. Common to all TOPP tools is a command line interface allowing automatic integration into workflow engines like KNIME. They are the preferred way to integrate novel methods as application into %OpenMS.
 When we first create a novel TOPP tool it is considered unstable. To set it apart from the stable and well tested tools it gets first created as TOPP Util (note: the name “util” has historic reasons and may be changed to unstable tools in the future).
 If it is well tested it will be promoted to a stable Tool in future %OpenMS versions.
 
-Imagine that you want to create a new tool that allows filtering of sequence databases. What you usually would first do is check if such or similar functionality has already been implemented in any of the >150 TOPP tools. Chaper 5.1 
-TODO: insert reference 
-lists possible tools as starting point for common tasks in computational MS. If you are unsure, just ask on the mailing list, the gitter chat or contact one of the developers directly. The following section demonstrates how the original “DatabaseFilter” tool was created from scratch an integrated into %OpenMS. Basically any tool you want to integrate needs to follow the steps outlined below.
+Imagine that you want to create a new tool that allows filtering of sequence databases. What you usually would first do is check if such or similar functionality has already been implemented in any of the >150 TOPP tools. If you are unsure which one to use, just ask on the mailing list, the gitter chat or contact one of the developers directly. The following subsection demonstrates how the original “DatabaseFilter” tool was created from scratch an integrated into %OpenMS. Basically any tool you want to integrate needs to follow the steps outlined below.
 
 But let’s first get started by defining what our tool should actually do:
-The DatabaseFilter tool should provide functionality to reduce a fasta database by filtering its entries based on different criteria. A simple criterium could be the length of a protein. To make the task a bit more interesting and to show other parts of the OpenMS library, we will start with a bit more complex filtering step that keeps all entries from the fasta database that have been identified in a peptide search  (e.g., using X!Tandem, Mascot or MSGF+). This functionality might come in handy if the size of large databases needs to be reduced to a manageable size. In addition, we want the user to be able to choose between keeping and removing matching protein id.
+The DatabaseFilter tool should provide functionality to reduce a fasta database by filtering its entries based on different criteria. A simple criterium could be the length of a protein. To make the task a bit more interesting and to show other parts of the %OpenMS library, we will start with a bit more complex filtering step that keeps all entries from the fasta database that have been identified in a peptide search  (e.g., using X!Tandem, Mascot or MSGF+). This functionality might come in handy if the size of large databases needs to be reduced to a manageable size. In addition, we want the user to be able to choose between keeping and removing matching protein id.
 
-@section tutorial_create Create and register a minimal tool in %OpenMS
+@subsection tutorial_create Create and register a minimal tool in %OpenMS
 - Create an empty file src/utils/DatabaseFilter.cpp
 - Add the scaffold code for a minimal TOPP tool. Text in bold will later be adapted to our DatabaseFilter tool. 
 
 <b>Example: Tutorial_Template.cpp</b>
 <br>
-Template for OpenMS tool development
+Template for %OpenMS tool development
 
 \snippet Tutorial_Template.cpp Template
 
-- Now add a line with DatabaseFilter.cpp to src/utils/executables.cmake. This registers the novel tool in the %OpenMS build system. 
+- Now add a line with %DatabaseFilter.cpp to src/utils/executables.cmake. This registers the novel tool in the %OpenMS build system. 
 - Then add the tool to getUtilList() in src/openms/source/APPLICATIONS/ToolHandler.cpp 
 This creates a manual (doxygen) page with the information –help output of the tool (using TOPPDocumenter). This page must be included at the end of the doxygen documentation of your tool (see other tools for an example).
 - Add yourself as Maintainer/Author
 - Write the basic documentation (doxygen docu). You probably need to refine it later but you can already insert the correct Toolname etc..
 
-@section tutorial_param_def Define tool parameters
+@subsection tutorial_param_def Define tool parameters
 Define tool parameters Each TOPP tool defines a set of parameters that will be available from the command line, KNIME, and other workflow systems. This is done in the void registerOptionsAndFlags_() method. In our case we want to read a protein database (fasta format), a file containing identification data (idXML format), and an option to switch between keeping (whitelisting) and removing (blacklisting) entries based on the filter result. This is our input. The reduced database forms the output and should be written to a protein database in fasta format. This is easily done by adding following lines to:
 
 <b>Example: Tutorial_Final.cpp</b>
@@ -584,9 +566,9 @@ Registration of tool parameters
 
 \snippet Tutorial_Final.cpp  Register
 
-Functions, classes and references can be checked in the OpenMS / TOPP documentation (ftp://ftp.mi.fu-berlin.de/pub/OpenMS/release-documentation/html/index.html)
+Functions, classes and references can be checked in the %OpenMS / TOPP documentation (ftp://ftp.mi.fu-berlin.de/pub/OpenMS/release-documentation/html/index.html)
 
-@section tutorial_param_read Read tool parameters
+@subsection tutorial_param_read Read tool parameters
 After a tool is executed, the registered parameters are available in the main_ function of the TOPP tool and can be read using the getStringOption_ method. Special methods for integers, lists and floating point parameters exist and are in the TOPPBase documentation but are not needed for this example.
 
 <b>Example: Tutorial_Final.cpp</b>
@@ -594,7 +576,7 @@ After a tool is executed, the registered parameters are available in the main_ f
 
 \snippet Tutorial_Final.cpp InputParam
 
-@section tutorial_read Read Input Files
+@subsection tutorial_read Read Input Files
 First the different file formats and data structures for peptide identifications have to be included at the top of the file.
 
 <b>Example: Tutorial_Final.cpp</b>
@@ -610,7 +592,7 @@ First the different file formats and data structures for peptide identifications
 
 Note: both peptide_identifications and protein_identifications contain protein accessions. The difference between them is that protein_identifications only contain the inferred set of protein accessions while peptide_identifications contains all protein accessions the peptides map to. We consider only the larger set of protein accessions stored in the peptide identifications. In principle, it would be easy to add another parameter that adds a filter for the inferred accessions stored in protein_identifications.
 
-@section tutorial_add Add the tool functionality
+@subsection tutorial_add Add the tool functionality
 First, the accessions are extracted from the IdXML file. Here knowledge of the data structure is needed to extract the protein accessions. The class PeptideIdentification stores general information about a single identified spectrum (e.g., retention time, precursor mass-to-charge). A vector of PeptideHits is stored in each PeptideIdentification object and represent the potentially multiple PSMs of a single spectrum. They can be returned by calling .getHits(). Each peptide sequence stored in a PeptideHit may map to one or multiple proteins. This peptide to protein mapping information is stored in a vector of PeptideEvidence accessible by .getPepitdeEvidences(). From each of these evidences we can extract the protein accession with .getProteinAccession(). 
 
 To store all proteins accessions in the set id_accessions, we write: 
@@ -628,14 +610,14 @@ Now that we assembled the set of all protein accessions we are ready to compare 
 Add method functionality
 \snippet Tutorial_Functionality.cpp Functionality_2
 
-@section tutorial_write Write Output Files 
+@subsection tutorial_write Write Output Files 
 <b>Example: Tutorial_Final.cpp</b>
 <br>
 Write the output
 
 \snippet Tutorial_Final.cpp output
 
-@section tutorial_test Adding TOPP tests
+@subsection tutorial_test Adding TOPP tests
 Testing your tools is essential and required to promote your experimental util to an official TOPP tool.
 For this test a .fasta and a compatible .idXML file have to be added to /src/tests/topp/. Further the test procedure has to be added to CMakeLists.txt in the same folder.
 
@@ -647,11 +629,11 @@ Add tests
 
 These tests run the program with the given parameters and then call a diff tool to compare the generated output to the expected output.
 
-@section tutorial_doc Finish documentation
+@subsection tutorial_doc Finish documentation
 We add it to the UTILS docu page (in doc/doxygen/public/UTILS.doxygen)
 Later (when we have a working application) we will write an application test (this is optional but recommended for Utils. For Tools it is mandatory). See TOPP tools above and add the test to the bottom of src/tests/topp/CMakeLists.txt.
 
-@section tutorial_polish Polish your code 
+@subsection tutorial_polish Polish your code 
 This is how a util can look like after code polishing: 
 
 The support for different formats was extended (idXML and MZIdentML).
@@ -664,14 +646,14 @@ Polish your code - add additional functionality
 
 \snippet Tutorial_final.cpp final 
 
-@section tutorial_pull Open a pull request 
+@subsection tutorial_pull Open a pull request 
 Afterwards you can commit your changes to a new branch “feature/DatabaseFilter” of your %OpenMS clone on github and submit a pull request on your github page. After a short review process by the %OpenMS Team, the tool will be added the %OpenMS Library.
 
 @section tutorial_appendix Appendix 
-@section tutorial_d_dim D-dimensional data points 
+@subsection tutorial_d_dim D-dimensional data points 
 The d-dimensional data points are needed only in special cases, e.g. in template classes that operate in any number of dimensions. The base class of the d-dimensional data points is DPeak. The methods to access the position are getPosition and setPosition. Note that the one-dimensional and two-dimensional data points also have the methods getPosition and setPosition. They are needed in order to be able to write algorithms that can operate on all data point types. It is, however, recommended not to use these members unless you really write such a generic algorithm.
 
-@section tutorial_ext_project OpenMS as external project
+@subsection tutorial_ext_project OpenMS as external project
 If %OpenMS TOPP_tools and UTILS_tools are not sufficient for a certain scenario, you can either request changes to %OpenMS or modify/extend your own fork of %OpenMS. A third alternative is using %OpenMS as a dependency while not touching %OpenMS itself. Once you've finished your new tool, and it only needs to run on the development machine, you're done. You you want to develop with %OpenMS as external project you will find examples at:
 /share/%OpenMS/examples/external_code/
 

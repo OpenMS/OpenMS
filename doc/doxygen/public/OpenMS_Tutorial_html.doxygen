@@ -29,17 +29,18 @@
 // 
 // --------------------------------------------------------------------------
 // $Maintainer:  $
-// $Authors: Marc Sturm $
+// $Authors: Marc Sturm, Oliver Alka $
 // --------------------------------------------------------------------------
 
 /**
 
-	@page OpenMS_tutorial OpenMS tutorial (Quickstart guide for developers)
+	@page OpenMS_tutorial %OpenMS Developer Quickstart Guide
 
 	First, we give a small introduction to this tutorial and %OpenMS:
-	- @subpage tutorial_introduction
+	- @subpage tutorial_introduction 
+	- @subpage tutorial_gf
 	- @subpage tutorial_structure
-        - @subpage tutorial_developing
+	- @subpage tutorial_developing
 	- @subpage tutorial_terms
 
 	Then you should read about the basic classes and concepts of %OpenMS:
@@ -54,31 +55,33 @@
 	- @subpage tutorial_library_kernelclasses_map
 	- @subpage tutorial_library_kernelclasses_mse
 	- @subpage tutorial_library_kernelclasses_fmap
-        - @subpage tutorial_fileformat
-        - @subpage tutorial_logging
-        - @subpage tutorial_identifications
-        - @subpage tutorial_chemistry
-        - @subpage tutorial_element
-        - @subpage tutorial_aaseq
-        - @subpage tutorial_residue
-        - @subpage tutorial_residuemod
-        - @subpage tutorial_tsg
-        - @subpage tutorial_dep
+	- @subpage tutorial_fileformat
+	- @subpage tutorial_logging
+	- @subpage tutorial_identifications
+	- @subpage tutorial_chemistry
+	- @subpage tutorial_element
+	- @subpage tutorial_aaseq
+	- @subpage tutorial_residue
+	- @subpage tutorial_residuemod
+	- @subpage tutorial_tsg
+	- @subpage tutorial_dep
 
-        Here you can read about how to create a TOPP-Tool in OpenMS:
-        - @subpage tutorial_topp
-        - @subpage tutorial_create
-        - @subpage tutorial_param_def
-        - @subpage tutorial_param_read
-        - @subpage tutorial_read
-        - @subpage tutorial_add
-        - @subpage tutorial_write
-        - @subpage tutorial_test
-        - @subpage tutorial_doc 
-        - @subpage tutorial_polish
-        - @subpage tutorial_pull
-        - @subpage tutorial_appendix
-        - @subpage tutorial_d_dim
-        - @subpage tutorial_ext_project
+	Here you can read about how to create a TOPP-Tool in %OpenMS:
+	- @subpage tutorial_topp
+	- @subpage tutorial_create
+	- @subpage tutorial_param_def
+	- @subpage tutorial_param_read
+	- @subpage tutorial_read
+	- @subpage tutorial_add
+	- @subpage tutorial_write
+	- @subpage tutorial_test
+	- @subpage tutorial_doc 
+	- @subpage tutorial_polish
+	- @subpage tutorial_pull
+
+	Here you find additional Information:
+	- @subpage tutorial_appendix
+	- @subpage tutorial_d_dim
+	- @subpage tutorial_ext_project
 
 */
