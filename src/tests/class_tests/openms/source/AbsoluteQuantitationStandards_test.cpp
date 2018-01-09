@@ -28,37 +28,69 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Douglas McCloskey $
-// $Authors: Douglas McCloskey $
+// $Maintainer: Douglas McCloskey, Pasquale Domenico Colaianni $
+// $Authors: Douglas McCloskey, Pasquale Domenico Colaianni $
 // --------------------------------------------------------------------------
-//
 
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/test_config.h>
 
 ///////////////////////////
-
 #include <OpenMS/METADATA/AbsoluteQuantitationStandards.h>
+#include <OpenMS/FORMAT/AbsoluteQuantitationStandardsFile.h>
+#include <OpenMS/FORMAT/FeatureXMLFile.h>
+///////////////////////////
 
 using namespace OpenMS;
 using namespace std;
-
-///////////////////////////
 
 START_TEST(AbsoluteQuantitationStandards, "$Id$")
 
 /////////////////////////////////////////////////////////////
 
-AbsoluteQuantitationStandards* ptr = nullptr;
-AbsoluteQuantitationStandards* nullPointer = nullptr;
-START_SECTION((AbsoluteQuantitationStandards()))
-	ptr = new AbsoluteQuantitationStandards();
-	TEST_NOT_EQUAL(ptr, nullPointer)
+AbsoluteQuantitationStandards* ptr = 0;
+AbsoluteQuantitationStandards* null_ptr = 0;
+const String calib_conc_path = OPENMS_GET_TEST_DATA_PATH("AbsoluteQuantitationStandardsFile_150516_calibration_concentrations_cut.csv");
+const String features_path = OPENMS_GET_TEST_DATA_PATH("170808_Jonathan_yeast_Sacc1_1x.featureXML");
+
+START_SECTION(AbsoluteQuantitationStandards())
+{
+  ptr = new AbsoluteQuantitationStandards();
+  TEST_NOT_EQUAL(ptr, null_ptr)
+}
 END_SECTION
 
-START_SECTION((~AbsoluteQuantitationStandards()))
-	delete ptr;
+START_SECTION(~AbsoluteQuantitationStandards())
+{
+  delete ptr;
+}
 END_SECTION
+
+ptr = new AbsoluteQuantitationStandards();
+
+START_SECTION(void mapComponentsToConcentrations(
+  const std::vector<runConcentration>& run_concentrations,
+  const std::vector<FeatureMap>& feature_maps,
+  std::map<String, std::vector<featureConcentration>>& components_to_concentrations
+) const)
+{
+  std::vector<AbsoluteQuantitationStandards::runConcentration> runs;
+  AbsoluteQuantitationStandardsFile aqsf;
+  aqsf.load(calib_conc_path, runs);
+  FeatureMap fmap;
+  FeatureXMLFile fxmlf;
+  fxmlf.load(features_path, fmap);
+  fmap.setMetaValue("sample_name", "150516_CM1_Level1");
+  std::vector<FeatureMap> feature_maps;
+  feature_maps.push_back(fmap);
+  TEST_EQUAL(feature_maps.size(), 1)
+  std::map<String, AbsoluteQuantitationStandards::featureConcentration> m;
+  ptr->mapComponentsToConcentrations(runs, feature_maps, m);
+  TEST_NOT_EQUAL(m.size(), 0)
+}
+END_SECTION
+
+delete ptr;
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
