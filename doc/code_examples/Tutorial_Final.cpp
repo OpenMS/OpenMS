@@ -34,6 +34,8 @@
 // $Authors: Oliver Alka $
 // --------------------------------------------------------------------------
 
+//! [Includes]
+
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/FASTAFile.h>
@@ -41,6 +43,8 @@
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
+
+//! [Includes]
 
 using namespace OpenMS;
 using namespace std;
@@ -79,6 +83,9 @@ public:
  }
 
 protected:
+
+//! [Register]
+
  void registerOptionsAndFlags_()
  {
    registerInputFile_("in", "<file>", "","Input FASTA file, containing a database.");
@@ -90,6 +97,10 @@ protected:
    registerOutputFile_("out", "<file>", "", "Output FASTA file where the reduced database will be written to.");
    setValidFormats_("out", ListUtils::create<String>("fasta"));
  }
+
+//! [Register]
+
+//! [Functionality_1]
 
  void filterByProteinIDs_(const vector<FASTAFile::FASTAEntry>& db, const vector<PeptideIdentification>& peptide_identifications, bool whitelist, vector<FASTAFile::FASTAEntry>& db_new)
  {
@@ -109,7 +120,11 @@ protected:
      }
    }
 
+ //! [Functionality_1]
+
    LOG_INFO << "Protein IDs: " << id_accessions.size() << endl;
+
+ //! [Functionality_2]
 
    for (Size i = 0; i != db.size() ; ++i)
    {
@@ -120,10 +135,15 @@ protected:
        db_new.push_back(db[i]);
      }
    }
+
+ //! [Functionality_2]
  }
 
  ExitCodes main_(int, const char **)
  {
+
+   //! [InputParam]
+
    //-------------------------------------------------------------
    // parsing parameters
    //-------------------------------------------------------------
@@ -133,12 +153,18 @@ protected:
    bool whitelist = (method == "whitelist");
    String out(getStringOption_("out"));
 
+   //! [InputParam]
+
    //-------------------------------------------------------------
    // reading input
    //-------------------------------------------------------------
 
+   //! [InputRead]
+
    vector<FASTAFile::FASTAEntry> db;
    FASTAFile().load(in, db);
+
+   //! [InputRead]
 
    // Check if no filter criteria was given
    // If you add a new filter please check if it was set here as well
@@ -182,7 +208,11 @@ protected:
    //-------------------------------------------------------------
 
    LOG_INFO << "Database entries (before / after): " << db.size() << " / " << db_new.size() << endl;
+   //! [output]  
+
    FASTAFile().store(out, db_new);
+
+   //! [output]
 
    return EXECUTION_OK;
  }

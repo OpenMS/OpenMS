@@ -578,35 +578,35 @@ This creates a manual (doxygen) page with the information –help output of the 
 @section tutorial_param_def Define tool parameters
 Define tool parameters Each TOPP tool defines a set of parameters that will be available from the command line, KNIME, and other workflow systems. This is done in the void registerOptionsAndFlags_() method. In our case we want to read a protein database (fasta format), a file containing identification data (idXML format), and an option to switch between keeping (whitelisting) and removing (blacklisting) entries based on the filter result. This is our input. The reduced database forms the output and should be written to a protein database in fasta format. This is easily done by adding following lines to:
 
-<b>Example: Tutorial_Register.cpp</b>
+<b>Example: Tutorial_Final.cpp</b>
 <br>
 Registration of tool parameters
 
-\snippet Tutorial_Register.cpp  Register
+\snippet Tutorial_Final.cpp  Register
 
 Functions, classes and references can be checked in the OpenMS / TOPP documentation (ftp://ftp.mi.fu-berlin.de/pub/OpenMS/release-documentation/html/index.html)
 
 @section tutorial_param_read Read tool parameters
 After a tool is executed, the registered parameters are available in the main_ function of the TOPP tool and can be read using the getStringOption_ method. Special methods for integers, lists and floating point parameters exist and are in the TOPPBase documentation but are not needed for this example.
 
-<b>Example: Tutorial_InputParam.cpp</b>
+<b>Example: Tutorial_Final.cpp</b>
 <br>
 
-\snippet Tutorial_InputParam.cpp InputParam
+\snippet Tutorial_Final.cpp InputParam
 
 @section tutorial_read Read Input Files
 First the different file formats and data structures for peptide identifications have to be included at the top of the file.
 
-<b>Example: Tutorial_InputRead.cpp</b>
+<b>Example: Tutorial_Final.cpp</b>
 <b> Add essential includes </b>
 <br>
 
-\snippet Tutorial_InputRead InputRead_1
+\snippet Tutorial_Final Includes
 
 <b> Read the input files </b>
 <br>
 
-\snippet Tutorial_InputRead InputRead_2
+\snippet Tutorial_InputRead InputRead
 
 Note: both peptide_identifications and protein_identifications contain protein accessions. The difference between them is that protein_identifications only contain the inferred set of protein accessions while peptide_identifications contains all protein accessions the peptides map to. We consider only the larger set of protein accessions stored in the peptide identifications. In principle, it would be easy to add another parameter that adds a filter for the inferred accessions stored in protein_identifications.
 
@@ -615,26 +615,25 @@ First, the accessions are extracted from the IdXML file. Here knowledge of the d
 
 To store all proteins accessions in the set id_accessions, we write: 
 
-<b>Example: Tutorial_ToolFunctionality.cpp</b>
+<b>Example: Tutorial_Final.cpp</b>
 <br>
 Store protein accessions
 
-\snippet Tutorial_ToolFunctionality.cpp functionality_1
+\snippet Tutorial_Final.cpp Functionality_1
 
 Now that we assembled the set of all protein accessions we are ready to compare them to the fasta_accessions. If they are similar and the method whitelist or they are different and the method blacklist was chosen, the fasta entries are copied to the new fasta database.
 
-<b>Example: Tutorial_ToolFunctionality.cpp</b>
+<b>Example: Tutorial_Functionality.cpp</b>
 <br>
 Add method functionality
-\snippet Tutorial_ToolFunctionality.cpp functionality_2
+\snippet Tutorial_Functionality.cpp Functionality_2
 
 @section tutorial_write Write Output Files 
-<b>Example: Tutorial_ToolFunctionality.cpp</b>
+<b>Example: Tutorial_Final.cpp</b>
 <br>
 Write the output
 
-\snippet Tutorial_ToolFunctionality.cpp output
-
+\snippet Tutorial_Final.cpp output
 
 @section tutorial_test Adding TOPP tests
 Testing your tools is essential and required to promote your experimental util to an official TOPP tool.

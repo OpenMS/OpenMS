@@ -39,7 +39,6 @@
 	First, we give a small introduction to this tutorial and %OpenMS:
 	- @subpage tutorial_introduction
 	- @subpage tutorial_structure
-
         - @subpage tutorial_developing
 	- @subpage tutorial_terms
 
@@ -65,6 +64,8 @@
         - @subpage tutorial_residuemod
         - @subpage tutorial_tsg
         - @subpage tutorial_dep
+
+        Here you can read about how to create a TOPP-Tool in OpenMS:
         - @subpage tutorial_topp
         - @subpage tutorial_create
         - @subpage tutorial_param_def
