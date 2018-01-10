@@ -36,10 +36,6 @@
 
 namespace OpenMS
 {
-  ChromeleonFile::ChromeleonFile() {}
-
-  ChromeleonFile::~ChromeleonFile() {}
-
   void ChromeleonFile::load(const String& filename, MSExperiment& experiment) const
   {
     std::ifstream ifs(filename, std::ifstream::in);

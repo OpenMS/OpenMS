@@ -45,20 +45,27 @@ namespace OpenMS
 {
   /**
     @brief Load Chromeleon HPLC text file and save it into a `MSExperiment`.
+
+    An example of the expected format:
+    > Raw Data:
+    > Time (min)	Step (s)	Value (mAU)
+    > 0.003333	0.200	-0.002496
+    > 0.006667	0.200	-0.017589
+    > ...
   */
   class OPENMS_DLLAPI ChromeleonFile
   {
 public:
     /// Constructor
-    ChromeleonFile();
+    ChromeleonFile() = default;
     /// Destructor
-    virtual ~ChromeleonFile();
+    virtual ~ChromeleonFile() = default;
 
     /**
       @brief Load the file's data and metadata, and save it into a `MSExperiment`.
 
-      @param[in] filename The filepath to the file containing the informations
-      @param[out] experiment The variable into which the extracted informations will be saved
+      @param[in] filename Path to the Chromeleon input file
+      @param[out] experiment The variable into which the extracted information will be saved
     */
     void load(const String& filename, MSExperiment& experiment) const;
   };
