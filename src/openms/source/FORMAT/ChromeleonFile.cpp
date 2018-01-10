@@ -34,8 +34,6 @@
 
 #include <OpenMS/FORMAT/ChromeleonFile.h>
 
-#include <boost/regex.hpp>
-
 namespace OpenMS
 {
   ChromeleonFile::ChromeleonFile() {}
@@ -54,7 +52,7 @@ namespace OpenMS
     experiment.clear(true);
     MSChromatogram chromatogram;
     boost::cmatch m;
-    boost::regex re_injection("^Injection\t(.+)$", boost::regex::no_mod_s);
+    boost::regex re_injection("^Injection\t(.+)", boost::regex::no_mod_s);
     boost::regex re_processing_method("^Processing Method\t(.+)", boost::regex::no_mod_s);
     boost::regex re_instrument_method("^Instrument Method\t(.+)", boost::regex::no_mod_s);
     boost::regex re_injection_date("^Injection Date\t(.+)", boost::regex::no_mod_s);
