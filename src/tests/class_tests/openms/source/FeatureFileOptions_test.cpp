@@ -46,8 +46,8 @@ START_TEST(FeatureFileOptions, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-FeatureFileOptions* ptr = 0;
-FeatureFileOptions* null_ptr = 0;
+FeatureFileOptions* ptr = nullptr;
+FeatureFileOptions* null_ptr = nullptr;
 START_SECTION(FeatureFileOptions())
 {
 	ptr = new FeatureFileOptions();

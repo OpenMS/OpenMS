@@ -82,8 +82,8 @@ START_TEST(MetaboliteFeatureDeconvolution, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-MetaboliteFeatureDeconvolution* ptr = 0;
-MetaboliteFeatureDeconvolution* nullPointer = 0;
+MetaboliteFeatureDeconvolution* ptr = nullptr;
+MetaboliteFeatureDeconvolution* nullPointer = nullptr;
 START_SECTION(MetaboliteFeatureDeconvolution())
 	ptr = new MetaboliteFeatureDeconvolution();
 	TEST_NOT_EQUAL(ptr, nullPointer)

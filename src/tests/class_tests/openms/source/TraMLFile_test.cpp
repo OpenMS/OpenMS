@@ -50,8 +50,8 @@ START_TEST(TraMLFile, "$Id$")
 /////////////////////////////////////////////////////////////
 
 
-TraMLFile * ptr = 0;
-TraMLFile * nullPointer = 0;
+TraMLFile * ptr = nullptr;
+TraMLFile * nullPointer = nullptr;
 
 START_SECTION((TraMLFile()))
 {

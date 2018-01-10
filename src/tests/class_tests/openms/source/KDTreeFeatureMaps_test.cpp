@@ -70,8 +70,8 @@ p.setValue("rt_tol", 100);
 p.setValue("mz_tol", 10);
 p.setValue("mz_unit", "ppm");
 
-KDTreeFeatureMaps* ptr = 0;
-KDTreeFeatureMaps* nullPointer = 0;
+KDTreeFeatureMaps* ptr = nullptr;
+KDTreeFeatureMaps* nullPointer = nullptr;
 
 START_SECTION((KDTreeFeatureMaps()))
   ptr = new KDTreeFeatureMaps();

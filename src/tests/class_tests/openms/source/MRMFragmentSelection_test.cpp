@@ -52,8 +52,8 @@ START_TEST(MRMFragmentSelection, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-MRMFragmentSelection* ptr = 0;
-MRMFragmentSelection* nullPointer = 0;
+MRMFragmentSelection* ptr = nullptr;
+MRMFragmentSelection* nullPointer = nullptr;
 START_SECTION(MRMFragmentSelection())
 {
   ptr = new MRMFragmentSelection();

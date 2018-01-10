@@ -57,7 +57,7 @@ namespace OpenMS
     no overlapping and therefore allow for a clear separation. Furthermore, ion
     signals tend to show well-defined peak shapes with narrow peak width.
 
-    This peak-picking algorithm detects ion signals in raw data and
+    This peak-picking algorithm detects ion signals in profile data and
     reconstructs the corresponding peak shape by cubic spline interpolation.
     Signal detection depends on the signal-to-noise ratio which is adjustable
     by the user (see parameter signal_to_noise). A picked peak's m/z and
@@ -82,7 +82,7 @@ public:
     PeakPickerHiRes();
 
     /// Destructor
-    virtual ~PeakPickerHiRes();
+    ~PeakPickerHiRes() override;
 
     /// structure for peak boundaries
     struct PeakBoundary
@@ -137,7 +137,7 @@ public:
       output.setRT(input.getRT());
       output.setMSLevel(input.getMSLevel());
       output.setName(input.getName());
-      output.setType(SpectrumSettings::PEAKS);
+      output.setType(SpectrumSettings::CENTROID);
       if (report_FWHM_)
       {
         output.getFloatDataArrays().resize(1);
@@ -163,7 +163,7 @@ public:
         snt.init(input);
       }
 
-      // find local maxima in raw data
+      // find local maxima in profile data
       for (Size i = 2; i < input.size() - 2; ++i)
       {
         double central_peak_mz = input[i].getMZ(), central_peak_int = input[i].getIntensity();
@@ -433,7 +433,7 @@ public:
           
           boundaries.push_back(peak_boundary);
 
-          // jump over raw data points that have been considered already
+          // jump over profile data points that have been considered already
           i = i + k - 1;
         }
       }
@@ -543,7 +543,7 @@ public:
             // determine type of spectral data (profile or centroided)
             SpectrumSettings::SpectrumType spectrum_type = input[scan_idx].getType();
 
-            if (spectrum_type == SpectrumSettings::PEAKS && check_spectrum_type)
+            if (spectrum_type == SpectrumSettings::CENTROID && check_spectrum_type)
             {
               throw OpenMS::Exception::IllegalArgument(__FILE__, __LINE__, __FUNCTION__, "Error: Centroided data provided but profile spectra expected.");
             }
@@ -608,7 +608,7 @@ public:
             // determine type of spectral data (profile or centroided)
             SpectrumSettings::SpectrumType spectrum_type = s.getType();
 
-            if (spectrum_type == SpectrumSettings::PEAKS && check_spectrum_type)
+            if (spectrum_type == SpectrumSettings::CENTROID && check_spectrum_type)
             {
               throw OpenMS::Exception::IllegalArgument(__FILE__, __LINE__, __FUNCTION__, "Error: Centroided data provided but profile spectra expected.");
             }
@@ -654,7 +654,7 @@ protected:
     bool report_FWHM_as_ppm_;
 
     // docu in base class
-    void updateMembers_();
+    void updateMembers_() override;
 
   }; // end PeakPickerHiRes
 

@@ -51,8 +51,8 @@ START_TEST(CompNovoIonScoringCID, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-CompNovoIonScoringCID* ptr = 0;
-CompNovoIonScoringCID* nullPointer = 0;
+CompNovoIonScoringCID* ptr = nullptr;
+CompNovoIonScoringCID* nullPointer = nullptr;
 START_SECTION(CompNovoIonScoringCID())
 {
  ptr = new CompNovoIonScoringCID();

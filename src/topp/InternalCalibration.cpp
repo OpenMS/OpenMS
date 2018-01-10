@@ -165,7 +165,7 @@ public:
 
 protected:
 
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     // data
     registerInputFile_("in", "<file>", "", "Input peak file");
@@ -232,7 +232,7 @@ protected:
 
   }
 
-  ExitCodes main_(int, const char**)
+  ExitCodes main_(int, const char**) override
   {
     //-------------------------------------------------------------
     // parameter handling

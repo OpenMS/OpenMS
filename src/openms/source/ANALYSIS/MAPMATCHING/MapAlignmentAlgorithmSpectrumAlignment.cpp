@@ -45,7 +45,7 @@ namespace OpenMS
 
   MapAlignmentAlgorithmSpectrumAlignment::MapAlignmentAlgorithmSpectrumAlignment() :
     DefaultParamHandler("MapAlignmentAlgorithmSpectrumAlignment"),
-    ProgressLogger(), c1_(0)
+    ProgressLogger(), c1_(nullptr)
   {
     defaults_.setValue("gapcost", 1.0, "This Parameter stands for the cost of opining a gap in the Alignment. A gap means that one spectrum can not be aligned directly to another spectrum in the Map. This happens, when the similarity of both spectra a too low or even not present. Imagine it as a insert or delete of the spectrum in the map (similar to sequence alignment). The gap is necessary for aligning, if we open a gap there is a possibility that an another spectrum can be correct aligned with a higher score as before without gap. But to open a gap is a negative event and needs to carry a punishment, so a gap should only be opened if the benefits outweigh the downsides. The Parameter is to giving as a positive number, the implementation convert it to a negative number.");
     defaults_.setMinFloat("gapcost", 0.0);
@@ -190,7 +190,7 @@ namespace OpenMS
     for (Size i = 0; i < xcoordinate.size(); ++i)
     {
       double rt = tempalign[xcoordinate[i]]->getRT();
-      data.push_back(std::make_pair(rt, ycoordinate[i]));
+      data.push_back(std::make_pair(rt, double(ycoordinate[i])));
     }
     transformation.push_back(TransformationDescription(data));
   }
@@ -815,7 +815,7 @@ namespace OpenMS
     e_      = (float)param_.getValue("affinegapcost");
 
     // create spectrum compare functor if it does not yet exist
-    if (c1_ == NULL || c1_->getName() != (String)param_.getValue("scorefunction"))
+    if (c1_ == nullptr || c1_->getName() != (String)param_.getValue("scorefunction"))
     {
       c1_ = Factory<PeakSpectrumCompareFunctor>::create((String)param_.getValue("scorefunction"));
     }

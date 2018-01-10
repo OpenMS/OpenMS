@@ -56,25 +56,25 @@ namespace OpenMS
   {
 public:
     Spline2dInterpolator() :
-      spline_(0)
+      spline_(nullptr)
     {
     }
 
-    void init(std::vector<double>& x, std::vector<double>& y)
+    void init(std::vector<double>& x, std::vector<double>& y) override
     {
       // cleanup before we use a new one
-      if (spline_ != (CubicSpline2d*) 0) delete spline_;
+      if (spline_ != (CubicSpline2d*) nullptr) delete spline_;
 
       // initialize spline
       spline_ = new CubicSpline2d(x, y);
     }
 
-    double eval(const double& x) const
+    double eval(const double& x) const override
     {
       return spline_->eval(x);
     }
 
-    ~Spline2dInterpolator()
+    ~Spline2dInterpolator() override
     {
       delete spline_;
     }
@@ -92,22 +92,22 @@ private:
   {
 public:
     AkimaInterpolator() :
-      interpolator_(0)
+      interpolator_(nullptr)
     {}
 
-    void init(std::vector<double>& x, std::vector<double>& y)
+    void init(std::vector<double>& x, std::vector<double>& y) override
     {
-      if (interpolator_ != (Wm5::IntpAkimaNonuniform1<double>*) 0) delete interpolator_;
+      if (interpolator_ != (Wm5::IntpAkimaNonuniform1<double>*) nullptr) delete interpolator_;
       // re-construct a new interpolator
       interpolator_ = new Wm5::IntpAkimaNonuniform1<double>(static_cast<int>(x.size()), &x.front(), &y.front());
     }
 
-    double eval(const double& x) const
+    double eval(const double& x) const override
     {
       return (* interpolator_)(x);
     }
 
-    ~AkimaInterpolator()
+    ~AkimaInterpolator() override
     {
       delete interpolator_;
     }
@@ -126,7 +126,7 @@ public:
     LinearInterpolator()
     {}
 
-    void init(std::vector<double>& x, std::vector<double>& y)
+    void init(std::vector<double>& x, std::vector<double>& y) override
     {
       // clear data
       x_.clear();
@@ -138,7 +138,7 @@ public:
       y_.insert(y_.begin(), y.begin(), y.end());
     }
 
-    double eval(const double& x) const
+    double eval(const double& x) const override
     {
       // find nearest pair of points
       std::vector<double>::const_iterator it = std::upper_bound(x_.begin(), x_.end(), x);
@@ -166,7 +166,7 @@ public:
       }
     }
 
-    ~LinearInterpolator()
+    ~LinearInterpolator() override
     {
     }
 

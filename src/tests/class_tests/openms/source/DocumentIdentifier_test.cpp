@@ -48,8 +48,8 @@ START_TEST(DocumentIdentifier, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-DocumentIdentifier* ptr = 0;
-DocumentIdentifier* nullPointer = 0;
+DocumentIdentifier* ptr = nullptr;
+DocumentIdentifier* nullPointer = nullptr;
 START_SECTION(DocumentIdentifier())
 {
 	ptr = new DocumentIdentifier();

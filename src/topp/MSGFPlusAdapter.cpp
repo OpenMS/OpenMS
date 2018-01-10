@@ -35,7 +35,7 @@
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/CHEMISTRY/ModificationDefinitionsSet.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
-#include <OpenMS/CHEMISTRY/EnzymesDB.h>
+#include <OpenMS/CHEMISTRY/ProteaseDB.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/FORMAT/CsvFile.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
@@ -118,7 +118,7 @@ public:
     protocols_(ListUtils::create<String>("none,phospho,iTRAQ,iTRAQ_phospho,TMT")),
     tryptic_(ListUtils::create<String>("non,semi,fully"))
   {
-    EnzymesDB::getInstance()->getAllMSGFNames(enzymes_);
+    ProteaseDB::getInstance()->getAllMSGFNames(enzymes_);
     std::sort(enzymes_.begin(),enzymes_.end());
   }
 
@@ -137,8 +137,8 @@ protected:
 
   // primary MS run referenced in the mzML file
   StringList primary_ms_run_path_;
-  
-  void registerOptionsAndFlags_()
+
+  void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "Input file (MS-GF+ parameter '-s')");
     setValidFormats_("in", ListUtils::create<String>("mzML,mzXML,mgf,ms2"));
@@ -197,7 +197,7 @@ protected:
     setValidStrings_("fixed_modifications", all_mods);
     registerStringList_("variable_modifications", "<mods>", vector<String>(), "Variable modifications, specified using UniMod (www.unimod.org) terms, e.g. 'Oxidation (M)'", false);
     setValidStrings_("variable_modifications", all_mods);
-    
+
     registerFlag_("legacy_conversion", "Use the indirect conversion of MS-GF+ results to idXML via export to TSV. Try this only if the default conversion takes too long or uses too much memory.", true);
 
     registerInputFile_("java_executable", "<file>", "java", "The Java executable. Usually Java is on the system PATH. If Java is not found, use this parameter to specify the full path to Java", false, false, ListUtils::create<String>("skipexists"));
@@ -214,7 +214,7 @@ protected:
   {
     struct SequenceParts parts;
     size_t len = sequence.size(), start = 0, count = string::npos;
-    if (len > 3) // in 'X.Y', which side would we cut off? 
+    if (len > 3) // in 'X.Y', which side would we cut off?
     {
       if (sequence[1] == '.')
       {
@@ -312,7 +312,7 @@ protected:
       // determine type of spectral data (profile or centroided)
       SpectrumSettings::SpectrumType spectrum_type = exp[0].getType();
 
-      if (spectrum_type == SpectrumSettings::RAWDATA)
+      if (spectrum_type == SpectrumSettings::PROFILE)
       {
         if (!getFlag_("force"))
         {
@@ -376,7 +376,7 @@ protected:
   String describeHit_(const PeptideHit& hit)
   {
     return "peptide hit with sequence '" + hit.getSequence().toString() +
-      "', charge " + String(hit.getCharge()) + ", score " + 
+      "', charge " + String(hit.getCharge()) + ", score " +
       String(hit.getScore());
   }
 
@@ -391,14 +391,14 @@ protected:
         String msg = "Meta value 'MS:1002052' not found for " + describeHit_(*hit_it);
         throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, msg);
       }
-      
+
       hit_it->setScore(hit_it->getMetaValue("MS:1002052"));
     }
     id.setScoreType("SpecEValue");
     id.setHigherScoreBetter(false);
   }
-  
-  ExitCodes main_(int, const char**)
+
+  ExitCodes main_(int, const char**) override
   {
     //-------------------------------------------------------------
     // parse parameters
@@ -476,7 +476,7 @@ protected:
     // no need to handle "not found" case - would have given error during parameter parsing:
     Int fragment_method_code = ListUtils::getIndex<String>(fragment_methods_, getStringOption_("fragment_method"));
     Int instrument_code = ListUtils::getIndex<String>(instruments_, getStringOption_("instrument"));
-    Int enzyme_code = EnzymesDB::getInstance()->getEnzyme(enzyme)->getMSGFID();
+    Int enzyme_code = ProteaseDB::getInstance()->getEnzyme(enzyme)->getMSGFID();
     Int protocol_code = ListUtils::getIndex<String>(protocols_, getStringOption_("protocol"));
     Int tryptic_code = ListUtils::getIndex<String>(tryptic_, getStringOption_("tryptic"));
 
@@ -533,7 +533,7 @@ protected:
     //-------------------------------------------------------------
     // create idXML output
     //-------------------------------------------------------------
-    
+
     if (!out.empty())
     {
       if (getFlag_("legacy_conversion"))
@@ -559,11 +559,11 @@ protected:
           writeLog_("Fatal error: Running MzIDToTSVConverter returned an error code '" + String(status) + "'.");
           return EXTERNAL_PROGRAM_ERROR;
         }
-    
+
         // initialize map
         map<String, vector<float> > rt_mapping;
         generateInputfileMapping_(rt_mapping);
-    
+
         // handle the search parameters
         ProteinIdentification::SearchParameters search_parameters;
         search_parameters.db = getStringOption_("database");
@@ -578,18 +578,18 @@ protected:
           search_parameters.precursor_mass_tolerance *= 2.0 / 3000.0;
           search_parameters.precursor_mass_tolerance_ppm = true;
         }
-    
-        search_parameters.digestion_enzyme = *EnzymesDB::getInstance()->getEnzyme(enzyme);
-    
+
+        search_parameters.digestion_enzyme = *(ProteaseDB::getInstance()->getEnzyme(enzyme));
+
         // create idXML file
         vector<ProteinIdentification> protein_ids;
         ProteinIdentification protein_id;
         protein_id.setPrimaryMSRunPath(primary_ms_run_path_);
-    
+
         DateTime now = DateTime::now();
         String date_string = now.getDate();
         String identifier = "MS-GF+_" + date_string;
-    
+
         protein_id.setIdentifier(identifier);
         protein_id.setDateTime(now);
         protein_id.setSearchParameters(search_parameters);
@@ -613,7 +613,7 @@ protected:
             writeLog_("Error: could not split row " + String(row_count) + " of file '" + tsv_out + "'");
             return PARSE_ERROR;
           }
-    
+
           int scan_number = 0;
           if ((elements[2] == "") || (elements[2] == "-1"))
           {
@@ -623,17 +623,17 @@ protected:
           {
             scan_number = elements[2].toInt();
           }
-    
+
           struct SequenceParts parts = splitSequence_(elements[8]);
           parts.peptide.substitute(',', '.'); // decimal separator should be dot, not comma
           AASequence seq = AASequence::fromString(modifySequence_(modifyNTermAASpecificSequence_(parts.peptide)));
-    
+
           String accession = elements[9];
           // @BUG If there's a space before the protein accession in the FASTA file (e.g. "> accession ..."),
           // the "Protein" field in the TSV file will be empty, leading to an empty accession and no protein
           // reference in the idXML output file! (The mzIdentML output is not affected by this.)
           prot_accessions.insert(accession);
-    
+
           PeptideEvidence evidence;
           evidence.setProteinAccession(accession);
           if ((parts.aa_before == 0) && (parts.aa_after == 0))
@@ -660,7 +660,7 @@ protected:
               evidence.setAAAfter(PeptideEvidence::C_TERMINAL_AA);
             }
           }
-    
+
           bool hit_exists = false;
           // if the PeptideIdentification doesn't exist yet, a new one will be created:
           PeptideIdentification& pep_ident = peptide_identifications[scan_number];
@@ -680,7 +680,7 @@ protected:
           }
           else // new PeptideIdentification
           {
-            String spec_id = elements[1];       
+            String spec_id = elements[1];
             pep_ident.setRT(rt_mapping[spec_id][0]);
             pep_ident.setMZ(rt_mapping[spec_id][1]);
             pep_ident.setMetaValue("ScanNumber", scan_number);
@@ -698,7 +698,7 @@ protected:
             pep_ident.insertHit(hit);
           }
         }
-    
+
         vector<ProteinHit> prot_hits;
         for (set<String>::iterator it = prot_accessions.begin(); it != prot_accessions.end(); ++it)
         {
@@ -709,7 +709,7 @@ protected:
         }
         protein_id.setHits(prot_hits);
         protein_ids.push_back(protein_id);
-    
+
         // iterate over map and create a vector of peptide identifications
         vector<PeptideIdentification> peptide_ids;
         PeptideIdentification pep;
@@ -720,7 +720,7 @@ protected:
           pep.sort();
           peptide_ids.push_back(pep);
         }
-    
+
         IdXMLFile().store(out, protein_ids, peptide_ids);
       }
       else
@@ -743,7 +743,7 @@ protected:
     //-------------------------------------------------------------
     // create (move) mzid output
     //-------------------------------------------------------------
-   
+
     if (!mzid_out.empty())
     {
       // existing file? Qt won't overwrite, so try to remove it:

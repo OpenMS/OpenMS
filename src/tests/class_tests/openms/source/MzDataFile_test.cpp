@@ -56,8 +56,8 @@ START_TEST(MzDataFile, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-MzDataFile * ptr = 0;
-MzDataFile* nullPointer = 0;
+MzDataFile * ptr = nullptr;
+MzDataFile* nullPointer = nullptr;
 START_SECTION((MzDataFile()))
 {
 ptr = new MzDataFile;
@@ -214,7 +214,7 @@ START_SECTION((template <typename MapType> void load(const String &filename, Map
   TEST_EQUAL(e[1].getAcquisitionInfo().size(), 2)
 
   ABORT_IF(e[1].getAcquisitionInfo().size() != 2);
-  TEST_EQUAL(e[1].getType(), SpectrumSettings::RAWDATA)
+  TEST_EQUAL(e[1].getType(), SpectrumSettings::PROFILE)
   TEST_EQUAL(e[1].getAcquisitionInfo().getMethodOfCombination(), "sum")
   TEST_EQUAL(e[1].getAcquisitionInfo()[0].getIdentifier(), "501")
   TEST_EQUAL(e[1].getAcquisitionInfo()[1].getIdentifier(), "502")
@@ -225,7 +225,7 @@ START_SECTION((template <typename MapType> void load(const String &filename, Map
 
   TEST_EQUAL(e[2].getAcquisitionInfo().size(), 1)
   ABORT_IF(e[2].getAcquisitionInfo().size() != 1);
-  TEST_EQUAL(e[2].getType(), SpectrumSettings::PEAKS)
+  TEST_EQUAL(e[2].getType(), SpectrumSettings::CENTROID)
   TEST_EQUAL(e[2].getAcquisitionInfo().getMethodOfCombination(), "average")
   TEST_EQUAL(e[2].getAcquisitionInfo()[0].getIdentifier(), "601")
 

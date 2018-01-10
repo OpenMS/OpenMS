@@ -100,7 +100,7 @@ for (int c = charge_max; c >= charge_min; --c)
 MultiplexFilteringProfile filtering(exp, exp_picked, boundaries_exp_s, patterns, peaks_per_peptide_min, peaks_per_peptide_max, missing_peaks, intensity_cutoff, mz_tolerance, mz_tolerance_unit, peptide_similarity, averagine_similarity, averagine_similarity_scaling);
 std::vector<MultiplexFilterResult> filter_results = filtering.filter();
 
-MultiplexClustering* nullPointer = 0;
+MultiplexClustering* nullPointer = nullptr;
 MultiplexClustering* ptr;
 
 START_SECTION(MultiplexClustering(const PeakMap& exp_profile, const PeakMap& exp_picked, const std::vector<std::vector<PeakPickerHiRes::PeakBoundary> >& boundaries, double rt_typical, double rt_minimum))

@@ -7,8 +7,8 @@ MRMIonSeries.cpp
 MRMAssay.cpp
 MRMDecoy.cpp
 MRMRTNormalizer.cpp
-TransitionTSVReader.cpp
-TransitionPQPReader.cpp
+TransitionTSVFile.cpp
+TransitionPQPFile.cpp
 SwathMapMassCorrection.cpp
 OpenSwathHelper.cpp
 OpenSwathScoring.cpp
@@ -18,15 +18,20 @@ OpenSwathWorkflow.cpp
 ChromatogramExtractor.cpp
 ChromatogramExtractorAlgorithm.cpp
 SpectrumAddition.cpp
+TargetedSpectraExtractor.cpp
 MRMTransitionGroupPicker.cpp
 DIAHelper.cpp
 DIAScoring.cpp
 SONARScoring.cpp
 DIAPrescoring.cpp
 MRMFeatureFinderScoring.cpp
+MasstraceCorrelator.cpp
 ConfidenceScoring.cpp
 PeakPickerMRM.cpp
+PeakIntegrator.cpp
 SwathWindowLoader.cpp
+MRMFeatureFilter.cpp
+MRMFeatureQC.cpp
 )
 
 ### add path to the filenames

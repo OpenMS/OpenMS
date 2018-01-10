@@ -45,7 +45,7 @@ namespace OpenMS
   OMSSAXMLFile::OMSSAXMLFile() :
     XMLHandler("", 1.1),
     XMLFile(),
-    peptide_identifications_(0)
+    peptide_identifications_(nullptr)
   {
     readMappingFile_();
   }
@@ -327,14 +327,14 @@ namespace OpenMS
     }
 
     // modifications
-    //<MSHits_mods>
+    ///<MSHits_mods>
     // <MSModHit>
     //  <MSModHit_site>4</MSModHit_site>
     //  <MSModHit_modtype>
     //   <MSMod>2</MSMod>
     //  </MSModHit_modtype>
     // </MSModHit>
-    //</MSHits_mods>
+    ///</MSHits_mods>
 
 
     if (tag_ == "MSHits_mods")

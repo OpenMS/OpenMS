@@ -50,8 +50,8 @@ START_TEST(SpectrumCheapDPCorr, "$Id$")
 
 /////////////////////////////////////////////////////////////
 
-SpectrumCheapDPCorr* e_ptr = 0;
-SpectrumCheapDPCorr* e_nullPointer = 0;
+SpectrumCheapDPCorr* e_ptr = nullptr;
+SpectrumCheapDPCorr* e_nullPointer = nullptr;
 START_SECTION(SpectrumCheapDPCorr())
 	e_ptr = new SpectrumCheapDPCorr;
 	TEST_NOT_EQUAL(e_ptr, e_nullPointer)

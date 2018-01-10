@@ -64,6 +64,9 @@ public:
     /// constructor
     PeptideEvidence();
 
+    /// constructor
+    PeptideEvidence(const String& accession, Int start, Int end, char aa_before, char aa_after);
+
     /// copy constructor
     PeptideEvidence(const PeptideEvidence& source);
 

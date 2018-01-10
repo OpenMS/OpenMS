@@ -20,3 +20,6 @@ OpenMS.includes
 .DS_Store
 src/.DS_Store
 src/openms/.DS_Store
+.vscode
+contrib-build
+openms-build

@@ -92,7 +92,7 @@ namespace OpenMS
     if (http_->state() != QHttp::Unconnected)
     {
 #ifdef MASCOTREMOTEQUERY_DEBUG
-      std::cerr << "Aborting open connection!\n";
+      std::cerr << "Aborting open connection in destructor!\n";
 #endif
       http_->abort(); // hardcore close connection (otherwise server might have too many dangling requests)
     }
@@ -102,6 +102,9 @@ namespace OpenMS
   void MascotRemoteQuery::timedOut()
   {
     LOG_FATAL_ERROR << "Mascot request timed out after " << to_ << " seconds! See 'timeout' parameter for details!" << std::endl;
+#ifdef MASCOTREMOTEQUERY_DEBUG
+      std::cerr << "Aborting open connection in MascotRemoteQuery::timedOut!\n";
+#endif
     http_->abort(); // one might try to resend the job here instead...
   }
 
@@ -311,21 +314,24 @@ namespace OpenMS
 #endif
 
     if (to_ > 0)
+    {
       timeout_.start();
+    }
     http_->request(header, querybytes);
   }
 
   void MascotRemoteQuery::httpRequestFinished(int requestId, bool error)
   {
+#ifdef MASCOTREMOTEQUERY_DEBUG
+    cerr << "MascotRemoteQuery::httpRequestFinished" << "\n";
+    cerr << "Request finished: " << requestId << "\n";
+    cerr << "Error: " << error << " (" << http_->errorString().toStdString() << ")" << "\n";
+#endif
+
     if (error)
     {
       cerr << "MascotRemoteQuery: An error occurred (requestId=" << requestId << "): " << http_->errorString().toStdString() << " (QT Error Code: " << int(http_->error()) << ")\n";
     }
-#ifdef MASCOTREMOTEQUERY_DEBUG
-    cerr << "Request Finished Id: " << requestId << "\n";
-    cerr << "Error: " << error << "(" << http_->errorString().toStdString() << ")" << "\n";
-#endif
-
   }
 
 #ifdef MASCOTREMOTEQUERY_DEBUG
@@ -365,7 +371,8 @@ namespace OpenMS
                                              )
   {
 #ifdef MASCOTREMOTEQUERY_DEBUG
-    cout << "Request started: " << requestId << "\n";
+    cerr << "MascotRemoteQuery::httpRequestStarted" << "\n";
+    cerr << "Request started: " << requestId << "\n";
 #endif
   }
 
@@ -379,31 +386,31 @@ namespace OpenMS
     switch (state)
     {
     case QHttp::Closing:
-      cout << "State change to QHttp::Closing\n";
+      cerr << "State change to QHttp::Closing\n";
       break;
 
     case QHttp::Unconnected:
-      cout << "State change to QHttp::Unconnected\n";
+      cerr << "State change to QHttp::Unconnected\n";
       break;
 
     case QHttp::HostLookup:
-      cout << "State change to QHttp::HostLookup\n";
+      cerr << "State change to QHttp::HostLookup\n";
       break;
 
     case QHttp::Sending:
-      cout << "State change to QHttp::Sending\n";
+      cerr << "State change to QHttp::Sending\n";
       break;
 
     case QHttp::Reading:
-      cout << "State change to QHttp::Reading\n";
+      cerr << "State change to QHttp::Reading\n";
       break;
 
     case QHttp::Connected:
-      cout << "State change to QHttp::Connected\n";
+      cerr << "State change to QHttp::Connected\n";
       break;
 
     case QHttp::Connecting:
-      cout << "State change to QHttp::Connecting\n";
+      cerr << "State change to QHttp::Connecting\n";
       break;
     }
 #endif
@@ -456,7 +463,9 @@ namespace OpenMS
       cookie_.append(mascot_user_ID);
 
 #ifdef MASCOTREMOTEQUERY_DEBUG
-      cout << "Cookie created:" << cookie_.toStdString() << "\n";
+      cerr << "===================================" << "\n";
+      cerr << "Cookie created:" << cookie_.toStdString() << "\n";
+      cerr << "===================================" << "\n";
 #endif
     }
   }
@@ -497,9 +506,9 @@ namespace OpenMS
     QByteArray new_bytes = http_->readAll();
 #ifdef MASCOTREMOTEQUERY_DEBUG
     cerr << "Response of query: " << "\n";
-    QTextDocument doc;
-    doc.setHtml(new_bytes.constData());
-    cerr << doc.toPlainText().toStdString() << "\n";
+    cerr << "-----------------------------------" << "\n";
+    cerr << QString(new_bytes.constData()).toStdString() << "\n";
+    cerr << "-----------------------------------" << "\n";
 #endif
 
     if (QString(new_bytes).trimmed().size() == 0 && !(http_->lastResponse().isValid() && http_->lastResponse().statusCode() == 303))
@@ -509,10 +518,10 @@ namespace OpenMS
       return;
     }
 
-    //Successful login? fire off the search
+    // Successful login? fire off the search
     if (new_bytes.contains("Logged in successfu")) // Do not use the whole string. Currently Mascot writes 'successfuly', but that might change...
     {
-      //Successful login? fire off the search
+      // Successful login? fire off the search
       LOG_INFO << "Login successful!" << std::endl;
       execQuery();
     }
@@ -536,7 +545,7 @@ namespace OpenMS
       QRegExp rx("file=(.+/\\d+/\\w+\\.dat)");
       rx.setMinimal(true);
       rx.indexIn(response);
-      search_number_ = getSearchNumberFromFilePath_(rx.cap(1));
+      search_identifier_ = getSearchIdentifierFromFilePath(rx.cap(1));
 
       if (param_.exists("skip_export") && 
           (param_.getValue("skip_export") == "true"))
@@ -640,9 +649,9 @@ namespace OpenMS
     return error_message_;
   }
 
-  Int MascotRemoteQuery::getSearchNumber() const
+  String MascotRemoteQuery::getSearchIdentifier() const
   {
-    return search_number_;
+    return search_identifier_;
   }
 
   void MascotRemoteQuery::updateMembers_()
@@ -703,6 +712,9 @@ namespace OpenMS
     if (!url.startsWith(host_name_.toQString()))
     {
       LOG_ERROR << "Invalid location returned by mascot! Abort." << std::endl;
+#ifdef MASCOTREMOTEQUERY_DEBUG
+      std::cerr << "Aborting open connection in MascotRemoteQuery::removeHostName_!\n";
+#endif
       endRun_();
       return;
     }
@@ -715,18 +727,27 @@ namespace OpenMS
   void MascotRemoteQuery::logHeader_(const QHttpHeader& header,
                                      const String& what)
   {
-    cerr << ">>>> Header to " << what << " (begin):\n"
+    cerr << ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>" << "\n"
+         << ">>>> Header to " << what << " (begin):\n"
          << header.toString().toStdString()
-         << "<<<< Header to " << what << " (end)." << endl;
+         << "<<<< Header to " << what << " (end)." << "\n"
+         << "<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<" <<
+         endl;
   }
 
-  Int MascotRemoteQuery::getSearchNumberFromFilePath_(const String& path) const
+  String MascotRemoteQuery::getSearchIdentifierFromFilePath(const String& path) const
   {
+#ifdef MASCOTREMOTEQUERY_DEBUG
+    std::cerr << "MascotRemoteQuery::getSearchIdentifierFromFilePath " << path << std::endl;
+#endif
     int pos = path.find_last_of("/\\");
     String tmp = path.substr(pos + 1);
     pos = tmp.find_last_of(".");
     tmp = tmp.substr(1, pos - 1);
 
-    return tmp.toInt();
+#ifdef MASCOTREMOTEQUERY_DEBUG
+    std::cerr << "MascotRemoteQuery::getSearchIdentifierFromFilePath will return" << tmp << std::endl;
+#endif
+    return tmp;
   }
 }

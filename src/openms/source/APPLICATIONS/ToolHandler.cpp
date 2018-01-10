@@ -55,6 +55,7 @@ namespace OpenMS
     tools_map["ConsensusID"] = Internal::ToolDescription("ConsensusID", "ID Processing");
     tools_map["ConsensusMapNormalizer"] = Internal::ToolDescription("ConsensusMapNormalizer", "Map Alignment");
     tools_map["CometAdapter"] = Internal::ToolDescription("CometAdapter", "Identification");
+    tools_map["CruxAdapter"] = Internal::ToolDescription("CruxAdapter", "Identification");
     tools_map["Decharger"] = Internal::ToolDescription("Decharger", "Quantitation");
     tools_map["DTAExtractor"] = Internal::ToolDescription("DTAExtractor", "File Handling");
     tools_map["EICExtractor"] = Internal::ToolDescription("EICExtractor", "Quantitation");
@@ -184,6 +185,8 @@ namespace OpenMS
 
     util_map["AccurateMassSearch"] = Internal::ToolDescription("AccurateMassSearch", util_category);
     util_map["CVInspector"] = Internal::ToolDescription("CVInspector", util_category);
+    util_map["ClusterMassTraces"] = Internal::ToolDescription("ClusterMassTraces", util_category);
+    util_map["ClusterMassTracesByPrecursor"] = Internal::ToolDescription("ClusterMassTracesByPrecursor", util_category);
     util_map["DecoyDatabase"] = Internal::ToolDescription("DecoyDatabase", util_category);
     util_map["DatabaseFilter"]= Internal::ToolDescription("DatabaseFilter", util_category);
     util_map["DeMeanderize"] = Internal::ToolDescription("DeMeanderize", util_category);
@@ -227,6 +230,7 @@ namespace OpenMS
     util_map["QCImporter"] = Internal::ToolDescription("QCImporter", util_category);
     util_map["QCMerger"] = Internal::ToolDescription("QCMerger", util_category);
     util_map["QCShrinker"] = Internal::ToolDescription("QCExporter", util_category);
+    util_map["RNADigestor"] = Internal::ToolDescription("RNADigestor", util_category);
     util_map["RNPxl"] = Internal::ToolDescription("RNPxl", util_category);
     util_map["RNPxlSearch"] = Internal::ToolDescription("RNPxlSearch", util_category);
     util_map["RNPxlXICFilter"] = Internal::ToolDescription("RNPxlXICFilter", util_category);
@@ -360,7 +364,7 @@ namespace OpenMS
     paths << (getExternalToolsPath() + "/LINUX").toQString();
 #endif
     // additional environment
-    if (getenv("OPENMS_TTD_PATH") != 0)
+    if (getenv("OPENMS_TTD_PATH") != nullptr)
     {
       paths << String(getenv("OPENMS_TTD_PATH")).toQString();
     }
@@ -392,7 +396,7 @@ namespace OpenMS
     paths << (getInternalToolsPath() + "/LINUX").toQString();
 #endif
     // additional environment
-    if (getenv("OPENMS_TTD_INTERNAL_PATH") != 0)
+    if (getenv("OPENMS_TTD_INTERNAL_PATH") != nullptr)
     {
       paths << String(getenv("OPENMS_TTD_INTERNAL_PATH")).toQString();
     }

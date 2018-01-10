@@ -58,8 +58,8 @@ AASequence sequence = AASequence::fromString("ARRAY");
 std::string sequence2 = "  ARRAY  ";
 Int charge = 2;
 
-PeptideHit* ptr = 0;
-PeptideHit* nullPointer = 0;
+PeptideHit* ptr = nullptr;
+PeptideHit* nullPointer = nullptr;
 START_SECTION((PeptideHit()))
 	ptr = new PeptideHit();
 	TEST_NOT_EQUAL(ptr, nullPointer)

@@ -49,7 +49,7 @@ Int main(int argc, const char** argv)
 
   paramFile.load(tutorial_data_path + "/data/Tutorial_ParamEditor.ini", param);
 
-  ParamEditor* editor = new ParamEditor(0);
+  ParamEditor* editor = new ParamEditor(nullptr);
   editor->load(param);
   editor->show();
 

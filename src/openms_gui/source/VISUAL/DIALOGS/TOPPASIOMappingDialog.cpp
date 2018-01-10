@@ -265,12 +265,12 @@ namespace OpenMS
 
     if (source_text == "<select>")
     {
-      QMessageBox::warning(0, "Invalid selection", "You must specify the source output parameter!");
+      QMessageBox::warning(nullptr, "Invalid selection", "You must specify the source output parameter!");
       return;
     }
     if (target_text == "<select>")
     {
-      QMessageBox::warning(0, "Invalid selection", "You must specify the target input parameter!");
+      QMessageBox::warning(nullptr, "Invalid selection", "You must specify the target input parameter!");
       return;
     }
 
@@ -304,28 +304,28 @@ namespace OpenMS
     {
       if (es == TOPPASEdge::ES_NO_TARGET_PARAM)
       {
-        QMessageBox::warning(0, "Invalid selection", "You must specify the target input parameter!");
+        QMessageBox::warning(nullptr, "Invalid selection", "You must specify the target input parameter!");
       }
       else if (es == TOPPASEdge::ES_NO_SOURCE_PARAM)
       {
-        QMessageBox::warning(0, "Invalid selection", "You must specify the source output parameter!");
+        QMessageBox::warning(nullptr, "Invalid selection", "You must specify the source output parameter!");
       }
       else if (es == TOPPASEdge::ES_FILE_EXT_MISMATCH)
       {
-        QMessageBox::warning(0, "Invalid selection", "The file types of source output and target input parameter do not match!");
+        QMessageBox::warning(nullptr, "Invalid selection", "The file types of source output and target input parameter do not match!");
       }
       else if (es == TOPPASEdge::ES_MERGER_EXT_MISMATCH)
       {
-        QMessageBox::warning(0, "Invalid selection", "The file types of source output and the target input parameter do not match!");
+        QMessageBox::warning(nullptr, "Invalid selection", "The file types of source output and the target input parameter do not match!");
       }
       else if (es == TOPPASEdge::ES_MERGER_WITHOUT_TOOL)
       {
         // this should be prevented already by "TOPPASScene::isEdgeAllowed_":
-        QMessageBox::warning(0, "Invalid selection", "Mergers or splitters connecting input and output files directly are not allowed!");
+        QMessageBox::warning(nullptr, "Invalid selection", "Mergers or splitters connecting input and output files directly are not allowed!");
       }
       else
       {
-        QMessageBox::warning(0, "Ooops", "This should not have happened. Please contact the OpenMS mailing list and report this bug.");
+        QMessageBox::warning(nullptr, "Ooops", "This should not have happened. Please contact the OpenMS mailing list and report this bug.");
       }
     }
   }

@@ -100,7 +100,7 @@ public:
     nr_peaks(0)
     {}
 
-  void consumeSpectrum(SpectrumType & s)
+  void consumeSpectrum(SpectrumType & s) override
   {
     for (Size i = 0; i < s.size(); i++) 
     { 
@@ -110,9 +110,9 @@ public:
     nr_spectra++;
   }
 
-  void consumeChromatogram(ChromatogramType& /* c */) {}
-  void setExpectedSize(Size /* expectedSpectra */, Size /* expectedChromatograms */) {}
-  void setExperimentalSettings(const ExperimentalSettings& /* exp */) {}
+  void consumeChromatogram(ChromatogramType& /* c */) override {}
+  void setExpectedSize(Size /* expectedSpectra */, Size /* expectedChromatograms */) override {}
+  void setExperimentalSettings(const ExperimentalSettings& /* exp */) override {}
 };
 
 /**
@@ -162,7 +162,7 @@ public:
 
 protected:
 
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "Input file to convert.");
     registerStringOption_("in_type", "<type>", "", "Input file type -- default: determined from file extension or content\n", false);
@@ -179,7 +179,7 @@ protected:
     setValidStrings_("loadData", ListUtils::create<String>(loadData));
   }
 
-  ExitCodes main_(int, const char**)
+  ExitCodes main_(int, const char**) override
   {
     //-------------------------------------------------------------
     // parameter handling

@@ -52,10 +52,10 @@ START_TEST(FeaFiModule, "$Id$")
 using namespace OpenMS;
 using namespace std;
 
-FeaFiModule<Peak1D>* ptr = 0;
-FeaFiModule<Peak1D>* nullPointer = 0;
+FeaFiModule<Peak1D>* ptr = nullptr;
+FeaFiModule<Peak1D>* nullPointer = nullptr;
 START_SECTION((FeaFiModule(const MSExperiment<PeakType>* map, FeatureMap* features, FeatureFinder* ff)))
-	ptr = new FeaFiModule<Peak1D>(0,0,0);
+	ptr = new FeaFiModule<Peak1D>(nullptr,nullptr,nullptr);
 	TEST_NOT_EQUAL(ptr, nullPointer)
 END_SECTION
 
@@ -90,7 +90,7 @@ p.setIntensity(1001.0);
 exp[1].push_back(p);
 
 START_SECTION(IntensityType getPeakIntensity(const FeatureFinderDefs::IndexPair& index) const)
-	FeaFiModule<Peak1D> t(&exp,0,0);
+	FeaFiModule<Peak1D> t(&exp,nullptr,nullptr);
 	TEST_REAL_SIMILAR(t.getPeakIntensity(make_pair(0,0)), 501.0)
 	TEST_REAL_SIMILAR(t.getPeakIntensity(make_pair(0,1)), 701.0)
 	TEST_REAL_SIMILAR(t.getPeakIntensity(make_pair(0,2)), 901.0)
@@ -99,7 +99,7 @@ START_SECTION(IntensityType getPeakIntensity(const FeatureFinderDefs::IndexPair&
 END_SECTION
 
 START_SECTION(CoordinateType getPeakMz(const FeatureFinderDefs::IndexPair& index) const)
-	FeaFiModule<Peak1D> t(&exp,0,0);
+	FeaFiModule<Peak1D> t(&exp,nullptr,nullptr);
 	TEST_REAL_SIMILAR(t.getPeakMz(make_pair(0,0)), 500.0)
 	TEST_REAL_SIMILAR(t.getPeakMz(make_pair(0,1)), 700.0)
 	TEST_REAL_SIMILAR(t.getPeakMz(make_pair(0,2)), 900.0)
@@ -108,7 +108,7 @@ START_SECTION(CoordinateType getPeakMz(const FeatureFinderDefs::IndexPair& index
 END_SECTION
 
 START_SECTION(CoordinateType getPeakRt(const FeatureFinderDefs::IndexPair& index) const)
-	FeaFiModule<Peak1D> t(&exp,0,0);
+	FeaFiModule<Peak1D> t(&exp,nullptr,nullptr);
 	TEST_REAL_SIMILAR(t.getPeakRt(make_pair(0,0)), 1.1)
 	TEST_REAL_SIMILAR(t.getPeakRt(make_pair(0,1)), 1.1)
 	TEST_REAL_SIMILAR(t.getPeakRt(make_pair(0,2)), 1.1)
@@ -117,7 +117,7 @@ START_SECTION(CoordinateType getPeakRt(const FeatureFinderDefs::IndexPair& index
 END_SECTION
 
 START_SECTION(void getNextMz(FeatureFinderDefs::IndexPair& index) const )
-	FeaFiModule<Peak1D> t(&exp,0,0);
+	FeaFiModule<Peak1D> t(&exp,nullptr,nullptr);
 	//scan one
 	FeatureFinderDefs::IndexPair i = make_pair(0,0);
 	t.getNextMz(i);
@@ -143,7 +143,7 @@ START_SECTION(void getNextMz(FeatureFinderDefs::IndexPair& index) const )
 END_SECTION
 
 START_SECTION(void getPrevMz(FeatureFinderDefs::IndexPair& index) const )
-	FeaFiModule<Peak1D> t(&exp,0,0);
+	FeaFiModule<Peak1D> t(&exp,nullptr,nullptr);
 	//scan one
 	FeatureFinderDefs::IndexPair i = make_pair(0,2);
 	t.getPrevMz(i);
@@ -178,7 +178,7 @@ START_SECTION(void getNextRt(FeatureFinderDefs::IndexPair& index) )
 	exp2[0][3].setMZ(801.0);
 	exp2[0][4].setMZ(900.0);
 
-	FeaFiModule<Peak1D> t(&exp2,0,0);
+	FeaFiModule<Peak1D> t(&exp2,nullptr,nullptr);
 
 	FeatureFinderDefs::IndexPair i;
 
@@ -249,7 +249,7 @@ START_SECTION(void getPrevRt(FeatureFinderDefs::IndexPair& index) )
 	exp2[1][2].setMZ(801.0);
 	exp2[1][3].setMZ(1000.0);
 
-	FeaFiModule<Peak1D> t(&exp2,0,0);
+	FeaFiModule<Peak1D> t(&exp2,nullptr,nullptr);
 	FeatureFinderDefs::IndexPair i;
 
 	//peak one
@@ -325,7 +325,7 @@ START_SECTION(void addConvexHull(const FeatureFinderDefs::IndexSet& set, Feature
 	PeakMap exp2;
 	exp2.set2DData(peak_array);
 
-	FeaFiModule<Peak1D> t(&exp2,0,0);
+	FeaFiModule<Peak1D> t(&exp2,nullptr,nullptr);
 
 	FeatureFinderDefs::IndexSet set;
 	for (Size i=0; i<exp2.size(); ++i)

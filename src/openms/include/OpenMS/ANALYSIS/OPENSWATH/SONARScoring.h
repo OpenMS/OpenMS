@@ -63,7 +63,7 @@ public:
     SONARScoring();
 
     /// Destructor
-    virtual ~SONARScoring() {}
+    ~SONARScoring() override {}
     //@}
     //
 
@@ -84,10 +84,11 @@ private:
     SONARScoring& operator=(const SONARScoring& rhs);
 
     /// Synchronize members with param class
-    void updateMembers_();
+    void updateMembers_() override;
 
     double dia_extract_window_;
     bool dia_centroided_;
+    bool dia_extraction_ppm_;
 
   };
 }

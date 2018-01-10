@@ -52,8 +52,8 @@ START_TEST(TraMLValidator, "$Id$")
 CVMappings mapping;
 ControlledVocabulary cv;
 
-TraMLValidator* ptr = 0;
-TraMLValidator* nullPointer = 0;
+TraMLValidator* ptr = nullptr;
+TraMLValidator* nullPointer = nullptr;
 START_SECTION((TraMLValidator(const CVMappings &mapping, const ControlledVocabulary &cv)))
 {
 	ptr = new TraMLValidator(mapping, cv);

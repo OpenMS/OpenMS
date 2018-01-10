@@ -95,7 +95,7 @@ protected:
     return (atoi(SiriusMzTabWriter::extract_scan_index(i).c_str()) < atoi(SiriusMzTabWriter::extract_scan_index(j).c_str()));
   }
 
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     registerInputFile_("executable", "<executable>", "",
                        "sirius executable e.g. sirius", false, false, ListUtils::create<String>("skipexists"));
@@ -106,7 +106,7 @@ protected:
     registerOutputFile_("out_sirius", "<file>", "", "MzTab Output file for SiriusAdapter results");
     setValidFormats_("out_sirius", ListUtils::create<String>("tsv"));
 
-    registerOutputFile_("out_fingerid","<file>", "", "MzTab ouput file for CSI:FingerID, if this parameter is given, SIRIUS will search for a molecular structure using CSI:FingerID after determining the sum formula", false);
+    registerOutputFile_("out_fingerid","<file>", "", "MzTab output file for CSI:FingerID, if this parameter is given, SIRIUS will search for a molecular structure using CSI:FingerID after determining the sum formula", false);
     setValidFormats_("out_fingerid", ListUtils::create<String>("tsv"));
 
     registerStringOption_("profile", "<choice>", "qtof", "Specify the used analysis profile", false);
@@ -118,7 +118,7 @@ protected:
     registerIntOption_("ppm_max", "<num>", 10, "allowed ppm for decomposing masses", false);
     registerStringOption_("isotope", "<choice>", "both", "how to handle isotope pattern data. Use 'score' to use them for ranking or 'filter' if you just want to remove candidates with bad isotope pattern. With 'both' you can use isotopes for filtering and scoring (default). Use 'omit' to ignore isotope pattern.", false);
     setValidStrings_("isotope", ListUtils::create<String>("score,filter,both,omit"));
-    registerStringOption_("elements", "<choice>", "CHNOP[5]S", "The allowed elements. Write CHNOPSCl to allow the elements C, H, N, O, P, S and Cl. Add numbers in brackets to restrict the maximal allowed occurence of these elements: CHNOP[5]S[8]Cl[1]. By default CHNOP[5]S is used.", false);
+    registerStringOption_("elements", "<choice>", "CHNOP[5]S", "The allowed elements. Write CHNOPSCl to allow the elements C, H, N, O, P, S and Cl. Add numbers in brackets to restrict the maximal allowed occurrence of these elements: CHNOP[5]S[8]Cl[1]. By default CHNOP[5]S is used.", false);
 
     registerIntOption_("number", "<num>", 10, "The number of compounds used in the output", false);
 
@@ -127,7 +127,7 @@ protected:
     registerFlag_("no_recalibration", "If this option is set, SIRIUS will not recalibrate the spectrum during the analysis.", false);
   }
 
-  ExitCodes main_(int, const char **)
+  ExitCodes main_(int, const char **) override
   {
     //-------------------------------------------------------------
     // Parsing parameters
@@ -231,6 +231,13 @@ protected:
     QProcess qp;
     qp.setWorkingDirectory(path_to_executable); //since library paths are relative to sirius executable path
     qp.start(executable, process_params); // does automatic escaping etc... start
+    std::stringstream ss;
+    ss << "COMMAND: " << executable.toStdString();
+    for (QStringList::const_iterator it = process_params.begin(); it != process_params.end(); ++it)
+    {
+        ss << " " << it->toStdString();
+    }
+    LOG_DEBUG << ss.str() << endl;
     writeLog_("Executing: " + String(executable));
     writeLog_("Working Dir is: " + path_to_executable);
     const bool success = qp.waitForFinished(-1); // wait till job is finished

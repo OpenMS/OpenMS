@@ -429,8 +429,8 @@ private:
 
     src_size -= padding;
 
-    register UInt a;
-    register UInt b;
+    UInt a;
+    UInt b;
 
     UInt offset = 0;
     int inc = 1;
@@ -773,8 +773,8 @@ private:
 
     src_size -= padding;
 
-    register UInt a;
-    register UInt b;
+    UInt a;
+    UInt b;
 
     UInt offset = 0;
     int inc = 1;

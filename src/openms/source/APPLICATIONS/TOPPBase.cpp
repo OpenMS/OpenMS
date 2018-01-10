@@ -63,9 +63,9 @@
 
 #include <boost/math/special_functions/fpclassify.hpp>
 
-#include <time.h>
-#include <stdio.h>
-#include <stdlib.h>
+#include <ctime>
+#include <cstdio>
+#include <cstdlib>
 
 // OpenMP support
 #ifdef _OPENMP
@@ -87,6 +87,10 @@ namespace OpenMS
   using namespace Exception;
 
   String TOPPBase::topp_ini_file_ = String(QDir::homePath()) + "/.TOPP.ini";
+  const Citation TOPPBase::cite_openms_ = { "Rost HL, Sachsenberg T, Aiche S, Bielow C et al.",
+      "OpenMS: a flexible open-source software platform for mass spectrometry data analysis",
+      "Nat Meth. 2016; 13, 9: 741-748",
+      "10.1038/nmeth.3959" };
 
   void TOPPBase::setMaxNumberOfThreads(int
 #ifdef _OPENMP
@@ -100,32 +104,25 @@ namespace OpenMS
 #endif
   }
 
-  TOPPBase::TOPPBase(const String& tool_name, const String& tool_description, bool official, bool id_tag_support, bool require_args, const String& version) :
+  TOPPBase::TOPPBase(const String& tool_name, const String& tool_description, bool official, const std::vector<Citation>& citations) :
     tool_name_(tool_name),
     tool_description_(tool_description),
-    id_tag_support_(id_tag_support),
-    require_args_(require_args),
-    id_tagger_(tool_name),
     instance_number_(-1),
-    version_(version),
-    verboseVersion_(version),
+    version_(""),
+    verboseVersion_(""),
     official_(official),
+    citations_(citations),
     log_type_(ProgressLogger::NONE),
     test_mode_(false),
     debug_level_(-1)
   {
+    version_ = VersionInfo::getVersion();
+    verboseVersion_ = version_ + " " + VersionInfo::getTime();
 
-    // if version is empty, use the OpenMS/TOPP version and date/time
-    if (version_ == "")
+    // if the revision info is meaningful, show it as well
+    if (!VersionInfo::getRevision().empty() && VersionInfo::getRevision() != "exported")
     {
-      version_ = VersionInfo::getVersion();
-      verboseVersion_ = version_ + " " + VersionInfo::getTime();
-
-      // if the revision info is meaningful, show it as well
-      if (!VersionInfo::getRevision().empty() && VersionInfo::getRevision() != "exported")
-      {
-        verboseVersion_ += String(", Revision: ") + VersionInfo::getRevision() + "";
-      }
+      verboseVersion_ += String(", Revision: ") + VersionInfo::getRevision() + "";
     }
 
     //check if tool is in official tools list
@@ -179,10 +176,6 @@ namespace OpenMS
     registerStringOption_("write_ctd", "<out_dir>", "", "Writes the common tool description file(s) (Toolname(s).ctd) to <out_dir>", false, true);
     registerFlag_("no_progress", "Disables progress logging to command line", true);
     registerFlag_("force", "Overwrite tool specific checks.", true);
-    if (id_tag_support_)
-    {
-      registerStringOption_("id_pool", "<file>", "", String("ID pool file to DocumentID's for all generated output files. Disabled by default. (Set to 'main' to use ") + String() + id_tagger_.getPoolFile() + ")", false);
-    }
     registerFlag_("test", "Enables the test mode (needed for internal use only)", true);
     registerFlag_("-help", "Shows options");
     registerFlag_("-helphelp", "Shows all options (including advanced)", false);
@@ -225,7 +218,7 @@ namespace OpenMS
 
 
     // test if no options were given
-    if (require_args_ && argc == 1)
+    if (argc == 1)
     {
       writeLog_("No options given. Aborting!");
       printUsage_();
@@ -405,7 +398,7 @@ namespace OpenMS
     char* disable_usage = getenv("OPENMS_DISABLE_UPDATE_CHECK");
  
     // only perform check if variable is not set or explicitly enabled by setting it to "OFF"  
-    if (!test_mode_ && (disable_usage == NULL || strcmp(disable_usage, "OFF") == 0))
+    if (!test_mode_ && (disable_usage == nullptr || strcmp(disable_usage, "OFF") == 0))
     {
       UpdateCheck::run(tool_name_, version_, debug_level_);
     }
@@ -439,33 +432,6 @@ namespace OpenMS
     if (!getFlag_("no_progress"))
     {
       log_type_ = ProgressLogger::CMD;
-    }
-
-    //-------------------------------------------------------------
-    //document ID tagging
-    //-------------------------------------------------------------
-    if (id_tag_support_ && getStringOption_("id_pool").length() > 0)
-    {
-      // set custom pool file if given
-      if (!(getStringOption_("id_pool") == String("main")))
-        id_tagger_.setPoolFile(getStringOption_("id_pool"));
-
-      //check if there are enough IDs in the pool (we require at least one and warn below 5)
-      Int id_count(0);
-      if (!id_tagger_.countFreeIDs(id_count))
-      {
-        writeLog_("Error: Unable to query ID pool! Ending program (no computation was performed)!");
-        return INTERNAL_ERROR;
-      }
-      if (id_count == 0)
-      {
-        writeLog_("Error: No Document IDs in the ID pool. Please restock now! Ending program (no computation was performed)!");
-        return INTERNAL_ERROR;
-      }
-      else if (id_count <= 5)
-      {
-        writeLog_("Warning: Less than five(!) Document IDs in the ID pool. Please restock soon!");
-      }
     }
 
     //----------------------------------------------------------
@@ -575,11 +541,18 @@ namespace OpenMS
     // show advanced options?
     bool verbose = getFlag_("-helphelp");
 
-    //common output
+    // common output
     cerr << "\n"
          << ConsoleUtils::breakString(tool_name_ + " -- " + tool_description_, 0, 10) << "\n"
-         << "Version: " << verboseVersion_ << "\n" << "\n"
-         << "Usage:" << "\n"
+         << "Version: " << verboseVersion_ << "\n"
+         << "To cite OpenMS:\n  " << cite_openms_.toString() << "\n";
+    if (!citations_.empty())
+    {
+      cerr << "To cite " << tool_name_ << ":\n";
+      for (const Citation& c : citations_) cerr << "  " << c.toString() << "\n";
+    }
+    cerr << "\n";
+    cerr << "Usage:" << "\n"
          << "  " << tool_name_ << " <options>" << "\n"
          << "\n";
 
@@ -607,7 +580,7 @@ namespace OpenMS
     UInt max_size = 0;
     for (vector<ParameterInformation>::const_iterator it = parameters_.begin(); it != parameters_.end(); ++it)
     {
-      if ((!it->advanced) || (it->advanced && verbose))
+      if (!it->advanced || verbose)
       {
         max_size = max((UInt)max_size, (UInt)(it->name.size() + it->argument.size() + it->required));
       }
@@ -621,10 +594,12 @@ namespace OpenMS
     // PRINT parameters && description, restrictions and default
     for (vector<ParameterInformation>::const_iterator it = parameters_.begin(); it != parameters_.end(); ++it)
     {
-      if (!((!it->advanced) || (it->advanced && verbose)))
+      if (it->advanced && !verbose)
+      {
         continue;
+      }
 
-      //new subsection?
+      // new subsection?
       String subsection = getSubsection_(it->name);
       if (!subsection.empty() && current_TOPP_subsection != subsection)
       {
@@ -2210,21 +2185,6 @@ namespace OpenMS
     return p;
   }
 
-  const DocumentIDTagger& TOPPBase::getDocumentIDTagger_() const
-  {
-    if (!id_tag_support_)
-    {
-      writeLog_(String("Error: Message to maintainer - You created your TOPP tool without id_tag_support and query the ID Pool class! Decide what you want!"));
-      exit(INTERNAL_ERROR);
-    }
-    else if (id_tag_support_ && getStringOption_("id_pool").length() == 0)
-    {
-      writeLog_(String("Error: Message to maintainer - You created your TOPP tool with id_tag_support and query the ID Pool class without the user actually requesting it (-id_pool is not set)!"));
-      exit(INTERNAL_ERROR);
-    }
-    return id_tagger_;
-  }
-
   const String& TOPPBase::toolName_() const
   {
     return tool_name_;
@@ -2346,6 +2306,17 @@ namespace OpenMS
       lines.insert(2, QString("<description><![CDATA[") + tool_description_.toQString() + "]]></description>");
       QString html_doc = tool_description_.toQString();
       lines.insert(3, QString("<manual><![CDATA[") + html_doc + "]]></manual>");
+      lines.insert(4, QString("<citations>"));
+      lines.insert(5, QString("  <citation doi=\"") + QString::fromStdString(cite_openms_.doi) + "\" url=\"\" />");
+      int l = 5;
+      if (!citations_.empty())
+      {
+        for (Citation c : citations_) 
+        {
+          lines.insert(++l, QString("  <citation doi=\"") + QString::fromStdString(c.doi) + "\" url=\"\" />");
+        }
+      }
+      lines.insert(++l, QString("</citations>"));
 
       lines.insert(lines.size(), "</tool>");
       String ctd_str = String(lines.join("\n")) + "\n";

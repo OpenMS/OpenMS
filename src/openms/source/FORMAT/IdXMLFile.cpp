@@ -38,7 +38,7 @@
 
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/PrecisionWrapper.h>
-#include <OpenMS/CHEMISTRY/EnzymesDB.h>
+#include <OpenMS/CHEMISTRY/ProteaseDB.h>
 #include <iostream>
 #include <fstream>
 #include <limits>
@@ -51,7 +51,7 @@ namespace OpenMS
   IdXMLFile::IdXMLFile() :
     XMLHandler("", "1.5"),
     XMLFile("/SCHEMAS/IdXML_1_5.xsd", "1.5"),
-    last_meta_(0),
+    last_meta_(nullptr),
     document_id_(),
     prot_id_in_run_(false)
   {
@@ -80,9 +80,9 @@ namespace OpenMS
     parse_(filename, this);
 
     //reset members
-    prot_ids_ = 0;
-    pep_ids_ = 0;
-    last_meta_ = 0;
+    prot_ids_ = nullptr;
+    pep_ids_ = nullptr;
+    last_meta_ = nullptr;
     parameters_.clear();
     param_ = ProteinIdentification::SearchParameters();
     id_ = "";
@@ -393,9 +393,9 @@ namespace OpenMS
     endProgress();
 
     //reset members
-    prot_ids_ = 0;
-    pep_ids_ = 0;
-    last_meta_ = 0;
+    prot_ids_ = nullptr;
+    pep_ids_ = nullptr;
+    last_meta_ = nullptr;
     parameters_.clear();
     param_ = ProteinIdentification::SearchParameters();
     id_ = "";
@@ -470,9 +470,9 @@ namespace OpenMS
       //enzyme
       String enzyme;
       optionalAttributeAsString_(enzyme, attributes, "enzyme");
-      if (EnzymesDB::getInstance()->hasEnzyme(enzyme))
+      if (ProteaseDB::getInstance()->hasEnzyme(enzyme))
       {
-        param_.digestion_enzyme = *EnzymesDB::getInstance()->getEnzyme(enzyme);
+        param_.digestion_enzyme = *(ProteaseDB::getInstance()->getEnzyme(enzyme));
       }
       last_meta_ = &param_;
     }
@@ -480,13 +480,13 @@ namespace OpenMS
     {
       param_.fixed_modifications.push_back(attributeAsString_(attributes, "name"));
       //change this line as soon as there is a MetaInfoInterface for modifications (Andreas)
-      last_meta_ = 0;
+      last_meta_ = nullptr;
     }
     else if (tag == "VariableModification")
     {
       param_.variable_modifications.push_back(attributeAsString_(attributes, "name"));
       //change this line as soon as there is a MetaInfoInterface for modifications (Andreas)
-      last_meta_ = 0;
+      last_meta_ = nullptr;
     }
     // RUN
     else if (tag == "IdentificationRun")
@@ -613,8 +613,8 @@ namespace OpenMS
       pep_hit_.setSequence(AASequence::fromString(String(attributeAsString_(attributes, "sequence"))));
 
       //parse optional protein ids to determine accessions
-      const XMLCh* refs = attributes.getValue(sm_.convert("protein_refs"));
-      if (refs != 0)
+      const XMLCh* refs = attributes.getValue(sm_.convert("protein_refs").c_str());
+      if (refs != nullptr)
       {
         String accession_string = sm_.convert(refs);
         accession_string.trim();
@@ -720,7 +720,7 @@ namespace OpenMS
     //USERPARAM
     else if (tag == "UserParam")
     {
-      if (last_meta_ == 0)
+      if (last_meta_ == nullptr)
       {
         fatalError(LOAD, "Unexpected tag 'UserParam'!");
       }
@@ -781,7 +781,7 @@ namespace OpenMS
     // SEARCH PARAMETERS
     else if (tag == "SearchParameters")
     {
-      last_meta_ = 0;
+      last_meta_ = nullptr;
       parameters_[id_] = param_;
     }
     else if (tag == "FixedModification")
@@ -802,7 +802,7 @@ namespace OpenMS
 
       prot_ids_->push_back(prot_id_);
       prot_id_ = ProteinIdentification();
-      last_meta_  = 0;
+      last_meta_  = nullptr;
       prot_id_in_run_ = true;
     }
     else if (tag == "IdentificationRun")
@@ -813,7 +813,7 @@ namespace OpenMS
         prot_ids_->push_back(prot_id_);
       }
       prot_id_ = ProteinIdentification();
-      last_meta_ = 0;
+      last_meta_ = nullptr;
       prot_id_in_run_ = false;
     }
     else if (tag == "ProteinHit")
@@ -826,7 +826,7 @@ namespace OpenMS
     {
       pep_ids_->push_back(pep_id_);
       pep_id_ = PeptideIdentification();
-      last_meta_  = 0;
+      last_meta_  = nullptr;
     }
     else if (tag == "PeptideHit")
     {

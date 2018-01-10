@@ -208,7 +208,7 @@ namespace OpenMS
 
       if (QProcess::execute(executable, args) != 0)
       {
-        QMessageBox::critical(0, "Error", (String("Could not execute '\"")  + executable + "\" \"" + args.join("\" \"") + "\"'!\n\nMake sure the TOPP tools are present in '" + File::getExecutablePath() + "', that you have permission to write to the temporary file path, and that there is space left in the temporary file path.").c_str());
+        QMessageBox::critical(nullptr, "Error", (String("Could not execute '\"")  + executable + "\" \"" + args.join("\" \"") + "\"'!\n\nMake sure the TOPP tools are present in '" + File::getExecutablePath() + "', that you have permission to write to the temporary file path, and that there is space left in the temporary file path.").c_str());
         return;
       }
     }

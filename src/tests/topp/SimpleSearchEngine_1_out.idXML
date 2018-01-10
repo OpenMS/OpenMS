@@ -9,15 +9,15 @@
 			<UserParam type="stringList" name="spectra_data" value="[file://./KKramer_150612_yeastTAP_4_120min.raw]"/>
 		</ProteinIdentification>
 		<PeptideIdentification score_type="hyperscore" higher_score_better="true" significance_threshold="0" MZ="520.262817382812" RT="2655.095703125" >
-			<PeptideHit score="19.9107943781455" sequence="DFASSGGYVLHLHR" charge="3" >
+			<PeptideHit score="20.3423871533647" sequence="DFASSGGYVLHLHR" charge="3" >
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="hyperscore" higher_score_better="true" significance_threshold="0" MZ="1063.20983886719" RT="4587.6689453125" >
-			<PeptideHit score="44.8456634522477" sequence="IALSRPNVEVVALNDPFITNDYAAYM(Oxidation)FK" charge="3" >
+			<PeptideHit score="44.95562558097" sequence="IALSRPNVEVVALNDPFITNDYAAYM(Oxidation)FK" charge="3" >
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="hyperscore" higher_score_better="true" significance_threshold="0" MZ="775.38720703125" RT="4923.77734375" >
-			<PeptideHit score="42.0327923354962" sequence="RPGADSDIGGFGGLFDLAQAGFR" charge="3" >
+			<PeptideHit score="42.1529394535928" sequence="RPGADSDIGGFGGLFDLAQAGFR" charge="3" >
 			</PeptideHit>
 		</PeptideIdentification>
 	</IdentificationRun>

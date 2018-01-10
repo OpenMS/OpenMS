@@ -4,14 +4,17 @@ from PeptideHit cimport *
 from MSExperiment cimport *
 from ResidueModification cimport *
 from FASTAFile cimport *
-from EnzymaticDigestion cimport *
+from ProteaseDigestion cimport *
 from ProteinProteinCrossLink cimport *
 
 cdef extern from "<OpenMS/ANALYSIS/XLMS/OPXLDataStructs.h>" namespace "OpenMS::OPXLDataStructs":
     
     cdef cppclass OPXL_CrossLinkSpectrumMatch "OpenMS::OPXLDataStructs::CrossLinkSpectrumMatch":
+
         OPXL_CrossLinkSpectrumMatch(OPXL_CrossLinkSpectrumMatch) nogil except + #wrap-ignore
+
         ProteinProteinCrossLink cross_link
+
         Size scan_index_light
         Size scan_index_heavy
         double score
@@ -21,6 +24,11 @@ cdef extern from "<OpenMS/ANALYSIS/XLMS/OPXLDataStructs.h>" namespace "OpenMS::O
         double wTIC
         double int_sum
         double match_odds
+        double log_occupancy
+        double log_occupancy_alpha
+        double log_occupancy_beta
+        double log_occupancy_full_spec
+
         libcpp_vector[ double ] xcorrx
         double xcorrx_max
         libcpp_vector[ double ] xcorrc
@@ -39,8 +47,11 @@ cdef extern from "<OpenMS/ANALYSIS/XLMS/OPXLDataStructs.h>" namespace "OpenMS::O
         double PScoreAlpha
         double PScoreBeta
         double PScoreBoth
+
         libcpp_vector[ PeptideHit_PeakAnnotation ] frag_annotations
         Size peptide_id_index
+
         bool operator<(OPXL_CrossLinkSpectrumMatch & other) nogil except +
         bool operator==(OPXL_CrossLinkSpectrumMatch & other) nogil except +
+
 
