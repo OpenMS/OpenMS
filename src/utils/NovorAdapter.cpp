@@ -29,7 +29,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Oliver Alka $
-// $Authors: Leon Bichmann, Oliver Alka $
+// $Authors: Oliver Alka $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
@@ -74,39 +74,77 @@ protected:
   // it gets automatically called on tool execution
   void registerOptionsAndFlags_()
   {
-
-    // input & output
+    // input and output
     registerInputFile_("in", "<file>", "", "MzML Input file");
     setValidFormats_("in", ListUtils::create<String>("mzml"));
-
     registerOutputFile_("out", "<file>", "", "Novor idXML output");
     setValidFormats_("out", ListUtils::create<String>("idXML"));
-
-    // parameters
-    
+    // enzyme
     registerStringOption_("enzyme", "<choice>", "Trypsin", "Digestion enzyme - currently only Trypsin is supported ", false);
     setValidStrings_("enzyme", ListUtils::create<String>("Trypsin"));
-    
+    // instrument
     registerStringOption_("fragmentation", "<Choice>", "CID", "Fragmentation method", false);
-    setValidStrings_("fragmentation", ListUtils::create<String>("CID,HCD"))
-    registerStringOption("massAnalyzer", "<Choice>" , "Trap", "MassAnalyzer e.g. (Oritrap CID-Trap, CID-FT, HCD-FT; QTof CID-TOF)", false );
-    setValidStrings("massAnalyzer", ListUtils::create<String>("Trap,TOF,FT"));
-
-    registerIntOption_("fragmentIonErrorTol", "<num>", 0.5, "Fragmentation error tolerance  (Da)");
-    registerIntOption_("precursorErrorTol", "<num>" , 15, "Precursor error tolerance  (ppm or Da)");
-    //TODO: Add choice ppm or Da; Has to be used a string with 0.5Da and/or 15ppm (stringoption?)  
-    
-    //TODO: Add List with variable and fixed Mod
-    regsi (Check which modifcations are implemented: http://rapidnovor.com/wiki/Built-in_PTMs)  
-
-    //TODO: Add StringList - see Modifications 
-    registerStringOption("forbiddenResidues", "")
-    
+    setValidStrings_("fragmentation", ListUtils::create<String>("CID,HCD"));
+    registerStringOption_("massAnalyzer", "<Choice>" , "Trap", "MassAnalyzer e.g. (Oritrap CID-Trap, CID-FT, HCD-FT; QTof CID-TOF)", false);
+    setValidStrings_("massAnalyzer", ListUtils::create<String>("Trap,TOF,FT"));
+    // mass error tolerance
+    registerIntOption_("fragmentIon_error_tolerance", "<num>", 0.5, "Fragmentation error tolerance  (Da)");
+    registerIntOption_("precursor_error_tolerance", "<num>" , 15, "Precursor error tolerance  (ppm or Da)");
+    registerStringOption_("precursor_error_units", "<choice>", "ppm", "Unit of precursor mass tolerance", false);
+    setValidStrings_("precursor_error_units", ListUtils::create<String>("Da,ppm"));
+    // post-translational-modification
+    registerStringList_("variable_modifications", "<mods>", vector<String>(), "Variable modifications", false);
+    setValidStrings_("variable_modifications", ListUtils::create<String>("Acetyl (K),Acetyl (N-term),Amidated (C-term),Ammonia-loss (N-term C),Biotin (K),Biotin (N-term),Carbamidomethyl (C),Carbamyl (K),Carbamyl (N-term),Carboxymethyl (C),Deamidated (NQ),Dehydrated (N-term C),Dioxidation (M),Methyl (C-term),Methyl (DE),Oxidation (M),Oxidation (HW),Phospho (ST),Phospho (Y),Pyro-carbamidomethyl (N-term C),Pyro-Glu (E),Pyro-Glu (Q),Sodium (C-term),Sodium (DE),Sulfo (STY),Trimethyl (RK)");
+    registerStringList_("fixed_modifications", "<mods>", vector<String>(), "Fixed modifications", false);
+    setValidStrings_("fixed_modifications", ListUtils::create<String>("Acetyl (K),Acetyl (N-term),Amidated (C-term),Ammonia-loss (N-term C),Biotin (K),Biotin (N-term),Carbamidomethyl (C),Carbamyl (K),Carbamyl (N-term),Carboxymethyl (C),Deamidated (NQ),Dehydrated (N-term C),Dioxidation (M),Methyl (C-term),Methyl (DE),Oxidation (M),Oxidation (HW),Phospho (ST),Phospho (Y),Pyro-carbamidomethyl (N-term C),Pyro-Glu (E),Pyro-Glu (Q),Sodium (C-term),Sodium (DE),Sulfo (STY),Trimethyl (RK)");
+   // forbidden residues
+   registerStringList_("forbiddenResidues", "<choice>", "I", "Forbidden Resiudes", false);
+   setValidStrings_("forbiddenResidues", ListUtils::create<String>("I,U"));
+ 
    // parameter novorFile will not be wrapped here
-  
-
   }
 
+  // remove temporary folder 
+  void removeTempDir_(const String& tmp_dir)
+  {
+    if (tmp_dir.empty()) {return;} // no temporary directory created
+
+    if (debug_level_ >= 2)
+    {
+      writeDebug_("Keeping temporary files in directory '" + tmp_dir + "'. Set debug level to 1 or lower to remove them.", 2);
+    }
+    else
+    {
+      if (debug_level_ == 1) 
+      {
+        writeDebug_("Deleting temporary directory '" + tmp_dir + "'. Set debug level to 2 or higher to keep it.", 1);
+      }
+      File::removeDirRecursively(tmp_dir);
+    }
+  }
+
+  void createParamFile_(osstream& os)
+  {
+  vector<String> variable_mods = getStringList_("variable__modifications");
+  vector<String> fixed_mods = getStringList_("fixed_modifications");
+  bool no_mods = fixed_mods.empty() && variable_mods.empty();
+  if (!no_mods)
+    {
+      writeLog_("Warning: Modifications are defined ('fixed_modifications'/'variable_modifications'), but the number of modifications is zero. Is that intended?");
+    }
+  
+  String variable_mod = ListUtils::concatenate(variable_mods, ',');
+  String fixed_mod = ListUtils::concatenate(fixed_mods, ',');
+
+  os << "enzyme = " << getStringOption_("enzyme") << "\n"
+     << "fragmentation = " << getStringOption_("fragmentation") << "\n"
+     << "massAnalyzer = " << getStringOption_("massAnalyzer") << "\n"
+     << "fragmentIonError = " << getIntOption_("fragmentIon_error_tolerance") << "Da" << "\n"
+     << "precursorErrorTol = " << getIntOption_("precursor_error_tolerance") << getStringOption("precursor_error_units") << "\n"
+     << "variableModifications = " << variable_mod << "\n"
+     << "fixedModifications = "    << fixed_mod << "\n"
+     << "forbiddenRersidues = " << getStringOption("forbiddenResidues") << "\n";
+  }
 
   // the main_ function is called after all parameters are read
   ExitCodes main_(int, const char **)
@@ -114,21 +152,34 @@ protected:
     //-------------------------------------------------------------
     // parsing parameters
     //-------------------------------------------------------------
-
-
+    String in = getStringOption_("in");
+    String out = getStringOption_("out");     
+    
+    if (out.empty)
+    {
+      writeLog_("Fatal error: no output file given");
+      return ILLEGAL_PARAMETERS;
+    }
+    
     //-------------------------------------------------------------
     // reading input
     //-------------------------------------------------------------
 
+    //TODO: Read Input mzMl and convert it to .mgf
 
     //-------------------------------------------------------------
-    // calculations
+    // process
     //-------------------------------------------------------------
 
+    // TODO: call novor write to tmp dir
 
     //-------------------------------------------------------------
     // writing output
     //-------------------------------------------------------------
+
+    // TODO: parse novor output into internal data structure
+    // and write idXML to output 
+    // delete tmp dir 
 
   }
 
