@@ -33,6 +33,16 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
+#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/FORMAT/MzMLFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/FORMAT/MascotGenericFile.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
+
+#include <QDir>
+#include <QProcess>
+#include <fstream>
 
 using namespace OpenMS;
 using namespace std;
@@ -74,6 +84,8 @@ protected:
   // it gets automatically called on tool execution
   void registerOptionsAndFlags_()
   {
+    // thirdparty executable 
+    registerInputFile_("executable", "<executable>", "", "novor executable", false, false, ListUtils::create<String>("skipexists"));
     // input and output
     registerInputFile_("in", "<file>", "", "MzML Input file");
     setValidFormats_("in", ListUtils::create<String>("mzml"));
@@ -83,22 +95,22 @@ protected:
     registerStringOption_("enzyme", "<choice>", "Trypsin", "Digestion enzyme - currently only Trypsin is supported ", false);
     setValidStrings_("enzyme", ListUtils::create<String>("Trypsin"));
     // instrument
-    registerStringOption_("fragmentation", "<Choice>", "CID", "Fragmentation method", false);
+    registerStringOption_("fragmentation", "<choice>", "CID", "Fragmentation method", false);
     setValidStrings_("fragmentation", ListUtils::create<String>("CID,HCD"));
-    registerStringOption_("massAnalyzer", "<Choice>" , "Trap", "MassAnalyzer e.g. (Oritrap CID-Trap, CID-FT, HCD-FT; QTof CID-TOF)", false);
+    registerStringOption_("massAnalyzer", "<choice>" , "Trap", "MassAnalyzer e.g. (Oritrap CID-Trap, CID-FT, HCD-FT; QTof CID-TOF)", false);
     setValidStrings_("massAnalyzer", ListUtils::create<String>("Trap,TOF,FT"));
     // mass error tolerance
-    registerIntOption_("fragmentIon_error_tolerance", "<num>", 0.5, "Fragmentation error tolerance  (Da)");
-    registerIntOption_("precursor_error_tolerance", "<num>" , 15, "Precursor error tolerance  (ppm or Da)");
+    registerStringOption_("fragmentIon_error_tolerance", "<string>", "0.5", "Fragmentation error tolerance  (Da)", false);
+    registerStringOption_("precursor_error_tolerance", "<string>" , "15", "Precursor error tolerance  (ppm or Da)", false);
     registerStringOption_("precursor_error_units", "<choice>", "ppm", "Unit of precursor mass tolerance", false);
     setValidStrings_("precursor_error_units", ListUtils::create<String>("Da,ppm"));
     // post-translational-modification
     registerStringList_("variable_modifications", "<mods>", vector<String>(), "Variable modifications", false);
-    setValidStrings_("variable_modifications", ListUtils::create<String>("Acetyl (K),Acetyl (N-term),Amidated (C-term),Ammonia-loss (N-term C),Biotin (K),Biotin (N-term),Carbamidomethyl (C),Carbamyl (K),Carbamyl (N-term),Carboxymethyl (C),Deamidated (NQ),Dehydrated (N-term C),Dioxidation (M),Methyl (C-term),Methyl (DE),Oxidation (M),Oxidation (HW),Phospho (ST),Phospho (Y),Pyro-carbamidomethyl (N-term C),Pyro-Glu (E),Pyro-Glu (Q),Sodium (C-term),Sodium (DE),Sulfo (STY),Trimethyl (RK)");
+    setValidStrings_("variable_modifications", ListUtils::create<String>("Acetyl (K),Acetyl (N-term),Amidated (C-term),Ammonia-loss (N-term C),Biotin (K),Biotin (N-term),Carbamidomethyl (C),Carbamyl (K),Carbamyl (N-term),Carboxymethyl (C),Deamidated (NQ),Dehydrated (N-term C),Dioxidation (M),Methyl (C-term),Methyl (DE),Oxidation (M),Oxidation (HW),Phospho (ST),Phospho (Y),Pyro-carbamidomethyl (N-term C),Pyro-Glu (E),Pyro-Glu (Q),Sodium (C-term),Sodium (DE),Sulfo (STY),Trimethyl (RK)"));
     registerStringList_("fixed_modifications", "<mods>", vector<String>(), "Fixed modifications", false);
-    setValidStrings_("fixed_modifications", ListUtils::create<String>("Acetyl (K),Acetyl (N-term),Amidated (C-term),Ammonia-loss (N-term C),Biotin (K),Biotin (N-term),Carbamidomethyl (C),Carbamyl (K),Carbamyl (N-term),Carboxymethyl (C),Deamidated (NQ),Dehydrated (N-term C),Dioxidation (M),Methyl (C-term),Methyl (DE),Oxidation (M),Oxidation (HW),Phospho (ST),Phospho (Y),Pyro-carbamidomethyl (N-term C),Pyro-Glu (E),Pyro-Glu (Q),Sodium (C-term),Sodium (DE),Sulfo (STY),Trimethyl (RK)");
+    setValidStrings_("fixed_modifications", ListUtils::create<String>("Acetyl (K),Acetyl (N-term),Amidated (C-term),Ammonia-loss (N-term C),Biotin (K),Biotin (N-term),Carbamidomethyl (C),Carbamyl (K),Carbamyl (N-term),Carboxymethyl (C),Deamidated (NQ),Dehydrated (N-term C),Dioxidation (M),Methyl (C-term),Methyl (DE),Oxidation (M),Oxidation (HW),Phospho (ST),Phospho (Y),Pyro-carbamidomethyl (N-term C),Pyro-Glu (E),Pyro-Glu (Q),Sodium (C-term),Sodium (DE),Sulfo (STY),Trimethyl (RK)"));
    // forbidden residues
-   registerStringList_("forbiddenResidues", "<choice>", "I", "Forbidden Resiudes", false);
+   registerStringList_("forbiddenResidues", "<mods>", vector<String>(), "Forbidden Resiudes", false);
    setValidStrings_("forbiddenResidues", ListUtils::create<String>("I,U"));
  
    // parameter novorFile will not be wrapped here
@@ -123,10 +135,11 @@ protected:
     }
   }
 
-  void createParamFile_(osstream& os)
+  void createParamFile_(ostream& os)
   {
   vector<String> variable_mods = getStringList_("variable__modifications");
   vector<String> fixed_mods = getStringList_("fixed_modifications");
+  vector<String> forbidden_residues = getStringList_("forbiddenResidues");
   bool no_mods = fixed_mods.empty() && variable_mods.empty();
   if (!no_mods)
     {
@@ -135,15 +148,18 @@ protected:
   
   String variable_mod = ListUtils::concatenate(variable_mods, ',');
   String fixed_mod = ListUtils::concatenate(fixed_mods, ',');
+  String forbidden_res = ListUtils::concatenate(forbidden_residues, ',');
 
   os << "enzyme = " << getStringOption_("enzyme") << "\n"
      << "fragmentation = " << getStringOption_("fragmentation") << "\n"
      << "massAnalyzer = " << getStringOption_("massAnalyzer") << "\n"
-     << "fragmentIonError = " << getIntOption_("fragmentIon_error_tolerance") << "Da" << "\n"
-     << "precursorErrorTol = " << getIntOption_("precursor_error_tolerance") << getStringOption("precursor_error_units") << "\n"
+     << "fragmentIonError = " << getStringOption_("fragmentIon_error_tolerance") << "Da" << "\n"
+     << "precursorErrorTol = " << getStringOption_("precursor_error_tolerance") << getStringOption_("precursor_error_units") << "\n"
      << "variableModifications = " << variable_mod << "\n"
      << "fixedModifications = "    << fixed_mod << "\n"
-     << "forbiddenRersidues = " << getStringOption("forbiddenResidues") << "\n";
+     << "forbiddenResidues = " << forbidden_res << "\n";
+
+  std::cout << os << std::endl;
   }
 
   // the main_ function is called after all parameters are read
@@ -155,23 +171,89 @@ protected:
     String in = getStringOption_("in");
     String out = getStringOption_("out");     
     
-    if (out.empty)
+    if (out.empty())
     {
       writeLog_("Fatal error: no output file given");
       return ILLEGAL_PARAMETERS;
     }
+
+    //-------------------------------------------------------------
+    // determining the executable
+    //-------------------------------------------------------------
     
+    QString executable = getStringOptions_("exectuable").toQString();   
+
+    if (executable.isEmpty())
+    {
+      const QProcessEnvironment env;
+      const QString & qnovorpathenv = env.systemEnvironment().value("NOVOR_PATH");
+      if (novorpathenv.isEmpty())
+      {
+        writeLog_( "FATAL: Executable of Novor could not be found. Please either use NOVOR_PATH env variable or provide with -executable");
+        return MISSING_PARAMETERS;
+      }
+      executable = qnovorpathenv;
+    }
+
+    //Normalize file path
+    QFileInfo file_info(executable);
+    executable = file_info.canonicalFilePath();
+
+    writeLog_("Executable is: " + executable);
+    const QString & path_to_executable = File::path(executable).toQString();
+                
     //-------------------------------------------------------------
     // reading input
     //-------------------------------------------------------------
+    
+    //tmp_dir
+    const String tmp_dir = makeTempDirectory_();
+    writeDebug_("Creating temporary directory '" + tmp_dir + "'", 1);
 
-    //TODO: Read Input mzMl and convert it to .mgf
+    // parameter file
+    String tmp_param = tmp_dir + "param.txt";    
+    ofstream os(tmp_param.c_str());
+    createParamFile_(os);
+    os.close();
+
+    // convert mzML to mgf format
+    MzMLFile f;
+    MSExperiment exp;
+    f.setLogType(log_type_);
+    f.load(in, exp);
+ 
+    String tmp_mgf = tmp_dir + "tmp_mgf.mgf";
+    MascotGenericFile mgf;
+    mgf.setLogType(log_type_);
+    mgf.store(tmp_mgf,exp);
 
     //-------------------------------------------------------------
     // process
     //-------------------------------------------------------------
 
-    // TODO: call novor write to tmp dir
+    String tmp_out = tmp_dir + "novor_output";
+    QStringList process_params;
+    process_params << "-f" 
+                   << "-o" << tmp_out.toQString()
+                   << "-p" << tmp_param.toQString(;)
+    
+    //TODO: How does ist work with a .bat (Batchfile - Win & sh file linux/mac) 
+    QProcess qp;
+    qp.setWorkingDirectory(path_to_executable);
+    qp.start("/bin/sh",executable, process_params);
+    const bool success = qp.waitForFinished(-1));
+
+    if (success == false || qp.exitStatus() != 0 || qp.exitCode() != 0)
+    {
+      writeLog_( "FATAL: External invocation of Novor failed. Standard output and error were:");
+      const QString nr_stdout(qp.readAllStandardOutput());
+      const QString nr_stderr(qp.readAllErrorOutput());
+      writeLog_(nr_stdout);
+      writeLog_(nr_stderr);
+      writeLog_(String(qp.exitCode()));
+
+      return EXTERNAL_PROGRAM_ERROR;
+    }
 
     //-------------------------------------------------------------
     // writing output
@@ -182,7 +264,7 @@ protected:
     // delete tmp dir 
 
   }
-
+  return EXECUTION_OK;
 };
 
 
