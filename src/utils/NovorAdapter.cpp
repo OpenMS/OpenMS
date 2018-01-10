@@ -181,13 +181,13 @@ protected:
     // determining the executable
     //-------------------------------------------------------------
     
-    QString executable = getStringOptions_("exectuable").toQString();   
+    QString executable = getStringOption_("exectuable").toQString();   
 
     if (executable.isEmpty())
     {
       const QProcessEnvironment env;
       const QString & qnovorpathenv = env.systemEnvironment().value("NOVOR_PATH");
-      if (novorpathenv.isEmpty())
+      if (qnovorpathenv.isEmpty())
       {
         writeLog_( "FATAL: Executable of Novor could not be found. Please either use NOVOR_PATH env variable or provide with -executable");
         return MISSING_PARAMETERS;
@@ -235,19 +235,19 @@ protected:
     QStringList process_params;
     process_params << "-f" 
                    << "-o" << tmp_out.toQString()
-                   << "-p" << tmp_param.toQString(;)
+                   << "-p" << tmp_param.toQString();
     
     //TODO: How does ist work with a .bat (Batchfile - Win & sh file linux/mac) 
     QProcess qp;
     qp.setWorkingDirectory(path_to_executable);
-    qp.start("/bin/sh",executable, process_params);
-    const bool success = qp.waitForFinished(-1));
+    qp.start(executable, process_params);
+    const bool success = qp.waitForFinished(-1);
 
     if (success == false || qp.exitStatus() != 0 || qp.exitCode() != 0)
     {
       writeLog_( "FATAL: External invocation of Novor failed. Standard output and error were:");
       const QString nr_stdout(qp.readAllStandardOutput());
-      const QString nr_stderr(qp.readAllErrorOutput());
+      const QString nr_stderr(qp.readAllStandardError());
       writeLog_(nr_stdout);
       writeLog_(nr_stderr);
       writeLog_(String(qp.exitCode()));
@@ -263,8 +263,9 @@ protected:
     // and write idXML to output 
     // delete tmp dir 
 
-  }
+
   return EXECUTION_OK;
+  }
 };
 
 
