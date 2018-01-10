@@ -34,6 +34,8 @@
 
 #include <OpenMS/FORMAT/ChromeleonFile.h>
 
+#include <boost/regex.hpp>
+
 namespace OpenMS
 {
   ChromeleonFile::ChromeleonFile() {}
@@ -51,57 +53,57 @@ namespace OpenMS
     char line[BUFSIZE];
     experiment.clear(true);
     MSChromatogram chromatogram;
-    std::cmatch m;
-    std::regex re_injection("^Injection\t(.+)", std::regex::optimize);
-    std::regex re_processing_method("^Processing Method\t(.+)", std::regex::optimize);
-    std::regex re_instrument_method("^Instrument Method\t(.+)", std::regex::optimize);
-    std::regex re_injection_date("^Injection Date\t(.+)", std::regex::optimize);
-    std::regex re_injection_time("^Injection Time\t(.+)", std::regex::optimize);
-    std::regex re_detector("^Detector\t(.+)", std::regex::optimize);
-    std::regex re_signal_quantity("^Signal Quantity\t(.+)", std::regex::optimize);
-    std::regex re_signal_unit("^Signal Unit\t(.+)", std::regex::optimize);
-    std::regex re_signal_info("^Signal Info\t(.+)", std::regex::optimize);
-    std::regex re_raw_data("^Raw Data:", std::regex::optimize);
+    boost::cmatch m;
+    boost::regex re_injection("^Injection\t(.+)$", boost::regex::no_mod_s);
+    boost::regex re_processing_method("^Processing Method\t(.+)", boost::regex::no_mod_s);
+    boost::regex re_instrument_method("^Instrument Method\t(.+)", boost::regex::no_mod_s);
+    boost::regex re_injection_date("^Injection Date\t(.+)", boost::regex::no_mod_s);
+    boost::regex re_injection_time("^Injection Time\t(.+)", boost::regex::no_mod_s);
+    boost::regex re_detector("^Detector\t(.+)", boost::regex::no_mod_s);
+    boost::regex re_signal_quantity("^Signal Quantity\t(.+)", boost::regex::no_mod_s);
+    boost::regex re_signal_unit("^Signal Unit\t(.+)", boost::regex::no_mod_s);
+    boost::regex re_signal_info("^Signal Info\t(.+)", boost::regex::no_mod_s);
+    boost::regex re_raw_data("^Raw Data:", boost::regex::no_mod_s);
     while (!ifs.eof())
     {
       ifs.getline(line, BUFSIZE);
-      if (std::regex_search(line, m, re_injection))
+      if (boost::regex_search(line, m, re_injection))
       {
         experiment.setMetaValue("mzml_id", std::string(m[1]));
       }
-      else if (std::regex_search(line, m, re_processing_method))
+      else if (boost::regex_search(line, m, re_processing_method))
       {
         experiment.getExperimentalSettings().getInstrument().getSoftware().setName(String(m[1]));
       }
-      else if (std::regex_search(line, m, re_instrument_method))
+      else if (boost::regex_search(line, m, re_instrument_method))
       {
         experiment.getExperimentalSettings().getInstrument().setName(String(m[1]));
       }
-      else if (std::regex_search(line, m, re_injection_date))
+      else if (boost::regex_search(line, m, re_injection_date))
       {
         experiment.setMetaValue("injection_date", std::string(m[1]));
       }
-      else if (std::regex_search(line, m, re_injection_time))
+      else if (boost::regex_search(line, m, re_injection_time))
       {
         experiment.setMetaValue("injection_time", std::string(m[1]));
       }
-      else if (std::regex_search(line, m, re_detector))
+      else if (boost::regex_search(line, m, re_detector))
       {
         experiment.setMetaValue("detector", std::string(m[1]));
       }
-      else if (std::regex_search(line, m, re_signal_quantity))
+      else if (boost::regex_search(line, m, re_signal_quantity))
       {
         experiment.setMetaValue("signal_quantity", std::string(m[1]));
       }
-      else if (std::regex_search(line, m, re_signal_unit))
+      else if (boost::regex_search(line, m, re_signal_unit))
       {
         experiment.setMetaValue("signal_unit", std::string(m[1]));
       }
-      else if (std::regex_search(line, m, re_signal_info))
+      else if (boost::regex_search(line, m, re_signal_info))
       {
         experiment.setMetaValue("signal_info", std::string(m[1]));
       }
-      else if (std::regex_search(line, m, re_raw_data))
+      else if (boost::regex_search(line, m, re_raw_data))
       {
         ifs.getline(line, BUFSIZE); // remove the subsequent line, right before the raw data
         break;
