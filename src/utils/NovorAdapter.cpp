@@ -35,10 +35,18 @@
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/CHEMISTRY/ProteaseDB.h>
+
+#include <OpenMS/METADATA/PeptideIdentification.h>
+#include <OpenMS/METADATA/PeptideHit.h>
+#include <OpenMS/METADATA/ProteinIdentification.h>
+
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/MascotGenericFile.h>
-#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/FORMAT/CsvFile.h>
+#include <OpenMS/FORMAT/IdXMLFile.h>
 
 #include <QDir>
 #include <QProcess>
@@ -100,9 +108,9 @@ protected:
     registerStringOption_("massAnalyzer", "<choice>" , "Trap", "MassAnalyzer e.g. (Oritrap CID-Trap, CID-FT, HCD-FT; QTof CID-TOF)", false);
     setValidStrings_("massAnalyzer", ListUtils::create<String>("Trap,TOF,FT"));
     // mass error tolerance
-    registerStringOption_("fragmentIon_error_tolerance", "<string>", "0.5", "Fragmentation error tolerance  (Da)", false);
-    registerStringOption_("precursor_error_tolerance", "<string>" , "15", "Precursor error tolerance  (ppm or Da)", false);
-    registerStringOption_("precursor_error_units", "<choice>", "ppm", "Unit of precursor mass tolerance", false);
+    registerDoubleOption_("fragmentIon_error_tolerance", "<double>", 0.5, "Fragmentation error tolerance  (Da)", false);
+    registerDoubleOption_("precursor_error_tolerance", "<double>" , 15.0, "Precursor error tolerance  (ppm or Da)", false);
+    registerStringOption_("precursor_error_units", "<choice>", "Da", "Unit of precursor mass tolerance", false);
     setValidStrings_("precursor_error_units", ListUtils::create<String>("Da,ppm"));
     // post-translational-modification
     registerStringList_("variable_modifications", "<mods>", vector<String>(), "Variable modifications", false);
@@ -148,8 +156,8 @@ protected:
   os << "enzyme = " << getStringOption_("enzyme") << "\n"
      << "fragmentation = " << getStringOption_("fragmentation") << "\n"
      << "massAnalyzer = " << getStringOption_("massAnalyzer") << "\n"
-     << "fragmentIonErrorTol = " << getStringOption_("fragmentIon_error_tolerance") << "Da" << "\n"
-     << "precursorErrorTol = " << getStringOption_("precursor_error_tolerance") << getStringOption_("precursor_error_units") << "\n"
+     << "fragmentIonErrorTol = " << getDoubleOption_("fragmentIon_error_tolerance") << "Da" << "\n"
+     << "precursorErrorTol = " << getDoubleOption_("precursor_error_tolerance") << getStringOption_("precursor_error_units") << "\n"
      << "variableModifications = " << variable_mod << "\n"
      << "fixedModifications = "    << fixed_mod << "\n"
      << "forbiddenResidues = " << forbidden_res << "\n";
@@ -266,10 +274,85 @@ protected:
     // writing output
     //-------------------------------------------------------------
 
-    // TODO: parse novor output into internal data structure
-    // and write idXML to output 
-    // delete tmp dir 
+    //TODO: delete tmp dir
+   
+   ifstream file(tmp_out);
+   if (file) 
+   {
+     CsvFile csv(tmp_out, ',');
+          
+     vector<PeptideIdentification> peptide_ids;
+     for (Size i = 0; i != csv.rowCount(); ++i)
+     {
+       StringList sl;
+       csv.getRow(i, sl);
+       
+       if (sl.empty() || sl[0][0] == '#') { continue; }
+       
+       PeptideIdentification pi;
+       pi.setMetaValue("scan_index", sl[1].toDouble());
+       pi.setScoreType("novorscore");
+       pi.setHigherScoreBetter(true);
+       pi.setRT(sl[2].toDouble());
+       pi.setMZ(sl[3].toDouble());
 
+       PeptideHit ph;
+       ph.setCharge(sl[4].toInt());
+       ph.setScore(sl[8].toDouble());
+
+       // replace PTM name (see http://wiki.rapidnovor.com/wiki/Built-in_PTMs)
+       String sequence = sl[9];
+       sequence.substitute("(Cam)", "(Carbamidomethyl)");
+       sequence.substitute("(O)","(Oxidation)");
+       sequence.substitute("(PyroCam)", "(Pyro-carbamidomethyl)");
+       
+       ph.setSequence(AASequence::fromString(sequence));      
+       ph.setMetaValue("pepMass(denovo)", sl[5].toDouble());
+       ph.setMetaValue("err(data-denovo)", sl[6].toDouble());
+       ph.setMetaValue("ppm(1e6*err/(mz*z))", sl[7].toDouble());
+       ph.setMetaValue("aaScore", sl[10].toQString());
+
+       pi.getHits().push_back(ph);   
+       peptide_ids.emplace_back(pi);
+       
+     } 
+
+     // extract version from comment 
+     // #              v1.06.0634 (stable)
+
+     vector<ProteinIdentification> protein_ids;
+     StringList versionrow;
+     csv.getRow(2, versionrow);
+     versionrow[0].suffix('#').trim();
+        
+     protein_ids = vector<ProteinIdentification>(1);
+     protein_ids[0].setDateTime(DateTime::now());
+     protein_ids[0].setSearchEngine("Novor");
+     protein_ids[0].setSearchEngineVersion(versionrow[0]);
+
+     ProteinIdentification::SearchParameters search_parameters;
+     search_parameters.db = "denovo";
+
+     search_parameters.mass_type = ProteinIdentification::MONOISOTOPIC;
+     search_parameters.fixed_modifications = getStringList_("fixed_modifications");
+     search_parameters.variable_modifications = getStringList_("variable_modifications");
+     search_parameters.fragment_mass_tolerance = getDoubleOption_("fragmentIon_error_tolerance");
+     search_parameters.precursor_mass_tolerance = getDoubleOption_("precursor_error_tolerance");
+     search_parameters.precursor_mass_tolerance_ppm = getStringOption_("precursor_error_units") == "ppm" ? true : false;
+     search_parameters.fragment_mass_tolerance_ppm = false;
+     search_parameters.digestion_enzyme = *ProteaseDB::getInstance()->getEnzyme(getStringOption_("enzyme"));
+     protein_ids[0].setSearchParameters(search_parameters);
+     
+     IdXMLFile().store(out, protein_ids, peptide_ids);
+
+   }
+   else
+   {
+     writeLog_("Novor output is empty! No IdXML output was generated.");
+   } 
+
+   // remove tempdir
+  removeTempDir_(tmp_dir);
 
   return EXECUTION_OK;
   }
