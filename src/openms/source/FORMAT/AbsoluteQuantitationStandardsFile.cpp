@@ -36,10 +36,6 @@
 
 namespace OpenMS
 {
-  AbsoluteQuantitationStandardsFile::AbsoluteQuantitationStandardsFile() {}
-
-  AbsoluteQuantitationStandardsFile::~AbsoluteQuantitationStandardsFile() {}
-
   void AbsoluteQuantitationStandardsFile::load(
     const String& filename,
     std::vector<AbsoluteQuantitationStandards::runConcentration>& run_concentrations

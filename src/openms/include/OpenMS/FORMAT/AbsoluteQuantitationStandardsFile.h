@@ -47,8 +47,8 @@ namespace OpenMS
   class OPENMS_DLLAPI AbsoluteQuantitationStandardsFile
   {
 public:
-    AbsoluteQuantitationStandardsFile();
-    virtual ~AbsoluteQuantitationStandardsFile();
+    AbsoluteQuantitationStandardsFile() = default;
+    virtual ~AbsoluteQuantitationStandardsFile() = default;
 
     /**
       @brief Load runConcentration data from a file and save it in memory.
