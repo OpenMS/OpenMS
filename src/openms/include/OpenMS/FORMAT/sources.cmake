@@ -27,6 +27,7 @@ Base64.h
 Bzip2Ifstream.h
 Bzip2InputStream.h
 CachedMzML.h
+ChromeleonFile.h
 CompressedInputSource.h
 CVMappingFile.h
 ConsensusXMLFile.h

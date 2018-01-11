@@ -152,6 +152,7 @@ set(format_executables_list
   BigString_test
   Bzip2Ifstream_test
   Bzip2InputStream_test
+  ChromeleonFile_test
   CVMappingFile_test
   CompressedInputSource_test
   ConsensusXMLFile_test
