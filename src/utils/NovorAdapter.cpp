@@ -137,14 +137,9 @@ protected:
 
   void createParamFile_(ostream& os)
   {
-  vector<String> variable_mods = getStringList_("variable__modifications");
+  vector<String> variable_mods = getStringList_("variable_modifications");
   vector<String> fixed_mods = getStringList_("fixed_modifications");
   vector<String> forbidden_residues = getStringList_("forbiddenResidues");
-  bool no_mods = fixed_mods.empty() && variable_mods.empty();
-  if (!no_mods)
-    {
-      writeLog_("Warning: Modifications are defined ('fixed_modifications'/'variable_modifications'), but the number of modifications is zero. Is that intended?");
-    }
   
   String variable_mod = ListUtils::concatenate(variable_mods, ',');
   String fixed_mod = ListUtils::concatenate(fixed_mods, ',');
@@ -153,14 +148,13 @@ protected:
   os << "enzyme = " << getStringOption_("enzyme") << "\n"
      << "fragmentation = " << getStringOption_("fragmentation") << "\n"
      << "massAnalyzer = " << getStringOption_("massAnalyzer") << "\n"
-     << "fragmentIonError = " << getStringOption_("fragmentIon_error_tolerance") << "Da" << "\n"
+     << "fragmentIonErrorTol = " << getStringOption_("fragmentIon_error_tolerance") << "Da" << "\n"
      << "precursorErrorTol = " << getStringOption_("precursor_error_tolerance") << getStringOption_("precursor_error_units") << "\n"
      << "variableModifications = " << variable_mod << "\n"
      << "fixedModifications = "    << fixed_mod << "\n"
      << "forbiddenResidues = " << forbidden_res << "\n";
-
-  std::cout << os << std::endl;
-  }
+  
+   }
 
   // the main_ function is called after all parameters are read
   ExitCodes main_(int, const char **)
@@ -181,7 +175,7 @@ protected:
     // determining the executable
     //-------------------------------------------------------------
     
-    QString executable = getStringOption_("exectuable").toQString();   
+    QString executable = getStringOption_("executable").toQString();   
 
     if (executable.isEmpty())
     {
@@ -231,16 +225,29 @@ protected:
     // process
     //-------------------------------------------------------------
 
-    String tmp_out = tmp_dir + "novor_output";
+    String tmp_out = tmp_dir + "tmp_out_novor.csv";
+  
     QStringList process_params;
     process_params << "-f" 
                    << "-o" << tmp_out.toQString()
-                   << "-p" << tmp_param.toQString();
+                   << "-p" << tmp_param.toQString()
+                   << tmp_mgf.toQString();
     
     //TODO: How does ist work with a .bat (Batchfile - Win & sh file linux/mac) 
     QProcess qp;
     qp.setWorkingDirectory(path_to_executable);
     qp.start(executable, process_params);
+ 
+    // novor command line
+    std::stringstream ss;
+    ss << "COMMAND: " << executable.toStdString();
+    for (QStringList::const_iterator it = process_params.begin(); it != process_params.end(); ++it)
+    {
+        ss << " " << it->toStdString();
+    }
+    LOG_DEBUG << ss.str() << endl;
+
+    // see if process was successfull
     const bool success = qp.waitForFinished(-1);
 
     if (success == false || qp.exitStatus() != 0 || qp.exitCode() != 0)
