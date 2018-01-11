@@ -28,8 +28,8 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Mathias Walzer $
-// $Authors: Andreas Simon, Mathias Walzer, Matthew The $
+// $Maintainer: Leon Bichmann $
+// $Authors: Mathew The, Leon Bichmann $
 // --------------------------------------------------------------------------
 #include <OpenMS/config.h>
 
@@ -37,13 +37,10 @@
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/DATASTRUCTURES/StringListUtils.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
-#include <OpenMS/FORMAT/MzIdentMLFile.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
-#include <OpenMS/FORMAT/OSWFile.h>
 #include <OpenMS/FORMAT/CsvFile.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/CONCEPT/Constants.h>
-#include <OpenMS/ANALYSIS/ID/PercolatorFeatureSetHelper.h>
 #include <QtCore/QFile>
 #include <QtCore/QDir>
 #include <QtCore/QProcess>
@@ -66,9 +63,8 @@ using namespace std;
 /**
   @page TOPP_MaRaClusterAdapter MaRaClusterAdapter
 
-  @brief MaRaClusterAdapter facilitates the input to, the call of and output integration of Percolator.
-  Percolator (http://per-colator.com/) is a tool to apply semi-supervised learning for peptide
-  identification from shotgun proteomics datasets.
+  @brief MaRaClusterAdapter facilitates the input to, the call of and output integration of MaRaCluster.
+  MaRaCluster (https://github.com/statisticalbiotechnology/maracluster) is a tool to apply unsupervised clustering of ms2 spectra from shotgun proteomics datasets.
 
   @experimental This tool is work in progress and usage and input requirements might change.
 
@@ -80,24 +76,28 @@ using namespace std;
             <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
         </tr>
         <tr>
-            <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref UTILS_PSMFeatureExtractor </td>
-            <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_IDFilter </td>
+            <td VALIGN="middle" ALIGN = "center" ROWSPAN=1>any signal-/preprocessing tool @n (in mzML format) </td>
+            <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_MSGFPlusAdapter </td>
         </tr>
     </table>
   </center>
-  <p>Percolator is search engine sensitive, i.e. it's input features vary,
-depending on the search engine. Must be prepared beforehand. If you do not want
-to use the specific features, use the generic-feature-set flag. Will incorporate
-the score attribute of a PSM, so be sure, the score you want is set as main
-score with @ref TOPP_IDScoreSwitcher . Be aware, that you might very well
-experience a perfomance loss compared to the search engine specific features.</p>
+  <p>MaRaCluster is dependent on the input parameter pcut, which is the logarithm of the pvalue cutoff.
+  The default value is -10, lower values will result in smaller but purer clusters. If specified peptide search results
+  can be provided as idXML files and the MaRaCluster Adapter will annotate cluster ids as attributes to each peptide
+  identification, which will be outputed as a merged idXML. Moreover the merged idXML containing only scan numbers,
+  cluster ids and file origin can be outputed without prior peptide identification searches.
+  </p>
 
   <B>The command line parameters of this tool are:</B>
   @verbinclude TOPP_MaRaClusterAdapter.cli
   <B>INI file documentation of this tool:</B>
   @htmlinclude TOPP_MaRaClusterAdapter.html
 
-  Percolator is written by Lukas Käll (http://per-colator.com/ Copyright Lukas Käll <lukas.kall@scilifelab.se>)
+  MaRaCluster is written by Matthew The (https://github.com/statisticalbiotechnology/maracluster
+  Copyright Matthew The <matthew.the@scilifelab.se>)
+  Cite Publication:
+  MaRaCluster: A Fragment Rarity Metric for Clustering Fragment Spectra in Shotgun Proteomics
+  Journal of proteome research, 2016, 15(3), pp 713-720 DOI: 10.1021/acs.jproteome.5b00749
 */
 
 // We do not want this class to show up in the docu:
@@ -118,14 +118,10 @@ protected:
   {
     Int file_idx;
     Int scan_nr;
-    String peptide;
-    double qvalue;
 
-    MaRaClusterResult(const Int f, const Int s, const String& p, const double q):
+    MaRaClusterResult(const Int f, const Int s):
         file_idx (f),
-        scan_nr (s),
-        peptide (p),
-        qvalue (q)
+        scan_nr (s)
     {
     }
 
@@ -133,13 +129,18 @@ protected:
     {
       file_idx = row[0].toInt();
       scan_nr = row[1].toInt();
-      peptide = row[2];
-      qvalue = row[3].toDouble();
     }
 
     bool operator!=(const MaRaClusterResult& rhs) const
     {
       if (file_idx != rhs.file_idx || scan_nr != rhs.scan_nr)
+        return true;
+      return false;
+    }
+
+    bool operator<(const MaRaClusterResult& rhs) const
+    {
+      if (file_idx < rhs.file_idx || (file_idx == rhs.file_idx && scan_nr < rhs.scan_nr))
         return true;
       return false;
     }
@@ -158,14 +159,16 @@ protected:
     
     registerInputFileList_("in", "<files>", StringList(), "Input file(s)", is_required);
     setValidFormats_("in", ListUtils::create<String>("mzML,mgf"));
-    registerInputFile_("id_in", "<files>", StringList(), "Optional idXML Input file(s) in the same order as mzML files - for Maracluster Cluster annotation", !is_required);
+    registerInputFileList_("id_in", "<files>", StringList(), "Optional idXML Input file(s) in the same order as mzML files - for Maracluster Cluster annotation", !is_required);
     setValidFormats_("id_in", ListUtils::create<String>("idXML"));
     registerOutputFile_("out", "<file>", "", "Output file in idXML format", !is_required);
     setValidFormats_("out", ListUtils::create<String>("idXML"));
     registerOutputFile_("consensus_out", "<file>", "", "Consensus spectra in mzML format", !is_required);
     setValidFormats_("consensus_out", ListUtils::create<String>("mzML"));
-    registerDoubleOption_("pcut", "<value>", -10.0, "log(p-value) cutoff, has to be < 0.0. Default: -10.0.", is_required);
+    registerDoubleOption_("pcut", "<value>", -10.0, "log(p-value) cutoff, has to be < 0.0. Default: -10.0.", !is_required);
     setMaxFloat_("pcut", 0.0);
+    registerIntOption_("min_cluster_size", "<value>", 1, "minimum number of spectra in a cluster for consensus spectra", !is_required);
+    setMinInt_("min_cluster_size", 1);
     registerInputFile_("maracluster_executable", "<executable>",
         // choose the default value according to the platform where it will be executed
         #ifdef OPENMS_WINDOWSPLATFORM
@@ -178,6 +181,9 @@ protected:
 
     //Advanced parameters
     registerIntOption_("verbose", "<level>", 2, "Set verbosity of output: 0=no processing info, 5=all.", !is_required, is_advanced_option);
+    registerDoubleOption_("precursor_tolerance", "<tolerance>", 20.0, "Precursor monoisotopic mass tolerance", !is_required, is_advanced_option);
+    registerStringOption_("precursor_tolerance_units", "<choice>", "ppm", "tolerance_mass_units 0=ppm, 1=Da", !is_required, is_advanced_option);
+    setValidStrings_("precursor_tolerance_units", ListUtils::create<String>("ppm,Da"));
 
 
   }
@@ -193,7 +199,7 @@ protected:
       csv_file.getRow(i, row);
       if (row.size() > 0)
       {
-        row[1] = String(filename_to_idx_map[row[1]]);
+        row[0] = String(filename_to_idx_map.at(row[0]));
 
         MaRaClusterResult res(row);
         specid_to_clusterid_map[res] = clusterid;
@@ -244,6 +250,11 @@ protected:
       else if ((idx = it->find("index=")) != string::npos)
       {
         scan_number = it->substr(idx + 6).toInt();
+        break;
+      }
+      else if ((idx = it->find("spectrum=")) != string::npos)
+      {
+        scan_number = it->substr(idx + 9).toInt();
       }
     }
     return scan_number;
@@ -256,9 +267,9 @@ protected:
     //-------------------------------------------------------------
     const StringList in_list = getStringList_("in");
 
-    const String percolator_executable(getStringOption_("maracluster_executable"));
-    writeDebug_(String("Path to the maracluster executable: ") + percolator_executable, 2);
-    if (maracluster_executable.empty())  //TODO? - TOPPBase::findExecutable after registerInputFile_("percolator_executable"... ???
+    const String maracluster_executable(getStringOption_("maracluster_executable"));
+    writeDebug_(String("Path to the maracluster executable: ") + maracluster_executable, 2);
+    if (maracluster_executable.empty())  //TODO? - TOPPBase::findExecutable after registerInputFile_("maracluster_executable"... ???
     {
       writeLog_("No maracluster executable specified. Aborting!");
       printUsage_();
@@ -292,7 +303,7 @@ protected:
     // read input
     //-------------------------------------------------------------
 
-    // create temp directory to store percolator in file pin.tab temporarily
+    // create temp directory to store maracluster temporary files
     String temp_directory_body = QDir::toNativeSeparators((File::getTempDirectory() + "/" + File::getUniqueName() + "/").toQString()); // body for the tmp files
     {
       QDir d;
@@ -305,23 +316,32 @@ protected:
     String consensus_output_file(temp_directory_body + txt_designator + ".clusters_p" + String(Int(-1*pcut)) + ".tsv");
 
     // Create simple text file with one file path per line
+    ofstream os(input_file_list.c_str());
     map<String,Int> filename_to_file_idx;
     Int file_idx = 0;
-    for (StringList::iterator fit = in_list.begin(); fit != in_list.end(); ++fit, ++file_idx) {
+    for (StringList::const_iterator fit = in_list.begin(); fit != in_list.end(); ++fit, ++file_idx) {
       filename_to_file_idx[*fit] = file_idx;
+      os << *fit;
+      if (fit + 1 != in_list.end())
+      {
+        os << endl;
+      }
     }
-
-    ofstream os(input_file_list.c_str());
-    os << in_list.join("\n");
     os.close();
 
     QStringList arguments;
     // Check all set parameters and get them into arguments StringList
     {
-      arguments << "cluster";
+      arguments << "batch";
       arguments << "-b" << input_file_list.toQString();
       arguments << "-f" << temp_directory_body.toQString();
-      arguments << "-a" << txt_designator;
+      arguments << "-a" << txt_designator.toQString();
+
+      map<String,int> precursor_tolerance_units;
+      precursor_tolerance_units["ppm"] = 0;
+      precursor_tolerance_units["Da"] = 1;
+
+      arguments << "-p" << (String(getDoubleOption_("precursor_tolerance")) + precursor_tolerance_units[getStringOption_("precursor_tolerance_units")]).toQString();
 
       arguments << "-t" << String(pcut).toQString();
       arguments << "-c" << String(pcut).toQString();
@@ -357,16 +377,17 @@ protected:
     //-------------------------------------------------------------
     // reintegrate clustering results
     //-------------------------------------------------------------
-    vector<vector<MaRaClusterResult> > specid_to_clusterid_map;
+    Map<MaRaClusterResult, Int> specid_to_clusterid_map;
     readMClusterOutputAsMap_(consensus_output_file, specid_to_clusterid_map, filename_to_file_idx);
     file_idx = 0;
 
     if (!out.empty())
     {
+      const StringList id_in = getStringList_("id_in");
       vector<PeptideIdentification> all_peptide_ids;
       vector<ProteinIdentification> all_protein_ids;
       if (!id_in.empty()) {
-        for (StringList::iterator fit = id_in.begin(); fit != id_in.end(); ++fit, ++file_idx){
+        for (StringList::const_iterator fit = id_in.begin(); fit != id_in.end(); ++fit, ++file_idx){
           vector<PeptideIdentification> peptide_ids;
           vector<ProteinIdentification> protein_ids;
           IdXMLFile().load(*fit, protein_ids, peptide_ids);
@@ -375,13 +396,13 @@ protected:
             Int scan_number = getScanNumber_(scan_identifier);
             MaRaClusterResult res(file_idx, scan_number);
             Int cluster_id = specid_to_clusterid_map[res];
-            it.setMetavalue("cluster_id", cluster_id);
+            it->setMetaValue("cluster_id", cluster_id);
             String filename = in_list[file_idx];
-            it.setMetavalue("file_origin", filename);
+            it->setMetaValue("file_origin", filename);
           }
           for (vector<ProteinIdentification>::iterator it = protein_ids.begin(); it != protein_ids.end(); ++it) {
             String filename = in_list[file_idx];
-            it.setMetavalue("file_origin", filename);
+            it->setMetaValue("file_origin", filename);
           }
           all_peptide_ids.insert(all_peptide_ids.end(), peptide_ids.begin(), peptide_ids.end());
           all_protein_ids.insert(all_protein_ids.end(), protein_ids.begin(), protein_ids.end());
@@ -390,10 +411,12 @@ protected:
       }
       else
       {
-        for (map<MaRaClusterResult,Int>::iterator sid = specid_to_clusterid_map.begin(); sid != specid_to_clusterid_map.end(); ++sid) {
+        for (Map<MaRaClusterResult,Int>::iterator sid = specid_to_clusterid_map.begin(); sid != specid_to_clusterid_map.end(); ++sid) {
           Int scan_nr = sid->first.scan_nr;
-          Int file_id = sid->first.filename;
+          Int file_id = sid->first.file_idx;
           PeptideIdentification pid;
+          PeptideHit pih;
+          pid.insertHit(pih);
           pid.setMetaValue("spectrum_reference", "scan=" + String(scan_nr));
           pid.setMetaValue("cluster_id", sid->second);
           pid.setMetaValue("file_origin", in_list[file_id]);
@@ -416,7 +439,7 @@ protected:
 
 
       writeDebug_("write idXMLFile", 1);
-      writeDebug_(out, 1);// As the percolator output file is not needed anymore, the temporary directory is going to be deleted
+      writeDebug_(out, 1);// As the maracluster output file is not needed anymore, the temporary directory is going to be deleted
       IdXMLFile().store(out, all_protein_ids, all_peptide_ids);
     }
 
@@ -429,6 +452,8 @@ protected:
         arguments_consensus << "-l" << consensus_output_file.toQString();
         arguments_consensus << "-f" << temp_directory_body.toQString();
         arguments_consensus << "-o" << consensus_out.toQString();
+        Int min_cluster_size = getIntOption_("min_cluster_size");
+        arguments_consensus << "-M" << String(min_cluster_size).toQString();
 
         Int verbose_level = getIntOption_("verbose");
         if (verbose_level != 2) arguments_consensus << "-v" << String(verbose_level).toQString();
