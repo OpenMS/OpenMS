@@ -82,18 +82,20 @@ class TOPPNovorAdapter :
 {
 public:
   TOPPNovorAdapter() :
-    TOPPBase("NovorAdapter", "Template for Tool creation", false)
-  {
-
-  }
-
+    TOPPBase("NovorAdapter", "Template for Tool creation", false, 
+    {
+      { "Ma Bin", "Novor: Real-Time Peptide de Novo Sequencing Software", "Journal of The American Society for Mass Spectrometry; 30 June 2015", "0.1007/s13361-015-1204-0"        
+      }
+    })
+    {
+    }
 protected:
   // this function will be used to register the tool parameters
   // it gets automatically called on tool execution
   void registerOptionsAndFlags_()
   {
     // thirdparty executable 
-    registerInputFile_("executable", "<executable>", "", "novor executable", false, false, ListUtils::create<String>("skipexists"));
+    registerInputFile_("executable", "<jar>", "novor.jar", "novor.jar", false, false, ListUtils::create<String>("skipexists"));
     // input and output
     registerInputFile_("in", "<file>", "", "MzML Input file");
     setValidFormats_("in", ListUtils::create<String>("mzml"));
@@ -122,6 +124,10 @@ protected:
    setValidStrings_("forbiddenResidues", ListUtils::create<String>("I,U"));
  
    // parameter novorFile will not be wrapped here
+   
+   registerInputFile_("java_executable", "<file>", "java", "The Java executable. Usually Java is on the system PATH. If Java is not found, use this parameter to specify the full path to Java", false, false, ListUtils::create<String>("skipexists"));
+   registerIntOption_("java_memory", "<num>", 3500, "Maximum Java heap size (in MB)", false);
+
   }
 
   // remove temporary folder 
@@ -182,7 +188,9 @@ protected:
     //-------------------------------------------------------------
     // determining the executable
     //-------------------------------------------------------------
-    
+    String java_executable = getStringOption_("java_executable");
+    QString java_memory = "-Xmx" + QString::number(getIntOption_("java_memory")) + "m";
+
     QString executable = getStringOption_("executable").toQString();   
 
     if (executable.isEmpty())
@@ -236,7 +244,9 @@ protected:
     String tmp_out = tmp_dir + "tmp_out_novor.csv";
   
     QStringList process_params;
-    process_params << "-f" 
+    process_params << java_memory
+                   << "-jar" << executable
+                   << "-f" 
                    << "-o" << tmp_out.toQString()
                    << "-p" << tmp_param.toQString()
                    << tmp_mgf.toQString();
@@ -244,7 +254,7 @@ protected:
     //TODO: How does ist work with a .bat (Batchfile - Win & sh file linux/mac) 
     QProcess qp;
     qp.setWorkingDirectory(path_to_executable);
-    qp.start(executable, process_params);
+    qp.start(java_executable.toQString(), process_params);
  
     // novor command line
     std::stringstream ss;
