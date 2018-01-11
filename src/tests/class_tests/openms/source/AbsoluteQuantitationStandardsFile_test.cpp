@@ -50,7 +50,7 @@ START_TEST(AbsoluteQuantitationStandardsFile, "$Id$")
 AbsoluteQuantitationStandardsFile* ptr = 0;
 AbsoluteQuantitationStandardsFile* null_ptr = 0;
 
-const String csv_path = OPENMS_GET_TEST_DATA_PATH("150516_calibration_concentrations.csv");
+const String csv_path = OPENMS_GET_TEST_DATA_PATH("AbsoluteQuantitationStandardsFile_150516_calibration_concentrations_cut.csv");
 
 START_SECTION(AbsoluteQuantitationStandardsFile())
 {
@@ -74,7 +74,7 @@ START_SECTION(void load(
 {
   std::vector<AbsoluteQuantitationStandards::runConcentration> runs;
   ptr->load(csv_path, runs);
-  TEST_EQUAL(runs.size(), 9272)
+  TEST_EQUAL(runs.size(), 351)
   TEST_EQUAL(runs[0].sample_name, "150516_CM1_Level1")
   TEST_EQUAL(runs[0].component_name, "23dpg.23dpg_1.Light")
   TEST_EQUAL(runs[0].IS_component_name, "23dpg.23dpg_1.Heavy")
@@ -82,27 +82,27 @@ START_SECTION(void load(
   TEST_REAL_SIMILAR(runs[0].IS_actual_concentration, 1)
   TEST_EQUAL(runs[0].concentration_units, "uM")
   TEST_REAL_SIMILAR(runs[0].dilution_factor, 1)
-  TEST_EQUAL(runs[3090].sample_name, "150516_CM2_Level6")
-  TEST_EQUAL(runs[3090].component_name, "f6p.f6p_1.Light")
-  TEST_EQUAL(runs[3090].IS_component_name, "f6p.f6p_1.Heavy")
-  TEST_REAL_SIMILAR(runs[3090].actual_concentration, 0.8)
-  TEST_REAL_SIMILAR(runs[3090].IS_actual_concentration, 1)
-  TEST_EQUAL(runs[3090].concentration_units, "uM")
-  TEST_REAL_SIMILAR(runs[3090].dilution_factor, 1)
-  TEST_EQUAL(runs[6180].sample_name, "150516_CM1_Level5")
-  TEST_EQUAL(runs[6180].component_name, "damp.damp_2.Light")
-  TEST_EQUAL(runs[6180].IS_component_name, "damp.damp_1.Heavy")
-  TEST_REAL_SIMILAR(runs[6180].actual_concentration, 0)
-  TEST_REAL_SIMILAR(runs[6180].IS_actual_concentration, 1)
-  TEST_EQUAL(runs[6180].concentration_units, "uM")
-  TEST_REAL_SIMILAR(runs[6180].dilution_factor, 1)
-  TEST_EQUAL(runs[9271].sample_name, "150516_CM3_Level9")
-  TEST_EQUAL(runs[9271].component_name, "utp.utp_2.Light")
-  TEST_EQUAL(runs[9271].IS_component_name, "utp.utp_1.Heavy")
-  TEST_REAL_SIMILAR(runs[9271].actual_concentration, 0)
-  TEST_REAL_SIMILAR(runs[9271].IS_actual_concentration, 1)
-  TEST_EQUAL(runs[9271].concentration_units, "uM")
-  TEST_REAL_SIMILAR(runs[9271].dilution_factor, 1)
+  TEST_EQUAL(runs[116].sample_name, "150516_CM1_Level1")
+  TEST_EQUAL(runs[116].component_name, "xan.xan_1.Light")
+  TEST_EQUAL(runs[116].IS_component_name, "xan.xan_1.Heavy")
+  TEST_REAL_SIMILAR(runs[116].actual_concentration, 8)
+  TEST_REAL_SIMILAR(runs[116].IS_actual_concentration, 1)
+  TEST_EQUAL(runs[116].concentration_units, "uM")
+  TEST_REAL_SIMILAR(runs[116].dilution_factor, 1)
+  TEST_EQUAL(runs[233].sample_name, "150516_CM1_Level10")
+  TEST_EQUAL(runs[233].component_name, "xan.xan_1.Light")
+  TEST_EQUAL(runs[233].IS_component_name, "xan.xan_1.Heavy")
+  TEST_REAL_SIMILAR(runs[233].actual_concentration, 0.008)
+  TEST_REAL_SIMILAR(runs[233].IS_actual_concentration, 1)
+  TEST_EQUAL(runs[233].concentration_units, "uM")
+  TEST_REAL_SIMILAR(runs[233].dilution_factor, 1)
+  TEST_EQUAL(runs[350].sample_name, "150516_CM1_Level11")
+  TEST_EQUAL(runs[350].component_name, "xan.xan_1.Light")
+  TEST_EQUAL(runs[350].IS_component_name, "xan.xan_1.Heavy")
+  TEST_REAL_SIMILAR(runs[350].actual_concentration, 0.004)
+  TEST_REAL_SIMILAR(runs[350].IS_actual_concentration, 1)
+  TEST_EQUAL(runs[350].concentration_units, "uM")
+  TEST_REAL_SIMILAR(runs[350].dilution_factor, 1)
 }
 END_SECTION
 

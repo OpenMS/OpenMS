@@ -53,6 +53,12 @@ public:
     /**
       @brief Load runConcentration data from a file and save it in memory.
 
+      An example of the format expected:
+      > sample_name,component_name,IS_component_name,actual_concentration,IS_actual_concentration,concentration_units,dilution_factor
+      > 150516_CM1_Level1,23dpg.23dpg_1.Light,23dpg.23dpg_1.Heavy,0,1,uM,1
+      > 150516_CM1_Level1,2mcit.2mcit_1.Light,2mcit.2mcit_1.Heavy,0,1,uM,1
+      > 150516_CM1_Level1,2obut.2obut_1.Light,2obut.2obut_1.Heavy,0,1,uM,1
+
       @param[in] filename The file path from which the method is reading the data
       @param[out] run_concentrations Where the runConcentration data is going to be saved
     */
