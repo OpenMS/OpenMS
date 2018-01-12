@@ -79,6 +79,7 @@ namespace OpenMS
         String cross_linker_name;
         ResidueModification::TermSpecificity term_spec_alpha;
         ResidueModification::TermSpecificity term_spec_beta;
+        int precursor_correction;
 
         ProteinProteinCrossLinkType getType() const
         {
@@ -97,7 +98,8 @@ namespace OpenMS
                       cross_linker_mass == other.cross_linker_mass &&
                       cross_linker_name == other.cross_linker_name &&
                       term_spec_alpha == other.term_spec_alpha &&
-                      term_spec_beta == other.term_spec_beta;
+                      term_spec_beta == other.term_spec_beta &&
+                      precursor_correction == other.precursor_correction;
         }
       };
 
@@ -190,6 +192,8 @@ namespace OpenMS
         double ppm_error_abs_sum_alpha;
         double ppm_error_abs_sum_beta;
         double ppm_error_abs_sum;
+
+        int precursor_correction;
 
         std::vector<PeptideHit::PeakAnnotation> frag_annotations;
 

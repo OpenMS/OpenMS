@@ -364,7 +364,7 @@ namespace OpenMS
     return peptide_masses;
   }
 
-  vector <OPXLDataStructs::ProteinProteinCrossLink> OPXLHelper::buildCandidates(const std::vector< OPXLDataStructs::XLPrecursor > & candidates, const std::vector<OPXLDataStructs::AASeqWithMass> & peptide_masses, const StringList & cross_link_residue1, const StringList & cross_link_residue2, double cross_link_mass, const DoubleList & cross_link_mass_mono_link, double precursor_mass, double allowed_error, String cross_link_name)
+  vector <OPXLDataStructs::ProteinProteinCrossLink> OPXLHelper::buildCandidates(const std::vector< OPXLDataStructs::XLPrecursor > & candidates, vector< int > & precursor_corrections, const std::vector<OPXLDataStructs::AASeqWithMass> & peptide_masses, const StringList & cross_link_residue1, const StringList & cross_link_residue2, double cross_link_mass, const DoubleList & cross_link_mass_mono_link, double precursor_mass, double allowed_error, String cross_link_name)
   {
     bool n_term_linker = false;
     bool c_term_linker = false;
@@ -466,6 +466,7 @@ namespace OpenMS
         for (Size y = 0; y < link_pos_second.size(); ++y)
         {
           OPXLDataStructs::ProteinProteinCrossLink cross_link_candidate;
+          cross_link_candidate.precursor_correction = precursor_corrections[i];
           cross_link_candidate.cross_linker_name = cross_link_name;
           // if loop link, and the positions are the same, then it is linking the same residue with itself,  skip this combination, also pos1 > pos2 would be the same link as pos1 < pos2
           if (((seq_second.size() == 0) && (link_pos_first[x] >= link_pos_second[y])) && (link_pos_second[y] != -1))
@@ -750,12 +751,6 @@ namespace OpenMS
 
       ph_alpha.setMetaValue("xl_mass", DataValue(top_csms_spectrum[i].cross_link.cross_linker_mass));
 
-
-      if (top_csms_spectrum[i].cross_link.getType() == OPXLDataStructs::LOOP)
-      {
-        ph_alpha.setMetaValue("xl_pos2", DataValue(beta_pos));
-      }
-
       // Error calculation
       double weight = seq_alpha.getMonoWeight();
       if (top_csms_spectrum[i].cross_link.getType() == OPXLDataStructs::CROSS)
@@ -800,6 +795,19 @@ namespace OpenMS
 
       vector<PeptideHit> phs;
 
+      // if (top_csms_spectrum[i].cross_link.getType() == OPXLDataStructs::LOOP)
+      // {
+      //   ph_alpha.setMetaValue("xl_pos2", DataValue(beta_pos));
+      // }
+      if (beta_pos >= 1)
+      {
+        ph_alpha.setMetaValue("xl_pos2", DataValue(beta_pos));
+      }
+      else
+      {
+        ph_alpha.setMetaValue("xl_pos2", DataValue("-"));
+      }
+
       ph_alpha.setSequence(seq_alpha);
       ph_alpha.setCharge(precursor_charge);
       ph_alpha.setScore(top_csms_spectrum[i].score);
@@ -810,6 +818,7 @@ namespace OpenMS
       ph_alpha.setMetaValue("xl_type", xltype);
       ph_alpha.setMetaValue("xl_rank", DataValue(i + 1));
       ph_alpha.setMetaValue("xl_term_spec", alpha_term);
+      ph_alpha.setMetaValue("precursor_correction", top_csms_spectrum[i].precursor_correction);
 
       if (scan_index_heavy != scan_index)
       {
@@ -857,8 +866,10 @@ namespace OpenMS
         ph_beta.setRank(DataValue(i+1));
         ph_beta.setMetaValue("xl_chain", "MS:1002510"); // receiver
         ph_beta.setMetaValue("xl_pos", DataValue(beta_pos));
+        ph_beta.setMetaValue("xl_pos2", DataValue(alpha_pos));
         ph_beta.setMetaValue("spectrum_reference", spectra[scan_index].getNativeID());
         ph_beta.setMetaValue("xl_term_spec", beta_term);
+        ph_beta.setMetaValue("precursor_correction", top_csms_spectrum[i].precursor_correction);
 
         if (scan_index_heavy != scan_index)
         {
