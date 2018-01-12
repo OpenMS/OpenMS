@@ -62,11 +62,21 @@ using namespace std;
 /**
     @page UTILS_NovorAdapter NovorAdapter
 
-    @brief Novoradapter does ...
+    @brief Novoradapter for de novo sequencing from tandem mass spectrometry data.
 
-    This tool can be used for scientific stuff.
+<CENTER>
+    <table>
+        <tr>
+            <td ALIGN = "center" BGCOLOR="#EBEBEB"> MS2-Filtering </td>
+            <td VALIGN = "middle" ROWSPAN=2> \f$ \longrightarrow \f$ NovorAdapter \f$</td>
+        </tr>
+    </table>
+</CENTER>
 
-    And more scientific applications.
+
+    This tool can be used for de novo sequencing of peptides from MS/MS data.
+
+    Please use MS2-Spectra only. If filtering is needed please use the FileFilter
 
     <B>The command line parameters of this tool are:</B>
     @verbinclude UTILS_NovorAdapter.cli
