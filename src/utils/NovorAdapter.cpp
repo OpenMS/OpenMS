@@ -67,7 +67,7 @@ using namespace std;
 <CENTER>
     <table>
         <tr>
-            <td ALIGN = "center" BGCOLOR="#EBEBEB"> MS2-Filtering </td>
+            <td ALIGN = "center" BGCOLOR="#EBEBEB"> MS2-Filtering with @ref TOPP_FileFilter</td>
             <td VALIGN = "middle" ROWSPAN=2> \f$ \longrightarrow \f$ NovorAdapter \f$</td>
         </tr>
     </table>
@@ -76,7 +76,8 @@ using namespace std;
 
     This tool can be used for de novo sequencing of peptides from MS/MS data.
 
-    Please use MS2-Spectra only. If filtering is needed please use the FileFilter
+    Please use MS2-Spectra only. If filtering is needed please use the @ref TOPP_FileFilter.
+
 
     <B>The command line parameters of this tool are:</B>
     @verbinclude UTILS_NovorAdapter.cli
@@ -97,8 +98,8 @@ public:
       { "Ma Bin", "Novor: Real-Time Peptide de Novo Sequencing Software", "Journal of The American Society for Mass Spectrometry; 30 June 2015", "0.1007/s13361-015-1204-0"        
       }
     })
-    {
-    }
+    {}
+
 protected:
   // this function will be used to register the tool parameters
   // it gets automatically called on tool execution
