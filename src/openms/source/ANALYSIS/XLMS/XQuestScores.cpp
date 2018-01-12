@@ -146,29 +146,43 @@ namespace OpenMS
       return 0;
     }
 
-    // log transform theoretical spectrum for more accurate a_priori_p estimation
-    vector<double> log_theo_spec;
-    for (auto peak : theoretical_spec)
+    double range;
+    double used_tolerance;
+
+    if (fragment_mass_tolerance_unit_ppm)
     {
-      log_theo_spec.push_back(log(peak.getMZ()));
+      // log transform theoretical spectrum for more accurate a_priori_p estimation
+      //
+      // vector<double> log_theo_spec;
+      // for (auto peak : theoretical_spec)
+      // {
+      //   log_theo_spec.push_back(std::log(peak.getMZ()));
+      // }
+      // range = log_theo_spec.back() - log_theo_spec[0];
+      range = std::log(theoretical_spec.back().getMZ()) - std::log(theoretical_spec[0].getMZ());
+      used_tolerance = fragment_mass_tolerance / 1e6;
     }
-    double range = log_theo_spec[log_theo_spec.size()-1] - log_theo_spec[0];
+    else
+    {
+      range = theoretical_spec.back().getMZ() - theoretical_spec[0].getMZ();
+      used_tolerance = fragment_mass_tolerance;
+    }
 
     // A priori probability of a random match given info about the theoretical spectrum
     double a_priori_p = 0;
-    a_priori_p = 1 - pow(1 - 2 * fragment_mass_tolerance / 1e6 / range,  static_cast<double>(theo_size));
+    a_priori_p = 1 - pow(1 - 2 * used_tolerance / range,  static_cast<double>(theo_size));
 
-    double match_odds = 0;
+    double log_occu_prob = 0;
     binomial flip(theo_size, a_priori_p);
     // min double number to avoid 0 values, causing scores with the value "inf"
-    match_odds = -log(1 - cdf(flip, matched_size) + std::numeric_limits<double>::min());
+    log_occu_prob = -log(1 - cdf(flip, matched_size) + std::numeric_limits<double>::min());
 
-    // score lower than 0 does not make sense, but can happen if cfd = 0, -log( 1 + min() ) < 0
-    if (match_odds >= 0.0)
+    // score lower than 0 does not make sense, but can happen, if cfd = 0, then -log( 1 + <double>::min() ) < 0
+    if (log_occu_prob >= 0.0)
     {
-      return match_odds;
+      return log_occu_prob;
     }
-    else
+    else // underflow warning?
     {
       return 0;
     }
