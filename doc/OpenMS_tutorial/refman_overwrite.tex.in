@@ -34,9 +34,11 @@
 \fi
 \usepackage{doxygen}
 \makeindex
-\setcounter{tocdepth}{1}
 \renewcommand{\footrulewidth}{0.4pt}
 \newcommand{\+}{\discretionary{\mbox{\scriptsize$\hookleftarrow$}}{}{}}
+\setlength\parindent{0pt} % switch of indent 
+\renewcommand{\thesection}{\arabic{section}}
+
 \begin{document}
 
 \begin{titlepage}
@@ -47,8 +49,7 @@
 \end{titlepage}
 
 \pagenumbering{arabic}
-
-\setcounter{tocdepth}{2}
+\setcounter{tocdepth}{3}
 \tableofcontents
 \pagebreak
 

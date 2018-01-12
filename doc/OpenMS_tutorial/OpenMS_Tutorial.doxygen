@@ -28,8 +28,8 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer:  $
-// $Authors: Timo Sachsenberg, Oliver Alka$
+// $Maintainer: Oliver Alka  $
+// $Authors: Oliver Alka, Timo Sachsenberg$
 // --------------------------------------------------------------------------
 
 //########################### Please read this carefully! ###########################
@@ -53,7 +53,7 @@
 
 /**
 
-@page tutorial %OpenMS Developer Tutorial
+@page tutorial OpenMS Developer Quickstart Guide
 
 @section tutorial_introduction Introduction
 @subsection tutorial_gf General Information
