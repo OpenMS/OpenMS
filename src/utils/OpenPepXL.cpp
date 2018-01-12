@@ -785,6 +785,7 @@ protected:
       }
       // determine candidates
       vector< OPXLDataStructs::XLPrecursor > candidates;
+      vector< int > precursor_corrections;
       double allowed_error = 0;
 
       // determine MS2 precursors that match to the current peptide mass
@@ -825,6 +826,7 @@ protected:
           for (; low_it != up_it; ++low_it)
           {
             candidates.push_back(*low_it);
+            precursor_corrections.push_back(correction_mass);
           }
         }
       }
@@ -835,7 +837,7 @@ protected:
       cout << "#Peaks in this spectrum: " << spectrum_light.size() << " |\tNumber of candidates for this spectrum: " << candidates.size() << endl;
 
       // Find all positions of lysine (K) in the peptides (possible scross-linking sites), create cross_link_candidates with all combinations
-      vector <OPXLDataStructs::ProteinProteinCrossLink> cross_link_candidates = OPXLHelper::buildCandidates(candidates, filtered_peptide_masses, cross_link_residue1, cross_link_residue2, cross_link_mass_light, cross_link_mass_mono_link, precursor_mass, allowed_error, cross_link_name);
+      vector <OPXLDataStructs::ProteinProteinCrossLink> cross_link_candidates = OPXLHelper::buildCandidates(candidates, precursor_corrections, filtered_peptide_masses, cross_link_residue1, cross_link_residue2, cross_link_mass_light, cross_link_mass_mono_link, precursor_mass, allowed_error, cross_link_name);
 
       // lists for one spectrum, to determine best match to the spectrum
       vector< OPXLDataStructs::CrossLinkSpectrumMatch > all_csms_spectrum;
@@ -1124,6 +1126,8 @@ protected:
           csm.num_iso_peaks_mean_linear_beta = 0;
           csm.num_iso_peaks_mean_xlinks_alpha = 0;
           csm.num_iso_peaks_mean_xlinks_beta = 0;
+
+          csm.precursor_correction = cross_link_candidate.precursor_correction;
 
           // num_iso_peaks array from deisotoping
           // TODO do not use deisotope_spectra here, but instead the return value from getIntegerDataArrayByName, when that is possible
