@@ -704,7 +704,7 @@ namespace OpenMS
         String emz(it->getMZ());
         const double rt = it->getRT();
         String ert = rt == rt ? String(rt) : "nan";
-         
+
         String sid = it->getMetaValue("spectrum_reference");
         if (sid.empty())
         {
@@ -835,7 +835,7 @@ namespace OpenMS
             String p;
             //~ TODO simplify mod cv param write
             // write peptide id with conversion to universal, "human-readable" bracket string notation
-            p += String("\t<Peptide id=\"") + pepid + String("\" name=\"") + 
+            p += String("\t<Peptide id=\"") + pepid + String("\" name=\"") +
                   jt->getSequence().toBracketString(false) + String("\">\n\t\t<PeptideSequence>") + jt->getSequence().toUnmodifiedString() + String("</PeptideSequence>\n");
             if (jt->getSequence().isModified() || jt->metaValueExists("xl_chain"))
             {
@@ -926,12 +926,12 @@ namespace OpenMS
                       if (mod->getDiffMonoMass() != 0.0)
                       {
                         double diffmass = mod->getDiffMonoMass();
-                        p += "\" monoisotopicMassDelta=\"" + String(diffmass); 
+                        p += "\" monoisotopicMassDelta=\"" + String(diffmass);
                       }
                       else if (mod->getMonoMass() > 0.0)
                       {
                         double diffmass = mod->getMonoMass() - jt->getSequence()[i].getMonoWeight();
-                        p += "\" monoisotopicMassDelta=\"" + String(diffmass); 
+                        p += "\" monoisotopicMassDelta=\"" + String(diffmass);
                       }
                       p += "\">\n\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1001460\" name=\"unknown modification\"/>";
                       p += "\n\t\t</Modification>\n";
@@ -1054,7 +1054,7 @@ namespace OpenMS
               p += "\t\t\t" + cv_.getTerm(jt->getMetaValue("xl_chain").toString()).toXMLString(cv_ns, DataValue(ppxl_linkid));
               p += "\n\t\t</Modification>\n";
             }
-            if (jt->metaValueExists("xl_pos2"))  // TODO ppxl metavalue subject to change (location and upgrade to cv)
+            if (jt->metaValueExists("xl_type") && jt->getMetaValue("xl_type") == "loop-link")  // TODO ppxl metavalue subject to change (location and upgrade to cv)
             {
               int i = jt->getMetaValue("xl_pos2").toString().toInt();
               p += "\t\t<Modification location=\"" + String(i + 1);
