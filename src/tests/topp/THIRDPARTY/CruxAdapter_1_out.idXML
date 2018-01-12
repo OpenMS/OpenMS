@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="https://www.openms.de/xml-stylesheet/IdXML.xsl" ?>
+<IdXML version="1.5" xsi:noNamespaceSchemaLocation="https://www.openms.de/xml-schema/IdXML_1_5.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<SearchParameters id="SP_0" db="" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="unknown_enzyme" missed_cleavages="0" precursor_peak_tolerance="0" precursor_peak_tolerance_ppm="false" peak_mass_tolerance="0" peak_mass_tolerance_ppm="false" >
+	</SearchParameters>
+	<IdentificationRun date="2017-12-20T12:45:43" search_engine="" search_engine_version="" search_parameters_ref="SP_0" >
+		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0" >
+			<ProteinHit id="PH_0" accession="test2_rev" score="0" sequence="DFASSGGYVLHLHR" >
+				<UserParam type="string" name="isDecoy" value="false"/>
+			</ProteinHit>
+			<ProteinHit id="PH_1" accession="decoy_test2_rev" score="0" sequence="DHSLAVGHYFGLSR" >
+				<UserParam type="string" name="isDecoy" value="true"/>
+			</ProteinHit>
+			<ProteinHit id="PH_2" accession="decoy_BSA3" score="0" sequence="RADFLGQPDGFASDGGGGIFALR" >
+				<UserParam type="string" name="isDecoy" value="true"/>
+			</ProteinHit>
+			<ProteinHit id="PH_3" accession="BSA3" score="0" sequence="RPGADSDIGGFGGLFDLAQAGFR" >
+				<UserParam type="string" name="isDecoy" value="false"/>
+			</ProteinHit>
+			<UserParam type="stringList" name="spectra_data" value="[]"/>
+		</ProteinIdentification>
+		<PeptideIdentification score_type="SEQUEST:xcorr" higher_score_better="true" significance_threshold="0" MZ="520.262817382813" spectrum_reference="1-1" >
+			<PeptideHit score="3.42734361" sequence="DFASSGGYVLHLHR" charge="3" start="0" end="14" protein_refs="PH_0" >
+				<UserParam type="float" name="MS:1001155" value="3.42734361"/>
+				<UserParam type="float" name="MS:1001156" value="0.915512025"/>
+				<UserParam type="float" name="calcMZ" value="520.263610839844"/>
+				<UserParam type="int" name="pass_threshold" value="1"/>
+				<UserParam type="int" name="start" value="0"/>
+				<UserParam type="int" name="end" value="14"/>
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</PeptideHit>
+			<PeptideHit score="0.289570749" sequence="DHSLAVGHYFGLSR" charge="3" start="0" end="14" protein_refs="PH_1" >
+				<UserParam type="float" name="MS:1001155" value="0.289570749"/>
+				<UserParam type="float" name="MS:1001156" value="0"/>
+				<UserParam type="float" name="calcMZ" value="520.263610839844"/>
+				<UserParam type="int" name="pass_threshold" value="1"/>
+				<UserParam type="int" name="start" value="0"/>
+				<UserParam type="int" name="end" value="14"/>
+				<UserParam type="string" name="target_decoy" value="decoy"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="SEQUEST:xcorr" higher_score_better="true" significance_threshold="0" MZ="775.387268066406" spectrum_reference="3-3" >
+			<PeptideHit score="4.30930567" sequence="RPGADSDIGGFGGLFDLAQAGFR" charge="3" start="0" end="23" protein_refs="PH_3" >
+				<UserParam type="float" name="MS:1001155" value="4.30930567"/>
+				<UserParam type="float" name="MS:1001156" value="0.978120983"/>
+				<UserParam type="float" name="calcMZ" value="775.385437011719"/>
+				<UserParam type="int" name="pass_threshold" value="1"/>
+				<UserParam type="int" name="start" value="0"/>
+				<UserParam type="int" name="end" value="23"/>
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</PeptideHit>
+			<PeptideHit score="0.094281137" sequence="RADFLGQPDGFASDGGGGIFALR" charge="3" start="0" end="23" protein_refs="PH_2" >
+				<UserParam type="float" name="MS:1001155" value="0.094281137"/>
+				<UserParam type="float" name="MS:1001156" value="0"/>
+				<UserParam type="float" name="calcMZ" value="775.385375976563"/>
+				<UserParam type="int" name="pass_threshold" value="1"/>
+				<UserParam type="int" name="start" value="0"/>
+				<UserParam type="int" name="end" value="23"/>
+				<UserParam type="string" name="target_decoy" value="decoy"/>
+			</PeptideHit>
+		</PeptideIdentification>
+	</IdentificationRun>
+</IdXML>

@@ -130,6 +130,9 @@ elseif ("${CMAKE_C_COMPILER_ID}" MATCHES "Clang")
                   -Wno-c++98-compat-pedantic
                   # These are warnings of moderate severity, which are disabled
                   # for now until we are down to a reasonable size of warnings.
+                  -Wno-unknown-warning-option
+                  -Wno-double-promotion
+                  -Wno-unused-template
                   -Wno-conversion
                   -Wno-float-equal
                   -Wno-switch-enum

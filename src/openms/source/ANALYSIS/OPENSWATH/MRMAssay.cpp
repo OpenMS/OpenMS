@@ -667,7 +667,7 @@ namespace OpenMS
     endProgress();
   }
 
-  void MRMAssay::reannotateTransitions(OpenMS::TargetedExperiment& exp, double precursor_mz_threshold, double product_mz_threshold, std::vector<String> fragment_types, std::vector<size_t> fragment_charges, bool enable_reannotation, bool enable_specific_losses, bool enable_unspecific_losses, int round_decPow)
+  void MRMAssay::reannotateTransitions(OpenMS::TargetedExperiment& exp, double precursor_mz_threshold, double product_mz_threshold, std::vector<String> fragment_types, std::vector<size_t> fragment_charges, bool enable_specific_losses, bool enable_unspecific_losses, int round_decPow)
   {
     PeptideVectorType peptides;
     ProteinVectorType proteins;
@@ -675,71 +675,78 @@ namespace OpenMS
 
     OpenMS::MRMIonSeries mrmis;
 
+    // hash of the peptide reference containing all transitions
+    MRMAssay::PeptideTransitionMapType peptide_trans_map;
+    for (Size i = 0; i < exp.getTransitions().size(); i++)
+    {
+      peptide_trans_map[exp.getTransitions()[i].getPeptideRef()].push_back(&exp.getTransitions()[i]);
+    }
+
     Size progress = 0;
     startProgress(0, exp.getTransitions().size(), "Annotating transitions");
-    size_t j = 0; // transition index
-    for (size_t i = 0; i < exp.getTransitions().size(); ++i)
+    for (MRMAssay::PeptideTransitionMapType::iterator pep_it = peptide_trans_map.begin();
+         pep_it != peptide_trans_map.end(); ++pep_it)
     {
-      setProgress(++progress);
-      ReactionMonitoringTransition tr = exp.getTransitions()[i];
+      String peptide_ref = pep_it->first;
 
-      TargetedExperiment::Peptide target_peptide = exp.getPeptideByRef(tr.getPeptideRef());
-      int precursor_charge = 1;
-      if (target_peptide.hasCharge()) 
-      {
-        precursor_charge = target_peptide.getChargeState();
-      }
+      TargetedExperiment::Peptide target_peptide = exp.getPeptideByRef(peptide_ref);
       OpenMS::AASequence target_peptide_sequence = TargetedExperimentHelper::getAASequence(target_peptide);
 
-      // Generate new ID (transition_group_id) for target peptide
-      String peprt = "NA";
-      if (target_peptide.hasRetentionTime()) peprt = String(target_peptide.getRetentionTime());
-      target_peptide.id = String(target_peptide.protein_refs[0]) + String("_") + TargetedExperimentHelper::getAASequence(target_peptide).toString() + 
-          String("_") + String(precursor_charge) + "_" + peprt;
+      int precursor_charge = 1;
+      if (target_peptide.hasCharge()) {precursor_charge = target_peptide.getChargeState();}
 
-      // Annotate transition: Either set correct CV terms from annotation or
-      // (if enable_reannotation == true) do annotation using theoretical ion
-      // series
-      // Parameters set allowed fragment charges, tolerance, etc. All unannoted transitions are discarded
-      mrmis.annotateTransition(tr, target_peptide, precursor_mz_threshold,
-          product_mz_threshold, enable_reannotation, fragment_types,
-          fragment_charges, enable_specific_losses, enable_unspecific_losses,
-          round_decPow);
+      MRMIonSeries::IonSeries target_ionseries = mrmis.getIonSeries(target_peptide_sequence, precursor_charge, fragment_types, fragment_charges, enable_specific_losses, enable_unspecific_losses, round_decPow);
 
-      // Skip unannotated transitions from previous step
-      if (tr.getProduct().getInterpretationList()[0].iontype == TargetedExperiment::IonType::NonIdentified)
+      // Generate theoretical precursor m.z
+      double precursor_mz = target_peptide_sequence.getMonoWeight(Residue::Full, precursor_charge) / precursor_charge;
+      precursor_mz = Math::roundDecimal(precursor_mz, round_decPow);
+
+      for (Size i = 0; i < pep_it->second.size(); i++)
       {
-        LOG_DEBUG << "[unannotated] Skipping " << target_peptide_sequence.toString() 
-          << " PrecursorMZ: " << tr.getPrecursorMZ() << " ProductMZ: " << tr.getProductMZ() 
-          << " " << tr.getMetaValue("annotation") << std::endl;
-        continue;
-      }
-      else
-      {
-        LOG_DEBUG << "[selected] " << target_peptide_sequence.toString() << " PrecursorMZ: " << tr.getPrecursorMZ() << " ProductMZ: " << tr.getProductMZ() << " " << tr.getMetaValue("annotation") << std::endl;
-      }
+        setProgress(++progress);
+        ReactionMonitoringTransition tr = *(pep_it->second[i]);
 
-      // Add reference to parent precursor
-      tr.setPeptideRef(target_peptide.id);
+        // Annotate transition from theoretical ion series
+        std::pair<String, double> targetion = mrmis.annotateIon(target_ionseries, tr.getProductMZ(), product_mz_threshold);
 
-      // Generate new ID (transition_name) for target transition
-      tr.setNativeID(String(j) + String("_") +  String(target_peptide.protein_refs[0]) + String("_") + target_peptide.sequence + String("_") + String(tr.getPrecursorMZ()) + "_" + String(tr.getProductMZ()));
-      j += 1; // increment transition index
+        // Ensure that precursor m/z is within threshold
+        if (std::fabs(tr.getPrecursorMZ() - precursor_mz) > precursor_mz_threshold)
+        {
+          targetion.first = "unannotated";
+        }
 
-      // Append transition
-      transitions.push_back(tr);
+        // Set precursor m/z to theoretical value
+        tr.setPrecursorMZ(precursor_mz);
 
-      // Append precursor / peptide
-      if (std::find(peptides.begin(), peptides.end(), target_peptide) == peptides.end())
-      {
-        peptides.push_back(target_peptide);
-        LOG_DEBUG << "[selected] " <<  target_peptide_sequence.toString() << std::endl;
+        // Set product m/z to theoretical value
+        tr.setProductMZ(targetion.second);
+
+        // Skip unannotated transitions from previous step
+        if (targetion.first == "unannotated")
+        {
+          LOG_DEBUG << "[unannotated] Skipping " << target_peptide_sequence.toString() 
+            << " PrecursorMZ: " << tr.getPrecursorMZ() << " ProductMZ: " << tr.getProductMZ() 
+            << " " << tr.getMetaValue("annotation") << std::endl;
+          continue;
+        }
+        else
+        {
+          LOG_DEBUG << "[selected] " << target_peptide_sequence.toString() << " PrecursorMZ: " << tr.getPrecursorMZ() << " ProductMZ: " << tr.getProductMZ() << " " << tr.getMetaValue("annotation") << std::endl;
+        }
+
+        // Set CV terms
+        mrmis.annotateTransitionCV(tr, targetion.first);
+
+        // Add reference to parent precursor
+        tr.setPeptideRef(target_peptide.id);
+
+        // Append transition
+        transitions.push_back(tr);
       }
     }
     endProgress();
 
     exp.setTransitions(transitions);
-    exp.setPeptides(peptides);
   }
 
   void MRMAssay::restrictTransitions(OpenMS::TargetedExperiment& exp, double lower_mz_limit, double upper_mz_limit, std::vector<std::pair<double, double> > swathes)

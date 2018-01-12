@@ -1156,6 +1156,7 @@ PyOpenMSChecker:
     - OpenMS::PeakAlignment
     - OpenMS::HierarchicalClustering::Cluster
     - OpenMS::HierarchicalClustering::BoundingBox
+    - OpenMS::OPXLDataStructs::AASeqWithMassComparator
     # Is wrapped but under different name
     - OpenMS::DPosition
     - OpenMS::DBoundingBox
@@ -1199,6 +1200,12 @@ PyOpenMSChecker:
     - OpenMS::HashGrid::Iterator
     - OpenMS::ims::IMSAlphabetParser
     - OpenMS::ims::IMSAlphabetTextParser
+
+    - OpenMS::OPXLDataStructs::AASeqWithMass
+    - OpenMS::IDFilter::GetMatchingItems
+    - OpenMS::SysInfo::MemUsage
+    - OpenMS::MetaInfoInterfaceUtils
+    - OpenMS::MRMFeatureOpenMS
 
     # Comperators
     - OpenMS::Peak2D::PositionLess
@@ -1246,6 +1253,7 @@ PyOpenMSChecker:
     - OpenMS::CmpMassTraceByMZ
     - OpenMS::PeptideHit::RankLess
     - OpenMS::PeptideHit::SequenceLessComparator
+    - OpenMS::OPXLDataStructs::XLPrecursorComparator
 
     # RangeUtils - we probably cannot use them in Python
     - OpenMS::InIntensityRange
@@ -1428,6 +1436,7 @@ PyOpenMSChecker:
     - OpenMS::Internal::XTandemInfileNote
     - OpenMS::Internal::XTandemInfileXMLHandler
     - OpenMS::Internal::XQuestResultXMLHandler
+    - OpenMS::Internal::MzMLSqliteHandler
     - OpenMS::SparseVector
     - OpenMS::SparseVector::SparseVectorConstIterator
     - OpenMS::SparseVector::SparseVectorConstReverseIterator
@@ -1435,6 +1444,7 @@ PyOpenMSChecker:
     - OpenMS::SparseVector::SparseVectorReverseIterator
     - OpenMS::SparseVector::ValueProxy
     - OpenMS::TransformationModelInterpolated::Interpolator
+    - OpenMS::ZlibCompression
 
     # MATH - Python provides alternative functions for most
     - OpenMS::Math
@@ -1453,6 +1463,7 @@ PyOpenMSChecker:
     - OpenMS::Math::QuadraticRegression
     - OpenMS::Math::ROCCurve
     - OpenMS::Math::ROCCurve::simsortdec
+    - OpenMS::Math::ROCCurve::SummaryStatistics
 
     # Base classes
     - OpenMS::BaseGroupFinder

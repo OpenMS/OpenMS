@@ -28,8 +28,8 @@ set(sources_list_h
   TargetedSpectraExtractor.h
   SwathMapMassCorrection.h
   SwathWindowLoader.h
-  TransitionTSVReader.h
-  TransitionPQPReader.h
+  TransitionTSVFile.h
+  TransitionPQPFile.h
   MRMFeatureQC.h
   MRMFeatureFilter.h
 )

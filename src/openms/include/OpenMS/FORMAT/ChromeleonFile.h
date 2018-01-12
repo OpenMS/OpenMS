@@ -28,68 +28,47 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: George Rosenberger $
-// $Authors: George Rosenberger, Hannes Roest $
+// $Maintainer: Douglas McCloskey, Pasquale Domenico Colaianni $
+// $Authors: Douglas McCloskey, Pasquale Domenico Colaianni $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/CONCEPT/ClassTest.h>
-#include <OpenMS/test_config.h>
-#include <OpenMS/FORMAT/TraMLFile.h>
+#ifndef OPENMS_FORMAT_CHROMELEONFILE_H
+#define OPENMS_FORMAT_CHROMELEONFILE_H
 
-#include <boost/assign/std/vector.hpp>
-#include <boost/assign/list_of.hpp>
+#include <OpenMS/config.h> // OPENMS_DLLAPI
+#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
+#include <boost/regex.hpp>
+#include <fstream>
 
-///////////////////////////
-#include <OpenMS/ANALYSIS/OPENSWATH/TransitionPQPReader.h>
-///////////////////////////
-
-using namespace OpenMS;
-using namespace std;
-
-START_TEST(TransitionPQPReader, "$Id$")
-
-/////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////
-
-TransitionPQPReader* ptr = nullptr;
-TransitionPQPReader* nullPointer = nullptr;
-
-START_SECTION(TransitionPQPReader())
+namespace OpenMS
 {
-  ptr = new TransitionPQPReader();
-  TEST_NOT_EQUAL(ptr, nullPointer)
+  /**
+    @brief Load Chromeleon HPLC text file and save it into a `MSExperiment`.
+
+    An example of the expected format:
+    > Raw Data:
+    > Time (min)	Step (s)	Value (mAU)
+    > 0.003333	0.200	-0.002496
+    > 0.006667	0.200	-0.017589
+    > ...
+  */
+  class OPENMS_DLLAPI ChromeleonFile
+  {
+public:
+    /// Constructor
+    ChromeleonFile() = default;
+    /// Destructor
+    virtual ~ChromeleonFile() = default;
+
+    /**
+      @brief Load the file's data and metadata, and save it into a `MSExperiment`.
+
+      @param[in] filename Path to the Chromeleon input file
+      @param[out] experiment The variable into which the extracted information will be saved
+    */
+    void load(const String& filename, MSExperiment& experiment) const;
+  };
 }
-END_SECTION
 
-START_SECTION(~TransitionPQPReader())
-{
-  delete ptr;
-}
-END_SECTION
-
-START_SECTION( void convertTargetedExperimentToPQP(const char * filename, OpenMS::TargetedExperiment & targeted_exp))
-{
-  // see TOPP / UTILS tool test
-  NOT_TESTABLE
-}
-END_SECTION
-
-START_SECTION( void convertPQPToTargetedExperiment(const char * filename, OpenMS::TargetedExperiment & targeted_exp))
-{
-  // see TOPP / UTILS tool test
-  NOT_TESTABLE
-}
-END_SECTION
-
-START_SECTION( void validateTargetedExperiment(OpenMS::TargetedExperiment & targeted_exp))
-{
-  NOT_TESTABLE
-}
-END_SECTION
-
-/////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////
-END_TEST
-
-
-
+#endif // OPENMS_FORMAT_CHROMELEONFILE_H

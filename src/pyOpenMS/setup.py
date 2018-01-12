@@ -108,6 +108,7 @@ else:
 
 library_dirs = [OPEN_MS_BUILD_DIR,
                 j(OPEN_MS_BUILD_DIR, "lib"),
+                j(OPEN_MS_BUILD_DIR, "lib", "Release"),
                 j(OPEN_MS_BUILD_DIR, "bin"),
                 j(OPEN_MS_BUILD_DIR, "bin", "Release"),
                 j(OPEN_MS_BUILD_DIR, "Release"),

@@ -46,8 +46,8 @@
 //  PEAK DETECTION OF FOURIER TRANSFORME MS INSTRUMENT DATA
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/LCElutionPeak.h>
 
-#include <math.h>
-#include <stdio.h>
+#include <cmath>
+#include <cstdio>
 #include <iostream>
 #include <map>
 
