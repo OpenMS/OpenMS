@@ -17,6 +17,7 @@ cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/AbsoluteQuantitation.h>" namespa
         AbsoluteQuantitation(AbsoluteQuantitation)  nogil except + #wrap-ignore
 
         void setQuantMethods(libcpp_vector[ AbsoluteQuantitationMethod ]& quant_methods) nogil except +
+        libcpp_vector[ AbsoluteQuantitationMethod ] getQuantMethods() nogil except +
         double calculateRatio(Feature & component_1, Feature & component_2, String & feature_name) nogil except +
         # double calculateBias(double actual_concentration, double calculated_concentration) nogil except +
         double applyCalibration(Feature & component, Feature & IS_component, String & feature_name, 
