@@ -102,6 +102,13 @@ public:
       const std::vector<FeatureMap>& feature_maps,
       std::map<String, AbsoluteQuantitationStandards::featureConcentration>& components_to_concentrations
     ) const;
+
+private:
+    bool findComponentFeature_(
+      const FeatureMap& feature_map,
+      const String& component_name,
+      Feature& feature_found
+    ) const;
   };
 }
 #endif // OPENMS_METADATA_ABSOLUTEQUANTITATIONSTANDARDS_H

@@ -50,8 +50,57 @@ START_TEST(AbsoluteQuantitationStandards, "$Id$")
 
 AbsoluteQuantitationStandards* ptr = 0;
 AbsoluteQuantitationStandards* null_ptr = 0;
-const String calib_conc_path = OPENMS_GET_TEST_DATA_PATH("AbsoluteQuantitationStandardsFile_150516_calibration_concentrations_cut.csv");
-const String features_path = OPENMS_GET_TEST_DATA_PATH("170808_Jonathan_yeast_Sacc1_1x.featureXML");
+
+vector<AbsoluteQuantitationStandards::runConcentration> runs;
+AbsoluteQuantitationStandards::runConcentration run;
+for (Size i = 0; i < 10; ++i)
+{
+  run.sample_name = i < 5 ? String("sample1") : String("sample2");
+  run.component_name = String("component") + i;
+  run.IS_component_name = String("IS_component") + i;
+  run.actual_concentration = i;
+  run.IS_actual_concentration = i * 1.1;
+  run.concentration_units = "uM";
+  run.dilution_factor = 1;
+  runs.push_back(run);
+}
+run.sample_name = "";
+runs.push_back(run); // without sample_name
+run.sample_name = "sample2";
+run.component_name = "";
+runs.push_back(run); // without component_name
+run.sample_name = "sample2";
+run.component_name = "component10";
+run.IS_component_name = "";
+runs.push_back(run); // without IS_component_name
+run.component_name = "component11";
+runs.push_back(run); // without IS_component_name and no match for component_name
+
+vector<FeatureMap> fmaps;
+FeatureMap fm;
+Feature feature;
+vector<Feature> subordinates;
+
+fm.setMetaValue("sample_name", "sample1");
+for (Size i = 0; i < 5; ++i)
+{
+  Feature f;
+  f.setMetaValue("native_id", String("component") + i);
+  subordinates.push_back(f);
+  f.setMetaValue("native_id", String("IS_component") + i);
+  subordinates.push_back(f);
+}
+feature.setSubordinates(subordinates);
+fm.push_back(feature);
+fmaps.push_back(fm);
+
+fm.setMetaValue("sample_name", "sample2");
+Feature f;
+f.setMetaValue("native_id", String("component5"));
+subordinates.push_back(f);
+feature.setSubordinates(subordinates);
+fm.push_back(feature);
+fmaps.push_back(fm);
 
 START_SECTION(AbsoluteQuantitationStandards())
 {
@@ -74,18 +123,8 @@ START_SECTION(void mapComponentsToConcentrations(
   std::map<String, std::vector<featureConcentration>>& components_to_concentrations
 ) const)
 {
-  std::vector<AbsoluteQuantitationStandards::runConcentration> runs;
-  AbsoluteQuantitationStandardsFile aqsf;
-  aqsf.load(calib_conc_path, runs);
-  FeatureMap fmap;
-  FeatureXMLFile fxmlf;
-  fxmlf.load(features_path, fmap);
-  fmap.setMetaValue("sample_name", "150516_CM1_Level1");
-  std::vector<FeatureMap> feature_maps;
-  feature_maps.push_back(fmap);
-  TEST_EQUAL(feature_maps.size(), 1)
   std::map<String, AbsoluteQuantitationStandards::featureConcentration> m;
-  ptr->mapComponentsToConcentrations(runs, feature_maps, m);
+  ptr->mapComponentsToConcentrations(runs, fmaps, m);
   TEST_NOT_EQUAL(m.size(), 0)
 }
 END_SECTION

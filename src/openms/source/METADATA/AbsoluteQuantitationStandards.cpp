@@ -36,6 +36,22 @@
 
 namespace OpenMS
 {
+  bool AbsoluteQuantitationStandards::findComponentFeature_(
+    const FeatureMap& feature_map,
+    const String& component_name,
+    Feature& feature_found
+  ) const
+  {
+    for (const Feature& feature : feature_map)
+      for (const Feature& subordinate : feature.getSubordinates())
+        if (subordinate.metaValueExists("native_id") && subordinate.getMetaValue("native_id") == component_name)
+        {
+          feature_found = subordinate;
+          return true;
+        }
+    return false;
+  }
+
   void AbsoluteQuantitationStandards::mapComponentsToConcentrations(
     const std::vector<AbsoluteQuantitationStandards::runConcentration>& run_concentrations,
     const std::vector<FeatureMap>& feature_maps,
@@ -43,63 +59,30 @@ namespace OpenMS
   ) const
   {
     components_to_concentrations.clear();
-    for (const FeatureMap& fmap : feature_maps)
+    for (const AbsoluteQuantitationStandards::runConcentration& run : run_concentrations)
     {
-      if (!fmap.metaValueExists("sample_name"))
+      if (run.sample_name == "" || run.component_name == "")
+        continue;
+      for (const FeatureMap& fmap : feature_maps) // not all elements are necessarily processed (break; is present inside the loop)
       {
-        throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "The FeatureMap misses the 'sample_name' MetaValue information.");
-      }
-      const String sample_name = fmap.getMetaValue("sample_name");
-      for (const Feature& feature : fmap)
-      {
-        const std::vector<Feature>& subordinates = feature.getSubordinates();
-        if (subordinates.size() != 2)
-        {
+        AbsoluteQuantitationStandards::featureConcentration fc;
+        if (!fmap.metaValueExists("sample_name") || fmap.getMetaValue("sample_name") != run.sample_name) // if the FeatureMap doesn't have a sample_name, or if it is not the one we're looking for: skip.
           continue;
-        }
-        const Feature& f1 = subordinates[0];
-        const Feature& f2 = subordinates[1];
-        std::vector<AbsoluteQuantitationStandards::runConcentration>::const_iterator it;
-        it = std::find_if(
-          run_concentrations.begin(), run_concentrations.end(), [&sample_name, &f1, &f2] (AbsoluteQuantitationStandards::runConcentration run)
-          {
-            if (!(f1.metaValueExists("native_id") && f2.metaValueExists("native_id")))
-            {
-              //throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "The feature misses the 'native_id' MetaValue information.");
-              LOG_DEBUG << "The feature misses the 'native_id' MetaValue information.\n";
-              return false;
-            }
-            return sample_name == run.sample_name &&
-              (
-                (f1.getMetaValue("native_id") == run.component_name && f2.getMetaValue("native_id") == run.IS_component_name) ||
-                (f2.getMetaValue("native_id") == run.component_name && f1.getMetaValue("native_id") == run.IS_component_name)
-              );
-          }
-        );
-        if (it != run_concentrations.end())
-        {
-          AbsoluteQuantitationStandards::featureConcentration fc;
-          if (f1.getMetaValue("native_id") == it->component_name)
-          {
-            fc.feature = subordinates[0];
-            fc.IS_feature = subordinates[1];
-          }
-          else
-          {
-            fc.feature = subordinates[1];
-            fc.IS_feature = subordinates[0];
-          }
-          fc.actual_concentration = it->actual_concentration;
-          fc.IS_actual_concentration = it->IS_actual_concentration;
-          fc.concentration_units = it->concentration_units;
-          fc.dilution_factor = it->dilution_factor;
-          std::pair<std::map<String, AbsoluteQuantitationStandards::featureConcentration>::const_iterator, bool> p;
-          p = components_to_concentrations.insert({it->component_name, fc});
-          if (p.second == false)
-          {
-            throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Key '" + it->component_name + "' was already present.");
-          }
-        }
+        if (!findComponentFeature_(fmap, run.component_name, fc.feature)) // if there was no match (empty feature is given in output): skip.
+          continue;
+        if (run.IS_component_name != "")
+          findComponentFeature_(fmap, run.IS_component_name, fc.IS_feature);
+        // fill the rest of the information from the current runConcentration
+        fc.actual_concentration = run.actual_concentration;
+        fc.IS_actual_concentration = run.IS_actual_concentration;
+        fc.concentration_units = run.concentration_units;
+        fc.dilution_factor = run.dilution_factor;
+        // add to the map
+        std::pair<std::map<String, AbsoluteQuantitationStandards::featureConcentration>::const_iterator, bool> p;
+        p = components_to_concentrations.insert({run.component_name, fc});
+        if (p.second == false) // check that the key was not already present
+          throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Key '" + run.component_name + "' was already present.");
+        break;
       }
     }
   }
