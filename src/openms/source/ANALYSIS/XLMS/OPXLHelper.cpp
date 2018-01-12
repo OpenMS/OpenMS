@@ -670,6 +670,7 @@ namespace OpenMS
       }
 
       PeptideHit ph_alpha, ph_beta;
+      bool unknown_mono = false;
       // Set monolink as a modification or add MetaValue for cross-link identity and mass
       AASequence seq_alpha = top_csms_spectrum[i].cross_link.alpha;
       ResidueModification::TermSpecificity alpha_term_spec = top_csms_spectrum[i].cross_link.term_spec_alpha;
@@ -728,21 +729,26 @@ namespace OpenMS
         {
           seq_alpha.setModification(alpha_pos, mods[0]);
           mod_set = true;
+          ph_alpha.setMetaValue("xl_mod", mods[0]);
+          // ph_alpha.setMetaValue("xl_mass", DataValue(top_csms_spectrum[i].cross_link.cross_linker_mass));
         }
         if (!mod_set) // If no equivalent mono-link exists in the UNIMOD or XLMOD databases, use the given name to construct a placeholder
         {
           String mod_name = String("unknown mono-link " + top_csms_spectrum[i].cross_link.cross_linker_name + " mass " + String(top_csms_spectrum[i].cross_link.cross_linker_mass));
           //seq_alpha.setModification(alpha_pos, mod_name);
-          LOG_DEBUG << "unknown mono-link" << endl;
+          // LOG_DEBUG << "unknown mono-link" << endl;
           ph_alpha.setMetaValue("xl_mod", mod_name);
-          ph_alpha.setMetaValue("xl_mass", DataValue(top_csms_spectrum[i].cross_link.cross_linker_mass));
+          // ph_alpha.setMetaValue("xl_mass", DataValue(top_csms_spectrum[i].cross_link.cross_linker_mass));
+          unknown_mono = true;
         }
       }
       else
       {
         ph_alpha.setMetaValue("xl_mod", top_csms_spectrum[i].cross_link.cross_linker_name);
-        ph_alpha.setMetaValue("xl_mass", DataValue(top_csms_spectrum[i].cross_link.cross_linker_mass));
+        // ph_alpha.setMetaValue("xl_mass", DataValue(top_csms_spectrum[i].cross_link.cross_linker_mass));
       }
+
+      ph_alpha.setMetaValue("xl_mass", DataValue(top_csms_spectrum[i].cross_link.cross_linker_mass));
 
 
       if (top_csms_spectrum[i].cross_link.getType() == OPXLDataStructs::LOOP)
@@ -751,10 +757,14 @@ namespace OpenMS
       }
 
       // Error calculation
-      double weight = seq_alpha.getMonoWeight() + top_csms_spectrum[i].cross_link.cross_linker_mass;
+      double weight = seq_alpha.getMonoWeight();
       if (top_csms_spectrum[i].cross_link.getType() == OPXLDataStructs::CROSS)
       {
-        weight += top_csms_spectrum[i].cross_link.beta.getMonoWeight();
+        weight += top_csms_spectrum[i].cross_link.beta.getMonoWeight()  + top_csms_spectrum[i].cross_link.cross_linker_mass;
+      }
+      else if (unknown_mono)
+      {
+        weight += top_csms_spectrum[i].cross_link.cross_linker_mass;
       }
       double theo_mz = (weight + (static_cast<double>(precursor_charge) * Constants::PROTON_MASS_U)) / static_cast<double>(precursor_charge);
       double error = precursor_mz - theo_mz;
