@@ -9,6 +9,8 @@ from CVTermList cimport *
 cdef extern from "<OpenMS/ANALYSIS/TARGETED/TargetedExperimentHelper.h>" namespace "OpenMS::TargetedExperimentHelper::RetentionTime::RTUnit":
 
     ctypedef enum RTUnit "OpenMS::TargetedExperimentHelper::RetentionTime::RTUnit":
+            # wrap-attach:
+            #    RetentionTime
             SECOND,        # RT stored in seconds
             MINUTE,        # RT stored in minutes
             UNKNOWN,       # no stored annotation
@@ -17,6 +19,8 @@ cdef extern from "<OpenMS/ANALYSIS/TARGETED/TargetedExperimentHelper.h>" namespa
 cdef extern from "<OpenMS/ANALYSIS/TARGETED/TargetedExperimentHelper.h>" namespace "OpenMS::TargetedExperimentHelper::RetentionTime::RTType":
 
     ctypedef enum RTType "OpenMS::TargetedExperimentHelper::RetentionTime::RTType":
+            # wrap-attach:
+            #    RetentionTime
             LOCAL,            # undefined local chromatography
             NORMALIZED,       # standardized reference chromatography
             PREDICTED,        # predicted by referenced software
