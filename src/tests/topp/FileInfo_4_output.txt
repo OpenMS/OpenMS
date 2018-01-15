@@ -18,8 +18,8 @@ Ranges:
   intensity:      12.15 .. 25903.89
 
 Peak type metadata (estimated)
-  level 1: Peak data (Peak data)
-  level 2: Peak data (Peak data)
+  level 1: Centroid (Centroid)
+  level 2: Centroid (Centroid)
 
 -- Meta information --
 

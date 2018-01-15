@@ -95,7 +95,7 @@ public:
       typedef std::vector<double> ContainerT;
 
       // make sure the right data type is set
-      spectrum.setType(SpectrumSettings::RAWDATA);
+      spectrum.setType(SpectrumSettings::PROFILE);
       bool found_signal = false;
       const Size data_size = spectrum.size();
       ContainerT mz_in(data_size), int_in(data_size), mz_out(data_size), int_out(data_size);

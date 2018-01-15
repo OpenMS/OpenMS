@@ -48,7 +48,7 @@
 #include <vector>
 #include <map>
 #include <algorithm>
-#include <stdio.h>
+#include <cstdio>
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/SuperHirnParameters.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/MS2Info.h>
@@ -438,7 +438,7 @@ namespace OpenMS
   void LCMS::set_spectrum_ID(int IN)
   {   spectrum_id = IN; }
 
-  // access the raw data names:
+  // access the profile data names:
   void LCMS::remove_raw_spec_name(int ID)
   {   raw_spec_names.erase(ID); }
   void LCMS::add_raw_spec_name(int ID, std::string name)

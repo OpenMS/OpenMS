@@ -42,7 +42,7 @@
 #include <OpenMS/FILTERING/TRANSFORMERS/Normalizer.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/NLargest.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/SqrtMower.h>
-#include <stdio.h>
+#include <cstdio>
 #include <sstream>
 
 using namespace std;

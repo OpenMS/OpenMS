@@ -87,11 +87,12 @@ START_SECTION(([EXTRA] OpenMP - test))
   Log_info.insert(stream_by_logger);
   Log_info.remove(cout);
 
-#ifdef _OPENMP
-omp_set_num_threads(8);
-#pragma omp parallel
-#endif
+
   {
+    #ifdef _OPENMP
+	omp_set_num_threads(8);
+    #pragma omp parallel for
+    #endif
     for (int i=0;i<10000;++i)
     {
       LOG_DEBUG << "1\n";

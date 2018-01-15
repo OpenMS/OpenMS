@@ -709,7 +709,7 @@ protected:
             {
               if (dp->getProcessingActions().count(DataProcessing::PEAK_PICKING) == 1)
               {
-                peak_type = SpectrumSettings::PEAKS;
+                peak_type = SpectrumSettings::CENTROID;
               }
             }
           }
