@@ -81,7 +81,7 @@ Since %OpenMS is based on several <b>external libraries</b> it is designed for t
 
 The following image shows the overall structure of %OpenMS:
 
-@image html OpenMS_overview.png "Overall design of OpenMS." width=80%
+@image html OpenMS_overview.png "Overall design of OpenMS. Kindly provided by Timo Sachsenberg." width=80%
 @image latex OpenMS_overview.png "Overall design of OpenMS." width=14cm
 
 The structure of the OpenMS framework. <br>
