@@ -392,7 +392,7 @@ namespace OpenMS
                 String box_text;
                 String vert_bar = "&#124;";
 
-                if (ph.metaValueExists("xl_pos2")) // if this meta value exists, this should be the special case of a loop-link
+                if (ph.metaValueExists("xl_pos2") && pis[peptide_id_index].getHits().size() == 1 && ph.getMetaValue("xl_pos2") != "-") // if this meta value exists, this should be the special case of a loop-link
                 {
                   String hor_bar = "_";
                   PeptideHit ph_alpha = pis[peptide_id_index].getHits()[0];
