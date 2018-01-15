@@ -37,7 +37,11 @@
 \renewcommand{\footrulewidth}{0.4pt}
 \newcommand{\+}{\discretionary{\mbox{\scriptsize$\hookleftarrow$}}{}{}}
 \setlength\parindent{0pt} % switch of indent 
-\renewcommand{\thesection}{\arabic{section}}
+
+\renewcommand{\thesubsection}{\arabic{subsection}} % Is needed for the correct toc (since doxygen transforms section to subsection otherwise.
+
+\setcounter{tocdepth}{3}
+\setcounter{secnumdepth}{4}
 
 \begin{document}
 
@@ -49,10 +53,9 @@
 \end{titlepage}
 
 \pagenumbering{arabic}
-\setcounter{tocdepth}{3}
 \tableofcontents
 \pagebreak
 
-	\input{tutorial}
+\input{tutorial}
 
 \end{document}

@@ -1,4 +1,4 @@
-/ --------------------------------------------------------------------------
+ --------------------------------------------------------------------------
 //                   %OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The %OpenMS Team -- Eberhard Karls University Tuebingen,
@@ -63,7 +63,7 @@ Mass spectrometry (MS) is an essential analytical technique for high-throughput 
 <b>%OpenMS</b>, a software framework for rapid <b>application and method development</b> in mass spectrometry has been designed to be portable, easy-to-use, and robust while offering a rich functionality ranging from basic data structures to sophisticated algorithms for data analysis. (see https://www.nature.com/nmeth/journal/v13/n9/abs/nmeth.3959.html). <br>
 
 <b>Ease of use:</b>
-%OpenMS follows the <b>object-oriented</b> programming paradigm, which aims at mapping real-world entities to comprehensible data structures and interfaces. %OpenMS enforces a <b>coding style</b> that ensures consistent names of classes, methods and member variables which increases the usability as a software library. Another important feature of a software framework is documentation. We decided to use <b>doxygen</b> [15] to generate the class documentation from the <b>source code</b>, which ensures consistency of code and documentation. The documentation is generated in HTML format making it easy to read with a web browser. <br>
+%OpenMS follows the <b>object-oriented</b> programming paradigm, which aims at mapping real-world entities to comprehensible data structures and interfaces. %OpenMS enforces a <b>coding style</b> that ensures consistent names of classes, methods and member variables which increases the usability as a software library. Another important feature of a software framework is documentation. We decided to use <b>doxygen</b> (www.doxygen.org/) to generate the class documentation from the <b>source code</b>, which ensures consistency of code and documentation. The documentation is generated in HTML format making it easy to read with a web browser. <br>
 
 <b>Robustness:</b>
 Robustness of algorithms is essential if a new method will be applied routinely to large scale datasets. Typically, there is a trade-off between performance and robustness. %OpenMS tries to address both issues equally. In general, we try to tolerate recoverable errors, e.g. files that do not entirely fulfill the format specifications. On the other hand, <b>exceptions</b> are used to handle fatal errors. To check for correctness, more than 1000 <b>unit tests</b> are implemented in total, covering public methods of classes. These tests check the behavior for both valid and invalid use. Additionally, <b>preprocessor macros</b> are used to enable additional consistency checks in debug mode, enforce <b>pre- and post-conditions</b>, and are then disabled in productive mode for performance reasons. <br>
@@ -81,8 +81,8 @@ Since %OpenMS is based on several <b>external libraries</b> it is designed for t
 
 The following image shows the overall structure of %OpenMS:
 
-@image html Structure.png "Overall design of %OpenMS."
-@image latex Structure.png "Overall design of %OpenMS." width=14cm
+@image html OpenMS_overview.png "Overall design of OpenMS." width=80%
+@image latex OpenMS_overview.png "Overall design of OpenMS." width=14cm
 
 The structure of the OpenMS framework. <br>
 
@@ -131,11 +131,11 @@ See the documentation for the latest <a href="https://abibuilder.informatik.uni-
 <b>Building %OpenMS</b><br>
 Before you get started coding with %OpenMS you need to build it for your operating system. Please follow the <b>build instructions</b> from the documentation.
 <br>
-<a href="http://ftp.mi.fu-berlin.de/pub/OpenMS/release-documentation/html/install_linux.html"><b>Building %OpenMS on GNU/Linux</b></a>
+<a href="https://abibuilder.informatik.uni-tuebingen.de/archive/openms/Documentation/release/2.3.0/html/install_linux.html"><b>Building %OpenMS on GNU/Linux</b></a>
 <br>
-<a href="http://ftp.mi.fu-berlin.de/pub/OpenMS/release-documentation/html/install_mac_bin.html"><b>Building %OpenMS on Mac OS X</b></a>
+<a href="https://abibuilder.informatik.uni-tuebingen.de/archive/openms/Documentation/release/2.3.0/html/install_mac.html"><b>Building %OpenMS on Mac OS X</b></a>
 <br>
-<a href="http://ftp.mi.fu-berlin.de/pub/OpenMS/release-documentation/html/install_win_bin.html"><b>Building %OpenMS on Windows</b></a>
+<a href="https://abibuilder.informatik.uni-tuebingen.de/archive/openms/Documentation/release/2.3.0/html/install_win.html"><b>Building %OpenMS on Windows</b></a>
 <br>
 Note that for development purposes, you might want to set the variable <i>CMAKE_BUILD_TYPE</i> to <i>Debug</i>. Otherwise, the default <i>Release</i> will be applied and disables pre-condition and post-condition checks, and assertions.
 <br>
@@ -159,7 +159,7 @@ You are, of course, free to choose your favorite (or even no) IDE for %OpenMS de
 The image below shows a peak map and the red circle highlights a feature. 
 
   @image html Terms_Map.png "Peak map with a marked feature (red)"
-  @image latex Terms_Map.png "Peak map with a marked feature (red)" width=14cm
+tutorial_library  @image latex Terms_Map.png "Peak map with a marked feature (red)" width=14cm
 
 
 
@@ -258,7 +258,7 @@ General:
  <tr><td>FILTERING</td><td>Filter</td></tr>
  <tr><td>FORMAT</td><td>Source code for I/O classes and file formats</td></tr>
  <tr><td>INTERFACES_IMPL</td><td>Interfaces (WIP)</td></tr>
- <tr><td>KERNEL</td<td>Core data structures</td></tr>
+ <tr><td>KERNEL</td><td>Core data structures</td></tr>
  <tr><td>MATH</td><td>Source code for math functions and classes</td></tr>
  <tr><td>METADATA</td><td>Source code for classes that capture metadata about a MS or HPLC-MS experiment</td></tr>
  <tr><td>SIMULATION</td><td>Source code of MS simulator</td></tr>
