@@ -73,7 +73,7 @@ namespace OpenMS
     
   double AbsoluteQuantitationMethod::getLLOD()
   {
-    return ulod_;
+    return llod_;
   }
   
   double AbsoluteQuantitationMethod::getULOD()
