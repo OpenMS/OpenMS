@@ -247,7 +247,7 @@ General:
 </table >
 <br>
 <table>
-<caption>Directory strucrture of core library (/src/openms)</caption>
+<caption>Directory structure of core library (/src/openms)</caption>
  <tr><th>Folder        <th>Description
  <tr><td>ANALYSIS</td><td>Source code of high-level analysis like PeakPicking, Quantitation, Identification, MapAlignment</td></tr>
  <tr><td>APPLICATIONS</td><td>Source code for tool base and handling</td></tr>
@@ -303,7 +303,7 @@ To store identified peptides %OpenMS has classes
 
 <br>
 <table>
-<caption>Directory strucrture of core library (/src/openms)</caption>
+<caption>Directory structure of core library (/src/openms)</caption>
  <tr><th>Stored Entity        <th>Class Name 
  <tr><td>Mass Peak (m/z + intensity)</td><td>Peak1D</td></tr>
  <tr><td>Elution Peak (rt + intensity)</td><td>ChromatogramPeak</td></tr>
@@ -605,7 +605,7 @@ Store protein accessions
 
 Now that we assembled the set of all protein accessions we are ready to compare them to the fasta_accessions. If they are similar and the method whitelist or they are different and the method blacklist was chosen, the fasta entries are copied to the new fasta database.
 
-<b>Example: Tutorial_Functionality.cpp</b>
+<b>Example: Tutorial_Finaly.cpp</b>
 <br>
 Add method functionality
 \snippet Tutorial_Final.cpp Functionality_2
