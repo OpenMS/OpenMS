@@ -144,7 +144,7 @@ public:
          * By solving:    mz = MIN_MZ_ * (1.0 + bin_size_)^index for index
          *     we get: index = floor(log(mz/MIN_MZ_)/log(1.0 + bin_size_))
          */  
-        return static_cast<SparseVectorIndexType>(floor(log(mz/MIN_MZ_)/log(1.0 + bin_size_ * 1e-6)));
+        return static_cast<SparseVectorIndexType>(floor(log(mz/MIN_MZ_)/log1p(bin_size_ * 1e-6)));
       }
       else 
       { 
