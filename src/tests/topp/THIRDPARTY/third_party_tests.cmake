@@ -61,6 +61,10 @@ OPENMS_FINDBINARY(MYRIMATCH_BINARY "myrimatch" "Myrimatch")
 OPENMS_FINDBINARY(MSGFPLUS_BINARY "MSGFPlus.jar" "MS-GF+")
 
 #------------------------------------------------------------------------------
+# MSFragger
+OPENMS_FINDBINARY(MSFRAGGER_BINARY "MSFragger.jar" "MSFragger")
+
+#------------------------------------------------------------------------------
 # percolator
 OPENMS_FINDBINARY(PERCOLATOR_BINARY "percolator" "Percolator")
 
@@ -197,6 +201,22 @@ if (NOT (${FIDO_BINARY} STREQUAL "FIDO_BINARY-NOTFOUND"))
   add_test("TOPP_FidoAdapter_6" ${TOPP_BIN_PATH}/FidoAdapter -test -in ${DATA_DIR_TOPP}/THIRDPARTY/FidoAdapter_1_input.idXML -out FidoAdapter_6_output.tmp -fido_executable "${FIDO_BINARY}" -prob:protein 0.9 -prob:peptide 0.01 -prob:spurious 0.0)
   add_test("TOPP_FidoAdapter_6_out" ${DIFF} -in1 FidoAdapter_6_output.tmp -in2 ${DATA_DIR_TOPP}/THIRDPARTY/FidoAdapter_1_output.idXML -whitelist "IdentificationRun date")
   set_tests_properties("TOPP_FidoAdapter_6_out" PROPERTIES DEPENDS "TOPP_FidoAdapter_6")
+endif()
+
+#------------------------------------------------------------------------------
+# MSFragger
+if (NOT (${MSFRAGGER_BINARY} STREQUAL "MSFRAGGER_BINARY-NOTFOUND"))
+  add_test("TOPP_MSFraggerAdapter_7" ${TOPP_BIN_PATH}/MSFraggerAdapter -test -in ${DATA_DIR_TOPP}/THIRDPARTY/spectra.mzML -executable "${MSFRAGGER_BINARY}" -database ${DATA_DIR_TOPP}/THIRDPARTY/proteins.fasta -out MSFraggerAdapter_7_out_tmp.pepXML -varmod:enable_common -digest:num_enzyme_termini semi)
+  add_test("TOPP_MSFraggerAdapter_7_out" ${DIFF} -in1 MSFraggerAdapter_7_out_tmp.pepXML -in2 ${DATA_DIR_TOPP}/THIRDPARTY/MSFraggerAdapter_7_out.pepXML -whitelist "date" "search_database") # Because MSFragger links the search database in a temporary directory
+  set_tests_properties("TOPP_MSFraggerAdapter_7_out" PROPERTIES DEPENDS "TOPP_MSFraggerAdapter_7")
+
+  add_test("TOPP_MSFraggerAdapter_8" ${TOPP_BIN_PATH}/MSFraggerAdapter -test -in ${DATA_DIR_TOPP}/THIRDPARTY/spectra_comet.mzML -executable "${MSFRAGGER_BINARY}" -database ${DATA_DIR_TOPP}/THIRDPARTY/proteins.fasta -out MSFraggerAdapter_8_out_tmp.pepXML -varmod:enable_common -digest:num_enzyme_termini semi)
+  add_test("TOPP_MSFraggerAdapter_8_out" ${DIFF} -in1 MSFraggerAdapter_8_out_tmp.pepXML -in2 ${DATA_DIR_TOPP}/THIRDPARTY/MSFraggerAdapter_8_out.pepXML -whitelist "date" "search_database") # Because MSFragger links the search database in a temporary directory
+  set_tests_properties("TOPP_MSFraggerAdapter_8_out" PROPERTIES DEPENDS "TOPP_MSFraggerAdapter_8")
+
+  add_test("TOPP_MSFraggerAdapter_9" ${TOPP_BIN_PATH}/MSFraggerAdapter -test -in ${DATA_DIR_TOPP}/THIRDPARTY/SiriusAdapter_1_input.mzML -executable "${MSFRAGGER_BINARY}" -database ${DATA_DIR_TOPP}/THIRDPARTY/proteins.fasta -out MSFraggerAdapter_9_out_tmp.pepXML -varmod:enable_common -digest:num_enzyme_termini semi)
+  add_test("TOPP_MSFraggerAdapter_9_out" ${DIFF} -in1 MSFraggerAdapter_9_out_tmp.pepXML -in2 ${DATA_DIR_TOPP}/THIRDPARTY/MSFraggerAdapter_9_out.pepXML -whitelist "date" "search_database") # Because MSFragger links the search database in a temporary directory
+  set_tests_properties("TOPP_MSFraggerAdapter_9_out" PROPERTIES DEPENDS "TOPP_MSFraggerAdapter_9")
 endif()
 
 
