@@ -44,20 +44,32 @@
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/Software.h>
 
-#include <boost/bimap.hpp>
-#include <unordered_map>
+#include <boost/multi_index_container.hpp>
+#include <boost/multi_index/composite_key.hpp>
+#include <boost/multi_index/ordered_index.hpp>
+#include <boost/multi_index/member.hpp>
+#include <boost/optional.hpp>
+#include <boost/variant.hpp>
 
 namespace OpenMS
 {
   class OPENMS_DLLAPI IdentificationData: public MetaInfoInterface
   {
   public:
-    typedef UInt64 UniqueKey; // easy to change in case 64 bit isn't enough
+
+    enum MoleculeType
+    {
+      MT_PROTEIN,
+      MT_COMPOUND,
+      MT_RNA,
+      SIZE_OF_MOLECULETYPES
+    };
+
 
     // Input files that were processed:
-    typedef UniqueKey InputFileKey;
-    typedef boost::bimap<InputFileKey, String> InputFileBimap;
-    InputFileBimap input_files;
+    typedef std::set<String> InputFiles;
+    typedef InputFiles::const_iterator InputFileRef;
+    InputFiles input_files;
 
 
     /*!
@@ -66,9 +78,9 @@ namespace OpenMS
       If the same processing is applied to multiple ID runs, e.g. if multiple files (fractions, replicates) are searched with the same search engine, store the
  software information only once.
     */
-    typedef UniqueKey ProcessingSoftwareKey;
-    typedef boost::bimap<ProcessingSoftwareKey, Software> SoftwareBimap;
-    SoftwareBimap processing_software;
+    typedef std::set<Software> DataProcessingSoftware;
+    typedef DataProcessingSoftware::const_iterator ProcessingSoftwareRef;
+    DataProcessingSoftware processing_software;
 
 
     /*!
@@ -76,9 +88,9 @@ namespace OpenMS
     */
     struct DataProcessingStep: public MetaInfoInterface
     {
-      ProcessingSoftwareKey software_key;
+      ProcessingSoftwareRef software_ref;
 
-      std::vector<InputFileKey> input_files; // reference into "input_files"
+      std::vector<InputFileRef> input_file_refs;
 
       std::vector<String> primary_files; // path(s) to primary MS data
 
@@ -88,39 +100,127 @@ namespace OpenMS
       std::set<DataProcessing::ProcessingAction> actions;
 
       explicit DataProcessingStep(
-        ProcessingSoftwareKey software_key = 0,
-        const std::vector<InputFileKey>& input_files =
-        std::vector<InputFileKey>(), const std::vector<String>& primary_files =
+        ProcessingSoftwareRef software_ref,
+        const std::vector<InputFileRef>& input_file_refs =
+        std::vector<InputFileRef>(), const std::vector<String>& primary_files =
         std::vector<String>(), const DateTime& date_time = DateTime::now(),
         std::set<DataProcessing::ProcessingAction> actions =
         std::set<DataProcessing::ProcessingAction>()):
-        software_key(software_key), input_files(input_files),
+        software_ref(software_ref), input_file_refs(input_file_refs),
         primary_files(primary_files), date_time(date_time), actions(actions)
       {
       }
 
       DataProcessingStep(const DataProcessingStep& other) = default;
 
+      // don't compare meta data (?):
       bool operator<(const DataProcessingStep& other) const
       {
-        return (std::tie(software_key, input_files, primary_files, date_time,
-                         actions) <
-                std::tie(other.software_key, other.input_files,
+        return (std::tie(*software_ref, input_file_refs, primary_files,
+                         date_time, actions) <
+                std::tie(*other.software_ref, other.input_file_refs,
                          other.primary_files, other.date_time, other.actions));
       }
 
+      // don't compare meta data (?):
       bool operator==(const DataProcessingStep& other) const
       {
-        return (std::tie(software_key, input_files, primary_files, date_time,
-                         actions) ==
-                std::tie(other.software_key, other.input_files,
+        return (std::tie(software_ref, input_file_refs, primary_files,
+                         date_time, actions) ==
+                std::tie(other.software_ref, other.input_file_refs,
                          other.primary_files, other.date_time, other.actions));
       }
     };
 
-    typedef UniqueKey ProcessingStepKey;
-    typedef boost::bimap<ProcessingStepKey, DataProcessingStep> StepsBimap;
-    StepsBimap processing_steps;
+    typedef std::set<DataProcessingStep> DataProcessingSteps;
+    typedef DataProcessingSteps::const_iterator ProcessingStepRef;
+    DataProcessingSteps processing_steps;
+
+
+    /*!
+      Parameters specific to a database search step.
+    */
+    struct DBSearchParam: public MetaInfoInterface
+    {
+      enum MoleculeType molecule_type;
+      enum ProteinIdentification::PeakMassType peak_mass_type;
+
+      String database;
+      String database_version;
+      String taxonomy;
+
+      std::set<Int> charges;
+
+      std::set<String> fixed_mods;
+      std::set<String> variable_mods;
+
+      double precursor_mass_tolerance;
+      double fragment_mass_tolerance;
+      bool precursor_tolerance_ppm;
+      bool fragment_tolerance_ppm;
+
+      // allow for either "DigestionEnzymeProtein" or "DigestionEnzymeRNA":
+      const DigestionEnzyme* digestion_enzyme;
+      Size missed_cleavages;
+      Size min_length;
+      Size max_length;
+
+      DBSearchParam():
+        molecule_type(MT_PROTEIN),
+        peak_mass_type(ProteinIdentification::MONOISOTOPIC),
+        precursor_mass_tolerance(0.0), fragment_mass_tolerance(0.0),
+        precursor_tolerance_ppm(false), fragment_tolerance_ppm(false),
+        digestion_enzyme(0), missed_cleavages(0), min_length(0), max_length(0)
+      {
+      }
+
+      DBSearchParam(const DBSearchParam& other) = default;
+
+      bool operator<(const DBSearchParam& other) const
+      {
+        return (std::tie(molecule_type, peak_mass_type, database,
+                         database_version, taxonomy, charges, fixed_mods,
+                         variable_mods, fragment_mass_tolerance,
+                         precursor_mass_tolerance, fragment_tolerance_ppm,
+                         precursor_tolerance_ppm, digestion_enzyme,
+                         missed_cleavages, min_length, max_length) <
+                std::tie(other.molecule_type, other.peak_mass_type,
+                         other.database, other.database_version, other.taxonomy,
+                         other.charges, other.fixed_mods, other.variable_mods,
+                         other.fragment_mass_tolerance,
+                         other.precursor_mass_tolerance,
+                         other.fragment_tolerance_ppm,
+                         other.precursor_tolerance_ppm,
+                         other.digestion_enzyme, other.missed_cleavages,
+                         other.min_length, other.max_length));
+      }
+
+      bool operator==(const DBSearchParam& other) const
+      {
+        return (std::tie(molecule_type, peak_mass_type, database,
+                         database_version, taxonomy, charges, fixed_mods,
+                         variable_mods, fragment_mass_tolerance,
+                         precursor_mass_tolerance, fragment_tolerance_ppm,
+                         precursor_tolerance_ppm, digestion_enzyme,
+                         missed_cleavages, min_length, max_length) ==
+                std::tie(other.molecule_type, other.peak_mass_type,
+                         other.database, other.database_version, other.taxonomy,
+                         other.charges, other.fixed_mods, other.variable_mods,
+                         other.fragment_mass_tolerance,
+                         other.precursor_mass_tolerance,
+                         other.fragment_tolerance_ppm,
+                         other.precursor_tolerance_ppm,
+                         other.digestion_enzyme, other.missed_cleavages,
+                         other.min_length, other.max_length));
+      }
+    };
+
+    typedef std::set<DBSearchParam> DBSearchParams;
+    typedef DBSearchParams::const_iterator SearchParamRef;
+    DBSearchParams db_search_params;
+    // @TODO: store SearchParamRef inside ProcessingStep? (may not be required
+    // for many processing steps)
+    std::map<ProcessingStepRef, SearchParamRef> db_search_steps;
 
 
     /*!
@@ -135,27 +235,29 @@ namespace OpenMS
       bool higher_better;
 
       // reference to the software that assigned the score:
-      ProcessingSoftwareKey software_key;
+      boost::optional<ProcessingSoftwareRef> software_ref;
       // @TODO: scores assigned by different software tools/versions are
       // considered as different scores (even if they have the same name) -
       // does that make sense?
 
       ScoreType():
-        higher_better(true), software_key(0)
+        higher_better(true), software_ref()
       {
       }
 
       explicit ScoreType(const CVTerm& cv_term, bool higher_better,
-                         ProcessingSoftwareKey software_key = 0):
+                         boost::optional<ProcessingSoftwareRef> software_ref =
+                         boost::none):
         cv_term(cv_term), name(cv_term.getName()), higher_better(higher_better),
-        software_key(software_key)
+        software_ref(software_ref)
       {
       }
 
       explicit ScoreType(const String& name, bool higher_better,
-                         ProcessingSoftwareKey software_key = 0):
+                         boost::optional<ProcessingSoftwareRef> software_ref =
+                         boost::none):
         cv_term(), name(name), higher_better(higher_better),
-        software_key(software_key)
+        software_ref(software_ref)
       {
       }
 
@@ -164,26 +266,38 @@ namespace OpenMS
       // don't include "higher_better" in the comparison:
       bool operator<(const ScoreType& other) const
       {
-        return (std::tie(cv_term.getAccession(), name, software_key) <
-                std::tie(other.cv_term.getAccession(), other.name,
-                         other.software_key));
+        // no "operator<" for "ProcessingSoftwareRef":
+        // return (std::tie(cv_term.getAccession(), name, software_ref) <
+        //         std::tie(other.cv_term.getAccession(), other.name,
+        //                  other.software_ref));
+        if (cv_term.getAccession() != other.cv_term.getAccession())
+        {
+          return (cv_term.getAccession() < other.cv_term.getAccession());
+        }
+        if (name != other.name)
+        {
+          return (name < other.name);
+        }
+        if (!other.software_ref) return false;
+        if (!software_ref) return true;
+        return **software_ref < **other.software_ref; // compare by value
       }
 
       // don't include "higher_better" in the comparison:
       bool operator==(const ScoreType& other) const
       {
-        return (std::tie(cv_term.getAccession(), name, software_key) ==
+        return (std::tie(cv_term.getAccession(), name, software_ref) ==
                 std::tie(other.cv_term.getAccession(), other.name,
-                         other.software_key));
+                         other.software_ref));
       }
     };
 
-    typedef UniqueKey ScoreTypeKey;
-    typedef boost::bimap<ScoreTypeKey, ScoreType> ScoreTypeBimap;
+    typedef std::set<ScoreType> ScoreTypes;
+    typedef ScoreTypes::const_iterator ScoreTypeRef;
     // @TODO: use a "boost::multi_index_container" to allow efficient access in
     // sequence and by key?
-    typedef std::vector<std::pair<ScoreTypeKey, double>> ScoreList;
-    ScoreTypeBimap score_types;
+    typedef std::vector<std::pair<ScoreTypeRef, double>> ScoreList;
+    ScoreTypes score_types;
 
 
     /*!
@@ -194,17 +308,18 @@ namespace OpenMS
       // spectrum or feature ID (from the file referenced by "input_file_key"):
       String data_id;
 
-      InputFileKey input_file_key; // reference into "input_files"
+      boost::optional<InputFileRef> input_file_ref;
 
       double rt, mz; // position
 
-      explicit DataQuery(const String& data_id = "",
-                         InputFileKey input_file_key = 0,
-                         double rt = std::numeric_limits<double>::quiet_NaN(),
-                         double mz = std::numeric_limits<double>::quiet_NaN()):
-        data_id(data_id), input_file_key(input_file_key), rt(rt), mz(mz)
+      explicit DataQuery(
+        const String& data_id,
+        boost::optional<InputFileRef> input_file_ref = boost::none,
+        double rt = std::numeric_limits<double>::quiet_NaN(),
+        double mz = std::numeric_limits<double>::quiet_NaN()):
+        data_id(data_id), input_file_ref(input_file_ref), rt(rt), mz(mz)
       {
-        // @TODO: require "input_file_key"? (see also "DataProcessingStep")
+        // @TODO: require "input_file_ref"? (see also "DataProcessingStep")
       }
 
       DataQuery(const DataQuery& other) = default;
@@ -212,24 +327,32 @@ namespace OpenMS
       // ignore RT and m/z for comparisons to avoid issues with rounding:
       bool operator<(const DataQuery& other) const
       {
-        return std::tie(input_file_key, data_id) <
-          std::tie(other.input_file_key, other.data_id);
+        // no "operator<" for "InputFileRef":
+        // return std::tie(input_file_ref, data_id) <
+        //   std::tie(other.input_file_ref, other.data_id);
+        if (!other.input_file_ref) return false;
+        if (!input_file_ref) return true;
+        if (**input_file_ref != **other.input_file_ref)
+        {
+          return **input_file_ref < **other.input_file_ref;
+        }
+        return data_id < other.data_id;
       }
 
       // ignore RT and m/z for comparisons to avoid issues with rounding:
       bool operator==(const DataQuery& other) const
       {
-        return std::tie(input_file_key, data_id) ==
-          std::tie(other.input_file_key, other.data_id);
+        return std::tie(input_file_ref, data_id) ==
+          std::tie(other.input_file_ref, other.data_id);
       }
 
       // @TODO: do we need an "experiment label" (used e.g. in pepXML)?
       // if yes, should it be stored here or together with the input file?
     };
 
-    typedef UniqueKey DataQueryKey;
-    typedef boost::bimap<DataQueryKey, DataQuery> QueryBimap;
-    QueryBimap data_queries;
+    typedef std::set<DataQuery> DataQueries;
+    typedef DataQueries::const_iterator DataQueryRef;
+    DataQueries data_queries;
 
 
     /// Base class for data with scores and processing steps (and meta info)
@@ -237,17 +360,19 @@ namespace OpenMS
     {
       ScoreList scores;
 
-      std::vector<ProcessingStepKey> processing_steps;
+      // @TODO: use a "boost::multi_index_container" here for efficient look-up?
+      std::vector<ProcessingStepRef> processing_step_refs;
 
       ScoredProcessingResult& operator+=(const ScoredProcessingResult& other)
       {
         // merge processing steps:
-        for (auto step_key : other.processing_steps)
+        for (auto step_ref : other.processing_step_refs)
         {
-          if (std::find(processing_steps.begin(), processing_steps.end(),
-                        step_key) == processing_steps.end())
+          if (std::find(processing_step_refs.begin(),
+                        processing_step_refs.end(), step_ref) ==
+              processing_step_refs.end())
           {
-            processing_steps.push_back(step_key);
+            processing_step_refs.push_back(step_ref);
           }
         }
         // merge scores:
@@ -275,13 +400,13 @@ namespace OpenMS
         return *this;
       }
 
-      std::pair<double, bool> getScore(ScoreTypeKey key) const
+      std::pair<double, bool> getScore(ScoreTypeRef score_ref) const
       {
         // give priority to "later" scores in the list:
         for (ScoreList::const_reverse_iterator it = scores.rbegin();
              it != scores.rend(); ++it)
         {
-          if (it->first == key) return std::make_pair(it->second, true);
+          if (it->first == score_ref) return std::make_pair(it->second, true);
         }
         return std::make_pair(std::numeric_limits<double>::quiet_NaN(), false);
       }
@@ -289,9 +414,9 @@ namespace OpenMS
     protected:
       explicit ScoredProcessingResult(
         const ScoreList& scores = ScoreList(),
-        const std::vector<ProcessingStepKey>& processing_steps =
-        std::vector<ProcessingStepKey>()):
-        scores(scores), processing_steps(processing_steps)
+        const std::vector<ProcessingStepRef>& processing_step_refs =
+        std::vector<ProcessingStepRef>()):
+        scores(scores), processing_step_refs(processing_step_refs)
       {
       }
 
@@ -299,116 +424,14 @@ namespace OpenMS
     };
 
 
-    // Identified molecules:
-    typedef UniqueKey IdentifiedMoleculeKey;
-    typedef boost::bimap<IdentifiedMoleculeKey, AASequence> PeptideBimap;
-    typedef boost::bimap<IdentifiedMoleculeKey, String> CompoundBimap;
-    typedef boost::bimap<IdentifiedMoleculeKey, NASequence> OligoBimap;
-    PeptideBimap identified_peptides;
-    CompoundBimap identified_compounds;
-    OligoBimap identified_oligos;
-
-    enum MoleculeType
-    {
-      MT_PROTEIN,
-      MT_COMPOUND,
-      MT_RNA,
-      SIZE_OF_MOLECULETYPES
-    };
-
-    /*!
-      Meta data for an identified molecule.
-    */
-    struct IdentifiedMetaData: public ScoredProcessingResult
-    {
-      enum MoleculeType molecule_type; // @TODO: do we need this?
-
-      explicit IdentifiedMetaData(
-        enum MoleculeType molecule_type = MT_PROTEIN,
-        const ScoreList& scores = ScoreList(),
-        const std::vector<ProcessingStepKey>& processing_steps =
-        std::vector<ProcessingStepKey>()):
-        ScoredProcessingResult(scores, processing_steps),
-        molecule_type(molecule_type)
-      {
-      }
-
-      IdentifiedMetaData(const IdentifiedMetaData& other) = default;
-    };
-
-    std::unordered_map<IdentifiedMoleculeKey,
-                       IdentifiedMetaData> identified_meta_data;
-
-
-    /*!
-      Meta data specific to an identified compound (small molecule).
-    */
-    struct CompoundMetaData: public MetaInfoInterface
-    {
-      EmpiricalFormula formula;
-
-      String name;
-
-      String smile;
-
-      String inchi;
-
-      explicit CompoundMetaData(
-        const EmpiricalFormula& formula = EmpiricalFormula(),
-        const String& name = "", const String& smile = "",
-        const String& inchi = ""):
-        formula(formula), name(name), smile(smile), inchi(inchi)
-      {
-      }
-
-      CompoundMetaData(const CompoundMetaData& other) = default;
-    };
-
-    std::unordered_map<IdentifiedMoleculeKey,
-                       CompoundMetaData> compound_meta_data;
-
-
-    /*!
-      Meta data for a search hit (e.g. peptide-spectrum match).
-    */
-
-    // @TODO: move "PeakAnnotation" out of "PeptideHit"
-    typedef std::vector<PeptideHit::PeakAnnotation> PeakAnnotations;
-
-    struct MoleculeQueryMatch: public ScoredProcessingResult
-    {
-      Int charge;
-
-      // peak annotations (fragment ion matches), potentially from different
-      // data processing steps:
-      std::map<ProcessingStepKey, PeakAnnotations> peak_annotations;
-
-      explicit MoleculeQueryMatch(
-        Int charge = 0, const ScoreList& scores = ScoreList(),
-        const std::vector<ProcessingStepKey>& processing_steps =
-        std::vector<ProcessingStepKey>(),
-        const std::map<ProcessingStepKey, PeakAnnotations>& peak_annotations =
-        std::map<ProcessingStepKey, PeakAnnotations>()):
-        ScoredProcessingResult(scores, processing_steps), charge(charge),
-        peak_annotations(peak_annotations)
-      {
-      }
-
-      MoleculeQueryMatch(const MoleculeQueryMatch& other) = default;
-    };
-
-    // all matches for the same data query should be consecutive!
-    typedef std::pair<DataQueryKey, IdentifiedMoleculeKey> QueryMatchKey;
-    typedef std::map<QueryMatchKey, MoleculeQueryMatch> QueryMatchMap;
-    QueryMatchMap query_matches;
-
-
     /*!
       Representation of a parent molecule that is identified only indirectly (e.g. a protein).
     */
-    struct ParentMetaData: public ScoredProcessingResult
+    struct ParentMolecule: public ScoredProcessingResult
     {
-      enum MoleculeType molecule_type;
+      String accession;
+
+      enum MoleculeType molecule_type; // @TODO: do we need this here?
 
       String sequence;
 
@@ -418,26 +441,42 @@ namespace OpenMS
 
       bool is_decoy;
 
-      explicit ParentMetaData(
-        enum MoleculeType molecule_type = MT_PROTEIN,
+      explicit ParentMolecule(
+        const String& accession, enum MoleculeType molecule_type = MT_PROTEIN,
         const String& sequence = "", const String& description = "",
         double coverage = 0.0, bool is_decoy = false,
         const ScoreList& scores = ScoreList(),
-        const std::vector<ProcessingStepKey>& processing_steps =
-        std::vector<ProcessingStepKey>()):
-        ScoredProcessingResult(scores, processing_steps),
-        molecule_type(molecule_type), sequence(sequence),
+        const std::vector<ProcessingStepRef>& processing_step_refs =
+        std::vector<ProcessingStepRef>()):
+        ScoredProcessingResult(scores, processing_step_refs),
+        accession(accession), molecule_type(molecule_type), sequence(sequence),
         description(description), coverage(coverage), is_decoy(is_decoy)
       {
       }
 
-      ParentMetaData(const ParentMetaData& other) = default;
+      ParentMolecule(const ParentMolecule& other) = default;
+
+      ParentMolecule& operator+=(const ParentMolecule& other)
+      {
+        ScoredProcessingResult::operator+=(other);
+        if (sequence.empty()) sequence = other.sequence;
+        if (description.empty()) description = other.description;
+        if (!is_decoy) is_decoy = other.is_decoy; // believe it when it's set
+        // @TODO: what about coverage? (not reliable if we're merging data)
+
+        return *this;
+      }
     };
 
-    typedef UniqueKey ParentMoleculeKey;
-    typedef boost::bimap<ParentMoleculeKey, String> ParentBimap;
-    ParentBimap parent_molecules;
-    std::unordered_map<ParentMoleculeKey, ParentMetaData> parent_meta_data;
+    // parent molecules indexed by their accessions:
+    typedef boost::multi_index_container<
+      ParentMolecule,
+      boost::multi_index::indexed_by<
+        boost::multi_index::ordered_unique<boost::multi_index::member<
+          ParentMolecule, String, &ParentMolecule::accession>>>
+      > ParentMolecules;
+    typedef ParentMolecules::const_iterator ParentMoleculeRef;
+    ParentMolecules parent_molecules;
 
 
     /*!
@@ -450,6 +489,7 @@ namespace OpenMS
       // length of the subsequence in the parent; therefore, store "end_pos":
       Size start_pos, end_pos;
 
+      // @TODO: does "char" work here - what about modified ribonucleotides?
       char left_neighbor, right_neighbor; // neighboring sequence elements
 
       static const Size UNKNOWN_POSITION; // = Size(-1)
@@ -496,101 +536,237 @@ namespace OpenMS
       }
     };
 
-    // mapping: identified molecule -> parent molecule -> match information
-    typedef std::unordered_map<ParentMoleculeKey,
-                               std::set<MoleculeParentMatch>> ParentSubMap;
-    typedef std::unordered_map<IdentifiedMoleculeKey,
-                               ParentSubMap> ParentMatchMap;
-    ParentMatchMap parent_matches;
+    // mapping: parent molecule -> match information
+    typedef std::map<ParentMoleculeRef,
+                     std::set<MoleculeParentMatch>> ParentMatches;
 
 
-    /*!
-      Parameters specific to a database search step.
-    */
-    struct DBSearchParameters: public MetaInfoInterface
+    // Identified molecules:
+    template <typename SeqType>
+    struct IdentifiedSequence: public ScoredProcessingResult
     {
-      enum MoleculeType molecule_type;
-      enum ProteinIdentification::PeakMassType peak_mass_type;
+      SeqType sequence;
 
-      String database;
-      String database_version;
-      String taxonomy;
+      ParentMatches parent_matches;
 
-      std::set<Int> charges;
-
-      std::set<String> fixed_mods;
-      std::set<String> variable_mods;
-
-      double precursor_mass_tolerance;
-      double fragment_mass_tolerance;
-      bool precursor_tolerance_ppm;
-      bool fragment_tolerance_ppm;
-
-      // allow for either "DigestionEnzymeProtein" or "DigestionEnzymeRNA":
-      const DigestionEnzyme* digestion_enzyme;
-      Size missed_cleavages;
-      Size min_length;
-      Size max_length;
-
-      DBSearchParameters():
-        molecule_type(MT_PROTEIN),
-        peak_mass_type(ProteinIdentification::MONOISOTOPIC),
-        precursor_mass_tolerance(0.0), fragment_mass_tolerance(0.0),
-        precursor_tolerance_ppm(false), fragment_tolerance_ppm(false),
-        digestion_enzyme(0), missed_cleavages(0), min_length(0), max_length(0)
+      explicit IdentifiedSequence(
+        const SeqType& sequence,
+        const ParentMatches& parent_matches = ParentMatches(),
+        const ScoreList& scores = ScoreList(),
+        const std::vector<ProcessingStepRef>& processing_step_refs =
+        std::vector<ProcessingStepRef>()):
+        ScoredProcessingResult(scores, processing_step_refs),
+        sequence(sequence), parent_matches(parent_matches)
       {
       }
 
-      DBSearchParameters(const DBSearchParameters& other) = default;
+      IdentifiedSequence(const IdentifiedSequence& other) = default;
 
-      bool operator<(const DBSearchParameters& other) const
+      IdentifiedSequence& operator+=(const IdentifiedSequence& other)
       {
-        return (std::tie(molecule_type, peak_mass_type, database,
-                         database_version, taxonomy, charges, fixed_mods,
-                         variable_mods, fragment_mass_tolerance,
-                         precursor_mass_tolerance, fragment_tolerance_ppm,
-                         precursor_tolerance_ppm, digestion_enzyme,
-                         missed_cleavages, min_length, max_length) <
-                std::tie(other.molecule_type, other.peak_mass_type,
-                         other.database, other.database_version, other.taxonomy,
-                         other.charges, other.fixed_mods, other.variable_mods,
-                         other.fragment_mass_tolerance,
-                         other.precursor_mass_tolerance,
-                         other.fragment_tolerance_ppm,
-                         other.precursor_tolerance_ppm,
-                         other.digestion_enzyme, other.missed_cleavages,
-                         other.min_length, other.max_length));
+        ScoredProcessingResult::operator+=(other);
+        // @TODO: improve merging of parent matches
+        parent_matches.insert(other.parent_matches.begin(),
+                              other.parent_matches.end());
       }
 
-      bool operator==(const DBSearchParameters& other) const
+      bool allParentsAreDecoys() const
       {
-        return (std::tie(molecule_type, peak_mass_type, database,
-                         database_version, taxonomy, charges, fixed_mods,
-                         variable_mods, fragment_mass_tolerance,
-                         precursor_mass_tolerance, fragment_tolerance_ppm,
-                         precursor_tolerance_ppm, digestion_enzyme,
-                         missed_cleavages, min_length, max_length) ==
-                std::tie(other.molecule_type, other.peak_mass_type,
-                         other.database, other.database_version, other.taxonomy,
-                         other.charges, other.fixed_mods, other.variable_mods,
-                         other.fragment_mass_tolerance,
-                         other.precursor_mass_tolerance,
-                         other.fragment_tolerance_ppm,
-                         other.precursor_tolerance_ppm,
-                         other.digestion_enzyme, other.missed_cleavages,
-                         other.min_length, other.max_length));
+        if (parent_matches.empty())
+        {
+          String msg = "no parent found for identified molecule";
+          throw Exception::MissingInformation(__FILE__, __LINE__,
+                                              OPENMS_PRETTY_FUNCTION, msg);
+        }
+        for (const auto& pair : parent_matches)
+        {
+          if (pair.first->is_decoy) return false;
+        }
+        return true;
       }
     };
 
-    typedef UniqueKey SearchParamsKey;
-    typedef boost::bimap<SearchParamsKey, DBSearchParameters> SearchParamsBimap;
-    SearchParamsBimap db_search_params;
-    std::unordered_map<ProcessingStepKey, SearchParamsKey> db_search_steps;
+    typedef IdentifiedSequence<AASequence> IdentifiedPeptide;
+    typedef IdentifiedSequence<NASequence> IdentifiedOligo;
+
+    // identified peptides indexed by their sequences:
+    typedef boost::multi_index_container<
+      IdentifiedPeptide,
+      boost::multi_index::indexed_by<
+        boost::multi_index::ordered_unique<boost::multi_index::member<
+          IdentifiedPeptide, AASequence, &IdentifiedPeptide::sequence>>>
+      > IdentifiedPeptides;
+    typedef IdentifiedPeptides::const_iterator IdentifiedPeptideRef;
+    IdentifiedPeptides identified_peptides;
+
+    // identified oligos indexed by their sequences:
+    typedef boost::multi_index_container<
+      IdentifiedOligo,
+      boost::multi_index::indexed_by<
+        boost::multi_index::ordered_unique<boost::multi_index::member<
+          IdentifiedOligo, NASequence, &IdentifiedOligo::sequence>>>
+      > IdentifiedOligos;
+    typedef IdentifiedOligos::const_iterator IdentifiedOligoRef;
+    IdentifiedOligos identified_oligos;
+
+    struct IdentifiedCompound: public ScoredProcessingResult
+    {
+      String identifier;
+
+      EmpiricalFormula formula;
+
+      String name;
+
+      String smile;
+
+      String inchi;
+
+      explicit IdentifiedCompound(
+        const String& identifier,
+        const EmpiricalFormula& formula = EmpiricalFormula(),
+        const String& name = "", const String& smile = "",
+        const String& inchi = "", const ScoreList& scores = ScoreList(),
+        const std::vector<ProcessingStepRef>& processing_step_refs =
+        std::vector<ProcessingStepRef>()):
+        ScoredProcessingResult(scores, processing_step_refs),
+        identifier(identifier), formula(formula), name(name), smile(smile),
+        inchi(inchi)
+      {
+      }
+
+      IdentifiedCompound(const IdentifiedCompound& other) = default;
+    };
+
+    // identified compounds indexed by their identifiers:
+    typedef boost::multi_index_container<
+      IdentifiedCompound,
+      boost::multi_index::indexed_by<
+        boost::multi_index::ordered_unique<boost::multi_index::member<
+          IdentifiedCompound, String, &IdentifiedCompound::identifier>>>
+      > IdentifiedCompounds;
+    typedef IdentifiedCompounds::const_iterator IdentifiedCompoundRef;
+    IdentifiedCompounds identified_compounds;
+
+
+    /*!
+      Meta data for a search hit (e.g. peptide-spectrum match).
+    */
+
+    // @TODO: move "PeakAnnotation" out of "PeptideHit"
+    typedef std::vector<PeptideHit::PeakAnnotation> PeakAnnotations;
+
+    typedef boost::variant<IdentifiedPeptideRef, IdentifiedCompoundRef,
+                           IdentifiedOligoRef> IdentifiedMoleculeRef;
+
+    struct MoleculeQueryMatch: public ScoredProcessingResult
+    {
+      IdentifiedMoleculeRef identified_molecule_ref;
+
+      DataQueryRef data_query_ref;
+
+      Int charge;
+
+      // peak annotations (fragment ion matches), potentially from different
+      // data processing steps:
+      std::map<ProcessingStepRef, PeakAnnotations> peak_annotations;
+
+      explicit MoleculeQueryMatch(
+        IdentifiedMoleculeRef identified_molecule_ref,
+        DataQueryRef data_query_ref, Int charge = 0,
+        const ScoreList& scores = ScoreList(),
+        const std::vector<ProcessingStepRef>& processing_step_refs =
+        std::vector<ProcessingStepRef>(),
+        const std::map<ProcessingStepRef, PeakAnnotations>& peak_annotations =
+        std::map<ProcessingStepRef, PeakAnnotations>()):
+        ScoredProcessingResult(scores, processing_step_refs),
+        identified_molecule_ref(identified_molecule_ref),
+        data_query_ref(data_query_ref), charge(charge),
+        peak_annotations(peak_annotations)
+      {
+      }
+
+      MoleculeQueryMatch(const MoleculeQueryMatch& other) = default;
+
+      enum MoleculeType getMoleculeType() const
+      {
+        if (boost::get<IdentifiedPeptideRef>(&identified_molecule_ref))
+        {
+          return MT_PROTEIN;
+        }
+        if (boost::get<IdentifiedCompoundRef>(&identified_molecule_ref))
+        {
+          return MT_COMPOUND;
+        }
+        if (boost::get<IdentifiedOligoRef>(&identified_molecule_ref))
+        {
+          return MT_RNA;
+        }
+      }
+
+      IdentifiedPeptideRef getIdentifiedPeptideRef() const
+      {
+        if (const IdentifiedPeptideRef* ref_ptr =
+            boost::get<IdentifiedPeptideRef>(&identified_molecule_ref))
+        {
+          return *ref_ptr;
+        }
+        String msg = "matched molecule is not a peptide";
+        throw Exception::IllegalArgument(__FILE__, __LINE__,
+                                         OPENMS_PRETTY_FUNCTION, msg);
+      }
+
+      IdentifiedCompoundRef getIdentifiedCompoundRef() const
+      {
+        if (const IdentifiedCompoundRef* ref_ptr =
+            boost::get<IdentifiedCompoundRef>(&identified_molecule_ref))
+        {
+          return *ref_ptr;
+        }
+        String msg = "matched molecule is not a compound";
+        throw Exception::IllegalArgument(__FILE__, __LINE__,
+                                         OPENMS_PRETTY_FUNCTION, msg);
+      }
+
+      IdentifiedOligoRef getIdentifiedOligoRef() const
+      {
+        if (const IdentifiedOligoRef* ref_ptr =
+            boost::get<IdentifiedOligoRef>(&identified_molecule_ref))
+        {
+          return *ref_ptr;
+        }
+        String msg = "matched molecule is not an oligonucleotide";
+        throw Exception::IllegalArgument(__FILE__, __LINE__,
+                                         OPENMS_PRETTY_FUNCTION, msg);
+      }
+
+      MoleculeQueryMatch& operator+=(const MoleculeQueryMatch& other)
+      {
+        ScoredProcessingResult::operator+=(other);
+        if (charge == 0) charge = other.charge;
+        peak_annotations.insert(other.peak_annotations.begin(),
+                                other.peak_annotations.end());
+        return *this;
+      }
+    };
+
+    // all matches for the same data query should be consecutive!
+    typedef boost::multi_index_container<
+      MoleculeQueryMatch,
+      boost::multi_index::indexed_by<
+        boost::multi_index::ordered_unique<boost::multi_index::composite_key<
+          boost::multi_index::member<MoleculeQueryMatch, DataQueryRef,
+                                     &MoleculeQueryMatch::data_query_ref>,
+          boost::multi_index::member<MoleculeQueryMatch, IdentifiedMoleculeRef,
+                                     &MoleculeQueryMatch::
+                                     identified_molecule_ref>>>>
+      > MoleculeQueryMatches;
+    typedef MoleculeQueryMatches::const_iterator QueryMatchRef;
+    MoleculeQueryMatches query_matches;
 
 
     /// Default constructor
     IdentificationData():
-      current_step_key_(0)
+      current_step_ref_(processing_steps.end())
     {
     }
 
@@ -608,69 +784,38 @@ namespace OpenMS
     /// Export to mzTab format
     MzTab exportMzTab() const;
 
-    /// Helper function to store meta data (derived from ScoredProcessingResult)
-    template <typename MetaDataMap>
-    void insertMetaData_(const typename MetaDataMap::mapped_type& meta_data,
-                         MetaDataMap& meta_data_map,
-                         typename MetaDataMap::key_type key, bool new_item)
-    {
-      checkScoreTypes_(meta_data.scores);
-      checkProcessingSteps_(meta_data.processing_steps);
+    std::pair<InputFileRef, bool> insertInputFile(const String& file);
 
-      if (new_item)
-      {
-        meta_data_map.insert(std::make_pair(key, meta_data));
-      }
-      else
-      {
-        meta_data_map.at(key) += meta_data;
-      }
-      addCurrentProcessingStep_(meta_data_map.at(key).processing_steps);
-    }
-
-    std::pair<InputFileKey, bool> registerInputFile(const String& file);
-
-    std::pair<ProcessingSoftwareKey, bool> registerDataProcessingSoftware(
+    std::pair<ProcessingSoftwareRef, bool> insertDataProcessingSoftware(
       const Software& software);
 
-    std::pair<SearchParamsKey, bool> registerDBSearchParameters(
-      const DBSearchParameters& params);
+    std::pair<SearchParamRef, bool> insertDBSearchParam(
+      const DBSearchParam& param);
 
-    std::pair<ProcessingStepKey, bool> registerDataProcessingStep(
-      const DataProcessingStep& step, SearchParamsKey search_key = 0);
+    std::pair<ProcessingStepRef, bool> insertDataProcessingStep(
+      const DataProcessingStep& step);
 
-    std::pair<ScoreTypeKey, bool> registerScoreType(const ScoreType& score);
+    std::pair<ProcessingStepRef, bool> insertDataProcessingStep(
+      const DataProcessingStep& step, SearchParamRef search_ref);
 
-    std::pair<DataQueryKey, bool> registerDataQuery(const DataQuery& query);
+    std::pair<ScoreTypeRef, bool> insertScoreType(const ScoreType& score);
 
-    std::pair<IdentifiedMoleculeKey, bool> registerPeptide(
-      const AASequence& seq,
-      const IdentifiedMetaData& meta_data = IdentifiedMetaData());
+    std::pair<DataQueryRef, bool> insertDataQuery(const DataQuery& query);
 
-    std::pair<IdentifiedMoleculeKey, bool> registerCompound(
-      const String& id,
-      const CompoundMetaData& compound_meta = CompoundMetaData(),
-      const IdentifiedMetaData& id_meta = IdentifiedMetaData(MT_COMPOUND));
+    std::pair<IdentifiedPeptideRef, bool> insertPeptide(
+      const IdentifiedPeptide& peptide);
 
-    std::pair<IdentifiedMoleculeKey, bool> registerOligo(
-      const NASequence& seq,
-      const IdentifiedMetaData& meta_data = IdentifiedMetaData(MT_RNA));
+    std::pair<IdentifiedCompoundRef, bool> insertCompound(
+      const IdentifiedCompound& compound);
 
-    std::pair<ParentMoleculeKey, bool> registerParentMolecule(
-      const String& accession,
-      const ParentMetaData& meta_data = ParentMetaData());
+    std::pair<IdentifiedOligoRef, bool> insertOligo(
+      const IdentifiedOligo& oligo);
 
-    // these ones are called "add..." instead of "register..." because they
-    // don't return a key:
+    std::pair<ParentMoleculeRef, bool> insertParentMolecule(
+      const ParentMolecule& parent);
 
-    bool addMoleculeParentMatch(
-      IdentifiedMoleculeKey molecule_key, ParentMoleculeKey parent_key,
-      const MoleculeParentMatch& meta_data = MoleculeParentMatch());
-
-    bool addMoleculeQueryMatch(
-      IdentifiedMoleculeKey molecule_key, DataQueryKey query_key,
-      const MoleculeQueryMatch& meta_data = MoleculeQueryMatch(),
-      const PeakAnnotations& peak_annotations = PeakAnnotations());
+    std::pair<QueryMatchRef, bool> insertMoleculeQueryMatch(
+      const MoleculeQueryMatch& match);
 
     /*!
       @brief Set a data processing step that will apply to all subsequent "register..." calls.
@@ -680,20 +825,24 @@ namespace OpenMS
 
       Effective until @ref clearCurrentProcessingStep() is called.
      */
-    void setCurrentProcessingStep(ProcessingStepKey step_key);
+    void setCurrentProcessingStep(ProcessingStepRef step_ref);
 
     /*!
-      Cancel the effect of @ref setCurrentProcessingStep().
+      Return the current processing step (set via @ref setCurrentProcessingStep()).
+
+      If no current processing step has been set, @p processing_steps.end() is returned.
     */
+    ProcessingStepRef getCurrentProcessingStep();
+
+    /// Cancel the effect of @ref setCurrentProcessingStep().
     void clearCurrentProcessingStep();
 
-    std::vector<QueryMatchKey> getBestMatchPerQuery(ScoreTypeKey
-                                                    score_key) const;
+    std::vector<QueryMatchRef> getBestMatchPerQuery(ScoreTypeRef
+                                                    score_ref) const;
 
-    ScoreTypeKey findScoreType(const String& score_name,
-                               ProcessingSoftwareKey software_key = 0) const;
+    ScoreTypeRef findScoreType(const String& score_name) const;
 
-    bool allParentsAreDecoys(IdentifiedMoleculeKey molecule_key) const;
+    ScoreTypeRef findScoreType(const String& score_name, ProcessingSoftwareRef software_ref) const;
 
     /// Helper function to compare two scores
     static bool isBetterScore(double first, double second, bool higher_better)
@@ -704,125 +853,96 @@ namespace OpenMS
 
   protected:
 
-    /// Key of the current data processing step (see @ref setCurrentProcessingStep())
-    ProcessingStepKey current_step_key_;
-
-    /*!
-      Helper function for inserting an item into a bidirectional map.
-
-      If the item is not contained yet, a unique key for it will be generated.
-
-      Returns the key of the item and whether an insertion took place.
-    */
-    template<typename KeyType, typename ItemType>
-    std::pair<KeyType, bool> insertIntoBimap_(
-      const ItemType& item, boost::bimap<KeyType, ItemType>& container)
-    {
-      typename boost::bimap<KeyType, ItemType>::right_const_iterator pos =
-        container.right.find(item);
-      if (pos == container.right.end()) // new entry
-      {
-        KeyType key = KeyType(UniqueIdGenerator::getUniqueId());
-        container.insert(typename boost::bimap<KeyType, ItemType>::
-                         value_type(key, item));
-        return std::make_pair(key, true);
-      }
-      return std::make_pair(pos->second, false);
-    }
+    /// Reference to the current data processing step (see @ref setCurrentProcessingStep())
+    ProcessingStepRef current_step_ref_;
 
     /// Export a parent molecule (protein or nucleic acid) to mzTab
     template <typename MzTabSectionRow>
-    void exportParentMoleculeToMzTab_(const String& accession,
-                                      const ParentMetaData& meta_data,
+    void exportParentMoleculeToMzTab_(const ParentMolecule& parent,
                                       std::vector<MzTabSectionRow>& output,
-                                      std::map<ScoreTypeKey, Size>& score_map)
+                                      std::map<ScoreTypeRef, Size>& score_map)
       const
     {
-      MzTabSectionRow parent;
-      parent.accession.set(accession);
-      exportScoresToMzTab_(meta_data.scores, parent.best_search_engine_score,
+      MzTabSectionRow row;
+      row.accession.set(parent.accession);
+      exportScoresToMzTab_(parent.scores, row.best_search_engine_score,
                            score_map);
-      exportProcessingStepsToMzTab_(meta_data.processing_steps,
-                                    parent.search_engine);
-      parent.description.set(meta_data.description);
-      parent.coverage.set(meta_data.coverage);
-      if (!meta_data.sequence.empty())
+      exportProcessingStepsToMzTab_(parent.processing_step_refs,
+                                    row.search_engine);
+      row.description.set(parent.description);
+      row.coverage.set(parent.coverage);
+      if (!parent.sequence.empty())
       {
         MzTabOptionalColumnEntry opt_seq;
         opt_seq.first = "opt_sequence";
-        opt_seq.second.set(meta_data.sequence);
-        parent.opt_.push_back(opt_seq);
+        opt_seq.second.set(parent.sequence);
+        row.opt_.push_back(opt_seq);
       }
-      output.push_back(parent);
+      output.push_back(row);
     }
 
-    /// Export an identified molecule (peptide or oligonucleotide, but not small molecule/compound) to mzTab
-    template <typename MzTabSectionRow>
-    void exportPeptideOrOligoToMzTab_(const String& sequence,
-                                      IdentifiedMoleculeKey key,
+    /// Export an identified sequence (peptide or oligonucleotide, but not small molecule/compound) to mzTab
+    template <typename MzTabSectionRow, typename IdentSeq>
+    void exportPeptideOrOligoToMzTab_(const IdentSeq& identified,
                                       std::vector<MzTabSectionRow>& output,
-                                      std::map<ScoreTypeKey, Size>& score_map)
+                                      std::map<ScoreTypeRef, Size>& score_map)
       const
     {
-      MzTabSectionRow molecule;
+      MzTabSectionRow row;
       // @TODO: handle modifications properly
-      molecule.sequence.set(sequence);
-      const IdentifiedMetaData& meta_data = identified_meta_data.at(key);
-      exportScoresToMzTab_(meta_data.scores, molecule.best_search_engine_score,
+      row.sequence.set(identified.sequence.toString());
+      exportScoresToMzTab_(identified.scores, row.best_search_engine_score,
                            score_map);
-      exportProcessingStepsToMzTab_(meta_data.processing_steps,
-                                    molecule.search_engine);
+      exportProcessingStepsToMzTab_(identified.processing_step_refs,
+                                    row.search_engine);
       // generate one entry (with duplicated data) for every accession:
-      ParentMatchMap::const_iterator pos = parent_matches.find(key);
-      if (pos != parent_matches.end())
+      bool unique = (identified.parent_matches.size() == 1);
+      for (const std::pair<ParentMoleculeRef, std::set<MoleculeParentMatch>>&
+             match_pair : identified.parent_matches)
       {
-        bool unique = (pos->second.size() == 1);
-        for (const std::pair<ParentMoleculeKey, std::set<MoleculeParentMatch>>&
-               match_pair : pos->second)
+        const String& accession = match_pair.first->accession;
+        row.accession.set(accession);
+        row.unique.set(unique);
+        if (match_pair.second.empty())
         {
-          const String& accession = parent_molecules.left.at(match_pair.first);
-          molecule.accession.set(accession);
-          molecule.unique.set(unique);
-          if (match_pair.second.empty())
-          {
-            output.push_back(molecule);
-          }
-          else
-          {
-            addMzTabMoleculeParentContext_(match_pair.second, molecule, output);
-          }
+          output.push_back(row);
+        }
+        else
+        {
+          addMzTabMoleculeParentContext_(match_pair.second, row, output);
         }
       }
-      else // no accession given
-      {
-        // molecule.unique.set(false); // leave this unset?
-        output.push_back(molecule);
-      }
+      // row.unique.set(false); // leave this unset?
+      output.push_back(row);
     }
 
     /// Export a molecule-query match (peptide- or oligonucleotide-spectrum match) to mzTab
     template <typename MzTabSectionRow>
     void exportQueryMatchToMzTab_(const String& sequence,
                                   const MoleculeQueryMatch& match,
-                                  DataQueryKey query_key, double calc_mass,
+                                  double calc_mass,
                                   std::vector<MzTabSectionRow>& output,
-                                  std::map<ScoreTypeKey, Size>& score_map,
-                                  std::map<InputFileKey, Size>& file_map)
+                                  std::map<ScoreTypeRef, Size>& score_map,
+                                  std::map<InputFileRef, Size>& file_map)
       const
     {
       MzTabSectionRow xsm; // PSM or OSM
       // @TODO: handle modifications properly
       xsm.sequence.set(sequence);
       exportScoresToMzTab_(match.scores, xsm.search_engine_score, score_map);
-      exportProcessingStepsToMzTab_(match.processing_steps, xsm.search_engine);
-      const DataQuery& query = data_queries.left.at(query_key);
+      exportProcessingStepsToMzTab_(match.processing_step_refs,
+                                    xsm.search_engine);
+      const DataQuery& query = *match.data_query_ref;
       std::vector<MzTabDouble> rts(1);
       rts[0].set(query.rt);
       xsm.retention_time.set(rts);
       xsm.charge.set(match.charge);
       xsm.exp_mass_to_charge.set(query.mz);
       xsm.calc_mass_to_charge.set(calc_mass / abs(match.charge));
-      xsm.spectra_ref.setMSFile(file_map[query.input_file_key]);
+      if (query.input_file_ref)
+      {
+        xsm.spectra_ref.setMSFile(*query.input_file_ref);
+      }
       xsm.spectra_ref.setSpecRef(query.data_id);
       // don't repeat data from the peptide section (e.g. accessions)
       // why are "pre"/"post"/"start"/"end" not in the peptide section?!
@@ -832,42 +952,46 @@ namespace OpenMS
     /// Helper function to add search engine scores to MzTab
     void exportScoresToMzTab_(const ScoreList& scores,
                               std::map<Size, MzTabDouble>& output,
-                              std::map<ScoreTypeKey, Size>& score_map) const;
+                              std::map<ScoreTypeRef, Size>& score_map) const;
 
     /// Helper function to add processing steps (search engines) to MzTab
     void exportProcessingStepsToMzTab_(
-      const std::vector<ProcessingStepKey>& steps, MzTabParameterList& output)
+      const std::vector<ProcessingStepRef>& steps, MzTabParameterList& output)
       const;
 
     /// Helper function to add search engine score entries to MzTab's meta data section
-    void addMzTabSEScores_(const std::map<ScoreTypeKey, Size>& scores,
+    void addMzTabSEScores_(const std::map<ScoreTypeRef, Size>& scores,
                            std::map<Size, MzTabParameter>& output) const;
 
     /// Helper function for @ref exportPeptideOrOligoToMzTab_() - oligonucleotide variant
     void addMzTabMoleculeParentContext_(
       const std::set<MoleculeParentMatch>& matches,
-      const MzTabOligonucleotideSectionRow& molecule,
+      const MzTabOligonucleotideSectionRow& row,
       std::vector<MzTabOligonucleotideSectionRow>& output) const;
 
     /// Helper function for @ref exportPeptideOrOligoToMzTab_() - peptide variant
     void addMzTabMoleculeParentContext_(
       const std::set<MoleculeParentMatch>& matches,
-      const MzTabPeptideSectionRow& molecule,
+      const MzTabPeptideSectionRow& row,
       std::vector<MzTabPeptideSectionRow>& output) const;
 
     /// Helper function to import DB search parameters from legacy format
-    SearchParamsKey importDBSearchParameters_(
+    SearchParamRef importDBSearchParameters_(
       const ProteinIdentification::SearchParameters& pisp);
 
     /// Helper function to export DB search parameters to legacy format
     ProteinIdentification::SearchParameters exportDBSearchParameters_(
-      SearchParamsKey key) const;
+      SearchParamRef ref) const;
 
-    /// Helper function to check if all score types are valid and registered
+    /// Helper function to check if all score types are valid
     void checkScoreTypes_(const ScoreList& scores);
 
-    /// Helper function to check if all processing steps are valid and registered
-    void checkProcessingSteps_(const std::vector<ProcessingStepKey>& steps);
+    /// Helper function to check if all processing steps are valid
+    void checkProcessingSteps_(const std::vector<ProcessingStepRef>& step_refs);
+
+    /// Helper function to check if all parent matches are valid
+    void checkParentMatches_(const ParentMatches& matches,
+                             enum MoleculeType expected_type);
 
     /*!
       @brief Helper function to add the current processing step to a list of steps, if applicable.
@@ -875,7 +999,42 @@ namespace OpenMS
       @see @ref setCurrentProcessingStep()
     */
     bool addCurrentProcessingStep_(
-      std::vector<ProcessingStepKey>& processing_steps);
+      std::vector<ProcessingStepRef>& processing_step_refs);
+
+    /// Helper functor for augmenting entries (derived from ScoredProcessingResult) in a @t boost::multi_index_container structure
+    template <typename ElementType>
+    struct ModifyMultiIndex
+    {
+      ModifyMultiIndex(const ElementType& update): update(update) {}
+
+      void operator()(ElementType& element)
+      {
+        element += update;
+      }
+
+      const ElementType& update;
+    };
+
+    /// Helper function for adding entries (derived from ScoredProcessingResult) to a @t boost::multi_index_container structure
+    template <typename ContainerType, typename ElementType>
+    std::pair<typename ContainerType::iterator, bool> insertIntoMultiIndex_(
+      ContainerType& container, const ElementType& element)
+    {
+      checkScoreTypes_(element.scores);
+      checkProcessingSteps_(element.processing_step_refs);
+      addCurrentProcessingStep_(element.processing_step_refs);
+
+      auto result = container.insert(element);
+
+      if (!result.second) // existing element - merge in new information
+      {
+        ModifyMultiIndex<ElementType> modifier(element);
+        container.modify(result.first, modifier);
+      }
+
+      return result;
+    }
+
   };
 }
 

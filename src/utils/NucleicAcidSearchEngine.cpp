@@ -452,7 +452,7 @@ protected:
   void postProcessHits_(const PeakMap& exp,
                         vector<vector<AnnotatedHit>>& annotated_hits,
                         IdentificationData& id_data,
-                        IdentificationData::InputFileKey file_key,
+                        IdentificationData::InputFileRef file_ref,
                         Size top_hits,
                         const vector<ConstRibonucleotidePtr>& fixed_modifications,
                         const vector<ConstRibonucleotidePtr>& variable_modifications,
@@ -474,7 +474,7 @@ protected:
     }
 
     IdentificationData::ScoreType score("hyperscore", true);
-    IdentificationData::ScoreTypeKey score_key = id_data.registerScoreType(score).first;
+    IdentificationData::ScoreTypeRef score_ref = id_data.insertScoreType(score).first;
 
 #ifdef _OPENMP
 #pragma omp parallel for
@@ -487,9 +487,9 @@ protected:
         Int charge = spectrum.getPrecursors()[0].getCharge();
         if ((charge > 0) && negative_mode) charge = -charge;
 
-        IdentificationData::DataQuery query(spectrum.getNativeID(), file_key, spectrum.getRT(), spectrum.getPrecursors()[0].getMZ());
+        IdentificationData::DataQuery query(spectrum.getNativeID(), file_ref, spectrum.getRT(), spectrum.getPrecursors()[0].getMZ());
         query.setMetaValue("scan_index", static_cast<unsigned int>(scan_index));
-        IdentificationData::DataQueryKey query_key = id_data.registerDataQuery(query).first;
+        IdentificationData::DataQueryRef query_ref = id_data.insertDataQuery(query).first;
 
         // create full oligo hit structure from annotated hits
         for (const AnnotatedHit& hit : annotated_hits[scan_index])
@@ -504,77 +504,72 @@ protected:
 
           // reannotate NASequence object
           NASequence modified_seq = all_modified_oligos[hit.mod_index];
-
-          IdentificationData::IdentifiedMoleculeKey oligo_key = id_data.registerOligo(modified_seq).first;
-
-          IdentificationData::ScoreList scores;
-          scores.push_back(make_pair(score_key, hit.score));
-          IdentificationData::MoleculeQueryMatch match(charge, scores);
-          // @TODO: add a field for this to "IdentificationData::MoleculeQueryMatch"?
-          match.setMetaValue(Constants::PRECURSOR_ERROR_PPM_USERPARAM, hit.precursor_error_ppm);
-
-          id_data.addMoleculeQueryMatch(oligo_key, query_key, match,
-                                        hit.annotations);
+          IdentificationData::IdentifiedOligo oligo(modified_seq);
 
           // add parent sequences:
           for (Size index : oligo_map.at(hit.sequence))
           {
             FASTAFile::FASTAEntry fasta = fasta_db[index];
-            IdentificationData::ParentMetaData meta(
-              IdentificationData::MT_RNA, fasta.sequence, fasta.description);
-            IdentificationData::ParentMoleculeKey parent_key =
-              id_data.registerParentMolecule(fasta.identifier, meta).first;
-
-            id_data.addMoleculeParentMatch(oligo_key, parent_key);
+            IdentificationData::ParentMolecule parent(fasta.identifier, IdentificationData::MT_RNA, fasta.sequence, fasta.description);
+            IdentificationData::ParentMoleculeRef parent_ref = id_data.insertParentMolecule(parent).first;
+            oligo.parent_matches[parent_ref];
           }
+
+          IdentificationData::IdentifiedOligoRef oligo_ref = id_data.registerOligo(oligo).first;
+
+          IdentificationData::MoleculeQueryMatch match(oligo_ref, query_ref, charge);
+          match.scores.push_back(make_pair(score_key, hit.score));
+          match.peak_annotations[id_data.getCurrentProcessingStep()] = hit.annotations;
+          // @TODO: add a field for this to "IdentificationData::MoleculeQueryMatch"?
+          match.setMetaValue(Constants::PRECURSOR_ERROR_PPM_USERPARAM, hit.precursor_error_ppm);
+          id_data.insertMoleculeQueryMatch(match);
         }
       }
     }
   }
 
 
-  IdentificationData::InputFileKey registerIDMetaData_(IdentificationData& id_data, const String& in_mzml, const vector<String>& primary_files,
-                           const IdentificationData::DBSearchParameters& search_params)
+  IdentificationData::InputFileRef registerIDMetaData_(IdentificationData& id_data, const String& in_mzml, const vector<String>& primary_files,
+                                                       const IdentificationData::DBSearchParam& search_param)
   {
-    IdentificationData::InputFileKey file_key = id_data.registerInputFile(in_mzml).first;
+    IdentificationData::InputFileKey file_ref = id_data.insertInputFile(in_mzml).first;
     Software software(toolName_(), version_);
-    IdentificationData::ProcessingSoftwareKey software_key = id_data.registerDataProcessingSoftware(software).first;
-    IdentificationData::SearchParamsKey search_key = id_data.registerDBSearchParameters(search_params).first;
+    IdentificationData::ProcessingSoftwareRef software_ref = id_data.insertDataProcessingSoftware(software).first;
+    IdentificationData::SearchParamRef search_ref = id_data.insertDBSearchParam(search_param).first;
     // @TODO: add suitable data processing action
-    IdentificationData::DataProcessingStep step(software_key, vector<IdentificationData::InputFileKey>(1, file_key), primary_files);
-    IdentificationData::ProcessingStepKey step_key = id_data.registerDataProcessingStep(step, search_key).first;
+    IdentificationData::DataProcessingStep step(software_ref, vector<IdentificationData::InputFileRef>(1, file_ref), primary_files);
+    IdentificationData::ProcessingStepKey step_ref = id_data.insertDataProcessingStep(step, search_ref).first;
     // reference this step in all following ID data items, if applicable:
-    id_data.setCurrentProcessingStep(step_key);
-    return file_key;
+    id_data.setCurrentProcessingStep(step_ref);
+    return file_ref;
   }
 
 
   void calculateAndFilterFDR_(IdentificationData& id_data,
                               const String& decoy_pattern, bool only_top_hits)
   {
-    for (const auto& pair : id_data.parent_molecules.left)
+    for (const auto& parent : id_data.parent_molecules)
     {
-      if (pair.second.hasSubstring(decoy_pattern))
+      if (parent.accession.hasSubstring(decoy_pattern))
       {
-        IdentificationData::ParentMetaData& meta =
-          id_data.parent_meta_data.at(pair.first);
-        meta.is_decoy = true;
+        // we can modify the "id_data" entry only indirectly:
+        IdentificationData::ParentMolecule temp(parent.accession);
+        temp.is_decoy = true;
+        id_data.insertParentMolecule(temp);
       }
     }
-    IdentificationData::ScoreTypeKey score_key =
-      id_data.findScoreType("hyperscore");
+    IdentificationData::ScoreTypeRef score_ref = id_data.findScoreType("hyperscore");
     FalseDiscoveryRate fdr;
     Param fdr_params = fdr.getDefaults();
     fdr_params.setValue("use_all_hits", only_top_hits ? "true" : "false");
     bool remove_decoys = getFlag_("fdr:remove_decoys");
     fdr_params.setValue("add_decoy_peptides", remove_decoys ? "false" : "true");
     fdr.setParameters(fdr_params);
-    IdentificationData::ScoreTypeKey fdr_key =
-      fdr.applyToQueryMatches(id_data, score_key);
+    IdentificationData::ScoreTypeRef fdr_ref = fdr.applyToQueryMatches(id_data, score_ref);
     double fdr_cutoff = getDoubleOption_("fdr:cutoff");
     if (fdr_cutoff < 1.0)
     {
-      IDFilter::filterQueryMatchesByScore(id_data, fdr_key, fdr_cutoff);
+      IDFilter::filterQueryMatchesByScore(id_data, fdr_ref, fdr_cutoff);
       LOG_INFO << "Search hits after FDR filtering: "
                << id_data.query_matches.size() << endl;
     }
@@ -908,11 +903,11 @@ protected:
     IdentificationData id_data;
     vector<String> primary_files;
     spectra.getPrimaryMSRunPath(primary_files);
-    IdentificationData::InputFileKey file_key =
+    IdentificationData::InputFileRef file_ref =
       registerIDMetaData_(id_data, in_mzml, primary_files, search_params);
 
     progresslogger.startProgress(0, 1, "post-processing search hits...");
-    postProcessHits_(spectra, annotated_hits, id_data, file_key,
+    postProcessHits_(spectra, annotated_hits, id_data, file_ref,
                      report_top_hits, fixed_modifications,
                      variable_modifications, max_variable_mods_per_oligo,
                      fasta_db, processed_oligos, negative_mode);
@@ -945,34 +940,33 @@ protected:
       proteins[0].setIdentifier("id");
       proteins[0].setDateTime(DateTime::now());
       proteins[0].setSearchEngine(toolName_());
-      map<IdentificationData::DataQueryKey, PeptideIdentification> id_map;
+      map<IdentificationData::DataQueryRef, PeptideIdentification> id_map;
       String score_name = "hyperscore";
-      IdentificationData::ScoreTypeKey score_key =
+      IdentificationData::ScoreTypeRef score_ref =
         id_data.findScoreType(score_name);
       // @TODO: write out q-values, if available?
       for (const auto& osm : id_data.query_matches)
       {
-        IdentificationData::DataQueryKey query_key = osm.first.first;
-        IdentificationData::IdentifiedMoleculeKey oligo_key = osm.first.second;
-        const IdentificationData::MoleculeQueryMatch& match = osm.second;
-        const NASequence& seq = id_data.identified_oligos.left.at(oligo_key);
+        IdentificationData::DataQueryRef query_ref = osm.data_query_ref;
+        IdentificationData::IdentifiedOligoRef oligo_ref =
+          osm.getIdentifiedOligRef();
+        const NASequence& seq = oligo_ref->sequence;
         PeptideHit hit;
         hit.setMetaValue("label", seq.toString());
-        hit.setScore(match.getScore(score_key).first);
-        hit.setCharge(match.charge);
-        hit.setPeakAnnotations(match.peak_annotations.begin()->second);
+        hit.setScore(osm.getScore(score_ref).first);
+        hit.setCharge(osm.charge);
+        hit.setPeakAnnotations(osm.peak_annotations.begin()->second);
         double precursor_error_ppm =
-          match.getMetaValue(Constants::PRECURSOR_ERROR_PPM_USERPARAM);
+          osm.getMetaValue(Constants::PRECURSOR_ERROR_PPM_USERPARAM);
         hit.setMetaValue(Constants::PRECURSOR_ERROR_PPM_USERPARAM,
                          precursor_error_ppm);
-        id_map[query_key].insertHit(hit);
+        id_map[query_ref].insertHit(hit);
       }
       const IdentificationData::ScoreType& score_type =
-        id_data.score_types.left.begin()->second;
+        id_data.score_types.begin()->second;
       for (auto& id_pair : id_map)
       {
-        const IdentificationData::DataQuery& query =
-          id_data.data_queries.left.at(id_pair.first);
+        const IdentificationData::DataQuery& query = *id_pair.first;
         PeptideIdentification& peptide = id_pair.second;
         peptide.setRT(query.rt);
         peptide.setMZ(query.mz);

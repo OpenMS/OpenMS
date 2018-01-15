@@ -1087,25 +1087,24 @@ public:
     ///@{
     static void keepBestMatchPerQuery(
       IdentificationData& id_data,
-      IdentificationData::ScoreTypeKey score_key = 0,
-      const String& score_type = "");
+      IdentificationData::ScoreTypeRef score_ref);
 
     static void filterQueryMatchesByScore(
       IdentificationData& id_data,
-      IdentificationData::ScoreTypeKey score_key, double cutoff);
+      IdentificationData::ScoreTypeRef score_ref, double cutoff);
 
     static void removeMoleculesParentsQueriesWithoutMatches(
       IdentificationData& id_data);
 
-    template <typename MapType>
-    static void removeNonmatchingKeys_(
-      MapType& map, const std::set<IdentificationData::UniqueKey>& keys)
+    template <typename SetType>
+    static void removeNonmatchingRefs_(
+      SetType& container, const std::set<typename SetType::iterator>& refs)
     {
-      for (auto it = map.begin(); it != map.end(); )
+      for (auto it = container.begin(); it != container.end(); )
       {
-        if (!keys.count(it->first))
+        if (!refs.count(it))
         {
-          it = map.erase(it);
+          it = container.erase(it);
         }
         else
         {

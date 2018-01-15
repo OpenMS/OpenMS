@@ -101,7 +101,7 @@ public:
 
        @return Key of the FDR score
     */
-    IdentificationData::ScoreTypeKey applyToQueryMatches(IdentificationData& id_data, IdentificationData::ScoreTypeKey score_key);
+    IdentificationData::ScoreTypeRef applyToQueryMatches(IdentificationData& id_data, IdentificationData::ScoreTypeRef score_ref);
 
   private:
     /// Not implemented
@@ -115,12 +115,11 @@ public:
 
     /// Helper function for applyToQueryMatches()
     void handleQueryMatch_(
-        const IdentificationData::QueryMatchMap::value_type& match_pair,
-        const IdentificationData& id_data,
-        IdentificationData::ScoreTypeKey score_key,
+        IdentificationData::QueryMatchRef match_ref,
+        IdentificationData::ScoreTypeRef score_ref,
         std::vector<double>& target_scores, std::vector<double>& decoy_scores,
-        std::map<IdentificationData::IdentifiedMoleculeKey, bool>& molecule_to_decoy,
-        std::map<IdentificationData::QueryMatchKey, double>& match_to_score);
+        std::map<IdentificationData::IdentifiedMoleculeRef, bool>& molecule_to_decoy,
+        std::map<IdentificationData::QueryMatchRef, double>& match_to_score);
   };
 
 } // namespace OpenMS
