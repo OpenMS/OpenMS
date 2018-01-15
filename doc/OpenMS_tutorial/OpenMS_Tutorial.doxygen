@@ -1,4 +1,4 @@
- --------------------------------------------------------------------------
+// --------------------------------------------------------------------------
 //                   %OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The %OpenMS Team -- Eberhard Karls University Tuebingen,
@@ -98,7 +98,7 @@ Each level of increasing abstraction provides better usability, but limits the e
 Before we get started developing with %OpenMS, we would like to point to some information on the development model and conventions we follow to maintain a coherent code base.
 
 <b>Development model</b><br>
-%OpenMS follows the Gitflow development workflow which is excellently describedI <a href="http://nvie.com/posts/a-successful-git-branching-model/">here</a>. Additionally we encourage every developer (even if he is eligible to push directly to %OpenMS) to create his own fork (e.g. @username). The GitHub people provide superb documentation on <a href="https://help.github.com/articles/fork-a-repo">forking</a> and how to keep your fork <a href="https://help.github.com/articles/syncing-a-fork">up-to-date</a>. With your own fork you can follow the Gitflow development model directly, but instead of merging into "develop" in your own fork you can open a <a href="https://help.github.com/articles/using-pull-requests">pull request</a>. Before opening the pull request, please check the <a href="https://github.com/OpenMS/OpenMS/wiki/Pull-Request-Checklist">checklist</a>.
+%OpenMS follows the Gitflow development workflow which is excellently describedI <a href="http://nvie.com/posts/a-successful-git-branching-model/">here</a>. Additionally we encourage every developer (even if he is eligible to push directly to %OpenMS) to create his own fork (e.g. username). The GitHub people provide superb documentation on <a href="https://help.github.com/articles/fork-a-repo">forking</a> and how to keep your fork <a href="https://help.github.com/articles/syncing-a-fork">up-to-date</a>. With your own fork you can follow the Gitflow development model directly, but instead of merging into "develop" in your own fork you can open a <a href="https://help.github.com/articles/using-pull-requests">pull request</a>. Before opening the pull request, please check the <a href="https://github.com/OpenMS/OpenMS/wiki/Pull-Request-Checklist">checklist</a>.
 <br>
 Some more details and tips are collected here.
 <br>
@@ -236,7 +236,7 @@ General:
 
 <br>
 <table>
-<caption id="multi_row">Directory structure of src folder (/src)</caption>
+<caption>Directory structure of src folder (/src)</caption>
  <tr><th>Folder        <th>Description
  <tr><td>openms</td><td>Source code of core library</td></tr>
  <tr><td>openms_gui</td><td>Source code of GUI applications (e.g.: TOPPView)</td></tr>
@@ -247,7 +247,7 @@ General:
 </table >
 <br>
 <table>
-<caption id="multi_row">Directory strucrture of core library (/src/openms)</caption>
+<caption>Directory strucrture of core library (/src/openms)</caption>
  <tr><th>Folder        <th>Description
  <tr><td>ANALYSIS</td><td>Source code of high-level analysis like PeakPicking, Quantitation, Identification, MapAlignment</td></tr>
  <tr><td>APPLICATIONS</td><td>Source code for tool base and handling</td></tr>
@@ -303,7 +303,7 @@ To store identified peptides %OpenMS has classes
 
 <br>
 <table>
-<caption id="multi_row">Directory strucrture of core library (/src/openms)</caption>
+<caption>Directory strucrture of core library (/src/openms)</caption>
  <tr><th>Stored Entity        <th>Class Name 
  <tr><td>Mass Peak (m/z + intensity)</td><td>Peak1D</td></tr>
  <tr><td>Elution Peak (rt + intensity)</td><td>ChromatogramPeak</td></tr>
@@ -583,12 +583,12 @@ First the different file formats and data structures for peptide identifications
 <b> Add essential includes </b>
 <br>
 
-\snippet Tutorial_Final Includes
+\snippet Tutorial_Final.cpp Includes
 
 <b> Read the input files </b>
 <br>
 
-\snippet Tutorial_InputRead InputRead
+\snippet Tutorial_Final.cpp InputRead
 
 Note: both peptide_identifications and protein_identifications contain protein accessions. The difference between them is that protein_identifications only contain the inferred set of protein accessions while peptide_identifications contains all protein accessions the peptides map to. We consider only the larger set of protein accessions stored in the peptide identifications. In principle, it would be easy to add another parameter that adds a filter for the inferred accessions stored in protein_identifications.
 
@@ -608,7 +608,7 @@ Now that we assembled the set of all protein accessions we are ready to compare 
 <b>Example: Tutorial_Functionality.cpp</b>
 <br>
 Add method functionality
-\snippet Tutorial_Functionality.cpp Functionality_2
+\snippet Tutorial_Final.cpp Functionality_2
 
 @subsection tutorial_write Write Output Files 
 <b>Example: Tutorial_Final.cpp</b>
