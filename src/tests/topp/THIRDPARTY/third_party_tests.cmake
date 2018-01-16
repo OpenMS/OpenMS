@@ -235,8 +235,9 @@ endif()
 
 #------------------------------------------------------------------------------
 if (NOT (${NOVOR_BINARY} STREQUAL "NOVOR_BINARY-NOTFOUND"))
-  add_test("TOPP_NovorAdapter_1" ${TOPP_BIN_PATH}/NovorAdapter -test -executable "${NOVOR_BINARY}" -in ${DATA_DIR_TOPP}/THIRDPARTY/NovorAdapter_in.mzML -out NovorAdapter_out.tmp -variable_modifications "Acetyl (K)" -fixed_modifications "Carbamidomethyl (C)" -forbiddenResidues "I")
-  add_test("TOPP_NovorAdapter_1_out" ${DIFF} -in1 NovorAdapter_out.tmp -in2 ${DATA_DIR_TOPP}/THIRDPARTY/NovorAdapter_out.idXML -whitelist "IdentificationRun date")
+  add_test("TOPP_NovorAdapter_1" ${TOPP_BIN_PATH}/NovorAdapter -test -executable "${NOVOR_BINARY}" -in ${DATA_DIR_TOPP}/THIRDPARTY/NovorAdapter_in.mzML -out NovorAdapter_1_out.tmp -variable_modifications "Acetyl (K)" -fixed_modifications "Carbamidomethyl (C)" -forbiddenResidues "I")
+  add_test("TOPP_NovorAdapter_1_out" ${DIFF} -in1 NovorAdapter_1_out.tmp -in2 ${DATA_DIR_TOPP}/THIRDPARTY/NovorAdapter_1_out.idXML -whitelist "IdentificationRun date")
+  set_tests_properties("TOPP_NovorAdapter_1_out" PROPERTIES DEPENDS "TOPP_NovorAdapter_1")
 endif()
 
 # made library with spectrast -cNtestLib -cP0.0 CometAdapter_1_out.pep.xml 

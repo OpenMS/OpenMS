@@ -75,9 +75,13 @@ using namespace std;
 
 
     This tool can be used for de novo sequencing of peptides from MS/MS data.
-
     Please use MS2-Spectra only. If filtering is needed please use the @ref TOPP_FileFilter.
 
+    Novor must be installed before this wrapper can be used. This wrapper was successfully tested with version v1.06.0634 (stable).
+    
+    Novor settings can be either used via command line or directly using a param file (param.txt).
+
+    Parameter names have been changed to match names found in other search engine adapters. For further information  check the Novor wiki (http://wiki.rapidnovor.com/wiki/Main_Page) and the official tool website (https://www.rapidnovor.com/). 
 
     <B>The command line parameters of this tool are:</B>
     @verbinclude UTILS_NovorAdapter.cli
@@ -107,7 +111,7 @@ protected:
   {
     // thirdparty executable 
     registerInputFile_("executable", "<jar>", "novor.jar", "novor.jar", false, false, ListUtils::create<String>("skipexists"));
-    // input and output
+    // input, output and parameter file 
     registerInputFile_("in", "<file>", "", "MzML Input file");
     setValidFormats_("in", ListUtils::create<String>("mzml"));
     registerOutputFile_("out", "<file>", "", "Novor idXML output");
@@ -121,8 +125,8 @@ protected:
     registerStringOption_("massAnalyzer", "<choice>" , "Trap", "MassAnalyzer e.g. (Oritrap CID-Trap, CID-FT, HCD-FT; QTof CID-TOF)", false);
     setValidStrings_("massAnalyzer", ListUtils::create<String>("Trap,TOF,FT"));
     // mass error tolerance
-    registerDoubleOption_("fragmentIon_error_tolerance", "<double>", 0.5, "Fragmentation error tolerance  (Da)", false);
-    registerDoubleOption_("precursor_error_tolerance", "<double>" , 15.0, "Precursor error tolerance  (ppm or Da)", false);
+    registerDoubleOption_("fragment_mass_tolerance", "<double>", 0.5, "Fragmentation error tolerance  (Da)", false);
+    registerDoubleOption_("precursor_mass_tolerance", "<double>" , 15.0, "Precursor error tolerance  (ppm or Da)", false);
     registerStringOption_("precursor_error_units", "<choice>", "Da", "Unit of precursor mass tolerance", false);
     setValidStrings_("precursor_error_units", ListUtils::create<String>("Da,ppm"));
     // post-translational-modification
@@ -135,6 +139,8 @@ protected:
    setValidStrings_("forbiddenResidues", ListUtils::create<String>("I,U"));
  
    // parameter novorFile will not be wrapped here
+   registerInputFile_("novorFile", "<file>", "", "File to introduce customized algorithm parameters for advanced users (otional .novor file)", false);
+   setValidFormats_("novorFile", ListUtils::create<String>("novor"));
    
    registerInputFile_("java_executable", "<file>", "java", "The Java executable. Usually Java is on the system PATH. If Java is not found, use this parameter to specify the full path to Java", false, false, ListUtils::create<String>("skipexists"));
    registerIntOption_("java_memory", "<num>", 3500, "Maximum Java heap size (in MB)", false);
@@ -173,12 +179,19 @@ protected:
   os << "enzyme = " << getStringOption_("enzyme") << "\n"
      << "fragmentation = " << getStringOption_("fragmentation") << "\n"
      << "massAnalyzer = " << getStringOption_("massAnalyzer") << "\n"
-     << "fragmentIonErrorTol = " << getDoubleOption_("fragmentIon_error_tolerance") << "Da" << "\n"
-     << "precursorErrorTol = " << getDoubleOption_("precursor_error_tolerance") << getStringOption_("precursor_error_units") << "\n"
+     << "fragmentIonErrorTol = " << getDoubleOption_("fragment_mass_tolerance") << "Da" << "\n"
+     << "precursorErrorTol = " << getDoubleOption_("precursor_mass_tolerance") << getStringOption_("precursor_error_units") << "\n"
      << "variableModifications = " << variable_mod << "\n"
      << "fixedModifications = "    << fixed_mod << "\n"
      << "forbiddenResidues = " << forbidden_res << "\n";
   
+   // novorFile for custom alogrithm parameters of nova
+   String cparamfile = getStringOption_("novorFile");
+   ifstream cpfile(cparamfile);
+     if (!cpfile)
+     {
+       os << "novorFile" << cparamfile << "\n";
+     }
    }
 
   // the main_ function is called after all parameters are read
@@ -188,7 +201,7 @@ protected:
     // parsing parameters
     //-------------------------------------------------------------
     String in = getStringOption_("in");
-    String out = getStringOption_("out");     
+    String out = getStringOption_("out");
     
     if (out.empty())
     {
@@ -235,7 +248,6 @@ protected:
     String tmp_param = tmp_dir + "param.txt";    
     ofstream os(tmp_param.c_str());
     createParamFile_(os);
-    os.close();
 
     // convert mzML to mgf format
     MzMLFile f;
@@ -258,11 +270,10 @@ protected:
     process_params << java_memory
                    << "-jar" << executable
                    << "-f" 
-                   << "-o" << tmp_out.toQString()
+                   << "-o" << tmp_out.toQString()               
                    << "-p" << tmp_param.toQString()
                    << tmp_mgf.toQString();
     
-    //TODO: How does ist work with a .bat (Batchfile - Win & sh file linux/mac) 
     QProcess qp;
     qp.setWorkingDirectory(path_to_executable);
     qp.start(java_executable.toQString(), process_params);
@@ -295,8 +306,6 @@ protected:
     // writing output
     //-------------------------------------------------------------
 
-    //TODO: delete tmp dir
-   
    ifstream file(tmp_out);
    if (file) 
    {
@@ -340,7 +349,6 @@ protected:
 
      // extract version from comment 
      // #              v1.06.0634 (stable)
-
      vector<ProteinIdentification> protein_ids;
      StringList versionrow;
      csv.getRow(2, versionrow);
@@ -353,15 +361,20 @@ protected:
 
      ProteinIdentification::SearchParameters search_parameters;
      search_parameters.db = "denovo";
-
      search_parameters.mass_type = ProteinIdentification::MONOISOTOPIC;
+    
+     // if a parameter file is used the modifications need to be parsed from the novor output csv
      search_parameters.fixed_modifications = getStringList_("fixed_modifications");
      search_parameters.variable_modifications = getStringList_("variable_modifications");
-     search_parameters.fragment_mass_tolerance = getDoubleOption_("fragmentIon_error_tolerance");
-     search_parameters.precursor_mass_tolerance = getDoubleOption_("precursor_error_tolerance");
+     search_parameters.fragment_mass_tolerance = getDoubleOption_("fragment_mass_tolerance");
+     search_parameters.precursor_mass_tolerance = getDoubleOption_("precursor_mass_tolerance");
      search_parameters.precursor_mass_tolerance_ppm = getStringOption_("precursor_error_units") == "ppm" ? true : false;
      search_parameters.fragment_mass_tolerance_ppm = false;
      search_parameters.digestion_enzyme = *ProteaseDB::getInstance()->getEnzyme(getStringOption_("enzyme"));
+     
+     //StringList inputFile;
+     //inputFile[0] = in;
+     //protein_ids[0].setPrimaryMSRunPath(inputFile); 
      protein_ids[0].setSearchParameters(search_parameters);
      
      IdXMLFile().store(out, protein_ids, peptide_ids);
