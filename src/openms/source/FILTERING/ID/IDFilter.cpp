@@ -641,7 +641,7 @@ namespace OpenMS
   {
     if (id_data.query_matches.size() <= 1) return; // nothing to do
 
-    if (score_ref == id_data.score_types.end()) // select the score type to use
+    if (score_ref == nullptr) // select the score type to use
     {
       throw Exception::NotImplemented(__FILE__, __LINE__,
                                       OPENMS_PRETTY_FUNCTION); // @TODO
@@ -653,7 +653,7 @@ namespace OpenMS
     for (auto it = id_data.query_matches.begin();
          it != id_data.query_matches.end(); )
     {
-      if (it == *best_match_it)
+      if (&(*it) == *best_match_it)
       {
         ++it;
         ++best_match_it;
@@ -672,7 +672,7 @@ namespace OpenMS
     IdentificationData& id_data, IdentificationData::ScoreTypeRef score_ref,
     double cutoff)
   {
-    if (score_ref == id_data.score_types.end())
+    if (score_ref == nullptr)
     {
       String msg = "invalid reference to score type";
       throw Exception::IllegalArgument(

@@ -189,7 +189,7 @@ protected:
     registerIntOption_("report:top_hits", "<num>", 1, "Maximum number of top scoring hits per spectrum that are reported.", false, true);
 
     registerTOPPSubsection_("fdr", "False Discovery Rate Options");
-    registerStringOption_("fdr:decoy_pattern", "<string>", "", "String used as part of the accession to annotate decoy sequences (e.g. 'DECOY_'). Leave empty to skip the FDR/q-value calculation.");
+    registerStringOption_("fdr:decoy_pattern", "<string>", "", "String used as part of the accession to annotate decoy sequences (e.g. 'DECOY_'). Leave empty to skip the FDR/q-value calculation.", false);
     registerDoubleOption_("fdr:cutoff", "<value>", 1.0, "Cut-off for FDR filtering; search hits with higher q-values will be removed.", false);
     setMinFloat_("fdr:cutoff", 0.0);
     setMaxFloat_("fdr:cutoff", 1.0);
@@ -474,7 +474,7 @@ protected:
     }
 
     IdentificationData::ScoreType score("hyperscore", true);
-    IdentificationData::ScoreTypeRef score_ref = id_data.insertScoreType(score).first;
+    IdentificationData::ScoreTypeRef score_ref = id_data.registerScoreType(score);
 
 #ifdef _OPENMP
 #pragma omp parallel for
@@ -489,7 +489,7 @@ protected:
 
         IdentificationData::DataQuery query(spectrum.getNativeID(), file_ref, spectrum.getRT(), spectrum.getPrecursors()[0].getMZ());
         query.setMetaValue("scan_index", static_cast<unsigned int>(scan_index));
-        IdentificationData::DataQueryRef query_ref = id_data.insertDataQuery(query).first;
+        IdentificationData::DataQueryRef query_ref = id_data.registerDataQuery(query);
 
         // create full oligo hit structure from annotated hits
         for (const AnnotatedHit& hit : annotated_hits[scan_index])
@@ -511,34 +511,37 @@ protected:
           {
             FASTAFile::FASTAEntry fasta = fasta_db[index];
             IdentificationData::ParentMolecule parent(fasta.identifier, IdentificationData::MT_RNA, fasta.sequence, fasta.description);
-            IdentificationData::ParentMoleculeRef parent_ref = id_data.insertParentMolecule(parent).first;
+            IdentificationData::ParentMoleculeRef parent_ref = id_data.registerParentMolecule(parent);
             oligo.parent_matches[parent_ref];
           }
 
-          IdentificationData::IdentifiedOligoRef oligo_ref = id_data.registerOligo(oligo).first;
+          IdentificationData::IdentifiedOligoRef oligo_ref = id_data.registerOligo(oligo);
 
           IdentificationData::MoleculeQueryMatch match(oligo_ref, query_ref, charge);
-          match.scores.push_back(make_pair(score_key, hit.score));
+          match.scores.push_back(make_pair(score_ref, hit.score));
           match.peak_annotations[id_data.getCurrentProcessingStep()] = hit.annotations;
           // @TODO: add a field for this to "IdentificationData::MoleculeQueryMatch"?
           match.setMetaValue(Constants::PRECURSOR_ERROR_PPM_USERPARAM, hit.precursor_error_ppm);
-          id_data.insertMoleculeQueryMatch(match);
+          id_data.registerMoleculeQueryMatch(match);
         }
       }
     }
   }
 
 
-  IdentificationData::InputFileRef registerIDMetaData_(IdentificationData& id_data, const String& in_mzml, const vector<String>& primary_files,
-                                                       const IdentificationData::DBSearchParam& search_param)
+  IdentificationData::InputFileRef registerIDMetaData_(
+    IdentificationData& id_data, const String& in_mzml,
+    const vector<String>& primary_files,
+    const IdentificationData::DBSearchParam& search_param)
   {
-    IdentificationData::InputFileKey file_ref = id_data.insertInputFile(in_mzml).first;
+    IdentificationData::InputFileRef file_ref =
+      id_data.registerInputFile(in_mzml);
     Software software(toolName_(), version_);
-    IdentificationData::ProcessingSoftwareRef software_ref = id_data.insertDataProcessingSoftware(software).first;
-    IdentificationData::SearchParamRef search_ref = id_data.insertDBSearchParam(search_param).first;
+    IdentificationData::ProcessingSoftwareRef software_ref = id_data.registerDataProcessingSoftware(software);
+    IdentificationData::SearchParamRef search_ref = id_data.registerDBSearchParam(search_param);
     // @TODO: add suitable data processing action
     IdentificationData::DataProcessingStep step(software_ref, vector<IdentificationData::InputFileRef>(1, file_ref), primary_files);
-    IdentificationData::ProcessingStepKey step_ref = id_data.insertDataProcessingStep(step, search_ref).first;
+    IdentificationData::ProcessingStepRef step_ref = id_data.registerDataProcessingStep(step, search_ref);
     // reference this step in all following ID data items, if applicable:
     id_data.setCurrentProcessingStep(step_ref);
     return file_ref;
@@ -555,7 +558,7 @@ protected:
         // we can modify the "id_data" entry only indirectly:
         IdentificationData::ParentMolecule temp(parent.accession);
         temp.is_decoy = true;
-        id_data.insertParentMolecule(temp);
+        id_data.registerParentMolecule(temp);
       }
     }
     IdentificationData::ScoreTypeRef score_ref = id_data.findScoreType("hyperscore");
@@ -587,9 +590,9 @@ protected:
     String theo_ms2_out = getStringOption_("theo_ms2_out");
     String exp_ms2_out = getStringOption_("exp_ms2_out");
 
-    IdentificationData::DBSearchParameters search_params;
-    search_params.molecule_type = IdentificationData::MT_RNA;
-    search_params.database = in_db;
+    IdentificationData::DBSearchParam search_param;
+    search_param.molecule_type = IdentificationData::MT_RNA;
+    search_param.database = in_db;
     Int min_charge = getIntOption_("precursor:min_charge");
     Int max_charge = getIntOption_("precursor:max_charge");
     // @TODO: allow zero to mean "any charge state in the data"?
@@ -613,24 +616,24 @@ protected:
     for (Int charge = min_charge; abs(charge) <= abs(max_charge);
          charge += step)
     {
-      search_params.charges.insert(charge);
+      search_param.charges.insert(charge);
     }
-    search_params.precursor_mass_tolerance = getDoubleOption_("precursor:mass_tolerance");
-    search_params.precursor_tolerance_ppm = (getStringOption_("precursor:mass_tolerance_unit") == "ppm");
-    search_params.fragment_mass_tolerance = getDoubleOption_("fragment:mass_tolerance");
-    search_params.fragment_tolerance_ppm = (getStringOption_("fragment:mass_tolerance_unit") == "ppm");
-    search_params.min_length = getIntOption_("oligo:min_size");
+    search_param.precursor_mass_tolerance = getDoubleOption_("precursor:mass_tolerance");
+    search_param.precursor_tolerance_ppm = (getStringOption_("precursor:mass_tolerance_unit") == "ppm");
+    search_param.fragment_mass_tolerance = getDoubleOption_("fragment:mass_tolerance");
+    search_param.fragment_tolerance_ppm = (getStringOption_("fragment:mass_tolerance_unit") == "ppm");
+    search_param.min_length = getIntOption_("oligo:min_size");
 
     StringList fixed_mod_names = getStringList_("modifications:fixed");
-    search_params.fixed_mods.insert(fixed_mod_names.begin(), fixed_mod_names.end());
+    search_param.fixed_mods.insert(fixed_mod_names.begin(), fixed_mod_names.end());
 
     StringList var_mod_names = getStringList_("modifications:variable");
-    search_params.variable_mods.insert(var_mod_names.begin(), var_mod_names.end());
+    search_param.variable_mods.insert(var_mod_names.begin(), var_mod_names.end());
 
-    vector<ConstRibonucleotidePtr> fixed_modifications = getModifications_(search_params.fixed_mods);
-    vector<ConstRibonucleotidePtr> variable_modifications = getModifications_(search_params.variable_mods);
+    vector<ConstRibonucleotidePtr> fixed_modifications = getModifications_(search_param.fixed_mods);
+    vector<ConstRibonucleotidePtr> variable_modifications = getModifications_(search_param.variable_mods);
 
-    // @TODO: add slots for these to "IdentificationData::DBSearchParameters"?
+    // @TODO: add slots for these to "IdentificationData::DBSearchParam"?
     IntList precursor_isotopes = getIntList_("precursor:isotopes");
     Size max_variable_mods_per_oligo = getIntOption_("modifications:variable_max_per_oligo");
     Int report_top_hits = getIntOption_("report:top_hits");
@@ -649,29 +652,32 @@ protected:
 
     progresslogger.startProgress(0, 1, "filtering spectra...");
     // @TODO: move this into the loop below (run only when checks pass)
-    preprocessSpectra_(spectra, search_params.fragment_mass_tolerance, search_params.fragment_tolerance_ppm, true, negative_mode);
+    preprocessSpectra_(spectra, search_param.fragment_mass_tolerance,
+                       search_param.fragment_tolerance_ppm, true,
+                       negative_mode);
     progresslogger.endProgress();
     LOG_DEBUG << "preprocessed spectra: " << spectra.getNrSpectra() << endl;
 
     // build multimap of precursor mass to scan index
     multimap<double, Size> multimap_mass_2_scan_index;
-    for (PeakMap::ConstIterator s_it = spectra.begin(); s_it != spectra.end(); ++s_it)
+    for (PeakMap::ConstIterator s_it = spectra.begin(); s_it != spectra.end();
+         ++s_it)
     {
       int scan_index = s_it - spectra.begin();
       vector<Precursor> precursor = s_it->getPrecursors();
 
       // there should be only one precursor and MS2 should contain at least a few peaks to be considered (e.g. at least one per nucleotide in the chain)
-      if (precursor.size() == 1 && s_it->size() >= search_params.min_length)
+      if (precursor.size() == 1 && s_it->size() >= search_param.min_length)
       {
         int precursor_charge = precursor[0].getCharge();
         // the charge value in mzML seems to be always positive, so compare by
         // absolute value in negative mode:
         if ((negative_mode &&
-             ((precursor_charge > abs(*search_params.charges.begin())) ||
-              (precursor_charge < abs(*(--search_params.charges.end()))))) ||
+             ((precursor_charge > abs(*search_param.charges.begin())) ||
+              (precursor_charge < abs(*(--search_param.charges.end()))))) ||
             (!negative_mode &&
-             ((precursor_charge < *search_params.charges.begin()) ||
-              (precursor_charge > *(--search_params.charges.end())))))
+             ((precursor_charge < *search_param.charges.begin()) ||
+              (precursor_charge > *(--search_param.charges.end())))))
         {
           continue;
         }
@@ -728,12 +734,13 @@ protected:
     FASTAFile().load(in_db, fasta_db);
     progresslogger.endProgress();
 
-    search_params.missed_cleavages = getIntOption_("oligo:missed_cleavages");
+    search_param.missed_cleavages = getIntOption_("oligo:missed_cleavages");
     String enzyme_name = getStringOption_("oligo:enzyme");
-    search_params.digestion_enzyme = RNaseDB::getInstance()->getEnzyme(enzyme_name);
+    search_param.digestion_enzyme =
+      RNaseDB::getInstance()->getEnzyme(enzyme_name);
     RNaseDigestion digestor;
-    digestor.setEnzyme(search_params.digestion_enzyme);
-    digestor.setMissedCleavages(search_params.missed_cleavages);
+    digestor.setEnzyme(search_param.digestion_enzyme);
+    digestor.setMissedCleavages(search_param.missed_cleavages);
 
     progresslogger.startProgress(0, (Size)(fasta_db.end() - fasta_db.begin()), "scoring oligo models against spectra...");
 
@@ -802,15 +809,15 @@ protected:
           multimap<double, Size>::const_iterator low_it;
           multimap<double, Size>::const_iterator up_it;
 
-          if (search_params.precursor_tolerance_ppm) // ppm
+          if (search_param.precursor_tolerance_ppm) // ppm
           {
-            low_it = multimap_mass_2_scan_index.lower_bound(candidate_mass - candidate_mass * search_params.precursor_mass_tolerance * 1e-6);
-            up_it = multimap_mass_2_scan_index.upper_bound(candidate_mass + candidate_mass * search_params.precursor_mass_tolerance * 1e-6);
+            low_it = multimap_mass_2_scan_index.lower_bound(candidate_mass - candidate_mass * search_param.precursor_mass_tolerance * 1e-6);
+            up_it = multimap_mass_2_scan_index.upper_bound(candidate_mass + candidate_mass * search_param.precursor_mass_tolerance * 1e-6);
           }
           else // Dalton
           {
-            low_it = multimap_mass_2_scan_index.lower_bound(candidate_mass - search_params.precursor_mass_tolerance);
-            up_it = multimap_mass_2_scan_index.upper_bound(candidate_mass + search_params.precursor_mass_tolerance);
+            low_it = multimap_mass_2_scan_index.lower_bound(candidate_mass - search_param.precursor_mass_tolerance);
+            up_it = multimap_mass_2_scan_index.upper_bound(candidate_mass + search_param.precursor_mass_tolerance);
           }
 
           if (low_it == up_it) continue; // no matching precursor in data
@@ -836,9 +843,9 @@ protected:
 
             vector<PeptideHit::PeakAnnotation> annotations;
             double score = MetaboliteSpectralMatching::computeHyperScore(
-              search_params.fragment_mass_tolerance,
-              search_params.fragment_tolerance_ppm,
-              exp_spectrum, theo_spectrum, annotations);
+              search_param.fragment_mass_tolerance,
+              search_param.fragment_tolerance_ppm, exp_spectrum, theo_spectrum,
+              annotations);
 
             if (!exp_ms2_out.empty())
             {
@@ -904,7 +911,7 @@ protected:
     vector<String> primary_files;
     spectra.getPrimaryMSRunPath(primary_files);
     IdentificationData::InputFileRef file_ref =
-      registerIDMetaData_(id_data, in_mzml, primary_files, search_params);
+      registerIDMetaData_(id_data, in_mzml, primary_files, search_param);
 
     progresslogger.startProgress(0, 1, "post-processing search hits...");
     postProcessHits_(spectra, annotated_hits, id_data, file_ref,
@@ -949,7 +956,7 @@ protected:
       {
         IdentificationData::DataQueryRef query_ref = osm.data_query_ref;
         IdentificationData::IdentifiedOligoRef oligo_ref =
-          osm.getIdentifiedOligRef();
+          osm.getIdentifiedOligoRef();
         const NASequence& seq = oligo_ref->sequence;
         PeptideHit hit;
         hit.setMetaValue("label", seq.toString());
@@ -963,7 +970,7 @@ protected:
         id_map[query_ref].insertHit(hit);
       }
       const IdentificationData::ScoreType& score_type =
-        id_data.score_types.begin()->second;
+        *id_data.score_types.begin();
       for (auto& id_pair : id_map)
       {
         const IdentificationData::DataQuery& query = *id_pair.first;

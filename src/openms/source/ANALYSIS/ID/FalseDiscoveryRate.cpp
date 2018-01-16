@@ -607,10 +607,10 @@ namespace OpenMS
     map<IdentificationData::QueryMatchRef, double> match_to_score;
     if (use_all_hits)
     {
-      for (IdentificationData::QueryMatchRef it = id_data.query_matches.begin();
-           it != id_data.query_matches.end(); ++it)
+      for (const IdentificationData::MoleculeQueryMatch& match :
+             id_data.query_matches)
       {
-        handleQueryMatch_(it, score_ref, target_scores, decoy_scores,
+        handleQueryMatch_(&match, score_ref, target_scores, decoy_scores,
                           molecule_to_decoy, match_to_score);
       }
     }
@@ -644,16 +644,17 @@ namespace OpenMS
       fdr_score.cv_term = CVTerm("MS:1002355", "PSM-level FDRScore", "MS");
     }
     IdentificationData::ScoreTypeRef fdr_ref =
-      id_data.insertScoreType(fdr_score).first;
-    for (IdentificationData::QueryMatchRef it = id_data.query_matches.begin();
-         it != id_data.query_matches.end(); ++it)
+      id_data.registerScoreType(fdr_score);
+    for (IdentificationData::MoleculeQueryMatches::iterator it =
+           id_data.query_matches.begin(); it != id_data.query_matches.end();
+         ++it)
     {
       if (!include_decoys)
       {
         auto pos = molecule_to_decoy.find(it->identified_molecule_ref);
         if ((pos != molecule_to_decoy.end()) && pos->second) continue;
       }
-      auto pos = match_to_score.find(it);
+      auto pos = match_to_score.find(&(*it));
       if (pos == match_to_score.end()) continue;
       double fdr = score_to_fdr.at(pos->second);
       IdentificationData::MoleculeQueryMatch copy(*it);

@@ -57,11 +57,11 @@ namespace OpenMS
     {
       Software software(prot.getSearchEngine(), prot.getSearchEngineVersion());
       ProcessingSoftwareRef software_ref =
-        insertDataProcessingSoftware(software).first;
+        registerDataProcessingSoftware(software);
 
       ScoreType score_type(prot.getScoreType(),
                            prot.isHigherScoreBetter(), software_ref);
-      ScoreTypeRef score_ref = insertScoreType(score_type).first;
+      ScoreTypeRef score_ref = registerScoreType(score_type);
 
       SearchParamRef search_ref =
         importDBSearchParameters_(prot.getSearchParameters());
@@ -70,12 +70,11 @@ namespace OpenMS
       prot.getPrimaryMSRunPath(step.primary_files);
       for (const String& path : step.primary_files)
       {
-        InputFileRef file_ref = insertInputFile(path).first;
+        InputFileRef file_ref = registerInputFile(path);
         step.input_file_refs.push_back(file_ref);
       }
       step.date_time = prot.getDateTime();
-      ProcessingStepRef step_ref =
-        insertDataProcessingStep(step, search_ref).first;
+      ProcessingStepRef step_ref = registerDataProcessingStep(step, search_ref);
       id_to_step[prot.getIdentifier()] = step_ref;
       setCurrentProcessingStep(step_ref);
 
@@ -88,7 +87,7 @@ namespace OpenMS
         parent.coverage = hit.getCoverage();
         static_cast<MetaInfoInterface&>(parent) = hit;
         parent.scores.push_back(make_pair(score_ref, hit.getScore()));
-        insertParentMolecule(parent);
+        registerParentMolecule(parent);
       }
       clearCurrentProcessingStep();
     }
@@ -108,7 +107,7 @@ namespace OpenMS
       else
       {
         String file = "UNKNOWN_INPUT_FILE_" + id;
-        InputFileRef file_ref = insertInputFile(file).first;
+        InputFileRef file_ref = registerInputFile(file);
         query.input_file_ref = file_ref;
       }
       query.rt = pep.getRT();
@@ -132,11 +131,11 @@ namespace OpenMS
           ++unknown_query_counter;
         }
       }
-      DataQueryRef query_ref = insertDataQuery(query).first;
+      DataQueryRef query_ref = registerDataQuery(query);
 
       ScoreType score_type(pep.getScoreType(), pep.isHigherScoreBetter(),
                            step_ref->software_ref);
-      ScoreTypeRef score_ref = insertScoreType(score_type).first;
+      ScoreTypeRef score_ref = registerScoreType(score_type);
 
       // PeptideHit:
       for (const PeptideHit& hit : pep.getHits())
@@ -151,13 +150,13 @@ namespace OpenMS
           ParentMolecule parent(accession);
           parent.processing_step_refs.push_back(step_ref);
           // this will merge information if the protein already exists:
-          ParentMoleculeRef parent_ref = insertParentMolecule(parent).first;
+          ParentMoleculeRef parent_ref = registerParentMolecule(parent);
           MoleculeParentMatch match(evidence.getStart(), evidence.getEnd(),
                                     evidence.getAABefore(),
                                     evidence.getAAAfter());
           peptide.parent_matches[parent_ref].insert(match);
         }
-        IdentifiedPeptideRef peptide_ref = insertPeptide(peptide).first;
+        IdentifiedPeptideRef peptide_ref = registerPeptide(peptide);
 
         MoleculeQueryMatch match(peptide_ref, query_ref);
         match.charge = hit.getCharge();
@@ -175,33 +174,33 @@ namespace OpenMS
           Software software;
           software.setName(ana_res.score_type); // e.g. "peptideprophet"
           ProcessingSoftwareRef software_ref =
-            insertDataProcessingSoftware(software).first;
+            registerDataProcessingSoftware(software);
           DataProcessingStep sub_step(software_ref);
-          if (query.input_file_ref)
+          if (query.input_file_ref != nullptr)
           {
-            sub_step.input_file_refs.push_back(*query.input_file_ref);
+            sub_step.input_file_refs.push_back(query.input_file_ref);
           }
-          ProcessingStepRef sub_step_ref = insertDataProcessingStep(sub_step).first;
+          ProcessingStepRef sub_step_ref = registerDataProcessingStep(sub_step);
           match.processing_step_refs.push_back(sub_step_ref);
           for (const pair<String, double>& sub_pair : ana_res.sub_scores)
           {
             ScoreType sub_score;
             sub_score.name = sub_pair.first;
             sub_score.software_ref = software_ref;
-            ScoreTypeRef sub_score_ref = insertScoreType(sub_score).first;
+            ScoreTypeRef sub_score_ref = registerScoreType(sub_score);
             match.scores.push_back(make_pair(sub_score_ref, sub_pair.second));
           }
           ScoreType main_score;
           main_score.name = ana_res.score_type + "_probability";
           main_score.higher_better = ana_res.higher_is_better;
           main_score.software_ref = software_ref;
-          ScoreTypeRef main_score_ref = insertScoreType(main_score).first;
+          ScoreTypeRef main_score_ref = registerScoreType(main_score);
           match.scores.push_back(make_pair(main_score_ref, ana_res.main_score));
         }
 
         // primary score goes last:
         match.scores.push_back(make_pair(score_ref, hit.getScore()));
-        insertMoleculeQueryMatch(match);
+        registerMoleculeQueryMatch(match);
       }
     }
   }
@@ -320,7 +319,7 @@ namespace OpenMS
     for (ProcessingStepRef step_ref : steps)
     {
       ProteinIdentification protein;
-      protein.setIdentifier(String(Size(&(*step_ref))));
+      protein.setIdentifier(String(Size(step_ref)));
       protein.setDateTime(step_ref->date_time);
       protein.setPrimaryMSRunPath(step_ref->primary_files);
       const Software& software = *step_ref->software_ref;
@@ -360,13 +359,12 @@ namespace OpenMS
     }
     counter = 1;
     map<InputFileRef, Size> file_map;
-    for (InputFileRef file_it = input_files.begin();
-         file_it != input_files.end(); ++file_it)
+    for (const String& input_file : input_files)
     {
       MzTabMSRunMetaData run_meta;
-      run_meta.location.set(*file_it);
+      run_meta.location.set(input_file);
       meta.ms_run[counter] = run_meta;
-      file_map[file_it] = counter;
+      file_map[&input_file] = counter;
       ++counter;
     }
     set<String> fixed_mods, variable_mods;
@@ -596,7 +594,7 @@ namespace OpenMS
     dbsp.missed_cleavages = pisp.missed_cleavages;
     static_cast<MetaInfoInterface&>(dbsp) = pisp;
 
-    return insertDBSearchParam(dbsp).first;
+    return registerDBSearchParam(dbsp);
   }
 
 
@@ -646,9 +644,9 @@ namespace OpenMS
   {
     for (const pair<ScoreTypeRef, double>& score_pair : scores)
     {
-      if (score_pair.first == score_types.end())
+      if (!isValidReference_(score_pair.first, score_types))
       {
-        String msg = "invalid reference to a score type - insert that first";
+        String msg = "invalid reference to a score type - register that first";
         throw Exception::IllegalArgument(__FILE__, __LINE__,
                                          OPENMS_PRETTY_FUNCTION, msg);
       }
@@ -661,9 +659,9 @@ namespace OpenMS
   {
     for (ProcessingStepRef step_ref : step_refs)
     {
-      if (step_ref == processing_steps.end())
+      if (!isValidReference_(step_ref, processing_steps))
       {
-        String msg = "invalid reference to a data processing step - insert that first";
+        String msg = "invalid reference to a data processing step - register that first";
         throw Exception::IllegalArgument(__FILE__, __LINE__,
                                          OPENMS_PRETTY_FUNCTION, msg);
       }
@@ -676,9 +674,9 @@ namespace OpenMS
   {
     for (const auto& pair : matches)
     {
-      if (pair.first == parent_molecules.end())
+      if (!isValidReference_(pair.first, parent_molecules))
       {
-        String msg = "invalid reference to a parent molecule - insert that first";
+        String msg = "invalid reference to a parent molecule - register that first";
         throw Exception::IllegalArgument(__FILE__, __LINE__,
                                          OPENMS_PRETTY_FUNCTION, msg);
       }
@@ -692,107 +690,102 @@ namespace OpenMS
   }
 
 
-  bool IdentificationData::addCurrentProcessingStep_(
-    vector<ProcessingStepRef>& processing_step_refs)
+  IdentificationData::InputFileRef
+  IdentificationData::registerInputFile(const String& file)
   {
-    if ((current_step_ref_ != processing_steps.end()) &&
-        (processing_step_refs.empty() ||
-         (processing_step_refs.back() != current_step_ref_)))
-    {
-      processing_step_refs.push_back(current_step_ref_);
-      return true;
-    }
-    return false;
+    return &(*input_files.insert(file).first);
   }
 
 
-  pair<IdentificationData::InputFileRef, bool>
-  IdentificationData::insertInputFile(const String& file)
+  IdentificationData::ProcessingSoftwareRef
+  IdentificationData::registerDataProcessingSoftware(const Software& software)
   {
-    return input_files.insert(file);
+    return &(*processing_software.insert(software).first);
   }
 
 
-  pair<IdentificationData::ProcessingSoftwareRef, bool>
-  IdentificationData::insertDataProcessingSoftware(const Software& software)
-  {
-    return processing_software.insert(software);
-  }
-
-
-  pair<IdentificationData::SearchParamRef, bool>
-  IdentificationData::insertDBSearchParam(const DBSearchParam& param)
+  IdentificationData::SearchParamRef
+  IdentificationData::registerDBSearchParam(const DBSearchParam& param)
   {
     // @TODO: any required information that should be checked?
-    return db_search_params.insert(param);
+    return &(*db_search_params.insert(param).first);
   }
 
 
-  pair<IdentificationData::ProcessingStepRef, bool>
-  IdentificationData::insertDataProcessingStep(const DataProcessingStep& step)
-  {
-    return insertDataProcessingStep(step, db_search_params.end());
-  }
-
-
-  pair<IdentificationData::ProcessingStepRef, bool>
-  IdentificationData::insertDataProcessingStep(
+  IdentificationData::ProcessingStepRef
+  IdentificationData::registerDataProcessingStep(
     const DataProcessingStep& step, SearchParamRef search_ref)
   {
     // valid reference to software is required:
-    if (step.software_ref == processing_software.end())
+    if (!isValidReference_(step.software_ref, processing_software))
     {
-      String msg = "invalid reference to data processing parameters - insert those first";
+      String msg = "invalid reference to data processing software - register that first";
       throw Exception::IllegalArgument(__FILE__, __LINE__,
                                        OPENMS_PRETTY_FUNCTION, msg);
     }
     // if given, references to input files must be valid:
     for (InputFileRef ref : step.input_file_refs)
     {
-      if (ref == input_files.end())
+      if (!isValidReference_(ref, input_files))
       {
-        String msg = "invalid reference to input file - insert that first";
+        String msg = "invalid reference to input file - register that first";
         throw Exception::IllegalArgument(__FILE__, __LINE__,
                                          OPENMS_PRETTY_FUNCTION, msg);
       }
     }
 
-    pair<ProcessingStepRef, bool> result = processing_steps.insert(step);
-    if (result.second && (search_ref != db_search_params.end()))
+    ProcessingStepRef step_ref = &(*processing_steps.insert(step).first);
+    // if given, reference to DB search param. must be valid:
+    if (search_ref != nullptr)
     {
-      db_search_steps.insert(make_pair(result.first, search_ref));
+      if (!isValidReference_(search_ref, db_search_params))
+      {
+        String msg = "invalid reference to database search parameters - register those first";
+      throw Exception::IllegalArgument(__FILE__, __LINE__,
+                                       OPENMS_PRETTY_FUNCTION, msg);
+      }
+      db_search_steps.insert(make_pair(step_ref, search_ref));
     }
-    return result;
+    return step_ref;
   }
 
 
-  pair<IdentificationData::ScoreTypeRef, bool>
-  IdentificationData::insertScoreType(const ScoreType& score)
+  IdentificationData::ScoreTypeRef
+  IdentificationData::registerScoreType(const ScoreType& score)
   {
-    // reference to software may be missing, but otherwise must be valid:
-    if (score.software_ref)
-    {
-      if (*score.software_ref == processing_software.end())
-      {
-        String msg = "invalid reference to data processing software - insert that first";
-        throw Exception::IllegalArgument(__FILE__, __LINE__,
-                                         OPENMS_PRETTY_FUNCTION, msg);
-      }
-    }
-    else if (current_step_ref_ != processing_steps.end())
+    pair<ScoreTypes::iterator, bool> result;
+    if ((score.software_ref == nullptr) && (current_step_ref_ != nullptr))
     {
       // transfer the software ref. from the current data processing step:
       const DataProcessingStep& step = *current_step_ref_;
       ScoreType copy(score); // need a copy so we can modify it
       copy.software_ref = step.software_ref;
-      return score_types.insert(copy);
+      result = score_types.insert(copy);
     }
-    return score_types.insert(score);
+    else
+    {
+      // ref. to software may be missing, but must otherwise be valid:
+      if ((score.software_ref != nullptr) &&
+          !isValidReference_(score.software_ref, processing_software))
+      {
+        String msg = "invalid reference to data processing software - register that first";
+        throw Exception::IllegalArgument(__FILE__, __LINE__,
+                                         OPENMS_PRETTY_FUNCTION, msg);
+      }
+      result = score_types.insert(score);
+    }
+    if (!result.second && (score.higher_better != result.first->higher_better))
+    {
+      String msg = "score type already exists with opposite orientation";
+      throw Exception::IllegalArgument(__FILE__, __LINE__,
+                                       OPENMS_PRETTY_FUNCTION, msg);
+    }
+    return &(*result.first);
   }
 
 
-  pair<IdentificationData::DataQueryRef, bool>
-  IdentificationData::insertDataQuery(const DataQuery& query)
+  IdentificationData::DataQueryRef
+  IdentificationData::registerDataQuery(const DataQuery& query)
   {
     // reference to spectrum or feature is required:
     if (query.data_id.empty())
@@ -801,20 +794,20 @@ namespace OpenMS
       throw Exception::IllegalArgument(__FILE__, __LINE__,
                                        OPENMS_PRETTY_FUNCTION, msg);
     }
-    // reference to input file may be missing, but otherwise must be valid:
-    if (query.input_file_ref &&
-        (*query.input_file_ref == input_files.end()))
+    // ref. to input file may be missing, but must otherwise be valid:
+    if ((query.input_file_ref != nullptr) &&
+        !isValidReference_(query.input_file_ref, input_files))
     {
-      String msg = "invalid reference to input file - insert that first";
+      String msg = "invalid reference to an input file - register that first";
       throw Exception::IllegalArgument(__FILE__, __LINE__,
                                        OPENMS_PRETTY_FUNCTION, msg);
     }
-    return data_queries.insert(query);
+    return &(*data_queries.insert(query).first);
   }
 
 
-  pair<IdentificationData::IdentifiedPeptideRef, bool>
-  IdentificationData::insertPeptide(const IdentifiedPeptide& peptide)
+  IdentificationData::IdentifiedPeptideRef
+  IdentificationData::registerPeptide(const IdentifiedPeptide& peptide)
   {
     if (peptide.sequence.empty())
     {
@@ -828,8 +821,8 @@ namespace OpenMS
   }
 
 
-  pair<IdentificationData::IdentifiedCompoundRef, bool>
-  IdentificationData::insertCompound(const IdentifiedCompound& compound)
+  IdentificationData::IdentifiedCompoundRef
+  IdentificationData::registerCompound(const IdentifiedCompound& compound)
   {
     if (compound.identifier.empty())
     {
@@ -842,8 +835,8 @@ namespace OpenMS
   }
 
 
-  pair<IdentificationData::IdentifiedOligoRef, bool>
-  IdentificationData::insertOligo(const IdentifiedOligo& oligo)
+  IdentificationData::IdentifiedOligoRef
+  IdentificationData::registerOligo(const IdentifiedOligo& oligo)
   {
     if (oligo.sequence.empty())
     {
@@ -857,8 +850,8 @@ namespace OpenMS
   }
 
 
-  pair<IdentificationData::ParentMoleculeRef, bool>
-  IdentificationData::insertParentMolecule(const ParentMolecule& parent)
+  IdentificationData::ParentMoleculeRef
+  IdentificationData::registerParentMolecule(const ParentMolecule& parent)
   {
     if (parent.accession.empty())
     {
@@ -871,15 +864,16 @@ namespace OpenMS
   }
 
 
-  pair<IdentificationData::QueryMatchRef, bool>
-  IdentificationData::insertMoleculeQueryMatch(const MoleculeQueryMatch& match)
+  IdentificationData::QueryMatchRef
+  IdentificationData::registerMoleculeQueryMatch(const MoleculeQueryMatch&
+                                                 match)
   {
     if (const IdentifiedPeptideRef* ref_ptr =
         boost::get<IdentifiedPeptideRef>(&match.identified_molecule_ref))
     {
-      if (*ref_ptr == identified_peptides.end())
+      if (!isValidReference_(*ref_ptr, identified_peptides))
       {
-        String msg = "invalid reference to an identified peptide - insert that first";
+        String msg = "invalid reference to an identified peptide - register that first";
         throw Exception::IllegalArgument(__FILE__, __LINE__,
                                          OPENMS_PRETTY_FUNCTION, msg);
       }
@@ -887,9 +881,9 @@ namespace OpenMS
     else if (const IdentifiedCompoundRef* ref_ptr =
              boost::get<IdentifiedCompoundRef>(&match.identified_molecule_ref))
     {
-      if (*ref_ptr == identified_compounds.end())
+      if (!isValidReference_(*ref_ptr, identified_compounds))
       {
-        String msg = "invalid reference to an identified compound - insert that first";
+        String msg = "invalid reference to an identified compound - register that first";
         throw Exception::IllegalArgument(__FILE__, __LINE__,
                                          OPENMS_PRETTY_FUNCTION, msg);
       }
@@ -897,16 +891,16 @@ namespace OpenMS
     else if (const IdentifiedOligoRef* ref_ptr =
              boost::get<IdentifiedOligoRef>(&match.identified_molecule_ref))
     {
-      if (*ref_ptr == identified_oligos.end())
+      if (!isValidReference_(*ref_ptr, identified_oligos))
       {
-        String msg = "invalid reference to an identified oligonucleotide - insert that first";
+        String msg = "invalid reference to an identified oligonucleotide - register that first";
         throw Exception::IllegalArgument(__FILE__, __LINE__,
                                          OPENMS_PRETTY_FUNCTION, msg);
       }
     }
-    if (match.data_query_ref == data_queries.end())
+    if (!isValidReference_(match.data_query_ref, data_queries))
     {
-      String msg = "invalid reference to a data query - insert that first";
+      String msg = "invalid reference to a data query - register that first";
       throw Exception::IllegalArgument(__FILE__, __LINE__,
                                        OPENMS_PRETTY_FUNCTION, msg);
     }
@@ -917,9 +911,9 @@ namespace OpenMS
 
   void IdentificationData::setCurrentProcessingStep(ProcessingStepRef step_ref)
   {
-    if (step_ref == processing_steps.end())
+    if (!isValidReference_(step_ref, processing_steps))
     {
-      String msg = "invalid reference to a processing step - insert that first";
+      String msg = "invalid reference to a processing step - register that first";
       throw Exception::IllegalArgument(__FILE__, __LINE__,
                                        OPENMS_PRETTY_FUNCTION, msg);
     }
@@ -936,31 +930,23 @@ namespace OpenMS
 
   void IdentificationData::clearCurrentProcessingStep()
   {
-    current_step_ref_ = processing_steps.end();
-  }
-
-
-  IdentificationData::ScoreTypeRef IdentificationData::findScoreType(
-    const String& score_name) const
-  {
-    return findScoreType(score_name, processing_software.end());
+    current_step_ref_ = nullptr;
   }
 
 
   IdentificationData::ScoreTypeRef IdentificationData::findScoreType(
     const String& score_name, ProcessingSoftwareRef software_ref) const
   {
-    for (ScoreTypeRef ref = score_types.begin(); ref != score_types.end();
-         ++ref)
+    for (ScoreTypes::iterator it = score_types.begin(); it != score_types.end();
+         ++it)
     {
-      if ((ref->name == score_name) &&
-          ((software_ref == processing_software.end()) ||
-           (ref->software_ref == software_ref)))
+      if ((it->name == score_name) &&
+          ((software_ref == nullptr) || (it->software_ref == software_ref)))
       {
-        return ref;
+        return &(*it);
       }
     }
-    return score_types.end();
+    return nullptr;
   }
 
 
@@ -970,17 +956,16 @@ namespace OpenMS
     vector<QueryMatchRef> results;
     bool higher_better = score_ref->higher_better;
     pair<double, bool> best_score = make_pair(0.0, false);
-    QueryMatchRef best_ref = query_matches.end();
-    for (QueryMatchRef ref = query_matches.begin(); ref != query_matches.end();
-         ++ref)
+    QueryMatchRef best_ref = nullptr;
+    for (const MoleculeQueryMatch& match : query_matches)
     {
-      pair<double, bool> current_score = ref->getScore(score_ref);
-      if (ref->data_query_ref != best_ref->data_query_ref)
+      pair<double, bool> current_score = match.getScore(score_ref);
+      if (match.data_query_ref != best_ref->data_query_ref)
       {
         // finalize previous query:
         if (best_score.second) results.push_back(best_ref);
         best_score = current_score;
-        best_ref = ref;
+        best_ref = &match;
       }
       else if (current_score.second &&
                (!best_score.second ||
@@ -989,7 +974,7 @@ namespace OpenMS
       {
         // new best score for the current query:
         best_score = current_score;
-        best_ref = ref;
+        best_ref = &match;
       }
     }
     // finalize last query:

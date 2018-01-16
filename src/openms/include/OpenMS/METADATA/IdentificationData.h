@@ -45,10 +45,9 @@
 #include <OpenMS/METADATA/Software.h>
 
 #include <boost/multi_index_container.hpp>
-#include <boost/multi_index/composite_key.hpp>
 #include <boost/multi_index/ordered_index.hpp>
 #include <boost/multi_index/member.hpp>
-#include <boost/optional.hpp>
+#include <boost/multi_index/mem_fun.hpp>
 #include <boost/variant.hpp>
 
 namespace OpenMS
@@ -68,7 +67,7 @@ namespace OpenMS
 
     // Input files that were processed:
     typedef std::set<String> InputFiles;
-    typedef InputFiles::const_iterator InputFileRef;
+    typedef const String* InputFileRef;
     InputFiles input_files;
 
 
@@ -79,7 +78,7 @@ namespace OpenMS
  software information only once.
     */
     typedef std::set<Software> DataProcessingSoftware;
-    typedef DataProcessingSoftware::const_iterator ProcessingSoftwareRef;
+    typedef const Software* ProcessingSoftwareRef;
     DataProcessingSoftware processing_software;
 
 
@@ -116,9 +115,9 @@ namespace OpenMS
       // don't compare meta data (?):
       bool operator<(const DataProcessingStep& other) const
       {
-        return (std::tie(*software_ref, input_file_refs, primary_files,
+        return (std::tie(software_ref, input_file_refs, primary_files,
                          date_time, actions) <
-                std::tie(*other.software_ref, other.input_file_refs,
+                std::tie(other.software_ref, other.input_file_refs,
                          other.primary_files, other.date_time, other.actions));
       }
 
@@ -133,7 +132,7 @@ namespace OpenMS
     };
 
     typedef std::set<DataProcessingStep> DataProcessingSteps;
-    typedef DataProcessingSteps::const_iterator ProcessingStepRef;
+    typedef const DataProcessingStep* ProcessingStepRef;
     DataProcessingSteps processing_steps;
 
 
@@ -216,7 +215,7 @@ namespace OpenMS
     };
 
     typedef std::set<DBSearchParam> DBSearchParams;
-    typedef DBSearchParams::const_iterator SearchParamRef;
+    typedef const DBSearchParam* SearchParamRef;
     DBSearchParams db_search_params;
     // @TODO: store SearchParamRef inside ProcessingStep? (may not be required
     // for many processing steps)
@@ -235,7 +234,7 @@ namespace OpenMS
       bool higher_better;
 
       // reference to the software that assigned the score:
-      boost::optional<ProcessingSoftwareRef> software_ref;
+      ProcessingSoftwareRef software_ref;
       // @TODO: scores assigned by different software tools/versions are
       // considered as different scores (even if they have the same name) -
       // does that make sense?
@@ -246,16 +245,14 @@ namespace OpenMS
       }
 
       explicit ScoreType(const CVTerm& cv_term, bool higher_better,
-                         boost::optional<ProcessingSoftwareRef> software_ref =
-                         boost::none):
+                         ProcessingSoftwareRef software_ref = nullptr):
         cv_term(cv_term), name(cv_term.getName()), higher_better(higher_better),
         software_ref(software_ref)
       {
       }
 
       explicit ScoreType(const String& name, bool higher_better,
-                         boost::optional<ProcessingSoftwareRef> software_ref =
-                         boost::none):
+                         ProcessingSoftwareRef software_ref = nullptr):
         cv_term(), name(name), higher_better(higher_better),
         software_ref(software_ref)
       {
@@ -266,21 +263,9 @@ namespace OpenMS
       // don't include "higher_better" in the comparison:
       bool operator<(const ScoreType& other) const
       {
-        // no "operator<" for "ProcessingSoftwareRef":
-        // return (std::tie(cv_term.getAccession(), name, software_ref) <
-        //         std::tie(other.cv_term.getAccession(), other.name,
-        //                  other.software_ref));
-        if (cv_term.getAccession() != other.cv_term.getAccession())
-        {
-          return (cv_term.getAccession() < other.cv_term.getAccession());
-        }
-        if (name != other.name)
-        {
-          return (name < other.name);
-        }
-        if (!other.software_ref) return false;
-        if (!software_ref) return true;
-        return **software_ref < **other.software_ref; // compare by value
+        return (std::tie(cv_term.getAccession(), name, software_ref) <
+                std::tie(other.cv_term.getAccession(), other.name,
+                         other.software_ref));
       }
 
       // don't include "higher_better" in the comparison:
@@ -293,7 +278,7 @@ namespace OpenMS
     };
 
     typedef std::set<ScoreType> ScoreTypes;
-    typedef ScoreTypes::const_iterator ScoreTypeRef;
+    typedef const ScoreType* ScoreTypeRef;
     // @TODO: use a "boost::multi_index_container" to allow efficient access in
     // sequence and by key?
     typedef std::vector<std::pair<ScoreTypeRef, double>> ScoreList;
@@ -308,13 +293,13 @@ namespace OpenMS
       // spectrum or feature ID (from the file referenced by "input_file_key"):
       String data_id;
 
-      boost::optional<InputFileRef> input_file_ref;
+      InputFileRef input_file_ref;
 
       double rt, mz; // position
 
       explicit DataQuery(
         const String& data_id,
-        boost::optional<InputFileRef> input_file_ref = boost::none,
+        InputFileRef input_file_ref = nullptr,
         double rt = std::numeric_limits<double>::quiet_NaN(),
         double mz = std::numeric_limits<double>::quiet_NaN()):
         data_id(data_id), input_file_ref(input_file_ref), rt(rt), mz(mz)
@@ -327,16 +312,8 @@ namespace OpenMS
       // ignore RT and m/z for comparisons to avoid issues with rounding:
       bool operator<(const DataQuery& other) const
       {
-        // no "operator<" for "InputFileRef":
-        // return std::tie(input_file_ref, data_id) <
-        //   std::tie(other.input_file_ref, other.data_id);
-        if (!other.input_file_ref) return false;
-        if (!input_file_ref) return true;
-        if (**input_file_ref != **other.input_file_ref)
-        {
-          return **input_file_ref < **other.input_file_ref;
-        }
-        return data_id < other.data_id;
+        return std::tie(input_file_ref, data_id) <
+          std::tie(other.input_file_ref, other.data_id);
       }
 
       // ignore RT and m/z for comparisons to avoid issues with rounding:
@@ -351,7 +328,7 @@ namespace OpenMS
     };
 
     typedef std::set<DataQuery> DataQueries;
-    typedef DataQueries::const_iterator DataQueryRef;
+    typedef const DataQuery* DataQueryRef;
     DataQueries data_queries;
 
 
@@ -475,7 +452,7 @@ namespace OpenMS
         boost::multi_index::ordered_unique<boost::multi_index::member<
           ParentMolecule, String, &ParentMolecule::accession>>>
       > ParentMolecules;
-    typedef ParentMolecules::const_iterator ParentMoleculeRef;
+    typedef const ParentMolecule* ParentMoleculeRef;
     ParentMolecules parent_molecules;
 
 
@@ -568,6 +545,8 @@ namespace OpenMS
         // @TODO: improve merging of parent matches
         parent_matches.insert(other.parent_matches.begin(),
                               other.parent_matches.end());
+
+        return *this;
       }
 
       bool allParentsAreDecoys() const
@@ -580,7 +559,7 @@ namespace OpenMS
         }
         for (const auto& pair : parent_matches)
         {
-          if (pair.first->is_decoy) return false;
+          if (!pair.first->is_decoy) return false;
         }
         return true;
       }
@@ -596,7 +575,7 @@ namespace OpenMS
         boost::multi_index::ordered_unique<boost::multi_index::member<
           IdentifiedPeptide, AASequence, &IdentifiedPeptide::sequence>>>
       > IdentifiedPeptides;
-    typedef IdentifiedPeptides::const_iterator IdentifiedPeptideRef;
+    typedef const IdentifiedPeptide* IdentifiedPeptideRef;
     IdentifiedPeptides identified_peptides;
 
     // identified oligos indexed by their sequences:
@@ -606,7 +585,7 @@ namespace OpenMS
         boost::multi_index::ordered_unique<boost::multi_index::member<
           IdentifiedOligo, NASequence, &IdentifiedOligo::sequence>>>
       > IdentifiedOligos;
-    typedef IdentifiedOligos::const_iterator IdentifiedOligoRef;
+    typedef const IdentifiedOligo* IdentifiedOligoRef;
     IdentifiedOligos identified_oligos;
 
     struct IdentifiedCompound: public ScoredProcessingResult
@@ -644,7 +623,7 @@ namespace OpenMS
         boost::multi_index::ordered_unique<boost::multi_index::member<
           IdentifiedCompound, String, &IdentifiedCompound::identifier>>>
       > IdentifiedCompounds;
-    typedef IdentifiedCompounds::const_iterator IdentifiedCompoundRef;
+    typedef const IdentifiedCompound* IdentifiedCompoundRef;
     IdentifiedCompounds identified_compounds;
 
 
@@ -687,6 +666,11 @@ namespace OpenMS
 
       MoleculeQueryMatch(const MoleculeQueryMatch& other) = default;
 
+      std::pair<DataQueryRef, IdentifiedMoleculeRef> getCombinedKey() const
+      {
+        return std::make_pair(data_query_ref, identified_molecule_ref);
+      }
+
       enum MoleculeType getMoleculeType() const
       {
         if (boost::get<IdentifiedPeptideRef>(&identified_molecule_ref))
@@ -701,6 +685,7 @@ namespace OpenMS
         {
           return MT_RNA;
         }
+        return SIZE_OF_MOLECULETYPES; // this shouldn't happen
       }
 
       IdentifiedPeptideRef getIdentifiedPeptideRef() const
@@ -750,23 +735,22 @@ namespace OpenMS
     };
 
     // all matches for the same data query should be consecutive!
+    // tried using "boost::multi_index::composite_key" here, but that gave weird
+    // compiler errors, so we define a combined key ourselves:
     typedef boost::multi_index_container<
       MoleculeQueryMatch,
       boost::multi_index::indexed_by<
-        boost::multi_index::ordered_unique<boost::multi_index::composite_key<
-          boost::multi_index::member<MoleculeQueryMatch, DataQueryRef,
-                                     &MoleculeQueryMatch::data_query_ref>,
-          boost::multi_index::member<MoleculeQueryMatch, IdentifiedMoleculeRef,
-                                     &MoleculeQueryMatch::
-                                     identified_molecule_ref>>>>
+        boost::multi_index::ordered_unique<boost::multi_index::const_mem_fun<
+          MoleculeQueryMatch, std::pair<DataQueryRef, IdentifiedMoleculeRef>,
+          &MoleculeQueryMatch::getCombinedKey>>>
       > MoleculeQueryMatches;
-    typedef MoleculeQueryMatches::const_iterator QueryMatchRef;
+    typedef const MoleculeQueryMatch* QueryMatchRef;
     MoleculeQueryMatches query_matches;
 
 
     /// Default constructor
     IdentificationData():
-      current_step_ref_(processing_steps.end())
+      current_step_ref_(nullptr)
     {
     }
 
@@ -784,38 +768,29 @@ namespace OpenMS
     /// Export to mzTab format
     MzTab exportMzTab() const;
 
-    std::pair<InputFileRef, bool> insertInputFile(const String& file);
+    InputFileRef registerInputFile(const String& file);
 
-    std::pair<ProcessingSoftwareRef, bool> insertDataProcessingSoftware(
+    ProcessingSoftwareRef registerDataProcessingSoftware(
       const Software& software);
 
-    std::pair<SearchParamRef, bool> insertDBSearchParam(
-      const DBSearchParam& param);
+    SearchParamRef registerDBSearchParam(const DBSearchParam& param);
 
-    std::pair<ProcessingStepRef, bool> insertDataProcessingStep(
-      const DataProcessingStep& step);
+    ProcessingStepRef registerDataProcessingStep(
+      const DataProcessingStep& step, SearchParamRef search_ref = nullptr);
 
-    std::pair<ProcessingStepRef, bool> insertDataProcessingStep(
-      const DataProcessingStep& step, SearchParamRef search_ref);
+    ScoreTypeRef registerScoreType(const ScoreType& score);
 
-    std::pair<ScoreTypeRef, bool> insertScoreType(const ScoreType& score);
+    DataQueryRef registerDataQuery(const DataQuery& query);
 
-    std::pair<DataQueryRef, bool> insertDataQuery(const DataQuery& query);
+    IdentifiedPeptideRef registerPeptide(const IdentifiedPeptide& peptide);
 
-    std::pair<IdentifiedPeptideRef, bool> insertPeptide(
-      const IdentifiedPeptide& peptide);
+    IdentifiedCompoundRef registerCompound(const IdentifiedCompound& compound);
 
-    std::pair<IdentifiedCompoundRef, bool> insertCompound(
-      const IdentifiedCompound& compound);
+    IdentifiedOligoRef registerOligo(const IdentifiedOligo& oligo);
 
-    std::pair<IdentifiedOligoRef, bool> insertOligo(
-      const IdentifiedOligo& oligo);
+    ParentMoleculeRef registerParentMolecule(const ParentMolecule& parent);
 
-    std::pair<ParentMoleculeRef, bool> insertParentMolecule(
-      const ParentMolecule& parent);
-
-    std::pair<QueryMatchRef, bool> insertMoleculeQueryMatch(
-      const MoleculeQueryMatch& match);
+    QueryMatchRef registerMoleculeQueryMatch(const MoleculeQueryMatch& match);
 
     /*!
       @brief Set a data processing step that will apply to all subsequent "register..." calls.
@@ -840,9 +815,9 @@ namespace OpenMS
     std::vector<QueryMatchRef> getBestMatchPerQuery(ScoreTypeRef
                                                     score_ref) const;
 
-    ScoreTypeRef findScoreType(const String& score_name) const;
-
-    ScoreTypeRef findScoreType(const String& score_name, ProcessingSoftwareRef software_ref) const;
+    ScoreTypeRef findScoreType(const String& score_name,
+                               ProcessingSoftwareRef software_ref = nullptr)
+      const;
 
     /// Helper function to compare two scores
     static bool isBetterScore(double first, double second, bool higher_better)
@@ -912,8 +887,11 @@ namespace OpenMS
           addMzTabMoleculeParentContext_(match_pair.second, row, output);
         }
       }
-      // row.unique.set(false); // leave this unset?
-      output.push_back(row);
+      if (identified.parent_matches.empty())
+      {
+        // row.unique.set(false); // leave this unset?
+        output.push_back(row);
+      }
     }
 
     /// Export a molecule-query match (peptide- or oligonucleotide-spectrum match) to mzTab
@@ -941,7 +919,7 @@ namespace OpenMS
       xsm.calc_mass_to_charge.set(calc_mass / abs(match.charge));
       if (query.input_file_ref)
       {
-        xsm.spectra_ref.setMSFile(*query.input_file_ref);
+        xsm.spectra_ref.setMSFile(file_map[query.input_file_ref]);
       }
       xsm.spectra_ref.setSpecRef(query.data_id);
       // don't repeat data from the peptide section (e.g. accessions)
@@ -1003,9 +981,12 @@ namespace OpenMS
 
     /// Helper functor for augmenting entries (derived from ScoredProcessingResult) in a @t boost::multi_index_container structure
     template <typename ElementType>
-    struct ModifyMultiIndex
+    struct ModifyMultiIndexMergeElements
     {
-      ModifyMultiIndex(const ElementType& update): update(update) {}
+      ModifyMultiIndexMergeElements(const ElementType& update):
+        update(update)
+      {
+      }
 
       void operator()(ElementType& element)
       {
@@ -1015,24 +996,61 @@ namespace OpenMS
       const ElementType& update;
     };
 
+    /// Helper functor for adding the current processing step to elements in a @t boost::multi_index_container structure
+    template <typename ElementType>
+    struct ModifyMultiIndexAddProcessingStep
+    {
+      ModifyMultiIndexAddProcessingStep(ProcessingStepRef step_ref):
+        step_ref(step_ref)
+      {
+      }
+
+      void operator()(ElementType& element)
+      {
+        if ((step_ref != nullptr) &&
+            (element.processing_step_refs.empty() ||
+             (element.processing_step_refs.back() != step_ref)))
+        {
+          element.processing_step_refs.push_back(step_ref);
+        }
+      }
+
+      ProcessingStepRef step_ref;
+    };
+
     /// Helper function for adding entries (derived from ScoredProcessingResult) to a @t boost::multi_index_container structure
     template <typename ContainerType, typename ElementType>
-    std::pair<typename ContainerType::iterator, bool> insertIntoMultiIndex_(
-      ContainerType& container, const ElementType& element)
+    const ElementType* insertIntoMultiIndex_(ContainerType& container,
+                                             const ElementType& element)
     {
       checkScoreTypes_(element.scores);
       checkProcessingSteps_(element.processing_step_refs);
-      addCurrentProcessingStep_(element.processing_step_refs);
 
       auto result = container.insert(element);
-
       if (!result.second) // existing element - merge in new information
       {
-        ModifyMultiIndex<ElementType> modifier(element);
+        ModifyMultiIndexMergeElements<ElementType> modifier(element);
         container.modify(result.first, modifier);
       }
 
-      return result;
+      // add current processing step (if necessary):
+      ModifyMultiIndexAddProcessingStep<ElementType>
+        modifier(current_step_ref_);
+      container.modify(result.first, modifier);
+
+      return &(*result.first);
+    }
+
+
+    /// Check whether a pointer references an element in a container
+    template <typename RefType, typename ContainerType>
+    bool isValidReference_(RefType ref, const ContainerType& container)
+    {
+      for (const auto& element : container)
+      {
+        if (ref == &element) return true;
+      }
+      return false;
     }
 
   };

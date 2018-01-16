@@ -1087,7 +1087,7 @@ public:
     ///@{
     static void keepBestMatchPerQuery(
       IdentificationData& id_data,
-      IdentificationData::ScoreTypeRef score_ref);
+      IdentificationData::ScoreTypeRef score_ref = nullptr);
 
     static void filterQueryMatchesByScore(
       IdentificationData& id_data,
@@ -1096,13 +1096,13 @@ public:
     static void removeMoleculesParentsQueriesWithoutMatches(
       IdentificationData& id_data);
 
-    template <typename SetType>
+    template <typename SetType, typename RefType>
     static void removeNonmatchingRefs_(
-      SetType& container, const std::set<typename SetType::iterator>& refs)
+      SetType& container, const std::set<RefType>& refs)
     {
       for (auto it = container.begin(); it != container.end(); )
       {
-        if (!refs.count(it))
+        if (!refs.count(&(*it)))
         {
           it = container.erase(it);
         }
