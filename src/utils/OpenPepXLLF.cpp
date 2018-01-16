@@ -569,15 +569,15 @@ protected:
 
       // TODO turn this into an InteregerList paramerter or something similar
       // Consider missasignment of the monoisotopic peak
-      std::vector<double> precursor_correction_masses;
-      precursor_correction_masses.push_back(-2 * Constants::C13C12_MASSDIFF_U);
-      precursor_correction_masses.push_back(-1 * Constants::C13C12_MASSDIFF_U);
+      std::vector< int > precursor_correction_masses;
+      precursor_correction_masses.push_back(-2);
+      precursor_correction_masses.push_back(-1);
       precursor_correction_masses.push_back(0);
 
-      for (double correction_mass : precursor_correction_masses)
+      for (int correction_mass : precursor_correction_masses)
       {
 
-        double corrected_precursor_mass = precursor_mass + correction_mass;
+        double corrected_precursor_mass = precursor_mass + (static_cast<double>(correction_mass) * Constants::C13C12_MASSDIFF_U);
 
         if (precursor_mass_tolerance_unit_ppm) // ppm
         {
@@ -603,7 +603,6 @@ protected:
             precursor_corrections.push_back(correction_mass);
           }
         }
-
       }
 
 #ifdef _OPENMP
@@ -1240,42 +1239,7 @@ protected:
 
     pep_indexing.run(fasta_db, protein_ids, peptide_ids);
 
-
-    // // TODO do this here and remove this very specific function from SpectraIdentificationViewWidget and XQuestResultXMLFile?
-    // // TODO make helper function
-    // // cross-link position in Protein
-    // String prot1_pos = "";
-    // if (pep_hits[1].metaValueExists("xl_pos") && pep_hits[1].getPeptideEvidences().size() > 0)
-    // {
-    //   const std::vector<PeptideEvidence> pevs = pep_hits[1].getPeptideEvidences();
-    //   // String positions = "";
-    //   // positions for all protein accessions, separated by "," just like the accessions themselves
-    //   for (std::vector<PeptideEvidence>::const_iterator pev = pevs.begin(); pev != pevs.end(); ++pev)
-    //   {
-    //     // start counting at 1: pev->getStart() and xl_pos are both starting at 0,  with + 1 the N-term residue is number 1
-    //     Int prot_link_pos = pev->getStart() + int(pep_hits[1].getMetaValue("xl_pos")) + 1;
-    //     prot1_pos = prot1_pos + "," + prot_link_pos;
-    //   }
-    //   // remove leading "," of first position
-    //   prot1_pos = prot1_pos.suffix(prot1_pos.size()-1);
-    // }
-    //
-    // String prot2_pos = "";
-    // if (pep_hits.size() > 1 && pep_hits[2].metaValueExists("xl_pos") && pep_hits[2].getPeptideEvidences().size() > 0)
-    // {
-    //   const std::vector<PeptideEvidence> pevs = pep_hits[2].getPeptideEvidences();
-    //   // String positions = "";
-    //   // positions for all protein accessions, separated by "," just like the accessions themselves
-    //   for (std::vector<PeptideEvidence>::const_iterator pev = pevs.begin(); pev != pevs.end(); ++pev)
-    //   {
-    //     // start counting at 1: pev->getStart() and xl_pos are both starting at 0,  with + 1 the N-term residue is number 1
-    //     Int prot_link_pos = pev->getStart() + int(pep_hits[2].getMetaValue("xl_pos")) + 1;
-    //     prot2_pos = prot2_pos + "," + prot_link_pos;
-    //   }
-    //   // remove leading "," of first position
-    //   prot2_pos = prot2_pos.suffix(prot2_pos.size()-1);
-    // }
-
+    OPXLHelper::addProteinPositionMetaValues(peptide_ids);
 
     // write output
     progresslogger.startProgress(0, 1, "Writing output...");

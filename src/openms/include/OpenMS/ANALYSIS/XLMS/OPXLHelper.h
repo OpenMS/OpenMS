@@ -134,6 +134,12 @@ namespace OpenMS
        * @param scan_index_heavy The index of the heavy spectrum in a spectrum pair with labeled linkers
        */
       static void buildPeptideIDs(std::vector<PeptideIdentification> & peptide_ids, const std::vector< OPXLDataStructs::CrossLinkSpectrumMatch > & top_csms_spectrum, std::vector< std::vector< OPXLDataStructs::CrossLinkSpectrumMatch > > & all_top_csms, Size all_top_csms_current_index, const PeakMap & spectra, Size scan_index, Size scan_index_heavy);
+
+      /**
+       * @brief adds MetaValues for cross-link positions to PeptideHits
+       * @param peptide_ids The vector of peptide_ids containing XL-MS search results, after mapping of peptides to proteins
+       */
+      static void addProteinPositionMetaValues(std::vector< PeptideIdentification > & peptide_ids);
   };
 }
 

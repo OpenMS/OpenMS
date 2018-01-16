@@ -555,6 +555,7 @@ namespace OpenMS
             // If second peptide has a term specificity, there must be a second peptide, so we don't have to consider mono or loop-links
             cross_link_candidate.cross_linker_mass = cross_link_mass;
             cross_link_candidate.cross_linker_name = cross_link_name;
+            cross_link_candidate.precursor_correction = precursor_corrections[i];
             cross_link_candidates.push_back(cross_link_candidate);
 
           }
@@ -584,6 +585,7 @@ namespace OpenMS
           {
             OPXLDataStructs::ProteinProteinCrossLink cross_link_candidate;
             cross_link_candidate.cross_linker_name = cross_link_name;
+            cross_link_candidate.precursor_correction = precursor_corrections[i];
             if (alpha_first)
             {
               cross_link_candidate.alpha = peptide_first;
@@ -757,20 +759,21 @@ namespace OpenMS
       {
         weight += top_csms_spectrum[i].cross_link.beta.getMonoWeight()  + top_csms_spectrum[i].cross_link.cross_linker_mass;
       }
-      else if (unknown_mono)
+      else if (unknown_mono || top_csms_spectrum[i].cross_link.getType() == OPXLDataStructs::LOOP)
       {
         weight += top_csms_spectrum[i].cross_link.cross_linker_mass;
       }
-      double theo_mz = (weight + (static_cast<double>(precursor_charge) * Constants::PROTON_MASS_U)) / static_cast<double>(precursor_charge);
-      double error = precursor_mz - theo_mz;
-      // TODO introduce precursor correction parameter and pass it to this function as well
-      bool corrected_precursor = false;
-      while (error > (Constants::C13C12_MASSDIFF_U / static_cast<double>(precursor_charge)))
-      {
-        error -= Constants::C13C12_MASSDIFF_U / static_cast<double>(precursor_charge);
-        bool corrected_precursor = true;
-      }
-      double rel_error = (error / theo_mz) / 1e-6;
+      // experimental precursor mz correction was negative, so precursor_correction is negative
+      // to adjust the theoretical precursor mz, the sign has to be reversed
+      // weight -= (static_cast<double>(top_csms_spectrum[i].precursor_correction) * Constants::C13C12_MASSDIFF_U);
+      // double theo_mz = (weight + (static_cast<double>(precursor_charge) * Constants::PROTON_MASS_U)) / static_cast<double>(precursor_charge);
+      // double error = precursor_mz - theo_mz;
+      // double rel_error = (error / precursor_mz) / 1e-6;
+
+      double precursor_mass = (precursor_mz * static_cast<double>(precursor_charge)) - (static_cast<double>(precursor_charge) * Constants::PROTON_MASS_U)
+                                + (static_cast<double>(top_csms_spectrum[i].precursor_correction) * Constants::C13C12_MASSDIFF_U);
+      double error = precursor_mass - weight;
+      double rel_error = (error / precursor_mass) / 1e-6;
 
       String alpha_term = "ANYWHERE";
       if (alpha_term_spec == ResidueModification::N_TERM)
@@ -799,7 +802,7 @@ namespace OpenMS
       // {
       //   ph_alpha.setMetaValue("xl_pos2", DataValue(beta_pos));
       // }
-      if (beta_pos >= 1)
+      if (beta_pos >= 0)
       {
         ph_alpha.setMetaValue("xl_pos2", DataValue(beta_pos));
       }
@@ -812,6 +815,7 @@ namespace OpenMS
       ph_alpha.setCharge(precursor_charge);
       ph_alpha.setScore(top_csms_spectrum[i].score);
       ph_alpha.setRank(DataValue(i+1));
+
       ph_alpha.setMetaValue("xl_chain", "MS:1002509");  // donor (longer, heavier, alphabetically earlier)
       ph_alpha.setMetaValue("xl_pos", DataValue(alpha_pos));
       ph_alpha.setMetaValue("spectrum_reference", spectra[scan_index].getNativeID());
@@ -827,7 +831,6 @@ namespace OpenMS
         ph_alpha.setMetaValue("spectrum_reference_heavy", spectra[scan_index_heavy].getNativeID());
       }
       ph_alpha.setMetaValue(Constants::PRECURSOR_ERROR_PPM_USERPARAM, rel_error);
-      ph_alpha.setMetaValue("precursor_corrected", corrected_precursor);
 
       ph_alpha.setMetaValue("OpenXQuest:xcorr xlink", top_csms_spectrum[i].xcorrx_max);
       ph_alpha.setMetaValue("OpenXQuest:xcorr common", top_csms_spectrum[i].xcorrc_max);
@@ -856,7 +859,7 @@ namespace OpenMS
 
       ph_alpha.setPeakAnnotations(top_csms_spectrum[i].frag_annotations);
       LOG_DEBUG << "Annotations of size " << ph_alpha.getPeakAnnotations().size() << endl;
-      phs.push_back(ph_alpha);
+
 
       if (top_csms_spectrum[i].cross_link.getType() == OPXLDataStructs::CROSS)
       {
@@ -864,9 +867,11 @@ namespace OpenMS
         ph_beta.setCharge(precursor_charge);
         ph_beta.setScore(top_csms_spectrum[i].score);
         ph_beta.setRank(DataValue(i+1));
+        ph_alpha.setMetaValue("beta_sequence", top_csms_spectrum[i].cross_link.beta.toString());
+        ph_beta.setMetaValue("beta_sequence", top_csms_spectrum[i].cross_link.beta.toString());
         ph_beta.setMetaValue("xl_chain", "MS:1002510"); // receiver
-        ph_beta.setMetaValue("xl_pos", DataValue(beta_pos));
-        ph_beta.setMetaValue("xl_pos2", DataValue(alpha_pos));
+        ph_beta.setMetaValue("xl_pos", DataValue(alpha_pos));
+        ph_beta.setMetaValue("xl_pos2", DataValue(beta_pos));
         ph_beta.setMetaValue("spectrum_reference", spectra[scan_index].getNativeID());
         ph_beta.setMetaValue("xl_term_spec", beta_term);
         ph_beta.setMetaValue("precursor_correction", top_csms_spectrum[i].precursor_correction);
@@ -878,7 +883,6 @@ namespace OpenMS
           ph_beta.setMetaValue("spectrum_reference_heavy", spectra[scan_index_heavy].getNativeID());
         }
         ph_beta.setMetaValue(Constants::PRECURSOR_ERROR_PPM_USERPARAM, rel_error);
-        ph_beta.setMetaValue("precursor_corrected", corrected_precursor);
 
         ph_beta.setMetaValue("OpenXQuest:xcorr xlink", top_csms_spectrum[i].xcorrx_max);
         ph_beta.setMetaValue("OpenXQuest:xcorr common", top_csms_spectrum[i].xcorrc_max);
@@ -905,7 +909,13 @@ namespace OpenMS
 
         ph_beta.setMetaValue("selected", "false");
 
+        phs.push_back(ph_alpha);
         phs.push_back(ph_beta);
+      }
+      else
+      {
+        ph_alpha.setMetaValue("beta_sequence", "-");
+        phs.push_back(ph_alpha);
       }
 
       peptide_id.setRT(spectrum_light.getRT());
@@ -937,6 +947,69 @@ namespace OpenMS
       {
         peptide_ids.push_back(peptide_id);
         all_top_csms[all_top_csms_current_index][i].peptide_id_index = peptide_ids.size()-1;
+      }
+    }
+  }
+
+  void OPXLHelper::addProteinPositionMetaValues(std::vector< PeptideIdentification > & peptide_ids)
+  {
+    for (PeptideIdentification& id : peptide_ids)
+    {
+      PeptideHit& ph_alpha = id.getHits()[0];
+      String prot1_pos;
+
+      // cross-link position in Protein (alpha)
+      const std::vector<PeptideEvidence> pevs = ph_alpha.getPeptideEvidences();
+      for (std::vector<PeptideEvidence>::const_iterator pev = pevs.begin(); pev != pevs.end(); ++pev)
+      {
+        // start counting at 1: pev->getStart() and xl_pos are both starting at 0,  with + 1 the N-term residue is number 1
+        Int prot_link_pos = pev->getStart() + String(ph_alpha.getMetaValue("xl_pos")).toInt() + 1;
+        prot1_pos = prot1_pos + "," + prot_link_pos;
+      }
+      // remove leading "," of first position
+      prot1_pos = prot1_pos.suffix(prot1_pos.size()-1);
+      ph_alpha.setMetaValue("XL_Protein_position_alpha", prot1_pos);
+
+      // cross-link position in Protein (beta)
+      if (id.getHits().size() == 2)
+      {
+        PeptideHit& ph_beta = id.getHits()[1];
+        String prot2_pos;
+
+        const std::vector<PeptideEvidence> pevs = ph_beta.getPeptideEvidences();
+        for (std::vector<PeptideEvidence>::const_iterator pev = pevs.begin(); pev != pevs.end(); ++pev)
+        {
+          // start counting at 1: pev->getStart() and xl_pos are both starting at 0,  with + 1 the N-term residue is number 1
+          Int prot_link_pos = pev->getStart() + String(ph_alpha.getMetaValue("xl_pos2")).toInt() + 1;
+          prot2_pos = prot2_pos + "," + prot_link_pos;
+        }
+        // remove leading "," of first position
+        prot2_pos = prot2_pos.suffix(prot2_pos.size()-1);
+        ph_beta.setMetaValue("XL_Protein_position_alpha", prot1_pos);
+        ph_alpha.setMetaValue("XL_Protein_position_beta", prot2_pos);
+        ph_beta.setMetaValue("XL_Protein_position_beta", prot2_pos);
+      }
+      else
+      {
+        // second cross-link position in Protein (loop-links)
+        if (ph_alpha.getMetaValue("xl_pos2") != "-")
+        {
+          String prot2_pos;
+          const std::vector<PeptideEvidence> pevs = ph_alpha.getPeptideEvidences();
+          for (std::vector<PeptideEvidence>::const_iterator pev = pevs.begin(); pev != pevs.end(); ++pev)
+          {
+            // start counting at 1: pev->getStart() and xl_pos are both starting at 0,  with + 1 the N-term residue is number 1
+            Int prot_link_pos = pev->getStart() + String(ph_alpha.getMetaValue("xl_pos2")).toInt() + 1;
+            prot2_pos = prot2_pos + "," + prot_link_pos;
+          }
+          // remove leading "," of first position
+          prot2_pos = prot2_pos.suffix(prot2_pos.size()-1);
+          ph_alpha.setMetaValue("XL_Protein_position_beta", prot2_pos);
+        }
+        else
+        {
+          ph_alpha.setMetaValue("XL_Protein_position_beta", "-");
+        }
       }
     }
   }

@@ -794,15 +794,15 @@ protected:
 
       // TODO turn this into an InteregerList paramerter or something similar
       // Consider missasignment of the monoisotopic peak
-      std::vector<double> precursor_correction_masses;
-      precursor_correction_masses.push_back(-2 * Constants::C13C12_MASSDIFF_U);
-      precursor_correction_masses.push_back(-1 * Constants::C13C12_MASSDIFF_U);
+      std::vector<int> precursor_correction_masses;
+      precursor_correction_masses.push_back(-2);
+      precursor_correction_masses.push_back(-1);
       precursor_correction_masses.push_back(0);
 
       for (double correction_mass : precursor_correction_masses)
       {
 
-        double corrected_precursor_mass = precursor_mass + correction_mass;
+        double corrected_precursor_mass = precursor_mass + (static_cast<double>(correction_mass) * Constants::C13C12_MASSDIFF_U);
 
         if (precursor_mass_tolerance_unit_ppm) // ppm
         {
@@ -1414,6 +1414,8 @@ protected:
     pep_indexing.setParameters(indexing_param);
 
     pep_indexing.run(fasta_db, protein_ids, peptide_ids);
+
+    OPXLHelper::addProteinPositionMetaValues(peptide_ids);
 
     // write output
     progresslogger.startProgress(0, 1, "Writing output...");
