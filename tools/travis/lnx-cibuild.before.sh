@@ -37,8 +37,7 @@ if [ "${PYOPENMS}" = "ON" ]; then
   pip install -U autowrap==0.14
 fi
 
-# fetch contrib and build seqan
-git submodule update --init contrib
+# move to automatically cloned contrib submodule
 pushd contrib
 
 # we build seqan as the versions shipped in Ubuntu are not recent enough
