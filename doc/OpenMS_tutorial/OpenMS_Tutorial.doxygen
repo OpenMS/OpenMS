@@ -605,7 +605,7 @@ Store protein accessions
 
 Now that we assembled the set of all protein accessions we are ready to compare them to the fasta_accessions. If they are similar and the method whitelist or they are different and the method blacklist was chosen, the fasta entries are copied to the new fasta database.
 
-<b>Example: Tutorial_Finaly.cpp</b>
+<b>Example: Tutorial_Final.cpp</b>
 <br>
 Add method functionality
 \snippet Tutorial_Final.cpp Functionality_2
