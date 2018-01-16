@@ -158,11 +158,11 @@ namespace OpenMS
 
   bool AbsoluteQuantitationMethod::checkLOD(const double value) const
   {
-    return value >= llod_ && value <= ulod_ ? true : false; // is it bracketed or not
+    return value >= llod_ && value <= ulod_; // is it bracketed or not
   }
 
   bool AbsoluteQuantitationMethod::checkLOQ(const double value) const
   {
-    return value >= lloq_ && value <= uloq_ ? true : false; // is it bracketed or not
+    return value >= lloq_ && value <= uloq_; // is it bracketed or not
   }
 } // namespace
