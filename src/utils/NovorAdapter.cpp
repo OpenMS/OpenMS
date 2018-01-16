@@ -168,31 +168,31 @@ protected:
 
   void createParamFile_(ostream& os)
   {
-  vector<String> variable_mods = getStringList_("variable_modifications");
-  vector<String> fixed_mods = getStringList_("fixed_modifications");
-  vector<String> forbidden_residues = getStringList_("forbiddenResidues");
+    vector<String> variable_mods = getStringList_("variable_modifications");
+    vector<String> fixed_mods = getStringList_("fixed_modifications");
+    vector<String> forbidden_residues = getStringList_("forbiddenResidues");
   
-  String variable_mod = ListUtils::concatenate(variable_mods, ',');
-  String fixed_mod = ListUtils::concatenate(fixed_mods, ',');
-  String forbidden_res = ListUtils::concatenate(forbidden_residues, ',');
+    String variable_mod = ListUtils::concatenate(variable_mods, ',');
+    String fixed_mod = ListUtils::concatenate(fixed_mods, ',');
+    String forbidden_res = ListUtils::concatenate(forbidden_residues, ',');
 
-  os << "enzyme = " << getStringOption_("enzyme") << "\n"
-     << "fragmentation = " << getStringOption_("fragmentation") << "\n"
-     << "massAnalyzer = " << getStringOption_("massAnalyzer") << "\n"
-     << "fragmentIonErrorTol = " << getDoubleOption_("fragment_mass_tolerance") << "Da" << "\n"
-     << "precursorErrorTol = " << getDoubleOption_("precursor_mass_tolerance") << getStringOption_("precursor_error_units") << "\n"
-     << "variableModifications = " << variable_mod << "\n"
-     << "fixedModifications = "    << fixed_mod << "\n"
-     << "forbiddenResidues = " << forbidden_res << "\n";
+    os << "enzyme = " << getStringOption_("enzyme") << "\n"
+       << "fragmentation = " << getStringOption_("fragmentation") << "\n"
+       << "massAnalyzer = " << getStringOption_("massAnalyzer") << "\n"
+       << "fragmentIonErrorTol = " << getDoubleOption_("fragment_mass_tolerance") << "Da" << "\n"
+       << "precursorErrorTol = " << getDoubleOption_("precursor_mass_tolerance") << getStringOption_("precursor_error_units") << "\n"
+       << "variableModifications = " << variable_mod << "\n"
+       << "fixedModifications = "    << fixed_mod << "\n"
+       << "forbiddenResidues = " << forbidden_res << "\n";
   
-   // novorFile for custom alogrithm parameters of nova
-   String cparamfile = getStringOption_("novorFile");
-   ifstream cpfile(cparamfile);
-     if (!cpfile)
-     {
-       os << "novorFile" << cparamfile << "\n";
-     }
-   }
+    // novorFile for custom alogrithm parameters of nova
+    String cparamfile = getStringOption_("novorFile");
+    ifstream cpfile(cparamfile);
+    if (!cpfile)
+    {
+      os << "novorFile" << cparamfile << "\n";
+    }
+  }
 
   // the main_ function is called after all parameters are read
   ExitCodes main_(int, const char **)
