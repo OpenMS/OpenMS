@@ -64,8 +64,8 @@ namespace OpenMS
         // we only want to select a subset of the currently selected indices
         for (Size k = 0; k < indices.size(); k++)
         {
-          if (indices[k] >= (int)sp.sidx_.size()) throw Exception::IllegalArgument(__FILE__,__LINE__,OPENMS_PRETTY_FUNCTION,
-              "Error creating SpectrumAccessSqMass with an index " + String(indices[k] + " that exceeds the number of available data " + sp.sidx_.size()) );
+          if (indices[k] >= (int)sp.sidx_.size()) throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+              String("Error creating SpectrumAccessSqMass with an index ") + indices[k] + " that exceeds the number of available data " + sp.sidx_.size());
           sidx_.push_back( sp.sidx_[ indices[k] ] );
         }
       }

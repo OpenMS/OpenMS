@@ -61,6 +61,10 @@ OPENMS_FINDBINARY(MYRIMATCH_BINARY "myrimatch" "Myrimatch")
 OPENMS_FINDBINARY(MSGFPLUS_BINARY "MSGFPlus.jar" "MS-GF+")
 
 #------------------------------------------------------------------------------
+# MSFragger
+OPENMS_FINDBINARY(MSFRAGGER_BINARY "MSFragger.jar" "MSFragger")
+
+#------------------------------------------------------------------------------
 # percolator
 OPENMS_FINDBINARY(PERCOLATOR_BINARY "percolator" "Percolator")
 
@@ -72,6 +76,10 @@ OPENMS_FINDBINARY(FIDOCHOOSEPARAMS_BINARY "FidoChooseParameters" "FidoChoosePara
 #------------------------------------------------------------------------------
 # Sirius
 OPENMS_FINDBINARY(SIRIUS_BINARY "sirius;sirius-console-64.exe" "Sirius")
+
+#------------------------------------------------------------------------------
+# Novor
+OPENMS_FINDBINARY(NOVOR_BINARY "novor.jar" "Novor")
 
 #------------------------------------------------------------------------------
 # Crux
@@ -166,7 +174,7 @@ endif()
 option(WITH_MASCOT_TEST "Runs the Mascot Online test (do not turn this on unless you know what you are doing)" OFF)
 if (WITH_MASCOT_TEST)
   add_test("TOPP_MascotAdapterOnline_1" ${TOPP_BIN_PATH}/MascotAdapterOnline -test -ini ${DATA_DIR_TOPP}/THIRDPARTY/MascotAdapterOnline_1.ini -Mascot_parameters:database SwissProt -in ${DATA_DIR_TOPP}/THIRDPARTY/spectra_comet.mzML -out MascotAdapterOnline_1_out1.tmp)
-  add_test("TOPP_MascotAdapterOnline_1_out1" ${DIFF} -in1 MascotAdapterOnline_1_out1.tmp -in2 ${DATA_DIR_TOPP}/THIRDPARTY/MascotAdapterOnline_1_out.idXML -whitelist "IdentificationRun date" "UserParam type=\"string\" name=\"SearchNumber\" value=")
+  add_test("TOPP_MascotAdapterOnline_1_out1" ${DIFF} -in1 MascotAdapterOnline_1_out1.tmp -in2 ${DATA_DIR_TOPP}/THIRDPARTY/MascotAdapterOnline_1_out.idXML -whitelist "IdentificationRun date" "UserParam type=\"string\" name=\"SearchNumber\" value=" "db=\"SwissProt\" db_version=")
   set_tests_properties("TOPP_MascotAdapterOnline_1_out1" PROPERTIES DEPENDS "TOPP_MascotAdapterOnline_1")
 endif()
 
@@ -199,6 +207,22 @@ if (NOT (${FIDO_BINARY} STREQUAL "FIDO_BINARY-NOTFOUND"))
   set_tests_properties("TOPP_FidoAdapter_6_out" PROPERTIES DEPENDS "TOPP_FidoAdapter_6")
 endif()
 
+#------------------------------------------------------------------------------
+# MSFragger
+if (NOT (${MSFRAGGER_BINARY} STREQUAL "MSFRAGGER_BINARY-NOTFOUND"))
+  add_test("TOPP_MSFraggerAdapter_7" ${TOPP_BIN_PATH}/MSFraggerAdapter -test -in ${DATA_DIR_TOPP}/THIRDPARTY/spectra.mzML -executable "${MSFRAGGER_BINARY}" -database ${DATA_DIR_TOPP}/THIRDPARTY/proteins.fasta -out MSFraggerAdapter_7_out_tmp.pepXML -varmod:enable_common -digest:num_enzyme_termini semi)
+  add_test("TOPP_MSFraggerAdapter_7_out" ${DIFF} -in1 MSFraggerAdapter_7_out_tmp.pepXML -in2 ${DATA_DIR_TOPP}/THIRDPARTY/MSFraggerAdapter_7_out.pepXML -whitelist "date" "search_database") # Because MSFragger links the search database in a temporary directory
+  set_tests_properties("TOPP_MSFraggerAdapter_7_out" PROPERTIES DEPENDS "TOPP_MSFraggerAdapter_7")
+
+  add_test("TOPP_MSFraggerAdapter_8" ${TOPP_BIN_PATH}/MSFraggerAdapter -test -in ${DATA_DIR_TOPP}/THIRDPARTY/spectra_comet.mzML -executable "${MSFRAGGER_BINARY}" -database ${DATA_DIR_TOPP}/THIRDPARTY/proteins.fasta -out MSFraggerAdapter_8_out_tmp.pepXML -varmod:enable_common -digest:num_enzyme_termini semi)
+  add_test("TOPP_MSFraggerAdapter_8_out" ${DIFF} -in1 MSFraggerAdapter_8_out_tmp.pepXML -in2 ${DATA_DIR_TOPP}/THIRDPARTY/MSFraggerAdapter_8_out.pepXML -whitelist "date" "search_database") # Because MSFragger links the search database in a temporary directory
+  set_tests_properties("TOPP_MSFraggerAdapter_8_out" PROPERTIES DEPENDS "TOPP_MSFraggerAdapter_8")
+
+  add_test("TOPP_MSFraggerAdapter_9" ${TOPP_BIN_PATH}/MSFraggerAdapter -test -in ${DATA_DIR_TOPP}/THIRDPARTY/SiriusAdapter_1_input.mzML -executable "${MSFRAGGER_BINARY}" -database ${DATA_DIR_TOPP}/THIRDPARTY/proteins.fasta -out MSFraggerAdapter_9_out_tmp.pepXML -varmod:enable_common -digest:num_enzyme_termini semi)
+  add_test("TOPP_MSFraggerAdapter_9_out" ${DIFF} -in1 MSFraggerAdapter_9_out_tmp.pepXML -in2 ${DATA_DIR_TOPP}/THIRDPARTY/MSFraggerAdapter_9_out.pepXML -whitelist "date" "search_database") # Because MSFragger links the search database in a temporary directory
+  set_tests_properties("TOPP_MSFraggerAdapter_9_out" PROPERTIES DEPENDS "TOPP_MSFraggerAdapter_9")
+endif()
+
 
 # TODO the following tests are waiting for better implementations of InspectAdapter and associated classes
 #add_test("TOPP_InspectAdapter_3" ${TOPP_BIN_PATH}/InspectAdapter -ini ${DATA_DIR_TOPP}/InspectAdapter_1_parameters.ini -trie_dbs ${DATA_DIR_TOPP}/Inspect_FASTAFile_test2.trie -in ${DATA_DIR_TOPP}/InspectAdapter.out -dbs ${DATA_DIR_TOPP}/Inspect_FASTAFile_test.fasta -out InspectAdapter_4_output.tmp -inspect_out)
@@ -226,6 +250,14 @@ if (NOT (${SIRIUS_BINARY} STREQUAL "SIRIUS_BINARY-NOTFOUND"))
   add_test("TOPP_SiriusAdapter_2_out" ${DIFF} -in1 SiriusAdapter_2_foutput.tmp -in2 ${DATA_DIR_TOPP}/THIRDPARTY/SiriusAdapter_2_foutput.mzTab -whitelist "MTD")
   set_tests_properties("TOPP_SiriusAdapter_2_out" PROPERTIES DEPENDS "TOPP_SiriusAdapter_2")
   endif()
+endif()
+
+
+#------------------------------------------------------------------------------
+if (NOT (${NOVOR_BINARY} STREQUAL "NOVOR_BINARY-NOTFOUND"))
+  add_test("TOPP_NovorAdapter_1" ${TOPP_BIN_PATH}/NovorAdapter -test -executable "${NOVOR_BINARY}" -in ${DATA_DIR_TOPP}/THIRDPARTY/NovorAdapter_in.mzML -out NovorAdapter_1_out.tmp -variable_modifications "Acetyl (K)" -fixed_modifications "Carbamidomethyl (C)" -forbiddenResidues "I")
+  add_test("TOPP_NovorAdapter_1_out" ${DIFF} -in1 NovorAdapter_1_out.tmp -in2 ${DATA_DIR_TOPP}/THIRDPARTY/NovorAdapter_1_out.idXML -whitelist "IdentificationRun date")
+  set_tests_properties("TOPP_NovorAdapter_1_out" PROPERTIES DEPENDS "TOPP_NovorAdapter_1")
 endif()
 
 # made library with spectrast -cNtestLib -cP0.0 CometAdapter_1_out.pep.xml 

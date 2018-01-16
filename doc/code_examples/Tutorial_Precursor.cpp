@@ -27,6 +27,8 @@
 // OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+//! [Precursor]
+
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/METADATA/Precursor.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
@@ -81,3 +83,4 @@ int main(int argc, const char** argv)
   return 0;
 } // end of main
 
+//! [Precursor]
