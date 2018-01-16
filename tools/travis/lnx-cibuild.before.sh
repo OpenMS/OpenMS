@@ -38,7 +38,7 @@ if [ "${PYOPENMS}" = "ON" ]; then
 fi
 
 # fetch contrib and build seqan
-git clone git://github.com/OpenMS/contrib/
+git submodule update --init contrib
 pushd contrib
 
 # we build seqan as the versions shipped in Ubuntu are not recent enough
@@ -65,9 +65,9 @@ if [ "${ENABLE_STYLE_TESTING}" = "ON" ]; then
   CXX=clang++ make SRCDIR=build CFGDIR=`pwd`/cfg HAVE_RULES=yes -j4
   popd
 else
-  # regular builds .. get the search engine executables via githubs SVN interface (as git doesn't allow single folder checkouts)
-  svn export --force https://github.com/OpenMS/THIRDPARTY/trunk/Linux/64bit/ _thirdparty
-  svn export --force https://github.com/OpenMS/THIRDPARTY/trunk/All/ _thirdparty
+  # regular builds .. merge the search engine executables for this platform from the automatically cloned submodule to _thirdparty
+  cp -r THIRDPARTY/Linux/64bit/* _thirdparty/
+  cp -r THIRDPARTY/All/* _thirdparty
 fi
 
 
