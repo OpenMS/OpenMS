@@ -32,6 +32,8 @@
 // $Authors: Petra Gutenbrunner $
 // --------------------------------------------------------------------------
 
+//! [MSSpectrum]
+
 #include <OpenMS/KERNEL/MSSpectrum.h>
 
 using namespace OpenMS;
@@ -64,4 +66,4 @@ int main()
   return 0;
 }
 
-
+//! [MSSpectrum]

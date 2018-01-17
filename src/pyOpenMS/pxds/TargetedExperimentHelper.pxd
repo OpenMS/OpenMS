@@ -6,26 +6,28 @@ from Map cimport *
 from DataValue cimport *
 from CVTermList cimport *
 
-cdef extern from "<OpenMS/ANALYSIS/TARGETED/TargetedExperimentHelper.h>" namespace "OpenMS::TargetedExperimentHelper::RetentionTime":
+cdef extern from "<OpenMS/ANALYSIS/TARGETED/TargetedExperimentHelper.h>" namespace "OpenMS::TargetedExperimentHelper::RetentionTime::RTUnit":
 
-    cdef enum RTUnit "OpenMS::TargetedExperimentHelper::RetentionTime::RTUnit":
-        # wrap-attach:
-        #    RetentionTime
-        SECOND,        # RT stored in seconds
-        MINUTE,        # RT stored in minutes
-        UNKNOWN,       # no stored annotation
-        SIZE_OF_RTUNIT
+    ctypedef enum RTUnit "OpenMS::TargetedExperimentHelper::RetentionTime::RTUnit":
+            # wrap-attach:
+            #    RetentionTime
+            SECOND,        # RT stored in seconds
+            MINUTE,        # RT stored in minutes
+            UNKNOWN,       # no stored annotation
+            SIZE_OF_RTUNIT
 
-    cdef enum RTType "OpenMS::TargetedExperimentHelper::RetentionTime::RTType":
-        # wrap-attach:
-        #    RetentionTime
-        LOCAL,            # undefined local chromatography
-        NORMALIZED,       # standardized reference chromatography
-        PREDICTED,        # predicted by referenced software
-        HPINS,            # H-PINS "The de facto standard providing the retention times"
-        IRT,              # iRT retention time standard
-        UNKNOWN,          # no stored annotation
-        SIZE_OF_RTTYPE
+cdef extern from "<OpenMS/ANALYSIS/TARGETED/TargetedExperimentHelper.h>" namespace "OpenMS::TargetedExperimentHelper::RetentionTime::RTType":
+
+    ctypedef enum RTType "OpenMS::TargetedExperimentHelper::RetentionTime::RTType":
+            # wrap-attach:
+            #    RetentionTime
+            LOCAL,            # undefined local chromatography
+            NORMALIZED,       # standardized reference chromatography
+            PREDICTED,        # predicted by referenced software
+            HPINS,            # H-PINS "The de facto standard providing the retention times"
+            IRT,              # iRT retention time standard
+            UNKNOWN,          # no stored annotation
+            SIZE_OF_RTTYPE
 
 cdef extern from "<OpenMS/ANALYSIS/TARGETED/TargetedExperimentHelper.h>" namespace "OpenMS::TargetedExperimentHelper":
 
