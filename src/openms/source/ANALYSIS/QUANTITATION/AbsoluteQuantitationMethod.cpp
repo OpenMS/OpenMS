@@ -28,180 +28,141 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Douglas McCloskey $
-// $Authors: Douglas McCloskey $
+// $Maintainer: Douglas McCloskey, Pasquale Domenico Colaianni $
+// $Authors: Douglas McCloskey, Pasquale Domenico Colaianni $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/QUANTITATION/AbsoluteQuantitationMethod.h>
 
-//Kernal classes
-#include <OpenMS/KERNEL/StandardTypes.h>
-
-//Analysis classes
-#include <OpenMS/ANALYSIS/MAPMATCHING/TransformationDescription.h>
-#include <OpenMS/ANALYSIS/MAPMATCHING/TransformationModel.h>
-#include <OpenMS/ANALYSIS/MAPMATCHING/TransformationModelLinear.h>
-#include <OpenMS/ANALYSIS/MAPMATCHING/TransformationModelBSpline.h>
-#include <OpenMS/ANALYSIS/MAPMATCHING/TransformationModelInterpolated.h>
-#include <OpenMS/ANALYSIS/MAPMATCHING/TransformationModelLowess.h>
-
-#include <cstddef> // for size_t & ptrdiff_t
-#include <vector>
-#include <string>
-
 namespace OpenMS
 {
-    
-  AbsoluteQuantitationMethod::AbsoluteQuantitationMethod()
-  {
-  }
-  
-  AbsoluteQuantitationMethod::~AbsoluteQuantitationMethod()
-  {
-  }
-  
-  //LOD getters and setters
-  void AbsoluteQuantitationMethod::setLLOD(const double& llod)
+  void AbsoluteQuantitationMethod::setLLOD(const double llod)
   {
     llod_ = llod;
   }
-  
-  void AbsoluteQuantitationMethod::setULOD(const double& ulod)
+
+  void AbsoluteQuantitationMethod::setULOD(const double ulod)
   {
     ulod_ = ulod;
   }
-    
-  double AbsoluteQuantitationMethod::getLLOD()
+
+  double AbsoluteQuantitationMethod::getLLOD() const
+  {
+    return llod_;
+  }
+
+  double AbsoluteQuantitationMethod::getULOD() const
   {
     return ulod_;
   }
-  
-  double AbsoluteQuantitationMethod::getULOD()
-  {
-    return ulod_;
-  }
-  
-  void AbsoluteQuantitationMethod::setLLOQ(const double& lloq)
+
+  void AbsoluteQuantitationMethod::setLLOQ(const double lloq)
   {
     lloq_ = lloq;
   }
-  
-  void AbsoluteQuantitationMethod::setULOQ(const double& uloq)
+
+  void AbsoluteQuantitationMethod::setULOQ(const double uloq)
   {
     uloq_ = uloq;
   }
-  
-  double AbsoluteQuantitationMethod::getLLOQ()
+
+  double AbsoluteQuantitationMethod::getLLOQ() const
   {
     return lloq_;
   }
-  
-  double AbsoluteQuantitationMethod::getULOQ()
+
+  double AbsoluteQuantitationMethod::getULOQ() const
   {
     return uloq_;
   }
-  
-  //Component, IS, and Feature name setters  
+
   void AbsoluteQuantitationMethod::setFeatureName(const String& feature_name)
   {
     feature_name_ = feature_name;
   }
-  
-  String AbsoluteQuantitationMethod::getFeatureName()
+
+  String AbsoluteQuantitationMethod::getFeatureName() const
   {
     return feature_name_;
   } 
-  
+
   void AbsoluteQuantitationMethod::setISName(const String& IS_name)
   {
     IS_name_ = IS_name;
   }
-  
-  String AbsoluteQuantitationMethod::getISName()
+
+  String AbsoluteQuantitationMethod::getISName() const
   {
     return IS_name_;
   }
-  
+
   void AbsoluteQuantitationMethod::setComponentName(const String& component_name)
   {
     component_name_ = component_name;
   }
-  
-  String AbsoluteQuantitationMethod::getComponentName()
+
+  String AbsoluteQuantitationMethod::getComponentName() const
   {
     return component_name_;
   }
-  
-  //Concentration unit getter and setter
+
   void AbsoluteQuantitationMethod::setConcentrationUnits(const String& concentration_units)
   {
     concentration_units_ = concentration_units;
   }
 
-  String AbsoluteQuantitationMethod::getConcentrationUnits()
+  String AbsoluteQuantitationMethod::getConcentrationUnits() const
   {
     return concentration_units_;
   }
-  
-  //Transformation model getters and setters
+
   void AbsoluteQuantitationMethod::setTransformationModel(const String& transformation_model)
   {
     transformation_model_ = transformation_model;
   }
+
   void AbsoluteQuantitationMethod::setTransformationModelParams(const Param& transformation_model_params)
   {
     transformation_model_params_ = transformation_model_params;
   }
 
-  String AbsoluteQuantitationMethod::getTransformationModel()
+  String AbsoluteQuantitationMethod::getTransformationModel() const
   {
     return transformation_model_;
   }
 
-  Param AbsoluteQuantitationMethod::getTransformationModelParams()
+  Param AbsoluteQuantitationMethod::getTransformationModelParams() const
   {
     return transformation_model_params_;
   }
-  
-  //Statistics getters and setters
-  void AbsoluteQuantitationMethod::setNPoints(const int& n_points)
+
+  void AbsoluteQuantitationMethod::setNPoints(const Int n_points)
   {
     n_points_ = n_points;
   }
-  void AbsoluteQuantitationMethod::setCorrelationCoefficient(const double& correlation_coefficient)
+
+  void AbsoluteQuantitationMethod::setCorrelationCoefficient(const double correlation_coefficient)
   {
     correlation_coefficient_ = correlation_coefficient;
   }
-  
-  int AbsoluteQuantitationMethod::getNPoints()
+
+  Int AbsoluteQuantitationMethod::getNPoints() const
   {
     return n_points_;
   }
-  double AbsoluteQuantitationMethod::getCorrelationCoefficient()
+
+  double AbsoluteQuantitationMethod::getCorrelationCoefficient() const
   {
     return correlation_coefficient_;
   }
 
-  //Non getter/setter methods
-  bool AbsoluteQuantitationMethod::checkLOD(const double & value)
+  bool AbsoluteQuantitationMethod::checkLOD(const double value) const
   {
-    bool bracketted = false;
-    if (value <= ulod_ && value >= llod_)
-    {
-      bracketted = true;
-    }
-    return bracketted;
+    return value >= llod_ && value <= ulod_; // is it bracketed or not
   }
 
-  bool AbsoluteQuantitationMethod::checkLOQ(const double & value)
+  bool AbsoluteQuantitationMethod::checkLOQ(const double value) const
   {
-    bool bracketted = false;
-    if (value <= uloq_ && value >= lloq_)
-    {
-      bracketted = true;
-    }
-    return bracketted;
+    return value >= lloq_ && value <= uloq_; // is it bracketed or not
   }
-
 } // namespace
-
