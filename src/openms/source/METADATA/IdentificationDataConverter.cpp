@@ -99,14 +99,14 @@ namespace OpenMS
       if (!step_ref->input_file_refs.empty())
       {
         // @TODO: what if there's more than one input file?
-        query.input_file_ref = step_ref->input_file_refs[0];
+        query.input_file_opt = step_ref->input_file_refs[0];
       }
       else
       {
         String file = "UNKNOWN_INPUT_FILE_" + id;
         IdentificationData::InputFileRef file_ref =
           id_data.registerInputFile(file);
-        query.input_file_ref = file_ref;
+        query.input_file_opt = file_ref;
       }
       query.rt = pep.getRT();
       query.mz = pep.getMZ();
@@ -178,9 +178,9 @@ namespace OpenMS
           IdentificationData::ProcessingSoftwareRef software_ref =
             id_data.registerDataProcessingSoftware(software);
           IdentificationData::DataProcessingStep sub_step(software_ref);
-          if (query.input_file_ref != nullptr)
+          if (query.input_file_opt)
           {
-            sub_step.input_file_refs.push_back(query.input_file_ref);
+            sub_step.input_file_refs.push_back(*query.input_file_opt);
           }
           IdentificationData::ProcessingStepRef sub_step_ref =
             id_data.registerDataProcessingStep(sub_step);
@@ -189,7 +189,7 @@ namespace OpenMS
           {
             IdentificationData::ScoreType sub_score;
             sub_score.name = sub_pair.first;
-            sub_score.software_ref = software_ref;
+            sub_score.software_opt = software_ref;
             IdentificationData::ScoreTypeRef sub_score_ref =
               id_data.registerScoreType(sub_score);
             match.scores.push_back(make_pair(sub_score_ref, sub_pair.second));
@@ -197,7 +197,7 @@ namespace OpenMS
           IdentificationData::ScoreType main_score;
           main_score.name = ana_res.score_type + "_probability";
           main_score.higher_better = ana_res.higher_is_better;
-          main_score.software_ref = software_ref;
+          main_score.software_opt = software_ref;
           IdentificationData::ScoreTypeRef main_score_ref =
             id_data.registerScoreType(main_score);
           match.scores.push_back(make_pair(main_score_ref, ana_res.main_score));
@@ -268,7 +268,7 @@ namespace OpenMS
                query_match.scores.rend(); ++score_it)
         {
           IdentificationData::ScoreTypeRef score_ref = score_it->first;
-          if (score_ref->software_ref == step_ref->software_ref)
+          if (score_ref->software_opt == step_ref->software_ref)
           {
             hit.setScore(score_it->second);
             pair<IdentificationData::DataQueryRef,
@@ -321,7 +321,7 @@ namespace OpenMS
                parent.scores.rend(); ++score_it)
         {
           IdentificationData::ScoreTypeRef score_ref = score_it->first;
-          if (score_ref->software_ref == step_ref->software_ref)
+          if (score_ref->software_opt == step_ref->software_ref)
           {
             hit.setScore(score_it->second);
             prot_data[step_ref].first.push_back(hit);
@@ -336,7 +336,7 @@ namespace OpenMS
     for (IdentificationData::ProcessingStepRef step_ref : steps)
     {
       ProteinIdentification protein;
-      protein.setIdentifier(String(Size(step_ref)));
+      protein.setIdentifier(String(Size(&(*step_ref))));
       protein.setDateTime(step_ref->date_time);
       protein.setPrimaryMSRunPath(step_ref->primary_files);
       const Software& software = *step_ref->software_ref;
@@ -352,8 +352,7 @@ namespace OpenMS
           *pd_pos->second.second;
         protein.setScoreType(score_type.name);
       }
-      map<IdentificationData::ProcessingStepRef,
-          IdentificationData::SearchParamRef>::const_iterator ss_pos =
+      IdentificationData::DBSearchSteps::const_iterator ss_pos =
         id_data.getDBSearchSteps().find(step_ref);
       if (ss_pos != id_data.getDBSearchSteps().end())
       {
@@ -380,12 +379,13 @@ namespace OpenMS
     }
     counter = 1;
     map<IdentificationData::InputFileRef, Size> file_map;
-    for (const String& input_file : id_data.getInputFiles())
+    for (auto it = id_data.getInputFiles().begin();
+         it != id_data.getInputFiles().end(); ++it)
     {
       MzTabMSRunMetaData run_meta;
-      run_meta.location.set(input_file);
+      run_meta.location.set(*it);
       meta.ms_run[counter] = run_meta;
-      file_map[&input_file] = counter;
+      file_map[it] = counter;
       ++counter;
     }
     set<String> fixed_mods, variable_mods;

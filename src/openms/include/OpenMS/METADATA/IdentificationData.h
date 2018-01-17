@@ -112,7 +112,7 @@ namespace OpenMS
 
     /// Default constructor
     IdentificationData():
-      current_step_ref_(nullptr)
+      current_step_ref_(processing_steps_.end())
     {
     }
 
@@ -126,8 +126,11 @@ namespace OpenMS
 
     SearchParamRef registerDBSearchParam(const DBSearchParam& param);
 
+    ProcessingStepRef registerDataProcessingStep(const DataProcessingStep&
+                                                 step);
+
     ProcessingStepRef registerDataProcessingStep(
-      const DataProcessingStep& step, SearchParamRef search_ref = nullptr);
+      const DataProcessingStep& step, SearchParamRef search_ref);
 
     ScoreTypeRef registerScoreType(const ScoreType& score);
 
@@ -205,6 +208,10 @@ namespace OpenMS
       return query_matches_;
     }
 
+    void addScore(QueryMatchRef match_ref, ScoreTypeRef score_ref,
+                  double value);
+
+
     /*!
       @brief Set a data processing step that will apply to all subsequent "register..." calls.
 
@@ -228,9 +235,10 @@ namespace OpenMS
     std::vector<QueryMatchRef> getBestMatchPerQuery(ScoreTypeRef
                                                     score_ref) const;
 
+    ScoreTypeRef findScoreType(const String& score_name) const;
+
     ScoreTypeRef findScoreType(const String& score_name,
-                               ProcessingSoftwareRef software_ref = nullptr)
-      const;
+                               ProcessingSoftwareRef software_ref) const;
 
     /// Helper function to compare two scores
     static bool isBetterScore(double first, double second, bool higher_better)
@@ -295,7 +303,11 @@ namespace OpenMS
       const ElementType& update;
     };
 
-    /// Helper functor for adding the current processing step to elements in a @t boost::multi_index_container structure
+    /*!
+      Helper functor for adding processing steps to elements in a @t boost::multi_index_container structure
+
+      The validity of the processing step reference cannot be checked here!
+    */
     template <typename ElementType>
     struct ModifyMultiIndexAddProcessingStep
     {
@@ -306,9 +318,8 @@ namespace OpenMS
 
       void operator()(ElementType& element)
       {
-        if ((step_ref != nullptr) &&
-            (element.processing_step_refs.empty() ||
-             (element.processing_step_refs.back() != step_ref)))
+        if (element.processing_step_refs.empty() ||
+            (element.processing_step_refs.back() != step_ref))
         {
           element.processing_step_refs.push_back(step_ref);
         }
@@ -317,10 +328,33 @@ namespace OpenMS
       ProcessingStepRef step_ref;
     };
 
+    /*!
+      Helper functor for adding scores to elements in a @t boost::multi_index_container structure
+
+      The validity of the score type reference cannot be checked here!
+    */
+    template <typename ElementType>
+    struct ModifyMultiIndexAddScore
+    {
+      ModifyMultiIndexAddScore(ScoreTypeRef score_type_ref, double value):
+        score_type_ref(score_type_ref), value(value)
+      {
+      }
+
+      void operator()(ElementType& element)
+      {
+        // @TODO: add checks?
+        element.scores.push_back(make_pair(score_type_ref, value));
+      }
+
+      ScoreTypeRef score_type_ref;
+      double value;
+    };
+
     /// Helper function for adding entries (derived from ScoredProcessingResult) to a @t boost::multi_index_container structure
     template <typename ContainerType, typename ElementType>
-    const ElementType* insertIntoMultiIndex_(ContainerType& container,
-                                             const ElementType& element)
+    typename ContainerType::iterator insertIntoMultiIndex_(
+      ContainerType& container, const ElementType& element)
     {
       checkScoreTypes_(element.scores);
       checkProcessingSteps_(element.processing_step_refs);
@@ -337,16 +371,16 @@ namespace OpenMS
         modifier(current_step_ref_);
       container.modify(result.first, modifier);
 
-      return &(*result.first);
+      return result.first;
     }
 
     /// Check whether a pointer references an element in a container
     template <typename RefType, typename ContainerType>
     bool isValidReference_(RefType ref, const ContainerType& container)
     {
-      for (const auto& element : container)
+      for (auto it = container.begin(); it != container.end(); ++it)
       {
-        if (ref == &element) return true;
+        if (ref == it) return true;
       }
       return false;
     }

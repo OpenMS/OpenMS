@@ -166,7 +166,7 @@ namespace OpenMS
         boost::multi_index::ordered_unique<boost::multi_index::member<
           ParentMolecule, String, &ParentMolecule::accession>>>
       > ParentMolecules;
-    typedef const ParentMolecule* ParentMoleculeRef;
+    typedef IteratorWrapper<ParentMolecules::iterator> ParentMoleculeRef;
 
 
     /*!

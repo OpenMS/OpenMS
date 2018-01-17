@@ -99,14 +99,14 @@ namespace OpenMS
   IdentificationData::InputFileRef
   IdentificationData::registerInputFile(const String& file)
   {
-    return &(*input_files_.insert(file).first);
+    return input_files_.insert(file).first;
   }
 
 
   IdentificationData::ProcessingSoftwareRef
   IdentificationData::registerDataProcessingSoftware(const Software& software)
   {
-    return &(*processing_software_.insert(software).first);
+    return processing_software_.insert(software).first;
   }
 
 
@@ -114,7 +114,15 @@ namespace OpenMS
   IdentificationData::registerDBSearchParam(const DBSearchParam& param)
   {
     // @TODO: any required information that should be checked?
-    return &(*db_search_params_.insert(param).first);
+    return db_search_params_.insert(param).first;
+  }
+
+
+  IdentificationData::ProcessingStepRef
+  IdentificationData::registerDataProcessingStep(
+    const DataProcessingStep& step)
+  {
+    return registerDataProcessingStep(step, db_search_params_.end());
   }
 
 
@@ -140,9 +148,9 @@ namespace OpenMS
       }
     }
 
-    ProcessingStepRef step_ref = &(*processing_steps_.insert(step).first);
+    ProcessingStepRef step_ref = processing_steps_.insert(step).first;
     // if given, reference to DB search param. must be valid:
-    if (search_ref != nullptr)
+    if (search_ref != db_search_params_.end())
     {
       if (!isValidReference_(search_ref, db_search_params_))
       {
@@ -160,19 +168,19 @@ namespace OpenMS
   IdentificationData::registerScoreType(const ScoreType& score)
   {
     pair<ScoreTypes::iterator, bool> result;
-    if ((score.software_ref == nullptr) && (current_step_ref_ != nullptr))
+    if ((!score.software_opt) && (current_step_ref_ != processing_steps_.end()))
     {
       // transfer the software ref. from the current data processing step:
       const DataProcessingStep& step = *current_step_ref_;
       ScoreType copy(score); // need a copy so we can modify it
-      copy.software_ref = step.software_ref;
+      copy.software_opt = step.software_ref;
       result = score_types_.insert(copy);
     }
     else
     {
       // ref. to software may be missing, but must otherwise be valid:
-      if ((score.software_ref != nullptr) &&
-          !isValidReference_(score.software_ref, processing_software_))
+      if (score.software_opt && !isValidReference_(*score.software_opt,
+                                                   processing_software_))
       {
         String msg = "invalid reference to data processing software - register that first";
         throw Exception::IllegalArgument(__FILE__, __LINE__,
@@ -186,7 +194,7 @@ namespace OpenMS
       throw Exception::IllegalArgument(__FILE__, __LINE__,
                                        OPENMS_PRETTY_FUNCTION, msg);
     }
-    return &(*result.first);
+    return result.first;
   }
 
 
@@ -201,14 +209,14 @@ namespace OpenMS
                                        OPENMS_PRETTY_FUNCTION, msg);
     }
     // ref. to input file may be missing, but must otherwise be valid:
-    if ((query.input_file_ref != nullptr) &&
-        !isValidReference_(query.input_file_ref, input_files_))
+    if (query.input_file_opt && !isValidReference_(*query.input_file_opt,
+                                                   input_files_))
     {
       String msg = "invalid reference to an input file - register that first";
       throw Exception::IllegalArgument(__FILE__, __LINE__,
                                        OPENMS_PRETTY_FUNCTION, msg);
     }
-    return &(*data_queries_.insert(query).first);
+    return data_queries_.insert(query).first;
   }
 
 
@@ -317,6 +325,21 @@ namespace OpenMS
   }
 
 
+  void IdentificationData::addScore(QueryMatchRef match_ref,
+                                    ScoreTypeRef score_ref, double value)
+  {
+    if (!isValidReference_(score_ref, score_types_))
+    {
+      String msg = "invalid reference to a score type - register that first";
+      throw Exception::IllegalArgument(__FILE__, __LINE__,
+                                       OPENMS_PRETTY_FUNCTION, msg);
+    }
+
+    ModifyMultiIndexAddScore<MoleculeQueryMatch> modifier(score_ref, value);
+    query_matches_.modify(match_ref, modifier);
+  }
+
+
   void IdentificationData::setCurrentProcessingStep(ProcessingStepRef step_ref)
   {
     if (!isValidReference_(step_ref, processing_steps_))
@@ -338,23 +361,30 @@ namespace OpenMS
 
   void IdentificationData::clearCurrentProcessingStep()
   {
-    current_step_ref_ = nullptr;
+    current_step_ref_ = processing_steps_.end();
+  }
+
+
+  IdentificationData::ScoreTypeRef IdentificationData::findScoreType(
+    const String& score_name) const
+  {
+    return findScoreType(score_name, processing_software_.end());
   }
 
 
   IdentificationData::ScoreTypeRef IdentificationData::findScoreType(
     const String& score_name, ProcessingSoftwareRef software_ref) const
   {
-    for (ScoreTypes::iterator it = score_types_.begin();
-         it != score_types_.end(); ++it)
+    for (ScoreTypeRef it = score_types_.begin(); it != score_types_.end(); ++it)
     {
       if ((it->name == score_name) &&
-          ((software_ref == nullptr) || (it->software_ref == software_ref)))
+          ((software_ref == processing_software_.end()) ||
+           (it->software_opt == software_ref)))
       {
-        return &(*it);
+        return it;
       }
     }
-    return nullptr;
+    return score_types_.end();
   }
 
 
@@ -364,16 +394,18 @@ namespace OpenMS
     vector<QueryMatchRef> results;
     bool higher_better = score_ref->higher_better;
     pair<double, bool> best_score = make_pair(0.0, false);
-    QueryMatchRef best_ref = nullptr;
-    for (const MoleculeQueryMatch& match : query_matches_)
+    QueryMatchRef best_ref = query_matches_.end();
+    for (QueryMatchRef ref = query_matches_.begin();
+         ref != query_matches_.end(); ++ref)
     {
-      pair<double, bool> current_score = match.getScore(score_ref);
-      if (match.data_query_ref != best_ref->data_query_ref)
+      pair<double, bool> current_score = ref->getScore(score_ref);
+      if ((best_ref != query_matches_.end()) &&
+          (ref->data_query_ref != best_ref->data_query_ref))
       {
         // finalize previous query:
         if (best_score.second) results.push_back(best_ref);
         best_score = current_score;
-        best_ref = &match;
+        best_ref = ref;
       }
       else if (current_score.second &&
                (!best_score.second ||
@@ -382,7 +414,7 @@ namespace OpenMS
       {
         // new best score for the current query:
         best_score = current_score;
-        best_ref = &match;
+        best_ref = ref;
       }
     }
     // finalize last query:

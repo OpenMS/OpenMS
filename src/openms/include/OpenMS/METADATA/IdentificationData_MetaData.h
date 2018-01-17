@@ -39,10 +39,27 @@
 #include <OpenMS/METADATA/DataProcessing.h>
 #include <OpenMS/METADATA/Software.h>
 
+#include <boost/optional.hpp>
+#include <boost/unordered_map.hpp>
+
 namespace OpenMS
 {
   namespace IdentificationDataInternal
   {
+    /// Wrapper that adds @p operator< to iterators, so they can be used as (part of) keys in maps/sets
+    template <typename Iterator>
+    struct IteratorWrapper: public Iterator
+    {
+      IteratorWrapper(const Iterator& it): Iterator(it) {}
+
+      bool operator<(const IteratorWrapper& other) const
+      {
+        // compare by address of referenced element:
+        return &(**this) < &(*other);
+      }
+    };
+
+
     enum MoleculeType
     {
       PROTEIN,
@@ -54,7 +71,7 @@ namespace OpenMS
 
     // Input files that were processed:
     typedef std::set<String> InputFiles;
-    typedef const String* InputFileRef;
+    typedef IteratorWrapper<InputFiles::iterator> InputFileRef;
 
 
     /*!
@@ -64,7 +81,7 @@ namespace OpenMS
  software information only once.
     */
     typedef std::set<Software> DataProcessingSoftware;
-    typedef const Software* ProcessingSoftwareRef;
+    typedef IteratorWrapper<DataProcessingSoftware::iterator> ProcessingSoftwareRef;
 
 
     /*!
@@ -117,7 +134,12 @@ namespace OpenMS
     };
 
     typedef std::set<DataProcessingStep> DataProcessingSteps;
-    typedef const DataProcessingStep* ProcessingStepRef;
+    typedef DataProcessingSteps::iterator ProcessingStepRef;
+    inline bool operator<(const ProcessingStepRef& left,
+                          const ProcessingStepRef& right)
+    {
+      return &(*left) < &(*right);
+    }
 
 
     enum MassType
@@ -207,7 +229,12 @@ namespace OpenMS
     };
 
     typedef std::set<DBSearchParam> DBSearchParams;
-    typedef const DBSearchParam* SearchParamRef;
+    typedef DBSearchParams::iterator SearchParamRef;
+    inline bool operator<(const SearchParamRef& left,
+                          const SearchParamRef& right)
+    {
+      return &(*left) < &(*right);
+    }
     typedef std::map<ProcessingStepRef, SearchParamRef> DBSearchSteps;
 
     /*!
@@ -222,27 +249,29 @@ namespace OpenMS
       bool higher_better;
 
       // reference to the software that assigned the score:
-      ProcessingSoftwareRef software_ref;
+      boost::optional<ProcessingSoftwareRef> software_opt;
       // @TODO: scores assigned by different software tools/versions are
       // considered as different scores (even if they have the same name) -
       // does that make sense?
 
       ScoreType():
-        higher_better(true), software_ref()
+        higher_better(true), software_opt()
       {
       }
 
       explicit ScoreType(const CVTerm& cv_term, bool higher_better,
-                         ProcessingSoftwareRef software_ref = nullptr):
+                         boost::optional<ProcessingSoftwareRef> software_opt =
+                         boost::none):
         cv_term(cv_term), name(cv_term.getName()), higher_better(higher_better),
-        software_ref(software_ref)
+        software_opt(software_opt)
       {
       }
 
       explicit ScoreType(const String& name, bool higher_better,
-                         ProcessingSoftwareRef software_ref = nullptr):
+                         boost::optional<ProcessingSoftwareRef> software_opt =
+                         boost::none):
         cv_term(), name(name), higher_better(higher_better),
-        software_ref(software_ref)
+        software_opt(software_opt)
       {
       }
 
@@ -251,22 +280,27 @@ namespace OpenMS
       // don't include "higher_better" in the comparison:
       bool operator<(const ScoreType& other) const
       {
-        return (std::tie(cv_term.getAccession(), name, software_ref) <
+        return (std::tie(cv_term.getAccession(), name, software_opt) <
                 std::tie(other.cv_term.getAccession(), other.name,
-                         other.software_ref));
+                         other.software_opt));
       }
 
       // don't include "higher_better" in the comparison:
       bool operator==(const ScoreType& other) const
       {
-        return (std::tie(cv_term.getAccession(), name, software_ref) ==
+        return (std::tie(cv_term.getAccession(), name, software_opt) ==
                 std::tie(other.cv_term.getAccession(), other.name,
-                         other.software_ref));
+                         other.software_opt));
       }
     };
 
     typedef std::set<ScoreType> ScoreTypes;
-    typedef const ScoreType* ScoreTypeRef;
+    typedef ScoreTypes::iterator ScoreTypeRef;
+    inline bool operator<(const ScoreTypeRef& left, const ScoreTypeRef& right)
+    {
+      return &(*left) < &(*right);
+    }
+
     // @TODO: use a "boost::multi_index_container" to allow efficient access in
     // sequence and by key?
     typedef std::vector<std::pair<ScoreTypeRef, double>> ScoreList;

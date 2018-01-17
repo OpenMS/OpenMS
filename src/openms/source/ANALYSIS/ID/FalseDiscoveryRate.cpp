@@ -602,15 +602,14 @@ namespace OpenMS
     bool use_all_hits = param_.getValue("use_all_hits").toBool();
     bool include_decoys = param_.getValue("add_decoy_peptides").toBool();
     vector<double> target_scores, decoy_scores;
-    // @TODO: replace maps with "[boost::]unordered_map"?
     map<IdentificationData::IdentifiedMoleculeRef, bool> molecule_to_decoy;
     map<IdentificationData::QueryMatchRef, double> match_to_score;
     if (use_all_hits)
     {
-      for (const IdentificationData::MoleculeQueryMatch& match :
-             id_data.getMoleculeQueryMatches())
+      for (auto it = id_data.getMoleculeQueryMatches().begin();
+           it != id_data.getMoleculeQueryMatches().end(); ++it)
       {
-        handleQueryMatch_(&match, score_ref, target_scores, decoy_scores,
+        handleQueryMatch_(it, score_ref, target_scores, decoy_scores,
                           molecule_to_decoy, match_to_score);
       }
     }
@@ -654,13 +653,14 @@ namespace OpenMS
         auto pos = molecule_to_decoy.find(it->identified_molecule_ref);
         if ((pos != molecule_to_decoy.end()) && pos->second) continue;
       }
-      auto pos = match_to_score.find(&(*it));
+      auto pos = match_to_score.find(it);
       if (pos == match_to_score.end()) continue;
       double fdr = score_to_fdr.at(pos->second);
-      IdentificationData::MoleculeQueryMatch copy(*it);
-      copy.scores.push_back(make_pair(fdr_ref, fdr));
       // @TODO: find a more efficient way to add a score
-      id_data.registerMoleculeQueryMatch(copy);
+      // IdentificationData::MoleculeQueryMatch copy(*it);
+      // copy.scores.push_back(make_pair(fdr_ref, fdr));
+      // id_data.registerMoleculeQueryMatch(copy);
+      id_data.addScore(it, fdr_ref, fdr);
     }
     return fdr_ref;
   }

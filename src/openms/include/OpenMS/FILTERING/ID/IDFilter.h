@@ -1087,7 +1087,7 @@ public:
     ///@{
     static void keepBestMatchPerQuery(
       IdentificationData& id_data,
-      IdentificationData::ScoreTypeRef score_ref = nullptr);
+      IdentificationData::ScoreTypeRef score_ref);
 
     static void filterQueryMatchesByScore(
       IdentificationData& id_data,
@@ -1102,7 +1102,7 @@ public:
     {
       for (auto it = container.begin(); it != container.end(); )
       {
-        if (!refs.count(&(*it)))
+        if (!refs.count(it))
         {
           it = container.erase(it);
         }

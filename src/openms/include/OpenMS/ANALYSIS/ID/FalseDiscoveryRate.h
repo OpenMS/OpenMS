@@ -40,6 +40,8 @@
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 
+#include <boost/unordered_map.hpp>
+
 #include <vector>
 
 namespace OpenMS
@@ -118,7 +120,8 @@ public:
         IdentificationData::QueryMatchRef match_ref,
         IdentificationData::ScoreTypeRef score_ref,
         std::vector<double>& target_scores, std::vector<double>& decoy_scores,
-        std::map<IdentificationData::IdentifiedMoleculeRef, bool>& molecule_to_decoy,
+        std::map<IdentificationData::IdentifiedMoleculeRef, bool>&
+        molecule_to_decoy,
         std::map<IdentificationData::QueryMatchRef, double>& match_to_score);
   };
 

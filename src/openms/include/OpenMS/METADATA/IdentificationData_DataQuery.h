@@ -41,7 +41,8 @@
 
 #include <boost/multi_index_container.hpp>
 #include <boost/multi_index/ordered_index.hpp>
-#include <boost/multi_index/mem_fun.hpp>
+#include <boost/multi_index/composite_key.hpp>
+#include <boost/optional.hpp>
 #include <boost/variant.hpp>
 
 namespace OpenMS
@@ -56,18 +57,18 @@ namespace OpenMS
       // spectrum or feature ID (from the file referenced by "input_file_ref"):
       String data_id;
 
-      InputFileRef input_file_ref;
+      // @TODO: make this non-optional (i.e. required)?
+      boost::optional<InputFileRef> input_file_opt;
 
       double rt, mz; // position
 
       explicit DataQuery(
         const String& data_id,
-        InputFileRef input_file_ref = nullptr,
+        boost::optional<InputFileRef> input_file_opt = boost::none,
         double rt = std::numeric_limits<double>::quiet_NaN(),
         double mz = std::numeric_limits<double>::quiet_NaN()):
-        data_id(data_id), input_file_ref(input_file_ref), rt(rt), mz(mz)
+        data_id(data_id), input_file_opt(input_file_opt), rt(rt), mz(mz)
       {
-        // @TODO: require "input_file_ref"? (see also "DataProcessingStep")
       }
 
       DataQuery(const DataQuery& other) = default;
@@ -75,15 +76,18 @@ namespace OpenMS
       // ignore RT and m/z for comparisons to avoid issues with rounding:
       bool operator<(const DataQuery& other) const
       {
-        return std::tie(input_file_ref, data_id) <
-          std::tie(other.input_file_ref, other.data_id);
+        // can't compare references directly, so compare addresses:
+        const String* sp = input_file_opt ? &(**input_file_opt) : nullptr;
+        const String* o_sp = other.input_file_opt ? &(**other.input_file_opt) :
+          nullptr;
+        return std::tie(sp, data_id) < std::tie(o_sp, other.data_id);
       }
 
       // ignore RT and m/z for comparisons to avoid issues with rounding:
       bool operator==(const DataQuery& other) const
       {
-        return std::tie(input_file_ref, data_id) ==
-          std::tie(other.input_file_ref, other.data_id);
+        return std::tie(input_file_opt, data_id) ==
+          std::tie(other.input_file_opt, other.data_id);
       }
 
       // @TODO: do we need an "experiment label" (used e.g. in pepXML)?
@@ -91,7 +95,7 @@ namespace OpenMS
     };
 
     typedef std::set<DataQuery> DataQueries;
-    typedef const DataQuery* DataQueryRef;
+    typedef IteratorWrapper<DataQueries::iterator> DataQueryRef;
 
 
     /*!
@@ -100,6 +104,7 @@ namespace OpenMS
 
     // @TODO: move "PeakAnnotation" out of "PeptideHit"
     typedef std::vector<PeptideHit::PeakAnnotation> PeakAnnotations;
+    typedef std::map<ProcessingStepRef, PeakAnnotations> PeakAnnotationSteps;
 
     typedef boost::variant<IdentifiedPeptideRef, IdentifiedCompoundRef,
                            IdentifiedOligoRef> IdentifiedMoleculeRef;
@@ -114,7 +119,7 @@ namespace OpenMS
 
       // peak annotations (fragment ion matches), potentially from different
       // data processing steps:
-      std::map<ProcessingStepRef, PeakAnnotations> peak_annotations;
+      PeakAnnotationSteps peak_annotations;
 
       explicit MoleculeQueryMatch(
         IdentifiedMoleculeRef identified_molecule_ref,
@@ -122,8 +127,7 @@ namespace OpenMS
         const ScoreList& scores = ScoreList(),
         const std::vector<ProcessingStepRef>& processing_step_refs =
         std::vector<ProcessingStepRef>(),
-        const std::map<ProcessingStepRef, PeakAnnotations>& peak_annotations =
-        std::map<ProcessingStepRef, PeakAnnotations>()):
+        const PeakAnnotationSteps& peak_annotations = PeakAnnotationSteps()):
         ScoredProcessingResult(scores, processing_step_refs),
         identified_molecule_ref(identified_molecule_ref),
         data_query_ref(data_query_ref), charge(charge),
@@ -132,11 +136,6 @@ namespace OpenMS
       }
 
       MoleculeQueryMatch(const MoleculeQueryMatch& other) = default;
-
-      std::pair<DataQueryRef, IdentifiedMoleculeRef> getCombinedKey() const
-      {
-        return std::make_pair(data_query_ref, identified_molecule_ref);
-      }
 
       MoleculeType getMoleculeType() const
       {
@@ -207,11 +206,16 @@ namespace OpenMS
     typedef boost::multi_index_container<
       MoleculeQueryMatch,
       boost::multi_index::indexed_by<
-        boost::multi_index::ordered_unique<boost::multi_index::const_mem_fun<
-          MoleculeQueryMatch, std::pair<DataQueryRef, IdentifiedMoleculeRef>,
-          &MoleculeQueryMatch::getCombinedKey>>>
+        boost::multi_index::ordered_unique<
+          boost::multi_index::composite_key<
+            MoleculeQueryMatch,
+            boost::multi_index::member<MoleculeQueryMatch, DataQueryRef,
+                                       &MoleculeQueryMatch::data_query_ref>,
+            boost::multi_index::member<
+              MoleculeQueryMatch, IdentifiedMoleculeRef,
+              &MoleculeQueryMatch::identified_molecule_ref>>>>
       > MoleculeQueryMatches;
-    typedef const MoleculeQueryMatch* QueryMatchRef;
+    typedef IteratorWrapper<MoleculeQueryMatches::iterator> QueryMatchRef;
   }
 }
 

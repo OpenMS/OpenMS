@@ -641,19 +641,13 @@ namespace OpenMS
   {
     if (id_data.getMoleculeQueryMatches().size() <= 1) return; // nothing to do
 
-    if (score_ref == nullptr) // select the score type to use
-    {
-      throw Exception::NotImplemented(__FILE__, __LINE__,
-                                      OPENMS_PRETTY_FUNCTION); // @TODO
-    }
-
     vector<IdentificationData::QueryMatchRef> best_matches =
       id_data.getBestMatchPerQuery(score_ref);
     auto best_match_it = best_matches.begin();
     for (auto it = id_data.query_matches_.begin();
          it != id_data.query_matches_.end(); )
     {
-      if (&(*it) == *best_match_it)
+      if (it == *best_match_it)
       {
         ++it;
         ++best_match_it;
@@ -672,12 +666,6 @@ namespace OpenMS
     IdentificationData& id_data, IdentificationData::ScoreTypeRef score_ref,
     double cutoff)
   {
-    if (score_ref == nullptr)
-    {
-      String msg = "invalid reference to score type";
-      throw Exception::IllegalArgument(
-        __FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, msg);
-    }
     bool higher_better = score_ref->higher_better;
 
     for (auto it = id_data.query_matches_.begin();
