@@ -45,6 +45,7 @@
 #include <OpenMS/KERNEL/Peak1D.h>
 #include <OpenMS/METADATA/SpectrumSettings.h>
 #include <OpenMS/METADATA/IdentificationData.h>
+#include <OpenMS/METADATA/IdentificationDataConverter.h>
 
 // file types
 #include <OpenMS/FORMAT/FASTAFile.h>
@@ -510,18 +511,25 @@ protected:
           for (Size index : oligo_map.at(hit.sequence))
           {
             FASTAFile::FASTAEntry fasta = fasta_db[index];
-            IdentificationData::ParentMolecule parent(fasta.identifier, IdentificationData::MT_RNA, fasta.sequence, fasta.description);
-            IdentificationData::ParentMoleculeRef parent_ref = id_data.registerParentMolecule(parent);
+            IdentificationData::ParentMolecule parent(
+              fasta.identifier, IdentificationData::MoleculeType::RNA,
+              fasta.sequence, fasta.description);
+            IdentificationData::ParentMoleculeRef parent_ref =
+              id_data.registerParentMolecule(parent);
             oligo.parent_matches[parent_ref];
           }
 
-          IdentificationData::IdentifiedOligoRef oligo_ref = id_data.registerOligo(oligo);
+          IdentificationData::IdentifiedOligoRef oligo_ref =
+            id_data.registerIdentifiedOligo(oligo);
 
-          IdentificationData::MoleculeQueryMatch match(oligo_ref, query_ref, charge);
+          IdentificationData::MoleculeQueryMatch match(oligo_ref, query_ref,
+                                                       charge);
           match.scores.push_back(make_pair(score_ref, hit.score));
-          match.peak_annotations[id_data.getCurrentProcessingStep()] = hit.annotations;
+          match.peak_annotations[id_data.getCurrentProcessingStep()] =
+            hit.annotations;
           // @TODO: add a field for this to "IdentificationData::MoleculeQueryMatch"?
-          match.setMetaValue(Constants::PRECURSOR_ERROR_PPM_USERPARAM, hit.precursor_error_ppm);
+          match.setMetaValue(Constants::PRECURSOR_ERROR_PPM_USERPARAM,
+                             hit.precursor_error_ppm);
           id_data.registerMoleculeQueryMatch(match);
         }
       }
@@ -551,7 +559,7 @@ protected:
   void calculateAndFilterFDR_(IdentificationData& id_data,
                               const String& decoy_pattern, bool only_top_hits)
   {
-    for (const auto& parent : id_data.parent_molecules)
+    for (const auto& parent : id_data.getParentMolecules())
     {
       if (parent.accession.hasSubstring(decoy_pattern))
       {
@@ -561,20 +569,22 @@ protected:
         id_data.registerParentMolecule(temp);
       }
     }
-    IdentificationData::ScoreTypeRef score_ref = id_data.findScoreType("hyperscore");
+    IdentificationData::ScoreTypeRef score_ref =
+      id_data.findScoreType("hyperscore");
     FalseDiscoveryRate fdr;
     Param fdr_params = fdr.getDefaults();
     fdr_params.setValue("use_all_hits", only_top_hits ? "true" : "false");
     bool remove_decoys = getFlag_("fdr:remove_decoys");
     fdr_params.setValue("add_decoy_peptides", remove_decoys ? "false" : "true");
     fdr.setParameters(fdr_params);
-    IdentificationData::ScoreTypeRef fdr_ref = fdr.applyToQueryMatches(id_data, score_ref);
+    IdentificationData::ScoreTypeRef fdr_ref =
+      fdr.applyToQueryMatches(id_data, score_ref);
     double fdr_cutoff = getDoubleOption_("fdr:cutoff");
     if (fdr_cutoff < 1.0)
     {
       IDFilter::filterQueryMatchesByScore(id_data, fdr_ref, fdr_cutoff);
       LOG_INFO << "Search hits after FDR filtering: "
-               << id_data.query_matches.size() << endl;
+               << id_data.getMoleculeQueryMatches().size() << endl;
     }
   }
 
@@ -591,7 +601,7 @@ protected:
     String exp_ms2_out = getStringOption_("exp_ms2_out");
 
     IdentificationData::DBSearchParam search_param;
-    search_param.molecule_type = IdentificationData::MT_RNA;
+    search_param.molecule_type = IdentificationData::MoleculeType::RNA;
     search_param.database = in_db;
     Int min_charge = getIntOption_("precursor:min_charge");
     Int max_charge = getIntOption_("precursor:max_charge");
@@ -929,7 +939,7 @@ protected:
     }
 
     // store results
-    MzTab results = id_data.exportMzTab();
+    MzTab results = IdentificationDataConverter::exportMzTab(id_data);
     LOG_DEBUG << "Nucleic acid rows: "
               << results.getNucleicAcidSectionRows().size()
               << "\nOligonucleotide rows: "
@@ -952,7 +962,7 @@ protected:
       IdentificationData::ScoreTypeRef score_ref =
         id_data.findScoreType(score_name);
       // @TODO: write out q-values, if available?
-      for (const auto& osm : id_data.query_matches)
+      for (const auto& osm : id_data.getMoleculeQueryMatches())
       {
         IdentificationData::DataQueryRef query_ref = osm.data_query_ref;
         IdentificationData::IdentifiedOligoRef oligo_ref =
@@ -969,8 +979,6 @@ protected:
                          precursor_error_ppm);
         id_map[query_ref].insertHit(hit);
       }
-      const IdentificationData::ScoreType& score_type =
-        *id_data.score_types.begin();
       for (auto& id_pair : id_map)
       {
         const IdentificationData::DataQuery& query = *id_pair.first;
@@ -979,7 +987,7 @@ protected:
         peptide.setMZ(query.mz);
         peptide.setMetaValue("spectrum_reference", query.data_id);
         peptide.setScoreType(score_name);
-        peptide.setHigherScoreBetter(score_type.higher_better);
+        peptide.setHigherScoreBetter(score_ref->higher_better);
         peptide.setIdentifier("id");
         peptides.push_back(peptide);
       }

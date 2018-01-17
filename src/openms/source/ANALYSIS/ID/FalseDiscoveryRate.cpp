@@ -556,9 +556,9 @@ namespace OpenMS
     map<IdentificationData::IdentifiedMoleculeRef, bool>& molecule_to_decoy,
     map<IdentificationData::QueryMatchRef, double>& match_to_score)
   {
-    enum IdentificationData::MoleculeType molecule_type =
+    IdentificationData::MoleculeType molecule_type =
       match_ref->getMoleculeType();
-    if (molecule_type == IdentificationData::MT_COMPOUND)
+    if (molecule_type == IdentificationData::MoleculeType::COMPOUND)
     {
       return; // compounds don't have parents with target/decoy status
     }
@@ -571,11 +571,11 @@ namespace OpenMS
     bool is_decoy;
     if (pos == molecule_to_decoy.end()) // new molecule
     {
-      if (molecule_type == IdentificationData::MT_PROTEIN)
+      if (molecule_type == IdentificationData::MoleculeType::PROTEIN)
       {
         is_decoy = match_ref->getIdentifiedPeptideRef()->allParentsAreDecoys();
       }
-      else // if (molecule_type == IdentificationData::MT_RNA)
+      else // if (molecule_type == IdentificationData::MoleculeType::RNA)
       {
         is_decoy = match_ref->getIdentifiedOligoRef()->allParentsAreDecoys();
       }
@@ -608,7 +608,7 @@ namespace OpenMS
     if (use_all_hits)
     {
       for (const IdentificationData::MoleculeQueryMatch& match :
-             id_data.query_matches)
+             id_data.getMoleculeQueryMatches())
       {
         handleQueryMatch_(&match, score_ref, target_scores, decoy_scores,
                           molecule_to_decoy, match_to_score);
@@ -646,8 +646,8 @@ namespace OpenMS
     IdentificationData::ScoreTypeRef fdr_ref =
       id_data.registerScoreType(fdr_score);
     for (IdentificationData::MoleculeQueryMatches::iterator it =
-           id_data.query_matches.begin(); it != id_data.query_matches.end();
-         ++it)
+           id_data.getMoleculeQueryMatches().begin(); it !=
+           id_data.getMoleculeQueryMatches().end(); ++it)
     {
       if (!include_decoys)
       {
@@ -659,7 +659,8 @@ namespace OpenMS
       double fdr = score_to_fdr.at(pos->second);
       IdentificationData::MoleculeQueryMatch copy(*it);
       copy.scores.push_back(make_pair(fdr_ref, fdr));
-      id_data.query_matches.replace(it, copy);
+      // @TODO: find a more efficient way to add a score
+      id_data.registerMoleculeQueryMatch(copy);
     }
     return fdr_ref;
   }
