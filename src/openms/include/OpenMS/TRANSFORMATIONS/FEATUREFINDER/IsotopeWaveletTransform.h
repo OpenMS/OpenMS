@@ -45,7 +45,7 @@
 #include <OpenMS/MATH/STATISTICS/LinearRegression.h>
 #include <OpenMS/DATASTRUCTURES/ConstRefVector.h>
 #include <cmath>
-#include <math.h>
+#include <cmath>
 #include <boost/math/special_functions/bessel.hpp>
 #include <vector>
 #include <map>
@@ -75,15 +75,15 @@ public:
     /** @brief Internally used data structure. */
     struct BoxElement
     {
-      double mz; //<The monoisotopic position
-      UInt c; //<Note, this is not the charge (it is charge-1!!!)
-      double score; //<The associated score
-      double intens; //<The transformed intensity at the monoisotopic mass
+      double mz; ///<The monoisotopic position
+      UInt c; ///<Note, this is not the charge (it is charge-1!!!)
+      double score; ///<The associated score
+      double intens; ///<The transformed intensity at the monoisotopic mass
       double ref_intens;
-      double RT; //<The elution time (not the scan index)
-      UInt RT_index; //<The elution time (map) index
-      UInt MZ_begin; //<Index
-      UInt MZ_end; //<Index
+      double RT; ///<The elution time (not the scan index)
+      UInt RT_index; ///<The elution time (map) index
+      UInt MZ_begin; ///<Index
+      UInt MZ_end; ///<Index
     };
 
     typedef std::multimap<UInt, BoxElement> Box; ///<Key: RT index, value: BoxElement
@@ -100,7 +100,7 @@ public:
 
       /** Default constructor */
       TransSpectrum() :
-        reference_(NULL), trans_intens_(NULL)
+        reference_(nullptr), trans_intens_(nullptr)
       {
       }
 
@@ -203,8 +203,8 @@ public:
 
 protected:
 
-      const MSSpectrum* reference_; //<The reference spectrum
-      std::vector<float>* trans_intens_; //<The intensities of the transform
+      const MSSpectrum* reference_; ///<The reference spectrum
+      std::vector<float>* trans_intens_; ///<The intensities of the transform
 
     };
 
@@ -481,7 +481,7 @@ protected:
         * signals whose isotopic pattern is nearly diminishing
         * @param map The experimental map.
         * @param box The box to be extended. */
-    void extendBox_(const PeakMap& map, const Box box);
+    void extendBox_(const PeakMap& map, const Box& box);
 
     /** @brief Returns the monoisotopic mass (with corresponding decimal values) we would expect at @p c_mass.
         * @param c_mass The mass for which we would like to know the averagine decimal places. */
@@ -1546,7 +1546,7 @@ protected:
   }
 
   template <typename PeakType>
-  void IsotopeWaveletTransform<PeakType>::extendBox_(const PeakMap& map, const Box box)
+  void IsotopeWaveletTransform<PeakType>::extendBox_(const PeakMap& map, const Box& box)
   {
 #ifdef OPENMS_DEBUG_ISOTOPE_WAVELET
     std::cout << "**** CHECKING FOR BOX EXTENSIONS ****" << std::endl;
@@ -2209,4 +2209,5 @@ protected:
 
 #pragma clang diagnostic pop
 
-#endif
+#endif // OPENMS_TRANSFORMATIONS_FEATUREFINDER_ISOTOPEWAVELETTRANSFORM_H
+

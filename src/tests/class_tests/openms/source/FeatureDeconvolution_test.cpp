@@ -82,8 +82,8 @@ START_TEST(FeatureDeconvolution, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-FeatureDeconvolution* ptr = 0;
-FeatureDeconvolution* nullPointer = 0;
+FeatureDeconvolution* ptr = nullptr;
+FeatureDeconvolution* nullPointer = nullptr;
 START_SECTION(FeatureDeconvolution())
 	ptr = new FeatureDeconvolution();
 	TEST_NOT_EQUAL(ptr, nullPointer)

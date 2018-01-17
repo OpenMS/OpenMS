@@ -53,8 +53,8 @@ using namespace std;
 CVMappings mapping;
 ControlledVocabulary cv;
 
-SemanticValidator* ptr = 0;
-SemanticValidator* nullPointer = 0;
+SemanticValidator* ptr = nullptr;
+SemanticValidator* nullPointer = nullptr;
 START_SECTION((MzMLValidator(const CVMappings& mapping, const ControlledVocabulary& cv)))
 	ptr = new MzMLValidator(mapping,cv);
 	TEST_NOT_EQUAL(ptr, nullPointer)

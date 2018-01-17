@@ -51,8 +51,8 @@ START_TEST(SpectrumAccessSqMass, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-SpectrumAccessSqMass* ptr = 0;
-SpectrumAccessSqMass* nullPointer = 0;
+SpectrumAccessSqMass* ptr = nullptr;
+SpectrumAccessSqMass* nullPointer = nullptr;
 
 boost::shared_ptr<PeakMap > exp(new PeakMap);
 OpenSwath::SpectrumAccessPtr expptr = SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(exp);

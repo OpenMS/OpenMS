@@ -167,7 +167,21 @@ namespace OpenMS
     {
       ribo->setTermSpecificity(Ribonucleotide::THREE_PRIME);
     }
-    // default specificity is "ANYWHERE"
+    else // default specificity is "ANYWHERE"; set formula after base loss:
+    {
+      if (parts[1].hasSuffix("m"))
+      {
+        ribo->setBaselossFormula(EmpiricalFormula("C6H12O5"));
+      }
+      else if ((parts[1] == "Ar(p)") || (parts[1] == "Gr(p)"))
+      {
+        ribo->setBaselossFormula(EmpiricalFormula("C10H19O21P"));
+      }
+      else
+      {
+        ribo->setBaselossFormula(EmpiricalFormula("C5H10O5"));
+      }
+    }
 
     return ribo;
   }

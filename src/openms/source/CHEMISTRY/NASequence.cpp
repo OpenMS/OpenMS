@@ -42,11 +42,12 @@
 
 #include <string>
 
+using namespace std;
 
 namespace OpenMS
 {
 
-  NASequence::NASequence(std::vector<const Ribonucleotide*> seq,
+  NASequence::NASequence(vector<const Ribonucleotide*> seq,
                          const RibonucleotideChainEnd* five_prime,
                          const RibonucleotideChainEnd* three_prime)
   {
@@ -57,8 +58,8 @@ namespace OpenMS
 
   bool NASequence::operator==(const NASequence& rhs) const
   {
-    return (std::tie(seq_, five_prime_, three_prime_) ==
-            std::tie(rhs.seq_, rhs.five_prime_, rhs.three_prime_));
+    return (tie(seq_, five_prime_, three_prime_) ==
+            tie(rhs.seq_, rhs.five_prime_, rhs.three_prime_));
   }
 
   bool NASequence::operator!=(const NASequence& rhs) const
@@ -95,7 +96,7 @@ namespace OpenMS
     return false;
   }
 
-  void NASequence::setSequence(const std::vector<const Ribonucleotide*>& seq)
+  void NASequence::setSequence(const vector<const Ribonucleotide*>& seq)
   {
     seq_ = seq;
   }
@@ -125,6 +126,22 @@ namespace OpenMS
     return NASequence({seq_.end() - length, seq_.end()}, nullptr, three_prime_);
   }
 
+  NASequence NASequence::getSubsequence(Size start, Size length) const
+  {
+    if (start >= size())
+    {
+      throw Exception::IndexOverflow(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, start, size());
+    }
+    if (length > size() - start) length = size() - start;
+
+    const RibonucleotideChainEnd* five_prime = ((start == 0) ? five_prime_ :
+                                                nullptr);
+    const RibonucleotideChainEnd* three_prime = ((start + length == size()) ?
+                                                 three_prime_ : nullptr);
+    vector<const Ribonucleotide*>::const_iterator it = seq_.begin() + start;
+    return NASequence({it, it + length}, five_prime, three_prime);
+  }
+
   EmpiricalFormula NASequence::getFormula(NASFragmentType type, Int charge) const
   {
     static const EmpiricalFormula H_form = EmpiricalFormula("H");
@@ -139,7 +156,7 @@ namespace OpenMS
     static const EmpiricalFormula x_ion_to_full = EmpiricalFormula("H-1PO2");
     static const EmpiricalFormula y_ion_to_full = EmpiricalFormula("");
     static const EmpiricalFormula z_ion_to_full = EmpiricalFormula("H-2O-1");
-    static const EmpiricalFormula aminusB_ion_to_full = EmpiricalFormula("C5H6O3");
+    static const EmpiricalFormula aminusB_ion_to_full = EmpiricalFormula("H-4O-2");
     static const EmpiricalFormula phosphate_form = EmpiricalFormula("HPO3");
     // static const EmpiricalFormula abasicform_RNA = EmpiricalFormula("C5H8O4");
     // static const EmpiricalFormula abasicform_DNA = EmpiricalFormula("C5H7O5P");
@@ -175,8 +192,7 @@ namespace OpenMS
     //   return our_form - five_prime_to_full + OH_form + (H_form * charge) + local_three_prime;
 
     case AminusB:
-      return our_form + (H_form * charge) + local_five_prime + aminusB_ion_to_full - seq_.back()->getFormula();
-      // @TODO: deal with mods on the ribose
+      return our_form + (H_form * charge) + local_five_prime + aminusB_ion_to_full - seq_.back()->getFormula() + seq_.back()->getBaselossFormula();
 
     case AIon:
       return our_form + (H_form * charge) + local_five_prime + a_ion_to_full;
@@ -203,7 +219,7 @@ namespace OpenMS
       return our_form + (H_form * charge) + local_three_prime + z_ion_to_full;
 
     default:
-      LOG_ERROR << "NASequence::getFormula: unsupported NASFragmentType" << std::endl;
+      LOG_ERROR << "NASequence::getFormula: unsupported NASFragmentType" << endl;
     }
 
     /*EmpiricalFormula abasicform;
@@ -358,9 +374,9 @@ namespace OpenMS
     return nas;
   }
 
-  std::string NASequence::toString() const
+  string NASequence::toString() const
   {
-    std::string s;
+    string s;
     if (five_prime_)
     {
       const String& code = five_prime_->getCode();
@@ -438,7 +454,7 @@ namespace OpenMS
       if (*str_it != '[')
       {
         ConstRibonucleotidePtr r =
-          rdb->getRibonucleotide(std::string(1, *str_it));
+          rdb->getRibonucleotide(string(1, *str_it));
         nas.seq_.push_back(r);
       }
       else // if (*str_it == '[') // non-standard ribonucleotide
@@ -457,7 +473,7 @@ namespace OpenMS
     String::ConstIterator mod_start(str_it);
     String::ConstIterator mod_end(++mod_start);
     while ((mod_end != str.end()) && (*mod_end != ']')) ++mod_end; // advance to closing bracket
-    std::string mod(mod_start, mod_end);
+    string mod(mod_start, mod_end);
     if (mod_end == str.end())
     {
       throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, str, "Cannot convert string to modified ribonucleotide: missing ']'");
@@ -479,7 +495,7 @@ namespace OpenMS
     return mod_end;
   }
 
-  OPENMS_DLLAPI std::ostream& operator<<(std::ostream& os, const NASequence& seq)
+  OPENMS_DLLAPI ostream& operator<<(ostream& os, const NASequence& seq)
   {
     return (os << seq.toString());
   }

@@ -63,47 +63,47 @@ public:
     /**
     @brief Destructor
     */
-    virtual ~TrypticIterator();
+    ~TrypticIterator() override;
 
     /**
     @brief * operator for getting the value of the iterator
     @return FASTAEntry with specific candidate
     @throw InvalidIterator if iterator has not been initialized
     */
-    virtual FASTAEntry operator*();
+    FASTAEntry operator*() override;
 
     /**
     @brief operator ++ for post-increment
     @return Reference to PepIterator
     @throw InvalidIterator if iterator has not been initialized
     */
-    virtual PepIterator & operator++();
+    PepIterator & operator++() override;
 
     /**
     @brief operator ++ for pre-increment
     @return pointer to PepIterator
     @throw InvalidIterator if iterator has not been initialized
     */
-    virtual PepIterator * operator++(int i);
+    PepIterator * operator++(int i) override;
 
     /**
     @brief setter for fasta file
     @param f String with fasta file location
     @throw FileNotFound if file could not be found
     */
-    virtual void setFastaFile(const String & f);
+    void setFastaFile(const String & f) override;
 
     /**
     @brief getter for FASTA file
     @return String with file location
     */
-    virtual String getFastaFile();
+    String getFastaFile() override;
 
     /**
     @brief setter for tolerance
     @throw NotImplemented because its not available for tryptic iterator
     */
-    virtual void setTolerance(double)
+    void setTolerance(double) override
     {
       throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
     }
@@ -113,7 +113,7 @@ public:
     @return tolerance
     @throw NotImplemented because its not available for tryptic iterator
     */
-    virtual double getTolerance()
+    double getTolerance() override
     {
       throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
     }
@@ -122,7 +122,7 @@ public:
     @brief setter for spectrum
     @throw NotImplemented because its not available for tryptic iterator
     */
-    virtual void setSpectrum(const std::vector<double> &)
+    void setSpectrum(const std::vector<double> &) override
     {
       throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
     }
@@ -132,7 +132,7 @@ public:
     @return the used spectrum
     @throw NotImplemented because its not available for tryptic iterator
     */
-    virtual const std::vector<double> & getSpectrum()
+    const std::vector<double> & getSpectrum() override
     {
       throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
     }
@@ -142,14 +142,14 @@ public:
     @return true if everything was ok
     @throw throws InvalidIterator if begin iterator is not valid
     */
-    virtual bool begin();
+    bool begin() override;
 
     /**
     @brief indicates whether iterator is at end
     @return true if iterator is at end
     @see hasNext
     */
-    virtual bool isAtEnd();
+    bool isAtEnd() override;
 
     /**
     @brief indicated if a digesting enzyme will cut at this position

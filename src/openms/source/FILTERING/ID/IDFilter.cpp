@@ -633,6 +633,121 @@ namespace OpenMS
       pep_it->getHits().swap(filtered_hits);
     }
   }
-  
+
+
+  void IDFilter::keepBestMatchPerQuery(
+    IdentificationData& id_data,
+    IdentificationData::ScoreTypeKey score_key, const String& score_type)
+  {
+    if (id_data.query_matches.size() <= 1) return; // nothing to do
+
+    if (UniqueIdInterface::isValid(score_key))
+    {
+      if (!id_data.score_types.left.count(score_key)) // not found
+      {
+        String msg = "no registered score type with this key";
+        throw Exception::InvalidValue(
+          __FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, msg, String(score_key));
+      }
+    }
+    else if (!score_type.empty()) // find key for the score type
+    {
+      score_key = id_data.findScoreType(score_type);
+      if (!UniqueIdInterface::isValid(score_key))
+      {
+        String msg = "no registered score type with this name";
+        throw Exception::InvalidValue(
+          __FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, msg, score_type);
+      }
+    }
+    else // select the score type to use
+    {
+      throw Exception::NotImplemented(__FILE__, __LINE__,
+                                      OPENMS_PRETTY_FUNCTION); // @TODO
+    }
+
+    vector<IdentificationData::QueryMatchKey> best_matches =
+      id_data.getBestMatchPerQuery(score_key);
+    auto best_match_it = best_matches.begin();
+    for (auto it = id_data.query_matches.begin();
+         it != id_data.query_matches.end(); )
+    {
+      if (it->first == *best_match_it)
+      {
+        ++it;
+        ++best_match_it;
+      }
+      else
+      {
+        it = id_data.query_matches.erase(it);
+      }
+    }
+
+    removeMoleculesParentsQueriesWithoutMatches(id_data);
+  }
+
+
+  void IDFilter::filterQueryMatchesByScore(
+    IdentificationData& id_data, IdentificationData::ScoreTypeKey score_key,
+    double cutoff)
+  {
+    auto pos = id_data.score_types.left.find(score_key);
+    if (pos == id_data.score_types.left.end())
+    {
+      String msg = "no registered score type with this key";
+      throw Exception::InvalidValue(
+        __FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, msg, String(score_key));
+    }
+    bool higher_better = pos->second.higher_better;
+
+    for (auto it = id_data.query_matches.begin();
+         it != id_data.query_matches.end(); )
+    {
+      pair<double, bool> score = it->second.getScore(score_key);
+      if (!score.second || id_data.isBetterScore(cutoff, score.first,
+                                                 higher_better))
+      {
+        it = id_data.query_matches.erase(it);
+      }
+      else
+      {
+        ++it;
+      }
+    }
+
+    removeMoleculesParentsQueriesWithoutMatches(id_data);
+  }
+
+
+  void IDFilter::removeMoleculesParentsQueriesWithoutMatches(
+    IdentificationData& id_data)
+  {
+    set<IdentificationData::DataQueryKey> query_keys;
+    set<IdentificationData::IdentifiedMoleculeKey> molecule_keys;
+    for (const auto& match_pair : id_data.query_matches)
+    {
+      query_keys.insert(match_pair.first.first);
+      molecule_keys.insert(match_pair.first.second);
+    }
+    removeNonmatchingKeys_(id_data.data_queries.left, query_keys);
+    removeNonmatchingKeys_(id_data.identified_peptides.left,
+                           molecule_keys);
+    removeNonmatchingKeys_(id_data.identified_compounds.left,
+                           molecule_keys);
+    removeNonmatchingKeys_(id_data.identified_oligos.left, molecule_keys);
+    removeNonmatchingKeys_(id_data.identified_meta_data, molecule_keys);
+    removeNonmatchingKeys_(id_data.compound_meta_data, molecule_keys);
+    removeNonmatchingKeys_(id_data.parent_matches, molecule_keys);
+    set<IdentificationData::ParentMoleculeKey> parent_keys;
+    for (const auto& match_pair : id_data.parent_matches)
+    {
+      for (const auto& sub_pair : match_pair.second)
+      {
+        parent_keys.insert(sub_pair.first);
+      }
+    }
+    removeNonmatchingKeys_(id_data.parent_molecules.left, parent_keys);
+    removeNonmatchingKeys_(id_data.parent_meta_data, parent_keys);
+  }
 
 } // namespace OpenMS

@@ -47,8 +47,8 @@ START_TEST(FactoryBase, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-FactoryBase* ptr = 0;
-FactoryBase* nullPointer = 0;
+FactoryBase* ptr = nullptr;
+FactoryBase* nullPointer = nullptr;
 START_SECTION(FactoryBase())
 {
         ptr = new FactoryBase();

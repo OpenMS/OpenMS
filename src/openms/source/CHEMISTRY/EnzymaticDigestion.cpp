@@ -224,7 +224,7 @@ namespace OpenMS
       }
     }
 
-    // add last cleavage product (need to add because end is not a cleavage site) if larger then min length
+    // add last cleavage product (need to add because end is not a cleavage site) if larger than min length
     Size l = sequence.size() - fragment_positions[count - 1];
     if (l >= min_length && l <= max_length)
     {

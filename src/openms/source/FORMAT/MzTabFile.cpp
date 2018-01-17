@@ -166,7 +166,7 @@ namespace OpenMS
     Size peptide_retention_time_window_index = 0;
     Size peptide_charge_index = 0;
     Size peptide_mass_to_charge_index = 0;
-    Size peptide_uri_index = 0;
+    // Size peptide_uri_index = 0;
     Size peptide_spectra_ref_index = 0;
     map<Size, Size> peptide_abundance_assay_indices;
     map<Size, Size> peptide_abundance_study_variable_to_column_indices;
@@ -188,7 +188,7 @@ namespace OpenMS
     Size psm_charge_index = 0;
     Size psm_exp_mass_to_charge_index = 0;
     Size psm_calc_mass_to_charge_index = 0;
-    Size psm_uri_index = 0;
+    // Size psm_uri_index = 0;
     Size psm_spectra_ref_index = 0;
     Size psm_pre_index = 0;
     Size psm_post_index = 0;
@@ -1153,10 +1153,10 @@ namespace OpenMS
         row.charge.fromCellString(cells[peptide_charge_index]);
         row.mass_to_charge.fromCellString(cells[peptide_mass_to_charge_index]);
 
-        if (peptide_uri_index != 0)
-        {
-          row.uri.fromCellString(cells[peptide_uri_index]);
-        }
+        // if (peptide_uri_index != 0) // always false
+        // {
+        //   row.uri.fromCellString(cells[peptide_uri_index]);
+        // }
 
         row.spectra_ref.fromCellString(cells[peptide_spectra_ref_index]);
 
@@ -1316,10 +1316,10 @@ namespace OpenMS
         row.exp_mass_to_charge.fromCellString(cells[psm_exp_mass_to_charge_index]);
         row.calc_mass_to_charge.fromCellString(cells[psm_calc_mass_to_charge_index]);
 
-        if (psm_uri_index != 0)
-        {
-          row.uri.fromCellString(cells[psm_uri_index]);
-        }
+        // if (psm_uri_index != 0) // always false
+        // {
+        //   row.uri.fromCellString(cells[psm_uri_index]);
+        // }
 
         row.spectra_ref.fromCellString(cells[psm_spectra_ref_index]);
         row.pre.fromCellString(cells[psm_pre_index]);
@@ -1597,6 +1597,24 @@ namespace OpenMS
     for (map<Size, MzTabParameter>::const_iterator it = md.smallmolecule_search_engine_score.begin(); it != md.smallmolecule_search_engine_score.end(); ++it)
     {
       String s = "MTD\tsmallmolecule_search_engine_score[" + String(it->first) + "]\t" + it->second.toCellString();
+      sl.push_back(s);
+    }
+
+    for (map<Size, MzTabParameter>::const_iterator it = md.nucleic_acid_search_engine_score.begin(); it != md.nucleic_acid_search_engine_score.end(); ++it)
+    {
+      String s = "MTD\tnucleic_acid_search_engine_score[" + String(it->first) + "]\t" + it->second.toCellString();
+      sl.push_back(s);
+    }
+
+    for (map<Size, MzTabParameter>::const_iterator it = md.oligonucleotide_search_engine_score.begin(); it != md.oligonucleotide_search_engine_score.end(); ++it)
+    {
+      String s = "MTD\toligonucleotide_search_engine_score[" + String(it->first) + "]\t" + it->second.toCellString();
+      sl.push_back(s);
+    }
+
+    for (map<Size, MzTabParameter>::const_iterator it = md.osm_search_engine_score.begin(); it != md.osm_search_engine_score.end(); ++it)
+    {
+      String s = "MTD\tosm_search_engine_score[" + String(it->first) + "]\t" + it->second.toCellString();
       sl.push_back(s);
     }
 

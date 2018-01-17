@@ -65,8 +65,8 @@ public:
 
     // must match to names_of_quantmethod[]
     enum MT_QUANTMETHOD {
-      MT_QUANT_AREA = 0,  //< quantify by area
-      MT_QUANT_MEDIAN,    //< quantify by median of intensities
+      MT_QUANT_AREA = 0,  ///< quantify by area
+      MT_QUANT_MEDIAN,    ///< quantify by median of intensities
       SIZE_OF_MT_QUANTMETHOD
     };
     static const std::string names_of_quantmethod[SIZE_OF_MT_QUANTMETHOD];
@@ -340,9 +340,9 @@ private:
     /// Container for smoothed intensities. Smoothing must be done externally.
     std::vector<double> smoothed_intensities_;
 
-    double fwhm_; //< FWHM of RT peak
-    Size fwhm_start_idx_; //< index into 'trace_peaks_' vector (inclusive)
-    Size fwhm_end_idx_; //< index into 'trace_peaks_' vector (inclusive)
+    double fwhm_; ///< FWHM of RT peak
+    Size fwhm_start_idx_; ///< index into 'trace_peaks_' vector (inclusive)
+    Size fwhm_end_idx_; ///< index into 'trace_peaks_' vector (inclusive)
 
     /// use area under mass trace or the median of intensities
     MT_QUANTMETHOD quant_method_;

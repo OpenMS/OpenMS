@@ -23,7 +23,7 @@ IDScoreSwitcher
 IDSplitter
 LabeledEval
 LowMemPeakPickerHiRes
-LowMemPeakPickerHiRes_RandomAccess
+LowMemPeakPickerHiResRandomAccess
 MassCalculator
 MetaboliteAdductDecharger
 MetaboliteSpectralMatcher

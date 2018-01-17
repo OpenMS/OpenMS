@@ -51,8 +51,8 @@ START_TEST(Normalizer, "$Id$")
 
 /////////////////////////////////////////////////////////////
 
-Normalizer* e_ptr = 0;
-Normalizer* e_nullPointer = 0;
+Normalizer* e_ptr = nullptr;
+Normalizer* e_nullPointer = nullptr;
 
 START_SECTION((Normalizer()))
 	e_ptr = new Normalizer;

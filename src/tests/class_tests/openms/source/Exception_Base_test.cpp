@@ -44,8 +44,8 @@ START_TEST(Exception::Base, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-Exception::BaseException* e_ptr = 0;
-Exception::BaseException* e_nullPointer = 0;
+Exception::BaseException* e_ptr = nullptr;
+Exception::BaseException* e_nullPointer = nullptr;
 START_SECTION(Base() )
 	e_ptr = new Exception::BaseException;
   TEST_NOT_EQUAL(e_ptr, e_nullPointer)

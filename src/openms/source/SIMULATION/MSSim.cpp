@@ -109,7 +109,7 @@ namespace OpenMS
     experiment_(),
     feature_maps_(),
     consensus_map_(),
-    labeler_(0)
+    labeler_(nullptr)
   {
     // section params
     defaults_.insert("Digestion:", DigestSimulation().getDefaults());

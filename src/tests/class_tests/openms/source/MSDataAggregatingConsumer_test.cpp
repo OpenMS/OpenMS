@@ -51,8 +51,8 @@ START_TEST(MSDataAggregatingConsumer, "$Id$")
 
 using namespace OpenMS;
 
-MSDataAggregatingConsumer* agg_consumer_ptr = 0;
-MSDataAggregatingConsumer* agg_consumer_nullPointer = 0;
+MSDataAggregatingConsumer* agg_consumer_ptr = nullptr;
+MSDataAggregatingConsumer* agg_consumer_nullPointer = nullptr;
 
 START_SECTION((MSDataAggregatingConsumer()))
   agg_consumer_ptr = new MSDataAggregatingConsumer(agg_consumer_nullPointer); // dont do that ...

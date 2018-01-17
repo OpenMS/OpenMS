@@ -88,7 +88,7 @@ public:
   }
 
 protected:
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     registerInputFileList_("in", "<file(s)>", ListUtils::create<String>(""), "Input FASTA file(s), each containing a database. It is recommended to include a contaminant database as well.");
     setValidFormats_("in", ListUtils::create<String>("fasta"));
@@ -104,24 +104,24 @@ protected:
     setValidStrings_("type", ListUtils::create<String>("protein,RNA"));
   }
 
-  String getIdentifier_(const String & identifier, const String & decoy_string, const bool as_prefix)
+  String getIdentifier_(const String& identifier, const String& decoy_string, const bool as_prefix)
   {
     if (as_prefix) return decoy_string + identifier;
     else return identifier + decoy_string;
   }
 
-  ExitCodes main_(int, const char **)
+  ExitCodes main_(int, const char**) override
   {
     //-------------------------------------------------------------
     // parsing parameters
     //-------------------------------------------------------------
     enum seq_type {protein, RNA};
-    StringList in(getStringList_("in"));
-    String out(getStringOption_("out"));
-    bool append = (!getFlag_("only_decoy"));
+    StringList in = getStringList_("in");
+    String out = getStringOption_("out");
+    bool append = !getFlag_("only_decoy");
     bool shuffle = (getStringOption_("method") == "shuffle");
-    String decoy_string(getStringOption_("decoy_string"));
-    bool decoy_string_position_prefix = (String(getStringOption_("decoy_string_position")) == "prefix" ? true : false);
+    String decoy_string = getStringOption_("decoy_string");
+    bool decoy_string_position_prefix = (String(getStringOption_("decoy_string_position")) == "prefix");
     seq_type input_type = seq_type::protein; //default to protein
     if (getStringOption_("type") == "RNA")
     {
@@ -141,10 +141,10 @@ protected:
     FASTAFile f;
     f.writeStart(out);
     FASTAFile::FASTAEntry entry;
-      
+
     for (Size i = 0; i < in.size(); ++i)
     {
-      f.readStart(in[i]);  
+      f.readStart(in[i]);
 
       //-------------------------------------------------------------
       // calculations
@@ -161,7 +161,7 @@ protected:
         {
           f.writeNext(entry);
         }
-      
+
         // identifier
         entry.identifier = getIdentifier_(entry.identifier, decoy_string, decoy_string_position_prefix);
 
@@ -193,7 +193,7 @@ protected:
           }
           else  // reverse
           {
-            reverse (tokenized.begin(), tokenized.end()); //reverse the tokens
+            reverse(tokenized.begin(), tokenized.end()); //reverse the tokens
           }
           if (five_p)  //add back 5'
           {
@@ -229,7 +229,7 @@ protected:
 };
 
 
-int main(int argc, const char ** argv)
+int main(int argc, const char** argv)
 {
   TOPPDecoyDatabase tool;
   return tool.main(argc, argv);

@@ -79,7 +79,7 @@ namespace OpenMS
     TheoreticalSpectrumGenerator(const TheoreticalSpectrumGenerator& source);
 
     /// destructor
-    virtual ~TheoreticalSpectrumGenerator();
+    ~TheoreticalSpectrumGenerator() override;
     //@}
 
     /// assignment operator
@@ -96,7 +96,7 @@ namespace OpenMS
 
 
     /// overwrite
-    void updateMembers_();
+    void updateMembers_() override;
 
     //@}
 

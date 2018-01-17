@@ -50,8 +50,8 @@ START_TEST(ModifiedPeptideGenerator, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-ModifiedPeptideGenerator* ptr = 0;
-ModifiedPeptideGenerator* null_ptr = 0;
+ModifiedPeptideGenerator* ptr = nullptr;
+ModifiedPeptideGenerator* null_ptr = nullptr;
 START_SECTION(ModifiedPeptideGenerator())
 {
   ptr = new ModifiedPeptideGenerator();

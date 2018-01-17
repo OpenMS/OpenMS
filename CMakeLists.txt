@@ -253,7 +253,7 @@ if("${PACKAGE_TYPE}" STREQUAL "dmg")
                          "This disables codesigning and might lead to problems with Gatekeeper on target machines.")
   else()
     ## CPack has a special variable for it.
-    set(CPACK_BUNDLE_APPLE_CERT_APP ${SIGNING_IDENTITY})
+    set(CPACK_BUNDLE_APPLE_CERT_APP "${SIGNING_IDENTITY}")
   endif()
 endif()
 

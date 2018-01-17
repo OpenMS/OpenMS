@@ -145,8 +145,8 @@ perm.push_back(10);
 permutations.push_back(perm);
 //=============================================================================
 
-AScore* ptr = 0;
-AScore* nullPointer = 0;
+AScore* ptr = nullptr;
+AScore* nullPointer = nullptr;
 START_SECTION(AScore())
 {
   ptr = new AScore();

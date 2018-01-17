@@ -52,15 +52,15 @@ param.setValue("add_first_prefix_ion", "false");
 specGen.setParameters(param);
 
 PeakSpectrum theo_spec_1, theo_spec_2, theo_spec_3, theo_spec_4;
-specGen.getCommonIonSpectrum(theo_spec_1, AASequence::fromString("PEPTIDE"), 2, true);
-specGen.getCommonIonSpectrum(theo_spec_2, AASequence::fromString("PEPTEDI"), 4, true);
+specGen.getCommonIonSpectrum(theo_spec_1, AASequence::fromString("PEPTIDE"), 3, true);
+specGen.getCommonIonSpectrum(theo_spec_2, AASequence::fromString("PEPTIDE"), 2, true);
 specGen.getCommonIonSpectrum(theo_spec_3, AASequence::fromString("PEPTIDE"), 3, true);
-specGen.getCommonIonSpectrum(theo_spec_4, AASequence::fromString("PEPTEDI"), 1, true);
+specGen.getCommonIonSpectrum(theo_spec_4, AASequence::fromString("PEPTEDI"), 2, true);
 std::vector <std::pair <Size, Size> > alignment1;
 std::vector <std::pair <Size, Size> > alignment2;
 
-OPXLSpectrumProcessingAlgorithms::getSpectrumAlignment(alignment1, theo_spec_1, theo_spec_2, 50, true);
-OPXLSpectrumProcessingAlgorithms::getSpectrumAlignment(alignment2, theo_spec_3, theo_spec_4, 50, true);
+OPXLSpectrumProcessingAlgorithms::getSpectrumAlignment(alignment1, theo_spec_1, theo_spec_2, 20, true);
+OPXLSpectrumProcessingAlgorithms::getSpectrumAlignment(alignment2, theo_spec_3, theo_spec_4, 20, true);
 
 START_SECTION(static float preScore(Size matched_alpha, Size ions_alpha, Size matched_beta, Size ions_beta))
 	TEST_REAL_SIMILAR(XQuestScores::preScore(1, 1, 1, 1), 1.0)
@@ -91,11 +91,26 @@ START_SECTION(static float preScore(Size matched_alpha, Size ions_alpha))
 	TEST_REAL_SIMILAR(XQuestScores::preScore(9, 18), 0.5)
 END_SECTION
 
-START_SECTION(static double matchOddsScore(const PeakSpectrum& theoretical_spec,  const std::vector< std::pair< Size, Size > >& matched_spec, double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, bool is_xlink_spectrum, Size n_charges = 1))
-        TEST_REAL_SIMILAR(XQuestScores::matchOddsScore(theo_spec_1, alignment1, 0.2, false, true, 1), 6.07050);
-        TEST_REAL_SIMILAR(XQuestScores::matchOddsScore(theo_spec_1, alignment1, 0.2, false, true, 2), 7.42116);
-        TEST_REAL_SIMILAR(XQuestScores::matchOddsScore(theo_spec_1, alignment1, 0.2, false, true, 3), 8.20397);
-        TEST_REAL_SIMILAR(XQuestScores::matchOddsScore(theo_spec_1, alignment1, 0.2, false, false, 3), 6.07050);
+START_SECTION(static double matchOddsScore(const PeakSpectrum& theoretical_spec,  const Size matched_size, double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, bool is_xlink_spectrum = false, Size n_charges = 1))
+        TEST_REAL_SIMILAR(XQuestScores::matchOddsScore(theo_spec_1, alignment1.size(), 0.1, false), 28.53678);
+        TEST_REAL_SIMILAR(XQuestScores::matchOddsScore(theo_spec_3, alignment2.size(), 0.1, false), 6.82721);
+        TEST_REAL_SIMILAR(XQuestScores::matchOddsScore(theo_spec_1, alignment1.size(), 0.2, false, true, 5), 34.02875);
+        TEST_REAL_SIMILAR(XQuestScores::matchOddsScore(theo_spec_3, alignment2.size(), 0.2, false), 5.47099);
+        TEST_REAL_SIMILAR(XQuestScores::matchOddsScore(theo_spec_1, alignment1.size(), 10, true), 708.39641);
+        TEST_REAL_SIMILAR(XQuestScores::matchOddsScore(theo_spec_3, alignment2.size(), 10, true), 14.26185);
+        TEST_REAL_SIMILAR(XQuestScores::matchOddsScore(theo_spec_1, alignment1.size(), 20, true, true, 5), 708.39641);
+        TEST_REAL_SIMILAR(XQuestScores::matchOddsScore(theo_spec_3, alignment2.size(), 20, true), 12.87628);
+END_SECTION
+
+START_SECTION(static double logOccupancyProb(const PeakSpectrum& theoretical_spec,  const Size matched_size, double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm))
+        TEST_REAL_SIMILAR(XQuestScores::logOccupancyProb(theo_spec_1, alignment1.size(), 0.1, false), 32.67635);
+        TEST_REAL_SIMILAR(XQuestScores::logOccupancyProb(theo_spec_3, alignment2.size(), 0.1, false), 8.19844);
+        TEST_REAL_SIMILAR(XQuestScores::logOccupancyProb(theo_spec_1, alignment1.size(), 0.2, false), 28.53678);
+        TEST_REAL_SIMILAR(XQuestScores::logOccupancyProb(theo_spec_3, alignment2.size(), 0.2, false), 6.82721);
+        TEST_REAL_SIMILAR(XQuestScores::logOccupancyProb(theo_spec_1, alignment1.size(), 10, true), 708.39641);
+        TEST_REAL_SIMILAR(XQuestScores::logOccupancyProb(theo_spec_3, alignment2.size(), 10, true), 15.94029);
+        TEST_REAL_SIMILAR(XQuestScores::logOccupancyProb(theo_spec_1, alignment1.size(), 20, true), 708.39641);
+        TEST_REAL_SIMILAR(XQuestScores::logOccupancyProb(theo_spec_3, alignment2.size(), 20, true), 14.55431);
 END_SECTION
 
 START_SECTION(static double weightedTICScoreXQuest(Size alpha_size, Size beta_size, double intsum_alpha, double intsum_beta, double total_current, bool type_is_cross_link))
@@ -117,22 +132,21 @@ START_SECTION(static double weightedTICScore(Size alpha_size, Size beta_size, do
 END_SECTION
 
 START_SECTION(static double matchedCurrentChain(const std::vector< std::pair< Size, Size > >& matched_spec_common, const std::vector< std::pair< Size, Size > >& matched_spec_xlinks, const PeakSpectrum& spectrum_common_peaks, const PeakSpectrum& spectrum_xlink_peaks))
-    TEST_REAL_SIMILAR(XQuestScores::matchedCurrentChain(alignment1, alignment1, theo_spec_2, theo_spec_4), 4.0)
+    TEST_REAL_SIMILAR(XQuestScores::matchedCurrentChain(alignment1, alignment1, theo_spec_2, theo_spec_4), 10.0)
 END_SECTION
 
 START_SECTION(static double totalMatchedCurrent(const std::vector< std::pair< Size, Size > >& matched_spec_common_alpha, const std::vector< std::pair< Size, Size > >& matched_spec_common_beta, const std::vector< std::pair< Size, Size > >& matched_spec_xlinks_alpha, const std::vector< std::pair< Size, Size > >& matched_spec_xlinks_beta, const PeakSpectrum& spectrum_common_peaks, const PeakSpectrum& spectrum_xlink_peaks))
-    TEST_REAL_SIMILAR(XQuestScores::totalMatchedCurrent(alignment1, alignment2, alignment1, alignment2, theo_spec_2, theo_spec_4), 6.0)
+    TEST_REAL_SIMILAR(XQuestScores::totalMatchedCurrent(alignment1, alignment2, alignment1, alignment2, theo_spec_2, theo_spec_4), 10.0)
 END_SECTION
 
 START_SECTION(static std::vector< double > xCorrelation(const PeakSpectrum & spec1, const PeakSpectrum & spec2, Int maxshift, double tolerance))
-    std::vector <double> xcorr_scores = XQuestScores::xCorrelation(theo_spec_1, theo_spec_3, 2, 0.2);
+    std::vector <double> xcorr_scores = XQuestScores::xCorrelation(theo_spec_1, theo_spec_2, 2, 0.2);
 
-    TEST_EQUAL(xcorr_scores [0] < 1.0, true)
-    TEST_EQUAL(xcorr_scores [1] < 1.0, true)
+    TEST_EQUAL(xcorr_scores [0] < 0, true)
+    TEST_EQUAL(xcorr_scores [1] < 0, true)
     TEST_REAL_SIMILAR(xcorr_scores [2], 0.83291)
-    TEST_EQUAL(xcorr_scores [3] < 1.0, true)
-    TEST_EQUAL(xcorr_scores [4] < 1.0, true)
+    TEST_EQUAL(xcorr_scores [3] < 0, true)
+    TEST_EQUAL(xcorr_scores [4] < 0, true)
 END_SECTION
 
 END_TEST
-

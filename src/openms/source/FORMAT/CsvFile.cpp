@@ -54,23 +54,49 @@ namespace OpenMS
   CsvFile::CsvFile(const String& filename, char is, bool ie, Int first_n) :
     TextFile(), itemseperator_(is), itemenclosed_(ie)
   {
-    load(filename, false, first_n);
+    TextFile::load(filename, false, first_n);
   }
 
-  void CsvFile::fload(const String& filename, char is, bool ie, Int first_n)
+  void CsvFile::load(const String& filename, char is, bool ie, Int first_n)
   {
     itemseperator_ = is;
     itemenclosed_ = ie;
-    load(filename, true, first_n);
+    TextFile::load(filename, true, first_n);
+  }
+
+  void CsvFile::store(const String& filename)
+  {
+    TextFile::store(filename);
+  }
+
+  void CsvFile::addRow(const StringList& list)
+  {
+    StringList elements = list;
+    if (itemenclosed_)
+    {
+      for (Size i = 0; i < elements.size(); ++i)
+      {
+        elements[i].quote('"', String::NONE);
+      }
+    }
+    String line;
+    line.concatenate(elements.begin(), elements.end(), itemseperator_);
+    addLine(line);
+  }
+
+  void CsvFile::clear()
+  {
+    buffer_.clear();
   }
 
   bool CsvFile::getRow(Size row, StringList& list)
   {
-    if (row > TextFile::buffer_.size())
+    // it is assumed that the value to be casted won't be so large to overflow an int
+    if (static_cast<int>(row) > static_cast<int>(TextFile::buffer_.size()) - 1)
     {
       throw Exception::InvalidIterator(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
     }
-    bool splitted = TextFile::buffer_.operator[](row).split(itemseperator_, list);
+    bool splitted = buffer_[row].split(itemseperator_, list);
     if (!splitted)
     {
       return splitted;

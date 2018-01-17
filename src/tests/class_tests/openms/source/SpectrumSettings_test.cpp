@@ -48,8 +48,8 @@ START_TEST(SpectrumSettings, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-SpectrumSettings* ptr = 0;
-SpectrumSettings* nullPointer = 0;
+SpectrumSettings* ptr = nullptr;
+SpectrumSettings* nullPointer = nullptr;
 
 START_SECTION((SpectrumSettings()))
 	ptr = new SpectrumSettings();
@@ -188,8 +188,8 @@ END_SECTION
 
 START_SECTION((void setType(SpectrumType type)))
 	SpectrumSettings tmp;
-	tmp.setType(SpectrumSettings::PEAKS);
-	TEST_EQUAL(tmp.getType(), SpectrumSettings::PEAKS);
+	tmp.setType(SpectrumSettings::CENTROID);
+	TEST_EQUAL(tmp.getType(), SpectrumSettings::CENTROID);
 END_SECTION
 
 START_SECTION((const String& getComment() const))
@@ -238,14 +238,14 @@ START_SECTION((SpectrumSettings& operator= (const SpectrumSettings& source)))
 	tmp.getPrecursors().resize(1);
 	tmp.getProducts().resize(1);
 	tmp.getPeptideIdentifications().resize(1);
-	tmp.setType(SpectrumSettings::PEAKS);
+	tmp.setType(SpectrumSettings::CENTROID);
 	tmp.setComment("bla");
 	tmp.setNativeID("nid");
 	tmp.getDataProcessing().resize(1);
 	
 	SpectrumSettings tmp2(tmp);
 	TEST_EQUAL(tmp2.getComment(), "bla");
-	TEST_EQUAL(tmp2.getType(), SpectrumSettings::PEAKS);
+	TEST_EQUAL(tmp2.getType(), SpectrumSettings::CENTROID);
 	TEST_EQUAL(tmp2.getPeptideIdentifications().size(), 1);	
 	TEST_EQUAL(tmp2.getPrecursors().size(),1);	
 	TEST_EQUAL(tmp2.getProducts().size(),1);	
@@ -262,7 +262,7 @@ START_SECTION((SpectrumSettings(const SpectrumSettings& source)))
 	tmp.getInstrumentSettings().getScanWindows().resize(1);
 	tmp.getPrecursors().resize(1);
 	tmp.getProducts().resize(1);
-	tmp.setType(SpectrumSettings::PEAKS);
+	tmp.setType(SpectrumSettings::CENTROID);
 	tmp.setComment("bla");
 	tmp.getPeptideIdentifications().resize(1);
 	tmp.setNativeID("nid");
@@ -272,7 +272,7 @@ START_SECTION((SpectrumSettings(const SpectrumSettings& source)))
 	SpectrumSettings tmp2;
 	tmp2 = tmp;
 	TEST_EQUAL(tmp2.getComment(), "bla");
-	TEST_EQUAL(tmp2.getType(), SpectrumSettings::PEAKS);
+	TEST_EQUAL(tmp2.getType(), SpectrumSettings::CENTROID);
 	TEST_EQUAL(tmp2.getPrecursors().size(), 1);
 	TEST_EQUAL(tmp2.getProducts().size(),1);	
 	TEST_EQUAL(tmp2.getInstrumentSettings()==InstrumentSettings(), false);	
@@ -318,7 +318,7 @@ START_SECTION((bool operator== (const SpectrumSettings& rhs) const))
 	TEST_EQUAL(edit==empty, false);
 	
 	edit = empty;
-	edit.setType(SpectrumSettings::PEAKS);
+	edit.setType(SpectrumSettings::CENTROID);
 	TEST_EQUAL(edit==empty, false);
 	
 	edit = empty;
@@ -369,7 +369,7 @@ START_SECTION((bool operator!= (const SpectrumSettings& rhs) const))
 	TEST_EQUAL(edit!=empty, true);
 	
 	edit = empty;
-	edit.setType(SpectrumSettings::PEAKS);
+	edit.setType(SpectrumSettings::CENTROID);
 	TEST_EQUAL(edit!=empty, true);
 	
 	edit = empty;
@@ -423,8 +423,8 @@ START_SECTION((void unify(const SpectrumSettings &rhs)))
   appended.getPrecursors().push_back(appended_precursor);
 
   // type
-  org.setType(SpectrumSettings::RAWDATA);
-  appended.setType(SpectrumSettings::RAWDATA);
+  org.setType(SpectrumSettings::PROFILE);
+  appended.setType(SpectrumSettings::PROFILE);
 
   // Products
   Product org_product;
@@ -474,7 +474,7 @@ START_SECTION((void unify(const SpectrumSettings &rhs)))
   TEST_EQUAL(org.getPrecursors()[1].getMZ(), 2.0)
 
   // type
-  TEST_EQUAL(org.getType(), SpectrumSettings::RAWDATA)
+  TEST_EQUAL(org.getType(), SpectrumSettings::PROFILE)
 
   // Products
   TEST_EQUAL(org.getProducts().size(), 2)
@@ -499,7 +499,7 @@ START_SECTION((void unify(const SpectrumSettings &rhs)))
 
   // unify should set Type to unknown in case of type mismatch
   SpectrumSettings empty;
-  empty.setType(SpectrumSettings::PEAKS);
+  empty.setType(SpectrumSettings::CENTROID);
   org.unify(empty);
 
   TEST_EQUAL(org.getType(), SpectrumSettings::UNKNOWN)

@@ -57,8 +57,8 @@ START_TEST(MRMFeatureAccessOpenMS, "$Id$")
 
 //FeatureOpenMS
 {
-FeatureOpenMS* ptr = 0;
-FeatureOpenMS* nullPointer = 0;
+FeatureOpenMS* ptr = nullptr;
+FeatureOpenMS* nullPointer = nullptr;
 
 START_SECTION(FeatureOpenMS())
 {
@@ -77,8 +77,8 @@ END_SECTION
 
 //MRMFeatureOpenMS
 {
-MRMFeatureOpenMS* ptr = 0;
-MRMFeatureOpenMS* nullPointer = 0;
+MRMFeatureOpenMS* ptr = nullptr;
+MRMFeatureOpenMS* nullPointer = nullptr;
 
 START_SECTION(MRMFeatureOpenMS())
 {
@@ -97,8 +97,8 @@ END_SECTION
 
 //TransitionGroupOpenMS
 {
-TransitionGroupOpenMS <MSChromatogram, ReactionMonitoringTransition>* ptr = 0;
-TransitionGroupOpenMS <MSChromatogram, ReactionMonitoringTransition>* nullPointer = 0;
+TransitionGroupOpenMS <MSChromatogram, ReactionMonitoringTransition>* ptr = nullptr;
+TransitionGroupOpenMS <MSChromatogram, ReactionMonitoringTransition>* nullPointer = nullptr;
 
 START_SECTION(TransitionGroupOpenMS())
 {
@@ -117,8 +117,8 @@ END_SECTION
 
 //SignalToNoiseOpenMS
 {
-SignalToNoiseOpenMS<MSSpectrum>* ptr = 0;
-SignalToNoiseOpenMS<MSSpectrum>* nullPointer = 0;
+SignalToNoiseOpenMS<MSSpectrum>* ptr = nullptr;
+SignalToNoiseOpenMS<MSSpectrum>* nullPointer = nullptr;
 
 START_SECTION(SignalToNoiseOpenMS())
 {

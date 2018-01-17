@@ -47,6 +47,7 @@ namespace OpenMS
     psi_id_(""),
     xtandem_id_(""),
     comet_id_(),
+    crux_id_(),
     msgf_id_(-1),
     omssa_id_()
   {
@@ -59,6 +60,7 @@ namespace OpenMS
     psi_id_(enzyme.psi_id_),
     xtandem_id_(enzyme.xtandem_id_),
     comet_id_(enzyme.comet_id_),
+    crux_id_(enzyme.crux_id_),
     msgf_id_(enzyme.msgf_id_),
     omssa_id_(enzyme.omssa_id_)
   {
@@ -73,6 +75,7 @@ namespace OpenMS
                                                  String psi_id,
                                                  String xtandem_id,
                                                  UInt comet_id,
+                                                 String crux_id,
                                                  Int msgf_id,
                                                  UInt omssa_id) :
     DigestionEnzyme(name, cleavage_regex, synonyms, regex_description),
@@ -81,6 +84,7 @@ namespace OpenMS
     psi_id_(psi_id),
     xtandem_id_(xtandem_id),
     comet_id_(comet_id),
+    crux_id_(crux_id),
     msgf_id_(msgf_id),
     omssa_id_(omssa_id)
   {
@@ -100,6 +104,7 @@ namespace OpenMS
       psi_id_ = enzyme.psi_id_;
       xtandem_id_ = enzyme.xtandem_id_;
       comet_id_ = enzyme.comet_id_;
+      crux_id_ = enzyme.crux_id_;
       omssa_id_ = enzyme.omssa_id_;
       msgf_id_ = enzyme.msgf_id_;
     }
@@ -156,6 +161,16 @@ namespace OpenMS
     return comet_id_;
   }
 
+  void DigestionEnzymeProtein::setCruxID(const String& value)
+  {
+    crux_id_ = value;
+  }
+
+  String DigestionEnzymeProtein::getCruxID() const
+  {
+    return crux_id_;
+  }
+
   void DigestionEnzymeProtein::setOMSSAID(UInt value)
   {
     omssa_id_ = value;
@@ -184,6 +199,7 @@ namespace OpenMS
            psi_id_ == enzyme.psi_id_ &&
            xtandem_id_ == enzyme.xtandem_id_ &&
            comet_id_ == enzyme.comet_id_ &&
+           crux_id_ == enzyme.crux_id_ &&
            msgf_id_ == enzyme.msgf_id_ &&
            omssa_id_ == enzyme.omssa_id_;
   }
@@ -237,6 +253,11 @@ namespace OpenMS
     if (key.hasSuffix(":CometID"))
     {
       setCometID(value.toInt());
+      return true;
+    }
+    if (key.hasSuffix(":CruxID"))
+    {
+      setCruxID(value);
       return true;
     }
     if (key.hasSuffix(":OMSSAID"))

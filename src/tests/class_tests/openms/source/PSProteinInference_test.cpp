@@ -49,8 +49,8 @@ START_TEST(PSProteinInference, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-PSProteinInference* ptr = 0;
-PSProteinInference* null_ptr = 0;
+PSProteinInference* ptr = nullptr;
+PSProteinInference* null_ptr = nullptr;
 START_SECTION(PSProteinInference())
 {
 	ptr = new PSProteinInference();

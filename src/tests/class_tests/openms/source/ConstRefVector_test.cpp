@@ -58,8 +58,8 @@ START_TEST(ConstRefVector, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-ConstRefVector<PeakArrayType>* ptr = 0;
-ConstRefVector<PeakArrayType>* nullPointer = 0;
+ConstRefVector<PeakArrayType>* ptr = nullptr;
+ConstRefVector<PeakArrayType>* nullPointer = nullptr;
 START_SECTION((ConstRefVector()))
   ptr = new ConstRefVector<PeakArrayType>();
   TEST_NOT_EQUAL(ptr, nullPointer)
@@ -115,8 +115,8 @@ peak3.setPosition(10.5);
 peak3.setIntensity(0.01f);
 
 // ConstRefVectorConstIterator tests added (ek)
-ConstRefVector<PeakArrayType>::ConstRefVectorConstIterator<Peak1D>* c_ptr = 0;
-ConstRefVector<PeakArrayType>::ConstRefVectorConstIterator<Peak1D>* c_nullPointer = 0;
+ConstRefVector<PeakArrayType>::ConstRefVectorConstIterator<Peak1D>* c_ptr = nullptr;
+ConstRefVector<PeakArrayType>::ConstRefVectorConstIterator<Peak1D>* c_nullPointer = nullptr;
 
 START_SECTION(([ConstRefVector::ConstRefVectorConstIterator] ConstRefVectorConstIterator()))
   c_ptr = new ConstRefVector<PeakArrayType>::ConstRefVectorConstIterator<Peak1D>();
@@ -379,8 +379,8 @@ END_SECTION
 // ConstRefVectorIterator tests added (ek)
 ///////////////////////////////////////////
 
-ConstRefVector<PeakArrayType>::ConstRefVectorIterator<Peak1D>* m_ptr = 0;
-ConstRefVector<PeakArrayType>::ConstRefVectorIterator<Peak1D>* m_nullPointer = 0;
+ConstRefVector<PeakArrayType>::ConstRefVectorIterator<Peak1D>* m_ptr = nullptr;
+ConstRefVector<PeakArrayType>::ConstRefVectorIterator<Peak1D>* m_nullPointer = nullptr;
 
 START_SECTION(([ConstRefVector::ConstRefVectorIterator] ConstRefVectorIterator()))
   m_ptr = new ConstRefVector<PeakArrayType>::ConstRefVectorIterator<Peak1D>();

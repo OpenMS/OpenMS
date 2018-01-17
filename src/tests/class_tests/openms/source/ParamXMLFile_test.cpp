@@ -51,8 +51,8 @@ using namespace std;
 
 START_TEST(ParamXMLFile, "$Id")
 
-ParamXMLFile* ptr = 0;
-ParamXMLFile* nullPtr = 0;
+ParamXMLFile* ptr = nullptr;
+ParamXMLFile* nullPtr = nullptr;
 
 START_SECTION((ParamXMLFile()))
 {

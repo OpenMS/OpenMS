@@ -64,7 +64,7 @@ namespace OpenMS
                        Int y_coord) :
     center_point_(center_point),
     neighbors_(),
-    tmp_neighbors_(NULL),
+    tmp_neighbors_(nullptr),
     max_distance_(max_distance),
     num_maps_(num_maps),
     quality_(0.0),
@@ -431,7 +431,7 @@ namespace OpenMS
 
     // delete memory again
     delete tmp_neighbors_;
-    tmp_neighbors_ = NULL;
+    tmp_neighbors_ = nullptr;
   }
 
   void QTCluster::initializeCluster()
@@ -443,12 +443,12 @@ namespace OpenMS
 
     finalized_ = false;
 
-    if (tmp_neighbors_ != NULL)
+    if (tmp_neighbors_ != nullptr)
     {
       // delete memory again (should never actually happen but lets make sure
       // we release the memory under all circumstances)
       delete tmp_neighbors_;
-      tmp_neighbors_ = NULL;
+      tmp_neighbors_ = nullptr;
     }
 
     // create empty map 
@@ -457,12 +457,12 @@ namespace OpenMS
 
   QTCluster::~QTCluster()
   {
-    if (tmp_neighbors_ != NULL)
+    if (tmp_neighbors_ != nullptr)
     {
       // delete memory again (should never actually happen but lets make sure
       // we release the memory under all circumstances)
       delete tmp_neighbors_;
-      tmp_neighbors_ = NULL;
+      tmp_neighbors_ = nullptr;
     }
   }
 

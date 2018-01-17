@@ -39,8 +39,11 @@ Int main()
 {
   const ElementDB * db = ElementDB::getInstance();
 
-  Element carbon = *db->getElement("Carbon"); // .getResidue("C") would also be ok
+  // extract carbon element from ElementDB
+  // .getResidue("C") would work as well
+  Element carbon = *db->getElement("Carbon"); 
 
+  // outout name, symbol, monoisotopic weight and average weight
   cout << carbon.getName() << " "
        << carbon.getSymbol() << " "
        << carbon.getMonoWeight() << " "

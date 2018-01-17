@@ -56,6 +56,19 @@ namespace OpenMS
     }
   }
 
+  void ProteaseDB::getAllCruxNames(vector<String>& all_names) const
+  {
+    all_names.clear();
+    all_names.push_back("custom-enzyme");
+    for (ConstEnzymeIterator it = const_enzymes_.begin(); it != const_enzymes_.end(); ++it)
+    {
+      if ((*it)->getCruxID() != "")
+      {
+        all_names.push_back((*it)->getCruxID());
+      }
+    }
+  }
+
   void ProteaseDB::getAllCometNames(vector<String>& all_names) const
   {
     all_names.clear();

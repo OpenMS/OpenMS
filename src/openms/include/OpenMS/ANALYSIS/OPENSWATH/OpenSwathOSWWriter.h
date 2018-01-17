@@ -100,7 +100,7 @@ namespace OpenMS
     void writeHeader()
     {
       sqlite3 *db;
-      char *zErrMsg = 0;
+      char *zErrMsg = nullptr;
       int  rc;
 
       // Open database
@@ -184,7 +184,7 @@ namespace OpenMS
 
 
       // Execute SQL create statement
-      rc = sqlite3_exec(db, create_sql, callback, 0, &zErrMsg);
+      rc = sqlite3_exec(db, create_sql, callback, nullptr, &zErrMsg);
       if( rc != SQLITE_OK )
       {
         std::string error_message = zErrMsg;
@@ -200,7 +200,7 @@ namespace OpenMS
               << input_filename_ << "'); ";
 
       // Execute SQL insert statement
-      rc = sqlite3_exec(db, sql_run.str().c_str(), callback, 0, &zErrMsg);
+      rc = sqlite3_exec(db, sql_run.str().c_str(), callback, nullptr, &zErrMsg);
       if( rc != SQLITE_OK )
       {
         std::string error_message = zErrMsg;
@@ -427,7 +427,7 @@ namespace OpenMS
     void writeLines(std::vector<String> to_osw_output)
     {
       sqlite3 *db;
-      char *zErrMsg = 0;
+      char *zErrMsg = nullptr;
       int  rc;
       // char *create_sql;
 
@@ -438,11 +438,11 @@ namespace OpenMS
         fprintf(stderr, "Can't open database: %s\n", sqlite3_errmsg(db));
       }
 
-      sqlite3_exec(db, "BEGIN TRANSACTION", NULL, NULL, &zErrMsg);
+      sqlite3_exec(db, "BEGIN TRANSACTION", nullptr, nullptr, &zErrMsg);
 
       for (Size i = 0; i < to_osw_output.size(); i++)
       {
-        rc = sqlite3_exec(db, to_osw_output[i].c_str(), callback, 0, &zErrMsg);
+        rc = sqlite3_exec(db, to_osw_output[i].c_str(), callback, nullptr, &zErrMsg);
         if( rc != SQLITE_OK )
         {
           std::string error_message = zErrMsg;
@@ -452,7 +452,7 @@ namespace OpenMS
         }
       }
 
-      sqlite3_exec(db, "END TRANSACTION", NULL, NULL, &zErrMsg);
+      sqlite3_exec(db, "END TRANSACTION", nullptr, nullptr, &zErrMsg);
 
       sqlite3_close(db);
     }

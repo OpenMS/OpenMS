@@ -135,8 +135,8 @@ p_dia.setValue("dia_nr_charges", 4);
 Param p_dia_large = p_dia;
 p_dia_large.setValue("dia_extraction_window", 0.5);
 
-DIAScoring* ptr = 0;
-DIAScoring* nullPointer = 0;
+DIAScoring* ptr = nullptr;
+DIAScoring* nullPointer = nullptr;
 
 START_SECTION(DIAScoring())
 {
