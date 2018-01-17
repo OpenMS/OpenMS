@@ -33,6 +33,7 @@ MSFraggerAdapter
 MSSimulator
 MultiplexResolver
 MzMLSplitter
+NovorAdapter
 OpenMSInfo
 OpenPepXL
 OpenPepXLLF
