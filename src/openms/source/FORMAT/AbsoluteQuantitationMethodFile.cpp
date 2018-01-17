@@ -213,55 +213,50 @@ namespace OpenMS
   void AbsoluteQuantitationMethodFile::store(
     const String& filename,
     const std::vector<AbsoluteQuantitationMethod>& aqm_list
-  ) const
+  )
   {
-    std::ofstream ofs(filename);
-    if (!ofs.is_open())
-    {
-      throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
-    }
-    std::vector<String> tm_params_names;
+    clear(); // clear the buffer_
+    const String headers = "IS_name,component_name,feature_name,concentration_units,llod,ulod,lloq,uloq,correlation_coefficient,n_points,transformation_model";
+    StringList split_headers;
+    headers.split(',', split_headers);
+    StringList tm_params_names; // transformation model params
     if (aqm_list.size())
     {
       const Param tm_params = aqm_list[0].getTransformationModelParams();
-      for (const Param::ParamEntry& tm_param : tm_params)
+      for (const Param::ParamEntry& param : tm_params)
       {
-        if (std::find(tm_params_names.begin(), tm_params_names.end(), tm_param.name) == tm_params_names.end())
+        if (std::find(tm_params_names.begin(), tm_params_names.end(), param.name) == tm_params_names.end())
         {
-          tm_params_names.insert(tm_params_names.begin(), tm_param.name);
+          tm_params_names.insert(tm_params_names.begin(), param.name);
         }
       }
+      for (const String name : tm_params_names)
+      {
+        split_headers.push_back("transformation_model_param_" + name);
+      }
     }
-    // Write headers to stream
-    // Assuming the following headers are always present
-    ofs << "IS_name,component_name,feature_name,concentration_units,llod,ulod,lloq,uloq,correlation_coefficient,n_points,transformation_model";
-    // However, the following headers could be absent
-    for (const String tm_param_header : tm_params_names)
-    {
-      ofs << "," << "transformation_model_param_" << tm_param_header;
-    }
-    ofs << std::endl;
-    // Write raw data
+    addRow(split_headers);
     for (const AbsoluteQuantitationMethod& aqm : aqm_list)
     {
-      ofs << aqm.getISName() << ",";
-      ofs << aqm.getComponentName() << ",";
-      ofs << aqm.getFeatureName() << ",";
-      ofs << aqm.getConcentrationUnits() << ",";
-      ofs << aqm.getLLOD() << ",";
-      ofs << aqm.getULOD() << ",";
-      ofs << aqm.getLLOQ() << ",";
-      ofs << aqm.getULOQ() << ",";
-      ofs << aqm.getCorrelationCoefficient() << ",";
-      ofs << aqm.getNPoints() << ",";
-      ofs << aqm.getTransformationModel();
+      StringList row(split_headers.size());
+      row[0] = aqm.getISName();
+      row[1] = aqm.getComponentName();
+      row[2] = aqm.getFeatureName();
+      row[3] = aqm.getConcentrationUnits();
+      row[4] = aqm.getLLOD();
+      row[5] = aqm.getULOD();
+      row[6] = aqm.getLLOQ();
+      row[7] = aqm.getULOQ();
+      row[8] = aqm.getCorrelationCoefficient();
+      row[9] = aqm.getNPoints();
+      row[10] = aqm.getTransformationModel();
       const Param tm_params = aqm.getTransformationModelParams();
-      for (const String tm_param : tm_params_names)
+      for (Size i = 0, j = 11; i < tm_params_names.size(); ++i, ++j)
       {
-        ofs << "," << tm_params.getValue(tm_param);
+        row[j] = tm_params.getValue(tm_params_names[i]);
       }
-      ofs << std::endl;
+      addRow(row);
     }
-    ofs.close();
+    CsvFile::store(filename);
   }
 } // namespace OpenMS

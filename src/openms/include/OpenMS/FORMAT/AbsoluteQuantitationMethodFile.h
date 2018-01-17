@@ -78,7 +78,7 @@ public:
       @param[in] filename The output file name.
       @param[in] aqm_list The AbsoluteQuantitationMethod data to write into the file.
     */
-    void store(const String & filename, const std::vector<AbsoluteQuantitationMethod> & aqm_list) const;
+    void store(const String & filename, const std::vector<AbsoluteQuantitationMethod> & aqm_list);
 
 protected:
     /**
