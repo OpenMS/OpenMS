@@ -36,7 +36,6 @@
 #define OPENMS_METADATA_ABSOLUTEQUANTITATIONSTANDARDS_H
 
 #include <OpenMS/config.h>
-#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 
 namespace OpenMS
@@ -59,10 +58,8 @@ public:
 
     /// Destructor
     ~AbsoluteQuantitationStandards() = default;
-   
-    /**
-      @brief Structure to map runs to components to known concentrations
-    */ 
+
+    /// Structure to map runs to components to known concentrations.
     struct runConcentration
     {
       String sample_name;
@@ -74,9 +71,7 @@ public:
       double dilution_factor;
     };
 
-    /**
-      @brief Structure to hold a single component and its corresponding known concentration.
-    */ 
+    /// Structure to hold a single component and its corresponding known concentration.
     struct featureConcentration
     {
       Feature feature;
@@ -88,14 +83,14 @@ public:
     };
 
     /**
-      @brief Method to map runs to components to known concentrations
+      @brief Method to map runs to components to known concentrations.
 
-      Note that for the method to work, the features must be annotated with
-      a metaValue for "sample_name"
+      @warning Note that for the method to work, the features must be annotated with
+      a metaValue for "sample_name".
 
-      @param run_concentrations a list of runConcentration structs (e.g., from file upload).
-      @param features a list of corresponding features for each of the unique runs in run_concentrations
-      @param components_to_concentrations A map that links run data to feature data
+      @param[in] run_concentrations A list of runConcentration structs (e.g., from file upload).
+      @param[in] features A list of corresponding features for each of the unique runs in run_concentrations.
+      @param[out] components_to_concentrations A map that links run data to feature data.
     */
     void mapComponentsToConcentrations(
       const std::vector<AbsoluteQuantitationStandards::runConcentration>& run_concentrations,
@@ -104,6 +99,13 @@ public:
     ) const;
 
 private:
+    /**
+      @brief Finds a feature for a given component name.
+
+      @param[in] feature_map The container of features.
+      @param[in] component_name The feature must have this name as its "native_id".
+      @param[out] feature_found If found, the feature is saved in this parameter.
+    */
     bool findComponentFeature_(
       const FeatureMap& feature_map,
       const String& component_name,
