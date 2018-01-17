@@ -124,7 +124,7 @@ namespace OpenMS
     // test non-sparse (non-zero) elements for equality
     SparseVectorIteratorType it(bins_);
     SparseVectorIteratorType rhs_it(rhs.bins_);  
-    while(it)      
+    while (it)      
     {
       if (it.index() != rhs_it.index()
        || it.value() != rhs_it.value()) { return false; }
