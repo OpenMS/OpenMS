@@ -185,7 +185,7 @@ Comet:
 
 Crux:
   - URL and source code:
-  https://crux.ms
+  http://crux.ms
   - License:
   http://www.apache.org/licenses/LICENSE-2.0
 
