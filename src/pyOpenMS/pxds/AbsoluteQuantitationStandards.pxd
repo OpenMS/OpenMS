@@ -1,5 +1,4 @@
 from Types cimport *
-from Param cimport *
 from Feature cimport *
 from FeatureMap cimport *
 
@@ -33,8 +32,8 @@ cdef extern from "<OpenMS/METADATA/AbsoluteQuantitationStandards.h>" namespace "
         AbsoluteQuantitationStandards() nogil except +
         AbsoluteQuantitationStandards(AbsoluteQuantitationStandards) nogil except + #wrap-ignore
 
-        mapComponentsToConcentrations(
+        void mapComponentsToConcentrations(
             const libcpp_vector[AQS_runConcentration]& run_concentrations,
             const libcpp_vector[FeatureMap]& feature_maps,
-            libcpp_map<String, AQS_featureConcentration]& components_to_concentration
+            libcpp_map[String, AQS_featureConcentration]& components_to_concentration
         ) nogil except +
