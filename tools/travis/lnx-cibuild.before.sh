@@ -65,8 +65,9 @@ if [ "${ENABLE_STYLE_TESTING}" = "ON" ]; then
   popd
 else
   # regular builds .. merge the search engine executables for this platform from the automatically cloned submodule to _thirdparty
-  cp -r THIRDPARTY/Linux/64bit/* _thirdparty/
-  cp -r THIRDPARTY/All/* _thirdparty
+  mkdir -p _thirdparty
+  cp -R THIRDPARTY/Linux/64bit/* _thirdparty/
+  cp -R THIRDPARTY/All/* _thirdparty/
 fi
 
 
