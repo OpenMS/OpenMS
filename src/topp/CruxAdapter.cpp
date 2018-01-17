@@ -118,8 +118,12 @@ protected:
     setValidFormats_("database", ListUtils::create<String>("FASTA"));
     registerInputFile_("crux_executable", "<executable>",
       // choose the default value according to the platform where it will be executed
-      "crux.exe",
-      "Crux executable of the installation e.g. 'Crux.exe'", true, false, ListUtils::create<String>("skipexists"));
+      #ifdef OPENMS_WINDOWSPLATFORM
+                     "crux.exe",
+      #else
+                     "crux",
+      #endif
+      "Crux executable of the installation e.g. 'crux.exe'", true, false, ListUtils::create<String>("skipexists"));
 
     //
     // Optional parameters //
