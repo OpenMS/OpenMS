@@ -266,7 +266,7 @@ START_SECTION(void store(const String & filename, const std::vector<AbsoluteQuan
   vector<AbsoluteQuantitationMethod> aqm_list1, aqm_list2;
   aqmf.load(OPENMS_GET_TEST_DATA_PATH("AbsoluteQuantitationMethodFile_1.csv"), aqm_list1);
   aqmf.store(OPENMS_GET_TEST_DATA_PATH("AbsoluteQuantitationMethodFile_2.csv"), aqm_list1);
-  aqmf.load(OPENMS_GET_TEST_DATA_PATH("AbsoluteQuantitationMethodFile_1.csv"), aqm_list2);
+  aqmf.load(OPENMS_GET_TEST_DATA_PATH("AbsoluteQuantitationMethodFile_2.csv"), aqm_list2);
   TEST_EQUAL(aqm_list1.size(), aqm_list2.size())
   for (Size i = 0; i < aqm_list1.size(); ++i)
   {
