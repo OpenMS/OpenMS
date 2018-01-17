@@ -76,7 +76,7 @@ namespace OpenMS
         {
           continue;
         }
-        if (!findComponentFeature_(fmap, run.component_name, fc.feature)) // if there was no match (empty feature is given in output): skip.
+        if (!findComponentFeature_(fmap, run.component_name, fc.feature)) // if there was no match: skip.
         {
           continue;
         }
