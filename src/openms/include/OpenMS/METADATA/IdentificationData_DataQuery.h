@@ -53,7 +53,7 @@ namespace OpenMS
     */
     struct DataQuery: public MetaInfoInterface
     {
-      // spectrum or feature ID (from the file referenced by "input_file_key"):
+      // spectrum or feature ID (from the file referenced by "input_file_ref"):
       String data_id;
 
       InputFileRef input_file_ref;
