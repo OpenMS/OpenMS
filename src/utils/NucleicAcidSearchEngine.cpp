@@ -136,7 +136,7 @@ protected:
     setValidFormats_("exp_ms2_out", ListUtils::create<String>("mzML"));
 
     registerTOPPSubsection_("precursor", "Precursor (Parent Ion) Options");
-    registerDoubleOption_("precursor:mass_tolerance", "<tolerance>", 10.0, "Precursor mass tolerance (+/- around precursor m/z)", false);
+    registerDoubleOption_("precursor:mass_tolerance", "<tolerance>", 10.0, "Precursor mass tolerance (+/- around uncharged precursor mass)", false);
 
     registerStringOption_("precursor:mass_tolerance_unit", "<unit>", "ppm", "Unit of precursor mass tolerance.", false, false);
     setValidStrings_("precursor:mass_tolerance_unit", ListUtils::create<String>("Da,ppm"));
