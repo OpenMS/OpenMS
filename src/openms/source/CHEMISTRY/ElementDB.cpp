@@ -308,9 +308,6 @@ namespace OpenMS
     IsotopeDistribution iso_dist;
     iso_dist.set(dist);
     
-    //Safe to remove?
-    //iso_dist.setMaxIsotope(100);
-
     return iso_dist;
   }
 

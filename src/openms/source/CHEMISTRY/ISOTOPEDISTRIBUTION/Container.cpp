@@ -43,13 +43,6 @@
 #include <numeric>
 #include <fstream>
 
-
-
-
-#include <boost/accumulators/statistics/variance.hpp>
-#include <boost/accumulators/accumulators.hpp>
-#include <boost/range/adaptor/reversed.hpp>
-
 #include <OpenMS/CONCEPT/LogStream.h>
 
 #include <OpenMS/CONCEPT/Exception.h>

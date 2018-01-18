@@ -41,7 +41,6 @@
 #include <algorithm>
 
 #include <OpenMS/CONCEPT/Types.h>
-//#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/Container.h>
 
 namespace OpenMS
 {
@@ -259,7 +258,7 @@ public:
     
     inline Iterator begin() { return formula_.begin(); }
 
-    inline Iterator end()   { return formula_.end(); }
+    inline Iterator end() { return formula_.end(); }
     //@}
 
 protected:
