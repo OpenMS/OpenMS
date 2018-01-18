@@ -80,7 +80,7 @@ FeatureMap fm;
 Feature feature;
 vector<Feature> subordinates;
 
-fm.setMetaValue("sample_name", "sample1");
+fm.setPrimaryMSRunPath({"sample1"});
 for (Size i = 0; i < 5; ++i)
 {
   Feature f;
@@ -95,7 +95,7 @@ fmaps.push_back(fm);
 // The first FeatureMap has sample_name: "sample1".  It contains 1 feature. This feature has 10 subordinates:
 // 5 subordinates have native_id: "component0" to "component4", and the other 5 subordinates have native_id: "IS_component0" to "IS_component4".
 
-fm.setMetaValue("sample_name", "sample2");
+fm.setPrimaryMSRunPath({"sample2"});
 Feature f;
 f.setMetaValue("native_id", String("component10"));
 subordinates.push_back(f);

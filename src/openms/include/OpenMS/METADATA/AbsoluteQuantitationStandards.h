@@ -85,8 +85,7 @@ public:
     /**
       @brief Method to map runs to components to known concentrations.
 
-      @warning Note that for the method to work, the features must be annotated with
-      a metaValue for "sample_name".
+      @warning The method checks for the FeatureMaps' sample names with FeatureMap::getPrimaryMSRunPath()
 
       @param[in] run_concentrations A list of runConcentration structs (e.g., from file upload).
       @param[in] features A list of corresponding features for each of the unique runs in run_concentrations.

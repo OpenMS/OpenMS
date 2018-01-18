@@ -71,11 +71,13 @@ namespace OpenMS
       }
       for (const FeatureMap& fmap : feature_maps) // not all elements are necessarily processed (break; is present inside the loop)
       {
-        AbsoluteQuantitationStandards::featureConcentration fc;
-        if (!fmap.metaValueExists("sample_name") || fmap.getMetaValue("sample_name") != run.sample_name) // if the FeatureMap doesn't have a sample_name, or if it is not the one we're looking for: skip.
+        StringList sample_name;
+        fmap.getPrimaryMSRunPath(sample_name);
+        if (!sample_name.size() || sample_name[0] != run.sample_name) // if the FeatureMap doesn't have a sample_name, or if it is not the one we're looking for: skip.
         {
           continue;
         }
+        AbsoluteQuantitationStandards::featureConcentration fc;
         if (!findComponentFeature_(fmap, run.component_name, fc.feature)) // if there was no match: skip.
         {
           continue;
