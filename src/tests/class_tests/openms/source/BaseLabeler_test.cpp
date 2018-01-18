@@ -46,42 +46,42 @@ class DerivedLabeler
   : public BaseLabeler
 {
 	  public:
-	virtual void preCheck(Param &) const
+	void preCheck(Param &) const override
   {
     throw Exception::NotImplemented(__FILE__,__LINE__,OPENMS_PRETTY_FUNCTION);
 	}
 
-	virtual void setUpHook(SimTypes::FeatureMapSimVector & /* features */)
+	void setUpHook(SimTypes::FeatureMapSimVector & /* features */) override
 	{
 		throw Exception::NotImplemented(__FILE__,__LINE__,OPENMS_PRETTY_FUNCTION);
 	}
 
-	virtual void postDigestHook(SimTypes::FeatureMapSimVector & /* features_to_simulate */)
+	void postDigestHook(SimTypes::FeatureMapSimVector & /* features_to_simulate */) override
 	{
 		throw Exception::NotImplemented(__FILE__,__LINE__,OPENMS_PRETTY_FUNCTION);
 	}
 
-	virtual void postRTHook(SimTypes::FeatureMapSimVector & /* features_to_simulate */)
+	void postRTHook(SimTypes::FeatureMapSimVector & /* features_to_simulate */) override
 	{
 		throw Exception::NotImplemented(__FILE__,__LINE__,OPENMS_PRETTY_FUNCTION);
 	}
 
-	virtual void postDetectabilityHook(SimTypes::FeatureMapSimVector & /* features_to_simulate */)
+	void postDetectabilityHook(SimTypes::FeatureMapSimVector & /* features_to_simulate */) override
 	{
 		throw Exception::NotImplemented(__FILE__,__LINE__,OPENMS_PRETTY_FUNCTION);
 	}
 
-	virtual void postIonizationHook(SimTypes::FeatureMapSimVector & /* features_to_simulate */)
+	void postIonizationHook(SimTypes::FeatureMapSimVector & /* features_to_simulate */) override
 	{
 		throw Exception::NotImplemented(__FILE__,__LINE__,OPENMS_PRETTY_FUNCTION);
 	}
 
-	virtual void postRawMSHook(SimTypes::FeatureMapSimVector & /* features_to_simulate */)
+	void postRawMSHook(SimTypes::FeatureMapSimVector & /* features_to_simulate */) override
 	{
 		throw Exception::NotImplemented(__FILE__,__LINE__,OPENMS_PRETTY_FUNCTION);
 	}
 
-	virtual void postRawTandemMSHook(SimTypes::FeatureMapSimVector & /* features_to_simulate */, SimTypes::MSSimExperiment & /* simulated map */)
+	void postRawTandemMSHook(SimTypes::FeatureMapSimVector & /* features_to_simulate */, SimTypes::MSSimExperiment & /* simulated map */) override
 	{
 		throw Exception::NotImplemented(__FILE__,__LINE__,OPENMS_PRETTY_FUNCTION);
 	}
@@ -93,8 +93,8 @@ START_TEST(BaseLabeler, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-BaseLabeler* ptr = 0;
-BaseLabeler* nullPointer = 0;
+BaseLabeler* ptr = nullptr;
+BaseLabeler* nullPointer = nullptr;
 START_SECTION(BaseLabeler())
 {
 	ptr = new DerivedLabeler();

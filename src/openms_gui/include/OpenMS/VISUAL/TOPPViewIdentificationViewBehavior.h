@@ -72,7 +72,7 @@ namespace OpenMS
 
 public:
     /// Construct the behaviour with its parent
-    TOPPViewIdentificationViewBehavior(TOPPViewBase * parent);
+    TOPPViewIdentificationViewBehavior(TOPPViewBase* parent);
 
 public slots:
     /// Behavior for showSpectrumAs1D
@@ -100,22 +100,22 @@ public slots:
 
 private:
     /// Adds labels for the provided precursors to the 1D spectrum
-    void addPrecursorLabels1D_(const std::vector<Precursor> & pcs);
+    void addPrecursorLabels1D_(const std::vector<Precursor>& pcs);
 
     /// Removes the precursor labels for from the specified 1D spectrum
     void removeTemporaryAnnotations_(Size spectrum_index);
 
     /// Adds a theoretical spectrum as set from the preferences dialog for the peptide hit.
-    void addTheoreticalSpectrumLayer_(const PeptideHit & ph);
+    void addTheoreticalSpectrumLayer_(const PeptideHit& ph);
+
+    /// Adds spectrum comprising annotated peaks
+    void addAnnotationsSpectrumLayer_(const PeptideHit& hit, bool align = false);
 
     /// removes all layer with theoretical spectrum generated in identification view
     void removeTheoreticalSpectrumLayer_();
 
     /// Adds annotation (compound name, adducts, ppm error) to a peak in 1D spectra
-    void addPeakAnnotations_(const std::vector<PeptideIdentification> & ph);
-
-    /// Adds fragment annotations to peaks in 1D spectra
-    void addFragmentAnnotations_(const PeptideHit & ph);
+    void addPeakAnnotations_(const std::vector<PeptideIdentification>& ph);
 
   /// Helper function for text formatting
   String n_times(Size n, String input);
@@ -127,10 +127,10 @@ private:
   String collapseStringVector(std::vector<String> strings);
 
 private:
-    TOPPViewBase * tv_;
+    TOPPViewBase* tv_;
     /// Used to check which annotation handles have been added automatically by the identification view. Ownership
     /// of the AnnotationItems has the Annotation1DContainer
-    std::vector<Annotation1DItem *> temporary_annotations_;
+    std::vector<Annotation1DItem*> temporary_annotations_;
   };
 }
 

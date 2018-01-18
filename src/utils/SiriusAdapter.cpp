@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -95,15 +95,10 @@ protected:
     return (atoi(SiriusMzTabWriter::extract_scan_index(i).c_str()) < atoi(SiriusMzTabWriter::extract_scan_index(j).c_str()));
   }
 
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
-    registerInputFile_("executable", "<executable>",
-#if  defined(__APPLE__)
-                       "sirius",
-#else
-                       "sirius-console-64.exe",
-#endif
-                       "sirius executable e.g. sirius", true, false, ListUtils::create<String>("skipexists"));
+    registerInputFile_("executable", "<executable>", "",
+                       "sirius executable e.g. sirius", false, false, ListUtils::create<String>("skipexists"));
 
     registerInputFile_("in", "<file>", "", "MzML Input file");
     setValidFormats_("in", ListUtils::create<String>("mzml"));
@@ -111,8 +106,8 @@ protected:
     registerOutputFile_("out_sirius", "<file>", "", "MzTab Output file for SiriusAdapter results");
     setValidFormats_("out_sirius", ListUtils::create<String>("tsv"));
 
-    registerOutputFile_("out_CSIFingerID","<file>", "", "MzTab ouput file for CSI:FingerID", false);
-    setValidFormats_("out_CSIFingerID", ListUtils::create<String>("tsv"));
+    registerOutputFile_("out_fingerid","<file>", "", "MzTab output file for CSI:FingerID, if this parameter is given, SIRIUS will search for a molecular structure using CSI:FingerID after determining the sum formula", false);
+    setValidFormats_("out_fingerid", ListUtils::create<String>("tsv"));
 
     registerStringOption_("profile", "<choice>", "qtof", "Specify the used analysis profile", false);
     setValidStrings_("profile", ListUtils::create<String>("qtof,orbitrap,fticr"));
@@ -123,17 +118,16 @@ protected:
     registerIntOption_("ppm_max", "<num>", 10, "allowed ppm for decomposing masses", false);
     registerStringOption_("isotope", "<choice>", "both", "how to handle isotope pattern data. Use 'score' to use them for ranking or 'filter' if you just want to remove candidates with bad isotope pattern. With 'both' you can use isotopes for filtering and scoring (default). Use 'omit' to ignore isotope pattern.", false);
     setValidStrings_("isotope", ListUtils::create<String>("score,filter,both,omit"));
-    registerStringOption_("elements", "<choice>", "CHNOP[5]S", "The allowed elements. Write CHNOPSCl to allow the elements C, H, N, O, P, S and Cl. Add numbers in brackets to restrict the maximal allowed occurence of these elements: CHNOP[5]S[8]Cl[1]. By default CHNOP[5]S is used.", false);
+    registerStringOption_("elements", "<choice>", "CHNOP[5]S", "The allowed elements. Write CHNOPSCl to allow the elements C, H, N, O, P, S and Cl. Add numbers in brackets to restrict the maximal allowed occurrence of these elements: CHNOP[5]S[8]Cl[1]. By default CHNOP[5]S is used.", false);
 
     registerIntOption_("number", "<num>", 10, "The number of compounds used in the output", false);
 
     registerFlag_("auto_charge", "Use this option if the charge of your compounds is unknown and you do not want to assume [M+H]+ as default. With the auto charge option SIRIUS will not care about charges and allow arbitrary adducts for the precursor peak.", false);
     registerFlag_("iontree", "Print molecular formulas and node labels with the ion formula instead of the neutral formula", false);
     registerFlag_("no_recalibration", "If this option is set, SIRIUS will not recalibrate the spectrum during the analysis.", false);
-    registerFlag_("fingerid", "If this option is set, SIRIUS will search for a molecular structure using CSI:FingerID after determining the sum formula", false);
   }
 
-  ExitCodes main_(int, const char **)
+  ExitCodes main_(int, const char **) override
   {
     //-------------------------------------------------------------
     // Parsing parameters
@@ -141,38 +135,56 @@ protected:
 
     String in = getStringOption_("in");
     String out_sirius = getStringOption_("out_sirius");
-    String out_csifingerid = getStringOption_("out_CSIFingerID");
+    String out_csifingerid = getStringOption_("out_fingerid");
 
     // needed for counting
-    int number_compounds = getIntOption_("number") + 1;  // +1 needed to write the correct number of compounds
+    int number_compounds = getIntOption_("number"); 
 
     // Parameter for Sirius3
     QString executable = getStringOption_("executable").toQString();
-    QString profile = getStringOption_("profile").toQString();
-    QString elements = getStringOption_("elements").toQString();
-    QString database = getStringOption_("database").toQString();    
-    QString isotope = getStringOption_("isotope").toQString();
-    QString noise = QString::number(getIntOption_("noise"));
-    QString ppm_max = QString::number(getIntOption_("ppm_max"));
-    QString candidates = QString::number(getIntOption_("candidates"));
-
-    QString path_to_executable = File::path(getStringOption_("executable")).toQString();
+    const QString profile = getStringOption_("profile").toQString();
+    const QString elements = getStringOption_("elements").toQString();
+    const QString database = getStringOption_("database").toQString();
+    const QString isotope = getStringOption_("isotope").toQString();
+    const QString noise = QString::number(getIntOption_("noise"));
+    const QString ppm_max = QString::number(getIntOption_("ppm_max"));
+    const QString candidates = QString::number(getIntOption_("candidates"));
 
     bool auto_charge = getFlag_("auto_charge");
     bool no_recalibration = getFlag_("no_recalibration");
-    bool fingerid = getFlag_("fingerid");
     bool iontree = getFlag_("iontree");
+
+    //-------------------------------------------------------------
+    // Determination of the Executable
+    //-------------------------------------------------------------
+
+    // Parameter executable not provided
+    if (executable.isEmpty())
+    {
+      const QProcessEnvironment env;
+      const QString & qsiriuspathenv = env.systemEnvironment().value("SIRIUS_PATH");
+      if (qsiriuspathenv.isEmpty())
+      {
+        writeLog_( "FATAL: Executable of Sirius could not be found. Please either use SIRIUS_PATH env variable or provide with -executable");
+        return MISSING_PARAMETERS;
+      }
+      executable = qsiriuspathenv;
+    }
+    // Normalize file path
+    QFileInfo file_info(executable);
+    executable = file_info.canonicalFilePath();
+
+    writeLog_("Executable is: " + executable);
+    const QString & path_to_executable = File::path(executable).toQString();
 
     //-------------------------------------------------------------
     // Calculations
     //-------------------------------------------------------------
-
     PeakMap spectra;
     MzMLFile f;
     f.setLogType(log_type_);
     f.load(in, spectra);
     std::vector<String> subdirs;
-
 
     QString tmp_base_dir = File::getTempDirectory().toQString();
     QString tmp_dir = QDir(tmp_base_dir).filePath(File::getUniqueName().toQString());
@@ -183,19 +195,8 @@ protected:
     //Write msfile
     SiriusMSFile::store(spectra, tmp_ms_file);
 
-    //Knime hack
-    QProcessEnvironment env;
-    String siriuspath = "SIRIUS_PATH";
-    QString qsiriuspath = env.systemEnvironment().value(siriuspath.toQString());
-
-    // TODO Is it correct that the executable argument is ignored if the SIRIUS_PATH is not empty?
-    if (!qsiriuspath.isEmpty())
-    {
-      executable = qsiriuspath;
-    }
-
-    //Start Sirius
-    QStringList process_params; // the actual process
+    // Assemble SIRIUS parameters
+    QStringList process_params;
     process_params << "-p" << profile
                    << "-e" << elements
                    << "-d" << database
@@ -204,13 +205,14 @@ protected:
                    << "--candidates" << candidates
                    << "--ppm-max" << ppm_max
                    << "--quiet"
-                   << "--output" << out_dir.toQString(); //internal output folder for temporary
+                   << "--output" << out_dir.toQString(); //internal output folder for temporary SIRIUS output file storage
 
+    // Add flags
     if (no_recalibration)
     {
       process_params << "--no-recalibration";
     }
-    if (fingerid)
+    if (!out_csifingerid.empty())
     {
       process_params << "--fingerid";
     }
@@ -225,16 +227,32 @@ protected:
 
     process_params << tmp_ms_file.toQString();
 
+    // The actual process
     QProcess qp;
-    qp.workingDirectory();
     qp.setWorkingDirectory(path_to_executable); //since library paths are relative to sirius executable path
     qp.start(executable, process_params); // does automatic escaping etc... start
-    bool success = qp.waitForFinished(-1); // wait till job is finished
+    std::stringstream ss;
+    ss << "COMMAND: " << executable.toStdString();
+    for (QStringList::const_iterator it = process_params.begin(); it != process_params.end(); ++it)
+    {
+        ss << " " << it->toStdString();
+    }
+    LOG_DEBUG << ss.str() << endl;
+    writeLog_("Executing: " + String(executable));
+    writeLog_("Working Dir is: " + path_to_executable);
+    const bool success = qp.waitForFinished(-1); // wait till job is finished
     qp.close();
 
     if (success == false || qp.exitStatus() != 0 || qp.exitCode() != 0)
     {
-      writeLog_( "Fatal error: Running SiriusAdapter returned an error code or could no compute the input" );
+      writeLog_( "FATAL: External invocation of Sirius failed. Standard output and error were:");
+      const QString sirius_stdout(qp.readAllStandardOutput());
+      const QString sirius_stderr(qp.readAllStandardOutput());
+      writeLog_(sirius_stdout);
+      writeLog_(sirius_stderr);
+      writeLog_(String(qp.exitCode()));
+
+      return EXTERNAL_PROGRAM_ERROR;
     }
 
     //-------------------------------------------------------------
@@ -258,7 +276,7 @@ protected:
     siriusfile.store(out_sirius, sirius_result);
 
     //Convert sirius_output to mztab and store file
-    if (out_csifingerid.empty() == false && fingerid)
+    if (out_csifingerid.empty() == false)
     {
       MzTab csi_result;
       MzTabFile csifile;

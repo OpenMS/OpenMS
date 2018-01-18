@@ -28,6 +28,8 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 
+//! [EmpiricalFormula]
+
 #include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
 #include <OpenMS/CHEMISTRY/ElementDB.h>
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopeDistribution.h>
@@ -40,20 +42,26 @@ Int main()
 {
   EmpiricalFormula methanol("CH3OH"), water("H2O");
 
+  // sum up empirical formula
   EmpiricalFormula sum = methanol + water;
 
+  // get element from ElementDB
   const Element * carbon = ElementDB::getInstance()->getElement("Carbon");
 
+  // output number of carbon atoms and average weight 
   cout << sum << " "
        << sum.getNumberOf(carbon) << " "
        << sum.getAverageWeight() << endl;
 
+  // extract the isotope distribution
   IsotopeDistribution iso_dist = sum.getIsotopeDistribution(new CoarseIsotopeDistribution(3));
 
-  for (IsotopeDistribution::ConstIterator it = iso_dist.begin(); it != iso_dist.end(); ++it)
+  for (auto it = iso_dist.begin(); it != iso_dist.end(); ++it)
   {
     cout << it->getMZ() << " " << it->getIntensity() << endl;
   }
 
   return 0;
 } //end of main
+
+//! [EmpiricalFormula]

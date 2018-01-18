@@ -70,7 +70,7 @@
 #include <fstream>
 #include <map>
 
-#include <math.h>
+#include <cmath>
 
 //#define DEBUG_METAPROSIP
 
@@ -1133,7 +1133,9 @@ public:
       const SIPPeptide& current_SIPpeptide = peptide_to_cluster_index[i].first;
 
       // skip non natural peptides for repoting if flag is set
-      if (!report_natural_peptides && current_SIPpeptide.incorporations.size() == 1 && current_SIPpeptide.incorporations[0].rate < 5.0)
+      if (!report_natural_peptides 
+        && current_SIPpeptide.incorporations.size() == 1 
+        && current_SIPpeptide.incorporations[0].rate < 5.0)
       {
         continue;
       }
@@ -1234,7 +1236,7 @@ protected:
           Int bin = iit->rate / 100.0 * n_heatmap_bins;
           bin = bin > (Int)binned.size() - 1 ? (Int)binned.size() - 1 : bin;
           bin = bin < 0 ? 0 : bin;
-          binned[bin] = log(1.0 + iit->abundance);
+          binned[bin] = log1p(iit->abundance);
         }
         binned_peptide_ria.push_back(binned);
         cluster_labels.push_back((String)(cit - sip_clusters.begin()));
@@ -2005,7 +2007,7 @@ protected:
   std::string FEATURE_STRING;
   std::string UNASSIGNED_ID_STRING;
   std::string UNIDENTIFIED_STRING;
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     registerInputFile_("in_mzML", "<file>", "", "Centroided MS1 data");
     setValidFormats_("in_mzML", ListUtils::create<String>("mzML"));
@@ -2879,7 +2881,7 @@ protected:
     return sum_incorporated / sum;
   }
 
-  ExitCodes main_(int, const char**)
+  ExitCodes main_(int, const char**) override
   {
     String file_extension_ = getStringOption_("plot_extension");
     Int debug_level = getIntOption_("debug");
@@ -3562,7 +3564,15 @@ protected:
     if (!out_peptide_centric_csv.empty())
     {
       LOG_INFO << "Creating peptide centric report: " << out_peptide_centric_csv << std::endl;
-      MetaProSIPReporting::createPeptideCentricCSVReport(in_mzml, file_extension_, sippeptide_clusters, out_peptide_csv_stream, proteinid_to_description, qc_output_directory, file_suffix, report_natural_peptides);
+
+      if (getFlag_("test")) 
+      {
+        MetaProSIPReporting::createPeptideCentricCSVReport("test_mode_enabled.mzML", file_extension_, sippeptide_clusters, out_peptide_csv_stream, proteinid_to_description, qc_output_directory, file_suffix, report_natural_peptides);
+      }
+      else
+      {
+        MetaProSIPReporting::createPeptideCentricCSVReport(in_mzml, file_extension_, sippeptide_clusters, out_peptide_csv_stream, proteinid_to_description, qc_output_directory, file_suffix, report_natural_peptides);
+      }
     }
 
     // quality report

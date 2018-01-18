@@ -54,9 +54,9 @@ START_TEST(QTClusterFinder, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-QTClusterFinder* ptr = 0;
-QTClusterFinder* nullPointer = 0;
-BaseGroupFinder* base_nullPointer = 0;
+QTClusterFinder* ptr = nullptr;
+QTClusterFinder* nullPointer = nullptr;
+BaseGroupFinder* base_nullPointer = nullptr;
 
 START_SECTION((QTClusterFinder()))
 {
@@ -71,7 +71,7 @@ END_SECTION
 
 START_SECTION((static BaseGroupFinder* create()))
 {
-	BaseGroupFinder* base_ptr = 0;
+	BaseGroupFinder* base_ptr = nullptr;
 	base_ptr = QTClusterFinder::create();
   TEST_NOT_EQUAL(base_ptr, base_nullPointer);
 }

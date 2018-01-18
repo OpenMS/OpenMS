@@ -61,7 +61,7 @@ namespace OpenMS
     QWidget(parent),
     DefaultParamHandler("SpectraIdentificationViewWidget"),
     ignore_update(false),
-    layer_(0),
+    layer_(nullptr),
     is_ms1_shown_(false)
   {
     // set common defaults
@@ -139,10 +139,10 @@ namespace OpenMS
     create_rows_for_commmon_metavalue_ = new QCheckBox("Show advanced\nannotations", this);
     connect(create_rows_for_commmon_metavalue_, SIGNAL(toggled(bool)), this, SLOT(updateEntries()));
 
-    QPushButton* save_IDs = new QPushButton("save IDs", this);
+    QPushButton* save_IDs = new QPushButton("Save IDs", this);
     connect(save_IDs, SIGNAL(clicked()), this, SLOT(saveIDs_()));
 
-    QPushButton* export_table = new QPushButton("export table", this);
+    QPushButton* export_table = new QPushButton("Export table", this);
     connect(export_table, SIGNAL(clicked()), this, SLOT(exportEntries_()));
 
     tmp_hbox_layout->addWidget(hide_no_identification_);
@@ -227,7 +227,7 @@ namespace OpenMS
     /*test for previous == 0 is important - without it,
       the wrong spectrum will be selected after finishing
       the execution of a TOPP tool on the whole data */
-    if (current == 0 || previous == 0)
+    if (current == nullptr || previous == nullptr)
     {
       return;
     }
@@ -273,7 +273,7 @@ namespace OpenMS
   void SpectraIdentificationViewWidget::updateEntries()
   {
     // no valid peak layer attached
-    if (layer_ == 0 || layer_->getPeakData()->size() == 0 || layer_->type != LayerData::DT_PEAK)
+    if (layer_ == nullptr || layer_->getPeakData()->size() == 0 || layer_->type != LayerData::DT_PEAK)
     {
       table_widget_->clear();
       return;
@@ -364,13 +364,13 @@ namespace OpenMS
     table_widget_->setUpdatesEnabled(false);
     table_widget_->blockSignals(true);
 
-    if (layer_ == 0)
+    if (layer_ == nullptr)
     {
       return;
     }
 
-    QTableWidgetItem* item = 0;
-    QTableWidgetItem* selected_item = 0;
+    QTableWidgetItem* item = nullptr;
+    QTableWidgetItem* selected_item = nullptr;
     Size selected_row = 0;
 
     // generate flat list
@@ -549,7 +549,9 @@ namespace OpenMS
             addDoubleItemToBottomRow_(ph.getCharge(), 9, c);
 
             //sequence
-            addTextItemToBottomRow_(ph.getSequence().toString().toQString(), 10, c);
+            String seq = ph.getSequence().toString();
+            if (seq.empty()) seq = ph.getMetaValue("label");
+            addTextItemToBottomRow_(seq.toQString(), 10, c);
 
             //Accession
             item = table_widget_->itemPrototype()->clone();
@@ -591,7 +593,7 @@ namespace OpenMS
               {
                 ppm_error = fabs((double)pi[pi_idx].getHits()[0].getMetaValue(Constants::PRECURSOR_ERROR_PPM_USERPARAM));
               }
-              else // works for normal linear fragments with the correct modifications included in the AASequence
+              else if (!ph.getSequence().empty()) // works for normal linear fragments with the correct modifications included in the AASequence
               {
                 double exp_precursor = (*layer_->getPeakData())[i].getPrecursors()[0].getMZ();
                 int charge = (*layer_->getPeakData())[i].getPrecursors()[0].getCharge();
@@ -743,7 +745,7 @@ namespace OpenMS
     for (int i = 0; i != table_widget_->columnCount(); ++i)
     {
       QTableWidgetItem* ti = table_widget_->horizontalHeaderItem(i);
-      if (ti != 0)
+      if (ti != nullptr)
       {
         header_labels.append(ti->text());
       }
@@ -760,7 +762,7 @@ namespace OpenMS
 
     // show menu and hide selected columns
     QAction* selected = context_menu->exec(table_widget_->mapToGlobal(pos));
-    if (selected != 0)
+    if (selected != nullptr)
     {
       for (int i = 0; i < header_labels.size(); ++i)
       {
@@ -775,7 +777,7 @@ namespace OpenMS
 
   void SpectraIdentificationViewWidget::exportEntries_()
   {
-    if (layer_ == 0 || layer_->getPeakData()->size() == 0 || layer_->type != LayerData::DT_PEAK)
+    if (layer_ == nullptr || layer_->getPeakData()->size() == 0 || layer_->type != LayerData::DT_PEAK)
     {
       return;
     }
@@ -788,7 +790,7 @@ namespace OpenMS
     for (int i = 0; i != table_widget_->columnCount(); ++i)
     {
       QTableWidgetItem* ti = table_widget_->horizontalHeaderItem(i);
-      if (ti != 0)
+      if (ti != nullptr)
       {
         header_labels.append(ti->text());
       }
@@ -857,7 +859,7 @@ namespace OpenMS
   void SpectraIdentificationViewWidget::saveIDs_()
   {
     // no valid peak layer attached
-    if (layer_ == 0 || layer_->getPeakData()->size() == 0 || layer_->type != LayerData::DT_PEAK)
+    if (layer_ == nullptr || layer_->getPeakData()->size() == 0 || layer_->type != LayerData::DT_PEAK)
     {
       return;
     }
@@ -910,12 +912,12 @@ namespace OpenMS
     }
   }
 
-  // Upon changes in the table data (only possible by checking or unchecking a checkbox rigth now),
+  // Upon changes in the table data (only possible by checking or unchecking a checkbox right now),
   // update the corresponding PeptideIdentification / PeptideHits
   void SpectraIdentificationViewWidget::updateData_(QTableWidgetItem* item)
   {
     // no valid peak layer attached
-    if (layer_ == 0 || layer_->getPeakData()->size() == 0 || layer_->type != LayerData::DT_PEAK)
+    if (layer_ == nullptr || layer_->getPeakData()->size() == 0 || layer_->type != LayerData::DT_PEAK)
     {
       return;
     }

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -73,7 +73,7 @@ namespace OpenMS
     SpectrumAnnotator(const SpectrumAnnotator & source);
 
     /// destructor
-    virtual ~SpectrumAnnotator();
+    ~SpectrumAnnotator() override;
     //@}
 
     /// assignment operator
@@ -112,7 +112,7 @@ namespace OpenMS
     void addIonMatchStatistics(PeptideIdentification& pi, MSSpectrum &spec, const TheoreticalSpectrumGenerator& tg, const SpectrumAlignment& sa) const;
 
     /// overwrite
-    void updateMembers_();
+    void updateMembers_() override;
 
     //@}
 

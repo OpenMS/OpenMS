@@ -68,7 +68,7 @@ START_SECTION((static VersionDetails getVersionStruct()))
 {
   VersionInfo::VersionDetails detail;
   detail.version_major = 2;
-  detail.version_minor = 2;
+  detail.version_minor = 3;
   detail.version_patch = 0;
   TEST_EQUAL(VersionInfo::getVersionStruct() == detail, true);
 }

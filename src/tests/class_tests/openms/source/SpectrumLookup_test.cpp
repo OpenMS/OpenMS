@@ -47,8 +47,8 @@ START_TEST(SpectrumLookup, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-SpectrumLookup* ptr = 0;
-SpectrumLookup* null_ptr = 0;
+SpectrumLookup* ptr = nullptr;
+SpectrumLookup* null_ptr = nullptr;
 
 START_SECTION((SpectrumLookup()))
 {

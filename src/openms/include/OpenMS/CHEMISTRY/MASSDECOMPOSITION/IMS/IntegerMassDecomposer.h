@@ -100,7 +100,7 @@ public:
         @param mass Mass to be decomposed.
         @return true if decomposition over a given mass exists, otherwise - false.
       */
-      virtual bool exist(value_type mass);
+      bool exist(value_type mass) override;
 
       /**
         Gets one possible decomposition for @c mass.
@@ -108,7 +108,7 @@ public:
         @param mass Mass to be decomposed.
         @return One possible decomposition for a given mass.
       */
-      virtual decomposition_type getDecomposition(value_type mass);
+      decomposition_type getDecomposition(value_type mass) override;
 
       /**
         Gets all possible decompositions for @c mass.
@@ -116,7 +116,7 @@ public:
         @param mass Mass to be decomposed.
         @return All possible decompositions for a given mass.
       */
-      virtual decompositions_type getAllDecompositions(value_type mass);
+      decompositions_type getAllDecompositions(value_type mass) override;
 
       /**
         Gets number of all possible decompositions for a given @c mass.
@@ -126,7 +126,7 @@ public:
         @param mass Mass to be decomposed
         @return number of decompositions for a given mass.
       */
-      virtual decomposition_value_type getNumberOfDecompositions(value_type mass);
+      decomposition_value_type getNumberOfDecompositions(value_type mass) override;
 
 private:
 

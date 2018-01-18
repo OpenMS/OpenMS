@@ -50,8 +50,8 @@ START_TEST(SingleLinkage, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-SingleLinkage* ptr = 0;
-SingleLinkage* nullPointer = 0;
+SingleLinkage* ptr = nullptr;
+SingleLinkage* nullPointer = nullptr;
 START_SECTION(SingleLinkage())
 {
 	ptr = new SingleLinkage();

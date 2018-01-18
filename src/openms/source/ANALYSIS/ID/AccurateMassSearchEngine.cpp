@@ -868,7 +868,8 @@ namespace OpenMS
       hit.setMetaValue("description", names);
       hit.setMetaValue("modifications", it_row->getFoundAdduct());
       hit.setMetaValue("chemical_formula", it_row->getFormulaString());
-      hit.setMetaValue("ppm_mz_error", it_row->getMZErrorPPM());
+      hit.setMetaValue("mz_error_ppm", it_row->getMZErrorPPM());
+      hit.setMetaValue("mz_error_Da", it_row->getObservedMZ() - it_row->getCalculatedMZ());
       f.getPeptideIdentifications().back().insertHit(hit);
     }
   }

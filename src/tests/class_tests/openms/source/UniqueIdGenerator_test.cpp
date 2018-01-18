@@ -45,7 +45,7 @@
 #include <boost/serialization/array_wrapper.hpp>
 #endif
 #include <boost/accumulators/statistics/covariance.hpp>
-#include BOOST_TYPEOF_INCREMENT_REGISTRATION_GROUP()
+#include <boost/typeof/incr_registration_group.hpp>
 ///////////////////////////
 
 using namespace OpenMS;
@@ -75,7 +75,7 @@ START_SECTION((static UInt64 getUniqueId()))
 {
   STATUS("OpenMS::UniqueIdGenerator::getUniqueId(): " << OpenMS::UniqueIdGenerator::getUniqueId());
   /* test for collisions, test will be different for every test execution */
-  OpenMS::UniqueIdGenerator::setSeed(std::time(0));
+  OpenMS::UniqueIdGenerator::setSeed(std::time(nullptr));
   std::vector<OpenMS::UInt64> ids;
   ids.reserve(nofIdsToGenerate);
   for (unsigned i=0; i<nofIdsToGenerate; ++i)

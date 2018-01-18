@@ -69,7 +69,7 @@ public:
     IsotopeMarker(const IsotopeMarker & source);
 
     /// destructor
-    virtual ~IsotopeMarker();
+    ~IsotopeMarker() override;
     // @}
 
     // @name Operators

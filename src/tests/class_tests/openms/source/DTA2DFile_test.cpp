@@ -60,8 +60,8 @@ START_TEST(DTAFile, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-DTA2DFile* ptr = 0;
-DTA2DFile* nullPointer = 0;
+DTA2DFile* ptr = nullptr;
+DTA2DFile* nullPointer = nullptr;
 START_SECTION((DTA2DFile()))
   ptr = new DTA2DFile;
   TEST_NOT_EQUAL(ptr, nullPointer)

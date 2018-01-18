@@ -49,8 +49,8 @@ START_TEST(MetaInfoRegistry, "$Id$")
 using namespace OpenMS;
 using namespace std;
 
-MetaInfoRegistry* test = 0;
-MetaInfoRegistry* nullPointer = 0;
+MetaInfoRegistry* test = nullptr;
+MetaInfoRegistry* nullPointer = nullptr;
 START_SECTION((MetaInfoRegistry()))
 	test = new MetaInfoRegistry;
   TEST_NOT_EQUAL(test, nullPointer)

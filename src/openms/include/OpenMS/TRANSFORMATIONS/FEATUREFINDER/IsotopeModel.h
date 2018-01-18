@@ -73,7 +73,7 @@ public:
     IsotopeModel(const IsotopeModel & source);
 
     /// destructor
-    virtual ~IsotopeModel();
+    ~IsotopeModel() override;
 
     /// assignment operator
     virtual IsotopeModel & operator=(const IsotopeModel & source);
@@ -99,7 +99,7 @@ public:
         standard deviations) but can get significant otherwise. In that case use setParameters()
         which enforces a recomputation of the model.
     */
-    void setOffset(CoordinateType offset);
+    void setOffset(CoordinateType offset) override;
 
     CoordinateType getOffset();
 
@@ -116,7 +116,7 @@ public:
 
          This is a m/z-value not necessarily the monoisotopic mass.
     */
-    CoordinateType getCenter() const;
+    CoordinateType getCenter() const override;
 
     /** @brief the Isotope distribution (without widening) from the last setSamples() call
 
@@ -139,7 +139,7 @@ protected:
     double isotope_distance_;
     IsotopeDistribution isotope_distribution_;
 
-    void updateMembers_();
+    void updateMembers_() override;
 
   };
 }

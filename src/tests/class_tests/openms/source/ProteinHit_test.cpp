@@ -59,8 +59,8 @@ String sequence = "ARRAY";
 String accession = "PROOE34";
 String description = "class II antigen";
 
-ProteinHit* ptr = 0;	
-ProteinHit* nullPointer = 0;
+ProteinHit* ptr = nullptr;	
+ProteinHit* nullPointer = nullptr;
 START_SECTION(ProteinHit())
 	ptr = new ProteinHit();
 	TEST_NOT_EQUAL(ptr, nullPointer)

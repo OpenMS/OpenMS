@@ -49,7 +49,7 @@
 #include <map>
 #include <iostream>
 #include <iomanip>
-#include <stdio.h>
+#include <cstdio>
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/RawData.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/MSPeak.h>
@@ -88,7 +88,7 @@ namespace OpenMS
 // constructor for the object FTPeakDetectController:
   FTPeakDetectController::FTPeakDetectController()
   {
-    lcms_ = NULL;
+    lcms_ = nullptr;
   }
 
 //////////////////////////////////////////////////
@@ -97,10 +97,10 @@ namespace OpenMS
   {
 
     lcmsRuns_.clear();
-    if (lcms_ != NULL)
+    if (lcms_ != nullptr)
     {
       delete lcms_;
-      lcms_ = NULL;
+      lcms_ = nullptr;
     }
   }
 
@@ -220,8 +220,8 @@ namespace OpenMS
     lcms_->order_by_mass();
 
     // clear:
-    rawData = NULL;
-    currentData = NULL;
+    rawData = nullptr;
+    currentData = nullptr;
   }
 
 ////////////////////////////////////////////////////
@@ -231,7 +231,7 @@ namespace OpenMS
   void FTPeakDetectController::addMS2FeatureToMS1Feature(MS2Feature * ms2, SHFeature * ms1)
   {
 
-    if (ms1->getMS2Feature() == NULL)
+    if (ms1->getMS2Feature() == nullptr)
     {
       ms1->addMS2Feature(ms2);
     }
@@ -270,7 +270,7 @@ namespace OpenMS
     SHFeature * fakeMS1 = new SHFeature(in);
     lcms_->add_feature(fakeMS1);
     delete fakeMS1;
-    in = NULL;
+    in = nullptr;
   }
 
 ////////////////////////////////////////////////////
@@ -334,7 +334,7 @@ namespace OpenMS
       delete TMP;
 
     }
-    PEAK = NULL;
+    PEAK = nullptr;
   }
 
 ////////////////////////////////////////////////////////
@@ -402,7 +402,7 @@ namespace OpenMS
 
     inF->setLCelutionProfile(myProfile);
 
-    myProfile = NULL;
+    myProfile = nullptr;
   }
 
 }

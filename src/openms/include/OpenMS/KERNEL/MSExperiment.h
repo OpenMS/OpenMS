@@ -312,12 +312,12 @@ public:
     {
       // clean up the container first
       clear(true);
-      SpectrumType* spectrum = 0;
+      SpectrumType* spectrum = nullptr;
       typename PeakType::CoordinateType current_rt = -std::numeric_limits<typename PeakType::CoordinateType>::max();
       for (typename Container::const_iterator iter = container.begin(); iter != container.end(); ++iter)
       {
         // check if the retention time has changed
-        if (current_rt != iter->getRT() || spectrum == 0)
+        if (current_rt != iter->getRT() || spectrum == nullptr)
         {
           // append new spectrum
           if (current_rt > iter->getRT())
@@ -355,12 +355,12 @@ public:
     {
       // clean up the container first
       clear(true);
-      SpectrumType* spectrum = 0;
+      SpectrumType* spectrum = nullptr;
       typename PeakType::CoordinateType current_rt = -std::numeric_limits<typename PeakType::CoordinateType>::max();
       for (typename Container::const_iterator iter = container.begin(); iter != container.end(); ++iter)
       {
         // check if the retention time has changed
-        if (current_rt != iter->getRT() || spectrum == 0)
+        if (current_rt != iter->getRT() || spectrum == nullptr)
         {
           // append new spectrum
           if (current_rt > iter->getRT())
@@ -474,7 +474,7 @@ public:
     */
     ///@{
     // Docu in base class
-    virtual void updateRanges()
+    void updateRanges() override
     {
       updateRanges(-1);
     }
@@ -909,7 +909,7 @@ public:
           // sum intensities of a spectrum
           for (SpectrumType::const_iterator peak_it = spec_it->begin(); peak_it != spec_it->end(); ++peak_it)
           {
-            totalIntensity += peak_it->getIntensity();
+            totalIntensity += static_cast<double>(peak_it->getIntensity());
           }
           // fill chromatogram
           ChromatogramPeakType peak;
@@ -1023,7 +1023,7 @@ private:
     */
     SpectrumType* createSpec_(PeakType::CoordinateType rt)
     {
-      SpectrumType* spectrum = 0;
+      SpectrumType* spectrum = nullptr;
       spectra_.insert(spectra_.end(), SpectrumType());
       spectrum = &(spectra_.back());
       spectrum->setRT(rt);

@@ -51,8 +51,8 @@ START_TEST(EGHFitter1D, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-EGHFitter1D* ptr = 0;
-EGHFitter1D* nullPointer = 0;
+EGHFitter1D* ptr = nullptr;
+EGHFitter1D* nullPointer = nullptr;
 START_SECTION(EGHFitter1D())
 {
 	ptr = new EGHFitter1D();
@@ -164,7 +164,7 @@ START_SECTION((QualityType fit1d(const RawDataArrayType &range, InterpolationMod
   // Set parameter for fitter
   egh_fitter.setParameters( egh_param );
 
-  InterpolationModel* fitted_egh_model = 0;
+  InterpolationModel* fitted_egh_model = nullptr;
 
   // Construct model for rt
   egh_quality = egh_fitter.fit1d(data_to_fit, fitted_egh_model);

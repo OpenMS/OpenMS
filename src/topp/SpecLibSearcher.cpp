@@ -29,7 +29,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
-// $Authors: David Wojnar $
+// $Authors: David Wojnar, Timo Sachsenberg $
 // --------------------------------------------------------------------------
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
@@ -97,7 +97,7 @@ public:
   }
 
 protected:
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     registerInputFileList_("in", "<files>", ListUtils::create<String>(""), "Input files");
     setValidFormats_("in", ListUtils::create<String>("mzML"));
@@ -105,215 +105,278 @@ protected:
     setValidFormats_("lib", ListUtils::create<String>("msp"));
     registerOutputFileList_("out", "<files>", ListUtils::create<String>(""), "Output files. Have to be as many as input files");
     setValidFormats_("out", ListUtils::create<String>("idXML"));
-    registerDoubleOption_("precursor_mass_tolerance", "<tolerance>", 3, "Precursor mass tolerance, (Th)", false);
-    registerIntOption_("round_precursor_to_integer", "<number>", 10, "many precursor m/z multipling number lead to the same number; are packed in the same vector for faster search.Should be higher for high-resolution data", false, true);
-    // registerDoubleOption_("fragment_mass_tolerance","<tolerance>",0.3,"Fragment mass error",false);
 
-    // registerStringOption_("precursor_error_units", "<unit>", "Da", "parent monoisotopic mass error units", false);
-    // registerStringOption_("fragment_error_units", "<unit>", "Da", "fragment monoisotopic mass error units", false);
-    // vector<String> valid_strings;
-    // valid_strings.push_back("Da");
-    // setValidStrings_("precursor_error_units", valid_strings);
-    // setValidStrings_("fragment_error_units", valid_strings);
-    // registerIntOption_("min_precursor_charge", "<charge>", 1, "minimum precursor ion charge", false);
-    // registerIntOption_("max_precursor_charge", "<charge>", 3, "maximum precursor ion charge", false);
-    registerStringOption_("compare_function", "<string>", "ZhangSimilarityScore", "function for similarity comparisson", false);
+    registerTOPPSubsection_("precursor", "Precursor (Parent Ion) Options");
+    registerDoubleOption_("precursor:mass_tolerance", "<tolerance>", 10.0, "Width of precursor mass tolerance window", false);
+
+    StringList precursor_mass_tolerance_unit_valid_strings;
+    precursor_mass_tolerance_unit_valid_strings.push_back("ppm");
+    precursor_mass_tolerance_unit_valid_strings.push_back("Da");
+
+    registerStringOption_("precursor:mass_tolerance_unit", "<unit>", "ppm", "Unit of precursor mass tolerance.", false, false);
+    setValidStrings_("precursor:mass_tolerance_unit", precursor_mass_tolerance_unit_valid_strings);
+
+    registerIntOption_("precursor:min_charge", "<num>", 2, "Minimum precursor charge to be considered.", false, true);
+    registerIntOption_("precursor:max_charge", "<num>", 5, "Maximum precursor charge to be considered.", false, true);
+
+    // consider one before annotated monoisotopic peak and the annotated one
+    IntList isotopes = {0, 1};
+    registerIntList_("precursor:isotopes", "<num>", isotopes, "Corrects for mono-isotopic peak misassignments. (E.g.: 1 = prec. may be misassigned to first isotopic peak)", false, false);
+    
+    registerTOPPSubsection_("fragment", "Fragments (Product Ion) Options");
+    registerDoubleOption_("fragment:mass_tolerance", "<tolerance>", 10.0, "Fragment mass tolerance", false);
+    
+//    StringList fragment_mass_tolerance_unit_valid_strings;
+//    fragment_mass_tolerance_unit_valid_strings.push_back("ppm");
+//    fragment_mass_tolerance_unit_valid_strings.push_back("Da");
+    
+//    registerStringOption_("fragment:mass_tolerance_unit", "<unit>", "ppm", "Unit of fragment m", false, false);
+//    setValidStrings_("fragment:mass_tolerance_unit", fragment_mass_tolerance_unit_valid_strings);
+
+    registerStringOption_("compare_function", "<string>", "ZhangSimilarityScore", "function for similarity comparison", false);
     PeakSpectrumCompareFunctor::registerChildren();
     setValidStrings_("compare_function", Factory<PeakSpectrumCompareFunctor>::registeredProducts());
-    registerIntOption_("top_hits", "<number>", 10, "save the first <number> top hits. For all type -1", false);
+
+    registerTOPPSubsection_("report", "Reporting Options");
+    registerIntOption_("report:top_hits", "<num>", 10, "Maximum number of top scoring hits per spectrum that are reported.", false, true);
 
     addEmptyLine_();
+
     registerTOPPSubsection_("filter", "Filtering options. Most are especially useful when the query spectra are raw.");
     registerDoubleOption_("filter:remove_peaks_below_threshold", "<threshold>", 2.01, "All peaks of a query spectrum with intensities below <threshold> will be zeroed.", false);
-    registerIntOption_("filter:min_peaks", "<number>", 5, "required mininum number of peaks for a query spectrum", false);
+    registerIntOption_("filter:min_peaks", "<number>", 5, "required minimum number of peaks for a query spectrum", false);
     registerIntOption_("filter:max_peaks", "<number>", 150, "Use only the top <number> of peaks.", false);
     registerIntOption_("filter:cut_peaks_below", "<number>", 1000, "Remove all peaks which are lower than 1/<number> of the highest peaks. Default equals all peaks which are lower than 0.001 of the maximum intensity peak", false);
 
+    registerTOPPSubsection_("modifications", "Modifications Options");
     vector<String> all_mods;
     ModificationsDB::getInstance()->getAllSearchModifications(all_mods);
-    registerStringList_("fixed_modifications", "<mods>", ListUtils::create<String>(""), "fixed modifications, specified using UniMod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)' or 'Oxidation (M)'", false);
-    setValidStrings_("fixed_modifications", all_mods);
+    registerStringList_("modifications:fixed", "<mods>", ListUtils::create<String>(""), "Fixed modifications, specified using UniMod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)'", false);
+    setValidStrings_("modifications:fixed", all_mods);
+    registerStringList_("modifications:variable", "<mods>", ListUtils::create<String>(""), "Variable modifications, specified using UniMod (www.unimod.org) terms, e.g. 'Oxidation (M)'", false);
+    setValidStrings_("modifications:variable", all_mods);
+    registerIntOption_("modifications:variable_max_per_peptide", "<num>", 2, "Maximum number of residues carrying a variable modification per candidate peptide", false, false);
 
-    registerStringList_("variable_modifications", "<mods>", ListUtils::create<String>(""), "variable modifications, specified using UniMod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)' or 'Oxidation (M)'", false);
-    setValidStrings_("variable_modifications", all_mods);
     addEmptyLine_();
   }
 
-  ExitCodes main_(int, const char**)
+  using MapLibraryPrecursorToLibrarySpectrum = multimap<double, PeakSpectrum>;
+    
+  MapLibraryPrecursorToLibrarySpectrum annotateIdentificationsToSpectra_(const vector<PeptideIdentification>& ids, 
+    const PeakMap& library, 
+    StringList variable_modifications, 
+    StringList fixed_modifications,
+    double remove_peaks_below_threshold)
+  {
+    MapLibraryPrecursorToLibrarySpectrum annotated_lib;
+
+    ModificationsDB* mdb = ModificationsDB::getInstance();
+
+
+    // iterate over library spectra and add associated annotations
+    PeakMap::const_iterator library_it = library.begin();
+    vector<PeptideIdentification>::const_iterator id_it = ids.begin();
+    for (; library_it < library.end(); ++library_it, ++id_it)
+    {
+      const MSSpectrum& lib_spec = *library_it;
+      const double& precursor_MZ = lib_spec.getPrecursors()[0].getMZ();
+
+      const PeptideIdentification& id = *id_it;
+      const AASequence& aaseq = id.getHits()[0].getSequence();
+
+      PeakSpectrum lib_entry;
+      bool variable_modifications_ok(true), fixed_modifications_ok(true);
+
+       // check if each amino acid listed as modified in fixed modifications are modified
+       if (!fixed_modifications.empty())
+       {
+         for (Size j = 0; j < aaseq.size(); ++j)
+         {
+           const Residue& mod = aaseq.getResidue(j);
+           for (Size k = 0; k < fixed_modifications.size(); ++k)
+           {
+             if (mod.getOneLetterCode()[0] == mdb->getModification(fixed_modifications[k]).getOrigin() && fixed_modifications[k] != mod.getModificationName())
+             {
+               fixed_modifications_ok = false;
+               break;
+             }
+           }
+         }
+       }
+
+       // check if each amino acid listed in variable modifications is either unmodified or modified with the corresponding modification
+       // Note: this code currently does not allow for multiple variable modifications with same origin
+       if (aaseq.isModified() && (!variable_modifications.empty()))
+       {
+         for (Size j = 0; j < aaseq.size(); ++j)
+         {
+           if (!aaseq[j].isModified()) { continue; }
+          
+           const Residue& mod = aaseq.getResidue(j);
+           for (Size k = 0; k < variable_modifications.size(); ++k)
+           {
+             if (mod.getOneLetterCode()[0] == mdb->getModification(variable_modifications[k]).getOrigin() && variable_modifications[k] != mod.getModificationName())
+             {
+               variable_modifications_ok = false;
+               break;
+             }
+           }
+         }
+       }
+
+       // TODO: check entries that don't adhere to this rule
+       if (!variable_modifications_ok || !fixed_modifications_ok) { continue; }
+
+       // copy peptide identification over to spectrum meta data
+       lib_entry.getPeptideIdentifications().push_back(id);
+       lib_entry.setPrecursors(lib_spec.getPrecursors());
+
+       // empty array would segfault
+       if (lib_spec.getStringDataArrays().empty())
+       {
+         throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Expected StringDataArray of type MSPeakInfo");
+       }
+ 
+       // library entry transformation
+       for (UInt l = 0; l < lib_spec.size(); ++l)
+       {
+         Peak1D peak;
+         if (lib_spec[l].getIntensity() > remove_peaks_below_threshold)
+         {
+           // this is the "MSPPeakInfo" array, see MSPFile which creates a single StringDataArray
+           const String& sa = lib_spec.getStringDataArrays()[0][l];
+
+           // TODO: check why this scaling is done for ? peaks (dubious peaks?)
+           if (sa[0] == '?')
+           {
+             peak.setIntensity(sqrt(0.2 * lib_spec[l].getIntensity()));
+           }
+           else
+           {
+             peak.setIntensity(sqrt(lib_spec[l].getIntensity()));
+           }
+
+           peak.setMZ(lib_spec[l].getMZ());
+           lib_entry.push_back(peak);
+         }
+       }
+       annotated_lib.insert(make_pair(precursor_MZ, lib_entry));
+     }
+    return annotated_lib;
+  }
+
+  ExitCodes main_(int, const char**) override
   {
     //-------------------------------------------------------------
     // parameter handling
     //-------------------------------------------------------------
-
     StringList in_spec = getStringList_("in");
     StringList out = getStringList_("out");
     String in_lib = getStringOption_("lib");
     String compare_function = getStringOption_("compare_function");
-    Int precursor_mass_multiplier = getIntOption_("round_precursor_to_integer");
-    float precursor_mass_tolerance = getDoubleOption_("precursor_mass_tolerance");
-    //Int min_precursor_charge = getIntOption_("min_precursor_charge");
-    //Int max_precursor_charge = getIntOption_("max_precursor_charge");
+ 
+    float precursor_mass_tolerance = getDoubleOption_("precursor:mass_tolerance");
+    bool precursor_mass_tolerance_unit_ppm = getStringOption_("precursor:mass_tolerance_unit") == "ppm" ? true : false;
+
+    int pc_min_charge = getIntOption_("precursor:min_charge");
+    int pc_max_charge = getIntOption_("precursor:max_charge");
+
+    // consider one before annotated monoisotopic peak and the annotated one
+    IntList isotopes = getIntList_("precursor:isotopes");
+   
+//    float fragment_mass_tolerance = getDoubleOption_("fragment:mass_tolerance");
+//    bool fragment_mass_tolerance_unit_ppm = getStringOption_("fragment:mass_tolerance_unit") == "ppm" ? true : false;
+
+    int top_hits = getIntOption_("report:top_hits");
+
     float remove_peaks_below_threshold = getDoubleOption_("filter:remove_peaks_below_threshold");
     UInt min_peaks = getIntOption_("filter:min_peaks");
     UInt max_peaks = getIntOption_("filter:max_peaks");
     Int cut_peaks_below = getIntOption_("filter:cut_peaks_below");
-    StringList fixed_modifications = getStringList_("fixed_modifications");
-    StringList variable_modifications = getStringList_("variable_modifications");
-    Int top_hits  = getIntOption_("top_hits");
+
+    StringList fixed_modifications = getStringList_("modifications:fixed");
+    StringList variable_modifications = getStringList_("modifications:variable");
+
     if (top_hits < -1)
     {
       writeLog_("top_hits (should be  >= -1 )");
       return ILLEGAL_PARAMETERS;
     }
-    //-------------------------------------------------------------
+
+    // -------------------------------------------------------------
     // loading input
-    //-------------------------------------------------------------
+    // -------------------------------------------------------------
     if (out.size() != in_spec.size())
     {
       writeLog_("out (should be as many as input files)");
       return ILLEGAL_PARAMETERS;
     }
 
-    time_t prog_time = time(NULL);
+    time_t prog_time = time(nullptr);
     MSPFile spectral_library;
     PeakMap query, library;
-    //spectrum which will be identified
+
+    // spectra which will be identified
     MzMLFile spectra;
     spectra.setLogType(log_type_);
 
-    time_t start_build_time = time(NULL);
-    //-------------------------------------------------------------
-    //building map for faster search
-    //-------------------------------------------------------------
+    time_t start_build_time = time(nullptr);
+    // -------------------------------------------------------------
+    // building map for faster search
+    // -------------------------------------------------------------
 
     //library containing already identified peptide spectra
     vector<PeptideIdentification> ids;
     spectral_library.load(in_lib, ids, library);
 
-    map<Size, vector<PeakSpectrum> > MSLibrary;
-    {
-      PeakMap::iterator s_it;
-      vector<PeptideIdentification>::iterator it;
-      ModificationsDB* mdb = ModificationsDB::getInstance();
-      for (s_it = library.begin(), it = ids.begin(); s_it < library.end(); ++s_it, ++it)
-      {
-        double precursor_MZ = (*s_it).getPrecursors()[0].getMZ();
-        Size MZ_multi = (Size)precursor_MZ * precursor_mass_multiplier;
-        map<Size, vector<PeakSpectrum> >::iterator found;
-        found = MSLibrary.find(MZ_multi);
+    MapLibraryPrecursorToLibrarySpectrum mslib = annotateIdentificationsToSpectra_(ids, library, variable_modifications, fixed_modifications, remove_peaks_below_threshold);
 
-        PeakSpectrum librar;
-        bool variable_modifications_ok = true;
-        bool fixed_modifications_ok = true;
-        const AASequence& aaseq = it->getHits()[0].getSequence();
-        //variable fixed modifications
-        if (!fixed_modifications.empty())
-        {
-          for (Size j = 0; j < aaseq.size(); ++j)
-          {
-            const Residue& mod = aaseq.getResidue(j);
-            for (Size k = 0; k < fixed_modifications.size(); ++k)
-            {
-              if (mod.getOneLetterCode()[0] == mdb->getModification(fixed_modifications[k]).getOrigin() && fixed_modifications[k] != mod.getModificationName())
-              {
-                fixed_modifications_ok = false;
-                break;
-              }
-            }
-          }
-        }
-        //variable modifications
-        if (aaseq.isModified() && (!variable_modifications.empty()))
-        {
-          for (Size j = 0; j < aaseq.size(); ++j)
-          {
-            if (aaseq[j].isModified())
-            {
-              const Residue& mod = aaseq.getResidue(j);
-              for (Size k = 0; k < variable_modifications.size(); ++k)
-              {
-                if (mod.getOneLetterCode()[0] == mdb->getModification(variable_modifications[k]).getOrigin() && variable_modifications[k] != mod.getModificationName())
-                {
-                  variable_modifications_ok = false;
-                  break;
-                }
-              }
-            }
-          }
-        }
-        if (variable_modifications_ok && fixed_modifications_ok)
-        {
-          PeptideIdentification& translocate_pid = *it;
-          librar.getPeptideIdentifications().push_back(translocate_pid);
-          librar.setPrecursors(s_it->getPrecursors());
+    time_t end_build_time = time(nullptr);
+    LOG_INFO << "Time needed for preprocessing data: " << (end_build_time - start_build_time) << "\n";
 
-          // empty array would segfault
-          if ( (*s_it).getStringDataArrays().empty() )
-          {
-            throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Expected StringDataArray of type MSPeakInfo");
-          }
-
-          //library entry transformation
-          for (UInt l = 0; l < s_it->size(); ++l)
-          {
-            Peak1D peak;
-            if ((*s_it)[l].getIntensity() >  remove_peaks_below_threshold)
-            {
-              // this is the "MSPPeakInfo" array, see MSPFile which creates a single StringDataArray
-              const String& info = (*s_it).getStringDataArrays()[0][l];
-              if (info[0] == '?')
-              {
-                peak.setIntensity(sqrt(0.2 * (*s_it)[l].getIntensity()));
-              }
-              else
-              {
-                peak.setIntensity(sqrt((*s_it)[l].getIntensity()));
-              }
-
-              peak.setMZ((*s_it)[l].getMZ());
-              peak.setPosition((*s_it)[l].getPosition());
-              librar.push_back(peak);
-            }
-          }
-          if (found != MSLibrary.end())
-          {
-            found->second.push_back(librar);
-          }
-          else
-          {
-            vector<PeakSpectrum> tmp;
-            tmp.push_back(librar);
-            MSLibrary.insert(make_pair(MZ_multi, tmp));
-          }
-        }
-      }
-    }
-    time_t end_build_time = time(NULL);
-    cout << "Time needed for preprocessing data: " << (end_build_time - start_build_time) << "\n";
     //compare function
     PeakSpectrumCompareFunctor* comparor = Factory<PeakSpectrumCompareFunctor>::create(compare_function);
-    //-------------------------------------------------------------
+ 
+   //-------------------------------------------------------------
     // calculations
     //-------------------------------------------------------------
     double score;
     StringList::iterator in, out_file;
     for (in  = in_spec.begin(), out_file  = out.begin(); in < in_spec.end(); ++in, ++out_file)
     {
-      time_t start_time = time(NULL);
+      time_t start_time = time(nullptr);
       spectra.load(*in, query);
-      //Will hold valuable hits
+
+      // results
       vector<PeptideIdentification> peptide_ids;
       vector<ProteinIdentification> protein_ids;
-      // Write parameters to ProteinIdentifcation
       ProteinIdentification prot_id;
-      //Parameters of identificaion
+ 
+      //Parameters of identification
       prot_id.setIdentifier("test");
       prot_id.setSearchEngineVersion("SpecLibSearcher");
       prot_id.setDateTime(DateTime::now());
       prot_id.setScoreType(compare_function);
-      ProteinIdentification::SearchParameters searchparam;
-      searchparam.precursor_mass_tolerance = precursor_mass_tolerance;
-      prot_id.setSearchParameters(searchparam);
+
+      ProteinIdentification::SearchParameters search_parameters;
+      search_parameters.db = getStringOption_("lib");
+      search_parameters.charges = String(getIntOption_("precursor:min_charge")) + ":" + String(getIntOption_("precursor:max_charge"));
+
+      ProteinIdentification::PeakMassType mass_type = ProteinIdentification::MONOISOTOPIC;
+      search_parameters.mass_type = mass_type;
+      search_parameters.fixed_modifications = getStringList_("modifications:fixed");
+      search_parameters.variable_modifications = getStringList_("modifications:variable");
+      // search_parameters.missed_cleavages = getIntOption_("peptide:missed_cleavages");
+      search_parameters.precursor_mass_tolerance = getDoubleOption_("precursor:mass_tolerance");
+      search_parameters.precursor_mass_tolerance_ppm = getStringOption_("precursor:mass_tolerance_unit") == "ppm" ? true : false;
+//      search_parameters.fragment_mass_tolerance = getDoubleOption_("fragment:mass_tolerance");
+//      search_parameters.fragment_mass_tolerance_ppm = getStringOption_("fragment:mass_tolerance_unit") == "ppm" ? true : false;
+
+//TODO: report an Enzyme?
+
+      prot_id.setSearchParameters(search_parameters);
+
+
       /***********SEARCH**********/
       for (UInt j = 0; j < query.size(); ++j)
       {
@@ -324,47 +387,70 @@ protected:
         ProteinHit pr_hit;
         pr_hit.setAccession(j);
         prot_id.insertHit(pr_hit);
-        //RichPeak1D to Peak1D transformation for the compare function query
-        PeakSpectrum quer;
-        bool peak_ok = true;
-        query[j].sortByIntensity(true);
-        double min_high_intensity = 0;
 
-        if (query[j].empty() || query[j].getMSLevel() != 2)
-        {
-          continue;
-        }
+        // proper MS2?
+        if (query[j].empty() || query[j].getMSLevel() != 2) {continue; }
+
         if (query[j].getPrecursors().empty())
         {
           writeLog_("Warning MS2 spectrum without precursor information");
           continue;
         }
 
-        min_high_intensity = (1 / cut_peaks_below) * query[j][0].getIntensity();
+        // filter query spectrum
+        double max_intensity = std::max_element(query[j].begin(), query[j].end(), 
+                                [](const Peak1D& l, const Peak1D& r) 
+                                { 
+                                  return (l.getIntensity() < r.getIntensity()); 
+                                })->getIntensity();
 
-        query[j].sortByPosition();
-        for (UInt k = 0; k < query[j].size() && k < max_peaks; ++k)
+        double min_high_intensity = max_intensity / cut_peaks_below;
+
+        PeakSpectrum filtered_query;
+        for (UInt k = 0; k < query[j].size(); ++k)
         {
-          if (query[j][k].getIntensity() >  remove_peaks_below_threshold && query[j][k].getIntensity() >= min_high_intensity)
+          if (query[j][k].getIntensity() >= remove_peaks_below_threshold 
+           && query[j][k].getIntensity() >= min_high_intensity)
           {
             Peak1D peak;
             peak.setIntensity(sqrt(query[j][k].getIntensity()));
             peak.setMZ(query[j][k].getMZ());
-            peak.setPosition(query[j][k].getPosition());
-            quer.push_back(peak);
+            filtered_query.push_back(peak);
           }
         }
-        if (quer.size() >= min_peaks)
+
+        // retain only top N peaks
+        if (filtered_query.size() > max_peaks)
         {
-          peak_ok = true;
+          filtered_query.sortByIntensity(true);
+          filtered_query.resize(max_peaks);
+          filtered_query.sortByPosition();
         }
-        else
+
+        if (filtered_query.size() < min_peaks) { continue; }
+
+        const double& query_rt = query[j].getRT();
+        const int& query_charge = query[j].getPrecursors()[0].getCharge();
+        const double query_mz = query[j].getPrecursors()[0].getMZ();
+        
+        if (query_charge > 0 && (query_charge < pc_min_charge || query_charge > pc_max_charge)) { continue; } 
+
+        for (auto const & iso : isotopes)
         {
-          peak_ok = false;
-        }
-        double query_MZ = query[j].getPrecursors()[0].getMZ();
-        if (peak_ok)
-        {
+          // isotopic misassignment corrected query
+          const double ic_query_mz = query_mz - iso * Constants::C13C12_MASSDIFF_U;
+
+          // if tolerance unit is ppm convert to m/z
+          const double precursor_mass_tolerance_mz = precursor_mass_tolerance_unit_ppm ? ic_query_mz * precursor_mass_tolerance * 1e-6 : precursor_mass_tolerance;
+
+          // skip matching of isotopic misassignments if charge not annotated
+          if (iso != 0 && query_charge == 0) { continue; }
+
+          // skip matching of isotopic misassignments if search windows around isotopic peaks would overlap (resulting in more than one report of the same hit)
+          const double isotopic_peak_distance_mz = Constants::C13C12_MASSDIFF_U / query_charge;
+          if (iso != 0 && precursor_mass_tolerance_mz >= 0.5 * isotopic_peak_distance_mz) { continue; }
+
+          /* TODO: remove old code for charge estimation?
           bool charge_one = false;
           Int percent = (Int) Math::round((query[j].size() / 100.0) * 3.0);
           Int margin  = (Int) Math::round((query[j].size() / 100.0) * 1.0);
@@ -379,53 +465,58 @@ protected:
           {
             charge_one = true;
           }
-          float min_MZ = (query_MZ - precursor_mass_tolerance) * precursor_mass_multiplier;
-          float max_MZ = (query_MZ + precursor_mass_tolerance) * precursor_mass_multiplier;
-          for (Size mz = (Size)min_MZ; mz <= ((Size)max_MZ) + 1; ++mz)
-          {
-            map<Size, vector<PeakSpectrum> >::iterator found;
-            found = MSLibrary.find(mz);
-            if (found != MSLibrary.end())
-            {
-              vector<PeakSpectrum>& library = found->second;
-              for (Size i = 0; i < library.size(); ++i)
-              {
-                float this_MZ  = library[i].getPrecursors()[0].getMZ() * precursor_mass_multiplier;
-                if (this_MZ >= min_MZ && max_MZ >= this_MZ && ((charge_one == true && library[i].getPeptideIdentifications()[0].getHits()[0].getCharge() == 1) || charge_one == false))
-                {
-                  PeptideHit hit = library[i].getPeptideIdentifications()[0].getHits()[0];
-                  PeakSpectrum& librar = library[i];
-                  //Special treatment for SpectraST score as it computes a score based on the whole library
-                  if (compare_function == "SpectraSTSimilarityScore")
-                  {
-                    SpectraSTSimilarityScore* sp = static_cast<SpectraSTSimilarityScore*>(comparor);
-                    BinnedSpectrum quer_bin = sp->transform(quer);
-                    BinnedSpectrum librar_bin = sp->transform(librar);
-                    score = (*sp)(quer, librar); //(*sp)(quer_bin,librar_bin);
-                    double dot_bias = sp->dot_bias(quer_bin, librar_bin, score);
-                    hit.setMetaValue("DOTBIAS", dot_bias);
-                  }
-                  else
-                  {
-                    score = (*comparor)(quer, librar);
-                  }
+          */
 
-                  DataValue RT(library[i].getRT());
-                  DataValue MZ(library[i].getPrecursors()[0].getMZ());
-                  hit.setMetaValue("RT", RT);
-                  hit.setMetaValue("MZ", MZ);
-                  hit.setScore(score);
-                  PeptideEvidence pe;
-                  pe.setProteinAccession(pr_hit.getAccession());
-                  hit.addPeptideEvidence(pe);
-                  pid.insertHit(hit);
-                }
-              }
+
+          // determine MS2 precursors that match to the current peptide mass
+          MapLibraryPrecursorToLibrarySpectrum::const_iterator low_it, up_it;
+        
+          low_it = mslib.lower_bound(ic_query_mz - 0.5 * precursor_mass_tolerance_mz);
+          up_it = mslib.upper_bound(ic_query_mz + 0.5 * precursor_mass_tolerance_mz);
+        
+          // no matching precursor in data
+          if (low_it == up_it) { continue; }
+       
+          for (; low_it != up_it; ++low_it)
+          {
+            const PeakSpectrum& lib_spec = low_it->second;;
+            PeptideHit hit = lib_spec.getPeptideIdentifications()[0].getHits()[0];
+            const int& lib_charge = hit.getCharge();  
+
+            // check if charge state between library and experimental spectrum match
+            if (query_charge > 0 && lib_charge != query_charge) { continue; }
+
+            // Special treatment for SpectraST score as it computes a score based on the whole library
+            if (compare_function == "SpectraSTSimilarityScore")
+            {
+              SpectraSTSimilarityScore* sp = static_cast<SpectraSTSimilarityScore*>(comparor);
+              BinnedSpectrum quer_bin_spec = sp->transform(filtered_query);
+              BinnedSpectrum lib_bin_spec = sp->transform(lib_spec);
+              score = (*sp)(filtered_query, lib_spec); //(*sp)(quer_bin,librar_bin);
+              double dot_bias = sp->dot_bias(quer_bin_spec, lib_bin_spec, score);
+              hit.setMetaValue("DOTBIAS", dot_bias);
             }
+            else
+            {
+              score = (*comparor)(filtered_query, lib_spec);
+            }
+
+            DataValue RT(lib_spec.getRT());
+            DataValue MZ(lib_spec.getPrecursors()[0].getMZ());
+            hit.setMetaValue("lib:RT", RT);
+            hit.setMetaValue("lib:MZ", MZ);
+            hit.setMetaValue("isotope_error", iso);
+            hit.setScore(score);
+            PeptideEvidence pe;
+            pe.setProteinAccession(pr_hit.getAccession());
+            hit.addPeptideEvidence(pe);
+            pid.insertHit(hit);
           }
         }
+
         pid.setHigherScoreBetter(true);
         pid.sort();
+
         if (compare_function == "SpectraSTSimilarityScore")
         {
           if (!pid.empty() && !pid.getHits().empty())
@@ -436,7 +527,8 @@ protected:
             Size runner_up = 1;
             for (; runner_up < pid.getHits().size(); ++runner_up)
             {
-              if (pid.getHits()[0].getSequence().toUnmodifiedString() != pid.getHits()[runner_up].getSequence().toUnmodifiedString() || runner_up > 5)
+              if (pid.getHits()[0].getSequence().toUnmodifiedString() != pid.getHits()[runner_up].getSequence().toUnmodifiedString() 
+               || runner_up > 5)
               {
                 break;
               }
@@ -448,45 +540,36 @@ protected:
               final_hits[s].setMetaValue("delta D", delta_D);
               final_hits[s].setMetaValue("dot product", pid.getHits()[s].getScore());
               final_hits[s].setScore(sp->compute_F(pid.getHits()[s].getScore(), delta_D, pid.getHits()[s].getMetaValue("DOTBIAS")));
-
-              //final_hits[s].removeMetaValue("DOTBIAS");
             }
             pid.setHits(final_hits);
             pid.sort();
             pid.setMZ(query[j].getPrecursors()[0].getMZ());
-            pid.setRT(query_MZ);
+            pid.setRT(query_rt);
           }
         }
+
         if (top_hits != -1 && (UInt)top_hits < pid.getHits().size())
         {
-          vector<PeptideHit> hits;
-          hits.resize(top_hits);
-          for (Size i = 0; i < (UInt)top_hits; ++i)
-          {
-            hits[i] = pid.getHits()[i];
-          }
-          pid.setHits(hits);
+          pid.getHits().resize(top_hits);
         }
         peptide_ids.push_back(pid);
       }
       protein_ids.push_back(prot_id);
+
       //-------------------------------------------------------------
       // writing output
       //-------------------------------------------------------------
       IdXMLFile id_xml_file;
       id_xml_file.store(*out_file, protein_ids, peptide_ids);
-      time_t end_time = time(NULL);
-      cout << "Search time: " << difftime(end_time, start_time) << " seconds for " << *in << "\n";
+      time_t end_time = time(nullptr);
+      LOG_INFO << "Search time: " << difftime(end_time, start_time) << " seconds for " << *in << "\n";
     }
-    time_t end_time = time(NULL);
-    cout << "Total time: " << difftime(end_time, prog_time) << " secconds\n";
+    time_t end_time = time(nullptr);
+    LOG_INFO << "Total time: " << difftime(end_time, prog_time) << " seconds\n";
     return EXECUTION_OK;
   }
 
 };
-
-
-
 
 int main(int argc, const char** argv)
 {

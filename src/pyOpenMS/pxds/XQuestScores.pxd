@@ -13,11 +13,18 @@ cdef extern from "<OpenMS/ANALYSIS/XLMS/XQuestScores.h>" namespace "OpenMS":
         float preScore(Size matched_alpha, Size ions_alpha) nogil except +
 
         double matchOddsScore(MSSpectrum& theoretical_spec,
-                             libcpp_vector[ libcpp_pair[ size_t, size_t ] ] & matched_spec, 
-                             double fragment_mass_tolerance, 
-                             bool fragment_mass_tolerance_unit_ppm, 
-                             bool is_xlink_spectrum, 
-                             Size n_charges) nogil except +
+                              double fragment_mass_tolerance, 
+                              bool fragment_mass_tolerance_unit_ppm, 
+                              bool is_xlink_spectrum, 
+                              Size n_charges) nogil except +
+
+
+        double logOccupancyProb(MSSpectrum theoretical_spec,
+                                Size matched_size,
+                                double fragment_mass_tolerance,
+                                bool fragment_mass_tolerance_unit_ppm) nogil except +
+                              
+                               
 
         double weightedTICScoreXQuest(Size alpha_size, Size beta_size, 
                                      double intsum_alpha, double intsum_beta, 

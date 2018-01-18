@@ -111,7 +111,7 @@ public:
 
 protected:
 
-    void registerOptionsAndFlags_()
+    void registerOptionsAndFlags_() override
     {
       registerInputFile_("in", "<file>", "", "Input files used to generate the mzTab file.", false);
       setValidFormats_("in", ListUtils::create<String>("featureXML,consensusXML,idXML,mzid"));
@@ -685,7 +685,7 @@ protected:
         // TODO: percentage procedure with MetaInfoInterfaceUtils
         vector<String> ph_keys;
         best_ph.getKeys(ph_keys);
-        // TODO: no conversion but make funtion on collections
+        // TODO: no conversion but make function on collections
         set<String> ph_key_set(ph_keys.begin(), ph_keys.end());
         addMetaInfoToOptionalColumns(ph_key_set, row.opt_, String("global"), best_ph);
 
@@ -974,7 +974,7 @@ protected:
       return mztab;
     }
 
-    ExitCodes main_(int, const char**)
+    ExitCodes main_(int, const char**) override
     {
       // parameter handling
       String in = getStringOption_("in");

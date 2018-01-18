@@ -47,8 +47,8 @@ START_TEST(ChromatogramExtractorAlgorithm, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-ChromatogramExtractorAlgorithm* ptr = 0;
-ChromatogramExtractorAlgorithm* nullPointer = 0;
+ChromatogramExtractorAlgorithm* ptr = nullptr;
+ChromatogramExtractorAlgorithm* nullPointer = nullptr;
 
 START_SECTION(ChromatogramExtractorAlgorithm())
 {

@@ -48,8 +48,8 @@ START_TEST(GumbelDistributionFitter, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-GumbelDistributionFitter* ptr = 0;
-GumbelDistributionFitter* nullPointer = 0;
+GumbelDistributionFitter* ptr = nullptr;
+GumbelDistributionFitter* nullPointer = nullptr;
 START_SECTION(GumbelDistributionFitter())
 {
 	ptr = new GumbelDistributionFitter();
@@ -156,7 +156,7 @@ END_SECTION
 START_SECTION((GumbelDistributionFitter& operator = (const GumbelDistributionFitter& rhs)))
 NOT_TESTABLE
 END_SECTION
-GumbelDistributionFitter::GumbelDistributionFitResult* p = 0;
+GumbelDistributionFitter::GumbelDistributionFitResult* p = nullptr;
 START_SECTION((GumbelDistributionFitter::GumbelDistributionFitResult()))
 p =  new GumbelDistributionFitter::GumbelDistributionFitResult;
 	TEST_NOT_EQUAL(ptr, nullPointer)

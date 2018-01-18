@@ -41,7 +41,8 @@ cdef extern from "<OpenMS/ANALYSIS/RNPXL/RNPxlReport.h>" namespace "OpenMS":
         double xl_weight
         double abs_prec_error
         double rel_prec_error
-        # NAMESPACE # RNPxlMarkerIonExtractor::MarkerIonsType marker_ions
+        # RNPxlMarkerIonExtractor::MarkerIonsType marker_ions
+        libcpp_map[String, libcpp_vector[ libcpp_pair[double, double] ] ] marker_ions
         double m_H
         double m_2H
         double m_3H

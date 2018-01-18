@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -64,7 +64,7 @@ namespace OpenMS
     ///   5	humanE.mzML	      3	              1
     ///   6	humanF.mzML	      3	              1          
     ///   7	humanG.mzML	      3	              2       (<- example how a 2nd technical replicate is stored for fraction 3)
-    /// TODO: add possibility to provide optional columns that map to additional run-level specific meta data (see, for example, the mzTab specificiation)
+    /// TODO: add possibility to provide optional columns that map to additional run-level specific meta data (see, for example, the mzTab specification)
     class OPENMS_DLLAPI MSRun
     {
     public:
@@ -74,16 +74,16 @@ namespace OpenMS
         technical_replicate(1) 
       {
       }
-      std::string file; //< file name, mandatory
-      unsigned fraction; //< fraction 1..m, mandatory, 1 if not set
-      unsigned technical_replicate; //< technical replicate 1..k of a fraction, 1 if not set
+      std::string file; ///< file name, mandatory
+      unsigned fraction; ///< fraction 1..m, mandatory, 1 if not set
+      unsigned technical_replicate; ///< technical replicate 1..k of a fraction, 1 if not set
     };
-    std::vector<MSRun> runs;  //< run 1..n (index + 1 determines run id of the first column)
+    std::vector<MSRun> runs;  ///< run 1..n (index + 1 determines run id of the first column)
 
     /// return fraction index to MSRuns (e.g., Fraction 1 maps to MSRun 1 and 2 in the example above)
     std::map<unsigned int, std::set<unsigned int> > getFractionToRunsMapping() const;
 
-    /// return if each fraction number is asscociated with the same number of runs 
+    /// return if each fraction number is associated with the same number of runs 
     bool sameNrOfRunsPerFraction() const;
 
     /// TODO:

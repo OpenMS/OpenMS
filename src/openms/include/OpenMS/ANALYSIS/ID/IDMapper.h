@@ -354,7 +354,7 @@ public:
 
 
 protected:
-    void updateMembers_();
+    void updateMembers_() override;
 
     /// Allowed RT deviation
     double rt_tolerance_;

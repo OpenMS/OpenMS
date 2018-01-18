@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
-<?xml-stylesheet type="text/xsl" href="file:////nfs/wsi/abi/old-data/sachsenb/OpenMS_IDE/share/OpenMS/XSL/ConsensusXML.xsl"?>
+<?xml-stylesheet type="text/xsl" href="file:////home/hendrik.weisser/Software/OpenMS/share/OpenMS/XSL/ConsensusXML.xsl"?>
 <consensusXML version="1.7" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/ConsensusXML_1_7.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-	<IdentificationRun id="PI_0" date="2016-12-20T18:15:26" search_engine="AccurateMassSearch" search_engine_version="">
+	<IdentificationRun id="PI_0" date="2017-09-01T14:16:44" search_engine="AccurateMassSearch" search_engine_version="">
 		<SearchParameters db="" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="unknown_enzyme" missed_cleavages="0" precursor_peak_tolerance="0" precursor_peak_tolerance_ppm="false" peak_mass_tolerance="0" peak_mass_tolerance_ppm="false" >
 		</SearchParameters>
 		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0">
@@ -49,21 +49,24 @@
 					<UserParam type="stringList" name="description" value="[Hydrocortamate]"/>
 					<UserParam type="string" name="modifications" value="M+CH3CN+Na;1+"/>
 					<UserParam type="string" name="chemical_formula" value="C27H41NO6"/>
-					<UserParam type="float" name="ppm_mz_error" value="2.88959021846145"/>
+					<UserParam type="float" name="mz_error_ppm" value="2.88959021846145"/>
+					<UserParam type="float" name="mz_error_Da" value="0.00155838246723761"/>
 				</PeptideHit>
 				<PeptideHit score="0" sequence="" charge="1">
 					<UserParam type="stringList" name="identifier" value="[HMDB:HMDB30897,HMDB:HMDB36436]"/>
 					<UserParam type="stringList" name="description" value="[Lucidenolactone,Lucidenic acid F]"/>
 					<UserParam type="string" name="modifications" value="M+2CH3CN+H;1+"/>
 					<UserParam type="string" name="chemical_formula" value="C27H36O6"/>
-					<UserParam type="float" name="ppm_mz_error" value="-1.5710755898092"/>
+					<UserParam type="float" name="mz_error_ppm" value="-1.5710755898092"/>
+					<UserParam type="float" name="mz_error_Da" value="-0.000847299232759724"/>
 				</PeptideHit>
 				<PeptideHit score="0" sequence="" charge="1">
 					<UserParam type="stringList" name="identifier" value="[HMDB:HMDB30431,HMDB:HMDB33478,HMDB:HMDB37645,HMDB:HMDB37646,HMDB:HMDB39107,HMDB:HMDB39151,HMDB:HMDB39152,HMDB:HMDB39737]"/>
 					<UserParam type="stringList" name="description" value="[Linalyl benzoate,Geranyl benzoate,Falcarinolone,Ginsenoyne E,Ginsenoyne A,Flavidulol B,Flavidulol A,(all-E)-1,8,10-Heptadecatriene-4,6-diyne-3,12-diol]"/>
 					<UserParam type="string" name="modifications" value="2M+Na;1+"/>
 					<UserParam type="string" name="chemical_formula" value="C17H22O2"/>
-					<UserParam type="float" name="ppm_mz_error" value="-4.56945782417837"/>
+					<UserParam type="float" name="mz_error_ppm" value="-4.56945782417837"/>
+					<UserParam type="float" name="mz_error_Da" value="-0.00246436883276147"/>
 				</PeptideHit>
 			</PeptideIdentification>
 		</consensusElement>
@@ -86,35 +89,40 @@
 					<UserParam type="stringList" name="description" value="[LysoPC(18:1(9Z)),LysoPC(18:1(11Z))]"/>
 					<UserParam type="string" name="modifications" value="M+Na;1+"/>
 					<UserParam type="string" name="chemical_formula" value="C26H52NO7P"/>
-					<UserParam type="float" name="ppm_mz_error" value="-0.835539018481276"/>
+					<UserParam type="float" name="mz_error_ppm" value="-0.835539018481276"/>
+					<UserParam type="float" name="mz_error_Da" value="-0.000454815103694273"/>
 				</PeptideHit>
 				<PeptideHit score="0" sequence="" charge="1">
 					<UserParam type="stringList" name="identifier" value="[HMDB:HMDB30909,HMDB:HMDB38352]"/>
 					<UserParam type="stringList" name="description" value="[2,3-Secoporrigenin,Lucidenic acid N]"/>
 					<UserParam type="string" name="modifications" value="M+C3H8O+Na+H;1+"/>
 					<UserParam type="string" name="chemical_formula" value="C27H40O6"/>
-					<UserParam type="float" name="ppm_mz_error" value="-0.265606031630982"/>
+					<UserParam type="float" name="mz_error_ppm" value="-0.265606031630982"/>
+					<UserParam type="float" name="mz_error_Da" value="-0.000144579203720241"/>
 				</PeptideHit>
 				<PeptideHit score="0" sequence="" charge="1">
 					<UserParam type="stringList" name="identifier" value="[HMDB:HMDB32305]"/>
 					<UserParam type="stringList" name="description" value="[N-(Heptan-4-yl)benzo[d][1,3]dioxole-5-carboxamide]"/>
 					<UserParam type="string" name="modifications" value="2M+NH4;1+"/>
 					<UserParam type="string" name="chemical_formula" value="C15H21NO3"/>
-					<UserParam type="float" name="ppm_mz_error" value="-2.21776277611528"/>
+					<UserParam type="float" name="mz_error_ppm" value="-2.21776277611528"/>
+					<UserParam type="float" name="mz_error_Da" value="-0.00120721280381986"/>
 				</PeptideHit>
 				<PeptideHit score="0" sequence="" charge="2">
 					<UserParam type="stringList" name="identifier" value="[HMDB:HMDB15537]"/>
 					<UserParam type="stringList" name="description" value="[Probucol]"/>
 					<UserParam type="string" name="modifications" value="2M+3H2O+2H;2+"/>
 					<UserParam type="string" name="chemical_formula" value="C31H48O2S2"/>
-					<UserParam type="float" name="ppm_mz_error" value="7.7327950819709"/>
+					<UserParam type="float" name="mz_error_ppm" value="7.7327950819709"/>
+					<UserParam type="float" name="mz_error_Da" value="0.00420921319619083"/>
 				</PeptideHit>
 				<PeptideHit score="0" sequence="" charge="1">
 					<UserParam type="stringList" name="identifier" value="[HMDB:HMDB39160]"/>
 					<UserParam type="stringList" name="description" value="[L-Gizzerosine]"/>
 					<UserParam type="string" name="modifications" value="2M+CH3CN+Na;1+"/>
 					<UserParam type="string" name="chemical_formula" value="C11H20N4O2"/>
-					<UserParam type="float" name="ppm_mz_error" value="7.13500016014419"/>
+					<UserParam type="float" name="mz_error_ppm" value="7.13500016014419"/>
+					<UserParam type="float" name="mz_error_Da" value="0.00388381619632128"/>
 				</PeptideHit>
 			</PeptideIdentification>
 		</consensusElement>
@@ -136,14 +144,16 @@
 					<UserParam type="stringList" name="description" value="[27-Norcholestanehexol]"/>
 					<UserParam type="string" name="modifications" value="M+C3H8O+Na+H;1+"/>
 					<UserParam type="string" name="chemical_formula" value="C26H46O6"/>
-					<UserParam type="float" name="ppm_mz_error" value="-3.28691797505005"/>
+					<UserParam type="float" name="mz_error_ppm" value="-3.28691797505005"/>
+					<UserParam type="float" name="mz_error_Da" value="-0.00176962404771075"/>
 				</PeptideHit>
 				<PeptideHit score="0" sequence="" charge="1">
 					<UserParam type="stringList" name="identifier" value="[HMDB:HMDB14539]"/>
 					<UserParam type="stringList" name="description" value="[Carisoprodol]"/>
 					<UserParam type="string" name="modifications" value="2M+NH4;1+"/>
 					<UserParam type="string" name="chemical_formula" value="C12H24N2O4"/>
-					<UserParam type="float" name="ppm_mz_error" value="2.21123751341518"/>
+					<UserParam type="float" name="mz_error_ppm" value="2.21123751341518"/>
+					<UserParam type="float" name="mz_error_Da" value="0.00119048835233571"/>
 				</PeptideHit>
 			</PeptideIdentification>
 		</consensusElement>
@@ -165,28 +175,32 @@
 					<UserParam type="stringList" name="description" value="[2,3-Secoporrigenin,Lucidenic acid N]"/>
 					<UserParam type="string" name="modifications" value="M+C3H8O+Na+H;1+"/>
 					<UserParam type="string" name="chemical_formula" value="C27H40O6"/>
-					<UserParam type="float" name="ppm_mz_error" value="-4.43896829128034"/>
+					<UserParam type="float" name="mz_error_ppm" value="-4.43896829128034"/>
+					<UserParam type="float" name="mz_error_Da" value="-0.00241629490471951"/>
 				</PeptideHit>
 				<PeptideHit score="0" sequence="" charge="1">
 					<UserParam type="stringList" name="identifier" value="[HMDB:HMDB32305]"/>
 					<UserParam type="stringList" name="description" value="[N-(Heptan-4-yl)benzo[d][1,3]dioxole-5-carboxamide]"/>
 					<UserParam type="string" name="modifications" value="2M+NH4;1+"/>
 					<UserParam type="string" name="chemical_formula" value="C15H21NO3"/>
-					<UserParam type="float" name="ppm_mz_error" value="-6.39111688870519"/>
+					<UserParam type="float" name="mz_error_ppm" value="-6.39111688870519"/>
+					<UserParam type="float" name="mz_error_Da" value="-0.00347892850481912"/>
 				</PeptideHit>
 				<PeptideHit score="0" sequence="" charge="2">
 					<UserParam type="stringList" name="identifier" value="[HMDB:HMDB15537]"/>
 					<UserParam type="stringList" name="description" value="[Probucol]"/>
 					<UserParam type="string" name="modifications" value="2M+3H2O+2H;2+"/>
 					<UserParam type="string" name="chemical_formula" value="C31H48O2S2"/>
-					<UserParam type="float" name="ppm_mz_error" value="3.55939944208733"/>
+					<UserParam type="float" name="mz_error_ppm" value="3.55939944208733"/>
+					<UserParam type="float" name="mz_error_Da" value="0.00193749749519156"/>
 				</PeptideHit>
 				<PeptideHit score="0" sequence="" charge="1">
 					<UserParam type="stringList" name="identifier" value="[HMDB:HMDB39160]"/>
 					<UserParam type="stringList" name="description" value="[L-Gizzerosine]"/>
 					<UserParam type="string" name="modifications" value="2M+CH3CN+Na;1+"/>
 					<UserParam type="string" name="chemical_formula" value="C11H20N4O2"/>
-					<UserParam type="float" name="ppm_mz_error" value="2.96160701507605"/>
+					<UserParam type="float" name="mz_error_ppm" value="2.96160701507605"/>
+					<UserParam type="float" name="mz_error_Da" value="0.00161210049532201"/>
 				</PeptideHit>
 			</PeptideIdentification>
 		</consensusElement>
@@ -208,14 +222,16 @@
 					<UserParam type="stringList" name="description" value="[54-Deoxyciguatoxin]"/>
 					<UserParam type="string" name="modifications" value="M+2H;2+"/>
 					<UserParam type="string" name="chemical_formula" value="C60H86O18"/>
-					<UserParam type="float" name="ppm_mz_error" value="0.0343836266762508"/>
+					<UserParam type="float" name="mz_error_ppm" value="0.0343836266762508"/>
+					<UserParam type="float" name="mz_error_Da" value="1.88524732038786e-05"/>
 				</PeptideHit>
 				<PeptideHit score="0" sequence="" charge="2">
 					<UserParam type="stringList" name="identifier" value="[HMDB:HMDB09964,HMDB:HMDB09982,HMDB:HMDB09994,HMDB:HMDB09995]"/>
 					<UserParam type="stringList" name="description" value="[PIP(18:1(11Z)/18:3(6Z,9Z,12Z)),PIP(18:1(9Z)/18:3(6Z,9Z,12Z)),PIP(18:3(6Z,9Z,12Z)/18:1(11Z)),PIP(18:3(6Z,9Z,12Z)/18:1(9Z))]"/>
 					<UserParam type="string" name="modifications" value="M+2CH3CN+2H;2+"/>
 					<UserParam type="string" name="chemical_formula" value="C48H86O18P2"/>
-					<UserParam type="float" name="ppm_mz_error" value="-0.532106755374941"/>
+					<UserParam type="float" name="mz_error_ppm" value="-0.532106755374941"/>
+					<UserParam type="float" name="mz_error_Da" value="-0.00029175322674746"/>
 				</PeptideHit>
 			</PeptideIdentification>
 		</consensusElement>
@@ -237,28 +253,32 @@
 					<UserParam type="stringList" name="description" value="[LysoPC(18:0),LysoPC(0:0/18:0)]"/>
 					<UserParam type="string" name="modifications" value="M+Na;1+"/>
 					<UserParam type="string" name="chemical_formula" value="C26H54NO7P"/>
-					<UserParam type="float" name="ppm_mz_error" value="-2.14878022563729"/>
+					<UserParam type="float" name="mz_error_ppm" value="-2.14878022563729"/>
+					<UserParam type="float" name="mz_error_Da" value="-0.00117399254475004"/>
 				</PeptideHit>
 				<PeptideHit score="0" sequence="" charge="1">
 					<UserParam type="stringList" name="identifier" value="[HMDB:HMDB15110]"/>
 					<UserParam type="stringList" name="description" value="[Dipyridamole]"/>
 					<UserParam type="string" name="modifications" value="M+CH3CN+H;1+"/>
 					<UserParam type="string" name="chemical_formula" value="C24H40N8O4"/>
-					<UserParam type="float" name="ppm_mz_error" value="1.38912832198442"/>
+					<UserParam type="float" name="mz_error_ppm" value="1.38912832198442"/>
+					<UserParam type="float" name="mz_error_Da" value="0.000758951755301496"/>
 				</PeptideHit>
 				<PeptideHit score="0" sequence="" charge="1">
 					<UserParam type="stringList" name="identifier" value="[HMDB:HMDB35973]"/>
 					<UserParam type="stringList" name="description" value="[Lucidenic acid M]"/>
 					<UserParam type="string" name="modifications" value="M+C3H8O+Na+H;1+"/>
 					<UserParam type="string" name="chemical_formula" value="C27H42O6"/>
-					<UserParam type="float" name="ppm_mz_error" value="-1.58095062891548"/>
+					<UserParam type="float" name="mz_error_ppm" value="-1.58095062891548"/>
+					<UserParam type="float" name="mz_error_Da" value="-0.000863756644776004"/>
 				</PeptideHit>
 				<PeptideHit score="0" sequence="" charge="1">
 					<UserParam type="stringList" name="identifier" value="[HMDB:HMDB38588]"/>
 					<UserParam type="stringList" name="description" value="[Dioscoretine]"/>
 					<UserParam type="string" name="modifications" value="2M+CH3CN+Na;1+"/>
 					<UserParam type="string" name="chemical_formula" value="C13H23NO3"/>
-					<UserParam type="float" name="ppm_mz_error" value="0.877268353350844"/>
+					<UserParam type="float" name="mz_error_ppm" value="0.877268353350844"/>
+					<UserParam type="float" name="mz_error_Da" value="0.000479296755315772"/>
 				</PeptideHit>
 			</PeptideIdentification>
 		</consensusElement>
@@ -280,14 +300,16 @@
 					<UserParam type="stringList" name="description" value="[Ribothymidine,Imidazoleacetic acid riboside,3-Methyluridine]"/>
 					<UserParam type="string" name="modifications" value="2M+Na;1+"/>
 					<UserParam type="string" name="chemical_formula" value="C10H14N2O6"/>
-					<UserParam type="float" name="ppm_mz_error" value="1.05392873016985"/>
+					<UserParam type="float" name="mz_error_ppm" value="1.05392873016985"/>
+					<UserParam type="float" name="mz_error_Da" value="0.000568235785294746"/>
 				</PeptideHit>
 				<PeptideHit score="0" sequence="" charge="1">
 					<UserParam type="stringList" name="identifier" value="[HMDB:HMDB28983,HMDB:HMDB29067]"/>
 					<UserParam type="stringList" name="description" value="[Methionyl-Threonine,Threoninyl-Methionine]"/>
 					<UserParam type="string" name="modifications" value="2M+K;1+"/>
 					<UserParam type="string" name="chemical_formula" value="C9H18N2O4S"/>
-					<UserParam type="float" name="ppm_mz_error" value="-0.838917575312374"/>
+					<UserParam type="float" name="mz_error_ppm" value="-0.838917575312374"/>
+					<UserParam type="float" name="mz_error_Da" value="-0.000452311314688814"/>
 				</PeptideHit>
 			</PeptideIdentification>
 		</consensusElement>

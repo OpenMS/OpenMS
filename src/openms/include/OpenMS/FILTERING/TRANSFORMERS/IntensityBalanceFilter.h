@@ -65,7 +65,7 @@ public:
     IntensityBalanceFilter(const IntensityBalanceFilter & source);
 
     /// destructor
-    virtual ~IntensityBalanceFilter();
+    ~IntensityBalanceFilter() override;
     // @}
 
     // @name Operators

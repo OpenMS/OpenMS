@@ -116,14 +116,14 @@ public:
   {}
 
 protected:
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
-    TOPPMapAlignerBase::registerOptionsAndFlags_("mzML,featureXML",
+    TOPPMapAlignerBase::registerOptionsAndFlags_("featureXML,mzML",
                                                  REF_RESTRICTED);
     registerSubsection_("algorithm", "Algorithm parameters section");
   }
 
-  Param getSubsectionDefaults_(const String& section) const
+  Param getSubsectionDefaults_(const String& section) const override
   {
     if (section == "algorithm")
     {
@@ -133,7 +133,7 @@ protected:
     return Param(); // shouldn't happen
   }
 
-  ExitCodes main_(int, const char**)
+  ExitCodes main_(int, const char**) override
   {
     ExitCodes ret = TOPPMapAlignerBase::checkParameters_();
     if (ret != EXECUTION_OK) return ret;

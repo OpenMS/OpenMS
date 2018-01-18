@@ -57,11 +57,11 @@ else
   export PATH=${OPENMS_TOPP_PATH}/INIFileEditor.app/Contents/MacOS/:${PATH}
   export PATH=${OPENMS_TOPP_PATH}/TOPPAS.app/Contents/MacOS/:${PATH}
   ## also the search engines
-  for folder in ${OPENMS_TOPP_PATH}/TOPP/SEARCHENGINES/*/ ; do
+  for folder in ${OPENMS_DATA_PATH}/THIRDPARTY/*/ ; do
     export PATH=$folder:$PATH
   done
-  ## and finally topp
-  export PATH=${OPENMS_TOPP_PATH}/TOPP:${PATH}
+  ## and finally the bin folder
+  export PATH=${OPENMS_TOPP_PATH}/bin:${PATH}
 fi
 
 ## EOF

@@ -49,31 +49,31 @@ namespace Interfaces
   {
 public:
     MockISpectraReader() {}
-    ~MockISpectraReader() {}
+    ~MockISpectraReader() override {}
     /// Return a pointer to a spectrum at the given id
-    SpectrumPtr getSpectrumById(int /* id */) const
+    SpectrumPtr getSpectrumById(int /* id */) const override
     {
       SpectrumPtr spectrum(new Spectrum);
       return spectrum;
     }
     /// Return a pointer to a spectrum at the given string id
-    SpectrumPtr getSpectrumById(const std::string& /* id */) const
+    SpectrumPtr getSpectrumById(const std::string& /* id */) const override
     {
       SpectrumPtr spectrum(new Spectrum);
       return spectrum;
     }
     /// Return a vector of ids of spectra that are within RT +/- deltaRT
-    std::vector<std::size_t> getSpectraByRT(double /* RT */, double /* deltaRT */) const
+    std::vector<std::size_t> getSpectraByRT(double /* RT */, double /* deltaRT */) const override
     {
       return std::vector<std::size_t>();
     }
     /// Returns the number of spectra available
-    virtual size_t getNrSpectra() const
+    size_t getNrSpectra() const override
     {
       return 0;
     }
     /// Returns the meta information for a spectrum
-    virtual SpectrumMetaPtr getSpectrumMetaById(int /* id */) const
+    SpectrumMetaPtr getSpectrumMetaById(int /* id */) const override
     {
       SpectrumMetaPtr spectrum_meta(new SpectrumMeta);
       return spectrum_meta;
@@ -87,31 +87,31 @@ public:
   {
 public:
     MockIChromatogramsReader() {}
-    ~MockIChromatogramsReader() {}
+    ~MockIChromatogramsReader() override {}
     /// Return a pointer to a chromatogram at the given id
-    ChromatogramPtr getChromatogramById(int /* id */) const
+    ChromatogramPtr getChromatogramById(int /* id */) const override
     {
       ChromatogramPtr chromatogram(new Chromatogram);
       return chromatogram;
     }
     /// Return a pointer to a chromatogram at the given string id
-    ChromatogramPtr getChromatogramById(const std::string& /* id */) const
+    ChromatogramPtr getChromatogramById(const std::string& /* id */) const override
     {
       ChromatogramPtr chromatogram(new Chromatogram);
       return chromatogram;
     }
     /// Return a vector of ids of spectra that are within RT +/- deltaRT
-    std::vector<std::size_t> getChromatogramByPrecursorMZ(double /* mz */, double /* deltaMZ */) const
+    std::vector<std::size_t> getChromatogramByPrecursorMZ(double /* mz */, double /* deltaMZ */) const override
     {
       return std::vector<std::size_t>();
     }
     /// Returns the number of spectra available
-    virtual size_t getNrChromatograms() const
+    size_t getNrChromatograms() const override
     {
       return 0;
     }
     /// Returns the meta information for a chromatogram
-    virtual ChromatogramMetaPtr getChromatogramMetaById(int /* id */) const
+    ChromatogramMetaPtr getChromatogramMetaById(int /* id */) const override
     {
       ChromatogramMetaPtr chromatogram_meta(new ChromatogramMeta);
       return chromatogram_meta;
@@ -125,14 +125,14 @@ public:
   {
 public:
     MockISpectraWriter() {}
-    ~MockISpectraWriter() {}
+    ~MockISpectraWriter() override {}
     /// Append a spectrum to the end
-    void appendSpectrum(SpectrumPtr /* spectrum */, bool /* write_through*/)
+    void appendSpectrum(SpectrumPtr /* spectrum */, bool /* write_through*/) override
     {
       // do nothing
     }
     /// write all cached data to disk
-    void flush()
+    void flush() override
     {
       // do nothing
     }
@@ -145,14 +145,14 @@ public:
   {
 public:
     MockIChromatogramsWriter() {}
-    ~MockIChromatogramsWriter() {}
+    ~MockIChromatogramsWriter() override {}
     /// Append a chromatogram to the end
-    void appendChromatogram(ChromatogramPtr /* chromatogram */, bool /* write_through */)
+    void appendChromatogram(ChromatogramPtr /* chromatogram */, bool /* write_through */) override
     {
       // do nothing
     }
     /// write all cached data to disk
-    void flush()
+    void flush() override
     {
       // do nothing
     }

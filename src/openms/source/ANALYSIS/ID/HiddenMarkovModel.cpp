@@ -881,7 +881,7 @@ namespace OpenMS
     }
 
     // pathways axyz and bxyz and the first two explicitly modeled ones
-    HMMState * s2 = 0;
+    HMMState * s2 = nullptr;
     HMMState * end_state = name_to_state_["end"];
     StringList pathways = ListUtils::create<String>("axyz,axyz1,axyz1,bxyz,bxyz1,bxyz2");
     for (StringList::const_iterator pathway_it = pathways.begin(); pathway_it != pathways.end(); ++pathway_it)

@@ -53,8 +53,8 @@ START_TEST(MS2File, "$Id$")
 /////////////////////////////////////////////////////////////
 
 
-MS2File * ptr = 0;
-MS2File* nullPointer = 0;
+MS2File * ptr = nullptr;
+MS2File* nullPointer = nullptr;
 START_SECTION((MS2File()))
 ptr = new MS2File;
 TEST_NOT_EQUAL(ptr, nullPointer)

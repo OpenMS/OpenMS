@@ -49,8 +49,8 @@ START_TEST(ChargePair, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-ChargePair* ptr = 0;
-ChargePair* nullPointer = 0;
+ChargePair* ptr = nullptr;
+ChargePair* nullPointer = nullptr;
 START_SECTION(ChargePair())
 {
 	ptr = new ChargePair();

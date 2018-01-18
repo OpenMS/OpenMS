@@ -24,9 +24,11 @@ Date.cpp
 DateTime.cpp
 DefaultParamHandler.cpp
 DistanceMatrix.cpp
+FASTAContainer.cpp
 GridFeature.cpp
 ListUtils.cpp
 ListUtilsIO.cpp
+LPWrapper.cpp
 Map.cpp
 MassExplainer.cpp
 Matrix.cpp
@@ -38,7 +40,6 @@ String.cpp
 StringListUtils.cpp
 StringUtils.cpp
 ToolDescription.cpp
-LPWrapper.cpp
 )
 
 ### add path to the filenames

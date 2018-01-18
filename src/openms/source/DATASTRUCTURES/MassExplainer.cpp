@@ -336,10 +336,10 @@ namespace OpenMS
     }
 #endif
 
-    Compomer cmp_low(net_charge, mass_to_explain - fabs(mass_delta), 1);
+    Compomer cmp_low(net_charge, static_cast<double>(mass_to_explain) - fabs(mass_delta), 1);
     firstExplanation = lower_bound(explanations_.begin(), explanations_.end(), cmp_low);
 
-    Compomer cmp_high(net_charge, mass_to_explain + fabs(mass_delta), thresh_log_p);
+    Compomer cmp_high(net_charge, static_cast<double>(mass_to_explain) + fabs(mass_delta), static_cast<double>(thresh_log_p));
     lastExplanation  = lower_bound(explanations_.begin(), explanations_.end(), cmp_high);
 
     return std::distance(firstExplanation, lastExplanation);

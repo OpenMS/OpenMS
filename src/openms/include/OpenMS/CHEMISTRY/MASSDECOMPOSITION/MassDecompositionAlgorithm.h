@@ -79,7 +79,7 @@ public:
     MassDecompositionAlgorithm();
 
     /// Destructor
-    virtual ~MassDecompositionAlgorithm();
+    ~MassDecompositionAlgorithm() override;
     //@}
 
     /**
@@ -92,7 +92,7 @@ public:
 
 protected:
 
-    void updateMembers_();
+    void updateMembers_() override;
 
     ims::IMSAlphabet * alphabet_;
 

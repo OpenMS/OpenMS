@@ -53,18 +53,19 @@ namespace OpenMS
     void getBYSeries(AASequence& a, //
                      std::vector<double>& bseries, //
                      std::vector<double>& yseries, //
-                     UInt charge //
+                     TheoreticalSpectrumGenerator * generator,
+                     UInt charge
                      )
     {
       OPENMS_PRECONDITION(charge > 0, "Charge is a positive integer");
-      TheoreticalSpectrumGenerator generator;
-      Param p;
-      p.setValue("add_metainfo", "true",
-                 "Adds the type of peaks as metainfo to the peaks, like y8+, [M-H2O+2H]++");
-      generator.setParameters(p);
-
+      //too slow!
+      //TheoreticalSpectrumGenerator generator;
+      //Param p;
+      //p.setValue("add_metainfo", "true",
+      //           "Adds the type of peaks as metainfo to the peaks, like y8+, [M-H2O+2H]++");
+      //generator.setParameters(p);
       PeakSpectrum spec;
-      generator.getSpectrum(spec, a, charge, charge);
+      generator->getSpectrum(spec, a, charge, charge);
 
       const PeakSpectrum::StringDataArray& ion_name = spec.getStringDataArrays()[0];
 
@@ -83,17 +84,19 @@ namespace OpenMS
 
     // for SWATH -- get the theoretical b and y series masses for a sequence
     void getTheorMasses(AASequence& a, std::vector<double>& masses,
+                        TheoreticalSpectrumGenerator * generator,
                         UInt charge)
     {
       OPENMS_PRECONDITION(charge > 0, "Charge is a positive integer");
-      TheoreticalSpectrumGenerator generator;
-      Param p;
-      p.setValue("add_metainfo", "false",
-                 "Adds the type of peaks as metainfo to the peaks, like y8+, [M-H2O+2H]++");
-      p.setValue("add_precursor_peaks", "true", "Adds peaks of the precursor to the spectrum, which happen to occur sometimes");
-      generator.setParameters(p);
+      //too slow!
+      //TheoreticalSpectrumGenerator generator;
+      //Param p;
+      //p.setValue("add_metainfo", "false",
+      //           "Adds the type of peaks as metainfo to the peaks, like y8+, [M-H2O+2H]++");
+      //p.setValue("add_precursor_peaks", "true", "Adds peaks of the precursor to the spectrum, which happen to occur sometimes");
+      //generator.setParameters(p);
       PeakSpectrum spec;
-      generator.getSpectrum(spec, a, charge, charge);
+      generator->getSpectrum(spec, a, charge, charge);
       for (PeakSpectrum::iterator it = spec.begin();
            it != spec.end(); ++it)
       {
@@ -125,9 +128,9 @@ namespace OpenMS
     void simulateSpectrumFromAASequence(AASequence& aa,
                                         std::vector<double>& firstIsotopeMasses, //[out]
                                         std::vector<std::pair<double, double> >& isotopeMasses, //[out]
-                                        double charge)
+                                        TheoreticalSpectrumGenerator * generator, double charge)
     {
-      getTheorMasses(aa, firstIsotopeMasses, charge);
+      getTheorMasses(aa, firstIsotopeMasses, generator, charge);
       for (std::size_t i = 0; i < firstIsotopeMasses.size(); ++i)
       {
         getAveragineIsotopeDistribution(firstIsotopeMasses[i], isotopeMasses,

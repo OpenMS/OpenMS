@@ -52,8 +52,8 @@ START_TEST(ModifierRep, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-ModifierRep* ptr = 0;
-ModifierRep* nullPointer = 0;
+ModifierRep* ptr = nullptr;
+ModifierRep* nullPointer = nullptr;
 
 START_SECTION(ModifierRep())
 	ptr = new ModifierRep();

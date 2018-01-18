@@ -62,9 +62,6 @@ namespace OpenMS
   std::map<String, double> SvmTheoreticalSpectrumGenerator::helicity_;
   std::map<String, double> SvmTheoreticalSpectrumGenerator::basicity_;
 
-  // do not remove, see ticket #352 for more details
-  SvmTheoreticalSpectrumGenerator init;
-
   bool SvmTheoreticalSpectrumGenerator::initializedMaps_ = false;
 
   String SvmTheoreticalSpectrumGenerator::ResidueTypeToString_(Residue::ResidueType type)

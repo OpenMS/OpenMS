@@ -65,16 +65,16 @@ public:
                        const SpectrumMetaDataLookup& lookup);
 
       /// Destructor
-      virtual ~MascotXMLHandler();
+      ~MascotXMLHandler() override;
 
       // Docu in base class
-      virtual void endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname);
+      void endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname) override;
 
       // Docu in base class
-      virtual void startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes);
+      void startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes) override;
 
       // Docu in base class
-      virtual void characters(const XMLCh* const chars, const XMLSize_t /*length*/);
+      void characters(const XMLCh* const chars, const XMLSize_t /*length*/) override;
       
       /// Split modification search parameter if for more than one amino acid specified e.g. Phospho (ST)
       static std::vector<String> splitModificationBySpecifiedAA(String mod);

@@ -61,8 +61,8 @@ START_TEST(MSDataTransformingConsumer, "$Id$")
 
 using namespace OpenMS;
 
-MSDataTransformingConsumer* transforming_consumer_ptr = 0;
-MSDataTransformingConsumer* transforming_consumer_nullPointer = 0;
+MSDataTransformingConsumer* transforming_consumer_ptr = nullptr;
+MSDataTransformingConsumer* transforming_consumer_nullPointer = nullptr;
 
 START_SECTION((MSDataTransformingConsumer()))
   transforming_consumer_ptr = new MSDataTransformingConsumer();

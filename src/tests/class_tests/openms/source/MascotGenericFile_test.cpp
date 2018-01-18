@@ -51,8 +51,8 @@ START_TEST(MascotGenericFile, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-MascotGenericFile* ptr = 0;
-MascotGenericFile* nullPointer = 0;
+MascotGenericFile* ptr = nullptr;
+MascotGenericFile* nullPointer = nullptr;
 START_SECTION(MascotGenericFile())
 {
   ptr = new MascotGenericFile();
@@ -96,7 +96,8 @@ START_SECTION((void store(std::ostream &os, const String &filename, const PeakMa
   strings.push_back("BEGIN IONS\n"
                     "TITLE=1998_25.379_index=0_test\n" // different from input!
                     "PEPMASS=1998\n"
-                    "RTINSECONDS=25.379");
+                    "RTINSECONDS=25.379\n"
+                    "SCANS=0");
   strings.push_back("1 1\n"
                     "2 4\n"
                     "3 9\n"
@@ -122,7 +123,7 @@ START_SECTION((void store(std::ostream &os, const String &filename, const PeakMa
 
   // test compact format:
   MSSpectrum spec;
-  spec.setNativeID("ident");
+  spec.setNativeID("index=250");
   spec.setMSLevel(2);
   spec.setRT(234.5678901);
   Precursor prec;
@@ -142,9 +143,10 @@ START_SECTION((void store(std::ostream &os, const String &filename, const PeakMa
   ptr->store(ss, "test", exp, true);
   mgf_file = ss.str();
   String content = ("BEGIN IONS\n"
-                    "TITLE=901.23457_234.568_ident_test\n"
+                    "TITLE=901.23457_234.568_index=250_test\n"
                     "PEPMASS=901.23457\n"
                     "RTINSECONDS=234.568\n"
+                    "SCANS=250\n"
                     "890.12346 2345.679\n"
                     "END IONS");
   TEST_EQUAL(mgf_file.hasSubstring(content), true);

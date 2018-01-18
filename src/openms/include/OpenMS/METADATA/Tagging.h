@@ -61,7 +61,7 @@ public:
     /// copy constructor
     Tagging(const Tagging &);
     /// destructor
-    virtual ~Tagging();
+    ~Tagging() override;
 
     /// assignment operator
     Tagging & operator=(const Tagging &);
@@ -72,10 +72,10 @@ public:
     Although this operator takes a reference to a SampleTreatment as argument
     it tests for the equality of Tagging instances!
   */
-    virtual bool operator==(const SampleTreatment & rhs) const;
+    bool operator==(const SampleTreatment & rhs) const override;
 
     /// clone method. See SampleTreatment
-    virtual SampleTreatment * clone() const;
+    SampleTreatment * clone() const override;
 
     /// returns the mass difference between light and heavy variant (default is 0.0)
     double getMassShift() const;

@@ -151,7 +151,7 @@ public:
         * @param m The de-convoluted mass m.
         * @param size Returns the number of significant peaks within a pattern occurring at mass @p m.
         * @return The isotopic distribution. */
-    static const IsotopeDistribution::ContainerType & getAveragine(const double m, UInt * size = NULL);
+    static const IsotopeDistribution::ContainerType & getAveragine(const double m, UInt * size = nullptr);
 
 
     /** @brief Returns the largest possible index for the pre-sampled gamma table. */

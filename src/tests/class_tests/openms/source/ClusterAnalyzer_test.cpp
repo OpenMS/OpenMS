@@ -49,8 +49,8 @@ START_TEST(ClusterAnalyzer, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-ClusterAnalyzer* ptr = 0;
-ClusterAnalyzer* nullPointer = 0;
+ClusterAnalyzer* ptr = nullptr;
+ClusterAnalyzer* nullPointer = nullptr;
 START_SECTION(ClusterAnalyzer())
 {
 	ptr = new ClusterAnalyzer();

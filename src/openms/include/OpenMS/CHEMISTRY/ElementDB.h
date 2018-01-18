@@ -77,8 +77,8 @@ public:
     /// returns a pointer to the singleton instance of the element db
     inline static const ElementDB * getInstance()
     {
-      static ElementDB * db_ = 0;
-      if (db_ == 0)
+      static ElementDB * db_ = nullptr;
+      if (db_ == nullptr)
       {
         db_ = new ElementDB;
       }

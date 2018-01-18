@@ -160,7 +160,7 @@ void MzTabFile::load(const String& filename, MzTab& mz_tab)
   Size peptide_retention_time_window_index = 0;
   Size peptide_charge_index = 0;
   Size peptide_mass_to_charge_index = 0;
-  Size peptide_uri_index = 0;
+  // Size peptide_uri_index = 0;
   Size peptide_spectra_ref_index = 0;
   map<Size, Size> peptide_abundance_assay_indices;
   map<Size, Size> peptide_abundance_study_variable_to_column_indices;
@@ -182,7 +182,7 @@ void MzTabFile::load(const String& filename, MzTab& mz_tab)
   Size psm_charge_index = 0;
   Size psm_exp_mass_to_charge_index = 0;
   Size psm_calc_mass_to_charge_index = 0;
-  Size psm_uri_index = 0;
+  // Size psm_uri_index = 0;
   Size psm_spectra_ref_index = 0;
   Size psm_pre_index = 0;
   Size psm_post_index = 0;
@@ -1095,10 +1095,11 @@ void MzTabFile::load(const String& filename, MzTab& mz_tab)
       row.charge.fromCellString(cells[peptide_charge_index]);
       row.mass_to_charge.fromCellString(cells[peptide_mass_to_charge_index]);
 
-      if (peptide_uri_index != 0)
-      {
-        row.uri.fromCellString(cells[peptide_uri_index]);
-      }
+      // always false
+      // if (peptide_uri_index != 0)
+      // {
+      //   row.uri.fromCellString(cells[peptide_uri_index]);
+      // }
 
       row.spectra_ref.fromCellString(cells[peptide_spectra_ref_index]);
 
@@ -1238,10 +1239,11 @@ void MzTabFile::load(const String& filename, MzTab& mz_tab)
       row.exp_mass_to_charge.fromCellString(cells[psm_exp_mass_to_charge_index]);
       row.calc_mass_to_charge.fromCellString(cells[psm_calc_mass_to_charge_index]);
 
-      if (psm_uri_index != 0)
-      {
-        row.uri.fromCellString(cells[psm_uri_index]);
-      }
+      // always false
+      // if (psm_uri_index != 0)
+      // {
+      //   row.uri.fromCellString(cells[psm_uri_index]);
+      // }
 
       row.spectra_ref.fromCellString(cells[psm_spectra_ref_index]);
       row.pre.fromCellString(cells[psm_pre_index]);

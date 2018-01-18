@@ -233,7 +233,7 @@ if iswin:
         # fix for broken library names on Windows
         for p in glob.glob(os.path.join(OPEN_MS_CONTRIB_BUILD_DIR,
                                         "lib",
-                                        "libboost_%s_*mt.lib" % libname)):
+                                        "libboost_%s*mt.lib" % libname)):
 
             # Copy for MSVS 2008 (vc90), MSVS 2010 (vc100) and MSVS 2015 (vc140)
             if "vc90" in p:
@@ -280,8 +280,12 @@ elif sys.platform == "darwin":
     shutil.copy(j(OPEN_MS_BUILD_DIR, "lib", "libOpenMS.dylib"), "pyopenms")
     shutil.copy(j(OPEN_MS_BUILD_DIR, "lib", "libSuperHirn.dylib"), "pyopenms")
     shutil.copy(j(OPEN_MS_BUILD_DIR, "lib", "libOpenSwathAlgo.dylib"), "pyopenms")
+    # copy and set correct permissions (needs to be writeable for next copy)
     shutil.copy(j(QT_LIBRARY_DIR, "QtCore.framework", "QtCore"), "pyopenms")
     shutil.copy(j(QT_LIBRARY_DIR, "QtNetwork.framework", "QtNetwork"), "pyopenms")
+    os.chmod("pyopenms/QtCore", 0o744)
+    os.chmod("pyopenms/QtNetwork", 0o744)
+    shutil.copy(j(os.path.expanduser(OPEN_MS_CONTRIB_BUILD_DIR), "lib", "libz.1.dylib"), "pyopenms")
 
 else:
     print("\n")

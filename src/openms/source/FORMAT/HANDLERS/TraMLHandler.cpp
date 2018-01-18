@@ -33,6 +33,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/HANDLERS/TraMLHandler.h>
+
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/CONCEPT/Constants.h>
@@ -48,7 +49,7 @@ namespace OpenMS
     TraMLHandler::TraMLHandler(const TargetedExperiment& exp, const String& filename, const String& version, const ProgressLogger& logger) :
       XMLHandler(filename, version),
       logger_(logger),
-      exp_(0),
+      exp_(nullptr),
       cexp_(&exp)
     {
       cv_.loadFromOBO("PI", File::find("/CV/psi-ms.obo"));
@@ -58,7 +59,7 @@ namespace OpenMS
       XMLHandler(filename, version),
       logger_(logger),
       exp_(&exp),
-      cexp_(0)
+      cexp_(nullptr)
     {
       cv_.loadFromOBO("PI", File::find("/CV/psi-ms.obo"));
     }
@@ -69,13 +70,6 @@ namespace OpenMS
 
     void TraMLHandler::startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes)
     {
-
-      // We should not need any previous dynamically allocated strings any more
-      // once we start processing a new element. Further optimization may move this
-      // statement down so that we dont call it too often.
-      // This results in substantial memory efficiency gains.
-      sm_.clear();
-
       static const XMLCh* s_type = xercesc::XMLString::transcode("type");
       static const XMLCh* s_value = xercesc::XMLString::transcode("value");
       static const XMLCh* s_name = xercesc::XMLString::transcode("name");
@@ -687,7 +681,7 @@ namespace OpenMS
                 }
                 const ResidueModification& rmod = mod_db->getModification("UniMod:" + String(mit->unimod_id), residue, term_spec);
                 String modname = rmod.getId();
-                os << "           <cvParam cvRef=\"UNIMOD\" accession=\"UNIMOD:" << mit->unimod_id
+                os << "        <cvParam cvRef=\"UNIMOD\" accession=\"UNIMOD:" << mit->unimod_id
                   << "\" name=\"" << modname << "\"/>\n";
               }
 
@@ -702,15 +696,7 @@ namespace OpenMS
             os << "      <RetentionTimeList>\n";
             for (std::vector<TargetedExperiment::RetentionTime>::const_iterator rit = it->rts.begin(); rit != it->rts.end(); ++rit)
             {
-              os << "        <RetentionTime";
-              if (rit->software_ref != "")
-              {
-                os << " softwareRef=\"" << rit->software_ref << "\"";
-              }
-              os << ">" << "\n";
-              writeCVParams_(os, *rit, 5);
-              writeUserParam_(os, (MetaInfoInterface) * rit, 5);
-              os << "        </RetentionTime>" << "\n";
+              writeRetentionTime_(os, *rit);
             }
             os << "      </RetentionTimeList>\n";
           }
@@ -758,15 +744,7 @@ namespace OpenMS
             os << "      <RetentionTimeList>\n";
             for (std::vector<TargetedExperiment::RetentionTime>::const_iterator rit = it->rts.begin(); rit != it->rts.end(); ++rit)
             {
-              os << "        <RetentionTime";
-              if (rit->software_ref != "")
-              {
-                os << " softwareRef=\"" << rit->software_ref << "\"";
-              }
-              os << ">" << "\n";
-              writeCVParams_(os, *rit, 5);
-              writeUserParam_(os, (MetaInfoInterface) * rit, 5);
-              os << "        </RetentionTime>" << "\n";
+              writeRetentionTime_(os, *rit);
             }
             os << "      </RetentionTimeList>\n";
           }
@@ -828,18 +806,10 @@ namespace OpenMS
           writeProduct_(os, dummy_vect.begin());
           os << "      </Product>" << "\n";
 
-          const IncludeExcludeTarget::RetentionTime* rit = &it->getRetentionTime();
-          if (!rit->getCVTerms().empty())
+          const TargetedExperimentHelper::RetentionTime rit = it->getRetentionTime();
+          if (!rit.getCVTerms().empty())
           {
-            os << "      <RetentionTime";
-            if (rit->software_ref != "")
-            {
-              os << " softwareRef=\"" << rit->software_ref << "\"";
-            }
-            os << ">" << "\n";
-            writeCVParams_(os, *rit, 4);
-            writeUserParam_(os, (MetaInfoInterface) * rit, 4);
-            os << "      </RetentionTime>" << "\n";
+            writeRetentionTime_(os, rit);
           }
 
           if (it->hasPrediction())
@@ -931,6 +901,63 @@ namespace OpenMS
       return;
     }
 
+    void TraMLHandler::writeRetentionTime_(std::ostream& os, const TargetedExperimentHelper::RetentionTime& rt) const
+    {
+      const TargetedExperimentHelper::RetentionTime* rit = &rt;
+      os << "        <RetentionTime";
+      if (rit->software_ref != "")
+      {
+        os << " softwareRef=\"" << rit->software_ref << "\"";
+      }
+      os << ">" << "\n";
+
+      if (rit->isRTset())
+      {
+        if (rit->retention_time_type == TargetedExperimentHelper::RetentionTime::RTType::LOCAL)
+        {
+          os << "          <cvParam cvRef=\"MS\" accession=\"MS:1000895\" name=\"local retention time\" value=\"" << rit->getRT() << "\"";
+        }
+        else if (rit->retention_time_type == TargetedExperimentHelper::RetentionTime::RTType::NORMALIZED)
+        {
+          os << "          <cvParam cvRef=\"MS\" accession=\"MS:1000896\" name=\"normalized retention time\" value=\"" << rit->getRT() << "\"";
+        }
+        else if (rit->retention_time_type == TargetedExperimentHelper::RetentionTime::RTType::PREDICTED)
+        {
+          os << "          <cvParam cvRef=\"MS\" accession=\"MS:1000897\" name=\"predicted retention time\" value=\"" << rit->getRT() << "\"";
+        }
+        else if (rit->retention_time_type == TargetedExperimentHelper::RetentionTime::RTType::HPINS)
+        {
+          os << "          <cvParam cvRef=\"MS\" accession=\"MS:1000902\" name=\"H-PINS retention time normalization standard\" value=\"" << rit->getRT() << "\"";
+        }
+        else if (rit->retention_time_type == TargetedExperimentHelper::RetentionTime::RTType::IRT)
+        {
+          os << "          <cvParam cvRef=\"MS\" accession=\"MS:1002005\" name=\"iRT retention time normalization standard\" value=\"" << rit->getRT() << "\"";
+        }
+        else
+        {
+          os << "          <cvParam cvRef=\"MS\" accession=\"MS:1000895\" name=\"local retention time\" value=\"" << rit->getRT() << "\"";
+        }
+      }
+
+      // write units (minute, second or none)
+      if ( rit->retention_time_unit == TargetedExperimentHelper::RetentionTime::RTUnit::SECOND) //seconds
+      {
+        os << " unitCvRef=\"UO\" unitAccession=\"UO:0000010\" unitName=\"second\"/>\n";
+      }
+      else if ( rit->retention_time_unit == TargetedExperimentHelper::RetentionTime::RTUnit::MINUTE) //minutes
+      {
+        os << " unitCvRef=\"UO\" unitAccession=\"UO:0000031\" unitName=\"minute\"/>\n";
+      }
+      else
+      {
+        os << "/>\n";
+      }
+
+      writeCVParams_(os, *rit, 5);
+      writeUserParam_(os, (MetaInfoInterface) * rit, 5);
+      os << "        </RetentionTime>" << "\n";
+    }
+
     void TraMLHandler::writeTarget_(std::ostream& os, const std::vector<IncludeExcludeTarget>::const_iterator& it) const
     {
       os << "      <Target id=\"" << it->getName() << "\"";
@@ -951,15 +978,7 @@ namespace OpenMS
       const IncludeExcludeTarget::RetentionTime* rit = &it->getRetentionTime();
       if (!rit->getCVTerms().empty())
       {
-        os << "        <RetentionTime";
-        if (rit->software_ref != "")
-        {
-          os << " softwareRef=\"" << rit->software_ref << "\"";
-        }
-        os << ">" << "\n";
-        writeCVParams_(os, *rit, 5);
-        writeUserParam_(os, (MetaInfoInterface) * rit, 5);
-        os << "        </RetentionTime>" << "\n";
+        writeRetentionTime_(os, *rit);
       }
 
       if (!it->getConfigurations().empty())
@@ -1227,7 +1246,77 @@ namespace OpenMS
       }
       else if (parent_tag == "RetentionTime")
       {
-        actual_rt_.addCVTerm(cv_term);
+        // Note: we have to be prepared to have multiple CV terms for the same
+        // RT, some indicating the unit, some indicating the type of RT
+
+        // MAY supply a *child* term of MS:1000915 (retention time window attribute) one or more times
+        //   e.g.: MS:1000916 (retention time window lower offset)
+        //   e.g.: MS:1000917 (retention time window upper offset)
+        //   e.g.: MS:1001907 (retention time window width)
+        // MAY supply a *child* term of MS:1000901 (retention time normalization standard) only once
+        //   e.g.: MS:1000902 (H-PINS retention time normalization standard)
+        //   e.g.: MS:1002005 (iRT retention time normalization standard)
+        // MAY supply a *child* term of MS:1000894 (retention time) one or more times
+        //   e.g.: MS:1000895 (local retention time)
+        //   e.g.: MS:1000896 (normalized retention time)
+        //   e.g.: MS:1000897 (predicted retention time)
+
+        if ( cv_term.getUnit().accession == "UO:0000010") //seconds
+        {
+          actual_rt_.retention_time_unit = TargetedExperimentHelper::RetentionTime::RTUnit::SECOND;
+        }
+        else if ( cv_term.getUnit().accession == "UO:0000031") //minutes
+        {
+          actual_rt_.retention_time_unit = TargetedExperimentHelper::RetentionTime::RTUnit::MINUTE;
+        }
+        else if (actual_rt_.retention_time_unit == TargetedExperimentHelper::RetentionTime::RTUnit::SIZE_OF_RTUNIT) // do not overwrite previous data
+        {
+          actual_rt_.retention_time_unit = TargetedExperimentHelper::RetentionTime::RTUnit::UNKNOWN;
+        }
+
+        if (cv_term.getAccession() == "MS:1000895") // local RT
+        {
+          actual_rt_.setRT(cv_term.getValue().toString().toDouble());
+          actual_rt_.retention_time_type = TargetedExperimentHelper::RetentionTime::RTType::LOCAL;
+        }
+        else if (cv_term.getAccession() == "MS:1000896") // normalized RT
+        {
+          actual_rt_.setRT(cv_term.getValue().toString().toDouble());
+          actual_rt_.retention_time_type = TargetedExperimentHelper::RetentionTime::RTType::NORMALIZED;
+        }
+        else if (cv_term.getAccession() == "MS:1000897") // predicted RT
+        {
+          actual_rt_.setRT(cv_term.getValue().toString().toDouble());
+          actual_rt_.retention_time_type = TargetedExperimentHelper::RetentionTime::RTType::PREDICTED;
+        }
+        else if (cv_term.getAccession() == "MS:1000902") // H-PINS
+        {
+          if (cv_term.getValue().toString() != "") actual_rt_.setRT(cv_term.getValue().toString().toDouble());
+          actual_rt_.retention_time_type = TargetedExperimentHelper::RetentionTime::RTType::HPINS;
+        }
+        else if (cv_term.getAccession() == "MS:1002005") // iRT
+        {
+          if (cv_term.getValue().toString() != "") actual_rt_.setRT(cv_term.getValue().toString().toDouble());
+          actual_rt_.retention_time_type = TargetedExperimentHelper::RetentionTime::RTType::IRT;
+        }
+        // else if (cv_term.getAccession() == "MS:1000916") // RT lower offset
+        // {
+        //   actual_rt_.retention_time_lower = cv_term.getValue().toString().toDouble();
+        // }
+        // else if (cv_term.getAccession() == "MS:1000917") // RT upper offset
+        // {
+        //   actual_rt_.retention_time_upper = cv_term.getValue().toString().toDouble();
+        // }
+        // else if (cv_term.getAccession() == "MS:1001907") // RT window width
+        // {
+        //   actual_rt_.retention_time_width = cv_term.getValue().toString().toDouble();
+        // }
+        else
+        {
+          warning(LOAD, String("The CV term '" + cv_term.getAccession() + "' - '" +
+                cv_term.getName() + "' used in tag '" + parent_tag + "' is currently not supported!"));
+          actual_rt_.addCVTerm(cv_term);
+        }
       }
       else if (parent_tag == "Evidence")
       {
@@ -1485,7 +1574,7 @@ namespace OpenMS
       }
       else
       {
-        warning(LOAD, String("The CV term '" + cv_term.getAccession() + "' - '" + 
+        warning(LOAD, String("The CV term '" + cv_term.getAccession() + "' - '" +
               cv_term.getName() + "' used in tag '" + parent_tag + "' could not be handled, ignoring it!"));
       }
       return;

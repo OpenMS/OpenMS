@@ -61,7 +61,7 @@ public:
     DeNovoPostScoring();
 
     /// destructor
-    virtual ~DeNovoPostScoring();
+    ~DeNovoPostScoring() override;
 
     /// copy constructor
     DeNovoPostScoring(const DeNovoPostScoring & rhs);

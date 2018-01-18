@@ -51,8 +51,8 @@ START_TEST(ElementDB, "$Id$")
 
 /////////////////////////////////////////////////////////////
 
-EmpiricalFormula* e_ptr = 0;
-EmpiricalFormula* e_nullPointer = 0;
+EmpiricalFormula* e_ptr = nullptr;
+EmpiricalFormula* e_nullPointer = nullptr;
 const ElementDB * db = ElementDB::getInstance();
 
 START_SECTION(EmpiricalFormula())

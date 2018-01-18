@@ -40,7 +40,7 @@
 #include <OpenMS/CONCEPT/PrecisionWrapper.h>
 #include <OpenMS/METADATA/DataProcessing.h>
 #include <OpenMS/CONCEPT/UniqueIdGenerator.h>
-#include <OpenMS/CHEMISTRY/EnzymesDB.h>
+#include <OpenMS/CHEMISTRY/ProteaseDB.h>
 #include <fstream>
 
 using namespace std;
@@ -48,12 +48,12 @@ using namespace std;
 namespace OpenMS
 {
   ConsensusXMLFile::ConsensusXMLFile() :
-    XMLHandler("", "1.7"), 
-    XMLFile("/SCHEMAS/ConsensusXML_1_7.xsd", "1.7"), 
-    ProgressLogger(), 
-    consensus_map_(0), 
-    act_cons_element_(), 
-    last_meta_(0)
+    XMLHandler("", "1.7"),
+    XMLFile("/SCHEMAS/ConsensusXML_1_7.xsd", "1.7"),
+    ProgressLogger(),
+    consensus_map_(nullptr),
+    act_cons_element_(),
+    last_meta_(nullptr)
   {
   }
 
@@ -87,13 +87,13 @@ namespace OpenMS
         consensus_map_->push_back(act_cons_element_);
         act_cons_element_.getPeptideIdentifications().clear();
       }
-      last_meta_ = 0;
+      last_meta_ = nullptr;
     }
     else if (tag == "IdentificationRun")
     {
       consensus_map_->getProteinIdentifications().push_back(prot_id_);
       prot_id_ = ProteinIdentification();
-      last_meta_ = 0;
+      last_meta_ = nullptr;
     }
     else if (tag == "SearchParameters")
     {
@@ -302,7 +302,7 @@ namespace OpenMS
     }
     else if (tag == "userParam" || tag == "UserParam") // remain backwards compatible. Correct is "UserParam"
     {
-      if (last_meta_ == 0)
+      if (last_meta_ == nullptr)
       {
         fatalError(LOAD, String("Unexpected UserParam in tag '") + parent_tag + "'");
       }
@@ -392,9 +392,9 @@ namespace OpenMS
       //enzyme
       String enzyme;
       optionalAttributeAsString_(enzyme, attributes, "enzyme");
-      if (EnzymesDB::getInstance()->hasEnzyme(enzyme))
+      if (ProteaseDB::getInstance()->hasEnzyme(enzyme))
       {
-        search_param_.digestion_enzyme = *EnzymesDB::getInstance()->getEnzyme(enzyme);
+        search_param_.digestion_enzyme = *(ProteaseDB::getInstance()->getEnzyme(enzyme));
       }
       last_meta_ = &search_param_;
     }
@@ -402,13 +402,13 @@ namespace OpenMS
     {
       search_param_.fixed_modifications.push_back(attributeAsString_(attributes, "name"));
       //change this line as soon as there is a MetaInfoInterface for modifications (Andreas)
-      last_meta_ = 0;
+      last_meta_ = nullptr;
     }
     else if (tag == "VariableModification")
     {
       search_param_.variable_modifications.push_back(attributeAsString_(attributes, "name"));
       //change this line as soon as there is a MetaInfoInterface for modifications (Andreas)
-      last_meta_ = 0;
+      last_meta_ = nullptr;
     }
     else if (tag == "ProteinIdentification")
     {
@@ -508,8 +508,8 @@ namespace OpenMS
       pep_hit_.setSequence(AASequence::fromString(String(attributeAsString_(attributes, "sequence"))));
 
       //parse optional protein ids to determine accessions
-      const XMLCh* refs = attributes.getValue(sm_.convert("protein_refs"));
-      if (refs != 0)
+      const XMLCh* refs = attributes.getValue(sm_.convert("protein_refs").c_str());
+      if (refs != nullptr)
       {
         String accession_string = sm_.convert(refs);
         accession_string.trim();
@@ -923,11 +923,11 @@ namespace OpenMS
     }
 
     //reset members
-    consensus_map_ = 0;
+    consensus_map_ = nullptr;
     act_cons_element_ = ConsensusFeature();
     pos_.clear();
     it_ = 0;
-    last_meta_ = 0;
+    last_meta_ = nullptr;
     prot_id_ = ProteinIdentification();
     pep_id_ = PeptideIdentification();
     prot_hit_ = ProteinHit();

@@ -63,10 +63,10 @@ START_TEST(IsotopeDistribution, "$Id$")
 using namespace OpenMS;
 using namespace std;
 
-IsotopeDistribution* nullPointer = 0;
+IsotopeDistribution* nullPointer = nullptr;
 
 START_SECTION(CoarseIsotopeDistribution())
-	CoarseIsotopeDistribution* ptr = 0;
+	CoarseIsotopeDistribution* ptr = nullptr;
 	ptr = new CoarseIsotopeDistribution();
 	Size max_isotope = ptr->getMaxIsotope();
   TEST_EQUAL(max_isotope, 0)

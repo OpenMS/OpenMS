@@ -91,12 +91,12 @@ the_hmm.addNewState(state_AB_3);
 the_hmm.addNewState(state_C_3);
 the_hmm.addNewState(state_end);
 
-HiddenMarkovModel* ptr = 0;
-HiddenMarkovModel* nullPointer = 0;
-HMMState* state_ptr = 0;
-HMMState* state_ptr2 = 0;
+HiddenMarkovModel* ptr = nullptr;
+HiddenMarkovModel* nullPointer = nullptr;
+HMMState* state_ptr = nullptr;
+HMMState* state_ptr2 = nullptr;
 HMMState* state_ptr3 = new HMMState("base", true);
-HMMState* state_nullPointer = 0;
+HMMState* state_nullPointer = nullptr;
 
 // Hidden Markov Model State Tests
 START_SECTION([EXTRA](HMMState()))
@@ -108,7 +108,7 @@ START_SECTION([EXTRA](virtual ~HMMState()))
 	delete state_ptr;
 END_SECTION
 
-state_ptr = 0;
+state_ptr = nullptr;
 
 START_SECTION([EXTRA](HMMState(const String& name, bool hidden = true)))
 	state_ptr = new HMMState("state_name_hidden", true);

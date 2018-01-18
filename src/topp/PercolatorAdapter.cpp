@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -39,6 +39,7 @@
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/FORMAT/MzIdentMLFile.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
+#include <OpenMS/FORMAT/OSWFile.h>
 #include <OpenMS/FORMAT/CsvFile.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/CONCEPT/Constants.h>
@@ -108,7 +109,7 @@ class PercolatorAdapter :
 {
 public:
   PercolatorAdapter() :
-    TOPPBase("PercolatorAdapter", "Facilitate input to Percolator and reintegrate.", false)
+    TOPPBase("PercolatorAdapter", "Facilitate input to Percolator and reintegrate.", true)
   {
   }
 
@@ -201,17 +202,23 @@ protected:
     }
   };
   
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     static const bool is_required(true);
     static const bool is_advanced_option(true);
     
-    registerInputFileList_("in", "<files>", StringList(), "Input file(s)", is_required);
+    registerInputFileList_("in", "<files>", StringList(), "Input file(s)", !is_required);
     setValidFormats_("in", ListUtils::create<String>("mzid,idXML"));
     registerInputFileList_("in_decoy", "<files>", StringList(), "Input decoy file(s) in case of separate searches", !is_required);
     setValidFormats_("in_decoy", ListUtils::create<String>("mzid,idXML"));
+    registerInputFile_("in_osw", "<file>", "", "Input file in OSW format", !is_required);
+    setValidFormats_("in_osw", ListUtils::create<String>("OSW"));
     registerOutputFile_("out", "<file>", "", "Output file in idXML format", !is_required);
+    setValidFormats_("out", ListUtils::create<String>("idXML"));
     registerOutputFile_("mzid_out", "<file>", "", "Output file in mzid format", !is_required);
+    setValidFormats_("mzid_out", ListUtils::create<String>("mzid"));
+    registerOutputFile_("osw_out", "<file>", "", "Output file in OSW format", !is_required);
+    setValidFormats_("osw_out", ListUtils::create<String>("OSW"));
     String enzs = "no_enzyme,elastase,pepsin,proteinasek,thermolysin,chymotrypsin,lys-n,lys-c,arg-c,asp-n,glu-c,trypsin";
     registerStringOption_("enzyme", "<enzyme>", "trypsin", "Type of enzyme: "+enzs , !is_required);
     setValidStrings_("enzyme", ListUtils::create<String>(enzs));
@@ -226,6 +233,7 @@ protected:
     );
     registerFlag_("peptide-level-fdrs", "Calculate peptide-level FDRs instead of PSM-level FDRs.");
     registerFlag_("protein-level-fdrs", "Use the picked protein-level FDR to infer protein probabilities. Use the -fasta option and -decoy-pattern to set the Fasta file and decoy pattern.");
+    registerStringOption_("osw_level", "<osw_level>", "ms2", "OSW: Either \"ms1\", \"ms2\" or \"transition\"; the data level selected for scoring.", !is_required);
 
     //Advanced parameters
     registerFlag_("generic-feature-set", "Use only generic (i.e. not search engine specific) features. Generating search engine specific features for common search engines by PSMFeatureExtractor will typically boost the identification rate significantly.", is_advanced_option);
@@ -250,6 +258,12 @@ protected:
     setValidFormats_("fasta", ListUtils::create<String>("FASTA"));
     registerStringOption_("decoy-pattern", "<value>", "random", "Define the text pattern to identify the decoy proteins and/or PSMs, set this up if the label that identifies the decoys in the database is not the default (Only valid if option -protein-level-fdrs is active).", !is_required, is_advanced_option);
     registerFlag_("post-processing-tdc", "Use target-decoy competition to assign q-values and PEPs.", is_advanced_option);
+
+    //OSW/IPF parameters
+    registerDoubleOption_("ipf_max_peakgroup_pep", "<value>", 0.7, "OSW/IPF: Assess transitions only for candidate peak groups until maximum posterior error probability.", !is_required, is_advanced_option);
+    registerDoubleOption_("ipf_max_transition_isotope_overlap", "<value>", 0.5, "OSW/IPF: Maximum isotope overlap to consider transitions in IPF.", !is_required, is_advanced_option);
+    registerDoubleOption_("ipf_min_transition_sn", "<value>", 0, "OSW/IPF: Minimum log signal-to-noise level to consider transitions in IPF. Set -1 to disable this filter.", !is_required, is_advanced_option);
+
   }
   
   // TODO replace with TopPerc::getScanMergeKey
@@ -638,8 +652,8 @@ protected:
     }
     return EXECUTION_OK;
   }
-  
-  ExitCodes main_(int, const char**)
+
+  ExitCodes main_(int, const char**) override
   {
     //-------------------------------------------------------------
     // general variables and data to perform PercolatorAdapter
@@ -653,6 +667,8 @@ protected:
     const StringList in_list = getStringList_("in");
     const StringList in_decoy = getStringList_("in_decoy");
     LOG_DEBUG << "Input file (of target?): " << ListUtils::concatenate(in_list, ",") << " & " << ListUtils::concatenate(in_decoy, ",") << " (decoy)" << endl;
+    const String in_osw = getStringOption_("in_osw");
+    const String osw_level = getStringOption_("osw_level");
 
     const String percolator_executable(getStringOption_("percolator_executable"));
     writeDebug_(String("Path to the percolator: ") + percolator_executable, 2);
@@ -665,9 +681,32 @@ protected:
     
     const String mzid_out(getStringOption_("mzid_out"));
     const String out(getStringOption_("out"));
-    if (mzid_out.empty() && out.empty())
+    const String osw_out(getStringOption_("osw_out"));
+
+    if (in_list.empty() && in_osw.empty())
     {
-      writeLog_("Fatal error: no output file given (parameter 'out' or 'mzid_out')");
+      writeLog_("Fatal error: no input file given (parameter 'in' or 'in_osw')");
+      printUsage_();
+      return ILLEGAL_PARAMETERS;
+    }
+
+    if (mzid_out.empty() && out.empty() && osw_out.empty())
+    {
+      writeLog_("Fatal error: no output file given (parameter 'out' or 'mzid_out' or 'osw_out')");
+      printUsage_();
+      return ILLEGAL_PARAMETERS;
+    }
+
+    if (!in_osw.empty() && osw_out.empty())
+    {
+      writeLog_("Fatal error: OSW input requires OSW output.");
+      printUsage_();
+      return ILLEGAL_PARAMETERS;
+    }
+
+    if (!in_list.empty() && (out.empty() && mzid_out.empty()))
+    {
+      writeLog_("Fatal error: idXML/mzid input requires idXML/mzid output.");
       printUsage_();
       return ILLEGAL_PARAMETERS;
     }
@@ -675,95 +714,14 @@ protected:
     bool peptide_level_fdrs = getFlag_("peptide-level-fdrs");
     bool protein_level_fdrs = getFlag_("protein-level-fdrs");  
 
+    double ipf_max_peakgroup_pep = getDoubleOption_("ipf_max_peakgroup_pep");
+    double ipf_max_transition_isotope_overlap = getDoubleOption_("ipf_max_transition_isotope_overlap");
+    double ipf_min_transition_sn = getDoubleOption_("ipf_min_transition_sn");
+
     //-------------------------------------------------------------
     // read input
     //-------------------------------------------------------------
-    
-    //TODO introduce min/max charge to parameters for now take available range
-    int max_charge = 0;
-    int min_charge = 10;
-    bool is_decoy = false;
-    bool found_decoys = false;
-    ExitCodes read_exit = readInputFiles_(in_list, all_peptide_ids, all_protein_ids, is_decoy, found_decoys, min_charge, max_charge);
-    if (read_exit != EXECUTION_OK)
-    {
-      return read_exit;
-    }
-    
-    if (!in_decoy.empty())
-    {
-      is_decoy = true;
-      read_exit = readInputFiles_(in_decoy, all_peptide_ids, all_protein_ids, is_decoy, found_decoys, min_charge, max_charge);
-      if (read_exit != EXECUTION_OK)
-      {
-        return read_exit;
-      }
-    }
-    LOG_DEBUG << "Using min/max charges of " << min_charge << "/" << max_charge << endl;
-    
-    if (!found_decoys)
-    {
-      writeLog_("No decoys found, search results discrimination impossible. Aborting!");
-      printUsage_();
-      return INCOMPATIBLE_INPUT_DATA;
-    }
-    
-    if (all_peptide_ids.empty())
-    {
-      writeLog_("No peptide hits found in input file. Aborting!");
-      printUsage_();
-      return INPUT_FILE_EMPTY;
-    }
-    
-    if (all_protein_ids.empty())
-    {
-      writeLog_("No protein hits found in input file. Aborting!");
-      printUsage_();
-      return INPUT_FILE_EMPTY;
-    }
 
-    //-------------------------------------------------------------
-    // prepare pin
-    //-------------------------------------------------------------
-    
-    StringList feature_set;
-    feature_set.push_back("SpecId");
-    feature_set.push_back("Label");
-    feature_set.push_back("ScanNr");
-    feature_set.push_back("ExpMass");
-    feature_set.push_back("CalcMass");
-    feature_set.push_back("mass");
-    feature_set.push_back("peplen");
-    for (int i = min_charge; i <= max_charge; ++i)
-    {
-       feature_set.push_back("charge" + String(i));
-    }
-    feature_set.push_back("enzN");
-    feature_set.push_back("enzC");
-    feature_set.push_back("enzInt");
-    feature_set.push_back("dm");
-    feature_set.push_back("absdm");
-    
-    ProteinIdentification::SearchParameters search_parameters = all_protein_ids.front().getSearchParameters();
-    if (search_parameters.metaValueExists("extra_features"))
-    {
-      StringList extra_feature_set = ListUtils::create<String>(search_parameters.getMetaValue("extra_features").toString());
-      feature_set.insert(feature_set.end(), extra_feature_set.begin(), extra_feature_set.end());
-    }
-    else if (getFlag_("generic-feature-set")) 
-    {
-      feature_set.push_back("score");
-    } 
-    else 
-    {
-      writeLog_("No search engine specific features found. Generate search engine specific features using PSMFeatureExtractor or set the -generic-features-set flag to override. Aborting!");
-      printUsage_();
-      return INCOMPATIBLE_INPUT_DATA;
-    }
-    
-    feature_set.push_back("Peptide");
-    feature_set.push_back("Proteins");
-    
     string enz_str = getStringOption_("enzyme");
     
     // create temp directory to store percolator in file pin.tab temporarily
@@ -780,12 +738,125 @@ protected:
     String pout_decoy_file_peptides(temp_directory_body + txt_designator + "_decoy_pout_peptides.tab");
     String pout_target_file_proteins(temp_directory_body + txt_designator + "_target_pout_proteins.tab");
     String pout_decoy_file_proteins(temp_directory_body + txt_designator + "_decoy_pout_proteins.tab");
-    
-    LOG_DEBUG << "Writing percolator input file." << endl;
-    TextFile txt;  
-    txt.addLine(ListUtils::concatenate(feature_set, '\t'));
-    preparePin_(all_peptide_ids, feature_set, enz_str, txt, min_charge, max_charge);
-    txt.store(pin_file);
+
+    // prepare OSW I/O
+    if (!in_osw.empty() && !osw_out.empty() && in_osw != osw_out)
+    {
+      // Copy input OSW to output OSW, because we want to retain all information
+      remove(osw_out.c_str());
+      if (!osw_out.empty())
+      {
+        std::ifstream  src(in_osw.c_str(), std::ios::binary);
+        std::ofstream  dst(osw_out.c_str(), std::ios::binary);
+
+        dst << src.rdbuf();
+      }
+    }
+
+    // idXML or mzid input
+    if (in_osw.empty())
+    {
+      //TODO introduce min/max charge to parameters for now take available range
+      int max_charge = 0;
+      int min_charge = 10;
+      bool is_decoy = false;
+      bool found_decoys = false;
+      ExitCodes read_exit = readInputFiles_(in_list, all_peptide_ids, all_protein_ids, is_decoy, found_decoys, min_charge, max_charge);
+      if (read_exit != EXECUTION_OK)
+      {
+        return read_exit;
+      }
+      
+      if (!in_decoy.empty())
+      {
+        is_decoy = true;
+        read_exit = readInputFiles_(in_decoy, all_peptide_ids, all_protein_ids, is_decoy, found_decoys, min_charge, max_charge);
+        if (read_exit != EXECUTION_OK)
+        {
+          return read_exit;
+        }
+      }
+      LOG_DEBUG << "Using min/max charges of " << min_charge << "/" << max_charge << endl;
+      
+      if (!found_decoys)
+      {
+        writeLog_("No decoys found, search results discrimination impossible. Aborting!");
+        printUsage_();
+        return INCOMPATIBLE_INPUT_DATA;
+      }
+      
+      if (all_peptide_ids.empty())
+      {
+        writeLog_("No peptide hits found in input file. Aborting!");
+        printUsage_();
+        return INPUT_FILE_EMPTY;
+      }
+      
+      if (all_protein_ids.empty())
+      {
+        writeLog_("No protein hits found in input file. Aborting!");
+        printUsage_();
+        return INPUT_FILE_EMPTY;
+      }
+
+      //-------------------------------------------------------------
+      // prepare pin
+      //-------------------------------------------------------------
+      
+      StringList feature_set;
+      feature_set.push_back("SpecId");
+      feature_set.push_back("Label");
+      feature_set.push_back("ScanNr");
+      feature_set.push_back("ExpMass");
+      feature_set.push_back("CalcMass");
+      feature_set.push_back("mass");
+      feature_set.push_back("peplen");
+      for (int i = min_charge; i <= max_charge; ++i)
+      {
+         feature_set.push_back("charge" + String(i));
+      }
+      feature_set.push_back("enzN");
+      feature_set.push_back("enzC");
+      feature_set.push_back("enzInt");
+      feature_set.push_back("dm");
+      feature_set.push_back("absdm");
+      
+      ProteinIdentification::SearchParameters search_parameters = all_protein_ids.front().getSearchParameters();
+      if (search_parameters.metaValueExists("extra_features"))
+      {
+        StringList extra_feature_set = ListUtils::create<String>(search_parameters.getMetaValue("extra_features").toString());
+        feature_set.insert(feature_set.end(), extra_feature_set.begin(), extra_feature_set.end());
+      }
+      else if (getFlag_("generic-feature-set")) 
+      {
+        feature_set.push_back("score");
+      } 
+      else 
+      {
+        writeLog_("No search engine specific features found. Generate search engine specific features using PSMFeatureExtractor or set the -generic-features-set flag to override. Aborting!");
+        printUsage_();
+        return INCOMPATIBLE_INPUT_DATA;
+      }
+      
+      feature_set.push_back("Peptide");
+      feature_set.push_back("Proteins");
+      
+      LOG_DEBUG << "Writing percolator input file." << endl;
+      TextFile txt;  
+      txt.addLine(ListUtils::concatenate(feature_set, '\t'));
+      preparePin_(all_peptide_ids, feature_set, enz_str, txt, min_charge, max_charge);
+      txt.store(pin_file);
+    }
+    // OSW input
+    else
+    {
+      LOG_DEBUG << "Writing percolator input file." << endl;
+      TextFile txt;  
+      std::stringstream pin_output;
+      OSWFile().read(in_osw, osw_level, pin_output, ipf_max_peakgroup_pep, ipf_max_transition_isotope_overlap, ipf_min_transition_sn);
+      txt << pin_output.str();
+      txt.store(pin_file);
+    }
 
     QStringList arguments;
     // Check all set parameters and get them into arguments StringList
@@ -859,7 +930,7 @@ protected:
     //-------------------------------------------------------------
     // run percolator
     //-------------------------------------------------------------
-    // Percolator execution with the executable ant the arguments StringList
+    // Percolator execution with the executable and the arguments StringList
     int status = QProcess::execute(percolator_executable.toQString(), arguments); // does automatic escaping etc...
     if (status != 0)
     {
@@ -914,106 +985,121 @@ protected:
       LOG_WARN << "Keeping the temporary files at '" << temp_directory_body << "'. Set debug level to <5 to remove them." << endl;
     }
 
-    // Add the percolator results to the peptide vector of the original input file
-    //size_t c_debug = 0;
-    size_t cnt = 0;
-    String run_identifier = all_protein_ids.front().getIdentifier();
-    for (vector<PeptideIdentification>::iterator it = all_peptide_ids.begin(); it != all_peptide_ids.end(); ++it)
+    // idXML or mzid input
+    if (in_osw.empty())
     {
-      it->setIdentifier(run_identifier);
-      it->setScoreType("q-value");
-      it->setHigherScoreBetter(false);
-      
-      String scan_identifier = getScanIdentifier_(it, all_peptide_ids.begin());
-      
-      //check each PeptideHit for compliance with one of the PercolatorResults (by sequence)
-      for (vector<PeptideHit>::iterator hit = it->getHits().begin(); hit != it->getHits().end(); ++hit)
+      // Add the percolator results to the peptide vector of the original input file
+      //size_t c_debug = 0;
+      size_t cnt = 0;
+      String run_identifier = all_protein_ids.front().getIdentifier();
+      for (vector<PeptideIdentification>::iterator it = all_peptide_ids.begin(); it != all_peptide_ids.end(); ++it)
       {
-        String peptide_sequence = hit->getSequence().toString();
-        String psm_identifier = scan_identifier + peptide_sequence;
+        it->setIdentifier(run_identifier);
+        it->setScoreType("q-value");
+        it->setHigherScoreBetter(false);
         
-        map<String, PercolatorResult>::iterator pr = pep_map.find(psm_identifier);
-        if (pr != pep_map.end())
+        String scan_identifier = getScanIdentifier_(it, all_peptide_ids.begin());
+        
+        //check each PeptideHit for compliance with one of the PercolatorResults (by sequence)
+        for (vector<PeptideHit>::iterator hit = it->getHits().begin(); hit != it->getHits().end(); ++hit)
         {
-          hit->setMetaValue("MS:1001492", pr->second.score);  // svm score
-          hit->setMetaValue("MS:1001491", pr->second.qvalue);  // percolator q value
-          hit->setMetaValue("MS:1001493", pr->second.posterior_error_prob);  // percolator pep
-          hit->setScore(pr->second.qvalue);
-          ++cnt;
-        }
-        else
-        {
-          hit->setScore(1.0); // set q-value to 1.0 if hit not found in results
-        }
-      }
-    }
-    //LOG_INFO << "No suitable PeptideIdentification for " << c_debug << " out of " << all_peptide_ids.size() << endl;
-    LOG_INFO << "Suitable PeptideHits for " << cnt << " found." << endl;
-
-    // TODO: There should only be 1 ProteinIdentification element in this vector, no need for a for loop
-    for (vector<ProteinIdentification>::iterator it = all_protein_ids.begin(); it != all_protein_ids.end(); ++it)
-    {      
-      if (protein_level_fdrs)
-      {
-        //check each ProteinHit for compliance with one of the PercolatorProteinResults (by accession)
-        for (vector<ProteinHit>::iterator hit = it->getHits().begin(); hit != it->getHits().end(); ++hit)
-        {
-          String protein_accession = hit->getAccession();        
-          map<String, PercolatorProteinResult>::iterator pr = protein_map.find(protein_accession);
-          if (pr != protein_map.end())
+          String peptide_sequence = hit->getSequence().toString();
+          String psm_identifier = scan_identifier + peptide_sequence;
+          
+          map<String, PercolatorResult>::iterator pr = pep_map.find(psm_identifier);
+          if (pr != pep_map.end())
           {
+            hit->setMetaValue("MS:1001492", pr->second.score);  // svm score
             hit->setMetaValue("MS:1001491", pr->second.qvalue);  // percolator q value
             hit->setMetaValue("MS:1001493", pr->second.posterior_error_prob);  // percolator pep
             hit->setScore(pr->second.qvalue);
+            ++cnt;
           }
           else
           {
             hit->setScore(1.0); // set q-value to 1.0 if hit not found in results
           }
         }
-        it->setSearchEngine("Percolator");
-        it->setScoreType("q-value");
-        it->setHigherScoreBetter(false);
-        it->sort();
+      }
+      //LOG_INFO << "No suitable PeptideIdentification for " << c_debug << " out of " << all_peptide_ids.size() << endl;
+      LOG_INFO << "Suitable PeptideHits for " << cnt << " found." << endl;
+
+      // TODO: There should only be 1 ProteinIdentification element in this vector, no need for a for loop
+      for (vector<ProteinIdentification>::iterator it = all_protein_ids.begin(); it != all_protein_ids.end(); ++it)
+      {      
+        if (protein_level_fdrs)
+        {
+          //check each ProteinHit for compliance with one of the PercolatorProteinResults (by accession)
+          for (vector<ProteinHit>::iterator hit = it->getHits().begin(); hit != it->getHits().end(); ++hit)
+          {
+            String protein_accession = hit->getAccession();        
+            map<String, PercolatorProteinResult>::iterator pr = protein_map.find(protein_accession);
+            if (pr != protein_map.end())
+            {
+              hit->setMetaValue("MS:1001491", pr->second.qvalue);  // percolator q value
+              hit->setMetaValue("MS:1001493", pr->second.posterior_error_prob);  // percolator pep
+              hit->setScore(pr->second.qvalue);
+            }
+            else
+            {
+              hit->setScore(1.0); // set q-value to 1.0 if hit not found in results
+            }
+          }
+          it->setSearchEngine("Percolator");
+          it->setScoreType("q-value");
+          it->setHigherScoreBetter(false);
+          it->sort();
+        }
+        
+        //TODO add software percolator and PercolatorAdapter
+        it->setMetaValue("percolator", "PercolatorAdapter");
+        ProteinIdentification::SearchParameters search_parameters = it->getSearchParameters();
+        
+        search_parameters.setMetaValue("Percolator:peptide-level-fdrs", peptide_level_fdrs);
+        search_parameters.setMetaValue("Percolator:protein-level-fdrs", protein_level_fdrs);
+        search_parameters.setMetaValue("Percolator:generic-feature-set", getFlag_("generic-feature-set"));
+        search_parameters.setMetaValue("Percolator:testFDR", getDoubleOption_("testFDR"));
+        search_parameters.setMetaValue("Percolator:trainFDR", getDoubleOption_("trainFDR"));
+        search_parameters.setMetaValue("Percolator:maxiter", getIntOption_("maxiter"));
+        search_parameters.setMetaValue("Percolator:subset-max-train", getIntOption_("subset-max-train"));
+        search_parameters.setMetaValue("Percolator:quick-validation", getFlag_("quick-validation"));
+        search_parameters.setMetaValue("Percolator:weights", getStringOption_("weights"));
+        search_parameters.setMetaValue("Percolator:init-weights", getStringOption_("init-weights"));
+        search_parameters.setMetaValue("Percolator:default-direction", getStringOption_("default-direction"));
+        search_parameters.setMetaValue("Percolator:cpos", getDoubleOption_("cpos"));
+        search_parameters.setMetaValue("Percolator:cneg", getDoubleOption_("cneg"));
+        search_parameters.setMetaValue("Percolator:unitnorm", getFlag_("unitnorm"));
+        search_parameters.setMetaValue("Percolator:override", getFlag_("override"));
+        search_parameters.setMetaValue("Percolator:seed", getIntOption_("seed"));
+        search_parameters.setMetaValue("Percolator:doc", getIntOption_("doc"));
+        search_parameters.setMetaValue("Percolator:klammer", getFlag_("klammer"));
+        search_parameters.setMetaValue("Percolator:fasta", getStringOption_("fasta"));
+        search_parameters.setMetaValue("Percolator:decoy-pattern", getStringOption_("decoy-pattern"));
+        search_parameters.setMetaValue("Percolator:post-processing-tdc", getFlag_("post-processing-tdc"));
+        
+        it->setSearchParameters(search_parameters);
       }
       
-      //TODO add software percolator and PercolatorAdapter
-      it->setMetaValue("percolator", "PercolatorAdapter");
-      ProteinIdentification::SearchParameters search_parameters = it->getSearchParameters();
-      
-      search_parameters.setMetaValue("Percolator:peptide-level-fdrs", peptide_level_fdrs);
-      search_parameters.setMetaValue("Percolator:protein-level-fdrs", protein_level_fdrs);
-      search_parameters.setMetaValue("Percolator:generic-feature-set", getFlag_("generic-feature-set"));
-      search_parameters.setMetaValue("Percolator:testFDR", getDoubleOption_("testFDR"));
-      search_parameters.setMetaValue("Percolator:trainFDR", getDoubleOption_("trainFDR"));
-      search_parameters.setMetaValue("Percolator:maxiter", getIntOption_("maxiter"));
-      search_parameters.setMetaValue("Percolator:subset-max-train", getIntOption_("subset-max-train"));
-      search_parameters.setMetaValue("Percolator:quick-validation", getFlag_("quick-validation"));
-      search_parameters.setMetaValue("Percolator:weights", getStringOption_("weights"));
-      search_parameters.setMetaValue("Percolator:init-weights", getStringOption_("init-weights"));
-      search_parameters.setMetaValue("Percolator:default-direction", getStringOption_("default-direction"));
-      search_parameters.setMetaValue("Percolator:cpos", getDoubleOption_("cpos"));
-      search_parameters.setMetaValue("Percolator:cneg", getDoubleOption_("cneg"));
-      search_parameters.setMetaValue("Percolator:unitnorm", getFlag_("unitnorm"));
-      search_parameters.setMetaValue("Percolator:override", getFlag_("override"));
-      search_parameters.setMetaValue("Percolator:seed", getIntOption_("seed"));
-      search_parameters.setMetaValue("Percolator:doc", getIntOption_("doc"));
-      search_parameters.setMetaValue("Percolator:klammer", getFlag_("klammer"));
-      search_parameters.setMetaValue("Percolator:fasta", getStringOption_("fasta"));
-      search_parameters.setMetaValue("Percolator:decoy-pattern", getStringOption_("decoy-pattern"));
-      search_parameters.setMetaValue("Percolator:post-processing-tdc", getFlag_("post-processing-tdc"));
-      
-      it->setSearchParameters(search_parameters);
+      // Storing the PeptideHits with calculated q-value, pep and svm score
+      if (!mzid_out.empty())
+      {
+        MzIdentMLFile().store(mzid_out.toQString().toStdString(), all_protein_ids, all_peptide_ids);
+      }
+      if (!out.empty())
+      {
+        IdXMLFile().store(out.toQString().toStdString(), all_protein_ids, all_peptide_ids);
+      }
     }
-    
-    // Storing the PeptideHits with calculated q-value, pep and svm score
-    if (!mzid_out.empty())
+    else
     {
-      MzIdentMLFile().store(mzid_out.toQString().toStdString(), all_protein_ids, all_peptide_ids);
-    }
-    if (!out.empty())
-    {
-      IdXMLFile().store(out.toQString().toStdString(), all_protein_ids, all_peptide_ids);
+      std::map< std::string, std::vector<double> > features;
+      for (auto const &feat : pep_map)
+      {
+        features[feat.second.PSMId].push_back(feat.second.score);
+        features[feat.second.PSMId].push_back(feat.second.qvalue);
+        features[feat.second.PSMId].push_back(feat.second.posterior_error_prob);
+      }
+      OSWFile().write(osw_out, osw_level, features);
     }
 
     writeLog_("PercolatorAdapter finished successfully!");
