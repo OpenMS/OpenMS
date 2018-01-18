@@ -41,7 +41,20 @@
 namespace OpenMS
 {
 
-  class OPENMS_DLLAPI CoarseIsotopeDistribution : public IsotopePatternGenerator
+  /**
+    *         @ingroup Chemistry
+    *         @brief Isotope pattern generator for coarse (nominal mass) isotope distributions.
+    *
+    *         The most important value which should be set is the max isotope value.
+    *         It limits the number of calculated isotopes.
+    *         If e.g., set to 3, only the first three isotopes, Monoisotopic mass, +1 and +2 are
+    *         calculated.
+    *         By default all possible isotopes are calculated, which leads to a large
+    *         number of values, if the mass value is large!
+    **/
+
+  class OPENMS_DLLAPI CoarseIsotopeDistribution 
+    : public IsotopePatternGenerator
   {
 
  public:
