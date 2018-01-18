@@ -104,7 +104,7 @@ namespace OpenMS
 
     for (auto const ap : alignment)
     {
-      const double mz_tolerance = is_relative_tolerance ? mz_tolerance * s1[ap.first].getMZ() * 1e-6 : tolerance;
+      const double mz_tolerance = is_relative_tolerance ? tolerance * s1[ap.first].getMZ() * 1e-6 : tolerance;
       const double mz_difference(fabs(s1[ap.first].getMZ() - s2[ap.second].getMZ()));
  
       double factor(1.0);
