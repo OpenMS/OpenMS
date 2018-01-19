@@ -233,7 +233,6 @@ namespace OpenMS
           IdentificationData::MoleculeType::PROTEIN) continue;
       IdentificationData::IdentifiedPeptideRef peptide_ref =
         query_match.getIdentifiedPeptideRef();
-      IdentificationData::DataQueryRef query_ref = query_match.data_query_ref;
       PeptideHit hit;
       hit.setSequence(peptide_ref->sequence);
       hit.setCharge(query_match.charge);
@@ -273,7 +272,7 @@ namespace OpenMS
             hit.setScore(score_it->second);
             pair<IdentificationData::DataQueryRef,
                  IdentificationData::ProcessingStepRef> key =
-              make_pair(query_ref, step_ref);
+              make_pair(query_match.data_query_ref, step_ref);
             psm_data[key].first.push_back(hit);
             psm_data[key].second = score_ref;
             break;
