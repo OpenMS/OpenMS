@@ -92,9 +92,6 @@ using namespace std;
 class RNPxlSearch :
   public TOPPBase
 {
-  // additional shift used to generate cross-linked fragment ions for decoy peptides
-  static constexpr double DECOY_FRAGMENT_SHIFT = 20.0;
-
   // fast or all-shifts scoring mode
   bool fast_scoring_ = true;
 
@@ -500,7 +497,6 @@ protected:
     // this includes the protonated nitrogenous base and all shifts (e.g., U-H2O, U'-H20, ...)
     static void addMS2MarkerIons(
       const vector<FragmentAdductDefinition_>& marker_ions,
-      const bool is_decoy,
       PeakSpectrum& spectrum,
       PeakSpectrum::IntegerDataArray& spectrum_charge,
       PeakSpectrum::StringDataArray& spectrum_annotation);
@@ -509,7 +505,6 @@ protected:
       const String & unmodified_sequence,
       const String & fragment_shift_name,
       const double fragment_shift_mass,
-      const bool is_decoy,
       PeakSpectrum & partial_loss_spectrum,
       PeakSpectrum::IntegerDataArray& partial_loss_spectrum_charge,
       PeakSpectrum::StringDataArray& partial_loss_spectrum_annotation);
@@ -522,13 +517,11 @@ protected:
                                      const int& precursor_charge,
                                      const vector<FragmentAdductDefinition_>& partial_loss_modification,
                                      const TheoreticalSpectrumGenerator& partial_loss_spectrum_generator,
-                                     const bool is_decoy,
                                      PeakSpectrum& partial_loss_spectrum);
     static void addPrecursorWithCompleteRNA_(const double fixed_and_variable_modified_peptide_weight,
                                       const String & precursor_rna_adduct,
                                       const double precursor_rna_weight,
                                       const int charge,
-                                      const bool is_decoy,
                                       PeakSpectrum & partial_loss_spectrum,
                                       MSSpectrum::IntegerDataArray & partial_loss_spectrum_charge,
                                       MSSpectrum::StringDataArray & partial_loss_spectrum_annotation);
@@ -675,13 +668,11 @@ protected:
                                     precursor_charge,
                                     partial_loss_modification,
                                     partial_loss_spectrum_generator,
-                                    false,
                                     partial_loss_spectrum);
 
          // add shifted marker ions
          RNPxlFragmentIonGenerator::addMS2MarkerIons(
            marker_ions,
-           false, // no decoy shifts
            partial_loss_spectrum,
            partial_loss_spectrum.getIntegerDataArrays()[0],
            partial_loss_spectrum.getStringDataArrays()[0]);
@@ -1648,13 +1639,6 @@ protected:
 
       auto const & current_fasta_entry = fasta_db[fasta_index];
 
-      // do we process a decoy?
-      bool is_decoy(false);
-      if (generate_decoys && current_fasta_entry.identifier.hasPrefix("DECOY_"))
-      {
-        is_decoy = true;
-      }
-
       digestor.digestUnmodified(current_fasta_entry.sequence, current_digest, min_peptide_length);
 
       for (auto cit = current_digest.begin(); cit != current_digest.end(); ++cit)
@@ -1871,7 +1855,6 @@ protected:
                                                 1,
                                                 partial_loss_modification,
                                                 partial_loss_spectrum_generator,
-                                                is_decoy,
                                                 partial_loss_spectrum_z1);
                     for (auto& n : partial_loss_spectrum_z1.getStringDataArrays()[0]) { n[0] = 'y'; } // hyperscore hack
 
@@ -1883,7 +1866,6 @@ protected:
                                                 2, // don't know the charge of the precursor at that point
                                                 partial_loss_modification,
                                                 partial_loss_spectrum_generator,
-                                                is_decoy,
                                                 partial_loss_spectrum_z2);
                     for (auto& n : partial_loss_spectrum_z2.getStringDataArrays()[0]) { n[0] = 'y'; } // hyperscore hack
                   }
@@ -1893,7 +1875,6 @@ protected:
                   marker_ions_sub_score_spectrum_z1.getIntegerDataArrays().resize(1); // annotation
                   RNPxlFragmentIonGenerator::addMS2MarkerIons(
                     marker_ions,
-                    is_decoy,
                     marker_ions_sub_score_spectrum_z1,
                     marker_ions_sub_score_spectrum_z1.getIntegerDataArrays()[0],
                     marker_ions_sub_score_spectrum_z1.getStringDataArrays()[0]);
@@ -2588,13 +2569,14 @@ RNPxlSearch::RNPxlParameterParsing::getFeasibleFragmentAdducts(const String &exp
 }
 
 void RNPxlSearch::RNPxlFragmentIonGenerator::addMS2MarkerIons(
-  const vector<RNPxlSearch::FragmentAdductDefinition_> &marker_ions, const bool is_decoy, PeakSpectrum &spectrum,
-  PeakSpectrum::IntegerDataArray &spectrum_charge, PeakSpectrum::StringDataArray &spectrum_annotation)
+  const vector<RNPxlSearch::FragmentAdductDefinition_> &marker_ions, 
+  PeakSpectrum &spectrum,
+  PeakSpectrum::IntegerDataArray &spectrum_charge, 
+  PeakSpectrum::StringDataArray &spectrum_annotation)
 {
   for (auto const & m : marker_ions)
   {
-    double mz = m.mass + Constants::PROTON_MASS_U;
-    if (is_decoy) { mz += DECOY_FRAGMENT_SHIFT; }
+    const double mz = m.mass + Constants::PROTON_MASS_U;
 
     spectrum.emplace_back(mz, 1.0);
     spectrum_charge.emplace_back(1);
@@ -2605,77 +2587,76 @@ void RNPxlSearch::RNPxlFragmentIonGenerator::addMS2MarkerIons(
 void RNPxlSearch::RNPxlFragmentIonGenerator::addShiftedImmoniumIons(const String &unmodified_sequence,
                                                                     const String &fragment_shift_name,
                                                                     const double fragment_shift_mass,
-                                                                    const bool is_decoy,
                                                                     PeakSpectrum &partial_loss_spectrum,
                                                                     PeakSpectrum::IntegerDataArray &partial_loss_spectrum_charge,
-                                                                    PeakSpectrum::StringDataArray &partial_loss_spectrum_annotation) {
-  const double fragment_shift_mass_td = is_decoy ? fragment_shift_mass + DECOY_FRAGMENT_SHIFT : fragment_shift_mass;
+                                                                    PeakSpectrum::StringDataArray &partial_loss_spectrum_annotation) 
+{
 
   if (unmodified_sequence.hasSubstring("Y"))
   {
-    const double immonium_ion_mz = EmpiricalFormula("C8H10NO").getMonoWeight() + fragment_shift_mass_td;
+    const double immonium_ion_mz = EmpiricalFormula("C8H10NO").getMonoWeight() + fragment_shift_mass;
     partial_loss_spectrum.emplace_back(immonium_ion_mz, 1.0);
     partial_loss_spectrum_charge.emplace_back(1);
     partial_loss_spectrum_annotation.emplace_back(FragmentAnnotationHelper::getAnnotatedImmoniumIon('Y', fragment_shift_name));
   }
   else if (unmodified_sequence.hasSubstring("W"))
   {
-    const double immonium_ion_mz = EmpiricalFormula("C10H11N2").getMonoWeight() + fragment_shift_mass_td;
+    const double immonium_ion_mz = EmpiricalFormula("C10H11N2").getMonoWeight() + fragment_shift_mass;
     partial_loss_spectrum.emplace_back(immonium_ion_mz, 1.0);
     partial_loss_spectrum_charge.emplace_back(1);
     partial_loss_spectrum_annotation.emplace_back(FragmentAnnotationHelper::getAnnotatedImmoniumIon('W', fragment_shift_name));
   }
   else if (unmodified_sequence.hasSubstring("F"))
   {
-    const double immonium_ion_mz = EmpiricalFormula("C8H10N").getMonoWeight() + fragment_shift_mass_td;
+    const double immonium_ion_mz = EmpiricalFormula("C8H10N").getMonoWeight() + fragment_shift_mass;
     partial_loss_spectrum.emplace_back(immonium_ion_mz, 1.0);
     partial_loss_spectrum_charge.emplace_back(1);
     partial_loss_spectrum_annotation.emplace_back(FragmentAnnotationHelper::getAnnotatedImmoniumIon('F', fragment_shift_name));
   }
   else if (unmodified_sequence.hasSubstring("H"))
   {
-    const double immonium_ion_mz = EmpiricalFormula("C5H8N3").getMonoWeight() + fragment_shift_mass_td;
+    const double immonium_ion_mz = EmpiricalFormula("C5H8N3").getMonoWeight() + fragment_shift_mass;
     partial_loss_spectrum.emplace_back(immonium_ion_mz, 1.0);
     partial_loss_spectrum_charge.emplace_back(1);
     partial_loss_spectrum_annotation.emplace_back(FragmentAnnotationHelper::getAnnotatedImmoniumIon('H', fragment_shift_name));
   }
   else if (unmodified_sequence.hasSubstring("C"))
   {
-    const double immonium_ion_mz = EmpiricalFormula("C2H6NS").getMonoWeight() + fragment_shift_mass_td;
+    const double immonium_ion_mz = EmpiricalFormula("C2H6NS").getMonoWeight() + fragment_shift_mass;
     partial_loss_spectrum.emplace_back(immonium_ion_mz, 1.0);
     partial_loss_spectrum_charge.emplace_back(1);
     partial_loss_spectrum_annotation.emplace_back(FragmentAnnotationHelper::getAnnotatedImmoniumIon('C', fragment_shift_name));
   }
   else if (unmodified_sequence.hasSubstring("P"))
   {
-    const double immonium_ion_mz = EmpiricalFormula("C4H8N").getMonoWeight() + fragment_shift_mass_td;
+    const double immonium_ion_mz = EmpiricalFormula("C4H8N").getMonoWeight() + fragment_shift_mass;
     partial_loss_spectrum.emplace_back(immonium_ion_mz, 1.0);
     partial_loss_spectrum_charge.emplace_back(1);
     partial_loss_spectrum_annotation.emplace_back(FragmentAnnotationHelper::getAnnotatedImmoniumIon('P', fragment_shift_name));
   }
   else if (unmodified_sequence.hasSubstring("L") || unmodified_sequence.hasSubstring("I"))
   {
-    const double immonium_ion_mz = EmpiricalFormula("C5H12N").getMonoWeight() + fragment_shift_mass_td;
+    const double immonium_ion_mz = EmpiricalFormula("C5H12N").getMonoWeight() + fragment_shift_mass;
     partial_loss_spectrum.emplace_back(immonium_ion_mz, 1.0);
     partial_loss_spectrum_charge.emplace_back(1);
     partial_loss_spectrum_annotation.emplace_back(FragmentAnnotationHelper::getAnnotatedImmoniumIon('L', fragment_shift_name));
   }
   else if (unmodified_sequence.hasSubstring("K"))
   {
-    const double immonium_ion_mz = 101.10732 + fragment_shift_mass_td;
+    const double immonium_ion_mz = 101.10732 + fragment_shift_mass;
     partial_loss_spectrum.emplace_back(immonium_ion_mz, 1.0);
     partial_loss_spectrum_charge.emplace_back(1);
     partial_loss_spectrum_annotation.emplace_back(FragmentAnnotationHelper::getAnnotatedImmoniumIon('K', fragment_shift_name));
 
     // TODO: check if only DNA specific and if also other shifts are observed
-    const double immonium_ion2_mz = 84.0808 + fragment_shift_mass_td; // according to A. Stuetzer mainly observed with C‘-NH3 (94.0167 Da)
+    const double immonium_ion2_mz = 84.0808 + fragment_shift_mass; // according to A. Stuetzer mainly observed with C‘-NH3 (94.0167 Da)
     partial_loss_spectrum.emplace_back(immonium_ion2_mz, 1.0);
     partial_loss_spectrum_charge.emplace_back(1);
     partial_loss_spectrum_annotation.emplace_back(FragmentAnnotationHelper::getAnnotatedImmoniumIon('K', fragment_shift_name));
   }
   else if (unmodified_sequence.hasSubstring("M"))
   {
-    const double immonium_ion_mz = 104.05285 + fragment_shift_mass_td;
+    const double immonium_ion_mz = 104.05285 + fragment_shift_mass;
     partial_loss_spectrum.emplace_back(immonium_ion_mz, 1.0);
     partial_loss_spectrum_charge.emplace_back(1);
     partial_loss_spectrum_annotation.emplace_back(FragmentAnnotationHelper::getAnnotatedImmoniumIon('M', fragment_shift_name));
@@ -2690,7 +2671,6 @@ void RNPxlSearch::RNPxlFragmentIonGenerator::generatePartialLossSpectrum(const S
                                                                          const int &precursor_charge,
                                                                          const vector<RNPxlSearch::FragmentAdductDefinition_> &partial_loss_modification,
                                                                          const TheoreticalSpectrumGenerator &partial_loss_spectrum_generator,
-                                                                         const bool is_decoy,
                                                                          PeakSpectrum &partial_loss_spectrum)
 {
   partial_loss_spectrum.getIntegerDataArrays().resize(1);
@@ -2707,14 +2687,10 @@ void RNPxlSearch::RNPxlFragmentIonGenerator::generatePartialLossSpectrum(const S
                                  precursor_rna_adduct,
                                  precursor_rna_weight,
                                  charge,
-                                 is_decoy,
                                  partial_loss_spectrum,
                                  partial_loss_spectrum_charge,
                                  partial_loss_spectrum_annotation);
   }
-
-  // 0 for target peptides, DECOY_FRAGMENT_SHIFT for decoy peptides
-  const double td_shift = is_decoy ? DECOY_FRAGMENT_SHIFT : 0;
 
   for (Size i = 0; i != partial_loss_modification.size(); ++i)
   {
@@ -2727,7 +2703,6 @@ void RNPxlSearch::RNPxlFragmentIonGenerator::generatePartialLossSpectrum(const S
       unmodified_sequence,
       fragment_shift_name,
       fragment_shift_mass,
-      is_decoy,
       partial_loss_spectrum,
       partial_loss_spectrum_charge,
       partial_loss_spectrum_annotation);
@@ -2750,9 +2725,8 @@ void RNPxlSearch::RNPxlFragmentIonGenerator::generatePartialLossSpectrum(const S
       PeakSpectrum::StringDataArray& tmp_shifted_series_annotations = tmp_shifted_series_peaks.getStringDataArrays()[0];
       PeakSpectrum::IntegerDataArray& tmp_shifted_series_charges = tmp_shifted_series_peaks.getIntegerDataArrays()[0];
 
-      // 2. shift peaks (additional shift for decoys)
-      // TODO: check if decoy shift is in m/z or Da
-      for (auto & p : tmp_shifted_series_peaks) { p.setMZ(p.getMZ() + fragment_shift_mass / static_cast<double>(z) + td_shift); }
+      // 2. shift peaks 
+      for (auto & p : tmp_shifted_series_peaks) { p.setMZ(p.getMZ() + fragment_shift_mass / static_cast<double>(z)); }
 
       // 3. add shifted peaks to shifted_series_peaks
       shifted_series_peaks.insert(shifted_series_peaks.end(), tmp_shifted_series_peaks.begin(), tmp_shifted_series_peaks.end());
@@ -2792,17 +2766,17 @@ void RNPxlSearch::RNPxlFragmentIonGenerator::generatePartialLossSpectrum(const S
 }
 
 void RNPxlSearch::RNPxlFragmentIonGenerator::addPrecursorWithCompleteRNA_(
-  const double fixed_and_variable_modified_peptide_weight, const String &precursor_rna_adduct,
-  const double precursor_rna_weight, const int charge, const bool is_decoy, PeakSpectrum &partial_loss_spectrum,
+  const double fixed_and_variable_modified_peptide_weight, 
+  const String &precursor_rna_adduct,
+  const double precursor_rna_weight, 
+  const int charge, 
+  PeakSpectrum &partial_loss_spectrum,
   MSSpectrum::IntegerDataArray &partial_loss_spectrum_charge,
   MSSpectrum::StringDataArray &partial_loss_spectrum_annotation)
 {
-  const double td_shift = is_decoy ? DECOY_FRAGMENT_SHIFT : 0;
-
-  double xl_mz = (fixed_and_variable_modified_peptide_weight + precursor_rna_weight +
+  const double xl_mz = (fixed_and_variable_modified_peptide_weight + precursor_rna_weight +
                   static_cast<double>(charge) * Constants::PROTON_MASS_U)
-                 / static_cast<double>(charge)
-                 + td_shift;  // fixed shift TODO: check if m/z or Da should be used for this shift
+                 / static_cast<double>(charge);
   partial_loss_spectrum.push_back(Peak1D(xl_mz, 1.0));
   partial_loss_spectrum_charge.push_back(charge);
   partial_loss_spectrum_annotation.push_back(String("[M+") + precursor_rna_adduct + "]");
