@@ -44,6 +44,7 @@
 #include <OpenMS/CHEMISTRY/ProteaseDigestion.h>
 #include <OpenMS/DATASTRUCTURES/ListUtilsIO.h>
 #include <OpenMS/ANALYSIS/ID/PeptideIndexing.h>
+#include <OpenMS/ANALYSIS/ID/FalseDiscoveryRate.h>
 
 #include <OpenMS/ANALYSIS/RNPXL/RNPxlDeisotoper.h>
 #include <OpenMS/ANALYSIS/RNPXL/RNPxlModificationsGenerator.h>
@@ -2122,6 +2123,38 @@ protected:
       {
         return UNKNOWN_ERROR;
       }
+    } 
+
+    // if we generate decoys, we can report a FDR on the peptide and cross-link level
+    if (generate_decoys)
+    {
+      // partition ids into cross-links and peptides
+      auto it = std::partition(peptide_ids.begin(), peptide_ids.end(), 
+       [](PeptideIdentification pid) 
+       {
+         auto const & hits = pid.getHits();
+         // predicate: check if best hit is a cross-link
+         if (hits.empty() 
+           && hits.front().getMetaValue("target_decoy") == "target") 
+         { 
+           return true;
+         }
+         return false;
+       });
+
+      // [begin, it) contains cross-links, [it, end) normal peptides
+      vector<PeptideIdentification> pepids_xls, pepids_normal;
+      std::copy(std::begin(peptide_ids), it, std::back_inserter(pepids_xls));
+      std::copy(it, std::end(peptide_ids), std::back_inserter(pepids_normal));
+
+      // calculate FDR independently
+      FalseDiscoveryRate fdr;     
+      fdr.apply(pepids_xls);
+      fdr.apply(pepids_normal);
+
+      // reassemble in one vector
+      peptide_ids = pepids_xls;    
+      std::copy(std::begin(pepids_normal), std::end(pepids_normal), std::back_inserter(peptide_ids));
     } 
 
     // write ProteinIdentifications and PeptideIdentifications to IdXML
