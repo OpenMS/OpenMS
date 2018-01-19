@@ -550,24 +550,36 @@ namespace OpenMS
 
 
   void FalseDiscoveryRate::handleQueryMatch_(
-    const IdentificationData::QueryMatchMap::value_type& match_pair,
-    const IdentificationData& id_data,
-    IdentificationData::ScoreTypeKey score_key,
+    IdentificationData::QueryMatchRef match_ref,
+    IdentificationData::ScoreTypeRef score_ref,
     vector<double>& target_scores, vector<double>& decoy_scores,
-    map<IdentificationData::IdentifiedMoleculeKey, bool>& molecule_to_decoy,
-    map<IdentificationData::QueryMatchKey, double>& match_to_score)
+    map<IdentificationData::IdentifiedMoleculeRef, bool>& molecule_to_decoy,
+    map<IdentificationData::QueryMatchRef, double>& match_to_score)
   {
-    pair<double, bool> score = match_pair.second.getScore(score_key);
+    IdentificationData::MoleculeType molecule_type =
+      match_ref->getMoleculeType();
+    if (molecule_type == IdentificationData::MoleculeType::COMPOUND)
+    {
+      return; // compounds don't have parents with target/decoy status
+    }
+    pair<double, bool> score = match_ref->getScore(score_ref);
     if (!score.second) return; // no score of this type
-    match_to_score[match_pair.first] = score.first;
-    IdentificationData::IdentifiedMoleculeKey molecule_key =
-      match_pair.first.second;
-    auto pos = molecule_to_decoy.find(molecule_key);
+    match_to_score[match_ref] = score.first;
+    IdentificationData::IdentifiedMoleculeRef molecule_ref =
+      match_ref->identified_molecule_ref;
+    auto pos = molecule_to_decoy.find(molecule_ref);
     bool is_decoy;
     if (pos == molecule_to_decoy.end()) // new molecule
     {
-      is_decoy = id_data.allParentsAreDecoys(molecule_key);
-      molecule_to_decoy[molecule_key] = is_decoy;
+      if (molecule_type == IdentificationData::MoleculeType::PROTEIN)
+      {
+        is_decoy = match_ref->getIdentifiedPeptideRef()->allParentsAreDecoys();
+      }
+      else // if (molecule_type == IdentificationData::MoleculeType::RNA)
+      {
+        is_decoy = match_ref->getIdentifiedOligoRef()->allParentsAreDecoys();
+      }
+      molecule_to_decoy[molecule_ref] = is_decoy;
     }
     else
     {
@@ -584,37 +596,36 @@ namespace OpenMS
   }
 
 
-  IdentificationData::ScoreTypeKey FalseDiscoveryRate::applyToQueryMatches(
-    IdentificationData& id_data, IdentificationData::ScoreTypeKey score_key)
+  IdentificationData::ScoreTypeRef FalseDiscoveryRate::applyToQueryMatches(
+    IdentificationData& id_data, IdentificationData::ScoreTypeRef score_ref)
   {
     bool use_all_hits = param_.getValue("use_all_hits").toBool();
     bool include_decoys = param_.getValue("add_decoy_peptides").toBool();
     vector<double> target_scores, decoy_scores;
-    // @TODO: replace maps with "[boost::]unordered_map"?
-    map<IdentificationData::IdentifiedMoleculeKey, bool> molecule_to_decoy;
-    map<IdentificationData::QueryMatchKey, double> match_to_score;
+    map<IdentificationData::IdentifiedMoleculeRef, bool> molecule_to_decoy;
+    map<IdentificationData::QueryMatchRef, double> match_to_score;
     if (use_all_hits)
     {
-      for (const auto& match_pair : id_data.query_matches)
+      for (auto it = id_data.getMoleculeQueryMatches().begin();
+           it != id_data.getMoleculeQueryMatches().end(); ++it)
       {
-        handleQueryMatch_(match_pair, id_data, score_key, target_scores,
-                          decoy_scores, molecule_to_decoy, match_to_score);
+        handleQueryMatch_(it, score_ref, target_scores, decoy_scores,
+                          molecule_to_decoy, match_to_score);
       }
     }
     else
     {
-      vector<IdentificationData::QueryMatchKey> best_matches =
-        id_data.getBestMatchPerQuery(score_key);
-      for (auto match_key : best_matches)
+      vector<IdentificationData::QueryMatchRef> best_matches =
+        id_data.getBestMatchPerQuery(score_ref);
+      for (auto match_ref : best_matches)
       {
-        auto pos = id_data.query_matches.find(match_key);
-        handleQueryMatch_(*pos, id_data, score_key, target_scores,
-                          decoy_scores, molecule_to_decoy, match_to_score);
+        handleQueryMatch_(match_ref, score_ref, target_scores, decoy_scores,
+                          molecule_to_decoy, match_to_score);
       }
     }
 
     map<double, double> score_to_fdr;
-    bool higher_better = id_data.score_types.left.at(score_key).higher_better;
+    bool higher_better = score_ref->higher_better;
     bool use_qvalue = !param_.getValue("no_qvalues").toBool();
     calculateFDRs_(score_to_fdr, target_scores, decoy_scores, use_qvalue,
                    higher_better);
@@ -631,21 +642,27 @@ namespace OpenMS
       fdr_score.name = "FDR";
       fdr_score.cv_term = CVTerm("MS:1002355", "PSM-level FDRScore", "MS");
     }
-    IdentificationData::ScoreTypeKey fdr_key =
-      id_data.registerScoreType(fdr_score).first;
-    for (auto& match_pair : id_data.query_matches)
+    IdentificationData::ScoreTypeRef fdr_ref =
+      id_data.registerScoreType(fdr_score);
+    for (IdentificationData::MoleculeQueryMatches::iterator it =
+           id_data.getMoleculeQueryMatches().begin(); it !=
+           id_data.getMoleculeQueryMatches().end(); ++it)
     {
       if (!include_decoys)
       {
-        auto pos = molecule_to_decoy.find(match_pair.first.second);
+        auto pos = molecule_to_decoy.find(it->identified_molecule_ref);
         if ((pos != molecule_to_decoy.end()) && pos->second) continue;
       }
-      auto pos = match_to_score.find(match_pair.first);
+      auto pos = match_to_score.find(it);
       if (pos == match_to_score.end()) continue;
       double fdr = score_to_fdr.at(pos->second);
-      match_pair.second.scores.push_back(make_pair(fdr_key, fdr));
+      // @TODO: find a more efficient way to add a score
+      // IdentificationData::MoleculeQueryMatch copy(*it);
+      // copy.scores.push_back(make_pair(fdr_ref, fdr));
+      // id_data.registerMoleculeQueryMatch(copy);
+      id_data.addScore(it, fdr_ref, fdr);
     }
-    return fdr_key;
+    return fdr_ref;
   }
 
 

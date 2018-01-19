@@ -28,6 +28,8 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 
+//! [AASequence]
+
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <iostream>
 
@@ -71,3 +73,4 @@ int main()
   return 0;
 }
 
+//! [AASequence]

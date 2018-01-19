@@ -637,49 +637,24 @@ namespace OpenMS
 
   void IDFilter::keepBestMatchPerQuery(
     IdentificationData& id_data,
-    IdentificationData::ScoreTypeKey score_key, const String& score_type)
+    IdentificationData::ScoreTypeRef score_ref)
   {
-    if (id_data.query_matches.size() <= 1) return; // nothing to do
+    if (id_data.getMoleculeQueryMatches().size() <= 1) return; // nothing to do
 
-    if (UniqueIdInterface::isValid(score_key))
-    {
-      if (!id_data.score_types.left.count(score_key)) // not found
-      {
-        String msg = "no registered score type with this key";
-        throw Exception::InvalidValue(
-          __FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, msg, String(score_key));
-      }
-    }
-    else if (!score_type.empty()) // find key for the score type
-    {
-      score_key = id_data.findScoreType(score_type);
-      if (!UniqueIdInterface::isValid(score_key))
-      {
-        String msg = "no registered score type with this name";
-        throw Exception::InvalidValue(
-          __FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, msg, score_type);
-      }
-    }
-    else // select the score type to use
-    {
-      throw Exception::NotImplemented(__FILE__, __LINE__,
-                                      OPENMS_PRETTY_FUNCTION); // @TODO
-    }
-
-    vector<IdentificationData::QueryMatchKey> best_matches =
-      id_data.getBestMatchPerQuery(score_key);
+    vector<IdentificationData::QueryMatchRef> best_matches =
+      id_data.getBestMatchPerQuery(score_ref);
     auto best_match_it = best_matches.begin();
-    for (auto it = id_data.query_matches.begin();
-         it != id_data.query_matches.end(); )
+    for (auto it = id_data.query_matches_.begin();
+         it != id_data.query_matches_.end(); )
     {
-      if (it->first == *best_match_it)
+      if (it == *best_match_it)
       {
         ++it;
         ++best_match_it;
       }
       else
       {
-        it = id_data.query_matches.erase(it);
+        it = id_data.query_matches_.erase(it);
       }
     }
 
@@ -688,26 +663,19 @@ namespace OpenMS
 
 
   void IDFilter::filterQueryMatchesByScore(
-    IdentificationData& id_data, IdentificationData::ScoreTypeKey score_key,
+    IdentificationData& id_data, IdentificationData::ScoreTypeRef score_ref,
     double cutoff)
   {
-    auto pos = id_data.score_types.left.find(score_key);
-    if (pos == id_data.score_types.left.end())
-    {
-      String msg = "no registered score type with this key";
-      throw Exception::InvalidValue(
-        __FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, msg, String(score_key));
-    }
-    bool higher_better = pos->second.higher_better;
+    bool higher_better = score_ref->higher_better;
 
-    for (auto it = id_data.query_matches.begin();
-         it != id_data.query_matches.end(); )
+    for (auto it = id_data.query_matches_.begin();
+         it != id_data.query_matches_.end(); )
     {
-      pair<double, bool> score = it->second.getScore(score_key);
+      pair<double, bool> score = it->getScore(score_ref);
       if (!score.second || id_data.isBetterScore(cutoff, score.first,
                                                  higher_better))
       {
-        it = id_data.query_matches.erase(it);
+        it = id_data.query_matches_.erase(it);
       }
       else
       {
@@ -722,32 +690,48 @@ namespace OpenMS
   void IDFilter::removeMoleculesParentsQueriesWithoutMatches(
     IdentificationData& id_data)
   {
-    set<IdentificationData::DataQueryKey> query_keys;
-    set<IdentificationData::IdentifiedMoleculeKey> molecule_keys;
-    for (const auto& match_pair : id_data.query_matches)
+    set<IdentificationData::DataQueryRef> query_refs;
+    set<IdentificationData::IdentifiedPeptideRef> peptide_refs;
+    set<IdentificationData::IdentifiedCompoundRef> compound_refs;
+    set<IdentificationData::IdentifiedOligoRef> oligo_refs;
+    for (const auto& match : id_data.query_matches_)
     {
-      query_keys.insert(match_pair.first.first);
-      molecule_keys.insert(match_pair.first.second);
-    }
-    removeNonmatchingKeys_(id_data.data_queries.left, query_keys);
-    removeNonmatchingKeys_(id_data.identified_peptides.left,
-                           molecule_keys);
-    removeNonmatchingKeys_(id_data.identified_compounds.left,
-                           molecule_keys);
-    removeNonmatchingKeys_(id_data.identified_oligos.left, molecule_keys);
-    removeNonmatchingKeys_(id_data.identified_meta_data, molecule_keys);
-    removeNonmatchingKeys_(id_data.compound_meta_data, molecule_keys);
-    removeNonmatchingKeys_(id_data.parent_matches, molecule_keys);
-    set<IdentificationData::ParentMoleculeKey> parent_keys;
-    for (const auto& match_pair : id_data.parent_matches)
-    {
-      for (const auto& sub_pair : match_pair.second)
+      query_refs.insert(match.data_query_ref);
+      IdentificationData::MoleculeType molecule_type = match.getMoleculeType();
+      if (molecule_type == IdentificationData::MoleculeType::PROTEIN)
       {
-        parent_keys.insert(sub_pair.first);
+        peptide_refs.insert(match.getIdentifiedPeptideRef());
+      }
+      else if (molecule_type == IdentificationData::MoleculeType::COMPOUND)
+      {
+        compound_refs.insert(match.getIdentifiedCompoundRef());
+      }
+      else if (molecule_type == IdentificationData::MoleculeType::RNA)
+      {
+        oligo_refs.insert(match.getIdentifiedOligoRef());
       }
     }
-    removeNonmatchingKeys_(id_data.parent_molecules.left, parent_keys);
-    removeNonmatchingKeys_(id_data.parent_meta_data, parent_keys);
+    removeNonmatchingRefs_(id_data.data_queries_, query_refs);
+    removeNonmatchingRefs_(id_data.identified_peptides_, peptide_refs);
+    removeNonmatchingRefs_(id_data.identified_compounds_, compound_refs);
+    removeNonmatchingRefs_(id_data.identified_oligos_, oligo_refs);
+
+    set<IdentificationData::ParentMoleculeRef> parent_refs;
+    for (const auto& peptide : id_data.identified_peptides_)
+    {
+      for (const auto& parent_pair : peptide.parent_matches)
+      {
+        parent_refs.insert(parent_pair.first);
+      }
+    }
+    for (const auto& oligo : id_data.identified_oligos_)
+    {
+      for (const auto& parent_pair : oligo.parent_matches)
+      {
+        parent_refs.insert(parent_pair.first);
+      }
+    }
+    removeNonmatchingRefs_(id_data.parent_molecules_, parent_refs);
   }
 
 } // namespace OpenMS

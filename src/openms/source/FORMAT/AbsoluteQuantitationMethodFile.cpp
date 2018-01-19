@@ -28,27 +28,14 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Mathias Walzer $
-// $Authors: Mathias Walzer $
+// $Maintainer: Douglas McCloskey, Pasquale Domenico Colaianni $
+// $Authors: Douglas McCloskey, Pasquale Domenico Colaianni $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/FORMAT/CsvFile.h>
 #include <OpenMS/FORMAT/AbsoluteQuantitationMethodFile.h>
-#include <OpenMS/ANALYSIS/QUANTITATION/AbsoluteQuantitationMethod.h>
-#include <OpenMS/SYSTEM/File.h>
-#include <OpenMS/DATASTRUCTURES/StringListUtils.h>
 
 namespace OpenMS
 {
-
-  AbsoluteQuantitationMethodFile::AbsoluteQuantitationMethodFile()
-  {
-  }
-
-  AbsoluteQuantitationMethodFile::~AbsoluteQuantitationMethodFile()
-  {
-  }
-
   void AbsoluteQuantitationMethodFile::load(const String & filename, std::vector<AbsoluteQuantitationMethod> & aqm_list)
   {
     // read in the .csv file
@@ -58,8 +45,8 @@ namespace OpenMS
     CsvFile::load(filename, is, ie, first_n);
 
     // parse the file
-    std::map<String,int> headers;
-    std::map<String,int> params_headers;
+    std::map<String, Int> headers;
+    std::map<String, Int> params_headers;
     StringList line, header;
     AbsoluteQuantitationMethod aqm;
     for (size_t i = 0; i < CsvFile::rowCount(); ++i)
@@ -71,15 +58,18 @@ namespace OpenMS
       }
       else
       {
-        CsvFile::getRow(i, line); 
-        parseLine_(line, headers, params_headers, aqm);    
-        aqm_list.push_back(aqm);  
-      }    
+        CsvFile::getRow(i, line);
+        parseLine_(line, headers, params_headers, aqm);
+        aqm_list.push_back(aqm);
+      }
     }
   }
 
-  void AbsoluteQuantitationMethodFile::parseHeader_(StringList & line, std::map<String, int> & headers,
-    std::map<String, int> & params_headers)
+  void AbsoluteQuantitationMethodFile::parseHeader_(
+    StringList & line,
+    std::map<String, Int> & headers,
+    std::map<String, Int> & params_headers
+  ) const
   {    
     // default header column positions
     headers["IS_name"] = -1;
@@ -111,84 +101,88 @@ namespace OpenMS
     }
   }
 
-  void AbsoluteQuantitationMethodFile::parseLine_(StringList & line, std::map<String,int> & headers, 
-    std::map<String,int> & params_headers, AbsoluteQuantitationMethod & aqm)
+  void AbsoluteQuantitationMethodFile::parseLine_(
+    const StringList & line,
+    const std::map<String, Int> & headers,
+    const std::map<String, Int> & params_headers,
+    AbsoluteQuantitationMethod & aqm
+  ) const
   {
     // component, IS, and feature names
     String component_name = "";
-    if (headers["component_name"] != -1)
+    if (headers.at("component_name") != -1)
     {
-      component_name = line[headers["component_name"]];
+      component_name = line[headers.at("component_name")];
     }
     aqm.setComponentName(component_name);
     String feature_name = "";
-    if (headers["feature_name"] != -1)
+    if (headers.at("feature_name") != -1)
     {
-      feature_name = line[headers["feature_name"]];
+      feature_name = line[headers.at("feature_name")];
     }
     aqm.setFeatureName(feature_name);
     String IS_name = "";
-    if (headers["IS_name"] != -1)
+    if (headers.at("IS_name") != -1)
     {
-      IS_name = line[headers["IS_name"]];
+      IS_name = line[headers.at("IS_name")];
     }
     aqm.setISName(IS_name);
 
     // LODs
     double llod = 0.0;
-    if (headers["llod"] != -1)
+    if (headers.at("llod") != -1)
     {
-      llod = (line[headers["llod"]].empty()) ? 0.0 : std::stod(line[headers["llod"]]);
+      llod = (line[headers.at("llod")].empty()) ? 0.0 : std::stod(line[headers.at("llod")]);
     }
     aqm.setLLOD(llod);
     double ulod = 0.0;
-    if (headers["ulod"] != -1)
+    if (headers.at("ulod") != -1)
     {
-      ulod = (line[headers["ulod"]].empty()) ? 0.0 : std::stod(line[headers["ulod"]]);
+      ulod = (line[headers.at("ulod")].empty()) ? 0.0 : std::stod(line[headers.at("ulod")]);
     }
     aqm.setULOD(ulod);
 
     // LOQs
     double lloq = 0.0;
-    if (headers["lloq"] != -1)
+    if (headers.at("lloq") != -1)
     {
-      lloq = (line[headers["lloq"]].empty()) ? 0.0 : std::stod(line[headers["lloq"]]);
+      lloq = (line[headers.at("lloq")].empty()) ? 0.0 : std::stod(line[headers.at("lloq")]);
     }
     aqm.setLLOQ(lloq);
     double uloq = 0.0;
-    if (headers["uloq"] != -1)
+    if (headers.at("uloq") != -1)
     {
-      uloq = (line[headers["uloq"]].empty()) ? 0.0 : std::stod(line[headers["uloq"]]);
+      uloq = (line[headers.at("uloq")].empty()) ? 0.0 : std::stod(line[headers.at("uloq")]);
     }
     aqm.setULOQ(uloq);
 
     // concentration units
     String concentration_units = "";
-    if (headers["concentration_units"] != -1)
+    if (headers.at("concentration_units") != -1)
     {
-      concentration_units = line[headers["concentration_units"]];
+      concentration_units = line[headers.at("concentration_units")];
     }
     aqm.setConcentrationUnits(concentration_units);
 
     // statistics
-    int n_points = 0;
-    if (headers["n_points"] != -1)
+    Int n_points = 0;
+    if (headers.at("n_points") != -1)
     {
-      n_points = (line[headers["n_points"]].empty()) ? 0.0 : std::stoi(line[headers["n_points"]]);
+      n_points = (line[headers.at("n_points")].empty()) ? 0.0 : std::stoi(line[headers.at("n_points")]);
     }
     aqm.setNPoints(n_points);
     double correlation_coefficient = 0.0;
-    if (headers["correlation_coefficient"] != -1)
+    if (headers.at("correlation_coefficient") != -1)
     {
-      correlation_coefficient = (line[headers["correlation_coefficient"]].empty()) ? 0.0 : std::stod(line[headers["correlation_coefficient"]]);
+      correlation_coefficient = (line[headers.at("correlation_coefficient")].empty()) ? 0.0 : std::stod(line[headers.at("correlation_coefficient")]);
     }
     aqm.setCorrelationCoefficient(correlation_coefficient);
 
     // transformation model
     String transformation_model = "";
-    if (headers["transformation_model"] != -1)
+    if (headers.at("transformation_model") != -1)
     {
-      transformation_model = line[headers["transformation_model"]];
+      transformation_model = line[headers.at("transformation_model")];
     }
     Param transformation_model_params;
     for (auto const& kv : params_headers)
@@ -216,9 +210,53 @@ namespace OpenMS
     aqm.setTransformationModelParams(transformation_model_params);
   }
 
-  // void AbsoluteQuantitationMethodFile::store(const String & filename, const std::vector<AbsoluteQuantitationMethod> & aqm_list)
-  // {
-  //   // TODO: pending fix to CsvFile::fstore()
-  // }
-
+  void AbsoluteQuantitationMethodFile::store(
+    const String& filename,
+    const std::vector<AbsoluteQuantitationMethod>& aqm_list
+  )
+  {
+    clear(); // clear the buffer_
+    const String headers = "IS_name,component_name,feature_name,concentration_units,llod,ulod,lloq,uloq,correlation_coefficient,n_points,transformation_model";
+    StringList split_headers;
+    headers.split(',', split_headers);
+    StringList tm_params_names; // transformation model params
+    if (aqm_list.size())
+    {
+      const Param tm_params = aqm_list[0].getTransformationModelParams();
+      for (const Param::ParamEntry& param : tm_params)
+      {
+        if (std::find(tm_params_names.begin(), tm_params_names.end(), param.name) == tm_params_names.end())
+        {
+          tm_params_names.insert(tm_params_names.begin(), param.name);
+        }
+      }
+      for (const String name : tm_params_names)
+      {
+        split_headers.push_back("transformation_model_param_" + name);
+      }
+    }
+    addRow(split_headers);
+    for (const AbsoluteQuantitationMethod& aqm : aqm_list)
+    {
+      StringList row(split_headers.size());
+      row[0] = aqm.getISName();
+      row[1] = aqm.getComponentName();
+      row[2] = aqm.getFeatureName();
+      row[3] = aqm.getConcentrationUnits();
+      row[4] = aqm.getLLOD();
+      row[5] = aqm.getULOD();
+      row[6] = aqm.getLLOQ();
+      row[7] = aqm.getULOQ();
+      row[8] = aqm.getCorrelationCoefficient();
+      row[9] = aqm.getNPoints();
+      row[10] = aqm.getTransformationModel();
+      const Param tm_params = aqm.getTransformationModelParams();
+      for (Size i = 0, j = 11; i < tm_params_names.size(); ++i, ++j)
+      {
+        row[j] = tm_params.getValue(tm_params_names[i]);
+      }
+      addRow(row);
+    }
+    CsvFile::store(filename);
+  }
 } // namespace OpenMS

@@ -8,9 +8,9 @@ cdef extern from "<OpenMS/METADATA/AbsoluteQuantitationStandards.h>" namespace "
         AQS_runConcentration()
         AQS_runConcentration(AQS_runConcentration &) # no-wrap
 
-        String run_id
-        String component_id
-        String IS_component_id
+        String sample_name
+        String component_name
+        String IS_component_name
         double actual_concentration
         double IS_actual_concentration
         String concentration_units

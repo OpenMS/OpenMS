@@ -100,8 +100,9 @@ public:
       double score;
       bool higher_score_better;
 
-      HasGoodScore(double score, bool higher_score_better):
-        score(score), higher_score_better(higher_score_better)
+      HasGoodScore(double score_, bool higher_score_better_) :
+        score(score_),
+        higher_score_better(higher_score_better_)
       {}
 
       bool operator()(const HitType& hit) const
@@ -126,10 +127,10 @@ public:
 
       Size rank;
 
-      HasMaxRank(Size rank):
-        rank(rank)
+      HasMaxRank(Size rank_):
+        rank(rank_)
       {
-        if (rank == 0)
+        if (rank_ == 0)
         {
           throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "The cut-off value for rank filtering must not be zero!");
         }
@@ -159,9 +160,10 @@ public:
       String key;
       DataValue value;
 
-      HasMetaValue(const String& key, const DataValue& value):
-        key(key), value(value)
-      {}
+      HasMetaValue(const String& key_, const DataValue& value_):
+        key(key_),
+        value(value_)
+      {} 
 
       bool operator()(const HitType& hit) const
       {
@@ -181,8 +183,9 @@ public:
       String key;
       double value;
 
-      HasMaxMetaValue(const String& key, const double& value):
-        key(key), value(value)
+      HasMaxMetaValue(const String& key_, const double& value_):
+        key(key_),
+        value(value_)
       {}
 
       bool operator()(const HitType& hit) const
@@ -226,8 +229,8 @@ public:
 
       const std::set<String>& accessions;
 
-      HasMatchingAccession(const std::set<String>& accessions):
-        accessions(accessions)
+      HasMatchingAccession(const std::set<String>& accessions_):
+        accessions(accessions_)
       {}
 
       bool operator()(const PeptideHit& hit) const
@@ -1087,25 +1090,24 @@ public:
     ///@{
     static void keepBestMatchPerQuery(
       IdentificationData& id_data,
-      IdentificationData::ScoreTypeKey score_key = 0,
-      const String& score_type = "");
+      IdentificationData::ScoreTypeRef score_ref);
 
     static void filterQueryMatchesByScore(
       IdentificationData& id_data,
-      IdentificationData::ScoreTypeKey score_key, double cutoff);
+      IdentificationData::ScoreTypeRef score_ref, double cutoff);
 
     static void removeMoleculesParentsQueriesWithoutMatches(
       IdentificationData& id_data);
 
-    template <typename MapType>
-    static void removeNonmatchingKeys_(
-      MapType& map, const std::set<IdentificationData::UniqueKey>& keys)
+    template <typename SetType, typename RefType>
+    static void removeNonmatchingRefs_(
+      SetType& container, const std::set<RefType>& refs)
     {
-      for (auto it = map.begin(); it != map.end(); )
+      for (auto it = container.begin(); it != container.end(); )
       {
-        if (!keys.count(it->first))
+        if (!refs.count(it))
         {
-          it = map.erase(it);
+          it = container.erase(it);
         }
         else
         {
