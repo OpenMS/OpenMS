@@ -182,7 +182,7 @@ public:
     QTClusterFinder();
 
     /// Destructor
-    virtual ~QTClusterFinder();
+    ~QTClusterFinder() override;
 
     /// Returns the name of the product
     static const String getProductName()
@@ -198,7 +198,7 @@ public:
        @exception Exception::IllegalArgument is thrown if the input data is not valid.
     */
     void run(const std::vector<ConsensusMap>& input_maps,
-             ConsensusMap& result_map);
+             ConsensusMap& result_map) override;
 
     /**
        @brief Runs the algorithm on feature maps

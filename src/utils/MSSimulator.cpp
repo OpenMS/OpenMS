@@ -133,7 +133,7 @@ public:
 
 protected:
 
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     // I/O settings
     registerInputFileList_("in", "<files>", ListUtils::create<String>(""), "Input protein sequences", true, false);
@@ -156,7 +156,7 @@ protected:
     registerSubsection_("algorithm", "Algorithm parameters section");
   }
 
-  Param getSubsectionDefaults_(const String& /*section*/) const
+  Param getSubsectionDefaults_(const String& /*section*/) const override
   {
     Param tmp;
     tmp.insert("MSSim:", MSSim().getParameters());
@@ -236,7 +236,7 @@ protected:
     writeLog_(String("done (") + fastadata.size() + String(" protein(s) loaded)"));
   }
 
-  ExitCodes main_(int, const char**)
+  ExitCodes main_(int, const char**) override
   {
     //-------------------------------------------------------------
     // parsing parameters

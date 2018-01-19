@@ -338,7 +338,7 @@ namespace OpenMS
           // no absolute mass stored? - calculate it based on the residue
           // (see 'ModificationsDB::getBestModificationByMonoMass'):
           const Residue* res = ResidueDB::getInstance()->getResidue(residue);
-          if (res == 0) continue;
+          if (res == nullptr) continue;
           double weight = (res->getMonoWeight() - 
                            res->getInternalToFull().getMonoWeight());
           mod_mass = mod.getDiffMonoMass() + weight;

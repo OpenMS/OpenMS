@@ -49,7 +49,7 @@ namespace OpenMS
     TraMLHandler::TraMLHandler(const TargetedExperiment& exp, const String& filename, const String& version, const ProgressLogger& logger) :
       XMLHandler(filename, version),
       logger_(logger),
-      exp_(0),
+      exp_(nullptr),
       cexp_(&exp)
     {
       cv_.loadFromOBO("PI", File::find("/CV/psi-ms.obo"));
@@ -59,7 +59,7 @@ namespace OpenMS
       XMLHandler(filename, version),
       logger_(logger),
       exp_(&exp),
-      cexp_(0)
+      cexp_(nullptr)
     {
       cv_.loadFromOBO("PI", File::find("/CV/psi-ms.obo"));
     }

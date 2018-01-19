@@ -262,7 +262,7 @@ public:
     AccurateMassSearchEngine();
 
     /// Default destructor
-    virtual ~AccurateMassSearchEngine();
+    ~AccurateMassSearchEngine() override;
 
     /**
       @brief search for a specific observed mass by enumerating all possible adducts and search M+X against database
@@ -285,7 +285,7 @@ public:
     void init();
 
 protected:
-    virtual void updateMembers_();
+    void updateMembers_() override;
 
 private:
     /// private member functions

@@ -66,6 +66,9 @@ namespace OpenMS
     /// returns all the enzyme names available for Comet
     void getAllCometNames(std::vector<String>& all_names) const;
 
+    /// returns all the enzyme names available for Crux
+    void getAllCruxNames(std::vector<String>& all_names) const;
+
     /// returns all the enzyme names available for OMSSA
     void getAllOMSSANames(std::vector<String>& all_names) const;
 
@@ -74,4 +77,5 @@ namespace OpenMS
   };
 }
 
-#endif
+#endif // OPENMS_CHEMISTRY_PROTEASEDB_H
+

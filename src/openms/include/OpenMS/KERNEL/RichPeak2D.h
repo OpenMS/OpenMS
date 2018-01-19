@@ -86,7 +86,7 @@ public:
     {}
 
     /// Destructor
-    ~RichPeak2D()
+    ~RichPeak2D() override
     {}
 
     /// Assignment operator

@@ -37,7 +37,7 @@ configure_file(${PROJECT_SOURCE_DIR}/cmake/Windows/Cfg_Settings.nsh.in ${PROJECT
 
 set(CPACK_GENERATOR NSIS)
 
-set(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAME}-${CPACK_PACKAGE_VERSION}_Win${PLATFORM}")
+set(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAME}-${CPACK_PACKAGE_VERSION}-Win${PLATFORM}")
 set(CPACK_PACKAGE_ICON "${PROJECT_SOURCE_DIR}/cmake/Windows/OpenMS.ico")
 
 ## Create own target because you cannot "depend" on the internal target 'package'
@@ -50,7 +50,7 @@ add_custom_target(dist
 ## ID needs to be installed beforehand. Rightclick a p12 file that has a cert for codesigning.
 if (DEFINED SIGNING_IDENTITY AND NOT "${SIGNING_IDENTITY}" STREQUAL "") 
 	add_custom_target(signed_dist
-	  COMMAND signtool sign /v /n ${SIGNING_IDENTITY} /t http://timestamp.digicert.com ${CPACK_PACKAGE_FILE_NAME}.exe
+	  COMMAND signtool sign /v /n "${SIGNING_IDENTITY}" /t http://timestamp.digicert.com ${CPACK_PACKAGE_FILE_NAME}.exe
 	  WORKING_DIRECTORY ${PROJECT_BINARY_DIR}
 	  COMMENT "Signing ${CPACK_PACKAGE_FILE_NAME}.exe with '${SIGNING_IDENTITY}'"
 	  DEPENDS dist

@@ -50,8 +50,8 @@ START_TEST(SpecArrayFile, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-SpecArrayFile* ptr = 0;
-SpecArrayFile* null_ptr = 0;
+SpecArrayFile* ptr = nullptr;
+SpecArrayFile* null_ptr = nullptr;
 START_SECTION(SpecArrayFile())
 {
 	ptr = new SpecArrayFile();

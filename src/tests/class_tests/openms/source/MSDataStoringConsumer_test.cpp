@@ -51,8 +51,8 @@ START_TEST(MSDataStoringConsumer, "$Id$")
 
 using namespace OpenMS;
 
-MSDataStoringConsumer* storing_consumer_ptr = 0;
-MSDataStoringConsumer* storing_consumer_nullPointer = 0;
+MSDataStoringConsumer* storing_consumer_ptr = nullptr;
+MSDataStoringConsumer* storing_consumer_nullPointer = nullptr;
 
 START_SECTION((MSDataStoringConsumer()))
   storing_consumer_ptr = new MSDataStoringConsumer();

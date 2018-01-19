@@ -48,8 +48,8 @@ START_TEST(ChromatogramTools, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-ChromatogramTools* ptr = 0;
-ChromatogramTools* nullPointer = 0;
+ChromatogramTools* ptr = nullptr;
+ChromatogramTools* nullPointer = nullptr;
 START_SECTION(ChromatogramTools())
 {
 	ptr = new ChromatogramTools();

@@ -47,8 +47,8 @@ START_TEST(ReactionMonitoringTransition, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-ReactionMonitoringTransition* ptr = 0;
-ReactionMonitoringTransition* nullPointer = 0;
+ReactionMonitoringTransition* ptr = nullptr;
+ReactionMonitoringTransition* nullPointer = nullptr;
 
 START_SECTION(ReactionMonitoringTransition())
   ptr = new ReactionMonitoringTransition();

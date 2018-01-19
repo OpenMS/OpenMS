@@ -50,8 +50,8 @@ START_TEST(ItraqConstants, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-ItraqConstants* ptr = 0;
-ItraqConstants* nullPointer = 0;
+ItraqConstants* ptr = nullptr;
+ItraqConstants* nullPointer = nullptr;
 START_SECTION(ItraqConstants())
 {
 	ptr = new ItraqConstants();

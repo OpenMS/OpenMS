@@ -246,7 +246,7 @@ protected:
 
   typedef PeakMap MapType;
 
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     std::vector<String> formats = ListUtils::create<String>("mzML,featureXML,consensusXML");
 
@@ -394,7 +394,7 @@ protected:
 
   }
 
-  Param getSubsectionDefaults_(const String& /*section*/) const
+  Param getSubsectionDefaults_(const String& /*section*/) const override
   {
     SignalToNoiseEstimatorMedian<MapType::SpectrumType> sn;
     Param tmp;
@@ -434,7 +434,7 @@ protected:
     }
   }
 
-  ExitCodes main_(int, const char**)
+  ExitCodes main_(int, const char**) override
   {
 
     //-------------------------------------------------------------

@@ -60,12 +60,12 @@ namespace OpenMS
 public:
 
     ///Constructor
-    AcquisitionVisualizer(bool editable = false, QWidget * parent = 0);
+    AcquisitionVisualizer(bool editable = false, QWidget * parent = nullptr);
 
 public slots:
 
     //Docu in base class
-    void store();
+    void store() override;
 
 protected slots:
 
@@ -78,7 +78,7 @@ protected:
     QLineEdit * acquisitionnumber_;
 
     //Docu in base class
-    void update_();
+    void update_() override;
   };
 
 

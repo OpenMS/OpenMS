@@ -47,9 +47,9 @@
 #include <boost/iterator/counting_iterator.hpp>
 
 #include <string>
-#include <math.h>
+#include <cmath>
 
-#include <assert.h>
+#include <cassert>
 
 using namespace OpenMS;
 using namespace std;
@@ -149,7 +149,7 @@ protected:
 
   // this function will be used to register the tool parameters
   // it gets automatically called on tool execution
-  void registerOptionsAndFlags_() override final
+  void registerOptionsAndFlags_() final
   {
     StringList formats = ListUtils::create<String>("xml,idXML,mzid");
 
@@ -499,7 +499,7 @@ protected:
   }
 
   // the main_ function is called after all parameters are read
-  ExitCodes main_(int, const char **) override final
+  ExitCodes main_(int, const char **) final
       {
     //----------------------------------------------------------------
     // parsing parameters, terminate if invalid values are encountered

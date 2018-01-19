@@ -57,8 +57,11 @@ namespace OpenMS
     defaults_.setValue("stop_after_intensity_ratio", 0.0001, "Stop after reaching intensity ratio");
     defaults_.setValue("min_peak_width", -1.0, "Minimal peak width (s), discard all peaks below this value (-1 means no action).", ListUtils::create<String>("advanced"));
 
-    defaults_.setValue("background_subtraction", "none", "Try to apply a background subtraction to the peak (experimental). The background is estimated at the peak boundaries, either the smoothed or the raw chromatogram data can be used for that.", ListUtils::create<String>("advanced"));
-    defaults_.setValidStrings("background_subtraction", ListUtils::create<String>("none,smoothed_average,smoothed_exact,original_average,original_exact"));
+    defaults_.setValue("peak_integration", "original", "Calculate the peak area and height either the smoothed or the raw chromatogram data.", ListUtils::create<String>("advanced"));
+    defaults_.setValidStrings("peak_integration", ListUtils::create<String>("original,smoothed"));
+
+    defaults_.setValue("background_subtraction", "none", "Try to apply a background subtraction to the peak (experimental). The background is estimated as the average noise at the peak boundaries (original) or at the exact left and right peak positions (exact).  The same original or smoothed chromatogram specified by peak_integration will be used for background estimation.", ListUtils::create<String>("advanced"));
+    defaults_.setValidStrings("background_subtraction", ListUtils::create<String>("none,original,exact"));
 
     defaults_.setValue("recalculate_peaks", "false", "Tries to get better peak picking by looking at peak consistency of all picked peaks. Tries to use the consensus (median) peak border if theof variation within the picked peaks is too large.", ListUtils::create<String>("advanced"));
     defaults_.setValidStrings("recalculate_peaks", ListUtils::create<String>("true,false"));
@@ -103,6 +106,7 @@ namespace OpenMS
   {
     stop_after_feature_ = (int)param_.getValue("stop_after_feature");
     stop_after_intensity_ratio_ = (double)param_.getValue("stop_after_intensity_ratio");
+    peak_integration_ = param_.getValue("peak_integration");
     background_subtraction_ = param_.getValue("background_subtraction");
     recalculate_peaks_ = (bool)param_.getValue("recalculate_peaks").toBool();
     use_precursors_ = (bool)param_.getValue("use_precursors").toBool();

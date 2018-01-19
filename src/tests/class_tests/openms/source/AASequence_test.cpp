@@ -58,8 +58,8 @@ START_TEST(AASequence, "$Id$")
 // cout << seq.size() << endl;
 // cout << ModificationsDB::getInstance()->getModification("Acetyl", "", ResidueModification::N_TERM).getOrigin() << endl;
 
-AASequence* ptr = 0;
-AASequence* nullPointer = 0;
+AASequence* ptr = nullptr;
+AASequence* nullPointer = nullptr;
 START_SECTION(AASequence())
   ptr = new AASequence();
   TEST_NOT_EQUAL(ptr, nullPointer)

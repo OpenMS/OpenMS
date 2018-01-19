@@ -81,8 +81,8 @@ START_TEST(RealMassDecomposer, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-RealMassDecomposer* ptr = 0;
-RealMassDecomposer* null_ptr = 0;
+RealMassDecomposer* ptr = nullptr;
+RealMassDecomposer* null_ptr = nullptr;
 
 START_SECTION((RealMassDecomposer(const Weights &weights)))
 {

@@ -49,8 +49,8 @@ START_TEST(OptimizePeakDeconvolution, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-OptimizePeakDeconvolution* ptr = 0;
-OptimizePeakDeconvolution* nullPointer = 0;
+OptimizePeakDeconvolution* ptr = nullptr;
+OptimizePeakDeconvolution* nullPointer = nullptr;
 START_SECTION((OptimizePeakDeconvolution   ( )))
 	ptr = new OptimizePeakDeconvolution();
 	TEST_NOT_EQUAL(ptr, nullPointer)

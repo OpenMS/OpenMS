@@ -59,7 +59,7 @@ public:
     /// default constructor
     SqrtMower();
     /// destructor
-    virtual ~SqrtMower();
+    ~SqrtMower() override;
 
     /// copy constructor
     SqrtMower(const SqrtMower & source);

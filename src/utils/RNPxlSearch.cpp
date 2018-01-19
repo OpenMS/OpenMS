@@ -1440,7 +1440,7 @@ protected:
     precursor_ion_sub_score_spectrum_generator.setParameters(param);
   }
 
-  ExitCodes main_(int, const char**)
+  ExitCodes main_(int, const char**) override
   {
     // force initialization of residue db
     AASequence::fromString("GPAVLIMCFYWHKRQNEDST");

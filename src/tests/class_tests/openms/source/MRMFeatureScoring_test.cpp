@@ -67,8 +67,8 @@ START_TEST(MRMScoring, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-OpenSwath::MRMScoring* ptr = 0;
-OpenSwath::MRMScoring* nullPointer = 0;
+OpenSwath::MRMScoring* ptr = nullptr;
+OpenSwath::MRMScoring* nullPointer = nullptr;
 
 START_SECTION(MRMScoring())
 {

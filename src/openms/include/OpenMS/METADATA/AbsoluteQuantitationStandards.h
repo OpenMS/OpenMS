@@ -36,9 +36,7 @@
 #define OPENMS_METADATA_ABSOLUTEQUANTITATIONSTANDARDS_H
 
 #include <OpenMS/config.h>
-
-#include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
-#include <OpenMS/KERNEL/Feature.h>
+#include <OpenMS/KERNEL/FeatureMap.h>
 
 #include <cstddef> // for size_t & ptrdiff_t
 #include <vector>
@@ -55,8 +53,7 @@ namespace OpenMS
     of the components in the run are required to build a calibration curve that is
     required for absolute quantitation.
   */
-  class OPENMS_DLLAPI AbsoluteQuantitationStandards :
-  public DefaultParamHandler
+  class OPENMS_DLLAPI AbsoluteQuantitationStandards
   {
 
 public:    
@@ -72,14 +69,15 @@ public:
       @brief Structure to map runs to components to known concentrations
 
     */ 
-    struct runConcentrations
+    struct runConcentration
     {
-      String run_id;
-      String component_id;
-      String IS_component_id;
+      String sample_name;
+      String component_name;
+      String IS_component_name;
       double actual_concentration;
       double IS_actual_concentration;
       String concentration_units;
+      double dilution_factor;
     };
 
     /**
@@ -93,23 +91,28 @@ public:
       double actual_concentration;
       double IS_actual_concentration;
       String concentration_units;
+      double dilution_factor;
     };
     
      /**
-       @brief Structure to map runs to components to known concentrations
+       @brief Method to map runs to components to known concentrations
 
        Note that for the method to work, the features must be annotated with
-         a metaValue for "run_id"
+         a metaValue for "sample_name"
+
+      @param run_concentrations a list of runConcentration structs (e.g., from file upload).
+      @param features a list of corresponding features for each of the unique runs in run_concentrations
+      @param components_to_concentrations A map that links run data to feature data
  
      */ 
-     void mapConcentrationsToComponents();
-                                     
-private:
+     void mapConcentrationsToComponents(const std::vector<runConcentration> & run_concentrations,
+      const std::vector<FeatureMap> & features,
+      std::map<String,std::vector<featureConcentration>> components_to_concentrations);
+
     // members
-    std::map<String,std::vector<featureConcentration>> components_to_concentrations;
+    std::map<String, std::vector<featureConcentration>> components_to_concentrations;
 
   };
-
 }
 #endif // OPENMS_METADATA_ABSOLUTEQUANTITATIONSTANDARDS_H
 

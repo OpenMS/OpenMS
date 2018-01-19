@@ -107,15 +107,11 @@ public:
       mz_threshold is used for the matching of theoretical ion series to the observed one
 
     */
-    void generateDecoys(OpenMS::TargetedExperiment& exp,
-                        OpenMS::TargetedExperiment& dec, String method, String decoy_tag,
-                        double identity_threshold, int max_attempts, double mz_threshold,
-                        double mz_shift, bool exclude_similar,
-                        double similarity_threshold, bool remove_CNterm_mods,
-                        double precursor_mass_shift, std::vector<String> fragment_types,
-                        std::vector<size_t> fragment_charges, bool enable_specific_losses,
-                        bool enable_unspecific_losses, bool remove_unannotated,
-                        int round_decPow = -4);
+    void generateDecoys(OpenMS::TargetedExperiment& exp, OpenMS::TargetedExperiment& dec,
+                        String method, String decoy_tag, int max_attempts, double identity_threshold,
+                        double precursor_mz_shift, double product_mz_shift, double product_mz_threshold,
+                        std::vector<String> fragment_types, std::vector<size_t> fragment_charges,
+                        bool enable_specific_losses, bool enable_unspecific_losses, int round_decPow = -4);
 
     typedef std::vector<OpenMS::TargetedExperiment::Protein> ProteinVectorType;
     typedef std::vector<OpenMS::TargetedExperiment::Peptide> PeptideVectorType;
@@ -124,20 +120,9 @@ public:
     typedef std::map<String, std::vector<const ReactionMonitoringTransition*> > PeptideTransitionMapType;
 
     /**
-      @brief Find all tryptic sites in a sequence
-    */
-    std::vector<std::pair<std::string::size_type, std::string> > find_all_tryptic(
-      std::string sequence);
-
-    /**
       @brief Compute relative identity (relative number of matches of amino acids at the same position) between two sequences
     */
     float AASequenceIdentity(const String& sequence, const String& decoy);
-
-    /**
-      @brief Check if a peptide has C or N terminal modifications
-    */
-    bool has_CNterminal_mods(const OpenMS::TargetedExperiment::Peptide& peptide);
 
     /**
       @brief Shuffle a peptide (with its modifications) sequence
@@ -148,7 +133,7 @@ public:
     */
     OpenMS::TargetedExperiment::Peptide shufflePeptide(
       OpenMS::TargetedExperiment::Peptide peptide, double identity_threshold, int seed = -1,
-      int max_attempts = 10, bool replace_aa_instead_append = false);
+      int max_attempts = 100);
 
     /**
       @brief Pseudo-reverse a peptide sequence (with its modifications)
@@ -163,6 +148,28 @@ public:
     */
     OpenMS::TargetedExperiment::Peptide reversePeptide(
       OpenMS::TargetedExperiment::Peptide peptide);
+
+    /**
+      @brief Find all K, R, P sites in a sequence to be set as fixed
+
+      This method was adapted from the SpectraST decoy generator
+    */
+    std::vector<std::pair<std::string::size_type, std::string> > findFixedResidues(
+      std::string sequence);
+
+    /**
+      @brief Find all K, R, P and C-/N-terminal sites in a sequence to be set as fixed
+
+      This method was adapted from the SpectraST decoy generator
+    */
+    std::vector<std::pair<std::string::size_type, std::string> > findFixedAndTermResidues(
+      std::string sequence);
+
+    /**
+      @brief Check if a peptide has C or N terminal modifications
+    */
+    bool hasCNterminalMods(const OpenMS::TargetedExperiment::Peptide& peptide);
+
   };
 }
 

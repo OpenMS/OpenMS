@@ -111,7 +111,7 @@ public:
 
 protected:
 
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     registerInputFile_("include", "<file>", "", "Inclusion list input file in FASTA or featureXML format.", false);
     setValidFormats_("include", ListUtils::create<String>("featureXML,fasta"));
@@ -140,7 +140,7 @@ protected:
     registerSubsection_("algorithm", "Inclusion/Exclusion algorithm section");
   }
 
-  Param getSubsectionDefaults_(const String& /*section*/) const
+  Param getSubsectionDefaults_(const String& /*section*/) const override
   {
     // there is only one subsection: 'algorithm' (s.a) .. and in it belongs the InclusionExclusionList param
     InclusionExclusionList fdc;
@@ -155,7 +155,7 @@ protected:
     return tmp;
   }
 
-  ExitCodes main_(int, const char**)
+  ExitCodes main_(int, const char**) override
   {
     //-------------------------------------------------------------
     // parameter handling

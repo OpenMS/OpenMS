@@ -65,8 +65,8 @@ START_TEST(SpectrumAccessQuadMZTransforming, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-SpectrumAccessQuadMZTransforming* ptr = 0;
-SpectrumAccessQuadMZTransforming* nullPointer = 0;
+SpectrumAccessQuadMZTransforming* ptr = nullptr;
+SpectrumAccessQuadMZTransforming* nullPointer = nullptr;
 
 boost::shared_ptr<PeakMap > exp(new PeakMap);
 OpenSwath::SpectrumAccessPtr expptr = SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(exp);

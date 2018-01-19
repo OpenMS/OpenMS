@@ -82,7 +82,7 @@ public:
     */
     ToolsDialog(QWidget * parent, String ini_file, String default_dir, LayerData::DataType layertype);
     ///Destructor
-    ~ToolsDialog();
+    ~ToolsDialog() override;
 
     /// to get the parameter name for output. Empty if no output was selected.
     String getOutput();

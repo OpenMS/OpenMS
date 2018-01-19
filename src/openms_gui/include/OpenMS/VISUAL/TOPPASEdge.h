@@ -86,7 +86,7 @@ public:
     /// Copy constructor
     TOPPASEdge(const TOPPASEdge & rhs);
     /// Destructor
-    virtual ~TOPPASEdge();
+    ~TOPPASEdge() override;
     /// Assignment operator
     TOPPASEdge & operator=(const TOPPASEdge & rhs);
 
@@ -94,11 +94,11 @@ public:
     String toString();
 
     /// Returns the bounding rectangle of this item
-    QRectF boundingRect() const;
+    QRectF boundingRect() const override;
     /// Returns a more precise shape
-    QPainterPath shape() const;
+    QPainterPath shape() const override;
     /// Paints the item
-    void paint(QPainter * painter, const QStyleOptionGraphicsItem * option, QWidget * widget);
+    void paint(QPainter * painter, const QStyleOptionGraphicsItem * option, QWidget * widget) override;
     /// Returns the start position of this edge
     QPointF startPos() const;
     /// Returns the end position of this edge
@@ -152,8 +152,8 @@ protected:
 
     ///@name reimplemented Qt events
     //@{
-    void mouseDoubleClickEvent(QGraphicsSceneMouseEvent * e);
-    void contextMenuEvent(QGraphicsSceneContextMenuEvent * event);
+    void mouseDoubleClickEvent(QGraphicsSceneMouseEvent * e) override;
+    void contextMenuEvent(QGraphicsSceneContextMenuEvent * event) override;
     //@}
 
     ///@name helper methods of getEdgeStatus()

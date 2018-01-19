@@ -95,7 +95,7 @@ protected:
     return (atoi(SiriusMzTabWriter::extract_scan_index(i).c_str()) < atoi(SiriusMzTabWriter::extract_scan_index(j).c_str()));
   }
 
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     registerInputFile_("executable", "<executable>", "",
                        "sirius executable e.g. sirius", false, false, ListUtils::create<String>("skipexists"));
@@ -127,7 +127,7 @@ protected:
     registerFlag_("no_recalibration", "If this option is set, SIRIUS will not recalibrate the spectrum during the analysis.", false);
   }
 
-  ExitCodes main_(int, const char **)
+  ExitCodes main_(int, const char **) override
   {
     //-------------------------------------------------------------
     // Parsing parameters

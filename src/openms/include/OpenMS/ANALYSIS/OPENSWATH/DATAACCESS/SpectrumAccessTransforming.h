@@ -52,23 +52,23 @@ public:
 
     explicit SpectrumAccessTransforming(OpenSwath::SpectrumAccessPtr sptr);
         
-    virtual ~SpectrumAccessTransforming() = 0;
+    ~SpectrumAccessTransforming() override = 0;
 
-    virtual boost::shared_ptr<ISpectrumAccess> lightClone() const = 0;
+    boost::shared_ptr<ISpectrumAccess> lightClone() const override = 0;
 
-    virtual OpenSwath::SpectrumPtr getSpectrumById(int id);
+    OpenSwath::SpectrumPtr getSpectrumById(int id) override;
 
-    virtual OpenSwath::SpectrumMeta getSpectrumMetaById(int id) const;
+    OpenSwath::SpectrumMeta getSpectrumMetaById(int id) const override;
 
-    virtual std::vector<std::size_t> getSpectraByRT(double RT, double deltaRT) const;
+    std::vector<std::size_t> getSpectraByRT(double RT, double deltaRT) const override;
 
-    virtual size_t getNrSpectra() const;
+    size_t getNrSpectra() const override;
 
-    virtual OpenSwath::ChromatogramPtr getChromatogramById(int id);
+    OpenSwath::ChromatogramPtr getChromatogramById(int id) override;
 
-    virtual size_t getNrChromatograms() const;
+    size_t getNrChromatograms() const override;
 
-    virtual std::string getChromatogramNativeID(int id) const;
+    std::string getChromatogramNativeID(int id) const override;
 
 protected:
     OpenSwath::SpectrumAccessPtr sptr_;

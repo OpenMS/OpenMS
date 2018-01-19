@@ -68,7 +68,7 @@ public:
     BernNorm(const BernNorm & source);
 
     /// destructor
-    virtual ~BernNorm();
+    ~BernNorm() override;
     //@}
 
     // @name Operators

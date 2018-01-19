@@ -54,8 +54,8 @@ START_TEST(IndexedMzMLFile, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-IndexedMzMLFile* ptr = 0;
-IndexedMzMLFile* nullPointer = 0;
+IndexedMzMLFile* ptr = nullptr;
+IndexedMzMLFile* nullPointer = nullptr;
 START_SECTION((IndexedMzMLFile(String filename) ))
 	ptr = new IndexedMzMLFile(OPENMS_GET_TEST_DATA_PATH("IndexedmzMLFile_1.mzML"));
 	TEST_NOT_EQUAL(ptr, nullPointer)

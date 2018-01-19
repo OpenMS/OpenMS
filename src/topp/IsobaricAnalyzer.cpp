@@ -187,7 +187,7 @@ public:
     quant_method_names_[tmt11plex->getName()] = "TMT 11-plex";
   }
 
-  ~TOPPIsobaricAnalyzer()
+  ~TOPPIsobaricAnalyzer() override
   {
     // free allocated labelers
     for (std::map<String, IsobaricQuantitationMethod*>::iterator it = quant_methods_.begin();
@@ -199,7 +199,7 @@ public:
   }
 
 protected:
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     // initialize with the first available type
     registerStringOption_("type", "<mode>", quant_methods_.begin()->first, "Isobaric Quantitation method used in the experiment.", false);
@@ -227,7 +227,7 @@ protected:
     }
   }
 
-  Param getSubsectionDefaults_(const String& section) const
+  Param getSubsectionDefaults_(const String& section) const override
   {
     ItraqFourPlexQuantitationMethod temp_quant;
     if (section == "extraction")
@@ -254,7 +254,7 @@ protected:
     }
   }
 
-  ExitCodes main_(int, const char**)
+  ExitCodes main_(int, const char**) override
   {
     //-------------------------------------------------------------
     // parameter handling

@@ -38,7 +38,7 @@
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <iostream>     // std::cout
 #include <algorithm>    // std::find
-#include <math.h>    // std::log
+#include <cmath>    // std::log
 
 namespace OpenMS
 {
