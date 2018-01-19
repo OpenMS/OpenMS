@@ -28,6 +28,8 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 
+//! [Enzyme]
+
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/CHEMISTRY/ProteaseDigestion.h>
 
@@ -76,3 +78,4 @@ int main()
   return 0;
 }
 
+//! [Enzyme]

@@ -71,9 +71,9 @@ public:
     */ 
     struct runConcentration
     {
-      String run_id;
-      String component_id;
-      String IS_component_id;
+      String sample_name;
+      String component_name;
+      String IS_component_name;
       double actual_concentration;
       double IS_actual_concentration;
       String concentration_units;
@@ -98,7 +98,7 @@ public:
        @brief Method to map runs to components to known concentrations
 
        Note that for the method to work, the features must be annotated with
-         a metaValue for "run_id"
+         a metaValue for "sample_name"
 
       @param run_concentrations a list of runConcentration structs (e.g., from file upload).
       @param features a list of corresponding features for each of the unique runs in run_concentrations

@@ -29,6 +29,7 @@ MetaboliteAdductDecharger
 MetaboliteSpectralMatcher
 MetaProSIP
 MRMPairFinder
+MSFraggerAdapter
 MSSimulator
 NucleotideID
 NucleotideIDAMSDBCreator
@@ -36,6 +37,7 @@ NucSpectrumGen
 NucleicAcidSearchEngine
 MultiplexResolver
 MzMLSplitter
+NovorAdapter
 OpenMSInfo
 OpenPepXL
 OpenPepXLLF
