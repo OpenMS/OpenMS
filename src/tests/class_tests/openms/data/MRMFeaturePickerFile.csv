@@ -1,0 +1,14 @@
+component_name,component_group_name,TransitionGroupPicker:stop_after_feature,TransitionGroupPicker:stop_after_intensity_ratio,TransitionGroupPicker:min_peak_width,TransitionGroupPicker:peak_integration,TransitionGroupPicker:background_subtraction,TransitionGroupPicker:recalculate_peaks,TransitionGroupPicker:use_precursors,TransitionGroupPicker:recalculate_peaks_max_z,TransitionGroupPicker:minimal_quality,TransitionGroupPicker:resample_boundary,TransitionGroupPicker:compute_peak_quality,TransitionGroupPicker:compute_peak_shape_metrics,TransitionGroupPicker:PeakPickerMRM:sgolay_frame_length,TransitionGroupPicker:PeakPickerMRM:sgolay_polynomial_order,TransitionGroupPicker:PeakPickerMRM:gauss_width,TransitionGroupPicker:PeakPickerMRM:use_gauss,TransitionGroupPicker:PeakPickerMRM:peak_width,TransitionGroupPicker:PeakPickerMRM:signal_to_noise,TransitionGroupPicker:PeakPickerMRM:sn_win_len,TransitionGroupPicker:PeakPickerMRM:sn_bin_count,TransitionGroupPicker:PeakPickerMRM:write_sn_log_messages,TransitionGroupPicker:PeakPickerMRM:remove_overlapping_peaks,TransitionGroupPicker:PeakPickerMRM:method
+arg-L.arg-L_1.Heavy,arg-L,5,0.0001,-1,smoothed,none,FALSE,FALSE,1,-10000,0.05,TRUE,TRUE,15,3,0.15,TRUE,0.1,0.01,1000,30,TRUE,FALSE,corrected
+arg-L.arg-L_1.Light,arg-L,5,0.0001,-1,smoothed,none,FALSE,FALSE,1,-10000,0.05,TRUE,TRUE,15,3,0.15,TRUE,0.1,0.01,1000,30,TRUE,FALSE,corrected
+orn.orn_1.Heavy,orn,5,0.0001,-1,smoothed,none,FALSE,FALSE,1,-10000,0.05,TRUE,TRUE,15,3,0.15,TRUE,0.1,0.01,1000,30,TRUE,FALSE,corrected
+orn.orn_1.Light,orn,5,0.0001,-1,smoothed,none,FALSE,FALSE,1,-10000,0.05,TRUE,TRUE,15,3,0.15,TRUE,0.1,0.01,1000,30,TRUE,FALSE,corrected
+asn-L.asn-L_1.Heavy,asn-L,5,0.0001,-1,smoothed,none,FALSE,FALSE,1,-10000,0.05,TRUE,TRUE,15,3,0.15,TRUE,0.1,0.01,1000,30,TRUE,FALSE,corrected
+asn-L.asn-L_1.Light,asn-L,5,0.0001,-1,smoothed,none,FALSE,FALSE,1,-10000,0.05,TRUE,TRUE,15,3,0.15,TRUE,0.1,0.01,1000,30,TRUE,FALSE,corrected
+asn-L.asn-L_2.Light,asn-L,5,0.0001,-1,smoothed,none,FALSE,FALSE,1,-10000,0.05,TRUE,TRUE,15,3,0.15,TRUE,0.1,0.01,1000,30,TRUE,FALSE,corrected
+ser-L.ser-L_1.Heavy,ser-L,5,0.0001,-1,smoothed,none,FALSE,FALSE,1,-10000,0.05,TRUE,TRUE,15,3,0.15,TRUE,0.1,0.01,1000,30,TRUE,FALSE,corrected
+ser-L.ser-L_1.Light,ser-L,5,0.0001,-1,smoothed,none,FALSE,FALSE,1,-10000,0.05,TRUE,TRUE,15,3,0.15,TRUE,0.1,0.01,1000,30,TRUE,FALSE,corrected
+ser-L.ser-L_2.Light,ser-L,5,0.0001,-1,smoothed,none,FALSE,FALSE,1,-10000,0.05,TRUE,TRUE,15,3,0.15,TRUE,0.1,0.01,1000,30,TRUE,FALSE,corrected
+,group1,5,0.0001,-1,smoothed,none,FALSE,FALSE,1,-10000,0.05,TRUE,TRUE,15,3,0.15,TRUE,0.1,0.01,1000,30,TRUE,FALSE,corrected
+component1,,5,0.0001,-1,smoothed,none,FALSE,FALSE,1,-10000,0.05,TRUE,TRUE,15,3,0.15,TRUE,0.1,0.01,1000,30,TRUE,FALSE,corrected
+component2,group2,,0.0001,-1,smoothed,none,FALSE,FALSE,1,-10000,0.05,TRUE,TRUE,15,3,0.15,TRUE,0.1,0.01,1000,30,TRUE,FALSE,corrected
