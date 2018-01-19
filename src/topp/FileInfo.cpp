@@ -156,7 +156,7 @@ protected:
   }
 
   template <class Map>
-  void writeRangesHumanReadable_(Map map, ostream &os)
+  void writeRangesHumanReadable_(const Map& map, ostream &os)
   {
     os << "Ranges:"
        << "\n"
@@ -167,7 +167,7 @@ protected:
   }
 
   template <class Map>
-  void writeRangesMachineReadable_(Map map, ostream &os)
+  void writeRangesMachineReadable_(const Map& map, ostream &os)
   {
     os << "retention time (min)"
        << "\t" << String::number(map.getMin()[Peak2D::RT], 2) << "\n"
