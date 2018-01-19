@@ -369,11 +369,11 @@ protected:
       if (ifile.getParsingSuccess())
       {
         // Validate that we can access each single spectrum and chromatogram
-        for (int i = 0; i < ifile.getNrSpectra(); i++)
+        for (int i = 0; i < (int)ifile.getNrSpectra(); i++)
         {
           OpenMS::Interfaces::SpectrumPtr p = ifile.getSpectrumById(i);
         }
-        for (int i = 0; i < ifile.getNrChromatograms(); i++)
+        for (int i = 0; i < (int)ifile.getNrChromatograms(); i++)
         {
           OpenMS::Interfaces::ChromatogramPtr p = ifile.getChromatogramById(i);
         }
