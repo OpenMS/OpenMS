@@ -14,7 +14,6 @@ DigestionEnzyme.h
 DigestionEnzymeProtein.h
 DigestionEnzymeRNA.h
 DigestionEnzymeDB.h
-IsotopeDistribution.h
 ModificationDefinition.h
 ModificationDefinitionsSet.h
 ModificationsDB.h

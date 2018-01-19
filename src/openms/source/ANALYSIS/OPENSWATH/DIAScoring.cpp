@@ -36,7 +36,7 @@
 
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
-#include <OpenMS/CHEMISTRY/IsotopeDistribution.h>
+#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopeDistribution.h>
 #include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmPickedHelperStructs.h>
@@ -386,12 +386,12 @@ namespace OpenMS
     typedef OpenMS::FeatureFinderAlgorithmPickedHelperStructs::TheoreticalIsotopePattern TheoreticalIsotopePattern;
 
     TheoreticalIsotopePattern isotopes;
-    IsotopeDistribution isotope_dist;
+    CoarseIsotopeDistribution isotope_dist;
     if (!sum_formula.empty())
     {
       // create the theoretical distribution from the sum formula
       EmpiricalFormula empf(sum_formula);
-      isotope_dist = empf.getIsotopeDistribution(dia_nr_isotopes_);
+      isotope_dist = empf.getIsotopeDistribution(new CoarseIsotopeDistribution(dia_nr_isotopes_));
     }
     else
     {
@@ -403,7 +403,7 @@ namespace OpenMS
 
     for (IsotopeDistribution::Iterator it = isotope_dist.begin(); it != isotope_dist.end(); ++it)
     {
-      isotopes.intensity.push_back(it->second);
+      isotopes.intensity.push_back(it->getIntensity());
     }
     isotopes.optional_begin = 0;
     isotopes.optional_end = dia_nr_isotopes_;

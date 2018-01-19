@@ -34,7 +34,7 @@
 
 #include <OpenMS/FILTERING/DATAREDUCTION/IsotopeDistributionCache.h>
 
-#include <OpenMS/CHEMISTRY/IsotopeDistribution.h>
+#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopeDistribution.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 
 namespace OpenMS
@@ -52,7 +52,7 @@ namespace OpenMS
     for (Size index = 0; index < num_isotopes; ++index)
     {
       //log_ << "Calculating iso dist for mass: " << 0.5*mass_window_width_ + index * mass_window_width_ << std::endl;
-      IsotopeDistribution d;
+      CoarseIsotopeDistribution d;
       d.setMaxIsotope(20);
       d.estimateFromPeptideWeight(0.5 * mass_window_width + index * mass_window_width);
 
@@ -64,7 +64,7 @@ namespace OpenMS
 
       for (IsotopeDistribution::Iterator it = d.begin(); it != d.end(); ++it)
       {
-        isotope_distributions_[index].intensity.push_back(it->second);
+        isotope_distributions_[index].intensity.push_back(it->getIntensity());
         //log_ << " - " << it->second << std::endl;
       }
 

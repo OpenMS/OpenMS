@@ -48,7 +48,7 @@ namespace OpenMS
   class Element;
   class ElementDB;
   class IsotopeDistribution;
-
+  class IsotopePatternGenerator;
   /**
     @ingroup Chemistry
 
@@ -91,6 +91,8 @@ public:
     /// Iterators
     typedef MapType_::const_iterator ConstIterator;
     typedef MapType_::const_iterator const_iterator;
+    typedef MapType_::iterator Iterator;
+    typedef MapType_::iterator iterator;
     //@}
 
     /** @name Constructors and Destructors
@@ -116,6 +118,8 @@ public:
     virtual ~EmpiricalFormula();
     //@}
 
+
+
     /** @name Accessors
     */
     //@{
@@ -124,6 +128,9 @@ public:
 
     /// returns the average weight of the formula (includes proton charges)
     double getAverageWeight() const;
+
+    /// returns the total number of discrete isotopes
+    double calculateTheoreticalIsotopesNumber() const;
 
     /**
       @brief Fills this EmpiricalFormula with an approximate elemental composition for a given average weight and approximate elemental stoichiometry
@@ -164,7 +171,7 @@ public:
 
       @param max_depth: the maximum isotope which is considered, if 0 all are reported
     */
-    IsotopeDistribution getIsotopeDistribution(UInt max_depth) const;
+    IsotopeDistribution getIsotopeDistribution(IsotopePatternGenerator*) const;
 
     /**
       @brief returns the fragment isotope distribution of this given a precursor formula
@@ -248,6 +255,10 @@ public:
     inline ConstIterator begin() const { return formula_.begin(); }
 
     inline ConstIterator end() const { return formula_.end(); }
+    
+    inline Iterator begin() { return formula_.begin(); }
+
+    inline Iterator end() { return formula_.end(); }
     //@}
 
 protected:

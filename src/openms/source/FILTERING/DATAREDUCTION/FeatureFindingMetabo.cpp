@@ -33,7 +33,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FILTERING/DATAREDUCTION/FeatureFindingMetabo.h>
-#include <OpenMS/CHEMISTRY/IsotopeDistribution.h>
+#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopeDistribution.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/SYSTEM/File.h>
@@ -335,11 +335,11 @@ namespace OpenMS
 
   double FeatureFindingMetabo::computeAveragineSimScore_(const std::vector<double>& hypo_ints, const double& mol_weight) const
   {
-    IsotopeDistribution isodist(hypo_ints.size());
+    CoarseIsotopeDistribution isodist(hypo_ints.size());
     isodist.estimateFromPeptideWeight(mol_weight);
     // isodist.renormalize();
 
-    std::vector<std::pair<Size, double> > averagine_dist = isodist.getContainer();
+    IsotopeDistribution::ContainerType averagine_dist = isodist.getContainer();
     double max_int(0.0), theo_max_int(0.0);
     for (Size i = 0; i < hypo_ints.size(); ++i)
     {
@@ -348,9 +348,9 @@ namespace OpenMS
         max_int = hypo_ints[i];
       }
 
-      if (averagine_dist[i].second > theo_max_int)
+      if (averagine_dist[i].getIntensity() > theo_max_int)
       {
-        theo_max_int = averagine_dist[i].second;
+        theo_max_int = averagine_dist[i].getIntensity();
       }
     }
 
@@ -358,7 +358,7 @@ namespace OpenMS
     std::vector<double> averagine_ratios, hypo_isos;
     for (Size i = 0; i < hypo_ints.size(); ++i)
     {
-      averagine_ratios.push_back(averagine_dist[i].second / theo_max_int);
+      averagine_ratios.push_back(averagine_dist[i].getIntensity() / theo_max_int);
       hypo_isos.push_back(hypo_ints[i] / max_int);
     }
 

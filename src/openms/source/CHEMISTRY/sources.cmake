@@ -14,7 +14,6 @@ DigestionEnzyme.cpp
 DigestionEnzymeProtein.cpp
 DigestionEnzymeRNA.cpp
 DigestionEnzymeDB.cpp
-IsotopeDistribution.cpp
 ModificationDefinition.cpp
 ModificationDefinitionsSet.cpp
 ModificationsDB.cpp
