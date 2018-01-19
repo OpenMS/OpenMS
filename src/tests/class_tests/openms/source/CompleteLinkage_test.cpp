@@ -50,8 +50,8 @@ START_TEST(CompleteLinkage, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-CompleteLinkage* ptr = 0;
-CompleteLinkage* nullPointer = 0;
+CompleteLinkage* ptr = nullptr;
+CompleteLinkage* nullPointer = nullptr;
 START_SECTION(CompleteLinkage())
 {
 	ptr = new CompleteLinkage();

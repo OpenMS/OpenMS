@@ -129,6 +129,10 @@ namespace OpenMS
         double wTIC;
         double int_sum;
         double match_odds;
+        double log_occupancy;
+        double log_occupancy_alpha;
+        double log_occupancy_beta;
+        double log_occupancy_full_spec;
         std::vector< double > xcorrx;
         double xcorrx_max;
         std::vector< double > xcorrc;

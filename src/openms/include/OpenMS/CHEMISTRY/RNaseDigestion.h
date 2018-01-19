@@ -36,11 +36,14 @@
 #define OPENMS_CHEMISTRY_RNASEDIGESTION_H
 
 #include <OpenMS/CHEMISTRY/EnzymaticDigestion.h>
+#include <OpenMS/CHEMISTRY/NASequence.h>
 
 namespace OpenMS
 {
   /**
      @brief Class for the enzymatic digestion of RNAs
+
+     @see @ref DigestionEnzymeRNA
 
      @ingroup Chemistry
   */
@@ -53,7 +56,7 @@ namespace OpenMS
     void setEnzyme(const String& name);
 
     /**
-       @brief Performs the enzymatic digestion of an RNA
+       @brief Performs the enzymatic digestion of an (unmodified) RNA
 
        Only fragments of appropriate length (between @p min_length and @p max_length) are returned.
 
@@ -62,6 +65,13 @@ namespace OpenMS
        2. The enzyme may add modifications (e.g. "p") on the 5' or 3' ends of cleavage products, but NOT on the original 5' or 3' ends of the RNA.
     */
     void digest(const String& rna, std::vector<String>& output, Size min_length = 0, Size max_length = 0) const;
+
+    /**
+       @brief Performs the enzymatic digestion of a (potentially modified) RNA
+
+       Only fragments of appropriate length (between @p min_length and @p max_length) are returned.
+    */
+    void digest(const NASequence& rna, std::vector<NASequence>& output, Size min_length = 0, Size max_length = 0) const;
   };
 
 } // namespace OpenMS

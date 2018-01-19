@@ -64,7 +64,7 @@ class TestTarget
   :  public LogStreamNotifier
 {
   public:
-  virtual void logNotify()
+  void logNotify() override
   {
     notified = true;
     return;
@@ -87,11 +87,12 @@ START_SECTION(([EXTRA] OpenMP - test))
   Log_info.insert(stream_by_logger);
   Log_info.remove(cout);
 
-#ifdef _OPENMP
-omp_set_num_threads(8);
-#pragma omp parallel
-#endif
+
   {
+    #ifdef _OPENMP
+	omp_set_num_threads(8);
+    #pragma omp parallel for
+    #endif
     for (int i=0;i<10000;++i)
     {
       LOG_DEBUG << "1\n";
@@ -109,18 +110,16 @@ omp_set_num_threads(8);
 }
 END_SECTION
 
-LogStream* nullPointer = 0;
+LogStream* nullPointer = nullptr;
 
 START_SECTION(LogStream(LogStreamBuf *buf=0, bool delete_buf=true, std::ostream* stream))
 {
-  LogStream* l1 = 0;
-  l1 = new LogStream((LogStreamBuf*)0);
+  LogStream* l1 = new LogStream((LogStreamBuf*)nullptr);
   TEST_NOT_EQUAL(l1, nullPointer)
   delete l1;
 
-  LogStream* l2 = 0;
-  LogStreamBuf* lb2 = new LogStreamBuf();
-  l2 = new LogStream(lb2);
+  LogStreamBuf* lb2(new LogStreamBuf());
+  LogStream* l2 = new LogStream(lb2);
   TEST_NOT_EQUAL(l2, nullPointer)
   delete l2;
 }
@@ -159,7 +158,7 @@ START_SECTION((LogStreamBuf* rdbuf()))
   // small workaround since TEST_NOT_EQUAL(l1.rdbuf, 0) would expand to
   // cout << ls.rdbuf()
   // which kills the cout buffer
-  TEST_NOT_EQUAL((l1.rdbuf()==0), true)
+  TEST_NOT_EQUAL((l1.rdbuf()==nullptr), true)
 }
 END_SECTION
 

@@ -3,10 +3,13 @@ set(directory source/FORMAT)
 
 ### list all filenames of the directory here
 set(sources_list
+AbsoluteQuantitationMethodFile.cpp
+AbsoluteQuantitationStandardsFile.cpp
 Base64.cpp
 Bzip2Ifstream.cpp
 Bzip2InputStream.cpp
 CachedMzML.cpp
+ChromeleonFile.cpp
 CompressedInputSource.cpp
 CVMappingFile.cpp
 ConsensusXMLFile.cpp
@@ -31,6 +34,7 @@ InspectInfile.cpp
 InspectOutfile.cpp
 KroenikFile.cpp
 LibSVMEncoder.cpp
+MRMFeatureQCFile.cpp
 MS2File.cpp
 MSNumpressCoder.cpp
 MSPFile.cpp

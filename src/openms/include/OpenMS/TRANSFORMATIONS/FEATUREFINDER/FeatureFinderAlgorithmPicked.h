@@ -86,10 +86,10 @@ public:
     FeatureFinderAlgorithmPicked();
 
     // docu in base class
-    virtual void setSeeds(const FeatureMap& seeds);
+    void setSeeds(const FeatureMap& seeds) override;
 
     /// Main method for actual FeatureFinder
-    virtual void run();
+    void run() override;
 
     static FeatureFinderAlgorithm* create();
 
@@ -143,7 +143,7 @@ protected:
     std::vector<TheoreticalIsotopePattern> isotope_distributions_;
 
     // Docu in base class
-    virtual void updateMembers_();
+    void updateMembers_() override;
 
     /// Writes the abort reason to the log file and counts occurrences for each reason
     void abort_(const Seed& seed, const String& reason);

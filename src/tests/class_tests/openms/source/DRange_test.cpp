@@ -66,8 +66,8 @@ two[1]=2;
 std::cout.precision(writtenDigits<>(double()));
 std::cerr.precision(writtenDigits<>(double()));
 
-DRange<2>* ptr = 0;
-DRange<2>* nullPointer = 0;
+DRange<2>* ptr = nullptr;
+DRange<2>* nullPointer = nullptr;
 START_SECTION(DRange())
 	ptr = new DRange<2>;
 	TEST_NOT_EQUAL(ptr, nullPointer)

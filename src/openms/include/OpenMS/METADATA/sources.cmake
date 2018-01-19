@@ -3,6 +3,7 @@ set(directory include/OpenMS/METADATA)
 
 ### list all header files of the directory here
 set(sources_list_h
+AbsoluteQuantitationStandards.h
 Acquisition.h
 AcquisitionInfo.h
 CVTerm.h
@@ -21,6 +22,11 @@ Gradient.h
 HPLC.h
 Identification.h
 IdentificationData.h
+IdentificationData_MetaData.h
+IdentificationData_ParentMolecule.h
+IdentificationData_IdentifiedMolecule.h
+IdentificationData_DataQuery.h
+IdentificationDataConverter.h
 IdentificationHit.h
 Instrument.h
 InstrumentSettings.h

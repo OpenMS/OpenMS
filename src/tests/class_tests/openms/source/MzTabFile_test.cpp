@@ -57,8 +57,8 @@ START_TEST(MzTabFile, "$Id$")
 
 /////////////////////////////////////////////////////////////
 
-MzTabFile* ptr = 0;
-MzTabFile* null_ptr = 0;
+MzTabFile* ptr = nullptr;
+MzTabFile* null_ptr = nullptr;
 
 START_SECTION(MzTabFile())
 {

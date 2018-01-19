@@ -77,7 +77,7 @@ set(metadata_executables_list
   HPLC_test
   DocumentIDTagger_test
   Identification_test
-  IdentificationData_test
+  IdentificationDataConverter_test
   IdentificationHit_test
   InstrumentSettings_test
   Instrument_test
@@ -148,11 +148,13 @@ set(kernel_executables_list
 )
 
 set(format_executables_list
+  AbsoluteQuantitationStandardsFile_test
   Base64_test
   MSNumpressCoder_test
   BigString_test
   Bzip2Ifstream_test
   Bzip2InputStream_test
+  ChromeleonFile_test
   CVMappingFile_test
   CompressedInputSource_test
   ConsensusXMLFile_test
@@ -177,6 +179,7 @@ set(format_executables_list
   InspectOutfile_test
   KroenikFile_test
   LibSVMEncoder_test
+  MRMFeatureQCFile_test
   MS2File_test
   MSPFile_test
   MascotGenericFile_test
@@ -379,6 +382,7 @@ set(chemistry_executables_list
   ResidueModification_test
   Residue_test
   RibonucleotideDB_test
+  RNaseDigestion_test
   SpectrumAnnotator_test
   SvmTheoreticalSpectrumGenerator_test
   SvmTheoreticalSpectrumGeneratorTrainer_test
@@ -400,6 +404,10 @@ set(chemistry_executables_list
 
 
 set(analysis_executables_list
+  AbsoluteQuantitation_test
+  AbsoluteQuantitationMethod_test
+  AbsoluteQuantitationMethodFile_test
+  AbsoluteQuantitationStandards_test
   AccurateMassSearchEngine_test
   AScore_test
   BaseGroupFinder_test
@@ -457,6 +465,7 @@ set(analysis_executables_list
   LabeledPairFinder_test
   LocalLinearMap_test
   TargetedExperiment_test
+  TargetedExperimentHelper_test
   MRMFragmentSelection_test
   MRMMapping_test
   MapAlignmentAlgorithmIdentification_test
@@ -477,6 +486,7 @@ set(analysis_executables_list
   PeakIntensityPredictor_test
   PScore_test
   HyperScore_test
+  MorpheusScore_test
   OPXLHelper_test
   OPXLSpectrumProcessingAlgorithms_test
   PoseClusteringAffineSuperimposer_test
@@ -496,7 +506,6 @@ set(analysis_executables_list
   SimplePairFinder_test
   SimpleSVM_test
   StablePairFinder_test
-  #TargetedExperimentHelper_test
   PercolatorFeatureSetHelper_test
   TransformationDescription_test
   TransformationModel_test
@@ -593,12 +602,13 @@ if(NOT DISABLE_OPENSWATH)
     MRMDecoy_test
     MRMIonSeries_test
     MRMRTNormalizer_test
-    TransitionTSVReader_test
-    TransitionPQPReader_test
+    TransitionTSVFile_test
+    TransitionPQPFile_test
     ChromatogramExtractor_test
     ChromatogramExtractorAlgorithm_test
     OpenSwathHelper_test
     OpenSwathScoring_test
+    PeakIntegrator_test
     PeakPickerMRM_test
     MRMTransitionGroupPicker_test
     DIAHelper_test
@@ -606,11 +616,14 @@ if(NOT DISABLE_OPENSWATH)
     DIAPrescoring_test
     OpenSwathMRMFeatureAccessOpenMS_test
     SpectrumAddition_test
+    TargetedSpectraExtractor_test
     OpenSwathSpectrumAccessOpenMS_test
     OpenSwathDataAccessHelper_test
     MasstraceCorrelator_test
     MRMFeatureScoring_test
     MRMFeatureFinderScoring_test
+    MRMFeatureFilter_test
+    MRMFeatureQC_test
     SpectrumHelpers_test
     StatsHelpers_test
     CachedMzML_test
@@ -630,8 +643,8 @@ set(Boost_dependent_tests
   PeakPickerMRM_test
   StatisticFunctions_test
   String_test
-  TransitionTSVReader_test
-  TransitionPQPReader_test
+  TransitionTSVFile_test
+  TransitionPQPFile_test
 )
 
 ### collect test executables

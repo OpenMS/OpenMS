@@ -51,8 +51,8 @@ START_TEST(WindowMower, "$Id$")
 
 /////////////////////////////////////////////////////////////
 
-WindowMower* e_ptr = 0;
-WindowMower* e_nullPointer = 0;
+WindowMower* e_ptr = nullptr;
+WindowMower* e_nullPointer = nullptr;
 START_SECTION((WindowMower()))
 	e_ptr = new WindowMower;
 	TEST_NOT_EQUAL(e_ptr, e_nullPointer)

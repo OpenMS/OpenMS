@@ -58,7 +58,7 @@ public:
 
 
     ///Destructor
-    virtual ~Bzip2InputStream();
+    ~Bzip2InputStream() override;
 
     ///returns true if file is open
     bool getIsOpen() const;
@@ -68,7 +68,7 @@ public:
       *
       * @note Implementation of the xerces-c input stream interface
     */
-    virtual XMLFilePos curPos() const;
+    XMLFilePos curPos() const override;
 
     /**
       * @brief writes bytes into buffer from file
@@ -81,7 +81,7 @@ public:
       * @return returns the number of bytes which were actually read
       *
     */
-    virtual XMLSize_t readBytes(XMLByte* const  to_fill, const XMLSize_t max_to_read);
+    XMLSize_t readBytes(XMLByte* const  to_fill, const XMLSize_t max_to_read) override;
 
     /**
       * @brief returns 0
@@ -92,7 +92,7 @@ public:
       * case here, see xerces docs).
       *
     */
-    virtual const XMLCh* getContentType() const;
+    const XMLCh* getContentType() const override;
 
 
 private:

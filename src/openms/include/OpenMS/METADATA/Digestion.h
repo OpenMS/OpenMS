@@ -56,7 +56,7 @@ public:
     /// copy constructor
     Digestion(const Digestion &);
     /// destructor
-    virtual ~Digestion();
+    ~Digestion() override;
 
     /// assignment operator
     Digestion & operator=(const Digestion &);
@@ -67,10 +67,10 @@ public:
     Although this operator takes a reference to a SampleTreatment as argument
     it tests for the equality of Tagging instances!
   */
-    virtual bool operator==(const SampleTreatment & rhs) const;
+    bool operator==(const SampleTreatment & rhs) const override;
 
     /// clone method. See SampleTreatment
-    virtual SampleTreatment * clone() const;
+    SampleTreatment * clone() const override;
 
     /// returns the enzyme name (default is "")
     const String & getEnzyme() const;

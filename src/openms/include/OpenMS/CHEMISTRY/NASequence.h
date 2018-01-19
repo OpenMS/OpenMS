@@ -447,6 +447,9 @@ namespace OpenMS
     /// Return sequence suffix of the given length (not start index!)
     NASequence getSuffix(Size length) const;
 
+    /// Return subsequence with given starting position and length
+    NASequence getSubsequence(Size start = 0, Size length = Size(-1)) const;
+
     /**
        @brief create NASequence object by parsing an OpenMS string
 

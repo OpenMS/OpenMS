@@ -51,8 +51,8 @@ START_TEST(Residue, "$Id$")
 /////////////////////////////////////////////////////////////
 
 // Modification tests
-ResidueModification* ptr = 0;
-ResidueModification* nullPointer = 0;
+ResidueModification* ptr = nullptr;
+ResidueModification* nullPointer = nullptr;
 START_SECTION(ResidueModification())
   ptr = new ResidueModification();
 	TEST_NOT_EQUAL(ptr, nullPointer)

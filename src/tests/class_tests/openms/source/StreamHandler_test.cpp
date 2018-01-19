@@ -47,8 +47,8 @@ START_TEST(StreamHandler, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-StreamHandler* ptr = 0;
-StreamHandler* nullPointer = 0;
+StreamHandler* ptr = nullptr;
+StreamHandler* nullPointer = nullptr;
 START_SECTION(StreamHandler())
 {
 	ptr = new StreamHandler();

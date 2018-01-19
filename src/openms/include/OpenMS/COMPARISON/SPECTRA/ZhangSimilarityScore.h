@@ -66,7 +66,7 @@ public:
     ZhangSimilarityScore(const ZhangSimilarityScore & source);
 
     /// destructor
-    virtual ~ZhangSimilarityScore();
+    ~ZhangSimilarityScore() override;
     // @}
 
     // @name Operators
@@ -75,9 +75,9 @@ public:
     ZhangSimilarityScore & operator=(const ZhangSimilarityScore & source);
 
     ///
-    double operator()(const PeakSpectrum & spec1, const PeakSpectrum & spec2) const;
+    double operator()(const PeakSpectrum & spec1, const PeakSpectrum & spec2) const override;
 
-    double operator()(const PeakSpectrum & spec) const;
+    double operator()(const PeakSpectrum & spec) const override;
     // @}
 
     // @name Accessors

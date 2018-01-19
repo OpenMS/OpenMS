@@ -633,6 +633,105 @@ namespace OpenMS
       pep_it->getHits().swap(filtered_hits);
     }
   }
-  
+
+
+  void IDFilter::keepBestMatchPerQuery(
+    IdentificationData& id_data,
+    IdentificationData::ScoreTypeRef score_ref)
+  {
+    if (id_data.getMoleculeQueryMatches().size() <= 1) return; // nothing to do
+
+    vector<IdentificationData::QueryMatchRef> best_matches =
+      id_data.getBestMatchPerQuery(score_ref);
+    auto best_match_it = best_matches.begin();
+    for (auto it = id_data.query_matches_.begin();
+         it != id_data.query_matches_.end(); )
+    {
+      if (it == *best_match_it)
+      {
+        ++it;
+        ++best_match_it;
+      }
+      else
+      {
+        it = id_data.query_matches_.erase(it);
+      }
+    }
+
+    removeMoleculesParentsQueriesWithoutMatches(id_data);
+  }
+
+
+  void IDFilter::filterQueryMatchesByScore(
+    IdentificationData& id_data, IdentificationData::ScoreTypeRef score_ref,
+    double cutoff)
+  {
+    bool higher_better = score_ref->higher_better;
+
+    for (auto it = id_data.query_matches_.begin();
+         it != id_data.query_matches_.end(); )
+    {
+      pair<double, bool> score = it->getScore(score_ref);
+      if (!score.second || id_data.isBetterScore(cutoff, score.first,
+                                                 higher_better))
+      {
+        it = id_data.query_matches_.erase(it);
+      }
+      else
+      {
+        ++it;
+      }
+    }
+
+    removeMoleculesParentsQueriesWithoutMatches(id_data);
+  }
+
+
+  void IDFilter::removeMoleculesParentsQueriesWithoutMatches(
+    IdentificationData& id_data)
+  {
+    set<IdentificationData::DataQueryRef> query_refs;
+    set<IdentificationData::IdentifiedPeptideRef> peptide_refs;
+    set<IdentificationData::IdentifiedCompoundRef> compound_refs;
+    set<IdentificationData::IdentifiedOligoRef> oligo_refs;
+    for (const auto& match : id_data.query_matches_)
+    {
+      query_refs.insert(match.data_query_ref);
+      IdentificationData::MoleculeType molecule_type = match.getMoleculeType();
+      if (molecule_type == IdentificationData::MoleculeType::PROTEIN)
+      {
+        peptide_refs.insert(match.getIdentifiedPeptideRef());
+      }
+      else if (molecule_type == IdentificationData::MoleculeType::COMPOUND)
+      {
+        compound_refs.insert(match.getIdentifiedCompoundRef());
+      }
+      else if (molecule_type == IdentificationData::MoleculeType::RNA)
+      {
+        oligo_refs.insert(match.getIdentifiedOligoRef());
+      }
+    }
+    removeNonmatchingRefs_(id_data.data_queries_, query_refs);
+    removeNonmatchingRefs_(id_data.identified_peptides_, peptide_refs);
+    removeNonmatchingRefs_(id_data.identified_compounds_, compound_refs);
+    removeNonmatchingRefs_(id_data.identified_oligos_, oligo_refs);
+
+    set<IdentificationData::ParentMoleculeRef> parent_refs;
+    for (const auto& peptide : id_data.identified_peptides_)
+    {
+      for (const auto& parent_pair : peptide.parent_matches)
+      {
+        parent_refs.insert(parent_pair.first);
+      }
+    }
+    for (const auto& oligo : id_data.identified_oligos_)
+    {
+      for (const auto& parent_pair : oligo.parent_matches)
+      {
+        parent_refs.insert(parent_pair.first);
+      }
+    }
+    removeNonmatchingRefs_(id_data.parent_molecules_, parent_refs);
+  }
 
 } // namespace OpenMS

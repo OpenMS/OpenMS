@@ -77,7 +77,7 @@ public:
   }
 
 protected:
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "","Input FASTA file, containing a database.");
     setValidFormats_("in", ListUtils::create<String>("fasta"));
@@ -120,7 +120,7 @@ protected:
     }
   }
 
-  ExitCodes main_(int, const char **)
+  ExitCodes main_(int, const char **) override
   {
     //-------------------------------------------------------------
     // parsing parameters

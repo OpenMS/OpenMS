@@ -46,8 +46,8 @@ START_TEST(StringUtils, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-StringUtils* ptr = 0;
-StringUtils* null_ptr = 0;
+StringUtils* ptr = nullptr;
+StringUtils* null_ptr = nullptr;
 START_SECTION(StringUtils())
 {
 	ptr = new StringUtils();

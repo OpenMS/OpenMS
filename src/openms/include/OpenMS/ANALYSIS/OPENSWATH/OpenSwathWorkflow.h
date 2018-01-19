@@ -65,7 +65,7 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/SwathMapMassCorrection.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/LinearResamplerAlign.h>
 
-#include <assert.h>
+#include <cassert>
 #include <limits>
 
 // #define OPENSWATH_WORKFLOW_DEBUG
@@ -272,7 +272,7 @@ namespace OpenMS
     void scoreAllChromatograms(
         const OpenSwath::SpectrumAccessPtr input,
         const std::map< std::string, OpenSwath::ChromatogramPtr > & ms1_chromatograms,
-        const std::vector< OpenSwath::SwathMap > swath_maps,
+        const std::vector< OpenSwath::SwathMap >& swath_maps,
         OpenSwath::LightTargetedExperiment& transition_exp,
         const Param& feature_finder_param,
         TransformationDescription trafo,

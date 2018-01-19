@@ -46,8 +46,8 @@ START_TEST(MetaboliteSpectralMatching, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-MetaboliteSpectralMatching* ptr = 0;
-MetaboliteSpectralMatching* null_ptr = 0;
+MetaboliteSpectralMatching* ptr = nullptr;
+MetaboliteSpectralMatching* null_ptr = nullptr;
 START_SECTION(MetaboliteSpectralMatching())
 {
 	ptr = new MetaboliteSpectralMatching();

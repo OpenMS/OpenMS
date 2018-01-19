@@ -49,7 +49,6 @@
 
 #include <QtCore/QString>
 #include <QtGui/QMessageBox>
-#include <QtGui/QPainter>
 
 using namespace OpenMS;
 using namespace std;
@@ -187,7 +186,7 @@ namespace OpenMS
 
       double peak_int = current_layer.getCurrentSpectrum()[peak_idx].getIntensity();
 
-      Annotation1DCaret* first_dit(0);
+      Annotation1DCaret* first_dit(nullptr);
       // we could have many many hits for different compounds which have the exact same sum formula... so first group by sum formula
       std::map<String, StringList> formula_to_names;
       for (std::vector< PeptideHit >::const_iterator ith = it->getHits().begin();
@@ -245,7 +244,7 @@ namespace OpenMS
         ditem->setSelected(false);
         temporary_annotations_.push_back(ditem); // for removal (no ownership)
         current_layer.getCurrentAnnotations().push_front(ditem); // for visualization (ownership)
-        if (first_dit==0) first_dit = ditem; // remember first item (we append the text, when ready)
+        if (first_dit==nullptr) first_dit = ditem; // remember first item (we append the text, when ready)
 
         // list of compound names  (shorten if required)
         if (ith->second.size() > 3)
@@ -257,7 +256,7 @@ namespace OpenMS
         text += " - " + ListUtils::concatenate(ith->second, "<br> - ") + "<br>\n";
       }
       text += "</body></html>";
-      if (first_dit!=0)
+      if (first_dit!=nullptr)
       {
         first_dit->setRichText(text.toQString());
       }
@@ -274,7 +273,7 @@ namespace OpenMS
     Spectrum1DWidget* widget_1D = tv_->getActive1DWidget();
 
     // return if no active 1D widget is present
-    if (widget_1D == 0) return;
+    if (widget_1D == nullptr) return;
 
     widget_1D->canvas()->activateSpectrum(spectrum_index);
     LayerData& current_layer = widget_1D->canvas()->getCurrentLayer();
@@ -414,7 +413,7 @@ namespace OpenMS
     return result;
   }
 
-  // Helper function that collapses a vector of Strings into one String
+  // Helper function that collapses a vector of strings into one string
   String TOPPViewIdentificationViewBehavior::collapseStringVector(vector<String> strings)
   {
     String result;
@@ -425,7 +424,7 @@ namespace OpenMS
     return result;
   }
 
-  // Helper function that turns fragment annotations into coverage Strings for visualization with the sequence
+  // Helper function that turns fragment annotations into coverage strings for visualization with the sequence
   void TOPPViewIdentificationViewBehavior::extractCoverageStrings(vector<PeptideHit::PeakAnnotation> frag_annotations, String& alpha_string, String& beta_string, Size alpha_size, Size beta_size)
   {
     vector<String> alpha_strings(alpha_size, " ");
@@ -802,7 +801,7 @@ namespace OpenMS
     Spectrum1DWidget* widget_1D = tv_->getActive1DWidget();
 
     // Return if none present
-    if (widget_1D == 0) return;
+    if (widget_1D == nullptr) return;
 
     LayerData& current_layer = widget_1D->canvas()->getCurrentLayer();
 
@@ -864,7 +863,7 @@ namespace OpenMS
 
     MSSpectrum ann_spectrum;
     vector<String> labels;
-    for (const auto& ann : annotations)
+    for (const auto& ann : annotations) // NOLINT
     {
       Peak1D peak(ann.mz, ann.intensity);
       if (align) // align to the measured spectrum
@@ -961,6 +960,15 @@ namespace OpenMS
       tv_->getActive1DWidget()->canvas()->activateLayer(current_spectrum_layer_index);
       tv_->getActive1DWidget()->canvas()->getCurrentLayer().setCurrentSpectrumIndex(current_spectrum_index);
 
+      // zoom visible area to real data range:
+      DRange<2> visible_area = tv_->getActive1DWidget()->canvas()->getVisibleArea();
+      double min_mz = tv_->getActive1DWidget()->canvas()->getCurrentLayer().getCurrentSpectrum().getMin()[0];
+      double max_mz = tv_->getActive1DWidget()->canvas()->getCurrentLayer().getCurrentSpectrum().getMax()[0];
+      double delta_mz = max_mz - min_mz;
+      visible_area.setMin(min_mz - 0.1 * delta_mz);
+      visible_area.setMax(max_mz + 0.1 * delta_mz);
+      tv_->getActive1DWidget()->canvas()->setVisibleArea(visible_area);
+
       tv_->updateLayerBar();
       tv_->getSpectraIdentificationViewWidget()->ignore_update = false;
     }
@@ -994,7 +1002,7 @@ namespace OpenMS
   void TOPPViewIdentificationViewBehavior::activateBehavior()
   {
     Spectrum1DWidget* w = tv_->getActive1DWidget();
-    if (w == 0) return;
+    if (w == nullptr) return;
 
     SpectrumCanvas* current_canvas = w->canvas();
     LayerData& current_layer = current_canvas->getCurrentLayer();
@@ -1024,7 +1032,7 @@ namespace OpenMS
     Spectrum1DWidget* widget_1D = tv_->getActive1DWidget();
 
     // return if no active 1D widget is present
-    if (widget_1D == 0) return;
+    if (widget_1D == nullptr) return;
 
     // clear textbox
     widget_1D->canvas()->setTextBox(QString());
@@ -1043,7 +1051,7 @@ namespace OpenMS
     Spectrum1DWidget* widget_1D = tv_->getActive1DWidget();
 
     // return if no active 1D widget is present
-    if (widget_1D == 0) return;
+    if (widget_1D == nullptr) return;
 
     DRange<2> range = tv_->getActive1DWidget()->canvas()->getVisibleArea();
     range.setMinX(l);

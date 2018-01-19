@@ -104,7 +104,7 @@ namespace OpenMS
       explicit MSDataWritingConsumer(String filename);
 
       /// Destructor
-      virtual ~MSDataWritingConsumer();
+      ~MSDataWritingConsumer() override;
 
       /// @name IMSDataConsumer interface
       //@{
@@ -115,7 +115,7 @@ namespace OpenMS
           and the first spectrum/chromatogram, the class will deduce most of
           the header of the mzML file)
       */
-      virtual void setExperimentalSettings(const ExperimentalSettings& exp);
+      void setExperimentalSettings(const ExperimentalSettings& exp) override;
 
       /**
         @brief Set expected size of spectra and chromatograms to be written.
@@ -127,7 +127,7 @@ namespace OpenMS
         @param expectedSpectra Number of spectra expected
         @param expectedChromatograms Number of chromatograms expected
       */
-      virtual void setExpectedSize(Size expectedSpectra, Size expectedChromatograms);
+      void setExpectedSize(Size expectedSpectra, Size expectedChromatograms) override;
 
       /**
         @brief Consume a spectrum
@@ -137,7 +137,7 @@ namespace OpenMS
 
         @param s The spectrum to be written to mzML
       */
-      virtual void consumeSpectrum(SpectrumType & s);
+      void consumeSpectrum(SpectrumType & s) override;
 
       /**
         @brief Consume a chromatogram
@@ -147,7 +147,7 @@ namespace OpenMS
 
         @param c The chromatogram to be written to mzML
       */
-      virtual void consumeChromatogram(ChromatogramType & c);
+      void consumeChromatogram(ChromatogramType & c) override;
       //@}
 
       /**
@@ -241,8 +241,8 @@ namespace OpenMS
     class OPENMS_DLLAPI PlainMSDataWritingConsumer :
       public MSDataWritingConsumer 
     {
-      void processSpectrum_(MapType::SpectrumType & /* s */) {}
-      void processChromatogram_(MapType::ChromatogramType & /* c */) {}
+      void processSpectrum_(MapType::SpectrumType & /* s */) override {}
+      void processChromatogram_(MapType::ChromatogramType & /* c */) override {}
 
     public:
 
@@ -262,15 +262,15 @@ namespace OpenMS
     public:
 
       explicit NoopMSDataWritingConsumer(String filename) : MSDataWritingConsumer(filename) {}
-      void setExperimentalSettings(const ExperimentalSettings& /* exp */) {}
-      void consumeSpectrum(SpectrumType & /* s */) {}
-      void consumeChromatogram(ChromatogramType & /* c */) {}
+      void setExperimentalSettings(const ExperimentalSettings& /* exp */) override {}
+      void consumeSpectrum(SpectrumType & /* s */) override {}
+      void consumeChromatogram(ChromatogramType & /* c */) override {}
 
     private:
 
-      void doCleanup_() {}
-      void processSpectrum_(MapType::SpectrumType & /* s */) {}
-      void processChromatogram_(MapType::ChromatogramType & /* c */) {}
+      void doCleanup_() override {}
+      void processSpectrum_(MapType::SpectrumType & /* s */) override {}
+      void processChromatogram_(MapType::ChromatogramType & /* c */) override {}
     };
 
 

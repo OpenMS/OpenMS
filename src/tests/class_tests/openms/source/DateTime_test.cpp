@@ -52,8 +52,8 @@ START_TEST(DateTime, "$Id$")
 
 /////////////////////////////////////////////////////////////
 
-DateTime* ptr = 0;
-DateTime* nullPointer = 0;
+DateTime* ptr = nullptr;
+DateTime* nullPointer = nullptr;
 START_SECTION((DateTime& operator= (const DateTime& source)))
   DateTime date, date2;
   date.set("2006-12-12 11:59:59");

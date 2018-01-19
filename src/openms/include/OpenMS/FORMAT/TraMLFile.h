@@ -57,7 +57,7 @@ public:
     ///Default constructor
     TraMLFile();
     ///Destructor
-    virtual ~TraMLFile();
+    ~TraMLFile() override;
 
     /**
         @brief Loads a map from a TraML file.

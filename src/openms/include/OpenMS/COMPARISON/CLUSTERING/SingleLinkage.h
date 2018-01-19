@@ -67,7 +67,7 @@ public:
     SingleLinkage(const SingleLinkage & source);
 
     /// destructor
-    virtual ~SingleLinkage();
+    ~SingleLinkage() override;
 
     /// assignment operator
     SingleLinkage & operator=(const SingleLinkage & source);
@@ -82,7 +82,7 @@ public:
         The clustering method is single linkage, where the updated distances after merging two clusters are each the minimal distance between the elements of their clusters.
     @see ClusterFunctor , BinaryTreeNode
     */
-    void operator()(DistanceMatrix<float> & original_distance, std::vector<BinaryTreeNode> & cluster_tree, const float threshold = 1) const;
+    void operator()(DistanceMatrix<float> & original_distance, std::vector<BinaryTreeNode> & cluster_tree, const float threshold = 1) const override;
 
     /// creates a new instance of a SingleLinkage object
     static ClusterFunctor * create();

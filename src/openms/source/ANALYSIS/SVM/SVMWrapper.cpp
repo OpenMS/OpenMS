@@ -148,15 +148,15 @@ namespace OpenMS
 
   SVMWrapper::SVMWrapper() :
     ProgressLogger(),
-    param_(NULL),
-    model_(NULL),
+    param_(nullptr),
+    model_(nullptr),
     sigma_(0),
     sigmas_(vector<double>()),
     gauss_table_(),
     kernel_type_(PRECOMPUTED),
     border_length_(0),
-    training_set_(NULL),
-    training_problem_(NULL),
+    training_set_(nullptr),
+    training_problem_(nullptr),
     training_data_(SVMData())
   {
     param_ = (struct svm_parameter*) malloc(sizeof(struct svm_parameter));
@@ -165,20 +165,20 @@ namespace OpenMS
 
   SVMWrapper::~SVMWrapper()
   {
-    if (param_ != NULL)
+    if (param_ != nullptr)
     {
       svm_destroy_param(param_);
       free(param_);
-      param_ = NULL;
+      param_ = nullptr;
     }
-    if (model_ != NULL)
+    if (model_ != nullptr)
     {
 #if OPENMS_LIBSVM_VERSION_MAJOR == 2
       svm_destroy_model(model_);
 #else
       svm_free_and_destroy_model(&model_);
 #endif
-      model_ = NULL;
+      model_ = nullptr;
     }
   }
 
@@ -351,20 +351,20 @@ namespace OpenMS
 
   Int SVMWrapper::train(struct svm_problem* problem)
   {
-    if (problem != NULL
-       && param_ != NULL
-       && (svm_check_parameter(problem, param_) == NULL))
+    if (problem != nullptr
+       && param_ != nullptr
+       && (svm_check_parameter(problem, param_) == nullptr))
     {
       training_set_ = problem;
 
-      if (model_ != NULL)
+      if (model_ != nullptr)
       {
 #if OPENMS_LIBSVM_VERSION_MAJOR == 2
         svm_destroy_model(model_);
 #else
         svm_free_and_destroy_model(&model_);
 #endif
-        model_ = NULL;
+        model_ = nullptr;
       }
 
       if (kernel_type_ == OLIGO)
@@ -383,15 +383,15 @@ namespace OpenMS
     }
     else
     {
-      if (problem == NULL)
+      if (problem == nullptr)
       {
         cout << "problem is null" << endl;
       }
-      if (param_ == NULL)
+      if (param_ == nullptr)
       {
         cout << "param_ == null" << endl;
       }
-      if (svm_check_parameter(problem, param_) != NULL)
+      if (svm_check_parameter(problem, param_) != nullptr)
       {
         cout << "check parameter failed: " << endl
              << svm_check_parameter(problem, param_) << endl;
@@ -403,18 +403,18 @@ namespace OpenMS
 
   Int SVMWrapper::train(SVMData& problem)
   {
-    if (param_ != NULL || kernel_type_ != OLIGO)
+    if (param_ != nullptr || kernel_type_ != OLIGO)
     {
       training_data_ = problem;
 
-      if (model_ != NULL)
+      if (model_ != nullptr)
       {
 #if OPENMS_LIBSVM_VERSION_MAJOR == 2
         svm_destroy_model(model_);
 #else
         svm_free_and_destroy_model(&model_);
 #endif
-        model_ = NULL;
+        model_ = nullptr;
       }
 
       if (border_length_ != gauss_table_.size())
@@ -423,21 +423,21 @@ namespace OpenMS
       }
       training_problem_ = computeKernelMatrix(problem, problem);
 
-      if (svm_check_parameter(training_problem_, param_) == NULL)
+      if (svm_check_parameter(training_problem_, param_) == nullptr)
       {
         model_ = svm_train(training_problem_, param_);
         return 1;
       }
     }
-    if (training_problem_ == NULL)
+    if (training_problem_ == nullptr)
     {
       cout << "problem is null" << endl;
     }
-    if (param_ == NULL)
+    if (param_ == nullptr)
     {
       cout << "param_ == null" << endl;
     }
-    if (svm_check_parameter(training_problem_, param_) != NULL)
+    if (svm_check_parameter(training_problem_, param_) != nullptr)
     {
       cout << "check parameter failed" << endl;
     }
@@ -450,7 +450,7 @@ namespace OpenMS
   {
     Int  status = 0;
 
-    if (model_ != NULL)
+    if (model_ != nullptr)
     {
       status = svm_save_model(model_filename.c_str(), model_);
     }
@@ -470,14 +470,14 @@ namespace OpenMS
     TextFile::ConstIterator it;
     vector<String> parts;
 
-    if (model_ != NULL)
+    if (model_ != nullptr)
     {
 #if OPENMS_LIBSVM_VERSION_MAJOR == 2
       svm_destroy_model(model_);
 #else
       svm_free_and_destroy_model(&model_);
 #endif
-      model_ = NULL;
+      model_ = nullptr;
     }
     model_ = svm_load_model(model_filename.c_str());
     setParameter(SVM_TYPE, svm_get_svm_type(model_));
@@ -514,24 +514,24 @@ namespace OpenMS
   {
     results.clear();
 
-    if (model_ == NULL)
+    if (model_ == nullptr)
     {
       cout << "Model is null" << endl;
     }
-    if (problem == NULL)
+    if (problem == nullptr)
     {
       cout << "problem is null" << endl;
     }
-    if (param_->kernel_type == PRECOMPUTED && training_set_ == NULL)
+    if (param_->kernel_type == PRECOMPUTED && training_set_ == nullptr)
     {
       cout << "Training set is null and kernel type == PRECOMPUTED" << endl;
     }
 
-    if (model_ != NULL && problem != NULL)
+    if (model_ != nullptr && problem != nullptr)
     {
       if (kernel_type_ == OLIGO)
       {
-        if (training_set_ != NULL)
+        if (training_set_ != nullptr)
         {
           problem = computeKernelMatrix(problem, training_set_);
         }
@@ -556,7 +556,7 @@ namespace OpenMS
 
     if (kernel_type_ == OLIGO)
     {
-      if (model_ == NULL)
+      if (model_ == nullptr)
       {
         cout << "Model is null" << endl;
       }
@@ -568,7 +568,7 @@ namespace OpenMS
       {
         cout << "Training set is empty and kernel type == PRECOMPUTED" << endl;
       }
-      else if (model_ != NULL)
+      else if (model_ != nullptr)
       {
         struct svm_problem* prediction_problem = computeKernelMatrix(problem, training_data_);
         for (Size i = 0; i < problem.sequences.size(); i++)
@@ -718,11 +718,11 @@ namespace OpenMS
 
   svm_problem* SVMWrapper::mergePartitions(const vector<svm_problem*>& problems, Size except)
   {
-    svm_problem* merged_problem = NULL;
+    svm_problem* merged_problem = nullptr;
 
     if (problems.size() == 1 && except == 0)
     {
-      return NULL;
+      return nullptr;
     }
 
     if (problems.size() > 0)
@@ -806,7 +806,7 @@ namespace OpenMS
   {
     labels.clear();
 
-    if (problem != NULL)
+    if (problem != nullptr)
     {
       int count = problem->l;
       for (int i = 0; i < count; i++)
@@ -854,7 +854,7 @@ namespace OpenMS
     bool found = false; // does a valid grid search cell (with a certain parameter combination) exist?
     Size counter = 0;
     vector<svm_problem*> partitions_ul;
-    svm_problem** training_data_ul = NULL;
+    svm_problem** training_data_ul = nullptr;
     vector<SVMData> partitions_l;
     vector<SVMData> training_data_l;
     double temp_performance = 0;
@@ -1301,7 +1301,7 @@ namespace OpenMS
   {
     results.clear();
 
-    if (model_ != NULL)
+    if (model_ != nullptr)
     {
       for (Size i = 0; i < vectors.size(); i++)
       {
@@ -1313,7 +1313,7 @@ namespace OpenMS
 
   double SVMWrapper::getSVRProbability()
   {
-    if (model_ != NULL)
+    if (model_ != nullptr)
     {
       return svm_get_svr_probability(model_);
     }
@@ -1338,11 +1338,11 @@ namespace OpenMS
     probabilities.clear();
     prediction_labels.clear();
 
-    if (model_ != NULL)
+    if (model_ != nullptr)
     {
       if (kernel_type_ == OLIGO)
       {
-        if (training_set_ != NULL)
+        if (training_set_ != nullptr)
         {
           problem = computeKernelMatrix(problem, training_set_);
         }
@@ -1369,7 +1369,7 @@ namespace OpenMS
 
   void SVMWrapper::initParameters_()
   {
-    model_ = NULL;
+    model_ = nullptr;
 
     param_->svm_type = NU_SVR;
     param_->kernel_type = PRECOMPUTED;
@@ -1385,8 +1385,8 @@ namespace OpenMS
     param_->probability = 0; // do not build probability model during training
 
     param_->nr_weight = 0; // for C_SVC
-    param_->weight_label = NULL; // for C_SVC
-    param_->weight = NULL; // for C_SVC
+    param_->weight_label = nullptr; // for C_SVC
+    param_->weight = nullptr; // for C_SVC
 
     // silence libsvm
     svm_set_print_string_function(&printToVoid_);
@@ -1598,9 +1598,9 @@ namespace OpenMS
     double temp = 0;
     svm_problem* kernel_matrix;
 
-    if (problem1 == NULL || problem2 == NULL)
+    if (problem1 == nullptr || problem2 == nullptr)
     {
-      return NULL;
+      return nullptr;
     }
     UInt number_of_sequences = problem1->l;
     kernel_matrix = new svm_problem;
@@ -1654,13 +1654,13 @@ namespace OpenMS
 
     if (problem1.labels.empty() || problem2.labels.empty())
     {
-      return NULL;
+      return nullptr;
     }
 
     if (problem1.labels.size() != problem1.sequences.size()
        || problem2.labels.size() != problem2.sequences.size())
     {
-      return NULL;
+      return nullptr;
     }
 
     Size number_of_sequences = problem1.labels.size();
@@ -1923,7 +1923,7 @@ namespace OpenMS
     double temp_value;
 
     decision_values.clear();
-    if (model_ != NULL)
+    if (model_ != nullptr)
     {
       if (param_->svm_type == NU_SVR || param_->svm_type == EPSILON_SVR)
       {
@@ -1942,7 +1942,7 @@ namespace OpenMS
 
         if (kernel_type_ == OLIGO)
         {
-          if (training_set_ != NULL)
+          if (training_set_ != nullptr)
           {
             data = computeKernelMatrix(data, training_set_);
           }

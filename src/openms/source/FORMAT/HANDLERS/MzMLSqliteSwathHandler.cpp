@@ -57,7 +57,7 @@ namespace OpenMS
                     "WHERE MSLEVEL == 2 "\
                     ";";
 
-      sqlite3_prepare(db, select_sql.c_str(), -1, &stmt, NULL);
+      sqlite3_prepare(db, select_sql.c_str(), -1, &stmt, nullptr);
       sqlite3_step( stmt );
 
       while (sqlite3_column_type( stmt, 0 ) != SQLITE_NULL)
@@ -90,7 +90,7 @@ namespace OpenMS
                    "FROM SPECTRUM " \
                    "WHERE MSLEVEL == 1;";
 
-      sqlite3_prepare(db, select_sql.c_str(), -1, &stmt, NULL);
+      sqlite3_prepare(db, select_sql.c_str(), -1, &stmt, nullptr);
       sqlite3_step(stmt);
 
       while (sqlite3_column_type(stmt, 0) != SQLITE_NULL)
@@ -125,7 +125,7 @@ namespace OpenMS
       select_sql += String(center + 0.01); 
       select_sql += ";";
 
-      sqlite3_prepare(db, select_sql.c_str(), -1, &stmt, NULL);
+      sqlite3_prepare(db, select_sql.c_str(), -1, &stmt, nullptr);
       sqlite3_step(stmt);
 
       while (sqlite3_column_type( stmt, 0 ) != SQLITE_NULL)

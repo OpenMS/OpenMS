@@ -144,7 +144,7 @@ public:
 
 protected:
 
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "input file");
     setValidFormats_("in", ListUtils::create<String>("mzML"));
@@ -161,12 +161,12 @@ protected:
     registerSubsection_("algorithm", "Algorithm section");
   }
 
-  Param getSubsectionDefaults_(const String& /*section*/) const
+  Param getSubsectionDefaults_(const String& /*section*/) const override
   {
     return FeatureFinder().getParameters(FeatureFinderAlgorithmPicked::getProductName());
   }
 
-  ExitCodes main_(int, const char**)
+  ExitCodes main_(int, const char**) override
   {
     //input file names
     String in = getStringOption_("in");
@@ -194,7 +194,7 @@ protected:
     // determine type of spectral data (profile or centroided)
     SpectrumSettings::SpectrumType  spectrum_type = exp[0].getType();
 
-    if (spectrum_type == SpectrumSettings::RAWDATA)
+    if (spectrum_type == SpectrumSettings::PROFILE)
     {
       if (!getFlag_("force"))
       {

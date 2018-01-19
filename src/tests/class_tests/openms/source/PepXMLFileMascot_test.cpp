@@ -47,8 +47,8 @@ START_TEST(PepXMLFileMascot, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-PepXMLFileMascot* ptr = 0;
-PepXMLFileMascot* nullPointer = 0;
+PepXMLFileMascot* ptr = nullptr;
+PepXMLFileMascot* nullPointer = nullptr;
 PepXMLFileMascot file;
 START_SECTION(PepXMLFileMascot())
 	ptr = new PepXMLFileMascot();

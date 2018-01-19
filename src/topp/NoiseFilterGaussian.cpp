@@ -114,12 +114,12 @@ public:
       gf_ = gf;
     }
 
-    void processSpectrum_(MapType::SpectrumType& s)
+    void processSpectrum_(MapType::SpectrumType& s) override
     {
       gf_.filter(s);
     }
 
-    void processChromatogram_(MapType::ChromatogramType& c) 
+    void processChromatogram_(MapType::ChromatogramType& c) override 
     {
       gf_.filter(c);
     }
@@ -128,7 +128,7 @@ public:
     GaussFilter gf_;
   };
 
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "input raw data file ");
     setValidFormats_("in", ListUtils::create<String>("mzML"));
@@ -141,7 +141,7 @@ public:
     registerSubsection_("algorithm", "Algorithm parameters section");
   }
 
-  Param getSubsectionDefaults_(const String & /*section*/) const
+  Param getSubsectionDefaults_(const String & /*section*/) const override
   {
     return GaussFilter().getDefaults();
   }
@@ -164,7 +164,7 @@ public:
     return EXECUTION_OK;
   }
 
-  ExitCodes main_(int, const char **)
+  ExitCodes main_(int, const char **) override
   {
     //-------------------------------------------------------------
     // parameter handling
@@ -200,7 +200,7 @@ public:
       return INCOMPATIBLE_INPUT_DATA;
     }
     //check for peak type (profile data required)
-    if (!exp.empty() && PeakTypeEstimator().estimateType(exp[0].begin(), exp[0].end()) == SpectrumSettings::PEAKS)
+    if (!exp.empty() && PeakTypeEstimator().estimateType(exp[0].begin(), exp[0].end()) == SpectrumSettings::CENTROID)
     {
       writeLog_("Warning: OpenMS peak type estimation indicates that this is not profile data!");
     }

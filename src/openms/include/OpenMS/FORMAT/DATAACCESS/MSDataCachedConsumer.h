@@ -81,7 +81,7 @@ namespace OpenMS
   
         Closes the output file and writes the footer.
       */
-      ~MSDataCachedConsumer()
+      ~MSDataCachedConsumer() override
       {
         // Write size of file (to the end of the file)
         ofs_.write((char*)&spectra_written_, sizeof(spectra_written_));
@@ -96,7 +96,7 @@ namespace OpenMS
       /**
         @brief Write a spectrum to the output file
       */
-      void consumeSpectrum(SpectrumType & s)
+      void consumeSpectrum(SpectrumType & s) override
       {
         if (chromatograms_written_ > 0)
         {
@@ -111,16 +111,16 @@ namespace OpenMS
       /**
         @brief Write a chromatogram to the output file
       */
-      void consumeChromatogram(ChromatogramType & c)
+      void consumeChromatogram(ChromatogramType & c) override
       {
         writeChromatogram_(c, ofs_);
         chromatograms_written_++;
         if (clearData_) {c.clear(false);}
       }
 
-      void setExpectedSize(Size /* expectedSpectra */, Size /* expectedChromatograms */) {;}
+      void setExpectedSize(Size /* expectedSpectra */, Size /* expectedChromatograms */) override {;}
 
-      void setExperimentalSettings(const ExperimentalSettings& /* exp */) {;}
+      void setExperimentalSettings(const ExperimentalSettings& /* exp */) override {;}
 
     protected:
       std::ofstream ofs_;

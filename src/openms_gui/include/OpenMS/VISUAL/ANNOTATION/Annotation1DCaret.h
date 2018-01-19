@@ -67,16 +67,16 @@ public:
     Annotation1DCaret(const Annotation1DCaret& rhs);
 
     /// Destructor
-    virtual ~Annotation1DCaret();
+    ~Annotation1DCaret() override;
 
     // Docu in base class
-    virtual void ensureWithinDataRange(Spectrum1DCanvas* const canvas);
+    void ensureWithinDataRange(Spectrum1DCanvas* const canvas) override;
 
     // Docu in base class
-    virtual void draw(Spectrum1DCanvas* const canvas, QPainter& painter, bool flipped = false);
+    void draw(Spectrum1DCanvas* const canvas, QPainter& painter, bool flipped = false) override;
 
     // Docu in base class
-    virtual void move(const PointType& delta);
+    void move(const PointType& delta) override;
 
     /// Returns the positions of the lines (in MZ / intensity coordinates)
     const PositionsType& getCaretPositions() const;

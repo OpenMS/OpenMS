@@ -53,8 +53,8 @@ typedef PeakMap Map;
 typedef Internal::AreaIterator<Map::PeakType, Map::PeakType&, Map::PeakType*, Map::Iterator, Map::SpectrumType::Iterator> AI;
 //typedef Internal::AreaIterator<Map::PeakType, const Map::PeakType&, const Map::PeakType*, Map::ConstIterator, Map::SpectrumType::ConstIterator> CAI;
 
-AI* ptr1 = 0, *ptr2 = 0;
-AI* nullPointer = 0;
+AI* ptr1 = nullptr, *ptr2 = nullptr;
+AI* nullPointer = nullptr;
 
 Map exp;
 exp.resize(5);

@@ -228,10 +228,11 @@ namespace OpenMS
 
     new_ETD_spec = ETD_copy;
 
+    static double oxonium_mass = EmpiricalFormula("H2O+").getMonoWeight();
 
     Peak1D p;
     p.setIntensity(1.0f);
-    p.setPosition(19.0);
+    p.setPosition(oxonium_mass);
 
     new_CID_spec.push_back(p);
 
@@ -716,7 +717,8 @@ namespace OpenMS
 // divide and conquer algorithm of the sequencing
   void CompNovoIdentification::getDecompositionsDAC_(set<String> & sequences, Size left, Size right, double peptide_weight, const PeakSpectrum & CID_spec, const PeakSpectrum & ETD_spec, Map<double, CompNovoIonScoring::IonScore> & ion_scores)
   {
-    double offset_suffix(CID_spec[left].getPosition()[0] - 19.0);
+    static double oxonium_mass = EmpiricalFormula("H2O+").getMonoWeight();
+    double offset_suffix(CID_spec[left].getPosition()[0] - oxonium_mass);
     double offset_prefix(peptide_weight - CID_spec[right].getPosition()[0]);
 
 #ifdef DAC_DEBUG

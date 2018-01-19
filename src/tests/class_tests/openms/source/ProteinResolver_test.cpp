@@ -47,8 +47,8 @@ START_TEST(ProteinResolver, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-ProteinResolver* ptr = 0;
-ProteinResolver* null_ptr = 0;
+ProteinResolver* ptr = nullptr;
+ProteinResolver* null_ptr = nullptr;
 START_SECTION(ProteinResolver())
 {
   ptr = new ProteinResolver();

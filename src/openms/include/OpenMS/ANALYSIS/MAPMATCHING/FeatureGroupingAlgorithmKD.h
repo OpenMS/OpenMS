@@ -187,22 +187,22 @@ public:
     FeatureGroupingAlgorithmKD();
 
     /// Destructor
-    virtual ~FeatureGroupingAlgorithmKD();
+    ~FeatureGroupingAlgorithmKD() override;
 
     /**
         @brief Applies the algorithm to feature maps
 
         @exception IllegalArgument is thrown if less than two input maps are given.
     */
-    virtual void group(const std::vector<FeatureMap>& maps, ConsensusMap& out);
+    void group(const std::vector<FeatureMap>& maps, ConsensusMap& out) override;
 
     /**
         @brief Applies the algorithm to consensus maps
 
         @exception IllegalArgument is thrown if less than two input maps are given.
     */
-    virtual void group(const std::vector<ConsensusMap>& maps,
-                       ConsensusMap& out);
+    void group(const std::vector<ConsensusMap>& maps,
+                       ConsensusMap& out) override;
 
     /// Creates a new instance of this class (for Factory)
     static FeatureGroupingAlgorithm* create()
