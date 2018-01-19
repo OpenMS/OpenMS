@@ -50,6 +50,8 @@ namespace OpenMS
     template <typename Iterator>
     struct IteratorWrapper: public Iterator
     {
+      IteratorWrapper(): Iterator() {}
+
       IteratorWrapper(const Iterator& it): Iterator(it) {}
 
       bool operator<(const IteratorWrapper& other) const
@@ -134,12 +136,7 @@ namespace OpenMS
     };
 
     typedef std::set<DataProcessingStep> DataProcessingSteps;
-    typedef DataProcessingSteps::iterator ProcessingStepRef;
-    inline bool operator<(const ProcessingStepRef& left,
-                          const ProcessingStepRef& right)
-    {
-      return &(*left) < &(*right);
-    }
+    typedef IteratorWrapper<DataProcessingSteps::iterator> ProcessingStepRef;
 
 
     enum MassType
@@ -229,12 +226,7 @@ namespace OpenMS
     };
 
     typedef std::set<DBSearchParam> DBSearchParams;
-    typedef DBSearchParams::iterator SearchParamRef;
-    inline bool operator<(const SearchParamRef& left,
-                          const SearchParamRef& right)
-    {
-      return &(*left) < &(*right);
-    }
+    typedef IteratorWrapper<DBSearchParams::iterator> SearchParamRef;
     typedef std::map<ProcessingStepRef, SearchParamRef> DBSearchSteps;
 
     /*!
@@ -295,11 +287,7 @@ namespace OpenMS
     };
 
     typedef std::set<ScoreType> ScoreTypes;
-    typedef ScoreTypes::iterator ScoreTypeRef;
-    inline bool operator<(const ScoreTypeRef& left, const ScoreTypeRef& right)
-    {
-      return &(*left) < &(*right);
-    }
+    typedef IteratorWrapper<ScoreTypes::iterator> ScoreTypeRef;
 
     // @TODO: use a "boost::multi_index_container" to allow efficient access in
     // sequence and by key?

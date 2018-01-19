@@ -116,8 +116,26 @@ namespace OpenMS
     {
     }
 
-    /// Copy constructor
-    IdentificationData(const IdentificationData& other) = default;
+    // Copy constructor - not allowed, as references would be invalidated:
+    IdentificationData(const IdentificationData& other) = delete;
+
+    /// Move constructor
+    IdentificationData(IdentificationData&& other):
+      current_step_ref_(other.current_step_ref_)
+    {
+      input_files_.swap(other.input_files_);
+      processing_software_.swap(other.processing_software_);
+      processing_steps_.swap(other.processing_steps_);
+      db_search_params_.swap(other.db_search_params_);
+      db_search_steps_.swap(other.db_search_steps_);
+      score_types_.swap(other.score_types_);
+      data_queries_.swap(other.data_queries_);
+      parent_molecules_.swap(other.parent_molecules_);
+      identified_peptides_.swap(other.identified_peptides_);
+      identified_compounds_.swap(other.identified_compounds_);
+      identified_oligos_.swap(other.identified_oligos_);
+      query_matches_.swap(other.query_matches_);
+    }
 
     InputFileRef registerInputFile(const String& file);
 
@@ -278,14 +296,6 @@ namespace OpenMS
     void checkParentMatches_(const ParentMatches& matches,
                              MoleculeType expected_type);
 
-    /*!
-      @brief Helper function to add the current processing step to a list of steps, if applicable.
-
-      @see @ref setCurrentProcessingStep()
-    */
-    bool addCurrentProcessingStep_(
-      std::vector<ProcessingStepRef>& processing_step_refs);
-
     /// Helper functor for augmenting entries (derived from ScoredProcessingResult) in a @t boost::multi_index_container structure
     template <typename ElementType>
     struct ModifyMultiIndexMergeElements
@@ -367,9 +377,12 @@ namespace OpenMS
       }
 
       // add current processing step (if necessary):
-      ModifyMultiIndexAddProcessingStep<ElementType>
-        modifier(current_step_ref_);
-      container.modify(result.first, modifier);
+      if (current_step_ref_ != processing_steps_.end())
+      {
+        ModifyMultiIndexAddProcessingStep<ElementType>
+          modifier(current_step_ref_);
+        container.modify(result.first, modifier);
+      }
 
       return result.first;
     }
