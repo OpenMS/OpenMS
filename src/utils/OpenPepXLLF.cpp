@@ -504,13 +504,13 @@ protected:
     filtered_peptide_masses.assign(peptide_masses.begin(), last);
     // peptide_masses.clear();
 
-    progresslogger.startProgress(0, 1, "Enumerating cross-links...");
-    enumerated_cross_link_masses = OPXLHelper::enumerateCrossLinksAndMasses(filtered_peptide_masses, cross_link_mass, cross_link_mass_mono_link, cross_link_residue1, cross_link_residue2,
-                                                                                                                                                  spectrum_precursors, precursor_mass_tolerance, precursor_mass_tolerance_unit_ppm);
-    progresslogger.endProgress();
-    cout << "Enumerated cross-links: " << enumerated_cross_link_masses.size() << endl;
-    sort(enumerated_cross_link_masses.begin(), enumerated_cross_link_masses.end(), OPXLDataStructs::XLPrecursorComparator());
-    cout << "Sorting of enumerated precursors finished" << endl;
+    // progresslogger.startProgress(0, 1, "Enumerating cross-links...");
+    // enumerated_cross_link_masses = OPXLHelper::enumerateCrossLinksAndMasses(filtered_peptide_masses, cross_link_mass, cross_link_mass_mono_link, cross_link_residue1, cross_link_residue2,
+    //                                                                                                                                               spectrum_precursors, precursor_mass_tolerance, precursor_mass_tolerance_unit_ppm);
+    // progresslogger.endProgress();
+    // cout << "Enumerated cross-links: " << enumerated_cross_link_masses.size() << endl;
+    // sort(enumerated_cross_link_masses.begin(), enumerated_cross_link_masses.end(), OPXLDataStructs::XLPrecursorComparator());
+    // cout << "Sorting of enumerated precursors finished" << endl;
 
 //    // Debug output, writes out all cross-link candidates (which can be a lot!!!), not recommended for real datasets, only small test cases
 //    LOG_DEBUG << "Enumerated candidates: " << endl;
@@ -576,7 +576,6 @@ protected:
 
       for (int correction_mass : precursor_correction_masses)
       {
-
         double corrected_precursor_mass = precursor_mass + (static_cast<double>(correction_mass) * Constants::C13C12_MASSDIFF_U);
 
         if (precursor_mass_tolerance_unit_ppm) // ppm
@@ -587,23 +586,46 @@ protected:
         {
           allowed_error = precursor_mass_tolerance;
         }
-#ifdef _OPENMP
-#pragma omp critical (enumerated_cross_link_masses_access)
-#endif
+
+        // #ifdef _OPENMP
+        // #pragma omp critical (enumerated_cross_link_masses_access)
+        // #endif
+        //         {
+        //           low_it = lower_bound(enumerated_cross_link_masses.begin(), enumerated_cross_link_masses.end(), corrected_precursor_mass - allowed_error, OPXLDataStructs::XLPrecursorComparator());
+        //           up_it =  upper_bound(enumerated_cross_link_masses.begin(), enumerated_cross_link_masses.end(), corrected_precursor_mass + allowed_error, OPXLDataStructs::XLPrecursorComparator());
+        //         }
+        //
+        //         if (low_it != up_it) // no matching precursor in data
+        //         {
+        //           for (; low_it != up_it; ++low_it)
+        //           {
+        //             candidates.push_back(*low_it);
+        //             precursor_corrections.push_back(correction_mass);
+        //           }
+        //         }
+
+        vector< OPXLDataStructs::XLPrecursor > precursor_candidates;
+        vector< double > spectrum_precursor_vector;
+        spectrum_precursor_vector.push_back(corrected_precursor_mass);
+        // progresslogger.startProgress(0, 1, "Enumerating cross-links...");
+        precursor_candidates = OPXLHelper::enumerateCrossLinksAndMasses(filtered_peptide_masses, cross_link_mass, cross_link_mass_mono_link, cross_link_residue1, cross_link_residue2,
+                                                                                                                                                      spectrum_precursor_vector, precursor_mass_tolerance, precursor_mass_tolerance_unit_ppm);
+        // progresslogger.endProgress();
+
+// #ifdef _OPENMP
+// #pragma omp critical
+// #endif
+//         cout << "Enumerated cross-links: " << precursor_candidates.size() << endl;
+        // sort(candidates.begin(), candidates.end(), OPXLDataStructs::XLPrecursorComparator());
+        // cout << "Sorting of enumerated precursors finished" << endl;
+
+        for (OPXLDataStructs::XLPrecursor candidate : precursor_candidates)
         {
-          low_it = lower_bound(enumerated_cross_link_masses.begin(), enumerated_cross_link_masses.end(), corrected_precursor_mass - allowed_error, OPXLDataStructs::XLPrecursorComparator());
-          up_it =  upper_bound(enumerated_cross_link_masses.begin(), enumerated_cross_link_masses.end(), corrected_precursor_mass + allowed_error, OPXLDataStructs::XLPrecursorComparator());
+          candidates.push_back(candidate);
+          precursor_corrections.push_back(correction_mass);
         }
 
-        if (low_it != up_it) // no matching precursor in data
-        {
-          for (; low_it != up_it; ++low_it)
-          {
-            candidates.push_back(*low_it);
-            precursor_corrections.push_back(correction_mass);
-          }
-        }
-      }
+      } // end correction mass loop
 
 #ifdef _OPENMP
 #pragma omp critical
@@ -625,12 +647,11 @@ protected:
 //        LOG_DEBUG << cross_link_candidates[i].alpha.toString() << "-" << cross_link_candidates[i].beta.toString() << " | mass " << cross_link_candidates[i].cross_linker_mass << " | pos " << cross_link_candidates[i].cross_link_position.first << ", " << cross_link_candidates[i].cross_link_position.second << " | term "  << cross_link_candidates[i].term_spec_alpha << ", " << cross_link_candidates[i].term_spec_beta << endl;
 //      }
 
+      progresslogger.startProgress(0, 1, "Start pre-scoring...");
+
       for (Size i = 0; i < cross_link_candidates.size(); ++i)
       {
         OPXLDataStructs::ProteinProteinCrossLink cross_link_candidate = cross_link_candidates[i];
-
-        OPXLDataStructs::CrossLinkSpectrumMatch csm;
-        csm.cross_link = cross_link_candidate;
 
         PeakSpectrum theoretical_spec_linear_alpha;
         PeakSpectrum theoretical_spec_linear_beta;
@@ -642,49 +663,59 @@ protected:
         {
           link_pos_B = cross_link_candidate.cross_link_position.second;
         }
-        specGen_fast.getLinearIonSpectrum(theoretical_spec_linear_alpha, cross_link_candidate.alpha, cross_link_candidate.cross_link_position.first, true, 2, link_pos_B);
+        specGen_fast.getLinearIonSpectrum(theoretical_spec_linear_alpha, cross_link_candidate.alpha, cross_link_candidate.cross_link_position.first, true, 1, link_pos_B);
         if (type_is_cross_link)
         {
-          specGen_fast.getLinearIonSpectrum(theoretical_spec_linear_beta, cross_link_candidate.beta, cross_link_candidate.cross_link_position.second, false, 2);
+          specGen_fast.getLinearIonSpectrum(theoretical_spec_linear_beta, cross_link_candidate.beta, cross_link_candidate.cross_link_position.second, false, 1);
         }
 
-        // Something like this can happen, e.g. with a loop link connecting the first and last residue of a peptide
-        if ( (theoretical_spec_linear_alpha.size() < 1) )
+        // Something like this can happen, e.g. with a loop link connecting residues close to the ends of the peptide
+        // TODO make that a parameter?
+        if ( (theoretical_spec_linear_alpha.size() < 5) )
         {
           continue;
         }
 
         PeakSpectrum theoretical_spec_linear = OPXLSpectrumProcessingAlgorithms::mergeAnnotatedSpectra(theoretical_spec_linear_alpha, theoretical_spec_linear_beta);
-        LOG_DEBUG << "Pre-scoring | theo spectra sizes: " << theoretical_spec_linear_alpha.size() << " | " << theoretical_spec_linear_beta.size() << " | " << theoretical_spec_linear.size() << " | exp spectrum size: " << spectrum.size() <<endl;
+        // LOG_DEBUG << "Pre-scoring | theo spectra sizes: " << theoretical_spec_linear_alpha.size() << " | " << theoretical_spec_linear_beta.size() << " | " << theoretical_spec_linear.size() << " | exp spectrum size: " << spectrum.size() <<endl;
         vector< pair< Size, Size > > matched_spec_linear;
         DataArrays::FloatDataArray dummy_array;
         OPXLSpectrumProcessingAlgorithms::getSpectrumAlignment(matched_spec_linear, theoretical_spec_linear, spectrum, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, dummy_array);
 
-        LOG_DEBUG << "Pre-scoring | matches: " << matched_spec_linear.size() << endl;
+        // LOG_DEBUG << "Pre-scoring | matches: " << matched_spec_linear.size() << endl;
 
         // Pre-Score calculations
         Size matched_linear_count = matched_spec_linear.size();
         Size theor_linear_count = theoretical_spec_linear.size();
 
-        if (matched_linear_count < 1)
+        // TODO make that a parameter?
+        if (matched_linear_count < 3)
         {
           continue;
         }
         // Simplified pre-Score
-        double pre_score = 0;
-        pre_score = XQuestScores::preScore(matched_linear_count, theor_linear_count);
+        // double pre_score = 0;
+        double pre_score = XQuestScores::preScore(matched_linear_count, theor_linear_count);
 
         // store pre_score, take top 100 for further computations
+        OPXLDataStructs::CrossLinkSpectrumMatch csm;
+        csm.cross_link = cross_link_candidate;
         csm.score = pre_score;
         csm.pre_score = pre_score;
 
-        LOG_DEBUG << "Pre-scoring | score: " << pre_score << endl;
+        // LOG_DEBUG << "Pre-scoring | score: " << pre_score << endl;
 
 
         prescore_csms_spectrum.push_back(csm);
       }
 
       sort(prescore_csms_spectrum.rbegin(), prescore_csms_spectrum.rend());
+      progresslogger.endProgress();
+
+// #ifdef _OPENMP
+// #pragma omp critical
+// #endif
+//       cout << "Pre-scoring finished." << endl;
 
       // needed farther down in the scoring, but only needs to be computed once for a spectrum
       vector< double > aucorrx = XQuestScores::xCorrelation(spectrum, spectrum, 5, 0.03);
@@ -702,7 +733,8 @@ protected:
 //        LOG_DEBUG << "Pre score rank " << i << " = \t " << prescore_csms_spectrum[i].pre_score << endl;
 //      }
 
-      Size last_candidate_index = min(prescore_csms_spectrum.size(), Size(100));
+      // TODO make that a parameter?
+      Size last_candidate_index = min(prescore_csms_spectrum.size(), Size(1000));
 
       for (Size i = 0; i < last_candidate_index ; ++i)
       {
