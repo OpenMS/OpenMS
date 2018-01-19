@@ -37,7 +37,7 @@
 
 ///////////////////////////
 
-#include <OpenMS/METADATA/IdentificationData.h>
+#include <OpenMS/METADATA/IdentificationDataConverter.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/MzTabFile.h>
 #include <OpenMS/FORMAT/PepXMLFile.h>
@@ -54,57 +54,57 @@ using namespace std;
 
 IdentificationData* ptr = 0;
 IdentificationData* null = 0;
-START_SECTION((IdentificationData()))
+START_SECTION((IdentificationDataConverter()))
   ptr = new IdentificationData();
   TEST_NOT_EQUAL(ptr, null);
 END_SECTION
 
-START_SECTION(([EXTRA]))
+START_SECTION((IdentificationData importIDs(const vector<ProteinIdentification>&, const vector<PeptideIdentification>&)))
 {
   vector<ProteinIdentification> proteins_in;
   vector<PeptideIdentification> peptides_in;
   IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("IdXMLFile_whole.idXML"), proteins_in, peptides_in);
+  // IdentificationData doesn't allow score types with the same name, but different orientations:
+  peptides_in[0].setHigherScoreBetter(true);
 
-  IdentificationData ids;
-  ids.importIDs(proteins_in, peptides_in);
+  IdentificationData ids = IdentificationDataConverter::importIDs(proteins_in, peptides_in);
 
   vector<ProteinIdentification> proteins_out;
   vector<PeptideIdentification> peptides_out;
-  ids.exportIDs(proteins_out, peptides_out);
+  IdentificationDataConverter::exportIDs(ids, proteins_out, peptides_out);
 
   TEST_EQUAL(peptides_in.size(), peptides_out.size());
   TEST_EQUAL(proteins_in.size(), proteins_out.size());
 
-  String filename = OPENMS_GET_TEST_DATA_PATH("IdentificationData_out.idXML");
+  String filename = OPENMS_GET_TEST_DATA_PATH("IdentificationDataConverter_out.idXML");
   // NEW_TMP_FILE(filename);
   // cout << "Test file:" << filename << endl;
   IdXMLFile().store(filename, proteins_out, peptides_out);
 
-  MzTab mztab = ids.exportMzTab();
-  filename = OPENMS_GET_TEST_DATA_PATH("IdentificationData_out.mzTab");
+  MzTab mztab = IdentificationDataConverter::exportMzTab(ids);
+  filename = OPENMS_GET_TEST_DATA_PATH("IdentificationDataConverter_out.mzTab");
   // NEW_TMP_FILE(filename);
   // cout << "Test file:" << filename << endl;
   MzTabFile().store(filename, mztab);
 }
 END_SECTION
 
-START_SECTION(([EXTRA]))
+START_SECTION((void exportIDs(const IdentificationData&, vector<ProteinIdentification>&, vector<PeptideIdentification>&)))
 {
   vector<ProteinIdentification> proteins_in;
   vector<PeptideIdentification> peptides_in;
   PepXMLFile().load(OPENMS_GET_TEST_DATA_PATH("PepXMLFile_test_extended.pepxml"), proteins_in, peptides_in, "PepXMLFile_test");
 
-  IdentificationData ids;
-  ids.importIDs(proteins_in, peptides_in);
+  IdentificationData ids = IdentificationDataConverter::importIDs(proteins_in, peptides_in);
 
   vector<ProteinIdentification> proteins_out;
   vector<PeptideIdentification> peptides_out;
-  ids.exportIDs(proteins_out, peptides_out);
+  IdentificationDataConverter::exportIDs(ids, proteins_out, peptides_out);
 
   TEST_EQUAL(peptides_in.size(), peptides_out.size());
   TEST_EQUAL(proteins_in.size(), proteins_out.size());
 
-  String filename = OPENMS_GET_TEST_DATA_PATH("IdentificationData_pepXML_out.idXML");
+  String filename = OPENMS_GET_TEST_DATA_PATH("IdentificationDataConverter_pepXML_out.idXML");
   // NEW_TMP_FILE(filename);
   // cout << "Test file:" << filename << endl;
   IdXMLFile().store(filename, proteins_out, peptides_out);
