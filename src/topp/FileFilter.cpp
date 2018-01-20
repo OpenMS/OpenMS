@@ -1281,7 +1281,6 @@ protected:
 
     for (auto const & lib_spectrum : lib_file)
     {
-      vector<size_t> rt_mz_match_idx;
       if (!lib_spectrum.getPrecursors().empty())
       {
         // extract precursor positions from query file

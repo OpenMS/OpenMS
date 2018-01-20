@@ -272,7 +272,7 @@ RNPxlModificationMassesResult RNPxlModificationsGenerator::initModificationMasse
           new_combinations.push_back(target_nucleotide_formula + actual_combinations[c] - EmpiricalFormula("H2O")); // -H2O because of condensation reaction
           all_combinations.push_back(target_nucleotide_formula + actual_combinations[c] - EmpiricalFormula("H2O")); // " "
           const set<String>& ambiguities = result.mod_combinations[actual_combinations[c].toString()];
-          for (const auto & s : ambiguities)
+          for (auto const & s : ambiguities)
           {
             result.mod_combinations[all_combinations.back().toString()].insert(target_nucleotide + s);
           }

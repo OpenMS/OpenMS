@@ -102,7 +102,7 @@ namespace OpenMS
 
     // marker ion fields
     RNPxlMarkerIonExtractor::MarkerIonsType marker_ions = RNPxlMarkerIonExtractor::extractMarkerIons(PeakSpectrum(), 0.0); // call only to generate header entries
-    for (const auto & ma : marker_ions)
+    for (auto const & ma : marker_ions)
     {
       for (Size i = 0; i != ma.second.size(); ++i)
       {

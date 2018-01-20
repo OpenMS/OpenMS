@@ -700,7 +700,7 @@ protected:
         const PeakSpectrum::StringDataArray& total_loss_annotations = total_loss_spectrum.getStringDataArrays()[0];
         const PeakSpectrum::IntegerDataArray& total_loss_charges = total_loss_spectrum.getIntegerDataArrays()[0];
 
-        for (const auto & aligned : alignment)
+        for (auto const & aligned : alignment)
         {
           // information on the experimental fragment in the alignment
           const Size& fragment_index = aligned.second;
@@ -2200,7 +2200,7 @@ protected:
     immonium_sub_score = 0;
     precursor_sub_score = 0;
     a_ion_sub_score = 0;
-    const auto &tl_sub_scores = MorpheusScore::compute(fragment_mass_tolerance,
+    auto const & tl_sub_scores = MorpheusScore::compute(fragment_mass_tolerance,
                                                        fragment_mass_tolerance_unit_ppm,
                                                        exp_spectrum,
                                                        total_loss_spectrum);
@@ -2211,7 +2211,7 @@ protected:
 
     if (!immonium_sub_score_spectrum.empty())
     {
-      const auto &r = MorpheusScore::compute(fragment_mass_tolerance,
+      auto const & r = MorpheusScore::compute(fragment_mass_tolerance,
                                              fragment_mass_tolerance_unit_ppm,
                                              exp_spectrum,
                                              immonium_sub_score_spectrum);
@@ -2219,7 +2219,7 @@ protected:
     }
     if (!precursor_sub_score_spectrum.empty())
     {
-      const auto &r = MorpheusScore::compute(fragment_mass_tolerance,
+      auto const & r = MorpheusScore::compute(fragment_mass_tolerance,
                                              fragment_mass_tolerance_unit_ppm,
                                              exp_spectrum,
                                              precursor_sub_score_spectrum);
@@ -2227,7 +2227,7 @@ protected:
     }
     if (!a_ion_sub_score_spectrum.empty())
     {
-      const auto &r = MorpheusScore::compute(fragment_mass_tolerance,
+      auto const & r = MorpheusScore::compute(fragment_mass_tolerance,
                                              fragment_mass_tolerance_unit_ppm,
                                              exp_spectrum,
                                              a_ion_sub_score_spectrum);
@@ -2254,7 +2254,7 @@ protected:
 
     if (!marker_ions_sub_score_spectrum_z1.empty())
     {
-      const auto &r = MorpheusScore::compute(fragment_mass_tolerance,
+      auto const & r = MorpheusScore::compute(fragment_mass_tolerance,
                                              fragment_mass_tolerance_unit_ppm,
                                              exp_spectrum,
                                              marker_ions_sub_score_spectrum_z1);
@@ -2274,7 +2274,7 @@ protected:
       {
         partial_loss_sub_score = HyperScore::compute(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm,
                                                      exp_spectrum, partial_loss_spectrum_z1);
-        const auto &pl_sub_scores = MorpheusScore::compute(fragment_mass_tolerance,
+        auto const & pl_sub_scores = MorpheusScore::compute(fragment_mass_tolerance,
                                                            fragment_mass_tolerance_unit_ppm,
                                                            exp_spectrum,
                                                            partial_loss_spectrum_z1);
@@ -2283,11 +2283,11 @@ protected:
         plss_err = pl_sub_scores.err;
         plss_Morph = pl_sub_scores.score;
       }
-      else if (exp_pc_charge >= 3)
+      else //if (exp_pc_charge >= 3)
       {
         partial_loss_sub_score = HyperScore::compute(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm,
                                                      exp_spectrum, partial_loss_spectrum_z2);
-        const auto &pl_sub_scores = MorpheusScore::compute(fragment_mass_tolerance,
+        auto const & pl_sub_scores = MorpheusScore::compute(fragment_mass_tolerance,
                                                            fragment_mass_tolerance_unit_ppm,
                                                            exp_spectrum,
                                                            partial_loss_spectrum_z2);
