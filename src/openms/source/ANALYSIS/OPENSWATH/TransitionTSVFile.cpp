@@ -370,8 +370,8 @@ namespace OpenMS
       extractName<int>(mytransition.fragment_modification, "FragmentModification", tmp_line, header_dict);
 
       //// Proteomics
-      extractName(mytransition.ProteinName, "ProteinName", tmp_line, header_dict) &&
-      extractName(mytransition.ProteinName, "ProteinId", tmp_line, header_dict); // Spectronaut
+      !extractName(mytransition.ProteinName, "ProteinName", tmp_line, header_dict) &&
+      !extractName(mytransition.ProteinName, "ProteinId", tmp_line, header_dict); // Spectronaut
 
       extractName(mytransition.peptide_group_label, "PeptideGroupLabel", tmp_line, header_dict);
 
