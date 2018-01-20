@@ -140,20 +140,17 @@ namespace OpenMS
     {
       double feature_1 = component_1.getMetaValue(feature_name);
       double feature_2 = component_2.getMetaValue(feature_name);
-      // std::cout <<  "ratio = " << ratio << "." << std::endl;
       ratio = feature_1/feature_2;
     } 
     else if (component_1.metaValueExists(feature_name))
     {
-      LOG_INFO << "Warning: no IS found for component " << component_1.getMetaValue("native_id") << ".";
-      // std::cout <<  "Warning: no IS found for component " << component_1.getMetaValue("native_id") << "." << std::endl;
+      LOG_DEBUG << "Warning: no IS found for component " << component_1.getMetaValue("native_id") << ".";
       double feature_1 = component_1.getMetaValue(feature_name);
       ratio = feature_1;
     } 
     else
     {
-      LOG_INFO << "Feature metaValue " << feature_name << " not found for components " << component_1.getMetaValue("native_id") << " and " << component_2.getMetaValue("native_id") << ".";
-      // std::cout << "Feature metaValue " << feature_name << " not found for components " << component_1.getMetaValue("native_id") << " and " << component_2.getMetaValue("native_id") << "." << std::endl;
+      LOG_DEBUG << "Feature metaValue " << feature_name << " not found for components " << component_1.getMetaValue("native_id") << " and " << component_2.getMetaValue("native_id") << ".";
     }
 
     return ratio;
@@ -235,15 +232,6 @@ namespace OpenMS
       point.first = actual_concentration_ratio;
       point.second = feature_amount_ratio;
       data.push_back(point);
-      
-      // // DEBUG
-      // std::cout << "calculated_concentration_ratio[1]actual_concentration_ratio[2]bias[3]feature_amount[4]IS_feature_amount[5]feature_amount_ratio[6]" << std::endl;
-      // std::cout << std::to_string(calculated_concentration_ratio) << "[1]" 
-      //   << std::to_string(calculated_concentration_ratio) << "[2]" 
-      //   << std::to_string(bias) << "[3]" 
-      //   << (String)component_concentrations[i].feature.getMetaValue(feature_name) << "[4]" 
-      //   << (String)component_concentrations[i].IS_feature.getMetaValue(feature_name) << "[5]" 
-      //   << std::to_string(feature_amount_ratio) << "[6]" << std::endl;
     }
 
     // apply weighting to the feature amounts and actual concentration ratios
@@ -510,12 +498,6 @@ namespace OpenMS
           String("Method ") + outlier_detection_method_ + " is not a valid method for optimizeCalibrationCurveIterative");
       }
 
-      //DEBUG
-      // std::cout << "R = " << std::to_string(correlation_coefficient) << ".  "
-      //   << "n_points = " << std::to_string(component_concentrations_sorted_indices.size()) << ".  "
-      //   << "actual_concentration = " << std::to_string(component_concentrations_sub[pos].actual_concentration) << ".  "
-      //   << "bias_check = " << std::to_string(bias_check) << "." << std::endl;
-
       // remove if residual is an outlier according to Chauvenet's criterion
       // or if testing is turned off
       if (!use_chauvenet_ || MRMRTNormalizer::chauvenet(biases, pos))
@@ -560,9 +542,6 @@ namespace OpenMS
       std::vector<AbsoluteQuantitationStandards::featureConcentration> component_concentrations_tmp = component_concentrations;
       component_concentrations_tmp.erase(component_concentrations_tmp.begin() + i);
 
-      // debugging:
-      // std::cout << "jackknifeOutlierCandidate_: size of component_concentrations: " << std::to_string(component_concentrations_tmp.size()) << std::endl;
-
       // fit the model
       optimized_params = fitCalibration(component_concentrations_tmp,
         feature_name,
@@ -595,9 +574,6 @@ namespace OpenMS
     // the data points. The one with highest residual error is selected as the outlier candidate. The
     // corresponding iterator position is then returned.
 
-    // debugging:
-    // std::cout << "residualOutlierCandidate_: size of component_concentrations: " << std::to_string(component_concentrations.size()) << std::endl;
-    
     // fit the model
     Param optimized_params = fitCalibration(component_concentrations,
       feature_name,
@@ -624,9 +600,6 @@ namespace OpenMS
 
     for (auto& quant_method : quant_methods_)
     {
-      // DEBUGGING
-      // std::cout << "optimizing calibration curves for " << quant_method.first << "." << std::endl;
-
       if (components_concentrations.count(quant_method.first)>0 && optimization_method_ == "iterative")
       { 
         // optimize the calibraiton curve for the component
