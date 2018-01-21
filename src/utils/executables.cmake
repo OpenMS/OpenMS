@@ -24,6 +24,7 @@ IDSplitter
 LabeledEval
 LowMemPeakPickerHiRes
 LowMemPeakPickerHiResRandomAccess
+MaRaClusterAdapter
 MassCalculator
 MetaboliteAdductDecharger
 MetaboliteSpectralMatcher
