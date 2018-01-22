@@ -36,6 +36,7 @@
 #define OPENMS_METADATA_IDENTIFICATIONDATACONVERTER_H
 
 #include <OpenMS/METADATA/IdentificationData.h>
+#include <OpenMS/FORMAT/FASTAFile.h>
 #include <OpenMS/FORMAT/MzTab.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
@@ -47,9 +48,9 @@ namespace OpenMS
   public:
 
     /// Import from legacy peptide/protein identifications
-    static IdentificationData importIDs(
-      const std::vector<ProteinIdentification>& proteins,
-      const std::vector<PeptideIdentification>& peptides);
+    static void importIDs(IdentificationData& id_data,
+                          const std::vector<ProteinIdentification>& proteins,
+                          const std::vector<PeptideIdentification>& peptides);
 
     /// Export to legacy peptide/protein identifications
     static void exportIDs(const IdentificationData& id_data,
@@ -58,6 +59,13 @@ namespace OpenMS
 
     /// Export to mzTab format
     static MzTab exportMzTab(const IdentificationData& id_data);
+
+    /// Import FASTA sequences as parent molecules
+    static void importSequences(IdentificationData& id_data,
+                                const std::vector<FASTAFile::FASTAEntry>& fasta,
+                                IdentificationData::MoleculeType type =
+                                IdentificationData::MoleculeType::PROTEIN,
+                                const String& decoy_pattern = "");
 
   protected:
 

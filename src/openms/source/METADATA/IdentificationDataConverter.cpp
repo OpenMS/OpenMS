@@ -39,11 +39,10 @@ using namespace std;
 
 namespace OpenMS
 {
-  IdentificationData IdentificationDataConverter::importIDs(
-    const vector<ProteinIdentification>& proteins,
+  void IdentificationDataConverter::importIDs(
+    IdentificationData& id_data, const vector<ProteinIdentification>& proteins,
     const vector<PeptideIdentification>& peptides)
   {
-    IdentificationData id_data;
     map<String, IdentificationData::ProcessingStepRef> id_to_step;
 
     // ProteinIdentification:
@@ -208,8 +207,6 @@ namespace OpenMS
         id_data.registerMoleculeQueryMatch(match);
       }
     }
-
-    return id_data;
   }
 
 
@@ -491,6 +488,24 @@ namespace OpenMS
     output.setOSMSectionRows(osms);
 
     return output;
+  }
+
+
+  void IdentificationDataConverter::importSequences(
+    IdentificationData& id_data, const vector<FASTAFile::FASTAEntry>& fasta,
+    IdentificationData::MoleculeType type, const String& decoy_pattern)
+  {
+    for (const FASTAFile::FASTAEntry& entry : fasta)
+    {
+      IdentificationData::ParentMolecule parent(
+        entry.identifier, type, entry.sequence, entry.description);
+      if (!decoy_pattern.empty() &&
+          entry.identifier.hasSubstring(decoy_pattern))
+      {
+        parent.is_decoy = true;
+      }
+      id_data.registerParentMolecule(parent);
+    }
   }
 
 
