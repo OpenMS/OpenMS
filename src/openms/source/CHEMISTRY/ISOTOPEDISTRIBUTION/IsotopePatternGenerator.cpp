@@ -30,6 +30,7 @@ namespace OpenMS
   {
     
   }
+
   void IsotopePatternGenerator::merge(double resolution)
   {
     //raw must be ordered to work correctly ascending order on power field
@@ -42,12 +43,10 @@ namespace OpenMS
     ContainerType distribution(output_size, Peak1D(0, 0));
     double delta = mass_range / output_size;
 
-    for(auto& p : raw)
+    for (auto & p : raw)
     {
       UInt index = round((p.getMZ() - raw.front().getMZ())/resolution);
-      if(index >= distribution.size()){
-        continue;
-      }
+      if (index >= distribution.size()) { continue; }
       double mass = raw.front().getMZ() + (index * delta);
       distribution[index].setMZ(mass);
       distribution[index].setIntensity(distribution[index].getIntensity() + p.getIntensity());
@@ -56,7 +55,6 @@ namespace OpenMS
     trimIntensities(min_prob_);
   }
 
-  
   /* Start of the midas interface */
   MIDAs::MIDAs(double resolution, double min_prob, UInt N_):
     IsotopePatternGenerator(min_prob),
@@ -75,5 +73,5 @@ namespace OpenMS
   {
   }
 
-
 }
+

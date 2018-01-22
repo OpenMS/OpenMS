@@ -168,12 +168,12 @@ namespace OpenMS
   std::ostream & operator<<(std::ostream & os, const Element & element)
   {
     os  << element.name_ << " "
-    << element.symbol_ << " "
-    << element.atomic_number_ << " "
-    << element.average_weight_ << " "
-    << element.mono_weight_;
+        << element.symbol_ << " "
+        << element.atomic_number_ << " "
+        << element.average_weight_ << " "
+        << element.mono_weight_;
 
-    for (const auto& isotope : element.isotopes_)
+    for (auto const & isotope : element.isotopes_)
     {
       if (isotope.getIntensity() > 0.0f)
       {

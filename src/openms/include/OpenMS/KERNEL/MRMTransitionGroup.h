@@ -282,14 +282,14 @@ public:
     /// Ensure that chromatogram native ids match their keys in the map
     inline bool chromatogramIdsMatch()
     {
-      for (std::map<String, int>::const_iterator it = chromatogram_map_.begin(); it != chromatogram_map_.end(); it++)
+      for (auto it = chromatogram_map_.begin(); it != chromatogram_map_.end(); ++it)
       {
         if (getChromatogram(it->first).getNativeID() != it->first)
         {
           return false;
         }
       }
-      for (std::map<String, int>::const_iterator it = precursor_chromatogram_map_.begin(); it != precursor_chromatogram_map_.end(); it++)
+      for (auto it = precursor_chromatogram_map_.begin(); it != precursor_chromatogram_map_.end(); ++it)
       {
         if (getPrecursorChromatogram(it->first).getNativeID() != it->first)
         {
