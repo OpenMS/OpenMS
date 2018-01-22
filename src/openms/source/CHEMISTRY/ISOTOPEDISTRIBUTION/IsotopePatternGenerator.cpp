@@ -15,20 +15,17 @@ namespace OpenMS
     IsotopeDistribution(),
     min_prob_(probability_cutoff)
   {
-
   }
 
   IsotopePatternGenerator::IsotopePatternGenerator() : 
     IsotopeDistribution(),
     min_prob_(1e-15)
   {
-
   }
 
   IsotopePatternGenerator::IsotopePatternGenerator(const IsotopeDistribution& rhs) :
     IsotopeDistribution(rhs)
   {
-    
   }
   
   void IsotopePatternGenerator::merge(double resolution)
@@ -63,25 +60,5 @@ namespace OpenMS
     distribution_ = distribution;
     trimIntensities(min_prob_);
   }
-
-  
-  /* Start of the midas interface */
-  MIDAs::MIDAs(double resolution, double min_prob, UInt N_):
-    IsotopePatternGenerator(min_prob),
-    N(N_),
-    resolution_(resolution)
-  {
-    
-  }
-
-  MIDAs::MIDAs() : IsotopePatternGenerator()
-  {
-  }
-
-  MIDAs::MIDAs(const IsotopeDistribution& isotope_distribution) : 
-    IsotopePatternGenerator(isotope_distribution)
-  {
-  }
-
 
 }
