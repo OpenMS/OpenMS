@@ -2728,6 +2728,11 @@ namespace OpenMS
       s.push_back(row.uri.toCellString());
     }
 
+    s.push_back(row.pre.toCellString());
+    s.push_back(row.post.toCellString());
+    s.push_back(row.start.toCellString());
+    s.push_back(row.end.toCellString());
+
     addOptionalColumnsToSectionRow_(optional_columns, row.opt_, s);
 
     return ListUtils::concatenate(s, "\t");
