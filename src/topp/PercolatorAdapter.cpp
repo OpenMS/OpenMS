@@ -285,7 +285,7 @@ protected:
         LOG_WARN << "no known spectrum identifiers, using index [1,n] - use at own risk." << endl;
       }
     }
-    return scan_identifier.removeWhitespaces();
+    return scan_identifier;
   }
   
   // TODO replace with TopPerc::getScanMergeKey
