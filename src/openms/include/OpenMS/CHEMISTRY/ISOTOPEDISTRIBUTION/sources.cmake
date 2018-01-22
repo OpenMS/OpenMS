@@ -4,12 +4,9 @@ set(directory include/OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION)
 
 ### list all header files of the directory here
 set(sources_list_h
-  Container.h
   CoarseIsotopeDistribution.h
-  Ecipex.h
+  IsotopeDistribution.h
   IsotopePatternGenerator.h
-  MIDAsFFTID.h
-  MIDAsPolynomialID.h
 )
 
 

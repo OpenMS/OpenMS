@@ -1,11 +1,43 @@
+// --------------------------------------------------------------------------
+//                   OpenMS -- Open-Source Mass Spectrometry
+// --------------------------------------------------------------------------
+// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+//
+// This software is released under a three-clause BSD license:
+//  * Redistributions of source code must retain the above copyright
+//    notice, this list of conditions and the following disclaimer.
+//  * Redistributions in binary form must reproduce the above copyright
+//    notice, this list of conditions and the following disclaimer in the
+//    documentation and/or other materials provided with the distribution.
+//  * Neither the name of any author or any participating institution
+//    may be used to endorse or promote products derived from this software
+//    without specific prior written permission.
+// For a full list of authors, refer to the file AUTHORS.
+// --------------------------------------------------------------------------
+// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
+// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+//
+// --------------------------------------------------------------------------
+// $Maintainer: Timo Sachsenberg $
+// $Authors: Nikos Patikos $
+// --------------------------------------------------------------------------
+//
 
-#ifndef OPENMS_CHEMISTRY_ISOTOPEDISTRIBUTION_ISOTOPEPATTERNSOLVER_H
-#define OPENMS_CHEMISTRY_ISOTOPEDISTRIBUTION_ISOTOPEPATTERNSOLVER_H
-
-
+#ifndef OPENMS_CHEMISTRY_ISOTOPEDISTRIBUTION_ISOTOPEPATTERNGENERATOR_H
+#define OPENMS_CHEMISTRY_ISOTOPEDISTRIBUTION_ISOTOPEPATTERNGENERATOR_H
 
 #include <OpenMS/CHEMISTRY/Element.h>
-#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/Container.h>
+#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopeDistribution.h>
 #include <OpenMS/CONCEPT/Types.h>
 
 #include <deque>
@@ -23,55 +55,7 @@ namespace OpenMS
     void merge(double);
  protected:
     double min_prob_;
-    
   };
-
-  class OPENMS_DLLAPI MIDAs : public IsotopePatternGenerator
-  {
- public:
-    
-    typedef std::deque<Peak1D> Polynomial;
-    MIDAs(double resolution, double probability_cutoff, UInt N);
-    MIDAs();
-    MIDAs(const IsotopeDistribution& isotope_distribution);
- protected:
-    UInt N;
-    double resolution_;
-  };
-
-  inline bool desc_prob(const Peak1D& p0, const Peak1D& p)
-  {
-    return p0.getIntensity() > p.getIntensity();
-  }
-
-  inline bool by_power(const Peak1D& p0, const Peak1D& p)
-  {
-    return p0.getMZ() < p.getMZ();
-  }
-
-  inline bool zero_prob(const Peak1D& m)
-  {
-    return m.getIntensity() == 0;
-  }
-
-  inline bool zero_power(const Peak1D& m)
-  {
-    return m.getMZ() == 0;
-  }
-
-  inline bool lightest(const IsotopeDistribution::MassAbundance& a, 
-                       const IsotopeDistribution::MassAbundance& b)
-  {
-    return a.getMZ() < b.getMZ();
-  }
-
-  inline double lightest_element(const Element& el)
-  {
-    return min_element(el.getIsotopeDistribution().begin(), 
-                       el.getIsotopeDistribution().end(), lightest)->getMZ();
-  }
-
-
 }
 
 #endif

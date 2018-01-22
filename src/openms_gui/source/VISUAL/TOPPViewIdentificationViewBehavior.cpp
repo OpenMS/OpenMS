@@ -32,7 +32,7 @@
 // $Authors: Timo Sachsenberg $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/Container.h>
+#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopeDistribution.h>
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopeDistribution.h>
 
 #include <OpenMS/VISUAL/APPLICATIONS/TOPPViewBase.h>

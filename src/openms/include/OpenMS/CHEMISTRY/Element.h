@@ -38,7 +38,7 @@
 
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
-#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/Container.h>
+#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopeDistribution.h>
 
 #define OPENMS_CHEMISTRY_ELEMENT_NAME_DEFAULT "unknown"
 #define OPENMS_CHEMISTRY_ELEMENT_SYMBOL_DEFAULT "??"
