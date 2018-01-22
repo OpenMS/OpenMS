@@ -67,8 +67,13 @@ using namespace std;
 <CENTER>
     <table>
         <tr>
-            <td ALIGN = "center" BGCOLOR="#EBEBEB"> MS2-Filtering with @ref TOPP_FileFilter</td>
-            <td VALIGN = "middle" ROWSPAN=2> \f$ \longrightarrow \f$ NovorAdapter \f$</td>
+            <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
+            <td VALIGN="middle" ROWSPAN=2> \f$ \longrightarrow \f$ NovorAdapter \f$ \longrightarrow \f$</td>
+            <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
+        </tr>
+        <tr>
+            <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> signal-/preprocessing e.g. @ref TOPP_FileFilter  @n (in mzML format)</td>
+            <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_IDFilter or @n any protein/peptide processing tool</td>
         </tr>
     </table>
 </CENTER>
