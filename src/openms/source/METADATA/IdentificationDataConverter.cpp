@@ -243,8 +243,8 @@ namespace OpenMS
           evidence.setProteinAccession(parent_ref->accession);
           evidence.setStart(parent_match.start_pos);
           evidence.setEnd(parent_match.end_pos);
-          evidence.setAABefore(parent_match.left_neighbor);
-          evidence.setAAAfter(parent_match.right_neighbor);
+          evidence.setAABefore(parent_match.left_neighbor[0]);
+          evidence.setAAAfter(parent_match.right_neighbor[0]);
           hit.addPeptideEvidence(evidence);
         }
       }
@@ -569,24 +569,24 @@ namespace OpenMS
     {
       MzTabOligonucleotideSectionRow copy = row;
       if (match.left_neighbor ==
-          IdentificationData::MoleculeParentMatch::LEFT_TERMINUS)
+          String(IdentificationData::MoleculeParentMatch::LEFT_TERMINUS))
       {
         copy.pre.set("-");
       }
-      else if (match.left_neighbor !=
-               IdentificationData::MoleculeParentMatch::UNKNOWN_NEIGHBOR)
+      else if (match.left_neighbor != String(
+                 IdentificationData::MoleculeParentMatch::UNKNOWN_NEIGHBOR))
       {
-        copy.pre.set(String(match.left_neighbor));
+        copy.pre.set(match.left_neighbor);
       }
       if (match.right_neighbor ==
-          IdentificationData::MoleculeParentMatch::RIGHT_TERMINUS)
+          String(IdentificationData::MoleculeParentMatch::RIGHT_TERMINUS))
       {
         copy.post.set("-");
       }
-      else if (match.right_neighbor !=
-               IdentificationData::MoleculeParentMatch::UNKNOWN_NEIGHBOR)
+      else if (match.right_neighbor != String(
+                 IdentificationData::MoleculeParentMatch::UNKNOWN_NEIGHBOR))
       {
-        copy.post.set(String(match.right_neighbor));
+        copy.post.set(match.right_neighbor);
       }
       if (match.start_pos !=
           IdentificationData::MoleculeParentMatch::UNKNOWN_POSITION)
