@@ -74,6 +74,8 @@ run.IS_component_name = "";
 runs.push_back(run); // without IS_component_name
 run.component_name = "component11";
 runs.push_back(run); // without IS_component_name and no match for component_name
+run.component_name = "component0";
+runs.push_back(run); // with a component_name equal to one of those in sample1
 
 vector<FeatureMap> fmaps;
 FeatureMap fm;
@@ -99,10 +101,12 @@ fm.setPrimaryMSRunPath({"sample2"});
 Feature f;
 f.setMetaValue("native_id", String("component10"));
 subordinates.push_back(f);
+f.setMetaValue("native_id", String("component0"));
+subordinates.push_back(f);
 feature.setSubordinates(subordinates);
 fm.push_back(feature);
 fmaps.push_back(fm);
-// The second FeatureMap has sample_name: "sample2". It contains 1 feature. This feature has 1 subordinate. Its native_id is "component10".
+// The second FeatureMap has sample_name: "sample2". It contains 1 feature. This feature has 2 subordinates. Their native_id are "component10" and "component0".
 
 START_SECTION(AbsoluteQuantitationStandards())
 {
@@ -124,18 +128,24 @@ START_SECTION(void mapComponentsToConcentrations(
 ) const)
 {
   AbsoluteQuantitationStandards aqs;
-  std::map<String, AbsoluteQuantitationStandards::featureConcentration> m;
+  std::map<String, std::vector<AbsoluteQuantitationStandards::featureConcentration>> m;
   aqs.mapComponentsToConcentrations(runs, fmaps, m);
   TEST_EQUAL(m.size(), 6)
-  AbsoluteQuantitationStandards::featureConcentration fc;
+  std::vector<AbsoluteQuantitationStandards::featureConcentration> fc;
   for (Size i = 0; i < 5; ++i)
   {
     fc = m.at(String("component") + i);
-    TEST_EQUAL(fc.feature.getMetaValue("native_id"), String("component") + i)
-    TEST_EQUAL(fc.IS_feature.getMetaValue("native_id"), String("IS_component") + i)
+    TEST_EQUAL(fc[0].feature.getMetaValue("native_id"), String("component") + i)
+    TEST_EQUAL(fc[0].IS_feature.getMetaValue("native_id"), String("IS_component") + i)
   }
   fc = m.at("component10");
-  TEST_EQUAL(fc.feature.getMetaValue("native_id"), "component10")
+  TEST_EQUAL(fc.size(), 1)
+  TEST_EQUAL(fc[0].feature.getMetaValue("native_id"), "component10")
+  TEST_EQUAL(fc[0].IS_feature.metaValueExists("native_id"), false)
+  fc = m.at("component0");
+  TEST_EQUAL(fc.size(), 2)
+  TEST_EQUAL(fc[1].feature.getMetaValue("native_id"), "component0")
+  TEST_EQUAL(fc[1].IS_feature.metaValueExists("native_id"), false)
 }
 END_SECTION
 

@@ -59,7 +59,7 @@ namespace OpenMS
   void AbsoluteQuantitationStandards::mapComponentsToConcentrations(
     const std::vector<AbsoluteQuantitationStandards::runConcentration>& run_concentrations,
     const std::vector<FeatureMap>& feature_maps,
-    std::map<String, AbsoluteQuantitationStandards::featureConcentration>& components_to_concentrations
+    std::map<String, std::vector<AbsoluteQuantitationStandards::featureConcentration>>& components_to_concentrations
   ) const
   {
     components_to_concentrations.clear();
@@ -92,13 +92,17 @@ namespace OpenMS
         fc.concentration_units = run.concentration_units;
         fc.dilution_factor = run.dilution_factor;
         // add to the map
-        std::pair<std::map<String, AbsoluteQuantitationStandards::featureConcentration>::const_iterator, bool> p;
-        p = components_to_concentrations.insert({run.component_name, fc});
-        if (p.second == false) // check that the key was not already present
+        std::map<String, std::vector<AbsoluteQuantitationStandards::featureConcentration>>::iterator p;
+        p = components_to_concentrations.find(run.component_name);
+        if (p == components_to_concentrations.end()) // if the key doesn't exist, insert it and create a new vector with fc as its only element
         {
-          throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Key '" + run.component_name + "' was already present.");
+          components_to_concentrations.insert({run.component_name, {fc}});
         }
-        break;
+        else // otherwise, add the element to the existing vector
+        {
+          (p->second).push_back(fc);
+        }
+        break; // because there won't be another FeatureMap with the same sample_name
       }
     }
   }

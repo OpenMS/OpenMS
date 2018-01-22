@@ -94,7 +94,7 @@ public:
     void mapComponentsToConcentrations(
       const std::vector<AbsoluteQuantitationStandards::runConcentration>& run_concentrations,
       const std::vector<FeatureMap>& feature_maps,
-      std::map<String, AbsoluteQuantitationStandards::featureConcentration>& components_to_concentrations
+      std::map<String, std::vector<AbsoluteQuantitationStandards::featureConcentration>>& components_to_concentrations
     ) const;
 
 private:
