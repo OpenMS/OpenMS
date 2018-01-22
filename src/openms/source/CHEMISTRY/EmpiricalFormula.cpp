@@ -110,23 +110,23 @@ namespace OpenMS
   double EmpiricalFormula::calculateTheoreticalIsotopesNumber() const
   {
     double total = 1;
-    for(const auto& element : formula_)
+    for(auto const & element : formula_)
     {
       UInt non_trace_isotopes = 0;
-      const auto& distr = element.first->getIsotopeDistribution();
-      for(auto isotope : distr)
+      auto const & distr = element.first->getIsotopeDistribution();
+      for (auto isotope : distr)
       {
-        if(isotope.getIntensity() != 0)
+        if (isotope.getIntensity() != 0)
         {
           non_trace_isotopes++;
         }
       }
-      if(non_trace_isotopes>1 && element.second!=1)
+      if (non_trace_isotopes>1 && element.second!=1)
       {
         total *= boost::math::binomial_coefficient<double>(UInt(element.second), non_trace_isotopes);
       }else
       {
-        total *= element.second*non_trace_isotopes;
+        total *= element.second * non_trace_isotopes;
       }
     }
     return total;

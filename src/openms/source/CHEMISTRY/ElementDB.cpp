@@ -198,7 +198,7 @@ namespace OpenMS
         atomic_numbers_[an] = e;
 
         // add all the individual isotopes as separate elements
-        for (const auto& isotope : isotopes)
+        for (auto const & isotope : isotopes)
         {
           double atomic_mass = isotope.getMZ();
           UInt mass_number = round(atomic_mass);

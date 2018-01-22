@@ -42,12 +42,10 @@ namespace OpenMS
     ContainerType distribution(output_size, Peak1D(0, 0));
     double delta = mass_range / output_size;
 
-    for(auto& p : raw)
+    for (auto & p : raw)
     {
-      UInt index = round((p.getMZ() - raw.front().getMZ())/resolution);
-      if(index >= distribution.size()){
-        continue;
-      }
+      UInt index = round((p.getMZ() - raw.front().getMZ()) / resolution);
+      if (index >= distribution.size()) { continue; }
       double mass = raw.front().getMZ() + (index * delta);
       distribution[index].setMZ(mass);
       distribution[index].setIntensity(distribution[index].getIntensity() + p.getIntensity());
@@ -62,8 +60,7 @@ namespace OpenMS
     IsotopePatternGenerator(min_prob),
     N(N_),
     resolution_(resolution)
-  {
-    
+  {    
   }
 
   MIDAs::MIDAs() : IsotopePatternGenerator()
