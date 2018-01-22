@@ -128,13 +128,13 @@
   - @subpage UTILS_IDDecoyProbability - Estimate probability of peptide hits.
   - @subpage UTILS_RNADigestor - Digests an RNA sequence database in-silico.
 
-  <!--
+<!--
   - TODO we need descriptions for all of these
-  - @subpage UTILS_MetaProSIP - xxx
-  - @subpage UTILS_OpenMSInfo - xxx
-  - @subpage UTILS_RNPxlSearch - Tool for RNP 
-  - @subpage UTILS_SimpleSearchEngine - xxx
-  -->
+  - @subpage UTILS_OpenMSInfo - Print build system information.
+  - @subpage UTILS_RNPxlSearch - Annotate RNA to peptide crosslinks in MS/MS spectra.
+  - @subpage UTILS_MetaProSIP - Performs proteinSIP on peptide features for elemental flux analysis.
+  - @subpage UTILS_SimpleSearchEngine - Annotates MS/MS spectra using SimpleSearchEngine.
+-->
 
   <b>Deprecated</b>
   - @subpage UTILS_IDDecoyProbability - Estimates peptide probabilities using a decoy search strategy. <br> WARNING: This utility is deprecated.
