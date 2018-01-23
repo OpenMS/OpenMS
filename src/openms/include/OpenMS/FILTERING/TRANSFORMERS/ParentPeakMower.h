@@ -66,7 +66,7 @@ public:
     ParentPeakMower(const ParentPeakMower& source);
 
     /// destructor
-    virtual ~ParentPeakMower();
+    ~ParentPeakMower() override;
     // @}
 
     // @name Operators

@@ -48,8 +48,8 @@ START_TEST(Peak1D<D>, "$Id$")
 
 using namespace OpenMS;
 
-Peak1D* d10_ptr = 0;
-Peak1D* d10_nullPointer = 0;
+Peak1D* d10_ptr = nullptr;
+Peak1D* d10_nullPointer = nullptr;
 START_SECTION((Peak1D()))
 	d10_ptr = new Peak1D;
   TEST_NOT_EQUAL(d10_ptr, d10_nullPointer)

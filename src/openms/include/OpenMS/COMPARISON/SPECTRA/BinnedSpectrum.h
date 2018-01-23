@@ -86,7 +86,7 @@ public:
 public:
       NoSpectrumIntegrated(const char* file, int line, const char* function, const char* message = "BinnedSpectrum hasn't got a PeakSpectrum to base on yet") throw();
 
-      virtual ~NoSpectrumIntegrated() throw();
+      ~NoSpectrumIntegrated() throw() override;
     };
 
     typedef SparseVector<float>::const_iterator const_bin_iterator;

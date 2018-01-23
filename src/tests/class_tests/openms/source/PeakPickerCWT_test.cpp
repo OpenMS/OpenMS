@@ -48,8 +48,8 @@ START_TEST(PeakPickerCWT, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-PeakPickerCWT* ptr = 0;
-PeakPickerCWT* nullPointer = 0;
+PeakPickerCWT* ptr = nullptr;
+PeakPickerCWT* nullPointer = nullptr;
 START_SECTION((PeakPickerCWT()))
   ptr = new PeakPickerCWT();
 	TEST_NOT_EQUAL(ptr, nullPointer)
@@ -68,7 +68,7 @@ mz_ml_file.load(OPENMS_GET_TEST_DATA_PATH("PeakPickerCWT_test_output.mzML"), out
 // set data type (this is not stored correctly in mzData)
 for (Size s=0; s<output.size(); ++s)
 {
-  output[s].setType(SpectrumSettings::PEAKS);
+  output[s].setType(SpectrumSettings::CENTROID);
 }
 
 // set up PeakPicker

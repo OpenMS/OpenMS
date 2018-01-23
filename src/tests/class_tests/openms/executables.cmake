@@ -147,11 +147,13 @@ set(kernel_executables_list
 )
 
 set(format_executables_list
+  AbsoluteQuantitationStandardsFile_test
   Base64_test
   MSNumpressCoder_test
   BigString_test
   Bzip2Ifstream_test
   Bzip2InputStream_test
+  ChromeleonFile_test
   CVMappingFile_test
   CompressedInputSource_test
   ConsensusXMLFile_test
@@ -458,6 +460,7 @@ set(analysis_executables_list
   LabeledPairFinder_test
   LocalLinearMap_test
   TargetedExperiment_test
+  TargetedExperimentHelper_test
   MRMFragmentSelection_test
   MRMMapping_test
   MapAlignmentAlgorithmIdentification_test
@@ -478,6 +481,7 @@ set(analysis_executables_list
   PeakIntensityPredictor_test
   PScore_test
   HyperScore_test
+  MorpheusScore_test
   OPXLHelper_test
   OPXLSpectrumProcessingAlgorithms_test
   PoseClusteringAffineSuperimposer_test
@@ -497,7 +501,6 @@ set(analysis_executables_list
   SimplePairFinder_test
   SimpleSVM_test
   StablePairFinder_test
-  #TargetedExperimentHelper_test
   PercolatorFeatureSetHelper_test
   TransformationDescription_test
   TransformationModel_test
@@ -594,12 +597,13 @@ if(NOT DISABLE_OPENSWATH)
     MRMDecoy_test
     MRMIonSeries_test
     MRMRTNormalizer_test
-    TransitionTSVReader_test
-    TransitionPQPReader_test
+    TransitionTSVFile_test
+    TransitionPQPFile_test
     ChromatogramExtractor_test
     ChromatogramExtractorAlgorithm_test
     OpenSwathHelper_test
     OpenSwathScoring_test
+    PeakIntegrator_test
     PeakPickerMRM_test
     MRMTransitionGroupPicker_test
     DIAHelper_test
@@ -607,6 +611,7 @@ if(NOT DISABLE_OPENSWATH)
     DIAPrescoring_test
     OpenSwathMRMFeatureAccessOpenMS_test
     SpectrumAddition_test
+    TargetedSpectraExtractor_test
     OpenSwathSpectrumAccessOpenMS_test
     OpenSwathDataAccessHelper_test
     MasstraceCorrelator_test
@@ -633,8 +638,8 @@ set(Boost_dependent_tests
   PeakPickerMRM_test
   StatisticFunctions_test
   String_test
-  TransitionTSVReader_test
-  TransitionPQPReader_test
+  TransitionTSVFile_test
+  TransitionPQPFile_test
 )
 
 ### collect test executables

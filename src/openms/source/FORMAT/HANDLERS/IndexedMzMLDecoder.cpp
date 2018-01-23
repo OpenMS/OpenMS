@@ -124,7 +124,7 @@ namespace OpenMS
     char* buffer = new(std::nothrow) char[readl + std::streampos(1)];
 
     // catch case where not enough memory is available
-    if (buffer == NULL)
+    if (buffer == nullptr)
     {
       // Warning: Index takes up more than 10 % of the whole file, please check your input file." << std::endl;
       std::cerr << "IndexedMzMLDecoder::parseOffsets Could not allocate enough memory to read in index of indexedMzML" << std::endl; 

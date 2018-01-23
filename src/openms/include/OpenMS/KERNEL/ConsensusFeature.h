@@ -181,7 +181,7 @@ public:
     ConsensusFeature& operator=(const ConsensusFeature& rhs);
 
     /// Destructor
-    virtual ~ConsensusFeature();
+    ~ConsensusFeature() override;
     //@}
 
 

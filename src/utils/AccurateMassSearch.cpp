@@ -92,7 +92,7 @@ public:
   }
 
 protected:
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "featureXML or consensusXML file");
     setValidFormats_("in", ListUtils::create<String>("featureXML,consensusXML"));
@@ -118,7 +118,7 @@ protected:
     registerSubsection_("algorithm", "Algorithm parameters section");
   }
 
-  Param getSubsectionDefaults_(const String& /*section*/) const
+  Param getSubsectionDefaults_(const String& /*section*/) const override
   {
     Param p = AccurateMassSearchEngine().getDefaults();
     // remove params which are already registered at top level (see registerOptionsAndFlags_())
@@ -129,7 +129,7 @@ protected:
     return p;
   }
 
-  ExitCodes main_(int, const char**)
+  ExitCodes main_(int, const char**) override
   {
     //-------------------------------------------------------------
     // parameter handling

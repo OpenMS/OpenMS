@@ -51,8 +51,8 @@ START_TEST(ThresholdMower, "$Id$")
 
 /////////////////////////////////////////////////////////////
 
-ThresholdMower* e_ptr = 0;
-ThresholdMower* e_nullPointer = 0;
+ThresholdMower* e_ptr = nullptr;
+ThresholdMower* e_nullPointer = nullptr;
 START_SECTION((ThresholdMower()))
   e_ptr = new ThresholdMower;
   TEST_NOT_EQUAL(e_ptr, e_nullPointer)

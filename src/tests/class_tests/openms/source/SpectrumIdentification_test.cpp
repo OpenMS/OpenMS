@@ -46,8 +46,8 @@ START_TEST(SpectrumIdentification, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-SpectrumIdentification* ptr = 0;
-SpectrumIdentification* null_ptr = 0;
+SpectrumIdentification* ptr = nullptr;
+SpectrumIdentification* null_ptr = nullptr;
 START_SECTION(SpectrumIdentification())
 {
 	ptr = new SpectrumIdentification();

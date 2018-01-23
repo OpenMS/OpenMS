@@ -165,7 +165,7 @@ public:
     //@}
 
     /// Destructor
-    virtual ~SignalToNoiseEstimatorMedian()
+    ~SignalToNoiseEstimatorMedian() override
     {}
 
     /// Returns how many percent of the windows were sparse
@@ -189,7 +189,7 @@ protected:
         @param scan_last_ last element in the scan (disregarded)
         @exception Throws Exception::InvalidValue
     */
-    void computeSTN_(const PeakIterator & scan_first_, const PeakIterator & scan_last_)
+    void computeSTN_(const PeakIterator & scan_first_, const PeakIterator & scan_last_) override
     {
       // reset counter for sparse windows
       sparse_window_percent_ = 0;
@@ -408,7 +408,7 @@ protected:
     } // end of shiftWindow_
 
     /// overridden function from DefaultParamHandler to keep members up to date, when a parameter is changed
-    void updateMembers_()
+    void updateMembers_() override
     {
       max_intensity_           = (double)param_.getValue("max_intensity");
       auto_max_stdev_Factor_   = (double)param_.getValue("auto_max_stdev_factor");

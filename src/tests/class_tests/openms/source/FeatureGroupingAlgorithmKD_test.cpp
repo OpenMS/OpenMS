@@ -45,8 +45,8 @@ START_TEST(FeatureGroupingAlgorithmKD, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-FeatureGroupingAlgorithmKD* ptr = 0;
-FeatureGroupingAlgorithmKD* nullPointer = 0;
+FeatureGroupingAlgorithmKD* ptr = nullptr;
+FeatureGroupingAlgorithmKD* nullPointer = nullptr;
 START_SECTION((FeatureGroupingAlgorithmKD()))
   ptr = new FeatureGroupingAlgorithmKD();
   TEST_NOT_EQUAL(ptr, nullPointer)
@@ -57,8 +57,8 @@ START_SECTION((virtual ~FeatureGroupingAlgorithmKD()))
 END_SECTION
 
 START_SECTION((static FeatureGroupingAlgorithm* create()))
-  FeatureGroupingAlgorithm* ptr2 = 0;
-  FeatureGroupingAlgorithm* base_NullPointer = 0;
+  FeatureGroupingAlgorithm* ptr2 = nullptr;
+  FeatureGroupingAlgorithm* base_NullPointer = nullptr;
   ptr2 = FeatureGroupingAlgorithmKD::create();
   TEST_NOT_EQUAL(ptr2, base_NullPointer)
 END_SECTION

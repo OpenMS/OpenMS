@@ -191,9 +191,8 @@ namespace OpenMS
       while ((min_i - k + 1) > 0
              //&& std::fabs(chromatogram[min_i-k].getMZ() - peak_raw_data.begin()->first) < spacing_difference*min_spacing
             && (chromatogram[min_i - k].getIntensity() < chromatogram[min_i - k + 1].getIntensity()
-               || (peak_width_ > 0.0 && std::fabs(chromatogram[min_i - k].getMZ() - central_peak_mz) < peak_width_)
-                )
-            && (signal_to_noise_ <= 0.0 || (signal_to_noise_ > 0.0 && snt_.getSignalToNoise(chromatogram[min_i - k]) >= signal_to_noise_)))
+               || (peak_width_ > 0.0 && std::fabs(chromatogram[min_i - k].getMZ() - central_peak_mz) < peak_width_))
+            && (signal_to_noise_ <= 0.0 || snt_.getSignalToNoise(chromatogram[min_i - k]) >= signal_to_noise_))
       {
         ++k;
       }
@@ -204,9 +203,8 @@ namespace OpenMS
       while ((min_i + k) < chromatogram.size()
              //&& std::fabs(chromatogram[min_i+k].getMZ() - peak_raw_data.rbegin()->first) < spacing_difference*min_spacing
             && (chromatogram[min_i + k].getIntensity() < chromatogram[min_i + k - 1].getIntensity()
-               || (peak_width_ > 0.0 && std::fabs(chromatogram[min_i + k].getMZ() - central_peak_mz) < peak_width_)
-                )
-            && (signal_to_noise_ <= 0.0 || (signal_to_noise_ > 0.0 && snt_.getSignalToNoise(chromatogram[min_i + k]) >= signal_to_noise_) ))
+               || (peak_width_ > 0.0 && std::fabs(chromatogram[min_i + k].getMZ() - central_peak_mz) < peak_width_))
+            && (signal_to_noise_ <= 0.0 || snt_.getSignalToNoise(chromatogram[min_i + k]) >= signal_to_noise_) )
       {
         ++k;
       }

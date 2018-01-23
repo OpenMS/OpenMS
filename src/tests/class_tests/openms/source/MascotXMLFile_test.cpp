@@ -69,7 +69,7 @@ vector<String> references;
 
 date.set("2006-03-09 11:31:52");
 
-MascotXMLFile* nullPointer = 0;
+MascotXMLFile* nullPointer = nullptr;
 START_SECTION((MascotXMLFile()))
   ptr = new MascotXMLFile();
   TEST_NOT_EQUAL(ptr, nullPointer)

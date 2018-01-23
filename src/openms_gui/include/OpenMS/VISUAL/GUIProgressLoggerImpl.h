@@ -62,20 +62,20 @@ public:
     /**
       @brief Implement ProgressLoggerImpl::startProgress().
     */
-    void startProgress(const SignedSize begin, const SignedSize end, const String& label, const int /* current_recursion_depth */) const;
+    void startProgress(const SignedSize begin, const SignedSize end, const String& label, const int /* current_recursion_depth */) const override;
 
     /**
       @brief Implement ProgressLoggerImpl::setProgress().
     */
-    void setProgress(const SignedSize value, const int /* current_recursion_depth */) const;
+    void setProgress(const SignedSize value, const int /* current_recursion_depth */) const override;
 
     /**
       @brief Implement ProgressLoggerImpl::endProgress().
     */
-    void endProgress(const int /* current_recursion_depth */) const;
+    void endProgress(const int /* current_recursion_depth */) const override;
 
     /// d'tor
-    ~GUIProgressLoggerImpl();
+    ~GUIProgressLoggerImpl() override;
 
 private:
     mutable QProgressDialog* dlg_;

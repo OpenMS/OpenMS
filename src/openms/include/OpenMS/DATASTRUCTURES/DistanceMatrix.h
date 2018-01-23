@@ -84,7 +84,7 @@ public:
 
     */
     DistanceMatrix() :
-      matrix_(0), init_size_(0), dimensionsize_(0), min_element_(0, 0)
+      matrix_(nullptr), init_size_(0), dimensionsize_(0), min_element_(0, 0)
     {
     }
 
@@ -332,7 +332,7 @@ public:
         delete[] matrix_[i];
       }
       delete[] matrix_;
-      matrix_ = NULL;
+      matrix_ = nullptr;
       min_element_ = std::make_pair(0, 0);
       dimensionsize_ = 0;
       init_size_ = 0;
@@ -361,20 +361,20 @@ public:
       for (SizeType j = 1; j < dimensionsize_; ++j)
       {
         matrix_[j] = new ValueType[j];
-        if (matrix_[j] == NULL)
+        if (matrix_[j] == nullptr)
         {
           for (SizeType k = 1; k < j; ++k)
           {
             delete[] matrix_[k];
           }
           delete[] matrix_;
-          matrix_ = NULL;
+          matrix_ = nullptr;
           dimensionsize_ = 0;
           init_size_ = 0;
           throw Exception::OutOfMemory(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, (UInt)((((dimensionsize_ - 2) * (dimensionsize_ - 1)) / 2) * sizeof(Value)));
         }
       }
-      if (matrix_ != NULL)
+      if (matrix_ != nullptr)
       {
         for (SizeType j = 0; j < dimensionsize; ++j)
         {
@@ -403,7 +403,7 @@ public:
       }
       //delete row j and therefor overwrite with row j+1 and iterate like this to last row
       SizeType i = j + 1;
-      while (i < dimensionsize_ && matrix_[i] != NULL)
+      while (i < dimensionsize_ && matrix_[i] != nullptr)
       {
         //left out in the copy is each rows jth element, pointer working here as iterators just fine
         std::copy(matrix_[i] + j + 1, matrix_[i] + i, std::copy(matrix_[i], matrix_[i] + j, matrix_[i - 1]));
@@ -411,7 +411,7 @@ public:
       }
       //last row is freed and the pointer set to NULL (outer array's size is not changed)
       delete[] matrix_[i - 1];
-      matrix_[i - 1] = NULL;
+      matrix_[i - 1] = nullptr;
       --dimensionsize_;
     }
 
@@ -437,7 +437,7 @@ public:
       if (dimensionsize_ != 1) //else matrix has one element: (1,0)
       {
         ValueType* row_min_;
-        for (SizeType r = 2; r < dimensionsize_ && matrix_[r] != NULL; ++r)
+        for (SizeType r = 2; r < dimensionsize_ && matrix_[r] != nullptr; ++r)
         {
           row_min_ = std::min_element(matrix_[r], matrix_[r] + r);
           if (*row_min_ < matrix_[min_element_.first][min_element_.second])

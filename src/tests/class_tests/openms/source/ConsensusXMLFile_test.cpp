@@ -60,8 +60,8 @@ START_TEST(ConsensusXMLFile, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-ConsensusXMLFile * ptr = 0;
-ConsensusXMLFile* nullPointer = 0;
+ConsensusXMLFile * ptr = nullptr;
+ConsensusXMLFile* nullPointer = nullptr;
 START_SECTION((ConsensusXMLFile()))
 ptr = new ConsensusXMLFile();
 TEST_NOT_EQUAL(ptr, nullPointer)

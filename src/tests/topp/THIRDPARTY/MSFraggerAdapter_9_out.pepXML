@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="pepXML_std.xsl"?>
+<msms_pipeline_analysis date="2017-11-27T15:35:20" xmlns="http://regis-web.systemsbiology.net/pepXML" summary_xml="SiriusAdapter_1_input.pepXML" xsi:schemaLocation="http://sashimi.sourceforge.net/schema_revision/pepXML/pepXML_v118.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<msms_run_summary base_name="SiriusAdapter_1_input" raw_data_type="raw" raw_data=".mzXML" search_engine="X! Tandem">
+<sample_enzyme name="Trypsin">
+<specificity cut="KR" no_cut="P" sense="C"/>
+</sample_enzyme>
+<search_summary base_name="SiriusAdapter_1_input" precursor_mass_type="monoisotopic" search_engine="X! Tandem" search_engine_version="MSFragger-20170103.0" fragment_mass_type="monoisotopic" search_id="1">
+<search_database local_path="/tmp/20171127_153519_a1-lukas-lin_22969_1/proteins.fasta" type="AA"/>
+<enzymatic_search_constraint enzyme="default" min_number_termini="1" max_num_internal_cleavages="2"/>
+<aminoacid_modification aminoacid="C" massdiff="57.0215" mass="160.0307" variable="N"/>
+<aminoacid_modification aminoacid="M" massdiff="15.9949" mass="147.0354" variable="Y"/>
+</search_summary>
+</msms_run_summary>
+</msms_pipeline_analysis>

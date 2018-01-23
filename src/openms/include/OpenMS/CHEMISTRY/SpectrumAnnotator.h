@@ -73,7 +73,7 @@ namespace OpenMS
     SpectrumAnnotator(const SpectrumAnnotator & source);
 
     /// destructor
-    virtual ~SpectrumAnnotator();
+    ~SpectrumAnnotator() override;
     //@}
 
     /// assignment operator
@@ -112,7 +112,7 @@ namespace OpenMS
     void addIonMatchStatistics(PeptideIdentification& pi, MSSpectrum &spec, const TheoreticalSpectrumGenerator& tg, const SpectrumAlignment& sa) const;
 
     /// overwrite
-    void updateMembers_();
+    void updateMembers_() override;
 
     //@}
 

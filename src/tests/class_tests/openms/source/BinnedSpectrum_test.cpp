@@ -48,8 +48,8 @@ START_TEST(BinnedSpectrum, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-BinnedSpectrum* ptr = 0;
-BinnedSpectrum* nullPointer = 0;
+BinnedSpectrum* ptr = nullptr;
+BinnedSpectrum* nullPointer = nullptr;
 START_SECTION(BinnedSpectrum())
 {
 	ptr = new BinnedSpectrum();

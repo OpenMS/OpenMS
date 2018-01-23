@@ -81,10 +81,10 @@ protected:
 
     /// @name Implementation of Xerces ErrorHandler methods
     //@{
-    virtual void warning(const xercesc::SAXParseException& exception);
-    virtual void error(const xercesc::SAXParseException& exception);
-    virtual void fatalError(const xercesc::SAXParseException& exception);
-    virtual void resetErrors();
+    void warning(const xercesc::SAXParseException& exception) override;
+    void error(const xercesc::SAXParseException& exception) override;
+    void fatalError(const xercesc::SAXParseException& exception) override;
+    void resetErrors() override;
     //@}
   };
 

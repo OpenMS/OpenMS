@@ -28,6 +28,8 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 
+//! [TSG]
+
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
@@ -37,24 +39,44 @@
 using namespace OpenMS;
 using namespace std;
 
-Int main()
+int main()
 {
+  // initialize a TheoreticalSpectrumGenerator
   TheoreticalSpectrumGenerator tsg;
-  PeakSpectrum spec1, spec2;
-  AASequence peptide = AASequence::fromString("DFPIANGER");
 
-  // standard behavior is adding b- and y-ions of charge 1
-  Param p;
-  p.setValue("add_b_ions", "false", "Add peaks of b-ions to the spectrum");
-  tsg.setParameters(p);
-  tsg.getSpectrum(spec1, peptide, 1, 1);
+  // get current parameters
+  // in this case default parameters, since we have not changed any yet
+  Param tsg_settings = tsg.getParameters();
+    
+  // with default parameters, only b- and y-ions are generated,
+  // so we will add a-ions
+  tsg_settings.setValue("add_a_ions", "true");
+    
+  // store ion types for each peak
+  tsg_settings.setValue("add_metainfo", "true");
+    
+  // set the changed parameters for the TSG
+  tsg.setParameters(tsg_settings);
+                     
 
-  p.setValue("add_b_ions", "true", "Add peaks of a-ions to the spectrum");
-  tsg.setParameters(p);
-  tsg.getSpectrum(spec2, peptide, 1, 2);
+  PeakSpectrum theoretical_spectrum;
 
-  cout << "Spectrum 1 has " << spec1.size() << " peaks. " << endl;
-  cout << "Spectrum 2 has " << spec2.size() << " peaks. " << endl;
+  // initialize peptide to be fragmented
+  AASequence peptide = AASequence::fromString("DEFIANGER");
+  
+  // generate a-, b- and y- ion spectrum of the peptide
+  // with all fragment charges from 1 to 2
+  tsg.getSpectrum(theoretical_spectrum, peptide, 1, 2);
+ 
+  // output of masses and meta information (ion-types) of some peaks
+  const PeakSpectrum::StringDataArray& ion_types = theoretical_spectrum.getStringDataArrays().at(0);
+  cout << "Mass of second peak: " << theoretical_spectrum[1].getMZ()
+       << " | Ion type of second peak: " << ion_types[1] << endl;
 
+  cout << "Mass of tenth peak: " << theoretical_spectrum[9].getMZ()
+       << " | Ion type of tenth peak: " << ion_types[9] << endl;
+  
   return 0;
 } //end of main
+
+//! [TSG]

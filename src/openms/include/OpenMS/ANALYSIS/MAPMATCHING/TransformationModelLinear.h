@@ -68,10 +68,10 @@ public:
     TransformationModelLinear(const DataPoints& data, const Param& params);
 
     /// Destructor
-    ~TransformationModelLinear();
+    ~TransformationModelLinear() override;
 
     /// Evaluates the model at the given value
-    virtual double evaluate(double value) const;
+    double evaluate(double value) const override;
 
     using TransformationModel::getParameters;
 

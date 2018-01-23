@@ -69,11 +69,12 @@ namespace OpenMS
                                     String psi_id = "",
                                     String xtandem_id = "",
                                     UInt comet_id = 0,
+                                    String crux_id = "",
                                     Int msgf_id = -1,
                                     UInt omssa_id = 0);
 
     /// destructor
-    virtual ~DigestionEnzymeProtein();
+    ~DigestionEnzymeProtein() override;
     //@}
 
     /** @name Assignment
@@ -116,6 +117,12 @@ namespace OpenMS
     /// sets the Comet enzyme ID
     void setCometID(UInt value);
 
+    /// returns the Crux enzyme ID
+    String getCruxID() const;
+
+    /// sets the Crux enzyme ID
+    void setCruxID(const String& value);
+
     /// sets the MSGFPlus enzyme id
     void setMSGFID(Int value);
 
@@ -154,7 +161,7 @@ namespace OpenMS
 
        Returns whether the key was recognized and the value set successfully.
     */
-    bool setValueFromFile(const String& key, const String& value);
+    bool setValueFromFile(const String& key, const String& value) override;
 
     /// ostream iterator to write the enzyme to a stream
     friend OPENMS_DLLAPI std::ostream& operator<<(std::ostream& os, const DigestionEnzymeProtein& enzyme);
@@ -169,6 +176,8 @@ namespace OpenMS
     String xtandem_id_;
 
     UInt comet_id_;
+
+    String crux_id_;
 
     Int msgf_id_;
 

@@ -49,8 +49,8 @@ START_TEST(ItraqFourPlexQuantitationMethod, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-ItraqFourPlexQuantitationMethod* ptr = 0;
-ItraqFourPlexQuantitationMethod* null_ptr = 0;
+ItraqFourPlexQuantitationMethod* ptr = nullptr;
+ItraqFourPlexQuantitationMethod* null_ptr = nullptr;
 START_SECTION(ItraqFourPlexQuantitationMethod())
 {
 	ptr = new ItraqFourPlexQuantitationMethod();

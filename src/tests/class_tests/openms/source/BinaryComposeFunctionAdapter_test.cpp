@@ -64,8 +64,8 @@ typedef std::const_mem_fun_ref_t<const std::string&, Element> T_MEMBER_FUNCTIOM;
 
 typedef BinaryComposeFunctionAdapter<T_STD_LESS,T_MEMBER_FUNCTIOM,T_MEMBER_FUNCTIOM > BCFA;
 
-BCFA* ptr = 0;
-BCFA* null_ptr = 0;
+BCFA* ptr = nullptr;
+BCFA* null_ptr = nullptr;
 
 START_SECTION((BinaryComposeFunctionAdapter(const OP1 &o1, const OP2 &o2, const OP3 &o3)))
 {

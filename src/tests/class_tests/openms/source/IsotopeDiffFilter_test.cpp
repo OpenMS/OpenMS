@@ -53,8 +53,8 @@ START_TEST(IsotopeDiffFilter, "$Id$")
 
 /////////////////////////////////////////////////////////////
 
-IsotopeDiffFilter* e_ptr = 0;
-IsotopeDiffFilter* e_nullPointer = 0;
+IsotopeDiffFilter* e_ptr = nullptr;
+IsotopeDiffFilter* e_nullPointer = nullptr;
 
 START_SECTION((IsotopeDiffFilter()))
 	e_ptr = new IsotopeDiffFilter;

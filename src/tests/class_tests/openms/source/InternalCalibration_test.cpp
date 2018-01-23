@@ -53,8 +53,8 @@ START_TEST(InternalCalibration, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-InternalCalibration* ptr = 0;
-InternalCalibration* nullPointer = 0;
+InternalCalibration* ptr = nullptr;
+InternalCalibration* nullPointer = nullptr;
 START_SECTION(InternalCalibration())
 {
 	ptr = new InternalCalibration();

@@ -224,8 +224,8 @@ public:
 
 private:
     bool metadata_only_;
-    bool force_maxquant_compatibility_; //< for mzXML-writing only: set a fixed vendor (Thermo Scientific), mass analyzer (FTMS)
-    bool force_tpp_compatibility_; //< for mzML-writing only: work around some bugs in TPP file parsers
+    bool force_maxquant_compatibility_; ///< for mzXML-writing only: set a fixed vendor (Thermo Scientific), mass analyzer (FTMS)
+    bool force_tpp_compatibility_; ///< for mzML-writing only: work around some bugs in TPP file parsers
     bool write_supplemental_data_;
     bool has_rt_range_;
     bool has_mz_range_;

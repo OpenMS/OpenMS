@@ -28,8 +28,8 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Mathias Walzer $
-// $Authors: Mathias Walzer $
+// $Maintainer: Douglas McCloskey $
+// $Authors: Douglas McCloskey $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/CsvFile.h>
@@ -56,7 +56,7 @@ namespace OpenMS
     char is = ',';
     bool ie = false; 
     Int first_n = -1;
-    fload(filename, is, ie, first_n);
+    CsvFile::load(filename, is, ie, first_n);
 
     // parse the file
     std::map<String,int> headers;

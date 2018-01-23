@@ -45,7 +45,7 @@
 
 #include <map>
 #include <vector>
-#include <math.h>
+#include <cmath>
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/ConsensusIsotopePattern.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/SuperHirnUtil.h>
