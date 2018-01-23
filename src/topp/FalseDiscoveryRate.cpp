@@ -206,21 +206,25 @@ protected:
     }
 
     // update protein groupings if necessary:
-    for (vector<ProteinIdentification>::iterator prot_it = prot_ids.begin();
-         prot_it != prot_ids.end(); ++prot_it)
+    for (auto prot_it = prot_ids.begin(); prot_it != prot_ids.end(); ++prot_it)
     {
       bool valid = IDFilter::updateProteinGroups(prot_it->getProteinGroups(),
                                                  prot_it->getHits());
       if (!valid)
       {
-        LOG_WARN << "Warning: While updating protein groups, some prot_ids were removed from groups that are still present. The new grouping (especially the group probabilities) may not be completely valid any more." << endl;
+        LOG_WARN << "Warning: While updating protein groups, some prot_ids were removed from groups that are still present. "
+                 << "The new grouping (especially the group probabilities) may not be completely valid any more." 
+                 << endl;
       }
 
       valid = IDFilter::updateProteinGroups(
         prot_it->getIndistinguishableProteins(), prot_it->getHits());
+
       if (!valid)
       {
-        LOG_WARN << "Warning: While updating indistinguishable prot_ids, some prot_ids were removed from groups that are still present. The new grouping (especially the group probabilities) may not be completely valid any more." << endl;
+        LOG_WARN << "Warning: While updating indistinguishable prot_ids, some prot_ids were removed from groups that are still present. "
+                 << "The new grouping (especially the group probabilities) may not be completely valid any more." 
+                 << endl;
       }
     }
 
