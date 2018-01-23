@@ -894,6 +894,7 @@ protected:
       LOG_INFO << "Performing FDR calculations..." << endl;
       calculateAndFilterFDR_(id_data, report_top_hits == 1);
     }
+    id_data.calculateCoverages();
 
     // store results
     MzTab results = IdentificationDataConverter::exportMzTab(id_data);

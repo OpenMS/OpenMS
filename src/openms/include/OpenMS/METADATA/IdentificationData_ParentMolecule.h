@@ -121,13 +121,15 @@ namespace OpenMS
     {
       String accession;
 
-      enum MoleculeType molecule_type; // @TODO: do we need this here?
+      enum MoleculeType molecule_type;
 
+      // @TODO: if there are modifications in the sequence, "sequence.size()"
+      // etc. will be misleading!
       String sequence;
 
       String description;
 
-      double coverage;
+      double coverage; //< sequence coverage as a fraction between 0 and 1
 
       bool is_decoy;
 
@@ -210,7 +212,7 @@ namespace OpenMS
                 std::tie(other.start_pos, other.end_pos));
       }
 
-      bool hasValidPositions(Size molecule_length = 0, Size parent_length = 0)
+      bool hasValidPositions(Size molecule_length = 0, Size parent_length = 0) const
       {
         if ((start_pos == UNKNOWN_POSITION) || (end_pos == UNKNOWN_POSITION))
         {

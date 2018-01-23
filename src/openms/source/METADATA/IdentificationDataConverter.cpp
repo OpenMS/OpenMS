@@ -80,7 +80,7 @@ namespace OpenMS
         IdentificationData::ParentMolecule parent(hit.getAccession());
         parent.sequence = hit.getSequence();
         parent.description = hit.getDescription();
-        parent.coverage = hit.getCoverage();
+        parent.coverage = hit.getCoverage() / 100.0; // we don't want percents
         static_cast<MetaInfoInterface&>(parent) = hit;
         parent.scores.push_back(make_pair(score_ref, hit.getScore()));
         id_data.registerParentMolecule(parent);
@@ -305,7 +305,7 @@ namespace OpenMS
       hit.setAccession(parent.accession);
       hit.setSequence(parent.sequence);
       hit.setDescription(parent.description);
-      hit.setCoverage(parent.coverage);
+      hit.setCoverage(parent.coverage * 100.0); // convert to percents
       static_cast<MetaInfoInterface&>(hit) = parent;
       // find all steps that assigned a score:
       for (IdentificationData::ProcessingStepRef step_ref :
