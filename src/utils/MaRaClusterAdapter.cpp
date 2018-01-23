@@ -109,7 +109,7 @@ class MaRaClusterAdapter :
 {
 public:
   MaRaClusterAdapter() :
-    TOPPBase("MaRaClusterAdapter", "Facilitate input to MaRaCluster and reintegrate.", true)
+    TOPPBase("MaRaClusterAdapter", "Facilitate input to MaRaCluster and reintegrate.", false)
   {
   }
 
