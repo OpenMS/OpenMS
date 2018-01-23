@@ -121,13 +121,15 @@ namespace OpenMS
     {
       String accession;
 
-      enum MoleculeType molecule_type; // @TODO: do we need this here?
+      enum MoleculeType molecule_type;
 
+      // @TODO: if there are modifications in the sequence, "sequence.size()"
+      // etc. will be misleading!
       String sequence;
 
       String description;
 
-      double coverage;
+      double coverage; //< sequence coverage as a fraction between 0 and 1
 
       bool is_decoy;
 
@@ -179,8 +181,8 @@ namespace OpenMS
       // length of the subsequence in the parent; therefore, store "end_pos":
       Size start_pos, end_pos;
 
-      // @TODO: does "char" work here - what about modified ribonucleotides?
-      char left_neighbor, right_neighbor; // neighboring sequence elements
+      // String instead of char so modified residues can be represented:
+      String left_neighbor, right_neighbor; // neighboring sequence elements
 
       static const Size UNKNOWN_POSITION; // = Size(-1)
       static const char UNKNOWN_NEIGHBOR; // = 'X'
@@ -189,8 +191,8 @@ namespace OpenMS
 
       explicit MoleculeParentMatch(Size start_pos = UNKNOWN_POSITION,
                                    Size end_pos = UNKNOWN_POSITION,
-                                   char left_neighbor = UNKNOWN_NEIGHBOR,
-                                   char right_neighbor = UNKNOWN_NEIGHBOR):
+                                   String left_neighbor = UNKNOWN_NEIGHBOR,
+                                   String right_neighbor = UNKNOWN_NEIGHBOR):
         start_pos(start_pos), end_pos(end_pos), left_neighbor(left_neighbor),
         right_neighbor(right_neighbor)
       {
@@ -210,7 +212,7 @@ namespace OpenMS
                 std::tie(other.start_pos, other.end_pos));
       }
 
-      bool hasValidPositions(Size molecule_length = 0, Size parent_length = 0)
+      bool hasValidPositions(Size molecule_length = 0, Size parent_length = 0) const
       {
         if ((start_pos == UNKNOWN_POSITION) || (end_pos == UNKNOWN_POSITION))
         {

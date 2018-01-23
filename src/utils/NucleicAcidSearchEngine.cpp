@@ -206,7 +206,7 @@ protected:
   // slimmer structure to store basic hit information
   struct AnnotatedHit
   {
-    NASequence sequence;
+    IdentificationData::IdentifiedOligoRef oligo_ref;
     SignedSize mod_index; // enumeration index of the modification
     double score; // the score
     double precursor_error_ppm; // precursor mass error in ppm
@@ -463,8 +463,6 @@ protected:
                         const vector<ConstRibonucleotidePtr>& fixed_modifications,
                         const vector<ConstRibonucleotidePtr>& variable_modifications,
                         Size max_variable_mods_per_oligo,
-                        const vector<FASTAFile::FASTAEntry>& fasta_db,
-                        const map<NASequence, set<Size>>& oligo_map,
                         bool negative_mode)
   {
     // remove all but top n scoring
@@ -501,29 +499,16 @@ protected:
         for (const AnnotatedHit& hit : annotated_hits[scan_index])
         {
           // get unmodified string
-          LOG_DEBUG << "Hit sequence: " << hit.sequence << endl;
-          NASequence seq = hit.sequence;
+          NASequence seq = hit.oligo_ref->sequence;
+          LOG_DEBUG << "Hit sequence: " << seq << endl;
           // reapply modifications (because for memory reasons we only stored the index and recreation is fast)
           vector<NASequence> all_modified_oligos;
           ModifiedNASequenceGenerator::applyFixedModifications(fixed_modifications.begin(), fixed_modifications.end(), seq);
           ModifiedNASequenceGenerator::applyVariableModifications(variable_modifications.begin(), variable_modifications.end(), seq, max_variable_mods_per_oligo, all_modified_oligos);
 
-          // reannotate NASequence object
-          NASequence modified_seq = all_modified_oligos[hit.mod_index];
-          IdentificationData::IdentifiedOligo oligo(modified_seq);
-
-          // add parent sequences:
-          for (Size index : oligo_map.at(hit.sequence))
-          {
-            FASTAFile::FASTAEntry fasta = fasta_db[index];
-            IdentificationData::ParentMolecule parent(
-              fasta.identifier, IdentificationData::MoleculeType::RNA,
-              fasta.sequence, fasta.description);
-            IdentificationData::ParentMoleculeRef parent_ref =
-              id_data.registerParentMolecule(parent);
-            oligo.parent_matches[parent_ref];
-          }
-
+          // transfer parent matches from unmodified oligo:
+          IdentificationData::IdentifiedOligo oligo = *hit.oligo_ref;
+          oligo.sequence = all_modified_oligos[hit.mod_index];
           IdentificationData::IdentifiedOligoRef oligo_ref =
             id_data.registerIdentifiedOligo(oligo);
 
@@ -539,6 +524,7 @@ protected:
         }
       }
     }
+    IDFilter::removeMoleculesParentsQueriesWithoutMatches(id_data);
   }
 
 
@@ -561,19 +547,8 @@ protected:
   }
 
 
-  void calculateAndFilterFDR_(IdentificationData& id_data,
-                              const String& decoy_pattern, bool only_top_hits)
+  void calculateAndFilterFDR_(IdentificationData& id_data, bool only_top_hits)
   {
-    for (const auto& parent : id_data.getParentMolecules())
-    {
-      if (parent.accession.hasSubstring(decoy_pattern))
-      {
-        // we can modify the "id_data" entry only indirectly:
-        IdentificationData::ParentMolecule temp(parent.accession);
-        temp.is_decoy = true;
-        id_data.registerParentMolecule(temp);
-      }
-    }
     IdentificationData::ScoreTypeRef score_ref =
       id_data.findScoreType("hyperscore");
     FalseDiscoveryRate fdr;
@@ -846,153 +821,141 @@ protected:
     RNaseDigestion digestor;
     digestor.setEnzyme(search_param.digestion_enzyme);
     digestor.setMissedCleavages(search_param.missed_cleavages);
-
-    progresslogger.startProgress(0, (Size)(fasta_db.end() - fasta_db.begin()), "scoring oligo models against spectra...");
-
-    // lookup for processed oligos. must be defined outside of omp section and synchronized
-    map<NASequence, set<Size>> processed_oligos; // map: sequence -> FASTA index
-
     // set minimum size of oligo after digestion
     Size min_oligo_length = getIntOption_("oligo:min_size");
 
+    IdentificationData id_data;
+    vector<String> primary_files;
+    spectra.getPrimaryMSRunPath(primary_files);
+    // this also sets the current processing step in "id_data":
+    IdentificationData::InputFileRef file_ref =
+      registerIDMetaData_(id_data, in_mzml, primary_files, search_param);
+    String decoy_pattern = getStringOption_("fdr:decoy_pattern");
+
+    LOG_INFO << "Performing in-silico digestion..." << endl;
+    IdentificationDataConverter::importSequences(
+      id_data, fasta_db, IdentificationData::MoleculeType::RNA, decoy_pattern);
+    digestor.digest(id_data, min_oligo_length);
+
+    progresslogger.startProgress(0, id_data.getIdentifiedOligos().size(), "scoring oligonucleotide models against spectra...");
     Size hit_counter = 0;
+
+    // keep a list of (references to) oligos in the original digest:
+    vector<IdentificationData::IdentifiedOligoRef> digest;
+    digest.reserve(id_data.getIdentifiedOligos().size());
+    for (IdentificationData::IdentifiedOligoRef it =
+           id_data.getIdentifiedOligos().begin(); it !=
+           id_data.getIdentifiedOligos().end(); ++it)
+    {
+      digest.push_back(it);
+    }
 
 #ifdef _OPENMP
 #pragma omp parallel for
 #endif
-    for (Size fasta_index = 0; fasta_index < fasta_db.size(); ++fasta_index)
+    for (Size index = 0; index < digest.size(); ++index)
     {
       IF_MASTERTHREAD
       {
-        progresslogger.setProgress((int)fasta_index * NUMBER_OF_THREADS);
+        progresslogger.setProgress(index * NUMBER_OF_THREADS);
       }
 
-      NASequence seq = NASequence::fromString(fasta_db[fasta_index].sequence);
-      vector<NASequence> current_digest;
-      digestor.digest(seq, current_digest, min_oligo_length);
+      IdentificationData::IdentifiedOligoRef oligo_ref = digest[index];
+      vector<NASequence> all_modified_oligos;
+      NASequence ns = oligo_ref->sequence;
+      ModifiedNASequenceGenerator::applyFixedModifications(
+        fixed_modifications.begin(), fixed_modifications.end(), ns);
+      ModifiedNASequenceGenerator::applyVariableModifications(
+        variable_modifications.begin(), variable_modifications.end(), ns,
+        max_variable_mods_per_oligo, all_modified_oligos, true);
 
-      for (vector<NASequence>::iterator cit = current_digest.begin();
-           cit != current_digest.end(); ++cit)
+      for (SignedSize mod_idx = 0; mod_idx < (SignedSize)all_modified_oligos.size(); ++mod_idx)
       {
-        bool already_processed = false;
-#ifdef _OPENMP
-#pragma omp critical (processed_oligos_access)
-#endif
+        const NASequence& candidate = all_modified_oligos[mod_idx];
+        double candidate_mass = candidate.getMonoWeight();
+        LOG_DEBUG << "candidate: " << candidate.toString() << " ("
+                  << float(candidate_mass) << " Da)" << endl;
+
+        // determine MS2 precursors that match to the current mass
+        multimap<double, Size>::const_iterator low_it;
+        multimap<double, Size>::const_iterator up_it;
+
+        if (search_param.precursor_tolerance_ppm) // ppm
         {
-          auto pos = processed_oligos.find(*cit);
-          if (pos != processed_oligos.end())
-          {
-            // oligo (and all modified variants) already processed, so skip it
-            pos->second.insert(fasta_index);
-            already_processed = true;
-          }
-          else
-          {
-            processed_oligos[*cit].insert(fasta_index);
-          }
+          low_it = multimap_mass_2_scan_index.lower_bound(candidate_mass - candidate_mass * search_param.precursor_mass_tolerance * 1e-6);
+          up_it = multimap_mass_2_scan_index.upper_bound(candidate_mass + candidate_mass * search_param.precursor_mass_tolerance * 1e-6);
+        }
+        else // Dalton
+        {
+          low_it = multimap_mass_2_scan_index.lower_bound(candidate_mass - search_param.precursor_mass_tolerance);
+          up_it = multimap_mass_2_scan_index.upper_bound(candidate_mass + search_param.precursor_mass_tolerance);
         }
 
-        if (already_processed) continue;
+        if (low_it == up_it) continue; // no matching precursor in data
 
-        vector<NASequence> all_modified_oligos;
+        // create theoretical spectrum
+        PeakSpectrum theo_spectrum;
+        // add peaks for b and y ions with charge 1
+        Int charge = negative_mode ? -1 : 1;
+        spectrum_generator.getSpectrum(theo_spectrum, candidate, charge,
+                                       charge);
+        // sort by mz
+        theo_spectrum.sortByPosition();
 
-        NASequence ns = *cit;
-        ModifiedNASequenceGenerator::applyFixedModifications(
-          fixed_modifications.begin(), fixed_modifications.end(), ns);
-        ModifiedNASequenceGenerator::applyVariableModifications(
-          variable_modifications.begin(), variable_modifications.end(), ns,
-          max_variable_mods_per_oligo, all_modified_oligos, true);
-
-        for (SignedSize mod_idx = 0; mod_idx < (SignedSize)all_modified_oligos.size(); ++mod_idx)
+        for (; low_it != up_it; ++low_it)
         {
-          const NASequence& candidate = all_modified_oligos[mod_idx];
-          double candidate_mass = candidate.getMonoWeight();
-          LOG_DEBUG << "candidate: " << candidate.toString() << " ("
-                    << float(candidate_mass) << " Da)" << endl;
+          LOG_DEBUG << "matching precursor mass: " << float(low_it->first)
+                    << endl;
 
-          // determine MS2 precursors that match to the current mass
-          multimap<double, Size>::const_iterator low_it;
-          multimap<double, Size>::const_iterator up_it;
+          const Size& scan_index = low_it->second;
+          const PeakSpectrum& exp_spectrum = spectra[scan_index];
 
-          if (search_param.precursor_tolerance_ppm) // ppm
+          vector<PeptideHit::PeakAnnotation> annotations;
+          double score = MetaboliteSpectralMatching::computeHyperScore(
+            search_param.fragment_mass_tolerance,
+            search_param.fragment_tolerance_ppm, exp_spectrum, theo_spectrum,
+            annotations);
+
+          if (!exp_ms2_out.empty())
           {
-            low_it = multimap_mass_2_scan_index.lower_bound(candidate_mass - candidate_mass * search_param.precursor_mass_tolerance * 1e-6);
-            up_it = multimap_mass_2_scan_index.upper_bound(candidate_mass + candidate_mass * search_param.precursor_mass_tolerance * 1e-6);
+            exp_ms2_spectra.addSpectrum(exp_spectrum);
           }
-          else // Dalton
+          if (!theo_ms2_out.empty())
           {
-            low_it = multimap_mass_2_scan_index.lower_bound(candidate_mass - search_param.precursor_mass_tolerance);
-            up_it = multimap_mass_2_scan_index.upper_bound(candidate_mass + search_param.precursor_mass_tolerance);
+            theo_spectrum.setName(candidate.toString());
+            theo_ms2_spectra.addSpectrum(theo_spectrum);
           }
 
-          if (low_it == up_it) continue; // no matching precursor in data
-
-          // create theoretical spectrum
-          PeakSpectrum theo_spectrum;
-
-          // add peaks for b and y ions with charge 1
-          Int charge = negative_mode ? -1 : 1;
-          spectrum_generator.getSpectrum(theo_spectrum, candidate, charge,
-                                         charge);
-
-          // sort by mz
-          theo_spectrum.sortByPosition();
-
-          for (; low_it != up_it; ++low_it)
+          // no hit
+          if (score < 1e-16)
           {
-            LOG_DEBUG << "matching precursor mass: " << float(low_it->first)
-                      << endl;
+            continue;
+          }
 
-            const Size& scan_index = low_it->second;
-            const PeakSpectrum& exp_spectrum = spectra[scan_index];
-
-            vector<PeptideHit::PeakAnnotation> annotations;
-            double score = MetaboliteSpectralMatching::computeHyperScore(
-              search_param.fragment_mass_tolerance,
-              search_param.fragment_tolerance_ppm, exp_spectrum, theo_spectrum,
-              annotations);
-
-            if (!exp_ms2_out.empty())
-            {
-              exp_ms2_spectra.addSpectrum(exp_spectrum);
-            }
-            if (!theo_ms2_out.empty())
-            {
-              theo_spectrum.setName(candidate.toString());
-              theo_ms2_spectra.addSpectrum(theo_spectrum);
-            }
-
-            // no hit
-            if (score < 1e-16)
-            {
-              continue;
-            }
-
-            // add oligo hit
-            AnnotatedHit ah;
-            ah.sequence = *cit;
-            ah.mod_index = mod_idx;
-            ah.score = score;
-            // @TODO: is "observed - calculated" the right way around?
-            ah.precursor_error_ppm =
-              (low_it->first - candidate_mass) / candidate_mass * 1.0e6;
-            ah.annotations = annotations;
+          // add oligo hit
+          AnnotatedHit ah;
+          ah.oligo_ref = oligo_ref;
+          ah.mod_index = mod_idx;
+          ah.score = score;
+          // @TODO: is "observed - calculated" the right way around?
+          ah.precursor_error_ppm =
+            (low_it->first - candidate_mass) / candidate_mass * 1.0e6;
+          ah.annotations = annotations;
 
 #ifdef _OPENMP
 #pragma omp atomic
 #endif
-            ++hit_counter;
+          ++hit_counter;
 
 #ifdef DEBUG_NASEARCH
-            cout << "best score in pre-score: " << score << endl;
+          cout << "best score in pre-score: " << score << endl;
 #endif
 
 #ifdef _OPENMP
 #pragma omp critical (annotated_hits_access)
 #endif
-            {
-              annotated_hits[scan_index].push_back(ah);
-            }
+          {
+            annotated_hits[scan_index].push_back(ah);
           }
         }
       }
@@ -1000,7 +963,8 @@ protected:
     progresslogger.endProgress();
 
     LOG_INFO << "Undigested nucleic acids: " << fasta_db.size() << endl;
-    LOG_INFO << "Oligonucleotides: " << processed_oligos.size() << endl;
+    LOG_INFO << "Oligonucleotides: " << id_data.getIdentifiedOligos().size()
+             << endl;
     LOG_INFO << "Search hits: " << hit_counter << endl;
 
     if (!exp_ms2_out.empty())
@@ -1012,26 +976,20 @@ protected:
       MzMLFile().store(theo_ms2_out, theo_ms2_spectra);
     }
 
-    IdentificationData id_data;
-    vector<String> primary_files;
-    spectra.getPrimaryMSRunPath(primary_files);
-    IdentificationData::InputFileRef file_ref =
-      registerIDMetaData_(id_data, in_mzml, primary_files, search_param);
-
     progresslogger.startProgress(0, 1, "post-processing search hits...");
     postProcessHits_(spectra, annotated_hits, id_data, file_ref,
                      report_top_hits, fixed_modifications,
                      variable_modifications, max_variable_mods_per_oligo,
-                     fasta_db, processed_oligos, negative_mode);
+                     negative_mode);
     progresslogger.endProgress();
 
     // FDR:
-    String decoy_pattern = getStringOption_("fdr:decoy_pattern");
     if (!decoy_pattern.empty())
     {
       LOG_INFO << "Performing FDR calculations..." << endl;
-      calculateAndFilterFDR_(id_data, decoy_pattern, report_top_hits == 1);
+      calculateAndFilterFDR_(id_data, report_top_hits == 1);
     }
+    id_data.calculateCoverages();
 
     // store results
     MzTab results = IdentificationDataConverter::exportMzTab(id_data);

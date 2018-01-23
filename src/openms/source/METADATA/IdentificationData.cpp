@@ -423,4 +423,94 @@ namespace OpenMS
     return results;
   }
 
+
+  void IdentificationData::calculateCoverages(bool check_molecule_length)
+  {
+    // aggregate molecule-parent matches by parent:
+    struct ParentData
+    {
+      Size length;
+      double coverage;
+      vector<pair<Size, Size>> fragments;
+    };
+    map<ParentMoleculeRef, ParentData> parent_info;
+
+    // go through all peptides:
+    for (const auto& molecule : identified_peptides_)
+    {
+      Size molecule_length = check_molecule_length ?
+        molecule.sequence.size() : 0;
+      for (const auto& pair : molecule.parent_matches)
+      {
+        auto pos = parent_info.find(pair.first);
+        if (pos == parent_info.end()) // new parent molecule
+        {
+          ParentData pd;
+          pd.length = AASequence::fromString(pair.first->sequence).size();
+          if (pd.length == 0) break; // sequence not available
+          pos = parent_info.insert(make_pair(pair.first, pd)).first;
+        }
+        Size parent_length = pos->second.length; // always check this
+        for (const auto& match : pair.second)
+        {
+          if (match.hasValidPositions(molecule_length, parent_length))
+          {
+            pos->second.fragments.push_back(make_pair(match.start_pos,
+                                                      match.end_pos));
+          }
+        }
+      }
+    }
+    // go through all oligonucleotides:
+    for (const auto& molecule : identified_oligos_)
+    {
+      Size molecule_length = check_molecule_length ?
+        molecule.sequence.size() : 0;
+      for (const auto& pair : molecule.parent_matches)
+      {
+        auto pos = parent_info.find(pair.first);
+        if (pos == parent_info.end()) // new parent molecule
+        {
+          ParentData pd;
+          pd.length = NASequence::fromString(pair.first->sequence).size();
+          if (pd.length == 0) break; // sequence not available
+          pos = parent_info.insert(make_pair(pair.first, pd)).first;
+        }
+        Size parent_length = pos->second.length; // always check this
+        for (const auto& match : pair.second)
+        {
+          if (match.hasValidPositions(molecule_length, parent_length))
+          {
+            pos->second.fragments.push_back(make_pair(match.start_pos,
+                                                      match.end_pos));
+          }
+        }
+      }
+    }
+
+    // calculate coverage for each parent:
+    for (auto& pair : parent_info)
+    {
+      vector<bool> covered(pair.second.length, false);
+      for (const auto& fragment : pair.second.fragments)
+      {
+        fill(covered.begin() + fragment.first,
+             covered.begin() + fragment.second + 1, true);
+      }
+      pair.second.coverage = (accumulate(covered.begin(), covered.end(), 0) /
+                              double(pair.second.length));
+    }
+    // set coverage:
+    for (ParentMoleculeRef ref = parent_molecules_.begin();
+         ref != parent_molecules_.end(); ++ref)
+    {
+      auto pos = parent_info.find(ref);
+      double coverage = (pos == parent_info.end()) ? 0.0 : pos->second.coverage;
+      parent_molecules_.modify(ref, [coverage](ParentMolecule& parent)
+                               {
+                                 parent.coverage = coverage;
+                               });
+    }
+  }
+
 } // end namespace OpenMS

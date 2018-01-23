@@ -258,6 +258,9 @@ namespace OpenMS
     ScoreTypeRef findScoreType(const String& score_name,
                                ProcessingSoftwareRef software_ref) const;
 
+    /// Calculate sequence coverages of parent molecules
+    void calculateCoverages(bool check_molecule_length = false);
+
     /// Helper function to compare two scores
     static bool isBetterScore(double first, double second, bool higher_better)
     {
@@ -295,23 +298,6 @@ namespace OpenMS
     /// Helper function to check if all parent matches are valid
     void checkParentMatches_(const ParentMatches& matches,
                              MoleculeType expected_type);
-
-    /// Helper functor for augmenting entries (derived from ScoredProcessingResult) in a @t boost::multi_index_container structure
-    template <typename ElementType>
-    struct ModifyMultiIndexMergeElements
-    {
-      ModifyMultiIndexMergeElements(const ElementType& update):
-        update(update)
-      {
-      }
-
-      void operator()(ElementType& element)
-      {
-        element += update;
-      }
-
-      const ElementType& update;
-    };
 
     /*!
       Helper functor for adding processing steps to elements in a @t boost::multi_index_container structure
@@ -353,8 +339,12 @@ namespace OpenMS
 
       void operator()(ElementType& element)
       {
-        // @TODO: add checks?
-        element.scores.push_back(make_pair(score_type_ref, value));
+        auto pair = std::make_pair(score_type_ref, value);
+        if (std::find(element.scores.begin(), element.scores.end(), pair) ==
+            element.scores.end())
+        {
+          element.scores.push_back(pair);
+        }
       }
 
       ScoreTypeRef score_type_ref;
@@ -372,8 +362,10 @@ namespace OpenMS
       auto result = container.insert(element);
       if (!result.second) // existing element - merge in new information
       {
-        ModifyMultiIndexMergeElements<ElementType> modifier(element);
-        container.modify(result.first, modifier);
+        container.modify(result.first, [&element](ElementType& existing)
+                         {
+                           existing += element;
+                         });
       }
 
       // add current processing step (if necessary):
@@ -397,6 +389,7 @@ namespace OpenMS
       }
       return false;
     }
+
 
 
     // IDFilter needs access to do its job:
