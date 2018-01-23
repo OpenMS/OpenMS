@@ -5,38 +5,82 @@
 	</SearchParameters>
 	<IdentificationRun date="2016-08-02T11:16:08" search_engine="SimpleSearchEngine" search_engine_version="2.0.1" search_parameters_ref="SP_0" >
 		<ProteinIdentification score_type="q-value" higher_score_better="false" significance_threshold="0" >
-			<ProteinHit id="PH_0" accession="tr|Q5VU58|Q5VU58_HUMAN" score="0" sequence="" >
+			<ProteinHit id="PH_0" accession="tr|Q5JP53|Q5JP53_HUMAN" score="0" sequence="" >
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="float" name="_score" value="60"/>
+			</ProteinHit>
+			<ProteinHit id="PH_1" accession="tr|Q5JX62|Q5JX62_HUMAN_rev" score="0" sequence="" >
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="float" name="_score" value="65"/>
+			</ProteinHit>
+			<ProteinHit id="PH_2" accession="tr|Q5JYA3|Q5JYA3_HUMAN" score="0" sequence="" >
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="float" name="_score" value="70"/>
+			</ProteinHit>
+			<ProteinHit id="PH_3" accession="tr|Q5TIG5|Q5TIG5_HUMAN_rev" score="0" sequence="" >
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="float" name="_score" value="75"/>
+			</ProteinHit>
+			<ProteinHit id="PH_4" accession="tr|Q5VU58|Q5VU58_HUMAN" score="0" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="float" name="_score" value="80"/>
 			</ProteinHit>
-			<ProteinHit id="PH_1" accession="tr|Q5VVC9|Q5VVC9_HUMAN" score="0" sequence="" >
+			<ProteinHit id="PH_5" accession="tr|Q5VVC9|Q5VVC9_HUMAN" score="0" sequence="" >
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="float" name="_score" value="85"/>
+			</ProteinHit>
+			<ProteinHit id="PH_6" accession="tr|Q68CR9|Q68CR9_HUMAN" score="0" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="float" name="_score" value="90"/>
 			</ProteinHit>
-			<ProteinHit id="PH_2" accession="tr|Q68CR9|Q68CR9_HUMAN" score="0" sequence="" >
+			<ProteinHit id="PH_7" accession="tr|Q6IQ15|Q6IQ15_HUMAN" score="0" sequence="" >
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="float" name="_score" value="95"/>
+			</ProteinHit>
+			<ProteinHit id="PH_8" accession="tr|Q9NWG2|Q9NWG2_HUMAN" score="0" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="float" name="_score" value="100"/>
 			</ProteinHit>
-			<ProteinHit id="PH_3" accession="tr|Q6IQ15|Q6IQ15_HUMAN" score="0" sequence="" >
+			<ProteinHit id="PH_9" accession="tr|Q59F66|Q59F66_HUMAN" score="0.100000001490116" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
-				<UserParam type="float" name="_score" value="100"/>
+				<UserParam type="float" name="_score" value="50"/>
+			</ProteinHit>
+			<ProteinHit id="PH_10" accession="tr|Q5H928|Q5H928_HUMAN" score="0.100000001490116" sequence="" >
+				<UserParam type="string" name="target_decoy" value="decoy"/>
+				<UserParam type="float" name="_score" value="55"/>
+			</ProteinHit>
+			<ProteinHit id="PH_11" accession="tr|Q15635|Q15635_HUMAN_rev" score="0.16666667163372" sequence="" >
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="float" name="_score" value="35"/>
+			</ProteinHit>
+			<ProteinHit id="PH_12" accession="tr|Q2TU79|Q2TU79_HUMAN" score="0.16666667163372" sequence="" >
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="float" name="_score" value="40"/>
+			</ProteinHit>
+			<ProteinHit id="PH_13" accession="tr|Q4V9L5|Q4V9L5_HUMAN" score="0.16666667163372" sequence="" >
+				<UserParam type="string" name="target_decoy" value="decoy"/>
+				<UserParam type="float" name="_score" value="45"/>
 			</ProteinHit>
 			<UserParam type="stringList" name="spectra_data" value="[file:///Z:/mydata/human/QExactive1.raw]"/>
 		</ProteinIdentification>
 		<PeptideIdentification score_type="hyperscore" higher_score_better="true" significance_threshold="0" MZ="613.318173861172" RT="3004.76826" >
-			<PeptideHit score="8.55001197196679" sequence="KEYM(Oxidation)LGLEAR" charge="2" aa_before="K" aa_after="L" start="327" end="336" protein_refs="PH_3" >
+			<PeptideHit score="8.55001197196679" sequence="KEYM(Oxidation)LGLEAR" charge="2" aa_before="K" aa_after="L" start="327" end="336" protein_refs="PH_8" >
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="hyperscore" higher_score_better="true" significance_threshold="0" MZ="628.273596143348" RT="3006.9102" >
-			<PeptideHit score="11.69703932177" sequence="YWLEEAEC(Carbamidomethyl)R" charge="2" aa_before="R" aa_after="D" start="294" end="302" protein_refs="PH_2" >
+			<PeptideHit score="11.69703932177" sequence="YWLEEAEC(Carbamidomethyl)R" charge="2" aa_before="R" aa_after="D" start="294" end="302" protein_refs="PH_7" >
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="hyperscore" higher_score_better="true" significance_threshold="0" MZ="613.296114105954" RT="3010.16166" >
-			<PeptideHit score="5.39315716660841" sequence="GGTFYVEPAER" charge="2" aa_before="R" aa_after="Y" start="131" end="141" protein_refs="PH_1" >
+			<PeptideHit score="5.39315716660841" sequence="GGTFYVEPAER" charge="2" aa_before="R" aa_after="Y" start="131" end="141" protein_refs="PH_6" >
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="hyperscore" higher_score_better="true" significance_threshold="0" MZ="628.858038794006" RT="3012.0666" >
-			<PeptideHit score="16.3905135014934" sequence="STPVTVVLPDTK" charge="2" aa_before="K" aa_after="G" start="182" end="193" protein_refs="PH_0" >
+			<PeptideHit score="16.3905135014934" sequence="STPVTVVLPDTK" charge="2" aa_before="K K X X" aa_after="G G X X" start="182 147 -1 -1" end="193 158 -1 -1" protein_refs="PH_5 PH_4 PH_3 PH_2" >
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="hyperscore" higher_score_better="true" significance_threshold="0" MZ="604.818298433644" RT="3013.39704" >
+			<PeptideHit score="4.40961186104216" sequence="ITGGTRMM(Oxidation)GLR" charge="2" aa_before="K K K K X X X" aa_after="A A A A X X X" start="868 70 79 227 -1 -1 -1" end="878 80 89 237 -1 -1 -1" protein_refs="PH_1 PH_0 PH_10 PH_9 PH_13 PH_12 PH_11" >
 			</PeptideHit>
 		</PeptideIdentification>
 	</IdentificationRun>
