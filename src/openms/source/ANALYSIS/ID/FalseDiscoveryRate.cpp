@@ -58,6 +58,8 @@ namespace OpenMS
     defaults_.setValidStrings("treat_runs_separately", ListUtils::create<String>("true,false"));
     defaults_.setValue("add_decoy_peptides", "false", "If 'true' decoy peptides will be written to output file, too. The q-value is set to the closest target score.");
     defaults_.setValidStrings("add_decoy_peptides", ListUtils::create<String>("true,false"));
+    defaults_.setValue("add_decoy_proteins", "false", "If 'true' decoy proteins will be written to output file, too. The q-value is set to the closest target score.");
+    defaults_.setValidStrings("add_decoy_proteins", ListUtils::create<String>("true,false"));
     defaultsToParam_();
   }
 
@@ -432,6 +434,7 @@ namespace OpenMS
   {
     bool q_value = !param_.getValue("no_qvalues").toBool();
     bool higher_score_better = ids.begin()->isHigherScoreBetter();
+    bool add_decoy_proteins = param_.getValue("add_decoy_proteins").toBool();
 
     if (ids.empty())
     {
@@ -484,13 +487,19 @@ namespace OpenMS
         it->setScoreType("FDR");
       }
       it->setHigherScoreBetter(false);
-      vector<ProteinHit>& hits = it->getHits();
-      for (auto pit = hits.begin(); pit != hits.end(); ++pit)
+      const vector<ProteinHit>& old_hits = it->getHits();
+      vector<ProteinHit> new_hits;
+      for (auto hit : old_hits)
       {
-        pit->setMetaValue(score_type, pit->getScore());
-        pit->setScore(score_to_fdr[pit->getScore()]);
+        // Add decoy proteins only if add_decoy_proteins is set 
+        if (add_decoy_proteins || hit.getMetaValue("target_decoy") != "decoy")
+        {      
+          hit.setMetaValue(score_type, hit.getScore());
+          hit.setScore(score_to_fdr[hit.getScore()]);
+          new_hits.push_back(hit);
+        }
       }
-      it->setHits(hits);
+      it->setHits(new_hits);
     }
 
     return;

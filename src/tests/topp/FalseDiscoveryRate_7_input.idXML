@@ -20,31 +20,31 @@
 			<ProteinHit id="PH_4" accession="tr|Q5VU58|Q5VU58_HUMAN" score="80" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 			</ProteinHit>
-			<ProteinHit id="PH_5" accession="tr|Q5TIG5|Q5TIG5_HUMAN_rev" score="75" sequence="" >
+			<ProteinHit id="PH_5" accession="tr|Q5TIG5|Q5TIG5_HUMAN" score="75" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 			</ProteinHit>
 			<ProteinHit id="PH_6" accession="tr|Q5JYA3|Q5JYA3_HUMAN" score="70" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 			</ProteinHit>
-			<ProteinHit id="PH_7" accession="tr|Q5JX62|Q5JX62_HUMAN_rev" score="65" sequence="" >
+			<ProteinHit id="PH_7" accession="tr|Q5JX62|Q5JX62_HUMAN" score="65" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 			</ProteinHit>
 			<ProteinHit id="PH_8" accession="tr|Q5JP53|Q5JP53_HUMAN" score="60" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 			</ProteinHit>
-			<ProteinHit id="PH_9" accession="tr|Q5H928|Q5H928_HUMAN" score="55" sequence="" >
+			<ProteinHit id="PH_9" accession="DECOY_tr|Q5H928|Q5H928_HUMAN" score="55" sequence="" >
 				<UserParam type="string" name="target_decoy" value="decoy"/>
 			</ProteinHit>
 			<ProteinHit id="PH_10" accession="tr|Q59F66|Q59F66_HUMAN" score="50" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 			</ProteinHit>
-			<ProteinHit id="PH_11" accession="tr|Q4V9L5|Q4V9L5_HUMAN" score="45" sequence="" >
+			<ProteinHit id="PH_11" accession="DECOY_tr|Q4V9L5|Q4V9L5_HUMAN" score="45" sequence="" >
 				<UserParam type="string" name="target_decoy" value="decoy"/>
 			</ProteinHit>
 			<ProteinHit id="PH_12" accession="tr|Q2TU79|Q2TU79_HUMAN" score="40" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 			</ProteinHit>
-			<ProteinHit id="PH_13" accession="tr|Q15635|Q15635_HUMAN_rev" score="35" sequence="" >
+			<ProteinHit id="PH_13" accession="tr|Q15635|Q15635_HUMAN" score="35" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 			</ProteinHit>
 			<UserParam type="stringList" name="spectra_data" value="[file:///Z:/mydata/human/QExactive1.raw]"/>
