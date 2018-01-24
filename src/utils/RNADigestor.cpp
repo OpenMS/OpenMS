@@ -135,11 +135,11 @@ protected:
     for (vector<FASTAFile::FASTAEntry>::const_iterator fa_it = seq_data.begin();
          fa_it != seq_data.end(); ++fa_it)
     {
-      vector<NASequence> fragments;
+      set<NASequence> fragments;
       NASequence seq = NASequence::fromString(fa_it->sequence);
       digestor.digest(seq, fragments, min_size, max_size);
       Size counter = 1;
-      for (vector<NASequence>::const_iterator frag_it = fragments.begin();
+      for (set<NASequence>::const_iterator frag_it = fragments.begin();
            frag_it != fragments.end(); ++frag_it)
       {
         if (!unique || !unique_fragments.count(*frag_it))

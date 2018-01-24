@@ -73,48 +73,48 @@ START_SECTION((void setEnzyme(const String& enzyme_name)))
 }
 END_SECTION
 
-START_SECTION((void digest(const NASequence& rna, vector<NASequence>& output, Size min_length, Size max_length) const))
+START_SECTION((void digest(const NASequence& rna, set<NASequence>& output, Size min_length, Size max_length) const))
 {
   RNaseDigestion rd;
   rd.setEnzyme("RNase_T1"); // cuts after G and leaves a 3'-phosphate
-  vector<NASequence> out;
+  set<NASequence> out;
 
   rd.digest(NASequence::fromString("AUC"), out);
   TEST_EQUAL(out.size(), 1);
-  TEST_STRING_EQUAL(out[0].toString(), "AUC");
+  TEST_NOT_EQUAL(out.find(NASequence::fromString("AUC"))==out.end(),true);
   out.clear();
 
   rd.digest(NASequence::fromString("AGUC"), out);
   TEST_EQUAL(out.size(), 2);
-  TEST_STRING_EQUAL(out[0].toString(), "AGp");
-  TEST_STRING_EQUAL(out[1].toString(), "UC");
+  TEST_NOT_EQUAL(out.find(NASequence::fromString("AGp"))==out.end(),true);
+  TEST_NOT_EQUAL(out.find(NASequence::fromString("UC"))==out.end(),true);
   out.clear();
 
   rd.digest(NASequence::fromString("pAUGUCGCAG"), out);
   TEST_EQUAL(out.size(), 3);
-  TEST_STRING_EQUAL(out[0].toString(), "pAUGp");
-  TEST_STRING_EQUAL(out[1].toString(), "UCGp");
-  TEST_STRING_EQUAL(out[2].toString(), "CAG");
+  TEST_NOT_EQUAL(out.find(NASequence::fromString("pAUGp"))==out.end(),true);
+  TEST_NOT_EQUAL(out.find(NASequence::fromString("UCGp"))==out.end(),true);
+  TEST_NOT_EQUAL(out.find(NASequence::fromString("CAG"))==out.end(),true);
   out.clear();
 
   rd.setMissedCleavages(2);
   rd.digest(NASequence::fromString("pAUGUCGCAG"), out);
   TEST_EQUAL(out.size(), 6);
-  TEST_STRING_EQUAL(out[0].toString(), "pAUGp");
-  TEST_STRING_EQUAL(out[1].toString(), "pAUGUCGp");
-  TEST_STRING_EQUAL(out[2].toString(), "pAUGUCGCAG");
-  TEST_STRING_EQUAL(out[3].toString(), "UCGp");
-  TEST_STRING_EQUAL(out[4].toString(), "UCGCAG");
-  TEST_STRING_EQUAL(out[5].toString(), "CAG");
+  TEST_NOT_EQUAL(out.find(NASequence::fromString("pAUGp"))==out.end(),true);
+  TEST_NOT_EQUAL(out.find(NASequence::fromString("pAUGUCGp"))==out.end(),true);
+  TEST_NOT_EQUAL(out.find(NASequence::fromString("pAUGUCGCAG"))==out.end(),true);
+  TEST_NOT_EQUAL(out.find(NASequence::fromString("UCGp"))==out.end(),true);
+  TEST_NOT_EQUAL(out.find(NASequence::fromString("UCGCAG"))==out.end(),true);
+  TEST_NOT_EQUAL(out.find(NASequence::fromString("CAG"))==out.end(),true);
   out.clear();
 
   rd.setEnzyme("cusativin");
   rd.setMissedCleavages(0);
   rd.digest(NASequence::fromString("CCCAUCCG"), out);
   TEST_EQUAL(out.size(), 3);
-  TEST_STRING_EQUAL(out[0].toString(), "CCCp");
-  TEST_STRING_EQUAL(out[1].toString(), "AUCCp");
-  TEST_STRING_EQUAL(out[2].toString(), "G");
+  TEST_NOT_EQUAL(out.find(NASequence::fromString("CCCp"))==out.end(),true);
+  TEST_NOT_EQUAL(out.find(NASequence::fromString("AUCCp"))==out.end(),true);
+  TEST_NOT_EQUAL(out.find(NASequence::fromString("G"))==out.end(),true);
 }
 END_SECTION
 
