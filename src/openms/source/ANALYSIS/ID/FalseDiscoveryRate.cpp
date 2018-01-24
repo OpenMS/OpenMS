@@ -58,12 +58,16 @@ namespace OpenMS
     defaults_.setValidStrings("treat_runs_separately", ListUtils::create<String>("true,false"));
     defaults_.setValue("add_decoy_peptides", "false", "If 'true' decoy peptides will be written to output file, too. The q-value is set to the closest target score.");
     defaults_.setValidStrings("add_decoy_peptides", ListUtils::create<String>("true,false"));
+    defaults_.setValue("add_decoy_proteins", "false", "If 'true' decoy proteins will be written to output file, too. The q-value is set to the closest target score.");
+    defaults_.setValidStrings("add_decoy_proteins", ListUtils::create<String>("true,false"));
     defaultsToParam_();
   }
 
   void FalseDiscoveryRate::apply(vector<PeptideIdentification>& ids)
   {
     bool q_value = !param_.getValue("no_qvalues").toBool();
+    bool higher_score_better(ids.begin()->isHigherScoreBetter());
+
     bool use_all_hits = param_.getValue("use_all_hits").toBool();
     bool treat_runs_separately = param_.getValue("treat_runs_separately").toBool();
     bool split_charge_variants = param_.getValue("split_charge_variants").toBool();
@@ -82,7 +86,7 @@ namespace OpenMS
     // first search for all identifiers and charge variants
     set<String> identifiers;
     set<SignedSize> charge_variants;
-    for (vector<PeptideIdentification>::iterator it = ids.begin(); it != ids.end(); ++it)
+    for (auto it = ids.begin(); it != ids.end(); ++it)
     {
       identifiers.insert(it->getIdentifier());
       it->sort();
@@ -92,7 +96,7 @@ namespace OpenMS
         it->getHits().resize(1);
       }
 
-      for (vector<PeptideHit>::const_iterator pit = it->getHits().begin(); pit != it->getHits().end(); ++pit)
+      for (auto pit = it->getHits().begin(); pit != it->getHits().end(); ++pit)
       {
         charge_variants.insert(pit->getCharge());
       }
@@ -100,7 +104,7 @@ namespace OpenMS
 
 #ifdef FALSE_DISCOVERY_RATE_DEBUG
     cerr << "#id-runs: " << identifiers.size() << " ";
-    for (set<String>::const_iterator it = identifiers.begin(); it != identifiers.end(); ++it)
+    for (auto it = identifiers.begin(); it != identifiers.end(); ++it)
     {
       cerr << "," << *it;
     }
@@ -108,21 +112,21 @@ namespace OpenMS
 
 
     cerr << "#of charge states: " << charge_variants.size() << " ";
-    for (set<SignedSize>::const_iterator it = charge_variants.begin(); it != charge_variants.end(); ++it)
+    for (auto it = charge_variants.begin(); it != charge_variants.end(); ++it)
     {
       cerr << "," << *it;
     }
     cerr << endl;
 #endif
 
-    for (set<SignedSize>::const_iterator zit = charge_variants.begin(); zit != charge_variants.end(); ++zit)
+    for (auto zit = charge_variants.begin(); zit != charge_variants.end(); ++zit)
     {
 #ifdef FALSE_DISCOVERY_RATE_DEBUG
       cerr << "Charge variant=" << *zit << endl;
 #endif
 
       // for all identifiers
-      for (set<String>::const_iterator iit = identifiers.begin(); iit != identifiers.end(); ++iit)
+      for (auto iit = identifiers.begin(); iit != identifiers.end(); ++iit)
       {
         if (!treat_runs_separately && iit != identifiers.begin())
         {
@@ -134,7 +138,7 @@ namespace OpenMS
 #endif
         // get the scores of all peptide hits
         vector<double> target_scores, decoy_scores;
-        for (vector<PeptideIdentification>::iterator it = ids.begin(); it != ids.end(); ++it)
+        for (auto it = ids.begin(); it != ids.end(); ++it)
         {
           // if runs should be treated separately, the identifiers must be the same
           if (treat_runs_separately && it->getIdentifier() != *iit)
@@ -224,7 +228,7 @@ namespace OpenMS
         if (target_scores.empty() || decoy_scores.empty())
         {
           // no remove the the relevant entries, or put 'pseudo-scores' in
-          for (vector<PeptideIdentification>::iterator it = ids.begin(); it != ids.end(); ++it)
+          for (auto it = ids.begin(); it != ids.end(); ++it)
           {
             // if runs should be treated separately, the identifiers must be the same
             if (treat_runs_separately && it->getIdentifier() != *iit)
@@ -270,12 +274,11 @@ namespace OpenMS
         }
 
         // calculate fdr for the forward scores
-        bool higher_score_better(ids.begin()->isHigherScoreBetter());
         Map<double, double> score_to_fdr;
         calculateFDRs_(score_to_fdr, target_scores, decoy_scores, q_value, higher_score_better);
 
         // annotate fdr
-        for (vector<PeptideIdentification>::iterator it = ids.begin(); it != ids.end(); ++it)
+        for (auto it = ids.begin(); it != ids.end(); ++it)
         {
           // if runs should be treated separately, the identifiers must be the same
           if (treat_runs_separately && it->getIdentifier() != *iit)
@@ -429,6 +432,10 @@ namespace OpenMS
 
   void FalseDiscoveryRate::apply(vector<ProteinIdentification>& ids)
   {
+    bool q_value = !param_.getValue("no_qvalues").toBool();
+    bool higher_score_better = ids.begin()->isHigherScoreBetter();
+    bool add_decoy_proteins = param_.getValue("add_decoy_proteins").toBool();
+
     if (ids.empty())
     {
       LOG_WARN << "No protein identifications given to FalseDiscoveryRate! No calculation performed.\n";
@@ -436,9 +443,9 @@ namespace OpenMS
     }
 
     vector<double> target_scores, decoy_scores;
-    for (vector<ProteinIdentification>::const_iterator it = ids.begin(); it != ids.end(); ++it)
+    for (auto it = ids.begin(); it != ids.end(); ++it)
     {
-      for (vector<ProteinHit>::const_iterator pit = it->getHits().begin(); pit != it->getHits().end(); ++pit)
+      for (auto pit = it->getHits().begin(); pit != it->getHits().end(); ++pit)
       {
         if (!pit->metaValueExists("target_decoy"))
         {
@@ -462,8 +469,6 @@ namespace OpenMS
       }
     }
 
-    bool q_value = !param_.getValue("no_qvalues").toBool();
-    bool higher_score_better = ids.begin()->isHigherScoreBetter();
 
     // calculate fdr for the forward scores
     Map<double, double> score_to_fdr;
@@ -471,7 +476,7 @@ namespace OpenMS
 
     // annotate fdr
     String score_type = ids.begin()->getScoreType() + "_score";
-    for (vector<ProteinIdentification>::iterator it = ids.begin(); it != ids.end(); ++it)
+    for (auto it = ids.begin(); it != ids.end(); ++it)
     {
       if (q_value)
       {
@@ -482,13 +487,19 @@ namespace OpenMS
         it->setScoreType("FDR");
       }
       it->setHigherScoreBetter(false);
-      vector<ProteinHit> hits = it->getHits();
-      for (vector<ProteinHit>::iterator pit = hits.begin(); pit != hits.end(); ++pit)
+      const vector<ProteinHit>& old_hits = it->getHits();
+      vector<ProteinHit> new_hits;
+      for (auto hit : old_hits)
       {
-        pit->setMetaValue(score_type, pit->getScore());
-        pit->setScore(score_to_fdr[pit->getScore()]);
+        // Add decoy proteins only if add_decoy_proteins is set 
+        if (add_decoy_proteins || hit.getMetaValue("target_decoy") != "decoy")
+        {      
+          hit.setMetaValue(score_type, hit.getScore());
+          hit.setScore(score_to_fdr[hit.getScore()]);
+          new_hits.push_back(hit);
+        }
       }
-      it->setHits(hits);
+      it->setHits(new_hits);
     }
 
     return;
