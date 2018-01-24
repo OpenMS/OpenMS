@@ -7,14 +7,14 @@ from FileTypes cimport *
 from TargetedExperiment cimport *
 from LightTargetedExperiment cimport *
 
-cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/TransitionTSVReader.h>" namespace "OpenMS":
+cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/TransitionTSVFile.h>" namespace "OpenMS":
 
-    cdef cppclass TransitionTSVReader(ProgressLogger):
+    cdef cppclass TransitionTSVFile(ProgressLogger):
         # wrap-inherits:
         #    ProgressLogger
 
-        TransitionTSVReader()                       nogil except +
-        TransitionTSVReader(TransitionTSVReader)    nogil except + # wrap-ignore
+        TransitionTSVFile()                       nogil except +
+        TransitionTSVFile(TransitionTSVFile)    nogil except + # wrap-ignore
 
         void convertTargetedExperimentToTSV(char * filename, TargetedExperiment& targeted_exp) nogil except +
     

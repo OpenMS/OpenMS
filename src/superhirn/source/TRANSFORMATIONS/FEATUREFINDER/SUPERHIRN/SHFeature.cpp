@@ -44,7 +44,7 @@
 
 #include <iostream>
 #include <map>
-#include <stdio.h>
+#include <cstdio>
 #include <cmath>
 
 //#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/MSPeak.h>

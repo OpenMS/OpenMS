@@ -106,7 +106,7 @@ const String experiment_path = OPENMS_GET_TEST_DATA_PATH("TargetedSpectraExtract
 const String target_list_path = OPENMS_GET_TEST_DATA_PATH("TargetedSpectraExtractor_13CFlux_TraML.csv");
 MzMLFile mzml;
 MSExperiment experiment;
-TransitionTSVReader tsv_reader;
+TransitionTSVFile tsv_reader;
 TargetedExperiment targeted_exp;
 mzml.load(experiment_path, experiment);
 Param tsv_params = tsv_reader.getParameters();

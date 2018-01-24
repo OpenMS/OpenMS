@@ -28,8 +28,8 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: George Rosenberger $
-// $Authors: George Rosenberger, Hannes Roest $
+// $Maintainer: Hannes Roest $
+// $Authors: Hannes Roest $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
@@ -40,41 +40,41 @@
 #include <boost/assign/list_of.hpp>
 
 ///////////////////////////
-#include <OpenMS/ANALYSIS/OPENSWATH/TransitionPQPReader.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/TransitionTSVFile.h>
 ///////////////////////////
 
 using namespace OpenMS;
 using namespace std;
 
-START_TEST(TransitionPQPReader, "$Id$")
+START_TEST(TransitionTSVFile, "$Id$")
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-TransitionPQPReader* ptr = nullptr;
-TransitionPQPReader* nullPointer = nullptr;
+TransitionTSVFile* ptr = nullptr;
+TransitionTSVFile* nullPointer = nullptr;
 
-START_SECTION(TransitionPQPReader())
+START_SECTION(TransitionTSVFile())
 {
-  ptr = new TransitionPQPReader();
+  ptr = new TransitionTSVFile();
   TEST_NOT_EQUAL(ptr, nullPointer)
 }
 END_SECTION
 
-START_SECTION(~TransitionPQPReader())
+START_SECTION(~TransitionTSVFile())
 {
   delete ptr;
 }
 END_SECTION
 
-START_SECTION( void convertTargetedExperimentToPQP(const char * filename, OpenMS::TargetedExperiment & targeted_exp))
+START_SECTION( void convertTargetedExperimentToTSV(const char * filename, OpenMS::TargetedExperiment & targeted_exp))
 {
   // see TOPP / UTILS tool test
   NOT_TESTABLE
 }
 END_SECTION
 
-START_SECTION( void convertPQPToTargetedExperiment(const char * filename, OpenMS::TargetedExperiment & targeted_exp))
+START_SECTION( void convertTSVToTargetedExperiment(const char * filename, OpenMS::TargetedExperiment & targeted_exp))
 {
   // see TOPP / UTILS tool test
   NOT_TESTABLE

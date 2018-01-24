@@ -53,7 +53,7 @@
 #include <string>
 #include <list>
 #include <iostream>
-#include <stdio.h>
+#include <cstdio>
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/MSPeak.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/CentroidPeak.h>

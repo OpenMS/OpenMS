@@ -1,4 +1,4 @@
-from TransitionTSVReader cimport *
+from TransitionTSVFile cimport *
 from TargetedExperiment cimport *
 from DefaultParamHandler cimport *
 from GaussFilter cimport *

@@ -7,8 +7,8 @@ MRMIonSeries.cpp
 MRMAssay.cpp
 MRMDecoy.cpp
 MRMRTNormalizer.cpp
-TransitionTSVReader.cpp
-TransitionPQPReader.cpp
+TransitionTSVFile.cpp
+TransitionPQPFile.cpp
 SwathMapMassCorrection.cpp
 OpenSwathHelper.cpp
 OpenSwathScoring.cpp

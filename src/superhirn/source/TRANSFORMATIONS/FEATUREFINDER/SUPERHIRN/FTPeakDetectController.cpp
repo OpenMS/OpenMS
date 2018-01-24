@@ -49,7 +49,7 @@
 #include <map>
 #include <iostream>
 #include <iomanip>
-#include <stdio.h>
+#include <cstdio>
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/RawData.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/MSPeak.h>

@@ -107,6 +107,7 @@ namespace OpenMS
       PIN,                ///< Percolator tab-delimited input (PSM level)
       PARAMXML,           ///< internal format for writing and reading parameters (also used as part of CTD)
       SPLIB,              ///< SpectraST binary spectral library file (sptxt is the equivalent text-based format, similar to the MSP format)
+      NOVOR,               ///< Novor custom parameter file
       SIZE_OF_TYPE        ///< No file type. Simply stores the number of types
     };
 

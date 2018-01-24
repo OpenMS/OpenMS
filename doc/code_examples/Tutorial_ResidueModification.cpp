@@ -1,3 +1,4 @@
+//! [ResidueModification]
 // --------------------------------------------------------------------------
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
@@ -27,69 +28,45 @@
 // OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-// --------------------------------------------------------------------------
-// $Maintainer: Hannes Roest $
-// $Authors: Hannes Roest $
-// --------------------------------------------------------------------------
 
-#include <OpenMS/CONCEPT/ClassTest.h>
-#include <OpenMS/test_config.h>
-#include <OpenMS/FORMAT/TraMLFile.h>
-
-#include <boost/assign/std/vector.hpp>
-#include <boost/assign/list_of.hpp>
-
-///////////////////////////
-#include <OpenMS/ANALYSIS/OPENSWATH/TransitionTSVReader.h>
-///////////////////////////
+#include <OpenMS/CHEMISTRY/AASequence.h>
+#include <OpenMS/CHEMISTRY/ResidueModification.h>
+#include <OpenMS/CHEMISTRY/ModificationsDB.h>
+#include <iostream>
 
 using namespace OpenMS;
 using namespace std;
 
-START_TEST(TransitionTSVReader, "$Id$")
-
-/////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////
-
-TransitionTSVReader* ptr = nullptr;
-TransitionTSVReader* nullPointer = nullptr;
-
-START_SECTION(TransitionTSVReader())
+int main()
 {
-  ptr = new TransitionTSVReader();
-  TEST_NOT_EQUAL(ptr, nullPointer)
-}
-END_SECTION
+  // construct a AASequence object, query a residue
+  // and output some of its properties
+  AASequence aas = AASequence::fromString("DECIANGER");
+  cout << aas[2].getName() << " "
+       << aas[2].getFormula().toString() << " "
+       << aas[2].getModificationName() << " "
+       << aas[2].getMonoWeight() << endl;
+  
+  // find a modification in ModificationsDB
+  // and output some of its properties
+  // getInstance() returns a pointer to a ModsDB instance
+  ResidueModification mod = ModificationsDB::getInstance()->getModification("Carbamidomethyl (C)");
+  cout << mod.getOrigin() << " "
+       << mod.getFullId() << " "
+       << mod.getDiffMonoMass() << " "
+       << mod.getMonoMass() << endl;
+  
+  // set the modification on a residue of a peptide
+  // and output some of its properties (the formula and mass have changed)
+  // in this case ModificationsDB is used in the background
+  // to relate the name of the mod to its attributes
+  aas.setModification(2, "Carbamidomethyl (C)");
+  cout << aas[2].getName() << " "
+   	<< aas[2].getFormula().toString() << " "
+   	<< aas[2].getModificationName() << " "
+   	<< aas[2].getMonoWeight() << endl;
 
-START_SECTION(~TransitionTSVReader())
-{
-  delete ptr;
-}
-END_SECTION
+  return 0;
+} //end of main
 
-START_SECTION( void convertTargetedExperimentToTSV(const char * filename, OpenMS::TargetedExperiment & targeted_exp))
-{
-  // see TOPP / UTILS tool test
-  NOT_TESTABLE
-}
-END_SECTION
-
-START_SECTION( void convertTSVToTargetedExperiment(const char * filename, OpenMS::TargetedExperiment & targeted_exp))
-{
-  // see TOPP / UTILS tool test
-  NOT_TESTABLE
-}
-END_SECTION
-
-START_SECTION( void validateTargetedExperiment(OpenMS::TargetedExperiment & targeted_exp))
-{
-  NOT_TESTABLE
-}
-END_SECTION
-
-/////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////
-END_TEST
-
-
-
+//! [ResidueModification]

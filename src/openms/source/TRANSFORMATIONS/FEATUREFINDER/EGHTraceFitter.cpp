@@ -279,7 +279,8 @@ namespace OpenMS
   {
     // equation 21 from Lan & Jorgenson paper:
     double abs_tau = fabs(tau_);
-    double phi = atan(abs_tau / sigma_);
+    double abs_sigma = fabs(sigma_);
+    double phi = atan(abs_tau / abs_sigma);
     double epsilon = EPSILON_COEFS_[0];
     double phi_pow = phi;
     for (Size i = 1; i < 7; ++i)
@@ -288,7 +289,7 @@ namespace OpenMS
       phi_pow *= phi;
     }
     // 0.62... is approx. sqrt(pi / 8):
-    return height_ * (sigma_ * 0.6266571 + abs_tau) * epsilon;
+    return height_ * (abs_sigma * 0.6266571 + abs_tau) * epsilon;
   }
 
   double EGHTraceFitter::getFWHM() const

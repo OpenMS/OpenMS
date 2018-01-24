@@ -36,7 +36,7 @@
 #define OPENMS_ANALYSIS_OPENSWATH_TARGETEDSPECTRAEXTRACTOR_H
 
 #include <OpenMS/config.h> // OPENMS_DLLAPI
-#include <OpenMS/ANALYSIS/OPENSWATH/TransitionTSVReader.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/TransitionTSVFile.h>
 #include <OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
