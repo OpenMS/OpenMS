@@ -843,6 +843,7 @@ namespace OpenMS
       ph_alpha.setMetaValue("OpenXQuest:log_occupancy_alpha", top_csms_spectrum[i].log_occupancy_alpha);
       ph_alpha.setMetaValue("OpenXQuest:log_occupancy_beta", top_csms_spectrum[i].log_occupancy_beta);
       ph_alpha.setMetaValue("OpenXQuest:log_occupancy_full_spec", top_csms_spectrum[i].log_occupancy_full_spec);
+      ph_alpha.setMetaValue("OpenXQuest:log_occupancy_full_spec_exp", top_csms_spectrum[i].log_occupancy_full_spec_exp);
 
       ph_alpha.setMetaValue("OpenPepXL:HyperLinear",top_csms_spectrum[i].HyperLinear);
       ph_alpha.setMetaValue("OpenPepXL:HyperXlink",top_csms_spectrum[i].HyperXlink);
@@ -895,6 +896,7 @@ namespace OpenMS
         ph_beta.setMetaValue("OpenXQuest:log_occupancy_alpha", top_csms_spectrum[i].log_occupancy_alpha);
         ph_beta.setMetaValue("OpenXQuest:log_occupancy_beta", top_csms_spectrum[i].log_occupancy_beta);
         ph_beta.setMetaValue("OpenXQuest:log_occupancy_full_spec", top_csms_spectrum[i].log_occupancy_full_spec);
+        ph_beta.setMetaValue("OpenXQuest:log_occupancy_full_spec_exp", top_csms_spectrum[i].log_occupancy_full_spec_exp);
 
         ph_beta.setMetaValue("OpenPepXL:HyperLinear",top_csms_spectrum[i].HyperLinear);
         ph_beta.setMetaValue("OpenPepXL:HyperXlink",top_csms_spectrum[i].HyperXlink);
@@ -976,6 +978,7 @@ namespace OpenMS
       {
         PeptideHit& ph_beta = id.getHits()[1];
         String prot2_pos;
+        String prot2_accessions;
 
         const std::vector<PeptideEvidence> pevs = ph_beta.getPeptideEvidences();
         for (std::vector<PeptideEvidence>::const_iterator pev = pevs.begin(); pev != pevs.end(); ++pev)
@@ -983,15 +986,21 @@ namespace OpenMS
           // start counting at 1: pev->getStart() and xl_pos are both starting at 0,  with + 1 the N-term residue is number 1
           Int prot_link_pos = pev->getStart() + String(ph_alpha.getMetaValue("xl_pos2")).toInt() + 1;
           prot2_pos = prot2_pos + "," + prot_link_pos;
+          prot2_accessions = prot2_accessions + "," + pev->getProteinAccession();
         }
         // remove leading "," of first position
         prot2_pos = prot2_pos.suffix(prot2_pos.size()-1);
         ph_beta.setMetaValue("XL_Protein_position_alpha", prot1_pos);
         ph_alpha.setMetaValue("XL_Protein_position_beta", prot2_pos);
         ph_beta.setMetaValue("XL_Protein_position_beta", prot2_pos);
+
+        prot2_accessions = prot2_accessions.suffix(prot2_accessions.size()-1);
+        ph_alpha.setMetaValue("accessions_beta", prot2_accessions);
+        ph_beta.setMetaValue("accessions_beta", prot2_accessions);
       }
       else
       {
+        ph_alpha.setMetaValue("accessions_beta", "-");
         // second cross-link position in Protein (loop-links)
         if (ph_alpha.getMetaValue("xl_pos2") != "-")
         {

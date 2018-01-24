@@ -98,8 +98,21 @@ namespace OpenMS
                       cross_linker_mass == other.cross_linker_mass &&
                       cross_linker_name == other.cross_linker_name &&
                       term_spec_alpha == other.term_spec_alpha &&
-                      term_spec_beta == other.term_spec_beta &&
-                      precursor_correction == other.precursor_correction;
+                      term_spec_beta == other.term_spec_beta;
+        }
+
+        // used mainly for inserting into a set to remove duplicates
+        // cross-link candidates are equal, if the peptides with modifications and the cross-linked positions are the same
+        // the additional meta-information (mainly precursor_correction), can be responsible for redundant duplicates in the first place
+        bool operator<(const ProteinProteinCrossLink & other) const
+        {
+          String compare_string1 = String(cross_link_position.first) + String(cross_link_position.second) + alpha.toString() + beta.toString();
+          String compare_string2 = String(other.cross_link_position.first) + String(other.cross_link_position.second) + other.alpha.toString() + other.beta.toString();
+
+          return compare_string1 < compare_string2;
+          // return (cross_link_position < other.cross_link_position) ||
+          //             (cross_link_position == other.cross_link_position && beta.toString() < other.beta.toString()) ||
+          //             (cross_link_position == other.cross_link_position && beta.toString() == other.beta.toString() && alpha.toString() < other.alpha.toString());
         }
       };
 
@@ -138,6 +151,7 @@ namespace OpenMS
         double log_occupancy_alpha;
         double log_occupancy_beta;
         double log_occupancy_full_spec;
+        double log_occupancy_full_spec_exp;
         std::vector< double > xcorrx;
         double xcorrx_max;
         std::vector< double > xcorrc;

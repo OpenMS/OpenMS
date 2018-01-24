@@ -785,7 +785,8 @@ protected:
       }
       // determine candidates
       vector< OPXLDataStructs::XLPrecursor > candidates;
-      vector< int > precursor_corrections;
+      set< OPXLDataStructs::ProteinProteinCrossLink > cross_link_candidates_set;
+      // vector< int > precursor_corrections;
       double allowed_error = 0;
 
       // determine MS2 precursors that match to the current peptide mass
@@ -795,12 +796,14 @@ protected:
       // TODO turn this into an InteregerList paramerter or something similar
       // Consider missasignment of the monoisotopic peak
       std::vector<int> precursor_correction_masses;
-      precursor_correction_masses.push_back(-2);
-      precursor_correction_masses.push_back(-1);
       precursor_correction_masses.push_back(0);
+      precursor_correction_masses.push_back(-1);
+      precursor_correction_masses.push_back(-2);
 
       for (double correction_mass : precursor_correction_masses)
       {
+        vector< int > precursor_corrections;
+        double allowed_error = 0;
 
         double corrected_precursor_mass = precursor_mass + (static_cast<double>(correction_mass) * Constants::C13C12_MASSDIFF_U);
 
@@ -813,23 +816,43 @@ protected:
           allowed_error = precursor_mass_tolerance;
         }
 
-#ifdef _OPENMP
-#pragma omp critical (enumerated_cross_link_masses_access)
-#endif
+// #ifdef _OPENMP
+// #pragma omp critical (enumerated_cross_link_masses_access)
+// #endif
+//         {
+//           low_it = lower_bound(enumerated_cross_link_masses.begin(), enumerated_cross_link_masses.end(), corrected_precursor_mass - allowed_error, OPXLDataStructs::XLPrecursorComparator());
+//           up_it = upper_bound(enumerated_cross_link_masses.begin(), enumerated_cross_link_masses.end(), corrected_precursor_mass + allowed_error, OPXLDataStructs::XLPrecursorComparator());
+//         }
+//
+//         if (low_it != up_it) // no matching precursor in data
+//         {
+//           for (; low_it != up_it; ++low_it)
+//           {
+//             candidates.push_back(*low_it);
+//             precursor_corrections.push_back(correction_mass);
+//           }
+//         }
+
+
+        vector< OPXLDataStructs::XLPrecursor > precursor_candidates;
+        vector< double > spectrum_precursor_vector;
+        spectrum_precursor_vector.push_back(corrected_precursor_mass);
+        // progresslogger.startProgress(0, 1, "Enumerating cross-links...");
+        precursor_candidates = OPXLHelper::enumerateCrossLinksAndMasses(filtered_peptide_masses, cross_link_mass_light, cross_link_mass_mono_link, cross_link_residue1, cross_link_residue2,
+                                                                                                                                                      spectrum_precursor_vector, precursor_mass_tolerance, precursor_mass_tolerance_unit_ppm);
+
+        for (OPXLDataStructs::XLPrecursor candidate : precursor_candidates)
         {
-          low_it = lower_bound(enumerated_cross_link_masses.begin(), enumerated_cross_link_masses.end(), corrected_precursor_mass - allowed_error, OPXLDataStructs::XLPrecursorComparator());
-          up_it = upper_bound(enumerated_cross_link_masses.begin(), enumerated_cross_link_masses.end(), corrected_precursor_mass + allowed_error, OPXLDataStructs::XLPrecursorComparator());
+          // candidates.push_back(candidate);
+          precursor_corrections.push_back(correction_mass);
         }
 
-        if (low_it != up_it) // no matching precursor in data
-        {
-          for (; low_it != up_it; ++low_it)
-          {
-            candidates.push_back(*low_it);
-            precursor_corrections.push_back(correction_mass);
-          }
-        }
+        // Find all positions of lysine (K) in the peptides (possible scross-linking sites), create cross_link_candidates with all combinations
+        vector <OPXLDataStructs::ProteinProteinCrossLink> precursor_cross_link_candidates = OPXLHelper::buildCandidates(precursor_candidates, precursor_corrections, filtered_peptide_masses, cross_link_residue1, cross_link_residue2, cross_link_mass_light, cross_link_mass_mono_link, corrected_precursor_mass, allowed_error, cross_link_name);
+        cross_link_candidates_set.insert(precursor_cross_link_candidates.begin(), precursor_cross_link_candidates.end());
       }
+
+      vector< OPXLDataStructs::ProteinProteinCrossLink > cross_link_candidates(cross_link_candidates_set.begin(), cross_link_candidates_set.end());
 
 #ifdef _OPENMP
 #pragma omp critical
@@ -837,7 +860,7 @@ protected:
       cout << "#Peaks in this spectrum: " << spectrum_light.size() << " |\tNumber of candidates for this spectrum: " << candidates.size() << endl;
 
       // Find all positions of lysine (K) in the peptides (possible scross-linking sites), create cross_link_candidates with all combinations
-      vector <OPXLDataStructs::ProteinProteinCrossLink> cross_link_candidates = OPXLHelper::buildCandidates(candidates, precursor_corrections, filtered_peptide_masses, cross_link_residue1, cross_link_residue2, cross_link_mass_light, cross_link_mass_mono_link, precursor_mass, allowed_error, cross_link_name);
+      // vector <OPXLDataStructs::ProteinProteinCrossLink> cross_link_candidates = OPXLHelper::buildCandidates(candidates, precursor_corrections, filtered_peptide_masses, cross_link_residue1, cross_link_residue2, cross_link_mass_light, cross_link_mass_mono_link, precursor_mass, allowed_error, cross_link_name);
 
       // lists for one spectrum, to determine best match to the spectrum
       vector< OPXLDataStructs::CrossLinkSpectrumMatch > all_csms_spectrum;

@@ -560,8 +560,10 @@ protected:
 
       // determine candidates
       vector< OPXLDataStructs::XLPrecursor > candidates;
-      vector< int > precursor_corrections;
-      double allowed_error = 0;
+      // use a set to make them unique
+      set< OPXLDataStructs::ProteinProteinCrossLink > cross_link_candidates_set;
+      // vector< int > precursor_corrections;
+      // double allowed_error = 0;
 
       // determine MS2 precursors that match to the current peptide mass
       vector< OPXLDataStructs::XLPrecursor >::const_iterator low_it;
@@ -569,13 +571,19 @@ protected:
 
       // TODO turn this into an InteregerList paramerter or something similar
       // Consider missasignment of the monoisotopic peak
+      // keep the order in a way that prioritizes corrections closer to the experimental value,
+      // that way candidates without correction or with smaller correction values will be proritized
       std::vector< int > precursor_correction_masses;
-      precursor_correction_masses.push_back(-2);
-      precursor_correction_masses.push_back(-1);
       precursor_correction_masses.push_back(0);
+      precursor_correction_masses.push_back(-1);
+      precursor_correction_masses.push_back(-2);
 
+      progresslogger.startProgress(0, 1, "Start enumerating candidates...");
       for (int correction_mass : precursor_correction_masses)
       {
+        vector< int > precursor_corrections;
+        double allowed_error = 0;
+
         double corrected_precursor_mass = precursor_mass + (static_cast<double>(correction_mass) * Constants::C13C12_MASSDIFF_U);
 
         if (precursor_mass_tolerance_unit_ppm) // ppm
@@ -607,10 +615,8 @@ protected:
         vector< OPXLDataStructs::XLPrecursor > precursor_candidates;
         vector< double > spectrum_precursor_vector;
         spectrum_precursor_vector.push_back(corrected_precursor_mass);
-        // progresslogger.startProgress(0, 1, "Enumerating cross-links...");
         precursor_candidates = OPXLHelper::enumerateCrossLinksAndMasses(filtered_peptide_masses, cross_link_mass, cross_link_mass_mono_link, cross_link_residue1, cross_link_residue2,
                                                                                                                                                       spectrum_precursor_vector, precursor_mass_tolerance, precursor_mass_tolerance_unit_ppm);
-        // progresslogger.endProgress();
 
 // #ifdef _OPENMP
 // #pragma omp critical
@@ -621,19 +627,28 @@ protected:
 
         for (OPXLDataStructs::XLPrecursor candidate : precursor_candidates)
         {
-          candidates.push_back(candidate);
+          // candidates.push_back(candidate);
           precursor_corrections.push_back(correction_mass);
         }
 
+        // Find all positions of lysine (K) in the peptides (possible scross-linking sites), create cross_link_candidates with all combinations
+        vector <OPXLDataStructs::ProteinProteinCrossLink> precursor_cross_link_candidates = OPXLHelper::buildCandidates(precursor_candidates, precursor_corrections, filtered_peptide_masses, cross_link_residue1, cross_link_residue2, cross_link_mass, cross_link_mass_mono_link, corrected_precursor_mass, allowed_error, cross_link_name);
+        cross_link_candidates_set.insert(precursor_cross_link_candidates.begin(), precursor_cross_link_candidates.end());
+
       } // end correction mass loop
+
+
+      progresslogger.endProgress();
+
+      vector< OPXLDataStructs::ProteinProteinCrossLink > cross_link_candidates(cross_link_candidates_set.begin(), cross_link_candidates_set.end());
 
 #ifdef _OPENMP
 #pragma omp critical
 #endif
-      cout << "#Peaks in this spectrum: " << spectrum.size() << " |\tNumber of candidates for this spectrum: " << candidates.size() << endl;
+      cout << "#Peaks in this spectrum: " << spectrum.size() << " |\tNumber of candidates for this spectrum: " << cross_link_candidates.size() << endl;
 
-      // Find all positions of lysine (K) in the peptides (possible scross-linking sites), create cross_link_candidates with all combinations
-      vector <OPXLDataStructs::ProteinProteinCrossLink> cross_link_candidates = OPXLHelper::buildCandidates(candidates, precursor_corrections, filtered_peptide_masses, cross_link_residue1, cross_link_residue2, cross_link_mass, cross_link_mass_mono_link, precursor_mass, allowed_error, cross_link_name);
+      // // Find all positions of lysine (K) in the peptides (possible scross-linking sites), create cross_link_candidates with all combinations
+      // vector <OPXLDataStructs::ProteinProteinCrossLink> cross_link_candidates = OPXLHelper::buildCandidates(candidates, precursor_corrections, filtered_peptide_masses, cross_link_residue1, cross_link_residue2, cross_link_mass, cross_link_mass_mono_link, precursor_mass, allowed_error, cross_link_name);
 
       // lists for one spectrum, to determine best match to the spectrum
       vector< OPXLDataStructs::CrossLinkSpectrumMatch > prescore_csms_spectrum;
@@ -671,12 +686,16 @@ protected:
 
         // Something like this can happen, e.g. with a loop link connecting residues close to the ends of the peptide
         // TODO make that a parameter?
-        if ( (theoretical_spec_linear_alpha.size() < 5) )
+        if ( (theoretical_spec_linear_alpha.size() < 3) )
         {
           continue;
         }
 
-        PeakSpectrum theoretical_spec_linear = OPXLSpectrumProcessingAlgorithms::mergeAnnotatedSpectra(theoretical_spec_linear_alpha, theoretical_spec_linear_beta);
+        // PeakSpectrum theoretical_spec_linear = OPXLSpectrumProcessingAlgorithms::mergeAnnotatedSpectra(theoretical_spec_linear_alpha, theoretical_spec_linear_beta);
+        PeakSpectrum theoretical_spec_linear;
+        theoretical_spec_linear.insert(theoretical_spec_linear.end(), theoretical_spec_linear_alpha.begin(), theoretical_spec_linear_alpha.end());
+        theoretical_spec_linear.insert(theoretical_spec_linear.end(), theoretical_spec_linear_beta.begin(), theoretical_spec_linear_beta.end());
+        theoretical_spec_linear.sortByPosition();
         // LOG_DEBUG << "Pre-scoring | theo spectra sizes: " << theoretical_spec_linear_alpha.size() << " | " << theoretical_spec_linear_beta.size() << " | " << theoretical_spec_linear.size() << " | exp spectrum size: " << spectrum.size() <<endl;
         vector< pair< Size, Size > > matched_spec_linear;
         DataArrays::FloatDataArray dummy_array;
@@ -689,7 +708,7 @@ protected:
         Size theor_linear_count = theoretical_spec_linear.size();
 
         // TODO make that a parameter?
-        if (matched_linear_count < 3)
+        if (matched_linear_count < 1)
         {
           continue;
         }
@@ -908,6 +927,7 @@ protected:
 
         Size matched_peaks = matched_spec_linear_alpha.size() + matched_spec_linear_beta.size() + matched_spec_xlinks_alpha.size() + matched_spec_xlinks_beta.size();
         double log_occupancy_full_spec = XQuestScores::logOccupancyProb(theoretical_spec, matched_peaks, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm);
+        double log_occupancy_full_spec_exp = XQuestScores::logOccupancyProb(spectrum, matched_peaks, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm);
 
         LOG_DEBUG << "Computing xCorr..." << endl;
         vector< double > xcorrx = XQuestScores::xCorrelation(spectrum, theoretical_spec_xlinks, 5, 0.03);
@@ -977,6 +997,7 @@ protected:
         csm.log_occupancy_alpha = log_occu_alpha;
         csm.log_occupancy_beta = log_occu_beta;
         csm.log_occupancy_full_spec = log_occupancy_full_spec;
+        csm.log_occupancy_full_spec_exp = log_occupancy_full_spec_exp;
 
         csm.xcorrx_max = xcorrx_max;
         csm.xcorrc_max = xcorrc_max;
