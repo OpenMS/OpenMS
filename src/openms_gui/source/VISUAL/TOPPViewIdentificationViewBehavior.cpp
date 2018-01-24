@@ -415,7 +415,7 @@ namespace OpenMS
                   String seq_alpha = ph_alpha.getSequence().toUnmodifiedString();
                   String seq_beta = ph_beta.getSequence().toUnmodifiedString();
                   int xl_pos_alpha = String(ph_alpha.getMetaValue("xl_pos")).toInt();
-                  int xl_pos_beta = String(ph_beta.getMetaValue("xl_pos")).toInt();
+                  int xl_pos_beta = String(ph_alpha.getMetaValue("xl_pos2")).toInt();
 
 
                   // String formatting
@@ -431,7 +431,7 @@ namespace OpenMS
                   box_text += String(alpha_space, ' ') + alpha_cov + "<br>" + String(alpha_space, ' ') + seq_alpha + "<br>" + String(prefix_length, ' ') + vert_bar + "<br>" + String(beta_space, ' ') + seq_beta + "<br>" + String(beta_space, ' ') + beta_cov;
                   // color: <font color=\"green\">&boxur;</font>
                 }
-                else // no xl_pos2 and no second PeptideHit, should be a mono-link
+                else // no value in xl_pos2 and no second PeptideHit, should be a mono-link
                 {
                   String seq_alpha = ph.getSequence().toUnmodifiedString();
                   int xl_pos_alpha = String(ph.getMetaValue("xl_pos")).toInt();

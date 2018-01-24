@@ -585,10 +585,10 @@ namespace OpenMS
             {
               // TODO compute theoretical precursor
               // following code is from precursor
-              item = table_widget_->itemPrototype()->clone();
-              item->setData(Qt::DisplayRole, (*layer_->getPeakData())[i].getPrecursors()[0].getMZ());
-              item->setBackgroundColor(c);
-              item->setTextColor(Qt::blue);
+              // item = table_widget_->itemPrototype()->clone();
+              // item->setData(Qt::DisplayRole, (*layer_->getPeakData())[i].getPrecursors()[0].getMZ());
+              // item->setBackgroundColor(c);
+              // item->setTextColor(Qt::blue);
               // table_widget_->setItem(table_widget_->rowCount() - 1, 3, item); // precursor version
 //              addDoubleItemToBottomRow_(5.0, 15, c);
 
@@ -633,7 +633,7 @@ namespace OpenMS
             // add additional meta value columns
             if (create_rows_for_commmon_metavalue_->isChecked())
             {
-              Int current_col = 17;
+              Int current_col = 16;
               for (set<String>::iterator sit = common_keys.begin(); sit != common_keys.end(); ++sit)
               {
                 DataValue dv = ph.getMetaValue(*sit);
