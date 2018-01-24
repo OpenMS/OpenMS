@@ -98,10 +98,10 @@ START_SECTION(static float preScore(Size matched_alpha, Size ions_alpha))
 END_SECTION
 
 START_SECTION(static double matchOddsScore(const PeakSpectrum& theoretical_spec,  const std::vector< std::pair< Size, Size > >& matched_spec, double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, bool is_xlink_spectrum, Size n_charges = 1))
-        TEST_REAL_SIMILAR(XQuestScores::matchOddsScore(theo_spec_1, alignment1, 0.2, false, true, 1), 6.07050);
-        TEST_REAL_SIMILAR(XQuestScores::matchOddsScore(theo_spec_1, alignment1, 0.2, false, true, 2), 7.42116);
-        TEST_REAL_SIMILAR(XQuestScores::matchOddsScore(theo_spec_1, alignment1, 0.2, false, true, 3), 8.20397);
-        TEST_REAL_SIMILAR(XQuestScores::matchOddsScore(theo_spec_1, alignment1, 0.2, false, false, 3), 6.07050);
+        TEST_REAL_SIMILAR(XQuestScores::matchOddsScore(theo_spec_1, alignment1.size(), 0.2, false, true, 1), 6.07050);
+        TEST_REAL_SIMILAR(XQuestScores::matchOddsScore(theo_spec_1, alignment1.size(), 0.2, false, true, 2), 7.42116);
+        TEST_REAL_SIMILAR(XQuestScores::matchOddsScore(theo_spec_1, alignment1.size(), 0.2, false, true, 3), 8.20397);
+        TEST_REAL_SIMILAR(XQuestScores::matchOddsScore(theo_spec_1, alignment1.size(), 0.2, false, false, 3), 6.07050);
 END_SECTION
 
 START_SECTION(static double weightedTICScoreXQuest(Size alpha_size, Size beta_size, double intsum_alpha, double intsum_beta, double total_current, bool type_is_cross_link))

@@ -103,9 +103,9 @@ Size count_proteins = 0;
 Size count_peptides = 0;
 
 
-START_SECTION(static std::vector<OPXLDataStructs::AASeqWithMass> digestDatabase(std::vector<FASTAFile::FASTAEntry> fasta_db, EnzymaticDigestion digestor, Size min_peptide_length, StringList cross_link_residue1, StringList cross_link_residue2, std::vector<ResidueModification> fixed_modifications, std::vector<ResidueModification> variable_modifications, Size max_variable_mods_per_peptide, Size count_proteins = 0, Size count_peptides = 0))
+START_SECTION(static std::vector<OPXLDataStructs::AASeqWithMass> digestDatabase(std::vector<FASTAFile::FASTAEntry> fasta_db, EnzymaticDigestion digestor, Size min_peptide_length, StringList cross_link_residue1, StringList cross_link_residue2, std::vector<ResidueModification> fixed_modifications, std::vector<ResidueModification> variable_modifications, Size max_variable_mods_per_peptide))
 
-  std::vector<OPXLDataStructs::AASeqWithMass> peptides = OPXLHelper::digestDatabase(fasta_db, digestor, min_peptide_length, cross_link_residue1, cross_link_residue2, fixed_modifications, variable_modifications, max_variable_mods_per_peptide, count_proteins, count_peptides);
+  std::vector<OPXLDataStructs::AASeqWithMass> peptides = OPXLHelper::digestDatabase(fasta_db, digestor, min_peptide_length, cross_link_residue1, cross_link_residue2, fixed_modifications, variable_modifications, max_variable_mods_per_peptide);
 
   TEST_EQUAL(peptides.size(), 880)
   TEST_EQUAL(peptides[5].peptide_mass > 5, true) // not an empty AASequence
@@ -117,7 +117,7 @@ START_SECTION(static std::vector<OPXLDataStructs::AASeqWithMass> digestDatabase(
 END_SECTION
 
 // building more data structures required in several following tests
-std::vector<OPXLDataStructs::AASeqWithMass> peptides = OPXLHelper::digestDatabase(fasta_db, digestor, min_peptide_length, cross_link_residue1, cross_link_residue2, fixed_modifications, variable_modifications, max_variable_mods_per_peptide, count_proteins, count_peptides);
+std::vector<OPXLDataStructs::AASeqWithMass> peptides = OPXLHelper::digestDatabase(fasta_db, digestor, min_peptide_length, cross_link_residue1, cross_link_residue2, fixed_modifications, variable_modifications, max_variable_mods_per_peptide);
 
 std::sort(peptides.begin(), peptides.end(), OPXLDataStructs::AASeqWithMassComparator());
 
@@ -170,7 +170,7 @@ std::vector<OPXLDataStructs::XLPrecursor> precursors = OPXLHelper::enumerateCros
 std::sort(precursors.begin(), precursors.end(), OPXLDataStructs::XLPrecursorComparator());
 
 
-START_SECTION(static std::vector <OPXLDataStructs::ProteinProteinCrossLink> buildCandidates(const std::vector< OPXLDataStructs::XLPrecursor > & candidates, const std::vector<OPXLDataStructs::AASeqWithMass> & peptide_masses, const StringList & cross_link_residue1, const StringList & cross_link_residue2, double cross_link_mass, const DoubleList & cross_link_mass_mono_link, double precursor_mass, double allowed_error, String cross_link_name))
+START_SECTION(static std::vector <OPXLDataStructs::ProteinProteinCrossLink> buildCandidates(const std::vector< OPXLDataStructs::XLPrecursor > & candidates, const std::vector< int > precursor_corrections, const std::vector<OPXLDataStructs::AASeqWithMass> & peptide_masses, const StringList & cross_link_residue1, const StringList & cross_link_residue2, double cross_link_mass, const DoubleList & cross_link_mass_mono_link, double precursor_mass, double allowed_error, String cross_link_name))
   double precursor_mass = 3425.57034;
   double allowed_error = precursor_mass * precursor_mass_tolerance * 1e-6;
   String cross_link_name = "MyLinker";
@@ -191,8 +191,9 @@ START_SECTION(static std::vector <OPXLDataStructs::ProteinProteinCrossLink> buil
       candidates.push_back(*low_it);
     }
   }
+  std::vector< int > precursor_corrections(59);
 
-  std::vector <OPXLDataStructs::ProteinProteinCrossLink> spectrum_candidates = OPXLHelper::buildCandidates(candidates, peptides, cross_link_residue1, cross_link_residue2, cross_link_mass, cross_link_mass_mono_link, precursor_mass, allowed_error, cross_link_name);
+  std::vector <OPXLDataStructs::ProteinProteinCrossLink> spectrum_candidates = OPXLHelper::buildCandidates(candidates, precursor_corrections, peptides, cross_link_residue1, cross_link_residue2, cross_link_mass, cross_link_mass_mono_link, precursor_mass, allowed_error, cross_link_name);
 
   TEST_EQUAL(spectrum_candidates.size(), 59)
   TEST_EQUAL(spectrum_candidates[50].cross_linker_name, "MyLinker")
