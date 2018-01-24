@@ -28,72 +28,86 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Douglas McCloskey $
-// $Authors: Douglas McCloskey $
+// $Maintainer: Douglas McCloskey, Pasquale Domenico Colaianni $
+// $Authors: Douglas McCloskey, Pasquale Domenico Colaianni $
 // --------------------------------------------------------------------------
 
 #ifndef OPENMS_FORMAT_ABSOLUTEQUANTITATIONMETHODFILE_H
 #define OPENMS_FORMAT_ABSOLUTEQUANTITATIONMETHODFILE_H
 
-#include <OpenMS/FORMAT/CsvFile.h>
-#include <OpenMS/CONCEPT/ProgressLogger.h>
-#include <OpenMS/DATASTRUCTURES/StringListUtils.h>
+
 #include <OpenMS/ANALYSIS/QUANTITATION/AbsoluteQuantitationMethod.h>
+#include <OpenMS/FORMAT/CsvFile.h>
+#include <map>
+#include <fstream>
 
 namespace OpenMS
 {
   /**
-      @brief File adapter for AbsoluteQuantitationMethod files.
+    @brief File adapter for AbsoluteQuantitationMethod files.
 
-      loads and stores .csv or .tsv files describing an AbsoluteQuantitationMethod.
+    Loads and stores .csv or .tsv files describing an AbsoluteQuantitationMethod.
 
-      @ingroup FileIO
+    @ingroup FileIO
   */
   class OPENMS_DLLAPI AbsoluteQuantitationMethodFile :
-    private CsvFile,
-    public ProgressLogger
+    private CsvFile
   {
 public:
     ///Default constructor
-    AbsoluteQuantitationMethodFile();
+    AbsoluteQuantitationMethodFile() = default;
     ///Destructor
-    ~AbsoluteQuantitationMethodFile() override;
+    ~AbsoluteQuantitationMethodFile() = default;
 
     /**
-        @brief Loads an AbsoluteQuantitationMethod file.
+      @brief Loads an AbsoluteQuantitationMethod file.
 
-        @exception Exception::FileNotFound is thrown if the file could not be opened
-        @exception Exception::ParseError is thrown if an error occurs during parsing
+      @exception Exception::FileNotFound is thrown if the file could not be opened
+      @exception Exception::ParseError is thrown if an error occurs during parsing
+
+      @param[in] filename The input file name.
+      @param[out] aqm_list Output variable where the AbsoluteQuantitationMethod data is loaded.
     */
     void load(const String & filename, std::vector<AbsoluteQuantitationMethod> & aqm_list);
 
     /**
-        @brief Stores an AbsoluteQuantitationMethod file.
+      @brief Stores an AbsoluteQuantitationMethod file.
 
-        @exception Exception::UnableToCreateFile is thrown if the file could not be created
+      @exception Exception::UnableToCreateFile is thrown if the file could not be created
+
+      @param[in] filename The output file name.
+      @param[in] aqm_list The AbsoluteQuantitationMethod data to write into the file.
     */
     void store(const String & filename, const std::vector<AbsoluteQuantitationMethod> & aqm_list);
-    
-    /**
-        @brief Checks if a file is valid with respect to the mapping file and the controlled vocabulary.
-
-        @param line Header line of the .csv file.
-        @param headers A map of header strings to column positions.
-        @param params_headers A map of transformation model parameter header strings to column positions.
-    */
 
 protected:
-    void parseHeader_(StringList & line, std::map<String, int> & headers,
-        std::map<String, int> & params_headers);
+    /**
+      @brief Checks if a file is valid with respect to the mapping file and the controlled vocabulary.
+
+      @param[in,out] line Header line of the .csv file.
+      @param[out] headers A map of header strings to column positions.
+      @param[out] params_headers A map of transformation model parameter header strings to column positions.
+    */
+    void parseHeader_(
+      StringList & line,
+      std::map<String, Int> & headers,
+      std::map<String, Int> & params_headers
+    ) const;
 
     /**
-        @brief parses a line into the members of AbsoluteQuantitationMethod.
+      @brief Parses a line into the members of AbsoluteQuantitationMethod.
 
-        @param line line of the .csv file.
-        @param aqm AbsoluteQuantitationMethod.
+      @param[in] line line of the .csv file.
+      @param[in] headers A map of header strings to column positions.
+      @param[in] params_headers A map of transformation model parameter header strings to column positions.
+      @param[out] aqm AbsoluteQuantitationMethod.
     */
-    void parseLine_(StringList & line, std::map<String, int> & headers, 
-        std::map<String, int> & params_headers, AbsoluteQuantitationMethod & aqm);
+    void parseLine_(
+      const StringList & line,
+      const std::map<String, Int> & headers,
+      const std::map<String, Int> & params_headers,
+      AbsoluteQuantitationMethod & aqm
+    ) const;
 
   };
 
