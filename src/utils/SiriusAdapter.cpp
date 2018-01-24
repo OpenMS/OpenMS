@@ -53,7 +53,7 @@ using namespace std;
 //Doxygen docu
 //----------------------------------------------------------
 /**
-  @page UTILS_SiriusAdapter
+  @page UTILS_SiriusAdapter SiriusAdapter
 
   @brief De novo metabolite identification.
 
