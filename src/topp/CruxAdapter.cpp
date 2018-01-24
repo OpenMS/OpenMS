@@ -106,7 +106,7 @@ class TOPPCruxAdapter :
 {
 public:
   TOPPCruxAdapter() :
-    TOPPBase("CruxAdapter", "Identifies MS/MS spectra using Crux.",
+    TOPPBase("CruxAdapter", "Identifies MS/MS spectra using Crux.", true,
       {
         { "Park CI, Klammer AA, Käll L, MacCoss MJ, Noble WS", "Rapid and accurate peptide identification from tandem mass spectra", "J Proteome Res 7(7):3022-3027, 2008.", "10.1021/pr800127y" }
       }
