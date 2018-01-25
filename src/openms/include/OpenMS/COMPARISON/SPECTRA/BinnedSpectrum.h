@@ -28,8 +28,8 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Mathias Walzer $
-// $Authors: Timo Sachsenberg $
+// $Maintainer: Timo Sachsenberg $
+// $Authors: Timo Sachsenberg, Mathias Walzer $
 // --------------------------------------------------------------------------
 //
 #ifndef OPENMS_COMPARISON_SPECTRA_BINNEDSPECTRUM_H

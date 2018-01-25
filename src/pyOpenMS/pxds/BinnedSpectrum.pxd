@@ -9,24 +9,16 @@ cdef extern from "<OpenMS/COMPARISON/SPECTRA/BinnedSpectrum.h>" namespace "OpenM
 
         BinnedSpectrum() nogil except +
         BinnedSpectrum(BinnedSpectrum) nogil except +
-        BinnedSpectrum(float size, UInt spread, MSSpectrum ps) nogil except +
+        BinnedSpectrum(MSSpectrum, float size, bool unit_ppm, UInt spread) nogil except +
+
         bool operator==(BinnedSpectrum & rhs) nogil except +
         bool operator!=(BinnedSpectrum & rhs) nogil except +
-        bool operator==(MSSpectrum & rhs) nogil except +
-        bool operator!=(MSSpectrum & rhs) nogil except +
-        double getBinSize() nogil except +
-        UInt getBinSpread() nogil except +
-        UInt getBinNumber() nogil except +
-        UInt getFilledBinNumber() nogil except +
-        ## SparseVector[ float ]  getBins() nogil except +
-        ## SparseVector[ float ]  getBins() nogil except +
-        ## const_bin_iterator begin() nogil except +
-        ## const_bin_iterator end() nogil except +
-        ## bin_iterator begin() nogil except +
-        ## bin_iterator end() nogil except +
-        void setBinSize(double s) nogil except +
-        void setBinSpread(UInt s) nogil except +
-        void setBinning() nogil except +
-        bool checkCompliance(BinnedSpectrum & bs) nogil except +
-        MSSpectrum getRawSpectrum() nogil except +
 
+        float getBinSize() nogil except +
+        UInt getBinSpread() nogil except +
+        UInt getBinIndex(float mz) nogil except +
+        float getBinLowerMZ(size_t i) nogil except +
+
+        vector[Precursor] getPrecursors() nogil except +
+
+        bool isCompatible(BinnedSpectrum & a, BinnedSpectrum & b) nogil except +
