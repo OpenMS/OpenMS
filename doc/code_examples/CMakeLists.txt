@@ -35,8 +35,7 @@
 # CMake sub-project for OpenMS code examples
 
 project("OpenMS_code_examples")
-cmake_minimum_required(VERSION 2.8.3 FATAL_ERROR)
-
+cmake_minimum_required(VERSION 3.0.0 FATAL_ERROR)
 set(EXAMPLES_executables)
 
 # ensure the tutorials got into bin/

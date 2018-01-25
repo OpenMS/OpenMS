@@ -84,9 +84,12 @@ using namespace std;
         </table>
     </CENTER>
 
-    @em Crux must be installed before this wrapper can be used. 
+    @em Crux must be installed before this wrapper can be used. This should be the case for the installers.
 
     The default parameters are set for a high resolution instrument.
+    See the following publication: <br>
+    Christopher Y. Park, Aaron A. Klammer, Lukas Käll, Michael J. MacCoss and William Stafford Noble.
+    "Rapid and accurate peptide identification from tandem mass spectra." Journal of Proteome Research. 7(7):3022-3027, 2008. doi: 10.1021/pr800127y
 
     <B>The command line parameters of this tool are:</B>
     @verbinclude TOPP_CruxAdapter.cli
@@ -103,7 +106,11 @@ class TOPPCruxAdapter :
 {
 public:
   TOPPCruxAdapter() :
-    TOPPBase("CruxAdapter", "Identifies MS/MS spectra using Crux.")
+    TOPPBase("CruxAdapter", "Identifies MS/MS spectra using Crux.", true,
+      {
+        { "Park CI, Klammer AA, Käll L, MacCoss MJ, Noble WS", "Rapid and accurate peptide identification from tandem mass spectra", "J Proteome Res 7(7):3022-3027, 2008.", "10.1021/pr800127y" }
+      }
+    )
   {
   }
 
@@ -118,8 +125,12 @@ protected:
     setValidFormats_("database", ListUtils::create<String>("FASTA"));
     registerInputFile_("crux_executable", "<executable>",
       // choose the default value according to the platform where it will be executed
-      "crux.exe",
-      "Crux executable of the installation e.g. 'Crux.exe'", true, false, ListUtils::create<String>("skipexists"));
+      #ifdef OPENMS_WINDOWSPLATFORM
+                     "crux.exe",
+      #else
+                     "crux",
+      #endif
+      "Crux executable of the installation e.g. 'crux.exe'", true, false, ListUtils::create<String>("skipexists"));
 
     //
     // Optional parameters //

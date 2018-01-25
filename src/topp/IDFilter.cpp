@@ -256,7 +256,6 @@ protected:
     Size n_pep_ids = peptides.size();
     Size n_pep_hits = IDFilter::countHits(peptides);
 
-
     // Filtering peptide identification according to set criteria
 
     double rt_high = numeric_limits<double>::infinity(), rt_low = -rt_high;
