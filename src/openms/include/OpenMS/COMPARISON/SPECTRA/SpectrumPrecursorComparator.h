@@ -61,7 +61,7 @@ public:
     SpectrumPrecursorComparator(const SpectrumPrecursorComparator & source);
 
     /// destructor
-    virtual ~SpectrumPrecursorComparator();
+    ~SpectrumPrecursorComparator() override;
     // @}
 
     // @name Operators
@@ -69,9 +69,9 @@ public:
     /// assignment operator
     SpectrumPrecursorComparator & operator=(const SpectrumPrecursorComparator & source);
 
-    double operator()(const PeakSpectrum & a, const PeakSpectrum & b) const;
+    double operator()(const PeakSpectrum & a, const PeakSpectrum & b) const override;
 
-    double operator()(const PeakSpectrum & a) const;
+    double operator()(const PeakSpectrum & a) const override;
     // @}
 
     // @name Accessors

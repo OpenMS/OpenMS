@@ -45,7 +45,7 @@ namespace OpenMS
   OMSSAXMLFile::OMSSAXMLFile() :
     XMLHandler("", 1.1),
     XMLFile(),
-    peptide_identifications_(0)
+    peptide_identifications_(nullptr)
   {
     readMappingFile_();
   }

@@ -157,7 +157,7 @@ namespace OpenMS
     {
 
       double this_INT = 0;
-      LCElutionPeak * TMP = NULL;
+      LCElutionPeak * TMP = nullptr;
 
       // search around some scan region:
       for (int this_scan = start_scan; this_scan < end_scan; this_scan++)
@@ -177,7 +177,7 @@ namespace OpenMS
         }
       }
 
-      if ((this_INT > 0) && (this_INT >= SuperHirnParameters::instance()->getIntensityThreshold()) && (TMP != NULL))
+      if ((this_INT > 0) && (this_INT >= SuperHirnParameters::instance()->getIntensityThreshold()) && (TMP != nullptr))
       {
         out.push_back(*TMP);
       }
@@ -198,7 +198,7 @@ namespace OpenMS
     int start_scan = SCAN - TOL;
     int end_scan = SCAN + TOL;
 
-    LCElutionPeak * TMP = NULL;
+    LCElutionPeak * TMP = nullptr;
     vector<LCElutionPeak> out;
 
     // go through the structure and find all m/z at this scan:
@@ -227,7 +227,7 @@ namespace OpenMS
         }
       }
 
-      if ((this_INT > 0) && (this_INT >= SuperHirnParameters::instance()->getIntensityThreshold()) && (TMP != NULL))
+      if ((this_INT > 0) && (this_INT >= SuperHirnParameters::instance()->getIntensityThreshold()) && (TMP != nullptr))
       {
         out.push_back(*TMP);
       }
@@ -244,7 +244,7 @@ namespace OpenMS
   vector<LCElutionPeak *> LCMSCData::get_ALL_peak()
   {
 
-    LCElutionPeak * TMP = NULL;
+    LCElutionPeak * TMP = nullptr;
     vector<LCElutionPeak *> out;
 
     // go through the structure and find all m/z at this scan:

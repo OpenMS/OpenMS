@@ -49,8 +49,8 @@ START_TEST(MRMFeatureQC, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-MRMFeatureQC* ptr = 0;
-MRMFeatureQC* nullPointer = 0;
+MRMFeatureQC* ptr = nullptr;
+MRMFeatureQC* nullPointer = nullptr;
 
 START_SECTION(MRMFeatureQC())
 {

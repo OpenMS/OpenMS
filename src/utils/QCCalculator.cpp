@@ -127,7 +127,7 @@ public:
   }
 
 protected:
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "raw data input file (this is relevant if you want to look at MS1, MS2 and precursor peak information)");
     setValidFormats_("in", ListUtils::create<String>("mzML"));
@@ -204,7 +204,7 @@ protected:
     return sn_by_max2median_norm;
   }
 
-  ExitCodes main_(int, const char**)
+  ExitCodes main_(int, const char**) override
   {
     vector<ProteinIdentification> prot_ids;
     vector<PeptideIdentification> pep_ids;

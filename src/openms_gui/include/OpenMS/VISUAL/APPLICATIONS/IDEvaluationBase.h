@@ -88,11 +88,11 @@ namespace OpenMS
 public:
 
     ///Constructor
-    IDEvaluationBase(QWidget * parent = 0);
+    IDEvaluationBase(QWidget * parent = nullptr);
     ///Destructor
-    virtual ~IDEvaluationBase();
+    ~IDEvaluationBase() override;
 
-    QSize sizeHint() const;
+    QSize sizeHint() const override;
 
     void setVisibleArea(double low, double high);
 
@@ -180,8 +180,8 @@ protected:
     String current_path_;
     ///@name reimplemented Qt events
     //@{
-    void closeEvent(QCloseEvent * event);
-    void keyPressEvent(QKeyEvent * e);
+    void closeEvent(QCloseEvent * event) override;
+    void keyPressEvent(QKeyEvent * e) override;
     //@}
 
     ///Log message states

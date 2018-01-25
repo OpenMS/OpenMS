@@ -1784,18 +1784,18 @@ def testInternalCalibration():
     assert pyopenms.InternalCalibration().calibrate is not None
 
 @report
-def testTransitionTSVReader():
+def testTransitionTSVFile():
     """
     @tests:
-     TransitionTSVReader.__init__
-     TransitionTSVReader.calibrateMapGlobally
-     TransitionTSVReader.calibrateMapSpectrumwise
+     TransitionTSVFile.__init__
+     TransitionTSVFile.calibrateMapGlobally
+     TransitionTSVFile.calibrateMapSpectrumwise
     """
-    ff = pyopenms.TransitionTSVReader()
+    ff = pyopenms.TransitionTSVFile()
 
-    assert pyopenms.TransitionTSVReader().convertTargetedExperimentToTSV is not None
-    assert pyopenms.TransitionTSVReader().convertTSVToTargetedExperiment is not None
-    assert pyopenms.TransitionTSVReader().validateTargetedExperiment is not None
+    assert pyopenms.TransitionTSVFile().convertTargetedExperimentToTSV is not None
+    assert pyopenms.TransitionTSVFile().convertTSVToTargetedExperiment is not None
+    assert pyopenms.TransitionTSVFile().validateTargetedExperiment is not None
 
 @report
 def testProteaseDigestion():

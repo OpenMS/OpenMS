@@ -111,7 +111,7 @@ public:
 
 protected:
 
-    void registerOptionsAndFlags_()
+    void registerOptionsAndFlags_() override
     {
       registerInputFile_("in", "<file>", "", "Input files used to generate the mzTab file.", false);
       setValidFormats_("in", ListUtils::create<String>("featureXML,consensusXML,idXML,mzid"));
@@ -974,7 +974,7 @@ protected:
       return mztab;
     }
 
-    ExitCodes main_(int, const char**)
+    ExitCodes main_(int, const char**) override
     {
       // parameter handling
       String in = getStringOption_("in");

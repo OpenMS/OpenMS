@@ -134,7 +134,7 @@ protected:
       pp_ = pp;
     }
 
-    void processSpectrum_(MapType::SpectrumType & s)
+    void processSpectrum_(MapType::SpectrumType & s) override
     {
       if (!ListUtils::contains(ms1_levels_, s.getMSLevel())) {return;}
 
@@ -143,7 +143,7 @@ protected:
       s = sout;
     }
 
-    void processChromatogram_(MapType::ChromatogramType & /* c */)
+    void processChromatogram_(MapType::ChromatogramType & /* c */) override
     {
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
         "Cannot handle chromatograms yet.");
@@ -153,7 +153,7 @@ protected:
     std::vector<Int> ms1_levels_;
   };
 
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "input profile data file ");
     setValidFormats_("in", ListUtils::create<String>("mzML"));
@@ -163,12 +163,12 @@ protected:
     registerSubsection_("algorithm", "Algorithm parameters section");
   }
 
-  Param getSubsectionDefaults_(const String & /*section*/) const
+  Param getSubsectionDefaults_(const String & /*section*/) const override
   {
     return PeakPickerHiRes().getDefaults();
   }
 
-  ExitCodes main_(int, const char **)
+  ExitCodes main_(int, const char **) override
   {
     //-------------------------------------------------------------
     // parameter handling
@@ -191,7 +191,7 @@ protected:
     // We could check with the first spectrum that we process whether it fulfills the requirements
     //check for peak type (profile data required)
     /*
-    if (!ms_exp_raw.empty() && PeakTypeEstimator().estimateType(ms_exp_raw[0].begin(), ms_exp_raw[0].end()) == SpectrumSettings::PEAKS)
+    if (!ms_exp_raw.empty() && PeakTypeEstimator().estimateType(ms_exp_raw[0].begin(), ms_exp_raw[0].end()) == SpectrumSettings::CENTROID)
     {
       writeLog_("Warning: OpenMS peak type estimation indicates that this is not profile data!");
     }

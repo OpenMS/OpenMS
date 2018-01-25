@@ -64,7 +64,7 @@ class TestModel : public BaseModel<2>
 		updateMembers_();
 	}
 
-	virtual ~TestModel()
+	~TestModel() override
 	{
 	}
 
@@ -78,22 +78,22 @@ class TestModel : public BaseModel<2>
 		return *this;
 	}
 
-	void updateMembers_()
+	void updateMembers_() override
 	{
 		BaseModel<2>::updateMembers_();
 	}
 
-	IntensityType getIntensity(const PositionType& pos) const
+	IntensityType getIntensity(const PositionType& pos) const override
 	{
 		return pos[0]+pos[1];
 	}
 
-	bool isContained(const PositionType& pos) const
+	bool isContained(const PositionType& pos) const override
 	{
 		return getIntensity(pos)>cut_off_;
 	}
 
-	void getSamples(SamplesType& /*cont*/) const
+	void getSamples(SamplesType& /*cont*/) const override
 	{
 	}
 
@@ -107,8 +107,8 @@ class TestModel : public BaseModel<2>
 START_TEST(BaseModel, "$Id$")
 
 // default ctor
-TestModel* ptr = 0;
-TestModel* nullPointer = 0;
+TestModel* ptr = nullptr;
+TestModel* nullPointer = nullptr;
 START_SECTION((BaseModel()))
 	ptr = new TestModel();
   TEST_NOT_EQUAL(ptr, nullPointer)

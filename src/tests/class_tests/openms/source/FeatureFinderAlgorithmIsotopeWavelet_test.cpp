@@ -44,9 +44,9 @@ using namespace std;
 
 typedef FeatureFinderAlgorithmIsotopeWavelet FFASS;
 
-FFASS* ptr = 0;
-FFASS* nullPointer = 0;
-FeatureFinderAlgorithm* ffA_nullPointer = 0;
+FFASS* ptr = nullptr;
+FFASS* nullPointer = nullptr;
+FeatureFinderAlgorithm* ffA_nullPointer = nullptr;
 
 START_SECTION((FeatureFinderAlgorithmIsotopeWavelet()))
 	ptr = new FFASS;

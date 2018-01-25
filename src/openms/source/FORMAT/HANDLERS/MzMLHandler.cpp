@@ -46,7 +46,7 @@ namespace OpenMS
     MzMLHandler::MzMLHandler(MapType& exp, const String& filename, const String& version, ProgressLogger& logger) :
       XMLHandler(filename, version),
       exp_(&exp),
-      cexp_(0),
+      cexp_(nullptr),
       options_(),
       spec_(),
       chromatogram_(),
@@ -55,7 +55,7 @@ namespace OpenMS
       in_spectrum_list_(false),
       decoder_(),
       logger_(logger),
-      consumer_(NULL),
+      consumer_(nullptr),
       scan_count(0),
       chromatogram_count(0),
       skip_chromatogram_(false),
@@ -82,7 +82,7 @@ namespace OpenMS
     /// Constructor for a write-only handler
     MzMLHandler::MzMLHandler(const MapType& exp, const String& filename, const String& version, const ProgressLogger& logger) :
       XMLHandler(filename, version),
-      exp_(0),
+      exp_(nullptr),
       cexp_(&exp),
       options_(),
       spec_(),
@@ -92,7 +92,7 @@ namespace OpenMS
       in_spectrum_list_(false),
       decoder_(),
       logger_(logger),
-      consumer_(NULL),
+      consumer_(nullptr),
       scan_count(0),
       chromatogram_count(0),
       skip_chromatogram_(false),
@@ -162,7 +162,7 @@ namespace OpenMS
       // Append all spectra to experiment / consumer
       for (Size i = 0; i < spectrum_data_.size(); i++)
       {
-        if (consumer_ != NULL)
+        if (consumer_ != nullptr)
         {
           consumer_->consumeSpectrum(spectrum_data_[i].spectrum);
           if (options_.getAlwaysAppendData())
@@ -215,7 +215,7 @@ namespace OpenMS
       // Append all chromatograms to experiment / consumer
       for (Size i = 0; i < chromatogram_data_.size(); i++)
       {
-        if (consumer_ != NULL)
+        if (consumer_ != nullptr)
         {
           consumer_->consumeChromatogram(chromatogram_data_[i].chromatogram);
           if (options_.getAlwaysAppendData())
@@ -1415,11 +1415,11 @@ namespace OpenMS
         //spectrum representation
         else if (accession == "MS:1000127") //centroid spectrum
         {
-          spec_.setType(SpectrumSettings::PEAKS);
+          spec_.setType(SpectrumSettings::CENTROID);
         }
         else if (accession == "MS:1000128") //profile spectrum
         {
-          spec_.setType(SpectrumSettings::RAWDATA);
+          spec_.setType(SpectrumSettings::PROFILE);
         }
         else if (accession == "MS:1000525") //spectrum representation
         {
@@ -4652,11 +4652,11 @@ namespace OpenMS
       os << ">\n";
 
       //spectrum representation
-      if (spec.getType() == SpectrumSettings::PEAKS)
+      if (spec.getType() == SpectrumSettings::CENTROID)
       {
         os << "\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000127\" name=\"centroid spectrum\" />\n";
       }
-      else if (spec.getType() == SpectrumSettings::RAWDATA)
+      else if (spec.getType() == SpectrumSettings::PROFILE)
       {
         os << "\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000128\" name=\"profile spectrum\" />\n";
       }

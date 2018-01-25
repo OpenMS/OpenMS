@@ -56,7 +56,7 @@ using namespace std;
 
 OMSSACSVFile xml_file;
 OMSSACSVFile* ptr;
-OMSSACSVFile* nullPointer = 0;
+OMSSACSVFile* nullPointer = nullptr;
 ProteinIdentification protein_identification;
 vector<PeptideIdentification> peptide_identifications; 
 vector<PeptideIdentification> peptide_identifications2; 

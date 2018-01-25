@@ -104,7 +104,7 @@ public:
                     bool force_constraints = false);
 
     /// Destructor
-    virtual ~FeatureDistance();
+    ~FeatureDistance() override;
 
     /// Assignment operator
     FeatureDistance & operator=(const FeatureDistance & other);
@@ -155,7 +155,7 @@ protected:
     };
 
     /// Docu in base class
-    void updateMembers_();
+    void updateMembers_() override;
 
     /// Computes a distance component given absolute difference and parameters
     inline double distance_(double diff, const DistanceParams_ & params) const;

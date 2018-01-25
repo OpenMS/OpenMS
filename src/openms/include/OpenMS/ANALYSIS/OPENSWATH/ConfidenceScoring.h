@@ -65,7 +65,7 @@ public:
     explicit ConfidenceScoring(bool test_mode_=false) :
       generator_(), rand_gen_(generator_, boost::uniform_int<>())
     {
-      if (!test_mode_) rand_gen_.engine().seed(time(0)); // seed with current time
+      if (!test_mode_) rand_gen_.engine().seed(time(nullptr)); // seed with current time
     }
 
     virtual ~ConfidenceScoring() {}

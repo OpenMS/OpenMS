@@ -51,8 +51,8 @@ START_TEST(IndexedMzMLDecoder, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-IndexedMzMLDecoder* ptr = 0;
-IndexedMzMLDecoder* nullPointer = 0;
+IndexedMzMLDecoder* ptr = nullptr;
+IndexedMzMLDecoder* nullPointer = nullptr;
 START_SECTION((IndexedMzMLDecoder()))
   ptr = new IndexedMzMLDecoder;
   TEST_NOT_EQUAL(ptr, nullPointer)

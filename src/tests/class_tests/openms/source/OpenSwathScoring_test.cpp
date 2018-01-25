@@ -58,8 +58,8 @@ START_TEST(OpenSwathScoring, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-OpenSwathScoring* ptr = 0;
-OpenSwathScoring* nullPointer = 0;
+OpenSwathScoring* ptr = nullptr;
+OpenSwathScoring* nullPointer = nullptr;
 
 START_SECTION(OpenSwathScoring())
 {

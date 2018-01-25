@@ -63,9 +63,9 @@
 
 #include <boost/math/special_functions/fpclassify.hpp>
 
-#include <time.h>
-#include <stdio.h>
-#include <stdlib.h>
+#include <ctime>
+#include <cstdio>
+#include <cstdlib>
 
 // OpenMP support
 #ifdef _OPENMP
@@ -398,7 +398,7 @@ namespace OpenMS
     char* disable_usage = getenv("OPENMS_DISABLE_UPDATE_CHECK");
  
     // only perform check if variable is not set or explicitly enabled by setting it to "OFF"  
-    if (!test_mode_ && (disable_usage == NULL || strcmp(disable_usage, "OFF") == 0))
+    if (!test_mode_ && (disable_usage == nullptr || strcmp(disable_usage, "OFF") == 0))
     {
       UpdateCheck::run(tool_name_, version_, debug_level_);
     }

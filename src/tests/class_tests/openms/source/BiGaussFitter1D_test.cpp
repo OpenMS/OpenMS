@@ -51,8 +51,8 @@ START_TEST(BiGaussFitter1D, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-BiGaussFitter1D* ptr = 0;
-BiGaussFitter1D* nullPointer = 0;
+BiGaussFitter1D* ptr = nullptr;
+BiGaussFitter1D* nullPointer = nullptr;
 START_SECTION(BiGaussFitter1D())
 {
   ptr = new BiGaussFitter1D();

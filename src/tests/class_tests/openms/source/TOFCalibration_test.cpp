@@ -51,8 +51,8 @@ START_TEST(TOFCalibration, "$Id$")
 
 /////////////////////////////////////////////////////////////
 
-TOFCalibration* ptr = 0;
-TOFCalibration* nullPointer = 0;
+TOFCalibration* ptr = nullptr;
+TOFCalibration* nullPointer = nullptr;
 START_SECTION((TOFCalibration()))
   ptr = new TOFCalibration;
   TEST_NOT_EQUAL(ptr, nullPointer)

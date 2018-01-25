@@ -70,7 +70,7 @@ public:
   }
 
 protected:
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<mzML-file>", "", "Input experiment file, containing the wrongly sorted spectra.");
     setValidFormats_("in", ListUtils::create<String>("mzML"));
@@ -82,7 +82,7 @@ protected:
     setMinFloat_("RT_distance", 0.0);
   }
 
-  ExitCodes main_(int, const char **)
+  ExitCodes main_(int, const char **) override
   {
     //-------------------------------------------------------------
     // parsing parameters

@@ -1046,20 +1046,28 @@ if(NOT DISABLE_OPENSWATH)
   #------------------------------------------------------------------------------
   # MRM / SWATH tests (from OpenSWATH)
   add_test("TOPP_OpenSwathAssayGenerator_test_1"
-${TOPP_BIN_PATH}/OpenSwathAssayGenerator -test -in ${DATA_DIR_TOPP}/OpenSwathAssayGenerator_input.TraML -out OpenSwathAssayGenerator_output.TraML.tmp -min_transitions 6 -max_transitions 6 -allowed_fragment_types b,y -allowed_fragment_charges 2,3 -enable_detection_specific_losses -enable_reannotation)
+${TOPP_BIN_PATH}/OpenSwathAssayGenerator -test -in ${DATA_DIR_TOPP}/OpenSwathAssayGenerator_input.TraML -out OpenSwathAssayGenerator_output.TraML.tmp -out_type TraML -min_transitions 6 -max_transitions 6 -allowed_fragment_types b,y -allowed_fragment_charges 2,3 -enable_detection_specific_losses)
   add_test("TOPP_OpenSwathAssayGenerator_test_1_out1" ${DIFF} -whitelist "id=" -in1 OpenSwathAssayGenerator_output.TraML.tmp -in2 ${DATA_DIR_TOPP}/OpenSwathAssayGenerator_output.TraML)
   set_tests_properties("TOPP_OpenSwathAssayGenerator_test_1_out1" PROPERTIES DEPENDS "TOPP_OpenSwathAssayGenerator_test_1")
+  add_test("TOPP_OpenSwathAssayGenerator_test_2"
+${TOPP_BIN_PATH}/OpenSwathAssayGenerator -test -in ${DATA_DIR_TOPP}/OpenSwathAssayGenerator_input_2.TraML -out OpenSwathAssayGenerator_output_2.TraML.tmp -out_type TraML -allowed_fragment_charges 1,2,3,4 -enable_ipf -unimod_file ${DATA_DIR_TOPP}/OpenSwathAssayGenerator_input_2_unimod.xml)
+  add_test("TOPP_OpenSwathAssayGenerator_test_2_out1" ${DIFF} -whitelist "id=" -in1 OpenSwathAssayGenerator_output_2.TraML.tmp -in2 ${DATA_DIR_TOPP}/OpenSwathAssayGenerator_output_2.TraML)
+  set_tests_properties("TOPP_OpenSwathAssayGenerator_test_2_out1" PROPERTIES DEPENDS "TOPP_OpenSwathAssayGenerator_test_2")
+  add_test("TOPP_OpenSwathAssayGenerator_test_3"
+${TOPP_BIN_PATH}/OpenSwathAssayGenerator -test -in ${DATA_DIR_TOPP}/OpenSwathAssayGenerator_input_2.TraML -out OpenSwathAssayGenerator_output_3.TraML.tmp -out_type TraML -allowed_fragment_charges 1,2,3,4 -enable_ipf -unimod_file ${DATA_DIR_TOPP}/OpenSwathAssayGenerator_input_3_unimod.xml)
+  add_test("TOPP_OpenSwathAssayGenerator_test_3_out1" ${DIFF} -whitelist "id=" -in1 OpenSwathAssayGenerator_output_3.TraML.tmp -in2 ${DATA_DIR_TOPP}/OpenSwathAssayGenerator_output_3.TraML)
+  set_tests_properties("TOPP_OpenSwathAssayGenerator_test_3_out1" PROPERTIES DEPENDS "TOPP_OpenSwathAssayGenerator_test_3")
   
   add_test("TOPP_OpenSwathDecoyGenerator_test_1"
-${TOPP_BIN_PATH}/OpenSwathDecoyGenerator -test -in ${DATA_DIR_TOPP}/OpenSwathDecoyGenerator_input.TraML -out OpenSwathDecoyGenerator.TraML.tmp -method pseudo-reverse -remove_CNterm_mods)
+${TOPP_BIN_PATH}/OpenSwathDecoyGenerator -test -in ${DATA_DIR_TOPP}/OpenSwathDecoyGenerator_input.TraML -out OpenSwathDecoyGenerator.TraML.tmp -out_type TraML -method pseudo-reverse -separate)
   add_test("TOPP_OpenSwathDecoyGenerator_test_1_out1" ${DIFF} -whitelist "id=" -in1 OpenSwathDecoyGenerator.TraML.tmp -in2 ${DATA_DIR_TOPP}/OpenSwathDecoyGenerator_output.TraML)
   set_tests_properties("TOPP_OpenSwathDecoyGenerator_test_1_out1" PROPERTIES DEPENDS "TOPP_OpenSwathDecoyGenerator_test_1")
   add_test("TOPP_OpenSwathDecoyGenerator_test_2"
-${TOPP_BIN_PATH}/OpenSwathDecoyGenerator -test -in ${DATA_DIR_TOPP}/OpenSwathDecoyGenerator_input_2.TraML -out OpenSwathDecoyGenerator_2.TraML.tmp -append -method pseudo-reverse -remove_CNterm_mods -remove_unannotated -mz_threshold 0.8)
+${TOPP_BIN_PATH}/OpenSwathDecoyGenerator -test -in ${DATA_DIR_TOPP}/OpenSwathDecoyGenerator_input_2.TraML -out OpenSwathDecoyGenerator_2.TraML.tmp -out_type TraML -method pseudo-reverse -product_mz_threshold 0.8)
   add_test("TOPP_OpenSwathDecoyGenerator_test_2_out1" ${DIFF} -in1 OpenSwathDecoyGenerator_2.TraML.tmp -in2 ${DATA_DIR_TOPP}/OpenSwathDecoyGenerator_output_2.TraML)
   set_tests_properties("TOPP_OpenSwathDecoyGenerator_test_2_out1" PROPERTIES DEPENDS "TOPP_OpenSwathDecoyGenerator_test_2")
   add_test("TOPP_OpenSwathDecoyGenerator_test_3"
-${TOPP_BIN_PATH}/OpenSwathDecoyGenerator -test -in ${DATA_DIR_TOPP}/OpenSwathDecoyGenerator_input_3.TraML -out OpenSwathDecoyGenerator_3.TraML.tmp -method pseudo-reverse -remove_CNterm_mods)
+${TOPP_BIN_PATH}/OpenSwathDecoyGenerator -test -in ${DATA_DIR_TOPP}/OpenSwathDecoyGenerator_input_3.TraML -out OpenSwathDecoyGenerator_3.TraML.tmp -out_type TraML -method pseudo-reverse -separate)
   add_test("TOPP_OpenSwathDecoyGenerator_test_3_out1" ${DIFF} -in1 OpenSwathDecoyGenerator_3.TraML.tmp -in2 ${DATA_DIR_TOPP}/OpenSwathDecoyGenerator_output_3.TraML)
   set_tests_properties("TOPP_OpenSwathDecoyGenerator_test_3_out1" PROPERTIES DEPENDS "TOPP_OpenSwathDecoyGenerator_test_3")
 
@@ -1808,15 +1816,16 @@ set_tests_properties("TOPP_FalseDiscoveryRate_3_out1" PROPERTIES DEPENDS "TOPP_F
 add_test("TOPP_FalseDiscoveryRate_4" ${TOPP_BIN_PATH}/FalseDiscoveryRate -test -in ${DATA_DIR_TOPP}/FalseDiscoveryRate_OMSSA_4.idXML -out FalseDiscoveryRate_output_4.tmp -algorithm:split_charge_variants -PSM true -protein false)
 add_test("TOPP_FalseDiscoveryRate_4_out1" ${DIFF} -whitelist "?xml-stylesheet" -in1 FalseDiscoveryRate_output_4.tmp -in2 ${DATA_DIR_TOPP}/FalseDiscoveryRate_output_4.idXML)
 set_tests_properties("TOPP_FalseDiscoveryRate_4_out1" PROPERTIES DEPENDS "TOPP_FalseDiscoveryRate_4")
-# proteins only (input is derived from "THIRDPARTY/FidoAdapter_1_output.idXML"):
-add_test("TOPP_FalseDiscoveryRate_5" ${TOPP_BIN_PATH}/FalseDiscoveryRate -test -in ${DATA_DIR_TOPP}/FalseDiscoveryRate_5_input.idXML -out FalseDiscoveryRate_5_output.tmp -PSM false -protein true)
+# proteins only, keep decoys (input is derived from "THIRDPARTY/FidoAdapter_1_output.idXML"):
+add_test("TOPP_FalseDiscoveryRate_5" ${TOPP_BIN_PATH}/FalseDiscoveryRate -test -in ${DATA_DIR_TOPP}/FalseDiscoveryRate_5_input.idXML -out FalseDiscoveryRate_5_output.tmp -PSM false -protein true -algorithm:add_decoy_proteins)
 add_test("TOPP_FalseDiscoveryRate_5_out1" ${DIFF} -whitelist "?xml-stylesheet" -in1 FalseDiscoveryRate_5_output.tmp -in2 ${DATA_DIR_TOPP}/FalseDiscoveryRate_5_output.idXML)
 set_tests_properties("TOPP_FalseDiscoveryRate_5_out1" PROPERTIES DEPENDS "TOPP_FalseDiscoveryRate_5")
 # FDR filtering
 add_test("TOPP_FalseDiscoveryRate_6" ${TOPP_BIN_PATH}/FalseDiscoveryRate -test -in ${DATA_DIR_TOPP}/FalseDiscoveryRate_6_input.idXML -out FalseDiscoveryRate_6_output.tmp -PSM true -protein false -FDR:PSM 0.05)
 add_test("TOPP_FalseDiscoveryRate_6_out1" ${DIFF} -whitelist "?xml-stylesheet" -in1 FalseDiscoveryRate_6_output.tmp -in2 ${DATA_DIR_TOPP}/FalseDiscoveryRate_6_output.idXML)
 set_tests_properties("TOPP_FalseDiscoveryRate_6_out1" PROPERTIES DEPENDS "TOPP_FalseDiscoveryRate_6")
-add_test("TOPP_FalseDiscoveryRate_7" ${TOPP_BIN_PATH}/FalseDiscoveryRate -test -in ${DATA_DIR_TOPP}/FalseDiscoveryRate_7_input.idXML -out FalseDiscoveryRate_7_output.tmp -PSM false -protein true -FDR:protein 0.05)
+# FDR filtering, proteins only, decoys removed (default)
+add_test("TOPP_FalseDiscoveryRate_7" ${TOPP_BIN_PATH}/FalseDiscoveryRate -test -in ${DATA_DIR_TOPP}/FalseDiscoveryRate_7_input.idXML -out FalseDiscoveryRate_7_output.tmp -PSM false -protein true -FDR:protein 0.30)
 add_test("TOPP_FalseDiscoveryRate_7_out1" ${DIFF} -whitelist "?xml-stylesheet" -in1 FalseDiscoveryRate_7_output.tmp -in2 ${DATA_DIR_TOPP}/FalseDiscoveryRate_7_output.idXML)
 set_tests_properties("TOPP_FalseDiscoveryRate_7_out1" PROPERTIES DEPENDS "TOPP_FalseDiscoveryRate_7")
 
@@ -2035,7 +2044,7 @@ add_test("UTILS_IDScoreSwitcher_1" ${TOPP_BIN_PATH}/IDScoreSwitcher -test -in ${
 add_test("UTILS_IDScoreSwitcher_1_out1" ${DIFF} -in1 IDScoreSwitcher_1_output.tmp -in2 ${DATA_DIR_TOPP}/IDFileConverter_13_output.idXML -whitelist "IdentificationRun date")
 set_tests_properties("UTILS_IDScoreSwitcher_1_out1" PROPERTIES DEPENDS "UTILS_IDScoreSwitcher_1")
 # IDScoreSwitcher - switch q-value and protein probability:
-add_test("UTILS_IDScoreSwitcher_2" ${TOPP_BIN_PATH}/IDScoreSwitcher -test -in ${DATA_DIR_TOPP}/FalseDiscoveryRate_5_output.idXML -out IDScoreSwitcher_2_output.tmp -new_score "Posterior Probability_score" -new_score_type "Posterior Probability" -new_score_orientation higher_better -proteins)
+add_test("UTILS_IDScoreSwitcher_2" ${TOPP_BIN_PATH}/IDScoreSwitcher -test -in ${DATA_DIR_TOPP}/IDScoreSwitcher_2_input.idXML -out IDScoreSwitcher_2_output.tmp -new_score "Posterior Probability_score" -new_score_type "Posterior Probability" -new_score_orientation higher_better -proteins)
 add_test("UTILS_IDScoreSwitcher_2_out1" ${DIFF} -in1 IDScoreSwitcher_2_output.tmp -in2 ${DATA_DIR_TOPP}/IDScoreSwitcher_2_output.idXML -whitelist "IdentificationRun date")
 set_tests_properties("UTILS_IDScoreSwitcher_2_out1" PROPERTIES DEPENDS "UTILS_IDScoreSwitcher_2")
 

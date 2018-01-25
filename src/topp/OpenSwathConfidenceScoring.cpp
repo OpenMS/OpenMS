@@ -123,7 +123,7 @@ public:
   }
 
   /// Docu in base class
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "Input file (OpenSwath results)");
     setValidFormats_("in", ListUtils::create<String>("featureXML"));
@@ -155,7 +155,7 @@ public:
   }
 
   /// Docu in base class
-  ExitCodes main_(int, const char**)
+  ExitCodes main_(int, const char**) override
   {
     TargetedExperiment library_; // assay library
     Size n_decoys_; // number of decoys to use (per feature/true assay)

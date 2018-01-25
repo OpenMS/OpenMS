@@ -56,7 +56,7 @@ namespace OpenMS
     char is = ',';
     bool ie = false; 
     Int first_n = -1;
-    fload(filename, is, ie, first_n);
+    CsvFile::load(filename, is, ie, first_n);
 
     // parse the file
     std::map<String,int> headers;

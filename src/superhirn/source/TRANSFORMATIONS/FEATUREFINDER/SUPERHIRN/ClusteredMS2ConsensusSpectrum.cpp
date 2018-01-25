@@ -132,7 +132,7 @@ namespace OpenMS
 
       // in case where the fragment has been detected in a previous MS/MS
       // merge thes in one MS2 fragment
-      if (matchedFrag != NULL)
+      if (matchedFrag != nullptr)
       {
         this->mergeMS2Fragments(matchedFrag, frag);
       }

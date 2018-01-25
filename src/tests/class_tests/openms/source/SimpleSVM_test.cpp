@@ -47,8 +47,8 @@ START_TEST(SimpleSVM, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-SimpleSVM* ptr = 0;
-SimpleSVM* null_ptr = 0;
+SimpleSVM* ptr = nullptr;
+SimpleSVM* null_ptr = nullptr;
 
 START_SECTION((SimpleSVM()))
 {

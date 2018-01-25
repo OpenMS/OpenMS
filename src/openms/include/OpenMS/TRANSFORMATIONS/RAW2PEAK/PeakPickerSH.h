@@ -53,7 +53,7 @@ namespace OpenMS
 public:
     PeakPickerSH();
 
-    virtual ~PeakPickerSH();
+    ~PeakPickerSH() override;
 
     /**
      @brief Picks peaks in one spectrum.

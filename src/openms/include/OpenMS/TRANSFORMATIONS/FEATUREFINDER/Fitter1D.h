@@ -70,11 +70,11 @@ public:
     typedef Feature::CoordinateType CoordinateType;
     /// Quality of a feature
     typedef Feature::QualityType QualityType;
-    /// Raw data point type
+    /// Peak type data point type
     typedef Peak1D PeakType;
-    /// Raw data container type using for the temporary storage of the input data
+    /// Peak type data container type using for the temporary storage of the input data
     typedef std::vector<PeakType> RawDataArrayType;
-    /// Raw data iterator
+    /// Peak type data iterator
     typedef RawDataArrayType::iterator PeakIterator;
 
     /// Default constructor.
@@ -84,7 +84,7 @@ public:
     Fitter1D(const Fitter1D& source);
 
     /// destructor
-    virtual ~Fitter1D()
+    ~Fitter1D() override
     {
     }
 
@@ -106,7 +106,7 @@ protected:
     /// interpolation step size
     CoordinateType interpolation_step_;
 
-    virtual void updateMembers_();
+    void updateMembers_() override;
 
   };
 

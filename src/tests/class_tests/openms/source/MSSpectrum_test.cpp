@@ -67,8 +67,8 @@ p3.setMZ(30.0);
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-MSSpectrum* ptr = 0;
-MSSpectrum* nullPointer = 0;
+MSSpectrum* ptr = nullptr;
+MSSpectrum* nullPointer = nullptr;
 START_SECTION((MSSpectrum()))
   ptr = new MSSpectrum();
   TEST_NOT_EQUAL(ptr, nullPointer)

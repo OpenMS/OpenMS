@@ -57,12 +57,27 @@ START_TEST(ModificationsDB, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-ModificationsDB* ptr = 0;
-ModificationsDB* nullPointer = 0;
+START_SECTION(bool ModificationsDB::isInstantiated())
+{
+  bool instantiated = ModificationsDB::isInstantiated();
+  TEST_EQUAL(instantiated, false);
+}
+END_SECTION
+
+ModificationsDB* ptr = nullptr;
+ModificationsDB* nullPointer = nullptr;
+
 START_SECTION(ModificationsDB* getInstance())
 {
 	ptr = ModificationsDB::getInstance();
 	TEST_NOT_EQUAL(ptr, nullPointer)
+}
+END_SECTION
+
+START_SECTION(bool ModificationsDB::isInstantiated())
+{
+  bool instantiated = ModificationsDB::isInstantiated();
+  TEST_EQUAL(instantiated, true);
 }
 END_SECTION
 

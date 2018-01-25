@@ -28,14 +28,17 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 
+//! [FeatureMap]
+
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <iostream>
 
 using namespace OpenMS;
 using namespace std;
 
-Int main()
+int main()
 {
+  // Insert of two features into a map and iterate over the features.
   FeatureMap map;
 
   Feature feature;
@@ -46,11 +49,20 @@ Int main()
   feature.setMZ(1311.3);
   map.push_back(feature); //append feature 2
 
-
-  for (FeatureMap::Iterator it = map.begin(); it != map.end(); ++it)
+  // Iteration over FeatureMap
+  for (auto it = map.begin(); it != map.end(); ++it)
   {
     cout << it->getRT() << " - " << it->getMZ() << endl;
   }
 
+  // Calculate and output the ranges
+  map.updateRanges();
+  cout << "Int: " << map.getMinInt() << " - " << map.getMaxInt() << endl;
+  cout << "RT:  " << map.getMin()[0] << " - " << map.getMax()[0] << endl;
+  cout << "m/z: " << map.getMin()[1] << " - " << map.getMax()[1] << endl;
+
+  // ... and many more
   return 0;
 } //end of main
+
+//! [FeatureMap]

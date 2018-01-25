@@ -102,7 +102,7 @@ public:
     }
 
     /// Destructor
-    virtual ~SignalToNoiseEstimator()
+    ~SignalToNoiseEstimator() override
     {}
 
 

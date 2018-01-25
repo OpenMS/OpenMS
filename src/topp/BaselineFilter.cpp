@@ -98,7 +98,7 @@ public:
   }
 
 protected:
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "input raw data file ");
     setValidFormats_("in", ListUtils::create<String>("mzML"));
@@ -111,7 +111,7 @@ protected:
     setValidStrings_("method", ListUtils::create<String>("identity,erosion,dilation,opening,closing,gradient,tophat,bothat,erosion_simple,dilation_simple"));
   }
 
-  ExitCodes main_(int, const char **)
+  ExitCodes main_(int, const char **) override
   {
     //-------------------------------------------------------------
     // parameter handling
@@ -135,7 +135,7 @@ protected:
       return INCOMPATIBLE_INPUT_DATA;
     }
     // check for peak type (raw data required)
-    if (PeakTypeEstimator().estimateType(ms_exp[0].begin(), ms_exp[0].end()) == SpectrumSettings::PEAKS)
+    if (PeakTypeEstimator().estimateType(ms_exp[0].begin(), ms_exp[0].end()) == SpectrumSettings::CENTROID)
     {
       writeLog_("Warning: OpenMS peak type estimation indicates that this is not raw data!");
     }

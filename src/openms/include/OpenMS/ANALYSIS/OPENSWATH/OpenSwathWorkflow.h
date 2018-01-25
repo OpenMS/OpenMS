@@ -65,7 +65,7 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/SwathMapMassCorrection.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/LinearResamplerAlign.h>
 
-#include <assert.h>
+#include <cassert>
 #include <limits>
 
 // #define OPENSWATH_WORKFLOW_DEBUG

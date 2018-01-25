@@ -47,8 +47,8 @@ START_TEST(ChromatogramPeak, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-ChromatogramPeak* ptr = 0;
-ChromatogramPeak* nullPointer = 0;
+ChromatogramPeak* ptr = nullptr;
+ChromatogramPeak* nullPointer = nullptr;
 START_SECTION(ChromatogramPeak())
 {
 	ptr = new ChromatogramPeak();

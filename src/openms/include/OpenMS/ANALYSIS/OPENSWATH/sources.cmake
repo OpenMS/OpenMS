@@ -22,13 +22,14 @@ set(sources_list_h
   OpenSwathTSVWriter.h
   OpenSwathOSWWriter.h
   OpenSwathWorkflow.h
+  PeakIntegrator.h
   SONARScoring.h
   SpectrumAddition.h
   TargetedSpectraExtractor.h
   SwathMapMassCorrection.h
   SwathWindowLoader.h
-  TransitionTSVReader.h
-  TransitionPQPReader.h
+  TransitionTSVFile.h
+  TransitionPQPFile.h
   MRMFeatureQC.h
   MRMFeatureFilter.h
 )

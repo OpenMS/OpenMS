@@ -32,8 +32,8 @@
 // $Authors: George Rosenberger, Hannes Roest $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/ANALYSIS/OPENSWATH/TransitionTSVReader.h>
-#include <OpenMS/ANALYSIS/OPENSWATH/TransitionPQPReader.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/TransitionTSVFile.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/TransitionPQPFile.h>
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/CONCEPT/Exception.h>
@@ -160,7 +160,7 @@ public:
 
 protected:
 
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "Input file to convert.\n "
                                            "See http://www.openms.de/current_doxygen/html/UTILS_TargetedFileConverter.html for format of OpenSWATH transition TSV file or SpectraST MRM file.");
@@ -180,12 +180,12 @@ protected:
 
   }
 
-  Param getSubsectionDefaults_(const String&) const
+  Param getSubsectionDefaults_(const String&) const override
   {
-    return TransitionTSVReader().getDefaults();
+    return TransitionTSVFile().getDefaults();
   }
 
-  ExitCodes main_(int, const char**)
+  ExitCodes main_(int, const char**) override
   {
     FileHandler fh;
 
@@ -230,7 +230,7 @@ protected:
     {
       const char* tr_file = in.c_str();
       Param reader_parameters = getParam_().copy("algorithm:", true);
-      TransitionTSVReader tsv_reader = TransitionTSVReader();
+      TransitionTSVFile tsv_reader = TransitionTSVFile();
       tsv_reader.setLogType(log_type_);
       tsv_reader.setParameters(reader_parameters);
       tsv_reader.convertTSVToTargetedExperiment(tr_file, in_type, targeted_exp);
@@ -239,7 +239,7 @@ protected:
     else if (in_type == FileTypes::PQP)
     {
       const char* tr_file = in.c_str();
-      TransitionPQPReader pqp_reader = TransitionPQPReader();
+      TransitionPQPFile pqp_reader = TransitionPQPFile();
       Param reader_parameters = getParam_().copy("algorithm:", true);
       pqp_reader.setLogType(log_type_);
       pqp_reader.setParameters(reader_parameters);
@@ -255,14 +255,14 @@ protected:
     if (out_type == FileTypes::TSV)
     {
       const char* tr_file = out.c_str();
-      TransitionTSVReader tsv_reader = TransitionTSVReader();
+      TransitionTSVFile tsv_reader = TransitionTSVFile();
       tsv_reader.setLogType(log_type_);
       tsv_reader.convertTargetedExperimentToTSV(tr_file, targeted_exp);
     }
     if (out_type == FileTypes::PQP)
     {
       const char * tr_file = out.c_str();
-      TransitionPQPReader pqp_reader = TransitionPQPReader();
+      TransitionPQPFile pqp_reader = TransitionPQPFile();
       pqp_reader.setLogType(log_type_);
       pqp_reader.convertTargetedExperimentToPQP(tr_file, targeted_exp);
     }

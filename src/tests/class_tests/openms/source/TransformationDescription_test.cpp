@@ -54,8 +54,8 @@ using namespace OpenMS;
 using namespace std;
 
 
-TransformationDescription* ptr = 0;
-TransformationDescription* nullPointer = 0;
+TransformationDescription* ptr = nullptr;
+TransformationDescription* nullPointer = nullptr;
 START_SECTION((TransformationDescription()))
 	ptr = new TransformationDescription;
 	TEST_NOT_EQUAL(ptr, nullPointer)
