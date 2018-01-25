@@ -1,7 +1,8 @@
+from libcpp.vector cimport vector as libcpp_vector
+from libcpp.string cimport string as libcpp_string
 from Types cimport *
 from libcpp cimport bool
 from MSSpectrum cimport *
-# from SparseVector cimport *
 
 cdef extern from "<OpenMS/COMPARISON/SPECTRA/BinnedSpectrum.h>" namespace "OpenMS":
 
