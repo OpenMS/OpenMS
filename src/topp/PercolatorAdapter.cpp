@@ -258,6 +258,7 @@ protected:
     setValidFormats_("fasta", ListUtils::create<String>("FASTA"));
     registerStringOption_("decoy-pattern", "<value>", "random", "Define the text pattern to identify the decoy proteins and/or PSMs, set this up if the label that identifies the decoys in the database is not the default (Only valid if option -protein-level-fdrs is active).", !is_required, is_advanced_option);
     registerFlag_("post-processing-tdc", "Use target-decoy competition to assign q-values and PEPs.", is_advanced_option);
+    registerFlag_("train-best-positive", "Enforce that, for each spectrum, at most one PSM is included in the positive set during each training iteration. If the user only provides one PSM per spectrum, this filter will have no effect.", is_advanced_option);
 
     //OSW/IPF parameters
     registerDoubleOption_("ipf_max_peakgroup_pep", "<value>", 0.7, "OSW/IPF: Assess transitions only for candidate peak groups until maximum posterior error probability.", !is_required, is_advanced_option);
@@ -902,6 +903,7 @@ protected:
       if (subset_max_train > 0) arguments << "-N" << String(subset_max_train).toQString();
       if (getFlag_("quick-validation")) arguments << "-x";
       if (getFlag_("post-processing-tdc")) arguments << "-Y";
+      if (getFlag_("train-best-positive")) arguments << "--train-best-positive";
       
       String weights_file = getStringOption_("weights");
       String init_weights_file = getStringOption_("init-weights");
@@ -1076,6 +1078,7 @@ protected:
         search_parameters.setMetaValue("Percolator:fasta", getStringOption_("fasta"));
         search_parameters.setMetaValue("Percolator:decoy-pattern", getStringOption_("decoy-pattern"));
         search_parameters.setMetaValue("Percolator:post-processing-tdc", getFlag_("post-processing-tdc"));
+        search_parameters.setMetaValue("Percolator:train-best-positive", getFlag_("train-best-positive"));
         
         it->setSearchParameters(search_parameters);
       }
@@ -1095,6 +1098,7 @@ protected:
       std::map< std::string, std::vector<double> > features;
       for (auto const &feat : pep_map)
       {
+
         features[feat.second.PSMId].push_back(feat.second.score);
         features[feat.second.PSMId].push_back(feat.second.qvalue);
         features[feat.second.PSMId].push_back(feat.second.posterior_error_prob);
