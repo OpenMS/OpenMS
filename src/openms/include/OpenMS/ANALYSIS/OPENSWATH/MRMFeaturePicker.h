@@ -41,6 +41,18 @@
 
 namespace OpenMS
 {
+  /**
+    @brief _MRMFeaturePicker_ defines the structures containing parameters to be used in
+    [MRMTransitionGroupPicker](@ref MRMTransitionGroupPicker) for components and components groups.
+
+    This data can be loaded from a file with [MRMFeaturePickerFile](@ref MRMFeaturePickerFile).
+
+    Examples of parameters are:
+    "TransitionGroupPicker:compute_peak_quality"
+    "TransitionGroupPicker:stop_after_feature"
+    "TransitionGroupPicker:PeakPickerMRM:signal_to_noise"
+    "TransitionGroupPicker:PeakPickerMRM:sn_bin_count"
+  */
   class OPENMS_DLLAPI MRMFeaturePicker
   {
 public:
@@ -50,17 +62,19 @@ public:
     /// Destructor
     ~MRMFeaturePicker() = default;
 
+    /// Structure to contain information about a single component with its parameters
     struct ComponentParams
     {
-      String component_name;
-      String component_group_name;
-      Param params;
+      String component_name; ///< The component_name can't be an empty string
+      String component_group_name; ///< The component_group_name can't be an empty string
+      Param params; ///< The parameters pertaining a single component
     };
 
+    /// Structure to contain information about a component group with its parameters
     struct ComponentGroupParams
     {
-      String component_group_name;
-      Param params;
+      String component_group_name; ///< The component_group_name can't be an empty string
+      Param params; ///< The parameters pertaining a component group
     };
   };
 }

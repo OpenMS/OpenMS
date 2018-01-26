@@ -106,17 +106,17 @@ namespace OpenMS
       boost::smatch m;
       if (boost::regex_search(header, m, boost::regex("TransitionGroupPicker:(?!PeakPickerMRM:)(.+)")))
       {
-        setCastValue(String(m[1]), line[i], cgp.params);
+        setCastValue_(String(m[1]), line[i], cgp.params);
       }
       else if (boost::regex_search(header, m, boost::regex("TransitionGroupPicker:PeakPickerMRM:(.+)")))
       {
-        setCastValue(String(m[1]), line[i], cp.params);
+        setCastValue_(String(m[1]), line[i], cp.params);
       }
     }
     return true;
   }
 
-  void MRMFeaturePickerFile::setCastValue(const String& key, const String& value, Param& params) const
+  void MRMFeaturePickerFile::setCastValue_(const String& key, const String& value, Param& params) const
   {
     if (value == "") // if the value is empty, don't set it
     {
