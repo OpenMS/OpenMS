@@ -62,7 +62,7 @@ namespace OpenMS
        * @param precursor_mass_tolerance_unit_ppm The unit of the precursor mass tolerance ("Da" or "ppm")
        * @return A vector of XLPrecursors containing all possible candidate cross-links
        */
-      static std::vector<OPXLDataStructs::XLPrecursor> enumerateCrossLinksAndMasses(const std::vector<OPXLDataStructs::AASeqWithMass>&  peptides, double cross_link_mass_light, const DoubleList& cross_link_mass_mono_link, const StringList& cross_link_residue1, const StringList& cross_link_residue2, std::vector< double >& spectrum_precursors, double precursor_mass_tolerance, bool precursor_mass_tolerance_unit_ppm);
+      static std::vector<OPXLDataStructs::XLPrecursor> enumerateCrossLinksAndMasses(const std::vector<OPXLDataStructs::AASeqWithMass>&  peptides, double cross_link_mass_light, const DoubleList& cross_link_mass_mono_link, const StringList& cross_link_residue1, const StringList& cross_link_residue2, std::vector< double >& spectrum_precursors, std::vector< int >& precursor_correction_positions, double precursor_mass_tolerance, bool precursor_mass_tolerance_unit_ppm);
 
       /**
        * @brief A helper function, that turns a StringList with modification names into a vector of ResidueModifications
@@ -108,7 +108,8 @@ namespace OpenMS
        * @param c_term_linker True, if the cross-linker can react with the C-terminal of a protein
        * @return A vector of ProteinProteinCrossLink candidates containing all necessary information to generate theoretical spectra
        */
-      static std::vector <OPXLDataStructs::ProteinProteinCrossLink> buildCandidates(const std::vector< OPXLDataStructs::XLPrecursor > & candidates, std::vector< int > & precursor_corrections, const std::vector<OPXLDataStructs::AASeqWithMass> & peptide_masses, const StringList & cross_link_residue1, const StringList & cross_link_residue2, double cross_link_mass, const DoubleList & cross_link_mass_mono_link, double precursor_mass, double allowed_error, String cross_link_name);
+      static std::vector <OPXLDataStructs::ProteinProteinCrossLink> buildCandidates(const std::vector< OPXLDataStructs::XLPrecursor > & candidates, std::vector< int > & precursor_corrections, std::vector< int >& precursor_correction_positions, const std::vector<OPXLDataStructs::AASeqWithMass> & peptide_masses, const StringList & cross_link_residue1, const StringList & cross_link_residue2, double cross_link_mass, const DoubleList & cross_link_mass_mono_link, std::vector< double >& spectrum_precursor_vector,
+                                                                                    std::vector< double >& allowed_error_vector, String cross_link_name);
 
       /**
        * @brief Fills up the given FragmentAnnotation vector with annotations from a theoretical spectrum4

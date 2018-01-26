@@ -295,6 +295,7 @@ protected:
     StringList cross_link_residue2 = getStringList_("cross_linker:residue2");
     double cross_link_mass = getDoubleOption_("cross_linker:mass");
     DoubleList cross_link_mass_mono_link = getDoubleList_("cross_linker:mass_mono_link");
+    std::sort(cross_link_mass_mono_link.begin(), cross_link_mass_mono_link.end(), std::greater< double >());
     String cross_link_name = getStringOption_("cross_linker:name");
 
     StringList fixedModNames = getStringList_("modifications:fixed");
@@ -571,17 +572,17 @@ protected:
 
       // TODO turn this into an InteregerList paramerter or something similar
       // Consider missasignment of the monoisotopic peak
-      // keep the order in a way that prioritizes corrections closer to the experimental value,
-      // that way candidates without correction or with smaller correction values will be proritized
+      // keep this order sorted!
       std::vector< int > precursor_correction_masses;
-      precursor_correction_masses.push_back(0);
-      precursor_correction_masses.push_back(-1);
       precursor_correction_masses.push_back(-2);
+      precursor_correction_masses.push_back(-1);
+      precursor_correction_masses.push_back(0);
+      vector< double > spectrum_precursor_vector;
+      vector< double > allowed_error_vector;
 
       progresslogger.startProgress(0, 1, "Start enumerating candidates...");
       for (int correction_mass : precursor_correction_masses)
       {
-        vector< int > precursor_corrections;
         double allowed_error = 0;
 
         double corrected_precursor_mass = precursor_mass + (static_cast<double>(correction_mass) * Constants::C13C12_MASSDIFF_U);
@@ -595,52 +596,33 @@ protected:
           allowed_error = precursor_mass_tolerance;
         }
 
-        // #ifdef _OPENMP
-        // #pragma omp critical (enumerated_cross_link_masses_access)
-        // #endif
-        //         {
-        //           low_it = lower_bound(enumerated_cross_link_masses.begin(), enumerated_cross_link_masses.end(), corrected_precursor_mass - allowed_error, OPXLDataStructs::XLPrecursorComparator());
-        //           up_it =  upper_bound(enumerated_cross_link_masses.begin(), enumerated_cross_link_masses.end(), corrected_precursor_mass + allowed_error, OPXLDataStructs::XLPrecursorComparator());
-        //         }
-        //
-        //         if (low_it != up_it) // no matching precursor in data
-        //         {
-        //           for (; low_it != up_it; ++low_it)
-        //           {
-        //             candidates.push_back(*low_it);
-        //             precursor_corrections.push_back(correction_mass);
-        //           }
-        //         }
-
-        vector< OPXLDataStructs::XLPrecursor > precursor_candidates;
-        vector< double > spectrum_precursor_vector;
+        // vector< OPXLDataStructs::XLPrecursor > precursor_candidates;
+        // vector< double > spectrum_precursor_vector;
         spectrum_precursor_vector.push_back(corrected_precursor_mass);
-        precursor_candidates = OPXLHelper::enumerateCrossLinksAndMasses(filtered_peptide_masses, cross_link_mass, cross_link_mass_mono_link, cross_link_residue1, cross_link_residue2,
-                                                                                                                                                      spectrum_precursor_vector, precursor_mass_tolerance, precursor_mass_tolerance_unit_ppm);
+        allowed_error_vector.push_back(allowed_error);
 
-// #ifdef _OPENMP
-// #pragma omp critical
-// #endif
-//         cout << "Enumerated cross-links: " << precursor_candidates.size() << endl;
-        // sort(candidates.begin(), candidates.end(), OPXLDataStructs::XLPrecursorComparator());
-        // cout << "Sorting of enumerated precursors finished" << endl;
-
-        for (OPXLDataStructs::XLPrecursor candidate : precursor_candidates)
-        {
-          // candidates.push_back(candidate);
-          precursor_corrections.push_back(correction_mass);
-        }
-
-        // Find all positions of lysine (K) in the peptides (possible scross-linking sites), create cross_link_candidates with all combinations
-        vector <OPXLDataStructs::ProteinProteinCrossLink> precursor_cross_link_candidates = OPXLHelper::buildCandidates(precursor_candidates, precursor_corrections, filtered_peptide_masses, cross_link_residue1, cross_link_residue2, cross_link_mass, cross_link_mass_mono_link, corrected_precursor_mass, allowed_error, cross_link_name);
-        cross_link_candidates_set.insert(precursor_cross_link_candidates.begin(), precursor_cross_link_candidates.end());
+        // for (OPXLDataStructs::XLPrecursor candidate : precursor_candidates)
+        // {
+        //   // candidates.push_back(candidate);
+        //   precursor_corrections.push_back(correction_mass);
+        // }
 
       } // end correction mass loop
 
+      vector< int > precursor_correction_positions;
+      candidates = OPXLHelper::enumerateCrossLinksAndMasses(filtered_peptide_masses, cross_link_mass, cross_link_mass_mono_link, cross_link_residue1, cross_link_residue2, spectrum_precursor_vector, precursor_correction_positions, precursor_mass_tolerance, precursor_mass_tolerance_unit_ppm);
+
+      vector< int > precursor_corrections;
+      for (Size f = 0; f < precursor_correction_positions.size(); ++f)
+      {
+        precursor_corrections.push_back(precursor_correction_masses[precursor_correction_positions[f]]);
+      }
+
+      vector <OPXLDataStructs::ProteinProteinCrossLink> cross_link_candidates = OPXLHelper::buildCandidates(candidates, precursor_corrections, precursor_correction_positions, filtered_peptide_masses, cross_link_residue1, cross_link_residue2, cross_link_mass, cross_link_mass_mono_link, spectrum_precursor_vector, allowed_error_vector, cross_link_name);
 
       progresslogger.endProgress();
 
-      vector< OPXLDataStructs::ProteinProteinCrossLink > cross_link_candidates(cross_link_candidates_set.begin(), cross_link_candidates_set.end());
+      // vector< OPXLDataStructs::ProteinProteinCrossLink > cross_link_candidates(cross_link_candidates_set.begin(), cross_link_candidates_set.end());
 
 #ifdef _OPENMP
 #pragma omp critical
