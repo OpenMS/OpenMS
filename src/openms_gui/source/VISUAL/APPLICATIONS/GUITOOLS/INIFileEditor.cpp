@@ -133,10 +133,6 @@ int main(int argc, const char** argv)
   {
     app.setStyle("windowsxp");
   }
-  else if (QStyleFactory::keys().contains("macintosh", Qt::CaseInsensitive))
-  {
-    app.setStyle("macintosh");
-  }
   else if (QStyleFactory::keys().contains("plastique", Qt::CaseInsensitive))
   {
     app.setStyle("plastique");
