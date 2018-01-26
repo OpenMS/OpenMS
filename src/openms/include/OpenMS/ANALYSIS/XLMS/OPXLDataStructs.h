@@ -139,6 +139,7 @@ namespace OpenMS
         Size rank;
 
         /// counts, scores and other data for xQuest-like output
+        double xquest_score;
         double pre_score;
         double percTIC;
         double wTIC;
