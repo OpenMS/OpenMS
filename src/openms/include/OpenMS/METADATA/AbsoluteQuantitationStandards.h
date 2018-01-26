@@ -88,13 +88,33 @@ public:
       @warning The method checks for the FeatureMaps' sample names with FeatureMap::getPrimaryMSRunPath()
 
       @param[in] run_concentrations A list of runConcentration structs (e.g., from file upload).
-      @param[in] features A list of corresponding features for each of the unique runs in run_concentrations.
+      @param[in] feature_maps The method maps to these features.
       @param[out] components_to_concentrations A map that links run data to feature data.
     */
     void mapComponentsToConcentrations(
       const std::vector<AbsoluteQuantitationStandards::runConcentration>& run_concentrations,
       const std::vector<FeatureMap>& feature_maps,
       std::map<String, std::vector<AbsoluteQuantitationStandards::featureConcentration>>& components_to_concentrations
+    ) const;
+
+    /**
+      @brief Get the feature concentrations from a single component.
+
+      This method internally calls `mapComponentsToConcentrations()`, but takes in consideration only those
+      elements of `run_concentrations` that have the passed `component_name`.
+
+      @warning The method checks for the FeatureMaps' sample names with FeatureMap::getPrimaryMSRunPath()
+
+      @param[in] run_concentrations A list of runConcentration structs (e.g., from file upload).
+      @param[in] feature_maps The method maps to these features.
+      @param[in] component_name Only runConcentration with this name will be considered.
+      @param[out] feature_concentrations The list of feature concentrations found.
+    */
+    void getComponentFeatureConcentrations(
+      const std::vector<AbsoluteQuantitationStandards::runConcentration>& run_concentrations,
+      const std::vector<FeatureMap>& feature_maps,
+      const String& component_name,
+      std::vector<AbsoluteQuantitationStandards::featureConcentration>& feature_concentrations
     ) const;
 
 private:

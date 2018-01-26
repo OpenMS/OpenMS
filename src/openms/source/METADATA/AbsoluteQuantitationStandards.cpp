@@ -106,5 +106,28 @@ namespace OpenMS
       }
     }
   }
+
+  void AbsoluteQuantitationStandards::getComponentFeatureConcentrations(
+    const std::vector<AbsoluteQuantitationStandards::runConcentration>& run_concentrations,
+    const std::vector<FeatureMap>& feature_maps,
+    const String& component_name,
+    std::vector<AbsoluteQuantitationStandards::featureConcentration>& feature_concentrations
+  ) const
+  {
+    std::vector<AbsoluteQuantitationStandards::runConcentration> filtered_rc;
+    for (const AbsoluteQuantitationStandards::runConcentration& run : run_concentrations)
+    {
+      if (run.component_name == component_name)
+      {
+        filtered_rc.push_back(run);
+      }
+    }
+    std::map<String, std::vector<AbsoluteQuantitationStandards::featureConcentration>> components_to_concentrations;
+    mapComponentsToConcentrations(filtered_rc, feature_maps, components_to_concentrations);
+    if (components_to_concentrations.count(component_name))
+    {
+      feature_concentrations = components_to_concentrations.at(component_name);
+    }
+  }
 } // namespace
 

@@ -149,6 +149,24 @@ START_SECTION(void mapComponentsToConcentrations(
 }
 END_SECTION
 
+START_SECTION(void getComponentFeatureConcentrations(
+  const std::vector<AbsoluteQuantitationStandards::runConcentration>& run_concentrations,
+  const std::vector<FeatureMap>& feature_maps,
+  const String& component_name,
+  std::vector<AbsoluteQuantitationStandards::featureConcentration>& feature_concentrations
+) const)
+{
+  AbsoluteQuantitationStandards aqs;
+  std::vector<AbsoluteQuantitationStandards::featureConcentration> fc;
+  aqs.getComponentFeatureConcentrations(runs, fmaps, "component0", fc);
+  TEST_EQUAL(fc.size(), 2)
+  TEST_EQUAL(fc[0].feature.getMetaValue("native_id"), "component0")
+  TEST_EQUAL(fc[0].IS_feature.getMetaValue("native_id"), "IS_component0")
+  TEST_EQUAL(fc[1].feature.getMetaValue("native_id"), "component0")
+  TEST_EQUAL(fc[1].IS_feature.metaValueExists("native_id"), false)
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
