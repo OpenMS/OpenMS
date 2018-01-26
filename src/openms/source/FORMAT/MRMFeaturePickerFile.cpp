@@ -92,9 +92,9 @@ namespace OpenMS
     MRMFeaturePicker::ComponentGroupParams& cgp
   ) const
   {
-    cp.component_name = line[headers.find("component_name")->second]; // find the component_name value
-    cp.component_group_name = line[headers.find("component_group_name")->second]; // find the component_group_name value
-    if (cp.component_name == "" || cp.component_group_name == "") // TODO: should it skip on empty group name?
+    cp.component_name = line[headers.find("component_name")->second]; // save the component_name value
+    cp.component_group_name = line[headers.find("component_group_name")->second]; // save the component_group_name value
+    if (cp.component_name == "" || cp.component_group_name == "") // component_name and component_group_name must not be empty
     {
       return false;
     }
@@ -152,7 +152,7 @@ namespace OpenMS
     {
       params.setValue(key, value.toInt());
     }
-    else
+    else // no conversion for class' parameters of type String
     {
       params.setValue(key, value);
     }
