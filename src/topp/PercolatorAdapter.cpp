@@ -711,6 +711,13 @@ protected:
       printUsage_();
       return ILLEGAL_PARAMETERS;
     }
+
+    if ((!mzid_out.empty() && !osw_out.empty()) || (!out.empty() && !osw_out.empty()) || (!mzid_out.empty() && !out.empty()))
+    {
+      writeLog_("Fatal error: Two or more output files defined (parameter 'out' or 'mzid_out' or 'osw_out'). Restrict output to a single file.");
+      printUsage_();
+      return ILLEGAL_PARAMETERS;
+    }
     
     bool peptide_level_fdrs = getFlag_("peptide-level-fdrs");
     bool protein_level_fdrs = getFlag_("protein-level-fdrs");  
