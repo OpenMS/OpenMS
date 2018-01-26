@@ -358,4 +358,44 @@ namespace OpenMS
     return results;
   }
 
+  double XQuestScores::xCorrelationPrescore(const PeakSpectrum & spec1, const PeakSpectrum & spec2, double tolerance)
+  {
+    // generate vector of results, filled with zeroes
+    // std::vector< double > results(maxshift * 2 + 1, 0);
+
+    // return 0 = no correlation, when one of the spectra is empty
+    if (spec1.size() == 0 || spec2.size() == 0) {
+      return 0.0;
+    }
+
+    double maxionsize = std::max(spec1[spec1.size()-1].getMZ(), spec2[spec2.size()-1].getMZ());
+    Int table_size = ceil(maxionsize / tolerance)+1;
+    std::vector< double > ion_table1(table_size, 0);
+    std::vector< double > ion_table2(table_size, 0);
+
+    // Build tables of the same size, each bin has the size of the tolerance
+    for (Size i = 0; i < spec1.size(); ++i)
+    {
+      Size pos = static_cast<Size>(ceil(spec1[i].getMZ() / tolerance));
+      ion_table1[pos] = 1;
+    }
+    for (Size i = 0; i < spec2.size(); ++i)
+    {
+      Size pos =static_cast<Size>(ceil(spec2[i].getMZ() / tolerance));
+      ion_table2[pos] = 1;
+
+    }
+
+    double dot_product = 0.0;
+    for (Size i = 0; i < ion_table1.size(); ++i)
+    {
+      dot_product += ion_table1[i] * ion_table2[i];
+    }
+
+    // determine the smaller spectrum and normalize by the number of peaks in it
+    double peaks = std::min(spec1.size(), spec2.size());
+    return dot_product / peaks;
+    // return dot_product;
+  }
+
 }

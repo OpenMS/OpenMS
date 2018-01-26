@@ -134,6 +134,7 @@ namespace OpenMS
     */
     static std::vector< double > xCorrelation(const PeakSpectrum & spec1, const PeakSpectrum & spec2, Int maxshift, double tolerance);
 
+    static double xCorrelationPrescore(const PeakSpectrum & spec1, const PeakSpectrum & spec2, double tolerance);
   };
 
 }
