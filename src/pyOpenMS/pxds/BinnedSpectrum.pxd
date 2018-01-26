@@ -19,6 +19,6 @@ cdef extern from "<OpenMS/COMPARISON/SPECTRA/BinnedSpectrum.h>" namespace "OpenM
         UInt getBinIndex(float mz) nogil except +
         float getBinLowerMZ(size_t i) nogil except +
 
-        vector[Precursor] getPrecursors() nogil except +
+        libcpp_vector[Precursor] getPrecursors() nogil except +
 
         bool isCompatible(BinnedSpectrum & a, BinnedSpectrum & b) nogil except +
