@@ -86,7 +86,8 @@ using namespace std;
 /// @cond TOPPCLASSES
 
 
-class TOPPMSFraggerAdapter final :
+class
+TOPPMSFraggerAdapter final :
 public TOPPBase
 {
 public:
@@ -693,7 +694,7 @@ protected:
 
     if (process_msfragger.waitForFinished(-1) == false || process_msfragger.exitCode() != 0)
     {
-      LOG_FATAL_ERROR << "FATAL: Invokation of MSFraggerAdapter has failed. Error code was: " + process_msfragger.exitCode() << std::endl;
+      LOG_FATAL_ERROR << "FATAL: Invocation of MSFraggerAdapter has failed. Error code was: " << process_msfragger.exitCode() << std::endl;
       return EXTERNAL_PROGRAM_ERROR;
     }
 
