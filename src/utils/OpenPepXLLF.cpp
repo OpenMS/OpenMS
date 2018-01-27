@@ -550,7 +550,7 @@ protected:
 #endif
       {
         spectrum_counter++;
-        cout << "Processing spectrum " << spectrum_counter << " / " << spectra.size() << "\tSpectrum ID: " << spectrum.getNativeID()  << endl;
+        cout << "Processing spectrum " << spectrum_counter << " / " << spectra.size() << "\tSpectrum ID: " << spectrum.getNativeID()  << "\t| at: " << DateTime::now().getTime() << endl;
       }
 
       const double precursor_charge = spectrum.getPrecursors()[0].getCharge();
@@ -627,7 +627,7 @@ protected:
 #ifdef _OPENMP
 #pragma omp critical
 #endif
-      cout << "#Peaks in this spectrum: " << spectrum.size() << " |\tNumber of candidates for this spectrum: " << cross_link_candidates.size() << endl;
+      cout << "\t#Peaks in this spectrum: " << spectrum.size() << " |\tNumber of candidates for this spectrum: " << cross_link_candidates.size() << endl;
 
       // // Find all positions of lysine (K) in the peptides (possible scross-linking sites), create cross_link_candidates with all combinations
       // vector <OPXLDataStructs::ProteinProteinCrossLink> cross_link_candidates = OPXLHelper::buildCandidates(candidates, precursor_corrections, filtered_peptide_masses, cross_link_residue1, cross_link_residue2, cross_link_mass, cross_link_mass_mono_link, precursor_mass, allowed_error, cross_link_name);
@@ -644,7 +644,7 @@ protected:
 //        LOG_DEBUG << cross_link_candidates[i].alpha.toString() << "-" << cross_link_candidates[i].beta.toString() << " | mass " << cross_link_candidates[i].cross_linker_mass << " | pos " << cross_link_candidates[i].cross_link_position.first << ", " << cross_link_candidates[i].cross_link_position.second << " | term "  << cross_link_candidates[i].term_spec_alpha << ", " << cross_link_candidates[i].term_spec_beta << endl;
 //      }
 
-      // progresslogger.startProgress(0, 1, "Start pre-scoring...");
+      progresslogger.startProgress(0, 1, "Start pre-scoring...");
 
       for (Size i = 0; i < cross_link_candidates.size(); ++i)
       {
@@ -746,7 +746,7 @@ protected:
 
         prescore_csms_spectrum.push_back(csm);
       }
-      // progresslogger.endProgress();
+      progresslogger.endProgress();
 
       // progresslogger.startProgress(0, 1, "Start sorting pre-scores...");
       std::sort(prescore_csms_spectrum.rbegin(), prescore_csms_spectrum.rend());
@@ -779,7 +779,7 @@ protected:
 
       for (Size i = 0; i < last_candidate_index ; ++i)
       {
-        cout << "Pre-Score: " << prescore_csms_spectrum[i].score << "\t| xcorr_prescore: " << prescore_csms_spectrum[i].xcorrc_max << endl;
+        // cout << "Pre-Score: " << prescore_csms_spectrum[i].score << "\t| xcorr_prescore: " << prescore_csms_spectrum[i].xcorrc_max << endl;
         OPXLDataStructs::ProteinProteinCrossLink cross_link_candidate = prescore_csms_spectrum[i].cross_link;
         double candidate_mz = (cross_link_candidate.alpha.getMonoWeight() + cross_link_candidate.beta.getMonoWeight() +  cross_link_candidate.cross_linker_mass+ (static_cast<double>(precursor_charge) * Constants::PROTON_MASS_U)) / precursor_charge;
 
