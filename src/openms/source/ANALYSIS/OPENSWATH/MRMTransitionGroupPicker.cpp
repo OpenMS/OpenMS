@@ -82,6 +82,7 @@ namespace OpenMS
     defaults_.setValidStrings("compute_peak_shape_metrics", ListUtils::create<String>("true,false"));
 
     defaults_.insert("PeakPickerMRM:", PeakPickerMRM().getDefaults());
+    defaults_.insert("PeakIntegrator:", PeakIntegrator().getDefaults());
 
     // write defaults into Param object param_
     defaultsToParam_();
@@ -118,6 +119,7 @@ namespace OpenMS
     resample_boundary_ = (double)param_.getValue("resample_boundary");
 
     picker_.setParameters(param_.copy("PeakPickerMRM:", true));
+    pi_.setParameters(param_.copy("PeakIntegrator:", true));
   }
 
   void MRMTransitionGroupPicker::findLargestPeak(std::vector<MSChromatogram >& picked_chroms, int& chr_idx, int& peak_idx)
