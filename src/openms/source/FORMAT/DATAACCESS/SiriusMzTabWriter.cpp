@@ -48,7 +48,7 @@ String SiriusMzTabWriter::extract_scan_index(const String &path)
   return path.substr(path.find_last_not_of("0123456789") + 1);
 }
 
-void SiriusMzTabWriter::read(const std::vector<String> & paths, Size number, MzTab & result)
+void SiriusMzTabWriter::read(const std::vector<String> & paths, const String & mzml, Size number, MzTab & result)
 {
 
   SiriusMzTabWriter::SiriusAdapterRun sirius_result;
@@ -93,6 +93,9 @@ void SiriusMzTabWriter::read(const std::vector<String> & paths, Size number, MzT
           sirius_hit.isoscore = sl[5].toDouble();
           sirius_hit.explainedpeaks = sl[6].toInt();
           sirius_hit.explainedintensity = sl[7].toDouble();
+          // sirius_hit every candidate has path to mzml
+          // TODO: basename 
+          sirius_hit.mzml = mzml;          
 
           sirius_id.hits.push_back(sirius_hit);
         }

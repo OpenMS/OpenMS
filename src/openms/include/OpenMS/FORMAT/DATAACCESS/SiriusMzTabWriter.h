@@ -60,6 +60,7 @@ namespace OpenMS
       double isoscore;
       int explainedpeaks;
       double explainedintensity;
+      String mzml;
     };
 
     struct SiriusAdapterIdentification
@@ -79,7 +80,7 @@ namespace OpenMS
     //Output of Sirius is one directory per spectrum/compound
     //paths: Path to output directories of sirius
     //number: Amount of entries for each file/compound should be written to the mztab file
-    static void read(const std::vector<String> & paths, Size number, MzTab & result);
+    static void read(const std::vector<String> & paths, const String & mzml,  Size number, MzTab & result);
 
   };
 

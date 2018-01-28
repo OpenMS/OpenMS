@@ -40,6 +40,7 @@
 #include <OpenMS/ANALYSIS/ID/SiriusMSConverter.h>
 #include <OpenMS/FORMAT/DATAACCESS/SiriusMzTabWriter.h>
 #include <OpenMS/FORMAT/DATAACCESS/CsiFingerIdMzTabWriter.h>
+#include <OpenMS/ANALYSIS/QUANTITATION/KDTreeFeatureMaps.h>
 #include <QtCore/QProcess>
 #include <QDir>
 #include <QDebug>
@@ -103,6 +104,9 @@ protected:
     registerInputFile_("in", "<file>", "", "MzML Input file");
     setValidFormats_("in", ListUtils::create<String>("mzml"));
 
+    registerInputFile_("adductinfo", "<file>", "", "FeatureXML Input with adduct information", false));
+    setValidFormats_("adductinfo", ListUtils::ceate<String>("featurexml"));
+
     registerOutputFile_("out_sirius", "<file>", "", "MzTab Output file for SiriusAdapter results");
     setValidFormats_("out_sirius", ListUtils::create<String>("tsv"));
 
@@ -136,6 +140,7 @@ protected:
     String in = getStringOption_("in");
     String out_sirius = getStringOption_("out_sirius");
     String out_csifingerid = getStringOption_("out_fingerid");
+    String adductinfo = getStringOption_("adductinfo");
 
     // needed for counting
     int number_compounds = getIntOption_("number"); 
@@ -192,8 +197,17 @@ protected:
     String tmp_ms_file = QDir(tmp_base_dir).filePath((File::getUniqueName() + ".ms").toQString());
     String out_dir = QDir(tmp_dir).filePath("sirius_out");
 
-    //Write msfile
-    SiriusMSFile::store(spectra, tmp_ms_file);
+    // Read FeatureXML in KDTree for range query
+    KDTreeFeature adduct_map_kd;;
+    FeatureXML fxml;
+    FeatureMap feature_map;
+    vector<FeatureMap> adduct_map;
+    adduct_map.push_back(feature_map);
+    fxml.load(adductinfo, adduct_map[0]);
+    adduct_map_kd.addMaps(adduct_map);
+
+    // Write msfile
+    SiriusMSFile::store(spectra, tmp_ms_file, adduct_map);
 
     // Assemble SIRIUS parameters
     QStringList process_params;
@@ -272,7 +286,7 @@ protected:
     //Convert sirius_output to mztab and store file
     MzTab sirius_result;
     MzTabFile siriusfile;
-    SiriusMzTabWriter::read(subdirs, number_compounds, sirius_result);
+    SiriusMzTabWriter::read(subdirs, in, number_compounds, sirius_result);
     siriusfile.store(out_sirius, sirius_result);
 
     //Convert sirius_output to mztab and store file
