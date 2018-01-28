@@ -130,7 +130,6 @@ int main(int argc, const char** argv)
   //Create window
   QApplicationTOPP app(argc, const_cast<char**>(argv));
 
-{
 #if !defined(__APPLE__)
   //set plastique style unless windows style is available
   if (QStyleFactory::keys().contains("windowsxp", Qt::CaseInsensitive))
