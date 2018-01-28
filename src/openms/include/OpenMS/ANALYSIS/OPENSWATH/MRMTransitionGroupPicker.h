@@ -309,15 +309,24 @@ public:
         double peak_integral = pa.area;
         double peak_apex_int = pa.height;
         f.setMetaValue("peak_apex_position", pa.apex_pos);
-        double background(0), avg_noise_level(0);
         if (background_subtraction_ != "none")
         {
+          double background{0};
+          double avg_noise_level{0};
           if ((peak_integration_ == "smoothed") && smoothed_chroms.size() <= k)
           {
             throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
               "Tried to calculate background estimation without any smoothed chromatograms");
           }
-          else
+          else if (background_subtraction_ == "original")
+          {
+            const double intensity_left = chromatogram.PosBegin(best_left)->getIntensity();
+            const double intensity_right = (chromatogram.PosEnd(best_right) - 1)->getIntensity();
+            const UInt n_points = std::distance(chromatogram.PosBegin(best_left), chromatogram.PosEnd(best_right));
+            avg_noise_level = (intensity_right + intensity_left) / 2;
+            background = avg_noise_level * n_points;
+          }
+          else if (background_subtraction_ == "exact")
           {
             PeakIntegrator::PeakBackground pb = pi_.estimateBackground(used_chromatogram, best_left, best_right, pa.apex_pos);
             background = pb.area;
@@ -327,6 +336,9 @@ public:
           peak_apex_int -= avg_noise_level;
           if (peak_integral < 0) {peak_integral = 0;}
           if (peak_apex_int < 0) {peak_apex_int = 0;}
+
+          f.setMetaValue("area_background_level", background);
+          f.setMetaValue("noise_background_level", avg_noise_level);
         }
 
         f.setRT(picked_chroms[chr_idx][peak_idx].getMZ());
@@ -345,11 +357,6 @@ public:
         }
         f.setMetaValue("native_id", chromatogram.getNativeID());
         f.setMetaValue("peak_apex_int", peak_apex_int);
-        if (background_subtraction_ != "none")
-        {
-          f.setMetaValue("area_background_level", background);
-          f.setMetaValue("noise_background_level", avg_noise_level);
-        }
 
         if (transition_group.getTransitions()[k].isDetectingTransition())
         {
