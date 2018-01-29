@@ -213,12 +213,10 @@ protected:
     setValidFormats_("in_decoy", ListUtils::create<String>("mzid,idXML"));
     registerInputFile_("in_osw", "<file>", "", "Input file in OSW format", !is_required);
     setValidFormats_("in_osw", ListUtils::create<String>("OSW"));
-    registerOutputFile_("out", "<file>", "", "Output file in idXML format", !is_required);
-    setValidFormats_("out", ListUtils::create<String>("idXML"));
-    registerOutputFile_("mzid_out", "<file>", "", "Output file in mzid format", !is_required);
-    setValidFormats_("mzid_out", ListUtils::create<String>("mzid"));
-    registerOutputFile_("osw_out", "<file>", "", "Output file in OSW format", !is_required);
-    setValidFormats_("osw_out", ListUtils::create<String>("OSW"));
+    registerOutputFile_("out", "<file>", "", "Output file");
+    setValidFormats_("out", ListUtils::create<String>("mzid,idXML,osw"));
+    registerStringOption_("out_type", "<type>", "", "Output file type -- default: determined from file extension or content.", false);
+    setValidStrings_("out_type", ListUtils::create<String>("mzid,idXML,osw"));
     String enzs = "no_enzyme,elastase,pepsin,proteinasek,thermolysin,chymotrypsin,lys-n,lys-c,arg-c,asp-n,glu-c,trypsin";
     registerStringOption_("enzyme", "<enzyme>", "trypsin", "Type of enzyme: "+enzs , !is_required);
     setValidStrings_("enzyme", ListUtils::create<String>(enzs));
@@ -671,6 +669,23 @@ protected:
     const String in_osw = getStringOption_("in_osw");
     const String osw_level = getStringOption_("osw_level");
 
+    FileHandler fh;
+
+    //output file names and types
+    String out = getStringOption_("out");
+    FileTypes::Type out_type = FileTypes::nameToType(getStringOption_("out_type"));
+
+    if (out_type == FileTypes::UNKNOWN)
+    {
+      out_type = fh.getTypeByFileName(out);
+    }
+
+    if (out_type == FileTypes::UNKNOWN)
+    {
+      writeLog_("Fatal error: Could not determine output file type!");
+      return PARSE_ERROR;
+    }
+
     const String percolator_executable(getStringOption_("percolator_executable"));
     writeDebug_(String("Path to the percolator: ") + percolator_executable, 2);
     if (percolator_executable.empty())  //TODO? - TOPPBase::findExecutable after registerInputFile_("percolator_executable"... ???
@@ -680,10 +695,6 @@ protected:
       return ILLEGAL_PARAMETERS;
     }
     
-    const String mzid_out(getStringOption_("mzid_out"));
-    const String out(getStringOption_("out"));
-    const String osw_out(getStringOption_("osw_out"));
-
     if (in_list.empty() && in_osw.empty())
     {
       writeLog_("Fatal error: no input file given (parameter 'in' or 'in_osw')");
@@ -691,30 +702,30 @@ protected:
       return ILLEGAL_PARAMETERS;
     }
 
-    if (mzid_out.empty() && out.empty() && osw_out.empty())
+    if (!in_list.empty() && !in_osw.empty())
     {
-      writeLog_("Fatal error: no output file given (parameter 'out' or 'mzid_out' or 'osw_out')");
+      writeLog_("Fatal error: Provide either mzid/idXML or osw input files (parameter 'in' or 'in_osw')");
       printUsage_();
       return ILLEGAL_PARAMETERS;
     }
 
-    if (!in_osw.empty() && osw_out.empty())
+    if (out.empty())
+    {
+      writeLog_("Fatal error: no output file given (parameter 'out')");
+      printUsage_();
+      return ILLEGAL_PARAMETERS;
+    }
+
+    if (!in_osw.empty() && out_type != FileTypes::OSW)
     {
       writeLog_("Fatal error: OSW input requires OSW output.");
       printUsage_();
       return ILLEGAL_PARAMETERS;
     }
 
-    if (!in_list.empty() && (out.empty() && mzid_out.empty()))
+    if (!in_list.empty() && out_type == FileTypes::OSW)
     {
       writeLog_("Fatal error: idXML/mzid input requires idXML/mzid output.");
-      printUsage_();
-      return ILLEGAL_PARAMETERS;
-    }
-
-    if ((!mzid_out.empty() && !osw_out.empty()) || (!out.empty() && !osw_out.empty()) || (!mzid_out.empty() && !out.empty()))
-    {
-      writeLog_("Fatal error: Two or more output files defined (parameter 'out' or 'mzid_out' or 'osw_out'). Restrict output to a single file.");
       printUsage_();
       return ILLEGAL_PARAMETERS;
     }
@@ -748,21 +759,21 @@ protected:
     String pout_decoy_file_proteins(temp_directory_body + txt_designator + "_decoy_pout_proteins.tab");
 
     // prepare OSW I/O
-    if (!in_osw.empty() && !osw_out.empty() && in_osw != osw_out)
+    if (out_type == FileTypes::OSW && in_osw != out)
     {
       // Copy input OSW to output OSW, because we want to retain all information
-      remove(osw_out.c_str());
-      if (!osw_out.empty())
+      remove(out.c_str());
+      if (!out.empty())
       {
         std::ifstream  src(in_osw.c_str(), std::ios::binary);
-        std::ofstream  dst(osw_out.c_str(), std::ios::binary);
+        std::ofstream  dst(out.c_str(), std::ios::binary);
 
         dst << src.rdbuf();
       }
     }
 
     // idXML or mzid input
-    if (in_osw.empty())
+    if (out_type != FileTypes::OSW)
     {
       //TODO introduce min/max charge to parameters for now take available range
       int max_charge = 0;
@@ -1091,11 +1102,11 @@ protected:
       }
       
       // Storing the PeptideHits with calculated q-value, pep and svm score
-      if (!mzid_out.empty())
+      if (out_type == FileTypes::MZIDENTML)
       {
-        MzIdentMLFile().store(mzid_out.toQString().toStdString(), all_protein_ids, all_peptide_ids);
+        MzIdentMLFile().store(out.toQString().toStdString(), all_protein_ids, all_peptide_ids);
       }
-      if (!out.empty())
+      if (out_type == FileTypes::IDXML)
       {
         IdXMLFile().store(out.toQString().toStdString(), all_protein_ids, all_peptide_ids);
       }
@@ -1110,7 +1121,7 @@ protected:
         features[feat.second.PSMId].push_back(feat.second.qvalue);
         features[feat.second.PSMId].push_back(feat.second.posterior_error_prob);
       }
-      OSWFile().write(osw_out, osw_level, features);
+      OSWFile().write(out, osw_level, features);
     }
 
     writeLog_("PercolatorAdapter finished successfully!");
