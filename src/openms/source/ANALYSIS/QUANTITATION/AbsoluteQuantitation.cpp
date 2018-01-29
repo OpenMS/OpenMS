@@ -28,8 +28,8 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Douglas McCloskey $
-// $Authors: Douglas McCloskey $
+// $Maintainer: Douglas McCloskey, Pasquale Domenico Colaianni $
+// $Authors: Douglas McCloskey, Pasquale Domenico Colaianni $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/QUANTITATION/AbsoluteQuantitation.h>
@@ -636,10 +636,19 @@ namespace OpenMS
       }
       else
       {
-        LOG_INFO << "Warning: Standards not found for component " << quant_method.first << ".";
+        LOG_DEBUG << "Warning: Standards not found for component " << quant_method.first << ".";
       }
     }
   } 
 
+  void AbsoluteQuantitation::getOptimizedCalibrationCurve(
+    const String& component_name,
+    std::vector<AbsoluteQuantitationStandards::featureConcentration>& component_concentrations
+  )
+  {
+    std::map<String, std::vector<AbsoluteQuantitationStandards::featureConcentration>> cc_map;
+    cc_map.insert({component_name, component_concentrations});
+    optimizeCalibrationCurves(cc_map);
+    component_concentrations = cc_map.at(component_name);
+  }
 } // namespace
-

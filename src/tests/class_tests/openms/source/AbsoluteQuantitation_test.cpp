@@ -28,8 +28,8 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Douglas McCloskey $
-// $Authors: Douglas McCloskey $
+// $Maintainer: Douglas McCloskey, Pasquale Domenico Colaianni $
+// $Authors: Douglas McCloskey, Pasquale Domenico Colaianni $
 // --------------------------------------------------------------------------
 //
 
@@ -705,6 +705,100 @@ START_SECTION((void optimizeCalibrationCurves(AbsoluteQuantitationStandards::com
   TEST_EQUAL(quant_methods_map["atp.atp_1.Light"].getULOQ(), 40.0); 
   TEST_EQUAL(quant_methods_map["atp.atp_1.Light"].getNPoints(), 6); 
 
+END_SECTION
+
+START_SECTION(void getOptimizedCalibrationCurve(
+  const String& component_name,
+  std::vector<AbsoluteQuantitationStandards::featureConcentration>& component_concentrations
+))
+  // set up the quantitation method
+  Param param;
+  param.setValue("slope",1.0);
+  param.setValue("intercept",0.0);
+  param.setValue("x_weight", "ln(x)");
+  param.setValue("y_weight", "ln(y)");
+  param.setValue("x_datum_min", -1e12);
+  param.setValue("x_datum_max", 1e12);
+  param.setValue("y_datum_min", -1e12);
+  param.setValue("y_datum_max", 1e12);
+  AbsoluteQuantitationMethod aqm;
+  aqm.setTransformationModel("linear");
+  aqm.setTransformationModelParams(param);
+  // set-up the quant_method map
+  std::vector<AbsoluteQuantitationMethod> quant_methods;
+  const String feature_name = "peak_apex_int";
+  // component_1
+  aqm.setComponentName("ser-L.ser-L_1.Light");
+  aqm.setISName("ser-L.ser-L_1.Heavy");
+  aqm.setFeatureName(feature_name);
+  aqm.setConcentrationUnits("uM");
+  quant_methods.push_back(aqm);
+  // component_2
+  aqm.setComponentName("amp.amp_1.Light");
+  aqm.setISName("amp.amp_1.Heavy");
+  aqm.setFeatureName(feature_name); // test IS outside component_group
+  aqm.setConcentrationUnits("uM");
+  quant_methods.push_back(aqm);
+  // component_3
+  aqm.setComponentName("atp.atp_1.Light");
+  aqm.setISName("atp.atp_1.Heavy");
+  aqm.setFeatureName(feature_name);
+  aqm.setConcentrationUnits("uM");
+  quant_methods.push_back(aqm);
+
+  AbsoluteQuantitation absquant;
+  // set-up the class parameters
+  Param absquant_params;
+  absquant_params.setValue("min_points", 4);
+  absquant_params.setValue("max_bias", 30.0);
+  absquant_params.setValue("min_correlation_coefficient", 0.9);
+  absquant_params.setValue("max_iters", 100);
+  absquant_params.setValue("outlier_detection_method", "iter_jackknife");
+  absquant_params.setValue("use_chauvenet", "false");
+  absquant.setParameters(absquant_params);
+  absquant.setQuantMethods(quant_methods);
+
+  // set up the standards
+  std::map<String, std::vector<AbsoluteQuantitationStandards::featureConcentration>> components_concentrations;
+  components_concentrations["ser-L.ser-L_1.Light"] = make_serL_standards();
+  components_concentrations["amp.amp_1.Light"] = make_amp_standards();
+  components_concentrations["atp.atp_1.Light"] = make_atp_standards();
+
+  absquant.getOptimizedCalibrationCurve("ser-L.ser-L_1.Light", components_concentrations.at("ser-L.ser-L_1.Light"));
+  absquant.getOptimizedCalibrationCurve("amp.amp_1.Light", components_concentrations.at("amp.amp_1.Light"));
+  absquant.getOptimizedCalibrationCurve("atp.atp_1.Light", components_concentrations.at("atp.atp_1.Light"));
+  std::map<String, AbsoluteQuantitationMethod> quant_methods_map = absquant.getQuantMethodsAsMap();
+
+  TEST_REAL_SIMILAR(components_concentrations["ser-L.ser-L_1.Light"][0].actual_concentration, 0.04);
+  TEST_REAL_SIMILAR(components_concentrations["ser-L.ser-L_1.Light"][8].actual_concentration, 40.0);
+  TEST_REAL_SIMILAR(quant_methods_map["ser-L.ser-L_1.Light"].getTransformationModelParams().getValue("slope"), 0.9011392589);
+  TEST_REAL_SIMILAR(quant_methods_map["ser-L.ser-L_1.Light"].getTransformationModelParams().getValue("intercept"), 1.87018507);
+  TEST_REAL_SIMILAR(quant_methods_map["ser-L.ser-L_1.Light"].getCorrelationCoefficient(), 0.999320072);
+  TEST_EQUAL(quant_methods_map["ser-L.ser-L_1.Light"].getLLOQ(), 0.04);
+  TEST_EQUAL(quant_methods_map["ser-L.ser-L_1.Light"].getULOQ(), 200);
+  TEST_EQUAL(quant_methods_map["ser-L.ser-L_1.Light"].getNPoints(), 11);
+
+  TEST_REAL_SIMILAR(components_concentrations["amp.amp_1.Light"][0].actual_concentration, 0.02);
+  TEST_REAL_SIMILAR(components_concentrations["amp.amp_1.Light"][8].actual_concentration, 8.0);
+  TEST_REAL_SIMILAR(components_concentrations["amp.amp_1.Light"][0].actual_concentration, 0.02);
+  TEST_REAL_SIMILAR(components_concentrations["amp.amp_1.Light"][8].actual_concentration, 8.0);
+  TEST_REAL_SIMILAR(quant_methods_map["amp.amp_1.Light"].getTransformationModelParams().getValue("slope"), 0.95799683);
+  TEST_REAL_SIMILAR(quant_methods_map["amp.amp_1.Light"].getTransformationModelParams().getValue("intercept"), -1.047543387);
+  TEST_REAL_SIMILAR(quant_methods_map["amp.amp_1.Light"].getCorrelationCoefficient(), 0.99916926);
+  TEST_EQUAL(quant_methods_map["amp.amp_1.Light"].getLLOQ(), 0.02);
+  TEST_EQUAL(quant_methods_map["amp.amp_1.Light"].getULOQ(), 40.0);
+  TEST_EQUAL(quant_methods_map["amp.amp_1.Light"].getNPoints(), 11);
+
+  TEST_REAL_SIMILAR(components_concentrations["atp.atp_1.Light"][0].actual_concentration, 0.02);
+  TEST_REAL_SIMILAR(components_concentrations["atp.atp_1.Light"][3].actual_concentration, 8.0);
+  TEST_REAL_SIMILAR(components_concentrations["atp.atp_1.Light"][0].actual_concentration, 0.02);
+  TEST_REAL_SIMILAR(components_concentrations["atp.atp_1.Light"][3].actual_concentration, 8.0);
+  TEST_REAL_SIMILAR(quant_methods_map["atp.atp_1.Light"].getTransformationModelParams().getValue("slope"), 0.623040824);
+  TEST_REAL_SIMILAR(quant_methods_map["atp.atp_1.Light"].getTransformationModelParams().getValue("intercept"), 0.36130172586);
+  TEST_REAL_SIMILAR(quant_methods_map["atp.atp_1.Light"].getCorrelationCoefficient(), 0.998208402);
+  TEST_EQUAL(quant_methods_map["atp.atp_1.Light"].getLLOQ(), 0.02);
+  TEST_EQUAL(quant_methods_map["atp.atp_1.Light"].getULOQ(), 40.0);
+  TEST_EQUAL(quant_methods_map["atp.atp_1.Light"].getNPoints(), 6);
 END_SECTION
 
 /////////////////////////////

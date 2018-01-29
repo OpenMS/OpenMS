@@ -28,8 +28,8 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Douglas McCloskey $
-// $Authors: Douglas McCloskey $
+// $Maintainer: Douglas McCloskey, Pasquale Domenico Colaianni $
+// $Authors: Douglas McCloskey, Pasquale Domenico Colaianni $
 // --------------------------------------------------------------------------
 
 #ifndef OPENMS_ANALYSIS_QUANTITATION_ABSOLUTEQUANTITATION_H
@@ -209,6 +209,18 @@ public:
 
     */ 
     void optimizeCalibrationCurves(std::map<String,std::vector<AbsoluteQuantitationStandards::featureConcentration>> & components_concentrations);    
+
+    /**
+      @brief This function optimizes the parameters of the calibration for a single component.
+
+      @param[in] component_name
+      @param[in,out] component_concentrations The method will update the argument in place. The resulting
+        value will reflect the optimal set of points for downstream QC/QA.
+    */
+    void getOptimizedCalibrationCurve(
+      const String& component_name,
+      std::vector<AbsoluteQuantitationStandards::featureConcentration>& component_concentrations
+    );
 
     /**
       @brief This function applies the calibration curve to the component.
