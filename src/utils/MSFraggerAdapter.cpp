@@ -76,6 +76,12 @@ using namespace std;
 	the number of input spectra files. The output file is then matched to the input file by index. The default parameters of the
 	adapter are the same as given by the official MSFragger manual.
 
+  Please cite:
+  Andy T Kong, Felipe V Leprevost, Dmitry M Avtonomov, Dattatreya Mellacheruvu & Alexey I Nesvizhskii
+  MSFragger: ultrafast and comprehensive peptide identification in mass spectrometry–based proteomics
+  Nature Methods volume 14, pages 513–520 (2017) doi:10.1038/nmeth.4256
+
+
     <B>The command line parameters of this tool are:</B>
     @verbinclude UTILS_MSFraggerAdapter.cli
     <B>INI file documentation of this tool:</B>
@@ -86,9 +92,8 @@ using namespace std;
 /// @cond TOPPCLASSES
 
 
-class
-TOPPMSFraggerAdapter final :
-public TOPPBase
+class TOPPMSFraggerAdapter final :
+  public TOPPBase
 {
 public:
 
@@ -180,7 +185,13 @@ public:
 
 
   TOPPMSFraggerAdapter() :
-    TOPPBase("MSFraggerAdapter", "Peptide Identification with MSFragger", false),
+    TOPPBase("MSFraggerAdapter", "Peptide Identification with MSFragger", false,
+             {
+                 {"Kong AT, Leprevost FV, Avtonomov DM, Mellacheruvu D, Nesvizhskii AI",
+                  "MSFragger: ultrafast and comprehensive peptide identification in mass spectrometry–based proteomics",
+                  "Nature Methods volume 14, pages 513–520 (2017)",
+                  "doi:10.1038/nmeth.4256"}
+             }),
     working_directory(""),
     java_executable(""),
     executable(""),

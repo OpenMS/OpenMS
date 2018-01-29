@@ -90,6 +90,10 @@ using namespace std;
     For a detailed description of all available parameters check the Comet documentation at http://comet-ms.sourceforge.net/parameters/parameters_201601/
     The default parameters are set for a high resolution instrument.
 
+    Please cite: Eng, Jimmy K. and Jahan, Tahmina A. and Hoopmann, Michael R., Comet: An open-source MS/MS sequence database search tool
+    PROTEOMICS, 13, 1, 2013, 22--24, 10.1002/pmic.201200439
+
+
     <B>The command line parameters of this tool are:</B>
     @verbinclude TOPP_CometAdapter.cli
     <B>INI file documentation of this tool:</B>
@@ -105,7 +109,13 @@ class TOPPCometAdapter :
 {
 public:
   TOPPCometAdapter() :
-    TOPPBase("CometAdapter", "Annotates MS/MS spectra using Comet.", true)
+    TOPPBase("CometAdapter", "Annotates MS/MS spectra using Comet.", true,
+             {
+                 {"Eng, Jimmy K. and Jahan, Tahmina A. and Hoopmann, Michael R.",
+                 "Comet: An open-source MS/MS sequence database search tool",
+                 "PROTEOMICS 2013; 13-1: 22--24",
+                 "10.1002/pmic.201200439"}
+             })
   {
   }
 
@@ -156,12 +166,12 @@ protected:
     registerIntOption_("allowed_missed_cleavages", "<num>", 0, "Number of possible cleavage sites missed by the enzyme. It has no effect if enzyme is unspecific cleavage.", false, false);
     setMinInt_("allowed_missed_cleavages", 0);
     //Fragment Ions
-    registerDoubleOption_("fragment_bin_tolerance", "<tolerance>", 1.0005, "Bin size (in Da) for matching fragment ions. Ion trap: 1.0005, high res: 0.02. CAUTION: Low tolerances have heavy impact on RAM usage. Consider using use_sparse_matrix and/or spectrum_batch_size.", false, true);
+    registerDoubleOption_("fragment_bin_tolerance", "<tolerance>", 0.02, "Bin size (in Da) for matching fragment ions. Ion trap: 1.0005, high res: 0.02. CAUTION: Low tolerances have heavy impact on RAM usage. Consider using use_sparse_matrix and/or spectrum_batch_size.", false, true);
     setMinFloat_("fragment_bin_tolerance",0.01);
-    registerDoubleOption_("fragment_bin_offset", "<fraction>", 0.4, "Offset of fragment bins scaled by tolerance. Ion trap: 0.4, high res: 0.0.", false, true);
+    registerDoubleOption_("fragment_bin_offset", "<fraction>", 0.0, "Offset of fragment bins scaled by tolerance. Ion trap: 0.4, high res: 0.0.", false, true);
     setMinFloat_("fragment_bin_offset",0.0);
     setMaxFloat_("fragment_bin_offset",1.0);
-    registerStringOption_("instrument", "<choice>", "low_res", "Comets theoretical_fragment_ions parameter: theoretical fragment ion peak representation, high res ms/ms: sum of intensities plus flanking bins, ion trap (low_res) ms/ms: sum of intensities of central M bin only", false, true);
+    registerStringOption_("instrument", "<choice>", "high_res", "Comets theoretical_fragment_ions parameter: theoretical fragment ion peak representation, high res ms/ms: sum of intensities plus flanking bins, ion trap (low_res) ms/ms: sum of intensities of central M bin only", false, true);
     setValidStrings_("instrument", ListUtils::create<String>("low_res,high_res"));
     registerStringOption_("use_A_ions", "<num>", "false", "use A ions for PSM", false, true);
     setValidStrings_("use_A_ions", ListUtils::create<String>("true,false"));
