@@ -65,7 +65,7 @@ namespace OpenMS
     return max_intensity_it - spectrum1.begin();
   }
 
-  void SiriusMSFile::store(const PeakMap &spectra, const OpenMS::String & msfile, const adduct_map_kd & adduct_map_kd)
+  void SiriusMSFile::store(const PeakMap &spectra, const OpenMS::String & msfile, const map<size_t, StringList> & map_precursor_to_adducts)
   {
     int count_skipped_spectra = 0; // spectra skipped due to precursor charge
     int count_to_pos = 0; // count if charge 0 -> +1
@@ -103,6 +103,13 @@ namespace OpenMS
       const MSSpectrum& spectrum = *s_it;
 
       int scan_index = s_it - spectra.begin();
+
+      // extract adducts for given precursor
+      StringList adducts;
+      if (map_precursor_to_adducts.find(scan_index) != map_precursor_to_adducts.end())
+      {
+        adducts = map_precursor_to_adducts.at(scan_index);
+      }
 
       const vector<Precursor>& precursor = spectrum.getPrecursors();
 
@@ -200,10 +207,11 @@ namespace OpenMS
         // write internal unique .ms data as sirius input
         os << fixed;
         os << ">compound " << query_id << "\n";
-        // if (adducts.empty() == false)
-        // {
-        //   os << ">ionization " << ListUtils::concatenate(adducts, ',') << "\n";
-        // }
+        if (adducts.empty() == false)
+        {
+          os << ">ionization " << ListUtils::concatenate(adducts, ',') << "\n";
+        }
+
         if (isotopes.empty() == false)
         {
           os << ">parentmass " << isotopes[0].getMZ() << fixed << "\n";

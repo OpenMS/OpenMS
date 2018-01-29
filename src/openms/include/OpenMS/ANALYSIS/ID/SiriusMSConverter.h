@@ -36,6 +36,7 @@
 #define OPENMS_ANALYSIS_ID_SIRIUSMSCONVERTER_H
 
 #include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/StringListUtils.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 
@@ -55,7 +56,7 @@ public:
 
     /// store MS file
     /// @return string (full path to file)
-    static void store(const PeakMap & spectra, const OpenMS::String & msfile, const std::vector<String> & adducts);
+    static void store(const PeakMap & spectra, const String & msfile, const std::map<size_t, StringList> & map_precursor_to_adducts);
 
   };
 
