@@ -46,7 +46,6 @@
 #include <QPainterPath>
 #include <QtWidgets/QMessageBox>
 #include <QtWidgets/QMenu>
-#include <QGuiApplication>
 
 namespace OpenMS
 {
