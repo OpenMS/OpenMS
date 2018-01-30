@@ -286,6 +286,12 @@ public:
           }
         }
 
+        double transition_total_xic = 0;
+        for (typename SpectrumT::const_iterator it = chromatogram.begin(); it != chromatogram.end(); it++)
+        {
+          transition_total_xic += it->getIntensity();
+        }
+
         SpectrumT used_chromatogram;
         // resample the current chromatogram
         if (peak_integration_ == "original")
@@ -365,6 +371,12 @@ public:
         }
         f.setMetaValue("native_id", chromatogram.getNativeID());
         f.setMetaValue("peak_apex_int", peak_apex_int);
+        f.setMetaValue("total_xic", transition_total_xic);
+        if (background_subtraction_ != "none")
+        {
+          f.setMetaValue("area_background_level", background);
+          f.setMetaValue("noise_background_level", avg_noise_level);
+        }
 
         if (transition_group.getTransitions()[k].isDetectingTransition())
         {

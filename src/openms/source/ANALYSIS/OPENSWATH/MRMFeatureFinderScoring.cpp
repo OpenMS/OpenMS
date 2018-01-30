@@ -330,6 +330,7 @@ namespace OpenMS
 
       std::stringstream ind_transition_names;
       std::stringstream ind_area_intensity;
+      std::stringstream ind_total_area_intensity;
       std::stringstream ind_apex_intensity;
       std::stringstream ind_log_intensity;
       for (size_t i = 0; i < native_ids_identification.size(); i++)
@@ -338,6 +339,7 @@ namespace OpenMS
         {
           ind_transition_names << ";";
           ind_area_intensity << ";";
+          ind_total_area_intensity << ";";
           ind_apex_intensity << ";";
           ind_log_intensity << ";";
         }
@@ -345,18 +347,21 @@ namespace OpenMS
         if (idmrmfeature.getFeature(native_ids_identification[i]).getIntensity() > 0)
         {
           ind_area_intensity << idmrmfeature.getFeature(native_ids_identification[i]).getIntensity();
+          ind_total_area_intensity << idmrmfeature.getFeature(native_ids_identification[i]).getMetaValue("total_xic");
           ind_apex_intensity << idmrmfeature.getFeature(native_ids_identification[i]).getMetaValue("peak_apex_int");
           ind_log_intensity << std::log(idmrmfeature.getFeature(native_ids_identification[i]).getIntensity());
         }
         else
         {
           ind_area_intensity << 0;
+          ind_total_area_intensity << 0;
           ind_apex_intensity << 0;
           ind_log_intensity << 0;
         }
       }
       idscores.ind_transition_names = ind_transition_names.str();
       idscores.ind_area_intensity = ind_area_intensity.str();
+      idscores.ind_total_area_intensity = ind_total_area_intensity.str();
       idscores.ind_apex_intensity = ind_apex_intensity.str();
       idscores.ind_log_intensity = ind_log_intensity.str();
       idscores.ind_num_transitions = native_ids_identification.size();

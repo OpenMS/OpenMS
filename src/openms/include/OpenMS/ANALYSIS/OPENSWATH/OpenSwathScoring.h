@@ -129,6 +129,7 @@ namespace OpenMS
     int ind_num_transitions;
     std::string ind_transition_names;
     std::string ind_area_intensity;
+    std::string ind_total_area_intensity;
     std::string ind_apex_intensity;
     std::string ind_log_intensity;
 
