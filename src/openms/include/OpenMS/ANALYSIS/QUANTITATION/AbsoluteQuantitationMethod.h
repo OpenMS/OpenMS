@@ -109,37 +109,20 @@ private:
 
   inline OPENMS_DLLAPI bool operator==(const AbsoluteQuantitationMethod& lhs, const AbsoluteQuantitationMethod& rhs)
   {
-    if (
-      lhs.getComponentName() != rhs.getComponentName() ||
-      lhs.getFeatureName() != rhs.getFeatureName() ||
-      lhs.getISName() != rhs.getISName() ||
-      lhs.getLLOD() != rhs.getLLOD() ||
-      lhs.getULOD() != rhs.getULOD() ||
-      lhs.getLLOQ() != rhs.getLLOQ() ||
-      lhs.getULOQ() != rhs.getULOQ() ||
-      lhs.getNPoints() != rhs.getNPoints() ||
-      lhs.getCorrelationCoefficient() != rhs.getCorrelationCoefficient() ||
-      lhs.getConcentrationUnits() != rhs.getConcentrationUnits() ||
-      lhs.getTransformationModel() != rhs.getTransformationModel()
-    )
-    {
-      return false;
-    }
-    // compare params
-    const Param lp = lhs.getTransformationModelParams();
-    const Param rp = rhs.getTransformationModelParams();
-    if (lp.size() != rp.size())
-    {
-      return false;
-    }
-    for (auto l_it = lp.begin(); l_it != lp.end(); ++l_it)
-    {
-      if ((!rp.exists(l_it->name)) || (l_it->value != rp.getValue(l_it->name)))
-      {
-        return false;
-      }
-    }
-    return true;
+    return
+      lhs.getComponentName() == rhs.getComponentName() &&
+      lhs.getFeatureName() == rhs.getFeatureName() &&
+      lhs.getISName() == rhs.getISName() &&
+      lhs.getLLOD() == rhs.getLLOD() &&
+      lhs.getULOD() == rhs.getULOD() &&
+      lhs.getLLOQ() == rhs.getLLOQ() &&
+      lhs.getULOQ() == rhs.getULOQ() &&
+      lhs.getNPoints() == rhs.getNPoints() &&
+      lhs.getCorrelationCoefficient() == rhs.getCorrelationCoefficient() &&
+      lhs.getConcentrationUnits() == rhs.getConcentrationUnits() &&
+      lhs.getTransformationModel() == rhs.getTransformationModel() &&
+      lhs.getTransformationModelParams() == rhs.getTransformationModelParams()
+    ;
   }
 
   inline OPENMS_DLLAPI bool operator!=(const AbsoluteQuantitationMethod& lhs, const AbsoluteQuantitationMethod& rhs)
