@@ -611,6 +611,7 @@ namespace OpenMS
           mrmfeature->setMetaValue("id_target_transition_names", idscores.ind_transition_names);
           mrmfeature->addScore("id_target_num_transitions", idscores.ind_num_transitions);
           mrmfeature->setMetaValue("id_target_area_intensity", idscores.ind_area_intensity);
+          mrmfeature->setMetaValue("id_target_total_area_intensity", idscores.ind_total_area_intensity);
           mrmfeature->setMetaValue("id_target_apex_intensity", idscores.ind_apex_intensity);
           mrmfeature->setMetaValue("id_target_transition_names", idscores.ind_transition_names);
           mrmfeature->setMetaValue("id_target_ind_log_intensity", idscores.ind_log_intensity);
@@ -636,6 +637,7 @@ namespace OpenMS
           mrmfeature->setMetaValue("id_decoy_transition_names", idscores.ind_transition_names);
           mrmfeature->addScore("id_decoy_num_transitions", idscores.ind_num_transitions);
           mrmfeature->setMetaValue("id_decoy_area_intensity", idscores.ind_area_intensity);
+          mrmfeature->setMetaValue("id_decoy_total_area_intensity", idscores.ind_total_area_intensity);
           mrmfeature->setMetaValue("id_decoy_apex_intensity", idscores.ind_apex_intensity);
           mrmfeature->setMetaValue("id_decoy_ind_log_intensity", idscores.ind_log_intensity);
           mrmfeature->setMetaValue("id_decoy_ind_xcorr_coelution", idscores.ind_xcorr_coelution_score);
