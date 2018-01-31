@@ -37,6 +37,7 @@
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/MzTabFile.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/ANALYSIS/ID/SiriusMSConverter.h>
 #include <OpenMS/FORMAT/DATAACCESS/SiriusMzTabWriter.h>
@@ -48,6 +49,8 @@
 #include <QDir>
 #include <QDebug>
 #include <QDirIterator>
+
+#include <fstream>
 
 using namespace OpenMS;
 using namespace std;
@@ -134,6 +137,79 @@ protected:
     registerFlag_("no_recalibration", "If this option is set, SIRIUS will not recalibrate the spectrum during the analysis.", false);
   }
 
+  // extract adduct information from featureXML (MetaboliteAdductDecharger)
+  void extractAdductInformation(const PeakMap & spectra, const  String & adductinfo, map<size_t, StringList> & map_precursor_to_adducts)
+  {
+    KDTreeFeatureMaps adduct_map_kd;
+    FeatureXMLFile fxml;
+    FeatureMap feature_map;
+    vector<FeatureMap> adduct_map;
+    adduct_map.push_back(feature_map);
+    fxml.load(adductinfo, adduct_map[0]);
+    adduct_map_kd.addMaps(adduct_map);
+
+    // map precursors to closest feature and retrieve annotated adducts
+    for (size_t index = 0; index != spectra.size(); ++index)
+    {
+      if (spectra[index].getMSLevel() != 2) { continue; }
+      
+      // get precursor meta data (m/z, charge, ...)
+      const vector<Precursor> & pcs = spectra[index].getPrecursors();
+
+      if (!pcs.empty())
+      {
+        const double mz = pcs[0].getMZ();
+        const double rt = spectra[index].getRT();
+        const double charge = pcs[0].getCharge();
+
+        // query features in tolerance window
+        vector<Size> matches;
+        adduct_map_kd.queryRegion(rt - 5.0, rt + 5.0, mz - 0.2, mz + 0.2, matches, true);
+
+        // No adduct information found. Will use defaults in SIRIUS TODO: check how this works with autocharge
+        if (matches.empty()) { continue; }
+        
+        // In the case of multiple features in tolerance window, select the one closest in m/z to the precursor
+        Size min_distance_feature_index(0);
+        double min_distance(1e11);
+        for (auto const & k_idx : matches)
+        {
+          const double f_mz = adduct_map_kd.mz(k_idx);
+          const double distance = fabs(f_mz - mz);
+          if (distance < min_distance)
+          {
+            min_distance = distance;
+            min_distance_feature_index = k_idx;
+          }
+        }
+        const BaseFeature * min_distance_feature = adduct_map_kd.feature(min_distance_feature_index);
+        
+        // workaround - string is used as metavalue in the MetaboliteAdductDecharger 
+        String adduct = min_distance_feature->getMetaValue("dc_charge_adducts");
+        StringList adducts = ListUtils::create<String>(adduct);
+
+        // the following code will be refactored after changes are made to MetaboliteAdductDecharger
+        // StringList adducts = min_distance_feature->getMetaValue("dc_charge_adducts");
+        // convert decharger adduct names to mzTab / SIRIUS standard
+        StringList fixed_adduct_names;
+        for (auto & adduct : adducts)
+        {
+          String charge_sign = charge >= 0 ? "+" : "-";
+          String s("[M" + charge_sign);
+          EmpiricalFormula ef(adduct);
+          for (auto element_count : ef)
+          {
+            if (element_count.second > 1) { s += element_count.second; }
+            s += element_count.first->getSymbol();
+          }
+          s += String("]") + String(charge) + charge_sign; // TODO: how to add charge?
+          fixed_adduct_names.push_back(s);
+        }
+        map_precursor_to_adducts[index] = fixed_adduct_names;
+      }
+    }
+  }
+
   ExitCodes main_(int, const char **) override
   {
     //-------------------------------------------------------------
@@ -201,68 +277,12 @@ protected:
     String out_dir = QDir(tmp_dir).filePath("sirius_out");
 
     // Read FeatureXML in KDTree for range query
-    KDTreeFeatureMaps adduct_map_kd;
-    FeatureXMLFile fxml;
-    FeatureMap feature_map;
-    vector<FeatureMap> adduct_map;
-    adduct_map.push_back(feature_map);
-    fxml.load(adductinfo, adduct_map[0]);
-    adduct_map_kd.addMaps(adduct_map);
-
-    // map precursors to closest feature and retrieve annotated adducts
     map<size_t, StringList> map_precursor_to_adducts;
-    for (size_t index = 0; index != spectra.size(); ++index)
+    std::ifstream afile(adductinfo);    
+    if (afile)
     {
-      if (spectra[index].getMSLevel() != 2) { continue; }
-      
-      // get precursor meta data (m/z, charge, ...)
-      const vector<Precursor> & pcs = spectra[index].getPrecursors();
-
-      if (!pcs.empty())
-      {
-        const double mz = pcs[0].getMZ();
-        const double rt = spectra[index].getRT();
-        const double charge = pcs[0].getCharge();
-
-        // query features in tolerance window
-        vector<Size> matches;
-        adduct_map_kd.queryRegion(rt - 5.0, rt + 5.0, mz - 0.1, mz + 0.1, matches, true);
-
-        // No adduct information found. Will use defaults in SIRIUS TODO: check how this works with autocharge
-        if (matches.empty()) { continue; }
-        
-        // In the case of multiple features in tolerance window, select the one closest in m/z to the precursor
-        Size min_distance_feature_index(0);
-        double min_distance(1e11);
-        for (auto const & k_idx : matches)
-        {
-          const double f_mz = adduct_map_kd.mz(k_idx);
-          const double distance = fabs(f_mz - mz);
-          if (distance < min_distance)
-          {
-            min_distance = distance;
-            min_distance_feature_index = k_idx;
-          }
-        }
-        const BaseFeature * min_distance_feature = adduct_map_kd.feature(min_distance_feature_index);
-        StringList adducts = min_distance_feature->getMetaValue("dc_charge_adducts");
-
-        // convert decharger adduct names to mzTab / SIRIUS standard
-        for (auto & adduct : adducts)
-        {
-          String charge_sign = charge >= 0 ? "+" : "-";
-          String s("[M" + charge_sign);
-          EmpiricalFormula ef(adduct);
-          for (auto element_count : ef)
-          {
-            if (element_count.second > 1) { s += element_count.second; } // TODO: check with decharger if this is correct
-            s += element_count.first->getSymbol();
-          }
-          s += String("]") + String(charge) + charge_sign; // TODO: how to add charge?
-        }
-        map_precursor_to_adducts[index] = adducts;
-      }
-    } 
+      extractAdductInformation(spectra, adductinfo, map_precursor_to_adducts);
+    }   
 
     // Write msfile
     SiriusMSFile::store(spectra, tmp_ms_file, map_precursor_to_adducts);
