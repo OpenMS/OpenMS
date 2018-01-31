@@ -217,7 +217,7 @@ public:
       @param[in,out] component_concentrations The method will update the argument in place. The resulting
         value will reflect the optimal set of points for downstream QC/QA.
     */
-    void getOptimizedCalibrationCurve(
+    void optimizeSingleCalibrationCurve(
       const String& component_name,
       std::vector<AbsoluteQuantitationStandards::featureConcentration>& component_concentrations
     );

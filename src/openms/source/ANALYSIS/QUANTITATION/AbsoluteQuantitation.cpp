@@ -641,7 +641,7 @@ namespace OpenMS
     }
   } 
 
-  void AbsoluteQuantitation::getOptimizedCalibrationCurve(
+  void AbsoluteQuantitation::optimizeSingleCalibrationCurve(
     const String& component_name,
     std::vector<AbsoluteQuantitationStandards::featureConcentration>& component_concentrations
   )

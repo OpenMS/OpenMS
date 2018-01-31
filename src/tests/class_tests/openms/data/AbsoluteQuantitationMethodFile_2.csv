@@ -1,0 +1,4 @@
+IS_name,component_name,feature_name,concentration_units,llod,ulod,lloq,uloq,correlation_coefficient,n_points,transformation_model,transformation_model_param_slope,transformation_model_param_intercept
+IS1,component1,feature1,uM,0,10,2,8,0.99,5,TransformationModelLinear,2,1
+IS2,component2,feature2,uM,1,9,3,7,0.98,4,TransformationModelLinear,2,2
+IS3,component3,feature3,uM,2,8,4,6,0.97,3,TransformationModelLinear,1,2

@@ -707,7 +707,7 @@ START_SECTION((void optimizeCalibrationCurves(AbsoluteQuantitationStandards::com
 
 END_SECTION
 
-START_SECTION(void getOptimizedCalibrationCurve(
+START_SECTION(void optimizeSingleCalibrationCurve(
   const String& component_name,
   std::vector<AbsoluteQuantitationStandards::featureConcentration>& component_concentrations
 ))
@@ -764,9 +764,9 @@ START_SECTION(void getOptimizedCalibrationCurve(
   components_concentrations["amp.amp_1.Light"] = make_amp_standards();
   components_concentrations["atp.atp_1.Light"] = make_atp_standards();
 
-  absquant.getOptimizedCalibrationCurve("ser-L.ser-L_1.Light", components_concentrations.at("ser-L.ser-L_1.Light"));
-  absquant.getOptimizedCalibrationCurve("amp.amp_1.Light", components_concentrations.at("amp.amp_1.Light"));
-  absquant.getOptimizedCalibrationCurve("atp.atp_1.Light", components_concentrations.at("atp.atp_1.Light"));
+  absquant.optimizeSingleCalibrationCurve("ser-L.ser-L_1.Light", components_concentrations.at("ser-L.ser-L_1.Light"));
+  absquant.optimizeSingleCalibrationCurve("amp.amp_1.Light", components_concentrations.at("amp.amp_1.Light"));
+  absquant.optimizeSingleCalibrationCurve("atp.atp_1.Light", components_concentrations.at("atp.atp_1.Light"));
   std::map<String, AbsoluteQuantitationMethod> quant_methods_map = absquant.getQuantMethodsAsMap();
 
   TEST_REAL_SIMILAR(components_concentrations["ser-L.ser-L_1.Light"][0].actual_concentration, 0.04);
