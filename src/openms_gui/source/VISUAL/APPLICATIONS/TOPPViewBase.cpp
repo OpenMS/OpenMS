@@ -1624,7 +1624,6 @@ namespace OpenMS
     Spectrum1DWidget* w = getActive1DWidget();
     if (w)
     {
-      draw_group_1d_->button(Spectrum1DCanvas::DM_PEAKS)->setChecked(true);
       w->canvas()->setDrawMode((OpenMS::Spectrum1DCanvas::DrawModes)index);
     }
   }
