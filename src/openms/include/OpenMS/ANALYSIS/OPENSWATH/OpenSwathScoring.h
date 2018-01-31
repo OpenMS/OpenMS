@@ -131,6 +131,7 @@ namespace OpenMS
     std::string ind_area_intensity;
     std::string ind_total_area_intensity;
     std::string ind_apex_intensity;
+    std::string ind_total_mi;
     std::string ind_log_intensity;
 
     double weighted_coelution_score;

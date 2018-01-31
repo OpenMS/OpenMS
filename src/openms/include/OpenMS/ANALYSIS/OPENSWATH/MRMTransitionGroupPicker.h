@@ -287,10 +287,32 @@ public:
         }
 
         double transition_total_xic = 0;
+        std::vector<double> chrom_vect_id, chrom_vect_det;
+          chrom_vect_id.clear();
         for (typename SpectrumT::const_iterator it = chromatogram.begin(); it != chromatogram.end(); it++)
         {
           transition_total_xic += it->getIntensity();
+          chrom_vect_id.push_back(it->getIntensity());
         }
+
+        // compute baseline mutual information
+        double transition_mi = 0;
+        int transition_mi_norm = 0;
+        for (Size m = 0; m < transition_group.getTransitions().size(); m++)
+        {
+          if (transition_group.getTransitions()[m].isDetectingTransition())
+          {
+            const SpectrumT& chromatogram_det = selectChromHelper_(transition_group, transition_group.getTransitions()[m].getNativeID());
+            chrom_vect_det.clear();
+            for (typename SpectrumT::const_iterator it = chromatogram_det.begin(); it != chromatogram_det.end(); it++)
+            {
+              chrom_vect_det.push_back(it->getIntensity());
+            }
+            transition_mi = OpenSwath::Scoring::rankedMutualInformation(chrom_vect_det, chrom_vect_id);
+            transition_mi_norm++;
+          }
+        }
+        if (transition_mi_norm > 0) { transition_mi /= transition_mi_norm; }
 
         SpectrumT used_chromatogram;
         // resample the current chromatogram
@@ -372,6 +394,7 @@ public:
         f.setMetaValue("native_id", chromatogram.getNativeID());
         f.setMetaValue("peak_apex_int", peak_apex_int);
         f.setMetaValue("total_xic", transition_total_xic);
+        f.setMetaValue("total_mi", transition_mi);
         if (background_subtraction_ != "none")
         {
           f.setMetaValue("area_background_level", background);
