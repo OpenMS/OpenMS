@@ -195,8 +195,7 @@ namespace OpenMS
     calculateGridLines_();
 
     //abort if no layers are displayed
-    if (canvas_3d_.getLayerCount() == 0)
-      return;
+    if (canvas_3d_.getLayerCount() == 0) { return; }
 
     if (canvas_3d_.action_mode_ == SpectrumCanvas::AM_ZOOM)
     {
@@ -212,7 +211,7 @@ namespace OpenMS
         zrot_ = 0;
         zoom_ = 1.25;
 
-        if (stickdata_  != 0)
+        if (stickdata_ != 0)
         {
           glDeleteLists(stickdata_, 1);
 #ifdef DEBUG_TOPPVIEW
@@ -228,10 +227,7 @@ namespace OpenMS
     }
     else if (canvas_3d_.action_mode_ == SpectrumCanvas::AM_TRANSLATE)
     {
-      if (canvas_3d_.show_grid_)
-      {
-        gridlines_ = makeGridLines();
-      }
+      if (canvas_3d_.show_grid_) { gridlines_ = makeGridLines(); }
       axes_ = makeAxes();
       ground_ = makeGround();
       x_1_ = 0.0;
@@ -239,7 +235,7 @@ namespace OpenMS
       x_2_ = 0.0;
       y_2_ = 0.0;
 
-      if (stickdata_  != 0)
+      if (stickdata_ != 0)
       {
         glDeleteLists(stickdata_, 1);
 #ifdef DEBUG_TOPPVIEW
@@ -285,11 +281,6 @@ namespace OpenMS
 
   void Spectrum3DOpenGLCanvas::paintGL()
   {
-    // We need to create a painter here, otherwise we got a lot of flicker but
-    // we do not need to call begin() and end() on it as this will be handled
-    // by construction and destruction. See Qt docu.
-    //painter_->beginNativePainting();
-
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glLoadIdentity();
 
@@ -302,26 +293,28 @@ namespace OpenMS
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
     if (canvas_3d_.getLayerCount() != 0)
     {
       glCallList(ground_);
-      if (canvas_3d_.show_grid_)
-      {
-        glCallList(gridlines_);
-      }
+
+      if (canvas_3d_.show_grid_) { glCallList(gridlines_); }
+
       glCallList(axes_);
       glCallList(axes_ticks_);
-      if (canvas_3d_.action_mode_ == SpectrumCanvas::AM_ZOOM || canvas_3d_.action_mode_ == SpectrumCanvas::AM_TRANSLATE)
+
+      if (canvas_3d_.action_mode_ == SpectrumCanvas::AM_ZOOM 
+       || canvas_3d_.action_mode_ == SpectrumCanvas::AM_TRANSLATE)
       {
         glCallList(stickdata_);
       }
+
+      // draw axes legend
+      painter_ = new QPainter(this);
+      drawAxesLegend(); 
+      painter_->end();
+      delete(painter_);
     }
-
-    painter_ = new QPainter(this);
-    if (canvas_3d_.getLayerCount() != 0) { drawAxesLegend(); }
-    painter_->end();
-    delete(painter_);
-
     update();
   }
 
@@ -525,13 +518,13 @@ namespace OpenMS
     glShadeModel(GL_FLAT);
     glBegin(GL_LINES);
     qglColor(Qt::black);
-    //x_achse
+    // x
     glVertex3d(-corner_, -corner_, -near_ - 2 * corner_);
     glVertex3d(corner_, -corner_, -near_ - 2 * corner_);
-    //z-achse
+    // z
     glVertex3d(-corner_, -corner_, -near_ - 2 * corner_);
     glVertex3d(-corner_, -corner_, -far_ + 2 * corner_);
-    //y-achse
+    // y
     glVertex3d(-corner_, -corner_, -near_ - 2 * corner_);
     glVertex3d(-corner_, corner_, -near_ - 2 * corner_);
     glEnd();
@@ -559,15 +552,11 @@ namespace OpenMS
           glShadeModel(GL_FLAT);
         }
 
-        Spectrum3DCanvas::ExperimentType::ConstAreaIterator begin_it = layer.getPeakData()->areaBeginConst(canvas_3d_.visible_area_.min_[1], canvas_3d_.visible_area_.max_[1], canvas_3d_.visible_area_.min_[0], canvas_3d_.visible_area_.max_[0]);
-        Spectrum3DCanvas::ExperimentType::ConstAreaIterator end_it = layer.getPeakData()->areaEndConst();
+        auto begin_it = layer.getPeakData()->areaBeginConst(canvas_3d_.visible_area_.min_[1], canvas_3d_.visible_area_.max_[1], canvas_3d_.visible_area_.min_[0], canvas_3d_.visible_area_.max_[0]);
+        auto end_it = layer.getPeakData()->areaEndConst();
 
         // count peaks in area
-        int count = 0;
-        for (Spectrum3DCanvas::ExperimentType::ConstAreaIterator it = begin_it; it != end_it; ++it)
-        {
-          count++;
-        }
+        int count = std::distance(begin_it, end_it);
 
         int max_displayed_peaks = 10000;
         int step = 1;
@@ -576,7 +565,7 @@ namespace OpenMS
           step = 1 + count / max_displayed_peaks;
         }
 
-        for (Spectrum3DCanvas::ExperimentType::ConstAreaIterator it = begin_it; it != end_it; ++it)
+        for (auto it = begin_it; it != end_it; ++it)
         {
           if (step > 1)
           {
@@ -651,14 +640,10 @@ namespace OpenMS
 
         glLineWidth(layer.param.getValue("dot:line_width"));
 
-        Spectrum3DCanvas::ExperimentType::ConstAreaIterator begin_it = layer.getPeakData()->areaBeginConst(canvas_3d_.visible_area_.min_[1], canvas_3d_.visible_area_.max_[1], canvas_3d_.visible_area_.min_[0], canvas_3d_.visible_area_.max_[0]);
-        Spectrum3DCanvas::ExperimentType::ConstAreaIterator end_it = layer.getPeakData()->areaEndConst();
+        auto begin_it = layer.getPeakData()->areaBeginConst(canvas_3d_.visible_area_.min_[1], canvas_3d_.visible_area_.max_[1], canvas_3d_.visible_area_.min_[0], canvas_3d_.visible_area_.max_[0]);
+        auto end_it = layer.getPeakData()->areaEndConst();
         // count peaks in area
-        int count = 0;
-        for (Spectrum3DCanvas::ExperimentType::ConstAreaIterator it = begin_it;
-             it != end_it; ++it, ++count)
-        {
-        }
+        int count = std::distance(begin_it, end_it);
 
         int max_displayed_peaks = 100000;
         int step = 1;
@@ -667,7 +652,7 @@ namespace OpenMS
           step = 1 + count / max_displayed_peaks;
         }
 
-        for (Spectrum3DCanvas::ExperimentType::ConstAreaIterator it = begin_it; it != end_it; ++it)
+        for (auto it = begin_it; it != end_it; ++it)
         {
           if (step > 1)
           {
@@ -758,7 +743,7 @@ namespace OpenMS
     glLineStipple(1, 0x0101);
     glBegin(GL_LINES);
     glColor4ub(0, 0, 0, 80);
-    //mz
+    // mz
     if (grid_mz_.size() >= 1)
     {
       for (Size i = 0; i < grid_mz_[0].size(); i++)
@@ -783,7 +768,7 @@ namespace OpenMS
         glVertex3d(-corner_ + scaledMZ(grid_mz_[2][i]), -corner_, -far_ + 2 * corner_);
       }
     }
-    //rt
+    // rt
     if (grid_rt_.size() >= 1)
     {
       for (Size i = 0; i < grid_rt_[0].size(); i++)
@@ -823,7 +808,7 @@ namespace OpenMS
     glBegin(GL_LINES);
     qglColor(Qt::black);
 
-    //MZ
+    // mz
     if (grid_mz_.size() >= 1)
     {
       for (Size i = 0; i < grid_mz_[0].size(); i++)
@@ -849,7 +834,7 @@ namespace OpenMS
       }
     }
 
-    //RT
+    // rt
     if (grid_rt_.size() >= 1)
     {
       for (Size i = 0; i < grid_rt_[0].size(); i++)
@@ -1136,21 +1121,15 @@ namespace OpenMS
 
     for (Size i = 0; i < canvas_3d_.getLayerCount(); i++)
     {
-      SpectrumCanvas::ExperimentType::ConstIterator rt_begin_it = canvas_3d_.getLayer(i).getPeakData()->RTBegin(canvas_3d_.visible_area_.min_[1]);
-      SpectrumCanvas::ExperimentType::ConstIterator rt_end_it = canvas_3d_.getLayer(i).getPeakData()->RTEnd(canvas_3d_.visible_area_.max_[1]);
+      auto rt_begin_it = canvas_3d_.getLayer(i).getPeakData()->RTBegin(canvas_3d_.visible_area_.min_[1]);
+      auto rt_end_it = canvas_3d_.getLayer(i).getPeakData()->RTEnd(canvas_3d_.visible_area_.max_[1]);
 
-      for (SpectrumCanvas::ExperimentType::ConstIterator spec_it = rt_begin_it; spec_it != rt_end_it; ++spec_it)
+      for (auto spec_it = rt_begin_it; spec_it != rt_end_it; ++spec_it)
       {
-        for (SpectrumCanvas::ExperimentType::SpectrumType::ConstIterator it = spec_it->MZBegin(canvas_3d_.visible_area_.min_[0]); it != spec_it->MZEnd(canvas_3d_.visible_area_.max_[0]); ++it)
+        for (auto it = spec_it->MZBegin(canvas_3d_.visible_area_.min_[0]); it != spec_it->MZEnd(canvas_3d_.visible_area_.max_[0]); ++it)
         {
-          if (int_scale_.min_[0] >= it->getIntensity())
-          {
-            int_scale_.min_[0] = it->getIntensity();
-          }
-          if (int_scale_.max_[0] <= it->getIntensity())
-          {
-            int_scale_.max_[0] = it->getIntensity();
-          }
+          if (int_scale_.min_[0] >= it->getIntensity()) { int_scale_.min_[0] = it->getIntensity(); }
+          if (int_scale_.max_[0] <= it->getIntensity()) { int_scale_.max_[0] = it->getIntensity(); }
         }
       }
     }
@@ -1180,3 +1159,4 @@ namespace OpenMS
   }
 
 } //end of namespace
+
