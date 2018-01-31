@@ -308,7 +308,7 @@ public:
             {
               chrom_vect_det.push_back(it->getIntensity());
             }
-            transition_mi = OpenSwath::Scoring::rankedMutualInformation(chrom_vect_det, chrom_vect_id);
+            transition_mi += OpenSwath::Scoring::rankedMutualInformation(chrom_vect_det, chrom_vect_id);
             transition_mi_norm++;
           }
         }
