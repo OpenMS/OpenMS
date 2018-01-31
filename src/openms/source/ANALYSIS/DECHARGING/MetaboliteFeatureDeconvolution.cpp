@@ -853,7 +853,7 @@ namespace OpenMS
           for (auto sorted_e_cnt : sorted_elem_map_r)
           {
             s += sorted_e_cnt.second;
-          }xc
+          }
           s += String("]");
           s += abs(new_q1) > 1 ? String(abs(new_q1)) : "";
           s += charge_sign;
