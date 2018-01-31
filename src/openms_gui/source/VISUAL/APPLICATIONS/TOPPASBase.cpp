@@ -832,6 +832,7 @@ namespace OpenMS
   void TOPPASBase::showAsWindow_(TOPPASWidget* tw, const String& caption, const int special_id)
   {
     ws_->addSubWindow(tw);
+    tw->showMaximized();
     connect(tw, SIGNAL(sendStatusMessage(std::string, OpenMS::UInt)), this, SLOT(showStatusMessage(std::string, OpenMS::UInt)));
     connect(tw, SIGNAL(sendCursorStatus(double, double)), this, SLOT(showCursorStatus(double, double)));
     connect(tw, SIGNAL(toolDroppedOnWidget(double, double)), this, SLOT(insertNewVertex_(double, double)));
