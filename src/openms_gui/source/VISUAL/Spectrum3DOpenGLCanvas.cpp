@@ -98,35 +98,78 @@ namespace OpenMS
     AxisTickCalculator::calcGridLines(canvas_3d_.visible_area_.min_[0], canvas_3d_.visible_area_.max_[0], grid_mz_);
   }
 
-  void Spectrum3DOpenGLCanvas::renderText(double /* x */, double /* y */, double /* z */, const QString & /* text */, const QFont & /* font */) 
+  void Spectrum3DOpenGLCanvas::transformPoint(GLdouble out[4], const GLdouble m[16], const GLdouble in[4])
+  {
+  #define M(row,col)  m[col*4+row]	  
+    out[0] = M(0, 0) * in[0] + M(0, 1) * in[1] + M(0, 2) * in[2] + M(0, 3) * in[3];
+    out[1] = M(1, 0) * in[0] + M(1, 1) * in[1] + M(1, 2) * in[2] + M(1, 3) * in[3];
+    out[2] = M(2, 0) * in[0] + M(2, 1) * in[1] + M(2, 2) * in[2] + M(2, 3) * in[3];
+    out[3] = M(3, 0) * in[0] + M(3, 1) * in[1] + M(3, 2) * in[2] + M(3, 3) * in[3];
+  #undef M
+  }
+
+  GLint Spectrum3DOpenGLCanvas::project(GLdouble objx, GLdouble objy, GLdouble objz, GLdouble * winx, GLdouble * winy, GLdouble * winz)
+  {
+    int height= this->height();
+    int width = this->width();
+
+    GLdouble in[4], out[4];
+
+    in[0] = objx;
+    in[1] = objy;
+    in[2] = objz;
+    in[3] = 1.0;
+
+
+    GLdouble model[16];
+    GLdouble proj[16];
+
+    glGetDoublev(GL_MODELVIEW_MATRIX, model);
+    glGetDoublev(GL_PROJECTION_MATRIX, proj);
+
+    transformPoint(out, model, in);
+    transformPoint(in, proj, out);
+
+    // transform homogeneous coordinates into normalized device coordinates
+    if (in[3] == 0.0) { return GL_FALSE; }
+    in[0] /= in[3];
+    in[1] /= in[3];
+    in[2] /= in[3];
+
+    // viewport transformation (0,0 is in corner of screen not in middle of screen)
+    *winx = 0 + (1 + in[0]) * width / 2;
+    *winy = 0 + (1 + in[1]) * height / 2;
+
+    return GL_TRUE;
+  }  
+
+  void Spectrum3DOpenGLCanvas::renderText(double x, double y, double z, const QString & text, const QFont & font ) 
   {
     // Identify x and y locations to render text within widget
-    // int height = this->height();
+    int height = this->height();
 
-   //GLdouble textPosX = 0, textPosY = 0, textPosZ = 0;
-   //project(x, y, z, &textPosX, &textPosY, &textPosZ);
+    GLdouble textPosX = 0, textPosY = 0, textPosZ = 0;
+    project(x, y, z, &textPosX, &textPosY, &textPosZ);
+    textPosY = height - textPosY; // y is inverted
 
-    //TODO implement/figure out project function. Use identity for testing
-    // GLdouble textPosX = x, textPosY = y, textPosZ = z;
-    //textPosY = height - textPosY; // y is inverted
+    // cout << x << " " << y << " " << z << " : " << textPosX << " " << textPosY << " " << textPosZ << endl;
 
     // Retrieve last OpenGL color to use as a font color
     GLdouble glColor[4];
     glGetDoublev(GL_CURRENT_COLOR, glColor);
-    // QColor fontColor = QColor(glColor[0], glColor[1], glColor[2], glColor[3]);
+    QColor fontColor = QColor(glColor[0], glColor[1], glColor[2], glColor[3]);
 
     // Render text
-    // TODO not sure where to start the painter. Here? In paintGL?
-    //painter.setPen(fontColor);
-    //painter.setFont(font);
-    //painter.drawText(textPosX, textPosY, text);
+    painter_->drawText(textPosX, textPosY, text);
   }
 
-  void Spectrum3DOpenGLCanvas::qglColor(QColor color) {
+  void Spectrum3DOpenGLCanvas::qglColor(QColor color) 
+  {
     glColor4f(color.redF(), color.greenF(), color.blueF(), color.alphaF());
   }
 
-  void Spectrum3DOpenGLCanvas::qglClearColor(QColor clearColor) {
+  void Spectrum3DOpenGLCanvas::qglClearColor(QColor clearColor) 
+  {
     glClearColor(clearColor.redF(), clearColor.greenF(), clearColor.blueF(), clearColor.alphaF());
   }
 
@@ -242,14 +285,10 @@ namespace OpenMS
 
   void Spectrum3DOpenGLCanvas::paintGL()
   {
-    // Start a painter for renderText here? If you add this you will
-    // get errors and nothing but axes will be painted.
     // We need to create a painter here, otherwise we got a lot of flicker but
     // we do not need to call begin() and end() on it as this will be handled
     // by construction and destruction. See Qt docu.
-    QPainter painter(this);
-    // painter.begin(this);
-    // painter.beginNativePainting();
+    //painter_->beginNativePainting();
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glLoadIdentity();
@@ -277,10 +316,12 @@ namespace OpenMS
         glCallList(stickdata_);
       }
     }
-    if (canvas_3d_.getLayerCount() != 0) { drawAxesLegend(); }
 
-    // Close painter
-    // painter.end();
+    painter_ = new QPainter(this);
+    if (canvas_3d_.getLayerCount() != 0) { drawAxesLegend(); }
+    painter_->end();
+    delete(painter_);
+
     update();
   }
 

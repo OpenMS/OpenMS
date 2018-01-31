@@ -81,6 +81,10 @@ public:
     */
     virtual ~Spectrum3DOpenGLCanvas();
 
+    /// helper function to project point to device space
+    GLint project(GLdouble objx, GLdouble objy, GLdouble objz, GLdouble * winx, GLdouble * winy, GLdouble * winz); 
+    /// helper function to transform point using matrix m (homogeneous coordinates)
+    void transformPoint(GLdouble out[4], const GLdouble m[16], const GLdouble in[4]);
     ///helper function to replicate old behaviour of QGLWidget
     void renderText(double x, double y, double z, const QString & text, const QFont & font);
     ///helper function to replicate old behaviour of QGLWidget
@@ -191,7 +195,7 @@ public:
     /// member z-variable that stores the original angle during zoom mode
     int zrot_tmp_;
 
-
+    QPainter* painter_ = nullptr;
 
     /// member variables for the zoom-mode
     QPoint mouse_move_end_, mouse_move_begin_;
