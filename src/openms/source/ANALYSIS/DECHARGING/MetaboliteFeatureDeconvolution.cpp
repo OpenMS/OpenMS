@@ -793,13 +793,20 @@ namespace OpenMS
           String charge_sign = new_q0 >= 0 ? "+" : "-";
           String s("[M");
 
+          //need elements sorted canonically (by string)
+          map<String, String> sorted_elem_map_l;
           for (auto element_count : ef_l)
-	    {
-              s+= element_count.second > 0 ? "+" : "-";
-              s+= abs(element_count.second) > 1 ? String(abs(element_count.second)) : "";
-              s+= element_count.first->getSymbol();
-	    }
-
+          {
+            String e_symbol(element_count.first->getSymbol());
+            String tmp = element_count.second > 0 ? "+" : "-";
+            tmp += abs(element_count.second) > 1 ? String(abs(element_count.second)) : "";
+            tmp += e_symbol;
+            sorted_elem_map_l[e_symbol] = tmp;
+          }
+          for (auto sorted_e_cnt : sorted_elem_map_l)
+          {
+            s += sorted_e_cnt.second;
+          }
           s += String("]");
           s += abs(new_q0) > 1 ? String(abs(new_q0)) : "";
           s += charge_sign;
@@ -833,13 +840,20 @@ namespace OpenMS
           String charge_sign = new_q1 >= 0 ? "+" : "-";
           String s("[M");
 
+          //need elements sorted canonically (by string)
+          map<String, String> sorted_elem_map_r;
           for (auto element_count : ef_r)
-	    {
-              s+= element_count.second > 0 ? "+" : "-";
-              s+= abs(element_count.second) > 1 ? String(abs(element_count.second)) : "";
-              s+= element_count.first->getSymbol();
-	    }
-
+          {
+            String e_symbol(element_count.first->getSymbol());
+            String tmp = element_count.second > 0 ? "+" : "-";
+            tmp += abs(element_count.second) > 1 ? String(abs(element_count.second)) : "";
+            tmp += e_symbol;
+            sorted_elem_map_r[e_symbol] = tmp;
+          }
+          for (auto sorted_e_cnt : sorted_elem_map_r)
+          {
+            s += sorted_e_cnt.second;
+          }xc
           s += String("]");
           s += abs(new_q1) > 1 ? String(abs(new_q1)) : "";
           s += charge_sign;
