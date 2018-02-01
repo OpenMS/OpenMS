@@ -33,7 +33,7 @@
 # --------------------------------------------------------------------------
 
 project("OpenMS")
-cmake_minimum_required(VERSION 3.0.2 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.1 FATAL_ERROR)
 
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTOMOC ON)
@@ -89,7 +89,7 @@ set(OPENMS_DEP_LIBRARIES  ${COIN_LIBRARIES}
                           ${WM5_LIBRARIES}
                           ${BZIP2_LIBRARIES}
                           ${ZLIB_LIBRARIES}
-                          ${SQLITE_LIBRARY}
+                          ${SQLite_LIBRARY}
                           ${GLPK_LIBRARIES}
                           ${Qt5Core_LIBRARIES}
                           ${Qt5Network_LIBRARIES})
@@ -132,7 +132,7 @@ openms_add_library(TARGET_NAME  OpenMS
                                      ${Qt5Network_INCLUDE_DIRS}
                                      ${Boost_INCLUDE_DIRS}
                                      ${SEQAN_INCLUDE_DIRS}
-                                     ${SQLITE_INCLUDE_DIR}
+                                     ${SQLite_INCLUDE_DIR}
                                      ${LIBSVM_INCLUDE_DIRS}
                                      ${GLPK_INCLUDE_DIRS}
                                      ${ZLIB_INCLUDE_DIRS}

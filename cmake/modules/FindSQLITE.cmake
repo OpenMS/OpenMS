@@ -120,7 +120,7 @@ else ()
 	endif ()
 	set(_paths
 		/usr/local/sqlite${arch}
-		/usr/locla/sqlite
+		/usr/local/sqlite
 		/usr/local/sqlite3
 	)
 endif ()
@@ -132,7 +132,7 @@ find_path(SQLite_INCLUDE_DIR
 	              ${SQLITE_ROOT_DIR}
 	              ${PC_SQLite_INCLUDE_DIRS}
 	PATHS         ${_paths}
-	PATH_SUFFIXES include
+	PATH_SUFFIXES include/sqlite include/sqlite3
 )
 add_to_cachelog(SQLite_INCLUDE_DIR)
 
