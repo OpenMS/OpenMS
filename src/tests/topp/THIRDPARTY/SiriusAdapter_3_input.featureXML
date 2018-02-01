@@ -39,30 +39,30 @@
 		<UserParam type="string" name="parameter: algorithm:ffm:use_smoothed_intensities" value="true"/>
 		<UserParam type="string" name="parameter: algorithm:ffm:report_convex_hulls" value="true"/>
 	</dataProcessing>
-	<dataProcessing completion_time="2018-01-30T16:51:51">
+	<dataProcessing completion_time="2018-02-01T08:59:56">
 		<software name="MetaboliteAdductDecharger" version="2.3.0" />
 		<processingAction name="Charge deconvolution" />
-		<UserParam type="string" name="parameter: in" value="/private/var/folders/mz/8dz2f2mx0fl159nrypn6p4h40000gn/T/knime_AdductGrouping_28708/knime_fs-ZipLoopStart_0_2-28717/000/000/0_0_FeatureFinderMetabo_0/SiriusAdapter_adduct_test.featureXML"/>
+		<UserParam type="string" name="parameter: in" value="/home/alka/Documents/testing/sirius_test/SiriusAdapter_adduct_test/AdductGrouping_FFM.featureXML"/>
 		<UserParam type="string" name="parameter: log" value=""/>
 		<UserParam type="int" name="parameter: debug" value="0"/>
 		<UserParam type="int" name="parameter: threads" value="1"/>
 		<UserParam type="string" name="parameter: no_progress" value="false"/>
 		<UserParam type="string" name="parameter: force" value="false"/>
 		<UserParam type="string" name="parameter: test" value="false"/>
-		<UserParam type="string" name="parameter: out_cm" value="/private/var/folders/mz/8dz2f2mx0fl159nrypn6p4h40000gn/T/knime_AdductGrouping_28708/knime_fs-ZipLoopStart_0_2-28717/000/000/2_0_MetaboliteAdductDecharger_0/SiriusAdapter_adduct_test.consensusXML"/>
-		<UserParam type="string" name="parameter: out_fm" value="/private/var/folders/mz/8dz2f2mx0fl159nrypn6p4h40000gn/T/knime_AdductGrouping_28708/knime_fs-ZipLoopStart_0_2-28717/000/000/3_0_MetaboliteAdductDecharger_1/SiriusAdapter_adduct_test.featureXML"/>
+		<UserParam type="string" name="parameter: out_cm" value="/home/alka/Documents/testing/sirius_test/SiriusAdapter_adduct_test/AdductGrouping.consensusXML"/>
+		<UserParam type="string" name="parameter: out_fm" value="/home/alka/Documents/testing/sirius_test/SiriusAdapter_adduct_test/AdductGrouping_MAD.featureXML"/>
 		<UserParam type="string" name="parameter: outpairs" value=""/>
 		<UserParam type="int" name="parameter: algorithm:MetaboliteFeatureDeconvolution:charge_min" value="1"/>
-		<UserParam type="int" name="parameter: algorithm:MetaboliteFeatureDeconvolution:charge_max" value="1"/>
-		<UserParam type="int" name="parameter: algorithm:MetaboliteFeatureDeconvolution:charge_span_max" value="1"/>
+		<UserParam type="int" name="parameter: algorithm:MetaboliteFeatureDeconvolution:charge_max" value="3"/>
+		<UserParam type="int" name="parameter: algorithm:MetaboliteFeatureDeconvolution:charge_span_max" value="3"/>
 		<UserParam type="string" name="parameter: algorithm:MetaboliteFeatureDeconvolution:q_try" value="feature"/>
-		<UserParam type="float" name="parameter: algorithm:MetaboliteFeatureDeconvolution:retention_max_diff" value="3"/>
-		<UserParam type="float" name="parameter: algorithm:MetaboliteFeatureDeconvolution:retention_max_diff_local" value="3"/>
+		<UserParam type="float" name="parameter: algorithm:MetaboliteFeatureDeconvolution:retention_max_diff" value="1"/>
+		<UserParam type="float" name="parameter: algorithm:MetaboliteFeatureDeconvolution:retention_max_diff_local" value="1"/>
 		<UserParam type="float" name="parameter: algorithm:MetaboliteFeatureDeconvolution:mass_max_diff" value="0.05"/>
 		<UserParam type="stringList" name="parameter: algorithm:MetaboliteFeatureDeconvolution:potential_adducts" value="[Na:+:0.7,NH4:+:0.3,H:+:0.5]"/>
 		<UserParam type="int" name="parameter: algorithm:MetaboliteFeatureDeconvolution:max_neutrals" value="0"/>
 		<UserParam type="int" name="parameter: algorithm:MetaboliteFeatureDeconvolution:max_minority_bound" value="2"/>
-		<UserParam type="float" name="parameter: algorithm:MetaboliteFeatureDeconvolution:min_rt_overlap" value="0"/>
+		<UserParam type="float" name="parameter: algorithm:MetaboliteFeatureDeconvolution:min_rt_overlap" value="0.66"/>
 		<UserParam type="string" name="parameter: algorithm:MetaboliteFeatureDeconvolution:intensity_filter" value="false"/>
 		<UserParam type="string" name="parameter: algorithm:MetaboliteFeatureDeconvolution:negative_mode" value="false"/>
 		<UserParam type="string" name="parameter: algorithm:MetaboliteFeatureDeconvolution:default_map_label" value="decharged features"/>
@@ -126,7 +126,7 @@
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.00228348</overallquality>
-			<charge>1</charge>
+			<charge>0</charge>
 			<convexhull nr="0">
 				<pt x="850.35040000002" y="775.31005859375" />
 				<pt x="851.3703" y="775.318298339844" />
@@ -146,16 +146,13 @@
 				<pt x="851.3703" y="775.318298339844" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T13.1"/>
+			<UserParam type="int" name="charge" value="0"/>
 			<UserParam type="float" name="FWHM" value="6.44000005722046"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="3772693.18506458"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
 			<UserParam type="int" name="legal_isotope_pattern" value="-1"/>
-			<UserParam type="int" name="map_idx" value="0"/>
-			<UserParam type="string" name="dc_charge_adducts" value="H1"/>
-			<UserParam type="float" name="dc_charge_adduct_mass" value="1.0078250319"/>
-			<UserParam type="int" name="is_backbone" value="1"/>
-			<UserParam type="int" name="old_charge" value="0"/>
+			<UserParam type="int" name="is_single_feature" value="1"/>
 		</feature>
 		<feature id="f_13776959903928626032">
 			<position dim="0">850.35040000002</position>
@@ -196,7 +193,7 @@
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.000117103</overallquality>
-			<charge>1</charge>
+			<charge>0</charge>
 			<convexhull nr="0">
 				<pt x="850.35040000002" y="789.289978027344" />
 				<pt x="851.3703" y="789.2900390625" />
@@ -206,16 +203,13 @@
 				<pt x="851.3703" y="789.2900390625" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T145"/>
+			<UserParam type="int" name="charge" value="0"/>
 			<UserParam type="float" name="FWHM" value="3.19000005722046"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="193474.762909449"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
 			<UserParam type="int" name="legal_isotope_pattern" value="-1"/>
-			<UserParam type="int" name="map_idx" value="0"/>
-			<UserParam type="string" name="dc_charge_adducts" value="Na1"/>
-			<UserParam type="float" name="dc_charge_adduct_mass" value="22.9897692809"/>
-			<UserParam type="int" name="is_backbone" value="0"/>
-			<UserParam type="int" name="old_charge" value="0"/>
+			<UserParam type="int" name="is_single_feature" value="1"/>
 		</feature>
 		<feature id="f_4200129188257803336">
 			<position dim="0">850.35040000002</position>
@@ -280,6 +274,7 @@
 			<UserParam type="float" name="masstrace_intensity_2" value="1144191.18526418"/>
 			<UserParam type="int" name="map_idx" value="0"/>
 			<UserParam type="string" name="dc_charge_adducts" value="H1"/>
+			<UserParam type="stringList" name="adducts" value="[[M+H]+]"/>
 			<UserParam type="float" name="dc_charge_adduct_mass" value="1.0078250319"/>
 			<UserParam type="int" name="is_backbone" value="1"/>
 		</feature>
@@ -333,6 +328,7 @@
 			<UserParam type="int" name="legal_isotope_pattern" value="-1"/>
 			<UserParam type="int" name="map_idx" value="0"/>
 			<UserParam type="string" name="dc_charge_adducts" value="H4N1"/>
+			<UserParam type="stringList" name="adducts" value="[[M+4H+N]+]"/>
 			<UserParam type="float" name="dc_charge_adduct_mass" value="18.0343741276"/>
 			<UserParam type="int" name="is_backbone" value="0"/>
 			<UserParam type="int" name="old_charge" value="0"/>
@@ -344,7 +340,7 @@
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.000206285</overallquality>
-			<charge>1</charge>
+			<charge>0</charge>
 			<convexhull nr="0">
 				<pt x="850.35040000002" y="792.289733886719" />
 				<pt x="851.3703" y="792.289794921875" />
@@ -352,16 +348,13 @@
 				<pt x="851.3703" y="792.289794921875" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T104"/>
+			<UserParam type="int" name="charge" value="0"/>
 			<UserParam type="float" name="FWHM" value="5.28999996185303"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="340818.658316326"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
 			<UserParam type="int" name="legal_isotope_pattern" value="-1"/>
-			<UserParam type="int" name="map_idx" value="0"/>
-			<UserParam type="string" name="dc_charge_adducts" value="H4N1"/>
-			<UserParam type="float" name="dc_charge_adduct_mass" value="18.0343741276"/>
-			<UserParam type="int" name="is_backbone" value="0"/>
-			<UserParam type="int" name="old_charge" value="0"/>
+			<UserParam type="int" name="is_single_feature" value="1"/>
 		</feature>
 		<feature id="f_6872798606167894531">
 			<position dim="0">853.54039999998</position>
@@ -658,16 +651,14 @@
 				<pt x="865.64029999998" y="799.313354492188" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T34.1_T24.1"/>
+			<UserParam type="int" name="charge" value="1"/>
 			<UserParam type="float" name="FWHM" value="8.7996997833252"/>
 			<UserParam type="int" name="num_of_masstraces" value="2"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="1886364.32222872"/>
 			<UserParam type="floatList" name="isotope_distances" value="[1.00685782173809]"/>
 			<UserParam type="int" name="legal_isotope_pattern" value="-1"/>
 			<UserParam type="float" name="masstrace_intensity_1" value="725268.372722755"/>
-			<UserParam type="int" name="map_idx" value="0"/>
-			<UserParam type="string" name="dc_charge_adducts" value="Na1"/>
-			<UserParam type="float" name="dc_charge_adduct_mass" value="22.9897692809"/>
-			<UserParam type="int" name="is_backbone" value="0"/>
+			<UserParam type="int" name="is_single_feature" value="1"/>
 		</feature>
 		<feature id="f_14445502685282594132">
 			<position dim="0">863.4603</position>
@@ -676,7 +667,7 @@
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.00310971</overallquality>
-			<charge>1</charge>
+			<charge>0</charge>
 			<convexhull nr="0">
 				<pt x="856.7904" y="776.330749511719" />
 				<pt x="865.64029999998" y="776.330749511719" />
@@ -692,16 +683,13 @@
 				<pt x="865.64029999998" y="776.330749511719" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T17"/>
+			<UserParam type="int" name="charge" value="0"/>
 			<UserParam type="float" name="FWHM" value="12.0600004196167"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="5137763.60951478"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
 			<UserParam type="int" name="legal_isotope_pattern" value="-1"/>
-			<UserParam type="int" name="map_idx" value="0"/>
-			<UserParam type="string" name="dc_charge_adducts" value="H1"/>
-			<UserParam type="float" name="dc_charge_adduct_mass" value="1.0078250319"/>
-			<UserParam type="int" name="is_backbone" value="1"/>
-			<UserParam type="int" name="old_charge" value="0"/>
+			<UserParam type="int" name="is_single_feature" value="1"/>
 		</feature>
 		<feature id="f_11808801467057719555">
 			<position dim="0">863.4603</position>
@@ -734,16 +722,14 @@
 				<pt x="865.64029999998" y="797.35302734375" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T68_T134"/>
+			<UserParam type="int" name="charge" value="1"/>
 			<UserParam type="float" name="FWHM" value="11.9497003555298"/>
 			<UserParam type="int" name="num_of_masstraces" value="2"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="1152239.25240649"/>
 			<UserParam type="floatList" name="isotope_distances" value="[1.00296459452215]"/>
 			<UserParam type="int" name="legal_isotope_pattern" value="-1"/>
 			<UserParam type="float" name="masstrace_intensity_1" value="419565.917538378"/>
-			<UserParam type="int" name="map_idx" value="0"/>
-			<UserParam type="string" name="dc_charge_adducts" value="Na1"/>
-			<UserParam type="float" name="dc_charge_adduct_mass" value="22.9897692809"/>
-			<UserParam type="int" name="is_backbone" value="0"/>
+			<UserParam type="int" name="is_single_feature" value="1"/>
 		</feature>
 		<feature id="f_2734498947430931442">
 			<position dim="0">864.55030000002</position>
@@ -752,7 +738,7 @@
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.000150276</overallquality>
-			<charge>1</charge>
+			<charge>0</charge>
 			<convexhull nr="0">
 				<pt x="862.37029999998" y="776.371643066406" />
 				<pt x="864.55030000002" y="776.371643066406" />
@@ -760,16 +746,13 @@
 				<pt x="864.55030000002" y="776.371643066406" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T99"/>
+			<UserParam type="int" name="charge" value="0"/>
 			<UserParam type="float" name="FWHM" value="3.27010011672974"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="248280.78246287"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
 			<UserParam type="int" name="legal_isotope_pattern" value="-1"/>
-			<UserParam type="int" name="map_idx" value="0"/>
-			<UserParam type="string" name="dc_charge_adducts" value="H1"/>
-			<UserParam type="float" name="dc_charge_adduct_mass" value="1.0078250319"/>
-			<UserParam type="int" name="is_backbone" value="1"/>
-			<UserParam type="int" name="old_charge" value="0"/>
+			<UserParam type="int" name="is_single_feature" value="1"/>
 		</feature>
 		<feature id="f_15588937735725057245">
 			<position dim="0">864.55030000002</position>
@@ -911,16 +894,14 @@
 				<pt x="865.64029999998" y="775.375366210938" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T21.1_T49.1"/>
+			<UserParam type="int" name="charge" value="1"/>
 			<UserParam type="float" name="FWHM" value="12.9191999435425"/>
 			<UserParam type="int" name="num_of_masstraces" value="2"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="3957970.03269865"/>
 			<UserParam type="floatList" name="isotope_distances" value="[1.00433818590443]"/>
 			<UserParam type="int" name="legal_isotope_pattern" value="-1"/>
 			<UserParam type="float" name="masstrace_intensity_1" value="1868991.82081915"/>
-			<UserParam type="int" name="map_idx" value="0"/>
-			<UserParam type="string" name="dc_charge_adducts" value="H1"/>
-			<UserParam type="float" name="dc_charge_adduct_mass" value="1.0078250319"/>
-			<UserParam type="int" name="is_backbone" value="1"/>
+			<UserParam type="int" name="is_single_feature" value="1"/>
 		</feature>
 		<feature id="f_8809435466505089199">
 			<position dim="0">865.64029999998</position>
@@ -1411,7 +1392,7 @@
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.00143437</overallquality>
-			<charge>1</charge>
+			<charge>0</charge>
 			<convexhull nr="0">
 				<pt x="866.73040000002" y="789.373779296875" />
 				<pt x="868.8504" y="789.37353515625" />
@@ -1431,16 +1412,13 @@
 				<pt x="868.8504" y="789.37353515625" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T50.1"/>
+			<UserParam type="int" name="charge" value="0"/>
 			<UserParam type="float" name="FWHM" value="15.1800003051758"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="2369819.02555238"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
 			<UserParam type="int" name="legal_isotope_pattern" value="-1"/>
-			<UserParam type="int" name="map_idx" value="0"/>
-			<UserParam type="string" name="dc_charge_adducts" value="Na1"/>
-			<UserParam type="float" name="dc_charge_adduct_mass" value="22.9897692809"/>
-			<UserParam type="int" name="is_backbone" value="0"/>
-			<UserParam type="int" name="old_charge" value="0"/>
+			<UserParam type="int" name="is_single_feature" value="1"/>
 		</feature>
 		<feature id="f_9942034656015499084">
 			<position dim="0">874.07029999998</position>
@@ -1604,22 +1582,19 @@
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.00045546</overallquality>
-			<charge>1</charge>
+			<charge>0</charge>
 			<convexhull nr="0">
 				<pt x="874.07029999998" y="767.408935546875" />
 				<pt x="877.9332" y="767.408935546875" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T37"/>
+			<UserParam type="int" name="charge" value="0"/>
 			<UserParam type="float" name="FWHM" value="3.86290001869202"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="752498.031265422"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
 			<UserParam type="int" name="legal_isotope_pattern" value="-1"/>
-			<UserParam type="int" name="map_idx" value="0"/>
-			<UserParam type="string" name="dc_charge_adducts" value="H1"/>
-			<UserParam type="float" name="dc_charge_adduct_mass" value="1.0078250319"/>
-			<UserParam type="int" name="is_backbone" value="1"/>
-			<UserParam type="int" name="old_charge" value="0"/>
+			<UserParam type="int" name="is_single_feature" value="1"/>
 		</feature>
 		<feature id="f_14209179423662803198">
 			<position dim="0">875.1003</position>
@@ -1628,7 +1603,7 @@
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.000327013</overallquality>
-			<charge>1</charge>
+			<charge>0</charge>
 			<convexhull nr="0">
 				<pt x="869.8803" y="767.441345214844" />
 				<pt x="871.94029999998" y="767.441040039062" />
@@ -1636,16 +1611,13 @@
 				<pt x="871.94029999998" y="767.441040039062" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T72.1"/>
+			<UserParam type="int" name="charge" value="0"/>
 			<UserParam type="float" name="FWHM" value="7.34009981155396"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="540281.042467617"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
 			<UserParam type="int" name="legal_isotope_pattern" value="-1"/>
-			<UserParam type="int" name="map_idx" value="0"/>
-			<UserParam type="string" name="dc_charge_adducts" value="H1"/>
-			<UserParam type="float" name="dc_charge_adduct_mass" value="1.0078250319"/>
-			<UserParam type="int" name="is_backbone" value="1"/>
-			<UserParam type="int" name="old_charge" value="0"/>
+			<UserParam type="int" name="is_single_feature" value="1"/>
 		</feature>
 		<feature id="f_12388679869437065002">
 			<position dim="0">875.1003</position>
@@ -1654,22 +1626,19 @@
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>7.82164e-05</overallquality>
-			<charge>1</charge>
+			<charge>0</charge>
 			<convexhull nr="0">
 				<pt x="871.94029999998" y="768.446228027344" />
 				<pt x="875.1003" y="768.446166992188" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T148"/>
+			<UserParam type="int" name="charge" value="0"/>
 			<UserParam type="float" name="FWHM" value="3.16000008583069"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="129226.786641442"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
 			<UserParam type="int" name="legal_isotope_pattern" value="-1"/>
-			<UserParam type="int" name="map_idx" value="0"/>
-			<UserParam type="string" name="dc_charge_adducts" value="H1"/>
-			<UserParam type="float" name="dc_charge_adduct_mass" value="1.0078250319"/>
-			<UserParam type="int" name="is_backbone" value="1"/>
-			<UserParam type="int" name="old_charge" value="0"/>
+			<UserParam type="int" name="is_single_feature" value="1"/>
 		</feature>
 		<feature id="f_9767639667746687051">
 			<position dim="0">875.1003</position>
@@ -1753,7 +1722,7 @@
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.000336664</overallquality>
-			<charge>1</charge>
+			<charge>0</charge>
 			<convexhull nr="0">
 				<pt x="870.91030000002" y="767.224243164062" />
 				<pt x="873.04030000002" y="767.224182128906" />
@@ -1761,16 +1730,13 @@
 				<pt x="873.04030000002" y="767.224182128906" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T98.1"/>
+			<UserParam type="int" name="charge" value="0"/>
 			<UserParam type="float" name="FWHM" value="8.7189998626709"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="556226.838200858"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
 			<UserParam type="int" name="legal_isotope_pattern" value="-1"/>
-			<UserParam type="int" name="map_idx" value="0"/>
-			<UserParam type="string" name="dc_charge_adducts" value="H1"/>
-			<UserParam type="float" name="dc_charge_adduct_mass" value="1.0078250319"/>
-			<UserParam type="int" name="is_backbone" value="1"/>
-			<UserParam type="int" name="old_charge" value="0"/>
+			<UserParam type="int" name="is_single_feature" value="1"/>
 		</feature>
 		<feature id="f_8765928722205621222">
 			<position dim="0">876.13030000002</position>
@@ -1779,7 +1745,7 @@
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.000890358</overallquality>
-			<charge>1</charge>
+			<charge>0</charge>
 			<convexhull nr="0">
 				<pt x="868.8504" y="767.272827148438" />
 				<pt x="869.8803" y="767.272705078125" />
@@ -1815,16 +1781,13 @@
 				<pt x="869.8803" y="767.272705078125" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T62.1"/>
+			<UserParam type="int" name="charge" value="0"/>
 			<UserParam type="float" name="FWHM" value="14.1499996185303"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="1471023.10401437"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
 			<UserParam type="int" name="legal_isotope_pattern" value="-1"/>
-			<UserParam type="int" name="map_idx" value="0"/>
-			<UserParam type="string" name="dc_charge_adducts" value="H1"/>
-			<UserParam type="float" name="dc_charge_adduct_mass" value="1.0078250319"/>
-			<UserParam type="int" name="is_backbone" value="1"/>
-			<UserParam type="int" name="old_charge" value="0"/>
+			<UserParam type="int" name="is_single_feature" value="1"/>
 		</feature>
 		<feature id="f_4581705082099286841">
 			<position dim="0">876.13030000002</position>
@@ -1856,7 +1819,7 @@
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.023725</overallquality>
-			<charge>1</charge>
+			<charge>0</charge>
 			<convexhull nr="0">
 				<pt x="863.4603" y="784.378051757812" />
 				<pt x="865.64029999998" y="784.378051757812" />
@@ -1910,16 +1873,13 @@
 				<pt x="865.64029999998" y="784.378051757812" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T6"/>
+			<UserParam type="int" name="charge" value="0"/>
 			<UserParam type="float" name="FWHM" value="14.1499996185303"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="39197770.0190949"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
 			<UserParam type="int" name="legal_isotope_pattern" value="-1"/>
-			<UserParam type="int" name="map_idx" value="0"/>
-			<UserParam type="string" name="dc_charge_adducts" value="H4N1"/>
-			<UserParam type="float" name="dc_charge_adduct_mass" value="18.0343741276"/>
-			<UserParam type="int" name="is_backbone" value="0"/>
-			<UserParam type="int" name="old_charge" value="0"/>
+			<UserParam type="int" name="is_single_feature" value="1"/>
 		</feature>
 		<feature id="f_8507575596506434913">
 			<position dim="0">876.13030000002</position>
@@ -1928,7 +1888,7 @@
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.000398326</overallquality>
-			<charge>1</charge>
+			<charge>0</charge>
 			<convexhull nr="0">
 				<pt x="868.8504" y="789.281372070312" />
 				<pt x="870.91030000002" y="789.280944824219" />
@@ -1938,16 +1898,13 @@
 				<pt x="870.91030000002" y="789.280944824219" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T78.1"/>
+			<UserParam type="int" name="charge" value="0"/>
 			<UserParam type="float" name="FWHM" value="7.27990007400513"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="658103.035869831"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
 			<UserParam type="int" name="legal_isotope_pattern" value="-1"/>
-			<UserParam type="int" name="map_idx" value="0"/>
-			<UserParam type="string" name="dc_charge_adducts" value="Na1"/>
-			<UserParam type="float" name="dc_charge_adduct_mass" value="22.9897692809"/>
-			<UserParam type="int" name="is_backbone" value="0"/>
-			<UserParam type="int" name="old_charge" value="0"/>
+			<UserParam type="int" name="is_single_feature" value="1"/>
 		</feature>
 		<feature id="f_9585196028799127672">
 			<position dim="0">876.13030000002</position>
@@ -1956,7 +1913,7 @@
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.000318899</overallquality>
-			<charge>1</charge>
+			<charge>0</charge>
 			<convexhull nr="0">
 				<pt x="874.07029999998" y="789.398193359375" />
 				<pt x="878.77879999998" y="789.398193359375" />
@@ -1964,16 +1921,13 @@
 				<pt x="878.77879999998" y="789.398193359375" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T80"/>
+			<UserParam type="int" name="charge" value="0"/>
 			<UserParam type="float" name="FWHM" value="7.25600004196167"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="526875.475489747"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
 			<UserParam type="int" name="legal_isotope_pattern" value="-1"/>
-			<UserParam type="int" name="map_idx" value="0"/>
-			<UserParam type="string" name="dc_charge_adducts" value="Na1"/>
-			<UserParam type="float" name="dc_charge_adduct_mass" value="22.9897692809"/>
-			<UserParam type="int" name="is_backbone" value="0"/>
-			<UserParam type="int" name="old_charge" value="0"/>
+			<UserParam type="int" name="is_single_feature" value="1"/>
 		</feature>
 		<feature id="f_12754829908793606719">
 			<position dim="0">876.13030000002</position>
@@ -2098,7 +2052,6 @@
 				<pt x="871.94029999998" y="793.343383789062" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T7.1_T16.1_T55"/>
-			<UserParam type="int" name="charge" value="1"/>
 			<UserParam type="float" name="FWHM" value="16.2099990844727"/>
 			<UserParam type="int" name="num_of_masstraces" value="3"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="38632444.5072319"/>
@@ -2106,7 +2059,11 @@
 			<UserParam type="int" name="legal_isotope_pattern" value="-1"/>
 			<UserParam type="float" name="masstrace_intensity_1" value="7276895.79730836"/>
 			<UserParam type="float" name="masstrace_intensity_2" value="1042736.38245373"/>
-			<UserParam type="int" name="is_single_feature" value="1"/>
+			<UserParam type="int" name="map_idx" value="0"/>
+			<UserParam type="string" name="dc_charge_adducts" value="H1"/>
+			<UserParam type="stringList" name="adducts" value="[[M+H]+]"/>
+			<UserParam type="float" name="dc_charge_adduct_mass" value="1.0078250319"/>
+			<UserParam type="int" name="is_backbone" value="1"/>
 		</feature>
 		<feature id="f_10425352338942774707">
 			<position dim="0">876.13030000002</position>
@@ -2277,8 +2234,9 @@
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
 			<UserParam type="int" name="legal_isotope_pattern" value="-1"/>
 			<UserParam type="int" name="map_idx" value="0"/>
-			<UserParam type="string" name="dc_charge_adducts" value="Na1"/>
-			<UserParam type="float" name="dc_charge_adduct_mass" value="22.9897692809"/>
+			<UserParam type="string" name="dc_charge_adducts" value="H4N1"/>
+			<UserParam type="stringList" name="adducts" value="[[M+4H+N]+]"/>
+			<UserParam type="float" name="dc_charge_adduct_mass" value="18.0343741276"/>
 			<UserParam type="int" name="is_backbone" value="0"/>
 			<UserParam type="int" name="old_charge" value="0"/>
 		</feature>
@@ -2289,7 +2247,7 @@
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.000524257</overallquality>
-			<charge>1</charge>
+			<charge>0</charge>
 			<convexhull nr="0">
 				<pt x="874.07029999998" y="767.256286621094" />
 				<pt x="880.47610000002" y="767.256286621094" />
@@ -2303,16 +2261,13 @@
 				<pt x="880.47610000002" y="767.256286621094" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T77"/>
+			<UserParam type="int" name="charge" value="0"/>
 			<UserParam type="float" name="FWHM" value="10.9899997711182"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="866161.843153791"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
 			<UserParam type="int" name="legal_isotope_pattern" value="-1"/>
-			<UserParam type="int" name="map_idx" value="0"/>
-			<UserParam type="string" name="dc_charge_adducts" value="H1"/>
-			<UserParam type="float" name="dc_charge_adduct_mass" value="1.0078250319"/>
-			<UserParam type="int" name="is_backbone" value="1"/>
-			<UserParam type="int" name="old_charge" value="0"/>
+			<UserParam type="int" name="is_single_feature" value="1"/>
 		</feature>
 		<feature id="f_9722689060136094133">
 			<position dim="0">877.2204</position>
@@ -2321,7 +2276,7 @@
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.0014161</overallquality>
-			<charge>1</charge>
+			<charge>0</charge>
 			<convexhull nr="0">
 				<pt x="870.91030000002" y="767.296508789062" />
 				<pt x="874.07029999998" y="767.296447753906" />
@@ -2331,16 +2286,13 @@
 				<pt x="874.07029999998" y="767.296447753906" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T29"/>
+			<UserParam type="int" name="charge" value="0"/>
 			<UserParam type="float" name="FWHM" value="10.4160003662109"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="2339641.59594578"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
 			<UserParam type="int" name="legal_isotope_pattern" value="-1"/>
-			<UserParam type="int" name="map_idx" value="0"/>
-			<UserParam type="string" name="dc_charge_adducts" value="H1"/>
-			<UserParam type="float" name="dc_charge_adduct_mass" value="1.0078250319"/>
-			<UserParam type="int" name="is_backbone" value="1"/>
-			<UserParam type="int" name="old_charge" value="0"/>
+			<UserParam type="int" name="is_single_feature" value="1"/>
 		</feature>
 		<feature id="f_17757090801224524213">
 			<position dim="0">877.2204</position>
@@ -2598,6 +2550,7 @@
 			<UserParam type="float" name="masstrace_intensity_4" value="2816904.59118626"/>
 			<UserParam type="int" name="map_idx" value="0"/>
 			<UserParam type="string" name="dc_charge_adducts" value="H1"/>
+			<UserParam type="stringList" name="adducts" value="[[M+H]+]"/>
 			<UserParam type="float" name="dc_charge_adduct_mass" value="1.0078250319"/>
 			<UserParam type="int" name="is_backbone" value="1"/>
 		</feature>
@@ -2621,6 +2574,7 @@
 			<UserParam type="int" name="legal_isotope_pattern" value="-1"/>
 			<UserParam type="int" name="map_idx" value="0"/>
 			<UserParam type="string" name="dc_charge_adducts" value="H1"/>
+			<UserParam type="stringList" name="adducts" value="[[M+H]+]"/>
 			<UserParam type="float" name="dc_charge_adduct_mass" value="1.0078250319"/>
 			<UserParam type="int" name="is_backbone" value="1"/>
 			<UserParam type="int" name="old_charge" value="0"/>
@@ -2632,7 +2586,7 @@
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.000267763</overallquality>
-			<charge>0</charge>
+			<charge>3</charge>
 			<convexhull nr="0">
 				<pt x="874.07029999998" y="772.762451171875" />
 				<pt x="879.62929999998" y="772.762451171875" />
@@ -2644,13 +2598,17 @@
 				<pt x="879.62929999998" y="772.762451171875" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T128"/>
-			<UserParam type="int" name="charge" value="0"/>
 			<UserParam type="float" name="FWHM" value="9.82940006256104"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="442389.355035827"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
 			<UserParam type="int" name="legal_isotope_pattern" value="-1"/>
-			<UserParam type="int" name="is_single_feature" value="1"/>
+			<UserParam type="int" name="map_idx" value="0"/>
+			<UserParam type="string" name="dc_charge_adducts" value="H3"/>
+			<UserParam type="stringList" name="adducts" value="[[M+3H]3+]"/>
+			<UserParam type="float" name="dc_charge_adduct_mass" value="3.0234750957"/>
+			<UserParam type="int" name="is_backbone" value="1"/>
+			<UserParam type="int" name="old_charge" value="0"/>
 		</feature>
 		<feature id="f_15018423177992074338">
 			<position dim="0">877.2204</position>
@@ -2659,7 +2617,7 @@
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.0027102</overallquality>
-			<charge>1</charge>
+			<charge>0</charge>
 			<convexhull nr="0">
 				<pt x="867.76030000002" y="786.382141113281" />
 				<pt x="868.8504" y="786.381958007812" />
@@ -2695,16 +2653,13 @@
 				<pt x="868.8504" y="786.381958007812" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T25.1"/>
+			<UserParam type="int" name="charge" value="0"/>
 			<UserParam type="float" name="FWHM" value="15.1800003051758"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="4477707.68578219"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
 			<UserParam type="int" name="legal_isotope_pattern" value="-1"/>
-			<UserParam type="int" name="map_idx" value="0"/>
-			<UserParam type="string" name="dc_charge_adducts" value="H1"/>
-			<UserParam type="float" name="dc_charge_adduct_mass" value="1.0078250319"/>
-			<UserParam type="int" name="is_backbone" value="1"/>
-			<UserParam type="int" name="old_charge" value="0"/>
+			<UserParam type="int" name="is_single_feature" value="1"/>
 		</feature>
 		<feature id="f_18004071616617210912">
 			<position dim="0">877.2204</position>
@@ -2817,6 +2772,7 @@
 			<UserParam type="int" name="legal_isotope_pattern" value="-1"/>
 			<UserParam type="int" name="map_idx" value="0"/>
 			<UserParam type="string" name="dc_charge_adducts" value="Na1"/>
+			<UserParam type="stringList" name="adducts" value="[[M+Na]+]"/>
 			<UserParam type="float" name="dc_charge_adduct_mass" value="22.9897692809"/>
 			<UserParam type="int" name="is_backbone" value="0"/>
 			<UserParam type="int" name="old_charge" value="0"/>
@@ -2891,6 +2847,7 @@
 			<UserParam type="int" name="legal_isotope_pattern" value="-1"/>
 			<UserParam type="int" name="map_idx" value="0"/>
 			<UserParam type="string" name="dc_charge_adducts" value="Na1"/>
+			<UserParam type="stringList" name="adducts" value="[[M+Na]+]"/>
 			<UserParam type="float" name="dc_charge_adduct_mass" value="22.9897692809"/>
 			<UserParam type="int" name="is_backbone" value="0"/>
 			<UserParam type="int" name="old_charge" value="0"/>
@@ -3083,22 +3040,19 @@
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.000119906</overallquality>
-			<charge>1</charge>
+			<charge>0</charge>
 			<convexhull nr="0">
 				<pt x="873.04030000002" y="767.4892578125" />
 				<pt x="877.9332" y="767.4892578125" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T113"/>
+			<UserParam type="int" name="charge" value="0"/>
 			<UserParam type="float" name="FWHM" value="3.86290001869202"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="198105.640873706"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
 			<UserParam type="int" name="legal_isotope_pattern" value="-1"/>
-			<UserParam type="int" name="map_idx" value="0"/>
-			<UserParam type="string" name="dc_charge_adducts" value="H1"/>
-			<UserParam type="float" name="dc_charge_adduct_mass" value="1.0078250319"/>
-			<UserParam type="int" name="is_backbone" value="1"/>
-			<UserParam type="int" name="old_charge" value="0"/>
+			<UserParam type="int" name="is_single_feature" value="1"/>
 		</feature>
 		<feature id="f_357373375732828458">
 			<position dim="0">877.9332</position>
@@ -3187,6 +3141,7 @@
 			<UserParam type="int" name="legal_isotope_pattern" value="-1"/>
 			<UserParam type="int" name="map_idx" value="0"/>
 			<UserParam type="string" name="dc_charge_adducts" value="H4N1"/>
+			<UserParam type="stringList" name="adducts" value="[[M+4H+N]+]"/>
 			<UserParam type="float" name="dc_charge_adduct_mass" value="18.0343741276"/>
 			<UserParam type="int" name="is_backbone" value="0"/>
 			<UserParam type="int" name="old_charge" value="0"/>
@@ -3262,7 +3217,7 @@
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.000428962</overallquality>
-			<charge>0</charge>
+			<charge>3</charge>
 			<convexhull nr="0">
 				<pt x="870.91030000002" y="787.324035644531" />
 				<pt x="871.94029999998" y="787.323974609375" />
@@ -3280,13 +3235,17 @@
 				<pt x="871.94029999998" y="787.323974609375" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T79"/>
-			<UserParam type="int" name="charge" value="0"/>
 			<UserParam type="float" name="FWHM" value="8.28600025177002"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="708718.477533695"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
 			<UserParam type="int" name="legal_isotope_pattern" value="-1"/>
-			<UserParam type="int" name="is_single_feature" value="1"/>
+			<UserParam type="int" name="map_idx" value="0"/>
+			<UserParam type="string" name="dc_charge_adducts" value="H1Na2"/>
+			<UserParam type="stringList" name="adducts" value="[[M+H+2Na]3+]"/>
+			<UserParam type="float" name="dc_charge_adduct_mass" value="46.9873635937"/>
+			<UserParam type="int" name="is_backbone" value="0"/>
+			<UserParam type="int" name="old_charge" value="0"/>
 		</feature>
 		<feature id="f_1035747331943979941">
 			<position dim="0">878.77879999998</position>
@@ -3295,7 +3254,7 @@
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.000472129</overallquality>
-			<charge>1</charge>
+			<charge>0</charge>
 			<convexhull nr="0">
 				<pt x="870.91030000002" y="767.240295410156" />
 				<pt x="871.94029999998" y="767.240295410156" />
@@ -3311,16 +3270,13 @@
 				<pt x="871.94029999998" y="767.240295410156" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T93.1"/>
+			<UserParam type="int" name="charge" value="0"/>
 			<UserParam type="float" name="FWHM" value="12.1239004135132"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="780037.812618193"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
 			<UserParam type="int" name="legal_isotope_pattern" value="-1"/>
-			<UserParam type="int" name="map_idx" value="0"/>
-			<UserParam type="string" name="dc_charge_adducts" value="H1"/>
-			<UserParam type="float" name="dc_charge_adduct_mass" value="1.0078250319"/>
-			<UserParam type="int" name="is_backbone" value="1"/>
-			<UserParam type="int" name="old_charge" value="0"/>
+			<UserParam type="int" name="is_single_feature" value="1"/>
 		</feature>
 		<feature id="f_16844084669247512410">
 			<position dim="0">878.77879999998</position>
@@ -3356,7 +3312,7 @@
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.000518317</overallquality>
-			<charge>1</charge>
+			<charge>0</charge>
 			<convexhull nr="0">
 				<pt x="879.62929999998" y="767.40087890625" />
 				<pt x="880.47610000002" y="767.40087890625" />
@@ -3374,16 +3330,13 @@
 				<pt x="880.47610000002" y="767.40087890625" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T39"/>
+			<UserParam type="int" name="charge" value="0"/>
 			<UserParam type="float" name="FWHM" value="6.46099996566772"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="856348.104578418"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
 			<UserParam type="int" name="legal_isotope_pattern" value="-1"/>
-			<UserParam type="int" name="map_idx" value="0"/>
-			<UserParam type="string" name="dc_charge_adducts" value="H1"/>
-			<UserParam type="float" name="dc_charge_adduct_mass" value="1.0078250319"/>
-			<UserParam type="int" name="is_backbone" value="1"/>
-			<UserParam type="int" name="old_charge" value="0"/>
+			<UserParam type="int" name="is_single_feature" value="1"/>
 		</feature>
 		<feature id="f_13785112853997919024">
 			<position dim="0">879.62929999998</position>
@@ -3465,7 +3418,7 @@
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.000180684</overallquality>
-			<charge>1</charge>
+			<charge>0</charge>
 			<convexhull nr="0">
 				<pt x="877.9332" y="767.457092285156" />
 				<pt x="880.47610000002" y="767.457092285156" />
@@ -3473,16 +3426,13 @@
 				<pt x="880.47610000002" y="767.457092285156" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T96"/>
+			<UserParam type="int" name="charge" value="0"/>
 			<UserParam type="float" name="FWHM" value="4.24420022964478"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="298520.65119266"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
 			<UserParam type="int" name="legal_isotope_pattern" value="-1"/>
-			<UserParam type="int" name="map_idx" value="0"/>
-			<UserParam type="string" name="dc_charge_adducts" value="H1"/>
-			<UserParam type="float" name="dc_charge_adduct_mass" value="1.0078250319"/>
-			<UserParam type="int" name="is_backbone" value="1"/>
-			<UserParam type="int" name="old_charge" value="0"/>
+			<UserParam type="int" name="is_single_feature" value="1"/>
 		</feature>
 		<feature id="f_8181483481560375790">
 			<position dim="0">880.47610000002</position>
@@ -3491,7 +3441,7 @@
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.000128407</overallquality>
-			<charge>1</charge>
+			<charge>0</charge>
 			<convexhull nr="0">
 				<pt x="878.77879999998" y="768.285217285156" />
 				<pt x="880.47610000002" y="768.285217285156" />
@@ -3501,16 +3451,13 @@
 				<pt x="880.47610000002" y="768.285217285156" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T114"/>
+			<UserParam type="int" name="charge" value="0"/>
 			<UserParam type="float" name="FWHM" value="4.25540018081665"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="212150.715483939"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
 			<UserParam type="int" name="legal_isotope_pattern" value="-1"/>
-			<UserParam type="int" name="map_idx" value="0"/>
-			<UserParam type="string" name="dc_charge_adducts" value="H1"/>
-			<UserParam type="float" name="dc_charge_adduct_mass" value="1.0078250319"/>
-			<UserParam type="int" name="is_backbone" value="1"/>
-			<UserParam type="int" name="old_charge" value="0"/>
+			<UserParam type="int" name="is_single_feature" value="1"/>
 		</feature>
 		<feature id="f_174427691081138045">
 			<position dim="0">880.47610000002</position>
@@ -3519,7 +3466,7 @@
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.000847522</overallquality>
-			<charge>1</charge>
+			<charge>0</charge>
 			<convexhull nr="0">
 				<pt x="871.94029999998" y="768.301330566406" />
 				<pt x="877.9332" y="768.301330566406" />
@@ -3563,16 +3510,13 @@
 				<pt x="877.9332" y="768.301330566406" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T59.1"/>
+			<UserParam type="int" name="charge" value="0"/>
 			<UserParam type="float" name="FWHM" value="11.959400177002"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="1400250.48225507"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
 			<UserParam type="int" name="legal_isotope_pattern" value="-1"/>
-			<UserParam type="int" name="map_idx" value="0"/>
-			<UserParam type="string" name="dc_charge_adducts" value="H1"/>
-			<UserParam type="float" name="dc_charge_adduct_mass" value="1.0078250319"/>
-			<UserParam type="int" name="is_backbone" value="1"/>
-			<UserParam type="int" name="old_charge" value="0"/>
+			<UserParam type="int" name="is_single_feature" value="1"/>
 		</feature>
 		<feature id="f_7610507184584314179">
 			<position dim="0">880.47610000002</position>
@@ -3581,7 +3525,7 @@
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.00012689</overallquality>
-			<charge>1</charge>
+			<charge>0</charge>
 			<convexhull nr="0">
 				<pt x="880.47610000002" y="768.397888183594" />
 				<pt x="883.03420000002" y="768.406127929688" />
@@ -3589,16 +3533,13 @@
 				<pt x="883.03420000002" y="768.406127929688" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T117"/>
+			<UserParam type="int" name="charge" value="0"/>
 			<UserParam type="float" name="FWHM" value="3.4235999584198"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="209643.130207029"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
 			<UserParam type="int" name="legal_isotope_pattern" value="-1"/>
-			<UserParam type="int" name="map_idx" value="0"/>
-			<UserParam type="string" name="dc_charge_adducts" value="H1"/>
-			<UserParam type="float" name="dc_charge_adduct_mass" value="1.0078250319"/>
-			<UserParam type="int" name="is_backbone" value="1"/>
-			<UserParam type="int" name="old_charge" value="0"/>
+			<UserParam type="int" name="is_single_feature" value="1"/>
 		</feature>
 		<feature id="f_2241815075396826520">
 			<position dim="0">880.47610000002</position>
@@ -3642,7 +3583,7 @@
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.00038898</overallquality>
-			<charge>1</charge>
+			<charge>0</charge>
 			<convexhull nr="0">
 				<pt x="873.04030000002" y="779.346496582031" />
 				<pt x="880.47610000002" y="779.346496582031" />
@@ -3658,16 +3599,13 @@
 				<pt x="880.47610000002" y="779.346496582031" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T86.1"/>
+			<UserParam type="int" name="charge" value="0"/>
 			<UserParam type="float" name="FWHM" value="10.9899997711182"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="642662.061003427"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
 			<UserParam type="int" name="legal_isotope_pattern" value="-1"/>
-			<UserParam type="int" name="map_idx" value="0"/>
-			<UserParam type="string" name="dc_charge_adducts" value="H1"/>
-			<UserParam type="float" name="dc_charge_adduct_mass" value="1.0078250319"/>
-			<UserParam type="int" name="is_backbone" value="1"/>
-			<UserParam type="int" name="old_charge" value="0"/>
+			<UserParam type="int" name="is_single_feature" value="1"/>
 		</feature>
 		<feature id="f_4619089036830445815">
 			<position dim="0">880.47610000002</position>
@@ -3800,16 +3738,14 @@
 				<pt x="881.32630000002" y="790.396545410156" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T58.1_T151.1"/>
+			<UserParam type="int" name="charge" value="1"/>
 			<UserParam type="float" name="FWHM" value="6.64419984817505"/>
 			<UserParam type="int" name="num_of_masstraces" value="2"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="753986.820468591"/>
 			<UserParam type="floatList" name="isotope_distances" value="[1.00591185438759]"/>
 			<UserParam type="int" name="legal_isotope_pattern" value="-1"/>
 			<UserParam type="float" name="masstrace_intensity_1" value="307367.50948741"/>
-			<UserParam type="int" name="map_idx" value="0"/>
-			<UserParam type="string" name="dc_charge_adducts" value="Na1"/>
-			<UserParam type="float" name="dc_charge_adduct_mass" value="22.9897692809"/>
-			<UserParam type="int" name="is_backbone" value="0"/>
+			<UserParam type="int" name="is_single_feature" value="1"/>
 		</feature>
 		<feature id="f_7959499411291598097">
 			<position dim="0">880.47610000002</position>
@@ -3841,6 +3777,7 @@
 			<UserParam type="int" name="legal_isotope_pattern" value="-1"/>
 			<UserParam type="int" name="map_idx" value="0"/>
 			<UserParam type="string" name="dc_charge_adducts" value="Na1"/>
+			<UserParam type="stringList" name="adducts" value="[[M+Na]+]"/>
 			<UserParam type="float" name="dc_charge_adduct_mass" value="22.9897692809"/>
 			<UserParam type="int" name="is_backbone" value="0"/>
 			<UserParam type="int" name="old_charge" value="0"/>
@@ -3917,6 +3854,7 @@
 			<UserParam type="int" name="legal_isotope_pattern" value="-1"/>
 			<UserParam type="int" name="map_idx" value="0"/>
 			<UserParam type="string" name="dc_charge_adducts" value="H1"/>
+			<UserParam type="stringList" name="adducts" value="[[M+H]+]"/>
 			<UserParam type="float" name="dc_charge_adduct_mass" value="1.0078250319"/>
 			<UserParam type="int" name="is_backbone" value="1"/>
 			<UserParam type="int" name="old_charge" value="0"/>
@@ -4020,7 +3958,7 @@
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.000225579</overallquality>
-			<charge>1</charge>
+			<charge>0</charge>
 			<convexhull nr="0">
 				<pt x="879.62929999998" y="789.26416015625" />
 				<pt x="880.47610000002" y="789.26416015625" />
@@ -4030,16 +3968,13 @@
 				<pt x="880.47610000002" y="789.26416015625" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T90"/>
+			<UserParam type="int" name="charge" value="0"/>
 			<UserParam type="float" name="FWHM" value="4.27040004730225"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="372694.767171102"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
 			<UserParam type="int" name="legal_isotope_pattern" value="-1"/>
-			<UserParam type="int" name="map_idx" value="0"/>
-			<UserParam type="string" name="dc_charge_adducts" value="Na1"/>
-			<UserParam type="float" name="dc_charge_adduct_mass" value="22.9897692809"/>
-			<UserParam type="int" name="is_backbone" value="0"/>
-			<UserParam type="int" name="old_charge" value="0"/>
+			<UserParam type="int" name="is_single_feature" value="1"/>
 		</feature>
 		<feature id="f_11881779153210961745">
 			<position dim="0">883.03420000002</position>
@@ -4048,7 +3983,7 @@
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.000157512</overallquality>
-			<charge>1</charge>
+			<charge>0</charge>
 			<convexhull nr="0">
 				<pt x="881.32630000002" y="801.323059082031" />
 				<pt x="882.17740000002" y="801.323059082031" />
@@ -4062,16 +3997,13 @@
 				<pt x="882.17740000002" y="801.323059082031" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T115"/>
+			<UserParam type="int" name="charge" value="0"/>
 			<UserParam type="float" name="FWHM" value="4.76399993896484"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="260236.32693"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
 			<UserParam type="int" name="legal_isotope_pattern" value="-1"/>
-			<UserParam type="int" name="map_idx" value="0"/>
-			<UserParam type="string" name="dc_charge_adducts" value="Na1"/>
-			<UserParam type="float" name="dc_charge_adduct_mass" value="22.9897692809"/>
-			<UserParam type="int" name="is_backbone" value="0"/>
-			<UserParam type="int" name="old_charge" value="0"/>
+			<UserParam type="int" name="is_single_feature" value="1"/>
 		</feature>
 		<feature id="f_10024587077634442649">
 			<position dim="0">883.89970000002</position>
@@ -4103,7 +4035,7 @@
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.000197963</overallquality>
-			<charge>1</charge>
+			<charge>0</charge>
 			<convexhull nr="0">
 				<pt x="885.0603" y="767.296752929688" />
 				<pt x="886.09030000002" y="767.296813964844" />
@@ -4113,16 +4045,13 @@
 				<pt x="886.09030000002" y="767.296813964844" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T65"/>
+			<UserParam type="int" name="charge" value="0"/>
 			<UserParam type="float" name="FWHM" value="4.13000011444092"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="327069.190506862"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
 			<UserParam type="int" name="legal_isotope_pattern" value="-1"/>
-			<UserParam type="int" name="map_idx" value="0"/>
-			<UserParam type="string" name="dc_charge_adducts" value="H1"/>
-			<UserParam type="float" name="dc_charge_adduct_mass" value="1.0078250319"/>
-			<UserParam type="int" name="is_backbone" value="1"/>
-			<UserParam type="int" name="old_charge" value="0"/>
+			<UserParam type="int" name="is_single_feature" value="1"/>
 		</feature>
 		<feature id="f_16740009794420256380">
 			<position dim="0">885.0603</position>
@@ -4242,7 +4171,7 @@
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.000540718</overallquality>
-			<charge>1</charge>
+			<charge>0</charge>
 			<convexhull nr="0">
 				<pt x="883.89970000002" y="776.322143554688" />
 				<pt x="886.09030000002" y="776.322143554688" />
@@ -4256,16 +4185,13 @@
 				<pt x="886.09030000002" y="776.322143554688" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T48.1"/>
+			<UserParam type="int" name="charge" value="0"/>
 			<UserParam type="float" name="FWHM" value="6.31080007553101"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="893358.891194488"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
 			<UserParam type="int" name="legal_isotope_pattern" value="-1"/>
-			<UserParam type="int" name="map_idx" value="0"/>
-			<UserParam type="string" name="dc_charge_adducts" value="H1"/>
-			<UserParam type="float" name="dc_charge_adduct_mass" value="1.0078250319"/>
-			<UserParam type="int" name="is_backbone" value="1"/>
-			<UserParam type="int" name="old_charge" value="0"/>
+			<UserParam type="int" name="is_single_feature" value="1"/>
 		</feature>
 		<feature id="f_11478091391374804039">
 			<position dim="0">886.09030000002</position>
@@ -4325,7 +4251,7 @@
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.000117928</overallquality>
-			<charge>1</charge>
+			<charge>0</charge>
 			<convexhull nr="0">
 				<pt x="883.03420000002" y="784.32763671875" />
 				<pt x="885.0603" y="784.327758789062" />
@@ -4335,16 +4261,13 @@
 				<pt x="885.0603" y="784.327758789062" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T127"/>
+			<UserParam type="int" name="charge" value="0"/>
 			<UserParam type="float" name="FWHM" value="4.08610010147095"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="194837.799332918"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
 			<UserParam type="int" name="legal_isotope_pattern" value="-1"/>
-			<UserParam type="int" name="map_idx" value="0"/>
-			<UserParam type="string" name="dc_charge_adducts" value="H4N1"/>
-			<UserParam type="float" name="dc_charge_adduct_mass" value="18.0343741276"/>
-			<UserParam type="int" name="is_backbone" value="0"/>
-			<UserParam type="int" name="old_charge" value="0"/>
+			<UserParam type="int" name="is_single_feature" value="1"/>
 		</feature>
 		<feature id="f_15433609622111593040">
 			<position dim="0">886.09030000002</position>
@@ -4433,7 +4356,7 @@
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.000829626</overallquality>
-			<charge>1</charge>
+			<charge>0</charge>
 			<convexhull nr="0">
 				<pt x="883.89970000002" y="798.314758300781" />
 				<pt x="886.09030000002" y="798.314758300781" />
@@ -4453,16 +4376,13 @@
 				<pt x="886.09030000002" y="798.314758300781" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T52"/>
+			<UserParam type="int" name="charge" value="0"/>
 			<UserParam type="float" name="FWHM" value="8.42059993743896"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="1370684.19294831"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
 			<UserParam type="int" name="legal_isotope_pattern" value="-1"/>
-			<UserParam type="int" name="map_idx" value="0"/>
-			<UserParam type="string" name="dc_charge_adducts" value="Na1"/>
-			<UserParam type="float" name="dc_charge_adduct_mass" value="22.9897692809"/>
-			<UserParam type="int" name="is_backbone" value="0"/>
-			<UserParam type="int" name="old_charge" value="0"/>
+			<UserParam type="int" name="is_single_feature" value="1"/>
 		</feature>
 		<feature id="f_13768655135650128007">
 			<position dim="0">888.1503</position>
@@ -4494,7 +4414,7 @@
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.000675528</overallquality>
-			<charge>1</charge>
+			<charge>0</charge>
 			<convexhull nr="0">
 				<pt x="871.94029999998" y="798.305908203125" />
 				<pt x="880.47610000002" y="798.305908203125" />
@@ -4510,16 +4430,13 @@
 				<pt x="880.47610000002" y="798.305908203125" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T34.2"/>
+			<UserParam type="int" name="charge" value="0"/>
 			<UserParam type="float" name="FWHM" value="8.52099990844727"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="1116087.33088389"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
 			<UserParam type="int" name="legal_isotope_pattern" value="-1"/>
-			<UserParam type="int" name="map_idx" value="0"/>
-			<UserParam type="string" name="dc_charge_adducts" value="Na1"/>
-			<UserParam type="float" name="dc_charge_adduct_mass" value="22.9897692809"/>
-			<UserParam type="int" name="is_backbone" value="0"/>
-			<UserParam type="int" name="old_charge" value="0"/>
+			<UserParam type="int" name="is_single_feature" value="1"/>
 		</feature>
 		<feature id="f_6275920566271351080">
 			<position dim="0">888.1503</position>
@@ -4528,7 +4445,7 @@
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.000417714</overallquality>
-			<charge>1</charge>
+			<charge>0</charge>
 			<convexhull nr="0">
 				<pt x="878.77879999998" y="798.365539550781" />
 				<pt x="880.47610000002" y="798.365539550781" />
@@ -4550,16 +4467,13 @@
 				<pt x="880.47610000002" y="798.365539550781" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T67.1"/>
+			<UserParam type="int" name="charge" value="0"/>
 			<UserParam type="float" name="FWHM" value="8.88420009613037"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="690134.056694075"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
 			<UserParam type="int" name="legal_isotope_pattern" value="-1"/>
-			<UserParam type="int" name="map_idx" value="0"/>
-			<UserParam type="string" name="dc_charge_adducts" value="Na1"/>
-			<UserParam type="float" name="dc_charge_adduct_mass" value="22.9897692809"/>
-			<UserParam type="int" name="is_backbone" value="0"/>
-			<UserParam type="int" name="old_charge" value="0"/>
+			<UserParam type="int" name="is_single_feature" value="1"/>
 		</feature>
 		<feature id="f_11793454001003789460">
 			<position dim="0">889.19029999998</position>
@@ -4816,16 +4730,14 @@
 				<pt x="893.3604" y="786.340515136719" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T73.1_T149"/>
+			<UserParam type="int" name="charge" value="1"/>
 			<UserParam type="float" name="FWHM" value="8.34969997406006"/>
 			<UserParam type="int" name="num_of_masstraces" value="2"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="796736.479143932"/>
 			<UserParam type="floatList" name="isotope_distances" value="[0.997778224387275]"/>
 			<UserParam type="int" name="legal_isotope_pattern" value="-1"/>
 			<UserParam type="float" name="masstrace_intensity_1" value="352758.078055941"/>
-			<UserParam type="int" name="map_idx" value="0"/>
-			<UserParam type="string" name="dc_charge_adducts" value="H1"/>
-			<UserParam type="float" name="dc_charge_adduct_mass" value="1.0078250319"/>
-			<UserParam type="int" name="is_backbone" value="1"/>
+			<UserParam type="int" name="is_single_feature" value="1"/>
 		</feature>
 		<feature id="f_108157362485195993">
 			<position dim="0">894.37030000002</position>
@@ -4847,6 +4759,7 @@
 			<UserParam type="int" name="legal_isotope_pattern" value="-1"/>
 			<UserParam type="int" name="map_idx" value="0"/>
 			<UserParam type="string" name="dc_charge_adducts" value="H1"/>
+			<UserParam type="stringList" name="adducts" value="[[M+H]+]"/>
 			<UserParam type="float" name="dc_charge_adduct_mass" value="1.0078250319"/>
 			<UserParam type="int" name="is_backbone" value="1"/>
 			<UserParam type="int" name="old_charge" value="0"/>
@@ -4914,6 +4827,7 @@
 			<UserParam type="int" name="legal_isotope_pattern" value="-1"/>
 			<UserParam type="int" name="map_idx" value="0"/>
 			<UserParam type="string" name="dc_charge_adducts" value="H4N1"/>
+			<UserParam type="stringList" name="adducts" value="[[M+4H+N]+]"/>
 			<UserParam type="float" name="dc_charge_adduct_mass" value="18.0343741276"/>
 			<UserParam type="int" name="is_backbone" value="0"/>
 			<UserParam type="int" name="old_charge" value="0"/>
@@ -4948,7 +4862,7 @@
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.000894573</overallquality>
-			<charge>1</charge>
+			<charge>0</charge>
 			<convexhull nr="0">
 				<pt x="887.12029999998" y="803.307006835938" />
 				<pt x="889.19029999998" y="803.30712890625" />
@@ -4970,16 +4884,13 @@
 				<pt x="889.19029999998" y="803.30712890625" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T45.1"/>
+			<UserParam type="int" name="charge" value="0"/>
 			<UserParam type="float" name="FWHM" value="9.36989974975586"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="1477987.00797208"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
 			<UserParam type="int" name="legal_isotope_pattern" value="-1"/>
-			<UserParam type="int" name="map_idx" value="0"/>
-			<UserParam type="string" name="dc_charge_adducts" value="Na1"/>
-			<UserParam type="float" name="dc_charge_adduct_mass" value="22.9897692809"/>
-			<UserParam type="int" name="is_backbone" value="0"/>
-			<UserParam type="int" name="old_charge" value="0"/>
+			<UserParam type="int" name="is_single_feature" value="1"/>
 		</feature>
 		<feature id="f_16316285583253855250">
 			<position dim="0">897.4803</position>
@@ -5164,16 +5075,14 @@
 				<pt x="890.21050000002" y="782.306762695312" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T22.1_T43.1"/>
+			<UserParam type="int" name="charge" value="1"/>
 			<UserParam type="float" name="FWHM" value="8.34969997406006"/>
 			<UserParam type="int" name="num_of_masstraces" value="2"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="2551482.70149798"/>
 			<UserParam type="floatList" name="isotope_distances" value="[1.00138962497715]"/>
 			<UserParam type="int" name="legal_isotope_pattern" value="-1"/>
 			<UserParam type="float" name="masstrace_intensity_1" value="1114474.40039021"/>
-			<UserParam type="int" name="map_idx" value="0"/>
-			<UserParam type="string" name="dc_charge_adducts" value="H1"/>
-			<UserParam type="float" name="dc_charge_adduct_mass" value="1.0078250319"/>
-			<UserParam type="int" name="is_backbone" value="1"/>
+			<UserParam type="int" name="is_single_feature" value="1"/>
 		</feature>
 		<feature id="f_2007993428651625755">
 			<position dim="0">899.58040000002</position>

@@ -50,6 +50,7 @@
 #include <QDebug>
 #include <QDirIterator>
 
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <fstream>
 
 using namespace OpenMS;
@@ -153,23 +154,22 @@ protected:
     {
       if (spectra[index].getMSLevel() != 2) { continue; }
       
-      // get precursor meta data (m/z, charge, ...)
+      // get precursor meta data (m/z, rt)
       const vector<Precursor> & pcs = spectra[index].getPrecursors();
 
       if (!pcs.empty())
       {
         const double mz = pcs[0].getMZ();
         const double rt = spectra[index].getRT();
-        const double charge = pcs[0].getCharge();
 
         // query features in tolerance window
         vector<Size> matches;
         adduct_map_kd.queryRegion(rt - 5.0, rt + 5.0, mz - 0.2, mz + 0.2, matches, true);
 
-        // No adduct information found. Will use defaults in SIRIUS TODO: check how this works with autocharge
+        // no adduct information found - will use defaults in SIRIUS 
         if (matches.empty()) { continue; }
         
-        // In the case of multiple features in tolerance window, select the one closest in m/z to the precursor
+        // in the case of multiple features in tolerance window, select the one closest in m/z to the precursor
         Size min_distance_feature_index(0);
         double min_distance(1e11);
         for (auto const & k_idx : matches)
@@ -184,28 +184,12 @@ protected:
         }
         const BaseFeature * min_distance_feature = adduct_map_kd.feature(min_distance_feature_index);
         
-        // workaround - string is used as metavalue in the MetaboliteAdductDecharger 
-        String adduct = min_distance_feature->getMetaValue("dc_charge_adducts");
-        StringList adducts = ListUtils::create<String>(adduct);
-
-        // the following code will be refactored after changes are made to MetaboliteAdductDecharger
-        // StringList adducts = min_distance_feature->getMetaValue("dc_charge_adducts");
-        // convert decharger adduct names to mzTab / SIRIUS standard
-        StringList fixed_adduct_names;
-        for (auto & adduct : adducts)
+        // extract adducts from featureXML and associate with precursor
+        if (min_distance_feature->metaValueExists("adducts"))
         {
-          String charge_sign = charge >= 0 ? "+" : "-";
-          String s("[M" + charge_sign);
-          EmpiricalFormula ef(adduct);
-          for (auto element_count : ef)
-          {
-            if (element_count.second > 1) { s += element_count.second; }
-            s += element_count.first->getSymbol();
-          }
-          s += String("]") + String(charge) + charge_sign; // TODO: how to add charge?
-          fixed_adduct_names.push_back(s);
+          StringList adducts = min_distance_feature->getMetaValue("adducts");
+          map_precursor_to_adducts[index] = adducts;
         }
-        map_precursor_to_adducts[index] = fixed_adduct_names;
       }
     }
   }
