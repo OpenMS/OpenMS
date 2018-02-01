@@ -93,9 +93,6 @@ void SiriusMzTabWriter::read(const std::vector<String> & paths, const String & m
           sirius_hit.isoscore = sl[5].toDouble();
           sirius_hit.explainedpeaks = sl[6].toInt();
           sirius_hit.explainedintensity = sl[7].toDouble();
-          // sirius_hit every candidate has path to mzml
-          // TODO: basename 
-          sirius_hit.mzml = mzml;          
 
           sirius_id.hits.push_back(sirius_hit);
         }
@@ -107,6 +104,7 @@ void SiriusMzTabWriter::read(const std::vector<String> & paths, const String & m
         MzTabMetaData md;
         MzTabMSRunMetaData md_run;
         md_run.location = MzTabString(str);
+        md_run.location = MzTabString(mzml);
         md.ms_run[1] = md_run;
         md.description = MzTabString("Sirius-3.5");
 
