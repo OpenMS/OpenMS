@@ -213,6 +213,8 @@ public:
     /**
       @brief This function optimizes the parameters of the calibration for a single component.
 
+      @note This method is provided primarily to ease Python bindings. C++ users are encouraged to use `optimizeCalibrationCurves()`.
+
       @param[in] component_name
       @param[in,out] component_concentrations The method will update the argument in place. The resulting
         value will reflect the optimal set of points for downstream QC/QA.
