@@ -144,6 +144,11 @@ protected:
     registerIntOption_("precursor:min_charge", "<num>", -1, "Minimum precursor charge to be considered.", false, false);
     registerIntOption_("precursor:max_charge", "<num>", -9, "Maximum precursor charge to be considered.", false, false);
 
+    //Whether to look for precursors with salt adducts
+    registerFlag_("precursor:inc_salt","Include possible salt adducts in precursor mass?",false);
+    registerStringList_("precursor:potential_adducts", "<choice>", ListUtils::create<String>("K:+"), "Adducts used to explain mass differences in format: 'Element:Charge(+/-)', i.e. the number of '+' or '-' indicate the charge, e.g. 'Ca:++' indicates +2.", false, false);
+
+
     // consider one before annotated monoisotopic peak and the annotated one
     IntList isotopes = {0, 1};
     registerIntList_("precursor:isotopes", "<num>", isotopes, "Corrects for mono-isotopic peak misassignments. (E.g.: 1 = prec. may be misassigned to first isotopic peak)", false, false);
@@ -623,6 +628,64 @@ protected:
     Size max_variable_mods_per_oligo = getIntOption_("modifications:variable_max_per_oligo");
     Int report_top_hits = getIntOption_("report:top_hits");
 
+    StringList potential_adducts = getStringList_("precursor:potential_adducts");
+    DoubleList adduct_masses;
+    bool inc_salt = getFlag_("precursor:inc_salt");
+    if (inc_salt)
+    {
+      for (StringList::iterator it = potential_adducts.begin(); it != potential_adducts.end(); ++it)
+      {
+        StringList adduct;
+        it->split(':', adduct);
+        if (adduct.size() != 2)
+        {
+          String error = "precursor::potential_adducts (" + (*it) + ") does not have two entries, but " + String(adduct.size()) + " entries!";
+          throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, error);
+        }
+
+        // determine charge of adduct (by # of '+' or '-')
+        Int pos_charge = adduct[1].size() - adduct[1].remove('+').size();
+        Int neg_charge = adduct[1].size() - adduct[1].remove('-').size();
+        LOG_DEBUG << ": " << pos_charge-neg_charge << endl;
+        if (pos_charge > 0 && neg_charge > 0)
+        {
+          String error = "precursor::potential_adducts mixes charges for an adduct!";
+        }else if (pos_charge > 0)
+        {
+          EmpiricalFormula ef(adduct[0]);
+          ef -= EmpiricalFormula("H" + String(pos_charge));
+          //ef.setCharge(pos_charge); // effectively subtract electron masses
+          adduct_masses.push_back(ef.getMonoWeight());
+          LOG_DEBUG << "Added Adduct: " << ef.toString() << "Mass"<< ef.getMonoWeight() << endl;
+        }else if (neg_charge > 0)
+        {
+          if (adduct[0] == "H-1")
+          {
+            adduct_masses.push_back(-Constants::PROTON_MASS_U);
+          }else
+          {
+            EmpiricalFormula ef(adduct[0]);
+            ef.setCharge(0);//ensures we get without additional protons, now just add electron masses
+            adduct_masses.push_back(ef.getMonoWeight());
+            LOG_DEBUG << "Added Adduct: " << ef.toString() << "Mass"<< ef.getMonoWeight() << endl;
+
+          }
+        }else//pos,neg == 0
+        {//in principle no change because pos_charge 0 and ef.getMonoWeight() only adds for nonzero charges
+          EmpiricalFormula ef(adduct[0]);
+          ef -= EmpiricalFormula("H" + String(pos_charge));
+          //ef.setCharge(pos_charge); // effectively subtract electron masses
+          adduct_masses.push_back(ef.getMonoWeight());
+          LOG_DEBUG << "Added Adduct: " << ef.toString() << "Mass"<< ef.getMonoWeight() << endl;
+
+        }
+      }
+      for (double am : adduct_masses){
+        LOG_DEBUG << ": " << am << endl;
+      }
+
+    }
+
     // load MS2 map
     PeakMap spectra;
     MzMLFile f;
@@ -684,6 +747,38 @@ protected:
 
           // correct for monoisotopic misassignments of the precursor annotation
           if (isotope_number != 0) { precursor_mass -= isotope_number * Constants::C13C12_MASSDIFF_U; }
+
+          multimap_mass_2_scan_index.insert(make_pair(precursor_mass, scan_index));
+        }
+
+        // Calculate precursor mass correcting for adducts if enabled
+        for (double add_mass : adduct_masses)
+        {
+          double precursor_mass = precursor_mz * precursor_charge;
+          if (negative_mode)
+          {
+            precursor_mass += Constants::PROTON_MASS_U * precursor_charge + add_mass;
+          }
+          else
+          {
+            precursor_mass -= Constants::PROTON_MASS_U * precursor_charge - add_mass;
+          }
+
+          for (int isotope_number : precursor_isotopes)
+          {
+            double precursor_mass = precursor_mz * precursor_charge;
+            if (negative_mode)
+            {
+              precursor_mass += Constants::PROTON_MASS_U * precursor_charge;
+            }
+            else
+            {
+              precursor_mass -= Constants::PROTON_MASS_U * precursor_charge;
+            }
+
+            // correct for monoisotopic misassignments of the precursor annotation
+            if (isotope_number != 0) { precursor_mass -= isotope_number * Constants::C13C12_MASSDIFF_U; }
+          }
 
           multimap_mass_2_scan_index.insert(make_pair(precursor_mass, scan_index));
         }
