@@ -271,6 +271,7 @@ set(OPENMS_WIN32_DLL_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
 set(INSTALL_BIN_DIR bin CACHE PATH "Installation directory for executables")
 set(INSTALL_SHARE_DIR share/OpenMS CACHE PATH "Installation directory for shared data")
 set(INSTALL_DOC_DIR share/doc CACHE PATH "Installation directory for documentation")
+set(INSTALL_INCLUDE_DIR include CACHE PATH "Installation directory for header files")
 
 if(WIN32)
   set(DEF_INSTALL_CMAKE_DIR CMake)

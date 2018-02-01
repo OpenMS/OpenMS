@@ -186,7 +186,7 @@ macro(install_qt5_libs _qt_components _targetpath _install_component)
       if(EXISTS "${_qt_lib_path}")
       install(DIRECTORY "${_qt_lib_path}"
         DESTINATION "${_targetpath}"
-        COMPONENT ${_component})
+        COMPONENT ${_install_component})
       else()
         message(FATAL_ERROR "QT5 lib ${_qt_component} not found at imported location ${_qt_lib_path} for install/package")
       endif()
@@ -194,7 +194,7 @@ macro(install_qt5_libs _qt_components _targetpath _install_component)
       if(EXISTS "${_qt_lib_path}")
         install(FILES "${_qt_lib_path}"
           DESTINATION "${_targetpath}"
-          COMPONENT ${_component})
+          COMPONENT ${_install_component})
       else()
         message(FATAL_ERROR "QT5 lib ${_qt_component} not found at imported location ${_qt_lib_path} for install/package")
       endif()

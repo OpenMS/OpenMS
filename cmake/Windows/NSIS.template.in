@@ -96,11 +96,6 @@ RequestExecutionLevel user    /* RequestExecutionLevel REQUIRED! */
 # e.g. NSIS 2.x does not have the subfolders x86-unicode or x86-ansi, so remove them.
 ReserveFile "${NSISDIR}\Plugins\x86-unicode\advsplash.dll"
 
-!if ${THIRDPARTYDIR} == ""
-  !warning "Variable THIRDPARTYDIR not set. Will deactivate installation of Thirdparty binaries."
-  !insertmacro SetSectionFlag ${SEC_ThirdParty} ${SECTION_OFF} 
-!endif
-
 ;--------------------------------
 ;Interface Configuration
 
@@ -238,24 +233,25 @@ Section "OpenMS Library" SEC_Lib
     !insertmacro OpenUninstallLog
 
     # install file (with logging)
-    !insertmacro InstallFile "${CONTRIBDIR}\lib\xerces-c_3_1.dll"
-    !insertmacro InstallFile "${CONTRIBDIR}\lib\sqlite3.dll"
+	!insertmacro InstallFile "${PACKAGINDIR}\bin"
+    #!insertmacro InstallFile "${CONTRIBDIR}\lib\xerces-c_3_1.dll"
+    #!insertmacro InstallFile "${CONTRIBDIR}\lib\sqlite3.dll"
     
-    !insertmacro InstallFile "${OPENMSDIR}\bin\Release\OpenMS.dll"
-    !insertmacro InstallFile "${OPENMSDIR}\bin\Release\OpenMS_GUI.dll"
-    !insertmacro InstallFile "${OPENMSDIR}\bin\Release\OpenSwathAlgo.dll"
-    !insertmacro InstallFile "${OPENMSDIR}\bin\Release\SuperHirn.dll"
+    #!insertmacro InstallFile "${OPENMSDIR}\bin\Release\OpenMS.dll"
+    #!insertmacro InstallFile "${OPENMSDIR}\bin\Release\OpenMS_GUI.dll"
+    #!insertmacro InstallFile "${OPENMSDIR}\bin\Release\OpenSwathAlgo.dll"
+    #!insertmacro InstallFile "${OPENMSDIR}\bin\Release\SuperHirn.dll"
     
-    !if ${DEBUG_BUILD} == 0 
-        !insertmacro InstallFile "${QTLIBDIR}\QtCore4.dll"
-        !insertmacro InstallFile "${QTLIBDIR}\QtGui4.dll"
-        !insertmacro InstallFile "${QTLIBDIR}\QtNetwork4.dll"
-        !insertmacro InstallFile "${QTLIBDIR}\QtOpenGL4.dll"
-        !insertmacro InstallFile "${QTLIBDIR}\QtSql4.dll"
-        !insertmacro InstallFile "${QTLIBDIR}\QtSvg4.dll"
-        !insertmacro InstallFile "${QTLIBDIR}\QtWebKit4.dll"
-		!insertmacro InstallFile "${QTLIBDIR}\phonon4.dll"   ## WebKit4 depends on it
-    !endif
+    #!if ${DEBUG_BUILD} == 0 
+    #    !insertmacro InstallFile "${QTLIBDIR}\QtCore4.dll"
+    #    !insertmacro InstallFile "${QTLIBDIR}\QtGui4.dll"
+    #    !insertmacro InstallFile "${QTLIBDIR}\QtNetwork4.dll"
+    #    !insertmacro InstallFile "${QTLIBDIR}\QtOpenGL4.dll"
+    #    !insertmacro InstallFile "${QTLIBDIR}\QtSql4.dll"
+    #    !insertmacro InstallFile "${QTLIBDIR}\QtSvg4.dll"
+    #    !insertmacro InstallFile "${QTLIBDIR}\QtWebKit4.dll"
+	#	!insertmacro InstallFile "${QTLIBDIR}\phonon4.dll"   ## WebKit4 depends on it
+    #!endif
 
     SetOutPath $INSTDIR\share
     SetOverwrite on

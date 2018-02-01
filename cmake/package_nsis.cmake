@@ -30,7 +30,7 @@ endif()
 #         COMPONENT library)
 
 ## Careful: the configured file needs to lie exactly in the Build directory so that it is found by the NSIS_template
-configure_file(${PROJECT_SOURCE_DIR}/cmake/Windows/Cfg_Settings.nsh.in ${PROJECT_BINARY_DIR}/Cfg_Settings.nsh.in.conf)
+configure_file(${PROJECT_SOURCE_DIR}/cmake/Windows/Cfg_Settings.nsh.in ${PROJECT_BINARY_DIR}/Cfg_Settings.nsh.in.conf @ONLY)
 install(CODE "
 	set (PACKAGING_DIR \${CMAKE_INSTALL_PREFIX})
 	configure_file(${PROJECT_BINARY_DIR}/Cfg_Settings.nsh.in.conf ${PROJECT_BINARY_DIR}/Cfg_Settings.nsh)
@@ -38,6 +38,12 @@ install(CODE "
 
 ## TODO just use InstallFolder for lib in NSIS template. Figure out how to get to that folder.
 set(CPACK_GENERATOR NSIS)
+## Remove the next three lines if you use the NSIS autogeneration feature at some point!
+## For now it makes sure everything is merged into the usual folders bin/share/include
+set(CPACK_COMPONENT_ALL_IN_ONE 1)
+set(CPACK_COMPONENTS_ALL_GROUPS_IN_ONE_PACKAGE 1)
+set(CPACK_MONOLITHIC_INSTALL 1)
+##
 
 set(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAME}-${CPACK_PACKAGE_VERSION}-Win${PLATFORM}")
 set(CPACK_PACKAGE_ICON "${PROJECT_SOURCE_DIR}/cmake/Windows/OpenMS.ico")

@@ -8,7 +8,7 @@
 # path to contrib
 !define CONTRIBDIR "@OPENMS_CONTRIB_LIBS@"
 # path to OpenMS - packaging tree (where all the install stuff lands during CPack)
-!define OPENMSDIR "@PACKAGING_DIR@"
+!define OPENMSPACKAGEDIR "${PACKAGING_DIR}"
 # path to OpenMS - build tree
 !define OPENMSDIR "@PROJECT_BINARY_DIR@"
 # path to OpenMS - source tree
