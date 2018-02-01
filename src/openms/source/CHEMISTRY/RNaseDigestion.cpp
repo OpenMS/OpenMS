@@ -174,7 +174,7 @@ namespace OpenMS
   }
 
 
-  void RNaseDigestion::digest(const NASequence& rna, set<NASequence>& output,
+  void RNaseDigestion::digest(const NASequence& rna, vector<NASequence>& output,
                               Size min_length, Size max_length) const
   {
     output.clear();
@@ -212,7 +212,7 @@ namespace OpenMS
       {
         fragment.setThreePrimeMod(three_prime_gain);
       }
-      output.insert(fragment);
+      output.push_back(fragment);
     }
   }
 

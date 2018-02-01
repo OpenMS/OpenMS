@@ -75,7 +75,7 @@ namespace OpenMS
 
        Only fragments of appropriate length (between @p min_length and @p max_length) are returned.
     */
-    void digest(const NASequence& rna, std::set<NASequence>& output,
+    void digest(const NASequence& rna, std::vector<NASequence>& output,
                 Size min_length = 0, Size max_length = 0) const;
 
     /**
