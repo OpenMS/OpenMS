@@ -156,7 +156,7 @@ protected:
   }
 
   template <class Map>
-  void writeRangesHumanReadable_(Map map, ostream &os)
+  void writeRangesHumanReadable_(const Map& map, ostream &os)
   {
     os << "Ranges:"
        << "\n"
@@ -167,7 +167,7 @@ protected:
   }
 
   template <class Map>
-  void writeRangesMachineReadable_(Map map, ostream &os)
+  void writeRangesMachineReadable_(const Map& map, ostream &os)
   {
     os << "retention time (min)"
        << "\t" << String::number(map.getMin()[Peak2D::RT], 2) << "\n"
@@ -369,11 +369,11 @@ protected:
       if (ifile.getParsingSuccess())
       {
         // Validate that we can access each single spectrum and chromatogram
-        for (Size i = 0; i < ifile.getNrSpectra(); i++)
+        for (int i = 0; i < (int)ifile.getNrSpectra(); i++)
         {
           OpenMS::Interfaces::SpectrumPtr p = ifile.getSpectrumById(i);
         }
-        for (Size i = 0; i < ifile.getNrChromatograms(); i++)
+        for (int i = 0; i < (int)ifile.getNrChromatograms(); i++)
         {
           OpenMS::Interfaces::ChromatogramPtr p = ifile.getChromatogramById(i);
         }
@@ -399,7 +399,7 @@ protected:
       FASTAFile file;
 
       map<char, int> aacids;
-      int number_of_aacids = 0;
+      size_t number_of_aacids = 0;
 
       SysInfo::MemUsage mu;
       //loading input
@@ -459,29 +459,29 @@ protected:
       writeRangesMachineReadable_(feat, os_tsv);
 
       // Charge distribution and TIC
-      Map<UInt, UInt> charges;
-      Map<UInt, UInt> numberofids;
+      Map<Int, UInt> charges;
+      Map<size_t, UInt> numberofids;
       double tic = 0.0;
       for (Size i = 0; i < feat.size(); ++i)
       {
-        charges[feat[i].getCharge()]++;
+        ++charges[feat[i].getCharge()];
         tic += feat[i].getIntensity();
         const vector<PeptideIdentification> &peptide_ids = feat[i].getPeptideIdentifications();
-        numberofids[peptide_ids.size()]++;
+        ++numberofids[peptide_ids.size()];
       }
 
       os << "Total ion current in features: " << tic << "\n";
       os << "\n"
          << "Charge distribution:"
          << "\n";
-      for (Map<UInt, UInt>::const_iterator it = charges.begin(); it != charges.end(); ++it)
+      for (auto it = charges.begin(); it != charges.end(); ++it)
       {
         os << "  charge " << it->first << ": " << it->second << "\n";
       }
 
       os << "\n"
          << "Distribution of peptide identifications (IDs) per feature:\n";
-      for (Map<UInt, UInt>::const_iterator it = numberofids.begin(); it != numberofids.end(); ++it)
+      for (auto it = numberofids.begin(); it != numberofids.end(); ++it)
       {
         os << "  " << it->first << " IDs: " << it->second << "\n";
       }
@@ -600,7 +600,7 @@ protected:
           for (Size j = 0; j < temp_hits.size(); ++j)
           {
             peptides.insert(temp_hits[j].getSequence().toString());
-            peptide_length.push_back(temp_hits[j].getSequence().size());
+            peptide_length.push_back((uint16_t)temp_hits[j].getSequence().size());
           }
         }
       }

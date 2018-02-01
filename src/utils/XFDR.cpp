@@ -47,9 +47,9 @@
 #include <boost/iterator/counting_iterator.hpp>
 
 #include <string>
-#include <math.h>
+#include <cmath>
 
-#include <assert.h>
+#include <cassert>
 
 using namespace OpenMS;
 using namespace std;

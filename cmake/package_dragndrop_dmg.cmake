@@ -47,9 +47,10 @@ set(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAME}-${CPACK_PACKAGE_VERSION}-Darw
 ## Note: That the mac app bundles (TOPPView) take care of themselves
 ##       when installed as dmg (see src/openms_gui/add_mac_bundle.cmake)
 
-## Fix OpenMS dependencies for all executables in the install directory
+## Fix OpenMS dependencies for all executables in the install directory under bin.
+## That affects everything but the bundles (which have their own structure and are fixed up in add_mac_bundle.cmake)
 ########################################################### Fix Dependencies
-install(CODE "execute_process(COMMAND ${PROJECT_SOURCE_DIR}/cmake/MacOSX/fix_dependencies.rb -b \${CMAKE_INSTALL_PREFIX}/${INSTALL_BIN_DIR}/ -l \${CMAKE_INSTALL_PREFIX}/${INSTALL_LIB_DIR}/ -v)"
+install(CODE "execute_process(COMMAND ${PROJECT_SOURCE_DIR}/cmake/MacOSX/fix_dependencies.rb -b \${CMAKE_INSTALL_PREFIX}/${INSTALL_BIN_DIR}/ -l \${CMAKE_INSTALL_PREFIX}/${INSTALL_LIB_DIR}/ -p \${CMAKE_INSTALL_PREFIX}/${INSTALL_PLUGIN_DIR}/ -v)"
   COMPONENT zzz-fixing-dependencies
 )
 
@@ -97,10 +98,11 @@ if (DEFINED CMAKE_VERSION AND NOT "${CMAKE_VERSION}" VERSION_LESS "3.5")
   set(CPACK_DMG_BACKGROUND_IMAGE ${PROJECT_SOURCE_DIR}/cmake/MacOSX/background.png)
   set(CPACK_DMG_FORMAT UDBZ) ## Try bzip2 to get slighlty smaller images
 
-  ## Sign the image. System keychain needs to be unlocked and include the ID used.
+  ## Sign the image. CPACK_BUNDLE_APPLE_CERT_APP needs to be unique and found in one of the
+  ## keychains in the search list (which needs to be unlocked).
   if (DEFINED CPACK_BUNDLE_APPLE_CERT_APP)
     add_custom_target(signed_dist
-      COMMAND codesign --deep --force --keychain /Library/Keychains/System.keychain --sign "${CPACK_BUNDLE_APPLE_CERT_APP}" ${CPACK_PACKAGE_FILE_NAME}.dmg
+      COMMAND codesign --deep --force --sign ${CPACK_BUNDLE_APPLE_CERT_APP} ${CPACK_PACKAGE_FILE_NAME}.dmg
       WORKING_DIRECTORY ${PROJECT_BINARY_DIR}
       COMMENT "Signing ${CPACK_PACKAGE_FILE_NAME}.dmg as ${CPACK_BUNDLE_APPLE_CERT_APP}"
       DEPENDS dist)

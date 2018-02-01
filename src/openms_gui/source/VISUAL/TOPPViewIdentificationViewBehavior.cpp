@@ -960,6 +960,15 @@ namespace OpenMS
       tv_->getActive1DWidget()->canvas()->activateLayer(current_spectrum_layer_index);
       tv_->getActive1DWidget()->canvas()->getCurrentLayer().setCurrentSpectrumIndex(current_spectrum_index);
 
+      // zoom visible area to real data range:
+      DRange<2> visible_area = tv_->getActive1DWidget()->canvas()->getVisibleArea();
+      double min_mz = tv_->getActive1DWidget()->canvas()->getCurrentLayer().getCurrentSpectrum().getMin()[0];
+      double max_mz = tv_->getActive1DWidget()->canvas()->getCurrentLayer().getCurrentSpectrum().getMax()[0];
+      double delta_mz = max_mz - min_mz;
+      visible_area.setMin(min_mz - 0.1 * delta_mz);
+      visible_area.setMax(max_mz + 0.1 * delta_mz);
+      tv_->getActive1DWidget()->canvas()->setVisibleArea(visible_area);
+
       tv_->updateLayerBar();
       tv_->getSpectraIdentificationViewWidget()->ignore_update = false;
     }

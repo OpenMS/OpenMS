@@ -37,7 +37,7 @@
 
 #include <OpenMS/INTERFACES/DataStructures.h>
 #include <OpenMS/INTERFACES/ISpectrumAccess.h>
-#include <assert.h>
+#include <cassert>
 #include <vector>
 
 namespace OpenMS

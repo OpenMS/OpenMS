@@ -41,8 +41,10 @@
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/VISUAL/APPLICATIONS/MISC/QApplicationTOPP.h>
 
-// Qt
-#include <QtWidgets/QStyleFactory>
+#if !defined(__APPLE__)
+  // Qt
+  #include <QtWidgets/QStyleFactory>
+#endif
 
 #ifdef OPENMS_WINDOWSPLATFORM
 #   ifndef _WIN32_WINNT
@@ -70,11 +72,6 @@ using namespace std;
 
 int main(int argc, const char** argv)
 {
-#if  defined(__APPLE__)
-  // we do not want to load plugins as this leads to serious problems
-  // when shipping on mac os x
-  QApplication::setLibraryPaths(QStringList());
-#endif
   Map<String, String> option_lists;
   Map<String, String> options;
   options["-print"] = "print";
@@ -127,20 +124,6 @@ int main(int argc, const char** argv)
 
   //Create window
   QApplicationTOPP app(argc, const_cast<char**>(argv));
-
-  //set plastique style unless windows / mac style is available
-  if (QStyleFactory::keys().contains("windowsxp", Qt::CaseInsensitive))
-  {
-    app.setStyle("windowsxp");
-  }
-  else if (QStyleFactory::keys().contains("macintosh", Qt::CaseInsensitive))
-  {
-    app.setStyle("macintosh");
-  }
-  else if (QStyleFactory::keys().contains("plastique", Qt::CaseInsensitive))
-  {
-    app.setStyle("plastique");
-  }
 
   INIFileEditorWindow editor_window;
 

@@ -34,7 +34,7 @@
 //
 
 #include <map>
-#include <stdio.h>
+#include <cstdio>
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/SuperHirnParameters.h>
 

@@ -32,8 +32,8 @@
 // $Authors: Chris Bielow $
 // --------------------------------------------------------------------------
 
-#include <stdio.h>
-#include <stdlib.h>
+#include <cstdio>
+#include <cstdlib>
 
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/Factory.h>
@@ -48,6 +48,7 @@
 #include <QMessageBox>
 #include <QFile>
 #include <QFileOpenEvent>
+#include <QLibraryInfo>
 
 
 namespace OpenMS

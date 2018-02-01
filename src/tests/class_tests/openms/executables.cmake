@@ -147,11 +147,13 @@ set(kernel_executables_list
 )
 
 set(format_executables_list
+  AbsoluteQuantitationStandardsFile_test
   Base64_test
   MSNumpressCoder_test
   BigString_test
   Bzip2Ifstream_test
   Bzip2InputStream_test
+  ChromeleonFile_test
   CVMappingFile_test
   CompressedInputSource_test
   ConsensusXMLFile_test
@@ -595,8 +597,8 @@ if(NOT DISABLE_OPENSWATH)
     MRMDecoy_test
     MRMIonSeries_test
     MRMRTNormalizer_test
-    TransitionTSVReader_test
-    TransitionPQPReader_test
+    TransitionTSVFile_test
+    TransitionPQPFile_test
     ChromatogramExtractor_test
     ChromatogramExtractorAlgorithm_test
     OpenSwathHelper_test
@@ -636,8 +638,8 @@ set(Boost_dependent_tests
   PeakPickerMRM_test
   StatisticFunctions_test
   String_test
-  TransitionTSVReader_test
-  TransitionPQPReader_test
+  TransitionTSVFile_test
+  TransitionPQPFile_test
 )
 
 ### collect test executables

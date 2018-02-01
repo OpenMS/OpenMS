@@ -111,11 +111,6 @@ namespace OpenMS
     DefaultParamHandler("TOPPASBase"),
     clipboard_scene_(nullptr)
   {
-#if  defined(__APPLE__)
-    // we do not want to load plugins as this leads to serious problems
-    // when shipping on mac os x
-    QApplication::setLibraryPaths(QStringList());
-#endif
 
     setWindowTitle("TOPPAS");
     setWindowIcon(QIcon(":/TOPPAS.png"));

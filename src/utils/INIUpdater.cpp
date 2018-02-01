@@ -221,6 +221,7 @@ protected:
     int argc = 1;
     const char* c = "IniUpdater";
     const char** argv = &c;
+
     QApplication app(argc, const_cast<char**>(argv), false);
     String tmp_dir = File::getTempDirectory() + "/" + File::getUniqueName();
     QDir d;

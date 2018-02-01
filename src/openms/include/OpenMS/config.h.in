@@ -154,4 +154,6 @@
 //       but currently we need this information for the ToolHandler.
 #cmakedefine WITH_GUI 1
 
+#cmakedefine QT_PLUGIN_PATH_REL_TO_BIN "@QT_PLUGIN_PATH_REL_TO_BIN@"
+
 #endif // OPENMS_CONFIG_H

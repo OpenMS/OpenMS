@@ -45,8 +45,8 @@
 #include <OpenMS/FORMAT/TransformationXMLFile.h>
 #include <OpenMS/FORMAT/SwathFile.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/SwathWindowLoader.h>
-#include <OpenMS/ANALYSIS/OPENSWATH/TransitionTSVReader.h>
-#include <OpenMS/ANALYSIS/OPENSWATH/TransitionPQPReader.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/TransitionTSVFile.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/TransitionPQPFile.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathTSVWriter.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathOSWWriter.h>
 
@@ -71,7 +71,7 @@
 
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathWorkflow.h>
 
-#include <assert.h>
+#include <cassert>
 #include <limits>
 
 // #define OPENSWATH_WORKFLOW_DEBUG
@@ -563,7 +563,7 @@ protected:
     }
     else if (name == "Library")
     {
-      return TransitionTSVReader().getDefaults();
+      return TransitionTSVFile().getDefaults();
     }
     else
     {
@@ -837,7 +837,7 @@ protected:
     else if (tr_type == FileTypes::PQP || tr_file.suffix(3).toLower() == "pqp"  )
     {
       progresslogger.startProgress(0, 1, "Load PQP file");
-      TransitionPQPReader().convertPQPToTargetedExperiment(tr_file.c_str(), transition_exp);
+      TransitionPQPFile().convertPQPToTargetedExperiment(tr_file.c_str(), transition_exp);
       progresslogger.endProgress();
 
       remove(out_osw.c_str());
@@ -852,7 +852,7 @@ protected:
     else if (tr_type == FileTypes::TSV || tr_file.suffix(3).toLower() == "tsv"  )
     {
       progresslogger.startProgress(0, 1, "Load TSV file");
-      TransitionTSVReader tsv_reader;
+      TransitionTSVFile tsv_reader;
       tsv_reader.setParameters(tsv_reader_param);
       tsv_reader.convertTSVToTargetedExperiment(tr_file.c_str(), tr_type, transition_exp);
       progresslogger.endProgress();

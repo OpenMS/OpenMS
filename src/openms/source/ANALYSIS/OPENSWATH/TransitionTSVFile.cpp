@@ -32,7 +32,7 @@
 // $Authors: Hannes Roest $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/ANALYSIS/OPENSWATH/TransitionTSVReader.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/TransitionTSVFile.h>
 
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/DataAccessHelper.h>
 #include <OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>
@@ -109,8 +109,8 @@ namespace OpenMS
     return false;
   }
 
-  TransitionTSVReader::TransitionTSVReader() :
-    DefaultParamHandler("TransitionTSVReader")
+  TransitionTSVFile::TransitionTSVFile() :
+    DefaultParamHandler("TransitionTSVFile")
   {
     defaults_.setValue("retentionTimeInterpretation", "iRT", "How to interpret the provided retention time (the retention time column can either be interpreted to be in iRT, minutes or seconds)", ListUtils::create<String>("advanced"));
     defaults_.setValidStrings("retentionTimeInterpretation", ListUtils::create<String>("iRT,seconds,minutes"));
@@ -124,18 +124,18 @@ namespace OpenMS
     updateMembers_();
   }
 
-  TransitionTSVReader::~TransitionTSVReader()
+  TransitionTSVFile::~TransitionTSVFile()
   {
   }
 
-  void TransitionTSVReader::updateMembers_()
+  void TransitionTSVFile::updateMembers_()
   {
     retentionTimeInterpretation_ = param_.getValue("retentionTimeInterpretation");
     override_group_label_check_ = param_.getValue("override_group_label_check").toBool();
     force_invalid_mods_ = param_.getValue("force_invalid_mods").toBool();
   }
 
-  const char* TransitionTSVReader::strarray_[] =
+  const char* TransitionTSVFile::strarray_[] =
   {
     "PrecursorMz",
     "ProductMz",
@@ -164,9 +164,9 @@ namespace OpenMS
     "QuantifyingTransition"
   };
 
-  const std::vector<std::string> TransitionTSVReader::header_names_(strarray_, strarray_ + 25);
+  const std::vector<std::string> TransitionTSVFile::header_names_(strarray_, strarray_ + 25);
 
-  void TransitionTSVReader::getTSVHeader_(const std::string& line, char& delimiter,
+  void TransitionTSVFile::getTSVHeader_(const std::string& line, char& delimiter,
                                           std::vector<std::string> header, std::map<std::string, int>& header_dict)
   {
     std::string tmp;
@@ -208,38 +208,9 @@ namespace OpenMS
           "', but the parsed header has only " + (String)header.size() + " fields instead of the minimal " + 
           (String)min_header_size + ". Please check your input file.");
     }
-
-    int requiredFields[4] = { 0, 1, 4, 5};
-    /*
-     * required fields:
-     *
-     *
-     * PrecursorMz
-     * ProductMz
-     * LibraryIntensity
-     * NormalizedRetentionTime
-     *
-     * these fields will be generated if not available:
-     * TransitionId
-     * TransitionGroupId
-     *
-     * for peptides, also PeptideSequence and ProteinId are required
-     * for metabolites, also CompoundName is required 
-     *
-    */
-    for (int i = 0; i < 3; i++)
-    {
-      if (header_dict.find(header_names_[requiredFields[i]]) == header_dict.end())
-      {
-        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
-            "I determined that your your csv/tsv file has the delimiter '" + (String)txt_delimiter +
-             "'.\nBut the parsed header does not have the required field \"" + (String)header_names_[requiredFields[i]] + 
-             "\". Please check your input file.");
-      }
-    }
   }
 
-  void TransitionTSVReader::readUnstructuredTSVInput_(const char* filename, FileTypes::Type filetype, std::vector<TSVTransition>& transition_list)
+  void TransitionTSVFile::readUnstructuredTSVInput_(const char* filename, FileTypes::Type filetype, std::vector<TSVTransition>& transition_list)
   {
     std::ifstream data(filename);
     std::string   line;
@@ -370,8 +341,8 @@ namespace OpenMS
       extractName<int>(mytransition.fragment_modification, "FragmentModification", tmp_line, header_dict);
 
       //// Proteomics
-      extractName(mytransition.ProteinName, "ProteinName", tmp_line, header_dict) &&
-      extractName(mytransition.ProteinName, "ProteinId", tmp_line, header_dict); // Spectronaut
+      !extractName(mytransition.ProteinName, "ProteinName", tmp_line, header_dict) &&
+      !extractName(mytransition.ProteinName, "ProteinId", tmp_line, header_dict); // Spectronaut
 
       extractName(mytransition.peptide_group_label, "PeptideGroupLabel", tmp_line, header_dict);
 
@@ -497,7 +468,7 @@ namespace OpenMS
     }
   }
 
-  void TransitionTSVReader::spectrastRTExtract(const String str_inp, double & value, bool & spectrast_legacy)
+  void TransitionTSVFile::spectrastRTExtract(const String str_inp, double & value, bool & spectrast_legacy)
   {
     // If SpectraST was run in RT normalization mode, the retention time is annotated as following: "3887.50(57.30)"
     // 3887.50 refers to the non-normalized RT of the individual or consensus run, and 57.30 refers to the normalized
@@ -520,7 +491,7 @@ namespace OpenMS
     }
   }
 
-  bool TransitionTSVReader::spectrastAnnotationExtract(const String str_inp, TSVTransition & mytransition)
+  bool TransitionTSVFile::spectrastAnnotationExtract(const String str_inp, TSVTransition & mytransition)
   {
     // Parses SpectraST fragment ion annotations
     // Example: y13^2/0.000,b16-18^2/-0.013,y7-45/0.000
@@ -591,7 +562,7 @@ namespace OpenMS
     return false;
   }
 
-  void TransitionTSVReader::cleanupTransitions_(TSVTransition& mytransition)
+  void TransitionTSVFile::cleanupTransitions_(TSVTransition& mytransition)
   {
     // deal with FullPeptideNames like PEPTIDE/2
     std::vector<String> substrings;
@@ -603,7 +574,7 @@ namespace OpenMS
     }
   }
 
-  void TransitionTSVReader::TSVToTargetedExperiment_(std::vector<TSVTransition>& transition_list, OpenMS::TargetedExperiment& exp)
+  void TransitionTSVFile::TSVToTargetedExperiment_(std::vector<TSVTransition>& transition_list, OpenMS::TargetedExperiment& exp)
   {
     // For the CV terms, see
     // http://psidev.cvs.sourceforge.net/viewvc/psidev/psi/psi-ms/mzML/controlledVocabulary/psi-ms.obo
@@ -621,7 +592,7 @@ namespace OpenMS
     resolveMixedSequenceGroups_(transition_list);
 
     Size progress = 0;
-    startProgress(0, transition_list.size(), "converting to TraML format");
+    startProgress(0, transition_list.size(), "conversion to internal data representation");
     for (std::vector<TSVTransition>::iterator tr_it = transition_list.begin(); tr_it != transition_list.end(); ++tr_it)
     {
 
@@ -668,7 +639,7 @@ namespace OpenMS
     exp.setProteins(proteins);
   }
 
-  void TransitionTSVReader::TSVToTargetedExperiment_(std::vector<TSVTransition>& transition_list, OpenSwath::LightTargetedExperiment& exp)
+  void TransitionTSVFile::TSVToTargetedExperiment_(std::vector<TSVTransition>& transition_list, OpenSwath::LightTargetedExperiment& exp)
   {
     std::map<String, int> compound_map;
     std::map<String, int> protein_map;
@@ -676,7 +647,7 @@ namespace OpenMS
     resolveMixedSequenceGroups_(transition_list);
 
     Size progress = 0;
-    startProgress(0, transition_list.size(), "converting to Transition List Format");
+    startProgress(0, transition_list.size(), "conversion to internal data representation");
     for (std::vector<TSVTransition>::iterator tr_it = transition_list.begin(); tr_it != transition_list.end(); ++tr_it)
     {
       OpenSwath::LightTransition transition;
@@ -732,7 +703,7 @@ namespace OpenMS
     endProgress();
   }
 
-  void TransitionTSVReader::resolveMixedSequenceGroups_(std::vector<TransitionTSVReader::TSVTransition>& transition_list)
+  void TransitionTSVFile::resolveMixedSequenceGroups_(std::vector<TransitionTSVFile::TSVTransition>& transition_list)
   {
     // Create temporary map by group label
     std::map< String, std::vector<TSVTransition*> > label_transition_map;
@@ -782,7 +753,7 @@ namespace OpenMS
 
   }
 
-  void TransitionTSVReader::createTransition_(std::vector<TSVTransition>::iterator& tr_it, OpenMS::ReactionMonitoringTransition& rm_trans)
+  void TransitionTSVFile::createTransition_(std::vector<TSVTransition>::iterator& tr_it, OpenMS::ReactionMonitoringTransition& rm_trans)
   {
     // the following attributes will be stored as meta values (userParam):
     // - annotation (as by SpectraST)
@@ -971,7 +942,7 @@ namespace OpenMS
     else if (!tr_it->quantifying_transition) {rm_trans.setQuantifyingTransition(false);}
   }
 
-  void TransitionTSVReader::createProtein_(std::vector<TSVTransition>::iterator& tr_it, OpenMS::TargetedExperiment::Protein& protein)
+  void TransitionTSVFile::createProtein_(std::vector<TSVTransition>::iterator& tr_it, OpenMS::TargetedExperiment::Protein& protein)
   {
     // the following attributes will be stored as CV values (CV):
     // - uniprot accession number (if available)
@@ -992,7 +963,7 @@ namespace OpenMS
     }
   }
 
-  void TransitionTSVReader::interpretRetentionTime_(std::vector<TargetedExperiment::RetentionTime>& retention_times, const OpenMS::DataValue rt_value)
+  void TransitionTSVFile::interpretRetentionTime_(std::vector<TargetedExperiment::RetentionTime>& retention_times, const OpenMS::DataValue rt_value)
   {
     TargetedExperiment::RetentionTime retention_time;
     retention_time.setRT(rt_value);
@@ -1016,7 +987,7 @@ namespace OpenMS
     retention_times.push_back(retention_time);
   }
 
-  void TransitionTSVReader::createPeptide_(std::vector<TSVTransition>::iterator& tr_it, OpenMS::TargetedExperiment::Peptide& peptide)
+  void TransitionTSVFile::createPeptide_(std::vector<TSVTransition>::iterator& tr_it, OpenMS::TargetedExperiment::Peptide& peptide)
   {
 
     // the following attributes will be stored as meta values (userParam):
@@ -1130,7 +1101,7 @@ namespace OpenMS
                           + aa_sequence.toUnmodifiedString() + " != " + peptide.sequence).c_str())
   }
 
-  void TransitionTSVReader::createCompound_(std::vector<TSVTransition>::iterator& tr_it, OpenMS::TargetedExperiment::Compound& compound)
+  void TransitionTSVFile::createCompound_(std::vector<TSVTransition>::iterator& tr_it, OpenMS::TargetedExperiment::Compound& compound)
   {
 
     // the following attributes will be stored as meta values (userParam):
@@ -1167,7 +1138,7 @@ namespace OpenMS
     compound.rts = retention_times;
   }
 
-  void TransitionTSVReader::addModification_(std::vector<TargetedExperiment::Peptide::Modification>& mods,
+  void TransitionTSVFile::addModification_(std::vector<TargetedExperiment::Peptide::Modification>& mods,
                                              int location, const ResidueModification& rmod)
   {
     TargetedExperiment::Peptide::Modification mod;
@@ -1178,7 +1149,7 @@ namespace OpenMS
     mods.push_back(mod);
   }
 
-  TransitionTSVReader::TSVTransition TransitionTSVReader::convertTransition_(const ReactionMonitoringTransition* it, OpenMS::TargetedExperiment& targeted_exp)
+  TransitionTSVFile::TSVTransition TransitionTSVFile::convertTransition_(const ReactionMonitoringTransition* it, OpenMS::TargetedExperiment& targeted_exp)
   {
     TSVTransition mytransition;
     mytransition.precursor = it->getPrecursorMZ();
@@ -1366,15 +1337,15 @@ namespace OpenMS
     return(mytransition);
   }
 
-  void TransitionTSVReader::writeTSVOutput_(const char* filename, OpenMS::TargetedExperiment& targeted_exp)
+  void TransitionTSVFile::writeTSVOutput_(const char* filename, OpenMS::TargetedExperiment& targeted_exp)
   {
     std::vector<TSVTransition> mytransitions;
 
     Size progress = 0;
-    startProgress(0, targeted_exp.getTransitions().size(), "converting to OpenSWATH transition TSV format");
+    startProgress(0, targeted_exp.getTransitions().size(), "writing OpenSWATH Transition List TSV file");
     for (Size i = 0; i < targeted_exp.getTransitions().size(); i++)
     {
-      TransitionTSVReader::TSVTransition mytransition = convertTransition_(&targeted_exp.getTransitions()[i],targeted_exp);
+      TransitionTSVFile::TSVTransition mytransition = convertTransition_(&targeted_exp.getTransitions()[i],targeted_exp);
       mytransitions.push_back(mytransition);
       setProgress(progress++);
     }
@@ -1431,7 +1402,7 @@ namespace OpenMS
   }
 
   // public methods
-  void TransitionTSVReader::convertTargetedExperimentToTSV(const char* filename, OpenMS::TargetedExperiment& targeted_exp)
+  void TransitionTSVFile::convertTargetedExperimentToTSV(const char* filename, OpenMS::TargetedExperiment& targeted_exp)
   {
     if (targeted_exp.containsInvalidReferences())
     {
@@ -1441,21 +1412,21 @@ namespace OpenMS
     writeTSVOutput_(filename, targeted_exp);
   }
 
-  void TransitionTSVReader::convertTSVToTargetedExperiment(const char* filename, FileTypes::Type filetype, OpenMS::TargetedExperiment& targeted_exp)
+  void TransitionTSVFile::convertTSVToTargetedExperiment(const char* filename, FileTypes::Type filetype, OpenMS::TargetedExperiment& targeted_exp)
   {
     std::vector<TSVTransition> transition_list;
     readUnstructuredTSVInput_(filename, filetype, transition_list);
     TSVToTargetedExperiment_(transition_list, targeted_exp);
   }
 
-  void TransitionTSVReader::convertTSVToTargetedExperiment(const char* filename, FileTypes::Type filetype, OpenSwath::LightTargetedExperiment& targeted_exp)
+  void TransitionTSVFile::convertTSVToTargetedExperiment(const char* filename, FileTypes::Type filetype, OpenSwath::LightTargetedExperiment& targeted_exp)
   {
     std::vector<TSVTransition> transition_list;
     readUnstructuredTSVInput_(filename, filetype, transition_list);
     TSVToTargetedExperiment_(transition_list, targeted_exp);
   }
 
-  void TransitionTSVReader::validateTargetedExperiment(OpenMS::TargetedExperiment& targeted_exp)
+  void TransitionTSVFile::validateTargetedExperiment(OpenMS::TargetedExperiment& targeted_exp)
   {
     if (targeted_exp.containsInvalidReferences())
     {
