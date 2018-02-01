@@ -1,9 +1,5 @@
 ## Windows installer
-## TODO readd UAC plugin.. otherwise fails as normal user "Cant write file"
-## No description of the search engines (subsections of Thirdparty)
-
-set(PACKAGE_LIB_DIR bin)
-set(PACKAGE_BIN_DIR TOPP)
+## TODO No description of the search engines (subsections of Thirdparty)
 
 if (CMAKE_GENERATOR MATCHES ".*Win64.*")
   set(PLATFORM "64")
@@ -33,8 +29,14 @@ endif()
 #         DESTINATION OpenMS-${CPACK_PACKAGE_VERSION}/${PACKAGE_LIB_DIR}/
 #         COMPONENT library)
 
-configure_file(${PROJECT_SOURCE_DIR}/cmake/Windows/Cfg_Settings.nsh.in ${PROJECT_BINARY_DIR}/Cfg_Settings.nsh)
+## Careful: the configured file needs to lie exactly in the Build directory so that it is found by the NSIS_template
+configure_file(${PROJECT_SOURCE_DIR}/cmake/Windows/Cfg_Settings.nsh.in ${PROJECT_BINARY_DIR}/Cfg_Settings.nsh.in.conf)
+install(CODE "
+	set (PACKAGING_DIR \${CMAKE_INSTALL_PREFIX})
+	configure_file(${PROJECT_BINARY_DIR}/Cfg_Settings.nsh.in.conf ${PROJECT_BINARY_DIR}/Cfg_Settings.nsh)
+	")
 
+## TODO just use InstallFolder for lib in NSIS template. Figure out how to get to that folder.
 set(CPACK_GENERATOR NSIS)
 
 set(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAME}-${CPACK_PACKAGE_VERSION}-Win${PLATFORM}")

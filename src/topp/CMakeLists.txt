@@ -58,6 +58,8 @@ endforeach(i)
 
 # some regular TOPP tools need the GUI lib, only build them when WITH_GUI is enabled
 if(WITH_GUI)
+  ## TODO Check if the find command actually does anything but double check.
+  ## Libraries are I think anyway already hardcoded in OpenMS_GUI_LIBRARIES
   find_package(Qt5 COMPONENTS Core Network Widgets Svg OpenGL PrintSupport REQUIRED)
   if (NOT Qt5Widgets_FOUND)
     message(STATUS "QtWidgets module not found!")

@@ -90,9 +90,12 @@ set(OPENMS_DEP_LIBRARIES  ${COIN_LIBRARIES}
                           ${BZIP2_LIBRARIES}
                           ${ZLIB_LIBRARIES}
                           ${SQLITE_LIBRARY}
-                          ${GLPK_LIBRARIES})
+                          ${GLPK_LIBRARIES}
+                          ${Qt5Core_LIBRARIES}
+                          ${Qt5Network_LIBRARIES})
 
 # xerces requires linking against CoreFoundation&CoreServices
+# TODO check if this is still the case
 if(APPLE)
   find_library(CoreFoundation_LIBRARY CoreFoundation )
   find_library(CoreServices_LIBRARY CoreServices )
@@ -104,14 +107,10 @@ endif()
 if (TBB_FOUND)
  list(APPEND OPENMS_DEP_LIBRARIES ${TBB_LIBRARIES})
 endif()
-if (MSVC)
+if (MSVC) ## TODO check if necessary, does it need to go to OpenMS_GUI?
 	list(APPEND OPENMS_DEP_LIBRARIES opengl32.lib)
 endif()
-if (WITH_CRAWDAD)
-  # find archive (static) version and add it to the OpenMS library
-  find_library(Crawdad_LIBRARY
-   NAMES Crawdad.a Crawdad
-    HINTS ${Crawdad_DIR})
+if (WITH_CRAWDAD) ## TODO check if still necessary
   list(APPEND OPENMS_DEP_LIBRARIES ${Crawdad_LIBRARY})
 endif()
 
@@ -128,11 +127,9 @@ openms_add_library(TARGET_NAME  OpenMS
                                      ${CMAKE_CURRENT_BINARY_DIR}/include
                    PRIVATE_INCLUDES  ${EOL_BSPLINE_INCLUDE_DIRECTORY}
                    EXTERNAL_INCLUDES ${OPENMS_CONTRIB_INCLUDE_DIRS}
-                                     ${Qt5Widgets_INCLUDE_DIRS}
+                                     ${OpenSwathAlgo_INCLUDE_DIRECTORIES}
+                                     ${Qt5Core_INCLUDE_DIRS}
                                      ${Qt5Network_INCLUDE_DIRS}
-                                     ${Qt5Svg_INCLUDE_DIRS}
-                                     ${Qt5OpenGL_INCLUDE_DIRS}
-                                     ${GSL_INCLUDE_DIRS}
                                      ${Boost_INCLUDE_DIRS}
                                      ${SEQAN_INCLUDE_DIRS}
                                      ${SQLITE_INCLUDE_DIR}
@@ -142,16 +139,10 @@ openms_add_library(TARGET_NAME  OpenMS
                                      ${BZIP2_INCLUDE_DIR}
                                      ${EIGEN3_INCLUDE_DIR}
                                      ${WM5_INCLUDE_DIRS}
-                                     ${OpenSwathAlgo_INCLUDE_DIRECTORIES}
-                                     ${CRAWDAD_INCLUDE_DIRS}
+                                     ${CRAWDAD_INCLUDE_DIRS} ##TODO check
                                      ${XercesC_INCLUDE_DIRS}
                                      ${COIN_INCLUDE_DIRS}
                    LINK_LIBRARIES OpenSwathAlgo
-                                  ${APPLE_EXTRA_LIBS}
-                                  ${Qt5Widgets_LIBRARIES}
-                                  ${Qt5Network_LIBRARIES}
-                                  ${Qt5OpenGL_LIBRARIES}
-                                  ${Qt5Svg_LIBRARIES}
                                   ${OPENMS_DEP_LIBRARIES}
                    DLL_EXPORT_PATH "OpenMS/")
 

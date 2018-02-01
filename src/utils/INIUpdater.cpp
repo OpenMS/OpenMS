@@ -223,10 +223,6 @@ protected:
     const char** argv = &c;
 
     QApplication app(argc, const_cast<char**>(argv), false);
-#if  defined(__APPLE__)
-    // disable plugin loading on macOS
-    QApplication::setLibraryPaths(QStringList());
-#endif
     String tmp_dir = File::getTempDirectory() + "/" + File::getUniqueName();
     QDir d;
     d.mkpath(tmp_dir.toQString());

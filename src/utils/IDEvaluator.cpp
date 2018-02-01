@@ -37,7 +37,6 @@
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/VISUAL/APPLICATIONS/IDEvaluationBase.h>
-#include <OpenMS/VISUAL/APPLICATIONS/MISC/QApplicationTOPP.h>
 #include <OpenMS/ANALYSIS/ID/FalseDiscoveryRate.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
@@ -46,6 +45,7 @@
 #include <QGraphicsView>
 #include <QGraphicsScene>
 #include <QApplication>
+#include <QLibraryInfo>
 
 #ifdef OPENMS_WINDOWSPLATFORM
 #   ifndef _WIN32_WINNT
@@ -93,7 +93,7 @@ public:
     TOPPBase("IDEvaluator",
              "Computes a 'q-value vs. #PSM' plot which is saved as an image to visualize the number identifications for a certain q-value.", false)
   {
-    out_formats_ = IDEvaluationBase().getSupportedImageFormats(); // can only be called if a QApplication is present...
+    out_formats_ = IDEvaluationBase::getSupportedImageFormats(); // can only be called if a QApplication is present...
   }
 
 protected:
@@ -242,6 +242,13 @@ int main(int argc, const char** argv)
   int argc_ = 1;
   const char* c = "IDEvaluator";
   const char** argv_ = &c;
+  
+  QStringList paths;
+  #ifdef QT_PLUGIN_PATH_REL_TO_BIN
+    paths << QT_PLUGIN_PATH_REL_TO_BIN;
+  #endif
+  paths << QApplication::libraryPaths();
+  QApplication::setLibraryPaths(paths);
   QApplication app(argc_, const_cast<char**>(argv_)); // no QApplicationTOPP, since any exception thrown will result in an abort of a cmd line tool anyways (no real GUI here)
 
   TOPPIDEvaluator tool;

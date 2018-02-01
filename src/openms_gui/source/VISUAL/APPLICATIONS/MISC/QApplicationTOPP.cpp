@@ -48,6 +48,7 @@
 #include <QMessageBox>
 #include <QFile>
 #include <QFileOpenEvent>
+#include <QLibraryInfo>
 
 
 namespace OpenMS
