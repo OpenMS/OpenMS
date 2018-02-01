@@ -297,13 +297,16 @@ namespace OpenMS
       }
 
       // draw axes legend
-      painter_ = new QPainter(this);
-      if (painter_->isActive())
+      if (this->paintEngine()) // check if the paint device is properly initialized to surpress Qt warning
       {
-        drawAxesLegend_(); 
-        painter_->end();
+        painter_ = new QPainter(this);
+        if (painter_->isActive())
+        {
+          drawAxesLegend_(); 
+          painter_->end();
+        }
+        delete(painter_);
       }
-      delete(painter_);
     }
     update();
   }
