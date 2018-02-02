@@ -8,8 +8,7 @@ cdef extern from "<OpenMS/COMPARISON/SPECTRA/BinnedSpectrum.h>" namespace "OpenM
 
     cdef cppclass BinnedSpectrum:
 
-        BinnedSpectrum() nogil except +
-        BinnedSpectrum(BinnedSpectrum) nogil except +
+        BinnedSpectrum(BinnedSpectrum &) nogil except +
         BinnedSpectrum(MSSpectrum, float size, bool unit_ppm, UInt spread) nogil except +
 
         bool operator==(BinnedSpectrum & rhs) nogil except +
@@ -19,6 +18,7 @@ cdef extern from "<OpenMS/COMPARISON/SPECTRA/BinnedSpectrum.h>" namespace "OpenM
         UInt getBinSpread() nogil except +
         UInt getBinIndex(float mz) nogil except +
         float getBinLowerMZ(size_t i) nogil except +
+        float getBinIntensity(double mz) nogil except +
 
         libcpp_vector[Precursor] getPrecursors() nogil except +
 
