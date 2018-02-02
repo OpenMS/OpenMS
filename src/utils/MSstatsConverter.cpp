@@ -38,6 +38,8 @@
 #include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/FORMAT/MzTabFile.h>
+#include <OpenMS/FORMAT/MzTab.h>
 
 #include <regex>
 
@@ -72,20 +74,6 @@ public TOPPBase
 {
 public:
 
-  static const String param_in;
-  static const String param_in_design_run;
-  static const String param_in_design_condition;
-  static const String param_msstats_bioreplicate;
-  static const String param_msstats_condition;
-  static const String param_out;
-  static const String param_labeled_reference_peptides;
-  static const String param_ambiguous_peptides;
-
-  static const String na_string;
-
-  // The meta value of the peptide identification which is going to be used for the experimental design link
-  static const String meta_value_exp_design_key;
-
   TOPPMSstatsConverter() :
     TOPPBase("MSstatsConverter", "Converter to input for MSstats", false)
   {
@@ -113,6 +101,10 @@ protected:
     // Non-unique Peptides
     this->registerFlag_(TOPPMSstatsConverter::param_ambiguous_peptides, "If set, the output CSV file can contain peptides that have been assigned to multiple protein ids. Attention: you normally do not want to do this for MSstats", true);
 
+    // Multiple rows resolution file (mzTab file which outputs peptide ions that only differ in the Intensity wrt the MSstats feature vector
+    this->registerOutputFile_(TOPPMSstatsConverter::param_multiple_rows_resolution, "<multiple_row_resolution>", "", "mzTab file containing all peptide ions that only differ wrt to Intensity in the MSstats feature vector", false, false);
+    this->setValidFormats_(TOPPMSstatsConverter::param_multiple_rows_resolution, ListUtils::create<String>("tsv"), true);
+
     // Output CSV file
     this->registerOutputFile_(TOPPMSstatsConverter::param_out, "<out>", "", "Input CSV file for MSstats.", true, false);
     this->setValidFormats_(TOPPMSstatsConverter::param_out, ListUtils::create<String>("csv"));
@@ -127,6 +119,10 @@ protected:
       const String arg_out(this->getStringOption_(TOPPMSstatsConverter::param_out));
       const String &arg_msstats_condition = this->getStringOption_(TOPPMSstatsConverter::param_msstats_condition);
       const String &arg_msstats_bioreplicate = this->getStringOption_(TOPPMSstatsConverter::param_msstats_bioreplicate);
+
+      // Multiple row resolution
+      const String &multiple_rows_resolution = this->getStringOption_(TOPPMSstatsConverter::param_multiple_rows_resolution);
+      const bool output_resolution_file = (multiple_rows_resolution.empty() == false);
 
       // Load the experimental design
       DesignFile file_run(this->getStringOption_(TOPPMSstatsConverter::param_in_design_run), ListUtils::create<String>("Run,Condition"), "Spectra File");
@@ -238,6 +234,7 @@ protected:
       // Stores all the lines that will be present in the final MSstats output,
       std::map< String, std::set<String > > peptideseq_to_outputlines;
 
+
       for (Size i = 0; i < features.size(); ++i)
       {
         const OpenMS::BaseFeature &base_feature = features[i];
@@ -330,7 +327,7 @@ protected:
           // Only write if unique peptide
           if (peptideseq_accessions.second.size() == 1)
           {
-            for (const String & line : peptideseq_to_outputlines[peptideseq_accessions.first])
+            for (const String &line : peptideseq_to_outputlines[peptideseq_accessions.first])
             {
               csv_out.addLine(line);
             }
@@ -348,6 +345,22 @@ protected:
       }
 
 private:
+
+  static const String param_in;
+  static const String param_in_design_run;
+  static const String param_in_design_condition;
+  static const String param_msstats_bioreplicate;
+  static const String param_msstats_condition;
+  static const String param_out;
+  static const String param_labeled_reference_peptides;
+  static const String param_ambiguous_peptides;
+  static const String param_multiple_rows_resolution;
+
+  static const String na_string;
+
+  // The meta value of the peptide identification which is going to be used for the experimental design link
+  static const String meta_value_exp_design_key;
+
 
   static void conditionalFatalError_(const String & message, bool error_condition, int exit_code)
   {
@@ -500,7 +513,7 @@ const String TOPPMSstatsConverter::na_string = "NA";
 const String TOPPMSstatsConverter::param_labeled_reference_peptides = "labeled_reference_peptides";
 const String TOPPMSstatsConverter::meta_value_exp_design_key = "spectra_data";
 const String TOPPMSstatsConverter::param_ambiguous_peptides = "ambiguous_peptides";
-
+const String TOPPMSstatsConverter::param_multiple_rows_resolution = "multiple_rows_resolution";
 
 // the actual main function needed to create an executable
 int main(int argc, const char ** argv)
