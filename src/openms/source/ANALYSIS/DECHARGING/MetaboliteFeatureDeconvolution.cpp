@@ -35,6 +35,7 @@
 #include <OpenMS/ANALYSIS/DECHARGING/MetaboliteFeatureDeconvolution.h>
 
 #include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
+#include <OpenMS/CHEMISTRY/Element.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CONCEPT/LogStream.h>
@@ -789,6 +790,29 @@ namespace OpenMS
         else
         {
           fm_out[f0_idx].setMetaValue("dc_charge_adducts", ef_l.toString());
+          String charge_sign = new_q0 >= 0 ? "+" : "-";
+          String s("[M");
+
+          //need elements sorted canonically (by string)
+          map<String, String> sorted_elem_map_l;
+          for (auto element_count : ef_l)
+          {
+            String e_symbol(element_count.first->getSymbol());
+            String tmp = element_count.second > 0 ? "+" : "-";
+            tmp += abs(element_count.second) > 1 ? String(abs(element_count.second)) : "";
+            tmp += e_symbol;
+            sorted_elem_map_l[e_symbol] = tmp;
+          }
+          for (auto sorted_e_cnt : sorted_elem_map_l)
+          {
+            s += sorted_e_cnt.second;
+          }
+          s += String("]");
+          s += abs(new_q0) > 1 ? String(abs(new_q0)) : "";
+          s += charge_sign;
+
+          StringList dc_new_adducts = ListUtils::create<String>(s);
+          fm_out[f0_idx].setMetaValue("adducts", dc_new_adducts);
         }
         fm_out[f0_idx].setMetaValue("dc_charge_adduct_mass", ef_l.getMonoWeight());
         fm_out[f0_idx].setMetaValue("is_backbone", Size(c.isSingleAdduct(default_adduct, Compomer::LEFT) ? 1 : 0));
@@ -813,6 +837,28 @@ namespace OpenMS
         else
         {
           fm_out[f1_idx].setMetaValue("dc_charge_adducts", ef_r.toString());
+          String charge_sign = new_q1 >= 0 ? "+" : "-";
+          String s("[M");
+
+          //need elements sorted canonically (by string)
+          map<String, String> sorted_elem_map_r;
+          for (auto element_count : ef_r)
+          {
+            String e_symbol(element_count.first->getSymbol());
+            String tmp = element_count.second > 0 ? "+" : "-";
+            tmp += abs(element_count.second) > 1 ? String(abs(element_count.second)) : "";
+            tmp += e_symbol;
+            sorted_elem_map_r[e_symbol] = tmp;
+          }
+          for (auto sorted_e_cnt : sorted_elem_map_r)
+          {
+            s += sorted_e_cnt.second;
+          }
+          s += String("]");
+          s += abs(new_q1) > 1 ? String(abs(new_q1)) : "";
+          s += charge_sign;
+          StringList dc_new_adducts = ListUtils::create<String>(s);
+          fm_out[f1_idx].setMetaValue("adducts", dc_new_adducts);
         }
         fm_out[f1_idx].setMetaValue("dc_charge_adduct_mass", ef_r.getMonoWeight());
         fm_out[f1_idx].setMetaValue("is_backbone", Size(c.isSingleAdduct(default_adduct, Compomer::RIGHT) ? 1 : 0));
