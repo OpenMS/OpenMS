@@ -43,7 +43,7 @@
 using namespace OpenMS;
 using namespace std;
 
-void CsiFingerIdMzTabWriter::read(const std::vector<String> & sirius_output_paths, const String & original_input_mzml,  Size number, MzTab & result)
+void CsiFingerIdMzTabWriter::read(const std::vector<String> & sirius_output_paths, const String & original_input_mzml, const Size & top_n_hits, MzTab & result)
 {
 
   CsiFingerIdMzTabWriter::CsiAdapterRun csi_result;
@@ -70,8 +70,8 @@ void CsiFingerIdMzTabWriter::read(const std::vector<String> & sirius_output_path
         OpenMS::String str = File::path(pathtocsicsv);
         std::string scan_index = SiriusMzTabWriter::extract_scan_index(str);
 
-        const UInt number_cor = (number > rowcount) ? rowcount : number;
-        for (Size j = 1; j < number_cor; ++j)
+        const UInt top_n_hits_cor = (top_n_hits > rowcount) ? rowcount : top_n_hits;
+        for (Size j = 1; j < top_n_hits_cor; ++j)
         {
           
           StringList sl;

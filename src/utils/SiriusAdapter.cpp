@@ -140,7 +140,7 @@ protected:
     setValidStrings_("isotope", ListUtils::create<String>("score,filter,both,omit"));
     registerStringOption_("elements", "<choice>", "CHNOP[5]S", "The allowed elements. Write CHNOPSCl to allow the elements C, H, N, O, P, S and Cl. Add numbers in brackets to restrict the maximal allowed occurrence of these elements: CHNOP[5]S[8]Cl[1]. By default CHNOP[5]S is used.", false);
 
-    registerIntOption_("number", "<num>", 10, "The number of compounds used in the output", false);
+    registerIntOption_("top_n_hits", "<num>", 10, "The top_n_hit for each compound written to the output", false);
 
     registerFlag_("auto_charge", "Use this option if the charge of your compounds is unknown and you do not want to assume [M+H]+ as default. With the auto charge option SIRIUS will not care about charges and allow arbitrary adducts for the precursor peak.", false);
     registerFlag_("iontree", "Print molecular formulas and node labels with the ion formula instead of the neutral formula", false);
@@ -148,16 +148,13 @@ protected:
   }
 
   // extract adduct information from featureXML (MetaboliteAdductDecharger)
-  void extractAdductInformation(const PeakMap & spectra, const  String & adductinfo, map<size_t, StringList> & map_precursor_to_adducts)
+  void extractAdductInformation(const PeakMap & spectra, const FeatureMap & feature_map, map<size_t, StringList> & map_precursor_to_adducts)
   {
     KDTreeFeatureMaps adduct_map_kd;
-    FeatureXMLFile fxml;
-    FeatureMap feature_map;
     vector<FeatureMap> adduct_map;
     adduct_map.push_back(feature_map);
-    fxml.load(adductinfo, adduct_map[0]);
     adduct_map_kd.addMaps(adduct_map);
-
+    
     // map precursors to closest feature and retrieve annotated adducts
     for (size_t index = 0; index != spectra.size(); ++index)
     {
@@ -215,7 +212,7 @@ protected:
     String adductinfo = getStringOption_("in_adductinfo");
 
     // needed for counting
-    int number_compounds = getIntOption_("number"); 
+    int top_n_hits = getIntOption_("top_n_hits"); 
 
     // Parameter for Sirius3
     QString executable = getStringOption_("executable").toQString();
@@ -274,7 +271,10 @@ protected:
     std::ifstream afile(adductinfo);    
     if (afile)
     {
-      extractAdductInformation(spectra, adductinfo, map_precursor_to_adducts);
+      FeatureXMLFile fxml;
+      FeatureMap feature_map;
+      fxml.load(adductinfo, feature_map);
+      extractAdductInformation(spectra, feature_map, map_precursor_to_adducts);
     }   
 
     // Write msfile
@@ -357,7 +357,7 @@ protected:
     //Convert sirius_output to mztab and store file
     MzTab sirius_result;
     MzTabFile siriusfile;
-    SiriusMzTabWriter::read(subdirs, in, number_compounds, sirius_result);
+    SiriusMzTabWriter::read(subdirs, in, top_n_hits, sirius_result);
     siriusfile.store(out_sirius, sirius_result);
 
     //Convert sirius_output to mztab and store file
@@ -365,7 +365,7 @@ protected:
     {
       MzTab csi_result;
       MzTabFile csifile;
-      CsiFingerIdMzTabWriter::read(subdirs, in, number_compounds, csi_result);
+      CsiFingerIdMzTabWriter::read(subdirs, in, top_n_hits, csi_result);
       csifile.store(out_csifingerid, csi_result);
     }
 

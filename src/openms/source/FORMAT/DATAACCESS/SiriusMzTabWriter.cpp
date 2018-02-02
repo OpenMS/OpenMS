@@ -48,7 +48,7 @@ String SiriusMzTabWriter::extract_scan_index(const String &path)
   return path.substr(path.find_last_not_of("0123456789") + 1);
 }
 
-void SiriusMzTabWriter::read(const std::vector<String> & sirius_output_paths, const String & original_input_mzml, Size number, MzTab & result)
+void SiriusMzTabWriter::read(const std::vector<String> & sirius_output_paths, const String & original_input_mzml, const Size & top_n_hits, MzTab & result)
 {
 
   SiriusMzTabWriter::SiriusAdapterRun sirius_result;
@@ -68,7 +68,7 @@ void SiriusMzTabWriter::read(const std::vector<String> & sirius_output_paths, co
 
       if (rowcount > 1)
       {
-        const UInt number_cor = (number > rowcount) ? rowcount : number;
+        const UInt top_n_hits_cor = (top_n_hits >= rowcount) ? rowcount : top_n_hits;
         
         // fill indentification structure containing all candidate hits for a single spectrum
         SiriusMzTabWriter::SiriusAdapterIdentification sirius_id;
@@ -77,7 +77,8 @@ void SiriusMzTabWriter::read(const std::vector<String> & sirius_output_paths, co
         OpenMS::String str = File::path(pathtosiriuscsv);
         std::string scan_index = SiriusMzTabWriter::extract_scan_index(str);
 
-        for (Size j = 1; j < number_cor; ++j)
+        for (Size j = 1; j < top_n_hits_cor; ++j)
+
         {
           
           StringList sl;
