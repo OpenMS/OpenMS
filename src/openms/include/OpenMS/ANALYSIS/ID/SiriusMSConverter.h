@@ -56,6 +56,10 @@ public:
 
     /// store MS file
     /// @return string (full path to file)
+    
+    // spectra: Peakmap from input mzml
+    // msfile: (internal) written .ms file from sirius 
+    // map_precursor_to_adducts: adduct inforamtion - if an empty map is provided no adduct information will be parsed into the internal .ms file.
     static void store(const PeakMap & spectra, const String & msfile, const std::map<size_t, StringList> & map_precursor_to_adducts);
 
   };

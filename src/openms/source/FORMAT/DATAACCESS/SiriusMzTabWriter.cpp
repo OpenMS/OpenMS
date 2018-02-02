@@ -48,12 +48,12 @@ String SiriusMzTabWriter::extract_scan_index(const String &path)
   return path.substr(path.find_last_not_of("0123456789") + 1);
 }
 
-void SiriusMzTabWriter::read(const std::vector<String> & paths, const String & mzml, Size number, MzTab & result)
+void SiriusMzTabWriter::read(const std::vector<String> & sirius_output_paths, const String & original_input_mzml, Size number, MzTab & result)
 {
 
   SiriusMzTabWriter::SiriusAdapterRun sirius_result;
 
-  for (std::vector<String>::const_iterator it = paths.begin(); it != paths.end(); ++it)
+  for (std::vector<String>::const_iterator it = sirius_output_paths.begin(); it != sirius_output_paths.end(); ++it)
   {
 
     const std::string pathtosiriuscsv = *it + "/summary_sirius.csv";
@@ -103,8 +103,7 @@ void SiriusMzTabWriter::read(const std::vector<String> & paths, const String & m
         // write metadata to mzTab file
         MzTabMetaData md;
         MzTabMSRunMetaData md_run;
-        md_run.location = MzTabString(str);
-        md_run.location = MzTabString(mzml);
+        md_run.location = MzTabString(original_input_mzml);
         md.ms_run[1] = md_run;
         md.description = MzTabString("Sirius-3.5");
 

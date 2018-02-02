@@ -43,12 +43,12 @@
 using namespace OpenMS;
 using namespace std;
 
-void CsiFingerIdMzTabWriter::read(const std::vector<String> & paths, Size number, MzTab & result)
+void CsiFingerIdMzTabWriter::read(const std::vector<String> & sirius_output_paths, const String & original_input_mzml,  Size number, MzTab & result)
 {
 
   CsiFingerIdMzTabWriter::CsiAdapterRun csi_result;
 
-  for (std::vector<String>::const_iterator it = paths.begin(); it != paths.end(); ++it)
+  for (std::vector<String>::const_iterator it = sirius_output_paths.begin(); it != sirius_output_paths.end(); ++it)
   {
 
     const std::string pathtocsicsv = *it + "/summary_csi_fingerid.csv";
@@ -97,7 +97,7 @@ void CsiFingerIdMzTabWriter::read(const std::vector<String> & paths, Size number
         MzTabFile mztab_out;
         MzTabMetaData md;
         MzTabMSRunMetaData md_run;
-        md_run.location = MzTabString(str);
+        md_run.location = MzTabString(original_input_mzml);
         md.ms_run[1] = md_run;
         md.description = MzTabString("CSI:FingerID-3.5");
 

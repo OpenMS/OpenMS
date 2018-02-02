@@ -73,6 +73,15 @@ using namespace std;
 
   If you want to use the software with the Gurobi solver (free academic license) instead of GLPK, please follow the instructions in the sirius manual.
 
+
+  Internal procedure in SiriusAdpater
+  1. Input mzML
+  2. Parsed by SiriusMSConverter into (sirius internal) .ms format
+  3. Submission of .ms and additional parameters to wrapped SIRIUS.jar
+  4. Sirius output saved in interal temporary folder structure
+  5. Sirius output is parsed (SiriusMzTabWriter/CsiFingerIDMzTabWriter)
+  6. Merge corresponding output in one mzTab (out_sirius/out_fingerid)
+
   Please see the following publications:
 
   Kai Dührkop and Sebastian Böcker. Fragmentation trees reloaded.  J Cheminform, 8:5, 2016. (Cite this for fragmentation pattern analysis and fragmentation tree computation)
@@ -356,7 +365,7 @@ protected:
     {
       MzTab csi_result;
       MzTabFile csifile;
-      CsiFingerIdMzTabWriter::read(subdirs, number_compounds, csi_result);
+      CsiFingerIdMzTabWriter::read(subdirs, in, number_compounds, csi_result);
       csifile.store(out_csifingerid, csi_result);
     }
 
