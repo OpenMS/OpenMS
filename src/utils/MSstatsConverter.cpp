@@ -203,7 +203,7 @@ protected:
 
       // The output file of the MSstats converter (TODO Change to CSV file once store for CSV files has been implemented)
       TextFile csv_out;
-      csv_out.addLine("ProteinName,PeptideSequence,PrecursorCharge,FragmentIon,ProductCharge,IsotopeLabelType,Condition,BioReplicate,Run,Intensity,RetentionTime" + String(has_fraction ? ",Fraction" : ""));
+      csv_out.addLine("RetentionTime,ProteinName,PeptideSequence,PrecursorCharge,FragmentIon,ProductCharge,IsotopeLabelType,Condition,BioReplicate,Run," + String(has_fraction ? "Fraction,": "") + "Intensity");
 
       // Regex definition for fragment ions
       std::regex regex_msstats_FragmentIon("[abcxyz][0-9]+");
@@ -229,8 +229,7 @@ protected:
       std::map< String, std::set<String > > peptideseq_to_accessions;
 
       // Stores all the lines that will be present in the final MSstats output,
-      std::map< String, std::set<String > > peptideseq_to_outputlines;
-
+      std::map< String, std::map< String, std::set< OpenMS::Peak2D::IntensityType > > > peptideseq_to_prefix_to_intensities;
 
       for (Size i = 0; i < features.size(); ++i)
       {
@@ -287,20 +286,21 @@ protected:
 
                   const String & condition = file_run.get(filename, "Condition");
                   const String & bioreplicate = file_condition.get(condition, arg_msstats_bioreplicate);
-                  const String & fraction = String(has_fraction ? ("," + file_run.get(filename, "Fraction")) : "");
+                  const String & fraction = String(has_fraction ? (delim + file_run.get(filename, "Fraction") + delim) : "");
 
-                  peptideseq_to_outputlines[sequence].insert(accession
-                                                             + delim + sequence
-                                                             + delim + precursor_charge
-                                                             + delim + fragment_ion
-                                                             + delim + frag_charge
-                                                             + delim + isotope_label_type
-                                                             + delim + file_condition.get(condition, arg_msstats_condition)
-                                                             + delim + bioreplicate
-                                                             + delim + file_run.get(filename, "Run")
-                                                             + delim + intensity
-															 + delim + retention_time
-                                                             + fraction);
+                  const String prefix(
+                		            String(retention_time)
+                		  + delim + accession
+                          + delim + sequence
+                          + delim + precursor_charge
+                          + delim + fragment_ion
+                          + delim + frag_charge
+                          + delim + isotope_label_type
+                          + delim + file_condition.get(condition, arg_msstats_condition)
+                          + delim + bioreplicate
+                          + delim + file_run.get(filename, "Run")
+                          + fraction);
+                  peptideseq_to_prefix_to_intensities[sequence][prefix].insert(intensity);
                 }
               }
             }
@@ -311,11 +311,14 @@ protected:
       // Write all the peptides in turn
       if (this->getFlag_(TOPPMSstatsConverter::param_ambiguous_peptides))
       {
-        for (const std::pair< String, std::set< String> > & peptideseq_lines : peptideseq_to_outputlines)
+        for (const std::pair< String, std::map< String, std::set< OpenMS::Peak2D::IntensityType > > > &peptideseq_lines : peptideseq_to_prefix_to_intensities)
         {
-          for (const String & line : peptideseq_lines.second)
+          for (const std::pair< String, std::set< OpenMS::Peak2D::IntensityType > > &line : peptideseq_lines.second)
           {
-            csv_out.addLine(line);
+        	for (const OpenMS::Peak2D::IntensityType  &intensity : line.second)
+        	{
+        		csv_out.addLine(line.first + ',' + String(intensity));
+        	}
           }
         }
       }
@@ -326,9 +329,12 @@ protected:
           // Only write if unique peptide
           if (peptideseq_accessions.second.size() == 1)
           {
-            for (const String &line : peptideseq_to_outputlines[peptideseq_accessions.first])
+            for (const std::pair< String, std::set< OpenMS::Peak2D::IntensityType > > &line : peptideseq_to_prefix_to_intensities[peptideseq_accessions.first])
             {
-              csv_out.addLine(line);
+              for (const OpenMS::Peak2D::IntensityType &intensity : line.second)
+              {
+            	  csv_out.addLine(line.first + ',' + String(intensity));
+              }
             }
           }
         }
