@@ -101,10 +101,6 @@ protected:
     // Non-unique Peptides
     this->registerFlag_(TOPPMSstatsConverter::param_ambiguous_peptides, "If set, the output CSV file can contain peptides that have been assigned to multiple protein ids. Attention: you normally do not want to do this for MSstats", true);
 
-    // Multiple rows resolution file (mzTab file which outputs peptide ions that only differ in the Intensity wrt the MSstats feature vector
-    this->registerOutputFile_(TOPPMSstatsConverter::param_multiple_rows_resolution, "<multiple_row_resolution>", "", "mzTab file containing all peptide ions that only differ wrt to Intensity in the MSstats feature vector", false, false);
-    this->setValidFormats_(TOPPMSstatsConverter::param_multiple_rows_resolution, ListUtils::create<String>("tsv"), true);
-
     // Output CSV file
     this->registerOutputFile_(TOPPMSstatsConverter::param_out, "<out>", "", "Input CSV file for MSstats.", true, false);
     this->setValidFormats_(TOPPMSstatsConverter::param_out, ListUtils::create<String>("csv"));
@@ -119,10 +115,6 @@ protected:
       const String arg_out(this->getStringOption_(TOPPMSstatsConverter::param_out));
       const String &arg_msstats_condition = this->getStringOption_(TOPPMSstatsConverter::param_msstats_condition);
       const String &arg_msstats_bioreplicate = this->getStringOption_(TOPPMSstatsConverter::param_msstats_bioreplicate);
-
-      // Multiple row resolution
-      const String &multiple_rows_resolution = this->getStringOption_(TOPPMSstatsConverter::param_multiple_rows_resolution);
-      const bool output_resolution_file = (multiple_rows_resolution.empty() == false);
 
       // Load the experimental design
       DesignFile file_run(this->getStringOption_(TOPPMSstatsConverter::param_in_design_run), ListUtils::create<String>("Run,Condition"), "Spectra File");
@@ -160,6 +152,8 @@ protected:
       std::vector< std::vector< String > > consensus_feature_filenames;
       // For each ConsensusFeature, store the intensities
       std::vector< std::vector< OpenMS::Peak2D::IntensityType > > consensus_feature_intensites;
+      // For each ConsensusFeature, store the retention_times
+      std::vector< std::vector< OpenMS::Peak2D::CoordinateType > > consensus_feature_retention_times;
 
       ConsensusMap consensus_map;
       features.reserve(consensus_map.size());
@@ -192,6 +186,7 @@ protected:
 
         std::vector< String > filenames;
         std::vector< OpenMS::Peak2D::IntensityType > intensities;
+        std::vector< OpenMS::Peak2D::CoordinateType > retention_times;
 
         // Store the file names and the run intensities of this feature
         const ConsensusFeature::HandleSetType fs(consensus_feature.getFeatures());
@@ -199,14 +194,16 @@ protected:
         {
           filenames.push_back(spectra_paths[fit->getMapIndex()]);
           intensities.push_back(fit->getIntensity());
+          retention_times.push_back(fit->getRT());
         }
         consensus_feature_filenames.push_back(filenames);
         consensus_feature_intensites.push_back(intensities);
+        consensus_feature_retention_times.push_back(retention_times);
       }
 
       // The output file of the MSstats converter (TODO Change to CSV file once store for CSV files has been implemented)
       TextFile csv_out;
-      csv_out.addLine("ProteinName,PeptideSequence,PrecursorCharge,FragmentIon,ProductCharge,IsotopeLabelType,Condition,BioReplicate,Run,Intensity" + String(has_fraction ? ",Fraction" : ""));
+      csv_out.addLine("ProteinName,PeptideSequence,PrecursorCharge,FragmentIon,ProductCharge,IsotopeLabelType,Condition,BioReplicate,Run,Intensity,RetentionTime" + String(has_fraction ? ",Fraction" : ""));
 
       // Regex definition for fragment ions
       std::regex regex_msstats_FragmentIon("[abcxyz][0-9]+");
@@ -284,6 +281,7 @@ protected:
                 {
                   const String &filename = consensus_feature_filenames[i][j];
                   const OpenMS::Peak2D::IntensityType intensity(consensus_feature_intensites[i][j]);
+                  const OpenMS::Peak2D::CoordinateType retention_time(consensus_feature_retention_times[i][j]);
                   const String & accession = pep_ev.getProteinAccession();
                   peptideseq_to_accessions[sequence].insert(accession);
 
@@ -301,6 +299,7 @@ protected:
                                                              + delim + bioreplicate
                                                              + delim + file_run.get(filename, "Run")
                                                              + delim + intensity
+															 + delim + retention_time
                                                              + fraction);
                 }
               }
@@ -354,7 +353,6 @@ private:
   static const String param_out;
   static const String param_labeled_reference_peptides;
   static const String param_ambiguous_peptides;
-  static const String param_multiple_rows_resolution;
 
   static const String na_string;
 
@@ -513,7 +511,6 @@ const String TOPPMSstatsConverter::na_string = "NA";
 const String TOPPMSstatsConverter::param_labeled_reference_peptides = "labeled_reference_peptides";
 const String TOPPMSstatsConverter::meta_value_exp_design_key = "spectra_data";
 const String TOPPMSstatsConverter::param_ambiguous_peptides = "ambiguous_peptides";
-const String TOPPMSstatsConverter::param_multiple_rows_resolution = "multiple_rows_resolution";
 
 // the actual main function needed to create an executable
 int main(int argc, const char ** argv)
