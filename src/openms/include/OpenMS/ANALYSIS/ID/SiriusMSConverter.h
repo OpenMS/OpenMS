@@ -61,7 +61,7 @@ public:
     // msfile: (internal) written .ms file from sirius 
     // map_precursor_to_adducts: adducts of a spectrum (index). 
     // Adducts are written to SIRIUS ms file. If adduct information for a spectrum is missing, 
-    // no adduct information is written. In this case, SIRIUS assumes default adducts for the respective spectrum.    
+    // no adduct information is written. In this case, SIRIUS assumes default adducts for the respective spectrum.
     static void store(const PeakMap & spectra, const String & msfile, const std::map<size_t, StringList> & map_precursor_to_adducts);
 
   };
