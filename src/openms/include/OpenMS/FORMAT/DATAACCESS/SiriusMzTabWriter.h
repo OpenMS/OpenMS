@@ -60,7 +60,6 @@ namespace OpenMS
       double isoscore;
       int explainedpeaks;
       double explainedintensity;
-      String mzml;
     };
 
     struct SiriusAdapterIdentification
