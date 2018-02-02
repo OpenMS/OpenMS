@@ -233,7 +233,7 @@ Section "OpenMS Library" SEC_Lib
     !insertmacro OpenUninstallLog
 
     # install file (with logging)
-	!insertmacro InstallFile "${PACKAGINDIR}\bin"
+	!insertmacro InstallFolder "${OPENMSPACKAGEDIR}/bin/*.*" ".git\"
     #!insertmacro InstallFile "${CONTRIBDIR}\lib\xerces-c_3_1.dll"
     #!insertmacro InstallFile "${CONTRIBDIR}\lib\sqlite3.dll"
     
@@ -256,7 +256,7 @@ Section "OpenMS Library" SEC_Lib
     SetOutPath $INSTDIR\share
     SetOverwrite on
     !if ${DEBUG_BUILD} == 0 
-        !insertmacro InstallFolder "${OPENMSDIRSRC}\share\*.*" ".svn\"
+        !insertmacro InstallFolder "${OPENMSDIRSRC}\share\*.*" ".git\"
     !endif
     
     # icon for *files* associated with TOPPView
