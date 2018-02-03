@@ -598,6 +598,7 @@ protected:
     {
       String mzml_file = cachedir_ + basename_ + "_" + String(swath_consumers_.size()) +  ".mzML";
       PlainMSDataWritingConsumer* consumer = new PlainMSDataWritingConsumer(mzml_file);
+      consumer->getOptions().setCompression(true);
       consumer->setExpectedSize(nr_ms2_spectra_[swath_consumers_.size()], 0);
       swath_consumers_.push_back(consumer);
     }
