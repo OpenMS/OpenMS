@@ -619,6 +619,7 @@ protected:
       String mzml_file = cachedir_ + basename_ + "_ms1.mzML";
       ms1_consumer_ = new PlainMSDataWritingConsumer(mzml_file);
       ms1_consumer_->setExpectedSize(nr_ms1_spectra_, 0);
+      ms1_consumer_->getOptions().setCompression(true);
       boost::shared_ptr<PeakMap > exp(new PeakMap(settings_));
       // ms1_map_ = exp;
     }
