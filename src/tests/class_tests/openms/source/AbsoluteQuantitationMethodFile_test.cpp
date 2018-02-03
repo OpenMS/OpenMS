@@ -47,18 +47,9 @@ using namespace std;
 class AbsoluteQuantitationMethodFile_facade : AbsoluteQuantitationMethodFile
 {
   public:
-
-    void parseHeader_(StringList & line, std::map<String, int> & headers,
-    std::map<String, int> & params_headers)
+    void parseLine_(StringList & line, std::map<String,Size> & headers, AbsoluteQuantitationMethod & aqm)
     {
-      AbsoluteQuantitationMethodFile::parseHeader_(line, headers, params_headers);
-    }
-
-    void parseLine_(StringList & line, std::map<String,int> & headers, 
-    std::map<String,int> & params_headers,
-    AbsoluteQuantitationMethod & aqm)
-    {
-      AbsoluteQuantitationMethodFile::parseLine_(line, headers, params_headers, aqm);
+      AbsoluteQuantitationMethodFile::parseLine_(line, headers, aqm);
     }
 };
 
@@ -80,75 +71,12 @@ START_SECTION((~AbsoluteQuantitationMethodFile()))
 	delete ptr;
 END_SECTION
 
-START_SECTION((void parseHeader_(StringList & line, std::map<String,int> & headers,
-  std::map<String,int> & params_headers)))
-  
-  AbsoluteQuantitationMethodFile_facade aqmf;
-  
-  std::map<String,int> headers;
-  std::map<String,int> params_headers;
-
-  // header test 1
-  StringList header1; 
-  header1.push_back("IS_name");
-  header1.push_back("component_name");
-  header1.push_back("feature_name");
-  header1.push_back("concentration_units");
-  header1.push_back("llod");
-  header1.push_back("ulod");
-  header1.push_back("lloq");
-  header1.push_back("uloq");
-  header1.push_back("correlation_coefficient");
-  header1.push_back("n_points");
-  header1.push_back("transformation_model");
-  header1.push_back("transformation_model_param_slope");
-  header1.push_back("transformation_model_param_intercept");
-
-  aqmf.parseHeader_(header1, headers, params_headers);
-
-  TEST_EQUAL(headers["IS_name"], 0);
-  TEST_EQUAL(headers["transformation_model"], 10);
-  TEST_EQUAL(params_headers["slope"], 11);
-  TEST_EQUAL(params_headers["intercept"], 12);
-
-  headers.clear();
-  params_headers.clear();
-  
-  // header test 2
-  StringList header2; 
-  header2.push_back("IS_name");
-  header2.push_back("component_name");
-  header2.push_back("feature_name");
-  header2.push_back("concentration_units");
-  // header2.push_back("llod"); //test missing value
-  header2.push_back("ulod");
-  header2.push_back("lloq");
-  header2.push_back("uloq");
-  header2.push_back("correlation_coefficient");
-  header2.push_back("n_points");
-  header2.push_back("transformation_model");
-  header2.push_back("transformation_model_param_slope");
-  header2.push_back("transformation_model_param_intercept");
-
-  aqmf.parseHeader_(header2, headers, params_headers);
-
-  TEST_EQUAL(headers["IS_name"], 0);
-  TEST_EQUAL(headers["llod"], -1);
-  TEST_EQUAL(headers["transformation_model"], 9);
-  TEST_EQUAL(params_headers["slope"], 10);
-  TEST_EQUAL(params_headers["intercept"], 11);
-  
-END_SECTION
-
-START_SECTION((void parseLine_(StringList & line, std::map<String,int> & headers, 
-  std::map<String,int> & params_headers, AbsoluteQuantitationMethod & aqm)))
-  
+START_SECTION(void parseLine_(StringList & line, std::map<String,Size> & headers, AbsoluteQuantitationMethod & aqm) const)
   AbsoluteQuantitationMethodFile_facade aqmf;
   AbsoluteQuantitationMethod aqm;
-  
+
   // headers
-  std::map<String,int> headers;
-  std::map<String,int> params_headers;  
+  std::map<String, Size> headers;
   headers["IS_name"] = 0;
   headers["component_name"] = 1;
   headers["feature_name"] = 2;
@@ -160,17 +88,17 @@ START_SECTION((void parseLine_(StringList & line, std::map<String,int> & headers
   headers["correlation_coefficient"] = 8;
   headers["n_points"] = 9;
   headers["transformation_model"] = 10;
-  params_headers["slope"] = 11;
-  params_headers["intercept"] = 12;
+  headers["transformation_model_param_slope"] = 11;
+  headers["transformation_model_param_intercept"] = 12;
 
   // line test 1
-  StringList line1; 
+  StringList line1;
   line1.push_back("IS1");
   line1.push_back("component1");
   line1.push_back("feature1");
   line1.push_back("uM");
-  line1.push_back("0.0");
-  line1.push_back(""); //test for empty string
+  line1.push_back("3.0");
+  line1.push_back("  "); //test for empty string
   line1.push_back(" 2.0  "); //test for leading and trailing white spaces
   line1.push_back("8.0");
   line1.push_back("0.99");
@@ -179,86 +107,91 @@ START_SECTION((void parseLine_(StringList & line, std::map<String,int> & headers
   line1.push_back("2.0");
   line1.push_back("1.0");
 
-  aqmf.parseLine_(line1, headers, params_headers, aqm);
+  aqmf.parseLine_(line1, headers, aqm);
 
-  String component_name = aqm.getComponentName();
-  String IS_name = aqm.getISName();
-  String feature_name = aqm.getFeatureName();
-  TEST_EQUAL(component_name, "component1");
-  TEST_EQUAL(IS_name, "IS1");
-  TEST_EQUAL(feature_name, "feature1");
-  double llod = aqm.getLLOD();
-  double ulod = aqm.getULOD();
-  TEST_REAL_SIMILAR(llod, 0.0);
-  TEST_REAL_SIMILAR(ulod, 0.0);
-  double lloq = aqm.getLLOQ();
-  double uloq = aqm.getULOQ();
-  TEST_REAL_SIMILAR(lloq, 2.0);
-  TEST_REAL_SIMILAR(uloq, 8.0);
-  String concentration_units = aqm.getConcentrationUnits();
-  TEST_EQUAL(concentration_units, "uM");  
-  int n_points = aqm.getNPoints();
-  double correlation_coefficient = aqm.getCorrelationCoefficient();
-  TEST_EQUAL(n_points, 5);
-  TEST_REAL_SIMILAR(correlation_coefficient, 0.99);
-  String transformation_model = aqm.getTransformationModel();
-  Param transformation_model_params = aqm.getTransformationModelParams();
-  TEST_EQUAL(transformation_model, "TransformationModelLinear");
-  TEST_REAL_SIMILAR(transformation_model_params.getValue("slope"),2.0);
-  TEST_REAL_SIMILAR(transformation_model_params.getValue("intercept"),1.0);
-
-  headers.clear();
-  params_headers.clear();
-  
+  TEST_EQUAL(aqm.getISName(), "IS1");
+  TEST_EQUAL(aqm.getComponentName(), "component1");
+  TEST_EQUAL(aqm.getFeatureName(), "feature1");
+  TEST_EQUAL(aqm.getConcentrationUnits(), "uM");
+  TEST_REAL_SIMILAR(aqm.getLLOD(), 3.0);
+  TEST_REAL_SIMILAR(aqm.getULOD(), 0.0);
+  TEST_REAL_SIMILAR(aqm.getLLOQ(), 2.0);
+  TEST_REAL_SIMILAR(aqm.getULOQ(), 8.0);
+  TEST_REAL_SIMILAR(aqm.getCorrelationCoefficient(), 0.99);
+  TEST_EQUAL(aqm.getNPoints(), 5);
+  TEST_EQUAL(aqm.getTransformationModel(), "TransformationModelLinear");
+  const Param transformation_model_params = aqm.getTransformationModelParams();
+  TEST_REAL_SIMILAR(transformation_model_params.getValue("slope"), 2.0);
+  TEST_REAL_SIMILAR(transformation_model_params.getValue("intercept"), 1.0);
 END_SECTION
 
-START_SECTION((void load(const String & filename, std::vector<AbsoluteQuantitationMethod> & aqm_list)))
+START_SECTION(void load(const String & filename, std::vector<AbsoluteQuantitationMethod> & aqm_list))
   AbsoluteQuantitationMethodFile aqmf;
   std::vector<AbsoluteQuantitationMethod> aqm_list;
 
   aqmf.load(OPENMS_GET_TEST_DATA_PATH("AbsoluteQuantitationMethodFile_1.csv"), aqm_list);
-  String component_name, IS_name, feature_name;
-  component_name = aqm_list[0].getComponentName();
-  IS_name = aqm_list[0].getISName();
-  feature_name = aqm_list[0].getFeatureName();
-  TEST_EQUAL(component_name, "component1");
-  TEST_EQUAL(IS_name, "IS1");
-  TEST_EQUAL(feature_name, "feature1");
-  String transformation_model;
+  TEST_EQUAL(aqm_list[0].getComponentName(), "component1");
+  TEST_EQUAL(aqm_list[0].getISName(), "IS1");
+  TEST_EQUAL(aqm_list[0].getFeatureName(), "feature1");
+  TEST_EQUAL(aqm_list[0].getConcentrationUnits(), "uM");
+  TEST_REAL_SIMILAR(aqm_list[0].getLLOD(), 0.0);
+  TEST_REAL_SIMILAR(aqm_list[0].getULOD(), 10.0);
+  TEST_REAL_SIMILAR(aqm_list[0].getLLOQ(), 2.0);
+  TEST_REAL_SIMILAR(aqm_list[0].getULOQ(), 8.0);
+  TEST_REAL_SIMILAR(aqm_list[0].getCorrelationCoefficient(), 0.99);
+  TEST_EQUAL(aqm_list[0].getNPoints(), 5);
+  TEST_EQUAL(aqm_list[0].getTransformationModel(), "TransformationModelLinear");
   Param transformation_model_params;
-  transformation_model = aqm_list[0].getTransformationModel();
   transformation_model_params = aqm_list[0].getTransformationModelParams();
-  TEST_EQUAL(transformation_model, "TransformationModelLinear");
-  TEST_REAL_SIMILAR(transformation_model_params.getValue("slope"),2.0);
-  TEST_REAL_SIMILAR(transformation_model_params.getValue("intercept"),1.0);
+  TEST_REAL_SIMILAR(transformation_model_params.getValue("slope"), 2.0);
+  TEST_REAL_SIMILAR(transformation_model_params.getValue("intercept"), 1.0);
   transformation_model_params.clear();
 
-  component_name = aqm_list[1].getComponentName();
-  IS_name = aqm_list[1].getISName();
-  feature_name = aqm_list[1].getFeatureName();
-  TEST_EQUAL(component_name, "component2");
-  TEST_EQUAL(IS_name, "IS2");
-  TEST_EQUAL(feature_name, "feature2");
-  transformation_model = aqm_list[1].getTransformationModel();
+  TEST_EQUAL(aqm_list[1].getComponentName(), "component2");
+  TEST_EQUAL(aqm_list[1].getISName(), "IS2");
+  TEST_EQUAL(aqm_list[1].getFeatureName(), "feature2");
+  TEST_EQUAL(aqm_list[1].getConcentrationUnits(), "uM");
+  TEST_REAL_SIMILAR(aqm_list[1].getLLOD(), 1.0);
+  TEST_REAL_SIMILAR(aqm_list[1].getULOD(), 9.0);
+  TEST_REAL_SIMILAR(aqm_list[1].getLLOQ(), 3.0);
+  TEST_REAL_SIMILAR(aqm_list[1].getULOQ(), 7.0);
+  TEST_REAL_SIMILAR(aqm_list[1].getCorrelationCoefficient(), 0.98);
+  TEST_EQUAL(aqm_list[1].getNPoints(), 4);
+  TEST_EQUAL(aqm_list[1].getTransformationModel(), "TransformationModelLinear");
   transformation_model_params = aqm_list[1].getTransformationModelParams();
-  TEST_EQUAL(transformation_model, "TransformationModelLinear");
-  TEST_REAL_SIMILAR(transformation_model_params.getValue("slope"),2.0);
-  TEST_REAL_SIMILAR(transformation_model_params.getValue("intercept"),2.0);
-  transformation_model_params.clear();
-  
-  component_name = aqm_list[2].getComponentName();
-  IS_name = aqm_list[2].getISName();
-  feature_name = aqm_list[2].getFeatureName();
-  TEST_EQUAL(component_name, "component3");
-  TEST_EQUAL(IS_name, "IS3");
-  TEST_EQUAL(feature_name, "feature3");
-  transformation_model = aqm_list[2].getTransformationModel();
-  transformation_model_params = aqm_list[2].getTransformationModelParams();
-  TEST_EQUAL(transformation_model, "TransformationModelLinear");
-  TEST_REAL_SIMILAR(transformation_model_params.getValue("slope"),1.0);
-  TEST_REAL_SIMILAR(transformation_model_params.getValue("intercept"),2.0);
+  TEST_REAL_SIMILAR(transformation_model_params.getValue("slope"), 2.0);
+  TEST_REAL_SIMILAR(transformation_model_params.getValue("intercept"), 2.0);
   transformation_model_params.clear();
 
+  TEST_EQUAL(aqm_list[2].getComponentName(), "component3");
+  TEST_EQUAL(aqm_list[2].getISName(), "IS3");
+  TEST_EQUAL(aqm_list[2].getFeatureName(), "feature3");
+  TEST_EQUAL(aqm_list[2].getConcentrationUnits(), "uM");
+  TEST_REAL_SIMILAR(aqm_list[2].getLLOD(), 2.0);
+  TEST_REAL_SIMILAR(aqm_list[2].getULOD(), 8.0);
+  TEST_REAL_SIMILAR(aqm_list[2].getLLOQ(), 4.0);
+  TEST_REAL_SIMILAR(aqm_list[2].getULOQ(), 6.0);
+  TEST_REAL_SIMILAR(aqm_list[2].getCorrelationCoefficient(), 0.97);
+  TEST_EQUAL(aqm_list[2].getNPoints(), 3);
+  TEST_EQUAL(aqm_list[2].getTransformationModel(), "TransformationModelLinear");
+  transformation_model_params = aqm_list[2].getTransformationModelParams();
+  TEST_REAL_SIMILAR(transformation_model_params.getValue("slope"), 1.0);
+  TEST_REAL_SIMILAR(transformation_model_params.getValue("intercept"), 2.0);
+
+  TEST_EQUAL(aqm_list[7].getComponentName(), "component8");
+  TEST_EQUAL(aqm_list[7].getISName(), "IS8");
+  TEST_EQUAL(aqm_list[7].getFeatureName(), "feature8");
+  TEST_EQUAL(aqm_list[7].getConcentrationUnits(), "uM");
+  TEST_REAL_SIMILAR(aqm_list[7].getLLOD(), 7.0);
+  TEST_REAL_SIMILAR(aqm_list[7].getULOD(), 3.0);
+  TEST_REAL_SIMILAR(aqm_list[7].getLLOQ(), 0.0);
+  TEST_REAL_SIMILAR(aqm_list[7].getULOQ(), 1.0);
+  TEST_REAL_SIMILAR(aqm_list[7].getCorrelationCoefficient(), 0.92);
+  TEST_EQUAL(aqm_list[7].getNPoints(), 1);
+  TEST_EQUAL(aqm_list[7].getTransformationModel(), "TransformationModelLinear");
+  transformation_model_params = aqm_list[7].getTransformationModelParams();
+  TEST_REAL_SIMILAR(transformation_model_params.getValue("slope"), 1.0);
+  TEST_REAL_SIMILAR(transformation_model_params.getValue("intercept"), 2.0);
 END_SECTION
 
 START_SECTION(void store(const String & filename, const std::vector<AbsoluteQuantitationMethod> & aqm_list) const)
@@ -284,8 +217,13 @@ START_SECTION(void store(const String & filename, const std::vector<AbsoluteQuan
     const Param& tm_params1 = aqm_list1[i].getTransformationModelParams();
     const Param& tm_params2 = aqm_list2[i].getTransformationModelParams();
     TEST_EQUAL(tm_params1.size(), tm_params2.size())
-    TEST_REAL_SIMILAR(tm_params1.getValue("slope"), tm_params2.getValue("slope"))
-    TEST_REAL_SIMILAR(tm_params1.getValue("intercept"), tm_params2.getValue("intercept"))
+    Param::ParamIterator it1 = tm_params1.begin();
+    Param::ParamIterator it2 = tm_params2.begin();
+    for (; it1 != tm_params1.end(); ++it1, ++it2)
+    {
+      TEST_EQUAL(it1->name, it2->name)
+      TEST_REAL_SIMILAR(it1->value, it2->value)
+    }
   }
 END_SECTION
 
