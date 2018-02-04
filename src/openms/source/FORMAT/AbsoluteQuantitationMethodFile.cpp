@@ -111,30 +111,6 @@ namespace OpenMS
     aqm.setTransformationModelParams(tm_params);
   }
 
-  void AbsoluteQuantitationMethodFile::setCastValue_(const String& key, const String& value, Param& params) const
-  {
-    if (value == "") // if the value is empty, don't set it
-    {
-      return;
-    }
-    const std::vector<String> param_doubles {
-      "slope", "intercept", "wavelength", "span", "delta", "x_datum_min", "y_datum_min", "x_datum_max", "y_datum_max"
-    };
-    const std::vector<String> param_ints {"num_nodes", "boundary_condition", "num_iterations"};
-    if (std::find(param_doubles.begin(), param_doubles.end(), key) != param_doubles.end())
-    {
-      params.setValue(key, value.empty() ? 0 : std::stod(value));
-    }
-    else if (std::find(param_ints.begin(), param_ints.end(), key) != param_ints.end())
-    {
-      params.setValue(key, value.empty() ? 0 : std::stoi(value));
-    }
-    else
-    {
-      params.setValue(key,value);
-    }
-  }
-
   void AbsoluteQuantitationMethodFile::store(
     const String& filename,
     const std::vector<AbsoluteQuantitationMethod>& aqm_list
@@ -177,5 +153,29 @@ namespace OpenMS
       addRow(row);
     }
     CsvFile::store(filename);
+  }
+
+  void AbsoluteQuantitationMethodFile::setCastValue_(const String& key, const String& value, Param& params) const
+  {
+    if (value == "") // if the value is empty, don't set it
+    {
+      return;
+    }
+    const std::vector<String> param_doubles {
+      "slope", "intercept", "wavelength", "span", "delta", "x_datum_min", "y_datum_min", "x_datum_max", "y_datum_max"
+    };
+    const std::vector<String> param_ints {"num_nodes", "boundary_condition", "num_iterations"};
+    if (std::find(param_doubles.begin(), param_doubles.end(), key) != param_doubles.end())
+    {
+      params.setValue(key, value.empty() ? 0 : std::stod(value));
+    }
+    else if (std::find(param_ints.begin(), param_ints.end(), key) != param_ints.end())
+    {
+      params.setValue(key, value.empty() ? 0 : std::stoi(value));
+    }
+    else
+    {
+      params.setValue(key,value);
+    }
   }
 } // namespace OpenMS
