@@ -58,7 +58,7 @@ using namespace std;
 
     This util consumes an ID-mapped consensusXML file and OpenMS experimental design in TSV format to create a file which can subsequently be used as input for the R package MSstats [1].
 
-    [1] M. Choi et al. “MSstats: an R package for statistical analysis for quantitative mass spectrometry-based proteomic experiments.” Bioinformatics (2014), 30 (17): 2524-2526
+    [1] M. Choi et al. MSstats: an R package for statistical analysis for quantitative mass spectrometry-based proteomic experiments. Bioinformatics (2014), 30 (17): 2524-2526
 
     <B>The command line parameters of this tool are:</B>
     @verbinclude UTILS_MSstats.cli
@@ -76,8 +76,8 @@ public:
 
   TOPPMSstatsConverter() :
     TOPPBase("MSstatsConverter", "Converter to input for MSstats", false)
-  {
-  }
+{
+}
 
 protected:
 
@@ -124,8 +124,11 @@ protected:
           file_condition.isColumnName(arg_msstats_condition) == false || file_condition.isColumnName(arg_msstats_bioreplicate) ==  false,
           ILLEGAL_PARAMETERS);
 
+      typedef OpenMS::Peak2D::IntensityType Intensity;
+      typedef OpenMS::Peak2D::CoordinateType Coordinate;
+
       // Load the filenames of the design run file
-      std::vector< String > design_run_filenames;
+      vector< String > design_run_filenames;
       file_run.getRowNames(design_run_filenames);
 
       conditionalFatalError_(
@@ -180,13 +183,13 @@ protected:
           this->checkUnorderedContent_(spectra_paths, design_run_filenames) == false,
           ILLEGAL_PARAMETERS);
 
-      for (const OpenMS::ConsensusFeature consensus_feature : consensus_map)
+      for (const ConsensusFeature &consensus_feature : consensus_map)
       {
         features.push_back(consensus_feature);
 
-        std::vector< String > filenames;
-        std::vector< OpenMS::Peak2D::IntensityType > intensities;
-        std::vector< OpenMS::Peak2D::CoordinateType > retention_times;
+        vector< String > filenames;
+        vector< Intensity > intensities;
+        vector< Coordinate > retention_times;
 
         // Store the file names and the run intensities of this feature
         const ConsensusFeature::HandleSetType fs(consensus_feature.getFeatures());
@@ -203,7 +206,7 @@ protected:
 
       // The output file of the MSstats converter (TODO Change to CSV file once store for CSV files has been implemented)
       TextFile csv_out;
-      csv_out.addLine("RetentionTime,ProteinName,PeptideSequence,PrecursorCharge,FragmentIon,ProductCharge,IsotopeLabelType,Condition,BioReplicate,Run," + String(has_fraction ? "Fraction,": "") + "Intensity");
+      csv_out.addLine("ProteinName,PeptideSequence,PrecursorCharge,FragmentIon,ProductCharge,IsotopeLabelType,Condition,BioReplicate,Run," + String(has_fraction ? "Fraction,": "") + "Intensity");
 
       // Regex definition for fragment ions
       std::regex regex_msstats_FragmentIon("[abcxyz][0-9]+");
@@ -229,7 +232,7 @@ protected:
       std::map< String, std::set<String > > peptideseq_to_accessions;
 
       // Stores all the lines that will be present in the final MSstats output,
-      std::map< String, std::map< String, std::set< OpenMS::Peak2D::IntensityType > > > peptideseq_to_prefix_to_intensities;
+      map< String, map< String, set< pair<Intensity, Coordinate> > > > peptideseq_to_prefix_to_intensities;
 
       for (Size i = 0; i < features.size(); ++i)
       {
@@ -289,18 +292,21 @@ protected:
                   const String & fraction = String(has_fraction ? (delim + file_run.get(filename, "Fraction") + delim) : "");
 
                   const String prefix(
-                		            String(retention_time)
-                		  + delim + accession
-                          + delim + sequence
-                          + delim + precursor_charge
-                          + delim + fragment_ion
-                          + delim + frag_charge
-                          + delim + isotope_label_type
-                          + delim + file_condition.get(condition, arg_msstats_condition)
-                          + delim + bioreplicate
-                          + delim + file_run.get(filename, "Run")
-                          + fraction);
-                  peptideseq_to_prefix_to_intensities[sequence][prefix].insert(intensity);
+                      accession
+                      + delim + sequence
+                      + delim + precursor_charge
+                      + delim + fragment_ion
+                      + delim + frag_charge
+                      + delim + isotope_label_type
+                      + delim + file_condition.get(condition, arg_msstats_condition)
+                      + delim + bioreplicate
+                      + delim + file_run.get(filename, "Run")
+                      + fraction);
+                  pair<Intensity, Coordinate> intensity_retention_time;
+                  intensity_retention_time.first = intensity;
+                  intensity_retention_time.second = retention_time;
+
+                  peptideseq_to_prefix_to_intensities[sequence][prefix].insert(intensity_retention_time);
                 }
               }
             }
@@ -308,37 +314,23 @@ protected:
         }
       }
 
-      // Write all the peptides in turn
-      if (this->getFlag_(TOPPMSstatsConverter::param_ambiguous_peptides))
+      const bool write_ambigous_peptides(this->getFlag_(TOPPMSstatsConverter::param_ambiguous_peptides));
+
+      for (const pair< String, set< String> > & peptideseq_accessions : peptideseq_to_accessions)
       {
-        for (const std::pair< String, std::map< String, std::set< OpenMS::Peak2D::IntensityType > > > &peptideseq_lines : peptideseq_to_prefix_to_intensities)
+        // Only write if unique peptide
+        if (write_ambigous_peptides || peptideseq_accessions.second.size() == 1)
         {
-          for (const std::pair< String, std::set< OpenMS::Peak2D::IntensityType > > &line : peptideseq_lines.second)
+          for (const pair< String, set< pair< Intensity, Coordinate > > > &line : peptideseq_to_prefix_to_intensities[peptideseq_accessions.first])
           {
-        	for (const OpenMS::Peak2D::IntensityType  &intensity : line.second)
-        	{
-        		csv_out.addLine(line.first + ',' + String(intensity));
-        	}
-          }
-        }
-      }
-      else
-      {
-        for (const std::pair< String, std::set< String> > & peptideseq_accessions : peptideseq_to_accessions)
-        {
-          // Only write if unique peptide
-          if (peptideseq_accessions.second.size() == 1)
-          {
-            for (const std::pair< String, std::set< OpenMS::Peak2D::IntensityType > > &line : peptideseq_to_prefix_to_intensities[peptideseq_accessions.first])
+            for (const pair< Intensity, Coordinate > &intensity : line.second)
             {
-              for (const OpenMS::Peak2D::IntensityType &intensity : line.second)
-              {
-            	  csv_out.addLine(line.first + ',' + String(intensity));
-              }
+              csv_out.addLine(line.first + ',' + String(intensity.first));
             }
           }
         }
       }
+
       // Store the final assembled CSV file
       csv_out.store(arg_out);
       return EXECUTION_OK;
