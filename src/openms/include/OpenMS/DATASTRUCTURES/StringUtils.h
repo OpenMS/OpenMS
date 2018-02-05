@@ -781,31 +781,26 @@ public:
     return this_s;
   }
 
-  static String& removeWhitespaces(String & this_s)
+  static String& removeWhitespaces(String& this_s)
   {
-    bool contains_ws = false;
-    for (std::string::const_iterator it = this_s.begin(); it != this_s.end(); ++it)
+    int shift(0); // windowing number of removed whitespaces
+    std::string::iterator it_end = this_s.end();
+    for (std::string::iterator it = this_s.begin(); it != it_end; ++it)
     {
-      char c = *it;
+      const char c = *it;
       if (c == ' ' || c == '\t' || c == '\n' || c == '\r')
       {
-        contains_ws = true;
-        break;
+        ++shift;
+        continue; // no need to shift this 
+      }
+      if (shift)
+      { // move current char to the left
+        *(it - shift) = c;
       }
     }
 
-    if (contains_ws)
-    {
-      std::string tmp;
-      tmp.reserve(this_s.size());
-      for (std::string::const_iterator it = this_s.begin(); it != this_s.end(); ++it)
-      {
-        char c = *it;
-        if (c != ' ' && c != '\t' && c != '\n' && c != '\r')
-          tmp += c;
-      }
-      this_s.swap(tmp);
-    }
+    // shorten result
+    if (shift) this_s.resize(this_s.size() - shift);
 
     return this_s;
   }
