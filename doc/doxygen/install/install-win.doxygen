@@ -33,9 +33,9 @@
     <b>Pre-Requisites (Software)</b>
     <ul>
       <li>Have a Visual Studio 2015 or 2017 installed (The C++ Express editions should work as well, we tested VSE2015 Update 3).
-        <br><b>Not supported are MinGW (g++ based compiler) and VS2013 (and earlier). Do not use a MinGW-enabled shell since CMake will get confused! Please use the Command Prompt of the Visual Studio version you want to build with.</b>
+        <br><b>Not supported are MinGW (g++ based compiler) and VS2013 (and earlier, due to missing C11 support). Do not use a MinGW-enabled shell since CMake will get confused! Please use the Command Prompt of the Visual Studio version you want to build with.</b>
             Other compilers which are close to the VS toolchain might work, but are not tested.
-      <li>Have CMake 3.0.2 or greater installed (see http://www.cmake.org).<br>
+      <li>Have CMake 3.1 or greater installed (see http://www.cmake.org).<br>
 	      CMake's Generator (-G flag) must support your version of Visual Studio. If it doesn't, upgrade CMake.<br>
       <li>To extract archives within submodules of the contrib you will need <tt>7-Zip</tt> (see http://www.7-zip.org/)
         <br>7z.exe is searched in "C:/Program Files/7-Zip/" and "C:/Programme/7-Zip/". Make sure it is in either of these locations or add
@@ -50,7 +50,7 @@
   @subsection install_win_contrib Contrib installation
         In order to make the
         installation of the remaining required libraries easier, we composed a
-        "contrib-package" containing the libraries Boost, Eigen, WildMagic, libSVM, SeqAn, glpk, zlib, libbz2 and Xerces-C.
+        "contrib-package" containing the libraries Boost, Eigen, sqlite3, CoinMP, WildMagic, libSVM, SeqAn, glpk, zlib, libbz2 and Xerces-C.
         This contrib package has several advantages over manual installation
         <ul>
             <li>You get all the libraries in versions tested with %OpenMS.</li>
@@ -96,7 +96,7 @@
         Example:
         \code
         cd c:\dev\contrib_win64_build
-        cmake -DBUILD_TYPE=ALL -DNUMBER_OF_JOBS=4 -G "Visual Studio 9 2008 Win64" "c:\dev\OpenMS\contrib"
+        cmake -DBUILD_TYPE=ALL -DNUMBER_OF_JOBS=4 -G "Visual Studio 15 2017 Win64" "c:\dev\OpenMS\contrib"
         \endcode
 
       <li>Add the &lt;path_to_contrib_build&gt;/lib directory to your PATH Environment Variable (this is so Windows can find the DLL's when running our executables).
@@ -105,30 +105,29 @@
 	@subsection install_qt QT installation
 
     Qt comes in two flavors: commercial or non-commercial - choose whatever is applicable to you: read more on the Qt website
-    Recently (beginning with Qt 4.6) there are binary development versions available for VS2010 and VS2008. We found these to contain only
-    32bit compilations. If you are compiling for 32bit as well, you can download these and save a lot of time. They are incompatible for 64bit builds -
-    compile Qt yourself in this case (or see if you can find 64bit builds on the Qt website). Make sure NOT to use the MinGW precompiled binaries, since
-    they are incompatible with Visual Studio binaries.
+    For several recent QT5 versions, there are binary development versions available for the most recent compilers. Go to https://www.qt.io/download
+    and click on "Go open source" at the end of the right column to download the installer. Follow steps, download, save and run the installer.
+    Create a Qt account. Choose a folder like "c:\dev\QT". From the components choose a matching version, e.g. QT 5.10.0 and the MSVC component that fits
+    your Visual Studio version and architecture (most likely only 64bit is supported anymore). You can deselect QTCreator under Tools.
+    Accept the license, choose startmenu entries if wanted and install. Resulting files appear under "c:\dev\QT\$VERSION".
 
-    To build Qt from sources, download Qt 4.8.7 (see below), which supports all VS versions up to VS 2015!
-    @note Qt 5.X IS NOT SUPPORTED YET!
+    To build Qt from sources, download Qt5 from their git repository ad follow the steps below:
 
     Follow this procedure if you want to compile Qt yourself:
     <ol>
       <li>non-commercial:
         <ol>
-          <li>download <b>Qt 4.8.7 source</b> from https://download.qt.io/official_releases/qt/4.8/ as .zip or .tar.gz
-          <li>extract zip file to a temp location (called <tt>&lt;path-to-tmp-qt&gt;</tt> henceforth)
-					<li>[VS2015 only] Qt 4.8.7 will not compile with VS2015 out of the box (previous VS version should be fine).
-							We have included a patch file in our contrib (see above) which should be applied to the extracted Qt sources, i.e.
-							\code
-								cd <path-to-tmp-qt>
-  							<path_to_contrib>\tools\patch.exe -p0 -b -N -l -i <path_to_contrib>\patches\qt\qt4.8.7_build_with_msvc2015.diff
-							\endcode
+          <li>install perl (e.g. Strawberry Perl) and git
+          <li>download <b>Qt5 source</b> via git:
+            \code
+              git clone git://github.com/qt/qt5 --branch 5.9 qt-5.9
+            \endcode
+          <li>activate the needed modules via:
+              git clone git://github.com/qt/ TODO finsh
           <li>open a Visual Studio Command Line (use x64 version if you want 64bit apps!)
           <li>
             \code
-            cd <path-to-tmp-qt>
+            cd qt-5.9
             \endcode
           <li>if you have multiple versions of VS installed you might need to provide the <tt>-platform</tt> param for the next configure command (e.g., <tt>-platform win32-msvc2012</tt>)
           <li>To save disk space, we use the -prefix switch do install only the required parts of Qt to a new directory of your choice (called <tt>&lt;path-to-qt&gt;</tt>, e.g. <tt>c:/dev/Qt4.8.7/</tt>).
