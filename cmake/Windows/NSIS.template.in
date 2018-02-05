@@ -246,7 +246,7 @@ Section "OpenMS Library" SEC_Lib
     SetOutPath $INSTDIR\share\OpenMS
     SetOverwrite on
     !if ${DEBUG_BUILD} == 0 
-        File /r /x "THIRDPARTY" "${OPENMSSHAREDIR}\*.*"
+        File /r /x "THIRDPARTY" /x "doc" "${OPENMSSHAREDIR}\*.*"
     !endif
     
     # icon for *files* associated with TOPPView
@@ -279,12 +279,11 @@ Section "Documentation" SEC_Doc
 
     SetOverwrite on
     
-		## html docu
+	## html docu
     !if ${DEBUG_SKIP_DOCU} == 0
-      SetOutPath $INSTDIR\doc\html
-	  ## TODO install and switch to package dir
+      SetOutPath $INSTDIR\share\doc\html
       File /r "${OPENMSDOCDIR}\html\*.*"
-      SetOutPath $INSTDIR\doc
+      SetOutPath $INSTDIR\share\doc
       File "${OPENMSDOCDIR}\TOPP_tutorial.pdf"
       File "${OPENMSDOCDIR}\OpenMS_tutorial.pdf"
     !endif    
