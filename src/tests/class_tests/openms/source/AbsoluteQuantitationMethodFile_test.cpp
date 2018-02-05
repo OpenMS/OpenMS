@@ -61,6 +61,9 @@ START_TEST(AbsoluteQuantitationMethodFile, "$Id$")
 
 AbsoluteQuantitationMethodFile* ptr = nullptr;
 AbsoluteQuantitationMethodFile* nullPointer = nullptr;
+const String in_file_1 = OPENMS_GET_TEST_DATA_PATH("AbsoluteQuantitationMethodFile_in_1.csv");
+const String in_file_2 = OPENMS_GET_TEST_DATA_PATH("AbsoluteQuantitationMethodFile_in_2.csv");
+const String out_file = OPENMS_GET_TEST_DATA_PATH("AbsoluteQuantitationMethodFile_out.csv");
 
 START_SECTION((AbsoluteQuantitationMethodFile()))
 	ptr = new AbsoluteQuantitationMethodFile();
@@ -129,7 +132,7 @@ START_SECTION(void load(const String & filename, std::vector<AbsoluteQuantitatio
   AbsoluteQuantitationMethodFile aqmf;
   std::vector<AbsoluteQuantitationMethod> aqm_list;
 
-  aqmf.load(OPENMS_GET_TEST_DATA_PATH("AbsoluteQuantitationMethodFile_1.csv"), aqm_list);
+  aqmf.load(in_file_1, aqm_list);
   TEST_EQUAL(aqm_list[0].getComponentName(), "component1");
   TEST_EQUAL(aqm_list[0].getISName(), "IS1");
   TEST_EQUAL(aqm_list[0].getFeatureName(), "feature1");
@@ -145,7 +148,6 @@ START_SECTION(void load(const String & filename, std::vector<AbsoluteQuantitatio
   transformation_model_params = aqm_list[0].getTransformationModelParams();
   TEST_REAL_SIMILAR(transformation_model_params.getValue("slope"), 2.0);
   TEST_REAL_SIMILAR(transformation_model_params.getValue("intercept"), 1.0);
-  transformation_model_params.clear();
 
   TEST_EQUAL(aqm_list[1].getComponentName(), "component2");
   TEST_EQUAL(aqm_list[1].getISName(), "IS2");
@@ -161,7 +163,6 @@ START_SECTION(void load(const String & filename, std::vector<AbsoluteQuantitatio
   transformation_model_params = aqm_list[1].getTransformationModelParams();
   TEST_REAL_SIMILAR(transformation_model_params.getValue("slope"), 2.0);
   TEST_REAL_SIMILAR(transformation_model_params.getValue("intercept"), 2.0);
-  transformation_model_params.clear();
 
   TEST_EQUAL(aqm_list[2].getComponentName(), "component3");
   TEST_EQUAL(aqm_list[2].getISName(), "IS3");
@@ -178,6 +179,21 @@ START_SECTION(void load(const String & filename, std::vector<AbsoluteQuantitatio
   TEST_REAL_SIMILAR(transformation_model_params.getValue("slope"), 1.0);
   TEST_REAL_SIMILAR(transformation_model_params.getValue("intercept"), 2.0);
 
+  TEST_EQUAL(aqm_list[6].getComponentName(), "component 7"); // Checking for space within the name
+  TEST_EQUAL(aqm_list[6].getISName(), ""); // empty cell, default value is used.
+  TEST_EQUAL(aqm_list[6].getFeatureName(), "feature 7");
+  TEST_EQUAL(aqm_list[6].getConcentrationUnits(), "");
+  TEST_REAL_SIMILAR(aqm_list[6].getLLOD(), 0.0); // empty cell, default value is used.
+  TEST_REAL_SIMILAR(aqm_list[6].getULOD(), 0.0);
+  TEST_REAL_SIMILAR(aqm_list[6].getLLOQ(), 0.0);
+  TEST_REAL_SIMILAR(aqm_list[6].getULOQ(), 0.0);
+  TEST_REAL_SIMILAR(aqm_list[6].getCorrelationCoefficient(), 0.0);
+  TEST_EQUAL(aqm_list[6].getNPoints(), 0);
+  TEST_EQUAL(aqm_list[6].getTransformationModel(), "");
+  transformation_model_params = aqm_list[6].getTransformationModelParams();
+  TEST_REAL_SIMILAR(transformation_model_params.getValue("slope"), 0.0); // empty cell, default value is used.
+  TEST_REAL_SIMILAR(transformation_model_params.getValue("intercept"), 2.0);
+
   TEST_EQUAL(aqm_list[7].getComponentName(), "component8");
   TEST_EQUAL(aqm_list[7].getISName(), "IS8");
   TEST_EQUAL(aqm_list[7].getFeatureName(), "feature8");
@@ -192,14 +208,62 @@ START_SECTION(void load(const String & filename, std::vector<AbsoluteQuantitatio
   transformation_model_params = aqm_list[7].getTransformationModelParams();
   TEST_REAL_SIMILAR(transformation_model_params.getValue("slope"), 1.0);
   TEST_REAL_SIMILAR(transformation_model_params.getValue("intercept"), 2.0);
+
+  // The following input file doesn't have the headers: component_name, llod
+  // Note that a default value of "" and 0 is given for these missing columns.
+  aqmf.load(in_file_2, aqm_list);
+  TEST_EQUAL(aqm_list[0].getComponentName(), ""); // A component name with a default value.
+  TEST_EQUAL(aqm_list[0].getISName(), "IS1");
+  TEST_EQUAL(aqm_list[0].getFeatureName(), "feature1");
+  TEST_EQUAL(aqm_list[0].getConcentrationUnits(), "uM");
+  TEST_REAL_SIMILAR(aqm_list[0].getLLOD(), 0.0); // A LLOD with a default value.
+  TEST_REAL_SIMILAR(aqm_list[0].getULOD(), 10.0);
+  TEST_REAL_SIMILAR(aqm_list[0].getLLOQ(), 2.0);
+  TEST_REAL_SIMILAR(aqm_list[0].getULOQ(), 8.0);
+  TEST_REAL_SIMILAR(aqm_list[0].getCorrelationCoefficient(), 0.99);
+  TEST_EQUAL(aqm_list[0].getNPoints(), 5);
+  TEST_EQUAL(aqm_list[0].getTransformationModel(), "TransformationModelLinear");
+  transformation_model_params = aqm_list[0].getTransformationModelParams();
+  TEST_REAL_SIMILAR(transformation_model_params.getValue("slope"), 2.0);
+  TEST_REAL_SIMILAR(transformation_model_params.getValue("intercept"), 1.0);
+
+  TEST_EQUAL(aqm_list[1].getComponentName(), ""); // A component name with a default value.
+  TEST_EQUAL(aqm_list[1].getISName(), ""); // empty cell, default value is used.
+  TEST_EQUAL(aqm_list[1].getFeatureName(), "feature 7");
+  TEST_EQUAL(aqm_list[1].getConcentrationUnits(), "");
+  TEST_REAL_SIMILAR(aqm_list[1].getLLOD(), 0.0); // empty cell, default value is used.
+  TEST_REAL_SIMILAR(aqm_list[1].getULOD(), 0.0);
+  TEST_REAL_SIMILAR(aqm_list[1].getLLOQ(), 0.0);
+  TEST_REAL_SIMILAR(aqm_list[1].getULOQ(), 0.0);
+  TEST_REAL_SIMILAR(aqm_list[1].getCorrelationCoefficient(), 0.0);
+  TEST_EQUAL(aqm_list[1].getNPoints(), 0);
+  TEST_EQUAL(aqm_list[1].getTransformationModel(), "");
+  transformation_model_params = aqm_list[1].getTransformationModelParams();
+  TEST_REAL_SIMILAR(transformation_model_params.getValue("slope"), 0.0); // empty cell, default value is used.
+  TEST_REAL_SIMILAR(transformation_model_params.getValue("intercept"), 2.0);
+
+  TEST_EQUAL(aqm_list[2].getComponentName(), ""); // A component name with a default value.
+  TEST_EQUAL(aqm_list[2].getISName(), "IS8");
+  TEST_EQUAL(aqm_list[2].getFeatureName(), "feature8");
+  TEST_EQUAL(aqm_list[2].getConcentrationUnits(), "uM");
+  TEST_REAL_SIMILAR(aqm_list[2].getLLOD(), 0.0); // A LLOD with a default value.
+  TEST_REAL_SIMILAR(aqm_list[2].getULOD(), 3.0);
+  TEST_REAL_SIMILAR(aqm_list[2].getLLOQ(), 0.0);
+  TEST_REAL_SIMILAR(aqm_list[2].getULOQ(), 1.0);
+  TEST_REAL_SIMILAR(aqm_list[2].getCorrelationCoefficient(), 0.92);
+  TEST_EQUAL(aqm_list[2].getNPoints(), 1);
+  TEST_EQUAL(aqm_list[2].getTransformationModel(), "TransformationModelLinear");
+  transformation_model_params = aqm_list[2].getTransformationModelParams();
+  TEST_REAL_SIMILAR(transformation_model_params.getValue("slope"), 1.0);
+  TEST_REAL_SIMILAR(transformation_model_params.getValue("intercept"), 2.0);
 END_SECTION
 
 START_SECTION(void store(const String & filename, const std::vector<AbsoluteQuantitationMethod> & aqm_list) const)
   AbsoluteQuantitationMethodFile aqmf;
   vector<AbsoluteQuantitationMethod> aqm_list1, aqm_list2;
-  aqmf.load(OPENMS_GET_TEST_DATA_PATH("AbsoluteQuantitationMethodFile_1.csv"), aqm_list1);
-  aqmf.store(OPENMS_GET_TEST_DATA_PATH("AbsoluteQuantitationMethodFile_2.csv"), aqm_list1);
-  aqmf.load(OPENMS_GET_TEST_DATA_PATH("AbsoluteQuantitationMethodFile_2.csv"), aqm_list2);
+  aqmf.load(in_file_1, aqm_list1);
+  aqmf.store(out_file, aqm_list1);
+  aqmf.load(out_file, aqm_list2);
   TEST_EQUAL(aqm_list1.size(), aqm_list2.size())
   for (Size i = 0; i < aqm_list1.size(); ++i)
   {

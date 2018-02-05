@@ -5,5 +5,5 @@ IS3,component3,feature3,uM,2,8,4,6,0.97,3,TransformationModelLinear,1,2
 ,component4,feature4,uM,3,7,5,5,0.96,2,TransformationModelLinear,2,2
 IS5,,feature5,uM,4,6,6,4,0.95,1,TransformationModelLinear,2,1
 IS6,component6,feature6,uM,5,5,7,3,0.94,2,TransformationModelLinear,2,2
-IS7,component7,feature7,uM,6,4,8,2,0.93,3,TransformationModelLinear,,2
+,component 7,feature 7,,,,,,,,,,2
 IS8,component8,feature8,uM,7,3,,1,0.92,1,TransformationModelLinear,1,2

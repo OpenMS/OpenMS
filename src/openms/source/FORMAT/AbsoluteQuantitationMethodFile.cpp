@@ -49,7 +49,7 @@ namespace OpenMS
       {
         headers[sl[i]] = i; // for each header found, assign an index value to it
       }
-      if (!( // if any of these headers is missing, exception is thrown
+      if (!( // if any of these headers is missing, warn the user
         headers.count("IS_name") &&
         headers.count("component_name") &&
         headers.count("feature_name") &&
@@ -63,7 +63,18 @@ namespace OpenMS
         headers.count("transformation_model")
       ))
       {
-        throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Required columns are missing.");
+        LOG_WARN << "One or more of the following columns are missing:\n";
+        LOG_WARN << "IS_name\n";
+        LOG_WARN << "component_name\n";
+        LOG_WARN << "feature_name\n";
+        LOG_WARN << "concentration_units\n";
+        LOG_WARN << "llod\n";
+        LOG_WARN << "ulod\n";
+        LOG_WARN << "lloq\n";
+        LOG_WARN << "uloq\n";
+        LOG_WARN << "correlation_coefficient\n";
+        LOG_WARN << "n_points\n";
+        LOG_WARN << "transformation_model\n" << std::endl;
       }
     }
     for (Size i = 1; i < rowCount(); ++i)
@@ -86,17 +97,21 @@ namespace OpenMS
     {
       s.trim();
     }
-    aqm.setComponentName(tl[headers.at("component_name")]);
-    aqm.setFeatureName(tl[headers.at("feature_name")]);
-    aqm.setISName(tl[headers.at("IS_name")]);
-    aqm.setLLOD(tl[headers.at("llod")].empty() ? 0 : std::stod(tl[headers.at("llod")]));
-    aqm.setULOD(tl[headers.at("ulod")].empty() ? 0 : std::stod(tl[headers.at("ulod")]));
-    aqm.setLLOQ(tl[headers.at("lloq")].empty() ? 0 : std::stod(tl[headers.at("lloq")]));
-    aqm.setULOQ(tl[headers.at("uloq")].empty() ? 0 : std::stod(tl[headers.at("uloq")]));
-    aqm.setConcentrationUnits(tl[headers.at("concentration_units")]);
-    aqm.setNPoints(tl[headers.at("n_points")].empty() ? 0 : std::stoi(tl[headers.at("n_points")]));
-    aqm.setCorrelationCoefficient(tl[headers.at("correlation_coefficient")].empty() ? 0 : std::stod(tl[headers.at("correlation_coefficient")]));
-    aqm.setTransformationModel(tl[headers.at("transformation_model")]);
+    aqm.setComponentName(headers.count("component_name") ? tl[headers.at("component_name")] : "");
+    aqm.setFeatureName(headers.count("feature_name") ? tl[headers.at("feature_name")] : "");
+    aqm.setISName(headers.count("IS_name") ? tl[headers.at("IS_name")] : "");
+    aqm.setLLOD(!headers.count("llod") || tl[headers.at("llod")].empty() ? 0 : std::stod(tl[headers.at("llod")]));
+    aqm.setULOD(!headers.count("ulod") || tl[headers.at("ulod")].empty() ? 0 : std::stod(tl[headers.at("ulod")]));
+    aqm.setLLOQ(!headers.count("lloq") || tl[headers.at("lloq")].empty() ? 0 : std::stod(tl[headers.at("lloq")]));
+    aqm.setULOQ(!headers.count("uloq") || tl[headers.at("uloq")].empty() ? 0 : std::stod(tl[headers.at("uloq")]));
+    aqm.setConcentrationUnits(headers.count("concentration_units") ? tl[headers.at("concentration_units")] : "");
+    aqm.setNPoints(!headers.count("n_points") || tl[headers.at("n_points")].empty() ? 0 : std::stoi(tl[headers.at("n_points")]));
+    aqm.setCorrelationCoefficient(
+      !headers.count("correlation_coefficient") || tl[headers.at("correlation_coefficient")].empty()
+        ? 0
+        : std::stod(tl[headers.at("correlation_coefficient")])
+    );
+    aqm.setTransformationModel(headers.count("transformation_model") ? tl[headers.at("transformation_model")] : "");
     Param tm_params;
     for (const std::pair<String, Size>& h : headers)
     {
@@ -157,10 +172,6 @@ namespace OpenMS
 
   void AbsoluteQuantitationMethodFile::setCastValue_(const String& key, const String& value, Param& params) const
   {
-    if (value == "") // if the value is empty, don't set it
-    {
-      return;
-    }
     const std::vector<String> param_doubles {
       "slope", "intercept", "wavelength", "span", "delta", "x_datum_min", "y_datum_min", "x_datum_max", "y_datum_max"
     };

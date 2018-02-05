@@ -37,6 +37,7 @@
 
 
 #include <OpenMS/ANALYSIS/QUANTITATION/AbsoluteQuantitationMethod.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/FORMAT/CsvFile.h>
 #include <map>
 #include <fstream>
@@ -85,7 +86,7 @@ protected:
     /**
       @brief Parses a line into the members of AbsoluteQuantitationMethod.
 
-      @param[in] line line of the .csv file.
+      @param[in] line A line of the .csv file.
       @param[in] headers A map of header strings to column positions.
       @param[out] aqm AbsoluteQuantitationMethod.
     */
