@@ -316,15 +316,25 @@ protected:
 
       const bool write_ambigous_peptides(this->getFlag_(TOPPMSstatsConverter::param_ambiguous_peptides));
 
-      for (const pair< String, set< String> > & peptideseq_accessions : peptideseq_to_accessions)
+      for (const pair< String, set< String> > &peptideseq_accessions : peptideseq_to_accessions)
       {
         // Only write if unique peptide
         if (write_ambigous_peptides || peptideseq_accessions.second.size() == 1)
         {
           for (const pair< String, set< pair< Intensity, Coordinate > > > &line : peptideseq_to_prefix_to_intensities[peptideseq_accessions.first])
           {
+
+        	set< Coordinate > retention_times;
+
             for (const pair< Intensity, Coordinate > &intensity : line.second)
             {
+              // We do not expect that we encounter the same retention time twice
+              conditionalFatalError_(
+                "Peptide ion appears multiple times at the same retention time. This is not expected",
+                retention_times.find(intensity.second) != retention_times.end(),
+				ILLEGAL_PARAMETERS);
+
+              retention_times.insert(intensity.second);
               csv_out.addLine(line.first + ',' + String(intensity.first));
             }
           }
