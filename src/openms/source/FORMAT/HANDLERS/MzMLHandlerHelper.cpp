@@ -269,7 +269,7 @@ namespace OpenMS
   void MzMLHandlerHelper::computeDataProperties_(std::vector<BinaryData>& data_, bool& precision_64, SignedSize& index, const String& index_name)
   {
     SignedSize i(0);
-    for (const auto& bindata : data_)
+    for (auto const&  bindata : data_)
     {
       if (bindata.meta.getName() == index_name)
       {
