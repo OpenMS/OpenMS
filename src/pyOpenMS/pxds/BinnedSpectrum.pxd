@@ -7,8 +7,8 @@ from MSSpectrum cimport *
 cdef extern from "<OpenMS/COMPARISON/SPECTRA/BinnedSpectrum.h>" namespace "OpenMS":
 
     cdef cppclass BinnedSpectrum:
-
-        BinnedSpectrum(BinnedSpectrum &) nogil except +
+        BinnedSpectrum() nogil except + #wrap-ignore
+        BinnedSpectrum(BinnedSpectrum &) nogil except + #wrap-ignore
         BinnedSpectrum(MSSpectrum, float size, bool unit_ppm, UInt spread) nogil except +
 
         bool operator==(BinnedSpectrum & rhs) nogil except +
