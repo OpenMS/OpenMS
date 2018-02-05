@@ -101,6 +101,10 @@ protected:
     // Non-unique Peptides
     this->registerFlag_(TOPPMSstatsConverter::param_ambiguous_peptides, "If set, the output CSV file can contain peptides that have been assigned to multiple protein ids. Attention: you normally do not want to do this for MSstats", true);
 
+    // Specifies how peptide ions eluding at different retention times should be resolved
+    this->registerStringOption_(TOPPMSstatsConverter::param_retention_time_resolution_method, "<retention_time_resolution_method>", "", "How undistinguishable peptides at different retention times should be treated", true, false);
+    this->setValidStrings_(TOPPMSstatsConverter::param_retention_time_resolution_method, ListUtils::create<String>("manual"));
+
     // Output CSV file
     this->registerOutputFile_(TOPPMSstatsConverter::param_out, "<out>", "", "Input CSV file for MSstats.", true, false);
     this->setValidFormats_(TOPPMSstatsConverter::param_out, ListUtils::create<String>("csv"));
@@ -115,6 +119,10 @@ protected:
       const String arg_out(this->getStringOption_(TOPPMSstatsConverter::param_out));
       const String &arg_msstats_condition = this->getStringOption_(TOPPMSstatsConverter::param_msstats_condition);
       const String &arg_msstats_bioreplicate = this->getStringOption_(TOPPMSstatsConverter::param_msstats_bioreplicate);
+      const String &arg_retention_time_resolution_method = this->getStringOption_(TOPPMSstatsConverter::param_retention_time_resolution_method);
+
+      // The Retention Time is additionally written to the output as soon as the user wants to resolve multiple peptides manually
+      const bool write_retention_time(arg_retention_time_resolution_method == "manual");
 
       // Load the experimental design
       DesignFile file_run(this->getStringOption_(TOPPMSstatsConverter::param_in_design_run), ListUtils::create<String>("Run,Condition"), "Spectra File");
@@ -206,7 +214,7 @@ protected:
 
       // The output file of the MSstats converter (TODO Change to CSV file once store for CSV files has been implemented)
       TextFile csv_out;
-      csv_out.addLine("ProteinName,PeptideSequence,PrecursorCharge,FragmentIon,ProductCharge,IsotopeLabelType,Condition,BioReplicate,Run," + String(has_fraction ? "Fraction,": "") + "Intensity");
+      csv_out.addLine(String(write_retention_time ? "RetentionTime,": "") + "ProteinName,PeptideSequence,PrecursorCharge,FragmentIon,ProductCharge,IsotopeLabelType,Condition,BioReplicate,Run," + String(has_fraction ? "Fraction,": "") + "Intensity");
 
       // Regex definition for fragment ions
       std::regex regex_msstats_FragmentIon("[abcxyz][0-9]+");
@@ -335,7 +343,7 @@ protected:
 				ILLEGAL_PARAMETERS);
 
               retention_times.insert(intensity.second);
-              csv_out.addLine(line.first + ',' + String(intensity.first));
+              csv_out.addLine( (write_retention_time ? String(intensity.second) + ',' : "") + line.first + ',' + String(intensity.first));
             }
           }
         }
@@ -361,6 +369,7 @@ private:
   static const String param_out;
   static const String param_labeled_reference_peptides;
   static const String param_ambiguous_peptides;
+  static const String param_retention_time_resolution_method;
 
   static const String na_string;
 
@@ -519,6 +528,8 @@ const String TOPPMSstatsConverter::na_string = "NA";
 const String TOPPMSstatsConverter::param_labeled_reference_peptides = "labeled_reference_peptides";
 const String TOPPMSstatsConverter::meta_value_exp_design_key = "spectra_data";
 const String TOPPMSstatsConverter::param_ambiguous_peptides = "ambiguous_peptides";
+const String TOPPMSstatsConverter::param_retention_time_resolution_method = "retention_time_resolution_method";
+
 
 // the actual main function needed to create an executable
 int main(int argc, const char ** argv)
