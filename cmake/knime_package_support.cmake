@@ -99,7 +99,7 @@ add_custom_target(
   DEPENDS TOPP UTILS
 )
 
-# call the tools
+# call the tools to write ctds
 foreach(TOOL ${CTD_executables})
   add_custom_command(
     TARGET  create_ctds POST_BUILD
@@ -107,7 +107,8 @@ foreach(TOOL ${CTD_executables})
   )
 endforeach()
 
-# remove those parts of the CTDs we cannot model in KNIME
+# remove those parts of the CTDs we cannot or do not want to model in KNIME
+# e.g. paths to executables that we ship and whose directories are in path environment
 add_custom_target(
   final_ctds
   # OMSSAAdapter
@@ -183,7 +184,6 @@ add_custom_target(
   DEPENDS prepare_knime_payload_binaries
 )
 
-
 # assemble the libraries
 if (APPLE) ## On APPLE use our script because the executables need to be relinked
   add_custom_command(
@@ -206,46 +206,33 @@ endif()
 if(WIN32)
   # for win also package xerces and sqlite. Rest is built statically.
   # TODO Check how we can auto-determine which are static and dynamic.
-  add_custom_command(
-    TARGET prepare_knime_payload_libs POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:XercesC::XercesC> ${PAYLOAD_LIB_PATH}
-    COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:SQLite::sqlite_shared> ${PAYLOAD_LIB_PATH}
-    )
-  # function(copy_library lib target_path)
-  #   string(REGEX REPLACE "lib$" "dll" target_dll "${lib}")
-  #   file(TO_NATIVE_PATH "${target_dll}" target_native)
-  #   add_custom_command(
-  #     TARGET prepare_knime_payload_libs POST_BUILD
-  #     COMMAND ${CMAKE_COMMAND} -E copy "${target_native}" "${target_path}"
-  #   )
-  # endfunction()
-
-  # set(QT_PAYLOAD_LIBS "QTCORE;QTGUI;QTNETWORK;QTOPENGL;QTSQL;QTSVG;QTWEBKIT;PHONON")
-  # foreach(QT_PAYLOAD_LIB ${QT_PAYLOAD_LIBS})
-  #   set(target_lib "${QT_${QT_PAYLOAD_LIB}_LIBRARY_RELEASE}")
-  #   copy_library(${target_lib} ${PAYLOAD_LIB_PATH})
-  # endforeach()
-
   
+  ## TODO if we update our modules we can use properties of the imported targets.
+  #add_custom_command(
+  #  TARGET prepare_knime_payload_libs POST_BUILD
+  #  COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:XercesC::XercesC> ${PAYLOAD_LIB_PATH}
+  #  COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:SQLite::sqlite_shared> ${PAYLOAD_LIB_PATH}
+  #  )
+
   ## Include needed contrib dll-libraries other than QT
-  # Caution: The ..._LIBRARY variables from the find packages point to the *.lib files
+  # Caution: The ..._LIBRARY variables from the find packages might point to the *.lib files
   # instead of the *.dlls
   
   # xerces-c
-  # get_filename_component(xerces_path "${XercesC_LIBRARY_RELEASE}" PATH)
-  # file(TO_NATIVE_PATH "${xerces_path}/xerces-c_3_1.dll" target_native_xerces)
-  # add_custom_command(
-  #     TARGET prepare_knime_payload_libs POST_BUILD
-  #     COMMAND ${CMAKE_COMMAND} -E copy "${target_native_xerces}" "${PAYLOAD_LIB_PATH}"
-  # )
+  get_filename_component(xerces_path "${XercesC_LIBRARY_RELEASE}" PATH)
+  file(TO_NATIVE_PATH "${xerces_path}/xerces-c_3_1.dll" target_native_xerces)
+  add_custom_command(
+      TARGET prepare_knime_payload_libs POST_BUILD
+      COMMAND ${CMAKE_COMMAND} -E copy "${target_native_xerces}" "${PAYLOAD_LIB_PATH}"
+  )
     
   # sqlite3
-  # get_filename_component(sqlite_path "${SQLITE_LIBRARY}" PATH)
-  # file(TO_NATIVE_PATH "${sqlite_path}/sqlite3.dll" target_native_sqlite)
-  # add_custom_command(
-  #     TARGET prepare_knime_payload_libs POST_BUILD
-  #     COMMAND ${CMAKE_COMMAND} -E copy "${target_native_sqlite}" "${PAYLOAD_LIB_PATH}"
-  # )
+  get_filename_component(sqlite_path "${SQLite_LIBRARY}" PATH)
+  file(TO_NATIVE_PATH "${sqlite_path}/sqlite3.dll" target_native_sqlite)
+  add_custom_command(
+      TARGET prepare_knime_payload_libs POST_BUILD
+      COMMAND ${CMAKE_COMMAND} -E copy "${target_native_sqlite}" "${PAYLOAD_LIB_PATH}"
+  )
 
 # else()
   # # assemble required libraries for lnx

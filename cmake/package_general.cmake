@@ -70,6 +70,7 @@ set(THIRDPARTY_COMPONENT_GROUP)
 ## populates the THIRDPARTY_COMPONENT_GROUP list
 if(EXISTS ${SEARCH_ENGINES_DIRECTORY})
   ## TODO we could think about just recursing over subfolders
+  install_thirdparty_folder("pwiz-bin")
   install_thirdparty_folder("Comet")
   install_thirdparty_folder("Fido")
   install_thirdparty_folder("MSGFPlus")

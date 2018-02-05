@@ -39,6 +39,16 @@ if (NOT VC_REDIST_PATH)
 	endif()
 endif()
 
+if(EXISTS ${SEARCH_ENGINES_DIRECTORY})
+  file(GLOB PWIZ_VCREDIST "${SEARCH_ENGINES_DIRECTORY}/*.exe")
+  install(FILES ${PWIZ_VCREDIST}
+          DESTINATION ${INSTALL_SHARE_DIR}/THIRDPARTY
+		  PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ
+		              GROUP_READ GROUP_EXECUTE
+					  WORLD_READ WORLD_EXECUTE
+		)
+endif()
+
 ##TODO try following instead once CMake generates NSIS commands for us. Installs dll instead of redist though. Thirdparties?
 # ########################################################### System runtime libraries
 # set(CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS_SKIP TRUE)
