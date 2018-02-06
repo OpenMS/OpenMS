@@ -124,6 +124,11 @@ protected:
       // The Retention Time is additionally written to the output as soon as the user wants to resolve multiple peptides manually
       const bool rt_resolution_manual(arg_retention_time_resolution_method == "manual");
 
+      if (rt_resolution_manual)
+      {
+        cout << "WARNING: One feature might appear at multiple retention times in the output file. This is invalid input for MSstats. Combining of features over retention times is needed!" << endl;
+      }
+
       // Load the experimental design
       DesignFile file_run(this->getStringOption_(TOPPMSstatsConverter::param_in_design_run), ListUtils::create<String>("Run,Condition"), "Spectra File");
       DesignFile file_condition(this->getStringOption_(TOPPMSstatsConverter::param_in_design_condition), ListUtils::create<String>("Biological Replicate"), "Condition");
