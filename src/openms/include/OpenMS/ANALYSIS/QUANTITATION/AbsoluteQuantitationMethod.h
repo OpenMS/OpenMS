@@ -53,8 +53,46 @@ namespace OpenMS
   class OPENMS_DLLAPI AbsoluteQuantitationMethod
   {
 public:
-    AbsoluteQuantitationMethod() = default; ///< Constructor
+    AbsoluteQuantitationMethod(); ///< Constructor
     ~AbsoluteQuantitationMethod() = default; ///< Destructor
+
+    inline bool operator==(const AbsoluteQuantitationMethod& other) const
+    {
+      return
+        std::tie(
+          component_name_,
+          feature_name_,
+          IS_name_,
+          llod_,
+          ulod_,
+          lloq_,
+          uloq_,
+          n_points_,
+          correlation_coefficient_,
+          concentration_units_,
+          transformation_model_,
+          transformation_model_params_
+        ) == std::tie(
+          other.component_name_,
+          other.feature_name_,
+          other.IS_name_,
+          other.llod_,
+          other.ulod_,
+          other.lloq_,
+          other.uloq_,
+          other.n_points_,
+          other.correlation_coefficient_,
+          other.concentration_units_,
+          other.transformation_model_,
+          other.transformation_model_params_
+        )
+      ;
+    }
+
+    inline bool operator!=(const AbsoluteQuantitationMethod& other) const
+    {
+      return !(*this == other);
+    }
 
     void setComponentName(const String& component_name); ///< Component name setter
     String getComponentName() const; ///< Component name getter
@@ -106,29 +144,6 @@ private:
     String transformation_model_; ///< transformation model
     Param transformation_model_params_; ///< transformation model parameters
   };
-
-  inline OPENMS_DLLAPI bool operator==(const AbsoluteQuantitationMethod& lhs, const AbsoluteQuantitationMethod& rhs)
-  {
-    return
-      lhs.getComponentName() == rhs.getComponentName() &&
-      lhs.getFeatureName() == rhs.getFeatureName() &&
-      lhs.getISName() == rhs.getISName() &&
-      lhs.getLLOD() == rhs.getLLOD() &&
-      lhs.getULOD() == rhs.getULOD() &&
-      lhs.getLLOQ() == rhs.getLLOQ() &&
-      lhs.getULOQ() == rhs.getULOQ() &&
-      lhs.getNPoints() == rhs.getNPoints() &&
-      lhs.getCorrelationCoefficient() == rhs.getCorrelationCoefficient() &&
-      lhs.getConcentrationUnits() == rhs.getConcentrationUnits() &&
-      lhs.getTransformationModel() == rhs.getTransformationModel() &&
-      lhs.getTransformationModelParams() == rhs.getTransformationModelParams()
-    ;
-  }
-
-  inline OPENMS_DLLAPI bool operator!=(const AbsoluteQuantitationMethod& lhs, const AbsoluteQuantitationMethod& rhs)
-  {
-    return !(lhs == rhs);
-  }
 }
 
 #endif // OPENMS_ANALYSIS_QUANTITATION_ABSOLUTEQUANTITATIONMETHOD_H
