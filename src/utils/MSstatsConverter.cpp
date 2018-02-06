@@ -122,7 +122,7 @@ protected:
       const String &arg_retention_time_resolution_method = this->getStringOption_(TOPPMSstatsConverter::param_retention_time_resolution_method);
 
       // The Retention Time is additionally written to the output as soon as the user wants to resolve multiple peptides manually
-      const bool write_retention_time(arg_retention_time_resolution_method == "manual");
+      const bool rt_resolution_manual(arg_retention_time_resolution_method == "manual");
 
       // Load the experimental design
       DesignFile file_run(this->getStringOption_(TOPPMSstatsConverter::param_in_design_run), ListUtils::create<String>("Run,Condition"), "Spectra File");
@@ -156,15 +156,15 @@ protected:
           (in_type != FileTypes::CONSENSUSXML),
           ILLEGAL_PARAMETERS);
 
-      std::vector< OpenMS::BaseFeature> features;
-      std::vector< OpenMS::String > spectra_paths;
+      vector< OpenMS::BaseFeature> features;
+      vector< String > spectra_paths;
 
       // For each ConsensusFeature, store the filenames
-      std::vector< std::vector< String > > consensus_feature_filenames;
+      vector< vector< String > > consensus_feature_filenames;
       // For each ConsensusFeature, store the intensities
-      std::vector< std::vector< OpenMS::Peak2D::IntensityType > > consensus_feature_intensites;
+      vector< vector< Intensity > > consensus_feature_intensites;
       // For each ConsensusFeature, store the retention_times
-      std::vector< std::vector< OpenMS::Peak2D::CoordinateType > > consensus_feature_retention_times;
+      vector< vector< Coordinate > > consensus_feature_retention_times;
 
       ConsensusMap consensus_map;
       features.reserve(consensus_map.size());
@@ -214,7 +214,7 @@ protected:
 
       // The output file of the MSstats converter (TODO Change to CSV file once store for CSV files has been implemented)
       TextFile csv_out;
-      csv_out.addLine(String(write_retention_time ? "RetentionTime,": "") + "ProteinName,PeptideSequence,PrecursorCharge,FragmentIon,ProductCharge,IsotopeLabelType,Condition,BioReplicate,Run," + String(has_fraction ? "Fraction,": "") + "Intensity");
+      csv_out.addLine(String(rt_resolution_manual ? "RetentionTime,": "") + "ProteinName,PeptideSequence,PrecursorCharge,FragmentIon,ProductCharge,IsotopeLabelType,Condition,BioReplicate,Run," + String(has_fraction ? "Fraction,": "") + "Intensity");
 
       // Regex definition for fragment ions
       std::regex regex_msstats_FragmentIon("[abcxyz][0-9]+");
@@ -290,8 +290,8 @@ protected:
                 for (Size j = 0; j < consensus_feature_filenames[i].size(); j++)
                 {
                   const String &filename = consensus_feature_filenames[i][j];
-                  const OpenMS::Peak2D::IntensityType intensity(consensus_feature_intensites[i][j]);
-                  const OpenMS::Peak2D::CoordinateType retention_time(consensus_feature_retention_times[i][j]);
+                  const Intensity intensity(consensus_feature_intensites[i][j]);
+                  const Coordinate retention_time(consensus_feature_retention_times[i][j]);
                   const String & accession = pep_ev.getProteinAccession();
                   peptideseq_to_accessions[sequence].insert(accession);
 
@@ -331,19 +331,24 @@ protected:
         {
           for (const pair< String, set< pair< Intensity, Coordinate > > > &line : peptideseq_to_prefix_to_intensities[peptideseq_accessions.first])
           {
-
-        	set< Coordinate > retention_times;
-
-            for (const pair< Intensity, Coordinate > &intensity : line.second)
+            // First, we collect all retention times
+            set< Coordinate > retention_times;
+            for (const pair< Intensity, Coordinate > p : line.second)
             {
-              // We do not expect that we encounter the same retention time twice
               conditionalFatalError_(
                 "Peptide ion appears multiple times at the same retention time. This is not expected",
-                retention_times.find(intensity.second) != retention_times.end(),
-				ILLEGAL_PARAMETERS);
+                retention_times.find(p.second) != retention_times.end(),
+                ILLEGAL_PARAMETERS);
+              retention_times.insert(p.second);
+            }
 
-              retention_times.insert(intensity.second);
-              csv_out.addLine( (write_retention_time ? String(intensity.second) + ',' : "") + line.first + ',' + String(intensity.first));
+            // If the rt resolution method is set to manual, we simply output all it,rt pairs
+            if (rt_resolution_manual)
+            {
+              for (const pair< Intensity, Coordinate > &intensity : line.second)
+              {
+                csv_out.addLine(String(intensity.second) + line.first + ',' + String(intensity.first));
+              }
             }
           }
         }
