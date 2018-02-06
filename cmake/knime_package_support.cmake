@@ -77,7 +77,7 @@ add_custom_target(
   COMMAND ${CMAKE_COMMAND} -D SCRIPT_DIR=${SCRIPT_DIRECTORY} -D SOURCE_PATH=${PROJECT_SOURCE_DIR} -D TARGET_PATH=${KNIME_PLUGIN_DIRECTORY} -D OPENMS_VERSION=${CF_OPENMS_PACKAGE_VERSION} -P ${SCRIPT_DIRECTORY}configure_plugin_properties.cmake
 )
 
-# copy the icons
+# copy the icons (at configure time??)
 file(COPY        ${PROJECT_SOURCE_DIR}/cmake/knime/icons
      DESTINATION ${KNIME_PLUGIN_DIRECTORY}
      PATTERN ".git" EXCLUDE)
@@ -87,7 +87,7 @@ set(CTD_executables ${TOPP_TOOLS} ${UTILS_TOOLS})
 
 # remove tools that do not produce CTDs or should not be shipped (because of dependencies or specifics that can not be resolved in KNIME)
 # also remove IDEvaluator since it uses unnecessary GUI libs (TODO should not be in there, as we concat only tools without _withGUILib)
-list(REMOVE_ITEM CTD_executables OpenMSInfo GenericWrapper InspectAdapter MascotAdapter SvmTheoreticalSpectrumGeneratorTrainer OpenSwathMzMLFileCacher PepNovoAdapter IDEvaluator)
+list(REMOVE_ITEM CTD_executables OpenMSInfo ExecutePipeline INIUpdater ImageCreator GenericWrapper InspectAdapter MascotAdapter SvmTheoreticalSpectrumGeneratorTrainer OpenSwathMzMLFileCacher PepNovoAdapter IDEvaluator)
 
 # pseudo-ctd target
 add_custom_target(
@@ -191,21 +191,26 @@ if (APPLE) ## On APPLE use our script because the executables need to be relinke
     COMMAND ${PROJECT_SOURCE_DIR}/cmake/MacOSX/fix_dependencies.rb -l ${PAYLOAD_LIB_PATH} -b ${PAYLOAD_BIN_PATH}
   )
 else()
-  # assemble common required libraries for win and lnx
-  ## TODO Use OpenMS_QT_COMPONENTS variable to get all needed ones. Better maintenance.
-  add_custom_command(
-    TARGET prepare_knime_payload_libs POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:OpenMS> ${PAYLOAD_LIB_PATH}
-    COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:OpenMS_GUI> ${PAYLOAD_LIB_PATH}
-    COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:OpenSwathAlgo> ${PAYLOAD_LIB_PATH}
-    COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:SuperHirn> ${PAYLOAD_LIB_PATH}
-    COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:Qt5::Core> ${PAYLOAD_LIB_PATH}
-    COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:Qt5::Network> ${PAYLOAD_LIB_PATH}
-  )
+  ## Assemble common required libraries for win and lnx
+  ## Note that we do not need the QT plugins or QTGui libraries since we do not include GUI tools here.
+  foreach (KNIME_TOOLS_DEPENDENCY OpenMS OpenSwathAlgo SuperHirn)
+	  add_custom_command(
+		TARGET prepare_knime_payload_libs POST_BUILD
+		COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:${KNIME_TOOLS_DEPENDENCY}> ${PAYLOAD_LIB_PATH}
+	  )
+  endforeach()
+  
+  foreach (KNIME_TOOLS_QT5_DEPENDENCY ${OpenMS_QT_COMPONENTS})
+    add_custom_command(
+		TARGET prepare_knime_payload_libs POST_BUILD
+		COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:Qt5::${KNIME_TOOLS_QT5_DEPENDENCY}> ${PAYLOAD_LIB_PATH}
+	)
+  endforeach()
 endif()
-if(WIN32)
-  # for win also package xerces and sqlite. Rest is built statically.
-  # TODO Check how we can auto-determine which are static and dynamic.
+
+if(WIN32) ## Add dynamic libraries if you linked to them.
+  ## TODO Check how we can auto-determine which are static and dynamic and only install dynamic ones here.
+  ## For now we got rid of dynamic libs on Win (except for QT above).
   
   ## TODO if we update our modules we can use properties of the imported targets.
   #add_custom_command(
@@ -214,51 +219,24 @@ if(WIN32)
   #  COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:SQLite::sqlite_shared> ${PAYLOAD_LIB_PATH}
   #  )
 
-  ## Include needed contrib dll-libraries other than QT
+  ## If you need to install dynamic libs use the following snippets:
   # Caution: The ..._LIBRARY variables from the find packages might point to the *.lib files
   # instead of the *.dlls
   
   # xerces-c
-  get_filename_component(xerces_path "${XercesC_LIBRARY_RELEASE}" PATH)
-  file(TO_NATIVE_PATH "${xerces_path}/xerces-c_3_1.dll" target_native_xerces)
-  add_custom_command(
-      TARGET prepare_knime_payload_libs POST_BUILD
-      COMMAND ${CMAKE_COMMAND} -E copy "${target_native_xerces}" "${PAYLOAD_LIB_PATH}"
-  )
+  # get_filename_component(xerces_path "${XercesC_LIBRARY_RELEASE}" PATH)
+  # file(TO_NATIVE_PATH "${xerces_path}/xerces-c_3_1.dll" target_native_xerces)
+  # add_custom_command(
+      # TARGET prepare_knime_payload_libs POST_BUILD
+      # COMMAND ${CMAKE_COMMAND} -E copy "${target_native_xerces}" "${PAYLOAD_LIB_PATH}"
+  # )
     
   # sqlite3
-  get_filename_component(sqlite_path "${SQLite_LIBRARY}" PATH)
-  file(TO_NATIVE_PATH "${sqlite_path}/sqlite3.dll" target_native_sqlite)
-  add_custom_command(
-      TARGET prepare_knime_payload_libs POST_BUILD
-      COMMAND ${CMAKE_COMMAND} -E copy "${target_native_sqlite}" "${PAYLOAD_LIB_PATH}"
-  )
-
-# else()
-  # # assemble required libraries for lnx
-  # set(QT_PAYLOAD_LIBS "QTCORE;QTGUI;QTNETWORK;QTOPENGL;QTSQL;QTSVG;QTWEBKIT;PHONON")
-  # foreach(QT_PAYLOAD_LIB ${QT_PAYLOAD_LIBS})
-  #   if(NOT "${QT_${QT_PAYLOAD_LIB}_LIBRARY_RELEASE}" STREQUAL "QT_${QT_PAYLOAD_LIB}_LIBRARY_RELEASE-NOTFOUND")
-  #     set(target_lib "${QT_${QT_PAYLOAD_LIB}_LIBRARY_RELEASE}")
-  #     add_custom_command(
-  #       TARGET prepare_knime_payload_libs POST_BUILD
-  #       COMMAND ${CMAKE_COMMAND} -E copy "${target_lib}" "${PAYLOAD_LIB_PATH}"
-  #     )
-  #   endif()
-  # endforeach()
-
-  # # additionally query the executables and libs for the qt libs
+  # get_filename_component(sqlite_path "${SQLite_LIBRARY}" PATH)
+  # file(TO_NATIVE_PATH "${sqlite_path}/sqlite3.dll" target_native_sqlite)
   # add_custom_command(
-  #   TARGET prepare_knime_payload_libs POST_BUILD
-  #   COMMAND ${PROJECT_SOURCE_DIR}/cmake/knime/find_qt_libs.sh ${PROJECT_BINARY_DIR}/bin ${PROJECT_BINARY_DIR}/lib ${PAYLOAD_LIB_PATH}
-  # )
-
-  # add_custom_command(
-  #   TARGET prepare_knime_payload_libs POST_BUILD
-  #   COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_BINARY_DIR}/lib/libOpenMS.so ${PAYLOAD_LIB_PATH}
-  #   COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_BINARY_DIR}/lib/libOpenMS_GUI.so ${PAYLOAD_LIB_PATH}
-  #   COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_BINARY_DIR}/lib/libOpenSwathAlgo.so ${PAYLOAD_LIB_PATH}
-  #   COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_BINARY_DIR}/lib/libSuperHirn.so ${PAYLOAD_LIB_PATH}
+      # TARGET prepare_knime_payload_libs POST_BUILD
+      # COMMAND ${CMAKE_COMMAND} -E copy "${target_native_sqlite}" "${PAYLOAD_LIB_PATH}"
   # )
 endif()
 
