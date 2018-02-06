@@ -103,7 +103,7 @@ protected:
 
     // Specifies how peptide ions eluding at different retention times should be resolved
     this->registerStringOption_(TOPPMSstatsConverter::param_retention_time_resolution_method, "<retention_time_resolution_method>", "", "How undistinguishable peptides at different retention times should be treated", true, false);
-    this->setValidStrings_(TOPPMSstatsConverter::param_retention_time_resolution_method, ListUtils::create<String>("manual"));
+    this->setValidStrings_(TOPPMSstatsConverter::param_retention_time_resolution_method, ListUtils::create<String>("manual,max,min,mean"));
 
     // Output CSV file
     this->registerOutputFile_(TOPPMSstatsConverter::param_out, "<out>", "", "Input CSV file for MSstats.", true, false);
@@ -331,8 +331,9 @@ protected:
         {
           for (const pair< String, set< pair< Intensity, Coordinate > > > &line : peptideseq_to_prefix_to_intensities[peptideseq_accessions.first])
           {
-            // First, we collect all retention times
+            // First, we collect all retention times and intensities
             set< Coordinate > retention_times;
+            set< Intensity > intensities;
             for (const pair< Intensity, Coordinate > p : line.second)
             {
               conditionalFatalError_(
@@ -340,6 +341,7 @@ protected:
                 retention_times.find(p.second) != retention_times.end(),
                 ILLEGAL_PARAMETERS);
               retention_times.insert(p.second);
+              intensities.insert(p.first);
             }
 
             // If the rt resolution method is set to manual, we simply output all it,rt pairs
@@ -350,6 +352,24 @@ protected:
                 csv_out.addLine(String(intensity.second) + line.first + ',' + String(intensity.first));
               }
             }
+            else
+            {
+              Intensity intensity;
+              if (arg_retention_time_resolution_method == "max")
+              {
+                intensity = *(std::max_element(intensities.begin(), intensities.end()));
+              }
+              else if (arg_retention_time_resolution_method == "min")
+              {
+                intensity = *(std::min_element(intensities.begin(), intensities.end()));
+              }
+              else if (arg_retention_time_resolution_method == "mean")
+              {
+                intensity = meanIntensity(intensities);
+              }
+              csv_out.addLine(line.first + ',' + String(intensity));
+            }
+
           }
         }
       }
@@ -520,6 +540,16 @@ private:
   {
     const std::set< String > vec_set(vec.begin(), vec.end());
     return vec_set.size() == vec.size();
+  }
+
+  OpenMS::Peak2D::IntensityType meanIntensity(const set< OpenMS::Peak2D::IntensityType > &intensities)
+  {
+    OpenMS::Peak2D::IntensityType result = 0;
+    for (const OpenMS::Peak2D::IntensityType &intensity : intensities)
+    {
+      result += intensity;
+    }
+    return result / intensities.size();
   }
 };
 
