@@ -103,7 +103,7 @@ protected:
 
     // Specifies how peptide ions eluding at different retention times should be resolved
     this->registerStringOption_(TOPPMSstatsConverter::param_retention_time_resolution_method, "<retention_time_resolution_method>", "", "How undistinguishable peptides at different retention times should be treated", true, false);
-    this->setValidStrings_(TOPPMSstatsConverter::param_retention_time_resolution_method, ListUtils::create<String>("manual,max,min,mean"));
+    this->setValidStrings_(TOPPMSstatsConverter::param_retention_time_resolution_method, ListUtils::create<String>("manual,max,min,mean,sum"));
 
     // Output CSV file
     this->registerOutputFile_(TOPPMSstatsConverter::param_out, "<out>", "", "Input CSV file for MSstats.", true, false);
@@ -342,9 +342,9 @@ protected:
             for (const pair< Intensity, Coordinate > p : line.second)
             {
               conditionalFatalError_(
-                "Peptide ion appears multiple times at the same retention time. This is not expected",
-                retention_times.find(p.second) != retention_times.end(),
-                ILLEGAL_PARAMETERS);
+                  "Peptide ion appears multiple times at the same retention time. This is not expected",
+                  retention_times.find(p.second) != retention_times.end(),
+                  ILLEGAL_PARAMETERS);
               retention_times.insert(p.second);
               intensities.insert(p.first);
             }
@@ -371,6 +371,10 @@ protected:
               else if (arg_retention_time_resolution_method == "mean")
               {
                 intensity = meanIntensity(intensities);
+              }
+              else if (arg_retention_time_resolution_method == "sum")
+              {
+                intensity = sumIntensity(intensities);
               }
               csv_out.addLine(line.first + ',' + String(intensity));
             }
@@ -547,14 +551,19 @@ private:
     return vec_set.size() == vec.size();
   }
 
-  OpenMS::Peak2D::IntensityType meanIntensity(const set< OpenMS::Peak2D::IntensityType > &intensities)
+  OpenMS::Peak2D::IntensityType sumIntensity(const set< OpenMS::Peak2D::IntensityType > &intensities)
   {
     OpenMS::Peak2D::IntensityType result = 0;
     for (const OpenMS::Peak2D::IntensityType &intensity : intensities)
     {
       result += intensity;
     }
-    return result / intensities.size();
+    return result;
+  }
+
+  OpenMS::Peak2D::IntensityType meanIntensity(const set< OpenMS::Peak2D::IntensityType > &intensities)
+  {
+    return sumIntensity(intensities) / intensities.size();
   }
 };
 
