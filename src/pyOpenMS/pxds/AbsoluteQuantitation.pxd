@@ -31,9 +31,6 @@ cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/AbsoluteQuantitation.h>" namespa
             Param & transformation_model_params,
             Param & optimized_params) nogil except +
 
-        void optimizeCalibrationCurves(
-           libcpp_map[ String, libcpp_vector[ AQS_featureConcentration ]] & components_concentrations) nogil except + # wrap-ignore
-
         void optimizeSingleCalibrationCurve(
             const String& component_name,
             libcpp_vector[AQS_featureConcentration]& component_concentrations
