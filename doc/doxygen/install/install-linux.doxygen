@@ -215,10 +215,9 @@
   In the %OpenMS build directory we execute %CMake to <i>configure</i> %OpenMS. You
   should substitute <tt>/PATH/TO/contrib-build/</tt> with the above path to the built
   contrib. Make sure you use the <i>absolute</i> (and not relative) path for the
-  contrib to avoid any potential issues. If you encounter problems with
-  previously installed system libraries, consider removing the
-  <tt>/usr;/usr/local</tt> part of the path:
+  contrib to avoid any potential issues.
 
+  @note Since static versions of the boost library are on some systems (e.g. Ubuntu) compiled with different settings you have to set BOOST_USE_STATIC to OFF or compile it with our contrib.
   \code
   cmake -DOPENMS_CONTRIB_LIBS="/PATH/TO/contrib-build" -DBOOST_USE_STATIC=OFF ../OpenMS
   \endcode
