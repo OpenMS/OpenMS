@@ -120,37 +120,40 @@
           <li>install perl (e.g. Strawberry Perl) and git
           <li>download <b>Qt5 source</b> via git:
             \code
-              git clone git://github.com/qt/qt5 --branch 5.9 qt-5.9
+            git clone git://github.com/qt/qt5 --branch 5.9 qt-5.9
             \endcode
           <li>activate the needed modules via:
-              git clone git://github.com/qt/ TODO finsh
+            \code
+             perl init-repository --module-subset="essential,qtsvg" --branch
+            \endcode
           <li>open a Visual Studio Command Line (use x64 version if you want 64bit apps!)
           <li>
             \code
             cd qt-5.9
             \endcode
           <li>if you have multiple versions of VS installed you might need to provide the <tt>-platform</tt> param for the next configure command (e.g., <tt>-platform win32-msvc2012</tt>)
-          <li>To save disk space, we use the -prefix switch do install only the required parts of Qt to a new directory of your choice (called <tt>&lt;path-to-qt&gt;</tt>, e.g. <tt>c:/dev/Qt4.8.7/</tt>).
+          <li>To save disk space, we use the -prefix switch do install only the required parts of Qt to a new directory of your choice (called <tt>&lt;path-to-qt&gt;</tt>, e.g. <tt>c:/dev/Qt/5.9/</tt>).
+              Check more options and supported compilers here: http://doc.qt.io/qt-5/configure-options.html (especially for developers)
             \code
-            configure.exe -opensource -nomake demos -nomake examples -no-script -webkit -prefix <path-to-qt>
+            configure -release -nomake example -nomake demos -nomake tests -opensource -confirm-license -prefix <path-to-qt> -platform win32-msvc
             \endcode
           <li>
             \code
             nmake
             \endcode
           <li>
-						\code
-						nmake install
-						\endcode
-          <li>all Qt files (libs, includes etc) are now in <tt><path-to-qt></tt> and sub-directories. You can delete <tt><path-to-tmp-qt></tt> (since it will consume quite a lot of disk space)
+	    \code
+	    nmake install
+	    \endcode
+          <li>all Qt files (libs, includes etc) are now in <tt><path-to-qt></tt> and sub-directories.
           <li>alternatively to nmake, you can download JOM (http://qt-project.org/wiki/jom) and type "jom" in your Qt build directory to use multiple cores (builds a lot faster usually)
         </ol>
       <li>commercial:
         <ol>
           <li>we have no experience here, but it should be possible to get the DLL's and Link-Libraries here as well.
         </ol>
-      <li>add the <tt>&lt;path-to-qt&gt;/bin</tt> (!) directory to your PATH Environment Variable
-        </ol>
+      <li>add the <tt>&lt;path-to-qt&gt;/bin</tt> (!) directory to your PATH Environment Variable, so the dlls are found during runtime.
+    </ol>
 
  
 
@@ -162,18 +165,18 @@
   you will need to install three programs:
 
   <ol>
-    <li> Doxygen (version 1.5.8 and 1.8.2 are tested, others might work as well)
+    <li> Doxygen (version 1.5.8 and 1.8.2 and 1.8.14 are tested, others might work as well)
       <ul>
         <li> Download the installer for Windows (http://www.doxygen.org)
         <li> Execute the installer. It should automatically add doxygen.exe to the Windows PATH Environment (please recheck)
       </ul>
-    <li> MikTeX (version 2.7 and 2.9 are tested, others might work as well) - basic version (for DVIPS, LATEX etc).
+    <li> MikTeX (version 2.7 and 2.9 are tested, others might work as well, texlive is an option, too) - basic version (for DVIPS, LATEX etc).
       <ul>
          <li> Download binaries for Windows (http://miktex.org/)
          <li> During installation tick "install missing packages on the fly = yes"
          <li> The installer SHOULD add the bin directory of MikTeX automatically to the Windows PATH Environment (please recheck)
       </ul>
-    <li> GPL Ghostscript (8.60) for Windows
+    <li> GPL Ghostscript (e.g. 8.60, 9.19) for Windows
       <ul>
          <li> Download binaries for Windows (http://www.ghostscript.com/) and install
          <li> Add the <i>&lt;path_to_GHOSTSCRIPT&gt;/bin</i> directory (e.g. c:/programs/gs/gs8.60/bin) to the Windows PATH Environment
@@ -219,7 +222,7 @@
         Example:
         \code
         cd c:\dev\OpenMS_Win64
-        cmake -D OPENMS_CONTRIB_LIBS="C:\dev\contrib_win64_build" -G "Visual Studio 9 2008 Win64" ..\OpenMS
+        cmake -D OPENMS_CONTRIB_LIBS="C:\dev\contrib_win64_build" -G "Visual Studio 15 2017 Win64" ..\OpenMS
         \endcode
     </ol>
 
