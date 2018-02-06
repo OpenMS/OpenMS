@@ -90,6 +90,10 @@ using namespace std;
     For a detailed description of all available parameters check the Comet documentation at http://comet-ms.sourceforge.net/parameters/parameters_201601/
     The default parameters are set for a high resolution instrument.
 
+    Please cite: Eng, Jimmy K. and Jahan, Tahmina A. and Hoopmann, Michael R., Comet: An open-source MS/MS sequence database search tool
+    PROTEOMICS, 13, 1, 2013, 22--24, 10.1002/pmic.201200439
+
+
     <B>The command line parameters of this tool are:</B>
     @verbinclude TOPP_CometAdapter.cli
     <B>INI file documentation of this tool:</B>
@@ -105,7 +109,13 @@ class TOPPCometAdapter :
 {
 public:
   TOPPCometAdapter() :
-    TOPPBase("CometAdapter", "Annotates MS/MS spectra using Comet.")
+    TOPPBase("CometAdapter", "Annotates MS/MS spectra using Comet.", true,
+             {
+                 {"Eng, Jimmy K. and Jahan, Tahmina A. and Hoopmann, Michael R.",
+                 "Comet: An open-source MS/MS sequence database search tool",
+                 "PROTEOMICS 2013; 13-1: 22--24",
+                 "10.1002/pmic.201200439"}
+             })
   {
   }
 
@@ -123,10 +133,11 @@ protected:
       // choose the default value according to the platform where it will be executed
       "comet.exe",
       "Comet executable of the installation e.g. 'comet.exe'", true, false, ListUtils::create<String>("skipexists"));
-    registerStringOption_("comet_version","<choice>", "2016.01 rev. 2","comet version: (year,version,revision)",false,false);               //required as first line in the param file
+    registerStringOption_("comet_version","<choice>", "2016.01 rev. 2","comet version: (year,version,revision)",false,false); //required as first line in the param file
     setValidStrings_("comet_version", ListUtils::create<String>("2016.01 rev. 2,2016.01 rev. 3,2017.01 rev. 0beta"));
+
     //
-    // Optional parameters //
+    // Optional parameters
     //
 
     //Files
@@ -134,76 +145,85 @@ protected:
     setValidFormats_("pin_out", ListUtils::create<String>("csv"));
     registerInputFile_("default_params_file", "<file>", "", "Default Comet params file. All parameters of this take precedence. A template file can be generated using comet.exe -p", false, false, ListUtils::create<String>("skipexists"));
     setValidFormats_("default_params_file", ListUtils::create<String>("txt"));
-    //registerIntOption_("threads", "<num>", 1, "number of threads", false, true);
 
     //Masses
-    registerDoubleOption_("precursor_mass_tolerance", "<tolerance>", 10.0, "Precursor monoisotopic mass tolerance (Comet parameter: peptide_mass_tolerance)", false, false);
-    registerStringOption_("precursor_error_units", "<choice>", "ppm", "peptide_mass_units 0=amu, 1=mmu, 2=ppm", false, false);
+    registerDoubleOption_("precursor_mass_tolerance", "<tolerance>", 10.0, "Precursor monoisotopic mass tolerance (Comet parameter: peptide_mass_tolerance).  See also precursor_error_units to set the unit.", false, false);
+    registerStringOption_("precursor_error_units", "<choice>", "ppm", "Unit of precursor monoisotopic mass tolerance for parameter precursor_mass_tolerance (Comet parameter: peptide_mass_units)", false, false);
     setValidStrings_("precursor_error_units", ListUtils::create<String>("amu,ppm,Da"));
     //registerIntOption_("mass_type_parent", "<num>", 1, "0=average masses, 1=monoisotopic masses", false, true);
     //registerIntOption_("mass_type_fragment", "<num>", 1, "0=average masses, 1=monoisotopic masses", false, true);
     //registerIntOption_("precursor_tolerance_type", "<num>", 0, "0=average masses, 1=monoisotopic masses", false, false);
-    registerStringOption_("isotope_error", "<choice>", "off", "0=off, 1=on -1/0/1/2/3 (standard C13 error), 2= -8/-4/0/4/8 (for +4/+8 labeling)", false, false);
-    setValidStrings_("isotope_error", ListUtils::create<String>("off,-1/0/1/2/3,-8/-4/0/4/8"));
+    registerStringOption_("isotope_error", "<choice>", "off", "This parameter controls whether the peptide_mass_tolerance takes into account possible isotope errors in the precursor mass measurement. Use -8/-4/0/4/8 only for SILAC.", false, false);
+    setValidStrings_("isotope_error", ListUtils::create<String>("off,0/1,0/1/2,-1/0/1/2/3,-8/-4/0/4/8"));
 
     //Search Enzyme
     vector<String> all_enzymes;
     ProteaseDB::getInstance()->getAllCometNames(all_enzymes);
     registerStringOption_("enzyme", "<cleavage site>", "Trypsin", "The enzyme used for peptide digestion.", false, false);
     setValidStrings_("enzyme", all_enzymes);
-    registerStringOption_("num_enzyme_termini", "<choice>", "fully", "1 semi-digested, 2 fully digested, (default), 8 C-term unspecific, 9 N-term unspecific", false, false);
+    registerStringOption_("num_enzyme_termini", "<choice>", "fully", "Specify the termini where the cleavage rule has to match", false, false);
     setValidStrings_("num_enzyme_termini", ListUtils::create<String>("semi,fully,C-term unspecific,N-term unspecific"));
-    registerIntOption_("allowed_missed_cleavages", "<num>", 1, "Number of possible cleavage sites missed by the enzyme, maximum value is 5; for enzyme search", false, false);
-
+    registerIntOption_("allowed_missed_cleavages", "<num>", 0, "Number of possible cleavage sites missed by the enzyme. It has no effect if enzyme is unspecific cleavage.", false, false);
+    setMinInt_("allowed_missed_cleavages", 0);
     //Fragment Ions
-    registerDoubleOption_("fragment_bin_tolerance", "<tolerance>", 1.0005, "fragment_mass_tolerance (MSGF+), fragment_bin_tol (Comet)", false, true);
-    registerDoubleOption_("fragment_bin_offset", "<tolerance>", 0.25, "fragment_bin_offset (Comet)", false, true);
-    registerStringOption_("instrument", "<choice>", "high_res", "comets theoretical_fragment_ions parameter: theoretical fragment ion peak representation, high res ms/ms: sum of intensities plus flanking bins, ion trap ms/ms: sum of intensities of central bin only", false, true);
+    registerDoubleOption_("fragment_bin_tolerance", "<tolerance>", 0.02, "Bin size (in Da) for matching fragment ions. Ion trap: 1.0005, high res: 0.02. CAUTION: Low tolerances have heavy impact on RAM usage. Consider using use_sparse_matrix and/or spectrum_batch_size.", false, true);
+    setMinFloat_("fragment_bin_tolerance",0.01);
+    registerDoubleOption_("fragment_bin_offset", "<fraction>", 0.0, "Offset of fragment bins scaled by tolerance. Ion trap: 0.4, high res: 0.0.", false, true);
+    setMinFloat_("fragment_bin_offset",0.0);
+    setMaxFloat_("fragment_bin_offset",1.0);
+    registerStringOption_("instrument", "<choice>", "high_res", "Comets theoretical_fragment_ions parameter: theoretical fragment ion peak representation, high res ms/ms: sum of intensities plus flanking bins, ion trap (low_res) ms/ms: sum of intensities of central M bin only", false, true);
     setValidStrings_("instrument", ListUtils::create<String>("low_res,high_res"));
     registerStringOption_("use_A_ions", "<num>", "false", "use A ions for PSM", false, true);
     setValidStrings_("use_A_ions", ListUtils::create<String>("true,false"));
-    registerStringOption_("use_B_ions", "<num>", "true", "use B ions for PSM, 0 == no, 1 == yes", false, true);
+    registerStringOption_("use_B_ions", "<num>", "true", "use B ions for PSM", false, true);
     setValidStrings_("use_B_ions", ListUtils::create<String>("true,false"));
-    registerStringOption_("use_C_ions", "<num>", "false", "use C ions for PSM, 0 == no, 1 == yes", false, true);
+    registerStringOption_("use_C_ions", "<num>", "false", "use C ions for PSM", false, true);
     setValidStrings_("use_C_ions", ListUtils::create<String>("true,false"));
-    registerStringOption_("use_X_ions", "<num>", "false", "use X ions for PSM, 0 == no, 1 == yes", false, true);
+    registerStringOption_("use_X_ions", "<num>", "false", "use X ions for PSM", false, true);
     setValidStrings_("use_X_ions", ListUtils::create<String>("true,false"));
-    registerStringOption_("use_Y_ions", "<num>", "true", "use Y ions for PSM, 0 == no, 1 == yes", false, true);
+    registerStringOption_("use_Y_ions", "<num>", "true", "use Y ions for PSM", false, true);
     setValidStrings_("use_Y_ions", ListUtils::create<String>("true,false"));
-    registerStringOption_("use_Z_ions", "<num>", "false", "use Z ions for PSM, 0 == no, 1 == yes", false, true);
+    registerStringOption_("use_Z_ions", "<num>", "false", "use Z ions for PSM", false, true);
     setValidStrings_("use_Z_ions", ListUtils::create<String>("true,false"));
-    registerStringOption_("use_NL_ions", "<num>", "false", "use Neutral Loss ions for PSM, 0 == no, 1 == yes", false, true);
+    registerStringOption_("use_NL_ions", "<num>", "false", "use neutral loss (NH3, H2O) ions from b/y for PSM", false, true);
     setValidStrings_("use_NL_ions", ListUtils::create<String>("true,false"));
 
     //Output
     registerIntOption_("num_hits", "<num>", 5, "Number of peptide hits in output file", false, false);
 
     //mzXML/mzML parameters
-    registerStringOption_("precursor_charge", "0:0", "0:0", "charge range to search: 0:0 == search all charges, 2:6 == from +2 to +6, 3:3 == +3", false, false);
-    registerStringOption_("override_charge", "<choice>", "keep any known", "0 = keep any known precursor charge state, 1 = ignore known precursor charge state and use precursor_charge parameter, 2 = ignore precursor charges outside precursor_charge range, 3 = keep any known precursor charge state. For unknown charge states, search as singly charged if there is no signal above the precursor m/z or use the precursor_charge range", false, false);
+    registerStringOption_("precursor_charge", "[min]:[max]", "0:0", "Precursor charge range to search (if spectrum is not annotated with a charge or if override_charge!=keep any known): 0:[num] == search all charges, 2:6 == from +2 to +6, 3:3 == +3", false, false);
+    registerStringOption_("override_charge", "<choice>", "keep known search unknown", "_keep any known_: keep any precursor charge state (from input), _ignore known_: ignore known precursor charge state and use precursor_charge parameter, _ignore outside range_: ignore precursor charges outside precursor_charge range, _keep known search unknown_: keep any known precursor charge state. For unknown charge states, search as singly charged if there is no signal above the precursor m/z or use the precursor_charge range", false, false);
     setValidStrings_("override_charge", ListUtils::create<String>("keep any known,ignore known,ignore outside range,keep known search unknown"));
     registerIntOption_("ms_level", "<num>", 2, "MS level to analyze, valid are levels 2 (default) or 3", false, false);
     setMinInt_("ms_level", 2);
     setMaxInt_("ms_level", 3);
-    registerStringOption_("activation_method", "<method>", "ALL", "activation method; used if activation method set; allowed ALL, CID, ECD, ETD, PQD, HCD, IRMPD", false, false);
+    registerStringOption_("activation_method", "<method>", "ALL", "If not ALL, only searches spectra of the given method", false, false);
     setValidStrings_("activation_method", ListUtils::create<String>("ALL,CID,ECD,ETD,PQD,HCD,IRMPD"));
 
     //Misc. parameters
-    registerStringOption_("digest_mass_range", "600:5000", "600:5000", "MH+ peptide mass range to analyze", false, true);
-    registerIntOption_("max_fragment_charge", "<num>", 3, "set maximum fragment charge state to analyze (allowed max 5)", false, false);
-    registerStringOption_("max_precursor_charge", "<num>", "0+", "set maximum precursor charge state to analyze (allowed max 9)", false, true);
-    registerStringOption_("clip_nterm_methionine", "<num>", "false", "0=leave sequences as-is; 1=also consider sequence w/o N-term methionine", false, false);
+    //scan range
+    registerStringOption_("digest_mass_range", "[min]:[max]", "600:5000", "MH+ peptide mass range to analyze", false, true);
+    registerIntOption_("max_fragment_charge", "<posnum>", 3, "Set maximum fragment charge state to analyze as long as still lower than precursor charge - 1. (Allowed max 5)", false, false);
+    setMinInt_("max_fragment_charge", 1);
+    setMaxInt_("max_fragment_charge", 5);
+    registerIntOption_("max_precursor_charge", "<posnum>", 5, "set maximum precursor charge state to analyze (allowed max 9)", false, true);
+    setMinInt_("max_precursor_charge", 1);
+    setMaxInt_("max_precursor_charge", 9);
+    registerStringOption_("clip_nterm_methionine", "<bool>", "false", "If set to true, also considers the peptide sequence w/o N-term methionine separately and applies appropriate N-term mods to it", false, false);
     setValidStrings_("clip_nterm_methionine", ListUtils::create<String>("true,false"));
-    registerIntOption_("spectrum_batch_size", "<num>", 1000, "max. // of spectra to search at a time; 0 to search the entire scan range in one loop", false, true);
-    registerDoubleOption_("mass_offsets", "<offset>", 0, "one or more mass offsets to search (values subtracted from deconvoluted precursor mass)", false, true);
+    registerIntOption_("spectrum_batch_size", "<posnum>", 1000, "max. number of spectra to search at a time; use 0 to search the entire scan range in one batch", false, true);
+    setMinInt_("spectrum_batch_size", 0);
+    registerDoubleList_("mass_offsets", "<doubleoffset1, doubleoffset2,...>", {0.0}, "One or more mass offsets to search (values subtracted from deconvoluted precursor mass). Has to include 0.0 if you want the default mass to be searched.", false, true);
 
     // spectral processing
-    registerIntOption_("minimum_peaks", "<num>", 10, "required minimum number of peaks in spectrum to search (default 10)", false, true);
-    registerIntOption_("minimum_intensity", "<num>", 0, "minimum intensity value to read in", false, true);
-    registerStringOption_("remove_precursor_peak", "<choice>", "no", "0=no, 1=yes, 2=all charge reduced precursor peaks (for ETD)", false, true);
-    setValidStrings_("remove_precursor_peak", ListUtils::create<String>("no,yes,all"));
-    registerIntOption_("remove_precursor_tolerance", "<num>", 1.5, "+- Da tolerance for precursor removal", false, true);
-    registerStringOption_("clear_mz_range", "0:0", "0:0", "for iTRAQ/TMT type data; will clear out all peaks in the specified m/z range", false, true);
+    registerIntOption_("minimum_peaks", "<posnum>", 10, "Required minimum number of peaks in spectrum to search (default 10)", false, true);
+    registerDoubleOption_("minimum_intensity", "<posfloat>", 0.0, "Minimum intensity value to read in", false, true);
+    setMinFloat_("minimum_intensity", 0.0);
+    registerStringOption_("remove_precursor_peak", "<choice>", "no", "no = no removal, yes = remove all peaks around precursor m/z, charge_reduced = remove all charge reduced precursor peaks (for ETD/ECD). phosphate_loss = remove the HPO3 (-80) and H3PO4 (-98) precursor phosphate neutral loss peaks. See also remove_precursor_tolerance", false, true);
+    setValidStrings_("remove_precursor_peak", ListUtils::create<String>("no,yes,charge_reduced,phosphate_loss"));
+    registerDoubleOption_("remove_precursor_tolerance", "<posfloat>", 1.5, "one-sided tolerance for precursor removal in Thompson", false, true);
+    registerStringOption_("clear_mz_range", "[minfloatmz]:[maxfloatmz]", "0:0", "for iTRAQ/TMT type data; will clear out all peaks in the specified m/z range, if not 0:0", false, true);
 
     //Modifications
     registerStringList_("fixed_modifications", "<mods>", vector<String>(), "Fixed modifications, specified using UniMod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)' or 'Oxidation (M)'", false, false);
@@ -212,7 +232,9 @@ protected:
     setValidStrings_("fixed_modifications", all_mods);
     registerStringList_("variable_modifications", "<mods>", vector<String>(), "Variable modifications, specified using UniMod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)' or 'Oxidation (M)'", false, false);
     setValidStrings_("variable_modifications", all_mods);
-    registerIntOption_("max_variable_mods_in_peptide", "<num>", 5, "", false, true);
+    registerIntOption_("max_variable_mods_in_peptide", "<num>", 5, "Set a maximum number of variable modifications per peptide", false, true);
+    registerStringOption_("require_variable_mod", "<bool>", "false", "If true, requires at least one variable modification per peptide", false, true);
+    setValidStrings_("require_variable_mod", ListUtils::create<String>("true,false"));
   }
 
   vector<ResidueModification> getModifications_(StringList modNames)
@@ -299,6 +321,7 @@ protected:
       throw OpenMS::Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Error: Comet only supports 9 variable modifications. " + String(variable_modifications.size()) + " provided.");
     }
 
+    int max_variable_mods_in_peptide = getIntOption_("max_variable_mods_in_peptide");
     Size var_mod_index = 0;
 
     // write out user specified modifications
@@ -306,43 +329,47 @@ protected:
     {
       const ResidueModification mod = variable_modifications[var_mod_index];
       double mass = mod.getDiffMonoMass();
-      String residues = mod.getOrigin();  // TODO: check if origin contains C-term string or similar. Should not be passed to comet as residue string
-      String variable = "0";
-      String max_mods_per_peptide = "3";
-      String term_distance = "-1";
-      String nc_term = "0";
+      String residues = mod.getOrigin();
+      //TODO support binary groups, e.g. for SILAC
+      int binary_group = 0;
+      //TODO support mod-specific limit (default for now is the overall max per peptide)
+      int max_current_mod_per_peptide = max_variable_mods_in_peptide;
+      //TODO support term-distances?
+      int term_distance = -1;
+      int nc_term = 0;
 
-      if (residues=="N-term")
-      {
-          residues="n";
-      }
-      if (residues=="C-term")
-      {
-          residues="c";
-      }
+      //TODO support agglomeration of Modifications to same AA. Watch out for nc_term value then.
       if (mod.getTermSpecificity() == ResidueModification::C_TERM)
       {
+        residues = "c";
         term_distance = 0;
-        nc_term = "3";
+        // Since users need to specify mods that apply to multiple residues/terms separately
+        // 3 and -1 should be equal for now.
+        nc_term = 3;
       }
       else if (mod.getTermSpecificity() == ResidueModification::N_TERM)
       {
+        residues = "n";
         term_distance = 0;
-        nc_term = "2";
+        // Since users need to specify mods that apply to multiple residues/terms separately
+        // 2 and -1 should be equal for now.
+        nc_term = 2;
       }
       else if (mod.getTermSpecificity() == ResidueModification::PROTEIN_N_TERM) // not yet available
       {
         term_distance = 0;
-        nc_term = "0";
+        nc_term = 0;
       }
       else if (mod.getTermSpecificity() == ResidueModification::PROTEIN_C_TERM) // not yet available
       {
         term_distance = 0;
-        nc_term = "1";
+        nc_term = 1;
       }
-      String required = "0";
 
-      os << "variable_mod0" << var_mod_index+1 << " = " << mass << " " << residues << " " << variable << " " << max_mods_per_peptide << " " << term_distance << " " << nc_term << " " << required << "\n";
+      //TODO support required variable mods
+      bool required = false;
+
+      os << "variable_mod0" << var_mod_index+1 << " = " << mass << " " << residues << " " << binary_group << " " << max_current_mod_per_peptide << " " << term_distance << " " << nc_term << " " << required << "\n";
     }
 
     // fill remaining modification slots (if any) in Comet with "no modification"
@@ -352,19 +379,27 @@ protected:
     }
 
     os << "max_variable_mods_in_peptide = " << getIntOption_("max_variable_mods_in_peptide") << "\n";
-    os << "require_variable_mod = " << 0 << "\n";
+    os << "require_variable_mod = " << (int) (getStringOption_("require_variable_mod") == "true") << "\n";
 
-    // fragment ions
+    // fragment ion defaults
     // ion trap ms/ms:  1.0005 tolerance, 0.4 offset (mono masses), theoretical_fragment_ions = 1
     // high res ms/ms:    0.02 tolerance, 0.0 offset (mono masses), theoretical_fragment_ions = 0
 
-    map<string,int> instrument;
-    instrument["high_res"] = 0;
-    instrument["low_res"] = 1;
+    String instrument = getStringOption_("instrument");
+    double bin_tol = getDoubleOption_("fragment_bin_tolerance");
+    double bin_offset = getDoubleOption_("fragment_bin_offset");
+    if (instrument == "low_res" && (bin_tol < 0.9 || bin_offset < 0.1))
+    {
+      LOG_WARN << "Fragment bin size or tolerance is quite low for low res instruments." << "\n";
+    }
+    else if (instrument == "high_res" && (bin_tol > 0.2 || bin_offset > 0.1))
+    {
+      LOG_WARN << "Fragment bin size or tolerance is quite high for high res instruments." << "\n";
+    };
 
-    os << "fragment_bin_tol = " << getDoubleOption_("fragment_bin_tolerance") << "\n";               // binning to use on fragment ions
-    os << "fragment_bin_offset = " << getDoubleOption_("fragment_bin_offset")  << "\n";              // offset position to start the binning (0.0 to 1.0)
-    os << "theoretical_fragment_ions = " << instrument[getStringOption_("instrument")] << "\n";           // 0=use flanking peaks, 1=M peak only
+    os << "fragment_bin_tol = " << bin_tol << "\n";               // binning to use on fragment ions
+    os << "fragment_bin_offset = " << bin_offset  << "\n";              // offset position to start the binning (0.0 to 1.0)
+    os << "theoretical_fragment_ions = " << (int)(instrument == "low_res") << "\n";           // 0=use flanking bin, 1=use M bin only
     os << "use_A_ions = " << (int)(getStringOption_("use_A_ions")=="true") << "\n";
     os << "use_B_ions = " << (int)(getStringOption_("use_B_ions")=="true") << "\n";
     os << "use_C_ions = " << (int)(getStringOption_("use_C_ions")=="true") << "\n";
@@ -416,19 +451,20 @@ protected:
     os << "num_results = " << 100 << "\n";                       // number of search hits to store internally
     os << "skip_researching = " << 1 << "\n";                    // for '.out' file output only, 0=search everything again (default), 1=don't search if .out exists
     os << "max_fragment_charge = " << getIntOption_("max_fragment_charge") << "\n";                 // set maximum fragment charge state to analyze (allowed max 5)
-    os << "max_precursor_charge = " << getStringOption_("max_precursor_charge") << "\n";                // set maximum precursor charge state to analyze (allowed max 9)
+    os << "max_precursor_charge = " << getIntOption_("max_precursor_charge") << "\n";                // set maximum precursor charge state to analyze (allowed max 9)
     os << "nucleotide_reading_frame = " << 0 << "\n";            // 0=proteinDB, 1-6, 7=forward three, 8=reverse three, 9=all six
     os << "clip_nterm_methionine = " << (int)(getStringOption_("clip_nterm_methionine")=="true") << "\n";              // 0=leave sequences as-is; 1=also consider sequence w/o N-term methionine
     os << "spectrum_batch_size = " << getIntOption_("spectrum_batch_size") << "\n";                 // max. // of spectra to search at a time; 0 to search the entire scan range in one loop
-    os << "decoy_prefix = " << "rev_" << "\n";                 // decoy entries are denoted by this string which is pre-pended to each protein accession
+    os << "decoy_prefix = " << "--decoysearch-not-used--" << "\n";                 // decoy entries are denoted by this string which is pre-pended to each protein accession
     os << "output_suffix = " << "" << "\n";                      // add a suffix to output base names i.e. suffix "-C" generates base-C.pep.xml from base.mzXML input
-    os << "mass_offsets = " << getDoubleOption_("mass_offsets") << "\n";                       // one or more mass offsets to search (values subtracted from deconvoluted precursor mass)
+    os << "mass_offsets = " << ListUtils::concatenate(getDoubleList_("mass_offsets"), " ") << "\n"; // one or more mass offsets to search (values subtracted from deconvoluted precursor mass)
 
     // spectral processing
     map<string,int> remove_precursor_peak;
     remove_precursor_peak["no"] = 0;
     remove_precursor_peak["yes"] = 1;
-    remove_precursor_peak["all"] = 2;
+    remove_precursor_peak["charge_reduced"] = 2;
+    remove_precursor_peak["phosphate_loss"] = 3;
 
     double clear_mz_range_min(0.0), clear_mz_range_max(0.0);
     if (!parseRange_(getStringOption_("clear_mz_range"), clear_mz_range_min, clear_mz_range_max))
@@ -437,9 +473,9 @@ protected:
     }
 
     os << "minimum_peaks = " << getIntOption_("minimum_peaks") << "\n";                      // required minimum number of peaks in spectrum to search (default 10)
-    os << "minimum_intensity = " << getIntOption_("minimum_intensity") << "\n";                   // minimum intensity value to read in
+    os << "minimum_intensity = " << getDoubleOption_("minimum_intensity") << "\n";                   // minimum intensity value to read in
     os << "remove_precursor_peak = " << remove_precursor_peak[getStringOption_("remove_precursor_peak")] << "\n";               // 0=no, 1=yes, 2=all charge reduced precursor peaks (for ETD)
-    os << "remove_precursor_tolerance = " << getIntOption_("remove_precursor_tolerance") << "\n";        // +- Da tolerance for precursor removal
+    os << "remove_precursor_tolerance = " << getDoubleOption_("remove_precursor_tolerance") << "\n";        // +- Da tolerance for precursor removal
     os << "clear_mz_range = " << clear_mz_range_min << " " << clear_mz_range_max << "\n";                // for iTRAQ/TMT type data; will clear out all peaks in the specified m/z range
 
 
@@ -465,6 +501,7 @@ protected:
       }
     }
 
+    //TODO register cut_before and cut_after in Enzymes.xml plus datastructures to add all our Enzymes with our names instead.
     // COMET_ENZYME_INFO _must_ be at the end of this parameters file
     os << "[COMET_ENZYME_INFO]" << "\n";
     os << "0.  No_enzyme              0      -           -" << "\n";

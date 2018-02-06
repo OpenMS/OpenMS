@@ -325,9 +325,29 @@ protected:
     // building map for faster search
     // -------------------------------------------------------------
 
-    //library containing already identified peptide spectra
+    // library containing already identified peptide spectra
     vector<PeptideIdentification> ids;
     spectral_library.load(in_lib, ids, library);
+
+    /*
+    // Output bin histogram
+    BinnedSpectrum bin_frequency(0.01, 1, PeakSpectrum());
+    for (auto const & s : library)
+    {
+      BinnedSpectrum b(0.01, 1, s);
+      // e.g.: bin_frequency.getBins() += b.getBins();  // sum up itensities
+      // e.g.: bin_frequency.getBins() += b.getBins().coeffs().cwiseMin(1.0f); // count occupied bins (by truncating intensities >= 1 to 1)
+    }
+
+    for (BinnedSpectrum::SparseVectorIteratorType it(bin_frequency.getBins()); it; ++it)
+    {
+      // output m/z of bin start and average bin intensity
+      cout << it.index() * bin_frequency.getBinSize()  << "\t" << static_cast<float>(it.value()/library.size()) << "\n";
+      cout << static_cast<float>(it.value()) << "\n";
+      cout << static_cast<float>(library.size()) << "\n";
+    }
+    cout << endl;
+    */
 
     MapLibraryPrecursorToLibrarySpectrum mslib = annotateIdentificationsToSpectra_(ids, library, variable_modifications, fixed_modifications, remove_peaks_below_threshold);
 
