@@ -783,24 +783,26 @@ public:
 
   static String& removeWhitespaces(String& this_s)
   {
-    int shift(0); // windowing number of removed whitespaces
+    std::string::iterator it = this_s.begin();
+    std::string::iterator dest = it;
     std::string::iterator it_end = this_s.end();
-    for (std::string::iterator it = this_s.begin(); it != it_end; ++it)
+    while (it != it_end)
     {
       const char c = *it;
       if (c == ' ' || c == '\t' || c == '\n' || c == '\r')
       {
-        ++shift;
-        continue; // no need to shift this 
+        ++it;
+        continue; // no need to copy a whitespace
       }
-      if (shift)
-      { // move current char to the left
-        *(it - shift) = c;
-      }
+      // copy to the left, if we had a whitespace before
+      if (dest != it) *dest = *it;
+      // advance both
+      ++dest;
+      ++it;
     }
 
     // shorten result
-    if (shift) this_s.resize(this_s.size() - shift);
+    if (dest != it) this_s.resize(dest - this_s.begin());
 
     return this_s;
   }
