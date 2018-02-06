@@ -125,9 +125,9 @@ def handleDependencies(otool_out, targetPath, currentLib)
       newPath=""
       libname=""
       if isFramework(fix_lib)
-        newPath, libname = handleFramework(fix_lib, $lib_dir)
+        _, libname = handleFramework(fix_lib, $lib_dir)
       else
-        newPath, libname = handleDyLib(fix_lib, $lib_dir)
+        _, libname = handleDyLib(fix_lib, $lib_dir)
       end
       
       # fix loading of this library
@@ -327,7 +327,7 @@ opts.each do |opt, arg|
   end
 end
 
-if $lib_dir == nil or $bin_dir == nil
+if $lib_dir.nil? or $bin_dir.nil?
   puts "Please provide a bin and lib path"
   puts "#{usage}"
   exit 1
@@ -364,7 +364,7 @@ for content in Dir.entries($bin_dir)
   end
 end
 
-if $plugin_dir != nil
+if !$plugin_dir.nil?
   debug "HANDLING PLUGIN DIR"
   for content in Dir.glob("#{$plugin_dir}/**/*.dylib")
     debug "Handle dylib #{$plugin_dir + content}"
