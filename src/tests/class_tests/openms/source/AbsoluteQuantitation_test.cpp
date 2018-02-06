@@ -55,10 +55,10 @@ std::vector<AbsoluteQuantitationStandards::featureConcentration> make_serL_stand
   std::vector<double> x1 (arrx1, arrx1 + sizeof(arrx1) / sizeof(arrx1[0]) );
   static const double arry1[] = {4.94e3,6.55e3,7.37e3,1.54e4,2.87e4,
     5.41e4,1.16e5,1.85e5,3.41e5,7.54e5,9.76e5,1.42e6,1.93e6,2.23e6};
-  std::vector<double> y1 (arry1, arry1 + sizeof(arry1) / sizeof(arry1[0]) ); 
+  std::vector<double> y1 (arry1, arry1 + sizeof(arry1) / sizeof(arry1[0]) );
   static const double arrz1[] = {1.00e-2,2.00e-2,4.00e-2,1.00e-1,2.00e-1,
     4.00e-1,1.00e0,2.00e0,4.00e0,1.00e1,2.00e1,4.00e1,1.00e2,2.00e2};
-  std::vector<double> z1 (arrz1, arrz1 + sizeof(arrz1) / sizeof(arrz1[0]) ); 
+  std::vector<double> z1 (arrz1, arrz1 + sizeof(arrz1) / sizeof(arrz1[0]) );
 
   // set-up the features
   std::vector<AbsoluteQuantitationStandards::featureConcentration> component_concentrations;
@@ -75,8 +75,8 @@ std::vector<AbsoluteQuantitationStandards::featureConcentration> make_serL_stand
     component_concentration.actual_concentration = z1[i];
     component_concentration.IS_actual_concentration = 1.0;
     component_concentration.dilution_factor = 1.0;
-    component_concentrations.push_back(component_concentration); 
-  } 
+    component_concentrations.push_back(component_concentration);
+  }
   return component_concentrations;
 }
 
@@ -88,7 +88,7 @@ std::vector<AbsoluteQuantitationStandards::featureConcentration> make_amp_standa
   std::vector<double> x2 (arrx2, arrx2 + sizeof(arrx2) / sizeof(arrx2[0]) );
   static const double arry2[] = {4.40e2,1.15e3,1.53e3,2.01e3,4.47e3,
   7.36e3,2.18e4,4.46e4,8.50e4,2.33e5,5.04e5,1.09e6,2.54e6,3.64e6};
-  std::vector<double> y2 (arry2, arry2 + sizeof(arry2) / sizeof(arry2[0]) ); 
+  std::vector<double> y2 (arry2, arry2 + sizeof(arry2) / sizeof(arry2[0]) );
   static const double arrz2[] = {2.00e-3,4.00e-3,8.00e-3,2.00e-2,4.00e-2,
   8.00e-2,2.00e-1,4.00e-1,8.00e-1,2.00e0,4.00e0,8.00e0,2.00e1,4.00e1};
   std::vector<double> z2 (arrz2, arrz2 + sizeof(arrz2) / sizeof(arrz2[0]) );
@@ -108,8 +108,8 @@ std::vector<AbsoluteQuantitationStandards::featureConcentration> make_amp_standa
     component_concentration.actual_concentration = z2[i];
     component_concentration.IS_actual_concentration = 1.0;
     component_concentration.dilution_factor = 1.0;
-    component_concentrations.push_back(component_concentration); 
-  }  
+    component_concentrations.push_back(component_concentration);
+  }
   return component_concentrations;
 }
 
@@ -121,10 +121,10 @@ std::vector<AbsoluteQuantitationStandards::featureConcentration> make_atp_standa
   std::vector<double> x3 (arrx3, arrx3 + sizeof(arrx3) / sizeof(arrx3[0]) );
   static const double arry3[] = {2.21e2,4.41e2,3.31e2,2.21e2,3.09e2,
   5.96e2,1.26e3,2.49e3,1.12e4,8.79e4,4.68e5,1.38e6,3.46e6,4.19e6};
-  std::vector<double> y3 (arry3, arry3 + sizeof(arry3) / sizeof(arry3[0]) ); 
+  std::vector<double> y3 (arry3, arry3 + sizeof(arry3) / sizeof(arry3[0]) );
   static const double arrz3[] = {2.00e-3,4.00e-3,8.00e-3,2.00e-2,4.00e-2,
   8.00e-2,2.00e-1,4.00e-1,8.00e-1,2.00e0,4.00e0,8.00e0,2.00e1,4.00e1};
-  std::vector<double> z3 (arrz3, arrz3 + sizeof(arrz3) / sizeof(arrz3[0]) ); 
+  std::vector<double> z3 (arrz3, arrz3 + sizeof(arrz3) / sizeof(arrz3[0]) );
 
   // set-up the features
   std::vector<AbsoluteQuantitationStandards::featureConcentration> component_concentrations;
@@ -141,8 +141,8 @@ std::vector<AbsoluteQuantitationStandards::featureConcentration> make_atp_standa
     component_concentration.actual_concentration = z3[i];
     component_concentration.IS_actual_concentration = 1.0;
     component_concentration.dilution_factor = 1.0;
-    component_concentrations.push_back(component_concentration); 
-  }  
+    component_concentrations.push_back(component_concentration);
+  }
 
   return component_concentrations;
 }
@@ -197,12 +197,12 @@ AbsoluteQuantitation* nullPointer = nullptr;
 
 
 START_SECTION((AbsoluteQuantitation()))
-	ptr = new AbsoluteQuantitation();
-	TEST_NOT_EQUAL(ptr, nullPointer)
+  ptr = new AbsoluteQuantitation();
+  TEST_NOT_EQUAL(ptr, nullPointer)
 END_SECTION
 
 START_SECTION((~AbsoluteQuantitation()))
-	delete ptr;
+  delete ptr;
 END_SECTION
 
 START_SECTION((double calculateRatio(const Feature & component_1, const Feature & component_2, const String feature_name)))
@@ -259,8 +259,8 @@ START_SECTION((double applyCalibration(const Feature & component,
   // x = (y - b)/m
   String transformation_model;
   Param param;
-  // transformation_model = "TransformationModelLinear"; 
-  transformation_model = "linear";  
+  // transformation_model = "TransformationModelLinear";
+  transformation_model = "linear";
   param.setValue("slope",2.0);
   param.setValue("intercept",1.0);
 
@@ -298,7 +298,7 @@ START_SECTION((void quantifyComponents(std::vector<FeatureMap>& unknowns)))
   component.setMetaValue(feature_name,4.0);
   IS_component.setMetaValue("native_id","IS2");
   IS_component.setMetaValue(feature_name,4.0);
-  unknown_feature_subordinates.push_back(IS_component); 
+  unknown_feature_subordinates.push_back(IS_component);
   unknown_feature_subordinates.push_back(component);
   unknown_feature.setSubordinates(unknown_feature_subordinates);
   unknown_feature_map.push_back(unknown_feature);
@@ -322,8 +322,8 @@ START_SECTION((void quantifyComponents(std::vector<FeatureMap>& unknowns)))
   AbsoluteQuantitationMethod aqm;
   String transformation_model;
   Param param;
-  // transformation_model = "TransformationModelLinear";  
-  transformation_model = "linear";  
+  // transformation_model = "TransformationModelLinear";
+  transformation_model = "linear";
   param.setValue("slope",1.0);
   param.setValue("intercept",0.0);
   aqm.setTransformationModel(transformation_model);
@@ -335,23 +335,23 @@ START_SECTION((void quantifyComponents(std::vector<FeatureMap>& unknowns)))
   aqm.setISName("IS1");
   aqm.setFeatureName(feature_name);
   aqm.setConcentrationUnits("uM");
-  quant_methods.push_back(aqm);  
+  quant_methods.push_back(aqm);
   // component_2
   aqm.setComponentName("component2");
   aqm.setISName("IS1");
   aqm.setFeatureName(feature_name); // test IS outside component_group
   aqm.setConcentrationUnits("uM");
-  quant_methods.push_back(aqm); 
+  quant_methods.push_back(aqm);
   // component_3
   aqm.setComponentName("component3");
   aqm.setISName("IS3");
   aqm.setFeatureName(feature_name);
   aqm.setConcentrationUnits("uM");
-  quant_methods.push_back(aqm); 
+  quant_methods.push_back(aqm);
 
   absquant.setQuantMethods(quant_methods);
   absquant.quantifyComponents(unknown_feature_map);
-  
+
   // DEBUGGING:
   // for (size_t i = 0; i < unknowns.size(); ++i)
   // {
@@ -382,7 +382,7 @@ START_SECTION((void (
   const Param & transformation_model_params,
   std::vector<double> & biases,
   double & correlation_coefficient)))
-  
+
   AbsoluteQuantitation absquant;
 
   // set-up the features
@@ -399,7 +399,7 @@ START_SECTION((void (
   component_concentration.actual_concentration = 1.0;
   component_concentration.IS_actual_concentration = 1.0;
   component_concentration.dilution_factor = 1.0;
-  component_concentrations.push_back(component_concentration);  
+  component_concentrations.push_back(component_concentration);
   // point #2
   component.setMetaValue("native_id","component");
   component.setMetaValue("peak_apex_int",2.0);
@@ -410,7 +410,7 @@ START_SECTION((void (
   component_concentration.actual_concentration = 2.0;
   component_concentration.IS_actual_concentration = 1.0;
   component_concentration.dilution_factor = 1.0;
-  component_concentrations.push_back(component_concentration);  
+  component_concentrations.push_back(component_concentration);
   // point #3
   component.setMetaValue("native_id","component");
   component.setMetaValue("peak_apex_int",3.0);
@@ -421,7 +421,7 @@ START_SECTION((void (
   component_concentration.actual_concentration = 3.0;
   component_concentration.IS_actual_concentration = 1.0;
   component_concentration.dilution_factor = 1.0;
-  component_concentrations.push_back(component_concentration);  
+  component_concentrations.push_back(component_concentration);
 
   String feature_name = "peak_apex_int";
 
@@ -430,8 +430,8 @@ START_SECTION((void (
   // x = (y - b)/m
   String transformation_model;
   Param param;
-  // transformation_model = "TransformationModelLinear"; 
-  transformation_model = "linear"; 
+  // transformation_model = "TransformationModelLinear";
+  transformation_model = "linear";
   param.setValue("slope",1.0);
   param.setValue("intercept",0.0);
   std::vector<double> biases;
@@ -439,15 +439,15 @@ START_SECTION((void (
 
   absquant.calculateBiasAndR(
     component_concentrations,
-    feature_name, 
-    transformation_model, 
+    feature_name,
+    transformation_model,
     param,
-    biases, 
+    biases,
     correlation_coefficient);
-  
-  TEST_REAL_SIMILAR(biases[0],0.0);  
-  TEST_REAL_SIMILAR(correlation_coefficient,1.0);  
-  
+
+  TEST_REAL_SIMILAR(biases[0],0.0);
+  TEST_REAL_SIMILAR(correlation_coefficient,1.0);
+
 END_SECTION
 
 START_SECTION((Param AbsoluteQuantitation::fitCalibration(
@@ -455,16 +455,16 @@ START_SECTION((Param AbsoluteQuantitation::fitCalibration(
     const String & feature_name,
     const String & transformation_model,
     const Param & transformation_model_params)))
-  
+
   AbsoluteQuantitation absquant;
 
   // TEST 1:
   static const double arrx1[] = {-1, -2, -3, 1, 2, 3};
   std::vector<double> x1 (arrx1, arrx1 + sizeof(arrx1) / sizeof(arrx1[0]) );
   static const double arry1[] = {1, 1, 1, 1, 1, 1};
-  std::vector<double> y1 (arry1, arry1 + sizeof(arry1) / sizeof(arry1[0]) ); 
+  std::vector<double> y1 (arry1, arry1 + sizeof(arry1) / sizeof(arry1[0]) );
   static const double arrz1[] = {-2, -4, -6, 2, 4, 6};
-  std::vector<double> z1 (arrz1, arrz1 + sizeof(arrz1) / sizeof(arrz1[0]) ); 
+  std::vector<double> z1 (arrz1, arrz1 + sizeof(arrz1) / sizeof(arrz1[0]) );
 
   // set-up the features
   std::vector<AbsoluteQuantitationStandards::featureConcentration> component_concentrations;
@@ -481,8 +481,8 @@ START_SECTION((Param AbsoluteQuantitation::fitCalibration(
     component_concentration.actual_concentration = z1[i];
     component_concentration.IS_actual_concentration = 1.0;
     component_concentration.dilution_factor = 1.0;
-    component_concentrations.push_back(component_concentration); 
-  }  
+    component_concentrations.push_back(component_concentration);
+  }
 
   String feature_name = "peak_apex_int";
   Param transformation_model_params;
@@ -490,8 +490,8 @@ START_SECTION((Param AbsoluteQuantitation::fitCalibration(
   transformation_model_params.setValue("x_datum_max", 1e12);
   transformation_model_params.setValue("y_datum_min", -1e12);
   transformation_model_params.setValue("y_datum_max", 1e12);
-  // String transformation_model = "TransformationModelLinear"; 
-  String transformation_model = "linear"; 
+  // String transformation_model = "TransformationModelLinear";
+  String transformation_model = "linear";
 
   Param param = absquant.fitCalibration(component_concentrations,
     feature_name,
@@ -505,9 +505,9 @@ START_SECTION((Param AbsoluteQuantitation::fitCalibration(
   static const double arrx2[] = {0.25,0.5,1,2,3,4,5,6};
   std::vector<double> x2 (arrx2, arrx2 + sizeof(arrx2) / sizeof(arrx2[0]) );
   static const double arry2[] = {1,1,1,1,1,1,1,1};
-  std::vector<double> y2 (arry2, arry2 + sizeof(arry2) / sizeof(arry2[0]) ); 
+  std::vector<double> y2 (arry2, arry2 + sizeof(arry2) / sizeof(arry2[0]) );
   static const double arrz2[] = {0.5,1,2,4,6,8,10,12};
-  std::vector<double> z2 (arrz2, arrz2 + sizeof(arrz2) / sizeof(arrz2[0]) ); 
+  std::vector<double> z2 (arrz2, arrz2 + sizeof(arrz2) / sizeof(arrz2[0]) );
 
   // set-up the features
   component_concentrations.clear();
@@ -522,8 +522,8 @@ START_SECTION((Param AbsoluteQuantitation::fitCalibration(
     component_concentration.actual_concentration = z2[i];
     component_concentration.IS_actual_concentration = 1.0;
     component_concentration.dilution_factor = 1.0;
-    component_concentrations.push_back(component_concentration); 
-  }  
+    component_concentrations.push_back(component_concentration);
+  }
 
   transformation_model_params.setValue("x_weight", "ln(x)");
   transformation_model_params.setValue("y_weight", "ln(y)");
@@ -544,14 +544,14 @@ START_SECTION((void optimizeCalibrationCurveIterative(
   const String & transformation_model,
   const Param & transformation_model_params,
   Param & optimized_params)))
-  
+
   AbsoluteQuantitation absquant;
 
   // TEST 1: ser-L
   std::vector<AbsoluteQuantitationStandards::featureConcentration> component_concentrations = make_serL_standards();
 
-  // set-up the class parameters 
-  Param absquant_params; 
+  // set-up the class parameters
+  Param absquant_params;
   absquant_params.setValue("min_points", 4);
   absquant_params.setValue("max_bias", 30.0);
   absquant_params.setValue("min_correlation_coefficient", 0.9);
@@ -612,16 +612,16 @@ START_SECTION((void optimizeCalibrationCurveIterative(
   TEST_REAL_SIMILAR(component_concentrations[0].actual_concentration, 0.02);
   TEST_REAL_SIMILAR(component_concentrations[3].actual_concentration, 8.0);
   TEST_REAL_SIMILAR(optimized_params.getValue("slope"), 0.623040824);
-  TEST_REAL_SIMILAR(optimized_params.getValue("intercept"), 0.36130172586);  
+  TEST_REAL_SIMILAR(optimized_params.getValue("intercept"), 0.36130172586);
 
 END_SECTION
 
 START_SECTION((void optimizeCalibrationCurves(AbsoluteQuantitationStandards::components_to_concentrations & components_concentrations)))
-  
+
   AbsoluteQuantitation absquant;
 
-  // set-up the class parameters 
-  Param absquant_params; 
+  // set-up the class parameters
+  Param absquant_params;
   absquant_params.setValue("min_points", 4);
   absquant_params.setValue("max_bias", 30.0);
   absquant_params.setValue("min_correlation_coefficient", 0.9);
@@ -630,12 +630,12 @@ START_SECTION((void optimizeCalibrationCurves(AbsoluteQuantitationStandards::com
   absquant_params.setValue("use_chauvenet", "false");
   absquant.setParameters(absquant_params);
 
-  // set up the quantitation method 
+  // set up the quantitation method
   AbsoluteQuantitationMethod aqm;
   String feature_name = "peak_apex_int";
   String transformation_model;
-  Param param; 
-  transformation_model = "linear";  
+  Param param;
+  transformation_model = "linear";
   param.setValue("slope",1.0);
   param.setValue("intercept",0.0);
   param.setValue("x_weight", "ln(x)");
@@ -653,13 +653,13 @@ START_SECTION((void optimizeCalibrationCurves(AbsoluteQuantitationStandards::com
   aqm.setISName("ser-L.ser-L_1.Heavy");
   aqm.setFeatureName(feature_name);
   aqm.setConcentrationUnits("uM");
-  quant_methods.push_back(aqm);  
+  quant_methods.push_back(aqm);
   // component_2
   aqm.setComponentName("amp.amp_1.Light");
   aqm.setISName("amp.amp_1.Heavy");
   aqm.setFeatureName(feature_name); // test IS outside component_group
   aqm.setConcentrationUnits("uM");
-  quant_methods.push_back(aqm); 
+  quant_methods.push_back(aqm);
   // component_3
   aqm.setComponentName("atp.atp_1.Light");
   aqm.setISName("atp.atp_1.Heavy");
@@ -681,30 +681,45 @@ START_SECTION((void optimizeCalibrationCurves(AbsoluteQuantitationStandards::com
   TEST_REAL_SIMILAR(components_concentrations["ser-L.ser-L_1.Light"][0].actual_concentration, 0.04);
   TEST_REAL_SIMILAR(components_concentrations["ser-L.ser-L_1.Light"][8].actual_concentration, 40.0);
   TEST_REAL_SIMILAR(quant_methods_map["ser-L.ser-L_1.Light"].getTransformationModelParams().getValue("slope"), 0.9011392589);
-  TEST_REAL_SIMILAR(quant_methods_map["ser-L.ser-L_1.Light"].getTransformationModelParams().getValue("intercept"), 1.87018507); 
-  TEST_REAL_SIMILAR(quant_methods_map["ser-L.ser-L_1.Light"].getCorrelationCoefficient(), 0.999320072); 
-  TEST_EQUAL(quant_methods_map["ser-L.ser-L_1.Light"].getLLOQ(), 0.04); 
-  TEST_EQUAL(quant_methods_map["ser-L.ser-L_1.Light"].getULOQ(), 200); 
-  TEST_EQUAL(quant_methods_map["ser-L.ser-L_1.Light"].getNPoints(), 11); 
+  TEST_REAL_SIMILAR(quant_methods_map["ser-L.ser-L_1.Light"].getTransformationModelParams().getValue("intercept"), 1.87018507);
+  TEST_REAL_SIMILAR(quant_methods_map["ser-L.ser-L_1.Light"].getCorrelationCoefficient(), 0.999320072);
+  TEST_EQUAL(quant_methods_map["ser-L.ser-L_1.Light"].getLLOQ(), 0.04);
+  TEST_EQUAL(quant_methods_map["ser-L.ser-L_1.Light"].getULOQ(), 200);
+  TEST_EQUAL(quant_methods_map["ser-L.ser-L_1.Light"].getNPoints(), 11);
 
   TEST_REAL_SIMILAR(components_concentrations["amp.amp_1.Light"][0].actual_concentration, 0.02);
   TEST_REAL_SIMILAR(components_concentrations["amp.amp_1.Light"][8].actual_concentration, 8.0);
   TEST_REAL_SIMILAR(quant_methods_map["amp.amp_1.Light"].getTransformationModelParams().getValue("slope"), 0.95799683);
-  TEST_REAL_SIMILAR(quant_methods_map["amp.amp_1.Light"].getTransformationModelParams().getValue("intercept"), -1.047543387); 
+  TEST_REAL_SIMILAR(quant_methods_map["amp.amp_1.Light"].getTransformationModelParams().getValue("intercept"), -1.047543387);
   TEST_REAL_SIMILAR(quant_methods_map["amp.amp_1.Light"].getCorrelationCoefficient(), 0.99916926);
-  TEST_EQUAL(quant_methods_map["amp.amp_1.Light"].getLLOQ(), 0.02); 
-  TEST_EQUAL(quant_methods_map["amp.amp_1.Light"].getULOQ(), 40.0); 
-  TEST_EQUAL(quant_methods_map["amp.amp_1.Light"].getNPoints(), 11); 
+  TEST_EQUAL(quant_methods_map["amp.amp_1.Light"].getLLOQ(), 0.02);
+  TEST_EQUAL(quant_methods_map["amp.amp_1.Light"].getULOQ(), 40.0);
+  TEST_EQUAL(quant_methods_map["amp.amp_1.Light"].getNPoints(), 11);
 
   TEST_REAL_SIMILAR(components_concentrations["atp.atp_1.Light"][0].actual_concentration, 0.02);
   TEST_REAL_SIMILAR(components_concentrations["atp.atp_1.Light"][3].actual_concentration, 8.0);
   TEST_REAL_SIMILAR(quant_methods_map["atp.atp_1.Light"].getTransformationModelParams().getValue("slope"), 0.623040824);
-  TEST_REAL_SIMILAR(quant_methods_map["atp.atp_1.Light"].getTransformationModelParams().getValue("intercept"), 0.36130172586); 
+  TEST_REAL_SIMILAR(quant_methods_map["atp.atp_1.Light"].getTransformationModelParams().getValue("intercept"), 0.36130172586);
   TEST_REAL_SIMILAR(quant_methods_map["atp.atp_1.Light"].getCorrelationCoefficient(), 0.998208402);
-  TEST_EQUAL(quant_methods_map["atp.atp_1.Light"].getLLOQ(), 0.02); 
-  TEST_EQUAL(quant_methods_map["atp.atp_1.Light"].getULOQ(), 40.0); 
-  TEST_EQUAL(quant_methods_map["atp.atp_1.Light"].getNPoints(), 6); 
+  TEST_EQUAL(quant_methods_map["atp.atp_1.Light"].getLLOQ(), 0.02);
+  TEST_EQUAL(quant_methods_map["atp.atp_1.Light"].getULOQ(), 40.0);
+  TEST_EQUAL(quant_methods_map["atp.atp_1.Light"].getNPoints(), 6);
 
+  components_concentrations.clear();
+  components_concentrations["ser-L.ser-L_1.Light"] = make_serL_standards();
+  absquant_params.setValue("min_points", 20); // so that an optimal calibration curve is not found, and the sorting is not saved
+  absquant.setParameters(absquant_params);
+  absquant.optimizeCalibrationCurves(components_concentrations);
+  quant_methods_map = absquant.getQuantMethodsAsMap();
+
+  TEST_REAL_SIMILAR(components_concentrations["ser-L.ser-L_1.Light"][0].actual_concentration, 0.01);
+  TEST_REAL_SIMILAR(components_concentrations["ser-L.ser-L_1.Light"][8].actual_concentration, 4.0);
+  TEST_REAL_SIMILAR(quant_methods_map["ser-L.ser-L_1.Light"].getTransformationModelParams().getValue("slope"), 0.9011392589);
+  TEST_REAL_SIMILAR(quant_methods_map["ser-L.ser-L_1.Light"].getTransformationModelParams().getValue("intercept"), 1.87018507);
+  TEST_REAL_SIMILAR(quant_methods_map["ser-L.ser-L_1.Light"].getCorrelationCoefficient(), 0.997143769417099);
+  TEST_EQUAL(quant_methods_map["ser-L.ser-L_1.Light"].getLLOQ(), 0.01);
+  TEST_EQUAL(quant_methods_map["ser-L.ser-L_1.Light"].getULOQ(), 200);
+  TEST_EQUAL(quant_methods_map["ser-L.ser-L_1.Light"].getNPoints(), 14);
 END_SECTION
 
 START_SECTION(void optimizeSingleCalibrationCurve(
@@ -808,13 +823,13 @@ END_SECTION
 START_SECTION((std::vector<AbsoluteQuantitationStandards::featureConcentration> extractComponents_(
       const std::vector<AbsoluteQuantitationStandards::featureConcentration> & component_concentrations,
       const std::vector<size_t>& component_concentrations_indices)))
-  
+
   AbsoluteQuantitation_test absquant;
   // make the components_concentrations
   static const double arrx1[] = { 1.1, 2.0, 3.3, 3.9, 4.9, 6.2  };
   std::vector<double> x1 (arrx1, arrx1 + sizeof(arrx1) / sizeof(arrx1[0]) );
   static const double arry1[] = { 0.9, 1.9, 3.0, 3.7, 5.2, 6.1  };
-  std::vector<double> y1 (arry1, arry1 + sizeof(arry1) / sizeof(arry1[0]) );  
+  std::vector<double> y1 (arry1, arry1 + sizeof(arry1) / sizeof(arry1[0]) );
   // set-up the features
   std::vector<AbsoluteQuantitationStandards::featureConcentration> component_concentrations;
   AbsoluteQuantitationStandards::featureConcentration component_concentration;
@@ -830,8 +845,8 @@ START_SECTION((std::vector<AbsoluteQuantitationStandards::featureConcentration> 
     component_concentration.actual_concentration = x1[i];
     component_concentration.IS_actual_concentration = 1.0;
     component_concentration.dilution_factor = 1.0;
-    component_concentrations.push_back(component_concentration); 
-  }  
+    component_concentrations.push_back(component_concentration);
+  }
 
   // make the indices to extract
   static const size_t arrx2[] = { 0, 1, 3  };
@@ -842,7 +857,7 @@ START_SECTION((std::vector<AbsoluteQuantitationStandards::featureConcentration> 
 
   TEST_EQUAL(component_concentrations_sub[0].feature.getMetaValue("native_id"), "component0");
   TEST_REAL_SIMILAR(component_concentrations_sub[0].actual_concentration, 1.1);
-  
+
   TEST_EQUAL(component_concentrations_sub[1].feature.getMetaValue("native_id"), "component1");
   TEST_REAL_SIMILAR(component_concentrations_sub[1].actual_concentration, 2.0);
 
@@ -856,13 +871,13 @@ START_SECTION((int jackknifeOutlierCandidate_(
       const String & feature_name,
       const String & transformation_model,
       const Param & transformation_model_params)))
-  
+
   AbsoluteQuantitation_test absquant;
 
   static const double arrx1[] = { 1.1, 2.0,3.3,3.9,4.9,6.2  };
   std::vector<double> x1 (arrx1, arrx1 + sizeof(arrx1) / sizeof(arrx1[0]) );
   static const double arry1[] = { 0.9, 1.9,3.0,3.7,5.2,6.1  };
-  std::vector<double> y1 (arry1, arry1 + sizeof(arry1) / sizeof(arry1[0]) );  
+  std::vector<double> y1 (arry1, arry1 + sizeof(arry1) / sizeof(arry1[0]) );
   // set-up the features
   std::vector<AbsoluteQuantitationStandards::featureConcentration> component_concentrations;
   AbsoluteQuantitationStandards::featureConcentration component_concentration;
@@ -878,8 +893,8 @@ START_SECTION((int jackknifeOutlierCandidate_(
     component_concentration.actual_concentration = x1[i];
     component_concentration.IS_actual_concentration = 1.0;
     component_concentration.dilution_factor = 1.0;
-    component_concentrations.push_back(component_concentration); 
-  }  
+    component_concentrations.push_back(component_concentration);
+  }
 
   String feature_name = "peak_apex_int";
 
@@ -887,8 +902,8 @@ START_SECTION((int jackknifeOutlierCandidate_(
   // y = m*x + b
   // x = (y - b)/m
   Param transformation_model_params;
- //   String transformation_model = "TransformationModelLinear"; 
-  String transformation_model = "linear"; 
+ //   String transformation_model = "TransformationModelLinear";
+  String transformation_model = "linear";
 
   int c1 = absquant.jackknifeOutlierCandidate_(
     component_concentrations,
@@ -913,8 +928,8 @@ START_SECTION((int jackknifeOutlierCandidate_(
     component_concentration.actual_concentration = x2[i];
     component_concentration.IS_actual_concentration = 1.0;
     component_concentration.dilution_factor = 1.0;
-    component_concentrations.push_back(component_concentration); 
-  }  
+    component_concentrations.push_back(component_concentration);
+  }
 
   int c2 = absquant.jackknifeOutlierCandidate_(
     component_concentrations,
@@ -930,13 +945,13 @@ START_SECTION((int residualOutlierCandidate_(
   const String & feature_name,
   const String & transformation_model,
   const Param & transformation_model_params)))
-  
+
   AbsoluteQuantitation_test absquant;
 
   static const double arrx1[] = { 1.1, 2.0,3.3,3.9,4.9,6.2  };
   std::vector<double> x1 (arrx1, arrx1 + sizeof(arrx1) / sizeof(arrx1[0]) );
   static const double arry1[] = { 0.9, 1.9,3.0,3.7,5.2,6.1  };
-  std::vector<double> y1 (arry1, arry1 + sizeof(arry1) / sizeof(arry1[0]) );  
+  std::vector<double> y1 (arry1, arry1 + sizeof(arry1) / sizeof(arry1[0]) );
   // set-up the features
   std::vector<AbsoluteQuantitationStandards::featureConcentration> component_concentrations;
   AbsoluteQuantitationStandards::featureConcentration component_concentration;
@@ -952,8 +967,8 @@ START_SECTION((int residualOutlierCandidate_(
     component_concentration.actual_concentration = x1[i];
     component_concentration.IS_actual_concentration = 1.0;
     component_concentration.dilution_factor = 1.0;
-    component_concentrations.push_back(component_concentration); 
-  }  
+    component_concentrations.push_back(component_concentration);
+  }
 
   String feature_name = "peak_apex_int";
 
@@ -961,8 +976,8 @@ START_SECTION((int residualOutlierCandidate_(
   // y = m*x + b
   // x = (y - b)/m
   Param transformation_model_params;
-  // String transformation_model = "TransformationModelLinear"; 
-  String transformation_model = "linear"; 
+  // String transformation_model = "TransformationModelLinear";
+  String transformation_model = "linear";
 
   int c1 = absquant.residualOutlierCandidate_(
     component_concentrations,
@@ -987,8 +1002,8 @@ START_SECTION((int residualOutlierCandidate_(
     component_concentration.actual_concentration = x2[i];
     component_concentration.IS_actual_concentration = 1.0;
     component_concentration.dilution_factor = 1.0;
-    component_concentrations.push_back(component_concentration); 
-  }  
+    component_concentrations.push_back(component_concentration);
+  }
 
   int c2 = absquant.residualOutlierCandidate_(
     component_concentrations,
