@@ -806,6 +806,10 @@ START_SECTION((String& removeWhitespaces()))
 
 	s.removeWhitespaces();
 	TEST_EQUAL(s,"");
+  
+  s = " \t \n ";
+  s.removeWhitespaces();
+  TEST_EQUAL(s, "");
 
 	s = "test";
 	s.removeWhitespaces();
