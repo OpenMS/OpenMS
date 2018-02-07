@@ -98,9 +98,9 @@
     # include the ubuntu universe repository and update
     sudo apt-get install build-essential cmake autoconf patch libtool git automake
     sudo apt-get install qtbase5-dev libqt5svg5-dev libboost-regex-dev libboost-iostreams-dev \
-      libboost-date-time-dev libboost-math-dev libboost-random-dev libsvm-dev libwildmagic-dev\
+      libboost-date-time-dev libboost-math-dev libboost-random-dev libsvm-dev\
       libglpk-dev zlib1g-dev libxerces-c-dev seqan-dev libbz2-dev coinor-libcoinmp-dev
-      # Use from contrib: EIGEN; SQLITE
+      # Use from contrib: EIGEN; SQLITE; WILDMAGIC (since libwildmagic-dev is buggy)
     </pre></td>
   </tr>
   <tr>
