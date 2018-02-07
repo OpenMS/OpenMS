@@ -300,13 +300,13 @@ def testIsotopeDistribution():
     @tests:
      IsotopeDistribution.__init__
     """
-    ins = pyopenms.IsotopeDistribution()
+    ins = pyopenms.CoarseIsotopeDistribution()
 
     ins.setMaxIsotope(5)
     ins.getMaxIsotope()
     ins.getMax()
     ins.getMin()
-    ins.size()
+    # ins.size()
     ins.clear()
     ins.estimateFromPeptideWeight(500)
     ins.renormalize()
@@ -334,7 +334,7 @@ def testEmpiricalFormula():
 
     ins.getMonoWeight()
     ins.getAverageWeight()
-    ins.getIsotopeDistribution(1)
+    ins.getIsotopeDistribution(CoarseIsotopeDistribution(1))
     # ins.getNumberOf(0)
     # ins.getNumberOf(b"test")
     ins.getNumberOfAtoms()

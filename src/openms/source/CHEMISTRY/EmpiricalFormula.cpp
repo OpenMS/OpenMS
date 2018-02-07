@@ -191,6 +191,11 @@ namespace OpenMS
     return *solver;
   }
 
+  IsotopeDistribution EmpiricalFormula::getIsotopeDistribution(CoarseIsotopeDistribution* coarse_solver) const
+  {
+    return this->getIsotopeDistribution((IsotopePatternGenerator*)coarse_solver);
+  }
+
   IsotopeDistribution EmpiricalFormula::getConditionalFragmentIsotopeDist(const EmpiricalFormula& precursor, const std::set<UInt>& precursor_isotopes) const
   {
     // A fragment's isotopes can only be as high as the largest isolated precursor isotope.

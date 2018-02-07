@@ -2,7 +2,17 @@ from libcpp cimport bool
 from Types cimport *
 from String cimport *
 from Element cimport *
-from IsotopeDistribution cimport *
+from smart_ptr cimport shared_ptr
+# from IsotopeDistribution cimport *
+from IsotopePatternGenerator cimport *
+
+
+
+# cdef cppclass IsotopeDistribution:
+#     pass
+
+# cdef cppclass CoarseIsotopeDistribution:
+#     pass
 
 cdef extern from "<OpenMS/CHEMISTRY/EmpiricalFormula.h>" namespace "OpenMS":
 
@@ -33,8 +43,10 @@ cdef extern from "<OpenMS/CHEMISTRY/EmpiricalFormula.h>" namespace "OpenMS":
         # @brief returns the isotope distribution of the formula
         #   *	The details of the calculation of the isotope distribution
         #   * are described in the doc to the IsotopeDistribution class.
-        #   *	@param max_depth: this parameter gives the max isotope which is considered, if 0 all are reported
-        IsotopeDistribution getIsotopeDistribution(UInt max_depth) nogil except +
+        #   *	@param method: interface to the isotope distribution calculation method
+        # IsotopeDistribution getIsotopeDistribution(IsotopePatternGenerator* method) nogil except + # wrap-ignore
+        IsotopeDistribution getIsotopeDistribution(CoarseIsotopeDistribution* method) nogil except + 
+
 
         # @brief returns the fragment isotope distribution of this conditioned
         # on a precursor formula and a list of isolated precursor isotopes.

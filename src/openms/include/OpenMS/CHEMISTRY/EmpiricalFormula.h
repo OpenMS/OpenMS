@@ -49,6 +49,7 @@ namespace OpenMS
   class ElementDB;
   class IsotopeDistribution;
   class IsotopePatternGenerator;
+  class CoarseIsotopeDistribution;
   /**
     @ingroup Chemistry
 
@@ -169,9 +170,11 @@ public:
       The details of the calculation of the isotope distribution
       are described in the doc to the IsotopeDistribution class.
 
-      @param max_depth: the maximum isotope which is considered, if 0 all are reported
+      @param method: the maximum isotope which is considered, if 0 all are reported
     */
-    IsotopeDistribution getIsotopeDistribution(IsotopePatternGenerator*) const;
+    IsotopeDistribution getIsotopeDistribution(IsotopePatternGenerator* method) const;
+
+    IsotopeDistribution getIsotopeDistribution(CoarseIsotopeDistribution* coarse_solver) const;
 
     /**
       @brief returns the fragment isotope distribution of this given a precursor formula
