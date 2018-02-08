@@ -100,7 +100,7 @@ namespace OpenMS
 
   void Spectrum3DOpenGLCanvas::transformPoint_(GLdouble out[4], const GLdouble m[16], const GLdouble in[4])
   {
-  #define M(row,col)  m[col*4+row]	  
+  #define M(row,col)  m[col*4+row]
     out[0] = M(0, 0) * in[0] + M(0, 1) * in[1] + M(0, 2) * in[2] + M(0, 3) * in[3];
     out[1] = M(1, 0) * in[0] + M(1, 1) * in[1] + M(1, 2) * in[2] + M(1, 3) * in[3];
     out[2] = M(2, 0) * in[0] + M(2, 1) * in[1] + M(2, 2) * in[2] + M(2, 3) * in[3];
