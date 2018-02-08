@@ -253,8 +253,8 @@ namespace OpenMS
     menuBar()->addMenu(windows);
     windows->addAction("&Cascade", this->ws_, SLOT(cascadeSubWindows()));
     windows->addAction("&Tile automatic", this->ws_, SLOT(tileSubWindows()));
-    windows->addAction(QIcon(":/tile_horizontal.png"), "Tile &vertical", this, SLOT(tileHorizontal()));
-    windows->addAction(QIcon(":/tile_vertical.png"), "Tile &horizontal", this, SLOT(tileVertical()));
+    windows->addAction(QIcon(":/tile_horizontal.png"), "Tile &vertical", this, SLOT(tileVertical()));
+    windows->addAction(QIcon(":/tile_vertical.png"), "Tile &horizontal", this, SLOT(tileHorizontal()));
     linkZoom_action_ = windows->addAction("Link &Zoom", this, SLOT(linkZoom()));
     windows->addSeparator();
 
@@ -2204,12 +2204,14 @@ namespace OpenMS
     }
   }
 
-  void TOPPViewBase::tileVertical()
+  void TOPPViewBase::tileHorizontal()
   {
     // primitive horizontal tiling
     QList<QMdiSubWindow *> windows = ws_->subWindowList();
     if (!windows.count())
+    {
       return;
+    }
 
     if (getActive1DWidget())
     {
@@ -2240,9 +2242,9 @@ namespace OpenMS
     }
   }
 
-  void TOPPViewBase::tileHorizontal()
+  void TOPPViewBase::tileVertical()
   {
-    // primitive horizontal tiling
+    // primitive vertical tiling
     QList<QMdiSubWindow *> windows = ws_->subWindowList();
     if (!windows.count())
     {
