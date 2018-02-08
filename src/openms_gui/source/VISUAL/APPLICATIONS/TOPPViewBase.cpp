@@ -2351,13 +2351,16 @@ namespace OpenMS
       // go through all windows, adjust the visible area where necessary
       for (int i = 0; i < int(windows.count()); ++i)
       {
-        QWidget* window = windows.at(i);
         DRange<2> visible_area;
-        SpectrumWidget* specwidg = qobject_cast<SpectrumWidget*>(window);
+
+        QMdiSubWindow* window = windows.at(i);
+        SpectrumWidget* specwidg = qobject_cast<SpectrumWidget*>(window->widget());
 
         // Skip if its not a SpectrumWidget, if it is not a chromatogram or if the dimensions don't match.
         if (!specwidg)
+        {
           continue;
+        }
         if (!(specwidg->canvas()->getCurrentLayer().type == LayerData::DT_CHROMATOGRAM) &&
             !(specwidg->canvas()->getCurrentLayer().getPeakData()->size() > 0 &&
               specwidg->canvas()->getCurrentLayer().getPeakData()->metaValueExists("is_chromatogram") &&
@@ -2375,7 +2378,7 @@ namespace OpenMS
         visible_area = specwidg->canvas()->getVisibleArea();
 
         // if we found a min/max RT, change all windows of 1 dimension
-        if (minRT != -1 && maxRT != -1 && qobject_cast<Spectrum1DWidget*>(window))
+        if (minRT != -1 && maxRT != -1 && qobject_cast<Spectrum1DWidget*>(window->widget()))
         {
           visible_area.setMinX(minRT);
           visible_area.setMaxX(maxRT);
@@ -2389,12 +2392,15 @@ namespace OpenMS
       // go through all windows, adjust the visible area where necessary
       for (int i = 0; i < int(windows.count()); ++i)
       {
-        QWidget* window = windows.at(i);
-        SpectrumWidget* specwidg = qobject_cast<SpectrumWidget*>(window);
+
+        QMdiSubWindow* window = windows.at(i);
+        SpectrumWidget* specwidg = qobject_cast<SpectrumWidget*>(window->widget());
 
         // Skip if its not a SpectrumWidget, if it is a chromatogram or if the dimensions don't match.
         if (!specwidg)
+        {
           continue;
+        }
         if ((specwidg->canvas()->getCurrentLayer().type == LayerData::DT_CHROMATOGRAM) ||
             (specwidg->canvas()->getCurrentLayer().getPeakData()->size() > 0 &&
              specwidg->canvas()->getCurrentLayer().getPeakData()->metaValueExists("is_chromatogram") &&
@@ -2410,7 +2416,6 @@ namespace OpenMS
         }
         specwidg->canvas()->setVisibleArea(new_visible_area);
       }
-      return;
     }
 
   }
