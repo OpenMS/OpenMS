@@ -253,8 +253,8 @@ namespace OpenMS
     menuBar()->addMenu(windows);
     windows->addAction("&Cascade", this->ws_, SLOT(cascadeSubWindows()));
     windows->addAction("&Tile automatic", this->ws_, SLOT(tileSubWindows()));
-    windows->addAction(QIcon(":/tile_horizontal.png"), "Tile &vertical", this, SLOT(tileVertical()));
-    windows->addAction(QIcon(":/tile_vertical.png"), "Tile &horizontal", this, SLOT(tileHorizontal()));
+    windows->addAction(QIcon(":/tile_vertical.png"), "Tile &vertical", this, SLOT(tileVertical()));
+    windows->addAction(QIcon(":/tile_horizontal.png"), "Tile &horizontal", this, SLOT(tileHorizontal()));
     linkZoom_action_ = windows->addAction("Link &Zoom", this, SLOT(linkZoom()));
     windows->addSeparator();
 
