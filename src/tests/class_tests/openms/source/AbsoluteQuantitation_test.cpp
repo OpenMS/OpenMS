@@ -39,12 +39,10 @@
 #include <OpenMS/METADATA/AbsoluteQuantitationStandards.h>
 
 ///////////////////////////
-
 #include <OpenMS/ANALYSIS/QUANTITATION/AbsoluteQuantitation.h>
 
 using namespace OpenMS;
 using namespace std;
-
 ///////////////////////////
 
 std::vector<AbsoluteQuantitationStandards::featureConcentration> make_serL_standards()
