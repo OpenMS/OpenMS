@@ -626,19 +626,24 @@ namespace OpenMS
 
         // record the updated information
         component_aqm.setCorrelationCoefficient(correlation_coefficient);
-        struct less_AQSfc_act_conc {
-          bool operator() (
+        std::vector<AbsoluteQuantitationStandards::featureConcentration>::const_iterator it;
+        it = std::min_element(cc[component_name].begin(), cc[component_name].end(), [](
             const AbsoluteQuantitationStandards::featureConcentration& lhs,
             const AbsoluteQuantitationStandards::featureConcentration& rhs
           )
           {
             return lhs.actual_concentration < rhs.actual_concentration;
           }
-        } less_AQSfc_act_conc;
-        std::vector<AbsoluteQuantitationStandards::featureConcentration>::const_iterator it;
-        it = std::min_element(cc[component_name].begin(), cc[component_name].end(), less_AQSfc_act_conc);
+        );
         component_aqm.setLLOQ(it->actual_concentration);
-        it = std::max_element(cc[component_name].begin(), cc[component_name].end(), less_AQSfc_act_conc);
+        it = std::max_element(cc[component_name].begin(), cc[component_name].end(), [](
+            const AbsoluteQuantitationStandards::featureConcentration& lhs,
+            const AbsoluteQuantitationStandards::featureConcentration& rhs
+          )
+          {
+            return lhs.actual_concentration < rhs.actual_concentration;
+          }
+        );
         component_aqm.setULOQ(it->actual_concentration);
         component_aqm.setTransformationModelParams(optimized_params);
         component_aqm.setNPoints(cc[component_name].size());
