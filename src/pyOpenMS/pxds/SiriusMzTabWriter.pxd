@@ -10,7 +10,7 @@ cdef extern from "<OpenMS/FORMAT/DATAACCESS/SiriusMzTabWriter.h>" namespace "Ope
         SiriusMzTabWriter() nogil except + 
         SiriusMzTabWriter(SiriusMzTabWriter) nogil except + #wrap-ignore
         String extract_scan_index(String & path) nogil except +
-        void read(libcpp_vector[ String ] & paths, Size number, MzTab & result) nogil except +
+        void read(libcpp_vector[String] sirius_output_paths, String original_input_mzml, Size top_n_hits, MzTab & result) nogil except +
 
 
 cdef extern from "<OpenMS/FORMAT/DATAACCESS/SiriusMzTabWriter.h>" namespace "OpenMS::SiriusMzTabWriter":

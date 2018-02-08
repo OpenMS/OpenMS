@@ -112,7 +112,8 @@ public:
     static const SparseVectorType EmptySparseVector;
 
     /// default constructor
-    BinnedSpectrum() = delete;
+    // BinnedSpectrum() = delete;
+    BinnedSpectrum() {}
 
     /// detailed constructor
     BinnedSpectrum(const PeakSpectrum& ps, float size, bool unit_ppm, UInt spread);
