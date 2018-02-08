@@ -2212,15 +2212,19 @@ namespace OpenMS
       return;
 
     if (getActive1DWidget())
+    {
       getActive1DWidget()->showNormal();
+    }
     if (getActive2DWidget())
+    {
       getActive2DWidget()->showNormal();
+    }
 
     int heightForEach = ws_->height() / windows.count();
     int y = 0;
     for (int i = 0; i < int(windows.count()); ++i)
     {
-      QWidget* window = windows.at(i);
+      QMdiSubWindow* window = windows.at(i);
       if (window->isMaximized() || window->isFullScreen())
       {
         // prevent flicker
@@ -2228,10 +2232,10 @@ namespace OpenMS
         window->setWindowState(Qt::WindowNoState);
         window->show();
       }
-      int preferredHeight = window->minimumHeight() + window->parentWidget()->baseSize().height();
+      int preferredHeight = window->widget()->minimumHeight() + window->baseSize().height();
       int actHeight = std::max(heightForEach, preferredHeight);
 
-      window->parentWidget()->setGeometry(0, y, ws_->width(), actHeight);
+      window->setGeometry(0, y, ws_->width(), actHeight);
       y += actHeight;
     }
   }
@@ -2241,29 +2245,34 @@ namespace OpenMS
     // primitive horizontal tiling
     QList<QMdiSubWindow *> windows = ws_->subWindowList();
     if (!windows.count())
+    {
       return;
+    }
 
     if (getActive1DWidget())
+    {
       getActive1DWidget()->showNormal();
+    }
     if (getActive2DWidget())
+    {
       getActive2DWidget()->showNormal();
+    }
 
     int widthForEach = ws_->width() / windows.count();
     int y = 0;
     for (int i = 0; i < int(windows.count()); ++i)
     {
-      QWidget* window = windows.at(i);
+      QMdiSubWindow* window = windows.at(i);
       if (window->windowState() & Qt::WindowMaximized)
       {
         // prevent flicker
         window->hide();
         window->showNormal();
       }
-      int preferredWidth = window->minimumWidth() + window->parentWidget()->baseSize().width();
-
+      int preferredWidth = window->widget()->minimumWidth() + window->baseSize().width();
       int actWidth = std::max(widthForEach, preferredWidth);
 
-      window->parentWidget()->setGeometry(y, 0, actWidth, ws_->height());
+      window->setGeometry(y, 0, actWidth, ws_->height());
       y += actWidth;
     }
   }
