@@ -37,9 +37,11 @@
 
 
 #include <OpenMS/ANALYSIS/QUANTITATION/AbsoluteQuantitationMethod.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/FORMAT/CsvFile.h>
 #include <map>
 #include <fstream>
+#include <boost/regex.hpp>
 
 namespace OpenMS
 {
@@ -82,32 +84,27 @@ public:
 
 protected:
     /**
-      @brief Checks if a file is valid with respect to the mapping file and the controlled vocabulary.
-
-      @param[in,out] line Header line of the .csv file.
-      @param[out] headers A map of header strings to column positions.
-      @param[out] params_headers A map of transformation model parameter header strings to column positions.
-    */
-    void parseHeader_(
-      StringList & line,
-      std::map<String, Int> & headers,
-      std::map<String, Int> & params_headers
-    ) const;
-
-    /**
       @brief Parses a line into the members of AbsoluteQuantitationMethod.
 
-      @param[in] line line of the .csv file.
+      @param[in] line A line of the .csv file.
       @param[in] headers A map of header strings to column positions.
-      @param[in] params_headers A map of transformation model parameter header strings to column positions.
       @param[out] aqm AbsoluteQuantitationMethod.
     */
     void parseLine_(
       const StringList & line,
-      const std::map<String, Int> & headers,
-      const std::map<String, Int> & params_headers,
+      const std::map<String, Size> & headers,
       AbsoluteQuantitationMethod & aqm
     ) const;
+
+    /**
+      @brief Helper method which takes care of converting the given value to the desired type,
+      based on the header (here `key`) information.
+
+      @param[in] key The header name with which the correct conversion is chosen
+      @param[in] value The value to be converted
+      @param[in,out] params The object where the new value is saved
+    */
+    void setCastValue_(const String& key, const String& value, Param& params) const;
 
   };
 
