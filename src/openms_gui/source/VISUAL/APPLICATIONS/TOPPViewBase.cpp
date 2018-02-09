@@ -253,8 +253,8 @@ namespace OpenMS
     menuBar()->addMenu(windows);
     windows->addAction("&Cascade", this->ws_, SLOT(cascadeSubWindows()));
     windows->addAction("&Tile automatic", this->ws_, SLOT(tileSubWindows()));
-    windows->addAction(QIcon(":/tile_horizontal.png"), "Tile &vertical", this, SLOT(tileHorizontal()));
-    windows->addAction(QIcon(":/tile_vertical.png"), "Tile &horizontal", this, SLOT(tileVertical()));
+    windows->addAction(QIcon(":/tile_vertical.png"), "Tile &vertical", this, SLOT(tileVertical()));
+    windows->addAction(QIcon(":/tile_horizontal.png"), "Tile &horizontal", this, SLOT(tileHorizontal()));
     linkZoom_action_ = windows->addAction("Link &Zoom", this, SLOT(linkZoom()));
     windows->addSeparator();
 
@@ -2204,23 +2204,29 @@ namespace OpenMS
     }
   }
 
-  void TOPPViewBase::tileVertical()
+  void TOPPViewBase::tileHorizontal()
   {
     // primitive horizontal tiling
     QList<QMdiSubWindow *> windows = ws_->subWindowList();
     if (!windows.count())
+    {
       return;
+    }
 
     if (getActive1DWidget())
+    {
       getActive1DWidget()->showNormal();
+    }
     if (getActive2DWidget())
+    {
       getActive2DWidget()->showNormal();
+    }
 
     int heightForEach = ws_->height() / windows.count();
     int y = 0;
     for (int i = 0; i < int(windows.count()); ++i)
     {
-      QWidget* window = windows.at(i);
+      QMdiSubWindow* window = windows.at(i);
       if (window->isMaximized() || window->isFullScreen())
       {
         // prevent flicker
@@ -2228,42 +2234,47 @@ namespace OpenMS
         window->setWindowState(Qt::WindowNoState);
         window->show();
       }
-      int preferredHeight = window->minimumHeight() + window->parentWidget()->baseSize().height();
+      int preferredHeight = window->widget()->minimumHeight() + window->baseSize().height();
       int actHeight = std::max(heightForEach, preferredHeight);
 
-      window->parentWidget()->setGeometry(0, y, ws_->width(), actHeight);
+      window->setGeometry(0, y, ws_->width(), actHeight);
       y += actHeight;
     }
   }
 
-  void TOPPViewBase::tileHorizontal()
+  void TOPPViewBase::tileVertical()
   {
-    // primitive horizontal tiling
+    // primitive vertical tiling
     QList<QMdiSubWindow *> windows = ws_->subWindowList();
     if (!windows.count())
+    {
       return;
+    }
 
     if (getActive1DWidget())
+    {
       getActive1DWidget()->showNormal();
+    }
     if (getActive2DWidget())
+    {
       getActive2DWidget()->showNormal();
+    }
 
     int widthForEach = ws_->width() / windows.count();
     int y = 0;
     for (int i = 0; i < int(windows.count()); ++i)
     {
-      QWidget* window = windows.at(i);
+      QMdiSubWindow* window = windows.at(i);
       if (window->windowState() & Qt::WindowMaximized)
       {
         // prevent flicker
         window->hide();
         window->showNormal();
       }
-      int preferredWidth = window->minimumWidth() + window->parentWidget()->baseSize().width();
-
+      int preferredWidth = window->widget()->minimumWidth() + window->baseSize().width();
       int actWidth = std::max(widthForEach, preferredWidth);
 
-      window->parentWidget()->setGeometry(y, 0, actWidth, ws_->height());
+      window->setGeometry(y, 0, actWidth, ws_->height());
       y += actWidth;
     }
   }
@@ -2351,13 +2362,16 @@ namespace OpenMS
       // go through all windows, adjust the visible area where necessary
       for (int i = 0; i < int(windows.count()); ++i)
       {
-        QWidget* window = windows.at(i);
         DRange<2> visible_area;
-        SpectrumWidget* specwidg = qobject_cast<SpectrumWidget*>(window);
+
+        QMdiSubWindow* window = windows.at(i);
+        SpectrumWidget* specwidg = qobject_cast<SpectrumWidget*>(window->widget());
 
         // Skip if its not a SpectrumWidget, if it is not a chromatogram or if the dimensions don't match.
         if (!specwidg)
+        {
           continue;
+        }
         if (!(specwidg->canvas()->getCurrentLayer().type == LayerData::DT_CHROMATOGRAM) &&
             !(specwidg->canvas()->getCurrentLayer().getPeakData()->size() > 0 &&
               specwidg->canvas()->getCurrentLayer().getPeakData()->metaValueExists("is_chromatogram") &&
@@ -2375,7 +2389,7 @@ namespace OpenMS
         visible_area = specwidg->canvas()->getVisibleArea();
 
         // if we found a min/max RT, change all windows of 1 dimension
-        if (minRT != -1 && maxRT != -1 && qobject_cast<Spectrum1DWidget*>(window))
+        if (minRT != -1 && maxRT != -1 && qobject_cast<Spectrum1DWidget*>(window->widget()))
         {
           visible_area.setMinX(minRT);
           visible_area.setMaxX(maxRT);
@@ -2389,12 +2403,15 @@ namespace OpenMS
       // go through all windows, adjust the visible area where necessary
       for (int i = 0; i < int(windows.count()); ++i)
       {
-        QWidget* window = windows.at(i);
-        SpectrumWidget* specwidg = qobject_cast<SpectrumWidget*>(window);
+
+        QMdiSubWindow* window = windows.at(i);
+        SpectrumWidget* specwidg = qobject_cast<SpectrumWidget*>(window->widget());
 
         // Skip if its not a SpectrumWidget, if it is a chromatogram or if the dimensions don't match.
         if (!specwidg)
+        {
           continue;
+        }
         if ((specwidg->canvas()->getCurrentLayer().type == LayerData::DT_CHROMATOGRAM) ||
             (specwidg->canvas()->getCurrentLayer().getPeakData()->size() > 0 &&
              specwidg->canvas()->getCurrentLayer().getPeakData()->metaValueExists("is_chromatogram") &&
@@ -2410,7 +2427,6 @@ namespace OpenMS
         }
         specwidg->canvas()->setVisibleArea(new_visible_area);
       }
-      return;
     }
 
   }
