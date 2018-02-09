@@ -82,7 +82,7 @@ protected:
     void setDefaultParams_();
 
     /// implemented for DefaultParamHandler
-    void updateMembers_();
+    void updateMembers_() override;
 
 private:
     /// Stats of current quantitation run.

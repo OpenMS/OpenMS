@@ -100,20 +100,20 @@ public:
   }
 
 protected:
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     TOPPFeatureLinkerBase::registerOptionsAndFlags_();
     registerSubsection_("algorithm", "Algorithm parameters section");
   }
 
-  Param getSubsectionDefaults_(const String & /*section*/) const
+  Param getSubsectionDefaults_(const String & /*section*/) const override
   {
     FeatureGroupingAlgorithmUnlabeled algo;
     Param p = algo.getParameters();
     return p;
   }
 
-  ExitCodes main_(int, const char **)
+  ExitCodes main_(int, const char **) override
   {
     FeatureGroupingAlgorithmUnlabeled * algorithm = new FeatureGroupingAlgorithmUnlabeled();
 

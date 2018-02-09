@@ -190,7 +190,7 @@ public:
 
 protected:
 
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "Input file: LC-MS raw data");
     setValidFormats_("in", ListUtils::create<String>("mzML"));
@@ -885,7 +885,7 @@ protected:
       throw Exception::MissingInformation(__FILE__, __LINE__, 
                                           OPENMS_PRETTY_FUNCTION, msg);
     }
-    srand(time(0)); // seed random number generator
+    srand(time(nullptr)); // seed random number generator
     Size n_obs[2] = {0, 0}; // counters for neg./pos. observations
     Size counts[2] = {0, 0}; // pos./neg. counts in current window
     // iterators to begin, middle and past-the-end of sliding window:
@@ -1291,7 +1291,7 @@ protected:
   }
 
 
-  ExitCodes main_(int, const char**)
+  ExitCodes main_(int, const char**) override
   {
     FeatureMap features;
     PeptideMap peptide_map;

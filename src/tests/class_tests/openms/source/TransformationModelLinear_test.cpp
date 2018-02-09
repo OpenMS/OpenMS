@@ -50,8 +50,8 @@ START_TEST(TransformationModelLinear, "$Id$")
 using namespace OpenMS;
 using namespace std;
 
-TransformationModelLinear* ptr = 0;
-TransformationModelLinear* nullPointer = 0;
+TransformationModelLinear* ptr = nullptr;
+TransformationModelLinear* nullPointer = nullptr;
 
 TransformationModel::DataPoints data, empty;
 TransformationModel::DataPoint point;

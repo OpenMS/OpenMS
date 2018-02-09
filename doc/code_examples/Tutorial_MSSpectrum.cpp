@@ -27,32 +27,43 @@
 // OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
+// --------------------------------------------------------------------------
+// $Maintainer: Petra Gutenbrunner $
+// $Authors: Petra Gutenbrunner $
+// --------------------------------------------------------------------------
+
+//! [MSSpectrum]
 
 #include <OpenMS/KERNEL/MSSpectrum.h>
-#include <iostream>
 
 using namespace OpenMS;
 using namespace std;
 
-Int main()
+int main()
 {
+  // Create spectrum
   MSSpectrum spectrum;
   Peak1D peak;
-
   for (float mz = 1500.0; mz >= 500; mz -= 100.0)
   {
     peak.setMZ(mz);
     spectrum.push_back(peak);
   }
 
+  // Sort the peaks according to ascending mass-to-charge ratio
   spectrum.sortByPosition();
 
-  // iterate between range
-  MSSpectrum::Iterator it;
-  for (it = spectrum.MZBegin(800.0); it != spectrum.MZEnd(1000.0); ++it)
+  // Iterate over spectrum of those peaks between 800 and 1000 Thomson
+  for (auto it = spectrum.MZBegin(800.0); it != spectrum.MZEnd(1000.0); ++it)
   {
     cout << it->getMZ() << endl;
   }
+ 
+  // Access a peak by index
+  cout << spectrum[1].getMZ() << " " << spectrum[1].getIntensity() << endl;
 
+  // ... and many more
   return 0;
-} //end of main
+}
+
+//! [MSSpectrum]

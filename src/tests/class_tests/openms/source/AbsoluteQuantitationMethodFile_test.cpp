@@ -28,8 +28,8 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Douglas McCloskey $
-// $Authors: Douglas McCloskey $
+// $Maintainer: Douglas McCloskey, Pasquale Domenico Colaianni $
+// $Authors: Douglas McCloskey, Pasquale Domenico Colaianni $
 // --------------------------------------------------------------------------
 //
 
@@ -68,8 +68,8 @@ START_TEST(AbsoluteQuantitationMethodFile, "$Id$")
 
 /////////////////////////////////////////////////////////////
 
-AbsoluteQuantitationMethodFile* ptr = 0;
-AbsoluteQuantitationMethodFile* nullPointer = 0;
+AbsoluteQuantitationMethodFile* ptr = nullptr;
+AbsoluteQuantitationMethodFile* nullPointer = nullptr;
 
 START_SECTION((AbsoluteQuantitationMethodFile()))
 	ptr = new AbsoluteQuantitationMethodFile();
@@ -99,7 +99,6 @@ START_SECTION((void parseHeader_(StringList & line, std::map<String,int> & heade
   header1.push_back("lloq");
   header1.push_back("uloq");
   header1.push_back("correlation_coefficient");
-  header1.push_back("actual_concentration");
   header1.push_back("n_points");
   header1.push_back("transformation_model");
   header1.push_back("transformation_model_param_slope");
@@ -108,9 +107,9 @@ START_SECTION((void parseHeader_(StringList & line, std::map<String,int> & heade
   aqmf.parseHeader_(header1, headers, params_headers);
 
   TEST_EQUAL(headers["IS_name"], 0);
-  TEST_EQUAL(headers["transformation_model"], 11);
-  TEST_EQUAL(params_headers["slope"], 12);
-  TEST_EQUAL(params_headers["intercept"], 13);
+  TEST_EQUAL(headers["transformation_model"], 10);
+  TEST_EQUAL(params_headers["slope"], 11);
+  TEST_EQUAL(params_headers["intercept"], 12);
 
   headers.clear();
   params_headers.clear();
@@ -126,7 +125,6 @@ START_SECTION((void parseHeader_(StringList & line, std::map<String,int> & heade
   header2.push_back("lloq");
   header2.push_back("uloq");
   header2.push_back("correlation_coefficient");
-  header2.push_back("actual_concentration");
   header2.push_back("n_points");
   header2.push_back("transformation_model");
   header2.push_back("transformation_model_param_slope");
@@ -136,9 +134,9 @@ START_SECTION((void parseHeader_(StringList & line, std::map<String,int> & heade
 
   TEST_EQUAL(headers["IS_name"], 0);
   TEST_EQUAL(headers["llod"], -1);
-  TEST_EQUAL(headers["transformation_model"], 10);
-  TEST_EQUAL(params_headers["slope"], 11);
-  TEST_EQUAL(params_headers["intercept"], 12);
+  TEST_EQUAL(headers["transformation_model"], 9);
+  TEST_EQUAL(params_headers["slope"], 10);
+  TEST_EQUAL(params_headers["intercept"], 11);
   
 END_SECTION
 
@@ -160,11 +158,10 @@ START_SECTION((void parseLine_(StringList & line, std::map<String,int> & headers
   headers["lloq"] = 6;
   headers["uloq"] = 7;
   headers["correlation_coefficient"] = 8;
-  headers["actual_concentration"] = 9;
-  headers["n_points"] = 10;
-  headers["transformation_model"] = 11;
-  params_headers["slope"] = 12;
-  params_headers["intercept"] = 13;
+  headers["n_points"] = 9;
+  headers["transformation_model"] = 10;
+  params_headers["slope"] = 11;
+  params_headers["intercept"] = 12;
 
   // line test 1
   StringList line1; 
@@ -177,7 +174,6 @@ START_SECTION((void parseLine_(StringList & line, std::map<String,int> & headers
   line1.push_back(" 2.0  "); //test for leading and trailing white spaces
   line1.push_back("8.0");
   line1.push_back("0.99");
-  line1.push_back("1.0");
   line1.push_back("5");
   line1.push_back("TransformationModelLinear");
   line1.push_back("2.0");
@@ -201,8 +197,6 @@ START_SECTION((void parseLine_(StringList & line, std::map<String,int> & headers
   TEST_REAL_SIMILAR(uloq, 8.0);
   String concentration_units = aqm.getConcentrationUnits();
   TEST_EQUAL(concentration_units, "uM");  
-  double actual_concentration = aqm.getActualConcentration();
-  TEST_REAL_SIMILAR(actual_concentration, 1.0);
   int n_points = aqm.getNPoints();
   double correlation_coefficient = aqm.getCorrelationCoefficient();
   TEST_EQUAL(n_points, 5);
@@ -265,6 +259,19 @@ START_SECTION((void load(const String & filename, std::vector<AbsoluteQuantitati
   TEST_REAL_SIMILAR(transformation_model_params.getValue("intercept"),2.0);
   transformation_model_params.clear();
 
+END_SECTION
+
+START_SECTION(void store(const String & filename, const std::vector<AbsoluteQuantitationMethod> & aqm_list) const)
+  AbsoluteQuantitationMethodFile aqmf;
+  vector<AbsoluteQuantitationMethod> aqm_list1, aqm_list2;
+  aqmf.load(OPENMS_GET_TEST_DATA_PATH("AbsoluteQuantitationMethodFile_1.csv"), aqm_list1);
+  aqmf.store(OPENMS_GET_TEST_DATA_PATH("AbsoluteQuantitationMethodFile_2.csv"), aqm_list1);
+  aqmf.load(OPENMS_GET_TEST_DATA_PATH("AbsoluteQuantitationMethodFile_2.csv"), aqm_list2);
+  TEST_EQUAL(aqm_list1.size(), aqm_list2.size())
+  for (Size i = 0; i < aqm_list1.size(); ++i)
+  {
+    TEST_EQUAL(aqm_list1[i] == aqm_list2[i], true)
+  }
 END_SECTION
 
 /////////////////////////////////////////////////////////////

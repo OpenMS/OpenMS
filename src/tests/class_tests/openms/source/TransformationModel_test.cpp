@@ -49,8 +49,8 @@ START_TEST(TransformationModel, "$Id$")
 using namespace OpenMS;
 using namespace std;
 
-TransformationModel* ptr = 0;
-TransformationModel* nullPointer = 0;
+TransformationModel* ptr = nullptr;
+TransformationModel* nullPointer = nullptr;
 
 TransformationModel::DataPoints data, empty;
 TransformationModel::DataPoint point;

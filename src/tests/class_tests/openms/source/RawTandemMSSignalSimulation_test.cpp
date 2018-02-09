@@ -50,8 +50,8 @@ START_TEST(RawTandemMSSignalSimulation, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-RawTandemMSSignalSimulation* ptr = 0;
-RawTandemMSSignalSimulation* null_ptr = 0;
+RawTandemMSSignalSimulation* ptr = nullptr;
+RawTandemMSSignalSimulation* null_ptr = nullptr;
 SimTypes::MutableSimRandomNumberGeneratorPtr rng (new SimTypes::SimRandomNumberGenerator);
 rng->initialize(false, false);
 

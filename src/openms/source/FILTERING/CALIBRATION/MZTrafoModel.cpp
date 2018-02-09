@@ -65,7 +65,7 @@ namespace OpenMS
 
   const std::string MZTrafoModel::names_of_modeltype[] = {"linear", "linear_weighted", "quadratic", "quadratic_weighted", "size_of_modeltype"};
 
-  Math::RANSACParam* MZTrafoModel::ransac_params_ = NULL;
+  Math::RANSACParam* MZTrafoModel::ransac_params_ = nullptr;
   double MZTrafoModel::limit_offset_ = std::numeric_limits<double>::max(); // no limit by default
   double MZTrafoModel::limit_scale_ = std::numeric_limits<double>::max(); // no limit by default
   double MZTrafoModel::limit_power_ = std::numeric_limits<double>::max(); // no limit by default
@@ -85,7 +85,7 @@ namespace OpenMS
 
   void MZTrafoModel::setRANSACParams( const Math::RANSACParam& p )
   {
-    if (ransac_params_ != NULL) delete ransac_params_;
+    if (ransac_params_ != nullptr) delete ransac_params_;
     ransac_params_ = new Math::RANSACParam(p);
     //std::cerr << p.toString();
   }
@@ -181,7 +181,7 @@ namespace OpenMS
 
     if (use_RANSAC)
     {
-      if (ransac_params_ == NULL)
+      if (ransac_params_ == nullptr)
       {
         throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "TrafoModel::train(): no RANSAC parameters were set before calling train(). Internal error!");
       }

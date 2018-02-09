@@ -53,8 +53,8 @@ START_TEST(FeatureFinder, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-FeatureFinder* ptr = 0;
-FeatureFinder* nullPointer = 0;
+FeatureFinder* ptr = nullptr;
+FeatureFinder* nullPointer = nullptr;
 START_SECTION((FeatureFinder()))
 	ptr = new FeatureFinder();
 	TEST_NOT_EQUAL(ptr, nullPointer)

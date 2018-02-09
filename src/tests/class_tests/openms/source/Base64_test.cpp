@@ -54,8 +54,8 @@ using namespace OpenMS;
 
 
 // default ctor
-Base64* ptr = 0;
-Base64* nullPointer = 0;
+Base64* ptr = nullptr;
+Base64* nullPointer = nullptr;
 
 START_SECTION((Base64()))
   ptr = new Base64;

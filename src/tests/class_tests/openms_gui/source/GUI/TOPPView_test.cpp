@@ -184,8 +184,8 @@ void TestTOPPView::simulateClick_()
 				QTimer::singleShot(100, this, SLOT(simulateClick_()));
 				return;
 			}
-			QTest::keyClicks(0,entry.keys,Qt::NoModifier,20);
-			QTest::keyClick(0,Qt::Key_Return,Qt::NoModifier,20);
+			QTest::keyClicks(nullptr,entry.keys,Qt::NoModifier,20);
+			QTest::keyClick(nullptr,Qt::Key_Return,Qt::NoModifier,20);
 			QApplication::processEvents();
 
 			// remove from queue

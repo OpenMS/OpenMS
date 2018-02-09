@@ -51,8 +51,8 @@ START_TEST(PeakAlignment, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-PeakAlignment* ptr = 0;
-PeakAlignment* nullPointer = 0;
+PeakAlignment* ptr = nullptr;
+PeakAlignment* nullPointer = nullptr;
 START_SECTION(PeakAlignment())
 {
 	ptr = new PeakAlignment();

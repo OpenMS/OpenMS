@@ -47,8 +47,8 @@ START_TEST(UniqueIdInterface, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-UniqueIdInterface* ptr = 0;
-UniqueIdInterface* nullPointer = 0;
+UniqueIdInterface* ptr = nullptr;
+UniqueIdInterface* nullPointer = nullptr;
 START_SECTION(UniqueIdInterface())
 {
 	ptr = new UniqueIdInterface();

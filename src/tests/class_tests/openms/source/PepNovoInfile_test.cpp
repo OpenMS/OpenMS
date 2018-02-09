@@ -51,8 +51,8 @@ START_TEST(PepNovoInfile, "$Id$")
 
 /////////////////////////////////////////////////////////////
 
-PepNovoInfile* ptr = 0;
-PepNovoInfile* nullPointer = 0;
+PepNovoInfile* ptr = nullptr;
+PepNovoInfile* nullPointer = nullptr;
 START_SECTION(PepNovoInfile())
 	ptr = new PepNovoInfile();
 	TEST_NOT_EQUAL(ptr, nullPointer)

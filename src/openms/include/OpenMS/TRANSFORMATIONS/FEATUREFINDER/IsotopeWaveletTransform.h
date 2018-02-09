@@ -45,7 +45,7 @@
 #include <OpenMS/MATH/STATISTICS/LinearRegression.h>
 #include <OpenMS/DATASTRUCTURES/ConstRefVector.h>
 #include <cmath>
-#include <math.h>
+#include <cmath>
 #include <boost/math/special_functions/bessel.hpp>
 #include <vector>
 #include <map>
@@ -100,7 +100,7 @@ public:
 
       /** Default constructor */
       TransSpectrum() :
-        reference_(NULL), trans_intens_(NULL)
+        reference_(nullptr), trans_intens_(nullptr)
       {
       }
 

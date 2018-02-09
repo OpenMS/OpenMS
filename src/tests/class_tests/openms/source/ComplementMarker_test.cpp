@@ -55,8 +55,8 @@ START_TEST(ComplementMarker, "$Id$")
 
 /////////////////////////////////////////////////////////////
 
-ComplementMarker* e_ptr = 0;
-ComplementMarker* e_nullPointer = 0;
+ComplementMarker* e_ptr = nullptr;
+ComplementMarker* e_nullPointer = nullptr;
 
 START_SECTION((ComplementMarker()))
 	e_ptr = new ComplementMarker;

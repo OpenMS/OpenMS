@@ -68,12 +68,13 @@ namespace OpenMS
                                     EmpiricalFormula c_term_gain = EmpiricalFormula("OH"),
                                     String psi_id = "",
                                     String xtandem_id = "",
-                                    UInt comet_id = 0,
+                                    Int comet_id = -1,
+                                    String crux_id = "",
                                     Int msgf_id = -1,
-                                    UInt omssa_id = 0);
+                                    Int omssa_id = -1);
 
     /// destructor
-    virtual ~DigestionEnzymeProtein();
+    ~DigestionEnzymeProtein() override;
     //@}
 
     /** @name Assignment
@@ -111,10 +112,16 @@ namespace OpenMS
     String getXTandemID() const;
 
     /// returns the Comet enzyme ID
-    UInt getCometID() const;
+    Int getCometID() const;
 
     /// sets the Comet enzyme ID
-    void setCometID(UInt value);
+    void setCometID(Int value);
+
+    /// returns the Crux enzyme ID
+    String getCruxID() const;
+
+    /// sets the Crux enzyme ID
+    void setCruxID(const String& value);
 
     /// sets the MSGFPlus enzyme id
     void setMSGFID(Int value);
@@ -123,10 +130,10 @@ namespace OpenMS
     Int getMSGFID() const;
 
     /// sets the OMSSA enzyme ID
-    void setOMSSAID(UInt value);
+    void setOMSSAID(Int value);
 
     /// returns the OMSSA enzyme ID
-    UInt getOMSSAID() const;
+    Int getOMSSAID() const;
 
     //@}
 
@@ -154,7 +161,7 @@ namespace OpenMS
 
        Returns whether the key was recognized and the value set successfully.
     */
-    bool setValueFromFile(const String& key, const String& value);
+    bool setValueFromFile(const String& key, const String& value) override;
 
     /// ostream iterator to write the enzyme to a stream
     friend OPENMS_DLLAPI std::ostream& operator<<(std::ostream& os, const DigestionEnzymeProtein& enzyme);
@@ -168,11 +175,13 @@ namespace OpenMS
 
     String xtandem_id_;
 
-    UInt comet_id_;
+    Int comet_id_;
+
+    String crux_id_;
 
     Int msgf_id_;
 
-    UInt omssa_id_;
+    Int omssa_id_;
 
   };
 

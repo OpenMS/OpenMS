@@ -115,7 +115,7 @@ public:
     MRMFeatureFinderScoring();
 
     /// Destructor
-    ~MRMFeatureFinderScoring();
+    ~MRMFeatureFinderScoring() override;
 
     /// Picker and prepare functions
     //@{
@@ -274,7 +274,7 @@ private:
                                           std::vector<OpenSwath::SwathMap> swath_maps);
 
     /// Synchronize members with param class
-    void updateMembers_();
+    void updateMembers_() override;
 
     // parameters
     double rt_extraction_window_;

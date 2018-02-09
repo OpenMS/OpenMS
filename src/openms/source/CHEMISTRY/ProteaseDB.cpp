@@ -56,13 +56,25 @@ namespace OpenMS
     }
   }
 
+  void ProteaseDB::getAllCruxNames(vector<String>& all_names) const
+  {
+    all_names.clear();
+    all_names.push_back("custom-enzyme");
+    for (ConstEnzymeIterator it = const_enzymes_.begin(); it != const_enzymes_.end(); ++it)
+    {
+      if ((*it)->getCruxID() != "")
+      {
+        all_names.push_back((*it)->getCruxID());
+      }
+    }
+  }
+
   void ProteaseDB::getAllCometNames(vector<String>& all_names) const
   {
     all_names.clear();
-    all_names.push_back("unspecific cleavage");
     for (ConstEnzymeIterator it = const_enzymes_.begin(); it != const_enzymes_.end(); ++it)
     {
-      if ((*it)->getCometID() != 0)
+      if ((*it)->getCometID() != -1)
       {
         all_names.push_back((*it)->getName());
       }
@@ -72,10 +84,9 @@ namespace OpenMS
   void ProteaseDB::getAllOMSSANames(vector<String>& all_names) const
   {
     all_names.clear();
-    all_names.push_back("Trypsin");
     for (ConstEnzymeIterator it = const_enzymes_.begin(); it != const_enzymes_.end(); ++it)
     {
-      if ((*it)->getOMSSAID() != 0)
+      if ((*it)->getOMSSAID() != -1)
       {
         all_names.push_back((*it)->getName());
       }

@@ -51,7 +51,7 @@ using namespace std;
 
 START_TEST(<SingletonRegistry>, "$Id$")
 /////////////////////////////////////////////////////////////
-FactoryBase* nullPointer = 0;
+FactoryBase* nullPointer = nullptr;
 
 START_SECTION(static FactoryBase* getFactory(const String& name))
 	Factory<FilterFunctor>::create("TICFilter");

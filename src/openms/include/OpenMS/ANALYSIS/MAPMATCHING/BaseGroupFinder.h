@@ -68,7 +68,7 @@ public:
     BaseGroupFinder();
 
     /// Destructor
-    virtual ~BaseGroupFinder();
+    ~BaseGroupFinder() override;
 
     /**
       @brief Run the algorithm

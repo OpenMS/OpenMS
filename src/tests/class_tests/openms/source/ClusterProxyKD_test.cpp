@@ -45,8 +45,8 @@ START_TEST(ClusterProxyKD, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-ClusterProxyKD* ptr = 0;
-ClusterProxyKD* nullPointer = 0;
+ClusterProxyKD* ptr = nullptr;
+ClusterProxyKD* nullPointer = nullptr;
 
 START_SECTION((ClusterProxyKD()))
   ptr = new ClusterProxyKD();

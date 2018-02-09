@@ -66,7 +66,7 @@ public:
     typedef PSLPFormulation::IndexTriple IndexTriple;
 
     OfflinePrecursorIonSelection();
-    virtual ~OfflinePrecursorIonSelection();
+    ~OfflinePrecursorIonSelection() override;
 
     /**
       @brief Makes the precursor selection for a given feature map, either feature or scan based.

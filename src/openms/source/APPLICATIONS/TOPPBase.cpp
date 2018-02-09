@@ -63,9 +63,9 @@
 
 #include <boost/math/special_functions/fpclassify.hpp>
 
-#include <time.h>
-#include <stdio.h>
-#include <stdlib.h>
+#include <ctime>
+#include <cstdio>
+#include <cstdlib>
 
 // OpenMP support
 #ifdef _OPENMP
@@ -398,7 +398,7 @@ namespace OpenMS
     char* disable_usage = getenv("OPENMS_DISABLE_UPDATE_CHECK");
  
     // only perform check if variable is not set or explicitly enabled by setting it to "OFF"  
-    if (!test_mode_ && (disable_usage == NULL || strcmp(disable_usage, "OFF") == 0))
+    if (!test_mode_ && (disable_usage == nullptr || strcmp(disable_usage, "OFF") == 0))
     {
       UpdateCheck::run(tool_name_, version_, debug_level_);
     }
@@ -2307,13 +2307,13 @@ namespace OpenMS
       QString html_doc = tool_description_.toQString();
       lines.insert(3, QString("<manual><![CDATA[") + html_doc + "]]></manual>");
       lines.insert(4, QString("<citations>"));
-      lines.insert(5, QString("  <citation doi=\"") + QString::fromStdString(cite_openms_.doi) + "\" url=\"\">");
+      lines.insert(5, QString("  <citation doi=\"") + QString::fromStdString(cite_openms_.doi) + "\" url=\"\" />");
       int l = 5;
       if (!citations_.empty())
       {
         for (Citation c : citations_) 
         {
-          lines.insert(++l, QString("  <citation doi=\"") + QString::fromStdString(c.doi) + "\" url=\"\">");
+          lines.insert(++l, QString("  <citation doi=\"") + QString::fromStdString(c.doi) + "\" url=\"\" />");
         }
       }
       lines.insert(++l, QString("</citations>"));

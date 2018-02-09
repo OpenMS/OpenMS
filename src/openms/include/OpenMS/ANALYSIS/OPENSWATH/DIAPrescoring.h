@@ -76,7 +76,7 @@ public:
 
     void defineDefaults();
 
-    void updateMembers_();
+    void updateMembers_() override;
 
 
     /**

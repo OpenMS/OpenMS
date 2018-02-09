@@ -125,9 +125,9 @@ START_TEST(O18Labeler, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-O18Labeler*  ptr = 0;
-O18Labeler*  nullPointer = 0;
-BaseLabeler* base_nullPointer = 0;
+O18Labeler*  ptr = nullptr;
+O18Labeler*  nullPointer = nullptr;
+BaseLabeler* base_nullPointer = nullptr;
 
 START_SECTION(O18Labeler())
 {

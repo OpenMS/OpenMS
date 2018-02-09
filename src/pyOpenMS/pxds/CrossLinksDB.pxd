@@ -39,8 +39,6 @@ cdef extern from "<OpenMS/CHEMISTRY/CrossLinksDB.h>" namespace "OpenMS":
         const ResidueModification* getBestModificationByDiffMonoMass(double mass, double max_error,
                                                                String residue, TermSpecificity term_spec) nogil except +
 
-        void readFromOBOFile(String & filename) nogil except +
-        void readFromUnimodXMLFile(String & filename) nogil except +
         void getAllSearchModifications(libcpp_vector[ String ] & modifications) nogil except +
 
 ## wrap static methods

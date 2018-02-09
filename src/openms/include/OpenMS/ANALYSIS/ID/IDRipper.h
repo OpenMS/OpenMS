@@ -59,7 +59,7 @@ public:
     IDRipper();
 
     /// Destructor
-    virtual ~IDRipper();
+    ~IDRipper() override;
 
     /**
       @brief Ripping protein/peptide identification according their file origin

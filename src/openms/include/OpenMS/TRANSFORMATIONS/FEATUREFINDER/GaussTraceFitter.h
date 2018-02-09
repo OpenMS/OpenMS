@@ -57,35 +57,35 @@ public:
 
     GaussTraceFitter& operator=(const GaussTraceFitter& source);
 
-    virtual ~GaussTraceFitter();
+    ~GaussTraceFitter() override;
 
     // override important methods
-    void fit(FeatureFinderAlgorithmPickedHelperStructs::MassTraces& traces);
+    void fit(FeatureFinderAlgorithmPickedHelperStructs::MassTraces& traces) override;
 
-    double getLowerRTBound() const;
+    double getLowerRTBound() const override;
 
-    double getUpperRTBound() const;
+    double getUpperRTBound() const override;
 
-    double getHeight() const;
+    double getHeight() const override;
 
-    double getCenter() const;
+    double getCenter() const override;
 
-    double getFWHM() const;
+    double getFWHM() const override;
 
     /**
      * @brief Returns the sigma of the fitted gaussian model
      */
     double getSigma() const;
 
-    bool checkMaximalRTSpan(const double max_rt_span);
+    bool checkMaximalRTSpan(const double max_rt_span) override;
 
-    bool checkMinimalRTSpan(const std::pair<double, double>& rt_bounds, const double min_rt_span);
+    bool checkMinimalRTSpan(const std::pair<double, double>& rt_bounds, const double min_rt_span) override;
 
-    double getValue(double rt) const;
+    double getValue(double rt) const override;
 
-    double getArea();
+    double getArea() override;
 
-    String getGnuplotFormula(const FeatureFinderAlgorithmPickedHelperStructs::MassTrace& trace, const char function_name, const double baseline, const double rt_shift);
+    String getGnuplotFormula(const FeatureFinderAlgorithmPickedHelperStructs::MassTrace& trace, const char function_name, const double baseline, const double rt_shift) override;
 
 protected:
     double sigma_;
@@ -95,7 +95,7 @@ protected:
 
     static const Size NUM_PARAMS_;
 
-    void getOptimizedParameters_(const Eigen::VectorXd& x_init);
+    void getOptimizedParameters_(const Eigen::VectorXd& x_init) override;
 
     class GaussTraceFunctor :
       public TraceFitter::GenericFunctor
@@ -104,17 +104,17 @@ public:
       GaussTraceFunctor(int dimensions,
                         const TraceFitter::ModelData* data);
 
-      int operator()(const Eigen::VectorXd& x, Eigen::VectorXd& fvec);
+      int operator()(const Eigen::VectorXd& x, Eigen::VectorXd& fvec) override;
 
       // compute Jacobian matrix for the different parameters
-      int df(const Eigen::VectorXd& x, Eigen::MatrixXd& J);
+      int df(const Eigen::VectorXd& x, Eigen::MatrixXd& J) override;
 protected:
       const TraceFitter::ModelData* m_data;
     };
 
     void setInitialParameters_(FeatureFinderAlgorithmPickedHelperStructs::MassTraces& traces);
 
-    virtual void updateMembers_();
+    void updateMembers_() override;
 
   };
 

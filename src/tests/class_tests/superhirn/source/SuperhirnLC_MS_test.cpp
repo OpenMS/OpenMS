@@ -55,8 +55,8 @@ START_TEST(LCMS, "$Id$")
 using namespace OpenMS;
 using namespace std;
 
-LCMS* ptr = 0;
-LCMS* nullPtr = 0;
+LCMS* ptr = nullptr;
+LCMS* nullPtr = nullptr;
 
 START_SECTION((LCMS()))
 	ptr = new LCMS();

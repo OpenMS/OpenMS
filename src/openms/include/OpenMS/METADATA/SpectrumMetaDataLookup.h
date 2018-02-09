@@ -184,7 +184,7 @@ namespace OpenMS
     {}
 
     /// Destructor
-    virtual ~SpectrumMetaDataLookup() {}
+    ~SpectrumMetaDataLookup() override {}
 
     /**
        @brief Read spectra and store their meta data

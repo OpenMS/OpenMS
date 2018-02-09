@@ -67,7 +67,7 @@ public:
     CompNovoIdentification(const CompNovoIdentification & source);
 
     /// destructor
-    virtual ~CompNovoIdentification();
+    ~CompNovoIdentification() override;
     //@}
 
     ///
@@ -77,7 +77,7 @@ public:
      */
     //@{
     /// performs an ProteinIdentification run on a PeakMap
-    void getIdentifications(std::vector<PeptideIdentification> & ids, const PeakMap & exp);
+    void getIdentifications(std::vector<PeptideIdentification> & ids, const PeakMap & exp) override;
 
     /// performs an ProteinIdentification run on a PeakSpectrum
     void getIdentification(PeptideIdentification & id, const PeakSpectrum & CID_spec, const PeakSpectrum & ETD_spec);

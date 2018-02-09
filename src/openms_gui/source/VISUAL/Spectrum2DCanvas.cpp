@@ -1113,7 +1113,7 @@ namespace OpenMS
     }
 
     //try to find the right layer to project
-    const LayerData * layer = 0;
+    const LayerData * layer = nullptr;
     //first choice: current layer
     if (layer_count != 0 && getCurrentLayer().type == LayerData::DT_PEAK)
     {
@@ -1743,8 +1743,8 @@ namespace OpenMS
     Int charge = 0;
     double quality = 0.0;
     Size size = 0;
-    const Feature* f = NULL;
-    const ConsensusFeature* cf = NULL;
+    const Feature* f = nullptr;
+    const ConsensusFeature* cf = nullptr;
     ConsensusFeature::HandleSetType sub_features;
 
     switch (getCurrentLayer().type)
@@ -1818,7 +1818,7 @@ namespace OpenMS
       lines.push_back("Charge: " + QString::number(charge));
       lines.push_back("Quality: " + QString::number(quality, 'f', 4));
       // peptide identifications
-      const PeptideIdentification* pis = NULL;
+      const PeptideIdentification* pis = nullptr;
       if ( f && f->getPeptideIdentifications().size() > 0 ) {
         pis = &f->getPeptideIdentifications()[0];
       }
@@ -2187,8 +2187,8 @@ namespace OpenMS
 
     QMenu * context_menu = new QMenu(this);
 
-    QAction * a = 0;
-    QAction * result = 0;
+    QAction * a = nullptr;
+    QAction * result = nullptr;
 
     //Display name and warn if current layer invisible
     String layer_name = String("Layer: ") + layer.name;
@@ -2497,8 +2497,8 @@ namespace OpenMS
         }
         */
 
-      QMenu * msn_chromatogram  = 0;
-      QMenu * msn_chromatogram_meta = 0;
+      QMenu * msn_chromatogram  = nullptr;
+      QMenu * msn_chromatogram_meta = nullptr;
 
       if (!map_precursor_to_chrom_idx.empty())
       {
