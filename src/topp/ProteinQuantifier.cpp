@@ -42,7 +42,11 @@
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/FORMAT/SVOutStream.h>
+#include <OpenMS/FILTERING/ID/IDFilter.h>
+
 #include <cmath>
+#include <OpenMS/FORMAT/MzTabFile.h>
+#include <OpenMS/FORMAT/MzTab.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -336,6 +340,7 @@ protected:
   typedef PeptideAndProteinQuant::ProteinQuant ProteinQuant;
   typedef PeptideAndProteinQuant::SampleAbundances SampleAbundances;
   typedef PeptideAndProteinQuant::Statistics Statistics;
+  typedef ProteinIdentification::ProteinGroup ProteinGroup;
 
   Param algo_params_; // parameters for PeptideAndProteinQuant algorithm
   ProteinIdentification proteins_; // protein inference results (proteins)
@@ -349,10 +354,16 @@ protected:
     setValidFormats_("in", ListUtils::create<String>("featureXML,consensusXML,idXML"));
     registerInputFile_("protein_groups", "<file>", "", "Protein inference results for the identification runs that were used to annotate the input (e.g. from ProteinProphet via IDFileConverter or Fido via FidoAdapter).\nInformation about indistinguishable proteins will be used for protein quantification.", false);
     setValidFormats_("protein_groups", ListUtils::create<String>("idXML"));
+
+    // output
     registerOutputFile_("out", "<file>", "", "Output file for protein abundances", false);
     setValidFormats_("out", ListUtils::create<String>("csv"));
+
     registerOutputFile_("peptide_out", "<file>", "", "Output file for peptide abundances", false);
     setValidFormats_("peptide_out", ListUtils::create<String>("csv"));
+
+    registerOutputFile_("mztab", "<file>", "", "Output file (mzTab)", false);
+    setValidFormats_("mztab", ListUtils::create<String>("tsv"));
 
     // algorithm parameters:
     addEmptyLine_();
@@ -488,18 +499,15 @@ protected:
     map<String, pair<StringList, double> > leader_to_group;
     if (!proteins_.getIndistinguishableProteins().empty())
     {
-      for (vector<ProteinIdentification::ProteinGroup>::iterator group_it =
-             proteins_.getIndistinguishableProteins().begin(); group_it !=
-             proteins_.getIndistinguishableProteins().end(); ++group_it)
+      for (auto group : proteins_.getIndistinguishableProteins())
       {
-        StringList& accessions = leader_to_group[group_it->accessions[0]].first;
-        accessions = group_it->accessions;
-        for (StringList::iterator acc_it = accessions.begin();
-             acc_it != accessions.end(); ++acc_it)
+        StringList& accessions = leader_to_group[group.accessions[0]].first;
+        accessions = group.accessions;
+        for (auto & acc : accessions)
         {
-          acc_it->substitute('/', '_'); // to allow concatenation later
+          acc.substitute('/', '_'); // to allow concatenation later
         }
-        leader_to_group[group_it->accessions[0]].second = group_it->probability;
+        leader_to_group[group.accessions[0]].second = group.probability;
       }
     }
 
@@ -560,6 +568,53 @@ protected:
       out << endl;
     }
   }
+
+  void annotateQuantificationsToProteins(const ProteinQuant& protein_quants, ProteinIdentification& proteins)
+  {
+    auto & id_groups = proteins.getIndistinguishableProteins();
+    for (auto q : protein_quants)
+    {
+      if (q.second.total_abundances.empty()) { continue; } // not quantified
+
+      // accession of quantified protein(group)
+      const String & acc = q.first;
+ 
+      // lambda to check if a ProteinGroup has accession "acc"
+      auto hasProteinInGroup = [&acc] (const ProteinGroup& g)->bool { return find(g.accessions.begin(), g.accessions.end(), acc) != g.accessions.end(); }; 
+
+      // retrieve protein group with accession "acc"
+      auto id_group = std::find_if(id_groups.begin(), id_groups.end(), hasProteinInGroup);  
+
+      if (id_group != id_groups.end())
+      {
+        // copy abundances to float data array
+        const Size group_index = std::distance(id_groups.begin(), id_group);
+        SampleAbundances total_abundances = q.second.total_abundances;
+        // TODO: OPENMS_ASSERT(id_group->float_data_arrays.empty(), "Protein group float data array not empty!.");
+        id_group->float_data_arrays.resize(1);
+        ProteinGroup::FloatDataArray & abundances = id_group->float_data_arrays[0];
+        abundances.setName("abundances");
+        for (auto file : files_)
+        {
+          abundances.push_back(total_abundances[file.first]);
+        }
+      }
+      else
+      {
+        throw Exception::MissingInformation(
+          __FILE__, 
+          __LINE__, 
+          OPENMS_PRETTY_FUNCTION, 
+          "Protein group quantified that is not present in inference data.");
+      } 
+    }
+
+   // remove all protein groups that have not been quantified
+   auto notQuantified = [] (const ProteinGroup& g)->bool { return g.float_data_arrays.empty(); }; 
+   id_groups.erase(
+     remove_if(id_groups.begin(), id_groups.end(), notQuantified), 
+     id_groups.end());
+  } 
 
   /// Write comment lines before a peptide/protein table.
   void writeComments_(SVOutStream& out, const bool proteins = true)
@@ -658,6 +713,7 @@ protected:
     String in = getStringOption_("in");
     String out = getStringOption_("out");
     String peptide_out = getStringOption_("peptide_out");
+    String mztab = getStringOption_("mztab");
 
     if (out.empty() && peptide_out.empty())
     {
@@ -701,6 +757,8 @@ protected:
         proteins_ = features.getProteinIdentifications()[0];
       }
       quantifier.readQuantData(features);
+      quantifier.quantifyPeptides(peptides_); // quantify on peptide level
+      quantifier.quantifyProteins(proteins_);
     }
     else if (in_type == FileTypes::IDXML)
     {
@@ -719,6 +777,8 @@ protected:
         proteins_ = proteins[0];
       }
       quantifier.readQuantData(proteins, peptides);
+      quantifier.quantifyPeptides(peptides_); // quantify on peptide level
+      quantifier.quantifyProteins(proteins_);
     }
     else // consensusXML
     {
@@ -733,12 +793,27 @@ protected:
         proteins_ = consensus.getProteinIdentifications()[0];
       }
       quantifier.readQuantData(consensus);
-    }
-
-    quantifier.quantifyPeptides(peptides_); // quantify on peptide level
-    if (!out.empty()) // quantify on protein level
-    {
+      quantifier.quantifyPeptides(peptides_); // quantify on peptide level
       quantifier.quantifyProteins(proteins_);
+
+      // write mzTab file
+      if (!mztab.empty())
+      {
+        // annotate quants to protein(groups) for easier export in mzTab
+        auto const & protein_quants = quantifier.getProteinResults();
+        annotateQuantificationsToProteins(protein_quants, proteins_);
+        vector<ProteinIdentification> proteins;
+        proteins.emplace_back(proteins_); 
+        consensus.setProteinIdentifications(proteins);
+/*
+ *      TODO: maybe an assertion that the numbers of quantified proteins / ind. proteins match
+        auto n_ind_prot = consensus.getProteinIdentifications()[0].getIndistinguishableProteins().size();
+        cout << "MzTab Export: " << n_ind_prot << endl;
+*/
+        // fill MzTab with meta data and quants annotated in identification data structure
+        MzTab m = MzTab::exportConsensusMapToMzTab(consensus, in);
+        MzTabFile().store(mztab, m);    
+      }
     }
 
     // output:
@@ -764,7 +839,7 @@ protected:
       ofstream outstr(out.c_str());
       SVOutStream output(outstr, separator, replacement, quoting_method);
       writeComments_(output);
-      writeProteinTable_(output, quantifier.getProteinResults());
+      writeProteinTable_(output, quantifier.getProteinResults());      
       outstr.close();
     }
 

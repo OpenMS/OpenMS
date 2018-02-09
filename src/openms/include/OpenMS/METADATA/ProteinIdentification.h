@@ -39,6 +39,8 @@
 #include <OpenMS/METADATA/MetaInfoInterface.h>
 #include <OpenMS/DATASTRUCTURES/DateTime.h>
 #include <OpenMS/CHEMISTRY/DigestionEnzymeProtein.h>
+#include <OpenMS/METADATA/DataArrays.h>
+
 #include <set>
 
 namespace OpenMS
@@ -71,6 +73,10 @@ public:
     */
     struct OPENMS_DLLAPI ProteinGroup
     {
+      /// Float data array vector type
+      typedef OpenMS::DataArrays::FloatDataArray FloatDataArray ;
+      typedef std::vector<FloatDataArray> FloatDataArrays;
+
       /// Probability of this group
       double probability;
 
@@ -88,6 +94,9 @@ public:
         This operator is intended for sorting protein groups in a "best first" manner. That means higher probabilities are "less" than lower probabilities (!); smaller groups are "less" than larger groups; everything else being equal, accessions are compared lexicographically.
       */
       bool operator<(const ProteinGroup& rhs) const;
+
+      /// Float data arrays
+      FloatDataArrays float_data_arrays;
     };
 
     /// Peak mass type
