@@ -32,8 +32,8 @@
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
-
 #include <OpenMS/VISUAL/Spectrum3DOpenGLCanvas.h>
+
 #include <OpenMS/VISUAL/Spectrum3DCanvas.h>
 #include <OpenMS/VISUAL/AxisTickCalculator.h>
 
