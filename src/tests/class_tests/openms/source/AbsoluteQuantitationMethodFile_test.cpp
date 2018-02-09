@@ -267,27 +267,7 @@ START_SECTION(void store(const String & filename, const std::vector<AbsoluteQuan
   TEST_EQUAL(aqm_list1.size(), aqm_list2.size())
   for (Size i = 0; i < aqm_list1.size(); ++i)
   {
-    TEST_EQUAL(aqm_list1[i].getISName(), aqm_list2[i].getISName())
-    TEST_EQUAL(aqm_list1[i].getComponentName(), aqm_list2[i].getComponentName())
-    TEST_EQUAL(aqm_list1[i].getFeatureName(), aqm_list2[i].getFeatureName())
-    TEST_EQUAL(aqm_list1[i].getConcentrationUnits(), aqm_list2[i].getConcentrationUnits())
-    TEST_REAL_SIMILAR(aqm_list1[i].getLLOD(), aqm_list2[i].getLLOD())
-    TEST_REAL_SIMILAR(aqm_list1[i].getULOD(), aqm_list2[i].getULOD())
-    TEST_REAL_SIMILAR(aqm_list1[i].getLLOQ(), aqm_list2[i].getLLOQ())
-    TEST_REAL_SIMILAR(aqm_list1[i].getULOQ(), aqm_list2[i].getULOQ())
-    TEST_REAL_SIMILAR(aqm_list1[i].getCorrelationCoefficient(), aqm_list2[i].getCorrelationCoefficient())
-    TEST_EQUAL(aqm_list1[i].getNPoints(), aqm_list2[i].getNPoints())
-    TEST_EQUAL(aqm_list1[i].getTransformationModel(), aqm_list2[i].getTransformationModel())
-    const Param& tm_params1 = aqm_list1[i].getTransformationModelParams();
-    const Param& tm_params2 = aqm_list2[i].getTransformationModelParams();
-    TEST_EQUAL(tm_params1.size(), tm_params2.size())
-    Param::ParamIterator it1 = tm_params1.begin();
-    Param::ParamIterator it2 = tm_params2.begin();
-    for (; it1 != tm_params1.end(); ++it1, ++it2)
-    {
-      TEST_EQUAL(it1->name, it2->name)
-      TEST_REAL_SIMILAR(it1->value, it2->value)
-    }
+    TEST_EQUAL(aqm_list1[i] == aqm_list2[i], true)
   }
 END_SECTION
 
