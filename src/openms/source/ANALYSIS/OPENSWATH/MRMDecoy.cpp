@@ -43,23 +43,53 @@
 #include <vector>
 #include <algorithm> // for sort
 
+
 namespace OpenMS
 {
-  std::vector<std::pair<std::string::size_type, std::string> > MRMDecoy::findFixedResidues(std::string sequence)
-  {
-    std::vector<std::pair<std::string::size_type, std::string> > idx;
-    std::vector<std::string> pattern;
-    pattern.push_back("K");
-    pattern.push_back("R");
-    pattern.push_back("P");
 
-    for (Size i = 0; i < sequence.size(); i++)
+  MRMDecoy::MRMDecoy() :
+    DefaultParamHandler("MRMDecoy"),
+    ProgressLogger()
+  {
+    defaults_.setValue("non_shuffle_pattern", "K,R,P", "Residues to not shuffle (keep at a constant position when shuffling). Separate by comma, e.g. use 'K,P,R' here.");
+
+    defaults_.setValue("keepN", "true", "Whether to keep N terminus constant", ListUtils::create<String>("advanced"));
+    defaults_.setValidStrings("keepN", ListUtils::create<String>("true,false"));
+
+    defaults_.setValue("keepC", "true", "Whether to keep C terminus constant", ListUtils::create<String>("advanced"));
+    defaults_.setValidStrings("keepC", ListUtils::create<String>("true,false"));
+
+    // write defaults into Param object param_
+    defaultsToParam_();
+  }
+
+  void MRMDecoy::updateMembers_()
+  {
+    String tmp = param_.getValue("non_shuffle_pattern");
+    tmp.split(",", keep_const_pattern_);
+    keepN_ = param_.getValue("keepN").toBool();
+    keepC_ = param_.getValue("keepC").toBool();
+  }
+
+  std::vector<std::pair<std::string::size_type, std::string> > MRMDecoy::findFixedResidues(const std::string& sequence,
+      bool keepN, bool keepC, const std::vector<OpenMS::String> & keep_const_pattern)
+  {
+    // also blocks both N- and C-terminus from shuffling if required
+    std::vector<std::pair<std::string::size_type, std::string> > idx;
+    for (size_t i = 0; i < sequence.size(); i++)
     {
-      for (Size j = 0; j < pattern.size(); j++)
+      if ( (keepN && i == 0) || (keepC && i + 1 == sequence.size()) )
       {
-        if (sequence.substr(i, 1) == pattern[j])
+        std::pair<std::string::size_type, std::string> idx_pair(i, OpenMS::String(sequence[i]));
+        idx.push_back(idx_pair);
+        continue;
+      }
+
+      for (size_t j = 0; j < keep_const_pattern.size(); j++)
+      {
+        if (sequence.substr(i, 1) == keep_const_pattern[j])
         {
-          std::pair<std::string::size_type, std::string> idx_pair(i, pattern[j]);
+          std::pair<std::string::size_type, std::string> idx_pair(i, keep_const_pattern[j]);
           idx.push_back(idx_pair);
         }
       }
@@ -67,34 +97,14 @@ namespace OpenMS
     return idx;
   }
 
-  std::vector<std::pair<std::string::size_type, std::string> > MRMDecoy::findFixedAndTermResidues(std::string sequence)
+  std::vector<std::pair<std::string::size_type, std::string> > MRMDecoy::findFixedResidues(std::string sequence)
   {
-    // also blocks both N- and C-terminus from shuffling
-    std::vector<std::pair<std::string::size_type, std::string> > idx;
-    std::vector<std::string> pattern;
-    pattern.push_back("K");
-    pattern.push_back("R");
-    pattern.push_back("P");
+    return MRMDecoy::findFixedResidues(sequence, false, false, keep_const_pattern_);
+  }
 
-    for (Size i = 0; i < sequence.size(); i++)
-    {
-      if (i == 0 || i + 1 == sequence.size())
-      {
-        std::pair<std::string::size_type, std::string> idx_pair(i, String(sequence[i]));
-        idx.push_back(idx_pair);
-        continue;
-      }
-
-      for (Size j = 0; j < pattern.size(); j++)
-      {
-        if (sequence.substr(i, 1) == pattern[j])
-        {
-          std::pair<std::string::size_type, std::string> idx_pair(i, pattern[j]);
-          idx.push_back(idx_pair);
-        }
-      }
-    }
-    return idx;
+  std::vector<std::pair<std::string::size_type, std::string> > MRMDecoy::findFixedAndTermResidues(std::string sequence) const
+  {
+    return MRMDecoy::findFixedResidues(sequence, keepN_, keepC_, keep_const_pattern_);
   }
 
   float MRMDecoy::AASequenceIdentity(const String& sequence, const String& decoy)
@@ -116,8 +126,8 @@ namespace OpenMS
   }
 
   OpenMS::TargetedExperiment::Peptide MRMDecoy::shufflePeptide(
-    OpenMS::TargetedExperiment::Peptide peptide, double identity_threshold, int seed,
-    int max_attempts)
+    OpenMS::TargetedExperiment::Peptide peptide, const double identity_threshold, int seed,
+    const int max_attempts)
   {
 #ifdef DEBUG_MRMDECOY
     std::cout << " shuffle peptide " << peptide.sequence << std::endl;
@@ -189,8 +199,8 @@ namespace OpenMS
       }
 
       // use the shuffled index to create the new peptide sequence and
-      // then to place the modifications at their appropriate places (at the
-      // same, shuffled AA where they were before).
+      // then to place the modifications at their appropriate places (make sure
+      // that the modifications are placed with their initial amino acids).
       for (Size i = 0; i < peptide_index.size(); i++)
       {
         shuffled.sequence[i] = peptide.sequence[peptide_index[i]];
@@ -258,8 +268,63 @@ namespace OpenMS
     return shuffled;
   }
 
+  OpenMS::TargetedExperiment::Peptide MRMDecoy::reversePeptide(
+      const OpenMS::TargetedExperiment::Peptide& peptide, const bool keepN, const bool keepC, 
+      const std::vector<String> & const_pattern)
+  {
+    typedef std::vector<std::pair<std::string::size_type, std::string> > IndexType;
+    OpenMS::TargetedExperiment::Peptide reversed = peptide;
+    {
+      // Block tryptic residues and N-/C-terminus from shuffling
+      IndexType idx = MRMDecoy::findFixedResidues(peptide.sequence, keepN, keepC, const_pattern);
+
+      std::vector<Size> peptide_index;
+      for (Size i = 0; i < peptide.sequence.size(); i++)
+      {
+        peptide_index.push_back(i);
+      }
+
+      // we erase the indices where K/P/R are (from the back / in reverse order
+      // to not delete indices we access later)
+      for (IndexType::reverse_iterator it = idx.rbegin(); it != idx.rend(); ++it)
+      {
+        peptide_index.erase(peptide_index.begin() + it->first);
+      }
+
+      // reverse the peptide index
+      std::reverse(peptide_index.begin(), peptide_index.end());
+
+      // re-insert the missing K/P/R at the appropriate places
+      for (IndexType::iterator it = idx.begin(); it != idx.end(); ++it)
+      {
+        peptide_index.insert(peptide_index.begin() + it->first, it->first);
+      }
+
+      // use the reversed index to create the new peptide sequence and
+      // then to place the modifications at their appropriate places (make sure
+      // that the modifications are placed with their initial amino acids).
+      for (Size i = 0; i < peptide_index.size(); i++)
+      {
+        reversed.sequence[i] = peptide.sequence[peptide_index[i]];
+      }
+      for (Size j = 0; j < reversed.mods.size(); j++)
+      {
+        for (Size k = 0; k < peptide_index.size(); k++)
+        {
+          // C and N terminal mods are implicitly not reversed because they live at positions -1 and sequence.size()
+          if (boost::numeric_cast<int>(peptide_index[k]) == reversed.mods[j].location)
+          {
+            reversed.mods[j].location = boost::numeric_cast<int>(k);
+            break;
+          }
+        }
+      }
+      return reversed;
+    }
+  }
+
   OpenMS::TargetedExperiment::Peptide MRMDecoy::pseudoreversePeptide(
-    OpenMS::TargetedExperiment::Peptide peptide)
+    OpenMS::TargetedExperiment::Peptide peptide) const
   {
     OpenMS::TargetedExperiment::Peptide peptideorig = peptide;
     std::vector<Size> peptide_index;
@@ -288,7 +353,7 @@ namespace OpenMS
   }
 
   OpenMS::TargetedExperiment::Peptide MRMDecoy::reversePeptide(
-    OpenMS::TargetedExperiment::Peptide peptide)
+    OpenMS::TargetedExperiment::Peptide peptide) const
   {
     OpenMS::TargetedExperiment::Peptide peptideorig = peptide;
     std::vector<Size> peptide_index;

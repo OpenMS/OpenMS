@@ -38,6 +38,7 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMIonSeries.h>
 #include <OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
+#include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 
 #include <boost/algorithm/string.hpp>
 #include <boost/lexical_cast.hpp>
@@ -87,10 +88,12 @@ namespace OpenMS
  */
 
   class OPENMS_DLLAPI MRMDecoy :
+    public DefaultParamHandler,
     public ProgressLogger
   {
 public:
-    MRMDecoy() {} // empty, no members
+
+    MRMDecoy();
 
     /**
       @brief Generate decoys from a TargetedExperiment
@@ -132,22 +135,39 @@ public:
       identity_threshold.
     */
     OpenMS::TargetedExperiment::Peptide shufflePeptide(
-      OpenMS::TargetedExperiment::Peptide peptide, double identity_threshold, int seed = -1,
-      int max_attempts = 100);
+      OpenMS::TargetedExperiment::Peptide peptide, const double identity_threshold, int seed = -1,
+      const int max_attempts = 100);
 
     /**
       @brief Pseudo-reverse a peptide sequence (with its modifications)
 
-      Pseudo reverses a peptide sequence, leaving the last AA constant
+      @note Pseudo reverses a peptide sequence, leaving the C terminus (the
+            last AA constant)
     */
     OpenMS::TargetedExperiment::Peptide pseudoreversePeptide(
-      OpenMS::TargetedExperiment::Peptide peptide);
+      OpenMS::TargetedExperiment::Peptide peptide) const;
 
     /**
       @brief Reverse a peptide sequence (with its modifications)
+
+      @note Does not keep N / C terminus in place.
     */
     OpenMS::TargetedExperiment::Peptide reversePeptide(
-      OpenMS::TargetedExperiment::Peptide peptide);
+      OpenMS::TargetedExperiment::Peptide peptide) const;
+
+    /**
+      @brief Reverse a peptide sequence (with its modifications)
+
+      @param peptide The peptide sequence and modifications
+      @param keepN Whether to keep N terminus in place
+      @param keepC Whether to keep C terminus in place
+      @param const_pattern A set of AA to leave in place
+    */
+    static OpenMS::TargetedExperiment::Peptide reversePeptide(
+                const OpenMS::TargetedExperiment::Peptide& peptide,
+                const bool keepN,
+                const bool keepC, 
+                const std::vector<String> & const_pattern = std::vector<String>());
 
     /**
       @brief Find all K, R, P sites in a sequence to be set as fixed
@@ -163,13 +183,24 @@ public:
       This method was adapted from the SpectraST decoy generator
     */
     std::vector<std::pair<std::string::size_type, std::string> > findFixedAndTermResidues(
-      std::string sequence);
+      std::string sequence) const;
+
+    static std::vector<std::pair<std::string::size_type, std::string> > findFixedResidues(const std::string& sequence,
+        bool keepN, bool keepC, const std::vector<OpenMS::String> & keep_const_pattern);
 
     /**
       @brief Check if a peptide has C or N terminal modifications
     */
     bool hasCNterminalMods(const OpenMS::TargetedExperiment::Peptide& peptide);
 
+private:
+
+    /// Synchronize members with param class
+    void updateMembers_() override;
+
+    std::vector<String> keep_const_pattern_;
+    bool keepN_;
+    bool keepC_;
   };
 }
 

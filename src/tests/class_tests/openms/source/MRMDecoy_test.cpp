@@ -352,6 +352,67 @@ START_SECTION(float AASequenceIdentity(const String& sequence, const String& dec
 
 END_SECTION
 
+START_SECTION((OpenMS::TargetedExperiment::Peptide MRMDecoy::reversePeptide(
+      OpenMS::TargetedExperiment::Peptide peptide, const bool keepN, const bool keepC, 
+      const std::vector<String> & const_pattern) const))
+{
+  MRMDecoy gen;
+
+  OpenMS::TargetedExperiment::Peptide peptide;
+  peptide.sequence = "TESTPEPTIDE";
+  OpenMS::TargetedExperiment::Peptide::Modification modification;
+  modification.avg_mass_delta = 79.9799;
+  modification.location = 2;
+  modification.mono_mass_delta = 79.966331;
+  peptide.mods.push_back(modification);
+
+  {
+    OpenMS::String expected_sequence = "DITPEPTSETE";
+    OpenMS::Size expected_location = 7;
+
+    OpenMS::TargetedExperiment::Peptide pseudoreverse = MRMDecoy::reversePeptide(peptide, false, true);
+    TEST_EQUAL(pseudoreverse.sequence, expected_sequence)
+    TEST_EQUAL(pseudoreverse.mods.size(), 1)
+    TEST_EQUAL(pseudoreverse.mods[0].location, expected_location)
+  }
+
+  {
+    modification.avg_mass_delta = 49.9799;
+    modification.mono_mass_delta = 49.966331;
+    modification.location = 0;
+    peptide.mods.push_back(modification);
+
+    OpenMS::String expected_sequence = "TDITPEPTSEE";
+
+    OpenMS::TargetedExperiment::Peptide pseudoreverse = MRMDecoy::reversePeptide(peptide, true, true);
+    TEST_EQUAL(pseudoreverse.sequence, expected_sequence)
+    TEST_EQUAL(pseudoreverse.mods.size(), 2)
+    TEST_EQUAL(pseudoreverse.mods[0].location, 8)
+    TEST_REAL_SIMILAR(pseudoreverse.mods[0].mono_mass_delta, 79.966331)
+
+    TEST_EQUAL(pseudoreverse.mods[1].location, 0)
+    TEST_REAL_SIMILAR(pseudoreverse.mods[1].mono_mass_delta, 49.966331)
+  }
+
+  {
+    std::vector<String> const_pattern;
+    const_pattern.push_back("I");
+
+    OpenMS::String expected_sequence = "TDTPEPTSIEE"; // "I" stays in place
+
+    OpenMS::TargetedExperiment::Peptide pseudoreverse = MRMDecoy::reversePeptide(peptide, true, true, const_pattern);
+    TEST_EQUAL(pseudoreverse.sequence, expected_sequence)
+    TEST_EQUAL(pseudoreverse.mods.size(), 2)
+    TEST_EQUAL(pseudoreverse.mods[0].location, 7)
+    TEST_REAL_SIMILAR(pseudoreverse.mods[0].mono_mass_delta, 79.966331)
+
+    TEST_EQUAL(pseudoreverse.mods[1].location, 0)
+    TEST_REAL_SIMILAR(pseudoreverse.mods[1].mono_mass_delta, 49.966331)
+  }
+
+}
+END_SECTION
+
 START_SECTION(OpenMS::TargetedExperiment::Peptide pseudoreversePeptide(OpenMS::TargetedExperiment::Peptide peptide))
 {
   MRMDecoy gen;
@@ -380,7 +441,6 @@ START_SECTION(OpenMS::TargetedExperiment::Peptide pseudoreversePeptide(OpenMS::T
   pseudoreverseAASequence_result = gen.pseudoreversePeptide(pseudoreverseAASequence_target_sequence);
   TEST_EQUAL(pseudoreverseAASequence_result.sequence, pseudoreverseAASequence_expected.sequence)
 }
-
 END_SECTION
 
 START_SECTION(OpenMS::TargetedExperiment::Peptide reversePeptide(OpenMS::TargetedExperiment::Peptide peptide))
@@ -415,8 +475,6 @@ START_SECTION(OpenMS::TargetedExperiment::Peptide reversePeptide(OpenMS::Targete
 END_SECTION
 
 /// Public methods
-
-
 
 START_SECTION((void generateDecoys(OpenMS::TargetedExperiment& exp, OpenMS::TargetedExperiment& dec,
                                    String method, String decoy_tag, int max_attempts, double identity_threshold,
