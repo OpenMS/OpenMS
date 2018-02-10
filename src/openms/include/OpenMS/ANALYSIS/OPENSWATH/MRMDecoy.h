@@ -91,7 +91,10 @@ namespace OpenMS
     public DefaultParamHandler,
     public ProgressLogger
   {
+
 public:
+
+    typedef std::vector<size_t> IndexType;
 
     MRMDecoy();
 
@@ -174,18 +177,16 @@ public:
 
       This method was adapted from the SpectraST decoy generator
     */
-    std::vector<std::pair<std::string::size_type, std::string> > findFixedResidues(
-      std::string sequence);
+    IndexType findFixedResidues(std::string sequence);
 
     /**
       @brief Find all K, R, P and C-/N-terminal sites in a sequence to be set as fixed
 
       This method was adapted from the SpectraST decoy generator
     */
-    std::vector<std::pair<std::string::size_type, std::string> > findFixedAndTermResidues(
-      std::string sequence) const;
+    IndexType findFixedAndTermResidues(std::string sequence) const;
 
-    static std::vector<std::pair<std::string::size_type, std::string> > findFixedResidues(const std::string& sequence,
+    static IndexType findFixedResidues(const std::string& sequence,
         bool keepN, bool keepC, const std::vector<OpenMS::String> & keep_const_pattern);
 
     /**

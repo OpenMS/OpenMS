@@ -79,16 +79,9 @@ START_SECTION((std::vector<std::pair<std::string::size_type, std::string> > find
   MRMDecoy gen;
 
   String sequence = "TRESTPEPTIKDE";
-  std::vector<pair<std::string::size_type, std::string> > tryptic_results = gen.findFixedResidues(sequence);
-  std::vector<pair<std::string::size_type, std::string> > tryptic_control = boost::assign::list_of(std::make_pair(1, "R")) (std::make_pair(5, "P")) (std::make_pair(7, "P")) (std::make_pair(10, "K"));
-
-  for (Size i = 0; i < tryptic_results.size(); i++)
-  {
-    pair<std::string::size_type, std::string> result = tryptic_results[i];
-    pair<std::string::size_type, std::string> control = tryptic_control[i];
-    TEST_EQUAL(result.first, control.first)
-    TEST_EQUAL(result.second, control.second)
-  }
+  MRMDecoy::IndexType tryptic_results = gen.findFixedResidues(sequence);
+  MRMDecoy::IndexType tryptic_expect = {1, 5, 7, 10};
+  TEST_EQUAL(tryptic_results == tryptic_expect, true)
 }
 
 END_SECTION
@@ -98,16 +91,9 @@ START_SECTION((std::vector<std::pair<std::string::size_type, std::string> > find
   MRMDecoy gen;
 
   String sequence = "TRESTPEPTIKDE";
-  std::vector<pair<std::string::size_type, std::string> > tryptic_results = gen.findFixedAndTermResidues(sequence);
-  std::vector<pair<std::string::size_type, std::string> > tryptic_control = boost::assign::list_of(std::make_pair(0, "T")) (std::make_pair(1, "R")) (std::make_pair(5, "P")) (std::make_pair(7, "P")) (std::make_pair(10, "K")) (std::make_pair(12, "E"));
-
-  for (Size i = 0; i < tryptic_results.size(); i++)
-  {
-    pair<std::string::size_type, std::string> result = tryptic_results[i];
-    pair<std::string::size_type, std::string> control = tryptic_control[i];
-    TEST_EQUAL(result.first, control.first)
-    TEST_EQUAL(result.second, control.second)
-  }
+  MRMDecoy::IndexType tryptic_results = gen.findFixedAndTermResidues(sequence);
+  MRMDecoy::IndexType tryptic_expect = {0, 1, 5, 7, 10, 12};
+  TEST_EQUAL(tryptic_results == tryptic_expect, true)
 }
 
 END_SECTION
