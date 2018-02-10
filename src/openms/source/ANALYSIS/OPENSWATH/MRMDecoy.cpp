@@ -324,60 +324,15 @@ namespace OpenMS
   }
 
   OpenMS::TargetedExperiment::Peptide MRMDecoy::pseudoreversePeptide(
-    OpenMS::TargetedExperiment::Peptide peptide) const
+    const OpenMS::TargetedExperiment::Peptide& peptide) const
   {
-    OpenMS::TargetedExperiment::Peptide peptideorig = peptide;
-    std::vector<Size> peptide_index;
-    for (Size i = 0; i < peptide.sequence.size(); i++)
-    {
-      peptide_index.push_back(i);
-    }
-
-    peptide.sequence = peptide.sequence.substr(0, peptide.sequence.size() - 1).reverse()
-                       + peptide.sequence.substr(peptide.sequence.size() - 1, 1); // pseudo-reverse
-    std::reverse(peptide_index.begin(), peptide_index.end() - 1);
-
-    for (Size j = 0; j < peptide.mods.size(); j++)
-    {
-      for (Size k = 0; k < peptide_index.size(); k++)
-      {
-        if (boost::numeric_cast<int>(peptide_index[k])  == peptide.mods[j].location)
-        {
-          peptide.mods[j].location = boost::numeric_cast<int>(k);
-          break;
-        }
-      }
-    }
-
-    return peptide;
+    return MRMDecoy::reversePeptide(peptide, false, true);
   }
 
   OpenMS::TargetedExperiment::Peptide MRMDecoy::reversePeptide(
-    OpenMS::TargetedExperiment::Peptide peptide) const
+    const OpenMS::TargetedExperiment::Peptide& peptide) const
   {
-    OpenMS::TargetedExperiment::Peptide peptideorig = peptide;
-    std::vector<Size> peptide_index;
-    for (Size i = 0; i < peptide.sequence.size(); i++)
-    {
-      peptide_index.push_back(i);
-    }
-
-    peptide.sequence = peptide.sequence.reverse();
-    std::reverse(peptide_index.begin(), peptide_index.end());
-
-    for (Size j = 0; j < peptide.mods.size(); j++)
-    {
-      for (Size k = 0; k < peptide_index.size(); k++)
-      {
-        if (boost::numeric_cast<int>(peptide_index[k]) == peptide.mods[j].location)
-        {
-          peptide.mods[j].location = boost::numeric_cast<int>(k);
-          break;
-        }
-      }
-    }
-
-    return peptide;
+    return MRMDecoy::reversePeptide(peptide, false, false);
   }
 
   bool MRMDecoy::hasCNterminalMods(const OpenMS::TargetedExperiment::Peptide& peptide)

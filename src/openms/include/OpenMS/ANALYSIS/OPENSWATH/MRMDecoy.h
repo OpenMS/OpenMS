@@ -145,7 +145,7 @@ public:
             last AA constant)
     */
     OpenMS::TargetedExperiment::Peptide pseudoreversePeptide(
-      OpenMS::TargetedExperiment::Peptide peptide) const;
+      const OpenMS::TargetedExperiment::Peptide& peptide) const;
 
     /**
       @brief Reverse a peptide sequence (with its modifications)
@@ -153,7 +153,7 @@ public:
       @note Does not keep N / C terminus in place.
     */
     OpenMS::TargetedExperiment::Peptide reversePeptide(
-      OpenMS::TargetedExperiment::Peptide peptide) const;
+      const OpenMS::TargetedExperiment::Peptide& peptide) const;
 
     /**
       @brief Reverse a peptide sequence (with its modifications)
