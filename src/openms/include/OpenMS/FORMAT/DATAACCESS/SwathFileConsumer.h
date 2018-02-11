@@ -598,6 +598,7 @@ protected:
     {
       String mzml_file = cachedir_ + basename_ + "_" + String(swath_consumers_.size()) +  ".mzML";
       PlainMSDataWritingConsumer* consumer = new PlainMSDataWritingConsumer(mzml_file);
+      consumer->getOptions().setCompression(true);
       consumer->setExpectedSize(nr_ms2_spectra_[swath_consumers_.size()], 0);
       swath_consumers_.push_back(consumer);
     }
@@ -618,6 +619,7 @@ protected:
       String mzml_file = cachedir_ + basename_ + "_ms1.mzML";
       ms1_consumer_ = new PlainMSDataWritingConsumer(mzml_file);
       ms1_consumer_->setExpectedSize(nr_ms1_spectra_, 0);
+      ms1_consumer_->getOptions().setCompression(true);
       boost::shared_ptr<PeakMap > exp(new PeakMap(settings_));
       // ms1_map_ = exp;
     }
