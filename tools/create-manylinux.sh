@@ -6,7 +6,7 @@
 #
 # Execute as:
 # 
-#   sudo docker run --net=host -v `pwd`:/data manylinux_qt_contrib /bin/bash /data/create-manylinux.sh
+#   sudo docker run --net=host -v `pwd`:/data hroest/manylinux_qt59_contrib:latest /bin/bash /data/create-manylinux.sh
 #
 
 ## For a release, change to the following:
@@ -35,7 +35,8 @@ for PYBIN in /opt/python/cp27* /opt/python/cp3[4-9]*; do
   cd /openms-build-$PYVER
 
   # configure and build
-  cmake -DCMAKE_PREFIX_PATH="/contrib-build/" -DPYOPENMS=On -DPYTHON_EXECUTABLE:FILEPATH=$PYBIN/bin/python -DPY_NUM_THREADS=2 -DPY_NUM_MODULES=4 -DQT_QMAKE_EXECUTABLE=/qt/bin/qmake ../OpenMS
+  cmake -DCMAKE_PREFIX_PATH="/qt/;/contrib-build/" -DPYOPENMS=On -DPYTHON_EXECUTABLE:FILEPATH=$PYBIN/bin/python \
+    -DPY_NUM_THREADS=2 -DPY_NUM_MODULES=4 -DQT_QMAKE_EXECUTABLE=/qt/bin/qmake ../OpenMS
   make -j6 pyopenms
 
   # create final wheel ready for bundling (and make sure we find the OpenMS libs)
@@ -51,5 +52,4 @@ for PYBIN in /opt/python/cp27* /opt/python/cp3[4-9]*; do
   # retrieve data
   mv wheelhouse/* /data/wheelhouse/
 done
-
 
