@@ -219,8 +219,8 @@
 			<UserParam type="float" name="var_yseries_score" value="0"/>
 			<UserParam type="float" name="var_dotprod_score" value="0.569254627829016"/>
 			<UserParam type="float" name="var_manhatt_score" value="1.41701521376166"/>
-			<UserParam type="float" name="var_ms1_xcorr_shape" value="0.153856181654948"/>
-			<UserParam type="float" name="var_ms1_xcorr_coelution" value="17"/>
+			<UserParam type="float" name="var_ms1_xcorr_shape" value="0"/>
+			<UserParam type="float" name="var_ms1_xcorr_coelution" value="19"/>
 			<UserParam type="float" name="var_ms1_ppm_diff" value="114.285714285714"/>
 			<UserParam type="float" name="var_ms1_isotope_correlation" value="0"/>
 			<UserParam type="float" name="var_ms1_isotope_overlap" value="0"/>
@@ -330,8 +330,8 @@
 			<UserParam type="float" name="var_yseries_score" value="0"/>
 			<UserParam type="float" name="var_dotprod_score" value="0.568606608850677"/>
 			<UserParam type="float" name="var_manhatt_score" value="1.41776651059303"/>
-			<UserParam type="float" name="var_ms1_xcorr_shape" value="0"/>
-			<UserParam type="float" name="var_ms1_xcorr_coelution" value="17"/>
+			<UserParam type="float" name="var_ms1_xcorr_shape" value="0.168950842077022"/>
+			<UserParam type="float" name="var_ms1_xcorr_coelution" value="15"/>
 			<UserParam type="float" name="var_ms1_ppm_diff" value="108.108108108108"/>
 			<UserParam type="float" name="var_ms1_isotope_correlation" value="0"/>
 			<UserParam type="float" name="var_ms1_isotope_overlap" value="0"/>
@@ -663,8 +663,8 @@
 			<UserParam type="float" name="var_yseries_score" value="0"/>
 			<UserParam type="float" name="var_dotprod_score" value="0.56598410001346"/>
 			<UserParam type="float" name="var_manhatt_score" value="1.42079940133806"/>
-			<UserParam type="float" name="var_ms1_xcorr_shape" value="0.466247494161943"/>
-			<UserParam type="float" name="var_ms1_xcorr_coelution" value="10"/>
+			<UserParam type="float" name="var_ms1_xcorr_shape" value="3.64698516791607e+174"/>
+			<UserParam type="float" name="var_ms1_xcorr_coelution" value="5"/>
 			<UserParam type="float" name="var_ms1_ppm_diff" value="0.0195308594010019"/>
 			<UserParam type="float" name="var_ms1_isotope_correlation" value="0.968503425892327"/>
 			<UserParam type="float" name="var_ms1_isotope_overlap" value="1.5"/>
