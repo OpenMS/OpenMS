@@ -11,9 +11,15 @@
 
 ## For a release, change to the following:
 ## git clone -b Release2.3.0 https://github.com/OpenMS/OpenMS.git
-## sed -i 's/@CF_OPENMS_PACKAGE_VERSION@/2.3.0.3/' OpenMS/src/pyOpenMS/env.py.in
+git clone -b feature/qt5 https://github.com/hroest/OpenMS.git
 
-git clone https://github.com/OpenMS/OpenMS.git
+# Bugfix 1:
+# our QT library does not support SSL
+sed -i 's/connectToHostEncrypted/connectToHost/' OpenMS/src/openms/source/FORMAT/MascotRemoteQuery.cpp
+
+# Bugfix 2:
+# make sure that we can find the link library
+ln -s /contrib-build/lib64/libxerces-c-3.2.a /contrib-build/lib/libxerces-c.a
 
 # install Python deps
 for PYBIN in /opt/python/cp27* /opt/python/cp3[4-9]*; do
