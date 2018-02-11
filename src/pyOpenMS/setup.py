@@ -133,6 +133,9 @@ include_dirs.extend(LIBRARIES_EXTEND)
 libraries.extend(LIBRARIES_EXTEND)
 library_dirs.extend(LIBRARY_DIRS_EXTEND)
 
+# Ensure we do not have any empty entries
+library_dirs = [l for l in library_dirs if len(l) > 0]
+
 extra_link_args = []
 extra_compile_args = []
 
