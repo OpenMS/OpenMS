@@ -38,176 +38,92 @@ namespace OpenMS
 {
   void AbsoluteQuantitationMethodFile::load(const String & filename, std::vector<AbsoluteQuantitationMethod> & aqm_list)
   {
-    // read in the .csv file
-    char is = ',';
-    bool ie = false; 
-    Int first_n = -1;
-    CsvFile::load(filename, is, ie, first_n);
-
-    // parse the file
-    std::map<String, Int> headers;
-    std::map<String, Int> params_headers;
-    StringList line, header;
-    AbsoluteQuantitationMethod aqm;
-    for (size_t i = 0; i < CsvFile::rowCount(); ++i)
+    aqm_list.clear();
+    CsvFile::load(filename, ',', false, -1);
+    std::map<String, Size> headers;
+    StringList sl;
+    if (rowCount() >= 2) // no need to read headers if that's the only line inside the file
     {
-      if (i == 0) // header row
+      getRow(0, sl);
+      for (Size i = 0; i < sl.size(); ++i)
       {
-        CsvFile::getRow(i, header);
-        parseHeader_(header, headers, params_headers);
+        headers[sl[i]] = i; // for each header found, assign an index value to it
       }
-      else
+      if (!( // if any of these headers is missing, warn the user
+        headers.count("IS_name") &&
+        headers.count("component_name") &&
+        headers.count("feature_name") &&
+        headers.count("concentration_units") &&
+        headers.count("llod") &&
+        headers.count("ulod") &&
+        headers.count("lloq") &&
+        headers.count("uloq") &&
+        headers.count("correlation_coefficient") &&
+        headers.count("n_points") &&
+        headers.count("transformation_model")
+      ))
       {
-        CsvFile::getRow(i, line);
-        parseLine_(line, headers, params_headers, aqm);
-        aqm_list.push_back(aqm);
+        LOG_WARN << "One or more of the following columns are missing:\n";
+        LOG_WARN << "IS_name\n";
+        LOG_WARN << "component_name\n";
+        LOG_WARN << "feature_name\n";
+        LOG_WARN << "concentration_units\n";
+        LOG_WARN << "llod\n";
+        LOG_WARN << "ulod\n";
+        LOG_WARN << "lloq\n";
+        LOG_WARN << "uloq\n";
+        LOG_WARN << "correlation_coefficient\n";
+        LOG_WARN << "n_points\n";
+        LOG_WARN << "transformation_model\n" << std::endl;
       }
     }
-  }
-
-  void AbsoluteQuantitationMethodFile::parseHeader_(
-    StringList & line,
-    std::map<String, Int> & headers,
-    std::map<String, Int> & params_headers
-  ) const
-  {    
-    // default header column positions
-    headers["IS_name"] = -1;
-    headers["component_name"] = -1;
-    headers["feature_name"] = -1;
-    headers["concentration_units"] = -1;
-    headers["llod"] = -1;
-    headers["ulod"] = -1;
-    headers["lloq"] = -1;
-    headers["uloq"] = -1;
-    headers["correlation_coefficient"] = -1;
-    headers["n_points"] = -1;
-    headers["transformation_model"] = -1;
-    String param_header = "transformation_model_param_";
-    
-    // parse the header columns
-    for (size_t i = 0; i < line.size(); ++i)
+    for (Size i = 1; i < rowCount(); ++i)
     {
-      // parse transformation_model_params
-      if (line[i].find(param_header) != String::npos) 
-      {
-        line[i].erase(0, param_header.size()); 
-        params_headers[line[i]] = i;
-      }      
-      else // parse all other header entries
-      {
-        headers[line[i]] = i;
-      }
+      getRow(i, sl);
+      AbsoluteQuantitationMethod aqm;
+      parseLine_(sl, headers, aqm);
+      aqm_list.push_back(aqm);
     }
   }
 
   void AbsoluteQuantitationMethodFile::parseLine_(
     const StringList & line,
-    const std::map<String, Int> & headers,
-    const std::map<String, Int> & params_headers,
+    const std::map<String, Size> & headers,
     AbsoluteQuantitationMethod & aqm
   ) const
   {
-    // component, IS, and feature names
-    String component_name = "";
-    if (headers.at("component_name") != -1)
+    StringList tl = line; // trimmed line
+    for (String& s : tl)
     {
-      component_name = line[headers.at("component_name")];
+      s.trim();
     }
-    aqm.setComponentName(component_name);
-    String feature_name = "";
-    if (headers.at("feature_name") != -1)
+    aqm.setComponentName(headers.count("component_name") ? tl[headers.at("component_name")] : "");
+    aqm.setFeatureName(headers.count("feature_name") ? tl[headers.at("feature_name")] : "");
+    aqm.setISName(headers.count("IS_name") ? tl[headers.at("IS_name")] : "");
+    aqm.setLLOD(!headers.count("llod") || tl[headers.at("llod")].empty() ? 0 : std::stod(tl[headers.at("llod")]));
+    aqm.setULOD(!headers.count("ulod") || tl[headers.at("ulod")].empty() ? 0 : std::stod(tl[headers.at("ulod")]));
+    aqm.setLLOQ(!headers.count("lloq") || tl[headers.at("lloq")].empty() ? 0 : std::stod(tl[headers.at("lloq")]));
+    aqm.setULOQ(!headers.count("uloq") || tl[headers.at("uloq")].empty() ? 0 : std::stod(tl[headers.at("uloq")]));
+    aqm.setConcentrationUnits(headers.count("concentration_units") ? tl[headers.at("concentration_units")] : "");
+    aqm.setNPoints(!headers.count("n_points") || tl[headers.at("n_points")].empty() ? 0 : std::stoi(tl[headers.at("n_points")]));
+    aqm.setCorrelationCoefficient(
+      !headers.count("correlation_coefficient") || tl[headers.at("correlation_coefficient")].empty()
+        ? 0
+        : std::stod(tl[headers.at("correlation_coefficient")])
+    );
+    aqm.setTransformationModel(headers.count("transformation_model") ? tl[headers.at("transformation_model")] : "");
+    Param tm_params;
+    for (const std::pair<String, Size>& h : headers)
     {
-      feature_name = line[headers.at("feature_name")];
-    }
-    aqm.setFeatureName(feature_name);
-    String IS_name = "";
-    if (headers.at("IS_name") != -1)
-    {
-      IS_name = line[headers.at("IS_name")];
-    }
-    aqm.setISName(IS_name);
-
-    // LODs
-    double llod = 0.0;
-    if (headers.at("llod") != -1)
-    {
-      llod = (line[headers.at("llod")].empty()) ? 0.0 : std::stod(line[headers.at("llod")]);
-    }
-    aqm.setLLOD(llod);
-    double ulod = 0.0;
-    if (headers.at("ulod") != -1)
-    {
-      ulod = (line[headers.at("ulod")].empty()) ? 0.0 : std::stod(line[headers.at("ulod")]);
-    }
-    aqm.setULOD(ulod);
-
-    // LOQs
-    double lloq = 0.0;
-    if (headers.at("lloq") != -1)
-    {
-      lloq = (line[headers.at("lloq")].empty()) ? 0.0 : std::stod(line[headers.at("lloq")]);
-    }
-    aqm.setLLOQ(lloq);
-    double uloq = 0.0;
-    if (headers.at("uloq") != -1)
-    {
-      uloq = (line[headers.at("uloq")].empty()) ? 0.0 : std::stod(line[headers.at("uloq")]);
-    }
-    aqm.setULOQ(uloq);
-
-    // concentration units
-    String concentration_units = "";
-    if (headers.at("concentration_units") != -1)
-    {
-      concentration_units = line[headers.at("concentration_units")];
-    }
-    aqm.setConcentrationUnits(concentration_units);
-
-    // statistics
-    Int n_points = 0;
-    if (headers.at("n_points") != -1)
-    {
-      n_points = (line[headers.at("n_points")].empty()) ? 0.0 : std::stoi(line[headers.at("n_points")]);
-    }
-    aqm.setNPoints(n_points);
-    double correlation_coefficient = 0.0;
-    if (headers.at("correlation_coefficient") != -1)
-    {
-      correlation_coefficient = (line[headers.at("correlation_coefficient")].empty()) ? 0.0 : std::stod(line[headers.at("correlation_coefficient")]);
-    }
-    aqm.setCorrelationCoefficient(correlation_coefficient);
-
-    // transformation model
-    String transformation_model = "";
-    if (headers.at("transformation_model") != -1)
-    {
-      transformation_model = line[headers.at("transformation_model")];
-    }
-    Param transformation_model_params;
-    for (auto const& kv : params_headers)
-    {
-      // cast doubles
-      std::vector<String> param_doubles {"slope", "intercept", "wavelength", "span", "delta", "x_datum_min", "y_datum_min", "x_datum_max", "y_datum_max"}; 
-      // cast integers
-      std::vector<String> param_ints {"num_nodes", "boundary_condition", "num_iterations"};
-
-      if (std::find(param_doubles.begin(), param_doubles.end(), kv.first) != param_doubles.end())
+      const String& header = h.first;
+      const Size& i = h.second;
+      boost::smatch m;
+      if (boost::regex_search(header, m, boost::regex("transformation_model_param_(.+)")))
       {
-        transformation_model_params.setValue(kv.first,std::stod(line[kv.second]));
-      }      
-      else if (std::find(param_ints.begin(), param_ints.end(), kv.first) != param_ints.end())
-      {
-        transformation_model_params.setValue(kv.first,std::stoi(line[kv.second]));
+        setCastValue_(String(m[1]), tl[i], tm_params);
       }
-      else
-      {
-        transformation_model_params.setValue(kv.first,line[kv.second]);
-      }
-      
     }
-    aqm.setTransformationModel(transformation_model);
-    aqm.setTransformationModelParams(transformation_model_params);
+    aqm.setTransformationModelParams(tm_params);
   }
 
   void AbsoluteQuantitationMethodFile::store(
@@ -225,14 +141,8 @@ namespace OpenMS
       const Param tm_params = aqm_list[0].getTransformationModelParams();
       for (const Param::ParamEntry& param : tm_params)
       {
-        if (std::find(tm_params_names.begin(), tm_params_names.end(), param.name) == tm_params_names.end())
-        {
-          tm_params_names.insert(tm_params_names.begin(), param.name);
-        }
-      }
-      for (const String name : tm_params_names)
-      {
-        split_headers.push_back("transformation_model_param_" + name);
+        tm_params_names.insert(tm_params_names.begin(), param.name);
+        split_headers.insert(split_headers.begin() + 11, "transformation_model_param_" + param.name);
       }
     }
     addRow(split_headers);
@@ -253,10 +163,30 @@ namespace OpenMS
       const Param tm_params = aqm.getTransformationModelParams();
       for (Size i = 0, j = 11; i < tm_params_names.size(); ++i, ++j)
       {
-        row[j] = tm_params.getValue(tm_params_names[i]);
+        row[j] = tm_params.exists(tm_params_names[i]) ? tm_params.getValue(tm_params_names[i]) : "";
       }
       addRow(row);
     }
     CsvFile::store(filename);
+  }
+
+  void AbsoluteQuantitationMethodFile::setCastValue_(const String& key, const String& value, Param& params) const
+  {
+    const std::vector<String> param_doubles {
+      "slope", "intercept", "wavelength", "span", "delta", "x_datum_min", "y_datum_min", "x_datum_max", "y_datum_max"
+    };
+    const std::vector<String> param_ints {"num_nodes", "boundary_condition", "num_iterations"};
+    if (std::find(param_doubles.begin(), param_doubles.end(), key) != param_doubles.end())
+    {
+      params.setValue(key, value.empty() ? 0 : std::stod(value));
+    }
+    else if (std::find(param_ints.begin(), param_ints.end(), key) != param_ints.end())
+    {
+      params.setValue(key, value.empty() ? 0 : std::stoi(value));
+    }
+    else
+    {
+      params.setValue(key,value);
+    }
   }
 } // namespace OpenMS

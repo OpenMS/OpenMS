@@ -2,3 +2,8 @@ IS_name,component_name,feature_name,concentration_units,llod,ulod,lloq,uloq,corr
 IS1,component1,feature1,uM,0,10,2,8,0.99,5,TransformationModelLinear,2,1
 IS2,component2,feature2,uM,1,9,3,7,0.98,4,TransformationModelLinear,2,2
 IS3,component3,feature3,uM,2,8,4,6,0.97,3,TransformationModelLinear,1,2
+,component4,feature4,uM,3,7,5,5,0.96,2,TransformationModelLinear,2,2
+IS5,,feature5,uM,4,6,6,4,0.95,1,TransformationModelLinear,2,1
+IS6,component6,feature6,uM,5,5,7,3,0.94,2,TransformationModelLinear,2,2
+,component 7,feature 7,,,,,,,,,,2
+IS8,component8,feature8,uM,7,3,,1,0.92,1,TransformationModelLinear,1,2

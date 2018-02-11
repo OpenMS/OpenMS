@@ -44,7 +44,7 @@ using namespace OpenMS;
 ///////////////////////////
 
 START_TEST(Bzip2InputStream, "$Id$")
-
+xercesc::XMLPlatformUtils::Initialize();
 Bzip2InputStream* ptr = nullptr;
 Bzip2InputStream* nullPointer = nullptr;
 START_SECTION(Bzip2InputStream(const   char* const     file_name))
