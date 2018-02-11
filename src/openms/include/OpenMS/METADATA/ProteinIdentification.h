@@ -95,6 +95,9 @@ public:
       */
       bool operator<(const ProteinGroup& rhs) const;
 
+      /// Group coverage
+      double coverage = -1; //< 0..1, -1 = not set
+
       /// Float data arrays
       FloatDataArrays float_data_arrays;
     };

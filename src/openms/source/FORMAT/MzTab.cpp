@@ -1788,9 +1788,10 @@ namespace OpenMS
         map_pep_idx_2_run[psm_idx] = run_idx;
       }
 
-      //sp.digestion_enzyme
-      //sp.missed_cleavages
+      // TODO: sp.digestion_enzyme
+      // TODO: sp.missed_cleavages
       // generate protein section
+
       MzTabProteinSectionRows protein_rows;
 
       Size current_run_index(1);
@@ -1889,6 +1890,9 @@ namespace OpenMS
           protein_row.ambiguity_members = ambiguity_members; // Alternative protein identifications.
           protein_row.best_search_engine_score[1] = MzTabDouble(group.probability);
 
+          double coverage = group.coverage; // TODO: create getter / setter for coverage
+          if (coverage >= 0) { protein_row.protein_coverage = MzTabDouble(coverage); }
+
           MzTabOptionalColumnEntry opt_column_entry;
           opt_column_entry.first = "opt_global_protein_group_type";
           opt_column_entry.second = MzTabString("protein_group");
@@ -1917,6 +1921,8 @@ namespace OpenMS
           }
           ambiguity_members.set(entries);
           protein_row.ambiguity_members = ambiguity_members; // set of indistinguishable proteins
+          double coverage = group.coverage;
+          if (coverage >= 0) { protein_row.protein_coverage = MzTabDouble(coverage); }
 
           MzTabOptionalColumnEntry opt_column_entry;
           opt_column_entry.first = "opt_global_protein_group_type";
@@ -2124,6 +2130,7 @@ namespace OpenMS
 
     // TODO: here potentially the back references to the spectra are lost
     // pep_ids reference a search engine run that might not be present in the prot_ids
+    // needs to be checked...
     MzTab mztab = exportIdentificationsToMzTab(prot_ids, pep_ids, filename);
 
     vector<String> var_mods, fixed_mods;
@@ -2138,6 +2145,7 @@ namespace OpenMS
     }
 
     // determine number of channels
+    // TODO: check if/how this works with fractions and multiplexed experiments
     Size n_study_variables = consensus_map.getFileDescriptions().size();
 
     MzTabMetaData meta_data;
