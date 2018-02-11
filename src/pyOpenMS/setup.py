@@ -93,11 +93,11 @@ for OPEN_MS_CONTRIB_BUILD_DIR in OPEN_MS_CONTRIB_BUILD_DIRS.split(";"):
 #
 if iswin:
     if IS_DEBUG:
-        libraries = ["OpenMSd", "OpenSwathAlgod", "SuperHirnd", "xerces-c_3D", "QtCored4"]
+        libraries = ["OpenMSd", "OpenSwathAlgod", "SuperHirnd", "xerces-c_3D", "QtCored5"]
     else:
-        libraries = ["OpenMS", "OpenSwathAlgo", "SuperHirn", "xerces-c_3", "QtCore4"]
+        libraries = ["OpenMS", "OpenSwathAlgo", "SuperHirn", "xerces-c_3", "QtCore5"]
 elif sys.platform.startswith("linux"):
-    libraries = ["OpenMS", "OpenSwathAlgo", "SuperHirn", "xerces-c", "QtCore"]
+    libraries = ["OpenMS", "OpenSwathAlgo", "SuperHirn", "xerces-c", "Qt5Core"]
 elif sys.platform == "darwin":
     libraries = ["OpenMS", "OpenSwathAlgo", "SuperHirn"]
 else:
