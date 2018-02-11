@@ -54,8 +54,8 @@ find_path(
 
 # Find the xerces libraries
 if (NOT XercesC_LIBRARIES)
-    find_library(XercesC_LIBRARY_RELEASE NAMES xerces-c xerces-c_3 xerces-c_3_1 ${_XercesC_PATHS} PATH_SUFFIXES lib)
-    find_library(XercesC_LIBRARY_DEBUG NAMES xerces-c xerces-c_3D xerces-c_3_1D ${_XercesC_PATHS} PATH_SUFFIXES lib)
+    find_library(XercesC_LIBRARY_RELEASE NAMES xerces-c xerces-c_3 xerces-c_3_1 xerces-c-3.1 xerces-c_3_2 xerces-c-3.2 ${_XercesC_PATHS} PATH_SUFFIXES lib)
+    find_library(XercesC_LIBRARY_DEBUG NAMES xerces-c xerces-c_3D xerces-c_3_1D xerces-c-3.1D xerces-c_3_2D xerces-c-3.2D ${_XercesC_PATHS} PATH_SUFFIXES lib)
 
     include(${CMAKE_CURRENT_LIST_DIR}/SelectLibraryConfigurations.cmake)
     select_library_configurations(XercesC)

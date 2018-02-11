@@ -126,14 +126,6 @@ print s
   const char Base64::encoder_[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
   const char Base64::decoder_[] = "|$$$}rstuvwxyz{$$$$$$$>?@ABCDEFGHIJKLMNOPQRSTUVW$$$$$$XYZ[\\]^_`abcdefghijklmnopq";
 
-  Base64::Base64()
-  {
-  }
-
-  Base64::~Base64()
-  {
-  }
-
   void Base64::encodeStrings(const std::vector<String>& in, String& out, bool zlib_compression, bool append_null_byte)
   {
     out.clear();

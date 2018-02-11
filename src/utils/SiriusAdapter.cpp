@@ -37,13 +37,21 @@
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/MzTabFile.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/ANALYSIS/ID/SiriusMSConverter.h>
 #include <OpenMS/FORMAT/DATAACCESS/SiriusMzTabWriter.h>
 #include <OpenMS/FORMAT/DATAACCESS/CsiFingerIdMzTabWriter.h>
+#include <OpenMS/ANALYSIS/QUANTITATION/KDTreeFeatureMaps.h>
+#include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
+#include <OpenMS/CHEMISTRY/Element.h>
 #include <QtCore/QProcess>
 #include <QDir>
 #include <QDebug>
 #include <QDirIterator>
+
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
+#include <fstream>
 
 using namespace OpenMS;
 using namespace std;
@@ -64,6 +72,15 @@ using namespace std;
   Sirius can be found on https://bio.informatik.uni-jena.de/software/sirius/
 
   If you want to use the software with the Gurobi solver (free academic license) instead of GLPK, please follow the instructions in the sirius manual.
+
+
+  Internal procedure in SiriusAdpater
+  1. Input mzML
+  2. Parsed by SiriusMSConverter into (sirius internal) .ms format
+  3. Submission of .ms and additional parameters to wrapped SIRIUS.jar
+  4. Sirius output saved in interal temporary folder structure
+  5. Sirius output is parsed (SiriusMzTabWriter/CsiFingerIDMzTabWriter)
+  6. Merge corresponding output in one mzTab (out_sirius/out_fingerid)
 
   Please see the following publications:
 
@@ -103,6 +120,9 @@ protected:
     registerInputFile_("in", "<file>", "", "MzML Input file");
     setValidFormats_("in", ListUtils::create<String>("mzml"));
 
+    registerInputFile_("in_adductinfo", "<file>", "", "FeatureXML Input with adduct information", false);
+    setValidFormats_("in_adductinfo", ListUtils::create<String>("featurexml"));
+
     registerOutputFile_("out_sirius", "<file>", "", "MzTab Output file for SiriusAdapter results");
     setValidFormats_("out_sirius", ListUtils::create<String>("tsv"));
 
@@ -120,11 +140,64 @@ protected:
     setValidStrings_("isotope", ListUtils::create<String>("score,filter,both,omit"));
     registerStringOption_("elements", "<choice>", "CHNOP[5]S", "The allowed elements. Write CHNOPSCl to allow the elements C, H, N, O, P, S and Cl. Add numbers in brackets to restrict the maximal allowed occurrence of these elements: CHNOP[5]S[8]Cl[1]. By default CHNOP[5]S is used.", false);
 
-    registerIntOption_("number", "<num>", 10, "The number of compounds used in the output", false);
+    registerIntOption_("top_n_hits", "<num>", 10, "The top_n_hit for each compound written to the output", false);
 
     registerFlag_("auto_charge", "Use this option if the charge of your compounds is unknown and you do not want to assume [M+H]+ as default. With the auto charge option SIRIUS will not care about charges and allow arbitrary adducts for the precursor peak.", false);
     registerFlag_("iontree", "Print molecular formulas and node labels with the ion formula instead of the neutral formula", false);
     registerFlag_("no_recalibration", "If this option is set, SIRIUS will not recalibrate the spectrum during the analysis.", false);
+  }
+
+  // extract adduct information from featureXML (MetaboliteAdductDecharger)
+  void extractAdductInformation(const PeakMap & spectra, const FeatureMap & feature_map, map<size_t, StringList> & map_precursor_to_adducts)
+  {
+    KDTreeFeatureMaps adduct_map_kd;
+    vector<FeatureMap> adduct_map;
+    adduct_map.push_back(feature_map);
+    adduct_map_kd.addMaps(adduct_map);
+    
+    // map precursors to closest feature and retrieve annotated adducts
+    for (size_t index = 0; index != spectra.size(); ++index)
+    {
+      if (spectra[index].getMSLevel() != 2) { continue; }
+      
+      // get precursor meta data (m/z, rt)
+      const vector<Precursor> & pcs = spectra[index].getPrecursors();
+
+      if (!pcs.empty())
+      {
+        const double mz = pcs[0].getMZ();
+        const double rt = spectra[index].getRT();
+
+        // query features in tolerance window
+        vector<Size> matches;
+        adduct_map_kd.queryRegion(rt - 5.0, rt + 5.0, mz - 0.2, mz + 0.2, matches, true);
+
+        // no adduct information found - will use defaults in SIRIUS 
+        if (matches.empty()) { continue; }
+        
+        // in the case of multiple features in tolerance window, select the one closest in m/z to the precursor
+        Size min_distance_feature_index(0);
+        double min_distance(1e11);
+        for (auto const & k_idx : matches)
+        {
+          const double f_mz = adduct_map_kd.mz(k_idx);
+          const double distance = fabs(f_mz - mz);
+          if (distance < min_distance)
+          {
+            min_distance = distance;
+            min_distance_feature_index = k_idx;
+          }
+        }
+        const BaseFeature * min_distance_feature = adduct_map_kd.feature(min_distance_feature_index);
+        
+        // extract adducts from featureXML and associate with precursor
+        if (min_distance_feature->metaValueExists("adducts"))
+        {
+          StringList adducts = min_distance_feature->getMetaValue("adducts");
+          map_precursor_to_adducts[index] = adducts;
+        }
+      }
+    }
   }
 
   ExitCodes main_(int, const char **) override
@@ -136,9 +209,10 @@ protected:
     String in = getStringOption_("in");
     String out_sirius = getStringOption_("out_sirius");
     String out_csifingerid = getStringOption_("out_fingerid");
+    String adductinfo = getStringOption_("in_adductinfo");
 
     // needed for counting
-    int number_compounds = getIntOption_("number"); 
+    int top_n_hits = getIntOption_("top_n_hits"); 
 
     // Parameter for Sirius3
     QString executable = getStringOption_("executable").toQString();
@@ -192,8 +266,19 @@ protected:
     String tmp_ms_file = QDir(tmp_base_dir).filePath((File::getUniqueName() + ".ms").toQString());
     String out_dir = QDir(tmp_dir).filePath("sirius_out");
 
-    //Write msfile
-    SiriusMSFile::store(spectra, tmp_ms_file);
+    // Read FeatureXML in KDTree for range query
+    map<size_t, StringList> map_precursor_to_adducts;
+    std::ifstream afile(adductinfo);    
+    if (afile)
+    {
+      FeatureXMLFile fxml;
+      FeatureMap feature_map;
+      fxml.load(adductinfo, feature_map);
+      extractAdductInformation(spectra, feature_map, map_precursor_to_adducts);
+    }   
+
+    // Write msfile
+    SiriusMSFile::store(spectra, tmp_ms_file, map_precursor_to_adducts);
 
     // Assemble SIRIUS parameters
     QStringList process_params;
@@ -272,7 +357,7 @@ protected:
     //Convert sirius_output to mztab and store file
     MzTab sirius_result;
     MzTabFile siriusfile;
-    SiriusMzTabWriter::read(subdirs, number_compounds, sirius_result);
+    SiriusMzTabWriter::read(subdirs, in, top_n_hits, sirius_result);
     siriusfile.store(out_sirius, sirius_result);
 
     //Convert sirius_output to mztab and store file
@@ -280,7 +365,7 @@ protected:
     {
       MzTab csi_result;
       MzTabFile csifile;
-      CsiFingerIdMzTabWriter::read(subdirs, number_compounds, csi_result);
+      CsiFingerIdMzTabWriter::read(subdirs, in, top_n_hits, csi_result);
       csifile.store(out_csifingerid, csi_result);
     }
 
