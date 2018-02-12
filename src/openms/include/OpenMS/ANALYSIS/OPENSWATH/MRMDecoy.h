@@ -117,7 +117,7 @@ public:
                         String method, String decoy_tag, int max_attempts, double identity_threshold,
                         double precursor_mz_shift, double product_mz_shift, double product_mz_threshold,
                         std::vector<String> fragment_types, std::vector<size_t> fragment_charges,
-                        bool enable_specific_losses, bool enable_unspecific_losses, int round_decPow = -4);
+                        bool enable_specific_losses, bool enable_unspecific_losses, int round_decPow = -4) const;
 
     typedef std::vector<OpenMS::TargetedExperiment::Protein> ProteinVectorType;
     typedef std::vector<OpenMS::TargetedExperiment::Peptide> PeptideVectorType;
@@ -128,7 +128,7 @@ public:
     /**
       @brief Compute relative identity (relative number of matches of amino acids at the same position) between two sequences
     */
-    float AASequenceIdentity(const String& sequence, const String& decoy);
+    float AASequenceIdentity(const String& sequence, const String& decoy) const;
 
     /**
       @brief Shuffle a peptide (with its modifications) sequence
@@ -139,7 +139,7 @@ public:
     */
     OpenMS::TargetedExperiment::Peptide shufflePeptide(
       OpenMS::TargetedExperiment::Peptide peptide, const double identity_threshold, int seed = -1,
-      const int max_attempts = 100);
+      const int max_attempts = 100) const;
 
     /**
       @brief Pseudo-reverse a peptide sequence (with its modifications)
@@ -177,14 +177,14 @@ public:
 
       This method was adapted from the SpectraST decoy generator
     */
-    IndexType findFixedResidues(std::string sequence);
+    IndexType findFixedResidues(const std::string& sequence) const;
 
     /**
       @brief Find all K, R, P and C-/N-terminal sites in a sequence to be set as fixed
 
       This method was adapted from the SpectraST decoy generator
     */
-    IndexType findFixedAndTermResidues(std::string sequence) const;
+    IndexType findFixedAndTermResidues(const std::string& sequence) const;
 
     static IndexType findFixedResidues(const std::string& sequence,
         bool keepN, bool keepC, const std::vector<OpenMS::String> & keep_const_pattern);
@@ -192,7 +192,7 @@ public:
     /**
       @brief Check if a peptide has C or N terminal modifications
     */
-    bool hasCNterminalMods(const OpenMS::TargetedExperiment::Peptide& peptide);
+    bool hasCNterminalMods(const OpenMS::TargetedExperiment::Peptide& peptide) const;
 
 private:
 
@@ -205,4 +205,4 @@ private:
   };
 }
 
-#endif
+#endif // OPENMS_ANALYSIS_OPENSWATH_MRMDECOY_H

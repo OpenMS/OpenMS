@@ -95,17 +95,17 @@ namespace OpenMS
     return idx;
   }
 
-  MRMDecoy::IndexType MRMDecoy::findFixedResidues(std::string sequence)
+  MRMDecoy::IndexType MRMDecoy::findFixedResidues(const std::string& sequence) const
   {
     return MRMDecoy::findFixedResidues(sequence, false, false, keep_const_pattern_);
   }
 
-  MRMDecoy::IndexType MRMDecoy::findFixedAndTermResidues(std::string sequence) const
+  MRMDecoy::IndexType MRMDecoy::findFixedAndTermResidues(const std::string& sequence) const
   {
     return MRMDecoy::findFixedResidues(sequence, keepN_, keepC_, keep_const_pattern_);
   }
 
-  float MRMDecoy::AASequenceIdentity(const String& sequence, const String& decoy)
+  float MRMDecoy::AASequenceIdentity(const String& sequence, const String& decoy) const
   {
     OPENMS_PRECONDITION(sequence.size() == decoy.size(), "Cannot compare two sequences of unequal length");
 
@@ -125,7 +125,7 @@ namespace OpenMS
 
   OpenMS::TargetedExperiment::Peptide MRMDecoy::shufflePeptide(
     OpenMS::TargetedExperiment::Peptide peptide, const double identity_threshold, int seed,
-    const int max_attempts)
+    const int max_attempts) const
   {
 #ifdef DEBUG_MRMDECOY
     std::cout << " shuffle peptide " << peptide.sequence << std::endl;
@@ -331,7 +331,7 @@ namespace OpenMS
     return MRMDecoy::reversePeptide(peptide, false, false);
   }
 
-  bool MRMDecoy::hasCNterminalMods(const OpenMS::TargetedExperiment::Peptide& peptide)
+  bool MRMDecoy::hasCNterminalMods(const OpenMS::TargetedExperiment::Peptide& peptide) const
   {
     for (Size j = 0; j < peptide.mods.size(); j++)
     {
@@ -347,7 +347,7 @@ namespace OpenMS
                                 String method, String decoy_tag, int max_attempts, double identity_threshold,
                                 double precursor_mz_shift, double product_mz_shift, double product_mz_threshold,
                                 std::vector<String> fragment_types, std::vector<size_t> fragment_charges,
-                                bool enable_specific_losses, bool enable_unspecific_losses, int round_decPow)
+                                bool enable_specific_losses, bool enable_unspecific_losses, int round_decPow) const
   {
     MRMIonSeries mrmis;
     MRMDecoy::PeptideVectorType peptides, decoy_peptides;
@@ -545,3 +545,4 @@ namespace OpenMS
   }
 
 }
+
