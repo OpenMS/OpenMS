@@ -51,7 +51,29 @@ for PYBIN in /opt/python/cp27* /opt/python/cp3[4-9]*; do
     auditwheel repair "$whl" -w wheelhouse/
   done
 
+  # Changing the soname of libQt5Core does not end well and leads to segfaults
+  # when using the module.
+  # Therefore we copy the original libQt5Core back into the wheel
+  mkdir wheelhouse_fixed
+  for whl in wheelhouse/pyopenms*.whl; do
+    /bin/cp $whl wheelhouse_fixed
+    whln=`basename $whl`
+    bn=`basename $whl .whl`
+    cd wheelhouse_fixed
+    mv $bn.whl $bn.zip
+    unzip $bn.zip 
+    rm -rf pyopenms/.libs/libQt5Core-82077f0c.so.5.9.4 
+    cp /qt/lib/libQt5Core.so.5.9.4 pyopenms/.libs/libQt5Core-82077f0c.so.5.9.4 
+    rm -rf pyopenms/lib*
+    strip --strip-unneeded pyopenms/.libs/libOpenMS-efc15f4d.so
+    zip -r $bn.zip pyopenms pyopenms-*.dist-info
+    rm -rf pyopenms pyopenms-*.dist-info
+    mv $bn.zip $bn.whl
+    cd ..
+  done
+
   # retrieve data
-  mv wheelhouse/* /data/wheelhouse/
+  mv wheelhouse_fixed/* /data/wheelhouse/
+
 done
 
