@@ -331,7 +331,7 @@ namespace OpenMS
     return MRMDecoy::reversePeptide(peptide, false, false);
   }
 
-  bool MRMDecoy::hasCNterminalMods(const OpenMS::TargetedExperiment::Peptide& peptide) const
+  bool MRMDecoy::hasCNterminalMods_(const OpenMS::TargetedExperiment::Peptide& peptide) const
   {
     for (Size j = 0; j < peptide.mods.size(); j++)
     {
@@ -382,7 +382,7 @@ namespace OpenMS
       if (method == "pseudo-reverse")
       {
         // exclude peptide if it has C/N terminal modifications because we can't do a (partial) reverse
-        if (MRMDecoy::hasCNterminalMods(peptide))
+        if (MRMDecoy::hasCNterminalMods_(peptide))
         {
           LOG_DEBUG << "[peptide] Skipping " << peptide.id << " due to C/N-terminal modifications" << std::endl;
           exclusion_peptides.push_back(peptide.id);
@@ -395,7 +395,7 @@ namespace OpenMS
       else if (method == "reverse")
       {
         // exclude peptide if it has C/N terminal modifications because we can't do a (partial) reverse
-        if (MRMDecoy::hasCNterminalMods(peptide))
+        if (MRMDecoy::hasCNterminalMods_(peptide))
         {
           LOG_DEBUG << "[peptide] Skipping " << peptide.id << " due to C/N-terminal modifications" << std::endl;
           exclusion_peptides.push_back(peptide.id);

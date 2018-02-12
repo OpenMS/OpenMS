@@ -126,7 +126,8 @@ public:
     typedef std::map<String, std::vector<const ReactionMonitoringTransition*> > PeptideTransitionMapType;
 
     /**
-      @brief Compute relative identity (relative number of matches of amino acids at the same position) between two sequences
+      @brief Compute relative identity (relative number of matches of amino
+      acids at the same position) between two sequences.
     */
     float AASequenceIdentity(const String& sequence, const String& decoy) const;
 
@@ -138,8 +139,10 @@ public:
       identity_threshold.
     */
     OpenMS::TargetedExperiment::Peptide shufflePeptide(
-      OpenMS::TargetedExperiment::Peptide peptide, const double identity_threshold, int seed = -1,
-      const int max_attempts = 100) const;
+                OpenMS::TargetedExperiment::Peptide peptide,
+                const double identity_threshold,
+                int seed = -1,
+                const int max_attempts = 100) const;
 
     /**
       @brief Reverse a peptide sequence (with its modifications)
@@ -155,15 +158,23 @@ public:
                 const bool keepC, 
                 const std::vector<String> & const_pattern = std::vector<String>());
 
+    /**
+      @brief Find all residues in a sequence that should not be reversed / shuffled
+      
+      @param sequence The amino acid sequence
+      @param keepN Whether to keep N terminus constant
+      @param keepC Whether to keep C terminus constant
+      @param keep_const_pattern A list of AA to not change (e.g. K,R,P)
+    */
     static IndexType findFixedResidues(const std::string& sequence,
         bool keepN, bool keepC, const std::vector<OpenMS::String> & keep_const_pattern);
+
+protected:
 
     /**
       @brief Check if a peptide has C or N terminal modifications
     */
-    bool hasCNterminalMods(const OpenMS::TargetedExperiment::Peptide& peptide) const;
-
-protected:
+    bool hasCNterminalMods_(const OpenMS::TargetedExperiment::Peptide& peptide) const;
 
     /**
       @brief Find all K, R, P sites in a sequence to be set as fixed
