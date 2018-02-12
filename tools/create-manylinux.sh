@@ -6,7 +6,7 @@
 #
 # Execute as:
 # 
-#   sudo docker run --net=host -v `pwd`:/data hroest/manylinux_qt59_contrib:latest /bin/bash /data/create-manylinux.sh
+#   sudo docker run --net=host -v `pwd`:/data hroest/manylinux_qt59_contrib:v1.2 /bin/bash /data/create-manylinux.sh
 #
 
 ## For a release, change to the following:
@@ -14,10 +14,6 @@
 git clone -b feature/qt5 https://github.com/hroest/OpenMS.git
 
 # Bugfix 1:
-# our QT library does not support SSL
-sed -i 's/connectToHostEncrypted/connectToHost/' OpenMS/src/openms/source/FORMAT/MascotRemoteQuery.cpp
-
-# Bugfix 2:
 # make sure that we can find the link library
 ln -s /contrib-build/lib64/libxerces-c-3.2.a /contrib-build/lib/libxerces-c.a
 
