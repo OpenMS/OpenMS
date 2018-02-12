@@ -44,9 +44,11 @@
 #include <OpenMS/FORMAT/SVOutStream.h>
 #include <OpenMS/FILTERING/ID/IDFilter.h>
 
-#include <cmath>
 #include <OpenMS/FORMAT/MzTabFile.h>
 #include <OpenMS/FORMAT/MzTab.h>
+#include <OpenMS/METADATA/ExperimentalDesign.h>
+
+#include <cmath>
 
 using namespace OpenMS;
 using namespace std;
@@ -355,6 +357,11 @@ protected:
     registerInputFile_("protein_groups", "<file>", "", "Protein inference results for the identification runs that were used to annotate the input (e.g. from ProteinProphet via IDFileConverter or Fido via FidoAdapter).\nInformation about indistinguishable proteins will be used for protein quantification.", false);
     setValidFormats_("protein_groups", ListUtils::create<String>("idXML"));
 
+    /* probably not needed right now
+    registerInputFile_("design", "<file>", "", "input file containing the experimental design", false);
+    setValidFormats_("design", ListUtils::create<String>("tsv"));
+    */
+
     // output
     registerOutputFile_("out", "<file>", "", "Output file for protein abundances", false);
     setValidFormats_("out", ListUtils::create<String>("csv"));
@@ -591,8 +598,8 @@ protected:
         const Size group_index = std::distance(id_groups.begin(), id_group);
         SampleAbundances total_abundances = q.second.total_abundances;
         // TODO: OPENMS_ASSERT(id_group->float_data_arrays.empty(), "Protein group float data array not empty!.");
-        id_group->float_data_arrays.resize(1);
-        ProteinGroup::FloatDataArray & abundances = id_group->float_data_arrays[0];
+        id_group->getFloatDataArrays().resize(1);
+        ProteinGroup::FloatDataArray & abundances = id_group->getFloatDataArrays()[0];
         abundances.setName("abundances");
         for (auto file : files_)
         {
@@ -610,7 +617,7 @@ protected:
     }
 
    // remove all protein groups that have not been quantified
-   auto notQuantified = [] (const ProteinGroup& g)->bool { return g.float_data_arrays.empty(); }; 
+   auto notQuantified = [] (const ProteinGroup& g)->bool { return g.getFloatDataArrays().empty(); }; 
    id_groups.erase(
      remove_if(id_groups.begin(), id_groups.end(), notQuantified), 
      id_groups.end());
@@ -785,6 +792,11 @@ protected:
       ConsensusMap consensus;
       ConsensusXMLFile().load(in, consensus);
       files_ = consensus.getFileDescriptions();
+
+      // path of the original MS run (mzML / raw file)
+      StringList ms_run_paths;
+      consensus.getPrimaryMSRunPath(ms_run_paths);
+
       // protein inference results in the consensusXML?
       if (protein_groups.empty() &&
           (consensus.getProteinIdentifications().size() == 1) &&
@@ -802,8 +814,8 @@ protected:
         // annotate quants to protein(groups) for easier export in mzTab
         auto const & protein_quants = quantifier.getProteinResults();
         annotateQuantificationsToProteins(protein_quants, proteins_);
-        vector<ProteinIdentification> proteins;
-        proteins.emplace_back(proteins_); 
+        vector<ProteinIdentification> proteins = consensus.getProteinIdentifications();
+        proteins.insert(proteins.begin(), proteins_); // insert inference information as first protein identification
         consensus.setProteinIdentifications(proteins);
 /*
  *      TODO: maybe an assertion that the numbers of quantified proteins / ind. proteins match
@@ -812,6 +824,7 @@ protected:
 */
         // fill MzTab with meta data and quants annotated in identification data structure
         MzTab m = MzTab::exportConsensusMapToMzTab(consensus, in);
+        
         MzTabFile().store(mztab, m);    
       }
     }

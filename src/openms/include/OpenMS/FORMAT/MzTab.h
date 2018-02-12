@@ -510,8 +510,8 @@ protected:
 
   struct OPENMS_DLLAPI MzTabStudyVariableMetaData
   {
-    MzTabIntegerList assay_refs;
-    MzTabIntegerList sample_refs;
+    MzTabString assay_refs;
+    MzTabString sample_refs;
     MzTabString description;
   };
 
