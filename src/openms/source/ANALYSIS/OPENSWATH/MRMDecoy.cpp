@@ -95,12 +95,12 @@ namespace OpenMS
     return idx;
   }
 
-  MRMDecoy::IndexType MRMDecoy::findFixedResidues(const std::string& sequence) const
+  MRMDecoy::IndexType MRMDecoy::findFixedResidues_(const std::string& sequence) const
   {
     return MRMDecoy::findFixedResidues(sequence, false, false, keep_const_pattern_);
   }
 
-  MRMDecoy::IndexType MRMDecoy::findFixedAndTermResidues(const std::string& sequence) const
+  MRMDecoy::IndexType MRMDecoy::findFixedAndTermResidues_(const std::string& sequence) const
   {
     return MRMDecoy::findFixedResidues(sequence, keepN_, keepC_, keep_const_pattern_);
   }
@@ -154,7 +154,7 @@ namespace OpenMS
            attempts < max_attempts)
     {
       // Block tryptic residues and N-/C-terminus from shuffling
-      MRMDecoy::IndexType idx = MRMDecoy::findFixedAndTermResidues(peptide.sequence);
+      MRMDecoy::IndexType idx = findFixedAndTermResidues_(peptide.sequence);
 
       shuffled = peptide;
       std::vector<Size> peptide_index;
@@ -319,13 +319,13 @@ namespace OpenMS
     }
   }
 
-  OpenMS::TargetedExperiment::Peptide MRMDecoy::pseudoreversePeptide(
+  OpenMS::TargetedExperiment::Peptide MRMDecoy::pseudoreversePeptide_(
     const OpenMS::TargetedExperiment::Peptide& peptide) const
   {
     return MRMDecoy::reversePeptide(peptide, false, true);
   }
 
-  OpenMS::TargetedExperiment::Peptide MRMDecoy::reversePeptide(
+  OpenMS::TargetedExperiment::Peptide MRMDecoy::reversePeptide_(
     const OpenMS::TargetedExperiment::Peptide& peptide) const
   {
     return MRMDecoy::reversePeptide(peptide, false, false);
@@ -389,7 +389,7 @@ namespace OpenMS
         }
         else
         {
-          peptide = MRMDecoy::pseudoreversePeptide(peptide);
+          peptide = MRMDecoy::pseudoreversePeptide_(peptide);
         }
       }
       else if (method == "reverse")
@@ -402,7 +402,7 @@ namespace OpenMS
         }
         else
         {
-          peptide = MRMDecoy::reversePeptide(peptide);
+          peptide = MRMDecoy::reversePeptide_(peptide);
         }
       }
       else if (method == "shuffle")

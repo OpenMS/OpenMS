@@ -142,23 +142,6 @@ public:
       const int max_attempts = 100) const;
 
     /**
-      @brief Pseudo-reverse a peptide sequence (with its modifications)
-
-      @note Pseudo reverses a peptide sequence, leaving the C terminus (the
-            last AA constant)
-    */
-    OpenMS::TargetedExperiment::Peptide pseudoreversePeptide(
-      const OpenMS::TargetedExperiment::Peptide& peptide) const;
-
-    /**
-      @brief Reverse a peptide sequence (with its modifications)
-
-      @note Does not keep N / C terminus in place.
-    */
-    OpenMS::TargetedExperiment::Peptide reversePeptide(
-      const OpenMS::TargetedExperiment::Peptide& peptide) const;
-
-    /**
       @brief Reverse a peptide sequence (with its modifications)
 
       @param peptide The peptide sequence and modifications
@@ -172,20 +155,6 @@ public:
                 const bool keepC, 
                 const std::vector<String> & const_pattern = std::vector<String>());
 
-    /**
-      @brief Find all K, R, P sites in a sequence to be set as fixed
-
-      This method was adapted from the SpectraST decoy generator
-    */
-    IndexType findFixedResidues(const std::string& sequence) const;
-
-    /**
-      @brief Find all K, R, P and C-/N-terminal sites in a sequence to be set as fixed
-
-      This method was adapted from the SpectraST decoy generator
-    */
-    IndexType findFixedAndTermResidues(const std::string& sequence) const;
-
     static IndexType findFixedResidues(const std::string& sequence,
         bool keepN, bool keepC, const std::vector<OpenMS::String> & keep_const_pattern);
 
@@ -194,7 +163,38 @@ public:
     */
     bool hasCNterminalMods(const OpenMS::TargetedExperiment::Peptide& peptide) const;
 
-private:
+protected:
+
+    /**
+      @brief Find all K, R, P sites in a sequence to be set as fixed
+
+      This method was adapted from the SpectraST decoy generator
+    */
+    IndexType findFixedResidues_(const std::string& sequence) const;
+
+    /**
+      @brief Find all K, R, P and C-/N-terminal sites in a sequence to be set as fixed
+
+      This method was adapted from the SpectraST decoy generator
+    */
+    IndexType findFixedAndTermResidues_(const std::string& sequence) const;
+
+    /**
+      @brief Pseudo-reverse a peptide sequence (with its modifications)
+
+      @note Pseudo reverses a peptide sequence, leaving the C terminus (the
+            last AA constant)
+    */
+    OpenMS::TargetedExperiment::Peptide pseudoreversePeptide_(
+      const OpenMS::TargetedExperiment::Peptide& peptide) const;
+
+    /**
+      @brief Reverse a peptide sequence (with its modifications)
+
+      @note Does not keep N / C terminus in place.
+    */
+    OpenMS::TargetedExperiment::Peptide reversePeptide_(
+      const OpenMS::TargetedExperiment::Peptide& peptide) const;
 
     /// Synchronize members with param class
     void updateMembers_() override;
