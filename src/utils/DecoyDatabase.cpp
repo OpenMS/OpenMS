@@ -104,8 +104,6 @@ protected:
     registerStringOption_("enzyme", "<enzyme>", "Trypsin", "enzyme used for the digestion of the sample",false);
     setValidStrings_("enzyme", all_enzymes);
 
-    // registerStringOption_("enzyme_regex", "<enzyme_regex>", "", "regular expression for enzyme used (in case enzyme is not listed). Use for example '(?[KR])(?!P) for trypsin.", false);
-
     registerInputFileList_("in", "<file(s)>", ListUtils::create<String>(""), "Input FASTA file(s), each containing a database. It is recommended to include a contaminant database as well.");
     setValidFormats_("in", ListUtils::create<String>("fasta"));
     registerOutputFile_("out", "<file>", "", "Output FASTA file where the decoy database will be written to.");
@@ -189,16 +187,6 @@ protected:
     // TODO: allow user-specified regex
     ProteaseDigestion digestion;
     String enzyme = getStringOption_("enzyme").trim();
-    // String enzyme_regex = getStringOption_("enzyme_regex").trim();
-    // if (!enzyme_regex.empty())
-    // {
-    //   DigestionEnzyme enzyme;
-    //   enzyme.setRegEx(enzyme_regex);
-    //   enzyme.setName("custom_enzyme_1");
-    //   // void addEnzyme_(const DigestionEnzymeType* enzyme)
-    //   digestion.setEnzyme(enzyme);
-    // }
-    // else if (!enzyme.empty())
     if (!enzyme.empty())
     {
       digestion.setEnzyme(enzyme);
