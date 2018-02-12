@@ -424,28 +424,10 @@ public:
         f.setQuality(0, quality);
         f.setOverallQuality(quality);
 
-        ConvexHull2D::PointArrayType hull_points;
-        double intensity_sum(0.0), rt_sum(0.0);
-        double peak_apex_int = -1;
-        double peak_apex_dist = std::fabs(used_chromatogram.begin()->getMZ() - peak_apex);
-        // FEATURE : use RTBegin / MZBegin -> for this we need to know whether the template param is a real chromatogram or a spectrum!
-        for (typename SpectrumT::const_iterator it = used_chromatogram.begin(); it != used_chromatogram.end(); it++)
-        {
-          if (it->getMZ() > best_left && it->getMZ() < best_right)
-          {
-            DPosition<2> p;
-            p[0] = it->getMZ();
-            p[1] = it->getIntensity();
-            hull_points.push_back(p);
-            if (std::fabs(it->getMZ() - peak_apex) <= peak_apex_dist)
-            {
-              peak_apex_int = p[1];
-              peak_apex_dist = std::fabs(it->getMZ() - peak_apex);
-            }
-            rt_sum += it->getMZ();
-            intensity_sum += it->getIntensity();
-          }
-        }
+
+        PeakIntegrator::PeakArea pa = pi_.integratePeak(used_chromatogram, best_left, best_right);
+        double peak_integral = pa.area;
+        double peak_apex_int = pa.height;
 
         if (chromatogram.metaValueExists("precursor_mz")) 
         {
@@ -454,16 +436,16 @@ public:
         }
 
         f.setRT(picked_chroms[chr_idx][peak_idx].getMZ());
-        f.setIntensity(intensity_sum);
+        f.setIntensity(peak_integral);
         ConvexHull2D hull;
-        hull.setHullPoints(hull_points);
+        hull.setHullPoints(pa.hull_points);
         f.getConvexHulls().push_back(hull);
         f.setMetaValue("native_id", chromatogram.getNativeID());
         f.setMetaValue("peak_apex_int", peak_apex_int);
 
         if (use_precursors_ && transition_group.getTransitions().empty())
         {
-          total_intensity += intensity_sum;
+          total_intensity += peak_integral;
         }
 
         mrmFeature.addPrecursorFeature(f, chromatogram.getNativeID());
