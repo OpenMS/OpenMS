@@ -52,6 +52,23 @@
 using namespace OpenMS;
 using namespace std;
 
+class MRMDecoyHelper : public MRMDecoy
+{
+public:
+  OpenMS::TargetedExperiment::Peptide pseudoreversePeptide_helper(
+    const OpenMS::TargetedExperiment::Peptide& peptide) const
+  {
+    return pseudoreversePeptide_(peptide);
+  }
+  OpenMS::TargetedExperiment::Peptide reversePeptide_helper(
+    const OpenMS::TargetedExperiment::Peptide& peptide) const
+  {
+    return reversePeptide_(peptide);
+  }
+  IndexType findFixedResidues_helper(const std::string& sequence) const {return findFixedResidues_(sequence);}
+  IndexType findFixedAndTermResidues_helper(const std::string& sequence) const {return findFixedAndTermResidues_(sequence);}
+};
+
 START_TEST(MRMDecoy, "$Id$")
 
 /////////////////////////////////////////////////////////////
@@ -76,10 +93,10 @@ END_SECTION
 
 START_SECTION((std::vector<std::pair<std::string::size_type, std::string> > findFixedResidues(std::string sequence)))
 {
-  MRMDecoy gen;
+  MRMDecoyHelper gen;
 
   String sequence = "TRESTPEPTIKDE";
-  MRMDecoy::IndexType tryptic_results = gen.findFixedResidues(sequence);
+  MRMDecoy::IndexType tryptic_results = gen.findFixedResidues_helper(sequence);
   MRMDecoy::IndexType tryptic_expect = {1, 5, 7, 10};
   TEST_EQUAL(tryptic_results == tryptic_expect, true)
 }
@@ -88,10 +105,10 @@ END_SECTION
 
 START_SECTION((std::vector<std::pair<std::string::size_type, std::string> > findFixedAndTermResidues(std::string sequence)))
 {
-  MRMDecoy gen;
+  MRMDecoyHelper gen;
 
   String sequence = "TRESTPEPTIKDE";
-  MRMDecoy::IndexType tryptic_results = gen.findFixedAndTermResidues(sequence);
+  MRMDecoy::IndexType tryptic_results = gen.findFixedAndTermResidues_helper(sequence);
   MRMDecoy::IndexType tryptic_expect = {0, 1, 5, 7, 10, 12};
   TEST_EQUAL(tryptic_results == tryptic_expect, true)
 }
@@ -401,7 +418,7 @@ END_SECTION
 
 START_SECTION(OpenMS::TargetedExperiment::Peptide pseudoreversePeptide(OpenMS::TargetedExperiment::Peptide peptide))
 {
-  MRMDecoy gen;
+  MRMDecoyHelper gen;
 
   OpenMS::TargetedExperiment::Peptide peptide;
   peptide.sequence = "TESTPEPTIDE";
@@ -414,7 +431,7 @@ START_SECTION(OpenMS::TargetedExperiment::Peptide pseudoreversePeptide(OpenMS::T
   OpenMS::String expected_sequence = "DITPEPTSETE";
   OpenMS::Size expected_location = 7;
 
-  OpenMS::TargetedExperiment::Peptide pseudoreverse = gen.pseudoreversePeptide(peptide);
+  OpenMS::TargetedExperiment::Peptide pseudoreverse = gen.pseudoreversePeptide_helper(peptide);
   TEST_EQUAL(pseudoreverse.sequence, expected_sequence)
   TEST_EQUAL(pseudoreverse.mods.size(), 1)
   TEST_EQUAL(pseudoreverse.mods[0].location, expected_location)
@@ -424,14 +441,14 @@ START_SECTION(OpenMS::TargetedExperiment::Peptide pseudoreversePeptide(OpenMS::T
   OpenMS::TargetedExperiment::Peptide pseudoreverseAASequence_expected;
   pseudoreverseAASequence_expected.sequence = "DITPEPTSETE";
   OpenMS::TargetedExperiment::Peptide pseudoreverseAASequence_result;
-  pseudoreverseAASequence_result = gen.pseudoreversePeptide(pseudoreverseAASequence_target_sequence);
+  pseudoreverseAASequence_result = gen.pseudoreversePeptide_helper(pseudoreverseAASequence_target_sequence);
   TEST_EQUAL(pseudoreverseAASequence_result.sequence, pseudoreverseAASequence_expected.sequence)
 }
 END_SECTION
 
 START_SECTION(OpenMS::TargetedExperiment::Peptide reversePeptide(OpenMS::TargetedExperiment::Peptide peptide))
 {
-  MRMDecoy gen;
+  MRMDecoyHelper gen;
 
   OpenMS::TargetedExperiment::Peptide peptide;
   peptide.sequence = "TESTPEPTIDE";
@@ -444,7 +461,7 @@ START_SECTION(OpenMS::TargetedExperiment::Peptide reversePeptide(OpenMS::Targete
   OpenMS::String expected_sequence = "EDITPEPTSET";
   OpenMS::Size expected_location = 8;
 
-  OpenMS::TargetedExperiment::Peptide reverse = gen.reversePeptide(peptide);
+  OpenMS::TargetedExperiment::Peptide reverse = gen.reversePeptide_helper(peptide);
   TEST_EQUAL(reverse.sequence, expected_sequence)
   TEST_EQUAL(reverse.mods.size(), 1)
   TEST_EQUAL(reverse.mods[0].location, expected_location)
@@ -454,7 +471,7 @@ START_SECTION(OpenMS::TargetedExperiment::Peptide reversePeptide(OpenMS::Targete
   OpenMS::TargetedExperiment::Peptide reverseAASequence_expected;
   reverseAASequence_expected.sequence = "EDITPEPTSET";
   OpenMS::TargetedExperiment::Peptide reverseAASequence_result;
-  reverseAASequence_result = gen.reversePeptide(reverseAASequence_target_sequence);
+  reverseAASequence_result = gen.reversePeptide_helper(reverseAASequence_target_sequence);
   TEST_EQUAL(reverseAASequence_result.sequence, reverseAASequence_expected.sequence)
 }
 
