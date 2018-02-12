@@ -39,6 +39,7 @@
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
 #include <OpenMS/CHEMISTRY/ProteaseDigestion.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMDecoy.h>
+#include <OpenMS/CHEMISTRY/DigestionEnzyme.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
 
@@ -103,6 +104,8 @@ protected:
     registerStringOption_("enzyme", "<enzyme>", "Trypsin", "enzyme used for the digestion of the sample",false);
     setValidStrings_("enzyme", all_enzymes);
 
+    // registerStringOption_("enzyme_regex", "<enzyme_regex>", "", "regular expression for enzyme used (in case enzyme is not listed). Use for example '(?[KR])(?!P) for trypsin.", false);
+
     registerInputFileList_("in", "<file(s)>", ListUtils::create<String>(""), "Input FASTA file(s), each containing a database. It is recommended to include a contaminant database as well.");
     setValidFormats_("in", ListUtils::create<String>("fasta"));
     registerOutputFile_("out", "<file>", "", "Output FASTA file where the decoy database will be written to.");
@@ -113,9 +116,6 @@ protected:
     registerFlag_("only_decoy", "Write only decoy proteins to the output database instead of a combined database.", false);
     registerStringOption_("method", "<enum>", "reverse", "Method by which decoy sequences are generated from target sequences. Note that all sequences are shuffled using the same random seed, ensuring that identical sequences produce the same shuffled decoy sequences. Shuffled sequences that produce highly similar output sequences are shuffled again (see shuffle_sequence_identity_threshold).", false);
     setValidStrings_("method", ListUtils::create<String>("reverse,shuffle"));
-
-    registerStringOption_("keep_terminal_aminos", "<choice>", "NC", "Keep N and C terminal in place (when turned off, they are also shuffled / reversed). For a target peptide sequence PEPTIDEK, setting this to C will yield EDITPEPK while setting it to NC will yield PEDITPEK.", false, false);
-    setValidStrings_("keep_terminal_aminos", ListUtils::create<String>("N,C,NC,none"));
 
     registerIntOption_("shuffle_max_attempts", "<int>", 30, "shuffle: maximum attempts to lower the amino acid sequence identity between target and decoy for the shuffle algorithm", false, true);
     registerDoubleOption_("shuffle_sequence_identity_threshold", "<double>", 0.5, "shuffle: target-decoy amino acid sequence identity threshold for the shuffle algorithm. If the sequence identity is above this threshold, shuffling is repeated. In case of repeated failure, individual amino acids are 'mutated' to produce a different amino acid sequence.", false, true);
@@ -128,9 +128,8 @@ protected:
   Param getSubsectionDefaults_(const String& /* name */) const override
   {
     Param p = MRMDecoy().getDefaults();
+    // change the default to also work with other proteases
     p.setValue("non_shuffle_pattern", "", "Residues to not shuffle (keep at a constant position when shuffling). Separate by comma, e.g. use 'K,P,R' here.");
-    p.remove("keepN");
-    p.remove("keepC");
     return p;
   }
 
@@ -151,20 +150,12 @@ protected:
     bool shuffle = (getStringOption_("method") == "shuffle");
     String decoy_string(getStringOption_("decoy_string"));
     bool decoy_string_position_prefix = (String(getStringOption_("decoy_string_position")) == "prefix" ? true : false);
-    String terminal_aminos(getStringOption_("keep_terminal_aminos"));
-    bool keepN(false), keepC(false); 
-    if (terminal_aminos == "N") {keepN = true;}
-    if (terminal_aminos == "C") {keepC = true;}
-    if (terminal_aminos == "NC") {keepC = true; keepN = true;}
 
     Param decoy_param = getParam_().copy("Decoy:", true);
-    decoy_param.setValue("keepN", keepN ? "true" : "false");
-    decoy_param.setValue("keepC", keepC ? "true" : "false");
+    bool keepN = decoy_param.getValue("keepPeptideNTerm").toBool();
+    bool keepC = decoy_param.getValue("keepPeptideCTerm").toBool();
 
-    std::vector<String> keep_const_pattern;
-    String tmp = decoy_param.getValue("non_shuffle_pattern");
-    tmp.split(",", keep_const_pattern);
-
+    String keep_const_pattern = decoy_param.getValue("non_shuffle_pattern");
     Int max_attempts = getIntOption_("shuffle_max_attempts");
     double identity_threshold = getDoubleOption_("shuffle_sequence_identity_threshold");
 
@@ -195,8 +186,19 @@ protected:
     FASTAFile::FASTAEntry protein;
 
     // Configure Enzymatic digestion
+    // TODO: allow user-specified regex
     ProteaseDigestion digestion;
     String enzyme = getStringOption_("enzyme").trim();
+    // String enzyme_regex = getStringOption_("enzyme_regex").trim();
+    // if (!enzyme_regex.empty())
+    // {
+    //   DigestionEnzyme enzyme;
+    //   enzyme.setRegEx(enzyme_regex);
+    //   enzyme.setName("custom_enzyme_1");
+    //   // void addEnzyme_(const DigestionEnzymeType* enzyme)
+    //   digestion.setEnzyme(enzyme);
+    // }
+    // else if (!enzyme.empty())
     if (!enzyme.empty())
     {
       digestion.setEnzyme(enzyme);
@@ -228,7 +230,8 @@ protected:
         // identifier
         protein.identifier = getIdentifier_(protein.identifier, decoy_string, decoy_string_position_prefix);
 
-        if (terminal_aminos != "none")
+        // if (terminal_aminos != "none")
+        if (enzyme != "no cleavage" && (keepN || keepC))
         {
           std::vector<AASequence> peptides;
           digestion.digest(AASequence::fromString(protein.sequence), peptides);
