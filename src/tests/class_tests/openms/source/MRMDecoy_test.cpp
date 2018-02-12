@@ -357,7 +357,7 @@ END_SECTION
 
 START_SECTION((OpenMS::TargetedExperiment::Peptide MRMDecoy::reversePeptide(
       OpenMS::TargetedExperiment::Peptide peptide, const bool keepN, const bool keepC, 
-      const std::vector<String> & const_pattern) const))
+      const String& const_pattern) const))
 {
   MRMDecoy gen;
 
@@ -398,9 +398,7 @@ START_SECTION((OpenMS::TargetedExperiment::Peptide MRMDecoy::reversePeptide(
   }
 
   {
-    std::vector<String> const_pattern;
-    const_pattern.push_back("I");
-
+    String const_pattern = "I";
     OpenMS::String expected_sequence = "TDTPEPTSIEE"; // "I" stays in place
 
     OpenMS::TargetedExperiment::Peptide pseudoreverse = MRMDecoy::reversePeptide(peptide, true, true, const_pattern);
