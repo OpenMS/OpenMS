@@ -108,8 +108,8 @@
 			<UserParam type="float" name="var_yseries_score" value="0"/>
 			<UserParam type="float" name="var_dotprod_score" value="0.569372277937119"/>
 			<UserParam type="float" name="var_manhatt_score" value="1.41687881616726"/>
-			<UserParam type="float" name="var_ms1_xcorr_shape" value="0.170444509987558"/>
-			<UserParam type="float" name="var_ms1_xcorr_coelution" value="17"/>
+			<UserParam type="float" name="var_ms1_xcorr_shape" value="0"/>
+			<UserParam type="float" name="var_ms1_xcorr_coelution" value="19"/>
 			<UserParam type="float" name="var_ms1_ppm_diff" value="121.212121212121"/>
 			<UserParam type="float" name="var_ms1_isotope_correlation" value="0"/>
 			<UserParam type="float" name="var_ms1_isotope_overlap" value="0"/>
@@ -507,13 +507,13 @@
 				<feature id="f_17314619952666245179_17716858074023296841">
 					<position dim="0">145.392653644085</position>
 					<position dim="1">510.05</position>
-					<intensity>9929.81</intensity>
+					<intensity>10614.4</intensity>
 					<quality dim="0">0</quality>
 					<quality dim="1">0</quality>
 					<overallquality>0</overallquality>
 					<charge>2</charge>
 					<UserParam type="string" name="native_id" value="PEPTIDEE_Precursor_i0"/>
-					<UserParam type="float" name="peak_apex_int" value="636.933380126953"/>
+					<UserParam type="float" name="peak_apex_int" value="1178.42901611328"/>
 					<UserParam type="string" name="FeatureLevel" value="MS1"/>
 				</feature>
 			</subordinate>
@@ -552,8 +552,8 @@
 			<UserParam type="float" name="var_yseries_score" value="0"/>
 			<UserParam type="float" name="var_dotprod_score" value="0.565984204038384"/>
 			<UserParam type="float" name="var_manhatt_score" value="1.42079940133806"/>
-			<UserParam type="float" name="var_ms1_xcorr_shape" value="0.466248550464991"/>
-			<UserParam type="float" name="var_ms1_xcorr_coelution" value="10"/>
+			<UserParam type="float" name="var_ms1_xcorr_shape" value="0.488857195781952"/>
+			<UserParam type="float" name="var_ms1_xcorr_coelution" value="11"/>
 			<UserParam type="float" name="var_ms1_ppm_diff" value="1.11446757888066e-10"/>
 			<UserParam type="float" name="var_ms1_isotope_correlation" value="0.854105699831247"/>
 			<UserParam type="float" name="var_ms1_isotope_overlap" value="0"/>
@@ -618,13 +618,13 @@
 				<feature id="f_16250062551099875712_11115414975438642789">
 					<position dim="0">145.392653644085</position>
 					<position dim="1">500.01</position>
-					<intensity>9929.81</intensity>
+					<intensity>10614.4</intensity>
 					<quality dim="0">0</quality>
 					<quality dim="1">0</quality>
 					<overallquality>0</overallquality>
 					<charge>2</charge>
 					<UserParam type="string" name="native_id" value="PEPTIDEF_Precursor_i0"/>
-					<UserParam type="float" name="peak_apex_int" value="636.933380126953"/>
+					<UserParam type="float" name="peak_apex_int" value="1178.42901611328"/>
 					<UserParam type="string" name="FeatureLevel" value="MS1"/>
 				</feature>
 			</subordinate>
@@ -663,8 +663,8 @@
 			<UserParam type="float" name="var_yseries_score" value="0"/>
 			<UserParam type="float" name="var_dotprod_score" value="0.565984204038384"/>
 			<UserParam type="float" name="var_manhatt_score" value="1.42079940133806"/>
-			<UserParam type="float" name="var_ms1_xcorr_shape" value="40.5177634423324"/>
-			<UserParam type="float" name="var_ms1_xcorr_coelution" value="4"/>
+			<UserParam type="float" name="var_ms1_xcorr_shape" value="0.488857195781952"/>
+			<UserParam type="float" name="var_ms1_xcorr_coelution" value="11"/>
 			<UserParam type="float" name="var_ms1_ppm_diff" value="1.13684564030335e-10"/>
 			<UserParam type="float" name="var_ms1_isotope_correlation" value="0.968507133046038"/>
 			<UserParam type="float" name="var_ms1_isotope_overlap" value="1.49996597172122"/>
