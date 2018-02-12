@@ -150,13 +150,13 @@ public:
       @param peptide The peptide sequence and modifications
       @param keepN Whether to keep N terminus in place
       @param keepC Whether to keep C terminus in place
-      @param const_pattern A set of AA to leave in place
+      @param const_pattern A list of AA to leave in place
     */
     static OpenMS::TargetedExperiment::Peptide reversePeptide(
                 const OpenMS::TargetedExperiment::Peptide& peptide,
                 const bool keepN,
                 const bool keepC, 
-                const std::vector<String> & const_pattern = std::vector<String>());
+                const String& const_pattern = String());
 
     /**
       @brief Find all residues in a sequence that should not be reversed / shuffled
@@ -164,10 +164,10 @@ public:
       @param sequence The amino acid sequence
       @param keepN Whether to keep N terminus constant
       @param keepC Whether to keep C terminus constant
-      @param keep_const_pattern A list of AA to not change (e.g. K,R,P)
+      @param keep_const_pattern A string containing the AA to not change (e.g. 'KRP')
     */
     static IndexType findFixedResidues(const std::string& sequence,
-        bool keepN, bool keepC, const std::vector<OpenMS::String> & keep_const_pattern);
+        bool keepN, bool keepC, const OpenMS::String& keep_const_pattern);
 
 protected:
 
@@ -210,7 +210,7 @@ protected:
     /// Synchronize members with param class
     void updateMembers_() override;
 
-    std::vector<String> keep_const_pattern_;
+    String keep_const_pattern_;
     bool keepN_;
     bool keepC_;
   };

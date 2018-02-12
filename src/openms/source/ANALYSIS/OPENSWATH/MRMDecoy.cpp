@@ -51,13 +51,13 @@ namespace OpenMS
     DefaultParamHandler("MRMDecoy"),
     ProgressLogger()
   {
-    defaults_.setValue("non_shuffle_pattern", "K,R,P", "Residues to not shuffle (keep at a constant position when shuffling). Separate by comma, e.g. use 'K,P,R' here.");
+    defaults_.setValue("non_shuffle_pattern", "KRP", "Residues to not shuffle (keep at a constant position when shuffling). Default is 'KPR' to not shuffle lysine, arginine and proline.");
 
-    defaults_.setValue("keepN", "true", "Whether to keep N terminus constant", ListUtils::create<String>("advanced"));
-    defaults_.setValidStrings("keepN", ListUtils::create<String>("true,false"));
+    defaults_.setValue("keepPeptideNTerm", "true", "Whether to keep peptide N terminus constant when shuffling / reversing.", ListUtils::create<String>("advanced"));
+    defaults_.setValidStrings("keepPeptideNTerm", ListUtils::create<String>("true,false"));
 
-    defaults_.setValue("keepC", "true", "Whether to keep C terminus constant", ListUtils::create<String>("advanced"));
-    defaults_.setValidStrings("keepC", ListUtils::create<String>("true,false"));
+    defaults_.setValue("keepPeptideCTerm", "true", "Whether to keep peptide C terminus constant when shuffling / reversing.", ListUtils::create<String>("advanced"));
+    defaults_.setValidStrings("keepPeptideCTerm", ListUtils::create<String>("true,false"));
 
     // write defaults into Param object param_
     defaultsToParam_();
@@ -65,14 +65,13 @@ namespace OpenMS
 
   void MRMDecoy::updateMembers_()
   {
-    String tmp = param_.getValue("non_shuffle_pattern");
-    tmp.split(",", keep_const_pattern_);
-    keepN_ = param_.getValue("keepN").toBool();
-    keepC_ = param_.getValue("keepC").toBool();
+    keep_const_pattern_ = param_.getValue("non_shuffle_pattern");
+    keepN_ = param_.getValue("keepPeptideNTerm").toBool();
+    keepC_ = param_.getValue("keepPeptideCTerm").toBool();
   }
 
   MRMDecoy::IndexType MRMDecoy::findFixedResidues(const std::string& sequence,
-      bool keepN, bool keepC, const std::vector<OpenMS::String> & keep_const_pattern)
+      bool keepN, bool keepC, const OpenMS::String& keep_const_pattern)
   {
     // also blocks both N- and C-terminus from shuffling if required
     MRMDecoy::IndexType idx;
@@ -86,7 +85,7 @@ namespace OpenMS
 
       for (size_t j = 0; j < keep_const_pattern.size(); j++)
       {
-        if (sequence.substr(i, 1) == keep_const_pattern[j])
+        if (sequence[i] == keep_const_pattern[j])
         {
           idx.push_back(i);
         }
@@ -267,7 +266,7 @@ namespace OpenMS
 
   OpenMS::TargetedExperiment::Peptide MRMDecoy::reversePeptide(
       const OpenMS::TargetedExperiment::Peptide& peptide, const bool keepN, const bool keepC, 
-      const std::vector<String> & const_pattern)
+      const String& const_pattern)
   {
     OpenMS::TargetedExperiment::Peptide reversed = peptide;
     {
