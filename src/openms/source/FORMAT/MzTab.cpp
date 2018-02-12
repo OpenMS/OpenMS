@@ -1566,7 +1566,9 @@ namespace OpenMS
     }
   }
 
-  MzTab MzTab::exportFeatureMapToMzTab(const FeatureMap& feature_map, const String& filename)
+  MzTab MzTab::exportFeatureMapToMzTab(
+    const FeatureMap & feature_map, 
+    const String & filename)
   {
     LOG_INFO << "exporting feature map: \"" << filename << "\" to mzTab: " << std::endl;
     MzTab mztab;
@@ -2161,17 +2163,16 @@ namespace OpenMS
     return mod_list;
   }
 
-  MzTab MzTab::exportConsensusMapToMzTab(const ConsensusMap& consensus_map, const String& filename)
+  MzTab MzTab::exportConsensusMapToMzTab(
+    const ConsensusMap& consensus_map, 
+    const String& filename, 
+    const bool export_unidentified)
   {
-    // TODO: make a parameter
-    bool export_unidentified(false);
-
     LOG_INFO << "exporting consensus map: \"" << filename << "\" to mzTab: " << std::endl;
     vector<ProteinIdentification> prot_ids = consensus_map.getProteinIdentifications();
 
-    // extract mapped IDs (TODO: add helper function and IDRipper does this)
+    // extract mapped IDs (TODO: there should be a helper function)
     vector<PeptideIdentification> pep_ids;
-
     for (Size i = 0; i < consensus_map.size(); ++i)
     {
       const ConsensusFeature& c = consensus_map[i];
@@ -2179,6 +2180,8 @@ namespace OpenMS
       pep_ids.insert(std::end(pep_ids), std::begin(p), std::end(p));  
     }
 
+    ///////////////////////////////////////////////////////////////////////
+    // Export protein/-group quantifications (stored as meta value in protein IDs)
     MzTab mztab = exportIdentificationsToMzTab(prot_ids, pep_ids, filename);
 
     // determine number of channels
@@ -2201,9 +2204,12 @@ namespace OpenMS
     auto f_it = std::unique(fixed_mods.begin(), fixed_mods.end()); 
     fixed_mods.resize(std::distance(fixed_mods.begin(), f_it));
 
+    ///////////////////////////////////////////////////////////////////////
+    // MetaData section
+    
     MzTabMetaData meta_data = mztab.getMetaData();
 
-    // mandatory meta values
+    // add some mandatory meta values
     meta_data.mz_tab_type = MzTabString("Quantification");
     meta_data.mz_tab_mode = MzTabString("Summary");
     meta_data.description = MzTabString("OpenMS export from consensusXML");
@@ -2218,18 +2224,6 @@ namespace OpenMS
     peptide_quantification_unit.fromCellString("[,,Abundance,]");
     meta_data.peptide_quantification_unit = peptide_quantification_unit;
  
-    
-
-    // TODO MANDATORY:
-    // MzTabAssayMetaData
-    // assay[1-n]-quantification_reagent
-    // assay[1-n]-ms_run_ref 
-    // study_variable[1-n]-assay_refs
-    // study_variable[1-n]-description
-
-    // For consensusXML we export a "Summary Quantification" file. This means we don't need to report feature quantification values at the assay level
-    // but only at the study variable variable level.
-
     StringList ms_runs;
     meta_data.ms_run.clear();
     consensus_map.getPrimaryMSRunPath(ms_runs);
@@ -2266,24 +2260,23 @@ namespace OpenMS
 
     mztab.setMetaData(meta_data);
 
-    // pre-analyze data for occurring meta values at consensus feature and peptide hit level
-    // these are used to build optional columns containing the meta values in internal data structures
+    // Pre-analyze data for re-occurring meta values at consensus feature and peptide hit level.
+    // These are stored in optional columns.
     set<String> consensus_feature_user_value_keys;
     set<String> peptide_hit_user_value_keys;
-    for (Size i = 0; i < consensus_map.size(); ++i)
+    for (ConsensusFeature const & c : consensus_map)
     {
-      const ConsensusFeature& c = consensus_map[i];
       vector<String> keys;
       c.getKeys(keys);
       consensus_feature_user_value_keys.insert(keys.begin(), keys.end());
 
-      const vector<PeptideIdentification>& pep_ids = c.getPeptideIdentifications();
-      for (auto it = pep_ids.begin(); it != pep_ids.end(); ++it)
+      const vector<PeptideIdentification> & pep_ids = c.getPeptideIdentifications();
+      for (auto const & pep_id : pep_ids)
       {
-        for (auto hit = it->getHits().begin(); hit != it->getHits().end(); ++hit)
+        for (auto const & hit : pep_id.getHits())
         {
           vector<String> ph_keys;
-          hit->getKeys(ph_keys);
+          hit.getKeys(ph_keys);
           peptide_hit_user_value_keys.insert(ph_keys.begin(), ph_keys.end());
         }
       }
@@ -2291,10 +2284,9 @@ namespace OpenMS
 
     MzTabPeptideSectionRows rows;
 
-    for (Size i = 0; i < consensus_map.size(); ++i)
+    for (ConsensusFeature const & c : consensus_map)
     {
       MzTabPeptideSectionRow row;
-      const ConsensusFeature& c = consensus_map[i];
 
       // create opt_ column for peptide sequence containing modification
       MzTabOptionalColumnEntry opt_global_modified_sequence;
@@ -2302,10 +2294,9 @@ namespace OpenMS
       row.opt_.push_back(opt_global_modified_sequence);
 
       // create opt_ columns for consensus feature (peptide) user values
-      for (set<String>::const_iterator mit = consensus_feature_user_value_keys.begin(); mit != consensus_feature_user_value_keys.end(); ++mit)
+      for (String const & key : consensus_feature_user_value_keys)
       {
         MzTabOptionalColumnEntry opt_entry;
-        const String& key = *mit;
         opt_entry.first = String("opt_global_") + key;
         if (c.metaValueExists(key))
         {
@@ -2315,10 +2306,9 @@ namespace OpenMS
       }
 
       // create opt_ columns for psm (PeptideHit) user values
-      for (set<String>::const_iterator mit = peptide_hit_user_value_keys.begin(); mit != peptide_hit_user_value_keys.end(); ++mit)
+      for (String const & key : peptide_hit_user_value_keys)
       {
         MzTabOptionalColumnEntry opt_entry;
-        const String& key = *mit;
         opt_entry.first = String("opt_global_") + key;
         // leave value empty as we have to fill it with the value from the best peptide hit
         row.opt_.push_back(opt_entry);

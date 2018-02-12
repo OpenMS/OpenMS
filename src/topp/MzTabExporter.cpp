@@ -195,7 +195,7 @@ protected:
         ConsensusMap consensus_map;
         ConsensusXMLFile c;
         c.load(in, consensus_map);
-        mztab = MzTab::exportConsensusMapToMzTab(consensus_map, in);
+        mztab = MzTab::exportConsensusMapToMzTab(consensus_map, in, true);
       }
 
       MzTabFile().store(out, mztab);

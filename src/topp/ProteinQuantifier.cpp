@@ -595,7 +595,6 @@ protected:
       if (id_group != id_groups.end())
       {
         // copy abundances to float data array
-        const Size group_index = std::distance(id_groups.begin(), id_group);
         SampleAbundances total_abundances = q.second.total_abundances;
         // TODO: OPENMS_ASSERT(id_group->float_data_arrays.empty(), "Protein group float data array not empty!.");
         id_group->getFloatDataArrays().resize(1);
@@ -823,8 +822,8 @@ protected:
         cout << "MzTab Export: " << n_ind_prot << endl;
 */
         // fill MzTab with meta data and quants annotated in identification data structure
-        MzTab m = MzTab::exportConsensusMapToMzTab(consensus, in);
-        
+        // don't export unmapped features
+        MzTab m = MzTab::exportConsensusMapToMzTab(consensus, in, false);
         MzTabFile().store(mztab, m);    
       }
     }

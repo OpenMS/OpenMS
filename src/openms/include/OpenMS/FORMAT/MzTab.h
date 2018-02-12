@@ -774,7 +774,10 @@ public:
     // In contrast, all modifications are reported in the PSM section (see standard document for details).
     static MzTabModificationList extractModificationListFromAASequence(const AASequence& aas, const std::vector<String>& fixed_mods = std::vector<String>());
 
-    static MzTab exportConsensusMapToMzTab(const ConsensusMap& consensus_map, const String& filename);
+    static MzTab exportConsensusMapToMzTab(
+      const ConsensusMap & consensus_map, 
+      const String & filename,
+      bool export_unidentified);
 
 protected:
     MzTabMetaData meta_data_;

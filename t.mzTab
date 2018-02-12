@@ -1,7 +1,7 @@
 MTD	mzTab-version	1.0.0
 MTD	mzTab-mode	Summary
 MTD	mzTab-type	Quantification
-MTD	description	Export from consensusXML
+MTD	description	OpenMS export from consensusXML
 MTD	protein_search_engine_score[1]	[, , Fido, ]
 MTD	peptide_search_engine_score[1]	[, , XTandem, ]
 MTD	peptide_search_engine_score[2]	[, , XTandem, ]
