@@ -259,7 +259,7 @@ protected:
           {
             String temp;
             Size x = protein.sequence.size();
-            srand(time(nullptr));
+            srand(seed); // identical proteins are shuffled the same way
             while (x != 0)
             {
               Size y = rand() % x;
@@ -286,7 +286,6 @@ protected:
   }
 
 };
-
 
 int main(int argc, const char ** argv)
 {
