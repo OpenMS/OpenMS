@@ -396,6 +396,7 @@ public:
       {
         
         const SpectrumT& chromatogram = transition_group.getPrecursorChromatograms()[k];
+        Size prec_idx = transition_group.getChromatograms().size() + k;
 
         SpectrumT used_chromatogram;
         // resample the current chromatogram
@@ -404,14 +405,14 @@ public:
           used_chromatogram = resampleChromatogram_(chromatogram, master_peak_container, best_left, best_right);
           // const SpectrumT& used_chromatogram = chromatogram; // instead of resampling
         }
-        else if (peak_integration_ == "smoothed" && smoothed_chroms.size() <= k)
+        else if (peak_integration_ == "smoothed" && smoothed_chroms.size() <= prec_idx)
         {
           throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
             "Tried to calculate peak area and height without any smoothed chromatograms");
         }        
         else if (peak_integration_ == "smoothed")
         {
-          used_chromatogram = resampleChromatogram_(smoothed_chroms[k], master_peak_container, best_left, best_right);
+          used_chromatogram = resampleChromatogram_(smoothed_chroms[prec_idx], master_peak_container, best_left, best_right);
         }
         else
         {
@@ -424,7 +425,6 @@ public:
         f.setQuality(0, quality);
         f.setOverallQuality(quality);
 
-
         PeakIntegrator::PeakArea pa = pi_.integratePeak(used_chromatogram, best_left, best_right);
         double peak_integral = pa.area;
         double peak_apex_int = pa.height;
@@ -433,7 +433,7 @@ public:
         {
           double background{0};
           double avg_noise_level{0};
-          if ((peak_integration_ == "smoothed") && smoothed_chroms.size() <= k)
+          if ((peak_integration_ == "smoothed") && smoothed_chroms.size() <= prec_idx)
           {
             throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
               "Tried to calculate background estimation without any smoothed chromatograms");
