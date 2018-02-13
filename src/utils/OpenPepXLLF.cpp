@@ -759,8 +759,8 @@ protected:
 //       cout << "Pre-scoring finished." << endl;
 
       // needed farther down in the scoring, but only needs to be computed once for a spectrum
-      // vector< double > aucorrx = XQuestScores::xCorrelation(spectrum, spectrum, 5, 0.03);
-      // vector< double > aucorrc = XQuestScores::xCorrelation(spectrum, spectrum, 5, 0.02);
+      vector< double > aucorrx = XQuestScores::xCorrelation(spectrum, spectrum, 5, 0.03);
+      vector< double > aucorrc = XQuestScores::xCorrelation(spectrum, spectrum, 5, 0.02);
 
       // precompute peak level spectra for the current spectrum
       // map<Size, PeakSpectrum> peak_level_spectra = PScore::calculatePeakLevelSpectra(spectrum, rankMap[scan_index]);
@@ -925,22 +925,22 @@ protected:
 
         Size matched_peaks = matched_spec_linear_alpha.size() + matched_spec_linear_beta.size() + matched_spec_xlinks_alpha.size() + matched_spec_xlinks_beta.size();
 
-        // //Cross-correlation
-        // PeakSpectrum theoretical_spec_linear;
-        // PeakSpectrum theoretical_spec_xlinks;
+        //Cross-correlation
+        PeakSpectrum theoretical_spec_linear;
+        PeakSpectrum theoretical_spec_xlinks;
         //
         // LOG_DEBUG << "Computing Merged spectra..." << endl;
         //
-        // if (type_is_cross_link)
-        // {
-        //   theoretical_spec_linear = OPXLSpectrumProcessingAlgorithms::mergeAnnotatedSpectra(theoretical_spec_linear_alpha, theoretical_spec_linear_beta);
-        //   theoretical_spec_xlinks = OPXLSpectrumProcessingAlgorithms::mergeAnnotatedSpectra(theoretical_spec_xlinks_alpha, theoretical_spec_xlinks_beta);
-        // }
-        // else
-        // {
-        //   theoretical_spec_linear = theoretical_spec_linear_alpha;
-        //   theoretical_spec_xlinks = theoretical_spec_xlinks_alpha;
-        // }
+        if (type_is_cross_link)
+        {
+          theoretical_spec_linear = OPXLSpectrumProcessingAlgorithms::mergeAnnotatedSpectra(theoretical_spec_linear_alpha, theoretical_spec_linear_beta);
+          theoretical_spec_xlinks = OPXLSpectrumProcessingAlgorithms::mergeAnnotatedSpectra(theoretical_spec_xlinks_alpha, theoretical_spec_xlinks_beta);
+        }
+        else
+        {
+          theoretical_spec_linear = theoretical_spec_linear_alpha;
+          theoretical_spec_xlinks = theoretical_spec_xlinks_alpha;
+        }
         //
         // PeakSpectrum theoretical_spec = OPXLSpectrumProcessingAlgorithms::mergeAnnotatedSpectra(theoretical_spec_linear, theoretical_spec_xlinks);
         // PeakSpectrum theoretical_spec_alpha = OPXLSpectrumProcessingAlgorithms::mergeAnnotatedSpectra(theoretical_spec_linear_alpha, theoretical_spec_xlinks_alpha);
@@ -953,13 +953,13 @@ protected:
         // double log_occupancy_full_spec_exp = XQuestScores::logOccupancyProb(spectrum, matched_peaks, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm);
 
         // LOG_DEBUG << "Computing xCorr..." << endl;
-        // vector< double > xcorrx = XQuestScores::xCorrelation(spectrum, theoretical_spec_xlinks, 5, 0.03);
-        // vector< double > xcorrc = XQuestScores::xCorrelation(spectrum, theoretical_spec_linear, 5, 0.02);
+        vector< double > xcorrx = XQuestScores::xCorrelation(spectrum, theoretical_spec_xlinks, 5, 0.03);
+        vector< double > xcorrc = XQuestScores::xCorrelation(spectrum, theoretical_spec_linear, 5, 0.02);
 
-        // double aucorr_sumx = accumulate(aucorrx.begin(), aucorrx.end(), 0.0);
-        // double aucorr_sumc = accumulate(aucorrc.begin(), aucorrc.end(), 0.0);
-        // double xcorrx_max = accumulate(xcorrx.begin(), xcorrx.end(), 0.0) / aucorr_sumx;
-        // double xcorrc_max = accumulate(xcorrc.begin(), xcorrc.end(), 0.0) / aucorr_sumc;
+        double aucorr_sumx = accumulate(aucorrx.begin(), aucorrx.end(), 0.0);
+        double aucorr_sumc = accumulate(aucorrc.begin(), aucorrc.end(), 0.0);
+        double xcorrx_max = accumulate(xcorrx.begin(), xcorrx.end(), 0.0) / aucorr_sumx;
+        double xcorrc_max = accumulate(xcorrc.begin(), xcorrc.end(), 0.0) / aucorr_sumc;
         //
         // LOG_DEBUG << "Computing PScore..." << endl;
         // map<Size, PeakSpectrum> peak_level_spectra = PScore::calculatePeakLevelSpectra(spectrum, rankMap[scan_index]);
@@ -1010,8 +1010,8 @@ protected:
         double wTIC_weight = 12.829;
         double intsum_weight = 1.8;
 
-        // double xquest_score = xcorrx_weight * xcorrx_max + xcorrc_weight * xcorrc_max + match_odds_weight * match_odds + wTIC_weight * wTICold + intsum_weight * intsum;
-        // csm.xquest_score = xquest_score;
+        double xquest_score = xcorrx_weight * xcorrx_max + xcorrc_weight * xcorrc_max + match_odds_weight * match_odds + wTIC_weight * wTICold + intsum_weight * intsum;
+        csm.xquest_score = xquest_score;
 
         double score = log_occu + (100 * wTIC);
 
