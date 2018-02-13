@@ -17,6 +17,8 @@ git clone -b feature/qt5 https://github.com/hroest/OpenMS.git
 # make sure that we can find the link library
 ln -s /contrib-build/lib64/libxerces-c-3.2.a /contrib-build/lib/libxerces-c.a
 
+yum install -y zip 
+
 # install Python deps
 for PYBIN in /opt/python/cp27* /opt/python/cp3[4-9]*; do
   "$PYBIN/bin/pip" install -U Cython
@@ -62,10 +64,10 @@ for PYBIN in /opt/python/cp27* /opt/python/cp3[4-9]*; do
     cd wheelhouse_fixed
     mv $bn.whl $bn.zip
     unzip $bn.zip 
-    rm -rf pyopenms/.libs/libQt5Core-82077f0c.so.5.9.4 
-    cp /qt/lib/libQt5Core.so.5.9.4 pyopenms/.libs/libQt5Core-82077f0c.so.5.9.4 
+    /bin/cp /qt/lib/libQt5Core.so pyopenms/.libs/libQt5Core-*
     rm -rf pyopenms/lib*
-    strip --strip-unneeded pyopenms/.libs/libOpenMS-efc15f4d.so
+    # this does not always work, see https://github.com/pypa/manylinux/issues/119
+    # strip --strip-unneeded pyopenms/.libs/libOpenMS-*.so
     zip -r $bn.zip pyopenms pyopenms-*.dist-info
     rm -rf pyopenms pyopenms-*.dist-info
     mv $bn.zip $bn.whl
