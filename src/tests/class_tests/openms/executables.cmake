@@ -52,6 +52,7 @@ set(datastructures_executables_list
   #MatrixUtils_test
   OPXLDataStructs_test
   Param_test
+  Polynomial_test
   QTCluster_test
   RangeManager_test
   StringListUtils_test
@@ -366,6 +367,7 @@ set(chemistry_executables_list
   FastaIteratorIntern_test
   FastaIterator_test
   IsotopeDistribution_test
+  IsotopeDistributionHiRes_test
   ModificationDefinition_test
   ModificationDefinitionsSet_test
   ModificationsDB_test

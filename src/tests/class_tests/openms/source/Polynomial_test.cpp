@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -27,41 +27,68 @@
 // OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
+// --------------------------------------------------------------------------
+// $Maintainer: Patikas Nikos $
+// $Authors: Patikas Nikos $
+// --------------------------------------------------------------------------
 
-//! [EmpiricalFormula]
+#include <OpenMS/CONCEPT/ClassTest.h>
+#include <OpenMS/test_config.h>
+#include <OpenMS/DATASTRUCTURES/Polynomial.h>
+#include <numeric>
+#include <functional>
+#include <iterator>
 
-#include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
-#include <OpenMS/CHEMISTRY/ElementDB.h>
-#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopeDistribution.h>
-#include <iostream>
+
+///////////////////////////
+
+#include <string>
+
+///////////////////////////
+
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wshadow"
+
+START_TEST(Polynomial, "$Id$")
+
+/////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////
 
 using namespace OpenMS;
 using namespace std;
+const UInt N = 15;
+CounterSet *ptr = 0;
+CounterSet *nullPointer = 0; 
 
-Int main()
+
+START_SECTION((CounterSet()))
+  ptr = new CounterSet(N);
+  TEST_NOT_EQUAL(ptr, nullPointer);
+END_SECTION
+
+
+
+START_SECTION((CounterSet& CounterSet::operator++()))
 {
-  EmpiricalFormula methanol("CH3OH"), water("H2O");
-
-  // sum up empirical formula
-  EmpiricalFormula sum = methanol + water;
-
-  // get element from ElementDB
-  const Element * carbon = ElementDB::getInstance()->getElement("Carbon");
-
-  // output number of carbon atoms and average weight 
-  cout << sum << " "
-       << sum.getNumberOf(carbon) << " "
-       << sum.getAverageWeight() << endl;
-
-  // extract the isotope distribution
-  IsotopeDistribution iso_dist = sum.getIsotopeDistribution(new CoarseIsotopeDistribution(3));
-
-  for (auto it = iso_dist.begin(); it != iso_dist.end(); ++it)
+  
+  ptr->addCounter(1, 5);
+  ptr->addCounter(1, 4);
+  ptr->addCounter(3, 4);
+  ptr->addCounter(3, 5);
+  
+  for(const CounterSet::ContainerType& results = ptr->getCounters(); ptr->hasNext(); ++(*ptr))
   {
-    cout << it->getMZ() << " " << it->getIntensity() << endl;
+    TEST_EQUAL(ptr->sum(), N);
+    copy(results.begin(), results.end(), ostream_iterator<UInt>(cout, " "));
+    cout << endl; 
   }
 
-  return 0;
-} //end of main
+}
+END_SECTION
 
-//! [EmpiricalFormula]
+/////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////
+
+END_TEST
+
+#pragma clang diagnostic pop

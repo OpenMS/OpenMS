@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -27,41 +27,68 @@
 // OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
+// --------------------------------------------------------------------------
+// $Maintainer: Nikos Patikas $
+// $Authors: Nikos Patikas $
+// --------------------------------------------------------------------------
 
-//! [EmpiricalFormula]
+#include <OpenMS/CONCEPT/Types.h>
+#include <numeric>
+#include <vector>
+#include <deque>
 
-#include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
-#include <OpenMS/CHEMISTRY/ElementDB.h>
-#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopeDistribution.h>
-#include <iostream>
-
-using namespace OpenMS;
-using namespace std;
-
-Int main()
+namespace OpenMS
 {
-  EmpiricalFormula methanol("CH3OH"), water("H2O");
-
-  // sum up empirical formula
-  EmpiricalFormula sum = methanol + water;
-
-  // get element from ElementDB
-  const Element * carbon = ElementDB::getInstance()->getElement("Carbon");
-
-  // output number of carbon atoms and average weight 
-  cout << sum << " "
-       << sum.getNumberOf(carbon) << " "
-       << sum.getAverageWeight() << endl;
-
-  // extract the isotope distribution
-  IsotopeDistribution iso_dist = sum.getIsotopeDistribution(new CoarseIsotopeDistribution(3));
-
-  for (auto it = iso_dist.begin(); it != iso_dist.end(); ++it)
+  // TODO(Nikos) add openMP support
+  // TODO(Nikos) add documentation
+  class OPENMS_DLLAPI CounterSet
   {
-    cout << it->getMZ() << " " << it->getIntensity() << endl;
-  }
+  public:
+    class RangeCounter;
+    typedef std::deque<UInt> ContainerType;
+    typedef std::vector<RangeCounter> Ranges;
 
-  return 0;
-} //end of main
+    class RangeCounter
+    {
+   private:
+      UInt min_;
+      UInt max_;
+      UInt max_allowed_;
+      UInt& value;
 
-//! [EmpiricalFormula]
+   public:
+      RangeCounter(UInt min, UInt max, UInt& value);
+      RangeCounter& operator++();
+      UInt operator+=(const UInt&);
+      void setMaxAllowedValue(UInt);
+      inline UInt& getValue() const { return value; }
+      inline void reset() { value = min_; }
+      inline const UInt& getMin() const { return min_; }
+      inline const UInt& getMax() const { return max_; }
+      inline const UInt& maxAllowed() const { return max_allowed_; }
+    };
+    
+    CounterSet(UInt);
+    const ContainerType& getCounters() const {return counters;}
+    CounterSet& operator++();
+    void addCounter(UInt, UInt);
+    void reset();
+    inline UInt sum() const { return accumulate(counters.begin(), counters.end(), 0); }
+    const bool& hasNext() const { return has_next; }
+    void print(char*);
+  
+  private:
+    UInt N;
+    UInt min_sum;
+    std::vector<RangeCounter> range_counters;
+    ContainerType counters;
+    bool has_next;
+    bool first;
+    Ranges::reverse_iterator count_it;
+    
+    void prepare();
+
+
+  };
+
+}

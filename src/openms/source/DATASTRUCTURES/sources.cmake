@@ -33,6 +33,7 @@ Map.cpp
 MassExplainer.cpp
 Matrix.cpp
 Param.cpp
+Polynomial.cpp
 QTCluster.cpp
 String.cpp
 StringListUtils.cpp
