@@ -2114,9 +2114,12 @@ set_tests_properties("UTILS_DatabaseFilter_4_out" PROPERTIES DEPENDS "UTILS_Data
 add_test("UTILS_DecoyDatabase_1" ${TOPP_BIN_PATH}/DecoyDatabase -test -in ${DATA_DIR_TOPP}/DecoyDatabase_1.fasta -out DecoyDatabase_1.fasta.tmp -only_decoy)
 add_test("UTILS_DecoyDatabase_1_out" ${DIFF} -in1 DecoyDatabase_1.fasta.tmp -in2 ${DATA_DIR_TOPP}/DecoyDatabase_1_out.fasta )
 set_tests_properties("UTILS_DecoyDatabase_1_out" PROPERTIES DEPENDS "UTILS_DecoyDatabase_1")
-add_test("UTILS_DecoyDatabase_2" ${TOPP_BIN_PATH}/DecoyDatabase -test -in ${DATA_DIR_TOPP}/DecoyDatabase_1.fasta -out DecoyDatabase_2.fasta.tmp -decoy_string "blabla" -decoy_string_position "prefix")
+add_test("UTILS_DecoyDatabase_2" ${TOPP_BIN_PATH}/DecoyDatabase -test -in ${DATA_DIR_TOPP}/DecoyDatabase_1.fasta -out DecoyDatabase_2.fasta.tmp -decoy_string "blabla" -decoy_string_position "prefix" -method shuffle -Decoy:non_shuffle_pattern "KRP" -seed 42)
 add_test("UTILS_DecoyDatabase_2_out" ${DIFF} -in1 DecoyDatabase_2.fasta.tmp -in2 ${DATA_DIR_TOPP}/DecoyDatabase_2_out.fasta )
 set_tests_properties("UTILS_DecoyDatabase_2_out" PROPERTIES DEPENDS "UTILS_DecoyDatabase_2")
+add_test("UTILS_DecoyDatabase_3" ${TOPP_BIN_PATH}/DecoyDatabase -test -in ${DATA_DIR_TOPP}/DecoyDatabase_1.fasta -out DecoyDatabase_3.fasta.tmp -decoy_string "blabla" -decoy_string_position "prefix" -method shuffle -Decoy:non_shuffle_pattern "KR" -seed 42 -enzyme "Chymotrypsin")
+add_test("UTILS_DecoyDatabase_3_out" ${DIFF} -in1 DecoyDatabase_3.fasta.tmp -in2 ${DATA_DIR_TOPP}/DecoyDatabase_3_out.fasta )
+set_tests_properties("UTILS_DecoyDatabase_3_out" PROPERTIES DEPENDS "UTILS_DecoyDatabase_3")
 
 # SimpleSearchEngine:
 add_test("UTILS_SimpleSearchEngine_1" ${TOPP_BIN_PATH}/SimpleSearchEngine -test
