@@ -145,9 +145,8 @@ protected:
     registerIntOption_("precursor:max_charge", "<num>", -9, "Maximum precursor charge to be considered.", false, false);
 
     //Whether to look for precursors with salt adducts
-    registerFlag_("precursor:inc_salt","Include possible salt adducts in precursor mass?",false);
-    registerStringList_("precursor:potential_adducts", "<choice>", ListUtils::create<String>("K:+"), "Adducts used to explain mass differences in format: 'Element:Charge(+/-)', i.e. the number of '+' or '-' indicate the charge, e.g. 'Ca:++' indicates +2.", false, false);
-
+    registerFlag_("precursor:use_adducts", "Consider possible salt adducts (see 'precursor:potential_adducts') when matching precursor masses?", false);
+    registerStringList_("precursor:potential_adducts", "<list>", ListUtils::create<String>("K:+"), "Adducts considered to explain mass differences. Format: 'Element:Charge(+/-)', i.e. the number of '+' or '-' indicates the charge, e.g. 'Ca:++' indicates +2. Only used if 'precursor:use_adducts' is set.", false, false);
 
     // consider one before annotated monoisotopic peak and the annotated one
     IntList isotopes = {0, 1};
@@ -630,8 +629,8 @@ protected:
 
     StringList potential_adducts = getStringList_("precursor:potential_adducts");
     DoubleList adduct_masses;
-    bool inc_salt = getFlag_("precursor:inc_salt");
-    if (inc_salt)
+    bool use_adducts = getFlag_("precursor:use_adducts");
+    if (use_adducts)
     {
       for (StringList::iterator it = potential_adducts.begin(); it != potential_adducts.end(); ++it)
       {
@@ -639,51 +638,48 @@ protected:
         it->split(':', adduct);
         if (adduct.size() != 2)
         {
-          String error = "precursor::potential_adducts (" + (*it) + ") does not have two entries, but " + String(adduct.size()) + " entries!";
-          throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, error);
+          String error = "entry in parameter 'precursor:potential_adducts' does not have two parts separated by ':'";
+          throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, error, *it);
         }
 
         // determine charge of adduct (by # of '+' or '-')
         Int pos_charge = adduct[1].size() - adduct[1].remove('+').size();
         Int neg_charge = adduct[1].size() - adduct[1].remove('-').size();
-        LOG_DEBUG << ": " << pos_charge-neg_charge << endl;
+        LOG_DEBUG << ": " << pos_charge - neg_charge << endl;
         if (pos_charge > 0 && neg_charge > 0)
         {
-          String error = "precursor::potential_adducts mixes charges for an adduct!";
-        }else if (pos_charge > 0)
+          String error = "entry in parameter 'precursor:potential_adducts' mixes positive and negative charges";
+          throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, error, *it);
+        }
+        else if (pos_charge > 0)
         {
           EmpiricalFormula ef(adduct[0]);
           ef -= EmpiricalFormula("H" + String(pos_charge));
-          //ef.setCharge(pos_charge); // effectively subtract electron masses
+          // ef.setCharge(pos_charge); // effectively subtract electron masses
           adduct_masses.push_back(ef.getMonoWeight());
-          LOG_DEBUG << "Added Adduct: " << ef.toString() << "Mass"<< ef.getMonoWeight() << endl;
-        }else if (neg_charge > 0)
+          LOG_DEBUG << "Added adduct: " << ef.toString() << ", mass: "<< ef.getMonoWeight() << endl;
+        }
+        else if (neg_charge > 0)
         {
           if (adduct[0] == "H-1")
           {
             adduct_masses.push_back(-Constants::PROTON_MASS_U);
-          }else
+          }
+          else
           {
             EmpiricalFormula ef(adduct[0]);
-            ef.setCharge(0);//ensures we get without additional protons, now just add electron masses
+            ef.setCharge(0); // ensures we get without additional protons, now just add electron masses
             adduct_masses.push_back(ef.getMonoWeight());
-            LOG_DEBUG << "Added Adduct: " << ef.toString() << "Mass"<< ef.getMonoWeight() << endl;
-
+            LOG_DEBUG << "Added adduct: " << ef.toString() << ", mass: "<< ef.getMonoWeight() << endl;
           }
-        }else//pos,neg == 0
-        {//in principle no change because pos_charge 0 and ef.getMonoWeight() only adds for nonzero charges
+        }
+        else // uncharged
+        {
           EmpiricalFormula ef(adduct[0]);
-          ef -= EmpiricalFormula("H" + String(pos_charge));
-          //ef.setCharge(pos_charge); // effectively subtract electron masses
           adduct_masses.push_back(ef.getMonoWeight());
-          LOG_DEBUG << "Added Adduct: " << ef.toString() << "Mass"<< ef.getMonoWeight() << endl;
-
+          LOG_DEBUG << "Added adduct: " << ef.toString() << ", mass: "<< ef.getMonoWeight() << endl;
         }
       }
-      for (double am : adduct_masses){
-        LOG_DEBUG << ": " << am << endl;
-      }
-
     }
 
     // load MS2 map
