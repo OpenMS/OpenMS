@@ -501,6 +501,15 @@ protected:
       const double peak_height, const double peak_apex_pos
     ) const;
 
+    template <typename PeakContainerConstIteratorT>
+    double findPosAtPerc_(
+      PeakContainerConstIteratorT it_begin,
+      PeakContainerConstIteratorT it_end,
+      const double peak_height,
+      const double perc,
+      const bool is_left_half
+    ) const;
+
 private:
     /** @name Parameters
       The user is supposed to select a value for these parameters.

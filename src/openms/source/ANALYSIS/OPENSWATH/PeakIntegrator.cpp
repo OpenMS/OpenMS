@@ -291,56 +291,23 @@ namespace OpenMS
     psm.points_across_half_height = 0;
     for (auto it = p.PosBegin(left); it != p.PosEnd(right); ++it)
     {
-      const double intensity = it->getIntensity();
-      const double intensity_prev = (it - 1)->getIntensity();
-      const double position = it->getPos();
-      const double position_prev = (it - 1)->getPos();
-      // start and end positions (rt or mz)
-      if (position < peak_apex_pos && psm.points_across_baseline > 1) // start positions
-      {
-        const double d_int_times_d_pos = (intensity - intensity_prev) * (position - position_prev);
-        if (intensity >= 0.05 * peak_height && intensity_prev < 0.05 * peak_height)
-        {
-          const double height_5 = intensity - 0.05 * peak_height;
-          psm.start_position_at_5 = position - d_int_times_d_pos / height_5;
-        }
-        if (intensity >= 0.1 * peak_height && intensity_prev < 0.1 * peak_height)
-        {
-          const double height_10 = intensity - 0.1 * peak_height;
-          psm.start_position_at_10 = position - d_int_times_d_pos / height_10;
-        }
-        if (intensity >= 0.5 * peak_height && intensity_prev < 0.5 * peak_height)
-        {
-          const double height_50 = intensity - 0.5 * peak_height;
-          psm.start_position_at_50 = position - d_int_times_d_pos / height_50;
-        }
-      }
-      else if (position > peak_apex_pos) // end positions
-      {
-        const double d_int_times_d_pos = (intensity_prev - intensity) * (position - position_prev);
-        if (intensity <= 0.05 * peak_height && intensity_prev > 0.05 * peak_height)
-        {
-          const double height_5 = 0.05 * peak_height - intensity;
-          psm.end_position_at_5 = position - d_int_times_d_pos / height_5;
-        }
-        if (intensity <= 0.1 * peak_height && intensity_prev > 0.1 * peak_height)
-        {
-          const double height_10 = 0.1 * peak_height - intensity;
-          psm.end_position_at_10 = position - d_int_times_d_pos / height_10;
-        }
-        if (intensity <= 0.5 * peak_height && intensity_prev > 0.5 * peak_height)
-        {
-          const double height_50 = 0.5 * peak_height - intensity;
-          psm.end_position_at_50 = position - d_int_times_d_pos / height_50;
-        }
-      }
       // points across the peak
       ++(psm.points_across_baseline);
-      if (intensity >= 0.5 * peak_height)
+      if (it->getIntensity() >= 0.5 * peak_height)
       {
         ++(psm.points_across_half_height);
       }
     }
+    // positions at peak heights
+    typename PeakContainerT::ConstIterator it_PosBegin_l = p.PosBegin(left);
+    typename PeakContainerT::ConstIterator it_PosEnd_apex = p.PosEnd(peak_apex_pos);
+    typename PeakContainerT::ConstIterator it_PosEnd_r = p.PosEnd(right);
+    psm.start_position_at_5 = findPosAtPerc_(it_PosBegin_l, it_PosEnd_apex, peak_height, 0.05, true);
+    psm.start_position_at_10 = findPosAtPerc_(it_PosBegin_l, it_PosEnd_apex, peak_height, 0.1, true);
+    psm.start_position_at_50 = findPosAtPerc_(it_PosBegin_l, it_PosEnd_apex, peak_height, 0.5, true);
+    psm.end_position_at_5 = findPosAtPerc_(it_PosEnd_apex, it_PosEnd_r, peak_height, 0.05, false);
+    psm.end_position_at_10 = findPosAtPerc_(it_PosEnd_apex, it_PosEnd_r, peak_height, 0.1, false);
+    psm.end_position_at_50 = findPosAtPerc_(it_PosEnd_apex, it_PosEnd_r, peak_height, 0.5, false);
     // peak widths
     psm.width_at_5 = psm.end_position_at_5 - psm.start_position_at_5;
     psm.width_at_10 = psm.end_position_at_10 - psm.start_position_at_10;
@@ -353,5 +320,39 @@ namespace OpenMS
     psm.asymmetry_factor = std::min(peak_apex_pos - psm.start_position_at_10, psm.end_position_at_10 - peak_apex_pos) /
       std::max(peak_apex_pos - psm.start_position_at_10, psm.end_position_at_10 - peak_apex_pos);
     return psm;
+  }
+
+  template <typename PeakContainerConstIteratorT>
+  double PeakIntegrator::findPosAtPerc_(
+    PeakContainerConstIteratorT it_begin,
+    PeakContainerConstIteratorT it_end,
+    const double peak_height,
+    const double perc,
+    const bool is_left_half
+  ) const
+  {
+    const double goal_intensity = peak_height * perc;
+    PeakContainerConstIteratorT closest = is_left_half ? it_begin : it_end - 1; // TODO assuming enough points here
+    if (is_left_half)
+    {
+      for (PeakContainerConstIteratorT it = it_begin; it != it_end; ++it)
+      {
+        if (it->getIntensity() <= goal_intensity)
+        {
+          closest = it;
+        }
+      }
+    }
+    else
+    {
+      for (PeakContainerConstIteratorT it = it_end - 1; it != it_begin; --it)
+      {
+        if (it->getIntensity() <= goal_intensity)
+        {
+          closest = it;
+        }
+      }
+    }
+    return closest->getPos();
   }
 }
