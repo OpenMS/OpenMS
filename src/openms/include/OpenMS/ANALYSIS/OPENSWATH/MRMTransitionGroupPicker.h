@@ -396,6 +396,7 @@ public:
       {
         
         const SpectrumT& chromatogram = transition_group.getPrecursorChromatograms()[k];
+        Size prec_idx = transition_group.getChromatograms().size() + k;
 
         SpectrumT used_chromatogram;
         // resample the current chromatogram
@@ -404,14 +405,14 @@ public:
           used_chromatogram = resampleChromatogram_(chromatogram, master_peak_container, best_left, best_right);
           // const SpectrumT& used_chromatogram = chromatogram; // instead of resampling
         }
-        else if (peak_integration_ == "smoothed" && smoothed_chroms.size() <= k)
+        else if (peak_integration_ == "smoothed" && smoothed_chroms.size() <= prec_idx)
         {
           throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
             "Tried to calculate peak area and height without any smoothed chromatograms");
         }        
         else if (peak_integration_ == "smoothed")
         {
-          used_chromatogram = resampleChromatogram_(smoothed_chroms[k], master_peak_container, best_left, best_right);
+          used_chromatogram = resampleChromatogram_(smoothed_chroms[prec_idx], master_peak_container, best_left, best_right);
         }
         else
         {
@@ -424,10 +425,41 @@ public:
         f.setQuality(0, quality);
         f.setOverallQuality(quality);
 
-
         PeakIntegrator::PeakArea pa = pi_.integratePeak(used_chromatogram, best_left, best_right);
         double peak_integral = pa.area;
         double peak_apex_int = pa.height;
+
+        if (background_subtraction_ != "none")
+        {
+          double background{0};
+          double avg_noise_level{0};
+          if ((peak_integration_ == "smoothed") && smoothed_chroms.size() <= prec_idx)
+          {
+            throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+              "Tried to calculate background estimation without any smoothed chromatograms");
+          }
+          else if (background_subtraction_ == "original")
+          {
+            const double intensity_left = chromatogram.PosBegin(best_left)->getIntensity();
+            const double intensity_right = (chromatogram.PosEnd(best_right) - 1)->getIntensity();
+            const UInt n_points = std::distance(chromatogram.PosBegin(best_left), chromatogram.PosEnd(best_right));
+            avg_noise_level = (intensity_right + intensity_left) / 2;
+            background = avg_noise_level * n_points;
+          }
+          else if (background_subtraction_ == "exact")
+          {
+            PeakIntegrator::PeakBackground pb = pi_.estimateBackground(used_chromatogram, best_left, best_right, pa.apex_pos);
+            background = pb.area;
+            avg_noise_level = pb.height;
+          }
+          peak_integral -= background;
+          peak_apex_int -= avg_noise_level;
+          if (peak_integral < 0) {peak_integral = 0;}
+          if (peak_apex_int < 0) {peak_apex_int = 0;}
+
+          f.setMetaValue("area_background_level", background);
+          f.setMetaValue("noise_background_level", avg_noise_level);
+        }
 
         if (chromatogram.metaValueExists("precursor_mz")) 
         {
