@@ -5,7 +5,7 @@
 # based on https://github.com/pypa/python-manylinux-demo/blob/master/travis/build-wheels.sh
 #
 # Execute as:
-# 
+#
 #   sudo docker run --net=host -v `pwd`:/data hroest/manylinux_qt59_contrib:v1.2 /bin/bash /data/create-manylinux.sh
 #
 
@@ -17,7 +17,7 @@ git clone -b feature/qt5 https://github.com/hroest/OpenMS.git
 # make sure that we can find the link library
 ln -s /contrib-build/lib64/libxerces-c-3.2.a /contrib-build/lib/libxerces-c.a
 
-yum install -y zip 
+yum install -y zip
 
 # install Python deps
 for PYBIN in /opt/python/cp27* /opt/python/cp3[4-9]*; do
@@ -63,7 +63,8 @@ for PYBIN in /opt/python/cp27* /opt/python/cp3[4-9]*; do
     bn=`basename $whl .whl`
     cd wheelhouse_fixed
     mv $bn.whl $bn.zip
-    unzip $bn.zip 
+    unzip $bn.zip
+    rm -rf $bn.zip
     /bin/cp /qt/lib/libQt5Core.so pyopenms/.libs/libQt5Core-*
     rm -rf pyopenms/lib*
     # this does not always work, see https://github.com/pypa/manylinux/issues/119
