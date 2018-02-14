@@ -518,12 +518,25 @@ protected:
       const double peak_height, const double peak_apex_pos
     ) const;
 
+    /**
+      @brief Find the position (RT/MZ) at a given percentage of peak's height.
+
+      @note The method assumes a convex peak. If 5%, 10%, or 50% peak heights are not found on either side of the peak, the closest left (for left peak height percentages) and closes right (for right peak height percentages) will be used.
+
+      @param[in] it_begin The iterator to the first point
+      @param[in] it_end The iterator to past the last point
+      @param[in] peak_height The peak's height
+      @param[in] percent At which percentage of the peak height we want to find the position (common values: 0.05, 0.1, 0.5)
+      @param[in] is_left_half According to which half of the peak, the algorithm proceeds to the correct direction
+
+      @return The position found
+    */
     template <typename PeakContainerConstIteratorT>
     double findPosAtPeakHeightPercent_(
       PeakContainerConstIteratorT it_begin,
       PeakContainerConstIteratorT it_end,
       const double peak_height,
-      const double perc,
+      const double percent,
       const bool is_left_half
     ) const;
 
