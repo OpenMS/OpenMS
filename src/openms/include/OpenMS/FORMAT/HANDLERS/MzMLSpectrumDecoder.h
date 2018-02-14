@@ -47,6 +47,8 @@
 #include <xercesc/dom/DOMNode.hpp>
 
 #include <OpenMS/FORMAT/HANDLERS/MzMLHandlerHelper.h>
+#include <OpenMS/KERNEL/MSSpectrum.h>
+#include <OpenMS/KERNEL/MSChromatogram.h>
 
 namespace OpenMS
 {
@@ -77,6 +79,8 @@ namespace OpenMS
 
     */
     OpenMS::Interfaces::SpectrumPtr decodeBinaryDataSpectrum_(std::vector<BinaryData> & data_);
+
+    OpenMS::MSSpectrum decodeBinaryDataMSSpectrum_(std::vector<BinaryData> & data_);
 
     /**
       @brief decode binary data
@@ -122,8 +126,6 @@ namespace OpenMS
       skip_xml_checks_(false)
     {}
 
-
-
     /**
       @brief Extract data from a string which contains a full mzML spectrum.
 
@@ -138,6 +140,8 @@ namespace OpenMS
 
     */
     void domParseSpectrum(const std::string& in, OpenMS::Interfaces::SpectrumPtr & sptr);
+
+    MSSpectrum domParseSpectrum(const std::string& in);
 
     /**
       @brief Extract data from a string which contains a full mzML chromatogram.

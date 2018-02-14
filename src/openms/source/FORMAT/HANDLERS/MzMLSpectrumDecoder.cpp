@@ -90,6 +90,233 @@ namespace OpenMS
     }
   }
 
+  template<class T>
+  inline void fillDataArrayFloat(const Internal::MzMLHandlerHelper::BinaryData& data, T& spectrum)
+  {
+    //create new array
+    spectrum.getFloatDataArrays().resize(spectrum.getFloatDataArrays().size() + 1);
+    //reserve space in the array
+    spectrum.getFloatDataArrays().back().reserve(data.size);
+    //copy meta info into MetaInfoDescription
+    spectrum.getFloatDataArrays().back().MetaInfoDescription::operator=(data.meta);
+
+    if (data.precision == Internal::MzMLHandlerHelper::BinaryData::PRE_64)
+    {
+      for (Size n = 0; n < data.floats_64.size(); n++)
+      {
+        double value = data.floats_64[n];
+        spectrum.getFloatDataArrays().back().push_back(value);
+      }
+    }
+    else
+    {
+      for (Size n = 0; n < data.floats_32.size(); n++)
+      {
+        double value = data.floats_32[n];
+        spectrum.getFloatDataArrays().back().push_back(value);
+      }
+    }
+  }
+
+  template<class T>
+  inline void fillDataArrayInt(const Internal::MzMLHandlerHelper::BinaryData& data, T& spectrum)
+  {
+    //create new array
+    spectrum.getIntegerDataArrays().resize(spectrum.getIntegerDataArrays().size() + 1);
+    //reserve space in the array
+    spectrum.getIntegerDataArrays().back().reserve(data.size);
+    //copy meta info into MetaInfoDescription
+    spectrum.getIntegerDataArrays().back().MetaInfoDescription::operator=(data.meta);
+
+    if (data.precision == Internal::MzMLHandlerHelper::BinaryData::PRE_64)
+    {
+      for (Size n = 0; n < data.ints_64.size(); n++)
+      {
+        double value = data.ints_64[n];
+        spectrum.getIntegerDataArrays().back().push_back(value);
+      }
+    }
+    else
+    {
+      for (Size n = 0; n < data.ints_32.size(); n++)
+      {
+        double value = data.ints_32[n];
+        spectrum.getIntegerDataArrays().back().push_back(value);
+      }
+    }
+  }
+
+  template<class T>
+  inline void fillDataArrayString(const Internal::MzMLHandlerHelper::BinaryData& data, T& spectrum)
+  {
+    //create new array
+    spectrum.getStringDataArrays().resize(spectrum.getStringDataArrays().size() + 1);
+    //reserve space in the array
+    spectrum.getStringDataArrays().back().reserve(data.decoded_char.size());
+    //copy meta info into MetaInfoDescription
+    spectrum.getStringDataArrays().back().MetaInfoDescription::operator=(data.meta);
+
+    if (data.precision == Internal::MzMLHandlerHelper::BinaryData::PRE_64)
+    {
+      for (Size n = 0; n < data.decoded_char.size(); n++)
+      {
+        String value = data.decoded_char[n];
+        spectrum.getStringDataArrays().back().push_back(value);
+      }
+    }
+  }
+
+  inline void fillDataArrays(const std::vector<Internal::MzMLHandlerHelper::BinaryData>& input_data, MSSpectrum& spectrum)
+  {
+    for (Size i = 0; i < input_data.size(); i++) //loop over all binary data arrays
+    {
+      if (input_data[i].meta.getName() != "m/z array" && input_data[i].meta.getName() != "intensity array") // is meta data array?
+      {
+        if (input_data[i].data_type == Internal::MzMLHandlerHelper::BinaryData::DT_FLOAT)
+        {
+          fillDataArrayFloat(input_data[i], spectrum);
+        }
+        else if (input_data[i].data_type == Internal::MzMLHandlerHelper::BinaryData::DT_INT)
+        {
+          fillDataArrayInt(input_data[i], spectrum);
+        }
+        else if (input_data[i].data_type == Internal::MzMLHandlerHelper::BinaryData::DT_STRING)
+        {
+          fillDataArrayString(input_data[i], spectrum);
+        }
+      }
+    }
+  }
+
+  inline void fillDataArrays(const std::vector<Internal::MzMLHandlerHelper::BinaryData>& input_data, MSChromatogram& spectrum)
+  {
+    for (Size i = 0; i < input_data.size(); i++) //loop over all binary data arrays
+    {
+      if (input_data[i].meta.getName() != "time array" && input_data[i].meta.getName() != "intensity array") // is meta data array?
+      {
+        if (input_data[i].data_type == Internal::MzMLHandlerHelper::BinaryData::DT_FLOAT)
+        {
+          fillDataArrayFloat(input_data[i], spectrum);
+        }
+        else if (input_data[i].data_type == Internal::MzMLHandlerHelper::BinaryData::DT_INT)
+        {
+          fillDataArrayInt(input_data[i], spectrum);
+        }
+        else if (input_data[i].data_type == Internal::MzMLHandlerHelper::BinaryData::DT_STRING)
+        {
+          fillDataArrayString(input_data[i], spectrum);
+        }
+      }
+    }
+  }
+
+  template<class T>
+  inline void fillDataArray(const std::vector<Internal::MzMLHandlerHelper::BinaryData>& data_,
+                            T& spectrum,
+                            const bool x_precision_64,
+                            const bool int_precision_64,
+                            const SignedSize x_index,
+                            const SignedSize int_index,
+                            const Size default_array_length_)
+  {
+    typename T::PeakType tmp;
+    if (x_precision_64 && !int_precision_64)
+    {
+      std::vector< double >::const_iterator mz_it = data_[x_index].floats_64.begin();
+      std::vector< float >::const_iterator int_it = data_[int_index].floats_32.begin();
+      for (Size n = 0; n < default_array_length_; n++)
+      {
+        //add peak
+        tmp.setIntensity(*int_it);
+        tmp.setMZ(*mz_it);
+        ++mz_it;
+        ++int_it;
+        spectrum.push_back(tmp);
+      }
+    }
+    else if (x_precision_64 && int_precision_64)
+    {
+      std::vector< double >::const_iterator mz_it = data_[x_index].floats_64.begin();
+      std::vector< double >::const_iterator int_it = data_[int_index].floats_64.begin();
+      for (Size n = 0; n < default_array_length_; n++)
+      {
+        //add peak
+        tmp.setIntensity(*int_it);
+        tmp.setMZ(*mz_it);
+        ++mz_it;
+        ++int_it;
+        spectrum.push_back(tmp);
+      }
+    }
+    else if (!x_precision_64 && int_precision_64)
+    {
+      std::vector< float >::const_iterator mz_it = data_[x_index].floats_32.begin();
+      std::vector< double >::const_iterator int_it = data_[int_index].floats_64.begin();
+      for (Size n = 0; n < default_array_length_; n++)
+      {
+        //add peak
+        tmp.setIntensity(*int_it);
+        tmp.setMZ(*mz_it);
+        ++mz_it;
+        ++int_it;
+        spectrum.push_back(tmp);
+      }
+    }
+    else if (!x_precision_64 && !int_precision_64)
+    {
+      std::vector< float >::const_iterator mz_it = data_[x_index].floats_32.begin();
+      std::vector< float >::const_iterator int_it = data_[int_index].floats_32.begin();
+      for (Size n = 0; n < default_array_length_; n++)
+      {
+        //add peak
+        tmp.setIntensity(*int_it);
+        tmp.setMZ(*mz_it);
+        ++mz_it;
+        ++int_it;
+        spectrum.push_back(tmp);
+      }
+    }
+  }
+
+  OpenMS::MSSpectrum MzMLSpectrumDecoder::decodeBinaryDataMSSpectrum_(std::vector<BinaryData>& data_)
+  {
+    Internal::MzMLHandlerHelper::decodeBase64Arrays(data_, skip_xml_checks_);
+    OpenMS::Interfaces::SpectrumPtr sptr(new OpenMS::Interfaces::Spectrum);
+
+    //look up the precision and the index of the intensity and m/z array
+    bool x_precision_64 = true;
+    bool int_precision_64 = true;
+    SignedSize x_index = -1;
+    SignedSize int_index = -1;
+    Internal::MzMLHandlerHelper::computeDataProperties_(data_, x_precision_64, x_index, "m/z array");
+    Internal::MzMLHandlerHelper::computeDataProperties_(data_, int_precision_64, int_index, "intensity array");
+
+    //Abort if no m/z or intensity array is present
+    if (int_index == -1 || x_index == -1)
+    {
+      std::cerr << "Error, intensity or m/z array is missing, skipping this spectrum" << std::endl;
+      return MSSpectrum();
+    }
+
+    checkData_(data_, x_index, int_index, x_precision_64, int_precision_64);
+
+    // At this point, we could check whether the defaultArrayLength from the
+    // spectrum/chromatogram tag is equivalent to size of the decoded data
+    Size default_array_length_ = x_precision_64 ? data_[x_index].floats_64.size() : data_[x_index].floats_32.size();
+
+    MSSpectrum spectrum;
+    spectrum.reserve(default_array_length_);
+    fillDataArray(data_, spectrum,
+                  x_precision_64, int_precision_64,
+                  x_index, int_index, default_array_length_);
+
+    if (data_.size() > 2) 
+    {
+      fillDataArrays(data_, spectrum);
+    }
+    return spectrum;
+  }
+
   OpenMS::Interfaces::SpectrumPtr MzMLSpectrumDecoder::decodeBinaryDataSpectrum_(std::vector<BinaryData>& data_)
   {
     Internal::MzMLHandlerHelper::decodeBase64Arrays(data_, skip_xml_checks_);
@@ -351,6 +578,13 @@ namespace OpenMS
     std::vector<BinaryData> data_;
     domParseString_(in, data_);
     sptr = decodeBinaryDataSpectrum_(data_);
+  }
+
+  MSSpectrum MzMLSpectrumDecoder::domParseSpectrum(const std::string& in)
+  {
+    std::vector<BinaryData> data_;
+    domParseString_(in, data_);
+    return decodeBinaryDataMSSpectrum_(data_);
   }
 
   void MzMLSpectrumDecoder::domParseChromatogram(const std::string& in, OpenMS::Interfaces::ChromatogramPtr& sptr)
