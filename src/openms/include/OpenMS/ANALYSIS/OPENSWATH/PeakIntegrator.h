@@ -519,7 +519,7 @@ protected:
     ) const;
 
     template <typename PeakContainerConstIteratorT>
-    double findPosAtPerc_(
+    double findPosAtPeakHeightPercent_(
       PeakContainerConstIteratorT it_begin,
       PeakContainerConstIteratorT it_end,
       const double peak_height,

@@ -302,12 +302,12 @@ namespace OpenMS
     typename PeakContainerT::ConstIterator it_PosBegin_l = p.PosBegin(left);
     typename PeakContainerT::ConstIterator it_PosEnd_apex = p.PosEnd(peak_apex_pos);
     typename PeakContainerT::ConstIterator it_PosEnd_r = p.PosEnd(right);
-    psm.start_position_at_5 = findPosAtPerc_(it_PosBegin_l, it_PosEnd_apex, peak_height, 0.05, true);
-    psm.start_position_at_10 = findPosAtPerc_(it_PosBegin_l, it_PosEnd_apex, peak_height, 0.1, true);
-    psm.start_position_at_50 = findPosAtPerc_(it_PosBegin_l, it_PosEnd_apex, peak_height, 0.5, true);
-    psm.end_position_at_5 = findPosAtPerc_(it_PosEnd_apex, it_PosEnd_r, peak_height, 0.05, false);
-    psm.end_position_at_10 = findPosAtPerc_(it_PosEnd_apex, it_PosEnd_r, peak_height, 0.1, false);
-    psm.end_position_at_50 = findPosAtPerc_(it_PosEnd_apex, it_PosEnd_r, peak_height, 0.5, false);
+    psm.start_position_at_5 = findPosAtPeakHeightPercent_(it_PosBegin_l, it_PosEnd_apex, peak_height, 0.05, true);
+    psm.start_position_at_10 = findPosAtPeakHeightPercent_(it_PosBegin_l, it_PosEnd_apex, peak_height, 0.1, true);
+    psm.start_position_at_50 = findPosAtPeakHeightPercent_(it_PosBegin_l, it_PosEnd_apex, peak_height, 0.5, true);
+    psm.end_position_at_5 = findPosAtPeakHeightPercent_(it_PosEnd_apex, it_PosEnd_r, peak_height, 0.05, false);
+    psm.end_position_at_10 = findPosAtPeakHeightPercent_(it_PosEnd_apex, it_PosEnd_r, peak_height, 0.1, false);
+    psm.end_position_at_50 = findPosAtPeakHeightPercent_(it_PosEnd_apex, it_PosEnd_r, peak_height, 0.5, false);
     // peak widths
     psm.width_at_5 = psm.end_position_at_5 - psm.start_position_at_5;
     psm.width_at_10 = psm.end_position_at_10 - psm.start_position_at_10;
@@ -323,21 +323,21 @@ namespace OpenMS
   }
 
   template <typename PeakContainerConstIteratorT>
-  double PeakIntegrator::findPosAtPerc_(
+  double PeakIntegrator::findPosAtPeakHeightPercent_(
     PeakContainerConstIteratorT it_begin,
     PeakContainerConstIteratorT it_end,
     const double peak_height,
-    const double perc,
+    const double percent,
     const bool is_left_half
   ) const
   {
-    const double goal_intensity = peak_height * perc;
+    const double percent_intensity = peak_height * percent;
     PeakContainerConstIteratorT closest = is_left_half ? it_begin : it_end - 1; // TODO assuming enough points here
     if (is_left_half)
     {
       for (PeakContainerConstIteratorT it = it_begin; it != it_end; ++it)
       {
-        if (it->getIntensity() <= goal_intensity)
+        if (it->getIntensity() <= percent_intensity)
         {
           closest = it;
         }
@@ -347,7 +347,7 @@ namespace OpenMS
     {
       for (PeakContainerConstIteratorT it = it_end - 1; it != it_begin; --it)
       {
-        if (it->getIntensity() <= goal_intensity)
+        if (it->getIntensity() <= percent_intensity)
         {
           closest = it;
         }
