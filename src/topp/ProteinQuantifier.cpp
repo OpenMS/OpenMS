@@ -129,11 +129,11 @@ using namespace std;
     - @b n_peptides: Number of proteotypic peptides observed for this protein (or group of indistinguishable proteins) across all samples. Note that not necessarily all of these peptides contribute to the protein abundance (depending on parameter @p top).
     - @b abundance: Computed protein abundance. For consensusXML input, there will be one column  per sample ("abundance_1", "abundance_2", etc.).
 
-    <b>Peptide output</b> (one peptide or - if @p filter_charge is set - one charge state of a peptide per line):
+    <b>Peptide output</b> (one peptide or - if @p best_charge_and_fraction is set - one charge state and fraction of a peptide per line):
     - @b peptide: Peptide sequence. Only peptides that occur in unambiguous annotations of features are reported.
     - @b protein: Protein accession(s) for the peptide (separated by "/" if more than one).
     - @b n_proteins: Number of proteins this peptide maps to. (Same as the number of accessions in the previous column.)
-    - @b charge: Charge state quantified in this line. "0" (for "all charges") unless @p filter_charge was set.
+    - @b charge: Charge state quantified in this line. "0" (for "all charges") unless @p best_charge_and_fraction was set.
     - @b abundance: Computed abundance for this peptide. If the charge in the preceding column is 0, this is the total abundance of the peptide over all charge states; otherwise, it is only the abundance observed for the indicated charge (in this case, there may be more than one line for the peptide sequence). Again, for consensusXML input, there will be one column  per sample ("abundance_1", "abundance_2", etc.). Also for consensusXML, the reported values are already normalized if @p consensus:normalize was set.
 
     <B>Protein quantification examples</B>
@@ -316,8 +316,8 @@ using namespace std;
 
     <B>Further considerations for parameter selection</B>
 
-    With @p filter_charge and @p average, there is a trade-off between comparability of protein abundances within a sample and of abundances for the same protein across different samples.\n
-    Setting @p filter_charge may increase reproducibility between samples, but will distort the proportions of protein abundances within a sample. The reason is that ionization properties vary between peptides, but should remain constant across samples. Filtering by charge state can help to reduce the impact of feature detection differences between samples.\n
+    With @p best_charge_and_fractione and @p average, there is a trade-off between comparability of protein abundances within a sample and of abundances for the same protein across different samples.\n
+    Setting @p best_charge_and_fraction may increase reproducibility between samples, but will distort the proportions of protein abundances within a sample. The reason is that ionization properties vary between peptides, but should remain constant across samples. Filtering by charge state can help to reduce the impact of feature detection differences between samples.\n
     For @p average, there is a qualitative difference between @p (intensity weighted) mean/median and @p sum in the effect that missing peptide abundances have (only if @p include_all is set or @p top is 0): @p (intensity weighted) mean and @p median ignore missing cases, averaging only present values. If low-abundant peptides are not detected in some samples, the computed protein abundances for those samples may thus be too optimistic. @p sum implicitly treats missing values as zero, so this problem does not occur and comparability across samples is ensured. However, with @p sum the total number of peptides ("summands") available for a protein may affect the abundances computed for it (depending on @p top), so results within a sample may become unproportional.
 
 */
@@ -357,10 +357,8 @@ protected:
     registerInputFile_("protein_groups", "<file>", "", "Protein inference results for the identification runs that were used to annotate the input (e.g. from ProteinProphet via IDFileConverter or Fido via FidoAdapter).\nInformation about indistinguishable proteins will be used for protein quantification.", false);
     setValidFormats_("protein_groups", ListUtils::create<String>("idXML"));
 
-    /* probably not needed right now
     registerInputFile_("design", "<file>", "", "input file containing the experimental design", false);
     setValidFormats_("design", ListUtils::create<String>("tsv"));
-    */
 
     // output
     registerOutputFile_("out", "<file>", "", "Output file for protein abundances", false);
@@ -410,57 +408,56 @@ protected:
         out << "abundance_" + String(i);
       }
     }
-    out << endl;
+    out << "fraction" << endl;
 
-    bool filter_charge = algo_params_.getValue("filter_charge") == "true";
-    for (PeptideQuant::const_iterator q_it = quant.begin(); q_it != quant.end();
-         ++q_it)
+    bool best_charge_and_fraction = algo_params_.getValue("best_charge_and_fraction") == "true";
+    for (auto const & q : quant) // loop over sequence->peptide data
     {
-      if (q_it->second.total_abundances.empty()) continue; // not quantified
+      if (q.second.total_abundances.empty()) { continue; } // not quantified
 
       StringList accessions;
-      for (set<String>::const_iterator acc_it =
-             q_it->second.accessions.begin(); acc_it !=
-           q_it->second.accessions.end(); ++acc_it)
+      for (String acc : q.second.accessions)
       {
-        String acc = *acc_it;
         accessions.push_back(acc.substitute('/', '_'));
       }
       String protein = ListUtils::concatenate(accessions, "/");
-      if (filter_charge)
+
+      if (best_charge_and_fraction)
       {
-        // write individual abundances (one line for each charge state):
-        for (map<Int, SampleAbundances>::const_iterator ab_it =
-               q_it->second.abundances.begin(); ab_it !=
-             q_it->second.abundances.end(); ++ab_it)
+        // write individual abundances (one line for each charge state and fraction):
+        for (auto const & fa : q.second.abundances)
         {
-          out << q_it->first.toString() << protein << accessions.size()
-              << ab_it->first;
-          for (ConsensusMap::FileDescriptions::iterator file_it =
-                 files_.begin(); file_it != files_.end(); ++file_it)
+          for (auto const & ab : fa.second)
           {
-            // write abundance for the sample if it exists, 0 otherwise:
-            SampleAbundances::const_iterator pos =
-              ab_it->second.find(file_it->first);
-            out << (pos != ab_it->second.end() ? pos->second : 0.0);
+            out << q.first.toString() << protein << accessions.size() << ab.first;
+
+            // TODO FRACTIONS: this is still mapping to the files_
+            for (auto const & file : files_)
+            {
+              // write abundance for the sample if it exists, 0 otherwise:
+              SampleAbundances::const_iterator pos =
+                ab.second.find(file.first);
+              out << (pos != ab.second.end() ? pos->second : 0.0);
+            }
+            out << fa.first << endl; // output fraction
           }
-          out << endl;
         }
       }
       else
       {
-        // write total abundances (accumulated over all charge states):
-        out << q_it->first.toString() << protein << accessions.size() << 0;
-        for (ConsensusMap::FileDescriptions::iterator file_it =
-               files_.begin(); file_it != files_.end(); ++file_it)
+        // write total abundances (accumulated over all charge states and fractions):
+        out << q.first.toString() << protein << accessions.size() << 0;
+
+        for (auto const & file : files_)
         {
+          // TODO FRACTIONS: this is still mapping to the files_, should map to samples imho
           // write abundance for the sample if it exists, 0 otherwise:
           SampleAbundances::const_iterator pos =
-            q_it->second.total_abundances.find(file_it->first);
-          out << (pos != q_it->second.total_abundances.end() ?
+            q.second.total_abundances.find(file.first);
+          out << (pos != q.second.total_abundances.end() ?
                   pos->second : 0.0);
         }
-        out << endl;
+        out << 0 << endl;
       }
     }
   }
@@ -640,7 +637,7 @@ protected:
         if (top != 0) relevant_params.push_back("include_all");
       }
     }
-    relevant_params.push_back("filter_charge"); // also for peptide output
+    relevant_params.push_back("best_charge_and_fraction"); // also for peptide output
     if (files_.size() > 1) // flags only for consensusXML input
     {
       relevant_params.push_back("consensus:normalize");
@@ -713,6 +710,117 @@ protected:
     LOG_INFO << endl;
   }
 
+  ExperimentalDesign getExperimentalDesignIds_(const String & design_file, const vector<ProteinIdentification> & proteins)
+  {
+    ExperimentalDesign ed;
+    if (!design_file.empty()) // load experimental design file
+    {
+      ExperimentalDesign().load(design_file, ed);
+      // TODO FRACTIONS: check if ed sane
+    }
+    else  // no design file provided
+    {
+      // path of the original MS files (mzML / raw file)
+      StringList ms_run_paths;
+      for (auto const & p : proteins)
+      {
+        StringList tmp_ms_run_paths;
+        p.getPrimaryMSRunPath(tmp_ms_run_paths);
+        if (tmp_ms_run_paths.size() != 1)
+        {
+          throw Exception::MissingInformation(
+           __FILE__, 
+           __LINE__, 
+           OPENMS_PRETTY_FUNCTION, 
+           "ProteinIdentification annotated with " + String(tmp_ms_run_paths.size()) + " MS files. Must be exactly one.");
+        }
+        ms_run_paths.push_back(tmp_ms_run_paths[0]);
+      }
+
+      // no fractionation -> as many runs as samples
+      // each identification run corresponds to one sample abundance
+      size_t sample(1);
+      for (auto const & f : ms_run_paths)
+      {
+        ExperimentalDesign::Row r;
+        r.path = f;
+        r.fraction = 1;
+        r.sample = sample;
+        r.run = sample;
+        r.assay = "label-free";  // spectral counting
+        ed.rows.push_back(r);
+        ++sample;
+      }
+    }
+    return ed;
+  }
+
+  ExperimentalDesign getExperimentalDesignFeatureMap_(const String & design_file, const FeatureMap & fm)
+  {
+    ExperimentalDesign ed;
+    if (!design_file.empty()) // experimental design file
+    {
+      ExperimentalDesign().load(design_file, ed);
+      // TODO FRACTIONS: check if ed sane
+    }
+    else  // no design given
+    {
+      // path of the original MS run (mzML / raw file)
+      StringList ms_paths;
+      fm.getPrimaryMSRunPath(ms_paths);
+    
+      if (ms_paths.size() != 1)
+      {
+          throw Exception::MissingInformation(
+           __FILE__, 
+           __LINE__, 
+           OPENMS_PRETTY_FUNCTION, 
+           "FeatureMap annotated with " + String(ms_paths.size()) + " MS files. Must be exactly one.");
+      }
+      
+      // Feature map is simple. One file, one fraction, one sample, one run
+      ExperimentalDesign::Row r;
+      r.path = ms_paths[0];
+      r.fraction = 1;
+      r.sample = 1;
+      r.run = 1;
+      r.assay = "label-free";
+      ed.rows.push_back(r);
+    }
+    return ed;
+  }
+
+  ExperimentalDesign getExperimentalDesignConsensusMap_(const String & design_file, const ConsensusMap & cm)
+  {
+    ExperimentalDesign ed;
+    if (!design_file.empty()) // load experimental design file
+    {
+      ExperimentalDesign().load(design_file, ed);
+      // TODO FRACTIONS: check if ed sane
+    }
+    else  // no design file provided
+    {
+      // path of the original MS run (mzML / raw file)
+      StringList ms_run_paths;
+      cm.getPrimaryMSRunPath(ms_run_paths);
+
+      // no fractionation -> as many runs as samples
+      // each consensus element corresponds to one sample abundance
+      size_t sample(1);
+      for (auto const & f : ms_run_paths)
+      {
+        ExperimentalDesign::Row r;
+        r.path = f;
+        r.fraction = 1;
+        r.sample = sample;
+        r.run = sample;
+        r.assay = "label-free";
+        ed.rows.push_back(r);
+        ++sample;
+      }
+    }
+    return ed;
+  }
 
   ExitCodes main_(int, const char**) override
   {
@@ -720,6 +828,7 @@ protected:
     String out = getStringOption_("out");
     String peptide_out = getStringOption_("peptide_out");
     String mztab = getStringOption_("mztab");
+    String design_file = getStringOption_("design");
 
     if (out.empty() && peptide_out.empty())
     {
@@ -736,10 +845,18 @@ protected:
       if (proteins.empty() || 
           proteins[0].getIndistinguishableProteins().empty())
       {
-        throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No information on indistinguishable protein groups found in file '" + protein_groups + "'");
+        throw Exception::MissingInformation(
+         __FILE__, 
+         __LINE__, 
+         OPENMS_PRETTY_FUNCTION, 
+         "No information on indistinguishable protein groups found in file '" + protein_groups + "'");
       }
       proteins_ = proteins[0]; // inference data is attached to first ID run
     }
+
+    FileTypes::Type in_type = FileHandler::getType(in);
+
+    ExperimentalDesign ed; 
 
     PeptideAndProteinQuant quantifier;
     algo_params_ = quantifier.getParameters();
@@ -748,13 +865,14 @@ protected:
     // algo_params_.update(getParam_());
     quantifier.setParameters(algo_params_);
 
-    FileTypes::Type in_type = FileHandler::getType(in);
-
     if (in_type == FileTypes::FEATUREXML)
     {
       FeatureMap features;
       FeatureXMLFile().load(in, features);
       files_[0].filename = in;
+
+      ed = getExperimentalDesignFeatureMap_(design_file, features);
+
       // protein inference results in the featureXML?
       if (protein_groups.empty() &&
           (features.getProteinIdentifications().size() == 1) &&
@@ -762,7 +880,7 @@ protected:
       {
         proteins_ = features.getProteinIdentifications()[0];
       }
-      quantifier.readQuantData(features);
+      quantifier.readQuantData(features, ed);
       quantifier.quantifyPeptides(peptides_); // quantify on peptide level
       quantifier.quantifyProteins(proteins_);
     }
@@ -776,13 +894,16 @@ protected:
       {
         files_[i].filename = proteins[i].getIdentifier();
       }
+
+      ed = getExperimentalDesignIds_(design_file, proteins);
+
       // protein inference results in the idXML?
       if (protein_groups.empty() && (proteins.size() == 1) && 
           (!proteins[0].getHits().empty()))
       {
         proteins_ = proteins[0];
       }
-      quantifier.readQuantData(proteins, peptides);
+      quantifier.readQuantData(proteins, peptides, ed);
       quantifier.quantifyPeptides(peptides_); // quantify on peptide level
       quantifier.quantifyProteins(proteins_);
     }
@@ -792,9 +913,7 @@ protected:
       ConsensusXMLFile().load(in, consensus);
       files_ = consensus.getFileDescriptions();
 
-      // path of the original MS run (mzML / raw file)
-      StringList ms_run_paths;
-      consensus.getPrimaryMSRunPath(ms_run_paths);
+      ed = getExperimentalDesignConsensusMap_(design_file, consensus);
 
       // protein inference results in the consensusXML?
       if (protein_groups.empty() &&
@@ -803,13 +922,15 @@ protected:
       {
         proteins_ = consensus.getProteinIdentifications()[0];
       }
-      quantifier.readQuantData(consensus);
+
+      quantifier.readQuantData(consensus, ed);
       quantifier.quantifyPeptides(peptides_); // quantify on peptide level
       quantifier.quantifyProteins(proteins_);
 
       // write mzTab file
       if (!mztab.empty())
       {
+
         // annotate quants to protein(groups) for easier export in mzTab
         auto const & protein_quants = quantifier.getProteinResults();
         annotateQuantificationsToProteins(protein_quants, proteins_);

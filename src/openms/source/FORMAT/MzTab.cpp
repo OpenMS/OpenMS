@@ -1475,11 +1475,14 @@ namespace OpenMS
     }
   }
 
-  void MzTab::addMetaInfoToOptionalColumns(const set<String>& keys, vector<MzTabOptionalColumnEntry>& opt, const String id, const MetaInfoInterface meta)
+  void MzTab::addMetaInfoToOptionalColumns(
+    const set<String>& keys, 
+    vector<MzTabOptionalColumnEntry>& opt, 
+    const String id, 
+    const MetaInfoInterface meta)
   {
-    for (set<String>::const_iterator sit = keys.begin(); sit != keys.end(); ++sit)
+    for (String const & key : keys)
     {
-      const String& key = *sit;
       MzTabOptionalColumnEntry opt_entry;
       opt_entry.first = String("opt_") + id + String("_") + String(key).substitute(' ','_');
       if (meta.metaValueExists(key))
@@ -1493,15 +1496,15 @@ namespace OpenMS
   map<Size, MzTabModificationMetaData> MzTab::generateMzTabStringFromModifications(const vector<String>& mods)
   {
     map<Size, MzTabModificationMetaData> mods_mztab;
-    for (vector<String>::const_iterator sit = mods.begin(); sit != mods.end(); ++sit)
+    Size index(1);
+    for (String const & s : mods)
     {
-      Size index = (sit - mods.begin()) + 1;
       MzTabModificationMetaData mod;
       MzTabParameter mp;
       mp.setCVLabel("UNIMOD");
       ModificationsDB* mod_db = ModificationsDB::getInstance();
       // MzTab standard is to just report Unimod accession.
-      ResidueModification m = mod_db->getModification(*sit);
+      ResidueModification m = mod_db->getModification(s);
       String unimod_accession = m.getUniModAccession();
       mp.setAccession(unimod_accession.toUpper());
       mp.setName(m.getId());
@@ -1530,6 +1533,7 @@ namespace OpenMS
 
       mod.site = MzTabString(m.getOrigin());
       mods_mztab[index] = mod;
+      ++index;
     }
     return mods_mztab;
   }
@@ -1616,15 +1620,30 @@ namespace OpenMS
       const Feature& f = feature_map[i];
       vector<String> keys;
       f.getKeys(keys); //TODO: why not just return it?
+      for (String & s : keys) 
+      { 
+        if (s.has(' '))
+         {
+           s.substitute(' ', '_');
+         }
+      }
+
       feature_user_value_keys.insert(keys.begin(), keys.end());
 
       const vector<PeptideIdentification>& pep_ids = f.getPeptideIdentifications();
-      for (vector<PeptideIdentification>::const_iterator it = pep_ids.begin(); it != pep_ids.end(); ++it)
+      for (PeptideIdentification const & pep_id : pep_ids)
       {
-        for (vector<PeptideHit>::const_iterator hit = it->getHits().begin(); hit != it->getHits().end(); ++hit)
+        for (PeptideHit const & hit : pep_id.getHits())
         {
           vector<String> ph_keys;
-          hit->getKeys(ph_keys);
+          hit.getKeys(ph_keys);
+          for (String & s : ph_keys) 
+          { 
+            if (s.has(' '))
+            {
+              s.substitute(' ', '_');
+            }
+          } 
           peptide_hit_user_value_keys.insert(ph_keys.begin(), ph_keys.end());
         }
       }
@@ -1740,8 +1759,9 @@ namespace OpenMS
     vector<String> var_mods, fixed_mods;
     MzTabString db, db_version;
 
-    map<size_t, String> search_engine;
-    map<size_t, String> search_engine_version;
+    // search engine and version -> MS runs index
+    map<pair<String, String>, set<Size>> search_engine_to_runs;
+    map<Size, vector<pair<String, String>>> run_to_search_engines;
 
     // helper to map between peptide identifications and MS run
     map<size_t, size_t> map_pep_idx_2_run;
@@ -1768,7 +1788,7 @@ namespace OpenMS
       bool has_inference_data = prot_ids[0].getSearchEngine() == "Fido" ? true : false; 
 
       MzTabParameter protein_score_type;
-      protein_score_type.fromCellString("[,," + prot_ids[0].getSearchEngine() + ",]"); // TODO: check if we need one for every run
+      protein_score_type.fromCellString("[,," + prot_ids[0].getSearchEngine() + ",]"); // TODO: check if we need one for every run (should not be redundant!)
       meta_data.protein_search_engine_score[1] = protein_score_type; // TODO add meta value to ProteinIdentification
 
       // collect variable and fixed modifications from different runs
@@ -1826,14 +1846,22 @@ namespace OpenMS
           if (has_inference_data && it == prot_ids.begin()) { continue; }
 
           size_t hit_index = std::distance(prot_ids.begin(), it);
-          search_engine[run_index] = prot_ids[hit_index].getSearchEngine();
-          search_engine_version[run_index] = prot_ids[hit_index].getSearchEngineVersion();
-          MzTabParameter psm_score_type;
-          psm_score_type.fromCellString("[,," + search_engine[1] + "," + search_engine_version[1] + "]");
-          meta_data.psm_search_engine_score[run_index] = psm_score_type;
-          meta_data.peptide_search_engine_score[run_index] = psm_score_type; // same score type for peptides
+          const String & search_engine_name = prot_ids[hit_index].getSearchEngine();
+          const String & search_engine_version = prot_ids[hit_index].getSearchEngineVersion();
+          search_engine_to_runs[make_pair(search_engine_name, search_engine_version)].insert(run_index);
+          run_to_search_engines[run_index].push_back(make_pair(search_engine_name, search_engine_version));
           ++run_index;
         }
+      }
+
+      Size psm_search_engine_index(1);
+      for (auto const & se : search_engine_to_runs) // loop over (unique) search engine names
+      {
+        MzTabParameter psm_score_type;
+        const pair<String, String>& name_version = se.first;
+        psm_score_type.fromCellString("[,," + name_version.first + "," + name_version.second + "]");
+        meta_data.psm_search_engine_score[psm_search_engine_index] = psm_score_type;
+        meta_data.peptide_search_engine_score[psm_search_engine_index] = psm_score_type; // same score type for peptides
       }
 
       // TODO: sp.digestion_enzyme
@@ -1871,6 +1899,17 @@ namespace OpenMS
         // these are used to build optional columns containing the meta values in internal data structures
         set<String> protein_hit_user_value_keys = 
           MetaInfoInterfaceUtils::findCommonMetaKeys<vector<ProteinHit>, set<String> >(protein_hits.begin(), protein_hits.end(), 100.0);
+
+        // column headers may not contain spaces
+        for (String s : protein_hit_user_value_keys) 
+        { 
+          if (s.has(' '))
+          {
+            protein_hit_user_value_keys.erase(s);
+            s.substitute(' ', '_');
+            protein_hit_user_value_keys.insert(s);
+          }
+        } 
 
         // we do not want descriptions twice
         protein_hit_user_value_keys.erase("Description");
@@ -2055,9 +2094,15 @@ namespace OpenMS
       row.database = db;
       row.database_version = db_version;
       MzTabParameterList search_engines;
-      search_engines.fromCellString("[,," + search_engine[run_index] + "," + search_engine_version[run_index] + "]");
-      row.search_engine = search_engines;
 
+      if (run_to_search_engines[run_index].size() != 1)
+      {
+        throw ; // multiple search engines not supported
+      }
+
+      pair<String, String> name_version = *run_to_search_engines[run_index].begin();
+      search_engines.fromCellString("[,," + name_version.first + "," + name_version.second + "]");
+      row.search_engine = search_engines;
 
       row.search_engine_score[1] = MzTabDouble(best_ph.getScore());
 
@@ -2081,6 +2126,14 @@ namespace OpenMS
       // TODO: percentage procedure with MetaInfoInterfaceUtils
       vector<String> ph_keys;
       best_ph.getKeys(ph_keys);
+      for (String & s : ph_keys)      
+      { 
+        if (s.has(' '))
+        {
+          s.substitute(' ', '_');
+        }
+      } 
+
       // TODO: no conversion but make function on collections
       set<String> ph_key_set(ph_keys.begin(), ph_keys.end());
       addMetaInfoToOptionalColumns(ph_key_set, row.opt_, String("global"), best_ph);
@@ -2268,6 +2321,14 @@ namespace OpenMS
     {
       vector<String> keys;
       c.getKeys(keys);
+      for (String & s : keys) 
+      { 
+        if (s.has(' '))
+        {
+          s.substitute(' ', '_');
+        }
+      } 
+      
       consensus_feature_user_value_keys.insert(keys.begin(), keys.end());
 
       const vector<PeptideIdentification> & pep_ids = c.getPeptideIdentifications();
@@ -2277,6 +2338,13 @@ namespace OpenMS
         {
           vector<String> ph_keys;
           hit.getKeys(ph_keys);
+          for (String & s : ph_keys) 
+          { 
+            if (s.has(' '))
+            {
+              s.substitute(' ', '_');
+            }
+          }
           peptide_hit_user_value_keys.insert(ph_keys.begin(), ph_keys.end());
         }
       }
@@ -2398,6 +2466,14 @@ namespace OpenMS
         // fill opt_ column of psm
         vector<String> ph_keys;
         best_ph.getKeys(ph_keys);
+        for (String & s : ph_keys) 
+        { 
+          if (s.has(' '))
+          {
+            s.substitute(' ', '_');
+          }
+        }
+
         for (Size k = 0; k != ph_keys.size(); ++k)
         {
           const String& key = ph_keys[k];

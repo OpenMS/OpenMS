@@ -41,6 +41,7 @@
 #include <string>
 #include <map>
 #include <set>
+#include <algorithm>
 
 namespace OpenMS
 {
@@ -55,49 +56,94 @@ namespace OpenMS
   public:
     /// 1) Mandatory section with run-level information of the experimental design.
     ///    Required to process fractionated data and technical replicates.
-    ///
-    /// Run	Spectra File	Fraction	Technical Replicate   
-    ///   1	humanA.mzML	      1	              1          
-    ///   2	humanB.mzML	      1	              1          
-    ///   3	humanC.mzML	      2	              1              
-    ///   4	humanD.mzML	      2	              1
-    ///   5	humanE.mzML	      3	              1
-    ///   6	humanF.mzML	      3	              1          
-    ///   7	humanG.mzML	      3	              2       (<- example how a 2nd technical replicate is stored for fraction 3)
-    /// TODO: add possibility to provide optional columns that map to additional run-level specific meta data (see, for example, the mzTab specification)
-    class OPENMS_DLLAPI MSRun
+/*
+Run	Fraction	Path (Spectra File)	Assay (Quantification Channel)	Sample (Condition)
+1	1	SPECTRAFILE_F1_TR1.mzML	iTRAQ reagent 114	1
+1	2	SPECTRAFILE_F2_TR1.mzML	iTRAQ reagent 114	1
+1	3	SPECTRAFILE_F3_TR1.mzML	iTRAQ reagent 114	1
+1	1	SPECTRAFILE_F1_TR1.mzML	iTRAQ reagent 115	2
+1	2	SPECTRAFILE_F2_TR1.mzML	iTRAQ reagent 115	2
+1	3	SPECTRAFILE_F3_TR1.mzML	iTRAQ reagent 115	2
+1	1	SPECTRAFILE_F1_TR1.mzML	iTRAQ reagent 116	3
+1	2	SPECTRAFILE_F2_TR1.mzML	iTRAQ reagent 116	3
+1	3	SPECTRAFILE_F3_TR1.mzML	iTRAQ reagent 116	3
+1	1	SPECTRAFILE_F1_TR1.mzML	iTRAQ reagent 117	4
+1	2	SPECTRAFILE_F2_TR1.mzML	iTRAQ reagent 117	4
+1	3	SPECTRAFILE_F3_TR1.mzML	iTRAQ reagent 117	4
+2	1	SPECTRAFILE_F1_TR2.mzML	iTRAQ reagent 114	5
+2	2	SPECTRAFILE_F2_TR2.mzML	iTRAQ reagent 114	5
+2	3	SPECTRAFILE_F3_TR2.mzML	iTRAQ reagent 114	5
+2	1	SPECTRAFILE_F1_TR2.mzML	iTRAQ reagent 115	6
+2	2	SPECTRAFILE_F2_TR2.mzML	iTRAQ reagent 115	6
+2	3	SPECTRAFILE_F3_TR2.mzML	iTRAQ reagent 115	6
+2	1	SPECTRAFILE_F1_TR2.mzML	iTRAQ reagent 116	7
+2	2	SPECTRAFILE_F2_TR2.mzML	iTRAQ reagent 116	7
+2	3	SPECTRAFILE_F3_TR2.mzML	iTRAQ reagent 116	7
+2	1	SPECTRAFILE_F1_TR2.mzML	iTRAQ reagent 117	8
+2	2	SPECTRAFILE_F2_TR2.mzML	iTRAQ reagent 117	8
+2	3	SPECTRAFILE_F3_TR2.mzML	iTRAQ reagent 117	8
+*/
+    class OPENMS_DLLAPI Row
     {
     public:
-      MSRun():
-        file("NA"), 
-        fraction(1), 
-        technical_replicate(1) 
-      {
-      }
-      std::string file; ///< file name, mandatory
-      unsigned fraction; ///< fraction 1..m, mandatory, 1 if not set
-      unsigned technical_replicate; ///< technical replicate 1..k of a fraction, 1 if not set
+      Row() = default;
+      unsigned run = 1; ///< run index (before prefractionation)
+      unsigned fraction = 1; ///< fraction 1..m, mandatory, 1 if not set
+      std::string path = "NA"; ///< file name, mandatory
+      std::string assay = "label-free";  ///< needed to determine if and how many multiplexed channels are in a file
+      unsigned sample = 1;  ///< allows grouping by sample
     };
-    std::vector<MSRun> runs;  ///< run 1..n (index + 1 determines run id of the first column)
 
-    /// return fraction index to MSRuns (e.g., Fraction 1 maps to MSRun 1 and 2 in the example above)
-    std::map<unsigned int, std::set<unsigned int> > getFractionToRunsMapping() const;
+    // the rows of the experimental design
+    std::vector<Row> rows;
+
+    /// return fraction index to file paths
+    std::map<unsigned int, std::set<String> > getFractionToMSFilesMapping() const;
+
+    // @return the number of samples measured (= highest sample index)
+    unsigned getNumberOfSamples() const 
+    {
+      return std::max_element(rows.begin(), rows.end(), 
+        [](const Row& f1, const Row& f2) 
+        {
+          return f1.sample < f2.sample;
+        })->sample;
+    }
+
+    // @return the number of fractions (= highest fraction index)
+    unsigned getNumberOfFractions() const 
+    {
+      return std::max_element(rows.begin(), rows.end(), 
+        [](const Row& f1, const Row& f2) 
+        {
+          return f1.fraction < f2.fraction;
+        })->fraction;
+    }
+
+    // @return the number of MS files (= fractions * runs)
+    unsigned getNumberOfMSFiles() const
+    {
+      std::set<std::string> unique_paths;
+      for (auto const & r : rows) { unique_paths.insert(r.path); }
+      return unique_paths.size();
+    }
+
+    // @return the number of runs (before fractionation)
+    unsigned getNumberOfRuns() const
+    {
+      // TODO: assert fractions * runs == max_element ...
+      return std::max_element(rows.begin(), rows.end(), 
+        [](const Row& f1, const Row& f2) 
+        {
+          return f1.fraction < f2.fraction;
+        })->run;
+    }
 
     /// return if each fraction number is associated with the same number of runs 
-    bool sameNrOfRunsPerFraction() const;
-
-    /// TODO:
-    /// 2) Optional section with assay-level information of the experimental design.
-    ///    Required to perform statistical down-stream processing.
-    ///
-    /// Assay	Spectra File	Assay Quantification	Numeric Factor "concentration [mmol/l]"
-    ///  1	  humanA.mzML	    iTRAQ reagent 114	                 0.434
-    ///  2   	humanA.mzML	    iTRAQ reagent 115	               223.34
-    ///  3  	humanA.mzML	    iTRAQ reagent 116	               984.52
+    bool sameNrOfMSFilesPerFraction() const;
 
     /// Loads an experimental design from a tabular separated file
     void load(const String & tsv_file, ExperimentalDesign & design) const;
-
   };
 }
 

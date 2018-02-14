@@ -49,21 +49,19 @@ namespace OpenMS
 {
   void ExperimentalDesign::load(const String & tsv_file, ExperimentalDesign & design) const
   {
-    design.runs.clear();
+    design.rows.clear();
 
     TextFile tf(tsv_file, true);
 
-    int line_number = 0;
-
-    for (TextFile::ConstIterator sit = tf.begin(); sit != tf.end(); ++sit)
+    int line_number(0);
+    for (String s : tf)
     {
-      String s = *sit;
-
+      ++line_number;      
       // skip empty lines
-      if (s.trim().empty()) continue;
+      if (s.trim().empty()) { continue; }
 
       // run-level header
-      if (line_number == 0)
+      if (line_number == 1)
       {
         if (!s.hasPrefix("Run"))
         {
@@ -79,7 +77,6 @@ namespace OpenMS
             throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, tsv_file,
               "Error: Wrong number of columns (" + String(cells.size()) + ") in the experimental design header provided: " + String(s) + ".");
           }
-          ++line_number;
           continue;
         }
       }
@@ -94,13 +91,15 @@ namespace OpenMS
           "Error: Not all columns of experimental design provided: " + String(s) + ".");
       }
 
-      MSRun r;
-      int run_number = cells[0].toInt();
+      Row row;
 
-      // read spectra file name
-      String spec_file = cells[1];
+      row.run = cells[0].toInt();
+      row.fraction = cells[1].toInt();
+      row.assay = cells[3];
+      row.sample = cells[4].toInt();
+
+      String spec_file = cells[2];
       QFileInfo spectra_file_info(spec_file.toQString());
-
       if (spectra_file_info.isRelative())
       {
         // file name is relative so we need to figure out the correct folder
@@ -114,7 +113,7 @@ namespace OpenMS
 
         if (File::exists(design_file_relative))
         {
-          r.file = design_file_relative.toStdString();
+          row.path = design_file_relative.toStdString();
         }
         else
         {
@@ -122,69 +121,57 @@ namespace OpenMS
           String f = File::absolutePath(spec_file);
           if (File::exists(f))
           {
-            r.file = f;
+            row.path = f;
           }
         }
       }     
       else
       {
         // set to absolute path
-        r.file = spec_file;
+        row.path = spec_file;
       }
 
-      if (!File::exists(r.file))
+      if (!File::exists(row.path))
       {
         throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, tsv_file,
-          "Error: Spectra file does not exist: '" + String(r.file) + "'");
+          "Error: Spectra file does not exist: '" + String(row.path) + "'");
       }
 
-      r.fraction = static_cast<unsigned>(cells[2].toInt());
-      r.technical_replicate = static_cast<unsigned>(cells[3].toInt());
-      
-      design.runs.push_back(r);
+      design.rows.push_back(row);
 
-      // validation: check if run number matches the line number in the design file
-      if (line_number != run_number)
-      {
-        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, tsv_file,
-          "Error: Run index (" + String(run_number) + ") does not match row index (" + String(line_number) + ") in line: " + String(s) + ".");
-      }
-
-      ++line_number;
     }
   }
 
-  map<unsigned, set<unsigned> > ExperimentalDesign::getFractionToRunsMapping() const
+  map<unsigned, set<String> > ExperimentalDesign::getFractionToMSFilesMapping() const
   {
-    map<unsigned, set<unsigned> > ret;
+    map<unsigned, set<String> > ret;
 
-    for (Size i = 0; i != runs.size(); ++i)
+    for (Row const & r : rows)
     {
-      ret[runs[i].fraction].insert(i + 1);
+      ret[r.fraction].insert(r.path);
     }
 
     return ret;
   }
 
-  bool ExperimentalDesign::sameNrOfRunsPerFraction() const
+  bool ExperimentalDesign::sameNrOfMSFilesPerFraction() const
   {
-    map<unsigned, set<unsigned> > frac2run = getFractionToRunsMapping();
-    if (frac2run.size() > 1)
+    map<unsigned, set<String>> frac2files = getFractionToMSFilesMapping();
+    if (frac2files.size() <= 1) { return true; }
+ 
+    Size files_per_fraction(0);
+    for (auto const & f : frac2files)
     {
-      Size runs_per_fraction(0);
-      for (map<unsigned, set<unsigned> >::const_iterator mit = frac2run.begin(); mit != frac2run.end(); ++mit)
+      if (files_per_fraction == 0) // first fraction, initialize
       {
-        if (mit == frac2run.begin()) // fraction 1
+        files_per_fraction = f.second.size();
+      }
+      else // fraction >= 2
+      {
+        // different number of associated MS files?
+        if (f.second.size() != files_per_fraction)
         {
-          // initialize runs per fraction with the number of runs in the first fraction
-          runs_per_fraction = mit->second.size();
-        }
-        else // fraction >= 2
-        {
-          if (mit->second.size() != runs_per_fraction)
-          {
-            return false;
-          }
+          return false;
         }
       }
     }

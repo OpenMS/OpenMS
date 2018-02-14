@@ -38,6 +38,8 @@
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/PeptideAndProteinQuant.h>
+#include <OpenMS/METADATA/ExperimentalDesign.h>
+
 
 using namespace OpenMS;
 using namespace std;
@@ -68,35 +70,39 @@ quantifier_features.setParameters(params);
 quantifier_consensus.setParameters(params);
 quantifier_identifications.setParameters(params);
 
-START_SECTION((void readQuantData(FeatureMap& features)))
+
+START_SECTION((void readQuantData(FeatureMap& features, ExperimentalDesign& ed)))
 {
+  ExperimentalDesign design;
   FeatureMap features;
   FeatureXMLFile().load(OPENMS_GET_TEST_DATA_PATH("ProteinQuantifier_input.featureXML"), features);
   TEST_EQUAL(quantifier_features.getPeptideResults().empty(), true);
-  quantifier_features.readQuantData(features);
+  quantifier_features.readQuantData(features, design);
   quantifier_features.quantifyPeptides();
   TEST_EQUAL(quantifier_features.getPeptideResults().empty(), false);
 }
 END_SECTION
 
-START_SECTION((void readQuantData(ConsensusMap& consensus)))
+START_SECTION((void readQuantData(ConsensusMap& consensus, ExperimentalDesign& ed)))
 {
+  ExperimentalDesign design;
   ConsensusMap consensus;
   ConsensusXMLFile().load(OPENMS_GET_TEST_DATA_PATH("ProteinQuantifier_input.consensusXML"), consensus);
   TEST_EQUAL(quantifier_consensus.getPeptideResults().empty(), true);
-  quantifier_consensus.readQuantData(consensus);
+  quantifier_consensus.readQuantData(consensus, design);
   quantifier_consensus.quantifyPeptides();
   TEST_EQUAL(quantifier_consensus.getPeptideResults().empty(), false);
 }
 END_SECTION
 
-START_SECTION((void readQuantData(vector<ProteinIdentification>& proteins, vector<PeptideIdentification>& peptides)))
+START_SECTION((void readQuantData(vector<ProteinIdentification>& proteins, vector<PeptideIdentification>& peptides, ExperimentalDesign& ed)))
 {
+  ExperimentalDesign design;
   vector<ProteinIdentification> proteins;
   vector<PeptideIdentification> peptides;
   IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("ProteinQuantifier_input.idXML"), proteins, peptides);
   TEST_EQUAL(quantifier_identifications.getPeptideResults().empty(), true);
-  quantifier_identifications.readQuantData(proteins, peptides);
+  quantifier_identifications.readQuantData(proteins, peptides, design);
   quantifier_identifications.quantifyPeptides();
   TEST_EQUAL(quantifier_identifications.getPeptideResults().empty(), false);
 }
@@ -295,6 +301,8 @@ END_SECTION
 // testing various averaging strategies
 START_SECTION((const ProteinQuant& getProteinResults()))
 {
+  ExperimentalDesign ed;
+
   FeatureMap f;
   FeatureXMLFile().load(OPENMS_GET_TEST_DATA_PATH("ProteinQuantifier_input.featureXML"), f);
   
@@ -306,7 +314,7 @@ START_SECTION((const ProteinQuant& getProteinResults()))
   
   parameters.setValue("average", "median");
   quantifier.setParameters(parameters);
-  quantifier.readQuantData(f);
+  quantifier.readQuantData(f, ed);
   quantifier.quantifyPeptides();
   quantifier.quantifyProteins();
   quant = quantifier.getProteinResults();
@@ -315,7 +323,7 @@ START_SECTION((const ProteinQuant& getProteinResults()))
 
   parameters.setValue("average", "mean");
   quantifier.setParameters(parameters);
-  quantifier.readQuantData(f);
+  quantifier.readQuantData(f, ed);
   quantifier.quantifyPeptides();
   quantifier.quantifyProteins();
   quant = quantifier.getProteinResults();
@@ -324,7 +332,7 @@ START_SECTION((const ProteinQuant& getProteinResults()))
 
   parameters.setValue("average", "weighted_mean");
   quantifier.setParameters(parameters);
-  quantifier.readQuantData(f);
+  quantifier.readQuantData(f, ed);
   quantifier.quantifyPeptides();
   quantifier.quantifyProteins();
   quant = quantifier.getProteinResults();
@@ -333,13 +341,12 @@ START_SECTION((const ProteinQuant& getProteinResults()))
 
   parameters.setValue("average", "sum");
   quantifier.setParameters(parameters);
-  quantifier.readQuantData(f);
+  quantifier.readQuantData(f, ed);
   quantifier.quantifyPeptides();
   quantifier.quantifyProteins();
   quant = quantifier.getProteinResults();
   protein = quant["Protein0"];
   TEST_REAL_SIMILAR(protein.total_abundances[0], 15821);
-
 }
 END_SECTION
 

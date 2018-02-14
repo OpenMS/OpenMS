@@ -144,6 +144,7 @@ protected:
       return ILLEGAL_PARAMETERS;
     }
   
+    ExperimentalDesign ed;
   
     if (file_type == FileTypes::FEATUREXML)
     {
@@ -151,20 +152,19 @@ protected:
       // Extract (optional) fraction identifiers and associate with featureXMLs
       //-------------------------------------------------------------
 
-      // determine map of fractions to runs
-      map<unsigned, set<unsigned> > frac2run;
+      // determine map of fractions to MS files
+      map<unsigned, set<String>> frac2files;
 
       if (!design_file.empty())
       {
         // parse design file and determine fractions
-        ExperimentalDesign ed;
         ExperimentalDesign().load(design_file, ed);
 
         // determine if design defines more than one fraction
-        frac2run = ed.getFractionToRunsMapping();
+        frac2files = ed.getFractionToMSFilesMapping();
 
         // check if all fractions have the same number of MS runs associated
-        if (!ed.sameNrOfRunsPerFraction())
+        if (!ed.sameNrOfMSFilesPerFraction())
         {
           writeLog_("Error: Number of runs must match for every fraction!");
           return ILLEGAL_PARAMETERS;
@@ -174,7 +174,7 @@ protected:
       {
         for (Size i = 0; i != ins.size(); ++i)
         {
-          frac2run[1].insert(i + 1); // associate each run with fraction 1
+          frac2files[1].insert(String("file") + String(i)); // associate each run with fraction 1
         }
       }
 
@@ -230,20 +230,25 @@ protected:
       ////////////////////////////////////////////////////
       // invoke feature grouping algorithm
       
-      if (frac2run.size() == 1) // group one fraction
+      if (frac2files.size() == 1) // group one fraction
       {
         algorithm->group(maps, out_map);
       }
       else // group multiple fractions
       {
-        writeDebug_(String("Grouping ") + String(frac2run.size()) + " fractions.", 3);
+        writeDebug_(String("Grouping ") + String(ed.getNumberOfFractions()) + " fractions.", 3);
         writeDebug_(String("Stored in ") + String(maps.size()) + " maps.", 3);
-        for (Size i = 1; i <= frac2run.size(); ++i)
+        for (Size i = 1; i <= frac2files.size(); ++i)
         {
           vector<ConsensusMap> fraction_maps;
-          for (set<unsigned>::const_iterator sit = frac2run[i].begin(); sit != frac2run[i].end(); ++sit)
+
+          // TODO FRACTIONS: here we assume that the order of featureXML is from fraction 1..n
+          // we should check if these are shuffled and error / warn
+          size_t feature_map_index = 0;
+          for (String const & f : frac2files[i])
           {
-            fraction_maps.push_back(maps[*sit - 1]); // TODO: *sit is currently the run identifier but we need to know the corresponding feature index in ins
+            fraction_maps.push_back(maps[feature_map_index]);
+            ++feature_map_index;
           }
           algorithm->group(fraction_maps, out_map);
         }
