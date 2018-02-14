@@ -32,8 +32,8 @@
 // $Authors: Hannes Roest $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FORMAT_INDEXEDMZMLFILE_H
-#define OPENMS_FORMAT_INDEXEDMZMLFILE_H
+#ifndef OPENMS_FORMAT_INDEXEDMZMLHANDLER_H
+#define OPENMS_FORMAT_INDEXEDMZMLHANDLER_H
 
 #include <OpenMS/config.h>
 #include <OpenMS/CONCEPT/Types.h>
@@ -45,6 +45,9 @@
 #include <fstream>
 
 namespace OpenMS
+{
+
+namespace Internal
 {
 
   /**
@@ -172,6 +175,6 @@ namespace OpenMS
 
   };
 }
+}
 
-#endif // OPENMS_FORMAT_INDEXEDMZMLFILE_H
-
+#endif // OPENMS_FORMAT_INDEXEDMZMLHANDLER_H

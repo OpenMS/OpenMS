@@ -41,7 +41,7 @@
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/KERNEL/MSChromatogram.h>
 #include <OpenMS/METADATA/ExperimentalSettings.h>
-#include <OpenMS/FORMAT/IndexedMzMLFile.h>
+#include <OpenMS/FORMAT/HANDLERS/IndexedMzMLHandler.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 
 #include <vector>
@@ -270,7 +270,7 @@ protected:
     /// The filename of the underlying data file
     String filename_;
     /// The index of the underlying data file
-    IndexedMzMLFile indexed_mzml_file_;
+    Internal::IndexedMzMLFile indexed_mzml_file_;
     /// The meta-data
     boost::shared_ptr<PeakMap> meta_ms_experiment_;
   };

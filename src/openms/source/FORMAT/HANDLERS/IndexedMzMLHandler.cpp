@@ -32,7 +32,7 @@
 // $Authors: Hannes Roest $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/FORMAT/IndexedMzMLFile.h>
+#include <OpenMS/FORMAT/HANDLERS/IndexedMzMLHandler.h>
 
 #include <OpenMS/FORMAT/HANDLERS/IndexedMzMLDecoder.h>
 #include <OpenMS/FORMAT/HANDLERS/MzMLSpectrumDecoder.h>
@@ -40,6 +40,8 @@
 // #define DEBUG_READER
 
 namespace OpenMS
+{
+namespace Internal
 {
 
   void IndexedMzMLFile::parseFooter_(String filename)
@@ -249,4 +251,5 @@ namespace OpenMS
     return sptr;
   }
 
+}
 }
