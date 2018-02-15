@@ -590,7 +590,9 @@ protected:
           if (temp_hits[0].getSequence().isModified())
           {
             ++modified_peptide_count;
-            AASequence aa = temp_hits[0].getSequence();
+            const AASequence& aa = temp_hits[0].getSequence();
+            if (aa.hasCTerminalModification()) ++mod_counts[aa.getCTerminalModificationName()];
+            if (aa.hasNTerminalModification()) ++mod_counts[aa.getNTerminalModificationName()];
             for (Size ia = 0; ia < aa.size(); ++ia)
             {
               if (aa[ia].isModified())
