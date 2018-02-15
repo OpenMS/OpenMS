@@ -52,6 +52,12 @@ PeakIntegrator* null_ptr = 0;
 
 const double left = 2.472833334;
 const double right = 3.022891666;
+const double left_past_5 = 2.64065;
+const double left_past_10 = 2.65125;
+const double left_past_50 = 2.672716667;
+const double right_past_5 = 2.779016667;
+const double right_past_10 = 2.768416667;
+const double right_past_50 = 2.725683333;
 
 // Toy chromatogram
 // data is taken from raw LC-MS/MS data points acquired for L-Glutamate in RBCs
@@ -96,6 +102,20 @@ MSChromatogram::ConstIterator chrom_left_it = chromatogram.RTBegin(left);
 MSChromatogram::ConstIterator chrom_right_it = chromatogram.RTEnd(right) - 1;
 MSSpectrum::ConstIterator spec_left_it = spectrum.MZBegin(left);
 MSSpectrum::ConstIterator spec_right_it = spectrum.MZEnd(right) - 1;
+
+MSChromatogram::ConstIterator chrom_left_past_5_it = chromatogram.RTBegin(left_past_5);
+MSChromatogram::ConstIterator chrom_right_past_5_it = chromatogram.RTEnd(right_past_5) - 1;
+MSChromatogram::ConstIterator chrom_left_past_10_it = chromatogram.RTBegin(left_past_10);
+MSChromatogram::ConstIterator chrom_right_past_10_it = chromatogram.RTEnd(right_past_10) - 1;
+MSChromatogram::ConstIterator chrom_left_past_50_it = chromatogram.RTBegin(left_past_50);
+MSChromatogram::ConstIterator chrom_right_past_50_it = chromatogram.RTEnd(right_past_50) - 1;
+
+MSSpectrum::ConstIterator spec_left_past_5_it = spectrum.MZBegin(left_past_5);
+MSSpectrum::ConstIterator spec_right_past_5_it = spectrum.MZEnd(right_past_5) - 1;
+MSSpectrum::ConstIterator spec_left_past_10_it = spectrum.MZBegin(left_past_10);
+MSSpectrum::ConstIterator spec_right_past_10_it = spectrum.MZEnd(right_past_10) - 1;
+MSSpectrum::ConstIterator spec_left_past_50_it = spectrum.MZBegin(left_past_50);
+MSSpectrum::ConstIterator spec_right_past_50_it = spectrum.MZEnd(right_past_50) - 1;
 
 constexpr const char* INTEGRATION_TYPE_INTENSITYSUM = "intensity_sum";
 constexpr const char* INTEGRATION_TYPE_TRAPEZOID = "trapezoid";
@@ -577,6 +597,24 @@ START_SECTION(PeakShapeMetrics calculatePeakShapeMetrics(
   TEST_REAL_SIMILAR(psm.baseline_delta_2_height, 0.00253908735640033)
   TEST_EQUAL(psm.points_across_baseline, 57)
   TEST_EQUAL(psm.points_across_half_height, 6)
+  pa = ptr->integratePeak(chromatogram, left_past_5, right_past_5);
+  psm = ptr->calculatePeakShapeMetrics(chromatogram, left_past_5, right_past_5, pa.height, pa.apex_pos);
+  TEST_REAL_SIMILAR(psm.start_position_at_5, left_past_5)
+  TEST_REAL_SIMILAR(psm.end_position_at_5, right_past_5)
+  pa = ptr->integratePeak(chromatogram, left_past_10, right_past_10);
+  psm = ptr->calculatePeakShapeMetrics(chromatogram, left_past_10, right_past_10, pa.height, pa.apex_pos);
+  TEST_REAL_SIMILAR(psm.start_position_at_5, left_past_10)
+  TEST_REAL_SIMILAR(psm.end_position_at_5, right_past_10)
+  TEST_REAL_SIMILAR(psm.start_position_at_10, left_past_10)
+  TEST_REAL_SIMILAR(psm.end_position_at_10, right_past_10)
+  pa = ptr->integratePeak(chromatogram, left_past_50, right_past_50);
+  psm = ptr->calculatePeakShapeMetrics(chromatogram, left_past_50, right_past_50, pa.height, pa.apex_pos);
+  TEST_REAL_SIMILAR(psm.start_position_at_5, left_past_50)
+  TEST_REAL_SIMILAR(psm.end_position_at_5, right_past_50)
+  TEST_REAL_SIMILAR(psm.start_position_at_10, left_past_50)
+  TEST_REAL_SIMILAR(psm.end_position_at_10, right_past_50)
+  TEST_REAL_SIMILAR(psm.start_position_at_50, left_past_50)
+  TEST_REAL_SIMILAR(psm.end_position_at_50, right_past_50)
 }
 END_SECTION
 
@@ -605,6 +643,24 @@ START_SECTION(PeakShapeMetrics calculatePeakShapeMetrics(
   TEST_REAL_SIMILAR(psm.baseline_delta_2_height, 0.00253908735640033)
   TEST_EQUAL(psm.points_across_baseline, 57)
   TEST_EQUAL(psm.points_across_half_height, 6)
+  pa = ptr->integratePeak(chromatogram, chrom_left_past_5_it, chrom_right_past_5_it);
+  psm = ptr->calculatePeakShapeMetrics(chromatogram, chrom_left_past_5_it, chrom_right_past_5_it, pa.height, pa.apex_pos);
+  TEST_REAL_SIMILAR(psm.start_position_at_5, left_past_5)
+  TEST_REAL_SIMILAR(psm.end_position_at_5, right_past_5)
+  pa = ptr->integratePeak(chromatogram, chrom_left_past_10_it, chrom_right_past_10_it);
+  psm = ptr->calculatePeakShapeMetrics(chromatogram, chrom_left_past_10_it, chrom_right_past_10_it, pa.height, pa.apex_pos);
+  TEST_REAL_SIMILAR(psm.start_position_at_5, left_past_10)
+  TEST_REAL_SIMILAR(psm.end_position_at_5, right_past_10)
+  TEST_REAL_SIMILAR(psm.start_position_at_10, left_past_10)
+  TEST_REAL_SIMILAR(psm.end_position_at_10, right_past_10)
+  pa = ptr->integratePeak(chromatogram, chrom_left_past_50_it, chrom_right_past_50_it);
+  psm = ptr->calculatePeakShapeMetrics(chromatogram, chrom_left_past_50_it, chrom_right_past_50_it, pa.height, pa.apex_pos);
+  TEST_REAL_SIMILAR(psm.start_position_at_5, left_past_50)
+  TEST_REAL_SIMILAR(psm.end_position_at_5, right_past_50)
+  TEST_REAL_SIMILAR(psm.start_position_at_10, left_past_50)
+  TEST_REAL_SIMILAR(psm.end_position_at_10, right_past_50)
+  TEST_REAL_SIMILAR(psm.start_position_at_50, left_past_50)
+  TEST_REAL_SIMILAR(psm.end_position_at_50, right_past_50)
 }
 END_SECTION
 
@@ -633,6 +689,24 @@ START_SECTION(PeakShapeMetrics calculatePeakShapeMetrics(
   TEST_REAL_SIMILAR(psm.baseline_delta_2_height, 0.00253908735640033)
   TEST_EQUAL(psm.points_across_baseline, 57)
   TEST_EQUAL(psm.points_across_half_height, 6)
+  pa = ptr->integratePeak(spectrum, left_past_5, right_past_5);
+  psm = ptr->calculatePeakShapeMetrics(spectrum, left_past_5, right_past_5, pa.height, pa.apex_pos);
+  TEST_REAL_SIMILAR(psm.start_position_at_5, left_past_5)
+  TEST_REAL_SIMILAR(psm.end_position_at_5, right_past_5)
+  pa = ptr->integratePeak(spectrum, left_past_10, right_past_10);
+  psm = ptr->calculatePeakShapeMetrics(spectrum, left_past_10, right_past_10, pa.height, pa.apex_pos);
+  TEST_REAL_SIMILAR(psm.start_position_at_5, left_past_10)
+  TEST_REAL_SIMILAR(psm.end_position_at_5, right_past_10)
+  TEST_REAL_SIMILAR(psm.start_position_at_10, left_past_10)
+  TEST_REAL_SIMILAR(psm.end_position_at_10, right_past_10)
+  pa = ptr->integratePeak(spectrum, left_past_50, right_past_50);
+  psm = ptr->calculatePeakShapeMetrics(spectrum, left_past_50, right_past_50, pa.height, pa.apex_pos);
+  TEST_REAL_SIMILAR(psm.start_position_at_5, left_past_50)
+  TEST_REAL_SIMILAR(psm.end_position_at_5, right_past_50)
+  TEST_REAL_SIMILAR(psm.start_position_at_10, left_past_50)
+  TEST_REAL_SIMILAR(psm.end_position_at_10, right_past_50)
+  TEST_REAL_SIMILAR(psm.start_position_at_50, left_past_50)
+  TEST_REAL_SIMILAR(psm.end_position_at_50, right_past_50)
 }
 END_SECTION
 
@@ -661,6 +735,24 @@ START_SECTION(PeakShapeMetrics calculatePeakShapeMetrics(
   TEST_REAL_SIMILAR(psm.baseline_delta_2_height, 0.00253908735640033)
   TEST_EQUAL(psm.points_across_baseline, 57)
   TEST_EQUAL(psm.points_across_half_height, 6)
+  pa = ptr->integratePeak(spectrum, spec_left_past_5_it, spec_right_past_5_it);
+  psm = ptr->calculatePeakShapeMetrics(spectrum, spec_left_past_5_it, spec_right_past_5_it, pa.height, pa.apex_pos);
+  TEST_REAL_SIMILAR(psm.start_position_at_5, left_past_5)
+  TEST_REAL_SIMILAR(psm.end_position_at_5, right_past_5)
+  pa = ptr->integratePeak(spectrum, spec_left_past_10_it, spec_right_past_10_it);
+  psm = ptr->calculatePeakShapeMetrics(spectrum, spec_left_past_10_it, spec_right_past_10_it, pa.height, pa.apex_pos);
+  TEST_REAL_SIMILAR(psm.start_position_at_5, left_past_10)
+  TEST_REAL_SIMILAR(psm.end_position_at_5, right_past_10)
+  TEST_REAL_SIMILAR(psm.start_position_at_10, left_past_10)
+  TEST_REAL_SIMILAR(psm.end_position_at_10, right_past_10)
+  pa = ptr->integratePeak(spectrum, spec_left_past_50_it, spec_right_past_50_it);
+  psm = ptr->calculatePeakShapeMetrics(spectrum, spec_left_past_50_it, spec_right_past_50_it, pa.height, pa.apex_pos);
+  TEST_REAL_SIMILAR(psm.start_position_at_5, left_past_50)
+  TEST_REAL_SIMILAR(psm.end_position_at_5, right_past_50)
+  TEST_REAL_SIMILAR(psm.start_position_at_10, left_past_50)
+  TEST_REAL_SIMILAR(psm.end_position_at_10, right_past_50)
+  TEST_REAL_SIMILAR(psm.start_position_at_50, left_past_50)
+  TEST_REAL_SIMILAR(psm.end_position_at_50, right_past_50)
 }
 END_SECTION
 
