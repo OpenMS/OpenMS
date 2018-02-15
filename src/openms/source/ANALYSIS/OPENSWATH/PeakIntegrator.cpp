@@ -335,23 +335,21 @@ namespace OpenMS
     PeakContainerConstIteratorT closest = is_left_half ? it_begin : it_end - 1; // TODO assuming enough points here
     if (is_left_half)
     {
-      for (PeakContainerConstIteratorT it = it_begin; it != it_end; ++it)
-      {
-        if (it->getIntensity() <= percent_intensity)
-        {
-          closest = it;
-        }
-      }
+      for (
+        PeakContainerConstIteratorT it = it_begin;
+        it != it_end && it->getIntensity() <= percent_intensity;
+        closest = it++
+      )
+      {}
     }
     else
     {
-      for (PeakContainerConstIteratorT it = it_end - 1; it != it_begin; --it)
-      {
-        if (it->getIntensity() <= percent_intensity)
-        {
-          closest = it;
-        }
-      }
+      for (
+        PeakContainerConstIteratorT it = it_end - 1;
+        it != it_begin && it->getIntensity() <= percent_intensity;
+        closest = it--
+      )
+      {}
     }
     return closest->getPos();
   }
