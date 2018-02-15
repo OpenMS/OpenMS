@@ -281,7 +281,6 @@ namespace OpenMS
   OpenMS::MSSpectrum MzMLSpectrumDecoder::decodeBinaryDataMSSpectrum_(std::vector<BinaryData>& data_)
   {
     Internal::MzMLHandlerHelper::decodeBase64Arrays(data_, skip_xml_checks_);
-    OpenMS::Interfaces::SpectrumPtr sptr(new OpenMS::Interfaces::Spectrum);
 
     //look up the precision and the index of the intensity and m/z array
     bool x_precision_64 = true;
@@ -305,6 +304,44 @@ namespace OpenMS
     Size default_array_length_ = x_precision_64 ? data_[x_index].floats_64.size() : data_[x_index].floats_32.size();
 
     MSSpectrum spectrum;
+    spectrum.reserve(default_array_length_);
+    fillDataArray(data_, spectrum,
+                  x_precision_64, int_precision_64,
+                  x_index, int_index, default_array_length_);
+
+    if (data_.size() > 2) 
+    {
+      fillDataArrays(data_, spectrum);
+    }
+    return spectrum;
+  }
+
+  OpenMS::MSChromatogram MzMLSpectrumDecoder::decodeBinaryDataMSChrom_(std::vector<BinaryData>& data_)
+  {
+    Internal::MzMLHandlerHelper::decodeBase64Arrays(data_, skip_xml_checks_);
+
+    //look up the precision and the index of the intensity and m/z array
+    bool x_precision_64 = true;
+    bool int_precision_64 = true;
+    SignedSize x_index = -1;
+    SignedSize int_index = -1;
+    Internal::MzMLHandlerHelper::computeDataProperties_(data_, x_precision_64, x_index, "time array");
+    Internal::MzMLHandlerHelper::computeDataProperties_(data_, int_precision_64, int_index, "intensity array");
+
+    //Abort if no m/z or intensity array is present
+    if (int_index == -1 || x_index == -1)
+    {
+      std::cerr << "Error, intensity or RT array is missing, skipping this spectrum" << std::endl;
+      return MSChromatogram();
+    }
+
+    checkData_(data_, x_index, int_index, x_precision_64, int_precision_64);
+
+    // At this point, we could check whether the defaultArrayLength from the
+    // spectrum/chromatogram tag is equivalent to size of the decoded data
+    Size default_array_length_ = x_precision_64 ? data_[x_index].floats_64.size() : data_[x_index].floats_32.size();
+
+    MSChromatogram spectrum;
     spectrum.reserve(default_array_length_);
     fillDataArray(data_, spectrum,
                   x_precision_64, int_precision_64,
@@ -585,6 +622,13 @@ namespace OpenMS
     std::vector<BinaryData> data_;
     domParseString_(in, data_);
     return decodeBinaryDataMSSpectrum_(data_);
+  }
+
+  MSChromatogram MzMLSpectrumDecoder::domParseChromatogram(const std::string& in)
+  {
+    std::vector<BinaryData> data_;
+    domParseString_(in, data_);
+    return decodeBinaryDataMSChrom_(data_);
   }
 
   void MzMLSpectrumDecoder::domParseChromatogram(const std::string& in, OpenMS::Interfaces::ChromatogramPtr& sptr)

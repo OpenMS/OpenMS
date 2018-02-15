@@ -80,7 +80,9 @@ namespace OpenMS
     */
     OpenMS::Interfaces::SpectrumPtr decodeBinaryDataSpectrum_(std::vector<BinaryData> & data_);
 
-    OpenMS::MSSpectrum decodeBinaryDataMSSpectrum_(std::vector<BinaryData> & data_);
+    OpenMS::MSSpectrum decodeBinaryDataMSSpectrum_(std::vector<BinaryData>& data_);
+
+    OpenMS::MSChromatogram decodeBinaryDataMSChrom_(std::vector<BinaryData>& data_);
 
     /**
       @brief decode binary data
@@ -142,6 +144,8 @@ namespace OpenMS
     void domParseSpectrum(const std::string& in, OpenMS::Interfaces::SpectrumPtr & sptr);
 
     MSSpectrum domParseSpectrum(const std::string& in);
+
+    MSChromatogram domParseChromatogram(const std::string& in);
 
     /**
       @brief Extract data from a string which contains a full mzML chromatogram.
