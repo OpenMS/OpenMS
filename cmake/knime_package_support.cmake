@@ -86,8 +86,7 @@ file(COPY        ${PROJECT_SOURCE_DIR}/cmake/knime/icons
 set(CTD_executables ${TOPP_TOOLS} ${UTILS_TOOLS})
 
 # remove tools that do not produce CTDs or should not be shipped (because of dependencies or specifics that can not be resolved in KNIME)
-# also remove IDEvaluator since it uses unnecessary GUI libs (TODO should not be in there, as we concat only tools without _withGUILib)
-list(REMOVE_ITEM CTD_executables OpenMSInfo ExecutePipeline INIUpdater ImageCreator GenericWrapper InspectAdapter MascotAdapter SvmTheoreticalSpectrumGeneratorTrainer OpenSwathMzMLFileCacher PepNovoAdapter IDEvaluator)
+list(REMOVE_ITEM CTD_executables OpenMSInfo ExecutePipeline INIUpdater ImageCreator GenericWrapper InspectAdapter MascotAdapter SvmTheoreticalSpectrumGeneratorTrainer OpenSwathMzMLFileCacher PepNovoAdapter)
 
 # pseudo-ctd target
 add_custom_target(

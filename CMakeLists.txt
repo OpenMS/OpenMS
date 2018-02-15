@@ -286,7 +286,6 @@ set(INSTALL_LIB_DIR ${DEF_INSTALL_LIB_DIR} CACHE PATH "Installation directory fo
 set(INSTALL_PLUGIN_SUBDIR plugins CACHE PATH "Installation subdirectory under the lib dir for QT plugins")
 set(INSTALL_PLUGIN_DIR ${INSTALL_LIB_DIR}/${INSTALL_PLUGIN_SUBDIR})
 file(RELATIVE_PATH INSTALL_LIB_PATH_REL_TO_BIN /${INSTALL_BIN_DIR} /${INSTALL_LIB_DIR})
-# The next variable will be injected to config.h to use for non-GUI bundle binaries like IDEvaluator
 set(QT_PLUGIN_PATH_REL_TO_BIN ${INSTALL_LIB_PATH_REL_TO_BIN}/${INSTALL_PLUGIN_SUBDIR})
 
 # Never use RPATH. We have other means on every platform.

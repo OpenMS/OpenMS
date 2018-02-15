@@ -172,25 +172,14 @@ foreach(i ${GUI_executables})
   endif()
 endforeach(i)
 
-  ## install platform plugins
-  if(APPLE OR WIN32)
-    if(APPLE)
-      ## TODO check if this is necessary for non-bundles. Then remove it here for APPLE.
-      install_qt5_plugin("Qt5::QCocoaIntegrationPlugin" QT_PLUGINS "${INSTALL_PLUGIN_DIR}" QT5PlatformPlugin)
-      install_qt5_plugin("Qt5::QMacStylePlugin" QT_PLUGINS "${INSTALL_PLUGIN_DIR}" QT5PlatformPlugin)
-      file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/qt.conf"
-        "[Paths]\nPlugins = ${QT_PLUGIN_PATH_REL_TO_BIN}\n")
-      install(FILES "${CMAKE_CURRENT_BINARY_DIR}/qt.conf"
-        DESTINATION ${INSTALL_BIN_DIR}
-        COMPONENT QT5PlatformPlugin)
-    elseif(WIN32)
+  ## install platform plugins. On Mac this is handled for every GUI app inside its app bundle.
+  if(WIN32)
       install_qt5_plugin("Qt5::QWindowsIntegrationPlugin" QT_PLUGINS "${INSTALL_PLUGIN_DIR}" QT5PlatformPlugin)
       file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/qt.conf"
         "[Paths]\nPlugins = ${QT_PLUGIN_PATH_REL_TO_BIN}\n")
       install(FILES "${CMAKE_CURRENT_BINARY_DIR}/qt.conf"
         DESTINATION ${INSTALL_BIN_DIR}
         COMPONENT QT5PlatformPlugin)
-    endif()
   endif()
 
 add_custom_target(GUI)
