@@ -90,6 +90,9 @@ vector<double> intensity = {
   2328,2202,3649,2706,3020,3335,2580,2328,2894,3146,2769,2517
 };
 
+const double left_few = position[46]; // 2.6939
+const double right_few = position[48]; // 2.715083333
+
 MSChromatogram chromatogram;
 MSSpectrum spectrum;
 for (Size i = 0; i < position.size(); ++i)
@@ -116,6 +119,11 @@ MSSpectrum::ConstIterator spec_left_past_10_it = spectrum.MZBegin(left_past_10);
 MSSpectrum::ConstIterator spec_right_past_10_it = spectrum.MZEnd(right_past_10) - 1;
 MSSpectrum::ConstIterator spec_left_past_50_it = spectrum.MZBegin(left_past_50);
 MSSpectrum::ConstIterator spec_right_past_50_it = spectrum.MZEnd(right_past_50) - 1;
+
+MSChromatogram::ConstIterator chrom_left_few_it = chromatogram.RTBegin(left_few);
+MSChromatogram::ConstIterator chrom_right_few_it = chromatogram.RTEnd(right_few) - 1;
+MSSpectrum::ConstIterator spec_left_few_it = spectrum.MZBegin(left_few);
+MSSpectrum::ConstIterator spec_right_few_it = spectrum.MZEnd(right_few) - 1;
 
 constexpr const char* INTEGRATION_TYPE_INTENSITYSUM = "intensity_sum";
 constexpr const char* INTEGRATION_TYPE_TRAPEZOID = "trapezoid";
@@ -615,6 +623,10 @@ START_SECTION(PeakShapeMetrics calculatePeakShapeMetrics(
   TEST_REAL_SIMILAR(psm.end_position_at_10, right_past_50)
   TEST_REAL_SIMILAR(psm.start_position_at_50, left_past_50)
   TEST_REAL_SIMILAR(psm.end_position_at_50, right_past_50)
+  pa = ptr->integratePeak(chromatogram, left_few, right_few);
+  psm = ptr->calculatePeakShapeMetrics(chromatogram, left_few, right_few, pa.height, pa.apex_pos);
+  TEST_REAL_SIMILAR(psm.start_position_at_5, left_few)
+  TEST_REAL_SIMILAR(psm.end_position_at_5, right_few)
 }
 END_SECTION
 
@@ -661,6 +673,10 @@ START_SECTION(PeakShapeMetrics calculatePeakShapeMetrics(
   TEST_REAL_SIMILAR(psm.end_position_at_10, right_past_50)
   TEST_REAL_SIMILAR(psm.start_position_at_50, left_past_50)
   TEST_REAL_SIMILAR(psm.end_position_at_50, right_past_50)
+  pa = ptr->integratePeak(chromatogram, chrom_left_few_it, chrom_right_few_it);
+  psm = ptr->calculatePeakShapeMetrics(chromatogram, chrom_left_few_it, chrom_right_few_it, pa.height, pa.apex_pos);
+  TEST_REAL_SIMILAR(psm.start_position_at_5, left_few)
+  TEST_REAL_SIMILAR(psm.end_position_at_5, right_few)
 }
 END_SECTION
 
@@ -707,6 +723,10 @@ START_SECTION(PeakShapeMetrics calculatePeakShapeMetrics(
   TEST_REAL_SIMILAR(psm.end_position_at_10, right_past_50)
   TEST_REAL_SIMILAR(psm.start_position_at_50, left_past_50)
   TEST_REAL_SIMILAR(psm.end_position_at_50, right_past_50)
+  pa = ptr->integratePeak(spectrum, left_few, right_few);
+  psm = ptr->calculatePeakShapeMetrics(spectrum, left_few, right_few, pa.height, pa.apex_pos);
+  TEST_REAL_SIMILAR(psm.start_position_at_5, left_few)
+  TEST_REAL_SIMILAR(psm.end_position_at_5, right_few)
 }
 END_SECTION
 
@@ -753,6 +773,10 @@ START_SECTION(PeakShapeMetrics calculatePeakShapeMetrics(
   TEST_REAL_SIMILAR(psm.end_position_at_10, right_past_50)
   TEST_REAL_SIMILAR(psm.start_position_at_50, left_past_50)
   TEST_REAL_SIMILAR(psm.end_position_at_50, right_past_50)
+  pa = ptr->integratePeak(spectrum, spec_left_few_it, spec_right_few_it);
+  psm = ptr->calculatePeakShapeMetrics(spectrum, spec_left_few_it, spec_right_few_it, pa.height, pa.apex_pos);
+  TEST_REAL_SIMILAR(psm.start_position_at_5, left_few)
+  TEST_REAL_SIMILAR(psm.end_position_at_5, right_few)
 }
 END_SECTION
 
