@@ -575,7 +575,8 @@ START_SECTION(( void domParseSpectrum(const std::string& in, OpenMS::Interfaces:
       </spectrum>
   );
 
-  MSSpectrum s = ptr->domParseSpectrum(testString);
+  MSSpectrum s;
+  ptr->domParseSpectrum(testString, s);
 
   TEST_EQUAL(s.size(), 15)
   TEST_EQUAL(s.getFloatDataArrays().size(), 1)
@@ -614,7 +615,8 @@ START_SECTION(( void domParseChromatogram(const std::string& in, OpenMS::Interfa
         </binaryDataArrayList>
       </chromatogram>);
 
-  MSChromatogram s = ptr->domParseChromatogram(testString);
+  MSChromatogram s;
+  ptr->domParseChromatogram(testString, s);
 
   TEST_EQUAL(s.size(), 10)
   TEST_EQUAL(s.getFloatDataArrays().size(), 1)

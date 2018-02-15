@@ -80,9 +80,9 @@ namespace OpenMS
     */
     OpenMS::Interfaces::SpectrumPtr decodeBinaryDataSpectrum_(std::vector<BinaryData> & data_);
 
-    OpenMS::MSSpectrum decodeBinaryDataMSSpectrum_(std::vector<BinaryData>& data_);
+    void decodeBinaryDataMSSpectrum_(std::vector<BinaryData>& data_, OpenMS::MSSpectrum& s);
 
-    OpenMS::MSChromatogram decodeBinaryDataMSChrom_(std::vector<BinaryData>& data_);
+    void decodeBinaryDataMSChrom_(std::vector<BinaryData>& data_, OpenMS::MSChromatogram& c);
 
     /**
       @brief decode binary data
@@ -143,9 +143,35 @@ namespace OpenMS
     */
     void domParseSpectrum(const std::string& in, OpenMS::Interfaces::SpectrumPtr & sptr);
 
-    MSSpectrum domParseSpectrum(const std::string& in);
+    /**
+      @brief Extract data from a string which contains a full mzML spectrum.
 
-    MSChromatogram domParseChromatogram(const std::string& in);
+      Extracts data from the input string which is expected to contain exactly
+      one <spectrum> tag (from <spectrum> to </spectrum>). This function will
+      extract the contained binaryDataArray and provide the result as Spectrum.
+
+      @param in Input string containing the raw XML
+      @param s Resulting spectrum
+
+      @pre in must have <spectrum> as root element.
+
+    */
+    void domParseSpectrum(const std::string& in, MSSpectrum& s);
+
+    /**
+      @brief Extract data from a string which contains a full mzML chromatogram.
+
+      Extracts data from the input string which is expected to contain exactly
+      one <chromatogram> tag (from <chromatogram> to </chromatogram>). This
+      function will extract the contained binaryDataArray and provide the
+      result as Chromatogram.
+
+      @param in Input string containing the raw XML
+      @param c Resulting chromatogram
+
+      @pre in must have <chromatogram> as root element.
+    */
+    void domParseChromatogram(const std::string& in, MSChromatogram& c);
 
     /**
       @brief Extract data from a string which contains a full mzML chromatogram.
