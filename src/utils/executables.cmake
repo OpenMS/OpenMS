@@ -29,9 +29,11 @@ MetaboliteAdductDecharger
 MetaboliteSpectralMatcher
 MetaProSIP
 MRMPairFinder
+MSFraggerAdapter
 MSSimulator
 MultiplexResolver
 MzMLSplitter
+NovorAdapter
 OpenMSInfo
 OpenPepXL
 OpenPepXLLF

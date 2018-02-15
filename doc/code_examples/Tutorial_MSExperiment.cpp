@@ -28,6 +28,8 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 
+//! [MSExperiment]
+
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <iostream>
@@ -86,3 +88,5 @@ int main()
 
   return 0;
 } //end of main
+
+//! [MSExperiment]

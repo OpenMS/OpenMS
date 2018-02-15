@@ -190,7 +190,7 @@ namespace OpenMS
     }
     else if (integration_type_ == INTEGRATION_TYPE_INTENSITYSUM)
     {
-      std::cout << "\nWARNING: intensity_sum method is being used.\n";
+      LOG_DEBUG << "\nWARNING: intensity_sum method is being used.\n";
       for (auto it = p.PosBegin(left); it != p.PosEnd(right); ++it)
       {
         peak_area += it->getIntensity();

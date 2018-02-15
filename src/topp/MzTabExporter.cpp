@@ -476,8 +476,29 @@ protected:
         search_engine_version = prot_ids[0].getSearchEngineVersion();
       }
 
+      // helper to map between peptide identifications and MS run
+      map<size_t, size_t> map_pep_idx_2_run;
+
       if (!prot_ids.empty())
       {
+        // map peptide ids back to their MS run
+        map<String, size_t> map_id_to_run;
+
+        // first: map run identifier to run index
+        size_t run_index(1);
+        for (auto it = prot_ids.begin(); it != prot_ids.end(); ++it, ++run_index)
+        {
+          map_id_to_run[it->getIdentifier()] = run_index;
+        }
+
+        // second: map peptide index to run index
+        size_t psm_idx(0);
+        for (auto it = peptide_ids.begin(); it != peptide_ids.end(); ++it, ++psm_idx)
+        {          
+          size_t run_idx = map_id_to_run[it->getIdentifier()];
+          map_pep_idx_2_run[psm_idx] = run_idx;
+        }
+
         MzTabParameter protein_score_type;
         protein_score_type.fromCellString("[,,custom score,]"); // TODO at least it should be noted if higher score is better. Better document type of score
         meta_data.protein_search_engine_score[1] = protein_score_type; // TODO add meta value to ProteinIdentification
@@ -493,8 +514,7 @@ protected:
         MzTabProteinSectionRows protein_rows;
 
         Size current_run_index(1);
-        for (vector<ProteinIdentification>::const_iterator it = prot_ids.begin();
-         it != prot_ids.end(); ++it, ++current_run_index)
+        for (auto it = prot_ids.begin(); it != prot_ids.end(); ++it, ++current_run_index)
         {
           const std::vector<ProteinIdentification::ProteinGroup> protein_groups = it->getProteinGroups();
           const std::vector<ProteinIdentification::ProteinGroup> indist_groups = it->getIndistinguishableProteins();
@@ -637,7 +657,7 @@ protected:
 
       MzTabPSMSectionRows rows;
       Size psm_id(0);
-      for (vector<PeptideIdentification>::iterator it = pep_ids.begin(); it != pep_ids.end(); ++it, ++psm_id)
+      for (auto it = pep_ids.begin(); it != pep_ids.end(); ++it, ++psm_id)
       {
         // skip empty peptide identification objects
         if (it->getHits().empty())
@@ -649,6 +669,14 @@ protected:
         it->assignRanks();
 
         MzTabPSMSectionRow row;
+
+        // link to MS run
+        size_t run_index = map_pep_idx_2_run[psm_id];
+        String spectrum_nativeID = it->getMetaValue("spectrum_reference").toString();
+
+        MzTabSpectraRef spec_ref;
+        row.spectra_ref.setMSFile(run_index);
+        row.spectra_ref.setSpecRef(spectrum_nativeID);
 
         // only consider best peptide hit for export
         const PeptideHit& best_ph = it->getHits()[0];
@@ -666,8 +694,10 @@ protected:
         row.search_engine = search_engines;
 
         row.search_engine_score[1] = MzTabDouble(best_ph.getScore());
+
         vector<MzTabDouble> rts_vector;
         rts_vector.push_back(MzTabDouble(it->getRT()));
+
         MzTabDoubleList rts;
         rts.set(rts_vector);
         row.retention_time = rts;

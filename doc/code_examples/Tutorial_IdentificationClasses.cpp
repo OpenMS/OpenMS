@@ -32,6 +32,8 @@
 // $Authors: Petra Gutenbrunner $
 // --------------------------------------------------------------------------
 
+//! [Identification]
+
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/PeptideHit.h>
@@ -145,3 +147,5 @@ int main()
   return 0;
 }
 
+
+//! [Identification]
