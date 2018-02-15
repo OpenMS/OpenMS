@@ -943,8 +943,10 @@ protected:
         cout << "MzTab Export: " << n_ind_prot << endl;
 */
         // fill MzTab with meta data and quants annotated in identification data structure
-        // don't export unmapped features
-        MzTab m = MzTab::exportConsensusMapToMzTab(consensus, in, false);
+        
+        const bool report_unmapped(true);
+        const bool report_unidentified_features(false);
+        MzTab m = MzTab::exportConsensusMapToMzTab(consensus, in, report_unidentified_features, report_unmapped);
         MzTabFile().store(mztab, m);    
       }
     }

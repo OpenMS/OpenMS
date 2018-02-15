@@ -48,7 +48,6 @@ namespace OpenMS
 
   MzTabParameterList::~MzTabParameterList()
   {
-
   }
 
   bool MzTabParameterList::isNull() const
@@ -58,10 +57,7 @@ namespace OpenMS
 
   void MzTabParameterList::setNull(bool b)
   {
-    if (b)
-    {
-      parameters_.clear();
-    }
+    if (b) { parameters_.clear(); }
   }
 
   String MzTabParameterList::toCellString() const
@@ -2041,7 +2037,8 @@ namespace OpenMS
     }
     // end protein groups
 
-    // start PSMs
+    ////////////////////////////////////////////////////
+    // PSMs
 
     // mandatory meta values
     if (quant_study_variables == 0)
@@ -2122,8 +2119,7 @@ namespace OpenMS
       opt_entry.second = MzTabString(aas.toString());
       row.opt_.push_back(opt_entry);
 
-      // currently write all keys
-      // TODO: percentage procedure with MetaInfoInterfaceUtils
+      // meta data on PSMs
       vector<String> ph_keys;
       best_ph.getKeys(ph_keys);
       for (String & s : ph_keys)      
@@ -2133,10 +2129,21 @@ namespace OpenMS
           s.substitute(' ', '_');
         }
       } 
-
-      // TODO: no conversion but make function on collections
       set<String> ph_key_set(ph_keys.begin(), ph_keys.end());
       addMetaInfoToOptionalColumns(ph_key_set, row.opt_, String("global"), best_ph);
+
+      // meta data on peptide identifications
+      vector<String> pid_keys;
+      it->getKeys(pid_keys);
+      for (String & s : pid_keys)      
+      { 
+        if (s.has(' '))
+        {
+          s.substitute(' ', '_');
+        }
+      } 
+      set<String> pid_key_set(pid_keys.begin(), pid_keys.end());
+      addMetaInfoToOptionalColumns(pid_key_set, row.opt_, String("global"), *it);
 
       // TODO Think about if the uniqueness can be determined by # of peptide evidences
       // b/c this would only differ when evidences come from different DBs
@@ -2219,7 +2226,8 @@ namespace OpenMS
   MzTab MzTab::exportConsensusMapToMzTab(
     const ConsensusMap& consensus_map, 
     const String& filename, 
-    const bool export_unidentified)
+    const bool export_unidentified_features,
+    const bool export_unassigned_ids)
   {
     LOG_INFO << "exporting consensus map: \"" << filename << "\" to mzTab: " << std::endl;
     vector<ProteinIdentification> prot_ids = consensus_map.getProteinIdentifications();
@@ -2230,7 +2238,14 @@ namespace OpenMS
     {
       const ConsensusFeature& c = consensus_map[i];
       const vector<PeptideIdentification>& p = c.getPeptideIdentifications();
-      pep_ids.insert(std::end(pep_ids), std::begin(p), std::end(p));  
+      pep_ids.insert(std::end(pep_ids), std::begin(p), std::end(p));
+    }
+
+    // used to export PSMs of unassigned peptide identifications
+    if (export_unassigned_ids)
+    {
+      const vector<PeptideIdentification>& up = consensus_map.getUnassignedPeptideIdentifications();
+      pep_ids.insert(std::end(pep_ids), std::begin(up), std::end(up));
     }
 
     ///////////////////////////////////////////////////////////////////////
@@ -2491,7 +2506,12 @@ namespace OpenMS
         }
       }
 
-      if (export_unidentified == false && row.accession.isNull()) { continue; } // skip export of unidentified feature TODO: move logic a bit up to me more efficient
+      // skip export of unidentified feature TODO: move logic a bit up to me more efficient
+      if (export_unidentified_features == false 
+        && row.accession.isNull()) 
+      { 
+        continue; 
+      } 
       rows.push_back(row);
     }
 

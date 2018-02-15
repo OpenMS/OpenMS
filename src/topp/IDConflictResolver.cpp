@@ -120,7 +120,10 @@ protected:
     return false;
   }
 
-  void resolveConflict_(vector<PeptideIdentification> & peptides, vector<PeptideIdentification> & removed)
+  void resolveConflict_(
+    vector<PeptideIdentification> & peptides, 
+    vector<PeptideIdentification> & removed,
+    UInt64 uid)
   {
     if (peptides.empty()) { return; }
 
@@ -135,6 +138,8 @@ protected:
         vector<PeptideHit> best_hit(1, pep.getHits()[0]);
         pep.setHits(best_hit);
       }
+      // annotate feature id
+      pep.setMetaValue("feature_id", String(uid));
     }
 
     vector<PeptideIdentification>::iterator pos;
@@ -150,6 +155,7 @@ protected:
     // copy conflicting ones left to best one
     for (auto it = peptides.begin(); it != pos; ++it)
     {
+      it->setMetaValue("feature_leader", false);
       removed.push_back(*it);
     }
      
@@ -157,11 +163,13 @@ protected:
     vector<PeptideIdentification>::iterator pos1p = pos + 1;
     for (auto it = pos1p; it != peptides.end(); ++it)
     {
+      it->setMetaValue("feature_leader", false);
       removed.push_back(*it);
     }
 
     // set best one to first position and shrink vector
     peptides[0] = *pos;
+    peptides[0].setMetaValue("feature_leader", true);
     peptides.resize(1);
   }
 
@@ -181,10 +189,20 @@ protected:
     {
       FeatureMap features;
       FeatureXMLFile().load(in, features);
+
+      // annotate as not part of the resolution
+      for (PeptideIdentification & p : features.getUnassignedPeptideIdentifications())
+      {
+        p.setMetaValue("feature_id", "not mapped"); // not mapped to a feature
+        p.setMetaValue("feature_leader", false); // and, thus, no id leader of a feature
+      }
+
       for (Feature & f : features)
       {
+        f.setMetaValue("feature_id", String(f.getUniqueId())); // annotate feature id in meta data (IDs might change later)
         resolveConflict_(f.getPeptideIdentifications(), 
-          features.getUnassignedPeptideIdentifications());
+          features.getUnassignedPeptideIdentifications(),
+          f.getUniqueId());
       }
       addDataProcessing_(features,
                          getProcessingInfo_(DataProcessing::FILTERING));
@@ -194,10 +212,20 @@ protected:
     {
       ConsensusMap consensus;
       ConsensusXMLFile().load(in, consensus);
+
+      // annotate as not part of the resolution
+      for (PeptideIdentification & p : consensus.getUnassignedPeptideIdentifications())
+      {
+        p.setMetaValue("feature_id", "not mapped"); // not mapped to a feature
+        p.setMetaValue("feature_leader", false); // and, thus, no id leader of a feature
+      }
+
       for (ConsensusFeature & c : consensus)
       {
+        c.setMetaValue("feature_id", String(c.getUniqueId()));
         resolveConflict_(c.getPeptideIdentifications(), 
-          consensus.getUnassignedPeptideIdentifications());
+          consensus.getUnassignedPeptideIdentifications(),
+          c.getUniqueId());
       }
       addDataProcessing_(consensus,
                          getProcessingInfo_(DataProcessing::FILTERING));

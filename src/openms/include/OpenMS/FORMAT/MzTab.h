@@ -777,7 +777,8 @@ public:
     static MzTab exportConsensusMapToMzTab(
       const ConsensusMap & consensus_map, 
       const String & filename,
-      bool export_unidentified);
+      const bool export_unidentified_features,
+      const bool export_unassigned_ids);
 
 protected:
     MzTabMetaData meta_data_;
