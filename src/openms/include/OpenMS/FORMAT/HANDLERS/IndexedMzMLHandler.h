@@ -40,6 +40,8 @@
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/INTERFACES/DataStructures.h>
 #include <OpenMS/INTERFACES/ISpectrumAccess.h>
+#include <OpenMS/KERNEL/MSSpectrum.h>
+#include <OpenMS/KERNEL/MSChromatogram.h>
 
 #include <string>
 #include <fstream>
@@ -103,6 +105,10 @@ namespace Internal
     */
     void parseFooter_(String filename);
 
+    std::string getChromatogramById_helper_(int id);
+
+    std::string getSpectrumById_helper_(int id);
+
     public:
 
     /**
@@ -158,6 +164,27 @@ namespace Internal
     OpenMS::Interfaces::SpectrumPtr getSpectrumById(int id);
 
     /**
+      @brief Retrieve the raw data for the spectrum at position "id"
+
+      @throw Exception if getParsingSuccess() returns false
+      @throw Exception if id is not within [0, getNrSpectra()-1]
+
+      @return The spectrum at position id
+    */
+    const OpenMS::MSSpectrum getMSSpectrumById(int id);
+
+    /**
+      @brief Retrieve the raw data for the spectrum at position "id"
+
+      @throw Exception if getParsingSuccess() returns false
+      @throw Exception if id is not within [0, getNrSpectra()-1]
+
+      @param id The spectrum id
+      @param s The spectrum to be used and filled with data
+    */
+    void getMSSpectrumById(int id, OpenMS::MSSpectrum& s);
+
+    /**
       @brief Retrieve the raw data for the chromatogram at position "id"
 
       @throw Exception if getParsingSuccess() returns false
@@ -166,6 +193,27 @@ namespace Internal
       @return The chromatogram at position id
     */
     OpenMS::Interfaces::ChromatogramPtr getChromatogramById(int id);
+
+    /**
+      @brief Retrieve the raw data for the chromatogram at position "id"
+
+      @throw Exception if getParsingSuccess() returns false
+      @throw Exception if id is not within [0, getNrChromatograms()-1]
+
+      @return The chromatogram at position id
+    */
+    const OpenMS::MSChromatogram getMSChromatogramById(int id);
+
+    /**
+      @brief Retrieve the raw data for the chromatogram at position "id"
+
+      @throw Exception if getParsingSuccess() returns false
+      @throw Exception if id is not within [0, getNrChromatograms()-1]
+
+      @param id The chromatogram id
+      @param c The chromatogram to be used and filled with data
+    */
+    void getMSChromatogramById(int id, OpenMS::MSChromatogram& c);
 
     /// Whether to skip some XML checks (removing whitespace from base64 arrays) and be fast instead
     void setSkipXMLChecks(bool skip)
@@ -178,3 +226,4 @@ namespace Internal
 }
 
 #endif // OPENMS_FORMAT_INDEXEDMZMLHANDLER_H
+

@@ -124,8 +124,8 @@ namespace OpenMS
 
   public:
 
-    MzMLSpectrumDecoder() :
-      skip_xml_checks_(false)
+    explicit MzMLSpectrumDecoder(bool skip_xml_checks = false) :
+      skip_xml_checks_(skip_xml_checks)
     {}
 
     /**
