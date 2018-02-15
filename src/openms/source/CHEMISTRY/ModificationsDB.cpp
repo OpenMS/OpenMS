@@ -629,7 +629,16 @@ namespace OpenMS
         modifications.push_back((*it)->getFullId());
       }
     }
-    sort(modifications.begin(), modifications.end());
+    // sort by name (case INsensitive)
+    sort(modifications.begin(), modifications.end(), [&](const String& a, const String& b) {
+      int i(0);
+      while (i < a.size() && i < b.size())
+      {
+        if (tolower(a[i]) == tolower(b[i])) ++i;
+        else return tolower(a[i]) < tolower(b[i]);
+      }
+      return a.size() < b.size();
+    });
   }
 
 
