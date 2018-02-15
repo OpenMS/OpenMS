@@ -31,7 +31,24 @@
 // $Maintainer: Julianus Pfeuffer $
 // $Authors: Julianus Pfeuffer $
 // --------------------------------------------------------------------------
+#ifndef OPENMS_ANALYSIS_ID_BAYESIANPROTEININFERENCE_H
+#define OPENMS_ANALYSIS_ID_BAYESIANPROTEININFERENCE_H
 
-class BayesianProteinInference {
+#include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
+#include <OpenMS/CONCEPT/ProgressLogger.h>
 
-};
+namespace OpenMS
+{
+  class OPENMS_DLLAPI BayesianProteinInference :
+      public DefaultParamHandler,
+      public ProgressLogger
+  {
+  public:
+    /// Constructor
+    BayesianProteinInference();
+
+    /// Destructor
+    ~BayesianProteinInference();
+  };
+}
+#endif // OPENMS_ANALYSIS_ID_BAYESIANPROTEININFERENCE_H
