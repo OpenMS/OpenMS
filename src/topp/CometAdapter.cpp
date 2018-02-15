@@ -154,6 +154,8 @@ protected:
     registerStringOption_("num_enzyme_termini", "<choice>", "fully", "1 semi-digested, 2 fully digested, (default), 8 C-term unspecific, 9 N-term unspecific", false, false);
     setValidStrings_("num_enzyme_termini", ListUtils::create<String>("semi,fully,C-term unspecific,N-term unspecific"));
     registerIntOption_("allowed_missed_cleavages", "<num>", 1, "Number of possible cleavage sites missed by the enzyme, maximum value is 5; for enzyme search", false, false);
+    setMinInt_("allowed_missed_cleavages", 0);
+    setMaxInt_("allowed_missed_cleavages", 5);
 
     //Fragment Ions
     registerDoubleOption_("fragment_bin_tolerance", "<tolerance>", 1.0005, "fragment_mass_tolerance (MSGF+), fragment_bin_tol (Comet)", false, true);
@@ -206,11 +208,11 @@ protected:
     registerStringOption_("clear_mz_range", "0:0", "0:0", "for iTRAQ/TMT type data; will clear out all peaks in the specified m/z range", false, true);
 
     //Modifications
-    registerStringList_("fixed_modifications", "<mods>", vector<String>(), "Fixed modifications, specified using UniMod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)' or 'Oxidation (M)'", false, false);
     vector<String> all_mods;
     ModificationsDB::getInstance()->getAllSearchModifications(all_mods);
+    registerStringList_("fixed_modifications", "<mods>", ListUtils::create<String>("Carbamidomethyl (C)", ','), "Fixed modifications, specified using Unimod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)' or 'Oxidation (M)'", false);
     setValidStrings_("fixed_modifications", all_mods);
-    registerStringList_("variable_modifications", "<mods>", vector<String>(), "Variable modifications, specified using UniMod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)' or 'Oxidation (M)'", false, false);
+    registerStringList_("variable_modifications", "<mods>", ListUtils::create<String>("Oxidation (M),Acetyl (N-term)", ','), "Variable modifications, specified using Unimod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)' or 'Oxidation (M)'", false);
     setValidStrings_("variable_modifications", all_mods);
     registerIntOption_("max_variable_mods_in_peptide", "<num>", 5, "", false, true);
   }
