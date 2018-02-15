@@ -141,7 +141,7 @@ namespace OpenMS
                                          bool allow_random_asp_pro_cleavage) const
   {
     String seq = protein.toUnmodifiedString();
-    return isValidProduct(seq, pep_pos, pep_length, ignore_missed_cleavages, allow_nterm_protein_cleavage);
+    return isValidProduct(seq, pep_pos, pep_length, ignore_missed_cleavages, allow_nterm_protein_cleavage, allow_random_asp_pro_cleavage);
   }
 
   Size ProteaseDigestion::peptideCount(const AASequence& protein)
