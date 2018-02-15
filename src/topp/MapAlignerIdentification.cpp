@@ -311,13 +311,11 @@ private:
       // determine map of fractions to runs
       map<unsigned, set<String> > frac2files;
 
-      ExperimentalDesign ed;
-
       // TODO: check if can be put in common helper function
       if (!design_file.empty())
       {
         // parse design file and determine fractions
-        ExperimentalDesign().load(design_file, ed);
+        ExperimentalDesign ed = ExperimentalDesign::load(design_file);
 
         // determine if design defines more than one fraction (note: fraction and run IDs are one-based)
         frac2files = ed.getFractionToMSFilesMapping();

@@ -2176,7 +2176,8 @@ namespace OpenMS
         const ResidueModification& res_mod = *(aas.getNTerminalModification());
         if (std::find(fixed_mods.begin(), fixed_mods.end(), res_mod.getId()) == fixed_mods.end())
         {
-          MzTabString unimod_accession = MzTabString(res_mod.getUniModAccession());
+          String unimod = res_mod.getUniModAccession();
+          MzTabString unimod_accession = MzTabString(unimod.toUpper());
           vector<std::pair<Size, MzTabParameter> > pos;
           pos.push_back(make_pair(0, MzTabParameter()));
           mod.setModificationIdentifier(unimod_accession);
@@ -2194,7 +2195,8 @@ namespace OpenMS
           if (std::find(fixed_mods.begin(), fixed_mods.end(), res_mod.getId()) == fixed_mods.end())
           {
             // MzTab standard is to just report Unimod accession.
-            MzTabString unimod_accession = MzTabString(res_mod.getUniModAccession());
+            String unimod = res_mod.getUniModAccession();
+            MzTabString unimod_accession = MzTabString(unimod.toUpper());
             vector<std::pair<Size, MzTabParameter> > pos;
             pos.push_back(make_pair(ai + 1, MzTabParameter()));
             mod.setPositionsAndParameters(pos);
@@ -2210,7 +2212,8 @@ namespace OpenMS
         const ResidueModification& res_mod = *(aas.getCTerminalModification());
         if (std::find(fixed_mods.begin(), fixed_mods.end(), res_mod.getId()) == fixed_mods.end())
         {
-          MzTabString unimod_accession = MzTabString(res_mod.getUniModAccession());
+          String unimod = res_mod.getUniModAccession();
+          MzTabString unimod_accession = MzTabString(unimod.toUpper());
           vector<std::pair<Size, MzTabParameter> > pos;
           pos.push_back(make_pair(aas.size() + 1, MzTabParameter()));
           mod.setPositionsAndParameters(pos);

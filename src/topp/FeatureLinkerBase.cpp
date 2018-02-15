@@ -144,8 +144,6 @@ protected:
       return ILLEGAL_PARAMETERS;
     }
   
-    ExperimentalDesign ed;
-  
     if (file_type == FileTypes::FEATUREXML)
     {
       //-------------------------------------------------------------
@@ -158,10 +156,12 @@ protected:
       if (!design_file.empty())
       {
         // parse design file and determine fractions
-        ExperimentalDesign().load(design_file, ed);
+        ExperimentalDesign ed = ExperimentalDesign::load(design_file);
 
         // determine if design defines more than one fraction
         frac2files = ed.getFractionToMSFilesMapping();
+
+        writeDebug_(String("Grouping ") + String(ed.getNumberOfFractions()) + " fractions.", 3);
 
         // check if all fractions have the same number of MS runs associated
         if (!ed.sameNrOfMSFilesPerFraction())
@@ -236,7 +236,6 @@ protected:
       }
       else // group multiple fractions
       {
-        writeDebug_(String("Grouping ") + String(ed.getNumberOfFractions()) + " fractions.", 3);
         writeDebug_(String("Stored in ") + String(maps.size()) + " maps.", 3);
         for (Size i = 1; i <= frac2files.size(); ++i)
         {

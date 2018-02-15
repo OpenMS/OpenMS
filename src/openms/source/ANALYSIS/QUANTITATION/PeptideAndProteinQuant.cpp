@@ -78,7 +78,7 @@ namespace OpenMS
     vector<PeptideIdentification>& peptides)
   {
     // TODO FRACTION: map ids to fractions
-    const int fraction = 0; //TODO: determine from ID?
+    const int fraction = 1; //TODO: determine from ID?
     for (auto & pep : peptides)
     {
       if (!pep.getHits().empty())
@@ -489,7 +489,7 @@ namespace OpenMS
       countPeptides_(f.getPeptideIdentifications());
       PeptideHit hit = getAnnotation_(f.getPeptideIdentifications());
       FeatureHandle handle(0, f);
-      const size_t fraction(0), sample(0);
+      const size_t fraction(1), sample(1);
       quantifyFeature_(handle, fraction, sample, hit); // updates "stats_.quant_features"
     }
     countPeptides_(features.getUnassignedPeptideIdentifications());
@@ -527,9 +527,10 @@ namespace OpenMS
       {
         // indices in experimental design are 1-based (as in text file)
         // so we need to convert between them
-        size_t row = f.getMapIndex() + 1;  //TODO: needs to be adapted for multiplexed experiments
-        size_t fraction = ed.rows[row].fraction - 1;
-        size_t sample = ed.rows[row].sample - 1;
+        //TODO MULTIPLEXED: needs to be adapted for multiplexed experiments
+        size_t row = f.getMapIndex();  
+        size_t fraction = ed.getRunSection()[row].fraction;
+        size_t sample = ed.getRunSection()[row].sample;
         quantifyFeature_(f, fraction, sample, hit); // updates "stats_.quant_features"
       }
     }
@@ -590,14 +591,14 @@ namespace OpenMS
       const String & ms_file_path = identifier_to_ms_file[p.getIdentifier()];
 
       // determine sample and fraction by MS file name (stored in protein identification)
-      size_t row = find_if(begin(ed.rows), end(ed.rows), 
-        [&ms_file_path](const ExperimentalDesign::Row& r)
+      const ExperimentalDesign::RunRows & run_section = ed.getRunSection();
+      auto row = find_if(begin(run_section), end(run_section), 
+        [&ms_file_path](const ExperimentalDesign::RunRow& r)
           { 
             return r.path == ms_file_path; 
-          }
-        ) - ed.rows.begin();
-      size_t sample = ed.rows[row].sample - 1;
-      size_t fraction = ed.rows[row].fraction - 1;
+          });
+      size_t sample = row->sample;
+      size_t fraction = row->fraction;
 
       // TODO MULTIPLEXING: think about how id-based quant is done for SILAC, TMT, etc.
       // count peptides in the different fractions, charge states, and samples
