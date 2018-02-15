@@ -192,6 +192,23 @@ public:
     };
     ///@}
 
+    /** @name Constant expressions for parameters
+      Constants expressions used throughout the code and tests to set
+      the integration and baseline types.
+    */
+    ///@{
+    /// Integration type: intensity sum
+    static constexpr const char* INTEGRATION_TYPE_INTENSITYSUM = "intensity_sum";
+    /// Integration type: trapezoid
+    static constexpr const char* INTEGRATION_TYPE_TRAPEZOID = "trapezoid";
+    /// Integration type: simpson
+    static constexpr const char* INTEGRATION_TYPE_SIMPSON = "simpson";
+    /// Baseline type: base to base
+    static constexpr const char* BASELINE_TYPE_BASETOBASE = "base_to_base";
+    /// Baseline type: vertical division
+    static constexpr const char* BASELINE_TYPE_VERTICALDIVISION = "vertical_division";
+    ///@}
+
     /**
       @brief Compute the area of a peak contained in a MSChromatogram.
 
@@ -553,23 +570,6 @@ private:
       @return The computed area
     */
     double simpson(MSSpectrum::ConstIterator it_begin, MSSpectrum::ConstIterator it_end) const;
-    ///@}
-
-    /** @name Constant expressions for parameters
-      Constants expressions used throughout the code and tests to set
-      the integration and baseline types.
-    */
-    ///@{
-    /// Integration type: intensity sum
-    static constexpr const char* INTEGRATION_TYPE_INTENSITYSUM = "intensity_sum";
-    /// Integration type: trapezoid
-    static constexpr const char* INTEGRATION_TYPE_TRAPEZOID = "trapezoid";
-    /// Integration type: simpson
-    static constexpr const char* INTEGRATION_TYPE_SIMPSON = "simpson";
-    /// Baseline type: base to base
-    static constexpr const char* BASELINE_TYPE_BASETOBASE = "base_to_base";
-    /// Baseline type: vertical division
-    static constexpr const char* BASELINE_TYPE_VERTICALDIVISION = "vertical_division";
     ///@}
   };
 }

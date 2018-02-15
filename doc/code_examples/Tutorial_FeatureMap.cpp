@@ -28,6 +28,8 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 
+//! [FeatureMap]
+
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <iostream>
 
@@ -62,3 +64,5 @@ int main()
   // ... and many more
   return 0;
 } //end of main
+
+//! [FeatureMap]

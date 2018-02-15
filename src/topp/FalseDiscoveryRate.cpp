@@ -156,11 +156,19 @@ protected:
 
     IdXMLFile().load(in, prot_ids, pep_ids);
 
+    Size n_prot_ids = prot_ids.size();
+    Size n_prot_hits = IDFilter::countHits(prot_ids);
+    Size n_pep_ids = pep_ids.size();
+    Size n_pep_hits = IDFilter::countHits(pep_ids);
+
+    bool filter_applied(false);
+
     try
     {
       if (getStringOption_("protein") == "true")
       {
         fdr.apply(prot_ids);
+        filter_applied = true;
 
         if (protein_fdr < 1)
         {
@@ -172,6 +180,7 @@ protected:
       if (getStringOption_("PSM") == "true")
       {
         fdr.apply(pep_ids);
+        filter_applied = true;
 
         if (psm_fdr < 1)
         {      
@@ -186,15 +195,52 @@ protected:
       return INCOMPATIBLE_INPUT_DATA;
     }
 
-    for (vector<ProteinIdentification>::iterator it = prot_ids.begin(); it != prot_ids.end(); ++it)
+    if (filter_applied)
     {
-      it->assignRanks();
-    }
-    for (vector<PeptideIdentification>::iterator it = pep_ids.begin(); it != pep_ids.end(); ++it)
-    {
-      it->assignRanks();
+      IDFilter::removeUnreferencedProteins(prot_ids, pep_ids);
+      IDFilter::updateProteinReferences(pep_ids, prot_ids, true);
+      IDFilter::updateHitRanks(prot_ids);
+      IDFilter::updateHitRanks(pep_ids);
+      IDFilter::removeEmptyIdentifications(pep_ids);
+      // we want to keep "empty" protein IDs because they contain search meta data
     }
 
+    // update protein groupings if necessary:
+    for (auto prot_it = prot_ids.begin(); prot_it != prot_ids.end(); ++prot_it)
+    {
+      bool valid = IDFilter::updateProteinGroups(prot_it->getProteinGroups(),
+                                                 prot_it->getHits());
+      if (!valid)
+      {
+        LOG_WARN << "Warning: While updating protein groups, some prot_ids were removed from groups that are still present. "
+                 << "The new grouping (especially the group probabilities) may not be completely valid any more." 
+                 << endl;
+      }
+
+      valid = IDFilter::updateProteinGroups(
+        prot_it->getIndistinguishableProteins(), prot_it->getHits());
+
+      if (!valid)
+      {
+        LOG_WARN << "Warning: While updating indistinguishable prot_ids, some prot_ids were removed from groups that are still present. "
+                 << "The new grouping (especially the group probabilities) may not be completely valid any more." 
+                 << endl;
+      }
+    }
+
+    // some stats
+    LOG_INFO << "Before filtering:\n"
+             << n_prot_ids << " protein identification(s) with "
+             << n_prot_hits << " protein hit(s),\n"
+             << n_pep_ids << " peptide identification(s) with "
+             << n_pep_hits << " pep_ids hit(s).\n"
+             << "After filtering:\n"
+             << prot_ids.size() << " protein identification(s) with "
+             << IDFilter::countHits(prot_ids) << " protein hit(s),\n"
+             << pep_ids.size() << " peptide identification(s) with "
+             << IDFilter::countHits(pep_ids) << " pep_ids hit(s)." << endl;
+
+    LOG_INFO << "Writing filtered output..." << endl;
     IdXMLFile().store(out, prot_ids, pep_ids);
     return EXECUTION_OK;
   }

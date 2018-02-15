@@ -27,6 +27,8 @@
 // OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+//! [MSChromatogram]
+
 #include <OpenMS/KERNEL/MSChromatogram.h>
 #include <OpenMS/METADATA/ChromatogramSettings.h>
 #include <OpenMS/KERNEL/ChromatogramPeak.h>
@@ -55,3 +57,5 @@ int main()
 
   return 0;
 } // end of main
+
+//! [MSChromatogram]

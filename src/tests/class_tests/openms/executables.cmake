@@ -54,7 +54,6 @@ set(datastructures_executables_list
   Param_test
   QTCluster_test
   RangeManager_test
-  SparseVector_test
   StringListUtils_test
   StringUtils_test
   String_test
@@ -147,11 +146,13 @@ set(kernel_executables_list
 )
 
 set(format_executables_list
+  AbsoluteQuantitationStandardsFile_test
   Base64_test
   MSNumpressCoder_test
   BigString_test
   Bzip2Ifstream_test
   Bzip2InputStream_test
+  ChromeleonFile_test
   CVMappingFile_test
   CompressedInputSource_test
   ConsensusXMLFile_test
@@ -184,6 +185,7 @@ set(format_executables_list
   MascotRemoteQuery_test
   MascotXMLFile_test
   #MSDataWritingConsumer_test
+  MRMFeaturePickerFile_test
   MsInspectFile_test
   MzDataFile_test
   MzIdentMLFile_test
@@ -459,6 +461,7 @@ set(analysis_executables_list
   LocalLinearMap_test
   TargetedExperiment_test
   TargetedExperimentHelper_test
+  MRMFeaturePicker_test
   MRMFragmentSelection_test
   MRMMapping_test
   MapAlignmentAlgorithmIdentification_test
