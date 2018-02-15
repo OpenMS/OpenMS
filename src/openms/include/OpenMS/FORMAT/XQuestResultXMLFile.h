@@ -47,7 +47,7 @@ namespace OpenMS
   {
 public:
     XQuestResultXMLFile();
-    ~XQuestResultXMLFile();
+    ~XQuestResultXMLFile() override;
 
     /**
      * @brief Load the content of the xquest.xml file into the provided data structures.

@@ -124,6 +124,7 @@
   - @subpage TOPP_PepNovoAdapter - Identifies MS/MS spectra using PepNovo (external).
   - @subpage TOPP_XTandemAdapter - Identifies MS/MS spectra using XTandem (external).
   - @subpage TOPP_SpecLibSearcher - Identifies peptide MS/MS spectra by spectral matching with a searchable spectral library.
+  - @subpage TOPP_CruxAdapter - Identifies peptides in MS/MS spectra via Crux and tide-search.
 
   <b>Protein/Peptide Processing</b>
   - @subpage TOPP_ConsensusID - Computes a consensus identification from peptide identifications of several identification engines.

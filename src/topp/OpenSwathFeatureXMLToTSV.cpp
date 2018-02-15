@@ -309,7 +309,7 @@ void write_out_body_(std::ostream &os, Feature *feature_it, TargetedExperiment &
 Feature *find_best_feature(const std::vector<Feature *> &features, String score_)
 {
   double best_score = -std::numeric_limits<double>::max();
-  Feature *best_feature = NULL;
+  Feature *best_feature = nullptr;
 
   for (Size i = 0; i < features.size(); i++)
   {
@@ -350,7 +350,7 @@ void write_out_body_best_score(std::ostream &os, FeatureMap &feature_map,
   for (PeptideFeatureMapType::iterator peptide_it = peptide_feature_map.begin(); peptide_it != peptide_feature_map.end(); ++peptide_it)
   {
     Feature *bestfeature = find_best_feature(peptide_it->second, best_score);
-    if (bestfeature == NULL)
+    if (bestfeature == nullptr)
     {
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Did not find best feature for peptide " + peptide_it->first);
     }
@@ -371,7 +371,7 @@ public:
 
 protected:
 
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     registerInputFileList_("in", "<files>", StringList(), "Input files separated by blank");
     setValidFormats_("in", ListUtils::create<String>("featureXML"));
@@ -403,7 +403,7 @@ protected:
     endProgress();
   }
 
-  ExitCodes main_(int, const char **)
+  ExitCodes main_(int, const char **) override
   {
 
     StringList file_list = getStringList_("in");

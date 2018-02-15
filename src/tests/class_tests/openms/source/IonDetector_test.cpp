@@ -47,8 +47,8 @@ START_TEST(IonDetector, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-IonDetector* ptr = 0;
-IonDetector* nullPointer = 0;
+IonDetector* ptr = nullptr;
+IonDetector* nullPointer = nullptr;
 START_SECTION((IonDetector()))
 	ptr = new IonDetector();
 	TEST_NOT_EQUAL(ptr, nullPointer)

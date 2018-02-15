@@ -46,8 +46,8 @@ START_TEST(FeatureFinderDefs, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-FeatureFinderDefs* ptr = 0;
-FeatureFinderDefs* null_ptr = 0;
+FeatureFinderDefs* ptr = nullptr;
+FeatureFinderDefs* null_ptr = nullptr;
 START_SECTION(FeatureFinderDefs())
 {
 	ptr = new FeatureFinderDefs();

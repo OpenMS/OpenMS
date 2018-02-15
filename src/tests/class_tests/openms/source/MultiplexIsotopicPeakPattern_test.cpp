@@ -46,7 +46,7 @@ MultiplexDeltaMasses mass_shifts;
 mass_shifts.getDeltaMasses().push_back(MultiplexDeltaMasses::DeltaMass(0,"no_label"));
 mass_shifts.getDeltaMasses().push_back(MultiplexDeltaMasses::DeltaMass(6.031817,"Arg6"));
 
-MultiplexIsotopicPeakPattern* nullPointer = 0;
+MultiplexIsotopicPeakPattern* nullPointer = nullptr;
 MultiplexIsotopicPeakPattern* ptr;
 
 START_SECTION(MultiplexIsotopicPeakPattern(int c, int ppp, MultiplexDeltaMasses ms, int msi))

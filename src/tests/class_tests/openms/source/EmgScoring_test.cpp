@@ -53,8 +53,8 @@ START_TEST(EmgScoring, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-EmgScoring* ptr = 0;
-EmgScoring* nullPointer = 0;
+EmgScoring* ptr = nullptr;
+EmgScoring* nullPointer = nullptr;
 
 START_SECTION(EmgScoring())
 {

@@ -10,6 +10,16 @@
     </Protein>
   </ProteinList>
   <CompoundList>
+    <Peptide id="DECOY_AAAAAK" sequence="AAAAAK">
+      <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="3"/>
+      <cvParam cvRef="" accession="" name="full_peptide_name" value="AAAAAK"/>
+      <ProteinRef ref="DECOY_AQRT"/>
+      <RetentionTimeList>
+        <RetentionTime>
+          <cvParam cvRef="MS" accession="MS:1000896" name="normalized retention time" value="54.97"/>
+        </RetentionTime>
+      </RetentionTimeList>
+    </Peptide>
     <Peptide id="DECOY_ADVTPADFSEWSK" sequence="SWESFDAPTVDAK">
       <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
       <cvParam cvRef="" accession="" name="full_peptide_name" value="ADVTPADFSEWSK"/>
@@ -125,7 +135,7 @@
       <userParam name="full_peptide_name" type="xsd:string" value="AAAAAAAAAASGAAIPPLIPPRRVITLYQC(UniMod:4)FSVSQR"/>
       <ProteinRef ref="DECOY_O14654"/>
       <Modification location="6" monoisotopicMassDelta="57.021464" averageMassDelta="57.0513">
-           <cvParam cvRef="UNIMOD" accession="UNIMOD:4" name="Carbamidomethyl"/>
+        <cvParam cvRef="UNIMOD" accession="UNIMOD:4" name="Carbamidomethyl"/>
       </Modification>
       <RetentionTimeList>
         <RetentionTime>
@@ -194,6 +204,32 @@
       <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="3987.2"/>
       <cvParam cvRef="MS" accession="MS:1002008" name="decoy SRM transition"/>
       <userParam name="annotation" type="xsd:string" value="0"/>
+    </Transition>
+    <Transition id="DECOY_AAAAAK.exclude_similar_test1" peptideRef="DECOY_AAAAAK">
+      <Precursor>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="251.75" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+      </Precursor>
+      <Product>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="180.6157" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+      </Product>
+      <cvParam cvRef="" accession="" name="annotation" value="AAAAAK0"/>
+      <cvParam cvRef="MS" accession="MS:1000045" name="collision energy" value="37.48"/>
+      <cvParam cvRef="MS" accession="decoy" name="decoy" value="0"/>
+      <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="100"/>
+      <cvParam cvRef="MS" accession="MS:1002008" name="decoy SRM transition"/>
+    </Transition>
+    <Transition id="DECOY_AAAAAK.exclude_similar_test2" peptideRef="DECOY_AAAAAK">
+      <Precursor>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="251.75" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+      </Precursor>
+      <Product>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="144.4253" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+      </Product>
+      <cvParam cvRef="" accession="" name="annotation" value="AAAAAK0"/>
+      <cvParam cvRef="MS" accession="MS:1000045" name="collision energy" value="37.48"/>
+      <cvParam cvRef="MS" accession="decoy" name="decoy" value="0"/>
+      <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="100"/>
+      <cvParam cvRef="MS" accession="MS:1002008" name="decoy SRM transition"/>
     </Transition>
     <Transition id="DECOY_AQRT.ADVTPADFSEWSK.2_y9_1.light" peptideRef="DECOY_ADVTPADFSEWSK">
       <Precursor>

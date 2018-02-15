@@ -59,12 +59,12 @@ public:
       MzDataValidator(const CVMappings & mapping, const ControlledVocabulary & cv);
 
       /// Destructor
-      virtual ~MzDataValidator();
+      ~MzDataValidator() override;
 
 protected:
 
       //Docu in base class
-      void handleTerm_(const String & path, const CVTerm & parsed_term);
+      void handleTerm_(const String & path, const CVTerm & parsed_term) override;
 
 private:
 

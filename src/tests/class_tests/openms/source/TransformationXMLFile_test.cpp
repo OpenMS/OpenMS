@@ -49,8 +49,8 @@ START_TEST(FASTAFile, "$Id$")
 using namespace OpenMS;
 using namespace std;
 
-TransformationXMLFile* ptr = 0;
-TransformationXMLFile* nullPointer = 0;
+TransformationXMLFile* ptr = nullptr;
+TransformationXMLFile* nullPointer = nullptr;
 
 START_SECTION((TransformationXMLFile()))
 {

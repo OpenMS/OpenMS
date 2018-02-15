@@ -51,8 +51,8 @@ START_TEST(SpectrumAccessSqMass, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-SpectrumAccessSqMass* ptr = 0;
-SpectrumAccessSqMass* nullPointer = 0;
+SpectrumAccessSqMass* ptr = nullptr;
+SpectrumAccessSqMass* nullPointer = nullptr;
 
 boost::shared_ptr<PeakMap > exp(new PeakMap);
 OpenSwath::SpectrumAccessPtr expptr = SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(exp);
@@ -111,11 +111,17 @@ START_SECTION(SpectrumAccessSqMass(SpectrumAccessSqMass sp, std::vector<int> ind
     TEST_EQUAL(ptr->getNrSpectra(), 1)
   }
 
-  // this should not work, ptr has now only a single spectrum
-  std::vector<int> indices;
-  indices.push_back(1);
-  ptr = new SpectrumAccessSqMass(*ptr, indices);
+  // this should not work:
+  // selecting subset of data (only second spectrum) shouldn't work if there is only a single spectrum
+  {
+    std::vector<int> indices;
+    indices.push_back(1);
+    TEST_EXCEPTION(Exception::IllegalArgument, new SpectrumAccessSqMass(*ptr, indices))
 
+    std::vector<int> indices2;
+    indices2.push_back(50);
+    TEST_EXCEPTION(Exception::IllegalArgument, new SpectrumAccessSqMass(*ptr, indices))
+  }
 }
 END_SECTION
 

@@ -53,8 +53,8 @@ START_TEST(ConsensusMap, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-ConsensusMap* ptr = 0;
-ConsensusMap* nullPointer = 0;
+ConsensusMap* ptr = nullptr;
+ConsensusMap* nullPointer = nullptr;
 START_SECTION((ConsensusMap()))
 	ptr = new ConsensusMap();
 	TEST_NOT_EQUAL(ptr, nullPointer)
@@ -312,8 +312,8 @@ END_SECTION
 
 /////
 
-ConsensusMap::FileDescription* fd_ptr = 0;
-ConsensusMap::FileDescription* fd_nullPointer = 0;
+ConsensusMap::FileDescription* fd_ptr = nullptr;
+ConsensusMap::FileDescription* fd_nullPointer = nullptr;
 
 START_SECTION(([ConsensusMap::FileDescription] FileDescription()))
 fd_ptr = new ConsensusMap::FileDescription();

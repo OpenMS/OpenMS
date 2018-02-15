@@ -103,7 +103,7 @@ protected:
     peptides.swap(unique);
   }
 
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "Input file (data annotated with identifications)");
     setValidFormats_("in", ListUtils::create<String>("mzML,featureXML,consensusXML"));
@@ -113,7 +113,7 @@ protected:
     setValidFormats_("id_out", ListUtils::create<String>("idXML"));
   }
 
-  ExitCodes main_(int, const char **)
+  ExitCodes main_(int, const char **) override
   {
     String in = getStringOption_("in"), out = getStringOption_("out"),
            id_out = getStringOption_("id_out");

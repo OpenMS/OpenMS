@@ -56,7 +56,7 @@ namespace OpenMS
     ElutionModelFitter();
 
     /// Destructor
-    virtual ~ElutionModelFitter();
+    ~ElutionModelFitter() override;
 
     /**
        @brief Fit models of elution profiles to all features (and validate them)

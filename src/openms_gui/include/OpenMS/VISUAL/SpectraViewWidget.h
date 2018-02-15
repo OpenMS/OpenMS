@@ -55,9 +55,9 @@ namespace OpenMS
     Q_OBJECT
 public:
     /// Constructor
-    SpectraViewWidget(QWidget * parent = 0);
+    SpectraViewWidget(QWidget * parent = nullptr);
     /// Destructor
-    virtual ~SpectraViewWidget();
+    ~SpectraViewWidget() override;
     QTreeWidget * getTreeWidget();
     QComboBox * getComboBox();
     void updateEntries(const LayerData & cl);
@@ -76,11 +76,11 @@ private:
     /// cache to store mapping of chromatogram precursors to chromatogram indices
     std::map<size_t, std::map<Precursor, std::vector<Size>, Precursor::MZLess> > map_precursor_to_chrom_idx_cache_;
 private slots:
-    void spectrumSearchText_(); //< searches for rows containing a search text (from spectra_search_box_); called when text search box is used
+    void spectrumSearchText_(); ///< searches for rows containing a search text (from spectra_search_box_); called when text search box is used
     void spectrumBrowserHeaderContextMenu_(const QPoint &);
     void spectrumSelectionChange_(QTreeWidgetItem *, QTreeWidgetItem *);
-    void searchAndShow_(); //< searches using text box and plots the spectrum
-    void spectrumDoubleClicked_(QTreeWidgetItem *); //< called upon double click; emits spectrumDoubleClicked() after some checking (opens a new Tab)
+    void searchAndShow_(); ///< searches using text box and plots the spectrum
+    void spectrumDoubleClicked_(QTreeWidgetItem *); ///< called upon double click; emits spectrumDoubleClicked() after some checking (opens a new Tab)
     void spectrumContextMenu_(const QPoint &);
   };
 }

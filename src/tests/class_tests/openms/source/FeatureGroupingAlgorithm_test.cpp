@@ -54,7 +54,7 @@ namespace OpenMS
 	 : public FeatureGroupingAlgorithm
 	{
 		public:
-			void group(const vector< FeatureMap >&, ConsensusMap& map)
+			void group(const vector< FeatureMap >&, ConsensusMap& map) override
 			{
 			  map.getFileDescriptions()[0].filename = "bla";
 				map.getFileDescriptions()[0].size = 5;
@@ -67,8 +67,8 @@ START_TEST(FeatureGroupingAlgorithm, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-FGA* ptr = 0;
-FGA* nullPointer = 0;
+FGA* ptr = nullptr;
+FGA* nullPointer = nullptr;
 START_SECTION((FeatureGroupingAlgorithm()))
 	ptr = new FGA();
 	TEST_NOT_EQUAL(ptr, nullPointer)

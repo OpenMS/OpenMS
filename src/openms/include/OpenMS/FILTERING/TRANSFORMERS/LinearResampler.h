@@ -75,7 +75,7 @@ public:
     }
 
     /// Destructor.
-    ~LinearResampler()
+    ~LinearResampler() override
     {
     }
 
@@ -160,7 +160,7 @@ protected:
     /// Spacing of the resampled data
     double spacing_;
 
-    virtual void updateMembers_()
+    void updateMembers_() override
     {
       spacing_ =  param_.getValue("spacing");
     }

@@ -67,7 +67,7 @@ public:
     IDDecoyProbability(const IDDecoyProbability & rhs);
 
     /// Destructor
-    virtual ~IDDecoyProbability();
+    ~IDDecoyProbability() override;
 
     /// assignment operator
     IDDecoyProbability & operator=(const IDDecoyProbability & rhs);

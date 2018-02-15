@@ -74,8 +74,8 @@ namespace OpenMS
     action_mode_(AM_NEW_EDGE),
     vertices_(),
     edges_(),
-    hover_edge_(0),
-    potential_target_(0),
+    hover_edge_(nullptr),
+    potential_target_(nullptr),
     file_name_(),
     tmp_path_(tmp_path),
     gui_(gui),
@@ -83,11 +83,11 @@ namespace OpenMS
     changed_(false),
     running_(false),
     user_specified_out_dir_(false),
-    clipboard_(0),
+    clipboard_(nullptr),
     dry_run_(true),
     threads_active_(0),
     allowed_threads_(1),
-    resume_source_(0)
+    resume_source_(nullptr)
   {
     /*	ATTENTION!
 
@@ -210,7 +210,7 @@ namespace OpenMS
     else
     {
       hover_edge_->setColor(Qt::black);
-      potential_target_ = 0;
+      potential_target_ = nullptr;
     }
   }
 
@@ -308,7 +308,7 @@ namespace OpenMS
       edges_.removeAll(hover_edge_);
       removeItem(hover_edge_);
       delete hover_edge_;
-      hover_edge_ = 0;
+      hover_edge_ = nullptr;
     }
 
     topoSort();
@@ -320,7 +320,7 @@ namespace OpenMS
     QList<QGraphicsItem*> target_list = items(pos);
 
     // return first item that is a vertex
-    TOPPASVertex* target = 0;
+    TOPPASVertex* target = nullptr;
     for (QList<QGraphicsItem*>::iterator it = target_list.begin(); it != target_list.end(); ++it)
     {
       target = dynamic_cast<TOPPASVertex*>(*it);
@@ -335,7 +335,7 @@ namespace OpenMS
 
   void TOPPASScene::copySelected()
   {
-    TOPPASScene* tmp_scene = new TOPPASScene(0, this->getTempDir(), false);
+    TOPPASScene* tmp_scene = new TOPPASScene(nullptr, this->getTempDir(), false);
     Map<TOPPASVertex*, TOPPASVertex*> vertex_map;
 
     foreach(TOPPASVertex* v, vertices_)
@@ -345,7 +345,7 @@ namespace OpenMS
         continue;
       }
 
-      TOPPASVertex* new_v = 0;
+      TOPPASVertex* new_v = nullptr;
 
       TOPPASInputFileListVertex* iflv = qobject_cast<TOPPASInputFileListVertex*>(v);
       if (iflv)
@@ -427,7 +427,7 @@ namespace OpenMS
   {
     emit requestClipboardContent();
 
-    if (clipboard_ != 0)
+    if (clipboard_ != nullptr)
     {
       include(clipboard_, pos);
     }
@@ -466,14 +466,14 @@ namespace OpenMS
       }
     }
 
-    TOPPASEdge* edge;
+    TOPPASEdge* edge = nullptr;
     foreach(edge, edges_to_be_removed)
     {
       edges_.removeAll(edge);
       removeItem(edge); // remove from scene
       delete edge;
     }
-    TOPPASVertex* vertex;
+    TOPPASVertex* vertex = nullptr;
     foreach(vertex, vertices_to_be_removed)
     {
       vertices_.removeAll(vertex);
@@ -488,7 +488,7 @@ namespace OpenMS
 
   bool TOPPASScene::isEdgeAllowed_(TOPPASVertex* u, TOPPASVertex* v)
   {
-    if (u == 0 || v == 0 || u == v ||
+    if (u == nullptr || v == nullptr || u == v ||
         // edges leading to input files make no sense:
         qobject_cast<TOPPASInputFileListVertex*>(v) ||
         // neither do edges coming from output files:
@@ -551,7 +551,7 @@ namespace OpenMS
     foreach(TOPPASVertex* vertex, vertices_)
     {
       vertex->setDFSColor(TOPPASVertex::DFS_WHITE);
-      vertex->setDFSParent(0);
+      vertex->setDFSParent(nullptr);
     }
     foreach(TOPPASVertex* vertex, vertices_)
     {
@@ -622,7 +622,7 @@ namespace OpenMS
   {
 
     error_occured_ = false;
-    resume_source_ = 0; // we are not resuming, so reset the resume node
+    resume_source_ = nullptr; // we are not resuming, so reset the resume node
 
     // reset all nodes
     for (VertexIterator it = verticesBegin(); it != verticesEnd(); ++it)
@@ -863,7 +863,7 @@ namespace OpenMS
       }
       else if (this->gui_)
       {
-        if (QMessageBox::warning(0, tr("Old TOPPAS file -- convert and override?"), tr("The TOPPAS file you downloaded was created with an old incompatible version of TOPPAS.\nShall we try to convert the file?! The original file will be overridden, but a backup file will be saved in the same directory.\n"), QMessageBox::Yes, QMessageBox::No) == QMessageBox::No)
+        if (QMessageBox::warning(nullptr, tr("Old TOPPAS file -- convert and override?"), tr("The TOPPAS file you downloaded was created with an old incompatible version of TOPPAS.\nShall we try to convert the file?! The original file will be overridden, but a backup file will be saved in the same directory.\n"), QMessageBox::Yes, QMessageBox::No) == QMessageBox::No)
         {
           return;
         }
@@ -878,7 +878,7 @@ namespace OpenMS
         std::cerr << cmd << "\n\n";
         if (std::system(cmd.c_str()))
         {
-          QMessageBox::warning(0, tr("INIUpdater failed"), tr("Updating using the INIUpdater tool failed. Please submit a bug report!\n"), QMessageBox::Ok);
+          QMessageBox::warning(nullptr, tr("INIUpdater failed"), tr("Updating using the INIUpdater tool failed. Please submit a bug report!\n"), QMessageBox::Ok);
           return;
         }
         // reload updated file
@@ -888,7 +888,7 @@ namespace OpenMS
     }
     else if (v_file > v_this_high)
     {
-      if (this->gui_ && QMessageBox::warning(0, tr("TOPPAS file too new"), tr("The TOPPAS file you downloaded was created with a more recent version of TOPPAS. Shall we will try to open it?\nIf this fails, update to the new TOPPAS version.\n"), QMessageBox::Yes, QMessageBox::No) == QMessageBox::No)
+      if (this->gui_ && QMessageBox::warning(nullptr, tr("TOPPAS file too new"), tr("The TOPPAS file you downloaded was created with a more recent version of TOPPAS. Shall we will try to open it?\nIf this fails, update to the new TOPPAS version.\n"), QMessageBox::Yes, QMessageBox::No) == QMessageBox::No)
         return;
     }
 
@@ -908,7 +908,7 @@ namespace OpenMS
     }
 
     String current_type, current_id;
-    TOPPASVertex* current_vertex = 0;
+    TOPPASVertex* current_vertex = nullptr;
     QVector<TOPPASVertex*> vertex_vector;
     vertex_vector.resize((Size)(int)load_param.getValue("info:num_vertices"));
 
@@ -919,7 +919,7 @@ namespace OpenMS
       it.getName().split(':', substrings);
       if (substrings.back() == "toppas_type") // next node (all nodes have a "toppas_type")
       {
-        current_vertex = 0;
+        current_vertex = nullptr;
         current_type = (it->value).toString();
         current_id = substrings[0];
         Int index = current_id.toInt();
@@ -1167,7 +1167,7 @@ namespace OpenMS
     for (VertexIterator it = tmp_scene->verticesBegin(); it != tmp_scene->verticesEnd(); ++it)
     {
       TOPPASVertex* v = *it;
-      TOPPASVertex* new_v = 0;
+      TOPPASVertex* new_v = nullptr;
 
       TOPPASInputFileListVertex* iflv = qobject_cast<TOPPASInputFileListVertex*>(v);
       if (iflv)
@@ -1658,8 +1658,8 @@ namespace OpenMS
     running_ = b;
     if (!running_) // whenever we stop the pipeline and user is not looking, the icon should flash
     {
-      resume_source_ = 0;
-      QApplication::alert(0); // flash Taskbar || Dock
+      resume_source_ = nullptr;
+      QApplication::alert(nullptr); // flash Taskbar || Dock
     }
   }
 
@@ -1698,11 +1698,11 @@ namespace OpenMS
     QGraphicsItem* clicked_item = itemAt(scene_pos);
     QMenu menu;
 
-    if (clicked_item == 0)
+    if (clicked_item == nullptr)
     {
       QAction* new_action = menu.addAction("Paste");
       emit requestClipboardContent();
-      if (clipboard_ == 0)
+      if (clipboard_ == nullptr)
       {
         new_action->setEnabled(false);
       }
@@ -2044,7 +2044,7 @@ namespace OpenMS
     {
       if (allowUserOverride)
       {
-        QMessageBox::warning(0, "No input files", "The pipeline does not contain any input file nodes!");
+        QMessageBox::warning(nullptr, "No input files", "The pipeline does not contain any input file nodes!");
       }
       else
       {
@@ -2294,7 +2294,7 @@ namespace OpenMS
         {
           if (gui_)
           {
-            QMessageBox::warning(0, "Non-unique input node names", "Some of the input nodes have the same names. Cannot create resource file.");
+            QMessageBox::warning(nullptr, "Non-unique input node names", "Some of the input nodes have the same names. Cannot create resource file.");
           }
           else
           {

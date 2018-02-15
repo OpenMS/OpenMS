@@ -73,7 +73,7 @@ public:
   }
 
   /// Destructor
-  ~KDTreeFeatureMaps()
+  ~KDTreeFeatureMaps() override
   {
   }
 
@@ -141,7 +141,7 @@ public:
 
 protected:
 
-  virtual void updateMembers_();
+  void updateMembers_() override;
 
   /// Feature data
   std::vector<const BaseFeature*> features_;

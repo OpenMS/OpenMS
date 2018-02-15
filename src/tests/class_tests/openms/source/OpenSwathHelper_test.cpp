@@ -52,8 +52,8 @@ using namespace std;
 using namespace OpenMS;
 using namespace OpenSwath;
 
-OpenSwathHelper* ptr = 0;
-OpenSwathHelper* nullPointer = 0;
+OpenSwathHelper* ptr = nullptr;
+OpenSwathHelper* nullPointer = nullptr;
 
 START_SECTION(OpenSwathHelper())
 {

@@ -182,22 +182,21 @@ public:
       endProgress();
 
       FullSwathFileConsumer* dataConsumer;
-      boost::shared_ptr<PeakMap> exp(new PeakMap);
       startProgress(0, 1, "Loading data file " + file);
       if (readoptions == "normal")
       {
         dataConsumer = new RegularSwathFileConsumer(known_window_boundaries);
-        MzMLFile().transform(file, dataConsumer, *exp.get());
+        MzMLFile().transform(file, dataConsumer);
       }
       else if (readoptions == "cache")
       {
         dataConsumer = new CachedSwathFileConsumer(known_window_boundaries, tmp, tmp_fname, nr_ms1_spectra, swath_counter);
-        MzMLFile().transform(file, dataConsumer, *exp.get());
+        MzMLFile().transform(file, dataConsumer);
       }
       else if (readoptions == "split")
       {
         dataConsumer = new MzMLSwathFileConsumer(known_window_boundaries, tmp, tmp_fname, nr_ms1_spectra, swath_counter);
-        MzMLFile().transform(file, dataConsumer, *exp.get());
+        MzMLFile().transform(file, dataConsumer);
       }
       else
       {
@@ -239,22 +238,21 @@ public:
       endProgress();
 
       FullSwathFileConsumer* dataConsumer;
-      boost::shared_ptr<PeakMap > exp(new PeakMap);
       startProgress(0, 1, "Loading data file " + file);
       if (readoptions == "normal")
       {
         dataConsumer = new RegularSwathFileConsumer(known_window_boundaries);
-        MzXMLFile().transform(file, dataConsumer, *exp.get());
+        MzXMLFile().transform(file, dataConsumer);
       }
       else if (readoptions == "cache")
       {
         dataConsumer = new CachedSwathFileConsumer(known_window_boundaries, tmp, tmp_fname, nr_ms1_spectra, swath_counter);
-        MzXMLFile().transform(file, dataConsumer, *exp.get());
+        MzXMLFile().transform(file, dataConsumer);
       }
       else if (readoptions == "split")
       {
         dataConsumer = new MzMLSwathFileConsumer(known_window_boundaries, tmp, tmp_fname, nr_ms1_spectra, swath_counter);
-        MzXMLFile().transform(file, dataConsumer, *exp.get());
+        MzXMLFile().transform(file, dataConsumer);
       }
       else
       {
@@ -333,7 +331,7 @@ protected:
     }
 
     /// Counts the number of scans in a full Swath file (e.g. concatenated non-split file)
-    void countScansInSwath_(const std::vector<MSSpectrum> exp,
+    void countScansInSwath_(const std::vector<MSSpectrum>& exp,
                             std::vector<int>& swath_counter, int& nr_ms1_spectra, 
                             std::vector<OpenSwath::SwathMap>& known_window_boundaries)
     {

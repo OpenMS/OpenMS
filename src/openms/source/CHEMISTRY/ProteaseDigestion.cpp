@@ -196,4 +196,5 @@ namespace OpenMS
     }
   }
 
-} //namespace
+} //namespace OpenMS
+

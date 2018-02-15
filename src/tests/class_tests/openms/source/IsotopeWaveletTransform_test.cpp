@@ -40,7 +40,7 @@
 #include <OpenMS/KERNEL/Peak1D.h>
 #include <OpenMS/FORMAT/MzDataFile.h>
 
-#include <math.h>
+#include <cmath>
 #include <fstream>
 
 using namespace OpenMS;
@@ -51,9 +51,9 @@ START_TEST(IsotopeWaveletTransform, "$Id$")
 PeakMap map;
 MzDataFile file; file.load (OPENMS_GET_TEST_DATA_PATH("IsotopeWaveletTransform_test.mzData"), map);
 map.updateRanges();
-IsotopeWaveletTransform<Peak1D>* iw = 0;
-IsotopeWaveletTransform<Peak1D>* nullIw = 0;
-IsotopeWaveletTransform<Peak1D>::TransSpectrum* test2 = 0;
+IsotopeWaveletTransform<Peak1D>* iw = nullptr;
+IsotopeWaveletTransform<Peak1D>* nullIw = nullptr;
+IsotopeWaveletTransform<Peak1D>::TransSpectrum* test2 = nullptr;
 MSSpectrum* spec = new MSSpectrum (map[0]);
 
 START_SECTION([IsotopeWaveletTransform::TransSpectrum] TransSpectrum())
@@ -64,7 +64,7 @@ END_SECTION
 START_SECTION([IsotopeWaveletTransform::TransSpectrum] TransSpectrum(const MSSpectrum* reference))
 	test2 = new IsotopeWaveletTransform<Peak1D>::TransSpectrum (spec);
 	const MSSpectrum* ref = test2->getRefSpectrum();
-  const MSSpectrum* nullPtr = 0;
+  const MSSpectrum* nullPtr = nullptr;
 	TEST_NOT_EQUAL (ref, nullPtr)
 END_SECTION
 

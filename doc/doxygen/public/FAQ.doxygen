@@ -60,6 +60,11 @@
 				- build time: disabling it in the build script (switch ENABLE_UPDATE_CHECK to "OFF" )
 				- runtime: setting the environment variable (OPENMS_DISABLE_UPDATE_CHECK to "ON")
 				
+      <LI><B>How can I change the temporary directory that OpenMS uses?</B><BR>
+        By default OpenMS will use the system wide temporary directory (defined
+        either by TMPDIR, TEMP or TMP environmental variable). You can override
+        this by settting the parameter "temp_dir" in the OpenMS.ini or setting
+        the environmental variable OPENMS_TMPDIR.
 
       <LI><B>Calling msConvert (of ProteoWizard) results in small mzML files with no peak data.</B><BR>
 				The Thermo interface expects an english locale setting. Otherwise it will silently forget to

@@ -47,8 +47,8 @@ START_TEST(SignalToNoiseEstimatorMedianRapid, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-SignalToNoiseEstimatorMedianRapid* ptr = 0;
-SignalToNoiseEstimatorMedianRapid* nullPointer = 0;
+SignalToNoiseEstimatorMedianRapid* ptr = nullptr;
+SignalToNoiseEstimatorMedianRapid* nullPointer = nullptr;
 START_SECTION((SignalToNoiseEstimatorMedianRapid()))
 	ptr = new SignalToNoiseEstimatorMedianRapid(200);
 	TEST_NOT_EQUAL(ptr, nullPointer)

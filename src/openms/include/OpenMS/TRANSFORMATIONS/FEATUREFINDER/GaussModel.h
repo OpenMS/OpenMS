@@ -62,7 +62,7 @@ public:
     GaussModel(const GaussModel & source);
 
     /// destructor
-    virtual ~GaussModel();
+    ~GaussModel() override;
 
     /// assignment operator
     virtual GaussModel & operator=(const GaussModel & source);
@@ -84,20 +84,20 @@ public:
         The whole model will be shifted to the new offset without being computing all over.
         and without any discrepancy.
     */
-    void setOffset(CoordinateType offset);
+    void setOffset(CoordinateType offset) override;
 
     /// set sample/supporting points of interpolation
-    void setSamples();
+    void setSamples() override;
 
     /// get the center of the Gaussian model i.e. the position of the maximum
-    CoordinateType getCenter() const;
+    CoordinateType getCenter() const override;
 
 protected:
     CoordinateType  min_;
     CoordinateType  max_;
     BasicStatistics statistics_;
 
-    void updateMembers_();
+    void updateMembers_() override;
   };
 }
 

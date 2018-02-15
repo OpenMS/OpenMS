@@ -72,7 +72,7 @@ public:
     MRMFeature & operator=(const MRMFeature & rhs);
 
     /// Destructor
-    virtual ~MRMFeature();
+    ~MRMFeature() override;
     //@}
 
     ///@name Accessors

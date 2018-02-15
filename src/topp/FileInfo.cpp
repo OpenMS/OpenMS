@@ -136,7 +136,7 @@ public:
   }
 
 protected:
-  virtual void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "input file ");
     setValidFormats_("in", ListUtils::create<String>("mzData,mzXML,mzML,dta,dta2d,mgf,featureXML,consensusXML,idXML,pepXML,fid,mzid,trafoXML,fasta"));
@@ -156,7 +156,7 @@ protected:
   }
 
   template <class Map>
-  void writeRangesHumanReadable_(Map map, ostream &os)
+  void writeRangesHumanReadable_(const Map& map, ostream &os)
   {
     os << "Ranges:"
        << "\n"
@@ -167,7 +167,7 @@ protected:
   }
 
   template <class Map>
-  void writeRangesMachineReadable_(Map map, ostream &os)
+  void writeRangesMachineReadable_(const Map& map, ostream &os)
   {
     os << "retention time (min)"
        << "\t" << String::number(map.getMin()[Peak2D::RT], 2) << "\n"
@@ -369,11 +369,11 @@ protected:
       if (ifile.getParsingSuccess())
       {
         // Validate that we can access each single spectrum and chromatogram
-        for (Size i = 0; i < ifile.getNrSpectra(); i++)
+        for (int i = 0; i < (int)ifile.getNrSpectra(); i++)
         {
           OpenMS::Interfaces::SpectrumPtr p = ifile.getSpectrumById(i);
         }
-        for (Size i = 0; i < ifile.getNrChromatograms(); i++)
+        for (int i = 0; i < (int)ifile.getNrChromatograms(); i++)
         {
           OpenMS::Interfaces::ChromatogramPtr p = ifile.getChromatogramById(i);
         }
@@ -399,7 +399,7 @@ protected:
       FASTAFile file;
 
       map<char, int> aacids;
-      int number_of_aacids = 0;
+      size_t number_of_aacids = 0;
 
       SysInfo::MemUsage mu;
       //loading input
@@ -459,29 +459,29 @@ protected:
       writeRangesMachineReadable_(feat, os_tsv);
 
       // Charge distribution and TIC
-      Map<UInt, UInt> charges;
-      Map<UInt, UInt> numberofids;
+      Map<Int, UInt> charges;
+      Map<size_t, UInt> numberofids;
       double tic = 0.0;
       for (Size i = 0; i < feat.size(); ++i)
       {
-        charges[feat[i].getCharge()]++;
+        ++charges[feat[i].getCharge()];
         tic += feat[i].getIntensity();
         const vector<PeptideIdentification> &peptide_ids = feat[i].getPeptideIdentifications();
-        numberofids[peptide_ids.size()]++;
+        ++numberofids[peptide_ids.size()];
       }
 
       os << "Total ion current in features: " << tic << "\n";
       os << "\n"
          << "Charge distribution:"
          << "\n";
-      for (Map<UInt, UInt>::const_iterator it = charges.begin(); it != charges.end(); ++it)
+      for (auto it = charges.begin(); it != charges.end(); ++it)
       {
         os << "  charge " << it->first << ": " << it->second << "\n";
       }
 
       os << "\n"
          << "Distribution of peptide identifications (IDs) per feature:\n";
-      for (Map<UInt, UInt>::const_iterator it = numberofids.begin(); it != numberofids.end(); ++it)
+      for (auto it = numberofids.begin(); it != numberofids.end(); ++it)
       {
         os << "  " << it->first << " IDs: " << it->second << "\n";
       }
@@ -600,7 +600,7 @@ protected:
           for (Size j = 0; j < temp_hits.size(); ++j)
           {
             peptides.insert(temp_hits[j].getSequence().toString());
-            peptide_length.push_back(temp_hits[j].getSequence().size());
+            peptide_length.push_back((uint16_t)temp_hits[j].getSequence().size());
           }
         }
       }
@@ -663,7 +663,7 @@ protected:
       os << "\nTransformation model: " << trafo.getModelType() << "\n";
       trafo.printSummary(os);
     }
-    else //peaks
+    else // peaks
     {
 
       SysInfo::MemUsage mu;
@@ -673,69 +673,55 @@ protected:
         printUsage_();
         return ILLEGAL_PARAMETERS;
       }
-      // report memory consumption
-      std::cout << "\n\n" << mu.delta("loading MS data") << std::endl;
 
-      //check if the meta data indicates that this is peak data
-      UInt meta_type = SpectrumSettings::UNKNOWN;
-      if (exp.size() > 0)
-      {
-        for (Size i = 0; i < exp[0].getDataProcessing().size(); ++i)
-        {
-          if (exp[0].getDataProcessing()[i]->getProcessingActions().count(DataProcessing::PEAK_PICKING) == 1)
-          {
-            meta_type = SpectrumSettings::PEAKS;
-          }
-        }
-      }
-      //determine type (search for the first scan with at least 5 peaks)
-      UInt type = SpectrumSettings::UNKNOWN;
-      UInt i = 0;
-      while (i < exp.size() && exp[i].size() < 5)
-      {
-        ++i;
-      }
-      if (i != exp.size())
-      {
-        type = PeakTypeEstimator().estimateType(exp[i].begin(), exp[i].end());
-      }
-      os << "\n"
-         << "Peak type (metadata): " << SpectrumSettings::NamesOfSpectrumType[meta_type] << "\n"
-         << "Peak type (estimated): " << SpectrumSettings::NamesOfSpectrumType[type] << "\n";
-      //if raw data, determine the spacing
-      if (type == SpectrumSettings::RAWDATA)
-      {
-        vector<float> spacing;
-        for (Size j = 1; j < exp[i].size(); ++j)
-        {
-          spacing.push_back(exp[i][j].getMZ() - exp[i][j - 1].getMZ());
-        }
-        sort(spacing.begin(), spacing.end());
-        os << "Estimated raw data spacing: " << spacing[spacing.size() / 2] << " (min: " << spacing[0] << ", max: " << spacing.back() << ")"
-           << "\n";
-        os_tsv << "estimated raw data spacing"
-               << "\t" << spacing[spacing.size() / 2] << "\n"
-               << "estimated raw data spacing (min)"
-               << "\t" << spacing[0] << "\n"
-               << "estimated raw data spacing (max)"
-               << "\t" << spacing.back() << "\n";
-      }
-      os << "\n";
-
-      //basic info
+      // update range information and retrieve which MS levels were recorded
       exp.updateRanges();
       vector<UInt> levels = exp.getMSLevels();
 
-      os << "Number of spectra: " << exp.size() << "\n";
-      os << "Number of peaks: " << exp.getSize() << "\n"
-         << "\n";
-      os_tsv << "number of spectra"
-             << "\t" << exp.size() << "\n"
-             << "number of peaks"
-             << "\t" << exp.getSize() << "\n";
+      // report memory consumption
+      std::cout << "\n\n" << mu.delta("loading MS data") << std::endl;
 
-      writeRangesHumanReadable_(exp, os);
-      writeRangesMachineReadable_(exp, os_tsv);
+      os << "\n";
+
+      // check if the meta data indicates that this is peak data
+      // and count how many spectra per MS level there are
+      map<Size, UInt> level_annotated_picked;
+      map<Size, UInt> level_estimated_picked;
+      map<Size, UInt> counts;
+      for (Size i = 0; i != exp.size(); ++i) 
+      { 
+        // read stored metadata
+        auto peak_type = exp[i].getType();
+
+
+        const Size level = exp[i].getMSLevel();
+
+        ++counts[level];  // count MS level
+
+        // annotate peak type (profile / centroided) from meta data
+        if (level_annotated_picked.count(level) == 0)
+        {
+          // Some conversion software only annotate "MS:1000525 spectrum representation" leading to an UNKNOWN type
+          // Fortunately, some store a data processing item that indicates that the data has been picked
+          if (peak_type == SpectrumSettings::UNKNOWN)
+          {
+            for (auto dp : exp[i].getDataProcessing())
+            {
+              if (dp->getProcessingActions().count(DataProcessing::PEAK_PICKING) == 1)
+              {
+                peak_type = SpectrumSettings::CENTROID;
+              }
+            }
+          }
+          level_annotated_picked[level] = peak_type;
+        }
+        
+        // estimate peak type once for every level (take a spectrum with enough peaks for stable estimation) 
+        if (level_estimated_picked.count(level) == 0 && exp[i].size() > 10)
+        {
+          level_estimated_picked[level] = PeakTypeEstimator().estimateType(exp[i].begin(), exp[i].end());
+        }
+      }
 
       os << "MS levels: ";
       if (!levels.empty())
@@ -748,18 +734,21 @@ protected:
       }
       os << "\n";
 
-      //count how many spectra per MS level there are
-      map<Size, UInt> counts;
-      for (PeakMap::iterator it = exp.begin(); it != exp.end(); ++it)
-      {
-        ++counts[it->getMSLevel()];
-      }
-      //output
+      // basic info
+      os << "Number of spectra: " << exp.size() << "\n";
+      os << "Number of peaks: " << exp.getSize() << "\n"
+         << "\n";
+      os_tsv << "number of spectra"
+             << "\t" << exp.size() << "\n"
+             << "number of peaks"
+             << "\t" << exp.getSize() << "\n";
+
+      // output
       if (!counts.empty())
       {
         os << "Number of spectra per MS level:"
            << "\n";
-        for (map<Size, UInt>::iterator it = counts.begin(); it != counts.end(); ++it)
+        for (auto it = counts.begin(); it != counts.end(); ++it)
         {
           os << "  level " << it->first << ": " << it->second << "\n";
           os_tsv << "number of MS" << it->first << " spectra"
@@ -768,10 +757,22 @@ protected:
         os << "\n";
       }
 
+      writeRangesHumanReadable_(exp, os);
+      writeRangesMachineReadable_(exp, os_tsv);
+
+      // write peak types (centroided / profile mode)
+      os << "Peak type metadata (estimated)\n"; 
+      for (auto const l : levels)
+      {
+        os << "  level " << l << ": " 
+           << SpectrumSettings::NamesOfSpectrumType[level_annotated_picked[l]] << " ("
+           << SpectrumSettings::NamesOfSpectrumType[level_estimated_picked[l]] << ")\n";
+      }
+
       // show meta data array names
       for (PeakMap::iterator it = exp.begin(); it != exp.end(); ++it)
       {
-        for (i = 0; i < it->getFloatDataArrays().size(); ++i)
+        for (Size i = 0; i < it->getFloatDataArrays().size(); ++i)
         {
           String name = it->getFloatDataArrays()[i].getName();
           if (meta_names.has(name))
@@ -783,7 +784,7 @@ protected:
             meta_names[name] = 1;
           }
         }
-        for (i = 0; i < it->getIntegerDataArrays().size(); ++i)
+        for (Size i = 0; i < it->getIntegerDataArrays().size(); ++i)
         {
           String name = it->getIntegerDataArrays()[i].getName();
           if (meta_names.has(name))
@@ -795,7 +796,7 @@ protected:
             meta_names[name] = 1;
           }
         }
-        for (i = 0; i < it->getStringDataArrays().size(); ++i)
+        for (Size i = 0; i < it->getStringDataArrays().size(); ++i)
         {
           String name = it->getStringDataArrays()[i].getName();
           if (meta_names.has(name))
@@ -887,26 +888,45 @@ protected:
            << "-- Detailed spectrum listing --"
            << "\n";
         UInt count = 0;
-        for (PeakMap::iterator it = exp.begin(); it != exp.end(); ++it)
+        for (auto const& spectrum : exp)
         {
           ++count;
           os << "\n"
              << "Spectrum " << count << ":"
              << "\n"
-             << "  mslevel:  " << it->getMSLevel() << "\n"
-             << "  scanMode: " << InstrumentSettings::NamesOfScanMode[it->getInstrumentSettings().getScanMode()] << "\n"
-             << "  peaks:    " << it->size() << "\n"
-             << "  RT:       " << it->getRT() << "\n"
-             << "  m/z:      ";
-          if (!it->empty())
+             << "  mslevel:    " << spectrum.getMSLevel() << "\n"
+             << "  scanMode:   " << InstrumentSettings::NamesOfScanMode[spectrum.getInstrumentSettings().getScanMode()] << "\n"
+             << "  peaks:      " << spectrum.size() << "\n"
+             << "  RT:         " << spectrum.getRT() << "\n"
+             << "  m/z:        ";
+
+          if (!spectrum.empty())
           {
-            os << it->begin()->getMZ() << " .. " << it->rbegin()->getMZ();
+            os << spectrum.begin()->getMZ() << " .. " << spectrum.rbegin()->getMZ() << "\n";
           }
-          os << "\n";
+
+          os << "Precursors:  " << spectrum.getPrecursors().size() <<  "\n";
+
+          auto pc_count = UInt{0};
+          for (auto const& pc : spectrum.getPrecursors())
+          {
+            os << "Precursor[" << pc_count << "]\n"
+               << "  charge: " << pc.getCharge() << "\n"
+               << "  mz:     " << pc.getMZ() << "\n"
+               << "  activation methods: \n";
+            for (auto const& am : pc.getActivationMethods())
+            {
+              os << "    " << Precursor::NamesOfActivationMethodShort[am] << " (" << Precursor::NamesOfActivationMethod[am] << ")\n";
+            }
+
+            os << "\n";
+
+            ++pc_count;
+          }
         }
       }
 
-      //Check for corrupt data
+      // Check for corrupt data
       if (getFlag_("c"))
       {
         os << "\n"
@@ -1461,7 +1481,7 @@ protected:
     return EXECUTION_OK;
   }
 
-  ExitCodes main_(int, const char **)
+  ExitCodes main_(int, const char **) override
   {
     String out = getStringOption_("out");
     String out_tsv = getStringOption_("out_tsv");

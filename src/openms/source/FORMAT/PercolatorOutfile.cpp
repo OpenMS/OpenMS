@@ -88,7 +88,7 @@ namespace OpenMS
     bool found = boost::regex_search(peptide, match, re);
     if (found && match["MOD1"].matched)
     {
-      const ResidueModification* null = 0;
+      const ResidueModification* null = nullptr;
       vector<const ResidueModification*> maybe_nterm(2, null);
       String residue = peptide[0];
       String mod1 = match["MOD1"].str();

@@ -196,7 +196,8 @@ namespace OpenMS
 
   double PeakShape::getFWHM() const
   {
-    static double m = log(sqrt(2.0) + 1);
+    // static double m = log1p(sqrt(2.0));
+    const double m = 0.88137358701954305; // log(1+sqrt(2.0))
 
     double fwhm = 0;
     if (right_width == 0. || left_width == 0.)
