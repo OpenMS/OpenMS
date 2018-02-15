@@ -58,6 +58,82 @@
 			</ProteinHit>
 		</ProteinIdentification>
 	</IdentificationRun>
+	<UnassignedPeptideIdentification identification_run_ref="PI_1" score_type="PeptideProphet probability" higher_score_better="true" significance_threshold="0" MZ="417.8854250319" RT="-305731.648356442" >
+		<PeptideHit score="0.4998" sequence="LNNNGIHINNK" charge="3" aa_before="R" aa_after="V" protein_refs="PH_0">
+		</PeptideHit>
+	</UnassignedPeptideIdentification>
+	<UnassignedPeptideIdentification identification_run_ref="PI_1" score_type="PeptideProphet probability" higher_score_better="true" significance_threshold="0" MZ="417.5592250319" RT="-312534.565253865" >
+		<PeptideHit score="0.472" sequence="LNNNGIHINNK" charge="3" aa_before="R" aa_after="V" protein_refs="PH_0">
+		</PeptideHit>
+	</UnassignedPeptideIdentification>
+	<UnassignedPeptideIdentification identification_run_ref="PI_1" score_type="PeptideProphet probability" higher_score_better="true" significance_threshold="0" MZ="417.7590250318" RT="-308362.144488949" >
+		<PeptideHit score="0.6882" sequence="NNNGIHINNK" charge="3" aa_before="R" aa_after="V" protein_refs="PH_0">
+		</PeptideHit>
+	</UnassignedPeptideIdentification>
+	<UnassignedPeptideIdentification identification_run_ref="PI_1" score_type="PeptideProphet probability" higher_score_better="true" significance_threshold="0" MZ="417.559158365233" RT="10608.7161749256" >
+		<PeptideHit score="0.5512" sequence="LNNNGIHINNK" charge="3" aa_before="R" aa_after="V" protein_refs="PH_1">
+		</PeptideHit>
+	</UnassignedPeptideIdentification>
+	<UnassignedPeptideIdentification identification_run_ref="PI_1" score_type="PeptideProphet probability" higher_score_better="true" significance_threshold="0" MZ="417.887358365233" RT="10326.5758406826" >
+		<PeptideHit score="0.7523" sequence="LNNNGIHINNK" charge="3" aa_before="R" aa_after="V" protein_refs="PH_1">
+		</PeptideHit>
+	</UnassignedPeptideIdentification>
+	<UnassignedPeptideIdentification identification_run_ref="PI_1" score_type="PeptideProphet probability" higher_score_better="true" significance_threshold="0" MZ="417.887691698567" RT="1170.81289773758" >
+		<PeptideHit score="0.1029" sequence="LNNNGIHINNK" charge="3" aa_before="R" aa_after="V" protein_refs="PH_2">
+		</PeptideHit>
+	</UnassignedPeptideIdentification>
+	<UnassignedPeptideIdentification identification_run_ref="PI_1" score_type="PeptideProphet probability" higher_score_better="true" significance_threshold="0" MZ="417.887291698567" RT="1183.79546105445" >
+		<PeptideHit score="0.2659" sequence="LNNNGIHINNK" charge="3" aa_before="R" aa_after="V" protein_refs="PH_2">
+		</PeptideHit>
+	</UnassignedPeptideIdentification>
+	<UnassignedPeptideIdentification identification_run_ref="PI_1" score_type="PeptideProphet probability" higher_score_better="true" significance_threshold="0" MZ="417.8861250319" RT="1152.49356828614" >
+		<PeptideHit score="0.8305" sequence="LNNNGIHINNK" charge="3" aa_before="R" aa_after="V" protein_refs="PH_2">
+		</PeptideHit>
+	</UnassignedPeptideIdentification>
+	<UnassignedPeptideIdentification identification_run_ref="PI_1" score_type="PeptideProphet probability" higher_score_better="true" significance_threshold="0" MZ="417.559991698567" RT="1121.2987082864" >
+		<PeptideHit score="0.4343" sequence="LNNNGIHINNK" charge="3" aa_before="R" aa_after="V" protein_refs="PH_2">
+		</PeptideHit>
+	</UnassignedPeptideIdentification>
+	<UnassignedPeptideIdentification identification_run_ref="PI_1" score_type="PeptideProphet probability" higher_score_better="true" significance_threshold="0" MZ="454.2384750319" RT="1122.64435371534" >
+		<PeptideHit score="0.8605" sequence="VKQPQADNNNKPFSAR" charge="4" aa_before="K" aa_after="Y" protein_refs="PH_4">
+		</PeptideHit>
+	</UnassignedPeptideIdentification>
+	<UnassignedPeptideIdentification identification_run_ref="PI_1" score_type="PeptideProphet probability" higher_score_better="true" significance_threshold="0" MZ="712.3170750319" RT="1125" >
+		<PeptideHit score="0.9969" sequence="DNSTADELTTNDK" charge="2" aa_before="K" aa_after="A" protein_refs="PH_5">
+		</PeptideHit>
+	</UnassignedPeptideIdentification>
+	<UnassignedPeptideIdentification identification_run_ref="PI_1" score_type="PeptideProphet probability" higher_score_better="true" significance_threshold="0" MZ="716.33557129" RT="2085.81807683832" >
+		<PeptideHit score="0.9981" sequence="DGDEIIIDADNNK" charge="2" aa_before="R" aa_after="I" protein_refs="PH_6">
+		</PeptideHit>
+	</UnassignedPeptideIdentification>
+	<UnassignedPeptideIdentification identification_run_ref="PI_1" score_type="PeptideProphet probability" higher_score_better="true" significance_threshold="0" MZ="716.3353250319" RT="2021.13480437308" >
+		<PeptideHit score="0.9925" sequence="DGDEIIIDADNNK" charge="2" aa_before="R" aa_after="I" protein_refs="PH_6">
+		</PeptideHit>
+	</UnassignedPeptideIdentification>
+	<UnassignedPeptideIdentification identification_run_ref="PI_1" score_type="PeptideProphet probability" higher_score_better="true" significance_threshold="0" MZ="716.3353250319" RT="2073.99987642346" >
+		<PeptideHit score="0.9997" sequence="DGDEIIIDADNNK" charge="2" aa_before="R" aa_after="I" protein_refs="PH_6">
+		</PeptideHit>
+	</UnassignedPeptideIdentification>
+	<UnassignedPeptideIdentification identification_run_ref="PI_1" score_type="PeptideProphet probability" higher_score_better="true" significance_threshold="0" MZ="716.3353250319" RT="2042.69591601378" >
+		<PeptideHit score="0.9996" sequence="DGDEIIIDADNNK" charge="2" aa_before="R" aa_after="I" protein_refs="PH_6">
+		</PeptideHit>
+	</UnassignedPeptideIdentification>
+	<UnassignedPeptideIdentification identification_run_ref="PI_1" score_type="PeptideProphet probability" higher_score_better="true" significance_threshold="0" MZ="716.3349750319" RT="2116.80655673794" >
+		<PeptideHit score="0.9994" sequence="DGDEIIIDADNNK" charge="2" aa_before="R" aa_after="I" protein_refs="PH_6">
+		</PeptideHit>
+	</UnassignedPeptideIdentification>
+	<UnassignedPeptideIdentification identification_run_ref="PI_1" score_type="PeptideProphet probability" higher_score_better="true" significance_threshold="0" MZ="717.8194750319" RT="3127.31741068029" >
+		<PeptideHit score="0.9885" sequence="NNTGDANTEEAAAR" charge="2" aa_before="K" aa_after="S" protein_refs="PH_7">
+		</PeptideHit>
+	</UnassignedPeptideIdentification>
+	<UnassignedPeptideIdentification identification_run_ref="PI_1" score_type="PeptideProphet probability" higher_score_better="true" significance_threshold="0" MZ="717.3177250319" RT="664.512361213386" >
+		<PeptideHit score="0.9993" sequence="NNTGDANTEEAAAR" charge="2" aa_before="K" aa_after="S" protein_refs="PH_7">
+		</PeptideHit>
+	</UnassignedPeptideIdentification>
+	<UnassignedPeptideIdentification identification_run_ref="PI_1" score_type="PeptideProphet probability" higher_score_better="true" significance_threshold="0" MZ="717.8178750319" RT="4775.57502901974" >
+		<PeptideHit score="0.8399" sequence="NNTGDANTEEAAAR" charge="2" aa_before="K" aa_after="S" protein_refs="PH_7">
+		</PeptideHit>
+	</UnassignedPeptideIdentification>
 	<mapList count="6">
 		<map id="0" name="test1.realligned.annotated.featureXML" unique_id="16747478305373140212" label="" size="6006">
 		</map>
