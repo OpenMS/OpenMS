@@ -141,7 +141,7 @@ namespace OpenMS
             else if (sub_it->metaValueExists("FeatureLevel") && sub_it->getMetaValue("FeatureLevel") == "MS1")
             {
               aggr_prec_Peak_Area += intensity_area + ";";
-              aggr_Peak_Apex += intensity_apex + ";";
+              aggr_prec_Peak_Apex += intensity_apex + ";";
               aggr_prec_Fragment_Annotation += (String)sub_it->getMetaValue("native_id") + ";";
             }
           }
