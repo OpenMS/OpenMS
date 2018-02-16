@@ -596,7 +596,7 @@ protected:
             for (Size ia = 0; ia < aa.size(); ++ia)
             {
               if (aa[ia].isModified())
-                ++mod_counts[aa[ia].getModificationName()];
+                ++mod_counts[aa[ia].getModificationName() + "@" + aa[ia].getOneLetterCode()];
             }
           }
           for (Size j = 0; j < temp_hits.size(); ++j)
@@ -640,8 +640,8 @@ protected:
         if (it != mod_counts.begin())
           os << ", ";
         else
-          os << "  Modifications (top-hits only): ";
-        os << it->first << "(" << it->second << ")";
+          os << "  Modification count (top-hits only): ";
+        os << it->first << " " << it->second;
       }
 
       os_tsv << "peptide hits"
