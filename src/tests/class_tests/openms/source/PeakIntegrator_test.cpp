@@ -52,12 +52,6 @@ PeakIntegrator* null_ptr = 0;
 
 const double left = 2.472833334;
 const double right = 3.022891666;
-const double left_past_5 = 2.64065;
-const double left_past_10 = 2.65125;
-const double left_past_50 = 2.672716667;
-const double right_past_5 = 2.779016667;
-const double right_past_10 = 2.768416667;
-const double right_past_50 = 2.725683333;
 
 // Toy chromatogram
 // data is taken from raw LC-MS/MS data points acquired for L-Glutamate in RBCs
@@ -90,8 +84,14 @@ vector<double> intensity = {
   2328,2202,3649,2706,3020,3335,2580,2328,2894,3146,2769,2517
 };
 
-const double left_few = position[46]; // 2.6939
-const double right_few = position[48]; // 2.715083333
+const double left_past_5 = position[41];   // 2.64065
+const double left_past_10 = position[42];  // 2.65125
+const double left_past_50 = position[44];  // 2.672716667
+const double right_past_5 = position[54];  // 2.779016667
+const double right_past_10 = position[53]; // 2.768416667
+const double right_past_50 = position[49]; // 2.725683333
+const double left_few = position[46];      // 2.6939
+const double right_few = position[48];     // 2.715083333
 
 MSChromatogram chromatogram;
 MSSpectrum spectrum;
@@ -106,6 +106,7 @@ MSChromatogram::ConstIterator chrom_right_it = chromatogram.RTEnd(right) - 1;
 MSSpectrum::ConstIterator spec_left_it = spectrum.MZBegin(left);
 MSSpectrum::ConstIterator spec_right_it = spectrum.MZEnd(right) - 1;
 
+// To test a chromatogram with missing (5,10,50)% peak's height points
 MSChromatogram::ConstIterator chrom_left_past_5_it = chromatogram.RTBegin(left_past_5);
 MSChromatogram::ConstIterator chrom_right_past_5_it = chromatogram.RTEnd(right_past_5) - 1;
 MSChromatogram::ConstIterator chrom_left_past_10_it = chromatogram.RTBegin(left_past_10);
@@ -113,6 +114,7 @@ MSChromatogram::ConstIterator chrom_right_past_10_it = chromatogram.RTEnd(right_
 MSChromatogram::ConstIterator chrom_left_past_50_it = chromatogram.RTBegin(left_past_50);
 MSChromatogram::ConstIterator chrom_right_past_50_it = chromatogram.RTEnd(right_past_50) - 1;
 
+// To test a spectrum with missing (5,10,50)% peak's height points
 MSSpectrum::ConstIterator spec_left_past_5_it = spectrum.MZBegin(left_past_5);
 MSSpectrum::ConstIterator spec_right_past_5_it = spectrum.MZEnd(right_past_5) - 1;
 MSSpectrum::ConstIterator spec_left_past_10_it = spectrum.MZBegin(left_past_10);
@@ -120,6 +122,7 @@ MSSpectrum::ConstIterator spec_right_past_10_it = spectrum.MZEnd(right_past_10) 
 MSSpectrum::ConstIterator spec_left_past_50_it = spectrum.MZBegin(left_past_50);
 MSSpectrum::ConstIterator spec_right_past_50_it = spectrum.MZEnd(right_past_50) - 1;
 
+// To test a chromatogram (and a spectrum) with few points (3 points, in this case)
 MSChromatogram::ConstIterator chrom_left_few_it = chromatogram.RTBegin(left_few);
 MSChromatogram::ConstIterator chrom_right_few_it = chromatogram.RTEnd(right_few) - 1;
 MSSpectrum::ConstIterator spec_left_few_it = spectrum.MZBegin(left_few);

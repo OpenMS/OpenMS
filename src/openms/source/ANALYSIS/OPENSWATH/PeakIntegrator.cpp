@@ -332,15 +332,14 @@ namespace OpenMS
   ) const
   {
     const double percent_intensity = peak_height * percent;
-    PeakContainerConstIteratorT closest = is_left_half ? it_begin : it_end - 1; // TODO assuming enough points here
+    PeakContainerConstIteratorT closest = is_left_half ? it_begin : it_end - 1;
     if (is_left_half)
     {
       for (
         PeakContainerConstIteratorT it = it_begin;
         it != it_end && it->getIntensity() <= percent_intensity;
         closest = it++
-      )
-      {}
+      ) {}
     }
     else
     {
@@ -348,8 +347,7 @@ namespace OpenMS
         PeakContainerConstIteratorT it = it_end - 1;
         it != it_begin && it->getIntensity() <= percent_intensity;
         closest = it--
-      )
-      {}
+      ) {}
     }
     return closest->getPos();
   }
