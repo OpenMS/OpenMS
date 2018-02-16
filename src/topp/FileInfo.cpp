@@ -596,7 +596,7 @@ protected:
             for (Size ia = 0; ia < aa.size(); ++ia)
             {
               if (aa[ia].isModified())
-                ++mod_counts[aa[ia].getModificationName() + "@" + aa[ia].getOneLetterCode()];
+                ++mod_counts[aa[ia].getModification()->getFullId()];
             }
           }
           for (Size j = 0; j < temp_hits.size(); ++j)
