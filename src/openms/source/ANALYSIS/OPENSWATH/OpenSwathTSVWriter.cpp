@@ -34,6 +34,8 @@
 
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathTSVWriter.h>
 
+#include <boost/format.hpp> 
+
 namespace OpenMS
 {
 
@@ -120,9 +122,6 @@ namespace OpenMS
 
         for (FeatureMap::const_iterator feature_it = output.begin(); feature_it != output.end(); ++feature_it)
         {
-
-          char intensity_char[40];
-          char intensity_apex_char[40];
           String aggr_Peak_Area = "";
           String aggr_Peak_Apex = "";
           String aggr_Fragment_Annotation = "";
@@ -131,18 +130,18 @@ namespace OpenMS
           String aggr_prec_Fragment_Annotation = "";
           for (std::vector<Feature>::const_iterator sub_it = feature_it->getSubordinates().begin(); sub_it != feature_it->getSubordinates().end(); ++sub_it)
           {
-            sprintf(intensity_char, "%f", sub_it->getIntensity());
-            sprintf(intensity_apex_char, "%f", (double)sub_it->getMetaValue("peak_apex_int"));
+            String intensity_area = boost::str(boost::format("%f") % sub_it->getIntensity());
+            String intensity_apex = boost::str(boost::format("%f") % sub_it->getMetaValue("peak_apex_int"));
             if (sub_it->metaValueExists("FeatureLevel") && sub_it->getMetaValue("FeatureLevel") == "MS2")
             {
-              aggr_Peak_Area += (String)intensity_char + ";";
-              aggr_Peak_Apex += (String)intensity_apex_char + ";";
+              aggr_Peak_Area += intensity_area + ";";
+              aggr_Peak_Apex += intensity_apex + ";";
               aggr_Fragment_Annotation += (String)sub_it->getMetaValue("native_id") + ";";
             }
             else if (sub_it->metaValueExists("FeatureLevel") && sub_it->getMetaValue("FeatureLevel") == "MS1")
             {
-              aggr_prec_Peak_Area += (String)intensity_char + ";";
-              aggr_Peak_Apex += (String)intensity_apex_char + ";";
+              aggr_prec_Peak_Area += intensity_area + ";";
+              aggr_Peak_Apex += intensity_apex + ";";
               aggr_prec_Fragment_Annotation += (String)sub_it->getMetaValue("native_id") + ";";
             }
           }
