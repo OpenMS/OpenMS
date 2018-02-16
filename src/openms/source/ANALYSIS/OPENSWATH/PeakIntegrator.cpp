@@ -302,9 +302,9 @@ namespace OpenMS
     typename PeakContainerT::ConstIterator it_PosBegin_l = p.PosBegin(left);
     typename PeakContainerT::ConstIterator it_PosEnd_apex = p.PosEnd(peak_apex_pos);
     typename PeakContainerT::ConstIterator it_PosEnd_r = p.PosEnd(right);
-    psm.start_position_at_5 = findPosAtPeakHeightPercent_(it_PosBegin_l, it_PosEnd_apex, peak_height, 0.05, true);
-    psm.start_position_at_10 = findPosAtPeakHeightPercent_(it_PosBegin_l, it_PosEnd_apex, peak_height, 0.1, true);
-    psm.start_position_at_50 = findPosAtPeakHeightPercent_(it_PosBegin_l, it_PosEnd_apex, peak_height, 0.5, true);
+    psm.start_position_at_5 = findPosAtPeakHeightPercent_(it_PosBegin_l, it_PosEnd_apex - 1, peak_height, 0.05, true);
+    psm.start_position_at_10 = findPosAtPeakHeightPercent_(it_PosBegin_l, it_PosEnd_apex - 1, peak_height, 0.1, true);
+    psm.start_position_at_50 = findPosAtPeakHeightPercent_(it_PosBegin_l, it_PosEnd_apex - 1, peak_height, 0.5, true);
     psm.end_position_at_5 = findPosAtPeakHeightPercent_(it_PosEnd_apex, it_PosEnd_r, peak_height, 0.05, false);
     psm.end_position_at_10 = findPosAtPeakHeightPercent_(it_PosEnd_apex, it_PosEnd_r, peak_height, 0.1, false);
     psm.end_position_at_50 = findPosAtPeakHeightPercent_(it_PosEnd_apex, it_PosEnd_r, peak_height, 0.5, false);
