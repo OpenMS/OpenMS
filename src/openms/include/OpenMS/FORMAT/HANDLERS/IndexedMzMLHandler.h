@@ -76,7 +76,7 @@ namespace Internal
     atomically.
 
   */
-  class OPENMS_DLLAPI IndexedMzMLFile
+  class OPENMS_DLLAPI IndexedMzMLHandler
   {
       /// Name of the file
       String filename_;
@@ -114,20 +114,20 @@ namespace Internal
     /**
       @brief Default constructor
     */
-    IndexedMzMLFile();
+    IndexedMzMLHandler();
 
     /**
       @brief Constructor
 
       Tries to parse the file, success can be checked with getParsingSuccess()
     */
-    explicit IndexedMzMLFile(String filename);
+    explicit IndexedMzMLHandler(String filename);
 
     /// Copy constructor
-    IndexedMzMLFile(const IndexedMzMLFile & source);
+    IndexedMzMLHandler(const IndexedMzMLHandler & source);
 
     /// Destructor
-    ~IndexedMzMLFile();
+    ~IndexedMzMLHandler();
 
     /**
       @brief Open a file
@@ -225,5 +225,5 @@ namespace Internal
 }
 }
 
-#endif // OPENMS_FORMAT_INDEXEDMZMLHANDLER_H
+#endif // OPENMS_FORMAT_HANDLERS_INDEXEDMZMLHANDLER_H
 

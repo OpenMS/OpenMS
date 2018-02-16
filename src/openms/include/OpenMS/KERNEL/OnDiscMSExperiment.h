@@ -225,7 +225,7 @@ public:
 
 private:
 
-    /// Private Assignment operator -> we cannot copy file streams in IndexedMzMLFile
+    /// Private Assignment operator -> we cannot copy file streams in IndexedMzMLHandler
     OnDiscMSExperiment& operator=(const OnDiscMSExperiment& /* source */);
 
     void loadMetaData_(const String& filename)
@@ -245,7 +245,7 @@ protected:
     /// The filename of the underlying data file
     String filename_;
     /// The index of the underlying data file
-    Internal::IndexedMzMLFile indexed_mzml_file_;
+    Internal::IndexedMzMLHandler indexed_mzml_file_;
     /// The meta-data
     boost::shared_ptr<PeakMap> meta_ms_experiment_;
   };

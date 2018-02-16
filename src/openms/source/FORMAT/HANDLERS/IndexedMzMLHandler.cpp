@@ -44,7 +44,7 @@ namespace OpenMS
 namespace Internal
 {
 
-  void IndexedMzMLFile::parseFooter_(String filename)
+  void IndexedMzMLHandler::parseFooter_(String filename)
   {
     //-------------------------------------------------------------
     // Find offset
@@ -69,19 +69,19 @@ namespace Internal
     else parsing_success_ = false;
   }
 
-  IndexedMzMLFile::IndexedMzMLFile(String filename) :
+  IndexedMzMLHandler::IndexedMzMLHandler(String filename) :
     parsing_success_(false),
     skip_xml_checks_(false) 
   {
     openFile(filename);
   }
 
-  IndexedMzMLFile::IndexedMzMLFile() :
+  IndexedMzMLHandler::IndexedMzMLHandler() :
     parsing_success_(false),
     skip_xml_checks_(false) 
   {}
 
-  IndexedMzMLFile::IndexedMzMLFile(const IndexedMzMLFile& source) :
+  IndexedMzMLHandler::IndexedMzMLHandler(const IndexedMzMLHandler& source) :
     filename_(source.filename_),
     spectra_offsets_(source.spectra_offsets_),
     chromatograms_offsets_(source.chromatograms_offsets_),
@@ -95,11 +95,11 @@ namespace Internal
   {
   }
 
-  IndexedMzMLFile::~IndexedMzMLFile()
+  IndexedMzMLHandler::~IndexedMzMLHandler()
   {
   }
 
-  void IndexedMzMLFile::openFile(String filename) 
+  void IndexedMzMLHandler::openFile(String filename) 
   {
     if (filestream_.is_open())
     {
@@ -110,22 +110,22 @@ namespace Internal
     parseFooter_(filename);
   }
 
-  bool IndexedMzMLFile::getParsingSuccess() const
+  bool IndexedMzMLHandler::getParsingSuccess() const
   {
     return parsing_success_;
   }
 
-  size_t IndexedMzMLFile::getNrSpectra() const
+  size_t IndexedMzMLHandler::getNrSpectra() const
   {
     return spectra_offsets_.size();
   }
 
-  size_t IndexedMzMLFile::getNrChromatograms() const
+  size_t IndexedMzMLHandler::getNrChromatograms() const
   {
     return chromatograms_offsets_.size();
   }
 
-  std::string IndexedMzMLFile::getChromatogramById_helper_(int id)
+  std::string IndexedMzMLHandler::getChromatogramById_helper_(int id)
   {
     int chromToGet = id;
 
@@ -185,7 +185,7 @@ namespace Internal
     return text;
   }
 
-  std::string IndexedMzMLFile::getSpectrumById_helper_(int id)
+  std::string IndexedMzMLHandler::getSpectrumById_helper_(int id)
   {
     int spectrumToGet = id;
 
@@ -245,45 +245,45 @@ namespace Internal
     return text;
   }
 
-  OpenMS::Interfaces::SpectrumPtr IndexedMzMLFile::getSpectrumById(int id)
+  OpenMS::Interfaces::SpectrumPtr IndexedMzMLHandler::getSpectrumById(int id)
   {
     OpenMS::Interfaces::SpectrumPtr sptr(new OpenMS::Interfaces::Spectrum);
-    std::string text = IndexedMzMLFile::getSpectrumById_helper_(id);
+    std::string text = IndexedMzMLHandler::getSpectrumById_helper_(id);
     MzMLSpectrumDecoder(skip_xml_checks_).domParseSpectrum(text, sptr);
     return sptr;
   }
 
-  const OpenMS::MSSpectrum IndexedMzMLFile::getMSSpectrumById(int id)
+  const OpenMS::MSSpectrum IndexedMzMLHandler::getMSSpectrumById(int id)
   {
     OpenMS::MSSpectrum s;
     getMSSpectrumById(id, s);
     return s;
   }
 
-  void IndexedMzMLFile::getMSSpectrumById(int id, MSSpectrum& s)
+  void IndexedMzMLHandler::getMSSpectrumById(int id, MSSpectrum& s)
   {
-    std::string text = IndexedMzMLFile::getSpectrumById_helper_(id);
+    std::string text = IndexedMzMLHandler::getSpectrumById_helper_(id);
     MzMLSpectrumDecoder(skip_xml_checks_).domParseSpectrum(text, s);
   }
 
-  OpenMS::Interfaces::ChromatogramPtr IndexedMzMLFile::getChromatogramById(int id)
+  OpenMS::Interfaces::ChromatogramPtr IndexedMzMLHandler::getChromatogramById(int id)
   {
     OpenMS::Interfaces::ChromatogramPtr cptr(new OpenMS::Interfaces::Chromatogram);
-    std::string text = IndexedMzMLFile::getChromatogramById_helper_(id);
+    std::string text = IndexedMzMLHandler::getChromatogramById_helper_(id);
     MzMLSpectrumDecoder(skip_xml_checks_).domParseChromatogram(text, cptr);
     return cptr;
   }
 
-  const OpenMS::MSChromatogram IndexedMzMLFile::getMSChromatogramById(int id)
+  const OpenMS::MSChromatogram IndexedMzMLHandler::getMSChromatogramById(int id)
   {
     OpenMS::MSChromatogram c;
     getMSChromatogramById(id, c);
     return c;
   }
 
-  void IndexedMzMLFile::getMSChromatogramById(int id, MSChromatogram& c)
+  void IndexedMzMLHandler::getMSChromatogramById(int id, MSChromatogram& c)
   {
-    std::string text = IndexedMzMLFile::getChromatogramById_helper_(id);
+    std::string text = IndexedMzMLHandler::getChromatogramById_helper_(id);
     MzMLSpectrumDecoder(skip_xml_checks_).domParseChromatogram(text, c);
   }
 

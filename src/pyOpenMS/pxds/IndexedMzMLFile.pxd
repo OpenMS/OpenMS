@@ -10,10 +10,10 @@ from MSChromatogram cimport *
 
 cdef extern from "<OpenMS/FORMAT/HANDLERS/IndexedMzMLHandler.h>" namespace "OpenMS":
     
-    cdef cppclass IndexedMzMLFile "OpenMS::Internal::IndexedMzMLFile":
-        IndexedMzMLFile() nogil except +
-        IndexedMzMLFile(IndexedMzMLFile) nogil except +
-        IndexedMzMLFile(String filename) nogil except +
+    cdef cppclass IndexedMzMLHandler "OpenMS::Internal::IndexedMzMLHandler":
+        IndexedMzMLHandler() nogil except +
+        IndexedMzMLHandler(IndexedMzMLHandler) nogil except +
+        IndexedMzMLHandler(String filename) nogil except +
         void openFile(String filename) nogil except +
         bool getParsingSuccess() nogil except +
         size_t getNrSpectra() nogil except +
