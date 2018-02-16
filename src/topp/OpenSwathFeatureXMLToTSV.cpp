@@ -39,6 +39,7 @@
 #include <OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>
 #include <fstream>
 #include <clocale>
+#include <boost/format.hpp> 
 
 using namespace OpenMS;
 
@@ -255,8 +256,6 @@ void write_out_body_(std::ostream &os, Feature *feature_it, TargetedExperiment &
   }
 
   // Write out the individual transition
-  char intensity_char[40];
-  char intensity_apex_char[40];
   if (short_format)
   {
     String aggr_Peak_Area = "";
@@ -264,13 +263,13 @@ void write_out_body_(std::ostream &os, Feature *feature_it, TargetedExperiment &
     String aggr_Fragment_Annotation = "";
     for (std::vector<Feature>::iterator sub_it = feature_it->getSubordinates().begin(); sub_it != feature_it->getSubordinates().end(); ++sub_it)
     {
-      sprintf(intensity_char, "%f", sub_it->getIntensity());
-      aggr_Peak_Area += (String)intensity_char + ";";
+      String intensity_area = boost::str(boost::format("%f") % sub_it->getIntensity());
+      aggr_Peak_Area += intensity_area + ";";
 
       if (sub_it->metaValueExists("peak_apex_int"))
       {
-        sprintf(intensity_apex_char, "%f", (double)sub_it->getMetaValue("peak_apex_int"));
-        aggr_Peak_Apex += (String)intensity_apex_char + ";";
+        String intensity_apex = boost::str(boost::format("%f") % sub_it->getMetaValue("peak_apex_int"));
+        aggr_Peak_Apex += intensity_apex + ";";
       }
       else
       {
@@ -291,19 +290,17 @@ void write_out_body_(std::ostream &os, Feature *feature_it, TargetedExperiment &
   }
   else
   {
-    char mz_char[40];
     for (std::vector<Feature>::iterator sub_it = feature_it->getSubordinates().begin(); sub_it != feature_it->getSubordinates().end(); ++sub_it)
     {
       os.precision(writtenDigits(double()));
-      sprintf(intensity_char, "%f", sub_it->getIntensity());
-      sprintf(mz_char, "%f", sub_it->getMZ());
+      String intensity_area = boost::str(boost::format("%f") % sub_it->getIntensity());
+      String mz_str = boost::str(boost::format("%f") % sub_it->getMZ());
       String apex = "NA";
       if (sub_it->metaValueExists("peak_apex_int"))
       {
-        sprintf(intensity_apex_char, "%f", (double)sub_it->getMetaValue("peak_apex_int"));
-        apex = (String) intensity_apex_char;
+        apex = boost::str(boost::format("%f") % sub_it->getMetaValue("peak_apex_int"));
       }
-      os << line << meta_values << (String)intensity_char << "\t" << apex << "\t" << (String)sub_it->getMetaValue("native_id") << "\t" << (String)mz_char << std::endl;
+      os << line << meta_values << intensity_area << "\t" << apex << "\t" << (String)sub_it->getMetaValue("native_id") << "\t" << mz_str << std::endl;
     }
   }
 }
