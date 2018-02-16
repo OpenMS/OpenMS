@@ -181,24 +181,17 @@ namespace OpenMS
       throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "more than one element of name '" + mod_name + "' found!");
     }
 
-    Size idx(-1);
     const ResidueModification* mod = *modification_names_[mod_name].begin();
     for (Size i = 0; i != mods_.size(); ++i)
     {
       if (mods_[i] == mod)
       {
-        idx = i;
-        break;
+        return i;
       }
     }
 
     // throw if we did not find the modification
-    if (idx == -1)
-    {
-      throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, mod_name);
-    }
-
-    return idx;
+    throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, mod_name);
   }
 
 
