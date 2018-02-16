@@ -519,7 +519,12 @@ protected:
     ) const;
 
     /**
-      @brief Find the position (RT/MZ) at a given percentage of peak's height.
+      @brief Find the position (RT/MZ) at a given percentage of peak's height
+
+      @note The method expects that the iterators span half of the peak's width.
+      Examples:
+      - Left half case: the range would be [leftMostPt, peakApexPos)
+      - Right half case: the range would be [peakApexPos + 1, rightMostPt + 1)
 
       @note The method assumes a convex peak. If 5%, 10%, or 50% peak heights are not found on either side of the peak,
       the closest left (for left peak height percentages) and closest right (for right peak height percentages) will be used.
