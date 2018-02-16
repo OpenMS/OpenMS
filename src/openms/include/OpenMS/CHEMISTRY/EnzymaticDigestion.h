@@ -143,7 +143,7 @@ protected:
        @param seq_end Past-the-end index into sequence
        @return number of missed cleavages of peptide
     */
-    inline Size countMissedCleavages_(const std::vector<Size>& cleavage_positions, Size seq_start, Size seq_end) const;
+    Size countMissedCleavages_(const std::vector<Size>& cleavage_positions, Size seq_start, Size seq_end) const;
 
     /// Number of missed cleavages
     Size missed_cleavages_;
