@@ -31,27 +31,63 @@
 // $Maintainer: Julianus Pfeuffer $
 // $Authors: Julianus Pfeuffer $
 // --------------------------------------------------------------------------
-#ifndef OPENMS_ANALYSIS_ID_BAYESIANPROTEININFERENCE_H
-#define OPENMS_ANALYSIS_ID_BAYESIANPROTEININFERENCE_H
+#include <OpenMS/ANALYSIS/ID/IDBoostGraph.h>
 
-#include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
-#include <OpenMS/CONCEPT/ProgressLogger.h>
-#include <OpenMS/METADATA/PeptideIdentification.h>
-#include <OpenMS/METADATA/ProteinIdentification.h>
-#include <vector>
+#include <boost/graph/adjacency_list.hpp>
+#include <boost/graph/connected_components.hpp>
+#include <boost/variant.hpp>
+#include <boost/variant/detail/hash_variant.hpp>
+
+using namespace OpenMS;
+using namespace std;
+
 
 namespace OpenMS
 {
-  class OPENMS_DLLAPI BayesianProteinInference :
-      public DefaultParamHandler,
-      public ProgressLogger
+  void IDBoostGraph::buildGraph(const ProteinIdentification& proteins, const std::vector<PeptideIdentification>& psms)
   {
-  public:
-    /// Constructor
-    BayesianProteinInference(std::vector<ProteinIdentification> proteinIDs, std::vector<PeptideIdentification> peptideIDs);
+    //typedef boost::adjacency_list <boost::vecS, boost::vecS, boost::undirectedS, IDBoostGraphNode> Graph;
+    typedef boost::variant<const PeptideHit*, const ProteinHit*> IDPointer;
+    typedef boost::adjacency_list <boost::vecS, boost::vecS, boost::undirectedS, IDPointer> Graph;
+    typedef boost::graph_traits<Graph>::vertex_descriptor vertex_t;
+    typedef boost::graph_traits<Graph>::edge_descriptor edge_t;
 
-    /// Destructor
-    ~BayesianProteinInference();
-  };
+    unordered_map<IDPointer, Graph::vertex_descriptor> vertex_map;
+
+    unordered_set<string, ProteinHit*, ProteinHit::ProteinHitPtrAccessionHash> accession_set;
+
+    vector<ProteinHit> protein_hits = proteins.getHits();
+    std::transform (protein_hits.begin(), protein_hits.end(), accession_map.begin(), accession_map.begin(), std::plus<int>());
+
+    Graph g;
+    for (auto psm : psms)
+    {
+      //TODO add psm nodes here
+      for (auto const& peptide : psm.getHits())
+      {
+        auto vertex_iter = vertex_map.find(&peptide);
+        if (vertex_iter != vertex_map.end() )
+        {
+          g[pepnode] = iter->second;
+        }
+        else
+        {
+          vertex_t pepnode = boost::add_vertex(g);
+          g[pepnode] = &peptide;
+        }
+
+        for (auto const& proteinAcc : peptide.extractProteinAccessionsSet())
+        {
+
+          for (auto const& protein : proteins.getHits())
+          {
+            vertex_t protnode = boost::add_vertex(g);
+            g[protnode] = &protein;
+          }
+        }
+      }
+    }
+
+  }
 }
-#endif // OPENMS_ANALYSIS_ID_BAYESIANPROTEININFERENCE_H
+

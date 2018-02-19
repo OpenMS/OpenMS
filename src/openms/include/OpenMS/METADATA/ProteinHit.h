@@ -36,6 +36,7 @@
 #define OPENMS_METADATA_PROTEINHIT_H
 
 #include <vector>
+#include <functional>
 
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
@@ -56,6 +57,29 @@ namespace OpenMS
   {
 public:
     static const double COVERAGE_UNKNOWN; // == -1
+
+    /// @name Hashes for ProteinHit
+    //@{
+    /// Hash of a ProteinHit based on its accession only!
+    class OPENMS_DLLAPI ProteinHitAccessionHash
+    {
+    public:
+      size_t operator()(const ProteinHit & p)
+      {
+        return std::hash<std::string>{}(p.getAccession());
+      }
+
+    };
+    class OPENMS_DLLAPI ProteinHitPtrAccessionHash
+    {
+    public:
+      size_t operator()(const ProteinHit * p)
+      {
+        return std::hash<std::string>{}(p->getAccession());
+      }
+
+    };
+    //@}
 
     /// @name Comparators ProteinHit
     //@{

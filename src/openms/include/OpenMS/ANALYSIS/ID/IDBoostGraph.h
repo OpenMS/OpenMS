@@ -31,27 +31,83 @@
 // $Maintainer: Julianus Pfeuffer $
 // $Authors: Julianus Pfeuffer $
 // --------------------------------------------------------------------------
-#ifndef OPENMS_ANALYSIS_ID_BAYESIANPROTEININFERENCE_H
-#define OPENMS_ANALYSIS_ID_BAYESIANPROTEININFERENCE_H
 
-#include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
-#include <OpenMS/CONCEPT/ProgressLogger.h>
-#include <OpenMS/METADATA/PeptideIdentification.h>
+#ifndef OPENMS_ANALYSIS_ID_IDBOOSTGRAPH_H
+#define OPENMS_ANALYSIS_ID_IDBOOSTGRAPH_H
+
+#include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/CONCEPT/Types.h>
+#include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
+#include <OpenMS/METADATA/PeptideIdentification.h>
 #include <vector>
+#include <set>
+#include <boost/variant/static_visitor.hpp>
 
 namespace OpenMS
 {
-  class OPENMS_DLLAPI BayesianProteinInference :
-      public DefaultParamHandler,
-      public ProgressLogger
+
+  /**
+   @brief Creates and maintains a boost graph based on the OpenMS ID datastructures
+
+   For finding connected components.
+
+   @ingroup Analysis_ID
+   */
+  class IDBoostGraph
   {
   public:
-    /// Constructor
-    BayesianProteinInference(std::vector<ProteinIdentification> proteinIDs, std::vector<PeptideIdentification> peptideIDs);
+      /// Constructor
+      IDBoostGraph();
 
-    /// Destructor
-    ~BayesianProteinInference();
+      /// Initialize and store the graph (= maps)
+      /// @param protein ProteinIdentification object storing IDs and groups
+      /// @param peptides vector of ProteinIdentifications with links to the proteins and PSMs in its PeptideHits
+      void buildGraph(const ProteinIdentification& protein, const std::vector<PeptideIdentification>& peptides);
   };
-}
-#endif // OPENMS_ANALYSIS_ID_BAYESIANPROTEININFERENCE_H
+
+  /// Visits nodes in the boost graph and depending on their type adds random variables to the
+  /// Bayesian network
+  class InferenceGraphVisitor
+      : public boost::static_visitor<>
+  {
+  public:
+
+    void operator()(PeptideHit* pep) const
+    {
+      std::cout << "Visited pep: " << pep->getSequence() << std::endl;
+    }
+
+    void operator()(ProteinHit* prot) const
+    {
+      std::cout << "Visited prot: " << prot->getSequence() << std::endl;
+    }
+
+  };
+
+  //TODO remove, currently unused
+  struct IDBoostGraphNode{
+    int activeMember;
+
+    //TODO add other node types
+    union {
+      const ProteinHit* protein = nullptr;
+      const PeptideHit* peptide = nullptr;
+    } IDObjectPtr;
+
+  };
+
+  template<typename T>
+  struct IDBoostGraphNodeHash {
+    inline size_t operator()(const T* pointer) const {
+      auto addr = reinterpret_cast<uintptr_t>(pointer);
+      #if SIZE_MAX < UINTPTR_MAX
+      /* size_t is not large enough to hold the pointer’s memory address */
+      addr %= SIZE_MAX; /* truncate the address so it is small enough to fit in a size_t */
+      #endif
+      return addr;
+    }
+  };
+} //namespace OpenMS
+
+#endif // OPENMS_ANALYSIS_ID_IDBOOSTGRAPH_H

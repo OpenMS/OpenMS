@@ -18,6 +18,7 @@ ConsensusIDAlgorithmSimilarity.h
 ConsensusIDAlgorithmWorst.h
 FalseDiscoveryRate.h
 HiddenMarkovModel.h
+IDBoostGraph.h
 IDDecoyProbability.h
 IDMapper.h
 IDRipper.h

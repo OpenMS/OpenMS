@@ -35,7 +35,7 @@
 
 namespace OpenMS
 {
-  BayesianProteinInference::BayesianProteinInference() :
+  BayesianProteinInference::BayesianProteinInference(std::vector<ProteinIdentification> proteinIDs, std::vector<PeptideIdentification> peptideIDs) :
       DefaultParamHandler("BayesianProteinInference"),
       ProgressLogger()
   {
