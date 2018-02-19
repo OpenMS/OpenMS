@@ -731,11 +731,11 @@ namespace seqan
     //DEBUG_ONLY std::cout << "consuming real char " << c << " ";
     current = getSuccessor(me.data_graph, current, c);
     assert(current != me.nilVal);
-    if (current != getRoot(me.data_graph)) {
-      addHits(me, dh, current);
-      return true;
+    if (current == getRoot(me.data_graph)) {
+      return false;
     }
-    return false;
+    addHits(me, dh, current);
+    return true;
   }
 
   template <typename TNeedle>
@@ -748,6 +748,8 @@ namespace seqan
     typename Pattern<TNeedle, FuzzyAC>::TVert successor = getSuccessor(me.data_graph, spawn.current_state, c);
     assert(successor != me.nilVal);
     // check if prefix was lost
+    if (successor == getRoot(me.data_graph)) return false;
+
     if (getProperty(me.data_node_depth, spawn.current_state) >= getProperty(me.data_node_depth, successor))
     { // went at least one level up (and maybe one down again, hence equality)
       typedef typename Pattern<TNeedle, FuzzyAC>::KeyWordLengthType KeyWordLengthType;
@@ -762,11 +764,8 @@ namespace seqan
       spawn.max_depth_decrease -= up_count;
     }
     spawn.current_state = successor;
-    if (spawn.current_state != getRoot(me.data_graph)) {
-      addHits(me, dh, spawn); // use spawn version for length checking!
-      return true;
-    }
-    return false;
+    addHits(me, dh, spawn); // use spawn version for length checking!
+    return true;
   }
 
   // 
