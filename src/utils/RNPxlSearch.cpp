@@ -197,10 +197,10 @@ protected:
                         false);
 
     StringList modifications;
-    modifications.emplace_back("");
-    modifications.emplace_back("-H2O");
-    modifications.emplace_back("-H2O-HPO3");
-    modifications.emplace_back("-HPO3");
+    modifications.emplace_back("U:");
+    modifications.emplace_back("U:-H2O");
+    modifications.emplace_back("U:-H2O-HPO3");
+    modifications.emplace_back("U:-HPO3");
 
     // fragment adducts that may occur for every precursor adduct (if chemically feasible in terms of elements may not be negative)
     StringList fragment_adducts = {"U:C9H10N2O5;U-H3PO4", 
@@ -215,7 +215,7 @@ protected:
       "A=C10H14N5O6P", "C=C9H14N3O7P", "G=C10H14N5O7P", "T=C10H15N2O8P"  
       
       Precursor losses for T:
-      "", "-H2O", "-H2O-HPO3", "-HPO3", "+HPO3", "+HPO3-H2O"
+      "T:", "T:-H2O", "T:-H2O-HPO3", "T:-HPO3", "T:+HPO3", "T:+HPO3-H2O"
 
       "T:C10H15N2O8P;T",
       "T:C10H12N2O4;T-H3PO4",
@@ -225,7 +225,7 @@ protected:
       "T:C10H14N2O5;T-HPO3"
 
       Precursor losses for C:
-      "", "-H2O", "-NH3", "-H2O-HPO3", "-HPO3", "+HPO3", "+HPO3-H2O", "-NH3-HPO3", "+HPO3-NH3"
+      "C:", "C:-H2O", "C:-NH3", "C:-H2O-HPO3", "C:-HPO3", "C:+HPO3", "C:+HPO3-H2O", "C:-NH3-HPO3", "C:+HPO3-NH3"
 
       "C:C4H5N3O;C'",
       "C:C4H2N2O;C'-NH3",
