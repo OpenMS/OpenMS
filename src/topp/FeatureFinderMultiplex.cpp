@@ -517,7 +517,7 @@ public:
           // find peak itself
           MSExperiment::ConstIterator it_rt = exp_centroid_.begin();
           std::advance(it_rt, rt_idx);
-          MSSpectrum<Peak1D>::ConstIterator it_mz = it_rt->begin();
+          MSSpectrum::ConstIterator it_mz = it_rt->begin();
           std::advance(it_mz, mz_idx);
           
           rt += it_rt->getRT() * it_mz->getIntensity();
@@ -561,7 +561,7 @@ public:
           // find peak itself
           MSExperiment::ConstIterator it_rt_1 = exp_centroid_.begin();
           std::advance(it_rt_1, rt_idx_1);
-          MSSpectrum<Peak1D>::ConstIterator it_mz_1 = it_rt_1->begin();
+          MSSpectrum::ConstIterator it_mz_1 = it_rt_1->begin();
           std::advance(it_mz_1, mz_idx_1);
           
           // find corresponding spectra
@@ -594,7 +594,7 @@ public:
             // find peak itself
             MSExperiment::ConstIterator it_rt_2 = exp_centroid_.begin();
             std::advance(it_rt_2, rt_idx_2);
-            MSSpectrum<Peak1D>::ConstIterator it_mz_2 = it_rt_2->begin();
+            MSSpectrum::ConstIterator it_mz_2 = it_rt_2->begin();
             std::advance(it_mz_2, mz_idx_2);
             
             if (it_rt_2->getRT() <= rt_2 && (std::abs(it_rt_2->getRT() - rt_2) < std::abs(rt_earlier - rt_2)))
@@ -954,7 +954,7 @@ public:
               // find peak itself
               MSExperiment::ConstIterator it_rt = exp_centroid_.begin();
               std::advance(it_rt, rt_idx);
-              MSSpectrum<Peak1D>::ConstIterator it_mz = it_rt->begin();
+              MSSpectrum::ConstIterator it_mz = it_rt->begin();
               std::advance(it_mz, mz_idx);
               
               if (isotope == 0)
@@ -1574,14 +1574,14 @@ private:
     
     if (centroided)
     {
-      consensus_map.setPrimaryMSRunPath(exp_centroid_.getPrimaryMSRunPath());
-      feature_map.setPrimaryMSRunPath(exp_centroid_.getPrimaryMSRunPath());
+      //consensus_map.setPrimaryMSRunPath(exp_centroid_.getPrimaryMSRunPath());
+      //feature_map.setPrimaryMSRunPath(exp_centroid_.getPrimaryMSRunPath());
       generateMaps_(patterns, filter_results, cluster_results, consensus_map, feature_map);
     }
     else
     {
-      consensus_map.setPrimaryMSRunPath(exp_profile_.getPrimaryMSRunPath());
-      feature_map.setPrimaryMSRunPath(exp_profile_.getPrimaryMSRunPath());
+      //consensus_map.setPrimaryMSRunPath(exp_profile_.getPrimaryMSRunPath());
+      //feature_map.setPrimaryMSRunPath(exp_profile_.getPrimaryMSRunPath());
       generateMapsProfile_(patterns, filter_results, cluster_results, consensus_map, feature_map);
     }
     
