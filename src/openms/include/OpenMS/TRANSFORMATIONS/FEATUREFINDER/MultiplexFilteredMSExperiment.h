@@ -32,72 +32,88 @@
 // $Authors: Lars Nilse $
 // --------------------------------------------------------------------------
 
+#ifndef OPENMS_TRANSFORMATIONS_FEATUREFINDER_MULTIPLEXFILTEREDMSEXPERIMENT_H
+#define OPENMS_TRANSFORMATIONS_FEATUREFINDER_MULTIPLEXFILTEREDMSEXPERIMENT_H
+
 #include <OpenMS/KERNEL/StandardTypes.h>
-#include <OpenMS/CONCEPT/Constants.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexDeltaMasses.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexIsotopicPeakPattern.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFilteredPeak.h>
 
 #include <vector>
 #include <algorithm>
 #include <iostream>
 
-using namespace std;
-
 namespace OpenMS
 {
-
-  MultiplexIsotopicPeakPattern::MultiplexIsotopicPeakPattern(int c, int ppp, MultiplexDeltaMasses ms, int msi) :
-    charge_(c), peaks_per_peptide_(ppp), mass_shifts_(ms), mass_shift_index_(msi)
-  {
-    // generate m/z shifts
-    for (unsigned i = 0; i < mass_shifts_.getDeltaMasses().size(); ++i)
+    /**
+     * @brief data structure storing all peaks (and optionally their raw data points)
+     * of an experiment corresponding to one specific peak pattern
+     * 
+     * @see MultiplexPeakPattern
+     */
+    class OPENMS_DLLAPI MultiplexFilteredMSExperiment
     {
-      for (int j = 0; j < peaks_per_peptide_; ++j)
-      {
-        const std::vector<MultiplexDeltaMasses::DeltaMass>& delta_masses = mass_shifts_.getDeltaMasses();
-        mz_shifts_.push_back((delta_masses[i].delta_mass + j * Constants::C13C12_MASSDIFF_U) / charge_);
-      }
-    }
-  }
+        public:
+        /**
+         * @brief constructor
+         */
+        MultiplexFilteredMSExperiment();
+        
+        /**
+         * @brief adds a single peak to the results
+         */
+        void addPeak(double mz, double rt, size_t mz_idx, size_t rt_idx);
+        
+        /**
+         * @brief adds a single peak to the results
+         */
+        void addPeak(MultiplexFilteredPeak peak);
+        
+        /**
+         * @brief returns a single peak from the results
+         */
+        MultiplexFilteredPeak getPeak(size_t i) const;
+               
+        /**
+         * @brief returns m/z of a single peak
+         */
+        double getMZ(size_t i) const;
+        
+        /**
+         * @brief returns m/z positions of all peaks
+         */
+        std::vector<double> getMZ() const;
+        
+        /**
+         * @brief returns RT of a single peak
+         */
+        double getRT(size_t i) const;
+        
+        /**
+         * @brief returns RT of all peaks
+         */
+        std::vector<double> getRT() const;
+        
+        /**
+         * @brief returns number of peaks in the result
+         */
+        size_t size() const;
+        
+        /**
+         * @brief write all peaks to a consensusXML file
+         * 
+         * @param exp_picked    original (i.e. not white) centroided experimental data
+         * @param debug_out    file name of the debug output
+         */
+        void writeDebugOutput(const MSExperiment& exp_picked, String debug_out) const;
+        
+        private:
+        /**
+         * @brief peaks which passed the peak pattern filter
+         */
+        std::vector<MultiplexFilteredPeak> result_;
 
-  int MultiplexIsotopicPeakPattern::getCharge() const
-  {
-    return charge_;
-  }
-
-  int MultiplexIsotopicPeakPattern::getPeaksPerPeptide() const
-  {
-    return peaks_per_peptide_;
-  }
-
-  MultiplexDeltaMasses MultiplexIsotopicPeakPattern::getMassShifts() const
-  {
-    return mass_shifts_;
-  }
-
-  int MultiplexIsotopicPeakPattern::getMassShiftIndex() const
-  {
-    return mass_shift_index_;
-  }
-
-  unsigned MultiplexIsotopicPeakPattern::getMassShiftCount() const
-  {
-    return mass_shifts_.getDeltaMasses().size();
-  }
-
-  double MultiplexIsotopicPeakPattern::getMassShiftAt(size_t i) const
-  {
-    return mass_shifts_.getDeltaMasses()[i].delta_mass;
-  }
-
-  double MultiplexIsotopicPeakPattern::getMZShiftAt(size_t i) const
-  {
-    return mz_shifts_[i];
-  }
-
-  unsigned MultiplexIsotopicPeakPattern::getMZShiftCount() const
-  {
-    return mz_shifts_.size();
-  }
-
+   };
+  
 }
+
+#endif /* MULTIPLEXFILTEREDMSEXPERIMENT_H_ */

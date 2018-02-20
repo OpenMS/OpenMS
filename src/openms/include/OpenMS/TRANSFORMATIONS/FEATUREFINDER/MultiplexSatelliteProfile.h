@@ -32,72 +32,61 @@
 // $Authors: Lars Nilse $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/KERNEL/StandardTypes.h>
-#include <OpenMS/CONCEPT/Constants.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexDeltaMasses.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexIsotopicPeakPattern.h>
+#ifndef OPENMS_TRANSFORMATIONS_FEATUREFINDER_MULTIPLEXSATELLITEPROFILE_H
+#define OPENMS_TRANSFORMATIONS_FEATUREFINDER_MULTIPLEXSATELLITEPROFILE_H
 
+#include <OpenMS/KERNEL/StandardTypes.h>
+
+#include <map>
 #include <vector>
 #include <algorithm>
 #include <iostream>
 
-using namespace std;
-
 namespace OpenMS
 {
-
-  MultiplexIsotopicPeakPattern::MultiplexIsotopicPeakPattern(int c, int ppp, MultiplexDeltaMasses ms, int msi) :
-    charge_(c), peaks_per_peptide_(ppp), mass_shifts_(ms), mass_shift_index_(msi)
+  /**
+   * @brief data structure storing a single satellite data point
+   *
+   * The satellite data point is a spline-interpolated point of profile MSExperiment.
+   * The triplet of RT, m/z and intensity is therefore stored explicitly.
+   * 
+   * @see MultiplexFilteredPeak, MultiplexSatelliteCentroided
+   */
+  class OPENMS_DLLAPI MultiplexSatelliteProfile
   {
-    // generate m/z shifts
-    for (unsigned i = 0; i < mass_shifts_.getDeltaMasses().size(); ++i)
-    {
-      for (int j = 0; j < peaks_per_peptide_; ++j)
-      {
-        const std::vector<MultiplexDeltaMasses::DeltaMass>& delta_masses = mass_shifts_.getDeltaMasses();
-        mz_shifts_.push_back((delta_masses[i].delta_mass + j * Constants::C13C12_MASSDIFF_U) / charge_);
-      }
-    }
-  }
+    public:
 
-  int MultiplexIsotopicPeakPattern::getCharge() const
-  {
-    return charge_;
-  }
-
-  int MultiplexIsotopicPeakPattern::getPeaksPerPeptide() const
-  {
-    return peaks_per_peptide_;
-  }
-
-  MultiplexDeltaMasses MultiplexIsotopicPeakPattern::getMassShifts() const
-  {
-    return mass_shifts_;
-  }
-
-  int MultiplexIsotopicPeakPattern::getMassShiftIndex() const
-  {
-    return mass_shift_index_;
-  }
-
-  unsigned MultiplexIsotopicPeakPattern::getMassShiftCount() const
-  {
-    return mass_shifts_.getDeltaMasses().size();
-  }
-
-  double MultiplexIsotopicPeakPattern::getMassShiftAt(size_t i) const
-  {
-    return mass_shifts_.getDeltaMasses()[i].delta_mass;
-  }
-
-  double MultiplexIsotopicPeakPattern::getMZShiftAt(size_t i) const
-  {
-    return mz_shifts_[i];
-  }
-
-  unsigned MultiplexIsotopicPeakPattern::getMZShiftCount() const
-  {
-    return mz_shifts_.size();
-  }
-
+    /**
+     * @brief constructor
+     */
+    MultiplexSatelliteProfile(double rt, double mz, double intensity);
+    
+    /**
+     * @brief returns the RT of the satellite data point
+     */
+    double getRT() const;
+    
+    /**
+     * @brief returns the m/z of the satellite data point
+     */
+    double getMZ() const;
+    
+    /**
+     * @brief returns the intensity of the satellite data point
+     */
+    double getIntensity() const;
+    
+    private:
+     
+    /**
+     * @brief position and intensity of the data point within the spline-interpolated experiment
+     */
+    double rt_;
+    double mz_;
+    double intensity_;
+    
+  };
+  
 }
+
+#endif /* MULTIPLEXSATELLITEPROFILE_H */

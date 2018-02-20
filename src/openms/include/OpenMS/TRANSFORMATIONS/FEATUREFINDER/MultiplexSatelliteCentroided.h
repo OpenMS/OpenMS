@@ -32,72 +32,57 @@
 // $Authors: Lars Nilse $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/KERNEL/StandardTypes.h>
-#include <OpenMS/CONCEPT/Constants.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexDeltaMasses.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexIsotopicPeakPattern.h>
+#ifndef OPENMS_TRANSFORMATIONS_FEATUREFINDER_MULTIPLEXSATELLITECENTROIDED_H
+#define OPENMS_TRANSFORMATIONS_FEATUREFINDER_MULTIPLEXSATELLITECENTROIDED_H
 
+#include <OpenMS/KERNEL/StandardTypes.h>
+
+#include <map>
 #include <vector>
 #include <algorithm>
 #include <iostream>
 
-using namespace std;
-
 namespace OpenMS
 {
-
-  MultiplexIsotopicPeakPattern::MultiplexIsotopicPeakPattern(int c, int ppp, MultiplexDeltaMasses ms, int msi) :
-    charge_(c), peaks_per_peptide_(ppp), mass_shifts_(ms), mass_shift_index_(msi)
+  /**
+   * @brief data structure storing a single satellite peak
+   *
+   * The satellite peak is part of a centroided MSExperiment.
+   * Hence indices rt_idx_ and mz_idx_ are sufficient to specify RT, m/z and intensity.
+   * 
+   * @see MultiplexFilteredPeak, MultiplexSatelliteProfile
+   */
+  class OPENMS_DLLAPI MultiplexSatelliteCentroided
   {
-    // generate m/z shifts
-    for (unsigned i = 0; i < mass_shifts_.getDeltaMasses().size(); ++i)
-    {
-      for (int j = 0; j < peaks_per_peptide_; ++j)
-      {
-        const std::vector<MultiplexDeltaMasses::DeltaMass>& delta_masses = mass_shifts_.getDeltaMasses();
-        mz_shifts_.push_back((delta_masses[i].delta_mass + j * Constants::C13C12_MASSDIFF_U) / charge_);
-      }
-    }
-  }
+    public:
 
-  int MultiplexIsotopicPeakPattern::getCharge() const
-  {
-    return charge_;
-  }
-
-  int MultiplexIsotopicPeakPattern::getPeaksPerPeptide() const
-  {
-    return peaks_per_peptide_;
-  }
-
-  MultiplexDeltaMasses MultiplexIsotopicPeakPattern::getMassShifts() const
-  {
-    return mass_shifts_;
-  }
-
-  int MultiplexIsotopicPeakPattern::getMassShiftIndex() const
-  {
-    return mass_shift_index_;
-  }
-
-  unsigned MultiplexIsotopicPeakPattern::getMassShiftCount() const
-  {
-    return mass_shifts_.getDeltaMasses().size();
-  }
-
-  double MultiplexIsotopicPeakPattern::getMassShiftAt(size_t i) const
-  {
-    return mass_shifts_.getDeltaMasses()[i].delta_mass;
-  }
-
-  double MultiplexIsotopicPeakPattern::getMZShiftAt(size_t i) const
-  {
-    return mz_shifts_[i];
-  }
-
-  unsigned MultiplexIsotopicPeakPattern::getMZShiftCount() const
-  {
-    return mz_shifts_.size();
-  }
-
+    /**
+     * @brief constructor
+     */
+    MultiplexSatelliteCentroided(size_t rt_idx, size_t mz_idx);
+    
+    /**
+     * @brief returns the m/z index of the satellite peak
+     */
+    size_t getMZidx() const;
+     
+    /**
+     * @brief returns the RT index of the satellite peak
+     */
+    size_t getRTidx() const;
+    
+    private:
+     
+    /**
+     * @brief indices of the satellite peak position in the centroided experiment
+     * 
+     * Spectral index and peak index within the spectrum of the satellite peak.
+     */
+    size_t rt_idx_;
+    size_t mz_idx_;
+    
+  };
+  
 }
+
+#endif /* MULTIPLEXSATELLITECENTROIDED_H */
