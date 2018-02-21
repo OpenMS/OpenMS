@@ -286,7 +286,7 @@ public:
 
         uint16_t count_j_proteins(0);
         bool has_active_data = true; // becomes false if end of FASTA file is reached
-        const std::string jumpX(aaa_max_ + 1, 'X'); // jump over stretches of 'X' which cost a lot of time; +1 because  AXXA is a valid hit for aaa_max == 2 (cannot split it)
+        const std::string jumpX(aaa_max_ + mm_max_ + 1, 'X'); // jump over stretches of 'X' which cost a lot of time; +1 because  AXXA is a valid hit for aaa_max == 2 (cannot split it)
         this->startProgress(0, proteins.size(), "Aho-Corasick");
         std::atomic<int> progress_prots(0);
 #ifdef _OPENMP
@@ -333,10 +333,8 @@ public:
               {
                 this->setProgress(progress_prots);
               }
-              
 
               prot = proteins.chunkAt(i).sequence;
-
               prot.remove('*');
 
               // check for invalid sequences with modifications
