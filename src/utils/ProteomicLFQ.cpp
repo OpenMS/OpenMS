@@ -37,6 +37,8 @@
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/FORMAT/PeakTypeEstimator.h>
 
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderIdentificationAlgorithm.h>
+
 #include <OpenMS/FORMAT/DATAACCESS/MSDataWritingConsumer.h>
 
 using namespace OpenMS;
@@ -126,31 +128,16 @@ protected:
 
   void registerOptionsAndFlags_() override
   {
-    registerInputFiles_("in", "<file>", "", "input profile data files");
+    registerInputFileList_("in", "<file>", StringList(), "input files");
     setValidFormats_("in", ListUtils::create<String>("mzML"));
-    registerInputFiles_("in_ids", "<file>", "", "unfiltered identifications");
-    setValidFormats_("in_ids", ListUtils::create<String>("idXML,mzIdentML"));
+    registerInputFileList_("in_ids", "<file>", StringList(), "unfiltered identifications");
+    setValidFormats_("in_ids", ListUtils::create<String>("idXML,mzId"));
 
     registerOutputFile_("out", "<file>", "", "output peak files");
     setValidFormats_("out", ListUtils::create<String>("mzML"));
 
-    // expose preprocessing parameters
-    registerSubsection_("Preprocessing", "Spectra preprocessing");
-    registerSubsection_("Feature detection", "Feature finding");
- 
-  }
-
-  Param getSubsectionDefaults_(const String & section) const override
-  {
-    cout << section << endl;
-    if (section == "Preprocessing")
-    (
-      return PeakPickerHiRes().getDefaults();
-    )
-    else if (section == "Feature detection")
-    (
-      return FeatureFinderIdentification().getDefaults();
-    )
+    registerFullParam_(PeakPickerHiRes().getDefaults());
+    registerFullParam_(FeatureFinderIdentificationAlgorithm().getDefaults());
   }
 
   ExitCodes main_(int, const char **) override
@@ -172,64 +159,60 @@ protected:
     //-------------------------------------------------------------
     // loading input
     //-------------------------------------------------------------
-    MzMLFile mz_data_file;
-    mz_data_file.setLogType(log_type_);
-    PeakMap ms_exp_raw;
-    mz_data_file.load(in, ms_exp_raw);
 
-    if (ms_exp_raw.empty() && ms_exp_raw.getChromatograms().size() == 0)
+    for (String const & mz_file : in)
     {
-      LOG_WARN << "The given file does not contain any conventional peak data, but might"
-                  " contain chromatograms. This tool currently cannot handle them, sorry.";
-      return INCOMPATIBLE_INPUT_DATA;
-    }
+      // load raw file
+      MzMLFile mzML_file;
+      mzML_file.setLogType(log_type_);
 
-    //check if spectra are sorted
-    for (Size i = 0; i < ms_exp_raw.size(); ++i)
-    {
-      if (!ms_exp_raw[i].isSorted())
+      PeakMap ms_raw;
+      mzML_file.load(mz_file, ms_raw);
+
+      if (ms_raw.empty())
       {
-        writeLog_("Error: Not all spectra are sorted according to peak m/z positions. Use FileFilter to sort the input!");
+        LOG_WARN << "The given file does not contain any spectra.";
         return INCOMPATIBLE_INPUT_DATA;
       }
-    }
 
-    //check if chromatograms are sorted
-    for (Size i = 0; i < ms_exp_raw.getChromatograms().size(); ++i)
-    {
-      if (!ms_exp_raw.getChromatogram(i).isSorted())
+      // check if spectra are sorted
+      for (Size i = 0; i < ms_raw.size(); ++i)
       {
-        writeLog_("Error: Not all chromatograms are sorted according to peak m/z positions. Use FileFilter to sort the input!");
-        return INCOMPATIBLE_INPUT_DATA;
+        if (!ms_raw[i].isSorted())
+        {
+          ms_raw[i].sortByPosition();
+          writeLog_("Info: Sorte peaks by m/z.");
+        }
       }
+ 
+      //-------------------------------------------------------------
+      // pick
+      //-------------------------------------------------------------
+      // TODO: only peak if not already picked (auto mode that skips already picked ones)
+      PeakMap ms_centroided;
+      bool check_spectrum_type = !getFlag_("force");
+      pp.pickExperiment(ms_raw, ms_centroided, check_spectrum_type);
+
+      //-------------------------------------------------------------
+      // writing picked mzML files for data submission
+      //-------------------------------------------------------------
+      //annotate output with data processing info
+      addDataProcessing_(ms_centroided, getProcessingInfo_(DataProcessing::PEAK_PICKING));
+
+      // TODO: how to store picked files? by specifying a folder? or by output files that match in number to input files
+      // mzML_file.store(out, ms_centroided);
+
     }
 
-    //-------------------------------------------------------------
-    // pick
-    //-------------------------------------------------------------
-    PeakMap ms_exp_peaks;
-    bool check_spectrum_type = !getFlag_("force");
-    pp.pickExperiment(ms_exp_raw, ms_exp_peaks, check_spectrum_type);
-
-    //-------------------------------------------------------------
-    // writing output
-    //-------------------------------------------------------------
-    //annotate output with data processing info
-    addDataProcessing_(ms_exp_peaks, getProcessingInfo_(DataProcessing::PEAK_PICKING));
-    mz_data_file.store(out, ms_exp_peaks);
 
     return EXECUTION_OK;
   }
-
-  // parameters
-  String in;
-  String out;
 };
 
 
 int main(int argc, const char ** argv)
 {
-  UTILProteomicsLFQ tool;
+  UTILProteomicLFQ tool;
   return tool.main(argc, argv);
 }
 
