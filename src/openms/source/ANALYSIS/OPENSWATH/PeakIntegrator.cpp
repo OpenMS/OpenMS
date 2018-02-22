@@ -316,9 +316,8 @@ namespace OpenMS
     psm.slope_of_baseline = (p.PosEnd(right) - 1)->getIntensity() - p.PosBegin(left)->getIntensity();
     psm.baseline_delta_2_height = psm.slope_of_baseline / peak_height;
     // other
-    psm.tailing_factor = psm.width_at_5 / std::min(peak_apex_pos - psm.start_position_at_5, psm.end_position_at_5 - peak_apex_pos);
-    psm.asymmetry_factor = std::min(peak_apex_pos - psm.start_position_at_10, psm.end_position_at_10 - peak_apex_pos) /
-      std::max(peak_apex_pos - psm.start_position_at_10, psm.end_position_at_10 - peak_apex_pos);
+    psm.tailing_factor = psm.width_at_5 / (peak_apex_pos - psm.start_position_at_5);
+    psm.asymmetry_factor = (psm.end_position_at_10 - peak_apex_pos) / (peak_apex_pos - psm.start_position_at_10);
     return psm;
   }
 
