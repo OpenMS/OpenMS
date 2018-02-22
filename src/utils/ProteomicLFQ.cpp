@@ -128,13 +128,15 @@ protected:
 
   void registerOptionsAndFlags_() override
   {
-    registerInputFileList_("in", "<file>", StringList(), "input files");
+    registerInputFileList_("in", "<file list>", StringList(), "input files");
     setValidFormats_("in", ListUtils::create<String>("mzML"));
-    registerInputFileList_("in_ids", "<file>", StringList(), "unfiltered identifications");
+    registerInputFileList_("in_ids", "<file list>", StringList(), "unfiltered identifications");
     setValidFormats_("in_ids", ListUtils::create<String>("idXML,mzId"));
+    registerInputFile_("design", "<file>", "", "design file");
+    setValidFormats_("design", ListUtils::create<String>("tsv"));
 
-    registerOutputFile_("out", "<file>", "", "output peak files");
-    setValidFormats_("out", ListUtils::create<String>("mzML"));
+    registerOutputFile_("out", "<file>", "", "output mzTab file");
+    setValidFormats_("out", ListUtils::create<String>("mzTab")); // TODO: add file extension for mzTab
 
     registerFullParam_(PeakPickerHiRes().getDefaults());
     registerFullParam_(FeatureFinderIdentificationAlgorithm().getDefaults());
@@ -162,6 +164,9 @@ protected:
 
     for (String const & mz_file : in)
     {
+      // TODO: iterate over the same fraction of different samples
+      // std::map<unsigned int, std::set<String> > frac2ms = design.getFractionToMSFilesMapping()
+
       // load raw file
       MzMLFile mzML_file;
       mzML_file.setLogType(log_type_);
@@ -197,13 +202,31 @@ protected:
       // writing picked mzML files for data submission
       //-------------------------------------------------------------
       //annotate output with data processing info
-      addDataProcessing_(ms_centroided, getProcessingInfo_(DataProcessing::PEAK_PICKING));
-
       // TODO: how to store picked files? by specifying a folder? or by output files that match in number to input files
       // mzML_file.store(out, ms_centroided);
+      // TODO: free memory of PeakMaps
 
+      //-------------------------------------------------------------
+      // align
+      //-------------------------------------------------------------
+      // TODO: MapAlignerIdentification on all FeatureXMLs (of this fraction)
+      
+      //-------------------------------------------------------------
+      // link
+      //-------------------------------------------------------------
+      // TODO: FeatureLinkerUnlabeledKD
     }
+    // TODO: FileMerger merge ids (here? or already earlier? filtered?)
 
+    //-------------------------------------------------------------
+    // Protein inference
+    //-------------------------------------------------------------
+    // TODO: ProteinInference on merged ids (how merged?)
+
+    //-------------------------------------------------------------
+    // Protein quantification and export to mzTab
+    //-------------------------------------------------------------
+    // TODO: ProteinQuantifier on (merged?) consensusXML + inference ids? export of MzTab file as final output
 
     return EXECUTION_OK;
   }
