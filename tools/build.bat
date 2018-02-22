@@ -22,6 +22,8 @@ IF "%~1"=="" (
   ECHO.
   ECHO          // just build FeatureFinderCentroided in Debug mode ^(no need to specify where to find it^)
   ECHO          build FeatureFinderCentroided d
+  ECHO.
+  ECHO     Targets: any Executable/library name, 'clean', '-' ^(=ALL_BUILD^)
   goto end
 )
 
@@ -64,11 +66,16 @@ if not %ERRORLEVEL%==0 (
   ECHO Visual Studio's 'MSBuild.exe' was not found. Please modify this build.bat to point to the correct location or make it available in %%PATH%%.
   goto end
 )
+
+set t_start=%time%
 REM Invoke MSBuild.exe
 REM do not use "START /WAIT /B /LOW ..." since: 
 REM   - it does not allow to cancel the job on the console (it will keep running in the background)
 REM   - it might trick MSBuild.exe into assuming only single-core CPU, even if /maxcpucount is specified
 MSBuild.exe %SLN% /maxcpucount /target:%TARGET% /p:Configuration=%CFG%
+set t_end=%time%
 
+ECHO Time start: %t_start%
+ECHO        end: %t_end%
 
 :end
