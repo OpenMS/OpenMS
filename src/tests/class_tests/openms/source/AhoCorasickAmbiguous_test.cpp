@@ -50,7 +50,7 @@ using namespace std;
 void setDB(const StringList& in, AhoCorasickAmbiguous::PeptideDB& out)
 {
   clear(out);
-  for (auto i = 0; i < in.size(); ++i) 
+  for (size_t i = 0; i < in.size(); ++i) 
   {
     seqan::appendValue(out, in[i].c_str());
   }
@@ -65,7 +65,7 @@ void compareHits(int line, const String& protein, String expected_s, StringList&
   TEST_EQUAL(observed.size(), expected.size()) // results should have same number of entries
   if (expected.size() == observed.size())
   {
-    for (auto i = 0; i < expected.size(); ++i)
+    for (size_t i = 0; i < expected.size(); ++i)
     {
       expected[i] = expected[i].toUpper();
       std::cout << "hit " << i << ": " << expected[i] << " <> " << observed[i] << "\n";
@@ -289,7 +289,7 @@ START_SECTION(bool findNext(const FuzzyACPattern& pattern))
   ///
   AhoCorasickAmbiguous::initPattern(pep_db, 1, 2, pattern);
   observed.clear();
-  prot = "aMMB"; // B = D|N,  Z = E|Q
+  prot = "aMMB"; // B = D|N
   fuzzyAC.setProtein(prot);
   expected = "  adc@0,  acd@0"  // 2 hits of aXx at first pos
              ", cad@1,  acd@1"; // 2 hits of XXB, found at second position
