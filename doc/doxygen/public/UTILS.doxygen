@@ -61,7 +61,6 @@
 
   <b>Algorithm Evaluation</b>
   - @subpage UTILS_FFEval - Evaluation tool for feature detection algorithms.
-  - @subpage UTILS_IDEvaluator - Evaluation tool, comparing peptide recovery at different q-value thresholds for multiple search engines (e.g., after ConsensusID). For interactive version use the @subpage UTILS_IDEvaluatorGUI tool.
   - @subpage UTILS_LabeledEval - Evaluation tool for isotope-labeled quantitation experiments.
   - @subpage UTILS_RTEvaluation - Application that evaluates TPs (true positives), TNs, FPs, and FNs for an idXML file with predicted RTs.
   - @subpage UTILS_TransformationEvaluation - Simple evaluation of transformations (e.g. RT transformations produced by a MapAligner tool).
