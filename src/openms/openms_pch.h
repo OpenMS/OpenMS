@@ -3,6 +3,7 @@
 /* cotire.cmake 1.7.10 generated file */
 #ifdef __cplusplus
 
+
 #include <algorithm>
 #include <cassert>
 #include <cctype>
@@ -28,6 +29,7 @@
 #include <set>
 #include <string>
 #include <vector>
+
 
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
@@ -72,6 +74,8 @@
 #include <WildMagic/Wm5IntpAkimaNonuniform1.h>
 #include <WildMagic/Wm5LinearSystem.h>
 #include <WildMagic/Wm5Vector2.h>
+// required to avoid: 'error: 'make_array' is not a member of 'boost::serialization'
+#include <boost/serialization/array_wrapper.hpp>
 #include <boost/accumulators/accumulators.hpp>
 #include <boost/accumulators/statistics/covariance.hpp>
 #include <boost/accumulators/statistics/stats.hpp>
@@ -133,7 +137,8 @@
 #include <seqan/seq_io/guess_stream_format.h>
 #include <seqan/seq_io/read_fasta_fastq.h>
 #include <seqan/stream.h>
-#include <sqlite/sqlite3.h>
+// sqlite not currently required
+//#include <sqlite/sqlite3.h>
 #include <svm.h>
 #include <xercesc/dom/DOM.hpp>
 #include <xercesc/dom/DOMDocument.hpp>
