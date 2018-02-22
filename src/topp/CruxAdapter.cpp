@@ -158,14 +158,19 @@ protected:
     registerStringOption_("digestion", "<choice>", "full-digest", "Full, partial or non specific digestion", false, false);
     setValidStrings_("digestion", ListUtils::create<String>("full-digest,partial-digest,non-specific-digest"));
     registerIntOption_("allowed_missed_cleavages", "<num>", 0, "Number of possible cleavage sites missed by the enzyme, maximum value is 5; for enzyme search", false, false);
-    registerStringOption_("custom_enzyme", "<enzyme description>", "", "Specify rules for in silico digestion of protein sequences. Overrides the enzyme option. Two lists of residues are given enclosed in square brackets or curly braces and separated by a |. The first list contains residues required/prohibited before the cleavage site and the second list is residues after the cleavage site.  ", false, false); 
-    registerStringOption_("decoy_prefix", "<decoy_prefix>", "decoy_", "Specifies the prefix of the protein names that indicate a decoy", false, false); 
+    registerStringOption_("custom_enzyme", "<enzyme description>", "", "Specify rules for in silico digestion of protein sequences. Overrides the enzyme option. Two lists of residues are given enclosed in square brackets or curly braces and separated by a |. The first list contains residues required/prohibited before the cleavage site and the second list is residues after the cleavage site.  ", false, true);
+    registerStringOption_("decoy_prefix", "<decoy_prefix>", "decoy_", "Specifies the prefix of the protein names that indicate a decoy", false, true);
+
+    registerStringOption_("decoy-format", "<choice>", "shuffle", "Decoy generation method either by reversing the sequence or shuffling it.", false, false);
+    setValidStrings_("decoy-format", ListUtils::create<String>("none,shuffle,peptide-reverse,protein-reverse"));
+    registerStringOption_("keep-terminal-aminos", "<choice>", "NC", "Whether to keep N and C terminal in place or also shuffled / reversed.", false, false);
+    setValidStrings_("keep-terminal-aminos", ListUtils::create<String>("N,C,NC,none"));
 
     //Modifications
     registerStringOption_("cterm_modifications", "<mods>", "", "Specifies C-terminal static and variable mass modifications on peptides.  Specify a comma-separated list of C-terminal modification sequences of the form: X+21.9819 Default = <empty>.", false, false);
     registerStringOption_("nterm_modifications", "<mods>", "", "Specifies N-terminal static and variable mass modifications on peptides.  Specify a comma-separated list of N-terminal modification sequences of the form: 1E-18.0106,C-17.0265 Default = <empty>.", false, false);
     registerStringOption_("modifications", "<mods>", "", "Expression for static and variable mass modifications to include. Specify a comma-separated list of modification sequences of the form: C+57.02146,2M+15.9949,1STY+79.966331,... Default = C+57.02146.", false, false);
-     
+
     // Percolator
     registerDoubleOption_("test_fdr", "<fdr>", 0.01, "False discovery rate threshold used in selecting hyperparameters during internal cross-validation and for reporting the final results.", false, false);
     registerDoubleOption_("train_fdr", "<fdr>", 0.01, "False discovery rate threshold to define positive examples in training.", false, false);
@@ -284,6 +289,8 @@ protected:
       String params = "--overwrite T --peptide-list T --num-threads " + String(getIntOption_("threads"));
       params += " --missed-cleavages " + String(getIntOption_("allowed_missed_cleavages"));
       params += " --digestion " + getStringOption_("digestion");
+      params += " --decoy-format " + getStringOption_("decoy-format");
+      params += " --keep-terminal-aminos " + getStringOption_("keep-terminal-aminos");
       if (!getStringOption_("enzyme").empty()) params += " --enzyme " + getStringOption_("enzyme");
       if (!getStringOption_("custom_enzyme").empty()) params += " --custom-enzyme " + getStringOption_("custom_enzyme");
       if (!getStringOption_("modifications").empty()) params += " --mods-spec " + getStringOption_("modifications");
@@ -452,7 +459,6 @@ protected:
   }
 
 };
-
 
 int main(int argc, const char** argv)
 {
