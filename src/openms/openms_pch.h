@@ -75,7 +75,12 @@
 #include <WildMagic/Wm5LinearSystem.h>
 #include <WildMagic/Wm5Vector2.h>
 // required to avoid: 'error: 'make_array' is not a member of 'boost::serialization'
-#include <boost/serialization/array_wrapper.hpp>
+#include <boost/version.hpp>
+#if BOOST_VERSION >= 106400
+#  include <boost/serialization/array_wrapper.hpp>
+#else
+#  include <boost/serialization/array.hpp>
+#endif
 #include <boost/accumulators/accumulators.hpp>
 #include <boost/accumulators/statistics/covariance.hpp>
 #include <boost/accumulators/statistics/stats.hpp>
@@ -125,11 +130,14 @@
 #include <boost/spirit/include/qi.hpp>
 #include <boost/unordered_map.hpp>
 #include <bzlib.h>
+/* 
+// lots of warnings in Eigen code...
 #include <eigen3/Eigen/Dense>
 #include <eigen3/Eigen/LU>
 #include <eigen3/Eigen/SVD>
 #include <eigen3/Eigen/Sparse>
 #include <eigen3/unsupported/Eigen/NonLinearOptimization>
+*/
 //#include <glpk.h> // this is trouble, since it defines a lot of bad stuff
 #include <seqan/align.h>
 #include <seqan/basic.h>
