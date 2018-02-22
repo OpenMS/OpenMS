@@ -75,6 +75,9 @@ using namespace std;
     with a single hit (with the best score) is associated to each feature. (If
     two IDs have the same best score, either one of them may be selected.)
 
+    The the filtered identifications are added to the vector of unassigned peptides
+    and also reduced to a single best hit.
+
     This step may be useful before applying @ref TOPP_ProteinQuantifier
     "ProteinQuantifier", because features with ambiguous annotation are not
     considered for the quantification.
@@ -117,15 +120,28 @@ protected:
     return false;
   }
 
-  void resolveConflict_(vector<PeptideIdentification> & peptides)
+  void resolveConflict_(
+    vector<PeptideIdentification> & peptides, 
+    vector<PeptideIdentification> & removed,
+    UInt64 uid)
   {
-    if (peptides.empty()) return;
+    if (peptides.empty()) { return; }
 
-    for (vector<PeptideIdentification>::iterator pep_id = peptides.begin();
-         pep_id != peptides.end(); ++pep_id)
+    for (PeptideIdentification & pep : peptides)
     {
-      pep_id->sort();
+      // sort hits
+      pep.sort();
+
+      // remove all but the best hit
+      if (!pep.getHits().empty())
+      {
+        vector<PeptideHit> best_hit(1, pep.getHits()[0]);
+        pep.setHits(best_hit);
+      }
+      // annotate feature id
+      pep.setMetaValue("feature_id", String(uid));
     }
+
     vector<PeptideIdentification>::iterator pos;
     if (peptides[0].isHigherScoreBetter())     // find highest-scoring ID
     {
@@ -135,15 +151,26 @@ protected:
     {
       pos = min_element(peptides.begin(), peptides.end(), compareIDsSmallerScores_);
     }
-    peptides[0] = *pos;
-    peptides.resize(1);
 
-    if (!peptides[0].getHits().empty())
+    // copy conflicting ones left to best one
+    for (auto it = peptides.begin(); it != pos; ++it)
     {
-      // remove all but the best hit:
-      vector<PeptideHit> best_hit(1, peptides[0].getHits()[0]);
-      peptides[0].setHits(best_hit);
+      it->setMetaValue("feature_leader", false);
+      removed.push_back(*it);
     }
+     
+    // copy conflicting ones right of best one
+    vector<PeptideIdentification>::iterator pos1p = pos + 1;
+    for (auto it = pos1p; it != peptides.end(); ++it)
+    {
+      it->setMetaValue("feature_leader", false);
+      removed.push_back(*it);
+    }
+
+    // set best one to first position and shrink vector
+    peptides[0] = *pos;
+    peptides[0].setMetaValue("feature_leader", true);
+    peptides.resize(1);
   }
 
   void registerOptionsAndFlags_() override
@@ -162,10 +189,20 @@ protected:
     {
       FeatureMap features;
       FeatureXMLFile().load(in, features);
-      for (FeatureMap::Iterator feat_it = features.begin();
-           feat_it != features.end(); ++feat_it)
+
+      // annotate as not part of the resolution
+      for (PeptideIdentification & p : features.getUnassignedPeptideIdentifications())
       {
-        resolveConflict_(feat_it->getPeptideIdentifications());
+        p.setMetaValue("feature_id", "not mapped"); // not mapped to a feature
+        p.setMetaValue("feature_leader", false); // and, thus, no id leader of a feature
+      }
+
+      for (Feature & f : features)
+      {
+        f.setMetaValue("feature_id", String(f.getUniqueId())); // annotate feature id in meta data (IDs might change later)
+        resolveConflict_(f.getPeptideIdentifications(), 
+          features.getUnassignedPeptideIdentifications(),
+          f.getUniqueId());
       }
       addDataProcessing_(features,
                          getProcessingInfo_(DataProcessing::FILTERING));
@@ -175,10 +212,20 @@ protected:
     {
       ConsensusMap consensus;
       ConsensusXMLFile().load(in, consensus);
-      for (ConsensusMap::Iterator cons_it = consensus.begin();
-           cons_it != consensus.end(); ++cons_it)
+
+      // annotate as not part of the resolution
+      for (PeptideIdentification & p : consensus.getUnassignedPeptideIdentifications())
       {
-        resolveConflict_(cons_it->getPeptideIdentifications());
+        p.setMetaValue("feature_id", "not mapped"); // not mapped to a feature
+        p.setMetaValue("feature_leader", false); // and, thus, no id leader of a feature
+      }
+
+      for (ConsensusFeature & c : consensus)
+      {
+        c.setMetaValue("feature_id", String(c.getUniqueId()));
+        resolveConflict_(c.getPeptideIdentifications(), 
+          consensus.getUnassignedPeptideIdentifications(),
+          c.getUniqueId());
       }
       addDataProcessing_(consensus,
                          getProcessingInfo_(DataProcessing::FILTERING));

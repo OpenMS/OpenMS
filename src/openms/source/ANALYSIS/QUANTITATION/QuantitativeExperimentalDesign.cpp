@@ -107,7 +107,7 @@ namespace OpenMS
       resolver.resolveConsensus(consensus);
     }
   }
-
+/*
   void QuantitativeExperimentalDesign::applyDesign2Quantifier(PeptideAndProteinQuant& quantifier, TextFile& file, StringList& file_paths)
   {
     //        vector< pair<PeptideAndProteinQuant::PeptideData,PeptideAndProteinQuant::ProteinQuant> >& result)
@@ -153,7 +153,7 @@ namespace OpenMS
       quantifier.quantifyProteins(proteins);
     }
   }
-
+*/
   void QuantitativeExperimentalDesign::mergeConsensusMaps_(ConsensusMap& out, const String& experiment, StringList& file_paths)
   {
     ConsensusMap map;
