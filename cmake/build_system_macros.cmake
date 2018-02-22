@@ -45,7 +45,7 @@ macro(find_boost)
   set(Boost_USE_STATIC_LIBS ${BOOST_USE_STATIC})
   set(Boost_USE_MULTITHREADED  ON)
   set(Boost_USE_STATIC_RUNTIME OFF)
-  add_definitions(/DBOOST_ALL_NO_LIB) ## disable auto-linking of boost libs (boost tends to guess wrong lib names)
+  add_compile_options(/DBOOST_ALL_NO_LIB) ## disable auto-linking of boost libs (boost tends to guess wrong lib names)
   set(Boost_COMPILER "")
 
   # help boost finding it's packages

@@ -28,7 +28,7 @@ if (OpenMS_FOUND)
   ## Warning: this could be harmful to your project. Check this
   ## if problems occur
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OPENMS_ADDCXX_FLAGS}")
-  add_definitions(${OPENMS_DEFINITIONS})
+  add_compile_options(${OPENMS_DEFINITIONS})
 
   ## library with additional classes from above
   add_library(my_custom_lib STATIC ${my_sources})

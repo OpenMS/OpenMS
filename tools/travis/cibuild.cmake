@@ -57,7 +57,7 @@ set(CTEST_BUILD_FLAGS -j5)
 
 ## speed up compile time on GCC
 if (CMAKE_COMPILER_IS_GNUCXX)
-	add_definitions(-O0)
+	add_compile_options(-O0)
 endif()
 
 # we want makefiles

@@ -44,7 +44,7 @@ if (OpenMS_FOUND)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OPENMS_ADDCXX_FLAGS}")
   # set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OPENMS_ADDCXX_FLAGS} /openmp")
   
-  add_definitions(/DBOOST_ALL_NO_LIB) ## disable auto-linking of boost libs (Boost tends to guess wrong lib names)
+  add_compile_options(/DBOOST_ALL_NO_LIB) ## disable auto-linking of boost libs (Boost tends to guess wrong lib names)
   
   ## library with additional classes from above
   add_library(my_custom_lib STATIC ${my_sources})
