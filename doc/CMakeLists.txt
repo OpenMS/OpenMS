@@ -83,7 +83,7 @@ else()
 endif()
 
 include_directories(SYSTEM ${_doc_progs_include})
-add_compile_options(/DBOOST_ALL_NO_LIB)
+add_definitions(/DBOOST_ALL_NO_LIB)
 
 # build doc executables
 foreach(i ${OpenMS_doc_executables})

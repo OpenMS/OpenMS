@@ -113,7 +113,7 @@ find_package(Eigen3 3.3.4 REQUIRED)
 set(WM5_FIND_REQUIRED_COMPONENTS WM5_WM5CORE WM5_WM5MATHEMATICS )
 find_package(WM5 REQUIRED)
 if (WM5_FOUND)
-  add_compile_options(${WM5_DEFINITIONS})
+  add_definitions(${WM5_DEFINITIONS})
 endif()
 
 #------------------------------------------------------------------------------
