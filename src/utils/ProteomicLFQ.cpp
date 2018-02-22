@@ -36,6 +36,7 @@
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerHiRes.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/FORMAT/PeakTypeEstimator.h>
+#include <OpenMS/METADATA/ExperimentalDesign.h>
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderIdentificationAlgorithm.h>
 
@@ -79,6 +80,19 @@ protected:
     registerFullParam_(FeatureFinderIdentificationAlgorithm().getDefaults());
   }
 
+  ExperimentalDesign getExperimentalDesignIds_(const String & design_file, const vector<ProteinIdentification> & proteins)
+  {
+    if (!design_file.empty()) // load experimental design file
+    {
+      return ExperimentalDesign::load(design_file);
+      // TODO FRACTIONS: check if ed sane
+    }
+    else  // no design file provided
+    {
+      return ExperimentalDesign::fromIdentifications(proteins);
+    }
+  }
+
   ExitCodes main_(int, const char **) override
   {
     //-------------------------------------------------------------
@@ -87,7 +101,12 @@ protected:
 
     // read tool parameters
     StringList in = getStringList_("in");
-    StringList out = getStringList_("out");
+    String out = getStringList_("out");
+    StringList in = getStringList_("in_ids");
+    String design_file = getStringList_("design");
+    
+    //TODO: if no experimental design file is given, create a trivial von from protein ids (no fractions)
+    //ExperimentalDesign design = getExperimentalDesignIds_(design_file, proteins);
 
     Param pepi_param = getParam_().copy("Preprocessing:", true);
     writeDebug_("Parameters passed to PeakPickerHiRes", pepi_param, 3);
