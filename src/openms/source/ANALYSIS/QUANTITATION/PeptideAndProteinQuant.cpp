@@ -190,7 +190,7 @@ namespace OpenMS
         // return false: only identified, not quantified
         if (!getBest_(pep_q.second.abundances, best_fraction_and_charge)) 
         { 
-          continue ;
+          continue;
         }
         
         // quantify according to the best fraction and charge state only:

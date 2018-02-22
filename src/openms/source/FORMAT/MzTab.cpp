@@ -2094,7 +2094,7 @@ namespace OpenMS
 
       if (run_to_search_engines[run_index].size() != 1)
       {
-        throw ; // multiple search engines not supported
+        throw; // multiple search engines not supported
       }
 
       pair<String, String> name_version = *run_to_search_engines[run_index].begin();
