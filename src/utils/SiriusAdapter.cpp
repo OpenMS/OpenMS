@@ -32,8 +32,6 @@
 // $Authors: Oliver Alka, Timo Sachsenberg $
 // --------------------------------------------------------------------------
 
-//not sure if more #include directives are needed
-
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/MzTabFile.h>
@@ -69,10 +67,11 @@ using namespace std;
 
   To use this feature, the Sirius command line tool as well as a java installation is needed.
 
-  Sirius can be found on https://bio.informatik.uni-jena.de/software/sirius/
+  Sirius can be found on https://bio.informatik.uni-jena.de/software/sirius/ 
+
+  Please use Sirius Version 4.0.
 
   If you want to use the software with the Gurobi solver (free academic license) instead of GLPK, please follow the instructions in the sirius manual.
-
 
   Internal procedure in SiriusAdpater
   1. Input mzML
@@ -139,12 +138,13 @@ protected:
     registerStringOption_("isotope", "<choice>", "both", "how to handle isotope pattern data. Use 'score' to use them for ranking or 'filter' if you just want to remove candidates with bad isotope pattern. With 'both' you can use isotopes for filtering and scoring (default). Use 'omit' to ignore isotope pattern.", false);
     setValidStrings_("isotope", ListUtils::create<String>("score,filter,both,omit"));
     registerStringOption_("elements", "<choice>", "CHNOP[5]S", "The allowed elements. Write CHNOPSCl to allow the elements C, H, N, O, P, S and Cl. Add numbers in brackets to restrict the maximal allowed occurrence of these elements: CHNOP[5]S[8]Cl[1]. By default CHNOP[5]S is used.", false);
-
+    registerIntOption_("tree_timeout", "<num>", 10, "Time out in seconds per fragmenation tree computation (default: 10)", false);
     registerIntOption_("top_n_hits", "<num>", 10, "The top_n_hit for each compound written to the output", false);
 
     registerFlag_("auto_charge", "Use this option if the charge of your compounds is unknown and you do not want to assume [M+H]+ as default. With the auto charge option SIRIUS will not care about charges and allow arbitrary adducts for the precursor peak.", false);
     registerFlag_("iontree", "Print molecular formulas and node labels with the ion formula instead of the neutral formula", false);
     registerFlag_("no_recalibration", "If this option is set, SIRIUS will not recalibrate the spectrum during the analysis.", false);
+    registerFlag_("most_intense_ms2", "Sirius uses the fragmentation sepctrum with the most intense precursor peak (for each spectrum)", false);
   }
 
   // extract adduct information from featureXML (MetaboliteAdductDecharger)
@@ -223,10 +223,12 @@ protected:
     const QString noise = QString::number(getIntOption_("noise"));
     const QString ppm_max = QString::number(getIntOption_("ppm_max"));
     const QString candidates = QString::number(getIntOption_("candidates"));
+    const QString tree_timeout = QString::number(getIntOption_("tree_timeout"));
 
     bool auto_charge = getFlag_("auto_charge");
     bool no_recalibration = getFlag_("no_recalibration");
     bool iontree = getFlag_("iontree");
+    bool most_intense_ms2 = getFlag_("most_intense_ms2");
 
     //-------------------------------------------------------------
     // Determination of the Executable
@@ -289,6 +291,7 @@ protected:
                    << "--noise" << noise
                    << "--candidates" << candidates
                    << "--ppm-max" << ppm_max
+                   << "--tree-timeout" << tree_timeout 
                    << "--quiet"
                    << "--output" << out_dir.toQString(); //internal output folder for temporary SIRIUS output file storage
 
@@ -308,6 +311,10 @@ protected:
     if (auto_charge)
     {
       process_params << "--auto-charge";
+    }
+    if (most_intense_ms2)
+    {
+      process_params << "--mostintense-ms2";
     }
 
     process_params << tmp_ms_file.toQString();
