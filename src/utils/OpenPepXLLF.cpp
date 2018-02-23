@@ -232,6 +232,8 @@ protected:
     registerStringOption_("cross_linker:name", "<string>", "DSS" ,  "Name of the searched cross-link, used to resolve ambiguity of equal masses (e.g. DSS or BS3)", false, false);
 
     registerTOPPSubsection_("algorithm", "Algorithm Options");
+    registerFlag_("algorithm:pre_scoring", "Set flag, to use the pre-scoring heuristic. Otherwise a full enumeration will be performed.", false);
+    registerIntOption_("algorithm:number_of_scored_candidates", "<num>", 10000, "Number of candidates that are scored using the full scoring function after ranking by a faster pre-scoring function.", false, false);
     registerIntOption_("algorithm:number_top_hits", "<num>", 5, "Number of top hits reported for each spectrum pair", false, false);
 
     // output file
@@ -304,6 +306,8 @@ protected:
     Size peptide_min_size = getIntOption_("peptide:min_size");
 
     Int number_top_hits = getIntOption_("algorithm:number_top_hits");
+    bool pre_scoring(getFlag_("algorithm:pre_scoring"));
+    Int number_of_scored_candidates = getIntOption_("algorithm:number_of_scored_candidates");
 
     if (fixed_unique.size() != fixedModNames.size())
     {
@@ -644,113 +648,126 @@ protected:
 //        LOG_DEBUG << cross_link_candidates[i].alpha.toString() << "-" << cross_link_candidates[i].beta.toString() << " | mass " << cross_link_candidates[i].cross_linker_mass << " | pos " << cross_link_candidates[i].cross_link_position.first << ", " << cross_link_candidates[i].cross_link_position.second << " | term "  << cross_link_candidates[i].term_spec_alpha << ", " << cross_link_candidates[i].term_spec_beta << endl;
 //      }
 
-      progresslogger.startProgress(0, 1, "Start pre-scoring...");
-
-      for (Size i = 0; i < cross_link_candidates.size(); ++i)
+      if (pre_scoring)
       {
-        OPXLDataStructs::ProteinProteinCrossLink cross_link_candidate = cross_link_candidates[i];
+        progresslogger.startProgress(0, 1, "Start pre-scoring...");
 
-        PeakSpectrum theoretical_spec_linear_alpha;
-        PeakSpectrum theoretical_spec_linear_beta;
-
-        bool type_is_cross_link = cross_link_candidate.getType() == OPXLDataStructs::CROSS;
-        bool type_is_loop = cross_link_candidate.getType() == OPXLDataStructs::LOOP;
-        Size link_pos_B = 0;
-        if (type_is_loop)
+        for (Size i = 0; i < cross_link_candidates.size(); ++i)
         {
-          link_pos_B = cross_link_candidate.cross_link_position.second;
+          OPXLDataStructs::ProteinProteinCrossLink cross_link_candidate = cross_link_candidates[i];
+
+          PeakSpectrum theoretical_spec_linear_alpha;
+          PeakSpectrum theoretical_spec_linear_beta;
+
+          bool type_is_cross_link = cross_link_candidate.getType() == OPXLDataStructs::CROSS;
+          bool type_is_loop = cross_link_candidate.getType() == OPXLDataStructs::LOOP;
+          Size link_pos_B = 0;
+          if (type_is_loop)
+          {
+            link_pos_B = cross_link_candidate.cross_link_position.second;
+          }
+          specGen_fast.getLinearIonSpectrum(theoretical_spec_linear_alpha, cross_link_candidate.alpha, cross_link_candidate.cross_link_position.first, true, 1, link_pos_B);
+          if (type_is_cross_link)
+          {
+            specGen_fast.getLinearIonSpectrum(theoretical_spec_linear_beta, cross_link_candidate.beta, cross_link_candidate.cross_link_position.second, false, 1);
+          }
+
+          // Something like this can happen, e.g. with a loop link connecting residues close to the ends of the peptide
+          // TODO make that a parameter?
+          if ( (theoretical_spec_linear_alpha.size() < 3) )
+          {
+            continue;
+          }
+
+          // PeakSpectrum theoretical_spec_linear = OPXLSpectrumProcessingAlgorithms::mergeAnnotatedSpectra(theoretical_spec_linear_alpha, theoretical_spec_linear_beta);
+          PeakSpectrum theoretical_spec_linear;
+          theoretical_spec_linear.insert(theoretical_spec_linear.end(), theoretical_spec_linear_alpha.begin(), theoretical_spec_linear_alpha.end());
+          theoretical_spec_linear.insert(theoretical_spec_linear.end(), theoretical_spec_linear_beta.begin(), theoretical_spec_linear_beta.end());
+          theoretical_spec_linear.sortByPosition();
+          // LOG_DEBUG << "Pre-scoring | theo spectra sizes: " << theoretical_spec_linear_alpha.size() << " | " << theoretical_spec_linear_beta.size() << " | " << theoretical_spec_linear.size() << " | exp spectrum size: " << spectrum.size() <<endl;
+
+
+
+
+          // vector< pair< Size, Size > > matched_spec_linear;
+          // DataArrays::FloatDataArray dummy_array;
+          // OPXLSpectrumProcessingAlgorithms::getSpectrumAlignment(matched_spec_linear, theoretical_spec_linear, spectrum, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, dummy_array);
+          //
+          // // LOG_DEBUG << "Pre-scoring | matches: " << matched_spec_linear.size() << endl;
+          //
+          // // Pre-Score calculations
+          // Size matched_linear_count = matched_spec_linear.size();
+          // Size theor_linear_count = theoretical_spec_linear.size();
+          //
+          // // TODO make that a parameter?
+          // if (matched_linear_count < 1)
+          // {
+          //   continue;
+          // }
+          // // Simplified pre-Score
+          // // double pre_score = 0;
+          // double pre_score = XQuestScores::preScore(matched_linear_count, theor_linear_count);
+
+
+
+
+          // double allowed_error = 0;
+          // if (precursor_mass_tolerance_unit_ppm) // ppm
+          // {
+          //   allowed_error = theoretical_spec_linear.back().getMZ() * precursor_mass_tolerance * 1e-6;
+          // }
+          // else // Dalton
+          // {
+          //   allowed_error = precursor_mass_tolerance;
+          // }
+
+          double xcorr_prescore = XQuestScores::xCorrelationPrescore(spectrum, theoretical_spec_linear, 0.1);
+
+          // TODO throw out score=0 candidates
+
+          // store pre_score, take top 100 for further computations
+          OPXLDataStructs::CrossLinkSpectrumMatch csm;
+          csm.cross_link = cross_link_candidate;
+
+          // csm.score = pre_score;
+          // csm.pre_score = pre_score;
+          // csm.xcorrc_max = xcorr_prescore;
+
+
+
+          csm.score = xcorr_prescore;
+          csm.pre_score = xcorr_prescore;
+          csm.xcorrc_max = xcorr_prescore;
+
+          // csm.score = 0;
+          // csm.pre_score = 0;
+          // csm.xcorrc_max = 0;
+
+          if (csm.score == 0)
+          {
+            continue;
+          }
+
+          // LOG_DEBUG << "Pre-scoring | score: " << pre_score << endl;
+
+          prescore_csms_spectrum.push_back(csm);
         }
-        specGen_fast.getLinearIonSpectrum(theoretical_spec_linear_alpha, cross_link_candidate.alpha, cross_link_candidate.cross_link_position.first, true, 1, link_pos_B);
-        if (type_is_cross_link)
-        {
-          specGen_fast.getLinearIonSpectrum(theoretical_spec_linear_beta, cross_link_candidate.beta, cross_link_candidate.cross_link_position.second, false, 1);
-        }
+        progresslogger.endProgress();
 
-        // Something like this can happen, e.g. with a loop link connecting residues close to the ends of the peptide
-        // TODO make that a parameter?
-        if ( (theoretical_spec_linear_alpha.size() < 3) )
-        {
-          continue;
-        }
+        // progresslogger.startProgress(0, 1, "Start sorting pre-scores...");
+        std::sort(prescore_csms_spectrum.rbegin(), prescore_csms_spectrum.rend());
+        // progresslogger.endProgress();
 
-        // PeakSpectrum theoretical_spec_linear = OPXLSpectrumProcessingAlgorithms::mergeAnnotatedSpectra(theoretical_spec_linear_alpha, theoretical_spec_linear_beta);
-        PeakSpectrum theoretical_spec_linear;
-        theoretical_spec_linear.insert(theoretical_spec_linear.end(), theoretical_spec_linear_alpha.begin(), theoretical_spec_linear_alpha.end());
-        theoretical_spec_linear.insert(theoretical_spec_linear.end(), theoretical_spec_linear_beta.begin(), theoretical_spec_linear_beta.end());
-        theoretical_spec_linear.sortByPosition();
-        // LOG_DEBUG << "Pre-scoring | theo spectra sizes: " << theoretical_spec_linear_alpha.size() << " | " << theoretical_spec_linear_beta.size() << " | " << theoretical_spec_linear.size() << " | exp spectrum size: " << spectrum.size() <<endl;
-
-
-
-
-        // vector< pair< Size, Size > > matched_spec_linear;
-        // DataArrays::FloatDataArray dummy_array;
-        // OPXLSpectrumProcessingAlgorithms::getSpectrumAlignment(matched_spec_linear, theoretical_spec_linear, spectrum, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, dummy_array);
-        //
-        // // LOG_DEBUG << "Pre-scoring | matches: " << matched_spec_linear.size() << endl;
-        //
-        // // Pre-Score calculations
-        // Size matched_linear_count = matched_spec_linear.size();
-        // Size theor_linear_count = theoretical_spec_linear.size();
-        //
-        // // TODO make that a parameter?
-        // if (matched_linear_count < 1)
-        // {
-        //   continue;
-        // }
-        // // Simplified pre-Score
-        // // double pre_score = 0;
-        // double pre_score = XQuestScores::preScore(matched_linear_count, theor_linear_count);
-
-
-
-
-        // double allowed_error = 0;
-        // if (precursor_mass_tolerance_unit_ppm) // ppm
-        // {
-        //   allowed_error = theoretical_spec_linear.back().getMZ() * precursor_mass_tolerance * 1e-6;
-        // }
-        // else // Dalton
-        // {
-        //   allowed_error = precursor_mass_tolerance;
-        // }
-
-        double xcorr_prescore = XQuestScores::xCorrelationPrescore(spectrum, theoretical_spec_linear, 0.1);
-
-        // TODO throw out score=0 candidates
-
-        // store pre_score, take top 100 for further computations
-        OPXLDataStructs::CrossLinkSpectrumMatch csm;
-        csm.cross_link = cross_link_candidate;
-
-        // csm.score = pre_score;
-        // csm.pre_score = pre_score;
-        // csm.xcorrc_max = xcorr_prescore;
-
-
-
-        csm.score = xcorr_prescore;
-        csm.pre_score = xcorr_prescore;
-        csm.xcorrc_max = xcorr_prescore;
-
-        // csm.score = 0;
-        // csm.pre_score = 0;
-        // csm.xcorrc_max = 0;
-
-        if (csm.score == 0)
-        {
-          continue;
-        }
-
-        // LOG_DEBUG << "Pre-scoring | score: " << pre_score << endl;
-
-        prescore_csms_spectrum.push_back(csm);
       }
-      progresslogger.endProgress();
-
-      // progresslogger.startProgress(0, 1, "Start sorting pre-scores...");
-      std::sort(prescore_csms_spectrum.rbegin(), prescore_csms_spectrum.rend());
-      // progresslogger.endProgress();
+      else
+      {
+        for (Size i = 0; i < cross_link_candidates.size(); ++i)
+        {
+          OPXLDataStructs::CrossLinkSpectrumMatch csm;
+          csm.cross_link = cross_link_candidates[i];
+          prescore_csms_spectrum.push_back(csm);
+        }
+      }
 
 
 // #ifdef _OPENMP
@@ -774,8 +791,12 @@ protected:
 //        LOG_DEBUG << "Pre score rank " << i << " = \t " << prescore_csms_spectrum[i].pre_score << endl;
 //      }
 
-      // TODO make that a parameter?
-      Size last_candidate_index = std::min(prescore_csms_spectrum.size(), Size(1000));
+
+      Size last_candidate_index = prescore_csms_spectrum.size();
+      if (pre_scoring)
+      {
+        last_candidate_index = std::min(last_candidate_index, Size(number_of_scored_candidates));
+      }
 
       for (Size i = 0; i < last_candidate_index ; ++i)
       {
