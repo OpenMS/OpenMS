@@ -39,6 +39,8 @@
 #include <OpenMS/METADATA/ExperimentalDesign.h>
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderIdentificationAlgorithm.h>
+#include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmKD.h>
+#include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmIdentification.h>
 
 #include <OpenMS/FORMAT/DATAACCESS/MSDataWritingConsumer.h>
 
@@ -133,6 +135,12 @@ protected:
     ff.getProgressLogger().setLogType(log_type_);
     ff.setParameters(ff_param);
 
+    FeatureGroupingAlgorithmKD fl;
+    // TODO: param stuff
+
+    MapAlignmentAlgorithmIdentification ma;
+    // TODO: param stuff
+   
     //-------------------------------------------------------------
     // loading input
     //-------------------------------------------------------------
@@ -192,11 +200,12 @@ protected:
       // align
       //-------------------------------------------------------------
       // TODO: MapAlignerIdentification on all FeatureXMLs of this fraction
-      
+      //
       //-------------------------------------------------------------
       // link
       //-------------------------------------------------------------
       // TODO: FeatureLinkerUnlabeledKD on all FeatureXMLs of this fraction
+      // TODO: free feature maps
     }
     // TODO: FileMerger merge ids (here? or already earlier? filtered?)
 
