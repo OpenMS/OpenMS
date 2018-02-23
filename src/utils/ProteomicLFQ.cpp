@@ -76,12 +76,18 @@ protected:
     registerOutputFile_("out", "<file>", "", "output mzTab file");
     setValidFormats_("out", ListUtils::create<String>("tsv")); // TODO: add file extension for mzTab
 
-    //registerParamSubsectionsAsTOPPSubsections_(PeakPickerHiRes().getDefaults());
-    //registerParamSubsectionsAsTOPPSubsections_(FeatureFinderIdentificationAlgorithm().getDefaults());
-    registerFullParam_(PeakPickerHiRes().getDefaults());
-    registerFullParam_(FeatureFinderIdentificationAlgorithm().getDefaults());
+    Param pp_defaults = PeakPickerHiRes().getDefaults();
+    Param ff_defaults = FeatureFinderIdentificationAlgorithm().getDefaults();
+
+    Param combined;
+    combined.insert("Centroiding:", pp_defaults);
+    combined.insert("Quantitation:", ff_defaults);
+    // TODO: add params of other steps as well
+
+    registerFullParam_(combined);
   }
 
+/*
   ExperimentalDesign getExperimentalDesignIds_(
     const String & design_file, 
     const vector<ProteinIdentification> & proteins)
@@ -96,7 +102,7 @@ protected:
       return ExperimentalDesign::fromIdentifications(proteins);
     }
   }
-
+*/
   ExitCodes main_(int, const char **) override
   {
     //-------------------------------------------------------------
@@ -113,73 +119,84 @@ protected:
     //ExperimentalDesign design = getExperimentalDesignIds_(design_file, proteins);
     //
     ExperimentalDesign design = ExperimentalDesign::load(design_file);
-
     std::map<unsigned int, std::vector<String> > frac2ms = design.getFractionToMSFilesMapping();
 
-    Param pepi_param = getParam_().copy("Preprocessing:", true);
-    writeDebug_("Parameters passed to PeakPickerHiRes", pepi_param, 3);
+    Param pp_param = getParam_().copy("Centroiding:", true);
+    writeDebug_("Parameters passed to PeakPickerHiRes algorithm", pp_param, 3);
     PeakPickerHiRes pp;
     pp.setLogType(log_type_);
-    pp.setParameters(pepi_param);
+    pp.setParameters(pp_param);
+
+    Param ff_param = getParam_().copy("Quantitation:", true);
+    writeDebug_("Parameters passed to FeatureFinderIdentification algorithm", ff_param, 3);
+    FeatureFinderIdentificationAlgorithm ff;
+    ff.getProgressLogger().setLogType(log_type_);
+    ff.setParameters(ff_param);
 
     //-------------------------------------------------------------
     // loading input
     //-------------------------------------------------------------
 
-    for (String const & mz_file : in)
+    for (auto const ms_files : frac2ms) // for each fraction->ms file(s)
     {
-      // TODO: iterate over the same fraction of different samples
-
-      // load raw file
-      MzMLFile mzML_file;
-      mzML_file.setLogType(log_type_);
-
-      PeakMap ms_raw;
-      mzML_file.load(mz_file, ms_raw);
-
-      if (ms_raw.empty())
+      for (String const & mz_file : ms_files.second) // for each MS file
       {
-        LOG_WARN << "The given file does not contain any spectra.";
-        return INCOMPATIBLE_INPUT_DATA;
-      }
+        // TODO: check if s is part of in 
+      
+        // load raw file
+        MzMLFile mzML_file;
+        mzML_file.setLogType(log_type_);
 
-      // check if spectra are sorted
-      for (Size i = 0; i < ms_raw.size(); ++i)
-      {
-        if (!ms_raw[i].isSorted())
+        PeakMap ms_raw;
+        mzML_file.load(mz_file, ms_raw);
+
+        if (ms_raw.empty())
         {
-          ms_raw[i].sortByPosition();
-          writeLog_("Info: Sorte peaks by m/z.");
+          LOG_WARN << "The given file does not contain any spectra.";
+          return INCOMPATIBLE_INPUT_DATA;
         }
+
+        // check if spectra are sorted
+        for (Size i = 0; i < ms_raw.size(); ++i)
+        {
+          if (!ms_raw[i].isSorted())
+          {
+            ms_raw[i].sortByPosition();
+            writeLog_("Info: Sorte peaks by m/z.");
+          }
+        }
+
+        //-------------------------------------------------------------
+        // pick
+        //-------------------------------------------------------------
+        // TODO: only peak if not already picked (add auto mode that skips already picked ones)
+        PeakMap ms_centroided;
+        pp.pickExperiment(ms_raw, ms_centroided, true);
+        // TODO: free memory of profile PeakMaps (if we needed to pick sth.), otherwise pass through
+
+        // writing picked mzML files for data submission
+        //annotate output with data processing info
+        // TODO: how to store picked files? by specifying a folder? or by output files that match in number to input files
+        // TODO: overwrite primaryMSRun with picked mzML name (for submission)
+        // mzML_file.store(OUTPUTFILENAME, ms_centroided);
+        // TODO: free all MS2 spectra (release memory!)
       }
- 
-      //-------------------------------------------------------------
-      // pick
-      //-------------------------------------------------------------
-      // TODO: only peak if not already picked (auto mode that skips already picked ones)
-      PeakMap ms_centroided;
-      bool check_spectrum_type = !getFlag_("force");
-      pp.pickExperiment(ms_raw, ms_centroided, check_spectrum_type);
-      // TODO: free memory of profile PeakMaps (if we needed to pick sth.), otherwise pass through
 
       //-------------------------------------------------------------
-      // writing picked mzML files for data submission
+      // feature detection
       //-------------------------------------------------------------
-      //annotate output with data processing info
-      // TODO: how to store picked files? by specifying a folder? or by output files that match in number to input files
-      // TODO: overwrite primaryMSRun with picked mzML name (for submission)
-      // mzML_file.store(OUTPUTFILENAME, ms_centroided);
-      // TODO: free memory of centroided PeakMaps
+      // TODO: call FeatureFinderIdentification on all maps of this fraction 
+      // TODO: free memory of centroided PeakMaps of this fraction
 
       //-------------------------------------------------------------
       // align
       //-------------------------------------------------------------
-      // TODO: MapAlignerIdentification on all FeatureXMLs (of this fraction)
+      // TODO: MapAlignerIdentification on all FeatureXMLs of this fraction
       
       //-------------------------------------------------------------
       // link
       //-------------------------------------------------------------
-      // TODO: FeatureLinkerUnlabeledKD
+      // TODO: FeatureLinkerUnlabeledKD on all FeatureXMLs of this fraction
     }
     // TODO: FileMerger merge ids (here? or already earlier? filtered?)
 
@@ -191,7 +208,8 @@ protected:
     //-------------------------------------------------------------
     // Protein quantification and export to mzTab
     //-------------------------------------------------------------
-    // TODO: ProteinQuantifier on (merged?) consensusXML + inference ids? export of MzTab file as final output
+    // TODO: ProteinQuantifier on (merged?) consensusXML (with 1% FDR?) + inference ids (unfiltered?)? 
+    // export of MzTab file as final output
 
     return EXECUTION_OK;
   }
