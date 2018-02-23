@@ -139,12 +139,15 @@
 #include <eigen3/unsupported/Eigen/NonLinearOptimization>
 */
 //#include <glpk.h> // this is trouble, since it defines a lot of bad stuff
+// seqan seems to introduce incompatible macros
+/*
 #include <seqan/align.h>
 #include <seqan/basic.h>
 #include <seqan/index.h>
 #include <seqan/seq_io/guess_stream_format.h>
 #include <seqan/seq_io/read_fasta_fastq.h>
 #include <seqan/stream.h>
+*/
 // sqlite not currently required
 //#include <sqlite/sqlite3.h>
 #include <svm.h>
