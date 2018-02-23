@@ -48,10 +48,13 @@ namespace OpenMS
   {
   public:
     /// Constructor
-    BayesianProteinInference(std::vector<ProteinIdentification> proteinIDs, std::vector<PeptideIdentification> peptideIDs);
+    BayesianProteinInference(std::vector<ProteinIdentification>& proteinIDs, std::vector<PeptideIdentification>& peptideIDs);
 
     /// Destructor
-    ~BayesianProteinInference();
+    ~BayesianProteinInference() override = default;
+
+    /// Perform inference
+    //void infer();
   };
 }
 #endif // OPENMS_ANALYSIS_ID_BAYESIANPROTEININFERENCE_H

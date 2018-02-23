@@ -22,6 +22,7 @@ IDBoostGraph.h
 IDDecoyProbability.h
 IDMapper.h
 IDRipper.h
+MessagePasserFactory.h
 MetaboliteSpectralMatching.h
 PeptideProteinResolution.h
 ProtonDistributionModel.h

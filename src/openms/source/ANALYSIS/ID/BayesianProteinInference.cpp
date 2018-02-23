@@ -33,9 +33,11 @@
 // --------------------------------------------------------------------------
 #include <OpenMS/ANALYSIS/ID/BayesianProteinInference.h>
 
+#include <OpenMS/ANALYSIS/ID/IDBoostGraph.h>
+
 namespace OpenMS
 {
-  BayesianProteinInference::BayesianProteinInference(std::vector<ProteinIdentification> proteinIDs, std::vector<PeptideIdentification> peptideIDs) :
+  BayesianProteinInference::BayesianProteinInference(std::vector<ProteinIdentification>& proteinIDs, std::vector<PeptideIdentification>& peptideIDs) :
       DefaultParamHandler("BayesianProteinInference"),
       ProgressLogger()
   {
@@ -56,12 +58,11 @@ namespace OpenMS
     setMinFloat_("prob:spurious", 0.0);
      */
     // set default parameter values
-    defaults_.setValue("signal_to_noise",
-                       0.0,
-                       "Minimal signal-to-noise ratio for a peak to be picked (0.0 disables SNT estimation!)");
-    defaults_.setMinFloat("signal_to_noise", 0.0);
+    defaults_.setValue("keep_zero_group",
+                       false,
+                       "Keep the group of proteins with estimated probability of zero, which is otherwise removed (it may be very large)");
 
-    defaults_.setValue("spacing_difference_gap",
+/*    defaults_.setValue("spacing_difference_gap",
                        4.0,
                        "The extension of a peak is stopped if the spacing between two subsequent data points exceeds 'spacing_difference_gap * min_spacing'. 'min_spacing' is the smaller of the two spacings from the peak apex to its two neighboring points. '0' to disable the constraint. Not applicable to chromatograms.",
                        ListUtils::create<String>("advanced"));
@@ -91,13 +92,14 @@ namespace OpenMS
     defaults_.setValue("report_FWHM_unit",
                        "relative",
                        "Unit of FWHM. Either absolute in the unit of input, e.g. 'm/z' for spectra, or relative as ppm (only sensible for spectra, not chromatograms).");
-    defaults_.setValidStrings("report_FWHM_unit", ListUtils::create<String>("relative,absolute"));
-
-    // parameters for STN estimator
-    //defaults_.insert("SignalToNoise:", SignalToNoiseEstimatorMedian< MSSpectrum >().getDefaults());
+    defaults_.setValidStrings("report_FWHM_unit", ListUtils::create<String>("relative,absolute"));*/
 
     // write defaults into Param object param_
     defaultsToParam_();
     updateMembers_();
+
+    IDBoostGraph ibg;
+    ibg.doSomethingOnCC(proteinIDs[0], peptideIDs);
+    std::string file = "";
   }
 }

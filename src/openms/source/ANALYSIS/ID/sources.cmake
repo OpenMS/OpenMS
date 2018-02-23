@@ -22,6 +22,7 @@ IDBoostGraph.cpp
 IDMapper.cpp
 IDRipper.cpp
 IDDecoyProbability.cpp
+MessagePasserFactory.cpp
 MetaboliteSpectralMatching.cpp
 PeptideProteinResolution.cpp
 ProtonDistributionModel.cpp

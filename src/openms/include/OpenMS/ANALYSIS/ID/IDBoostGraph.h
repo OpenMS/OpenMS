@@ -41,8 +41,14 @@
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <vector>
-#include <set>
+#include <unordered_map>
+#include <boost/graph/adjacency_list.hpp>
+#include <boost/graph/connected_components.hpp>
+#include <boost/variant.hpp>
+#include <boost/variant/detail/hash_variant.hpp>
 #include <boost/variant/static_visitor.hpp>
+#include <boost/graph/properties.hpp>
+#include <boost/property_map/transform_value_property_map.hpp>
 
 namespace OpenMS
 {
@@ -56,58 +62,77 @@ namespace OpenMS
    */
   class IDBoostGraph
   {
-  public:
-      /// Constructor
-      IDBoostGraph();
 
-      /// Initialize and store the graph (= maps)
-      /// @param protein ProteinIdentification object storing IDs and groups
-      /// @param peptides vector of ProteinIdentifications with links to the proteins and PSMs in its PeptideHits
-      void buildGraph(const ProteinIdentification& protein, const std::vector<PeptideIdentification>& peptides);
-  };
-
-  /// Visits nodes in the boost graph and depending on their type adds random variables to the
-  /// Bayesian network
-  class InferenceGraphVisitor
-      : public boost::static_visitor<>
-  {
   public:
 
-    void operator()(PeptideHit* pep) const
+    //typedefs
+    typedef boost::variant<const PeptideHit*, const ProteinHit*> IDPointer;
+    typedef boost::adjacency_list <boost::setS, boost::vecS, boost::undirectedS, IDPointer> Graph;
+    typedef boost::graph_traits<Graph>::vertex_descriptor vertex_t;
+    typedef boost::graph_traits<Graph>::edge_descriptor edge_t;
+
+    /// Constructor
+    IDBoostGraph() = default;
+
+    /// Do sth on ccs
+    void doSomethingOnCC(const ProteinIdentification& protein, const std::vector<PeptideIdentification>& peptides);
+
+
+    /// Visits nodes in the boost graph (ptrs to an ID Object) and depending on their type creates a label
+    class LabelVisitor:
+        public boost::static_visitor<OpenMS::String>
     {
-      std::cout << "Visited pep: " << pep->getSequence() << std::endl;
-    }
+    public:
 
-    void operator()(ProteinHit* prot) const
+      OpenMS::String operator()(const PeptideHit* pep) const
+      {
+        return pep->getSequence().toUnmodifiedString();
+      }
+
+      OpenMS::String operator()(const ProteinHit* prot) const
+      {
+        return prot->getAccession();
+      }
+
+    };
+
+    /// Visits nodes in the boost graph (ptrs to an ID Object) and depending on their type creates a random
+    /// variable or "Dependency" to add into the InferenceGraph
+/*    class RVVisitor:
+        public boost::static_visitor<Dependency>
     {
-      std::cout << "Visited prot: " << prot->getSequence() << std::endl;
-    }
+    public:
+
+      Dependency operator()(const PeptideHit* pep, const std::vector<vertex_t>& neighbors) const
+      {
+        return pep->getSequence().toUnmodifiedString();
+      }
+
+      Dependency operator()(const ProteinHit* prot, const std::vector<vertex_t>& neighbors) const
+      {
+        return prot->getAccession();
+      }
+
+    };*/
+
+  private:
+    Graph g;
+    std::vector<unsigned int> componentProperty;
+    unsigned int numCCs = 0;
+
+    void computeConnectedComponents_();
+
+    /// Initialize and store the graph (= maps)
+    /// @param protein ProteinIdentification object storing IDs and groups
+    /// @param peptides vector of ProteinIdentifications with links to the proteins and PSMs in its PeptideHits
+    void buildGraph_(const ProteinIdentification& protein, const std::vector<PeptideIdentification>& peptides);
+
+    vertex_t addVertexWithLookup_(const IDPointer& ptr, std::unordered_map<IDPointer, vertex_t, boost::hash<IDPointer>>& vertex_map);
 
   };
 
-  //TODO remove, currently unused
-  struct IDBoostGraphNode{
-    int activeMember;
 
-    //TODO add other node types
-    union {
-      const ProteinHit* protein = nullptr;
-      const PeptideHit* peptide = nullptr;
-    } IDObjectPtr;
 
-  };
-
-  template<typename T>
-  struct IDBoostGraphNodeHash {
-    inline size_t operator()(const T* pointer) const {
-      auto addr = reinterpret_cast<uintptr_t>(pointer);
-      #if SIZE_MAX < UINTPTR_MAX
-      /* size_t is not large enough to hold the pointer’s memory address */
-      addr %= SIZE_MAX; /* truncate the address so it is small enough to fit in a size_t */
-      #endif
-      return addr;
-    }
-  };
 } //namespace OpenMS
 
 #endif // OPENMS_ANALYSIS_ID_IDBOOSTGRAPH_H

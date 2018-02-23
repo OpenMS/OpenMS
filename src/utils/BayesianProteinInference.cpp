@@ -37,12 +37,10 @@
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/ANALYSIS/ID/BayesianProteinInference.h>
-
-#include <OpenMS/ANALYSIS/ID/PeptideProteinResolution.h>
-
-#include <boost/graph/connected_components.hpp>
+#include <vector>
 
 using namespace OpenMS;
+using namespace std;
 
 class TOPPBayesianProteinInference :
 public TOPPBase
@@ -55,19 +53,24 @@ public:
 
 protected:
 
-  BayesianProteinInference bpi;
-
   void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "Input: identification results");
     setValidFormats_("in", ListUtils::create<String>("idXML"));
-    registerOutputFile_("out", "<file>", "", "Output: identification results with scored/grouped proteins");
+    //TODO make required of course
+    registerOutputFile_("out", "<file>", "", "Output: identification results with scored/grouped proteins", false);
     setValidFormats_("out", ListUtils::create<String>("idXML"));
-    registerFlag_("separate_runs", "Process multiple protein identification runs in the input separately, don't merge them. Merging results in loss of descriptive information of the single protein identification runs.");
+    registerFlag_("separate_runs", "Process multiple protein identification runs in the input separately, don't merge them. Merging results in loss of descriptive information of the single protein identification runs.", false);
   }
 
   ExitCodes main_(int, const char**) override
   {
+    vector<PeptideIdentification> peps;
+    vector<ProteinIdentification> prots;
+    IdXMLFile idXML;
+    idXML.load(getStringOption_("in"), prots, peps);
+    //TODO filter unmatched proteins and peptides.
+    BayesianProteinInference bpi(prots, peps);
   }
 
 };
