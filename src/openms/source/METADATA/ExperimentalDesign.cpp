@@ -161,6 +161,7 @@ namespace OpenMS
       design.run_section_.push_back(row);
     }
 
+    design.sort_();
     design.checkValidRunSection_();
   }
   
@@ -278,13 +279,13 @@ namespace OpenMS
   }
 
 
-  map<unsigned, set<String> > ExperimentalDesign::getFractionToMSFilesMapping() const
+  map<unsigned, vector<String> > ExperimentalDesign::getFractionToMSFilesMapping() const
   {
-    map<unsigned, set<String> > ret;
+    map<unsigned, vector<String> > ret;
 
     for (RunRow const & r : run_section_)
     {
-      ret[r.fraction].insert(r.path);
+      ret[r.fraction].emplace_back(r.path);
     }
 
     return ret;
@@ -292,7 +293,7 @@ namespace OpenMS
 
   bool ExperimentalDesign::sameNrOfMSFilesPerFraction() const
   {
-    map<unsigned, set<String>> frac2files = getFractionToMSFilesMapping();
+    map<unsigned, vector<String>> frac2files = getFractionToMSFilesMapping();
     if (frac2files.size() <= 1) { return true; }
  
     Size files_per_fraction(0);

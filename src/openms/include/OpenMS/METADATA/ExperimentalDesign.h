@@ -123,11 +123,12 @@ namespace OpenMS
     void setRunSection(const RunRows& run_section)
     {
       run_section_ = run_section;
+      sort_();
       checkValidRunSection_();
     }
     
-    /// return fraction index to file paths
-    std::map<unsigned int, std::set<String> > getFractionToMSFilesMapping() const;
+    /// return fraction index to file paths (ordered by run id)
+    std::map<unsigned int, std::vector<String> > getFractionToMSFilesMapping() const;
 
     // @return the number of samples measured (= highest sample index)
     unsigned getNumberOfSamples() const 
@@ -208,6 +209,17 @@ namespace OpenMS
     static ExperimentalDesign fromIdentifications(const std::vector<ProteinIdentification> & proteins);
 
     private:
+      // sort to obtain the default order
+      void sort_()
+      {
+        std::sort(run_section_.begin(), run_section_.end(),
+        [](const RunRow& a, const RunRow& b)
+        {
+          return std::tie(a.run, a.fraction, a.channel, a.sample, a.path) < 
+            std::tie(b.run, b.fraction, b.channel, b.sample, b.path);
+        });
+      }
+
       void checkValidRunSection_()
       {
         if (getNumberOfMSFiles() == 0)

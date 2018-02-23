@@ -217,6 +217,8 @@ protected:
 
     FeatureFinderIdentificationAlgorithm ffid_algo;
     ffid_algo.getProgressLogger().setLogType(log_type_);
+    ffid_algo.setParameters(getParam_());
+
 
     if (candidates_in.empty())
     {

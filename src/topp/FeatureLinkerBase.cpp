@@ -151,7 +151,7 @@ protected:
       //-------------------------------------------------------------
 
       // determine map of fractions to MS files
-      map<unsigned, set<String>> frac2files;
+      map<unsigned, vector<String>> frac2files;
 
       if (!design_file.empty())
       {
@@ -174,7 +174,7 @@ protected:
       {
         for (Size i = 0; i != ins.size(); ++i)
         {
-          frac2files[1].insert(String("file") + String(i)); // associate each run with fraction 1
+          frac2files[1].emplace_back(String("file") + String(i)); // associate each run with fraction 1
         }
       }
 

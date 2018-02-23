@@ -309,7 +309,7 @@ private:
       String design_file = getStringOption_("design");
 
       // determine map of fractions to runs
-      map<unsigned, set<String> > frac2files;
+      map<unsigned, vector<String> > frac2files;
 
       // TODO: check if can be put in common helper function
       if (!design_file.empty())
@@ -332,7 +332,7 @@ private:
         for (Size i = 0; i != input_files.size(); ++i)
         {
           // TODO: read proper MS file name from meta data
-          frac2files[1].insert("file" + String(i)); // associate each file with fraction 1
+          frac2files[1].push_back("file" + String(i)); // associate each file with fraction 1
         }
       }
 

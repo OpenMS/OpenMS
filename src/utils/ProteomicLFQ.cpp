@@ -74,13 +74,17 @@ protected:
     setValidFormats_("design", ListUtils::create<String>("tsv"));
 
     registerOutputFile_("out", "<file>", "", "output mzTab file");
-    setValidFormats_("out", ListUtils::create<String>("mzTab")); // TODO: add file extension for mzTab
+    setValidFormats_("out", ListUtils::create<String>("tsv")); // TODO: add file extension for mzTab
 
+    //registerParamSubsectionsAsTOPPSubsections_(PeakPickerHiRes().getDefaults());
+    //registerParamSubsectionsAsTOPPSubsections_(FeatureFinderIdentificationAlgorithm().getDefaults());
     registerFullParam_(PeakPickerHiRes().getDefaults());
     registerFullParam_(FeatureFinderIdentificationAlgorithm().getDefaults());
   }
 
-  ExperimentalDesign getExperimentalDesignIds_(const String & design_file, const vector<ProteinIdentification> & proteins)
+  ExperimentalDesign getExperimentalDesignIds_(
+    const String & design_file, 
+    const vector<ProteinIdentification> & proteins)
   {
     if (!design_file.empty()) // load experimental design file
     {
@@ -101,12 +105,16 @@ protected:
 
     // read tool parameters
     StringList in = getStringList_("in");
-    String out = getStringList_("out");
-    StringList in = getStringList_("in_ids");
-    String design_file = getStringList_("design");
+    String out = getStringOption_("out");
+    StringList in_ids = getStringList_("in_ids");
+    String design_file = getStringOption_("design");
     
     //TODO: if no experimental design file is given, create a trivial von from protein ids (no fractions)
     //ExperimentalDesign design = getExperimentalDesignIds_(design_file, proteins);
+    //
+    ExperimentalDesign design = ExperimentalDesign::load(design_file);
+
+    std::map<unsigned int, std::vector<String> > frac2ms = design.getFractionToMSFilesMapping();
 
     Param pepi_param = getParam_().copy("Preprocessing:", true);
     writeDebug_("Parameters passed to PeakPickerHiRes", pepi_param, 3);
@@ -121,7 +129,6 @@ protected:
     for (String const & mz_file : in)
     {
       // TODO: iterate over the same fraction of different samples
-      // std::map<unsigned int, std::set<String> > frac2ms = design.getFractionToMSFilesMapping()
 
       // load raw file
       MzMLFile mzML_file;
