@@ -1459,13 +1459,11 @@ namespace OpenMS
     // return window with window_id == id
     QList<QMdiSubWindow *> windows = ws_->subWindowList();
 
+    // return the actual widget
     for (int i = 0; i < windows.size(); ++i)
     {
       EnhancedTabBarWidgetInterface* w = dynamic_cast<EnhancedTabBarWidgetInterface*>(windows.at(i)->widget());
-      if (w != 0 && w->getWindowId() == id)
-      {
-        return w;
-      }
+      if (w != 0 && w->getWindowId() == id) { return w; }
     }
     return nullptr;
   }
@@ -1475,7 +1473,8 @@ namespace OpenMS
     QWidget* w = dynamic_cast<QWidget*>(window_(id));
     if (w)
     {
-      w->close();
+      QMdiSubWindow* parent = qobject_cast<QMdiSubWindow*>(w->parentWidget());
+      parent->close();
       updateMenu();
     }
   }
