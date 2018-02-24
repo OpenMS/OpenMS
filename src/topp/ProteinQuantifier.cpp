@@ -573,52 +573,6 @@ protected:
     }
   }
 
-  void annotateQuantificationsToProteins(const ProteinQuant& protein_quants, ProteinIdentification& proteins)
-  {
-    auto & id_groups = proteins.getIndistinguishableProteins();
-    for (auto q : protein_quants)
-    {
-      if (q.second.total_abundances.empty()) { continue; } // not quantified
-
-      // accession of quantified protein(group)
-      const String & acc = q.first;
- 
-      // lambda to check if a ProteinGroup has accession "acc"
-      auto hasProteinInGroup = [&acc] (const ProteinGroup& g)->bool { return find(g.accessions.begin(), g.accessions.end(), acc) != g.accessions.end(); }; 
-
-      // retrieve protein group with accession "acc"
-      auto id_group = std::find_if(id_groups.begin(), id_groups.end(), hasProteinInGroup);  
-
-      if (id_group != id_groups.end())
-      {
-        // copy abundances to float data array
-        SampleAbundances total_abundances = q.second.total_abundances;
-        // TODO: OPENMS_ASSERT(id_group->float_data_arrays.empty(), "Protein group float data array not empty!.");
-        id_group->getFloatDataArrays().resize(1);
-        ProteinGroup::FloatDataArray & abundances = id_group->getFloatDataArrays()[0];
-        abundances.setName("abundances");
-    
-        for (auto const & s : total_abundances)
-        {
-          abundances.push_back(s.second);
-        }
-      }
-      else
-      {
-        throw Exception::MissingInformation(
-          __FILE__, 
-          __LINE__, 
-          OPENMS_PRETTY_FUNCTION, 
-          "Protein group quantified that is not present in inference data.");
-      } 
-    }
-
-   // remove all protein groups that have not been quantified
-   auto notQuantified = [] (const ProteinGroup& g)->bool { return g.getFloatDataArrays().empty(); }; 
-   id_groups.erase(
-     remove_if(id_groups.begin(), id_groups.end(), notQuantified), 
-     id_groups.end());
-  } 
 
   /// Write comment lines before a peptide/protein table.
   void writeComments_(SVOutStream& out, const ExperimentalDesign& ed, const bool proteins = true)
@@ -862,7 +816,7 @@ protected:
       {
         // annotate quants to protein(groups) for easier export in mzTab
         auto const & protein_quants = quantifier.getProteinResults();
-        annotateQuantificationsToProteins(protein_quants, proteins_);
+        PeptideAndProteinQuant::annotateQuantificationsToProteins(protein_quants, proteins_);
         vector<ProteinIdentification> proteins = consensus.getProteinIdentifications();
         proteins.insert(proteins.begin(), proteins_); // insert inference information as first protein identification
         consensus.setProteinIdentifications(proteins);

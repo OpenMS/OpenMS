@@ -189,6 +189,9 @@ public:
     /// Get protein abundance data
     const ProteinQuant& getProteinResults();
 
+    /// Annotate protein quant results as meta data to protein ids
+    static void annotateQuantificationsToProteins(const ProteinQuant& protein_quants, ProteinIdentification& proteins);
+
 private:
 
     /// Processing statistics for output in the end
