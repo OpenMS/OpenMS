@@ -52,6 +52,7 @@ MapAlignerSpectrum
 MapNormalizer
 MapRTTransformer
 MapStatistics
+MaRaClusterAdapter
 MascotAdapter
 MascotAdapterOnline
 MassTraceExtractor
