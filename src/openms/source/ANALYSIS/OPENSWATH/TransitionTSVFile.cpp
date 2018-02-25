@@ -208,35 +208,6 @@ namespace OpenMS
           "', but the parsed header has only " + (String)header.size() + " fields instead of the minimal " + 
           (String)min_header_size + ". Please check your input file.");
     }
-
-    int requiredFields[4] = { 0, 1, 4, 5};
-    /*
-     * required fields:
-     *
-     *
-     * PrecursorMz
-     * ProductMz
-     * LibraryIntensity
-     * NormalizedRetentionTime
-     *
-     * these fields will be generated if not available:
-     * TransitionId
-     * TransitionGroupId
-     *
-     * for peptides, also PeptideSequence and ProteinId are required
-     * for metabolites, also CompoundName is required 
-     *
-    */
-    for (int i = 0; i < 3; i++)
-    {
-      if (header_dict.find(header_names_[requiredFields[i]]) == header_dict.end())
-      {
-        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
-            "I determined that your your csv/tsv file has the delimiter '" + (String)txt_delimiter +
-             "'.\nBut the parsed header does not have the required field \"" + (String)header_names_[requiredFields[i]] + 
-             "\". Please check your input file.");
-      }
-    }
   }
 
   void TransitionTSVFile::readUnstructuredTSVInput_(const char* filename, FileTypes::Type filetype, std::vector<TSVTransition>& transition_list)
@@ -370,8 +341,8 @@ namespace OpenMS
       extractName<int>(mytransition.fragment_modification, "FragmentModification", tmp_line, header_dict);
 
       //// Proteomics
-      extractName(mytransition.ProteinName, "ProteinName", tmp_line, header_dict) &&
-      extractName(mytransition.ProteinName, "ProteinId", tmp_line, header_dict); // Spectronaut
+      !extractName(mytransition.ProteinName, "ProteinName", tmp_line, header_dict) &&
+      !extractName(mytransition.ProteinName, "ProteinId", tmp_line, header_dict); // Spectronaut
 
       extractName(mytransition.peptide_group_label, "PeptideGroupLabel", tmp_line, header_dict);
 

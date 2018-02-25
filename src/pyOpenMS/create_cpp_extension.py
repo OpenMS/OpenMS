@@ -233,7 +233,7 @@ if iswin:
         # fix for broken library names on Windows
         for p in glob.glob(os.path.join(OPEN_MS_CONTRIB_BUILD_DIR,
                                         "lib",
-                                        "libboost_%s_*mt.lib" % libname)):
+                                        "libboost_%s*mt.lib" % libname)):
 
             # Copy for MSVS 2008 (vc90), MSVS 2010 (vc100) and MSVS 2015 (vc140)
             if "vc90" in p:

@@ -66,11 +66,11 @@ START_SECTION(static bool getProcessMemoryConsumption(size_t& mem_virtual))
     TEST_EQUAL(after - first > 10000, true)
   }
 
-  // just for fun. There is probably no guarantee that we get the whole mem back by the memory manager
   TEST_EQUAL(SysInfo::getProcessMemoryConsumption(final), true);
   std::cout << "Memory consumed after release of MSExperiment: " << final << " KB" << std::endl;
-
-  TEST_EQUAL(after > final, true)
+  // just for fun. There is probably no guarantee that we get the whole mem back by the memory manager
+  // (and indeed, it does not work on all OS's; e.g. on Linux, the page tables will remain in RAM, unless mem pressure is high)
+  //TEST_EQUAL(after > final, true)
 
 }
 END_SECTION

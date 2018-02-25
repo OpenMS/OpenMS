@@ -90,10 +90,7 @@ public:
     static BinnedSpectrumCompareFunctor* create() { return new BinnedSharedPeakCount(); }
 
     /// get the identifier for this DefaultParamHandler
-    static const String getProductName()
-    {
-      return "BinnedSharedPeakCount";
-    }
+    static const String getProductName() { return "BinnedSharedPeakCount"; }
 
 protected:
     void updateMembers_() override;
