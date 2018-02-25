@@ -48,6 +48,8 @@
 #include <OpenMS/FORMAT/CsvFile.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 
+#include <OpenMS/SYSTEM/JavaInfo.h>
+
 #include <QDir>
 #include <QProcess>
 #include <fstream>
@@ -193,7 +195,7 @@ protected:
     // novorFile for custom alogrithm parameters of nova
     String cparamfile = getStringOption_("novorFile");
     ifstream cpfile(cparamfile);
-    if (!cpfile)
+    if (cpfile)
     {
       os << "novorFile" << cparamfile << "\n";
     }
@@ -240,7 +242,7 @@ protected:
 
     writeLog_("Executable is: " + executable);
     const QString & path_to_executable = File::path(executable).toQString();
-                
+    
     //-------------------------------------------------------------
     // reading input
     //-------------------------------------------------------------
@@ -282,10 +284,10 @@ protected:
     QProcess qp;
     qp.setWorkingDirectory(path_to_executable);
     qp.start(java_executable.toQString(), process_params);
- 
+    
     // novor command line
     std::stringstream ss;
-    ss << "COMMAND: " << executable.toStdString();
+    ss << "COMMAND: " << java_executable;
     for (QStringList::const_iterator it = process_params.begin(); it != process_params.end(); ++it)
     {
         ss << " " << it->toStdString();
@@ -293,9 +295,7 @@ protected:
     LOG_DEBUG << ss.str() << endl;
 
     // see if process was successfull
-    const bool success = qp.waitForFinished(-1);
-
-    if (success == false || qp.exitStatus() != 0 || qp.exitCode() != 0)
+    if (qp.waitForFinished(-1) == false || qp.exitCode() != 0)
     {
       writeLog_( "FATAL: External invocation of Novor failed. Standard output and error were:");
       const QString nr_stdout(qp.readAllStandardOutput());
