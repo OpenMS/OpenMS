@@ -81,12 +81,6 @@ using namespace std;
   5. Sirius output is parsed (SiriusMzTabWriter/CsiFingerIDMzTabWriter)
   6. Merge corresponding output in one mzTab (out_sirius/out_fingerid)
 
-  Please see the following publications:
-
-  Kai Dührkop and Sebastian Böcker. Fragmentation trees reloaded.  J Cheminform, 8:5, 2016. (Cite this for fragmentation pattern analysis and fragmentation tree computation)
-
-  Kai Dührkop, Huibin Shen, Marvin Meusel, Juho Rousu, and Sebastian Böcker. Searching molecular structure databases with tandem mass spectra using CSI:FingerID. Proc Natl Acad Sci U S A, 112(41):12580-12585, 2015. (Cite this when using CSI:FingerID)
-
   <B>The command line parameters of this tool are:</B>
   @verbinclude UTILS_SiriusAdapter.cli
   <B>INI file documentation of this tool:</B>
@@ -96,13 +90,21 @@ using namespace std;
 /// @cond TOPPCLASSES
 
 class TOPPSiriusAdapter :
-    public TOPPBase
+  public TOPPBase
 {
 public:
   TOPPSiriusAdapter() :
-    TOPPBase("SiriusAdapter", "Tool for metabolite identification using single and tandem mass spectrometry", false)
-  {
-  }
+    TOPPBase("SiriusAdapter", "Tool for metabolite identification using single and tandem mass spectrometry", false,
+    {
+      {"Kai Dührkop and Sebastian Böcker",
+       "Fragmentation trees reloaded",
+       "J Cheminform; 2016", 
+       "10.1186/s13321-016-0116-8"},
+      {"Kai Dührkop, Huibin Shen, Marvin Meusel, Juho Rousu, and Sebastian Böcker",
+       "Searching molecular structure databases with tandem mass spectra using CSI:FingerID",
+       "Proceedings of the National Academy of Sciences; 2015",
+       "10.1073/pnas.1509788112"} 
+    }){}
 
 protected:
 
