@@ -50,29 +50,98 @@ namespace OpenMS
     enzyme_ = ProteaseDB::getInstance()->getEnzyme(enzyme_name);
   }
 
-  bool ProteaseDigestion::isValidProduct(const String& protein,
-                                          Size pep_pos,
-                                          Size pep_length,
+  bool ProteaseDigestion::isValidProduct(const String& sequence,
+                                          Size pos,
+                                          Size length,
                                           bool ignore_missed_cleavages,
-                                          bool methionine_cleavage) const
+                                          bool allow_nterm_protein_cleavage,
+                                          bool allow_random_asp_pro_cleavage) const
   {
-    if (methionine_cleavage && (pep_pos == 1) && (protein[0] == 'M'))
+    // for XTandem specific rules (see https://github.com/OpenMS/OpenMS/issues/2497)
+    // M or MX at the N-terminus might have been cleaved.
+    if (allow_nterm_protein_cleavage && (pos <= 2) && (sequence[0] == 'M'))
     {
       // check the N-terminal peptide for a C-terminal cleavage site:
-      pep_pos = 0;
-      pep_length++;
+      length += pos;
+      pos = 0;
     }
-    return EnzymaticDigestion::isValidProduct(protein, pep_pos, pep_length, ignore_missed_cleavages);
+    
+    if (pos >= sequence.size())
+    {
+      LOG_WARN << "Error: start of fragment (" << pos << ") is beyond end of sequence '" << sequence << "'!" << endl;
+      return false;
+    }
+    if (pos + length > sequence.size())
+    {
+      LOG_WARN << "Error: end of fragment (" << (pos + length) << ") is beyond end of sequence '" << sequence << "'!" << endl;
+      return false;
+    }
+    if (length == 0 || sequence.empty())
+    {
+      LOG_WARN << "Error: fragment and sequence must not be empty!" << endl;
+      return false;
+    }
+
+    // ignore specificity and missed cleavage settings for unspecific cleavage
+    if (enzyme_->getName() == UnspecificCleavage) { return true; }
+
+    const Size end = pos + length; // past-the-end index into sequence of last fragment position
+
+    if (specificity_ == SPEC_NONE)
+    { // we don't care about terminal ends
+      if (ignore_missed_cleavages) return true;
+      const std::vector<Size> cleavage_positions = tokenize_(sequence); // has '0' as first site
+      return (EnzymaticDigestion::countMissedCleavages_(cleavage_positions, pos, end) <= missed_cleavages_);
+    }
+    else // either SPEC_SEMI or SPEC_FULL
+    {
+      bool spec_c = false, spec_n = false;
+      const std::vector<Size> cleavage_positions = tokenize_(sequence); // has '0' as first site
+      //
+      // test each terminal end of the fragment
+      //
+      // left end (N-term for peptides):
+      if (std::find(cleavage_positions.begin(), cleavage_positions.end(), pos) != cleavage_positions.end())
+      { // '0' is included in cleavage_positions, so starting fragments will be found as well
+        spec_n = true;
+      }
+      else if (allow_random_asp_pro_cleavage && (sequence[pos-1] == 'D') && (sequence[pos] == 'P'))
+      {
+        spec_n = true;
+      }
+      // right end (C-term for peptides):
+      if (end == sequence.size())
+      { // full length match (end of sequence is not in cleavage_positions)
+        spec_c = true;
+      }
+      else if (std::find(cleavage_positions.begin(), cleavage_positions.end(), end) != cleavage_positions.end())
+      {
+        spec_c = true;
+      }
+      else if (allow_random_asp_pro_cleavage && (sequence[end-1] == 'D') && (sequence[end] == 'P'))
+      {
+        spec_c = true;
+      }
+
+      if ((spec_n && spec_c) || // full spec
+          ((specificity_ == SPEC_SEMI) && (spec_n || spec_c))) // semi spec
+      {
+        if (ignore_missed_cleavages) return true;
+        return (EnzymaticDigestion::countMissedCleavages_(cleavage_positions, pos, end) <= missed_cleavages_);
+      }
+      return false;
+    }
   }
 
   bool ProteaseDigestion::isValidProduct(const AASequence& protein,
                                          Size pep_pos,
                                          Size pep_length,
                                          bool ignore_missed_cleavages,
-                                         bool methionine_cleavage) const
+                                         bool allow_nterm_protein_cleavage,
+                                         bool allow_random_asp_pro_cleavage) const
   {
     String seq = protein.toUnmodifiedString();
-    return isValidProduct(seq, pep_pos, pep_length, ignore_missed_cleavages, methionine_cleavage);
+    return isValidProduct(seq, pep_pos, pep_length, ignore_missed_cleavages, allow_nterm_protein_cleavage, allow_random_asp_pro_cleavage);
   }
 
   Size ProteaseDigestion::peptideCount(const AASequence& protein)
@@ -127,4 +196,5 @@ namespace OpenMS
     }
   }
 
-} //namespace
+} //namespace OpenMS
+

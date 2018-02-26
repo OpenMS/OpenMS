@@ -57,13 +57,13 @@ namespace OpenMS
     if (matched_alpha <= 0)
     {
 //      matched_alpha_float = std::numeric_limits<float>::min();
-      matched_alpha_float = 0.1;
+      matched_alpha_float = 0.1f;
     }
     float matched_beta_float = matched_beta;
     if (matched_beta <= 0)
     {
 //      matched_beta_float = std::numeric_limits<float>::min();
-      matched_beta_float = 0.1;
+      matched_beta_float = 0.1f;
     }
 
       float result = sqrt((static_cast<float>(matched_alpha_float) / static_cast<float>(ions_alpha)) * (static_cast<float>(matched_beta_float) / static_cast<float>(ions_beta)));

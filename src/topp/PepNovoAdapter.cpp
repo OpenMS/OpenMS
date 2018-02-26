@@ -152,12 +152,12 @@ class TOPPPepNovoAdapter :
       setMinInt_("num_solutions",1);
       setMaxInt_("num_solutions", 2000);
 
-      std::vector<String>all_possible_modifications;
-      ModificationsDB::getInstance()->getAllSearchModifications(all_possible_modifications);
-      registerStringList_("fixed_modifications", "<mod1,mod2,...>", ListUtils::create<String>(""), "List of fixed modifications", false);
-      setValidStrings_("fixed_modifications", all_possible_modifications);
-      registerStringList_("variable_modifications", "<mod1,mod2,...>", ListUtils::create<String>(""), "List of variable modifications", false);
-      setValidStrings_("variable_modifications", all_possible_modifications);
+      vector<String> all_mods;
+      ModificationsDB::getInstance()->getAllSearchModifications(all_mods);
+      registerStringList_("fixed_modifications", "<mods>", ListUtils::create<String>("Carbamidomethyl (C)", ','), "Fixed modifications, specified using Unimod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)' or 'Oxidation (M)'", false);
+      setValidStrings_("fixed_modifications", all_mods);
+      registerStringList_("variable_modifications", "<mods>", ListUtils::create<String>("Oxidation (M)", ','), "Variable modifications, specified using Unimod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)' or 'Oxidation (M)'", false);
+      setValidStrings_("variable_modifications", all_mods);
     }
 
     ExitCodes main_(int , const char**) override

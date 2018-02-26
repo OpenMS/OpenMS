@@ -80,8 +80,11 @@ START_SECTION(DigestionEnzymeProtein(const String& name,
                                      EmpiricalFormula c_term_gain,
                                      String psi_id,
                                      String xtandem_id,
-                                     UInt omssa_id))
-  DigestionEnzymeProtein copy(e_ptr->getName(), e_ptr->getRegEx(), e_ptr->getSynonyms(), e_ptr->getRegExDescription(), e_ptr->getNTermGain(), e_ptr->getCTermGain(), e_ptr->getPSIID(), e_ptr->getXTandemID(), e_ptr->getOMSSAID());
+                                     Int comet_id,
+                                     String crux_id,
+                                     Int msgf_id,
+                                     Int omssa_id))
+  DigestionEnzymeProtein copy(e_ptr->getName(), e_ptr->getRegEx(), e_ptr->getSynonyms(), e_ptr->getRegExDescription(), e_ptr->getNTermGain(), e_ptr->getCTermGain(), e_ptr->getPSIID(), e_ptr->getXTandemID(), e_ptr->getCometID(), e_ptr->getCruxID(), e_ptr->getMSGFID(), e_ptr->getOMSSAID());
   TEST_EQUAL(copy.getName(), e_ptr->getName())
   TEST_EQUAL(copy.getRegEx(), e_ptr->getRegEx())
   TEST_EQUAL(copy.getRegExDescription(), e_ptr->getRegExDescription())
@@ -89,6 +92,9 @@ START_SECTION(DigestionEnzymeProtein(const String& name,
   TEST_EQUAL(copy.getCTermGain(), e_ptr->getCTermGain())
   TEST_EQUAL(copy.getPSIID(), e_ptr->getPSIID())
   TEST_EQUAL(copy.getXTandemID(), e_ptr->getXTandemID())
+  TEST_EQUAL(copy.getCometID(), e_ptr->getCometID())
+  TEST_EQUAL(copy.getCruxID(), e_ptr->getCruxID())
+  TEST_EQUAL(copy.getMSGFID(), e_ptr->getMSGFID())
   TEST_EQUAL(copy.getOMSSAID(), e_ptr->getOMSSAID())
 END_SECTION
 
