@@ -546,6 +546,9 @@ protected:
     // we copy PSMs for every cross-linkable nucleotide present in the precursor.
     if (fast_scoring_)
     {
+#ifdef _OPENMP
+#pragma omp parallel for
+#endif
       for (SignedSize scan_index = 0; scan_index < (SignedSize)annotated_hits.size(); ++scan_index)
       {
         vector<AnnotatedHit> new_hits;
@@ -560,7 +563,6 @@ protected:
           const vector<NucleotideToFeasibleFragmentAdducts>& feasible_MS2_adducts = all_feasible_adducts.at(precursor_rna_adduct).feasible_adducts;
 
           // copy PSM information for each cross-linkable nucleotides
-          // TODO: check if can reduce this set by not only looking at xl nucleotide but also on modification
           for (auto const & c : feasible_MS2_adducts)
           {
             AnnotatedHit a(annotated_hits[scan_index][i]);
@@ -1158,10 +1160,7 @@ protected:
     const vector<ResidueModification>& variable_modifications, 
     Size max_variable_mods_per_peptide)
   {
-    // For localization and post-scoring we already filtered for top n hits so skip this step here.
-    if (!localization_)
-    {
-      // remove all but top n scoring
+      // remove all but top n scoring (Note: this is currently necessary as postScoreHits_ might reintroduce nucleotide specific hits for fast scoring)
 #ifdef _OPENMP
 #pragma omp parallel for
 #endif
@@ -1173,7 +1172,6 @@ protected:
         annotated_hits[scan_index].resize(topn);
         annotated_hits.shrink_to_fit();
       }
-    }
 
 #ifdef _OPENMP
 #pragma omp parallel for
@@ -1776,7 +1774,6 @@ protected:
                   ah.rna_mod_index = rna_mod_index;
                   ah.isotope_error = isotope_error;
 
-// TODO: currently mainly a tie-breaker!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
                   ah.score = total_loss_score + ah.total_MIC; 
 
 #ifdef DEBUG_RNPXLSEARCH
