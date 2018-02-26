@@ -211,38 +211,6 @@ protected:
                                    "U:C9H11N2O8P1;U-H2O",
                                    "U:C9H12N2O6;U-HPO3"
                                   };    
-   /* for DNA:
-      "A=C10H14N5O6P", "C=C9H14N3O7P", "G=C10H14N5O7P", "T=C10H15N2O8P"  
-      
-      Precursor losses for T:
-      "T:", "T:-H2O", "T:-H2O-HPO3", "T:-HPO3", "T:+HPO3", "T:+HPO3-H2O"
-
-      "T:C10H15N2O8P;T",
-      "T:C10H12N2O4;T-H3PO4",
-      "T:C10H13N2O7P;T-H2O",
-      "T:C5H6N2O2;T'",
-      "T:C5H4N2O1;T'-H2O",
-      "T:C10H14N2O5;T-HPO3"
-
-      Precursor losses for C:
-      "C:", "C:-H2O", "C:-NH3", "C:-H2O-HPO3", "C:-HPO3", "C:+HPO3", "C:+HPO3-H2O", "C:-NH3-HPO3", "C:+HPO3-NH3"
-
-      "C:C4H5N3O;C'",
-      "C:C4H2N2O;C'-NH3",
-      "C:C4H3N3;C'-H2O",
-      "C:C9H14N3O7P;C",
-      "C:C9H12N3O6P;C-H2O",
-      "C:C9H9N2O3;C-NH3-H3PO4",
-      "C:C9H11N3O3;C-H3PO4"
-
-      special case: Ribose is cross-linkable
-      Precursor losses for Rib:
-      "", "-H2O", "-H2O-HPO3", "-HPO3", "+HPO3", "+HPO3-H2O"
-
-      "rib:C5H9O6P;rib",
-      "rib:C5H7O5P;rib-H2O",
-      "rib:C5H8O3;rib-HPO3"
-   */
 
     registerStringList_("RNPxl:fragment_adducts", 
                         "", 
@@ -575,20 +543,28 @@ protected:
 
     // If we did a (total-loss) only fast scoring, PSMs were not associated with a nucleotide.
     // To make the localization code work for both fast and slow (all-shifts) scoring,
-    // we copy PSMs for every cross-linkable nucleotide.
+    // we copy PSMs for every cross-linkable nucleotide present in the precursor.
     if (fast_scoring_)
     {
       for (SignedSize scan_index = 0; scan_index < (SignedSize)annotated_hits.size(); ++scan_index)
       {
         vector<AnnotatedHit> new_hits;
+
         // for each PSM
         for (Size i = 0; i != annotated_hits[scan_index].size(); ++i)
         {
+          // determine RNA on precursor from index in map
+          auto mod_combinations_it = mm.mod_combinations.begin();
+          std::advance(mod_combinations_it, annotated_hits[scan_index][i].rna_mod_index);
+          const String precursor_rna_adduct = *mod_combinations_it->second.begin();
+          const vector<NucleotideToFeasibleFragmentAdducts>& feasible_MS2_adducts = all_feasible_adducts.at(precursor_rna_adduct).feasible_adducts;
+
           // copy PSM information for each cross-linkable nucleotides
-          for (auto const & c : can_xl_)
+          // TODO: check if can reduce this set by not only looking at xl nucleotide but also on modification
+          for (auto const & c : feasible_MS2_adducts)
           {
             AnnotatedHit a(annotated_hits[scan_index][i]);
-            a.cross_linked_nucleotide = c;
+            a.cross_linked_nucleotide = c.first; // nucleotide
             new_hits.push_back(a);
           }
         }
@@ -637,6 +613,7 @@ protected:
 
         // generate all partial loss spectra (excluding the complete loss spectrum) merged into one spectrum
         // 1. get all possible RNA fragment shifts in the MS2 (based on the precursor RNA/DNA)
+        LOG_DEBUG << "precursor_rna_adduct: "  << precursor_rna_adduct << endl;
         const vector<NucleotideToFeasibleFragmentAdducts>& feasible_MS2_adducts = all_feasible_adducts.at(precursor_rna_adduct).feasible_adducts;
 
         if (feasible_MS2_adducts.empty()) { continue; } // should not be the case - check case of no nucleotide but base fragment ?
@@ -1170,9 +1147,6 @@ protected:
     }
   }
 
-
-
-
   /// Filter by top scoring hits, reconstruct original peptide from memory efficient structure, and add additional meta information.
   void postProcessHits_(const PeakMap& exp, 
     vector<vector<AnnotatedHit> >& annotated_hits, 
@@ -1701,14 +1675,16 @@ protected:
 
           // iterate over all RNA sequences, calculate peptide mass and generate complete loss spectrum only once as this can potentially be reused
           Size rna_mod_index = 0;
+
+          // TODO: track the XL-able nt here
           for (std::map<String, double>::const_iterator rna_mod_it = mm.mod_masses.begin(); rna_mod_it != mm.mod_masses.end(); ++rna_mod_it, ++rna_mod_index)
           {            
             const double precursor_rna_weight = rna_mod_it->second;
             const double current_peptide_mass = current_peptide_mass_without_RNA + precursor_rna_weight; // add RNA mass
+            // TODO: const char xl_nucleotide; // can be none
 
             // determine MS2 precursors that match to the current peptide mass
-            MassToScanMultiMap::const_iterator low_it;
-            MassToScanMultiMap::const_iterator up_it;
+            MassToScanMultiMap::const_iterator low_it, up_it;
 
             if (precursor_mass_tolerance_unit_ppm) // ppm
             {
@@ -1752,16 +1728,19 @@ protected:
                 for (auto l = low_it; l != up_it; ++l)
                 {
                   //const double exp_pc_mass = l->first;
-                  const Size &scan_index = l->second.first;
-                  const int &isotope_error = l->second.second;
-                  const PeakSpectrum &exp_spectrum = spectra[scan_index];
+                  const Size & scan_index = l->second.first;
+                  const int & isotope_error = l->second.second;
+                  const PeakSpectrum & exp_spectrum = spectra[scan_index];
                   const int & exp_pc_charge = exp_spectrum.getPrecursors()[0].getCharge();
                   PeakSpectrum & total_loss_spectrum = (exp_pc_charge < 3) ? total_loss_spectrum_z1 : total_loss_spectrum_z2;
 
-                  float total_loss_score(0), immonium_sub_score(0), 
-                        precursor_sub_score(0), a_ion_sub_score(0), tlss_MIC(0),
-                        tlss_err(0), tlss_Morph(0);
-
+                  float total_loss_score(0), 
+                        immonium_sub_score(0), 
+                        precursor_sub_score(0), 
+                        a_ion_sub_score(0), 
+                        tlss_MIC(0),
+                        tlss_err(0), 
+                        tlss_Morph(0);
 
                   scoreTotalLossFragments_(exp_spectrum,
                                          total_loss_spectrum,
@@ -1831,9 +1810,6 @@ protected:
                 //OPENMS_POSTCONDITION(!feasible_MS2_adducts.empty(),
                 //                String("FATAL: No feasible adducts for " + precursor_rna_adduct).c_str());
 
-/*
- * Currently there is a problem if only a base is present. Then we get no feasible adducts.
- */
 
                 // Do we have (nucleotide) specific fragmentation adducts? for the current RNA adduct on the precursor?
                 // If so, generate spectra for shifted ion series
@@ -1983,10 +1959,14 @@ protected:
                 const int & exp_pc_charge = exp_spectrum.getPrecursors()[0].getCharge();
                 PeakSpectrum & total_loss_spectrum = (exp_pc_charge < 3) ? total_loss_spectrum_z1 : total_loss_spectrum_z2;
 
-                scoreTotalLossFragments_(exp_spectrum, total_loss_spectrum, fragment_mass_tolerance,
-                                         fragment_mass_tolerance_unit_ppm, a_ion_sub_score_spectrum,
+                scoreTotalLossFragments_(exp_spectrum, 
+                                         total_loss_spectrum, 
+                                         fragment_mass_tolerance,
+                                         fragment_mass_tolerance_unit_ppm, 
+                                         a_ion_sub_score_spectrum,
                                          precursor_sub_score_spectrum, 
-                                         immonium_sub_score_spectrum, total_loss_score, 
+                                         immonium_sub_score_spectrum, 
+                                         total_loss_score, 
                                          tlss_MIC,
                                          tlss_err,
                                          tlss_Morph,
@@ -2335,7 +2315,8 @@ RNPxlSearch::RNPxlParameterParsing::PrecursorsToMS2Adducts
 RNPxlSearch::RNPxlParameterParsing::getAllFeasibleFragmentAdducts(
   const RNPxlModificationMassesResult &precursor_adducts,
   const RNPxlSearch::RNPxlParameterParsing::NucleotideToFragmentAdductMap &nucleotide_to_fragment_adducts,
-  const set<char> &can_xl) {
+  const set<char> &can_xl) 
+{
   PrecursorsToMS2Adducts all_pc_all_feasible_adducts;
 
   // for all possible precursor adducts
@@ -2472,14 +2453,12 @@ RNPxlSearch::RNPxlParameterParsing::getFeasibleFragmentAdducts(const String &exp
                                                                const RNPxlSearch::RNPxlParameterParsing::NucleotideToFragmentAdductMap &nucleotide_to_fragment_adducts,
                                                                const set<char> &can_xl)
 {
-  // #ifdef DEBUG_RNPXLSEARCH
   LOG_DEBUG << "Generating fragment adducts for precursor adduct: '" << exp_pc_adduct << "'" << endl;
-  //  #endif
 
   MS2AdductsOfSinglePrecursorAdduct ret;
 
-  // no precursor adduct? no fragment adducts or marker ions are expected!
-  if (exp_pc_formula.empty()) { return ret; }
+  // no precursor adduct? 
+  if (exp_pc_formula.empty()) { return ret; } // no fragment adducts or marker ions are expected!
 
   // count nucleotides in precursor adduct (e.g.: "TCA-H2O" yields map: T->1, C->1, A->1)
   // and determine the set of cross-linkable nucleotides in the precursor adduct
@@ -2508,7 +2487,7 @@ RNPxlSearch::RNPxlParameterParsing::getFeasibleFragmentAdducts(const String &exp
   bool has_xl_nt(false);
   for (auto const & m : exp_pc_nucleotide_count) { if (can_xl.count(m.first)) { has_xl_nt = true; break; } }
 
-  LOG_DEBUG << exp_pc_adduct << " has cross-linkable nucleotide (0 = false, 1 = true): " << has_xl_nt << endl;
+  LOG_DEBUG << "\t" << exp_pc_adduct << " has cross-linkable nucleotide (0 = false, 1 = true): " << has_xl_nt << endl;
 
   // no cross-linkable nt contained in the precursor adduct? Return an empty fragment adduct definition set
   if (!has_xl_nt) { return ret; }
@@ -2518,7 +2497,7 @@ RNPxlSearch::RNPxlParameterParsing::getFeasibleFragmentAdducts(const String &exp
   // extract loss string from precursor adduct (e.g.: "-H2O")
   // String exp_pc_loss_string(exp_pc_it, exp_pc_adduct.end());
 
-  LOG_DEBUG << exp_pc_adduct << " is monomer (1 = true, >1 = false): " << nt_count << endl;
+  LOG_DEBUG << "\t" << exp_pc_adduct << " is monomer (1 = true, >1 = false): " << nt_count << endl;
 
   // Handle the cases of monomer or oligo nucleotide bound to the precursor.
   // This distinction is made because potential losses on the precursor only allows us to reduce the set of chemical feasible fragment adducts if they are on a monomer.
@@ -2530,12 +2509,12 @@ RNPxlSearch::RNPxlParameterParsing::getFeasibleFragmentAdducts(const String &exp
     {
       const char & nucleotide = n2fa.first; // the nucleotide without any associated loss
       const set<FragmentAdductDefinition_>& fragment_adducts = n2fa.second; // all potential fragment adducts that may arise from the unmodified nucleotide
-      LOG_DEBUG << exp_pc_adduct << " nucleotide: " << String(nucleotide) << " has fragment_adducts: " << fragment_adducts.size() << endl;
 
-      // is the current nucleotide cross-linkable?
+      // check if nucleotide is cross-linkable and part of the precursor adduct
       if (exp_pc_xl_nts.find(nucleotide) != exp_pc_xl_nts.end())
       {
-        LOG_DEBUG << exp_pc_adduct << " found nucleotide: " << String(nucleotide) << " in precursor RNA." << endl;
+        LOG_DEBUG << "\t" << exp_pc_adduct << " found nucleotide: " << String(nucleotide) << " in precursor RNA." << endl;
+        LOG_DEBUG << "\t" << exp_pc_adduct << " nucleotide: " << String(nucleotide) << " has fragment_adducts: " << fragment_adducts.size() << endl;
 
         // store feasible adducts associated with a cross-link with character nucleotide
         vector<FragmentAdductDefinition_> faa;
@@ -2561,31 +2540,57 @@ RNPxlSearch::RNPxlParameterParsing::getFeasibleFragmentAdducts(const String &exp
       const char & nucleotide = n2fa.first; // one letter code of the nt
       set<FragmentAdductDefinition_> fas = n2fa.second; // all potential fragment adducts that may arise from nt (if no losses are considered)
 
-      // check chemical feasibility by checking if subtraction of adduct would result in negative elemental composition
-      for (auto it = fas.begin(); it != fas.end(); )
+      // check if nucleotide is cross-linkable and part of the precursor adduct
+      if (exp_pc_xl_nts.find(nucleotide) != exp_pc_xl_nts.end())
       {
-        bool negative_elements = (EmpiricalFormula(exp_pc_formula) - it->formula).toString().hasSubstring("-");
+        LOG_DEBUG << "\t" << exp_pc_adduct << " found nucleotide: " << String(nucleotide) << " in precursor RNA." << endl;
+        LOG_DEBUG << "\t" << exp_pc_adduct << " nucleotide: " << String(nucleotide) << " has fragment_adducts: " << fas.size() << endl;
 
-        if (negative_elements) // fragment adduct can't be subformula of precursor adduct
+        // check chemical feasibility by checking if subtraction of adduct would result in negative elemental composition
+        for (auto it = fas.begin(); it != fas.end(); )
         {
-          it = fas.erase(it);
+          bool negative_elements = (EmpiricalFormula(exp_pc_formula) - it->formula).toString().hasSubstring("-");
+
+          if (negative_elements) // fragment adduct can't be subformula of precursor adduct
+          {
+            it = fas.erase(it);
+          }
+          else
+          {
+            ++it; // STL erase idiom (mind the pre-increment)
+          }
         }
-        else
-        {
-          ++it; // STL erase idiom (mind the pre-increment)
-        }
+
+        // store feasible adducts associated with a cross-link with character nucleotide[0]
+        vector<FragmentAdductDefinition_> faa;
+        std::copy(fas.begin(), fas.end(), back_inserter(faa));
+        ret.feasible_adducts.emplace_back(make_pair(nucleotide, faa));
+
+        // store feasible marker ions (in this case (monomer) we also restrict them on the nt on the precursor)
+        // Note that these peaks are likely missing or of very low intensity,
+        std::copy(std::begin(fas), std::end(fas), std::back_inserter(ret.marker_ions));
       }
-
-      // store feasible adducts associated with a cross-link with character nucleotide[0]
-      vector<FragmentAdductDefinition_> faa;
-      std::copy(fas.begin(), fas.end(), back_inserter(faa));
-      ret.feasible_adducts.emplace_back(make_pair(nucleotide, faa));
-
-      // store feasible marker ions (in this case (monomer) we also restrict them on the nt on the precursor)
-      // Note that these peaks are likely missing or of very low intensity,
-      std::copy(std::begin(fas), std::end(fas), std::back_inserter(ret.marker_ions));
     }
   }
+
+  // Because, e.g., ribose might be a feasible fragment of any nucleotide, we keep only one version
+  // Note: sort by formula and (as tie breaker) the name
+  std::sort(ret.marker_ions.begin(), ret.marker_ions.end(),
+    [](FragmentAdductDefinition_ const & a, FragmentAdductDefinition_ const & b)
+    {
+      const String as = a.formula.toString();
+      const String bs = b.formula.toString();
+      return std::tie(as, a.name) < std::tie(bs, b.name);
+    }
+  );
+  // Note: for uniqueness, we only rely on the formula (in case of tie: keeping the first = shortest name)
+  auto it = std::unique(ret.marker_ions.begin(), ret.marker_ions.end(),
+    [](FragmentAdductDefinition_ const & a, FragmentAdductDefinition_ const & b)
+    {
+      return a.formula == b.formula;
+    }
+  );
+  ret.marker_ions.resize(std::distance(ret.marker_ions.begin(), it));
 
   // print feasible fragment adducts
   for (auto const & ffa : ret.feasible_adducts)
@@ -2594,8 +2599,15 @@ RNPxlSearch::RNPxlParameterParsing::getFeasibleFragmentAdducts(const String &exp
     LOG_DEBUG << "  Cross-linkable nucleotide '" << nucleotide << "' and feasible fragment adducts:" << endl;
     for (auto const & a : ffa.second)
     {
-      LOG_DEBUG << "    " << a.name << "\t" << a.formula.toString() << "\t" << a.mass << "\n";
+      LOG_DEBUG << "\t" << a.name << "\t" << a.formula.toString() << "\t" << a.mass << "\n";
     }
+  }
+
+  // print marker ions
+  LOG_DEBUG << "  Marker ions:" << endl;
+  for (auto const & a : ret.marker_ions)
+  {
+    LOG_DEBUG << "\t" << a.name << "\t" << a.formula.toString() << "\t" << a.mass << "\n";
   }
 
   return ret;
