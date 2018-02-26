@@ -149,7 +149,9 @@ namespace OpenMS
     double max_width{0};
     for (Size i = 0; i < picked_chroms.size(); ++i)
     {
-      const double chromatogram_width = (picked_chroms[i].end() - 1)->getRT() - picked_chroms[i].begin()->getRT();
+      const double left_rt = picked_chroms[i].getFloatDataArrays()[1][0];
+      const double right_rt = picked_chroms[i].getFloatDataArrays()[2][0];
+      const double chromatogram_width = right_rt - left_rt;
       LOG_DEBUG << "findWidestPeakIndices(): chromatogram_width is " << chromatogram_width << std::endl;
       if (chromatogram_width > max_width)
       {
