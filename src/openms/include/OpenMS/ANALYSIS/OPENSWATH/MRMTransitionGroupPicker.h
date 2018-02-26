@@ -96,7 +96,7 @@ public:
 
       Will identify peaks in a set of chromatograms that belong to the same
       peptide. The chromatograms are given in the MRMTransitionGroup container
-      which also contains the mapping of the chromatograms to their metadata.
+      which also contains the mapping of the chromatograms to their metadata (transitions).
       Only chromatograms from detecting transitions are used for peak picking.
       Identifying transitions will be processed alongside but do not contribute
       to the meta-data, e.g. total_xic or peak_apices_sum.
@@ -636,6 +636,7 @@ protected:
 
           // the first value is the x-axis (retention time) and should be an int -> it show the lag between the two
           double res_coelution = std::abs(OpenSwath::Scoring::xcorrArrayGetMaxPeak(res)->first);
+          // the second value is the actual value of the // -axis (retention time) and should be an int -> it show the lag between the two
           double res_shape = std::abs(OpenSwath::Scoring::xcorrArrayGetMaxPeak(res)->second);
 
           shapes.push_back(res_shape);
@@ -719,7 +720,7 @@ protected:
 
       // For the final score (larger is better), consider these scores:
       // - missing_peaks (the more peaks are missing, the worse)
-      // - multiple_peaks
+      // - multiple_peaks (currently not used)
       // - mean of the shapes (1 is very good, 0 is bad)
       // - mean of the co-elution scores (0 is good, 1 is ok, above 1 is pretty bad)
       double shape_score = std::accumulate(mean_shapes.begin(), mean_shapes.end(), 0.0) / mean_shapes.size();

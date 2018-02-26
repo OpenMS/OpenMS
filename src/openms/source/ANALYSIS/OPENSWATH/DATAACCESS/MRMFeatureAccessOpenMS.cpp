@@ -71,7 +71,7 @@ namespace OpenMS
   {
   }
 
-  void FeatureOpenMS::getRT(std::vector<double>& rt)
+  void FeatureOpenMS::getRTTrace(std::vector<double>& rt)
   {
     OPENMS_PRECONDITION(feature_->getConvexHulls().size() == 1, "There needs to exactly one convex hull per feature.");
     ConvexHull2D::PointArrayType data_points = feature_->getConvexHulls()[0].getHullPoints();
@@ -81,7 +81,7 @@ namespace OpenMS
     }
   }
 
-  void FeatureOpenMS::getIntensity(std::vector<double>& intens)
+  void FeatureOpenMS::getIntensityTrace(std::vector<double>& intens)
   {
     OPENMS_PRECONDITION(feature_->getConvexHulls().size() == 1, "There needs to exactly one convex hull per feature.");
     ConvexHull2D::PointArrayType data_points = feature_->getConvexHulls()[0].getHullPoints();

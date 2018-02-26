@@ -56,16 +56,16 @@ namespace OpenSwath
     for (std::size_t i = 0; i < native_ids.size(); i++)
     {
       String native_id = native_ids[i];
-      FeatureType fi = mrmfeature->getFeature(native_id);
+      IFeaturePtr fi = mrmfeature->getFeature(native_id);
       xcorr_matrix_[i].resize(native_ids.size());
       intensityi.clear();
-      fi->getIntensity(intensityi);
+      fi->getIntensityTrace(intensityi);
       for (std::size_t j = i; j < native_ids.size(); j++)
       {
         String native_id2 = native_ids[j];
-        FeatureType fj = mrmfeature->getFeature(native_id2);
+        IFeaturePtr fj = mrmfeature->getFeature(native_id2);
         intensityj.clear();
-        fj->getIntensity(intensityj);
+        fj->getIntensityTrace(intensityj);
         // compute normalized cross correlation
         xcorr_matrix_[i][j] = Scoring::normalizedCrossCorrelation(intensityi, intensityj, boost::numeric_cast<int>(intensityi.size()), 1);
       }
@@ -75,14 +75,14 @@ namespace OpenSwath
   void MRMScoring::initializeMS1XCorr(OpenSwath::IMRMFeature* mrmfeature, std::vector<String> native_ids, std::string precursor_id)
   {
     std::vector<double> intensityi, intensity_ms1;
-    mrmfeature->getPrecursorFeature(precursor_id)->getIntensity(intensity_ms1);
+    mrmfeature->getPrecursorFeature(precursor_id)->getIntensityTrace(intensity_ms1);
     ms1_xcorr_vector_.resize(native_ids.size());
     for (std::size_t i = 0; i < native_ids.size(); i++)
     {
       String native_id = native_ids[i];
-      FeatureType fi = mrmfeature->getFeature(native_id);
+      IFeaturePtr fi = mrmfeature->getFeature(native_id);
       intensityi.clear();
-      fi->getIntensity(intensityi);
+      fi->getIntensityTrace(intensityi);
       ms1_xcorr_vector_[i] = Scoring::normalizedCrossCorrelation(
         intensityi, intensity_ms1, boost::numeric_cast<int>(intensityi.size()), 1);
     }
@@ -95,16 +95,16 @@ namespace OpenSwath
     for (std::size_t i = 0; i < native_ids_identification.size(); i++)
     { 
       String native_id = native_ids_identification[i];
-      FeatureType fi = mrmfeature->getFeature(native_id);
+      IFeaturePtr fi = mrmfeature->getFeature(native_id);
       xcorr_matrix_[i].resize(native_ids_detection.size());
       intensityi.clear();
-      fi->getIntensity(intensityi);
+      fi->getIntensityTrace(intensityi);
       for (std::size_t j = 0; j < native_ids_detection.size(); j++)
       {
         String native_id2 = native_ids_detection[j];
-        FeatureType fj = mrmfeature->getFeature(native_id2);
+        IFeaturePtr fj = mrmfeature->getFeature(native_id2);
         intensityj.clear();
-        fj->getIntensity(intensityj);
+        fj->getIntensityTrace(intensityj);
         // compute normalized cross correlation
         xcorr_matrix_[i][j] = Scoring::normalizedCrossCorrelation(intensityi, intensityj, boost::numeric_cast<int>(intensityi.size()), 1);
       }

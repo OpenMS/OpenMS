@@ -65,9 +65,9 @@ public:
 
     ~FeatureOpenMS() override;
 
-    void getRT(std::vector<double>& rt) override;
+    void getRTTrace(std::vector<double>& rt) override;
 
-    void getIntensity(std::vector<double>& intens) override;
+    void getIntensityTrace(std::vector<double>& intens) override;
 
     float getIntensity() override;
 

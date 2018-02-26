@@ -43,13 +43,30 @@
 namespace OpenSwath
 {
   // Datastructures for Scoring
+
+  /// A single peak in a single transition
   class OPENSWATHALGO_DLLAPI IFeature
   {
 public:
     virtual ~IFeature(){}
-    virtual void getRT(std::vector<double>& rt) = 0;
-    virtual void getIntensity(std::vector<double>& intens) = 0;
+
+    /// Returns retention time of the peak
+    /* @brief Returns the raw chromatographic trace of this peak  (rt values)
+     *
+     * @param intens The output vector of intensities
+    */
+    virtual void getRTTrace(std::vector<double>& rt) = 0;
+
+    /// Returns intensity of the peak
     virtual float getIntensity() = 0;
+
+    /* @brief Returns the raw chromatographic trace of this peak
+     *
+     * @param intens The output vector of intensities
+    */
+    virtual void getIntensityTrace(std::vector<double>& intens) = 0;
+
+    /// Returns retention time of the peak
     virtual double getRT() = 0;
   };
 

@@ -47,12 +47,12 @@ namespace OpenSwath
   {
   }
 
-  void MockFeature::getRT(std::vector<double>& rt)
+  void MockFeature::getRTTrace(std::vector<double>& rt)
   {
     rt = m_rt_vec;
   }
 
-  void MockFeature::getIntensity(std::vector<double>& intens)
+  void MockFeature::getIntensityTrace(std::vector<double>& intens)
   {
     intens = m_intensity_vec;
   }

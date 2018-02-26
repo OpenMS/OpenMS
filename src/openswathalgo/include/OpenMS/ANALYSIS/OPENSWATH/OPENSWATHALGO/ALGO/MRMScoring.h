@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Hannes Roest $
+// $Maintainer: Hannes Roest$
 // $Authors: Hannes Roest$
 // --------------------------------------------------------------------------
 
@@ -91,7 +91,7 @@ public:
     typedef OpenSwath::LightCompound PeptideType;
     typedef OpenSwath::LightProtein ProteinType;
 
-    typedef boost::shared_ptr<OpenSwath::IFeature> FeatureType;
+    typedef boost::shared_ptr<OpenSwath::IFeature> IFeaturePtr;
     //@}
 
     /** @name Accessors */
