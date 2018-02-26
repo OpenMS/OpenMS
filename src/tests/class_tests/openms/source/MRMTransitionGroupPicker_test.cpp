@@ -379,6 +379,41 @@ START_SECTION(( void findLargestPeak(std::vector<RichPeakChromatogram> & picked_
 }
 END_SECTION
 
+START_SECTION(void findWidestPeakIndices(const std::vector<MSChromatogram>& picked_chroms, Int& chrom_idx, Int& point_idx) const)
+{
+  std::vector<MSChromatogram> chroms;
+  MSChromatogram c;
+  //from 100 to 140 (not the widest, but the one with highest intensity)
+  c.push_back(ChromatogramPeak(100, 1000));
+  c.push_back(ChromatogramPeak(110, 2000));
+  c.push_back(ChromatogramPeak(120, 5000));
+  c.push_back(ChromatogramPeak(130, 2000));
+  c.push_back(ChromatogramPeak(140, 1000));
+  chroms.push_back(c);
+  c.clear(true);
+  // from 50 to 190 (widest)
+  c.push_back(ChromatogramPeak(50, 500));
+  c.push_back(ChromatogramPeak(90, 1000));
+  c.push_back(ChromatogramPeak(120, 3000));
+  c.push_back(ChromatogramPeak(150, 1000));
+  c.push_back(ChromatogramPeak(190, 500));
+  chroms.push_back(c);
+  c.clear(true);
+  // from 80 to 200
+  c.push_back(ChromatogramPeak(80, 800));
+  c.push_back(ChromatogramPeak(110, 1500));
+  c.push_back(ChromatogramPeak(120, 4000));
+  c.push_back(ChromatogramPeak(160, 2000));
+  c.push_back(ChromatogramPeak(200, 800));
+  chroms.push_back(c);
+  MRMTransitionGroupPicker picker;
+  Int chr_idx{-1}, peak_idx{-1};
+  picker.findWidestPeakIndices(chroms, chr_idx, peak_idx);
+  TEST_EQUAL(chr_idx, 1);
+  TEST_EQUAL(peak_idx, 2);
+}
+END_SECTION
+
 START_SECTION((template < typename SpectrumT > void remove_overlapping_features(std::vector< SpectrumT > &picked_chroms, double best_left, double best_right)))
 {
   MRMTransitionGroupType transition_group;
