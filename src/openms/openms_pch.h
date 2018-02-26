@@ -47,7 +47,7 @@
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/DATASTRUCTURES/Map.h>
 
-
+/*
 #include <QtCore/QByteArray>
 #include <QtCore/QCoreApplication>
 #include <QtCore/QCryptographicHash>
@@ -130,6 +130,7 @@
 #include <boost/spirit/include/qi.hpp>
 #include <boost/unordered_map.hpp>
 #include <bzlib.h>
+*/
 /* 
 // lots of warnings in Eigen code...
 #include <eigen3/Eigen/Dense>
