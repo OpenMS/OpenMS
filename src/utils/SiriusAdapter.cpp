@@ -144,7 +144,7 @@ protected:
     registerIntOption_("top_n_hits", "<num>", 10, "The top_n_hit for each compound written to the output", false);
 
     registerFlag_("auto_charge", "Use this option if the charge of your compounds is unknown and you do not want to assume [M+H]+ as default. With the auto charge option SIRIUS will not care about charges and allow arbitrary adducts for the precursor peak.", false);
-    registerFlag_("iontree", "Print molecular formulas and node labels with the ion formula instead of the neutral formula", false);
+    registerFlag_("ion_tree", "Print molecular formulas and node labels with the ion formula instead of the neutral formula", false);
     registerFlag_("no_recalibration", "If this option is set, SIRIUS will not recalibrate the spectrum during the analysis.", false);
     registerFlag_("most_intense_ms2", "Sirius uses the fragmentation sepctrum with the most intense precursor peak (for each spectrum)", false);
   }
@@ -229,7 +229,7 @@ protected:
 
     bool auto_charge = getFlag_("auto_charge");
     bool no_recalibration = getFlag_("no_recalibration");
-    bool iontree = getFlag_("iontree");
+    bool ion_tree = getFlag_("ion_tree");
     bool most_intense_ms2 = getFlag_("most_intense_ms2");
 
     //-------------------------------------------------------------
@@ -306,7 +306,7 @@ protected:
     {
       process_params << "--fingerid";
     }
-    if (iontree)
+    if (ion_tree)
     {
       process_params << "--iontree";
     }
