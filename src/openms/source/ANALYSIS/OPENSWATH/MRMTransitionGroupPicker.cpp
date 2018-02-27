@@ -149,26 +149,19 @@ namespace OpenMS
     double max_width{0};
     for (Size i = 0; i < picked_chroms.size(); ++i)
     {
-      const double left_rt = picked_chroms[i].getFloatDataArrays()[1][0];
-      const double right_rt = picked_chroms[i].getFloatDataArrays()[2][0];
-      const double chromatogram_width = right_rt - left_rt;
-      LOG_DEBUG << "findWidestPeakIndices(): chromatogram_width is " << chromatogram_width << std::endl;
-      if (chromatogram_width > max_width)
+      for (Size k = 0; k < picked_chroms[i].size(); ++k)
       {
-        max_width = chromatogram_width;
-        LOG_DEBUG << "findWidestPeakIndices(): max_width updated to " << max_width << std::endl;
-        chrom_idx = static_cast<Int>(i);
-      }
-    }
-    if (chrom_idx == -1) return;
-    const MSChromatogram& chromatogram = picked_chroms[chrom_idx];
-    double max_intensity{0};
-    for (Size i = 0; i < chromatogram.size(); ++i)
-    {
-      if (chromatogram[i].getIntensity() > max_intensity)
-      {
-        max_intensity = chromatogram[i].getIntensity();
-        point_idx = static_cast<Int>(i);
+        const double left_rt = picked_chroms[i].getFloatDataArrays()[1][k];
+        const double right_rt = picked_chroms[i].getFloatDataArrays()[2][k];
+        const double local_peak_width = right_rt - left_rt;
+        LOG_DEBUG << "findWidestPeakIndices(): local_peak_width=" << local_peak_width << std::endl;
+        if (local_peak_width > max_width)
+        {
+          max_width = local_peak_width;
+          chrom_idx = static_cast<Int>(i);
+          point_idx = static_cast<Int>(k);
+          LOG_DEBUG << "findWidestPeakIndices(): max_width=" << max_width << "; chrom_idx=" << chrom_idx << "; point_idx=" << point_idx << std::endl;
+        }
       }
     }
   }

@@ -383,38 +383,50 @@ START_SECTION(void findWidestPeakIndices(const std::vector<MSChromatogram>& pick
 {
   std::vector<MSChromatogram> chromatograms;
   MSChromatogram c;
-  c.push_back(ChromatogramPeak(100.0, 1000.0));
   c.push_back(ChromatogramPeak(110.0, 2000.0));
-  c.push_back(ChromatogramPeak(120.0, 3000.0));
-  c.push_back(ChromatogramPeak(130.0, 4000.0));
-  c.push_back(ChromatogramPeak(140.0, 5000.0));
   c.push_back(ChromatogramPeak(150.0, 6000.0));
-  c.push_back(ChromatogramPeak(160.0, 5000.0));
-  c.push_back(ChromatogramPeak(170.0, 4000.0));
-  c.push_back(ChromatogramPeak(180.0, 3000.0));
   c.push_back(ChromatogramPeak(190.0, 2000.0));
-  c.push_back(ChromatogramPeak(200.0, 1000.0));
   c.getFloatDataArrays().resize(3);
-  c.getFloatDataArrays()[1].push_back(130.0);
-  c.getFloatDataArrays()[2].push_back(170.0);
-  chromatograms.push_back(c);                // peak with highest intensity
-  c.getFloatDataArrays()[1][0] = 110.0;
-  c.getFloatDataArrays()[2][0] = 190.0;
-  c[5].setIntensity(5500.0);
-  chromatograms.push_back(c);                // widest peak but lower intensity
-  c.getFloatDataArrays()[1][0] = 120.0;
-  c.getFloatDataArrays()[2][0] = 180.0;
-  c[5].setIntensity(7000.0);
-  chromatograms.push_back(c);                // just another peak
+  c.getFloatDataArrays()[1].push_back(100.0);
+  c.getFloatDataArrays()[2].push_back(120.0);
+  c.getFloatDataArrays()[1].push_back(120.0);
+  c.getFloatDataArrays()[2].push_back(180.0);
+  c.getFloatDataArrays()[1].push_back(180.0);
+  c.getFloatDataArrays()[2].push_back(200.0);
+  chromatograms.push_back(c); // chromatogram containing a peak of highest intensity (should be skipped in favor of widest peak)
+
+  c.clear(true);
+  c.push_back(ChromatogramPeak(150.0, 5500.0)); // lower global intensity, if compared to the previous chromatogram
+  c.push_back(ChromatogramPeak(190.0, 2000.0));
+  c.getFloatDataArrays().resize(3);
+  c.getFloatDataArrays()[1].push_back(100.0);
+  c.getFloatDataArrays()[2].push_back(180.0);
+  c.getFloatDataArrays()[1].push_back(180.0);
+  c.getFloatDataArrays()[2].push_back(200.0);
+  chromatograms.push_back(c); // chromatogram containing the widest peak (this should be chosen)
+
+  c.clear(true);
+  c.push_back(ChromatogramPeak(110.0, 2000.0));
+  c.push_back(ChromatogramPeak(150.0, 7000.0));
+  c.push_back(ChromatogramPeak(190.0, 2000.0));
+  c.getFloatDataArrays().resize(3);
+  c.getFloatDataArrays()[1].push_back(105.0);
+  c.getFloatDataArrays()[2].push_back(115.0);
+  c.getFloatDataArrays()[1].push_back(125.0);
+  c.getFloatDataArrays()[2].push_back(175.0);
+  c.getFloatDataArrays()[1].push_back(185.0);
+  c.getFloatDataArrays()[2].push_back(195.0);
+  chromatograms.push_back(c); // just another chromatogram (it won't be chosen, it contains short peaks)
+
   MRMTransitionGroupPicker picker;
   Int chr_idx{-1}, peak_idx{-1};
   picker.findWidestPeakIndices(chromatograms, chr_idx, peak_idx);
   TEST_EQUAL(chr_idx, 1);
-  TEST_EQUAL(peak_idx, 5); // the point [5] (sixth) contains the highest intensity within the chromatogram
+  TEST_EQUAL(peak_idx, 0); // the point [0] (first) is the apex of the widest peak within the chosen chromatogram
   TEST_REAL_SIMILAR(chromatograms[chr_idx][peak_idx].getRT(), 150.0)
   TEST_REAL_SIMILAR(chromatograms[chr_idx][peak_idx].getIntensity(), 5500.0)
-  TEST_REAL_SIMILAR(chromatograms[chr_idx].getFloatDataArrays()[1][0], 110.0)
-  TEST_REAL_SIMILAR(chromatograms[chr_idx].getFloatDataArrays()[2][0], 190.0)
+  TEST_REAL_SIMILAR(chromatograms[chr_idx].getFloatDataArrays()[1][peak_idx], 100.0)
+  TEST_REAL_SIMILAR(chromatograms[chr_idx].getFloatDataArrays()[2][peak_idx], 180.0)
 }
 END_SECTION
 
