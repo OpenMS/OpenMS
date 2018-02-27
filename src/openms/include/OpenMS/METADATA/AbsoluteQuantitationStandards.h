@@ -28,8 +28,8 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Douglas McCloskey $
-// $Authors: Douglas McCloskey $
+// $Maintainer: Douglas McCloskey, Pasquale Domenico Colaianni $
+// $Authors: Douglas McCloskey, Pasquale Domenico Colaianni $
 // --------------------------------------------------------------------------
 
 #ifndef OPENMS_METADATA_ABSOLUTEQUANTITATIONSTANDARDS_H
@@ -37,10 +37,6 @@
 
 #include <OpenMS/config.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
-
-#include <cstddef> // for size_t & ptrdiff_t
-#include <vector>
-#include <string>
 
 namespace OpenMS
 {
@@ -56,19 +52,14 @@ namespace OpenMS
   class OPENMS_DLLAPI AbsoluteQuantitationStandards
   {
 
-public:    
-    //@{
+public:
     /// Constructor
-    AbsoluteQuantitationStandards();
+    AbsoluteQuantitationStandards() = default;
 
     /// Destructor
-    ~AbsoluteQuantitationStandards();
-    //@}
-   
-    /**
-      @brief Structure to map runs to components to known concentrations
+    ~AbsoluteQuantitationStandards() = default;
 
-    */ 
+    /// Structure to map runs to components to known concentrations.
     struct runConcentration
     {
       String sample_name;
@@ -80,10 +71,7 @@ public:
       double dilution_factor;
     };
 
-    /**
-      @brief Structure to hold a single component and its corresponding known concentration.
-
-    */ 
+    /// Structure to hold a single component and its corresponding known concentration.
     struct featureConcentration
     {
       Feature feature;
@@ -93,26 +81,55 @@ public:
       String concentration_units;
       double dilution_factor;
     };
-    
-     /**
-       @brief Method to map runs to components to known concentrations
 
-       Note that for the method to work, the features must be annotated with
-         a metaValue for "sample_name"
+    /**
+      @brief Method to map runs to components to known concentrations.
 
-      @param run_concentrations a list of runConcentration structs (e.g., from file upload).
-      @param features a list of corresponding features for each of the unique runs in run_concentrations
-      @param components_to_concentrations A map that links run data to feature data
- 
-     */ 
-     void mapConcentrationsToComponents(const std::vector<runConcentration> & run_concentrations,
-      const std::vector<FeatureMap> & features,
-      std::map<String,std::vector<featureConcentration>> components_to_concentrations);
+      @warning The method checks for the FeatureMaps' sample names with FeatureMap::getPrimaryMSRunPath()
 
-    // members
-    std::map<String, std::vector<featureConcentration>> components_to_concentrations;
+      @param[in] run_concentrations A list of runConcentration structs (e.g., from file upload).
+      @param[in] feature_maps The method maps to these features.
+      @param[out] components_to_concentrations A map that links run data to feature data.
+    */
+    void mapComponentsToConcentrations(
+      const std::vector<AbsoluteQuantitationStandards::runConcentration>& run_concentrations,
+      const std::vector<FeatureMap>& feature_maps,
+      std::map<String, std::vector<AbsoluteQuantitationStandards::featureConcentration>>& components_to_concentrations
+    ) const;
 
+    /**
+      @brief Get the feature concentrations from a single component.
+
+      This method internally calls `mapComponentsToConcentrations()`, but takes in consideration only those
+      elements of `run_concentrations` that have the passed `component_name`.
+
+      @warning The method checks for the FeatureMaps' sample names with FeatureMap::getPrimaryMSRunPath()
+
+      @param[in] run_concentrations A list of runConcentration structs (e.g., from file upload).
+      @param[in] feature_maps The method maps to these features.
+      @param[in] component_name Only runConcentration with this name will be considered.
+      @param[out] feature_concentrations The list of feature concentrations found.
+    */
+    void getComponentFeatureConcentrations(
+      const std::vector<AbsoluteQuantitationStandards::runConcentration>& run_concentrations,
+      const std::vector<FeatureMap>& feature_maps,
+      const String& component_name,
+      std::vector<AbsoluteQuantitationStandards::featureConcentration>& feature_concentrations
+    ) const;
+
+private:
+    /**
+      @brief Finds a feature for a given component name.
+
+      @param[in] feature_map The container of features.
+      @param[in] component_name The feature must have this name as its "native_id".
+      @param[out] feature_found If found, the feature is saved in this parameter.
+    */
+    bool findComponentFeature_(
+      const FeatureMap& feature_map,
+      const String& component_name,
+      Feature& feature_found
+    ) const;
   };
 }
 #endif // OPENMS_METADATA_ABSOLUTEQUANTITATIONSTANDARDS_H
-

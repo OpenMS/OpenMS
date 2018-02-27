@@ -213,12 +213,10 @@ protected:
     setValidFormats_("in_decoy", ListUtils::create<String>("mzid,idXML"));
     registerInputFile_("in_osw", "<file>", "", "Input file in OSW format", !is_required);
     setValidFormats_("in_osw", ListUtils::create<String>("OSW"));
-    registerOutputFile_("out", "<file>", "", "Output file in idXML format", !is_required);
-    setValidFormats_("out", ListUtils::create<String>("idXML"));
-    registerOutputFile_("mzid_out", "<file>", "", "Output file in mzid format", !is_required);
-    setValidFormats_("mzid_out", ListUtils::create<String>("mzid"));
-    registerOutputFile_("osw_out", "<file>", "", "Output file in OSW format", !is_required);
-    setValidFormats_("osw_out", ListUtils::create<String>("OSW"));
+    registerOutputFile_("out", "<file>", "", "Output file");
+    setValidFormats_("out", ListUtils::create<String>("mzid,idXML,osw"));
+    registerStringOption_("out_type", "<type>", "", "Output file type -- default: determined from file extension or content.", false);
+    setValidStrings_("out_type", ListUtils::create<String>("mzid,idXML,osw"));
     String enzs = "no_enzyme,elastase,pepsin,proteinasek,thermolysin,chymotrypsin,lys-n,lys-c,arg-c,asp-n,glu-c,trypsin";
     registerStringOption_("enzyme", "<enzyme>", "trypsin", "Type of enzyme: "+enzs , !is_required);
     setValidStrings_("enzyme", ListUtils::create<String>(enzs));
@@ -258,6 +256,7 @@ protected:
     setValidFormats_("fasta", ListUtils::create<String>("FASTA"));
     registerStringOption_("decoy-pattern", "<value>", "random", "Define the text pattern to identify the decoy proteins and/or PSMs, set this up if the label that identifies the decoys in the database is not the default (Only valid if option -protein-level-fdrs is active).", !is_required, is_advanced_option);
     registerFlag_("post-processing-tdc", "Use target-decoy competition to assign q-values and PEPs.", is_advanced_option);
+    registerFlag_("train-best-positive", "Enforce that, for each spectrum, at most one PSM is included in the positive set during each training iteration. If the user only provides one PSM per spectrum, this filter will have no effect.", is_advanced_option);
 
     //OSW/IPF parameters
     registerDoubleOption_("ipf_max_peakgroup_pep", "<value>", 0.7, "OSW/IPF: Assess transitions only for candidate peak groups until maximum posterior error probability.", !is_required, is_advanced_option);
@@ -670,6 +669,23 @@ protected:
     const String in_osw = getStringOption_("in_osw");
     const String osw_level = getStringOption_("osw_level");
 
+    FileHandler fh;
+
+    //output file names and types
+    String out = getStringOption_("out");
+    FileTypes::Type out_type = FileTypes::nameToType(getStringOption_("out_type"));
+
+    if (out_type == FileTypes::UNKNOWN)
+    {
+      out_type = fh.getTypeByFileName(out);
+    }
+
+    if (out_type == FileTypes::UNKNOWN)
+    {
+      writeLog_("Fatal error: Could not determine output file type!");
+      return PARSE_ERROR;
+    }
+
     const String percolator_executable(getStringOption_("percolator_executable"));
     writeDebug_(String("Path to the percolator: ") + percolator_executable, 2);
     if (percolator_executable.empty())  //TODO? - TOPPBase::findExecutable after registerInputFile_("percolator_executable"... ???
@@ -679,10 +695,6 @@ protected:
       return ILLEGAL_PARAMETERS;
     }
     
-    const String mzid_out(getStringOption_("mzid_out"));
-    const String out(getStringOption_("out"));
-    const String osw_out(getStringOption_("osw_out"));
-
     if (in_list.empty() && in_osw.empty())
     {
       writeLog_("Fatal error: no input file given (parameter 'in' or 'in_osw')");
@@ -690,21 +702,28 @@ protected:
       return ILLEGAL_PARAMETERS;
     }
 
-    if (mzid_out.empty() && out.empty() && osw_out.empty())
+    if (!in_list.empty() && !in_osw.empty())
     {
-      writeLog_("Fatal error: no output file given (parameter 'out' or 'mzid_out' or 'osw_out')");
+      writeLog_("Fatal error: Provide either mzid/idXML or osw input files (parameter 'in' or 'in_osw')");
       printUsage_();
       return ILLEGAL_PARAMETERS;
     }
 
-    if (!in_osw.empty() && osw_out.empty())
+    if (out.empty())
+    {
+      writeLog_("Fatal error: no output file given (parameter 'out')");
+      printUsage_();
+      return ILLEGAL_PARAMETERS;
+    }
+
+    if (!in_osw.empty() && out_type != FileTypes::OSW)
     {
       writeLog_("Fatal error: OSW input requires OSW output.");
       printUsage_();
       return ILLEGAL_PARAMETERS;
     }
 
-    if (!in_list.empty() && (out.empty() && mzid_out.empty()))
+    if (!in_list.empty() && out_type == FileTypes::OSW)
     {
       writeLog_("Fatal error: idXML/mzid input requires idXML/mzid output.");
       printUsage_();
@@ -740,21 +759,21 @@ protected:
     String pout_decoy_file_proteins(temp_directory_body + txt_designator + "_decoy_pout_proteins.tab");
 
     // prepare OSW I/O
-    if (!in_osw.empty() && !osw_out.empty() && in_osw != osw_out)
+    if (out_type == FileTypes::OSW && in_osw != out)
     {
       // Copy input OSW to output OSW, because we want to retain all information
-      remove(osw_out.c_str());
-      if (!osw_out.empty())
+      remove(out.c_str());
+      if (!out.empty())
       {
         std::ifstream  src(in_osw.c_str(), std::ios::binary);
-        std::ofstream  dst(osw_out.c_str(), std::ios::binary);
+        std::ofstream  dst(out.c_str(), std::ios::binary);
 
         dst << src.rdbuf();
       }
     }
 
     // idXML or mzid input
-    if (in_osw.empty())
+    if (out_type != FileTypes::OSW)
     {
       //TODO introduce min/max charge to parameters for now take available range
       int max_charge = 0;
@@ -902,6 +921,7 @@ protected:
       if (subset_max_train > 0) arguments << "-N" << String(subset_max_train).toQString();
       if (getFlag_("quick-validation")) arguments << "-x";
       if (getFlag_("post-processing-tdc")) arguments << "-Y";
+      if (getFlag_("train-best-positive")) arguments << "--train-best-positive";
       
       String weights_file = getStringOption_("weights");
       String init_weights_file = getStringOption_("init-weights");
@@ -1076,16 +1096,17 @@ protected:
         search_parameters.setMetaValue("Percolator:fasta", getStringOption_("fasta"));
         search_parameters.setMetaValue("Percolator:decoy-pattern", getStringOption_("decoy-pattern"));
         search_parameters.setMetaValue("Percolator:post-processing-tdc", getFlag_("post-processing-tdc"));
+        search_parameters.setMetaValue("Percolator:train-best-positive", getFlag_("train-best-positive"));
         
         it->setSearchParameters(search_parameters);
       }
       
       // Storing the PeptideHits with calculated q-value, pep and svm score
-      if (!mzid_out.empty())
+      if (out_type == FileTypes::MZIDENTML)
       {
-        MzIdentMLFile().store(mzid_out.toQString().toStdString(), all_protein_ids, all_peptide_ids);
+        MzIdentMLFile().store(out.toQString().toStdString(), all_protein_ids, all_peptide_ids);
       }
-      if (!out.empty())
+      if (out_type == FileTypes::IDXML)
       {
         IdXMLFile().store(out.toQString().toStdString(), all_protein_ids, all_peptide_ids);
       }
@@ -1095,11 +1116,12 @@ protected:
       std::map< std::string, std::vector<double> > features;
       for (auto const &feat : pep_map)
       {
+
         features[feat.second.PSMId].push_back(feat.second.score);
         features[feat.second.PSMId].push_back(feat.second.qvalue);
         features[feat.second.PSMId].push_back(feat.second.posterior_error_prob);
       }
-      OSWFile().write(osw_out, osw_level, features);
+      OSWFile().write(out, osw_level, features);
     }
 
     writeLog_("PercolatorAdapter finished successfully!");

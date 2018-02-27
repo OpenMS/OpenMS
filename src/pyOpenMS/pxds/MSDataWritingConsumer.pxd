@@ -2,6 +2,7 @@ from MSSpectrum cimport *
 from MSChromatogram cimport *
 from ExperimentalSettings cimport *
 from DataProcessing cimport *
+from PeakFileOptions cimport *
 
 cdef extern from "<OpenMS/FORMAT/DATAACCESS/MSDataWritingConsumer.h>" namespace "OpenMS":
 
@@ -20,6 +21,8 @@ cdef extern from "<OpenMS/FORMAT/DATAACCESS/MSDataWritingConsumer.h>" namespace 
         Size getNrSpectraWritten()  nogil except +
         Size getNrChromatogramsWritten() nogil except +
 
+        void setOptions(PeakFileOptions opt) nogil except +
+        PeakFileOptions getOptions() nogil except +
 
     cdef cppclass NoopMSDataWritingConsumer:
 
