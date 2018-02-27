@@ -43,9 +43,6 @@ MultiplexFilteredPeak.h
 MultiplexFiltering.h
 MultiplexFilteringCentroided.h
 MultiplexFilteringProfile.h
-MultiplexFilterResult.h
-MultiplexFilterResultPeak.h
-MultiplexFilterResultRaw.h
 MultiplexIsotopicPeakPattern.h
 MultiplexSatelliteCentroided.h
 MultiplexSatelliteProfile.h

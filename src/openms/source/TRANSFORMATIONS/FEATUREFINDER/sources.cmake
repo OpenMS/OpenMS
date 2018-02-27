@@ -40,9 +40,6 @@ MultiplexFilteredPeak.cpp
 MultiplexFiltering.cpp
 MultiplexFilteringCentroided.cpp
 MultiplexFilteringProfile.cpp
-MultiplexFilterResult.cpp
-MultiplexFilterResultPeak.cpp
-MultiplexFilterResultRaw.cpp
 MultiplexIsotopicPeakPattern.cpp
 MultiplexSatelliteCentroided.cpp
 MultiplexSatelliteProfile.cpp
