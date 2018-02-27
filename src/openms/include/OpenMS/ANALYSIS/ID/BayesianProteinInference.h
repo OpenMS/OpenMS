@@ -34,6 +34,8 @@
 #ifndef OPENMS_ANALYSIS_ID_BAYESIANPROTEININFERENCE_H
 #define OPENMS_ANALYSIS_ID_BAYESIANPROTEININFERENCE_H
 
+
+#include <OpenMS/ANALYSIS/ID/MessagePasserFactory.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
@@ -53,6 +55,7 @@ namespace OpenMS
     /// Destructor
     ~BayesianProteinInference() override = default;
 
+    class FilteredGraphInferenceFunctor;
     /// Perform inference
     //void infer();
   };

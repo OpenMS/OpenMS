@@ -35,6 +35,7 @@
 #ifndef OPENMS_ANALYSIS_ID_IDBOOSTGRAPH_H
 #define OPENMS_ANALYSIS_ID_IDBOOSTGRAPH_H
 
+#include <OpenMS/ANALYSIS/ID/MessagePasserFactory.h> //included in BPI
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
@@ -42,13 +43,15 @@
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <vector>
 #include <unordered_map>
+#include <boost/function.hpp>
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/connected_components.hpp>
+#include <boost/graph/filtered_graph.hpp>
+#include <boost/graph/properties.hpp>
+#include <boost/property_map/transform_value_property_map.hpp>
 #include <boost/variant.hpp>
 #include <boost/variant/detail/hash_variant.hpp>
 #include <boost/variant/static_visitor.hpp>
-#include <boost/graph/properties.hpp>
-#include <boost/property_map/transform_value_property_map.hpp>
 
 namespace OpenMS
 {
@@ -66,16 +69,23 @@ namespace OpenMS
   public:
 
     //typedefs
-    typedef boost::variant<const PeptideHit*, const ProteinHit*> IDPointer;
+    // We can't make the pointers point to a const object because we want to set the scores in the end.
+    typedef boost::variant<PeptideHit*, ProteinHit*> IDPointer;
+    typedef boost::variant<const PeptideHit*, const ProteinHit*> IDPointerConst;
     typedef boost::adjacency_list <boost::setS, boost::vecS, boost::undirectedS, IDPointer> Graph;
+    typedef boost::adjacency_list <boost::setS, boost::vecS, boost::undirectedS, IDPointerConst> GraphConst;
     typedef boost::graph_traits<Graph>::vertex_descriptor vertex_t;
     typedef boost::graph_traits<Graph>::edge_descriptor edge_t;
+    typedef boost::filtered_graph<Graph, boost::function<bool(edge_t)>, boost::function<bool(vertex_t)> > FilteredGraph;
+
 
     /// Constructor
     IDBoostGraph() = default;
 
     /// Do sth on ccs
-    void doSomethingOnCC(const ProteinIdentification& protein, const std::vector<PeptideIdentification>& peptides);
+    void applyFunctorOnCCs(ProteinIdentification &protein,
+                           std::vector<PeptideIdentification> &peptides,
+                           std::function<void(FilteredGraph &)> functor);
 
 
     /// Visits nodes in the boost graph (ptrs to an ID Object) and depending on their type creates a label
@@ -92,6 +102,44 @@ namespace OpenMS
       OpenMS::String operator()(const ProteinHit* prot) const
       {
         return prot->getAccession();
+      }
+
+    };
+
+    /// Visits nodes in the boost graph (ptrs to an ID Object) and depending on their type prints the address. For debug
+    class PrintAddressVisitor:
+        public boost::static_visitor<>
+    {
+    public:
+
+      void operator()(PeptideHit* pep) const
+      {
+        std::cout << pep->getSequence().toUnmodifiedString() << ": " << pep << std::endl;
+      }
+
+      void operator()(ProteinHit* prot) const
+      {
+        std::cout << prot->getAccession() << ": " << prot << std::endl;
+      }
+
+    };
+
+    /// Visits nodes in the boost graph (ptrs to an ID Object) and depending on their type sets the posterior
+    class SetPosteriorVisitor:
+        public boost::static_visitor<>
+    {
+    public:
+
+      void operator()(PeptideHit* pep, double posterior) const
+      {
+        pep->setScore(posterior);
+        //TODO set Score name and score ordering
+      }
+
+      void operator()(ProteinHit* prot, double posterior) const
+      {
+        prot->setScore(posterior);
+        //TODO set Score name and score ordering
       }
 
     };
@@ -117,6 +165,7 @@ namespace OpenMS
 
   private:
     Graph g;
+    //GraphConst gconst;
     std::vector<unsigned int> componentProperty;
     unsigned int numCCs = 0;
 
@@ -125,10 +174,11 @@ namespace OpenMS
     /// Initialize and store the graph (= maps)
     /// @param protein ProteinIdentification object storing IDs and groups
     /// @param peptides vector of ProteinIdentifications with links to the proteins and PSMs in its PeptideHits
-    void buildGraph_(const ProteinIdentification& protein, const std::vector<PeptideIdentification>& peptides);
+    void buildGraph_(ProteinIdentification& protein, std::vector<PeptideIdentification>& peptides);
+    //void buildGraph_(const ProteinIdentification& protein, const std::vector<PeptideIdentification>& peptides);
 
-    vertex_t addVertexWithLookup_(const IDPointer& ptr, std::unordered_map<IDPointer, vertex_t, boost::hash<IDPointer>>& vertex_map);
-
+    vertex_t addVertexWithLookup_(IDPointer& ptr, std::unordered_map<IDPointer, vertex_t, boost::hash<IDPointer>>& vertex_map);
+    //vertex_t addVertexWithLookup_(IDPointerConst& ptr, std::unordered_map<IDPointerConst, vertex_t, boost::hash<IDPointerConst>>& vertex_map);
   };
 
 
