@@ -144,8 +144,6 @@ openms_add_library(TARGET_NAME  OpenMS
                                   ${QT_LIBRARIES}
                                   ${OPENMS_DEP_LIBRARIES}
                    DLL_EXPORT_PATH "OpenMS/")
-set_target_properties(OpenMS PROPERTIES COTIRE_CXX_PREFIX_HEADER_INIT "openms_pch.h")
-cotire(OpenMS)
                    
 #------------------------------------------------------------------------------
 # since the share basically belongs to OpenMS core we control its installation

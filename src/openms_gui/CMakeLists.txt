@@ -95,9 +95,6 @@ if (MSVC)
   set_target_properties(OpenMS_GUI PROPERTIES LINK_FLAGS ${GUI_lnk_flags}) ## allow multiple definitions of symbols (e.g. from template instanciations or STL-derived classes)
 endif()
 
-set_target_properties(OpenMS_GUI PROPERTIES COTIRE_CXX_PREFIX_HEADER_INIT "../openms/openms_pch.h")
-cotire(OpenMS_GUI)
-
 #------------------------------------------------------------------------------
 # register relevant paths for the doxygen doc generation
 openms_doc_path("${PROJECT_SOURCE_DIR}/include")
