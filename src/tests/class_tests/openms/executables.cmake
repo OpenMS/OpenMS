@@ -304,9 +304,6 @@ set(filtering_executables_list
   MultiplexFiltering_test
   MultiplexFilteringCentroided_test
   MultiplexFilteringProfile_test
-  MultiplexFilterResult_test
-  MultiplexFilterResultPeak_test
-  MultiplexFilterResultRaw_test
   MultiplexIsotopicPeakPattern_test
   MZTrafoModel_test
   NLargest_test
