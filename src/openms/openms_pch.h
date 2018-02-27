@@ -1,8 +1,11 @@
-#pragma warning(push, 0)
-/* C:/dev/OpenMS_build/src/openms/Release/cotire/OpenMS_CXX_prefix.hxx */
-/* cotire.cmake 1.7.10 generated file */
 #ifdef __cplusplus
 
+// only use pch for MSVC, since the speedup is significant when building the library. 
+// Do not use for g++ or clang, since we observe no speedup.
+// The header remains empty for non-MSVC, thus making PCH a NOOP and keeping the build system simple.
+#ifdef OPENMS_COMPILER_MSVC
+
+#pragma warning(push, 0)
 
 #include <algorithm>
 #include <cassert>
@@ -47,7 +50,7 @@
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/DATASTRUCTURES/Map.h>
 
-/*
+
 #include <QtCore/QByteArray>
 #include <QtCore/QCoreApplication>
 #include <QtCore/QCryptographicHash>
@@ -130,16 +133,19 @@
 #include <boost/spirit/include/qi.hpp>
 #include <boost/unordered_map.hpp>
 #include <bzlib.h>
-*/
+
+// lots of warnings in Eigen code which would show up for every compilation unit, regardless if Eigen is used
 /* 
-// lots of warnings in Eigen code...
 #include <eigen3/Eigen/Dense>
 #include <eigen3/Eigen/LU>
 #include <eigen3/Eigen/SVD>
 #include <eigen3/Eigen/Sparse>
 #include <eigen3/unsupported/Eigen/NonLinearOptimization>
 */
-//#include <glpk.h> // this is trouble, since it defines a lot of bad stuff
+
+// this is trouble, since it defines a lot of bad stuff
+//#include <glpk.h>
+
 // seqan seems to introduce incompatible macros
 /*
 #include <seqan/align.h>
@@ -149,8 +155,10 @@
 #include <seqan/seq_io/read_fasta_fastq.h>
 #include <seqan/stream.h>
 */
+
 // sqlite not currently required
 //#include <sqlite/sqlite3.h>
+
 #include <svm.h>
 #include <xercesc/dom/DOM.hpp>
 #include <xercesc/dom/DOMDocument.hpp>
@@ -184,5 +192,8 @@
 #include <xercesc/validators/common/Grammar.hpp>
 #include <zlib.h>
 
-#endif
 #pragma warning(pop)
+
+#endif // MSVC compiler
+
+#endif  // CPLUSPLUS
