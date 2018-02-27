@@ -245,11 +245,11 @@ START_SECTION((void digest(const AASequence &protein, std::vector<AASequence>&ou
     TEST_EQUAL(out.size(), 4*3/2)
 END_SECTION
 
-START_SECTION((bool isValidProduct(const String& protein, Size pep_pos, Size pep_length, bool ignore_missed_cleavages, bool allow_nterm_protein_cleavage, bool allow_random_asp_pro_cleavage)))
+START_SECTION((bool isValidProduct(const String& protein, int pep_pos, int pep_length, bool ignore_missed_cleavages, bool allow_nterm_protein_cleavage, bool allow_random_asp_pro_cleavage)))
     NOT_TESTABLE // tested by overload below
 END_SECTION
 
-START_SECTION((bool isValidProduct(const AASequence& protein, Size pep_pos, Size pep_length, bool ignore_missed_cleavages, bool allow_nterm_protein_cleavage, bool allow_random_asp_pro_cleavage)))
+START_SECTION((bool isValidProduct(const AASequence& protein, int pep_pos, int pep_length, bool ignore_missed_cleavages, bool allow_nterm_protein_cleavage, bool allow_random_asp_pro_cleavage)))
     ProteaseDigestion pd;
     pd.setEnzyme("Trypsin");
     pd.setSpecificity(EnzymaticDigestion::SPEC_FULL); // require both sides

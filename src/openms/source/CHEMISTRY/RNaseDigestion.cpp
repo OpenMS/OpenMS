@@ -59,7 +59,7 @@ namespace OpenMS
                                        has_3prime_p) + "$";
 
     // beginning positions of "naive" fragments:
-    vector<Size> fragment_pos = tokenize_(temp_rna);
+    vector<int> fragment_pos = tokenize_(temp_rna);
     // after "^" or before "$" aren't valid cleavages:
     if (fragment_pos.size() > 1)
     {
