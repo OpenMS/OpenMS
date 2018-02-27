@@ -81,6 +81,12 @@ using namespace std;
     defaults_.setValue("aaa_max", 3, "Maximal number of ambiguous amino acids (AAAs) allowed when matching to a protein database with AAAs. AAAs are B, J, Z and X!");
     defaults_.setMinInt("aaa_max", 0);
     defaults_.setMaxInt("aaa_max", 10);
+    
+    defaults_.setValue("mismatches_max", 0, "Maximal number of mismatched (mm) amino acids allowed when matching to a protein database."
+                                            " The required runtime is exponential in the number of mm's; apply with care."
+                                            " MM's are allowed in addition to AAA's.");
+    defaults_.setMinInt("mismatches_max", 0);
+    defaults_.setMaxInt("mismatches_max", 10);
 
     defaults_.setValue("IL_equivalent", "false", "Treat the isobaric amino acids isoleucine ('I') and leucine ('L') as equivalent (indistinguishable). Also occurences of 'J' will be treated as 'I' thus avoiding ambiguous matching.");
     defaults_.setValidStrings("IL_equivalent", ListUtils::create<String>("true,false"));
@@ -107,6 +113,7 @@ using namespace std;
     allow_unmatched_ = param_.getValue("allow_unmatched").toBool();
     IL_equivalent_ = param_.getValue("IL_equivalent").toBool();
     aaa_max_ = static_cast<Int>(param_.getValue("aaa_max"));
+    mm_max_ = static_cast<Int>(param_.getValue("mismatches_max"));
   }
 
 
