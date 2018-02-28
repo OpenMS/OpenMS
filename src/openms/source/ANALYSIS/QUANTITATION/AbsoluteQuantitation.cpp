@@ -441,7 +441,7 @@ namespace OpenMS
       if (component_concentrations_sorted_indices.size() < min_points_)
       {
         LOG_INFO << "No optimal calibration found for " << component_concentrations_sub[0].feature.getMetaValue("native_id") << " .";
-        return optimal_calibration_found;
+        return false;  //no optimal calibration found
       }
 
       // fit the model
@@ -476,8 +476,7 @@ namespace OpenMS
 
         // copy over the final optimized points before exiting
         component_concentrations = component_concentrations_sub;
-        optimal_calibration_found = true;
-        return optimal_calibration_found;
+        return true;  //optimal calibration found
       }
 
       // R2 and biases check failed, determine potential outlier
@@ -514,10 +513,10 @@ namespace OpenMS
       }
       else
       {
-        return optimal_calibration_found;
+        return false;  //no optimal calibration found
       }
     }
-    return optimal_calibration_found;
+    return false;  //no optimal calibration found
   }
 
   std::vector<AbsoluteQuantitationStandards::featureConcentration> AbsoluteQuantitation::extractComponents_(
