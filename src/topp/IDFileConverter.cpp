@@ -45,6 +45,7 @@
 #include <OpenMS/FORMAT/SequestOutfile.h>
 #include <OpenMS/FORMAT/XTandemXMLFile.h>
 #include <OpenMS/FORMAT/TextFile.h>
+#include <OpenMS/FORMAT/XQuestResultXMLFile.h>
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
@@ -161,7 +162,7 @@ private:
       tgp.setValue("add_b_ions", "true");
       tgp.setValue("add_a_ions", "true");
       tgp.setValue("add_x_ions", "true");
-      tg.setParameters(tgp);    
+      tg.setParameters(tgp);
 
       SpectrumAlignment sa;
       Param sap = sa.getDefaults();
@@ -205,10 +206,10 @@ protected:
     registerInputFile_("in", "<path/file>", "",
                        "Input file or directory containing the data to convert. This may be:\n"
                        "- a single file in a multi-purpose XML format (pepXML, protXML, idXML, mzid),\n"
-                       "- a single file in a search engine-specific format (Mascot: mascotXML, OMSSA: omssaXML, X! Tandem: xml, Percolator: psms),\n"
+                       "- a single file in a search engine-specific format (Mascot: mascotXML, OMSSA: omssaXML, X! Tandem: xml, Percolator: psms, xQuest: xquest.xml),\n"
                        "- a single text file (tab separated) with one line for all peptide sequences matching a spectrum (top N hits),\n"
                        "- for Sequest results, a directory containing .out files.\n");
-    setValidFormats_("in", ListUtils::create<String>("pepXML,protXML,mascotXML,omssaXML,xml,psms,tsv,idXML,mzid"));
+    setValidFormats_("in", ListUtils::create<String>("pepXML,protXML,mascotXML,omssaXML,xml,psms,tsv,idXML,mzid,xquest.xml"));
 
     registerOutputFile_("out", "<file>", "", "Output file", true);
     String formats("idXML,mzid,pepXML,FASTA");
@@ -451,7 +452,7 @@ protected:
           MascotXMLFile::initializeLookup(lookup, exp, scan_regex);
         }
         protein_identifications.resize(1);
-        MascotXMLFile().load(in, protein_identifications[0], 
+        MascotXMLFile().load(in, protein_identifications[0],
                              peptide_identifications, lookup);
       }
 
@@ -542,6 +543,47 @@ protected:
           peptide_identifications.push_back(pepid);
         }
       }
+
+      else if (in_type == FileTypes::XQUESTXML)
+      {
+        // vector< ProteinIdentification > protein_ids;
+        XQuestResultXMLFile().load(in, peptide_identifications, protein_identifications);
+        // protein_identifications[0].setSearchEngineVersion("");
+        // protein_identifications[0].setSearchEngine("OpenPepXL");
+        // protein_identifications.push_back(protein_id);
+
+        // TODO what info could I use from an mz file?
+        // if (!mz_file.empty())
+        // {
+        //   PeakMap exp;
+        //   fh.getOptions().addMSLevel(2);
+        //   fh.loadExperiment(mz_file, exp, FileTypes::MZML, log_type_, false,
+        //                     false);
+        //   for (vector<PeptideIdentification>::iterator it =
+        //          peptide_identifications.begin(); it !=
+        //          peptide_identifications.end(); ++it)
+        //   {
+        //     UInt id = (Int)it->getMetaValue("spectrum_id");
+        //     --id; // native IDs were written 1-based
+        //     if (id < exp.size())
+        //     {
+        //       it->setRT(exp[id].getRT());
+        //       double pre_mz(0.0);
+        //       if (!exp[id].getPrecursors().empty())
+        //       {
+        //         pre_mz = exp[id].getPrecursors()[0].getMZ();
+        //       }
+        //       it->setMZ(pre_mz);
+        //       it->removeMetaValue("spectrum_id");
+        //     }
+        //     else
+        //     {
+        //       LOG_ERROR << "XTandem xml: Error: id '" << id << "' not found in peak map!" << endl;
+        //     }
+        //   }
+        // }
+      }
+
       else
       {
         writeLog_("Error: Unknown input file type given. Aborting!");
@@ -600,7 +642,7 @@ protected:
           std::set<String> prot = hit.extractProteinAccessionsSet();
           fasta << ">" << seq
                 << " " << ++count
-                << " " << hit.getSequence().toString() 
+                << " " << hit.getSequence().toString()
                 << " " << ListUtils::concatenate(StringList(prot.begin(), prot.end()), ";")
                 << "\n";
           // FASTA files should have at most 60 characters of sequence info per line
