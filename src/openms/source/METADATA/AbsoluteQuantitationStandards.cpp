@@ -84,7 +84,7 @@ namespace OpenMS
         }
         if (run.IS_component_name != "")
         {
-          if (!findComponentFeature_(fmap, run.IS_component_name, fc.IS_feature)
+          if (!findComponentFeature_(fmap, run.IS_component_name, fc.IS_feature))
           { // down stream methods will expect to find an IS
             continue;
           } 
