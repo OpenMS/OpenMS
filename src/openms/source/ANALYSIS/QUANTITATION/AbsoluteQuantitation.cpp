@@ -621,6 +621,27 @@ namespace OpenMS
           component_aqm.getTransformationModelParams(),
           optimized_params);
 
+        // order component concentrations and update the lloq and uloq
+        std::vector<AbsoluteQuantitationStandards::featureConcentration>::const_iterator it;
+        it = std::min_element(cc[component_name].begin(), cc[component_name].end(), [](
+            const AbsoluteQuantitationStandards::featureConcentration& lhs,
+            const AbsoluteQuantitationStandards::featureConcentration& rhs
+          )
+          {
+            return lhs.actual_concentration < rhs.actual_concentration;
+          }
+        );
+        component_aqm.setLLOQ(it->actual_concentration);
+        it = std::max_element(cc[component_name].begin(), cc[component_name].end(), [](
+            const AbsoluteQuantitationStandards::featureConcentration& lhs,
+            const AbsoluteQuantitationStandards::featureConcentration& rhs
+          )
+          {
+            return lhs.actual_concentration < rhs.actual_concentration;
+          }
+        );
+        component_aqm.setULOQ(it->actual_concentration);
+
         if (optimal_calibration_found)
         {
           // calculate the R2 and bias
@@ -643,27 +664,9 @@ namespace OpenMS
         {
           component_aqm.setCorrelationCoefficient(0.0);
           component_aqm.setNPoints(0);
+          component_aqm.setLLOQ(0.0);
+          component_aqm.setULOQ(0.0);
         }
-
-        std::vector<AbsoluteQuantitationStandards::featureConcentration>::const_iterator it;
-        it = std::min_element(cc[component_name].begin(), cc[component_name].end(), [](
-            const AbsoluteQuantitationStandards::featureConcentration& lhs,
-            const AbsoluteQuantitationStandards::featureConcentration& rhs
-          )
-          {
-            return lhs.actual_concentration < rhs.actual_concentration;
-          }
-        );
-        component_aqm.setLLOQ(it->actual_concentration);
-        it = std::max_element(cc[component_name].begin(), cc[component_name].end(), [](
-            const AbsoluteQuantitationStandards::featureConcentration& lhs,
-            const AbsoluteQuantitationStandards::featureConcentration& rhs
-          )
-          {
-            return lhs.actual_concentration < rhs.actual_concentration;
-          }
-        );
-        component_aqm.setULOQ(it->actual_concentration);
       }
       else if (optimization_method_ != "iterative")
       {
