@@ -517,6 +517,7 @@ namespace OpenMS
         return optimal_calibration_found;
       }
     }
+    return optimal_calibration_found;
   }
 
   std::vector<AbsoluteQuantitationStandards::featureConcentration> AbsoluteQuantitation::extractComponents_(
