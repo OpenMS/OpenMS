@@ -461,12 +461,12 @@ namespace OpenMS
         correlation_coefficient);
 
       // check R2 and biases
-      bool bias_check = false;
+      bool bias_check = true;
       for (size_t bias_it = 0; bias_it < biases.size(); ++bias_it)
       {
-        if (biases[bias_it] <= max_bias_)
+        if (biases[bias_it] > max_bias_)
         {
-          bias_check = true;
+          bias_check = false;
         }
       }
       if (bias_check && correlation_coefficient > min_correlation_coefficient_)
