@@ -70,7 +70,7 @@ namespace OpenMS
 
     // reader
     XQuestResultXMLHandler::XQuestResultXMLHandler(const String &filename,
-                                                   std::vector< std::vector< PeptideIdentification > > & pep_ids,
+                                                   std::vector< PeptideIdentification > & pep_ids,
                                                    std::vector< ProteinIdentification > & prot_ids,
                                                    Size min_n_ions_per_spectrum,
                                                    bool load_to_peptideHit,
@@ -237,28 +237,28 @@ namespace OpenMS
       if (tag == "spectrum_search")
       {
         // Push back spectrum search vector
-        Size current_spectrum_size = this->current_spectrum_search_.size();
-        if (current_spectrum_size >= this->min_n_ions_per_spectrum_)
-        {
-          /* Currently the correct rank order within the xQuest file is assumed
-            vector< PeptideIdentification > newvec(current_spectrum_size);
-            for (vector< PeptideIdentification>::const_iterator it = this->current_spectrum_search.begin();
-                it != this->current_spectrum_search.end(); ++it)
-            {
-              int index = (int) it->getMetaValue("xl_rank") - 1;
-
-              if (newvec[index].metaValueExists("xl_rank"))
-              {
-                LOG_ERROR << "ERROR: At least two hits with the same rank within the same spectrum" << endl;
-                throw std::exception();
-              }
-              newvec[index] = *it;
-            }
-            this->pep_ids_->push_back(newvec);
-            */
-          this->pep_ids_->push_back(this->current_spectrum_search_);
-        }
-        this->current_spectrum_search_.clear();
+        // Size current_spectrum_size = this->current_spectrum_search_.size();
+        // if (current_spectrum_size >= this->min_n_ions_per_spectrum_)
+        // {
+        //   /* Currently the correct rank order within the xQuest file is assumed
+        //     vector< PeptideIdentification > newvec(current_spectrum_size);
+        //     for (vector< PeptideIdentification>::const_iterator it = this->current_spectrum_search.begin();
+        //         it != this->current_spectrum_search.end(); ++it)
+        //     {
+        //       int index = (int) it->getMetaValue("xl_rank") - 1;
+        //
+        //       if (newvec[index].metaValueExists("xl_rank"))
+        //       {
+        //         LOG_ERROR << "ERROR: At least two hits with the same rank within the same spectrum" << endl;
+        //         throw std::exception();
+        //       }
+        //       newvec[index] = *it;
+        //     }
+        //     this->pep_ids_->push_back(newvec);
+        //     */
+        //   this->pep_ids_->insert(this->pep_ids_->begin(), this->current_spectrum_search_.begin(), this->current_spectrum_search_.end());
+        // }
+        // this->current_spectrum_search_.clear();
       }
       else if (tag == "xquest_results")
       {
@@ -519,6 +519,25 @@ namespace OpenMS
         UInt charge = this->attributeAsInt_(attributes, "charge");
         peptide_hit_alpha.setCharge(charge);
 
+        peptide_hit_alpha.setMetaValue("spectrum_reference", spectrum_index_light_);
+
+        String specIDs;
+        if (spectrum_index_light_ != spectrum_index_heavy_)
+        {
+          peptide_hit_alpha.setMetaValue("spectrum_reference_heavy", spectrum_index_heavy_);
+          specIDs = String(spectrum_index_light_) + "," + String(spectrum_index_heavy_);
+
+          peptide_hit_alpha.setMetaValue("spec_heavy_RT", this->rt_heavy_);
+          peptide_hit_alpha.setMetaValue("spec_heavy_MZ", this->mz_heavy_);
+          peptide_hit_alpha.setMetaValue("spectrum_reference_heavy", spectrum_index_heavy_);
+          peptide_hit_alpha.setMetaValue("spectrum_index_heavy", spectrum_index_heavy_);
+        }
+        else
+        {
+          specIDs = String(spectrum_index_light_);
+        }
+        peptide_identification.setMetaValue("spectrum_reference", specIDs);
+
         // Set xl_chain meta value for alpha
         peptide_hit_alpha.setMetaValue("xl_chain", "MS:1002509");
 
@@ -533,10 +552,8 @@ namespace OpenMS
 
         // Decide if decoy for alpha
         DataValue target_decoy = DataValue(prot1_string.hasSubstring(decoy_string_) ? "decoy" : "target");
-        peptide_identification.setMetaValue("target_decoy", target_decoy);
+        // peptide_identification.setMetaValue("target_decoy", target_decoy);
         peptide_hit_alpha.setMetaValue("target_decoy", target_decoy);
-
-
 
         // Attributes of peptide_hit_alpha
         double score = this->attributeAsDouble_(attributes, "score");
@@ -586,9 +603,17 @@ namespace OpenMS
         // }
 
         // Store specific stuff for peptide hit alpha
-        peptide_hit_alpha.setMetaValue("OpenXQuest:num_of_matched_ions",
-                                       DataValue(this->attributeAsInt_(attributes, "num_of_matched_ions_alpha")));
-        peptide_hit_alpha.setMetaValue("OpenXQuest:prot", DataValue(prot1_string));
+        peptide_hit_alpha.setMetaValue("matched_common_alpha",
+                                        DataValue(this->attributeAsInt_(attributes, "num_of_matched_common_ions_alpha")));
+        peptide_hit_alpha.setMetaValue("matched_xlink_alpha",
+                                        DataValue(this->attributeAsInt_(attributes, "num_of_matched_xlink_ions_alpha")));
+        peptide_hit_alpha.setMetaValue("matched_common_beta",
+                                        DataValue(this->attributeAsInt_(attributes, "num_of_matched_common_ions_beta")));
+        peptide_hit_alpha.setMetaValue("matched_xlink_beta",
+                                        DataValue(this->attributeAsInt_(attributes, "num_of_matched_xlink_ions_beta")));
+
+        peptide_hit_alpha.setMetaValue("prot1", DataValue(prot1_string));
+        peptide_hit_alpha.setMetaValue("prot2", DataValue("-"));
         peptide_hit_alpha.setMetaValue("xl_mass", xlinkermass);
 
         // Set peptide Evidences for Alpha (need one for each accession in the prot1_string)
@@ -608,11 +633,24 @@ namespace OpenMS
           peptide_hit_beta.setSequence(AASequence::fromString(seq2.substitute("X", "M(Oxidation)")));
           peptide_hit_beta.setCharge(charge);
 
-          // If requested, also write to the peptide_hit_beta
-          if (this->load_to_peptideHit_)
+          peptide_hit_beta.setMetaValue("spectrum_reference", spectrum_index_light_);
+          // peptide_hit_beta.setMetaValue("spectrum_reference_heavy", spectrum_index_heavy_);
+
+          if (spectrum_index_light_ != spectrum_index_heavy_)
           {
-            this->addMetaValues_(peptide_hit_beta);
+            peptide_hit_beta.setMetaValue("spectrum_reference_heavy", spectrum_index_heavy_);
+
+            peptide_hit_beta.setMetaValue("spec_heavy_RT", this->rt_heavy_);
+            peptide_hit_beta.setMetaValue("spec_heavy_MZ", this->mz_heavy_);
+            peptide_hit_beta.setMetaValue("spectrum_reference_heavy", spectrum_index_heavy_);
+            peptide_hit_beta.setMetaValue("spectrum_index_heavy", spectrum_index_heavy_);
           }
+
+          // If requested, also write to the peptide_hit_beta
+          // if (this->load_to_peptideHit_)
+          // {
+          this->addMetaValues_(peptide_hit_beta);
+          // }
           // Set xl_type
           this->setMetaValue_("xl_type", DataValue("cross-link"), peptide_identification, peptide_hit_alpha, peptide_hit_beta);
 
@@ -628,7 +666,7 @@ namespace OpenMS
           // Decide if decoy for beta
           if (prot2_string.hasSubstring("decoy"))
           {
-            peptide_identification.setMetaValue("target_decoy", DataValue("decoy"));
+            // peptide_identification.setMetaValue("target_decoy", DataValue("decoy"));
             peptide_hit_beta.setMetaValue("target_decoy", DataValue("decoy"));
           }
           else
@@ -640,9 +678,19 @@ namespace OpenMS
           peptide_hit_beta.setMetaValue("xl_chain", "MS:1002510");
 
           // Set peptide_hit specific stuff
-          peptide_hit_beta.setMetaValue("OpenXQuest:num_of_matched_ions",
-                                        DataValue(this->attributeAsInt_(attributes, "num_of_matched_ions_beta")));
-          peptide_hit_beta.setMetaValue("OpenXQuest:prot", DataValue(prot2_string));
+          peptide_hit_beta.setMetaValue("matched_common_alpha",
+                                          DataValue(this->attributeAsInt_(attributes, "num_of_matched_common_ions_alpha")));
+          peptide_hit_beta.setMetaValue("matched_xlink_alpha",
+                                          DataValue(this->attributeAsInt_(attributes, "num_of_matched_xlink_ions_alpha")));
+          peptide_hit_beta.setMetaValue("matched_common_beta",
+                                          DataValue(this->attributeAsInt_(attributes, "num_of_matched_common_ions_beta")));
+          peptide_hit_beta.setMetaValue("matched_xlink_beta",
+                                          DataValue(this->attributeAsInt_(attributes, "num_of_matched_xlink_ions_beta")));
+
+          peptide_hit_alpha.setMetaValue("prot2", DataValue(prot2_string));
+          peptide_hit_beta.setMetaValue("prot1", DataValue(prot1_string));
+          peptide_hit_beta.setMetaValue("prot2", DataValue(prot2_string));
+          // peptide_hit_beta.setMetaValue("OpenXQuest:prot", DataValue(prot2_string));
           peptide_hit_beta.setMetaValue("xl_mass", xlinkermass);
 
           // Set Peptide Evidences for Beta
@@ -709,7 +757,8 @@ namespace OpenMS
 
         peptide_identification.setHits(peptide_hits);
         this->peptide_id_meta_values_.clear();
-        this->current_spectrum_search_.push_back(peptide_identification);
+        // this->current_spectrum_search_.push_back(peptide_identification);
+        this->pep_ids_->push_back(peptide_identification);
         this->n_hits_++;
       }
     }

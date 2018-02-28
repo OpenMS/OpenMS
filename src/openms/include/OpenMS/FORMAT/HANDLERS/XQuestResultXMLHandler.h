@@ -64,7 +64,7 @@ namespace OpenMS
 
       /// Constructor for a read-only handler for internal identification structures
       XQuestResultXMLHandler(const String & filename,
-                             std::vector< std::vector< PeptideIdentification > > & pep_ids,
+                             std::vector< PeptideIdentification > & pep_ids,
                              std::vector< ProteinIdentification > & prot_ids,
                              Size min_n_ions_per_spectrum,
                              bool load_to_peptideHit_,
@@ -113,11 +113,11 @@ namespace OpenMS
 
       // Decoy string used by xQuest
       String decoy_string_;
-      Size spectrum_index_light_;
-      Size spectrum_index_heavy_;
+      int spectrum_index_light_;
+      int spectrum_index_heavy_;
 
       // Main data structures that are populated during loading the file
-      std::vector< std::vector< PeptideIdentification > >* pep_ids_;
+      std::vector< PeptideIdentification >* pep_ids_;
       std::vector< ProteinIdentification >* prot_ids_;
 
       // internal ID items for writing files
