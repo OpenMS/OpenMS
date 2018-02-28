@@ -25,11 +25,11 @@ public:
 
     TableDependency<Label> createSumEvidenceFactor(size_t nrParents, Label nId, Label pepId);
 
-    TableDependency<Label> createSumFactor(size_t nrParents, Label nid);
+    TableDependency<Label> createSumFactor(size_t nrParents, Label nId);
 
-    AdditiveDependency<Label> createPeptideProbabilisticAdderFactor(const std::set<Label> & parentProteinIDs, Label nid);
+    AdditiveDependency<Label> createPeptideProbabilisticAdderFactor(const std::set<Label> & parentProteinIDs, Label nId);
 
-    PseudoAdditiveDependency<Label> createBFPeptideProbabilisticAdderFactor(const std::set<Label> & parentProteinIDs, Label id, const std::vector<TableDependency <Label> > & deps);
+    PseudoAdditiveDependency<Label> createBFPeptideProbabilisticAdderFactor(const std::set<Label> & parentProteinIDs, Label nId, const std::vector<TableDependency <Label> > & deps);
 
     MessagePasserFactory<Label>(double alpha, double beta, double gamma, double p);
 
@@ -83,7 +83,7 @@ TableDependency<L> MessagePasserFactory<L>::createPeptideEvidenceFactor(L id, do
 
 
 template <typename L>
-TableDependency<L> MessagePasserFactory<L>::createSumEvidenceFactor(size_t nrParents, L nid, L pepid) {
+TableDependency<L> MessagePasserFactory<L>::createSumEvidenceFactor(size_t nrParents, L nId, L pepId) {
   Tensor<double> table({nrParents + 1 , 2});
   for (unsigned long i=0; i <= nrParents; ++i) {
     double notConditional = notConditionalGivenSum(i);
@@ -92,9 +92,9 @@ TableDependency<L> MessagePasserFactory<L>::createSumEvidenceFactor(size_t nrPar
     u_long indexArr2[] = {i,1};
     table[indexArr2] = 1.0 - notConditional;
   }
-  std::cout << table << std::endl;
-  LabeledPMF<L> lpmf({nid, pepid}, PMF({0L,0L}, table));
-  std::cout << lpmf << std::endl;
+  //std::cout << table << std::endl;
+  LabeledPMF<L> lpmf({nId, pepId}, PMF({0L,0L}, table));
+  //std::cout << lpmf << std::endl;
   return TableDependency<L>(lpmf,p);
 }
 
@@ -104,9 +104,9 @@ TableDependency<L> MessagePasserFactory<L>::createSumFactor(size_t nrParents, L 
   for (unsigned long i=0; i <= nrParents; ++i) {
     table[i] = 1.0/(nrParents+1);
   }
-  std::cout << table << std::endl;
+  //std::cout << table << std::endl;
   LabeledPMF<L> lpmf({nId}, PMF({0L}, table));
-  std::cout << lpmf << std::endl;
+  //std::cout << lpmf << std::endl;
   return TableDependency<L>(lpmf,p);
 }
 

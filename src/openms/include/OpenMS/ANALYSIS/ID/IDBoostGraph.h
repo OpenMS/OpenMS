@@ -41,14 +41,13 @@
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
+
 #include <vector>
-#include <unordered_map>
+
 #include <boost/function.hpp>
 #include <boost/graph/adjacency_list.hpp>
-#include <boost/graph/connected_components.hpp>
 #include <boost/graph/filtered_graph.hpp>
 #include <boost/graph/properties.hpp>
-#include <boost/property_map/transform_value_property_map.hpp>
 #include <boost/variant.hpp>
 #include <boost/variant/detail/hash_variant.hpp>
 #include <boost/variant/static_visitor.hpp>
@@ -59,7 +58,10 @@ namespace OpenMS
   /**
    @brief Creates and maintains a boost graph based on the OpenMS ID datastructures
 
-   For finding connected components.
+   For finding connected components and applying functions to them.
+   VERY IMPORTANT NOTE: If you add Visitors here, make sure they do not touch members of the
+   underlying ID objects that are responsible for the graph structure. E.g. the (protein/peptide)_hits vectors
+   or the lists in ProteinGroups. You can set information like scores or metavalues, though.
 
    @ingroup Analysis_ID
    */
@@ -72,6 +74,7 @@ namespace OpenMS
     // We can't make the pointers point to a const object because we want to set the scores in the end.
     typedef boost::variant<PeptideHit*, ProteinHit*> IDPointer;
     typedef boost::variant<const PeptideHit*, const ProteinHit*> IDPointerConst;
+    //TODO check the impact of different datastructures to store nodes/edges
     typedef boost::adjacency_list <boost::setS, boost::vecS, boost::undirectedS, IDPointer> Graph;
     typedef boost::adjacency_list <boost::setS, boost::vecS, boost::undirectedS, IDPointerConst> GraphConst;
     typedef boost::graph_traits<Graph>::vertex_descriptor vertex_t;
@@ -82,9 +85,10 @@ namespace OpenMS
     /// Constructor
     IDBoostGraph() = default;
 
-    /// Do sth on ccs
+    /// Do sth on connected components
     void applyFunctorOnCCs(ProteinIdentification &protein,
                            std::vector<PeptideIdentification> &peptides,
+                           bool use_all_psms,
                            std::function<void(FilteredGraph &)> functor);
 
 
@@ -169,12 +173,15 @@ namespace OpenMS
     std::vector<unsigned int> componentProperty;
     unsigned int numCCs = 0;
 
+    /// Compute connected component on the static graph. Needs to be recomputed if graph is changed.
     void computeConnectedComponents_();
 
-    /// Initialize and store the graph (= maps)
+    /// Initialize and store the graph
+    /// IMPORTANT: Once the graph is built, editing members like (protein/peptide)_hits_ will invalidate it!
     /// @param protein ProteinIdentification object storing IDs and groups
     /// @param peptides vector of ProteinIdentifications with links to the proteins and PSMs in its PeptideHits
-    void buildGraph_(ProteinIdentification& protein, std::vector<PeptideIdentification>& peptides);
+    /// @param use_all_psms If all or just the FIRST psm should be used
+    void buildGraph_(ProteinIdentification& protein, std::vector<PeptideIdentification>& peptides, bool use_all_psms);
     //void buildGraph_(const ProteinIdentification& protein, const std::vector<PeptideIdentification>& peptides);
 
     vertex_t addVertexWithLookup_(IDPointer& ptr, std::unordered_map<IDPointer, vertex_t, boost::hash<IDPointer>>& vertex_map);

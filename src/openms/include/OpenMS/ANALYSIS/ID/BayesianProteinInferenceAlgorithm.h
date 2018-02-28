@@ -44,20 +44,23 @@
 
 namespace OpenMS
 {
-  class OPENMS_DLLAPI BayesianProteinInference :
+  class OPENMS_DLLAPI BayesianProteinInferenceAlgorithm :
       public DefaultParamHandler,
       public ProgressLogger
   {
   public:
     /// Constructor
-    BayesianProteinInference(std::vector<ProteinIdentification>& proteinIDs, std::vector<PeptideIdentification>& peptideIDs);
+    BayesianProteinInferenceAlgorithm();
 
     /// Destructor
-    ~BayesianProteinInference() override = default;
+    ~BayesianProteinInferenceAlgorithm() override = default;
 
+    /// A functor to pass into the IDBoostGraph class to perform algorithms on
+    /// connected components
     class FilteredGraphInferenceFunctor;
-    /// Perform inference
-    //void infer();
+
+    /// Perform inference. Writes its results into proteins (as new score) and peptides.
+    void inferPosteriorProbabilities(std::vector<ProteinIdentification>& proteinIDs, std::vector<PeptideIdentification>& peptideIDs);
   };
 }
 #endif // OPENMS_ANALYSIS_ID_BAYESIANPROTEININFERENCE_H

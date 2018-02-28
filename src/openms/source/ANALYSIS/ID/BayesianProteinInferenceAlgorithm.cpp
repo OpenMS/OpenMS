@@ -31,7 +31,7 @@
 // $Maintainer: Julianus Pfeuffer $
 // $Authors: Julianus Pfeuffer $
 // --------------------------------------------------------------------------
-#include <OpenMS/ANALYSIS/ID/BayesianProteinInference.h>
+#include <OpenMS/ANALYSIS/ID/BayesianProteinInferenceAlgorithm.h>
 
 #include <OpenMS/ANALYSIS/ID/IDBoostGraph.h>
 #include <set>
@@ -40,20 +40,30 @@ using namespace std;
 
 namespace OpenMS
 {
-  class BayesianProteinInference::FilteredGraphInferenceFunctor :
+  class BayesianProteinInferenceAlgorithm::FilteredGraphInferenceFunctor :
   public std::function<void(IDBoostGraph::FilteredGraph&)>
   {
   public:
-    FilteredGraphInferenceFunctor() = default;
+    const Param& param_;
+    vector<ProteinIdentification::ProteinGroup>& indistGroups_;
+
+    explicit FilteredGraphInferenceFunctor(const Param& param, vector<ProteinIdentification::ProteinGroup>& indistGroups):
+        param_(param),
+        indistGroups_(indistGroups)
+    {}
+
     void operator() (IDBoostGraph::FilteredGraph& fg) {
       //------------------ Now actual inference ------------------- //
       // Skip cc without peptide or protein
       //TODO this currently does not work because we do not filter edges I think
-      //TODO introduce edge types or skip single nodes instead
+      //TODO introduce edge types or skip nodes without neighbors inside the if instead
       if (boost::num_edges(fg) >= 1)
       {
-        //TODO make them parameters and/or estimate with gold/grid search
-        MessagePasserFactory<unsigned long> mpf (0.9,0.01,0.5,1.0);
+        //TODO allow estimatation via gold/grid search
+        MessagePasserFactory<unsigned long> mpf (param_.getValue("model_parameters:prot_prior"),
+                                                 param_.getValue("model_parameters:pep_emission"),
+                                                 param_.getValue("model_parameters:pep_spurious_emission"),
+                                                 1.0); // the p used for marginalization: 1 = sum product, inf = max product
         BetheInferenceGraphBuilder<unsigned long> bigb;
 
         // Cluster peptides with same parents
@@ -104,11 +114,17 @@ namespace OpenMS
           }
         }
 
-        int count = 1;
-        for (auto const& setpair : pepClusters)
+        bool annotateIndistGroupsOnly = param_.getValue("annotate_groups_only").toBool();
+        if (!annotateIndistGroupsOnly)
         {
-          #ifdef INFERENCE_DEBUG
-          for (auto const& j : setpair.first)
+          int count = 1;
+          //TODO all setpair.first entries are actually indistinguishable prot groups.
+          //Add them to the group object (with param?)
+          //Allow user to use the whole group as one entity (the old Fido group option).
+          for (auto const& setpair : pepClusters)
+          {
+            #ifdef INFERENCE_DEBUG
+            for (auto const& j : setpair.first)
             std::cout << j << ",";
 
           std::cout << ": ";
@@ -116,40 +132,73 @@ namespace OpenMS
             std::cout << j << ",";
 
           std::cout << std::endl;
-          #endif
+            #endif
+            unsigned long label = boost::num_vertices(fg) + (count++);
+            bigb.insert_dependency(mpf.createPeptideProbabilisticAdderFactor(setpair.first, label));
 
-          unsigned long label = boost::num_vertices(fg) + (count++);
-          bigb.insert_dependency(mpf.createPeptideProbabilisticAdderFactor(setpair.first, label));
+            for (auto const& j : setpair.second) // foreach peptide
+            {
+              //TODO assert that the peptide score is of type PEP! Probably enough in the beginning.
+              bigb.insert_dependency(mpf.createSumEvidenceFactor(setpair.first.size(), label, j));
+              IDBoostGraph::IDPointer p = fg[j];
+              bigb.insert_dependency(mpf.createPeptideEvidenceFactor(j, boost::get<PeptideHit*>(p)->getScore()));
+            }
 
-          for (auto const& j : setpair.second) // foreach peptide
+          }
+          InferenceGraph<unsigned long> ig = bigb.to_graph();
+
+          //TODO parametrize the type of scheduler.
+          PriorityScheduler<unsigned long> scheduler(param_.getValue("loopy_belief_propagation:dampening_lambda"),
+                                                     param_.getValue("loopy_belief_propagation:convergence_threshold"),
+                                                     param_.getValue("loopy_belief_propagation:max_nr_iterations"));
+          scheduler.add_ab_initio_edges(ig);
+
+          BeliefPropagationInferenceEngine<unsigned long> bpie(scheduler, ig);
+          auto posteriorFactors = bpie.estimate_posteriors(posteriorVars);
+
+          for (auto const& posteriorFactor : posteriorFactors)
           {
-            //TODO assert that the peptide score is of type PEP!
-            bigb.insert_dependency(mpf.createSumEvidenceFactor(setpair.first.size(), label, j));
-            IDBoostGraph::IDPointer p = fg[j];
-            bigb.insert_dependency(mpf.createPeptideEvidenceFactor(j, boost::get<PeptideHit*>(p)->getScore()));
+            double posterior = 0.0;
+            IDBoostGraph::SetPosteriorVisitor pv;
+            unsigned long nodeId = posteriorFactor.ordered_variables()[0];
+            const PMF& pmf = posteriorFactor.pmf();
+            // If Index 1 is in the range of this result PMFFactor it is non-zero
+            if (1 >= pmf.first_support()[0] && 1 <= pmf.last_support()[0]) {
+              posterior = pmf.table()[1 - pmf.first_support()[0]];
+            }
+            auto bound_visitor = std::bind(pv, std::placeholders::_1, posterior);
+            boost::apply_visitor(bound_visitor, fg[nodeId]);
           }
-
         }
-        InferenceGraph<unsigned long> ig = bigb.to_graph();
-        //TODO we should parametrize the type of scheduler and its params.
-        PriorityScheduler<unsigned long> scheduler(0.001, 1e-8, 1ul<<32);
-        scheduler.add_ab_initio_edges(ig);
-        BeliefPropagationInferenceEngine<unsigned long> bpie(scheduler, ig);
-        auto posteriorFactors = bpie.estimate_posteriors(posteriorVars);
 
-        for (auto const& posteriorFactor : posteriorFactors)
+        // Afterwards go through all pepClusters, i.e. indist. groups and add them
+        for (auto const& setpair : pepClusters)
         {
-          double posterior = 0.0;
-          IDBoostGraph::SetPosteriorVisitor pv;
-          unsigned long nodeId = posteriorFactor.ordered_variables()[0];
-          const PMF& pmf = posteriorFactor.pmf();
-          // If Index 1 is in the range of this result PMFFactor it is non-zero
-          if (1 >= pmf.first_support()[0] && 1 <= pmf.last_support()[0]) {
-            posterior = pmf.table()[1 - pmf.first_support()[0]];
+          ProteinIdentification::ProteinGroup pg;
+          double groupProb = 0.0;
+          for (auto const& proteinVID : setpair.first)
+          {
+            // Usually the probabilities in a group should be the same. But there could be slight inexactnesses due to
+            // message passing order and especially user priors.
+            ProteinHit* proteinPtr = boost::get<ProteinHit*>(fg[proteinVID]);
+            double currScore = proteinPtr->getScore();
+            if (currScore > 0.001)
+            {
+              pg.accessions.push_back(proteinPtr->getAccession());
+              if (currScore > groupProb) //use max. prob. for the group
+              {
+                groupProb = currScore;
+              }
+            }
           }
-          auto bound_visitor = std::bind(pv, std::placeholders::_1, posterior);
-          boost::apply_visitor(bound_visitor, fg[nodeId]);
+          if (!pg.accessions.empty())
+          {
+            pg.probability = groupProb;
+            indistGroups_.push_back(pg);
+          }
+
         }
+
       }
       else
       {
@@ -158,19 +207,27 @@ namespace OpenMS
     }
   };
 
-  BayesianProteinInference::BayesianProteinInference(std::vector<ProteinIdentification>& proteinIDs, std::vector<PeptideIdentification>& peptideIDs) :
+  BayesianProteinInferenceAlgorithm::BayesianProteinInferenceAlgorithm() :
       DefaultParamHandler("BayesianProteinInference"),
       ProgressLogger()
   {
     // set default parameter values
-    defaults_.setValue("keep_zero_group",
-                       false,
+
+/* TODO not yet implemented
+ * defaults_.setValue("keep_zero_group",
+                       "false",
                        "Keep the group of proteins with estimated probability of zero, which is otherwise removed (it may be very large)");
     defaults_.setValue("greedy_group_resolution",
-                       false,
-                       "Post-process Fido output with greedy resolution of shared peptides based on the protein probabilities. Also adds the resolved ambiguity groups to output.");
+                       "false",
+                       "Post-process inference output with greedy resolution of shared peptides based on the parent protein probabilities. Also adds the resolved ambiguity groups to output.");
+    defaults_.setValue("combine_indist_groups",
+                       "false",
+                       "Combine indistinguishable protein groups beforehand to only perform inference on them (probability for the whole group = is ANY of them present).");*/
+    defaults_.setValue("annotate_groups_only",
+                       "false",
+                       "Skips complex inference completely and just annotates indistinguishable groups.");
     defaults_.setValue("all_PSMs",
-                       false,
+                       "false",
                        "Consider all PSMs of each peptide, instead of only the best one.");
     defaults_.addSection("model_parameters","Model parameters for the Bayesian network");
     defaults_.setValue("model_parameters:prot_prior",
@@ -197,10 +254,12 @@ namespace OpenMS
                            " fifo = first in first out."
                            " random_spanning_tree = message passing follows a random spanning tree in each iteration");
     defaults_.setValidStrings("loopy_belief_propagation:scheduling_type", {"priority","fifo","random_spanning_tree"});
-    defaults_.setValue("loopy_belief_propagation:message_difference",
+
+    //TODO not yet implemented
+/*    defaults_.setValue("loopy_belief_propagation:message_difference",
                        "MSE",
                        "How to calculate the difference of distributions in updated messages.");
-    defaults_.setValidStrings("loopy_belief_propagation:message_difference", {"MSE"});
+    defaults_.setValidStrings("loopy_belief_propagation:message_difference", {"MSE"});*/
     defaults_.setValue("loopy_belief_propagation:convergence_threshold",
                        1e-5,
                        "Under which threshold is a message considered to be converged.");
@@ -217,10 +276,21 @@ namespace OpenMS
     // write defaults into Param object param_
     defaultsToParam_();
     updateMembers_();
+  }
 
+  void BayesianProteinInferenceAlgorithm::inferPosteriorProbabilities(std::vector<ProteinIdentification>& proteinIDs, std::vector<PeptideIdentification>& peptideIDs)
+  {
+    // init empty graph
     IDBoostGraph ibg;
-    FilteredGraphInferenceFunctor f;
-    ibg.applyFunctorOnCCs(proteinIDs[0], peptideIDs, f);
-    std::string file = "";
+
+    // TODO if we only perform group inference I think we should use another functor.
+    // It is too different from the normal type of inference, since we kind of create a new "protein-like" entity
+    // for every indist group
+
+    // what to do, with which params and where to write additional output (here groups).
+    FilteredGraphInferenceFunctor f{param_, proteinIDs[0].getIndistinguishableProteins()};
+    // build, find ccs and apply functor
+    ibg.applyFunctorOnCCs(proteinIDs[0], peptideIDs, param_.getValue("all_PSMs").toBool(), f);
+    //TODO write graphfile?
   }
 }

@@ -36,7 +36,7 @@
 #include <OpenMS/FILTERING/ID/IDFilter.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/SYSTEM/File.h>
-#include <OpenMS/ANALYSIS/ID/BayesianProteinInference.h>
+#include <OpenMS/ANALYSIS/ID/BayesianProteinInferenceAlgorithm.h>
 #include <vector>
 
 using namespace OpenMS;
@@ -58,7 +58,7 @@ protected:
     registerInputFile_("in", "<file>", "", "Input: identification results");
     setValidFormats_("in", ListUtils::create<String>("idXML"));
     //TODO make required of course
-    registerOutputFile_("out", "<file>", "", "Output: identification results with scored/grouped proteins", false);
+    registerOutputFile_("out", "<file>", "", "Output: identification results with scored/grouped proteins");
     setValidFormats_("out", ListUtils::create<String>("idXML"));
     registerFlag_("separate_runs", "Process multiple protein identification runs in the input separately, don't merge them. Merging results in loss of descriptive information of the single protein identification runs.", false);
   }
@@ -69,8 +69,10 @@ protected:
     vector<ProteinIdentification> prots;
     IdXMLFile idXML;
     idXML.load(getStringOption_("in"), prots, peps);
-    //TODO filter unmatched proteins and peptides.
-    BayesianProteinInference bpi(prots, peps);
+    //TODO filter unmatched proteins and peptides before?
+    BayesianProteinInferenceAlgorithm bpi;
+    bpi.inferPosteriorProbabilities(prots, peps);
+    idXML.store(getStringOption_("out"),prots, peps);
   }
 
 };
