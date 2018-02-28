@@ -57,15 +57,15 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-  @page UTILS_ProteomicLFQ
+  @page UTILS_ProteomicsLFQ
  **/
 
-class UTILProteomicLFQ :
+class UTILProteomicsLFQ :
   public TOPPBase
 {
 public:
-  UTILProteomicLFQ() :
-    TOPPBase("ProteomicLFQ", "A standard proteomics LFQ pipeline.")
+  UTILProteomicsLFQ() :
+    TOPPBase("ProteomicsLFQ", "A standard proteomics LFQ pipeline.")
   {
   }
 
@@ -315,7 +315,7 @@ protected:
 
 int main(int argc, const char ** argv)
 {
-  UTILProteomicLFQ tool;
+  UTILProteomicsLFQ tool;
   return tool.main(argc, argv);
 }
 

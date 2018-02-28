@@ -46,7 +46,7 @@ QCExtractor
 QCImporter
 QCMerger
 QCShrinker
-ProteomicLFQ
+ProteomicsLFQ
 RNADigestor
 RNPxl
 RNPxlXICFilter
