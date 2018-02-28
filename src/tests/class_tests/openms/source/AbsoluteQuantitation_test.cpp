@@ -225,6 +225,17 @@ START_SECTION((double calculateRatio(const Feature & component_1, const Feature 
   component_4.setMetaValue("native_id","component4");
   TEST_REAL_SIMILAR(absquant.calculateRatio(component_1,component_4,feature_name),5.0);
   TEST_REAL_SIMILAR(absquant.calculateRatio(component_3,component_4,feature_name),0.0);
+  // feature_name == "intensity"
+  Feature component_5, component_6, component_7;
+  feature_name = "intensity";
+  component_5.setMetaValue("native_id", "component5");
+  component_6.setMetaValue("native_id", "component6");
+  component_5.setIntensity(3.0);
+  component_6.setIntensity(4.0);
+  TEST_REAL_SIMILAR(absquant.calculateRatio(component_5, component_6, feature_name), 0.75);
+  TEST_REAL_SIMILAR(absquant.calculateRatio(component_6, component_5, feature_name), 1.33333333333333);
+  component_7.setMetaValue("native_id", "component7");
+  TEST_REAL_SIMILAR(absquant.calculateRatio(component_5, component_7, feature_name), inf);
 END_SECTION
 
 START_SECTION((double calculateBias(const double & actual_concentration, const double & calculated_concentration)))
