@@ -153,12 +153,12 @@ namespace OpenMS
       pos = 0;
     }
 
-    if (pos >= sequence.size())
+    if (pos >= (int)sequence.size())
     {
       LOG_WARN << "Error: start of fragment (" << pos << ") is beyond end of sequence '" << sequence << "'!" << endl;
       return false;
     }
-    if (pos + length > sequence.size())
+    if (pos + length > (int)sequence.size())
     {
       LOG_WARN << "Error: end of fragment (" << (pos + length) << ") is beyond end of sequence '" << sequence << "'!" << endl;
       return false;
@@ -202,7 +202,7 @@ namespace OpenMS
       }
 
       // right end (C-term for peptides):
-      if (end == sequence.size())
+      if (end == (int)sequence.size())
       { // full length match (end of sequence is not in cleavage_positions)
         spec_c = true;
       }
@@ -230,7 +230,7 @@ namespace OpenMS
     Size count(0);
     for (auto it = cleavage_positions.begin(); it != cleavage_positions.end(); ++it)
     { // count MCs within fragment borders
-      if ((seq_start < *it) && (*it < seq_end)) ++count;
+      if (((int)seq_start < *it) && (*it < (int)seq_end)) ++count;
     }
     return count;
   }
