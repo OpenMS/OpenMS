@@ -441,7 +441,7 @@ namespace OpenMS
       if (component_concentrations_sorted_indices.size() < min_points_)
       {
         LOG_INFO << "No optimal calibration found for " << component_concentrations_sub[0].feature.getMetaValue("native_id") << " .";
-        break;
+        return optimal_calibration_found;
       }
 
       // fit the model
@@ -477,7 +477,7 @@ namespace OpenMS
         // copy over the final optimized points before exiting
         component_concentrations = component_concentrations_sub;
         optimal_calibration_found = true;
-        break;
+        return optimal_calibration_found;
       }
 
       // R2 and biases check failed, determine potential outlier
@@ -514,7 +514,7 @@ namespace OpenMS
       }
       else
       {
-        break;
+        return optimal_calibration_found;
       }
     }
   }
