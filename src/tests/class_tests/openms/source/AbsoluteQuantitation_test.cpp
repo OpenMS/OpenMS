@@ -646,8 +646,8 @@ START_SECTION((bool optimizeCalibrationCurveIterative(
     transformation_model_params,
     optimized_params);
 
-  TEST_REAL_SIMILAR(optimized_params.getValue("slope"), 1.0);
-  TEST_REAL_SIMILAR(optimized_params.getValue("intercept"), 0.0);
+  TEST_REAL_SIMILAR(optimized_params.getValue("slope"), 0.482400123016735);
+  TEST_REAL_SIMILAR(optimized_params.getValue("intercept"), 0.305125368008987);
   TEST_EQUAL(optimal_fit_found, false);
 
 END_SECTION
@@ -750,8 +750,8 @@ START_SECTION((void optimizeCalibrationCurves(AbsoluteQuantitationStandards::com
 
   TEST_REAL_SIMILAR(components_concentrations["ser-L.ser-L_1.Light"][0].actual_concentration, 0.01);
   TEST_REAL_SIMILAR(components_concentrations["ser-L.ser-L_1.Light"][8].actual_concentration, 4.0);
-  TEST_REAL_SIMILAR(quant_methods_map["ser-L.ser-L_1.Light"].getTransformationModelParams().getValue("slope"), 1.0);
-  TEST_REAL_SIMILAR(quant_methods_map["ser-L.ser-L_1.Light"].getTransformationModelParams().getValue("intercept"), 0.0);
+  TEST_REAL_SIMILAR(quant_methods_map["ser-L.ser-L_1.Light"].getTransformationModelParams().getValue("slope"), 0.9011392589);  // previous supplied
+  TEST_REAL_SIMILAR(quant_methods_map["ser-L.ser-L_1.Light"].getTransformationModelParams().getValue("intercept"), 1.87018507);  // previous supplied
   TEST_REAL_SIMILAR(quant_methods_map["ser-L.ser-L_1.Light"].getCorrelationCoefficient(), 0.0);
   TEST_EQUAL(quant_methods_map["ser-L.ser-L_1.Light"].getLLOQ(), 0.01);
   TEST_EQUAL(quant_methods_map["ser-L.ser-L_1.Light"].getULOQ(), 200);
