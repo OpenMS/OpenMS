@@ -44,6 +44,8 @@
 #include <OpenMS/ANALYSIS/QUANTITATION/PeptideAndProteinQuant.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentTransformer.h>
 #include <OpenMS/ANALYSIS/ID/IDConflictResolverAlgorithm.h>
+#include <OpenMS/ANALYSIS/MAPMATCHING/ConsensusMapNormalizerAlgorithmMedian.h>
+//#include <OpenMS/MATH/STATISTICS/PosteriorErrorProbabilityModel.h>
 
 #include <OpenMS/FORMAT/MzTabFile.h>
 #include <OpenMS/FORMAT/MzTab.h>
@@ -90,6 +92,7 @@ protected:
     Param ff_defaults = FeatureFinderIdentificationAlgorithm().getDefaults();
     Param ma_defaults = MapAlignmentAlgorithmIdentification().getDefaults();
     Param fl_defaults = FeatureGroupingAlgorithmKD().getDefaults();
+//  Param pep_defaults = PosteriorErrorProbabilityModel().getParameters();
     //Param pi_defaults = ProteinInferenceAlgorithmXX().getDefaults();
     Param pq_defaults = PeptideAndProteinQuant().getDefaults();
 
@@ -100,6 +103,7 @@ protected:
     combined.insert("Linking:", fl_defaults);
     // combined.insert("Protein Inference:", pi_defaults);
     combined.insert("Protein Quantification:", pq_defaults);
+//    combined.insert("Posterior Error Probability:", pep_defaults);
 
     registerFullParam_(combined);
   }
@@ -144,6 +148,13 @@ protected:
     FeatureGroupingAlgorithmKD linker;
     linker.setLogType(log_type_);
     linker.setParameters(fl_param);
+
+//    Param pep_param = getParam_().copy("Posterior Error Probability:", true);
+//    writeDebug_("Parameters passed to PEP algorithm", pep_param, 3);
+    //PosteriorErrorProbabilityModel pep;
+    //pep.setLogType(log_type_);
+    //pep.setParameters(pep_param);
+    //TODO: move some helper methods in IDPosteriorProbability tool to algorithm
 
 // TODO: inference parameter
 
@@ -206,9 +217,16 @@ protected:
         // TODO: free all MS2 spectra (to release memory!)
 
         //-------------------------------------------------------------
+        // Posterior Error Probability calculation
+        //-------------------------------------------------------------
+        
+
+        //-------------------------------------------------------------
         // Feature detection
         //-------------------------------------------------------------
-        // TODO: call FeatureFinderIdentification (and think about external ids ;)
+        ffid_algo.getMSData().swap(ms_centroided);        
+//        ffid_algo.run(peptides, proteins, peptides_ext, proteins_ext, features);
+        // TODO: think about external ids ;)
         // TODO: free memory of centroided PeakMap
         // TODO: free parts of feature map not needed for further processing (e.g., subfeatures...)
       }
@@ -252,15 +270,14 @@ protected:
     //-------------------------------------------------------------
     // ConsensusMap normalization
     //-------------------------------------------------------------
-    // TODO: check if needs move to algorithm
+    ConsensusMapNormalizerAlgorithmMedian::normalizeMaps(consensus, 
+      ConsensusMapNormalizerAlgorithmMedian::NM_SCALE, 
+      "", 
+      "");
 
     // TODO: FileMerger merge ids (here? or already earlier? filtered?)
     // TODO: check if it makes sense to integrate SVT imputation algorithm (branch)
 
-    //-------------------------------------------------------------
-    // Posterior Error Probability calculation
-    //-------------------------------------------------------------
-    // TODO:
 
     //-------------------------------------------------------------
     // Protein inference
