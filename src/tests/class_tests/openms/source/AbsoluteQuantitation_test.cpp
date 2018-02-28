@@ -401,6 +401,32 @@ START_SECTION((void (
   std::vector<AbsoluteQuantitationStandards::featureConcentration> component_concentrations;
   AbsoluteQuantitationStandards::featureConcentration component_concentration;
   Feature component, IS_component;
+
+  String feature_name = "peak_apex_int";
+
+  // set-up the model and params
+  // y = m*x + b
+  // x = (y - b)/m
+  String transformation_model;
+  Param param;
+  // transformation_model = "TransformationModelLinear";
+  transformation_model = "linear";
+  param.setValue("slope",1.0);
+  param.setValue("intercept",0.0);
+  std::vector<double> biases = {0.0};
+  double correlation_coefficient = 0.0;
+
+  absquant.calculateBiasAndR(
+    component_concentrations,
+    feature_name,
+    transformation_model,
+    param,
+    biases,
+    correlation_coefficient);
+
+  TEST_REAL_SIMILAR(biases[0], 0.0);
+  TEST_REAL_SIMILAR(correlation_coefficient, 0.0);
+
   // point #1
   component.setMetaValue("native_id","component");
   component.setMetaValue("peak_apex_int",1.0);
@@ -434,20 +460,6 @@ START_SECTION((void (
   component_concentration.IS_actual_concentration = 1.0;
   component_concentration.dilution_factor = 1.0;
   component_concentrations.push_back(component_concentration);
-
-  String feature_name = "peak_apex_int";
-
-  // set-up the model and params
-  // y = m*x + b
-  // x = (y - b)/m
-  String transformation_model;
-  Param param;
-  // transformation_model = "TransformationModelLinear";
-  transformation_model = "linear";
-  param.setValue("slope",1.0);
-  param.setValue("intercept",0.0);
-  std::vector<double> biases;
-  double correlation_coefficient;
 
   absquant.calculateBiasAndR(
     component_concentrations,
