@@ -243,7 +243,7 @@ protected:
 
     // output file
     registerOutputFile_("out_xquestxml", "<file>", "", "Results in the xquest.xml format (at least one of these output parameters should be set, otherwise you will not have any results).", false, false);
-    setValidFormats_("out_xquestxml", ListUtils::create<String>("xml,xquest.xml,xquestXML"));
+    setValidFormats_("out_xquestxml", ListUtils::create<String>("xml,xquest.xml"));
 
     registerOutputFile_("out_xquest_specxml", "<file>", "", "Matched spectra in the xQuest .spec.xml format for spectra visualization in the xQuest results manager.", false, false);
     setValidFormats_("out_xquest_specxml", ListUtils::create<String>("xml,spec.xml"));
