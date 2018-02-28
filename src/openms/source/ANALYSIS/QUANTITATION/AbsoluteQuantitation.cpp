@@ -401,7 +401,7 @@ namespace OpenMS
     // }
   }
 
-  void AbsoluteQuantitation::optimizeCalibrationCurveIterative(
+  bool AbsoluteQuantitation::optimizeCalibrationCurveIterative(
     std::vector<AbsoluteQuantitationStandards::featureConcentration> & component_concentrations,
     const String & feature_name,
     const String & transformation_model,
@@ -409,6 +409,7 @@ namespace OpenMS
     Param & optimized_params)
   {
 
+    bool optimal_calibration_found = false; 
     // sort from min to max concentration
     std::vector<AbsoluteQuantitationStandards::featureConcentration> component_concentrations_sorted = component_concentrations;
     std::sort(component_concentrations_sorted.begin(), component_concentrations_sorted.end(),
@@ -440,7 +441,7 @@ namespace OpenMS
       if (component_concentrations_sorted_indices.size() < min_points_)
       {
         LOG_INFO << "No optimal calibration found for " << component_concentrations_sub[0].feature.getMetaValue("native_id") << " .";
-        break;
+        return optimal_calibration_found;
       }
 
       // fit the model
@@ -475,7 +476,8 @@ namespace OpenMS
 
         // copy over the final optimized points before exiting
         component_concentrations = component_concentrations_sub;
-        break;
+        optimal_calibration_found = true;
+        return optimal_calibration_found;
       }
 
       // R2 and biases check failed, determine potential outlier
@@ -512,9 +514,10 @@ namespace OpenMS
       }
       else
       {
-        break;
+        return optimal_calibration_found;
       }
     }
+    return optimal_calibration_found;
   }
 
   std::vector<AbsoluteQuantitationStandards::featureConcentration> AbsoluteQuantitation::extractComponents_(
@@ -612,26 +615,14 @@ namespace OpenMS
       {
         // optimize the calibraiton curve for the component
         Param optimized_params;
-        optimizeCalibrationCurveIterative(
+        bool optimal_calibration_found = optimizeCalibrationCurveIterative(
           cc[component_name],
           component_aqm.getFeatureName(),
           component_aqm.getTransformationModel(),
           component_aqm.getTransformationModelParams(),
           optimized_params);
 
-        // calculate the R2 and bias
-        std::vector<double> biases;
-        double correlation_coefficient = 0.0;
-        calculateBiasAndR(
-          cc[component_name],
-          component_aqm.getFeatureName(),
-          component_aqm.getTransformationModel(),
-          optimized_params,
-          biases,
-          correlation_coefficient);
-
-        // record the updated information
-        component_aqm.setCorrelationCoefficient(correlation_coefficient);
+        // order component concentrations and update the lloq and uloq
         std::vector<AbsoluteQuantitationStandards::featureConcentration>::const_iterator it;
         it = std::min_element(cc[component_name].begin(), cc[component_name].end(), [](
             const AbsoluteQuantitationStandards::featureConcentration& lhs,
@@ -651,8 +642,32 @@ namespace OpenMS
           }
         );
         component_aqm.setULOQ(it->actual_concentration);
-        component_aqm.setTransformationModelParams(optimized_params);
-        component_aqm.setNPoints(cc[component_name].size());
+
+        if (optimal_calibration_found)
+        {
+          // calculate the R2 and bias
+          std::vector<double> biases;
+          double correlation_coefficient = 0.0;
+          calculateBiasAndR(
+            cc[component_name],
+            component_aqm.getFeatureName(),
+            component_aqm.getTransformationModel(),
+            optimized_params,
+            biases,
+            correlation_coefficient);
+
+          // record the updated information
+          component_aqm.setCorrelationCoefficient(correlation_coefficient);
+          component_aqm.setTransformationModelParams(optimized_params);
+          component_aqm.setNPoints(cc[component_name].size());
+        }
+        else 
+        {
+          component_aqm.setCorrelationCoefficient(0.0);
+          component_aqm.setNPoints(0);
+          component_aqm.setLLOQ(0.0);
+          component_aqm.setULOQ(0.0);
+        }
       }
       else if (optimization_method_ != "iterative")
       {
