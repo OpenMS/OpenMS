@@ -11,7 +11,7 @@ IF "%~1"=="" (
   ECHO.
   ECHO.  This build script will use ALL your CPU cores ^(but on low priority^).
   ECHO.
-  ECHO   Usage: build ^<target^(- for all^)^> [[^<[r]elease^|[d]ebug^>] ^<Sln:[a]ll^|[c]lass-test^|[t]opp^|[u]til^|[g]ui^|[d]oc^>]
+  ECHO   Usage: build ^<target^(- for all^)^> [[^<[r]elease^|[d]ebug^|[rd]RelWithDebug^|[rm]MinSizeRel^>] ^<Sln:[a]ll^|[c]lass-test^|[t]opp^|[u]til^|[g]ui^|[d]oc^>]
   ECHO.
   ECHO  e.g.
   ECHO          // build all targets from all projects ^(TOPP, UTILS, tests, GUI^) in release mode
@@ -30,13 +30,14 @@ IF "%~1"=="" (
 set TARGET=%~1
 IF "%~1"=="-" set TARGET=ALL_BUILD
 
-
-IF "%~2"=="" set CFG=Release
+set CFG=Release
 IF "%~2"=="r" set CFG=Release
 IF "%~2"=="d" set CFG=Debug
+IF "%~2"=="rd" set CFG=RelWithDebInfo
+IF "%~2"=="rm" set CFG=MinSizeRel
 
 
-IF "%~3"==""  set SLN=OpenMS_host.sln
+set SLN=OpenMS_host.sln
 IF "%~3"=="a" set SLN=OpenMS_host.sln
 IF "%~3"=="c" set SLN=src\tests\class_tests\OpenMS_class_tests.sln
 IF "%~3"=="t" set SLN=src\topp\openms_topp.sln

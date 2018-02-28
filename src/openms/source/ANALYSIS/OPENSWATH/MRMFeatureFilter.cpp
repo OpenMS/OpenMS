@@ -376,7 +376,13 @@ namespace OpenMS
       double feature_2 = component_2.getMetaValue(feature_name);
       ratio = feature_1/feature_2;
       
-    } 
+    }
+    else if (feature_name == "intensity")
+    {
+      const double feature_1 = component_1.getIntensity();
+      const double feature_2 = component_2.getIntensity();
+      ratio = feature_1 / feature_2;
+    }
     else if (component_1.metaValueExists(feature_name))
     {
       LOG_INFO << "Warning: no ion pair found for transition_id " << component_1.getMetaValue("native_id") << ".";

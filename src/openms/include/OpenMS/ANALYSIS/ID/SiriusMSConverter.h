@@ -52,16 +52,18 @@ public:
     for the conversion of a MzMlFile to an internal format.
 
     @ingroup ID
+
+    Store .ms file.
+    Adducts are written to SIRIUS .ms file. If adduct information for a spectrum is missing, 
+    no adduct information is written. In this case, SIRIUS assumes default adducts for the respective spectrum.
+    
+    @return string (full path to file)
+    
+    @param spectra: Peakmap from input mzml
+    @param msfile: (internal) written .ms file from sirius 
+    @param map_precursor_to_adducts: adducts of a spectrum (index). 
     */
 
-    /// store MS file
-    /// @return string (full path to file)
-    
-    // spectra: Peakmap from input mzml
-    // msfile: (internal) written .ms file from sirius 
-    // map_precursor_to_adducts: adducts of a spectrum (index). 
-    // Adducts are written to SIRIUS ms file. If adduct information for a spectrum is missing, 
-    // no adduct information is written. In this case, SIRIUS assumes default adducts for the respective spectrum.
     static void store(const PeakMap & spectra, const String & msfile, const std::map<size_t, StringList> & map_precursor_to_adducts);
 
   };
