@@ -36,7 +36,6 @@
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/CONCEPT/LogStream.h>
-#include <boost/regex.hpp>
 
 #include <iostream>
 #include <limits>
@@ -51,6 +50,7 @@ namespace OpenMS
   EnzymaticDigestion::EnzymaticDigestion() :
     missed_cleavages_(0),
     enzyme_(ProteaseDB::getInstance()->getEnzyme("Trypsin")), // @TODO: keep trypsin as default?
+    re_(enzyme_->getRegEx()),
     specificity_(SPEC_FULL)
   {
   }
@@ -72,6 +72,7 @@ namespace OpenMS
   void EnzymaticDigestion::setEnzyme(const DigestionEnzyme* enzyme)
   {
     enzyme_ = enzyme;
+    re_ = boost::regex(enzyme_->getRegEx());
   }
 
   String EnzymaticDigestion::getEnzymeName() const
@@ -98,40 +99,66 @@ namespace OpenMS
     specificity_ = spec;
   }
 
-  std::vector<Size> EnzymaticDigestion::tokenize_(const String& sequence) const
+  std::vector<int> EnzymaticDigestion::tokenize_(const String& sequence, int start, int end) const
   {
-    std::vector<Size> positions;
-    Size pos = 0;
+    std::vector<int> positions;
+    // set proper boundaries
+    start = std::max(0, start);
+    if (end < 0 || end > (int)sequence.size()) end = (int)sequence.size();
+
     if (enzyme_->getRegEx() != "()") // if it's not "no cleavage"
     {
-      boost::regex re(enzyme_->getRegEx());
-      boost::sregex_token_iterator i(sequence.begin(), sequence.end(), re, -1);
+      boost::sregex_token_iterator i(sequence.begin() + start, sequence.begin() + end, re_, -1);
       boost::sregex_token_iterator j;
       while (i != j)
       {
-        positions.push_back(pos); // 1st push 0, then all the real cleavage sites (instead of all cleavage sites and end-of-string)
-        pos += i->length();
+        positions.push_back(start); // first push 'start' (usually 0), then all the real cleavage sites
+        start += (int)i->length();
         ++i;
       }
     }
     else
     {
-      positions.push_back(pos);
+      positions.push_back(start);
     }
     return positions;
   }
 
   bool EnzymaticDigestion::isValidProduct(const String& sequence,
-                                          Size pos,
-                                          Size length,
+                                          int pos,
+                                          int length,
                                           bool ignore_missed_cleavages) const
   {
-    if (pos >= sequence.size())
+    return isValidProduct_(sequence, pos, length, ignore_missed_cleavages, false, false);
+  }
+
+  bool EnzymaticDigestion::filterByMissedCleavages(const String& sequence, std::function<bool(Int)> filter) const
+  {
+    return filter(Int(tokenize_(sequence).size() - 1));
+  }
+
+  bool EnzymaticDigestion::isValidProduct_(const String& sequence,
+                                           int pos,
+                                           int length,
+                                           bool ignore_missed_cleavages,
+                                           bool allow_nterm_protein_cleavage,
+                                           bool allow_random_asp_pro_cleavage) const
+  {
+    // for XTandem specific rules (see https://github.com/OpenMS/OpenMS/issues/2497)
+    // M or MX at the N-terminus might have been cleaved.
+    if (allow_nterm_protein_cleavage && (pos <= 2) && (sequence[0] == 'M'))
+    {
+      // check the N-terminal peptide for a C-terminal cleavage site:
+      length += pos;
+      pos = 0;
+    }
+
+    if (pos >= (int)sequence.size())
     {
       LOG_WARN << "Error: start of fragment (" << pos << ") is beyond end of sequence '" << sequence << "'!" << endl;
       return false;
     }
-    if (pos + length > sequence.size())
+    if (pos + length > (int)sequence.size())
     {
       LOG_WARN << "Error: end of fragment (" << (pos + length) << ") is beyond end of sequence '" << sequence << "'!" << endl;
       return false;
@@ -145,18 +172,21 @@ namespace OpenMS
     // ignore specificity and missed cleavage settings for unspecific cleavage
     if (enzyme_->getName() == UnspecificCleavage) { return true; }
 
-    const Size end = pos + length; // past-the-end index into sequence of last fragment position
+    const int end = pos + length; // past-the-end index into sequence of last fragment position
 
     if (specificity_ == SPEC_NONE)
     { // we don't care about terminal ends
       if (ignore_missed_cleavages) return true;
-      const std::vector<Size> cleavage_positions = tokenize_(sequence); // has '0' as first site
-      return (countMissedCleavages_(cleavage_positions, pos, end) <= missed_cleavages_);
+      // tokenize_ is really slow, so reduce work by working on substring:
+      const std::vector<int> cleavage_positions = tokenize_(sequence, pos, end); // has 'pos' as first site
+      return (cleavage_positions.size() - 1) <= missed_cleavages_;
     }
     else // either SPEC_SEMI or SPEC_FULL
     {
       bool spec_c = false, spec_n = false;
-      const std::vector<Size> cleavage_positions = tokenize_(sequence); // has '0' as first site
+      // tokenize_ is really slow, so reduce work by working on substring with +-2 chars margin:
+      const std::vector<int> cleavage_positions = tokenize_(sequence, pos - 2, end + 2); // has max(0,pos-2) as first site 
+      
       //
       // test each terminal end of the fragment
       //
@@ -165,19 +195,28 @@ namespace OpenMS
       { // '0' is included in cleavage_positions, so starting fragments will be found as well
         spec_n = true;
       }
+      // pos is > 0 at this point, so [pos-1] is valid
+      else if (allow_random_asp_pro_cleavage && (sequence[pos - 1] == 'D') && (sequence[pos] == 'P'))
+      {
+        spec_n = true;
+      }
 
       // right end (C-term for peptides):
-      if (end == sequence.size())
+      if (end == (int)sequence.size())
       { // full length match (end of sequence is not in cleavage_positions)
         spec_c = true;
       }
-      else if (std::find(cleavage_positions.begin(), cleavage_positions.end(), end) != cleavage_positions.end())
+      else if (std::find(cleavage_positions.rbegin(), cleavage_positions.rend(), end) != cleavage_positions.rend())
+      { // use rbegin() since we expect this to be the correct hit
+        spec_c = true;
+      }
+      else if (allow_random_asp_pro_cleavage && (sequence[end - 1] == 'D') && (sequence[end] == 'P'))
       {
         spec_c = true;
       }
 
       if ((spec_n && spec_c) || // full spec
-          ((specificity_ == SPEC_SEMI) && (spec_n || spec_c))) // semi spec
+        ((specificity_ == SPEC_SEMI) && (spec_n || spec_c))) // semi spec
       {
         if (ignore_missed_cleavages) return true;
         return (countMissedCleavages_(cleavage_positions, pos, end) <= missed_cleavages_);
@@ -186,22 +225,17 @@ namespace OpenMS
     }
   }
 
-  bool EnzymaticDigestion::filterByMissedCleavages(const String& sequence, std::function<bool(Int)> filter) const
-  {
-    return filter(tokenize_(sequence).size() - 1);
-  }
-
-  Size EnzymaticDigestion::countMissedCleavages_(const std::vector<Size>& cleavage_positions, Size seq_start, Size seq_end) const
+  Size EnzymaticDigestion::countMissedCleavages_(const std::vector<int>& cleavage_positions, Size seq_start, Size seq_end) const
   {
     Size count(0);
-    for (std::vector<Size>::const_iterator it = cleavage_positions.begin(); it != cleavage_positions.end(); ++it)
+    for (auto it = cleavage_positions.begin(); it != cleavage_positions.end(); ++it)
     { // count MCs within fragment borders
-      if ((seq_start < *it) && (*it < seq_end)) ++count;
+      if (((int)seq_start < *it) && (*it < (int)seq_end)) ++count;
     }
     return count;
   }
 
-  void EnzymaticDigestion::digestAfterTokenize_(const std::vector<Size>& fragment_positions, const StringView& sequence, std::vector<StringView>& output, Size min_length, Size max_length) const
+  void EnzymaticDigestion::digestAfterTokenize_(const std::vector<int>& fragment_positions, const StringView& sequence, std::vector<StringView>& output, Size min_length, Size max_length) const
   {
     Size count = fragment_positions.size();
 
@@ -282,7 +316,7 @@ namespace OpenMS
     }
 
     // naive cleavage sites
-    std::vector<Size> fragment_positions = tokenize_(sequence.getString());
+    std::vector<int> fragment_positions = tokenize_(sequence.getString());
     digestAfterTokenize_(fragment_positions, sequence, output, min_length, max_length);
   }
 } //namespace
