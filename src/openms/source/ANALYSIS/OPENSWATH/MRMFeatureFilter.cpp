@@ -370,28 +370,33 @@ namespace OpenMS
   {
     
     double ratio = 0.0;
-    if (component_1.metaValueExists(feature_name) && component_2.metaValueExists(feature_name))
-    {
-      double feature_1 = component_1.getMetaValue(feature_name);
-      double feature_2 = component_2.getMetaValue(feature_name);
-      ratio = feature_1/feature_2;
-      
-    }
-    else if (feature_name == "intensity")
+    if (feature_name == "intensity" && component_1.metaValueExists("native_id") && component_2.metaValueExists("native_id"))
     {
       const double feature_1 = component_1.getIntensity();
       const double feature_2 = component_2.getIntensity();
       ratio = feature_1 / feature_2;
     }
+    else if (feature_name == "intensity" && component_1.metaValueExists("native_id"))
+    {
+      LOG_DEBUG << "Warning: no IS found for component " << component_1.getMetaValue("native_id") << ".";
+      const double feature_1 = component_1.getIntensity();
+      ratio = feature_1;
+    }
+    else if (component_1.metaValueExists(feature_name) && component_2.metaValueExists(feature_name))
+    {
+      double feature_1 = component_1.getMetaValue(feature_name);
+      double feature_2 = component_2.getMetaValue(feature_name);
+      ratio = feature_1/feature_2;
+    }
     else if (component_1.metaValueExists(feature_name))
     {
-      LOG_INFO << "Warning: no ion pair found for transition_id " << component_1.getMetaValue("native_id") << ".";
+      LOG_DEBUG << "Warning: no IS found for component " << component_1.getMetaValue("native_id") << ".";
       double feature_1 = component_1.getMetaValue(feature_name);
       ratio = feature_1;
-    } 
+    }
     else
     {
-      LOG_INFO << "Feature metaValue " << feature_name << " not found for transition_ids " << component_1.getMetaValue("native_id") << " and " << component_2.getMetaValue("native_id") << ".";
+      LOG_DEBUG << "Feature metaValue " << feature_name << " not found for components " << component_1.getMetaValue("native_id") << " and " << component_2.getMetaValue("native_id") << ".";
     }
 
     return ratio;
