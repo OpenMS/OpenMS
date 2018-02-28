@@ -60,7 +60,7 @@ public:
      * @param load_to_peptideHit Whether the data will be loaded as meta values also into the peptide hits, instead just into the PeptideIdentification
      */
     void load(const String & filename,
-              std::vector< std::vector< PeptideIdentification > > & csms,
+              std::vector< PeptideIdentification > & pep_ids,
               std::vector< ProteinIdentification > & prot_ids,
               Size min_n_hits_per_spectrum = 0,
               bool load_to_peptideHit = false);

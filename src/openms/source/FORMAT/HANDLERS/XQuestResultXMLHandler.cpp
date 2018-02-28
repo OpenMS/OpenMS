@@ -172,7 +172,7 @@ namespace OpenMS
 
           ProteinHit prot_hit;
           prot_hit.setAccession(accession);
-          prot_hit.setMetaValue("target_decoy", accession.hasSubstring("decoy") ? "decoy" : "target");
+          prot_hit.setMetaValue("target_decoy", accession.hasSubstring(decoy_string_) ? "decoy" : "target");
 
           (*this->prot_ids_)[0].getHits().push_back(prot_hit);
         }
@@ -708,8 +708,8 @@ namespace OpenMS
             {
               String s1 = *it1;
               String s2 = *it2;
-              s1.substitute("reverse_", "");
-              s2.substitute("reverse_", "");
+              // s1.substitute("reverse_", "");
+              // s2.substitute("reverse_", "");
               s1.substitute(XQuestResultXMLHandler::decoy_string_, "");
               s2.substitute(XQuestResultXMLHandler::decoy_string_, "");
 
