@@ -43,6 +43,7 @@
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmIdentification.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/PeptideAndProteinQuant.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentTransformer.h>
+#include <OpenMS/ANALYSIS/ID/IDConflictResolverAlgorithm.h>
 
 #include <OpenMS/FORMAT/MzTabFile.h>
 #include <OpenMS/FORMAT/MzTab.h>
@@ -272,8 +273,8 @@ protected:
     //-------------------------------------------------------------
     // ID conflict resolution
     //-------------------------------------------------------------
-    // TODO: ID conflict resolution, move tool to algorithm and move some consensus ID algorithms
-
+    IDConflictResolverAlgorithm::resolve(consensus);
+    // TODO: check if some consensus ID algorithms are applicable
 
     //-------------------------------------------------------------
     // Protein quantification and export to mzTab
