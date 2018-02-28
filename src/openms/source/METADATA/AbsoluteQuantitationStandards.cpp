@@ -84,7 +84,10 @@ namespace OpenMS
         }
         if (run.IS_component_name != "")
         {
-          findComponentFeature_(fmap, run.IS_component_name, fc.IS_feature);
+          if (!findComponentFeature_(fmap, run.IS_component_name, fc.IS_feature)
+          { // down stream methods will expect to find an IS
+            continue;
+          } 
         }
         // fill the rest of the information from the current runConcentration
         fc.actual_concentration = run.actual_concentration;

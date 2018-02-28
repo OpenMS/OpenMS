@@ -209,6 +209,9 @@ START_SECTION((double calculateRatio(const Feature & component_1, const Feature 
   double inf = std::numeric_limits<double>::infinity();
   // dummy features
   OpenMS::Feature component_1, component_2;
+
+  TEST_REAL_SIMILAR(absquant.calculateRatio(component_1,component_2,feature_name),0.0);
+
   component_1.setMetaValue(feature_name, 5.0);
   component_1.setMetaValue("native_id","component1");
   component_2.setMetaValue(feature_name, 5.0);
