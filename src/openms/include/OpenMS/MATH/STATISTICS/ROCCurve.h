@@ -82,6 +82,9 @@ public:
       /// returns Area Under Curve
       double AUC();
 
+      /// returns ROC-N score (e.g. ROC-50). Returns -1 if not enough false positives were found
+      double rocN(int N);
+
       /// some points in the ROC Curve
       std::vector<std::pair<double, double> > curve(UInt resolution = 10);
 

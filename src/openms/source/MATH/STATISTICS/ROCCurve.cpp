@@ -121,6 +121,53 @@ namespace OpenMS
       return area;
     }
 
+    double ROCCurve::rocN(int N)
+    {
+      if (score_clas_pairs_.size() < N)
+      {
+        std::cerr << "ROCCurve::rocN() : unsuitable dataset (not enough false positives)\n";
+        return -1;
+      }
+
+      score_clas_pairs_.sort(simsortdec());
+      // value that is not in score_clas_pairs_
+      double prevsim = score_clas_pairs_.begin()->first + 1;
+      UInt truePos = 0;
+      UInt falsePos = 0;
+      std::vector<DPosition<2> > polygon;
+      for (std::list<std::pair<double, bool> >::const_iterator cit = score_clas_pairs_.begin(); cit != score_clas_pairs_.end() && falsePos <= N; ++cit)
+      {
+        if (fabs(cit->first - prevsim) > 1e-8)
+        {
+          polygon.emplace_back(DPosition<2>((double)falsePos / neg_, (double)truePos / pos_));
+        }
+        if (cit->second)
+        {
+          ++truePos;
+        }
+        else
+        {
+          ++falsePos;
+        }
+      }
+      polygon.emplace_back(DPosition<2>(1, 1));
+      std::sort(polygon.begin(), polygon.end());
+      DPosition<2> last(0, 0);
+      double area(0);
+      for (std::vector<DPosition<2> >::const_iterator it = polygon.begin(); it != polygon.end(); ++it)
+      {
+        area += (it->getX() - last.getX()) * (it->getY());
+        last = *it;
+      }
+
+      if (falsePos < N)
+      {
+        std::cerr << "ROCCurve::rocN() : unsuitable dataset (not enough false positives)\n";
+        return -1;
+      }
+      return area;
+    }
+
     std::vector<std::pair<double, double> > ROCCurve::curve(UInt resolution)
     {
       score_clas_pairs_.sort(simsortdec());

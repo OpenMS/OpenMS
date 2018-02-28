@@ -283,9 +283,17 @@ namespace OpenMS
     // init empty graph
     IDBoostGraph ibg;
 
-    // TODO if we only perform group inference I think we should use another functor.
+    //TODO if we only perform group inference I think we should use another functor.
     // It is too different from the normal type of inference, since we kind of create a new "protein-like" entity
     // for every indist group
+
+    //TODO perform parameter search here with Statistics::rocN(50), a lambda for convex combination and the difference
+    //between target-decoy and posterior FDR (to be implemented)
+    //Use gold search that goes deeper into the grid where it finds the best value.
+    //We have to do it on a whole dataset basis though (all CCs). -> I have to refactor to actually store as much
+    //as possible (it would be cool to store the inference graph but this is probably not possible bc that is why
+    //I split up in CCs.
+    // OR I could save the outputs! One value for every protein, per parameter set.
 
     // what to do, with which params and where to write additional output (here groups).
     FilteredGraphInferenceFunctor f{param_, proteinIDs[0].getIndistinguishableProteins()};
