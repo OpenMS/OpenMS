@@ -207,6 +207,8 @@ namespace OpenMS
     // reset biases
     biases.clear();
 
+    std::cout<<"biases.clear();"<<std::endl;
+
     // extract out the calibration points
     std::vector<double> concentration_ratios, feature_amounts_ratios;
     TransformationModel::DataPoints data;
@@ -220,6 +222,7 @@ namespace OpenMS
         feature_name,
         transformation_model,
         transformation_model_params);
+      std::cout<<"applyCalibration"<<std::endl;
 
       double actual_concentration_ratio = component_concentrations[i].actual_concentration/
         component_concentrations[i].IS_actual_concentration;
@@ -230,15 +233,18 @@ namespace OpenMS
         component_concentrations[i].IS_feature,
         feature_name)/component_concentrations[i].dilution_factor;
       feature_amounts_ratios.push_back(feature_amount_ratio);
+      std::cout<<"calculateRatio"<<std::endl;
 
       // calculate the bias
       double bias = calculateBias(actual_concentration_ratio, calculated_concentration_ratio);
       biases.push_back(bias);
+      std::cout<<"calculateBias"<<std::endl;
 
       point.first = actual_concentration_ratio;
       point.second = feature_amount_ratio;
       data.push_back(point);
     }
+    
 
     // apply weighting to the feature amounts and actual concentration ratios
     TransformationModel tm(data, transformation_model_params);
@@ -249,6 +255,7 @@ namespace OpenMS
       concentration_ratios_weighted.push_back(data[i].first);
       feature_amounts_ratios_weighted.push_back(data[i].second);
     }
+    std::cout<<"weightData"<<std::endl;
 
     // calculate the R2 (R2 = Pearson_R^2)
     correlation_coefficient = Math::pearsonCorrelationCoefficient(
