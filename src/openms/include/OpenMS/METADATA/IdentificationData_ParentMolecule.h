@@ -172,6 +172,26 @@ namespace OpenMS
 
 
     /*!
+      Group of ambiguously identified parent molecules
+    */
+    struct ParentMoleculeGroup: public ScoredProcessingResult
+    {
+      // @TODO: does this need a "leader" or some such?
+      std::set<ParentMoleculeRef> parent_molecule_refs;
+    };
+
+    typedef boost::multi_index_container<
+      ParentMoleculeGroup,
+      boost::multi_index::indexed_by<
+        boost::multi_index::ordered_unique<
+          boost::multi_index::member<
+            ParentMoleculeGroup, std::set<ParentMoleculeRef>,
+            &ParentMoleculeGroup::parent_molecule_refs>>>
+      > ParentMoleculeGroups;
+    typedef IteratorWrapper<ParentMoleculeGroups::iterator> ParentGroupRef;
+
+
+    /*!
       Meta data for the association between an identified molecule (e.g. peptide) and a parent molecule (e.g. protein).
     */
     struct MoleculeParentMatch: public MetaInfoInterface

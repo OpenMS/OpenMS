@@ -523,7 +523,7 @@ protected:
         }
       }
     }
-    IDFilter::removeMoleculesParentsQueriesWithoutMatches(id_data);
+    id_data.cleanup();
   }
 
 

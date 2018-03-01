@@ -1096,26 +1096,6 @@ public:
       IdentificationData& id_data,
       IdentificationData::ScoreTypeRef score_ref, double cutoff);
 
-    static void removeMoleculesParentsQueriesWithoutMatches(
-      IdentificationData& id_data);
-
-    template <typename SetType, typename RefType>
-    static void removeNonmatchingRefs_(
-      SetType& container, const std::set<RefType>& refs)
-    {
-      for (auto it = container.begin(); it != container.end(); )
-      {
-        if (!refs.count(it))
-        {
-          it = container.erase(it);
-        }
-        else
-        {
-          ++it;
-        }
-      }
-    }
-
     ///@}
 
   };
