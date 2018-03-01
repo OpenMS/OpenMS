@@ -409,7 +409,6 @@ namespace OpenMS
     Param & optimized_params)
   {
 
-    bool optimal_calibration_found = false; 
     // sort from min to max concentration
     std::vector<AbsoluteQuantitationStandards::featureConcentration> component_concentrations_sorted = component_concentrations;
     std::sort(component_concentrations_sorted.begin(), component_concentrations_sorted.end(),
