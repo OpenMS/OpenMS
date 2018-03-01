@@ -155,7 +155,7 @@ namespace OpenMS
     // metaValue feature_name access
     else
     {
-      else if (component_1.metaValueExists(feature_name) && component_2.metaValueExists(feature_name))
+      if (component_1.metaValueExists(feature_name) && component_2.metaValueExists(feature_name))
       {
         const double feature_1 = component_1.getMetaValue(feature_name);
         const double feature_2 = component_2.getMetaValue(feature_name);
