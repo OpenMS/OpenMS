@@ -258,6 +258,7 @@ protected:
         if (unable_to_fit_data)
         {
           writeLog_(String("Unable to fit data for search engine: ") + engine);
+          if (!ignore_bad_data) return UNEXPECTED_RESULT;
         }
         else if (data_might_not_be_well_fit) 
         {
