@@ -45,7 +45,7 @@
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentTransformer.h>
 #include <OpenMS/ANALYSIS/ID/IDConflictResolverAlgorithm.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/ConsensusMapNormalizerAlgorithmMedian.h>
-//#include <OpenMS/MATH/STATISTICS/PosteriorErrorProbabilityModel.h>
+#include <OpenMS/MATH/STATISTICS/PosteriorErrorProbabilityModel.h>
 
 #include <OpenMS/FORMAT/MzTabFile.h>
 #include <OpenMS/FORMAT/MzTab.h>
@@ -92,7 +92,7 @@ protected:
     Param ff_defaults = FeatureFinderIdentificationAlgorithm().getDefaults();
     Param ma_defaults = MapAlignmentAlgorithmIdentification().getDefaults();
     Param fl_defaults = FeatureGroupingAlgorithmKD().getDefaults();
-//  Param pep_defaults = PosteriorErrorProbabilityModel().getParameters();
+    Param pep_defaults = Math::PosteriorErrorProbabilityModel().getParameters();
     //Param pi_defaults = ProteinInferenceAlgorithmXX().getDefaults();
     Param pq_defaults = PeptideAndProteinQuant().getDefaults();
 
@@ -103,7 +103,7 @@ protected:
     combined.insert("Linking:", fl_defaults);
     // combined.insert("Protein Inference:", pi_defaults);
     combined.insert("Protein Quantification:", pq_defaults);
-//    combined.insert("Posterior Error Probability:", pep_defaults);
+    combined.insert("Posterior Error Probability:", pep_defaults);
 
     registerFullParam_(combined);
   }
@@ -149,12 +149,11 @@ protected:
     linker.setLogType(log_type_);
     linker.setParameters(fl_param);
 
-    //Param pep_param = getParam_().copy("Posterior Error Probability:", true);
-    //writeDebug_("Parameters passed to PEP algorithm", pep_param, 3);
-    //PosteriorErrorProbabilityModel pep;
-    //pep.setLogType(log_type_);
-    //pep.setParameters(pep_param);
-    //TODO: move some helper methods in IDPosteriorProbability tool to algorithm
+    Param pep_param = getParam_().copy("Posterior Error Probability:", true);
+    writeDebug_("Parameters passed to PEP algorithm", pep_param, 3);
+    Math::PosteriorErrorProbabilityModel PEP_model;
+    // PEP_model.setLogType(log_type_); TODO: add to PEP
+    PEP_model.setParameters(pep_param);
 
     // TODO: inference parameter
 
@@ -219,6 +218,54 @@ protected:
         // Posterior Error Probability calculation
         //-------------------------------------------------------------
         
+        // TODO: load id file for this MS file
+
+        vector<ProteinIdentification> protein_ids;
+        vector<PeptideIdentification> peptide_ids;
+
+        map<String, vector<vector<double> > > all_scores = Math::PosteriorErrorProbabilityModel::extractAndTransformScores(
+          protein_ids, 
+          peptide_ids, 
+          false, 
+          true,   
+          true,  
+          0.05);
+                
+        for (auto & score : all_scores)  // for all search engine scores (should only be 1)
+        {
+          vector<String> engine_info;
+          score.first.split(',', engine_info);
+          String engine = engine_info[0];
+          Int charge = (engine_info.size() == 2) ? engine_info[1].toInt() : -1;
+
+          // fit to score vector
+          bool return_value = PEP_model.fit(score.second[0]);
+          if (!return_value) 
+          {
+            writeLog_("Unable to fit data. Algorithm did not run through for the following search engine: " + engine);
+          }
+
+          bool unable_to_fit_data(true), data_might_not_be_well_fit(true);
+          Math::PosteriorErrorProbabilityModel::updateScores(
+            PEP_model,
+            engine,
+            charge,
+            protein_ids,
+            peptide_ids,
+            true, // prob_correct 
+            false, //split_charge
+            unable_to_fit_data,
+            data_might_not_be_well_fit);
+
+          if (unable_to_fit_data)
+          {
+            writeLog_(String("Unable to fit data for search engine: ") + engine);
+          }
+          else if (data_might_not_be_well_fit) 
+          {
+            writeLog_(String("Data might not be well fitted for search engine: ") + engine);
+          }
+        }
 
         //-------------------------------------------------------------
         // Feature detection
