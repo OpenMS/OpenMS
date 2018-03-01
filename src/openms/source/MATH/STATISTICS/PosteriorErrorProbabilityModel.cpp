@@ -581,5 +581,185 @@ namespace OpenMS
 
     }
 
+    double PosteriorErrorProbabilityModel::transformScore(const String & engine, const PeptideHit & hit)
+    {
+      // Set fixed e-value threshold
+      const double smallest_e_value_ = numeric_limits<double>::denorm_min();
+
+      if (engine == "OMSSA") { return (-1) * log10(max(hit.getScore(), smallest_e_value_)); }
+      else if (engine == "MyriMatch") { return hit.getScore(); }
+      else if (engine == "XTandem") { return (-1) * log10(max((double)hit.getMetaValue("E-Value"), smallest_e_value_)); }
+      else if (engine == "MASCOT")
+      {
+        // issue #740: unable to fit data with score 0
+        if (hit.getScore() == 0.0) 
+        {
+          return numeric_limits<double>::quiet_NaN();
+        }
+        // end issue #740
+        if (hit.metaValueExists("EValue"))
+        {
+          return (-1) * log10(max((double)hit.getMetaValue("EValue"), smallest_e_value_));
+        }
+        if (hit.metaValueExists("expect"))
+        {
+          return (-1) * log10(max((double)hit.getMetaValue("expect"), smallest_e_value_));
+        }
+      }
+      else if (engine == "SpectraST") { return 100 * hit.getScore(); } // f-val
+      else if (engine == "SimTandem")
+      {
+        if (hit.metaValueExists("E-Value"))
+        {
+          return (-1) * log10(max((double)hit.getMetaValue("E-Value"), smallest_e_value_));
+        }
+      }
+      else if ((engine == "MSGFPlus") || (engine == "MS-GF+"))
+      {
+        if (hit.metaValueExists("MS:1002053"))  // name: MS-GF:EValue
+        {
+          return (-1) * log10(max((double)hit.getMetaValue("MS:1002053"), smallest_e_value_));
+        }
+        else if (hit.metaValueExists("expect"))
+        {
+          return (-1) * log10(max((double)hit.getMetaValue("expect"), smallest_e_value_));
+        }
+      }
+      else if (engine == "Comet")
+      {
+        if (hit.metaValueExists("MS:1002257")) // name: Comet:expectation value
+        {
+          return (-1) * log10(max((double)hit.getMetaValue("MS:1002257"), smallest_e_value_));
+        }
+        else if (hit.metaValueExists("expect"))
+        {
+          return (-1) * log10(max((double)hit.getMetaValue("expect"), smallest_e_value_));
+        }
+      }
+      else
+      {
+        throw Exception::UnableToFit(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No parameters for chosen search engine", "The chosen search engine is currently not supported");
+      }
+
+    // avoid compiler warning (every code path must return a value, even if there is a throw() somewhere)
+      return std::numeric_limits<double>::max();
+    }
+
+    map<String, vector<vector<double>>> PosteriorErrorProbabilityModel::extractAndTransformScores(
+      const vector<ProteinIdentification> & protein_ids,
+      const vector<PeptideIdentification> & peptide_ids,
+      const bool split_charge,
+      const bool top_hits_only,
+      const bool target_decoy_available,
+      const double fdr_for_targets_smaller)
+    {
+      std::set<Int> charges;
+      const StringList search_engines = ListUtils::create<String>("XTandem,OMSSA,MASCOT,SpectraST,MyriMatch,SimTandem,MSGFPlus,MS-GF+,Comet");
+
+      if (split_charge)
+      {  // determine different charges in data
+        for (PeptideIdentification const & pep_id : peptide_ids)
+        {
+          const vector<PeptideHit>& hits = pep_id.getHits();
+          for (PeptideHit const & hit : hits) { charges.insert(hit.getCharge()); }
+        }
+        if (charges.empty())
+        {
+          throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "'split_charge' is set, but the list of charge states is empty");
+        }
+      }
+
+      set<Int>::iterator charge_it = charges.begin(); // charges can be empty, no problem if split_charge is not set
+      map<String, vector<vector<double> > > all_scores;
+      char splitter = ','; // to split the engine from the charge state later on
+      do
+      {
+        vector<double> scores, decoy, target;
+        for (String supported_engine : search_engines)
+        {
+          supported_engine.toUpper();
+          for (ProteinIdentification const & prot : protein_ids)
+          {
+            String search_engine = prot.getSearchEngine();
+            search_engine.toUpper();
+
+            if (supported_engine == search_engine)
+            {
+              for (PeptideIdentification pep : peptide_ids)
+              {
+                // make sure we are comparing peptide and proteins of the same search run
+                if (prot.getIdentifier() == pep.getIdentifier())
+                {
+                  pep.sort();
+                  vector<PeptideHit>& hits = pep.getHits();
+                  if (top_hits_only)
+                  {
+                    if (!hits.empty() && (!split_charge || hits[0].getCharge() == *charge_it))
+                    {
+                      double score = PosteriorErrorProbabilityModel::transformScore(supported_engine, hits[0]);
+                      if (!boost::math::isnan(score)) // issue #740: ignore scores with 0 values, otherwise you will get the error "unable to fit data"
+                      {
+                        scores.push_back(score);
+
+                        if (target_decoy_available)
+                        {
+                          if (hits[0].getScore() < fdr_for_targets_smaller)
+                          {
+                            target.push_back(score);
+                          }
+                          else
+                          {
+                            decoy.push_back(score);
+                          }
+                        }
+                      }
+                    }
+                  }
+                  else
+                  {
+                    for (PeptideHit const & hit : hits)
+                    {
+                      if (!split_charge || (hit.getCharge() == *charge_it))
+                      {
+                        double score = PosteriorErrorProbabilityModel::transformScore(supported_engine, hit);
+                        if (!boost::math::isnan(score)) // issue #740: ignore scores with 0 values, otherwise you will get the error "unable to fit data"
+                        {
+                          scores.push_back(score);
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+
+          if (scores.size() > 2)
+          {
+            vector<vector<double> > tmp;
+            tmp.push_back(scores);
+            tmp.push_back(target);
+            tmp.push_back(decoy);
+
+            if (split_charge)
+            {
+              String engine_with_charge_state = supported_engine + String(splitter) + String(*charge_it);
+              all_scores.insert(make_pair(engine_with_charge_state, tmp));
+            }
+            else
+            {
+              all_scores.insert(make_pair(supported_engine, tmp));
+            }
+          }
+
+          scores.clear();
+          target.clear();
+          decoy.clear();
+        }
+
+        if (split_charge) { ++charge_it; }
+      } while (charge_it != charges.end());
+      return all_scores;
+    }
   } // namespace Math
 } // namespace OpenMS

@@ -39,6 +39,10 @@
 #include <OpenMS/MATH/STATISTICS/GumbelDistributionFitter.h>
 #include <OpenMS/MATH/STATISTICS/GaussFitter.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
+#include <OpenMS/METADATA/PeptideIdentification.h>
+#include <OpenMS/METADATA/PeptideHit.h>
+#include <OpenMS/METADATA/ProteinIdentification.h>
+
 #include <vector>
 
 namespace OpenMS
@@ -70,6 +74,18 @@ public:
 
       ///Destructor
       ~PosteriorErrorProbabilityModel() override;
+
+      /// extract and transform different score types to a range and score orientation that the model can handle
+      static std::map<String, std::vector<std::vector<double>>> extractAndTransformScores(
+        const std::vector<ProteinIdentification> & protein_ids,
+        const std::vector<PeptideIdentification> & peptide_ids,
+        const bool split_charge,
+        const bool top_hits_only,
+        const bool target_decoy_available,
+        const double fdr_for_targets_smaller);
+
+      /// transform different score types to a range and score orientation that the model can handle
+      static double transformScore(const String & engine, const PeptideHit & hit);
 
       /**
           @brief fits the distributions to the data points(search_engine_scores). Estimated parameters for the distributions are saved in member variables. computeProbability can be used afterwards.

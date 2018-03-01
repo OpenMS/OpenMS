@@ -146,82 +146,6 @@ protected:
     return p;
   }
 
-  double getScore_(String& engine, const PeptideHit& hit)
-  {
-    if (engine == "OMSSA")
-    {
-      return (-1) * log10(max(hit.getScore(), smallest_e_value_));
-    }
-    else if (engine == "MyriMatch")
-    {
-      //double e_val = exp(-hit.getScore());
-      //double score_val = ((-1)* log10(max(e_val,smallest_e_value_)));
-      //printf("myri score: %e ; e_val: %e ; score_val: %e\n",hit.getScore(),e_val,score_val);
-      //return score_val;
-      return hit.getScore();
-    }
-    else if (engine.compare("XTandem") == 0)
-    {
-      return (-1) * log10(max((double)hit.getMetaValue("E-Value"), smallest_e_value_));
-    }
-    else if (engine == "MASCOT")
-    {
-      // issue #740: unable to fit data with score 0
-      if (hit.getScore() == 0.0) 
-      {
-        return numeric_limits<double>::quiet_NaN();
-      }
-      // end issue #740
-      if (hit.metaValueExists("EValue"))
-      {
-        return (-1) * log10(max((double)hit.getMetaValue("EValue"), smallest_e_value_));
-      }
-      if (hit.metaValueExists("expect"))
-      {
-        return (-1) * log10(max((double)hit.getMetaValue("expect"), smallest_e_value_));
-      }
-    }
-    else if (engine == "SpectraST")
-    {
-      return 100 * hit.getScore(); // SpectraST f-val
-    }
-    else if (engine == "SimTandem")
-    {
-      if (hit.metaValueExists("E-Value"))
-      {
-        return (-1) * log10(max((double)hit.getMetaValue("E-Value"), smallest_e_value_));
-      }
-    }
-    else if ((engine == "MSGFPlus") || (engine == "MS-GF+"))
-    {
-      if (hit.metaValueExists("MS:1002053"))  // name: MS-GF:EValue
-      {
-        return (-1) * log10(max((double)hit.getMetaValue("MS:1002053"), smallest_e_value_));
-      }
-      else if (hit.metaValueExists("expect"))
-      {
-        return (-1) * log10(max((double)hit.getMetaValue("expect"), smallest_e_value_));
-      }
-    }
-    else if (engine == "Comet")
-    {
-      if (hit.metaValueExists("MS:1002257")) // name: Comet:expectation value
-      {
-        return (-1) * log10(max((double)hit.getMetaValue("MS:1002257"), smallest_e_value_));
-      }
-      else if (hit.metaValueExists("expect"))
-      {
-        return (-1) * log10(max((double)hit.getMetaValue("expect"), smallest_e_value_));
-      }
-    }
-    else
-    {
-      throw Exception::UnableToFit(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No parameters for chosen search engine", "The chosen search engine is currently not supported");
-    }
-
-    // avoid compiler warning (every code path must return a value, even if there is a throw() somewhere)
-    return std::numeric_limits<double>::max();
-  }
 
   ExitCodes main_(int, const char**) override
   {
@@ -236,12 +160,8 @@ protected:
     bool split_charge = getFlag_("split_charge");
     bool top_hits_only = getFlag_("top_hits_only");
     double fdr_for_targets_smaller = getDoubleOption_("fdr_for_targets_smaller");
-    bool target_decoy_available = false;
     bool ignore_bad_data = getFlag_("ignore_bad_data");
     bool prob_correct = getFlag_("prob_correct");
-
-    // Set fixed e-value threshold
-    smallest_e_value_ = numeric_limits<double>::denorm_min();
 
     //-------------------------------------------------------------
     // reading input
@@ -250,140 +170,47 @@ protected:
     vector<ProteinIdentification> protein_ids;
     vector<PeptideIdentification> peptide_ids;
     file.load(inputfile_name, protein_ids, peptide_ids);
-    vector<double> scores;
-    vector<double> decoy;
-    vector<double> target;
-    set<Int> charges;
     PosteriorErrorProbabilityModel PEP_model;
     PEP_model.setParameters(fit_algorithm);
-    StringList search_engines = ListUtils::create<String>("XTandem,OMSSA,MASCOT,SpectraST,MyriMatch,SimTandem,MSGFPlus,MS-GF+,Comet");
     //-------------------------------------------------------------
     // calculations
     //-------------------------------------------------------------
-    if (split_charge)
+
+    // check if there is a q-value score and target_decoy information available
+    bool target_decoy_available(false);
+    for (PeptideIdentification const & pep_id : peptide_ids)
     {
-      for (vector<PeptideIdentification>::iterator pep_it = peptide_ids.begin(); pep_it != peptide_ids.end(); ++pep_it)
+      const vector<PeptideHit>& hits = pep_id.getHits();
+      if (!hits.empty())
       {
-        vector<PeptideHit>& hits = pep_it->getHits();
-        for (std::vector<PeptideHit>::iterator hit_it = hits.begin(); hit_it != hits.end(); ++hit_it)
-        {
-          charges.insert(hit_it->getCharge());
-        }
-      }
-      if (charges.empty())
-      {
-        throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "no charges found!");
-      }
-    }
-    for (vector<PeptideIdentification>::iterator pep_it = peptide_ids.begin(); pep_it != peptide_ids.end(); ++pep_it)
-    {
-      if (!pep_it->getHits().empty())
-      {
-        target_decoy_available = ((pep_it->getScoreType() == "q-value") && pep_it->getHits()[0].metaValueExists("target_decoy"));
+        target_decoy_available = (pep_id.getScoreType() == "q-value"
+                               && hits[0].metaValueExists("target_decoy"));
         break;
       }
     }
-
-    set<Int>::iterator charge_it = charges.begin(); // charges can be empty, no problem if split_charge is not set
-    if (split_charge && charges.empty())
-    {
-      throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "'split_charge' is set, but the list of charge states is empty");
-    }
-    map<String, vector<vector<double> > > all_scores;
-    char splitter = ','; // to split the engine from the charge state later on
-    do
-    {
-      for (StringList::iterator engine_it = search_engines.begin(); engine_it != search_engines.end(); ++engine_it)
-      {
-        for (vector<ProteinIdentification>::iterator prot_it = protein_ids.begin(); prot_it != protein_ids.end(); ++prot_it)
-        {
-          String searchengine = prot_it->getSearchEngine();
-          if ((*engine_it == searchengine) || (*engine_it == searchengine.toUpper()))
-          {
-            for (vector<PeptideIdentification>::iterator pep_it = peptide_ids.begin(); pep_it != peptide_ids.end(); ++pep_it)
-            {
-              if (prot_it->getIdentifier() == pep_it->getIdentifier())
-              {
-                vector<PeptideHit>& hits = pep_it->getHits();
-                if (top_hits_only)
-                {
-                  pep_it->sort();
-                  if (!hits.empty() && (!split_charge || hits[0].getCharge() == *charge_it))
-                  {
-                    double score = getScore_(*engine_it, hits[0]);
-                    if (!boost::math::isnan(score)) // issue #740: ignore scores with 0 values, otherwise you will get the error "unable to fit data"
-                    {
-                      scores.push_back(score);
-
-                      if (target_decoy_available)
-                      {
-                        if (hits[0].getScore() < fdr_for_targets_smaller)
-                        {
-                          target.push_back(score);
-                        }
-                        else
-                        {
-                          decoy.push_back(score);
-                        }
-                      }
-                    }
-                  }
-                }
-                else
-                {
-                  for (std::vector<PeptideHit>::iterator hit_it = hits.begin(); hit_it != hits.end(); ++hit_it)
-                  {
-                    if (!split_charge || (hit_it->getCharge() == *charge_it))
-                    {
-                      double score = getScore_(*engine_it, *hit_it);
-                      if (!boost::math::isnan(score)) // issue #740: ignore scores with 0 values, otherwise you will get the error "unable to fit data"
-                      {
-                        scores.push_back(score);
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-        if (scores.size() > 2)
-        {
-          vector<vector<double> > tmp;
-          tmp.push_back(scores);
-          tmp.push_back(target);
-          tmp.push_back(decoy);
-          if (split_charge)
-          {
-            String engine_with_charge_state = *engine_it + String(splitter) + String(*charge_it);
-            all_scores.insert(make_pair(engine_with_charge_state, tmp));
-          }
-          else
-          {
-            all_scores.insert(make_pair(*engine_it, tmp));
-          }
-        }
-
-        scores.clear();
-        target.clear();
-        decoy.clear();
-      }
-
-      if (split_charge) ++charge_it;
-    }
-    while (charge_it != charges.end());
+    
+    // map identifier "engine,charge" (if split_charge==true) or "engine" 
+    // to three extracted score vectors. The main score vector contains the PSM scores.
+    // Second and third are optional and contain target and decoy scores.
+    map<String, vector<vector<double> > > all_scores = PosteriorErrorProbabilityModel::extractAndTransformScores(
+     protein_ids, 
+     peptide_ids, 
+     split_charge,
+     top_hits_only,
+     target_decoy_available,
+     fdr_for_targets_smaller);
 
     if (all_scores.empty())
     {
       writeLog_("No data collected. Check whether search engine is supported.");
-      if (!ignore_bad_data) return INPUT_FILE_EMPTY;
+      if (!ignore_bad_data) { return INPUT_FILE_EMPTY; }
     }
 
     String out_plot = fit_algorithm.getValue("out_plot").toString().trim();
     for (map<String, vector<vector<double> > >::iterator score_it = all_scores.begin(); score_it != all_scores.end(); ++score_it)
     {
       vector<String> engine_info;
-      score_it->first.split(splitter, engine_info);
+      score_it->first.split(',', engine_info);
       String engine = engine_info[0];
       Int charge = -1;
       if (engine_info.size() == 2)
@@ -430,7 +257,7 @@ protected:
                     double score;
                     hit_it->setMetaValue(score_type, hit_it->getScore());
 
-                    score = getScore_(engine, *hit_it);
+                    score = PosteriorErrorProbabilityModel::transformScore(engine, *hit_it);
                     if (boost::math::isnan(score)) // issue #740: ignore scores with 0 values, otherwise you will get the error "unable to fit data"
                     {
                       score = 1.0;
@@ -479,9 +306,6 @@ protected:
     file.store(outputfile_name, protein_ids, peptide_ids);
     return EXECUTION_OK;
   }
-
-  //Used in several functions
-  double smallest_e_value_;
 };
 
 

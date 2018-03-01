@@ -149,14 +149,14 @@ protected:
     linker.setLogType(log_type_);
     linker.setParameters(fl_param);
 
-//    Param pep_param = getParam_().copy("Posterior Error Probability:", true);
-//    writeDebug_("Parameters passed to PEP algorithm", pep_param, 3);
+    //Param pep_param = getParam_().copy("Posterior Error Probability:", true);
+    //writeDebug_("Parameters passed to PEP algorithm", pep_param, 3);
     //PosteriorErrorProbabilityModel pep;
     //pep.setLogType(log_type_);
     //pep.setParameters(pep_param);
     //TODO: move some helper methods in IDPosteriorProbability tool to algorithm
 
-// TODO: inference parameter
+    // TODO: inference parameter
 
     Param pq_param = getParam_().copy("Protein Quantification:", true);
     writeDebug_("Parameters passed to PeptideAndProteinQuant algorithm", pq_param, 3);
@@ -167,7 +167,6 @@ protected:
     //-------------------------------------------------------------
     // Loading input
     //-------------------------------------------------------------
-
     ConsensusMap consensus;
     for (auto const ms_files : frac2ms) // for each fraction->ms file(s)
     {
@@ -224,7 +223,7 @@ protected:
         //-------------------------------------------------------------
         // Feature detection
         //-------------------------------------------------------------
-        ffid_algo.getMSData().swap(ms_centroided);        
+        ff.getMSData().swap(ms_centroided);        
 //        ffid_algo.run(peptides, proteins, peptides_ext, proteins_ext, features);
         // TODO: think about external ids ;)
         // TODO: free memory of centroided PeakMap
@@ -329,7 +328,6 @@ protected:
     return EXECUTION_OK;
   }
 };
-
 
 int main(int argc, const char ** argv)
 {
