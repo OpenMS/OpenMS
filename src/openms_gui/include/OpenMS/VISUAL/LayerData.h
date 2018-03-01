@@ -138,6 +138,7 @@ public:
       gradient(),
       filters(),
       annotations_1d(),
+      peak_colors_1d(),
       modifiable(false),
       modified(false),
       label(L_NONE),

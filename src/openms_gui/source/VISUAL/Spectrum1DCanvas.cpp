@@ -748,31 +748,15 @@ namespace OpenMS
           {
             if (layer.filters.passes(spectrum, it - spectrum.begin()))
             {
-              // TODO THIS IS WHERE PEAKS ARE DRAWN
-              // LayerData accessible in "layer"
-              // vector<PeptideIdentification> pep_ids = layer.getPeakData()[layer.getCurrentSpectrumIndex()].getPeptideIdentifications();
 
-              if (layer.peptide_hit_index == -1)
+              // use peak colors stored in the layer, if available
+              if (layer.peak_colors_1d.size() == spectrum.size())
               {
-                // cout << "TEST NO ID | " << layer.peptide_id_index << " | " << layer.peptide_hit_index << endl;
+                // find correct peak index
+                Size peak_index = std::distance(spectrum.begin(), it);
+                pen.setColor(layer.peak_colors_1d[peak_index]);
+                painter->setPen(pen);
               }
-              else
-              {
-                // cout << "TEST ID AVAILABLE | " << layer.peptide_id_index << " | " << layer.peptide_hit_index << endl;
-              }
-              // cout << "TEST " << layer.getCurrentSpectrumIndex() << endl;
-              // cout << "TEST2 " << spectrum.getIntegerDataArrays().size() << endl;
-
-              // DataArrays accessible from spectrum
-              // DataArrays::IntegerDataArray test_array = spectrum.getIntegerDataArrays()[0];
-
-              // layer.param.setValue("peak_color", "blue");
-
-              QPen pen(QColor(QString("#00ff00")), 1);
-              pen.setStyle(peak_penstyle_[i]);
-              painter->setPen(pen);
-
-
 
               dataToWidget(*it, end, layer.flipped);
               dataToWidget(it->getMZ(), 0.0f, begin, layer.flipped);
