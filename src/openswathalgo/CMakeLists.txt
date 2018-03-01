@@ -57,6 +57,8 @@ openms_add_library(TARGET_NAME OpenSwathAlgo
                    EXTERNAL_INCLUDES ${Boost_INCLUDE_DIRS}
                    DLL_EXPORT_PATH "OpenMS/OPENSWATHALGO/")
 
-target_link_libraries(OpenSwathAlgo MIToolbox)
+find_library (MITOOLBOX_LIBRARY NAMES libMIToolbox MITOOLBOX "MITOOLBOX library location" )
+
+target_link_libraries(OpenSwathAlgo ${MITOOLBOX_LIBRARY})
 
 openms_doc_path("${PROJECT_SOURCE_DIR}/include")
