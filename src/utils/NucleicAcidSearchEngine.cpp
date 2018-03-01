@@ -127,7 +127,7 @@ protected:
     registerOutputFile_("out", "<file>", "", "Output file: mzTab");
     setValidFormats_("out", ListUtils::create<String>("tsv"));
 
-    registerOutputFile_("id_out", "<file>", "", "Output file: idXML (for visualization in TOPPView)");
+    registerOutputFile_("id_out", "<file>", "", "Output file: idXML (for visualization in TOPPView)", false);
     setValidFormats_("id_out", ListUtils::create<String>("idXML"));
 
     registerOutputFile_("theo_ms2_out", "<file>", "", "Output file: theoretical MS2 spectra for precursor mass matches", false, true);
