@@ -46,6 +46,8 @@
 #include <map>
 #include <set>
 #include <algorithm>
+#include <tuple>
+
 
 namespace OpenMS
 {
@@ -65,7 +67,7 @@ namespace OpenMS
 /*
  * Run Section Format:
    Format: Single header line
-         Run:           Run index (prior fractionation) used to group fractions and source files. 
+         Run:           Run index (prior fractionation) used to group fractions and source files.
                         Note: For label-free this has same cardinality as sample.
                               For multiplexed experiments, these might differ as multiple samples can be measured in single files
          Fraction:      1st, 2nd, .., fraction. Note: All runs must have the same number of fractions.
@@ -113,7 +115,85 @@ namespace OpenMS
       unsigned sample = 1;  ///< allows grouping by sample
     };
 
+
+    class OPENMS_DLLAPI SampleSection
+    {
+    public:
+      SampleSection() = default;
+
+      // Number of columns of the Sample Section
+      Size n_columns_;
+
+      // The entries of the Sample Section, filled while parsing
+      // the Experimental Design File
+      std::vector< std::vector < String > > content_;
+
+      // Maps the Sample Entry to the row where the sample
+      // appears in the Sample section
+      std::map< unsigned, Size > sample_to_rowindex_;
+
+      // Maps the column name of the SampleSection to the
+      // Index of the column
+      std::map< String, Size > columnname_to_columnindex_;
+
+      // Get Sample Attributes
+      void getSamples(std::set< unsigned > &samples) const
+      {
+        samples.clear();
+        for (auto it = sample_to_rowindex_.begin();
+             it != sample_to_rowindex_.end(); ++it)
+        {
+          samples.insert(it->first);
+        }
+      }
+      // Get Sample Attributes
+      void getFactors(std::set< String > &factors) const
+      {
+        factors.clear();
+        for (auto it = columnname_to_columnindex_.begin();
+             it != columnname_to_columnindex_.end(); ++it)
+        {
+          factors.insert(it->first);
+        }
+      }
+
+      bool hasSample(const unsigned sample) const
+      {
+        return sample_to_rowindex_.find(sample) != sample_to_rowindex_.end();
+      }
+
+      bool hasFactor(const String &factor) const
+      {
+        return columnname_to_columnindex_.find(factor) != columnname_to_columnindex_.end();
+      }
+
+      String getFactorValue(const unsigned sample, const String &factor)
+      {
+        if (! hasSample(sample))
+        {
+          throw Exception::MissingInformation(
+            __FILE__,
+            __LINE__,
+            OPENMS_PRETTY_FUNCTION,
+            "Sample " + String(sample) + " is not present in the Experimental Design");
+        }
+        if (! hasFactor(factor))
+        {
+          throw Exception::MissingInformation(
+            __FILE__,
+            __LINE__,
+            OPENMS_PRETTY_FUNCTION,
+            "Factor " + factor + " is not present in the Experimental Design");
+        }
+        StringList sample_row = content_[sample_to_rowindex_[sample]];
+        const Size col_index = columnname_to_columnindex_[factor];
+        return sample_row[col_index];
+      }
+    };
+
+
     using RunRows = std::vector<RunRow>;
+
 
     const RunRows& getRunSection() const
     {
@@ -126,27 +206,33 @@ namespace OpenMS
       sort_();
       checkValidRunSection_();
     }
-    
+
+    // Returns the Condition Section of the experimental design file
+    const SampleSection& getSampleSection() const
+    {
+      return sample_section_;
+    }
+
     /// return fraction index to file paths (ordered by run id)
     std::map<unsigned int, std::vector<String> > getFractionToMSFilesMapping() const;
 
     // @return the number of samples measured (= highest sample index)
-    unsigned getNumberOfSamples() const 
+    unsigned getNumberOfSamples() const
     {
       if (run_section_.empty()) { return 0; }
-      return std::max_element(run_section_.begin(), run_section_.end(), 
-        [](const RunRow& f1, const RunRow& f2) 
+      return std::max_element(run_section_.begin(), run_section_.end(),
+        [](const RunRow& f1, const RunRow& f2)
         {
           return f1.sample < f2.sample;
         })->sample;
     }
 
     // @return the number of fractions (= highest fraction index)
-    unsigned getNumberOfFractions() const 
+    unsigned getNumberOfFractions() const
     {
       if (run_section_.empty()) { return 0; }
-      return std::max_element(run_section_.begin(), run_section_.end(), 
-        [](const RunRow& f1, const RunRow& f2) 
+      return std::max_element(run_section_.begin(), run_section_.end(),
+        [](const RunRow& f1, const RunRow& f2)
         {
           return f1.fraction < f2.fraction;
         })->fraction;
@@ -156,8 +242,8 @@ namespace OpenMS
     unsigned getNumberOfChannels() const
     {
       if (run_section_.empty()) { return 0; }
-      return std::max_element(run_section_.begin(), run_section_.end(), 
-        [](const RunRow& f1, const RunRow& f2) 
+      return std::max_element(run_section_.begin(), run_section_.end(),
+        [](const RunRow& f1, const RunRow& f2)
         {
           return f1.fraction < f2.fraction;
         })->channel;
@@ -176,8 +262,8 @@ namespace OpenMS
     unsigned getNumberOfPrefractionationRuns() const
     {
       if (run_section_.empty()) { return 0; }
-      return std::max_element(run_section_.begin(), run_section_.end(), 
-        [](const RunRow& f1, const RunRow& f2) 
+      return std::max_element(run_section_.begin(), run_section_.end(),
+        [](const RunRow& f1, const RunRow& f2)
         {
           return f1.run < f2.run;
         })->run;
@@ -190,10 +276,10 @@ namespace OpenMS
         [&run, &channel](const RunRow& r)
         {
           return r.run == run && r.channel == channel;
-        })->sample; 
+        })->sample;
     }
 
-    /// return if each fraction number is associated with the same number of runs 
+    /// return if each fraction number is associated with the same number of runs
     bool sameNrOfMSFilesPerFraction() const;
 
     /// Loads an experimental design from a tabular separated file
@@ -215,7 +301,7 @@ namespace OpenMS
         std::sort(run_section_.begin(), run_section_.end(),
         [](const RunRow& a, const RunRow& b)
         {
-          return std::tie(a.run, a.fraction, a.channel, a.sample, a.path) < 
+          return std::tie(a.run, a.fraction, a.channel, a.sample, a.path) <
             std::tie(b.run, b.fraction, b.channel, b.sample, b.path);
         });
       }
@@ -225,15 +311,86 @@ namespace OpenMS
         if (getNumberOfMSFiles() == 0)
         {
           throw Exception::MissingInformation(
-            __FILE__, 
-            __LINE__, 
-            OPENMS_PRETTY_FUNCTION, 
+            __FILE__,
+            __LINE__,
+            OPENMS_PRETTY_FUNCTION,
             "No MS files provided.");
-        }        
+        }
+
+        std::set< std::tuple< unsigned, unsigned, unsigned > > run_fraction_sample_set;
+        std::set< std::tuple< unsigned, unsigned, unsigned > > run_fraction_channel_set;
+        std::set< std::tuple< std::string, unsigned > > path_channel_set;
+        std::map< std::tuple< unsigned, unsigned >, std::set< unsigned > > run_channel_to_sample;
+
+        for (const RunRow &row : run_section_)
+        {
+          // RUN_FRACTION_SAMPLE TUPLE
+          std::tuple<unsigned, unsigned, unsigned> run_fraction_sample;
+          std::get<0>(run_fraction_sample) = row.run;
+          std::get<1>(run_fraction_sample) = row.fraction;
+          std::get<2>(run_fraction_sample) = row.sample;
+
+          if (run_fraction_sample_set.find(run_fraction_sample) != run_fraction_sample_set.end())
+          {
+            throw Exception::MissingInformation(
+              __FILE__,
+              __LINE__,
+              OPENMS_PRETTY_FUNCTION,
+              "(Run, Fraction, Sample) combination can only appear once");
+          }
+          run_fraction_sample_set.insert( run_fraction_sample);
+
+          // RUN_FRACTION_CHANNEL TUPLE
+          std::tuple<unsigned, unsigned, unsigned> run_fraction_channel;
+          std::get<0>(run_fraction_channel) = row.run;
+          std::get<1>(run_fraction_channel) = row.fraction;
+          std::get<2>(run_fraction_channel) = row.channel;
+
+          if (run_fraction_channel_set.find(run_fraction_channel) != run_fraction_channel_set.end())
+          {
+            throw Exception::MissingInformation(
+              __FILE__,
+              __LINE__,
+              OPENMS_PRETTY_FUNCTION,
+              "(Run, Fraction, Channel) combination can only appear once");
+          }
+          run_fraction_channel_set.insert( run_fraction_channel);
+
+
+          // PATH_CHANNEL_TUPLE
+          std::tuple<std::string, unsigned> path_channel;
+          std::get<0>(path_channel) = row.path;
+          std::get<1>(path_channel) = row.channel;
+
+          if (path_channel_set.find(path_channel) != path_channel_set.end())
+          {
+            throw Exception::MissingInformation(
+              __FILE__,
+              __LINE__,
+              OPENMS_PRETTY_FUNCTION,
+              "(Path, Channel) combination can only appear once");
+          }
+          path_channel_set.insert(path_channel);
+
+          // RUN_CHANNEL TUPLE
+          std::tuple<unsigned, unsigned> run_channel;
+          std::get<0>(run_channel) = row.run;
+          std::get<1>(run_channel) = row.channel;
+          run_channel_to_sample[run_channel].insert(row.sample);
+
+          if (run_channel_to_sample[run_channel].size() > 1)
+          {
+            throw Exception::MissingInformation(
+              __FILE__,
+              __LINE__,
+              OPENMS_PRETTY_FUNCTION,
+              "Multiple Samples encountered for the same Run and the same Channel");
+          }
+        }
       }
 
       RunRows run_section_;
-
+      SampleSection sample_section_;
   };
 }
 

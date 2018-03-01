@@ -47,124 +47,241 @@ using namespace std;
 
 namespace OpenMS
 {
+
+  // Parse Error of filename if test holds
+  void parseErrorIf(const bool test, const String &filename, const String &message)
+  {
+    if (test)
+    {
+      throw Exception::ParseError(
+          __FILE__,
+          __LINE__,
+           OPENMS_PRETTY_FUNCTION,
+          filename,
+          "Error: " + message);
+    }
+  }
+
+  // Trims whitespace around all strings in vector
+  void trimAll(std::vector<String> &vec)
+  {
+    for (Size i = 0; i < vec.size(); ++i)
+    {
+        vec[i] = vec[i].trim();
+    }
+  }
+
+  inline bool contains(const StringList &vec, const String &item)
+  {
+    auto e = std::end(vec);
+    return std::find(std::begin(vec), e, item) != e;
+  }
+
+  void parse_header( const StringList &header,
+                     const String &filename,
+                           std::map< String, Size> &column_map,
+                     const std::set< String > &required,
+                     const std::set< String > &optional,
+                     const bool allow_other_header)
+  {
+    // Headers as set
+    std::set< String > header_set(header.begin(), header.end());
+    parseErrorIf(header_set.size() !=  header.size(), filename,
+      "Some column headers of the table appear multiple times!");
+
+    // Check that all required headers are there
+    for (const String &req_header : required)
+    {
+      parseErrorIf( ! contains(header, req_header), filename,
+        "Missing column header: " + req_header);
+    }
+    // Assign index in column map and check for weird headers
+    for (Size i = 0; i < header.size(); ++i)
+    {
+      const String &h = header[i];
+      const bool header_unexpected = required.find(h) == required.end() && optional.find(h) == optional.end();
+      parseErrorIf(
+        ! allow_other_header && header_unexpected,
+        filename,
+        "Header not allowed in this section of the Experimental Design: " + h
+      );
+      column_map[h] = i;
+    }
+  }
+
+  String findSpectraFile(const String &spec_file, const String &tsv_file)
+  {
+    String result;
+    QFileInfo spectra_file_info(spec_file.toQString());
+    if (spectra_file_info.isRelative())
+    {
+      // file name is relative so we need to figure out the correct folder
+
+      // first check folder relative to folder of design file
+      // to allow, for example, a design in ./design.tsv and spectra in ./spectra/a.mzML
+      // where ./ is the same folder
+      QFileInfo design_file_info(tsv_file.toQString());
+      QString design_file_relative(design_file_info.absolutePath());
+      design_file_relative = design_file_relative + "/" + spec_file.toQString();
+
+      if (File::exists(design_file_relative))
+      {
+        result = design_file_relative.toStdString();
+      }
+      else
+      {
+        // check current folder
+        String f = File::absolutePath(spec_file);
+        if (File::exists(f))
+        {
+          result = f;
+        }
+      }
+
+      // if result still empty, just use the provided value
+      if (result.empty())
+      {
+        result = spec_file;
+      }
+    }
+    else
+    {
+      // set to absolute path
+      result = spec_file;
+    }
+
+    /* Currently, existence of file is not required
+    if (!File::exists(result))
+    {
+          throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, tsv_file,
+              "Error: Spectra file does not exist: '" + result + "'");
+    }
+    */
+    return result;
+  }
+
+
   // static
   ExperimentalDesign ExperimentalDesign::load(const String & tsv_file)
   {
     ExperimentalDesign design;
-
     design.run_section_.clear();
 
-    TextFile tf(tsv_file, true);
+    bool has_sample(false);
+    bool has_channel(false);
+
+    // Maps the column header string to the column index for
+    // the run section
+    std::map< String, Size> _run_column_header_to_index;
 
     int line_number(0);
-    for (String s : tf)
+    int state(0);
+    int n_col = 0;
+
+    const TextFile text_file(tsv_file, true);
+    for (String s : text_file)
     {
-      ++line_number;      
       // skip empty lines
-      if (s.trim().empty()) { continue; }
-
-      // run-level header
-      if (line_number == 1)
-      {
-        if (!s.hasPrefix("Run"))
-        {
-          throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, tsv_file,
-            "Error: Line does not contain the run header of the experimental design: " + String(s) + ".");
-        }
-        else
-        {
-          StringList cells;
-          s.split("\t", cells);
-          if (cells.size() != 4)
-          {
-            throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, tsv_file,
-              "Error: Wrong number of columns (" + String(cells.size()) + ") in the experimental design header provided: " + String(s) + ".");
-          }
-          continue;
-        }
+      const String line(s.trim());
+      if (line.empty()) {
+        continue;
       }
 
-      // run-level run_section_
+      // Now split the line into individual cells
       StringList cells;
-      s.split("\t", cells);
+      line.split("\t", cells);
+      trimAll(cells);
 
-      if (cells.size() < 3)
+      // State = 0 : Run Section header
+      if (state == 0)
       {
-        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, tsv_file,
-          "Error: Not all columns of experimental design provided: " + String(s) + ".");
+        state = 1;
+        parse_header(
+          cells,
+          tsv_file,
+          _run_column_header_to_index,
+          {"Run", "Fraction", "Path(Spectra File)"},
+          {"Channel", "Sample"}, false
+        );
+        has_channel = _run_column_header_to_index.find("Channel") != _run_column_header_to_index.end();
+        has_sample = _run_column_header_to_index.find("Sample") !=  _run_column_header_to_index.end();
+        n_col = _run_column_header_to_index.size();
       }
-
-      RunRow row;
-
-      row.run = cells[0].toInt();
-      row.fraction = cells[1].toInt();
-
-      // if sample and channel column missing, assign run index
-      if (cells.size() <= 3)
+      // End of run section lines, $ separates run and sample table
+      else if (state == 1 && line.hasPrefix("$"))
       {
-        row.channel = 1;  
-        row.sample = row.run; 
+        // Next line is header of Sample table
+        state = 2;
       }
-      else if (cells.size() <= 4) // at least channel given
+      // Line is run line of run section
+      else if (state == 1)
       {
-        row.channel = cells[3].toInt();
+        parseErrorIf(n_col != cells.size(), tsv_file,
+            "Wrong number of records in line");
 
-        if (cells.size() == 5)
+        RunRow row;
+
+        // Assign run and fraction
+        row.run = cells[_run_column_header_to_index["Run"]].toInt();
+        row.fraction = cells[_run_column_header_to_index["Fraction"]].toInt();
+
+        // Assign channel
+        row.channel = has_channel ? cells[_run_column_header_to_index["Channel"]].toInt() : 1;
+
+        // Assign sample number
+        if (has_sample)
         {
-          row.sample = cells[4].toInt();;
+          row.sample = cells[_run_column_header_to_index["Sample"]].toInt();
         }
-        else // assign sample index to channel number
+        else if (has_channel)
         {
           row.sample = row.channel;
         }
-      }
-
-      String spec_file = cells[2];
-      QFileInfo spectra_file_info(spec_file.toQString());
-      if (spectra_file_info.isRelative())
-      {
-        // file name is relative so we need to figure out the correct folder
-
-        // first check folder relative to folder of design file 
-        // to allow, for example, a design in ./design.tsv and spectra in ./spectra/a.mzML
-        // where ./ is the same folder
-        QFileInfo design_file_info(tsv_file.toQString());
-        QString design_file_relative(design_file_info.absolutePath());
-        design_file_relative = design_file_relative + "/" + spec_file.toQString();
-
-        if (File::exists(design_file_relative))
-        {
-          row.path = design_file_relative.toStdString();
-        }
         else
         {
-          // check current folder
-          String f = File::absolutePath(spec_file);
-          if (File::exists(f))
-          {
-            row.path = f;
-          }
+          row.sample = row.run;
         }
-      }     
-      else
-      {
-        // set to absolute path
-        row.path = spec_file;
-      }
 
-      if (!File::exists(row.path))
-      {
-        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, tsv_file,
-          "Error: Spectra file does not exist: '" + String(row.path) + "'");
+        // Spectra files
+        row.path = findSpectraFile(
+            cells[_run_column_header_to_index["Path(Spectra File)"]],
+            tsv_file);
+        design.run_section_.push_back(row);
       }
-
-      design.run_section_.push_back(row);
+      // Parse header of the Condition Table
+      else if (state == 2)
+      {
+        state = 3;
+        line_number = -1;
+        parse_header(
+          cells,
+          tsv_file,
+          design.sample_section_.columnname_to_columnindex_,
+          {"Sample"}, {}, true
+        );
+        n_col = design.sample_section_.columnname_to_columnindex_.size();
+      }
+      // Parse Sample Row
+      else if (state == 3)
+      {
+        line_number++;
+        // Parse Error if sample appears multiple times
+        unsigned sample = cells[design.sample_section_.columnname_to_columnindex_["Sample"]].toInt();
+        parseErrorIf(
+          design.sample_section_.sample_to_rowindex_.find(sample) != design.sample_section_.sample_to_rowindex_.end(),
+          tsv_file,
+          "Sample: " + String(sample) + " appears multiple times in the sample table"
+        );
+        design.sample_section_.sample_to_rowindex_[sample] = line_number;
+        design.sample_section_.content_.push_back(cells);
+      }
     }
 
     design.sort_();
     design.checkValidRunSection_();
+    return design;
   }
-  
+
   ExperimentalDesign ExperimentalDesign::fromConsensusMap(const ConsensusMap& cm)
   {
     ExperimentalDesign ed;
@@ -188,13 +305,13 @@ namespace OpenMS
       ++sample;
     }
     ed.setRunSection(rows);
-    LOG_INFO << "Experimental design (ConsensusMap derived):\n" 
+    LOG_INFO << "Experimental design (ConsensusMap derived):\n"
        << "  files: " << ed.getNumberOfMSFiles()
        << "  fractions: " << ed.getNumberOfFractions()
        << "  channels: " << ed.getNumberOfChannels()
-       << "  samples: " << ed.getNumberOfSamples() << "\n"  
+       << "  samples: " << ed.getNumberOfSamples() << "\n"
        << endl;
-    return ed; 
+    return ed;
   }
 
   ExperimentalDesign ExperimentalDesign::fromFeatureMap(const FeatureMap& fm)
@@ -203,16 +320,16 @@ namespace OpenMS
     // path of the original MS run (mzML / raw file)
     StringList ms_paths;
     fm.getPrimaryMSRunPath(ms_paths);
-  
+
     if (ms_paths.size() != 1)
     {
         throw Exception::MissingInformation(
-         __FILE__, 
-         __LINE__, 
-         OPENMS_PRETTY_FUNCTION, 
+         __FILE__,
+         __LINE__,
+         OPENMS_PRETTY_FUNCTION,
          "FeatureMap annotated with " + String(ms_paths.size()) + " MS files. Must be exactly one.");
     }
-    
+
     // Feature map is simple. One file, one fraction, one sample, one run
     ExperimentalDesign::RunRow r;
     r.path = ms_paths[0];
@@ -223,13 +340,13 @@ namespace OpenMS
 
     ExperimentalDesign::RunRows rows(1, r);
     ed.setRunSection(rows);
-    LOG_INFO << "Experimental design (FeatureMap derived):\n" 
+    LOG_INFO << "Experimental design (FeatureMap derived):\n"
        << "  files: " << ed.getNumberOfMSFiles()
        << "  fractions: " << ed.getNumberOfFractions()
        << "  channels: " << ed.getNumberOfChannels()
-       << "  samples: " << ed.getNumberOfSamples() << "\n"  
+       << "  samples: " << ed.getNumberOfSamples() << "\n"
        << endl;
-    return ed; 
+    return ed;
   }
 
   ExperimentalDesign ExperimentalDesign::fromIdentifications(const vector<ProteinIdentification> & proteins)
@@ -244,9 +361,9 @@ namespace OpenMS
       if (tmp_ms_run_paths.size() != 1)
       {
         throw Exception::MissingInformation(
-         __FILE__, 
-         __LINE__, 
-         OPENMS_PRETTY_FUNCTION, 
+         __FILE__,
+         __LINE__,
+         OPENMS_PRETTY_FUNCTION,
          "ProteinIdentification annotated with " + String(tmp_ms_run_paths.size()) + " MS files. Must be exactly one.");
       }
       ms_run_paths.push_back(tmp_ms_run_paths[0]);
@@ -269,11 +386,11 @@ namespace OpenMS
       ++sample;
     }
     ed.setRunSection(rows);
-    LOG_INFO << "Experimental design (Identification derived):\n" 
+    LOG_INFO << "Experimental design (Identification derived):\n"
        << "  files: " << ed.getNumberOfMSFiles()
        << "  fractions: " << ed.getNumberOfFractions()
        << "  channels: " << ed.getNumberOfChannels()
-       << "  samples: " << ed.getNumberOfSamples() << "\n"  
+       << "  samples: " << ed.getNumberOfSamples() << "\n"
        << endl;
     return ed;
   }
@@ -295,7 +412,7 @@ namespace OpenMS
   {
     map<unsigned, vector<String>> frac2files = getFractionToMSFilesMapping();
     if (frac2files.size() <= 1) { return true; }
- 
+
     Size files_per_fraction(0);
     for (auto const & f : frac2files)
     {
@@ -314,5 +431,5 @@ namespace OpenMS
     }
     return true;
   }
-}
 
+}
