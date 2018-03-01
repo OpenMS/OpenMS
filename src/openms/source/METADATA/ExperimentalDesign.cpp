@@ -174,16 +174,17 @@ namespace OpenMS
     // the run section
     std::map< String, Size> _run_column_header_to_index;
 
-    int line_number(0);
+    unsigned line_number(0);
     int state(0);
-    int n_col = 0;
+    Size n_col = 0;
 
     const TextFile text_file(tsv_file, true);
     for (String s : text_file)
     {
-      // skip empty lines
+      // skip empty lines (except in state 1, where the sample table is read)
       const String line(s.trim());
-      if (line.empty()) {
+
+      if (line.empty() && state != 1) {
         continue;
       }
 
@@ -207,8 +208,8 @@ namespace OpenMS
         has_sample = _run_column_header_to_index.find("Sample") !=  _run_column_header_to_index.end();
         n_col = _run_column_header_to_index.size();
       }
-      // End of run section lines, $ separates run and sample table
-      else if (state == 1 && line.hasPrefix("$"))
+      // End of run section lines, empty line separates run and sample table
+      else if (state == 1 && line.empty())
       {
         // Next line is header of Sample table
         state = 2;
@@ -252,7 +253,7 @@ namespace OpenMS
       else if (state == 2)
       {
         state = 3;
-        line_number = -1;
+        line_number = 0;
         parse_header(
           cells,
           tsv_file,
@@ -264,7 +265,6 @@ namespace OpenMS
       // Parse Sample Row
       else if (state == 3)
       {
-        line_number++;
         // Parse Error if sample appears multiple times
         unsigned sample = cells[design.sample_section_.columnname_to_columnindex_["Sample"]].toInt();
         parseErrorIf(
@@ -272,7 +272,7 @@ namespace OpenMS
           tsv_file,
           "Sample: " + String(sample) + " appears multiple times in the sample table"
         );
-        design.sample_section_.sample_to_rowindex_[sample] = line_number;
+        design.sample_section_.sample_to_rowindex_[sample] = line_number++;
         design.sample_section_.content_.push_back(cells);
       }
     }
