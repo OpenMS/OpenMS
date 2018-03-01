@@ -119,7 +119,8 @@ START_SECTION(double calculateIonRatio(const Feature & component_1, const Featur
   TEST_REAL_SIMILAR(mrmff.calculateIonRatio(component_1,component_4,feature_name),5.0);
   TEST_REAL_SIMILAR(mrmff.calculateIonRatio(component_3,component_4,feature_name),0.0);
   // feature_name == "intensity"
-  Feature component_5, component_6, component_7;
+  // feature_name == "intensity"
+  Feature component_5, component_6, component_7, component_8;
   feature_name = "intensity";
   component_5.setMetaValue("native_id", "component5");
   component_6.setMetaValue("native_id", "component6");
@@ -129,6 +130,7 @@ START_SECTION(double calculateIonRatio(const Feature & component_1, const Featur
   TEST_REAL_SIMILAR(mrmff.calculateIonRatio(component_6, component_5, feature_name), 1.33333333333333);
   component_7.setMetaValue("native_id", "component7");
   TEST_REAL_SIMILAR(mrmff.calculateIonRatio(component_5, component_7, feature_name), inf);
+  TEST_REAL_SIMILAR(mrmff.calculateIonRatio(component_5, component_8, feature_name), 3.0);
 }
 END_SECTION
 
