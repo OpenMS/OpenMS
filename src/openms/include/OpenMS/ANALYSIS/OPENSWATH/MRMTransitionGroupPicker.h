@@ -395,11 +395,6 @@ public:
         f.setMetaValue("peak_apex_int", peak_apex_int);
         f.setMetaValue("total_xic", transition_total_xic);
         f.setMetaValue("total_mi", transition_mi);
-        if (background_subtraction_ != "none")
-        {
-          f.setMetaValue("area_background_level", background);
-          f.setMetaValue("noise_background_level", avg_noise_level);
-        }
 
         if (transition_group.getTransitions()[k].isDetectingTransition())
         {
