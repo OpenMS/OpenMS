@@ -207,16 +207,14 @@ protected:
     }
 
     String out_plot = fit_algorithm.getValue("out_plot").toString().trim();
-    for (map<String, vector<vector<double> > >::iterator score_it = all_scores.begin(); score_it != all_scores.end(); ++score_it)
+
+    for (auto & score : all_scores)
     {
       vector<String> engine_info;
-      score_it->first.split(',', engine_info);
+      score.first.split(',', engine_info);
       String engine = engine_info[0];
-      Int charge = -1;
-      if (engine_info.size() == 2)
-      {
-        charge = engine_info[1].toInt();
-      }
+      Int charge = (engine_info.size() == 2) ? engine_info[1].toInt() : -1;
+
       if (split_charge)
       {
         // only adapt plot output if plot is requested (this badly violates the output rules and needs to change!)
@@ -225,79 +223,47 @@ protected:
         PEP_model.setParameters(fit_algorithm);
       }
 
-      const bool return_value = PEP_model.fit(score_it->second[0]);
-      if (!return_value) writeLog_("Unable to fit data. Algorithm did not run through for the following search engine: " + engine);
-      if (!return_value && !ignore_bad_data) return UNEXPECTED_RESULT;
+      // fit to score vector
+      bool return_value = PEP_model.fit(score.second[0]);
+
+      if (!return_value) 
+      {
+        writeLog_("Unable to fit data. Algorithm did not run through for the following search engine: " + engine);
+        if (!ignore_bad_data) { return UNEXPECTED_RESULT; }
+      }
 
       if (return_value)
       {
         // plot target_decoy
-        if (!out_plot.empty() && top_hits_only && target_decoy_available && (score_it->second[0].size() > 0))
+        if (!out_plot.empty() 
+         && top_hits_only 
+         && target_decoy_available 
+         && (score.second[0].size() > 0))
         {
-          PEP_model.plotTargetDecoyEstimation(score_it->second[1], score_it->second[2]); //target, decoy
+          PEP_model.plotTargetDecoyEstimation(score.second[1], score.second[2]); //target, decoy
         }
+        
+        bool unable_to_fit_data(true), data_might_not_be_well_fit(true);
+        PosteriorErrorProbabilityModel::updateScores(
+         PEP_model,
+         engine,
+         charge,
+         protein_ids,
+         peptide_ids,
+         prob_correct,
+         split_charge,
+         unable_to_fit_data,
+         data_might_not_be_well_fit);
 
-        bool unable_to_fit_data = true;
-        bool data_might_not_be_well_fit = true;
-        for (vector<ProteinIdentification>::iterator prot_it = protein_ids.begin(); prot_it != protein_ids.end(); ++prot_it)
+        if (unable_to_fit_data)
         {
-          String searchengine = prot_it->getSearchEngine();
-          if ((engine == searchengine) || (engine == searchengine.toUpper()))
-          {
-            for (vector<PeptideIdentification>::iterator pep_it = peptide_ids.begin(); pep_it != peptide_ids.end(); ++pep_it)
-            {
-              if (prot_it->getIdentifier() == pep_it->getIdentifier())
-              {
-                String score_type = pep_it->getScoreType() + "_score";
-                vector<PeptideHit> hits = pep_it->getHits();
-                for (std::vector<PeptideHit>::iterator hit_it = hits.begin(); hit_it != hits.end(); ++hit_it)
-                {
-                  if (!split_charge || (hit_it->getCharge() == charge))
-                  {
-                    double score;
-                    hit_it->setMetaValue(score_type, hit_it->getScore());
-
-                    score = PosteriorErrorProbabilityModel::transformScore(engine, *hit_it);
-                    if (boost::math::isnan(score)) // issue #740: ignore scores with 0 values, otherwise you will get the error "unable to fit data"
-                    {
-                      score = 1.0;
-                    }
-                    else 
-                    { 
-                      score = PEP_model.computeProbability(score);
-                      if ((score > 0.0) && (score < 1.0)) unable_to_fit_data = false;  // only if all it->second[0] are 0 or 1 unable_to_fit_data stays true
-                      if ((score > 0.2) && (score < 0.8)) data_might_not_be_well_fit = false;  //same as above
-                    }
-                    hit_it->setScore(score);
-                    if (prob_correct)
-                    {
-                      hit_it->setScore(1.0 - score);
-                    }
-                    else
-                    {
-                      hit_it->setScore(score);
-                    }
-                  }
-                }
-                pep_it->setHits(hits);
-              }
-              if (prob_correct)
-              {
-                pep_it->setScoreType("Posterior Probability");
-                pep_it->setHigherScoreBetter(true);
-              }
-              else
-              {
-                pep_it->setScoreType("Posterior Error Probability");
-                pep_it->setHigherScoreBetter(false);
-              }
-            }
-          }
+          writeLog_(String("Unable to fit data for search engine: ") + engine);
+          if (!ignore_bad_data) return UNEXPECTED_RESULT;
         }
-        if (unable_to_fit_data) writeLog_(String("Unable to fit data for search engine: ") + engine);
-        if (unable_to_fit_data && !ignore_bad_data) return UNEXPECTED_RESULT;
-
-        if (data_might_not_be_well_fit) writeLog_(String("Data might not be well fitted for search engine: ") + engine);
+        else if (data_might_not_be_well_fit) 
+        {
+          writeLog_(String("Data might not be well fitted for search engine: ") + engine);
+        }
       }
     }
     //-------------------------------------------------------------
@@ -312,7 +278,6 @@ protected:
 int main(int argc, const char** argv)
 {
   TOPPIDPosteriorErrorProbability tool;
-
   return tool.main(argc, argv);
 }
 
