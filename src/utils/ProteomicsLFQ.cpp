@@ -49,6 +49,7 @@
 
 #include <OpenMS/FORMAT/MzTabFile.h>
 #include <OpenMS/FORMAT/MzTab.h>
+#include <OpenMS/FORMAT/IdXMLFile.h>
 
 #include <OpenMS/FORMAT/DATAACCESS/MSDataWritingConsumer.h>
 
@@ -121,7 +122,19 @@ protected:
     String out = getStringOption_("out");
     StringList in_ids = getStringList_("in_ids");
     String design_file = getStringOption_("design");
-    
+ 
+    if (in.size() != in_ids.size())
+    {
+      // TODO: fail, # of files must match 
+    }
+  
+    // map between mzML file and corresponding id file
+    map<String, String> mzfile2idfile;
+    for (Size i = 0; i != in.size(); ++i)
+    {
+      mzfile2idfile[in[i]] = in_ids[i];
+    }
+ 
     ExperimentalDesign design = ExperimentalDesign::load(design_file);
     std::map<unsigned int, std::vector<String> > frac2ms = design.getFractionToMSFilesMapping();
 
@@ -222,6 +235,7 @@ protected:
 
         vector<ProteinIdentification> protein_ids;
         vector<PeptideIdentification> peptide_ids;
+        IdXMLFile().load(mzfile2idfile[mz_file], protein_ids, peptide_ids);
 
         map<String, vector<vector<double> > > all_scores = Math::PosteriorErrorProbabilityModel::extractAndTransformScores(
           protein_ids, 
@@ -265,13 +279,17 @@ protected:
           {
             writeLog_(String("Data might not be well fitted for search engine: ") + engine);
           }
-        }
+        }        
 
         //-------------------------------------------------------------
         // Feature detection
         //-------------------------------------------------------------
         ff.getMSData().swap(ms_centroided);        
-//        ffid_algo.run(peptides, proteins, peptides_ext, proteins_ext, features);
+        vector<ProteinIdentification> ext_protein_ids;
+        vector<PeptideIdentification> ext_peptide_ids;
+        feature_maps.push_back(FeatureMap());
+        ff.run(peptide_ids, protein_ids, ext_peptide_ids, ext_protein_ids, feature_maps.back());
+
         // TODO: think about external ids ;)
         // TODO: free memory of centroided PeakMap
         // TODO: free parts of feature map not needed for further processing (e.g., subfeatures...)
