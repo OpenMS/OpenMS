@@ -80,12 +80,14 @@ namespace OpenMS
         AbsoluteQuantitationStandards::featureConcentration fc;
         if (!findComponentFeature_(fmap, run.component_name, fc.feature)) // if there was no match: skip.
         {
+          Log_debug << "A feature was not found for component_name " << run.component_name << ".";
           continue;
         }
         if (run.IS_component_name != "")
         {
           if (!findComponentFeature_(fmap, run.IS_component_name, fc.IS_feature))
           { // down stream methods will expect to find an IS
+            Log_debug << "A feature was not found for IS_component_name " << run.IS_component_name << ".";
             continue;
           } 
         }
