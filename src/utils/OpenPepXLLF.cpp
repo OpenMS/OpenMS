@@ -376,8 +376,8 @@ protected:
     protein_ids[0].setMetaValue("SpectrumIdentificationProtocol", DataValue("MS:1002494")); // cross-linking search = MS:1002494
 
     ProteinIdentification::SearchParameters search_params;
-    String searched_charges("");
-    for (int ch = min_precursor_charge; ch <= max_precursor_charge; ++ch)
+    String searched_charges((String(min_precursor_charge)));
+    for (int ch = min_precursor_charge+1; ch <= max_precursor_charge; ++ch)
     {
       searched_charges += "," + String(ch);
     }
@@ -994,8 +994,8 @@ protected:
       {
         String precursor_mass_tolerance_unit_string = precursor_mass_tolerance_unit_ppm ? "ppm" : "Da";
         String fragment_mass_tolerance_unit_string = fragment_mass_tolerance_unit_ppm ? "ppm" : "Da";
-        double cross_link_mass_iso_shift = 0;
-        double cross_link_mass_light = cross_link_mass;
+        // double cross_link_mass_iso_shift = 0;
+        // double cross_link_mass_light = cross_link_mass;
         // XQuestResultXMLFile::writeXQuestXML(out_xquest, base_name, peptide_ids, all_top_csms, spectra,
         //                                                     precursor_mass_tolerance_unit_string, fragment_mass_tolerance_unit_string, precursor_mass_tolerance, fragment_mass_tolerance, fragment_mass_tolerance_xlinks, cross_link_name,
         //                                                     cross_link_mass_light, cross_link_mass_mono_link, in_fasta, in_decoy_fasta, cross_link_residue1, cross_link_residue2, cross_link_mass_iso_shift, enzyme_name, missed_cleavages);
