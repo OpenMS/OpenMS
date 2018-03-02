@@ -331,6 +331,7 @@ namespace OpenMS
       std::stringstream ind_transition_names;
       std::stringstream ind_area_intensity;
       std::stringstream ind_total_area_intensity;
+      std::stringstream ind_intensity_score;
       std::stringstream ind_apex_intensity;
       std::stringstream ind_total_mi;
       std::stringstream ind_log_intensity;
@@ -341,6 +342,7 @@ namespace OpenMS
           ind_transition_names << ";";
           ind_area_intensity << ";";
           ind_total_area_intensity << ";";
+          ind_intensity_score << ";";
           ind_apex_intensity << ";";
           ind_total_mi << ";";
           ind_log_intensity << ";";
@@ -350,6 +352,7 @@ namespace OpenMS
         {
           ind_area_intensity << idmrmfeature.getFeature(native_ids_identification[i]).getIntensity();
           ind_total_area_intensity << idmrmfeature.getFeature(native_ids_identification[i]).getMetaValue("total_xic");
+          ind_intensity_score << float(idmrmfeature.getFeature(native_ids_identification[i]).getIntensity()) / float(idmrmfeature.getFeature(native_ids_identification[i]).getMetaValue("total_xic"));
           ind_apex_intensity << idmrmfeature.getFeature(native_ids_identification[i]).getMetaValue("peak_apex_int");
           ind_total_mi << idmrmfeature.getFeature(native_ids_identification[i]).getMetaValue("total_mi");
           ind_log_intensity << std::log(idmrmfeature.getFeature(native_ids_identification[i]).getIntensity());
@@ -358,6 +361,7 @@ namespace OpenMS
         {
           ind_area_intensity << 0;
           ind_total_area_intensity << 0;
+          ind_intensity_score << 0;
           ind_apex_intensity << 0;
           ind_total_mi << 0;
           ind_log_intensity << 0;
@@ -366,6 +370,7 @@ namespace OpenMS
       idscores.ind_transition_names = ind_transition_names.str();
       idscores.ind_area_intensity = ind_area_intensity.str();
       idscores.ind_total_area_intensity = ind_total_area_intensity.str();
+      idscores.ind_intensity_score = ind_intensity_score.str();
       idscores.ind_apex_intensity = ind_apex_intensity.str();
       idscores.ind_total_mi = ind_total_mi.str();
       idscores.ind_log_intensity = ind_log_intensity.str();
@@ -617,6 +622,7 @@ namespace OpenMS
           mrmfeature->addScore("id_target_num_transitions", idscores.ind_num_transitions);
           mrmfeature->setMetaValue("id_target_area_intensity", idscores.ind_area_intensity);
           mrmfeature->setMetaValue("id_target_total_area_intensity", idscores.ind_total_area_intensity);
+          mrmfeature->setMetaValue("id_target_intensity_score", idscores.ind_intensity_score);
           mrmfeature->setMetaValue("id_target_apex_intensity", idscores.ind_apex_intensity);
           mrmfeature->setMetaValue("id_target_total_mi", idscores.ind_total_mi);
           mrmfeature->setMetaValue("id_target_transition_names", idscores.ind_transition_names);
@@ -644,6 +650,7 @@ namespace OpenMS
           mrmfeature->addScore("id_decoy_num_transitions", idscores.ind_num_transitions);
           mrmfeature->setMetaValue("id_decoy_area_intensity", idscores.ind_area_intensity);
           mrmfeature->setMetaValue("id_decoy_total_area_intensity", idscores.ind_total_area_intensity);
+          mrmfeature->setMetaValue("id_decoy_intensity_score", idscores.ind_intensity_score);
           mrmfeature->setMetaValue("id_decoy_apex_intensity", idscores.ind_apex_intensity);
           mrmfeature->setMetaValue("id_decoy_total_mi", idscores.ind_total_mi);
           mrmfeature->setMetaValue("id_decoy_ind_log_intensity", idscores.ind_log_intensity);

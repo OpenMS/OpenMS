@@ -178,6 +178,7 @@ namespace OpenMS
         "TOTAL_AREA_INTENSITY REAL NOT NULL," \
         "APEX_INTENSITY REAL NOT NULL," \
         "TOTAL_MI REAL NOT NULL," \
+        "VAR_INTENSITY_SCORE REAL NULL," \
         "VAR_LOG_INTENSITY REAL NULL," \
         "VAR_XCORR_COELUTION REAL NULL," \
         "VAR_XCORR_SHAPE REAL NULL," \
@@ -352,6 +353,7 @@ namespace OpenMS
           std::vector<double> id_target_total_area_intensity = ListUtils::create<double>((String)feature_it->getMetaValue("id_target_total_area_intensity"),';');
           std::vector<double> id_target_apex_intensity = ListUtils::create<double>((String)feature_it->getMetaValue("id_target_apex_intensity"),';');
           std::vector<double> id_target_total_mi = ListUtils::create<double>((String)feature_it->getMetaValue("id_target_total_mi"),';');
+          std::vector<double> id_target_intensity_score = ListUtils::create<double>((String)feature_it->getMetaValue("id_target_intensity_score"),';');
           std::vector<double> id_target_log_intensity = ListUtils::create<double>((String)feature_it->getMetaValue("id_target_ind_log_intensity"),';');
           std::vector<double> id_target_ind_xcorr_coelution = ListUtils::create<double>((String)feature_it->getMetaValue("id_target_ind_xcorr_coelution"),';');
           std::vector<double> id_target_ind_xcorr_shape = ListUtils::create<double>((String)feature_it->getMetaValue("id_target_ind_xcorr_shape"),';');
@@ -365,13 +367,14 @@ namespace OpenMS
           {
             for (int i = 0; i < feature_it->getMetaValue("id_target_num_transitions").toString().toInt(); ++i)
             {
-              sql_feature_uis_transition  << "INSERT INTO FEATURE_TRANSITION (FEATURE_ID, TRANSITION_ID, AREA_INTENSITY, TOTAL_AREA_INTENSITY, APEX_INTENSITY, TOTAL_MI, VAR_LOG_INTENSITY, VAR_XCORR_COELUTION, VAR_XCORR_SHAPE, VAR_LOG_SN_SCORE, VAR_MASSDEV_SCORE, VAR_MI_SCORE, VAR_ISOTOPE_CORRELATION_SCORE, VAR_ISOTOPE_OVERLAP_SCORE) VALUES (" 
+              sql_feature_uis_transition  << "INSERT INTO FEATURE_TRANSITION (FEATURE_ID, TRANSITION_ID, AREA_INTENSITY, TOTAL_AREA_INTENSITY, APEX_INTENSITY, TOTAL_MI, VAR_INTENSITY_SCORE, VAR_LOG_INTENSITY, VAR_XCORR_COELUTION, VAR_XCORR_SHAPE, VAR_LOG_SN_SCORE, VAR_MASSDEV_SCORE, VAR_MI_SCORE, VAR_ISOTOPE_CORRELATION_SCORE, VAR_ISOTOPE_OVERLAP_SCORE) VALUES (" 
                                           << feature_id << ", " 
                                           << id_target_transition_names[i] << ", " 
                                           << id_target_area_intensity[i] << ", " 
                                           << id_target_total_area_intensity[i] << ", " 
                                           << id_target_apex_intensity[i] << ", " 
                                           << id_target_total_mi[i] << ", " 
+                                          << id_target_intensity_score[i] << ", " 
                                           << id_target_log_intensity[i] << ", " 
                                           << id_target_ind_xcorr_coelution[i] << ", " 
                                           << id_target_ind_xcorr_shape[i] << ", " 
@@ -388,6 +391,7 @@ namespace OpenMS
           std::vector<double> id_decoy_total_area_intensity = ListUtils::create<double>((String)feature_it->getMetaValue("id_decoy_total_area_intensity"),';');
           std::vector<double> id_decoy_apex_intensity = ListUtils::create<double>((String)feature_it->getMetaValue("id_decoy_apex_intensity"),';');
           std::vector<double> id_decoy_total_mi = ListUtils::create<double>((String)feature_it->getMetaValue("id_decoy_total_mi"),';');
+          std::vector<double> id_decoy_intensity_score = ListUtils::create<double>((String)feature_it->getMetaValue("id_decoy_intensity_score"),';');
           std::vector<double> id_decoy_log_intensity = ListUtils::create<double>((String)feature_it->getMetaValue("id_decoy_ind_log_intensity"),';');
           std::vector<double> id_decoy_ind_xcorr_coelution = ListUtils::create<double>((String)feature_it->getMetaValue("id_decoy_ind_xcorr_coelution"),';');
           std::vector<double> id_decoy_ind_xcorr_shape = ListUtils::create<double>((String)feature_it->getMetaValue("id_decoy_ind_xcorr_shape"),';');
@@ -401,7 +405,7 @@ namespace OpenMS
           {
             for (int i = 0; i < feature_it->getMetaValue("id_decoy_num_transitions").toString().toInt(); ++i)
             {
-              sql_feature_uis_transition  << "INSERT INTO FEATURE_TRANSITION (FEATURE_ID, TRANSITION_ID, AREA_INTENSITY, TOTAL_AREA_INTENSITY, APEX_INTENSITY, TOTAL_MI, VAR_LOG_INTENSITY, VAR_XCORR_COELUTION, VAR_XCORR_SHAPE, VAR_LOG_SN_SCORE, VAR_MASSDEV_SCORE, VAR_MI_SCORE, VAR_ISOTOPE_CORRELATION_SCORE, VAR_ISOTOPE_OVERLAP_SCORE) VALUES (" 
+              sql_feature_uis_transition  << "INSERT INTO FEATURE_TRANSITION (FEATURE_ID, TRANSITION_ID, AREA_INTENSITY, TOTAL_AREA_INTENSITY, APEX_INTENSITY, TOTAL_MI, VAR_INTENSITY_SCORE, VAR_LOG_INTENSITY, VAR_XCORR_COELUTION, VAR_XCORR_SHAPE, VAR_LOG_SN_SCORE, VAR_MASSDEV_SCORE, VAR_MI_SCORE, VAR_ISOTOPE_CORRELATION_SCORE, VAR_ISOTOPE_OVERLAP_SCORE) VALUES (" 
                                           << feature_id << ", " 
                                           << id_decoy_transition_names[i] << ", " 
                                           << id_decoy_area_intensity[i] << ", " 
@@ -409,6 +413,7 @@ namespace OpenMS
                                           << id_decoy_apex_intensity[i] << ", " 
                                           << id_decoy_total_mi[i] << ", " 
                                           << id_decoy_log_intensity[i] << ", " 
+                                          << id_decoy_intensity_score[i] << ", " 
                                           << id_decoy_ind_xcorr_coelution[i] << ", " 
                                           << id_decoy_ind_xcorr_shape[i] << ", " 
                                           << id_decoy_ind_log_sn_score[i] << ", " 

@@ -130,6 +130,7 @@ namespace OpenMS
     std::string ind_transition_names;
     std::string ind_area_intensity;
     std::string ind_total_area_intensity;
+    std::string ind_intensity_score;
     std::string ind_apex_intensity;
     std::string ind_total_mi;
     std::string ind_log_intensity;
@@ -192,6 +193,11 @@ namespace OpenMS
       ind_log_sn_score(""),
       ind_num_transitions(0),
       ind_transition_names(""),
+      ind_area_intensity(""),
+      ind_total_area_intensity(""),
+      ind_intensity_score(""),
+      ind_apex_intensity(""),
+      ind_total_mi(""),
       ind_log_intensity(""),
       weighted_coelution_score(0),
       weighted_xcorr_shape(0),
