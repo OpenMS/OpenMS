@@ -139,7 +139,9 @@ namespace OpenMS
         "CREATE TABLE FEATURE_MS2(" \
         "FEATURE_ID INT NOT NULL," \
         "AREA_INTENSITY REAL NOT NULL," \
+        "TOTAL_AREA_INTENSITY REAL NOT NULL," \
         "APEX_INTENSITY REAL NOT NULL," \
+        "TOTAL_MI REAL NOT NULL," \
         "VAR_BSERIES_SCORE REAL NOT NULL," \
         "VAR_DOTPROD_SCORE REAL NOT NULL," \
         "VAR_INTENSITY_SCORE REAL NOT NULL," \
@@ -179,12 +181,14 @@ namespace OpenMS
         "APEX_INTENSITY REAL NOT NULL," \
         "TOTAL_MI REAL NOT NULL," \
         "VAR_INTENSITY_SCORE REAL NULL," \
+        "VAR_INTENSITY_RATIO_SCORE REAL NULL," \
         "VAR_LOG_INTENSITY REAL NULL," \
         "VAR_XCORR_COELUTION REAL NULL," \
         "VAR_XCORR_SHAPE REAL NULL," \
         "VAR_LOG_SN_SCORE REAL NULL," \
         "VAR_MASSDEV_SCORE REAL NULL," \
         "VAR_MI_SCORE REAL NULL," \
+        "VAR_MI_RATIO_SCORE REAL NULL," \
         "VAR_ISOTOPE_CORRELATION_SCORE REAL NULL," \
         "VAR_ISOTOPE_OVERLAP_SCORE REAL NULL); " ;
 
@@ -311,10 +315,12 @@ namespace OpenMS
           var_sonar_rsq = feature_it->getMetaValue("var_sonar_rsq").toString();
         }
 
-        sql_feature_ms2 << "INSERT INTO FEATURE_MS2 (FEATURE_ID, AREA_INTENSITY, APEX_INTENSITY, VAR_BSERIES_SCORE, VAR_DOTPROD_SCORE, VAR_INTENSITY_SCORE, VAR_ISOTOPE_CORRELATION_SCORE, VAR_ISOTOPE_OVERLAP_SCORE, VAR_LIBRARY_CORR, VAR_LIBRARY_DOTPROD, VAR_LIBRARY_MANHATTAN, VAR_LIBRARY_RMSD, VAR_LIBRARY_ROOTMEANSQUARE, VAR_LIBRARY_SANGLE, VAR_LOG_SN_SCORE, VAR_MANHATTAN_SCORE, VAR_MASSDEV_SCORE, VAR_MASSDEV_SCORE_WEIGHTED, VAR_MI_SCORE, VAR_MI_WEIGHTED_SCORE, VAR_NORM_RT_SCORE, VAR_XCORR_COELUTION,VAR_XCORR_COELUTION_WEIGHTED, VAR_XCORR_SHAPE, VAR_XCORR_SHAPE_WEIGHTED, VAR_YSERIES_SCORE, VAR_ELUTION_MODEL_FIT_SCORE, VAR_SONAR_LAG, VAR_SONAR_SHAPE, VAR_SONAR_LOG_SN, VAR_SONAR_LOG_DIFF, VAR_SONAR_LOG_TREND, VAR_SONAR_RSQ) VALUES (" 
+        sql_feature_ms2 << "INSERT INTO FEATURE_MS2 (FEATURE_ID, AREA_INTENSITY, TOTAL_AREA_INTENSITY, APEX_INTENSITY, TOTAL_MI, VAR_BSERIES_SCORE, VAR_DOTPROD_SCORE, VAR_INTENSITY_SCORE, VAR_ISOTOPE_CORRELATION_SCORE, VAR_ISOTOPE_OVERLAP_SCORE, VAR_LIBRARY_CORR, VAR_LIBRARY_DOTPROD, VAR_LIBRARY_MANHATTAN, VAR_LIBRARY_RMSD, VAR_LIBRARY_ROOTMEANSQUARE, VAR_LIBRARY_SANGLE, VAR_LOG_SN_SCORE, VAR_MANHATTAN_SCORE, VAR_MASSDEV_SCORE, VAR_MASSDEV_SCORE_WEIGHTED, VAR_MI_SCORE, VAR_MI_WEIGHTED_SCORE, VAR_NORM_RT_SCORE, VAR_XCORR_COELUTION,VAR_XCORR_COELUTION_WEIGHTED, VAR_XCORR_SHAPE, VAR_XCORR_SHAPE_WEIGHTED, VAR_YSERIES_SCORE, VAR_ELUTION_MODEL_FIT_SCORE, VAR_SONAR_LAG, VAR_SONAR_SHAPE, VAR_SONAR_LOG_SN, VAR_SONAR_LOG_DIFF, VAR_SONAR_LOG_TREND, VAR_SONAR_RSQ) VALUES (" 
                         << feature_id << ", " 
                         << feature_it->getIntensity() << ", " 
+                        << feature_it->getMetaValue("total_xic") << ", " 
                         << feature_it->getMetaValue("peak_apices_sum") << ", " 
+                        << feature_it->getMetaValue("total_mi") << ", " 
                         << feature_it->getMetaValue("var_bseries_score") << ", " 
                         << feature_it->getMetaValue("var_dotprod_score") << ", " 
                         << feature_it->getMetaValue("var_intensity_score") << ", " 
@@ -367,7 +373,13 @@ namespace OpenMS
           {
             for (int i = 0; i < feature_it->getMetaValue("id_target_num_transitions").toString().toInt(); ++i)
             {
-              sql_feature_uis_transition  << "INSERT INTO FEATURE_TRANSITION (FEATURE_ID, TRANSITION_ID, AREA_INTENSITY, TOTAL_AREA_INTENSITY, APEX_INTENSITY, TOTAL_MI, VAR_INTENSITY_SCORE, VAR_LOG_INTENSITY, VAR_XCORR_COELUTION, VAR_XCORR_SHAPE, VAR_LOG_SN_SCORE, VAR_MASSDEV_SCORE, VAR_MI_SCORE, VAR_ISOTOPE_CORRELATION_SCORE, VAR_ISOTOPE_OVERLAP_SCORE) VALUES (" 
+              double id_target_intensity_ratio_score = double(id_target_intensity_score[i]) / double(feature_it->getMetaValue("var_intensity_score"));
+              if (id_target_intensity_ratio_score > 1) { id_target_intensity_ratio_score = 1 / id_target_intensity_ratio_score; }
+
+              double id_target_ind_mi_ratio_score = (double(id_target_ind_mi_score[i]) / double(id_target_total_mi[i])) / (double(feature_it->getMetaValue("var_mi_score")) / double(feature_it->getMetaValue("total_mi")));
+              if (id_target_ind_mi_ratio_score > 1) { id_target_ind_mi_ratio_score = 1 / id_target_ind_mi_ratio_score; }
+
+              sql_feature_uis_transition  << "INSERT INTO FEATURE_TRANSITION (FEATURE_ID, TRANSITION_ID, AREA_INTENSITY, TOTAL_AREA_INTENSITY, APEX_INTENSITY, TOTAL_MI, VAR_INTENSITY_SCORE, VAR_INTENSITY_RATIO_SCORE, VAR_LOG_INTENSITY, VAR_XCORR_COELUTION, VAR_XCORR_SHAPE, VAR_LOG_SN_SCORE, VAR_MASSDEV_SCORE, VAR_MI_SCORE, VAR_MI_RATIO_SCORE, VAR_ISOTOPE_CORRELATION_SCORE, VAR_ISOTOPE_OVERLAP_SCORE) VALUES (" 
                                           << feature_id << ", " 
                                           << id_target_transition_names[i] << ", " 
                                           << id_target_area_intensity[i] << ", " 
@@ -375,12 +387,14 @@ namespace OpenMS
                                           << id_target_apex_intensity[i] << ", " 
                                           << id_target_total_mi[i] << ", " 
                                           << id_target_intensity_score[i] << ", " 
+                                          << id_target_intensity_ratio_score << ", " 
                                           << id_target_log_intensity[i] << ", " 
                                           << id_target_ind_xcorr_coelution[i] << ", " 
                                           << id_target_ind_xcorr_shape[i] << ", " 
                                           << id_target_ind_log_sn_score[i] << ", " 
                                           << id_target_ind_massdev_score[i] << ", " 
                                           << id_target_ind_mi_score[i] << ", " 
+                                          << id_target_ind_mi_ratio_score << ", " 
                                           << id_target_ind_isotope_correlation[i] << ", " 
                                           << id_target_ind_isotope_overlap[i] << "); ";
             }
@@ -405,20 +419,28 @@ namespace OpenMS
           {
             for (int i = 0; i < feature_it->getMetaValue("id_decoy_num_transitions").toString().toInt(); ++i)
             {
-              sql_feature_uis_transition  << "INSERT INTO FEATURE_TRANSITION (FEATURE_ID, TRANSITION_ID, AREA_INTENSITY, TOTAL_AREA_INTENSITY, APEX_INTENSITY, TOTAL_MI, VAR_INTENSITY_SCORE, VAR_LOG_INTENSITY, VAR_XCORR_COELUTION, VAR_XCORR_SHAPE, VAR_LOG_SN_SCORE, VAR_MASSDEV_SCORE, VAR_MI_SCORE, VAR_ISOTOPE_CORRELATION_SCORE, VAR_ISOTOPE_OVERLAP_SCORE) VALUES (" 
+              double id_decoy_intensity_ratio_score = double(id_decoy_intensity_score[i]) / double(feature_it->getMetaValue("var_intensity_score"));
+              if (id_decoy_intensity_ratio_score > 1) { id_decoy_intensity_ratio_score = 1 / id_decoy_intensity_ratio_score; }
+
+              double id_decoy_ind_mi_ratio_score = (double(id_decoy_ind_mi_score[i]) / double(id_decoy_total_mi[i])) / (double(feature_it->getMetaValue("var_mi_score")) / double(feature_it->getMetaValue("total_mi")));
+              if (id_decoy_ind_mi_ratio_score > 1) { id_decoy_ind_mi_ratio_score = 1 / id_decoy_ind_mi_ratio_score; }
+
+              sql_feature_uis_transition  << "INSERT INTO FEATURE_TRANSITION (FEATURE_ID, TRANSITION_ID, AREA_INTENSITY, TOTAL_AREA_INTENSITY, APEX_INTENSITY, TOTAL_MI, VAR_INTENSITY_SCORE, VAR_INTENSITY_RATIO_SCORE, VAR_LOG_INTENSITY, VAR_XCORR_COELUTION, VAR_XCORR_SHAPE, VAR_LOG_SN_SCORE, VAR_MASSDEV_SCORE, VAR_MI_SCORE, VAR_MI_RATIO_SCORE, VAR_ISOTOPE_CORRELATION_SCORE, VAR_ISOTOPE_OVERLAP_SCORE) VALUES (" 
                                           << feature_id << ", " 
                                           << id_decoy_transition_names[i] << ", " 
                                           << id_decoy_area_intensity[i] << ", " 
                                           << id_decoy_total_area_intensity[i] << ", " 
                                           << id_decoy_apex_intensity[i] << ", " 
                                           << id_decoy_total_mi[i] << ", " 
-                                          << id_decoy_log_intensity[i] << ", " 
                                           << id_decoy_intensity_score[i] << ", " 
+                                          << id_decoy_intensity_ratio_score << ", " 
+                                          << id_decoy_log_intensity[i] << ", "
                                           << id_decoy_ind_xcorr_coelution[i] << ", " 
                                           << id_decoy_ind_xcorr_shape[i] << ", " 
                                           << id_decoy_ind_log_sn_score[i] << ", " 
                                           << id_decoy_ind_massdev_score[i] << ", " 
                                           << id_decoy_ind_mi_score[i] << ", " 
+                                          << id_decoy_ind_mi_ratio_score << ", " 
                                           << id_decoy_ind_isotope_correlation[i] << ", " 
                                           << id_decoy_ind_isotope_overlap[i] << "); ";
             }

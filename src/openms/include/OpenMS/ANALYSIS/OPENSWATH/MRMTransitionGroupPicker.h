@@ -274,7 +274,7 @@ public:
       // Iterate over initial transitions / chromatograms (note that we may
       // have a different number of picked chromatograms than total transitions
       // as not all are detecting transitions).
-      double total_intensity = 0; double total_peak_apices = 0; double total_xic = 0;
+      double total_intensity = 0; double total_peak_apices = 0; double total_xic = 0; double total_mi = 0;
       for (Size k = 0; k < transition_group.getTransitions().size(); k++)
       {
         const SpectrumT& chromatogram = selectChromHelper_(transition_group, transition_group.getTransitions()[k].getNativeID()); 
@@ -296,8 +296,8 @@ public:
         }
 
         // compute baseline mutual information
-        double transition_mi = 0;
-        int transition_mi_norm = 0;
+        double transition_total_mi = 0;
+        int transition_total_mi_norm = 0;
         for (Size m = 0; m < transition_group.getTransitions().size(); m++)
         {
           if (transition_group.getTransitions()[m].isDetectingTransition())
@@ -308,11 +308,17 @@ public:
             {
               chrom_vect_det.push_back(it->getIntensity());
             }
-            transition_mi += OpenSwath::Scoring::rankedMutualInformation(chrom_vect_det, chrom_vect_id);
-            transition_mi_norm++;
+            transition_total_mi += OpenSwath::Scoring::rankedMutualInformation(chrom_vect_det, chrom_vect_id);
+            transition_total_mi_norm++;
           }
         }
-        if (transition_mi_norm > 0) { transition_mi /= transition_mi_norm; }
+        if (transition_total_mi_norm > 0) { transition_total_mi /= transition_total_mi_norm; }
+
+        if (transition_group.getTransitions()[k].isDetectingTransition())
+        {
+          // sum up all transition-level total MI and divide by the number of detection transitions to have peak group level total MI
+          total_mi += transition_total_mi / transition_total_mi_norm;
+        }
 
         SpectrumT used_chromatogram;
         // resample the current chromatogram
@@ -394,7 +400,7 @@ public:
         f.setMetaValue("native_id", chromatogram.getNativeID());
         f.setMetaValue("peak_apex_int", peak_apex_int);
         f.setMetaValue("total_xic", transition_total_xic);
-        f.setMetaValue("total_mi", transition_mi);
+        f.setMetaValue("total_mi", transition_total_mi);
 
         if (transition_group.getTransitions()[k].isDetectingTransition())
         {
@@ -527,6 +533,7 @@ public:
       mrmFeature.setMetaValue("leftWidth", best_left);
       mrmFeature.setMetaValue("rightWidth", best_right);
       mrmFeature.setMetaValue("total_xic", total_xic);
+      mrmFeature.setMetaValue("total_mi", total_mi);
       mrmFeature.setMetaValue("peak_apices_sum", total_peak_apices);
 
       mrmFeature.ensureUniqueId();
