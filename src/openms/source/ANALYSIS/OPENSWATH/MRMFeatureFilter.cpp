@@ -245,12 +245,24 @@ namespace OpenMS
             for (auto const& kv : filter_criteria.component_qcs[c_qc_it].meta_value_qc)
             {
               // std::cout << "MetaData" << std::endl; //debugging
-              if (!checkMetaValue(features[feature_it].getSubordinates()[sub_it], kv.first, kv.second.first, kv.second.second))
+              const Feature& component = features[feature_it].getSubordinates()[sub_it];
+              const String& meta_value_key = kv.first;
+              const double meta_value_l = kv.second.first;
+              const double meta_value_u = kv.second.second;
+              if (component.metaValueExists(meta_value_key))
               {
-                c_qc_pass = false;
-                c_qc_fail_message_vec.push_back("metaValue[" + kv.first + "]");
+                const double meta_value = (double)component.getMetaValue(meta_value_key);
+                if (!checkRange(meta_value, meta_value_l, meta_value_u))
+                {
+                  c_qc_pass = false;
+                  c_qc_fail_message_vec.push_back("metaValue[" + meta_value_key + "]");
+                }
+                ++c_tests_count;
               }
-              ++c_tests_count;
+              else
+              {
+                LOG_INFO << "Warning: no metaValue found for transition_id " << component.getMetaValue("native_id") << " for metaValue key " << meta_value_key << "." << std::endl;
+              }
             }
           }
         }
@@ -394,7 +406,7 @@ namespace OpenMS
       }
       else if (component_1.metaValueExists("native_id"))
       {
-        LOG_DEBUG << "Warning: no IS found for component " << component_1.getMetaValue("native_id") << ".";
+        LOG_DEBUG << "Warning: no IS found for component " << component_1.getMetaValue("native_id") << "." << std::endl;
         const double feature_1 = component_1.getIntensity();
         ratio = feature_1;
       }
@@ -410,7 +422,7 @@ namespace OpenMS
       }
       else if (component_1.metaValueExists(feature_name))
       {
-        LOG_DEBUG << "Warning: no IS found for component " << component_1.getMetaValue("native_id") << ".";
+        LOG_DEBUG << "Warning: no IS found for component " << component_1.getMetaValue("native_id") << "." << std::endl;
         const double feature_1 = component_1.getMetaValue(feature_name);
         ratio = feature_1;
       }
@@ -421,24 +433,6 @@ namespace OpenMS
     }
 
     return ratio;
-  }
-  
-  bool MRMFeatureFilter::checkMetaValue(const Feature & component, const String & meta_value_key, const double & meta_value_l, const double & meta_value_u)
-  {
-    bool check = true;
-    if (component.metaValueExists(meta_value_key))
-    {
-      double meta_value = (double)component.getMetaValue(meta_value_key);
-      check = checkRange(meta_value,
-        meta_value_l,
-        meta_value_u);
-    }
-    else 
-    {
-      LOG_INFO << "Warning: no metaValue found for transition_id " << component.getMetaValue("native_id") << " for metaValue key " << meta_value_key << ".";
-    }
-
-    return check;
   }
 
   String MRMFeatureFilter::uniqueJoin(std::vector<String>& str_vec, String& delim)

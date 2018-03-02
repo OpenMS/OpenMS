@@ -127,19 +127,7 @@ public:
       @return The difference.
     */ 
     double calculateResolution(Feature & component_1, Feature & component_2);
-    
-    /**
-      @brief Checks if the metaValue is within the user specified range
 
-      @param component component of the numerator
-      @param meta_value_key Name of the metaValue
-      @param meta_value_l Lower bound (inclusive) for the metaValue range
-      @param meta_value_u Upper bound (inclusive) for the metaValue range
-
-      @return True if the metaValue is within the bounds, and False otherwise.
-    */ 
-    bool checkMetaValue(const Feature & component, const String & meta_value_key, const double & meta_value_l, const double & meta_value_u);
-    
     /**
       @brief Count the number of heavy/light labels and quantifying/detecting/identifying transitions
 
