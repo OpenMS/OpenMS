@@ -188,6 +188,19 @@ namespace OpenMS
         peak_area /= valids;
       }
     }
+    else if (integration_type_ == INTEGRATION_TYPE_EMG)
+    {
+      // TODO: implement EMG here
+      // F(t) = G(t) * E(t)
+      // G(t) = h * e^((-(mu-t)^2)/(2*std_dev^2))
+      // E(t) = std_dev/tau * sqrt(pi/2) * erfcx(1/sqrt(2) * ((mu-t)/std_dev + std_dev/tau))
+      // erfcx(z) = e^z^2 * erfc(z)
+      // t = current rt
+      // h = peak_apex_int
+      // std_dev = 1 ?
+      // mu = position of unmodified Gaussian
+      // tau = relaxation time parameter of exponent used to modify Gaussian
+    }
     else if (integration_type_ == INTEGRATION_TYPE_INTENSITYSUM)
     {
       LOG_DEBUG << "\nWARNING: intensity_sum method is being used.\n";
@@ -281,6 +294,10 @@ namespace OpenMS
       {
         area = std::min(int_r, int_l) * std::distance(p.PosBegin(left), p.PosEnd(right));;
       }
+      else if(integration_type_ == INTEGRATION_TYPE_EMG)
+      {
+        // TODO: estimate background for base to base - emg case
+      }
     }
     else if (baseline_type_ == BASELINE_TYPE_VERTICALDIVISION_MAX)
     {
@@ -292,6 +309,10 @@ namespace OpenMS
       else if (integration_type_ == INTEGRATION_TYPE_INTENSITYSUM)
       {
         area = std::max(int_r, int_l) * std::distance(p.PosBegin(left), p.PosEnd(right));
+      }
+      else if(integration_type_ == INTEGRATION_TYPE_EMG)
+      {
+        // TODO: estimate background for vertical division - emg case
       }
     }
     else

@@ -214,6 +214,8 @@ public:
         the integration and baseline types.
     */
     ///@{
+    /// Integration type: EMG
+    static constexpr const char* INTEGRATION_TYPE_EMG = "emg";
     /// Integration type: intensity sum
     static constexpr const char* INTEGRATION_TYPE_INTENSITYSUM = "intensity_sum";
     /// Integration type: trapezoid
