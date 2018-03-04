@@ -563,8 +563,8 @@ public:
       containing the widest peak and of the position of highest intensity.
 
       @param[in] picked_chroms The vector of chromatograms
-      @param[in,out] chrom_idx The index of the chromatogram containing the widest peak
-      @param[in,out] point_idx The index of the point with highest intensity
+      @param[out] chrom_idx The index of the chromatogram containing the widest peak
+      @param[out] point_idx The index of the point with highest intensity
     */
     void findWidestPeakIndices(const std::vector<MSChromatogram>& picked_chroms, Int& chrom_idx, Int& point_idx) const;
 
