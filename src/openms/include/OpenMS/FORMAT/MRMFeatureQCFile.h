@@ -28,8 +28,8 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Douglas McCloskey $
-// $Authors: Douglas McCloskey $
+// $Maintainer: Douglas McCloskey, Pasquale Domenico Colaianni $
+// $Authors: Douglas McCloskey, Pasquale Domenico Colaianni $
 // --------------------------------------------------------------------------
 
 #ifndef OPENMS_FORMAT_MRMFEATUREQCFILE_H
@@ -54,10 +54,10 @@ namespace OpenMS
     public ProgressLogger
   {
 public:
-  ///Default constructor
-  MRMFeatureQCFile();
-  ///Destructor
-  ~MRMFeatureQCFile() override;
+  /// Default constructor
+  MRMFeatureQCFile() = default;
+  /// Destructor
+  ~MRMFeatureQCFile() = default;
 
   /**
     @brief Loads an MRMFeatureQC file.
@@ -65,35 +65,36 @@ public:
     @exception Exception::FileNotFound is thrown if the file could not be opened
     @exception Exception::ParseError is thrown if an error occurs during parsing
   */
-  void load(const String & filename, MRMFeatureQC & mrmfqc);
+  void load(const String& filename, MRMFeatureQC& mrmfqc) const;
 
-  /**
+  /*
     @brief Stores an MRMFeatureQC file.
 
     @exception Exception::UnableToCreateFile is thrown if the file could not be created
   */
-  void store(const String & filename, const MRMFeatureQC & mrmfqc);
+//  void store(const String& filename, const MRMFeatureQC& mrmfqc);
 
 
 protected:
-  /**
-    @brief Checks if a file is valid with respect to the mapping file and the controlled vocabulary.
 
-    @param line Header line of the .csv file.
-    @param headers A map of header strings to column positions.
-    @param params_headers A map of transformation model parameter header strings to column positions.
-  */
-  void parseHeader_(StringList & line, std::map<String, int> & headers,
-    std::map<String, int> & params_headers);
+  void pushValuesFromLine_(
+    const StringList& line,
+    const std::map<String, Size>& headers,
+    std::vector<MRMFeatureQC::ComponentQCs>& c_qcs
+  ) const;
 
-  /**
-    @brief parses a line into the members of MRMFeatureQC.
+  void pushValuesFromLine_(
+    const StringList& line,
+    const std::map<String, Size>& headers,
+    std::vector<MRMFeatureQC::ComponentGroupQCs>& cg_qcs
+  ) const;
 
-    @param line line of the .csv file.
-    @param aqm MRMFeatureQC.
-  */
-  void parseLine_(StringList & line, std::map<String, int> & headers, 
-    std::map<String, int> & params_headers, MRMFeatureQC & mrmfqc);
+  void setPairValue_(
+    const String& key,
+    const String& value,
+    const String& boundary,
+    std::map<String, std::pair<double,double>>& meta_values_qc
+  ) const;
 
   };
 

@@ -129,19 +129,19 @@ public:
 
       // number of transitions and labels
       /// number of heavy ion lower bound
-      int n_heavy_l;
+      Int n_heavy_l;
       /// number of heavy ion upper bound
-      int n_heavy_u;
-      int n_light_l;
-      int n_light_u;
-      int n_detecting_l;
-      int n_detecting_u;
-      int n_quantifying_l;
-      int n_quantifying_u;
-      int n_identifying_l;
-      int n_identifying_u;
-      int n_transitions_l;
-      int n_transitions_u;
+      Int n_heavy_u;
+      Int n_light_l;
+      Int n_light_u;
+      Int n_detecting_l;
+      Int n_detecting_u;
+      Int n_quantifying_l;
+      Int n_quantifying_u;
+      Int n_identifying_l;
+      Int n_identifying_u;
+      Int n_transitions_l;
+      Int n_transitions_u;
 
       // Ion Ratio QCs
       String ion_ratio_pair_name_1;
@@ -183,7 +183,7 @@ public:
     /// list of all component group QCs
     std::vector<ComponentGroupQCs> component_group_qcs;
     /// list of all component group pair QCs
-    std::vector<ComponentGroupQCs> component_group_pair_qcs;
+    std::vector<ComponentGroupPairQCs> component_group_pair_qcs;
   };
 }
 
