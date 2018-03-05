@@ -34,14 +34,14 @@
 //
 
 #include <map>
-#include <stdio.h>
+#include <cstdio>
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/SuperHirnParameters.h>
 
 namespace OpenMS
 {
 
-  SuperHirnParameters * SuperHirnParameters::instance_ = NULL;
+  SuperHirnParameters * SuperHirnParameters::instance_ = nullptr;
   bool SuperHirnParameters::haveInstance_ = false;
 
   SuperHirnParameters::SuperHirnParameters()

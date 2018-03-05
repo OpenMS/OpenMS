@@ -51,8 +51,8 @@ START_TEST(ILPDCWrapper, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-ILPDCWrapper* ptr = 0;
-ILPDCWrapper* null_ptr = 0;
+ILPDCWrapper* ptr = nullptr;
+ILPDCWrapper* null_ptr = nullptr;
 START_SECTION(ILPDCWrapper())
 {
 	ptr = new ILPDCWrapper();

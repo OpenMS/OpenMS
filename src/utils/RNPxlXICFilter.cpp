@@ -86,7 +86,7 @@ public:
   }
 
 protected:
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     // input files
 
@@ -213,7 +213,7 @@ protected:
     return;
   }
 
-  ExitCodes main_(int, const char**)
+  ExitCodes main_(int, const char**) override
   {
     // Parameter parsing
     const string control_mzml(getStringOption_("control"));

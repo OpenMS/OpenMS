@@ -169,7 +169,7 @@ public:
   }
 
 protected:
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     // name, argument, default, description, required, advanced
     // input files
@@ -406,7 +406,7 @@ protected:
     return preprocessed_pair_spectra;
   }
 
-  ExitCodes main_(int, const char**)
+  ExitCodes main_(int, const char**) override
   {
     ProgressLogger progresslogger;
     progresslogger.setLogType(log_type_);
@@ -936,18 +936,32 @@ protected:
           if (n_xlink_charges < 1) n_xlink_charges = 1;
 
           // compute match odds (unweighted), the 3 is the number of charge states in the theoretical spectra
-          double match_odds_c_alpha = XQuestScores::matchOddsScore(theoretical_spec_common_alpha, matched_spec_common_alpha, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, false);
-          double match_odds_x_alpha = XQuestScores::matchOddsScore(theoretical_spec_xlinks_alpha, matched_spec_xlinks_alpha, fragment_mass_tolerance_xlinks , fragment_mass_tolerance_unit_ppm, true, n_xlink_charges);
+          double match_odds_c_alpha = XQuestScores::matchOddsScore(theoretical_spec_common_alpha, matched_spec_common_alpha.size(), fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm);
+          double match_odds_x_alpha = XQuestScores::matchOddsScore(theoretical_spec_xlinks_alpha, matched_spec_xlinks_alpha.size(), fragment_mass_tolerance_xlinks , fragment_mass_tolerance_unit_ppm, true, n_xlink_charges);
+          double log_occu_c_alpha = XQuestScores::logOccupancyProb(theoretical_spec_common_alpha, matched_spec_common_alpha.size(), fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm);
+          double log_occu_x_alpha = XQuestScores::logOccupancyProb(theoretical_spec_xlinks_alpha, matched_spec_xlinks_alpha.size(), fragment_mass_tolerance_xlinks , fragment_mass_tolerance_unit_ppm);
           double match_odds = 0;
+          double log_occu = 0;
+
+          double log_occu_alpha = 0;
+          double log_occu_beta = 0;
+
           if (type_is_cross_link)
           {
-            double match_odds_c_beta = XQuestScores::matchOddsScore(theoretical_spec_common_beta, matched_spec_common_beta, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, false);
-            double match_odds_x_beta = XQuestScores::matchOddsScore(theoretical_spec_xlinks_beta, matched_spec_xlinks_beta, fragment_mass_tolerance_xlinks, fragment_mass_tolerance_unit_ppm, true, n_xlink_charges);
+            double match_odds_c_beta = XQuestScores::matchOddsScore(theoretical_spec_common_beta, matched_spec_common_beta.size(), fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm);
+            double match_odds_x_beta = XQuestScores::matchOddsScore(theoretical_spec_xlinks_beta, matched_spec_xlinks_beta.size(), fragment_mass_tolerance_xlinks, fragment_mass_tolerance_unit_ppm, true, n_xlink_charges);
+            double log_occu_c_beta = XQuestScores::logOccupancyProb(theoretical_spec_common_beta, matched_spec_common_beta.size(), fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm);
+            double log_occu_x_beta = XQuestScores::logOccupancyProb(theoretical_spec_xlinks_beta, matched_spec_xlinks_beta.size(), fragment_mass_tolerance_xlinks, fragment_mass_tolerance_unit_ppm);
             match_odds = (match_odds_c_alpha + match_odds_x_alpha + match_odds_c_beta + match_odds_x_beta) / 4;
+            log_occu = (log_occu_c_alpha + log_occu_x_alpha + log_occu_c_beta + log_occu_x_beta) / 4;
+            log_occu_alpha = (log_occu_c_alpha + log_occu_x_alpha) / 2;
+            log_occu_beta = (log_occu_c_beta + log_occu_x_beta) / 2;
           }
           else
           {
             match_odds = (match_odds_c_alpha + match_odds_x_alpha) / 2;
+            log_occu = (log_occu_c_alpha + log_occu_x_alpha) / 2;
+            log_occu_alpha = log_occu;
           }
 
           //Cross-correlation
@@ -973,6 +987,9 @@ protected:
           {
             theoretical_spec_beta = OPXLSpectrumProcessingAlgorithms::mergeAnnotatedSpectra(theoretical_spec_common_beta, theoretical_spec_xlinks_beta);
           }
+
+          Size matched_peaks = matched_spec_common_alpha.size() + matched_spec_common_beta.size() + matched_spec_xlinks_alpha.size() + matched_spec_xlinks_beta.size();
+          double log_occupancy_full_spec = XQuestScores::logOccupancyProb(theoretical_spec, matched_peaks, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm);
 
           vector< double > xcorrc = XQuestScores::xCorrelation(common_peaks, theoretical_spec_common, 5, 0.2);
           vector< double > xcorrx = XQuestScores::xCorrelation(xlink_peaks, theoretical_spec_xlinks, 5, 0.3);
@@ -1050,7 +1067,13 @@ protected:
           csm.percTIC = TIC;
           csm.wTIC = wTIC;
           csm.int_sum = intsum;
+
           csm.match_odds = match_odds;
+          csm.log_occupancy = log_occu;
+          csm.log_occupancy_alpha = log_occu_alpha;
+          csm.log_occupancy_beta = log_occu_beta;
+          csm.log_occupancy_full_spec = log_occupancy_full_spec;
+
           csm.xcorrx_max = xcorrx_max;
           csm.xcorrc_max = xcorrc_max;
           csm.matched_common_alpha = matched_spec_common_alpha.size();

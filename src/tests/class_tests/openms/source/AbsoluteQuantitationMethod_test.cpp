@@ -28,8 +28,8 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Douglas McCloskey $
-// $Authors: Douglas McCloskey $
+// $Maintainer: Douglas McCloskey, Pasquale Domenico Colaianni $
+// $Authors: Douglas McCloskey, Pasquale Domenico Colaianni $
 // --------------------------------------------------------------------------
 //
 
@@ -40,14 +40,6 @@
 
 #include <OpenMS/ANALYSIS/QUANTITATION/AbsoluteQuantitationMethod.h>
 
-//Analysis classes
-#include <OpenMS/ANALYSIS/MAPMATCHING/TransformationDescription.h>
-#include <OpenMS/ANALYSIS/MAPMATCHING/TransformationModel.h>
-#include <OpenMS/ANALYSIS/MAPMATCHING/TransformationModelLinear.h>
-#include <OpenMS/ANALYSIS/MAPMATCHING/TransformationModelBSpline.h>
-#include <OpenMS/ANALYSIS/MAPMATCHING/TransformationModelInterpolated.h>
-#include <OpenMS/ANALYSIS/MAPMATCHING/TransformationModelLowess.h>
-
 using namespace OpenMS;
 using namespace std;
 
@@ -57,159 +49,109 @@ START_TEST(AbsoluteQuantitationMethod, "$Id$")
 
 /////////////////////////////////////////////////////////////
 
-AbsoluteQuantitationMethod* ptr = 0;
-AbsoluteQuantitationMethod* nullPointer = 0;
-START_SECTION((AbsoluteQuantitationMethod()))
-	ptr = new AbsoluteQuantitationMethod();
-	TEST_NOT_EQUAL(ptr, nullPointer);
+AbsoluteQuantitationMethod* ptr = nullptr;
+AbsoluteQuantitationMethod* nullPointer = nullptr;
+
+START_SECTION(AbsoluteQuantitationMethod())
+{
+  ptr = new AbsoluteQuantitationMethod();
+  TEST_NOT_EQUAL(ptr, nullPointer);
+}
 END_SECTION
 
-START_SECTION((~AbsoluteQuantitationMethod()))
-	delete ptr;
+START_SECTION(~AbsoluteQuantitationMethod())
+{
+  delete ptr;
+}
 END_SECTION
 
-START_SECTION((bool checkLOD(const double & value)))
-
+START_SECTION(all setters and getters)
+{
   AbsoluteQuantitationMethod aqm;
-  double value = 2.0;
 
-  // tests
+  aqm.setComponentName("component");
+  aqm.setFeatureName("feature");
+  aqm.setISName("IS");
+  aqm.setLLOD(1.2);
+  aqm.setULOD(3.4);
+  aqm.setLLOQ(5.6);
+  aqm.setULOQ(7.8);
+  aqm.setNPoints(9);
+  aqm.setCorrelationCoefficient(0.44);
+  aqm.setConcentrationUnits("uM");
+  aqm.setTransformationModel("TransformationModelLinear");
+  Param params1;
+  params1.setValue("slope", 1);
+  aqm.setTransformationModelParams(params1);
+
+  TEST_EQUAL(aqm.getComponentName(), "component")
+  TEST_EQUAL(aqm.getFeatureName(), "feature")
+  TEST_EQUAL(aqm.getISName(), "IS")
+  TEST_REAL_SIMILAR(aqm.getLLOD(), 1.2)
+  TEST_REAL_SIMILAR(aqm.getULOD(), 3.4)
+  TEST_REAL_SIMILAR(aqm.getLLOQ(), 5.6)
+  TEST_REAL_SIMILAR(aqm.getULOQ(), 7.8)
+  TEST_EQUAL(aqm.getNPoints(), 9)
+  TEST_REAL_SIMILAR(aqm.getCorrelationCoefficient(), 0.44)
+  TEST_EQUAL(aqm.getConcentrationUnits(), "uM")
+  TEST_EQUAL(aqm.getTransformationModel(), "TransformationModelLinear")
+  Param params2 = aqm.getTransformationModelParams();
+  TEST_EQUAL(params2.getValue("slope"), 1)
+}
+END_SECTION
+
+START_SECTION(bool checkLOD(const double value) const)
+{
+  AbsoluteQuantitationMethod aqm;
+  const double value = 2.0;
   aqm.setLLOD(0.0);
   aqm.setULOD(4.0);
-  TEST_EQUAL(aqm.checkLOD(value),true);
-  aqm.setLLOD(0.0);
+  TEST_EQUAL(aqm.checkLOD(value), true);
   aqm.setULOD(1.0);
-  TEST_EQUAL(aqm.checkLOD(value),false);
+  TEST_EQUAL(aqm.checkLOD(value), false);
   aqm.setLLOD(3.0);
   aqm.setULOD(4.0);
-  TEST_EQUAL(aqm.checkLOD(value),false);
+  TEST_EQUAL(aqm.checkLOD(value), false);
+}
 END_SECTION
 
-START_SECTION((bool checkLOQ(const double & value)))
-
+START_SECTION(bool checkLOQ(const double value) const)
+{
   AbsoluteQuantitationMethod aqm;
-  double value = 2.0;
-
-  // tests
+  const double value = 2.0;
   aqm.setLLOQ(0.0);
   aqm.setULOQ(4.0);
-  TEST_EQUAL(aqm.checkLOQ(value),true);
-  aqm.setLLOQ(0.0);
+  TEST_EQUAL(aqm.checkLOQ(value), true);
   aqm.setULOQ(1.0);
-  TEST_EQUAL(aqm.checkLOQ(value),false);
+  TEST_EQUAL(aqm.checkLOQ(value), false);
   aqm.setLLOQ(3.0);
   aqm.setULOQ(4.0);
-  TEST_EQUAL(aqm.checkLOQ(value),false);
+  TEST_EQUAL(aqm.checkLOQ(value), false);
+}
 END_SECTION
 
-START_SECTION((Param fitTransformationModel(const String & transformation_model,
-  const TransformationModel::DataPoints& data,
-  const Param& transformation_model_params)))
-  
-  TransformationModel::DataPoints data;
-  data.push_back(make_pair(0.0, 0.0));
-  data.push_back(make_pair(1.0, 1.0));
-  data.push_back(make_pair(2.0, 2.0));
-  data.push_back(make_pair(3.0, 3.0));
-  data.push_back(make_pair(4.0, 4.0));
-
-  AbsoluteQuantitationMethod aqm;
-  String transformation_model;
-  Param param, test;
-
-  transformation_model = "TransformationModelLinear";  
-  TransformationModelLinear tmlinear(data, param);
-  test = aqm.fitTransformationModel(transformation_model,
-    data,param);
-  TEST_REAL_SIMILAR(test.getValue("slope"), 1.0);
-  TEST_REAL_SIMILAR(test.getValue("intercept"), 0.0);
-  test.clear();
-  param.clear();
-  
-  transformation_model = "TransformationModelBSpline";
-  TransformationModelBSpline tmbspline(data, param);
-  test = aqm.fitTransformationModel(transformation_model,
-    data,param);
-  TEST_EQUAL(test.getValue("extrapolate"), "linear");
-  TEST_REAL_SIMILAR(test.getValue("wavelength"), 0.0);
-  TEST_REAL_SIMILAR(test.getValue("num_nodes"), 5);
-  TEST_REAL_SIMILAR(test.getValue("boundary_condition"), 2);
-  test.clear();
-  param.clear();
-  
-  transformation_model = "TransformationModelInterpolated";
-  TransformationModelInterpolated tminterpolated(data, param);
-  test = aqm.fitTransformationModel(transformation_model,
-    data,param);
-  TEST_EQUAL(test.getValue("interpolation_type"), "cspline");
-  TEST_EQUAL(test.getValue("extrapolation_type"), "two-point-linear");
-  test.clear();
-  param.clear();
-  
-  transformation_model = "TransformationModelLowess";
-  TransformationModelLowess tmlowess(data, param);
-  test = aqm.fitTransformationModel(transformation_model,
-    data,param);
-  TEST_EQUAL(test.getValue("interpolation_type"), "cspline");
-  TEST_REAL_SIMILAR(test.getValue("num_iterations"), 3.0);
-  TEST_REAL_SIMILAR(test.getValue("span"), 2/3.0);
-  test.clear();
-  param.clear();
-  
-  transformation_model = "";
-  TransformationModel tm(data, param);
-  test = aqm.fitTransformationModel(transformation_model,
-    data,param);
-  TEST_EQUAL(test.empty(), true);
+START_SECTION(inline bool operator==(const AbsoluteQuantitationMethod& other) const)
+{
+  AbsoluteQuantitationMethod aqm1, aqm2;
+  TEST_EQUAL(aqm1 == aqm2, true);
+  aqm1.setLLOD(1.0);
+  aqm2.setLLOD(1.0);
+  TEST_EQUAL(aqm1 == aqm2, true);
+  aqm2.setLLOD(2.0);
+  TEST_EQUAL(aqm1 == aqm2, false);
+}
 END_SECTION
 
-START_SECTION((double evaluateTransformationModel(const String & transformation_model,
-  const double& datum,
-  const Param& transformation_model_params)))
-  
-  TransformationModel::DataPoints data;
-  double datum = 2.0;
-  AbsoluteQuantitationMethod aqm;
-  String transformation_model;
-  Param param;
-
-  transformation_model = "TransformationModelLinear";  
-  param.setValue("slope",1.0);
-  param.setValue("intercept",0.0);
-  TransformationModelLinear tmlinear(data, param);
-  TEST_REAL_SIMILAR(aqm.evaluateTransformationModel(transformation_model,
-    datum,param), 2.0);
-  param.clear();
-  
-  // TODO:  No support yet for the following TransformationModels
-  // transformation_model = "TransformationModelBSpline";
-  // //TODO: update param
-  // TransformationModelBSpline tmbspline(data, param);
-  // //TODO: update test
-  // TEST_REAL_SIMILAR(aqm.evaluateTransformationModel(transformation_model,
-  //   datum,param), 2.0);
-  // param.clear();
-  
-  // transformation_model = "TransformationModelInterpolated";
-  // //TODO: update param
-  // TransformationModelInterpolated tminterpolated(data, param);
-  // //TODO: update test
-  // TEST_REAL_SIMILAR(aqm.evaluateTransformationModel(transformation_model,
-  //   datum,param), 2.0);
-  // param.clear();
-  
-  // transformation_model = "TransformationModelLowess";
-  // //TODO: update param
-  // TransformationModelLowess tmlowess(data, param);
-  // //TODO: update test
-  // TEST_REAL_SIMILAR(aqm.evaluateTransformationModel(transformation_model,
-  //   datum,param), 2.0);
-  // param.clear();
-  
-  transformation_model = "";
-  TransformationModel tm(data, param);
-  TEST_REAL_SIMILAR(aqm.evaluateTransformationModel(transformation_model,
-    datum,param), 2.0);
+START_SECTION(inline bool operator!=(const AbsoluteQuantitationMethod& other) const)
+{
+  AbsoluteQuantitationMethod aqm1, aqm2;
+  TEST_EQUAL(aqm1 != aqm2, false);
+  aqm1.setLLOD(1.0);
+  aqm2.setLLOD(1.0);
+  TEST_EQUAL(aqm1 != aqm2, false);
+  aqm2.setLLOD(2.0);
+  TEST_EQUAL(aqm1 != aqm2, true);
+}
 END_SECTION
 
 /////////////////////////////////////////////////////////////

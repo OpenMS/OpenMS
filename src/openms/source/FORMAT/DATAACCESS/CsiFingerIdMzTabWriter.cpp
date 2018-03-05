@@ -43,12 +43,12 @@
 using namespace OpenMS;
 using namespace std;
 
-void CsiFingerIdMzTabWriter::read(const std::vector<String> & paths, Size number, MzTab & result)
+void CsiFingerIdMzTabWriter::read(const std::vector<String> & sirius_output_paths, const String & original_input_mzml, const Size & top_n_hits, MzTab & result)
 {
 
   CsiFingerIdMzTabWriter::CsiAdapterRun csi_result;
 
-  for (std::vector<String>::const_iterator it = paths.begin(); it != paths.end(); ++it)
+  for (std::vector<String>::const_iterator it = sirius_output_paths.begin(); it != sirius_output_paths.end(); ++it)
   {
 
     const std::string pathtocsicsv = *it + "/summary_csi_fingerid.csv";
@@ -70,8 +70,8 @@ void CsiFingerIdMzTabWriter::read(const std::vector<String> & paths, Size number
         OpenMS::String str = File::path(pathtocsicsv);
         std::string scan_index = SiriusMzTabWriter::extract_scan_index(str);
 
-        const UInt number_cor = (number > rowcount) ? rowcount : number;
-        for (Size j = 1; j < number_cor; ++j)
+        const UInt top_n_hits_cor = (top_n_hits > rowcount) ? rowcount : top_n_hits;
+        for (Size j = 1; j < top_n_hits_cor; ++j)
         {
           
           StringList sl;
@@ -97,9 +97,9 @@ void CsiFingerIdMzTabWriter::read(const std::vector<String> & paths, Size number
         MzTabFile mztab_out;
         MzTabMetaData md;
         MzTabMSRunMetaData md_run;
-        md_run.location = MzTabString(str);
+        md_run.location = MzTabString(original_input_mzml);
         md.ms_run[1] = md_run;
-        md.description = MzTabString("CSI:FingerID-3.5");
+        md.description = MzTabString("CSI:FingerID-4.0");
 
         //needed for header generation (score)
         std::map<Size, MzTabParameter> smallmolecule_search_engine_score;

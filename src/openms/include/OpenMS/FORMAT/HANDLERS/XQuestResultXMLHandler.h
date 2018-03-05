@@ -41,12 +41,8 @@
 #include <OpenMS/METADATA/PeptideHit.h>
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
 
-#include <OpenMS/CONCEPT/LogStream.h>
-
 namespace OpenMS
 {
-  class ProgressLogger;
-
   namespace Internal
   {
     /** @brief XMLHandler for the result files of XQuest
@@ -68,7 +64,7 @@ namespace OpenMS
                              std::vector< ProteinIdentification > & prot_ids,
                             //  Size min_n_hits_per_spectrum,
                             //  bool load_to_peptideHit_,
-                             const ProgressLogger& logger);
+                             );
 
       /// Constructor for a write-only handler for internal identification structures
       XQuestResultXMLHandler(const std::vector<ProteinIdentification>& pro_id,
@@ -77,13 +73,13 @@ namespace OpenMS
                              const String& version,
                              const ProgressLogger& logger);
 
-      virtual ~XQuestResultXMLHandler();
+      ~XQuestResultXMLHandler() override;
 
       // Docu in base class
-      void endElement(const XMLCh * const uri, const XMLCh * const local_name, const XMLCh * const qname);
+      void endElement(const XMLCh * const uri, const XMLCh * const local_name, const XMLCh * const qname) override;
 
       // Docu in base class
-      void startElement(const XMLCh * const uri, const XMLCh * const local_name, const XMLCh * const qname, const xercesc::Attributes & attributes);
+      void startElement(const XMLCh * const uri, const XMLCh * const local_name, const XMLCh * const qname, const xercesc::Attributes & attributes) override;
 
       /**
        * @brief Returns the minimum score encountered in the file.
@@ -109,7 +105,7 @@ namespace OpenMS
     private:
 
       /// Progress logger
-      const ProgressLogger& logger_;
+      //const ProgressLogger& logger_;
 
       // Decoy string used by xQuest
       String decoy_string_;

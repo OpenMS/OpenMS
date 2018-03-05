@@ -87,8 +87,8 @@ START_TEST(SwathFileConsumer, "$Id$")
 // Test "regular" / in memory consumer
 {
 
-RegularSwathFileConsumer* regular_sfc_ptr = 0;
-RegularSwathFileConsumer* regular_sfc_nullPointer = 0;
+RegularSwathFileConsumer* regular_sfc_ptr = nullptr;
+RegularSwathFileConsumer* regular_sfc_nullPointer = nullptr;
 
 START_SECTION(([EXTRA] RegularSwathFileConsumer()))
   regular_sfc_ptr = new RegularSwathFileConsumer;
@@ -411,8 +411,8 @@ END_SECTION
 // - shared functions in the base class are already tested, only test I/O here
 {
 
-CachedSwathFileConsumer* cached_sfc_ptr = 0;
-CachedSwathFileConsumer* cached_sfc_nullPointer = 0;
+CachedSwathFileConsumer* cached_sfc_ptr = nullptr;
+CachedSwathFileConsumer* cached_sfc_nullPointer = nullptr;
 
 START_SECTION(([EXTRA] CachedSwathFileConsumer()))
   cached_sfc_ptr = new CachedSwathFileConsumer("./", "tmp_osw_cached", 0, std::vector<int>());

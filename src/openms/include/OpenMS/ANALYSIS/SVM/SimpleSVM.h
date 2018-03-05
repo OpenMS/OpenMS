@@ -85,7 +85,7 @@ namespace OpenMS
     SimpleSVM();
 
     /// Destructor
-    virtual ~SimpleSVM();
+    ~SimpleSVM() override;
 
     /**
        @brief Load data and train a model.

@@ -135,7 +135,7 @@ public:
 
 protected:
 
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     vector<String> all_mods;
     StringList all_enzymes;
@@ -242,7 +242,7 @@ protected:
   }
 
 
-  ExitCodes main_(int, const char**)
+  ExitCodes main_(int, const char**) override
   {
     String inputfile_name = getStringOption_("in");
     String outputfile_name = getStringOption_("out");
@@ -255,7 +255,6 @@ protected:
     Size n_prot_hits = IDFilter::countHits(proteins);
     Size n_pep_ids = peptides.size();
     Size n_pep_hits = IDFilter::countHits(peptides);
-
 
     // Filtering peptide identification according to set criteria
 

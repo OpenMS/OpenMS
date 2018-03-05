@@ -60,9 +60,9 @@ namespace OpenMS
 
 public:
     /// menu is created here
-    INIFileEditorWindow(QWidget * parent = 0);
+    INIFileEditorWindow(QWidget * parent = nullptr);
     /// when user closes window a message box asks the user if he wants to save
-    void closeEvent(QCloseEvent * event);
+    void closeEvent(QCloseEvent * event) override;
 
 public slots:
     ///loads the xml-file into a Param object and loads Param into ParamEditor

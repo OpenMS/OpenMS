@@ -53,8 +53,8 @@ START_TEST(BernNorm, "$Id$")
 
 /////////////////////////////////////////////////////////////
 
-BernNorm* e_ptr = 0;
-BernNorm* e_nullPointer = 0;
+BernNorm* e_ptr = nullptr;
+BernNorm* e_nullPointer = nullptr;
 
 START_SECTION((BernNorm()))
 	e_ptr = new BernNorm;

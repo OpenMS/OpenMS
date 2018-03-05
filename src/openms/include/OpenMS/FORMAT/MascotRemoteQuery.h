@@ -65,10 +65,10 @@ public:
     */
     //@{
     /// default constructor
-    OPENMS_DLLAPI MascotRemoteQuery(QObject* parent = 0);
+    OPENMS_DLLAPI MascotRemoteQuery(QObject* parent = nullptr);
 
     /// destructor
-    OPENMS_DLLAPI virtual ~MascotRemoteQuery();
+    OPENMS_DLLAPI ~MascotRemoteQuery() override;
     //@}
 
 
@@ -84,12 +84,12 @@ public:
     /// returns the error message, if hasError can be used to check whether an error has occurred
     OPENMS_DLLAPI const String& getErrorMessage() const;
 
-	/// returns the search number
-    OPENMS_DLLAPI Int getSearchNumber() const;
+    /// returns the search number
+    OPENMS_DLLAPI String getSearchIdentifier() const;
 
 protected:
 
-    OPENMS_DLLAPI virtual void updateMembers_();
+    OPENMS_DLLAPI void updateMembers_() override;
 
 public slots:
 
@@ -160,7 +160,7 @@ private:
     */
     void removeHostName_(QString& url);
 
-    OPENMS_DLLAPI Int getSearchNumberFromFilePath_(const String& path) const;
+    OPENMS_DLLAPI String getSearchIdentifierFromFilePath(const String& path) const;
 
     String query_spectra_;
     QByteArray mascot_xml_;
@@ -169,7 +169,7 @@ private:
     String error_message_;
     QTimer timeout_;
     Int to_;
-    Int search_number_;
+    String search_identifier_;
 
     /// Path on mascot server
     String server_path_;

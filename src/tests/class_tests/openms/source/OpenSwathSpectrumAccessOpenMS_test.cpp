@@ -52,8 +52,8 @@ START_TEST(SpectrumAccessOpenMS, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-SpectrumAccessOpenMS* ptr = 0;
-SpectrumAccessOpenMS* nullPointer = 0;
+SpectrumAccessOpenMS* ptr = nullptr;
+SpectrumAccessOpenMS* nullPointer = nullptr;
 
 START_SECTION(SpectrumAccessOpenMS())
 {

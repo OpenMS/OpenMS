@@ -47,8 +47,8 @@ START_TEST(SourceFile, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-SourceFile* ptr = 0;
-SourceFile* nullPointer = 0;
+SourceFile* ptr = nullptr;
+SourceFile* nullPointer = nullptr;
 START_SECTION((SourceFile()))
 	ptr = new SourceFile();
 	TEST_NOT_EQUAL(ptr, nullPointer)

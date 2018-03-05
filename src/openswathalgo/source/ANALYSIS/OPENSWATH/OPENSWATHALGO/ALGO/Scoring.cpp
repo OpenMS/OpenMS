@@ -130,11 +130,14 @@ namespace OpenSwath
       {
         sqsum += (*it - mean) * (*it - mean);
       }
-      double std = sqrt(sqsum / data.size()); // standard deviation
+      double stdev = sqrt(sqsum / data.size()); // standard deviation
+
+      if (mean == 0 && stdev == 0) return; // all data is zero
+      if (stdev == 0) stdev = 1; // all data is equal
 
       for (std::size_t i = 0; i < data.size(); i++)
       {
-        data[i] = (data[i] - mean) / std;
+        data[i] = (data[i] - mean) / stdev;
       }
     }
 
@@ -160,7 +163,7 @@ namespace OpenSwath
       OPENSWATH_PRECONDITION(data1.size() != 0 && data1.size() == data2.size(), "Both data vectors need to have the same length");
 
       XCorrArrayType result;
-      result.data.reserve( std::ceil((2*maxdelay + 1) / lag));
+      result.data.reserve( (size_t)std::ceil((2*maxdelay + 1) / lag));
       int datasize = boost::numeric_cast<int>(data1.size());
       int i, j, delay;
 
@@ -213,7 +216,7 @@ namespace OpenSwath
       }
 
       XCorrArrayType result;
-      result.data.reserve( std::ceil((2*maxdelay + 1) / lag));
+      result.data.reserve( (size_t)std::ceil((2*maxdelay + 1) / lag));
       int cnt = 0;
       for (delay = -maxdelay; delay <= maxdelay; delay = delay + lag, cnt++)
       {

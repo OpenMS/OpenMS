@@ -46,8 +46,8 @@ START_TEST(SpectrumAnnotator, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-SpectrumAnnotator* ptr = 0;
-SpectrumAnnotator* null_ptr = 0;
+SpectrumAnnotator* ptr = nullptr;
+SpectrumAnnotator* null_ptr = nullptr;
 START_SECTION(SpectrumAnnotator())
 {
 	ptr = new SpectrumAnnotator();

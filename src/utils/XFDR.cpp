@@ -47,9 +47,9 @@
 #include <boost/iterator/counting_iterator.hpp>
 
 #include <string>
-#include <math.h>
+#include <cmath>
 
-#include <assert.h>
+#include <cassert>
 
 using namespace OpenMS;
 using namespace std;
@@ -152,7 +152,7 @@ protected:
 
   // this function will be used to register the tool parameters
   // it gets automatically called on tool execution
-  void registerOptionsAndFlags_() override final
+  void registerOptionsAndFlags_() final
   {
     StringList formats = ListUtils::create<String>("xml,idXML,mzid,xquest.xml");
 
@@ -566,7 +566,7 @@ protected:
   }
 
   // the main_ function is called after all parameters are read
-  ExitCodes main_(int, const char **) override final
+  ExitCodes main_(int, const char **) final
   {
     //----------------------------------------------------------------
     // parsing parameters, terminate if invalid values are encountered
@@ -742,11 +742,11 @@ protected:
     else if (in_type == FileTypes::IDXML)
     {
       // Prevent filter options for this input (currently not supported)
-      if (arg_minionsmatched != 0)
-      {
-        LOG_ERROR << "FATAL: The filter minionsmatched is not supported for idXML. Terminating." << endl;
-        return ILLEGAL_PARAMETERS;
-      }
+      //if (arg_minionsmatched != 0)
+      //{
+      //  LOG_ERROR << "FATAL: The filter minionsmatched is not supported for idXML. Terminating." << endl;
+      //  return ILLEGAL_PARAMETERS;
+      //}
 
       IdXMLFile().load(arg_in, prot_ids, all_ids);
       writeLog_("Number of IDs in input file: " + String(all_ids.size()));

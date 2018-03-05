@@ -63,8 +63,8 @@ for (Size i=1;i<10;i+=1)
 	spec.push_back(tmp);	
 }
 
-MascotInfile* ptr = 0;
-MascotInfile* nullPointer = 0;
+MascotInfile* ptr = nullptr;
+MascotInfile* nullPointer = nullptr;
 START_SECTION((MascotInfile()))
 	ptr = new MascotInfile();
 	TEST_NOT_EQUAL(ptr, nullPointer)

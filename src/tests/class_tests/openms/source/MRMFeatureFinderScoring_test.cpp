@@ -55,8 +55,8 @@ START_TEST(MRMFeatureFinderScoring, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-MRMFeatureFinderScoring* ptr = 0;
-MRMFeatureFinderScoring* nullPointer = 0;
+MRMFeatureFinderScoring* ptr = nullptr;
+MRMFeatureFinderScoring* nullPointer = nullptr;
 
 START_SECTION(MRMFeatureFinderScoring())
 {

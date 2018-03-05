@@ -89,7 +89,7 @@ class TOPPClusterMassTraces
 
  protected:
 
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     registerInputFile_("in","<file>","","Mass traces");
     setValidFormats_("in",ListUtils::create<String>("consensusXML"));
@@ -108,7 +108,7 @@ class TOPPClusterMassTraces
 
  public:
 
-  ExitCodes main_(int , const char**)
+  ExitCodes main_(int , const char**) override
   {
 
     setLogType(log_type_); 

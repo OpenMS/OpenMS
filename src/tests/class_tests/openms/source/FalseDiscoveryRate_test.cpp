@@ -48,8 +48,8 @@ START_TEST(FalseDiscoveryRate, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-FalseDiscoveryRate* ptr = 0;
-FalseDiscoveryRate* nullPointer = 0;
+FalseDiscoveryRate* ptr = nullptr;
+FalseDiscoveryRate* nullPointer = nullptr;
 START_SECTION(FalseDiscoveryRate())
 {
   ptr = new FalseDiscoveryRate();

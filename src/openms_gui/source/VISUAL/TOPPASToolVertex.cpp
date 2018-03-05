@@ -177,7 +177,7 @@ namespace OpenMS
       if (!File::exists(old_ini_file))
       {
         String msg = String("Could not open old INI file '") + old_ini_file + "'! File does not exist!";
-        if (getScene_()->isGUIMode()) QMessageBox::critical(0, "Error", msg.c_str());
+        if (getScene_() && getScene_()->isGUIMode()) QMessageBox::critical(nullptr, "Error", msg.c_str());
         else LOG_ERROR << msg << std::endl;
         tool_ready_ = false;
         return false;
@@ -195,7 +195,7 @@ namespace OpenMS
           " returned with exit code (" + String(p.exitCode()) + "), exit status (" + String(p.exitStatus()) + ")." +
           "\noutput:\n" + String(QString(p.readAll())) +
           "\n";
-      if (getScene_()->isGUIMode()) QMessageBox::critical(0, "Error", msg.c_str());
+      if (getScene_() && getScene_()->isGUIMode()) QMessageBox::critical(nullptr, "Error", msg.c_str());
       else LOG_ERROR << msg << std::endl;
       tool_ready_ = false;
       return false;
@@ -203,7 +203,7 @@ namespace OpenMS
     if (!File::exists(ini_file))
     { // it would be weird to get here, since the TOPP tool ran successfully above, so INI file should exist, but nevertheless:
       String msg = String("Could not open '") + ini_file + "'! It does not exist!";
-      if (getScene_()->isGUIMode()) QMessageBox::critical(0, "Error", msg.c_str());
+      if (getScene_() && getScene_()->isGUIMode()) QMessageBox::critical(nullptr, "Error", msg.c_str());
       else LOG_ERROR << msg << std::endl;
       tool_ready_ = false;
       return false;
@@ -454,14 +454,14 @@ namespace OpenMS
     if (this->allow_output_recycling_)
     {
       painter->setPen(Qt::green);
-      QSvgRenderer* svg_renderer = new QSvgRenderer(QString(":/Recycling_symbol.svg"), 0);
+      QSvgRenderer* svg_renderer = new QSvgRenderer(QString(":/Recycling_symbol.svg"), nullptr);
       svg_renderer->render(painter, QRectF(-7, -52, 14, 14));
     }
 
     //breakpoint set?
     if (this->breakpoint_set_)
     {
-      QSvgRenderer* svg_renderer = new QSvgRenderer(QString(":/stop_sign.svg"), 0);
+      QSvgRenderer* svg_renderer = new QSvgRenderer(QString(":/stop_sign.svg"), nullptr);
       painter->setOpacity(0.35);
       svg_renderer->render(painter, QRectF(-60, -60, 120, 120));
     }
@@ -987,7 +987,7 @@ namespace OpenMS
     {
       // search for an out edge for this parameter (not required to exist)
       int param_index;
-      TOPPASEdge* edge_out(NULL);
+      TOPPASEdge* edge_out(nullptr);
       for (ConstEdgeIterator it_edge = outEdgesBegin(); it_edge != outEdgesEnd(); ++it_edge)
       {
         param_index = (*it_edge)->getSourceOutParam();

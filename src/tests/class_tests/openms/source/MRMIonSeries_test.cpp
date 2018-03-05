@@ -47,8 +47,8 @@ START_TEST(MRMIonSeries, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-MRMIonSeries * ptr = 0;
-MRMIonSeries* nullPointer = 0;
+MRMIonSeries * ptr = nullptr;
+MRMIonSeries* nullPointer = nullptr;
 
 START_SECTION(MRMIonSeries())
 {

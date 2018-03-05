@@ -227,7 +227,7 @@ namespace OpenMS
     Spectrum1DWidget * widget_1d = tv_->getActive1DWidget();
 
     // return if no active 1D widget is present or no layers are present (e.g. the addLayer call failed)
-    if (widget_1d == 0) return;
+    if (widget_1d == nullptr) return;
     if (widget_1d->canvas()->getLayerCount() == 0) return;
 
     widget_1d->canvas()->activateSpectrum(index);
@@ -303,7 +303,7 @@ namespace OpenMS
     Spectrum1DWidget * widget_1d = tv_->getActive1DWidget();
 
     // return if no active 1D widget is present or no layers are present (e.g. the addLayer call failed)
-    if (widget_1d == 0) return;
+    if (widget_1d == nullptr) return;
     if (widget_1d->canvas()->getLayerCount() == 0) return;
 
     // If we have a chromatogram, we cannot just simply activate this spectrum.

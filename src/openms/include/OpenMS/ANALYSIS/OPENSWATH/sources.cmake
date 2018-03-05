@@ -10,6 +10,7 @@ set(sources_list_h
   DIAHelper.h
   DIAPrescoring.h
   DIAScoring.h
+  MRMFeaturePicker.h
   MRMIonSeries.h
   MRMAssay.h
   MRMDecoy.h
@@ -22,12 +23,14 @@ set(sources_list_h
   OpenSwathTSVWriter.h
   OpenSwathOSWWriter.h
   OpenSwathWorkflow.h
+  PeakIntegrator.h
   SONARScoring.h
   SpectrumAddition.h
+  TargetedSpectraExtractor.h
   SwathMapMassCorrection.h
   SwathWindowLoader.h
-  TransitionTSVReader.h
-  TransitionPQPReader.h
+  TransitionTSVFile.h
+  TransitionPQPFile.h
   MRMFeatureQC.h
   MRMFeatureFilter.h
 )
@@ -43,4 +46,3 @@ source_group("Header Files\\OpenMS\\ANALYSIS\\OPENSWATH" FILES ${sources_h})
 set_source_files_properties(${directory}/sources.cmake PROPERTIES HEADER_FILE_ONLY TRUE)
 
 set(OpenMS_sources_h ${OpenMS_sources_h} ${sources_h})
-

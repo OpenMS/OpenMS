@@ -42,7 +42,7 @@ namespace OpenMS
 
   TransformationModelBSpline::TransformationModelBSpline(
     const TransformationModel::DataPoints& data, const Param& params) :
-    spline_(0)
+    spline_(nullptr)
   {
     // parameter handling/checking:
     params_ = params;

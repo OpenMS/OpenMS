@@ -50,8 +50,8 @@ START_TEST(MsInspectFile, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-MsInspectFile* ptr = 0;
-MsInspectFile* null_ptr = 0;
+MsInspectFile* ptr = nullptr;
+MsInspectFile* null_ptr = nullptr;
 START_SECTION(MsInspectFile())
 {
 	ptr = new MsInspectFile();

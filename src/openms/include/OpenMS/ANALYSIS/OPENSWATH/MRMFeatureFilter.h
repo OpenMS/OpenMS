@@ -70,11 +70,11 @@ public:
     MRMFeatureFilter();
 
     /// Destructor
-    ~MRMFeatureFilter();
+    ~MRMFeatureFilter() override;
     //@}
 
     /// Synchronize members with param class
-    void updateMembers_();
+    void updateMembers_() override;
 
     /**
       @brief Flags or filters features and subordinates in a FeatureMap
@@ -150,6 +150,16 @@ public:
     */ 
     std::map<String,int> countLabelsAndTransitionTypes(const Feature & component_group,
       const TargetedExperiment & transitions);
+    
+    /**
+      @brief Sorts, removes duplicates, and concatenates a list of Strings
+
+      @param str_vec vector of Strings
+      @param delim token to seperate Strings in the list
+
+      @return A concatenated string.
+    */ 
+    String uniqueJoin(std::vector<String>& str_vec, String& delim);
 
 private:
     template <typename T>

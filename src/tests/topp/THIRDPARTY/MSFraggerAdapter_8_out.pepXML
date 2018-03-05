@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="pepXML_std.xsl"?>
+<msms_pipeline_analysis date="2017-11-27T15:34:49" xmlns="http://regis-web.systemsbiology.net/pepXML" summary_xml="spectra_comet.pepXML" xsi:schemaLocation="http://sashimi.sourceforge.net/schema_revision/pepXML/pepXML_v118.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<msms_run_summary base_name="spectra_comet" raw_data_type="raw" raw_data=".mzXML" search_engine="X! Tandem">
+<sample_enzyme name="Trypsin">
+<specificity cut="KR" no_cut="P" sense="C"/>
+</sample_enzyme>
+<search_summary base_name="spectra_comet" precursor_mass_type="monoisotopic" search_engine="X! Tandem" search_engine_version="MSFragger-20170103.0" fragment_mass_type="monoisotopic" search_id="1">
+<search_database local_path="/tmp/20171127_153448_a1-lukas-lin_22842_1/proteins.fasta" type="AA"/>
+<enzymatic_search_constraint enzyme="default" min_number_termini="1" max_num_internal_cleavages="2"/>
+<aminoacid_modification aminoacid="C" massdiff="57.0215" mass="160.0307" variable="N"/>
+<aminoacid_modification aminoacid="M" massdiff="15.9949" mass="147.0354" variable="Y"/>
+</search_summary>
+<spectrum_query start_scan="1" assumed_charge="3" spectrum="spectra_comet.1.1.3" end_scan="1" index="1" precursor_neutral_mass="1557.7650" retention_time_sec="2655.096">
+<search_result>
+<search_hit peptide="DFASSGGYVLHLHR" massdiff="-0.0039" calc_neutral_pep_mass="1557.7689" peptide_next_aa="E" num_missed_cleavages="0" num_tol_term="2" num_tot_proteins="1" tot_num_ions="52" hit_rank="1" num_matched_ions="21" protein=" test2_rev ##1" peptide_prev_aa="-" is_rejected="0">
+<search_score name="hyperscore" value="48.806"/>
+<search_score name="nextscore" value="48.806"/>
+<search_score name="expect" value="1.491e-12"/>
+</search_hit>
+</search_result>
+</spectrum_query>
+<spectrum_query start_scan="2" assumed_charge="3" spectrum="spectra_comet.2.2.3" end_scan="2" index="2" precursor_neutral_mass="3186.6059" retention_time_sec="4587.669">
+<search_result>
+<search_hit peptide="IALSRPNVEVVALNDPFITNDYAAYMFK" massdiff="0.0005" calc_neutral_pep_mass="3186.6055" peptide_next_aa="E" num_missed_cleavages="0" num_tol_term="2" num_tot_proteins="1" tot_num_ions="108" hit_rank="1" num_matched_ions="23" protein="BSA2 ##2" peptide_prev_aa="-" is_rejected="0">
+<modification_info>
+<mod_aminoacid_mass mass="147.0354" position="26"/>
+</modification_info>
+<search_score name="hyperscore" value="49.853"/>
+<search_score name="nextscore" value="49.853"/>
+<search_score name="expect" value="8.159e-13"/>
+</search_hit>
+</search_result>
+</spectrum_query>
+<spectrum_query start_scan="3" assumed_charge="3" spectrum="spectra_comet.3.3.3" end_scan="3" index="3" precursor_neutral_mass="2323.1381" retention_time_sec="4923.777">
+<search_result>
+<search_hit peptide="RPGADSDIGGFGGLFDLAQAGFR" massdiff="0.0036" calc_neutral_pep_mass="2323.1345" peptide_next_aa="A" num_missed_cleavages="0" num_tol_term="2" num_tot_proteins="1" tot_num_ions="88" hit_rank="1" num_matched_ions="24" protein="BSA3 ##3" peptide_prev_aa="-" is_rejected="0">
+<search_score name="hyperscore" value="52.026"/>
+<search_score name="nextscore" value="52.026"/>
+<search_score name="expect" value="2.337e-13"/>
+</search_hit>
+</search_result>
+</spectrum_query>
+</msms_run_summary>
+</msms_pipeline_analysis>

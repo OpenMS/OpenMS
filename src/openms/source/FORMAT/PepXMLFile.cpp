@@ -60,9 +60,9 @@ namespace OpenMS
   PepXMLFile::PepXMLFile() :
     XMLHandler("", "1.12"),
     XMLFile("/SCHEMAS/pepXML_v114.xsd", "1.14"),
-    proteins_(NULL),
-    peptides_(NULL),
-    lookup_(NULL),
+    proteins_(nullptr),
+    peptides_(nullptr),
+    lookup_(nullptr),
     scan_map_(),
     analysis_summary_(false),
     keep_native_name_(false),
@@ -617,7 +617,7 @@ namespace OpenMS
 
     if (!rt_present) // get RT from experiment
     {
-      if (lookup_ == NULL || lookup_->empty())
+      if (lookup_ == nullptr || lookup_->empty())
       {
         // no lookup given, report non-fatal error
         error(LOAD, "Cannot get RT information - no spectra given");
@@ -710,9 +710,9 @@ namespace OpenMS
     exp_name_.clear();
     prot_id_.clear();
     date_.clear();
-    proteins_ = NULL;
-    peptides_ = NULL;
-    lookup_ = NULL;
+    proteins_ = nullptr;
+    peptides_ = nullptr;
+    lookup_ = nullptr;
     scan_map_.clear();
   }
 
@@ -1353,7 +1353,6 @@ namespace OpenMS
     else if (element == "sample_enzyme") // parent: "msms_run_summary"
     { // special case: search parameter that occurs *before* "search_summary"!
       enzyme_ = attributeAsString_(attributes, "name");
-      if (enzyme_ == "nonspecific") enzyme_ = "unspecific cleavage";
       if (ProteaseDB::getInstance()->hasEnzyme(enzyme_.toLower()))
       {
         params_.digestion_enzyme = *(ProteaseDB::getInstance()->getEnzyme(enzyme_));
@@ -1361,9 +1360,8 @@ namespace OpenMS
     }
     else if (element == "enzymatic_search_constraint") // parent: "search_summary"
     {
-      //<enzymatic_search_constraint enzyme="nonspecific" max_num_internal_cleavages="1" min_number_termini="2"/>
+      ///<enzymatic_search_constraint enzyme="nonspecific" max_num_internal_cleavages="1" min_number_termini="2"/>
       enzyme_ = attributeAsString_(attributes, "enzyme");
-      if (enzyme_ == "nonspecific") enzyme_ = "unspecific cleavage";
       if (ProteaseDB::getInstance()->hasEnzyme(enzyme_))
       {
         params_.digestion_enzyme = *(ProteaseDB::getInstance()->getEnzyme(enzyme_.toLower()));
@@ -1461,7 +1459,7 @@ namespace OpenMS
       {
         const Residue* residue = ResidueDB::getInstance()->getResidue(it->aminoacid);
 
-        if (residue == 0)
+        if (residue == nullptr)
         {
           double new_mass = it->massdiff.toDouble();
           if (it->aminoacid == "" && it->terminus =="n")

@@ -47,8 +47,8 @@ START_TEST(Product, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-Product* ptr = 0;
-Product* nullPointer = 0;
+Product* ptr = nullptr;
+Product* nullPointer = nullptr;
 START_SECTION((Product()))
 	ptr = new Product();
 	TEST_NOT_EQUAL(ptr, nullPointer)

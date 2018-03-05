@@ -34,7 +34,6 @@ MassExplainer.cpp
 Matrix.cpp
 Param.cpp
 QTCluster.cpp
-SparseVector.cpp
 String.cpp
 StringListUtils.cpp
 StringUtils.cpp

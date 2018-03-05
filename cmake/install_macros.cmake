@@ -140,7 +140,7 @@ endmacro()
 macro(install_thirdparty_folder foldername)
   if(EXISTS ${SEARCH_ENGINES_DIRECTORY}/${foldername})
     install(DIRECTORY             ${SEARCH_ENGINES_DIRECTORY}/${foldername}
-            DESTINATION           ${INSTALL_BIN_DIR}/SEARCHENGINES
+            DESTINATION           ${INSTALL_SHARE_DIR}/THIRDPARTY
             COMPONENT             ${foldername}
             FILE_PERMISSIONS      OWNER_EXECUTE OWNER_WRITE OWNER_READ
                                   GROUP_READ GROUP_EXECUTE

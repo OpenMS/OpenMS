@@ -92,7 +92,7 @@ public:
   }
 
 protected:
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "Input mzML file.");
     setValidFormats_("in", ListUtils::create<String>("mzML"));
@@ -105,12 +105,12 @@ protected:
     registerSubsection_("algorithm", "Algorithm section for merging spectra");
   }
 
-  Param getSubsectionDefaults_(const String & /*section*/) const
+  Param getSubsectionDefaults_(const String & /*section*/) const override
   {
     return SpectraMerger().getParameters();
   }
 
-  ExitCodes main_(int, const char **)
+  ExitCodes main_(int, const char **) override
   {
     //-------------------------------------------------------------
     // parsing parameters

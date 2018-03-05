@@ -748,6 +748,16 @@ namespace OpenMS
           {
             if (layer.filters.passes(spectrum, it - spectrum.begin()))
             {
+
+              // use peak colors stored in the layer, if available
+              if (layer.peak_colors_1d.size() == spectrum.size())
+              {
+                // find correct peak index
+                Size peak_index = std::distance(spectrum.begin(), it);
+                pen.setColor(layer.peak_colors_1d[peak_index]);
+                painter->setPen(pen);
+              }
+
               dataToWidget(*it, end, layer.flipped);
               dataToWidget(it->getMZ(), 0.0f, begin, layer.flipped);
 
@@ -1045,7 +1055,7 @@ namespace OpenMS
 
     //estimate peak type
     PeakTypeEstimator pte;
-    if (pte.estimateType(getCurrentLayer_().getCurrentSpectrum().begin(), getCurrentLayer_().getCurrentSpectrum().end()) == SpectrumSettings::RAWDATA)
+    if (pte.estimateType(getCurrentLayer_().getCurrentSpectrum().begin(), getCurrentLayer_().getCurrentSpectrum().end()) == SpectrumSettings::PROFILE)
     {
       draw_modes_.back() = DM_CONNECTEDLINES;
       peak_penstyle_.push_back(Qt::SolidLine);
@@ -1284,7 +1294,7 @@ namespace OpenMS
       return;
 
     QMenu * context_menu = new QMenu(this);
-    QAction * result = 0;
+    QAction * result = nullptr;
 
     Annotations1DContainer & annots_1d = getCurrentLayer_().getCurrentAnnotations();
     Annotation1DItem * annot_item = annots_1d.getItemAt(e->pos());

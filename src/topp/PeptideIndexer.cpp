@@ -115,7 +115,7 @@ public:
   }
 
 protected:
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "Input idXML file containing the identifications.");
     setValidFormats_("in", ListUtils::create<String>("idXML"));
@@ -127,7 +127,7 @@ protected:
     registerFullParam_(PeptideIndexing().getParameters());
    }
 
-  ExitCodes main_(int, const char**)
+  ExitCodes main_(int, const char**) override
   {
     //-------------------------------------------------------------
     // parsing parameters

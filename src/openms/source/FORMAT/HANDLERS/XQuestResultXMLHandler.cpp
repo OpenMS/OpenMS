@@ -47,7 +47,7 @@
 #include <iostream>
 #include <utility>
 
-#include <assert.h>
+#include <cassert>
 
 using namespace std;
 using namespace xercesc;

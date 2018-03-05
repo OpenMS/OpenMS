@@ -52,7 +52,7 @@ class TestSuperimposer
 		check_defaults_ = false; 
 	}
 
-	virtual void run(const ConsensusMap& , const ConsensusMap& , TransformationDescription& transformation)
+	void run(const ConsensusMap& , const ConsensusMap& , TransformationDescription& transformation) override
 	{
 		Param params;
 		params.setValue("slope",1.1);
@@ -66,8 +66,8 @@ START_TEST(BaseSuperimposer, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-TestSuperimposer* ptr = 0;
-TestSuperimposer* nullPointer = 0;
+TestSuperimposer* ptr = nullptr;
+TestSuperimposer* nullPointer = nullptr;
 START_SECTION((BaseSuperimposer()))
 	ptr = new TestSuperimposer();
 	TEST_NOT_EQUAL(ptr, nullPointer)
