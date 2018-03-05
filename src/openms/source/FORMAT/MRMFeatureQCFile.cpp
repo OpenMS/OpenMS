@@ -41,7 +41,7 @@
 
 namespace OpenMS
 {
-  void MRMFeatureQCFile::load(const String& filename, MRMFeatureQC& mrmfqc) const
+  void MRMFeatureQCFile::load(const String& filename, MRMFeatureQC& mrmfqc, const bool is_component_group) const
   {
     CsvFile csv(filename, ',', false, -1);
     StringList sl;
@@ -54,7 +54,7 @@ namespace OpenMS
     {
       headers[sl[i]] = i; // for each header found, assign an index value to it
     }
-    if (headers.count("component_name")) // load component file
+    if (!is_component_group) // load component file
     {
       mrmfqc.component_qcs.clear();
       for (Size i = 1; i < csv.rowCount(); ++i)
@@ -63,7 +63,7 @@ namespace OpenMS
         pushValuesFromLine_(sl, headers, mrmfqc.component_qcs);
       }
     }
-    else if (headers.count("component_group_name")) // load component group file
+    else // load component group file
     {
       mrmfqc.component_group_qcs.clear();
       for (Size i = 1; i < csv.rowCount(); ++i)
@@ -71,10 +71,6 @@ namespace OpenMS
         csv.getRow(i, sl);
         pushValuesFromLine_(sl, headers, mrmfqc.component_group_qcs);
       }
-    }
-    else
-    {
-      throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "The file must contain one of the two following columns: component_name, component_group_name.");
     }
   }
 

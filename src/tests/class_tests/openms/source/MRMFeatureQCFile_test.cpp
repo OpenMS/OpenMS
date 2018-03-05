@@ -61,12 +61,12 @@ START_SECTION(~MRMFeatureQCFile())
 }
 END_SECTION
 
-START_SECTION(void load(const String& filename, MRMFeatureQC& mrmfqc) const)
+START_SECTION(void load(const String& filename, MRMFeatureQC& mrmfqc, const bool is_component_group) const)
 {
   MRMFeatureQCFile mrmfqcfile;
   MRMFeatureQC mrmfqc;
-  mrmfqcfile.load(OPENMS_GET_TEST_DATA_PATH("MRMFeatureQCFile_1.csv"), mrmfqc); // components file
-  mrmfqcfile.load(OPENMS_GET_TEST_DATA_PATH("MRMFeatureQCFile_2.csv"), mrmfqc); // component groups file
+  mrmfqcfile.load(OPENMS_GET_TEST_DATA_PATH("MRMFeatureQCFile_1.csv"), mrmfqc, false); // components file
+  mrmfqcfile.load(OPENMS_GET_TEST_DATA_PATH("MRMFeatureQCFile_2.csv"), mrmfqc, true); // component groups file
   TEST_EQUAL(mrmfqc.component_qcs[0].component_name, "component1");
   TEST_EQUAL(mrmfqc.component_qcs[1].component_name, "component2");
   TEST_EQUAL(mrmfqc.component_qcs[2].component_name, "component3");

@@ -64,8 +64,12 @@ public:
 
     @exception Exception::FileNotFound is thrown if the file could not be opened
     @exception Exception::ParseError is thrown if an error occurs during parsing
+
+    @param[in] filename The path to the input file
+    @param[in,out] mrmfqc The output class which will contain the criteria
+    @param[in] is_component_group true if the user intends to load ComponentGroupQCs data, false otherwise
   */
-  void load(const String& filename, MRMFeatureQC& mrmfqc) const;
+  void load(const String& filename, MRMFeatureQC& mrmfqc, const bool is_component_group) const;
 
   /*
     @brief Stores an MRMFeatureQC file.
