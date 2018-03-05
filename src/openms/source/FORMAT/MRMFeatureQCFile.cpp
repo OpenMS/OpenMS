@@ -84,18 +84,19 @@ namespace OpenMS
     std::map<String, Size>::const_iterator it;
     it = headers.find("component_name");
     c.component_name = it != headers.end() ? line[it->second] : "";
+    if (c.component_name.empty()) return;
     it = headers.find("retention_time_l");
     c.retention_time_l = it != headers.end() ? line[it->second].toDouble() : 0.0;
     it = headers.find("retention_time_u");
-    c.retention_time_u = it != headers.end() ? line[it->second].toDouble() : 0.0;
+    c.retention_time_u = it != headers.end() ? line[it->second].toDouble() : 100.0;
     it = headers.find("intensity_l");
     c.intensity_l = it != headers.end() ? line[it->second].toDouble() : 0.0;
     it = headers.find("intensity_u");
-    c.intensity_u = it != headers.end() ? line[it->second].toDouble() : 0.0;
+    c.intensity_u = it != headers.end() ? line[it->second].toDouble() : 1e12;
     it = headers.find("overall_quality_l");
     c.overall_quality_l = it != headers.end() ? line[it->second].toDouble() : 0.0;
     it = headers.find("overall_quality_u");
-    c.overall_quality_u = it != headers.end() ? line[it->second].toDouble() : 0.0;
+    c.overall_quality_u = it != headers.end() ? line[it->second].toDouble() : 1e12;
     for (const std::pair<String, Size>& h : headers) // parse the parameters
     {
       const String& header = h.first;
@@ -106,7 +107,7 @@ namespace OpenMS
         setPairValue_(String(m[1]), line[i], String(m[2]), c.meta_value_qc);
       }
     }
-    c_qcs.push_back(c); // TODO: check for any condition before pushing?
+    c_qcs.push_back(c);
   }
 
   void MRMFeatureQCFile::pushValuesFromLine_(
@@ -119,42 +120,43 @@ namespace OpenMS
     std::map<String, Size>::const_iterator it;
     it = headers.find("component_group_name");
     cg.component_group_name = it != headers.end() ? line[it->second] : "";
+    if (cg.component_group_name.empty()) return;
     it = headers.find("retention_time_l");
     cg.retention_time_l = it != headers.end() ? line[it->second].toDouble() : 0.0;
     it = headers.find("retention_time_u");
-    cg.retention_time_u = it != headers.end() ? line[it->second].toDouble() : 0.0;
+    cg.retention_time_u = it != headers.end() ? line[it->second].toDouble() : 100.0;
     it = headers.find("intensity_l");
     cg.intensity_l = it != headers.end() ? line[it->second].toDouble() : 0.0;
     it = headers.find("intensity_u");
-    cg.intensity_u = it != headers.end() ? line[it->second].toDouble() : 0.0;
+    cg.intensity_u = it != headers.end() ? line[it->second].toDouble() : 1e12;
     it = headers.find("overall_quality_l");
     cg.overall_quality_l = it != headers.end() ? line[it->second].toDouble() : 0.0;
     it = headers.find("overall_quality_u");
-    cg.overall_quality_u = it != headers.end() ? line[it->second].toDouble() : 0.0;
+    cg.overall_quality_u = it != headers.end() ? line[it->second].toDouble() : 1e12;
     it = headers.find("n_heavy_l");
     cg.n_heavy_l = it != headers.end() ? line[it->second].toInt() : 0;
     it = headers.find("n_heavy_u");
-    cg.n_heavy_u = it != headers.end() ? line[it->second].toInt() : 0;
+    cg.n_heavy_u = it != headers.end() ? line[it->second].toInt() : 100;
     it = headers.find("n_light_l");
     cg.n_light_l = it != headers.end() ? line[it->second].toInt() : 0;
     it = headers.find("n_light_u");
-    cg.n_light_u = it != headers.end() ? line[it->second].toInt() : 0;
+    cg.n_light_u = it != headers.end() ? line[it->second].toInt() : 100;
     it = headers.find("n_detecting_l");
     cg.n_detecting_l = it != headers.end() ? line[it->second].toInt() : 0;
     it = headers.find("n_detecting_u");
-    cg.n_detecting_u = it != headers.end() ? line[it->second].toInt() : 0;
+    cg.n_detecting_u = it != headers.end() ? line[it->second].toInt() : 100;
     it = headers.find("n_quantifying_l");
     cg.n_quantifying_l = it != headers.end() ? line[it->second].toInt() : 0;
     it = headers.find("n_quantifying_u");
-    cg.n_quantifying_u = it != headers.end() ? line[it->second].toInt() : 0;
+    cg.n_quantifying_u = it != headers.end() ? line[it->second].toInt() : 100;
     it = headers.find("n_identifying_l");
     cg.n_identifying_l = it != headers.end() ? line[it->second].toInt() : 0;
     it = headers.find("n_identifying_u");
-    cg.n_identifying_u = it != headers.end() ? line[it->second].toInt() : 0;
+    cg.n_identifying_u = it != headers.end() ? line[it->second].toInt() : 100;
     it = headers.find("n_transitions_l");
     cg.n_transitions_l = it != headers.end() ? line[it->second].toInt() : 0;
     it = headers.find("n_transitions_u");
-    cg.n_transitions_u = it != headers.end() ? line[it->second].toInt() : 0;
+    cg.n_transitions_u = it != headers.end() ? line[it->second].toInt() : 100;
     it = headers.find("ion_ratio_pair_name_1");
     cg.ion_ratio_pair_name_1 = it != headers.end() ? line[it->second] : "";
     it = headers.find("ion_ratio_pair_name_2");
@@ -162,7 +164,7 @@ namespace OpenMS
     it = headers.find("ion_ratio_l");
     cg.ion_ratio_l = it != headers.end() ? line[it->second].toDouble() : 0.0;
     it = headers.find("ion_ratio_u");
-    cg.ion_ratio_u = it != headers.end() ? line[it->second].toDouble() : 0.0;
+    cg.ion_ratio_u = it != headers.end() ? line[it->second].toDouble() : 1e12;
     it = headers.find("ion_ratio_feature_name");
     cg.ion_ratio_feature_name = it != headers.end() ? line[it->second] : "";
 
@@ -176,7 +178,7 @@ namespace OpenMS
         setPairValue_(String(m[1]), line[i], String(m[2]), cg.meta_value_qc);
       }
     }
-    cg_qcs.push_back(cg); // TODO: check for any condition before pushing?
+    cg_qcs.push_back(cg);
   }
 
   void MRMFeatureQCFile::setPairValue_(
