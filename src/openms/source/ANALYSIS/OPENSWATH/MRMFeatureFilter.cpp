@@ -245,24 +245,13 @@ namespace OpenMS
             for (auto const& kv : filter_criteria.component_qcs[c_qc_it].meta_value_qc)
             {
               // std::cout << "MetaData" << std::endl; //debugging
-              const Feature& component = features[feature_it].getSubordinates()[sub_it];
-              const String& meta_value_key = kv.first;
-              const double meta_value_l = kv.second.first;
-              const double meta_value_u = kv.second.second;
-              if (component.metaValueExists(meta_value_key))
+              bool metavalue_exists{false};
+              if (!checkMetaValue(features[feature_it].getSubordinates()[sub_it], kv.first, kv.second.first, kv.second.second, metavalue_exists))
               {
-                const double meta_value = (double)component.getMetaValue(meta_value_key);
-                if (!checkRange(meta_value, meta_value_l, meta_value_u))
-                {
-                  c_qc_pass = false;
-                  c_qc_fail_message_vec.push_back("metaValue[" + meta_value_key + "]");
-                }
-                ++c_tests_count;
+                c_qc_pass = false;
+                c_qc_fail_message_vec.push_back("metaValue[" + kv.first + "]");
               }
-              else
-              {
-                LOG_INFO << "Warning: no metaValue found for transition_id " << component.getMetaValue("native_id") << " for metaValue key " << meta_value_key << "." << std::endl;
-              }
+              if (metavalue_exists) ++c_tests_count;
             }
           }
         }
@@ -435,6 +424,29 @@ namespace OpenMS
     return ratio;
   }
 
+  bool MRMFeatureFilter::checkMetaValue(
+    const Feature & component,
+    const String & meta_value_key,
+    const double & meta_value_l,
+    const double & meta_value_u,
+    bool & key_exists
+  ) const
+  {
+    bool check = true;
+    if (component.metaValueExists(meta_value_key))
+    {
+      key_exists = true;
+      const double meta_value = (double)component.getMetaValue(meta_value_key);
+      check = checkRange(meta_value, meta_value_l, meta_value_u);
+    }
+    else
+    {
+      key_exists = false;
+      LOG_INFO << "Warning: no metaValue found for transition_id " << component.getMetaValue("native_id") << " for metaValue key " << meta_value_key << ".";
+    }
+    return check;
+  }
+
   String MRMFeatureFilter::uniqueJoin(std::vector<String>& str_vec, String& delim)
   {
     //remove duplicates
@@ -457,16 +469,10 @@ namespace OpenMS
   }
 
   template <typename T>
-  bool MRMFeatureFilter::checkRange(T const& value, T const& value_l, T const& value_u)
+  bool MRMFeatureFilter::checkRange(const T& value, const T& value_l, const T& value_u) const
   {
-    bool range_check = true;
-    if (value < value_l
-      || value > value_u)
-    {
-      range_check = false;
-    }
     // std::cout << "value: " << (String)value << " lb: " << (String)value_l << " ub: " << (String)value_u << std::endl; //debugging
-    return range_check;
+    return value >= value_l && value <= value_u;
   }
   
   //TODO: Future addition to allow for generating a QcML attachment for QC reporting

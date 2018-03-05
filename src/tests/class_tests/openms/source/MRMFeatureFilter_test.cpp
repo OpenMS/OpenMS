@@ -134,6 +134,38 @@ START_SECTION(double calculateIonRatio(const Feature & component_1, const Featur
 }
 END_SECTION
 
+START_SECTION(bool checkMetaValue(
+  const Feature & component,
+  const String & meta_value_key,
+  const double & meta_value_l,
+  const double & meta_value_u,
+  bool & key_exists
+) const)
+{
+  MRMFeatureFilter mrmff;
+  bool metavalue_exists;
+
+  //make test feature
+  String feature_name = "peak_apex_int";
+  OpenMS::Feature component_1;
+  component_1.setMetaValue(feature_name, 5.0);
+  component_1.setMetaValue("native_id","component1");
+
+  // test parameters
+  double meta_value_l(4.0), meta_value_u(6.0);
+  TEST_EQUAL(mrmff.checkMetaValue(component_1, feature_name, meta_value_l, meta_value_u, metavalue_exists), true); // pass case
+  TEST_EQUAL(metavalue_exists, true);
+  component_1.setMetaValue(feature_name, 6.0);
+  TEST_EQUAL(mrmff.checkMetaValue(component_1, feature_name, meta_value_l, meta_value_u,metavalue_exists), true); // edge pass case
+  TEST_EQUAL(metavalue_exists, true);
+  component_1.setMetaValue(feature_name, 3.0);
+  TEST_EQUAL(mrmff.checkMetaValue(component_1, feature_name, meta_value_l, meta_value_u, metavalue_exists), false); // fail case
+  TEST_EQUAL(metavalue_exists, true);
+  TEST_EQUAL(mrmff.checkMetaValue(component_1, "peak_area", meta_value_l, meta_value_u, metavalue_exists), true); // not found case
+  TEST_EQUAL(metavalue_exists, false);
+}
+END_SECTION
+
 START_SECTION((std::map<String,int> countLabelsAndTransitionTypes(const Feature & component_group, const TargetedExperiment & transitions)))
 {
   MRMFeatureFilter mrmff;
