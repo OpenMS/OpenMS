@@ -61,9 +61,10 @@ public:
      */
     void load(const String & filename,
               std::vector< PeptideIdentification > & pep_ids,
-              std::vector< ProteinIdentification > & prot_ids,
-              Size min_n_hits_per_spectrum = 0,
-              bool load_to_peptideHit = false);
+              std::vector< ProteinIdentification > & prot_ids
+              // Size min_n_hits_per_spectrum = 0
+              // bool load_to_peptideHit = false
+            );
 
     // Currently not implemented
     //void store(const String &, std::vector< std::vector< PeptideIdentification > > & );

@@ -106,7 +106,8 @@ public:
   static const String param_in_type;
   static const String param_out_idXML;
   static const String param_out_mzid;
-  static const String param_decoy_prefix; // full prefix for decoy proteins
+  static const String param_out_xquest;
+  static const String param_decoy_string; // full prefix for decoy proteins
   static const String param_minborder;  // minborder  # filter for minimum precursor mass error (ppm)
   static const String param_maxborder;  // maxborder  # filter for maximum precursor mass error (ppm)
   static const String param_mindeltas;  // mindeltas  0.95 # filter for delta score, 0 is no filter, minimum delta score required, hits are rejected if larger or equal
@@ -128,6 +129,7 @@ public:
   static const String crosslink_class_monolinks;  // monolinks
   static const String crosslink_class_monodecoys; // monodecoys
   static const String crosslink_class_decoys; // decoys
+  static const String crosslink_class_targets; // targets
   static const String crosslink_class_hybriddecoysintralinks; // hybriddecoysintralinks
   static const String crosslink_class_hybriddecoysinterlinks; // hybriddecoysintralinks
 
@@ -170,8 +172,12 @@ protected:
     registerOutputFile_(TOPPXFDR::param_out_mzid, "<mzIdentML_file>", "", "Output as mzIdentML file", false, false);
     setValidFormats_(TOPPXFDR::param_out_mzid, ListUtils::create<String>("mzid"));
 
+    // xquest.xml output
+    registerOutputFile_(TOPPXFDR::param_out_xquest, "<xQuestXML_file>", "", "Output as xquest.xml file", false, false);
+    setValidFormats_(TOPPXFDR::param_out_xquest, ListUtils::create<String>("xquest.xml"));
+
     // decoy prefix
-    registerStringOption_(TOPPXFDR::param_decoy_prefix, "<string>", "DECOY_", "Prefix of decoy protein ids. The correspondig target protein id should be retrievable by deleting this prefix.", false);
+    registerStringOption_(TOPPXFDR::param_decoy_string, "<string>", "DECOY_", "Prefix of decoy protein ids. The correspondig target protein id should be retrievable by deleting this prefix.", false);
 
     // Minborder
     registerIntOption_(TOPPXFDR::param_minborder, "<minborder>", -1, "Filter for minimum precursor mass error (ppm).", false);
@@ -276,14 +282,18 @@ protected:
   {
     bool set_prot_id = prot_ids.size() == 1;
 
-    // ProteinIdentification::SearchParameters search_params = prot_ids[0].getSearchParameters();
-    String decoy_string = getStringOption_(TOPPXFDR::param_decoy_prefix);
 
-    // if the metaValue exists in search_params and the default value for XFDR was not changed, use the one in search_params?
-    // if (search_params.metaValueExists("decoy_string") && decoy_string == "DECOY_")
-    // {
-    //   decoy_string = search_params.getMetaValue("decoy_string");
-    // }
+    String decoy_string = getStringOption_(TOPPXFDR::param_decoy_string);
+
+    cout << "TEST prepareInput, prot_ids: " << prot_ids.size() << endl;
+
+    // if the metaValue exists in search_params and the default value for XFDR was not changed, use the one in search_params
+    ProteinIdentification::SearchParameters search_params = prot_ids[0].getSearchParameters();
+    if (search_params.metaValueExists("decoy_string") && decoy_string == "DECOY_")
+    {
+      decoy_string = search_params.getMetaValue("decoy_string");
+      cout << "TEST prepareInput, decoy_string: " << decoy_string << endl;
+    }
 
     // Preprocess all peptide identifications
     for (vector< PeptideIdentification >::iterator pep_ids_it = pep_ids.begin();
@@ -328,7 +338,7 @@ protected:
       // assert(pep_id.metaValueExists(TOPPXFDR::target_decoy));
 
       // ProteinIdentification::SearchParameters search_params = prot_ids[0].getSearchParameters();
-      // String decoy_string = getStringOption_(TOPPXFDR::param_decoy_prefix);
+      // String decoy_string = getStringOption_(TOPPXFDR::param_decoy_string);
       // String decoy_string = "decoy_";
       // if (search_params.metaValueExists("decoy_string"))
       // {
@@ -350,15 +360,18 @@ protected:
             String alpha_prot = alpha_ev_it->getProteinAccession();
             String beta_prot = beta_ev_it->getProteinAccession();
 
+            cout << "TEST decoy_string: " << decoy_string << " | alpha: " << alpha_prot << " | beta_prot: " << beta_prot << endl;
+
             // alpha_prot.substitute("reverse_", "");
             alpha_prot.substitute(decoy_string, "");
             // beta_prot.substitute("reverse_", "");
             beta_prot.substitute(decoy_string, "");
             // assert(alpha_prot.hasSubstring("reverse") == false);
             // assert(beta_prot.hasSubstring("reverse") == false);
+            cout << "TEST after subst: " << decoy_string << " | alpha: " << alpha_prot << " | beta_prot: " << beta_prot << endl;
             assert(alpha_prot.hasSubstring(decoy_string) == false);
             assert(beta_prot.hasSubstring(decoy_string) == false);
-            // TODO rather make two normal metaValues with boolean values
+
             pep_hits[0].setMetaValue("OpenXQuest:is_intraprotein", alpha_prot == beta_prot ? DataValue("true") : DataValue("false"));
             pep_hits[0].setMetaValue("OpenXQuest:is_interprotein", alpha_prot != beta_prot ? DataValue("true") : DataValue("false"));
             // pep_id.setMetaValue( alpha_prot == beta_prot ? "OpenXQuest:is_intraprotein" : "OpenXQuest:is_interprotein" , DataValue());
@@ -394,12 +407,23 @@ protected:
     if (pep_hits[0].getMetaValue("OpenXQuest:is_intraprotein").toBool() && pep_is_decoy)
     {
       types.push_back(TOPPXFDR::crosslink_class_intradecoys);
+      cout << "TEST assignTypes intradecoy alpha: " << pep_hits[0].getMetaValue(TOPPXFDR::target_decoy).toString() << endl;
+      if (n_pep_hits == 2)
+      {
+        cout << "TEST assignTypes intradecoy beta:  " << pep_hits[1].getMetaValue(TOPPXFDR::target_decoy).toString() << endl;
+      }
     }
 
-    // Decoys
+    // decoys
     if (pep_is_decoy)
     {
       types.push_back(TOPPXFDR::crosslink_class_decoys);
+    }
+
+    // decoys
+    if (!pep_is_decoy)
+    {
+      types.push_back(TOPPXFDR::crosslink_class_targets);
     }
 
     // intralinks
@@ -424,18 +448,19 @@ protected:
     String current_crosslink_type = pep_hits[0].getMetaValue(TOPPXFDR::crosslink_type);
 
     // monolinks
-    if ( ! pep_is_decoy && (crosslink_type == "mono-link"
+    if ( ! pep_is_decoy && (current_crosslink_type == "mono-link"
         ||  current_crosslink_type == "loop-link"))
     {
       types.push_back(TOPPXFDR::crosslink_class_monolinks);
     }
 
     // monodecoys
-    if ( pep_is_decoy && (crosslink_type == "mono-link"
+    if ( pep_is_decoy && (current_crosslink_type == "mono-link"
         ||  current_crosslink_type == "loop-link"))
     {
       types.push_back(TOPPXFDR::crosslink_class_monodecoys);
     }
+
     // const vector< PeptideHit > & pep_hits = pep_id.getHits();
     if (n_pep_hits == 2)
     {
@@ -449,14 +474,14 @@ protected:
       if (pep_hits[0].getMetaValue("OpenXQuest:is_intraprotein").toBool() && alpha_is_decoy && beta_is_decoy)
       {
         types.push_back(TOPPXFDR::crosslink_class_fulldecoysintralinks);
-        cout << "TEST Fulldecoy Intra!" << endl;
+        cout << "TEST assignTypes fullintradecoy alpha: " << pep_hits[0].getMetaValue(TOPPXFDR::target_decoy).toString() << endl;
+        cout << "TEST assignTypes fullintradecoy beta:  " << pep_hits[1].getMetaValue(TOPPXFDR::target_decoy).toString() << endl;
       }
 
       // fulldecoysinterlinks
       if (pep_hits[0].getMetaValue("OpenXQuest:is_interprotein").toBool() && alpha_is_decoy && beta_is_decoy)
       {
         types.push_back(TOPPXFDR::crosslink_class_fulldecoysinterlinks);
-        cout << "TEST Double Intra!" << endl;
       }
 
       // hybriddecoysintralinks
@@ -467,7 +492,6 @@ protected:
           &&   ! beta_is_decoy)))
       {
         types.push_back(TOPPXFDR::crosslink_class_hybriddecoysintralinks);
-        cout << "TEST Hybriddecoy Intra!" << endl;
       }
 
       // hybriddecoysinterlinks
@@ -478,7 +502,6 @@ protected:
           &&   ! beta_is_decoy)))
       {
         types.push_back(TOPPXFDR::crosslink_class_hybriddecoysinterlinks);
-        cout << "TEST Hybriddecoy Inter!" << endl;
       }
     }
   }
@@ -497,17 +520,24 @@ protected:
     bool decoyclass_present = cum_histograms.find(decoyclass) != cum_histograms.end();
     bool fulldecoyclass_present = cum_histograms.find(fulldecoyclass) != cum_histograms.end();
 
-    for (double current_score = this->min_score +  (TOPPXFDR::fpnum_score_step/2) ;
+    cout << endl << endl << endl;
+    cout << "TEST fdr_xprophet targetclass: " << targetclass << endl;
+
+    for (double current_score = this->min_score +  (TOPPXFDR::fpnum_score_step/2);
         current_score <= this->max_score - (TOPPXFDR::fpnum_score_step/2);
         current_score += TOPPXFDR::fpnum_score_step)
     {
       double estimated_n_decoys = decoyclass_present ? cum_histograms[decoyclass].binValue(current_score) : 0;
+      cout << "TEST decoyclass_present:" << decoyclass_present << " | " << "decoys (mono): " << estimated_n_decoys << endl;
       if ( ! mono)
       {
         estimated_n_decoys -= 2 * ( fulldecoyclass_present ? cum_histograms[fulldecoyclass].binValue(current_score) : 0);
+        cout << "TEST fulldecoyclass_present:" << fulldecoyclass_present << " | " << "decoys (xlink): " << estimated_n_decoys << endl;
       }
       double n_targets = targetclass_present ? cum_histograms[targetclass].binValue(current_score) : 0;
+      cout << "TEST targetclass_present:" << targetclass_present << " | " << "targets: " << n_targets << endl;
       fdr.push_back(n_targets > 0 ? estimated_n_decoys / (n_targets) : 0);
+      cout << "TEST fdr:" << fdr.back() << endl << endl;
     }
   }
 
@@ -537,7 +567,7 @@ protected:
 
   // the main_ function is called after all parameters are read
   ExitCodes main_(int, const char **) override final
-      {
+  {
     //----------------------------------------------------------------
     // parsing parameters, terminate if invalid values are encountered
     //----------------------------------------------------------------
@@ -545,11 +575,12 @@ protected:
     // Check whether at least one output file has been specified
     const String & arg_out_idXML = getStringOption_(TOPPXFDR::param_out_idXML);
     const String & arg_out_mzid = getStringOption_(TOPPXFDR::param_out_mzid);
+    const String & arg_out_xquest = getStringOption_(TOPPXFDR::param_out_xquest);
 
-    if (arg_out_idXML.empty() && arg_out_mzid.empty())
+    if (arg_out_idXML.empty() && arg_out_mzid.empty() && arg_out_xquest.empty())
     {
       LOG_ERROR << "FATAL: No output file specified. You must at least specify one output with -"
-          <<  TOPPXFDR::param_out_idXML << " or -" << TOPPXFDR::param_out_mzid << ". Terminating." << endl;
+          <<  TOPPXFDR::param_out_idXML << " or -" << TOPPXFDR::param_out_mzid << " or -" << TOPPXFDR::param_out_xquest <<  ". Terminating." << endl;
       return ILLEGAL_PARAMETERS;
     }
     const double arg_mindeltas = getDoubleOption_(TOPPXFDR::param_mindeltas);
@@ -599,6 +630,8 @@ protected:
     const String arg_in_type = this->getStringOption_(TOPPXFDR::param_in_type);
     const FileTypes::Type in_type = arg_in_type.empty() ? FileHandler::getType(arg_in) : FileTypes::nameToType(arg_in_type);
 
+    cout << "TEST FileTypes checked!" << endl;
+
     //-------------------------------------------------------------
     // Declare important variables
     //-------------------------------------------------------------
@@ -618,12 +651,14 @@ protected:
     // Parse the input file
     //-------------------------------------------------------------
 
-    if (in_type == FileTypes::XML)
+    if (in_type == FileTypes::XQUESTXML)
     {
       is_xquest_input = true;
 
       XQuestResultXMLFile xquest_result_file;
-      xquest_result_file.load(arg_in, all_ids, prot_ids, 1, true);
+      cout << "TEST parsing xquest file!" << endl;
+      xquest_result_file.load(arg_in, all_ids, prot_ids);
+      cout << "TEST parsing xquest file finished!" << endl;
 
       // currently, cross-link identifications are stored within one ProteinIdentification
       assert(prot_ids.size() == 1);
@@ -722,6 +757,11 @@ protected:
         LOG_ERROR << "FATAL: Input file does not contain any identifications. Terminating." << endl;
         return INPUT_FILE_EMPTY;
       }
+    }
+    else
+    {
+      LOG_ERROR << "FATAL: Input file type not recognized. Terminating." << endl;
+      return ILLEGAL_PARAMETERS;
     }
 
     // Prepare input data
@@ -829,7 +869,6 @@ protected:
       // {
       //   // TODO read in delta_scores from hits?
       // }
-      // TODO write these values in idXML etc as well
 
       // if (is_xquest_input)
       // {
@@ -991,7 +1030,6 @@ protected:
       double score = getCrosslinkScore(pep_id);
 
       // Only consider peptide identifications which  fullfill all filter criteria specified by the user
-      // TODO do this for any input data (remove is_xquest_input stuff)
       if ( (arg_minborder <= error_rel || arg_minborder == -1)
           && (arg_maxborder >= error_rel || arg_maxborder == -1)
           && (mindelta_filter_disabled || delta_score < arg_mindeltas)
@@ -1096,8 +1134,6 @@ protected:
       assert(n_hits == 1 || n_hits == 2);
       // Assign FDR value as meta value and also set as score
       bool assigned = false;
-      // if anything goes wrong, it is best to not trust the results
-      // therefore initialize with 1
       double fdr = 1;
       for (StringList::const_iterator crosslink_types_it = crosslink_types.begin();
           crosslink_types_it != crosslink_types.end(); ++crosslink_types_it)
@@ -1160,6 +1196,11 @@ protected:
       MzIdentMLFile().store( arg_out_mzid, prot_ids, all_ids);
     }
 
+    if (! arg_out_xquest.empty())
+    {
+      XQuestResultXMLFile().store(arg_out_xquest, prot_ids, all_ids);
+    }
+
     return EXECUTION_OK;
   }
 
@@ -1173,7 +1214,8 @@ const String TOPPXFDR::param_in = "in";
 const String TOPPXFDR::param_in_type = "in_type";
 const String TOPPXFDR::param_out_idXML = "out_idXML";
 const String TOPPXFDR::param_out_mzid = "out_mzIdentML";
-const String TOPPXFDR::param_decoy_prefix = "decoy_prefix";
+const String TOPPXFDR::param_out_xquest = "out_xquest";
+const String TOPPXFDR::param_decoy_string = "decoy_string";
 const String TOPPXFDR::param_minborder = "minborder";
 const String TOPPXFDR::param_maxborder = "maxborder";
 const String TOPPXFDR::param_mindeltas = "mindeltas";
@@ -1193,6 +1235,7 @@ const String TOPPXFDR::crosslink_class_intralinks = "intralinks";
 const String TOPPXFDR::crosslink_class_interlinks = "interlinks";
 const String TOPPXFDR::crosslink_class_monolinks  = "monolinks";
 const String TOPPXFDR::crosslink_class_decoys = "decoys";
+const String TOPPXFDR::crosslink_class_targets = "targets";
 const String TOPPXFDR::crosslink_class_hybriddecoysintralinks = "hybriddecoysintralinks";
 const String TOPPXFDR::crosslink_class_hybriddecoysinterlinks = "hybriddecoysinterlinks";
 

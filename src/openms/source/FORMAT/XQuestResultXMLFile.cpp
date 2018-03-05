@@ -52,12 +52,12 @@ namespace OpenMS
 
   void XQuestResultXMLFile::load(const String & filename,
                                  std::vector < PeptideIdentification > & pep_ids,
-                                 std::vector< ProteinIdentification > & prot_ids,
-                                 Size min_n_hits_per_spectrum,
-                                 bool load_to_peptideHit)
+                                 std::vector< ProteinIdentification > & prot_ids
+                                //  Size min_n_hits_per_spectrum
+                                //  bool load_to_peptideHit
+                               )
   {
-   Internal::XQuestResultXMLHandler handler(filename, pep_ids, prot_ids,
-                                            min_n_hits_per_spectrum, load_to_peptideHit, *this);
+   Internal::XQuestResultXMLHandler handler(filename, pep_ids, prot_ids, *this);
    this->parse_(filename, &handler);
 
    this->n_hits_ = handler.getNumberOfHits();

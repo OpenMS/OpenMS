@@ -72,8 +72,8 @@ namespace OpenMS
     XQuestResultXMLHandler::XQuestResultXMLHandler(const String &filename,
                                                    std::vector< PeptideIdentification > & pep_ids,
                                                    std::vector< ProteinIdentification > & prot_ids,
-                                                   Size min_n_ions_per_spectrum,
-                                                   bool load_to_peptideHit,
+                                                  //  Size min_n_hits_per_spectrum,
+                                                  //  bool load_to_peptideHit,
                                                    const ProgressLogger& logger) :
       XMLHandler(filename, "1.0"),
       logger_(logger),
@@ -81,9 +81,9 @@ namespace OpenMS
       prot_ids_(&prot_ids),
       n_hits_(0),
       min_score_(0),
-      max_score_(0),
-      min_n_ions_per_spectrum_(min_n_ions_per_spectrum),
-      load_to_peptideHit_(load_to_peptideHit)
+      max_score_(0)
+      // min_n_hits_per_spectrum_(min_n_hits_per_spectrum),
+      // load_to_peptideHit_(load_to_peptideHit)
     {
       // Initialize the one and only protein identification
       this->prot_ids_->clear();
@@ -202,18 +202,18 @@ namespace OpenMS
     void XQuestResultXMLHandler::setMetaValue_(const String &  key , const DataValue &  datavalue , PeptideIdentification & pep_id, PeptideHit & alpha)
     {
       pep_id.setMetaValue(key, datavalue);
-      if (this->load_to_peptideHit_)
-      {
+      // if (this->load_to_peptideHit_)
+      // {
         alpha.setMetaValue(key, datavalue);
-      }
+      // }
     }
     void XQuestResultXMLHandler::setMetaValue_(const String &  key , const DataValue &  datavalue , PeptideIdentification & pep_id, PeptideHit & alpha, PeptideHit & beta)
     {
       this->setMetaValue_(key, datavalue, pep_id, alpha);
-      if (this->load_to_peptideHit_)
-      {
+      // if (this->load_to_peptideHit_)
+      // {
         beta.setMetaValue(key, datavalue);
-      }
+      // }
     }
 
     double XQuestResultXMLHandler::getMinScore() const
@@ -238,7 +238,7 @@ namespace OpenMS
       {
         // Push back spectrum search vector
         // Size current_spectrum_size = this->current_spectrum_search_.size();
-        // if (current_spectrum_size >= this->min_n_ions_per_spectrum_)
+        // if (current_spectrum_size >= this->min_n_hits_per_spectrum_)
         // {
         //   /* Currently the correct rank order within the xQuest file is assumed
         //     vector< PeptideIdentification > newvec(current_spectrum_size);
@@ -279,18 +279,22 @@ namespace OpenMS
 
     void XQuestResultXMLHandler::startElement(const XMLCh * const, const XMLCh * const, const XMLCh * const qname, const Attributes &attributes)
     {
+      cout << "TEST parsing startElement!" << endl;
       String tag = XMLString::transcode(qname);
+      // ProteinIdentification::SearchParameters search_params((*this->prot_ids_)[0].getSearchParameters());
       // Extract meta information from the xquest_results tag
       if (tag == "xquest_results")
       {
         // Decide whether this Block is original xQuest or OpenPepXL
         String xquest_version = this->attributeAsString_(attributes, "xquest_version");
         this->is_openpepxl_ = xquest_version.hasSubstring("OpenPepXL");
+        cout << "TEST parsing xquest_version finished!" << endl;
 
         // Date and Time of Search
         DateTime date_time;
         this->extractDateTime_(this->attributeAsString_(attributes, "date"), date_time);
         (*this->prot_ids_)[0].setDateTime(date_time);
+        cout << "TEST parsing date finished!" << endl;
 
         // Set the search parameters
         ProteinIdentification::SearchParameters search_params;
@@ -314,32 +318,41 @@ namespace OpenMS
         String tolerancemeasure_ms2 = this->attributeAsString_(attributes, "tolerancemeasure_ms2");
         search_params.fragment_mass_tolerance_ppm = tolerancemeasure_ms2 != "Da";
 
+        cout << "TEST parsing param set 1 finished!" << endl;
+
         // variable Modifications
         vector< String > variable_mod_list;
         vector< String > variable_mod_split;
-        StringUtils::split(this->attributeAsString_(attributes, "variable_mod"), ",", variable_mod_split);
-        if (variable_mod_split[0].size() == 1) // xQuest style mods=  "one-letter-code,mass"
+        String var_mod_string;
+        if (this->optionalAttributeAsString_(var_mod_string, attributes, "variable_mod") && !var_mod_string.empty())
         {
-          // ModificationsDB modsDB = ModificationsDB().getInstance();
-          double mod_mass = double(DataValue(variable_mod_split[1]));
-          std::vector<String> mods;
-          ModificationsDB::getInstance()->searchModificationsByDiffMonoMass(mods, mod_mass, 0.01, variable_mod_split[0]);
-          if (mods.size() > 0)
+          StringUtils::split(var_mod_string, ",", variable_mod_split);
+          if (variable_mod_split[0].size() == 1) // xQuest style mods=  "one-letter-code,mass"
           {
-            variable_mod_list.push_back(mods[0]);
+            // ModificationsDB modsDB = ModificationsDB().getInstance();
+            double mod_mass = double(DataValue(variable_mod_split[1]));
+            std::vector<String> mods;
+            ModificationsDB::getInstance()->searchModificationsByDiffMonoMass(mods, mod_mass, 0.01, variable_mod_split[0]);
+            if (mods.size() > 0)
+            {
+              variable_mod_list.push_back(mods[0]);
+            }
           }
+          search_params.variable_modifications = variable_mod_list;
         }
         // fixed Modifications
         String fixed_mod_string;
         StringList fixed_mod_list;
-        if (this->optionalAttributeAsString_(fixed_mod_string, attributes, "fixed_mod"))
+        if (this->optionalAttributeAsString_(fixed_mod_string, attributes, "fixed_mod") && !fixed_mod_string.empty())
         {
           fixed_mod_list = ListUtils::create<String>(fixed_mod_string);
           search_params.fixed_modifications = fixed_mod_list;
         }
 
-        search_params.variable_modifications = variable_mod_list;
+        // search_params.variable_modifications = variable_mod_list;
         // search_params.fixed_modifications = fixed_mod_list;
+
+        cout << "TEST parsing param set 2 finished!" << endl;
 
         String decoy_prefix;
         // if this info is not available, we can assume the decoy string is a prefix, since that is the standard way
@@ -350,7 +363,7 @@ namespace OpenMS
         String current_decoy_string;
         if(this->optionalAttributeAsString_(current_decoy_string, attributes, "decoy_string"))
         {
-          decoy_string_ = current_decoy_string;
+          this->decoy_string_ = current_decoy_string;
         }
 
         // do some stringstream magic to turn "1" or "0" strings into booleans
@@ -377,6 +390,8 @@ namespace OpenMS
         {
           search_params.setMetaValue("cross_link:mass_isoshift", iso_shift.toDouble());
         }
+
+        cout << "TEST parsing param set 3 finished!" << endl;
 
         bool ntermxlinkable;
         std::istringstream is_nterm(this->attributeAsString_(attributes, "ntermxlinkable"));
@@ -410,6 +425,8 @@ namespace OpenMS
           search_params.setMetaValue("cross_link:residue2", ListUtils::create<String>(aarequired2));
         }
 
+        cout << "TEST parsing param set 4 finished!" << endl;
+
         if (this->is_openpepxl_)
         {
           String searched_charges = this->attributeAsString_(attributes, "charges");
@@ -425,6 +442,7 @@ namespace OpenMS
         }
 
         (*this->prot_ids_)[0].setSearchParameters(search_params);
+        cout << "TEST parsing xquest_results finished!" << endl;
       }
       else if (tag == "spectrum_search")
       {
@@ -461,16 +479,21 @@ namespace OpenMS
           String spectrum = this->attributeAsString_(attributes, "spectrum");
           vector<String> split_spectrum;
 
-
           // spectrum="aleitner_M1012_006.c.02942.02942.3_aleitner_M1012_006.c.02913.02913.3"
           // read input filename (will not contain file type this way)
           StringUtils::split(spectrum, ".c.", split_spectrum);
           String file_name = split_spectrum[0];
-          if (std::find(ms_run_path_.begin(), ms_run_path_.end(), file_name) == ms_run_path_.end())
+          if (std::find(this->ms_run_path_.begin(), this->ms_run_path_.end(), file_name) == this->ms_run_path_.end())
           {
-            ms_run_path_.push_back(file_name);
+            this->ms_run_path_.push_back(file_name);
           }
-          // split_spectrum.clear();
+          // ProteinIdentification::SearchParameters search_params((*this->prot_ids_)[0].getSearchParameters());
+          // if (!search_params.metaValueExists("input_mzML"))
+          // {
+          //   search_params.setMetaValue("input_mzML", file_name + String(".mzML"));
+          // }
+          // (*this->prot_ids_)[0].setSearchParameters(search_params);
+          this->spectrum_input_file_ = file_name;
 
           // read spectrum indices
           vector<String> split_spectrum2;
@@ -479,16 +502,27 @@ namespace OpenMS
           StringUtils::split(split_spectrum[2], ".", split_spectrum3);
           // Size light_index = split_spectrum2[0].toInt();
           // Size heavy_index = split_spectrum3[1].toInt();
-          spectrum_index_light_ = split_spectrum2[0].toInt();
-          spectrum_index_heavy_ = split_spectrum3[1].toInt();
+          this->spectrum_index_light_ = split_spectrum2[0].toInt();
+          this->spectrum_index_heavy_ = split_spectrum3[1].toInt();
 
         }
         else
         {
-          spectrum_index_light_ = this->attributeAsInt_(attributes, "scan_index_light");
-          spectrum_index_heavy_ = this->attributeAsInt_(attributes, "scan_index_heavy");
-        }
+          this->spectrum_index_light_ = this->attributeAsInt_(attributes, "scan_index_light");
+          this->spectrum_index_heavy_ = this->attributeAsInt_(attributes, "scan_index_heavy");
 
+          ProteinIdentification::SearchParameters search_params((*this->prot_ids_)[0].getSearchParameters());
+          if (!search_params.metaValueExists("input_mzML"))
+          {
+            String spectrum = this->attributeAsString_(attributes, "spectrum");
+            vector<String> split_spectrum;
+            StringUtils::split(spectrum, ".", split_spectrum);
+            String file_name = split_spectrum[0];
+            search_params.setMetaValue("input_mzML", file_name + String(".mzML"));
+            (*this->prot_ids_)[0].setSearchParameters(search_params);
+          }
+        }
+        cout << "TEST parsing spectrum_search finished!" << endl;
       }
       else if (tag == "search_hit")
       {
@@ -514,12 +548,18 @@ namespace OpenMS
         vector<PeptideHit> peptide_hits;
 
         String seq1 = String(this->attributeAsString_(attributes, "seq1"));
-        peptide_hit_alpha.setSequence(AASequence::fromString(seq1.substitute("X", "M(Oxidation)")));
+        if (!this->is_openpepxl_)
+        {
+          seq1 = seq1.substitute("X", "M(Oxidation)");
+        }
+        peptide_hit_alpha.setSequence(AASequence::fromString(seq1));
 
         UInt charge = this->attributeAsInt_(attributes, "charge");
         peptide_hit_alpha.setCharge(charge);
 
         peptide_hit_alpha.setMetaValue("spectrum_reference", spectrum_index_light_);
+        peptide_hit_alpha.setMetaValue("spectrum_index", spectrum_index_light_);
+        peptide_hit_alpha.setMetaValue("spectrum_input_file", spectrum_input_file_);
 
         String specIDs;
         if (spectrum_index_light_ != spectrum_index_heavy_)
@@ -542,7 +582,7 @@ namespace OpenMS
         peptide_hit_alpha.setMetaValue("xl_chain", "MS:1002509");
 
         // Set Attributes of Peptide Identification
-        peptide_identification.setMZ(this->attributeAsDouble_(attributes, "mz"));
+        peptide_identification.setMZ(this->mz_light_);
         peptide_identification.setRT(this->rt_light_);
         peptide_identification.setScoreType("OpenXQuest:combined score"); // Needed, since hard-coded in MzIdentMLHandler
 
@@ -570,6 +610,8 @@ namespace OpenMS
         }
         peptide_hit_alpha.setScore(score);
 
+        peptide_hit_alpha.setMetaValue(Constants::PRECURSOR_ERROR_PPM_USERPARAM, DataValue(this->attributeAsDouble_(attributes, "error_rel")));
+
         // Get common attributes of Peptide Identification
         this->peptide_id_meta_values_["OpenXQuest:id"] = DataValue(this->attributeAsString_(attributes, "id"));
         this->peptide_id_meta_values_["OpenXQuest:xlinkermass"] = xlinkermass;
@@ -579,7 +621,7 @@ namespace OpenMS
         this->peptide_id_meta_values_["OpenXQuest:intsum"] = DataValue(this->attributeAsDouble_(attributes, "intsum"));
         this->peptide_id_meta_values_["OpenXQuest:match-odds"] = DataValue(this->attributeAsDouble_(attributes, "match_odds"));
         this->peptide_id_meta_values_["OpenXQuest:score"] = DataValue(score);
-        this->peptide_id_meta_values_["OpenXQuest:error_rel"] = DataValue(this->attributeAsDouble_(attributes, "error_rel"));
+        // this->peptide_id_meta_values_["OpenXQuest:error_rel"] = DataValue(this->attributeAsDouble_(attributes, "error_rel"));
         this->peptide_id_meta_values_["OpenXQuest:structure"] = DataValue(this->attributeAsString_(attributes, "structure"));
 
         assert(this->peptide_id_meta_values_["OpenXQuest:id"] != DataValue::EMPTY);
@@ -590,7 +632,7 @@ namespace OpenMS
         assert(this->peptide_id_meta_values_["OpenXQuest:match-odds"] != DataValue::EMPTY);
         assert(this->peptide_id_meta_values_["xl_rank"] != DataValue::EMPTY);
         assert(this->peptide_id_meta_values_["OpenXQuest:score"] != DataValue::EMPTY);
-        assert(this->peptide_id_meta_values_["OpenXQuest:error_rel"] != DataValue::EMPTY);
+        // assert(this->peptide_id_meta_values_["OpenXQuest:error_rel"] != DataValue::EMPTY);
         assert(this->peptide_id_meta_values_["OpenXQuest:structure"] != DataValue::EMPTY);
 
         // this->addMetaValues_(peptide_identification);
@@ -624,13 +666,22 @@ namespace OpenMS
         {
           // Set the cross Link Mass
           ProteinIdentification::SearchParameters search_params((*this->prot_ids_)[0].getSearchParameters());
-          search_params.setMetaValue("cross_link:mass", DataValue(this->attributeAsDouble_(attributes, "xlinkermass")));
+          if (!search_params.metaValueExists("cross_link:mass"))
+          {
+            search_params.setMetaValue("cross_link:mass", DataValue(this->attributeAsDouble_(attributes, "xlinkermass")));
+          }
           (*this->prot_ids_)[0].setSearchParameters(search_params);
 
           peptide_hit_beta.setScore(score);
 
+          peptide_hit_beta.setMetaValue(Constants::PRECURSOR_ERROR_PPM_USERPARAM, DataValue(this->attributeAsDouble_(attributes, "error_rel")));
+
           String seq2 = String(this->attributeAsString_(attributes, "seq2"));
-          peptide_hit_beta.setSequence(AASequence::fromString(seq2.substitute("X", "M(Oxidation)")));
+          if (!this->is_openpepxl_)
+          {
+            seq2 = seq2.substitute("X", "M(Oxidation)");
+          }
+          peptide_hit_beta.setSequence(AASequence::fromString(seq2));
           peptide_hit_beta.setCharge(charge);
 
           peptide_hit_beta.setMetaValue("spectrum_reference", spectrum_index_light_);
@@ -760,7 +811,9 @@ namespace OpenMS
         // this->current_spectrum_search_.push_back(peptide_identification);
         this->pep_ids_->push_back(peptide_identification);
         this->n_hits_++;
+        cout << "TEST parsing search_hit finished!" << endl;
       }
+      // (*this->prot_ids_)[0].setSearchParameters(search_params);
     }
 
     void XQuestResultXMLHandler::writeTo(std::ostream& os)
@@ -768,7 +821,11 @@ namespace OpenMS
       ProteinIdentification::SearchParameters search_params;
       search_params = (*this->cpro_id_)[0].getSearchParameters();
 
-      String input_filename = search_params.getMetaValue("input_mzML");
+      String input_filename;
+      if (search_params.metaValueExists("input_mzML"))
+      {
+        input_filename = search_params.getMetaValue("input_mzML");
+      }
       // vector<String> name_parts;
       // input_filename.split(".", name_parts);
       // String input_basename = name_parts[0];
@@ -882,15 +939,27 @@ namespace OpenMS
 
           vector<String> input_split_dir;
           vector<String> input_split;
-          input_filename.split(String("/"), input_split_dir);
-          input_split_dir[input_split_dir.size()-1].split(String("."), input_split);
-          String base_name = input_split[0];
+          String base_name;
+          if (!input_filename.empty())
+          {
+            input_filename.split(String("/"), input_split_dir);
+            cout << "TEST input_filename: " << input_filename << endl;
+            cout << "TEST " << input_split_dir[input_split_dir.size()-1] << endl;
+            input_split_dir[input_split_dir.size()-1].split(String("."), input_split);
+            base_name = input_split[0];
+          }
+          else if (pep_hits[0].metaValueExists("spectrum_input_file"))
+          {
+            base_name = pep_hits[0].getMetaValue("spectrum_input_file");
+          }
 
           Size scan_index_light = pep_hits[0].getMetaValue("spectrum_index");
           Size scan_index_heavy = scan_index_light;
+          cout << "TEST scan_index_light: " << scan_index_light << endl;
           if (pep_hits[0].metaValueExists("spectrum_index_heavy"))
           {
             scan_index_heavy = pep_hits[0].getMetaValue("spectrum_index_heavy");
+            cout << "TEST scan_index_heavy: " << scan_index_heavy << endl;
           }
           String spectrum_light_name = base_name + ".light." + scan_index_light;
           String spectrum_heavy_name = base_name + ".heavy." + scan_index_heavy;
@@ -945,6 +1014,7 @@ namespace OpenMS
         String id("") ;
         String seq_beta("");
 
+        cout << "TEST type: " << xltype_OPXL << endl;
         if (xltype_OPXL == "cross-link")
         {
           xltype = "xlink";
@@ -962,7 +1032,7 @@ namespace OpenMS
           topology += String("-b") + beta_pos;
           String letter_second = structure.substr(beta_pos-1, 1);
           id = structure + String("-") + letter_first + alpha_pos + String("-") + letter_second + beta_pos;
-          // weight = pep_hits[0].getSequence().getMonoWeight() + cross_link_mass_light;
+          weight += cross_link_mass_light;
         }
         else // mono-link
         {
@@ -973,12 +1043,21 @@ namespace OpenMS
           id = structure + String("-") + letter_first + alpha_pos + String("-") + Int(double(pep_hits[0].getMetaValue("xl_mass")));
         }
 
+        cout << "TEST precursor_error calc..." << endl;
         // Precursor error calculation, rel_error is read from the metaValue for consistency, but an absolute error is also used in the xQuest format
         // use the formula, if the MetaValue disappears
         double theo_mz = (weight + (static_cast<double>(precursor_charge) * Constants::PROTON_MASS_U)) / static_cast<double>(precursor_charge);
         double error = precursor_mz - theo_mz;
-        // double rel_error = (error / theo_mz) / 1e-6;
-        double rel_error = double(pep_hits[0].getMetaValue(Constants::PRECURSOR_ERROR_PPM_USERPARAM));
+        double rel_error = 0;
+        if (pep_hits[0].metaValueExists(Constants::PRECURSOR_ERROR_PPM_USERPARAM))
+        {
+          rel_error = double(pep_hits[0].getMetaValue(Constants::PRECURSOR_ERROR_PPM_USERPARAM));
+        }
+        else
+        {
+          rel_error = (error / theo_mz) / 1e-6;
+        }
+        cout << "TEST precursor_error: " << error << " | " << rel_error << endl;
 
         // Protein accessions
         String prot_alpha = pep_hits[0].getPeptideEvidences()[0].getProteinAccession();
@@ -1022,6 +1101,10 @@ namespace OpenMS
               << "\" num_of_matched_xlink_ions_alpha=\"" << pep_hits[0].getMetaValue("matched_xlink_alpha").toString() << "\" num_of_matched_xlink_ions_beta=\"" << pep_hits[0].getMetaValue("matched_xlink_beta").toString()
               << "\" TIC=\"" << pep_hits[0].getMetaValue("OpenXQuest:TIC").toString() << "\" wTIC=\"" << pep_hits[0].getMetaValue("OpenXQuest:wTIC").toString() << "\" intsum=\"" << pep_hits[0].getMetaValue("OpenXQuest:intsum").toString();
 
+        if (pep_hits[0].metaValueExists("OpenXQuest:fdr"))
+        {
+          os << "\" fdr=\"" << pep_hits[0].getMetaValue("OpenXQuest:fdr");
+        }
         // remove MetaValues, that were already used and written out with a different key.
         pep_hits[0].removeMetaValue("xl_mass");
         pep_hits[0].removeMetaValue("xl_rank");
@@ -1050,6 +1133,7 @@ namespace OpenMS
         pep_hits[0].removeMetaValue("spec_heavy_RT");
         pep_hits[0].removeMetaValue("spec_heavy_MZ");
         pep_hits[0].removeMetaValue("OMS:precursor_mz_error_ppm");
+        pep_hits[0].removeMetaValue("OpenXQuest:fdr");
 
         // also remove MetaValues, that we do not need in xquestXML
         // pep_hits[0].removeMetaValue("selected");

@@ -66,8 +66,8 @@ namespace OpenMS
       XQuestResultXMLHandler(const String & filename,
                              std::vector< PeptideIdentification > & pep_ids,
                              std::vector< ProteinIdentification > & prot_ids,
-                             Size min_n_ions_per_spectrum,
-                             bool load_to_peptideHit_,
+                            //  Size min_n_hits_per_spectrum,
+                            //  bool load_to_peptideHit_,
                              const ProgressLogger& logger);
 
       /// Constructor for a write-only handler for internal identification structures
@@ -130,8 +130,8 @@ namespace OpenMS
       double min_score_;
       double max_score_;
 
-      Size min_n_ions_per_spectrum_;
-      bool load_to_peptideHit_;  // Whether Meta data of peptide identification should also be loaded to peptide hit
+      // Size min_n_hits_per_spectrum_;
+      // bool load_to_peptideHit_;  // Whether Meta data of peptide identification should also be loaded to peptide hit
 
       // Whether or not current xquest result tag comes from OpenPepXL (xQuest otherwise)
       bool is_openpepxl_;
@@ -160,6 +160,7 @@ namespace OpenMS
 
       // primary MS run path
       StringList ms_run_path_;
+      String spectrum_input_file_;
 
       // The current spectrum search
       std::vector< PeptideIdentification > current_spectrum_search_;
