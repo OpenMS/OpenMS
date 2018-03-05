@@ -80,19 +80,46 @@ public:
 
 
 protected:
+  /**
+    @brief Save values from a line to a `ComponentQCs`.
 
+    @param[in] line A line containing the values from a row in the input file
+    @param[in] headers A mapping from headers names to position indices
+    @param[out] c_qcs The ouptput will be saved in a new element of this vector
+  */
   void pushValuesFromLine_(
     const StringList& line,
     const std::map<String, Size>& headers,
     std::vector<MRMFeatureQC::ComponentQCs>& c_qcs
   ) const;
 
+  /**
+    @brief Save values from a line to a `ComponentGroupQCs`.
+
+    @param[in] line A line containing the values from a row in the input file
+    @param[in] headers A mapping from headers names to position indices
+    @param[out] cg_qcs The ouptput will be saved in a new element of this vector
+  */
   void pushValuesFromLine_(
     const StringList& line,
     const std::map<String, Size>& headers,
     std::vector<MRMFeatureQC::ComponentGroupQCs>& cg_qcs
   ) const;
 
+  /**
+    @brief Set one of the values in a pair
+
+    The method is given in input a map from Strings to pairs.
+    Assuming the key is present within the map, its mapped value will be updated
+    with the given `value`, in the correct `boundary` position.
+    If the key is not found, a new pair will be created and both its values set
+    (in this case, a default value of 0.0 is given to the other pair's element).
+
+    @param[in] key The metavalue name
+    @param[in] value The mapped pair
+    @param[in] boundary "l" for lower or "u" for upper bound
+    @param[out] meta_values_qc The map containing the metavalues and pairs
+  */
   void setPairValue_(
     const String& key,
     const String& value,

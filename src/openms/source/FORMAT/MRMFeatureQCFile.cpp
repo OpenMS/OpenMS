@@ -101,7 +101,7 @@ namespace OpenMS
       const String& header = h.first;
       const Size& i = h.second;
       boost::smatch m;
-      if (boost::regex_search(header, m, boost::regex("metaValue_(.+)_(l|u)")))
+      if (boost::regex_search(header, m, boost::regex("metaValue_(.+)_(l|u)"))) // capture the metavalue name and the boundary and save them to m[1] and m[2]
       {
         setPairValue_(String(m[1]), line[i], String(m[2]), c.meta_value_qc);
       }
@@ -171,7 +171,7 @@ namespace OpenMS
       const String& header = h.first;
       const Size& i = h.second;
       boost::smatch m;
-      if (boost::regex_search(header, m, boost::regex("metaValue_(.+)_(l|u)")))
+      if (boost::regex_search(header, m, boost::regex("metaValue_(.+)_(l|u)"))) // capture the metavalue name and the boundary and save them to m[1] and m[2]
       {
         setPairValue_(String(m[1]), line[i], String(m[2]), cg.meta_value_qc);
       }
