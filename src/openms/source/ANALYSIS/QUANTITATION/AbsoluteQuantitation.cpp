@@ -136,27 +136,41 @@ namespace OpenMS
   double AbsoluteQuantitation::calculateRatio(const Feature & component_1, const Feature & component_2, const String & feature_name)
   {
     double ratio = 0.0;
-    if (component_1.metaValueExists(feature_name) && component_2.metaValueExists(feature_name))
+    // member feature_name access
+    if (feature_name == "intensity")
     {
-      double feature_1 = component_1.getMetaValue(feature_name);
-      double feature_2 = component_2.getMetaValue(feature_name);
-      ratio = feature_1/feature_2;
+      if (component_1.metaValueExists("native_id") && component_2.metaValueExists("native_id"))
+      {
+        const double feature_1 = component_1.getIntensity();
+        const double feature_2 = component_2.getIntensity();
+        ratio = feature_1 / feature_2;
+      }
+      else if (component_1.metaValueExists("native_id"))
+      {
+        LOG_DEBUG << "Warning: no IS found for component " << component_1.getMetaValue("native_id") << ".";
+        const double feature_1 = component_1.getIntensity();
+        ratio = feature_1;
+      }
     }
-    else if (feature_name == "intensity")
-    {
-      const double feature_1 = component_1.getIntensity();
-      const double feature_2 = component_2.getIntensity();
-      ratio = feature_1 / feature_2;
-    }
-    else if (component_1.metaValueExists(feature_name))
-    {
-      LOG_DEBUG << "Warning: no IS found for component " << component_1.getMetaValue("native_id") << ".";
-      double feature_1 = component_1.getMetaValue(feature_name);
-      ratio = feature_1;
-    }
+    // metaValue feature_name access
     else
     {
-      LOG_DEBUG << "Feature metaValue " << feature_name << " not found for components " << component_1.getMetaValue("native_id") << " and " << component_2.getMetaValue("native_id") << ".";
+      if (component_1.metaValueExists(feature_name) && component_2.metaValueExists(feature_name))
+      {
+        const double feature_1 = component_1.getMetaValue(feature_name);
+        const double feature_2 = component_2.getMetaValue(feature_name);
+        ratio = feature_1/feature_2;
+      }
+      else if (component_1.metaValueExists(feature_name))
+      {
+        LOG_DEBUG << "Warning: no IS found for component " << component_1.getMetaValue("native_id") << ".";
+        const double feature_1 = component_1.getMetaValue(feature_name);
+        ratio = feature_1;
+      }
+      else
+      {
+        LOG_DEBUG << "Feature metaValue " << feature_name << " not found for components " << component_1.getMetaValue("native_id") << " and " << component_2.getMetaValue("native_id") << ".";
+      }
     }
 
     return ratio;
