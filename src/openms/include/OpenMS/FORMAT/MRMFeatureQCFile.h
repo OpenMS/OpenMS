@@ -127,6 +127,27 @@ protected:
     std::map<String, std::pair<double,double>>& meta_values_qc
   ) const;
 
+  Int getCastValue_(
+    const std::map<String, Size>& headers,
+    const StringList& line,
+    const String& header,
+    const Int default_value
+  ) const;
+
+  double getCastValue_(
+    const std::map<String, Size>& headers,
+    const StringList& line,
+    const String& header,
+    const double default_value
+  ) const;
+
+  String getCastValue_(
+    const std::map<String, Size>& headers,
+    const StringList& line,
+    const String& header,
+    const String& default_value
+  ) const;
+
   };
 
 } // namespace OpenMS
