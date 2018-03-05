@@ -106,7 +106,7 @@ find_package(BZip2 REQUIRED)
 
 #------------------------------------------------------------------------------
 # Find eigen3
-find_package(Eigen3 3.1.0 REQUIRED)
+find_package(Eigen3 3.3.4 REQUIRED)
 
 #------------------------------------------------------------------------------
 # Find geometric tools - wildmagick 5

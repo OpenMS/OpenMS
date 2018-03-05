@@ -190,7 +190,7 @@ namespace OpenMS
     }
     else if (integration_type_ == INTEGRATION_TYPE_INTENSITYSUM)
     {
-      std::cout << "\nWARNING: intensity_sum method is being used.\n";
+      LOG_DEBUG << "\nWARNING: intensity_sum method is being used.\n";
       for (auto it = p.PosBegin(left); it != p.PosEnd(right); ++it)
       {
         peak_area += it->getIntensity();
@@ -291,56 +291,23 @@ namespace OpenMS
     psm.points_across_half_height = 0;
     for (auto it = p.PosBegin(left); it != p.PosEnd(right); ++it)
     {
-      const double intensity = it->getIntensity();
-      const double intensity_prev = (it - 1)->getIntensity();
-      const double position = it->getPos();
-      const double position_prev = (it - 1)->getPos();
-      // start and end positions (rt or mz)
-      if (position < peak_apex_pos && psm.points_across_baseline > 1) // start positions
-      {
-        const double d_int_times_d_pos = (intensity - intensity_prev) * (position - position_prev);
-        if (intensity >= 0.05 * peak_height && intensity_prev < 0.05 * peak_height)
-        {
-          const double height_5 = intensity - 0.05 * peak_height;
-          psm.start_position_at_5 = position - d_int_times_d_pos / height_5;
-        }
-        if (intensity >= 0.1 * peak_height && intensity_prev < 0.1 * peak_height)
-        {
-          const double height_10 = intensity - 0.1 * peak_height;
-          psm.start_position_at_10 = position - d_int_times_d_pos / height_10;
-        }
-        if (intensity >= 0.5 * peak_height && intensity_prev < 0.5 * peak_height)
-        {
-          const double height_50 = intensity - 0.5 * peak_height;
-          psm.start_position_at_50 = position - d_int_times_d_pos / height_50;
-        }
-      }
-      else if (position > peak_apex_pos) // end positions
-      {
-        const double d_int_times_d_pos = (intensity_prev - intensity) * (position - position_prev);
-        if (intensity <= 0.05 * peak_height && intensity_prev > 0.05 * peak_height)
-        {
-          const double height_5 = 0.05 * peak_height - intensity;
-          psm.end_position_at_5 = position - d_int_times_d_pos / height_5;
-        }
-        if (intensity <= 0.1 * peak_height && intensity_prev > 0.1 * peak_height)
-        {
-          const double height_10 = 0.1 * peak_height - intensity;
-          psm.end_position_at_10 = position - d_int_times_d_pos / height_10;
-        }
-        if (intensity <= 0.5 * peak_height && intensity_prev > 0.5 * peak_height)
-        {
-          const double height_50 = 0.5 * peak_height - intensity;
-          psm.end_position_at_50 = position - d_int_times_d_pos / height_50;
-        }
-      }
       // points across the peak
       ++(psm.points_across_baseline);
-      if (intensity >= 0.5 * peak_height)
+      if (it->getIntensity() >= 0.5 * peak_height)
       {
         ++(psm.points_across_half_height);
       }
     }
+    // positions at peak heights
+    typename PeakContainerT::ConstIterator it_PosBegin_l = p.PosBegin(left);
+    typename PeakContainerT::ConstIterator it_PosEnd_apex = p.PosEnd(peak_apex_pos);
+    typename PeakContainerT::ConstIterator it_PosEnd_r = p.PosEnd(right);
+    psm.start_position_at_5 = findPosAtPeakHeightPercent_(it_PosBegin_l, it_PosEnd_apex - 1, peak_height, 0.05, true);
+    psm.start_position_at_10 = findPosAtPeakHeightPercent_(it_PosBegin_l, it_PosEnd_apex - 1, peak_height, 0.1, true);
+    psm.start_position_at_50 = findPosAtPeakHeightPercent_(it_PosBegin_l, it_PosEnd_apex - 1, peak_height, 0.5, true);
+    psm.end_position_at_5 = findPosAtPeakHeightPercent_(it_PosEnd_apex, it_PosEnd_r, peak_height, 0.05, false);
+    psm.end_position_at_10 = findPosAtPeakHeightPercent_(it_PosEnd_apex, it_PosEnd_r, peak_height, 0.1, false);
+    psm.end_position_at_50 = findPosAtPeakHeightPercent_(it_PosEnd_apex, it_PosEnd_r, peak_height, 0.5, false);
     // peak widths
     psm.width_at_5 = psm.end_position_at_5 - psm.start_position_at_5;
     psm.width_at_10 = psm.end_position_at_10 - psm.start_position_at_10;
@@ -348,10 +315,40 @@ namespace OpenMS
     psm.total_width = (p.PosEnd(right) - 1)->getPos() - p.PosBegin(left)->getPos();
     psm.slope_of_baseline = (p.PosEnd(right) - 1)->getIntensity() - p.PosBegin(left)->getIntensity();
     psm.baseline_delta_2_height = psm.slope_of_baseline / peak_height;
-    // other
-    psm.tailing_factor = psm.width_at_5 / std::min(peak_apex_pos - psm.start_position_at_5, psm.end_position_at_5 - peak_apex_pos);
-    psm.asymmetry_factor = std::min(peak_apex_pos - psm.start_position_at_10, psm.end_position_at_10 - peak_apex_pos) /
-      std::max(peak_apex_pos - psm.start_position_at_10, psm.end_position_at_10 - peak_apex_pos);
+    // Source of tailing_factor and asymmetry_factor formulas:
+    // USP 40 - NF 35 The United States Pharmacopeia and National Formulary - Supplementary
+    psm.tailing_factor = psm.width_at_5 / (2*(peak_apex_pos - psm.start_position_at_5));
+    psm.asymmetry_factor = (psm.end_position_at_10 - peak_apex_pos) / (peak_apex_pos - psm.start_position_at_10);
     return psm;
+  }
+
+  template <typename PeakContainerConstIteratorT>
+  double PeakIntegrator::findPosAtPeakHeightPercent_(
+    PeakContainerConstIteratorT it_begin,
+    PeakContainerConstIteratorT it_end,
+    const double peak_height,
+    const double percent,
+    const bool is_left_half
+  ) const
+  {
+    const double percent_intensity = peak_height * percent;
+    PeakContainerConstIteratorT closest = is_left_half ? it_begin : it_end - 1;
+    if (is_left_half)
+    {
+      for (
+        PeakContainerConstIteratorT it = it_begin;
+        it != it_end && it->getIntensity() <= percent_intensity;
+        closest = it++
+      ) {}
+    }
+    else
+    {
+      for (
+        PeakContainerConstIteratorT it = it_end - 1;
+        it != it_begin && it->getIntensity() <= percent_intensity;
+        closest = it--
+      ) {}
+    }
+    return closest->getPos();
   }
 }

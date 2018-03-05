@@ -116,6 +116,7 @@ if (OPENMS_CONTRIB_LIBS)
  set (OPENMS_CONTRIB_INCLUDE_DIRS ${OPENMS_CONTRIB_LIBS}/include)
 endif()
 
+#set(OpenMS_sources ${OpenMS_sources} openms_pch.cpp)
 openms_add_library(TARGET_NAME  OpenMS
                    SOURCE_FILES  ${OpenMS_sources}
                    HEADER_FILES  ${OpenMS_sources_h}
@@ -143,7 +144,7 @@ openms_add_library(TARGET_NAME  OpenMS
                                   ${QT_LIBRARIES}
                                   ${OPENMS_DEP_LIBRARIES}
                    DLL_EXPORT_PATH "OpenMS/")
-
+                   
 #------------------------------------------------------------------------------
 # since the share basically belongs to OpenMS core we control its installation
 # here
