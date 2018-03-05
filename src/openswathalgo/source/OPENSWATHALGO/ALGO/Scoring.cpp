@@ -251,55 +251,26 @@ namespace OpenSwath
       return result;
     }
 
-    /// Replaces the elements in vector @p w by their ranks
-    static void computeRank(std::vector<double> & w)
+    std::vector<uint> computeRank(const std::vector<double>& v_temp)
     {
-      size_t i = 0; // main index
-      size_t z  = 0;  // "secondary" index
-      double rank = 0;
-      size_t n = (w.size() - 1);
-      //store original indices for later
-      std::vector<std::pair<size_t, double> > w_idx;
-      for (size_t j = 0; j < w.size(); ++j)
-      {
-        w_idx.push_back(std::make_pair(j, w[j]));
+      std::vector<std::pair<float, uint> > v_sort(v_temp.size());
+
+      for (uint i = 0; i < v_sort.size(); ++i) {
+        v_sort[i] = std::make_pair(v_temp[i], i);
       }
-      //sort
-      std::sort(w_idx.begin(), w_idx.end(),
-                boost::lambda::ret<bool>((&boost::lambda::_1->*& std::pair<size_t, double>::second) < 
-                                         (&boost::lambda::_2->*& std::pair<size_t, double>::second)));
-      //replace pairs <orig_index, value> in w_idx by pairs <orig_index, rank>
-      while (i < n)
-      {
-        // test for equality with tolerance:
-        if (fabs(w_idx[i + 1].second - w_idx[i].second) > 0.0000001 * fabs(w_idx[i + 1].second)) // no tie
-        {
-          w_idx[i].second = double(i + 1);
-          ++i;
+
+      std::sort(v_sort.begin(), v_sort.end());
+
+      std::pair<double, uint> rank;
+      std::vector<uint> result(v_temp.size());
+
+      for (uint i = 0; i < v_sort.size(); ++i) {
+        if (v_sort[i].first != rank.first) {
+          rank = std::make_pair(v_sort[i].first, i);
         }
-        else // tie, replace by mean rank
-        {
-          // count number of ties
-          for (z = i + 1; (z <= n) && fabs(w_idx[z].second - w_idx[i].second) <= 0.0000001 * fabs(w_idx[z].second); ++z)
-          {
-          }
-          // compute mean rank of tie
-          rank = 0.5 * (i + z + 1);
-          // replace intensities by rank
-          for (size_t v = i; v <= z - 1; ++v)
-          {
-            w_idx[v].second = rank;
-          }
-          i = z;
-        }
+        result[v_sort[i].second] = rank.second;
       }
-      if (i == n)
-        w_idx[n].second = double(n + 1);
-      //restore original order and replace elements of w with their ranks
-      for (size_t j = 0; j < w.size(); ++j)
-      {
-        w[w_idx[j].first] = w_idx[j].second;
-      }
+      return result;
     }
 
     double rankedMutualInformation(std::vector<double>& data1, std::vector<double>& data2)
@@ -307,11 +278,8 @@ namespace OpenSwath
       OPENSWATH_PRECONDITION(data1.size() != 0 && data1.size() == data2.size(), "Both data vectors need to have the same length");
 
       // rank the data
-      computeRank(data1);
-      computeRank(data2);
-
-      std::vector<uint> int_data1(data1.begin(),data1.end());
-      std::vector<uint> int_data2(data2.begin(),data2.end());
+      std::vector<uint> int_data1 = computeRank(data1);
+      std::vector<uint> int_data2 = computeRank(data2);
 
       uint* arr_int_data1 = &int_data1[0];
       uint* arr_int_data2 = &int_data2[0];
