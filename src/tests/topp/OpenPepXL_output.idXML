@@ -21,7 +21,7 @@
 				<UserParam type="int" name="modifications:variable_max_per_peptide" value="2"/>
 				<UserParam type="int" name="MS:1001029" value="329"/>
 	</SearchParameters>
-	<IdentificationRun date="2018-03-02T08:45:13" search_engine="OpenXQuest" search_engine_version="2.3.0" search_parameters_ref="SP_0" >
+	<IdentificationRun date="2018-03-06T13:21:04" search_engine="OpenXQuest" search_engine_version="2.3.0" search_parameters_ref="SP_0" >
 		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0" >
 			<ProteinHit id="PH_0" accession="Protein1" score="0" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
@@ -53,11 +53,15 @@
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="1.73411703302438"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.162473242929906"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="0.656090707433842"/>
-				<UserParam type="float" name="OpenXQuest:match-odds" value="0.811493072604136"/>
+				<UserParam type="float" name="OpenXQuest:match-odds" value="1.34786504687783"/>
 				<UserParam type="float" name="OpenXQuest:intsum" value="2.63155278563499"/>
 				<UserParam type="float" name="OpenXQuest:wTIC" value="0.396954220850271"/>
 				<UserParam type="float" name="OpenXQuest:TIC" value="0.417075821155964"/>
 				<UserParam type="float" name="OpenXQuest:prescore" value="0.039283711463213"/>
+				<UserParam type="float" name="OpenXQuest:log_occupancy" value="2.68722449908122"/>
+				<UserParam type="float" name="OpenXQuest:log_occupancy_alpha" value="2.85372682486816"/>
+				<UserParam type="float" name="OpenXQuest:log_occupancy_beta" value="2.52072217329429"/>
+				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec" value="0.885479377526886"/>
 				<UserParam type="float" name="HyperCommon" value="12.5650697679762"/>
 				<UserParam type="float" name="HyperXlink" value="8.28473988317518"/>
 				<UserParam type="float" name="HyperAlpha" value="4.05297537403953"/>
@@ -89,6 +93,10 @@
 				<UserParam type="float" name="OpenXQuest:wTIC" value="0.396954220850271"/>
 				<UserParam type="float" name="OpenXQuest:TIC" value="0.417075821155964"/>
 				<UserParam type="float" name="OpenXQuest:prescore" value="0.039283711463213"/>
+				<UserParam type="float" name="OpenXQuest:log_occupancy" value="2.68722449908122"/>
+				<UserParam type="float" name="OpenXQuest:log_occupancy_alpha" value="2.85372682486816"/>
+				<UserParam type="float" name="OpenXQuest:log_occupancy_beta" value="2.52072217329429"/>
+				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec" value="0.885479377526886"/>
 				<UserParam type="float" name="HyperCommon" value="12.5650697679762"/>
 				<UserParam type="float" name="HyperXlink" value="8.28473988317518"/>
 				<UserParam type="float" name="HyperAlpha" value="4.05297537403953"/>
@@ -123,6 +131,10 @@
 				<UserParam type="float" name="OpenXQuest:wTIC" value="0.43644221362543"/>
 				<UserParam type="float" name="OpenXQuest:TIC" value="0.456624555347754"/>
 				<UserParam type="float" name="OpenXQuest:prescore" value="0.0481125228106976"/>
+				<UserParam type="float" name="OpenXQuest:log_occupancy" value="3.63467776766593"/>
+				<UserParam type="float" name="OpenXQuest:log_occupancy_alpha" value="2.85372682486816"/>
+				<UserParam type="float" name="OpenXQuest:log_occupancy_beta" value="4.41562871046371"/>
+				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec" value="1.69456434987807"/>
 				<UserParam type="float" name="HyperCommon" value="13.6989402028631"/>
 				<UserParam type="float" name="HyperXlink" value="8.28473988317518"/>
 				<UserParam type="float" name="HyperAlpha" value="4.05297537403953"/>
@@ -154,6 +166,10 @@
 				<UserParam type="float" name="OpenXQuest:wTIC" value="0.43644221362543"/>
 				<UserParam type="float" name="OpenXQuest:TIC" value="0.456624555347754"/>
 				<UserParam type="float" name="OpenXQuest:prescore" value="0.0481125228106976"/>
+				<UserParam type="float" name="OpenXQuest:log_occupancy" value="3.63467776766593"/>
+				<UserParam type="float" name="OpenXQuest:log_occupancy_alpha" value="2.85372682486816"/>
+				<UserParam type="float" name="OpenXQuest:log_occupancy_beta" value="4.41562871046371"/>
+				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec" value="1.69456434987807"/>
 				<UserParam type="float" name="HyperCommon" value="13.6989402028631"/>
 				<UserParam type="float" name="HyperXlink" value="8.28473988317518"/>
 				<UserParam type="float" name="HyperAlpha" value="4.05297537403953"/>
@@ -188,6 +204,10 @@
 				<UserParam type="float" name="OpenXQuest:wTIC" value="0.351837083235437"/>
 				<UserParam type="float" name="OpenXQuest:TIC" value="0.370204782115238"/>
 				<UserParam type="float" name="OpenXQuest:prescore" value="0.0380362868309021"/>
+				<UserParam type="float" name="OpenXQuest:log_occupancy" value="2.44028657970436"/>
+				<UserParam type="float" name="OpenXQuest:log_occupancy_alpha" value="3.13559491013192"/>
+				<UserParam type="float" name="OpenXQuest:log_occupancy_beta" value="1.7449782492768"/>
+				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec" value="0.885479377526886"/>
 				<UserParam type="float" name="HyperCommon" value="9.6197722715887"/>
 				<UserParam type="float" name="HyperXlink" value="12.311687744963"/>
 				<UserParam type="float" name="HyperAlpha" value="5.49219682733782"/>
@@ -219,6 +239,10 @@
 				<UserParam type="float" name="OpenXQuest:wTIC" value="0.351837083235437"/>
 				<UserParam type="float" name="OpenXQuest:TIC" value="0.370204782115238"/>
 				<UserParam type="float" name="OpenXQuest:prescore" value="0.0380362868309021"/>
+				<UserParam type="float" name="OpenXQuest:log_occupancy" value="2.44028657970436"/>
+				<UserParam type="float" name="OpenXQuest:log_occupancy_alpha" value="3.13559491013192"/>
+				<UserParam type="float" name="OpenXQuest:log_occupancy_beta" value="1.7449782492768"/>
+				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec" value="0.885479377526886"/>
 				<UserParam type="float" name="HyperCommon" value="9.6197722715887"/>
 				<UserParam type="float" name="HyperXlink" value="12.311687744963"/>
 				<UserParam type="float" name="HyperAlpha" value="5.49219682733782"/>
@@ -253,6 +277,10 @@
 				<UserParam type="float" name="OpenXQuest:wTIC" value="0.405495636964018"/>
 				<UserParam type="float" name="OpenXQuest:TIC" value="0.423253481612473"/>
 				<UserParam type="float" name="OpenXQuest:prescore" value="0.043920524418354"/>
+				<UserParam type="float" name="OpenXQuest:log_occupancy" value="3.13495827869519"/>
+				<UserParam type="float" name="OpenXQuest:log_occupancy_alpha" value="2.85372682486816"/>
+				<UserParam type="float" name="OpenXQuest:log_occupancy_beta" value="3.41618973252222"/>
+				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec" value="1.25401287331375"/>
 				<UserParam type="float" name="HyperCommon" value="12.4557239863681"/>
 				<UserParam type="float" name="HyperXlink" value="8.26907162356069"/>
 				<UserParam type="float" name="HyperAlpha" value="3.90423933427245"/>
@@ -284,6 +312,10 @@
 				<UserParam type="float" name="OpenXQuest:wTIC" value="0.405495636964018"/>
 				<UserParam type="float" name="OpenXQuest:TIC" value="0.423253481612473"/>
 				<UserParam type="float" name="OpenXQuest:prescore" value="0.043920524418354"/>
+				<UserParam type="float" name="OpenXQuest:log_occupancy" value="3.13495827869519"/>
+				<UserParam type="float" name="OpenXQuest:log_occupancy_alpha" value="2.85372682486816"/>
+				<UserParam type="float" name="OpenXQuest:log_occupancy_beta" value="3.41618973252222"/>
+				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec" value="1.25401287331375"/>
 				<UserParam type="float" name="HyperCommon" value="12.4557239863681"/>
 				<UserParam type="float" name="HyperXlink" value="8.26907162356069"/>
 				<UserParam type="float" name="HyperAlpha" value="3.90423933427245"/>
@@ -318,6 +350,10 @@
 				<UserParam type="float" name="OpenXQuest:wTIC" value="0.0177079905174123"/>
 				<UserParam type="float" name="OpenXQuest:TIC" value="0.0177079905174123"/>
 				<UserParam type="float" name="OpenXQuest:prescore" value="0.00398409552872181"/>
+				<UserParam type="float" name="OpenXQuest:log_occupancy" value="0.455818777439756"/>
+				<UserParam type="float" name="OpenXQuest:log_occupancy_alpha" value="0"/>
+				<UserParam type="float" name="OpenXQuest:log_occupancy_beta" value="0.911637554879511"/>
+				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec" value="0.0370266572578086"/>
 				<UserParam type="float" name="HyperCommon" value="0"/>
 				<UserParam type="float" name="HyperXlink" value="0.0824649173979771"/>
 				<UserParam type="float" name="HyperAlpha" value="0"/>
@@ -349,6 +385,10 @@
 				<UserParam type="float" name="OpenXQuest:wTIC" value="0.0177079905174123"/>
 				<UserParam type="float" name="OpenXQuest:TIC" value="0.0177079905174123"/>
 				<UserParam type="float" name="OpenXQuest:prescore" value="0.00398409552872181"/>
+				<UserParam type="float" name="OpenXQuest:log_occupancy" value="0.455818777439756"/>
+				<UserParam type="float" name="OpenXQuest:log_occupancy_alpha" value="0"/>
+				<UserParam type="float" name="OpenXQuest:log_occupancy_beta" value="0.911637554879511"/>
+				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec" value="0.0370266572578086"/>
 				<UserParam type="float" name="HyperCommon" value="0"/>
 				<UserParam type="float" name="HyperXlink" value="0.0824649173979771"/>
 				<UserParam type="float" name="HyperAlpha" value="0"/>
@@ -382,6 +422,10 @@
 				<UserParam type="float" name="OpenXQuest:wTIC" value="0.0688459236181392"/>
 				<UserParam type="float" name="OpenXQuest:TIC" value="0.0688459236181392"/>
 				<UserParam type="float" name="OpenXQuest:prescore" value="0.00694444449618459"/>
+				<UserParam type="float" name="OpenXQuest:log_occupancy" value="0.0564614974779924"/>
+				<UserParam type="float" name="OpenXQuest:log_occupancy_alpha" value="0.0564614974779924"/>
+				<UserParam type="float" name="OpenXQuest:log_occupancy_beta" value="0"/>
+				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec" value="0.0231329371940407"/>
 				<UserParam type="float" name="HyperCommon" value="0"/>
 				<UserParam type="float" name="HyperXlink" value="0.288332907246581"/>
 				<UserParam type="float" name="HyperAlpha" value="2.58943363761124"/>
@@ -420,6 +464,10 @@
 				<UserParam type="float" name="OpenXQuest:wTIC" value="0.781255905117072"/>
 				<UserParam type="float" name="OpenXQuest:TIC" value="0.835859433306086"/>
 				<UserParam type="float" name="OpenXQuest:prescore" value="0.0500000007450581"/>
+				<UserParam type="float" name="OpenXQuest:log_occupancy" value="2.92191036386181"/>
+				<UserParam type="float" name="OpenXQuest:log_occupancy_alpha" value="3.76174501794352"/>
+				<UserParam type="float" name="OpenXQuest:log_occupancy_beta" value="2.08207570978011"/>
+				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec" value="2.88337902337839"/>
 				<UserParam type="float" name="HyperCommon" value="7.38293521117503"/>
 				<UserParam type="float" name="HyperXlink" value="12.5484024106411"/>
 				<UserParam type="float" name="HyperAlpha" value="5.85784550030881"/>
@@ -451,6 +499,10 @@
 				<UserParam type="float" name="OpenXQuest:wTIC" value="0.781255905117072"/>
 				<UserParam type="float" name="OpenXQuest:TIC" value="0.835859433306086"/>
 				<UserParam type="float" name="OpenXQuest:prescore" value="0.0500000007450581"/>
+				<UserParam type="float" name="OpenXQuest:log_occupancy" value="2.92191036386181"/>
+				<UserParam type="float" name="OpenXQuest:log_occupancy_alpha" value="3.76174501794352"/>
+				<UserParam type="float" name="OpenXQuest:log_occupancy_beta" value="2.08207570978011"/>
+				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec" value="2.88337902337839"/>
 				<UserParam type="float" name="HyperCommon" value="7.38293521117503"/>
 				<UserParam type="float" name="HyperXlink" value="12.5484024106411"/>
 				<UserParam type="float" name="HyperAlpha" value="5.85784550030881"/>
@@ -485,6 +537,10 @@
 				<UserParam type="float" name="OpenXQuest:wTIC" value="0.676504666279161"/>
 				<UserParam type="float" name="OpenXQuest:TIC" value="0.712739683814841"/>
 				<UserParam type="float" name="OpenXQuest:prescore" value="0.0707106813788414"/>
+				<UserParam type="float" name="OpenXQuest:log_occupancy" value="4.26985523382388"/>
+				<UserParam type="float" name="OpenXQuest:log_occupancy_alpha" value="3.76174501794352"/>
+				<UserParam type="float" name="OpenXQuest:log_occupancy_beta" value="4.77796544970424"/>
+				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec" value="5.4289394615515"/>
 				<UserParam type="float" name="HyperCommon" value="7.38293521117503"/>
 				<UserParam type="float" name="HyperXlink" value="22.9034891768035"/>
 				<UserParam type="float" name="HyperAlpha" value="7.94442689027721"/>
@@ -516,6 +572,10 @@
 				<UserParam type="float" name="OpenXQuest:wTIC" value="0.676504666279161"/>
 				<UserParam type="float" name="OpenXQuest:TIC" value="0.712739683814841"/>
 				<UserParam type="float" name="OpenXQuest:prescore" value="0.0707106813788414"/>
+				<UserParam type="float" name="OpenXQuest:log_occupancy" value="4.26985523382388"/>
+				<UserParam type="float" name="OpenXQuest:log_occupancy_alpha" value="3.76174501794352"/>
+				<UserParam type="float" name="OpenXQuest:log_occupancy_beta" value="4.77796544970424"/>
+				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec" value="5.4289394615515"/>
 				<UserParam type="float" name="HyperCommon" value="7.38293521117503"/>
 				<UserParam type="float" name="HyperXlink" value="22.9034891768035"/>
 				<UserParam type="float" name="HyperAlpha" value="7.94442689027721"/>
@@ -550,6 +610,10 @@
 				<UserParam type="float" name="OpenXQuest:wTIC" value="0.768526301879695"/>
 				<UserParam type="float" name="OpenXQuest:TIC" value="0.817087084294762"/>
 				<UserParam type="float" name="OpenXQuest:prescore" value="0.0763762667775154"/>
+				<UserParam type="float" name="OpenXQuest:log_occupancy" value="4.41062768458409"/>
+				<UserParam type="float" name="OpenXQuest:log_occupancy_alpha" value="4.53999031260935"/>
+				<UserParam type="float" name="OpenXQuest:log_occupancy_beta" value="4.28126505655884"/>
+				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec" value="6.42996939232125"/>
 				<UserParam type="float" name="HyperCommon" value="10.3279912107947"/>
 				<UserParam type="float" name="HyperXlink" value="14.8796248308368"/>
 				<UserParam type="float" name="HyperAlpha" value="13.0553193219031"/>
@@ -581,6 +645,10 @@
 				<UserParam type="float" name="OpenXQuest:wTIC" value="0.768526301879695"/>
 				<UserParam type="float" name="OpenXQuest:TIC" value="0.817087084294762"/>
 				<UserParam type="float" name="OpenXQuest:prescore" value="0.0763762667775154"/>
+				<UserParam type="float" name="OpenXQuest:log_occupancy" value="4.41062768458409"/>
+				<UserParam type="float" name="OpenXQuest:log_occupancy_alpha" value="4.53999031260935"/>
+				<UserParam type="float" name="OpenXQuest:log_occupancy_beta" value="4.28126505655884"/>
+				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec" value="6.42996939232125"/>
 				<UserParam type="float" name="HyperCommon" value="10.3279912107947"/>
 				<UserParam type="float" name="HyperXlink" value="14.8796248308368"/>
 				<UserParam type="float" name="HyperAlpha" value="13.0553193219031"/>
@@ -615,6 +683,10 @@
 				<UserParam type="float" name="OpenXQuest:wTIC" value="0.656644298044688"/>
 				<UserParam type="float" name="OpenXQuest:TIC" value="0.68826250208028"/>
 				<UserParam type="float" name="OpenXQuest:prescore" value="0.0824957937002182"/>
+				<UserParam type="float" name="OpenXQuest:log_occupancy" value="4.9028425783752"/>
+				<UserParam type="float" name="OpenXQuest:log_occupancy_alpha" value="4.62031155594519"/>
+				<UserParam type="float" name="OpenXQuest:log_occupancy_beta" value="5.1853736008052"/>
+				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec" value="7.50091945390769"/>
 				<UserParam type="float" name="HyperCommon" value="11.7340328312971"/>
 				<UserParam type="float" name="HyperXlink" value="19.7454211585198"/>
 				<UserParam type="float" name="HyperAlpha" value="13.0553193219031"/>
@@ -646,6 +718,10 @@
 				<UserParam type="float" name="OpenXQuest:wTIC" value="0.656644298044688"/>
 				<UserParam type="float" name="OpenXQuest:TIC" value="0.68826250208028"/>
 				<UserParam type="float" name="OpenXQuest:prescore" value="0.0824957937002182"/>
+				<UserParam type="float" name="OpenXQuest:log_occupancy" value="4.9028425783752"/>
+				<UserParam type="float" name="OpenXQuest:log_occupancy_alpha" value="4.62031155594519"/>
+				<UserParam type="float" name="OpenXQuest:log_occupancy_beta" value="5.1853736008052"/>
+				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec" value="7.50091945390769"/>
 				<UserParam type="float" name="HyperCommon" value="11.7340328312971"/>
 				<UserParam type="float" name="HyperXlink" value="19.7454211585198"/>
 				<UserParam type="float" name="HyperAlpha" value="13.0553193219031"/>
@@ -679,6 +755,10 @@
 				<UserParam type="float" name="OpenXQuest:wTIC" value="0.660300024858228"/>
 				<UserParam type="float" name="OpenXQuest:TIC" value="0.660300024858228"/>
 				<UserParam type="float" name="OpenXQuest:prescore" value="0.0795454531908035"/>
+				<UserParam type="float" name="OpenXQuest:log_occupancy" value="3.16483711801473"/>
+				<UserParam type="float" name="OpenXQuest:log_occupancy_alpha" value="3.16483711801473"/>
+				<UserParam type="float" name="OpenXQuest:log_occupancy_beta" value="0"/>
+				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec" value="2.33666522248801"/>
 				<UserParam type="float" name="HyperCommon" value="5.59770114368979"/>
 				<UserParam type="float" name="HyperXlink" value="4.32762764114041"/>
 				<UserParam type="float" name="HyperAlpha" value="11.9960758128656"/>
@@ -716,6 +796,10 @@
 				<UserParam type="float" name="OpenXQuest:wTIC" value="0.672367841921044"/>
 				<UserParam type="float" name="OpenXQuest:TIC" value="0.672367841921044"/>
 				<UserParam type="float" name="OpenXQuest:prescore" value="0.107142858207226"/>
+				<UserParam type="float" name="OpenXQuest:log_occupancy" value="5.62904796479063"/>
+				<UserParam type="float" name="OpenXQuest:log_occupancy_alpha" value="5.62904796479063"/>
+				<UserParam type="float" name="OpenXQuest:log_occupancy_beta" value="0"/>
+				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec" value="5.33167976719043"/>
 				<UserParam type="float" name="HyperCommon" value="8.15707933298946"/>
 				<UserParam type="float" name="HyperXlink" value="4.59543196178458"/>
 				<UserParam type="float" name="HyperAlpha" value="17.3945020752073"/>
