@@ -229,7 +229,7 @@ namespace OpenMS
 
     void XQuestResultXMLHandler::startElement(const XMLCh * const, const XMLCh * const, const XMLCh * const qname, const Attributes &attributes)
     {
-      cout << "TEST parsing startElement!" << endl;
+      // cout << "TEST parsing startElement!" << endl;
       String tag = XMLString::transcode(qname);
       // Extract meta information from the xquest_results tag
       if (tag == "xquest_results")
@@ -237,13 +237,13 @@ namespace OpenMS
         // Decide whether this Block is original xQuest or OpenPepXL
         String xquest_version = this->attributeAsString_(attributes, "xquest_version");
         this->is_openpepxl_ = xquest_version.hasSubstring("OpenPepXL");
-        cout << "TEST parsing xquest_version finished!" << endl;
+        // cout << "TEST parsing xquest_version finished!" << endl;
 
         // Date and Time of Search
         DateTime date_time;
         this->extractDateTime_(this->attributeAsString_(attributes, "date"), date_time);
         (*this->prot_ids_)[0].setDateTime(date_time);
-        cout << "TEST parsing date finished!" << endl;
+        // cout << "TEST parsing date finished!" << endl;
 
         // Set the search parameters
         ProteinIdentification::SearchParameters search_params;
@@ -267,7 +267,7 @@ namespace OpenMS
         String tolerancemeasure_ms2 = this->attributeAsString_(attributes, "tolerancemeasure_ms2");
         search_params.fragment_mass_tolerance_ppm = tolerancemeasure_ms2 != "Da";
 
-        cout << "TEST parsing param set 1 finished!" << endl;
+        // cout << "TEST parsing param set 1 finished!" << endl;
 
         // variable Modifications
         vector< String > variable_mod_list;
@@ -298,7 +298,7 @@ namespace OpenMS
           search_params.fixed_modifications = fixed_mod_list;
         }
 
-        cout << "TEST parsing param set 2 finished!" << endl;
+        // cout << "TEST parsing param set 2 finished!" << endl;
 
         String decoy_prefix;
         // if this info is not available, we can assume the decoy string is a prefix, since that is the standard way
@@ -337,7 +337,7 @@ namespace OpenMS
           search_params.setMetaValue("cross_link:mass_isoshift", iso_shift.toDouble());
         }
 
-        cout << "TEST parsing param set 3 finished!" << endl;
+        // cout << "TEST parsing param set 3 finished!" << endl;
 
         bool ntermxlinkable;
         std::istringstream is_nterm(this->attributeAsString_(attributes, "ntermxlinkable"));
@@ -370,7 +370,7 @@ namespace OpenMS
           search_params.setMetaValue("cross_link:residue2", ListUtils::create<String>(aarequired2));
         }
 
-        cout << "TEST parsing param set 4 finished!" << endl;
+        // cout << "TEST parsing param set 4 finished!" << endl;
 
         if (this->is_openpepxl_)
         {
@@ -387,7 +387,7 @@ namespace OpenMS
         }
 
         (*this->prot_ids_)[0].setSearchParameters(search_params);
-        cout << "TEST parsing xquest_results finished!" << endl;
+        // cout << "TEST parsing xquest_results finished!" << endl;
       }
       else if (tag == "spectrum_search")
       {
@@ -458,7 +458,7 @@ namespace OpenMS
             (*this->prot_ids_)[0].setSearchParameters(search_params);
           }
         }
-        cout << "TEST parsing spectrum_search finished!" << endl;
+        // cout << "TEST parsing spectrum_search finished!" << endl;
       }
       else if (tag == "search_hit")
       {
@@ -713,7 +713,7 @@ namespace OpenMS
         this->peptide_id_meta_values_.clear();
         this->pep_ids_->push_back(peptide_identification);
         this->n_hits_++;
-        cout << "TEST parsing search_hit finished!" << endl;
+        // cout << "TEST parsing search_hit finished!" << endl;
       }
     }
 
@@ -840,8 +840,8 @@ namespace OpenMS
           if (!input_filename.empty())
           {
             input_filename.split(String("/"), input_split_dir);
-            cout << "TEST input_filename: " << input_filename << endl;
-            cout << "TEST " << input_split_dir[input_split_dir.size()-1] << endl;
+            // cout << "TEST input_filename: " << input_filename << endl;
+            // cout << "TEST " << input_split_dir[input_split_dir.size()-1] << endl;
             input_split_dir[input_split_dir.size()-1].split(String("."), input_split);
             base_name = input_split[0];
           }
@@ -852,11 +852,11 @@ namespace OpenMS
 
           Size scan_index_light = pep_hits[0].getMetaValue("spectrum_index");
           Size scan_index_heavy = scan_index_light;
-          cout << "TEST scan_index_light: " << scan_index_light << endl;
+          // cout << "TEST scan_index_light: " << scan_index_light << endl;
           if (pep_hits[0].metaValueExists("spectrum_index_heavy"))
           {
             scan_index_heavy = pep_hits[0].getMetaValue("spectrum_index_heavy");
-            cout << "TEST scan_index_heavy: " << scan_index_heavy << endl;
+            // cout << "TEST scan_index_heavy: " << scan_index_heavy << endl;
           }
           String spectrum_light_name = base_name + ".light." + scan_index_light;
           String spectrum_heavy_name = base_name + ".heavy." + scan_index_heavy;
@@ -911,7 +911,7 @@ namespace OpenMS
         String id("") ;
         String seq_beta("");
 
-        cout << "TEST type: " << xltype_OPXL << endl;
+        // cout << "TEST type: " << xltype_OPXL << endl;
         if (xltype_OPXL == "cross-link")
         {
           xltype = "xlink";
@@ -940,7 +940,7 @@ namespace OpenMS
           id = structure + String("-") + letter_first + alpha_pos + String("-") + Int(double(pep_hits[0].getMetaValue("xl_mass")));
         }
 
-        cout << "TEST precursor_error calc..." << endl;
+        // cout << "TEST precursor_error calc..." << endl;
         // Precursor error calculation, rel_error is read from the metaValue for consistency, but an absolute error is also used in the xQuest format
         // use the formula, if the MetaValue is unavailable
         double theo_mz = (weight + (static_cast<double>(precursor_charge) * Constants::PROTON_MASS_U)) / static_cast<double>(precursor_charge);
@@ -954,7 +954,7 @@ namespace OpenMS
         {
           rel_error = (error / theo_mz) / 1e-6;
         }
-        cout << "TEST precursor_error: " << error << " | " << rel_error << endl;
+        // cout << "TEST precursor_error: " << error << " | " << rel_error << endl;
 
         // Protein accessions
         String prot_alpha = pep_hits[0].getPeptideEvidences()[0].getProteinAccession();
