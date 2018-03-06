@@ -546,42 +546,7 @@ protected:
 
       else if (in_type == FileTypes::XQUESTXML)
       {
-        // vector< ProteinIdentification > protein_ids;
         XQuestResultXMLFile().load(in, peptide_identifications, protein_identifications);
-        // protein_identifications[0].setSearchEngineVersion("");
-        // protein_identifications[0].setSearchEngine("OpenPepXL");
-        // protein_identifications.push_back(protein_id);
-
-        // TODO what info could I use from an mz file?
-        // if (!mz_file.empty())
-        // {
-        //   PeakMap exp;
-        //   fh.getOptions().addMSLevel(2);
-        //   fh.loadExperiment(mz_file, exp, FileTypes::MZML, log_type_, false,
-        //                     false);
-        //   for (vector<PeptideIdentification>::iterator it =
-        //          peptide_identifications.begin(); it !=
-        //          peptide_identifications.end(); ++it)
-        //   {
-        //     UInt id = (Int)it->getMetaValue("spectrum_id");
-        //     --id; // native IDs were written 1-based
-        //     if (id < exp.size())
-        //     {
-        //       it->setRT(exp[id].getRT());
-        //       double pre_mz(0.0);
-        //       if (!exp[id].getPrecursors().empty())
-        //       {
-        //         pre_mz = exp[id].getPrecursors()[0].getMZ();
-        //       }
-        //       it->setMZ(pre_mz);
-        //       it->removeMetaValue("spectrum_id");
-        //     }
-        //     else
-        //     {
-        //       LOG_ERROR << "XTandem xml: Error: id '" << id << "' not found in peak map!" << endl;
-        //     }
-        //   }
-        // }
       }
 
       else
