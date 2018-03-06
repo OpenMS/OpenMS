@@ -34,6 +34,8 @@
 
 #include <OpenMS/FORMAT/OSWFile.h>
 
+#include <sstream>
+
 namespace OpenMS
 {
   using namespace std;

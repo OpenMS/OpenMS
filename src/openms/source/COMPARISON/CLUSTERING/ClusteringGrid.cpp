@@ -35,6 +35,7 @@
 
 #include <OpenMS/COMPARISON/CLUSTERING/ClusteringGrid.h>
 
+#include <functional>
 #include <sstream>
 
 namespace OpenMS
