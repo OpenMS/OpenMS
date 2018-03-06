@@ -188,22 +188,9 @@ namespace OpenMS
         peak_area /= valids;
       }
     }
-    else if (integration_type_ == INTEGRATION_TYPE_EMG)
-    {
-      // TODO: implement EMG here
-      // F(t) = G(t) * E(t)
-      // G(t) = h * e^((-(mu-t)^2)/(2*std_dev^2))
-      // E(t) = std_dev/tau * sqrt(pi/2) * erfcx(1/sqrt(2) * ((mu-t)/std_dev + std_dev/tau))
-      // erfcx(z) = e^z^2 * erfc(z)
-      // t = current rt
-      // h = peak_apex_int
-      // std_dev = 1 ?
-      // mu = position of unmodified Gaussian
-      // tau = relaxation time parameter of exponent used to modify Gaussian
-    }
     else if (integration_type_ == INTEGRATION_TYPE_INTENSITYSUM)
     {
-      LOG_DEBUG << "\nWARNING: intensity_sum method is being used.\n";
+      LOG_WARN << "\nWARNING: intensity_sum method is being used.\n";
       for (auto it = p.PosBegin(left); it != p.PosEnd(right); ++it)
       {
         peak_area += it->getIntensity();
@@ -294,10 +281,6 @@ namespace OpenMS
       {
         area = std::min(int_r, int_l) * std::distance(p.PosBegin(left), p.PosEnd(right));;
       }
-      else if(integration_type_ == INTEGRATION_TYPE_EMG)
-      {
-        // TODO: estimate background for base to base - emg case
-      }
     }
     else if (baseline_type_ == BASELINE_TYPE_VERTICALDIVISION_MAX)
     {
@@ -309,10 +292,6 @@ namespace OpenMS
       else if (integration_type_ == INTEGRATION_TYPE_INTENSITYSUM)
       {
         area = std::max(int_r, int_l) * std::distance(p.PosBegin(left), p.PosEnd(right));
-      }
-      else if(integration_type_ == INTEGRATION_TYPE_EMG)
-      {
-        // TODO: estimate background for vertical division - emg case
       }
     }
     else
@@ -395,5 +374,707 @@ namespace OpenMS
       ) {}
     }
     return closest->getPos();
+  }
+
+  double PeakIntegrator::compute_z(
+    const double x,
+    const double mu,
+    const double sigma,
+    const double tau
+  ) const
+  {
+    return (1.0 / std::sqrt(2.0)) * (sigma / tau - (x - mu) / sigma);
+  }
+
+  double PeakIntegrator::E_wrt_h(
+    const std::vector<double>& xs,
+    const std::vector<double>& ys,
+    const double h,
+    const double mu,
+    const double sigma,
+    const double tau
+  ) const
+  {
+    const double u = mu;
+    const double s = sigma;
+    const double t = tau;
+    std::vector<double> diffs(xs.size());
+    for (Size i = 0; i < xs.size(); ++i)
+    {
+      const double x = xs[i];
+      const double y = ys[i];
+      const double z = compute_z(x, mu, sigma, tau);
+      if (z < 0)
+      {
+        diffs[i] = ((s * std::exp((std::pow(s,2.0) + 2.0 * t * u - 4.0 * t * x)/(2.0 * std::pow(t,2.0))) * std::erfc((std::pow(s,2.0) + t * (u - x))/(std::sqrt(2.0) * s * t)) * (PI * h * s * std::exp((std::pow(s,2.0) + 2 * t * u)/(2 * std::pow(t,2.0))) * std::erfc((std::pow(s,2.0) + t * (u - x))/(std::sqrt(2.0) * s * t)) - std::sqrt(2.0 * PI) * t * y * std::exp(x/t)))/std::pow(t,2.0)) / static_cast<double>(xs.size());
+      }
+      else if (z <= 6.71e7)
+      {
+        diffs[i] = ((std::sqrt(2.0 * PI) * s * std::exp(1.0/2.0 * std::pow((s/t - (x - u)/s),2.0) - std::pow((x - u),2.0)/(2.0 * std::pow(s,2.0))) * std::erfc((s/t - (x - u)/s)/std::sqrt(2.0)) * ((std::sqrt(PI/2.0) * h * s * std::exp(1.0/2.0 * std::pow((s/t - (x - u)/s), 2.0) - std::pow((x - u),2.0)/(2 * std::pow(s,2.0))) * std::erfc((s/t - (x - u)/s)/std::sqrt(2.0)))/t - y))/t) / static_cast<double>(xs.size());
+      }
+      else
+      {
+        diffs[i] = ((2 * std::exp(-std::pow((x - u),2.0)/(2.0 * std::pow(s,2.0))) * ((h * std::exp(-std::pow((x - u),2.0)/(2 * std::pow(s,2.0))))/(1 - (t * (x - u))/std::pow(s,2.0)) - y))/(1 - (t * (x - u))/std::pow(s,2.0))) / static_cast<double>(xs.size());
+      }
+    }
+    const double result = std::accumulate(diffs.begin(), diffs.end(), 0.0);
+    if (print_debug_ == 2)
+    {
+      std::cout << std::endl << "E_wrt_h() diffs:" << std::endl;
+      for (double d : diffs)
+      {
+        std::cout << d << " ";
+      }
+      std::cout << std::endl;
+      std::cout << "result=" << result << std::endl;
+    }
+    return result;
+  }
+
+  double PeakIntegrator::E_wrt_mu(
+    const std::vector<double>& xs,
+    const std::vector<double>& ys,
+    const double h,
+    const double mu,
+    const double sigma,
+    const double tau
+  ) const
+  {
+    const double u = mu;
+    const double s = sigma;
+    const double t = tau;
+    std::vector<double> diffs(xs.size());
+    for (Size i = 0; i < xs.size(); ++i)
+    {
+      const double x = xs[i];
+      const double y = ys[i];
+      const double z = compute_z(x, mu, sigma, tau);
+      if (z < 0)
+      {
+        diffs[i] = (2 * ((std::sqrt(PI/2.0) * h * s * std::exp(std::pow(s,2.0)/(2.0 * std::pow(t,2.0)) - (x - u)/t) * std::erfc((s/t - (x - u)/s)/std::sqrt(2.0)))/std::pow(t,2.0) - (h * std::exp(std::pow(s,2.0)/(2.0 * std::pow(t,2.0)) - 1.0/2.0 * std::pow((s/t - (x - u)/s),2.0) - (x - u)/t))/t) * ((std::sqrt(PI/2.0) * h * s * std::exp(std::pow(s,2.0)/(2.0 * std::pow(t,2.0)) - (x - u)/t) * std::erfc((s/t - (x - u)/s)/std::sqrt(2.0)))/t - y)) / static_cast<double>(xs.size());
+      }
+      else if (z <= 6.71e7)
+      {
+        diffs[i] = (2 * ((std::sqrt(PI/2.0) * h * s * std::exp(1.0/2.0 * std::pow((s/t - (x - u)/s),2.0) - std::pow((x - u),2.0)/(2.0 * std::pow(s,2.0))) * ((x - u)/std::pow(s,2.0) + (s/t - (x - u)/s)/s) * std::erfc((s/t - (x - u)/s)/std::sqrt(2.0)))/t - (h * std::exp(-std::pow((x - u),2.0)/(2.0 * std::pow(s,2.0))))/t) * ((std::sqrt(PI/2.0) * h * s * std::exp(1.0/2.0 * std::pow((s/t - (x - u)/s),2.0) - std::pow((x - u),2.0)/(2.0 * std::pow(s,2.0))) * std::erfc((s/t - (x - u)/s)/std::sqrt(2.0)))/t - y)) / static_cast<double>(xs.size());
+      }
+      else
+      {
+        diffs[i] = (2.0 * ((h * (x - u) * std::exp(-std::pow((x - u),2.0)/(2.0 * std::pow(s,2.0))))/(std::pow(s,2.0) * (1.0 - (t * (x - u))/std::pow(s,2.0))) - (h * t * std::exp(-std::pow((x - u),2.0)/(2.0 * std::pow(s,2.0))))/(std::pow(s,2.0) * std::pow((1.0 - (t * (x - u))/std::pow(s,2.0)),2.0))) * ((h * std::exp(-std::pow((x - u),2.0)/(2.0 * std::pow(s,2.0))))/(1.0 - (t * (x - u))/std::pow(s,2.0)) - y)) / static_cast<double>(xs.size());
+      }
+    }
+    const double result = std::accumulate(diffs.begin(), diffs.end(), 0.0);
+    if (print_debug_ == 2)
+    {
+      std::cout << std::endl << "E_wrt_mu() diffs:" << std::endl;
+      for (double d : diffs)
+      {
+        std::cout << d << " ";
+      }
+      std::cout << std::endl;
+      std::cout << "result=" << result << std::endl;
+    }
+    return result;
+  }
+
+  double PeakIntegrator::E_wrt_sigma(
+    const std::vector<double>& xs,
+    const std::vector<double>& ys,
+    const double h,
+    const double mu,
+    const double sigma,
+    const double tau
+  ) const
+  {
+    const double u = mu;
+    const double s = sigma;
+    const double t = tau;
+    std::vector<double> diffs(xs.size());
+    for (Size i = 0; i < xs.size(); ++i)
+    {
+      const double x = xs[i];
+      const double y = ys[i];
+      const double z = compute_z(x, mu, sigma, tau);
+      if (z < 0)
+      {
+        diffs[i] = (2.0 * ((std::sqrt(PI/2.0) * h * std::exp(std::pow(s,2.0)/(2.0 * std::pow(t,2.0)) - (x - u)/t) * std::erfc((s/t - (x - u)/s)/std::sqrt(2.0)))/t + (std::sqrt(PI/2.0) * h * std::pow(s,2.0) * std::exp(std::pow(s,2.0)/(2.0 * std::pow(t,2.0)) - (x - u)/t) * std::erfc((s/t - (x - u)/s)/std::sqrt(2.0)))/std::pow(t,3.0) - (h * s * std::exp(std::pow(s,2.0)/(2.0 * std::pow(t,2.0)) - 1.0/2.0 * std::pow((s/t - (x - u)/s),2.0) - (x - u)/t) * ((x - u)/std::pow(s,2.0) + 1.0/t))/t) * ((std::sqrt(PI/2.0) * h * s * std::exp(std::pow(s,2.0)/(2.0 * std::pow(t,2.0)) - (x - u)/t) * std::erfc((s/t - (x - u)/s)/std::sqrt(2.0)))/t - y)) / static_cast<double>(xs.size());
+      }
+      else if (z <= 6.71e7)
+      {
+        diffs[i] = (2.0 * ((std::sqrt(PI/2.0) * h * std::exp(1.0/2.0 * std::pow((s/t - (x - u)/s),2.0) - std::pow((x - u),2.0)/(2.0 * std::pow(s,2.0))) * std::erfc((s/t - (x - u)/s)/std::sqrt(2.0)))/t + (std::sqrt(PI/2.0) * h * s * std::exp(1.0/2.0 * std::pow((s/t - (x - u)/s),2.0) - std::pow((x - u),2.0)/(2.0 * std::pow(s,2.0))) * (std::pow((x - u),2.0)/std::pow(s,3.0) + ((x - u)/std::pow(s,2.0) + 1.0/t) * (s/t - (x - u)/s)) * std::erfc((s/t - (x - u)/s)/std::sqrt(2.0)))/t - (h * s * std::exp(-std::pow((x - u),2.0)/(2.0 * std::pow(s,2.0))) * ((x - u)/std::pow(s,2.0) + 1.0/t))/t) * ((std::sqrt(PI/2.0) * h * s * std::exp(1.0/2.0 * std::pow((s/t - (x - u)/s),2.0) - std::pow((x - u),2.0)/(2.0 * std::pow(s,2.0))) * std::erfc((s/t - (x - u)/s)/std::sqrt(2.0)))/t - y)) / static_cast<double>(xs.size());
+      }
+      else
+      {
+        diffs[i] = (2.0 * ((h * std::pow((x - u),2.0) * std::exp(-std::pow((x - u),2.0)/(2.0 * std::pow(s,2.0))))/(std::pow(s,3.0) * (1.0 - (t * (x - u))/std::pow(s,2.0))) - (2.0 * h * t * (x - u) * std::exp(-std::pow((x - u),2.0)/(2 * std::pow(s,2.0))))/(std::pow(s,3.0) * std::pow((1.0 - (t * (x - u))/std::pow(s,2.0)),2.0))) * ((h * std::exp(-std::pow(x-u,2.0)/(2 * std::pow(s,2.0))))/(1 - (t * (x - u))/std::pow(s,2.0)) - y)) / static_cast<double>(xs.size());
+      }
+    }
+    const double result = std::accumulate(diffs.begin(), diffs.end(), 0.0);
+    if (print_debug_ == 2)
+    {
+      std::cout << std::endl << "E_wrt_sigma() diffs:" << std::endl;
+      for (double d : diffs)
+      {
+        std::cout << d << " ";
+      }
+      std::cout << std::endl;
+      std::cout << "result=" << result << std::endl;
+    }
+    return result;
+  }
+
+  double PeakIntegrator::E_wrt_tau(
+    const std::vector<double>& xs,
+    const std::vector<double>& ys,
+    const double h,
+    const double mu,
+    const double sigma,
+    const double tau
+  ) const
+  {
+    const double u = mu;
+    const double s = sigma;
+    const double t = tau;
+    std::vector<double> diffs(xs.size());
+    const double PI = OpenMS::Constants::PI;
+    for (Size i = 0; i < xs.size(); ++i)
+    {
+      const double x = xs[i];
+      const double y = ys[i];
+      const double z = compute_z(x, mu, sigma, tau);
+      if (z < 0)
+      {
+        diffs[i] = (2 * (-(std::sqrt(PI/2.0) * h * s * std::exp(std::pow(s,2.0)/(2 * std::pow(t,2.0)) - (x - u)/t) * std::erfc((s/t - (x - u)/s)/std::sqrt(2.0)))/std::pow(t,2.0) + (std::sqrt(PI/2.0) * h * s * std::exp(std::pow(s,2.0)/(2.0 * std::pow(t,2.0)) - (x - u)/t) * ((x - u)/std::pow(t,2.0) - std::pow(s,2.0)/std::pow(t,3.0)) * std::erfc((s/t - (x - u)/s)/std::sqrt(2.0)))/t + (h * std::pow(s,2.0) * std::exp(std::pow(s,2.0)/(2.0 * std::pow(t,2.0)) - 1.0/2.0 * std::pow((s/t - (x - u)/s),2.0) - (x - u)/t))/std::pow(t,3.0)) * ((std::sqrt(PI/2.0) * h * s * std::exp(std::pow(s,2.0)/(2.0 * std::pow(t,2.0)) - (x - u)/t) * std::erfc((s/t - (x - u)/s)/std::sqrt(2.0)))/t - y)) / static_cast<double>(xs.size());
+      }
+      else if (z <= 6.71e7)
+      {
+        diffs[i] = (2 * (-(std::sqrt(PI/2.0) * h * std::pow(s,2.0) * std::exp(1.0/2.0 * std::pow((s/t - (x - u)/s),2.0) - std::pow(x-u,2.0)/(2.0 * std::pow(s,2.0))) * (s/t - (x - u)/s) * std::erfc((s/t - (x - u)/s)/std::sqrt(2.0)))/std::pow(t,3.0) - (std::sqrt(PI/2.0) * h * s * std::exp(1.0/2.0 * std::pow((s/t - (x - u)/s),2.0) - std::pow(x-u,2.0)/(2.0 * std::pow(s,2.0))) * std::erfc((s/t - (x - u)/s)/std::sqrt(2.0)))/std::pow(t,2.0) + (h * std::pow(s,2.0) * std::exp(-std::pow(x-u,2.0)/(2 * std::pow(s,2.0))))/std::pow(t,3.0)) * ((std::sqrt(PI/2.0) * h * s * std::exp(1.0/2.0 * std::pow((s/t - (x - u)/s),2.0) - std::pow(x-u,2.0)/(2 * std::pow(s,2.0))) * std::erfc((s/t - (x - u)/s)/std::sqrt(2.0)))/t - y)) / static_cast<double>(xs.size());
+      }
+      else
+      {
+        diffs[i] = ((2.0 * h * (x - u) * std::exp(-std::pow(x-u,2.0)/(2.0 * std::pow(s,2.0))) * ((h * std::exp(-std::pow(x-u,2.0)/(2.0 * std::pow(s,2.0))))/(1.0 - (t * (x - u))/std::pow(s,2.0)) - y))/(std::pow(s,2.0) * std::pow((1.0 - (t * (x - u))/std::pow(s,2.0)),2.0))) / static_cast<double>(xs.size());
+      }
+    }
+    const double result = std::accumulate(diffs.begin(), diffs.end(), 0.0);
+    if (print_debug_ == 2)
+    {
+      std::cout << std::endl << "E_wrt_tau() diffs:" << std::endl;
+      for (double d : diffs)
+      {
+        std::cout << d << " ";
+      }
+      std::cout << std::endl;
+      std::cout << "result=" << result << std::endl;
+    }
+    return result;
+  }
+
+  double PeakIntegrator::Loss_function(
+    const std::vector<double>& xs,
+    const std::vector<double>& ys,
+    const double h,
+    const double mu,
+    const double sigma,
+    const double tau
+  ) const
+  {
+    const double u = mu;
+    const double s = sigma;
+    const double t = tau;
+    std::vector<double> diffs(xs.size());
+    for (Size i = 0; i < xs.size(); ++i)
+    {
+      const double x = xs[i];
+      const double y = ys[i];
+      const double z = compute_z(x, mu, sigma, tau);
+      if (z < 0)
+      {
+        diffs[i] = (std::pow(((((h*s)/t) * std::sqrt(PI/2.0) * std::exp((1.0/2.0)*(std::pow(s/t,2.0))-(x-u)/t) * std::erfc((1/std::sqrt(2.0)) * (s/t - (x-u)/s)))-y),2.0)) / static_cast<double>(xs.size());
+      }
+      else if (z <= 6.71e7)
+      {
+        diffs[i] = (std::pow((h * std::exp(-1.0/2.0 * std::pow(((x - u)/s),2.0)) * (s/t) * std::sqrt(PI/2.0) * std::exp(std::pow((1.0/std::sqrt(2.0) * (s/t - (x - u)/s)),2.0)) * std::erfc(1.0/std::sqrt(2.0) * (s/t - (x - u)/s)) - y),2.0)) / static_cast<double>(xs.size());
+      }
+      else
+      {
+        diffs[i] = (std::pow((((h * std::exp(-(1.0/2.0) * (std::pow(((x-u) / s),2.0)))) / (  1.0 - (((x-u) * t) / (std::pow(s,2.0)))))-y),2.0)) / static_cast<double>(xs.size());
+      }
+    }
+    const double result = std::accumulate(diffs.begin(), diffs.end(), 0.0);
+    if (print_debug_ == 2)
+    {
+      std::cout << std::endl << "Loss_function() diffs:" << std::endl;
+      for (double d : diffs)
+      {
+        std::cout << d << " ";
+      }
+      std::cout << std::endl;
+      std::cout << "result=" << result << std::endl;
+    }
+    return result;
+  }
+
+  void PeakIntegrator::emg_vector(
+    const std::vector<double>& xs,
+    const double h,
+    const double mu,
+    const double sigma,
+    const double tau,
+    std::vector<double>& out_xs,
+    std::vector<double>& out_ys,
+    const bool compute_additional_points
+  ) const
+  {
+    out_xs = xs; // Copy all positions to output
+    for (const double x : out_xs) // For each x, estimate y
+    {
+      out_ys.push_back(emg_point(x, h, mu, sigma, tau));
+    }
+
+    if (!compute_additional_points) return;
+
+    // Compute the sampling step for the additional points
+    double avg_sampling { 0.0 };
+    for (Size i = 1; i < xs.size(); ++i)
+    {
+      avg_sampling += xs[i] - xs[i - 1];
+    }
+    avg_sampling /= xs.size() - 1;
+
+    // Stop adding points if the estimated y <= `est_y_threshold`
+    const double est_y_threshold { 1e-3 };
+
+    // Decide on which side the eventual additional points should be added
+    // The loop stops once the last added point's intensity is:
+    // - lower than the intensity on the opposite boundary
+    // - lower than `est_y_threshold`
+    if (out_ys.front() > out_ys.back())
+    {
+      const double target_intensity = out_ys.back();
+      while (out_ys.front() > target_intensity && out_ys.front() > est_y_threshold)
+      {
+        const double position = out_xs.front() - avg_sampling;
+        out_xs.insert(out_xs.begin(), position);
+        out_ys.insert(out_ys.begin(), emg_point(position, h, mu, sigma, tau));
+      }
+    }
+    else
+    {
+      const double target_intensity = out_ys.front();
+      while (out_ys.back() > target_intensity && out_ys.back() > est_y_threshold)
+      {
+        const double position = out_xs.back() + avg_sampling;
+        out_xs.push_back(position);
+        out_ys.push_back(emg_point(position, h, mu, sigma, tau));
+      }
+    }
+  }
+
+  double PeakIntegrator::computeInitialMean(
+    const std::vector<double>& xs,
+    const std::vector<double>& ys
+  ) const
+  {
+    const double max_intensity = *std::max_element(ys.begin(), ys.end());
+    // The intensity levels at which the mean candidates are computed
+    std::vector<double> percentages = { 0.6, 0.65, 0.7, 0.75, 0.8, 0.85 };
+    Size i = 0;
+    Size j = xs.size() - 1;
+    // Make sure left and right positions have an initial value
+    // This is to avoid situations (eg. cutoff peaks) where `max_intensity_threshold`
+    // is higher than the first point on a boundary of the peak. In such a case,
+    // the following nested loops would not get a chance to execute and the
+    // algorithm would fail
+    double left_pos = xs.front();
+    double right_pos = xs.back();
+    std::vector<double> mean_candidates;
+    for (const double height_percentage : percentages)
+    {
+      const double max_intensity_threshold = max_intensity * height_percentage;
+      for (; i < xs.size() - 1 && ys[i] <= max_intensity_threshold; ++i)
+      {
+        left_pos = xs[i];
+      }
+      for (; j >= 1 && ys[j] <= max_intensity_threshold; --j)
+      {
+        right_pos = xs[j];
+      }
+      mean_candidates.push_back( (left_pos + right_pos) / 2.0 );
+    }
+    // Return the average of all middle RTs
+    return std::accumulate(mean_candidates.begin(), mean_candidates.end(), 0.0) / mean_candidates.size();
+  }
+
+  void PeakIntegrator::iRpropPlus(
+    const double prev_diff_E_param,
+    double& diff_E_param,
+    double& param_lr,
+    double& param_update,
+    double& param,
+    const double current_E,
+    const double previous_E
+  ) const
+  {
+    if (prev_diff_E_param * diff_E_param > 0.0)
+    {
+      // Using value 2000 as upper bound (paper recommends 50)
+      param_lr = std::min(param_lr * 1.2, 2000.0);
+      param_update = - ( diff_E_param / std::fabs(diff_E_param) ) * param_lr;
+      param += param_update;
+    }
+    else if (prev_diff_E_param * diff_E_param < 0.0)
+    {
+      param_lr = std::max(param_lr * 0.5, 0.0);
+      if (current_E > previous_E)
+      {
+        param -= param_update;
+      }
+      diff_E_param = 0.0;
+    }
+    else
+    {
+      param_update = - ( diff_E_param / std::fabs(diff_E_param) ) * param_lr;
+      param += param_update;
+    }
+  }
+
+  double PeakIntegrator::emg_point(
+    const double x,
+    const double h,
+    const double mu,
+    const double sigma,
+    const double tau
+  ) const
+  {
+    const double z = compute_z(x, mu, sigma, tau);
+    const double u = mu;
+    const double s = sigma;
+    const double t = tau;
+    if (z < 0)
+    {
+      return ((h*s)/t) * std::sqrt(PI/2.0) * std::exp((1.0/2.0)*(std::pow(s/t,2.0))-(x-u)/t) * std::erfc((1.0/std::sqrt(2.0))* (s/t - (x-u)/s));
+    }
+    else if (z <= 6.71e7)
+    {
+      return h * std::exp(-(1.0/2.0) * (std::pow(((x-u)/s),2.0))) * (s/t) * std::sqrt(PI/2.0) * std::exp(std::pow(((1.0/std::sqrt(2.0))*((s/t) - ((x-u)/s))),2.0)) * std::erfc((1.0/std::sqrt(2.0))*((s/t) - ((x-u)/s)));
+    }
+    else
+    {
+      return (h * std::exp(-(1.0/2.0) * (std::pow(((x-u) / s),2.0)))) / (1.0 - (((x-u) * t) / (std::pow(s,2.0))));
+    }
+  }
+
+  bool PeakIntegrator::extractTrainingSet(
+    const std::vector<double>& xs,
+    const std::vector<double>& ys,
+    std::vector<double>& TrX,
+    std::vector<double>& TrY
+  ) const
+  {
+    if (xs.size() < 4) return false; // A valid training set cannot be computed
+
+    const double intensity_threshold = *std::max_element(ys.begin(), ys.end()) * 0.8;
+    std::vector<std::pair<double,double>> points;
+
+    // Add points from the LEFT side, until `intensity_threshold` is reached
+    points.push_back({xs.front(), ys.front()}); // Add FIRST point, no matter the threshold
+    Size i = 1;
+    for (; i < xs.size() - 1 && ys[i] < intensity_threshold; ++i)
+    {
+      points.push_back({xs[i], ys[i]});
+    }
+
+    // Add points from the RIGHT side, until `intensity_threshold` is reached
+    points.push_back({xs.back(), ys.back()}); // Add LAST point, no matter the threshold
+    Size j = xs.size() - 2;
+    for (; j > 0 && ys[j] < intensity_threshold; --j)
+    {
+      points.push_back({xs[j], ys[j]});
+    }
+
+    // Collect data about all the derivatives involved above `intensity_threshold` value
+    // According to the value of the highest derivative,
+    // it will be decided if a given point is to be added or to be skipped
+    std::vector<double> derivatives;
+    for (Size k = i; k <= j + 1; ++k) // This loop starts where the earlier "left side" loop stopped
+    {
+      derivatives.push_back(std::fabs( (ys[k - 1] - ys[k]) / (xs[k - 1] - xs[k]) ));
+    }
+
+    const double derivative_threshold { *std::max_element(derivatives.begin(), derivatives.end()) * 0.4 };
+
+    // Starting from the LEFT side, add points until `derivative_threshold` is crossed
+    for (Size k = 0; k < derivatives.size() && derivatives[k] >= derivative_threshold; ++k)
+    {
+      points.push_back({xs[k + i], ys[k + i]});
+    }
+
+    // Starting from the RIGHT side, add points until `derivative_threshold` is crossed
+    for (Size k = derivatives.size() - 1; k > 0 && derivatives[k] >= derivative_threshold; --k)
+    {
+      points.push_back({xs[k + i - 1], ys[k + i - 1]});
+    }
+
+    // Create the output vectors containing the training set
+    TrX.clear();
+    TrY.clear();
+    for (const std::pair<double,double>& point : points)
+    {
+      TrX.push_back(point.first);
+      TrY.push_back(point.second);
+    }
+
+    return true; // A valid training set was computed
+  }
+
+  double PeakIntegrator::computeMuMaxDistance(const std::vector<double>& xs) const
+  {
+    const std::pair<
+      std::vector<double>::const_iterator,
+      std::vector<double>::const_iterator
+    > p = std::minmax_element(xs.begin(), xs.end());
+    const double min_pos = *p.first;
+    const double max_pos = *p.second;
+    // Return the maximum distance permitted for the Mean parameter, to avoid
+    // diverging from the optimal solution in gradient descent
+    return (max_pos - min_pos) * 0.35;
+  }
+
+  UInt PeakIntegrator::emg_gradient_descent(
+    const std::vector<double>& xs,
+    const std::vector<double>& ys,
+    double& best_h,
+    double& best_mu,
+    double& best_sigma,
+    double& best_tau
+  ) const
+  {
+    // Initial parameters
+    double h { *std::max_element(ys.begin(), ys.end()) };
+    double mu { computeInitialMean(xs, ys) };
+    double sigma { mu * 1e-2 };
+    double tau { sigma * 2.0 };
+
+    const UInt max_num_iter { 400000 }; // Maximum number of iterations
+    const double h_lower_boundary { h }; // Parameter `h` won't decrease below this value
+
+    std::vector<double> TrX, TrY; // Training set (positions and intensities)
+    if (!extractTrainingSet(xs, ys, TrX, TrY)) return 0;
+
+    // Variables containing the "previous" differentials
+    double prev_diff_E_h, prev_diff_E_mu, prev_diff_E_sigma, prev_diff_E_tau, previous_E;
+    prev_diff_E_h = prev_diff_E_mu = prev_diff_E_sigma = prev_diff_E_tau = 0.0;
+
+    // Part of computation in iRpropPlus()
+    // The parameter will change as much as these terms between iterations
+    double term_h, term_mu, term_sigma, term_tau;
+    term_h = term_mu = term_sigma = term_tau = 0.0;
+
+    // These variables will contain the values obtained at the best iteration
+    // The best iteration is decided by the smallest E found
+    // Therefore, here `best_E` is initialized with the maximum value for type `double`
+    double best_E;
+    previous_E = best_h = best_mu = best_sigma = best_tau = best_E = std::numeric_limits<double>::max();
+
+    // Keep track of the current iteration index, and the best iteration index
+    UInt iter_idx, best_iter;
+    iter_idx = best_iter = 0;
+
+    // This value will increase according to the number of iterations occurred,
+    // to avoid spamming the terminal with too much debug information
+    UInt info_iter_threshold { 1 };
+
+    // Learning rates (used in gradient descent and iRprop+)
+    double lr_h, lr_mu, lr_sigma, lr_tau;
+    lr_h = lr_mu = lr_sigma = lr_tau = 0.0125; // iRprop+ paper recommends 0.0125 // TODO: improve references to papers, maybe with something like [REF_NUM]
+
+    // Variables to limit the change in position `mu`
+    const double mu_max_dist = computeMuMaxDistance(TrX);
+    const double mu_left_boundary { mu - mu_max_dist };
+    const double mu_right_boundary { mu + mu_max_dist };
+
+    // The standard deviation between a selection of the precedent Es is computed.
+    // If said standard deviation is lower than a certain value,
+    // the computation of gradient descent is terminated
+    const Size last_few_Es_dim { 10 };
+    std::vector<double> last_few_Es(last_few_Es_dim, 0.0);
+    Size last_few_Es_idx = 0;
+    const double Es_std_dev_min = 1.0; // TODO: improve this value?
+
+    if (print_debug_ == 1)
+    {
+      std::cout << "GRADIENT DESCENT\nInput vectors size: " << xs.size() << "; Training set size: " << TrX.size() << std::endl;
+      std::cout << "The possible mu range is [" << mu_left_boundary << " " << mu_right_boundary << "]" << std::endl;
+    }
+
+    while (++iter_idx <= max_num_iter)
+    {
+      // Break if parameters are `nan` or `inf`
+      if (
+        std::isnan(h) || std::isnan(mu) || std::isnan(sigma) || std::isnan(tau) ||
+        std::isinf(h) || std::isinf(mu) || std::isinf(sigma) || std::isinf(tau)
+      )
+      {
+        std::cout << std::endl << "[" << iter_idx << "]" << std::endl;
+        std::cout << "One or more parameters are invalid." << std::endl;
+        std::cout << "Bad: h=" << h << " mu=" << mu << " sigma=" << sigma << " tau=" << tau << std::endl;
+        break;
+      }
+
+      // Compute the cost given the current parameters
+      const double current_E = Loss_function(TrX, TrY, h, mu, sigma, tau);
+
+      // Break if the computed cost is an invalid value
+      if (std::isnan(current_E) || std::isinf(current_E))
+      {
+        std::cout << std::endl << "[" << iter_idx << "]" << std::endl;
+        std::cout << "Bad: E value is invalid. current_E=" << current_E << std::endl;
+        break;
+      }
+
+      // If the current iteration is the best one, save the relevant values
+      if (current_E < best_E)
+      {
+        best_h = h;
+        best_mu = mu;
+        best_sigma = sigma;
+        best_tau = tau;
+        best_E = current_E;
+        best_iter = iter_idx;
+      }
+
+      // Compute the partial derivatives given the current parameters
+      double diff_E_h = E_wrt_h(TrX, TrY, h, mu, sigma, tau);
+      double diff_E_mu = E_wrt_mu(TrX, TrY, h, mu, sigma, tau);
+      double diff_E_sigma = E_wrt_sigma(TrX, TrY, h, mu, sigma, tau);
+      double diff_E_tau = E_wrt_tau(TrX, TrY, h, mu, sigma, tau);
+
+      // Logging info to the terminal
+      if (print_debug_ == 1 && iter_idx % info_iter_threshold == 0)
+      {
+        std::cout << std::endl << "[" << iter_idx << "] [prev. E=" << current_E << "]" << std::endl;
+        std::cout << "[diff_E_h=" << diff_E_h << "] [diff_E_mu=" << diff_E_mu << "] [diff_E_sigma=" << diff_E_sigma << "] [diff_E_tau=" << diff_E_tau << "]" << std::endl;
+        std::cout << "[h=" << h << "] \t[mu=" << mu << "] \t[sigma=" << sigma << "] \t[tau=" << tau << "]" << std::endl;
+        std::cout << "[lr_h=" << lr_h << "] \t[lr_mu=" << lr_mu << "] \t[lr_sigma=" << lr_sigma << "] \t[lr_tau=" << lr_tau << "]" << std::endl;
+        // Avoid spamming the terminal: increase `info_iter_threshold` dynamically (until 10k)
+        if (iter_idx < 10000 && iter_idx / info_iter_threshold >= 10) info_iter_threshold *= 10;
+      }
+
+      // If the cost function doesn't change enough, the gradient descent algorithm is terminated
+      // This is decided by computing the standard deviation between a selection of the last few Es
+      if (iter_idx % 100 == 0) // TODO: maybe use a different value than 1000, otherwise a minimum of 10k iterations is needed
+      {
+        last_few_Es[last_few_Es_idx++ % last_few_Es_dim] = current_E;
+        const double mean = std::accumulate(last_few_Es.begin(), last_few_Es.end(), 0.0) / last_few_Es_dim;
+        double squared_diffs {0.0};
+        for (const double current_E : last_few_Es)
+        {
+          squared_diffs += std::pow(current_E - mean, 2.0);
+        }
+        const double Es_std_dev = std::sqrt(squared_diffs / static_cast<double>(last_few_Es_dim));
+        if (Es_std_dev < Es_std_dev_min)
+        {
+          if (print_debug_ == 1)
+          {
+            std::cout << std::endl << "[" << iter_idx << "] The cost function is not changing enough, anymore. Breaking.";
+            std::cout << std::endl << "[" << iter_idx << "] [mean=" << mean << "] [Es_std_dev=" << Es_std_dev << "]" << std::endl;
+          }
+          break;
+        }
+      }
+
+      // Simultaneous update of all parameters for gradient descent
+      iRpropPlus(prev_diff_E_h, diff_E_h, lr_h, term_h, h, current_E, previous_E);
+      iRpropPlus(prev_diff_E_mu, diff_E_mu, lr_mu, term_mu, mu, current_E, previous_E);
+      iRpropPlus(prev_diff_E_sigma, diff_E_sigma, lr_sigma, term_sigma, sigma, current_E, previous_E);
+      iRpropPlus(prev_diff_E_tau, diff_E_tau, lr_tau, term_tau, tau, current_E, previous_E);
+
+      // Apply the parameters' constraints
+      h = std::max(h_lower_boundary, h);
+      if (mu < mu_left_boundary || mu_right_boundary < mu)
+      {
+        mu = mu < mu_left_boundary ? mu_left_boundary : mu_right_boundary;
+      }
+      sigma = std::min(std::max(1e-4, sigma), 20.0); // `sigma` constraints // TODO: find non-magic values for min and max sigmas. maybe remove std::min (the upper boundary)
+      tau = std::min(std::max(sigma, tau), sigma * 15.0); // `tau` constraints // TODO: is this a good constraint?
+
+      // Saving values to be used at the next iteration
+      prev_diff_E_h = diff_E_h;
+      prev_diff_E_mu = diff_E_mu;
+      prev_diff_E_sigma = diff_E_sigma;
+      prev_diff_E_tau = diff_E_tau;
+      previous_E = current_E;
+    }
+    if (print_debug_ == 1)
+    {
+      std::cout << std::endl << "[" << best_iter << "] RESULT: best_E=" << best_E << std::endl;
+      std::cout << "[" << best_iter << "] GEOGEBRA: Execute[{\"h = " << best_h << "\", \"mu = " << best_mu << "\",\"sigma = " << best_sigma << "\", \"tau = " << best_tau << "\"}]" << std::endl;
+    }
+    // Return the number of iterations that occurred.
+    // Note: it is not the index of the best iteration,
+    // neither the maximum number of iterationt permitted.
+    return iter_idx;
+  }
+
+  void PeakIntegrator::fitEMGPeakModel(
+    const MSChromatogram& input_peak,
+    MSChromatogram& output_peak
+  ) const
+  {
+    fitEMGPeakModel_(input_peak, output_peak);
+  }
+
+  void PeakIntegrator::fitEMGPeakModel(
+    const MSSpectrum& input_peak,
+    MSSpectrum& output_peak
+  ) const
+  {
+    fitEMGPeakModel_(input_peak, output_peak);
+  }
+
+  template <typename PeakContainerT>
+  void PeakIntegrator::fitEMGPeakModel_(
+    const PeakContainerT& input_peak,
+    PeakContainerT& output_peak
+  ) const
+  {
+    // Extract points
+    std::vector<double> xs, ys;
+    for (const typename PeakContainerT::PeakType& point : input_peak)
+    {
+      xs.push_back(point.getPos());
+      ys.push_back(point.getIntensity());
+    }
+
+    // EMG parameter estimation with gradient descent
+    double h, mu, sigma, tau;
+    emg_gradient_descent(xs, ys, h, mu, sigma, tau);
+
+    // Estimate the intensities for each point
+    std::vector<double> out_xs;
+    std::vector<double> out_ys;
+    emg_vector(xs, h, mu, sigma, tau, out_xs, out_ys, true);
+
+    // Prepare the output peak
+    output_peak = input_peak;
+    output_peak.clear(false); // Keep the metadata, but remove the points
+    for (Size i = 0; i < out_xs.size(); ++i)
+    {
+      typename PeakContainerT::PeakType point { out_xs[i], out_ys[i] };
+      output_peak.push_back(point);
+    }
+
+    // Add the EMG parameters as metadata
+    typename PeakContainerT::FloatDataArray fda;
+    fda.setName("emg_parameters");
+    fda.push_back(h);
+    fda.push_back(mu);
+    fda.push_back(sigma);
+    fda.push_back(tau);
+    output_peak.getFloatDataArrays().push_back(fda);
+
+    if (print_debug_ == 1)
+    {
+      std::cout << std::endl << "Input size: " << input_peak.size() << ". ";
+      std::cout << "Number of additional points: " << (output_peak.size() - input_peak.size()) << "\n\n" << std::endl;
+    }
   }
 }

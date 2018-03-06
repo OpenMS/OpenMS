@@ -55,7 +55,7 @@ const double right = 3.022891666;
 
 // Toy chromatogram
 // data is taken from raw LC-MS/MS data points acquired for L-Glutamate in RBCs
-vector<double> position = {
+const vector<double> position = {
   2.23095,2.239716667,2.248866667,2.25765,2.266416667,
   2.275566667,2.2847,2.293833333,2.304066667,2.315033333,2.325983333,2.336566667,
   2.3468,2.357016667,2.367283333,2.377183333,2.387083333,2.39735,2.40725,2.4175,
@@ -73,7 +73,7 @@ vector<double> position = {
   3.190133333,3.198016667,3.205916667,3.213166667
 };
 
-vector<double> intensity = {
+const vector<double> intensity = {
   1447,2139,1699,755,1258,1070,944,1258,1573,1636,
   1762,1447,1133,1321,1762,1133,1447,2391,692,1636,2957,1321,1573,1196,1258,881,
   1384,2076,1133,1699,1384,692,1636,1133,1573,1825,1510,2391,4342,10382,17618,
@@ -134,6 +134,69 @@ constexpr const char* INTEGRATION_TYPE_SIMPSON = "simpson";
 constexpr const char* BASELINE_TYPE_BASETOBASE = "base_to_base";
 constexpr const char* BASELINE_TYPE_VERTICALDIVISION_MIN = "vertical_division_min";
 constexpr const char* BASELINE_TYPE_VERTICALDIVISION_MAX = "vertical_division_max";
+
+const vector<double> saturated_pos_min = {
+  2.46444988, 2.4746666, 2.4849, 2.49511671, 2.50533342, 2.51556659, 2.52546668, 2.53568339, 2.54563332, 2.55553341, 2.56541657, 2.57566667, 2.58626676, 2.59686661, 2.60778332, 2.61871672, 2.62963343, 2.64056659, 2.6514833, 2.66278338, 2.67406678, 2.68501663, 2.69596672, 2.70693326, 2.71788335, 2.72848344, 2.73943329, 2.75003338, 2.76063323, 2.77121663, 2.78181672, 2.79241657, 2.80299997, 2.8129499, 2.82321668, 2.83313322, 2.84303331, 2.8526001, 2.86213326, 2.87168336, 2.88123322, 2.89078331, 2.9003334, 2.90960002, 2.91886663, 2.92775011, 2.93665004, 2.94589996, 2.95514989, 2.96440005, 2.97364998, 2.9828999, 2.99215007, 3.00139999, 3.01064992, 3.01990008, 3.02915001, 3.03806663, 3.04698324, 3.05591655, 3.0648334, 3.0737834, 3.08270001, 3.09163332, 3.10054994, 3.10946655, 3.1184001, 3.12731671, 3.13623333, 3.14516664, 3.15408325, 3.16300011, 3.17193341, 3.18085003, 3.18976665, 3.19869995, 3.20763326, 3.21623325, 3.22483325, 3.23341656, 3.24201655, 3.25061655, 3.25921679
+};
+
+const vector<double> saturated_pos_sec = {
+  147.8669928, 148.479996, 149.094, 149.7070026, 150.3200052, 150.93399540000001, 151.5280008, 152.1410034, 152.7379992, 153.33200459999998, 153.92499420000001, 154.5400002, 155.1760056, 155.81199660000001, 156.46699919999998, 157.1230032, 157.77800580000002, 158.43399540000001, 159.088998, 159.7670028, 160.4440068, 161.1009978, 161.7580032, 162.4159956, 163.073001, 163.70900640000002, 164.3659974, 165.0020028, 165.6379938, 166.2729978, 166.9090032, 167.5449942, 168.1799982, 168.776994, 169.39300079999998, 169.9879932, 170.5819986, 171.156006, 171.72799559999999, 172.3010016, 172.8739932, 173.4469986, 174.020004, 174.5760012, 175.13199780000002, 175.6650066, 176.19900239999998, 176.75399760000002, 177.3089934, 177.864003, 178.4189988, 178.973994, 179.5290042, 180.08399939999998, 180.6389952, 181.19400480000002, 181.7490006, 182.28399779999998, 182.81899439999998, 183.354993, 183.890004, 184.427004, 184.9620006, 185.4979992, 186.0329964, 186.567993, 187.104006, 187.6390026, 188.1739998, 188.7099984, 189.244995, 189.7800066, 190.31600459999999, 190.8510018, 191.385999, 191.921997, 192.4579956, 192.973995, 193.489995, 194.0049936, 194.520993, 195.036993, 195.5530074
+};
+
+const vector<double> saturated_int = {
+  3667.91333, 3829.03906, 3992.62622, 4164.69531, 4438.9165, 4958.67188, 5914.42041, 7855.03125, 11941.041, 21250.4023, 42803.6133, 94525.1094, 216015.453, 472692.219, 961669, 1718756.12, 2641781.25, 3480271.25, 3979093.25, 4087263, 3988863.5, 3942767, 4051667.25, 4250679.5, 4385092, 4301191.5, 3926528, 3335860.5, 2652440.75, 2002597, 1457891.5, 1041989.56, 746353.938, 555698.812, 426332.062, 344843.938, 291420.156, 256906.516, 232813.5, 215017.938, 200963.688, 188910.703, 177631.375, 166692.906, 155609.891, 144831.812, 133511, 121007.531, 108372.43, 97343.3359, 89953.1406, 85699.6328, 82895.1094, 80079.7188, 76910.4375, 73768.9609, 70963.6641, 68590.4766, 66312.75, 64046.4219, 61798.5039, 59813.6211, 58235.5156, 56946.2266, 55774.4766, 54536.9844, 53272.5625, 52113.4883, 51119.7734, 50214.9961, 49111.543, 47641.0234, 45777.4805, 43666.3633, 41646.0508, 39955.7422, 38698.9688, 37738.0273, 36792.582, 35764.0156, 34750.8164, 33958.5547, 33610.1445
+};
+
+const vector<double> saturated_cutoff_pos_min = {
+  14.3310337, 14.3429499, 14.3551168, 14.3672667, 14.3796835, 14.3923168, 14.4049501, 14.4175835, 14.4299498, 14.4420834, 14.454217, 14.4663496, 14.4782495, 14.4903831, 14.5025167, 14.515317, 14.5275335, 14.5397329, 14.5516834, 14.5636501, 14.5756168, 14.5873337, 14.5993004, 14.6110163, 14.6222496, 14.6334667, 14.6442165, 14.6552162, 14.6661997, 14.6772003, 14.6881838, 14.6987, 14.7094669, 14.7199831, 14.7302504, 14.7405329, 14.7505665, 14.7605829, 14.7703829, 14.7796669, 14.7891998, 14.7985001, 14.810483, 14.8224335, 14.8338833, 14.8455667, 14.8572502, 14.8689499, 14.8806334, 14.8923168, 14.9042501, 14.9164, 14.9287834, 14.9411669, 14.9535503, 14.9659166, 14.9783001, 14.9906836, 15.0025835, 15.0167665, 15.0309162, 15.0450668, 15.0592003, 15.07335, 15.0874996, 15.1016502
+};
+
+const vector<double> saturated_cutoff_pos_sec = {
+  859.862022, 860.576994, 861.307008, 862.036002, 862.78101, 863.539008, 864.297006, 865.0550099999999, 865.7969879999999, 866.525004, 867.25302, 867.9809759999999, 868.69497, 869.422986, 870.151002, 870.9190199999999, 871.65201, 872.3839740000001, 873.101004, 873.8190060000001, 874.537008, 875.2400220000001, 875.958024, 876.660978, 877.334976, 878.008002, 878.65299, 879.312972, 879.971982, 880.632018, 881.291028, 881.922, 882.5680140000001, 883.198986, 883.815024, 884.431974, 885.03399, 885.6349739999999, 886.222974, 886.780014, 887.351988, 887.910006, 888.62898, 889.3460100000001, 890.032998, 890.7340019999999, 891.4350119999999, 892.1369940000001, 892.8380040000001, 893.539008, 894.255006, 894.9839999999999, 895.7270040000001, 896.470014, 897.213018, 897.9549959999999, 898.698006, 899.441016, 900.15501, 901.00599, 901.854972, 902.704008, 903.5520180000001, 904.401, 905.249976, 906.099012
+};
+
+const vector<double> saturated_cutoff_int = {
+  1808499.25, 3368120.75, 3803323.25, 4059358, 4092095, 4058075.25, 4160395, 4395341.5, 4573185, 4565417.5, 4371225, 4065336.75, 3716669.5, 3338531, 2982165.25, 2675112, 2464135, 2307864, 2178321, 2053773.88, 1941723.12, 1851044.12, 1768557.75, 1694074, 1643185, 1621222.5, 1615733.12, 1586897.38, 1506051.75, 1374752.25, 1228128.12, 1104698.5, 1004596.56, 922247.438, 846399.25, 775016.375, 717635, 678566.562, 656717.375, 645997, 640481.062, 637876.188, 632300.688, 619110.375, 599831.625, 578701.5, 559403.312, 543297.625, 528049.25, 509227.594, 485023.156, 462585.688, 448690.75, 438401.25, 425110.969, 409034.406, 394403.406, 381114.688, 369241.094, 356554.969, 345889.281, 336646.844, 325948.938, 316341.688, 310746.156, 309641.875
+};
+
+const vector<double> cutoff_pos_min = {
+  15.34253311, 15.35624981, 15.36995029, 15.38366699, 15.39736652, 15.41156673, 15.42574978, 15.44018364, 15.45436668, 15.46856689, 15.48274994, 15.49695015
+};
+
+const vector<double> cutoff_pos_sec = {
+  920.5519866, 921.3749885999999, 922.1970174, 923.0200194, 923.8419912, 924.6940038, 925.5449868000001, 926.4110184000001, 927.2620008, 928.1140134, 928.9649964, 929.817009
+};
+
+const vector<double> cutoff_int = {
+  3.48297429, 15.54384613, 50.31319046, 151.8971405, 411.25631714, 946.44311523, 1642.56152344, 2118.89526367, 2055.13647461, 1665.13232422, 1275.53015137, 1009.70056152
+};
+
+MSChromatogram saturated_chrom_min, saturated_cutoff_chrom_min, cutoff_chrom_min;
+MSChromatogram saturated_chrom_sec, saturated_cutoff_chrom_sec, cutoff_chrom_sec;
+MSSpectrum saturated_spec_min, saturated_cutoff_spec_min, cutoff_spec_min;
+MSSpectrum saturated_spec_sec, saturated_cutoff_spec_sec, cutoff_spec_sec;
+for (Size i = 0; i < saturated_pos_min.size(); ++i)
+{
+  saturated_chrom_min.push_back(ChromatogramPeak(saturated_pos_min[i], saturated_int[i]));
+  saturated_chrom_sec.push_back(ChromatogramPeak(saturated_pos_sec[i], saturated_int[i]));
+  saturated_spec_min.push_back(Peak1D(saturated_pos_min[i], saturated_int[i]));
+  saturated_spec_sec.push_back(Peak1D(saturated_pos_sec[i], saturated_int[i]));
+}
+for (Size i = 0; i < saturated_cutoff_pos_min.size(); ++i)
+{
+  saturated_cutoff_chrom_min.push_back(ChromatogramPeak(saturated_cutoff_pos_min[i], saturated_cutoff_int[i]));
+  saturated_cutoff_chrom_sec.push_back(ChromatogramPeak(saturated_cutoff_pos_sec[i], saturated_cutoff_int[i]));
+  saturated_cutoff_spec_min.push_back(Peak1D(saturated_cutoff_pos_min[i], saturated_cutoff_int[i]));
+  saturated_cutoff_spec_sec.push_back(Peak1D(saturated_cutoff_pos_sec[i], saturated_cutoff_int[i]));
+}
+for (Size i = 0; i < cutoff_pos_min.size(); ++i)
+{
+  cutoff_chrom_min.push_back(ChromatogramPeak(cutoff_pos_min[i], cutoff_int[i]));
+  cutoff_chrom_sec.push_back(ChromatogramPeak(cutoff_pos_sec[i], cutoff_int[i]));
+  cutoff_spec_min.push_back(Peak1D(cutoff_pos_min[i], cutoff_int[i]));
+  cutoff_spec_sec.push_back(Peak1D(cutoff_pos_sec[i], cutoff_int[i]));
+}
+
 
 START_SECTION(PeakIntegrator())
 {
@@ -845,6 +908,74 @@ START_SECTION(PeakShapeMetrics calculatePeakShapeMetrics(
   psm = ptr->calculatePeakShapeMetrics(spectrum, spec_left_few_it, spec_right_few_it, pa.height, pa.apex_pos);
   TEST_REAL_SIMILAR(psm.start_position_at_5, left_few)
   TEST_REAL_SIMILAR(psm.end_position_at_5, right_few)
+}
+END_SECTION
+
+// START_SECTION(gradient_descent)
+// {
+  // std::cout.precision(std::numeric_limits< double >::max_digits10);
+  // double h, mu, sigma, tau;
+  // peakIntegrator.gradient_descent(Sat_RTs, Sat_Ints, h, mu, sigma, tau, true);
+  // std::vector<double> out_xs;
+  // std::vector<double> out_ys;
+  // const bool compute_additional_points { false };
+  // peakIntegrator.emg_vector(Sat_RTs, h, mu, sigma, tau, out_xs, out_ys, compute_additional_points);
+  // std::cout << std::endl;
+  // for (const double x : out_xs)
+  // {
+  //   std::cout << x << ", ";
+  // }
+  // std::cout << std::endl;
+  // for (const double y : out_ys)
+  // {
+  //   std::cout << y << ", ";
+  // }
+// }
+// END_SECTION
+
+START_SECTION(void fitEMGPeakModel(
+  const MSChromatogram& input_peak,
+  MSChromatogram& output_peak
+) const)
+{
+  MSChromatogram out_min, out_sec;
+  ptr->fitEMGPeakModel(saturated_chrom_min, out_min);
+  ptr->fitEMGPeakModel(saturated_chrom_sec, out_sec);
+  TEST_EQUAL(out_min.size(), 87)
+  TEST_EQUAL(out_min.size(), out_sec.size())
+
+  ptr->fitEMGPeakModel(saturated_cutoff_chrom_min, out_min);
+  ptr->fitEMGPeakModel(saturated_cutoff_chrom_sec, out_sec);
+  TEST_EQUAL(out_min.size(), 71)
+  TEST_EQUAL(out_min.size(), out_sec.size())
+
+  ptr->fitEMGPeakModel(cutoff_chrom_min, out_min);
+  ptr->fitEMGPeakModel(cutoff_chrom_sec, out_sec);
+  TEST_EQUAL(out_min.size(), 40)
+  TEST_EQUAL(out_min.size(), out_sec.size())
+}
+END_SECTION
+
+START_SECTION(void fitEMGPeakModel(
+  const MSSpectrum& input_peak,
+  MSSpectrum& output_peak
+) const)
+{
+  MSSpectrum out_min, out_sec;
+  ptr->fitEMGPeakModel(saturated_spec_min, out_min);
+  ptr->fitEMGPeakModel(saturated_spec_sec, out_sec);
+  TEST_EQUAL(out_min.size(), 87)
+  TEST_EQUAL(out_min.size(), out_sec.size())
+
+  ptr->fitEMGPeakModel(saturated_cutoff_spec_min, out_min);
+  ptr->fitEMGPeakModel(saturated_cutoff_spec_sec, out_sec);
+  TEST_EQUAL(out_min.size(), 71)
+  TEST_EQUAL(out_min.size(), out_sec.size())
+
+  ptr->fitEMGPeakModel(cutoff_spec_min, out_min);
+  ptr->fitEMGPeakModel(cutoff_spec_sec, out_sec);
+  TEST_EQUAL(out_min.size(), 40)
+  TEST_EQUAL(out_min.size(), out_sec.size())
 }
 END_SECTION
 

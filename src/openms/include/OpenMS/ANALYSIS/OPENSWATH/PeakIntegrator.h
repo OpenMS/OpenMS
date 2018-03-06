@@ -214,8 +214,6 @@ public:
         the integration and baseline types.
     */
     ///@{
-    /// Integration type: EMG
-    static constexpr const char* INTEGRATION_TYPE_EMG = "emg";
     /// Integration type: intensity sum
     static constexpr const char* INTEGRATION_TYPE_INTENSITYSUM = "intensity_sum";
     /// Integration type: trapezoid
@@ -518,6 +516,44 @@ public:
 
     void getDefaultParameters(Param& params);
 
+    /**
+      @brief Fit the given peak (a MSChromatogram) to the EMG peak model
+
+      It is desirable to use this method when dealing with saturated or cutoff peaks.
+      The output is a reconstruction of the input peak. Additional points are added
+      to produce a peak with similar intensities on boundaries' points.
+
+      Inspired by the results of the paper:
+      Yuri Kalambet, Yuri Kozmin, Ksenia Mikhailova, Igor Nagaev, Pavel Tikhonov
+      Reconstruction of chromatographic peaks using the exponentially modified Gaussian function
+
+      @param[in] input_peak Input peak
+      @param[out] output_peak Output peak
+    */
+    void fitEMGPeakModel(
+      const MSChromatogram& input_peak,
+      MSChromatogram& output_peak
+    ) const;
+
+    /**
+      @brief Fit the given peak (a MSSpectrum) to the EMG peak model
+
+      It is desirable to use this method when dealing with saturated or cutoff peaks.
+      The output is a reconstruction of the input peak. Additional points are added
+      to produce a peak with similar intensities on boundaries' points.
+
+      Inspired by the results of the paper:
+      Yuri Kalambet, Yuri Kozmin, Ksenia Mikhailova, Igor Nagaev, Pavel Tikhonov
+      Reconstruction of chromatographic peaks using the exponentially modified Gaussian function
+
+      @param[in] input_peak Input peak
+      @param[out] output_peak Output peak
+    */
+    void fitEMGPeakModel(
+      const MSSpectrum& input_peak,
+      MSSpectrum& output_peak
+    ) const;
+
 protected:
     void updateMembers_();
 
@@ -567,6 +603,64 @@ protected:
       const double peak_height,
       const double percent,
       const bool is_left_half
+    ) const;
+
+    /**
+      @brief Given a saturated or cutoff peak, extract a training set to be used
+      with the gradient descent algorithm.
+
+      The algorithm tries to select a subset of points that best describe a non-saturated
+      peak. The decision of which points to skip is based on the derivatives between consecutive points.
+
+      It first selects all those points whose intensity is below a certain value (`intensity_threshold`).
+      Then, the derivatives of all the remaining points are computed. Based on the results,
+      the algorithm selects those points that present a high derivative.
+      Once a low value is found, the algorithm stops taking points from that side.
+      It then repeats the same procedure on the other side of the peak.
+      The skipped points will be found in the middle part of the peak, which is the saturated part.
+
+      @param[in] xs Positions
+      @param[in] ys Intensities
+      @param[out] TrX Extracted training set positions
+      @param[out] TrY Extracted training set intensities
+
+      @return `true` if successful, otherwise `false`
+    */
+    bool extractTrainingSet(
+      const std::vector<double>& xs,
+      const std::vector<double>& ys,
+      std::vector<double>& TrX,
+      std::vector<double>& TrY
+    ) const;
+
+    /**
+      @brief Compute the boundary for the mean (`mu`) parameter in gradient descent.
+
+      Together with the value returned by computeInitialMean(), this method
+      decides the minimum and maximum value that `mu` can assume during iterations
+      of the gradient descent algorithm.
+      The value is based on the width of the peak.
+
+      @param[in] xs Positions
+
+      @return The maximum distance from the precomputed initial mean in the gradient descent algorithm
+    */
+    double computeMuMaxDistance(const std::vector<double>& xs) const;
+
+    /**
+      @brief Compute an estimation of the mean of a saturated peak.
+
+      The method computes the middle point on different levels of intensity of the peak.
+      The returned mean is the average of these middle points.
+
+      @param[in] xs Positions
+      @param[in] ys Intensities
+
+      @return The peak's estimated mean
+    */
+    double computeInitialMean(
+      const std::vector<double>& xs,
+      const std::vector<double>& ys
     ) const;
 
 private:
@@ -625,6 +719,250 @@ private:
     */
     double simpson(MSSpectrum::ConstIterator it_begin, MSSpectrum::ConstIterator it_end) const;
     ///@}
+
+    /**
+      @brief The implementation of the gradient descent algorithm for the EMG peak model
+
+      @param[in] xs Positions
+      @param[in] ys Intensities
+      @param[out] best_h `h` (amplitude) parameter
+      @param[out] best_mu `mu` (mean) parameter
+      @param[out] best_sigma `sigma` (standard deviation) parameter
+      @param[out] best_tau `tau` (exponent relaxation time) parameter
+
+      @return The number of iterations necessary to reach the best values for the parameters
+    */
+    UInt emg_gradient_descent(
+      const std::vector<double>& xs,
+      const std::vector<double>& ys,
+      double& best_h,
+      double& best_mu,
+      double& best_sigma,
+      double& best_tau
+    ) const;
+
+    /**
+      @brief Apply the iRprop+ algorithm for gradient descent.
+
+      Paper:
+      Christian Igel and Michael Hüsken. Improving the Rprop Learning Algorithm. Second International Symposium on Neural Computation (NC 2000), pp. 115-121, ICSC Academic Press, 2000
+
+      @param[in] prev_diff_E_param The cost of the partial derivative of E with
+      respect to the given parameter, at the previous iteration of gradient descent
+      @param[in,out] diff_E_param The cost of the partial derivative of E with
+      respect to the given parameter, at the current iteration
+      @param[in,out] param_lr The learning rate for the given parameter
+      @param[in,out] param_update The amount to add/remove to/from `param`
+      @param[in,out] param The parameter for which the algorithm tries speeding the convergence to a minimum
+      @param[in] current_E The current cost E
+      @param[in] previous_E The previous cost E
+    */
+    void iRpropPlus(
+      const double prev_diff_E_param,
+      double& diff_E_param,
+      double& param_lr,
+      double& param_update,
+      double& param,
+      const double current_E,
+      const double previous_E
+    ) const;
+
+    /**
+      @brief Compute the cost given by loss function E
+
+      Needed by the gradient descent algorithm. The mean squared error is used.
+
+      @param[in] xs Positions
+      @param[in] ys Intensities
+      @param[in] h Amplitude
+      @param[in] mu Mean
+      @param[in] sigma Standard deviation
+      @param[in] tau Exponent relaxation time
+
+      @return The computed cost
+    */
+    double Loss_function(
+      const std::vector<double>& xs,
+      const std::vector<double>& ys,
+      const double h,
+      const double mu,
+      const double sigma,
+      const double tau
+    ) const;
+
+    /**
+      @brief Compute the cost given by the partial derivative of the loss function E,
+      with respect to `h` (the amplitude).
+
+      Needed by the gradient descent algorithm.
+
+      @param[in] xs Positions
+      @param[in] ys Intensities
+      @param[in] h Amplitude
+      @param[in] mu Mean
+      @param[in] sigma Standard deviation
+      @param[in] tau Exponent relaxation time
+
+      @return The computed cost
+    */
+    double E_wrt_h(
+      const std::vector<double>& xs,
+      const std::vector<double>& ys,
+      const double h,
+      const double mu,
+      const double sigma,
+      const double tau
+    ) const;
+
+    /**
+      @brief Compute the cost given by the partial derivative of the loss function E,
+      with respect to `mu` (the mean).
+
+      Needed by the gradient descent algorithm.
+
+      @param[in] xs Positions
+      @param[in] ys Intensities
+      @param[in] h Amplitude
+      @param[in] mu Mean
+      @param[in] sigma Standard deviation
+      @param[in] tau Exponent relaxation time
+
+      @return The computed cost
+    */
+    double E_wrt_mu(
+      const std::vector<double>& xs,
+      const std::vector<double>& ys,
+      const double h,
+      const double mu,
+      const double sigma,
+      const double tau
+    ) const;
+
+    /**
+      @brief Compute the cost given by the partial derivative of the loss function E,
+      with respect to `sigma` (the standard deviation).
+
+      Needed by the gradient descent algorithm.
+
+      @param[in] xs Positions
+      @param[in] ys Intensities
+      @param[in] h Amplitude
+      @param[in] mu Mean
+      @param[in] sigma Standard deviation
+      @param[in] tau Exponent relaxation time
+
+      @return The computed cost
+    */
+    double E_wrt_sigma(
+      const std::vector<double>& xs,
+      const std::vector<double>& ys,
+      const double h,
+      const double mu,
+      const double sigma,
+      const double tau
+    ) const;
+
+    /**
+      @brief Compute the cost given by the partial derivative of the loss function E,
+      with respect to `tau` (the exponent relaxation time).
+
+      Needed by the gradient descent algorithm.
+
+      @param[in] xs Positions
+      @param[in] ys Intensities
+      @param[in] h Amplitude
+      @param[in] mu Mean
+      @param[in] sigma Standard deviation
+      @param[in] tau Exponent relaxation time
+
+      @return The computed cost
+    */
+    double E_wrt_tau(
+      const std::vector<double>& xs,
+      const std::vector<double>& ys,
+      const double h,
+      const double mu,
+      const double sigma,
+      const double tau
+    ) const;
+
+    /**
+      @brief Compute EMG's z parameter
+
+      The value of z decides which formula is to be used during EMG function computation.
+      The interested ranges for z are:
+      (-inf, 0), [0, 6.71e7], (6.71e7, +inf)
+
+      Paper:
+      Kalambet, Y.; Kozmin, Y.; Mikhailova, K.; Nagaev, I.; Tikhonov, P. (2011). "Reconstruction of chromatographic peaks using the exponentially modified Gaussian function". Journal of Chemometrics. 25 (7): 352.
+
+      @param[in] x Position
+      @param[in] mu Mean
+      @param[in] sigma Standard deviation
+      @param[in] tau Exponent relaxation time
+
+      @return The computed parameter z
+    */
+    double compute_z(
+      const double x,
+      const double mu,
+      const double sigma,
+      const double tau
+    ) const;
+
+    /**
+      @brief Compute the EMG function on a set of points.
+
+      If the argument `compute_additional_points` is `true`, the algorithm will
+      detect which side of the peak is cutoff and add points to it.
+
+      @param[in] xs Positions
+      @param[in] h Amplitude
+      @param[in] mu Mean
+      @param[in] sigma Standard deviation
+      @param[in] tau Exponent relaxation time
+      @param[out] out_xs The output positions
+      @param[out] out_ys The output estimated intensities
+      @param[in] compute_additional_points Flag for additional points computation
+    */
+    void emg_vector(
+      const std::vector<double>& xs,
+      const double h,
+      const double mu,
+      const double sigma,
+      const double tau,
+      std::vector<double>& out_xs,
+      std::vector<double>& out_ys,
+      const bool compute_additional_points = true
+    ) const;
+
+    /**
+      @brief Compute the EMG function on a single point.
+
+      @param[in] x Position
+      @param[in] h Amplitude
+      @param[in] mu Mean
+      @param[in] sigma Standard deviation
+      @param[in] tau Exponent relaxation time
+
+      @return The estimated intensity for the given input point
+    */
+    double emg_point(
+      const double x,
+      const double h,
+      const double mu,
+      const double sigma,
+      const double tau
+    ) const;
+
+    template <typename PeakContainerT>
+    void fitEMGPeakModel_(
+      const PeakContainerT& input_peak,
+      PeakContainerT& output_peak
+    ) const;
+
+    const double PI = OpenMS::Constants::PI;
+    const UInt print_debug_ = 0;
   };
 }
 
