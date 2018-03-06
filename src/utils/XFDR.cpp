@@ -501,7 +501,7 @@ protected:
     bool decoyclass_present = cum_histograms.find(decoyclass) != cum_histograms.end();
     bool fulldecoyclass_present = cum_histograms.find(fulldecoyclass) != cum_histograms.end();
 
-    cout << endl << endl << endl;
+    // cout << endl << endl << endl;
     // cout << "TEST fdr_xprophet targetclass: " << targetclass << endl;
 
     for (double current_score = this->min_score +  (TOPPXFDR::fpnum_score_step/2);
