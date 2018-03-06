@@ -70,6 +70,36 @@ class MRMFeatureQCFile_facade : MRMFeatureQCFile
     {
       MRMFeatureQCFile::setPairValue_(key, value, boundary, meta_values_qc);
     }
+
+  Int getCastValue_(
+    const std::map<String, Size>& headers,
+    const StringList& line,
+    const String& header,
+    const Int default_value
+  ) const
+  {
+    return MRMFeatureQCFile::getCastValue_(headers, line, header, default_value);
+  }
+
+  double getCastValue_(
+    const std::map<String, Size>& headers,
+    const StringList& line,
+    const String& header,
+    const double default_value
+  ) const
+  {
+    return MRMFeatureQCFile::getCastValue_(headers, line, header, default_value);
+  }
+
+  String getCastValue_(
+    const std::map<String, Size>& headers,
+    const StringList& line,
+    const String& header,
+    const String& default_value
+  ) const
+  {
+    return MRMFeatureQCFile::getCastValue_(headers, line, header, default_value);
+  }
 };
 
 START_TEST(MRMFeatureQCFile, "$Id$")
@@ -509,6 +539,68 @@ START_SECTION(void setPairValue_(
   TEST_EQUAL(metavalues.size(), 3);
   TEST_REAL_SIMILAR(metavalues["meta3"].first, 0.0);
   TEST_REAL_SIMILAR(metavalues["meta3"].second, 0.222);
+}
+END_SECTION
+
+START_SECTION(Int getCastValue_(
+  const std::map<String, Size>& headers,
+  const StringList& line,
+  const String& header,
+  const Int default_value
+) const)
+{
+  MRMFeatureQCFile_facade mrmfqcfile_f;
+  const std::map<String, Size> headers {
+    {"component_group_name", 0},
+    {"n_heavy_l", 1},
+    {"n_heavy_u", 2}
+  };
+  const StringList line1 {"componentgroup1", "2", "3"}; // all info are present
+  const StringList line2 {"componentgroup2", "", "3"}; // some info is missing
+  TEST_EQUAL(mrmfqcfile_f.getCastValue_(headers, line1, "n_heavy_l", 3), 2) // info is found, converted and returned
+  TEST_EQUAL(mrmfqcfile_f.getCastValue_(headers, line1, "n_light_l", 4), 4) // the requested column is not present in the headers, default value is returned
+  TEST_EQUAL(mrmfqcfile_f.getCastValue_(headers, line2, "n_heavy_l", 5), 5) // the requested column is present in the headers, but the value is empty. Default value is returned
+}
+END_SECTION
+
+START_SECTION(double getCastValue_(
+  const std::map<String, Size>& headers,
+  const StringList& line,
+  const String& header,
+  const double default_value
+) const)
+{
+  MRMFeatureQCFile_facade mrmfqcfile_f;
+  const std::map<String, Size> headers {
+    {"component_name", 0},
+    {"retention_time_l", 1},
+    {"retention_time_u", 2}
+  };
+  const StringList line1 {"component1", "1.2", "1.3"}; // all info are present
+  const StringList line2 {"component2", "", "1.3"}; // some info is missing
+  TEST_EQUAL(mrmfqcfile_f.getCastValue_(headers, line1, "retention_time_l", 3.1), 1.2) // info is found, converted and returned
+  TEST_EQUAL(mrmfqcfile_f.getCastValue_(headers, line1, "intensity_l", 4.1), 4.1) // the requested column is not present in the headers, default value is returned
+  TEST_EQUAL(mrmfqcfile_f.getCastValue_(headers, line2, "retention_time_l", 5.1), 5.1) // the requested column is present in the headers, but the value is empty. Default value is returned
+}
+END_SECTION
+
+START_SECTION(String getCastValue_(
+  const std::map<String, Size>& headers,
+  const StringList& line,
+  const String& header,
+  const String& default_value
+) const)
+{
+  MRMFeatureQCFile_facade mrmfqcfile_f;
+  const std::map<String, Size> headers {
+    {"component_name", 0},
+    {"ion_ratio_feature_name", 1}
+  };
+  const StringList line1 {"component1", "name1"}; // all info are present
+  const StringList line2 {"component2", ""}; // some info is missing
+  TEST_EQUAL(mrmfqcfile_f.getCastValue_(headers, line1, "ion_ratio_feature_name", "name30"), "name1") // info is found, converted and returned
+  TEST_EQUAL(mrmfqcfile_f.getCastValue_(headers, line1, "intensity_l", "name30"), "name30") // the requested column is not present in the headers, default value is returned
+  TEST_EQUAL(mrmfqcfile_f.getCastValue_(headers, line2, "ion_ratio_feature_name", "name30"), "name30") // the requested column is present in the headers, but the value is empty. Default value is returned
 }
 END_SECTION
 
