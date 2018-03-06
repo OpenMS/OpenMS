@@ -317,7 +317,7 @@ namespace OpenMS
     psm.baseline_delta_2_height = psm.slope_of_baseline / peak_height;
     // Source of tailing_factor and asymmetry_factor formulas:
     // USP 40 - NF 35 The United States Pharmacopeia and National Formulary - Supplementary
-    psm.tailing_factor = psm.width_at_5 / (peak_apex_pos - psm.start_position_at_5);
+    psm.tailing_factor = psm.width_at_5 / (2*(peak_apex_pos - psm.start_position_at_5));
     psm.asymmetry_factor = (psm.end_position_at_10 - peak_apex_pos) / (peak_apex_pos - psm.start_position_at_10);
     return psm;
   }
