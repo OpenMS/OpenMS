@@ -46,8 +46,8 @@ START_TEST(MSQuantifications, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-MSQuantifications* ptr = 0;
-MSQuantifications* null_ptr = 0;
+MSQuantifications* ptr = nullptr;
+MSQuantifications* null_ptr = nullptr;
 START_SECTION(MSQuantifications())
 {
 	ptr = new MSQuantifications();

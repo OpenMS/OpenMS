@@ -177,7 +177,7 @@ namespace OpenMS
       if (!File::exists(old_ini_file))
       {
         String msg = String("Could not open old INI file '") + old_ini_file + "'! File does not exist!";
-        if (getScene_()->isGUIMode()) QMessageBox::critical(0, "Error", msg.c_str());
+        if (getScene_() && getScene_()->isGUIMode()) QMessageBox::critical(nullptr, "Error", msg.c_str());
         else LOG_ERROR << msg << std::endl;
         tool_ready_ = false;
         return false;
@@ -195,7 +195,7 @@ namespace OpenMS
           " returned with exit code (" + String(p.exitCode()) + "), exit status (" + String(p.exitStatus()) + ")." +
           "\noutput:\n" + String(QString(p.readAll())) +
           "\n";
-      if (getScene_()->isGUIMode()) QMessageBox::critical(0, "Error", msg.c_str());
+      if (getScene_() && getScene_()->isGUIMode()) QMessageBox::critical(nullptr, "Error", msg.c_str());
       else LOG_ERROR << msg << std::endl;
       tool_ready_ = false;
       return false;
@@ -203,7 +203,7 @@ namespace OpenMS
     if (!File::exists(ini_file))
     { // it would be weird to get here, since the TOPP tool ran successfully above, so INI file should exist, but nevertheless:
       String msg = String("Could not open '") + ini_file + "'! It does not exist!";
-      if (getScene_()->isGUIMode()) QMessageBox::critical(0, "Error", msg.c_str());
+      if (getScene_() && getScene_()->isGUIMode()) QMessageBox::critical(nullptr, "Error", msg.c_str());
       else LOG_ERROR << msg << std::endl;
       tool_ready_ = false;
       return false;
@@ -454,14 +454,14 @@ namespace OpenMS
     if (this->allow_output_recycling_)
     {
       painter->setPen(Qt::green);
-      QSvgRenderer* svg_renderer = new QSvgRenderer(QString(":/Recycling_symbol.svg"), 0);
+      QSvgRenderer* svg_renderer = new QSvgRenderer(QString(":/Recycling_symbol.svg"), nullptr);
       svg_renderer->render(painter, QRectF(-7, -52, 14, 14));
     }
 
     //breakpoint set?
     if (this->breakpoint_set_)
     {
-      QSvgRenderer* svg_renderer = new QSvgRenderer(QString(":/stop_sign.svg"), 0);
+      QSvgRenderer* svg_renderer = new QSvgRenderer(QString(":/stop_sign.svg"), nullptr);
       painter->setOpacity(0.35);
       svg_renderer->render(painter, QRectF(-60, -60, 120, 120));
     }
@@ -952,7 +952,24 @@ namespace OpenMS
     std::vector<QStringList> per_round_basenames;
     for (Size i = 0; i < pkg.size(); ++i)
     {
-      per_round_basenames.push_back(pkg[i].find(max_size_index)->second.filenames.get());
+      QStringList filenames = pkg[i].find(max_size_index)->second.filenames.get();
+      //
+      // remove suffix to avoid chaining .mzML.idxml.tsv
+      // a new suffix is added later, depending on edge-type etc
+      //
+      // try to find the type (only by looking at the suffix); not doing it manually, since it could be .mzXML.gz
+      for (QString& filename : filenames)
+      {
+        String fn = filename.toLower(); // tolower() is required for robust rfind() below
+        String type = FileTypes::typeToName(FileHandler::getTypeByFileName(fn));
+        // try to find it -- might not be present, since it could be 'unknown'
+        size_t pos = fn.rfind("." + type.toLower());
+        if (pos != std::string::npos)
+        {
+          filename.truncate((int)pos);
+        }
+      }
+      per_round_basenames.push_back(filenames);
       //std::cerr << "  output filenames (round " << i  <<"): " << per_round_basenames.back().join(", ") << std::endl;
     }
 
@@ -970,7 +987,7 @@ namespace OpenMS
     {
       // search for an out edge for this parameter (not required to exist)
       int param_index;
-      TOPPASEdge* edge_out(NULL);
+      TOPPASEdge* edge_out(nullptr);
       for (ConstEdgeIterator it_edge = outEdgesBegin(); it_edge != outEdgesEnd(); ++it_edge)
       {
         param_index = (*it_edge)->getSourceOutParam();
@@ -1024,16 +1041,31 @@ namespace OpenMS
 
         // list --> single file (e.g. IDMerger or FileMerger)
         bool list_to_single = (per_round_basenames[r].size() > 1 && out_params[param_index].type == IOInfo::IOT_FILE);
-        foreach(const QString &input_file, per_round_basenames[r])
+        for (const QString &input_file : per_round_basenames[r])
         {
           QString fn = path + QFileInfo(input_file).fileName(); // out_path + filename
+          LOG_DEBUG << "Single:" << fn.toStdString() << "\n";
           if (list_to_single)
           {
-            fn += "_to_" + QFileInfo(per_round_basenames[r].last()).fileName() + "_merged";
+            if (fn.contains(QRegExp(".*_to_.*_mrgd")))
+            {
+              fn = fn.left(fn.indexOf("_to_"));
+              LOG_DEBUG << "  first merge in merge: " << fn.toStdString() << "\n";
+            }
+            QString fn_last = QFileInfo(per_round_basenames[r].last()).fileName();
+            if (fn_last.contains(QRegExp(".*_to_.*_mrgd")))
+            {
+              int i_start = fn_last.indexOf("_to_") + 4;
+              fn_last = fn_last.mid(i_start, fn_last.indexOf("_mrgd", i_start) - i_start);
+              LOG_DEBUG << "  last merge in merge: " << fn_last.toStdString() << "\n";
+            }
+            fn += "_to_" + fn_last + "_mrgd";
+            LOG_DEBUG << "  List: ..." << "_to_" + fn_last.toStdString() + "_mrgd" << "\n";
           }
           if (!fn.endsWith(file_suffix.toQString()))
           {
             fn += file_suffix.toQString();
+            LOG_DEBUG << "  Suffix-add: " << file_suffix << "\n";
           }
           fn = QDir::toNativeSeparators(fn);
           if (filename_output_set.count(fn) > 0)
@@ -1178,9 +1210,7 @@ namespace OpenMS
     {
       workflow_dir = "Untitled_workflow";
     }
-    String dir = String("TOPPAS_tmp") +
-                 String(QDir::separator()) +
-                 workflow_dir +
+    String dir = workflow_dir +
                  String(QDir::separator()) +
                  get3CharsNumber_(topo_nr_) + "_" + getName();
     if (getType() != "")

@@ -45,8 +45,8 @@ START_TEST(MapAlignmentAlgorithmKD, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-MapAlignmentAlgorithmKD* ptr = 0;
-MapAlignmentAlgorithmKD* nullPointer = 0;
+MapAlignmentAlgorithmKD* ptr = nullptr;
+MapAlignmentAlgorithmKD* nullPointer = nullptr;
 
 START_SECTION((MapAlignmentAlgorithmKD(Size num_maps, const Param& param)))
   ptr = new MapAlignmentAlgorithmKD(42, Param());

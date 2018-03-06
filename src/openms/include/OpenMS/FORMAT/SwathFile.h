@@ -51,6 +51,10 @@
 
 #include <OpenMS/FORMAT/DATAACCESS/SwathFileConsumer.h>
 
+#include <OpenMS/FORMAT/HANDLERS/MzMLSqliteHandler.h>
+#include <OpenMS/FORMAT/HANDLERS/MzMLSqliteSwathHandler.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SpectrumAccessSqMass.h>
+
 namespace OpenMS
 {
 
@@ -178,22 +182,21 @@ public:
       endProgress();
 
       FullSwathFileConsumer* dataConsumer;
-      boost::shared_ptr<PeakMap> exp(new PeakMap);
       startProgress(0, 1, "Loading data file " + file);
       if (readoptions == "normal")
       {
         dataConsumer = new RegularSwathFileConsumer(known_window_boundaries);
-        MzMLFile().transform(file, dataConsumer, *exp.get());
+        MzMLFile().transform(file, dataConsumer);
       }
       else if (readoptions == "cache")
       {
         dataConsumer = new CachedSwathFileConsumer(known_window_boundaries, tmp, tmp_fname, nr_ms1_spectra, swath_counter);
-        MzMLFile().transform(file, dataConsumer, *exp.get());
+        MzMLFile().transform(file, dataConsumer);
       }
       else if (readoptions == "split")
       {
         dataConsumer = new MzMLSwathFileConsumer(known_window_boundaries, tmp, tmp_fname, nr_ms1_spectra, swath_counter);
-        MzMLFile().transform(file, dataConsumer, *exp.get());
+        MzMLFile().transform(file, dataConsumer);
       }
       else
       {
@@ -235,22 +238,21 @@ public:
       endProgress();
 
       FullSwathFileConsumer* dataConsumer;
-      boost::shared_ptr<PeakMap > exp(new PeakMap);
       startProgress(0, 1, "Loading data file " + file);
       if (readoptions == "normal")
       {
         dataConsumer = new RegularSwathFileConsumer(known_window_boundaries);
-        MzXMLFile().transform(file, dataConsumer, *exp.get());
+        MzXMLFile().transform(file, dataConsumer);
       }
       else if (readoptions == "cache")
       {
         dataConsumer = new CachedSwathFileConsumer(known_window_boundaries, tmp, tmp_fname, nr_ms1_spectra, swath_counter);
-        MzXMLFile().transform(file, dataConsumer, *exp.get());
+        MzXMLFile().transform(file, dataConsumer);
       }
       else if (readoptions == "split")
       {
         dataConsumer = new MzMLSwathFileConsumer(known_window_boundaries, tmp, tmp_fname, nr_ms1_spectra, swath_counter);
-        MzXMLFile().transform(file, dataConsumer, *exp.get());
+        MzXMLFile().transform(file, dataConsumer);
       }
       else
       {
@@ -263,6 +265,37 @@ public:
       delete dataConsumer;
 
       endProgress();
+      return swath_maps;
+    }
+
+    /// Loads a Swath run from a single sqMass file
+    std::vector<OpenSwath::SwathMap> loadSqMass(String file, boost::shared_ptr<ExperimentalSettings>& /* exp_meta */)
+    {
+      startProgress(0, 1, "Loading sqmass data file " + file);
+
+      OpenMS::Internal::MzMLSqliteSwathHandler sql_mass_reader(file);
+      std::vector<OpenSwath::SwathMap> swath_maps = sql_mass_reader.readSwathWindows();
+      for (Size k = 0; k < swath_maps.size(); k++)
+      {
+        std::vector<int> indices = sql_mass_reader.readSpectraForWindow(swath_maps [k]);
+        OpenMS::Internal::MzMLSqliteHandler handler(file);
+        OpenSwath::SpectrumAccessPtr sptr(new OpenMS::SpectrumAccessSqMass(handler, indices));
+        swath_maps[k].sptr = sptr;
+      }
+
+      // also store the MS1 map
+      OpenSwath::SwathMap ms1_map;
+      std::vector<int> indices = sql_mass_reader.readMS1Spectra();
+      OpenMS::Internal::MzMLSqliteHandler handler(file);
+      OpenSwath::SpectrumAccessPtr sptr(new OpenMS::SpectrumAccessSqMass(handler, indices));
+      ms1_map.sptr = sptr;
+      ms1_map.ms1 = true;
+      swath_maps.push_back(ms1_map);
+      endProgress();
+
+      std::cout << "Determined there to be " << swath_maps.size() <<
+        " SWATH windows and in total " << indices.size() << " MS1 spectra" << std::endl;
+
       return swath_maps;
     }
 
@@ -298,14 +331,14 @@ protected:
     }
 
     /// Counts the number of scans in a full Swath file (e.g. concatenated non-split file)
-    void countScansInSwath_(const std::vector<MSSpectrum<> > exp,
+    void countScansInSwath_(const std::vector<MSSpectrum>& exp,
                             std::vector<int>& swath_counter, int& nr_ms1_spectra, 
                             std::vector<OpenSwath::SwathMap>& known_window_boundaries)
     {
       int ms1_counter = 0;
       for (Size i = 0; i < exp.size(); i++)
       {
-        const MSSpectrum<>& s = exp[i];
+        const MSSpectrum& s = exp[i];
         {
           if (s.getMSLevel() == 1)
           {

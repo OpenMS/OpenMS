@@ -53,8 +53,8 @@ START_TEST(SvmTheoreticalSpectrumGeneratorSet, "$Id$")
 using namespace OpenMS;
 using namespace std;
 
-SvmTheoreticalSpectrumGeneratorSet* ptr = 0;
-SvmTheoreticalSpectrumGeneratorSet* nullPointer = 0;
+SvmTheoreticalSpectrumGeneratorSet* ptr = nullptr;
+SvmTheoreticalSpectrumGeneratorSet* nullPointer = nullptr;
 
 START_SECTION(SvmTheoreticalSpectrumGeneratorSet())
   ptr = new SvmTheoreticalSpectrumGeneratorSet();
@@ -121,7 +121,12 @@ START_SECTION(void simulate(PeakSpectrum & spectrum, const AASequence & peptide,
 
     gen_set.simulate(spec, peptide, rnd_gen, 2);
 
-    MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("SvmTheoreticalSpectrumGenerator_test.mzML"),exp);
+#if OPENMS_BOOST_VERSION_MINOR < 56
+  MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("SvmTheoreticalSpectrumGenerator_test.mzML"),exp);
+#else
+  MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("SvmTheoreticalSpectrumGenerator_test_boost58.mzML"),exp);
+#endif
+
     if(exp.size())
     {
       TEST_EQUAL(spec.size(), exp[0].size());

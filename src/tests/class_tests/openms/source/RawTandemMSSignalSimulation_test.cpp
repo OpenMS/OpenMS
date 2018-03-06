@@ -50,8 +50,8 @@ START_TEST(RawTandemMSSignalSimulation, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-RawTandemMSSignalSimulation* ptr = 0;
-RawTandemMSSignalSimulation* null_ptr = 0;
+RawTandemMSSignalSimulation* ptr = nullptr;
+RawTandemMSSignalSimulation* null_ptr = nullptr;
 SimTypes::MutableSimRandomNumberGeneratorPtr rng (new SimTypes::SimRandomNumberGenerator);
 rng->initialize(false, false);
 
@@ -122,7 +122,11 @@ START_SECTION((void generateRawTandemSignals(const SimTypes::FeatureMapSim &, Si
 
     TEST_EQUAL(exp_with_ms2.size(), exp_no_ms2.size());
     TEST_EQUAL(exp_with_ms2[0].size(), exp_no_ms2[0].size());
+#if OPENMS_BOOST_VERSION_MINOR < 56
     TEST_EQUAL(exp_with_ms2[1].size(), exp_no_ms2[1].size());
+#else
+    TEST_EQUAL(exp_with_ms2[1].size(), exp_no_ms2[1].size()-1);
+#endif
     TEST_REAL_SIMILAR(exp_with_ms2[0].getPrecursors()[0].getMZ(), exp_no_ms2[0].getPrecursors()[0].getMZ());
     TEST_REAL_SIMILAR(exp_with_ms2[1].getPrecursors()[0].getMZ(), exp_no_ms2[1].getPrecursors()[0].getMZ());
     TEST_REAL_SIMILAR(exp_with_ms2[0][0].getIntensity(), exp_no_ms2[0][0].getIntensity());

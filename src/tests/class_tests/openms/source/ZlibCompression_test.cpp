@@ -49,7 +49,7 @@ START_TEST(ZlibCompression, "$Id$")
 
 using namespace OpenMS;
 
-ZlibCompression* zlib_ptr = 0;
+ZlibCompression* zlib_ptr = nullptr;
 
 START_SECTION((ZlibCompression()))
   zlib_ptr = new ZlibCompression();

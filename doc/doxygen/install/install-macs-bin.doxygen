@@ -2,10 +2,16 @@
 
  @page install_mac_bin Installation on MacOS
   
-   Simply download and install the MacOS drag-and-drop installer for your system from http://www.OpenMS.de .
+   Simply download and install the MacOS drag-and-drop installer for your system from our <a href="https://abibuilder.informatik.uni-tuebingen.de/archive/openms/OpenMSInstaller/release/latest>archive</a>.
+   After double-clicking, accepting the "downloaded App warning" and mounting the dmg image, drag the OpenMS folder
+   into your Applications folder as advised.
+   CAUTION: Due to new security measures since macOS Sierra 10.12, Apps of a downloaded bundle (such as TOPPView.app from OpenMS)
+   are executed in a sandbox and may not find shared files required to start. If you see nothing happening after double clicking
+   one of our Apps, please drag them out of the Applications/OpenMS folder and back into it (to signal the system that you trust it)!
+   We are working on circumventing this problem properly.
   
    To use TOPP as regular apps in your shell just add the following lines to your <tt>~/.profile</tt> file.
-   Please adapt the first line to point to the folder where you installed %OpenMS (e.g., <tt>/Applications/OpenMS-2.0.0</tt>)
+   Please adapt the first line to point to the folder where you installed %OpenMS (e.g., <tt>/Applications/OpenMS-2.3.0</tt>)
 
      \code
      export OPENMS_TOPP_PATH=&lt;OpenMS-PATH&gt;
@@ -18,4 +24,5 @@
    to get access to the path where Java is located
    (which is usually present in the <b><i>PATH</i></b> of your Terminal).
    Advanced users can set this path in the Info.plist of/inside the TOPPAS.app.
+
 */

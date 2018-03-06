@@ -52,8 +52,8 @@ START_TEST(BackgroundControl, "$Id$")
 using namespace OpenMS;
 using namespace std;
 
-BackgroundControl* ptr = 0;
-BackgroundControl* nullPtr = 0;
+BackgroundControl* ptr = nullptr;
+BackgroundControl* nullPtr = nullptr;
 
 START_SECTION((BackgroundControl()))
 	ptr = new BackgroundControl();

@@ -36,7 +36,9 @@
 
 #include <boost/regex.hpp>
 #include <boost/lexical_cast.hpp>
+
 #include <fstream>
+#include <iostream>
 
 #include <xercesc/framework/MemBufInputSource.hpp>
 #include <xercesc/parsers/XercesDOMParser.hpp>
@@ -74,7 +76,7 @@ namespace OpenMS
       }
 
       // Check if the value can fit into std::streampos
-      if ( fabs( boost::lexical_cast< long double >(s) - res) > 0.1)
+      if ( std::abs( boost::lexical_cast< long double >(s) - res) > 0.1)
       {
         std::cerr << "Your system may not support addressing a file of this size,"
           << " only addresses that fit into a " << sizeof(std::streamsize)*8 <<
@@ -119,7 +121,7 @@ namespace OpenMS
     char* buffer = new(std::nothrow) char[readl + std::streampos(1)];
 
     // catch case where not enough memory is available
-    if (buffer == NULL)
+    if (buffer == nullptr)
     {
       // Warning: Index takes up more than 10 % of the whole file, please check your input file." << std::endl;
       std::cerr << "IndexedMzMLDecoder::parseOffsets Could not allocate enough memory to read in index of indexedMzML" << std::endl; 

@@ -58,7 +58,7 @@ void getSwathFile(PeakMap& exp, int nr_swathes=32, bool ms1=true)
 {
   if (ms1)
   {
-    MSSpectrum<> s;
+    MSSpectrum s;
     s.setMSLevel(1);
     Peak1D p; p.setMZ(100); p.setIntensity(200);
     s.push_back(p);
@@ -66,7 +66,7 @@ void getSwathFile(PeakMap& exp, int nr_swathes=32, bool ms1=true)
   }
   for (int i = 0; i< nr_swathes; i++)
   {
-    MSSpectrum<> s;
+    MSSpectrum s;
     s.setMSLevel(2);
     std::vector<Precursor> prec(1);
     prec[0].setIsolationWindowLowerOffset(12.5);
@@ -87,8 +87,8 @@ START_TEST(SwathFileConsumer, "$Id$")
 // Test "regular" / in memory consumer
 {
 
-RegularSwathFileConsumer* regular_sfc_ptr = 0;
-RegularSwathFileConsumer* regular_sfc_nullPointer = 0;
+RegularSwathFileConsumer* regular_sfc_ptr = nullptr;
+RegularSwathFileConsumer* regular_sfc_nullPointer = nullptr;
 
 START_SECTION(([EXTRA] RegularSwathFileConsumer()))
   regular_sfc_ptr = new RegularSwathFileConsumer;
@@ -373,7 +373,7 @@ END_SECTION
 START_SECTION(([EXTRA] void consumeChromatogram(MapType::ChromatogramType &) )) 
 {
   regular_sfc_ptr = new RegularSwathFileConsumer();
-  MSChromatogram<> c;
+  MSChromatogram c;
   regular_sfc_ptr->consumeChromatogram(c);
   TEST_EQUAL(true, true)
   delete regular_sfc_ptr;
@@ -383,7 +383,7 @@ END_SECTION
 START_SECTION(([EXTRA] void consumeSpectrum(MapType::SpectrumType & s))) 
 {
   regular_sfc_ptr = new RegularSwathFileConsumer();
-  MSSpectrum<> s;
+  MSSpectrum s;
   s.setMSLevel(1);
   regular_sfc_ptr->consumeSpectrum(s);
 
@@ -411,8 +411,8 @@ END_SECTION
 // - shared functions in the base class are already tested, only test I/O here
 {
 
-CachedSwathFileConsumer* cached_sfc_ptr = 0;
-CachedSwathFileConsumer* cached_sfc_nullPointer = 0;
+CachedSwathFileConsumer* cached_sfc_ptr = nullptr;
+CachedSwathFileConsumer* cached_sfc_nullPointer = nullptr;
 
 START_SECTION(([EXTRA] CachedSwathFileConsumer()))
   cached_sfc_ptr = new CachedSwathFileConsumer("./", "tmp_osw_cached", 0, std::vector<int>());

@@ -130,7 +130,7 @@ public:
 
 protected:
 
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     registerInputFile_("id", "<file>", "", "Protein/peptide identifications file");
     setValidFormats_("id", ListUtils::create<String>("mzid,idXML"));
@@ -167,7 +167,7 @@ protected:
     setValidFormats_("spectra:in", ListUtils::create<String>("mzML"));
   }
 
-  ExitCodes main_(int, const char**)
+  ExitCodes main_(int, const char**) override
   {
     // LOG_DEBUG << "Starting..." << endl;
 
@@ -227,7 +227,6 @@ protected:
         MzMLFile().load(spectra, exp);
       }
 
-
       bool measure_from_subelements = getFlag_("consensus:use_subelements");
       bool annotate_ids_with_subelements = getFlag_("consensus:annotate_ids_with_subelements");
 
@@ -235,8 +234,11 @@ protected:
                       measure_from_subelements, annotate_ids_with_subelements,
                       exp);
 
-      //annotate output with data processing info
+      // annotate output with data processing info
       addDataProcessing_(map, getProcessingInfo_(DataProcessing::IDENTIFICATION_MAPPING));
+
+      // sort list of peptide identifications in each consensus feature by map index
+      map.sortPeptideIdentificationsByMapIndex();
 
       file.store(out, map);
     }

@@ -37,6 +37,9 @@
 #include <OpenMS/CHEMISTRY/ResidueDB.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/Normalizer.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/NLargest.h>
+#include <OpenMS/FILTERING/TRANSFORMERS/SqrtMower.h>
+#include <cstdio>
+#include <sstream>
 
 using namespace std;
 

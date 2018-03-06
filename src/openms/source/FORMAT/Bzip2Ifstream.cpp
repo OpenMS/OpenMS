@@ -52,7 +52,7 @@ namespace OpenMS
       throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
     }
 
-    bzip2file_ = BZ2_bzReadOpen(&bzerror_, file_, 0, 0, NULL, 0);
+    bzip2file_ = BZ2_bzReadOpen(&bzerror_, file_, 0, 0, nullptr, 0);
     if (bzerror_ != BZ_OK)
     {
       close();
@@ -61,7 +61,7 @@ namespace OpenMS
   }
 
   Bzip2Ifstream::Bzip2Ifstream() :
-    file_(NULL), bzip2file_(NULL), n_buffer_(0), bzerror_(0), stream_at_end_(true)
+    file_(nullptr), bzip2file_(nullptr), n_buffer_(0), bzerror_(0), stream_at_end_(true)
   {
   }
 
@@ -72,7 +72,7 @@ namespace OpenMS
 
   size_t Bzip2Ifstream::read(char * s, size_t n)
   {
-    if (bzip2file_ != NULL)
+    if (bzip2file_ != nullptr)
     {
       bzerror_ = BZ_OK;
       n_buffer_ = BZ2_bzRead(&bzerror_, bzip2file_, s, (unsigned int)n /* size of buf */);
@@ -108,7 +108,7 @@ namespace OpenMS
       throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
     }
 
-    bzip2file_ = BZ2_bzReadOpen(&bzerror_, file_, 0, 0, NULL, 0);
+    bzip2file_ = BZ2_bzReadOpen(&bzerror_, file_, 0, 0, nullptr, 0);
     if (bzerror_ != BZ_OK)
     {
       close();
@@ -119,16 +119,16 @@ namespace OpenMS
 
   void Bzip2Ifstream::close()
   {
-    if (bzip2file_ != NULL)
+    if (bzip2file_ != nullptr)
     {
       BZ2_bzReadClose(&bzerror_, bzip2file_);
     }
-    if (file_ != NULL)
+    if (file_ != nullptr)
     {
       fclose(file_);
     }
-    file_ = NULL;
-    bzip2file_ = NULL;
+    file_ = nullptr;
+    bzip2file_ = nullptr;
     stream_at_end_ = true;
   }
 

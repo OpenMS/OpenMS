@@ -33,22 +33,13 @@
 # --------------------------------------------------------------------------
 
 project("OpenMS_GUI")
-cmake_minimum_required(VERSION 2.8.3 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.0.0 FATAL_ERROR)
 
 # --------------------------------------------------------------------------
 # Find Qt
 #------------------------------------------------------------------------------
-# QtPhonon hack
-# obsolete when CMake MinRequiredVersion becomes >= 2.8.5
-if ("${CMAKE_VERSION}" VERSION_LESS "2.8.5" AND NOT(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")) ##
-  set(phonon_extra QtPhonon)
-  message(STATUS "Trying to find Phonon explicitly... If you run into trouble with Qt Phonon, try to disable it in build system")
-else()
-  set(phonon_extra)
-  message(STATUS "Not trying to find Phonon explicitly... If you run into trouble with Qt Phonon, try to enable it in build system")
-endif()
 
-find_package(Qt4 REQUIRED QtGui QtOpenGL QtSVG QtWebKit QtNetwork ${phonon_extra})
+find_package(Qt4 REQUIRED QtGui QtOpenGL QtSVG QtWebKit QtNetwork)
 if (NOT QT4_FOUND)
   message(STATUS "Qt4 not found!")
   message(FATAL_ERROR "To find a custom Qt installation use: cmake <..more options..> -D QT_QMAKE_EXECUTABLE='<path_to_qmake(.exe)' <src-dir>")
@@ -120,6 +111,7 @@ foreach(i ${GUI_executables})
   if (MSVC AND EXISTS ${resource_file})
     message(STATUS "Setting resource file ${resource_file} for ${i}")
     add_executable(${i} ${GUI_DIR}/${i}.cpp ${resource_file})
+    install_tool(${i})
   elseif(APPLE AND EXISTS ${resource_dir})
     add_mac_app_bundle(${i})
   else()
@@ -129,6 +121,7 @@ foreach(i ${GUI_executables})
       message(STATUS "No resource file (${resource_file}) found for ${i}. No icon will be embedded.")
     endif()
     add_executable(${i} ${GUI_DIR}/${i}.cpp)
+    install_tool(${i})
   endif()
 
   ## append visual lib as dependency for GUI tools
@@ -136,9 +129,6 @@ foreach(i ${GUI_executables})
   if (OPENMP_FOUND AND NOT MSVC)
     set_target_properties(${i} PROPERTIES LINK_FLAGS ${OpenMP_CXX_FLAGS})
   endif()
-
-  # we also want to install each GUI tool
-  install_tool(${i})
 endforeach(i)
 add_custom_target(GUI)
 add_dependencies(GUI ${GUI_executables})

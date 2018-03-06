@@ -60,9 +60,9 @@ namespace OpenMS
   */
   struct FeatureDeconvolution::CmpInfo_
   {
-    String s_comp; //< formula as String
-    Size idx_cp; //< index into compomer vector
-    UInt side_cp; //< side of parent compomer (LEFT or RIGHT)
+    String s_comp; ///< formula as String
+    Size idx_cp; ///< index into compomer vector
+    UInt side_cp; ///< side of parent compomer (LEFT or RIGHT)
 
     // C'tor
     CmpInfo_() :

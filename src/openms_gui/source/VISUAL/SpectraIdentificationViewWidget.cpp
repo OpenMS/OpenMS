@@ -61,7 +61,7 @@ namespace OpenMS
     QWidget(parent),
     DefaultParamHandler("SpectraIdentificationViewWidget"),
     ignore_update(false),
-    layer_(0),
+    layer_(nullptr),
     is_ms1_shown_(false)
   {
     // set common defaults
@@ -139,19 +139,15 @@ namespace OpenMS
     create_rows_for_commmon_metavalue_ = new QCheckBox("Show advanced\nannotations", this);
     connect(create_rows_for_commmon_metavalue_, SIGNAL(toggled(bool)), this, SLOT(updateEntries()));
 
-    QPushButton* save_idXML = new QPushButton("save idXML", this);
-    connect(save_idXML, SIGNAL(clicked()), this, SLOT(saveIdXML_()));
+    QPushButton* save_IDs = new QPushButton("Save IDs", this);
+    connect(save_IDs, SIGNAL(clicked()), this, SLOT(saveIDs_()));
 
-    QPushButton* save_mzIdentML = new QPushButton("save mzIdentML", this);
-    connect(save_mzIdentML, SIGNAL(clicked()), this, SLOT(saveMzIdentML_()));
-
-    QPushButton* export_table = new QPushButton("export table", this);
+    QPushButton* export_table = new QPushButton("Export table", this);
     connect(export_table, SIGNAL(clicked()), this, SLOT(exportEntries_()));
 
     tmp_hbox_layout->addWidget(hide_no_identification_);
     tmp_hbox_layout->addWidget(create_rows_for_commmon_metavalue_);
-    tmp_hbox_layout->addWidget(save_mzIdentML);
-    tmp_hbox_layout->addWidget(save_idXML);
+    tmp_hbox_layout->addWidget(save_IDs);
     tmp_hbox_layout->addWidget(export_table);
 
     spectra_widget_layout->addLayout(tmp_hbox_layout);
@@ -231,7 +227,7 @@ namespace OpenMS
     /*test for previous == 0 is important - without it,
       the wrong spectrum will be selected after finishing
       the execution of a TOPP tool on the whole data */
-    if (current == 0 || previous == 0)
+    if (current == nullptr || previous == nullptr)
     {
       return;
     }
@@ -277,7 +273,7 @@ namespace OpenMS
   void SpectraIdentificationViewWidget::updateEntries()
   {
     // no valid peak layer attached
-    if (layer_ == 0 || layer_->getPeakData()->size() == 0 || layer_->type != LayerData::DT_PEAK)
+    if (layer_ == nullptr || layer_->getPeakData()->size() == 0 || layer_->type != LayerData::DT_PEAK)
     {
       table_widget_->clear();
       return;
@@ -368,13 +364,13 @@ namespace OpenMS
     table_widget_->setUpdatesEnabled(false);
     table_widget_->blockSignals(true);
 
-    if (layer_ == 0)
+    if (layer_ == nullptr)
     {
       return;
     }
 
-    QTableWidgetItem* item = 0;
-    QTableWidgetItem* selected_item = 0;
+    QTableWidgetItem* item = nullptr;
+    QTableWidgetItem* selected_item = nullptr;
     Size selected_row = 0;
 
     // generate flat list
@@ -539,7 +535,7 @@ namespace OpenMS
 
             // index
             addIntItemToBottomRow_(static_cast<Int>(i), 1, c);
-   
+
             // rt
             addDoubleItemToBottomRow_((*layer_->getPeakData())[i].getRT(), 2, c);
 
@@ -553,7 +549,9 @@ namespace OpenMS
             addDoubleItemToBottomRow_(ph.getCharge(), 9, c);
 
             //sequence
-            addTextItemToBottomRow_(ph.getSequence().toString().toQString(), 10, c);
+            String seq = ph.getSequence().toString();
+            if (seq.empty()) seq = ph.getMetaValue("label");
+            addTextItemToBottomRow_(seq.toQString(), 10, c);
 
             //Accession
             item = table_widget_->itemPrototype()->clone();
@@ -587,27 +585,22 @@ namespace OpenMS
               item->setTextColor(Qt::blue);
               // table_widget_->setItem(table_widget_->rowCount() - 1, 3, item); // precursor version
 //              addDoubleItemToBottomRow_(5.0, 15, c);
-              double exp_precursor = (*layer_->getPeakData())[i].getPrecursors()[0].getMZ();
-              int charge = (*layer_->getPeakData())[i].getPrecursors()[0].getCharge();
 
-              // different theoretical precursors for XL-MS and other data
-              double theo_mass = 0;
-              //vector<PeptideHit> xl_hits = pi[pi_idx].getHits();
-              if (pi[pi_idx].getHits()[0].metaValueExists("xl_chain")) // XL-MS data
+              double ppm_error(0);
+
+              // Protein:RNA cross-link, Protein-Protein cross-link, or other data with a precomputed precursor error
+              if (pi[pi_idx].getHits()[0].metaValueExists(Constants::PRECURSOR_ERROR_PPM_USERPARAM))
               {
-                vector<PeptideHit> xl_hits = pi[pi_idx].getHits();
-                theo_mass = xl_hits[0].getSequence().getMonoWeight();
-                if (xl_hits.size() > 1) // both peptide masses for cross-links
-                {
-                  theo_mass += xl_hits[1].getSequence().getMonoWeight();
-                }
-              } else // general case
-              {
-                theo_mass = ph.getSequence().getMonoWeight();
+                ppm_error = fabs((double)pi[pi_idx].getHits()[0].getMetaValue(Constants::PRECURSOR_ERROR_PPM_USERPARAM));
               }
-
-              double theo_precursor= (theo_mass + (static_cast<double>(charge) * Constants::PROTON_MASS_U)) / static_cast<double>(charge);
-              double ppm_error = fabs((exp_precursor - theo_precursor) / exp_precursor / 1e-6);
+              else if (!ph.getSequence().empty()) // works for normal linear fragments with the correct modifications included in the AASequence
+              {
+                double exp_precursor = (*layer_->getPeakData())[i].getPrecursors()[0].getMZ();
+                int charge = (*layer_->getPeakData())[i].getPrecursors()[0].getCharge();
+                double theo_mass = ph.getSequence().getMonoWeight();
+                double theo_precursor= (theo_mass + (static_cast<double>(charge) * Constants::PROTON_MASS_U)) / static_cast<double>(charge);
+                ppm_error = fabs((exp_precursor - theo_precursor) / exp_precursor / 1e-6);
+              }
               addDoubleItemToBottomRow_(ppm_error, 15, c);
             }
 
@@ -752,7 +745,7 @@ namespace OpenMS
     for (int i = 0; i != table_widget_->columnCount(); ++i)
     {
       QTableWidgetItem* ti = table_widget_->horizontalHeaderItem(i);
-      if (ti != 0)
+      if (ti != nullptr)
       {
         header_labels.append(ti->text());
       }
@@ -769,7 +762,7 @@ namespace OpenMS
 
     // show menu and hide selected columns
     QAction* selected = context_menu->exec(table_widget_->mapToGlobal(pos));
-    if (selected != 0)
+    if (selected != nullptr)
     {
       for (int i = 0; i < header_labels.size(); ++i)
       {
@@ -784,7 +777,7 @@ namespace OpenMS
 
   void SpectraIdentificationViewWidget::exportEntries_()
   {
-    if (layer_ == 0 || layer_->getPeakData()->size() == 0 || layer_->type != LayerData::DT_PEAK)
+    if (layer_ == nullptr || layer_->getPeakData()->size() == 0 || layer_->type != LayerData::DT_PEAK)
     {
       return;
     }
@@ -797,7 +790,7 @@ namespace OpenMS
     for (int i = 0; i != table_widget_->columnCount(); ++i)
     {
       QTableWidgetItem* ti = table_widget_->horizontalHeaderItem(i);
-      if (ti != 0)
+      if (ti != nullptr)
       {
         header_labels.append(ti->text());
       }
@@ -863,42 +856,28 @@ namespace OpenMS
     table_widget_->setItem(table_widget_->rowCount() - 1, column_index, item);
   }
 
-  void SpectraIdentificationViewWidget::saveIdXML_()
+  void SpectraIdentificationViewWidget::saveIDs_()
   {
     // no valid peak layer attached
-    if (layer_ == 0 || layer_->getPeakData()->size() == 0 || layer_->type != LayerData::DT_PEAK)
+    if (layer_ == nullptr || layer_->getPeakData()->size() == 0 || layer_->type != LayerData::DT_PEAK)
     {
       return;
     }
 
-    QString filename = QFileDialog::getSaveFileName(this, "Save File", "", "idXML file (*.idXML)");
-    vector<ProteinIdentification> prot_id = (*layer_->getPeakData()).getProteinIdentifications();
-    vector<PeptideIdentification> all_pep_ids;
-    for (int r = 0; r < table_widget_->rowCount(); ++r)
-    {
-      int spectrum_index = table_widget_->item(r, 1)->data(Qt::DisplayRole).toInt();
-      vector<PeptideIdentification> pep_id = (*layer_->getPeakData())[spectrum_index].getPeptideIdentifications();
-      copy(pep_id.begin(), pep_id.end(), back_inserter(all_pep_ids));
-    }
-    IdXMLFile().store(filename, prot_id, all_pep_ids);
-  }
+    // synchronize PeptideHits with the annotations in the spectrum
+    layer_->synchronizePeakAnnotations();
 
-  void SpectraIdentificationViewWidget::saveMzIdentML_()
-  {
-    // no valid peak layer attached
-    if (layer_ == 0 || layer_->getPeakData()->size() == 0 || layer_->type != LayerData::DT_PEAK)
-    {
-      return;
-    }
-
-    QString filename = QFileDialog::getSaveFileName(this, "Save File", "", "mzIdentML file (*.mzid)");
+    QString selectedFilter;
+    QString filename = QFileDialog::getSaveFileName(this, "Save File", "", "idXML file (*.idXML);;mzIdentML file (*.mzid)", &selectedFilter);
     vector<ProteinIdentification> prot_id = (*layer_->getPeakData()).getProteinIdentifications();
     vector<PeptideIdentification> all_pep_ids;
 
     // collect PeptideIdentifications from each spectrum, while making sure each spectrum is only considered once
+    // otherwise duplicates will be stored, if more than one PeptideHit is contained in a PeptideIdentification
     vector<int> added_spectra;
     for (int r = 0; r < table_widget_->rowCount(); ++r)
     {
+      // get spectrum index of current table line
       int spectrum_index = table_widget_->item(r, 1)->data(Qt::DisplayRole).toInt();
 
       // skip this row, if this spectrum was already processed
@@ -913,15 +892,32 @@ namespace OpenMS
       copy(pep_id.begin(), pep_id.end(), back_inserter(all_pep_ids));
     }
 
-    MzIdentMLFile().store(filename, prot_id, all_pep_ids);
+    if (String(filename).hasSuffix(String(".mzid")))
+    {
+      MzIdentMLFile().store(filename, prot_id, all_pep_ids);
+    }
+    else if (String(filename).hasSuffix(String(".idXML")))
+    {
+      IdXMLFile().store(filename, prot_id, all_pep_ids);
+    }
+    else if (String(selectedFilter).hasSubstring(String(".mzid")))
+    {
+      filename = filename + ".mzid";
+      MzIdentMLFile().store(filename, prot_id, all_pep_ids);
+    }
+    else
+    {
+      filename = filename + ".idXML";
+      IdXMLFile().store(filename, prot_id, all_pep_ids);
+    }
   }
 
-  // Upon changes in the table data (only possible by checking or unchecking a checkbox rigth now),
+  // Upon changes in the table data (only possible by checking or unchecking a checkbox right now),
   // update the corresponding PeptideIdentification / PeptideHits
   void SpectraIdentificationViewWidget::updateData_(QTableWidgetItem* item)
   {
     // no valid peak layer attached
-    if (layer_ == 0 || layer_->getPeakData()->size() == 0 || layer_->type != LayerData::DT_PEAK)
+    if (layer_ == nullptr || layer_->getPeakData()->size() == 0 || layer_->type != LayerData::DT_PEAK)
     {
       return;
     }

@@ -61,7 +61,7 @@ END_SECTION
 START_SECTION( static void registerProduct(const String& name, const FunctionType creator) )
 	Factory<FilterFunctor>::registerProduct(TICFilter::getProductName(), &TICFilter::create);
 	FilterFunctor* ext = Factory<FilterFunctor>::create("TICFilter");
-  FilterFunctor* nullPointer = 0;
+  FilterFunctor* nullPointer = nullptr;
   TEST_NOT_EQUAL(ext, nullPointer)
 END_SECTION
 

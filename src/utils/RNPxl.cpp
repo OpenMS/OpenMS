@@ -103,7 +103,7 @@ public:
   }
 
 protected:
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     // input files
     registerInputFile_("in_mzML", "<file>", "", "Input file");
@@ -151,7 +151,7 @@ protected:
     setValidFormats_("out_csv", ListUtils::create<String>("csv"));
   }
 
-  ExitCodes main_(int, const char**)
+  ExitCodes main_(int, const char**) override
   {
     const string in_mzml(getStringOption_("in_mzML"));
 
@@ -614,7 +614,9 @@ protected:
     if (!pr_tmp.empty())
     {
       ProteinIdentification &p_tmp = pr_tmp[0];
-      p_tmp.setPrimaryMSRunPath(exp.getPrimaryMSRunPath());
+      StringList ms_runs;
+      exp.getPrimaryMSRunPath(ms_runs);
+      p_tmp.setPrimaryMSRunPath(ms_runs);
     }
     IdXMLFile().store(out_idXML, pr_tmp, pt_tmp, "summary");
 

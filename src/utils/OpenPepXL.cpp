@@ -45,8 +45,8 @@
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/MzIdentMLFile.h>
-#include <OpenMS/CHEMISTRY/EnzymaticDigestion.h>
-#include <OpenMS/CHEMISTRY/EnzymesDB.h>
+#include <OpenMS/CHEMISTRY/ProteaseDigestion.h>
+#include <OpenMS/CHEMISTRY/ProteaseDB.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/ANALYSIS/RNPXL/ModifiedPeptideGenerator.h>
 #include <OpenMS/ANALYSIS/ID/IDMapper.h>
@@ -169,7 +169,7 @@ public:
   }
 
 protected:
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     // name, argument, default, description, required, advanced
     // input files
@@ -225,7 +225,7 @@ protected:
     registerIntOption_("peptide:min_size", "<num>", 5, "Minimum size a peptide must have after digestion to be considered in the search.", false, false);
     registerIntOption_("peptide:missed_cleavages", "<num>", 2, "Number of missed cleavages.", false, false);
     vector<String> all_enzymes;
-    EnzymesDB::getInstance()->getAllNames(all_enzymes);
+    ProteaseDB::getInstance()->getAllNames(all_enzymes);
     registerStringOption_("peptide:enzyme", "<cleavage site>", "Trypsin", "The enzyme used for peptide digestion.", false, false);
     setValidStrings_("peptide:enzyme", all_enzymes);
 
@@ -261,7 +261,7 @@ protected:
   OPXLDataStructs::PreprocessedPairSpectra preprocessPairs_(const PeakMap& spectra, const vector< pair<Size, Size> >& spectrum_pairs, const double cross_link_mass_iso_shift, double fragment_mass_tolerance, double fragment_mass_tolerance_xlinks, bool fragment_mass_tolerance_unit_ppm)
   {
     OPXLDataStructs::PreprocessedPairSpectra preprocessed_pair_spectra(spectrum_pairs.size());
- 
+
 #ifdef _OPENMP
 #pragma omp parallel for
 #endif
@@ -285,6 +285,9 @@ protected:
         spectrum_heavy_charges = spectrum_heavy.getIntegerDataArrays()[0];
       }
       xlink_peaks.getIntegerDataArrays().resize(1);
+
+      // keep track of matched peaks
+      vector<Size> used_peaks;
 
       // transform all peaks in the heavy spectrum by shifting them, considering all expected charge states
       for (Size charge = 1; charge <= max_charge_xlink; ++charge)
@@ -329,8 +332,14 @@ protected:
           // fill xlink_peaks spectrum with matched peaks from the light spectrum and add the currently considered charge
           for (Size i = 0; i != matched_fragments_with_shift.size(); ++i)
           {
-            xlink_peaks.push_back(spectrum_light[matched_fragments_with_shift[i].first]);
-            xlink_peaks.getIntegerDataArrays()[0].push_back(charge);
+            // test whether this peak was matched with a lower charge before (biased towards lower charge matches, if one light peak matches to multiple heavy peaks with different charges)
+            vector<Size>::iterator it = find(used_peaks.begin(), used_peaks.end(), matched_fragments_with_shift[i].first);
+            if (it == used_peaks.end())
+            {
+              xlink_peaks.push_back(spectrum_light[matched_fragments_with_shift[i].first]);
+              xlink_peaks.getIntegerDataArrays()[0].push_back(charge);
+              used_peaks.push_back(matched_fragments_with_shift[i].first);
+            }
           }
         }
       }
@@ -397,7 +406,7 @@ protected:
     return preprocessed_pair_spectra;
   }
 
-  ExitCodes main_(int, const char**)
+  ExitCodes main_(int, const char**) override
   {
     ProgressLogger progresslogger;
     progresslogger.setLogType(log_type_);
@@ -459,7 +468,7 @@ protected:
     vector<ResidueModification> fixed_modifications = OPXLHelper::getModificationsFromStringList(fixedModNames);
     vector<ResidueModification> variable_modifications = OPXLHelper::getModificationsFromStringList(varModNames);
     Size max_variable_mods_per_peptide = getIntOption_("modifications:variable_max_per_peptide");
-    
+
     // load MS2 map
     PeakMap unprocessed_spectra;
     MzMLFile f;
@@ -479,9 +488,9 @@ protected:
     // load linked features
     ConsensusMap cfeatures;
     ConsensusXMLFile cf;
-    cf.load(in_consensus, cfeatures); 
+    cf.load(in_consensus, cfeatures);
 
-    // load fasta database    
+    // load fasta database
     progresslogger.startProgress(0, 1, "Load database from FASTA file...");
     FASTAFile fastaFile;
     vector<FASTAFile::FASTAEntry> fasta_db;
@@ -496,13 +505,13 @@ protected:
     }
 
     progresslogger.endProgress();
-    
+
     const Size missed_cleavages = getIntOption_("peptide:missed_cleavages");
-    EnzymaticDigestion digestor;
+    ProteaseDigestion digestor;
     String enzyme_name = getStringOption_("peptide:enzyme");
     digestor.setEnzyme(enzyme_name);
     digestor.setMissedCleavages(missed_cleavages);
-    
+
     // set minimum size of peptide after digestion
     Size min_peptide_length = getIntOption_("peptide:min_size");
 
@@ -571,13 +580,15 @@ protected:
     protein_ids[0].setDateTime(DateTime::now());
     protein_ids[0].setSearchEngine("OpenXQuest");
     protein_ids[0].setSearchEngineVersion(VersionInfo::getVersion());
-    protein_ids[0].setPrimaryMSRunPath(spectra.getPrimaryMSRunPath());
+    StringList ms_runs;
+    spectra.getPrimaryMSRunPath(ms_runs);
+    protein_ids[0].setPrimaryMSRunPath(ms_runs);
     protein_ids[0].setMetaValue("SpectrumIdentificationProtocol", DataValue("MS:1002494")); // cross-linking search = MS:1002494
 
     ProteinIdentification::SearchParameters search_params;
     search_params.charges = "2,3,4,5,6";
     search_params.db = in_fasta;
-    search_params.digestion_enzyme = (*EnzymesDB::getInstance()->getEnzyme(enzyme_name));
+    search_params.digestion_enzyme = *(ProteaseDB::getInstance()->getEnzyme(enzyme_name));
     search_params.fixed_modifications = fixedModNames;
     search_params.variable_modifications = varModNames;
     search_params.mass_type = ProteinIdentification::MONOISOTOPIC;
@@ -918,18 +929,32 @@ protected:
           if (n_xlink_charges < 1) n_xlink_charges = 1;
 
           // compute match odds (unweighted), the 3 is the number of charge states in the theoretical spectra
-          double match_odds_c_alpha = XQuestScores::matchOddsScore(theoretical_spec_common_alpha, matched_spec_common_alpha, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, false);
-          double match_odds_x_alpha = XQuestScores::matchOddsScore(theoretical_spec_xlinks_alpha, matched_spec_xlinks_alpha, fragment_mass_tolerance_xlinks , fragment_mass_tolerance_unit_ppm, true, n_xlink_charges);
+          double match_odds_c_alpha = XQuestScores::matchOddsScore(theoretical_spec_common_alpha, matched_spec_common_alpha.size(), fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm);
+          double match_odds_x_alpha = XQuestScores::matchOddsScore(theoretical_spec_xlinks_alpha, matched_spec_xlinks_alpha.size(), fragment_mass_tolerance_xlinks , fragment_mass_tolerance_unit_ppm, true, n_xlink_charges);
+          double log_occu_c_alpha = XQuestScores::logOccupancyProb(theoretical_spec_common_alpha, matched_spec_common_alpha.size(), fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm);
+          double log_occu_x_alpha = XQuestScores::logOccupancyProb(theoretical_spec_xlinks_alpha, matched_spec_xlinks_alpha.size(), fragment_mass_tolerance_xlinks , fragment_mass_tolerance_unit_ppm);
           double match_odds = 0;
+          double log_occu = 0;
+
+          double log_occu_alpha = 0;
+          double log_occu_beta = 0;
+
           if (type_is_cross_link)
           {
-            double match_odds_c_beta = XQuestScores::matchOddsScore(theoretical_spec_common_beta, matched_spec_common_beta, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, false);
-            double match_odds_x_beta = XQuestScores::matchOddsScore(theoretical_spec_xlinks_beta, matched_spec_xlinks_beta, fragment_mass_tolerance_xlinks, fragment_mass_tolerance_unit_ppm, true, n_xlink_charges);
+            double match_odds_c_beta = XQuestScores::matchOddsScore(theoretical_spec_common_beta, matched_spec_common_beta.size(), fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm);
+            double match_odds_x_beta = XQuestScores::matchOddsScore(theoretical_spec_xlinks_beta, matched_spec_xlinks_beta.size(), fragment_mass_tolerance_xlinks, fragment_mass_tolerance_unit_ppm, true, n_xlink_charges);
+            double log_occu_c_beta = XQuestScores::logOccupancyProb(theoretical_spec_common_beta, matched_spec_common_beta.size(), fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm);
+            double log_occu_x_beta = XQuestScores::logOccupancyProb(theoretical_spec_xlinks_beta, matched_spec_xlinks_beta.size(), fragment_mass_tolerance_xlinks, fragment_mass_tolerance_unit_ppm);
             match_odds = (match_odds_c_alpha + match_odds_x_alpha + match_odds_c_beta + match_odds_x_beta) / 4;
+            log_occu = (log_occu_c_alpha + log_occu_x_alpha + log_occu_c_beta + log_occu_x_beta) / 4;
+            log_occu_alpha = (log_occu_c_alpha + log_occu_x_alpha) / 2;
+            log_occu_beta = (log_occu_c_beta + log_occu_x_beta) / 2;
           }
           else
           {
             match_odds = (match_odds_c_alpha + match_odds_x_alpha) / 2;
+            log_occu = (log_occu_c_alpha + log_occu_x_alpha) / 2;
+            log_occu_alpha = log_occu;
           }
 
           //Cross-correlation
@@ -955,6 +980,9 @@ protected:
           {
             theoretical_spec_beta = OPXLSpectrumProcessingAlgorithms::mergeAnnotatedSpectra(theoretical_spec_common_beta, theoretical_spec_xlinks_beta);
           }
+
+          Size matched_peaks = matched_spec_common_alpha.size() + matched_spec_common_beta.size() + matched_spec_xlinks_alpha.size() + matched_spec_xlinks_beta.size();
+          double log_occupancy_full_spec = XQuestScores::logOccupancyProb(theoretical_spec, matched_peaks, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm);
 
           vector< double > xcorrc = XQuestScores::xCorrelation(common_peaks, theoretical_spec_common, 5, 0.2);
           vector< double > xcorrx = XQuestScores::xCorrelation(xlink_peaks, theoretical_spec_xlinks, 5, 0.3);
@@ -1032,7 +1060,13 @@ protected:
           csm.percTIC = TIC;
           csm.wTIC = wTIC;
           csm.int_sum = intsum;
+
           csm.match_odds = match_odds;
+          csm.log_occupancy = log_occu;
+          csm.log_occupancy_alpha = log_occu_alpha;
+          csm.log_occupancy_beta = log_occu_beta;
+          csm.log_occupancy_full_spec = log_occupancy_full_spec;
+
           csm.xcorrx_max = xcorrx_max;
           csm.xcorrc_max = xcorrc_max;
           csm.matched_common_alpha = matched_spec_common_alpha.size();
@@ -1044,7 +1078,7 @@ protected:
 
           // write fragment annotations
           LOG_DEBUG << "Start writing annotations" << endl;
-          vector<PeptideHit::FragmentAnnotation> frag_annotations;
+          vector<PeptideHit::PeakAnnotation> frag_annotations;
 
           OPXLHelper::buildFragmentAnnotations(frag_annotations, matched_spec_common_alpha, theoretical_spec_common_alpha, common_peaks);
           OPXLHelper::buildFragmentAnnotations(frag_annotations, matched_spec_common_beta, theoretical_spec_common_beta, common_peaks);
@@ -1054,7 +1088,7 @@ protected:
 
           // make annotations unique
           sort(frag_annotations.begin(), frag_annotations.end());
-          vector<PeptideHit::FragmentAnnotation>::iterator last_unique_anno = unique(frag_annotations.begin(), frag_annotations.end());
+          vector<PeptideHit::PeakAnnotation>::iterator last_unique_anno = unique(frag_annotations.begin(), frag_annotations.end());
           if (last_unique_anno != frag_annotations.end())
           {
             frag_annotations.erase(last_unique_anno, frag_annotations.end());
@@ -1157,7 +1191,6 @@ int main(int argc, const char** argv)
 {
 
   TOPPOpenPepXL tool;
-  
+
   return tool.main(argc, argv);
 }
-

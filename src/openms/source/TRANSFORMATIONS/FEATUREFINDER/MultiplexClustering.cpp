@@ -93,7 +93,7 @@ namespace OpenMS
     PeakMap::ConstIterator it_rt;
     for (it_rt = exp_picked.begin(); it_rt < exp_picked.end(); ++it_rt)
     {
-      MSSpectrum<Peak1D>::ConstIterator it_mz;
+      MSSpectrum::ConstIterator it_mz;
       for (it_mz = it_rt->begin(); it_mz < it_rt->end(); ++it_mz)
       {
         mz.push_back(it_mz->getMZ());
@@ -150,7 +150,7 @@ namespace OpenMS
     PeakMap::ConstIterator it_rt;
     for (it_rt = exp.begin(); it_rt < exp.end(); ++it_rt)
     {
-      MSSpectrum<Peak1D>::ConstIterator it_mz;
+      MSSpectrum::ConstIterator it_mz;
       for (it_mz = it_rt->begin(); it_mz < it_rt->end(); ++it_mz)
       {
         mz.push_back(it_mz->getMZ());

@@ -38,6 +38,7 @@
 #include <OpenMS/CONCEPT/Exception.h>
 
 #include <fstream>
+#include <iostream>
 #include <sstream>
 
 namespace OpenMS

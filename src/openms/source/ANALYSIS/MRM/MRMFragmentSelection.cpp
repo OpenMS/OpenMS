@@ -34,7 +34,6 @@
 
 #include <OpenMS/ANALYSIS/MRM/MRMFragmentSelection.h>
 
-#include <OpenMS/KERNEL/RichPeak1D.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 
 using namespace std;

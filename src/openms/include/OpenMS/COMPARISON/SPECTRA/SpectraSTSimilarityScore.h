@@ -74,7 +74,7 @@ public:
     SpectraSTSimilarityScore(const SpectraSTSimilarityScore & source);
 
     /// destructor
-    virtual ~SpectraSTSimilarityScore();
+    ~SpectraSTSimilarityScore() override;
     // @}
 
     /// assignment operator
@@ -83,7 +83,7 @@ public:
     /**
         @brief: calculates the dot product of the two spectra
     */
-    double operator()(const PeakSpectrum & spec1, const PeakSpectrum & spec2) const;
+    double operator()(const PeakSpectrum & spec1, const PeakSpectrum & spec2) const override;
     /**
         @brief: calculates the dot product of the two spectra
     */
@@ -91,7 +91,7 @@ public:
     /**
         @brief: calculates the dot product of itself
     */
-    double operator()(const PeakSpectrum & spec) const;
+    double operator()(const PeakSpectrum & spec) const override;
 
     /**
         @brief Preprocesses the spectrum

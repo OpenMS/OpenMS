@@ -29,7 +29,7 @@
 // 
 // --------------------------------------------------------------------------
 // $Maintainer: Lars Nilse$
-// $Authors: Hendrik Brauer, Oiver Kohlbacher, Johannes Junker$
+// $Authors: Hendrik Brauer, Oliver Kohlbacher, Johannes Junker$
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
@@ -47,8 +47,8 @@ START_TEST(ConsensusMapNormalizerAlgorithmThreshold, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-ConsensusMapNormalizerAlgorithmThreshold* ptr = 0;
-ConsensusMapNormalizerAlgorithmThreshold* nullPointer = 0;
+ConsensusMapNormalizerAlgorithmThreshold* ptr = nullptr;
+ConsensusMapNormalizerAlgorithmThreshold* nullPointer = nullptr;
 START_SECTION(ConsensusMapNormalizerAlgorithmThreshold())
 {
   ptr = new ConsensusMapNormalizerAlgorithmThreshold();

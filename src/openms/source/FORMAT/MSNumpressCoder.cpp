@@ -38,6 +38,8 @@
 #include <boost/math/special_functions/fpclassify.hpp> // boost::math::isfinite
 // #define NUMPRESS_DEBUG
 
+#include <iostream>
+
 namespace OpenMS
 {
   const std::string MSNumpressCoder::NamesOfNumpressCompression[] = {"none", "linear", "pic", "slof"};

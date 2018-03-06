@@ -102,7 +102,7 @@ public:
   {}
 
 protected:
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "input file");
     setValidFormats_("in", ListUtils::create<String>("mzML"));
@@ -113,12 +113,12 @@ protected:
     registerSubsection_("algorithm", "Algorithm section");
   }
 
-  Param getSubsectionDefaults_(const String& /*section*/) const
+  Param getSubsectionDefaults_(const String& /*section*/) const override
   {
     return FeatureFinder().getParameters(FeatureFinderAlgorithmMRM::getProductName());
   }
 
-  ExitCodes main_(int, const char**)
+  ExitCodes main_(int, const char**) override
   {
     //input file names and types
     String in = getStringOption_("in");
@@ -149,7 +149,9 @@ protected:
 
     // A map for the resulting features
     FeatureMap features;
-    features.setPrimaryMSRunPath(exp.getPrimaryMSRunPath());
+    StringList ms_runs;
+    exp.getPrimaryMSRunPath(ms_runs);
+    features.setPrimaryMSRunPath(ms_runs);
 
     // Apply the feature finder
     ff.run(FeatureFinderAlgorithmMRM::getProductName(), exp, features, feafi_param, seeds);

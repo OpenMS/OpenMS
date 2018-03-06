@@ -28,23 +28,49 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 
+//! [AASequence]
+
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <iostream>
 
 using namespace OpenMS;
 using namespace std;
 
-Int main()
+int main()
 {
-  AASequence seq = AASequence::fromString("DFPIANGER");
+  // generate AASequence object from String
+  const String s = "DEFIANGER";
+  AASequence peptide1 = AASequence::fromString(s);
 
-  AASequence prefix(seq.getPrefix(4));
-  AASequence suffix(seq.getSuffix(5));
+  // generate AASequence object from string literal
+  AASequence peptide2 = AASequence::fromString("PEPTIDER");
 
-  cout << seq << " "
+  // extract prefix and suffix
+  AASequence prefix(peptide1.getPrefix(2));
+  AASequence suffix(peptide1.getSuffix(3));
+  cout << peptide1.toString() << " "
        << prefix << " "
-       << suffix << " "
-       << seq.getAverageWeight() << endl;
+       << suffix << endl;
+  
+  // create chemically modified peptide
+  AASequence peptide_meth_ox = AASequence::fromString("PEPTIDESEKUEM(Oxidation)CER");
+  cout << peptide_meth_ox.toString() << " "
+       << peptide_meth_ox.toUnmodifiedString()
+       << endl;
 
+  // mass of the full, uncharged peptide
+  double peptide_mass_mono = peptide_meth_ox.getMonoWeight();
+  cout << "Monoisotopic mass of the uncharged, full peptide: " << peptide_mass_mono << endl;
+
+  double peptide_mass_avg = peptide_meth_ox.getAverageWeight();
+  cout << "Average mass of the uncharged, full peptide: " << peptide_mass_avg << endl;
+
+  // mass of the 2+ charged b-ion with the given sequence
+  double ion_mass_2plus = peptide_meth_ox.getMonoWeight(Residue::BIon, 2);
+  cout << "Mass of the doubly positively charged b-ion: " << ion_mass_2plus << endl;
+         
+  // ... many more
   return 0;
-} //end of main
+}
+
+//! [AASequence]

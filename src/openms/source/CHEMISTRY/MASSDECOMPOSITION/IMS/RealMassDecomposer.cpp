@@ -47,7 +47,7 @@ namespace OpenMS
 
       rounding_errors_ = std::make_pair(weights.getMinRoundingError(), weights.getMaxRoundingError());
       precision_ = weights.getPrecision();
-      decomposer_ = std::auto_ptr<integer_decomposer_type>(
+      decomposer_ = std::shared_ptr<integer_decomposer_type>(
         new integer_decomposer_type(weights));
     }
 

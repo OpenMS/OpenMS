@@ -77,7 +77,7 @@ public:
     XTandemInfile();
 
     /// constructor
-    virtual ~XTandemInfile();
+    ~XTandemInfile() override;
 
     /// setter for the fragment mass tolerance
     void setFragmentMassTolerance(double tolerance);

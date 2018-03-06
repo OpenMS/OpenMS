@@ -50,8 +50,8 @@ START_TEST(SpecArrayFile, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-SpecArrayFile* ptr = 0;
-SpecArrayFile* null_ptr = 0;
+SpecArrayFile* ptr = nullptr;
+SpecArrayFile* null_ptr = nullptr;
 START_SECTION(SpecArrayFile())
 {
 	ptr = new SpecArrayFile();
@@ -95,7 +95,7 @@ END_SECTION
 START_SECTION((template < typename SpectrumType > void store(const String &filename, const SpectrumType &spectrum) const ))
 {
   SpecArrayFile f;
-  MSSpectrum<> spec;
+  MSSpectrum spec;
   TEST_EXCEPTION(Exception::NotImplemented, f.store("bla", spec))
 }
 END_SECTION

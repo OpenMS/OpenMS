@@ -130,7 +130,7 @@ public:
   }
 
 protected:
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "Input mzML file containing the ER spectra.");
     setValidFormats_("in", ListUtils::create<String>("mzML"));
@@ -163,7 +163,7 @@ protected:
     setMinFloat_("expansion_range", 0.0);
   }
 
-  ExitCodes main_(int, const char**)
+  ExitCodes main_(int, const char**) override
   {
     //-------------------------------------------------------------
     // parsing parameters
@@ -444,14 +444,15 @@ protected:
     //-------------------------------------------------------------
     // writing output
     //-------------------------------------------------------------
-
+    StringList ms_runs;
+    exp.getPrimaryMSRunPath(ms_runs);
     if (feature_out != "")
     {
-      all_features.setPrimaryMSRunPath(exp.getPrimaryMSRunPath());
+      all_features.setPrimaryMSRunPath(ms_runs);
       FeatureXMLFile().store(feature_out, all_features);
     }
     writeDebug_("Writing output", 1);
-    results_map.setPrimaryMSRunPath(exp.getPrimaryMSRunPath());
+    results_map.setPrimaryMSRunPath(ms_runs);
     ConsensusXMLFile().store(out, results_map);
 
     return EXECUTION_OK;

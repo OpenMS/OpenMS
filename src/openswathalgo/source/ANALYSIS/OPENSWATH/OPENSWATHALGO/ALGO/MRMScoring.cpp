@@ -354,7 +354,7 @@ namespace OpenSwath
       {
         intensity = 0.0;
       }
-      experimental_intensity.push_back(mrmfeature->getFeature(native_id)->getIntensity());
+      experimental_intensity.push_back(static_cast<double>(mrmfeature->getFeature(native_id)->getIntensity()));
       library_intensity.push_back(intensity);
     }
 
@@ -425,7 +425,7 @@ namespace OpenSwath
     std::vector<double> sn_score;
     if (signal_noise_estimators.size() == 0)
     {
-      return 0;
+      return std::string();
     }
 
     for (std::size_t k = 0; k < signal_noise_estimators.size(); k++)

@@ -66,7 +66,7 @@ for (int i = 0; i < 1000; ++i)
     properties_B.push_back(i);    // Should be different within each cluster.
 }
 
-GridBasedClustering<MultiplexClustering::MultiplexDistance>* nullPointer = 0;
+GridBasedClustering<MultiplexClustering::MultiplexDistance>* nullPointer = nullptr;
 GridBasedClustering<MultiplexClustering::MultiplexDistance>* ptr;
 
 START_SECTION(GridBasedClustering(Metric metric, const std::vector<double> &data_x, const std::vector<double> &data_y, const std::vector<int> &properties_A, const std::vector<int> &properties_B, std::vector<double> grid_spacing_x, std::vector<double> grid_spacing_y))

@@ -87,7 +87,7 @@ public:
   }
 
 protected:
-  StringList out_formats_; //< valid output formats for image
+  StringList out_formats_; ///< valid output formats for image
 
   void addPoint_(int x, int y, QImage & image, QColor color = Qt::black,
                  Size size = 2)
@@ -214,7 +214,7 @@ protected:
     }
   }
 
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "input file ");
     setValidFormats_("in", ListUtils::create<String>("mzML"));
@@ -248,7 +248,7 @@ protected:
     setMaxInt_("precursor_size", 3);
   }
 
-  ExitCodes main_(int, const char **)
+  ExitCodes main_(int, const char **) override
   {
     //----------------------------------------------------------------
     // load data

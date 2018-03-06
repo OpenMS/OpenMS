@@ -36,6 +36,8 @@
 #include <OpenMS/ANALYSIS/QUANTITATION/IsobaricQuantitationMethod.h>
 
 #include <OpenMS/ANALYSIS/QUANTITATION/TMTTenPlexQuantitationMethod.h>
+#include <OpenMS/ANALYSIS/QUANTITATION/TMTElevenPlexQuantitationMethod.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/KERNEL/RangeUtils.h>
 #include <OpenMS/KERNEL/ConsensusFeature.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
@@ -49,7 +51,8 @@ namespace OpenMS
 
   // Maximum allowed search window for TMT-10 reporter ions. The channels are only 0.006 Th apart.
   // Allowing anything larger will result in wrong quantifications for empty channels.
-  double TMT_10PLEX_CHANNEL_TOLERANCE = 0.003; 
+  // Also used for TMT_11PLEX
+  double TMT_10AND11PLEX_CHANNEL_TOLERANCE = 0.003;
 
   /// small quality control class, holding temporary data for reporting
   struct ChannelQC
@@ -60,8 +63,8 @@ namespace OpenMS
       signal_not_unique(0)
     {}
 
-    std::vector<double> mz_deltas; //< m/z distance between expected and observed reporter ion closest to expected position
-    int signal_not_unique;  //< counts if more than one peak was found within the search window of each reporter position
+    std::vector<double> mz_deltas; ///< m/z distance between expected and observed reporter ion closest to expected position
+    int signal_not_unique;  ///< counts if more than one peak was found within the search window of each reporter position
   };
 
 
@@ -208,11 +211,13 @@ namespace OpenMS
     min_precursor_purity_ = getParameters().getValue("min_precursor_purity");
     max_precursor_isotope_deviation_ = getParameters().getValue("precursor_isotope_deviation");
     interpolate_precursor_purity_ = getParameters().getValue("purity_interpolation") == "true";
+    Size number_of_channels = quant_method_->getNumberOfChannels();
 
     /* check for sensible parameters */
-    if (dynamic_cast<const TMTTenPlexQuantitationMethod*>(quant_method_) != NULL && reporter_mass_shift_ > TMT_10PLEX_CHANNEL_TOLERANCE)
+    if ((( number_of_channels == 10) || (number_of_channels == 11))
+        && reporter_mass_shift_ > TMT_10AND11PLEX_CHANNEL_TOLERANCE)
     {
-      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Error: TMT-10plex requires reporter mass shifts <= 0.003 to avoid channel ambiguity!");
+      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Error: Both TMT-10plex and TMT-11plex require reporter mass shifts <= 0.003 to avoid channel ambiguity!");
     }
   }
 
@@ -512,7 +517,8 @@ namespace OpenMS
     ChannelQCSet channel_mz_delta;
     const double qc_dist_mz = 0.5; // fixed! Do not change!
 
-    bool is_TMT10plex = (dynamic_cast<const TMTTenPlexQuantitationMethod*>(quant_method_) != NULL);
+    Size number_of_channels = quant_method_->getNumberOfChannels();
+
     PeakMap::ConstIterator it_last_MS2 = ms_exp_data.end(); // remember last MS2 spec, to get precursor in MS1 (also if quant is in MS3)
 
     for (PeakMap::ConstIterator it = ms_exp_data.begin(); it != ms_exp_data.end(); ++it)
@@ -523,7 +529,7 @@ namespace OpenMS
         // remember potential precursor and continue
         pState.precursorScan = it;
         // reset last MS2 -- we expect to see a new one soon and the old one should not be used for the following MS3 (if any)
-        it_last_MS2 == ms_exp_data.end();
+        it_last_MS2 = ms_exp_data.end();
         continue;
       }
       else if (it->getMSLevel() == 2)
@@ -615,7 +621,7 @@ namespace OpenMS
           double dist_mz = fabs(mz_it->getMZ() - cl_it->center);
           if (dist_mz < reporter_mass_shift_) ++peak_count;
           if (idx_nearest == mz_end // first peak
-              || ((idx_nearest != mz_end) && (dist_mz < fabs(idx_nearest->getMZ() - cl_it->center)))) // closer to best candidate
+              || ((dist_mz < fabs(idx_nearest->getMZ() - cl_it->center)))) // closer to best candidate
           {
             idx_nearest = mz_it;
           }
@@ -687,11 +693,11 @@ namespace OpenMS
       {
         // sort
         double median = Math::median(channel_mz_delta[cl_it->name].mz_deltas.begin(), channel_mz_delta[cl_it->name].mz_deltas.end(), false);
-        if (is_TMT10plex && 
-            (fabs(median) > TMT_10PLEX_CHANNEL_TOLERANCE) && 
+        if (((number_of_channels == 10) || (number_of_channels == 11)) &&
+            (fabs(median) > TMT_10AND11PLEX_CHANNEL_TOLERANCE) &&
             (int(cl_it->center) != 126 && int(cl_it->center) != 131)) // these two channels have ~1 Th spacing.. so they do not suffer from the tolerance problem
         { // the channel was most likely empty, and we picked up the neighbouring channel's data (~0.006 Th apart). So reporting median here is misleading.
-          LOG_INFO << "<invalid data (>" << TMT_10PLEX_CHANNEL_TOLERANCE << " Th channel tolerance)>\n";
+          LOG_INFO << "<invalid data (>" << TMT_10AND11PLEX_CHANNEL_TOLERANCE << " Th channel tolerance)>\n";
         }
         else
         {

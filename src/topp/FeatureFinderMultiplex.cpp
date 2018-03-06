@@ -182,7 +182,7 @@ public:
 
   typedef std::vector<double> MassPattern; // list of mass shifts
 
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "LC-MS dataset in centroid or profile mode");
     setValidFormats_("in", ListUtils::create<String>("mzML"));
@@ -199,7 +199,7 @@ public:
   }
 
   // create parameters for sections (set default values and restrictions)
-  Param getSubsectionDefaults_(const String& section) const
+  Param getSubsectionDefaults_(const String& section) const override
   {
     Param defaults;
 
@@ -914,7 +914,7 @@ private:
   };
 
 
-  ExitCodes main_(int, const char**)
+  ExitCodes main_(int, const char**) override
   {
 
     /**
@@ -960,7 +960,7 @@ private:
     bool centroided;
     if (spectrum_type_=="automatic")
     {
-      centroided = spectrum_type == SpectrumSettings::PEAKS;
+      centroided = spectrum_type == SpectrumSettings::CENTROID;
     }
     else if (spectrum_type_=="centroid")
     {
@@ -1044,10 +1044,12 @@ private:
      * write to output
      */
     ConsensusMap consensus_map;
-    consensus_map.setPrimaryMSRunPath(exp.getPrimaryMSRunPath());
+    StringList ms_runs;
+    exp.getPrimaryMSRunPath(ms_runs);
+    consensus_map.setPrimaryMSRunPath(ms_runs);
 
     FeatureMap feature_map;
-    feature_map.setPrimaryMSRunPath(exp.getPrimaryMSRunPath());
+    feature_map.setPrimaryMSRunPath(ms_runs);
 
     generateMaps_(centroided, patterns, filter_results, cluster_results, consensus_map, feature_map);
     if (out_ != "")

@@ -61,7 +61,7 @@ public:
     DeNovoPostScoring();
 
     /// destructor
-    virtual ~DeNovoPostScoring();
+    ~DeNovoPostScoring() override;
 
     /// copy constructor
     DeNovoPostScoring(const DeNovoPostScoring & rhs);
@@ -72,7 +72,7 @@ public:
 
     virtual void apply(std::vector<PeptideIdentification> & identifications, const PeakMap & exp) = 0;
 
-    virtual void apply(PeptideIdentification & identification, const RichPeakSpectrum & spec) = 0;
+    virtual void apply(PeptideIdentification & identification, const PeakSpectrum & spec) = 0;
 
   };
 

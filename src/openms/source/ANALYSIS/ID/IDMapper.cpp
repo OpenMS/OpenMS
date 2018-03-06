@@ -268,7 +268,7 @@ namespace OpenMS
     for (Size ui = 0; ui != unidentified.size(); ++ui)
     {
       Size spectrum_index = unidentified[ui];
-      const MSSpectrum<Peak1D>& spectrum = spectra[spectrum_index];
+      const MSSpectrum& spectrum = spectra[spectrum_index];
       const vector<Precursor>& precursors = spectrum.getPrecursors();
 
       bool precursor_mapped(false);
@@ -595,7 +595,7 @@ namespace OpenMS
     for (Size i = 0; i != unidentified.size(); ++i)
     {
       Size spectrum_index = unidentified[i];
-      const MSSpectrum<Peak1D>& spectrum = spectra[spectrum_index];
+      const MSSpectrum& spectrum = spectra[spectrum_index];
       const vector<Precursor>& precursors = spectrum.getPrecursors();
 
       // check if precursor has been identified

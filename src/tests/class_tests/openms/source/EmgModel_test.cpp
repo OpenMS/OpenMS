@@ -54,8 +54,8 @@ using namespace OpenMS;
 using std::stringstream;
 
 // default ctor
-EmgModel* ptr = 0;
-EmgModel* nullPointer = 0;
+EmgModel* ptr = nullptr;
+EmgModel* nullPointer = nullptr;
 START_SECTION((EmgModel()))
 	ptr = new EmgModel();
   	TEST_EQUAL(ptr->getName(), "EmgModel")

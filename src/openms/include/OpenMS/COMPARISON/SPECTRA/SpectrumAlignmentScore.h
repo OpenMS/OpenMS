@@ -37,7 +37,6 @@
 
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/KERNEL/Peak1D.h>
-#include <OpenMS/KERNEL/RichPeak1D.h>
 #include <OpenMS/COMPARISON/SPECTRA/SpectrumAlignment.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
@@ -82,7 +81,7 @@ public:
     SpectrumAlignmentScore(const SpectrumAlignmentScore & source);
 
     /// destructor
-    virtual ~SpectrumAlignmentScore();
+    ~SpectrumAlignmentScore() override;
     // @}
 
     // @name Operators
@@ -91,9 +90,9 @@ public:
     SpectrumAlignmentScore & operator=(const SpectrumAlignmentScore & source);
 
     ///
-    double operator()(const PeakSpectrum & spec1, const PeakSpectrum & spec2) const;
+    double operator()(const PeakSpectrum & spec1, const PeakSpectrum & spec2) const override;
 
-    double operator()(const PeakSpectrum & spec) const;
+    double operator()(const PeakSpectrum & spec) const override;
     // @}
 
     // @name Accessors

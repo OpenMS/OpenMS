@@ -2,6 +2,7 @@ from MSSpectrum cimport *
 from MSChromatogram cimport *
 from ExperimentalSettings cimport *
 from DataProcessing cimport *
+from PeakFileOptions cimport *
 
 cdef extern from "<OpenMS/FORMAT/DATAACCESS/MSDataWritingConsumer.h>" namespace "OpenMS":
 
@@ -10,8 +11,8 @@ cdef extern from "<OpenMS/FORMAT/DATAACCESS/MSDataWritingConsumer.h>" namespace 
         PlainMSDataWritingConsumer(String filename) nogil except +
         PlainMSDataWritingConsumer(PlainMSDataWritingConsumer) nogil except + #wrap-ignore
 
-        void consumeSpectrum(MSSpectrum[Peak1D] & s) nogil except + 
-        void consumeChromatogram(MSChromatogram[ChromatogramPeak] & c) nogil except + 
+        void consumeSpectrum(MSSpectrum & s) nogil except +
+        void consumeChromatogram(MSChromatogram & c) nogil except +
 
         void setExperimentalSettings(ExperimentalSettings& exp) nogil except +
         void setExpectedSize(Size expectedSpectra, Size expectedChromatograms) nogil except +
@@ -20,14 +21,16 @@ cdef extern from "<OpenMS/FORMAT/DATAACCESS/MSDataWritingConsumer.h>" namespace 
         Size getNrSpectraWritten()  nogil except +
         Size getNrChromatogramsWritten() nogil except +
 
+        void setOptions(PeakFileOptions opt) nogil except +
+        PeakFileOptions getOptions() nogil except +
 
     cdef cppclass NoopMSDataWritingConsumer:
 
         NoopMSDataWritingConsumer(String filename) nogil except +
         NoopMSDataWritingConsumer(NoopMSDataWritingConsumer) nogil except + #wrap-ignore
 
-        void consumeSpectrum(MSSpectrum[Peak1D] & s) nogil except + 
-        void consumeChromatogram(MSChromatogram[ChromatogramPeak] & c) nogil except + 
+        void consumeSpectrum(MSSpectrum & s) nogil except +
+        void consumeChromatogram(MSChromatogram & c) nogil except +
 
         void setExperimentalSettings(ExperimentalSettings& exp) nogil except +
         void setExpectedSize(Size expectedSpectra, Size expectedChromatograms) nogil except +

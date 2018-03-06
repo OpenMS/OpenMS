@@ -140,7 +140,7 @@ namespace OpenMS
     return tmp_hulls;
   }
 
-  std::vector< OpenMS::MSChromatogram <> > FeatureHypothesis::getChromatograms(UInt64 feature_id) const
+  std::vector< OpenMS::MSChromatogram > FeatureHypothesis::getChromatograms(UInt64 feature_id) const
   {
     double mz = iso_pattern_[0]->getCentroidMZ();
     Precursor prec;
@@ -148,10 +148,10 @@ namespace OpenMS
     prec.setCharge(charge_);
     prec.setMetaValue("peptide_sequence", String(feature_id));
 
-    std::vector< OpenMS::MSChromatogram <> > tmp_chromatograms;
+    std::vector< OpenMS::MSChromatogram > tmp_chromatograms;
     for (Size mt_idx = 0; mt_idx < iso_pattern_.size(); ++mt_idx)
     {
-      OpenMS::MSChromatogram<> chromatogram;
+      OpenMS::MSChromatogram chromatogram;
 
       for (MassTrace::const_iterator l_it = iso_pattern_[mt_idx]->begin(); l_it != iso_pattern_[mt_idx]->end(); ++l_it)
       {
@@ -440,7 +440,7 @@ namespace OpenMS
     std::string scale_filename = File::find(search_name + ".scale");
 
     isotope_filt_svm_ = svm_load_model(model_filename.c_str());
-    if (isotope_filt_svm_ == NULL)
+    if (isotope_filt_svm_ == nullptr)
     {
       throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
           "Loading " + model_filename + " failed", model_filename);
@@ -734,7 +734,7 @@ namespace OpenMS
     } // end for charge
   } // end of findLocalFeatures_(...)
 
-  void FeatureFindingMetabo::run(std::vector<MassTrace>& input_mtraces, FeatureMap& output_featmap, std::vector<std::vector< OpenMS::MSChromatogram<> > >& output_chromatograms)
+  void FeatureFindingMetabo::run(std::vector<MassTrace>& input_mtraces, FeatureMap& output_featmap, std::vector<std::vector< OpenMS::MSChromatogram > >& output_chromatograms)
   {
     output_featmap.clear();
     output_chromatograms.clear();

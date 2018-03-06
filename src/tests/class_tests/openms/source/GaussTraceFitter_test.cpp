@@ -261,8 +261,8 @@ double expected_x0 = 680.1;
 TOLERANCE_RELATIVE(1.001)
 
 
-GTF* ptr = 0;
-GTF* nullPointer = 0;
+GTF* ptr = nullptr;
+GTF* nullPointer = nullptr;
 START_SECTION(GaussTraceFitter())
 {
 	ptr = new GTF();

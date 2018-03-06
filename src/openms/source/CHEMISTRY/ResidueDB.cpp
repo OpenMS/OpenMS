@@ -45,6 +45,8 @@
 #include <OpenMS/CONCEPT/Macros.h>
 #include <OpenMS/SYSTEM/File.h>
 
+#include <iostream>
+
 using namespace std;
 
 namespace OpenMS
@@ -66,7 +68,7 @@ namespace OpenMS
     {
       return residue_names_.at(name);
     }
-    return NULL;
+    return nullptr;
   }
 
   const Residue* ResidueDB::getResidue(const unsigned char& one_letter_code) const
@@ -202,7 +204,7 @@ namespace OpenMS
       vector<String> split;
       param.begin().getName().split(':', split);
       String prefix = split[0] + split[1];
-      Residue* res_ptr = 0;
+      Residue* res_ptr = nullptr;
 
       Map<String, String> values;
 
@@ -415,7 +417,7 @@ namespace OpenMS
     // initialize lookup table to null pointer
     for (Size i = 0; i != sizeof(residue_by_one_letter_code_)/sizeof(residue_by_one_letter_code_[0]); ++i)
     {
-      residue_by_one_letter_code_[i] = 0;
+      residue_by_one_letter_code_[i] = nullptr;
     }
 
     set<Residue*>::iterator it;

@@ -48,8 +48,8 @@ START_TEST(AveragePosition, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-AveragePosition<3>* ptr = 0;
-AveragePosition<3>* nullPointer = 0;
+AveragePosition<3>* ptr = nullptr;
+AveragePosition<3>* nullPointer = nullptr;
 START_SECTION(AveragePosition())
 {
 	ptr = new AveragePosition<3>();

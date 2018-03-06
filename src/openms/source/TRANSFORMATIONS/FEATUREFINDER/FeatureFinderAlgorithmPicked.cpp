@@ -1445,7 +1445,7 @@ namespace OpenMS
     if (debug_) log_ << "   - Added " << (trace.peaks.size() - peaks_before_extension) << " peaks (abort: " << abort_reason << ")" << std::endl;
   }
 
-  Size FeatureFinderAlgorithmPicked::nearest_(double pos, const MSSpectrum<Peak1D>& spec, Size start) const
+  Size FeatureFinderAlgorithmPicked::nearest_(double pos, const MSSpectrum& spec, Size start) const
   {
     Size index = start;
     double distance = std::fabs(pos - spec[index].getMZ());
@@ -1859,7 +1859,6 @@ namespace OpenMS
     bool feature_ok = true;
 
     //check if the sigma fit was ok (if it is larger than 'max_rt_span')
-    if (feature_ok)
     {
       // 5.0 * sigma > max_rt_span_ * region_rt_span
       if (fitter->checkMaximalRTSpan(max_rt_span_))

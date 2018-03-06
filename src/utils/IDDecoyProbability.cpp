@@ -96,7 +96,7 @@ public:
 
 protected:
 
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "Identification input of combined forward decoy search (reindex with PeptideIndexer first)", false);
     setValidFormats_("in", ListUtils::create<String>("idXML"));
@@ -111,13 +111,13 @@ protected:
     addEmptyLine_();
   }
 
-  Param getSubsectionDefaults_(const String & /*section*/) const
+  Param getSubsectionDefaults_(const String & /*section*/) const override
   {
     IDDecoyProbability decoy_prob;
     return decoy_prob.getParameters();
   }
 
-  ExitCodes main_(int, const char **)
+  ExitCodes main_(int, const char **) override
   {
     //-------------------------------------------------------------
     // parameter handling

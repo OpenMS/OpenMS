@@ -49,8 +49,8 @@ START_TEST(ParameterInformation, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-ParameterInformation* ptr = 0;
-ParameterInformation* null_ptr = 0;
+ParameterInformation* ptr = nullptr;
+ParameterInformation* null_ptr = nullptr;
 START_SECTION(ParameterInformation())
 {
 	ptr = new ParameterInformation();

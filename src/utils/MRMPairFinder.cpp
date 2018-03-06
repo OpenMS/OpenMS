@@ -114,7 +114,7 @@ public:
   }
 
 protected:
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "Input featureXML file containing the features of the MRM experiment spectra.");
     setValidFormats_("in", ListUtils::create<String>("featureXML"));
@@ -137,7 +137,7 @@ protected:
     setMinFloat_("RT_pair_tolerance", 0.0);
   }
 
-  ExitCodes main_(int, const char**)
+  ExitCodes main_(int, const char**) override
   {
     //-------------------------------------------------------------
     // parsing parameters

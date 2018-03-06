@@ -43,7 +43,6 @@
 
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
-#include <OpenMS/KERNEL/RichPeak1D.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -53,8 +52,8 @@ START_TEST(CompNovoIdentification, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-CompNovoIdentification* ptr = 0;
-CompNovoIdentification* nullPointer = 0;
+CompNovoIdentification* ptr = nullptr;
+CompNovoIdentification* nullPointer = nullptr;
 START_SECTION(CompNovoIdentification())
 {
   ptr = new CompNovoIdentification();

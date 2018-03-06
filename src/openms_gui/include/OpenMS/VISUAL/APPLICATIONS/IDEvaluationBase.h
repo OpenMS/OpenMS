@@ -88,11 +88,11 @@ namespace OpenMS
 public:
 
     ///Constructor
-    IDEvaluationBase(QWidget * parent = 0);
+    IDEvaluationBase(QWidget * parent = nullptr);
     ///Destructor
-    virtual ~IDEvaluationBase();
+    ~IDEvaluationBase() override;
 
-    QSize sizeHint() const;
+    QSize sizeHint() const override;
 
     void setVisibleArea(double low, double high);
 
@@ -108,10 +108,10 @@ public slots:
 
     /// compute q-values from ids and store as vector of points for plotting
     /// returns false on error, the return vector 'points' will also be empty in this case
-    bool getPoints(std::vector<PeptideIdentification> & peptides /* cannot be const, to avoid copy */, const std::vector<double> & q_value_thresholds, MSSpectrum<> & points);
+    bool getPoints(std::vector<PeptideIdentification> & peptides /* cannot be const, to avoid copy */, const std::vector<double> & q_value_thresholds, MSSpectrum & points);
 
     /// calls 'getPoints()' after loading the idXML file and returns the result
-    bool loadCurve(const String& file_name, MSSpectrum<>& points);
+    bool loadCurve(const String& file_name, MSSpectrum& points);
     /// opens the file in a new window
     /// @return false on error (no idXML file or missing information preventing FDR computation)
     bool addSearchFile(const String & file_name);
@@ -180,8 +180,8 @@ protected:
     String current_path_;
     ///@name reimplemented Qt events
     //@{
-    void closeEvent(QCloseEvent * event);
-    void keyPressEvent(QKeyEvent * e);
+    void closeEvent(QCloseEvent * event) override;
+    void keyPressEvent(QKeyEvent * e) override;
     //@}
 
     ///Log message states

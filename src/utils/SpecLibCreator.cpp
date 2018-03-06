@@ -42,7 +42,6 @@
 #include <OpenMS/FORMAT/MzDataFile.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/FORMAT/MSPFile.h>
-#include <OpenMS/KERNEL/RichPeak1D.h>
 #include <iostream>
 
 #include <vector>
@@ -83,7 +82,7 @@ public:
   }
 
 protected:
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     registerInputFile_("info", "<file>", "", "Holds id, peptide, retention time etc.");
     setValidFormats_("info", ListUtils::create<String>("csv"));
@@ -99,7 +98,7 @@ protected:
     setValidFormats_("out", ListUtils::create<String>("msp"));
   }
 
-  ExitCodes main_(int, const char**)
+  ExitCodes main_(int, const char**) override
   {
     //-------------------------------------------------------------
     // parameter handling
@@ -228,8 +227,6 @@ protected:
       double mz = list[i][measured_weight].toFloat();
       for (PeakMap::Iterator it = msexperiment.begin(); it < msexperiment.end(); ++it)
       {
-        //cout<<"i =" <<i<<endl;
-        //cout<<rt <<" (rt) - " << it->getRT()<<" (getRT) = "<<(rt - it->getRT())<<endl;
         if ((abs(rt - it->getRT()) < 5) && (abs(mz - it->getPrecursors()[0].getMZ()) < 0.1))
         {
           //if ( ceil(rt) == ceil(it->getRT()) || ceil(rt) == floor(it->getRT()) || floor(rt) == ceil(it->getRT()) || floor(rt) == floor(it->getRT()))
@@ -238,13 +235,7 @@ protected:
           cout << "Found Peptide " << list[i][peptide] << " with id: " << list[i][Experimental_id] << "\n";
           cout << "rt: " << it->getRT() << " and mz: " << it->getPrecursors()[0].getMZ() << "\n";
 
-          // MSSpectrum<RichPeak1D> spec;
-          // for(UInt k = 0; k < it->size(); ++k)
-          // {
-          //  spec.push_back(it->operator[](k));
-          //
-          // }
-          MSSpectrum<Peak1D> speci;
+          MSSpectrum speci;
           speci.setRT(it->getRT());
           speci.setMSLevel(2);
           speci.setPrecursors(it->getPrecursors());

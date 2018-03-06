@@ -45,7 +45,7 @@ namespace OpenMS
                            const String& replacement,
                            String::QuotingMethod quoting)
     :
-    ostream(NULL), ofs_(NULL), sep_(sep), replacement_(replacement), nan_("nan"),
+    ostream(nullptr), ofs_(nullptr), sep_(sep), replacement_(replacement), nan_("nan"),
     inf_("inf"), quoting_(quoting), modify_strings_(true), newline_(true)
   {
     ofs_ = new std::ofstream;
@@ -66,7 +66,7 @@ namespace OpenMS
   SVOutStream::SVOutStream(ostream& out, const String& sep,
                            const String& replacement,
                            String::QuotingMethod quoting) :
-    ostream(out.rdbuf()), ofs_(NULL), sep_(sep), replacement_(replacement), nan_("nan"),
+    ostream(out.rdbuf()), ofs_(nullptr), sep_(sep), replacement_(replacement), nan_("nan"),
     inf_("inf"), quoting_(quoting), modify_strings_(true), newline_(true)
   {
     // use high decimal precision (appropriate for double):

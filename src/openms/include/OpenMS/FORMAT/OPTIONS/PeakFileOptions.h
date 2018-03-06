@@ -55,7 +55,7 @@ public:
     ///Destructor
     ~PeakFileOptions();
 
-    ///@name Meta data option
+    ///@name Meta data and file format option
     //@{
     ///sets whether or not to load only meta data
     void setMetadataOnly(bool only);
@@ -67,6 +67,10 @@ public:
     /// [mzXML only!] Whether to write a scan-index and meta data to indicate a Thermo FTMS/ITMS instrument (required to have parameter control in MQ)
     bool getForceMQCompatability() const;
 
+    /// [mzML only!] Whether to skip writing the <isolationWindow> tag so that TPP finds the correct precursor m/z
+    void setForceTPPCompatability(bool forceTPP);
+    /// [mzML only!] Whether to skip writing the <isolationWindow> tag so that TPP finds the correct precursor m/z
+    bool getForceTPPCompatability() const;
     //@}
 
     ///@name Supplemental data option
@@ -220,7 +224,8 @@ public:
 
 private:
     bool metadata_only_;
-    bool force_maxquant_compatibility_; //< for mzXML-writing only: set a fixed vendor (Thermo Scientific), mass analyzer (FTMS)
+    bool force_maxquant_compatibility_; ///< for mzXML-writing only: set a fixed vendor (Thermo Scientific), mass analyzer (FTMS)
+    bool force_tpp_compatibility_; ///< for mzML-writing only: work around some bugs in TPP file parsers
     bool write_supplemental_data_;
     bool has_rt_range_;
     bool has_mz_range_;

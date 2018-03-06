@@ -59,8 +59,8 @@ START_TEST(String, "$Id$")
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wshadow"
 
-String* s_ptr = 0;
-String* s_nullPointer = 0;
+String* s_ptr = nullptr;
+String* s_nullPointer = nullptr;
 START_SECTION((String()))
 	s_ptr = new String;
   TEST_NOT_EQUAL(s_ptr, s_nullPointer)
@@ -806,6 +806,10 @@ START_SECTION((String& removeWhitespaces()))
 
 	s.removeWhitespaces();
 	TEST_EQUAL(s,"");
+  
+  s = " \t \n ";
+  s.removeWhitespaces();
+  TEST_EQUAL(s, "");
 
 	s = "test";
 	s.removeWhitespaces();

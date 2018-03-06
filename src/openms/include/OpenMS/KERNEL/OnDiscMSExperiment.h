@@ -172,7 +172,7 @@ public:
     }
 
     /// alias for getSpectrum
-    inline MSSpectrum<PeakT> operator[](Size n)
+    inline MSSpectrum operator[](Size n)
     {
       return getSpectrum(n);
     }
@@ -182,10 +182,10 @@ public:
 
       TODO: make this more efficient by reducing the copying
     */
-    MSSpectrum<PeakT> getSpectrum(Size id)
+    MSSpectrum getSpectrum(Size id)
     {
       OpenMS::Interfaces::SpectrumPtr sptr = indexed_mzml_file_.getSpectrumById(static_cast<int>(id));
-      MSSpectrum<PeakT> spectrum(meta_ms_experiment_->operator[](id));
+      MSSpectrum spectrum(meta_ms_experiment_->operator[](id));
 
       // recreate a spectrum from the data arrays!
       OpenMS::Interfaces::BinaryDataArrayPtr mz_arr = sptr->getMZArray();
@@ -214,10 +214,10 @@ public:
 
       TODO: make this more efficient by reducing the copying
     */
-    MSChromatogram<ChromatogramPeakT> getChromatogram(Size id)
+    MSChromatogram getChromatogram(Size id)
     {
       OpenMS::Interfaces::ChromatogramPtr cptr = indexed_mzml_file_.getChromatogramById(static_cast<int>(id));
-      MSChromatogram<ChromatogramPeakT> chromatogram(meta_ms_experiment_->getChromatogram(id));
+      MSChromatogram chromatogram(meta_ms_experiment_->getChromatogram(id));
 
       // recreate a chromatogram from the data arrays!
       OpenMS::Interfaces::BinaryDataArrayPtr rt_arr = cptr->getTimeArray();

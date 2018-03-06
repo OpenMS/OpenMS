@@ -148,7 +148,7 @@ public:
     OPENMS_DLLAPI ConsensusMap(const ConsensusMap& source);
 
     /// Destructor
-    OPENMS_DLLAPI ~ConsensusMap();
+    OPENMS_DLLAPI ~ConsensusMap() override;
 
     /// Creates a ConsensusMap with n elements
     OPENMS_DLLAPI explicit ConsensusMap(Base::size_type n);
@@ -217,10 +217,12 @@ public:
     /// Sorts with respect to the sets of maps covered by the consensus features (lexicographically).
     OPENMS_DLLAPI void sortByMaps();
 
+    /// Sorts PeptideIdentifications of consensus features with respect to their map index.
+    OPENMS_DLLAPI void sortPeptideIdentificationsByMapIndex();
     //@}
 
     // Docu in base class
-    OPENMS_DLLAPI void updateRanges();
+    OPENMS_DLLAPI void updateRanges() override;
 
     /// Swaps the content of this map with the content of @p from
     OPENMS_DLLAPI void swap(ConsensusMap& from);
@@ -255,8 +257,9 @@ public:
     /// set the file path to the primary MS run (usually the mzML file obtained after data conversion from raw files)
     OPENMS_DLLAPI void setPrimaryMSRunPath(const StringList& s);
 
-    /// get the file path to the first MS run
-    OPENMS_DLLAPI StringList getPrimaryMSRunPath() const;
+    /// get the file path to the first MS run (provide a StringList to emphasize that this returns
+    /// different copies everytime). Overrides the contents of the StringList if the spectra_data MetaValue is present!
+    OPENMS_DLLAPI void getPrimaryMSRunPath(StringList& toFill) const;
 
     /// Equality operator
     OPENMS_DLLAPI bool operator==(const ConsensusMap& rhs) const;
@@ -314,7 +317,7 @@ public:
               - we should restrict the user to first fill the list of maps, before any datapoints can be inserted
 
     */
-    bool isMapConsistent(Logger::LogStream* stream = 0) const;
+    bool isMapConsistent(Logger::LogStream* stream = nullptr) const;
 
 protected:
 

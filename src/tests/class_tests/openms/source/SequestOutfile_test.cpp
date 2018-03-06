@@ -45,8 +45,8 @@ using namespace std;
 START_TEST(String, "$Id$")
 
 
-SequestOutfile* ptr = 0;
-SequestOutfile* nullPointer = 0;
+SequestOutfile* ptr = nullptr;
+SequestOutfile* nullPointer = nullptr;
 START_SECTION(SequestOutfile())
 	ptr = new SequestOutfile();
 	TEST_NOT_EQUAL(ptr, nullPointer)

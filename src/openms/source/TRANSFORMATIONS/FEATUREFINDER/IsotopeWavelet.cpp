@@ -103,7 +103,7 @@ double dvec[] =
 namespace OpenMS
 {
   //internally used variables / defaults
-  IsotopeWavelet * IsotopeWavelet::me_ = NULL;
+  IsotopeWavelet * IsotopeWavelet::me_ = nullptr;
   UInt IsotopeWavelet::max_charge_ = 1;
   std::vector<double> IsotopeWavelet::gamma_table_;
   std::vector<double> IsotopeWavelet::gamma_table_new_;
@@ -118,7 +118,7 @@ namespace OpenMS
 
   IsotopeWavelet * IsotopeWavelet::init(const double max_m, const UInt max_charge)
   {
-    if (me_ == NULL)
+    if (me_ == nullptr)
     {
       me_ = new IsotopeWavelet(max_m, max_charge);
     }
@@ -144,7 +144,7 @@ namespace OpenMS
   void IsotopeWavelet::destroy()
   {
     delete (me_);
-    me_ = NULL;
+    me_ = nullptr;
     max_charge_ = 1;
     gamma_table_.clear();
     exp_table_.clear();
@@ -301,7 +301,7 @@ namespace OpenMS
     IsotopeDistribution::ContainerType help(averagine_.getContainer());
     IsotopeDistribution::ContainerType::iterator iter;
 
-    if (size != NULL)
+    if (size != nullptr)
     {
       *size = getNumPeakCutOff(mass);
     }

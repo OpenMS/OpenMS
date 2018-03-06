@@ -50,7 +50,6 @@
 
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
-#include <OpenMS/KERNEL/RichPeak1D.h>
 
 ///////////////////////////
 
@@ -62,8 +61,8 @@ START_TEST(AccurateMassSearchEngine, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-AccurateMassSearchEngine* ptr = 0;
-AccurateMassSearchEngine* null_ptr = 0;
+AccurateMassSearchEngine* ptr = nullptr;
+AccurateMassSearchEngine* null_ptr = nullptr;
 START_SECTION(AccurateMassSearchEngine())
 {
     ptr = new AccurateMassSearchEngine();

@@ -111,7 +111,7 @@ public:
 
 protected:
 
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     registerInputFile_("include", "<file>", "", "Inclusion list input file in FASTA or featureXML format.", false);
     setValidFormats_("include", ListUtils::create<String>("featureXML,fasta"));
@@ -140,7 +140,7 @@ protected:
     registerSubsection_("algorithm", "Inclusion/Exclusion algorithm section");
   }
 
-  Param getSubsectionDefaults_(const String& /*section*/) const
+  Param getSubsectionDefaults_(const String& /*section*/) const override
   {
     // there is only one subsection: 'algorithm' (s.a) .. and in it belongs the InclusionExclusionList param
     InclusionExclusionList fdc;
@@ -155,7 +155,7 @@ protected:
     return tmp;
   }
 
-  ExitCodes main_(int, const char**)
+  ExitCodes main_(int, const char**) override
   {
     //-------------------------------------------------------------
     // parameter handling
@@ -240,12 +240,14 @@ protected:
           PeakMap exp, ms2;
           MzMLFile().load(raw_data_path, exp);
           FeatureMap out_map;
-          out_map.setPrimaryMSRunPath(exp.getPrimaryMSRunPath());
+          StringList ms_runs;
+          exp.getPrimaryMSRunPath(ms_runs);
+          out_map.setPrimaryMSRunPath(ms_runs);
 
           IntList levels;
           levels.push_back(1);
           exp.getSpectra().erase(remove_if(exp.begin(), exp.end(),
-                                           InMSLevelRange<MSSpectrum<> >(levels, true)), exp.end());
+                                           InMSLevelRange<MSSpectrum>(levels, true)), exp.end());
           exp.sortSpectra(true);
           OfflinePrecursorIonSelection opis;
           Param param = getParam_().copy("algorithm:PrecursorSelection:", true);

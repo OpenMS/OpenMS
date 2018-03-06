@@ -42,6 +42,7 @@
 #include <OpenMS/KERNEL/MassTrace.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -98,7 +99,7 @@ public:
 
 protected:
 
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "input centroided mzML file");
     setValidFormats_("in", ListUtils::create<String>("mzML"));
@@ -112,7 +113,7 @@ protected:
 
   }
 
-  Param getSubsectionDefaults_(const String& /*section*/) const
+  Param getSubsectionDefaults_(const String& /*section*/) const override
   {
     Param combined;
     Param p_com;
@@ -140,7 +141,7 @@ protected:
     return combined;
   }
 
-  ExitCodes main_(int, const char**)
+  ExitCodes main_(int, const char**) override
   {
 
     //-------------------------------------------------------------
@@ -150,6 +151,11 @@ protected:
     String in = getStringOption_("in");
     String out = getStringOption_("out");
     FileTypes::Type out_type = FileTypes::nameToType(getStringOption_("out_type"));
+
+    if (out_type == FileTypes::UNKNOWN)
+    {
+      out_type = FileHandler().getTypeByFileName(out);
+    }
 
     //-------------------------------------------------------------
     // loading input
@@ -237,7 +243,10 @@ protected:
     if (out_type == FileTypes::CONSENSUSXML)
     {
       ConsensusMap consensus_map;
-      consensus_map.setPrimaryMSRunPath(ms_peakmap.getPrimaryMSRunPath());
+      StringList ms_runs;
+      ms_peakmap.getPrimaryMSRunPath(ms_runs);
+      consensus_map.setPrimaryMSRunPath(ms_runs);
+
       for (Size i = 0; i < m_traces_final.size(); ++i)
       {
         if (m_traces_final[i].getSize() == 0) continue;
@@ -279,7 +288,9 @@ protected:
 
       std::vector<double> stats_sd;
       FeatureMap ms_feat_map;
-      ms_feat_map.setPrimaryMSRunPath(ms_peakmap.getPrimaryMSRunPath());
+      StringList ms_runs;
+      ms_peakmap.getPrimaryMSRunPath(ms_runs);
+      ms_feat_map.setPrimaryMSRunPath(ms_runs);
       for (Size i = 0; i < m_traces_final.size(); ++i)
       {
         if (m_traces_final[i].getSize() == 0) continue;

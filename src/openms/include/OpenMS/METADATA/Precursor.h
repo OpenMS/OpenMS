@@ -90,7 +90,7 @@ public:
     /// Copy constructor
     Precursor(const Precursor & source);
     /// Destructor
-    virtual ~Precursor();
+    ~Precursor() override;
 
     /// Assignment operator
     Precursor & operator=(const Precursor & source);

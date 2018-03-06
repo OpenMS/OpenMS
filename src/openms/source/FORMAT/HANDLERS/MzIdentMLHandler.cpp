@@ -56,7 +56,7 @@ namespace OpenMS
       XMLHandler(filename, version),
       logger_(logger),
       //~ ms_exp_(0),
-      id_(0),
+      id_(nullptr),
       cid_(&id)
     {
       cv_.loadFromOBO("PSI-MS", File::find("/CV/psi-ms.obo"));
@@ -68,7 +68,7 @@ namespace OpenMS
       logger_(logger),
       //~ ms_exp_(0),
       id_(&id),
-      cid_(0)
+      cid_(nullptr)
     {
       cv_.loadFromOBO("PSI-MS", File::find("/CV/psi-ms.obo"));
       unimod_.loadFromOBO("PSI-MS", File::find("/CV/unimod.obo"));
@@ -78,8 +78,8 @@ namespace OpenMS
       XMLHandler(filename, version),
       logger_(logger),
       //~ ms_exp_(0),
-      pro_id_(0),
-      pep_id_(0),
+      pro_id_(nullptr),
+      pep_id_(nullptr),
       cpro_id_(&pro_id),
       cpep_id_(&pep_id)
     {
@@ -93,8 +93,8 @@ namespace OpenMS
       //~ ms_exp_(0),
       pro_id_(&pro_id),
       pep_id_(&pep_id),
-      cpro_id_(0),
-      cpep_id_(0)
+      cpro_id_(nullptr),
+      cpep_id_(nullptr)
     {
       cv_.loadFromOBO("PSI-MS", File::find("/CV/psi-ms.obo"));
       unimod_.loadFromOBO("PSI-MS", File::find("/CV/unimod.obo"));
@@ -347,7 +347,7 @@ namespace OpenMS
         if (cv_ref == "UNIMOD")
         {
           set<const ResidueModification*> mods;
-          Int loc = numeric_limits<Size>::max();
+          Int loc = numeric_limits<Int>::max();
           if (optionalAttributeAsInt_(loc, attributes, "location"))
           {
             String uni_mod_id = accession.suffix(':');
@@ -830,7 +830,7 @@ namespace OpenMS
             if (jt->getSequence().isModified() || jt->metaValueExists("xl_chain"))
             {
               const ResidueModification* n_term_mod = jt->getSequence().getNTerminalModification();
-              if (n_term_mod != 0)
+              if (n_term_mod != nullptr)
               {
                 p += "\t\t<Modification location=\"0\">\n";
                 String acc = n_term_mod->getUniModAccession();
@@ -857,7 +857,7 @@ namespace OpenMS
                 p += "\n\t\t</Modification>\n";
               }
               const ResidueModification* c_term_mod = jt->getSequence().getCTerminalModification();
-              if (c_term_mod != 0)
+              if (c_term_mod != nullptr)
               {
                 p += "\t\t<Modification location=\"" + String(jt->getSequence().size()) + "\">\n";
                 String acc = c_term_mod->getUniModAccession();
@@ -886,7 +886,7 @@ namespace OpenMS
               for (Size i = 0; i < jt->getSequence().size(); ++i)
               {
                 const ResidueModification* mod = jt->getSequence()[i].getModification(); // "UNIMOD:" prefix??
-                if (mod != 0)
+                if (mod != nullptr)
                 {
                   //~ p += jt->getSequence()[i].getModification() + "\t" +  jt->getSequence()[i].getOneLetterCode()  + "\t" +  x +   "\n" ;
                   p += "\t\t<Modification location=\"" + String(i + 1);
@@ -1198,9 +1198,9 @@ namespace OpenMS
             sii_tmp += "\t\t\t\t\t<PeptideEvidenceRef peptideEvidence_ref=\"" +  String(*pevref) + "\"/>\n";
           }
 
-          if (! jt->getFragmentAnnotations().empty())
+          if (! jt->getPeakAnnotations().empty())
           {
-            writeFragmentAnnotations_(sii_tmp, jt->getFragmentAnnotations(), 5, is_ppxl);
+            writeFragmentAnnotations_(sii_tmp, jt->getPeakAnnotations(), 5, is_ppxl);
           }
 
           std::set<String> peptide_result_details;
@@ -1574,7 +1574,7 @@ namespace OpenMS
       }
     }
 
-    void MzIdentMLHandler::writeEnzyme_(String& s, Enzyme enzy, UInt miss, UInt indent) const
+    void MzIdentMLHandler::writeEnzyme_(String& s, DigestionEnzymeProtein enzy, UInt miss, UInt indent) const
     {
       String cv_ns = cv_.name();
       s += String(indent, '\t') + "<Enzymes independent=\"false\">\n";
@@ -1645,10 +1645,10 @@ namespace OpenMS
       }
     }
 
-    void MzIdentMLHandler::writeFragmentAnnotations_(String& s, const std::vector<PeptideHit::FragmentAnnotation>& annotations, UInt indent, bool is_ppxl) const
+    void MzIdentMLHandler::writeFragmentAnnotations_(String& s, const std::vector<PeptideHit::PeakAnnotation>& annotations, UInt indent, bool is_ppxl) const
     {
       std::map<UInt,std::map<String,std::vector<StringList> > > annotation_map;
-      for (std::vector<PeptideHit::FragmentAnnotation>::const_iterator kt = annotations.begin();
+      for (std::vector<PeptideHit::PeakAnnotation>::const_iterator kt = annotations.begin();
              kt != annotations.end(); ++kt)
       {// string coding example: [alpha|ci$y3-H2O-NH3]5+
         // static const boost::regex frag_regex("\\[(?:([\\|\\w]+)\\$)*([abcxyz])(\\d+)((?:[\\+\\-\\w])*)\\](\\d+)\\+"); // this will fetch the complete loss/gain part as one

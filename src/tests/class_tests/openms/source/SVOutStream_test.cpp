@@ -49,8 +49,8 @@ START_TEST(SVOutStream, "$Id$")
 
 /////////////////////////////////////////////////////////////
 
-SVOutStream* sv_ptr = 0;
-SVOutStream* sv_nullPointer = 0;
+SVOutStream* sv_ptr = nullptr;
+SVOutStream* sv_nullPointer = nullptr;
 
 START_SECTION((SVOutStream(std::ostream& out, const String& sep="\t", const String& replacement="_", String::QuotingMethod quoting=String::DOUBLE)))
 {

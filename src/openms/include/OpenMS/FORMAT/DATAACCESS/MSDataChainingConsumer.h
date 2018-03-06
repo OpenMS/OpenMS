@@ -100,7 +100,7 @@ namespace OpenMS
      * responsibility of the caller to destroy all consumers.
      *
      */
-    ~MSDataChainingConsumer();
+    ~MSDataChainingConsumer() override;
 
     /**
      * @brief Append a consumer to the chain of consumers to be executed
@@ -117,7 +117,7 @@ namespace OpenMS
      * Will set the experimental settings for all chained consumers
      *
      */
-    void setExperimentalSettings(const ExperimentalSettings & settings);
+    void setExperimentalSettings(const ExperimentalSettings & settings) override;
 
     /**
      * @brief Set expected size for all consumers
@@ -125,19 +125,19 @@ namespace OpenMS
      * Will set the expected size for all chained consumers
      *
      */
-    void setExpectedSize(Size s_size, Size c_size);
+    void setExpectedSize(Size s_size, Size c_size) override;
 
     /**
      * @brief Call all consumers in the specified order for the given spectrum
      *
      */
-    void consumeSpectrum(SpectrumType & s);
+    void consumeSpectrum(SpectrumType & s) override;
 
     /**
      * @brief Call all consumers in the specified order for the given chromatogram
      *
      */
-    void consumeChromatogram(ChromatogramType & c);
+    void consumeChromatogram(ChromatogramType & c) override;
 
   };
 

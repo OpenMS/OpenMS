@@ -42,7 +42,6 @@
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
-#include <OpenMS/KERNEL/RichPeak1D.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <iostream>
 
@@ -55,8 +54,8 @@ START_TEST(TheoreticalSpectrumGeneratorXLMS, "$Id$")
 using namespace OpenMS;
 using namespace std;
 
-TheoreticalSpectrumGeneratorXLMS* ptr = 0;
-TheoreticalSpectrumGeneratorXLMS* nullPointer = 0;
+TheoreticalSpectrumGeneratorXLMS* ptr = nullptr;
+TheoreticalSpectrumGeneratorXLMS* nullPointer = nullptr;
 
 /// mostly copied from TheoreticalSpectrumGenerator_test
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

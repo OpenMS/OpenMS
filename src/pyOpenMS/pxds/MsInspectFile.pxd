@@ -10,5 +10,5 @@ cdef extern from "<OpenMS/FORMAT/MsInspectFile.h>" namespace "OpenMS":
         MsInspectFile() nogil except +
         MsInspectFile(MsInspectFile) nogil except + #wrap-ignore
         void load(String & filename, FeatureMap & feature_map) nogil except +
-        void store(String & filename, MSSpectrum[Peak1D] & spectrum) nogil except +
+        void store(String & filename, MSSpectrum & spectrum) nogil except +
 

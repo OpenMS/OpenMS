@@ -35,6 +35,7 @@
 #include <OpenMS/FORMAT/ControlledVocabulary.h>
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
 
+#include <iostream>
 #include <fstream>
 
 using namespace std;

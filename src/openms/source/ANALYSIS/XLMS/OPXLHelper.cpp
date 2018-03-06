@@ -35,6 +35,7 @@
 #include <OpenMS/ANALYSIS/XLMS/OPXLHelper.h>
 //#include <OpenMS/ANALYSIS/XLMS/OPXLDataStructs.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
+#include <OpenMS/CHEMISTRY/ProteaseDigestion.h>
 #include <OpenMS/ANALYSIS/RNPXL/ModifiedPeptideGenerator.h>
 
 
@@ -249,7 +250,7 @@ namespace OpenMS
 
       // store vector of substrings pointing in fasta database (bounded by pairs of begin, end iterators)
       vector<StringView> current_digest;
-      digestor.digestUnmodifiedString(fasta_db[fasta_index].sequence, current_digest, min_peptide_length);
+      digestor.digestUnmodified(fasta_db[fasta_index].sequence, current_digest, min_peptide_length);
 
       for (vector<StringView>::iterator cit = current_digest.begin(); cit != current_digest.end(); ++cit)
       {
@@ -597,7 +598,7 @@ namespace OpenMS
     return cross_link_candidates;
   }
 
-  void OPXLHelper::buildFragmentAnnotations(std::vector<PeptideHit::FragmentAnnotation> & frag_annotations, const std::vector< std::pair< Size, Size > > & matching, const PeakSpectrum & theoretical_spectrum, const PeakSpectrum & experiment_spectrum)
+  void OPXLHelper::buildFragmentAnnotations(std::vector<PeptideHit::PeakAnnotation> & frag_annotations, const std::vector< std::pair< Size, Size > > & matching, const PeakSpectrum & theoretical_spectrum, const PeakSpectrum & experiment_spectrum)
   {
     if (theoretical_spectrum.empty() || experiment_spectrum.empty())
     {
@@ -607,7 +608,7 @@ namespace OpenMS
     PeakSpectrum::StringDataArray names = theoretical_spectrum.getStringDataArrays()[0];
     for (Size k = 0; k < matching.size(); ++k)
     {
-      PeptideHit::FragmentAnnotation frag_anno;
+      PeptideHit::PeakAnnotation frag_anno;
       frag_anno.mz = experiment_spectrum[matching[k].second].getMZ();
       frag_anno.intensity = experiment_spectrum[matching[k].second].getIntensity();
 
@@ -721,7 +722,15 @@ namespace OpenMS
         ph_alpha.setMetaValue("xl_pos2", DataValue(beta_pos));
       }
 
-
+      // Error calculation
+      double weight = seq_alpha.getMonoWeight() + top_csms_spectrum[i].cross_link.cross_linker_mass;
+      if (top_csms_spectrum[i].cross_link.getType() == OPXLDataStructs::CROSS)
+      {
+        weight += top_csms_spectrum[i].cross_link.beta.getMonoWeight();
+      }
+      double theo_mz = (weight + (static_cast<double>(precursor_charge) * Constants::PROTON_MASS_U)) / static_cast<double>(precursor_charge);
+      double error = precursor_mz - theo_mz;
+      double rel_error = (error / theo_mz) / 1e-6;
 
       String alpha_term = "ANYWHERE";
       if (alpha_term_spec == ResidueModification::N_TERM)
@@ -763,12 +772,18 @@ namespace OpenMS
         ph_alpha.setMetaValue("spec_heavy_MZ", spectra[scan_index_heavy].getPrecursors()[0].getMZ());
         ph_alpha.setMetaValue("spectrum_reference_heavy", spectra[scan_index_heavy].getNativeID());
       }
+      ph_alpha.setMetaValue(Constants::PRECURSOR_ERROR_PPM_USERPARAM, rel_error);
 
       ph_alpha.setMetaValue("OpenXQuest:xcorr xlink", top_csms_spectrum[i].xcorrx_max);
       ph_alpha.setMetaValue("OpenXQuest:xcorr common", top_csms_spectrum[i].xcorrc_max);
       ph_alpha.setMetaValue("OpenXQuest:match-odds", top_csms_spectrum[i].match_odds);
       ph_alpha.setMetaValue("OpenXQuest:intsum", top_csms_spectrum[i].int_sum);
       ph_alpha.setMetaValue("OpenXQuest:wTIC", top_csms_spectrum[i].wTIC);
+
+      ph_alpha.setMetaValue("OpenXQuest:log_occupancy", top_csms_spectrum[i].log_occupancy);
+      ph_alpha.setMetaValue("OpenXQuest:log_occupancy_alpha", top_csms_spectrum[i].log_occupancy_alpha);
+      ph_alpha.setMetaValue("OpenXQuest:log_occupancy_beta", top_csms_spectrum[i].log_occupancy_beta);
+      ph_alpha.setMetaValue("OpenXQuest:log_occupancy_full_spec", top_csms_spectrum[i].log_occupancy_full_spec);
 
       ph_alpha.setMetaValue("OpenPepXL:HyperCommon",top_csms_spectrum[i].HyperCommon);
       ph_alpha.setMetaValue("OpenPepXL:HyperXlink",top_csms_spectrum[i].HyperXlink);
@@ -784,8 +799,8 @@ namespace OpenMS
 
       ph_alpha.setMetaValue("selected", "false");
 
-      ph_alpha.setFragmentAnnotations(top_csms_spectrum[i].frag_annotations);
-      LOG_DEBUG << "Annotations of size " << ph_alpha.getFragmentAnnotations().size() << endl;
+      ph_alpha.setPeakAnnotations(top_csms_spectrum[i].frag_annotations);
+      LOG_DEBUG << "Annotations of size " << ph_alpha.getPeakAnnotations().size() << endl;
       phs.push_back(ph_alpha);
 
       if (top_csms_spectrum[i].cross_link.getType() == OPXLDataStructs::CROSS)
@@ -805,12 +820,18 @@ namespace OpenMS
           ph_beta.setMetaValue("spec_heavy_MZ", spectra[scan_index_heavy].getPrecursors()[0].getMZ());
           ph_beta.setMetaValue("spectrum_reference_heavy", spectra[scan_index_heavy].getNativeID());
         }
+        ph_beta.setMetaValue(Constants::PRECURSOR_ERROR_PPM_USERPARAM, rel_error);
 
         ph_beta.setMetaValue("OpenXQuest:xcorr xlink", top_csms_spectrum[i].xcorrx_max);
         ph_beta.setMetaValue("OpenXQuest:xcorr common", top_csms_spectrum[i].xcorrc_max);
         ph_beta.setMetaValue("OpenXQuest:match-odds", top_csms_spectrum[i].match_odds);
         ph_beta.setMetaValue("OpenXQuest:intsum", top_csms_spectrum[i].int_sum);
         ph_beta.setMetaValue("OpenXQuest:wTIC", top_csms_spectrum[i].wTIC);
+
+        ph_beta.setMetaValue("OpenXQuest:log_occupancy", top_csms_spectrum[i].log_occupancy);
+        ph_beta.setMetaValue("OpenXQuest:log_occupancy_alpha", top_csms_spectrum[i].log_occupancy_alpha);
+        ph_beta.setMetaValue("OpenXQuest:log_occupancy_beta", top_csms_spectrum[i].log_occupancy_beta);
+        ph_beta.setMetaValue("OpenXQuest:log_occupancy_full_spec", top_csms_spectrum[i].log_occupancy_full_spec);
 
         ph_beta.setMetaValue("OpenPepXL:HyperCommon",top_csms_spectrum[i].HyperCommon);
         ph_beta.setMetaValue("OpenPepXL:HyperXlink",top_csms_spectrum[i].HyperXlink);

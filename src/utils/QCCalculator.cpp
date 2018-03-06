@@ -116,12 +116,18 @@ class TOPPQCCalculator :
 {
 public:
   TOPPQCCalculator() :
-    TOPPBase("QCCalculator", "Calculates basic quality parameters from MS experiments and subsequent analysis data as identification or feature detection.", false)
+    TOPPBase("QCCalculator", 
+      "Calculates basic quality parameters from MS experiments and subsequent analysis data as identification or feature detection.", 
+      false, 
+      {{ "Walzer M, Pernas LE, Nasso S, Bittremieux W, Nahnsen S, Kelchtermans P,  Martens, L", 
+         "qcML: An Exchange Format for Quality Control Metrics from Mass Spectrometry Experiments", 
+         "Molecular & Cellular Proteomics 2014; 13(8)" , "10.1074/mcp.M113.035907"
+      }})
   {
   }
 
 protected:
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "raw data input file (this is relevant if you want to look at MS1, MS2 and precursor peak information)");
     setValidFormats_("in", ListUtils::create<String>("mzML"));
@@ -149,12 +155,12 @@ protected:
     return error;
   }
 
-//  void calculateSNident (PeptideHit& hit, MSSpectrum<Peak1D>& spec)
+//  void calculateSNident (PeptideHit& hit, MSSpectrum& spec)
 //  {
     // TODO
 //  }
 
-  float calculateSNmedian (MSSpectrum<Peak1D>& spec, bool norm = true)
+  float calculateSNmedian (MSSpectrum& spec, bool norm = true)
   {
     if (spec.size() == 0) return 0;
     float median = 0;
@@ -180,7 +186,7 @@ protected:
     float nois_int = 0;
     size_t sign_cnt= 0;
     size_t nois_cnt = 0;
-    for (MSSpectrum<Peak1D>::const_iterator pt = spec.begin(); pt != spec.end(); ++pt)
+    for (MSSpectrum::const_iterator pt = spec.begin(); pt != spec.end(); ++pt)
     {
       if (pt->getIntensity() <= median)
       {
@@ -198,7 +204,7 @@ protected:
     return sn_by_max2median_norm;
   }
 
-  ExitCodes main_(int, const char**)
+  ExitCodes main_(int, const char**) override
   {
     vector<ProteinIdentification> prot_ids;
     vector<PeptideIdentification> pep_ids;

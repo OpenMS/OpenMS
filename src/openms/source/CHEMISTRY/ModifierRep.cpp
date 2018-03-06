@@ -37,6 +37,9 @@
 #include <OpenMS/CHEMISTRY/ResidueDB.h>
 #include <OpenMS/CHEMISTRY/ResidueModification.h>
 
+#include <list>
+#include <sstream>
+
 using namespace std;
 
 namespace OpenMS

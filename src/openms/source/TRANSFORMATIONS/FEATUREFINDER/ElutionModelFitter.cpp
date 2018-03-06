@@ -429,7 +429,9 @@ void ElutionModelFitter::fitElutionModels(FeatureMap& features)
   {
     TransformationModelLinear lm(quant_values, Param());
     double slope, intercept;
-    lm.getParameters(slope, intercept);
+    String x_weight, y_weight;
+    double x_datum_min, x_datum_max, y_datum_min, y_datum_max;
+    lm.getParameters(slope, intercept, x_weight, y_weight, x_datum_min, x_datum_max, y_datum_min, y_datum_max);
     LOG_DEBUG << "LM slope: " << slope << ", intercept: " << intercept << endl;
     for (vector<FeatureMap::Iterator>::iterator it = failed_models.begin();
          it != failed_models.end(); ++it)

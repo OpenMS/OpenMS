@@ -92,7 +92,7 @@ namespace OpenMS
                                std::vector<MassTrace>& found_masstraces)
   {
     PeakMap map;
-    MSSpectrum<Peak1D> current_spectrum;
+    MSSpectrum current_spectrum;
 
     if (begin == end)
     {
@@ -352,7 +352,7 @@ namespace OpenMS
         // *********************************************************** //
         if ((trace_down_idx > 0) && toggle_down)
         {
-          const MSSpectrum<>& spec_trace_down = work_exp[trace_down_idx - 1];
+          const MSSpectrum& spec_trace_down = work_exp[trace_down_idx - 1];
           if (!spec_trace_down.empty())
           {
             Size next_down_peak_idx = spec_trace_down.findNearest(centroid_mz);
@@ -430,7 +430,7 @@ namespace OpenMS
         // *********************************************************** //
         if ((trace_up_idx < work_exp.size() - 1) && toggle_up)
         {
-          const MSSpectrum<>& spec_trace_up = work_exp[trace_up_idx + 1];
+          const MSSpectrum& spec_trace_up = work_exp[trace_up_idx + 1];
           if (!spec_trace_up.empty())
           {
             Size next_up_peak_idx = spec_trace_up.findNearest(centroid_mz);
