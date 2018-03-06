@@ -192,17 +192,6 @@ namespace OpenMS
       }
     }
 
-    void XQuestResultXMLHandler::setMetaValue_(const String &  key , const DataValue &  datavalue , PeptideIdentification & pep_id, PeptideHit & alpha)
-    {
-      pep_id.setMetaValue(key, datavalue);
-      alpha.setMetaValue(key, datavalue);
-    }
-    void XQuestResultXMLHandler::setMetaValue_(const String &  key , const DataValue &  datavalue , PeptideIdentification & pep_id, PeptideHit & alpha, PeptideHit & beta)
-    {
-      this->setMetaValue_(key, datavalue, pep_id, alpha);
-      beta.setMetaValue(key, datavalue);
-    }
-
     double XQuestResultXMLHandler::getMinScore() const
     {
       return this->min_score_;
@@ -354,10 +343,10 @@ namespace OpenMS
         std::istringstream is_nterm(this->attributeAsString_(attributes, "ntermxlinkable"));
         is_nterm >> ntermxlinkable;
 
+        String aarequired;
         // older xQuest versions only allowed homobifunctional cross-linkers
         if (this->optionalAttributeAsString_(aarequired, attributes, "AArequired"))
         {
-          String aarequired;
           if (ntermxlinkable)
           {
             aarequired += ",N-term";
@@ -633,7 +622,8 @@ namespace OpenMS
           }
 
           this->addMetaValues_(peptide_hit_beta);
-          this->setMetaValue_("xl_type", DataValue("cross-link"), peptide_identification, peptide_hit_alpha, peptide_hit_beta);
+          peptide_hit_alpha.setMetaValue("xl_type", DataValue("cross-link"));
+          peptide_hit_beta.setMetaValue("xl_type", DataValue("cross-link"));
 
           // Set xl positions, depends on xl_type
           std::pair<SignedSize, SignedSize> positions;
@@ -681,27 +671,11 @@ namespace OpenMS
           prot1_string.split(",", prot1_list);
           StringList prot2_list;
           prot2_string.split( ",", prot2_list);
-
-          for (StringList::const_iterator it1 = prot1_list.begin(); it1 != prot1_list.end(); ++it1)
-          {
-            for (StringList::const_iterator it2 = prot2_list.begin(); it2 != prot2_list.end(); ++it2)
-            {
-              String s1 = *it1;
-              String s2 = *it2;
-              // s1.substitute("reverse_", "");
-              // s2.substitute("reverse_", "");
-              s1.substitute(XQuestResultXMLHandler::decoy_string_, "");
-              s2.substitute(XQuestResultXMLHandler::decoy_string_, "");
-
-              this->setMetaValue_((s1.compare(s2) == 0) ? "OpenXQuest:is_intraprotein" : "OpenXQuest:is_interprotein",
-                                 DataValue(), peptide_identification, peptide_hit_alpha, peptide_hit_beta);
-            }
-          }
         }
         else if (xlink_type_string == "intralink")
         {
           // xl type
-          this->setMetaValue_("xl_type", DataValue("loop-link"), peptide_identification, peptide_hit_alpha);
+          peptide_hit_alpha.setMetaValue("xl_type", DataValue("loop-link"));
 
           // Set xl positions, depends on xl_type
           std::pair<SignedSize, SignedSize> positions;
@@ -715,7 +689,7 @@ namespace OpenMS
           // this->monolinks_masses_.insert(this->attributeAsDouble_(attributes, "xlinkermass"));
 
           // xl_type
-          this->setMetaValue_("xl_type", DataValue("mono-link"),peptide_identification,peptide_hit_alpha);
+          peptide_hit_alpha.setMetaValue("xl_type", DataValue("mono-link"));
 
           std::pair< SignedSize, SignedSize > xlink_pos;
           this->getLinkPosition_(attributes, xlink_pos);

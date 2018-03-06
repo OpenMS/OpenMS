@@ -98,7 +98,7 @@ namespace OpenMS
       UInt getNumberOfHits() const;
 
       //Docu in base class
-      virtual void writeTo(std::ostream& os);
+      virtual void writeTo(std::ostream& os) override;
 
     private:
 
@@ -189,24 +189,6 @@ namespace OpenMS
        */
       void setPeptideEvidence_(const String & prot_string, PeptideHit & pep_hit);
 
-      /**
-       * @brief Sets the meta value of the peptide identification for alpha hit.
-       * @param key Which meta value to set
-       * @param datavalue Value to be set
-       * @param pep_id For which peptide identification the meta value should be set.
-       * @param alpha Alpha peptide hit for which the meta value should be set.
-       */
-      void setMetaValue_(const String & key, const DataValue & datavalue, PeptideIdentification & pep_id, PeptideHit & alpha);
-
-      /**
-       * @brief Sets the meta value of the peptide identification for alpha hit.
-       * @param key Which meta value to set
-       * @param datavalue Value to be set
-       * @param pep_id For which peptide identification the meta value should be set.
-       * @param alpha Alpha peptide hit for which the meta value should be set.
-       * @param beta Beta peptide hit for which the meta value should be set.
-       */
-      void setMetaValue_(const String & key, const DataValue & datavalue, PeptideIdentification & pep_id, PeptideHit & alpha, PeptideHit & beta);
     };
   } // namespace Internal
 } // namespace OpenMS
