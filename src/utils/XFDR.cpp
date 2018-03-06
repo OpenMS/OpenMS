@@ -324,6 +324,8 @@ protected:
       assert(n_hits == 1 || n_hits == 2);
 
       // figure out if crosslink is inter- or intra protein
+      // for cases with multiple proteins, count as true, if any one possible combination of proteins fits the criteria
+      // so both can be true at the same time (or false for mono-links)
       if (n_hits == 2)
       {
         std::vector< PeptideEvidence > alpha_ev = pep_hits[0].getPeptideEvidences();
@@ -346,8 +348,17 @@ protected:
             assert(alpha_prot.hasSubstring(decoy_string) == false);
             assert(beta_prot.hasSubstring(decoy_string) == false);
 
-            pep_hits[0].setMetaValue("OpenXQuest:is_intraprotein", alpha_prot == beta_prot ? DataValue("true") : DataValue("false"));
-            pep_hits[0].setMetaValue("OpenXQuest:is_interprotein", alpha_prot != beta_prot ? DataValue("true") : DataValue("false"));
+            bool same_prot = alpha_prot == beta_prot;
+            if (!pep_hits[0].metaValueExists("OpenXQuest:is_intraprotein") || pep_hits[0].getMetaValue("OpenXQuest:is_intraprotein") == "false")
+            {
+              pep_hits[0].setMetaValue("OpenXQuest:is_intraprotein", same_prot ? DataValue("true") : DataValue("false"));
+              pep_hits[1].setMetaValue("OpenXQuest:is_intraprotein", same_prot ? DataValue("true") : DataValue("false"));
+            }
+            if (!pep_hits[0].metaValueExists("OpenXQuest:is_interprotein") || pep_hits[0].getMetaValue("OpenXQuest:is_interprotein") == "false")
+            {
+              pep_hits[0].setMetaValue("OpenXQuest:is_interprotein", !same_prot ? DataValue("true") : DataValue("false"));
+              pep_hits[1].setMetaValue("OpenXQuest:is_interprotein", !same_prot ? DataValue("true") : DataValue("false"));
+            }
           }
         }
       }
