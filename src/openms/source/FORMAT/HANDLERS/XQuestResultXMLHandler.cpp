@@ -71,12 +71,13 @@ namespace OpenMS
     // reader
     XQuestResultXMLHandler::XQuestResultXMLHandler(const String &filename,
                                                    std::vector< PeptideIdentification > & pep_ids,
-                                                   std::vector< ProteinIdentification > & prot_ids,
+                                                   std::vector< ProteinIdentification > & prot_ids
                                                   //  Size min_n_hits_per_spectrum,
                                                   //  bool load_to_peptideHit,
-                                                   const ProgressLogger& logger) :
+                                                  //  const ProgressLogger& logger
+                                                 ) :
       XMLHandler(filename, "1.0"),
-      logger_(logger),
+      // logger_(logger),
       pep_ids_(&pep_ids),
       prot_ids_(&prot_ids),
       n_hits_(0),
@@ -104,10 +105,11 @@ namespace OpenMS
     XQuestResultXMLHandler::XQuestResultXMLHandler(const std::vector<ProteinIdentification>& pro_id,
                                                    const std::vector<PeptideIdentification>& pep_id,
                                                    const String& filename,
-                                                   const String& version,
-                                                   const ProgressLogger& logger) :
+                                                   const String& version
+                                                  //  const ProgressLogger& logger
+                                                 ) :
       XMLHandler(filename, version),
-      logger_(logger),
+      // logger_(logger),
       pep_ids_(0),
       prot_ids_(0),
       cpro_id_(&pro_id),

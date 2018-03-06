@@ -57,7 +57,7 @@ namespace OpenMS
                                 //  bool load_to_peptideHit
                                )
   {
-   Internal::XQuestResultXMLHandler handler(filename, pep_ids, prot_ids, *this);
+   Internal::XQuestResultXMLHandler handler(filename, pep_ids, prot_ids);
    this->parse_(filename, &handler);
 
    this->n_hits_ = handler.getNumberOfHits();
@@ -87,7 +87,7 @@ namespace OpenMS
       throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "invalid file extension, expected '" + FileTypes::typeToName(FileTypes::XQUESTXML) + "'");
     }
 
-    Internal::XQuestResultXMLHandler handler(poid, peid, filename, schema_version_, *this);
+    Internal::XQuestResultXMLHandler handler(poid, peid, filename, schema_version_);
     save_(filename, &handler);
   }
 

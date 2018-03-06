@@ -61,7 +61,7 @@ namespace OpenMS
       /// Constructor for a read-only handler for internal identification structures
       XQuestResultXMLHandler(const String & filename,
                              std::vector< PeptideIdentification > & pep_ids,
-                             std::vector< ProteinIdentification > & prot_ids,
+                             std::vector< ProteinIdentification > & prot_ids
                             //  Size min_n_hits_per_spectrum,
                             //  bool load_to_peptideHit_,
                              );
@@ -70,8 +70,9 @@ namespace OpenMS
       XQuestResultXMLHandler(const std::vector<ProteinIdentification>& pro_id,
                              const std::vector<PeptideIdentification>& pep_id,
                              const String& filename,
-                             const String& version,
-                             const ProgressLogger& logger);
+                             const String& version
+                            //  const ProgressLogger& logger
+                           );
 
       ~XQuestResultXMLHandler() override;
 
