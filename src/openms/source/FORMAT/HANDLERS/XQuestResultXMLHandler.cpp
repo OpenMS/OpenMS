@@ -43,7 +43,6 @@
 #include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 
-#include <boost/assign/list_of.hpp>
 #include <iostream>
 #include <utility>
 
@@ -57,13 +56,20 @@ namespace OpenMS
   namespace Internal
   {
     // Initialize static const members
-    std::map< Size, String > XQuestResultXMLHandler::enzymes = boost::assign::map_list_of(0, "no_enzyme")
-        (1, "trypsin") (2, "chymotrypsin") (3, "unknown_enzyme") (9, "unknown_enzyme")
-        (10, "unknown_enzyme") (14, "unknown_enzyme") (15, "unknown_enzyme") (16, "unknown_enzyme") (17, "unknown_enzyme")
-        (18, "unknown_enzyme") (20, "unknown_enzyme");
+    std::map< Size, String > XQuestResultXMLHandler::enzymes
+    {
+      std::make_pair(1, "trypsin"), std::make_pair(2, "chymotrypsin"), std::make_pair(3, "unknown_enzyme"),
+      std::make_pair(9, "unknown_enzyme"), std::make_pair(10, "unknown_enzyme"), std::make_pair(14, "unknown_enzyme"),
+      std::make_pair(15, "unknown_enzyme"), std::make_pair(16, "unknown_enzyme"), std::make_pair(17, "unknown_enzyme"),
+      std::make_pair(18, "unknown_enzyme"), std::make_pair(20, "unknown_enzyme")
+    };
 
-    std::map< String, UInt> XQuestResultXMLHandler::months = boost::assign::map_list_of("Jan", 1)
-        ("Feb", 2) ("Mar", 3) ("Apr", 4) ("May", 5) ("Jun", 6) ("Jul", 7) ("Aug", 8) ("Sep", 9) ("Oct", 10) ("Nov", 11)("Dec", 12);
+    std::map< String, UInt> XQuestResultXMLHandler::months
+    {
+      std::make_pair("Jan", 1), std::make_pair("Feb", 2), std::make_pair("Mar", 3), std::make_pair("Apr", 4),
+      std::make_pair("May", 5), std::make_pair("Jun", 6), std::make_pair("Jul", 7), std::make_pair("Aug", 8),
+      std::make_pair("Sep", 9), std::make_pair("Oct", 10), std::make_pair("Nov", 11), std::make_pair("Dec", 12)
+    };
 
     // initialize default value
     String decoy_string_ = "decoy_";
@@ -931,7 +937,6 @@ namespace OpenMS
           id = structure + String("-") + letter_first + alpha_pos + String("-") + Int(double(pep_hits[0].getMetaValue("xl_mass")));
         }
 
-        // cout << "TEST precursor_error calc..." << endl;
         // Precursor error calculation, rel_error is read from the metaValue for consistency, but an absolute error is also used in the xQuest format
         // use the formula, if the MetaValue is unavailable
         double theo_mz = (weight + (static_cast<double>(precursor_charge) * Constants::PROTON_MASS_U)) / static_cast<double>(precursor_charge);
