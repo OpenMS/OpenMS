@@ -35,29 +35,20 @@
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/openms_data_path.h>
 
-#include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/VersionInfo.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 
-#include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/DATASTRUCTURES/DateTime.h>
-#include <OpenMS/DATASTRUCTURES/Param.h>
-#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 #include <OpenMS/FORMAT/ParamXMLFile.h>
 
 #include <QtCore/QFileInfo>
 #include <QtCore/QDir>
-#include <QtCore/QStringList>
 #include <QtNetwork/QHostInfo>
-
-#include <iostream>
-#include <cstdio>
 
 #ifdef OPENMS_WINDOWSPLATFORM
 #  include <Windows.h> // for GetCurrentProcessId() && GetModuleFileName()
 #else
-#  include <unistd.h> // for 'getpid()'
 #endif
 
 using namespace std;

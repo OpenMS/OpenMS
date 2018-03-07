@@ -37,6 +37,7 @@
 
 #include <OpenMS/config.h>
 #include <OpenMS/CHEMISTRY/ProteaseDigestion.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/METADATA/PeptideEvidence.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>

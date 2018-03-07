@@ -34,6 +34,7 @@
 
 #include <OpenMS/FORMAT/HANDLERS/MzMLSqliteHandler.h>
 
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/FORMAT/MzMLFile.h> // for writing to stringstream
 
 #include <sqlite3.h>

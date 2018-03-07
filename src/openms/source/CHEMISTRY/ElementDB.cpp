@@ -41,7 +41,6 @@
 
 #include <OpenMS/SYSTEM/File.h>
 
-#include <cmath>
 #include <iostream>
 
 using namespace std;

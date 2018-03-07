@@ -33,18 +33,12 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/HANDLERS/XQuestResultXMLHandler.h>
-#include <xercesc/sax2/Attributes.hpp>
-#include <OpenMS/METADATA/PeptideIdentification.h>
-#include <OpenMS/METADATA/ProteinIdentification.h>
-#include <OpenMS/METADATA/PeptideHit.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/VersionInfo.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 
-#include <iostream>
-#include <utility>
 
 #include <cassert>
 
@@ -229,9 +223,9 @@ namespace OpenMS
           search_params.setMetaValue("precursor:max_charge", this->max_precursor_charge_);
 
           (*this->prot_ids_)[0].setSearchParameters(search_params);
+              }
+            }
         }
-      }
-    }
 
     void XQuestResultXMLHandler::startElement(const XMLCh * const, const XMLCh * const, const XMLCh * const qname, const Attributes &attributes)
     {
@@ -286,9 +280,9 @@ namespace OpenMS
             if (mods.size() > 0)
             {
               variable_mod_list.push_back(mods[0]);
-            }
+        }
           }
-          search_params.variable_modifications = variable_mod_list;
+        search_params.variable_modifications = variable_mod_list;
         }
         // fixed Modifications
         String fixed_mod_string;
@@ -347,7 +341,7 @@ namespace OpenMS
           if (ntermxlinkable)
           {
             aarequired += ",N-term";
-          }
+      }
           search_params.setMetaValue("cross_link:residue1", ListUtils::create<String>(aarequired));
           search_params.setMetaValue("cross_link:residue2", ListUtils::create<String>(aarequired));
         }
@@ -405,14 +399,14 @@ namespace OpenMS
         UInt charge_precursor = this->attributeAsInt_(attributes, "charge_precursor");
         if (!this->is_openpepxl_)
         {
-          if (charge_precursor < this->min_precursor_charge_)
-          {
-            this->min_precursor_charge_ = charge_precursor;
-          }
-          if (charge_precursor > this->max_precursor_charge_)
-          {
-            this->max_precursor_charge_ = charge_precursor;
-          }
+        if (charge_precursor < this->min_precursor_charge_)
+        {
+          this->min_precursor_charge_ = charge_precursor;
+        }
+        if (charge_precursor > this->max_precursor_charge_)
+        {
+          this->max_precursor_charge_ = charge_precursor;
+        }
           this->charges_.insert(charge_precursor);
 
           String spectrum = this->attributeAsString_(attributes, "spectrum");
@@ -424,7 +418,7 @@ namespace OpenMS
           if (std::find(this->ms_run_path_.begin(), this->ms_run_path_.end(), file_name) == this->ms_run_path_.end())
           {
             this->ms_run_path_.push_back(file_name);
-          }
+      }
           this->spectrum_input_file_ = file_name;
 
           // read spectrum indices
@@ -571,7 +565,7 @@ namespace OpenMS
         assert(this->peptide_id_meta_values_["OpenXQuest:score"] != DataValue::EMPTY);
         assert(this->peptide_id_meta_values_["OpenXQuest:structure"] != DataValue::EMPTY);
 
-        this->addMetaValues_(peptide_hit_alpha);
+          this->addMetaValues_(peptide_hit_alpha);
 
         // Store specific stuff for peptide hit alpha
         peptide_hit_alpha.setMetaValue("matched_common_alpha",
@@ -597,7 +591,7 @@ namespace OpenMS
           ProteinIdentification::SearchParameters search_params((*this->prot_ids_)[0].getSearchParameters());
           if (!search_params.metaValueExists("cross_link:mass"))
           {
-            search_params.setMetaValue("cross_link:mass", DataValue(this->attributeAsDouble_(attributes, "xlinkermass")));
+          search_params.setMetaValue("cross_link:mass", DataValue(this->attributeAsDouble_(attributes, "xlinkermass")));
           }
           (*this->prot_ids_)[0].setSearchParameters(search_params);
 
@@ -674,7 +668,7 @@ namespace OpenMS
           prot1_string.split(",", prot1_list);
           StringList prot2_list;
           prot2_string.split( ",", prot2_list);
-        }
+            }
         else if (xlink_type_string == "intralink")
         {
           // xl type

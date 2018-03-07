@@ -39,9 +39,7 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/PrecisionWrapper.h>
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
-#include <iostream>
 #include <fstream>
-#include <limits>
 
 using namespace std;
 
@@ -747,7 +745,7 @@ namespace OpenMS
           parseFragmentAnnotation_(value, annotations);
           pep_hit_.setPeakAnnotations(annotations);
           return;
-        }
+      }
         last_meta_->setMetaValue(name, value);
       }
       else if (type == "intList")

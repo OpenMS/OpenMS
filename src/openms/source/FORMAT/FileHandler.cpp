@@ -50,14 +50,11 @@
 
 #include <OpenMS/KERNEL/ChromatogramTools.h>
 
-#include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/FORMAT/GzipIfstream.h>
 #include <OpenMS/FORMAT/Bzip2Ifstream.h>
 
 #include <QFile>
 #include <QCryptographicHash>
-
-#include <fstream>
 
 using namespace std;
 

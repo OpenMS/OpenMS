@@ -33,12 +33,6 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/METADATA/PeptideIdentification.h>
-#include <OpenMS/CONCEPT/Exception.h>
-
-#include <boost/math/special_functions/fpclassify.hpp>
-
-#include <sstream>
-#include <iostream>
 
 using namespace std;
 

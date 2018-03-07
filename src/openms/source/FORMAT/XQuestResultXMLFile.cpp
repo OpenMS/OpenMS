@@ -34,7 +34,6 @@
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/XQuestResultXMLFile.h>
 #include <OpenMS/FORMAT/HANDLERS/XQuestResultXMLHandler.h>
-#include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/FORMAT/Base64.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
 #include <fstream>

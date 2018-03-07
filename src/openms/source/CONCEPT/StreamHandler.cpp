@@ -38,7 +38,6 @@
 
 #include <OpenMS/CONCEPT/StreamHandler.h>
 #include <OpenMS/SYSTEM/File.h>
-#include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 
 using std::ios_base;
