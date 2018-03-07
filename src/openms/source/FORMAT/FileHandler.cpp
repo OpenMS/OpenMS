@@ -83,6 +83,9 @@ namespace OpenMS
     if (basename.hasSuffix(".prot.xml"))
       return FileTypes::PROTXML;
 
+    if (basename.hasSuffix(".xquest.xml"))
+      return FileTypes::XQUESTXML;
+
     try
     {
       tmp = basename.suffix('.');
@@ -525,7 +528,7 @@ if (first_line.hasSubstring("File	First Scan	Last Scan	Num of Scans	Charge	Monoi
 
   bool FileHandler::loadExperiment(const String& filename, PeakMap& exp, FileTypes::Type force_type, ProgressLogger::LogType log, const bool rewrite_source_file, const bool compute_hash)
   {
-    // setting the flag for hash recomputation only works if source file entries are rewritten 
+    // setting the flag for hash recomputation only works if source file entries are rewritten
     OPENMS_PRECONDITION(rewrite_source_file || !compute_hash, "Can't compute hash if no SourceFile written");
 
     //determine file type
@@ -631,8 +634,8 @@ if (first_line.hasSubstring("File	First Scan	Last Scan	Num of Scans	Charge	Monoi
       SourceFile src_file;
       src_file.setNameOfFile(File::basename(filename));
       String path_to_file = File::path(File::absolutePath(filename)); //convert to absolute path and strip file name
-      
-      // make sure we end up with at most 3 forward slashes       
+
+      // make sure we end up with at most 3 forward slashes
       String uri = path_to_file.hasPrefix("/") ? String("file://") + path_to_file : String("file:///") + path_to_file;
       src_file.setPathToFile(uri);
       // this is more complicated since the data formats allowed by mzML are very verbose.
