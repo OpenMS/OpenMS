@@ -33,14 +33,13 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CHEMISTRY/SvmTheoreticalSpectrumGenerator.h>
+
 #include <OpenMS/CHEMISTRY/ResidueDB.h>
 #include <OpenMS/CHEMISTRY/IsotopeDistribution.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 
 #include <boost/bind.hpp>
 #include <boost/random/discrete_distribution.hpp>
-
-#ifdef _OPENMP
-#endif
 
 // #define DEBUG
 

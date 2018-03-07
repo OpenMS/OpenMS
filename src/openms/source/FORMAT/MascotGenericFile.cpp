@@ -33,12 +33,13 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/FileHandler.h>
-#include <OpenMS/FORMAT/MascotGenericFile.h>
-
-#include <OpenMS/METADATA/Precursor.h>
-#include <OpenMS/KERNEL/MSExperiment.h>
 
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
+#include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/FORMAT/MascotGenericFile.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/METADATA/Precursor.h>
+
 
 #include <QFileInfo>
 #include <QtCore/QRegExp>

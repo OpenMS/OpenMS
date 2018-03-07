@@ -33,6 +33,9 @@
 // Hendrik Weisser
 // --------------------------------------------------------------------------
 
+#include <OpenMS/APPLICATIONS/TOPPBase.h>
+
+#include <OpenMS/CHEMISTRY/SpectrumAnnotator.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
@@ -45,10 +48,7 @@
 #include <OpenMS/FORMAT/SequestOutfile.h>
 #include <OpenMS/FORMAT/XTandemXMLFile.h>
 #include <OpenMS/FORMAT/TextFile.h>
-
-#include <OpenMS/APPLICATIONS/TOPPBase.h>
-
-#include <OpenMS/CHEMISTRY/SpectrumAnnotator.h>
+#include <OpenMS/SYSTEM/File.h>
 
 #include <boost/math/special_functions/fpclassify.hpp> // for "isnan"
 

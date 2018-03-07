@@ -32,12 +32,12 @@
 // $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/MSPFile.h>
 
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/SYSTEM/File.h>
 
-#include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <fstream>
 
 using namespace std;

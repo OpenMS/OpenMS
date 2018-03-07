@@ -34,6 +34,8 @@
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
+#include <OpenMS/SYSTEM/File.h>
+
 #include <QFile>
 
 using namespace OpenMS;

@@ -42,6 +42,8 @@ namespace OpenMS
 {
   class MSSpectrum;
   class MSChromatogram;
+  class MSExperiment;
+
   //@{
   /**
       @brief Spectrum consisting of raw data points or peaks.

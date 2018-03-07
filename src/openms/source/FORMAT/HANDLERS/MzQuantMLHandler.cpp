@@ -34,6 +34,7 @@
 
 #include <OpenMS/FORMAT/HANDLERS/MzQuantMLHandler.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
+#include <OpenMS/SYSTEM/File.h>
 
 using namespace std;
 
