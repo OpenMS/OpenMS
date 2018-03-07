@@ -591,8 +591,6 @@ protected:
     const String arg_in_type = this->getStringOption_(TOPPXFDR::param_in_type);
     const FileTypes::Type in_type = arg_in_type.empty() ? FileHandler::getType(arg_in) : FileTypes::nameToType(arg_in_type);
 
-    // cout << "TEST FileTypes checked!" << endl;
-
     //-------------------------------------------------------------
     // Declare important variables
     //-------------------------------------------------------------
