@@ -678,9 +678,8 @@ namespace OpenMS
 
   MSExperiment::SpectrumType* MSExperiment::createSpec_(PeakType::CoordinateType rt)
   {
-    SpectrumType* spectrum = nullptr;
-    spectra_.insert(spectra_.end(), SpectrumType());
-    spectrum = &(spectra_.back());
+    spectra_.emplace_back(SpectrumType());
+    SpectrumType* spectrum = &(spectra_.back());
     spectrum->setRT(rt);
     spectrum->setMSLevel(1);
     return spectrum;
