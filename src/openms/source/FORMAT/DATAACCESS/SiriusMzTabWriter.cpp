@@ -36,14 +36,16 @@
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/FORMAT/MzTabFile.h>
 #include <OpenMS/FORMAT/CsvFile.h>
+#include <boost/regex.hpp>
 
+#include <OpenMS/METADATA/SpectrumLookup.h>
 #include <OpenMS/FORMAT/DATAACCESS/SiriusMzTabWriter.h>
 
 using namespace OpenMS;
 using namespace std;
 
 
-String SiriusMzTabWriter::extract_scan_index(const String &path)
+String SiriusMzTabWriter::extract_scan_number(const String &path)
 {
   return path.substr(path.find_last_not_of("0123456789") + 1);
 }
@@ -73,9 +75,17 @@ void SiriusMzTabWriter::read(const std::vector<String> & sirius_output_paths, co
         // fill indentification structure containing all candidate hits for a single spectrum
         SiriusMzTabWriter::SiriusAdapterIdentification sirius_id;
 
-        //Extract scan_index from path
+        // extract scan_number from path
         OpenMS::String str = File::path(pathtosiriuscsv);
-        std::string scan_index = SiriusMzTabWriter::extract_scan_index(str);
+        std::string scan_number = SiriusMzTabWriter::extract_scan_number(str);
+        
+        // extract scan_index from "not" nativeID string (special case)
+        boost::regex regexp("unkown(?<INT>\\d+)");
+        std::string scan_index = std::to_string(SpectrumLookup::extractScanNumber(str, regexp, false));      
+ 
+        std::cout << "filepath: " << str << std::endl;
+        std::cout << "scan_index: " << scan_index << std::endl;
+        std::cout << "scan_number: " << scan_number << std::endl;
 
         for (Size j = 1; j < top_n_hits_cor; ++j)
 

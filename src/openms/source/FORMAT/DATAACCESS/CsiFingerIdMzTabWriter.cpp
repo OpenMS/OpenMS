@@ -66,9 +66,11 @@ void CsiFingerIdMzTabWriter::read(const std::vector<String> & sirius_output_path
         // fill identification structure containing all candidate hits for a single spectrum
         CsiFingerIdMzTabWriter::CsiAdapterIdentification csi_id;
 
-        //Extract scan_index from path
+        // extract scan_index from path
         OpenMS::String str = File::path(pathtocsicsv);
-        std::string scan_index = SiriusMzTabWriter::extract_scan_index(str);
+  
+        // TODO: change! scan:number
+        std::string scan_index = SiriusMzTabWriter::extract_scan_number(str);
 
         const UInt top_n_hits_cor = (top_n_hits > rowcount) ? rowcount : top_n_hits;
         for (Size j = 1; j < top_n_hits_cor; ++j)

@@ -50,7 +50,8 @@ namespace OpenMS
     file_type_(),
     checksum_(),
     checksum_type_(SourceFile::UNKNOWN_CHECKSUM),
-    native_id_type_("")
+    native_id_type_(""),
+    native_id_type_accession_("")
   {
 
   }
@@ -63,7 +64,8 @@ namespace OpenMS
     file_type_(source.file_type_),
     checksum_(source.checksum_),
     checksum_type_(source.checksum_type_),
-    native_id_type_(source.native_id_type_)
+    native_id_type_(source.native_id_type_),
+    native_id_type_accession_(source.native_id_type_accession_)
   {
   }
 
@@ -84,6 +86,7 @@ namespace OpenMS
     checksum_ = source.checksum_;
     checksum_type_ = source.checksum_type_;
     native_id_type_ = source.native_id_type_;
+    native_id_type_accession_ = source.native_id_type_accession_;
 
     return *this;
   }
@@ -97,7 +100,8 @@ namespace OpenMS
            file_type_ == rhs.file_type_ &&
            checksum_ == rhs.checksum_ &&
            checksum_type_ == rhs.checksum_type_ &&
-           native_id_type_ == rhs.native_id_type_;
+           native_id_type_ == rhs.native_id_type_ &&
+           native_id_type_accession_ == rhs.native_id_type_accession_;
   }
 
   bool SourceFile::operator!=(const SourceFile& rhs) const
@@ -169,6 +173,16 @@ namespace OpenMS
   void SourceFile::setNativeIDType(const String& type)
   {
     native_id_type_ = type;
+  }
+
+  const String& SourceFile::getNativeIDTypeAccession() const
+  {
+    return native_id_type_accession_;
+  }
+
+  void SourceFile::setNativeIDTypeAccession(const String& accession)
+  {
+    native_id_type_accession_ = accession;
   }
 
 }

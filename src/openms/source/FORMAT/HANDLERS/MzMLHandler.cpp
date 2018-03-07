@@ -2057,6 +2057,7 @@ namespace OpenMS
         else if (cv_.isChildOf(accession, "MS:1000767")) //native spectrum identifier format as string
         {
           source_files_[current_id_].setNativeIDType(cv_.getTerm(accession).name);
+          source_files_[current_id_].setNativeIDTypeAccession(cv_.getTerm(accession).id);
         }
         else
           warning(LOAD, String("Unhandled cvParam '") + accession + "' in tag '" + parent_tag + "'.");
