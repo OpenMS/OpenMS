@@ -54,28 +54,20 @@ START_SECTION(void store(const String& filename, const std::vector<ProteinIdenti
   String xquest_input_file= OPENMS_GET_TEST_DATA_PATH("XQuestResultXMLFile_test_data.xquest.xml");
   XQuestResultXMLFile().load(xquest_input_file, peptide_ids, protein_ids);
 
-  // std::cout << std::endl << "xquest xml loaded..." << std::endl;
-
   String out_file;
   NEW_TMP_FILE(out_file)
 
   XQuestResultXMLFile().store(out_file, protein_ids, peptide_ids);
 
-  // std::cout << "xquest xml stored..." << std::endl;
-
   std::vector< PeptideIdentification > peptide_id_vector;
   std::vector< ProteinIdentification > protein_id_vector;
   XQuestResultXMLFile().load(out_file, peptide_id_vector, protein_id_vector);
 
-  // std::cout << "xquest xml reloaded" << std::endl;
-
   for (Size i = 0; i < peptide_id_vector.size(); ++i)
   {
-    // std::cout << "loop 1" << std::endl;
     std::vector<PeptideHit> hits = peptide_id_vector[i].getHits();
     for (Size k = 0; k < hits.size(); ++k)
     {
-      // std::cout << "loop 2" << std::endl;
       TEST_REAL_SIMILAR(hits[k].getScore(), peptide_ids[i].getHits()[k].getScore())
       TEST_EQUAL(hits[k].getCharge(), peptide_ids[i].getHits()[k].getCharge())
 
