@@ -53,9 +53,7 @@ namespace OpenMS
   void XQuestResultXMLFile::load(const String & filename,
                                  std::vector < PeptideIdentification > & pep_ids,
                                  std::vector< ProteinIdentification > & prot_ids
-                                //  Size min_n_hits_per_spectrum
-                                //  bool load_to_peptideHit
-                               )
+                                )
   {
    Internal::XQuestResultXMLHandler handler(filename, pep_ids, prot_ids);
    this->parse_(filename, &handler);
@@ -94,7 +92,6 @@ namespace OpenMS
   // version for labeled linkers
   void XQuestResultXMLFile::writeXQuestXMLSpec(String out_file, String base_name, const OPXLDataStructs::PreprocessedPairSpectra& preprocessed_pair_spectra, const std::vector< std::pair<Size, Size> >& spectrum_pairs, const std::vector< std::vector< OPXLDataStructs::CrossLinkSpectrumMatch > >& all_top_csms, const PeakMap& spectra)
   {
-    //String spec_xml_filename = base_name + "_matched.spec.xml";
     // XML Header
     std::ofstream spec_xml_file;
     std::cout << "Writing spec.xml to " << out_file << std::endl;

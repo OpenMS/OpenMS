@@ -102,9 +102,6 @@ namespace OpenMS
 
     private:
 
-      /// Progress logger
-      //const ProgressLogger& logger_;
-
       // Decoy string used by xQuest
       String decoy_string_;
       int spectrum_index_light_;
@@ -123,9 +120,6 @@ namespace OpenMS
       // Keeps track of the minscore and maxscore encountered
       double min_score_;
       double max_score_;
-
-      // Size min_n_hits_per_spectrum_;
-      // bool load_to_peptideHit_;  // Whether Meta data of peptide identification should also be loaded to peptide hit
 
       // Whether or not current xquest result tag comes from OpenPepXL (xQuest otherwise)
       bool is_openpepxl_;
@@ -148,9 +142,6 @@ namespace OpenMS
       // Current experimental m/z of spectrum pair
       double mz_light_;
       double mz_heavy_;
-
-      // The masses of the Monolinks
-      // DoubleList monolinks_masses_;
 
       // primary MS run path
       StringList ms_run_path_;
