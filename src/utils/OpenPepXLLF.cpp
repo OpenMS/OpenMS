@@ -56,7 +56,6 @@
 
 // TESTING SCORES
 #include <OpenMS/ANALYSIS/RNPXL/HyperScore.h>
-#include <OpenMS/ANALYSIS/RNPXL/PScore.h>
 
 // preprocessing and filtering
 #include <OpenMS/FILTERING/TRANSFORMERS/ThresholdMower.h>
@@ -64,9 +63,6 @@
 
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGeneratorXLMS.h>
-
-// results
-#include <OpenMS/METADATA/ProteinIdentification.h>
 
 #include <iostream>
 #include <cmath>
@@ -542,9 +538,6 @@ protected:
 //      }
 //    }
 
-    // for PScore, precompute ranks
-//    vector<vector<Size> > rankMap = PScore::calculateRankMap(spectra);
-
     // iterate over all spectra
     progresslogger.startProgress(0, 1, "Matching to theoretical spectra and scoring...");
     vector< vector< OPXLDataStructs::CrossLinkSpectrumMatch > > all_top_csms;
@@ -854,13 +847,6 @@ protected:
         double xcorrx_max = accumulate(xcorrx.begin(), xcorrx.end(), 0.0) / aucorr_sumx;
         double xcorrc_max = accumulate(xcorrc.begin(), xcorrc.end(), 0.0) / aucorr_sumc;
 
-//        map<Size, PeakSpectrum> peak_level_spectra = PScore::calculatePeakLevelSpectra(spectrum, rankMap[scan_index]);
-//        csm.PScoreCommon = PScore::computePScore(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, peak_level_spectra, theoretical_spec_common);
-//        csm.PScoreXlink = PScore::computePScore(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, peak_level_spectra, theoretical_spec_xlinks);
-//        csm.PScoreBoth = PScore::computePScore(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, peak_level_spectra, theoretical_spec);
-//        csm.PScoreAlpha = PScore::computePScore(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, peak_level_spectra, theoretical_spec_alpha);
-//        csm.PScoreBeta = PScore::computePScore(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, peak_level_spectra, theoretical_spec_beta);
-
         csm.HyperCommon = HyperScore::compute(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, spectrum, theoretical_spec_common);
         csm.HyperAlpha = HyperScore::compute(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, spectrum, theoretical_spec_alpha);
         if (theoretical_spec_beta.size() > 0)
@@ -873,19 +859,6 @@ protected:
         }
         csm.HyperXlink = HyperScore::compute(fragment_mass_tolerance_xlinks, fragment_mass_tolerance_unit_ppm, spectrum, theoretical_spec_xlinks);
         csm.HyperBoth = HyperScore::compute(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, spectrum, theoretical_spec);
-
-        // These fields are not written yet, so at lest avoid random values by initializing to 0
-        csm.PScoreCommon = 0;
-        csm.PScoreXlink = 0;
-        csm.PScoreBoth = 0;
-        csm.PScoreAlpha = 0;
-        csm.PScoreBeta = 0;
-
-//        csm.HyperCommon = 0;
-//        csm.HyperAlpha = 0;
-//        csm.HyperBeta = 0;
-//        csm.HyperXlink = 0;
-//        csm.HyperBoth = 0;
 
         // Compute score from the 4 scores and 4 weights
         // The weights are adapted from the xQuest algorithm (O. Rinner et al., 2008, "Identification of cross-linked peptides from large sequence databases"),
@@ -1018,11 +991,6 @@ protected:
       {
         String precursor_mass_tolerance_unit_string = precursor_mass_tolerance_unit_ppm ? "ppm" : "Da";
         String fragment_mass_tolerance_unit_string = fragment_mass_tolerance_unit_ppm ? "ppm" : "Da";
-        // double cross_link_mass_iso_shift = 0;
-        // double cross_link_mass_light = cross_link_mass;
-        // XQuestResultXMLFile::writeXQuestXML(out_xquest, base_name, peptide_ids, all_top_csms, spectra,
-        //                                                     precursor_mass_tolerance_unit_string, fragment_mass_tolerance_unit_string, precursor_mass_tolerance, fragment_mass_tolerance, fragment_mass_tolerance_xlinks, cross_link_name,
-        //                                                     cross_link_mass_light, cross_link_mass_mono_link, in_fasta, in_decoy_fasta, cross_link_residue1, cross_link_residue2, cross_link_mass_iso_shift, enzyme_name, missed_cleavages);
         XQuestResultXMLFile().store(out_xquest, protein_ids, peptide_ids);
       }
       if (out_xquest_specxml.size() > 0)
