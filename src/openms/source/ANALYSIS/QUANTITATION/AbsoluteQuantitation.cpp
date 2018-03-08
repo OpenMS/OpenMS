@@ -204,8 +204,9 @@ namespace OpenMS
     std::vector<double> & biases,
     double & correlation_coefficient)
   {
-    // reset biases
+    // reset biases and correlation coefficient
     biases.clear();
+    correlation_coefficient = 0.0;
 
     // extract out the calibration points
     std::vector<double> concentration_ratios, feature_amounts_ratios;
