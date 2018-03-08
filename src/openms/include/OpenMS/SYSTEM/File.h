@@ -70,8 +70,11 @@ public:
     /**
        @brief Rename a file
        
-       If the target already exists, this function will fail unless @p overwrite_existing is true.
-
+       If @p from and @p to point to the same file (symlinks are resolved),
+       no action will be taken and true is returned.
+       If the target already exists (and is not identical to the source),
+       this function will fail unless @p overwrite_existing is true.
+       
        @param from Source filename
        @param to Target filename
        @param overwrite_existing Delete already existing target, before renaming

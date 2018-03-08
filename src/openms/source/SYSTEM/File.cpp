@@ -119,6 +119,12 @@ namespace OpenMS
 
   bool File::rename(const String& from, const String& to, bool overwrite_existing, bool verbose)
   {
+    // check for equality
+    if (QFileInfo(from.c_str()).canonicalFilePath() == QFileInfo(to.c_str()).canonicalFilePath())
+    { // same file; no need to to anything
+      return true;
+    }
+
     // existing file? Qt won't overwrite, so try to remove it:
     if (overwrite_existing && exists(to) && !remove(to))
     {
