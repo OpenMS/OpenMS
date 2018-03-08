@@ -33,8 +33,6 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/HANDLERS/ToolDescriptionHandler.h>
-#include <OpenMS/SYSTEM/File.h>
-#include <set>
 
 using namespace std;
 

@@ -138,6 +138,7 @@ public:
       gradient(),
       filters(),
       annotations_1d(),
+      peak_colors_1d(),
       modifiable(false),
       modified(false),
       label(L_NONE),
@@ -307,6 +308,9 @@ public:
 
     /// Annotations of all spectra of the experiment (1D view)
     std::vector<Annotations1DContainer> annotations_1d;
+
+    /// Peak colors of the currently shown spectrum
+    std::vector<QColor> peak_colors_1d;
 
     /// Flag that indicates if the layer data can be modified (so far used for features only)
     bool modifiable;

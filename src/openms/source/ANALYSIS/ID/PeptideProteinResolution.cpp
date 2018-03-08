@@ -34,7 +34,6 @@
 #include <OpenMS/ANALYSIS/ID/PeptideProteinResolution.h>
 
 #include <queue>
-#include <ostream>
 
 using namespace OpenMS;
 using namespace std;

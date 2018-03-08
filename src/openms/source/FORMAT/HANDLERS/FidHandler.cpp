@@ -33,9 +33,6 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/HANDLERS/FidHandler.h>
-#include <OpenMS/CONCEPT/Exception.h>
-
-#include <climits>
 
 using namespace std;
 

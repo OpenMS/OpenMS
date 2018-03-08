@@ -749,6 +749,16 @@ namespace OpenMS
           {
             if (layer.filters.passes(spectrum, it - spectrum.begin()))
             {
+
+              // use peak colors stored in the layer, if available
+              if (layer.peak_colors_1d.size() == spectrum.size())
+              {
+                // find correct peak index
+                Size peak_index = std::distance(spectrum.begin(), it);
+                pen.setColor(layer.peak_colors_1d[peak_index]);
+                painter->setPen(pen);
+              }
+
               dataToWidget(*it, end, layer.flipped);
               dataToWidget(it->getMZ(), 0.0f, begin, layer.flipped);
 

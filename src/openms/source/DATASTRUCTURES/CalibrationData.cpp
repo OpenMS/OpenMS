@@ -38,8 +38,6 @@
 #include <OpenMS/MATH/MISC/MathFunctions.h>
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
 
-#include <algorithm>
-
 
 namespace OpenMS
 {

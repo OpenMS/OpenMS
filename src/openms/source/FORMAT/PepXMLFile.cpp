@@ -38,19 +38,8 @@
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/CHEMISTRY/ResidueDB.h>
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
-#include <OpenMS/CONCEPT/Exception.h>
-#include <OpenMS/FORMAT/FileHandler.h>
-#include <OpenMS/FORMAT/FileTypes.h>
-#include <OpenMS/FORMAT/HANDLERS/MascotXMLHandler.h> // for "primary_scan_regex"
-#include <OpenMS/FORMAT/PepXMLFile.h>
-#include <OpenMS/MATH/MISC/MathFunctions.h>
-#include <OpenMS/SYSTEM/File.h>
-#include <OpenMS/KERNEL/StandardTypes.h>
-#include <OpenMS/KERNEL/MSExperiment.h>
 
 #include <fstream>
-#include <iostream>
-#include <boost/regex.hpp>
 
 using namespace std;
 
@@ -541,6 +530,15 @@ namespace OpenMS
             }
             f << "\t\t\t<search_score" << " name=\"expect\" value=\"" << h.getMetaValue("E-Value") << "\"" << "/>\n";
           }
+          else if (search_engine_name == "Comet")
+          {
+            f << "\t\t\t<search_score" << " name=\"xcorr\" value=\"" << h.getMetaValue("MS:1002252") << "\"" << "/>\n"; // name: Comet:xcorr
+            f << "\t\t\t<search_score" << " name=\"deltacn\" value=\"" << h.getMetaValue("MS:1002253") << "\"" << "/>\n"; // name: Comet:deltacn
+            f << "\t\t\t<search_score" << " name=\"deltacnstar\" value=\"" << h.getMetaValue("MS:1002254") << "\"" << "/>\n"; // name: Comet:deltacnstar
+            f << "\t\t\t<search_score" << " name=\"spscore\" value=\"" << h.getMetaValue("MS:1002255") << "\"" << "/>\n"; // name: Comet:spscore
+            f << "\t\t\t<search_score" << " name=\"sprank\" value=\"" << h.getMetaValue("MS:1002256") << "\"" << "/>\n"; // name: Comet:sprank
+            f << "\t\t\t<search_score" << " name=\"expect\" value=\"" << h.getMetaValue("MS:1002257") << "\"" << "/>\n"; // name: Comet:expect
+          }
           else if (search_engine_name == "MASCOT")
           {
             f << "\t\t\t<search_score" << " name=\"expect\" value=\"" << h.getMetaValue("EValue") << "\"" << "/>\n";
@@ -894,6 +892,11 @@ namespace OpenMS
           {
             value = attributeAsDouble_(attributes, "value");
             peptide_hit_.setMetaValue("MS:1002256", value); // name: Comet:sprank
+          }
+          else if (name == "deltacnstar")
+          {
+            value = attributeAsDouble_(attributes, "value");
+            peptide_hit_.setMetaValue("MS:1002254", value); // name: Comet:deltacnstar
           }
         }
       }
