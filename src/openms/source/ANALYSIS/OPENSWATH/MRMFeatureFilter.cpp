@@ -28,8 +28,8 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Douglas McCloskey $
-// $Authors: Douglas McCloskeyt $
+// $Maintainer: Douglas McCloskey, Pasquale Domenico Colaianni $
+// $Authors: Douglas McCloskey, Pasquale Domenico Colaianni $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMFeatureFilter.h>
@@ -105,6 +105,7 @@ namespace OpenMS
       std::vector<Feature> subordinates_filtered;
       bool cg_qc_pass = true;
       std::vector<String> cg_qc_fail_message_vec;
+      UInt cg_tests_count{0};
 
       // iterate through each component/sub-feature
       for (size_t sub_it = 0; sub_it < features[feature_it].getSubordinates().size(); ++sub_it)
@@ -170,6 +171,8 @@ namespace OpenMS
               cg_qc_fail_message_vec.push_back("n_transitions");
             }
 
+            cg_tests_count += 6;
+
             // ion ratio QC
             for (size_t sub_it2 = 0; sub_it2 < features[feature_it].getSubordinates().size(); ++sub_it2)
             {
@@ -182,7 +185,7 @@ namespace OpenMS
                 && filter_criteria.component_group_qcs[cg_qc_it].ion_ratio_pair_name_2 == component_name2)
               {
                 double ion_ratio = calculateIonRatio(features[feature_it].getSubordinates()[sub_it], features[feature_it].getSubordinates()[sub_it2], filter_criteria.component_group_qcs[cg_qc_it].ion_ratio_feature_name);
-                
+
                 // std::cout << "ion_ratio" << std::endl; //debugging
                 if (! checkRange(ion_ratio,
                   filter_criteria.component_group_qcs[cg_qc_it].ion_ratio_l,
@@ -191,11 +194,13 @@ namespace OpenMS
                   cg_qc_pass = false;
                   cg_qc_fail_message_vec.push_back("ion_ratio_pair[" + component_name + "/" + component_name2 + "]");
                 }
+                ++cg_tests_count;
               }
             }
           }
         }
         
+        UInt c_tests_count{0};
         // iterate through feature/sub-feature QCs/filters        
         for (size_t c_qc_it = 0; c_qc_it < filter_criteria.component_qcs.size(); ++c_qc_it)
         {
@@ -234,18 +239,25 @@ namespace OpenMS
               c_qc_fail_message_vec.push_back("overall_quality");
             }
 
+            c_tests_count += 3;
+
             // metaValue checks
             for (auto const& kv : filter_criteria.component_qcs[c_qc_it].meta_value_qc)
             {
               // std::cout << "MetaData" << std::endl; //debugging
-              if (!checkMetaValue(features[feature_it].getSubordinates()[sub_it], kv.first, kv.second.first, kv.second.second))
+              bool metavalue_exists{false};
+              if (!checkMetaValue(features[feature_it].getSubordinates()[sub_it], kv.first, kv.second.first, kv.second.second, metavalue_exists))
               {
                 c_qc_pass = false;
                 c_qc_fail_message_vec.push_back("metaValue[" + kv.first + "]");
               }
+              if (metavalue_exists) ++c_tests_count;
             }
           }
         }
+
+        const double c_score = c_tests_count ? 1.0 - c_qc_fail_message_vec.size() / (double)c_tests_count : 1.0;
+        features[feature_it].getSubordinates()[sub_it].setMetaValue("QC_transition_score", c_score);
 
         // Copy or Flag passing/failing subordinates
         if (c_qc_pass && flag_or_filter_ == "filter")
@@ -270,6 +282,9 @@ namespace OpenMS
           features[feature_it].getSubordinates()[sub_it].setMetaValue("QC_transition_message", c_qc_fail_message);
         }
       }
+
+      const double cg_score = cg_tests_count ? 1.0 - cg_qc_fail_message_vec.size() / (double)cg_tests_count : 1.0;
+      features[feature_it].setMetaValue("QC_transition_group_score", cg_score);
 
       // Copy or Flag passing/failing Features
       if (cg_qc_pass && flag_or_filter_ == "filter" && subordinates_filtered.size() > 0)
@@ -380,7 +395,7 @@ namespace OpenMS
       }
       else if (component_1.metaValueExists("native_id"))
       {
-        LOG_DEBUG << "Warning: no IS found for component " << component_1.getMetaValue("native_id") << ".";
+        LOG_DEBUG << "Warning: no IS found for component " << component_1.getMetaValue("native_id") << "." << std::endl;
         const double feature_1 = component_1.getIntensity();
         ratio = feature_1;
       }
@@ -396,7 +411,7 @@ namespace OpenMS
       }
       else if (component_1.metaValueExists(feature_name))
       {
-        LOG_DEBUG << "Warning: no IS found for component " << component_1.getMetaValue("native_id") << ".";
+        LOG_DEBUG << "Warning: no IS found for component " << component_1.getMetaValue("native_id") << "." << std::endl;
         const double feature_1 = component_1.getMetaValue(feature_name);
         ratio = feature_1;
       }
@@ -408,22 +423,27 @@ namespace OpenMS
 
     return ratio;
   }
-  
-  bool MRMFeatureFilter::checkMetaValue(const Feature & component, const String & meta_value_key, const double & meta_value_l, const double & meta_value_u)
+
+  bool MRMFeatureFilter::checkMetaValue(
+    const Feature & component,
+    const String & meta_value_key,
+    const double & meta_value_l,
+    const double & meta_value_u,
+    bool & key_exists
+  ) const
   {
     bool check = true;
     if (component.metaValueExists(meta_value_key))
     {
-      double meta_value = (double)component.getMetaValue(meta_value_key);
-      check = checkRange(meta_value,
-        meta_value_l,
-        meta_value_u);
+      key_exists = true;
+      const double meta_value = (double)component.getMetaValue(meta_value_key);
+      check = checkRange(meta_value, meta_value_l, meta_value_u);
     }
-    else 
+    else
     {
+      key_exists = false;
       LOG_INFO << "Warning: no metaValue found for transition_id " << component.getMetaValue("native_id") << " for metaValue key " << meta_value_key << ".";
     }
-
     return check;
   }
 
@@ -449,16 +469,10 @@ namespace OpenMS
   }
 
   template <typename T>
-  bool MRMFeatureFilter::checkRange(T const& value, T const& value_l, T const& value_u)
+  bool MRMFeatureFilter::checkRange(const T& value, const T& value_l, const T& value_u) const
   {
-    bool range_check = true;
-    if (value < value_l
-      || value > value_u)
-    {
-      range_check = false;
-    }
     // std::cout << "value: " << (String)value << " lb: " << (String)value_l << " ub: " << (String)value_u << std::endl; //debugging
-    return range_check;
+    return value >= value_l && value <= value_u;
   }
   
   //TODO: Future addition to allow for generating a QcML attachment for QC reporting
