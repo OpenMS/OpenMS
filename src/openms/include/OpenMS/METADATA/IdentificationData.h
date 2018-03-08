@@ -109,6 +109,15 @@ namespace OpenMS
       IdentificationDataInternal::MoleculeQueryMatches;
     using QueryMatchRef = IdentificationDataInternal::QueryMatchRef;
 
+    using QueryMatchGroup = IdentificationDataInternal::QueryMatchGroup;
+    using QueryMatchGroups = IdentificationDataInternal::QueryMatchGroups;
+    using MatchGroupRef = IdentificationDataInternal::MatchGroupRef;
+
+    using ParentMoleculeGroup = IdentificationDataInternal::ParentMoleculeGroup;
+    using ParentMoleculeGroups =
+      IdentificationDataInternal::ParentMoleculeGroups;
+    using ParentGroupRef = IdentificationDataInternal::ParentGroupRef;
+
 
     /// Default constructor
     IdentificationData():
@@ -135,6 +144,8 @@ namespace OpenMS
       identified_compounds_.swap(other.identified_compounds_);
       identified_oligos_.swap(other.identified_oligos_);
       query_matches_.swap(other.query_matches_);
+      query_match_groups_.swap(other.query_match_groups_);
+      parent_molecule_groups_.swap(other.parent_molecule_groups_);
     }
 
     InputFileRef registerInputFile(const String& file);
@@ -156,6 +167,9 @@ namespace OpenMS
 
     ParentMoleculeRef registerParentMolecule(const ParentMolecule& parent);
 
+    ParentGroupRef registerParentMoleculeGroup(const ParentMoleculeGroup&
+                                               group);
+
     IdentifiedPeptideRef registerIdentifiedPeptide(const IdentifiedPeptide&
                                                    peptide);
 
@@ -165,6 +179,8 @@ namespace OpenMS
     IdentifiedOligoRef registerIdentifiedOligo(const IdentifiedOligo& oligo);
 
     QueryMatchRef registerMoleculeQueryMatch(const MoleculeQueryMatch& match);
+
+    MatchGroupRef registerQueryMatchGroup(const QueryMatchGroup& group);
 
     const InputFiles& getInputFiles() const
     {
@@ -226,6 +242,11 @@ namespace OpenMS
       return query_matches_;
     }
 
+    const QueryMatchGroups& getQueryMatchGroups() const
+    {
+      return query_match_groups_;
+    }
+
     void addScore(QueryMatchRef match_ref, ScoreTypeRef score_ref,
                   double value);
 
@@ -258,6 +279,20 @@ namespace OpenMS
     ScoreTypeRef findScoreType(const String& score_name,
                                ProcessingSoftwareRef software_ref) const;
 
+    /// Calculate sequence coverages of parent molecules
+    void calculateCoverages(bool check_molecule_length = false);
+
+    /*!
+      @brief Clean up the data structure are filtering parts of it
+
+      Make sure there are no invalid references or "orphan" data entries.
+    */
+    void cleanup(bool require_query_match = true,
+                 bool require_identified_sequence = true,
+                 bool require_parent_match = true,
+                 bool require_parent_group = false,
+                 bool require_match_group = false);
+
     /// Helper function to compare two scores
     static bool isBetterScore(double first, double second, bool higher_better)
     {
@@ -278,10 +313,12 @@ namespace OpenMS
     ScoreTypes score_types_;
     DataQueries data_queries_;
     ParentMolecules parent_molecules_;
+    ParentMoleculeGroups parent_molecule_groups_;
     IdentifiedPeptides identified_peptides_;
     IdentifiedCompounds identified_compounds_;
     IdentifiedOligos identified_oligos_;
     MoleculeQueryMatches query_matches_;
+    QueryMatchGroups query_match_groups_;
 
     /// Reference to the current data processing step (see @ref setCurrentProcessingStep())
     ProcessingStepRef current_step_ref_;
@@ -295,23 +332,6 @@ namespace OpenMS
     /// Helper function to check if all parent matches are valid
     void checkParentMatches_(const ParentMatches& matches,
                              MoleculeType expected_type);
-
-    /// Helper functor for augmenting entries (derived from ScoredProcessingResult) in a @t boost::multi_index_container structure
-    template <typename ElementType>
-    struct ModifyMultiIndexMergeElements
-    {
-      ModifyMultiIndexMergeElements(const ElementType& update):
-        update(update)
-      {
-      }
-
-      void operator()(ElementType& element)
-      {
-        element += update;
-      }
-
-      const ElementType& update;
-    };
 
     /*!
       Helper functor for adding processing steps to elements in a @t boost::multi_index_container structure
@@ -353,13 +373,40 @@ namespace OpenMS
 
       void operator()(ElementType& element)
       {
-        // @TODO: add checks?
-        element.scores.push_back(make_pair(score_type_ref, value));
+        auto pair = std::make_pair(score_type_ref, value);
+        if (std::find(element.scores.begin(), element.scores.end(), pair) ==
+            element.scores.end())
+        {
+          element.scores.push_back(pair);
+        }
       }
 
       ScoreTypeRef score_type_ref;
       double value;
     };
+
+    template <typename ElementType>
+    struct ModifyMultiIndexRemoveParentMatches
+    {
+      ModifyMultiIndexRemoveParentMatches(const ParentMolecules&
+                                          parent_molecules):
+        parent_molecules(parent_molecules)
+      {
+      }
+
+      void operator()(ElementType& element)
+      {
+        removeFromSetIf_(element.parent_matches,
+                         [&](ParentMatches::iterator it) -> bool
+                         {
+                           return !isValidReference_(it->first,
+                                                     parent_molecules);
+                         });
+      }
+
+      const ParentMolecules& parent_molecules;
+    };
+
 
     /// Helper function for adding entries (derived from ScoredProcessingResult) to a @t boost::multi_index_container structure
     template <typename ContainerType, typename ElementType>
@@ -372,8 +419,10 @@ namespace OpenMS
       auto result = container.insert(element);
       if (!result.second) // existing element - merge in new information
       {
-        ModifyMultiIndexMergeElements<ElementType> modifier(element);
-        container.modify(result.first, modifier);
+        container.modify(result.first, [&element](ElementType& existing)
+                         {
+                           existing += element;
+                         });
       }
 
       // add current processing step (if necessary):
@@ -387,9 +436,9 @@ namespace OpenMS
       return result.first;
     }
 
-    /// Check whether a pointer references an element in a container
+    /// Check whether a reference points to an element in a container
     template <typename RefType, typename ContainerType>
-    bool isValidReference_(RefType ref, const ContainerType& container)
+    static bool isValidReference_(RefType ref, ContainerType& container)
     {
       for (auto it = container.begin(); it != container.end(); ++it)
       {
@@ -398,6 +447,34 @@ namespace OpenMS
       return false;
     }
 
+    /// Remove elements from a set (or ordered multi_index_container) if they fulfil a predicate
+    template <typename ContainerType, typename PredicateType>
+    // static void removeFromSetIf_(ContainerType& container, std::function<bool(RefType)> predicate)
+    static void removeFromSetIf_(ContainerType& container, PredicateType predicate)
+    {
+      for (auto it = container.begin(); it != container.end(); )
+      {
+        if (predicate(it))
+        {
+          it = container.erase(it);
+        }
+        else
+        {
+          ++it;
+        }
+      }
+    }
+
+    /// Remove elements from a set (or ordered multi_index_container) if they don't occur in a reference set
+    template <typename ContainerType, typename RefType>
+    static void removeFromSetIfMissing_(ContainerType& container,
+                                        const std::set<RefType>& refs)
+    {
+      removeFromSetIf_(container, [&refs](RefType it)
+                       {
+                         return !refs.count(it);
+                       });
+    }
 
     // IDFilter needs access to do its job:
     friend class IDFilter;

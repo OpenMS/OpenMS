@@ -37,6 +37,9 @@
 
 #include <OpenMS/CHEMISTRY/EnzymaticDigestion.h>
 #include <OpenMS/CHEMISTRY/NASequence.h>
+#include <OpenMS/METADATA/IdentificationData.h>
+
+#include <boost/regex.hpp>
 
 namespace OpenMS
 {
@@ -64,14 +67,34 @@ namespace OpenMS
        1. The original RNA may have terminal phosphates ("p"), which we want to ignore, but not remove.
        2. The enzyme may add modifications (e.g. "p") on the 5' or 3' ends of cleavage products, but NOT on the original 5' or 3' ends of the RNA.
     */
-    void digest(const String& rna, std::vector<String>& output, Size min_length = 0, Size max_length = 0) const;
+    void digest(const String& rna, std::vector<String>& output,
+                Size min_length = 0, Size max_length = 0) const;
 
     /**
        @brief Performs the enzymatic digestion of a (potentially modified) RNA
 
        Only fragments of appropriate length (between @p min_length and @p max_length) are returned.
     */
-    void digest(const NASequence& rna, std::vector<NASequence>& output, Size min_length = 0, Size max_length = 0) const;
+    void digest(const NASequence& rna, std::vector<NASequence>& output,
+                Size min_length = 0, Size max_length = 0) const;
+
+    /**
+       @brief Performs the enzymatic digestion of all RNA parent molecules in @p IdentificationData
+
+       Digestion products are stored as IdentifiedOligos with corresponding MoleculeParentMatch annotations.
+       Only fragments of appropriate length (between @p min_length and @p max_length) are included.
+    */
+    void digest(IdentificationData& id_data, Size min_length = 0,
+                Size max_length = 0) const;
+
+  protected:
+    /**
+       @brief Returns the positions of digestion products in the RNA as pairs: (start, length)
+     */
+    std::vector<std::pair<Size, Size>> getFragmentPositions_(
+      const NASequence& rna, Size min_length, Size max_length,
+      const boost::regex& cuts_after_regex,
+      const boost::regex& cuts_before_regex) const;
   };
 
 } // namespace OpenMS

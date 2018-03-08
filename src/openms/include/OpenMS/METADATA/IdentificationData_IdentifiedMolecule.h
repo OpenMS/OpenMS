@@ -72,9 +72,19 @@ namespace OpenMS
       IdentifiedSequence& operator+=(const IdentifiedSequence& other)
       {
         ScoredProcessingResult::operator+=(other);
-        // @TODO: improve merging of parent matches
-        parent_matches.insert(other.parent_matches.begin(),
-                              other.parent_matches.end());
+        // merge parent matches:
+        for (const auto& pair : other.parent_matches)
+        {
+          auto pos = parent_matches.find(pair.first);
+          if (pos == parent_matches.end()) // new entry
+          {
+            parent_matches.insert(pair);
+          }
+          else // merge entries
+          {
+            pos->second.insert(pair.second.begin(), pair.second.end());
+          }
+        }
 
         return *this;
       }

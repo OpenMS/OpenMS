@@ -201,8 +201,6 @@ namespace OpenMS
     };
 
     // all matches for the same data query should be consecutive!
-    // tried using "boost::multi_index::composite_key" here, but that gave weird
-    // compiler errors, so we define a combined key ourselves:
     typedef boost::multi_index_container<
       MoleculeQueryMatch,
       boost::multi_index::indexed_by<
@@ -216,7 +214,55 @@ namespace OpenMS
               &MoleculeQueryMatch::identified_molecule_ref>>>>
       > MoleculeQueryMatches;
     typedef IteratorWrapper<MoleculeQueryMatches::iterator> QueryMatchRef;
+
+
+    /*!
+      Group of related (co-identified) molecule-query matches
+
+      E.g. for cross-linking data or multiplexed spectra.
+    */
+    struct QueryMatchGroup: public ScoredProcessingResult
+    {
+      std::set<QueryMatchRef> query_match_refs;
+
+      bool allSameMolecule() const
+      {
+        // @TODO: return true or false for the empty set?
+        if (query_match_refs.size() <= 1) return true;
+        IdentifiedMoleculeRef ref =
+          (*query_match_refs.begin())->identified_molecule_ref;
+        for (auto it = ++query_match_refs.begin(); it != query_match_refs.end();
+             ++it)
+        {
+          if ((*it)->identified_molecule_ref != ref) return false;
+        }
+        return true;
+      }
+
+      bool allSameQuery() const
+      {
+        // @TODO: return true or false for the empty set?
+        if (query_match_refs.size() <= 1) return true;
+        DataQueryRef ref = (*query_match_refs.begin())->data_query_ref;
+        for (auto it = ++query_match_refs.begin(); it != query_match_refs.end();
+             ++it)
+        {
+          if ((*it)->data_query_ref != ref) return false;
+        }
+        return true;
+      }
+    };
+
+    typedef boost::multi_index_container<
+      QueryMatchGroup,
+      boost::multi_index::indexed_by<
+        boost::multi_index::ordered_unique<
+          boost::multi_index::member<QueryMatchGroup, std::set<QueryMatchRef>,
+                                     &QueryMatchGroup::query_match_refs>>>
+      > QueryMatchGroups;
+    typedef IteratorWrapper<QueryMatchGroups::iterator> MatchGroupRef;
   }
+
 }
 
 #endif

@@ -280,6 +280,24 @@ namespace OpenMS
   }
 
 
+  IdentificationData::ParentGroupRef
+  IdentificationData::registerParentMoleculeGroup(const ParentMoleculeGroup&
+                                                  group)
+  {
+    for (auto ref : group.parent_molecule_refs)
+    {
+      if (!isValidReference_(ref, parent_molecules_))
+      {
+        String msg = "invalid reference to a parent molecule - register that first";
+        throw Exception::IllegalArgument(__FILE__, __LINE__,
+                                         OPENMS_PRETTY_FUNCTION, msg);
+      }
+    }
+
+    return insertIntoMultiIndex_(parent_molecule_groups_, group);
+  }
+
+
   IdentificationData::QueryMatchRef
   IdentificationData::registerMoleculeQueryMatch(const MoleculeQueryMatch&
                                                  match)
@@ -322,6 +340,23 @@ namespace OpenMS
     }
 
     return insertIntoMultiIndex_(query_matches_, match);
+  }
+
+
+  IdentificationData::MatchGroupRef
+  IdentificationData::registerQueryMatchGroup(const QueryMatchGroup& group)
+  {
+    for (auto ref : group.query_match_refs)
+    {
+      if (!isValidReference_(ref, query_matches_))
+      {
+        String msg = "invalid reference to a molecule-query match - register that first";
+        throw Exception::IllegalArgument(__FILE__, __LINE__,
+                                         OPENMS_PRETTY_FUNCTION, msg);
+      }
+    }
+
+    return insertIntoMultiIndex_(query_match_groups_, group);
   }
 
 
@@ -421,6 +456,303 @@ namespace OpenMS
     if (best_score.second) results.push_back(best_ref);
 
     return results;
+  }
+
+
+  void IdentificationData::calculateCoverages(bool check_molecule_length)
+  {
+    // aggregate molecule-parent matches by parent:
+    struct ParentData
+    {
+      Size length;
+      double coverage;
+      vector<pair<Size, Size>> fragments;
+    };
+    map<ParentMoleculeRef, ParentData> parent_info;
+
+    // go through all peptides:
+    for (const auto& molecule : identified_peptides_)
+    {
+      Size molecule_length = check_molecule_length ?
+        molecule.sequence.size() : 0;
+      for (const auto& pair : molecule.parent_matches)
+      {
+        auto pos = parent_info.find(pair.first);
+        if (pos == parent_info.end()) // new parent molecule
+        {
+          ParentData pd;
+          pd.length = AASequence::fromString(pair.first->sequence).size();
+          if (pd.length == 0) break; // sequence not available
+          pos = parent_info.insert(make_pair(pair.first, pd)).first;
+        }
+        Size parent_length = pos->second.length; // always check this
+        for (const auto& match : pair.second)
+        {
+          if (match.hasValidPositions(molecule_length, parent_length))
+          {
+            pos->second.fragments.push_back(make_pair(match.start_pos,
+                                                      match.end_pos));
+          }
+        }
+      }
+    }
+    // go through all oligonucleotides:
+    for (const auto& molecule : identified_oligos_)
+    {
+      Size molecule_length = check_molecule_length ?
+        molecule.sequence.size() : 0;
+      for (const auto& pair : molecule.parent_matches)
+      {
+        auto pos = parent_info.find(pair.first);
+        if (pos == parent_info.end()) // new parent molecule
+        {
+          ParentData pd;
+          pd.length = NASequence::fromString(pair.first->sequence).size();
+          if (pd.length == 0) break; // sequence not available
+          pos = parent_info.insert(make_pair(pair.first, pd)).first;
+        }
+        Size parent_length = pos->second.length; // always check this
+        for (const auto& match : pair.second)
+        {
+          if (match.hasValidPositions(molecule_length, parent_length))
+          {
+            pos->second.fragments.push_back(make_pair(match.start_pos,
+                                                      match.end_pos));
+          }
+        }
+      }
+    }
+
+    // calculate coverage for each parent:
+    for (auto& pair : parent_info)
+    {
+      vector<bool> covered(pair.second.length, false);
+      for (const auto& fragment : pair.second.fragments)
+      {
+        fill(covered.begin() + fragment.first,
+             covered.begin() + fragment.second + 1, true);
+      }
+      pair.second.coverage = (accumulate(covered.begin(), covered.end(), 0) /
+                              double(pair.second.length));
+    }
+    // set coverage:
+    for (ParentMoleculeRef ref = parent_molecules_.begin();
+         ref != parent_molecules_.end(); ++ref)
+    {
+      auto pos = parent_info.find(ref);
+      double coverage = (pos == parent_info.end()) ? 0.0 : pos->second.coverage;
+      parent_molecules_.modify(ref, [coverage](ParentMolecule& parent)
+                               {
+                                 parent.coverage = coverage;
+                               });
+    }
+  }
+
+
+  void IdentificationData::cleanup(bool require_query_match,
+                                   bool require_identified_sequence,
+                                   bool require_parent_match,
+                                   bool require_parent_group,
+                                   bool require_match_group)
+  {
+    // we expect that only "primary results" (stored in classes derived from
+    // "ScoredProcessingResult") will be directly removed (by filters) - not
+    // meta data (incl. data queries, score types, processing steps etc.)
+
+    // remove parent molecules based on parent groups:
+    if (require_parent_group)
+    {
+      set<ParentMoleculeRef> parent_refs;
+      for (const auto& group : parent_molecule_groups_)
+      {
+        parent_refs.insert(group.parent_molecule_refs.begin(),
+                           group.parent_molecule_refs.end());
+      }
+      removeFromSetIfMissing_(parent_molecules_, parent_refs);
+    }
+
+    // remove parent matches based on parent molecules:
+    ModifyMultiIndexRemoveParentMatches<IdentifiedPeptide>
+      pep_modifier(parent_molecules_);
+    for (auto it = identified_peptides_.begin();
+         it != identified_peptides_.end(); ++it)
+    {
+      identified_peptides_.modify(it, pep_modifier);
+    }
+    ModifyMultiIndexRemoveParentMatches<IdentifiedOligo>
+      oli_modifier(parent_molecules_);
+    for (auto it = identified_oligos_.begin();
+         it != identified_oligos_.end(); ++it)
+    {
+      identified_oligos_.modify(it, oli_modifier);
+    }
+
+    // remove identified molecules based on parent matches:
+    if (require_parent_match)
+    {
+      removeFromSetIf_(identified_peptides_, [](IdentifiedPeptides::iterator it)
+                       {
+                         return it->parent_matches.empty();
+                       });
+      removeFromSetIf_(identified_oligos_, [](IdentifiedOligos::iterator it)
+                       {
+                         return it->parent_matches.empty();
+                       });
+    }
+
+    // remove molecule-query matches based on identified molecules:
+    set<IdentifiedMoleculeRef> id_refs;
+    for (auto it = identified_peptides_.begin();
+         it != identified_peptides_.end(); ++it)
+    {
+      id_refs.insert(it);
+    }
+    for (auto it = identified_compounds_.begin();
+         it != identified_compounds_.end(); ++it)
+    {
+      id_refs.insert(it);
+    }
+    for (auto it = identified_oligos_.begin();
+         it != identified_oligos_.end(); ++it)
+    {
+      id_refs.insert(it);
+    }
+    removeFromSetIf_(query_matches_, [&](MoleculeQueryMatches::iterator it)
+                     {
+                       return !id_refs.count(it->identified_molecule_ref);
+                     });
+
+    // remove molecule-query matches based on query match groups:
+    if (require_match_group)
+    {
+      set<QueryMatchRef> match_refs;
+      for (const auto& group : query_match_groups_)
+      {
+        match_refs.insert(group.query_match_refs.begin(),
+                          group.query_match_refs.end());
+      }
+      removeFromSetIfMissing_(query_matches_, match_refs);
+    }
+
+    // remove id'd molecules and data queries based on molecule-query matches:
+    if (require_query_match)
+    {
+      set<DataQueryRef> query_refs;
+      set<IdentifiedPeptideRef> peptide_refs;
+      set<IdentifiedCompoundRef> compound_refs;
+      set<IdentifiedOligoRef> oligo_refs;
+      for (const auto& match : query_matches_)
+      {
+        query_refs.insert(match.data_query_ref);
+        IdentificationData::MoleculeType molecule_type =
+          match.getMoleculeType();
+        if (molecule_type == IdentificationData::MoleculeType::PROTEIN)
+        {
+          peptide_refs.insert(match.getIdentifiedPeptideRef());
+        }
+        else if (molecule_type == IdentificationData::MoleculeType::COMPOUND)
+        {
+          compound_refs.insert(match.getIdentifiedCompoundRef());
+        }
+        else if (molecule_type == IdentificationData::MoleculeType::RNA)
+        {
+          oligo_refs.insert(match.getIdentifiedOligoRef());
+        }
+      }
+      removeFromSetIfMissing_(data_queries_, query_refs);
+      removeFromSetIfMissing_(identified_peptides_, peptide_refs);
+      removeFromSetIfMissing_(identified_compounds_, compound_refs);
+      removeFromSetIfMissing_(identified_oligos_, oligo_refs);
+    }
+
+    // remove parent molecules based on identified molecules:
+    if (require_identified_sequence)
+    {
+      set<IdentificationData::ParentMoleculeRef> parent_refs;
+      for (const auto& peptide : identified_peptides_)
+      {
+        for (const auto& parent_pair : peptide.parent_matches)
+        {
+          parent_refs.insert(parent_pair.first);
+        }
+      }
+      for (const auto& oligo : identified_oligos_)
+      {
+        for (const auto& parent_pair : oligo.parent_matches)
+        {
+          parent_refs.insert(parent_pair.first);
+        }
+      }
+      removeFromSetIfMissing_(parent_molecules_, parent_refs);
+    }
+
+    // remove entries from parent molecule groups based on parent molecules:
+    bool warn = false;
+    for (auto group_it = parent_molecule_groups_.begin();
+         group_it != parent_molecule_groups_.end(); )
+    {
+      Size old_size = group_it->parent_molecule_refs.size();
+      // nested lambda expressions, oh my!
+      parent_molecule_groups_.modify(
+        group_it, [&](ParentMoleculeGroup& group)
+        {
+          removeFromSetIf_(group.parent_molecule_refs,
+                           [&](set<ParentMoleculeRef>::iterator it) -> bool
+                           {
+                             return !isValidReference_(*it, parent_molecules_);
+                           });
+        });
+      if (group_it->parent_molecule_refs.empty())
+      {
+        group_it = parent_molecule_groups_.erase(group_it);
+      }
+      else
+      {
+        if (group_it->parent_molecule_refs.size() != old_size)
+        {
+          warn = true;
+        }
+        ++group_it;
+      }
+    }
+    if (warn)
+    {
+      LOG_WARN << "Warning: filtering removed elements from parent molecule groups - associated scores may not be valid any more" << endl;
+    }
+
+    // remove entries from query match groups based on molecule-query matches:
+    warn = false;
+    for (auto group_it = query_match_groups_.begin();
+         group_it != query_match_groups_.end(); )
+    {
+      Size old_size = group_it->query_match_refs.size();
+      // and more nested lambda expressions!
+      query_match_groups_.modify(
+        group_it, [&](QueryMatchGroup& group)
+        {
+          removeFromSetIf_(group.query_match_refs,
+                           [&](set<QueryMatchRef>::iterator it) -> bool
+                           {
+                             return !isValidReference_(*it, query_matches_);
+                           });
+        });
+      if (group_it->query_match_refs.empty())
+      {
+        group_it = query_match_groups_.erase(group_it);
+      }
+      else
+      {
+        if (group_it->query_match_refs.size() != old_size)
+        {
+          warn = true;
+        }
+        ++group_it;
+      }
+    }
+    if (warn)
+    {
+      LOG_WARN << "Warning: filtering removed elements from query match groups - associated scores may not be valid any more" << endl;
+    }
   }
 
 } // end namespace OpenMS

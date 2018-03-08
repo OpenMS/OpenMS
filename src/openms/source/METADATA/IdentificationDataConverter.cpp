@@ -39,11 +39,10 @@ using namespace std;
 
 namespace OpenMS
 {
-  IdentificationData IdentificationDataConverter::importIDs(
-    const vector<ProteinIdentification>& proteins,
+  void IdentificationDataConverter::importIDs(
+    IdentificationData& id_data, const vector<ProteinIdentification>& proteins,
     const vector<PeptideIdentification>& peptides)
   {
-    IdentificationData id_data;
     map<String, IdentificationData::ProcessingStepRef> id_to_step;
 
     // ProteinIdentification:
@@ -81,7 +80,7 @@ namespace OpenMS
         IdentificationData::ParentMolecule parent(hit.getAccession());
         parent.sequence = hit.getSequence();
         parent.description = hit.getDescription();
-        parent.coverage = hit.getCoverage();
+        parent.coverage = hit.getCoverage() / 100.0; // we don't want percents
         static_cast<MetaInfoInterface&>(parent) = hit;
         parent.scores.push_back(make_pair(score_ref, hit.getScore()));
         id_data.registerParentMolecule(parent);
@@ -208,8 +207,6 @@ namespace OpenMS
         id_data.registerMoleculeQueryMatch(match);
       }
     }
-
-    return id_data;
   }
 
 
@@ -246,8 +243,8 @@ namespace OpenMS
           evidence.setProteinAccession(parent_ref->accession);
           evidence.setStart(parent_match.start_pos);
           evidence.setEnd(parent_match.end_pos);
-          evidence.setAABefore(parent_match.left_neighbor);
-          evidence.setAAAfter(parent_match.right_neighbor);
+          evidence.setAABefore(parent_match.left_neighbor[0]);
+          evidence.setAAAfter(parent_match.right_neighbor[0]);
           hit.addPeptideEvidence(evidence);
         }
       }
@@ -308,7 +305,7 @@ namespace OpenMS
       hit.setAccession(parent.accession);
       hit.setSequence(parent.sequence);
       hit.setDescription(parent.description);
-      hit.setCoverage(parent.coverage);
+      hit.setCoverage(parent.coverage * 100.0); // convert to percents
       static_cast<MetaInfoInterface&>(hit) = parent;
       // find all steps that assigned a score:
       for (IdentificationData::ProcessingStepRef step_ref :
@@ -494,6 +491,24 @@ namespace OpenMS
   }
 
 
+  void IdentificationDataConverter::importSequences(
+    IdentificationData& id_data, const vector<FASTAFile::FASTAEntry>& fasta,
+    IdentificationData::MoleculeType type, const String& decoy_pattern)
+  {
+    for (const FASTAFile::FASTAEntry& entry : fasta)
+    {
+      IdentificationData::ParentMolecule parent(
+        entry.identifier, type, entry.sequence, entry.description);
+      if (!decoy_pattern.empty() &&
+          entry.identifier.hasSubstring(decoy_pattern))
+      {
+        parent.is_decoy = true;
+      }
+      id_data.registerParentMolecule(parent);
+    }
+  }
+
+
   void IdentificationDataConverter::exportScoresToMzTab_(
     const IdentificationData::ScoreList& scores, map<Size, MzTabDouble>& output,
     map<IdentificationData::ScoreTypeRef, Size>& score_map)
@@ -554,24 +569,24 @@ namespace OpenMS
     {
       MzTabOligonucleotideSectionRow copy = row;
       if (match.left_neighbor ==
-          IdentificationData::MoleculeParentMatch::LEFT_TERMINUS)
+          String(IdentificationData::MoleculeParentMatch::LEFT_TERMINUS))
       {
         copy.pre.set("-");
       }
-      else if (match.left_neighbor !=
-               IdentificationData::MoleculeParentMatch::UNKNOWN_NEIGHBOR)
+      else if (match.left_neighbor != String(
+                 IdentificationData::MoleculeParentMatch::UNKNOWN_NEIGHBOR))
       {
-        copy.pre.set(String(match.left_neighbor));
+        copy.pre.set(match.left_neighbor);
       }
       if (match.right_neighbor ==
-          IdentificationData::MoleculeParentMatch::RIGHT_TERMINUS)
+          String(IdentificationData::MoleculeParentMatch::RIGHT_TERMINUS))
       {
         copy.post.set("-");
       }
-      else if (match.right_neighbor !=
-               IdentificationData::MoleculeParentMatch::UNKNOWN_NEIGHBOR)
+      else if (match.right_neighbor != String(
+                 IdentificationData::MoleculeParentMatch::UNKNOWN_NEIGHBOR))
       {
-        copy.post.set(String(match.right_neighbor));
+        copy.post.set(match.right_neighbor);
       }
       if (match.start_pos !=
           IdentificationData::MoleculeParentMatch::UNKNOWN_POSITION)
