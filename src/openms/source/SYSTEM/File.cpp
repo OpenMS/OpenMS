@@ -120,15 +120,15 @@ namespace OpenMS
   bool File::rename(const String& from, const String& to, bool overwrite_existing, bool verbose)
   {
     // existing file? Qt won't overwrite, so try to remove it:
-    if (exists(to) && !remove(to))
+    if (overwrite_existing && exists(to) && !remove(to))
     {
-      LOG_ERROR << "Error: Could not overwrite existing file '" << to << "'\n";
+      if (verbose) LOG_ERROR << "Error: Could not overwrite existing file '" << to << "'\n";
       return false;
     }
     // move the file to the actual destination:
     if (!QFile::rename(from.toQString(), to.toQString()))
     {
-      LOG_ERROR << "Error: Could not move '" << from << "' to '" << to << "'\n";
+      if (verbose) LOG_ERROR << "Error: Could not move '" << from << "' to '" << to << "'\n";
       return false;
     }
     return true;
