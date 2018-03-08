@@ -34,6 +34,7 @@
 
 #include <OpenMS/ANALYSIS/ID/SiriusMSConverter.h>
 
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <fstream>
 
 #include <QDir>

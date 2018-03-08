@@ -54,6 +54,8 @@
 #include <OpenMS/MATH/MISC/CubicSpline2d.h>
 #include <OpenMS/CHEMISTRY/MASSDECOMPOSITION/MassDecomposition.h>
 #include <OpenMS/CHEMISTRY/MASSDECOMPOSITION/MassDecompositionAlgorithm.h>
+#include <OpenMS/SYSTEM/File.h>
+
 
 #include <boost/math/distributions/normal.hpp>
 

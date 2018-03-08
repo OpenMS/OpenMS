@@ -33,9 +33,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/ID/ConsensusIDAlgorithmAverage.h>
-#include <OpenMS/CONCEPT/LogStream.h>
 
-#include <cmath>
 #include <numeric> // for "accumulate"
 
 using namespace std;

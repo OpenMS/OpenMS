@@ -58,9 +58,9 @@ using namespace std;
     defaults_.setValidStrings("enzyme:name", enzymes);
 
     defaults_.setValue("enzyme:specificity", EnzymaticDigestion::NamesOfSpecificity[0], "Specificity of the enzyme."
-                                                                                        "\n  '" + EnzymaticDigestion::NamesOfSpecificity[0] + "': both internal cleavage sites must match."
-                                                                                        "\n  '" + EnzymaticDigestion::NamesOfSpecificity[1] + "': one of two internal cleavage sites must match."
-                                                                                        "\n  '" + EnzymaticDigestion::NamesOfSpecificity[2] + "': allow all peptide hits no matter their context. Therefore, the enzyme chosen does not play a role here");
+                                                                                               "\n  '" + EnzymaticDigestion::NamesOfSpecificity[0] + "': both internal cleavage sites must match."
+                                                                                                                                                     "\n  '" + EnzymaticDigestion::NamesOfSpecificity[1] + "': one of two internal cleavage sites must match."
+                                                                                                                                                                                                           "\n  '" + EnzymaticDigestion::NamesOfSpecificity[2] + "': allow all peptide hits no matter their context. Therefore, the enzyme chosen does not play a role here");
 
     StringList spec;
     spec.assign(EnzymaticDigestion::NamesOfSpecificity, EnzymaticDigestion::NamesOfSpecificity + EnzymaticDigestion::SIZE_OF_SPECIFICITY);
@@ -94,7 +94,7 @@ using namespace std;
     defaultsToParam_();
   }
 
-  PeptideIndexing::~PeptideIndexing()
+    PeptideIndexing::~PeptideIndexing()
   {
   }
 

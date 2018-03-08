@@ -38,11 +38,6 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/UniqueIdGenerator.h>
 #include <OpenMS/FORMAT/ProtXMLFile.h>
-#include <OpenMS/SYSTEM/File.h>
-
-#include <iostream>
-#include <fstream>
-#include <limits>
 
 using namespace std;
 

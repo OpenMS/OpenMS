@@ -36,10 +36,7 @@
 
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/SYSTEM/File.h>
-#include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CONCEPT/PrecisionWrapper.h>
-
-#include <iostream>
 
 namespace OpenMS
 {

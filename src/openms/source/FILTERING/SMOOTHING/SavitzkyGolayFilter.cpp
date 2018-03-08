@@ -38,9 +38,6 @@
 #include <Eigen/Core>
 #include <Eigen/SVD>
 
-#include <cmath>
-#include <iostream>//DEBUG
-
 namespace OpenMS
 {
   SavitzkyGolayFilter::SavitzkyGolayFilter() :

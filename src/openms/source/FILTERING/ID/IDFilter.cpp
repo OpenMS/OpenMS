@@ -34,13 +34,6 @@
 
 #include <OpenMS/FILTERING/ID/IDFilter.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
-#include <OpenMS/CHEMISTRY/AASequence.h>
-#include <OpenMS/CHEMISTRY/EnzymaticDigestion.h>
-#include <OpenMS/CONCEPT/LogStream.h>
-
-#include <cmath>
-#include <climits>
-#include <functional>
 
 using namespace std;
 

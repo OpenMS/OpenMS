@@ -36,7 +36,6 @@
 #include <OpenMS/CHEMISTRY/ElementDB.h>
 #include <OpenMS/CHEMISTRY/ResidueDB.h>
 #include <OpenMS/CHEMISTRY/ResidueModification.h>
-#include <OpenMS/CHEMISTRY/ModificationsDB.h>
 
 using namespace std;
 

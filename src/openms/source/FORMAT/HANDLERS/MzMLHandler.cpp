@@ -34,7 +34,6 @@
 
 #include <OpenMS/FORMAT/HANDLERS/MzMLHandler.h>
 
-#include <OpenMS/FORMAT/ControlledVocabulary.h>
 #include <OpenMS/FORMAT/CVMappingFile.h>
 
 namespace OpenMS

@@ -35,12 +35,9 @@
 #include <OpenMS/FORMAT/MzMLFile.h>
 
 #include <OpenMS/FORMAT/HANDLERS/MzMLHandler.h>
-#include <OpenMS/FORMAT/VALIDATORS/MzMLValidator.h>
 #include <OpenMS/FORMAT/CVMappingFile.h>
 #include <OpenMS/FORMAT/VALIDATORS/XMLValidator.h>
 #include <OpenMS/FORMAT/TextFile.h>
-#include <OpenMS/METADATA/DocumentIdentifier.h>
-#include <OpenMS/INTERFACES/IMSDataConsumer.h>
 
 namespace OpenMS
 {

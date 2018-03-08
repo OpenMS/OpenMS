@@ -35,8 +35,9 @@
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
 #include <OpenMS/CONCEPT/Factory.h>
-#include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/DATASTRUCTURES/Param.h>
+#include <OpenMS/FORMAT/MzMLFile.h>
+#include <OpenMS/SYSTEM/File.h>
 
 #include <QtCore/QProcess>
 #include <QFileInfo>
