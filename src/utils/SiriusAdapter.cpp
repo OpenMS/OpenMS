@@ -108,9 +108,9 @@ public:
 
 protected:
 
-  static bool sortByScanNumber(const String & i, const String & j)
+  static bool sortByScanIndex(const String & i, const String & j)
   {
-    return (atoi(SiriusMzTabWriter::extract_scan_number(i).c_str()) < atoi(SiriusMzTabWriter::extract_scan_number(j).c_str()));
+    return (atoi(SiriusMzTabWriter::extract_scan_index(i).c_str()) < atoi(SiriusMzTabWriter::extract_scan_index(j).c_str()));
   }
 
   void registerOptionsAndFlags_() override
@@ -361,7 +361,7 @@ protected:
     }
 
     //sort vector path list
-    std::sort(subdirs.begin(), subdirs.end(), sortByScanNumber);
+    std::sort(subdirs.begin(), subdirs.end(), sortByScanIndex);
 
     //Convert sirius_output to mztab and store file
     MzTab sirius_result;

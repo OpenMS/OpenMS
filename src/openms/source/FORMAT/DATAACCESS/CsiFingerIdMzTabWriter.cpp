@@ -36,6 +36,9 @@
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/FORMAT/MzTabFile.h>
 #include <OpenMS/FORMAT/CsvFile.h>
+#include <OpenMS/METADATA/SpectrumLookup.h>
+
+#include <boost/regex.hpp>
 
 #include <OpenMS/FORMAT/DATAACCESS/CsiFingerIdMzTabWriter.h>
 #include <OpenMS/FORMAT/DATAACCESS/SiriusMzTabWriter.h>
@@ -68,9 +71,11 @@ void CsiFingerIdMzTabWriter::read(const std::vector<String> & sirius_output_path
 
         // extract scan_index from path
         OpenMS::String str = File::path(pathtocsicsv);
-  
-        // TODO: change! scan:number
-        std::string scan_index = SiriusMzTabWriter::extract_scan_number(str);
+        std::string scan_index = SiriusMzTabWriter::extract_scan_index(str);
+    
+        // extract scan_number from string
+        boost::regex regexp("-(?<SCAN>\\d+)-");
+        int scan_number = SpectrumLookup::extractScanNumber(str, regexp, false);
 
         const UInt top_n_hits_cor = (top_n_hits > rowcount) ? rowcount : top_n_hits;
         for (Size j = 1; j < top_n_hits_cor; ++j)
@@ -93,6 +98,7 @@ void CsiFingerIdMzTabWriter::read(const std::vector<String> & sirius_output_path
         }
 
         csi_id.scan_index = scan_index;
+        csi_id.scan_number = scan_number;
         csi_result.identifications.push_back(csi_id);
 
         // write metadata to mzTab file
@@ -146,8 +152,13 @@ void CsiFingerIdMzTabWriter::read(const std::vector<String> & sirius_output_path
             compoundId.first = "compoundId";
             compoundId.second = MzTabString(id.scan_index);
 
+            MzTabOptionalColumnEntry compoundScanNumber;
+            compoundScanNumber.first = "compoundScanNumber";
+            compoundScanNumber.second = MzTabString(id.scan_number);
+
             smsr.opt_.push_back(rank);
             smsr.opt_.push_back(compoundId);
+            smsr.opt_.push_back(compoundScanNumber);
             smsd.push_back(smsr);
           } 
         }

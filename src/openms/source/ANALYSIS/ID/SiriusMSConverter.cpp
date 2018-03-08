@@ -110,10 +110,6 @@ namespace OpenMS
       String native_id = spectrum.getNativeID();
       int scan_number = SpectrumLookup::extractScanNumber(native_id, native_id_type_accession);     
       
-      std::cout << "native_id: " << native_id << std::endl;
-      std::cout << "scan_number: " << scan_number << std::endl;
-
- 
       // extract adducts for given precursor
       StringList adducts;
       if (map_precursor_to_adducts.find(scan_index) != map_precursor_to_adducts.end())
@@ -212,7 +208,7 @@ namespace OpenMS
           }
         }
 
-        String query_id = String("unknown") + String(scan_index) + String("-" + String(scan_number));
+        String query_id = String("-" + String(scan_number) +"-") + String("unknown") + String(scan_index);
 
         // write internal unique .ms data as sirius input
         os << fixed;
