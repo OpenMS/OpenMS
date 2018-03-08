@@ -34,8 +34,6 @@
 //
 #include <OpenMS/FILTERING/TRANSFORMERS/IsotopeDiffFilter.h>
 
-#include <cmath>
-
 using namespace std;
 
 namespace OpenMS

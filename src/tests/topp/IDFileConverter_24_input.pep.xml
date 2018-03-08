@@ -1,0 +1,1490 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="/home/rostlab/annieha/Feb_9_target_decoys/1-NP-int.pep.xsl"?>
+<msms_pipeline_analysis date="2018-02-26T13:26:46" xmlns="http://regis-web.systemsbiology.net/pepXML" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://regis-web.systemsbiology.net/pepXML /home/rostlab/hrost/bin/tpp/tpp4.8/schema/pepXML_v117.xsd" summary_xml="/home/rostlab/annieha/Feb_9_target_decoys/1-NP-int.pep.xml">
+<analysis_summary analysis="peptideprophet" time="2018-02-26T13:28:34">
+<peptideprophet_summary version="PeptideProphet  (TPP v4.8.0 PHILAE, Build 201710121955-exported (CentOS-x86_64))" author="AKeller@ISB" min_prob="0.00" options=" MINPROB=0 DECOY=DECOY NONPARAM DECOYPROBS ACCMASS NONMC NONTT " est_tot_num_correct="3.3">
+<inputfile name="/home/rostlab/annieha/ConvertedRaw_Nina/LakeTroutChromiumsearched/ctl/rep1/1.pep.xml"/>
+<roc_error_data charge="all">
+<roc_data_point min_prob="0.9999" sensitivity="0.2985" error="0.0000" num_corr="1" num_incorr="0"/>
+<roc_data_point min_prob="0.9990" sensitivity="0.2985" error="0.0000" num_corr="1" num_incorr="0"/>
+<roc_data_point min_prob="0.9900" sensitivity="0.2985" error="0.0000" num_corr="1" num_incorr="0"/>
+<roc_data_point min_prob="0.9800" sensitivity="0.2985" error="0.0000" num_corr="1" num_incorr="0"/>
+<roc_data_point min_prob="0.9500" sensitivity="0.5884" error="0.0146" num_corr="2" num_incorr="0"/>
+<roc_data_point min_prob="0.9000" sensitivity="0.8615" error="0.0381" num_corr="3" num_incorr="0"/>
+<roc_data_point min_prob="0.8500" sensitivity="0.8615" error="0.0381" num_corr="3" num_incorr="0"/>
+<roc_data_point min_prob="0.8000" sensitivity="0.8615" error="0.0381" num_corr="3" num_incorr="0"/>
+<roc_data_point min_prob="0.7500" sensitivity="0.8615" error="0.0381" num_corr="3" num_incorr="0"/>
+<roc_data_point min_prob="0.7000" sensitivity="0.8615" error="0.0381" num_corr="3" num_incorr="0"/>
+<roc_data_point min_prob="0.6500" sensitivity="0.8615" error="0.0381" num_corr="3" num_incorr="0"/>
+<roc_data_point min_prob="0.6000" sensitivity="0.8615" error="0.0381" num_corr="3" num_incorr="0"/>
+<roc_data_point min_prob="0.5500" sensitivity="0.8615" error="0.0381" num_corr="3" num_incorr="0"/>
+<roc_data_point min_prob="0.5000" sensitivity="0.8615" error="0.0381" num_corr="3" num_incorr="0"/>
+<roc_data_point min_prob="0.4500" sensitivity="0.8615" error="0.0381" num_corr="3" num_incorr="0"/>
+<roc_data_point min_prob="0.4000" sensitivity="0.8615" error="0.0381" num_corr="3" num_incorr="0"/>
+<roc_data_point min_prob="0.3500" sensitivity="0.8615" error="0.0381" num_corr="3" num_incorr="0"/>
+<roc_data_point min_prob="0.3000" sensitivity="0.8615" error="0.0381" num_corr="3" num_incorr="0"/>
+<roc_data_point min_prob="0.2500" sensitivity="0.9390" error="0.2137" num_corr="3" num_incorr="1"/>
+<roc_data_point min_prob="0.2000" sensitivity="0.9390" error="0.2137" num_corr="3" num_incorr="1"/>
+<roc_data_point min_prob="0.1500" sensitivity="0.9934" error="0.3345" num_corr="3" num_incorr="2"/>
+<roc_data_point min_prob="0.1000" sensitivity="0.9934" error="0.3345" num_corr="3" num_incorr="2"/>
+<roc_data_point min_prob="0.0500" sensitivity="0.9934" error="0.3345" num_corr="3" num_incorr="2"/>
+<roc_data_point min_prob="0.0000" sensitivity="1.0000" error="0.9942" num_corr="3" num_incorr="575"/>
+<error_point error="0.0000" min_prob="1.0000" num_corr="2" num_incorr="0"/>
+<error_point error="0.0001" min_prob="0.9708" num_corr="3" num_incorr="0"/>
+<error_point error="0.0002" min_prob="0.9708" num_corr="3" num_incorr="0"/>
+<error_point error="0.0003" min_prob="0.9708" num_corr="3" num_incorr="0"/>
+<error_point error="0.0004" min_prob="0.9708" num_corr="3" num_incorr="0"/>
+<error_point error="0.0005" min_prob="0.9708" num_corr="3" num_incorr="0"/>
+<error_point error="0.0006" min_prob="0.9708" num_corr="3" num_incorr="0"/>
+<error_point error="0.0007" min_prob="0.9708" num_corr="3" num_incorr="0"/>
+<error_point error="0.0008" min_prob="0.9708" num_corr="3" num_incorr="0"/>
+<error_point error="0.0009" min_prob="0.9708" num_corr="3" num_incorr="0"/>
+<error_point error="0.0010" min_prob="0.9708" num_corr="3" num_incorr="0"/>
+<error_point error="0.0015" min_prob="0.9708" num_corr="3" num_incorr="0"/>
+<error_point error="0.0020" min_prob="0.9708" num_corr="3" num_incorr="0"/>
+<error_point error="0.0025" min_prob="0.9708" num_corr="3" num_incorr="0"/>
+<error_point error="0.0030" min_prob="0.9708" num_corr="3" num_incorr="0"/>
+<error_point error="0.0040" min_prob="0.9708" num_corr="3" num_incorr="0"/>
+<error_point error="0.0050" min_prob="0.9708" num_corr="3" num_incorr="0"/>
+<error_point error="0.0060" min_prob="0.9708" num_corr="3" num_incorr="0"/>
+<error_point error="0.0070" min_prob="0.9708" num_corr="3" num_incorr="0"/>
+<error_point error="0.0080" min_prob="0.9708" num_corr="3" num_incorr="0"/>
+<error_point error="0.0090" min_prob="0.9708" num_corr="3" num_incorr="0"/>
+<error_point error="0.0100" min_prob="0.9708" num_corr="3" num_incorr="0"/>
+<error_point error="0.0150" min_prob="0.9149" num_corr="3" num_incorr="1"/>
+<error_point error="0.0200" min_prob="0.9149" num_corr="3" num_incorr="1"/>
+<error_point error="0.0250" min_prob="0.9149" num_corr="3" num_incorr="1"/>
+<error_point error="0.0300" min_prob="0.9149" num_corr="3" num_incorr="1"/>
+<error_point error="0.0400" min_prob="0.2593" num_corr="3" num_incorr="2"/>
+<error_point error="0.0500" min_prob="0.2593" num_corr="3" num_incorr="2"/>
+<error_point error="0.0750" min_prob="0.2593" num_corr="3" num_incorr="2"/>
+<error_point error="0.1000" min_prob="0.2593" num_corr="3" num_incorr="2"/>
+</roc_error_data>
+<roc_error_data charge="7" charge_est_correct="3.3">
+<roc_data_point min_prob="0.9999" sensitivity="0.2985" error="0.0000" num_corr="1" num_incorr="0"/>
+<roc_data_point min_prob="0.9990" sensitivity="0.2985" error="0.0000" num_corr="1" num_incorr="0"/>
+<roc_data_point min_prob="0.9900" sensitivity="0.2985" error="0.0000" num_corr="1" num_incorr="0"/>
+<roc_data_point min_prob="0.9800" sensitivity="0.2985" error="0.0000" num_corr="1" num_incorr="0"/>
+<roc_data_point min_prob="0.9500" sensitivity="0.5884" error="0.0146" num_corr="2" num_incorr="0"/>
+<roc_data_point min_prob="0.9000" sensitivity="0.8615" error="0.0381" num_corr="3" num_incorr="0"/>
+<roc_data_point min_prob="0.8500" sensitivity="0.8615" error="0.0381" num_corr="3" num_incorr="0"/>
+<roc_data_point min_prob="0.8000" sensitivity="0.8615" error="0.0381" num_corr="3" num_incorr="0"/>
+<roc_data_point min_prob="0.7500" sensitivity="0.8615" error="0.0381" num_corr="3" num_incorr="0"/>
+<roc_data_point min_prob="0.7000" sensitivity="0.8615" error="0.0381" num_corr="3" num_incorr="0"/>
+<roc_data_point min_prob="0.6500" sensitivity="0.8615" error="0.0381" num_corr="3" num_incorr="0"/>
+<roc_data_point min_prob="0.6000" sensitivity="0.8615" error="0.0381" num_corr="3" num_incorr="0"/>
+<roc_data_point min_prob="0.5500" sensitivity="0.8615" error="0.0381" num_corr="3" num_incorr="0"/>
+<roc_data_point min_prob="0.5000" sensitivity="0.8615" error="0.0381" num_corr="3" num_incorr="0"/>
+<roc_data_point min_prob="0.4500" sensitivity="0.8615" error="0.0381" num_corr="3" num_incorr="0"/>
+<roc_data_point min_prob="0.4000" sensitivity="0.8615" error="0.0381" num_corr="3" num_incorr="0"/>
+<roc_data_point min_prob="0.3500" sensitivity="0.8615" error="0.0381" num_corr="3" num_incorr="0"/>
+<roc_data_point min_prob="0.3000" sensitivity="0.8615" error="0.0381" num_corr="3" num_incorr="0"/>
+<roc_data_point min_prob="0.2500" sensitivity="0.9390" error="0.2137" num_corr="3" num_incorr="1"/>
+<roc_data_point min_prob="0.2000" sensitivity="0.9390" error="0.2137" num_corr="3" num_incorr="1"/>
+<roc_data_point min_prob="0.1500" sensitivity="0.9934" error="0.3345" num_corr="3" num_incorr="2"/>
+<roc_data_point min_prob="0.1000" sensitivity="0.9934" error="0.3345" num_corr="3" num_incorr="2"/>
+<roc_data_point min_prob="0.0500" sensitivity="0.9934" error="0.3345" num_corr="3" num_incorr="2"/>
+<roc_data_point min_prob="0.0000" sensitivity="1.0000" error="0.9942" num_corr="3" num_incorr="575"/>
+<error_point error="0.0000" min_prob="1.0000" num_corr="2" num_incorr="0"/>
+<error_point error="0.0001" min_prob="0.9708" num_corr="3" num_incorr="0"/>
+<error_point error="0.0002" min_prob="0.9708" num_corr="3" num_incorr="0"/>
+<error_point error="0.0003" min_prob="0.9708" num_corr="3" num_incorr="0"/>
+<error_point error="0.0004" min_prob="0.9708" num_corr="3" num_incorr="0"/>
+<error_point error="0.0005" min_prob="0.9708" num_corr="3" num_incorr="0"/>
+<error_point error="0.0006" min_prob="0.9708" num_corr="3" num_incorr="0"/>
+<error_point error="0.0007" min_prob="0.9708" num_corr="3" num_incorr="0"/>
+<error_point error="0.0008" min_prob="0.9708" num_corr="3" num_incorr="0"/>
+<error_point error="0.0009" min_prob="0.9708" num_corr="3" num_incorr="0"/>
+<error_point error="0.0010" min_prob="0.9708" num_corr="3" num_incorr="0"/>
+<error_point error="0.0015" min_prob="0.9708" num_corr="3" num_incorr="0"/>
+<error_point error="0.0020" min_prob="0.9708" num_corr="3" num_incorr="0"/>
+<error_point error="0.0025" min_prob="0.9708" num_corr="3" num_incorr="0"/>
+<error_point error="0.0030" min_prob="0.9708" num_corr="3" num_incorr="0"/>
+<error_point error="0.0040" min_prob="0.9708" num_corr="3" num_incorr="0"/>
+<error_point error="0.0050" min_prob="0.9708" num_corr="3" num_incorr="0"/>
+<error_point error="0.0060" min_prob="0.9708" num_corr="3" num_incorr="0"/>
+<error_point error="0.0070" min_prob="0.9708" num_corr="3" num_incorr="0"/>
+<error_point error="0.0080" min_prob="0.9708" num_corr="3" num_incorr="0"/>
+<error_point error="0.0090" min_prob="0.9708" num_corr="3" num_incorr="0"/>
+<error_point error="0.0100" min_prob="0.9708" num_corr="3" num_incorr="0"/>
+<error_point error="0.0150" min_prob="0.9149" num_corr="3" num_incorr="1"/>
+<error_point error="0.0200" min_prob="0.9149" num_corr="3" num_incorr="1"/>
+<error_point error="0.0250" min_prob="0.9149" num_corr="3" num_incorr="1"/>
+<error_point error="0.0300" min_prob="0.9149" num_corr="3" num_incorr="1"/>
+<error_point error="0.0400" min_prob="0.2593" num_corr="3" num_incorr="2"/>
+<error_point error="0.0500" min_prob="0.2593" num_corr="3" num_incorr="2"/>
+<error_point error="0.0750" min_prob="0.2593" num_corr="3" num_incorr="2"/>
+<error_point error="0.1000" min_prob="0.2593" num_corr="3" num_incorr="2"/>
+</roc_error_data>
+<distribution_point fvalue="-4.90" obs_1_distr="0" model_1_pos_distr="0.00" model_1_neg_distr="0.00" obs_2_distr="2" model_2_pos_distr="0.00" model_2_neg_distr="0.00" obs_3_distr="1" model_3_pos_distr="0.00" model_3_neg_distr="0.00" obs_4_distr="0" model_4_pos_distr="0.00" model_4_neg_distr="0.00" obs_5_distr="0" model_5_pos_distr="0.00" model_5_neg_distr="0.00" obs_6_distr="0" model_6_pos_distr="0.00" model_6_neg_distr="0.00" obs_7_distr="0" model_7_pos_distr="0.00" model_7_neg_distr="0.00"/>
+<distribution_point fvalue="-4.70" obs_1_distr="0" model_1_pos_distr="0.00" model_1_neg_distr="0.00" obs_2_distr="3" model_2_pos_distr="0.00" model_2_neg_distr="0.00" obs_3_distr="2" model_3_pos_distr="0.00" model_3_neg_distr="0.00" obs_4_distr="0" model_4_pos_distr="0.00" model_4_neg_distr="0.00" obs_5_distr="0" model_5_pos_distr="0.00" model_5_neg_distr="0.00" obs_6_distr="0" model_6_pos_distr="0.00" model_6_neg_distr="0.00" obs_7_distr="0" model_7_pos_distr="0.00" model_7_neg_distr="0.00"/>
+<distribution_point fvalue="-4.50" obs_1_distr="0" model_1_pos_distr="0.00" model_1_neg_distr="0.00" obs_2_distr="3" model_2_pos_distr="0.00" model_2_neg_distr="0.00" obs_3_distr="4" model_3_pos_distr="0.00" model_3_neg_distr="0.00" obs_4_distr="0" model_4_pos_distr="0.00" model_4_neg_distr="0.00" obs_5_distr="0" model_5_pos_distr="0.00" model_5_neg_distr="0.00" obs_6_distr="0" model_6_pos_distr="0.00" model_6_neg_distr="0.00" obs_7_distr="0" model_7_pos_distr="0.00" model_7_neg_distr="0.00"/>
+<distribution_point fvalue="-4.30" obs_1_distr="0" model_1_pos_distr="0.00" model_1_neg_distr="0.00" obs_2_distr="3" model_2_pos_distr="0.00" model_2_neg_distr="0.00" obs_3_distr="4" model_3_pos_distr="0.00" model_3_neg_distr="0.00" obs_4_distr="0" model_4_pos_distr="0.00" model_4_neg_distr="0.00" obs_5_distr="0" model_5_pos_distr="0.00" model_5_neg_distr="0.00" obs_6_distr="0" model_6_pos_distr="0.00" model_6_neg_distr="0.00" obs_7_distr="0" model_7_pos_distr="0.00" model_7_neg_distr="0.00"/>
+<distribution_point fvalue="-4.10" obs_1_distr="0" model_1_pos_distr="0.00" model_1_neg_distr="0.00" obs_2_distr="5" model_2_pos_distr="0.00" model_2_neg_distr="0.00" obs_3_distr="3" model_3_pos_distr="0.00" model_3_neg_distr="0.00" obs_4_distr="0" model_4_pos_distr="0.00" model_4_neg_distr="0.00" obs_5_distr="0" model_5_pos_distr="0.00" model_5_neg_distr="0.00" obs_6_distr="0" model_6_pos_distr="0.00" model_6_neg_distr="0.00" obs_7_distr="0" model_7_pos_distr="0.00" model_7_neg_distr="0.00"/>
+<distribution_point fvalue="-3.90" obs_1_distr="0" model_1_pos_distr="0.00" model_1_neg_distr="0.00" obs_2_distr="3" model_2_pos_distr="0.00" model_2_neg_distr="0.00" obs_3_distr="4" model_3_pos_distr="0.00" model_3_neg_distr="0.00" obs_4_distr="0" model_4_pos_distr="0.00" model_4_neg_distr="0.00" obs_5_distr="0" model_5_pos_distr="0.00" model_5_neg_distr="0.00" obs_6_distr="0" model_6_pos_distr="0.00" model_6_neg_distr="0.00" obs_7_distr="0" model_7_pos_distr="0.00" model_7_neg_distr="0.00"/>
+<distribution_point fvalue="-3.70" obs_1_distr="0" model_1_pos_distr="0.00" model_1_neg_distr="0.00" obs_2_distr="10" model_2_pos_distr="0.00" model_2_neg_distr="0.00" obs_3_distr="2" model_3_pos_distr="0.00" model_3_neg_distr="0.00" obs_4_distr="0" model_4_pos_distr="0.00" model_4_neg_distr="0.00" obs_5_distr="0" model_5_pos_distr="0.00" model_5_neg_distr="0.00" obs_6_distr="0" model_6_pos_distr="0.00" model_6_neg_distr="0.00" obs_7_distr="0" model_7_pos_distr="0.00" model_7_neg_distr="0.00"/>
+<distribution_point fvalue="-3.50" obs_1_distr="0" model_1_pos_distr="0.00" model_1_neg_distr="0.00" obs_2_distr="6" model_2_pos_distr="0.00" model_2_neg_distr="0.00" obs_3_distr="9" model_3_pos_distr="0.00" model_3_neg_distr="0.00" obs_4_distr="0" model_4_pos_distr="0.00" model_4_neg_distr="0.00" obs_5_distr="0" model_5_pos_distr="0.00" model_5_neg_distr="0.00" obs_6_distr="1" model_6_pos_distr="0.00" model_6_neg_distr="0.00" obs_7_distr="0" model_7_pos_distr="0.00" model_7_neg_distr="0.00"/>
+<distribution_point fvalue="-3.30" obs_1_distr="0" model_1_pos_distr="0.00" model_1_neg_distr="0.00" obs_2_distr="10" model_2_pos_distr="0.00" model_2_neg_distr="0.00" obs_3_distr="4" model_3_pos_distr="0.00" model_3_neg_distr="0.00" obs_4_distr="0" model_4_pos_distr="0.00" model_4_neg_distr="0.00" obs_5_distr="0" model_5_pos_distr="0.00" model_5_neg_distr="0.00" obs_6_distr="0" model_6_pos_distr="0.00" model_6_neg_distr="0.00" obs_7_distr="0" model_7_pos_distr="0.00" model_7_neg_distr="0.00"/>
+<distribution_point fvalue="-3.10" obs_1_distr="0" model_1_pos_distr="0.00" model_1_neg_distr="0.00" obs_2_distr="7" model_2_pos_distr="0.00" model_2_neg_distr="0.00" obs_3_distr="4" model_3_pos_distr="0.00" model_3_neg_distr="0.00" obs_4_distr="0" model_4_pos_distr="0.00" model_4_neg_distr="0.00" obs_5_distr="0" model_5_pos_distr="0.00" model_5_neg_distr="0.00" obs_6_distr="0" model_6_pos_distr="0.00" model_6_neg_distr="0.00" obs_7_distr="0" model_7_pos_distr="0.00" model_7_neg_distr="0.00"/>
+<distribution_point fvalue="-2.90" obs_1_distr="1" model_1_pos_distr="0.00" model_1_neg_distr="0.00" obs_2_distr="7" model_2_pos_distr="0.00" model_2_neg_distr="0.00" obs_3_distr="11" model_3_pos_distr="0.00" model_3_neg_distr="0.00" obs_4_distr="0" model_4_pos_distr="0.00" model_4_neg_distr="0.00" obs_5_distr="1" model_5_pos_distr="0.00" model_5_neg_distr="0.00" obs_6_distr="0" model_6_pos_distr="0.00" model_6_neg_distr="0.00" obs_7_distr="0" model_7_pos_distr="0.00" model_7_neg_distr="0.00"/>
+<distribution_point fvalue="-2.70" obs_1_distr="0" model_1_pos_distr="0.00" model_1_neg_distr="0.00" obs_2_distr="15" model_2_pos_distr="0.00" model_2_neg_distr="0.00" obs_3_distr="8" model_3_pos_distr="0.00" model_3_neg_distr="0.00" obs_4_distr="0" model_4_pos_distr="0.00" model_4_neg_distr="0.00" obs_5_distr="0" model_5_pos_distr="0.00" model_5_neg_distr="0.00" obs_6_distr="0" model_6_pos_distr="0.00" model_6_neg_distr="0.00" obs_7_distr="0" model_7_pos_distr="0.00" model_7_neg_distr="0.00"/>
+<distribution_point fvalue="-2.50" obs_1_distr="0" model_1_pos_distr="0.00" model_1_neg_distr="0.00" obs_2_distr="13" model_2_pos_distr="0.00" model_2_neg_distr="0.00" obs_3_distr="13" model_3_pos_distr="0.00" model_3_neg_distr="0.00" obs_4_distr="0" model_4_pos_distr="0.00" model_4_neg_distr="0.00" obs_5_distr="0" model_5_pos_distr="0.00" model_5_neg_distr="0.00" obs_6_distr="1" model_6_pos_distr="0.00" model_6_neg_distr="0.00" obs_7_distr="3" model_7_pos_distr="0.00" model_7_neg_distr="8.26"/>
+<distribution_point fvalue="-2.30" obs_1_distr="1" model_1_pos_distr="0.00" model_1_neg_distr="0.00" obs_2_distr="23" model_2_pos_distr="0.00" model_2_neg_distr="0.00" obs_3_distr="10" model_3_pos_distr="0.00" model_3_neg_distr="0.00" obs_4_distr="2" model_4_pos_distr="0.00" model_4_neg_distr="0.00" obs_5_distr="2" model_5_pos_distr="0.00" model_5_neg_distr="0.00" obs_6_distr="5" model_6_pos_distr="0.00" model_6_neg_distr="0.00" obs_7_distr="5" model_7_pos_distr="0.00" model_7_neg_distr="13.14"/>
+<distribution_point fvalue="-2.10" obs_1_distr="0" model_1_pos_distr="0.00" model_1_neg_distr="0.00" obs_2_distr="25" model_2_pos_distr="0.00" model_2_neg_distr="0.00" obs_3_distr="11" model_3_pos_distr="0.00" model_3_neg_distr="0.00" obs_4_distr="18" model_4_pos_distr="0.00" model_4_neg_distr="0.00" obs_5_distr="13" model_5_pos_distr="0.00" model_5_neg_distr="0.00" obs_6_distr="12" model_6_pos_distr="0.00" model_6_neg_distr="0.00" obs_7_distr="9" model_7_pos_distr="0.00" model_7_neg_distr="19.36"/>
+<distribution_point fvalue="-1.90" obs_1_distr="0" model_1_pos_distr="0.00" model_1_neg_distr="0.00" obs_2_distr="32" model_2_pos_distr="0.00" model_2_neg_distr="0.00" obs_3_distr="28" model_3_pos_distr="0.00" model_3_neg_distr="0.00" obs_4_distr="34" model_4_pos_distr="0.00" model_4_neg_distr="0.00" obs_5_distr="28" model_5_pos_distr="0.00" model_5_neg_distr="0.00" obs_6_distr="24" model_6_pos_distr="0.00" model_6_neg_distr="0.00" obs_7_distr="26" model_7_pos_distr="0.00" model_7_neg_distr="26.42"/>
+<distribution_point fvalue="-1.70" obs_1_distr="1" model_1_pos_distr="0.00" model_1_neg_distr="0.00" obs_2_distr="43" model_2_pos_distr="0.00" model_2_neg_distr="0.00" obs_3_distr="26" model_3_pos_distr="0.00" model_3_neg_distr="0.00" obs_4_distr="50" model_4_pos_distr="0.00" model_4_neg_distr="0.00" obs_5_distr="38" model_5_pos_distr="0.00" model_5_neg_distr="0.00" obs_6_distr="35" model_6_pos_distr="0.00" model_6_neg_distr="0.00" obs_7_distr="37" model_7_pos_distr="0.00" model_7_neg_distr="33.39"/>
+<distribution_point fvalue="-1.50" obs_1_distr="1" model_1_pos_distr="0.00" model_1_neg_distr="0.00" obs_2_distr="60" model_2_pos_distr="0.00" model_2_neg_distr="0.00" obs_3_distr="37" model_3_pos_distr="0.00" model_3_neg_distr="0.00" obs_4_distr="71" model_4_pos_distr="0.00" model_4_neg_distr="0.00" obs_5_distr="48" model_5_pos_distr="0.00" model_5_neg_distr="0.00" obs_6_distr="56" model_6_pos_distr="0.00" model_6_neg_distr="0.00" obs_7_distr="58" model_7_pos_distr="0.00" model_7_neg_distr="39.16"/>
+<distribution_point fvalue="-1.30" obs_1_distr="1" model_1_pos_distr="0.00" model_1_neg_distr="0.00" obs_2_distr="63" model_2_pos_distr="0.00" model_2_neg_distr="0.00" obs_3_distr="35" model_3_pos_distr="0.00" model_3_neg_distr="0.00" obs_4_distr="76" model_4_pos_distr="0.00" model_4_neg_distr="0.00" obs_5_distr="51" model_5_pos_distr="0.00" model_5_neg_distr="0.00" obs_6_distr="57" model_6_pos_distr="0.00" model_6_neg_distr="0.00" obs_7_distr="51" model_7_pos_distr="0.00" model_7_neg_distr="42.81"/>
+<distribution_point fvalue="-1.10" obs_1_distr="0" model_1_pos_distr="0.00" model_1_neg_distr="0.00" obs_2_distr="74" model_2_pos_distr="0.00" model_2_neg_distr="0.00" obs_3_distr="51" model_3_pos_distr="0.00" model_3_neg_distr="0.00" obs_4_distr="63" model_4_pos_distr="0.00" model_4_neg_distr="0.00" obs_5_distr="72" model_5_pos_distr="0.00" model_5_neg_distr="0.00" obs_6_distr="64" model_6_pos_distr="0.00" model_6_neg_distr="0.00" obs_7_distr="68" model_7_pos_distr="0.00" model_7_neg_distr="43.99"/>
+<distribution_point fvalue="-0.90" obs_1_distr="2" model_1_pos_distr="0.00" model_1_neg_distr="0.00" obs_2_distr="79" model_2_pos_distr="0.00" model_2_neg_distr="0.00" obs_3_distr="55" model_3_pos_distr="0.00" model_3_neg_distr="0.00" obs_4_distr="62" model_4_pos_distr="0.00" model_4_neg_distr="0.00" obs_5_distr="67" model_5_pos_distr="0.00" model_5_neg_distr="0.00" obs_6_distr="63" model_6_pos_distr="0.00" model_6_neg_distr="0.00" obs_7_distr="51" model_7_pos_distr="0.00" model_7_neg_distr="42.98"/>
+<distribution_point fvalue="-0.70" obs_1_distr="2" model_1_pos_distr="0.00" model_1_neg_distr="0.00" obs_2_distr="86" model_2_pos_distr="0.00" model_2_neg_distr="0.00" obs_3_distr="56" model_3_pos_distr="0.00" model_3_neg_distr="0.00" obs_4_distr="57" model_4_pos_distr="0.00" model_4_neg_distr="0.00" obs_5_distr="51" model_5_pos_distr="0.00" model_5_neg_distr="0.00" obs_6_distr="49" model_6_pos_distr="0.00" model_6_neg_distr="0.00" obs_7_distr="48" model_7_pos_distr="0.00" model_7_neg_distr="40.44"/>
+<distribution_point fvalue="-0.50" obs_1_distr="2" model_1_pos_distr="0.00" model_1_neg_distr="0.00" obs_2_distr="70" model_2_pos_distr="0.00" model_2_neg_distr="0.00" obs_3_distr="66" model_3_pos_distr="0.00" model_3_neg_distr="0.00" obs_4_distr="51" model_4_pos_distr="0.00" model_4_neg_distr="0.00" obs_5_distr="54" model_5_pos_distr="0.00" model_5_neg_distr="0.00" obs_6_distr="51" model_6_pos_distr="0.00" model_6_neg_distr="0.00" obs_7_distr="48" model_7_pos_distr="0.00" model_7_neg_distr="37.06"/>
+<distribution_point fvalue="-0.30" obs_1_distr="2" model_1_pos_distr="0.00" model_1_neg_distr="0.00" obs_2_distr="68" model_2_pos_distr="0.00" model_2_neg_distr="0.00" obs_3_distr="62" model_3_pos_distr="0.00" model_3_neg_distr="0.00" obs_4_distr="56" model_4_pos_distr="0.00" model_4_neg_distr="0.00" obs_5_distr="39" model_5_pos_distr="0.00" model_5_neg_distr="0.00" obs_6_distr="38" model_6_pos_distr="0.00" model_6_neg_distr="0.00" obs_7_distr="34" model_7_pos_distr="0.00" model_7_neg_distr="33.29"/>
+<distribution_point fvalue="-0.10" obs_1_distr="1" model_1_pos_distr="0.00" model_1_neg_distr="0.00" obs_2_distr="52" model_2_pos_distr="0.00" model_2_neg_distr="0.00" obs_3_distr="47" model_3_pos_distr="0.00" model_3_neg_distr="0.00" obs_4_distr="42" model_4_pos_distr="0.00" model_4_neg_distr="0.00" obs_5_distr="34" model_5_pos_distr="0.00" model_5_neg_distr="0.00" obs_6_distr="25" model_6_pos_distr="0.00" model_6_neg_distr="0.00" obs_7_distr="27" model_7_pos_distr="0.00" model_7_neg_distr="29.30"/>
+<distribution_point fvalue="0.10" obs_1_distr="0" model_1_pos_distr="0.00" model_1_neg_distr="0.00" obs_2_distr="42" model_2_pos_distr="0.00" model_2_neg_distr="0.00" obs_3_distr="37" model_3_pos_distr="0.00" model_3_neg_distr="0.00" obs_4_distr="34" model_4_pos_distr="0.00" model_4_neg_distr="0.00" obs_5_distr="34" model_5_pos_distr="0.00" model_5_neg_distr="0.00" obs_6_distr="32" model_6_pos_distr="0.00" model_6_neg_distr="0.00" obs_7_distr="23" model_7_pos_distr="0.00" model_7_neg_distr="25.19"/>
+<distribution_point fvalue="0.30" obs_1_distr="2" model_1_pos_distr="0.00" model_1_neg_distr="0.00" obs_2_distr="33" model_2_pos_distr="0.00" model_2_neg_distr="0.00" obs_3_distr="39" model_3_pos_distr="0.00" model_3_neg_distr="0.00" obs_4_distr="23" model_4_pos_distr="0.00" model_4_neg_distr="0.00" obs_5_distr="27" model_5_pos_distr="0.00" model_5_neg_distr="0.00" obs_6_distr="22" model_6_pos_distr="0.00" model_6_neg_distr="0.00" obs_7_distr="20" model_7_pos_distr="0.00" model_7_neg_distr="21.04"/>
+<distribution_point fvalue="0.50" obs_1_distr="0" model_1_pos_distr="0.00" model_1_neg_distr="0.00" obs_2_distr="27" model_2_pos_distr="0.00" model_2_neg_distr="0.00" obs_3_distr="41" model_3_pos_distr="0.00" model_3_neg_distr="0.00" obs_4_distr="15" model_4_pos_distr="0.00" model_4_neg_distr="0.00" obs_5_distr="18" model_5_pos_distr="0.00" model_5_neg_distr="0.00" obs_6_distr="22" model_6_pos_distr="0.00" model_6_neg_distr="0.00" obs_7_distr="27" model_7_pos_distr="0.00" model_7_neg_distr="17.00"/>
+<distribution_point fvalue="0.70" obs_1_distr="0" model_1_pos_distr="0.00" model_1_neg_distr="0.00" obs_2_distr="19" model_2_pos_distr="0.00" model_2_neg_distr="0.00" obs_3_distr="15" model_3_pos_distr="0.00" model_3_neg_distr="0.00" obs_4_distr="13" model_4_pos_distr="0.00" model_4_neg_distr="0.00" obs_5_distr="17" model_5_pos_distr="0.00" model_5_neg_distr="0.00" obs_6_distr="14" model_6_pos_distr="0.00" model_6_neg_distr="0.00" obs_7_distr="9" model_7_pos_distr="0.00" model_7_neg_distr="13.20"/>
+<distribution_point fvalue="0.90" obs_1_distr="0" model_1_pos_distr="0.00" model_1_neg_distr="0.00" obs_2_distr="19" model_2_pos_distr="0.00" model_2_neg_distr="0.00" obs_3_distr="17" model_3_pos_distr="0.00" model_3_neg_distr="0.00" obs_4_distr="12" model_4_pos_distr="0.00" model_4_neg_distr="0.00" obs_5_distr="9" model_5_pos_distr="0.00" model_5_neg_distr="0.00" obs_6_distr="9" model_6_pos_distr="0.00" model_6_neg_distr="0.00" obs_7_distr="9" model_7_pos_distr="0.00" model_7_neg_distr="9.86"/>
+<distribution_point fvalue="1.10" obs_1_distr="1" model_1_pos_distr="0.00" model_1_neg_distr="0.00" obs_2_distr="8" model_2_pos_distr="0.00" model_2_neg_distr="0.00" obs_3_distr="21" model_3_pos_distr="0.00" model_3_neg_distr="0.00" obs_4_distr="11" model_4_pos_distr="0.00" model_4_neg_distr="0.00" obs_5_distr="8" model_5_pos_distr="0.00" model_5_neg_distr="0.00" obs_6_distr="6" model_6_pos_distr="0.00" model_6_neg_distr="0.00" obs_7_distr="4" model_7_pos_distr="0.00" model_7_neg_distr="7.13"/>
+<distribution_point fvalue="1.30" obs_1_distr="0" model_1_pos_distr="0.00" model_1_neg_distr="0.00" obs_2_distr="11" model_2_pos_distr="0.00" model_2_neg_distr="0.00" obs_3_distr="23" model_3_pos_distr="0.00" model_3_neg_distr="0.00" obs_4_distr="7" model_4_pos_distr="0.00" model_4_neg_distr="0.00" obs_5_distr="8" model_5_pos_distr="0.00" model_5_neg_distr="0.00" obs_6_distr="4" model_6_pos_distr="0.00" model_6_neg_distr="0.00" obs_7_distr="3" model_7_pos_distr="0.00" model_7_neg_distr="5.12"/>
+<distribution_point fvalue="1.50" obs_1_distr="0" model_1_pos_distr="0.00" model_1_neg_distr="0.00" obs_2_distr="6" model_2_pos_distr="0.00" model_2_neg_distr="0.00" obs_3_distr="10" model_3_pos_distr="0.00" model_3_neg_distr="0.00" obs_4_distr="5" model_4_pos_distr="0.00" model_4_neg_distr="0.00" obs_5_distr="3" model_5_pos_distr="0.00" model_5_neg_distr="0.00" obs_6_distr="3" model_6_pos_distr="0.00" model_6_neg_distr="0.00" obs_7_distr="3" model_7_pos_distr="0.00" model_7_neg_distr="3.76"/>
+<distribution_point fvalue="1.70" obs_1_distr="0" model_1_pos_distr="0.00" model_1_neg_distr="0.00" obs_2_distr="2" model_2_pos_distr="0.00" model_2_neg_distr="0.00" obs_3_distr="10" model_3_pos_distr="0.00" model_3_neg_distr="0.00" obs_4_distr="5" model_4_pos_distr="0.00" model_4_neg_distr="0.00" obs_5_distr="0" model_5_pos_distr="0.00" model_5_neg_distr="0.00" obs_6_distr="2" model_6_pos_distr="0.00" model_6_neg_distr="0.00" obs_7_distr="4" model_7_pos_distr="0.00" model_7_neg_distr="2.90"/>
+<distribution_point fvalue="1.90" obs_1_distr="0" model_1_pos_distr="0.00" model_1_neg_distr="0.00" obs_2_distr="8" model_2_pos_distr="0.00" model_2_neg_distr="0.00" obs_3_distr="7" model_3_pos_distr="0.00" model_3_neg_distr="0.00" obs_4_distr="3" model_4_pos_distr="0.00" model_4_neg_distr="0.00" obs_5_distr="4" model_5_pos_distr="0.00" model_5_neg_distr="0.00" obs_6_distr="0" model_6_pos_distr="0.00" model_6_neg_distr="0.00" obs_7_distr="1" model_7_pos_distr="0.00" model_7_neg_distr="2.36"/>
+<distribution_point fvalue="2.10" obs_1_distr="0" model_1_pos_distr="0.00" model_1_neg_distr="0.00" obs_2_distr="3" model_2_pos_distr="0.00" model_2_neg_distr="0.00" obs_3_distr="7" model_3_pos_distr="0.00" model_3_neg_distr="0.00" obs_4_distr="4" model_4_pos_distr="0.00" model_4_neg_distr="0.00" obs_5_distr="4" model_5_pos_distr="0.00" model_5_neg_distr="0.00" obs_6_distr="2" model_6_pos_distr="0.00" model_6_neg_distr="0.00" obs_7_distr="2" model_7_pos_distr="0.01" model_7_neg_distr="1.96"/>
+<distribution_point fvalue="2.30" obs_1_distr="0" model_1_pos_distr="0.00" model_1_neg_distr="0.00" obs_2_distr="3" model_2_pos_distr="0.00" model_2_neg_distr="0.00" obs_3_distr="5" model_3_pos_distr="0.00" model_3_neg_distr="0.00" obs_4_distr="1" model_4_pos_distr="0.00" model_4_neg_distr="0.00" obs_5_distr="1" model_5_pos_distr="0.00" model_5_neg_distr="0.00" obs_6_distr="0" model_6_pos_distr="0.00" model_6_neg_distr="0.00" obs_7_distr="2" model_7_pos_distr="0.02" model_7_neg_distr="1.61"/>
+<distribution_point fvalue="2.50" obs_1_distr="0" model_1_pos_distr="0.00" model_1_neg_distr="0.00" obs_2_distr="2" model_2_pos_distr="0.00" model_2_neg_distr="0.00" obs_3_distr="6" model_3_pos_distr="0.00" model_3_neg_distr="0.00" obs_4_distr="0" model_4_pos_distr="0.00" model_4_neg_distr="0.00" obs_5_distr="0" model_5_pos_distr="0.00" model_5_neg_distr="0.00" obs_6_distr="0" model_6_pos_distr="0.00" model_6_neg_distr="0.00" obs_7_distr="0" model_7_pos_distr="0.03" model_7_neg_distr="1.26"/>
+<distribution_point fvalue="2.70" obs_1_distr="0" model_1_pos_distr="0.00" model_1_neg_distr="0.00" obs_2_distr="0" model_2_pos_distr="0.00" model_2_neg_distr="0.00" obs_3_distr="5" model_3_pos_distr="0.00" model_3_neg_distr="0.00" obs_4_distr="0" model_4_pos_distr="0.00" model_4_neg_distr="0.00" obs_5_distr="1" model_5_pos_distr="0.00" model_5_neg_distr="0.00" obs_6_distr="0" model_6_pos_distr="0.00" model_6_neg_distr="0.00" obs_7_distr="1" model_7_pos_distr="0.06" model_7_neg_distr="0.92"/>
+<distribution_point fvalue="2.90" obs_1_distr="0" model_1_pos_distr="0.00" model_1_neg_distr="0.00" obs_2_distr="1" model_2_pos_distr="0.00" model_2_neg_distr="0.00" obs_3_distr="2" model_3_pos_distr="0.00" model_3_neg_distr="0.00" obs_4_distr="3" model_4_pos_distr="0.00" model_4_neg_distr="0.00" obs_5_distr="0" model_5_pos_distr="0.00" model_5_neg_distr="0.00" obs_6_distr="1" model_6_pos_distr="0.00" model_6_neg_distr="0.00" obs_7_distr="0" model_7_pos_distr="0.09" model_7_neg_distr="0.61"/>
+<distribution_point fvalue="3.10" obs_1_distr="0" model_1_pos_distr="0.00" model_1_neg_distr="0.00" obs_2_distr="1" model_2_pos_distr="0.00" model_2_neg_distr="0.00" obs_3_distr="3" model_3_pos_distr="0.00" model_3_neg_distr="0.00" obs_4_distr="0" model_4_pos_distr="0.00" model_4_neg_distr="0.00" obs_5_distr="0" model_5_pos_distr="0.00" model_5_neg_distr="0.00" obs_6_distr="0" model_6_pos_distr="0.00" model_6_neg_distr="0.00" obs_7_distr="1" model_7_pos_distr="0.14" model_7_neg_distr="0.37"/>
+<distribution_point fvalue="3.30" obs_1_distr="0" model_1_pos_distr="0.00" model_1_neg_distr="0.00" obs_2_distr="0" model_2_pos_distr="0.00" model_2_neg_distr="0.00" obs_3_distr="2" model_3_pos_distr="0.00" model_3_neg_distr="0.00" obs_4_distr="1" model_4_pos_distr="0.00" model_4_neg_distr="0.00" obs_5_distr="0" model_5_pos_distr="0.00" model_5_neg_distr="0.00" obs_6_distr="0" model_6_pos_distr="0.00" model_6_neg_distr="0.00" obs_7_distr="0" model_7_pos_distr="0.21" model_7_neg_distr="0.20"/>
+<distribution_point fvalue="3.50" obs_1_distr="0" model_1_pos_distr="0.00" model_1_neg_distr="0.00" obs_2_distr="3" model_2_pos_distr="0.00" model_2_neg_distr="0.00" obs_3_distr="0" model_3_pos_distr="0.00" model_3_neg_distr="0.00" obs_4_distr="0" model_4_pos_distr="0.00" model_4_neg_distr="0.00" obs_5_distr="0" model_5_pos_distr="0.00" model_5_neg_distr="0.00" obs_6_distr="3" model_6_pos_distr="0.00" model_6_neg_distr="0.00" obs_7_distr="0" model_7_pos_distr="0.27" model_7_neg_distr="0.09"/>
+<distribution_point fvalue="3.70" obs_1_distr="0" model_1_pos_distr="0.00" model_1_neg_distr="0.00" obs_2_distr="0" model_2_pos_distr="0.00" model_2_neg_distr="0.00" obs_3_distr="0" model_3_pos_distr="0.00" model_3_neg_distr="0.00" obs_4_distr="2" model_4_pos_distr="0.00" model_4_neg_distr="0.00" obs_5_distr="1" model_5_pos_distr="0.00" model_5_neg_distr="0.00" obs_6_distr="1" model_6_pos_distr="0.00" model_6_neg_distr="0.00" obs_7_distr="1" model_7_pos_distr="0.33" model_7_neg_distr="0.04"/>
+<distribution_point fvalue="3.90" obs_1_distr="0" model_1_pos_distr="0.00" model_1_neg_distr="0.00" obs_2_distr="0" model_2_pos_distr="0.00" model_2_neg_distr="0.00" obs_3_distr="1" model_3_pos_distr="0.00" model_3_neg_distr="0.00" obs_4_distr="1" model_4_pos_distr="0.00" model_4_neg_distr="0.00" obs_5_distr="1" model_5_pos_distr="0.00" model_5_neg_distr="0.00" obs_6_distr="0" model_6_pos_distr="0.00" model_6_neg_distr="0.00" obs_7_distr="1" model_7_pos_distr="0.35" model_7_neg_distr="0.01"/>
+<distribution_point fvalue="4.10" obs_1_distr="0" model_1_pos_distr="0.00" model_1_neg_distr="0.00" obs_2_distr="0" model_2_pos_distr="0.00" model_2_neg_distr="0.00" obs_3_distr="1" model_3_pos_distr="0.00" model_3_neg_distr="0.00" obs_4_distr="0" model_4_pos_distr="0.00" model_4_neg_distr="0.00" obs_5_distr="0" model_5_pos_distr="0.00" model_5_neg_distr="0.00" obs_6_distr="1" model_6_pos_distr="0.00" model_6_neg_distr="0.00" obs_7_distr="1" model_7_pos_distr="0.33" model_7_neg_distr="0.00"/>
+<distribution_point fvalue="4.30" obs_1_distr="0" model_1_pos_distr="0.00" model_1_neg_distr="0.00" obs_2_distr="0" model_2_pos_distr="0.00" model_2_neg_distr="0.00" obs_3_distr="1" model_3_pos_distr="0.00" model_3_neg_distr="0.00" obs_4_distr="0" model_4_pos_distr="0.00" model_4_neg_distr="0.00" obs_5_distr="0" model_5_pos_distr="0.00" model_5_neg_distr="0.00" obs_6_distr="0" model_6_pos_distr="0.00" model_6_neg_distr="0.00" obs_7_distr="0" model_7_pos_distr="0.27" model_7_neg_distr="0.00"/>
+<distribution_point fvalue="4.50" obs_1_distr="0" model_1_pos_distr="0.00" model_1_neg_distr="0.00" obs_2_distr="2" model_2_pos_distr="0.00" model_2_neg_distr="0.00" obs_3_distr="0" model_3_pos_distr="0.00" model_3_neg_distr="0.00" obs_4_distr="0" model_4_pos_distr="0.00" model_4_neg_distr="0.00" obs_5_distr="1" model_5_pos_distr="0.00" model_5_neg_distr="0.00" obs_6_distr="0" model_6_pos_distr="0.00" model_6_neg_distr="0.00" obs_7_distr="0" model_7_pos_distr="0.20" model_7_neg_distr="0.00"/>
+<distribution_point fvalue="4.70" obs_1_distr="0" model_1_pos_distr="0.00" model_1_neg_distr="0.00" obs_2_distr="0" model_2_pos_distr="0.00" model_2_neg_distr="0.00" obs_3_distr="0" model_3_pos_distr="0.00" model_3_neg_distr="0.00" obs_4_distr="0" model_4_pos_distr="0.00" model_4_neg_distr="0.00" obs_5_distr="1" model_5_pos_distr="0.00" model_5_neg_distr="0.00" obs_6_distr="1" model_6_pos_distr="0.00" model_6_neg_distr="0.00" obs_7_distr="0" model_7_pos_distr="0.14" model_7_neg_distr="0.00"/>
+<distribution_point fvalue="4.90" obs_1_distr="0" model_1_pos_distr="0.00" model_1_neg_distr="0.00" obs_2_distr="1" model_2_pos_distr="0.00" model_2_neg_distr="0.00" obs_3_distr="2" model_3_pos_distr="0.00" model_3_neg_distr="0.00" obs_4_distr="0" model_4_pos_distr="0.00" model_4_neg_distr="0.00" obs_5_distr="0" model_5_pos_distr="0.00" model_5_neg_distr="0.00" obs_6_distr="0" model_6_pos_distr="0.00" model_6_neg_distr="0.00" obs_7_distr="0" model_7_pos_distr="0.10" model_7_neg_distr="0.00"/>
+<distribution_point fvalue="5.10" obs_1_distr="0" model_1_pos_distr="0.00" model_1_neg_distr="0.00" obs_2_distr="1" model_2_pos_distr="0.00" model_2_neg_distr="0.00" obs_3_distr="1" model_3_pos_distr="0.00" model_3_neg_distr="0.00" obs_4_distr="1" model_4_pos_distr="0.00" model_4_neg_distr="0.00" obs_5_distr="1" model_5_pos_distr="0.00" model_5_neg_distr="0.00" obs_6_distr="0" model_6_pos_distr="0.00" model_6_neg_distr="0.00" obs_7_distr="0" model_7_pos_distr="0.09" model_7_neg_distr="0.00"/>
+<distribution_point fvalue="5.30" obs_1_distr="0" model_1_pos_distr="0.00" model_1_neg_distr="0.00" obs_2_distr="0" model_2_pos_distr="0.00" model_2_neg_distr="0.00" obs_3_distr="3" model_3_pos_distr="0.00" model_3_neg_distr="0.00" obs_4_distr="0" model_4_pos_distr="0.00" model_4_neg_distr="0.00" obs_5_distr="0" model_5_pos_distr="0.00" model_5_neg_distr="0.00" obs_6_distr="1" model_6_pos_distr="0.00" model_6_neg_distr="0.00" obs_7_distr="0" model_7_pos_distr="0.11" model_7_neg_distr="0.00"/>
+<distribution_point fvalue="5.50" obs_1_distr="0" model_1_pos_distr="0.00" model_1_neg_distr="0.00" obs_2_distr="0" model_2_pos_distr="0.00" model_2_neg_distr="0.00" obs_3_distr="0" model_3_pos_distr="0.00" model_3_neg_distr="0.00" obs_4_distr="0" model_4_pos_distr="0.00" model_4_neg_distr="0.00" obs_5_distr="1" model_5_pos_distr="0.00" model_5_neg_distr="0.00" obs_6_distr="0" model_6_pos_distr="0.00" model_6_neg_distr="0.00" obs_7_distr="0" model_7_pos_distr="0.13" model_7_neg_distr="0.00"/>
+<distribution_point fvalue="5.70" obs_1_distr="0" model_1_pos_distr="0.00" model_1_neg_distr="0.00" obs_2_distr="0" model_2_pos_distr="0.00" model_2_neg_distr="0.00" obs_3_distr="0" model_3_pos_distr="0.00" model_3_neg_distr="0.00" obs_4_distr="0" model_4_pos_distr="0.00" model_4_neg_distr="0.00" obs_5_distr="0" model_5_pos_distr="0.00" model_5_neg_distr="0.00" obs_6_distr="0" model_6_pos_distr="0.00" model_6_neg_distr="0.00" obs_7_distr="1" model_7_pos_distr="0.15" model_7_neg_distr="0.00"/>
+<distribution_point fvalue="5.90" obs_1_distr="0" model_1_pos_distr="0.00" model_1_neg_distr="0.00" obs_2_distr="0" model_2_pos_distr="0.00" model_2_neg_distr="0.00" obs_3_distr="1" model_3_pos_distr="0.00" model_3_neg_distr="0.00" obs_4_distr="0" model_4_pos_distr="0.00" model_4_neg_distr="0.00" obs_5_distr="0" model_5_pos_distr="0.00" model_5_neg_distr="0.00" obs_6_distr="0" model_6_pos_distr="0.00" model_6_neg_distr="0.00" obs_7_distr="0" model_7_pos_distr="0.00" model_7_neg_distr="0.00"/>
+<distribution_point fvalue="6.10" obs_1_distr="0" model_1_pos_distr="0.00" model_1_neg_distr="0.00" obs_2_distr="0" model_2_pos_distr="0.00" model_2_neg_distr="0.00" obs_3_distr="0" model_3_pos_distr="0.00" model_3_neg_distr="0.00" obs_4_distr="0" model_4_pos_distr="0.00" model_4_neg_distr="0.00" obs_5_distr="1" model_5_pos_distr="0.00" model_5_neg_distr="0.00" obs_6_distr="0" model_6_pos_distr="0.00" model_6_neg_distr="0.00" obs_7_distr="0" model_7_pos_distr="0.00" model_7_neg_distr="0.00"/>
+<distribution_point fvalue="6.30" obs_1_distr="0" model_1_pos_distr="0.00" model_1_neg_distr="0.00" obs_2_distr="0" model_2_pos_distr="0.00" model_2_neg_distr="0.00" obs_3_distr="0" model_3_pos_distr="0.00" model_3_neg_distr="0.00" obs_4_distr="0" model_4_pos_distr="0.00" model_4_neg_distr="0.00" obs_5_distr="0" model_5_pos_distr="0.00" model_5_neg_distr="0.00" obs_6_distr="0" model_6_pos_distr="0.00" model_6_neg_distr="0.00" obs_7_distr="0" model_7_pos_distr="0.00" model_7_neg_distr="0.00"/>
+<distribution_point fvalue="6.50" obs_1_distr="0" model_1_pos_distr="0.00" model_1_neg_distr="0.00" obs_2_distr="0" model_2_pos_distr="0.00" model_2_neg_distr="0.00" obs_3_distr="1" model_3_pos_distr="0.00" model_3_neg_distr="0.00" obs_4_distr="1" model_4_pos_distr="0.00" model_4_neg_distr="0.00" obs_5_distr="0" model_5_pos_distr="0.00" model_5_neg_distr="0.00" obs_6_distr="0" model_6_pos_distr="0.00" model_6_neg_distr="0.00" obs_7_distr="0" model_7_pos_distr="0.00" model_7_neg_distr="0.00"/>
+<distribution_point fvalue="6.70" obs_1_distr="0" model_1_pos_distr="0.00" model_1_neg_distr="0.00" obs_2_distr="0" model_2_pos_distr="0.00" model_2_neg_distr="0.00" obs_3_distr="0" model_3_pos_distr="0.00" model_3_neg_distr="0.00" obs_4_distr="0" model_4_pos_distr="0.00" model_4_neg_distr="0.00" obs_5_distr="0" model_5_pos_distr="0.00" model_5_neg_distr="0.00" obs_6_distr="0" model_6_pos_distr="0.00" model_6_neg_distr="0.00" obs_7_distr="0" model_7_pos_distr="0.00" model_7_neg_distr="0.00"/>
+<distribution_point fvalue="6.90" obs_1_distr="0" model_1_pos_distr="0.00" model_1_neg_distr="0.00" obs_2_distr="0" model_2_pos_distr="0.00" model_2_neg_distr="0.00" obs_3_distr="1" model_3_pos_distr="0.00" model_3_neg_distr="0.00" obs_4_distr="0" model_4_pos_distr="0.00" model_4_neg_distr="0.00" obs_5_distr="0" model_5_pos_distr="0.00" model_5_neg_distr="0.00" obs_6_distr="0" model_6_pos_distr="0.00" model_6_neg_distr="0.00" obs_7_distr="0" model_7_pos_distr="0.00" model_7_neg_distr="0.00"/>
+<distribution_point fvalue="7.10" obs_1_distr="0" model_1_pos_distr="0.00" model_1_neg_distr="0.00" obs_2_distr="0" model_2_pos_distr="0.00" model_2_neg_distr="0.00" obs_3_distr="1" model_3_pos_distr="0.00" model_3_neg_distr="0.00" obs_4_distr="0" model_4_pos_distr="0.00" model_4_neg_distr="0.00" obs_5_distr="0" model_5_pos_distr="0.00" model_5_neg_distr="0.00" obs_6_distr="0" model_6_pos_distr="0.00" model_6_neg_distr="0.00" obs_7_distr="0" model_7_pos_distr="0.00" model_7_neg_distr="0.00"/>
+<distribution_point fvalue="7.30" obs_1_distr="0" model_1_pos_distr="0.00" model_1_neg_distr="0.00" obs_2_distr="0" model_2_pos_distr="0.00" model_2_neg_distr="0.00" obs_3_distr="0" model_3_pos_distr="0.00" model_3_neg_distr="0.00" obs_4_distr="0" model_4_pos_distr="0.00" model_4_neg_distr="0.00" obs_5_distr="0" model_5_pos_distr="0.00" model_5_neg_distr="0.00" obs_6_distr="0" model_6_pos_distr="0.00" model_6_neg_distr="0.00" obs_7_distr="0" model_7_pos_distr="0.00" model_7_neg_distr="0.00"/>
+<distribution_point fvalue="7.50" obs_1_distr="0" model_1_pos_distr="0.00" model_1_neg_distr="0.00" obs_2_distr="0" model_2_pos_distr="0.00" model_2_neg_distr="0.00" obs_3_distr="0" model_3_pos_distr="0.00" model_3_neg_distr="0.00" obs_4_distr="0" model_4_pos_distr="0.00" model_4_neg_distr="0.00" obs_5_distr="0" model_5_pos_distr="0.00" model_5_neg_distr="0.00" obs_6_distr="0" model_6_pos_distr="0.00" model_6_neg_distr="0.00" obs_7_distr="0" model_7_pos_distr="0.00" model_7_neg_distr="0.00"/>
+<distribution_point fvalue="7.70" obs_1_distr="0" model_1_pos_distr="0.00" model_1_neg_distr="0.00" obs_2_distr="0" model_2_pos_distr="0.00" model_2_neg_distr="0.00" obs_3_distr="0" model_3_pos_distr="0.00" model_3_neg_distr="0.00" obs_4_distr="0" model_4_pos_distr="0.00" model_4_neg_distr="0.00" obs_5_distr="0" model_5_pos_distr="0.00" model_5_neg_distr="0.00" obs_6_distr="0" model_6_pos_distr="0.00" model_6_neg_distr="0.00" obs_7_distr="0" model_7_pos_distr="0.00" model_7_neg_distr="0.00"/>
+<distribution_point fvalue="7.90" obs_1_distr="0" model_1_pos_distr="0.00" model_1_neg_distr="0.00" obs_2_distr="0" model_2_pos_distr="0.00" model_2_neg_distr="0.00" obs_3_distr="0" model_3_pos_distr="0.00" model_3_neg_distr="0.00" obs_4_distr="0" model_4_pos_distr="0.00" model_4_neg_distr="0.00" obs_5_distr="0" model_5_pos_distr="0.00" model_5_neg_distr="0.00" obs_6_distr="0" model_6_pos_distr="0.00" model_6_neg_distr="0.00" obs_7_distr="0" model_7_pos_distr="0.00" model_7_neg_distr="0.00"/>
+<distribution_point fvalue="8.10" obs_1_distr="0" model_1_pos_distr="0.00" model_1_neg_distr="0.00" obs_2_distr="0" model_2_pos_distr="0.00" model_2_neg_distr="0.00" obs_3_distr="0" model_3_pos_distr="0.00" model_3_neg_distr="0.00" obs_4_distr="0" model_4_pos_distr="0.00" model_4_neg_distr="0.00" obs_5_distr="0" model_5_pos_distr="0.00" model_5_neg_distr="0.00" obs_6_distr="0" model_6_pos_distr="0.00" model_6_neg_distr="0.00" obs_7_distr="0" model_7_pos_distr="0.00" model_7_neg_distr="0.00"/>
+<distribution_point fvalue="8.30" obs_1_distr="0" model_1_pos_distr="0.00" model_1_neg_distr="0.00" obs_2_distr="0" model_2_pos_distr="0.00" model_2_neg_distr="0.00" obs_3_distr="0" model_3_pos_distr="0.00" model_3_neg_distr="0.00" obs_4_distr="0" model_4_pos_distr="0.00" model_4_neg_distr="0.00" obs_5_distr="0" model_5_pos_distr="0.00" model_5_neg_distr="0.00" obs_6_distr="0" model_6_pos_distr="0.00" model_6_neg_distr="0.00" obs_7_distr="0" model_7_pos_distr="0.00" model_7_neg_distr="0.00"/>
+<distribution_point fvalue="8.50" obs_1_distr="0" model_1_pos_distr="0.00" model_1_neg_distr="0.00" obs_2_distr="0" model_2_pos_distr="0.00" model_2_neg_distr="0.00" obs_3_distr="0" model_3_pos_distr="0.00" model_3_neg_distr="0.00" obs_4_distr="0" model_4_pos_distr="0.00" model_4_neg_distr="0.00" obs_5_distr="0" model_5_pos_distr="0.00" model_5_neg_distr="0.00" obs_6_distr="0" model_6_pos_distr="0.00" model_6_neg_distr="0.00" obs_7_distr="0" model_7_pos_distr="0.00" model_7_neg_distr="0.00"/>
+<distribution_point fvalue="8.70" obs_1_distr="0" model_1_pos_distr="0.00" model_1_neg_distr="0.00" obs_2_distr="0" model_2_pos_distr="0.00" model_2_neg_distr="0.00" obs_3_distr="0" model_3_pos_distr="0.00" model_3_neg_distr="0.00" obs_4_distr="0" model_4_pos_distr="0.00" model_4_neg_distr="0.00" obs_5_distr="0" model_5_pos_distr="0.00" model_5_neg_distr="0.00" obs_6_distr="0" model_6_pos_distr="0.00" model_6_neg_distr="0.00" obs_7_distr="0" model_7_pos_distr="0.00" model_7_neg_distr="0.00"/>
+<distribution_point fvalue="8.90" obs_1_distr="0" model_1_pos_distr="0.00" model_1_neg_distr="0.00" obs_2_distr="0" model_2_pos_distr="0.00" model_2_neg_distr="0.00" obs_3_distr="0" model_3_pos_distr="0.00" model_3_neg_distr="0.00" obs_4_distr="0" model_4_pos_distr="0.00" model_4_neg_distr="0.00" obs_5_distr="0" model_5_pos_distr="0.00" model_5_neg_distr="0.00" obs_6_distr="0" model_6_pos_distr="0.00" model_6_neg_distr="0.00" obs_7_distr="0" model_7_pos_distr="0.00" model_7_neg_distr="0.00"/>
+<distribution_point fvalue="9.10" obs_1_distr="0" model_1_pos_distr="0.00" model_1_neg_distr="0.00" obs_2_distr="0" model_2_pos_distr="0.00" model_2_neg_distr="0.00" obs_3_distr="0" model_3_pos_distr="0.00" model_3_neg_distr="0.00" obs_4_distr="0" model_4_pos_distr="0.00" model_4_neg_distr="0.00" obs_5_distr="0" model_5_pos_distr="0.00" model_5_neg_distr="0.00" obs_6_distr="0" model_6_pos_distr="0.00" model_6_neg_distr="0.00" obs_7_distr="0" model_7_pos_distr="0.00" model_7_neg_distr="0.00"/>
+<distribution_point fvalue="9.30" obs_1_distr="0" model_1_pos_distr="0.00" model_1_neg_distr="0.00" obs_2_distr="0" model_2_pos_distr="0.00" model_2_neg_distr="0.00" obs_3_distr="0" model_3_pos_distr="0.00" model_3_neg_distr="0.00" obs_4_distr="0" model_4_pos_distr="0.00" model_4_neg_distr="0.00" obs_5_distr="0" model_5_pos_distr="0.00" model_5_neg_distr="0.00" obs_6_distr="0" model_6_pos_distr="0.00" model_6_neg_distr="0.00" obs_7_distr="0" model_7_pos_distr="0.00" model_7_neg_distr="0.00"/>
+<distribution_point fvalue="9.50" obs_1_distr="0" model_1_pos_distr="0.00" model_1_neg_distr="0.00" obs_2_distr="0" model_2_pos_distr="0.00" model_2_neg_distr="0.00" obs_3_distr="0" model_3_pos_distr="0.00" model_3_neg_distr="0.00" obs_4_distr="0" model_4_pos_distr="0.00" model_4_neg_distr="0.00" obs_5_distr="0" model_5_pos_distr="0.00" model_5_neg_distr="0.00" obs_6_distr="0" model_6_pos_distr="0.00" model_6_neg_distr="0.00" obs_7_distr="0" model_7_pos_distr="0.00" model_7_neg_distr="0.00"/>
+<distribution_point fvalue="9.70" obs_1_distr="0" model_1_pos_distr="0.00" model_1_neg_distr="0.00" obs_2_distr="0" model_2_pos_distr="0.00" model_2_neg_distr="0.00" obs_3_distr="0" model_3_pos_distr="0.00" model_3_neg_distr="0.00" obs_4_distr="0" model_4_pos_distr="0.00" model_4_neg_distr="0.00" obs_5_distr="0" model_5_pos_distr="0.00" model_5_neg_distr="0.00" obs_6_distr="0" model_6_pos_distr="0.00" model_6_neg_distr="0.00" obs_7_distr="0" model_7_pos_distr="0.00" model_7_neg_distr="0.00"/>
+<distribution_point fvalue="9.90" obs_1_distr="0" model_1_pos_distr="0.00" model_1_neg_distr="0.00" obs_2_distr="0" model_2_pos_distr="0.00" model_2_neg_distr="0.00" obs_3_distr="0" model_3_pos_distr="0.00" model_3_neg_distr="0.00" obs_4_distr="0" model_4_pos_distr="0.00" model_4_neg_distr="0.00" obs_5_distr="0" model_5_pos_distr="0.00" model_5_neg_distr="0.00" obs_6_distr="0" model_6_pos_distr="0.00" model_6_neg_distr="0.00" obs_7_distr="0" model_7_pos_distr="0.00" model_7_neg_distr="0.00"/>
+<mixture_model precursor_ion_charge="1" comments="using training data positive distributions to identify candidates ('-1') above background ('0')" prior_probability="0.000" est_tot_correct="0.0" tot_num_spectra="17" num_iterations="21">
+<mixturemodel_distribution name="Comet discrim score [fval]	negmean: 0.00">
+<posmodel_distribution type="non-parametric">
+<parameter name="mean" value="-0.488255"/>
+<parameter name="stdev" value="0.782284"/>
+</posmodel_distribution>
+<negmodel_distribution type="non-parametric">
+<parameter name="mean" value="-0.834666"/>
+<parameter name="stdev" value="0.997516"/>
+</negmodel_distribution>
+</mixturemodel_distribution>
+<mixturemodel_distribution name="no. tolerable nonspecific term. [ntt]">
+<posmodel_distribution>
+<parameter name="ntt=0" value="0.333"/>
+<parameter name="ntt=1" value="0.333"/>
+<parameter name="ntt=2" value="0.333"/>
+</posmodel_distribution>
+<negmodel_distribution>
+<parameter name="ntt=0" value="0.333"/>
+<parameter name="ntt=1" value="0.333"/>
+<parameter name="ntt=2" value="0.333"/>
+</negmodel_distribution>
+</mixturemodel_distribution>
+<mixturemodel_distribution name="no. missed enz. cleavages [nmc]">
+<posmodel_distribution>
+<parameter name="nmc=0" value="0.333"/>
+<parameter name="1&lt;=nmc&lt;=2" value="0.333"/>
+<parameter name="nmc&gt;=3" value="0.333"/>
+</posmodel_distribution>
+<negmodel_distribution>
+<parameter name="nmc=0" value="0.333"/>
+<parameter name="1&lt;=nmc&lt;=2" value="0.333"/>
+<parameter name="nmc&gt;=3" value="0.333"/>
+</negmodel_distribution>
+</mixturemodel_distribution>
+<mixturemodel name="Accurate Mass Model" pos_bandwidth="0.037848" neg_bandwidth="0.037848">
+<point value="-0.380812" pos_dens="0.000136" neg_dens="0.033438"/>
+<point value="-0.373166" pos_dens="0.000179" neg_dens="0.036507"/>
+<point value="-0.365520" pos_dens="0.000237" neg_dens="0.039917"/>
+<point value="-0.357874" pos_dens="0.000317" neg_dens="0.043711"/>
+<point value="-0.350228" pos_dens="0.000425" neg_dens="0.047939"/>
+<point value="-0.342582" pos_dens="0.000573" neg_dens="0.052654"/>
+<point value="-0.334935" pos_dens="0.000772" neg_dens="0.057919"/>
+<point value="-0.327289" pos_dens="0.001040" neg_dens="0.063805"/>
+<point value="-0.319643" pos_dens="0.001398" neg_dens="0.070392"/>
+<point value="-0.311997" pos_dens="0.001874" neg_dens="0.077770"/>
+<point value="-0.304351" pos_dens="0.002501" neg_dens="0.086042"/>
+<point value="-0.296705" pos_dens="0.003321" neg_dens="0.095327"/>
+<point value="-0.289059" pos_dens="0.004384" neg_dens="0.105761"/>
+<point value="-0.281413" pos_dens="0.005750" neg_dens="0.117500"/>
+<point value="-0.273767" pos_dens="0.007487" neg_dens="0.130725"/>
+<point value="-0.266121" pos_dens="0.009675" neg_dens="0.145648"/>
+<point value="-0.258475" pos_dens="0.012407" neg_dens="0.162513"/>
+<point value="-0.250828" pos_dens="0.015783" neg_dens="0.181606"/>
+<point value="-0.243182" pos_dens="0.019916" neg_dens="0.203256"/>
+<point value="-0.235536" pos_dens="0.024931" neg_dens="0.227845"/>
+<point value="-0.227890" pos_dens="0.030964" neg_dens="0.255813"/>
+<point value="-0.220244" pos_dens="0.038167" neg_dens="0.287662"/>
+<point value="-0.212598" pos_dens="0.046707" neg_dens="0.323961"/>
+<point value="-0.204952" pos_dens="0.056771" neg_dens="0.365352"/>
+<point value="-0.197306" pos_dens="0.068571" neg_dens="0.412550"/>
+<point value="-0.189660" pos_dens="0.082349" neg_dens="0.466348"/>
+<point value="-0.182014" pos_dens="0.098375" neg_dens="0.527603"/>
+<point value="-0.174368" pos_dens="0.116950" neg_dens="0.597232"/>
+<point value="-0.166721" pos_dens="0.138400" neg_dens="0.676178"/>
+<point value="-0.159075" pos_dens="0.163079" neg_dens="0.765378"/>
+<point value="-0.151429" pos_dens="0.191360" neg_dens="0.865698"/>
+<point value="-0.143783" pos_dens="0.223660" neg_dens="0.977868"/>
+<point value="-0.136137" pos_dens="0.260480" neg_dens="1.102391"/>
+<point value="-0.128491" pos_dens="0.302503" neg_dens="1.239458"/>
+<point value="-0.120845" pos_dens="0.350747" neg_dens="1.388864"/>
+<point value="-0.113199" pos_dens="0.406798" neg_dens="1.549939"/>
+<point value="-0.105553" pos_dens="0.473114" neg_dens="1.721502"/>
+<point value="-0.097907" pos_dens="0.553380" neg_dens="1.901859"/>
+<point value="-0.090261" pos_dens="0.652956" neg_dens="2.088839"/>
+<point value="-0.082614" pos_dens="0.779443" neg_dens="2.279915"/>
+<point value="-0.074968" pos_dens="0.943528" neg_dens="2.472408"/>
+<point value="-0.067322" pos_dens="1.160208" neg_dens="2.663806"/>
+<point value="-0.059676" pos_dens="1.450402" neg_dens="2.852176"/>
+<point value="-0.052030" pos_dens="1.843388" neg_dens="3.036614"/>
+<point value="-0.044384" pos_dens="2.382382" neg_dens="3.217608"/>
+<point value="-0.036738" pos_dens="3.134793" neg_dens="3.397155"/>
+<point value="-0.029092" pos_dens="4.193928" neg_dens="3.578446"/>
+<point value="-0.021446" pos_dens="5.642093" neg_dens="3.764994"/>
+<point value="-0.013800" pos_dens="7.482081" neg_dens="3.959187"/>
+<point value="-0.006154" pos_dens="9.594290" neg_dens="4.160474"/>
+<point value="0.001493" pos_dens="11.693434" neg_dens="4.363589"/>
+<point value="0.009139" pos_dens="13.261560" neg_dens="4.557471"/>
+<point value="0.016785" pos_dens="13.709064" neg_dens="4.725546"/>
+<point value="0.024431" pos_dens="12.804345" neg_dens="4.847746"/>
+<point value="0.032077" pos_dens="10.837429" neg_dens="4.904126"/>
+<point value="0.039723" pos_dens="8.357260" neg_dens="4.879172"/>
+<point value="0.047369" pos_dens="5.904099" neg_dens="4.765507"/>
+<point value="0.055015" pos_dens="3.875082" neg_dens="4.565764"/>
+<point value="0.062661" pos_dens="2.435136" neg_dens="4.292029"/>
+<point value="0.070307" pos_dens="1.526332" neg_dens="3.963195"/>
+<point value="0.077953" pos_dens="0.986396" neg_dens="3.601202"/>
+<point value="0.085600" pos_dens="0.664062" neg_dens="3.227385"/>
+<point value="0.093246" pos_dens="0.461544" neg_dens="2.859789"/>
+<point value="0.100892" pos_dens="0.326281" neg_dens="2.511802"/>
+<point value="0.108538" pos_dens="0.231865" neg_dens="2.191967"/>
+<point value="0.116184" pos_dens="0.164662" neg_dens="1.904578"/>
+<point value="0.123830" pos_dens="0.116848" neg_dens="1.650659"/>
+<point value="0.131476" pos_dens="0.083237" neg_dens="1.428999"/>
+<point value="0.139122" pos_dens="0.059976" neg_dens="1.237068"/>
+<point value="0.146768" pos_dens="0.044094" neg_dens="1.071719"/>
+<point value="0.154414" pos_dens="0.033329" neg_dens="0.929672"/>
+<point value="0.162060" pos_dens="0.026029" neg_dens="0.807797"/>
+<point value="0.169707" pos_dens="0.021030" neg_dens="0.703251"/>
+<point value="0.177353" pos_dens="0.017543" neg_dens="0.613527"/>
+<point value="0.184999" pos_dens="0.015044" neg_dens="0.536443"/>
+<point value="0.192645" pos_dens="0.013194" neg_dens="0.470117"/>
+<point value="0.200291" pos_dens="0.011771" neg_dens="0.412934"/>
+<point value="0.207937" pos_dens="0.010636" neg_dens="0.363517"/>
+<point value="0.215583" pos_dens="0.009699" neg_dens="0.320700"/>
+<point value="0.223229" pos_dens="0.008902" neg_dens="0.283500"/>
+<point value="0.230875" pos_dens="0.008206" neg_dens="0.251096"/>
+<point value="0.238521" pos_dens="0.007587" neg_dens="0.222799"/>
+<point value="0.246167" pos_dens="0.007029" neg_dens="0.198035"/>
+<point value="0.253814" pos_dens="0.006518" neg_dens="0.176320"/>
+<point value="0.261460" pos_dens="0.006048" neg_dens="0.157247"/>
+<point value="0.269106" pos_dens="0.005610" neg_dens="0.140468"/>
+<point value="0.276752" pos_dens="0.005201" neg_dens="0.125687"/>
+<point value="0.284398" pos_dens="0.004818" neg_dens="0.112647"/>
+<point value="0.292044" pos_dens="0.004457" neg_dens="0.101126"/>
+<point value="0.299690" pos_dens="0.004117" neg_dens="0.090932"/>
+<point value="0.307336" pos_dens="0.003797" neg_dens="0.081897"/>
+<point value="0.314982" pos_dens="0.003496" neg_dens="0.073877"/>
+<point value="0.322628" pos_dens="0.003212" neg_dens="0.066746"/>
+<point value="0.330274" pos_dens="0.002946" neg_dens="0.060392"/>
+<point value="0.337921" pos_dens="0.002696" neg_dens="0.054722"/>
+<point value="0.345567" pos_dens="0.002462" neg_dens="0.049652"/>
+<point value="0.353213" pos_dens="0.002244" neg_dens="0.045109"/>
+<point value="0.360859" pos_dens="0.002041" neg_dens="0.041033"/>
+<point value="0.368505" pos_dens="0.001853" neg_dens="0.037367"/>
+</mixturemodel>
+<mixturemodel_distribution name="isotopic peak mass difference [IsoMassDiff]">
+<posmodel_distribution>
+<parameter name="-3" value="0.143"/>
+<parameter name="-2" value="0.143"/>
+<parameter name="-1" value="0.143"/>
+<parameter name="0" value="0.143"/>
+<parameter name="1" value="0.143"/>
+<parameter name="2" value="0.143"/>
+<parameter name="3" value="0.143"/>
+</posmodel_distribution>
+<negmodel_distribution>
+<parameter name="-3" value="0.143"/>
+<parameter name="-2" value="0.143"/>
+<parameter name="-1" value="0.143"/>
+<parameter name="0" value="0.143"/>
+<parameter name="1" value="0.143"/>
+<parameter name="2" value="0.143"/>
+<parameter name="3" value="0.143"/>
+</negmodel_distribution>
+</mixturemodel_distribution>
+</mixture_model>
+<mixture_model precursor_ion_charge="2" comments="using training data positive distributions to identify candidates ('-2') above background ('0')" prior_probability="0.000" est_tot_correct="0.0" tot_num_spectra="979" num_iterations="22">
+<mixturemodel_distribution name="Comet discrim score [fval]	negmean: -1.14">
+<posmodel_distribution type="non-parametric">
+<parameter name="mean" value="0.0637335"/>
+<parameter name="stdev" value="1.20554"/>
+</posmodel_distribution>
+<negmodel_distribution type="non-parametric">
+<parameter name="mean" value="-1.14111"/>
+<parameter name="stdev" value="1.68513"/>
+</negmodel_distribution>
+</mixturemodel_distribution>
+<mixturemodel_distribution name="no. tolerable nonspecific term. [ntt]">
+<posmodel_distribution>
+<parameter name="ntt=0" value="0.333"/>
+<parameter name="ntt=1" value="0.333"/>
+<parameter name="ntt=2" value="0.333"/>
+</posmodel_distribution>
+<negmodel_distribution>
+<parameter name="ntt=0" value="0.333"/>
+<parameter name="ntt=1" value="0.333"/>
+<parameter name="ntt=2" value="0.333"/>
+</negmodel_distribution>
+</mixturemodel_distribution>
+<mixturemodel_distribution name="no. missed enz. cleavages [nmc]">
+<posmodel_distribution>
+<parameter name="nmc=0" value="0.333"/>
+<parameter name="1&lt;=nmc&lt;=2" value="0.333"/>
+<parameter name="nmc&gt;=3" value="0.333"/>
+</posmodel_distribution>
+<negmodel_distribution>
+<parameter name="nmc=0" value="0.333"/>
+<parameter name="1&lt;=nmc&lt;=2" value="0.333"/>
+<parameter name="nmc&gt;=3" value="0.333"/>
+</negmodel_distribution>
+</mixturemodel_distribution>
+<mixturemodel name="Accurate Mass Model" pos_bandwidth="0.037848" neg_bandwidth="0.037848">
+<point value="-0.380812" pos_dens="0.000136" neg_dens="0.033438"/>
+<point value="-0.373166" pos_dens="0.000179" neg_dens="0.036507"/>
+<point value="-0.365520" pos_dens="0.000237" neg_dens="0.039917"/>
+<point value="-0.357874" pos_dens="0.000317" neg_dens="0.043711"/>
+<point value="-0.350228" pos_dens="0.000425" neg_dens="0.047939"/>
+<point value="-0.342582" pos_dens="0.000573" neg_dens="0.052654"/>
+<point value="-0.334935" pos_dens="0.000772" neg_dens="0.057919"/>
+<point value="-0.327289" pos_dens="0.001040" neg_dens="0.063805"/>
+<point value="-0.319643" pos_dens="0.001398" neg_dens="0.070392"/>
+<point value="-0.311997" pos_dens="0.001874" neg_dens="0.077770"/>
+<point value="-0.304351" pos_dens="0.002501" neg_dens="0.086042"/>
+<point value="-0.296705" pos_dens="0.003321" neg_dens="0.095327"/>
+<point value="-0.289059" pos_dens="0.004384" neg_dens="0.105761"/>
+<point value="-0.281413" pos_dens="0.005750" neg_dens="0.117500"/>
+<point value="-0.273767" pos_dens="0.007487" neg_dens="0.130725"/>
+<point value="-0.266121" pos_dens="0.009675" neg_dens="0.145648"/>
+<point value="-0.258475" pos_dens="0.012407" neg_dens="0.162513"/>
+<point value="-0.250828" pos_dens="0.015783" neg_dens="0.181606"/>
+<point value="-0.243182" pos_dens="0.019916" neg_dens="0.203256"/>
+<point value="-0.235536" pos_dens="0.024931" neg_dens="0.227845"/>
+<point value="-0.227890" pos_dens="0.030964" neg_dens="0.255813"/>
+<point value="-0.220244" pos_dens="0.038167" neg_dens="0.287662"/>
+<point value="-0.212598" pos_dens="0.046707" neg_dens="0.323961"/>
+<point value="-0.204952" pos_dens="0.056771" neg_dens="0.365352"/>
+<point value="-0.197306" pos_dens="0.068571" neg_dens="0.412550"/>
+<point value="-0.189660" pos_dens="0.082349" neg_dens="0.466348"/>
+<point value="-0.182014" pos_dens="0.098375" neg_dens="0.527603"/>
+<point value="-0.174368" pos_dens="0.116950" neg_dens="0.597232"/>
+<point value="-0.166721" pos_dens="0.138400" neg_dens="0.676178"/>
+<point value="-0.159075" pos_dens="0.163079" neg_dens="0.765378"/>
+<point value="-0.151429" pos_dens="0.191360" neg_dens="0.865698"/>
+<point value="-0.143783" pos_dens="0.223660" neg_dens="0.977868"/>
+<point value="-0.136137" pos_dens="0.260480" neg_dens="1.102391"/>
+<point value="-0.128491" pos_dens="0.302503" neg_dens="1.239458"/>
+<point value="-0.120845" pos_dens="0.350747" neg_dens="1.388864"/>
+<point value="-0.113199" pos_dens="0.406798" neg_dens="1.549939"/>
+<point value="-0.105553" pos_dens="0.473114" neg_dens="1.721502"/>
+<point value="-0.097907" pos_dens="0.553380" neg_dens="1.901859"/>
+<point value="-0.090261" pos_dens="0.652956" neg_dens="2.088839"/>
+<point value="-0.082614" pos_dens="0.779443" neg_dens="2.279915"/>
+<point value="-0.074968" pos_dens="0.943528" neg_dens="2.472408"/>
+<point value="-0.067322" pos_dens="1.160208" neg_dens="2.663806"/>
+<point value="-0.059676" pos_dens="1.450402" neg_dens="2.852176"/>
+<point value="-0.052030" pos_dens="1.843388" neg_dens="3.036614"/>
+<point value="-0.044384" pos_dens="2.382382" neg_dens="3.217608"/>
+<point value="-0.036738" pos_dens="3.134793" neg_dens="3.397155"/>
+<point value="-0.029092" pos_dens="4.193928" neg_dens="3.578446"/>
+<point value="-0.021446" pos_dens="5.642093" neg_dens="3.764994"/>
+<point value="-0.013800" pos_dens="7.482081" neg_dens="3.959187"/>
+<point value="-0.006154" pos_dens="9.594290" neg_dens="4.160474"/>
+<point value="0.001493" pos_dens="11.693434" neg_dens="4.363589"/>
+<point value="0.009139" pos_dens="13.261560" neg_dens="4.557471"/>
+<point value="0.016785" pos_dens="13.709064" neg_dens="4.725546"/>
+<point value="0.024431" pos_dens="12.804345" neg_dens="4.847746"/>
+<point value="0.032077" pos_dens="10.837429" neg_dens="4.904126"/>
+<point value="0.039723" pos_dens="8.357260" neg_dens="4.879172"/>
+<point value="0.047369" pos_dens="5.904099" neg_dens="4.765507"/>
+<point value="0.055015" pos_dens="3.875082" neg_dens="4.565764"/>
+<point value="0.062661" pos_dens="2.435136" neg_dens="4.292029"/>
+<point value="0.070307" pos_dens="1.526332" neg_dens="3.963195"/>
+<point value="0.077953" pos_dens="0.986396" neg_dens="3.601202"/>
+<point value="0.085600" pos_dens="0.664062" neg_dens="3.227385"/>
+<point value="0.093246" pos_dens="0.461544" neg_dens="2.859789"/>
+<point value="0.100892" pos_dens="0.326281" neg_dens="2.511802"/>
+<point value="0.108538" pos_dens="0.231865" neg_dens="2.191967"/>
+<point value="0.116184" pos_dens="0.164662" neg_dens="1.904578"/>
+<point value="0.123830" pos_dens="0.116848" neg_dens="1.650659"/>
+<point value="0.131476" pos_dens="0.083237" neg_dens="1.428999"/>
+<point value="0.139122" pos_dens="0.059976" neg_dens="1.237068"/>
+<point value="0.146768" pos_dens="0.044094" neg_dens="1.071719"/>
+<point value="0.154414" pos_dens="0.033329" neg_dens="0.929672"/>
+<point value="0.162060" pos_dens="0.026029" neg_dens="0.807797"/>
+<point value="0.169707" pos_dens="0.021030" neg_dens="0.703251"/>
+<point value="0.177353" pos_dens="0.017543" neg_dens="0.613527"/>
+<point value="0.184999" pos_dens="0.015044" neg_dens="0.536443"/>
+<point value="0.192645" pos_dens="0.013194" neg_dens="0.470117"/>
+<point value="0.200291" pos_dens="0.011771" neg_dens="0.412934"/>
+<point value="0.207937" pos_dens="0.010636" neg_dens="0.363517"/>
+<point value="0.215583" pos_dens="0.009699" neg_dens="0.320700"/>
+<point value="0.223229" pos_dens="0.008902" neg_dens="0.283500"/>
+<point value="0.230875" pos_dens="0.008206" neg_dens="0.251096"/>
+<point value="0.238521" pos_dens="0.007587" neg_dens="0.222799"/>
+<point value="0.246167" pos_dens="0.007029" neg_dens="0.198035"/>
+<point value="0.253814" pos_dens="0.006518" neg_dens="0.176320"/>
+<point value="0.261460" pos_dens="0.006048" neg_dens="0.157247"/>
+<point value="0.269106" pos_dens="0.005610" neg_dens="0.140468"/>
+<point value="0.276752" pos_dens="0.005201" neg_dens="0.125687"/>
+<point value="0.284398" pos_dens="0.004818" neg_dens="0.112647"/>
+<point value="0.292044" pos_dens="0.004457" neg_dens="0.101126"/>
+<point value="0.299690" pos_dens="0.004117" neg_dens="0.090932"/>
+<point value="0.307336" pos_dens="0.003797" neg_dens="0.081897"/>
+<point value="0.314982" pos_dens="0.003496" neg_dens="0.073877"/>
+<point value="0.322628" pos_dens="0.003212" neg_dens="0.066746"/>
+<point value="0.330274" pos_dens="0.002946" neg_dens="0.060392"/>
+<point value="0.337921" pos_dens="0.002696" neg_dens="0.054722"/>
+<point value="0.345567" pos_dens="0.002462" neg_dens="0.049652"/>
+<point value="0.353213" pos_dens="0.002244" neg_dens="0.045109"/>
+<point value="0.360859" pos_dens="0.002041" neg_dens="0.041033"/>
+<point value="0.368505" pos_dens="0.001853" neg_dens="0.037367"/>
+</mixturemodel>
+<mixturemodel_distribution name="isotopic peak mass difference [IsoMassDiff]">
+<posmodel_distribution>
+<parameter name="-3" value="0.000"/>
+<parameter name="-2" value="0.000"/>
+<parameter name="-1" value="0.000"/>
+<parameter name="0" value="1.000"/>
+<parameter name="1" value="0.000"/>
+<parameter name="2" value="0.000"/>
+<parameter name="3" value="0.000"/>
+</posmodel_distribution>
+<negmodel_distribution>
+<parameter name="-3" value="0.000"/>
+<parameter name="-2" value="0.000"/>
+<parameter name="-1" value="0.000"/>
+<parameter name="0" value="1.000"/>
+<parameter name="1" value="0.000"/>
+<parameter name="2" value="0.000"/>
+<parameter name="3" value="0.000"/>
+</negmodel_distribution>
+</mixturemodel_distribution>
+</mixture_model>
+<mixture_model precursor_ion_charge="3" comments="using training data positive distributions to identify candidates ('-3') above background ('0')" prior_probability="0.000" est_tot_correct="0.0" tot_num_spectra="841" num_iterations="22">
+<mixturemodel_distribution name="Comet discrim score [fval]	negmean: -0.85">
+<posmodel_distribution type="non-parametric">
+<parameter name="mean" value="1.32077"/>
+<parameter name="stdev" value="1.96299"/>
+</posmodel_distribution>
+<negmodel_distribution type="non-parametric">
+<parameter name="mean" value="-0.848589"/>
+<parameter name="stdev" value="1.98211"/>
+</negmodel_distribution>
+</mixturemodel_distribution>
+<mixturemodel_distribution name="no. tolerable nonspecific term. [ntt]">
+<posmodel_distribution>
+<parameter name="ntt=0" value="0.333"/>
+<parameter name="ntt=1" value="0.333"/>
+<parameter name="ntt=2" value="0.333"/>
+</posmodel_distribution>
+<negmodel_distribution>
+<parameter name="ntt=0" value="0.333"/>
+<parameter name="ntt=1" value="0.333"/>
+<parameter name="ntt=2" value="0.333"/>
+</negmodel_distribution>
+</mixturemodel_distribution>
+<mixturemodel_distribution name="no. missed enz. cleavages [nmc]">
+<posmodel_distribution>
+<parameter name="nmc=0" value="0.333"/>
+<parameter name="1&lt;=nmc&lt;=2" value="0.333"/>
+<parameter name="nmc&gt;=3" value="0.333"/>
+</posmodel_distribution>
+<negmodel_distribution>
+<parameter name="nmc=0" value="0.333"/>
+<parameter name="1&lt;=nmc&lt;=2" value="0.333"/>
+<parameter name="nmc&gt;=3" value="0.333"/>
+</negmodel_distribution>
+</mixturemodel_distribution>
+<mixturemodel name="Accurate Mass Model" pos_bandwidth="0.037848" neg_bandwidth="0.037848">
+<point value="-0.380812" pos_dens="0.000136" neg_dens="0.033438"/>
+<point value="-0.373166" pos_dens="0.000179" neg_dens="0.036507"/>
+<point value="-0.365520" pos_dens="0.000237" neg_dens="0.039917"/>
+<point value="-0.357874" pos_dens="0.000317" neg_dens="0.043711"/>
+<point value="-0.350228" pos_dens="0.000425" neg_dens="0.047939"/>
+<point value="-0.342582" pos_dens="0.000573" neg_dens="0.052654"/>
+<point value="-0.334935" pos_dens="0.000772" neg_dens="0.057919"/>
+<point value="-0.327289" pos_dens="0.001040" neg_dens="0.063805"/>
+<point value="-0.319643" pos_dens="0.001398" neg_dens="0.070392"/>
+<point value="-0.311997" pos_dens="0.001874" neg_dens="0.077770"/>
+<point value="-0.304351" pos_dens="0.002501" neg_dens="0.086042"/>
+<point value="-0.296705" pos_dens="0.003321" neg_dens="0.095327"/>
+<point value="-0.289059" pos_dens="0.004384" neg_dens="0.105761"/>
+<point value="-0.281413" pos_dens="0.005750" neg_dens="0.117500"/>
+<point value="-0.273767" pos_dens="0.007487" neg_dens="0.130725"/>
+<point value="-0.266121" pos_dens="0.009675" neg_dens="0.145648"/>
+<point value="-0.258475" pos_dens="0.012407" neg_dens="0.162513"/>
+<point value="-0.250828" pos_dens="0.015783" neg_dens="0.181606"/>
+<point value="-0.243182" pos_dens="0.019916" neg_dens="0.203256"/>
+<point value="-0.235536" pos_dens="0.024931" neg_dens="0.227845"/>
+<point value="-0.227890" pos_dens="0.030964" neg_dens="0.255813"/>
+<point value="-0.220244" pos_dens="0.038167" neg_dens="0.287662"/>
+<point value="-0.212598" pos_dens="0.046707" neg_dens="0.323961"/>
+<point value="-0.204952" pos_dens="0.056771" neg_dens="0.365352"/>
+<point value="-0.197306" pos_dens="0.068571" neg_dens="0.412550"/>
+<point value="-0.189660" pos_dens="0.082349" neg_dens="0.466348"/>
+<point value="-0.182014" pos_dens="0.098375" neg_dens="0.527603"/>
+<point value="-0.174368" pos_dens="0.116950" neg_dens="0.597232"/>
+<point value="-0.166721" pos_dens="0.138400" neg_dens="0.676178"/>
+<point value="-0.159075" pos_dens="0.163079" neg_dens="0.765378"/>
+<point value="-0.151429" pos_dens="0.191360" neg_dens="0.865698"/>
+<point value="-0.143783" pos_dens="0.223660" neg_dens="0.977868"/>
+<point value="-0.136137" pos_dens="0.260480" neg_dens="1.102391"/>
+<point value="-0.128491" pos_dens="0.302503" neg_dens="1.239458"/>
+<point value="-0.120845" pos_dens="0.350747" neg_dens="1.388864"/>
+<point value="-0.113199" pos_dens="0.406798" neg_dens="1.549939"/>
+<point value="-0.105553" pos_dens="0.473114" neg_dens="1.721502"/>
+<point value="-0.097907" pos_dens="0.553380" neg_dens="1.901859"/>
+<point value="-0.090261" pos_dens="0.652956" neg_dens="2.088839"/>
+<point value="-0.082614" pos_dens="0.779443" neg_dens="2.279915"/>
+<point value="-0.074968" pos_dens="0.943528" neg_dens="2.472408"/>
+<point value="-0.067322" pos_dens="1.160208" neg_dens="2.663806"/>
+<point value="-0.059676" pos_dens="1.450402" neg_dens="2.852176"/>
+<point value="-0.052030" pos_dens="1.843388" neg_dens="3.036614"/>
+<point value="-0.044384" pos_dens="2.382382" neg_dens="3.217608"/>
+<point value="-0.036738" pos_dens="3.134793" neg_dens="3.397155"/>
+<point value="-0.029092" pos_dens="4.193928" neg_dens="3.578446"/>
+<point value="-0.021446" pos_dens="5.642093" neg_dens="3.764994"/>
+<point value="-0.013800" pos_dens="7.482081" neg_dens="3.959187"/>
+<point value="-0.006154" pos_dens="9.594290" neg_dens="4.160474"/>
+<point value="0.001493" pos_dens="11.693434" neg_dens="4.363589"/>
+<point value="0.009139" pos_dens="13.261560" neg_dens="4.557471"/>
+<point value="0.016785" pos_dens="13.709064" neg_dens="4.725546"/>
+<point value="0.024431" pos_dens="12.804345" neg_dens="4.847746"/>
+<point value="0.032077" pos_dens="10.837429" neg_dens="4.904126"/>
+<point value="0.039723" pos_dens="8.357260" neg_dens="4.879172"/>
+<point value="0.047369" pos_dens="5.904099" neg_dens="4.765507"/>
+<point value="0.055015" pos_dens="3.875082" neg_dens="4.565764"/>
+<point value="0.062661" pos_dens="2.435136" neg_dens="4.292029"/>
+<point value="0.070307" pos_dens="1.526332" neg_dens="3.963195"/>
+<point value="0.077953" pos_dens="0.986396" neg_dens="3.601202"/>
+<point value="0.085600" pos_dens="0.664062" neg_dens="3.227385"/>
+<point value="0.093246" pos_dens="0.461544" neg_dens="2.859789"/>
+<point value="0.100892" pos_dens="0.326281" neg_dens="2.511802"/>
+<point value="0.108538" pos_dens="0.231865" neg_dens="2.191967"/>
+<point value="0.116184" pos_dens="0.164662" neg_dens="1.904578"/>
+<point value="0.123830" pos_dens="0.116848" neg_dens="1.650659"/>
+<point value="0.131476" pos_dens="0.083237" neg_dens="1.428999"/>
+<point value="0.139122" pos_dens="0.059976" neg_dens="1.237068"/>
+<point value="0.146768" pos_dens="0.044094" neg_dens="1.071719"/>
+<point value="0.154414" pos_dens="0.033329" neg_dens="0.929672"/>
+<point value="0.162060" pos_dens="0.026029" neg_dens="0.807797"/>
+<point value="0.169707" pos_dens="0.021030" neg_dens="0.703251"/>
+<point value="0.177353" pos_dens="0.017543" neg_dens="0.613527"/>
+<point value="0.184999" pos_dens="0.015044" neg_dens="0.536443"/>
+<point value="0.192645" pos_dens="0.013194" neg_dens="0.470117"/>
+<point value="0.200291" pos_dens="0.011771" neg_dens="0.412934"/>
+<point value="0.207937" pos_dens="0.010636" neg_dens="0.363517"/>
+<point value="0.215583" pos_dens="0.009699" neg_dens="0.320700"/>
+<point value="0.223229" pos_dens="0.008902" neg_dens="0.283500"/>
+<point value="0.230875" pos_dens="0.008206" neg_dens="0.251096"/>
+<point value="0.238521" pos_dens="0.007587" neg_dens="0.222799"/>
+<point value="0.246167" pos_dens="0.007029" neg_dens="0.198035"/>
+<point value="0.253814" pos_dens="0.006518" neg_dens="0.176320"/>
+<point value="0.261460" pos_dens="0.006048" neg_dens="0.157247"/>
+<point value="0.269106" pos_dens="0.005610" neg_dens="0.140468"/>
+<point value="0.276752" pos_dens="0.005201" neg_dens="0.125687"/>
+<point value="0.284398" pos_dens="0.004818" neg_dens="0.112647"/>
+<point value="0.292044" pos_dens="0.004457" neg_dens="0.101126"/>
+<point value="0.299690" pos_dens="0.004117" neg_dens="0.090932"/>
+<point value="0.307336" pos_dens="0.003797" neg_dens="0.081897"/>
+<point value="0.314982" pos_dens="0.003496" neg_dens="0.073877"/>
+<point value="0.322628" pos_dens="0.003212" neg_dens="0.066746"/>
+<point value="0.330274" pos_dens="0.002946" neg_dens="0.060392"/>
+<point value="0.337921" pos_dens="0.002696" neg_dens="0.054722"/>
+<point value="0.345567" pos_dens="0.002462" neg_dens="0.049652"/>
+<point value="0.353213" pos_dens="0.002244" neg_dens="0.045109"/>
+<point value="0.360859" pos_dens="0.002041" neg_dens="0.041033"/>
+<point value="0.368505" pos_dens="0.001853" neg_dens="0.037367"/>
+</mixturemodel>
+<mixturemodel_distribution name="isotopic peak mass difference [IsoMassDiff]">
+<posmodel_distribution>
+<parameter name="-3" value="0.000"/>
+<parameter name="-2" value="0.000"/>
+<parameter name="-1" value="0.000"/>
+<parameter name="0" value="1.000"/>
+<parameter name="1" value="0.000"/>
+<parameter name="2" value="0.000"/>
+<parameter name="3" value="0.000"/>
+</posmodel_distribution>
+<negmodel_distribution>
+<parameter name="-3" value="0.000"/>
+<parameter name="-2" value="0.000"/>
+<parameter name="-1" value="0.000"/>
+<parameter name="0" value="1.000"/>
+<parameter name="1" value="0.000"/>
+<parameter name="2" value="0.000"/>
+<parameter name="3" value="0.000"/>
+</negmodel_distribution>
+</mixturemodel_distribution>
+</mixture_model>
+<mixture_model precursor_ion_charge="4" comments="using training data positive distributions to identify candidates ('-4') above background ('0')" prior_probability="0.000" est_tot_correct="0.0" tot_num_spectra="724" num_iterations="22">
+<mixturemodel_distribution name="Comet discrim score [fval]	negmean: -0.73">
+<posmodel_distribution type="non-parametric">
+<parameter name="mean" value="3.30869"/>
+<parameter name="stdev" value="1.88372"/>
+</posmodel_distribution>
+<negmodel_distribution type="non-parametric">
+<parameter name="mean" value="-0.733662"/>
+<parameter name="stdev" value="0.931542"/>
+</negmodel_distribution>
+</mixturemodel_distribution>
+<mixturemodel_distribution name="no. tolerable nonspecific term. [ntt]">
+<posmodel_distribution>
+<parameter name="ntt=0" value="0.333"/>
+<parameter name="ntt=1" value="0.333"/>
+<parameter name="ntt=2" value="0.333"/>
+</posmodel_distribution>
+<negmodel_distribution>
+<parameter name="ntt=0" value="0.333"/>
+<parameter name="ntt=1" value="0.333"/>
+<parameter name="ntt=2" value="0.333"/>
+</negmodel_distribution>
+</mixturemodel_distribution>
+<mixturemodel_distribution name="no. missed enz. cleavages [nmc]">
+<posmodel_distribution>
+<parameter name="nmc=0" value="0.333"/>
+<parameter name="1&lt;=nmc&lt;=2" value="0.333"/>
+<parameter name="nmc&gt;=3" value="0.333"/>
+</posmodel_distribution>
+<negmodel_distribution>
+<parameter name="nmc=0" value="0.333"/>
+<parameter name="1&lt;=nmc&lt;=2" value="0.333"/>
+<parameter name="nmc&gt;=3" value="0.333"/>
+</negmodel_distribution>
+</mixturemodel_distribution>
+<mixturemodel name="Accurate Mass Model" pos_bandwidth="0.037848" neg_bandwidth="0.037848">
+<point value="-0.380812" pos_dens="0.000136" neg_dens="0.033438"/>
+<point value="-0.373166" pos_dens="0.000179" neg_dens="0.036507"/>
+<point value="-0.365520" pos_dens="0.000237" neg_dens="0.039917"/>
+<point value="-0.357874" pos_dens="0.000317" neg_dens="0.043711"/>
+<point value="-0.350228" pos_dens="0.000425" neg_dens="0.047939"/>
+<point value="-0.342582" pos_dens="0.000573" neg_dens="0.052654"/>
+<point value="-0.334935" pos_dens="0.000772" neg_dens="0.057919"/>
+<point value="-0.327289" pos_dens="0.001040" neg_dens="0.063805"/>
+<point value="-0.319643" pos_dens="0.001398" neg_dens="0.070392"/>
+<point value="-0.311997" pos_dens="0.001874" neg_dens="0.077770"/>
+<point value="-0.304351" pos_dens="0.002501" neg_dens="0.086042"/>
+<point value="-0.296705" pos_dens="0.003321" neg_dens="0.095327"/>
+<point value="-0.289059" pos_dens="0.004384" neg_dens="0.105761"/>
+<point value="-0.281413" pos_dens="0.005750" neg_dens="0.117500"/>
+<point value="-0.273767" pos_dens="0.007487" neg_dens="0.130725"/>
+<point value="-0.266121" pos_dens="0.009675" neg_dens="0.145648"/>
+<point value="-0.258475" pos_dens="0.012407" neg_dens="0.162513"/>
+<point value="-0.250828" pos_dens="0.015783" neg_dens="0.181606"/>
+<point value="-0.243182" pos_dens="0.019916" neg_dens="0.203256"/>
+<point value="-0.235536" pos_dens="0.024931" neg_dens="0.227845"/>
+<point value="-0.227890" pos_dens="0.030964" neg_dens="0.255813"/>
+<point value="-0.220244" pos_dens="0.038167" neg_dens="0.287662"/>
+<point value="-0.212598" pos_dens="0.046707" neg_dens="0.323961"/>
+<point value="-0.204952" pos_dens="0.056771" neg_dens="0.365352"/>
+<point value="-0.197306" pos_dens="0.068571" neg_dens="0.412550"/>
+<point value="-0.189660" pos_dens="0.082349" neg_dens="0.466348"/>
+<point value="-0.182014" pos_dens="0.098375" neg_dens="0.527603"/>
+<point value="-0.174368" pos_dens="0.116950" neg_dens="0.597232"/>
+<point value="-0.166721" pos_dens="0.138400" neg_dens="0.676178"/>
+<point value="-0.159075" pos_dens="0.163079" neg_dens="0.765378"/>
+<point value="-0.151429" pos_dens="0.191360" neg_dens="0.865698"/>
+<point value="-0.143783" pos_dens="0.223660" neg_dens="0.977868"/>
+<point value="-0.136137" pos_dens="0.260480" neg_dens="1.102391"/>
+<point value="-0.128491" pos_dens="0.302503" neg_dens="1.239458"/>
+<point value="-0.120845" pos_dens="0.350747" neg_dens="1.388864"/>
+<point value="-0.113199" pos_dens="0.406798" neg_dens="1.549939"/>
+<point value="-0.105553" pos_dens="0.473114" neg_dens="1.721502"/>
+<point value="-0.097907" pos_dens="0.553380" neg_dens="1.901859"/>
+<point value="-0.090261" pos_dens="0.652956" neg_dens="2.088839"/>
+<point value="-0.082614" pos_dens="0.779443" neg_dens="2.279915"/>
+<point value="-0.074968" pos_dens="0.943528" neg_dens="2.472408"/>
+<point value="-0.067322" pos_dens="1.160208" neg_dens="2.663806"/>
+<point value="-0.059676" pos_dens="1.450402" neg_dens="2.852176"/>
+<point value="-0.052030" pos_dens="1.843388" neg_dens="3.036614"/>
+<point value="-0.044384" pos_dens="2.382382" neg_dens="3.217608"/>
+<point value="-0.036738" pos_dens="3.134793" neg_dens="3.397155"/>
+<point value="-0.029092" pos_dens="4.193928" neg_dens="3.578446"/>
+<point value="-0.021446" pos_dens="5.642093" neg_dens="3.764994"/>
+<point value="-0.013800" pos_dens="7.482081" neg_dens="3.959187"/>
+<point value="-0.006154" pos_dens="9.594290" neg_dens="4.160474"/>
+<point value="0.001493" pos_dens="11.693434" neg_dens="4.363589"/>
+<point value="0.009139" pos_dens="13.261560" neg_dens="4.557471"/>
+<point value="0.016785" pos_dens="13.709064" neg_dens="4.725546"/>
+<point value="0.024431" pos_dens="12.804345" neg_dens="4.847746"/>
+<point value="0.032077" pos_dens="10.837429" neg_dens="4.904126"/>
+<point value="0.039723" pos_dens="8.357260" neg_dens="4.879172"/>
+<point value="0.047369" pos_dens="5.904099" neg_dens="4.765507"/>
+<point value="0.055015" pos_dens="3.875082" neg_dens="4.565764"/>
+<point value="0.062661" pos_dens="2.435136" neg_dens="4.292029"/>
+<point value="0.070307" pos_dens="1.526332" neg_dens="3.963195"/>
+<point value="0.077953" pos_dens="0.986396" neg_dens="3.601202"/>
+<point value="0.085600" pos_dens="0.664062" neg_dens="3.227385"/>
+<point value="0.093246" pos_dens="0.461544" neg_dens="2.859789"/>
+<point value="0.100892" pos_dens="0.326281" neg_dens="2.511802"/>
+<point value="0.108538" pos_dens="0.231865" neg_dens="2.191967"/>
+<point value="0.116184" pos_dens="0.164662" neg_dens="1.904578"/>
+<point value="0.123830" pos_dens="0.116848" neg_dens="1.650659"/>
+<point value="0.131476" pos_dens="0.083237" neg_dens="1.428999"/>
+<point value="0.139122" pos_dens="0.059976" neg_dens="1.237068"/>
+<point value="0.146768" pos_dens="0.044094" neg_dens="1.071719"/>
+<point value="0.154414" pos_dens="0.033329" neg_dens="0.929672"/>
+<point value="0.162060" pos_dens="0.026029" neg_dens="0.807797"/>
+<point value="0.169707" pos_dens="0.021030" neg_dens="0.703251"/>
+<point value="0.177353" pos_dens="0.017543" neg_dens="0.613527"/>
+<point value="0.184999" pos_dens="0.015044" neg_dens="0.536443"/>
+<point value="0.192645" pos_dens="0.013194" neg_dens="0.470117"/>
+<point value="0.200291" pos_dens="0.011771" neg_dens="0.412934"/>
+<point value="0.207937" pos_dens="0.010636" neg_dens="0.363517"/>
+<point value="0.215583" pos_dens="0.009699" neg_dens="0.320700"/>
+<point value="0.223229" pos_dens="0.008902" neg_dens="0.283500"/>
+<point value="0.230875" pos_dens="0.008206" neg_dens="0.251096"/>
+<point value="0.238521" pos_dens="0.007587" neg_dens="0.222799"/>
+<point value="0.246167" pos_dens="0.007029" neg_dens="0.198035"/>
+<point value="0.253814" pos_dens="0.006518" neg_dens="0.176320"/>
+<point value="0.261460" pos_dens="0.006048" neg_dens="0.157247"/>
+<point value="0.269106" pos_dens="0.005610" neg_dens="0.140468"/>
+<point value="0.276752" pos_dens="0.005201" neg_dens="0.125687"/>
+<point value="0.284398" pos_dens="0.004818" neg_dens="0.112647"/>
+<point value="0.292044" pos_dens="0.004457" neg_dens="0.101126"/>
+<point value="0.299690" pos_dens="0.004117" neg_dens="0.090932"/>
+<point value="0.307336" pos_dens="0.003797" neg_dens="0.081897"/>
+<point value="0.314982" pos_dens="0.003496" neg_dens="0.073877"/>
+<point value="0.322628" pos_dens="0.003212" neg_dens="0.066746"/>
+<point value="0.330274" pos_dens="0.002946" neg_dens="0.060392"/>
+<point value="0.337921" pos_dens="0.002696" neg_dens="0.054722"/>
+<point value="0.345567" pos_dens="0.002462" neg_dens="0.049652"/>
+<point value="0.353213" pos_dens="0.002244" neg_dens="0.045109"/>
+<point value="0.360859" pos_dens="0.002041" neg_dens="0.041033"/>
+<point value="0.368505" pos_dens="0.001853" neg_dens="0.037367"/>
+</mixturemodel>
+<mixturemodel_distribution name="isotopic peak mass difference [IsoMassDiff]">
+<posmodel_distribution>
+<parameter name="-3" value="0.000"/>
+<parameter name="-2" value="0.000"/>
+<parameter name="-1" value="0.000"/>
+<parameter name="0" value="1.000"/>
+<parameter name="1" value="0.000"/>
+<parameter name="2" value="0.000"/>
+<parameter name="3" value="0.000"/>
+</posmodel_distribution>
+<negmodel_distribution>
+<parameter name="-3" value="0.000"/>
+<parameter name="-2" value="0.000"/>
+<parameter name="-1" value="0.000"/>
+<parameter name="0" value="1.000"/>
+<parameter name="1" value="0.000"/>
+<parameter name="2" value="0.000"/>
+<parameter name="3" value="0.000"/>
+</negmodel_distribution>
+</mixturemodel_distribution>
+</mixture_model>
+<mixture_model precursor_ion_charge="5" comments="using training data positive distributions to identify candidates ('-5') above background ('0')" prior_probability="0.000" est_tot_correct="0.0" tot_num_spectra="639" num_iterations="22">
+<mixturemodel_distribution name="Comet discrim score [fval]	negmean: -0.71">
+<posmodel_distribution type="non-parametric">
+<parameter name="mean" value="4.46172"/>
+<parameter name="stdev" value="0.77011"/>
+</posmodel_distribution>
+<negmodel_distribution type="non-parametric">
+<parameter name="mean" value="-0.705576"/>
+<parameter name="stdev" value="0.9138"/>
+</negmodel_distribution>
+</mixturemodel_distribution>
+<mixturemodel_distribution name="no. tolerable nonspecific term. [ntt]">
+<posmodel_distribution>
+<parameter name="ntt=0" value="0.333"/>
+<parameter name="ntt=1" value="0.333"/>
+<parameter name="ntt=2" value="0.333"/>
+</posmodel_distribution>
+<negmodel_distribution>
+<parameter name="ntt=0" value="0.333"/>
+<parameter name="ntt=1" value="0.333"/>
+<parameter name="ntt=2" value="0.333"/>
+</negmodel_distribution>
+</mixturemodel_distribution>
+<mixturemodel_distribution name="no. missed enz. cleavages [nmc]">
+<posmodel_distribution>
+<parameter name="nmc=0" value="0.333"/>
+<parameter name="1&lt;=nmc&lt;=2" value="0.333"/>
+<parameter name="nmc&gt;=3" value="0.333"/>
+</posmodel_distribution>
+<negmodel_distribution>
+<parameter name="nmc=0" value="0.333"/>
+<parameter name="1&lt;=nmc&lt;=2" value="0.333"/>
+<parameter name="nmc&gt;=3" value="0.333"/>
+</negmodel_distribution>
+</mixturemodel_distribution>
+<mixturemodel name="Accurate Mass Model" pos_bandwidth="0.037848" neg_bandwidth="0.037848">
+<point value="-0.380812" pos_dens="0.000136" neg_dens="0.033438"/>
+<point value="-0.373166" pos_dens="0.000179" neg_dens="0.036507"/>
+<point value="-0.365520" pos_dens="0.000237" neg_dens="0.039917"/>
+<point value="-0.357874" pos_dens="0.000317" neg_dens="0.043711"/>
+<point value="-0.350228" pos_dens="0.000425" neg_dens="0.047939"/>
+<point value="-0.342582" pos_dens="0.000573" neg_dens="0.052654"/>
+<point value="-0.334935" pos_dens="0.000772" neg_dens="0.057919"/>
+<point value="-0.327289" pos_dens="0.001040" neg_dens="0.063805"/>
+<point value="-0.319643" pos_dens="0.001398" neg_dens="0.070392"/>
+<point value="-0.311997" pos_dens="0.001874" neg_dens="0.077770"/>
+<point value="-0.304351" pos_dens="0.002501" neg_dens="0.086042"/>
+<point value="-0.296705" pos_dens="0.003321" neg_dens="0.095327"/>
+<point value="-0.289059" pos_dens="0.004384" neg_dens="0.105761"/>
+<point value="-0.281413" pos_dens="0.005750" neg_dens="0.117500"/>
+<point value="-0.273767" pos_dens="0.007487" neg_dens="0.130725"/>
+<point value="-0.266121" pos_dens="0.009675" neg_dens="0.145648"/>
+<point value="-0.258475" pos_dens="0.012407" neg_dens="0.162513"/>
+<point value="-0.250828" pos_dens="0.015783" neg_dens="0.181606"/>
+<point value="-0.243182" pos_dens="0.019916" neg_dens="0.203256"/>
+<point value="-0.235536" pos_dens="0.024931" neg_dens="0.227845"/>
+<point value="-0.227890" pos_dens="0.030964" neg_dens="0.255813"/>
+<point value="-0.220244" pos_dens="0.038167" neg_dens="0.287662"/>
+<point value="-0.212598" pos_dens="0.046707" neg_dens="0.323961"/>
+<point value="-0.204952" pos_dens="0.056771" neg_dens="0.365352"/>
+<point value="-0.197306" pos_dens="0.068571" neg_dens="0.412550"/>
+<point value="-0.189660" pos_dens="0.082349" neg_dens="0.466348"/>
+<point value="-0.182014" pos_dens="0.098375" neg_dens="0.527603"/>
+<point value="-0.174368" pos_dens="0.116950" neg_dens="0.597232"/>
+<point value="-0.166721" pos_dens="0.138400" neg_dens="0.676178"/>
+<point value="-0.159075" pos_dens="0.163079" neg_dens="0.765378"/>
+<point value="-0.151429" pos_dens="0.191360" neg_dens="0.865698"/>
+<point value="-0.143783" pos_dens="0.223660" neg_dens="0.977868"/>
+<point value="-0.136137" pos_dens="0.260480" neg_dens="1.102391"/>
+<point value="-0.128491" pos_dens="0.302503" neg_dens="1.239458"/>
+<point value="-0.120845" pos_dens="0.350747" neg_dens="1.388864"/>
+<point value="-0.113199" pos_dens="0.406798" neg_dens="1.549939"/>
+<point value="-0.105553" pos_dens="0.473114" neg_dens="1.721502"/>
+<point value="-0.097907" pos_dens="0.553380" neg_dens="1.901859"/>
+<point value="-0.090261" pos_dens="0.652956" neg_dens="2.088839"/>
+<point value="-0.082614" pos_dens="0.779443" neg_dens="2.279915"/>
+<point value="-0.074968" pos_dens="0.943528" neg_dens="2.472408"/>
+<point value="-0.067322" pos_dens="1.160208" neg_dens="2.663806"/>
+<point value="-0.059676" pos_dens="1.450402" neg_dens="2.852176"/>
+<point value="-0.052030" pos_dens="1.843388" neg_dens="3.036614"/>
+<point value="-0.044384" pos_dens="2.382382" neg_dens="3.217608"/>
+<point value="-0.036738" pos_dens="3.134793" neg_dens="3.397155"/>
+<point value="-0.029092" pos_dens="4.193928" neg_dens="3.578446"/>
+<point value="-0.021446" pos_dens="5.642093" neg_dens="3.764994"/>
+<point value="-0.013800" pos_dens="7.482081" neg_dens="3.959187"/>
+<point value="-0.006154" pos_dens="9.594290" neg_dens="4.160474"/>
+<point value="0.001493" pos_dens="11.693434" neg_dens="4.363589"/>
+<point value="0.009139" pos_dens="13.261560" neg_dens="4.557471"/>
+<point value="0.016785" pos_dens="13.709064" neg_dens="4.725546"/>
+<point value="0.024431" pos_dens="12.804345" neg_dens="4.847746"/>
+<point value="0.032077" pos_dens="10.837429" neg_dens="4.904126"/>
+<point value="0.039723" pos_dens="8.357260" neg_dens="4.879172"/>
+<point value="0.047369" pos_dens="5.904099" neg_dens="4.765507"/>
+<point value="0.055015" pos_dens="3.875082" neg_dens="4.565764"/>
+<point value="0.062661" pos_dens="2.435136" neg_dens="4.292029"/>
+<point value="0.070307" pos_dens="1.526332" neg_dens="3.963195"/>
+<point value="0.077953" pos_dens="0.986396" neg_dens="3.601202"/>
+<point value="0.085600" pos_dens="0.664062" neg_dens="3.227385"/>
+<point value="0.093246" pos_dens="0.461544" neg_dens="2.859789"/>
+<point value="0.100892" pos_dens="0.326281" neg_dens="2.511802"/>
+<point value="0.108538" pos_dens="0.231865" neg_dens="2.191967"/>
+<point value="0.116184" pos_dens="0.164662" neg_dens="1.904578"/>
+<point value="0.123830" pos_dens="0.116848" neg_dens="1.650659"/>
+<point value="0.131476" pos_dens="0.083237" neg_dens="1.428999"/>
+<point value="0.139122" pos_dens="0.059976" neg_dens="1.237068"/>
+<point value="0.146768" pos_dens="0.044094" neg_dens="1.071719"/>
+<point value="0.154414" pos_dens="0.033329" neg_dens="0.929672"/>
+<point value="0.162060" pos_dens="0.026029" neg_dens="0.807797"/>
+<point value="0.169707" pos_dens="0.021030" neg_dens="0.703251"/>
+<point value="0.177353" pos_dens="0.017543" neg_dens="0.613527"/>
+<point value="0.184999" pos_dens="0.015044" neg_dens="0.536443"/>
+<point value="0.192645" pos_dens="0.013194" neg_dens="0.470117"/>
+<point value="0.200291" pos_dens="0.011771" neg_dens="0.412934"/>
+<point value="0.207937" pos_dens="0.010636" neg_dens="0.363517"/>
+<point value="0.215583" pos_dens="0.009699" neg_dens="0.320700"/>
+<point value="0.223229" pos_dens="0.008902" neg_dens="0.283500"/>
+<point value="0.230875" pos_dens="0.008206" neg_dens="0.251096"/>
+<point value="0.238521" pos_dens="0.007587" neg_dens="0.222799"/>
+<point value="0.246167" pos_dens="0.007029" neg_dens="0.198035"/>
+<point value="0.253814" pos_dens="0.006518" neg_dens="0.176320"/>
+<point value="0.261460" pos_dens="0.006048" neg_dens="0.157247"/>
+<point value="0.269106" pos_dens="0.005610" neg_dens="0.140468"/>
+<point value="0.276752" pos_dens="0.005201" neg_dens="0.125687"/>
+<point value="0.284398" pos_dens="0.004818" neg_dens="0.112647"/>
+<point value="0.292044" pos_dens="0.004457" neg_dens="0.101126"/>
+<point value="0.299690" pos_dens="0.004117" neg_dens="0.090932"/>
+<point value="0.307336" pos_dens="0.003797" neg_dens="0.081897"/>
+<point value="0.314982" pos_dens="0.003496" neg_dens="0.073877"/>
+<point value="0.322628" pos_dens="0.003212" neg_dens="0.066746"/>
+<point value="0.330274" pos_dens="0.002946" neg_dens="0.060392"/>
+<point value="0.337921" pos_dens="0.002696" neg_dens="0.054722"/>
+<point value="0.345567" pos_dens="0.002462" neg_dens="0.049652"/>
+<point value="0.353213" pos_dens="0.002244" neg_dens="0.045109"/>
+<point value="0.360859" pos_dens="0.002041" neg_dens="0.041033"/>
+<point value="0.368505" pos_dens="0.001853" neg_dens="0.037367"/>
+</mixturemodel>
+<mixturemodel_distribution name="isotopic peak mass difference [IsoMassDiff]">
+<posmodel_distribution>
+<parameter name="-3" value="0.000"/>
+<parameter name="-2" value="0.000"/>
+<parameter name="-1" value="0.000"/>
+<parameter name="0" value="1.000"/>
+<parameter name="1" value="0.000"/>
+<parameter name="2" value="0.000"/>
+<parameter name="3" value="0.000"/>
+</posmodel_distribution>
+<negmodel_distribution>
+<parameter name="-3" value="0.000"/>
+<parameter name="-2" value="0.000"/>
+<parameter name="-1" value="0.000"/>
+<parameter name="0" value="1.000"/>
+<parameter name="1" value="0.000"/>
+<parameter name="2" value="0.000"/>
+<parameter name="3" value="0.000"/>
+</negmodel_distribution>
+</mixturemodel_distribution>
+</mixture_model>
+<mixture_model precursor_ion_charge="6" comments="using training data positive distributions to identify candidates ('-6') above background ('0')" prior_probability="0.000" est_tot_correct="0.0" tot_num_spectra="605" num_iterations="22">
+<mixturemodel_distribution name="Comet discrim score [fval]	negmean: -0.75">
+<posmodel_distribution type="non-parametric">
+<parameter name="mean" value="3.73477"/>
+<parameter name="stdev" value="0.367125"/>
+</posmodel_distribution>
+<negmodel_distribution type="non-parametric">
+<parameter name="mean" value="-0.748249"/>
+<parameter name="stdev" value="0.901152"/>
+</negmodel_distribution>
+</mixturemodel_distribution>
+<mixturemodel_distribution name="no. tolerable nonspecific term. [ntt]">
+<posmodel_distribution>
+<parameter name="ntt=0" value="0.333"/>
+<parameter name="ntt=1" value="0.333"/>
+<parameter name="ntt=2" value="0.333"/>
+</posmodel_distribution>
+<negmodel_distribution>
+<parameter name="ntt=0" value="0.333"/>
+<parameter name="ntt=1" value="0.333"/>
+<parameter name="ntt=2" value="0.333"/>
+</negmodel_distribution>
+</mixturemodel_distribution>
+<mixturemodel_distribution name="no. missed enz. cleavages [nmc]">
+<posmodel_distribution>
+<parameter name="nmc=0" value="0.333"/>
+<parameter name="1&lt;=nmc&lt;=2" value="0.333"/>
+<parameter name="nmc&gt;=3" value="0.333"/>
+</posmodel_distribution>
+<negmodel_distribution>
+<parameter name="nmc=0" value="0.333"/>
+<parameter name="1&lt;=nmc&lt;=2" value="0.333"/>
+<parameter name="nmc&gt;=3" value="0.333"/>
+</negmodel_distribution>
+</mixturemodel_distribution>
+<mixturemodel name="Accurate Mass Model" pos_bandwidth="0.037848" neg_bandwidth="0.037848">
+<point value="-0.380812" pos_dens="0.000136" neg_dens="0.033438"/>
+<point value="-0.373166" pos_dens="0.000179" neg_dens="0.036507"/>
+<point value="-0.365520" pos_dens="0.000237" neg_dens="0.039917"/>
+<point value="-0.357874" pos_dens="0.000317" neg_dens="0.043711"/>
+<point value="-0.350228" pos_dens="0.000425" neg_dens="0.047939"/>
+<point value="-0.342582" pos_dens="0.000573" neg_dens="0.052654"/>
+<point value="-0.334935" pos_dens="0.000772" neg_dens="0.057919"/>
+<point value="-0.327289" pos_dens="0.001040" neg_dens="0.063805"/>
+<point value="-0.319643" pos_dens="0.001398" neg_dens="0.070392"/>
+<point value="-0.311997" pos_dens="0.001874" neg_dens="0.077770"/>
+<point value="-0.304351" pos_dens="0.002501" neg_dens="0.086042"/>
+<point value="-0.296705" pos_dens="0.003321" neg_dens="0.095327"/>
+<point value="-0.289059" pos_dens="0.004384" neg_dens="0.105761"/>
+<point value="-0.281413" pos_dens="0.005750" neg_dens="0.117500"/>
+<point value="-0.273767" pos_dens="0.007487" neg_dens="0.130725"/>
+<point value="-0.266121" pos_dens="0.009675" neg_dens="0.145648"/>
+<point value="-0.258475" pos_dens="0.012407" neg_dens="0.162513"/>
+<point value="-0.250828" pos_dens="0.015783" neg_dens="0.181606"/>
+<point value="-0.243182" pos_dens="0.019916" neg_dens="0.203256"/>
+<point value="-0.235536" pos_dens="0.024931" neg_dens="0.227845"/>
+<point value="-0.227890" pos_dens="0.030964" neg_dens="0.255813"/>
+<point value="-0.220244" pos_dens="0.038167" neg_dens="0.287662"/>
+<point value="-0.212598" pos_dens="0.046707" neg_dens="0.323961"/>
+<point value="-0.204952" pos_dens="0.056771" neg_dens="0.365352"/>
+<point value="-0.197306" pos_dens="0.068571" neg_dens="0.412550"/>
+<point value="-0.189660" pos_dens="0.082349" neg_dens="0.466348"/>
+<point value="-0.182014" pos_dens="0.098375" neg_dens="0.527603"/>
+<point value="-0.174368" pos_dens="0.116950" neg_dens="0.597232"/>
+<point value="-0.166721" pos_dens="0.138400" neg_dens="0.676178"/>
+<point value="-0.159075" pos_dens="0.163079" neg_dens="0.765378"/>
+<point value="-0.151429" pos_dens="0.191360" neg_dens="0.865698"/>
+<point value="-0.143783" pos_dens="0.223660" neg_dens="0.977868"/>
+<point value="-0.136137" pos_dens="0.260480" neg_dens="1.102391"/>
+<point value="-0.128491" pos_dens="0.302503" neg_dens="1.239458"/>
+<point value="-0.120845" pos_dens="0.350747" neg_dens="1.388864"/>
+<point value="-0.113199" pos_dens="0.406798" neg_dens="1.549939"/>
+<point value="-0.105553" pos_dens="0.473114" neg_dens="1.721502"/>
+<point value="-0.097907" pos_dens="0.553380" neg_dens="1.901859"/>
+<point value="-0.090261" pos_dens="0.652956" neg_dens="2.088839"/>
+<point value="-0.082614" pos_dens="0.779443" neg_dens="2.279915"/>
+<point value="-0.074968" pos_dens="0.943528" neg_dens="2.472408"/>
+<point value="-0.067322" pos_dens="1.160208" neg_dens="2.663806"/>
+<point value="-0.059676" pos_dens="1.450402" neg_dens="2.852176"/>
+<point value="-0.052030" pos_dens="1.843388" neg_dens="3.036614"/>
+<point value="-0.044384" pos_dens="2.382382" neg_dens="3.217608"/>
+<point value="-0.036738" pos_dens="3.134793" neg_dens="3.397155"/>
+<point value="-0.029092" pos_dens="4.193928" neg_dens="3.578446"/>
+<point value="-0.021446" pos_dens="5.642093" neg_dens="3.764994"/>
+<point value="-0.013800" pos_dens="7.482081" neg_dens="3.959187"/>
+<point value="-0.006154" pos_dens="9.594290" neg_dens="4.160474"/>
+<point value="0.001493" pos_dens="11.693434" neg_dens="4.363589"/>
+<point value="0.009139" pos_dens="13.261560" neg_dens="4.557471"/>
+<point value="0.016785" pos_dens="13.709064" neg_dens="4.725546"/>
+<point value="0.024431" pos_dens="12.804345" neg_dens="4.847746"/>
+<point value="0.032077" pos_dens="10.837429" neg_dens="4.904126"/>
+<point value="0.039723" pos_dens="8.357260" neg_dens="4.879172"/>
+<point value="0.047369" pos_dens="5.904099" neg_dens="4.765507"/>
+<point value="0.055015" pos_dens="3.875082" neg_dens="4.565764"/>
+<point value="0.062661" pos_dens="2.435136" neg_dens="4.292029"/>
+<point value="0.070307" pos_dens="1.526332" neg_dens="3.963195"/>
+<point value="0.077953" pos_dens="0.986396" neg_dens="3.601202"/>
+<point value="0.085600" pos_dens="0.664062" neg_dens="3.227385"/>
+<point value="0.093246" pos_dens="0.461544" neg_dens="2.859789"/>
+<point value="0.100892" pos_dens="0.326281" neg_dens="2.511802"/>
+<point value="0.108538" pos_dens="0.231865" neg_dens="2.191967"/>
+<point value="0.116184" pos_dens="0.164662" neg_dens="1.904578"/>
+<point value="0.123830" pos_dens="0.116848" neg_dens="1.650659"/>
+<point value="0.131476" pos_dens="0.083237" neg_dens="1.428999"/>
+<point value="0.139122" pos_dens="0.059976" neg_dens="1.237068"/>
+<point value="0.146768" pos_dens="0.044094" neg_dens="1.071719"/>
+<point value="0.154414" pos_dens="0.033329" neg_dens="0.929672"/>
+<point value="0.162060" pos_dens="0.026029" neg_dens="0.807797"/>
+<point value="0.169707" pos_dens="0.021030" neg_dens="0.703251"/>
+<point value="0.177353" pos_dens="0.017543" neg_dens="0.613527"/>
+<point value="0.184999" pos_dens="0.015044" neg_dens="0.536443"/>
+<point value="0.192645" pos_dens="0.013194" neg_dens="0.470117"/>
+<point value="0.200291" pos_dens="0.011771" neg_dens="0.412934"/>
+<point value="0.207937" pos_dens="0.010636" neg_dens="0.363517"/>
+<point value="0.215583" pos_dens="0.009699" neg_dens="0.320700"/>
+<point value="0.223229" pos_dens="0.008902" neg_dens="0.283500"/>
+<point value="0.230875" pos_dens="0.008206" neg_dens="0.251096"/>
+<point value="0.238521" pos_dens="0.007587" neg_dens="0.222799"/>
+<point value="0.246167" pos_dens="0.007029" neg_dens="0.198035"/>
+<point value="0.253814" pos_dens="0.006518" neg_dens="0.176320"/>
+<point value="0.261460" pos_dens="0.006048" neg_dens="0.157247"/>
+<point value="0.269106" pos_dens="0.005610" neg_dens="0.140468"/>
+<point value="0.276752" pos_dens="0.005201" neg_dens="0.125687"/>
+<point value="0.284398" pos_dens="0.004818" neg_dens="0.112647"/>
+<point value="0.292044" pos_dens="0.004457" neg_dens="0.101126"/>
+<point value="0.299690" pos_dens="0.004117" neg_dens="0.090932"/>
+<point value="0.307336" pos_dens="0.003797" neg_dens="0.081897"/>
+<point value="0.314982" pos_dens="0.003496" neg_dens="0.073877"/>
+<point value="0.322628" pos_dens="0.003212" neg_dens="0.066746"/>
+<point value="0.330274" pos_dens="0.002946" neg_dens="0.060392"/>
+<point value="0.337921" pos_dens="0.002696" neg_dens="0.054722"/>
+<point value="0.345567" pos_dens="0.002462" neg_dens="0.049652"/>
+<point value="0.353213" pos_dens="0.002244" neg_dens="0.045109"/>
+<point value="0.360859" pos_dens="0.002041" neg_dens="0.041033"/>
+<point value="0.368505" pos_dens="0.001853" neg_dens="0.037367"/>
+</mixturemodel>
+<mixturemodel_distribution name="isotopic peak mass difference [IsoMassDiff]">
+<posmodel_distribution>
+<parameter name="-3" value="0.000"/>
+<parameter name="-2" value="0.000"/>
+<parameter name="-1" value="0.000"/>
+<parameter name="0" value="1.000"/>
+<parameter name="1" value="0.000"/>
+<parameter name="2" value="0.000"/>
+<parameter name="3" value="0.000"/>
+</posmodel_distribution>
+<negmodel_distribution>
+<parameter name="-3" value="0.000"/>
+<parameter name="-2" value="0.000"/>
+<parameter name="-1" value="0.000"/>
+<parameter name="0" value="1.000"/>
+<parameter name="1" value="0.000"/>
+<parameter name="2" value="0.000"/>
+<parameter name="3" value="0.000"/>
+</negmodel_distribution>
+</mixturemodel_distribution>
+</mixture_model>
+<mixture_model precursor_ion_charge="7" comments="using no. tolerable nonspecific term. [ntt] 0 data as pseudonegatives" prior_probability="0.006" est_tot_correct="3.3" tot_num_spectra="578" num_iterations="22">
+<mixturemodel_distribution name="Comet discrim score [fval]	negmean: -0.79">
+<posmodel_distribution type="non-parametric">
+<parameter name="mean" value="4.36176"/>
+<parameter name="stdev" value="0.89816"/>
+</posmodel_distribution>
+<negmodel_distribution type="non-parametric">
+<parameter name="mean" value="-0.793419"/>
+<parameter name="stdev" value="0.826203"/>
+</negmodel_distribution>
+</mixturemodel_distribution>
+<mixturemodel_distribution name="no. tolerable nonspecific term. [ntt]">
+<posmodel_distribution>
+<parameter name="ntt=0" value="0.333"/>
+<parameter name="ntt=1" value="0.333"/>
+<parameter name="ntt=2" value="0.333"/>
+</posmodel_distribution>
+<negmodel_distribution>
+<parameter name="ntt=0" value="0.333"/>
+<parameter name="ntt=1" value="0.333"/>
+<parameter name="ntt=2" value="0.333"/>
+</negmodel_distribution>
+</mixturemodel_distribution>
+<mixturemodel_distribution name="no. missed enz. cleavages [nmc]">
+<posmodel_distribution>
+<parameter name="nmc=0" value="0.333"/>
+<parameter name="1&lt;=nmc&lt;=2" value="0.333"/>
+<parameter name="nmc&gt;=3" value="0.333"/>
+</posmodel_distribution>
+<negmodel_distribution>
+<parameter name="nmc=0" value="0.333"/>
+<parameter name="1&lt;=nmc&lt;=2" value="0.333"/>
+<parameter name="nmc&gt;=3" value="0.333"/>
+</negmodel_distribution>
+</mixturemodel_distribution>
+<mixturemodel name="Accurate Mass Model" pos_bandwidth="0.037848" neg_bandwidth="0.037848">
+<point value="-0.380812" pos_dens="0.000136" neg_dens="0.033438"/>
+<point value="-0.373166" pos_dens="0.000179" neg_dens="0.036507"/>
+<point value="-0.365520" pos_dens="0.000237" neg_dens="0.039917"/>
+<point value="-0.357874" pos_dens="0.000317" neg_dens="0.043711"/>
+<point value="-0.350228" pos_dens="0.000425" neg_dens="0.047939"/>
+<point value="-0.342582" pos_dens="0.000573" neg_dens="0.052654"/>
+<point value="-0.334935" pos_dens="0.000772" neg_dens="0.057919"/>
+<point value="-0.327289" pos_dens="0.001040" neg_dens="0.063805"/>
+<point value="-0.319643" pos_dens="0.001398" neg_dens="0.070392"/>
+<point value="-0.311997" pos_dens="0.001874" neg_dens="0.077770"/>
+<point value="-0.304351" pos_dens="0.002501" neg_dens="0.086042"/>
+<point value="-0.296705" pos_dens="0.003321" neg_dens="0.095327"/>
+<point value="-0.289059" pos_dens="0.004384" neg_dens="0.105761"/>
+<point value="-0.281413" pos_dens="0.005750" neg_dens="0.117500"/>
+<point value="-0.273767" pos_dens="0.007487" neg_dens="0.130725"/>
+<point value="-0.266121" pos_dens="0.009675" neg_dens="0.145648"/>
+<point value="-0.258475" pos_dens="0.012407" neg_dens="0.162513"/>
+<point value="-0.250828" pos_dens="0.015783" neg_dens="0.181606"/>
+<point value="-0.243182" pos_dens="0.019916" neg_dens="0.203256"/>
+<point value="-0.235536" pos_dens="0.024931" neg_dens="0.227845"/>
+<point value="-0.227890" pos_dens="0.030964" neg_dens="0.255813"/>
+<point value="-0.220244" pos_dens="0.038167" neg_dens="0.287662"/>
+<point value="-0.212598" pos_dens="0.046707" neg_dens="0.323961"/>
+<point value="-0.204952" pos_dens="0.056771" neg_dens="0.365352"/>
+<point value="-0.197306" pos_dens="0.068571" neg_dens="0.412550"/>
+<point value="-0.189660" pos_dens="0.082349" neg_dens="0.466348"/>
+<point value="-0.182014" pos_dens="0.098375" neg_dens="0.527603"/>
+<point value="-0.174368" pos_dens="0.116950" neg_dens="0.597232"/>
+<point value="-0.166721" pos_dens="0.138400" neg_dens="0.676178"/>
+<point value="-0.159075" pos_dens="0.163079" neg_dens="0.765378"/>
+<point value="-0.151429" pos_dens="0.191360" neg_dens="0.865698"/>
+<point value="-0.143783" pos_dens="0.223660" neg_dens="0.977868"/>
+<point value="-0.136137" pos_dens="0.260480" neg_dens="1.102391"/>
+<point value="-0.128491" pos_dens="0.302503" neg_dens="1.239458"/>
+<point value="-0.120845" pos_dens="0.350747" neg_dens="1.388864"/>
+<point value="-0.113199" pos_dens="0.406798" neg_dens="1.549939"/>
+<point value="-0.105553" pos_dens="0.473114" neg_dens="1.721502"/>
+<point value="-0.097907" pos_dens="0.553380" neg_dens="1.901859"/>
+<point value="-0.090261" pos_dens="0.652956" neg_dens="2.088839"/>
+<point value="-0.082614" pos_dens="0.779443" neg_dens="2.279915"/>
+<point value="-0.074968" pos_dens="0.943528" neg_dens="2.472408"/>
+<point value="-0.067322" pos_dens="1.160208" neg_dens="2.663806"/>
+<point value="-0.059676" pos_dens="1.450402" neg_dens="2.852176"/>
+<point value="-0.052030" pos_dens="1.843388" neg_dens="3.036614"/>
+<point value="-0.044384" pos_dens="2.382382" neg_dens="3.217608"/>
+<point value="-0.036738" pos_dens="3.134793" neg_dens="3.397155"/>
+<point value="-0.029092" pos_dens="4.193928" neg_dens="3.578446"/>
+<point value="-0.021446" pos_dens="5.642093" neg_dens="3.764994"/>
+<point value="-0.013800" pos_dens="7.482081" neg_dens="3.959187"/>
+<point value="-0.006154" pos_dens="9.594290" neg_dens="4.160474"/>
+<point value="0.001493" pos_dens="11.693434" neg_dens="4.363589"/>
+<point value="0.009139" pos_dens="13.261560" neg_dens="4.557471"/>
+<point value="0.016785" pos_dens="13.709064" neg_dens="4.725546"/>
+<point value="0.024431" pos_dens="12.804345" neg_dens="4.847746"/>
+<point value="0.032077" pos_dens="10.837429" neg_dens="4.904126"/>
+<point value="0.039723" pos_dens="8.357260" neg_dens="4.879172"/>
+<point value="0.047369" pos_dens="5.904099" neg_dens="4.765507"/>
+<point value="0.055015" pos_dens="3.875082" neg_dens="4.565764"/>
+<point value="0.062661" pos_dens="2.435136" neg_dens="4.292029"/>
+<point value="0.070307" pos_dens="1.526332" neg_dens="3.963195"/>
+<point value="0.077953" pos_dens="0.986396" neg_dens="3.601202"/>
+<point value="0.085600" pos_dens="0.664062" neg_dens="3.227385"/>
+<point value="0.093246" pos_dens="0.461544" neg_dens="2.859789"/>
+<point value="0.100892" pos_dens="0.326281" neg_dens="2.511802"/>
+<point value="0.108538" pos_dens="0.231865" neg_dens="2.191967"/>
+<point value="0.116184" pos_dens="0.164662" neg_dens="1.904578"/>
+<point value="0.123830" pos_dens="0.116848" neg_dens="1.650659"/>
+<point value="0.131476" pos_dens="0.083237" neg_dens="1.428999"/>
+<point value="0.139122" pos_dens="0.059976" neg_dens="1.237068"/>
+<point value="0.146768" pos_dens="0.044094" neg_dens="1.071719"/>
+<point value="0.154414" pos_dens="0.033329" neg_dens="0.929672"/>
+<point value="0.162060" pos_dens="0.026029" neg_dens="0.807797"/>
+<point value="0.169707" pos_dens="0.021030" neg_dens="0.703251"/>
+<point value="0.177353" pos_dens="0.017543" neg_dens="0.613527"/>
+<point value="0.184999" pos_dens="0.015044" neg_dens="0.536443"/>
+<point value="0.192645" pos_dens="0.013194" neg_dens="0.470117"/>
+<point value="0.200291" pos_dens="0.011771" neg_dens="0.412934"/>
+<point value="0.207937" pos_dens="0.010636" neg_dens="0.363517"/>
+<point value="0.215583" pos_dens="0.009699" neg_dens="0.320700"/>
+<point value="0.223229" pos_dens="0.008902" neg_dens="0.283500"/>
+<point value="0.230875" pos_dens="0.008206" neg_dens="0.251096"/>
+<point value="0.238521" pos_dens="0.007587" neg_dens="0.222799"/>
+<point value="0.246167" pos_dens="0.007029" neg_dens="0.198035"/>
+<point value="0.253814" pos_dens="0.006518" neg_dens="0.176320"/>
+<point value="0.261460" pos_dens="0.006048" neg_dens="0.157247"/>
+<point value="0.269106" pos_dens="0.005610" neg_dens="0.140468"/>
+<point value="0.276752" pos_dens="0.005201" neg_dens="0.125687"/>
+<point value="0.284398" pos_dens="0.004818" neg_dens="0.112647"/>
+<point value="0.292044" pos_dens="0.004457" neg_dens="0.101126"/>
+<point value="0.299690" pos_dens="0.004117" neg_dens="0.090932"/>
+<point value="0.307336" pos_dens="0.003797" neg_dens="0.081897"/>
+<point value="0.314982" pos_dens="0.003496" neg_dens="0.073877"/>
+<point value="0.322628" pos_dens="0.003212" neg_dens="0.066746"/>
+<point value="0.330274" pos_dens="0.002946" neg_dens="0.060392"/>
+<point value="0.337921" pos_dens="0.002696" neg_dens="0.054722"/>
+<point value="0.345567" pos_dens="0.002462" neg_dens="0.049652"/>
+<point value="0.353213" pos_dens="0.002244" neg_dens="0.045109"/>
+<point value="0.360859" pos_dens="0.002041" neg_dens="0.041033"/>
+<point value="0.368505" pos_dens="0.001853" neg_dens="0.037367"/>
+</mixturemodel>
+<mixturemodel_distribution name="isotopic peak mass difference [IsoMassDiff]">
+<posmodel_distribution>
+<parameter name="-3" value="0.000"/>
+<parameter name="-2" value="0.000"/>
+<parameter name="-1" value="0.000"/>
+<parameter name="0" value="1.000"/>
+<parameter name="1" value="0.000"/>
+<parameter name="2" value="0.000"/>
+<parameter name="3" value="0.000"/>
+</posmodel_distribution>
+<negmodel_distribution>
+<parameter name="-3" value="0.000"/>
+<parameter name="-2" value="0.000"/>
+<parameter name="-1" value="0.000"/>
+<parameter name="0" value="1.000"/>
+<parameter name="1" value="0.000"/>
+<parameter name="2" value="0.000"/>
+<parameter name="3" value="0.000"/>
+</negmodel_distribution>
+</mixturemodel_distribution>
+</mixture_model>
+</peptideprophet_summary>
+</analysis_summary>
+<analysis_summary analysis="database_refresh" time="2018-02-26T13:26:47"/>
+<analysis_summary analysis="interact" time="2018-02-26T13:26:43">
+<interact_summary filename="/home/rostlab/annieha/Feb_9_target_decoys/1-NP-int.pep.xml" directory="">
+<inputfile name="/home/rostlab/annieha/Feb_9_target_decoys/ctl/1-c.pep.xml"/>
+</interact_summary>
+</analysis_summary>
+<dataset_derivation generation_no="0"/>
+<msms_run_summary base_name="/home/rostlab/annieha/ConvertedRaw_Nina/LakeTroutChromiumsearched/ctl/rep1/1" msManufacturer="unknown" msModel="unknown" raw_data_type="raw" raw_data=".mzML">
+<sample_enzyme name="nonspecific">
+<specificity cut="" sense="C"/>
+</sample_enzyme>
+<search_summary base_name="/home/rostlab/annieha/ConvertedRaw_Nina/LakeTroutChromiumsearched/ctl/rep1/1" search_engine="Comet" search_engine_version="2016.01 rev. 3" precursor_mass_type="monoisotopic" fragment_mass_type="monoisotopic" search_id="1">
+<search_database local_path="/home/rostlab/annieha/Feb_9_target_decoys/target_decoy.fasta" type="AA"/>
+<enzymatic_search_constraint enzyme="Formic_Acid" max_num_internal_cleavages="2" min_number_termini="2"/>
+<aminoacid_modification aminoacid="M" massdiff="15.994900" mass="147.035385" variable="Y" symbol="*"/>
+<aminoacid_modification aminoacid="C" massdiff="57.021464" mass="160.030649" variable="N"/>
+<parameter name="# comet_version " value="2016.01 rev. 3"/>
+<parameter name="activation_method" value="ALL"/>
+<parameter name="add_A_alanine" value="0.000000"/>
+<parameter name="add_B_user_amino_acid" value="0.000000"/>
+<parameter name="add_C_cysteine" value="57.021464"/>
+<parameter name="add_Cterm_peptide" value="0.000000"/>
+<parameter name="add_Cterm_protein" value="0.000000"/>
+<parameter name="add_D_aspartic_acid" value="0.000000"/>
+<parameter name="add_E_glutamic_acid" value="0.000000"/>
+<parameter name="add_F_phenylalanine" value="0.000000"/>
+<parameter name="add_G_glycine" value="0.000000"/>
+<parameter name="add_H_histidine" value="0.000000"/>
+<parameter name="add_I_isoleucine" value="0.000000"/>
+<parameter name="add_J_user_amino_acid" value="0.000000"/>
+<parameter name="add_K_lysine" value="0.000000"/>
+<parameter name="add_L_leucine" value="0.000000"/>
+<parameter name="add_M_methionine" value="0.000000"/>
+<parameter name="add_N_asparagine" value="0.000000"/>
+<parameter name="add_Nterm_peptide" value="0.000000"/>
+<parameter name="add_Nterm_protein" value="0.000000"/>
+<parameter name="add_O_ornithine" value="0.000000"/>
+<parameter name="add_P_proline" value="0.000000"/>
+<parameter name="add_Q_glutamine" value="0.000000"/>
+<parameter name="add_R_arginine" value="0.000000"/>
+<parameter name="add_S_serine" value="0.000000"/>
+<parameter name="add_T_threonine" value="0.000000"/>
+<parameter name="add_U_celenocysteinee" value="0.000000"/>
+<parameter name="add_V_valine" value="0.000000"/>
+<parameter name="add_W_tryptophan" value="0.000000"/>
+<parameter name="add_X_user_amino_acid" value="0.000000"/>
+<parameter name="add_Y_tyrosine" value="0.000000"/>
+<parameter name="add_Z_user_amino_acid" value="0.000000"/>
+<parameter name="allowed_missed_cleavage" value="2"/>
+<parameter name="clear_mz_range" value="0.000000 0.000000"/>
+<parameter name="clip_nterm_methionine" value="0"/>
+<parameter name="database_name" value="/home/rostlab/annieha/Feb_9_target_decoys/target_decoy.fasta"/>
+<parameter name="decoy_prefix" value="DECOY_"/>
+<parameter name="decoy_search" value="1"/>
+<parameter name="digest_mass_range" value="300.000000 8000.000000"/>
+<parameter name="fragment_bin_offset" value="0.000000"/>
+<parameter name="fragment_bin_tol" value="0.500000"/>
+<parameter name="isotope_error" value="0"/>
+<parameter name="mass_offsets" value=""/>
+<parameter name="mass_type_fragment" value="1"/>
+<parameter name="mass_type_parent" value="1"/>
+<parameter name="max_fragment_charge" value="5"/>
+<parameter name="max_precursor_charge" value="8"/>
+<parameter name="max_variable_mods_in_peptide" value="5"/>
+<parameter name="minimum_intensity" value="0"/>
+<parameter name="minimum_peaks" value="8"/>
+<parameter name="ms_level" value="2"/>
+<parameter name="nucleotide_reading_frame" value="0"/>
+<parameter name="num_enzyme_termini" value="2"/>
+<parameter name="num_output_lines" value="5"/>
+<parameter name="num_results" value="100"/>
+<parameter name="num_threads" value="0"/>
+<parameter name="output_outfiles" value="0"/>
+<parameter name="output_pepxmlfile" value="1"/>
+<parameter name="output_percolatorfile" value="0"/>
+<parameter name="output_sqtfile" value="0"/>
+<parameter name="output_sqtstream" value="0"/>
+<parameter name="output_suffix" value="-c"/>
+<parameter name="output_txtfile" value="0"/>
+<parameter name="override_charge" value="0"/>
+<parameter name="peptide_mass_tolerance" value="50.000000"/>
+<parameter name="peptide_mass_units" value="2"/>
+<parameter name="precursor_charge" value="2 8"/>
+<parameter name="precursor_tolerance_type" value="0"/>
+<parameter name="print_expect_score" value="1"/>
+<parameter name="remove_precursor_peak" value="0"/>
+<parameter name="remove_precursor_tolerance" value="1.500000"/>
+<parameter name="require_variable_mod" value="0"/>
+<parameter name="sample_enzyme_number" value="1"/>
+<parameter name="scan_range" value="0 0"/>
+<parameter name="search_enzyme_number" value="11"/>
+<parameter name="show_fragment_ions" value="0"/>
+<parameter name="skip_researching" value="1"/>
+<parameter name="spectrum_batch_size" value="0"/>
+<parameter name="theoretical_fragment_ions" value="1"/>
+<parameter name="use_A_ions" value="0"/>
+<parameter name="use_B_ions" value="1"/>
+<parameter name="use_C_ions" value="0"/>
+<parameter name="use_NL_ions" value="0"/>
+<parameter name="use_X_ions" value="0"/>
+<parameter name="use_Y_ions" value="1"/>
+<parameter name="use_Z_ions" value="0"/>
+<parameter name="variable_mod01" value="15.994900 M 0 3 -1 0 0"/>
+<parameter name="variable_mod02" value="0.000000 X 0 3 -1 0 0"/>
+<parameter name="variable_mod03" value="0.000000 X 0 3 -1 0 0"/>
+<parameter name="variable_mod04" value="0.000000 X 0 3 -1 0 0"/>
+<parameter name="variable_mod05" value="0.000000 X 0 3 -1 0 0"/>
+<parameter name="variable_mod06" value="0.000000 X 0 3 -1 0 0"/>
+<parameter name="variable_mod07" value="0.000000 X 0 3 -1 0 0"/>
+<parameter name="variable_mod08" value="0.000000 X 0 3 -1 0 0"/>
+<parameter name="variable_mod09" value="0.000000 X 0 3 -1 0 0"/>
+</search_summary>
+<analysis_timestamp analysis="peptideprophet" time="2018-02-26T13:28:34" id="1"/>
+<analysis_timestamp analysis="database_refresh" time="2018-02-26T13:26:47" id="1">
+<database_refresh_timestamp database="/home/rostlab/annieha/Feb_9_target_decoys/target_decoy.fasta" min_num_enz_term="0"/>
+</analysis_timestamp>
+<spectrum_query spectrum="1.00007.00007.6" spectrumNativeID="scan=7" start_scan="7" end_scan="7" precursor_neutral_mass="2123.895735" assumed_charge="6" index="30" retention_time_sec="75.0">
+<search_result>
+<search_hit hit_rank="1" peptide="QRMADVKKVAADMEEEKD" peptide_prev_aa="D" peptide_next_aa="R" protein="DECOY_tr|A0A1S3S7H0|A0A1S3S7H0_SALSA" num_tot_proteins="6" num_matched_ions="20" tot_num_ions="170" calc_neutral_pep_mass="2123.982690" massdiff="-0.086954" num_tol_term="0" num_missed_cleavages="0" num_matched_peptides="29030" protein_descr="serine\threonine-protein kinase MRCK beta-like isoform X2 OS=Salmo salar GN=LOC106607646 PE=3 SV=1">
+<alternative_protein protein="DECOY_tr|A0A1S3S7H4|A0A1S3S7H4_SALSA" protein_descr="serine\threonine-protein kinase MRCK beta-like isoform X6 OS=Salmo salar GN=LOC106607646 PE=3 SV=1" num_tol_term="0" peptide_prev_aa="D" peptide_next_aa="R"/>
+<alternative_protein protein="DECOY_tr|A0A1S3S7G4|A0A1S3S7G4_SALSA" protein_descr="serine\threonine-protein kinase MRCK beta-like isoform X1 OS=Salmo salar GN=LOC106607646 PE=3 SV=1" num_tol_term="0" peptide_prev_aa="D" peptide_next_aa="R"/>
+<alternative_protein protein="DECOY_tr|A0A1S3S7G5|A0A1S3S7G5_SALSA" protein_descr="serine\threonine-protein kinase MRCK beta-like isoform X5 OS=Salmo salar GN=LOC106607646 PE=3 SV=1" num_tol_term="0" peptide_prev_aa="D" peptide_next_aa="R"/>
+<alternative_protein protein="DECOY_tr|A0A1S3S7G8|A0A1S3S7G8_SALSA" protein_descr="serine\threonine-protein kinase MRCK beta-like isoform X3 OS=Salmo salar GN=LOC106607646 PE=3 SV=1" num_tol_term="0" peptide_prev_aa="D" peptide_next_aa="R"/>
+<alternative_protein protein="DECOY_tr|A0A1S3S7G7|A0A1S3S7G7_SALSA" protein_descr="serine\threonine-protein kinase MRCK beta-like isoform X4 OS=Salmo salar GN=LOC106607646 PE=3 SV=1" num_tol_term="0" peptide_prev_aa="D" peptide_next_aa="R"/>
+<modification_info modified_peptide="QRM[147]ADVKKVAADM[147]EEEKD">
+<mod_aminoacid_mass position="3" mass="147.035385"/>
+<mod_aminoacid_mass position="13" mass="147.035385"/>
+</modification_info>
+<search_score name="xcorr" value="0.998"/>
+<search_score name="deltacn" value="0.045"/>
+<search_score name="deltacnstar" value="0.001"/>
+<search_score name="spscore" value="41.8"/>
+<search_score name="sprank" value="84"/>
+<search_score name="expect" value="2.79E+01"/>
+<analysis_result analysis="peptideprophet">
+<peptideprophet_result probability="0" all_ntt_prob="(0,0,0)" analysis="incomplete">
+<search_score_summary>
+<parameter name="fval" value="-2.3431"/>
+<parameter name="ntt" value="0"/>
+<parameter name="nmc" value="0"/>
+<parameter name="massd" value="-0.087"/>
+<parameter name="isomassd" value="0"/>
+</search_score_summary>
+</peptideprophet_result>
+</analysis_result>
+</search_hit>
+<search_hit hit_rank="1" peptide="QRMADVKQVAADMEEEKD" peptide_prev_aa="D" peptide_next_aa="R" protein="DECOY_tr|A0A1S3M7W0|A0A1S3M7W0_SALSA" num_tot_proteins="5" num_matched_ions="20" tot_num_ions="170" calc_neutral_pep_mass="2123.946304" massdiff="-0.050569" num_tol_term="0" num_missed_cleavages="0" num_matched_peptides="29030" protein_descr="serine\threonine-protein kinase MRCK beta-like isoform X1 OS=Salmo salar GN=LOC106571112 PE=3 SV=1">
+<alternative_protein protein="DECOY_tr|A0A1S3M7Q4|A0A1S3M7Q4_SALSA" protein_descr="serine\threonine-protein kinase MRCK beta-like isoform X2 OS=Salmo salar GN=LOC106571112 PE=3 SV=1" num_tol_term="0" peptide_prev_aa="D" peptide_next_aa="R"/>
+<alternative_protein protein="DECOY_tr|A0A1S3M863|A0A1S3M863_SALSA" protein_descr="serine\threonine-protein kinase MRCK beta-like isoform X4 OS=Salmo salar GN=LOC106571112 PE=3 SV=1" num_tol_term="0" peptide_prev_aa="D" peptide_next_aa="R"/>
+<alternative_protein protein="DECOY_tr|A0A1S3M8E5|A0A1S3M8E5_SALSA" protein_descr="serine\threonine-protein kinase MRCK beta-like isoform X3 OS=Salmo salar GN=LOC106571112 PE=3 SV=1" num_tol_term="0" peptide_prev_aa="D" peptide_next_aa="R"/>
+<alternative_protein protein="DECOY_tr|A0A060X411|A0A060X411_ONCMY" protein_descr="Uncharacterized protein OS=Oncorhynchus mykiss GN=GSONMT00045548001 PE=3 SV=1" num_tol_term="0" peptide_prev_aa="D" peptide_next_aa="R"/>
+<modification_info modified_peptide="QRM[147]ADVKQVAADM[147]EEEKD">
+<mod_aminoacid_mass position="3" mass="147.035385"/>
+<mod_aminoacid_mass position="13" mass="147.035385"/>
+</modification_info>
+<search_score name="xcorr" value="0.998"/>
+<search_score name="deltacn" value="0.045"/>
+<search_score name="deltacnstar" value="0.000"/>
+<search_score name="spscore" value="41.8"/>
+<search_score name="sprank" value="84"/>
+<search_score name="expect" value="2.79E+01"/>
+</search_hit>
+</search_result>
+</spectrum_query>
+
+<spectrum_query spectrum="1.00009.00009.6" spectrumNativeID="scan=9" start_scan="9" end_scan="9" precursor_neutral_mass="4008.324381" assumed_charge="6" index="35" retention_time_sec="78.0">
+<search_result>
+<search_hit hit_rank="1" peptide="LPVLYSSPAALLALRVCQGVVKVSAGVSRRGCAGAVPVM" peptide_prev_aa="D" peptide_next_aa="-" protein="DECOY_DECOY_tr|E9QEY6|E9QEY6_DANRE_UNMAPPED" num_tot_proteins="0" num_matched_ions="34" tot_num_ions="380" calc_neutral_pep_mass="4008.195123" massdiff="0.129258" num_tol_term="1" num_missed_cleavages="0" num_matched_peptides="10210" protein_descr="originally identified as DECOY_DECOY_tr|E9QEY6|E9QEY6_DANRE in database /home/rostlab/annieha/Feb_9_target_decoys/target_decoy.fasta">
+<modification_info modified_peptide="LPVLYSSPAALLALRVCQGVVKVSAGVSRRGCAGAVPVM">
+<mod_aminoacid_mass position="17" mass="160.030649"/>
+<mod_aminoacid_mass position="32" mass="160.030649"/>
+</modification_info>
+<search_score name="xcorr" value="1.474"/>
+<search_score name="deltacn" value="0.018"/>
+<search_score name="deltacnstar" value="0.000"/>
+<search_score name="spscore" value="100.2"/>
+<search_score name="sprank" value="16"/>
+<search_score name="expect" value="3.44E+00"/>
+<analysis_result analysis="peptideprophet">
+<peptideprophet_result probability="0" all_ntt_prob="(0,0,0)" analysis="incomplete">
+<search_score_summary>
+<parameter name="fval" value="-1.3443"/>
+<parameter name="ntt" value="1"/>
+<parameter name="nmc" value="0"/>
+<parameter name="massd" value="0.129"/>
+<parameter name="isomassd" value="0"/>
+</search_score_summary>
+</peptideprophet_result>
+</analysis_result>
+</search_hit>
+</search_result>
+</spectrum_query>
+
+
+</msms_run_summary>
+</msms_pipeline_analysis>

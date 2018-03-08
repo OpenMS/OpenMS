@@ -33,7 +33,6 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/ModelDescription.h>
-#include <iostream>
 
 
 namespace OpenMS

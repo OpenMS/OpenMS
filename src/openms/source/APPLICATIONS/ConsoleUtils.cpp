@@ -36,7 +36,6 @@
 
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/DATASTRUCTURES/StringListUtils.h>
-#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 #ifdef OPENMS_WINDOWSPLATFORM
 #include <windows.h> // for GetConsoleScreenBufferInfo()

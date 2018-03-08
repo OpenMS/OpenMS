@@ -34,7 +34,6 @@
 
 #include <OpenMS/FILTERING/NOISEESTIMATION/SignalToNoiseEstimatorMedianRapid.h>
 
-#include <algorithm>
 #include <numeric>
 
 // array_wrapper needs to be included before it is used
@@ -43,11 +42,8 @@
 #include <boost/serialization/array_wrapper.hpp>
 #endif
 #include <boost/accumulators/accumulators.hpp>
-#include <boost/accumulators/statistics/stats.hpp>
 #include <boost/accumulators/statistics/mean.hpp>
 #include <boost/accumulators/statistics/variance.hpp>
-#include <boost/bind.hpp>
-#include <boost/ref.hpp>
 
 namespace OpenMS
 {

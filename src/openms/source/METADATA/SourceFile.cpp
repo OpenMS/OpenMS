@@ -34,8 +34,6 @@
 
 #include <OpenMS/METADATA/SourceFile.h>
 
-#include <iostream>
-
 using namespace std;
 
 namespace OpenMS

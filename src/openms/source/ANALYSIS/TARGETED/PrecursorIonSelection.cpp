@@ -37,7 +37,6 @@
 #include <OpenMS/ANALYSIS/TARGETED/PrecursorIonSelectionPreprocessing.h>
 #include <OpenMS/ANALYSIS/TARGETED/PSProteinInference.h>
 #include <OpenMS/ANALYSIS/TARGETED/OfflinePrecursorIonSelection.h>
-#include <OpenMS/ANALYSIS/ID/IDMapper.h>
 
 #include <OpenMS/SYSTEM/StopWatch.h>
 

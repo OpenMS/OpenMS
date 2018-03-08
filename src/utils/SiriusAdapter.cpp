@@ -43,6 +43,8 @@
 #include <OpenMS/ANALYSIS/QUANTITATION/KDTreeFeatureMaps.h>
 #include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
 #include <OpenMS/CHEMISTRY/Element.h>
+#include <OpenMS/SYSTEM/File.h>
+
 #include <QtCore/QProcess>
 #include <QDir>
 #include <QDebug>

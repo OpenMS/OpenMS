@@ -34,7 +34,60 @@
 
 #include <OpenMS/FORMAT/DATAACCESS/MSDataCachedConsumer.h>
 
+#include <OpenMS/KERNEL/MSSpectrum.h>
+#include <OpenMS/KERNEL/MSChromatogram.h>
+
 namespace OpenMS
 {
+  MSDataCachedConsumer::MSDataCachedConsumer(const String& filename, bool clearData) :
+    ofs_(filename.c_str(), std::ios::binary),
+    clearData_(clearData),
+    spectra_written_(0),
+    chromatograms_written_(0)
+  {
+    int file_identifier = CACHED_MZML_FILE_IDENTIFIER;
+    ofs_.write((char*)&file_identifier, sizeof(file_identifier));
+  }
 
+  /**
+  @brief Destructor
+
+  Closes the output file and writes the footer.
+  */
+  MSDataCachedConsumer::~MSDataCachedConsumer()
+  {
+    // Write size of file (to the end of the file)
+    ofs_.write((char*)&spectra_written_, sizeof(spectra_written_));
+    ofs_.write((char*)&chromatograms_written_, sizeof(chromatograms_written_));
+
+    // Close file stream: close() _should_ call flush() but it might not in
+    // all cases. To be sure call flush() first.
+    ofs_.flush();
+    ofs_.close();
+  }
+
+  /**
+  @brief Write a spectrum to the output file
+  */
+  void MSDataCachedConsumer::consumeSpectrum(SpectrumType & s)
+  {
+    if (chromatograms_written_ > 0)
+    {
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        "Cannot write spectra after writing chromatograms.");
+    }
+    writeSpectrum_(s, ofs_);
+    spectra_written_++;
+    if (clearData_) { s.clear(false); }
+  }
+
+  /**
+  @brief Write a chromatogram to the output file
+  */
+  void MSDataCachedConsumer::consumeChromatogram(ChromatogramType & c)
+  {
+    writeChromatogram_(c, ofs_);
+    chromatograms_written_++;
+    if (clearData_) { c.clear(false); }
+  }
 } // namespace OpenMS
