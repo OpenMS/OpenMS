@@ -190,9 +190,11 @@ public:
       @param transformation_model_params parameters used by the transformation_model
       @param optimized_params optimized parameters
 
+      @returns true if a a fit was found, false otherwise
+
       @exception Exception::UnableToFit
     */ 
-    void optimizeCalibrationCurveIterative(
+    bool optimizeCalibrationCurveIterative(
       std::vector<AbsoluteQuantitationStandards::featureConcentration> & component_concentrations,
       const String & feature_name,
       const String & transformation_model,
