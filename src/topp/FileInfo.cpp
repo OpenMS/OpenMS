@@ -462,7 +462,7 @@ protected:
       os << "\n";
       os << "Number of sequences   : " << entries.size() << "\n";
       os << "# duplicated headers  : " << dup_header << " (" << (entries.empty() ? 0 : (dup_header * 1000 / entries.size()) / 10.0) << "%)\n";
-      os << "# duplicated sequences: " << dup_seq << " (" << (entries.empty() ? 0 : (dup_seq * 1000 / entries.size()) / 10.0) << "%)\n";
+      os << "# duplicated sequences: " << dup_seq << " (" << (entries.empty() ? 0 : (dup_seq * 1000 / entries.size()) / 10.0) << "%) [by exact string matching]\n";
       os << "Total amino acids     : " << number_of_aacids << "\n\n";
       os << "Amino acid counts: \n";
 
