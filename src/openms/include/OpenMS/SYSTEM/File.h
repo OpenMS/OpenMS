@@ -36,13 +36,12 @@
 #define OPENMS_SYSTEM_FILE_H
 
 #include <OpenMS/DATASTRUCTURES/StringListUtils.h>
-#include <OpenMS/DATASTRUCTURES/Param.h>
 #include <OpenMS/config.h>
 
 
 namespace OpenMS
 {
-
+  class Param;
   class TOPPBase;
 
   /**
@@ -68,8 +67,18 @@ public:
     /// Return true if the file does not exist or the file is empty
     static bool empty(const String& file);
 
-    /// Rename file; return true on success
-    static bool rename(const String& from, const String& to);
+    /**
+       @brief Rename a file
+       
+       If the target already exists, this function will fail unless @p overwrite_existing is true.
+
+       @param from Source filename
+       @param to Target filename
+       @param overwrite_existing Delete already existing target, before renaming
+       @param verbose Print message to LOG_ERROR if something goes wrong.
+       @return True on success
+    */
+    static bool rename(const String& from, const String& to, bool overwrite_existing = true, bool verbose = true);
 
     /**
       @brief Removes a file (if it exists).
@@ -221,7 +230,7 @@ private:
 
 
     /**
-      @brief Internal helper class, which holds temporary filenames and deletes these file at program exit
+      @brief Internal helper class, which holds temporary filenames and deletes these files at program exit
     */
     class TemporaryFiles_
     {
@@ -232,7 +241,8 @@ private:
 
         ~TemporaryFiles_();
       private:
-        TemporaryFiles_(const TemporaryFiles_&); // copy is forbidden
+        TemporaryFiles_(const TemporaryFiles_&) = delete; // copy is forbidden
+        TemporaryFiles_& operator=(const TemporaryFiles_&) = delete;
         StringList filenames_;
     };
 

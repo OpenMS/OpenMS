@@ -39,6 +39,7 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 
 #include <OpenMS/DATASTRUCTURES/DateTime.h>
+#include <OpenMS/DATASTRUCTURES/Param.h>
 
 #include <OpenMS/FORMAT/ParamXMLFile.h>
 
@@ -116,9 +117,21 @@ namespace OpenMS
     return !fi.exists() || fi.size() == 0;
   }
 
-  bool File::rename(const String& from, const String& to)
+  bool File::rename(const String& from, const String& to, bool overwrite_existing, bool verbose)
   {
-    return QFile::rename(from.toQString(), to.toQString());
+    // existing file? Qt won't overwrite, so try to remove it:
+    if (exists(to) && !remove(to))
+    {
+      LOG_ERROR << "Error: Could not overwrite existing file '" << to << "'\n";
+      return false;
+    }
+    // move the file to the actual destination:
+    if (!QFile::rename(from.toQString(), to.toQString()))
+    {
+      LOG_ERROR << "Error: Could not move '" << from << "' to '" << to << "'\n";
+      return false;
+    }
+    return true;
   }
 
   bool File::remove(const String& file)

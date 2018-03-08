@@ -45,7 +45,6 @@
 
 #include <sstream>
 
-#include <QtCore/QDir>
 #include <QtCore/QFile>
 #include <QtCore/QCoreApplication>
 #include <QtCore/QTimer>

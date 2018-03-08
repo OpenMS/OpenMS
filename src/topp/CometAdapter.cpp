@@ -630,17 +630,9 @@ protected:
 
     String pin_out = getStringOption_("pin_out");
     if (!pin_out.empty())
-    {
-      // existing file? Qt won't overwrite, so try to remove it:
-      if (File::exists(pin_out) && !File::remove(pin_out))
-      {
-        writeLog_("Fatal error: Could not overwrite existing file '" + pin_out + "'");
-        return CANNOT_WRITE_OUTPUT_FILE;
-      }
-      // move the temporary file to the actual destination:
+    { // move the temporary file to the actual destination:
       if (!File::rename(tmp_pin, pin_out))
       {
-        writeLog_("Fatal error: Could not move temporary mzid file to '" + pin_out + "'");
         return CANNOT_WRITE_OUTPUT_FILE;
       }
     }
