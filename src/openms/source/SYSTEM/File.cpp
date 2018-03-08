@@ -116,6 +116,11 @@ namespace OpenMS
     return !fi.exists() || fi.size() == 0;
   }
 
+  bool File::rename(const String& from, const String& to)
+  {
+    return QFile::rename(from.toQString(), to.toQString());
+  }
+
   bool File::remove(const String& file)
   {
     if (!exists(file))

@@ -68,6 +68,9 @@ public:
     /// Return true if the file does not exist or the file is empty
     static bool empty(const String& file);
 
+    /// Rename file; return true on success
+    static bool rename(const String& from, const String& to);
+
     /**
       @brief Removes a file (if it exists).
 
