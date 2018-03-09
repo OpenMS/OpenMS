@@ -65,6 +65,7 @@ namespace OpenMS
     bool use_elution_model_score_;
     bool use_intensity_score_;
     bool use_total_xic_score_;
+    bool use_total_mi_score_;
     bool use_nr_peaks_score_;
     bool use_sn_score_;
     bool use_mi_score_;
@@ -83,6 +84,7 @@ namespace OpenMS
       use_elution_model_score_(true),
       use_intensity_score_(true),
       use_total_xic_score_(true),
+      use_total_mi_score_(true),
       use_nr_peaks_score_(true),
       use_sn_score_(true),
       use_mi_score_(true),
@@ -134,6 +136,8 @@ namespace OpenMS
     std::string ind_apex_intensity;
     std::string ind_total_mi;
     std::string ind_log_intensity;
+    std::string ind_intensity_ratio;
+    std::string ind_mi_ratio;
 
     double weighted_coelution_score;
     double weighted_xcorr_shape;
@@ -199,6 +203,8 @@ namespace OpenMS
       ind_apex_intensity(""),
       ind_total_mi(""),
       ind_log_intensity(""),
+      ind_intensity_ratio(""),
+      ind_mi_ratio(""),
       weighted_coelution_score(0),
       weighted_xcorr_shape(0),
       weighted_massdev_score(0),

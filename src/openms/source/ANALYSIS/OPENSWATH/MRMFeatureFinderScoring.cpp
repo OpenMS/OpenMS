@@ -122,8 +122,12 @@ namespace OpenMS
     scores_to_use.setValidStrings("use_nr_peaks_score", ListUtils::create<String>("true,false"));
     scores_to_use.setValue("use_total_xic_score", "true", "Use the total XIC score", ListUtils::create<String>("advanced"));
     scores_to_use.setValidStrings("use_total_xic_score", ListUtils::create<String>("true,false"));
+    scores_to_use.setValue("use_total_mi_score", "true", "Use the total MI score", ListUtils::create<String>("advanced"));
+    scores_to_use.setValidStrings("use_total_mi_score", ListUtils::create<String>("true,false"));
     scores_to_use.setValue("use_sn_score", "true", "Use the SN (signal to noise) score", ListUtils::create<String>("advanced"));
     scores_to_use.setValidStrings("use_sn_score", ListUtils::create<String>("true,false"));
+    scores_to_use.setValue("use_mi_score", "true", "Use the MI (mutual information) score", ListUtils::create<String>("advanced"));
+    scores_to_use.setValidStrings("use_mi_score", ListUtils::create<String>("true,false"));
     scores_to_use.setValue("use_dia_scores", "true", "Use the DIA (SWATH) scores. If turned off, will not use fragment ion spectra for scoring.", ListUtils::create<String>("advanced"));
     scores_to_use.setValidStrings("use_dia_scores", ListUtils::create<String>("true,false"));
     scores_to_use.setValue("use_ms1_correlation", "false", "Use the correlation scores with the MS1 elution profiles", ListUtils::create<String>("advanced"));
@@ -132,6 +136,8 @@ namespace OpenMS
     scores_to_use.setValidStrings("use_sonar_scores", ListUtils::create<String>("true,false"));
     scores_to_use.setValue("use_ms1_fullscan", "false", "Use the full MS1 scan at the peak apex for scoring (ppm accuracy of precursor and isotopic pattern)", ListUtils::create<String>("advanced"));
     scores_to_use.setValidStrings("use_ms1_fullscan", ListUtils::create<String>("true,false"));
+    scores_to_use.setValue("use_ms1_mi", "false", "Use the MS1 MI score", ListUtils::create<String>("advanced"));
+    scores_to_use.setValidStrings("use_ms1_mi", ListUtils::create<String>("true,false"));
     scores_to_use.setValue("use_uis_scores", "false", "Use UIS scores for peptidoform identification ", ListUtils::create<String>("advanced"));
     scores_to_use.setValidStrings("use_uis_scores", ListUtils::create<String>("true,false"));
     defaults_.insert("Scores:", scores_to_use);
@@ -296,6 +302,8 @@ namespace OpenMS
                                                                  const std::vector<std::string>& native_ids_detection,
                                                                  const double sn_win_len_,
                                                                  const unsigned int sn_bin_count_,
+                                                                 const double det_intensity_ratio_score,
+                                                                 const double det_mi_ratio_score,
                                                                  bool write_log_messages,
                                                                  std::vector<OpenSwath::SwathMap> swath_maps)
   {
@@ -335,6 +343,10 @@ namespace OpenMS
       std::stringstream ind_apex_intensity;
       std::stringstream ind_total_mi;
       std::stringstream ind_log_intensity;
+      std::stringstream ind_intensity_ratio;
+      std::stringstream ind_mi_ratio;
+
+      std::vector<double> ind_mi_score = ListUtils::create<double>((String)idscores.ind_mi_score,';');
       for (size_t i = 0; i < native_ids_identification.size(); i++)
       {
         if (i != 0)
@@ -346,16 +358,30 @@ namespace OpenMS
           ind_apex_intensity << ";";
           ind_total_mi << ";";
           ind_log_intensity << ";";
+          ind_intensity_ratio << ";";
+          ind_mi_ratio << ";";
         }
         ind_transition_names << native_ids_identification[i];
         if (idmrmfeature.getFeature(native_ids_identification[i]).getIntensity() > 0)
         {
+          double intensity_score = double(idmrmfeature.getFeature(native_ids_identification[i]).getIntensity()) / double(idmrmfeature.getFeature(native_ids_identification[i]).getMetaValue("total_xic"));
+
+          double intensity_ratio = 0;
+          if (det_intensity_ratio_score > 0) { intensity_ratio = intensity_score / det_intensity_ratio_score; }
+          if (intensity_ratio > 1) { intensity_ratio = 1 / intensity_ratio; }
+
+          double mi_ratio = 0;
+          if (det_mi_ratio_score > 0) { mi_ratio = (ind_mi_score[i] / double(idmrmfeature.getFeature(native_ids_identification[i]).getMetaValue("total_mi"))) / det_mi_ratio_score; }
+          if (mi_ratio > 1) { mi_ratio = 1 / mi_ratio; }
+
           ind_area_intensity << idmrmfeature.getFeature(native_ids_identification[i]).getIntensity();
           ind_total_area_intensity << idmrmfeature.getFeature(native_ids_identification[i]).getMetaValue("total_xic");
-          ind_intensity_score << float(idmrmfeature.getFeature(native_ids_identification[i]).getIntensity()) / float(idmrmfeature.getFeature(native_ids_identification[i]).getMetaValue("total_xic"));
+          ind_intensity_score << intensity_score;
           ind_apex_intensity << idmrmfeature.getFeature(native_ids_identification[i]).getMetaValue("peak_apex_int");
           ind_total_mi << idmrmfeature.getFeature(native_ids_identification[i]).getMetaValue("total_mi");
           ind_log_intensity << std::log(idmrmfeature.getFeature(native_ids_identification[i]).getIntensity());
+          ind_intensity_ratio << intensity_ratio;
+          ind_mi_ratio << mi_ratio;
         }
         else
         {
@@ -365,6 +391,8 @@ namespace OpenMS
           ind_apex_intensity << 0;
           ind_total_mi << 0;
           ind_log_intensity << 0;
+          ind_intensity_ratio << 0;
+          ind_mi_ratio << 0;
         }
       }
       idscores.ind_transition_names = ind_transition_names.str();
@@ -374,6 +402,8 @@ namespace OpenMS
       idscores.ind_apex_intensity = ind_apex_intensity.str();
       idscores.ind_total_mi = ind_total_mi.str();
       idscores.ind_log_intensity = ind_log_intensity.str();
+      idscores.ind_intensity_ratio = ind_intensity_ratio.str();
+      idscores.ind_mi_ratio = ind_mi_ratio.str();
       idscores.ind_num_transitions = native_ids_identification.size();
     }
 
@@ -610,11 +640,17 @@ namespace OpenMS
 
         if (su_.use_uis_scores && transition_group_identification.getTransitions().size() > 0)
         {
+          double det_intensity_ratio_score = mrmfeature->getIntensity() / (double)mrmfeature->getMetaValue("total_xic");
+
+          double det_mi_ratio_score = scores.mi_score / (double)mrmfeature->getMetaValue("total_mi");
+
           OpenSwath_Scores idscores = scoreIdentification_(transition_group_identification, 
                                                            scorer, feature_idx,
                                                            native_ids_detection,
                                                            sn_win_len_,
                                                            sn_bin_count_,
+                                                           det_intensity_ratio_score,
+                                                           det_mi_ratio_score,
                                                            write_log_messages,
                                                            swath_maps);
 
@@ -623,6 +659,7 @@ namespace OpenMS
           mrmfeature->setMetaValue("id_target_area_intensity", idscores.ind_area_intensity);
           mrmfeature->setMetaValue("id_target_total_area_intensity", idscores.ind_total_area_intensity);
           mrmfeature->setMetaValue("id_target_intensity_score", idscores.ind_intensity_score);
+          mrmfeature->setMetaValue("id_target_intensity_ratio_score", idscores.ind_intensity_ratio);
           mrmfeature->setMetaValue("id_target_apex_intensity", idscores.ind_apex_intensity);
           mrmfeature->setMetaValue("id_target_total_mi", idscores.ind_total_mi);
           mrmfeature->setMetaValue("id_target_transition_names", idscores.ind_transition_names);
@@ -634,15 +671,23 @@ namespace OpenMS
           mrmfeature->setMetaValue("id_target_ind_isotope_overlap", idscores.ind_isotope_overlap);
           mrmfeature->setMetaValue("id_target_ind_massdev_score", idscores.ind_massdev_score);
           mrmfeature->setMetaValue("id_target_ind_mi_score", idscores.ind_mi_score);
+          mrmfeature->setMetaValue("id_target_ind_mi_ratio_score", idscores.ind_mi_ratio);
+
         }
 
         if (su_.use_uis_scores && transition_group_identification_decoy.getTransitions().size() > 0)
         {
+          double det_intensity_ratio_score = mrmfeature->getIntensity() / (double)mrmfeature->getMetaValue("total_xic");
+
+          double det_mi_ratio_score = scores.mi_score / (double)mrmfeature->getMetaValue("total_mi");
+
           OpenSwath_Scores idscores = scoreIdentification_(transition_group_identification_decoy, 
                                                            scorer, feature_idx,
                                                            native_ids_detection,
                                                            sn_win_len_,
                                                            sn_bin_count_,
+                                                           det_intensity_ratio_score,
+                                                           det_mi_ratio_score,
                                                            write_log_messages,
                                                            swath_maps);
 
@@ -651,6 +696,7 @@ namespace OpenMS
           mrmfeature->setMetaValue("id_decoy_area_intensity", idscores.ind_area_intensity);
           mrmfeature->setMetaValue("id_decoy_total_area_intensity", idscores.ind_total_area_intensity);
           mrmfeature->setMetaValue("id_decoy_intensity_score", idscores.ind_intensity_score);
+          mrmfeature->setMetaValue("id_decoy_intensity_ratio_score", idscores.ind_intensity_ratio);
           mrmfeature->setMetaValue("id_decoy_apex_intensity", idscores.ind_apex_intensity);
           mrmfeature->setMetaValue("id_decoy_total_mi", idscores.ind_total_mi);
           mrmfeature->setMetaValue("id_decoy_ind_log_intensity", idscores.ind_log_intensity);
@@ -661,6 +707,7 @@ namespace OpenMS
           mrmfeature->setMetaValue("id_decoy_ind_isotope_overlap", idscores.ind_isotope_overlap);
           mrmfeature->setMetaValue("id_decoy_ind_massdev_score", idscores.ind_massdev_score);
           mrmfeature->setMetaValue("id_decoy_ind_mi_score", idscores.ind_mi_score);
+          mrmfeature->setMetaValue("id_decoy_ind_mi_ratio_score", idscores.ind_mi_ratio);
         }
 
         if (su_.use_coelution_score_)
@@ -693,7 +740,7 @@ namespace OpenMS
         // TODO do we really want these intensity scores ?
         if (su_.use_intensity_score_) { mrmfeature->addScore("var_intensity_score", mrmfeature->getIntensity() / (double)mrmfeature->getMetaValue("total_xic")); }
         if (su_.use_total_xic_score_) { mrmfeature->addScore("total_xic", (double)mrmfeature->getMetaValue("total_xic")); }
-        if (su_.use_total_xic_score_) { mrmfeature->addScore("total_mi", (double)mrmfeature->getMetaValue("total_mi")); }
+        if (su_.use_total_mi_score_) { mrmfeature->addScore("total_mi", (double)mrmfeature->getMetaValue("total_mi")); }
         if (su_.use_nr_peaks_score_) { mrmfeature->addScore("nr_peaks", scores.nr_peaks); }
         if (su_.use_sn_score_)
         {
@@ -906,12 +953,16 @@ namespace OpenMS
     su_.use_elution_model_score_ = param_.getValue("Scores:use_elution_model_score").toBool();
     su_.use_intensity_score_     = param_.getValue("Scores:use_intensity_score").toBool();
     su_.use_total_xic_score_     = param_.getValue("Scores:use_total_xic_score").toBool();
+    su_.use_total_mi_score_      = param_.getValue("Scores:use_total_mi_score").toBool();
     su_.use_nr_peaks_score_      = param_.getValue("Scores:use_nr_peaks_score").toBool();
     su_.use_sn_score_            = param_.getValue("Scores:use_sn_score").toBool();
+    su_.use_mi_score_            = param_.getValue("Scores:use_mi_score").toBool();
+
     su_.use_dia_scores_          = param_.getValue("Scores:use_dia_scores").toBool();
     su_.use_sonar_scores         = param_.getValue("Scores:use_sonar_scores").toBool();
     su_.use_ms1_correlation      = param_.getValue("Scores:use_ms1_correlation").toBool();
     su_.use_ms1_fullscan         = param_.getValue("Scores:use_ms1_fullscan").toBool();
+    su_.use_ms1_mi               = param_.getValue("Scores:use_ms1_mi").toBool();
     su_.use_uis_scores           = param_.getValue("Scores:use_uis_scores").toBool();
   }
 

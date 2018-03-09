@@ -10,7 +10,7 @@
 #
 #=============================================================================
 # Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-# ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+# ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 #
 # This software is released under a three-clause BSD license:
 #  * Redistributions of source code must retain the above copyright
@@ -39,11 +39,6 @@
 # set MITOOLBOX_INCLUDE_DIR
 find_path(MITOOLBOX_INCLUDE_DIR MIToolbox.h PATH_SUFFIXES ./include/MIToolbox)
 
-# extract version
-if (MITOOLBOX_INCLUDE_DIR)
-  file (STRINGS "${MITOOLBOX_INCLUDE_DIR}/MIToolbox.h" _VERSION_STRING REGEX ".*MITOOLBOX_VERSION.*")
-endif()
-
 # find MITOOLBOX_LIBRARY
 find_library (MITOOLBOX_LIBRARY NAMES libMIToolbox MITOOLBOX "MITOOLBOX library location" )
 
@@ -52,10 +47,8 @@ select_library_configurations(MITOOLBOX)
 
 include (FindPackageHandleStandardArgs)
 find_package_handle_standard_args (MITOOLBOX
-                                  REQUIRED_VARS MITOOLBOX_LIBRARY MITOOLBOX_INCLUDE_DIR
-                                  VERSION_VAR MITOOLBOX_VERSION)
+                                  REQUIRED_VARS MITOOLBOX_LIBRARY MITOOLBOX_INCLUDE_DIR)
 mark_as_advanced (
   MITOOLBOX_LIBRARY
   MITOOLBOX_INCLUDE_DIR
-  MITOOLBOX_VERSION
 )

@@ -515,7 +515,7 @@ namespace OpenSwath
 
   double MRMScoring::calcMIScore()
   {
-    OPENSWATH_PRECONDITION(mi_matrix_.size() > 1, "Expect cross-correlation matrix of at least 2x2");
+    OPENSWATH_PRECONDITION(mi_matrix_.size() > 1, "Expect mutual information matrix of at least 2x2");
 
     std::vector<double> mi_scores;
     for (std::size_t i = 0; i < mi_matrix_.size(); i++)
@@ -533,7 +533,7 @@ namespace OpenSwath
   double MRMScoring::calcMIScore_weighted(
     const std::vector<double>& normalized_library_intensity)
   {
-    OPENSWATH_PRECONDITION(mi_matrix_.size() > 1, "Expect cross-correlation matrix of at least 2x2");
+    OPENSWATH_PRECONDITION(mi_matrix_.size() > 1, "Expect mutual information matrix of at least 2x2");
 
     std::vector<double> mi_scores;
     for (std::size_t i = 0; i < mi_matrix_.size(); i++)
@@ -561,7 +561,7 @@ namespace OpenSwath
 
   double MRMScoring::calcMS1MIScore()
   {
-    OPENSWATH_PRECONDITION(ms1_mi_vector_.size() > 1, "Expect cross-correlation vector of a size of least 2");
+    OPENSWATH_PRECONDITION(ms1_mi_vector_.size() > 1, "Expect mutual information vector of a size of least 2");
 
     std::vector<double> mi_scores;
     for (std::size_t i = 0; i < ms1_mi_vector_.size(); i++)
@@ -575,7 +575,7 @@ namespace OpenSwath
 
   std::string MRMScoring::calcIndMIIdScore()
   {
-    OPENSWATH_PRECONDITION(mi_matrix_.size() > 0 && mi_matrix_[0].size() > 1, "Expect cross-correlation matrix of at least 2x1");
+    OPENSWATH_PRECONDITION(mi_matrix_.size() > 0 && mi_matrix_[0].size() > 1, "Expect mutual information matrix of at least 2x1");
 
     std::vector<double> mi_scores;
     for (std::size_t i = 0; i < mi_matrix_.size(); i++)

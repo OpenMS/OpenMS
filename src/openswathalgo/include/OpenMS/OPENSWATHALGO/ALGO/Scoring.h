@@ -131,10 +131,10 @@ public:
     /// divide each element of x by the sum of the vector
     OPENSWATHALGO_DLLAPI void normalize_sum(double x[], unsigned int n);
 
-    // compute rank of vector elements
+    // Compute rank of vector elements
     OPENSWATHALGO_DLLAPI std::vector<uint> computeRank(const std::vector<double>& w);
 
-    /// Calculate rank-transformed mutual information between two vectors of data points
+    // Estimate rank-transformed mutual information between two vectors of data points
     OPENSWATHALGO_DLLAPI double rankedMutualInformation(std::vector<double>& data1, std::vector<double>& data2);
 
     //@}

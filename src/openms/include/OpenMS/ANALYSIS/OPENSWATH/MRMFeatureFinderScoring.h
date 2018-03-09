@@ -260,6 +260,8 @@ private:
      * @param native_ids_detection The native IDs of the detecting transitions
      * @param sn_win_len_ The signal to noise window length
      * @param sn_bin_count_ The signal to noise bin count
+     * @param det_intensity_ratio_score The intensity score of the detection transitions for normalization
+     * @param det_mi_ratio_score The MI score of the detection transitions for normalization
      * @param write_log_messages Whether to write signal to noise log messages
      * @value a struct of type OpenSwath_Scores containing either target or decoy values
     */
@@ -269,6 +271,8 @@ private:
                                           const std::vector<std::string> & native_ids_detection,
                                           const double sn_win_len_,
                                           const unsigned int sn_bin_count_,
+                                          const double det_intensity_ratio_score,
+                                          const double det_mi_ratio_score,
                                           bool write_log_messages,
                                           std::vector<OpenSwath::SwathMap> swath_maps);
 
