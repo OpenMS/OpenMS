@@ -36,9 +36,6 @@
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/MATH/STATISTICS/PosteriorErrorProbabilityModel.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
-#include <OpenMS/CONCEPT/Exception.h>
-#include <boost/math/special_functions/fpclassify.hpp> // for "isnan"
-#include <vector>
 
 using namespace OpenMS;
 using namespace Math; //PosteriorErrorProbabilityModel
@@ -238,7 +235,7 @@ protected:
         if (!out_plot.empty() 
          && top_hits_only 
          && target_decoy_available 
-         && (score.second[0].size() > 0))
+         && (!score.second[0].empty()))
         {
           PEP_model.plotTargetDecoyEstimation(score.second[1], score.second[2]); //target, decoy
         }
@@ -248,10 +245,10 @@ protected:
          PEP_model,
          engine,
          charge,
-         protein_ids,
-         peptide_ids,
          prob_correct,
          split_charge,
+         protein_ids,
+         peptide_ids,
          unable_to_fit_data,
          data_might_not_be_well_fit);
 

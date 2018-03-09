@@ -40,6 +40,9 @@
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
+#include <OpenMS/METADATA/PeptideIdentification.h>
+#include <OpenMS/METADATA/ProteinIdentification.h>
+#include <OpenMS/METADATA/PeptideHit.h>
 
 #include <QDir>
 
@@ -232,9 +235,9 @@ namespace OpenMS
       }
       else
       {
-        max_incorrectly_ = getGauss_(incorrectly_assigned_fit_param_.x0, incorrectly_assigned_fit_param_);
+        max_incorrectly_ = GaussFitter::eval(incorrectly_assigned_fit_param_.x0, incorrectly_assigned_fit_param_);
       }
-      max_correctly_ = getGauss_(correctly_assigned_fit_param_.x0, correctly_assigned_fit_param_);
+      max_correctly_ = GaussFitter::eval(correctly_assigned_fit_param_.x0, correctly_assigned_fit_param_);
 
       if (output_plots)
       {
@@ -273,8 +276,8 @@ namespace OpenMS
       for (double const & score : x_scores)
       {
         // TODO: incorrect is currently filled with gauss as fitting gumble is not supported
-        *incorrect = getGauss_(score, incorrectly_assigned_fit_param_);
-        *correct = getGauss_(score, correctly_assigned_fit_param_);
+        *incorrect = GaussFitter::eval(score, incorrectly_assigned_fit_param_);
+        *correct = GaussFitter::eval(score, correctly_assigned_fit_param_);
         ++incorrect;
         ++correct;
       }
@@ -370,7 +373,7 @@ namespace OpenMS
       if (score < incorrectly_assigned_fit_param_.x0)
       {
         x_neg = max_incorrectly_;
-        x_pos = getGauss_(score, correctly_assigned_fit_param_);
+        x_pos = GaussFitter::eval(score, correctly_assigned_fit_param_);
       }
       // same as above. However, this time to ensure that probabilities wont drop again.
       else if (score > correctly_assigned_fit_param_.x0)
@@ -382,7 +385,7 @@ namespace OpenMS
       else
       {
         x_neg = getGumbel_(score, incorrectly_assigned_fit_param_);
-        x_pos = getGauss_(score, correctly_assigned_fit_param_);
+        x_pos = GaussFitter::eval(score, correctly_assigned_fit_param_);
       }
       return (negative_prior_ * x_neg) / ((negative_prior_ * x_neg) + (1 - negative_prior_) * x_pos);
     }
@@ -635,13 +638,8 @@ namespace OpenMS
           return (-1) * log10(max((double)hit.getMetaValue("expect"), smallest_e_value_));
         }
       }
-      else
-      {
-        throw Exception::UnableToFit(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No parameters for chosen search engine", "The chosen search engine is currently not supported");
-      }
 
-    // avoid compiler warning (every code path must return a value, even if there is a throw() somewhere)
-      return std::numeric_limits<double>::max();
+      throw Exception::UnableToFit(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No parameters for chosen search engine", "The chosen search engine is currently not supported");
     }
 
     map<String, vector<vector<double>>> PosteriorErrorProbabilityModel::extractAndTransformScores(
@@ -764,15 +762,16 @@ namespace OpenMS
 
     void PosteriorErrorProbabilityModel::updateScores(
       const PosteriorErrorProbabilityModel & PEP_model,
-      String engine,
-      Int charge,
-      vector<ProteinIdentification> & protein_ids,
-      vector<PeptideIdentification> & peptide_ids,
+      const String & search_engine,
+      const Int charge,
       const bool prob_correct,
       const bool split_charge,
+      vector<ProteinIdentification> & protein_ids,
+      vector<PeptideIdentification> & peptide_ids,
       bool & unable_to_fit_data,
       bool & data_might_not_be_well_fit)
     {
+      String engine(search_engine);
       unable_to_fit_data = true;
       data_might_not_be_well_fit = true;
 
