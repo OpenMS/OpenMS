@@ -39,6 +39,10 @@
 #include <OpenMS/MATH/STATISTICS/GumbelDistributionFitter.h>
 #include <OpenMS/MATH/STATISTICS/GaussFitter.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
+#include <OpenMS/METADATA/PeptideIdentification.h>
+#include <OpenMS/METADATA/PeptideHit.h>
+#include <OpenMS/METADATA/ProteinIdentification.h>
+
 #include <vector>
 
 namespace OpenMS
@@ -70,6 +74,27 @@ public:
 
       ///Destructor
       ~PosteriorErrorProbabilityModel() override;
+
+      /// extract and transform different score types to a range and score orientation that the model can handle
+      static std::map<String, std::vector<std::vector<double>>> extractAndTransformScores(
+        const std::vector<ProteinIdentification> & protein_ids,
+        const std::vector<PeptideIdentification> & peptide_ids,
+        const bool split_charge,
+        const bool top_hits_only,
+        const bool target_decoy_available,
+        const double fdr_for_targets_smaller);
+
+      /// update score entries with PEP (or 1-PEP) estimates
+      static void updateScores(
+        const PosteriorErrorProbabilityModel & PEP_model,
+        String engine,
+        Int charge,
+        std::vector<ProteinIdentification> & protein_ids,
+        std::vector<PeptideIdentification> & peptide_ids,
+        const bool prob_correct,
+        const bool split_charge,
+        bool & unable_to_fit_data,
+        bool & data_might_not_be_well_fit);
 
       /**
           @brief fits the distributions to the data points(search_engine_scores). Estimated parameters for the distributions are saved in member variables. computeProbability can be used afterwards.
@@ -125,13 +150,13 @@ public:
       }
 
       ///computes the gaussian density at position x with parameters params.
-      double getGauss(double x, const GaussFitter::GaussFitResult & params)
+      static double getGauss_(double x, const GaussFitter::GaussFitResult & params)
       {
         return params.A * exp(-1.0 * pow(x - params.x0, 2) / (2 * pow(params.sigma, 2)));
       }
 
       ///computes the gumbel density at position x with parameters params.
-      double getGumbel(double x, const GaussFitter::GaussFitResult & params)
+      static double getGumbel_(double x, const GaussFitter::GaussFitResult & params)
       {
         double z = exp((params.x0 - x) / params.sigma);
         return (z * exp(-1 * z)) / params.sigma;
@@ -141,7 +166,7 @@ public:
           Returns the computed posterior error probability for a given score.
           @note: fit has to be used before using this function. Otherwise this function will compute nonsense.
       */
-      double computeProbability(double score);
+      double computeProbability(double score) const;
 
       ///initializes the plots
       TextFile initPlots(std::vector<double> & x_scores);
@@ -168,6 +193,9 @@ public:
       void tryGnuplot(const String& gp_file);
 
 private:
+      /// transform different score types to a range and score orientation that the model can handle (engine string is assumed in upper-case)
+      static double transformScore_(const String & engine, const PeptideHit & hit);
+
       /// assignment operator (not implemented)
       PosteriorErrorProbabilityModel & operator=(const PosteriorErrorProbabilityModel & rhs);
       ///Copy constructor (not implemented)
@@ -184,15 +212,10 @@ private:
       double max_correctly_;
       ///smallest score which was used for fitting the model
       double smallest_score_;
-      ///points to getGauss
-      double (PosteriorErrorProbabilityModel::* calc_incorrect_)(double x, const GaussFitter::GaussFitResult & params);
-      ///points either to getGumbel or getGauss depending on whether one uses the gumbel or the gaussian distribution for incorrectly assigned sequences.
-      double (PosteriorErrorProbabilityModel::* calc_correct_)(double x, const GaussFitter::GaussFitResult & params);
       ///points either to getGumbelGnuplotFormula or getGaussGnuplotFormula depending on whether one uses the gumbel or the gaussian distribution for incorrectly assigned sequences.
       const String (PosteriorErrorProbabilityModel::* getNegativeGnuplotFormula_)(const GaussFitter::GaussFitResult & params) const;
       ///points to getGumbelGnuplotFormula
       const String (PosteriorErrorProbabilityModel::* getPositiveGnuplotFormula_)(const GaussFitter::GaussFitResult & params) const;
-
     };
   }
 }
