@@ -79,7 +79,7 @@ namespace OpenMS
 
     // extract native id type accession (e.g. MS:1000768) corresponding to native id type (Thermo nativeID format)
     const String native_id_type_accession = spectra.getExperimentalSettings().getSourceFiles()[0].getNativeIDTypeAccession();
-    std::cout << "native_id_type_accession: " << native_id_type_accession << std::endl;
+    LOG_DEBUG << "native_id_type_accession: " << native_id_type_accession << std::endl;
   
     if (spectrum_type == SpectrumSettings::PROFILE)
     {
