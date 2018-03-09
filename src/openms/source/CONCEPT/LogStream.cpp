@@ -50,7 +50,6 @@
 #include <OpenMS/CONCEPT/StreamHandler.h>
 
 #ifdef _OPENMP
-#include <omp.h>
 #endif
 
 #define BUFFER_LENGTH 32768

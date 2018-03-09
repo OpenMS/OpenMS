@@ -34,24 +34,14 @@
 
 #include <OpenMS/FORMAT/HANDLERS/MzIdentMLDOMHandler.h>
 #include <OpenMS/SYSTEM/File.h>
-#include <OpenMS/KERNEL/StandardTypes.h>
 
-#include <OpenMS/CHEMISTRY/Residue.h>
-#include <OpenMS/CHEMISTRY/ResidueModification.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/CHEMISTRY/ResidueDB.h>
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
 
-#include <set>
-#include <string>
-#include <iostream>
-#include <stdexcept>
-#include <list>
 
-#include <sys/types.h>
 #include <sys/stat.h>
 #include <cerrno>
-#include <boost/lexical_cast.hpp>
 
 using namespace std;
 using namespace xercesc;
@@ -767,12 +757,12 @@ namespace OpenMS
           {
             if (element_pev->hasAttribute(XMLString::transcode("pre")))
             {
-              pre = *XMLString::transcode(element_pev->getAttribute(XMLString::transcode("pre")));
+            pre = *XMLString::transcode(element_pev->getAttribute(XMLString::transcode("pre")));
             }
             if (element_pev->hasAttribute(XMLString::transcode("post")))
             {
-              post = *XMLString::transcode(element_pev->getAttribute(XMLString::transcode("post")));
-            }
+            post = *XMLString::transcode(element_pev->getAttribute(XMLString::transcode("post")));
+          }
           }
           catch (...)
           {
@@ -2048,9 +2038,9 @@ namespace OpenMS
             }
             else
             {
-              hit.setMetaValue(cvs->first, cv->getValue().toString().toDouble());
-            }
+            hit.setMetaValue(cvs->first, cv->getValue().toString().toDouble());
           }
+        }
         }
         for (map<String, DataValue>::const_iterator up = params.second.begin(); up != params.second.end(); ++up)
         {
@@ -2443,8 +2433,8 @@ namespace OpenMS
                   catch (...)
                   {
                     LOG_WARN << "Found unreadable modification location." << endl;
-                    throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Unknown modification");
-                  }
+                  throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Unknown modification");
+                }
                   if (!has_mass_delta)
                   {
                     throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Unknown modification");

@@ -37,7 +37,6 @@
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
-#include <OpenMS/MATH/MISC/MathFunctions.h>
 
 using namespace std;
 

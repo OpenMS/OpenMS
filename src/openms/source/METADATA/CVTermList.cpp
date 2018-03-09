@@ -34,7 +34,6 @@
 
 #include <OpenMS/METADATA/CVTermList.h>
 
-#include <OpenMS/DATASTRUCTURES/CVMappingRule.h>
 #include <OpenMS/FORMAT/ControlledVocabulary.h>
 
 using namespace std;

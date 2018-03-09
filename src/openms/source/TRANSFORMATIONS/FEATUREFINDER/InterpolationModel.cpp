@@ -32,8 +32,6 @@
 // $Authors: $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/InterpolationModel.h>
-
 
 namespace OpenMS
 {

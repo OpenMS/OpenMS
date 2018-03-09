@@ -35,19 +35,12 @@
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/CONCEPT/Constants.h>
 
-#include <OpenMS/CHEMISTRY/ResidueModification.h>
 #include <OpenMS/CHEMISTRY/ResidueDB.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/Macros.h>
 #include <OpenMS/CONCEPT/PrecisionWrapper.h>
-
-#include <string>
-#include <algorithm>
-#include <cmath> // for "pow"
-#include <iterator> // for "distance"
-#include <sstream>
 
 using namespace std;
 

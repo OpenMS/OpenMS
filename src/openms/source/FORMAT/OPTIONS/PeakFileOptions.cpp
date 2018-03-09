@@ -34,9 +34,6 @@
 
 #include <OpenMS/FORMAT/OPTIONS/PeakFileOptions.h>
 
-#include <algorithm>
-#include <iostream>
-
 using namespace std;
 
 namespace OpenMS

@@ -37,9 +37,7 @@
 #include <OpenMS/DATASTRUCTURES/DateTime.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 
-#include <cstdlib>
 #include <fstream>
-#include <algorithm>
 
 using namespace std;
 
