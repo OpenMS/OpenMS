@@ -33,6 +33,7 @@
 			<UserParam type="float" name="leftWidth" value="10"/>
 			<UserParam type="float" name="rightWidth" value="190"/>
 			<UserParam type="float" name="total_xic" value="0"/>
+			<UserParam type="float" name="total_mi" value="0"/>
 			<UserParam type="float" name="peak_apices_sum" value="1196.82678222656"/>
 			<UserParam type="float" name="sn_ratio" value="2.12550151956495"/>
 			<UserParam type="float" name="var_log_sn_score" value="0.754007783737623"/>
@@ -76,6 +77,7 @@
 			<UserParam type="float" name="leftWidth" value="10"/>
 			<UserParam type="float" name="rightWidth" value="190"/>
 			<UserParam type="float" name="total_xic" value="0"/>
+			<UserParam type="float" name="total_mi" value="0"/>
 			<UserParam type="float" name="peak_apices_sum" value="1196.82678222656"/>
 			<UserParam type="float" name="sn_ratio" value="2.12550151956495"/>
 			<UserParam type="float" name="var_log_sn_score" value="0.754007783737623"/>
