@@ -626,6 +626,8 @@ protected:
 
       progresslogger.endProgress();
 
+      cout << "Size of enumerated candidates: " << double(cross_link_candidates.size()) * sizeof(OPXLDataStructs::ProteinProteinCrossLink) / 1024.0 / 1024.0 << " mb" << endl;
+
       // vector< OPXLDataStructs::ProteinProteinCrossLink > cross_link_candidates(cross_link_candidates_set.begin(), cross_link_candidates_set.end());
 
 #ifdef _OPENMP
@@ -792,6 +794,10 @@ protected:
 //      }
 
 
+      // mass_to_candidates.size() * sizeof(OPXLDataStructs::XLPrecursor) / 1024 / 1024
+      // TODO major memory eater, use a couple of vectors instead
+      cout << "Size of prescored candidates: " << double(prescore_csms_spectrum.size()) * sizeof(OPXLDataStructs::CrossLinkSpectrumMatch) / 1024.0 / 1024.0 << " mb" << endl;
+
       Size last_candidate_index = prescore_csms_spectrum.size();
       if (pre_scoring)
       {
@@ -860,16 +866,50 @@ protected:
         // theoretical_spec_xlinks_alpha = OPXLSpectrumProcessingAlgorithms::mergeAnnotatedSpectra(theoretical_spec_xlinks_alpha, theoretical_spec_xlinks_complex);
         // theoretical_spec_xlinks_beta = OPXLSpectrumProcessingAlgorithms::mergeAnnotatedSpectra(theoretical_spec_xlinks_beta, theoretical_spec_xlinks_complex);
 
-        OPXLSpectrumProcessingAlgorithms::getSpectrumAlignment(matched_spec_linear_alpha, theoretical_spec_linear_alpha, spectrum, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, ppm_error_array_linear_alpha);
-        OPXLSpectrumProcessingAlgorithms::getSpectrumAlignment(matched_spec_linear_beta, theoretical_spec_linear_beta, spectrum, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, ppm_error_array_linear_beta);
-        OPXLSpectrumProcessingAlgorithms::getSpectrumAlignment(matched_spec_xlinks_alpha, theoretical_spec_xlinks_alpha, spectrum, fragment_mass_tolerance_xlinks, fragment_mass_tolerance_unit_ppm, ppm_error_array_xlinks_alpha);
-        OPXLSpectrumProcessingAlgorithms::getSpectrumAlignment(matched_spec_xlinks_beta, theoretical_spec_xlinks_beta, spectrum, fragment_mass_tolerance_xlinks, fragment_mass_tolerance_unit_ppm, ppm_error_array_xlinks_beta);
+        // // TODO old, complex alignment
+        // OPXLSpectrumProcessingAlgorithms::getSpectrumAlignment(matched_spec_linear_alpha, theoretical_spec_linear_alpha, spectrum, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, ppm_error_array_linear_alpha);
+        // OPXLSpectrumProcessingAlgorithms::getSpectrumAlignment(matched_spec_linear_beta, theoretical_spec_linear_beta, spectrum, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, ppm_error_array_linear_beta);
+        // OPXLSpectrumProcessingAlgorithms::getSpectrumAlignment(matched_spec_xlinks_alpha, theoretical_spec_xlinks_alpha, spectrum, fragment_mass_tolerance_xlinks, fragment_mass_tolerance_unit_ppm, ppm_error_array_xlinks_alpha);
+        // OPXLSpectrumProcessingAlgorithms::getSpectrumAlignment(matched_spec_xlinks_beta, theoretical_spec_xlinks_beta, spectrum, fragment_mass_tolerance_xlinks, fragment_mass_tolerance_unit_ppm, ppm_error_array_xlinks_beta);
+
+        // TODO new simple alignment
+        // cout << "TEST start alignment... " << endl;
+        PeakSpectrum::IntegerDataArray& theo_charges_la = theoretical_spec_linear_alpha.getIntegerDataArrays()[0];
+        PeakSpectrum::IntegerDataArray theo_charges_xa;
+        if (theoretical_spec_xlinks_alpha.getIntegerDataArrays().size() > 0)
+        {
+          // cout << "TEST xlinks alpha... " << endl;
+          theo_charges_xa = theoretical_spec_xlinks_alpha.getIntegerDataArrays()[0];
+        }
+        PeakSpectrum::IntegerDataArray theo_charges_lb;
+        PeakSpectrum::IntegerDataArray theo_charges_xb;
+        if (theoretical_spec_linear_beta.getIntegerDataArrays().size() > 0)
+        {
+          // cout << "TEST linear beta... " << endl;
+          theo_charges_lb = theoretical_spec_linear_beta.getIntegerDataArrays()[0];
+        }
+        if (theoretical_spec_xlinks_beta.getIntegerDataArrays().size() > 0)
+        {
+          // cout << "TEST xlinks beta... " << endl;
+          theo_charges_xb = theoretical_spec_xlinks_beta.getIntegerDataArrays()[0];
+        }
+        // cout << "TEST exp_charges... " << endl;
+        PeakSpectrum::IntegerDataArray exp_charges;
+        if (spectrum.getIntegerDataArrays().size() > 0)
+        {
+          // cout << "TEST spectrum data arrays: " << spectrum.getIntegerDataArrays().size() << endl;
+          exp_charges = spectrum.getIntegerDataArrays()[0];
+        }
+        // cout << "TEST extracted charges..." << endl;
+        OPXLSpectrumProcessingAlgorithms::getSpectrumAlignmentFastCharge(matched_spec_linear_alpha, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, theoretical_spec_linear_alpha, spectrum, theo_charges_la, exp_charges);
+        OPXLSpectrumProcessingAlgorithms::getSpectrumAlignmentFastCharge(matched_spec_linear_beta, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, theoretical_spec_linear_beta, spectrum, theo_charges_lb, exp_charges);
+        OPXLSpectrumProcessingAlgorithms::getSpectrumAlignmentFastCharge(matched_spec_xlinks_alpha, fragment_mass_tolerance_xlinks, fragment_mass_tolerance_unit_ppm, theoretical_spec_xlinks_alpha, spectrum, theo_charges_xa, exp_charges);
+        OPXLSpectrumProcessingAlgorithms::getSpectrumAlignmentFastCharge(matched_spec_xlinks_beta, fragment_mass_tolerance_xlinks, fragment_mass_tolerance_unit_ppm, theoretical_spec_xlinks_beta, spectrum, theo_charges_xb, exp_charges);
 
         LOG_DEBUG << "Spectrum sizes: " << spectrum.size() << " || " << theoretical_spec_linear_alpha.size() <<  " | " << theoretical_spec_linear_beta.size()
                               <<  " | " << theoretical_spec_xlinks_alpha.size() <<  " | " << theoretical_spec_xlinks_beta.size() << endl;
         LOG_DEBUG << "Matched peaks: " << matched_spec_linear_alpha.size() << " | " << matched_spec_linear_beta.size()
                               <<  " | " << matched_spec_xlinks_alpha.size() <<  " | " << matched_spec_xlinks_beta.size() << endl;
-
 
         LOG_DEBUG << "Computing Intsum..." << endl;
         // compute intsum score
@@ -1327,6 +1367,8 @@ protected:
         }
       }
 
+      cout << "Size of all top csms: " << double(all_top_csms.size()) * sizeof(OPXLDataStructs::CrossLinkSpectrumMatch) / 1024.0 / 1024.0 << " mb" << endl;
+
       // Write PeptideIdentifications and PeptideHits for n top hits
       if (!top_csms_spectrum.empty())
       {
@@ -1353,6 +1395,8 @@ protected:
     pep_indexing.run(fasta_db, protein_ids, peptide_ids);
 
     OPXLHelper::addProteinPositionMetaValues(peptide_ids);
+
+    cout << "Size of all top PeptideIDs: " << double(peptide_ids.size()) * sizeof(PeptideIdentification) / 1024.0 / 1024.0 << " mb" << endl;
 
     // write output
     progresslogger.startProgress(0, 1, "Writing output...");
