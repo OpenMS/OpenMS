@@ -239,7 +239,7 @@ namespace OpenMS
 
       // check for parameter copy action (only if source is a tool node (--> edge is purple already, user expects this to happen))
       TOPPASToolVertex* tv_source = qobject_cast<TOPPASToolVertex*>(source);
-      if (Qt::ControlModifier && tv_source)
+      if ((QGuiApplication::keyboardModifiers() & Qt::ControlModifier) && tv_source)
       {
         TOPPASToolVertex* tv_target = qobject_cast<TOPPASToolVertex*>(target);
         if (!(tv_source && tv_target))
