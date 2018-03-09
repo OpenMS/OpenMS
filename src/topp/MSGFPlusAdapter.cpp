@@ -33,25 +33,20 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
-#include <OpenMS/CHEMISTRY/ModificationDefinitionsSet.h>
+
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/FORMAT/CsvFile.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
-#include <OpenMS/FORMAT/IdXMLFile.h>
-#include <OpenMS/FORMAT/MascotXMLFile.h>
-#include <OpenMS/FORMAT/MzDataFile.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/MzIdentMLFile.h>
-#include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
+#include <OpenMS/METADATA/SpectrumMetaDataLookup.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/SYSTEM/JavaInfo.h>
 
-#include <QtCore/QFile>
 #include <QtCore/QProcess>
-#include <QDir>
 
 #include <algorithm>
 #include <fstream>
@@ -745,17 +740,9 @@ protected:
     //-------------------------------------------------------------
 
     if (!mzid_out.empty())
-    {
-      // existing file? Qt won't overwrite, so try to remove it:
-      if (QFile::exists(mzid_out.toQString()) && !QFile::remove(mzid_out.toQString()))
+    { // move the temporary file to the actual destination:
+      if (!File::rename(mzid_temp, mzid_out))
       {
-        writeLog_("Fatal error: Could not overwrite existing file '" + mzid_out + "'");
-        return CANNOT_WRITE_OUTPUT_FILE;
-      }
-      // move the temporary file to the actual destination:
-      if (!QFile::rename(mzid_temp.toQString(), mzid_out.toQString()))
-      {
-        writeLog_("Fatal error: Could not move temporary mzid file to '" + mzid_out + "'");
         return CANNOT_WRITE_OUTPUT_FILE;
       }
     }

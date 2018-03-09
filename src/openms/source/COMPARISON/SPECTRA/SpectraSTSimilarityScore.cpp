@@ -33,8 +33,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/COMPARISON/SPECTRA/SpectraSTSimilarityScore.h>
-#include <OpenMS/CONCEPT/Exception.h>
-#include <cmath>
+
 using namespace std;
 using namespace Eigen;
 

@@ -34,10 +34,8 @@
 
 #include <OpenMS/FORMAT/MascotRemoteQuery.h>
 #include <OpenMS/CONCEPT/LogStream.h>
-#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 #include <QtGui/QTextDocument>
-#include <iostream>
 
 // #define MASCOTREMOTEQUERY_DEBUG
 

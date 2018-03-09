@@ -32,8 +32,6 @@
 // $Authors: $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/LevMarqFitter1D.h>
-
 namespace OpenMS
 {
 

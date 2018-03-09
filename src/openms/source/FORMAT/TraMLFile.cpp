@@ -37,12 +37,8 @@
 #include <OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>
 #include <OpenMS/FORMAT/VALIDATORS/TraMLValidator.h>
 #include <OpenMS/FORMAT/CVMappingFile.h>
-#include <OpenMS/FORMAT/VALIDATORS/XMLValidator.h>
-#include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/FORMAT/HANDLERS/TraMLHandler.h>
 #include <OpenMS/SYSTEM/File.h>
-
-#include <iostream>
 
 namespace OpenMS
 {

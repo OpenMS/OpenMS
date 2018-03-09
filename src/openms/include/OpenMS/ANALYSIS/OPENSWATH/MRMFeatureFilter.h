@@ -28,8 +28,8 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Douglas McCloskey $
-// $Authors: Douglas McCloskey $
+// $Maintainer: Douglas McCloskey, Pasquale Domenico Colaianni $
+// $Authors: Douglas McCloskey, Pasquale Domenico Colaianni $
 // --------------------------------------------------------------------------
 
 #ifndef OPENMS_ANALYSIS_OPENSWATH_MRMFEATUREFILTER_H
@@ -127,19 +127,26 @@ public:
       @return The difference.
     */ 
     double calculateResolution(Feature & component_1, Feature & component_2);
-    
+
     /**
       @brief Checks if the metaValue is within the user specified range
 
-      @param component component of the numerator
-      @param meta_value_key Name of the metaValue
-      @param meta_value_l Lower bound (inclusive) for the metaValue range
-      @param meta_value_u Upper bound (inclusive) for the metaValue range
+      @param[in] component component of the numerator
+      @param[in] meta_value_key Name of the metaValue
+      @param[in] meta_value_l Lower bound (inclusive) for the metaValue range
+      @param[in] meta_value_u Upper bound (inclusive) for the metaValue range
+      @param[out] key_exists true if the given key is found, false otherwise
 
       @return True if the metaValue is within the bounds, and False otherwise.
-    */ 
-    bool checkMetaValue(const Feature & component, const String & meta_value_key, const double & meta_value_l, const double & meta_value_u);
-    
+    */
+    bool checkMetaValue(
+      const Feature & component,
+      const String & meta_value_key,
+      const double & meta_value_l,
+      const double & meta_value_u,
+      bool & key_exists
+    ) const;
+
     /**
       @brief Count the number of heavy/light labels and quantifying/detecting/identifying transitions
 
@@ -163,7 +170,7 @@ public:
 
 private:
     template <typename T>
-    bool checkRange(T const& value, T const& value_l, T const& value_u);
+    bool checkRange(const T& value, const T& value_l, const T& value_u) const;
 
     // Members
 

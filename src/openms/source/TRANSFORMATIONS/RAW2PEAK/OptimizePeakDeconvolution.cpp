@@ -34,14 +34,7 @@
 //
 
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/OptimizePeakDeconvolution.h>
-#include <OpenMS/MATH/MISC/MathFunctions.h>
-#include <OpenMS/DATASTRUCTURES/ListUtils.h>
-#include <boost/math/special_functions/fpclassify.hpp>
 #include <boost/math/special_functions/acosh.hpp>
-
-#include <unsupported/Eigen/NonLinearOptimization>
-
-#include <limits>
 
 
 #ifdef DEBUG_DECONV

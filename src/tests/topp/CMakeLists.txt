@@ -819,6 +819,14 @@ set_tests_properties("TOPP_IDFileConverter_22_out1" PROPERTIES DEPENDS "TOPP_IDF
 add_test("TOPP_IDFileConverter_23" ${TOPP_BIN_PATH}/IDFileConverter -test -in ${DATA_DIR_TOPP}/IDFileConverter_23_input.mzid -out IDFileConverter_23_output.tmp -out_type idXML)
 add_test("TOPP_IDFileConverter_23_out1" ${DIFF} -in1 IDFileConverter_23_output.tmp -in2 ${DATA_DIR_TOPP}/IDFileConverter_23_output.idXML -whitelist "IdentificationRun date" )
 set_tests_properties("TOPP_IDFileConverter_23_out1" PROPERTIES DEPENDS "TOPP_IDFileConverter_23")
+# Comet pep.xml
+add_test("TOPP_IDFileConverter_24" ${TOPP_BIN_PATH}/IDFileConverter -test -in ${DATA_DIR_TOPP}/IDFileConverter_24_input.pep.xml -out IDFileConverter_24_output.tmp -out_type idXML)
+add_test("TOPP_IDFileConverter_24_out1" ${DIFF} -in1 IDFileConverter_24_output.tmp -in2 ${DATA_DIR_TOPP}/IDFileConverter_24_output.idXML -whitelist "IdentificationRun date" )
+set_tests_properties("TOPP_IDFileConverter_24_out1" PROPERTIES DEPENDS "TOPP_IDFileConverter_24")
+# Comet pep.xml
+add_test("TOPP_IDFileConverter_25" ${TOPP_BIN_PATH}/IDFileConverter -test -in ${DATA_DIR_TOPP}/IDFileConverter_25_input.idXML -out IDFileConverter_25_output.tmp -out_type pepXML)
+add_test("TOPP_IDFileConverter_25_out1" ${DIFF} -in1 IDFileConverter_25_output.tmp -in2 ${DATA_DIR_TOPP}/IDFileConverter_25_output.pep.xml)
+set_tests_properties("TOPP_IDFileConverter_25_out1" PROPERTIES DEPENDS "TOPP_IDFileConverter_25")
 
 #------------------------------------------------------------------------------
 # IDFilter tests
@@ -911,7 +919,6 @@ set_tests_properties("TOPP_IDFilter_19_out1" PROPERTIES DEPENDS "TOPP_IDFilter_1
 add_test("TOPP_IDFilter_20" ${TOPP_BIN_PATH}/IDFilter -test -in ${DATA_DIR_TOPP}/IDFilter_missed_cleavages_input.idXML -out IDFilter_20_output.tmp -missed_cleavages:number_of_missed_cleavages 1:0)
 add_test("TOPP_IDFilter_20_out1" ${DIFF} -in1 IDFilter_20_output.tmp -in2 ${DATA_DIR_TOPP}/IDFilter_20_output.idXML )
 set_tests_properties("TOPP_IDFilter_20_out1" PROPERTIES DEPENDS "TOPP_IDFilter_20")
-
 
 #------------------------------------------------------------------------------
 # MapAlignerPoseClustering tests
@@ -2184,23 +2191,31 @@ set_tests_properties("UTILS_OpenPepXLLF_1_out_4" PROPERTIES DEPENDS "UTILS_OpenP
 
 #------------------------------------------------------------------------------
 # XFDR tests
-add_test("UTILS_XFDR_1" ${TOPP_BIN_PATH}/XFDR -test -in ${DATA_DIR_TOPP}/XFDR_test_in1.xml -out_idXML XFDR_test_out1_temp.idXML -out_mzIdentML XFDR_test_out1_temp.mzid)
+add_test("UTILS_XFDR_1" ${TOPP_BIN_PATH}/XFDR -test -in ${DATA_DIR_TOPP}/XFDR_test_in1.idXML -out_idXML XFDR_test_out1_temp.idXML -out_mzIdentML XFDR_test_out1_temp.mzid -out_xquest XFDR_test_out1_temp.xquest.xml)
 add_test("UTILS_XFDR_1_out11" ${DIFF} -whitelist "date=" -in1 XFDR_test_out1_temp.idXML  -in2 ${DATA_DIR_TOPP}/XFDR_test_out1.idXML)
 add_test("UTILS_XFDR_1_out12" ${DIFF} -whitelist "creationDate=" "version=" -in1 XFDR_test_out1_temp.mzid -in2 ${DATA_DIR_TOPP}/XFDR_test_out1.mzid)
+add_test("UTILS_XFDR_1_out13" ${DIFF} -whitelist "date=" -in1 XFDR_test_out1_temp.xquest.xml -in2 ${DATA_DIR_TOPP}/XFDR_test_out1.xquest.xml)
 set_tests_properties("UTILS_XFDR_1_out11" PROPERTIES DEPENDS "UTILS_XFDR_1")
 set_tests_properties("UTILS_XFDR_1_out12" PROPERTIES DEPENDS "UTILS_XFDR_1")
-add_test("UTILS_XFDR_2" ${TOPP_BIN_PATH}/XFDR -test -in ${DATA_DIR_TOPP}/XFDR_test_in1.xml -uniquexl -no_qvalues -out_idXML XFDR_test_out2_temp.idXML -out_mzIdentML XFDR_test_out2_temp.mzid)
+set_tests_properties("UTILS_XFDR_1_out13" PROPERTIES DEPENDS "UTILS_XFDR_1")
+add_test("UTILS_XFDR_2" ${TOPP_BIN_PATH}/XFDR -test -in ${DATA_DIR_TOPP}/XFDR_test_in1.idXML -uniquexl -no_qvalues -out_idXML XFDR_test_out2_temp.idXML -out_mzIdentML XFDR_test_out2_temp.mzid -out_xquest XFDR_test_out2_temp.xquest.xml)
 add_test("UTILS_XFDR_2_out21" ${DIFF} -whitelist "date=" -in1 XFDR_test_out2_temp.idXML -in2 ${DATA_DIR_TOPP}/XFDR_test_out2.idXML)
-add_test("UTILS_XFDR_2_out22" ${DIFF} -whitelist "creationDate=" "version=" -in1 XFDR_test_out2_temp.mzid -in2 ${DATA_DIR_TOPP}/XFDR_test_out2.mzid)
+add_test("UTILS_XFDR_2_out22" ${DIFF} -whitelist "creationDate=" "version=" "id=\"OpenMS_" -in1 XFDR_test_out2_temp.mzid -in2 ${DATA_DIR_TOPP}/XFDR_test_out2.mzid)
+add_test("UTILS_XFDR_2_out23" ${DIFF} -whitelist "date=" -in1 XFDR_test_out2_temp.xquest.xml -in2 ${DATA_DIR_TOPP}/XFDR_test_out2.xquest.xml)
 set_tests_properties("UTILS_XFDR_2_out21" PROPERTIES DEPENDS "UTILS_XFDR_2")
 set_tests_properties("UTILS_XFDR_2_out22" PROPERTIES DEPENDS "UTILS_XFDR_2")
-add_test("UTILS_XFDR_3" ${TOPP_BIN_PATH}/XFDR -test -in ${DATA_DIR_TOPP}/XFDR_test_in2.xml -out_idXML XFDR_test_out3_temp.idXML -out_mzIdentML XFDR_test_out3_temp.mzid)
+set_tests_properties("UTILS_XFDR_2_out23" PROPERTIES DEPENDS "UTILS_XFDR_2")
+add_test("UTILS_XFDR_3" ${TOPP_BIN_PATH}/XFDR -test -in ${DATA_DIR_TOPP}/XFDR_test_in2.xquest.xml -out_idXML XFDR_test_out3_temp.idXML -out_mzIdentML XFDR_test_out3_temp.mzid -out_xquest XFDR_test_out3_temp.xquest.xml)
 add_test("UTILS_XFDR_3_out31" ${DIFF} -whitelist "date=" -in1 XFDR_test_out3_temp.idXML -in2 ${DATA_DIR_TOPP}/XFDR_test_out3.idXML)
-add_test("UTILS_XFDR_3_out32" ${DIFF} -whitelist "creationDate=" "version=" -in1 XFDR_test_out3_temp.mzid -in2 ${DATA_DIR_TOPP}/XFDR_test_out3.mzid)
+add_test("UTILS_XFDR_3_out32" ${DIFF} -whitelist "creationDate=" "version=" "id=\"OpenMS_" -in1 XFDR_test_out3_temp.mzid -in2 ${DATA_DIR_TOPP}/XFDR_test_out3.mzid)
+add_test("UTILS_XFDR_3_out33" ${DIFF} -whitelist "date=" -in1 XFDR_test_out3_temp.xquest.xml -in2 ${DATA_DIR_TOPP}/XFDR_test_out3.xquest.xml)
 set_tests_properties("UTILS_XFDR_3_out31" PROPERTIES DEPENDS "UTILS_XFDR_3")
 set_tests_properties("UTILS_XFDR_3_out32" PROPERTIES DEPENDS "UTILS_XFDR_3")
-add_test("UTILS_XFDR_4" ${TOPP_BIN_PATH}/XFDR -test -minborder -5 -maxborder 5 -in ${DATA_DIR_TOPP}/XFDR_test_in2.xml -out_idXML XFDR_test_out4_temp.idXML -out_mzIdentML XFDR_test_out4_temp.mzid)
+set_tests_properties("UTILS_XFDR_3_out33" PROPERTIES DEPENDS "UTILS_XFDR_3")
+add_test("UTILS_XFDR_4" ${TOPP_BIN_PATH}/XFDR -test -minborder -3 -maxborder 3 -in ${DATA_DIR_TOPP}/XFDR_test_in2.xquest.xml -out_idXML XFDR_test_out4_temp.idXML -out_mzIdentML XFDR_test_out4_temp.mzid -out_xquest XFDR_test_out4_temp.xquest.xml)
 add_test("UTILS_XFDR_4_out41" ${DIFF} -whitelist "date=" -in1 XFDR_test_out4_temp.idXML -in2 ${DATA_DIR_TOPP}/XFDR_test_out4.idXML)
-add_test("UTILS_XFDR_4_out42" ${DIFF} -whitelist "creationDate=" "version=" -in1 XFDR_test_out4_temp.mzid -in2 ${DATA_DIR_TOPP}/XFDR_test_out4.mzid)
+add_test("UTILS_XFDR_4_out42" ${DIFF} -whitelist "creationDate=" "version=" "id=\"OpenMS_" -in1 XFDR_test_out4_temp.mzid -in2 ${DATA_DIR_TOPP}/XFDR_test_out4.mzid)
+add_test("UTILS_XFDR_4_out43" ${DIFF} -whitelist "date=" -in1 XFDR_test_out4_temp.xquest.xml -in2 ${DATA_DIR_TOPP}/XFDR_test_out4.xquest.xml)
 set_tests_properties("UTILS_XFDR_4_out41" PROPERTIES DEPENDS "UTILS_XFDR_4")
 set_tests_properties("UTILS_XFDR_4_out42" PROPERTIES DEPENDS "UTILS_XFDR_4")
+set_tests_properties("UTILS_XFDR_4_out43" PROPERTIES DEPENDS "UTILS_XFDR_4")

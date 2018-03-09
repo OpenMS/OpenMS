@@ -36,17 +36,14 @@
 
 #include <boost/regex.hpp>
 #include <boost/lexical_cast.hpp>
+
 #include <fstream>
-#include <string>
 #include <iostream>
-#include <new> // std::nothrow
 
 #include <xercesc/framework/MemBufInputSource.hpp>
 #include <xercesc/parsers/XercesDOMParser.hpp>
-#include <xercesc/dom/DOMNode.hpp>
 #include <xercesc/dom/DOMElement.hpp>
 #include <xercesc/dom/DOMNodeList.hpp>
-#include <xercesc/util/XMLString.hpp>
 
 namespace OpenMS
 {
