@@ -173,7 +173,7 @@ protected:
     }
   }
 
-  void createParamFile_(ostream& os)
+  void createParamFile_(ofstream& os)
   {
     vector<String> variable_mods = getStringList_("variable_modifications");
     vector<String> fixed_mods = getStringList_("fixed_modifications");
@@ -199,6 +199,7 @@ protected:
     {
       os << "novorFile" << cparamfile << "\n";
     }
+    os.close();
   }
 
   // the main_ function is called after all parameters are read
@@ -282,32 +283,32 @@ protected:
                    << "-p" << tmp_param.toQString()
                    << tmp_mgf.toQString();
     
-    QProcess * qp = new QProcess();
-    qp->setWorkingDirectory(path_to_executable);
-    qp->start(java_executable.toQString(), QStringList() << process_params);
+    QProcess qp;
+    qp.setWorkingDirectory(path_to_executable);
+    qp.start(java_executable.toQString(), process_params);
 
     // check if process has started    
-    if (!qp->waitForStarted(-1))
+    if (!qp.waitForStarted(-1))
     {
       LOG_FATAL_ERROR << "FATAL: Invocation of NovorAdapter failed. Process (java -jar novor.jar ...) was not able to start." << std::endl;
       return EXTERNAL_PROGRAM_ERROR;
     } 
    
     // check if process has finised
-    if (!qp->waitForFinished(-1))
+    if (!qp.waitForFinished(-1))
     {
       LOG_FATAL_ERROR << "FATAL: Invocation of NovorAdapter failed. Process (java -jar novor.jar ...) was not able to finish." << std::endl;
       return EXTERNAL_PROGRAM_ERROR;
     } 
 
     // see if process was successfull
-    if (qp->exitStatus() != 0 || qp->exitCode() != 0)
+    if (qp.exitStatus() != 0 || qp.exitCode() != 0)
     {
-      LOG_FATAL_ERROR << "FATAL: Invocation of NovorAdapter  has failed. Error code was: " << qp->exitCode() << std::endl;
+      LOG_FATAL_ERROR << "FATAL: Invocation of NovorAdapter  has failed. Error code was: " << qp.exitCode() << std::endl;
       return EXTERNAL_PROGRAM_ERROR;
     }
 
-    qp->close();   
+    qp.close();
  
     // novor command line
     std::stringstream ss;
