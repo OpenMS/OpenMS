@@ -548,7 +548,7 @@ START_SECTION((Param AbsoluteQuantitation::fitCalibration(
 
 END_SECTION
 
-START_SECTION((void optimizeCalibrationCurveIterative(
+START_SECTION((bool optimizeCalibrationCurveIterative(
   std::vector<AbsoluteQuantitationStandards::featureConcentration> & component_concentrations,
   const String & feature_name,
   const String & transformation_model,
@@ -576,13 +576,15 @@ START_SECTION((void optimizeCalibrationCurveIterative(
   Param transformation_model_params;
   transformation_model_params.setValue("x_weight", "ln(x)");
   transformation_model_params.setValue("y_weight", "ln(y)");
+  transformation_model_params.setValue("slope", "1.0");
+  transformation_model_params.setValue("intercept", "0.0");
   transformation_model_params.setValue("x_datum_min", -1e12);
   transformation_model_params.setValue("x_datum_max", 1e12);
   transformation_model_params.setValue("y_datum_min", -1e12);
   transformation_model_params.setValue("y_datum_max", 1e12);
   Param optimized_params;
 
-  absquant.optimizeCalibrationCurveIterative(
+  bool optimal_fit_found = absquant.optimizeCalibrationCurveIterative(
     component_concentrations,
     feature_name,
     transformation_model,
@@ -593,11 +595,12 @@ START_SECTION((void optimizeCalibrationCurveIterative(
   TEST_REAL_SIMILAR(component_concentrations[8].actual_concentration, 40.0);
   TEST_REAL_SIMILAR(optimized_params.getValue("slope"), 0.9011392589);
   TEST_REAL_SIMILAR(optimized_params.getValue("intercept"), 1.870185076);
+  TEST_EQUAL(optimal_fit_found, true);
 
   // TEST 2: amp
   component_concentrations = make_amp_standards();
 
-  absquant.optimizeCalibrationCurveIterative(
+  optimal_fit_found = absquant.optimizeCalibrationCurveIterative(
     component_concentrations,
     feature_name,
     transformation_model,
@@ -608,11 +611,12 @@ START_SECTION((void optimizeCalibrationCurveIterative(
   TEST_REAL_SIMILAR(component_concentrations[8].actual_concentration, 8.0);
   TEST_REAL_SIMILAR(optimized_params.getValue("slope"), 0.95799683);
   TEST_REAL_SIMILAR(optimized_params.getValue("intercept"), -1.047543387);
+  TEST_EQUAL(optimal_fit_found, true);
 
   // TEST 3: atp
   component_concentrations = make_atp_standards();
 
-  absquant.optimizeCalibrationCurveIterative(
+  optimal_fit_found = absquant.optimizeCalibrationCurveIterative(
     component_concentrations,
     feature_name,
     transformation_model,
@@ -623,6 +627,29 @@ START_SECTION((void optimizeCalibrationCurveIterative(
   TEST_REAL_SIMILAR(component_concentrations[3].actual_concentration, 8.0);
   TEST_REAL_SIMILAR(optimized_params.getValue("slope"), 0.623040824);
   TEST_REAL_SIMILAR(optimized_params.getValue("intercept"), 0.36130172586);
+  TEST_EQUAL(optimal_fit_found, true);
+
+  // TEST 4: atp with too stringent of a criteria (should fail)
+  component_concentrations = make_atp_standards();
+  
+  absquant_params.setValue("min_points", 12);
+  absquant_params.setValue("max_bias", 5.0);
+  absquant_params.setValue("min_correlation_coefficient", 0.99);
+  absquant_params.setValue("max_iters", 100);
+  absquant_params.setValue("outlier_detection_method", "iter_jackknife");
+  absquant_params.setValue("use_chauvenet", "false");
+  absquant.setParameters(absquant_params);
+
+  optimal_fit_found = absquant.optimizeCalibrationCurveIterative(
+    component_concentrations,
+    feature_name,
+    transformation_model,
+    transformation_model_params,
+    optimized_params);
+
+  TEST_REAL_SIMILAR(optimized_params.getValue("slope"), 0.482400123016735);
+  TEST_REAL_SIMILAR(optimized_params.getValue("intercept"), 0.305125368008987);
+  TEST_EQUAL(optimal_fit_found, false);
 
 END_SECTION
 
@@ -724,12 +751,12 @@ START_SECTION((void optimizeCalibrationCurves(AbsoluteQuantitationStandards::com
 
   TEST_REAL_SIMILAR(components_concentrations["ser-L.ser-L_1.Light"][0].actual_concentration, 0.01);
   TEST_REAL_SIMILAR(components_concentrations["ser-L.ser-L_1.Light"][8].actual_concentration, 4.0);
-  TEST_REAL_SIMILAR(quant_methods_map["ser-L.ser-L_1.Light"].getTransformationModelParams().getValue("slope"), 0.9011392589);
-  TEST_REAL_SIMILAR(quant_methods_map["ser-L.ser-L_1.Light"].getTransformationModelParams().getValue("intercept"), 1.87018507);
-  TEST_REAL_SIMILAR(quant_methods_map["ser-L.ser-L_1.Light"].getCorrelationCoefficient(), 0.997143769417099);
-  TEST_EQUAL(quant_methods_map["ser-L.ser-L_1.Light"].getLLOQ(), 0.01);
-  TEST_EQUAL(quant_methods_map["ser-L.ser-L_1.Light"].getULOQ(), 200);
-  TEST_EQUAL(quant_methods_map["ser-L.ser-L_1.Light"].getNPoints(), 14);
+  TEST_REAL_SIMILAR(quant_methods_map["ser-L.ser-L_1.Light"].getTransformationModelParams().getValue("slope"), 0.9011392589);  // previous supplied
+  TEST_REAL_SIMILAR(quant_methods_map["ser-L.ser-L_1.Light"].getTransformationModelParams().getValue("intercept"), 1.87018507);  // previous supplied
+  TEST_REAL_SIMILAR(quant_methods_map["ser-L.ser-L_1.Light"].getCorrelationCoefficient(), 0.0);
+  TEST_EQUAL(quant_methods_map["ser-L.ser-L_1.Light"].getLLOQ(), 0.0);
+  TEST_EQUAL(quant_methods_map["ser-L.ser-L_1.Light"].getULOQ(), 0.0);
+  TEST_EQUAL(quant_methods_map["ser-L.ser-L_1.Light"].getNPoints(), 0.0);
 END_SECTION
 
 START_SECTION(void optimizeSingleCalibrationCurve(
