@@ -86,28 +86,28 @@ protected:
   void registerOptionsAndFlags_() final override
   {
     // Input consensusXML
-    this->registerInputFile_(TOPPMSstatsConverter::param_in, "<in>", "", "Input consensusXML or featureXML with peptide intensities", true, false);
-    this->setValidFormats_(TOPPMSstatsConverter::param_in, ListUtils::create<String>("consensusXML"), true);
+    registerInputFile_(TOPPMSstatsConverter::param_in, "<in>", "", "Input consensusXML or featureXML with peptide intensities", true, false);
+    setValidFormats_(TOPPMSstatsConverter::param_in, ListUtils::create<String>("consensusXML"), true);
 
-    this->registerExperimentalDesignInputFile_(TOPPMSstatsConverter::param_in_design_run, "<in_design_run>", "TSV file containing the run description (run table)");
-    this->registerExperimentalDesignInputFile_(TOPPMSstatsConverter::param_in_design_condition, "<in_design_condition>", "TSV file containing the condition description (condition table)");
+    registerExperimentalDesignInputFile_(TOPPMSstatsConverter::param_in_design_run, "<in_design_run>", "TSV file containing the run description (run table)");
+    registerExperimentalDesignInputFile_(TOPPMSstatsConverter::param_in_design_condition, "<in_design_condition>", "TSV file containing the condition description (condition table)");
 
-    this->registerStringOption_(TOPPMSstatsConverter::param_msstats_bioreplicate, "<msstats_bioreplicate>", "Biological Replicate", "Which column in the condition table should be used for MSstats 'BioReplicate'", false, false);
-    this->registerStringOption_(TOPPMSstatsConverter::param_msstats_condition, "<msstats_condition>", "", "Which column in the condition table should be used for MSstats 'Condition'", true, false);
+    registerStringOption_(TOPPMSstatsConverter::param_msstats_bioreplicate, "<msstats_bioreplicate>", "Biological Replicate", "Which column in the condition table should be used for MSstats 'BioReplicate'", false, false);
+    registerStringOption_(TOPPMSstatsConverter::param_msstats_condition, "<msstats_condition>", "", "Which column in the condition table should be used for MSstats 'Condition'", true, false);
 
     // Isotope label type
-    this->registerFlag_(TOPPMSstatsConverter::param_labeled_reference_peptides, "If set, IsotopeLabelType is 'H', else 'L'");
+    registerFlag_(TOPPMSstatsConverter::param_labeled_reference_peptides, "If set, IsotopeLabelType is 'H', else 'L'");
 
     // Non-unique Peptides
-    this->registerFlag_(TOPPMSstatsConverter::param_ambiguous_peptides, "If set, the output CSV file can contain peptides that have been assigned to multiple protein ids. Attention: you normally do not want to do this for MSstats", true);
+    registerFlag_(TOPPMSstatsConverter::param_ambiguous_peptides, "If set, the output CSV file can contain peptides that have been assigned to multiple protein ids. Attention: you normally do not want to do this for MSstats", true);
 
     // Specifies how peptide ions eluding at different retention times should be resolved
-    this->registerStringOption_(TOPPMSstatsConverter::param_retention_time_resolution_method, "<retention_time_resolution_method>", "", "How undistinguishable peptides at different retention times should be treated", true, false);
-    this->setValidStrings_(TOPPMSstatsConverter::param_retention_time_resolution_method, ListUtils::create<String>("manual,max,min,mean,sum"));
+    registerStringOption_(TOPPMSstatsConverter::param_retention_time_resolution_method, "<retention_time_resolution_method>", "", "How undistinguishable peptides at different retention times should be treated", true, false);
+    setValidStrings_(TOPPMSstatsConverter::param_retention_time_resolution_method, ListUtils::create<String>("manual,max,min,mean,sum"));
 
     // Output CSV file
-    this->registerOutputFile_(TOPPMSstatsConverter::param_out, "<out>", "", "Input CSV file for MSstats.", true, false);
-    this->setValidFormats_(TOPPMSstatsConverter::param_out, ListUtils::create<String>("csv"));
+    registerOutputFile_(TOPPMSstatsConverter::param_out, "<out>", "", "Input CSV file for MSstats.", true, false);
+    setValidFormats_(TOPPMSstatsConverter::param_out, ListUtils::create<String>("csv"));
   }
 
   // the main_ function is called after all parameters are read
@@ -116,10 +116,10 @@ protected:
     try
     {
       // Tool arguments
-      const String arg_out(this->getStringOption_(TOPPMSstatsConverter::param_out));
-      const String &arg_msstats_condition = this->getStringOption_(TOPPMSstatsConverter::param_msstats_condition);
-      const String &arg_msstats_bioreplicate = this->getStringOption_(TOPPMSstatsConverter::param_msstats_bioreplicate);
-      const String &arg_retention_time_resolution_method = this->getStringOption_(TOPPMSstatsConverter::param_retention_time_resolution_method);
+      const String arg_out = getStringOption_(TOPPMSstatsConverter::param_out);
+      const String arg_msstats_condition = getStringOption_(TOPPMSstatsConverter::param_msstats_condition);
+      const String arg_msstats_bioreplicate = getStringOption_(TOPPMSstatsConverter::param_msstats_bioreplicate);
+      const String arg_retention_time_resolution_method = getStringOption_(TOPPMSstatsConverter::param_retention_time_resolution_method);
 
       // The Retention Time is additionally written to the output as soon as the user wants to resolve multiple peptides manually
       const bool rt_resolution_manual(arg_retention_time_resolution_method == "manual");
@@ -130,8 +130,8 @@ protected:
       }
 
       // Load the experimental design
-      DesignFile file_run(this->getStringOption_(TOPPMSstatsConverter::param_in_design_run), ListUtils::create<String>("Run,Condition"), "Spectra File");
-      DesignFile file_condition(this->getStringOption_(TOPPMSstatsConverter::param_in_design_condition), ListUtils::create<String>("Biological Replicate"), "Condition");
+      DesignFile file_run(getStringOption_(TOPPMSstatsConverter::param_in_design_run), ListUtils::create<String>("Run,Condition"), "Spectra File");
+      DesignFile file_condition(getStringOption_(TOPPMSstatsConverter::param_in_design_condition), ListUtils::create<String>("Biological Replicate"), "Condition");
       conditionalFatalError_(
           "At least one of the specified column names is not part of condition table!",
           file_condition.isColumnName(arg_msstats_condition) == false || file_condition.isColumnName(arg_msstats_bioreplicate) ==  false,
@@ -146,14 +146,14 @@ protected:
 
       conditionalFatalError_(
           "File Names in Design Run File are not unique. Cannot continue.",
-          this->checkUnique_(design_run_filenames) == false,
+          checkUnique_(design_run_filenames) == false,
           ILLEGAL_PARAMETERS);
 
       // Add the header line (With fraction if that has been specified in the experimental design)
       const bool has_fraction(file_run.isColumnName("Fraction"));
 
       // Input file, must be featureXML or consensusXML
-      const String arg_in(this->getStringOption_(TOPPMSstatsConverter::param_in));
+      const String arg_in(getStringOption_(TOPPMSstatsConverter::param_in));
       const FileTypes::Type in_type(FileHandler::getType(arg_in));
 
       conditionalFatalError_(
@@ -188,12 +188,12 @@ protected:
 
       conditionalFatalError_(
           "The spectra file names in the consensusXML are not unique!",
-          this->checkUnique_(spectra_paths) == false,
+          checkUnique_(spectra_paths) == false,
           ILLEGAL_PARAMETERS);
 
       conditionalFatalError_(
           "The filenames in the consensusXML file are not the same as in the experimental design",
-          this->checkUnorderedContent_(spectra_paths, design_run_filenames) == false,
+          checkUnorderedContent_(spectra_paths, design_run_filenames) == false,
           ILLEGAL_PARAMETERS);
 
       for (const ConsensusFeature &consensus_feature : consensus_map)
@@ -238,7 +238,7 @@ protected:
       std::vector< PeptideEvidence > placeholder_peptide_evidences = {new_pep_ev};
 
       // From the MSstats user guide: endogenous peptides (use "L") or labeled reference peptides (use "H").
-      const String isotope_label_type = this->getFlag_(TOPPMSstatsConverter::param_labeled_reference_peptides) ? "H" : "L";
+      const String isotope_label_type = getFlag_(TOPPMSstatsConverter::param_labeled_reference_peptides) ? "H" : "L";
       const char delim(',');
 
       // Keeps track of unique peptides (Size of value set is 1)
@@ -411,7 +411,7 @@ private:
   static const String meta_value_exp_design_key;
 
 
-  static void conditionalFatalError_(const String & message, bool error_condition, int exit_code)
+  static void conditionalFatalError_(const String &message, bool error_condition, int exit_code)
   {
     if (error_condition)
     {
@@ -530,8 +530,8 @@ private:
   void registerExperimentalDesignInputFile_(const String & param_name, const String & argument, const String & description)
   {
     static const StringList valid_formats = ListUtils::create<String>("tsv");
-    this->registerInputFile_(param_name, argument, "", description, true, false);
-    this->setValidFormats_(param_name, valid_formats, true);
+    registerInputFile_(param_name, argument, "", description, true, false);
+    setValidFormats_(param_name, valid_formats, true);
   }
 
   bool checkUnorderedContent_(const std::vector< String> &first, const std::vector< String > &second)
