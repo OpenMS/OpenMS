@@ -132,9 +132,9 @@ protected:
       // Load the experimental design
       DesignFile file_run(getStringOption_(TOPPMSstatsConverter::param_in_design_run), ListUtils::create<String>("Run,Condition"), "Spectra File");
       DesignFile file_condition(getStringOption_(TOPPMSstatsConverter::param_in_design_condition), ListUtils::create<String>("Biological Replicate"), "Condition");
-      conditionalFatalError_(
-          "At least one of the specified column names is not part of condition table!",
+        fatalErrorIf_(
           file_condition.isColumnName(arg_msstats_condition) == false || file_condition.isColumnName(arg_msstats_bioreplicate) ==  false,
+          "At least one of the specified column names is not part of condition table!",
           ILLEGAL_PARAMETERS);
 
       typedef OpenMS::Peak2D::IntensityType Intensity;
@@ -144,9 +144,9 @@ protected:
       vector< String > design_run_filenames;
       file_run.getRowNames(design_run_filenames);
 
-      conditionalFatalError_(
-          "File Names in Design Run File are not unique. Cannot continue.",
+      fatalErrorIf_(
           checkUnique_(design_run_filenames) == false,
+          "File Names in Design Run File are not unique. Cannot continue.",
           ILLEGAL_PARAMETERS);
 
       // Add the header line (With fraction if that has been specified in the experimental design)
@@ -156,9 +156,9 @@ protected:
       const String arg_in(getStringOption_(TOPPMSstatsConverter::param_in));
       const FileTypes::Type in_type(FileHandler::getType(arg_in));
 
-      conditionalFatalError_(
+      fatalErrorIf_(
+          in_type != FileTypes::CONSENSUSXML,
           "Input type is not consensusXML!",
-          (in_type != FileTypes::CONSENSUSXML),
           ILLEGAL_PARAMETERS);
 
       vector< OpenMS::BaseFeature> features;
@@ -181,19 +181,19 @@ protected:
       {
         spectra_paths[i] = File::basename(spectra_paths[i]);
       }
-      conditionalFatalError_(
-          "The number of files in the consensusXML does not coincide with the number of files in the experimental design!",
+      fatalErrorIf_(
           spectra_paths.size() != design_run_filenames.size(),
+          "The number of files in the consensusXML does not coincide with the number of files in the experimental design!",
           ILLEGAL_PARAMETERS);
 
-      conditionalFatalError_(
-          "The spectra file names in the consensusXML are not unique!",
+      fatalErrorIf_(
           checkUnique_(spectra_paths) == false,
+          "The spectra file names in the consensusXML are not unique!",
           ILLEGAL_PARAMETERS);
 
-      conditionalFatalError_(
-          "The filenames in the consensusXML file are not the same as in the experimental design",
+      fatalErrorIf_(
           checkUnorderedContent_(spectra_paths, design_run_filenames) == false,
+          "The filenames in the consensusXML file are not the same as in the experimental design",
           ILLEGAL_PARAMETERS);
 
       for (const ConsensusFeature &consensus_feature : consensus_map)
@@ -341,9 +341,9 @@ protected:
             set< Intensity > intensities;
             for (const pair< Intensity, Coordinate > p : line.second)
             {
-              conditionalFatalError_(
-                  "Peptide ion appears multiple times at the same retention time. This is not expected",
+              fatalErrorIf_(
                   retention_times.find(p.second) != retention_times.end(),
+                  "Peptide ion appears multiple times at the same retention time. This is not expected",
                   ILLEGAL_PARAMETERS);
               retention_times.insert(p.second);
               intensities.insert(p.first);
@@ -354,7 +354,7 @@ protected:
             {
               for (const pair< Intensity, Coordinate > &intensity : line.second)
               {
-                csv_out.addLine(String(intensity.second) + line.first + ',' + String(intensity.first));
+                csv_out.addLine(String(intensity.second) + ',' + line.first + ',' + String(intensity.first));
               }
             }
             else
@@ -411,7 +411,7 @@ private:
   static const String meta_value_exp_design_key;
 
 
-  static void conditionalFatalError_(const String &message, bool error_condition, int exit_code)
+  static void fatalErrorIf_(const bool error_condition, const String &message, const int exit_code)
   {
     if (error_condition)
     {
@@ -446,15 +446,21 @@ private:
         for (Size i = 0; i < n_entries; ++i)
         {
           line[i] = line[i].trim();
-          conditionalFatalError_("Entry in design table is not allowed to be empty!", line[i].empty(), INPUT_FILE_CORRUPT);
+          fatalErrorIf_(line[i].empty(), "Entry in design table is not allowed to be empty!", INPUT_FILE_CORRUPT);
         }
 
         // Line is record
         if (this->_n_columns > 0)
         {
-          conditionalFatalError_("Conflicting number of entries in design table: " + String(n_entries) + " vs. " + String(this->_n_columns), n_entries != this->_n_columns, INPUT_FILE_CORRUPT);
+          fatalErrorIf_(
+                  n_entries != this->_n_columns,
+                  "Conflicting number of entries in design table: " + String(n_entries) + " vs. " + String(this->_n_columns),
+                  INPUT_FILE_CORRUPT);
           const String & row_name = line[this->_columnname_to_columnindex[index_column]];
-          conditionalFatalError_("Row name " + row_name + " appears multiple times!", row_names.find(row_name) != row_names.end(), INPUT_FILE_CORRUPT);
+          fatalErrorIf_(
+                  row_names.find(row_name) != row_names.end(),
+                  "Row name " + row_name + " appears multiple times!",
+                  INPUT_FILE_CORRUPT);
           this->_entries.push_back(line);
           this->_rowname_to_rowindex[row_name] = row_names.size();
           row_names.insert(row_name);
@@ -467,7 +473,10 @@ private:
             // Ensure that the header lines are unique
             for (Size j = 0; j < i; ++j)
             {
-              conditionalFatalError_("Header names in design table must be unique, but " + line[i] + " appears several times!", line[i] == line[j], INPUT_FILE_CORRUPT);
+              fatalErrorIf_(
+                      line[i] == line[j],
+                      "Header names in design table must be unique, but " + line[i] + " appears several times!",
+                       INPUT_FILE_CORRUPT);
             }
             // Remember the index at which this header appears
             this->_columnname_to_columnindex[line[i]] = i;
@@ -476,10 +485,16 @@ private:
           // Make sure that all required headers exist
           for (const String & header : required_headers)
           {
-            conditionalFatalError_("Header '" + header + "' does not exist in input design file!", std::find(line.begin(), line.end(), header) == line.end(), INPUT_FILE_CORRUPT);
+            fatalErrorIf_(
+                    std::find(line.begin(), line.end(), header) == line.end(),
+                    "Header '" + header + "' does not exist in input design file!",
+                    INPUT_FILE_CORRUPT);
           }
           // Make sure that the index column appears in the header
-          conditionalFatalError_("Index column is not a header!", std::find(line.begin(), line.end(), index_column) == line.end(), INPUT_FILE_CORRUPT);
+          fatalErrorIf_(
+                  std::find(line.begin(), line.end(), index_column) == line.end(),
+                  "Index column is not a header!",
+                  INPUT_FILE_CORRUPT);
           this->_n_columns = n_entries;
         }
       }
@@ -487,7 +502,10 @@ private:
 
     inline String get(const String & row_name, const String & column_name)
     {
-      conditionalFatalError_("Tried to access invalid row or column name!", this->isRowName(row_name) == false || this->isColumnName(column_name) == false, ExitCodes::INCOMPATIBLE_INPUT_DATA);
+      fatalErrorIf_(
+              this->isRowName(row_name) == false || this->isColumnName(column_name) == false,
+              "Tried to access invalid row or column name!",
+              ExitCodes::INCOMPATIBLE_INPUT_DATA);
       return (this->_entries[this->_rowname_to_rowindex[row_name]])[this->_columnname_to_columnindex[column_name]];
     }
 
