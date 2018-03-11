@@ -235,9 +235,9 @@ namespace OpenMS
       }
       else
       {
-        max_incorrectly_ = GaussFitter::eval(incorrectly_assigned_fit_param_.x0, incorrectly_assigned_fit_param_);
+        max_incorrectly_ = incorrectly_assigned_fit_param_.eval(incorrectly_assigned_fit_param_.x0);
       }
-      max_correctly_ = GaussFitter::eval(correctly_assigned_fit_param_.x0, correctly_assigned_fit_param_);
+      max_correctly_ = correctly_assigned_fit_param_.eval(correctly_assigned_fit_param_.x0);
 
       if (output_plots)
       {
@@ -276,8 +276,8 @@ namespace OpenMS
       for (double const & score : x_scores)
       {
         // TODO: incorrect is currently filled with gauss as fitting gumble is not supported
-        *incorrect = GaussFitter::eval(score, incorrectly_assigned_fit_param_);
-        *correct = GaussFitter::eval(score, correctly_assigned_fit_param_);
+        *incorrect = incorrectly_assigned_fit_param_.eval(score);
+        *correct = correctly_assigned_fit_param_.eval(score);
         ++incorrect;
         ++correct;
       }
@@ -373,7 +373,7 @@ namespace OpenMS
       if (score < incorrectly_assigned_fit_param_.x0)
       {
         x_neg = max_incorrectly_;
-        x_pos = GaussFitter::eval(score, correctly_assigned_fit_param_);
+        x_pos = correctly_assigned_fit_param_.eval(score);
       }
       // same as above. However, this time to ensure that probabilities wont drop again.
       else if (score > correctly_assigned_fit_param_.x0)
@@ -385,7 +385,7 @@ namespace OpenMS
       else
       {
         x_neg = getGumbel_(score, incorrectly_assigned_fit_param_);
-        x_pos = GaussFitter::eval(score, correctly_assigned_fit_param_);
+        x_pos = correctly_assigned_fit_param_.eval(score);
       }
       return (negative_prior_ * x_neg) / ((negative_prior_ * x_neg) + (1 - negative_prior_) * x_pos);
     }

@@ -158,11 +158,10 @@ namespace OpenMS
       return out;
     }
 
-    // static
-    double GaussFitter::eval(const double x, const GaussFitter::GaussFitResult& model)
+    double GaussFitter::GaussFitResult::eval(const double x) const
     {
-      boost::math::normal_distribution<> ndf(model.x0, model.sigma);
-      double int0 = model.A / boost::math::pdf(ndf, model.x0); // intensity normalization factor of the max @ x0 (simply multiplying the CDF with A is wrong!)
+      boost::math::normal_distribution<> ndf(x0, sigma);
+      double int0 = A / boost::math::pdf(ndf, x0); // intensity normalization factor of the max @ x0 (simply multiplying the CDF with A is wrong!)
       return (boost::math::pdf(ndf, x) * int0 );
     }
 

@@ -1632,8 +1632,6 @@ def testPosteriorErrorProbabilityModel():
     GaussFitResult = model.getCorrectlyAssignedFitResult()
     GaussFitResult = model.getIncorrectlyAssignedFitResult()
     model.getNegativePrior()
-    model.getGauss(5.0, GaussFitResult)
-    model.getGumbel(5.0, GaussFitResult)
     model.computeProbability(5.0) 
 
     # model.InitPlots
