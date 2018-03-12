@@ -382,7 +382,7 @@ namespace OpenMS
                   box_text += alpha_cov + "<br>" + seq_alpha + "<br>" + String(prefix_length, ' ') + vert_bar;
 
                 }
-                box_text =  "<font size=\"5\" style=\"background-color:white;\"><pre>" + box_text + "</pre></font> ";
+                box_text = "<font size=\"5\" style=\"background-color:white;\"><pre>" + box_text + "</pre></font> ";
                 widget_1D->canvas()->setTextBox(box_text.toQString());
               }
               else
@@ -402,7 +402,7 @@ namespace OpenMS
           break;
         }
         default:
-          LOG_WARN << "Annotation of MS level > 2 not supported.!" << std::endl;
+          LOG_WARN << "Annotation of MS level > 2 not supported." << std::endl;
       }
     } // end DT_PEAK
     // else if (current_layer.type == LayerData::DT_CHROMATOGRAM)
@@ -559,14 +559,18 @@ namespace OpenMS
     }
 
     vector<vector<String>> table; // vector of rows
-    table.resize(top_ions.size() + 1 + bottom_ions.size());
+    table.resize(top_ions.size() + bottom_ions.size() + 3);
     NASequence na_seq = NASequence::fromString(seq);
     Size n_cols = na_seq.size() * 2 + 1;
     for (auto& row : table)
     {
       row.resize(n_cols);
     }
-    Size row_index = 0;
+    for (Size i = 1; i < na_seq.size(); ++i)
+    {
+      table[0][i * 2] = String(i); // @TODO: check spacing for i > 9
+    }
+    Size row_index = 1;
     // ion annotations above sequence:
     for (const String& ion : top_ions)
     {
@@ -574,7 +578,7 @@ namespace OpenMS
       for (Size pos : ion_pos[ion])
       {
         Size col_index = 2 * pos;
-        if ((row_index == 0) || (table[row_index - 1][col_index].empty()))
+        if ((row_index == 1) || (table[row_index - 1][col_index].empty()))
         {
           table[row_index][col_index] = "&#9488;"; // "down and left"
         }
@@ -584,7 +588,7 @@ namespace OpenMS
         }
         table[row_index][col_index - 1] = "&#9590;"; // "right"
       }
-      if (row_index > 0)
+      if (row_index > 1)
       {
         for (Size col_index = 2; col_index < n_cols - 2; col_index += 2)
         {
@@ -616,7 +620,7 @@ namespace OpenMS
       table[row_index][n_cols - 1] = na_seq.getThreePrimeMod()->getCode();
     }
     // ion annotations below sequence - iterate over the bottom ions in reverse order (bottom-most first):
-    row_index = table.size() - 1;
+    row_index = table.size() - 2;
     for (Int ion_index = bottom_ions.size() - 1; ion_index >= 0; --ion_index)
     {
       const String& ion = bottom_ions[ion_index];
@@ -634,7 +638,7 @@ namespace OpenMS
         }
         table[row_index][col_index + 1] = "&#9588;"; // "left"
       }
-      if (row_index < table.size() - 1)
+      if (row_index < table.size() - 2)
       {
         for (Size col_index = 2; col_index < n_cols - 2; col_index += 2)
         {
@@ -661,6 +665,11 @@ namespace OpenMS
         }
       }
     }
+    for (Size i = 1; i < na_seq.size(); ++i)
+    {
+      table[table.size() - 1][n_cols - 2 * i - 1] = String(i); // @TODO: check spacing for i > 9
+    }
+
     String html = "<table cellspacing=\"0\">";
     for (const auto& row : table)
     {
