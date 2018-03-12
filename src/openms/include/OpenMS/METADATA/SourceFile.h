@@ -105,6 +105,11 @@ public:
     /// Sets the native ID type of the spectra
     void setNativeIDType(const String& type);
 
+    /// Returns the nativeID of the spectra
+    const String& getNativeIDTypeAccession() const;
+    /// Sets the native ID of the spectra
+    void setNativeIDTypeAccession(const String& accesssion);
+
 protected:
     String name_of_file_;
     String path_to_file_;
@@ -113,6 +118,7 @@ protected:
     String checksum_;
     ChecksumType checksum_type_;
     String native_id_type_;
+    String native_id_type_accession_;
   };
 } // namespace OpenMS
 

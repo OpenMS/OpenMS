@@ -398,24 +398,22 @@ namespace OpenMS
     }
 
 #if defined(__APPLE__)
-    // try to find it relative to the executable
-
-    // #1 the bundle
+    // try to find it relative to the executable in the bundle (e.g. TOPPView)
     if (!path_checked)
     {
       path = getExecutablePath() + "../../../share/OpenMS";
       path_checked = isOpenMSDataPath_(path);
       if (path_checked) found_path_from = "bundle path (run time)";
     }
-
-    // #2 the TOPP tool
+#endif
+    
+    // On Linux and Apple check relative from the executable
     if (!path_checked)
     {
       path = getExecutablePath() + "../share/OpenMS";
       path_checked = isOpenMSDataPath_(path);
       if (path_checked) found_path_from = "tool path (run time)";
     }
-#endif
 
     // make its a proper path:
     path = path.substitute("\\", "/").ensureLastChar('/').chop(1);
