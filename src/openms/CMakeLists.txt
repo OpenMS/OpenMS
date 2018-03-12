@@ -118,7 +118,7 @@ endif()
 
 foreach (includedir
 	     ${SEQAN_INCLUDE_DIRS}
-	     ${SQLITE_INCLUDE_DIR}
+	     ${SQLite_INCLUDE_DIR}
 	     ${LIBSVM_INCLUDE_DIRS}
 	     ${EIGEN3_INCLUDE_DIR}
 	     ${WM5_INCLUDE_DIRS}
