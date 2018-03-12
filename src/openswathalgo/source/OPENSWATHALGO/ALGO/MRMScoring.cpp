@@ -452,6 +452,11 @@ namespace OpenSwath
     return ss.str();
   }
 
+  const std::vector< std::vector<double> >& MRMScoring::getMIMatrix() const
+  {
+    return mi_matrix_;
+  }
+
   void MRMScoring::initializeMIMatrix(OpenSwath::IMRMFeature* mrmfeature, std::vector<String> native_ids)
   {
     std::vector<double> intensityi, intensityj;

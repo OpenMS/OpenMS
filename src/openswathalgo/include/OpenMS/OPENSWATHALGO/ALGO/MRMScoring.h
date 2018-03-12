@@ -99,6 +99,10 @@ public:
     const XCorrMatrixType& getXCorrMatrix() const;
     //@}
 
+    /// non-mutable access to the MI matrix
+    const std::vector< std::vector<double> > & getMIMatrix() const;
+    //@}
+
     /** @name Scores */
     //@{
     /// Initialize the scoring object and building the cross-correlation matrix
