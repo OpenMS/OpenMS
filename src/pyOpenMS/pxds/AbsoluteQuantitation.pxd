@@ -24,7 +24,7 @@ cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/AbsoluteQuantitation.h>" namespa
                                 String & transformation_model, Param & transformation_model_params) nogil except +
         void quantifyComponents(FeatureMap& unknowns) nogil except +
 
-        void optimizeCalibrationCurveIterative(
+        bool optimizeCalibrationCurveIterative(
             libcpp_vector[ AQS_featureConcentration ] & component_concentrations,
             String & feature_name,
             String & transformation_model,
