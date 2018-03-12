@@ -390,7 +390,7 @@ namespace OpenMS
                 String seq = ph.getSequence().toString();
                 if (seq.empty())
                 {
-                  static StringList top_ions = ListUtils::create<String>("d,c,b,a");
+                  static StringList top_ions = ListUtils::create<String>("d,c,b,a,(a-B)");
                   static StringList bottom_ions = ListUtils::create<String>("w,x,y,z");
                   seq = ph.getMetaValue("label");
                   seq = generateSequenceDiagram_(seq, ph.getPeakAnnotations(), top_ions, bottom_ions);
@@ -568,13 +568,13 @@ namespace OpenMS
     }
     for (Size i = 1; i < na_seq.size(); ++i)
     {
-      table[0][i * 2] = String(i); // @TODO: check spacing for i > 9
+      table[0][i * 2] = "<small>" + String(i) + "</small>"; // @TODO: check spacing for i > 9
     }
     Size row_index = 1;
     // ion annotations above sequence:
     for (const String& ion : top_ions)
     {
-      table[row_index][0] = ion;
+      table[row_index][0] = "<small>" + ion + "</small>";
       for (Size pos : ion_pos[ion])
       {
         Size col_index = 2 * pos;
@@ -603,7 +603,8 @@ namespace OpenMS
     // sequence itself:
     if (na_seq.hasFivePrimeMod())
     {
-      table[row_index][0] = na_seq.getFivePrimeMod()->getCode();
+      const String& code = na_seq.getFivePrimeMod()->getCode();
+      table[row_index][0] = (code == "5'-p" ? "p" : code);
     }
     Size col_index = 1;
     for (const auto& ribo : na_seq)
@@ -617,14 +618,15 @@ namespace OpenMS
     }
     if (na_seq.hasThreePrimeMod())
     {
-      table[row_index][n_cols - 1] = na_seq.getThreePrimeMod()->getCode();
+      const String& code = na_seq.getThreePrimeMod()->getCode();
+      table[row_index][n_cols - 1] = (code == "3'-p" ? "p" : code);
     }
     // ion annotations below sequence - iterate over the bottom ions in reverse order (bottom-most first):
     row_index = table.size() - 2;
     for (Int ion_index = bottom_ions.size() - 1; ion_index >= 0; --ion_index)
     {
       const String& ion = bottom_ions[ion_index];
-      table[row_index][n_cols - 1] = ion;
+      table[row_index][n_cols - 1] = "<small>" + ion + "<small>";
       for (Size pos : ion_pos[ion])
       {
         Size col_index = n_cols - 2 * pos - 1;
@@ -667,7 +669,7 @@ namespace OpenMS
     }
     for (Size i = 1; i < na_seq.size(); ++i)
     {
-      table[table.size() - 1][n_cols - 2 * i - 1] = String(i); // @TODO: check spacing for i > 9
+      table[table.size() - 1][n_cols - 2 * i - 1] = "<small>" + String(i) + "</small>"; // @TODO: check spacing for i > 9
     }
 
     String html = "<table cellspacing=\"0\">";
@@ -676,7 +678,7 @@ namespace OpenMS
       html += "<tr>";
       for (const String& cell : row)
       {
-        html += "<td>" + cell + "</td>";
+        html += "<td align=\"center\">" + cell + "</td>";
       }
       html += "</tr>";
     }
