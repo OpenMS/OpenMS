@@ -936,30 +936,45 @@ namespace OpenMS
                               ann_spectrum[i].getIntensity());
         const String& label = labels[i];
         QColor color;
+        QColor peak_color;
+        LayerData& annotated_layer = current_canvas->getCurrentLayer();
         // XL-MS specific coloring of the labels, green for linear fragments and red for cross-linked fragments
         if (label.hasSubstring("[alpha|") || label.hasSubstring("[beta|"))
         {
           if (label.hasSubstring("|ci$"))
           {
             color = Qt::darkGreen;
+            peak_color = Qt::green;
           }
           else if (label.hasSubstring("|xi$"))
           {
             color = Qt::darkRed;
+            peak_color = Qt::red;
           }
         }
         else // different colors for left/right fragments (e.g. b/y ions)
         {
           color = (label.at(0) < 'n') ? Qt::darkRed : Qt::darkGreen;
+          peak_color = (label.at(0) < 'n') ? Qt::red : Qt::green;
         }
 
         Annotation1DItem* item = new Annotation1DPeakItem(position, label.toQString(), color);
+        annotated_layer.peak_colors_1d.push_back(peak_color);
         item->setSelected(false);
         tv_->getActive1DWidget()->canvas()->getCurrentLayer().getCurrentAnnotations().push_front(item);
       }
 
       tv_->getActive1DWidget()->canvas()->activateLayer(current_spectrum_layer_index);
       tv_->getActive1DWidget()->canvas()->getCurrentLayer().setCurrentSpectrumIndex(current_spectrum_index);
+
+      // zoom visible area to real data range:
+      DRange<2> visible_area = tv_->getActive1DWidget()->canvas()->getVisibleArea();
+      double min_mz = tv_->getActive1DWidget()->canvas()->getCurrentLayer().getCurrentSpectrum().getMin()[0];
+      double max_mz = tv_->getActive1DWidget()->canvas()->getCurrentLayer().getCurrentSpectrum().getMax()[0];
+      double delta_mz = max_mz - min_mz;
+      visible_area.setMin(min_mz - 0.1 * delta_mz);
+      visible_area.setMax(max_mz + 0.1 * delta_mz);
+      tv_->getActive1DWidget()->canvas()->setVisibleArea(visible_area);
 
       tv_->updateLayerBar();
       tv_->getSpectraIdentificationViewWidget()->ignore_update = false;

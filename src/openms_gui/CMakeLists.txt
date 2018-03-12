@@ -33,22 +33,13 @@
 # --------------------------------------------------------------------------
 
 project("OpenMS_GUI")
-cmake_minimum_required(VERSION 2.8.3 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.0.0 FATAL_ERROR)
 
 # --------------------------------------------------------------------------
 # Find Qt
 #------------------------------------------------------------------------------
-# QtPhonon hack
-# obsolete when CMake MinRequiredVersion becomes >= 2.8.5
-if ("${CMAKE_VERSION}" VERSION_LESS "2.8.5" AND NOT(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")) ##
-  set(phonon_extra QtPhonon)
-  message(STATUS "Trying to find Phonon explicitly... If you run into trouble with Qt Phonon, try to disable it in build system")
-else()
-  set(phonon_extra)
-  message(STATUS "Not trying to find Phonon explicitly... If you run into trouble with Qt Phonon, try to enable it in build system")
-endif()
 
-find_package(Qt4 REQUIRED QtGui QtOpenGL QtSVG QtWebKit QtNetwork ${phonon_extra})
+find_package(Qt4 REQUIRED QtGui QtOpenGL QtSVG QtWebKit QtNetwork)
 if (NOT QT4_FOUND)
   message(STATUS "Qt4 not found!")
   message(FATAL_ERROR "To find a custom Qt installation use: cmake <..more options..> -D QT_QMAKE_EXECUTABLE='<path_to_qmake(.exe)' <src-dir>")

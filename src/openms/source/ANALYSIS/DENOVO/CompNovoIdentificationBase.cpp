@@ -34,13 +34,10 @@
 //
 
 #include <OpenMS/ANALYSIS/DENOVO/CompNovoIdentificationBase.h>
-
+#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopeDistribution.h>
 #include <OpenMS/CHEMISTRY/ModificationDefinitionsSet.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/CHEMISTRY/ResidueDB.h>
-#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopeDistribution.h>
-#include <OpenMS/CONCEPT/Constants.h>
-#include <OpenMS/ANALYSIS/DENOVO/CompNovoIonScoring.h>
 
 // #define MIN_DOUBLE_MZ 900.0
 

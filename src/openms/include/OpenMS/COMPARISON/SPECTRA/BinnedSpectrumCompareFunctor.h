@@ -61,22 +61,6 @@ namespace OpenMS
 private:
 
 public:
-
-    /**
-      @brief Exception thrown if compared spectra are incompatible
-
-      the compared spectra have different settings in binsize and/or binspread
-      due to which comparison would fail
-    */
-    class OPENMS_DLLAPI IncompatibleBinning :
-      public Exception::BaseException
-    {
-public:
-      IncompatibleBinning(const char* file, int line, const char* function, const char* message
-                            = "compared spectra have different settings in binsize and/or binspread")  throw();
-      ~IncompatibleBinning() throw() override;
-    };
-
     /// default constructor
     BinnedSpectrumCompareFunctor();
 

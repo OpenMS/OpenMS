@@ -38,7 +38,6 @@
 #include <OpenMS/MATH/MISC/CubicSpline2d.h>
 
 #include <cmath>
-#include <limits>
 
 namespace OpenMS
 {

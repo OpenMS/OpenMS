@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
-<featureMap version="1.9" id="fm_15004869347769368353" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/FeatureXML_1_9.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<featureMap version="1.9" id="fm_3332699010107892018" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/FeatureXML_1_9.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 	<dataProcessing completion_time="1999-12-31T23:59:59">
 		<software name="OpenSwathWorkflow" version="version_string" />
 		<processingAction name="Quantitation" />
 		<UserParam type="string" name="parameter: mode" value="test_mode"/>
 	</dataProcessing>
 	<featureList count="2">
-		<feature id="f_5233264595117471314">
+		<feature id="f_4835329514588776807">
 			<position dim="0">99.9999997019768</position>
 			<position dim="1">510.05</position>
 			<intensity>0</intensity>
@@ -15,10 +15,10 @@
 			<overallquality>0.529182</overallquality>
 			<charge>0</charge>
 			<subordinate>
-				<feature id="f_5233264595117471314_4835329514588776807">
+				<feature id="f_4835329514588776807_17749660155506638460">
 					<position dim="0">99.9999997019768</position>
 					<position dim="1">510.05</position>
-					<intensity>11602.5</intensity>
+					<intensity>11792.9</intensity>
 					<quality dim="0">0</quality>
 					<quality dim="1">0</quality>
 					<overallquality>0</overallquality>
@@ -48,7 +48,7 @@
 			<UserParam type="float" name="PrecursorMZ" value="510.05"/>
 			<UserParam type="float" name="xx_swath_prelim_score" value="0"/>
 		</feature>
-		<feature id="f_17749660155506638460">
+		<feature id="f_7804704400743266335">
 			<position dim="0">99.9999997019768</position>
 			<position dim="1">500.01</position>
 			<intensity>0</intensity>
@@ -57,10 +57,10 @@
 			<overallquality>0.529182</overallquality>
 			<charge>0</charge>
 			<subordinate>
-				<feature id="f_17749660155506638460_7804704400743266335">
+				<feature id="f_7804704400743266335_15004869347769368353">
 					<position dim="0">99.9999997019768</position>
 					<position dim="1">500.01</position>
-					<intensity>11602.5</intensity>
+					<intensity>11792.9</intensity>
 					<quality dim="0">0</quality>
 					<quality dim="1">0</quality>
 					<overallquality>0</overallquality>

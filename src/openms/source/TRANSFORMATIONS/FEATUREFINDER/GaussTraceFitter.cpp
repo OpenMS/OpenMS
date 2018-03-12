@@ -36,7 +36,6 @@
 
 #include <OpenMS/CONCEPT/LogStream.h>
 
-#include <sstream>
 #include <numeric> // for "accumulate"
 
 namespace OpenMS

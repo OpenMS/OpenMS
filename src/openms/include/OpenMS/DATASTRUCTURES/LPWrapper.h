@@ -47,8 +47,9 @@
 // include them in LPWrapper.cpp where they do not harm
 // only declare them here
 class CoinModel;
-#define GLP_PROB_DEFINED
 
+#ifndef GLP_PROB_DEFINED
+#define GLP_PROB_DEFINED
 // depending on the glpk version
 // define glp_prob as forward or struct
 #if OPENMS_GLPK_VERSION_MINOR < 48
@@ -58,6 +59,7 @@ typedef struct
 } glp_prob;
 #else
 class glp_prob;
+#endif
 #endif
 
 namespace OpenMS

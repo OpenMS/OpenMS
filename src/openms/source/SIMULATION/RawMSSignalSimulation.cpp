@@ -34,17 +34,9 @@
 
 
 #include <OpenMS/SIMULATION/RawMSSignalSimulation.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/IsotopeModel.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/GaussModel.h>
-#include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/FORMAT/TextFile.h>
-#include <OpenMS/CONCEPT/Constants.h>
-#include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/SVOutStream.h>
-
-#include <fstream>
-#include <vector>
-#include <cmath>
+#include <OpenMS/SYSTEM/File.h>
 
 #include <boost/random/uniform_real.hpp>
 #include <boost/random/poisson_distribution.hpp>
@@ -54,7 +46,7 @@
 
 #ifdef _OPENMP
 #include <omp.h>
-#include <math.h>
+
 #endif
 
 

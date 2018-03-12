@@ -48,39 +48,39 @@ namespace OpenMS
   void ProteaseDigestion::setEnzyme(const String& enzyme_name)
   {
     enzyme_ = ProteaseDB::getInstance()->getEnzyme(enzyme_name);
+    re_ = boost::regex(enzyme_->getRegEx());
   }
 
   bool ProteaseDigestion::isValidProduct(const String& protein,
-                                          Size pep_pos,
-                                          Size pep_length,
+                                          int pos,
+                                          int length,
                                           bool ignore_missed_cleavages,
-                                          bool methionine_cleavage) const
+                                          bool allow_nterm_protein_cleavage,
+                                          bool allow_random_asp_pro_cleavage) const
   {
-    if (methionine_cleavage && (pep_pos == 1) && (protein[0] == 'M'))
-    {
-      // check the N-terminal peptide for a C-terminal cleavage site:
-      pep_pos = 0;
-      pep_length++;
-    }
-    return EnzymaticDigestion::isValidProduct(protein, pep_pos, pep_length, ignore_missed_cleavages);
+    return isValidProduct_(protein, pos, length, ignore_missed_cleavages, allow_nterm_protein_cleavage, allow_random_asp_pro_cleavage);
   }
 
   bool ProteaseDigestion::isValidProduct(const AASequence& protein,
-                                         Size pep_pos,
-                                         Size pep_length,
+                                         int pep_pos,
+                                         int pep_length,
                                          bool ignore_missed_cleavages,
-                                         bool methionine_cleavage) const
+                                         bool allow_nterm_protein_cleavage,
+                                         bool allow_random_asp_pro_cleavage) const
   {
     String seq = protein.toUnmodifiedString();
-    return isValidProduct(seq, pep_pos, pep_length, ignore_missed_cleavages, methionine_cleavage);
+    return isValidProduct_(seq, pep_pos, pep_length, ignore_missed_cleavages, allow_nterm_protein_cleavage, allow_random_asp_pro_cleavage);
   }
 
   Size ProteaseDigestion::peptideCount(const AASequence& protein)
   {
     // For unspecific cleavage every cutting position may be skipped. Thus, we get (n + 1) \choose 2 products.
-    if (enzyme_->getName() == UnspecificCleavage) { return (protein.size() + 1) * protein.size() / 2; };
+    if (enzyme_->getName() == UnspecificCleavage) 
+    {
+      return (protein.size() + 1) * protein.size() / 2;
+    };
 
-    std::vector<Size> pep_positions = tokenize_(protein.toUnmodifiedString());
+    std::vector<int> pep_positions = tokenize_(protein.toUnmodifiedString());
     Size count = pep_positions.size();
     // missed cleavages
     Size sum = count;
@@ -100,7 +100,7 @@ namespace OpenMS
     Size mc = (enzyme_->getName() == UnspecificCleavage) ? std::numeric_limits<Size>::max() : missed_cleavages_;
 
     // naive cleavage sites
-    std::vector<Size> pep_positions = tokenize_(protein.toUnmodifiedString());
+    std::vector<int> pep_positions = tokenize_(protein.toUnmodifiedString());
     Size count = pep_positions.size();
     Size begin = pep_positions[0];
     for (Size i = 1; i < count; ++i)
@@ -127,4 +127,5 @@ namespace OpenMS
     }
   }
 
-} //namespace
+} //namespace OpenMS
+

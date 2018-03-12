@@ -73,14 +73,13 @@ START_SECTION(([EXTRA] EnzymaticDigestion(const EnzymaticDigestion& rhs)))
     TEST_EQUAL(ed.getSpecificity(), ed2.getSpecificity());
 END_SECTION
 
-START_SECTION(([EXTRA] EnzymaticDigestion& operator=(const EnzymaticDigestion& rhs)))
+START_SECTION(([EXTRA] EnzymaticDigestion(const EnzymaticDigestion& rhs)))
     EnzymaticDigestion ed;
     ed.setMissedCleavages(1234);
     ed.setEnzyme(ProteaseDB::getInstance()->getEnzyme("no cleavage"));
     ed.setSpecificity(EnzymaticDigestion::SPEC_SEMI);
 
-    EnzymaticDigestion ed2;
-    ed2 = ed;
+    EnzymaticDigestion ed2(ed);
 
     TEST_EQUAL(ed.getMissedCleavages(), ed2.getMissedCleavages());
     TEST_EQUAL(ed.getEnzymeName(), ed2.getEnzymeName());
@@ -298,7 +297,8 @@ START_SECTION((void digestUnmodified(const StringView sequence, std::vector<Stri
 }
 END_SECTION
 
-START_SECTION((bool isValidProduct(const String& sequence, Size pos, Size length, bool ignore_missed_cleavages)))
+START_SECTION((bool isValidProduct(const String& sequence, int pos, int length, bool ignore_missed_cleavages)))
+{
     EnzymaticDigestion ed;
     ed.setEnzyme(ProteaseDB::getInstance()->getEnzyme("Trypsin"));
     ed.setSpecificity(EnzymaticDigestion::SPEC_FULL); // require both sides
@@ -484,9 +484,10 @@ START_SECTION((bool isValidProduct(const String& sequence, Size pos, Size length
     ed.setMissedCleavages(5); // allow even more ...
     TEST_EQUAL(ed.isValidProduct(prot, 0, 24, false), true); //  boundary case, accepted: 5 allowed, 4 required
     ed.setMissedCleavages(0); // set back to default
+}
 END_SECTION
 
-START_SECTION([EXTRA] Size countMissedCleavages_(const std::vector<Size>& cleavage_positions, Size pep_start, Size pep_end) const)
+START_SECTION([EXTRA] Size countMissedCleavages_(const std::vector<int>& cleavage_positions, Size pep_start, Size pep_end) const)
   EnzymaticDigestion ed;
   ed.setMissedCleavages(2);
   TEST_EQUAL(ed.isValidProduct("KKKK", 0, 4, false), false); // has 3 MC's, should not be valid
