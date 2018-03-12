@@ -207,10 +207,20 @@ namespace OpenMS
       checkValidRunSection_();
     }
 
-    // Returns the Condition Section of the experimental design file
+
+    // Returns the Sample Section of the experimental design file
     const SampleSection& getSampleSection() const
     {
       return sample_section_;
+    }
+
+    void getFileNames(std::vector< String > &filenames) const
+    {
+      filenames.clear();
+      for (const RunRow &row : run_section_)
+      {
+        filenames.push_back(String(row.path));
+      }
     }
 
     /// return fraction index to file paths (ordered by run id)
