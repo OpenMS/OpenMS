@@ -306,6 +306,19 @@ namespace OpenMS
         });
       }
 
+      template<typename T>
+      void errorIfAlreadyExists(std::set<T> &container, T &item, const String &message)
+      {
+        if (container.find(item) != container.end())
+        {
+          throw Exception::MissingInformation(
+                  __FILE__,
+                  __LINE__,
+                  OPENMS_PRETTY_FUNCTION, message);
+        }
+        container.insert(item);
+      }
+
       void checkValidRunSection_()
       {
         if (getNumberOfMSFiles() == 0)
@@ -325,57 +338,29 @@ namespace OpenMS
         for (const RunRow &row : run_section_)
         {
           // RUN_FRACTION_SAMPLE TUPLE
-          std::tuple<unsigned, unsigned, unsigned> run_fraction_sample;
-          std::get<0>(run_fraction_sample) = row.run;
-          std::get<1>(run_fraction_sample) = row.fraction;
-          std::get<2>(run_fraction_sample) = row.sample;
-
-          if (run_fraction_sample_set.find(run_fraction_sample) != run_fraction_sample_set.end())
-          {
-            throw Exception::MissingInformation(
-              __FILE__,
-              __LINE__,
-              OPENMS_PRETTY_FUNCTION,
-              "(Run, Fraction, Sample) combination can only appear once");
-          }
-          run_fraction_sample_set.insert( run_fraction_sample);
+          std::tuple<unsigned, unsigned, unsigned> run_fraction_sample = std::make_tuple(row.run, row.fraction, row.sample);
+          errorIfAlreadyExists(
+                  run_fraction_sample_set,
+                  run_fraction_sample,
+                  "(Run, Fraction, Sample) combination can only appear once");
 
           // RUN_FRACTION_CHANNEL TUPLE
-          std::tuple<unsigned, unsigned, unsigned> run_fraction_channel;
-          std::get<0>(run_fraction_channel) = row.run;
-          std::get<1>(run_fraction_channel) = row.fraction;
-          std::get<2>(run_fraction_channel) = row.channel;
-
-          if (run_fraction_channel_set.find(run_fraction_channel) != run_fraction_channel_set.end())
-          {
-            throw Exception::MissingInformation(
-              __FILE__,
-              __LINE__,
-              OPENMS_PRETTY_FUNCTION,
-              "(Run, Fraction, Channel) combination can only appear once");
-          }
-          run_fraction_channel_set.insert( run_fraction_channel);
+          std::tuple<unsigned, unsigned, unsigned> run_fraction_channel = std::make_tuple(row.run, row.fraction, row.channel);
+          errorIfAlreadyExists(
+                  run_fraction_channel_set,
+                  run_fraction_channel,
+                  "(Run, Fraction, Channel) combination can only appear once");
 
 
           // PATH_CHANNEL_TUPLE
-          std::tuple<std::string, unsigned> path_channel;
-          std::get<0>(path_channel) = row.path;
-          std::get<1>(path_channel) = row.channel;
-
-          if (path_channel_set.find(path_channel) != path_channel_set.end())
-          {
-            throw Exception::MissingInformation(
-              __FILE__,
-              __LINE__,
-              OPENMS_PRETTY_FUNCTION,
-              "(Path, Channel) combination can only appear once");
-          }
-          path_channel_set.insert(path_channel);
+          std::tuple<std::string, unsigned> path_channel = std::make_tuple(row.path, row.channel);
+          errorIfAlreadyExists(
+                  path_channel_set,
+                  path_channel,
+                  "(Path, Channel) combination can only appear once");
 
           // RUN_CHANNEL TUPLE
-          std::tuple<unsigned, unsigned> run_channel;
-          std::get<0>(run_channel) = row.run;
-          std::get<1>(run_channel) = row.channel;
+          std::tuple<unsigned, unsigned> run_channel = std::make_tuple(row.run, row.channel);
           run_channel_to_sample[run_channel].insert(row.sample);
 
           if (run_channel_to_sample[run_channel].size() > 1)
