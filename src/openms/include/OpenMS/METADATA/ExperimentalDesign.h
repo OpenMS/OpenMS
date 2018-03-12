@@ -337,6 +337,16 @@ namespace OpenMS
 
         for (const RunRow &row : run_section_)
         {
+          // Fail if sample section does not contain the run
+          if (sample_section_.hasSample(row.sample) == false)
+          {
+            throw Exception::MissingInformation(
+                    __FILE__,
+                    __LINE__,
+                    OPENMS_PRETTY_FUNCTION,
+                    "Sample Section does not contain sample for run " + String(row.run));
+          }
+
           // RUN_FRACTION_SAMPLE TUPLE
           std::tuple<unsigned, unsigned, unsigned> run_fraction_sample = std::make_tuple(row.run, row.fraction, row.sample);
           errorIfAlreadyExists(
