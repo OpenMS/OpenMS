@@ -34,14 +34,7 @@
 
 #include <OpenMS/SIMULATION/IonizationSimulation.h>
 
-#include <OpenMS/DATASTRUCTURES/Adduct.h>
 #include <OpenMS/DATASTRUCTURES/Compomer.h>
-#include <OpenMS/DATASTRUCTURES/ListUtils.h>
-
-#include <OpenMS/CONCEPT/Constants.h>
-
-#include <cmath>
-#include <algorithm>
 
 #include <boost/bind.hpp>
 #include <boost/random/binomial_distribution.hpp>

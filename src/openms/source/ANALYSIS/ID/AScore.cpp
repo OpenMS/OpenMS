@@ -33,16 +33,9 @@
 // --------------------------------------------------------------------------
 #include <OpenMS/ANALYSIS/ID/AScore.h>
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
-#include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/KERNEL/RangeUtils.h>
-#include <OpenMS/METADATA/PeptideHit.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
 
-#include <map>
-#include <cmath>
-#include <algorithm> //find
 #include <boost/math/special_functions/binomial.hpp>
-#include <iostream>
 
 using namespace std;
 

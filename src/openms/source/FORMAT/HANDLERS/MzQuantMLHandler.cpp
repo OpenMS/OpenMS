@@ -33,17 +33,8 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/HANDLERS/MzQuantMLHandler.h>
-#include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
-#include <OpenMS/METADATA/DataProcessing.h>
-#include <OpenMS/DATASTRUCTURES/DateTime.h>
-#include <OpenMS/KERNEL/FeatureMap.h>
-#include <OpenMS/KERNEL/Feature.h>
-#include <set>
-#include <vector>
-#include <map>
-#include <iostream>
-#include <algorithm>
+#include <OpenMS/SYSTEM/File.h>
 
 using namespace std;
 

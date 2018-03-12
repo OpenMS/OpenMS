@@ -33,12 +33,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/TransformationModelLowess.h>
-#include <OpenMS/ANALYSIS/MAPMATCHING/TransformationModelLinear.h>
 #include <OpenMS/FILTERING/SMOOTHING/FastLowessSmoothing.h>
-
-#include <OpenMS/ANALYSIS/MAPMATCHING/TransformationModelInterpolated.h>
-
-#include <iostream>
 
 using namespace std;
 

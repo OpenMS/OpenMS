@@ -33,7 +33,6 @@
 // --------------------------------------------------------------------------
 //
 #include <OpenMS/FILTERING/TRANSFORMERS/ComplementFilter.h>
-#include <cmath>
 
 using namespace std;
 

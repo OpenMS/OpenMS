@@ -33,10 +33,6 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/MascotInfile.h>
-#include <OpenMS/CONCEPT/PrecisionWrapper.h>
-
-#include <iostream>
-#include <sstream>
 
 using namespace std;
 

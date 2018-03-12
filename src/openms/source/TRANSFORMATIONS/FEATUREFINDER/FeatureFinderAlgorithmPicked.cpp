@@ -34,7 +34,6 @@
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmPicked.h>
 
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/TraceFitter.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/EGHTraceFitter.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/GaussTraceFitter.h>
 
@@ -44,21 +43,12 @@
 #include <OpenMS/CHEMISTRY/IsotopeDistribution.h>
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
-#include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CHEMISTRY/Element.h>
 #include <OpenMS/CHEMISTRY/ElementDB.h>
-#include <OpenMS/CHEMISTRY/IsotopeDistribution.h>
-
-#include <boost/math/special_functions/fpclassify.hpp>
-
-#include <numeric>
-#include <fstream>
-#include <algorithm>
 
 #include <QtCore/QDir>
 
 #ifdef _OPENMP
-#include <omp.h>
 #endif
 
 namespace OpenMS

@@ -37,7 +37,6 @@
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
-#include <algorithm>
 #include <boost/regex.hpp>
 
 using namespace std;

@@ -40,8 +40,6 @@
 #include <QStringList>
 #include <QDir>
 
-#include <vector>
-
 namespace OpenMS
 {
   ToolListType ToolHandler::getTOPPToolList(const bool includeGenericWrapper)

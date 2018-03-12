@@ -32,8 +32,6 @@
 // $Authors: George Rosenberger, Hannes Roest, Chris Bielow $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/MATH/MISC/RANSAC.h>
-
 namespace OpenMS
 {
  

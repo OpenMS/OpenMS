@@ -36,6 +36,8 @@
 
 #include <OpenMS/ANALYSIS/TARGETED/MRMMapping.h>
 
+#include <OpenMS/CONCEPT/LogStream.h>
+
 using namespace std;
 
 namespace OpenMS

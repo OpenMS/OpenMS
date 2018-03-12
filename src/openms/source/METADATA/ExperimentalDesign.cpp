@@ -41,8 +41,6 @@
 #include <QtCore/QString>
 #include <QtCore/QFileInfo>
 
-#include <iostream>
-
 using namespace std;
 
 namespace OpenMS

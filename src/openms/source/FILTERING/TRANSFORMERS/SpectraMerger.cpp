@@ -34,8 +34,6 @@
 //
 
 #include <OpenMS/FILTERING/TRANSFORMERS/SpectraMerger.h>
-#include <OpenMS/DATASTRUCTURES/ListUtils.h>
-#include <OpenMS/CONCEPT/ProgressLogger.h>
 
 using namespace std;
 namespace OpenMS
