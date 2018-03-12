@@ -388,7 +388,13 @@ namespace OpenMS
               else
               {
                 String seq = ph.getSequence().toString();
-                if (seq.empty()) seq = ph.getMetaValue("label");
+                if (seq.empty())
+                {
+                  static StringList top_ions = ListUtils::create<String>("d,c,b,a");
+                  static StringList bottom_ions = ListUtils::create<String>("w,x,y,z");
+                  seq = ph.getMetaValue("label");
+                  seq = generateSequenceDiagram_(seq, ph.getPeakAnnotations(), top_ions, bottom_ions);
+                }
                 widget_1D->canvas()->setTextBox(seq.toQString());
               }
             }
@@ -537,6 +543,139 @@ namespace OpenMS
     alpha_string = "<font style=\"\">" + collapseStringVector(alpha_strings) + "</font>";
     beta_string = collapseStringVector(beta_strings);
   }
+
+
+  String TOPPViewIdentificationViewBehavior::generateSequenceDiagram_(const String& seq, const vector<PeptideHit::PeakAnnotation>& annotations, const StringList& top_ions, const StringList& bottom_ions)
+  {
+    map<String, set<Size>> ion_pos;
+    for (const auto& ann : annotations)
+    {
+      // examples: b3, y10, (a3-B)
+      Size split1 = ann.annotation.find_first_of("0123456789");
+      Size split2 = ann.annotation.find_last_of("0123456789");
+      String ion = ann.annotation.prefix(split1) + ann.annotation.substr(split2 + 1);
+      Size pos = ann.annotation.substr(split1, split2 - split1 + 1).toInt();
+      ion_pos[ion].insert(pos);
+    }
+
+    vector<vector<String>> table; // vector of rows
+    table.resize(top_ions.size() + 1 + bottom_ions.size());
+    NASequence na_seq = NASequence::fromString(seq);
+    Size n_cols = na_seq.size() * 2 + 1;
+    for (auto& row : table)
+    {
+      row.resize(n_cols);
+    }
+    Size row_index = 0;
+    // ion annotations above sequence:
+    for (const String& ion : top_ions)
+    {
+      table[row_index][0] = ion;
+      for (Size pos : ion_pos[ion])
+      {
+        Size col_index = 2 * pos;
+        if ((row_index == 0) || (table[row_index - 1][col_index].empty()))
+        {
+          table[row_index][col_index] = "&#9488;"; // "down and left"
+        }
+        else
+        {
+          table[row_index][col_index] = "&#9508;"; // "vertical and left"
+        }
+        table[row_index][col_index - 1] = "&#9590;"; // "right"
+      }
+      if (row_index > 0)
+      {
+        for (Size col_index = 2; col_index < n_cols - 2; col_index += 2)
+        {
+          if (table[row_index][col_index].empty() && !table[row_index - 1][col_index].empty())
+          {
+            table[row_index][col_index] = "&#9474;"; // "vertical"
+          }
+        }
+      }
+      ++row_index;
+    }
+    // sequence itself:
+    if (na_seq.hasFivePrimeMod())
+    {
+      table[row_index][0] = na_seq.getFivePrimeMod()->getCode();
+    }
+    Size col_index = 1;
+    for (const auto& ribo : na_seq)
+    {
+      table[row_index][col_index++] = "<b>" + ribo.getCode() + "</b>";
+      if ((col_index < n_cols - 2) && (!table[row_index - 1][col_index].empty()))
+      {
+        table[row_index][col_index] = "&#9589;"; // "up"
+      }
+      ++col_index;
+    }
+    if (na_seq.hasThreePrimeMod())
+    {
+      table[row_index][n_cols - 1] = na_seq.getThreePrimeMod()->getCode();
+    }
+    // ion annotations below sequence - iterate over the bottom ions in reverse order (bottom-most first):
+    row_index = table.size() - 1;
+    for (Int ion_index = bottom_ions.size() - 1; ion_index >= 0; --ion_index)
+    {
+      const String& ion = bottom_ions[ion_index];
+      table[row_index][n_cols - 1] = ion;
+      for (Size pos : ion_pos[ion])
+      {
+        Size col_index = n_cols - 2 * pos - 1;
+        if ((row_index == table.size() - 1) || (table[row_index + 1][col_index].empty()))
+        {
+          table[row_index][col_index] = "&#9492;"; // "up and right"
+        }
+        else
+        {
+          table[row_index][col_index] = "&#9500;"; // "vertical and right"
+        }
+        table[row_index][col_index + 1] = "&#9588;"; // "left"
+      }
+      if (row_index < table.size() - 1)
+      {
+        for (Size col_index = 2; col_index < n_cols - 2; col_index += 2)
+        {
+          if (table[row_index][col_index].empty() && !table[row_index + 1][col_index].empty())
+          {
+            table[row_index][col_index] = "&#9474;"; // "vertical"
+          }
+        }
+      }
+      --row_index;
+    }
+    // "row_index" is again at the sequence row
+    for (Size col_index = 2; col_index < n_cols - 2 ; col_index += 2)
+    {
+      if (!table[row_index + 1][col_index].empty())
+      {
+        if (table[row_index][col_index].empty())
+        {
+          table[row_index][col_index] = "&#9591;"; // "down"
+        }
+        else
+        {
+          table[row_index][col_index] = "&#9474;"; // "vertical"
+        }
+      }
+    }
+    String html = "<table cellspacing=\"0\">";
+    for (const auto& row : table)
+    {
+      html += "<tr>";
+      for (const String& cell : row)
+      {
+        html += "<td>" + cell + "</td>";
+      }
+      html += "</tr>";
+    }
+    html += "</table>";
+
+    return html;
+  }
+
 
   void TOPPViewIdentificationViewBehavior::addPrecursorLabels1D_(const vector<Precursor>& pcs)
   {
