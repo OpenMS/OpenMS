@@ -33,11 +33,7 @@
 // --------------------------------------------------------------------------
 #include <OpenMS/ANALYSIS/TARGETED/OfflinePrecursorIonSelection.h>
 
-#include <OpenMS/KERNEL/FeatureMap.h>
-#include <OpenMS/METADATA/ProteinIdentification.h>
-#include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/ANALYSIS/TARGETED/PrecursorIonSelectionPreprocessing.h>
-#include <OpenMS/KERNEL/ComparatorUtils.h>
 
 namespace OpenMS
 {

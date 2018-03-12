@@ -36,8 +36,6 @@
 
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
-#include <OpenMS/CONCEPT/LogStream.h>
-#include <OpenMS/CONCEPT/PrecisionWrapper.h>
 #include <OpenMS/METADATA/DataProcessing.h>
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
 #include <OpenMS/FORMAT/FileHandler.h>

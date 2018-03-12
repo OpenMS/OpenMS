@@ -65,6 +65,7 @@ namespace OpenMS
     struct SiriusAdapterIdentification
     {
       OpenMS::String scan_index;
+      OpenMS::String scan_number;
       std::vector<SiriusAdapterHit> hits;
     };
 
@@ -77,7 +78,7 @@ namespace OpenMS
     @brief Extract scan_index from filepath
     */
     static String extract_scan_index(const String & path);
-
+ 
     /**
     @brief Conversion of sirius output to mzTab
     

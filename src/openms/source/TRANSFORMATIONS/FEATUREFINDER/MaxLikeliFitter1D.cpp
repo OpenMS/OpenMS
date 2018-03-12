@@ -32,8 +32,6 @@
 // $Authors: $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MaxLikeliFitter1D.h>
-
 namespace OpenMS
 {
 

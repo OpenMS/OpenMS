@@ -32,26 +32,19 @@
 // $Authors: Leon Bichmann, Timo Sachsenberg $
 // --------------------------------------------------------------------------
 
+#include <OpenMS/APPLICATIONS/TOPPBase.h>
+
 #include <OpenMS/FORMAT/MzMLFile.h>
-#include <OpenMS/FORMAT/MzDataFile.h>
 #include <OpenMS/FORMAT/PepXMLFile.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
+#include <OpenMS/CHEMISTRY/ProteaseDB.h>
 #include <OpenMS/CHEMISTRY/ResidueDB.h>
 #include <OpenMS/CHEMISTRY/ResidueModification.h>
-#include <OpenMS/KERNEL/StandardTypes.h>
-#include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/SYSTEM/File.h>
-#include <OpenMS/FORMAT/FileHandler.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
-#include <OpenMS/CHEMISTRY/ModificationDefinitionsSet.h>
-#include <OpenMS/CHEMISTRY/ProteaseDB.h>
 
-#include <QtCore/QFile>
 #include <QtCore/QProcess>
-#include <QDir>
-#include <QDebug>
-#include <iostream>
+
 #include <fstream>
 
 using namespace OpenMS;
@@ -523,24 +516,19 @@ protected:
     //-------------------------------------------------------------
     // parsing parameters
     //-------------------------------------------------------------
+    
+    // do this early, to see if comet is installed
+    String comet_executable = getStringOption_("comet_executable");
+    String tmp_param = File::getTemporaryFile();
+    int status = QProcess::execute(comet_executable.toQString(), QStringList() << "-p" << tmp_param.c_str()); // does automatic escaping etc...
+    if (status != 0)
+    {
+      writeLog_("Comet problem. Aborting! Calling command was: '" + comet_executable + " -p \"" + tmp_param + "\"'.\nDoes the Comet executable exist?");
+      return EXTERNAL_PROGRAM_ERROR;
+    }
 
     String inputfile_name = getStringOption_("in");
-    writeDebug_(String("Input file: ") + inputfile_name, 1);
-    if (inputfile_name.empty())
-    {
-      writeLog_("No input file specified. Aborting!");
-      printUsage_();
-      return ILLEGAL_PARAMETERS;
-    }
-
     String out = getStringOption_("out");
-    writeDebug_(String("Output file___real one: ") + out, 1);
-    if (out.empty())
-    {
-      writeLog_("No output file specified. Aborting!");
-      printUsage_();
-      return ILLEGAL_PARAMETERS;
-    }
 
 
     //-------------------------------------------------------------
@@ -564,11 +552,8 @@ protected:
     }
 
     //tmp_dir
-    //const String tmp_dir = QDir::toNativeSeparators((File::getTempDirectory() + "/").toQString());
     const String tmp_dir = makeTempDirectory_(); //OpenMS::File::getTempDirectory() + "/";
     writeDebug_("Creating temporary directory '" + tmp_dir + "'", 1);
-    //QDir d;
-    //d.mkpath(tmp_dir.toQString());
     String tmp_pepxml = tmp_dir + "result.pep.xml";
     String tmp_pin = tmp_dir + "result.pin";
     String default_params = getStringOption_("default_params_file");
@@ -589,7 +574,7 @@ protected:
 
     PeakMap exp;
     MzMLFile mzml_file;
-    mzml_file.getOptions().addMSLevel(2); // only load msLevel 2 //TO DO: setMSLevels or clearMSLevels
+    mzml_file.getOptions().setMSLevels({2}); // only load msLevel 2 
     mzml_file.setLogType(log_type_);
     mzml_file.load(inputfile_name, exp);
 
@@ -616,13 +601,11 @@ protected:
     String paramN = "-N" + File::removeExtension(File::removeExtension(tmp_pepxml));
     QStringList process_params;
     process_params << paramP.toQString() << paramN.toQString() << inputfile_name.toQString();
-    qDebug() << process_params;
 
-    String comet_executable = getStringOption_("comet_executable");
-    int status = QProcess::execute(comet_executable.toQString(),process_params); // does automatic escaping etc...
+    status = QProcess::execute(comet_executable.toQString(), process_params); // does automatic escaping etc...
     if (status != 0)
     {
-      writeLog_("Comet problem. Aborting! Calling command was: '" + comet_executable + " \"" + inputfile_name + "\"'.\nDoes the Comet executable exist?");
+      writeLog_("Comet problem. Aborting! Calling command was: '" + comet_executable + " \"" + inputfile_name + "\"'.\n");
       return EXTERNAL_PROGRAM_ERROR;
     }
 
@@ -647,17 +630,9 @@ protected:
 
     String pin_out = getStringOption_("pin_out");
     if (!pin_out.empty())
-    {
-      // existing file? Qt won't overwrite, so try to remove it:
-      if (QFile::exists(pin_out.toQString()) && !QFile::remove(pin_out.toQString()))
+    { // move the temporary file to the actual destination:
+      if (!File::rename(tmp_pin, pin_out))
       {
-        writeLog_("Fatal error: Could not overwrite existing file '" + pin_out + "'");
-        return CANNOT_WRITE_OUTPUT_FILE;
-      }
-      // move the temporary file to the actual destination:
-      if (!QFile::rename(tmp_pin.toQString(), pin_out.toQString()))
-      {
-        writeLog_("Fatal error: Could not move temporary mzid file to '" + pin_out + "'");
         return CANNOT_WRITE_OUTPUT_FILE;
       }
     }

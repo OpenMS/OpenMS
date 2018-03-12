@@ -35,7 +35,6 @@
 #include <OpenMS/ANALYSIS/TARGETED/PSLPFormulation.h>
 #include <OpenMS/ANALYSIS/TARGETED/PSProteinInference.h>
 #include <OpenMS/ANALYSIS/TARGETED/PrecursorIonSelectionPreprocessing.h>
-#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 #ifdef DEBUG_OPS
 #include <OpenMS/SYSTEM/StopWatch.h>

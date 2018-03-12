@@ -36,8 +36,6 @@
 #include <OpenMS/CHEMISTRY/ElementDB.h>
 #include <OpenMS/CHEMISTRY/ResidueDB.h>
 #include <OpenMS/CHEMISTRY/ResidueModification.h>
-#include <OpenMS/CHEMISTRY/ModificationsDB.h>
-#include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
 
 using namespace std;
 
@@ -67,7 +65,7 @@ double RNPxlModificationsGenerator::calculateNucleotideChainMass(const map<char,
     }
   }
 
-  return mass; 
+  return mass;
 }
 
 //static

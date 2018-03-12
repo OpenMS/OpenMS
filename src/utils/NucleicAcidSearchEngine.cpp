@@ -486,7 +486,7 @@ protected:
     {
       if (!annotated_hits[scan_index].empty())
       {
-        const MSSpectrum& spectrum = exp.getSpectrum(scan_index);
+        const MSSpectrum& spectrum = exp[scan_index];
         Int charge = spectrum.getPrecursors()[0].getCharge();
         if ((charge > 0) && negative_mode) charge = -charge;
 

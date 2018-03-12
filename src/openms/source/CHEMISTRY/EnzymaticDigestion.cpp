@@ -37,9 +37,6 @@
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 
-#include <iostream>
-#include <limits>
-
 using namespace std;
 
 namespace OpenMS
@@ -127,7 +124,7 @@ namespace OpenMS
   bool EnzymaticDigestion::isValidProduct(const String& sequence,
                                           int pos,
                                           int length,
-                                          bool ignore_missed_cleavages) const
+    bool ignore_missed_cleavages) const
   {
     return isValidProduct_(sequence, pos, length, ignore_missed_cleavages, false, false);
   }
@@ -143,7 +140,7 @@ namespace OpenMS
                                            bool ignore_missed_cleavages,
                                            bool allow_nterm_protein_cleavage,
                                            bool allow_random_asp_pro_cleavage) const
-  {
+    {
     // for XTandem specific rules (see https://github.com/OpenMS/OpenMS/issues/2497)
     // M or MX at the N-terminus might have been cleaved.
     if (allow_nterm_protein_cleavage && (pos <= 2) && (sequence[0] == 'M'))
@@ -216,11 +213,11 @@ namespace OpenMS
       }
 
       if ((spec_n && spec_c) || // full spec
-        ((specificity_ == SPEC_SEMI) && (spec_n || spec_c))) // semi spec
+           ((specificity_ == SPEC_SEMI) && (spec_n || spec_c))) // semi spec
       {
         if (ignore_missed_cleavages) return true;
         return (countMissedCleavages_(cleavage_positions, pos, end) <= missed_cleavages_);
-      }
+        }
       return false;
     }
   }
