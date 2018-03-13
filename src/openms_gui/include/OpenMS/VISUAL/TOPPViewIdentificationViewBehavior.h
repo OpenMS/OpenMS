@@ -35,6 +35,7 @@
 #ifndef OPENMS_VISUAL_TOPPVIEWIDENTIFICATIONVIEWBEHAVIOR_H
 #define OPENMS_VISUAL_TOPPVIEWIDENTIFICATIONVIEWBEHAVIOR_H
 
+#include <OpenMS/CHEMISTRY/NASequence.h>
 #include <OpenMS/METADATA/SpectrumSettings.h>
 #include <OpenMS/VISUAL/LayerData.h>
 #include <vector>
@@ -124,7 +125,11 @@ namespace OpenMS
     void extractCoverageStrings(std::vector<PeptideHit::PeakAnnotation> frag_annotations, String& alpha_string, String& beta_string, Size alpha_size, Size beta_size);
 
     /// Generates HTML for showing the sequence with annotations of matched fragments
-   String generateSequenceDiagram_(const String& seq, const std::vector<PeptideHit::PeakAnnotation>& annotations, const StringList& top_ions, const StringList& bottom_ions);
+    template <typename SeqType>
+    String generateSequenceDiagram_(const SeqType& seq, const std::vector<PeptideHit::PeakAnnotation>& annotations, const StringList& top_ions, const StringList& bottom_ions);
+
+    /// Helper function for generateSequenceDiagram_()
+    void generateSequenceRow_(const NASequence& seq, std::vector<String>& row);
 
     /// Helper function, that collapses a vector of Strings into one String
     String collapseStringVector(std::vector<String> strings);

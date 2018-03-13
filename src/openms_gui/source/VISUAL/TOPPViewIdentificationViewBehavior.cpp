@@ -393,7 +393,8 @@ namespace OpenMS
                   static StringList top_ions = ListUtils::create<String>("d,c,b,a,(a-B)");
                   static StringList bottom_ions = ListUtils::create<String>("w,x,y,z");
                   seq = ph.getMetaValue("label");
-                  seq = generateSequenceDiagram_(seq, ph.getPeakAnnotations(), top_ions, bottom_ions);
+                  NASequence na_seq = NASequence::fromString(seq);
+                  seq = generateSequenceDiagram_(na_seq, ph.getPeakAnnotations(), top_ions, bottom_ions);
                 }
                 widget_1D->canvas()->setTextBox(seq.toQString());
               }
@@ -545,7 +546,29 @@ namespace OpenMS
   }
 
 
-  String TOPPViewIdentificationViewBehavior::generateSequenceDiagram_(const String& seq, const vector<PeptideHit::PeakAnnotation>& annotations, const StringList& top_ions, const StringList& bottom_ions)
+  void TOPPViewIdentificationViewBehavior::generateSequenceRow_(const NASequence& seq, vector<String>& row)
+  {
+    if (seq.hasFivePrimeMod())
+    {
+      const String& code = seq.getFivePrimeMod()->getCode();
+      row[0] = (code == "5'-p" ? "p" : code);
+    }
+    Size col_index = 1;
+    for (const auto& ribo : seq)
+    {
+      row[col_index] = "<b>" + ribo.getCode() + "</b>";
+      col_index += 2;
+    }
+    if (seq.hasThreePrimeMod())
+    {
+      const String& code = seq.getThreePrimeMod()->getCode();
+      row[row.size() - 1] = (code == "3'-p" ? "p" : code);
+    }
+  }
+
+
+  template <typename SeqType>
+  String TOPPViewIdentificationViewBehavior::generateSequenceDiagram_(const SeqType& seq, const vector<PeptideHit::PeakAnnotation>& annotations, const StringList& top_ions, const StringList& bottom_ions)
   {
     map<String, set<Size>> ion_pos;
     for (const auto& ann : annotations)
@@ -560,15 +583,18 @@ namespace OpenMS
 
     vector<vector<String>> table; // vector of rows
     table.resize(top_ions.size() + bottom_ions.size() + 3);
-    NASequence na_seq = NASequence::fromString(seq);
-    Size n_cols = na_seq.size() * 2 + 1;
+    Size n_cols = seq.size() * 2 + 1;
     for (auto& row : table)
     {
       row.resize(n_cols);
     }
-    for (Size i = 1; i < na_seq.size(); ++i)
+    if (!top_ions.empty())
     {
-      table[0][i * 2] = "<small>" + String(i) + "</small>"; // @TODO: check spacing for i > 9
+      for (Size i = 1; i < seq.size(); ++i)
+      {
+        // @TODO: check spacing for i > 9
+        table[0][i * 2] = "<small>" + String(i) + "</small>";
+      }
     }
     Size row_index = 1;
     // ion annotations above sequence:
@@ -601,26 +627,7 @@ namespace OpenMS
       ++row_index;
     }
     // sequence itself:
-    if (na_seq.hasFivePrimeMod())
-    {
-      const String& code = na_seq.getFivePrimeMod()->getCode();
-      table[row_index][0] = (code == "5'-p" ? "p" : code);
-    }
-    Size col_index = 1;
-    for (const auto& ribo : na_seq)
-    {
-      table[row_index][col_index++] = "<b>" + ribo.getCode() + "</b>";
-      if ((col_index < n_cols - 2) && (!table[row_index - 1][col_index].empty()))
-      {
-        table[row_index][col_index] = "&#9589;"; // "up"
-      }
-      ++col_index;
-    }
-    if (na_seq.hasThreePrimeMod())
-    {
-      const String& code = na_seq.getThreePrimeMod()->getCode();
-      table[row_index][n_cols - 1] = (code == "3'-p" ? "p" : code);
-    }
+    generateSequenceRow_(seq, table[row_index]);
     // ion annotations below sequence - iterate over the bottom ions in reverse order (bottom-most first):
     row_index = table.size() - 2;
     for (Int ion_index = bottom_ions.size() - 1; ion_index >= 0; --ion_index)
@@ -652,24 +659,31 @@ namespace OpenMS
       }
       --row_index;
     }
-    // "row_index" is again at the sequence row
+    // "row_index" is again at the sequence row - fill in "split indicators":
     for (Size col_index = 2; col_index < n_cols - 2 ; col_index += 2)
     {
-      if (!table[row_index + 1][col_index].empty())
+      bool top = !top_ions.empty() && !table[row_index - 1][col_index].empty();
+      bool bottom = !bottom_ions.empty() && !table[row_index + 1][col_index].empty();
+      if (top && bottom)
       {
-        if (table[row_index][col_index].empty())
-        {
-          table[row_index][col_index] = "&#9591;"; // "down"
-        }
-        else
-        {
-          table[row_index][col_index] = "&#9474;"; // "vertical"
-        }
+        table[row_index][col_index] = "&#9474;"; // "vertical"
+      }
+      else if (top)
+      {
+        table[row_index][col_index] = "&#9589;"; // "up"
+      }
+      else if (bottom)
+      {
+        table[row_index][col_index] = "&#9591;"; // "down"
       }
     }
-    for (Size i = 1; i < na_seq.size(); ++i)
+    if (!bottom_ions.empty())
     {
-      table[table.size() - 1][n_cols - 2 * i - 1] = "<small>" + String(i) + "</small>"; // @TODO: check spacing for i > 9
+      for (Size i = 1; i < seq.size(); ++i)
+      {
+        // @TODO: check spacing in diagram for i > 9
+        table[table.size() - 1][n_cols - 2 * i - 1] = "<small>" + String(i) + "</small>";
+      }
     }
 
     String html = "<table cellspacing=\"0\">";
@@ -686,6 +700,10 @@ namespace OpenMS
 
     return html;
   }
+
+
+  // add specialization to allow having template implementation outside of header file:
+  template String TOPPViewIdentificationViewBehavior::generateSequenceDiagram_<NASequence>(const NASequence& seq, const vector<PeptideHit::PeakAnnotation>& annotations, const StringList& top_ions, const StringList& bottom_ions);
 
 
   void TOPPViewIdentificationViewBehavior::addPrecursorLabels1D_(const vector<Precursor>& pcs)
