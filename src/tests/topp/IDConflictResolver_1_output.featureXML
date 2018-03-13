@@ -40,79 +40,66 @@
 		<PeptideHit score="0.998128" sequence="LENAMEVAGR" charge="2" aa_before="R" aa_after="D" protein_refs="PH_0">
 		</PeptideHit>
 		<UserParam type="string" name="feature_id" value="1373363315366016197"/>
-		<UserParam type="int" name="feature_leader" value="0"/>
 	</UnassignedPeptideIdentification>
 	<UnassignedPeptideIdentification identification_run_ref="PI_0" score_type="InterProphet probability" higher_score_better="true" significance_threshold="0" MZ="545.2715454" RT="1286.21" >
 		<PeptideHit score="0.999999" sequence="LENAMEVAGR" charge="2" aa_before="R" aa_after="D" protein_refs="PH_0">
 		</PeptideHit>
 		<UserParam type="string" name="feature_id" value="1373363315366016197"/>
-		<UserParam type="int" name="feature_leader" value="0"/>
 	</UnassignedPeptideIdentification>
 	<UnassignedPeptideIdentification identification_run_ref="PI_0" score_type="InterProphet probability" higher_score_better="true" significance_threshold="0" MZ="545.2719116" RT="1297.85" >
 		<PeptideHit score="0.999999" sequence="LENAMEVAGR" charge="2" aa_before="R" aa_after="D" protein_refs="PH_0">
 		</PeptideHit>
 		<UserParam type="string" name="feature_id" value="1373363315366016197"/>
-		<UserParam type="int" name="feature_leader" value="0"/>
 	</UnassignedPeptideIdentification>
 	<UnassignedPeptideIdentification identification_run_ref="PI_0" score_type="InterProphet probability" higher_score_better="true" significance_threshold="0" MZ="545.2719116" RT="1297.85" >
 		<PeptideHit score="0.999999" sequence="LENAMEVAGR" charge="2" aa_before="R" aa_after="D" protein_refs="PH_0">
 		</PeptideHit>
 		<UserParam type="string" name="feature_id" value="1373363315366016197"/>
-		<UserParam type="int" name="feature_leader" value="0"/>
 	</UnassignedPeptideIdentification>
 	<UnassignedPeptideIdentification identification_run_ref="PI_0" score_type="InterProphet probability" higher_score_better="true" significance_threshold="0" MZ="519.2857056" RT="2663.79" >
 		<PeptideHit score="0.999991" sequence="SIITDVYAR" charge="2" aa_before="M" aa_after="E" protein_refs="PH_1">
 		</PeptideHit>
 		<UserParam type="string" name="feature_id" value="10678641590729762751"/>
-		<UserParam type="int" name="feature_leader" value="0"/>
 	</UnassignedPeptideIdentification>
 	<UnassignedPeptideIdentification identification_run_ref="PI_0" score_type="InterProphet probability" higher_score_better="true" significance_threshold="0" MZ="519.2883301" RT="2674.49" >
 		<PeptideHit score="0.999991" sequence="SIITDVYAR" charge="2" aa_before="M" aa_after="E" protein_refs="PH_1">
 		</PeptideHit>
 		<UserParam type="string" name="feature_id" value="10678641590729762751"/>
-		<UserParam type="int" name="feature_leader" value="0"/>
 	</UnassignedPeptideIdentification>
 	<UnassignedPeptideIdentification identification_run_ref="PI_0" score_type="InterProphet probability" higher_score_better="true" significance_threshold="0" MZ="519.284668" RT="2685.11" >
 		<PeptideHit score="0.938827" sequence="SIITDVYAR" charge="2" aa_before="M" aa_after="E" protein_refs="PH_1">
 		</PeptideHit>
 		<UserParam type="string" name="feature_id" value="10678641590729762751"/>
-		<UserParam type="int" name="feature_leader" value="0"/>
 	</UnassignedPeptideIdentification>
 	<UnassignedPeptideIdentification identification_run_ref="PI_0" score_type="InterProphet probability" higher_score_better="true" significance_threshold="0" MZ="519.2865601" RT="2695.58" >
 		<PeptideHit score="0.999991" sequence="SIITDVYAR" charge="2" aa_before="M" aa_after="E" protein_refs="PH_1">
 		</PeptideHit>
 		<UserParam type="string" name="feature_id" value="10678641590729762751"/>
-		<UserParam type="int" name="feature_leader" value="0"/>
 	</UnassignedPeptideIdentification>
 	<UnassignedPeptideIdentification identification_run_ref="PI_0" score_type="InterProphet probability" higher_score_better="true" significance_threshold="0" MZ="519.2855225" RT="2708.57" >
 		<PeptideHit score="0.999991" sequence="SIITDVYAR" charge="2" aa_before="M" aa_after="E" protein_refs="PH_1">
 		</PeptideHit>
 		<UserParam type="string" name="feature_id" value="10678641590729762751"/>
-		<UserParam type="int" name="feature_leader" value="0"/>
 	</UnassignedPeptideIdentification>
 	<UnassignedPeptideIdentification identification_run_ref="PI_1" score_type="InterProphet probability" higher_score_better="true" significance_threshold="0" MZ="508.2750854" RT="531.874" >
 		<PeptideHit score="0.999999" sequence="LAQGDVVEGK" charge="2" aa_before="K" aa_after="V" protein_refs="PH_2">
 		</PeptideHit>
 		<UserParam type="string" name="feature_id" value="12405256131250299722"/>
-		<UserParam type="int" name="feature_leader" value="0"/>
 	</UnassignedPeptideIdentification>
 	<UnassignedPeptideIdentification identification_run_ref="PI_1" score_type="InterProphet probability" higher_score_better="true" significance_threshold="0" MZ="483.2566223" RT="799.228" >
 		<PeptideHit score="0.999999" sequence="AKFDDLTR" charge="2" aa_before="R" aa_after="D" protein_refs="PH_3">
 		</PeptideHit>
 		<UserParam type="string" name="feature_id" value="8424675462742455963"/>
-		<UserParam type="int" name="feature_leader" value="0"/>
 	</UnassignedPeptideIdentification>
 	<UnassignedPeptideIdentification identification_run_ref="PI_1" score_type="InterProphet probability" higher_score_better="true" significance_threshold="0" MZ="483.2566223" RT="799.228" >
 		<PeptideHit score="0.999999" sequence="AKFDDLTR" charge="2" aa_before="R" aa_after="D" protein_refs="PH_3">
 		</PeptideHit>
 		<UserParam type="string" name="feature_id" value="8424675462742455963"/>
-		<UserParam type="int" name="feature_leader" value="0"/>
 	</UnassignedPeptideIdentification>
 	<UnassignedPeptideIdentification identification_run_ref="PI_1" score_type="InterProphet probability" higher_score_better="true" significance_threshold="0" MZ="483.2565613" RT="810.464" >
 		<PeptideHit score="0.999999" sequence="AKFDDLTR" charge="2" aa_before="R" aa_after="D" protein_refs="PH_3">
 		</PeptideHit>
 		<UserParam type="string" name="feature_id" value="8424675462742455963"/>
-		<UserParam type="int" name="feature_leader" value="0"/>
 	</UnassignedPeptideIdentification>
 	<featureList count="4">
 		<feature id="f_1373363315366016197">
@@ -191,7 +178,6 @@
 				<PeptideHit score="0.999999" sequence="LENAMEVAGR" charge="2" aa_before="R" aa_after="D" protein_refs="PH_0">
 				</PeptideHit>
 				<UserParam type="string" name="feature_id" value="1373363315366016197"/>
-				<UserParam type="int" name="feature_leader" value="1"/>
 			</PeptideIdentification>
 			<UserParam type="int" name="label" value="170"/>
 			<UserParam type="float" name="score_fit" value="0.582182578033577"/>
@@ -249,7 +235,6 @@
 				<PeptideHit score="0.999991" sequence="SIITDVYAR" charge="2" aa_before="M" aa_after="E" protein_refs="PH_1">
 				</PeptideHit>
 				<UserParam type="string" name="feature_id" value="10678641590729762751"/>
-				<UserParam type="int" name="feature_leader" value="1"/>
 			</PeptideIdentification>
 			<UserParam type="int" name="label" value="23570"/>
 			<UserParam type="float" name="score_fit" value="0.592367816263975"/>
@@ -291,7 +276,6 @@
 				<PeptideHit score="0.999999" sequence="LAQGDVVEGK" charge="2" aa_before="K" aa_after="V" protein_refs="PH_2">
 				</PeptideHit>
 				<UserParam type="string" name="feature_id" value="12405256131250299722"/>
-				<UserParam type="int" name="feature_leader" value="1"/>
 			</PeptideIdentification>
 			<UserParam type="int" name="label" value="1195"/>
 			<UserParam type="float" name="score_fit" value="0.682223066553369"/>
@@ -369,7 +353,6 @@
 				<PeptideHit score="0.999999" sequence="AKFDDLTR" charge="2" aa_before="R" aa_after="D" protein_refs="PH_3">
 				</PeptideHit>
 				<UserParam type="string" name="feature_id" value="8424675462742455963"/>
-				<UserParam type="int" name="feature_leader" value="1"/>
 			</PeptideIdentification>
 			<UserParam type="int" name="label" value="2801"/>
 			<UserParam type="float" name="score_fit" value="0.682499081560347"/>

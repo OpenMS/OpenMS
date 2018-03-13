@@ -89,7 +89,6 @@ protected:
     for (PeptideIdentification & p : map.getUnassignedPeptideIdentifications())
     {
       p.setMetaValue("feature_id", "not mapped"); // not mapped to a feature
-      p.setMetaValue("feature_leader", false); // and, thus, no id leader of a feature
     }
 
     for (auto & c : map)
@@ -153,7 +152,6 @@ protected:
     // copy conflicting ones left to best one
     for (auto it = peptides.begin(); it != pos; ++it)
     {
-      it->setMetaValue("feature_leader", false);
       removed.push_back(*it);
     }
      
@@ -161,13 +159,11 @@ protected:
     vector<PeptideIdentification>::iterator pos1p = pos + 1;
     for (auto it = pos1p; it != peptides.end(); ++it)
     {
-      it->setMetaValue("feature_leader", false);
       removed.push_back(*it);
     }
 
     // set best one to first position and shrink vector
     peptides[0] = *pos;
-    peptides[0].setMetaValue("feature_leader", true);
     peptides.resize(1);
   }
 };
