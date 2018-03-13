@@ -76,18 +76,6 @@ public:
       ///Destructor
       ~PosteriorErrorProbabilityModel() override;
 
-      /// update score entries with PEP (or 1-PEP) estimates
-      static void updateScores(
-        const PosteriorErrorProbabilityModel & PEP_model,
-        String engine,
-        Int charge,
-        std::vector<ProteinIdentification> & protein_ids,
-        std::vector<PeptideIdentification> & peptide_ids,
-        const bool prob_correct,
-        const bool split_charge,
-        bool & unable_to_fit_data,
-        bool & data_might_not_be_well_fit);
-
       /**
        * @brief extract and transform score types to a range and score orientation that the PEP model can handle
        * @param protein_ids the protein identifications

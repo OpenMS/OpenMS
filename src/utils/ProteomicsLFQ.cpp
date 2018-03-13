@@ -264,10 +264,10 @@ protected:
             PEP_model,
             engine,
             charge,
-            protein_ids,
-            peptide_ids,
             true, // prob_correct 
             false, //split_charge
+            protein_ids,
+            peptide_ids,
             unable_to_fit_data,
             data_might_not_be_well_fit);
 
