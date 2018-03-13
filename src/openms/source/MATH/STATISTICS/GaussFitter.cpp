@@ -158,5 +158,12 @@ namespace OpenMS
       return out;
     }
 
+    double GaussFitter::GaussFitResult::eval(const double x) const
+    {
+      boost::math::normal_distribution<> ndf(x0, sigma);
+      double int0 = A / boost::math::pdf(ndf, x0); // intensity normalization factor of the max @ x0 (simply multiplying the CDF with A is wrong!)
+      return (boost::math::pdf(ndf, x) * int0 );
+    }
+
   }   //namespace Math
 } // namespace OpenMS

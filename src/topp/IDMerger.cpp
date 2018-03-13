@@ -32,12 +32,9 @@
 // $Authors: Hendrik Weisser $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/APPLICATIONS/TOPPBase.h>
-
 #include <OpenMS/FORMAT/IdXMLFile.h>
-#include <OpenMS/METADATA/PeptideIdentification.h>
+#include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/SYSTEM/File.h>
-
 
 using namespace OpenMS;
 using namespace std;
