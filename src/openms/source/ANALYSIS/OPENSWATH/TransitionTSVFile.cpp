@@ -156,6 +156,7 @@ namespace OpenMS
     "FragmentSeriesNumber",
     "Annotation",
     "CollisionEnergy",
+    "PrecursorIonMobility",
     "TransitionGroupId",
     "TransitionId",
     "Decoy",
@@ -337,7 +338,7 @@ namespace OpenMS
       !extractName<int>(mytransition.fragment_nr, "FragmentNumber", tmp_line, header_dict) &&
       !extractName<int>(mytransition.fragment_nr, "FragmentIonOrdinal", tmp_line, header_dict);
 
-      extractName<double>(mytransition.drift_time, "IonMobility", tmp_line, header_dict);
+      extractName<double>(mytransition.drift_time, "PrecursorIonMobility", tmp_line, header_dict);
       extractName<double>(mytransition.fragment_mzdelta, "FragmentMzDelta", tmp_line, header_dict);
       extractName<int>(mytransition.fragment_modification, "FragmentModification", tmp_line, header_dict);
 
@@ -1202,6 +1203,11 @@ namespace OpenMS
 
       mytransition.FullPeptideName = TargetedExperimentHelper::getAASequence(pep).toUniModString();
 
+      mytransition.drift_time = -1;
+      if (pep.getDriftTime() >= 0.0)
+      {
+        mytransition.drift_time = pep.getDriftTime();
+      }
       mytransition.precursor_charge = "NA";
       if (pep.hasCharge())
       {
@@ -1227,6 +1233,11 @@ namespace OpenMS
         mytransition.rt_calibrated = compound.getRetentionTime();
       }
 
+      mytransition.drift_time = -1;
+      if (compound.getDriftTime() >= 0.0)
+      {
+        mytransition.drift_time = compound.getDriftTime();
+      }
       mytransition.precursor_charge = "NA";
       if (compound.hasCharge())
       {
@@ -1401,6 +1412,7 @@ namespace OpenMS
         + (String)it->fragment_nr              + "\t"
         + (String)it->Annotation               + "\t"
         + (String)it->CE                       + "\t"
+        + (String)it->drift_time               + "\t"
         + (String)it->group_id                 + "\t"
         + (String)it->transition_name          + "\t"
         + (String)it->decoy                    + "\t"
