@@ -34,21 +34,13 @@
 
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
 
-#include <OpenMS/DATASTRUCTURES/Map.h>
-#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/CHEMISTRY/IsotopeDistribution.h>
-#include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/CHEMISTRY/NASequence.h>
 #include <OpenMS/CHEMISTRY/ResidueDB.h>
-#include <OpenMS/CHEMISTRY/ResidueModification.h>
-#include <OpenMS/CHEMISTRY/Ribonucleotide.h>
 
-
-#include <OpenMS/KERNEL/StandardDeclarations.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
-#include <OpenMS/KERNEL/Peak1D.h>
 
 using namespace std;
 
@@ -452,7 +444,7 @@ namespace OpenMS
     case NASequence::ZIon: result = "z"; break;
     case NASequence::DIon: result = "d"; break;
     case NASequence::WIon: result = "w"; break;
-    case NASequence::AminusB: return (num > 0) ? "(a" + String(num) + "-B)" : "(a-B)";
+    case NASequence::AminusB: return (num > 0) ? "a" + String(num) + "-B" : "a-B";
     default:
       cerr << "Unknown ribonucleotide type encountered. Can't map to ion code." << endl;
       result = "?";

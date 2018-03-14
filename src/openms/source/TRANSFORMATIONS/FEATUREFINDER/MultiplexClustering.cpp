@@ -35,22 +35,14 @@
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
-#include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerHiRes.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFilterResult.h>
-#include <OpenMS/FILTERING/DATAREDUCTION/SplinePackage.h>
 #include <OpenMS/FILTERING/DATAREDUCTION/SplineSpectrum.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFiltering.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexClustering.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/PeakWidthEstimator.h>
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
-#include <OpenMS/MATH/MISC/BSpline2d.h>
-#include <OpenMS/COMPARISON/CLUSTERING/GridBasedCluster.h>
 #include <OpenMS/COMPARISON/CLUSTERING/GridBasedClustering.h>
-
-#include <vector>
-#include <algorithm>
-#include <iostream>
 
 #include<QDir>
 

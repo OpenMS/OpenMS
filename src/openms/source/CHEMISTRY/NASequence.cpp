@@ -37,6 +37,7 @@
 #include <OpenMS/CHEMISTRY/RibonucleotideDB.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/CONCEPT/Macros.h>
 
 #include <map>
 
@@ -453,9 +454,17 @@ namespace OpenMS
       // default case: add unmodified, standard ribonucleotide
       if (*str_it != '[')
       {
-        ConstRibonucleotidePtr r =
-          rdb->getRibonucleotide(string(1, *str_it));
-        nas.seq_.push_back(r);
+        try
+        {
+          ConstRibonucleotidePtr r = rdb->getRibonucleotide(string(1, *str_it));
+          nas.seq_.push_back(r);
+        }
+        catch (Exception::ElementNotFound)
+        {
+          String msg = "Cannot convert string to nucleic acid sequence: invalid character '" + String(*str_it) + "'";
+          throw Exception::ParseError(__FILE__, __LINE__,
+                                      OPENMS_PRETTY_FUNCTION, s, msg);
+        }
       }
       else // if (*str_it == '[') // non-standard ribonucleotide
       {

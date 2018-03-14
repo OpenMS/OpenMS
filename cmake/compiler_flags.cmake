@@ -37,7 +37,7 @@
 
 if (CMAKE_COMPILER_IS_GNUCXX)
 
-  add_definitions(-Wall -Wextra 
+  add_compile_options(-Wall -Wextra 
     -fvisibility=hidden
     -Wno-non-virtual-dtor 
     -Wno-unknown-pragmas
@@ -48,23 +48,16 @@ if (CMAKE_COMPILER_IS_GNUCXX)
 
   option(ENABLE_GCC_WERROR "Enable -WError on gcc compilers" OFF)
   if (ENABLE_GCC_WERROR)
-    add_definitions(-Werror)
+    add_compile_options(-Werror)
     message(STATUS "Enable -Werror for gcc - note that this may not work on all compilers and system settings!")
   endif()
 
-  if (NOT MT_ENABLE_CUDA)  # necessary since CUDA contains non-pedantic code
-		add_definitions(--pedantic)
-	endif()
 
-	# Recommended setting for eclipse, see http://www.cmake.org/Wiki/CMake:Eclipse
-	if (CMAKE_GENERATOR STREQUAL "Eclipse CDT4 - Unix Makefiles")
-		add_definitions(-fmessage-length=0)
-	endif()
+  # Recommended setting for eclipse, see http://www.cmake.org/Wiki/CMake:Eclipse
+  if (CMAKE_GENERATOR STREQUAL "Eclipse CDT4 - Unix Makefiles")
+    add_compile_options(-fmessage-length=0)
+  endif()
 
-	# Is this still needed? Why? Only on 4.3?
-	if (NOT OPENMS_64BIT_ARCHITECTURE AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER "4.3.0" AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS "4.4.0")
-		add_definitions(-march=i486)
-	endif()
   
 elseif (MSVC)
 	# do not use add_definitions
@@ -110,9 +103,9 @@ elseif (MSVC)
 elseif ("${CMAKE_C_COMPILER_ID}" MATCHES "Clang")
   set(CMAKE_COMPILER_IS_CLANG true CACHE INTERNAL "Is CLang compiler (clang++)")
   # add clang specific warning levels
-  add_definitions(-Weverything)
+  add_compile_options(-Weverything)
   # .. and disable some of the harmless ones
-  add_definitions(
+  add_compile_options(
                   -Wno-sign-conversion
                   # These are warnings of low severity, which are disabled
                   # for now until we are down to a reasonable size of warnings.
@@ -145,24 +138,24 @@ elseif ("${CMAKE_C_COMPILER_ID}" MATCHES "Clang")
                   -Wno-missing-noreturn
                   )
 else()
-	set(CMAKE_COMPILER_IS_INTELCXX true CACHE INTERNAL "Is Intel C++ compiler (icpc)")
+  set(CMAKE_COMPILER_IS_INTELCXX true CACHE INTERNAL "Is Intel C++ compiler (icpc)")
 endif()
 
 ## platform dependent compiler flags:
 include(CheckCXXCompilerFlag)
 if (NOT WIN32) # we only want fPIC on non-windows systems (fPIC is implicitly true there)
-	CHECK_CXX_COMPILER_FLAG("-fPIC" WITH_FPIC)
-	if (WITH_FPIC)
-		add_definitions(-fPIC)
-	endif()
+  CHECK_CXX_COMPILER_FLAG("-fPIC" WITH_FPIC)
+  if (WITH_FPIC)
+    add_compile_options(-fPIC)
+  endif()
 endif()
 
 ## -Wconversion flag for GCC
 set(CXX_WARN_CONVERSION OFF CACHE BOOL "Enables warnings for type conversion problems (GCC only)")
 if (CXX_WARN_CONVERSION)
-	if (CMAKE_COMPILER_IS_GNUCXX)
-		add_definitions(-Wconversion)
-	endif()
+  if (CMAKE_COMPILER_IS_GNUCXX)
+    add_compile_options(-Wconversion)
+  endif()
 endif()
 message(STATUS "Compiler checks for conversion: ${CXX_WARN_CONVERSION}")
 

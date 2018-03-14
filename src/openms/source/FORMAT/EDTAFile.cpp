@@ -36,8 +36,6 @@
 #include <OpenMS/FORMAT/EDTAFile.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 
-#include <cmath>
-
 using namespace std;
 
 namespace OpenMS

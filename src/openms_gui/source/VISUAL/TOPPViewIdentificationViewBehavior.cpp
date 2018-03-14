@@ -47,6 +47,8 @@
 #include <OpenMS/FILTERING/ID/IDFilter.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
 
+#include <boost/range/adaptor/reversed.hpp>
+
 #include <QtCore/QString>
 #include <QtGui/QMessageBox>
 
@@ -133,7 +135,7 @@ namespace OpenMS
             break;
           }
           default:
-            LOG_WARN << "Annotation of MS level > 2 not supported.!" << std::endl;
+            LOG_WARN << "Annotation of MS level > 2 not supported.!" << endl;
         }
       }
 
@@ -146,21 +148,21 @@ namespace OpenMS
   }
 
 
-  void TOPPViewIdentificationViewBehavior::addPeakAnnotations_(const std::vector<PeptideIdentification>& ph)
+  void TOPPViewIdentificationViewBehavior::addPeakAnnotations_(const vector<PeptideIdentification>& ph)
   {
     // called anew for every click on a spectrum
     LayerData& current_layer = tv_->getActive1DWidget()->canvas()->getCurrentLayer();
 
     if (current_layer.getCurrentSpectrum().empty())
     {
-      LOG_WARN << "Spectrum is empty! Nothing to annotate!" << std::endl;
+      LOG_WARN << "Spectrum is empty! Nothing to annotate!" << endl;
     }
 
     // mass precision to match a peak's m/z to a feature m/z
     // m/z values of features are usually an average over multiple scans...
     double ppm = 0.5;
 
-    std::vector<QColor> cols;
+    vector<QColor> cols;
     cols.push_back(Qt::blue);
     cols.push_back(Qt::green);
     cols.push_back(Qt::red);
@@ -173,7 +175,7 @@ namespace OpenMS
       QMessageBox::warning(tv_, "Error", "The spectrum is not sorted! Aborting!");
       return;
     }
-    for (std::vector<PeptideIdentification>::const_iterator it = ph.begin();
+    for (vector<PeptideIdentification>::const_iterator it = ph.begin();
                                                             it!= ph.end();
                                                             ++it)
     {
@@ -188,10 +190,9 @@ namespace OpenMS
 
       Annotation1DCaret* first_dit(nullptr);
       // we could have many many hits for different compounds which have the exact same sum formula... so first group by sum formula
-      std::map<String, StringList> formula_to_names;
-      for (std::vector< PeptideHit >::const_iterator ith = it->getHits().begin();
-                                                      ith!= it->getHits().end();
-                                                      ++ith)
+      map<String, StringList> formula_to_names;
+      for (vector<PeptideHit>::const_iterator ith = it->getHits().begin();
+           ith != it->getHits().end(); ++ith)
       {
         if (ith->metaValueExists("identifier") && ith->metaValueExists("chemical_formula"))
         {
@@ -215,14 +216,13 @@ namespace OpenMS
 
       // assemble annotation (each formula gets a paragraph)
       String text = "<html><body>";
-      Size i(0);
-      for (std::map<String, StringList>::iterator ith = formula_to_names.begin();
-                                                  ith!= formula_to_names.end();
-                                                  ++ith)
+      Size i = 0;
+      for (map<String, StringList>::iterator ith = formula_to_names.begin();
+           ith!= formula_to_names.end(); ++ith)
       {
         if (++i >= 4)
         { // at this point, this is the 4th entry.. which we don't show any more...
-          text += String("<b><span style=\"color:") + cols[i].name() + "\">..." + Size(std::distance(formula_to_names.begin(), formula_to_names.end()) - 4 + 1) + " more</span></b><br>";
+          text += String("<b><span style=\"color:") + cols[i].name() + "\">..." + Size(distance(formula_to_names.begin(), formula_to_names.end()) - 4 + 1) + " more</span></b><br>";
           break;
         }
         text += String("<b><span style=\"color:") + cols[i].name() + "\">" + ith->first + "</span></b><br>\n";
@@ -357,8 +357,8 @@ namespace OpenMS
 
 
                   // String formatting
-                  Size prefix_length = std::max(xl_pos_alpha, xl_pos_beta);
-                  //Size suffix_length = std::max(seq_alpha.size() - xl_pos_alpha, seq_beta.size() - xl_pos_beta);
+                  Size prefix_length = max(xl_pos_alpha, xl_pos_beta);
+                  //Size suffix_length = max(seq_alpha.size() - xl_pos_alpha, seq_beta.size() - xl_pos_beta);
                   Size alpha_space = prefix_length - xl_pos_alpha;
                   Size beta_space = prefix_length - xl_pos_beta;
 
@@ -382,21 +382,46 @@ namespace OpenMS
                   box_text += alpha_cov + "<br>" + seq_alpha + "<br>" + String(prefix_length, ' ') + vert_bar;
 
                 }
-                box_text =  "<font size=\"5\" style=\"background-color:white;\"><pre>" + box_text + "</pre></font> ";
+                box_text = "<font size=\"5\" style=\"background-color:white;\"><pre>" + box_text + "</pre></font> ";
                 widget_1D->canvas()->setTextBox(box_text.toQString());
               }
-              else
+              else if (ph.getPeakAnnotations().empty()) // only write the sequence
               {
                 String seq = ph.getSequence().toString();
-                if (seq.empty()) seq = ph.getMetaValue("label");
+                if (seq.empty()) seq = ph.getMetaValue("label"); // e.g. for RNA sequences
                 widget_1D->canvas()->setTextBox(seq.toQString());
+              }
+              else if (!ph.getSequence().empty()) // generate sequence diagram for a peptide
+              {
+                // @TODO: read ion list from the input file (meta value)
+                static vector<String> top_ions = ListUtils::create<String>("a,b,c");
+                static vector<String> bottom_ions = ListUtils::create<String>("x,y,z");
+                String diagram = generateSequenceDiagram_(ph.getSequence(), ph.getPeakAnnotations(),
+                                                          top_ions, bottom_ions);
+                widget_1D->canvas()->setTextBox(diagram.toQString());
+              }
+              else if (ph.metaValueExists("label")) // generate sequence diagram for RNA
+              {
+                try
+                {
+                  // @TODO: read ion list from the input file (meta value)
+                  NASequence na_seq = NASequence::fromString(ph.getMetaValue("label"));
+                  static vector<String> top_ions = ListUtils::create<String>("a-B,a,b,c,d");
+                  static vector<String> bottom_ions = ListUtils::create<String>("w,x,y,z");
+                  String diagram = generateSequenceDiagram_(na_seq, ph.getPeakAnnotations(),
+                                                            top_ions, bottom_ions);
+                  widget_1D->canvas()->setTextBox(diagram.toQString());
+                }
+                catch (Exception::ParseError) // label doesn't contain have a valid seq.
+                {
+                }
               }
             }
           }
           break;
         }
         default:
-          LOG_WARN << "Annotation of MS level > 2 not supported.!" << std::endl;
+          LOG_WARN << "Annotation of MS level > 2 not supported." << endl;
       }
     } // end DT_PEAK
     // else if (current_layer.type == LayerData::DT_CHROMATOGRAM)
@@ -537,6 +562,195 @@ namespace OpenMS
     alpha_string = "<font style=\"\">" + collapseStringVector(alpha_strings) + "</font>";
     beta_string = collapseStringVector(beta_strings);
   }
+
+
+  void TOPPViewIdentificationViewBehavior::generateSequenceRow_(const AASequence& seq, vector<String>& row)
+  {
+    // @TODO: spell out modifications or just use an indicator like "*"?
+    // @TODO: support "user defined modifications"?
+    if (seq.hasNTerminalModification())
+    {
+      row[0] =  + "." + seq.getNTerminalModificationName();
+    }
+    Size col_index = 1;
+    for (const auto& aa : seq)
+    {
+      row[col_index] = "<b>" + aa.getOneLetterCode();
+      if (aa.isModified())
+      {
+        row[col_index] += "(" + aa.getModificationName() + ")";
+      }
+      row[col_index] += "</b>";
+      col_index += 2;
+    }
+    if (seq.hasCTerminalModification())
+    {
+      row[row.size() - 1] = "." + seq.getCTerminalModificationName();
+    }
+  }
+
+
+  void TOPPViewIdentificationViewBehavior::generateSequenceRow_(const NASequence& seq, vector<String>& row)
+  {
+    if (seq.hasFivePrimeMod())
+    {
+      const String& code = seq.getFivePrimeMod()->getCode();
+      row[0] = (code == "5'-p" ? "p" : code);
+    }
+    Size col_index = 1;
+    for (const auto& ribo : seq)
+    {
+      row[col_index] = "<b>" + ribo.getCode() + "</b>";
+      col_index += 2;
+    }
+    if (seq.hasThreePrimeMod())
+    {
+      const String& code = seq.getThreePrimeMod()->getCode();
+      row[row.size() - 1] = (code == "3'-p" ? "p" : code);
+    }
+  }
+
+
+  template <typename SeqType>
+  String TOPPViewIdentificationViewBehavior::generateSequenceDiagram_(const SeqType& seq, const vector<PeptideHit::PeakAnnotation>& annotations, const vector<String>& top_ions, const vector<String>& bottom_ions)
+  {
+    map<String, set<Size>> ion_pos;
+    for (const auto& ann : annotations)
+    {
+      const String& label = ann.annotation;
+      // expected format: [ion][number][...]
+      if ((label.size() < 2) || !islower(label[0]) || !isdigit(label[1])) continue;
+      // cut out the position number:
+      Size split = label.find_first_not_of("0123456789", 2);
+      String ion = label.prefix(1) + label.substr(split);
+      Size pos = label.substr(1, split - 1).toInt();
+      ion_pos[ion].insert(pos);
+    }
+
+    vector<vector<String>> table; // vector of rows
+    table.resize(top_ions.size() + bottom_ions.size() + 3);
+    Size n_cols = seq.size() * 2 + 1;
+    for (auto& row : table)
+    {
+      row.resize(n_cols);
+    }
+    if (!top_ions.empty())
+    {
+      for (Size i = 1; i < seq.size(); ++i)
+      {
+        // @TODO: check spacing for i > 9
+        table[0][i * 2] = "<small>" + String(i) + "</small>";
+      }
+    }
+    Size row_index = 1;
+    // ion annotations above sequence - reverse order to have first ion closest to sequence:
+    for (const String& ion : boost::adaptors::reverse(top_ions))
+    {
+      table[row_index][0] = "<small>" + ion + "</small>";
+      for (Size pos : ion_pos[ion])
+      {
+        Size col_index = 2 * pos;
+        if ((row_index == 1) || (table[row_index - 1][col_index].empty()))
+        {
+          table[row_index][col_index] = "&#9488;"; // box drawing: down and left
+        }
+        else
+        {
+          table[row_index][col_index] = "&#9508;"; // box drawing: vertical and left
+        }
+        table[row_index][col_index - 1] = "&#9590;"; // box drawing: right
+      }
+      if (row_index > 1)
+      {
+        for (Size col_index = 2; col_index < n_cols - 2; col_index += 2)
+        {
+          if (table[row_index][col_index].empty() && !table[row_index - 1][col_index].empty())
+          {
+            table[row_index][col_index] = "&#9474;"; // box drawing: vertical
+          }
+        }
+      }
+      ++row_index;
+    }
+    // sequence itself:
+    generateSequenceRow_(seq, table[row_index]);
+    // ion annotations below sequence - iterate over the bottom ions in reverse order (bottom-most first):
+    row_index = table.size() - 2;
+    for (const String& ion : boost::adaptors::reverse(bottom_ions))
+    {
+      table[row_index][n_cols - 1] = "<small>" + ion + "<small>";
+      for (Size pos : ion_pos[ion])
+      {
+        Size col_index = n_cols - 2 * pos - 1;
+        if ((row_index == table.size() - 1) || (table[row_index + 1][col_index].empty()))
+        {
+          table[row_index][col_index] = "&#9492;"; // box drawing: up and right
+        }
+        else
+        {
+          table[row_index][col_index] = "&#9500;"; // box drawing: vertical and right
+        }
+        table[row_index][col_index + 1] = "&#9588;"; // box drawing: left
+      }
+      if (row_index < table.size() - 2)
+      {
+        for (Size col_index = 2; col_index < n_cols - 2; col_index += 2)
+        {
+          if (table[row_index][col_index].empty() && !table[row_index + 1][col_index].empty())
+          {
+            table[row_index][col_index] = "&#9474;"; // box drawing: vertical
+          }
+        }
+      }
+      --row_index;
+    }
+    // "row_index" is again at the sequence row - fill in "split indicators":
+    for (Size col_index = 2; col_index < n_cols - 2 ; col_index += 2)
+    {
+      bool top = !top_ions.empty() && !table[row_index - 1][col_index].empty();
+      bool bottom = !bottom_ions.empty() && !table[row_index + 1][col_index].empty();
+      if (top && bottom)
+      {
+        table[row_index][col_index] = "&#9474;"; // box drawing: vertical
+      }
+      else if (top)
+      {
+        table[row_index][col_index] = "&#9589;"; // box drawing: up
+      }
+      else if (bottom)
+      {
+        table[row_index][col_index] = "&#9591;"; // box drawing: down
+      }
+    }
+    if (!bottom_ions.empty())
+    {
+      for (Size i = 1; i < seq.size(); ++i)
+      {
+        // @TODO: check spacing in diagram for i > 9
+        table[table.size() - 1][n_cols - 2 * i - 1] = "<small>" + String(i) + "</small>";
+      }
+    }
+
+    String html = "<table cellspacing=\"0\">";
+    for (const auto& row : table)
+    {
+      html += "<tr>";
+      for (const String& cell : row)
+      {
+        html += "<td align=\"center\">" + cell + "</td>";
+      }
+      html += "</tr>";
+    }
+    html += "</table>";
+
+    return html;
+  }
+
+
+  // add specializations to allow template implementation outside of header file:
+  template String TOPPViewIdentificationViewBehavior::generateSequenceDiagram_<AASequence>(const AASequence& seq, const vector<PeptideHit::PeakAnnotation>& annotations, const StringList& top_ions, const StringList& bottom_ions);
+  template String TOPPViewIdentificationViewBehavior::generateSequenceDiagram_<NASequence>(const NASequence& seq, const vector<PeptideHit::PeakAnnotation>& annotations, const StringList& top_ions, const StringList& bottom_ions);
+
 
   void TOPPViewIdentificationViewBehavior::addPrecursorLabels1D_(const vector<Precursor>& pcs)
   {
@@ -734,7 +948,7 @@ namespace OpenMS
       param.setValue("tolerance", tolerance, "Defines the absolute (in Da) or relative (in ppm) tolerance in the alignment");
       tv_->getActive1DWidget()->performAlignment(current_spectrum_layer_index, theoretical_spectrum_layer_index, param);
 
-      std::vector<std::pair<Size, Size> > aligned_peak_indices = tv_->getActive1DWidget()->canvas()->getAlignedPeaksIndices();
+      vector<pair<Size, Size> > aligned_peak_indices = tv_->getActive1DWidget()->canvas()->getAlignedPeaksIndices();
 
       // annotate original spectrum with ions and sequence
       for (Size i = 0; i != aligned_peak_indices.size(); ++i)
@@ -818,7 +1032,7 @@ namespace OpenMS
 
       // remove all graphical peak annotations as these will be recreated from the stored peak annotations
       Annotations1DContainer& las = current_layer.getAnnotations(spectrum_index);
-      auto new_end = std::remove_if(las.begin(), las.end(),
+      auto new_end = remove_if(las.begin(), las.end(),
                               [](const Annotation1DItem* a)
                               { return dynamic_cast<const Annotation1DPeakItem*>(a) != nullptr; });
       las.erase(new_end, las.end());
@@ -852,7 +1066,7 @@ namespace OpenMS
     {
       if (current_spectrum.empty())
       {
-        LOG_WARN << "Spectrum is empty! Nothing to annotate!" << std::endl;
+        LOG_WARN << "Spectrum is empty! Nothing to annotate!" << endl;
       }
       else if (!current_spectrum.isSorted())
       {
@@ -935,24 +1149,30 @@ namespace OpenMS
                               ann_spectrum[i].getIntensity());
         const String& label = labels[i];
         QColor color;
+        QColor peak_color;
+        LayerData& annotated_layer = current_canvas->getCurrentLayer();
         // XL-MS specific coloring of the labels, green for linear fragments and red for cross-linked fragments
         if (label.hasSubstring("[alpha|") || label.hasSubstring("[beta|"))
         {
           if (label.hasSubstring("|ci$"))
           {
             color = Qt::darkGreen;
+            peak_color = Qt::green;
           }
           else if (label.hasSubstring("|xi$"))
           {
             color = Qt::darkRed;
+            peak_color = Qt::red;
           }
         }
         else // different colors for left/right fragments (e.g. b/y ions)
         {
           color = (label.at(0) < 'n') ? Qt::darkRed : Qt::darkGreen;
+          peak_color = (label.at(0) < 'n') ? Qt::red : Qt::green;
         }
 
         Annotation1DItem* item = new Annotation1DPeakItem(position, label.toQString(), color);
+        annotated_layer.peak_colors_1d.push_back(peak_color);
         item->setSelected(false);
         tv_->getActive1DWidget()->canvas()->getCurrentLayer().getCurrentAnnotations().push_front(item);
       }

@@ -38,8 +38,6 @@
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CONCEPT/Factory.h>
 
-#include <boost/math/special_functions/fpclassify.hpp>
-
 namespace OpenMS
 {
   int EmgFitter1D::EgmFitterFunctor::operator()(const Eigen::VectorXd& x, Eigen::VectorXd& fvec)

@@ -455,7 +455,7 @@ namespace OpenMS
 
        @param s Input string
 
-       @throws Exception::ParseError if an invalid string representation of an AA sequence is passed
+       @throws Exception::ParseError if an invalid string representation of a nucleic acid sequence is passed
     */
     static NASequence fromString(const String& s);
 
@@ -470,7 +470,7 @@ namespace OpenMS
 
        @param s Input string
 
-       @throws Exception::ParseError if an invalid string representation of an AA sequence is passed
+       @throws Exception::ParseError if an invalid string representation of a nucleic acid sequence is passed
     */
     static NASequence fromString(const char* s);
 

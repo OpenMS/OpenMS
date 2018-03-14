@@ -33,25 +33,20 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
-#include <OpenMS/CHEMISTRY/ModificationDefinitionsSet.h>
+
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/FORMAT/CsvFile.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
-#include <OpenMS/FORMAT/IdXMLFile.h>
-#include <OpenMS/FORMAT/MascotXMLFile.h>
-#include <OpenMS/FORMAT/MzDataFile.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/MzIdentMLFile.h>
-#include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
+#include <OpenMS/METADATA/SpectrumMetaDataLookup.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/SYSTEM/JavaInfo.h>
 
-#include <QtCore/QFile>
 #include <QtCore/QProcess>
-#include <QDir>
 
 #include <algorithm>
 #include <fstream>
@@ -193,9 +188,9 @@ protected:
 
     vector<String> all_mods;
     ModificationsDB::getInstance()->getAllSearchModifications(all_mods);
-    registerStringList_("fixed_modifications", "<mods>", vector<String>(), "Fixed modifications, specified using UniMod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)'", false);
+    registerStringList_("fixed_modifications", "<mods>", ListUtils::create<String>("Carbamidomethyl (C)", ','), "Fixed modifications, specified using Unimod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)' or 'Oxidation (M)'", false);
     setValidStrings_("fixed_modifications", all_mods);
-    registerStringList_("variable_modifications", "<mods>", vector<String>(), "Variable modifications, specified using UniMod (www.unimod.org) terms, e.g. 'Oxidation (M)'", false);
+    registerStringList_("variable_modifications", "<mods>", ListUtils::create<String>("Oxidation (M)", ','), "Variable modifications, specified using Unimod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)' or 'Oxidation (M)'", false);
     setValidStrings_("variable_modifications", all_mods);
 
     registerFlag_("legacy_conversion", "Use the indirect conversion of MS-GF+ results to idXML via export to TSV. Try this only if the default conversion takes too long or uses too much memory.", true);
@@ -745,17 +740,9 @@ protected:
     //-------------------------------------------------------------
 
     if (!mzid_out.empty())
-    {
-      // existing file? Qt won't overwrite, so try to remove it:
-      if (QFile::exists(mzid_out.toQString()) && !QFile::remove(mzid_out.toQString()))
+    { // move the temporary file to the actual destination:
+      if (!File::rename(mzid_temp, mzid_out))
       {
-        writeLog_("Fatal error: Could not overwrite existing file '" + mzid_out + "'");
-        return CANNOT_WRITE_OUTPUT_FILE;
-      }
-      // move the temporary file to the actual destination:
-      if (!QFile::rename(mzid_temp.toQString(), mzid_out.toQString()))
-      {
-        writeLog_("Fatal error: Could not move temporary mzid file to '" + mzid_out + "'");
         return CANNOT_WRITE_OUTPUT_FILE;
       }
     }

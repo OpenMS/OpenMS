@@ -54,6 +54,8 @@
 #include <OpenMS/MATH/MISC/CubicSpline2d.h>
 #include <OpenMS/CHEMISTRY/MASSDECOMPOSITION/MassDecomposition.h>
 #include <OpenMS/CHEMISTRY/MASSDECOMPOSITION/MassDecompositionAlgorithm.h>
+#include <OpenMS/SYSTEM/File.h>
+
 
 #include <boost/math/distributions/normal.hpp>
 
@@ -2075,7 +2077,7 @@ protected:
 
     registerDoubleOption_("xic_threshold", "<tol>", 0.7, "Minimum correlation to mono-isotopic peak for retaining a higher isotopic peak. If featureXML from reference file is used it should be disabled (set to -1) as no mono-isotopic peak is expected to be present.", false);
 
-    registerDoubleOption_("decomposition_threshold", "<tol>", 0.7, "Minimum R² of decomposition that must be achieved for a peptide to be reported.", false);
+    registerDoubleOption_("decomposition_threshold", "<tol>", 0.7, "Minimum R-squared of decomposition that must be achieved for a peptide to be reported.", false);
 
     registerDoubleOption_("weight_merge_window", "<tol>", 5.0, "Decomposition coefficients within +- this rate window will be combined", false);
 

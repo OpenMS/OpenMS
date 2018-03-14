@@ -34,12 +34,9 @@
 
 #include <OpenMS/ANALYSIS/QUANTITATION/TMTTenPlexQuantitationMethod.h>
 
-#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/DATASTRUCTURES/Matrix.h>
 
 #include <boost/assign/list_of.hpp>
-
-#include <algorithm>
 
 using namespace boost::assign;
 

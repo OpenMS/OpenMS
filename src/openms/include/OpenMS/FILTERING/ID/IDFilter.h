@@ -38,6 +38,7 @@
 #include <OpenMS/config.h>
 #include <OpenMS/CHEMISTRY/ProteaseDigestion.h>
 #include <OpenMS/METADATA/IdentificationData.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/METADATA/PeptideEvidence.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
@@ -163,7 +164,7 @@ public:
       HasMetaValue(const String& key_, const DataValue& value_):
         key(key_),
         value(value_)
-      {} 
+      {}
 
       bool operator()(const HitType& hit) const
       {

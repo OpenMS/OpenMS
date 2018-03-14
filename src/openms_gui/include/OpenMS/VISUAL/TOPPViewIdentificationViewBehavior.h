@@ -35,6 +35,7 @@
 #ifndef OPENMS_VISUAL_TOPPVIEWIDENTIFICATIONVIEWBEHAVIOR_H
 #define OPENMS_VISUAL_TOPPVIEWIDENTIFICATIONVIEWBEHAVIOR_H
 
+#include <OpenMS/CHEMISTRY/NASequence.h>
 #include <OpenMS/METADATA/SpectrumSettings.h>
 #include <OpenMS/VISUAL/LayerData.h>
 #include <vector>
@@ -70,11 +71,11 @@ namespace OpenMS
     typedef ExperimentType::SpectrumType SpectrumType;
     //@}
 
-public:
+  public:
     /// Construct the behaviour with its parent
     TOPPViewIdentificationViewBehavior(TOPPViewBase* parent);
 
-public slots:
+  public slots:
     /// Behavior for showSpectrumAs1D
     virtual void showSpectrumAs1D(int spectrum_index, int peptide_id_index, int peptide_hit_index);
 
@@ -98,7 +99,7 @@ public slots:
 
     void setVisibleArea1D(double l, double h);
 
-private:
+  private:
     /// Adds labels for the provided precursors to the 1D spectrum
     void addPrecursorLabels1D_(const std::vector<Precursor>& pcs);
 
@@ -117,16 +118,26 @@ private:
     /// Adds annotation (compound name, adducts, ppm error) to a peak in 1D spectra
     void addPeakAnnotations_(const std::vector<PeptideIdentification>& ph);
 
-  /// Helper function for text formatting
-  String n_times(Size n, String input);
+    /// Helper function for text formatting
+    String n_times(Size n, String input);
 
-  /// Helper function, that turns fragment annotations into coverage Strings for visuaization with the sequence
-  void extractCoverageStrings(std::vector<PeptideHit::PeakAnnotation> frag_annotations, String& alpha_string, String& beta_string, Size alpha_size, Size beta_size);
+    /// Helper function that turns fragment annotations into coverage Strings for visualization with the sequence
+    void extractCoverageStrings(std::vector<PeptideHit::PeakAnnotation> frag_annotations, String& alpha_string, String& beta_string, Size alpha_size, Size beta_size);
 
-  /// Helper function, that collapses a vector of Strings into one String
-  String collapseStringVector(std::vector<String> strings);
+    /// Generates HTML for showing the sequence with annotations of matched fragments
+    template <typename SeqType>
+    String generateSequenceDiagram_(const SeqType& seq, const std::vector<PeptideHit::PeakAnnotation>& annotations, const StringList& top_ions, const StringList& bottom_ions);
 
-private:
+    /// Helper function for generateSequenceDiagram_() - overload for peptides
+    void generateSequenceRow_(const AASequence& seq, std::vector<String>& row);
+
+    /// Helper function for generateSequenceDiagram_() - overload for oligonucleotides
+    void generateSequenceRow_(const NASequence& seq, std::vector<String>& row);
+
+    /// Helper function, that collapses a vector of Strings into one String
+    String collapseStringVector(std::vector<String> strings);
+
+  private:
     TOPPViewBase* tv_;
     /// Used to check which annotation handles have been added automatically by the identification view. Ownership
     /// of the AnnotationItems has the Annotation1DContainer

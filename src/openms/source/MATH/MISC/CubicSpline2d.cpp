@@ -32,12 +32,13 @@
 // $Authors: Lars Nilse $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/MATH/MISC/CubicSpline2d.h>
 
-#include <vector>
-#include <map>
-#include <functional> 
+
+#include <OpenMS/CONCEPT/Exception.h>
+
+#include <algorithm>
+#include <functional>
 
 using namespace std;
 

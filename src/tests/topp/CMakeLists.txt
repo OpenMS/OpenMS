@@ -819,6 +819,14 @@ set_tests_properties("TOPP_IDFileConverter_22_out1" PROPERTIES DEPENDS "TOPP_IDF
 add_test("TOPP_IDFileConverter_23" ${TOPP_BIN_PATH}/IDFileConverter -test -in ${DATA_DIR_TOPP}/IDFileConverter_23_input.mzid -out IDFileConverter_23_output.tmp -out_type idXML)
 add_test("TOPP_IDFileConverter_23_out1" ${DIFF} -in1 IDFileConverter_23_output.tmp -in2 ${DATA_DIR_TOPP}/IDFileConverter_23_output.idXML -whitelist "IdentificationRun date" )
 set_tests_properties("TOPP_IDFileConverter_23_out1" PROPERTIES DEPENDS "TOPP_IDFileConverter_23")
+# Comet pep.xml
+add_test("TOPP_IDFileConverter_24" ${TOPP_BIN_PATH}/IDFileConverter -test -in ${DATA_DIR_TOPP}/IDFileConverter_24_input.pep.xml -out IDFileConverter_24_output.tmp -out_type idXML)
+add_test("TOPP_IDFileConverter_24_out1" ${DIFF} -in1 IDFileConverter_24_output.tmp -in2 ${DATA_DIR_TOPP}/IDFileConverter_24_output.idXML -whitelist "IdentificationRun date" )
+set_tests_properties("TOPP_IDFileConverter_24_out1" PROPERTIES DEPENDS "TOPP_IDFileConverter_24")
+# Comet pep.xml
+add_test("TOPP_IDFileConverter_25" ${TOPP_BIN_PATH}/IDFileConverter -test -in ${DATA_DIR_TOPP}/IDFileConverter_25_input.idXML -out IDFileConverter_25_output.tmp -out_type pepXML)
+add_test("TOPP_IDFileConverter_25_out1" ${DIFF} -in1 IDFileConverter_25_output.tmp -in2 ${DATA_DIR_TOPP}/IDFileConverter_25_output.pep.xml)
+set_tests_properties("TOPP_IDFileConverter_25_out1" PROPERTIES DEPENDS "TOPP_IDFileConverter_25")
 
 #------------------------------------------------------------------------------
 # IDFilter tests
@@ -911,7 +919,6 @@ set_tests_properties("TOPP_IDFilter_19_out1" PROPERTIES DEPENDS "TOPP_IDFilter_1
 add_test("TOPP_IDFilter_20" ${TOPP_BIN_PATH}/IDFilter -test -in ${DATA_DIR_TOPP}/IDFilter_missed_cleavages_input.idXML -out IDFilter_20_output.tmp -missed_cleavages:number_of_missed_cleavages 1:0)
 add_test("TOPP_IDFilter_20_out1" ${DIFF} -in1 IDFilter_20_output.tmp -in2 ${DATA_DIR_TOPP}/IDFilter_20_output.idXML )
 set_tests_properties("TOPP_IDFilter_20_out1" PROPERTIES DEPENDS "TOPP_IDFilter_20")
-
 
 #------------------------------------------------------------------------------
 # MapAlignerPoseClustering tests
@@ -1816,15 +1823,16 @@ set_tests_properties("TOPP_FalseDiscoveryRate_3_out1" PROPERTIES DEPENDS "TOPP_F
 add_test("TOPP_FalseDiscoveryRate_4" ${TOPP_BIN_PATH}/FalseDiscoveryRate -test -in ${DATA_DIR_TOPP}/FalseDiscoveryRate_OMSSA_4.idXML -out FalseDiscoveryRate_output_4.tmp -algorithm:split_charge_variants -PSM true -protein false)
 add_test("TOPP_FalseDiscoveryRate_4_out1" ${DIFF} -whitelist "?xml-stylesheet" -in1 FalseDiscoveryRate_output_4.tmp -in2 ${DATA_DIR_TOPP}/FalseDiscoveryRate_output_4.idXML)
 set_tests_properties("TOPP_FalseDiscoveryRate_4_out1" PROPERTIES DEPENDS "TOPP_FalseDiscoveryRate_4")
-# proteins only (input is derived from "THIRDPARTY/FidoAdapter_1_output.idXML"):
-add_test("TOPP_FalseDiscoveryRate_5" ${TOPP_BIN_PATH}/FalseDiscoveryRate -test -in ${DATA_DIR_TOPP}/FalseDiscoveryRate_5_input.idXML -out FalseDiscoveryRate_5_output.tmp -PSM false -protein true)
+# proteins only, keep decoys (input is derived from "THIRDPARTY/FidoAdapter_1_output.idXML"):
+add_test("TOPP_FalseDiscoveryRate_5" ${TOPP_BIN_PATH}/FalseDiscoveryRate -test -in ${DATA_DIR_TOPP}/FalseDiscoveryRate_5_input.idXML -out FalseDiscoveryRate_5_output.tmp -PSM false -protein true -algorithm:add_decoy_proteins)
 add_test("TOPP_FalseDiscoveryRate_5_out1" ${DIFF} -whitelist "?xml-stylesheet" -in1 FalseDiscoveryRate_5_output.tmp -in2 ${DATA_DIR_TOPP}/FalseDiscoveryRate_5_output.idXML)
 set_tests_properties("TOPP_FalseDiscoveryRate_5_out1" PROPERTIES DEPENDS "TOPP_FalseDiscoveryRate_5")
 # FDR filtering
 add_test("TOPP_FalseDiscoveryRate_6" ${TOPP_BIN_PATH}/FalseDiscoveryRate -test -in ${DATA_DIR_TOPP}/FalseDiscoveryRate_6_input.idXML -out FalseDiscoveryRate_6_output.tmp -PSM true -protein false -FDR:PSM 0.05)
 add_test("TOPP_FalseDiscoveryRate_6_out1" ${DIFF} -whitelist "?xml-stylesheet" -in1 FalseDiscoveryRate_6_output.tmp -in2 ${DATA_DIR_TOPP}/FalseDiscoveryRate_6_output.idXML)
 set_tests_properties("TOPP_FalseDiscoveryRate_6_out1" PROPERTIES DEPENDS "TOPP_FalseDiscoveryRate_6")
-add_test("TOPP_FalseDiscoveryRate_7" ${TOPP_BIN_PATH}/FalseDiscoveryRate -test -in ${DATA_DIR_TOPP}/FalseDiscoveryRate_7_input.idXML -out FalseDiscoveryRate_7_output.tmp -PSM false -protein true -FDR:protein 0.05)
+# FDR filtering, proteins only, decoys removed (default)
+add_test("TOPP_FalseDiscoveryRate_7" ${TOPP_BIN_PATH}/FalseDiscoveryRate -test -in ${DATA_DIR_TOPP}/FalseDiscoveryRate_7_input.idXML -out FalseDiscoveryRate_7_output.tmp -PSM false -protein true -FDR:protein 0.30)
 add_test("TOPP_FalseDiscoveryRate_7_out1" ${DIFF} -whitelist "?xml-stylesheet" -in1 FalseDiscoveryRate_7_output.tmp -in2 ${DATA_DIR_TOPP}/FalseDiscoveryRate_7_output.idXML)
 set_tests_properties("TOPP_FalseDiscoveryRate_7_out1" PROPERTIES DEPENDS "TOPP_FalseDiscoveryRate_7")
 
@@ -2043,7 +2051,7 @@ add_test("UTILS_IDScoreSwitcher_1" ${TOPP_BIN_PATH}/IDScoreSwitcher -test -in ${
 add_test("UTILS_IDScoreSwitcher_1_out1" ${DIFF} -in1 IDScoreSwitcher_1_output.tmp -in2 ${DATA_DIR_TOPP}/IDFileConverter_13_output.idXML -whitelist "IdentificationRun date")
 set_tests_properties("UTILS_IDScoreSwitcher_1_out1" PROPERTIES DEPENDS "UTILS_IDScoreSwitcher_1")
 # IDScoreSwitcher - switch q-value and protein probability:
-add_test("UTILS_IDScoreSwitcher_2" ${TOPP_BIN_PATH}/IDScoreSwitcher -test -in ${DATA_DIR_TOPP}/FalseDiscoveryRate_5_output.idXML -out IDScoreSwitcher_2_output.tmp -new_score "Posterior Probability_score" -new_score_type "Posterior Probability" -new_score_orientation higher_better -proteins)
+add_test("UTILS_IDScoreSwitcher_2" ${TOPP_BIN_PATH}/IDScoreSwitcher -test -in ${DATA_DIR_TOPP}/IDScoreSwitcher_2_input.idXML -out IDScoreSwitcher_2_output.tmp -new_score "Posterior Probability_score" -new_score_type "Posterior Probability" -new_score_orientation higher_better -proteins)
 add_test("UTILS_IDScoreSwitcher_2_out1" ${DIFF} -in1 IDScoreSwitcher_2_output.tmp -in2 ${DATA_DIR_TOPP}/IDScoreSwitcher_2_output.idXML -whitelist "IdentificationRun date")
 set_tests_properties("UTILS_IDScoreSwitcher_2_out1" PROPERTIES DEPENDS "UTILS_IDScoreSwitcher_2")
 
@@ -2113,9 +2121,12 @@ set_tests_properties("UTILS_DatabaseFilter_4_out" PROPERTIES DEPENDS "UTILS_Data
 add_test("UTILS_DecoyDatabase_1" ${TOPP_BIN_PATH}/DecoyDatabase -test -in ${DATA_DIR_TOPP}/DecoyDatabase_1.fasta -out DecoyDatabase_1.fasta.tmp -only_decoy)
 add_test("UTILS_DecoyDatabase_1_out" ${DIFF} -in1 DecoyDatabase_1.fasta.tmp -in2 ${DATA_DIR_TOPP}/DecoyDatabase_1_out.fasta )
 set_tests_properties("UTILS_DecoyDatabase_1_out" PROPERTIES DEPENDS "UTILS_DecoyDatabase_1")
-add_test("UTILS_DecoyDatabase_2" ${TOPP_BIN_PATH}/DecoyDatabase -test -in ${DATA_DIR_TOPP}/DecoyDatabase_1.fasta -out DecoyDatabase_2.fasta.tmp -decoy_string "blabla" -decoy_string_position "prefix")
+add_test("UTILS_DecoyDatabase_2" ${TOPP_BIN_PATH}/DecoyDatabase -test -in ${DATA_DIR_TOPP}/DecoyDatabase_1.fasta -out DecoyDatabase_2.fasta.tmp -decoy_string "blabla" -decoy_string_position "prefix" -method shuffle -Decoy:non_shuffle_pattern "KRP" -seed 42)
 add_test("UTILS_DecoyDatabase_2_out" ${DIFF} -in1 DecoyDatabase_2.fasta.tmp -in2 ${DATA_DIR_TOPP}/DecoyDatabase_2_out.fasta )
 set_tests_properties("UTILS_DecoyDatabase_2_out" PROPERTIES DEPENDS "UTILS_DecoyDatabase_2")
+add_test("UTILS_DecoyDatabase_3" ${TOPP_BIN_PATH}/DecoyDatabase -test -in ${DATA_DIR_TOPP}/DecoyDatabase_1.fasta -out DecoyDatabase_3.fasta.tmp -decoy_string "blabla" -decoy_string_position "prefix" -method shuffle -Decoy:non_shuffle_pattern "KR" -seed 42 -enzyme "Chymotrypsin")
+add_test("UTILS_DecoyDatabase_3_out" ${DIFF} -in1 DecoyDatabase_3.fasta.tmp -in2 ${DATA_DIR_TOPP}/DecoyDatabase_3_out.fasta )
+set_tests_properties("UTILS_DecoyDatabase_3_out" PROPERTIES DEPENDS "UTILS_DecoyDatabase_3")
 
 # SimpleSearchEngine:
 add_test("UTILS_SimpleSearchEngine_1" ${TOPP_BIN_PATH}/SimpleSearchEngine -test
@@ -2180,23 +2191,31 @@ set_tests_properties("UTILS_OpenPepXLLF_1_out_4" PROPERTIES DEPENDS "UTILS_OpenP
 
 #------------------------------------------------------------------------------
 # XFDR tests
-add_test("UTILS_XFDR_1" ${TOPP_BIN_PATH}/XFDR -test -in ${DATA_DIR_TOPP}/XFDR_test_in1.xml -out_idXML XFDR_test_out1_temp.idXML -out_mzIdentML XFDR_test_out1_temp.mzid)
+add_test("UTILS_XFDR_1" ${TOPP_BIN_PATH}/XFDR -test -in ${DATA_DIR_TOPP}/XFDR_test_in1.idXML -out_idXML XFDR_test_out1_temp.idXML -out_mzIdentML XFDR_test_out1_temp.mzid -out_xquest XFDR_test_out1_temp.xquest.xml)
 add_test("UTILS_XFDR_1_out11" ${DIFF} -whitelist "date=" -in1 XFDR_test_out1_temp.idXML  -in2 ${DATA_DIR_TOPP}/XFDR_test_out1.idXML)
 add_test("UTILS_XFDR_1_out12" ${DIFF} -whitelist "creationDate=" "version=" -in1 XFDR_test_out1_temp.mzid -in2 ${DATA_DIR_TOPP}/XFDR_test_out1.mzid)
+add_test("UTILS_XFDR_1_out13" ${DIFF} -whitelist "date=" -in1 XFDR_test_out1_temp.xquest.xml -in2 ${DATA_DIR_TOPP}/XFDR_test_out1.xquest.xml)
 set_tests_properties("UTILS_XFDR_1_out11" PROPERTIES DEPENDS "UTILS_XFDR_1")
 set_tests_properties("UTILS_XFDR_1_out12" PROPERTIES DEPENDS "UTILS_XFDR_1")
-add_test("UTILS_XFDR_2" ${TOPP_BIN_PATH}/XFDR -test -in ${DATA_DIR_TOPP}/XFDR_test_in1.xml -uniquexl -no_qvalues -out_idXML XFDR_test_out2_temp.idXML -out_mzIdentML XFDR_test_out2_temp.mzid)
+set_tests_properties("UTILS_XFDR_1_out13" PROPERTIES DEPENDS "UTILS_XFDR_1")
+add_test("UTILS_XFDR_2" ${TOPP_BIN_PATH}/XFDR -test -in ${DATA_DIR_TOPP}/XFDR_test_in1.idXML -uniquexl -no_qvalues -out_idXML XFDR_test_out2_temp.idXML -out_mzIdentML XFDR_test_out2_temp.mzid -out_xquest XFDR_test_out2_temp.xquest.xml)
 add_test("UTILS_XFDR_2_out21" ${DIFF} -whitelist "date=" -in1 XFDR_test_out2_temp.idXML -in2 ${DATA_DIR_TOPP}/XFDR_test_out2.idXML)
-add_test("UTILS_XFDR_2_out22" ${DIFF} -whitelist "creationDate=" "version=" -in1 XFDR_test_out2_temp.mzid -in2 ${DATA_DIR_TOPP}/XFDR_test_out2.mzid)
+add_test("UTILS_XFDR_2_out22" ${DIFF} -whitelist "creationDate=" "version=" "id=\"OpenMS_" -in1 XFDR_test_out2_temp.mzid -in2 ${DATA_DIR_TOPP}/XFDR_test_out2.mzid)
+add_test("UTILS_XFDR_2_out23" ${DIFF} -whitelist "date=" -in1 XFDR_test_out2_temp.xquest.xml -in2 ${DATA_DIR_TOPP}/XFDR_test_out2.xquest.xml)
 set_tests_properties("UTILS_XFDR_2_out21" PROPERTIES DEPENDS "UTILS_XFDR_2")
 set_tests_properties("UTILS_XFDR_2_out22" PROPERTIES DEPENDS "UTILS_XFDR_2")
-add_test("UTILS_XFDR_3" ${TOPP_BIN_PATH}/XFDR -test -in ${DATA_DIR_TOPP}/XFDR_test_in2.xml -out_idXML XFDR_test_out3_temp.idXML -out_mzIdentML XFDR_test_out3_temp.mzid)
+set_tests_properties("UTILS_XFDR_2_out23" PROPERTIES DEPENDS "UTILS_XFDR_2")
+add_test("UTILS_XFDR_3" ${TOPP_BIN_PATH}/XFDR -test -in ${DATA_DIR_TOPP}/XFDR_test_in2.xquest.xml -out_idXML XFDR_test_out3_temp.idXML -out_mzIdentML XFDR_test_out3_temp.mzid -out_xquest XFDR_test_out3_temp.xquest.xml)
 add_test("UTILS_XFDR_3_out31" ${DIFF} -whitelist "date=" -in1 XFDR_test_out3_temp.idXML -in2 ${DATA_DIR_TOPP}/XFDR_test_out3.idXML)
-add_test("UTILS_XFDR_3_out32" ${DIFF} -whitelist "creationDate=" "version=" -in1 XFDR_test_out3_temp.mzid -in2 ${DATA_DIR_TOPP}/XFDR_test_out3.mzid)
+add_test("UTILS_XFDR_3_out32" ${DIFF} -whitelist "creationDate=" "version=" "id=\"OpenMS_" -in1 XFDR_test_out3_temp.mzid -in2 ${DATA_DIR_TOPP}/XFDR_test_out3.mzid)
+add_test("UTILS_XFDR_3_out33" ${DIFF} -whitelist "date=" -in1 XFDR_test_out3_temp.xquest.xml -in2 ${DATA_DIR_TOPP}/XFDR_test_out3.xquest.xml)
 set_tests_properties("UTILS_XFDR_3_out31" PROPERTIES DEPENDS "UTILS_XFDR_3")
 set_tests_properties("UTILS_XFDR_3_out32" PROPERTIES DEPENDS "UTILS_XFDR_3")
-add_test("UTILS_XFDR_4" ${TOPP_BIN_PATH}/XFDR -test -minborder -5 -maxborder 5 -in ${DATA_DIR_TOPP}/XFDR_test_in2.xml -out_idXML XFDR_test_out4_temp.idXML -out_mzIdentML XFDR_test_out4_temp.mzid)
+set_tests_properties("UTILS_XFDR_3_out33" PROPERTIES DEPENDS "UTILS_XFDR_3")
+add_test("UTILS_XFDR_4" ${TOPP_BIN_PATH}/XFDR -test -minborder -3 -maxborder 3 -in ${DATA_DIR_TOPP}/XFDR_test_in2.xquest.xml -out_idXML XFDR_test_out4_temp.idXML -out_mzIdentML XFDR_test_out4_temp.mzid -out_xquest XFDR_test_out4_temp.xquest.xml)
 add_test("UTILS_XFDR_4_out41" ${DIFF} -whitelist "date=" -in1 XFDR_test_out4_temp.idXML -in2 ${DATA_DIR_TOPP}/XFDR_test_out4.idXML)
-add_test("UTILS_XFDR_4_out42" ${DIFF} -whitelist "creationDate=" "version=" -in1 XFDR_test_out4_temp.mzid -in2 ${DATA_DIR_TOPP}/XFDR_test_out4.mzid)
+add_test("UTILS_XFDR_4_out42" ${DIFF} -whitelist "creationDate=" "version=" "id=\"OpenMS_" -in1 XFDR_test_out4_temp.mzid -in2 ${DATA_DIR_TOPP}/XFDR_test_out4.mzid)
+add_test("UTILS_XFDR_4_out43" ${DIFF} -whitelist "date=" -in1 XFDR_test_out4_temp.xquest.xml -in2 ${DATA_DIR_TOPP}/XFDR_test_out4.xquest.xml)
 set_tests_properties("UTILS_XFDR_4_out41" PROPERTIES DEPENDS "UTILS_XFDR_4")
 set_tests_properties("UTILS_XFDR_4_out42" PROPERTIES DEPENDS "UTILS_XFDR_4")
+set_tests_properties("UTILS_XFDR_4_out43" PROPERTIES DEPENDS "UTILS_XFDR_4")
