@@ -31,6 +31,7 @@ MetaProSIP
 MRMPairFinder
 MSFraggerAdapter
 MSSimulator
+MSstatsConverter
 MultiplexResolver
 MzMLSplitter
 NovorAdapter
@@ -46,6 +47,7 @@ QCExtractor
 QCImporter
 QCMerger
 QCShrinker
+ProteomicLFQ
 RNADigestor
 RNPxl
 RNPxlXICFilter

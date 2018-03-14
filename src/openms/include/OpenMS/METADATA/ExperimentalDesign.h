@@ -35,12 +35,19 @@
 #ifndef OPENMS_KERNEL_EXPERIMENTALDESIGN_H
 #define OPENMS_KERNEL_EXPERIMENTALDESIGN_H
 
+#include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/KERNEL/ConsensusMap.h>
+#include <OpenMS/KERNEL/FeatureMap.h>
+#include <OpenMS/METADATA/ProteinIdentification.h>
 
 #include <vector>
 #include <string>
 #include <map>
 #include <set>
+#include <algorithm>
+#include <tuple>
+
 
 namespace OpenMS
 {
@@ -53,51 +60,342 @@ namespace OpenMS
   class OPENMS_DLLAPI ExperimentalDesign
   {
   public:
+    ExperimentalDesign() {};
+
     /// 1) Mandatory section with run-level information of the experimental design.
-    ///    Required to process fractionated data and technical replicates.
-    ///
-    /// Run	Spectra File	Fraction	Technical Replicate   
-    ///   1	humanA.mzML	      1	              1          
-    ///   2	humanB.mzML	      1	              1          
-    ///   3	humanC.mzML	      2	              1              
-    ///   4	humanD.mzML	      2	              1
-    ///   5	humanE.mzML	      3	              1
-    ///   6	humanF.mzML	      3	              1          
-    ///   7	humanG.mzML	      3	              2       (<- example how a 2nd technical replicate is stored for fraction 3)
-    /// TODO: add possibility to provide optional columns that map to additional run-level specific meta data (see, for example, the mzTab specification)
-    class OPENMS_DLLAPI MSRun
+    ///    Required to process fractionated data.
+/*
+ * Run Section Format:
+   Format: Single header line
+         Run:           Run index (prior fractionation) used to group fractions and source files.
+                        Note: For label-free this has same cardinality as sample.
+                              For multiplexed experiments, these might differ as multiple samples can be measured in single files
+         Fraction:      1st, 2nd, .., fraction. Note: All runs must have the same number of fractions.
+         Path:          Path to mzML files
+         Channel:       Channel in MS file:
+                          label-free: always 1
+                          TMT6Plex: 1..6
+                          SILAC with light and heavy: 1..2
+         Sample:        Index of sample measured in the specified channel X, in fraction Y of run Z
+
+	Run	Fraction	Path (Spectra File)	Channel		Sample (Condition)
+	1	1		SPECTRAFILE_F1_TR1.mzML	1		1
+	1	2		SPECTRAFILE_F2_TR1.mzML	1		1
+	1	3		SPECTRAFILE_F3_TR1.mzML	1		1
+	1	1		SPECTRAFILE_F1_TR1.mzML	2		2
+	1	2		SPECTRAFILE_F2_TR1.mzML	2		2
+	1	3		SPECTRAFILE_F3_TR1.mzML	2		2
+	1	1		SPECTRAFILE_F1_TR1.mzML	3		3
+	1	2		SPECTRAFILE_F2_TR1.mzML	3		3
+	1	3		SPECTRAFILE_F3_TR1.mzML	3		3
+	1	1		SPECTRAFILE_F1_TR1.mzML	4		4
+	1	2		SPECTRAFILE_F2_TR1.mzML	4		4
+	1	3		SPECTRAFILE_F3_TR1.mzML	4		4
+	2	1		SPECTRAFILE_F1_TR2.mzML	1		5
+	2	2		SPECTRAFILE_F2_TR2.mzML	1		5
+	2	3		SPECTRAFILE_F3_TR2.mzML	1		5
+	2	1		SPECTRAFILE_F1_TR2.mzML	2		6
+	2	2		SPECTRAFILE_F2_TR2.mzML	2		6
+	2	3		SPECTRAFILE_F3_TR2.mzML	2		6
+	2	1		SPECTRAFILE_F1_TR2.mzML	3		7
+	2	2		SPECTRAFILE_F2_TR2.mzML	3		7
+	2	3		SPECTRAFILE_F3_TR2.mzML	3		7
+	2	1		SPECTRAFILE_F1_TR2.mzML	4		8
+	2	2		SPECTRAFILE_F2_TR2.mzML	4		8
+	2	3		SPECTRAFILE_F3_TR2.mzML	4		8
+*/
+    class OPENMS_DLLAPI RunRow
     {
     public:
-      MSRun():
-        file("NA"), 
-        fraction(1), 
-        technical_replicate(1) 
-      {
-      }
-      std::string file; ///< file name, mandatory
-      unsigned fraction; ///< fraction 1..m, mandatory, 1 if not set
-      unsigned technical_replicate; ///< technical replicate 1..k of a fraction, 1 if not set
+      RunRow() = default;
+      unsigned run = 1; ///< run index (before prefractionation)
+      unsigned fraction = 1; ///< fraction 1..m, mandatory, 1 if not set
+      std::string path = "UNKNOWN_FILE"; ///< file name, mandatory
+      unsigned channel = 1;  ///< if and how many multiplexed channels are in a file
+      unsigned sample = 1;  ///< allows grouping by sample
     };
-    std::vector<MSRun> runs;  ///< run 1..n (index + 1 determines run id of the first column)
 
-    /// return fraction index to MSRuns (e.g., Fraction 1 maps to MSRun 1 and 2 in the example above)
-    std::map<unsigned int, std::set<unsigned int> > getFractionToRunsMapping() const;
 
-    /// return if each fraction number is associated with the same number of runs 
-    bool sameNrOfRunsPerFraction() const;
+    class OPENMS_DLLAPI SampleSection
+    {
+    public:
+      SampleSection() = default;
 
-    /// TODO:
-    /// 2) Optional section with assay-level information of the experimental design.
-    ///    Required to perform statistical down-stream processing.
-    ///
-    /// Assay	Spectra File	Assay Quantification	Numeric Factor "concentration [mmol/l]"
-    ///  1	  humanA.mzML	    iTRAQ reagent 114	                 0.434
-    ///  2   	humanA.mzML	    iTRAQ reagent 115	               223.34
-    ///  3  	humanA.mzML	    iTRAQ reagent 116	               984.52
+      // Number of columns of the Sample Section
+      Size n_columns_;
+
+      // The entries of the Sample Section, filled while parsing
+      // the Experimental Design File
+      std::vector< std::vector < String > > content_;
+
+      // Maps the Sample Entry to the row where the sample
+      // appears in the Sample section
+      std::map< unsigned, Size > sample_to_rowindex_;
+
+      // Maps the column name of the SampleSection to the
+      // Index of the column
+      std::map< String, Size > columnname_to_columnindex_;
+
+      // Get Sample Attributes
+      void getSamples(std::set< unsigned > &samples) const
+      {
+        samples.clear();
+        for (auto it = sample_to_rowindex_.begin();
+             it != sample_to_rowindex_.end(); ++it)
+        {
+          samples.insert(it->first);
+        }
+      }
+      // Get Sample Attributes
+      void getFactors(std::set< String > &factors) const
+      {
+        factors.clear();
+        for (auto it = columnname_to_columnindex_.begin();
+             it != columnname_to_columnindex_.end(); ++it)
+        {
+          factors.insert(it->first);
+        }
+      }
+
+      bool hasSample(const unsigned sample) const
+      {
+        return sample_to_rowindex_.find(sample) != sample_to_rowindex_.end();
+      }
+
+      bool hasFactor(const String &factor) const
+      {
+        return columnname_to_columnindex_.find(factor) != columnname_to_columnindex_.end();
+      }
+
+      String getFactorValue(const unsigned sample, const String &factor)
+      {
+        if (! hasSample(sample))
+        {
+          throw Exception::MissingInformation(
+            __FILE__,
+            __LINE__,
+            OPENMS_PRETTY_FUNCTION,
+            "Sample " + String(sample) + " is not present in the Experimental Design");
+        }
+        if (! hasFactor(factor))
+        {
+          throw Exception::MissingInformation(
+            __FILE__,
+            __LINE__,
+            OPENMS_PRETTY_FUNCTION,
+            "Factor " + factor + " is not present in the Experimental Design");
+        }
+        StringList sample_row = content_[sample_to_rowindex_[sample]];
+        const Size col_index = columnname_to_columnindex_[factor];
+        return sample_row[col_index];
+      }
+    };
+
+
+    using RunRows = std::vector<RunRow>;
+
+
+    const RunRows& getRunSection() const
+    {
+      return run_section_;
+    }
+
+    void setRunSection(const RunRows& run_section)
+    {
+      run_section_ = run_section;
+      sort_();
+      checkValidRunSection_();
+    }
+
+
+    // Returns the Sample Section of the experimental design file
+    const SampleSection& getSampleSection() const
+    {
+      return sample_section_;
+    }
+
+    void getFileNames(std::vector< String > &filenames) const
+    {
+      filenames.clear();
+      for (const RunRow &row : run_section_)
+      {
+        filenames.push_back(String(row.path));
+      }
+    }
+
+    /// return fraction index to file paths (ordered by run id)
+    std::map<unsigned int, std::vector<String> > getFractionToMSFilesMapping() const;
+
+    // @return the number of samples measured (= highest sample index)
+    unsigned getNumberOfSamples() const
+    {
+      if (run_section_.empty()) { return 0; }
+      return std::max_element(run_section_.begin(), run_section_.end(),
+        [](const RunRow& f1, const RunRow& f2)
+        {
+          return f1.sample < f2.sample;
+        })->sample;
+    }
+
+    // @return the number of fractions (= highest fraction index)
+    unsigned getNumberOfFractions() const
+    {
+      if (run_section_.empty()) { return 0; }
+      return std::max_element(run_section_.begin(), run_section_.end(),
+        [](const RunRow& f1, const RunRow& f2)
+        {
+          return f1.fraction < f2.fraction;
+        })->fraction;
+    }
+
+    // @return the number of channels per file
+    unsigned getNumberOfChannels() const
+    {
+      if (run_section_.empty()) { return 0; }
+      return std::max_element(run_section_.begin(), run_section_.end(),
+        [](const RunRow& f1, const RunRow& f2)
+        {
+          return f1.fraction < f2.fraction;
+        })->channel;
+    }
+
+    // @return the number of MS files (= fractions * runs)
+    unsigned getNumberOfMSFiles() const
+    {
+      std::set<std::string> unique_paths;
+      for (auto const & r : run_section_) { unique_paths.insert(r.path); }
+      return unique_paths.size();
+    }
+
+    // @return the number of runs (before fractionation)
+    // Allows to group fraction ids and source files
+    unsigned getNumberOfPrefractionationRuns() const
+    {
+      if (run_section_.empty()) { return 0; }
+      return std::max_element(run_section_.begin(), run_section_.end(),
+        [](const RunRow& f1, const RunRow& f2)
+        {
+          return f1.run < f2.run;
+        })->run;
+    }
+
+    // @return sample index (depends on run and channel)
+    unsigned getSample(unsigned run, unsigned channel = 1)
+    {
+      return std::find_if(run_section_.begin(), run_section_.end(),
+        [&run, &channel](const RunRow& r)
+        {
+          return r.run == run && r.channel == channel;
+        })->sample;
+    }
+
+    /// return if each fraction number is associated with the same number of runs
+    bool sameNrOfMSFilesPerFraction() const;
 
     /// Loads an experimental design from a tabular separated file
-    void load(const String & tsv_file, ExperimentalDesign & design) const;
+    static ExperimentalDesign load(const String & tsv_file);
 
+    /// Extract experimental design from consensus map
+    static ExperimentalDesign fromConsensusMap(const ConsensusMap& c);
+
+    /// Extract experimental design from feature map
+    static ExperimentalDesign fromFeatureMap(const FeatureMap& f);
+
+    /// Extract experimental design from identifications
+    static ExperimentalDesign fromIdentifications(const std::vector<ProteinIdentification> & proteins);
+
+    private:
+      // sort to obtain the default order
+      void sort_()
+      {
+        std::sort(run_section_.begin(), run_section_.end(),
+        [](const RunRow& a, const RunRow& b)
+        {
+          return std::tie(a.run, a.fraction, a.channel, a.sample, a.path) <
+            std::tie(b.run, b.fraction, b.channel, b.sample, b.path);
+        });
+      }
+
+      template<typename T>
+      void errorIfAlreadyExists(std::set<T> &container, T &item, const String &message)
+      {
+        if (container.find(item) != container.end())
+        {
+          throw Exception::MissingInformation(
+                  __FILE__,
+                  __LINE__,
+                  OPENMS_PRETTY_FUNCTION, message);
+        }
+        container.insert(item);
+      }
+
+      void checkValidRunSection_()
+      {
+        if (getNumberOfMSFiles() == 0)
+        {
+          throw Exception::MissingInformation(
+            __FILE__,
+            __LINE__,
+            OPENMS_PRETTY_FUNCTION,
+            "No MS files provided.");
+        }
+
+        std::set< std::tuple< unsigned, unsigned, unsigned > > run_fraction_sample_set;
+        std::set< std::tuple< unsigned, unsigned, unsigned > > run_fraction_channel_set;
+        std::set< std::tuple< std::string, unsigned > > path_channel_set;
+        std::map< std::tuple< unsigned, unsigned >, std::set< unsigned > > run_channel_to_sample;
+
+        for (const RunRow &row : run_section_)
+        {
+          // Fail if sample section does not contain the run
+          if (sample_section_.hasSample(row.sample) == false)
+          {
+            throw Exception::MissingInformation(
+                    __FILE__,
+                    __LINE__,
+                    OPENMS_PRETTY_FUNCTION,
+                    "Sample Section does not contain sample for run " + String(row.run));
+          }
+
+          // RUN_FRACTION_SAMPLE TUPLE
+          std::tuple<unsigned, unsigned, unsigned> run_fraction_sample = std::make_tuple(row.run, row.fraction, row.sample);
+          errorIfAlreadyExists(
+                  run_fraction_sample_set,
+                  run_fraction_sample,
+                  "(Run, Fraction, Sample) combination can only appear once");
+
+          // RUN_FRACTION_CHANNEL TUPLE
+          std::tuple<unsigned, unsigned, unsigned> run_fraction_channel = std::make_tuple(row.run, row.fraction, row.channel);
+          errorIfAlreadyExists(
+                  run_fraction_channel_set,
+                  run_fraction_channel,
+                  "(Run, Fraction, Channel) combination can only appear once");
+
+
+          // PATH_CHANNEL_TUPLE
+          std::tuple<std::string, unsigned> path_channel = std::make_tuple(row.path, row.channel);
+          errorIfAlreadyExists(
+                  path_channel_set,
+                  path_channel,
+                  "(Path, Channel) combination can only appear once");
+
+          // RUN_CHANNEL TUPLE
+          std::tuple<unsigned, unsigned> run_channel = std::make_tuple(row.run, row.channel);
+          run_channel_to_sample[run_channel].insert(row.sample);
+
+          if (run_channel_to_sample[run_channel].size() > 1)
+          {
+            throw Exception::MissingInformation(
+              __FILE__,
+              __LINE__,
+              OPENMS_PRETTY_FUNCTION,
+              "Multiple Samples encountered for the same Run and the same Channel");
+          }
+        }
+      }
+
+      RunRows run_section_;
+      SampleSection sample_section_;
   };
 }
 

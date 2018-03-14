@@ -64,6 +64,46 @@ namespace OpenMS
     return accessions < rhs.accessions;
   }
 
+  const ProteinIdentification::ProteinGroup::FloatDataArrays &ProteinIdentification::ProteinGroup::getFloatDataArrays() const
+  {
+    return float_data_arrays_;
+  }
+
+  void ProteinIdentification::ProteinGroup::setFloatDataArrays(const ProteinIdentification::ProteinGroup::FloatDataArrays &fda)
+  {
+    float_data_arrays_ = fda;
+  }
+
+  const ProteinIdentification::ProteinGroup::StringDataArrays &ProteinIdentification::ProteinGroup::getStringDataArrays() const
+  {
+    return string_data_arrays_;
+  }
+
+  void ProteinIdentification::ProteinGroup::setStringDataArrays(const ProteinIdentification::ProteinGroup::StringDataArrays &sda)
+  {
+    string_data_arrays_ = sda;
+  }
+
+  ProteinIdentification::ProteinGroup::StringDataArrays &ProteinIdentification::ProteinGroup::getStringDataArrays()
+  {
+    return string_data_arrays_;
+  }
+
+  const ProteinIdentification::ProteinGroup::IntegerDataArrays &ProteinIdentification::ProteinGroup::getIntegerDataArrays() const
+  {
+    return integer_data_arrays_;
+  }
+
+  ProteinIdentification::ProteinGroup::IntegerDataArrays &ProteinIdentification::ProteinGroup::getIntegerDataArrays()
+  {
+    return integer_data_arrays_;
+  }
+
+  void ProteinIdentification::ProteinGroup::setIntegerDataArrays(const ProteinIdentification::ProteinGroup::IntegerDataArrays &ida)
+  {
+    integer_data_arrays_ = ida;
+  }
+
   ProteinIdentification::SearchParameters::SearchParameters() :
     db(),
     db_version(),

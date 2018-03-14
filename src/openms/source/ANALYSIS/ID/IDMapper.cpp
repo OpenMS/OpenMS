@@ -95,8 +95,13 @@ namespace OpenMS
     ignore_charge_ = param_.getValue("ignore_charge") == "true";
   }
 
-  void IDMapper::annotate(ConsensusMap& map, const std::vector<PeptideIdentification>& ids, const std::vector<ProteinIdentification>& protein_ids, 
-                          bool measure_from_subelements, bool annotate_ids_with_subelements, const PeakMap& spectra)
+  void IDMapper::annotate(
+    ConsensusMap& map, 
+    const std::vector<PeptideIdentification>& ids, 
+    const std::vector<ProteinIdentification>& protein_ids, 
+    bool measure_from_subelements, 
+    bool annotate_ids_with_subelements, 
+    const PeakMap& spectra)
   {
     // validate "RT" and "MZ" metavalues exist
     checkHits_(ids);

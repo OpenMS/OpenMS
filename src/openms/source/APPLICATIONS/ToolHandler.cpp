@@ -123,6 +123,7 @@ namespace OpenMS
     tools_map["ProteinInference"] = Internal::ToolDescription("ProteinInference", "Identification");
     tools_map["ProteinQuantifier"] = Internal::ToolDescription("ProteinQuantifier", "Quantitation");
     tools_map["ProteinResolver"] = Internal::ToolDescription("ProteinResolver", "Quantitation");
+    tools_map["ProteomicLFQ"] = Internal::ToolDescription("ProteomicLFQ", "Standard Proteomic LFQ pipeline");
     tools_map["PTModel"] = Internal::ToolDescription("PTModel", "Peptide property prediction");
     tools_map["PTPredict"] = Internal::ToolDescription("PTPredict", "Peptide property prediction");
     tools_map["RTModel"] = Internal::ToolDescription("RTModel", "Peptide property prediction");
@@ -210,6 +211,7 @@ namespace OpenMS
     util_map["MRMPairFinder"] = Internal::ToolDescription("MRMPairFinder", util_category);
     util_map["MSFraggerAdapter"] = Internal::ToolDescription("MSFraggerAdapter", util_category);
     util_map["MSSimulator"] = Internal::ToolDescription("MSSimulator", util_category);
+    util_map["MSstatsConverter"] = Internal::ToolDescription("MSstatsConverter", util_category);
     util_map["MultiplexResolver"] = Internal::ToolDescription("MultiplexResolver", util_category);
     util_map["MzMLSplitter"] = Internal::ToolDescription("MzMLSplitter", util_category);
     util_map["OpenPepXL"] = Internal::ToolDescription("OpenPepXL", util_category);

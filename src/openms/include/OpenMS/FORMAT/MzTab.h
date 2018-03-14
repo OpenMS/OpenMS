@@ -42,6 +42,8 @@
 #include <list>
 #include <algorithm>
 #include <OpenMS/KERNEL/StandardTypes.h>
+#include <OpenMS/KERNEL/FeatureMap.h>
+#include <OpenMS/KERNEL/ConsensusMap.h>
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wnon-virtual-dtor"
@@ -508,8 +510,8 @@ protected:
 
   struct OPENMS_DLLAPI MzTabStudyVariableMetaData
   {
-    MzTabIntegerList assay_refs;
-    MzTabIntegerList sample_refs;
+    MzTabString assay_refs;
+    MzTabString sample_refs;
     MzTabString description;
   };
 
@@ -745,6 +747,38 @@ public:
 
     // Extract opt_ (custom, optional column names)
     std::vector<String> getSmallMoleculeOptionalColumnNames() const;
+
+    /**
+      @brief Gets peptide_evidences with data from internal structures adds their info to an MzTabPSMSectionRow (pre- or unfilled)
+
+      @param peptide_evidences Vector of PeptideEvidence holding internal data.
+      @param row Pre- or unfilled MzTabPSMSectionRow to be filled with the data.
+      @param rows Vector of MzTabPSMSectionRow to add the differently updated rows to.
+    */
+    static void addPepEvidenceToRows(const std::vector<PeptideEvidence>& peptide_evidences, MzTabPSMSectionRow& row, MzTabPSMSectionRows& rows);
+
+    static void addMetaInfoToOptionalColumns(const std::set<String>& keys, std::vector<MzTabOptionalColumnEntry>& opt, const String id, const MetaInfoInterface meta);
+
+    static std::map<Size, MzTabModificationMetaData> generateMzTabStringFromModifications(const std::vector<String>& mods);
+
+    static std::map<Size, MzTabModificationMetaData> generateMzTabStringFromVariableModifications(const std::vector<String>& mods);
+
+    static std::map<Size, MzTabModificationMetaData> generateMzTabStringFromFixedModifications(const std::vector<String>& mods);
+ 
+    static MzTab exportFeatureMapToMzTab(const FeatureMap& feature_map, const String& filename);
+
+    static MzTab exportIdentificationsToMzTab(const std::vector<ProteinIdentification>& prot_ids, const std::vector<PeptideIdentification>& peptide_ids, const String& filename);
+
+    // Generate MzTab style list of PTMs from AASequence object. 
+    // All passed fixed modifications are not reported (as suggested by the standard for the PRT and PEP section).
+    // In contrast, all modifications are reported in the PSM section (see standard document for details).
+    static MzTabModificationList extractModificationListFromAASequence(const AASequence& aas, const std::vector<String>& fixed_mods = std::vector<String>());
+
+    static MzTab exportConsensusMapToMzTab(
+      const ConsensusMap & consensus_map, 
+      const String & filename,
+      const bool export_unidentified_features,
+      const bool export_unassigned_ids);
 
 protected:
     MzTabMetaData meta_data_;
