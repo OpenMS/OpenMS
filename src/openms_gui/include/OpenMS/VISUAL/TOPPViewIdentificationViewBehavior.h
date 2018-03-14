@@ -128,7 +128,10 @@ namespace OpenMS
     template <typename SeqType>
     String generateSequenceDiagram_(const SeqType& seq, const std::vector<PeptideHit::PeakAnnotation>& annotations, const StringList& top_ions, const StringList& bottom_ions);
 
-    /// Helper function for generateSequenceDiagram_()
+    /// Helper function for generateSequenceDiagram_() - overload for peptides
+    void generateSequenceRow_(const AASequence& seq, std::vector<String>& row);
+
+    /// Helper function for generateSequenceDiagram_() - overload for oligonucleotides
     void generateSequenceRow_(const NASequence& seq, std::vector<String>& row);
 
     /// Helper function, that collapses a vector of Strings into one String

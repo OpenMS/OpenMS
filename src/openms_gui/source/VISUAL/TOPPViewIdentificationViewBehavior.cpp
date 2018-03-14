@@ -47,6 +47,8 @@
 #include <OpenMS/FILTERING/ID/IDFilter.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
 
+#include <boost/range/adaptor/reversed.hpp>
+
 #include <QtCore/QString>
 #include <QtGui/QMessageBox>
 
@@ -385,18 +387,34 @@ namespace OpenMS
                 box_text = "<font size=\"5\" style=\"background-color:white;\"><pre>" + box_text + "</pre></font> ";
                 widget_1D->canvas()->setTextBox(box_text.toQString());
               }
-              else
+              else if (ph.getPeakAnnotations().empty()) // only write the sequence
               {
                 String seq = ph.getSequence().toString();
-                if (seq.empty())
-                {
-                  static StringList top_ions = ListUtils::create<String>("d,c,b,a,(a-B)");
-                  static StringList bottom_ions = ListUtils::create<String>("w,x,y,z");
-                  seq = ph.getMetaValue("label");
-                  NASequence na_seq = NASequence::fromString(seq);
-                  seq = generateSequenceDiagram_(na_seq, ph.getPeakAnnotations(), top_ions, bottom_ions);
-                }
+                if (seq.empty()) seq = ph.getMetaValue("label"); // e.g. for RNA sequences
                 widget_1D->canvas()->setTextBox(seq.toQString());
+              }
+              else if (!ph.getSequence().empty()) // generate sequence diagram for a peptide
+              {
+                static vector<String> top_ions = ListUtils::create<String>("a,b,c");
+                static vector<String> bottom_ions = ListUtils::create<String>("x,y,z");
+                String diagram = generateSequenceDiagram_(ph.getSequence(), ph.getPeakAnnotations(),
+                                                          top_ions, bottom_ions);
+                widget_1D->canvas()->setTextBox(diagram.toQString());
+              }
+              else if (ph.metaValueExists("label")) // generate sequence diagram for RNA
+              {
+                try
+                {
+                  NASequence na_seq = NASequence::fromString(ph.getMetaValue("label"));
+                  static vector<String> top_ions = ListUtils::create<String>("a-B,a,b,c,d");
+                  static vector<String> bottom_ions = ListUtils::create<String>("w,x,y,z");
+                  String diagram = generateSequenceDiagram_(na_seq, ph.getPeakAnnotations(),
+                                                            top_ions, bottom_ions);
+                  widget_1D->canvas()->setTextBox(diagram.toQString());
+                }
+                catch (Exception::ParseError) // label doesn't contain have a valid seq.
+                {
+                }
               }
             }
           }
@@ -546,6 +564,32 @@ namespace OpenMS
   }
 
 
+  void TOPPViewIdentificationViewBehavior::generateSequenceRow_(const AASequence& seq, vector<String>& row)
+  {
+    // @TODO: always include "." at termini (even if no terminal modification is present)?
+    // @TODO: support "user defined modifications"?
+    if (seq.hasNTerminalModification())
+    {
+      row[0] =  + "." + seq.getNTerminalModificationName();
+    }
+    Size col_index = 1;
+    for (const auto& aa : seq)
+    {
+      row[col_index] = "<b>" + aa.getOneLetterCode();
+      if (aa.isModified())
+      {
+        row[col_index] += "(" + aa.getModificationName() + ")";
+      }
+      row[col_index] += "</b>";
+      col_index += 2;
+    }
+    if (seq.hasCTerminalModification())
+    {
+      row[row.size() - 1] = "." + seq.getCTerminalModificationName();
+    }
+  }
+
+
   void TOPPViewIdentificationViewBehavior::generateSequenceRow_(const NASequence& seq, vector<String>& row)
   {
     if (seq.hasFivePrimeMod())
@@ -568,16 +612,18 @@ namespace OpenMS
 
 
   template <typename SeqType>
-  String TOPPViewIdentificationViewBehavior::generateSequenceDiagram_(const SeqType& seq, const vector<PeptideHit::PeakAnnotation>& annotations, const StringList& top_ions, const StringList& bottom_ions)
+  String TOPPViewIdentificationViewBehavior::generateSequenceDiagram_(const SeqType& seq, const vector<PeptideHit::PeakAnnotation>& annotations, const vector<String>& top_ions, const vector<String>& bottom_ions)
   {
     map<String, set<Size>> ion_pos;
     for (const auto& ann : annotations)
     {
-      // examples: b3, y10, (a3-B)
-      Size split1 = ann.annotation.find_first_of("0123456789");
-      Size split2 = ann.annotation.find_last_of("0123456789");
-      String ion = ann.annotation.prefix(split1) + ann.annotation.substr(split2 + 1);
-      Size pos = ann.annotation.substr(split1, split2 - split1 + 1).toInt();
+      const String& label = ann.annotation;
+      // expected format: [ion][number][...]
+      if ((label.size() < 2) || !islower(label[0]) || !isdigit(label[1])) continue;
+      // cut out the position number:
+      Size split = label.find_first_not_of("0123456789", 2);
+      String ion = label.prefix(1) + label.substr(split);
+      Size pos = label.substr(1, split - 1).toInt();
       ion_pos[ion].insert(pos);
     }
 
@@ -597,8 +643,8 @@ namespace OpenMS
       }
     }
     Size row_index = 1;
-    // ion annotations above sequence:
-    for (const String& ion : top_ions)
+    // ion annotations above sequence - reverse order to have first ion closest to sequence:
+    for (const String& ion : boost::adaptors::reverse(top_ions))
     {
       table[row_index][0] = "<small>" + ion + "</small>";
       for (Size pos : ion_pos[ion])
@@ -606,13 +652,13 @@ namespace OpenMS
         Size col_index = 2 * pos;
         if ((row_index == 1) || (table[row_index - 1][col_index].empty()))
         {
-          table[row_index][col_index] = "&#9488;"; // "down and left"
+          table[row_index][col_index] = "&#9488;"; // box drawing: down and left
         }
         else
         {
-          table[row_index][col_index] = "&#9508;"; // "vertical and left"
+          table[row_index][col_index] = "&#9508;"; // box drawing: vertical and left
         }
-        table[row_index][col_index - 1] = "&#9590;"; // "right"
+        table[row_index][col_index - 1] = "&#9590;"; // box drawing: right
       }
       if (row_index > 1)
       {
@@ -620,7 +666,7 @@ namespace OpenMS
         {
           if (table[row_index][col_index].empty() && !table[row_index - 1][col_index].empty())
           {
-            table[row_index][col_index] = "&#9474;"; // "vertical"
+            table[row_index][col_index] = "&#9474;"; // box drawing: vertical
           }
         }
       }
@@ -630,22 +676,21 @@ namespace OpenMS
     generateSequenceRow_(seq, table[row_index]);
     // ion annotations below sequence - iterate over the bottom ions in reverse order (bottom-most first):
     row_index = table.size() - 2;
-    for (Int ion_index = bottom_ions.size() - 1; ion_index >= 0; --ion_index)
+    for (const String& ion : boost::adaptors::reverse(bottom_ions))
     {
-      const String& ion = bottom_ions[ion_index];
       table[row_index][n_cols - 1] = "<small>" + ion + "<small>";
       for (Size pos : ion_pos[ion])
       {
         Size col_index = n_cols - 2 * pos - 1;
         if ((row_index == table.size() - 1) || (table[row_index + 1][col_index].empty()))
         {
-          table[row_index][col_index] = "&#9492;"; // "up and right"
+          table[row_index][col_index] = "&#9492;"; // box drawing: up and right
         }
         else
         {
-          table[row_index][col_index] = "&#9500;"; // "vertical and right"
+          table[row_index][col_index] = "&#9500;"; // box drawing: vertical and right
         }
-        table[row_index][col_index + 1] = "&#9588;"; // "left"
+        table[row_index][col_index + 1] = "&#9588;"; // box drawing: left
       }
       if (row_index < table.size() - 2)
       {
@@ -653,7 +698,7 @@ namespace OpenMS
         {
           if (table[row_index][col_index].empty() && !table[row_index + 1][col_index].empty())
           {
-            table[row_index][col_index] = "&#9474;"; // "vertical"
+            table[row_index][col_index] = "&#9474;"; // box drawing: vertical
           }
         }
       }
@@ -666,15 +711,15 @@ namespace OpenMS
       bool bottom = !bottom_ions.empty() && !table[row_index + 1][col_index].empty();
       if (top && bottom)
       {
-        table[row_index][col_index] = "&#9474;"; // "vertical"
+        table[row_index][col_index] = "&#9474;"; // box drawing: vertical
       }
       else if (top)
       {
-        table[row_index][col_index] = "&#9589;"; // "up"
+        table[row_index][col_index] = "&#9589;"; // box drawing: up
       }
       else if (bottom)
       {
-        table[row_index][col_index] = "&#9591;"; // "down"
+        table[row_index][col_index] = "&#9591;"; // box drawing: down
       }
     }
     if (!bottom_ions.empty())
@@ -702,7 +747,8 @@ namespace OpenMS
   }
 
 
-  // add specialization to allow having template implementation outside of header file:
+  // add specializations to allow template implementation outside of header file:
+  template String TOPPViewIdentificationViewBehavior::generateSequenceDiagram_<AASequence>(const AASequence& seq, const vector<PeptideHit::PeakAnnotation>& annotations, const StringList& top_ions, const StringList& bottom_ions);
   template String TOPPViewIdentificationViewBehavior::generateSequenceDiagram_<NASequence>(const NASequence& seq, const vector<PeptideHit::PeakAnnotation>& annotations, const StringList& top_ions, const StringList& bottom_ions);
 
 

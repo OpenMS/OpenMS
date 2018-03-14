@@ -444,7 +444,7 @@ namespace OpenMS
     case NASequence::ZIon: result = "z"; break;
     case NASequence::DIon: result = "d"; break;
     case NASequence::WIon: result = "w"; break;
-    case NASequence::AminusB: return (num > 0) ? "(a" + String(num) + "-B)" : "(a-B)";
+    case NASequence::AminusB: return (num > 0) ? "a" + String(num) + "-B" : "a-B";
     default:
       cerr << "Unknown ribonucleotide type encountered. Can't map to ion code." << endl;
       result = "?";
