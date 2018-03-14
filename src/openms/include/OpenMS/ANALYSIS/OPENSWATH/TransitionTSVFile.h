@@ -113,6 +113,7 @@ protected:
       String fragment_charge;
       int fragment_nr;
       double fragment_mzdelta;
+      double drift_time;
       int fragment_modification;
       String fragment_type;
       String uniprot_id;
@@ -131,6 +132,7 @@ protected:
         fragment_charge("NA"),
         fragment_nr(-1),
         fragment_mzdelta(-1),
+        drift_time(-1),
         fragment_modification(0),
         detecting_transition(true),
         identifying_transition(false),

@@ -68,7 +68,7 @@ namespace OpenMS
                         const std::map<std::string, int>& header_dict)
   {
     auto tmp = header_dict.find( header_name );
-    if (tmp != header_dict.end())
+    if (tmp != header_dict.end() && !String(tmp_line[ tmp->second ]).empty())
     {
       value = String(tmp_line[ tmp->second ]).toInt();
       return true;
@@ -81,8 +81,8 @@ namespace OpenMS
                         const std::vector<std::string>& tmp_line,
                         const std::map<std::string, int>& header_dict)
   {
-    auto tmp = header_dict.find( header_name );
-    if (tmp != header_dict.end())
+    auto tmp = header_dict.find(header_name);
+    if (tmp != header_dict.end() && !String(tmp_line[ tmp->second ]).empty())
     {
       value = String(tmp_line[ tmp->second ]).toDouble();
       return true;
@@ -96,7 +96,7 @@ namespace OpenMS
                         const std::map<std::string, int>& header_dict)
   {
     auto tmp = header_dict.find( header_name );
-    if (tmp != header_dict.end())
+    if (tmp != header_dict.end() && !String(tmp_line[ tmp->second ]).empty())
     {
       auto str_value = tmp_line[ tmp->second ];
       if (str_value == "1" || str_value == "TRUE") value = true;
@@ -337,6 +337,7 @@ namespace OpenMS
       !extractName<int>(mytransition.fragment_nr, "FragmentNumber", tmp_line, header_dict) &&
       !extractName<int>(mytransition.fragment_nr, "FragmentIonOrdinal", tmp_line, header_dict);
 
+      extractName<double>(mytransition.drift_time, "IonMobility", tmp_line, header_dict);
       extractName<double>(mytransition.fragment_mzdelta, "FragmentMzDelta", tmp_line, header_dict);
       extractName<int>(mytransition.fragment_modification, "FragmentModification", tmp_line, header_dict);
 
@@ -1023,6 +1024,12 @@ namespace OpenMS
     interpretRetentionTime_(retention_times, rt_value);
     peptide.rts = retention_times;
 
+    // add ion mobility drift time
+    if (tr_it->drift_time >= 0.0)
+    {
+      peptide.setDriftTime(tr_it->drift_time);
+    }
+
     // Try to parse full UniMod string including modifications. If we fail, we
     // can force reading and only parse the "naked" sequence.
     std::vector<TargetedExperiment::Peptide::Modification> mods;
@@ -1124,6 +1131,12 @@ namespace OpenMS
     if (!tr_it->label_type.empty())
     {
       compound.setMetaValue("LabelType", tr_it->label_type);
+    }
+
+    // add ion mobility drift time
+    if (tr_it->drift_time >= 0.0)
+    {
+      compound.setDriftTime(tr_it->drift_time);
     }
 
     if (!tr_it->precursor_charge.empty() && tr_it->precursor_charge != "NA")

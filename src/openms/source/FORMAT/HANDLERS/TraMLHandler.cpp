@@ -636,6 +636,10 @@ namespace OpenMS
           {
             os << "      <cvParam cvRef=\"MS\" accession=\"MS:1000893\" name=\"peptide group label\" value=\"" <<  it->getPeptideGroupLabel() << "\"/>\n";
           }
+          if (it->getDriftTime() >= 0.0)
+          {
+            os << "      <cvParam cvRef=\"MS\" accession=\"MS:1002476\" name=\"ion mobility drift time\" value=\"" << it->getDriftTime() << "\" unitAccession=\"UO:0000028\" unitName=\"millisecond\" unitCvRef=\"UO\" />\n";
+          }
           writeCVParams_(os,  *it, 3);
           writeUserParam_(os, (MetaInfoInterface) * it, 3);
 
@@ -1332,6 +1336,10 @@ namespace OpenMS
         {
           actual_peptide_.setPeptideGroupLabel(cv_term.getValue().toString());
         }
+        else if (cv_term.getAccession() == "MS:1002476")
+        {
+          actual_peptide_.setDriftTime(cv_term.getValue().toString().toDouble());
+        }
         else
         {
           actual_peptide_.addCVTerm(cv_term);
@@ -1369,6 +1377,10 @@ namespace OpenMS
         else if (cv_term.getAccession() == "MS:1000041")
         {
           actual_compound_.setChargeState(cv_term.getValue().toString().toInt());
+        }
+        else if (cv_term.getAccession() == "MS:1002476")
+        {
+          actual_peptide_.setDriftTime(cv_term.getValue().toString().toDouble());
         }
         else
         {
