@@ -393,6 +393,7 @@ namespace OpenMS
               }
               else if (!ph.getSequence().empty()) // generate sequence diagram for a peptide
               {
+                // @TODO: read ion list from the input file (meta value)
                 static vector<String> top_ions = ListUtils::create<String>("a,b,c");
                 static vector<String> bottom_ions = ListUtils::create<String>("x,y,z");
                 String diagram = generateSequenceDiagram_(ph.getSequence(), ph.getPeakAnnotations(),
@@ -403,6 +404,7 @@ namespace OpenMS
               {
                 try
                 {
+                  // @TODO: read ion list from the input file (meta value)
                   NASequence na_seq = NASequence::fromString(ph.getMetaValue("label"));
                   static vector<String> top_ions = ListUtils::create<String>("a-B,a,b,c,d");
                   static vector<String> bottom_ions = ListUtils::create<String>("w,x,y,z");
