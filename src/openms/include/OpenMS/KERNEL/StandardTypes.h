@@ -37,10 +37,13 @@
 
 #include <OpenMS/config.h>
 #include <OpenMS/KERNEL/StandardDeclarations.h>
-#include <OpenMS/KERNEL/MSSpectrum.h>
-#include <OpenMS/KERNEL/MSChromatogram.h>
+
 namespace OpenMS
 {
+  class MSSpectrum;
+  class MSChromatogram;
+  class MSExperiment;
+
   //@{
   /**
       @brief Spectrum consisting of raw data points or peaks.

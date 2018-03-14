@@ -36,8 +36,6 @@
 #include <OpenMS/CONCEPT/Macros.h>
 #include <OpenMS/CONCEPT/Factory.h>
 
-#include <OpenMS/DATASTRUCTURES/String.h>
-
 #include <OpenMS/SYSTEM/StopWatch.h>
 
 #include <QtCore/QString>

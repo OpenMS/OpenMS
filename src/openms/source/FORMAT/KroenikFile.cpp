@@ -34,17 +34,9 @@
 
 #include <OpenMS/FORMAT/KroenikFile.h>
 
-#include <OpenMS/DATASTRUCTURES/String.h>
-
-#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/Constants.h>
 
-#include <OpenMS/KERNEL/Feature.h>
-#include <OpenMS/KERNEL/FeatureMap.h>
-
 #include <OpenMS/FORMAT/TextFile.h>
-
-#include <vector>
 
 namespace OpenMS
 {

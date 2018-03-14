@@ -217,25 +217,36 @@ elseif(WIN32)
   endforeach()
 
   
-  ## Include needed contrib dll-libraries other than QT
-  # Caution: The ..._LIBRARY variables from the find packages point to the *.lib files
+  ## Add dynamic libraries if you linked to them.
+  ## TODO Check how we can auto-determine which are static and dynamic and only install dynamic ones here.
+  ## For now we got rid of dynamic libs on Win (except for QT above).
+  
+  ## TODO if we update our modules we can use properties of the imported targets.
+  #add_custom_command(
+  #  TARGET prepare_knime_payload_libs POST_BUILD
+  #  COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:XercesC::XercesC> ${PAYLOAD_LIB_PATH}
+  #  COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:SQLite::sqlite_shared> ${PAYLOAD_LIB_PATH}
+  #  )
+
+  ## If you need to install dynamic libs use the following snippets:
+  # Caution: The ..._LIBRARY variables from the find packages might point to the *.lib files
   # instead of the *.dlls
   
   # xerces-c
-  get_filename_component(xerces_path "${XercesC_LIBRARY_RELEASE}" PATH)
-  file(TO_NATIVE_PATH "${xerces_path}/xerces-c_3_1.dll" target_native_xerces)
-  add_custom_command(
-      TARGET prepare_knime_payload_libs POST_BUILD
-      COMMAND ${CMAKE_COMMAND} -E copy "${target_native_xerces}" "${PAYLOAD_LIB_PATH}"
-  )
+  # get_filename_component(xerces_path "${XercesC_LIBRARY_RELEASE}" PATH)
+  # file(TO_NATIVE_PATH "${xerces_path}/xerces-c_3_1.dll" target_native_xerces)
+  # add_custom_command(
+      # TARGET prepare_knime_payload_libs POST_BUILD
+      # COMMAND ${CMAKE_COMMAND} -E copy "${target_native_xerces}" "${PAYLOAD_LIB_PATH}"
+  # )
     
   # sqlite3
-  get_filename_component(sqlite_path "${SQLITE_LIBRARY}" PATH)
-  file(TO_NATIVE_PATH "${sqlite_path}/sqlite3.dll" target_native_sqlite)
-  add_custom_command(
-      TARGET prepare_knime_payload_libs POST_BUILD
-      COMMAND ${CMAKE_COMMAND} -E copy "${target_native_sqlite}" "${PAYLOAD_LIB_PATH}"
-  )
+  # get_filename_component(sqlite_path "${SQLite_LIBRARY}" PATH)
+  # file(TO_NATIVE_PATH "${sqlite_path}/sqlite3.dll" target_native_sqlite)
+  # add_custom_command(
+      # TARGET prepare_knime_payload_libs POST_BUILD
+      # COMMAND ${CMAKE_COMMAND} -E copy "${target_native_sqlite}" "${PAYLOAD_LIB_PATH}"
+  # )
 else()
   # assemble required libraries for lnx
   set(QT_PAYLOAD_LIBS "QTCORE;QTGUI;QTNETWORK;QTOPENGL;QTSQL;QTSVG;QTWEBKIT;PHONON")

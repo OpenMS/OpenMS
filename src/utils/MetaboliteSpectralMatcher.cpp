@@ -38,6 +38,7 @@
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/FORMAT/MzTab.h>
 #include <OpenMS/FORMAT/MzTabFile.h>
+#include <OpenMS/SYSTEM/File.h>
 
 #include <OpenMS/ANALYSIS/ID/MetaboliteSpectralMatching.h>
 

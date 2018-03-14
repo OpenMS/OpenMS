@@ -39,13 +39,13 @@
   They are not included in TOPP as they are not part of typical analysis pipelines,
   but they still might be very helpful to you.
 
-	Just as the TOPP tools, they can be found to the %OpenMS/bin folder.
+  Just as the TOPP tools, they can be found in the %OpenMS/bin folder.
 
- 	The UTILS tools are divided into several subgroups:
+  The UTILS tools are divided into several subgroups:
 
-	<b>Maintenance</b>
-	- @subpage UTILS_INIUpdater - Update INI and TOPPAS files from previous versions of %OpenMS as parameters and storage method might have changed
-
+  <b>Maintenance</b>
+  - @subpage UTILS_INIUpdater - Update INI and TOPPAS files from previous versions of %OpenMS as parameters and storage method might have change
+  
   <b>Signal Processing and Preprocessing</b>
   - @subpage UTILS_RNPxlXICFilter - Remove MS2 spectra from treatment based on the fold change between control and treatment for RNP cross linking experiments.
 

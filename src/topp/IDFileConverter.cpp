@@ -33,6 +33,9 @@
 // Hendrik Weisser
 // --------------------------------------------------------------------------
 
+#include <OpenMS/APPLICATIONS/TOPPBase.h>
+
+#include <OpenMS/CHEMISTRY/SpectrumAnnotator.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
@@ -45,10 +48,8 @@
 #include <OpenMS/FORMAT/SequestOutfile.h>
 #include <OpenMS/FORMAT/XTandemXMLFile.h>
 #include <OpenMS/FORMAT/TextFile.h>
-
-#include <OpenMS/APPLICATIONS/TOPPBase.h>
-
-#include <OpenMS/CHEMISTRY/SpectrumAnnotator.h>
+#include <OpenMS/FORMAT/XQuestResultXMLFile.h>
+#include <OpenMS/SYSTEM/File.h>
 
 #include <boost/math/special_functions/fpclassify.hpp> // for "isnan"
 
@@ -161,7 +162,7 @@ private:
       tgp.setValue("add_b_ions", "true");
       tgp.setValue("add_a_ions", "true");
       tgp.setValue("add_x_ions", "true");
-      tg.setParameters(tgp);    
+      tg.setParameters(tgp);
 
       SpectrumAlignment sa;
       Param sap = sa.getDefaults();
@@ -204,11 +205,11 @@ protected:
   {
     registerInputFile_("in", "<path/file>", "",
                        "Input file or directory containing the data to convert. This may be:\n"
-                       "- a single file in a multi-purpose XML format (pepXML, protXML, idXML, mzid),\n"
-                       "- a single file in a search engine-specific format (Mascot: mascotXML, OMSSA: omssaXML, X! Tandem: xml, Percolator: psms),\n"
+                       "- a single file in a multi-purpose XML format (.pepXML, .protXML, .idXML, .mzid),\n"
+                       "- a single file in a search engine-specific format (Mascot: .mascotXML, OMSSA: .omssaXML, X! Tandem: .xml, Percolator: .psms, xQuest: .xquest.xml),\n"
                        "- a single text file (tab separated) with one line for all peptide sequences matching a spectrum (top N hits),\n"
                        "- for Sequest results, a directory containing .out files.\n");
-    setValidFormats_("in", ListUtils::create<String>("pepXML,protXML,mascotXML,omssaXML,xml,psms,tsv,idXML,mzid"));
+    setValidFormats_("in", ListUtils::create<String>("pepXML,protXML,mascotXML,omssaXML,xml,psms,tsv,idXML,mzid,xquest.xml"));
 
     registerOutputFile_("out", "<file>", "", "Output file", true);
     String formats("idXML,mzid,pepXML,FASTA");
@@ -451,7 +452,7 @@ protected:
           MascotXMLFile::initializeLookup(lookup, exp, scan_regex);
         }
         protein_identifications.resize(1);
-        MascotXMLFile().load(in, protein_identifications[0], 
+        MascotXMLFile().load(in, protein_identifications[0],
                              peptide_identifications, lookup);
       }
 
@@ -542,6 +543,12 @@ protected:
           peptide_identifications.push_back(pepid);
         }
       }
+
+      else if (in_type == FileTypes::XQUESTXML)
+      {
+        XQuestResultXMLFile().load(in, peptide_identifications, protein_identifications);
+      }
+
       else
       {
         writeLog_("Error: Unknown input file type given. Aborting!");
@@ -600,7 +607,7 @@ protected:
           std::set<String> prot = hit.extractProteinAccessionsSet();
           fasta << ">" << seq
                 << " " << ++count
-                << " " << hit.getSequence().toString() 
+                << " " << hit.getSequence().toString()
                 << " " << ListUtils::concatenate(StringList(prot.begin(), prot.end()), ";")
                 << "\n";
           // FASTA files should have at most 60 characters of sequence info per line
