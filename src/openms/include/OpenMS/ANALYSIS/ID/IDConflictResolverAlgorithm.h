@@ -59,10 +59,6 @@ using namespace std;
     The peptide identifications are filtered so that only one identification
     with a single hit (with the best score) is associated to each feature. (If
     two IDs have the same best score, either one of them may be selected.)
-
-    The the filtered identifications are added to the vector of unassigned peptides
-    and also reduced to a single best hit.
-
 */
 
 namespace OpenMS
@@ -71,15 +67,17 @@ namespace OpenMS
 class OPENMS_DLLAPI IDConflictResolverAlgorithm
 {
 public:
-  static void resolve(FeatureMap & features)
-  {
-    resolveConflict_(features);
-  }
+  /** @brief Resolves ambiguous annotations of features with peptide identifications.
+    The the filtered identifications are added to the vector of unassigned peptides
+    and also reduced to a single best hit.
+  **/
+  static void resolve(FeatureMap & features);
 
-  static void resolve(ConsensusMap & features)
-  {
-    resolveConflict_(features);
-  }
+  /** @brief Resolves ambiguous annotations of consensus features with peptide identifications.
+    The the filtered identifications are added to the vector of unassigned peptides
+    and also reduced to a single best hit.
+  **/
+  static void resolve(ConsensusMap & features);
 
 protected:
   template<class T>
@@ -89,7 +87,6 @@ protected:
     for (PeptideIdentification & p : map.getUnassignedPeptideIdentifications())
     {
       p.setMetaValue("feature_id", "not mapped"); // not mapped to a feature
-      p.setMetaValue("feature_leader", false); // and, thus, no id leader of a feature
     }
 
     for (auto & c : map)
@@ -105,71 +102,12 @@ protected:
   // (note to self: the "static" is necessary to avoid cryptic "no matching
   // function" errors from gcc when the comparator is used below)
   static bool compareIDsSmallerScores_(const PeptideIdentification & left,
-                          const PeptideIdentification & right)
-  {
-    // if any of them is empty, the other is considered "greater"
-    // independent of the score in the first hit
-    if (left.getHits().empty()) return true;
-    if (right.getHits().empty()) return false;
-    if (left.getHits()[0].getScore() < right.getHits()[0].getScore())
-    {
-      return true;
-    }
-    return false;
-  }
+                          const PeptideIdentification & right);
 
   static void resolveConflict_(
     vector<PeptideIdentification> & peptides, 
     vector<PeptideIdentification> & removed,
-    UInt64 uid)
-  {
-    if (peptides.empty()) { return; }
-
-    for (PeptideIdentification & pep : peptides)
-    {
-      // sort hits
-      pep.sort();
-
-      // remove all but the best hit
-      if (!pep.getHits().empty())
-      {
-        vector<PeptideHit> best_hit(1, pep.getHits()[0]);
-        pep.setHits(best_hit);
-      }
-      // annotate feature id
-      pep.setMetaValue("feature_id", String(uid));
-    }
-
-    vector<PeptideIdentification>::iterator pos;
-    if (peptides[0].isHigherScoreBetter())     // find highest-scoring ID
-    {
-      pos = max_element(peptides.begin(), peptides.end(), compareIDsSmallerScores_);
-    }
-    else  // find lowest-scoring ID
-    {
-      pos = min_element(peptides.begin(), peptides.end(), compareIDsSmallerScores_);
-    }
-
-    // copy conflicting ones left to best one
-    for (auto it = peptides.begin(); it != pos; ++it)
-    {
-      it->setMetaValue("feature_leader", false);
-      removed.push_back(*it);
-    }
-     
-    // copy conflicting ones right of best one
-    vector<PeptideIdentification>::iterator pos1p = pos + 1;
-    for (auto it = pos1p; it != peptides.end(); ++it)
-    {
-      it->setMetaValue("feature_leader", false);
-      removed.push_back(*it);
-    }
-
-    // set best one to first position and shrink vector
-    peptides[0] = *pos;
-    peptides[0].setMetaValue("feature_leader", true);
-    peptides.resize(1);
-  }
+    UInt64 uid);
 };
 
 }
