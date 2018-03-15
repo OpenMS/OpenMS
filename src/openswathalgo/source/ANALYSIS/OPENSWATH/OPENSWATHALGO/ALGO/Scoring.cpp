@@ -157,8 +157,8 @@ namespace OpenSwath
       return result;
     }
 
-    XCorrArrayType calculateCrossCorrelation(std::vector<double>& data1,
-                                             std::vector<double>& data2, const int& maxdelay, const int& lag)
+    XCorrArrayType calculateCrossCorrelation(const std::vector<double>& data1,
+                                             const std::vector<double>& data2, const int& maxdelay, const int& lag)
     {
       OPENSWATH_PRECONDITION(data1.size() != 0 && data1.size() == data2.size(), "Both data vectors need to have the same length");
 
