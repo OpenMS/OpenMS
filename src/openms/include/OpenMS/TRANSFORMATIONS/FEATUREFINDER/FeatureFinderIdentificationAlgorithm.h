@@ -64,16 +64,17 @@ public:
   FeatureFinderIdentificationAlgorithm(); 
 
   /// Main method for actual FeatureFinder
-  /// External ids may be empty and greatly speed up the detectin process
+  /// External IDs (@p peptides_ext, @p proteins_ext) may be empty, 
+  /// in which case no machine learning or FDR estimation will be performed.
   void run(
     std::vector<PeptideIdentification> peptides,
     std::vector<ProteinIdentification> proteins,
     std::vector<PeptideIdentification> peptides_ext,
     std::vector<ProteinIdentification> proteins_ext,
-    FeatureMap & features
+    FeatureMap& features
     );
 
-  void runOnCandidates(FeatureMap & features);
+  void runOnCandidates(FeatureMap& features);
 
   PeakMap& getMSData() { return ms_data_; }
   const PeakMap& getMSData() const { return ms_data_; }
@@ -82,7 +83,7 @@ public:
   const PeakMap& getChromatograms() const { return chrom_data_; }
 
   ProgressLogger& getProgressLogger() { return prog_log_; }
-  ProgressLogger const & getProgressLogger() const { return prog_log_; }
+  const ProgressLogger& getProgressLogger() const { return prog_log_; }
 
   TargetedExperiment& getLibrary() { return library_; }
   const TargetedExperiment& getLibrary() const { return library_; }
@@ -91,28 +92,28 @@ protected:
   typedef FeatureFinderAlgorithmPickedHelperStructs::MassTrace MassTrace;
   typedef FeatureFinderAlgorithmPickedHelperStructs::MassTraces MassTraces;
 
-  // mapping: RT (not necessarily unique) -> pointer to peptide
+  /// mapping: RT (not necessarily unique) -> pointer to peptide
   typedef std::multimap<double, PeptideIdentification*> RTMap;
-  // mapping: charge -> internal/external: (RT -> pointer to peptide)
+  /// mapping: charge -> internal/external: (RT -> pointer to peptide)
   typedef std::map<Int, std::pair<RTMap, RTMap> > ChargeMap;
-  // mapping: sequence -> charge -> internal/external ID information
+  /// mapping: sequence -> charge -> internal/external ID information
   typedef std::map<AASequence, ChargeMap> PeptideMap;
-  // mapping: peptide ref. -> int./ext.: (RT -> pointer to peptide)
+  /// mapping: peptide ref. -> int./ext.: (RT -> pointer to peptide)
   typedef std::map<String, std::pair<RTMap, RTMap> > PeptideRefRTMap;
 
   PeptideMap peptide_map_;
 
-  Size n_internal_peps_;
-  Size n_external_peps_;
+  Size n_internal_peps_; //< number of internal peptide
+  Size n_external_peps_; //< number of external peptides
 
-  double rt_window_; // RT window width
-  double mz_window_; // m/z window width
-  bool mz_window_ppm_; // m/z window width is given in PPM (not Da)?
+  double rt_window_; //< RT window width
+  double mz_window_; //< m/z window width
+  bool mz_window_ppm_; //< m/z window width is given in PPM (not Da)?
 
-  double mapping_tolerance_; // RT tolerance for mapping IDs to features
+  double mapping_tolerance_; //< RT tolerance for mapping IDs to features
 
-  double isotope_pmin_; // min. isotope probability for peptide assay
-  Size n_isotopes_; // number of isotopes for peptide assay
+  double isotope_pmin_; //< min. isotope probability for peptide assay
+  Size n_isotopes_; //< number of isotopes for peptide assay
 
   double rt_quantile_;
 
@@ -127,8 +128,8 @@ protected:
   StringList svm_predictor_names_;
   String svm_xval_out_;
   double svm_quality_cutoff;
-  Size svm_n_parts_; // number of partitions for SVM cross-validation
-  Size svm_n_samples_; // number of samples for SVM training
+  Size svm_n_parts_; //< number of partitions for SVM cross-validation
+  Size svm_n_samples_; //< number of samples for SVM training
 
   // output file (before filtering)
   String candidates_out_;
@@ -137,14 +138,14 @@ protected:
 
   void updateMembers_() override;
 
-  // region in RT in which a peptide elutes:
+  /// region in RT in which a peptide elutes:
   struct RTRegion
   {
     double start, end;
-    ChargeMap ids; // internal/external peptide IDs (per charge) in this region
+    ChargeMap ids; //< internal/external peptide IDs (per charge) in this region
   };
 
-  // predicate for filtering features by overall quality:
+  /// predicate for filtering features by overall quality:
   struct FeatureFilterQuality
   {
     bool operator()(const Feature& feature)
@@ -153,7 +154,7 @@ protected:
     }
   } feature_filter_quality_;
 
-  // predicate for filtering features by assigned peptides:
+  /// predicate for filtering features by assigned peptides:
   struct FeatureFilterPeptides
   {
     bool operator()(const Feature& feature)
@@ -162,7 +163,7 @@ protected:
     }
   } feature_filter_peptides_;
 
-  // comparison functor for (unassigned) peptide IDs
+  /// comparison functor for (unassigned) peptide IDs
   struct PeptideCompare
   {
     bool operator()(const PeptideIdentification& p1,
@@ -184,7 +185,7 @@ protected:
     }
   } peptide_compare_;
 
-  // comparison functor for features
+  /// comparison functor for features
   struct FeatureCompare
   {
     bool operator()(const Feature& f1, const Feature& f2)
@@ -199,20 +200,20 @@ protected:
     }
   } feature_compare_;
 
-  PeakMap ms_data_; // input LC-MS data
-  PeakMap chrom_data_; // accumulated chromatograms (XICs)
-  TargetedExperiment library_; // accumulated assays for peptides
+  PeakMap ms_data_; //< input LC-MS data
+  PeakMap chrom_data_; //< accumulated chromatograms (XICs)
+  TargetedExperiment library_; //< accumulated assays for peptides
 
-  // SVM probability -> number of pos./neg. features (for FDR calculation):
+  /// SVM probability -> number of pos./neg. features (for FDR calculation):
   std::map<double, std::pair<Size, Size> > svm_probs_internal_;
-  // SVM probabilities for "external" features (for FDR calculation):
+  /// SVM probabilities for "external" features (for FDR calculation):
   std::multiset<double> svm_probs_external_;
-  Size n_internal_features_; // internal feature counter (for FDR calculation)
-  Size n_external_features_; // external feature counter (for FDR calculation)
-  // TransformationDescription trafo_; // RT transformation (to range 0-1)
-  TransformationDescription trafo_external_; // transform. to external RT scale
-  std::map<String, double> isotope_probs_; // isotope probabilities of transitions
-  MRMFeatureFinderScoring feat_finder_; // OpenSWATH feature finder
+  Size n_internal_features_; //< internal feature counter (for FDR calculation)
+  Size n_external_features_; //< external feature counter (for FDR calculation)
+  /// TransformationDescription trafo_; // RT transformation (to range 0-1)
+  TransformationDescription trafo_external_; //< transform. to external RT scale
+  std::map<String, double> isotope_probs_; //< isotope probabilities of transitions
+  MRMFeatureFinderScoring feat_finder_; //< OpenSWATH feature finder
 
   ProgressLogger prog_log_;
 
@@ -235,10 +236,10 @@ protected:
 
   void ensureConvexHulls_(Feature& feature);
 
-  void postProcess_(FeatureMap & features, bool with_external_ids);
+  void postProcess_(FeatureMap& features, bool with_external_ids);
 
-  // some statistics on detected features
-  void statistics_(FeatureMap const & features) const;
+  /// some statistics on detected features
+  void statistics_(const FeatureMap& features) const;
 
   void createAssayLibrary_(PeptideMap& peptide_map, PeptideRefRTMap& ref_rt_map);
 
