@@ -33,6 +33,8 @@
 // --------------------------------------------------------------------------
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/FORMAT/IdXMLFile.h>
+#include <OpenMS/FORMAT/PepXMLFile.h>
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
 #include <OpenMS/SYSTEM/JavaInfo.h>
 #include <QtCore/QDir>
@@ -102,6 +104,7 @@ public:
   static const String param_executable;
   static const String param_in;
   static const String param_out;
+  static const String param_opt_out;
   static const String param_database;
 
   // tolerance
@@ -196,8 +199,8 @@ public:
     java_executable(""),
     executable(""),
     parameter_file_path(""),
-    input_files(),
-    output_files(),
+    input_file(),
+    output_file(),
     file_type("")
   {
   }
@@ -230,14 +233,18 @@ protected:
     // Handle executable
     registerInputFile_(TOPPMSFraggerAdapter::param_executable, "<path_to_executable>", "", "Path to the MSFragger executable to use; may be empty if the executable is globally available.", false, false, ListUtils::create<String>("skipexists"));
 
-    // input spectra
-    registerInputFileList_(TOPPMSFraggerAdapter::param_in, "spectra_file_1 [spectra_file_2, .., spectra_file_N]>", emptyStrings, "Spectra files to search with MSFragger", true, false);
+    // Input file
+    registerInputFile_(TOPPMSFraggerAdapter::param_in, "input", "mzML", "Input File with specta for MSFragger", true, false);
     setValidFormats_(TOPPMSFraggerAdapter::param_in, ListUtils::create<String>("mzML,mzXML"));
 
-    //  output files
-    registerOutputFileList_(TOPPMSFraggerAdapter::param_out, "output_file_1 [output_file_2, ..., output_file_N]", emptyStrings, "MSFragger output files", true, false);
-    setValidFormats_(TOPPMSFraggerAdapter::param_out, ListUtils::create<String>("pep.xml,pepXML,tsv"), true);
+    // Output file
+    registerOutputFile_(TOPPMSFraggerAdapter::param_out, "output", "idXML", "MSFragger output file", true, false);
+    setValidFormats_(TOPPMSFraggerAdapter::param_out, ListUtils::create<String>("idXML"), true);
 
+    // Optional output file
+    registerOutputFile_(TOPPMSFraggerAdapter::param_opt_out, "optional_output", "pepXML", "MSFragger optional output file", false, false);
+    setValidFormats_(TOPPMSFraggerAdapter::param_opt_out, ListUtils::create<String>("pepXML"), true);
+    
     // Path to database to search
     registerInputFile_(TOPPMSFraggerAdapter::param_database, "<path_to_fasta>", "", "Protein FASTA database file path", true, false);
     setValidFormats_(TOPPMSFraggerAdapter::param_database, ListUtils::create<String>("FASTA,fasta,fa,fas"), false);
@@ -409,46 +416,24 @@ protected:
       // input, output, database name
       const String arg_database = this->getStringOption_(TOPPMSFraggerAdapter::param_database);
       const StringList arg_in = this->getStringList_(TOPPMSFraggerAdapter::param_in);
-      checkUnique(arg_in, "Some input files were specified several times!");
-      this->output_files = this->getStringList_(TOPPMSFraggerAdapter::param_out);
-      checkUnique(this->output_files, "Out files must be unique for each input file!");
+      output_file = this->getStringOption_(TOPPMSFraggerAdapter::param_out);
+      optional_output_file = this->getStringOption_(TOPPMSFraggerAdapter::param_opt_out);
 
-      // Check that none of the output files already exists
-      for (const String & output_file : this->output_files)
-      {
-        if (File::exists(output_file))
-        {
-          _fatalError("Output file: " + output_file +  " already exists!");
-        }
-      }
 
-      // Number of input files must match the number of output files (matched by index)
-      if (arg_in.size() != this->output_files.size())
-      {
-        _fatalError("Number of output files has to match the number of input files!");
-      }
-      const FileTypes::Type out_file_type = FileHandler::getTypeByFileName(this->output_files[0]);
+      file_type = "pepXML";
 
+      /**
+      // Use optional_output_file at first (MSFragger native pepXML)      
       // Check that all the output files have the same format (required by MSFragger)
-      for (const String & output_file : this->output_files)
+      const FileTypes::Type current_file_type = FileHandler::getTypeByFileName(optional_output_file);
+      if (out_file_type != current_file_type)
       {
-        const FileTypes::Type current_file_type = FileHandler::getTypeByFileName(output_file);
-        if (out_file_type != current_file_type)
-        {
-          _fatalError("Output files do not agree in format: "
-              + FileTypes::typeToName(out_file_type)
+        _fatalError("Output files do not agree in format: "
+          + FileTypes::typeToName(out_file_type)
           + " vs. "
           + FileTypes::typeToName(current_file_type));
-        }
       }
-
-      // Only pepXML and TSV currently supported as output file types.
-      const bool out_is_pepxml = out_file_type == FileTypes::PEPXML;
-      if (out_is_pepxml == false && out_file_type != FileTypes::TSV)
-      {
-        _fatalError("Output file type (determined from file extension) invalid. Choose either pepXML or tsv!");
-      }
-      this->file_type = out_is_pepxml ? "pepXML" : "tsv";
+      */
 
       // tolerance
       const double arg_precursor_mass_tolerance(this->getDoubleOption_(TOPPMSFraggerAdapter::param_precursor_mass_tolerance));
@@ -579,16 +564,12 @@ protected:
       }
 
       // Create link to all the input files in the temp directory
-      for (const String & input_file : arg_in)
-      {
-        const QFileInfo file_info(input_file.toQString());
-        const QString link_name = QFileInfo(this->working_directory, file_info.fileName()).absoluteFilePath();
+      const QFileInfo file_info(input_file);
+      const QString link_name = QFileInfo(this->working_directory, file_info.fileName()).absoluteFilePath();
 
-        if (QFile::link(file_info.absoluteFilePath(), link_name) == false)
-        {
-          _fatalError("Could not create link to input file in tmp directory: " + String(this->working_directory));
-        }
-        this->input_files.push_back(link_name);
+      if (QFile::link(file_info.absoluteFilePath(), link_name) == false)
+      {
+        _fatalError("Could not create link to input file in tmp directory: " + String(this->working_directory));
       }
 
       writeDebug_("Parameter file for MSFragger: '" + this->parameter_file_path + "'", TOPPMSFraggerAdapter::LOG_LEVEL_VERBOSE);
@@ -680,12 +661,8 @@ protected:
     QStringList process_params; // the actual process is Java, not MSFragger
     process_params << "-Xmx" + QString::number(this->getIntOption_(TOPPMSFraggerAdapter::param_java_heapmemory)) + "m"
         << "-jar" << this->executable.toQString()
-        << this->parameter_file_path.toQString();
-
-    for (const QString & input_file : this->input_files)
-    {
-      process_params << input_file;
-    }
+        << this->parameter_file_path.toQString()
+        << input_file;
 
     QProcess process_msfragger;
     process_msfragger.setWorkingDirectory(this->working_directory);
@@ -709,14 +686,26 @@ protected:
       return EXTERNAL_PROGRAM_ERROR;
     }
 
-    // Copy the output files of MSFragger to the user location
-    for (int i = 0; i < this->input_files.size(); ++i)
+    String pepxmlfile = File::removeExtension(input_file) + "." + "pepXML";
+    std::vector<PeptideIdentification> peptide_identifications;
+    std::vector<ProteinIdentification> protein_identifications;
+    PepXMLFile().load(pepxmlfile, protein_identifications, peptide_identifications);
+    IdXMLFile().store(output_file, protein_identifications, peptide_identifications);
+
+    // copies the .pepXML to the specified foler 
+    std::ifstream oof(optional_output_file);
+    if (oof)
     {
-      QFile::copy(
-          (File::removeExtension(this->input_files[i]) + "." + this->file_type).toQString(),
-          QFileInfo(this->output_files[i].toQString()).absoluteFilePath());
+      file_type = "pepXML"; 
+      // Copy the output files of MSFragger to the user location
+      QFile::copy((File::removeExtension(this->input_file) + "." + this->file_type).toQString(), QFileInfo(this->output_file.toQString()).absoluteFilePath());
     }
 
+    // copies the .idXML to the specified folder
+    file_type = ".idXML";
+    // Copy the output files of MSFragger to the user location 
+    QFile::copy((File::removeExtension(this->input_file) + "." + this->file_type).toQString(), QFileInfo(this->output_file.toQString()).absoluteFilePath());
+   
     return EXECUTION_OK;
   }
 
@@ -729,11 +718,11 @@ private:
   String executable;
 
   String parameter_file_path;
-  QStringList input_files;
-  StringList output_files;
+  QString input_file;
+  String output_file;
+  String optional_output_file;
 
   String file_type;
-
 
   // Adds variable modification if not already present
   void _addVarMod(std::vector< double > & masses, std::vector< String > & syntaxes, const double mass, const String & syntax) const
@@ -778,7 +767,7 @@ private:
       for (Size j = 0; j < i; ++j)
       {
         if (elements[i] == elements[j])
-        {
+       {
           _fatalError(message);
         }
       }
@@ -800,6 +789,7 @@ const String TOPPMSFraggerAdapter::param_java_heapmemory = "java_heapmemory";
 const String TOPPMSFraggerAdapter::param_executable = "executable";
 const String TOPPMSFraggerAdapter::param_in = "in";
 const String TOPPMSFraggerAdapter::param_out = "out";
+const String TOPPMSFraggerAdapter::param_opt_out = "opt_out";
 const String TOPPMSFraggerAdapter::param_database = "database";
 
 // tolerance
