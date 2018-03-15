@@ -72,6 +72,9 @@ namespace OpenSwath
 
     /// the binary data.
     std::vector<double> data;
+
+    /// (optional) data description for non-standard arrays.
+    std::string description;
   };
   typedef OSBinaryDataArray BinaryDataArray;
   typedef boost::shared_ptr<BinaryDataArray> BinaryDataArrayPtr;
@@ -149,6 +152,18 @@ public:
     void setIntensityArray(BinaryDataArrayPtr data)
     {
       binaryDataArrayPtrs[1] = data;
+    }
+
+    /// non-mutable access to the underlying data arrays
+    const std::vector<BinaryDataArrayPtr> & getDataArrays() const
+    {
+      return binaryDataArrayPtrs;
+    }
+
+    /// mutable access to the underlying data arrays
+    std::vector<BinaryDataArrayPtr> & getDataArrays()
+    {
+      return binaryDataArrayPtrs;
     }
 
   };
@@ -237,6 +252,18 @@ public:
     void setIntensityArray(BinaryDataArrayPtr data)
     {
       binaryDataArrayPtrs[1] = data;
+    }
+
+    /// non-mutable access to the underlying data arrays
+    const std::vector<BinaryDataArrayPtr> & getDataArrays() const
+    {
+      return binaryDataArrayPtrs;
+    }
+
+    /// mutable access to the underlying data arrays
+    std::vector<BinaryDataArrayPtr> & getDataArrays()
+    {
+      return binaryDataArrayPtrs;
     }
 
   };
