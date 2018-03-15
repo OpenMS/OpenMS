@@ -28,8 +28,8 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // 
 // --------------------------------------------------------------------------
-// $Maintainer: $
-// $Authors: $
+// $Maintainer: Timo Sachsenberg $
+// $Authors: Timo Sachsenberg $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
@@ -50,14 +50,14 @@ FeatureFinderIdentificationAlgorithm* ptr = 0;
 FeatureFinderIdentificationAlgorithm* null_ptr = 0;
 START_SECTION(FeatureFinderIdentificationAlgorithm())
 {
-	ptr = new FeatureFinderIdentificationAlgorithm();
-	TEST_NOT_EQUAL(ptr, null_ptr)
+  ptr = new FeatureFinderIdentificationAlgorithm();
+  TEST_NOT_EQUAL(ptr, null_ptr)
 }
 END_SECTION
 
 START_SECTION(~FeatureFinderIdentificationAlgorithm())
 {
-	delete ptr;
+  delete ptr;
 }
 END_SECTION
 
