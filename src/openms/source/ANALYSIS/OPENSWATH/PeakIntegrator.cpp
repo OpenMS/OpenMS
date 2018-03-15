@@ -236,38 +236,41 @@ namespace OpenMS
     const double delta_pos = (p.PosEnd(right) - 1)->getPos() - p.PosBegin(left)->getPos();
     const double min_int_pos = int_r <= int_l ? (p.PosEnd(right) - 1)->getPos() : p.PosBegin(left)->getPos();
     const double delta_int_apex = std::fabs(delta_int) * std::fabs(min_int_pos - peak_apex_pos) / delta_pos;
-    double background = 0.0;
+    double area {0.0};
+    double height {0.0};
     if (baseline_type_ == BASELINE_TYPE_BASETOBASE)
     {
+      height = std::min(int_r, int_l) + delta_int_apex;
       if (integration_type_ == INTEGRATION_TYPE_TRAPEZOID || integration_type_ == INTEGRATION_TYPE_SIMPSON)
       {
         // formula for calculating the background using the trapezoidal rule
-        // background = intensity_min*delta_pos + 0.5*delta_int*delta_pos;
-        background = delta_pos * (std::min(int_r, int_l) + 0.5 * std::fabs(delta_int));
+        // area = intensity_min*delta_pos + 0.5*delta_int*delta_pos;
+        area = delta_pos * (std::min(int_r, int_l) + 0.5 * std::fabs(delta_int));
       }
       else if (integration_type_ == INTEGRATION_TYPE_INTENSITYSUM)
       {
         // calculate the background using the formula
         // y = mx + b where x = rt or mz, m = slope, b = left intensity
         // sign of delta_int will determine line direction
-        // background += delta_int / delta_pos * (it->getPos() - left) + int_l;
+        // area += delta_int / delta_pos * (it->getPos() - left) + int_l;
         for (auto it = p.PosBegin(left); it != p.PosEnd(right); ++it)
         {
-          background += it->getPos();
+          area += it->getPos();
         }
         UInt n_points = std::distance(p.PosBegin(left), p.PosEnd(right));
-        background = (background - n_points * p.PosBegin(left)->getPos()) * delta_int / delta_pos + n_points * int_l;
+        area = (area - n_points * p.PosBegin(left)->getPos()) * delta_int / delta_pos + n_points * int_l;
       }
     }
     else if (baseline_type_ == BASELINE_TYPE_VERTICALDIVISION)
     {
+      height = std::min(int_r, int_l);
       if (integration_type_ == INTEGRATION_TYPE_TRAPEZOID || integration_type_ == INTEGRATION_TYPE_SIMPSON)
       {
-        background = delta_pos * std::min(int_r, int_l);
+        area = delta_pos * std::min(int_r, int_l);
       }
       else if (integration_type_ == INTEGRATION_TYPE_INTENSITYSUM)
       {
-        background = std::min(int_r, int_l) * std::distance(p.PosBegin(left), p.PosEnd(right));;
+        area = std::min(int_r, int_l) * std::distance(p.PosBegin(left), p.PosEnd(right));;
       }
     }
     else
@@ -275,8 +278,8 @@ namespace OpenMS
       throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Please set a valid value for the parameter \"baseline_type\".");
     }
     PeakBackground pb;
-    pb.area = background;
-    pb.height = std::min(int_r, int_l) + delta_int_apex;
+    pb.area = area;
+    pb.height = height;
     return pb;
   }
 
