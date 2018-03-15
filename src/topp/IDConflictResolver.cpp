@@ -38,6 +38,7 @@
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
+#include <OpenMS/ANALYSIS/ID/IDConflictResolverAlgorithm.h>
 
 #include <algorithm>
 
@@ -75,6 +76,9 @@ using namespace std;
     with a single hit (with the best score) is associated to each feature. (If
     two IDs have the same best score, either one of them may be selected.)
 
+    The the filtered identifications are added to the vector of unassigned peptides
+    and also reduced to a single best hit.
+
     This step may be useful before applying @ref TOPP_ProteinQuantifier
     "ProteinQuantifier", because features with ambiguous annotation are not
     considered for the quantification.
@@ -98,54 +102,6 @@ public:
   {
   }
 
-protected:
-
-  // compare peptide IDs by score of best hit (hits must be sorted first!)
-  // (note to self: the "static" is necessary to avoid cryptic "no matching
-  // function" errors from gcc when the comparator is used below)
-  static bool compareIDsSmallerScores_(const PeptideIdentification & left,
-                          const PeptideIdentification & right)
-  {
-    // if any of them is empty, the other is considered "greater"
-    // independent of the score in the first hit
-    if (left.getHits().empty()) return true;
-    if (right.getHits().empty()) return false;
-    if (left.getHits()[0].getScore() < right.getHits()[0].getScore())
-    {
-      return true;
-    }
-    return false;
-  }
-
-  void resolveConflict_(vector<PeptideIdentification> & peptides)
-  {
-    if (peptides.empty()) return;
-
-    for (vector<PeptideIdentification>::iterator pep_id = peptides.begin();
-         pep_id != peptides.end(); ++pep_id)
-    {
-      pep_id->sort();
-    }
-    vector<PeptideIdentification>::iterator pos;
-    if (peptides[0].isHigherScoreBetter())     // find highest-scoring ID
-    {
-      pos = max_element(peptides.begin(), peptides.end(), compareIDsSmallerScores_);
-    }
-    else  // find lowest-scoring ID
-    {
-      pos = min_element(peptides.begin(), peptides.end(), compareIDsSmallerScores_);
-    }
-    peptides[0] = *pos;
-    peptides.resize(1);
-
-    if (!peptides[0].getHits().empty())
-    {
-      // remove all but the best hit:
-      vector<PeptideHit> best_hit(1, peptides[0].getHits()[0]);
-      peptides[0].setHits(best_hit);
-    }
-  }
-
   void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "Input file (data annotated with identifications)");
@@ -162,24 +118,16 @@ protected:
     {
       FeatureMap features;
       FeatureXMLFile().load(in, features);
-      for (FeatureMap::Iterator feat_it = features.begin();
-           feat_it != features.end(); ++feat_it)
-      {
-        resolveConflict_(feat_it->getPeptideIdentifications());
-      }
+      IDConflictResolverAlgorithm::resolve(features);
       addDataProcessing_(features,
                          getProcessingInfo_(DataProcessing::FILTERING));
       FeatureXMLFile().store(out, features);
     }
-    else     // consensusXML
+    else // consensusXML
     {
       ConsensusMap consensus;
       ConsensusXMLFile().load(in, consensus);
-      for (ConsensusMap::Iterator cons_it = consensus.begin();
-           cons_it != consensus.end(); ++cons_it)
-      {
-        resolveConflict_(cons_it->getPeptideIdentifications());
-      }
+      IDConflictResolverAlgorithm::resolve(consensus);
       addDataProcessing_(consensus,
                          getProcessingInfo_(DataProcessing::FILTERING));
       ConsensusXMLFile().store(out, consensus);
