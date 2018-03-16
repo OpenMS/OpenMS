@@ -127,51 +127,36 @@ public:
 
       @throws Exception::ParseError is thrown if the spectrum size cannot be read
     */
-    static inline void readSpectrumFast(OpenSwath::BinaryDataArrayPtr data1,
-                                        OpenSwath::BinaryDataArrayPtr data2,
+    static inline void readSpectrumFast(OpenSwath::BinaryDataArrayPtr& data1,
+                                        OpenSwath::BinaryDataArrayPtr& data2,
                                         std::ifstream& ifs, 
                                         int& ms_level,
                                         double& rt)
     {
-      std::vector<OpenSwath::BinaryDataArrayPtr> data;
-      data.push_back(OpenSwath::BinaryDataArrayPtr(new OpenSwath::BinaryDataArray));
-      data.push_back(OpenSwath::BinaryDataArrayPtr(new OpenSwath::BinaryDataArray));
-      readSpectrumFast(data, ifs, ms_level, rt);
+      std::vector<OpenSwath::BinaryDataArrayPtr> data = readSpectrumFast(ifs, ms_level, rt);
       data1 = data[0];
       data2 = data[1];
     }
 
-    static void readSpectrumFast(std::vector<OpenSwath::BinaryDataArrayPtr>& data,
-                                        std::ifstream& ifs, 
-                                        int& ms_level,
-                                        double& rt);
+    static std::vector<OpenSwath::BinaryDataArrayPtr> readSpectrumFast(std::ifstream& ifs, int& ms_level, double& rt);
 
     /**
       @brief fast access to a chromatogram (a direct copy of the data into the provided arrays)
 
       @throws Exception::ParseError is thrown if the chromatogram size cannot be read
     */
-    static inline void readChromatogramFast(OpenSwath::BinaryDataArrayPtr data1,
-                                            OpenSwath::BinaryDataArrayPtr data2, std::ifstream& ifs)
+    static inline void readChromatogramFast(OpenSwath::BinaryDataArrayPtr& data1,
+                                            OpenSwath::BinaryDataArrayPtr& data2, std::ifstream& ifs)
     {
-      std::vector<OpenSwath::BinaryDataArrayPtr> data;
-      data.push_back(OpenSwath::BinaryDataArrayPtr(new OpenSwath::BinaryDataArray));
-      data.push_back(OpenSwath::BinaryDataArrayPtr(new OpenSwath::BinaryDataArray));
-      readChromatogramFast(data, ifs);
+      std::vector<OpenSwath::BinaryDataArrayPtr> data = readChromatogramFast(ifs);
       data1 = data[0];
       data2 = data[1];
     }
 
-    static void readChromatogramFast(std::vector<OpenSwath::BinaryDataArrayPtr>& data, std::ifstream& ifs);
+    static std::vector<OpenSwath::BinaryDataArrayPtr> readChromatogramFast(std::ifstream& ifs);
     //@}
 
 protected:
-
-    /// read a single spectrum directly into a datavector (assuming file is already at the correct position)
-    void readSpectrum_(std::vector<Datavector>& data, std::ifstream& ifs, int& ms_level, double& rt) const;
-
-    /// read a single chromatogram directly into a datavector (assuming file is already at the correct position)
-    void readChromatogram_(std::vector<Datavector>& data, std::ifstream& ifs) const;
 
     /// read a single spectrum directly into an OpenMS MSSpectrum (assuming file is already at the correct position)
     void readSpectrum_(SpectrumType& spectrum, std::ifstream& ifs) const;
