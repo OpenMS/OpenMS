@@ -141,58 +141,10 @@ public:
       data2 = data[1];
     }
 
-    static inline void readSpectrumFast(std::vector<OpenSwath::BinaryDataArrayPtr>& data,
+    static void readSpectrumFast(std::vector<OpenSwath::BinaryDataArrayPtr>& data,
                                         std::ifstream& ifs, 
                                         int& ms_level,
-                                        double& rt)
-    {
-      data.push_back(OpenSwath::BinaryDataArrayPtr(new OpenSwath::BinaryDataArray));
-      data.push_back(OpenSwath::BinaryDataArrayPtr(new OpenSwath::BinaryDataArray));
-
-      Size spec_size = -1;
-      Size nr_float_arrays = -1;
-      ifs.read((char*) &spec_size, sizeof(spec_size));
-      ifs.read((char*) &nr_float_arrays, sizeof(nr_float_arrays));
-      ifs.read((char*) &ms_level, sizeof(ms_level));
-      ifs.read((char*) &rt, sizeof(rt));
-
-      if ( static_cast<int>(spec_size) < 0)
-      {
-        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
-          "Read an invalid spectrum length, something is wrong here. Aborting.", "filestream");
-      }
-
-      data[0]->data.resize(spec_size);
-      data[1]->data.resize(spec_size);
-
-      if (spec_size > 0)
-      {
-        ifs.read((char*) &(data[0]->data)[0], spec_size * sizeof(DatumSingleton));
-        ifs.read((char*) &(data[1]->data)[0], spec_size * sizeof(DatumSingleton));
-      }
-      if (nr_float_arrays == 0) return;
-
-      char* buffer = new(std::nothrow) char[1024];
-      for (Size k = 0; k < nr_float_arrays; k++)
-      {
-        data.push_back(OpenSwath::BinaryDataArrayPtr(new OpenSwath::BinaryDataArray));
-        Size len, len_name;
-        ifs.read((char*)&len, sizeof(len));
-        ifs.read((char*)&len_name, sizeof(len_name));
-
-        // We will not read data longer than 1024 length as this is user-generated input data
-        if (len_name > 1023) ifs.seekg(len_name * sizeof(char), ifs.cur);
-        else
-        {
-          ifs.read(buffer, len_name);
-          buffer[len_name] = '\0';
-        }
-        data.back()->data.resize(len);
-        data.back()->description = buffer;
-        ifs.read((char*)&(data.back()->data)[0], len * sizeof(DatumSingleton));
-      }
-      delete[] buffer;
-    }
+                                        double& rt);
 
     /**
       @brief fast access to a chromatogram (a direct copy of the data into the provided arrays)
@@ -210,49 +162,7 @@ public:
       data2 = data[1];
     }
 
-    static inline void readChromatogramFast(std::vector<OpenSwath::BinaryDataArrayPtr>& data, std::ifstream& ifs)
-    {
-      Size spec_size = -1;
-      Size nr_float_arrays = -1;
-      ifs.read((char*) &spec_size, sizeof(spec_size));
-      ifs.read((char*) &nr_float_arrays, sizeof(nr_float_arrays));
-
-      std::cout << "chrom size " << spec_size << std::endl;
-      std::cout << "nr_float arr " << nr_float_arrays << std::endl;
-
-      if ( static_cast<int>(spec_size) < 0)
-      {
-        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
-          "Read an invalid chromatogram length, something is wrong here. Aborting.", "filestream");
-      }
-
-      data[0]->data.resize(spec_size);
-      data[1]->data.resize(spec_size);
-      ifs.read((char*) &(data[0]->data)[0], spec_size * sizeof(DatumSingleton));
-      ifs.read((char*) &(data[1]->data)[0], spec_size * sizeof(DatumSingleton));
-      if (nr_float_arrays == 0) return;
-
-      char* buffer = new(std::nothrow) char[1024];
-      for (Size k = 0; k < nr_float_arrays; k++)
-      {
-        data.push_back(OpenSwath::BinaryDataArrayPtr(new OpenSwath::BinaryDataArray));
-        Size len, len_name;
-        ifs.read((char*)&len, sizeof(len));
-        ifs.read((char*)&len_name, sizeof(len_name));
-
-        // We will not read data longer than 1024 length as this is user-generated input data
-        if (len_name > 1023) ifs.seekg(len_name * sizeof(char), ifs.cur);
-        else
-        {
-          ifs.read(buffer, len_name);
-          buffer[len_name] = '\0';
-        }
-        data.back()->data.resize(len);
-        data.back()->description = buffer;
-        ifs.read((char*)&(data.back()->data)[0], len * sizeof(DatumSingleton));
-      }
-      delete[] buffer;
-    }
+    static void readChromatogramFast(std::vector<OpenSwath::BinaryDataArrayPtr>& data, std::ifstream& ifs);
     //@}
 
 protected:
