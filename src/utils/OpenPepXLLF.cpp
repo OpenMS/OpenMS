@@ -778,8 +778,8 @@ protected:
 //       cout << "Pre-scoring finished." << endl;
 
       // needed farther down in the scoring, but only needs to be computed once for a spectrum
-      vector< double > aucorrx = XQuestScores::xCorrelation(spectrum, spectrum, 5, 0.03);
-      vector< double > aucorrc = XQuestScores::xCorrelation(spectrum, spectrum, 5, 0.02);
+      // vector< double > aucorrx = XQuestScores::xCorrelation(spectrum, spectrum, 5, 0.03);
+      // vector< double > aucorrc = XQuestScores::xCorrelation(spectrum, spectrum, 5, 0.02);
 
       // precompute peak level spectra for the current spectrum
       // map<Size, PeakSpectrum> peak_level_spectra = PScore::calculatePeakLevelSpectra(spectrum, rankMap[scan_index]);
@@ -1014,14 +1014,18 @@ protected:
         // double log_occupancy_full_spec_exp = XQuestScores::logOccupancyProb(spectrum, matched_peaks, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm);
 
         // LOG_DEBUG << "Computing xCorr..." << endl;
-        vector< double > xcorrx = XQuestScores::xCorrelation(spectrum, theoretical_spec_xlinks, 5, 0.03);
-        vector< double > xcorrc = XQuestScores::xCorrelation(spectrum, theoretical_spec_linear, 5, 0.02);
+        // vector< double > xcorrx = XQuestScores::xCorrelation(spectrum, theoretical_spec_xlinks, 5, 0.03);
+        // vector< double > xcorrc = XQuestScores::xCorrelation(spectrum, theoretical_spec_linear, 5, 0.02);
 
-        double aucorr_sumx = accumulate(aucorrx.begin(), aucorrx.end(), 0.0);
-        double aucorr_sumc = accumulate(aucorrc.begin(), aucorrc.end(), 0.0);
-        double xcorrx_max = accumulate(xcorrx.begin(), xcorrx.end(), 0.0) / aucorr_sumx;
-        double xcorrc_max = accumulate(xcorrc.begin(), xcorrc.end(), 0.0) / aucorr_sumc;
-        //
+        // double aucorr_sumx = accumulate(aucorrx.begin(), aucorrx.end(), 0.0);
+        // double aucorr_sumc = accumulate(aucorrc.begin(), aucorrc.end(), 0.0);
+        // double xcorrx_max = accumulate(xcorrx.begin(), xcorrx.end(), 0.0) / aucorr_sumx;
+        // double xcorrc_max = accumulate(xcorrc.begin(), xcorrc.end(), 0.0) / aucorr_sumc;
+
+        // TODO is this xcorr good enough?
+        double xcorrx_max = XQuestScores::xCorrelationPrescore(spectrum, theoretical_spec_xlinks, 0.1);
+        double xcorrc_max = XQuestScores::xCorrelationPrescore(spectrum, theoretical_spec_linear, 0.1);
+
         // LOG_DEBUG << "Computing PScore..." << endl;
         // map<Size, PeakSpectrum> peak_level_spectra = PScore::calculatePeakLevelSpectra(spectrum, rankMap[scan_index]);
         // csm.PScoreLinear = PScore::computePScore(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, peak_level_spectra, theoretical_spec_linear);
