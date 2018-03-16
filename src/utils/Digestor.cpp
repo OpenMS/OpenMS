@@ -111,7 +111,15 @@ protected:
     ProteaseDB::getInstance()->getAllNames(all_enzymes);
     registerStringOption_("enzyme", "<string>", "Trypsin", "The type of digestion enzyme", false);
     setValidStrings_("enzyme", all_enzymes);
+
+    registerTOPPSubsection_("FASTA", "Options for FASTA output files");
+    registerStringOption_("FASTA:ID", "<option>", "parent", "Identifier to use for each peptide: copy from parent protein (parent); a consecutive number (number); parent ID + consecutive number (both)", false);
+    setValidStrings_("FASTA:ID", ListUtils::create<String>("parent,number,both"));
+    registerStringOption_("FASTA:description", "<option>", "remove", "Keep or remove the (possibly lengthy) FASTA header description. Keeping it can increase resulting FASTA file significantly.", false);
+    setValidStrings_("FASTA:description", ListUtils::create<String>("remove,keep"));
   }
+
+  enum FASTAID {PARENT, NUMBER, BOTH};
 
   ExitCodes main_(int, const char**) override
   {
@@ -131,6 +139,9 @@ protected:
     //-------------------------------------------------------------
     String inputfile_name = getStringOption_("in");
     String outputfile_name = getStringOption_("out");
+
+    FASTAID FASTA_ID = getStringOption_("FASTA:ID") == "parent" ? PARENT : (getStringOption_("FASTA:ID") == "number" ? NUMBER : BOTH);
+    bool keep_FASTA_desc = (getStringOption_("FASTA:description") == "keep");
 
     // output file type
     FileHandler fh;
@@ -208,7 +219,8 @@ protected:
         dropped_by_length += digestor.digest(AASequence::fromString(fe.sequence), current_digest, min_size, max_size);
       }
 
-      for (auto& const s : current_digest)
+      String id = fe.identifier;
+      for (auto const& s : current_digest)
       {
         if (!has_FASTA_output)
         {
@@ -220,7 +232,13 @@ protected:
         else // for FASTA file output
         {
           ++fasta_out_count;
-          ff.writeNext(FASTAFile::FASTAEntry(fe.identifier, fe.description, s.toString()));
+          switch (FASTA_ID)
+          {
+            case PARENT: break;
+            case NUMBER: id = String(fasta_out_count); break;
+            case BOTH: id = fe.identifier + "_" + String(fasta_out_count); break;
+          }
+          ff.writeNext(FASTAFile::FASTAEntry(id, keep_FASTA_desc ? fe.description : "", s.toString()));
         }
       }
     }
