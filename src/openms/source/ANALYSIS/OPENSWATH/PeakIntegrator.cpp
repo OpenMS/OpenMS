@@ -118,10 +118,10 @@ namespace OpenMS
   void PeakIntegrator::getDefaultParameters(Param& params)
   {
     params.clear();
-    params.setValue("integration_type", INTEGRATION_TYPE_INTENSITYSUM, "The integration technique to use in integratePeak() and estimateBackground().");
+    params.setValue("integration_type", INTEGRATION_TYPE_INTENSITYSUM, "The integration technique to use in integratePeak() and estimateBackground() which uses either the summed intensity, integration by Simpson's rule or trapezoidal integration.");
     params.setValidStrings("integration_type", ListUtils::create<String>("intensity_sum,simpson,trapezoid"));
-    params.setValue("baseline_type", BASELINE_TYPE_BASETOBASE, "The baseline type to use in estimateBackground().");
-    params.setValidStrings("baseline_type", ListUtils::create<String>("base_to_base,vertical_division"));
+    params.setValue("baseline_type", BASELINE_TYPE_BASETOBASE, "The baseline type to use in estimateBackground() based on the peak boundaries. A rectangular baseline shape is computed based either on the minimal intensity of the peak boundaries, the maximum intensity or the average intensity (base_to_base).");
+    params.setValidStrings("baseline_type", ListUtils::create<String>("base_to_base,vertical_division,vertical_division_min,vertical_division_max"));
   }
 
   void PeakIntegrator::updateMembers_()
@@ -261,7 +261,7 @@ namespace OpenMS
         area = (area - n_points * p.PosBegin(left)->getPos()) * delta_int / delta_pos + n_points * int_l;
       }
     }
-    else if (baseline_type_ == BASELINE_TYPE_VERTICALDIVISION)
+    else if (baseline_type_ == BASELINE_TYPE_VERTICALDIVISION || baseline_type_ == BASELINE_TYPE_VERTICALDIVISION_MIN)
     {
       height = std::min(int_r, int_l);
       if (integration_type_ == INTEGRATION_TYPE_TRAPEZOID || integration_type_ == INTEGRATION_TYPE_SIMPSON)
@@ -271,6 +271,18 @@ namespace OpenMS
       else if (integration_type_ == INTEGRATION_TYPE_INTENSITYSUM)
       {
         area = std::min(int_r, int_l) * std::distance(p.PosBegin(left), p.PosEnd(right));;
+      }
+    }
+    else if (baseline_type_ == BASELINE_TYPE_VERTICALDIVISION_MAX)
+    {
+      height = std::max(int_r, int_l);
+      if (integration_type_ == INTEGRATION_TYPE_TRAPEZOID || integration_type_ == INTEGRATION_TYPE_SIMPSON)
+      {
+        area = delta_pos * std::max(int_r, int_l);
+      }
+      else if (integration_type_ == INTEGRATION_TYPE_INTENSITYSUM)
+      {
+        area = std::max(int_r, int_l) * std::distance(p.PosBegin(left), p.PosEnd(right));;
       }
     }
     else
