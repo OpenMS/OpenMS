@@ -760,6 +760,7 @@ namespace OpenMS
         {
           mrmfeature->addScore("var_mi_score", scores.mi_score);
           mrmfeature->addScore("var_mi_weighted_score", scores.weighted_mi_score);
+          mrmfeature->addScore("var_mi_ratio_score", scores.mi_score  / (double)mrmfeature->getMetaValue("total_mi"));
         }
 
         // TODO get it working with imrmfeature

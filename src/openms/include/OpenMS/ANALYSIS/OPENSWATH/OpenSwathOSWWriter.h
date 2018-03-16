@@ -159,6 +159,7 @@ namespace OpenMS
         "VAR_MASSDEV_SCORE_WEIGHTED REAL NOT NULL," \
         "VAR_MI_SCORE REAL NOT NULL," \
         "VAR_MI_WEIGHTED_SCORE REAL NOT NULL," \
+        "VAR_MI_RATIO_SCORE REAL NOT NULL," \
         "VAR_NORM_RT_SCORE REAL NOT NULL," \
         "VAR_XCORR_COELUTION REAL NOT NULL," \
         "VAR_XCORR_COELUTION_WEIGHTED REAL NOT NULL," \
@@ -315,7 +316,7 @@ namespace OpenMS
           var_sonar_rsq = feature_it->getMetaValue("var_sonar_rsq").toString();
         }
 
-        sql_feature_ms2 << "INSERT INTO FEATURE_MS2 (FEATURE_ID, AREA_INTENSITY, TOTAL_AREA_INTENSITY, APEX_INTENSITY, TOTAL_MI, VAR_BSERIES_SCORE, VAR_DOTPROD_SCORE, VAR_INTENSITY_SCORE, VAR_ISOTOPE_CORRELATION_SCORE, VAR_ISOTOPE_OVERLAP_SCORE, VAR_LIBRARY_CORR, VAR_LIBRARY_DOTPROD, VAR_LIBRARY_MANHATTAN, VAR_LIBRARY_RMSD, VAR_LIBRARY_ROOTMEANSQUARE, VAR_LIBRARY_SANGLE, VAR_LOG_SN_SCORE, VAR_MANHATTAN_SCORE, VAR_MASSDEV_SCORE, VAR_MASSDEV_SCORE_WEIGHTED, VAR_MI_SCORE, VAR_MI_WEIGHTED_SCORE, VAR_NORM_RT_SCORE, VAR_XCORR_COELUTION,VAR_XCORR_COELUTION_WEIGHTED, VAR_XCORR_SHAPE, VAR_XCORR_SHAPE_WEIGHTED, VAR_YSERIES_SCORE, VAR_ELUTION_MODEL_FIT_SCORE, VAR_SONAR_LAG, VAR_SONAR_SHAPE, VAR_SONAR_LOG_SN, VAR_SONAR_LOG_DIFF, VAR_SONAR_LOG_TREND, VAR_SONAR_RSQ) VALUES (" 
+        sql_feature_ms2 << "INSERT INTO FEATURE_MS2 (FEATURE_ID, AREA_INTENSITY, TOTAL_AREA_INTENSITY, APEX_INTENSITY, TOTAL_MI, VAR_BSERIES_SCORE, VAR_DOTPROD_SCORE, VAR_INTENSITY_SCORE, VAR_ISOTOPE_CORRELATION_SCORE, VAR_ISOTOPE_OVERLAP_SCORE, VAR_LIBRARY_CORR, VAR_LIBRARY_DOTPROD, VAR_LIBRARY_MANHATTAN, VAR_LIBRARY_RMSD, VAR_LIBRARY_ROOTMEANSQUARE, VAR_LIBRARY_SANGLE, VAR_LOG_SN_SCORE, VAR_MANHATTAN_SCORE, VAR_MASSDEV_SCORE, VAR_MASSDEV_SCORE_WEIGHTED, VAR_MI_SCORE, VAR_MI_WEIGHTED_SCORE, VAR_MI_RATIO_SCORE, VAR_NORM_RT_SCORE, VAR_XCORR_COELUTION,VAR_XCORR_COELUTION_WEIGHTED, VAR_XCORR_SHAPE, VAR_XCORR_SHAPE_WEIGHTED, VAR_YSERIES_SCORE, VAR_ELUTION_MODEL_FIT_SCORE, VAR_SONAR_LAG, VAR_SONAR_SHAPE, VAR_SONAR_LOG_SN, VAR_SONAR_LOG_DIFF, VAR_SONAR_LOG_TREND, VAR_SONAR_RSQ) VALUES (" 
                         << feature_id << ", " 
                         << feature_it->getIntensity() << ", " 
                         << feature_it->getMetaValue("total_xic") << ", " 
@@ -338,6 +339,7 @@ namespace OpenMS
                         << feature_it->getMetaValue("var_massdev_score_weighted") << ", " 
                         << feature_it->getMetaValue("var_mi_score") << ", " 
                         << feature_it->getMetaValue("var_mi_weighted_score") << ", " 
+                        << feature_it->getMetaValue("var_mi_ratio_score") << ", " 
                         << feature_it->getMetaValue("var_norm_rt_score") << ", " 
                         << feature_it->getMetaValue("var_xcorr_coelution") << ", " 
                         << feature_it->getMetaValue("var_xcorr_coelution_weighted") << ", " 
