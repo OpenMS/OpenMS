@@ -137,11 +137,11 @@ for (Size i = 0; i < 800; i++)
   spectrum_precursors.push_back(peptides[i].peptide_mass + peptides[i+3].peptide_mass + cross_link_mass);
 }
 
-
-START_SECTION(static std::vector<OPXLDataStructs::XLPrecursor> enumerateCrossLinksAndMasses(const std::vector<OPXLDataStructs::AASeqWithMass>&  peptides, double cross_link_mass_light, const DoubleList& cross_link_mass_mono_link, const StringList& cross_link_residue1, const StringList& cross_link_residue2, std::vector< double >& spectrum_precursors, double precursor_mass_tolerance, bool precursor_mass_tolerance_unit_ppm))
+START_SECTION(static std::vector<OPXLDataStructs::XLPrecursor> enumerateCrossLinksAndMasses(const std::vector<OPXLDataStructs::AASeqWithMass>&  peptides, double cross_link_mass_light, const DoubleList& cross_link_mass_mono_link, const StringList& cross_link_residue1, const StringList& cross_link_residue2, std::vector< double >& spectrum_precursors, vector< int >& precursor_correction_positions, double precursor_mass_tolerance, bool precursor_mass_tolerance_unit_ppm))
 
   std::cout << std::endl;
-  std::vector<OPXLDataStructs::XLPrecursor> precursors = OPXLHelper::enumerateCrossLinksAndMasses(peptides, cross_link_mass, cross_link_mass_mono_link, cross_link_residue1, cross_link_residue2, spectrum_precursors, precursor_mass_tolerance, precursor_mass_tolerance_unit_ppm);
+  std::vector< int > spectrum_precursor_correction_positions;
+  std::vector<OPXLDataStructs::XLPrecursor> precursors = OPXLHelper::enumerateCrossLinksAndMasses(peptides, cross_link_mass, cross_link_mass_mono_link, cross_link_residue1, cross_link_residue2, spectrum_precursors, spectrum_precursor_correction_positions, precursor_mass_tolerance, precursor_mass_tolerance_unit_ppm);
   std::sort(precursors.begin(), precursors.end(), OPXLDataStructs::XLPrecursorComparator());
 
   TOLERANCE_ABSOLUTE(1e-3)
@@ -166,11 +166,12 @@ END_SECTION
 
 // building more data structures required in the following test
 std::cout << std::endl;
-std::vector<OPXLDataStructs::XLPrecursor> precursors = OPXLHelper::enumerateCrossLinksAndMasses(peptides, cross_link_mass, cross_link_mass_mono_link, cross_link_residue1, cross_link_residue2, spectrum_precursors, precursor_mass_tolerance, precursor_mass_tolerance_unit_ppm);
+std::vector< int > spectrum_precursor_correction_positions;
+std::vector<OPXLDataStructs::XLPrecursor> precursors = OPXLHelper::enumerateCrossLinksAndMasses(peptides, cross_link_mass, cross_link_mass_mono_link, cross_link_residue1, cross_link_residue2, spectrum_precursors, spectrum_precursor_correction_positions, precursor_mass_tolerance, precursor_mass_tolerance_unit_ppm);
 std::sort(precursors.begin(), precursors.end(), OPXLDataStructs::XLPrecursorComparator());
 
 
-START_SECTION(static std::vector <OPXLDataStructs::ProteinProteinCrossLink> buildCandidates(const std::vector< OPXLDataStructs::XLPrecursor > & candidates, const std::vector< int > precursor_corrections, const std::vector<OPXLDataStructs::AASeqWithMass> & peptide_masses, const StringList & cross_link_residue1, const StringList & cross_link_residue2, double cross_link_mass, const DoubleList & cross_link_mass_mono_link, double precursor_mass, double allowed_error, String cross_link_name))
+START_SECTION(static std::vector <OPXLDataStructs::ProteinProteinCrossLink> buildCandidates(const std::vector< OPXLDataStructs::XLPrecursor > & candidates, const std::vector< int > precursor_corrections, std::vector< int >& precursor_correction_positions, const std::vector<OPXLDataStructs::AASeqWithMass> & peptide_masses, const StringList & cross_link_residue1, const StringList & cross_link_residue2, double cross_link_mass, const DoubleList & cross_link_mass_mono_link, std::vector< double >& spectrum_precursor_vector, std::vector< double >& allowed_error_vector, String cross_link_name))
   double precursor_mass = 3425.57034;
   double allowed_error = precursor_mass * precursor_mass_tolerance * 1e-6;
   String cross_link_name = "MyLinker";
@@ -191,9 +192,12 @@ START_SECTION(static std::vector <OPXLDataStructs::ProteinProteinCrossLink> buil
       candidates.push_back(*low_it);
     }
   }
-  std::vector< int > precursor_corrections(59);
+  std::vector< int > precursor_corrections(0, 59);
+  std::vector< int > precursor_correction_positions(0, 59);
+  std::vector< double > spectrum_precursor_vector(0.0);
+  std::vector< double > allowed_error_vector(allowed_error);
 
-  std::vector <OPXLDataStructs::ProteinProteinCrossLink> spectrum_candidates = OPXLHelper::buildCandidates(candidates, precursor_corrections, peptides, cross_link_residue1, cross_link_residue2, cross_link_mass, cross_link_mass_mono_link, precursor_mass, allowed_error, cross_link_name);
+  std::vector <OPXLDataStructs::ProteinProteinCrossLink> spectrum_candidates = OPXLHelper::buildCandidates(candidates, precursor_corrections, precursor_correction_positions, peptides, cross_link_residue1, cross_link_residue2, cross_link_mass, cross_link_mass_mono_link, spectrum_precursor_vector, allowed_error_vector, cross_link_name);
 
   TEST_EQUAL(spectrum_candidates.size(), 59)
   TEST_EQUAL(spectrum_candidates[50].cross_linker_name, "MyLinker")
