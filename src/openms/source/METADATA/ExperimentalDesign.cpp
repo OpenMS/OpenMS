@@ -408,6 +408,19 @@ namespace OpenMS
     return ret;
   }
 
+  map< tuple< String, unsigned >, unsigned> ExperimentalDesign::getPathChannelToSampleMapping() const
+  {
+    map< tuple< String, unsigned >, unsigned> ret;
+
+    for (RunRow const & r : run_section_)
+    {
+     tuple< String, unsigned > tpl = make_tuple(String(r.path), r.channel);
+     ret[tpl] = r.sample;
+    }
+    return ret;
+  }
+
+
   bool ExperimentalDesign::sameNrOfMSFilesPerFraction() const
   {
     map<unsigned, vector<String>> frac2files = getFractionToMSFilesMapping();

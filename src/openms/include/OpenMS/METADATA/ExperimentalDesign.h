@@ -223,8 +223,41 @@ namespace OpenMS
       }
     }
 
+    void getChannels(std::vector<unsigned> &channels) const
+    {
+      channels.clear();
+      for (const RunRow &row : run_section_)
+      {
+        channels.push_back(row.channel);
+      }
+    }
+
+
+    bool isLabelFree() const
+    {
+      std::vector<unsigned> channels;
+      getChannels(channels);
+      std::unique(channels.begin(), channels.end());
+
+      // At most one channel is label-free
+      return channels.size() < 2;
+    }
+
+    bool hasFractions() const
+    {
+      std::set<unsigned> fractions;
+      for (RunRow const & r : run_section_)
+      {
+        fractions.insert(r.fraction);
+      }
+      return fractions.size() > 1;
+    }
+
     /// return fraction index to file paths (ordered by run id)
     std::map<unsigned int, std::vector<String> > getFractionToMSFilesMapping() const;
+
+    /// return <file_path, channel> to sample mapping
+    std::map< std::tuple< String, unsigned >, unsigned> getPathChannelToSampleMapping() const;
 
     // @return the number of samples measured (= highest sample index)
     unsigned getNumberOfSamples() const
