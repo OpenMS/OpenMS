@@ -126,7 +126,7 @@ START_SECTION((static Specificity getSpecificityByName(const String& name)))
     TEST_EQUAL(EnzymaticDigestion::getSpecificityByName("DoesNotExist"), EnzymaticDigestion::SIZE_OF_SPECIFICITY);
 END_SECTION
 
-START_SECTION((void digestUnmodified(const StringView sequence, std::vector<StringView>& output, Size min_length, Size max_length)))
+START_SECTION((Size digestUnmodified(const StringView sequence, std::vector<StringView>& output, Size min_length, Size max_length)))
 {
     EnzymaticDigestion ed;
     vector<StringView> out;
