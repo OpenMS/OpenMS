@@ -40,10 +40,14 @@ set(visual_executables_list
   MultiGradient_test
 )
 
+
+set(CMAKE_AUTOMOC ON)
+set(CMAKE_INCLUDE_CURRENT_DIR ON)
+
 #------------------------------------------------------------------------------
 # required to build GUI tests (e.g., TOPPView_test)
-add_definitions(-DQT_GUI_LIB)
 include_directories(SYSTEM ${OpenMS_GUI_INCLUDE_DIRECTORIES})
+
 # add include to find moced files
 include_directories(${PROJECT_BINARY_DIR})
 
@@ -51,6 +55,12 @@ include_directories(${PROJECT_BINARY_DIR})
 # VISUAL
 add_custom_target(VISUAL_TEST)
 add_dependencies(VISUAL_TEST ${visual_executables_list})
+
+find_package(Qt5 COMPONENTS Core Network Widgets Svg OpenGL REQUIRED)
+if (NOT Qt5Widgets_FOUND)
+  message(STATUS "QtWidgets module not found!")
+  message(FATAL_ERROR "To find a custom Qt installation use: cmake <..more options..> -D QT_QMAKE_EXECUTABLE='<path_to_qmake(.exe)' <src-dir>")
+endif()
 
 foreach(_class_test ${visual_executables_list})
   add_executable(${_class_test} source/${_class_test}.cpp)
@@ -75,12 +85,12 @@ if(HAS_XSERVER)
 
   #------------------------------------------------------------------------------
   # Use QtTest lib
-  find_package(Qt4 REQUIRED QtTest)
-  if (NOT QT4_FOUND)
+
+  find_package(Qt5 COMPONENTS Test REQUIRED)
+  if (NOT Qt5Test_FOUND)
     message(STATUS "QtTest module not found!")
     message(FATAL_ERROR "To find a custom Qt installation use: cmake <..more options..> -D QT_QMAKE_EXECUTABLE='<path_to_qmake(.exe)' <src-dir>")
   endif()
-  include(${QT_USE_FILE})
 
   #------------------------------------------------------------------------------
   # We need some special treatments of boost in moc, hence we search for boost
@@ -90,14 +100,12 @@ if(HAS_XSERVER)
   #------------------------------------------------------------------------------
   # Add GUI tests
   foreach(_gui_test ${GUI_executables_list})
-    # moc the test file
-    QT4_WRAP_CPP(_mocced_test_file source/GUI/${_gui_test}.cpp OPTIONS ${BOOST_MOC_ARGS})
-    # define source file dependency
-    set_source_files_properties(source/GUI/${_gui_test}.cpp PROPERTIES OBJECT_DEPENDS ${_mocced_test_file})
-    # add the executable
-    add_executable(${_gui_test} source/GUI/${_gui_test}.cpp)
+    # add the executable (Note: The header needs to be added as source file, too. Otherwise automoc will not find it.
+    add_executable(${_gui_test} source/GUI/${_gui_test}.cpp ${CMAKE_CURRENT_SOURCE_DIR}/include/GUI/${_gui_test}.h)
+    # add headers
+    target_include_directories(${_gui_test} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include/GUI)
     # link against openms_gui and qt
-    target_link_libraries(${_gui_test} ${OpenMS_GUI_LIBRARIES} ${QT_LIBRARIES})
+    target_link_libraries(${_gui_test} ${OpenMS_GUI_LIBRARIES} ${QT_LIBRARIES} Qt5::Test)
     # add the test
     add_test(${_gui_test} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${_gui_test})
     # only add OPENMP flags to gcc linker (execpt Mac OS X, due to compiler bug

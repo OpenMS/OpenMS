@@ -46,7 +46,9 @@ foreach(file ${se_files})
   string(REPLACE "${SE_PATH}/" "" trimmed_file ${file})
   
   set(pos -1) 
-  if(trimmed_file MATCHES ".git/.*")
+  ## TODO currently we omit the vcredists and request the user to install
+  ## them via the OpenMS dependency installer during plugin install in KNIME
+  if(trimmed_file MATCHES ".git/.*" OR trimmed_file MATCHES "vcredist.*")
     string(LENGTH "${CMAKE_MATCH_1}" pos) 
   endif() 
   

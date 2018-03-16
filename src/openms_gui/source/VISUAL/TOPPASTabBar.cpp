@@ -35,9 +35,9 @@
 #include <OpenMS/VISUAL/TOPPASTabBar.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 
-#include <QtGui/QMouseEvent>
-#include <QtGui/QMenu>
-#include <QtGui/QMessageBox>
+#include <QMouseEvent>
+#include <QtWidgets/QMenu>
+#include <QtWidgets/QMessageBox>
 
 #include <iostream>
 
