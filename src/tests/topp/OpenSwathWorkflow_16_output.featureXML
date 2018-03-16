@@ -108,6 +108,7 @@
 			<UserParam type="float" name="var_log_sn_score" value="0.753981936346021"/>
 			<UserParam type="float" name="var_mi_score" value="3.30055909239095"/>
 			<UserParam type="float" name="var_mi_weighted_score" value="3.30055909239095"/>
+			<UserParam type="float" name="var_mi_ratio_score" value="1"/>
 			<UserParam type="float" name="xx_lda_prelim_score" value="6.58442517982624"/>
 			<UserParam type="float" name="var_isotope_correlation_score" value="0.865706760687806"/>
 			<UserParam type="float" name="var_isotope_overlap_score" value="0.181819841265678"/>
@@ -229,6 +230,7 @@
 			<UserParam type="float" name="var_log_sn_score" value="0.749919712129637"/>
 			<UserParam type="float" name="var_mi_score" value="3.40582225028569"/>
 			<UserParam type="float" name="var_mi_weighted_score" value="3.40582225028569"/>
+			<UserParam type="float" name="var_mi_ratio_score" value="1"/>
 			<UserParam type="float" name="xx_lda_prelim_score" value="6.57899346859952"/>
 			<UserParam type="float" name="var_isotope_correlation_score" value="0.860907983763793"/>
 			<UserParam type="float" name="var_isotope_overlap_score" value="0.181819826364517"/>
@@ -350,6 +352,7 @@
 			<UserParam type="float" name="var_log_sn_score" value="0.738216912610068"/>
 			<UserParam type="float" name="var_mi_score" value="3.26393342948563"/>
 			<UserParam type="float" name="var_mi_weighted_score" value="3.26393342948563"/>
+			<UserParam type="float" name="var_mi_ratio_score" value="0.929608098362131"/>
 			<UserParam type="float" name="xx_lda_prelim_score" value="6.56726918051099"/>
 			<UserParam type="float" name="var_isotope_correlation_score" value="0.860792892768576"/>
 			<UserParam type="float" name="var_isotope_overlap_score" value="0.181819945573807"/>
@@ -471,6 +474,7 @@
 			<UserParam type="float" name="var_log_sn_score" value="0.831956344636356"/>
 			<UserParam type="float" name="var_mi_score" value="3.25"/>
 			<UserParam type="float" name="var_mi_weighted_score" value="3.25"/>
+			<UserParam type="float" name="var_mi_ratio_score" value="0.898696555550019"/>
 			<UserParam type="float" name="xx_lda_prelim_score" value="6.63251659002189"/>
 			<UserParam type="float" name="var_isotope_correlation_score" value="0.860677837200226"/>
 			<UserParam type="float" name="var_isotope_overlap_score" value="0.181819885969162"/>
@@ -592,6 +596,7 @@
 			<UserParam type="float" name="var_log_sn_score" value="0.812695289786925"/>
 			<UserParam type="float" name="var_mi_score" value="3.24022392894185"/>
 			<UserParam type="float" name="var_mi_weighted_score" value="3.24022392894185"/>
+			<UserParam type="float" name="var_mi_ratio_score" value="0.870650720512417"/>
 			<UserParam type="float" name="xx_lda_prelim_score" value="6.62247945289589"/>
 			<UserParam type="float" name="var_isotope_correlation_score" value="0.860562740097403"/>
 			<UserParam type="float" name="var_isotope_overlap_score" value="0.181820034980774"/>
@@ -713,6 +718,7 @@
 			<UserParam type="float" name="var_log_sn_score" value="0.812695289786925"/>
 			<UserParam type="float" name="var_mi_score" value="3.24022392894185"/>
 			<UserParam type="float" name="var_mi_weighted_score" value="3.24022392894185"/>
+			<UserParam type="float" name="var_mi_ratio_score" value="0.870650720512417"/>
 			<UserParam type="float" name="xx_lda_prelim_score" value="6.62247945289589"/>
 			<UserParam type="float" name="var_isotope_correlation_score" value="0.860562740097403"/>
 			<UserParam type="float" name="var_isotope_overlap_score" value="0.181820034980774"/>

@@ -89,6 +89,7 @@
 			<UserParam type="float" name="var_log_sn_score" value="4.45439541136954"/>
 			<UserParam type="float" name="var_mi_score" value="3.8073549220576"/>
 			<UserParam type="float" name="var_mi_weighted_score" value="3.8073549220576"/>
+			<UserParam type="float" name="var_mi_ratio_score" value="1.20480941215562"/>
 			<UserParam type="float" name="var_elution_model_fit_score" value="0.985403120517731"/>
 			<UserParam type="float" name="xx_lda_prelim_score" value="-21994.8526299932"/>
 			<UserParam type="float" name="var_isotope_correlation_score" value="0.998094062533601"/>
@@ -195,6 +196,7 @@
 			<UserParam type="float" name="var_log_sn_score" value="1.23074598364098"/>
 			<UserParam type="float" name="var_mi_score" value="1.75162916738782"/>
 			<UserParam type="float" name="var_mi_weighted_score" value="2.20105644479131"/>
+			<UserParam type="float" name="var_mi_ratio_score" value="0.455194183085335"/>
 			<UserParam type="float" name="var_elution_model_fit_score" value="0.88344943523407"/>
 			<UserParam type="float" name="xx_lda_prelim_score" value="-21551.8862238136"/>
 			<UserParam type="float" name="var_isotope_correlation_score" value="0.972666514028789"/>
@@ -301,6 +303,7 @@
 			<UserParam type="float" name="var_log_sn_score" value="3.40718216971789"/>
 			<UserParam type="float" name="var_mi_score" value="3.66449777920046"/>
 			<UserParam type="float" name="var_mi_weighted_score" value="3.56432195667905"/>
+			<UserParam type="float" name="var_mi_ratio_score" value="0.952289505151783"/>
 			<UserParam type="float" name="var_elution_model_fit_score" value="0.902114371458689"/>
 			<UserParam type="float" name="xx_lda_prelim_score" value="-22000.322668871"/>
 			<UserParam type="float" name="var_isotope_correlation_score" value="0.907549839418365"/>
