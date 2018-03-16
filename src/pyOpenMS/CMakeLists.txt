@@ -433,7 +433,7 @@ configure_file(${_env_py_in} ${_env_py} @ONLY)
 
 IF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
   add_custom_target(pyopenms_create_cpp
-    COMMAND ${PYTHON_EXECUTABLE} create_cpp_extension.py | grep -v warning
+    COMMAND ${PYTHON_EXECUTABLE} create_cpp_extension.py  2> >(grep -v warning 1>&2) 
     DEPENDS OpenMS SuperHirn
     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS )
 ELSE()
