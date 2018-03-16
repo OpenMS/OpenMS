@@ -53,7 +53,7 @@
 #include <OpenMS/SYSTEM/StopWatch.h>
 #include <OpenMS/SYSTEM/SysInfo.h>
 
-
+#include <atomic>
 #include <algorithm>
 #include <fstream>
 
@@ -273,21 +273,22 @@ public:
         /*
            Aho Corasick (fast)
         */
-        LOG_INFO << "Searching with up to " << aaa_max_ << " ambiguous amino acids!" << std::endl;
+        LOG_INFO << "Searching with up to " << aaa_max_ << " ambiguous amino acid(s) and " << mm_max_ << " mismatch(es)!" << std::endl;
         SysInfo::MemUsage mu;
         LOG_INFO << "Building trie ...";
         StopWatch s;
         s.start();
         AhoCorasickAmbiguous::FuzzyACPattern pattern;
-        AhoCorasickAmbiguous::initPattern(pep_DB, aaa_max_, pattern);
+        AhoCorasickAmbiguous::initPattern(pep_DB, aaa_max_, mm_max_, pattern);
         s.stop();
         LOG_INFO << " done (" << int(s.getClockTime()) << "s)" << std::endl;
         s.reset();
 
         uint16_t count_j_proteins(0);
         bool has_active_data = true; // becomes false if end of FASTA file is reached
-        const std::string jumpX(aaa_max_ + 1, 'X'); // jump over stretches of 'X' which cost a lot of time; +1 because  AXXA is a valid hit for aaa_max == 2 (cannot split it)
+        const std::string jumpX(aaa_max_ + mm_max_ + 1, 'X'); // jump over stretches of 'X' which cost a lot of time; +1 because  AXXA is a valid hit for aaa_max == 2 (cannot split it)
         this->startProgress(0, proteins.size(), "Aho-Corasick");
+        std::atomic<int> progress_prots(0);
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
@@ -295,6 +296,7 @@ public:
           FoundProteinFunctor func_threads(enzyme);
           Map<String, Size> acc_to_prot_thread; // map: accessions --> FASTA protein index
           AhoCorasickAmbiguous fuzzyAC;
+          String prot;
 
           while (true) 
           {
@@ -326,8 +328,13 @@ public:
             #pragma omp for schedule(dynamic, 100) nowait
             for (SignedSize i = 0; i < prot_count; ++i)
             {
-              String prot = proteins.chunkAt(i).sequence;
+              ++progress_prots; // atomic
+              if (omp_get_thread_num() == 0)
+              {
+                this->setProgress(progress_prots);
+              }
 
+              prot = proteins.chunkAt(i).sequence;
               prot.remove('*');
 
               // check for invalid sequences with modifications
@@ -405,11 +412,11 @@ public:
             } // OMP end critical
           } // end readChunk
         } // OMP end parallel
+        this->endProgress();
         std::cout << "Merge took: " << s.toString() << "\n";
         mu.after();
-        std::cout << mu.delta("ACSup done") << "\n\n";
+        std::cout << mu.delta("Aho-Corasick") << "\n\n";
 
-        this->endProgress();
         LOG_INFO << "\nAho-Corasick done:\n  found " << func.filter_passed << " hits for " << func.pep_to_prot.size() << " of " << length(pep_DB) << " peptides.\n";
 
         // write some stats
@@ -812,6 +819,7 @@ protected:
     bool IL_equivalent_;
 
     Int aaa_max_;
+    Int mm_max_;
 
   };
 }

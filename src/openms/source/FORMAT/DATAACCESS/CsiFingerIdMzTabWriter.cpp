@@ -99,7 +99,7 @@ void CsiFingerIdMzTabWriter::read(const std::vector<String> & sirius_output_path
         MzTabMSRunMetaData md_run;
         md_run.location = MzTabString(original_input_mzml);
         md.ms_run[1] = md_run;
-        md.description = MzTabString("CSI:FingerID-3.5");
+        md.description = MzTabString("CSI:FingerID-4.0");
 
         //needed for header generation (score)
         std::map<Size, MzTabParameter> smallmolecule_search_engine_score;

@@ -165,6 +165,7 @@ namespace OpenMS
       { // '0' is included in cleavage_positions, so starting fragments will be found as well
         spec_n = true;
       }
+
       // right end (C-term for peptides):
       if (end == sequence.size())
       { // full length match (end of sequence is not in cleavage_positions)

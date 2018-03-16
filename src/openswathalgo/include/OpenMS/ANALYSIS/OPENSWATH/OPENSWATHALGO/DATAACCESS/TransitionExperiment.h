@@ -151,10 +151,12 @@ public:
   {
 
     LightCompound() :
+      drift_time(-1),
       charge(0)
     {
     }
 
+    double drift_time;
     double rt;
     int charge;
     std::string sequence;
@@ -181,6 +183,16 @@ public:
     int getChargeState() const
     {
       return charge;
+    }
+
+    void setDriftTime(double d)
+    {
+      drift_time = d;
+    }
+
+    int getDriftTime() const
+    {
+      return drift_time;
     }
 
     std::vector<LightModification> modifications;

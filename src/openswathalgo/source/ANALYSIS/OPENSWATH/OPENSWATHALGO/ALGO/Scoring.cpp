@@ -130,11 +130,14 @@ namespace OpenSwath
       {
         sqsum += (*it - mean) * (*it - mean);
       }
-      double std = sqrt(sqsum / data.size()); // standard deviation
+      double stdev = sqrt(sqsum / data.size()); // standard deviation
+
+      if (mean == 0 && stdev == 0) return; // all data is zero
+      if (stdev == 0) stdev = 1; // all data is equal
 
       for (std::size_t i = 0; i < data.size(); i++)
       {
-        data[i] = (data[i] - mean) / std;
+        data[i] = (data[i] - mean) / stdev;
       }
     }
 

@@ -185,6 +185,7 @@ set(format_executables_list
   MascotRemoteQuery_test
   MascotXMLFile_test
   #MSDataWritingConsumer_test
+  MRMFeaturePickerFile_test
   MsInspectFile_test
   MzDataFile_test
   MzIdentMLFile_test
@@ -403,6 +404,7 @@ set(analysis_executables_list
   AbsoluteQuantitationMethodFile_test
   AbsoluteQuantitationStandards_test
   AccurateMassSearchEngine_test
+  AhoCorasickAmbiguous_test
   AScore_test
   BaseGroupFinder_test
   BaseSuperimposer_test
@@ -460,6 +462,7 @@ set(analysis_executables_list
   LocalLinearMap_test
   TargetedExperiment_test
   TargetedExperimentHelper_test
+  MRMFeaturePicker_test
   MRMFragmentSelection_test
   MRMMapping_test
   MapAlignmentAlgorithmIdentification_test
