@@ -146,16 +146,18 @@ protected:
     setValidFormats_("out", ListUtils::create<String>("mzML"));
 
     registerDoubleOption_("min_upper_edge_dist", "<double>", 0.0, "Minimal distance to the edge to still consider a precursor, in Thomson", false);
-    registerDoubleOption_("mz_window", "<double>", 0.05, "Extraction window in m/z dimension (in Thomson, to use ppm see -ppm flag). This is the full window size, e.g. 100 ppm would extract 50 ppm on either side.", false);
+
     registerDoubleOption_("rt_window", "<double>", -1, "Extraction window in RT dimension (-1 means extract over the whole range). This is the full window size, e.g. a value of 1000 seconds would extract 500 seconds on either side.", false);
+    registerDoubleOption_("ion_mobility_window", "<double>", -1, "Extraction window in ion mobility dimension (in milliseconds). This is the full window size, e.g. a value of 10 milliseconds would extract 5 milliseconds on either side.", false);
+    registerDoubleOption_("mz_window", "<double>", 0.05, "Extraction window in m/z dimension (in Thomson, to use ppm see -ppm flag). This is the full window size, e.g. 100 ppm would extract 50 ppm on either side.", false);
     setMinFloat_("mz_window", 0.0);
+    registerFlag_("ppm", "m/z extraction_window is in ppm");
 
     registerFlag_("is_swath", "Set this flag if the data is SWATH data");
-    registerFlag_("ppm", "m/z extraction_window is in ppm");
 
     registerFlag_("extract_MS1", "Extract the MS1 transitions based on the precursor values in the TraML file");
 
-    registerStringOption_("extraction_function", "<name>", "tophat", "Function used to extract the signal", false);
+    registerStringOption_("extraction_function", "<name>", "tophat", "Function used to extract the signal", false, true); // required, advanced
     StringList model_types;
     model_types.push_back("tophat");
     model_types.push_back("bartlett"); // bartlett if we use zeros at the end
@@ -167,14 +169,15 @@ protected:
   void registerModelOptions_(const String & default_model)
   {
     registerTOPPSubsection_("model", "Options to control the modeling of retention time transformations from data");
-    registerStringOption_("model:type", "<name>", default_model, "Type of model", false);
+    registerStringOption_("model:type", "<name>", default_model, "Type of model", false, true);
     StringList model_types;
     TransformationDescription::getModelTypes(model_types);
-    if (!ListUtils::contains(model_types, default_model)) {
+    if (!ListUtils::contains(model_types, default_model))
+    {
       model_types.insert(model_types.begin(), default_model);
     }
     setValidStrings_("model:type", model_types);
-    registerFlag_("model:symmetric_regression", "Only for 'linear' model: Perform linear regression on 'y - x' vs. 'y + x', instead of on 'y' vs. 'x'.");
+    registerFlag_("model:symmetric_regression", "Only for 'linear' model: Perform linear regression on 'y - x' vs. 'y + x', instead of on 'y' vs. 'x'.", true);
   }
 
   ExitCodes main_(int, const char **) override
@@ -188,6 +191,7 @@ protected:
     double min_upper_edge_dist = getDoubleOption_("min_upper_edge_dist");
     double mz_extraction_window = getDoubleOption_("mz_window");
     double rt_extraction_window = getDoubleOption_("rt_window");
+    double im_window = getDoubleOption_("ion_mobility_window");
 
     String extraction_function = getStringOption_("extraction_function");
 
