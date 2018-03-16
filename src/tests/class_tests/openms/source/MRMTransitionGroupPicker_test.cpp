@@ -333,6 +333,8 @@ START_SECTION((template <typename SpectrumT, typename TransitionT> MRMFeature cr
     TEST_REAL_SIMILAR(mrmfeature.getFeature("1").getIntensity(), 61405.95106);
     TEST_REAL_SIMILAR((double)mrmfeature.getFeature("1").getMetaValue("peak_apex_int"), 30286.9130513267);
 
+    TEST_REAL_SIMILAR(mrmfeature.getFeature("2").getIntensity()/mrmfeature.getFeature("1").getIntensity(), 8.72556) // ratio should be stable
+
     // feature dimension
     TEST_EQUAL(mrmfeature.getRT(), 1490.0)
     TEST_REAL_SIMILAR( mrmfeature.getMetaValue("leftWidth"), left_start);
@@ -348,38 +350,15 @@ START_SECTION((template <typename SpectrumT, typename TransitionT> MRMFeature cr
     picker.setParameters(picker_param);
 
     MRMFeature mrmfeature = picker.createMRMFeature(transition_group, picked_chroms, smoothed_chroms, chr_idx, peak_idx);
-    TEST_REAL_SIMILAR(mrmfeature.getRT(), 1490.0)
 
-    // test the number of hull points (should be equal)
-    TEST_EQUAL( mrmfeature.getFeature("1").getConvexHulls()[0].getHullPoints().size(), 12);
-    TEST_EQUAL( mrmfeature.getFeature("2").getConvexHulls()[0].getHullPoints().size(), 12);
-
-    // the intensity of the hull points should not have changed
-    ConvexHull2D::PointArrayType data1_points = mrmfeature.getFeature("2").getConvexHulls()[0].getHullPoints();
-    double sum = 0.0;
-    for (ConvexHull2D::PointArrayType::iterator it = data1_points.begin(); it != data1_points.end(); it++)
-    {
-      sum += it->getY();
-    }
-    TEST_REAL_SIMILAR(sum, 535801.503);
     TEST_REAL_SIMILAR(mrmfeature.getFeature("2").getIntensity(), 514583); // slightly reduced value due to background subtraction
     TEST_REAL_SIMILAR((double)mrmfeature.getFeature("2").getMetaValue("peak_apex_int"), 155925.8085); // slightly reduced value due to background subtraction
-    ConvexHull2D::PointArrayType data2_points = mrmfeature.getFeature("1").getConvexHulls()[0].getHullPoints();
-    sum = 0.0;
-    for (ConvexHull2D::PointArrayType::iterator it = data2_points.begin(); it != data2_points.end(); it++)
-    {
-      sum += it->getY();
-    }
-    TEST_REAL_SIMILAR(sum, 61405.95106);
     TEST_REAL_SIMILAR(mrmfeature.getFeature("1").getIntensity(), 60913.8); // slightly reduced value due to background subtraction
     TEST_REAL_SIMILAR((double)mrmfeature.getFeature("2").getMetaValue("peak_apex_int"), 155925.8085); // slightly reduced value due to background subtraction
-
-    // feature dimension
-    TEST_EQUAL(mrmfeature.getRT(), 1490.0)
-    TEST_REAL_SIMILAR( mrmfeature.getMetaValue("leftWidth"), left_start);
-    TEST_REAL_SIMILAR( mrmfeature.getMetaValue("rightWidth"), right_end);
+    TEST_REAL_SIMILAR(mrmfeature.getFeature("2").getIntensity()/mrmfeature.getFeature("1").getIntensity(), 8.44773) // ratio should be stable
   }
 
+  // background subtraction with peak integrator
   {
     MRMTransitionGroupPicker picker;
     Param picker_param = picker.getDefaults();
@@ -389,78 +368,31 @@ START_SECTION((template <typename SpectrumT, typename TransitionT> MRMFeature cr
     picker.setParameters(picker_param);
 
     MRMFeature mrmfeature = picker.createMRMFeature(transition_group, picked_chroms, smoothed_chroms, chr_idx, peak_idx);
-    TEST_REAL_SIMILAR(mrmfeature.getRT(), 1490.0)
 
-    // test the number of hull points (should be equal)
-    TEST_EQUAL( mrmfeature.getFeature("1").getConvexHulls()[0].getHullPoints().size(), 12);
-    TEST_EQUAL( mrmfeature.getFeature("2").getConvexHulls()[0].getHullPoints().size(), 12);
-
-    // the intensity of the hull points should not have changed
-    ConvexHull2D::PointArrayType data1_points = mrmfeature.getFeature("2").getConvexHulls()[0].getHullPoints();
-    double sum = 0.0;
-    for (ConvexHull2D::PointArrayType::iterator it = data1_points.begin(); it != data1_points.end(); it++)
-    {
-      sum += it->getY();
-    }
-    TEST_REAL_SIMILAR(sum, 535801.503);
     TEST_REAL_SIMILAR(mrmfeature.getFeature("2").getIntensity(), 514590); // slightly reduced value due to background subtraction
     TEST_REAL_SIMILAR((double)mrmfeature.getFeature("2").getMetaValue("peak_apex_int"), 155331.37806798); // slightly reduced value due to background subtraction
-    ConvexHull2D::PointArrayType data2_points = mrmfeature.getFeature("1").getConvexHulls()[0].getHullPoints();
-    sum = 0.0;
-    for (ConvexHull2D::PointArrayType::iterator it = data2_points.begin(); it != data2_points.end(); it++)
-    {
-      sum += it->getY();
-    }
-    TEST_REAL_SIMILAR(sum, 61405.95106);
     TEST_REAL_SIMILAR(mrmfeature.getFeature("1").getIntensity(), 61009.7); // slightly reduced value due to background subtraction
     TEST_REAL_SIMILAR((double)mrmfeature.getFeature("1").getMetaValue("peak_apex_int"), 30251.2414481247); // slightly reduced value due to background subtraction
-
-    // feature dimension
-    TEST_EQUAL(mrmfeature.getRT(), 1490.0)
-    TEST_REAL_SIMILAR( mrmfeature.getMetaValue("leftWidth"), left_start);
-    TEST_REAL_SIMILAR( mrmfeature.getMetaValue("rightWidth"), right_end);
+    TEST_REAL_SIMILAR(mrmfeature.getFeature("2").getIntensity()/mrmfeature.getFeature("1").getIntensity(), 8.43456040596823) // ratio should be stable
   }
 
+  // integration with Simpon's rule (with background subtraction)
   {
     MRMTransitionGroupPicker picker;
     Param picker_param = picker.getDefaults();
     picker_param.setValue("PeakPickerMRM::method", "legacy"); // old parameters
     picker_param.setValue("PeakPickerMRM::peak_width", 40.0); // old parameters
     picker_param.setValue("background_subtraction", "exact");
-    picker_param.setValue("PeakIntegrator:integration_type", "trapezoid");
+    picker_param.setValue("PeakIntegrator:integration_type", "simpson");
     picker.setParameters(picker_param);
 
     MRMFeature mrmfeature = picker.createMRMFeature(transition_group, picked_chroms, smoothed_chroms, chr_idx, peak_idx);
-    TEST_REAL_SIMILAR(mrmfeature.getRT(), 1490.0)
 
-    // test the number of hull points (should be equal)
-    TEST_EQUAL( mrmfeature.getFeature("1").getConvexHulls()[0].getHullPoints().size(), 12);
-    TEST_EQUAL( mrmfeature.getFeature("2").getConvexHulls()[0].getHullPoints().size(), 12);
-
-    // the intensity of the hull points should not have changed
-    ConvexHull2D::PointArrayType data1_points = mrmfeature.getFeature("2").getConvexHulls()[0].getHullPoints();
-    double sum = 0.0;
-    for (ConvexHull2D::PointArrayType::iterator it = data1_points.begin(); it != data1_points.end(); it++)
-    {
-      sum += it->getY();
-    }
-    TEST_REAL_SIMILAR(sum, 535801.503);
-    TEST_REAL_SIMILAR(mrmfeature.getFeature("2").getIntensity(), 514590); // slightly reduced value due to background subtraction
+    TEST_REAL_SIMILAR(mrmfeature.getFeature("2").getIntensity(), 1.42194e+06); // slightly reduced value due to background subtraction
     TEST_REAL_SIMILAR((double)mrmfeature.getFeature("2").getMetaValue("peak_apex_int"), 155331.37806798); // slightly reduced value due to background subtraction
-    ConvexHull2D::PointArrayType data2_points = mrmfeature.getFeature("1").getConvexHulls()[0].getHullPoints();
-    sum = 0.0;
-    for (ConvexHull2D::PointArrayType::iterator it = data2_points.begin(); it != data2_points.end(); it++)
-    {
-      sum += it->getY();
-    }
-    TEST_REAL_SIMILAR(sum, 61405.95106);
-    TEST_REAL_SIMILAR(mrmfeature.getFeature("1").getIntensity(), 61009.7); // slightly reduced value due to background subtraction
+    TEST_REAL_SIMILAR(mrmfeature.getFeature("1").getIntensity(), 168685); // slightly reduced value due to background subtraction
     TEST_REAL_SIMILAR((double)mrmfeature.getFeature("1").getMetaValue("peak_apex_int"), 30251.2414481247); // slightly reduced value due to background subtraction
-
-    // feature dimension
-    TEST_EQUAL(mrmfeature.getRT(), 1490.0)
-    TEST_REAL_SIMILAR( mrmfeature.getMetaValue("leftWidth"), left_start);
-    TEST_REAL_SIMILAR( mrmfeature.getMetaValue("rightWidth"), right_end);
+    TEST_REAL_SIMILAR(mrmfeature.getFeature("2").getIntensity()/mrmfeature.getFeature("1").getIntensity(), 8.42957) // ratio should be stable
   }
 }
 END_SECTION
