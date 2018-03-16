@@ -249,16 +249,25 @@ namespace OpenMS
       }
       else if (integration_type_ == INTEGRATION_TYPE_INTENSITYSUM)
       {
-        // calculate the background using the formula
-        // y = mx + b where x = rt or mz, m = slope, b = left intensity
+        // calculate the background using an estimator of the form
+        //    y = mx + b
+        //    where x = rt or mz, m = slope, b = left intensity
         // sign of delta_int will determine line direction
         // area += delta_int / delta_pos * (it->getPos() - left) + int_l;
+        double pos_sum = 0.0; // rt or mz
         for (auto it = p.PosBegin(left); it != p.PosEnd(right); ++it)
         {
-          area += it->getPos();
+          pos_sum += it->getPos();
         }
         UInt n_points = std::distance(p.PosBegin(left), p.PosEnd(right));
-        area = (area - n_points * p.PosBegin(left)->getPos()) * delta_int / delta_pos + n_points * int_l;
+
+        // We construct the background area as the sum of a rectangular part
+        // and a triangle on top. The triangle is constructed as the sum of the
+        // line's y value at each sampled point: \sum_{i=0}^{n} (x_i - x_0)  * m
+        double rectangle_area = n_points * int_l;
+        double slope = delta_int / delta_pos;
+        double triangle_area = (pos_sum - n_points * p.PosBegin(left)->getPos()) * slope;
+        area = triangle_area + rectangle_area;
       }
     }
     else if (baseline_type_ == BASELINE_TYPE_VERTICALDIVISION || baseline_type_ == BASELINE_TYPE_VERTICALDIVISION_MIN)
