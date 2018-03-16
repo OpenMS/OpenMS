@@ -584,6 +584,7 @@ START_SECTION(( void domParseSpectrum(const std::string& in, OpenMS::Interfaces:
   TEST_REAL_SIMILAR(s[7].getMZ(), 7)
   TEST_REAL_SIMILAR(s[7].getIntensity(), 8)
   TEST_REAL_SIMILAR(s.getFloatDataArrays()[0][7], 8)
+  TEST_EQUAL(s.getFloatDataArrays()[0].getName(), "Ion Mobility")
 }
 END_SECTION
 
@@ -624,8 +625,7 @@ START_SECTION(( void domParseChromatogram(const std::string& in, OpenMS::Interfa
   TEST_REAL_SIMILAR(s[5].getRT(), 5)
   TEST_REAL_SIMILAR(s[5].getIntensity(), 5)
   TEST_REAL_SIMILAR(s.getFloatDataArrays()[0][7], 8)
-
-
+  TEST_EQUAL(s.getFloatDataArrays()[0].getName(), "Ion Mobility")
 }
 END_SECTION
 
