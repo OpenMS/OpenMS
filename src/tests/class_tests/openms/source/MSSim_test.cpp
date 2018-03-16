@@ -169,8 +169,8 @@ omp_set_num_threads(1);
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-MSSim* ptr = 0;
-MSSim* nullPointer = 0;
+MSSim* ptr = nullptr;
+MSSim* nullPointer = nullptr;
 START_SECTION(MSSim())
 {
   ptr = new MSSim();

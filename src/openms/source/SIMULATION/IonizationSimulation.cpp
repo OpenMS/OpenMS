@@ -34,14 +34,7 @@
 
 #include <OpenMS/SIMULATION/IonizationSimulation.h>
 
-#include <OpenMS/DATASTRUCTURES/Adduct.h>
 #include <OpenMS/DATASTRUCTURES/Compomer.h>
-#include <OpenMS/DATASTRUCTURES/ListUtils.h>
-
-#include <OpenMS/CONCEPT/Constants.h>
-
-#include <cmath>
-#include <algorithm>
 
 #include <boost/bind.hpp>
 #include <boost/random/binomial_distribution.hpp>
@@ -349,7 +342,7 @@ public:
 
         // assumption: each basic residue can hold one charged adduct
         // , we need a custom comparator, as building Compomers step by step can lead to
-        // numeric diffs (and thus distinct compomers) - we only use EF to discern, thats sufficient here
+        // numeric diffs (and thus distinct compomers) - we only use EF to discern, that's sufficient here
         std::map<Compomer, UInt, CompareCmpByEF_> charge_states;
         Size adduct_index;
         UInt charge;

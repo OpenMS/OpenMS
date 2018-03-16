@@ -53,8 +53,8 @@ START_TEST(MzDataValidator, "$Id$")
 CVMappings mapping;
 ControlledVocabulary cv;
 
-MzDataValidator* ptr = 0;
-MzDataValidator* nullPointer = 0;
+MzDataValidator* ptr = nullptr;
+MzDataValidator* nullPointer = nullptr;
 START_SECTION((MzDataValidator(const CVMappings &mapping, const ControlledVocabulary &cv)))
 {
 	ptr = new MzDataValidator(mapping, cv);

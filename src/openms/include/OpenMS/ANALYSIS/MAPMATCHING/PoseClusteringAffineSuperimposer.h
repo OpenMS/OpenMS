@@ -73,8 +73,8 @@ public:
     PoseClusteringAffineSuperimposer();
 
     /// Destructor
-    virtual
-    ~PoseClusteringAffineSuperimposer()
+    
+    ~PoseClusteringAffineSuperimposer() override
     {}
 
     /**
@@ -96,7 +96,7 @@ public:
 
       @exception IllegalArgument is thrown if the input maps are invalid.
     */
-    virtual void run(const ConsensusMap & map_model, const ConsensusMap & map_scene, TransformationDescription & transformation);
+    void run(const ConsensusMap & map_model, const ConsensusMap & map_scene, TransformationDescription & transformation) override;
 
     /// Perform alignment on vector of 1D peaks
     virtual void run(const std::vector<Peak2D> & map_model, const std::vector<Peak2D> & map_scene, TransformationDescription & transformation);

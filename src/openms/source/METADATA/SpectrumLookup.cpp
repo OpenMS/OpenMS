@@ -249,6 +249,72 @@ namespace OpenMS
     return -1;
   }
 
+  Int SpectrumLookup::extractScanNumber(const String& native_id,
+                                        const String& native_id_type_accession)
+  {
+    // check accession for data type to extract (e.g. MS:1000768 - Thermo nativeID format - scan=xsd:positiveInteger)
+    boost::regex regexp;
+    // list of CV accessions with native id format "scan=NUMBER"
+    std::vector<String> scan = {"MS:1000768","MS:1000769","MS:1000771","MS:1000772","MS:1000776"};
+    // list of CV accession with native id format "file=NUMBER"
+    std::vector<String> file = {"MS:1000773","MS:1000775"};
+    
+    // "scan=NUMBER" 
+    if (std::find(scan.begin(), scan.end(), native_id_type_accession) != scan.end())
+    {
+      regexp = std::string("scan=(?<GROUP>\\d+)");
+    }
+    // "experiment=NUMBER"
+    else if (native_id_type_accession == "MS:1000770")
+    {
+      regexp = std::string("experiment=(?<GROUP>\\d+)");
+    }
+    // "file=NUMBER"
+    else if (std::find(file.begin(), file.end(), native_id_type_accession) != file.end())
+    {
+      regexp = std::string("file=(?<GROUP>\\d+)");
+    }
+    // "index=NUMBER"
+    else if (native_id_type_accession == "MS:1000774")
+    {
+      regexp = std::string("index=(?<GROUP>\\d+)");
+    }
+    // "spectrum=NUMBER"
+    else if (native_id_type_accession == "MS:1000777")
+    {
+      regexp = std::string("spectrum=(?<GROUP>\\d+)");
+    }
+    // NUMBER 
+    else if (native_id_type_accession == "MS:1001530")  
+    {
+      regexp = std::string("(?<GROUP>\\d+)");
+    }
+    else
+    {
+      LOG_WARN << "native_id: " << native_id << " accession: " << native_id_type_accession << " Could not extract scan number - no valid native_id_type_accession was provided" << std::endl;
+    }
+
+    if (!regexp.empty()) 
+    {
+      boost::smatch match;
+      bool found = boost::regex_search(native_id, match, regexp);
+      if (found && match["GROUP"].matched)
+      { 
+        try
+        {
+          String value = match["GROUP"].str();
+          return value.toInt();
+        }
+        catch (Exception::ConversionError&)
+        {
+          LOG_WARN << "Value could not be converted to int" << std::endl;
+          return -1;
+        }
+      }
+    }
+    return -1;
+  } 
+
 
   void SpectrumLookup::addEntry_(Size index, double rt, Int scan_number,
                                  const String& native_id)

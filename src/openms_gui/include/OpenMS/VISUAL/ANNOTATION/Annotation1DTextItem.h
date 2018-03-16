@@ -54,16 +54,16 @@ public:
     Annotation1DTextItem(const Annotation1DTextItem & rhs);
 
     /// Destructor
-    virtual ~Annotation1DTextItem();
+    ~Annotation1DTextItem() override;
 
     // Docu in base class
-    virtual void ensureWithinDataRange(Spectrum1DCanvas * const canvas);
+    void ensureWithinDataRange(Spectrum1DCanvas * const canvas) override;
 
     // Docu in base class
-    virtual void draw(Spectrum1DCanvas * const canvas, QPainter & painter, bool flipped = false);
+    void draw(Spectrum1DCanvas * const canvas, QPainter & painter, bool flipped = false) override;
 
     // Docu in base class
-    virtual void move(const PointType & delta);
+    void move(const PointType & delta) override;
 
     /// Sets the position of the item (in MZ / intensity coordinates)
     void setPosition(const PointType & position);

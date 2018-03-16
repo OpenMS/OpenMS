@@ -49,8 +49,8 @@ START_TEST(CVMappingRule, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-CVMappingRule* ptr = 0;
-CVMappingRule* nullPointer = 0;
+CVMappingRule* ptr = nullptr;
+CVMappingRule* nullPointer = nullptr;
 START_SECTION(CVMappingRule())
 {
 	ptr = new CVMappingRule();

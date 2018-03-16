@@ -33,22 +33,12 @@
 // --------------------------------------------------------------------------
 #include <OpenMS/ANALYSIS/DECHARGING/ILPDCWrapper.h>
 
-#include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/DATASTRUCTURES/LPWrapper.h>
 #include <OpenMS/DATASTRUCTURES/MassExplainer.h>
-#include <OpenMS/DATASTRUCTURES/Map.h>
-#include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/SYSTEM/StopWatch.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 
-#include <iostream>
-#include <ctime>
-#include <cmath>
-#include <climits>
 #include <fstream>
-#include <vector>
-#include <algorithm>
-#include <utility>
 
 namespace OpenMS
 {
@@ -364,7 +354,7 @@ namespace OpenMS
         score_max = score;
 
       // DEBUG:
-      //std::cerr << "MIP: egde#"<< i << " score: " << pairs[i].getEdgeScore() << " adduct:" << pairs[i].getCompomer().getAdductsAsString() << "\n";
+      //std::cerr << "MIP: edge#"<< i << " score: " << pairs[i].getEdgeScore() << " adduct:" << pairs[i].getCompomer().getAdductsAsString() << "\n";
     }
     if (verbose_level > 2)
       LOG_INFO << "score_min: " << score_min << " score_max: " << score_max << "\n";
@@ -518,7 +508,7 @@ namespace OpenMS
   {
     double score;
     String e;
-    if (getenv("M") != 0)
+    if (getenv("M") != nullptr)
       e = String(getenv("M"));
     if (e == "")
     {

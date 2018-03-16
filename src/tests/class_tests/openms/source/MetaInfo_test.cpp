@@ -49,8 +49,8 @@ START_TEST(Example, "$Id$")
 using namespace std;
 using namespace OpenMS;
 
-MetaInfo* test = 0;
-MetaInfo* nullPointer = 0;
+MetaInfo* test = nullptr;
+MetaInfo* nullPointer = nullptr;
 
 START_SECTION((MetaInfo()))
 	test = new MetaInfo;

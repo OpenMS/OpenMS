@@ -47,8 +47,8 @@ START_TEST(ChromatogramPeak, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-ChromatogramPeak* ptr = 0;
-ChromatogramPeak* nullPointer = 0;
+ChromatogramPeak* ptr = nullptr;
+ChromatogramPeak* nullPointer = nullptr;
 START_SECTION(ChromatogramPeak())
 {
 	ptr = new ChromatogramPeak();
@@ -128,6 +128,19 @@ START_SECTION((ChromatogramPeak(const ChromatogramPeak& p)))
   TEST_REAL_SIMILAR(i2, 123.456)
 
   TEST_REAL_SIMILAR(pos2[0], 21.21)
+END_SECTION
+
+START_SECTION((ChromatogramPeak(const PositionType retention_time, const IntensityType intensity)))
+  ChromatogramPeak p1(3.0, 5.0);
+  TEST_REAL_SIMILAR(p1.getRT(), 3.0)
+  TEST_REAL_SIMILAR(p1.getIntensity(), 5.0)
+
+  ChromatogramPeak::PositionType retention_time;
+  retention_time[0] = 2.0;
+  ChromatogramPeak::IntensityType intensity = 4.0;
+  ChromatogramPeak p2(retention_time, intensity);
+  TEST_REAL_SIMILAR(p2.getRT(), 2.0)
+  TEST_REAL_SIMILAR(p2.getIntensity(), 4.0)
 END_SECTION
 
 START_SECTION((ChromatogramPeak& operator = (const ChromatogramPeak& rhs)))

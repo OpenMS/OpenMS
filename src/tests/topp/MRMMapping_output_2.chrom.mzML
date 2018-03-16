@@ -1,0 +1,187 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<indexedmzML xmlns="http://psi.hupo.org/ms/mzml" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://psi.hupo.org/ms/mzml http://psidev.info/files/ms/mzML/xsd/mzML1.1.0_idx.xsd">
+<mzML xmlns="http://psi.hupo.org/ms/mzml" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://psi.hupo.org/ms/mzml http://psidev.info/files/ms/mzML/xsd/mzML1.1.0.xsd" accession="" version="1.1.0">
+	<cvList count="5">
+		<cv id="MS" fullName="Proteomics Standards Initiative Mass Spectrometry Ontology" URI="http://psidev.cvs.sourceforge.net/*checkout*/psidev/psi/psi-ms/mzML/controlledVocabulary/psi-ms.obo"/>
+		<cv id="UO" fullName="Unit Ontology" URI="http://obo.cvs.sourceforge.net/obo/obo/ontology/phenotype/unit.obo"/>
+		<cv id="BTO" fullName="BrendaTissue545" version="unknown" URI="http://www.brenda-enzymes.info/ontology/tissue/tree/update/update_files/BrendaTissueOBO"/>
+		<cv id="GO" fullName="Gene Ontology - Slim Versions" version="unknown" URI="http://www.geneontology.org/GO_slims/goslim_goa.obo"/>
+		<cv id="PATO" fullName="Quality ontology" version="unknown" URI="http://obo.cvs.sourceforge.net/*checkout*/obo/obo/ontology/phenotype/quality.obo"/>
+	</cvList>
+	<fileDescription>
+		<fileContent>
+			<cvParam cvRef="MS" accession="MS:1000294" name="mass spectrum" />
+		</fileContent>
+		<sourceFileList count="1">
+			<sourceFile id="sf_ru_0" name="unkown_testfile" location="file://./">
+				<cvParam cvRef="MS" accession="MS:1000569" name="SHA-1" value="unkown_testfile" />
+				<cvParam cvRef="MS" accession="MS:1000564" name="PSI mzData format" />
+				<cvParam cvRef="MS" accession="MS:1000777" name="spectrum identifier nativeID format" />
+			</sourceFile>
+		</sourceFileList>
+	</fileDescription>
+	<sampleList count="1">
+		<sample id="sa_0" name="">
+			<cvParam cvRef="MS" accession="MS:1000004" name="sample mass" value="0" unitAccession="UO:0000021" unitName="gram" unitCvRef="UO" />
+			<cvParam cvRef="MS" accession="MS:1000005" name="sample volume" value="0" unitAccession="UO:0000098" unitName="milliliter" unitCvRef="UO" />
+			<cvParam cvRef="MS" accession="MS:1000006" name="sample concentration" value="0" unitAccession="UO:0000175" unitName="gram per liter" unitCvRef="UO" />
+		</sample>
+	</sampleList>
+	<softwareList count="4">
+		<software id="so_in_0" version="1.5.1" >
+			<cvParam cvRef="MS" accession="MS:1000551" name="Analyst" />
+		</software>
+		<software id="so_default" version="" >
+			<cvParam cvRef="MS" accession="MS:1000799" name="custom unreleased software tool" value="" />
+		</software>
+		<software id="so_dp_sp_0_pm_0" version="" >
+			<cvParam cvRef="MS" accession="MS:1000799" name="custom unreleased software tool" value="" />
+		</software>
+		<software id="so_dp_sp_0_pm_1" version="version_string" >
+			<cvParam cvRef="MS" accession="MS:1002196" name="TOPP MRMMapper" />
+		</software>
+	</softwareList>
+	<instrumentConfigurationList count="1">
+		<instrumentConfiguration id="ic_0">
+			<cvParam cvRef="MS" accession="MS:1000031" name="instrument model" />
+			<componentList count="3">
+				<source order="0">
+					<cvParam cvRef="MS" accession="MS:1000073" name="electrospray ionization" />
+				</source>
+				<analyzer order="0">
+					<cvParam cvRef="MS" accession="MS:1000014" name="accuracy" value="0" unitAccession="UO:0000169" unitName="parts per million" unitCvRef="UO" />
+					<cvParam cvRef="MS" accession="MS:1000022" name="TOF Total Path Length" value="0" unitAccession="UO:0000008" unitName="meter" unitCvRef="UO" />
+					<cvParam cvRef="MS" accession="MS:1000024" name="final MS exponent" value="0" />
+					<cvParam cvRef="MS" accession="MS:1000025" name="magnetic field strength" value="0" unitAccession="UO:0000228" unitName="tesla" unitCvRef="UO" />
+					<cvParam cvRef="MS" accession="MS:1000443" name="mass analyzer type" />
+				</analyzer>
+				<detector order="0">
+					<cvParam cvRef="MS" accession="MS:1000028" name="detector resolution" value="0" />
+					<cvParam cvRef="MS" accession="MS:1000029" name="sampling frequency" value="0" unitAccession="UO:0000106" unitName="hertz" unitCvRef="UO" />
+					<cvParam cvRef="MS" accession="MS:1000026" name="detector type" />
+				</detector>
+			</componentList>
+			<softwareRef ref="so_in_0" />
+		</instrumentConfiguration>
+	</instrumentConfigurationList>
+	<dataProcessingList count="1">
+		<dataProcessing id="dp_sp_0">
+			<processingMethod order="0" softwareRef="so_dp_sp_0_pm_0">
+				<cvParam cvRef="MS" accession="MS:1000544" name="Conversion to mzML" />
+				<userParam name="warning" type="xsd:string" value="fictional processing method used to fulfill format requirements"/>
+			</processingMethod>
+			<processingMethod order="0" softwareRef="so_dp_sp_0_pm_1">
+				<cvParam cvRef="MS" accession="MS:1000530" name="file format conversion" />
+				<cvParam cvRef="MS" accession="MS:1000747" name="completion time" value="1999-12-31+23:59" />
+				<userParam name="parameter: mode" type="xsd:string" value="test_mode"/>
+			</processingMethod>
+		</dataProcessing>
+	</dataProcessingList>
+	<run id="ru_0" defaultInstrumentConfigurationRef="ic_0" sampleRef="sa_0" defaultSourceFileRef="sf_ru_0">
+		<chromatogramList count="3" defaultDataProcessingRef="dp_sp_0">
+			<chromatogram id="B2MG.VNHVTLSQPK.3.y5.1.heavy" index="0" defaultArrayLength="111">
+				<cvParam cvRef="MS" accession="MS:1001473" name="selected reaction monitoring chromatogram" />
+					<precursor>
+						<isolationWindow>
+							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="377.55178833" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+						</isolationWindow>
+						<activation>
+							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
+							<userParam name="peptide_sequence" type="xsd:string" value="VNHVTLSQPK"/>
+						</activation>
+					</precursor>
+					<product>
+						<isolationWindow>
+							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="580.354431152344" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+						</isolationWindow>
+					</product>
+				<binaryDataArrayList count="2">
+					<binaryDataArray encodedLength="1184">
+						<cvParam cvRef="MS" accession="MS:1000595" name="time array" unitAccession="UO:0000010" unitName="second" unitCvRef="MS" />
+						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
+						<binary>6SYxCKxoe0CYbhKDwHx7QIlBYOXQkHtAN4lBYOWke0CiRbbz/bh7QIXrUbge4XtAMzMzMzP1e0AlBoGVQwl8QMUgsHJoMXxAtvP91HhFfEAhsHJokVl8QBKDwMqhbXxAsp3vp8aVfECkcD0K16l8QA4tsp3vvXxAvHSTGATSfECuR+F6FOZ8QKAaL90k+nxAke18PzUOfUA/NV66SSJ9QDEIrBxaNn1A0SLb+X5efUBiEFg5tJp9QPT91Hjpwn1AuB6F61HcfUBaZDvfT1t+QGq8dJMYjn5AL90kBoGnfkA3iUFg5cB+QD81XrpJ2n5ABFYOLbLzfkAMAiuHFg1/QBSuR+F6Jn9A2c73U+M/f0DhehSuR1l/QOkmMQiscn9ArkfhehSMf0C6SQwCK8N/QAIrhxbZ4H9AJzEIrBwOgEASg8DKoTqAQMUgsHJoQ4BAQmDl0CJOgEC+nxov3ViAQN0kBoGVY4BAWmQ7309ugECHFtnO93qAQFYOLbKdh4BAJQaBlUOUgECWQ4ts56CAQGQ730+NrYBAMzMzMzO6gEACK4cW2caAQNEi2/l+04BAQmDl0CLggEAQWDm0yOyAQH0/NV66EoFATDeJQWAfgUAfhetRuDiBQEw3iUFgRYFAeekmMQhSgUB1kxgEVmuBQF66SQwCeIFALbKd76eEgUD8qfHSTZGBQIcW2c73nYFAEoPAyqGqgUDhehSuR7eBQLByaJHtw4FAf2q8dJPQgUBOYhBYOd2BQB1aZDvf6YFA7FG4HoX2gUBCYOXQIimCQG8Sg8DKNYJAVOOlm8RQgkBt5/up8V6CQN0kBoGVe4JAEoPAyqGJgkDLoUW285eCQOOlm8QgpoJAPQrXo3C0gkDRItv5fsKCQCuHFtnO0IJAvp8aL93egkA1XrpJDO2CQDEIrBxa+4JAhxbZzvcKg0AhsHJokRqDQN0kBoGVK4NAmpmZmZk8g0D4U+Olm02DQHNoke18XoNAEoPAyqFvg0BxPQrXo4CDQC2yne+nkYNAj8L1KFyjg0CTGARWDrWDQJhuEoPAxoNA5/up8dLZg0B7FK5H4eyDQFK4HoXrJYRA9ihcj8JLhEB3vp8aL6uEQEw3iUFgvoRA/Knx0k3RhECsHFpkO+SEQMP1KFyP94RAtMh2vp8KhUC+nxov3R6FQArXo3A9M4VA</binary>
+					</binaryDataArray>
+					<binaryDataArray encodedLength="592">
+						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
+						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
+						<binary>AAC0QgAAG0MAAFBCAADQQQAAgEIAAFBBAADOQgAAUEEAABxCAAAOQwAAgUMAAA5DAAD1QwCAYUQAQNZEAGCsRABAFEQAgKdDAACaQgAAUEIAADRDAADoQgAAzkIAAJpCAAB1QwAAUEEAAA5DAABQQgAAHEIAAOhCAAAcQgAAzkIAAAFDAAAcQgAAgEIAABxCAAAcQgAAUEIAALRCAAAOQwAAmkIAAFBBAAChQwCAx0MAAFtDAABBQwAAAUMAgI1DAAChQwAAW0MAAFBBAAAoQwAAHEIAAIBCAADoQgAAgEIAABtDAAAoQwAAHEIAAChDAACAQgCAmkMAYNlEACjMRQDMNEYADpFGAOamRgCoekYAePxFAABTRQAAW0QAAAFDAAABQwAAgEIAAM5CAACAQgAAUEIAAJpCAAAOQwAAtEIAgIdDAAAOQwAAgEIAAIFDAAAOQwAAgEIAAA5DAAC0QgAADkMAAChDAAAOQwAAgEIAAGhDAICHQwAAW0MAALRCAICnQwAAKEMAgI1DAAABQwAAG0MAAFBBAAAcQgAAgEIAABtDAAAERAAAu0MAAC5EAIB+RADAHUQAAIFD</binary>
+					</binaryDataArray>
+				</binaryDataArrayList>
+			</chromatogram>
+			<chromatogram id="B2MG.VNHVTLSQPK.3.y6.1.heavy" index="1" defaultArrayLength="65">
+				<cvParam cvRef="MS" accession="MS:1001473" name="selected reaction monitoring chromatogram" />
+					<precursor>
+						<isolationWindow>
+							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="377.55178833" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+						</isolationWindow>
+						<activation>
+							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
+							<userParam name="peptide_sequence" type="xsd:string" value="VNHVTLSQPK"/>
+						</activation>
+					</precursor>
+					<product>
+						<isolationWindow>
+							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="681.402099609375" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+						</isolationWindow>
+					</product>
+				<binaryDataArrayList count="2">
+					<binaryDataArray encodedLength="696">
+						<cvParam cvRef="MS" accession="MS:1000595" name="time array" unitAccession="UO:0000010" unitName="second" unitCvRef="MS" />
+						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
+						<binary>kxgEVg6Re0AX2c73Ux18QPyp8dJNqnxAGQRWDi2+fEDHSzeJQdJ8QLgehetR5nxAqvHSTWL6fEBSuB6F60F+QLKd76fGW35AdZMYBFaOfkCHFtnO96d+QI/C9ShcwX5AmG4Sg8DafkBcj8L1KPR+QGQ730+NDX9Abef7qfEmf0AxCKwcWkB/QEJg5dAic39ABoGVQ4uMf0B9PzVeuqV/QNv5fmq8h4BAqvHSTWKUgEBCYOXQIqGAQOkmMQisrYBAuB6F61G6gECuR+F6FMeAQFYOLbKd04BA7nw/NV7ggECuR+F6FAaBQClcj8L1EoFAK4cW2c5egUAhsHJokWuBQArXo3A9eIFA2c73U+OEgUCoxks3iZGBQDMzMzMznoFAvp8aL92qgUCNl24Sg7eBQFyPwvUoxIFAK4cW2c7QgUD6fmq8dN2BQMl2vp8a6oFAmG4Sg8D2gUCkcD0K1w+CQMP1KFyPQoJABFYOLbJ7gkBg5dAi24mCQDEIrBxapoJAw/UoXI+0gkAfhetRuMKCQNejcD0K0YJADAIrhxbfgkC28/3UePuCQKabxCCwGoNAiUFg5dArg0BGtvP91DyDQNnO91PjkYNAFK5H4Xqjg0A/NV66SbWDQB1aZDvfxoNAJzEIrBztg0BQjZduEgCEQCcxCKwcE4RAeekmMQgmhEAlBoGVQ5iEQA==</binary>
+					</binaryDataArray>
+					<binaryDataArray encodedLength="348">
+						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
+						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
+						<binary>AABQQQAA0EEAAA5DAACBQwAAgEIAAEFDAABQQQAA0EEAAIBCAADOQgAAHEIAAJpCAACAQgAA6EIAgIdDAADOQgAAzkIAABtDAADQQQAAHEIAABxCAADQQQAAHEIAAIFDAIDUQwAA6EMAQAdEAABOQwAAHEIAABxCAABQQgCAwUMAQMFEAPiSRQCQL0YA1HZGAAhYRgC0J0YA4N1FAADLRABAa0QAAGhDAAC0QgAAmkIAAFBCAABQQQAAmkIAAAFDAADQQQAA6EIAAIFDAACAQgAA0EEAABxCAADQQQAAUEIAAFBBAAAcQgAAUEEAANBBAAAcQgAAgEIAAJpCAABQQQAA0EE=</binary>
+					</binaryDataArray>
+				</binaryDataArrayList>
+			</chromatogram>
+			<chromatogram id="B2MG.VNHVTLSQPK.3.y7.1.heavy" index="2" defaultArrayLength="16">
+				<cvParam cvRef="MS" accession="MS:1001473" name="selected reaction monitoring chromatogram" />
+					<precursor>
+						<isolationWindow>
+							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="377.55178833" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+						</isolationWindow>
+						<activation>
+							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
+							<userParam name="peptide_sequence" type="xsd:string" value="VNHVTLSQPK"/>
+						</activation>
+					</precursor>
+					<product>
+						<isolationWindow>
+							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="780.470520019531" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+						</isolationWindow>
+					</product>
+				<binaryDataArrayList count="2">
+					<binaryDataArray encodedLength="172">
+						<cvParam cvRef="MS" accession="MS:1000595" name="time array" unitAccession="UO:0000010" unitName="second" unitCvRef="MS" />
+						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
+						<binary>SgwCK4eqfEBU46WbxOZ8QMP1KFyPcn1A5/up8dLBfkA5tMh2vll/QLbz/dR4eIFAhetRuB6FgUD2KFyPwpGBQN9PjZdunoFAarx0kxirgUA5tMh2vreBQAisHFpkxIFAeekmMQjRgUBI4XoUrt2BQCUGgZVDbYJATmIQWDkThEA=</binary>
+					</binaryDataArray>
+					<binaryDataArray encodedLength="88">
+						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
+						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
+						<binary>AAAcQgAAgEIAAFBBAABQQgAAgEIAAJpCAACAQgCAh0MAAK5DAIDhQwCACkQAABxCAAAcQgAAtEIAABxCAACAQg==</binary>
+					</binaryDataArray>
+				</binaryDataArrayList>
+			</chromatogram>
+		</chromatogramList>
+	</run>
+</mzML>
+<indexList count="1">
+	<index name="chromatogram">
+		<offset idRef="B2MG.VNHVTLSQPK.3.y5.1.heavy">5241</offset>
+		<offset idRef="B2MG.VNHVTLSQPK.3.y6.1.heavy">8743</offset>
+		<offset idRef="B2MG.VNHVTLSQPK.3.y7.1.heavy">11511</offset>
+	</index>
+</indexList>
+<indexListOffset>13528</indexListOffset>
+<fileChecksum>0</fileChecksum>
+</indexedmzML>

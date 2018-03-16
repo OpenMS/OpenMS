@@ -35,21 +35,13 @@
 #include <OpenMS/ANALYSIS/DECHARGING/MetaboliteFeatureDeconvolution.h>
 
 #include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
+#include <OpenMS/CHEMISTRY/Element.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/Constants.h>
-#include <OpenMS/CONCEPT/LogStream.h>
-#include <OpenMS/DATASTRUCTURES/ChargePair.h>
-#include <OpenMS/DATASTRUCTURES/Compomer.h>
-#include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
-#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
-#include <OpenMS/FORMAT/ConsensusXMLFile.h> // tmp
-#include <OpenMS/KERNEL/Feature.h>
-#include <OpenMS/KERNEL/ConsensusFeature.h>
 
 //DEBUG:
-#include <iostream>
 #include <fstream>
 
 #undef DC_DEVEL
@@ -70,9 +62,9 @@ namespace OpenMS
   */
   struct MetaboliteFeatureDeconvolution::CmpInfo_
   {
-    String s_comp; //< formula as String
-    Size idx_cp; //< index into compomer vector
-    UInt side_cp; //< side of parent compomer (LEFT or RIGHT)
+    String s_comp; ///< formula as String
+    Size idx_cp; ///< index into compomer vector
+    UInt side_cp; ///< side of parent compomer (LEFT or RIGHT)
 
     // C'tor
     CmpInfo_() :
@@ -135,7 +127,7 @@ namespace OpenMS
     defaults_.setValue("potential_adducts", ListUtils::create<String>("K:+:0.1"), "Adducts used to explain mass differences in format: 'Element:Charge(+/-):Probability[:RTShift[:Label]]', i.e. the number of '+' or '-' indicate the charge, e.g. 'Ca:++:0.5' indicates +2. Probabilites have to be in (0,1]. RTShift param is optional and indicates the expected RT shift caused by this adduct, e.g. '(2)H4H-4:0:1:-3' indicates a 4 deuterium label, which causes early elution by 3 seconds. As a fifth parameter you can add a label which is tagged on every feature which has this adduct. This also determines the map number in the consensus file.");
     defaults_.setValue("max_neutrals", 0, "Maximal number of neutral adducts(q=0) allowed. Add them in the 'potential_adducts' section!");
 
-    defaults_.setValue("max_minority_bound", 2, "Maximum count of the least probable adduct (according to 'potential_adducts' param) within a charge variant. E.g. setting this to 2 will not allow an adduct composition of '1(H+),3(Na+)' if Na+ is the least probable adduct");
+    defaults_.setValue("max_minority_bound", 2, "Limits allowed adduct compositions and changes between compositions in the underlying graph optimization problem by introducing a probability-based threshold: the minority bound sets the maximum count of the least probable adduct (according to 'potential_adducts' param) within a charge variant with maximum charge only containing the most likely adduct otherwise. E.g., for 'charge_max' 4 and 'max_minority_bound' 2 with most probable adduct being H+ and least probable adduct being Na+, this will allow adduct compositions of '2(H+),2(Na+)' but not of '1(H+),3(Na+)'. Further, adduct compositions/changes less likely than '2(H+),2(Na+)' will be discarded as well.");
     defaults_.setMinInt("max_minority_bound", 0);
 
     defaults_.setValue("min_rt_overlap", 0.66, "Minimum overlap of the convex hull' RT intersection measured against the union from two features (if CHs are given)");
@@ -789,6 +781,29 @@ namespace OpenMS
         else
         {
           fm_out[f0_idx].setMetaValue("dc_charge_adducts", ef_l.toString());
+          String charge_sign = new_q0 >= 0 ? "+" : "-";
+          String s("[M");
+
+          //need elements sorted canonically (by string)
+          map<String, String> sorted_elem_map_l;
+          for (auto element_count : ef_l)
+          {
+            String e_symbol(element_count.first->getSymbol());
+            String tmp = element_count.second > 0 ? "+" : "-";
+            tmp += abs(element_count.second) > 1 ? String(abs(element_count.second)) : "";
+            tmp += e_symbol;
+            sorted_elem_map_l[e_symbol] = tmp;
+          }
+          for (auto sorted_e_cnt : sorted_elem_map_l)
+          {
+            s += sorted_e_cnt.second;
+          }
+          s += String("]");
+          s += abs(new_q0) > 1 ? String(abs(new_q0)) : "";
+          s += charge_sign;
+
+          StringList dc_new_adducts = ListUtils::create<String>(s);
+          fm_out[f0_idx].setMetaValue("adducts", dc_new_adducts);
         }
         fm_out[f0_idx].setMetaValue("dc_charge_adduct_mass", ef_l.getMonoWeight());
         fm_out[f0_idx].setMetaValue("is_backbone", Size(c.isSingleAdduct(default_adduct, Compomer::LEFT) ? 1 : 0));
@@ -813,6 +828,28 @@ namespace OpenMS
         else
         {
           fm_out[f1_idx].setMetaValue("dc_charge_adducts", ef_r.toString());
+          String charge_sign = new_q1 >= 0 ? "+" : "-";
+          String s("[M");
+
+          //need elements sorted canonically (by string)
+          map<String, String> sorted_elem_map_r;
+          for (auto element_count : ef_r)
+          {
+            String e_symbol(element_count.first->getSymbol());
+            String tmp = element_count.second > 0 ? "+" : "-";
+            tmp += abs(element_count.second) > 1 ? String(abs(element_count.second)) : "";
+            tmp += e_symbol;
+            sorted_elem_map_r[e_symbol] = tmp;
+          }
+          for (auto sorted_e_cnt : sorted_elem_map_r)
+          {
+            s += sorted_e_cnt.second;
+          }
+          s += String("]");
+          s += abs(new_q1) > 1 ? String(abs(new_q1)) : "";
+          s += charge_sign;
+          StringList dc_new_adducts = ListUtils::create<String>(s);
+          fm_out[f1_idx].setMetaValue("adducts", dc_new_adducts);
         }
         fm_out[f1_idx].setMetaValue("dc_charge_adduct_mass", ef_r.getMonoWeight());
         fm_out[f1_idx].setMetaValue("is_backbone", Size(c.isSingleAdduct(default_adduct, Compomer::RIGHT) ? 1 : 0));

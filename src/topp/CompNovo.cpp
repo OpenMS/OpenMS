@@ -37,7 +37,7 @@
 #include <OpenMS/ANALYSIS/DENOVO/CompNovoIdentification.h>
 #include <OpenMS/ANALYSIS/DENOVO/CompNovoIdentificationCID.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
-#include <OpenMS/CHEMISTRY/EnzymesDB.h>
+#include <OpenMS/CHEMISTRY/ProteaseDB.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 
@@ -103,12 +103,12 @@ public:
 
 protected:
 
-  Param getSubsectionDefaults_(const String & /*section*/) const
+  Param getSubsectionDefaults_(const String & /*section*/) const override
   {
     return CompNovoIdentification().getDefaults();
   }
 
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "input file in mzML format", true);
     setValidFormats_("in", ListUtils::create<String>("mzML"));
@@ -120,7 +120,7 @@ protected:
     addEmptyLine_();
   }
 
-  ExitCodes main_(int, const char **)
+  ExitCodes main_(int, const char **) override
   {
     //-------------------------------------------------------------
     // parameter handling
@@ -184,11 +184,11 @@ protected:
     search_parameters.charges = "+2-+3";
     if (algorithm_param.getValue("tryptic_only").toBool())
     {
-      search_parameters.digestion_enzyme = *EnzymesDB::getInstance()->getEnzyme("Trypsin");
+      search_parameters.digestion_enzyme = *(ProteaseDB::getInstance()->getEnzyme("Trypsin"));
     }
     else
     {
-      search_parameters.digestion_enzyme = *EnzymesDB::getInstance()->getEnzyme("no cleavage");
+      search_parameters.digestion_enzyme = *(ProteaseDB::getInstance()->getEnzyme("no cleavage"));
     }
     search_parameters.mass_type = ProteinIdentification::MONOISOTOPIC;
     search_parameters.fixed_modifications = algorithm_param.getValue("fixed_modifications");

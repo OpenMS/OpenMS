@@ -48,11 +48,9 @@
 #include "coin/CbcHeuristic.hpp"
 #include "coin/CbcHeuristicLocal.hpp"
 #include "coin/CglGomory.hpp"
-#include "coin/CglProbing.hpp"
 #include "coin/CglKnapsackCover.hpp"
 #include "coin/CglOddHole.hpp"
 #include "coin/CglClique.hpp"
-#include "coin/CglFlowCover.hpp"
 #include "coin/CglMixedIntegerRounding.hpp"
 #ifdef _MSC_VER
 #pragma warning( pop ) // restore old warning state
@@ -63,7 +61,6 @@
 
 
 #include <glpk.h>
-#include <cstddef>
 
 namespace OpenMS
 {
@@ -122,7 +119,7 @@ namespace OpenMS
 #if COINOR_SOLVER == 1
     else if (solver_ == SOLVER_COINOR)
     {
-      model_->addColumn(0, NULL, NULL, 0, 0); // new columns are initially fixed at zero, like in glpk
+      model_->addColumn(0, nullptr, nullptr, 0, 0); // new columns are initially fixed at zero, like in glpk
       return model_->numberColumns() - 1;
     }
 #endif
@@ -246,7 +243,7 @@ namespace OpenMS
     }
     if (solver_ == LPWrapper::SOLVER_GLPK)
     {
-      Int length = glp_get_mat_row(lp_problem_, row_index + 1, NULL, NULL); // get row length
+      Int length = glp_get_mat_row(lp_problem_, row_index + 1, nullptr, nullptr); // get row length
       double* values = new double[length + 1];
       Int* indices = new Int[length + 1];
       glp_get_mat_row(lp_problem_, row_index + 1, indices, values);
@@ -295,7 +292,7 @@ namespace OpenMS
     }
     if (solver_ == LPWrapper::SOLVER_GLPK)
     {
-      Int length = glp_get_mat_row(lp_problem_, row_index + 1, NULL, NULL);
+      Int length = glp_get_mat_row(lp_problem_, row_index + 1, nullptr, nullptr);
       double* values = new double[length + 1];
       Int* indices = new Int[length + 1];
       glp_get_mat_row(lp_problem_, row_index + 1, indices, values);
@@ -568,11 +565,11 @@ namespace OpenMS
       glp_erase_prob(lp_problem_);
       if (format == "LP")
       {
-        glp_read_lp(lp_problem_, NULL, filename.c_str());
+        glp_read_lp(lp_problem_, nullptr, filename.c_str());
       }
       else if (format == "MPS")
       {
-        glp_read_mps(lp_problem_, GLP_MPS_FILE, NULL, filename.c_str());
+        glp_read_mps(lp_problem_, GLP_MPS_FILE, nullptr, filename.c_str());
       }
       else if (format == "GLPK")
       {
@@ -597,11 +594,11 @@ namespace OpenMS
     {
       if (format == FORMAT_LP)
       {
-        glp_write_lp(lp_problem_, NULL, filename.c_str());
+        glp_write_lp(lp_problem_, nullptr, filename.c_str());
       }
       else if (format == FORMAT_MPS)
       {
-        glp_write_mps(lp_problem_, GLP_MPS_FILE, NULL, filename.c_str());
+        glp_write_mps(lp_problem_, GLP_MPS_FILE, nullptr, filename.c_str());
       }
       else if (format == FORMAT_GLPK)
       {
@@ -902,7 +899,7 @@ namespace OpenMS
     {
     /* Non-zero coefficient count in the row. */
     // glpk uses arrays beginning at pos 1, so we need to shift
-      return glp_get_mat_row(lp_problem_, idx + 1, NULL, NULL);
+      return glp_get_mat_row(lp_problem_, idx + 1, nullptr, nullptr);
     }
 #if COINOR_SOLVER == 1
     else if (solver_ == LPWrapper::SOLVER_COINOR)
@@ -932,7 +929,7 @@ namespace OpenMS
     {
       Int size = getNumberOfNonZeroEntriesInRow(idx);
       int* ind =  new int[size + 1];
-      glp_get_mat_row(lp_problem_, idx + 1, ind, NULL);
+      glp_get_mat_row(lp_problem_, idx + 1, ind, nullptr);
       indexes.clear();
       for (Int i = 1; i <= size; ++i)
       {

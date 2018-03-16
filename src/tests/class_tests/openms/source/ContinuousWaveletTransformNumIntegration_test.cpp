@@ -47,8 +47,8 @@ START_TEST(ContinuousWaveletTransformNumIntegration, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-ContinuousWaveletTransformNumIntegration* ptr = 0;
-ContinuousWaveletTransformNumIntegration* nullPointer = 0;
+ContinuousWaveletTransformNumIntegration* ptr = nullptr;
+ContinuousWaveletTransformNumIntegration* nullPointer = nullptr;
 START_SECTION((ContinuousWaveletTransformNumIntegration()))
   ptr = new ContinuousWaveletTransformNumIntegration();
 	TEST_NOT_EQUAL(ptr, nullPointer)

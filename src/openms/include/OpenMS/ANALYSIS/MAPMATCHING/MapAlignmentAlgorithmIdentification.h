@@ -77,7 +77,7 @@ public:
     MapAlignmentAlgorithmIdentification();
 
     /// Destructor
-    virtual ~MapAlignmentAlgorithmIdentification();
+    ~MapAlignmentAlgorithmIdentification() override;
 
     // Set a reference for the alignment
     template <typename DataType> void setReference(DataType& data)

@@ -81,8 +81,8 @@ START_TEST(PeakPickerMaxima, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-PeakPickerMaxima* ptr = 0;
-PeakPickerMaxima* nullPointer = 0;
+PeakPickerMaxima* ptr = nullptr;
+PeakPickerMaxima* nullPointer = nullptr;
 START_SECTION((PeakPickerMaxima()))
   ptr = new PeakPickerMaxima(0,0,0);
 	TEST_NOT_EQUAL(ptr, nullPointer)

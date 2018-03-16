@@ -45,7 +45,6 @@
 #include <OpenMS/DATASTRUCTURES/StringListUtils.h>
 
 #include <OpenMS/METADATA/DataProcessing.h>
-#include <OpenMS/METADATA/DocumentIDTagger.h>
 
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
@@ -62,6 +61,31 @@ namespace OpenMS
 {
 
   class ConsensusMap;
+  /**
+    @brief Stores Citations for individual TOPP tools.
+
+    An example would be
+    \code{.cpp}
+      Citation c = {"Rost HL, Sachsenberg T, Aiche S, Bielow C et al.",
+                    "OpenMS: a flexible open-source software platform for mass spectrometry data analysis",
+                    "Nat Meth. 2016; 13, 9: 741-748",
+                    "10.1038/nmeth.3959"};
+    \endcode
+    Suggested format is AMA, e.g. https://www.lib.jmu.edu/citation/amaguide.pdf
+  */
+  struct Citation
+  {
+    std::string authors;    ///< list of authors in AMA style, i.e. <surname> <initials>, ...
+    std::string title;      ///< title of article
+    std::string when_where; ///< suggested format: journal. year; volume, issue: pages
+    std::string doi;        ///< plain DOI (no urls), e.g. 10.1021/pr100177k
+
+                            /// mangle members to string
+    std::string toString() const
+    {
+      return authors + ". " + title + ". " + when_where + ". doi:" + doi + ".";
+    }
+  };
 
   namespace Exception
   {
@@ -154,13 +178,9 @@ public:
       @param official If this is an official TOPP tool contained in the OpenMS/TOPP release.
       If @em true the tool name is checked against the list of TOPP tools and a warning printed if missing.
 
-      @param id_tag_support Does the TOPP tool support unique DocumentIdentifier assignment?! The default is false.
-      In the default case you cannot use the -id_pool argument when calling the TOPP tool (it will terminate during init)
-
-      @param version Optional version of the tools (if empty, the version of OpenMS/TOPP is used).
-      @param require_args Require arguments on the command line (GUI tools should disable this)
+      @param citations Add one or more citations if they are associated specifically to this TOPP tool; they will be printed during --help
     */
-    TOPPBase(const String& name, const String& description, bool official = true, bool id_tag_support = false, bool require_args = true, const String& version = "");
+    TOPPBase(const String& name, const String& description, bool official = true, const std::vector<Citation>& citations = {});
 
     /// Destructor
     virtual ~TOPPBase();
@@ -184,15 +204,6 @@ private:
 
     /// Tool description. This is assigned once and for all in the constructor.
     String const tool_description_;
-
-    /// Tool indicates it supports assignment of unique DocumentID from IDPool
-    bool id_tag_support_;
-
-    /// Require at least one command line argument, exit immediately otherwise. GUI tools should disable this to be callable by double clicking.
-    bool require_args_;
-
-    /// Instance of DocumentIDTagger, which can be accessed using getDocumentIDTagger_()
-    DocumentIDTagger id_tagger_;
 
     ///Instance number
     Int const instance_number_;
@@ -375,6 +386,9 @@ protected:
     /// Flag indicating if this an official TOPP tool
     bool official_;
 
+    /// Papers, specific for this tool (will be shown in '--help')
+    std::vector<Citation> citations_;
+    
     /**
       @brief Returns the location of the ini file where parameters are taken
       from.  E.g. if the command line was <code>TOPPTool -instance 17</code>, then
@@ -883,9 +897,6 @@ protected:
 
     //@}
 
-    /// get DocumentIDTagger to assign DocumentIDs to maps
-    const DocumentIDTagger& getDocumentIDTagger_() const;
-
     /// Write common tool description (CTD) file
     bool writeCTD_();
 
@@ -907,6 +918,9 @@ protected:
 
     /// .TOPP.ini file for storing system default parameters
     static String topp_ini_file_;
+
+    /// The OpenMS citation
+    static const Citation cite_openms_;
 
     /// Debug level set by -debug
     Int debug_level_;

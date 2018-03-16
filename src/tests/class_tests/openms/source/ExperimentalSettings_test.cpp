@@ -47,8 +47,8 @@ START_TEST(ExperimentalSettings, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-ExperimentalSettings* ptr = 0;
-ExperimentalSettings* nullPointer = 0;
+ExperimentalSettings* ptr = nullptr;
+ExperimentalSettings* nullPointer = nullptr;
 START_SECTION((ExperimentalSettings()))
 	ptr = new ExperimentalSettings();
 	TEST_NOT_EQUAL(ptr, nullPointer)

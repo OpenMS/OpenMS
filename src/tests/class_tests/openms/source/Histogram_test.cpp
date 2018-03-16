@@ -51,8 +51,8 @@ START_TEST(Histogram, "$Id$")
 
 /////////////////////////////////////////////////////////////
 
-Histogram<float,float>* dis_ptr = 0;
-Histogram<float,float>* dis_nullPointer = 0;
+Histogram<float,float>* dis_ptr = nullptr;
+Histogram<float,float>* dis_nullPointer = nullptr;
 
 START_SECTION((Histogram()))
 	dis_ptr = new Histogram<float,float>();

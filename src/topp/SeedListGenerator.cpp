@@ -123,7 +123,7 @@ public:
 
 protected:
 
-    void registerOptionsAndFlags_()
+    void registerOptionsAndFlags_() override
     {
       registerInputFile_("in", "<file>", "",
                          "Input file (see below for details)");
@@ -134,7 +134,7 @@ protected:
       registerFlag_("use_peptide_mass", "[idXML input only] Use the monoisotopic mass of the best peptide hit for the m/z position (default: use precursor m/z)");
     }
 
-    ExitCodes main_(int, const char **)
+    ExitCodes main_(int, const char **) override
     {
       String in = getStringOption_("in");
       StringList out = getStringList_("out");

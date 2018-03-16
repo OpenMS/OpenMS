@@ -47,8 +47,8 @@ START_TEST(ContinuousWaveletTransform, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-ContinuousWaveletTransform* ptr = 0;
-ContinuousWaveletTransform* nullPointer = 0;
+ContinuousWaveletTransform* ptr = nullptr;
+ContinuousWaveletTransform* nullPointer = nullptr;
 START_SECTION((ContinuousWaveletTransform()))
   ptr = new ContinuousWaveletTransform();
 	TEST_NOT_EQUAL(ptr, nullPointer)

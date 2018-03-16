@@ -20,7 +20,7 @@
 				<UserParam type="string" name="Protocol" value="Standard"/>
 				<UserParam type="string" name="TargetDecoyApproach" value="false"/>
 	</SearchParameters>
-	<IdentificationRun date="2017-05-12T16:31:40" search_engine="MS-GF+" search_engine_version="Release (v2017.01.13)" search_parameters_ref="SP_0" >
+	<IdentificationRun date="2017-11-28T11:35:25" search_engine="MS-GF+" search_engine_version="Release (v2017.01.13)" search_parameters_ref="SP_0" >
 		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0" >
 			<ProteinHit id="PH_0" accession="BSA3" score="0" sequence="" >
 				<UserParam type="string" name="isDecoy" value="false"/>
@@ -34,7 +34,7 @@
 			<UserParam type="stringList" name="spectra_data" value="[/Users/pfeuffer/git/OpenMS/src/tests/topp/THIRDPARTY/spectra.mzML]"/>
 		</ProteinIdentification>
 		<PeptideIdentification score_type="MS-GF:RawScore" higher_score_better="true" significance_threshold="0" MZ="1063.20983886719" RT="4587.669" spectrum_reference="spectrum=1" >
-			<PeptideHit score="163" sequence="IALSRPNVEVVALNDPFITNDYAAYM(Oxidation)FK" charge="3" aa_before="-" aa_after="E" start="1" end="28" protein_refs="PH_1" >
+			<PeptideHit score="163" sequence="IALSRPNVEVVALNDPFITNDYAAYM(Oxidation)FK" charge="3" aa_after="E" start="1" end="28" protein_refs="PH_1" >
 				<UserParam type="float" name="MS:1002049" value="163"/>
 				<UserParam type="float" name="MS:1002050" value="199"/>
 				<UserParam type="float" name="MS:1002052" value="3.864406e-26"/>
@@ -53,21 +53,21 @@
 				<UserParam type="float" name="sum_intensity" value="159149.309085846"/>
 				<UserParam type="float" name="NTermIonCurrentRatio" value="0.562074811965916"/>
 				<UserParam type="float" name="CTermIonCurrentRatio" value="0.244423888669089"/>
-				<UserParam type="float" name="median_fragment_error" value="0.00186384639619064"/>
-				<UserParam type="float" name="IQR_fragment_error" value="0.00426560995003911"/>
-				<UserParam type="float" name="topN_meanfragmenterror" value="0.00127883276817491"/>
-				<UserParam type="float" name="topN_MSEfragmenterror" value="2.21576052025374e-06"/>
-				<UserParam type="float" name="topN_stddevfragmenterror" value="0.00148854308646197"/>
+				<UserParam type="float" name="median_fragment_error" value="0.00186384643893689"/>
+				<UserParam type="float" name="IQR_fragment_error" value="0.00426561001222581"/>
+				<UserParam type="float" name="topN_meanfragmenterror" value="0.00127883278115145"/>
+				<UserParam type="float" name="topN_MSEfragmenterror" value="3.85117387676815e-06"/>
+				<UserParam type="float" name="topN_stddevfragmenterror" value="0.00160781032060917"/>
 				<UserParam type="string" name="max_series_type" value="y"/>
 				<UserParam type="int" name="max_series_size" value="15"/>
 				<UserParam type="float" name="sn_by_matched_intensity" value="3.30483269691467"/>
-				<UserParam type="float" name="sn_by_median_intensity" value="8.00933933258057"/>
+				<UserParam type="float" name="sn_by_median_intensity" value="8.0093355178833"/>
 				<UserParam type="int" name="precursor_in_ms2" value="0"/>
 			</PeptideHit>
 			<UserParam type="float" name="fragment_match_tolerance" value="0.01"/>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="MS-GF:RawScore" higher_score_better="true" significance_threshold="0" MZ="775.38720703125" RT="4923.7773" spectrum_reference="spectrum=2" >
-			<PeptideHit score="151" sequence="RPGADSDIGGFGGLFDLAQAGFR" charge="3" aa_before="-" aa_after="A" start="1" end="23" protein_refs="PH_0" >
+			<PeptideHit score="151" sequence="RPGADSDIGGFGGLFDLAQAGFR" charge="3" aa_after="A" start="1" end="23" protein_refs="PH_0" >
 				<UserParam type="float" name="MS:1002049" value="151"/>
 				<UserParam type="float" name="MS:1002050" value="188"/>
 				<UserParam type="float" name="MS:1002052" value="1.7573099e-19"/>
@@ -86,21 +86,21 @@
 				<UserParam type="float" name="sum_intensity" value="36257.1194534302"/>
 				<UserParam type="float" name="NTermIonCurrentRatio" value="0.409870897464539"/>
 				<UserParam type="float" name="CTermIonCurrentRatio" value="0.441169616232408"/>
-				<UserParam type="float" name="median_fragment_error" value="0.00118083569157079"/>
-				<UserParam type="float" name="IQR_fragment_error" value="0.00399363754345927"/>
-				<UserParam type="float" name="topN_meanfragmenterror" value="0.000688030630637318"/>
-				<UserParam type="float" name="topN_MSEfragmenterror" value="3.11506635456216e-07"/>
-				<UserParam type="float" name="topN_stddevfragmenterror" value="0.000558127794914584"/>
+				<UserParam type="float" name="median_fragment_error" value="0.00118083570851013"/>
+				<UserParam type="float" name="IQR_fragment_error" value="0.00399363759788685"/>
+				<UserParam type="float" name="topN_meanfragmenterror" value="0.000688030638100047"/>
+				<UserParam type="float" name="topN_MSEfragmenterror" value="7.84892791971883e-07"/>
+				<UserParam type="float" name="topN_stddevfragmenterror" value="0.000602846916866501"/>
 				<UserParam type="string" name="max_series_type" value="y"/>
 				<UserParam type="int" name="max_series_size" value="12"/>
 				<UserParam type="float" name="sn_by_matched_intensity" value="3.04820585250854"/>
-				<UserParam type="float" name="sn_by_median_intensity" value="6.62783718109131"/>
+				<UserParam type="float" name="sn_by_median_intensity" value="6.62783670425415"/>
 				<UserParam type="int" name="precursor_in_ms2" value="1"/>
 			</PeptideHit>
 			<UserParam type="float" name="fragment_match_tolerance" value="0.01"/>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="MS-GF:RawScore" higher_score_better="true" significance_threshold="0" MZ="520.262817382812" RT="2655.0957" spectrum_reference="spectrum=0" >
-			<PeptideHit score="123" sequence="DFASSGGYVLHLHR" charge="3" aa_before="-" aa_after="E" start="1" end="14" >
+			<PeptideHit score="123" sequence="DFASSGGYVLHLHR" charge="3" aa_after="E" start="1" end="14" >
 				<UserParam type="float" name="MS:1002049" value="123"/>
 				<UserParam type="float" name="MS:1002050" value="125"/>
 				<UserParam type="float" name="MS:1002052" value="4.6521305e-19"/>
@@ -119,15 +119,15 @@
 				<UserParam type="float" name="sum_intensity" value="209432.387580872"/>
 				<UserParam type="float" name="NTermIonCurrentRatio" value="0.320391346980731"/>
 				<UserParam type="float" name="CTermIonCurrentRatio" value="0.510163289435426"/>
-				<UserParam type="float" name="median_fragment_error" value="0.000935632878963588"/>
-				<UserParam type="float" name="IQR_fragment_error" value="0.000915520260207359"/>
-				<UserParam type="float" name="topN_meanfragmenterror" value="0.000776723732412522"/>
-				<UserParam type="float" name="topN_MSEfragmenterror" value="1.36927722407586e-07"/>
-				<UserParam type="float" name="topN_stddevfragmenterror" value="0.000370037460816585"/>
+				<UserParam type="float" name="median_fragment_error" value="0.000935632851906121"/>
+				<UserParam type="float" name="IQR_fragment_error" value="0.000915520213311538"/>
+				<UserParam type="float" name="topN_meanfragmenterror" value="0.00077672371740586"/>
+				<UserParam type="float" name="topN_MSEfragmenterror" value="7.40227443741563e-07"/>
+				<UserParam type="float" name="topN_stddevfragmenterror" value="0.000399686121418106"/>
 				<UserParam type="string" name="max_series_type" value="y"/>
 				<UserParam type="int" name="max_series_size" value="12"/>
 				<UserParam type="float" name="sn_by_matched_intensity" value="6.87547922134399"/>
-				<UserParam type="float" name="sn_by_median_intensity" value="8.91692352294922"/>
+				<UserParam type="float" name="sn_by_median_intensity" value="8.9169225692749"/>
 				<UserParam type="int" name="precursor_in_ms2" value="0"/>
 			</PeptideHit>
 			<UserParam type="float" name="fragment_match_tolerance" value="0.01"/>

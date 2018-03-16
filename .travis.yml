@@ -18,9 +18,11 @@ addons:
       sources:
          - ubuntu-toolchain-r-test
          - boost-latest
-         - george-edison55-precise-backports
+         - sourceline: 'ppa:beineri/opt-qt591-trusty'
       packages:
          - cmake
+         - qt59base
+         - qt59svg
          - cmake-data
          - g++-4.8
          - python-dev
@@ -37,17 +39,13 @@ addons:
          - libxerces-c3.1
          - libxerces-c-dev
          - libicu-dev
-         - qt4-dev-tools
-         - libqt4-dev
-         - libqt4-core
-         - libqt4-gui
          - libsvm-dev
          - libsvm3
-         - libglpk36
-         - libglpk-dev
          - subversion
          - doxygen 
          - graphviz
+         - libglpk36
+         - libglpk-dev
          - coinor-cbc
          - coinor-libcgl1
          - coinor-libclp1
@@ -82,16 +80,20 @@ matrix:
       os: linux
       compiler: clang
 
-## clang tests class and TOPP tests: without gui and without address sanitizer (debug build) 
-    - env: ENABLE_STYLE_TESTING=OFF WITH_GUI=OFF ENABLE_TOPP_TESTING=ON ENABLE_CLASS_TESTING=ON ADDRESS_SANITIZER=Off BUILD_TYPE=Debug CXX_FLAGS="-Qunused-arguments" CFLAGS="-Qunused-arguments" CCACHE_CPP2=1 OPENMP=Off
-      os: linux
-      compiler: clang
-
-## clang tests class and TOPP tests: without gui and without address sanitizer (release build)
-    - env: ENABLE_STYLE_TESTING=OFF WITH_GUI=ON ENABLE_TOPP_TESTING=ON ENABLE_CLASS_TESTING=ON ADDRESS_SANITIZER=Off BUILD_TYPE=Release CXX_FLAGS="-Qunused-arguments" CFLAGS="-Qunused-arguments" CCACHE_CPP2=1 OPENMP=Off
-      os: linux
-      compiler: clang
-
+# ## clang tests class and TOPP tests: without gui and without address sanitizer (debug build)
+#     - env: ENABLE_STYLE_TESTING=OFF WITH_GUI=OFF ENABLE_TOPP_TESTING=ON ENABLE_CLASS_TESTING=OFF ADDRESS_SANITIZER=Off BUILD_TYPE=Debug CXX_FLAGS="-Qunused-arguments" CFLAGS="-Qunused-arguments" CCACHE_CPP2=1 OPENMP=Off
+#       os: linux
+#       compiler: clang
+# ## clang tests class and TOPP tests: without gui and without address sanitizer (debug build)
+#     - env: ENABLE_STYLE_TESTING=OFF WITH_GUI=OFF ENABLE_TOPP_TESTING=OFF ENABLE_CLASS_TESTING=ON ADDRESS_SANITIZER=Off BUILD_TYPE=Debug CXX_FLAGS="-Qunused-arguments" CFLAGS="-Qunused-arguments" CCACHE_CPP2=1 OPENMP=Off
+#       os: linux
+#       compiler: clang
+# 
+# ## clang tests class and TOPP tests: without gui and without address sanitizer (release build)
+#     - env: ENABLE_STYLE_TESTING=OFF WITH_GUI=ON ENABLE_TOPP_TESTING=ON ENABLE_CLASS_TESTING=ON ADDRESS_SANITIZER=Off BUILD_TYPE=Release CXX_FLAGS="-Qunused-arguments" CFLAGS="-Qunused-arguments" CCACHE_CPP2=1 OPENMP=Off
+#       os: linux
+#       compiler: clang
+#
 ### OS X tests
 #    - env: ENABLE_STYLE_TESTING=OFF WITH_GUI=OFF ENABLE_TOPP_TESTING=ON ENABLE_CLASS_TESTING=OFF ADDRESS_SANITIZER=Off BUILD_TYPE=Release
 #      os: osx

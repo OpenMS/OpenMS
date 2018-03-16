@@ -43,7 +43,7 @@
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGeneratorXLMS.h>
 #include <OpenMS/ANALYSIS/XLMS/OPXLSpectrumProcessingAlgorithms.h>
 #include <OpenMS/FORMAT/FASTAFile.h>
-#include <OpenMS/CHEMISTRY/EnzymaticDigestion.h>
+#include <OpenMS/CHEMISTRY/ProteaseDigestion.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <QStringList>
 
@@ -74,7 +74,7 @@ FASTAFile file;
 file.load(OPENMS_GET_TEST_DATA_PATH("FASTAFile_test.fasta"), fasta_db);
 
 
-EnzymaticDigestion digestor;
+ProteaseDigestion digestor;
 String enzyme_name = "Trypsin";
 digestor.setEnzyme(enzyme_name);
 digestor.setMissedCleavages(2);

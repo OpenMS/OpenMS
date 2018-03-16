@@ -104,7 +104,7 @@ public:
   }
 
 protected:
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     String file_formats = "mzML,featureXML,consensusXML,idXML";
     // "in" is not required, in case we only want to invert a transformation:
@@ -123,7 +123,7 @@ protected:
     registerSubsection_("model", "Options to control the modeling of retention time transformations from data");
   }
 
-  Param getSubsectionDefaults_(const String& /* section */) const
+  Param getSubsectionDefaults_(const String& /* section */) const override
   {
     return TOPPMapAlignerBase::getModelDefaults("none");
   }
@@ -141,7 +141,7 @@ protected:
     file.store(out, map);
   }
 
-  ExitCodes main_(int, const char**)
+  ExitCodes main_(int, const char**) override
   {
     //-------------------------------------------------------------
     // parameter handling

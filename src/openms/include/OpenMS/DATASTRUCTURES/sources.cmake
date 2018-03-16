@@ -24,23 +24,24 @@ Date.h
 DateTime.h
 DefaultParamHandler.h
 DistanceMatrix.h
+FASTAContainer.h
 GridFeature.h
 IsotopeCluster.h
 KDTree.h
 ListUtils.h
 ListUtilsIO.h
+LPWrapper.h
 Map.h
 MassExplainer.h
 Matrix.h
 Param.h
 QTCluster.h
 SeqanIncludeWrapper.h
-SparseVector.h
 String.h
 StringUtils.h
 StringListUtils.h
 ToolDescription.h
-LPWrapper.h
+
 )
 
 ### add path to the filenames

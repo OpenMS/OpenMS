@@ -46,8 +46,8 @@ START_TEST(NoopMSDataConsumer, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-NoopMSDataConsumer* ptr = 0;
-NoopMSDataConsumer* null_ptr = 0;
+NoopMSDataConsumer* ptr = nullptr;
+NoopMSDataConsumer* null_ptr = nullptr;
 START_SECTION(NoopMSDataConsumer())
 {
 	ptr = new NoopMSDataConsumer();

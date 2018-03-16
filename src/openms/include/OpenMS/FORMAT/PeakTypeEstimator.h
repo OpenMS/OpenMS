@@ -122,11 +122,11 @@ public:
 
       if (standard_deviation < DISTANCE_VARIANCE_THRESHOLD)
       {
-        return SpectrumSettings::RAWDATA;
+        return SpectrumSettings::PROFILE;
       }
       else
       {
-        return SpectrumSettings::PEAKS;
+        return SpectrumSettings::CENTROID;
       }
     }
 

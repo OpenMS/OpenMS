@@ -33,9 +33,6 @@
 // --------------------------------------------------------------------------
 //
 #include <OpenMS/FILTERING/TRANSFORMERS/MarkerMower.h>
-#include <OpenMS/FILTERING/TRANSFORMERS/IsotopeMarker.h>
-#include <OpenMS/FILTERING/TRANSFORMERS/ComplementMarker.h>
-#include <OpenMS/FILTERING/TRANSFORMERS/NeutralLossMarker.h>
 
 using namespace std;
 

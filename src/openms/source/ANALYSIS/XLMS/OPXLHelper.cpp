@@ -33,11 +33,10 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/XLMS/OPXLHelper.h>
-//#include <OpenMS/ANALYSIS/XLMS/OPXLDataStructs.h>
-#include <OpenMS/CHEMISTRY/ModificationsDB.h>
-#include <OpenMS/CHEMISTRY/EnzymaticDigestion.h>
 #include <OpenMS/ANALYSIS/RNPXL/ModifiedPeptideGenerator.h>
-#include <OpenMS/FORMAT/FASTAFile.h>
+#include <OpenMS/CHEMISTRY/ModificationsDB.h>
+#include <OpenMS/CHEMISTRY/ProteaseDigestion.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 
 
 using namespace std;
@@ -283,7 +282,7 @@ namespace OpenMS
     {
       // store vector of substrings pointing in fasta database (bounded by pairs of begin, end iterators)
       vector<StringView> current_digest;
-      digestor.digestUnmodifiedString(fasta_db[fasta_index].sequence, current_digest, min_peptide_length);
+      digestor.digestUnmodified(fasta_db[fasta_index].sequence, current_digest, min_peptide_length);
 
       for (vector<StringView>::iterator cit = current_digest.begin(); cit != current_digest.end(); ++cit)
       {
@@ -329,15 +328,11 @@ namespace OpenMS
         if (skip) continue;
 
         bool already_processed = false;
-//#ifdef _OPENMP
-//#pragma omp critical (processed_peptides_access)
-//#endif
+
+        if (processed_peptides.find(*cit) != processed_peptides.end())
         {
-          if (processed_peptides.find(*cit) != processed_peptides.end())
-          {
-            // peptide (and all modified variants) already processed so skip it
-            already_processed = true;
-          }
+          // peptide (and all modified variants) already processed so skip it
+          already_processed = true;
         }
 
         if (already_processed) continue;
@@ -361,13 +356,8 @@ namespace OpenMS
           pep_mass.peptide_seq = candidate;
           pep_mass.position = position;
 
-//#ifdef _OPENMP
-//#pragma omp critical (processed_peptides_access)
-//#endif
-          {
-            processed_peptides.insert(pair<StringView, AASequence>(*cit, candidate));
-            peptide_masses.push_back(pep_mass);
-          }
+          processed_peptides.insert(pair<StringView, AASequence>(*cit, candidate));
+          peptide_masses.push_back(pep_mass);
         }
       }
     }
@@ -466,7 +456,7 @@ namespace OpenMS
         }
       }
 
-        // Determine larger peptide (alpha) by sequence length, use mass as tie breaker
+      // Determine larger peptide (alpha) by sequence length, use mass as tie breaker
       bool alpha_first = true;
 
       if (seq_second.size() > seq_first.size())
@@ -543,8 +533,6 @@ namespace OpenMS
         bool compatible = false;
         if (n_term_linker && (peptide_pos_second == OPXLDataStructs::N_TERM))
         {
-//          second_spec = ResidueModification::N_TERM;
-//          mod_pos = 0;
           compatible = true;
         }
         if (c_term_linker && (peptide_pos_second == OPXLDataStructs::C_TERM))
@@ -741,7 +729,6 @@ namespace OpenMS
                 mod_index = s;
               }
             }
-//            cout << "Terminal Mod Test; mod: " << mod_index <<  " | " << mods[mod_index] << " | term_spec: " << alpha_term_spec << endl;
             if (alpha_term_spec == ResidueModification::N_TERM)
             {
               LOG_DEBUG << "Setting N-term mono-link: " << mods[mod_index] << endl;
@@ -761,31 +748,25 @@ namespace OpenMS
           seq_alpha.setModification(alpha_pos, mods[0]);
           mod_set = true;
           ph_alpha.setMetaValue("xl_mod", mods[0]);
-          // ph_alpha.setMetaValue("xl_mass", DataValue(top_csms_spectrum[i].cross_link.cross_linker_mass));
         }
         if (!mod_set) // If no equivalent mono-link exists in the UNIMOD or XLMOD databases, use the given name to construct a placeholder
         {
           String mod_name = String("unknown mono-link " + top_csms_spectrum[i].cross_link.cross_linker_name + " mass " + String(top_csms_spectrum[i].cross_link.cross_linker_mass));
-          //seq_alpha.setModification(alpha_pos, mod_name);
-          // LOG_DEBUG << "unknown mono-link" << endl;
           ph_alpha.setMetaValue("xl_mod", mod_name);
-          // ph_alpha.setMetaValue("xl_mass", DataValue(top_csms_spectrum[i].cross_link.cross_linker_mass));
           unknown_mono = true;
         }
       }
       else
       {
         ph_alpha.setMetaValue("xl_mod", top_csms_spectrum[i].cross_link.cross_linker_name);
-        // ph_alpha.setMetaValue("xl_mass", DataValue(top_csms_spectrum[i].cross_link.cross_linker_mass));
       }
-
       ph_alpha.setMetaValue("xl_mass", DataValue(top_csms_spectrum[i].cross_link.cross_linker_mass));
 
       // Error calculation
       double weight = seq_alpha.getMonoWeight();
       if (top_csms_spectrum[i].cross_link.getType() == OPXLDataStructs::CROSS)
       {
-        weight += top_csms_spectrum[i].cross_link.beta.getMonoWeight()  + top_csms_spectrum[i].cross_link.cross_linker_mass;
+        weight += top_csms_spectrum[i].cross_link.beta.getMonoWeight() + top_csms_spectrum[i].cross_link.cross_linker_mass;
       }
       else if (unknown_mono || top_csms_spectrum[i].cross_link.getType() == OPXLDataStructs::LOOP)
       {
@@ -847,6 +828,7 @@ namespace OpenMS
       ph_alpha.setMetaValue("xl_chain", "MS:1002509");  // donor (longer, heavier, alphabetically earlier)
       ph_alpha.setMetaValue("xl_pos", DataValue(alpha_pos));
       ph_alpha.setMetaValue("spectrum_reference", spectra[scan_index].getNativeID());
+      ph_alpha.setMetaValue("spectrum_index", scan_index);
       ph_alpha.setMetaValue("xl_type", xltype);
       ph_alpha.setMetaValue("xl_rank", DataValue(i + 1));
       ph_alpha.setMetaValue("xl_term_spec", alpha_term);
@@ -857,6 +839,7 @@ namespace OpenMS
         ph_alpha.setMetaValue("spec_heavy_RT", spectra[scan_index_heavy].getRT());
         ph_alpha.setMetaValue("spec_heavy_MZ", spectra[scan_index_heavy].getPrecursors()[0].getMZ());
         ph_alpha.setMetaValue("spectrum_reference_heavy", spectra[scan_index_heavy].getNativeID());
+        ph_alpha.setMetaValue("spectrum_index_heavy", scan_index_heavy);
       }
       ph_alpha.setMetaValue(Constants::PRECURSOR_ERROR_PPM_USERPARAM, rel_error);
 
@@ -866,6 +849,8 @@ namespace OpenMS
       ph_alpha.setMetaValue("OpenXQuest:match-odds", top_csms_spectrum[i].match_odds);
       ph_alpha.setMetaValue("OpenXQuest:intsum", top_csms_spectrum[i].int_sum);
       ph_alpha.setMetaValue("OpenXQuest:wTIC", top_csms_spectrum[i].wTIC);
+      ph_alpha.setMetaValue("OpenXQuest:TIC", top_csms_spectrum[i].percTIC);
+      ph_alpha.setMetaValue("OpenXQuest:prescore", top_csms_spectrum[i].pre_score);
 
       ph_alpha.setMetaValue("OpenXQuest:log_occupancy", top_csms_spectrum[i].log_occupancy);
       ph_alpha.setMetaValue("OpenXQuest:log_occupancy_alpha", top_csms_spectrum[i].log_occupancy_alpha);
@@ -885,11 +870,15 @@ namespace OpenMS
       ph_alpha.setMetaValue("OpenPepXL:PScoreBeta",top_csms_spectrum[i].PScoreBeta);
       ph_alpha.setMetaValue("OpenPepXL:PScoreBoth",top_csms_spectrum[i].PScoreBoth);
 
+      ph_alpha.setMetaValue("matched_xlink_alpha",top_csms_spectrum[i].matched_xlink_alpha);
+      ph_alpha.setMetaValue("matched_xlink_beta",top_csms_spectrum[i].matched_xlink_beta);
+      ph_alpha.setMetaValue("matched_common_alpha",top_csms_spectrum[i].matched_common_alpha);
+      ph_alpha.setMetaValue("matched_common_beta",top_csms_spectrum[i].matched_common_beta);
+
       ph_alpha.setMetaValue("selected", "false");
 
       ph_alpha.setPeakAnnotations(top_csms_spectrum[i].frag_annotations);
       LOG_DEBUG << "Annotations of size " << ph_alpha.getPeakAnnotations().size() << endl;
-
 
       if (top_csms_spectrum[i].cross_link.getType() == OPXLDataStructs::CROSS)
       {
@@ -903,6 +892,7 @@ namespace OpenMS
         ph_beta.setMetaValue("xl_pos", DataValue(alpha_pos));
         ph_beta.setMetaValue("xl_pos2", DataValue(beta_pos));
         ph_beta.setMetaValue("spectrum_reference", spectra[scan_index].getNativeID());
+        ph_beta.setMetaValue("spectrum_index", scan_index);
         ph_beta.setMetaValue("xl_term_spec", beta_term);
         ph_beta.setMetaValue("precursor_correction", top_csms_spectrum[i].precursor_correction);
 
@@ -911,6 +901,7 @@ namespace OpenMS
           ph_beta.setMetaValue("spec_heavy_RT", spectra[scan_index_heavy].getRT());
           ph_beta.setMetaValue("spec_heavy_MZ", spectra[scan_index_heavy].getPrecursors()[0].getMZ());
           ph_beta.setMetaValue("spectrum_reference_heavy", spectra[scan_index_heavy].getNativeID());
+          ph_beta.setMetaValue("spectrum_index_heavy", scan_index_heavy);
         }
         ph_beta.setMetaValue(Constants::PRECURSOR_ERROR_PPM_USERPARAM, rel_error);
 
@@ -920,6 +911,8 @@ namespace OpenMS
         ph_beta.setMetaValue("OpenXQuest:match-odds", top_csms_spectrum[i].match_odds);
         ph_beta.setMetaValue("OpenXQuest:intsum", top_csms_spectrum[i].int_sum);
         ph_beta.setMetaValue("OpenXQuest:wTIC", top_csms_spectrum[i].wTIC);
+        ph_beta.setMetaValue("OpenXQuest:TIC", top_csms_spectrum[i].percTIC);
+        ph_beta.setMetaValue("OpenXQuest:prescore", top_csms_spectrum[i].pre_score);
 
         ph_beta.setMetaValue("OpenXQuest:log_occupancy", top_csms_spectrum[i].log_occupancy);
         ph_beta.setMetaValue("OpenXQuest:log_occupancy_alpha", top_csms_spectrum[i].log_occupancy_alpha);
@@ -963,13 +956,6 @@ namespace OpenMS
       }
 
       peptide_id.setMetaValue("spectrum_reference", specIDs);
-//      peptide_id.setMetaValue("spec_heavy_RT", spectra[scan_index_heavy].getRT());
-//      peptide_id.setMetaValue("spec_heavy_MZ", spectra[scan_index_heavy].getPrecursors()[0].getMZ());
-//      peptide_id.setMetaValue("spectrum_reference", spectra[scan_index].getNativeID());
-//      peptide_id.setMetaValue("spectrum_reference_heavy", spectra[scan_index_heavy].getNativeID());
-//      peptide_id.setMetaValue("xl_type", xltype); // TODO: needs CV term
-//      peptide_id.setMetaValue("xl_rank", DataValue(i + 1));
-
       peptide_id.setHits(phs);
       peptide_id.setScoreType("OpenXQuest:combined score");
 

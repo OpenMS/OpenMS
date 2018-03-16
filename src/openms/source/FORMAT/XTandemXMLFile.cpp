@@ -33,12 +33,8 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/XTandemXMLFile.h>
-#include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
-#include <OpenMS/CONCEPT/LogStream.h>
-
-#include <iostream>
 
 using namespace xercesc;
 using namespace std;
@@ -204,7 +200,7 @@ namespace OpenMS
       AASequence aa_seq = peptide_hits_[current_id_].back().getSequence();
       mod_pos -= current_start_; // X! Tandem uses position in the protein
 
-      const ResidueModification* res_mod = 0;
+      const ResidueModification* res_mod = nullptr;
 
       // first, try to find matching mod in the defined ones:
       multimap<double, ModificationDefinition> matches;
@@ -252,13 +248,13 @@ namespace OpenMS
         {
           res_mod = mod_db->getBestModificationByDiffMonoMass(mass_shift, 0.01, aa, ResidueModification::C_TERM);
         }
-        if (res_mod == 0) // if no terminal mod, try normal one
+        if (res_mod == nullptr) // if no terminal mod, try normal one
         {
           res_mod = mod_db->getBestModificationByDiffMonoMass(mass_shift, 0.01, aa, ResidueModification::ANYWHERE);
         }
       }
 
-      if (res_mod == 0)
+      if (res_mod == nullptr)
       {
         error(LOAD, String("No modification found which fits residue '") + aa + "' with mass '" + String(mass_shift) + "'!");
       }

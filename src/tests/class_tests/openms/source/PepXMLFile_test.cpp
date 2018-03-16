@@ -54,8 +54,8 @@ START_TEST(PepXMLFile, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-PepXMLFile * ptr = 0;
-PepXMLFile* nullPointer = 0;
+PepXMLFile * ptr = nullptr;
+PepXMLFile* nullPointer = nullptr;
 PepXMLFile file;
 START_SECTION(PepXMLFile())
 ptr = new PepXMLFile();

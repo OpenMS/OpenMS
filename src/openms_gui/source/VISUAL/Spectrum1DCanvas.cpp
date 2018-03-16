@@ -33,20 +33,21 @@
 // --------------------------------------------------------------------------
 
 // Qt
-#include <QtGui/QMouseEvent>
-#include <QtGui/QMessageBox>
-#include <QtGui/QPainterPath>
-#include <QtGui/QPainter>
+#include <QMouseEvent>
+#include <QtWidgets/QMessageBox>
+#include <QPainterPath>
+#include <QPainter>
 #include <QtCore/QTime>
-#include <QtGui/QMenu>
-#include <QtGui/QComboBox>
-#include <QtGui/QFileDialog>
-#include <QtGui/QInputDialog>
+#include <QtWidgets/QMenu>
+#include <QtWidgets/QComboBox>
+#include <QtWidgets/QFileDialog>
+#include <QtWidgets/QInputDialog>
 #include <QtSvg/QSvgGenerator>
 
 // OpenMS
 #include <OpenMS/VISUAL/Spectrum1DCanvas.h>
 #include <OpenMS/VISUAL/AxisWidget.h>
+#include <OpenMS/VISUAL/ColorSelector.h>
 #include <OpenMS/VISUAL/SpectrumWidget.h>
 #include <OpenMS/VISUAL/Spectrum1DWidget.h>
 #include <OpenMS/VISUAL/APPLICATIONS/TOPPViewBase.h>
@@ -748,6 +749,16 @@ namespace OpenMS
           {
             if (layer.filters.passes(spectrum, it - spectrum.begin()))
             {
+
+              // use peak colors stored in the layer, if available
+              if (layer.peak_colors_1d.size() == spectrum.size())
+              {
+                // find correct peak index
+                Size peak_index = std::distance(spectrum.begin(), it);
+                pen.setColor(layer.peak_colors_1d[peak_index]);
+                painter->setPen(pen);
+              }
+
               dataToWidget(*it, end, layer.flipped);
               dataToWidget(it->getMZ(), 0.0f, begin, layer.flipped);
 
@@ -1045,7 +1056,7 @@ namespace OpenMS
 
     //estimate peak type
     PeakTypeEstimator pte;
-    if (pte.estimateType(getCurrentLayer_().getCurrentSpectrum().begin(), getCurrentLayer_().getCurrentSpectrum().end()) == SpectrumSettings::RAWDATA)
+    if (pte.estimateType(getCurrentLayer_().getCurrentSpectrum().begin(), getCurrentLayer_().getCurrentSpectrum().end()) == SpectrumSettings::PROFILE)
     {
       draw_modes_.back() = DM_CONNECTEDLINES;
       peak_penstyle_.push_back(Qt::SolidLine);
@@ -1284,7 +1295,7 @@ namespace OpenMS
       return;
 
     QMenu * context_menu = new QMenu(this);
-    QAction * result = 0;
+    QAction * result = nullptr;
 
     Annotations1DContainer & annots_1d = getCurrentLayer_().getCurrentAnnotations();
     Annotation1DItem * annot_item = annots_1d.getItemAt(e->pos());
@@ -1917,7 +1928,7 @@ namespace OpenMS
         painter.drawLine(begin_p.x(), height() / 2 - 5, end_p.x(), height() / 2 + 5);
       }
     }
-    else if (!mirror_mode_)
+    else
     {
       painter.setPen(Qt::red);
       QPoint begin_p, end_p;

@@ -79,7 +79,7 @@ public:
     MassTraceDetection();
 
     /// Default destructor
-    virtual ~MassTraceDetection();
+    ~MassTraceDetection() override;
 
     /** @name Helper methods
     */
@@ -99,7 +99,7 @@ public:
     /** @name Private methods and members 
     */
 protected:
-    virtual void updateMembers_();
+    void updateMembers_() override;
 
 private:
 

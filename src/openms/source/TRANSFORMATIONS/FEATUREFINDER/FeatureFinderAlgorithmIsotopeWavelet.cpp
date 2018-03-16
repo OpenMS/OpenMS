@@ -35,11 +35,6 @@
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmIsotopeWavelet.h>
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/IsotopeWaveletTransform.h>
-#include <OpenMS/CONCEPT/ProgressLogger.h>
-#include <OpenMS/KERNEL/FeatureMap.h>
-
-#include <iostream>
-#include <algorithm>
 
 namespace OpenMS
 {
@@ -267,7 +262,7 @@ namespace OpenMS
 #endif
           this->ff_->setProgress(++progress_counter_);
 
-          delete (new_spec); new_spec = NULL;
+          delete (new_spec); new_spec = nullptr;
         }
       }
 

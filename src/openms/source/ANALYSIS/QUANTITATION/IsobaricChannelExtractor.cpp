@@ -43,8 +43,6 @@
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
 
-#include <cmath>
-
 // #define ISOBARIC_CHANNEL_EXTRACTOR_DEBUG
 // #undef ISOBARIC_CHANNEL_EXTRACTOR_DEBUG
 
@@ -65,8 +63,8 @@ namespace OpenMS
       signal_not_unique(0)
     {}
 
-    std::vector<double> mz_deltas; //< m/z distance between expected and observed reporter ion closest to expected position
-    int signal_not_unique;  //< counts if more than one peak was found within the search window of each reporter position
+    std::vector<double> mz_deltas; ///< m/z distance between expected and observed reporter ion closest to expected position
+    int signal_not_unique;  ///< counts if more than one peak was found within the search window of each reporter position
   };
 
 
@@ -531,7 +529,7 @@ namespace OpenMS
         // remember potential precursor and continue
         pState.precursorScan = it;
         // reset last MS2 -- we expect to see a new one soon and the old one should not be used for the following MS3 (if any)
-        it_last_MS2 == ms_exp_data.end();
+        it_last_MS2 = ms_exp_data.end();
         continue;
       }
       else if (it->getMSLevel() == 2)
@@ -623,7 +621,7 @@ namespace OpenMS
           double dist_mz = fabs(mz_it->getMZ() - cl_it->center);
           if (dist_mz < reporter_mass_shift_) ++peak_count;
           if (idx_nearest == mz_end // first peak
-              || ((idx_nearest != mz_end) && (dist_mz < fabs(idx_nearest->getMZ() - cl_it->center)))) // closer to best candidate
+              || ((dist_mz < fabs(idx_nearest->getMZ() - cl_it->center)))) // closer to best candidate
           {
             idx_nearest = mz_it;
           }

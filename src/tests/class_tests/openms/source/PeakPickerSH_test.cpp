@@ -46,8 +46,8 @@ START_TEST(PeakPickerSH, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-PeakPickerSH* ptr = 0;
-PeakPickerSH* null_ptr = 0;
+PeakPickerSH* ptr = nullptr;
+PeakPickerSH* null_ptr = nullptr;
 START_SECTION(PeakPickerSH())
 {
 	ptr = new PeakPickerSH();

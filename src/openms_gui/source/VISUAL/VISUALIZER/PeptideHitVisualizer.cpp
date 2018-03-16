@@ -36,8 +36,8 @@
 #include <OpenMS/VISUAL/VISUALIZER/PeptideHitVisualizer.h>
 
 //QT
-#include <QtGui/QLineEdit>
-#include <QtGui/QTextEdit>
+#include <QtWidgets/QLineEdit>
+#include <QtWidgets/QTextEdit>
 
 // STL
 #include <iostream>

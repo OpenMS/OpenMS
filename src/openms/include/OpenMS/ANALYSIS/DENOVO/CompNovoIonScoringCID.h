@@ -78,7 +78,7 @@ public:
     CompNovoIonScoringCID(const CompNovoIonScoringCID & source);
 
     /// destructor
-    virtual ~CompNovoIonScoringCID();
+    ~CompNovoIonScoringCID() override;
     //@}
 
     ///
@@ -92,7 +92,7 @@ public:
 
 protected:
 
-    void scoreWitnessSet_(Size charge, double precursor_weight, Map<double, IonScore> & CID_nodes, const PeakSpectrum & CID_orig_spec);
+    void scoreWitnessSet_(Size charge, double precursor_weight, Map<double, IonScore> & CID_nodes, const PeakSpectrum & CID_orig_spec) override;
   };
 
 }

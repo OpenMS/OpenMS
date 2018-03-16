@@ -86,7 +86,7 @@ namespace OpenMS
       TheoreticalSpectrumGeneratorXLMS(const TheoreticalSpectrumGeneratorXLMS & source);
 
       /// destructor
-      virtual ~TheoreticalSpectrumGeneratorXLMS();
+      ~TheoreticalSpectrumGeneratorXLMS() override;
       //@}
 
       /// assignment operator
@@ -138,7 +138,7 @@ namespace OpenMS
       virtual void getXLinkIonSpectrumWithLosses(PeakSpectrum & spectrum, OPXLDataStructs::ProteinProteinCrossLink & crosslink, bool frag_alpha, int mincharge, int maxcharge) const;
 
       /// overwrite
-      void updateMembers_();
+      void updateMembers_() override;
 
       std::vector< std::set< LossMass > > getForwardLossesForLinearIons_(AASequence & peptide) const;
       std::vector< std::set< LossMass > > getBackwardLossesForLinearIons_(AASequence & peptide) const;

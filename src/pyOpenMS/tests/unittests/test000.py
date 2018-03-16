@@ -98,7 +98,7 @@ def _testUniqueIdInterface(what):
 
 def _testProgressLogger(ff):
     """
-    @tests:
+    @tests: ProgressLogger
      ProgressLogger.__init__
      ProgressLogger.endProgress
      ProgressLogger.getLogType
@@ -119,7 +119,7 @@ def _testProgressLogger(ff):
 @report
 def testSpectrumAlignment():
     """
-    @tests:
+    @tests: SpectrumAlignment
         SpectrumAlignment.__init__
         SpectrumAlignment.getSpectrumAlignment
     """
@@ -173,11 +173,10 @@ def testSpectrumAlignment():
     assert isinstance(aligner(spec, spec), float)
     assert isinstance(aligner(rich_spec, rich_spec), float)
 
-
 @report
 def testAASequence():
     """
-    @tests:
+    @tests: AASequence
      AASequence.__init__
      AASequence.__add__
      AASequence.__radd__
@@ -207,7 +206,7 @@ def testAASequence():
 @report
 def testElement():
     """
-    @tests:
+    @tests: Element
      Element.__init__
      Element.setAtomicNumber
      Element.getAtomicNumber
@@ -277,7 +276,7 @@ def testElement():
 @report
 def testResidue():
     """
-    @tests:
+    @tests: Residue
      Residue.__init__
     """
     ins = pyopenms.Residue()
@@ -297,7 +296,7 @@ def testResidue():
 @report
 def testIsotopeDistribution():
     """
-    @tests:
+    @tests: IsotopeDistribution
      IsotopeDistribution.__init__
     """
     ins = pyopenms.IsotopeDistribution()
@@ -316,7 +315,7 @@ def testIsotopeDistribution():
 @report
 def testEmpiricalFormula():
     """
-    @tests:
+    @tests: EmpiricalFormula 
      EmpiricalFormula.__init__
      EmpiricalFormula.getMonoWeight
      EmpiricalFormula.getAverageWeight
@@ -348,7 +347,7 @@ def testEmpiricalFormula():
 @report
 def testIdentificationHit():
     """
-    @tests:
+    @tests: IdentificationHit
      IdentificationHit.__init__
     """
     f = pyopenms.IdentificationHit()
@@ -396,7 +395,7 @@ def testIdentificationHit():
 @report
 def testSpectrumIdentification():
     """
-    @tests:
+    @tests: SpectrumIdentification
      SpectrumIdentification.__init__
     """
     f = pyopenms.SpectrumIdentification()
@@ -420,7 +419,7 @@ def testSpectrumIdentification():
 @report
 def testIdentification():
     """
-    @tests:
+    @tests: Identification
      Identification.__init__
     """
     f = pyopenms.Identification()
@@ -442,7 +441,7 @@ def testIdentification():
 @report
 def testModificationDefinitionsSet():
     """
-    @tests:
+    @tests: ModificationDefinitionsSet
      ModificationDefinitionsSet.__init__
     """
     empty = pyopenms.ModificationDefinitionsSet()
@@ -453,7 +452,7 @@ def testModificationDefinitionsSet():
 @report
 def test_AcquisitionInfo():
     """
-    @tests:
+    @tests: AcquisitionInfo
      AcquisitionInfo.__init__
      AcquisitionInfo.__eq__
      AcquisitionInfo.__ge__
@@ -476,7 +475,7 @@ def test_AcquisitionInfo():
 @report
 def test_BaseFeature():
     """
-    @tests:
+    @tests: BaseFeature
      BaseFeature.__init__
      BaseFeature.clearUniqueId
      BaseFeature.ensureUniqueId
@@ -519,7 +518,7 @@ def test_BaseFeature():
 @report
 def test_AnnotationState():
     """
-    @tests:
+    @tests: AnnotationState
      AnnotationState.__init__
     """
     state = pyopenms.AnnotationState()
@@ -533,7 +532,7 @@ def test_AnnotationState():
 @report
 def testChecksumType():
     """
-    @tests:
+    @tests: ChecksumType
      ChecksumType.MD5
      ChecksumType.SHA1
      ChecksumType.SIZE_OF_CHECKSUMTYPE
@@ -548,7 +547,7 @@ def testChecksumType():
 @report
 def testChromatogramPeak():
     """
-    @tests:
+    @tests: ChromatogramPeak
      ChromatogramPeak.__init__
      ChromatogramPeak.__eq__
      ChromatogramPeak.__ge__
@@ -573,10 +572,11 @@ def testChromatogramPeak():
 
 
 
+
 @report
 def testChromatogramToosl():
     """
-    @tests:
+    @tests: ChromatogramTools
      ChromatogramTools.__init__
      ChromatogramTools.convertChromatogramsToSpectra
      ChromatogramTools.convertSpectraToChromatograms
@@ -589,7 +589,7 @@ def testChromatogramToosl():
 @report
 def testConsensusFeature():
     """
-    @tests:
+    @tests: ConsensusFeature
      ConsensusFeature.__eq__
      ConsensusFeature.__ge__
      ConsensusFeature.__gt__
@@ -661,7 +661,7 @@ def testConsensusFeature():
 @report
 def testConsensusMap():
     """
-    @tests:
+    @tests: ConsensusMap
      ConsensusMap.__eq__
      ConsensusMap.__ge__
      ConsensusMap.__gt__
@@ -747,7 +747,7 @@ def testConsensusMap():
 @report
 def testConsensusXMLFile():
     """
-    @tests:
+    @tests: ConsensusXMLFile
      ConsensusXMLFile.__init__
      ConsensusXMLFile.getOptions
      ConsensusXMLFile.load
@@ -761,7 +761,7 @@ def testConsensusXMLFile():
 @report
 def testXTandemXMLFile():
     """
-    @tests:
+    @tests: XTandemXMLFile
      XTandemXMLFile.__init__
      XTandemXMLFile.load
      XTandemXMLFile.setModificationDefinitionsSet
@@ -828,7 +828,7 @@ def testXTandemInfile():
 @report
 def testSignalToNoiseEstimatorMedian():
     """
-    @tests:
+    @tests: SignalToNoiseEstimatorMedian
      SignalToNoiseEstimatorMedian.__init__
     """
     f = pyopenms.SignalToNoiseEstimatorMedian()
@@ -838,7 +838,7 @@ def testSignalToNoiseEstimatorMedian():
 @report
 def testSignalToNoiseEstimatorMedianChrom():
     """
-    @tests:
+    @tests: SignalToNoiseEstimatorMedianChrom
      SignalToNoiseEstimatorMedianChrom.__init__
     """
     f = pyopenms.SignalToNoiseEstimatorMedianChrom()
@@ -848,7 +848,7 @@ def testSignalToNoiseEstimatorMedianChrom():
 @report
 def testConvexHull2D():
     """
-    @tests:
+    @tests: ConvexHull2D
      ConvexHull2D.__eq__
      ConvexHull2D.__ge__
      ConvexHull2D.__gt__
@@ -867,7 +867,7 @@ def testConvexHull2D():
 def testDataProcessing(dp=pyopenms.DataProcessing()):
 
     """
-    @tests:
+    @tests: DataProcessing
      DataProcessing.__init__
      DataProcessing.getKeys
      DataProcessing.getMetaValue
@@ -895,8 +895,8 @@ def testDataProcessing(dp=pyopenms.DataProcessing()):
     assert dp == dp
     assert not dp != dp
 
-    assert isinstance(dp.getCompletionTime().getDate(), bytes)
-    assert isinstance(dp.getCompletionTime().getTime(), bytes)
+    # assert isinstance(dp.getCompletionTime().getDate(), bytes)
+    # assert isinstance(dp.getCompletionTime().getTime(), bytes)
     dp.clearMetaInfo()
     k = []
     dp.getKeys(k)
@@ -912,7 +912,7 @@ def testDataProcessing(dp=pyopenms.DataProcessing()):
     dp.isMetaEmpty()
     dp.metaValueExists
     dp.removeMetaValue
-    dp.setCompletionTime(pyopenms.DateTime.now())
+    # dp.setCompletionTime(pyopenms.DateTime.now())
     s = dp.getSoftware()
     s.setName(b"pyopenms")
     dp.setSoftware(s)
@@ -923,7 +923,7 @@ def testDataProcessing(dp=pyopenms.DataProcessing()):
 @report
 def testDataType():
     """
-    @tests:
+    @tests: DataType
      DataType.DOUBLE_LIST
      DataType.DOUBLE_VALUE
      DataType.EMPTY_VALUE
@@ -943,7 +943,7 @@ def testDataType():
 @report
 def testDataValue():
     """
-    @tests:
+    @tests: DataValue
      DataValue.__init__
      DataValue.isEmpty
      DataValue.toDoubleList
@@ -993,7 +993,7 @@ def testDataValue():
 @report
 def testAdduct():
     """
-    @tests:
+    @tests: Adduct
      Adduct.__init__
     """
     a = pyopenms.Adduct()
@@ -1001,7 +1001,7 @@ def testAdduct():
 @report
 def testGaussFitter():
     """
-    @tests:
+    @tests: GaussFitter
      GaussFitter.__init__
     """
     ins = pyopenms.GaussFitter()
@@ -1009,7 +1009,7 @@ def testGaussFitter():
 @report
 def testGaussFitResult():
     """
-    @tests:
+    @tests: GaussFitResult
      GaussFitResult.__init__
     """
     ins = pyopenms.GaussFitResult(0.0, 0.0, 0.0)
@@ -1020,7 +1020,7 @@ def testGaussFitResult():
 @report
 def testChargePair():
     """
-    @tests:
+    @tests: ChargePair
      ChargePair.__init__
     """
     a = pyopenms.ChargePair()
@@ -1028,7 +1028,7 @@ def testChargePair():
 @report
 def testCompomer():
     """
-    @tests:
+    @tests: Compomer
      Compomer.__init__
     """
     a = pyopenms.Compomer()
@@ -1036,7 +1036,7 @@ def testCompomer():
 @report
 def testCVMappings():
     """
-    @tests:
+    @tests: CVMappings
      CVMappings.__init__
     """
     val = pyopenms.CVMappings()
@@ -1044,7 +1044,7 @@ def testCVMappings():
 @report
 def testCVMappingFile():
     """
-    @tests:
+    @tests: CVMappingFile
      CVMappingFile.__init__
     """
     val = pyopenms.CVMappingFile()
@@ -1054,7 +1054,7 @@ def testCVMappingFile():
 @report
 def testControlledVocabulary():
     """
-    @tests:
+    @tests: ControlledVocabulary
      ControlledVocabulary.__init__
     """
     val = pyopenms.ControlledVocabulary()
@@ -1064,7 +1064,7 @@ def testControlledVocabulary():
 @report
 def testSemanticValidator():
     """
-    @tests:
+    @tests: SemanticValidator
      SemanticValidator.__init__
     """
     m = pyopenms.CVMappings()
@@ -1077,30 +1077,30 @@ def testSemanticValidator():
     assert val.setCheckUnits is not None
 
 
-@report
-def testDateTime():
-    """
-    @tests:
-     DateTime.__init__
-     DateTime.getDate
-     DateTime.getTime
-     DateTime.now
-    """
-    d = pyopenms.DateTime()
-    assert isinstance( d.getDate(), bytes)
-    assert isinstance( d.getTime(), bytes)
-    d = pyopenms.DateTime.now()
-    assert isinstance( d.getDate(), bytes)
-    assert isinstance( d.getTime(), bytes)
-
-    d.clear()
-    d.set(b"01.01.2001 11:11:11")
-    assert d.get() == b"2001-01-01 11:11:11"
+# @report
+# def testDateTime():
+#     """
+#     @tests: DateTime
+#      DateTime.__init__
+#      DateTime.getDate
+#      DateTime.getTime
+#      DateTime.now
+#     """
+#     d = pyopenms.DateTime()
+#     assert isinstance( d.getDate(), bytes)
+#     assert isinstance( d.getTime(), bytes)
+#     d = pyopenms.DateTime.now()
+#     assert isinstance( d.getDate(), bytes)
+#     assert isinstance( d.getTime(), bytes)
+# 
+#     d.clear()
+#     d.set(b"01.01.2001 11:11:11")
+#     assert d.get() == b"2001-01-01 11:11:11"
 
 @report
 def testFeature():
     """
-    @tests:
+    @tests: Feature
      Feature.__init__
      Feature.clearUniqueId
      Feature.ensureUniqueId
@@ -1170,7 +1170,7 @@ def testFeature():
 @report
 def testFeatureFinder():
     """
-    @tests:
+    @tests: FeatureFinder
      FeatureFinder.__init__
      FeatureFinder.endProgress
      FeatureFinder.getLogType
@@ -1193,7 +1193,7 @@ def testFeatureFinder():
 @report
 def testFeatureFileOptions():
     """
-    @tests:
+    @tests: FeatureFileOptions
      FeatureFileOptions.__init__
      FeatureFileOptions.getLoadConvexHull
      FeatureFileOptions.getLoadSubordinates
@@ -1217,7 +1217,7 @@ def testFeatureFileOptions():
 @report
 def _testParam(p):
     """
-    @tests:
+    @tests: Param
      Param.__init__
      Param.addTag
      Param.addTags
@@ -1341,7 +1341,7 @@ def _testParam(p):
 @report
 def testFeatureFinderAlgorithmPicked():
     """
-    @tests:
+    @tests: FeatureFinderAlgorithmPicked
      FeatureFinderAlgorithmPicked.__init__
      FeatureFinderAlgorithmPicked.getDefaults
      FeatureFinderAlgorithmPicked.getName
@@ -1367,7 +1367,7 @@ def testFeatureFinderAlgorithmPicked():
 @report
 def testFeatureFinderAlgorithmSH():
     """
-    @tests:
+    @tests: FeatureFinderAlgorithmSH
      FeatureFinderAlgorithmSH.__init__
      FeatureFinderAlgorithmSH.getDefaults
      FeatureFinderAlgorithmSH.getName
@@ -1393,7 +1393,7 @@ def testFeatureFinderAlgorithmSH():
 @report
 def testFeatureFinderAlgorithmIsotopeWavelet():
     """
-    @tests:
+    @tests: FeatureFinderAlgorithmIsotopeWavelet
      FeatureFinderAlgorithmIsotopeWavelet.__init__
      FeatureFinderAlgorithmIsotopeWavelet.getDefaults
      FeatureFinderAlgorithmIsotopeWavelet.getName
@@ -1419,7 +1419,7 @@ def testFeatureFinderAlgorithmIsotopeWavelet():
 @report
 def testCompNovoIdentification():
     """
-    @tests:
+    @tests: CompNovoIdentification
      CompNovoIdentification.__init__
     """
     ff = pyopenms.CompNovoIdentification()
@@ -1432,7 +1432,7 @@ def testCompNovoIdentification():
 @report
 def testCompNovoIdentificationCID():
     """
-    @tests:
+    @tests: CompNovoIdentificationCID
      CompNovoIdentificationCID.__init__
     """
     ff = pyopenms.CompNovoIdentificationCID()
@@ -1445,7 +1445,7 @@ def testCompNovoIdentificationCID():
 @report
 def testExperimentalSettings():
     """
-    @tests:
+    @tests: ExperimentalSettings
      ExperimentalSettings.__init__
     """
     ff = pyopenms.ExperimentalSettings()
@@ -1453,7 +1453,7 @@ def testExperimentalSettings():
 @report
 def testFeatureDeconvolution():
     """
-    @tests:
+    @tests: FeatureDeconvolution
      FeatureDeconvolution.__init__
     """
     ff = pyopenms.FeatureDeconvolution()
@@ -1465,7 +1465,7 @@ def testFeatureDeconvolution():
 @report
 def testInternalCalibration():
     """
-    @tests:
+    @tests: InternalCalibration
      InternalCalibration.__init__
     """
     ff = pyopenms.InternalCalibration()
@@ -1478,7 +1478,7 @@ def testInternalCalibration():
 @report
 def testItraqConstants():
     """
-    @tests:
+    @tests: testItraqConstants
     """
     constants = pyopenms.ItraqConstants()
 
@@ -1494,7 +1494,7 @@ def testItraqConstants():
 
 def testLinearResampler():
     """
-    @tests:
+    @tests: LinearResampler
      LinearResampler.__init__
     """
     ff = pyopenms.LinearResampler()
@@ -1507,7 +1507,7 @@ def testLinearResampler():
 @report
 def testPeptideAndProteinQuant():
     """
-    @tests:
+    @tests: PeptideAndProteinQuant
      PeptideAndProteinQuant.__init__
     """
     ff = pyopenms.PeptideAndProteinQuant()
@@ -1520,7 +1520,7 @@ def testPeptideAndProteinQuant():
 @report
 def testSeedListGenerator():
     """
-    @tests:
+    @tests: SeedListGenerator
      SeedListGenerator.__init__
     """
     ff = pyopenms.SeedListGenerator()
@@ -1533,7 +1533,7 @@ def testSeedListGenerator():
 @report
 def testTOFCalibration():
     """
-    @tests:
+    @tests: TOFCalibration
      TOFCalibration.__init__
     """
     ff = pyopenms.TOFCalibration()
@@ -1547,7 +1547,7 @@ def testTOFCalibration():
 # @report
 # def testConsensusID():
 #     """
-#     @tests:
+#     @tests: ConsensusID
 #      ConsensusID.__init__
 #     """
 #     ff = pyopenms.ConsensusID()
@@ -1559,7 +1559,7 @@ def testTOFCalibration():
 @report
 def testFalseDiscoveryRate():
     """
-    @tests:
+    @tests: FalseDiscoveryRate
      FalseDiscoveryRate.__init__
     """
     ff = pyopenms.FalseDiscoveryRate()
@@ -1571,7 +1571,7 @@ def testFalseDiscoveryRate():
 @report
 def testIDFilter():
     """
-    @tests:
+    @tests: IDFilter
      IDFilter.__init__
     """
     ff = pyopenms.IDFilter()
@@ -1581,7 +1581,7 @@ def testIDFilter():
 @report
 def testProteinResolver():
     """
-    @tests:
+    @tests: ProteinResolver
      ProteinResolver.__init__
     """
     ff = pyopenms.ProteinResolver()
@@ -1594,7 +1594,7 @@ def testProteinResolver():
 @report
 def testSvmTheoreticalSpectrumGeneratorTrainer():
     """
-    @tests:
+    @tests: SvmTheoreticalSpectrumGeneratorTrainer
      SvmTheoreticalSpectrumGeneratorTrainer.__init__
     """
     ff = pyopenms.SvmTheoreticalSpectrumGeneratorTrainer()
@@ -1605,7 +1605,7 @@ def testSvmTheoreticalSpectrumGeneratorTrainer():
 @report
 def testPosteriorErrorProbabilityModel():
     """
-    @tests:
+    @tests: PosteriorErrorProbabilityModel
      PosteriorErrorProbabilityModel.__init__
     """
     model = pyopenms.PosteriorErrorProbabilityModel()
@@ -1632,8 +1632,6 @@ def testPosteriorErrorProbabilityModel():
     GaussFitResult = model.getCorrectlyAssignedFitResult()
     GaussFitResult = model.getIncorrectlyAssignedFitResult()
     model.getNegativePrior()
-    model.getGauss(5.0, GaussFitResult)
-    model.getGumbel(5.0, GaussFitResult)
     model.computeProbability(5.0) 
 
     # model.InitPlots
@@ -1648,7 +1646,7 @@ def testPosteriorErrorProbabilityModel():
 @report
 def testSeedListGenerator():
     """
-    @tests:
+    @tests: SeedListGenerator
      SeedListGenerator.__init__
     """
     ff = pyopenms.SeedListGenerator()
@@ -1659,7 +1657,7 @@ def testSeedListGenerator():
 @report
 def testConsensusMapNormalizerAlgorithmMedian():
     """
-    @tests:
+    @tests: ConsensusMapNormalizerAlgorithmMedian
      ConsensusMapNormalizerAlgorithmMedian.__init__
     """
     ff = pyopenms.ConsensusMapNormalizerAlgorithmMedian()
@@ -1669,7 +1667,7 @@ def testConsensusMapNormalizerAlgorithmMedian():
 @report
 def testConsensusMapNormalizerAlgorithmQuantile():
     """
-    @tests:
+    @tests: ConsensusMapNormalizerAlgorithmQuantile
      ConsensusMapNormalizerAlgorithmQuantile.__init__
     """
     ff = pyopenms.ConsensusMapNormalizerAlgorithmQuantile()
@@ -1679,7 +1677,7 @@ def testConsensusMapNormalizerAlgorithmQuantile():
 @report
 def testConsensusMapNormalizerAlgorithmThreshold():
     """
-    @tests:
+    @tests: ConsensusMapNormalizerAlgorithmThreshold
      ConsensusMapNormalizerAlgorithmThreshold.__init__
     """
     ff = pyopenms.ConsensusMapNormalizerAlgorithmThreshold()
@@ -1691,7 +1689,7 @@ def testConsensusMapNormalizerAlgorithmThreshold():
 @report
 def testFeatureFinderAlgorithmPicked():
     """
-    @tests:
+    @tests: FeatureFinderAlgorithmPicked
      FeatureFinderAlgorithmPicked.__init__
     """
     ff = pyopenms.FeatureFinderAlgorithmPicked()
@@ -1702,7 +1700,7 @@ def testFeatureFinderAlgorithmPicked():
 @report
 def testFeatureFinderAlgorithmSH():
     """
-    @tests:
+    @tests: FeatureFinderAlgorithmSH
      FeatureFinderAlgorithmSH.__init__
     """
     ff = pyopenms.FeatureFinderAlgorithmSH()
@@ -1713,7 +1711,7 @@ def testFeatureFinderAlgorithmSH():
 @report
 def testFeatureFinderAlgorithmIsotopeWavelet():
     """
-    @tests:
+    @tests: FeatureFinderAlgorithmIsotopeWavelet
      FeatureFinderAlgorithmIsotopeWavelet.__init__
     """
     ff = pyopenms.FeatureFinderAlgorithmIsotopeWavelet()
@@ -1725,7 +1723,7 @@ def testFeatureFinderAlgorithmIsotopeWavelet():
 @report
 def testAScore():
     """
-    @tests:
+    @tests: AScore
      AScore.__init__
     """
     ff = pyopenms.AScore()
@@ -1733,13 +1731,13 @@ def testAScore():
     hit = pyopenms.PeptideHit()
     spectrum = pyopenms.MSSpectrum()
 
-    ff.compute(hit, spectrum, 5.0, 1)
+    ff.compute(hit, spectrum)
     # ff.computeCumulativeScore(1,1,0.5)
 
 @report
 def testIDRipper():
     """
-    @tests:
+    @tests: IDRipper
      IDRipper.__init__
      IDRipper.rip
     """
@@ -1750,7 +1748,7 @@ def testIDRipper():
 @report
 def testFASTAFile():
     """
-    @tests:
+    @tests: FASTAFile
      FASTAFile.__init__
      FASTAFile.load
      FASTAFile.store
@@ -1764,7 +1762,7 @@ def testFASTAFile():
 @report
 def testFASTAEntry():
     """
-    @tests:
+    @tests: FASTAEntry
      FASTAEntry.__init__
     """
     ff = pyopenms.FASTAEntry()
@@ -1772,7 +1770,7 @@ def testFASTAEntry():
 @report
 def testInternalCalibration():
     """
-    @tests:
+    @tests: InternalCalibration
      InternalCalibration.__init__
      InternalCalibration.calibrateMapGlobally
      InternalCalibration.calibrateMapSpectrumwise
@@ -1784,45 +1782,45 @@ def testInternalCalibration():
     assert pyopenms.InternalCalibration().calibrate is not None
 
 @report
-def testTransitionTSVReader():
+def testTransitionTSVFile():
     """
     @tests:
-     TransitionTSVReader.__init__
-     TransitionTSVReader.calibrateMapGlobally
-     TransitionTSVReader.calibrateMapSpectrumwise
+     TransitionTSVFile.__init__
+     TransitionTSVFile.calibrateMapGlobally
+     TransitionTSVFile.calibrateMapSpectrumwise
     """
-    ff = pyopenms.TransitionTSVReader()
+    ff = pyopenms.TransitionTSVFile()
 
-    assert pyopenms.TransitionTSVReader().convertTargetedExperimentToTSV is not None
-    assert pyopenms.TransitionTSVReader().convertTSVToTargetedExperiment is not None
-    assert pyopenms.TransitionTSVReader().validateTargetedExperiment is not None
+    assert pyopenms.TransitionTSVFile().convertTargetedExperimentToTSV is not None
+    assert pyopenms.TransitionTSVFile().convertTSVToTargetedExperiment is not None
+    assert pyopenms.TransitionTSVFile().validateTargetedExperiment is not None
 
 @report
-def testEnzymaticDigestion():
+def testProteaseDigestion():
     """
-    @tests:
-     EnzymaticDigestion.__init__
-     EnzymaticDigestion.getMissedCleavages()
-     EnzymaticDigestion.setMissedCleavages()
-     EnzymaticDigestion.digest()
-     EnzymaticDigestion.peptideCount()
+    @tests: ProteaseDigestion
+     ProteaseDigestion.__init__
+     ProteaseDigestion.getMissedCleavages()
+     ProteaseDigestion.setMissedCleavages()
+     ProteaseDigestion.digest()
+     ProteaseDigestion.peptideCount()
     """
     # removed due to name clashes
-    # EnzymaticDigestion.getEnzyme()
-    # EnzymaticDigestion.setEnzyme()
-    # EnzymaticDigestion.getEnzymeByName()
+    # ProteaseDigestion.getEnzyme()
+    # ProteaseDigestion.setEnzyme()
+    # ProteaseDigestion.getEnzymeByName()
 
-    ff = pyopenms.EnzymaticDigestion()
-    #enz = pyopenms.EnzymaticDigestion().Enzyme()
+    ff = pyopenms.ProteaseDigestion()
+    #enz = pyopenms.ProteaseDigestion().Enzyme()
 
-    assert pyopenms.EnzymaticDigestion().getMissedCleavages is not None
-    assert pyopenms.EnzymaticDigestion().setMissedCleavages is not None
-    #assert pyopenms.EnzymaticDigestion().getEnzyme is not None
-    #assert pyopenms.EnzymaticDigestion().setEnzyme is not None
-    #assert pyopenms.EnzymaticDigestion().getEnzymeByName is not None
+    assert pyopenms.ProteaseDigestion().getMissedCleavages is not None
+    assert pyopenms.ProteaseDigestion().setMissedCleavages is not None
+    #assert pyopenms.ProteaseDigestion().getEnzyme is not None
+    #assert pyopenms.ProteaseDigestion().setEnzyme is not None
+    #assert pyopenms.ProteaseDigestion().getEnzymeByName is not None
 
-    assert pyopenms.EnzymaticDigestion().digest is not None
-    assert pyopenms.EnzymaticDigestion().peptideCount is not None
+    assert pyopenms.ProteaseDigestion().digest is not None
+    assert pyopenms.ProteaseDigestion().peptideCount is not None
 
     ff.setMissedCleavages(5)
     assert ff.getMissedCleavages() == 5
@@ -1831,7 +1829,7 @@ def testEnzymaticDigestion():
     #assert ff.getEnzyme() == enz.TRYPSIN
 
 @report
-def testEnzymaticDigestion():
+def testEnzymaticDigestionLogModel():
     ff = pyopenms.EnzymaticDigestionLogModel()
     assert pyopenms.EnzymaticDigestionLogModel().getLogThreshold is not None
     assert pyopenms.EnzymaticDigestionLogModel().setLogThreshold is not None
@@ -1843,7 +1841,7 @@ def testEnzymaticDigestion():
 @report
 def testIDDecoyProbability():
     """
-    @tests:
+    @tests: IDDecoyProbability
       IDDecoyProbability.__init__
     """
     ff = pyopenms.IDDecoyProbability()
@@ -1853,7 +1851,7 @@ def testIDDecoyProbability():
 @report
 def testFeatureGrouping():
     """
-    @tests:
+    @tests: FeatureGroupingAlgorithm
      FeatureGroupingAlgorithm.getDefaults
      FeatureGroupingAlgorithm.getName
      FeatureGroupingAlgorithm.getParameters
@@ -1889,7 +1887,7 @@ def testFeatureGrouping():
 @report
 def testFeatureMap():
     """
-    @tests:
+    @tests: FeatureMap
      FeatureMap.__init__
      FeatureMap.__add__
      FeatureMap.__iadd__
@@ -2009,7 +2007,7 @@ def testFeatureMap():
 @report
 def testFeatureXMLFile():
     """
-    @tests:
+    @tests: FeatureXMLFile
      FeatureXMLFile.__init__
      FeatureXMLFile.load
      FeatureXMLFile.store
@@ -2033,7 +2031,7 @@ def testFeatureXMLFile():
 @report
 def testFileDescription():
     """
-    @tests:
+    @tests: FileDescription
      FileDescription.__init__
      FileDescription.filename
      FileDescription.label
@@ -2049,7 +2047,7 @@ def testFileDescription():
 @report
 def testFileHandler():
     """
-    @tests:
+    @tests: FileHandler
      FileHandler.__init__
      FileHandler.getType
      FileHandler.loadExperiment
@@ -2070,7 +2068,7 @@ def testFileHandler():
 @report
 def testIDMapper():
     """
-    @tests:
+    @tests: IDMapper
      IDMapper.__init__
      IDMapper.annotate
      IDMapper.getDefaults
@@ -2089,7 +2087,7 @@ def testIDMapper():
 @report
 def testIdXMLFile():
     """
-    @tests:
+    @tests: IdXMLFile
      IdXMLFile.__init__
      IdXMLFile.load
      IdXMLFile.store
@@ -2100,7 +2098,7 @@ def testIdXMLFile():
 @report
 def testPepXMLFile():
     """
-    @tests:
+    @tests: PepXMLFile
      PepXMLFile.__init__
      PepXMLFile.load
      PepXMLFile.store
@@ -2113,7 +2111,7 @@ def testPepXMLFile():
 @report
 def testProtXMLFile():
     """
-    @tests:
+    @tests: ProtXMLFile
      ProtXMLFile.__init__
      ProtXMLFile.load
      ProtXMLFile.store
@@ -2126,7 +2124,7 @@ def testProtXMLFile():
 @report
 def testDTA2DFile():
     """
-    @tests:
+    @tests: DTA2DFile
      DTA2DFile.__init__
      DTA2DFile.load
      DTA2DFile.store
@@ -2139,7 +2137,7 @@ def testDTA2DFile():
 @report
 def testDTAFile():
     """
-    @tests:
+    @tests: DTAFile
      DTAFile.__init__
      DTAFile.load
      DTAFile.store
@@ -2152,7 +2150,7 @@ def testDTAFile():
 @report
 def testEDTAFile():
     """
-    @tests:
+    @tests: EDTAFile
      EDTAFile.__init__
      EDTAFile.load
      EDTAFile.store
@@ -2165,7 +2163,7 @@ def testEDTAFile():
 @report
 def testKroenikFile():
     """
-    @tests:
+    @tests: KroenikFile
      KroenikFile.__init__
      KroenikFile.load
      KroenikFile.store
@@ -2178,7 +2176,7 @@ def testKroenikFile():
 @report
 def testMSPFile():
     """
-    @tests:
+    @tests: MSPFile
      MSPFile.__init__
     """
     f = pyopenms.MSPFile()
@@ -2189,7 +2187,7 @@ def testMSPFile():
 @report
 def testMzIdentMLFile():
     """
-    @tests:
+    @tests: MzIdentMLFile
      MzIdentMLFile.__init__
     """
     f = pyopenms.MzIdentMLFile()
@@ -2202,7 +2200,7 @@ def testMzIdentMLFile():
 @report
 def testMzTabFile():
     """
-    @tests:
+    @tests: MzTabFile
      MzTabFile.__init__
     """
     f = pyopenms.MzTabFile()
@@ -2212,7 +2210,7 @@ def testMzTabFile():
 @report
 def testMzTab():
     """
-    @tests:
+    @tests: MzTab
      MzTab.__init__
     """
     # f = pyopenms.MzTab()
@@ -2220,7 +2218,7 @@ def testMzTab():
 @report
 def testInstrumentSettings():
     """
-    @tests:
+    @tests: InstrumentSettings
      InstrumentSettings.__init__
      InstrumentSettings.clearMetaInfo
      InstrumentSettings.getKeys
@@ -2249,7 +2247,7 @@ def testInstrumentSettings():
 @report
 def testContactPerson():
     """
-    @tests:
+    @tests: ContactPerson
      ContactPerson.__init__
      ContactPerson.getFirstName
      ContactPerson.setFirstName
@@ -2288,7 +2286,7 @@ def testContactPerson():
 @report
 def testDocumentIdentifier():
     """
-    @tests:
+    @tests: DocumentIdentifier
      DocumentIdentifier.__init__
      DocumentIdentifier.setIdentifier
      DocumentIdentifier.getIdentifier
@@ -2309,7 +2307,7 @@ def testDocumentIdentifier():
 @report
 def testGradient():
     """
-    @tests:
+    @tests: Gradient
      Gradient.__init__
      Gradient.addEluent
      Gradient.addEluent
@@ -2343,7 +2341,7 @@ def testGradient():
 @report
 def testHPLC():
     """
-    @tests:
+    @tests: HPLC
      HPLC.__init__
      HPLC.getInstrument
      HPLC.setInstrument
@@ -2382,7 +2380,7 @@ def testHPLC():
 @report
 def testInstrument():
     """
-    @tests:
+    @tests: Instrument
      Instrument.__init__
      Instrument.setName
      Instrument.getName
@@ -2429,7 +2427,7 @@ def testInstrument():
 @report
 def testIonDetector():
     """
-    @tests:
+    @tests: IonDetector
      IonDetector.__init__
      IonDetector.setAcquisitionMode
      IonDetector.getAcquisitionMode
@@ -2458,7 +2456,7 @@ def testIonDetector():
 @report
 def testIonSource():
     """
-    @tests:
+    @tests: IonSource
      IonSource.__init__
      IonSource.setPolarity
      IonSource.getPolarity
@@ -2489,7 +2487,7 @@ def testIonSource():
 @report
 def testMassAnalyzer():
     """
-    @tests:
+    @tests: MassAnalyzer
      MassAnalyzer.__init__
      MassAnalyzer.setType
      MassAnalyzer.getType
@@ -2570,7 +2568,7 @@ def testMassAnalyzer():
 @report
 def testSample():
     """
-    @tests:
+    @tests: Sample
      Sample.__init__
      Sample.setName
      Sample.getName
@@ -2629,7 +2627,7 @@ def testSample():
 def testLogType():
 
     """
-    @tests:
+    @tests: LogType
      LogType.CMD
      LogType.GUI
      LogType.NONE
@@ -2641,7 +2639,7 @@ def testLogType():
 @report
 def testMSExperiment():
     """
-    @tests:
+    @tests: MSExperiment
      MSExperiment.__init__
      MSExperiment.getLoadedFilePath
      MSExperiment.getMaxMZ
@@ -2723,7 +2721,7 @@ def testMSExperiment():
 @report
 def testMSQuantifications():
     """
-    @tests:
+    @tests: MSQuantifications
      MSQuantifications.__eq__
      MSQuantifications.__ge__
      MSQuantifications.__gt__
@@ -2759,7 +2757,7 @@ def testMSQuantifications():
 @report
 def testMSSpectrum():
     """
-    @tests:
+    @tests: MSSpectrum
      MSSpectrum.__init__
      MSSpectrum.clear
      MSSpectrum.clearMetaInfo
@@ -2900,7 +2898,7 @@ def testMSSpectrum():
 @report
 def testStringDataArray():
     """
-    @tests:
+    @tests: StringDataArray
      """
     da = pyopenms.StringDataArray()
     assert da.size() == 0
@@ -2924,7 +2922,7 @@ def testStringDataArray():
 @report
 def testIntegerDataArray():
     """
-    @tests:
+    @tests: IntegerDataArray
      """
     da = pyopenms.IntegerDataArray()
     assert da.size() == 0
@@ -2948,7 +2946,7 @@ def testIntegerDataArray():
 @report
 def testFloatDataArray():
     """
-    @tests:
+    @tests: FloatDataArray
      """
     da = pyopenms.FloatDataArray()
     assert da.size() == 0
@@ -2972,7 +2970,7 @@ def testFloatDataArray():
 @report
 def testMSChromatogram():
     """
-    @tests:
+    @tests: MSChromatogram
      MSChromatogram.__init__
      MSChromatogram.__copy__
      """
@@ -3022,7 +3020,7 @@ def testMSChromatogram():
 @report
 def testMRMFeature():
     """
-    @tests:
+    @tests: MRMFeature
       MRMFeature.__init__
       MRMFeature.addScore
       MRMFeature.getScore
@@ -3037,7 +3035,7 @@ def testMRMFeature():
 @report
 def testConfidenceScoring():
     """
-    @tests:
+    @tests: ConfidenceScoring
       ConfidenceScoring.__init__
      """
     scoring = pyopenms.ConfidenceScoring()
@@ -3045,7 +3043,7 @@ def testConfidenceScoring():
 @report
 def testMRMDecoy():
     """
-    @tests:
+    @tests: MRMDecoy
       MRMDecoy.__init__
      """
     mrmdecoy = pyopenms.MRMDecoy()
@@ -3056,7 +3054,7 @@ def testMRMDecoy():
 @report
 def testMRMTransitionGroup():
     """
-    @tests:
+    @tests: MRMTransitionGroup
      """
     mrmgroup = pyopenms.MRMTransitionGroupCP()
     assert mrmgroup is not None
@@ -3071,7 +3069,7 @@ def testMRMTransitionGroup():
 @report
 def testReactionMonitoringTransition():
     """
-    @tests:
+    @tests: ReactionMonitoringTransition
      """
     tr = pyopenms.ReactionMonitoringTransition()
 
@@ -3104,10 +3102,71 @@ def testTargetedExperiment():
 
 
 @report
+def testTargetedExperimentHelper():
+    """
+    @tests: TargetedExperimentHelper
+     """
+    rtu = pyopenms.RetentionTime.RTUnit()
+    rtu = pyopenms.RetentionTime.RTUnit.SECOND
+    rtu = pyopenms.RetentionTime.RTUnit.MINUTE
+    rtt = pyopenms.RetentionTime.RTType()
+    rtt = pyopenms.RetentionTime.RTType.LOCAL
+    rtt = pyopenms.RetentionTime.RTType.NORMALIZED
+    rtt = pyopenms.RetentionTime.RTType.IRT
+
+    rt = pyopenms.RetentionTime()
+    assert rt.software_ref is not None
+    assert not rt.isRTset()
+    rt.setRT(5.0)
+    rt.retention_time_unit = pyopenms.RetentionTime.RTUnit.SECOND
+    rt.retention_time_type = pyopenms.RetentionTime.RTType.NORMALIZED
+    assert rt.isRTset()
+    assert rt.getRT() == 5.0
+
+    p = pyopenms.Peptide()
+    assert p.rts is not None
+    assert p.id is not None
+    assert p.protein_refs is not None
+    assert p.evidence is not None
+    assert p.sequence is not None
+    assert p.mods is not None
+
+    assert not p.hasCharge()
+    p.setChargeState(5)
+    assert p.hasCharge()
+    assert p.getChargeState() == 5
+
+    assert not p.hasRetentionTime()
+    p.rts = [rt]
+    assert p.hasRetentionTime()
+    assert p.getRetentionTime() == 5.0
+    assert p.getRetentionTimeUnit() == pyopenms.RetentionTime.RTUnit.SECOND
+    assert p.getRetentionTimeType() == pyopenms.RetentionTime.RTType.NORMALIZED
+
+    c = pyopenms.Compound()
+    assert c.rts is not None
+    assert c.id is not None
+    assert c.molecular_formula is not None
+    assert c.smiles_string is not None
+    assert c.theoretical_mass is not None
+
+    assert not c.hasCharge()
+    c.setChargeState(5)
+    assert c.hasCharge()
+    assert c.getChargeState() == 5
+
+    assert not c.hasRetentionTime()
+    c.rts = [rt]
+    assert c.hasRetentionTime()
+    assert c.getRetentionTime() == 5.0
+    assert c.getRetentionTimeUnit() == pyopenms.RetentionTime.RTUnit.SECOND
+    assert c.getRetentionTimeType() == pyopenms.RetentionTime.RTType.NORMALIZED
+
+@report
 def testMapAlignment():
 
     """
-    @tests:
+    @tests: MapAlignmentAlgorithmPoseClustering
      MapAlignmentAlgorithmPoseClustering.__init__
      MapAlignmentAlgorithmPoseClustering.getDefaults
      MapAlignmentAlgorithmPoseClustering.getName
@@ -3146,7 +3205,7 @@ def testMapAlignment():
 def testMapAlignmentIdentification():
 
     """
-    @tests:
+    @tests: MapAlignmentAlgorithmIdentification
      MapAlignmentAlgorithmIdentification.__init__
      """
     ma = pyopenms.MapAlignmentAlgorithmIdentification()
@@ -3158,7 +3217,7 @@ def testMapAlignmentIdentification():
 def testMapAlignmentTransformer():
 
     """
-    @tests:
+    @tests: MapAlignmentTransformer
      MapAlignmentTransformer.__init__
      """
     ma = pyopenms.MapAlignmentTransformer()
@@ -3168,7 +3227,7 @@ def testMapAlignmentTransformer():
 @report
 def testMxxxFile():
     """
-    @tests:
+    @tests: MzDataFile
      MzDataFile.__init__
      MzDataFile.endProgress
      MzDataFile.getLogType
@@ -3239,7 +3298,7 @@ def testMxxxFile():
 def testParamXMLFile():
 
     """
-    @tests:
+    @tests: ParamXMLFile
      ParamXMLFile.__init__
      ParamXMLFile.load
      ParamXMLFile.store
@@ -3256,7 +3315,7 @@ def testParamXMLFile():
 def testPeak():
 
     """
-    @tests:
+    @tests: Peak1D
      Peak1D.__init__
      Peak1D.getIntensity
      Peak1D.getMZ
@@ -3306,7 +3365,7 @@ def testPeak():
 @report
 def testPeakFileOptions():
     """
-    @tests:
+    @tests: PeakFileOptions
      PeakFileOptions.__init__
      PeakFileOptions.addMSLevel
      PeakFileOptions.clearMSLevels
@@ -3336,11 +3395,41 @@ def testPeakFileOptions():
     pfo.setMetadataOnly
     pfo.setWriteSupplementalData
 
+@report
+def testMRMMapping():
+    """
+    @tests: MRMMapping
+     MRMMapping.__init__
+     MRMMapping.map
+    """
+
+    p = pyopenms.MRMMapping()
+    assert p.mapExperiment is not None
+    e = pyopenms.MSExperiment()
+    c = pyopenms.MSChromatogram()
+    e.addChromatogram(c)
+    assert e.getNrChromatograms() == 1
+
+    o = pyopenms.MSExperiment()
+    t = pyopenms.TargetedExperiment()
+    p.mapExperiment(e, t, o)
+    assert o.getNrChromatograms() == 0 # not so easy to test
+
+@report
+def testPeakPickerMRM():
+    """
+    @tests: PeakPickerMRM
+     PeakPickerMRM.__init__
+     PeakPickerMRM.pickChromatogram
+    """
+
+    p = pyopenms.PeakPickerMRM()
+    assert p.pickChromatogram is not None
 
 @report
 def testPeakPickerHiRes():
     """
-    @tests:
+    @tests: PeakPickerHiRes
      PeakPickerHiRes.__init__
      PeakPickerHiRes.endProgress
      PeakPickerHiRes.getDefaults
@@ -3356,10 +3445,14 @@ def testPeakPickerHiRes():
      PeakPickerHiRes.startProgress
     """
 
+    p = pyopenms.PeakPickerHiRes()
+    assert p.pick is not None
+    assert p.pickExperiment is not None
+
 @report
 def testPeakTypeEstimator():
     """
-    @tests:
+    @tests: PeakTypeEstimator
      PeakTypeEstimator.__init__
      PeakTypeEstimator.estimateType
     """
@@ -3369,7 +3462,7 @@ def testPeakTypeEstimator():
 @report
 def testPeptideHit():
     """
-    @tests:
+    @tests: PeptideHit
      PeptideHit.__init__
      PeptideHit.addProteinAccession
      PeptideHit.clearMetaInfo
@@ -3437,7 +3530,7 @@ def testPeptideHit():
 @report
 def testPeptideEvidence():
     """
-    @tests:
+    @tests: PeptideEvidence
      PeptideEvidence.__init__
     """
     pe = pyopenms.PeptideEvidence()
@@ -3464,7 +3557,7 @@ def testPeptideEvidence():
 @report
 def testPeptideIdentification():
     """
-    @tests:
+    @tests: PeptideIdentification
      PeptideIdentification.__init__
      PeptideIdentification.assignRanks
      PeptideIdentification.clearMetaInfo
@@ -3535,7 +3628,7 @@ def testPeptideIdentification():
 @report
 def testPolarity():
     """
-    @tests:
+    @tests: Polarity
      Polarity.NEGATIVE
      Polarity.POLNULL
      Polarity.POSITIVE
@@ -3549,7 +3642,7 @@ def testPolarity():
 @report
 def testPrecursor():
     """
-    @tests:
+    @tests: Precursor
      Precursor.__init__
      Precursor.getIntensity
      Precursor.getMZ
@@ -3594,7 +3687,7 @@ def testPrecursor():
 @report
 def testProcessingAction():
     """
-    @tests:
+    @tests: ProcessingAction
      ProcessingAction.ALIGNMENT
      ProcessingAction.BASELINE_REDUCTION
      ProcessingAction.CALIBRATION
@@ -3643,7 +3736,7 @@ def testProcessingAction():
 @report
 def testProduct():
     """
-    @tests:
+    @tests: Product
      Product.__init__
      Product.getIsolationWindowLowerOffset
      Product.getIsolationWindowUpperOffset
@@ -3672,7 +3765,7 @@ def testProduct():
 @report
 def testProteinHit():
     """
-    @tests:
+    @tests: ProteinHit
      ProteinHit.__init__
      ProteinHit.clearMetaInfo
      ProteinHit.getAccession
@@ -3716,7 +3809,7 @@ def testProteinHit():
 @report
 def testProteinIdentification():
     """
-    @tests:
+    @tests: ProteinIdentification
      ProteinIdentification.PeakMassType
      ProteinIdentification.__init__
      ProteinIdentification.clearMetaInfo
@@ -3757,7 +3850,7 @@ def testProteinIdentification():
 @report
 def testRichPeak():
     """
-    @tests:
+    @tests: RichPeak1D
      RichPeak1D.__init__
      RichPeak1D.getIntensity
      RichPeak1D.getKeys
@@ -3820,7 +3913,7 @@ def testRichPeak():
 @report
 def testSoftware():
     """
-    @tests:
+    @tests: Software
      Software.__init__
      Software.getName
      Software.getVersion
@@ -3838,7 +3931,7 @@ def testSoftware():
 @report
 def testSourceFile():
     """
-    @tests:
+    @tests: SourceFile
      SourceFile.__init__
      SourceFile.getChecksum
      SourceFile.getChecksumType
@@ -3872,7 +3965,7 @@ def testSourceFile():
 @report
 def testSpectrumSetting(s=pyopenms.SpectrumSettings()):
     """
-    @tests:
+    @tests: SpectrumSettings
      SpectrumSettings.SpectrumType
      SpectrumSettings.__init__
      SpectrumSettings.getAcquisitionInfo
@@ -3926,7 +4019,7 @@ def testSpectrumSetting(s=pyopenms.SpectrumSettings()):
 @report
 def testTransformationDescription():
     """
-    @tests:
+    @tests: TransformationDescription
      TransformationDescription.__init__
      TransformationDescription.apply
      TransformationDescription.getDataPoints
@@ -3947,7 +4040,7 @@ def testTransformationDescription():
 @report
 def testTransformationModels():
     """
-    @tests:
+    @tests: TransformationModelInterpolated
      TransformationModelInterpolated.getDefaultParameters
      TransformationModelInterpolated.getParameters
      TransformationModelLinear.getDefaultParameters
@@ -3957,7 +4050,9 @@ def testTransformationModels():
                 pyopenms.TransformationModelBSpline,
                 pyopenms.TransformationModelInterpolated]:
         p = pyopenms.Param()
-        data = [ [9.0, 8.9], [5.0, 6.0], [8.0, 8.0] ]
+        data = [ pyopenms.TM_DataPoint(9.0, 8.9),
+                 pyopenms.TM_DataPoint(5.0, 6.0),
+                 pyopenms.TM_DataPoint(8.0, 8.0) ]
         mod = clz(data, p)
         mod.evaluate(7.0)
         mod.getDefaultParameters(p)
@@ -3965,7 +4060,7 @@ def testTransformationModels():
 @report
 def testTransformationXMLFile():
     """
-    @tests:
+    @tests: TransformationXMLFile
      TransformationXMLFile.__init__
      TransformationXMLFile.load
      TransformationXMLFile.store
@@ -3979,7 +4074,7 @@ def testTransformationXMLFile():
 @report
 def testIBSpectraFile():
     """
-    @tests:
+    @tests: IBSpectraFile
      IBSpectraFile.__init__
      IBSpectraFile.store
     """
@@ -3997,7 +4092,7 @@ def testIBSpectraFile():
 @report
 def testSwathFile():
     """
-    @tests:
+    @tests: SwathFile
      SwathFile.__init__
      SwathFile.store
     """
@@ -4006,7 +4101,7 @@ def testSwathFile():
 @report
 def testType():
     """
-    @tests:
+    @tests: Type
      Type.CONSENSUSXML
      Type.DTA
      Type.DTA2D
@@ -4076,7 +4171,7 @@ def testType():
 @report
 def testVersion():
     """
-    @tests:
+    @tests: VersionDetails
      VersionDetails.__init__
      VersionDetails.create
      VersionDetails.version_major
@@ -4111,7 +4206,7 @@ def testVersion():
 @report
 def testInspectInfile():
     """
-    @tests:
+    @tests: InspectInfile
      InspectInfile.__init__
     """
     inst = pyopenms.InspectInfile()
@@ -4124,7 +4219,7 @@ def testInspectInfile():
 @report
 def testIsotopeMarker():
     """
-    @tests:
+    @tests: IsotopeMarker
      IsotopeMarker.__init__
     """
     inst = pyopenms.IsotopeMarker()
@@ -4139,7 +4234,7 @@ def testIsotopeMarker():
 @report
 def testAttachment():
     """
-    @tests:
+    @tests: Attachment
      Attachment.__init__
     """
     inst = pyopenms.Attachment()
@@ -4174,7 +4269,7 @@ def testAttachment():
 @report
 def testOptimizePeakDeconvolution():
     """
-    @tests:
+    @tests: OptimizePeakDeconvolution
      OptimizePeakDeconvolution.__init__
     """
     inst = pyopenms.OptimizePeakDeconvolution()
@@ -4363,7 +4458,7 @@ def testConsensusIDAlgorithmWorst():
     assert algo.apply
 
 @report
-def testEnzymes():
+def testDigestionEnzymeProtein():
     f = pyopenms.EmpiricalFormula()
 
     regex_description = b""
@@ -4371,9 +4466,8 @@ def testEnzymes():
     xtandem_id = b""
     comet_id = 0
     omssa_id = 0
-    e = pyopenms.Enzyme(b"testEnzyme", "K", set([]), regex_description,
-                        f, f, psi_id, xtandem_id,
-                        comet_id, omssa_id)
+    e = pyopenms.DigestionEnzymeProtein(b"testEnzyme", "K", set([]), regex_description,
+                                 f, f, psi_id, xtandem_id, comet_id, omssa_id)
 
 @report
 def testMRMAssay():
@@ -4444,43 +4538,19 @@ def testHMMState():
 
 
 @report
-def testEnzymesDB():
-    edb = pyopenms.EnzymesDB()
-    assert edb.setEnzymes
-    del edb
-
-    # create a second instance of EnzymesDB without anything bad happening 
-    edb = pyopenms.EnzymesDB()
+def testProteaseDB():
+    edb = pyopenms.ProteaseDB()
 
     f = pyopenms.EmpiricalFormula()
     synonyms = set([b"dummy", b"other"])
 
-    regex_description = b""
-    psi_id = b""
-    xtandem_id = b""
-    comet_id = 0
-    omssa_id = 0
-    e = pyopenms.Enzyme(b"testEnzyme", b"someregex", synonyms, regex_description,
-                        f, f, psi_id, xtandem_id, comet_id, omssa_id)
-    edb.addEnzyme(e)
-    assert edb.hasEnzyme(pyopenms.String("testEnzyme"))
-
-    edb = pyopenms.EnzymesDB(); 
     assert edb.hasEnzyme(pyopenms.String("Trypsin"))
 
     trypsin = edb.getEnzyme(pyopenms.String("Trypsin"))
-    edb.addEnzyme(trypsin)
 
     names = []
     edb.getAllNames(names)
-    assert b"testEnzyme" in names
-    assert edb.hasEnzyme(s(b"testEnzyme"))
-    assert edb.hasRegEx(s(b"someregex"))
-
-    # cannot clear a global variable and expect things to stay the same!!
-    # edb.clear()
-    # assert not edb.hasEnzyme(pyopenms.String("testEnzyme"))
-    # assert not edb.hasEnzyme(pyopenms.String("Trypsin"))
+    assert b"Trypsin" in names
 
 
 @report
@@ -4488,7 +4558,7 @@ def testElementDB():
     edb = pyopenms.ElementDB()
     del edb
 
-    # create a second instance of ElementDB without anything bad happening 
+    # create a second instance of ElementDB without anything bad happening
     edb = pyopenms.ElementDB()
 
     assert edb.hasElement(16)
@@ -4509,18 +4579,30 @@ def testElementDB():
     # assert e == e2
 
     #  not yet implemented
-    # 
+    #
     # const Map[ String, Element * ]  getNames() nogil except +
     # const Map[ String, Element * ] getSymbols() nogil except +
     # const Map[unsigned int, Element * ] getAtomicNumbers() nogil except +
 
 
 @report
+def testDPosition():
+    dp = pyopenms.DPosition1()
+    dp = pyopenms.DPosition1(1.0)
+    assert dp[0] == 1.0
+
+    dp = pyopenms.DPosition2()
+    dp = pyopenms.DPosition2(1.0, 2.0)
+
+    assert dp[0] == 1.0
+    assert dp[1] == 2.0
+
+@report
 def testResidueDB():
     rdb = pyopenms.ResidueDB()
     del rdb
 
-    # create a second instance of ResidueDB without anything bad happening 
+    # create a second instance of ResidueDB without anything bad happening
     rdb = pyopenms.ResidueDB()
 
     assert rdb.getNumberOfResidues() >= 20
@@ -4543,7 +4625,7 @@ def testModificationsDB():
     mdb = pyopenms.ModificationsDB()
     del mdb
 
-    # create a second instance of ModificationsDB without anything bad happening 
+    # create a second instance of ModificationsDB without anything bad happening
     mdb = pyopenms.ModificationsDB()
 
     assert mdb.getNumberOfModifications() > 1
@@ -4555,7 +4637,7 @@ def testModificationsDB():
 
     mods = set([])
     mdb.searchModifications(mods, s("Phosphorylation"), s("T"), pyopenms.ResidueModification.TermSpecificity.ANYWHERE)
-    assert len(mods) == 1 
+    assert len(mods) == 1
 
     mods = set([])
     mdb.searchModifications(mods, s("NIC"), s("T"), pyopenms.ResidueModification.TermSpecificity.N_TERM)
@@ -4587,39 +4669,39 @@ def testModificationsDB():
 
     # search for specific modifications by mass
     m = mdb.getBestModificationByDiffMonoMass( 80.0, 1.0, b"T", pyopenms.ResidueModification.TermSpecificity.ANYWHERE)
-    assert m is not None 
+    assert m is not None
     assert m.getId() == b"Phospho"
     assert m.getFullName() == b"Phosphorylation"
     assert m.getUniModAccession() == b"UniMod:21"
 
     m = mdb.getBestModificationByDiffMonoMass(80, 100, b"T", pyopenms.ResidueModification.TermSpecificity.ANYWHERE)
-    assert m is not None 
+    assert m is not None
     assert m.getId() == b"Phospho"
     assert m.getFullName() == b"Phosphorylation"
     assert m.getUniModAccession() == b"UniMod:21"
 
     m = mdb.getBestModificationByDiffMonoMass(16, 1.0, b"M", pyopenms.ResidueModification.TermSpecificity.ANYWHERE)
-    assert m is not None 
+    assert m is not None
     assert m.getId() == b"Oxidation", m.getId()
     assert m.getFullName() == b"Oxidation or Hydroxylation", m.getFullName()
     assert m.getUniModAccession() == b"UniMod:35"
 
-    ### 
+    ###
 
     m = mdb.getBestModificationByMonoMass(80, 20, b"T", pyopenms.ResidueModification.TermSpecificity.ANYWHERE)
-    assert m is not None 
+    assert m is not None
     assert m.getId() == b"MOD:00439"
     assert m.getFullName() == b"O-phospho-L-threonine with neutral loss of phosphate", m.getFullName() # something crazy
     assert m.getUniModAccession() == b"" # no unimod for crazyness ...
 
     m = mdb.getBestModificationByMonoMass(147, 20, b"M", pyopenms.ResidueModification.TermSpecificity.ANYWHERE)
-    assert m is not None 
+    assert m is not None
     assert m.getUniModAccession() == b"", m.getUniModAccession()
     assert m.getId() == b"MOD:00719", m.getId()
     assert m.getFullName() == b"oxidation to L-methionine sulfoxide", m.getFullName()
 
     m = mdb.getBestModificationByMonoMass( 96, 20, b"T", pyopenms.ResidueModification.TermSpecificity.ANYWHERE)
-    assert m is not None 
+    assert m is not None
     assert m.getId() == b"MOD:00252", m.getId()
     assert m.getFullName() == b"keratan sulfate D-glucuronosyl-D-galactosyl-D-galactosyl-D-xylosyl-L-threonine", m.getFullName() # something crazy
     assert m.getUniModAccession() == b"", m.getUniModAccession() # no unimod for crazyness ...

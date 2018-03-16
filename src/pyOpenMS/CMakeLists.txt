@@ -353,17 +353,20 @@ if(WIN32)
       file(COPY ${_runtime} DESTINATION ${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms NO_SOURCE_PERMISSIONS)
     endforeach()
     
-    set(FOUND_XERCES FALSE)
-    foreach(CONTRIB_PATH ${CMAKE_PREFIX_PATH})
-        if(EXISTS ${CONTRIB_PATH}/lib/xerces-c_3_1.dll)
-            file(COPY ${CONTRIB_PATH}/lib/xerces-c_3_1.dll DESTINATION ${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms)
-            set(FOUND_XERCES TRUE)
-            message(STATUS "found xerces-c-3_1_dll")
-        endif()
-    endforeach()
-    if(NOT FOUND_XERCES)
-        message(FATAL_ERROR "could not find xerces-c_3_1.dll in contrib dir")
-    endif()
+    find_package(XercesC)
+	if (XercesC_FOUND)
+	  get_filename_component(XercesC_LIBRARY_RELEASE_DIR ${XercesC_LIBRARY_RELEASE} DIRECTORY)
+	  get_filename_component(XercesC_LIBRARY_RELEASE_BASENAME ${XercesC_LIBRARY_RELEASE} NAME_WE)
+	  message("-- Looking for Xerces in Path found by module: ${XercesC_LIBRARY_RELEASE_DIR}/${XercesC_LIBRARY_RELEASE_BASENAME}")
+	  if(EXISTS "${XercesC_LIBRARY_RELEASE_DIR}/${XercesC_LIBRARY_RELEASE_BASENAME}.dll" )
+	    message("-- Found XercesC DLL. Assuming dynamic linkage. Copying.")
+	    file(COPY "${XercesC_LIBRARY_RELEASE_DIR}/${XercesC_LIBRARY_RELEASE_BASENAME}.dll" DESTINATION ${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms)
+	  else()
+	    message("-- XercesC found only with lib extension. Assuming static library. Not copying.")
+	  endif()
+	else()
+	  message(FATAL_ERROR "-- XercesC not found during pyOpenMS configure. If it went through the initial OpenMS configure, please report.")
+	endif()  
 endif()
 
 find_boost()
@@ -428,10 +431,18 @@ configure_file(${_env_py_in} ${_env_py} @ONLY)
 #------------------------------------------------------------------------------
 # create targets in makefile
 
-add_custom_target(pyopenms_create_cpp
-	COMMAND ${PYTHON_EXECUTABLE} create_cpp_extension.py
-	DEPENDS OpenMS SuperHirn
-	WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS )
+IF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+  add_custom_target(pyopenms_create_cpp
+    COMMAND ${PYTHON_EXECUTABLE} create_cpp_extension.py 2> /dev/null
+    DEPENDS OpenMS SuperHirn
+    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS )
+ELSE()
+  add_custom_target(pyopenms_create_cpp
+    COMMAND ${PYTHON_EXECUTABLE} create_cpp_extension.py
+    DEPENDS OpenMS SuperHirn
+    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS )
+ENDIF()
+
 
 set(PY_EXTRA_ARGS "")
 if(PY_SINGLE_THREADED)
@@ -533,9 +544,12 @@ foreach (t ${pyopenms_integrationtest_testfiles})
 endforeach(t)
 
 # Finally add the memory leaks test (in folder tests/memoryleaktests/)
-add_test(NAME pyopenms_test_memoryleaktests
-  COMMAND ${PYTHON_EXECUTABLE} -c  "import nose; nose.run_exit()" ${CMAKE_BINARY_DIR}/pyOpenMS/tests/memoryleaktests/ -s -v
-  WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS)
-if(NOT WIN32)
-    set_tests_properties(pyopenms_test_memoryleaktests PROPERTIES ENVIRONMENT "LD_LIBRARY_PATH=${CMAKE_BINARY_DIR}/lib")
+if(NOT PY_MEMLEAK_DISABLE)
+  add_test(NAME pyopenms_test_memoryleaktests
+    COMMAND ${PYTHON_EXECUTABLE} -c  "import nose; nose.run_exit()" ${CMAKE_BINARY_DIR}/pyOpenMS/tests/memoryleaktests/ -s -v
+    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS)
+  if(NOT WIN32)
+      set_tests_properties(pyopenms_test_memoryleaktests PROPERTIES ENVIRONMENT "LD_LIBRARY_PATH=${CMAKE_BINARY_DIR}/lib")
+  endif()
 endif()
+

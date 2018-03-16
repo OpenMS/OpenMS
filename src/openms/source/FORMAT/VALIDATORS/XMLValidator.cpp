@@ -39,7 +39,6 @@
 #include <xercesc/sax2/SAX2XMLReader.hpp>
 #include <xercesc/framework/LocalFileInputSource.hpp>
 #include <xercesc/sax2/XMLReaderFactory.hpp>
-#include <xercesc/validators/common/Grammar.hpp>
 
 using namespace xercesc;
 using namespace std;
@@ -48,7 +47,7 @@ namespace OpenMS
 {
   XMLValidator::XMLValidator() :
     valid_(true),
-    os_(0)
+    os_(nullptr)
   {
   }
 
@@ -82,8 +81,8 @@ namespace OpenMS
 
     //set this class as error handler
     parser->setErrorHandler(this);
-    parser->setContentHandler(NULL);
-    parser->setEntityResolver(NULL);
+    parser->setContentHandler(nullptr);
+    parser->setEntityResolver(nullptr);
 
     //load schema
     LocalFileInputSource schema_file(Internal::StringManager().convert(schema).c_str());

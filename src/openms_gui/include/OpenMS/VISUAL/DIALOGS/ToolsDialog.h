@@ -38,15 +38,16 @@
 // OpenMS_GUI config
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
+#include <OpenMS/DATASTRUCTURES/Param.h>
+#include <OpenMS/VISUAL/LayerData.h>
+
 class QLabel;
 class QComboBox;
 class QPushButton;
 class QRadioButton;
 class QString;
 
-#include <QtGui/QDialog>
-#include <OpenMS/DATASTRUCTURES/Param.h>
-#include <OpenMS/VISUAL/LayerData.h>
+#include <QtWidgets/QDialog>
 
 namespace OpenMS
 {
@@ -82,7 +83,7 @@ public:
     */
     ToolsDialog(QWidget * parent, String ini_file, String default_dir, LayerData::DataType layertype);
     ///Destructor
-    ~ToolsDialog();
+    ~ToolsDialog() override;
 
     /// to get the parameter name for output. Empty if no output was selected.
     String getOutput();

@@ -39,7 +39,7 @@
 // OpenMS_GUI config
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
-#include <QtGui/QDialog>
+#include <QtWidgets/QDialog>
 
 #include <OpenMS/MATH/STATISTICS/Histogram.h>
 #include <OpenMS/VISUAL/HistogramWidget.h>
@@ -58,9 +58,9 @@ namespace OpenMS
 
 public:
     /// Constructor
-    HistogramDialog(const Math::Histogram<> & distribution, QWidget * parent = 0);
+    HistogramDialog(const Math::Histogram<> & distribution, QWidget * parent = nullptr);
     /// Destructor
-    ~HistogramDialog();
+    ~HistogramDialog() override;
 
     /// Returns the value of the left splitter
     float getLeftSplitter();

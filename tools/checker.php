@@ -326,7 +326,7 @@ if (in_array("test_output", $tests) || in_array("topp_output", $tests))
     $log_file = file($lastTestFile);
     foreach ($log_file as $line)
     {
-      if (ereg("[0-9]+/[0-9]+ Testing: (.*)", $line, $parts))
+      if ( preg_match('/[0-9]+\/[0-9]+ Testing: (.*)/', $line, $parts))
       {
         $current_test_name = trim($parts[1]);
       }
@@ -498,7 +498,7 @@ if (in_array("doxygen_errors", $tests))
   $errorfile = file("$bin_path/doc/doxygen/doxygen-error.log");
   foreach ($errorfile as $line)
   {
-    if (ereg("(.*/[a-zA-Z0-9_]+\.[hC]):[0-9]+:", $line, $parts))
+    if ( preg_match('/(.*\/[a-zA-Z0-9_]+\.[hC]):[0-9]+:/', $line, $parts))
     {
       //skip warning where doxygen cannot resolve members
       if (strpos($line, "no uniquely matching class member") === FALSE && strpos($line, "no matching class member") === FALSE)
@@ -1201,7 +1201,7 @@ if ($user == "all" && in_array("doxygen_errors", $tests))
   foreach ($file as $line)
   {
     $line = trim($line);
-    if (ereg("(.*/[a-zA-Z0-9_]+\.doxygen):[0-9]+:", $line, $parts))
+    if ( preg_match('/(.*\/[a-zA-Z0-9_]+\.doxygen):[0-9]+:/', $line, $parts))
     {
       realOutput("Doxygen errors in '".$parts[1]."'", $user, "");
       print "  See 'OpenMS/doc/doxygen/doxygen-error.log'\n";

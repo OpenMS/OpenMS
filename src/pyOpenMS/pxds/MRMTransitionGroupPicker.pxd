@@ -25,6 +25,7 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/MRMTransitionGroupPicker.h>" namesp
 
         MRMFeature createMRMFeature(MRMTransitionGroup[ MSChromatogram, LightTransition] transition_group,
                                     libcpp_vector[ MSChromatogram ] & picked_chroms,
+                                    libcpp_vector[ MSChromatogram ] & smoothed_chroms,
                                     const int chr_idx,
                                     const int peak_idx) nogil except +
 
@@ -34,3 +35,4 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/MRMTransitionGroupPicker.h>" namesp
 
         void findLargestPeak(libcpp_vector[ MSChromatogram ] & picked_chroms, int & chr_idx, int & peak_idx) nogil except +
 
+        void findWidestPeakIndices(libcpp_vector[ MSChromatogram ] & picked_chroms, Int & chrom_idx, Int & point_idx) nogil except +

@@ -47,8 +47,8 @@ using namespace std;
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-MzTab* ptr = 0;
-MzTab* null_ptr = 0;
+MzTab* ptr = nullptr;
+MzTab* null_ptr = nullptr;
 START_SECTION(MzTab())
 {
 	ptr = new MzTab();

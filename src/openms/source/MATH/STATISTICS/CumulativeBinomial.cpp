@@ -34,8 +34,9 @@
 
 #include <OpenMS/MATH/STATISTICS/CumulativeBinomial.h>
 #include <boost/math/special_functions/binomial.hpp>
-#include <numeric>
+
 #include <iostream>
+#include <numeric>
 
 namespace OpenMS
 {

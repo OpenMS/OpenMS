@@ -51,8 +51,8 @@ START_TEST(OpenSwathDataAccessHelper, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-OpenSwathDataAccessHelper* ptr = 0;
-OpenSwathDataAccessHelper* nullPointer = 0;
+OpenSwathDataAccessHelper* ptr = nullptr;
+OpenSwathDataAccessHelper* nullPointer = nullptr;
 
 START_SECTION(OpenSwathDataAccessHelper())
 {

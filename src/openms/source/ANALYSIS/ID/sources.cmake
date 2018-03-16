@@ -4,6 +4,7 @@ set(directory source/ANALYSIS/ID)
 ### list all filenames of the directory here
 set(sources_list
 AccurateMassSearchEngine.cpp
+AhoCorasickAmbiguous.cpp
 AScore.cpp
 ConsensusIDAlgorithm.cpp
 ConsensusIDAlgorithmAverage.cpp
@@ -16,6 +17,7 @@ ConsensusIDAlgorithmSimilarity.cpp
 ConsensusIDAlgorithmWorst.cpp
 FalseDiscoveryRate.cpp
 HiddenMarkovModel.cpp
+IDConflictResolverAlgorithm.cpp
 IDMapper.cpp
 IDRipper.cpp
 IDDecoyProbability.cpp

@@ -36,13 +36,7 @@
 #include <OpenMS/FILTERING/BASELINE/MorphologicalFilter.h>
 #include <OpenMS/MATH/STATISTICS/BasicStatistics.h>
 #include <OpenMS/DATASTRUCTURES/ConstRefVector.h>
-#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/MATH/MISC/LinearInterpolation.h>
-
-#include <fstream>
-#include <vector>
-#include <map>
-#include <cmath>
 
 // #define Debug_PoseClusteringShiftSuperimposer
 #ifdef Debug_PoseClusteringShiftSuperimposer

@@ -34,7 +34,7 @@
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
-#include <OpenMS/CHEMISTRY/EnzymesDB.h>
+#include <OpenMS/CHEMISTRY/ProteaseDB.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/MzXMLFile.h>
 #include <OpenMS/FORMAT/InspectInfile.h>
@@ -149,7 +149,7 @@ public:
   }
 
 protected:
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "input file in mzXML or mzData format.\n"
                                            "Note: In mode 'inspect_out' an Inspect results file is read.");
@@ -206,7 +206,7 @@ protected:
     registerStringOption_("contact_info", "<info>", "unknown", "Some information about the contact", false);
   }
 
-  ExitCodes main_(Int, const char**)
+  ExitCodes main_(Int, const char**) override
   {
     //-------------------------------------------------------------
     // (1) variables
@@ -848,14 +848,14 @@ protected:
           {
             sp.mass_type = ProteinIdentification::MONOISOTOPIC;
           }
-          else 
+          else
           {
             sp.mass_type = ProteinIdentification::AVERAGE;
           }
 
-          if (EnzymesDB::getInstance()->hasEnzyme(inspect_infile.getEnzyme())) 
+          if (ProteaseDB::getInstance()->hasEnzyme(inspect_infile.getEnzyme()))
           {
-            sp.digestion_enzyme = *EnzymesDB::getInstance()->getEnzyme(inspect_infile.getEnzyme());
+            sp.digestion_enzyme = *(ProteaseDB::getInstance()->getEnzyme(inspect_infile.getEnzyme()));
           }
           sp.fragment_mass_tolerance = inspect_infile.getPeakMassTolerance();
           sp.precursor_mass_tolerance = inspect_infile.getPrecursorMassTolerance();

@@ -69,7 +69,7 @@ namespace OpenMS
   @brief This class implements a peak-picking algorithm for high-resolution MS
   data (specifically designed for TOF-MS data).
 
-  This peak-picking algorithm detects ion signals in raw data and
+  This peak-picking algorithm detects ion signals in profile data and
   reconstructs the corresponding peak shape by identifying the left and right
   borders of the peak. It reports the area under the peak as intensity and the
   weighted m/z values as the m/z value as well as left/right border.
@@ -137,7 +137,7 @@ public:
       defaultsToParam_();
     }
 
-    void updateMembers_()
+    void updateMembers_() override
     {
       signal_to_noise_ = (double)param_.getValue("signal_to_noise_");
       peak_width_ = (double)param_.getValue("peak_width");
@@ -150,7 +150,7 @@ public:
     }
 
     /// Destructor
-    ~PeakPickerIterative() {}
+    ~PeakPickerIterative() override {}
 
 private:
 
@@ -309,7 +309,7 @@ public:
       output.setRT(input.getRT());
       output.setMSLevel(input.getMSLevel());
       output.setName(input.getName());
-      output.setType(SpectrumSettings::PEAKS);
+      output.setType(SpectrumSettings::CENTROID);
       output.getFloatDataArrays().clear();
 
       std::vector<PeakCandidate> PeakCandidates;

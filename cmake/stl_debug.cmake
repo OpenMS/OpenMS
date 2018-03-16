@@ -38,7 +38,7 @@
 if (CMAKE_COMPILER_IS_GNUCXX)
 	if ("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
 		# add compiler flag
-  	add_definitions(/D_GLIBCXX_DEBUG)
+  	add_compile_options(/D_GLIBCXX_DEBUG)
   	message(STATUS "STL debug mode: ${STL_DEBUG}")
   else()
     message(WARNING "STL debug mode is supported for OpenMS debug mode only")

@@ -36,14 +36,9 @@
 #include <OpenMS/CHEMISTRY/ResidueDB.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/CONCEPT/Macros.h>
-#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
 
-#include <iostream>
 #include <fstream>
-#include <cmath>
-#include <numeric>
-#include <algorithm>
 
 // #define SIMPLE_DEBUG2
 // #undef  SIMPLE_DEBUG2
@@ -881,7 +876,7 @@ namespace OpenMS
     }
 
     // pathways axyz and bxyz and the first two explicitly modeled ones
-    HMMState * s2 = 0;
+    HMMState * s2 = nullptr;
     HMMState * end_state = name_to_state_["end"];
     StringList pathways = ListUtils::create<String>("axyz,axyz1,axyz1,bxyz,bxyz1,bxyz2");
     for (StringList::const_iterator pathway_it = pathways.begin(); pathway_it != pathways.end(); ++pathway_it)

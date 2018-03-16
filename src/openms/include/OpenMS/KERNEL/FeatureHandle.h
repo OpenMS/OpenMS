@@ -89,7 +89,7 @@ public:
     FeatureHandle& operator=(const FeatureHandle& rhs);
 
     /// Destructor
-    virtual ~FeatureHandle();
+    ~FeatureHandle() override;
 
     /**
       @brief Override (most of all) constness.

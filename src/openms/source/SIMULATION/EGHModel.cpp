@@ -33,11 +33,10 @@
 // --------------------------------------------------------------------------
 
 #include <numeric>
-#include <math.h>
+#include <cmath>
 
 #include <OpenMS/SIMULATION/EGHModel.h>
 #include <OpenMS/CONCEPT/LogStream.h>
-#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 using std::endl;
 

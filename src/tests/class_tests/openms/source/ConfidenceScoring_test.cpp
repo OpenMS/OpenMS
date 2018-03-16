@@ -46,15 +46,10 @@ using namespace OpenMS;
 std::vector<TargetedExperiment::RetentionTime> get_rts_(double rt_val)
 {
   // add retention time for the peptide
-  CVTerm rt;
   std::vector<TargetedExperiment::RetentionTime> retention_times;
   TargetedExperiment::RetentionTime retention_time;
-  OpenMS::DataValue dtype(rt_val);
-  rt.setCVIdentifierRef("MS");
-  rt.setAccession("MS:1000896"); // normalized RT
-  rt.setName("normalized retention time");
-  rt.setValue(dtype);
-  retention_time.addCVTerm(rt);
+  retention_time.setRT(rt_val);
+  retention_time.retention_time_type = TargetedExperimentHelper::RetentionTime::RTType::NORMALIZED;
   retention_times.push_back(retention_time);
   return retention_times;
 }
@@ -64,8 +59,8 @@ START_TEST(ConfidenceScoring<D>, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-ConfidenceScoring* confidence_scoring_ptr = 0;
-ConfidenceScoring* confidence_scoring_nullPointer = 0;
+ConfidenceScoring* confidence_scoring_ptr = nullptr;
+ConfidenceScoring* confidence_scoring_nullPointer = nullptr;
 
 START_SECTION((explicit ConfidenceScoring(bool test_mode_=false)))
   confidence_scoring_ptr = new ConfidenceScoring;
