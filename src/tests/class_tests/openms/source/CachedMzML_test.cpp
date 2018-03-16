@@ -121,11 +121,25 @@ START_SECTION(( [EXTRA] testCaching))
     for (int i = 0; i  < 4; i++)
     {
       ifs_.seekg(spectra_index[i]);
-      CachedmzML::readSpectrumFast(mz_array, intensity_array, ifs_, ms_level, rt);
+      std::vector<OpenSwath::BinaryDataArrayPtr> darray;
+      CachedmzML::readSpectrumFast(darray, ifs_, ms_level, rt);
+      mz_array = darray[0];
+      intensity_array = darray[1];
 
       TEST_EQUAL(mz_array->data.size(), exp.getSpectrum(i).size())
       TEST_EQUAL(intensity_array->data.size(), exp.getSpectrum(i).size())
     }
+
+    // test spec 1
+    ifs_.seekg(spectra_index[1]);
+    std::vector<OpenSwath::BinaryDataArrayPtr> darray;
+    CachedmzML::readSpectrumFast(darray, ifs_, ms_level, rt);
+    TEST_EQUAL(darray.size(), 4)
+    TEST_EQUAL(darray[0]->description, "") // mz
+    TEST_EQUAL(darray[1]->description, "") // intensity
+    TEST_EQUAL(darray[2]->description, "signal to noise array")
+    TEST_EQUAL(darray[3]->description, "user-defined name")
+
   }
 
   // Check whether chromatograms were written to disk correctly...

@@ -47,7 +47,7 @@
 
 #include <fstream>
 
-#define CACHED_MZML_FILE_IDENTIFIER 8093
+#define CACHED_MZML_FILE_IDENTIFIER 8094
 
 namespace OpenMS
 {
@@ -128,11 +128,31 @@ public:
       @throws Exception::ParseError is thrown if the spectrum size cannot be read
     */
     static inline void readSpectrumFast(OpenSwath::BinaryDataArrayPtr data1,
-                                        OpenSwath::BinaryDataArrayPtr data2, std::ifstream& ifs, int& ms_level,
+                                        OpenSwath::BinaryDataArrayPtr data2,
+                                        std::ifstream& ifs, 
+                                        int& ms_level,
                                         double& rt)
     {
+      std::vector<OpenSwath::BinaryDataArrayPtr> data;
+      data.push_back(OpenSwath::BinaryDataArrayPtr(new OpenSwath::BinaryDataArray));
+      data.push_back(OpenSwath::BinaryDataArrayPtr(new OpenSwath::BinaryDataArray));
+      readSpectrumFast(data, ifs, ms_level, rt);
+      data1 = data[0];
+      data2 = data[1];
+    }
+
+    static inline void readSpectrumFast(std::vector<OpenSwath::BinaryDataArrayPtr>& data,
+                                        std::ifstream& ifs, 
+                                        int& ms_level,
+                                        double& rt)
+    {
+      data.push_back(OpenSwath::BinaryDataArrayPtr(new OpenSwath::BinaryDataArray));
+      data.push_back(OpenSwath::BinaryDataArrayPtr(new OpenSwath::BinaryDataArray));
+
       Size spec_size = -1;
+      Size nr_float_arrays = -1;
       ifs.read((char*) &spec_size, sizeof(spec_size));
+      ifs.read((char*) &nr_float_arrays, sizeof(nr_float_arrays));
       ifs.read((char*) &ms_level, sizeof(ms_level));
       ifs.read((char*) &rt, sizeof(rt));
 
@@ -142,14 +162,36 @@ public:
           "Read an invalid spectrum length, something is wrong here. Aborting.", "filestream");
       }
 
-      data1->data.resize(spec_size);
-      data2->data.resize(spec_size);
+      data[0]->data.resize(spec_size);
+      data[1]->data.resize(spec_size);
 
       if (spec_size > 0)
       {
-        ifs.read((char*) &(data1->data)[0], spec_size * sizeof(double));
-        ifs.read((char*) &(data2->data)[0], spec_size * sizeof(double));
+        ifs.read((char*) &(data[0]->data)[0], spec_size * sizeof(DatumSingleton));
+        ifs.read((char*) &(data[1]->data)[0], spec_size * sizeof(DatumSingleton));
       }
+      if (nr_float_arrays == 0) return;
+
+      char* buffer = new(std::nothrow) char[1024];
+      for (Size k = 0; k < nr_float_arrays; k++)
+      {
+        data.push_back(OpenSwath::BinaryDataArrayPtr(new OpenSwath::BinaryDataArray));
+        Size len, len_name;
+        ifs.read((char*)&len, sizeof(len));
+        ifs.read((char*)&len_name, sizeof(len_name));
+
+        // We will not read data longer than 1024 length as this is user-generated input data
+        if (len_name > 1023) ifs.seekg(len_name * sizeof(char), ifs.cur);
+        else
+        {
+          ifs.read(buffer, len_name);
+          buffer[len_name] = '\0';
+        }
+        data.back()->data.resize(len);
+        data.back()->description = buffer;
+        ifs.read((char*)&(data.back()->data)[0], len * sizeof(DatumSingleton));
+      }
+      delete[] buffer;
     }
 
     /**
@@ -160,8 +202,23 @@ public:
     static inline void readChromatogramFast(OpenSwath::BinaryDataArrayPtr data1,
                                             OpenSwath::BinaryDataArrayPtr data2, std::ifstream& ifs)
     {
+      std::vector<OpenSwath::BinaryDataArrayPtr> data;
+      data.push_back(OpenSwath::BinaryDataArrayPtr(new OpenSwath::BinaryDataArray));
+      data.push_back(OpenSwath::BinaryDataArrayPtr(new OpenSwath::BinaryDataArray));
+      readChromatogramFast(data, ifs);
+      data1 = data[0];
+      data2 = data[1];
+    }
+
+    static inline void readChromatogramFast(std::vector<OpenSwath::BinaryDataArrayPtr>& data, std::ifstream& ifs)
+    {
       Size spec_size = -1;
+      Size nr_float_arrays = -1;
       ifs.read((char*) &spec_size, sizeof(spec_size));
+      ifs.read((char*) &nr_float_arrays, sizeof(nr_float_arrays));
+
+      std::cout << "chrom size " << spec_size << std::endl;
+      std::cout << "nr_float arr " << nr_float_arrays << std::endl;
 
       if ( static_cast<int>(spec_size) < 0)
       {
@@ -169,20 +226,42 @@ public:
           "Read an invalid chromatogram length, something is wrong here. Aborting.", "filestream");
       }
 
-      data1->data.resize(spec_size);
-      data2->data.resize(spec_size);
-      ifs.read((char*) &(data1->data)[0], spec_size * sizeof(double));
-      ifs.read((char*) &(data2->data)[0], spec_size * sizeof(double));
+      data[0]->data.resize(spec_size);
+      data[1]->data.resize(spec_size);
+      ifs.read((char*) &(data[0]->data)[0], spec_size * sizeof(DatumSingleton));
+      ifs.read((char*) &(data[1]->data)[0], spec_size * sizeof(DatumSingleton));
+      if (nr_float_arrays == 0) return;
+
+      char* buffer = new(std::nothrow) char[1024];
+      for (Size k = 0; k < nr_float_arrays; k++)
+      {
+        data.push_back(OpenSwath::BinaryDataArrayPtr(new OpenSwath::BinaryDataArray));
+        Size len, len_name;
+        ifs.read((char*)&len, sizeof(len));
+        ifs.read((char*)&len_name, sizeof(len_name));
+
+        // We will not read data longer than 1024 length as this is user-generated input data
+        if (len_name > 1023) ifs.seekg(len_name * sizeof(char), ifs.cur);
+        else
+        {
+          ifs.read(buffer, len_name);
+          buffer[len_name] = '\0';
+        }
+        data.back()->data.resize(len);
+        data.back()->description = buffer;
+        ifs.read((char*)&(data.back()->data)[0], len * sizeof(DatumSingleton));
+      }
+      delete[] buffer;
     }
     //@}
 
 protected:
 
     /// read a single spectrum directly into a datavector (assuming file is already at the correct position)
-    void readSpectrum_(Datavector& data1, Datavector& data2, std::ifstream& ifs, int& ms_level, double& rt) const;
+    void readSpectrum_(std::vector<Datavector>& data, std::ifstream& ifs, int& ms_level, double& rt) const;
 
     /// read a single chromatogram directly into a datavector (assuming file is already at the correct position)
-    void readChromatogram_(Datavector& data1, Datavector& data2, std::ifstream& ifs) const;
+    void readChromatogram_(std::vector<Datavector>& data, std::ifstream& ifs) const;
 
     /// read a single spectrum directly into an OpenMS MSSpectrum (assuming file is already at the correct position)
     void readSpectrum_(SpectrumType& spectrum, std::ifstream& ifs) const;
