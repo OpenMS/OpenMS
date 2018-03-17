@@ -426,6 +426,10 @@ if(WIN32)
     endif()
 endif()
 
+
+FIND_LIBRARY(QT_QTCORE_LIBRARY NAMES QtCore)
+FIND_LIBRARY(QT_QTNETWORK_LIBRARY NAMES QtNetwork)
+
 configure_file(${_env_py_in} ${_env_py} @ONLY)
 
 #------------------------------------------------------------------------------
