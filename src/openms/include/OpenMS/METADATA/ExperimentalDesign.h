@@ -256,8 +256,15 @@ namespace OpenMS
     /// return fraction index to file paths (ordered by run id)
     std::map<unsigned int, std::vector<String> > getFractionToMSFilesMapping() const;
 
+   /*
+    *   The (Path, Channel) tuples in the experimental design have to be unique, so we can map them
+    *   uniquely to the sample number and uniquely to the fraction number
+    */
     /// return <file_path, channel> to sample mapping
     std::map< std::tuple< String, unsigned >, unsigned> getPathChannelToSampleMapping() const;
+
+    /// return <file_path, channel> to fraction mapping
+    std::map< std::tuple< String, unsigned >, unsigned> getPathChannelToFractionMapping() const;
 
     // @return the number of samples measured (= highest sample index)
     unsigned getNumberOfSamples() const

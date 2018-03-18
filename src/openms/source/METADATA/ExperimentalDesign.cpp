@@ -411,13 +411,23 @@ namespace OpenMS
   map< tuple< String, unsigned >, unsigned> ExperimentalDesign::getPathChannelToSampleMapping() const
   {
     map< tuple< String, unsigned >, unsigned> ret;
-
-    for (RunRow const & r : run_section_)
+    for (RunRow const &r : run_section_)
     {
      tuple< String, unsigned > tpl = make_tuple(String(r.path), r.channel);
      ret[tpl] = r.sample;
     }
     return ret;
+  }
+
+  map< tuple< String, unsigned >, unsigned> ExperimentalDesign::getPathChannelToFractionMapping() const
+  {
+    map< tuple< String, unsigned >, unsigned> ret;
+    for (RunRow const &r : run_section_)
+    {
+      tuple< String, unsigned > tpl = make_tuple(String(r.path), r.channel);
+      ret[tpl] = r.fraction;
+    }
+      return ret;
   }
 
 
