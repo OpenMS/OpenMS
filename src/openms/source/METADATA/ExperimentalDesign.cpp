@@ -408,23 +408,27 @@ namespace OpenMS
     return ret;
   }
 
-  map< tuple< String, unsigned >, unsigned> ExperimentalDesign::getPathChannelToSampleMapping() const
+  map< tuple< String, unsigned >, unsigned> ExperimentalDesign::getPathChannelToSampleMapping(
+          const bool basename) const
   {
     map< tuple< String, unsigned >, unsigned> ret;
     for (RunRow const &r : run_section_)
     {
-     tuple< String, unsigned > tpl = make_tuple(String(r.path), r.channel);
+     const String path = String(r.path);
+     tuple< String, unsigned > tpl = make_tuple((basename ? File::basename(path) : path), r.channel);
      ret[tpl] = r.sample;
     }
     return ret;
   }
 
-  map< tuple< String, unsigned >, unsigned> ExperimentalDesign::getPathChannelToFractionMapping() const
+  map< tuple< String, unsigned >, unsigned> ExperimentalDesign::getPathChannelToFractionMapping(
+          const bool basename) const
   {
     map< tuple< String, unsigned >, unsigned> ret;
     for (RunRow const &r : run_section_)
     {
-      tuple< String, unsigned > tpl = make_tuple(String(r.path), r.channel);
+      const String path = String(r.path);
+      tuple< String, unsigned > tpl = make_tuple((basename ? File::basename(path) : path), r.channel);
       ret[tpl] = r.fraction;
     }
       return ret;

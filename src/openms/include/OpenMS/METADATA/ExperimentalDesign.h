@@ -39,6 +39,7 @@
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
+#include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 
 #include <vector>
@@ -214,12 +215,13 @@ namespace OpenMS
       return sample_section_;
     }
 
-    void getFileNames(std::vector< String > &filenames) const
+    void getFileNames(std::vector< String > &filenames, const bool basename) const
     {
       filenames.clear();
       for (const RunRow &row : run_section_)
       {
-        filenames.push_back(String(row.path));
+        const String path = String(row.path);
+        filenames.push_back(basename ? path : File::basename(path));
       }
     }
 
@@ -261,10 +263,10 @@ namespace OpenMS
     *   uniquely to the sample number and uniquely to the fraction number
     */
     /// return <file_path, channel> to sample mapping
-    std::map< std::tuple< String, unsigned >, unsigned> getPathChannelToSampleMapping() const;
+    std::map< std::tuple< String, unsigned >, unsigned> getPathChannelToSampleMapping(const bool) const;
 
     /// return <file_path, channel> to fraction mapping
-    std::map< std::tuple< String, unsigned >, unsigned> getPathChannelToFractionMapping() const;
+    std::map< std::tuple< String, unsigned >, unsigned> getPathChannelToFractionMapping(const bool) const;
 
     // @return the number of samples measured (= highest sample index)
     unsigned getNumberOfSamples() const
