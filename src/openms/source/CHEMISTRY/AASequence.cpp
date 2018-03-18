@@ -599,6 +599,7 @@ namespace OpenMS
 
     AASequence seq;
     seq.n_term_mod_ = n_term_mod_;
+    seq.peptide_.reserve(index);
     seq.peptide_.insert(seq.peptide_.end(), peptide_.begin(), peptide_.begin() + index);
     return seq;
   }
@@ -617,6 +618,7 @@ namespace OpenMS
 
     AASequence seq;
     seq.c_term_mod_ = c_term_mod_;
+    seq.peptide_.reserve(size() - index);
     seq.peptide_.insert(seq.peptide_.end(), peptide_.begin() + (size() - index), peptide_.end());
     return seq;
   }
@@ -637,7 +639,7 @@ namespace OpenMS
       seq.n_term_mod_ = n_term_mod_;
     if (index + num == this->size())
       seq.c_term_mod_ = c_term_mod_;
-
+    seq.peptide_.reserve(num);
     seq.peptide_.insert(seq.peptide_.end(), peptide_.begin() + index, peptide_.begin() + index + num);
 
     return seq;
@@ -645,47 +647,43 @@ namespace OpenMS
 
   bool AASequence::has(const Residue& residue) const
   {
-    for (Size i = 0; i != peptide_.size(); ++i)
+    for (const Residue* rp : peptide_)
     {
-      if (*peptide_[i] == residue)
-      {
-        return true;
-      }
+      if (*rp == residue) return true;
     }
     return false;
   }
 
-  bool AASequence::hasSubsequence(const AASequence& sequence) const
+  bool AASequence::hasSubsequence(const AASequence& sub) const
   {
-    if (sequence.empty())
+    if (sub.empty())
     {
       return true;
     }
-    else
+    if (sub.size() > peptide_.size())
     {
-      if (sequence.size() <= peptide_.size())
+      return false;
+    }
+
+    Size s_size = peptide_.size();
+    Size sub_size = sub.peptide_.size();
+    for (Size i = 0; i < s_size - sub_size + 1; ++i)
+    {
+      if (peptide_[i] == sub.peptide_[0])
       {
-        for (Size i = 0; i != peptide_.size(); ++i)
+        Size j = 1;
+        for (; j < sub_size; ++j)
         {
-          if (peptide_[i] == sequence.peptide_[0])
+          if (peptide_[j + i] != sub.peptide_[j])
           {
-            Size j = 0;
-            for (; j + i != peptide_.size() && j != sequence.peptide_.size(); ++j)
-            {
-              if (peptide_[j + i] == sequence.peptide_[j])
-              {
-                if (j == sequence.peptide_.size() - 1)
-                {
-                  return true;
-                }
-              }
-              else
-              {
-                break;
-              }
-            }
+            break;
           }
         }
+        if ((j == sub_size - 1) && (peptide_[j + i] == sub.peptide_.back()))
+        {
+          return true;
+        }
+
       }
     }
     return false;
