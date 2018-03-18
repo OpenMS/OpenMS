@@ -260,13 +260,17 @@ namespace OpenMS
 
    /*
     *   The (Path, Channel) tuples in the experimental design have to be unique, so we can map them
-    *   uniquely to the sample number and uniquely to the fraction number
+    *   uniquely to the sample number, fraction number, and run number
     */
     /// return <file_path, channel> to sample mapping
     std::map< std::tuple< String, unsigned >, unsigned> getPathChannelToSampleMapping(const bool) const;
 
     /// return <file_path, channel> to fraction mapping
     std::map< std::tuple< String, unsigned >, unsigned> getPathChannelToFractionMapping(const bool) const;
+
+    /// return <file_path, channel> to fraction mapping
+    std::map< std::tuple< String, unsigned >, unsigned> getPathChannelToRunMapping(const bool) const;
+
 
     // @return the number of samples measured (= highest sample index)
     unsigned getNumberOfSamples() const

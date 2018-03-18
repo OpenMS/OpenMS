@@ -434,6 +434,19 @@ namespace OpenMS
       return ret;
   }
 
+  map< tuple< String, unsigned >, unsigned> ExperimentalDesign::getPathChannelToRunMapping(
+          const bool basename) const
+  {
+    map< tuple< String, unsigned >, unsigned> ret;
+    for (RunRow const &r : run_section_)
+    {
+      const String path = String(r.path);
+      tuple< String, unsigned > tpl = make_tuple((basename ? File::basename(path) : path), r.channel);
+      ret[tpl] = r.run;
+    }
+    return ret;
+  }
+
 
   bool ExperimentalDesign::sameNrOfMSFilesPerFraction() const
   {
