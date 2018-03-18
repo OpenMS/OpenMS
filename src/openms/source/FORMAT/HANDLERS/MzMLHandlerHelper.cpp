@@ -227,6 +227,17 @@ namespace OpenMS
             data_[i].size = data_[i].floats_32.size();
           }
         }
+
+        // check for unit multiplier and correct our units (e.g. seconds vs minutes)
+        double unit_multiplier = data_[i].unit_multiplier;
+        if (unit_multiplier != 1.0 && data_[i].precision == BinaryData::PRE_64)
+        {
+          for (auto& it : data_[i].floats_64) it = it * unit_multiplier;
+        }
+        else if (unit_multiplier != 1.0 && data_[i].precision == BinaryData::PRE_32)
+        {
+          for (auto& it : data_[i].floats_32) it = it * unit_multiplier;
+        }
       }
       else if (data_[i].data_type == BinaryData::DT_INT)
       {
@@ -284,7 +295,7 @@ namespace OpenMS
   }
 
   bool MzMLHandlerHelper::handleBinaryDataArrayCVParam(std::vector<BinaryData>& data_,
-    const String& accession, const String& value, const String& name)
+    const String& accession, const String& value, const String& name, const String& unit_accession)
   {
     //MS:1000518 ! binary data type
     if (accession == "MS:1000523") //64-bit float
@@ -357,6 +368,12 @@ namespace OpenMS
     else if (accession == "MS:1000514" || accession == "MS:1000515" || accession == "MS:1000595")    // handle m/z, intensity, rt
     {
       data_.back().meta.setName(name);
+
+      // time array is given in minutes instead of seconds, we need to convert
+      if (accession == "MS:1000595" && unit_accession == "UO:0000031")
+      {
+        data_.back().unit_multiplier = 60.0;
+      }
     }
     else
     {

@@ -58,9 +58,10 @@ namespace OpenMS
       struct BinaryData
       {
         String base64;
-        enum {PRE_NONE, PRE_32, PRE_64} precision;
         Size size;
+        double unit_multiplier;
         bool compression; // zlib compression
+        enum {PRE_NONE, PRE_32, PRE_64} precision;
         enum {DT_NONE, DT_FLOAT, DT_INT, DT_STRING} data_type;
         std::vector<float> floats_32;
         std::vector<double> floats_64;
@@ -73,9 +74,10 @@ namespace OpenMS
         /// Constructor
         BinaryData() :
           base64(),
-          precision(PRE_NONE),
           size(0),
+          unit_multiplier(1.0),
           compression(false),
+          precision(PRE_NONE),
           data_type(DT_NONE),
           floats_32(),
           floats_64(),
@@ -113,7 +115,7 @@ namespace OpenMS
       static void computeDataProperties_(std::vector<BinaryData>& data_, bool& precision_64, SignedSize& index, String index_name);
 
       static bool handleBinaryDataArrayCVParam(std::vector<BinaryData>& data_,
-        const String& accession, const String& value, const String& name);
+        const String& accession, const String& value, const String& name, const String& unit_accession);
     };
 
 
