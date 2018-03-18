@@ -263,13 +263,13 @@ namespace OpenMS
     *   uniquely to the sample number, fraction number, and run number
     */
     /// return <file_path, channel> to sample mapping
-    std::map< std::tuple< String, unsigned >, unsigned> getPathChannelToSampleMapping(const bool) const;
+    std::map< std::pair< String, unsigned >, unsigned> getPathChannelToSampleMapping(const bool) const;
 
     /// return <file_path, channel> to fraction mapping
-    std::map< std::tuple< String, unsigned >, unsigned> getPathChannelToFractionMapping(const bool) const;
+    std::map< std::pair< String, unsigned >, unsigned> getPathChannelToFractionMapping(const bool) const;
 
-    /// return <file_path, channel> to fraction mapping
-    std::map< std::tuple< String, unsigned >, unsigned> getPathChannelToRunMapping(const bool) const;
+    /// return <file_path, channel> to run mapping
+    std::map< std::pair< String, unsigned >, unsigned> getPathChannelToRunMapping(const bool) const;
 
 
     // @return the number of samples measured (= highest sample index)
@@ -351,6 +351,12 @@ namespace OpenMS
     static ExperimentalDesign fromIdentifications(const std::vector<ProteinIdentification> & proteins);
 
     private:
+
+      /// Generic Mapper (Path, Channel) -> f(row)
+      std::map< std::pair< String, unsigned >, unsigned> pathChannelMapper(
+          const bool,
+          unsigned (*f)(const ExperimentalDesign::RunRow&)) const;
+
       // sort to obtain the default order
       void sort_()
       {

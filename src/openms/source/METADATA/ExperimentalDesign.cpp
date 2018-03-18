@@ -408,43 +408,39 @@ namespace OpenMS
     return ret;
   }
 
-  map< tuple< String, unsigned >, unsigned> ExperimentalDesign::getPathChannelToSampleMapping(
-          const bool basename) const
-  {
-    map< tuple< String, unsigned >, unsigned> ret;
-    for (RunRow const &r : run_section_)
-    {
-     const String path = String(r.path);
-     tuple< String, unsigned > tpl = make_tuple((basename ? File::basename(path) : path), r.channel);
-     ret[tpl] = r.sample;
-    }
-    return ret;
-  }
 
-  map< tuple< String, unsigned >, unsigned> ExperimentalDesign::getPathChannelToFractionMapping(
-          const bool basename) const
-  {
-    map< tuple< String, unsigned >, unsigned> ret;
-    for (RunRow const &r : run_section_)
+
+    map< pair< String, unsigned >, unsigned> ExperimentalDesign::pathChannelMapper(
+            const bool basename,
+            unsigned (*f)(const ExperimentalDesign::RunRow& row)) const
     {
-      const String path = String(r.path);
-      tuple< String, unsigned > tpl = make_tuple((basename ? File::basename(path) : path), r.channel);
-      ret[tpl] = r.fraction;
-    }
+      map< pair< String, unsigned >, unsigned> ret;
+      for (RunRow const &r : run_section_)
+      {
+        const String path = String(r.path);
+        pair< String, unsigned > tpl = make_pair((basename ? File::basename(path) : path), r.channel);
+        ret[tpl] = f(r);
+      }
       return ret;
-  }
+    }
 
-  map< tuple< String, unsigned >, unsigned> ExperimentalDesign::getPathChannelToRunMapping(
+
+  map< pair< String, unsigned >, unsigned> ExperimentalDesign::getPathChannelToSampleMapping(
           const bool basename) const
   {
-    map< tuple< String, unsigned >, unsigned> ret;
-    for (RunRow const &r : run_section_)
-    {
-      const String path = String(r.path);
-      tuple< String, unsigned > tpl = make_tuple((basename ? File::basename(path) : path), r.channel);
-      ret[tpl] = r.run;
-    }
-    return ret;
+    return pathChannelMapper(basename, [](const RunRow &r) {return r.sample;});
+  }
+
+  map< pair< String, unsigned >, unsigned> ExperimentalDesign::getPathChannelToFractionMapping(
+          const bool basename) const
+  {
+    return pathChannelMapper(basename, [](const RunRow &r) {return r.fraction;});
+  }
+
+  map< pair< String, unsigned >, unsigned> ExperimentalDesign::getPathChannelToRunMapping(
+          const bool basename) const
+  {
+    return pathChannelMapper(basename, [](const RunRow &r) {return r.run;});
   }
 
 
