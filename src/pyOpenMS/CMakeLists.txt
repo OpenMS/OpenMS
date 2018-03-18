@@ -400,10 +400,18 @@ endif()
 
 #------------------------------------------------------------------------------
 # collection of include dirs that is necessary to compile pyOpenMS
+
+# Find Qt5 includes for pyOpenMS
+find_package(Qt5Core)
+get_target_property(QT_QMAKE_EXECUTABLE Qt5::qmake IMPORTED_LOCATION)
+exec_program(${QT_QMAKE_EXECUTABLE} ARGS "-query QT_INSTALL_HEADERS" OUTPUT_VARIABLE QTHEADERS)
+set(QT_INCLUDE_DIR ${QTHEADERS} CACHE INTERNAL "" FORCE)
+
 set(PYOPENMS_INCLUDE_DIRS
   ${OpenSwathAlgo_INCLUDE_DIRECTORIES}
   ${OpenMS_INCLUDE_DIRECTORIES}
   ${SuperHirn_INCLUDE_DIRECTORIES}
+  ${QT_INCLUDE_DIR}
 )
 
 # TODO: this is a workaround; we need to clarify why exactly pyOpenMS needs
@@ -427,8 +435,8 @@ if(WIN32)
 endif()
 
 
-FIND_LIBRARY(QT_QTCORE_LIBRARY NAMES QtCore)
-FIND_LIBRARY(QT_QTNETWORK_LIBRARY NAMES QtNetwork)
+find_library(QT_QTCORE_LIBRARY NAMES QtCore)
+find_library(QT_QTNETWORK_LIBRARY NAMES QtNetwork)
 
 configure_file(${_env_py_in} ${_env_py} @ONLY)
 
