@@ -677,7 +677,7 @@ protected:
     std::vector<PeptideIdentification> peptide_identifications;
     std::vector<ProteinIdentification> protein_identifications;
     PepXMLFile().load(pepxmlfile, protein_identifications, peptide_identifications);
-    for (auto it=protein_identifications.begin(); it != protein_identifications.end(); it++)
+    for (auto it = protein_identifications.begin(); it != protein_identifications.end(); it++)
     { 
         it->setSearchEngine("MSFragger");
     }
