@@ -473,14 +473,6 @@ namespace OpenMS
                                          "Error: Transition group " + transition_group_detection.getTransitionGroupID() + 
                                          " has no chromatograms.");
       }
-      if (group_size < 2 && !ms1only)
-      {
-        LOG_ERROR << "Error: Transition group " << transition_group_detection.getTransitionGroupID()
-                  << " has only one chromatogram." << std::endl;
-        delete imrmfeature; // free resources before continuing
-        continue;
-      }
-
       bool swath_present = (!swath_maps.empty() && swath_maps[0].sptr->getNrSpectra() > 0);
       bool sonar_present = (swath_maps.size() > 1);
       double xx_lda_prescore;
