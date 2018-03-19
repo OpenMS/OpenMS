@@ -38,10 +38,6 @@
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 
-#include <vector>
-#include <algorithm>
-#include <iostream>
-
 using namespace std;
 
 namespace OpenMS
@@ -218,6 +214,10 @@ namespace OpenMS
     last_package_(0),
     mz_min_(mz_min),
     mz_max_(mz_max)
+  {
+  }
+
+  SplineSpectrum::Navigator::Navigator()
   {
   }
 

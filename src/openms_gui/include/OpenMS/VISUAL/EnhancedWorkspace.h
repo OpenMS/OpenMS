@@ -38,7 +38,7 @@
 // OpenMS_GUI config
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
-#include <QtGui/QWorkspace>
+#include <QMdiArea>
 
 class QMimeData;
 class QDragEnterEvent;
@@ -48,7 +48,7 @@ class QDropEvent;
 namespace OpenMS
 {
   class OPENMS_GUI_DLLAPI EnhancedWorkspace :
-    public QWorkspace
+    public QMdiArea
   {
     Q_OBJECT
 
@@ -57,7 +57,7 @@ public:
     EnhancedWorkspace(QWidget * parent);
 
     /// Destructor
-    virtual ~EnhancedWorkspace();
+    ~EnhancedWorkspace() override;
 
 signals:
 
@@ -68,9 +68,9 @@ protected:
 
     ///@name Reimplemented Qt events
     //@{
-    void dragEnterEvent(QDragEnterEvent * event);
-    void dragMoveEvent(QDragMoveEvent * event);
-    void dropEvent(QDropEvent * event);
+    void dragEnterEvent(QDragEnterEvent * event) override;
+    void dragMoveEvent(QDragMoveEvent * event) override;
+    void dropEvent(QDropEvent * event) override;
     //@}
   };
 }

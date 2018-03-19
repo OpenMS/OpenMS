@@ -50,8 +50,8 @@ START_TEST(IdXMLFile, "$Id$")
 using namespace OpenMS;
 using namespace std;
 
-IdXMLFile* ptr = 0;
-IdXMLFile* nullPointer = 0;
+IdXMLFile* ptr = nullptr;
+IdXMLFile* nullPointer = nullptr;
 START_SECTION((IdXMLFile()))
   ptr = new IdXMLFile();
   TEST_NOT_EQUAL(ptr,nullPointer)
@@ -205,20 +205,21 @@ END_SECTION
 
 START_SECTION(void store(String filename, const std::vector<ProteinIdentification>& protein_ids, const std::vector<PeptideIdentification>& peptide_ids, const String& document_id="") )
 
-  //store and load data
+  // load, store, and reload data
   std::vector<ProteinIdentification> protein_ids, protein_ids2;
   std::vector<PeptideIdentification> peptide_ids, peptide_ids2;
   String document_id, document_id2;
-  String input_path = OPENMS_GET_TEST_DATA_PATH("IdXMLFile_whole.idXML");
-  IdXMLFile().load(input_path, protein_ids2, peptide_ids2, document_id2);
-  String filename;
-  NEW_TMP_FILE(filename)
-  IdXMLFile().store(filename, protein_ids2, peptide_ids2, document_id2);
+  String target_file = OPENMS_GET_TEST_DATA_PATH("IdXMLFile_whole.idXML");
+  IdXMLFile().load(target_file, protein_ids2, peptide_ids2, document_id2);
+
+  String actual_file;
+  NEW_TMP_FILE(actual_file)
+  IdXMLFile().store(actual_file, protein_ids2, peptide_ids2, document_id2);
 
   FuzzyStringComparator fuzzy;
   fuzzy.setWhitelist(ListUtils::create<String>("<?xml-stylesheet"));
   fuzzy.setAcceptableAbsolute(0.0001);
-  bool result = fuzzy.compareFiles(input_path, filename);
+  bool result = fuzzy.compareFiles(actual_file, target_file);
   TEST_EQUAL(result, true);
 END_SECTION
 

@@ -46,8 +46,8 @@ START_TEST(IdentificationHit, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-IdentificationHit* ptr = 0;
-IdentificationHit* null_ptr = 0;
+IdentificationHit* ptr = nullptr;
+IdentificationHit* null_ptr = nullptr;
 START_SECTION(IdentificationHit())
 {
 	ptr = new IdentificationHit();

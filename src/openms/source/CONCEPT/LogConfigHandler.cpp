@@ -35,8 +35,6 @@
 #include <iostream>
 
 #include <OpenMS/CONCEPT/LogConfigHandler.h>
-#include <OpenMS/CONCEPT/StreamHandler.h>
-#include <OpenMS/CONCEPT/Exception.h>
 
 using std::cout;
 using std::cerr;
@@ -388,11 +386,11 @@ namespace OpenMS
     return os;
   }
 
-  LogConfigHandler * LogConfigHandler::instance_ = NULL;
+  LogConfigHandler * LogConfigHandler::instance_ = nullptr;
 
   LogConfigHandler & LogConfigHandler::getInstance()
   {
-    if (LogConfigHandler::instance_ == 0)
+    if (LogConfigHandler::instance_ == nullptr)
     {
       LogConfigHandler::instance_ = new LogConfigHandler();
     }

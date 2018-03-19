@@ -66,7 +66,7 @@ public:
     MSPFile(const MSPFile & rhs);
 
     ///Destructor
-    virtual ~MSPFile();
+    ~MSPFile() override;
     //@}
 
     /// assignment operator

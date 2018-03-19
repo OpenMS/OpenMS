@@ -35,12 +35,7 @@
 #include <OpenMS/KERNEL/ComparatorUtils.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
 
-#include <OpenMS/CONCEPT/Exception.h>
-#include <OpenMS/CONCEPT/LogStream.h>
-#include <OpenMS/CONCEPT/UniqueIdInterface.h>
 #include <OpenMS/DATASTRUCTURES/Map.h>
-#include <OpenMS/METADATA/DocumentIdentifier.h>
-#include <OpenMS/METADATA/MetaInfoInterface.h>
 #include <OpenMS/METADATA/DataProcessing.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
@@ -549,7 +544,7 @@ namespace OpenMS
 
     if (maps.size() != file_description_.size())
     {
-      if (stream != 0)
+      if (stream != nullptr)
       {
         *stream << "Map descriptions (file name + label) in ConsensusMap are not unique:\n" << all_maps << std::endl;
       }
@@ -573,7 +568,7 @@ namespace OpenMS
 
     if (stats_wrongMID > 0)
     {
-      if (stream != 0)
+      if (stream != nullptr)
       {
         *stream << "ConsensusMap contains " << stats_wrongMID << " invalid references to maps:\n";
         for (Map<Size, Size>::ConstIterator it = wrong_ID_count.begin(); it != wrong_ID_count.end(); ++it)

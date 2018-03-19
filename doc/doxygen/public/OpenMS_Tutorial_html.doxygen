@@ -29,35 +29,59 @@
 // 
 // --------------------------------------------------------------------------
 // $Maintainer:  $
-// $Authors: Marc Sturm $
+// $Authors: Marc Sturm, Oliver Alka $
 // --------------------------------------------------------------------------
 
 /**
 
-	@page OpenMS_tutorial OpenMS tutorial (Quickstart guide for developers)
+	@page OpenMS_tutorial %OpenMS Developer Quickstart Guide
 
 	First, we give a small introduction to this tutorial and %OpenMS:
-	- @subpage tutorial_general
+	- @subpage tutorial_introduction 
+	- @subpage tutorial_gf
 	- @subpage tutorial_structure
+	- @subpage tutorial_developing
 	- @subpage tutorial_terms
 
 	Then you should read about the basic classes and concepts of %OpenMS:
-	- @subpage tutorial_concept
-	- @subpage tutorial_datastructures
-	- @subpage tutorial_kernel
-	- @subpage tutorial_metadata
+	- @subpage tutorial_library
+	- @subpage tutorial_library_overview
+	- @subpage tutorial_library_kernelclasses
+	- @subpage tutorial_library_kernelclasses_peaks
+	- @subpage tutorial_library_kernelclasses_spectra
+	- @subpage tutorial_library_kernelclasses_chrom
+	- @subpage tutorial_library_kernelclasses_precursor
+	- @subpage tutorial_library_kernelclasses_mrm
+	- @subpage tutorial_library_kernelclasses_map
+	- @subpage tutorial_library_kernelclasses_mse
+	- @subpage tutorial_library_kernelclasses_fmap
+	- @subpage tutorial_fileformat
+	- @subpage tutorial_logging
+	- @subpage tutorial_identifications
 	- @subpage tutorial_chemistry
-	- @subpage tutorial_format
+	- @subpage tutorial_element
+	- @subpage tutorial_aaseq
+	- @subpage tutorial_residue
+	- @subpage tutorial_residuemod
+	- @subpage tutorial_tsg
+	- @subpage tutorial_dep
 
-	The more advanced tutorials cover the algorithms provided by %OpenMS:
-	- @subpage tutorial_filtering
-	- @subpage tutorial_transformations
-	- @subpage tutorial_mapalignment
-	- @subpage tutorial_featuregrouping
+	Here you can read about how to create a TOPP-Tool in %OpenMS:
+	- @subpage tutorial_topp
+	- @subpage tutorial_create
+	- @subpage tutorial_param_def
+	- @subpage tutorial_param_read
+	- @subpage tutorial_read
+	- @subpage tutorial_add
+	- @subpage tutorial_write
+	- @subpage tutorial_test
+	- @subpage tutorial_doc 
+	- @subpage tutorial_polish
+	- @subpage tutorial_pull
 
-	Other advanced tutorials:
-	- @subpage tutorial_visual
-	- @subpage tutorial_clustering
-	- @subpage tutorial_pip
-	- @subpage tutorial_howto
+	Here you find additional Information:
+	- @subpage tutorial_appendix
+	- @subpage tutorial_d_dim
+	- @subpage tutorial_ext_project
+
 */

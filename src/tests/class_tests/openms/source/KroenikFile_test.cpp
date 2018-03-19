@@ -50,8 +50,8 @@ START_TEST(KroenikFile, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-KroenikFile* ptr = 0;
-KroenikFile* null_ptr = 0;
+KroenikFile* ptr = nullptr;
+KroenikFile* null_ptr = nullptr;
 START_SECTION(KroenikFile())
 {
 	ptr = new KroenikFile();

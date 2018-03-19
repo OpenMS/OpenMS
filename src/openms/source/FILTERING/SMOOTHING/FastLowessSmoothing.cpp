@@ -47,11 +47,9 @@
 
 #include <OpenMS/FILTERING/SMOOTHING/FastLowessSmoothing.h>
 
-#include <OpenMS/CONCEPT/Macros.h>
-
 #include <cmath>
 #include <algorithm>    // std::min, std::max
-#include <stdlib.h>
+#include <cstdlib>
 #include <vector>
 
 namespace c_lowess

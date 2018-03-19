@@ -51,8 +51,8 @@ START_TEST(MapAlignmentEvaluationAlgorithmPrecision, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-MapAlignmentEvaluationAlgorithmPrecision* ptr = 0;
-MapAlignmentEvaluationAlgorithmPrecision* nullPointer = 0;
+MapAlignmentEvaluationAlgorithmPrecision* ptr = nullptr;
+MapAlignmentEvaluationAlgorithmPrecision* nullPointer = nullptr;
 
 START_SECTION((MapAlignmentEvaluationAlgorithmPrecision()))
 	ptr = new MapAlignmentEvaluationAlgorithmPrecision();
@@ -63,9 +63,9 @@ START_SECTION((virtual ~MapAlignmentEvaluationAlgorithmPrecision()))
 	delete ptr;
 END_SECTION
 
-MapAlignmentEvaluationAlgorithm* base_nullPointer = 0;
+MapAlignmentEvaluationAlgorithm* base_nullPointer = nullptr;
 START_SECTION((static MapAlignmentEvaluationAlgorithm* create()))
-	MapAlignmentEvaluationAlgorithm* ptr2 = 0;
+	MapAlignmentEvaluationAlgorithm* ptr2 = nullptr;
 	ptr2 = MapAlignmentEvaluationAlgorithmPrecision::create();
   TEST_NOT_EQUAL(ptr2, base_nullPointer)
 END_SECTION

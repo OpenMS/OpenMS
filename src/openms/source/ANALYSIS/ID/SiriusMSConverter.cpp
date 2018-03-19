@@ -34,6 +34,7 @@
 
 #include <OpenMS/ANALYSIS/ID/SiriusMSConverter.h>
 
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <fstream>
 
 #include <QDir>
@@ -43,7 +44,7 @@ using namespace std;
 
 namespace OpenMS
 {
-  //Precursor correction (highest intensity)
+  // precursor correction (highest intensity)
   Int getHighestIntensityPeakInMZRange(double test_mz, const MSSpectrum& spectrum1, double left_tolerance, double right_tolerance)
   {
     MSSpectrum::ConstIterator left = spectrum1.MZBegin(test_mz - left_tolerance);
@@ -65,19 +66,22 @@ namespace OpenMS
     return max_intensity_it - spectrum1.begin();
   }
 
-  void SiriusMSFile::store(const PeakMap &spectra, const OpenMS::String & msfile)
+  void SiriusMSFile::store(const PeakMap &spectra, const OpenMS::String & msfile, const map<size_t, StringList> & map_precursor_to_adducts)
   {
-
     int count_skipped_spectra = 0; // spectra skipped due to precursor charge
     int count_to_pos = 0; // count if charge 0 -> +1
     int count_to_neg = 0; // count if charge 0 -> -1
     int count_no_ms1 = 0; // count if no precursor was found
 
-    //check for all spectra at the beginning if spectra are centroided
-    //determine type of spectral data (profile or centroided) - only checking first spectrum (could be ms2 spectrum)
+    // check for all spectra at the beginning if spectra are centroided
+    // determine type of spectral data (profile or centroided) - only checking first spectrum (could be ms2 spectrum)
     SpectrumSettings::SpectrumType spectrum_type = spectra[0].getType();
 
-    if (spectrum_type == SpectrumSettings::RAWDATA)
+    // extract native id type accession (e.g. MS:1000768) corresponding to native id type (Thermo nativeID format)
+    const String native_id_type_accession = spectra.getExperimentalSettings().getSourceFiles()[0].getNativeIDTypeAccession();
+    LOG_DEBUG << "native_id_type_accession: " << native_id_type_accession << std::endl;
+  
+    if (spectrum_type == SpectrumSettings::PROFILE)
     {
       throw OpenMS::Exception::IllegalArgument(__FILE__, __LINE__, __FUNCTION__, "Error: Profile data provided but centroided spectra are needed. Please use PeakPicker to convert the spectra.");
     }
@@ -104,9 +108,17 @@ namespace OpenMS
       const MSSpectrum& spectrum = *s_it;
 
       int scan_index = s_it - spectra.begin();
+      String native_id = spectrum.getNativeID();
+      int scan_number = SpectrumLookup::extractScanNumber(native_id, native_id_type_accession);     
+      
+      // extract adducts for given precursor
+      StringList adducts;
+      if (map_precursor_to_adducts.find(scan_index) != map_precursor_to_adducts.end())
+      {
+        adducts = map_precursor_to_adducts.at(scan_index);
+      }
 
       const vector<Precursor>& precursor = spectrum.getPrecursors();
-      double collision = precursor[0].getActivationEnergy(); //extract collision energy - this function does not work
 
       IonSource::Polarity p = spectrum.getInstrumentSettings().getPolarity(); //charge
 
@@ -146,11 +158,14 @@ namespace OpenMS
           count_to_neg = count_to_neg +1;
         }
 
-        //get m/z and intensity of precursor != MS1 spectrum
+        // get m/z and intensity of precursor != MS1 spectrum
         double precursor_mz = precursor[0].getMZ();
         float precursor_int = precursor[0].getIntensity();
 
-        //find corresponding ms1 spectra (precursor)
+        // extract collision energy
+        double collision = precursor[0].getActivationEnergy(); 
+        
+        // find corresponding ms1 spectra (precursor)
         PeakMap::ConstIterator s_it2 = spectra.getPrecursorSpectrum(s_it);
 
         double test_mz = precursor_mz;
@@ -162,7 +177,7 @@ namespace OpenMS
         {
           count_no_ms1 = count_no_ms1 +1;
         }
-        //get the precursor in the ms1 spectrum (highest intensity in the range of the precursor mz +- 0.1 Da)
+        // get the precursor in the ms1 spectrum (highest intensity in the range of the precursor mz +- 0.1 Da)
         else
         {
           const MSSpectrum& spectrum1 = *s_it2;
@@ -194,11 +209,16 @@ namespace OpenMS
           }
         }
 
-        String query_id = String("unknown") + String(scan_index);
+        String query_id = String("-" + String(scan_number) +"-") + String("unknown") + String(scan_index);
 
-        //write internal unique .ms data as sirius input
+        // write internal unique .ms data as sirius input
         os << fixed;
         os << ">compound " << query_id << "\n";
+        if (adducts.empty() == false)
+        {
+          os << ">ionization " << ListUtils::concatenate(adducts, ',') << "\n";
+        }
+
         if (isotopes.empty() == false)
         {
           os << ">parentmass " << isotopes[0].getMZ() << fixed << "\n";
@@ -213,11 +233,11 @@ namespace OpenMS
         // Use precursor m/z & int and no ms1 spectra is available else use values from ms1 spectrum
         Size no_isotopes = isotopes.size();
 
-        if ( no_isotopes > 0) //if ms1 spectrum was present
+        if ( no_isotopes > 0) // if ms1 spectrum was present
         {
           os << ">ms1" << endl;
-          //m/z and intensity have to be higher than 1e-10
-          //the intensity of the peaks of the isotope pattern have to be smaller than the one before
+          // m/z and intensity have to be higher than 1e-10
+          // the intensity of the peaks of the isotope pattern have to be smaller than the one before
 
           double threshold = 1e-10;
 
@@ -261,7 +281,7 @@ namespace OpenMS
           }
         }
 
-        //if collision energy was given - write it into .ms file if not use ms2 instead
+        // if collision energy was given - write it into .ms file if not use ms2 instead
         if (collision == 0.0)
         {
           os << ">ms2" << "\n";
@@ -271,14 +291,14 @@ namespace OpenMS
           os << ">collision" << " " << collision << "\n";
         }
 
-        //single spectrum peaks
+        // single spectrum peaks
         for (Size i = 0; i < spectrum.size(); ++i)
         {
           const Peak1D& peak = spectrum[i];
           double mz = peak.getMZ();
           float intensity = peak.getIntensity();
 
-          //intensity has to be higher than zero
+          // intensity has to be higher than zero
           if (intensity != 0)
           {
             os << mz << " " << intensity << "\n";

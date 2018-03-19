@@ -38,9 +38,6 @@
 #include <OpenMS/FORMAT/Bzip2InputStream.h>
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
 
-#include <xercesc/internal/MemoryManagerImpl.hpp>
-#include <xercesc/util/XMLString.hpp>
-#include <xercesc/util/PlatformUtils.hpp>
 #include <xercesc/util/XMLUniDefs.hpp>
 
 
@@ -152,7 +149,7 @@ namespace OpenMS
       if (!retStrm->getIsOpen())
       {
         delete retStrm;
-        return 0;
+        return nullptr;
       }
       return retStrm;
     }
@@ -162,7 +159,7 @@ namespace OpenMS
       if (!retStrm->getIsOpen())
       {
         delete retStrm;
-        return 0;
+        return nullptr;
       }
       return retStrm;
     }

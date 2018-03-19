@@ -32,8 +32,8 @@
 // $Authors: Chris Bielow $
 // --------------------------------------------------------------------------
 
-#include <stdio.h>
-#include <stdlib.h>
+#include <cstdio>
+#include <cstdlib>
 
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/Factory.h>
@@ -43,11 +43,12 @@
 #include <OpenMS/VISUAL/GUIProgressLoggerImpl.h>
 
 //Qt
-#include <QtGui/QApplication>
-#include <QtGui/QStyleFactory>
+#include <QApplication>
+#include <QtWidgets/QStyleFactory>
 #include <QMessageBox>
 #include <QFile>
 #include <QFileOpenEvent>
+#include <QLibraryInfo>
 
 
 namespace OpenMS
@@ -102,7 +103,7 @@ namespace OpenMS
     {
       String msg = String("Caught exception: '") + e.getName() + "' with message '" + e.getMessage() + "'";
       LOG_ERROR << msg << "\n";
-      QMessageBox::warning(0, QString("Unexpected error occurred"), msg.toQString());
+      QMessageBox::warning(nullptr, QString("Unexpected error occurred"), msg.toQString());
       return false;
       // we could also exit() here... but no for now
     }

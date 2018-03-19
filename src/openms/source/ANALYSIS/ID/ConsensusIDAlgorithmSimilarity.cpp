@@ -35,9 +35,6 @@
 #include <OpenMS/ANALYSIS/ID/ConsensusIDAlgorithmSimilarity.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 
-#include <cmath>
-#include <numeric> // for "accumulate"
-
 using namespace std;
 
 namespace OpenMS

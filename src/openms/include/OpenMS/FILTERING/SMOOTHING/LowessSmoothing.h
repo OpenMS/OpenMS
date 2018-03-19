@@ -66,7 +66,7 @@ public:
     LowessSmoothing();
 
     /// Destructor
-    virtual ~LowessSmoothing();
+    ~LowessSmoothing() override;
 
     typedef std::vector<double> DoubleVector;
 
@@ -74,7 +74,7 @@ public:
     void smoothData(const DoubleVector &, const DoubleVector &, DoubleVector &);
 
 protected:
-    virtual void updateMembers_();
+    void updateMembers_() override;
 
 private:
     double window_size_;

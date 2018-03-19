@@ -32,8 +32,6 @@
 // $Authors: Clemens Groepl, Marc Sturm $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/DATASTRUCTURES/DIntervalBase.h>
-
 namespace OpenMS
 {
 

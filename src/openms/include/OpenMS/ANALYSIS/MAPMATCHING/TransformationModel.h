@@ -58,13 +58,18 @@ namespace OpenMS
       double first, second;
       String note;
 
-      DataPoint(double first = 0.0, double second = 0.0,
-                const String& note = ""):
-        first(first), second(second), note(note)
+      DataPoint(double first_ = 0.0,
+                double second_ = 0.0,
+                const String& note_ = "") :
+        first(first_),
+        second(second_),
+        note(note_)
       {}
 
-      DataPoint(const std::pair<double, double>& pair):
-        first(pair.first), second(pair.second), note("")
+      DataPoint(const std::pair<double, double>& pair) :
+        first(pair.first),
+        second(pair.second),
+        note("")
       {}
 
       bool operator<(const DataPoint& other) const

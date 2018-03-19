@@ -70,8 +70,8 @@ p2.setValue("statistics:variance",0.3f);
 TOLERANCE_ABSOLUTE(0.0001)
 
 // default ctor
-ProductModel* ptr = 0;
-ProductModel* nullPointer = 0;
+ProductModel* ptr = nullptr;
+ProductModel* nullPointer = nullptr;
 START_SECTION((ProductModel()))
 	ptr = new ProductModel();
 	TEST_EQUAL(ptr->getName(), "ProductModel2D")

@@ -48,8 +48,8 @@ START_TEST(ChromatogramExtractor, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-ChromatogramExtractor* ptr = 0;
-ChromatogramExtractor* nullPointer = 0;
+ChromatogramExtractor* ptr = nullptr;
+ChromatogramExtractor* nullPointer = nullptr;
 
 START_SECTION(ChromatogramExtractor())
 {
@@ -81,16 +81,8 @@ START_SECTION((template <typename ExperimentT> void extractChromatograms(const E
 
   TargetedExperiment::Peptide firstpeptide = transitions.getPeptides()[0];
   TEST_EQUAL(firstpeptide.rts.size(), 1);
-  TEST_EQUAL(firstpeptide.rts[0].getCVTerms().count("MS:1000896"), 1);
-  TEST_EQUAL(firstpeptide.rts[0].getCVTerms()["MS:1000896"].size(), 1);
-
-  OpenMS::DataValue v = firstpeptide.rts[0].getCVTerms()["MS:1000896"][0].getValue();
-  if(v.valueType() == 0) {  //data value is a string, e.g. "1042.42" and needs to be converted to double
-    TEST_EQUAL( (String(v)).toDouble(), 44);
-  }
-  else { 
-    TEST_EQUAL( (double)v, 44);
-  }
+  TEST_EQUAL(firstpeptide.hasRetentionTime(), true);
+  TEST_REAL_SIMILAR(firstpeptide.getRetentionTime(), 44.0)
 
   TEST_EQUAL(transitions.getTransitions().size(), 3)
   TEST_EQUAL(transitions.getTransitions()[0].getPrecursorMZ(), 500)

@@ -36,7 +36,6 @@
 
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/DATASTRUCTURES/StringListUtils.h>
-#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 #ifdef OPENMS_WINDOWSPLATFORM
 #include <windows.h> // for GetConsoleScreenBufferInfo()
@@ -44,8 +43,8 @@
 #undef max
 #endif
 
-#include <stdlib.h>
-#include <stdio.h>
+#include <cstdlib>
+#include <cstdio>
 
 namespace OpenMS
 {
@@ -82,7 +81,7 @@ namespace OpenMS
       console_width_ = -1;
       char* p_env;
       p_env = getenv("COLUMNS");
-      if (p_env != NULL)
+      if (p_env != nullptr)
       {
         console_width_ = String(p_env).toInt();
       }
@@ -99,10 +98,10 @@ namespace OpenMS
       // try "stty size" command
       // don't use QProcess, since stty will not work there
         FILE* fp = popen("stty size", "r");
-        if (fp != NULL)
+        if (fp != nullptr)
         {
           char buff[100];
-          if (fgets(buff, sizeof(buff), fp) != NULL)
+          if (fgets(buff, sizeof(buff), fp) != nullptr)
           {
             String output(buff);
             StringList components;

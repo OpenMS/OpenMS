@@ -234,8 +234,8 @@ START_SECTION(([EXTRA] "struct SimpleTopHat, used as reference implementation"))
 }
 END_SECTION
 
-MorphologicalFilter* tophat_ptr = 0;
-MorphologicalFilter* tophat_nullPointer = 0;
+MorphologicalFilter* tophat_ptr = nullptr;
+MorphologicalFilter* tophat_nullPointer = nullptr;
 
 START_SECTION((MorphologicalFilter()))
 {

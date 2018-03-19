@@ -34,24 +34,14 @@
 
 #include <OpenMS/FORMAT/HANDLERS/MzIdentMLDOMHandler.h>
 #include <OpenMS/SYSTEM/File.h>
-#include <OpenMS/KERNEL/StandardTypes.h>
 
-#include <OpenMS/CHEMISTRY/Residue.h>
-#include <OpenMS/CHEMISTRY/ResidueModification.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/CHEMISTRY/ResidueDB.h>
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
 
-#include <set>
-#include <string>
-#include <iostream>
-#include <stdexcept>
-#include <list>
 
-#include <sys/types.h>
 #include <sys/stat.h>
-#include <errno.h>
-#include <boost/lexical_cast.hpp>
+#include <cerrno>
 
 using namespace std;
 using namespace xercesc;
@@ -66,8 +56,8 @@ namespace OpenMS
     MzIdentMLDOMHandler::MzIdentMLDOMHandler(const vector<ProteinIdentification>& pro_id, const vector<PeptideIdentification>& pep_id, const String& version, const ProgressLogger& logger) :
       logger_(logger),
       //~ ms_exp_(0),
-      pro_id_(0),
-      pep_id_(0),
+      pro_id_(nullptr),
+      pep_id_(nullptr),
       cpro_id_(&pro_id),
       cpep_id_(&pep_id),
       schema_version_(version),
@@ -101,8 +91,8 @@ namespace OpenMS
       //~ ms_exp_(0),
       pro_id_(&pro_id),
       pep_id_(&pep_id),
-      cpro_id_(0),
-      cpep_id_(0),
+      cpro_id_(nullptr),
+      cpep_id_(nullptr),
       schema_version_(version),
       mzid_parser_(),
       xl_ms_search_(false)
@@ -297,14 +287,14 @@ namespace OpenMS
     void MzIdentMLDOMHandler::writeMzIdentMLFile(const std::string& mzid_file)
     {
       DOMImplementation* impl =  DOMImplementationRegistry::getDOMImplementation(XMLString::transcode("XML 1.0")); //XML 3?!
-      if (impl != NULL)
+      if (impl != nullptr)
       {
         try
         {
           xercesc::DOMDocument* xmlDoc = impl->createDocument(
             XMLString::transcode("http://psidev.info/psi/pi/mzIdentML/1.1"),
             XMLString::transcode("MzIdentML"), // root element name
-            0); // document type object (DTD).
+            nullptr); // document type object (DTD).
 
           DOMElement* rootElem = xmlDoc->getDocumentElement();
           rootElem->setAttribute(XMLString::transcode("version"),
@@ -654,7 +644,6 @@ namespace OpenMS
     void MzIdentMLDOMHandler::parseDBSequenceElements_(DOMNodeList* dbSequenceElements)
     {
       const  XMLSize_t dbs_node_count = dbSequenceElements->getLength();
-      int count = 0;
       for (XMLSize_t c = 0; c < dbs_node_count; ++c)
       {
         DOMNode* current_dbs = dbSequenceElements->item(c);
@@ -663,7 +652,6 @@ namespace OpenMS
         {
           // Found element node: re-cast as element
           DOMElement* element_dbs = dynamic_cast<xercesc::DOMElement*>(current_dbs);
-          ++count;
           String id = XMLString::transcode(element_dbs->getAttribute(XMLString::transcode("id")));
           String seq = "";
           String dbref = XMLString::transcode(element_dbs->getAttribute(XMLString::transcode("searchDatabase_ref")));
@@ -695,7 +683,6 @@ namespace OpenMS
     void MzIdentMLDOMHandler::parsePeptideElements_(DOMNodeList* peptideElements)
     {
       const  XMLSize_t pep_node_count = peptideElements->getLength();
-      int count = 0;
       for (XMLSize_t c = 0; c < pep_node_count; ++c)
       {
         DOMNode* current_pep = peptideElements->item(c);
@@ -704,7 +691,6 @@ namespace OpenMS
         {
           // Found element node: re-cast as element
           DOMElement* element_pep = dynamic_cast<xercesc::DOMElement*>(current_pep);
-          ++count;
           String id = XMLString::transcode(element_pep->getAttribute(XMLString::transcode("id")));
 
           //DOMNodeList* pep_sib = element_pep->getChildNodes();
@@ -739,7 +725,6 @@ namespace OpenMS
     void MzIdentMLDOMHandler::parsePeptideEvidenceElements_(DOMNodeList* peptideEvidenceElements)
     {
       const  XMLSize_t pev_node_count = peptideEvidenceElements->getLength();
-      int count = 0;
       for (XMLSize_t c = 0; c < pev_node_count; ++c)
       {
         DOMNode* current_pev = peptideEvidenceElements->item(c);
@@ -748,7 +733,6 @@ namespace OpenMS
         {
           // Found element node: re-cast as element
           DOMElement* element_pev = dynamic_cast<xercesc::DOMElement*>(current_pev);
-          ++count;
 
 //          <PeptideEvidence peptide_ref="peptide_1_1" id="PE_1_1_HSP70_ECHGR_0" start="161" end="172" pre="K" post="I" isDecoy="false" dBSequence_ref="DBSeq_HSP70_ECHGR"/>
 
@@ -773,12 +757,12 @@ namespace OpenMS
           {
             if (element_pev->hasAttribute(XMLString::transcode("pre")))
             {
-              pre = *XMLString::transcode(element_pev->getAttribute(XMLString::transcode("pre")));
+            pre = *XMLString::transcode(element_pev->getAttribute(XMLString::transcode("pre")));
             }
             if (element_pev->hasAttribute(XMLString::transcode("post")))
             {
-              post = *XMLString::transcode(element_pev->getAttribute(XMLString::transcode("post")));
-            }
+            post = *XMLString::transcode(element_pev->getAttribute(XMLString::transcode("post")));
+          }
           }
           catch (...)
           {
@@ -806,7 +790,6 @@ namespace OpenMS
     void MzIdentMLDOMHandler::parseSpectrumIdentificationElements_(DOMNodeList* spectrumIdentificationElements)
     {
       const  XMLSize_t si_node_count = spectrumIdentificationElements->getLength();
-      int count = 0;
       for (XMLSize_t c = 0; c < si_node_count; ++c)
       {
         DOMNode* current_si = spectrumIdentificationElements->item(c);
@@ -815,7 +798,6 @@ namespace OpenMS
         {
           // Found element node: re-cast as element
           DOMElement* element_si = dynamic_cast<xercesc::DOMElement*>(current_si);
-          ++count;
           String id = XMLString::transcode(element_si->getAttribute(XMLString::transcode("id")));
           String spectrumIdentificationProtocol_ref = XMLString::transcode(element_si->getAttribute(XMLString::transcode("spectrumIdentificationProtocol_ref")));
           String spectrumIdentificationList_ref = XMLString::transcode(element_si->getAttribute(XMLString::transcode("spectrumIdentificationList_ref")));
@@ -871,7 +853,6 @@ namespace OpenMS
     void MzIdentMLDOMHandler::parseSpectrumIdentificationProtocolElements_(DOMNodeList* spectrumIdentificationProtocolElements)
     {
       const  XMLSize_t si_node_count = spectrumIdentificationProtocolElements->getLength();
-      int count = 0;
       for (XMLSize_t c = 0; c < si_node_count; ++c)
       {
         ProteinIdentification::SearchParameters sp;
@@ -881,7 +862,6 @@ namespace OpenMS
         {
           // Found element node: re-cast as element
           DOMElement* element_sip = dynamic_cast<xercesc::DOMElement*>(current_sip);
-          ++count;
           String id = XMLString::transcode(element_sip->getAttribute(XMLString::transcode("id")));
           String swr = XMLString::transcode(element_sip->getAttribute(XMLString::transcode("analysisSoftware_ref")));
 
@@ -1158,7 +1138,6 @@ namespace OpenMS
     void MzIdentMLDOMHandler::parseInputElements_(DOMNodeList* inputElements)
     {
       const  XMLSize_t node_count = inputElements->getLength();
-      int count = 0;
       for (XMLSize_t c = 0; c < node_count; ++c)
       {
         DOMNode* current_in = inputElements->item(c);
@@ -1167,7 +1146,6 @@ namespace OpenMS
         {
           // Found element node: re-cast as element
           DOMElement* element_in = dynamic_cast<xercesc::DOMElement*>(current_in);
-          ++count;
 
           String id = XMLString::transcode(element_in->getAttribute(XMLString::transcode("id")));
           String location = XMLString::transcode(element_in->getAttribute(XMLString::transcode("location")));
@@ -1229,7 +1207,6 @@ namespace OpenMS
     void MzIdentMLDOMHandler::parseSpectrumIdentificationListElements_(DOMNodeList* spectrumIdentificationListElements)
     {
       const  XMLSize_t node_count = spectrumIdentificationListElements->getLength();
-      //int count = 0;
       for (XMLSize_t c = 0; c < node_count; ++c)
       {
         DOMNode* current_lis = spectrumIdentificationListElements->item(c);
@@ -1238,7 +1215,6 @@ namespace OpenMS
         {
           // Found element node: re-cast as element
           DOMElement* element_lis = dynamic_cast<xercesc::DOMElement*>(current_lis);
-          //++count;
           String id = XMLString::transcode(element_lis->getAttribute(XMLString::transcode("id")));
 //          String name = XMLString::transcode(element_res->getAttribute(XMLString::transcode("name")));
 
@@ -1392,16 +1368,16 @@ namespace OpenMS
         // Attributes
         String peptide = XMLString::transcode(cl_sii->getAttribute(XMLString::transcode("peptide_ref")));
         peptides.push_back(peptide);
-        double exp_mz = atof(XMLString::transcode(cl_sii->getAttribute(XMLString::transcode("experimentalMassToCharge"))));
+        double exp_mz = String(XMLString::transcode(cl_sii->getAttribute(XMLString::transcode("experimentalMassToCharge")))).toDouble();
         exp_mzs.push_back(exp_mz);
 
         if (rank == 0)
         {
-          rank = atoi(XMLString::transcode(cl_sii->getAttribute(XMLString::transcode("rank"))));
+          rank = String(XMLString::transcode(cl_sii->getAttribute(XMLString::transcode("rank")))).toInt();
         }
         if (charge == 0)
         {
-          charge = atoi(XMLString::transcode(cl_sii->getAttribute(XMLString::transcode("chargeState"))));
+          charge = String(XMLString::transcode(cl_sii->getAttribute(XMLString::transcode("chargeState")))).toInt();
         }
 
         // CVs
@@ -1412,31 +1388,31 @@ namespace OpenMS
           DOMElement* element_sii_cvp = dynamic_cast<xercesc::DOMElement*>(sii_cvp->item(i));
           if (String(XMLString::transcode(element_sii_cvp->getAttribute(XMLString::transcode("accession")))) == String("MS:1002681")) // OpenXQuest:combined score
           {
-            score = atof(XMLString::transcode(element_sii_cvp->getAttribute(XMLString::transcode("value"))));
+            score = String(XMLString::transcode(element_sii_cvp->getAttribute(XMLString::transcode("value")))).toDouble();
           }
           else if (String(XMLString::transcode(element_sii_cvp->getAttribute(XMLString::transcode("accession")))) == String("MS:1002682")) // OpenXQuest: xcorr common
           {
-            xcorrx = atof(XMLString::transcode(element_sii_cvp->getAttribute(XMLString::transcode("value"))));
+            xcorrx = String(XMLString::transcode(element_sii_cvp->getAttribute(XMLString::transcode("value")))).toDouble();
           }
           else if (String(XMLString::transcode(element_sii_cvp->getAttribute(XMLString::transcode("accession")))) == String("MS:1002683")) // OpenXQuest: xcorr xlink
           {
-            xcorrc = atof(XMLString::transcode(element_sii_cvp->getAttribute(XMLString::transcode("value"))));
+            xcorrc = String(XMLString::transcode(element_sii_cvp->getAttribute(XMLString::transcode("value")))).toDouble();
           }
           else if (String(XMLString::transcode(element_sii_cvp->getAttribute(XMLString::transcode("accession")))) == String("MS:1002684")) // OpenXQuest: match-odds
           {
-            matchodds = atof(XMLString::transcode(element_sii_cvp->getAttribute(XMLString::transcode("value"))));
+            matchodds = String(XMLString::transcode(element_sii_cvp->getAttribute(XMLString::transcode("value")))).toDouble();
           }
           else if (String(XMLString::transcode(element_sii_cvp->getAttribute(XMLString::transcode("accession")))) == String("MS:1002685")) // OpenXQuest: intsum
           {
-            intsum = atof(XMLString::transcode(element_sii_cvp->getAttribute(XMLString::transcode("value"))));
+            intsum = String(XMLString::transcode(element_sii_cvp->getAttribute(XMLString::transcode("value")))).toDouble();
           }
           else if (String(XMLString::transcode(element_sii_cvp->getAttribute(XMLString::transcode("accession")))) == String("MS:1002686")) // OpenXQuest: wTIC
           {
-            wTIC = atof(XMLString::transcode(element_sii_cvp->getAttribute(XMLString::transcode("value"))));
+            wTIC = String(XMLString::transcode(element_sii_cvp->getAttribute(XMLString::transcode("value")))).toDouble();
           }
           else if (String(XMLString::transcode(element_sii_cvp->getAttribute(XMLString::transcode("accession")))) == String("MS:1000894")) // retention time
           {
-            double RT = atof(XMLString::transcode(element_sii_cvp->getAttribute(XMLString::transcode("value"))));
+            double RT = String(XMLString::transcode(element_sii_cvp->getAttribute(XMLString::transcode("value")))).toDouble();
             RTs.push_back(RT);
           }
         }
@@ -2062,9 +2038,9 @@ namespace OpenMS
             }
             else
             {
-              hit.setMetaValue(cvs->first, cv->getValue().toString().toDouble());
-            }
+            hit.setMetaValue(cvs->first, cv->getValue().toString().toDouble());
           }
+        }
         }
         for (map<String, DataValue>::const_iterator up = params.second.begin(); up != params.second.end(); ++up)
         {
@@ -2185,7 +2161,6 @@ namespace OpenMS
     void MzIdentMLDOMHandler::parseProteinDetectionListElements_(DOMNodeList* proteinDetectionListElements)
     {
       const  XMLSize_t node_count = proteinDetectionListElements->getLength();
-      int count = 0; int count_ag = 0;
       for (XMLSize_t c = 0; c < node_count; ++c)
       {
         DOMNode* current_pr = proteinDetectionListElements->item(c);
@@ -2194,7 +2169,6 @@ namespace OpenMS
         {
           // Found element node: re-cast as element
           DOMElement* element_pr = dynamic_cast<xercesc::DOMElement*>(current_pr);
-          ++count;
 
 //          String id = XMLString::transcode(element_pr->getAttribute(XMLString::transcode("id")));
 //          pair<CVTermList, map<String, DataValue> > params = parseParamGroup_(current_pr->getChildNodes());
@@ -2218,7 +2192,6 @@ namespace OpenMS
               parseProteinAmbiguityGroupElement_(child, pro_id_->back());
             }
             child = child->getNextElementSibling();
-            ++count_ag;
           }
         }
       }
@@ -2354,7 +2327,8 @@ namespace OpenMS
                 {
                   String donor_val = XMLString::transcode(cvp->getAttribute(XMLString::transcode("value")));
                   xl_id_donor_map_.insert(make_pair(pep_id, donor_val));
-                  double monoisotopicMassDelta = atof(XMLString::transcode(element_sib->getAttribute(XMLString::transcode("monoisotopicMassDelta"))));
+                  String massdelta = XMLString::transcode(element_sib->getAttribute(XMLString::transcode("monoisotopicMassDelta")));
+                  double monoisotopicMassDelta = massdelta.toDouble();
                   xl_mass_map_.insert(make_pair(pep_id, monoisotopicMassDelta));
                   xl_donor_pos_map_.insert(make_pair(donor_val, index-1));
 
@@ -2460,8 +2434,8 @@ namespace OpenMS
                   catch (...)
                   {
                     LOG_WARN << "Found unreadable modification location." << endl;
-                    throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Unknown modification");
-                  }
+                  throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Unknown modification");
+                }
                   if (!has_mass_delta)
                   {
                     throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Unknown modification");
@@ -2687,7 +2661,7 @@ namespace OpenMS
           for (AASequence::ConstIterator res = peps->second.begin(); res != peps->second.end(); ++res, ++i)
           {
             const ResidueModification* mod = res->getModification();
-            if (mod == 0) continue;
+            if (mod == nullptr) continue;
             DOMElement* current_mod = current_pep->getOwnerDocument()->createElement(XMLString::transcode("Modification"));
             DOMElement* current_cv = current_pep->getOwnerDocument()->createElement(XMLString::transcode("cvParam"));
             current_mod->setAttribute(XMLString::transcode("location"), XMLString::transcode(String(i).c_str()));

@@ -173,7 +173,7 @@ public:
       /// Default constructor
       XMLHandler(const String & filename, const String & version);
       /// Destructor
-      virtual ~XMLHandler();
+      ~XMLHandler() override;
 
       /// Release internal memory used for parsing (call
       void reset();
@@ -185,9 +185,9 @@ public:
           These methods forward the error message to our own error handlers below.
       */
       //@{
-      void fatalError(const xercesc::SAXParseException & exception);
-      void error(const xercesc::SAXParseException & exception);
-      void warning(const xercesc::SAXParseException & exception);
+      void fatalError(const xercesc::SAXParseException & exception) override;
+      void error(const xercesc::SAXParseException & exception) override;
+      void warning(const xercesc::SAXParseException & exception) override;
       //@}
 
       /// Fatal error handler. Throws a ParseError exception
@@ -198,11 +198,11 @@ public:
       void warning(ActionMode mode, const String & msg, UInt line = 0, UInt column = 0) const;
 
       /// Parsing method for character data
-      virtual void characters(const XMLCh * const chars, const XMLSize_t length);
+      void characters(const XMLCh * const chars, const XMLSize_t length) override;
       /// Parsing method for opening tags
-      virtual void startElement(const XMLCh * const uri, const XMLCh * const localname, const XMLCh * const qname, const xercesc::Attributes & attrs);
+      void startElement(const XMLCh * const uri, const XMLCh * const localname, const XMLCh * const qname, const xercesc::Attributes & attrs) override;
       /// Parsing method for closing tags
-      virtual void endElement(const XMLCh * const uri, const XMLCh * const localname, const XMLCh * const qname);
+      void endElement(const XMLCh * const uri, const XMLCh * const localname, const XMLCh * const qname) override;
 
       /// Writes the contents to a stream.
       virtual void writeTo(std::ostream & /*os*/);
@@ -418,7 +418,7 @@ protected:
       inline String attributeAsString_(const xercesc::Attributes & a, const char * name) const
       {
         const XMLCh * val = a.getValue(sm_.convert(name).c_str());
-        if (val == 0) fatalError(LOAD, String("Required attribute '") + name + "' not present!");
+        if (val == nullptr) fatalError(LOAD, String("Required attribute '") + name + "' not present!");
         return sm_.convert(val);
       }
 
@@ -426,7 +426,7 @@ protected:
       inline Int attributeAsInt_(const xercesc::Attributes & a, const char * name) const
       {
         const XMLCh * val = a.getValue(sm_.convert(name).c_str());
-        if (val == 0) fatalError(LOAD, String("Required attribute '") + name + "' not present!");
+        if (val == nullptr) fatalError(LOAD, String("Required attribute '") + name + "' not present!");
         return xercesc::XMLString::parseInt(val);
       }
 
@@ -434,7 +434,7 @@ protected:
       inline double attributeAsDouble_(const xercesc::Attributes & a, const char * name) const
       {
         const XMLCh * val = a.getValue(sm_.convert(name).c_str());
-        if (val == 0) fatalError(LOAD, String("Required attribute '") + name + "' not present!");
+        if (val == nullptr) fatalError(LOAD, String("Required attribute '") + name + "' not present!");
         return String(sm_.convert(val)).toDouble();
       }
 
@@ -467,7 +467,7 @@ protected:
       inline bool optionalAttributeAsString_(String & value, const xercesc::Attributes & a, const char * name) const
       {
         const XMLCh * val = a.getValue(sm_.convert(name).c_str());
-        if (val != 0)
+        if (val != nullptr)
         {
           value = sm_.convert(val);
           return true;
@@ -483,7 +483,7 @@ protected:
       inline bool optionalAttributeAsInt_(Int & value, const xercesc::Attributes & a, const char * name) const
       {
         const XMLCh * val = a.getValue(sm_.convert(name).c_str());
-        if (val != 0)
+        if (val != nullptr)
         {
           value = xercesc::XMLString::parseInt(val);
           return true;
@@ -499,7 +499,7 @@ protected:
       inline bool optionalAttributeAsUInt_(UInt & value, const xercesc::Attributes & a, const char * name) const
       {
         const XMLCh * val = a.getValue(sm_.convert(name).c_str());
-        if (val != 0)
+        if (val != nullptr)
         {
           value = xercesc::XMLString::parseInt(val);
           return true;
@@ -515,7 +515,7 @@ protected:
       inline bool optionalAttributeAsDouble_(double & value, const xercesc::Attributes & a, const char * name) const
       {
         const XMLCh * val = a.getValue(sm_.convert(name).c_str());
-        if (val != 0)
+        if (val != nullptr)
         {
           value = String(sm_.convert(val)).toDouble();
           return true;
@@ -531,7 +531,7 @@ protected:
       inline bool optionalAttributeAsDoubleList_(DoubleList & value, const xercesc::Attributes & a, const char * name) const
       {
         const XMLCh * val = a.getValue(sm_.convert(name).c_str());
-        if (val != 0)
+        if (val != nullptr)
         {
           value = attributeAsDoubleList_(a, name);
           return true;
@@ -547,7 +547,7 @@ protected:
       inline bool optionalAttributeAsStringList_(StringList & value, const xercesc::Attributes & a, const char * name) const
       {
         const XMLCh * val = a.getValue(sm_.convert(name).c_str());
-        if (val != 0)
+        if (val != nullptr)
         {
           value = attributeAsStringList_(a, name);
           return true;
@@ -563,7 +563,7 @@ protected:
       inline bool optionalAttributeAsIntList_(IntList & value, const xercesc::Attributes & a, const char * name) const
       {
         const XMLCh * val = a.getValue(sm_.convert(name).c_str());
-        if (val != 0)
+        if (val != nullptr)
         {
           value = attributeAsIntList_(a, name);
           return true;
@@ -575,7 +575,7 @@ protected:
       inline String attributeAsString_(const xercesc::Attributes & a, const XMLCh * name) const
       {
         const XMLCh * val = a.getValue(name);
-        if (val == 0) fatalError(LOAD, String("Required attribute '") + sm_.convert(name) + "' not present!");
+        if (val == nullptr) fatalError(LOAD, String("Required attribute '") + sm_.convert(name) + "' not present!");
         return sm_.convert(val);
       }
 
@@ -583,7 +583,7 @@ protected:
       inline Int attributeAsInt_(const xercesc::Attributes & a, const XMLCh * name) const
       {
         const XMLCh * val = a.getValue(name);
-        if (val == 0) fatalError(LOAD, String("Required attribute '") + sm_.convert(name) + "' not present!");
+        if (val == nullptr) fatalError(LOAD, String("Required attribute '") + sm_.convert(name) + "' not present!");
         return xercesc::XMLString::parseInt(val);
       }
 
@@ -591,7 +591,7 @@ protected:
       inline double attributeAsDouble_(const xercesc::Attributes & a, const XMLCh * name) const
       {
         const XMLCh * val = a.getValue(name);
-        if (val == 0) fatalError(LOAD, String("Required attribute '") + sm_.convert(name) + "' not present!");
+        if (val == nullptr) fatalError(LOAD, String("Required attribute '") + sm_.convert(name) + "' not present!");
         return String(sm_.convert(val)).toDouble();
       }
 
@@ -620,7 +620,7 @@ protected:
       inline bool optionalAttributeAsString_(String & value, const xercesc::Attributes & a, const XMLCh * name) const
       {
         const XMLCh * val = a.getValue(name);
-        if (val != 0)
+        if (val != nullptr)
         {
           String tmp2 = sm_.convert(val);
           if (tmp2 != "")
@@ -636,7 +636,7 @@ protected:
       inline bool optionalAttributeAsInt_(Int & value, const xercesc::Attributes & a, const XMLCh * name) const
       {
         const XMLCh * val = a.getValue(name);
-        if (val != 0)
+        if (val != nullptr)
         {
           value = xercesc::XMLString::parseInt(val);
           return true;
@@ -648,7 +648,7 @@ protected:
       inline bool optionalAttributeAsUInt_(UInt & value, const xercesc::Attributes & a, const XMLCh * name) const
       {
         const XMLCh * val = a.getValue(name);
-        if (val != 0)
+        if (val != nullptr)
         {
           value = xercesc::XMLString::parseInt(val);
           return true;
@@ -660,7 +660,7 @@ protected:
       inline bool optionalAttributeAsDouble_(double & value, const xercesc::Attributes & a, const XMLCh * name) const
       {
         const XMLCh * val = a.getValue(name);
-        if (val != 0)
+        if (val != nullptr)
         {
           value = String(sm_.convert(val)).toDouble();
           return true;
@@ -676,7 +676,7 @@ protected:
       inline bool optionalAttributeAsDoubleList_(DoubleList & value, const xercesc::Attributes & a, const XMLCh * name) const
       {
         const XMLCh * val = a.getValue(name);
-        if (val != 0)
+        if (val != nullptr)
         {
           value = attributeAsDoubleList_(a, name);
           return true;
@@ -692,7 +692,7 @@ protected:
       inline bool optionalAttributeAsIntList_(IntList & value, const xercesc::Attributes & a, const XMLCh * name) const
       {
         const XMLCh * val = a.getValue(name);
-        if (val != 0)
+        if (val != nullptr)
         {
           value = attributeAsIntList_(a, name);
           return true;
@@ -708,7 +708,7 @@ protected:
       inline bool optionalAttributeAsStringList_(StringList & value, const xercesc::Attributes & a, const XMLCh * name) const
       {
         const XMLCh * val = a.getValue(name);
-        if (val != 0)
+        if (val != nullptr)
         {
           value = attributeAsStringList_(a, name);
           return true;

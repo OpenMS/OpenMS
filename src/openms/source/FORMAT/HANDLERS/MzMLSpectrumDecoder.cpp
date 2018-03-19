@@ -35,15 +35,11 @@
 #include <OpenMS/FORMAT/HANDLERS/MzMLSpectrumDecoder.h>
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
 
-#include <OpenMS/CONCEPT/Macros.h> // OPENMS_PRECONDITION
-
 #include <xercesc/framework/MemBufInputSource.hpp>
 #include <xercesc/parsers/XercesDOMParser.hpp>
-#include <xercesc/dom/DOMNode.hpp>
 #include <xercesc/dom/DOMText.hpp>
 #include <xercesc/dom/DOMElement.hpp>
 #include <xercesc/dom/DOMNodeList.hpp>
-#include <xercesc/util/XMLString.hpp>
 
 namespace OpenMS
 {
@@ -327,7 +323,7 @@ namespace OpenMS
 
     // defaultArrayLength is a required attribute for the spectrum and the
     // chromatogram tag (but still check for it first to be safe).
-    if (elementRoot->getAttributeNode(default_array_length_tag) == NULL)
+    if (elementRoot->getAttributeNode(default_array_length_tag) == nullptr)
     {
       delete parser;
       throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,

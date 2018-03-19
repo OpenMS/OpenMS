@@ -47,8 +47,8 @@ START_TEST(PercolatorOutfile, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-PercolatorOutfile* ptr = 0;
-PercolatorOutfile* null_pointer = 0;
+PercolatorOutfile* ptr = nullptr;
+PercolatorOutfile* null_pointer = nullptr;
 PercolatorOutfile file;
 
 START_SECTION(PercolatorOutfile())

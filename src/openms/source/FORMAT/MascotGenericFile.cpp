@@ -33,18 +33,13 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/FileHandler.h>
-#include <OpenMS/FORMAT/MascotGenericFile.h>
-
-#include <OpenMS/METADATA/Precursor.h>
-#include <OpenMS/KERNEL/MSExperiment.h>
-#include <OpenMS/KERNEL/MSSpectrum.h>
-#include <OpenMS/KERNEL/MSChromatogram.h>
 
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
-#include <OpenMS/DATASTRUCTURES/ListUtils.h>
-
 #include <OpenMS/CONCEPT/LogStream.h>
-#include <OpenMS/CONCEPT/PrecisionWrapper.h>
+#include <OpenMS/FORMAT/MascotGenericFile.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/METADATA/Precursor.h>
+
 
 #include <QFileInfo>
 #include <QtCore/QRegExp>
@@ -342,7 +337,8 @@ namespace OpenMS
            << "_" << spec.getNativeID() << "_" << filename << "\n";
         os << "PEPMASS=" << precisionWrapper(mz) <<  "\n";
         os << "RTINSECONDS=" << precisionWrapper(rt) << "\n";
-      }
+        os << "SCANS=" << spec.getNativeID().substr(spec.getNativeID().find("=")+1) << "\n";
+     }
       else
       {
         os << "TITLE=" << fixed << setprecision(HIGH_PRECISION) << mz << "_"
@@ -350,6 +346,7 @@ namespace OpenMS
            << spec.getNativeID() << "_" << filename << "\n";
         os << "PEPMASS=" << setprecision(HIGH_PRECISION) << mz << "\n";
         os << "RTINSECONDS=" << setprecision(LOW_PRECISION) << rt << "\n";
+        os << "SCANS=" << spec.getNativeID().substr(spec.getNativeID().find("=")+1) << "\n";
       }
 
       int charge(precursor.getCharge());
@@ -359,7 +356,8 @@ namespace OpenMS
         bool skip_spectrum_charges(param_.getValue("skip_spectrum_charges").toBool());
         if (!skip_spectrum_charges)
         {
-          os << "CHARGE=" << charge << "\n";
+          String cs = charge < 0 ? "-" : "+";
+          os << "CHARGE=" << charge << cs << "\n";
         }
       }
 

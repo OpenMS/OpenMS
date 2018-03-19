@@ -135,8 +135,10 @@ namespace OpenMS
     targetMap[FileTypes::PSMS] = "psms";
     targetMap[FileTypes::PIN] = "pin";
     targetMap[FileTypes::SPLIB] = "splib";
+    targetMap[FileTypes::NOVOR] = "novor";
     targetMap[FileTypes::PARAMXML] = "paramXML";
-    
+    targetMap[FileTypes::XQUESTXML] = "xquest.xml";
+
     return targetMap;
   }
 

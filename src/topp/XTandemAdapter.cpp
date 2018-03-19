@@ -33,6 +33,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
+
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
 #include <OpenMS/CHEMISTRY/ModificationDefinitionsSet.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
@@ -46,9 +47,7 @@
 #include <OpenMS/METADATA/SpectrumLookup.h>
 #include <OpenMS/SYSTEM/File.h>
 
-#include <QtCore/QFile>
 #include <QtCore/QProcess>
-#include <QDir>
 
 #include <fstream>
 
@@ -118,7 +117,7 @@ public:
   }
 
 protected:
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
 
     registerInputFile_("in", "<file>", "", "Input file containing MS2 spectra");
@@ -160,14 +159,14 @@ protected:
 
     registerFlag_("no_isotope_error", "By default, misassignment to the first and second isotopic 13C peak are also considered. Set this flag to disable.", false);
 
-    registerStringList_("fixed_modifications", "<mods>", ListUtils::create<String>(""), "Fixed modifications, specified using Unimod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)' or 'Oxidation (M)'", false);
     vector<String> all_mods;
     ModificationsDB::getInstance()->getAllSearchModifications(all_mods);
+    registerStringList_("fixed_modifications", "<mods>", ListUtils::create<String>("Carbamidomethyl (C)", ','), "Fixed modifications, specified using Unimod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)' or 'Oxidation (M)'", false);
     setValidStrings_("fixed_modifications", all_mods);
-    registerStringList_("variable_modifications", "<mods>", ListUtils::create<String>(""), "Variable modifications, specified using Unimod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)' or 'Oxidation (M)'", false);
+    registerStringList_("variable_modifications", "<mods>", ListUtils::create<String>("Oxidation (M)", ','), "Variable modifications, specified using Unimod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)' or 'Oxidation (M)'", false);
     setValidStrings_("variable_modifications", all_mods);
 
-    registerDoubleOption_("minimum_fragment_mz", "<number>", 150.0, "Minimum fragment mz", false);
+    registerDoubleOption_("minimum_fragment_mz", "<number>", 150.0, "Minimum fragment m/z", false);
 
     vector<String> all_enzymes;
     ProteaseDB::getInstance()->getAllXTandemNames(all_enzymes);
@@ -183,7 +182,7 @@ protected:
     registerDoubleOption_("max_valid_expect", "<value>", 0.1, "Maximal E-Value of a hit to be reported (only evaluated if 'output_result' is 'valid' or 'stochastic')", false);
   }
 
-  ExitCodes main_(int, const char**)
+  ExitCodes main_(int, const char**) override
   {
     //-------------------------------------------------------------
     // parsing parameters
@@ -239,7 +238,7 @@ protected:
     // determine type of spectral data (profile or centroided)
     SpectrumSettings::SpectrumType spectrum_type = exp[0].getType();
 
-    if (spectrum_type == SpectrumSettings::RAWDATA)
+    if (spectrum_type == SpectrumSettings::PROFILE)
     {
       if (!getFlag_("force"))
       {
@@ -364,22 +363,13 @@ protected:
     //-------------------------------------------------------------
 
     if (!xml_out.empty())
-    {
-      // existing file? Qt won't overwrite, so try to remove it:
-      if (QFile::exists(xml_out.toQString()) &&
-          !QFile::remove(xml_out.toQString()))
+    { // move the temporary file to the actual destination:
+      if (!File::rename(tandem_output_filename, xml_out))
       {
-        writeLog_("Fatal error: Could not overwrite existing file '" + xml_out + "'");
-        return CANNOT_WRITE_OUTPUT_FILE;
-      }
-      // move the temporary file to the actual destination:
-      if (!QFile::rename(tandem_output_filename.toQString(), xml_out.toQString()))
-      {
-        writeLog_("Fatal error: Could not move temporary X! Tandem XML file to '" + xml_out + "'");
         return CANNOT_WRITE_OUTPUT_FILE;
       }
     }
-
+    
     if (!out.empty())
     {
       // handle the search parameters

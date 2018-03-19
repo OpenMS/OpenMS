@@ -43,6 +43,7 @@
 #include <OpenMS/FILTERING/SMOOTHING/GaussFilter.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerHiRes.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerCWT.h>
+#include <OpenMS/SYSTEM/File.h>
 
 #include <functional>
 #include <numeric>
@@ -171,7 +172,7 @@ public:
   {
   }
 
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     registerInputFileList_("in", "<file>", ListUtils::create<String>(""), "Input raw data file");
     setValidFormats_("in", ListUtils::create<String>("mzML"));
@@ -214,7 +215,7 @@ public:
     return out;
   }
 
-  ExitCodes main_(int, const char**)
+  ExitCodes main_(int, const char**) override
   {
     //-------------------------------------------------------------
     // parameter handling

@@ -61,7 +61,7 @@ public:
     DeNovoIdentification();
 
     /// destructor
-    virtual ~DeNovoIdentification();
+    ~DeNovoIdentification() override;
 
     /// copy constructor
     DeNovoIdentification(const DeNovoIdentification & rhs);

@@ -159,25 +159,25 @@ namespace OpenMS
   bool DigestionEnzyme::setValueFromFile(const String& key, const String& value)
   {
     if (key.hasSuffix(":Name"))
-    {
+  {
       setName(value);
       return true;
-    }
+  }
     if (key.hasSuffix(":RegEx"))
-    {
+  {
       setRegEx(value);
       return true;
-    }
+  }
     if (key.hasSuffix(":RegExDescription"))
-    {
+  {
       setRegExDescription(value);
       return true;
-    }
+  }
     if (key.hasSubstring(":Synonyms:"))
-    {
+  {
       addSynonym(value);
       return true;
-    }
+  }
     return false;
   }
 

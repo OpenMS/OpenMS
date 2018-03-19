@@ -35,21 +35,11 @@
 #include <OpenMS/ANALYSIS/DECHARGING/FeatureDeconvolution.h>
 
 #include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
-#include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/Constants.h>
-#include <OpenMS/CONCEPT/LogStream.h>
-#include <OpenMS/DATASTRUCTURES/ChargePair.h>
-#include <OpenMS/DATASTRUCTURES/Compomer.h>
-#include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
-#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
-#include <OpenMS/FORMAT/ConsensusXMLFile.h> // tmp
-#include <OpenMS/KERNEL/Feature.h>
-#include <OpenMS/KERNEL/ConsensusFeature.h>
 
 //DEBUG:
-#include <iostream>
 #include <fstream>
 
 #undef DC_DEVEL
@@ -70,9 +60,9 @@ namespace OpenMS
   */
   struct FeatureDeconvolution::CmpInfo_
   {
-    String s_comp; //< formula as String
-    Size idx_cp; //< index into compomer vector
-    UInt side_cp; //< side of parent compomer (LEFT or RIGHT)
+    String s_comp; ///< formula as String
+    Size idx_cp; ///< index into compomer vector
+    UInt side_cp; ///< side of parent compomer (LEFT or RIGHT)
 
     // C'tor
     CmpInfo_() :

@@ -35,10 +35,6 @@
 #include <OpenMS/FORMAT/MzXMLFile.h>
 
 #include <OpenMS/FORMAT/HANDLERS/MzXMLHandler.h>
-#include <OpenMS/KERNEL/MSExperiment.h>
-#include <OpenMS/KERNEL/Peak1D.h>
-
-#include <fstream>
 
 using namespace std;
 

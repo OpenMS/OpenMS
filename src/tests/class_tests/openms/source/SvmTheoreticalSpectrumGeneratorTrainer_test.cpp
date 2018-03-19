@@ -45,8 +45,8 @@ START_TEST(SvmTheoreticalSpectrumGeneratorTrainer, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-SvmTheoreticalSpectrumGeneratorTrainer* ptr = 0;
-SvmTheoreticalSpectrumGeneratorTrainer* nullPointer = 0;
+SvmTheoreticalSpectrumGeneratorTrainer* ptr = nullptr;
+SvmTheoreticalSpectrumGeneratorTrainer* nullPointer = nullptr;
 START_SECTION(SvmTheoreticalSpectrumGeneratorTrainer())
 {
 	ptr = new SvmTheoreticalSpectrumGeneratorTrainer();

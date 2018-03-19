@@ -161,7 +161,7 @@
 
 // those are only added if GUI is enabled
 #ifdef WITH_GUI
-#include <QtGui/QApplication>
+#include <QApplication>
 
 #include <OpenMS/VISUAL/Spectrum1DCanvas.h>
 #include <OpenMS/VISUAL/Spectrum2DCanvas.h>
@@ -483,9 +483,9 @@ int main(int argc, char** argv)
   DOCME(TOPPViewBase);
   DOCME(TOPPASBase);
 
-  DOCME2(Spectrum1DCanvas, Spectrum1DCanvas(Param(), 0));
-  DOCME2(Spectrum2DCanvas, Spectrum2DCanvas(Param(), 0));
-  DOCME2(Spectrum3DCanvas, Spectrum3DCanvas(Param(), 0));
+  DOCME2(Spectrum1DCanvas, Spectrum1DCanvas(Param(), nullptr));
+  DOCME2(Spectrum2DCanvas, Spectrum2DCanvas(Param(), nullptr));
+  DOCME2(Spectrum3DCanvas, Spectrum3DCanvas(Param(), nullptr));
 #endif
 
   return 0;

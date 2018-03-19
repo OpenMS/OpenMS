@@ -89,7 +89,7 @@ public:
       Frees ofstream_* if filename c'tor was used.
 
     */
-    ~SVOutStream();
+    ~SVOutStream() override;
 
     /**
          @brief Stream output operator for @p String

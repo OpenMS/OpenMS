@@ -34,8 +34,6 @@
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/SimplePairFinder.h>
 
-#include <OpenMS/DATASTRUCTURES/ListUtils.h>
-
 namespace OpenMS
 {
   SimplePairFinder::SimplePairFinder() :

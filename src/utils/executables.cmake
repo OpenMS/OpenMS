@@ -23,15 +23,17 @@ IDScoreSwitcher
 IDSplitter
 LabeledEval
 LowMemPeakPickerHiRes
-LowMemPeakPickerHiRes_RandomAccess
+LowMemPeakPickerHiResRandomAccess
 MassCalculator
 MetaboliteAdductDecharger
 MetaboliteSpectralMatcher
 MetaProSIP
 MRMPairFinder
+MSFraggerAdapter
 MSSimulator
 MultiplexResolver
 MzMLSplitter
+NovorAdapter
 OpenMSInfo
 OpenPepXL
 OpenPepXLLF
@@ -78,7 +80,6 @@ endif(NOT DISABLE_OPENSWATH)
 
 ## all targets requiring OpenMS_GUI
 set(UTILS_executables_with_GUIlib
-IDEvaluator
 ImageCreator
 INIUpdater
 )

@@ -94,7 +94,7 @@ public:
     }
 
     /// destructor
-    virtual ~LevMarqFitter1D()
+    ~LevMarqFitter1D() override
     {
     }
 
@@ -144,7 +144,7 @@ protected:
       }
     }
 
-    void updateMembers_()
+    void updateMembers_() override
     {
       Fitter1D::updateMembers_();
       max_iteration_ = this->param_.getValue("max_iteration");

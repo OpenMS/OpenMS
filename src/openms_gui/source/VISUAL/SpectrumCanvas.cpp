@@ -40,14 +40,13 @@
 #include <OpenMS/VISUAL/MetaDataBrowser.h>
 
 // QT
-#include <QtGui/QPainter>
-#include <QtGui/QPaintEvent>
-#include <QtGui/QBitmap>
-#include <QtGui/QWheelEvent>
-#include <QtGui/QMessageBox>
-#include <QtGui/QPushButton>
-#include <QtGui/QFontMetrics>
-#include <QtGui/QFontMetrics>
+#include <QPainter>
+#include <QPaintEvent>
+#include <QBitmap>
+#include <QWheelEvent>
+#include <QtWidgets/QMessageBox>
+#include <QtWidgets/QPushButton>
+#include <QFontMetrics>
 
 #include <iostream>
 
@@ -70,11 +69,11 @@ namespace OpenMS
     zoom_pos_(zoom_stack_.end()),
     update_buffer_(false),
     current_layer_(0),
-    spectrum_widget_(0),
+    spectrum_widget_(nullptr),
     percentage_factor_(1.0),
     snap_factors_(1, 1.0),
     rubber_band_(QRubberBand::Rectangle, this),
-    context_add_(0),
+    context_add_(nullptr),
     show_timing_(false),
     selected_peak_(),
     measurement_start_()
@@ -82,7 +81,7 @@ namespace OpenMS
     //Prevent filling background
     setAttribute(Qt::WA_OpaquePaintEvent);
     // get mouse coordinates while mouse moves over diagramm and for focus handling
-    setMouseTracking(TRUE);
+    setMouseTracking(true);
     setFocusPolicy(Qt::StrongFocus);
 
     setMinimumSize(200, 200);

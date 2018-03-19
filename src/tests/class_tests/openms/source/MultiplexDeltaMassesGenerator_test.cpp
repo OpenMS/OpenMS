@@ -51,7 +51,7 @@ label_mass_shift.insert(std::make_pair("Lys8", 8.0141988132));
 String labels = "[][Lys4,Arg6][Lys8,Arg10]";
 int missed_cleavages = 1;
 
-MultiplexDeltaMassesGenerator* nullPointer = 0;
+MultiplexDeltaMassesGenerator* nullPointer = nullptr;
 MultiplexDeltaMassesGenerator* ptr;
 
 START_SECTION(MultiplexDeltaMassesGenerator(String labels, int missed_cleavages, std::map<String,double> label_mass_shift))

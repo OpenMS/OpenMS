@@ -103,7 +103,7 @@ public:
   }
 
 protected:
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     registerInputFileList_("in", "<files>", StringList(), "input files separated by blanks", true);
     setValidFormats_("in", ListUtils::create<String>("featureXML"));
@@ -146,8 +146,8 @@ protected:
     FeatureMap map;
     map_file.load(filename, map);
 
-    Feature * feat1 = 0;
-    Feature * feat2 = 0;
+    Feature * feat1 = nullptr;
+    Feature * feat2 = nullptr;
 
     FeatureMap::iterator iter = map.begin();
     while (iter != map.end())
@@ -198,7 +198,7 @@ protected:
       ++iter;
     }       // end of while
 
-    if (feat1 != 0 && feat2 != 0)      //(f1_sum != 0 && f2_sum != 0)
+    if (feat1 != nullptr && feat2 != nullptr)      //(f1_sum != 0 && f2_sum != 0)
     {
       cout << "Feature 1: " << *feat1 << endl;
       cout << "Feature 2: " << *feat2 << endl;
@@ -330,7 +330,7 @@ protected:
     return 0;
   }
 
-  ExitCodes main_(int, const char **)
+  ExitCodes main_(int, const char **) override
   {
     //-------------------------------------------------------------
     // parsing parameters

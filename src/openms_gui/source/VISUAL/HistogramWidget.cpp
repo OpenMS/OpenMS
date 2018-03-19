@@ -34,11 +34,11 @@
 
 
 // Qt
-#include <QtGui/QResizeEvent>
-#include <QtGui/QMouseEvent>
-#include <QtGui/QPaintEvent>
-#include <QtGui/QPainter>
-#include <QtGui/QMenu>
+#include <QResizeEvent>
+#include <QMouseEvent>
+#include <QPaintEvent>
+#include <QPainter>
+#include <QtWidgets/QMenu>
 
 // STL
 #include <iostream>
@@ -318,7 +318,7 @@ namespace OpenMS
     //execute
     QAction * result = menu.exec(mapToGlobal(pos));
     //change according to selected value
-    if (result != 0)
+    if (result != nullptr)
     {
       if (result->text() == "Normal mode")
       {

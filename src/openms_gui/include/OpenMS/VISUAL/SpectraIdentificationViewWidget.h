@@ -38,11 +38,11 @@
 #include <OpenMS/VISUAL/LayerData.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 
-#include <QWidget>
-#include <QtGui/QLineEdit>
-#include <QtGui/QComboBox>
-#include <QtGui/QTableWidget>
-#include <QtGui/QCheckBox>
+#include <QtWidgets>
+#include <QLineEdit>
+#include <QComboBox>
+#include <QTableWidget>
+#include <QCheckBox>
 
 namespace OpenMS
 {
@@ -58,9 +58,9 @@ namespace OpenMS
     Q_OBJECT
 public:
     /// Constructor
-    SpectraIdentificationViewWidget(const Param& preferences, QWidget* parent = 0);
+    SpectraIdentificationViewWidget(const Param& preferences, QWidget* parent = nullptr);
     /// Destructor
-    virtual ~SpectraIdentificationViewWidget();
+    ~SpectraIdentificationViewWidget() override;
     /// Attach model
     void attachLayer(LayerData* model);
     /// Helper function to block outgoing signals

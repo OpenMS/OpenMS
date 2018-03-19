@@ -36,8 +36,6 @@
 #include <OpenMS/FORMAT/FastaIteratorIntern.h>
 #include <OpenMS/FORMAT/FASTAFile.h>
 
-#include <vector>
-
 namespace OpenMS
 {
 

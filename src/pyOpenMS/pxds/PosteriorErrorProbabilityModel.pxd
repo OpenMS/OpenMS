@@ -56,12 +56,6 @@ cdef extern from "<OpenMS/MATH/STATISTICS/PosteriorErrorProbabilityModel.h>" nam
         #returns the estimated negative prior probability.
         double getNegativePrior() nogil except +
 
-        #computes the gaussian density at position x with parameters params.
-        double getGauss(double x, GaussFitResult & params) nogil except +
-
-        #computes the gumbel density at position x with parameters params.
-        double getGumbel(double x, GaussFitResult & params) nogil except +
-
         #   Returns the computed posterior error probability for a given score.
         #   @note: fit has to be used before using this function. Otherwise this function will compute nonsense.
         double computeProbability(double score) nogil except +

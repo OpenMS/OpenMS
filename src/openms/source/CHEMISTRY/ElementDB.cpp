@@ -41,7 +41,6 @@
 
 #include <OpenMS/SYSTEM/File.h>
 
-#include <cmath>
 #include <iostream>
 
 using namespace std;
@@ -86,7 +85,7 @@ namespace OpenMS
         return symbols_[name];
       }
     }
-    return 0;
+    return nullptr;
   }
 
   const Element* ElementDB::getElement(UInt atomic_number) const
@@ -95,7 +94,7 @@ namespace OpenMS
     {
       return atomic_numbers_[atomic_number];
     }
-    return 0;
+    return nullptr;
   }
 
   bool ElementDB::hasElement(const String& name) const

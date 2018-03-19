@@ -47,8 +47,8 @@ START_TEST(EGHModel, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-EGHModel* ptr = 0;
-EGHModel* nullPointer = 0;
+EGHModel* ptr = nullptr;
+EGHModel* nullPointer = nullptr;
 START_SECTION(EGHModel())
 {
 	ptr = new EGHModel();

@@ -183,8 +183,8 @@ START_TEST(MRMTransitionGroupPicker, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-MRMTransitionGroupPicker* ptr = 0;
-MRMTransitionGroupPicker* nullPointer = 0;
+MRMTransitionGroupPicker* ptr = nullptr;
+MRMTransitionGroupPicker* nullPointer = nullptr;
 
 START_SECTION(MRMTransitionGroupPicker())
 {
@@ -379,6 +379,57 @@ START_SECTION(( void findLargestPeak(std::vector<RichPeakChromatogram> & picked_
 }
 END_SECTION
 
+START_SECTION(void findWidestPeakIndices(const std::vector<MSChromatogram>& picked_chroms, Int& chrom_idx, Int& point_idx) const)
+{
+  std::vector<MSChromatogram> chromatograms;
+  MSChromatogram c;
+  c.push_back(ChromatogramPeak(110.0, 2000.0));
+  c.push_back(ChromatogramPeak(150.0, 6000.0));
+  c.push_back(ChromatogramPeak(190.0, 2000.0));
+  c.getFloatDataArrays().resize(3);
+  c.getFloatDataArrays()[1].push_back(100.0);
+  c.getFloatDataArrays()[2].push_back(120.0);
+  c.getFloatDataArrays()[1].push_back(120.0);
+  c.getFloatDataArrays()[2].push_back(180.0);
+  c.getFloatDataArrays()[1].push_back(180.0);
+  c.getFloatDataArrays()[2].push_back(200.0);
+  chromatograms.push_back(c); // chromatogram containing a peak of highest intensity (should be skipped in favor of widest peak)
+
+  c.clear(true);
+  c.push_back(ChromatogramPeak(150.0, 5500.0)); // lower global intensity, if compared to the previous chromatogram
+  c.push_back(ChromatogramPeak(190.0, 2000.0));
+  c.getFloatDataArrays().resize(3);
+  c.getFloatDataArrays()[1].push_back(100.0);
+  c.getFloatDataArrays()[2].push_back(180.0);
+  c.getFloatDataArrays()[1].push_back(180.0);
+  c.getFloatDataArrays()[2].push_back(200.0);
+  chromatograms.push_back(c); // chromatogram containing the widest peak (this should be chosen)
+
+  c.clear(true);
+  c.push_back(ChromatogramPeak(110.0, 2000.0));
+  c.push_back(ChromatogramPeak(150.0, 7000.0));
+  c.push_back(ChromatogramPeak(190.0, 2000.0));
+  c.getFloatDataArrays().resize(3);
+  c.getFloatDataArrays()[1].push_back(105.0);
+  c.getFloatDataArrays()[2].push_back(115.0);
+  c.getFloatDataArrays()[1].push_back(125.0);
+  c.getFloatDataArrays()[2].push_back(175.0);
+  c.getFloatDataArrays()[1].push_back(185.0);
+  c.getFloatDataArrays()[2].push_back(195.0);
+  chromatograms.push_back(c); // just another chromatogram (it won't be chosen, it contains short peaks)
+
+  MRMTransitionGroupPicker picker;
+  Int chr_idx{-1}, peak_idx{-1};
+  picker.findWidestPeakIndices(chromatograms, chr_idx, peak_idx);
+  TEST_EQUAL(chr_idx, 1);
+  TEST_EQUAL(peak_idx, 0); // the point [0] (first) is the apex of the widest peak within the chosen chromatogram
+  TEST_REAL_SIMILAR(chromatograms[chr_idx][peak_idx].getRT(), 150.0)
+  TEST_REAL_SIMILAR(chromatograms[chr_idx][peak_idx].getIntensity(), 5500.0)
+  TEST_REAL_SIMILAR(chromatograms[chr_idx].getFloatDataArrays()[1][peak_idx], 100.0)
+  TEST_REAL_SIMILAR(chromatograms[chr_idx].getFloatDataArrays()[2][peak_idx], 180.0)
+}
+END_SECTION
+
 START_SECTION((template < typename SpectrumT > void remove_overlapping_features(std::vector< SpectrumT > &picked_chroms, double best_left, double best_right)))
 {
   MRMTransitionGroupType transition_group;
@@ -490,137 +541,6 @@ START_SECTION((template < typename SpectrumT > void remove_overlapping_features(
   TEST_REAL_SIMILAR(picked_chroms[1][0].getIntensity(), default_intensity)
   TEST_REAL_SIMILAR(picked_chroms[1][1].getIntensity(), 0.0);
 
-}
-END_SECTION
-
-START_SECTION(( void calculateBgEstimationAverage_(const MSChromatogram& chromatogram,
-  double best_left, double best_right, double & background, double & avg_noise_level) ))
-{
-
-  RichPeakChromatogram chromatogram;
-  setup_toy_chromatogram(chromatogram);
-
-  // Features
-  double best_left = 2.477966667;
-  double best_right = 3.01895;
-  double background, noise_level;
-
-  // Correct the background
-  MRMTransitionGroupPicker picker;
-
-  picker.calculateBgEstimationAverage_(chromatogram, 
-    best_left, best_right, background,
-    noise_level);
-
-  TEST_REAL_SIMILAR(background, 125076);
-  TEST_REAL_SIMILAR(noise_level, 2233.5);
-}
-END_SECTION
-
-START_SECTION(( void calculateBgEstimationExact_(const MSChromatogram& chromatogram,
-  double best_left, double best_right, double peak_height, double & background, double & avg_noise_level) ))
-{
-
-  RichPeakChromatogram chromatogram;
-  setup_toy_chromatogram(chromatogram);
-
-  // Features
-  double best_left = 2.477966667;
-  double best_right = 3.01895;
-  double peak_height = 966489;
-  double background, noise_level;
-
-  // Correct the background
-  MRMTransitionGroupPicker picker;
-
-  picker.calculateBgEstimationExact_(chromatogram, 
-    best_left, best_right, 
-    peak_height, background,
-    noise_level);
-
-  TEST_REAL_SIMILAR(background, 123446.661339019);
-  TEST_REAL_SIMILAR(noise_level, 1908.596906);
-}
-END_SECTION
-
-START_SECTION(( void calculatePeakApexInt_(const MSChromatogram& chromatogram,
-  double best_left, double best_right, 
-  ConvexHull2D::PointArrayType & hull_points,
-  double & intensity_sum, 
-  double & rt_sum,
-  double & peak_apex_int,
-  double & peak_apex_rt) ))
-{
-
-  RichPeakChromatogram chromatogram;
-  setup_toy_chromatogram(chromatogram);
-
-  // Features
-  double best_left = 2.477966667;
-  double best_right = 3.01895;
-  double peak_apex = 2.7045;
-
-  // Calculate peak apex
-  MRMTransitionGroupPicker picker;  
-
-  ConvexHull2D::PointArrayType hull_points;
-  double intensity_integral(0.0), intensity_sum(0.0), rt_sum(0.0);
-  double peak_apex_int = -1;
-
-  picker.calculatePeakApexInt_(chromatogram,
-    best_left,best_right,hull_points,
-    intensity_sum,
-    intensity_integral,
-    rt_sum,
-    peak_apex_int,
-    peak_apex);
-
-  TEST_REAL_SIMILAR(intensity_sum, 6764562);
-  TEST_REAL_SIMILAR(intensity_integral, 71540.2082038256);
-  TEST_REAL_SIMILAR(rt_sum, 151.890633338);
-  TEST_REAL_SIMILAR(peak_apex_int, 966489);
-}
-END_SECTION
-
-START_SECTION(( void calculatePeakShapeMetrics_(const MSChromatogram& chromatogram, 
-  double best_left, double best_right, 
-  double peak_height, double peak_apex, double avg_noise_level,
-  PeakShapeMetrics_ & peakShapeMetrics) ))
-{
-  
-  RichPeakChromatogram chromatogram;
-  setup_toy_chromatogram(chromatogram);
-
-  // Features
-  double best_left = 2.477966667;
-  double best_right = 3.01895;
-  double peak_height = 965356;
-  double peak_apex = 2.7045;
-  double avg_noise_level = 723.5;
-
-  // Calculate the QCs
-  MRMTransitionGroupPicker picker;
-  MRMTransitionGroupPicker::PeakShapeMetrics_ peakShapeMetrics;
-
-  picker.calculatePeakShapeMetrics_(chromatogram, 
-    best_left, best_right, 
-    peak_height, peak_apex, avg_noise_level,
-    peakShapeMetrics);
-
-  TEST_REAL_SIMILAR(peakShapeMetrics.width_at_5,0.27924231787346);
-  TEST_REAL_SIMILAR(peakShapeMetrics.width_at_10,0.135162753574054);
-  TEST_REAL_SIMILAR(peakShapeMetrics.width_at_50,0.0596533918928945);
-  TEST_REAL_SIMILAR(peakShapeMetrics.start_time_at_10,2.63202095937465);
-  TEST_REAL_SIMILAR(peakShapeMetrics.start_time_at_5,2.47208309122377);
-  TEST_REAL_SIMILAR(peakShapeMetrics.end_time_at_10,2.76718371294871);
-  TEST_REAL_SIMILAR(peakShapeMetrics.end_time_at_5,2.75132540909723);
-  TEST_REAL_SIMILAR(peakShapeMetrics.total_width,0.540983333);
-  TEST_REAL_SIMILAR(peakShapeMetrics.tailing_factor,5.96347844593576);
-  TEST_REAL_SIMILAR(peakShapeMetrics.asymmetry_factor,0.864852961737272);
-  TEST_REAL_SIMILAR(peakShapeMetrics.baseline_delta_2_height,0.002151537878);
-  TEST_REAL_SIMILAR(peakShapeMetrics.slope_of_baseline,2077);
-  TEST_EQUAL(peakShapeMetrics.points_across_baseline,57);
-  TEST_EQUAL(peakShapeMetrics.points_across_half_height,6);
 }
 END_SECTION
 

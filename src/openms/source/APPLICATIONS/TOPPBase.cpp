@@ -54,18 +54,14 @@
 
 #include <iostream>
 
-#if  defined(__APPLE__)
-  #include <QCoreApplication.h> // needed to disable plugin loading on Mac OSX
-#endif
-
 #include <QDir>
 #include <QFile>
 
 #include <boost/math/special_functions/fpclassify.hpp>
 
-#include <time.h>
-#include <stdio.h>
-#include <stdlib.h>
+#include <ctime>
+#include <cstdio>
+#include <cstdlib>
 
 // OpenMP support
 #ifdef _OPENMP
@@ -130,12 +126,6 @@ namespace OpenMS
     {
       writeLog_(String("Warning: Message to maintainer - If '") + tool_name_ + "' is an official TOPP tool, add it to the tools list in ToolHandler. If it is not, set the 'official' flag of the TOPPBase constructor to false.");
     }
-
-#if  defined(__APPLE__)
-    // we do not want to load plugins as this leads to serious problems
-    // when shipping on mac os x
-    QCoreApplication::setLibraryPaths(QStringList());
-#endif
   }
 
   TOPPBase::~TOPPBase()
@@ -398,7 +388,7 @@ namespace OpenMS
     char* disable_usage = getenv("OPENMS_DISABLE_UPDATE_CHECK");
  
     // only perform check if variable is not set or explicitly enabled by setting it to "OFF"  
-    if (!test_mode_ && (disable_usage == NULL || strcmp(disable_usage, "OFF") == 0))
+    if (!test_mode_ && (disable_usage == nullptr || strcmp(disable_usage, "OFF") == 0))
     {
       UpdateCheck::run(tool_name_, version_, debug_level_);
     }
@@ -580,7 +570,7 @@ namespace OpenMS
     UInt max_size = 0;
     for (vector<ParameterInformation>::const_iterator it = parameters_.begin(); it != parameters_.end(); ++it)
     {
-      if ((!it->advanced) || (it->advanced && verbose))
+      if (!it->advanced || verbose)
       {
         max_size = max((UInt)max_size, (UInt)(it->name.size() + it->argument.size() + it->required));
       }
@@ -594,10 +584,12 @@ namespace OpenMS
     // PRINT parameters && description, restrictions and default
     for (vector<ParameterInformation>::const_iterator it = parameters_.begin(); it != parameters_.end(); ++it)
     {
-      if (!((!it->advanced) || (it->advanced && verbose)))
+      if (it->advanced && !verbose)
+      {
         continue;
+      }
 
-      //new subsection?
+      // new subsection?
       String subsection = getSubsection_(it->name);
       if (!subsection.empty() && current_TOPP_subsection != subsection)
       {
@@ -2305,13 +2297,13 @@ namespace OpenMS
       QString html_doc = tool_description_.toQString();
       lines.insert(3, QString("<manual><![CDATA[") + html_doc + "]]></manual>");
       lines.insert(4, QString("<citations>"));
-      lines.insert(5, QString("  <citation doi=\"") + QString::fromStdString(cite_openms_.doi) + "\" url=\"\">");
+      lines.insert(5, QString("  <citation doi=\"") + QString::fromStdString(cite_openms_.doi) + "\" url=\"\" />");
       int l = 5;
       if (!citations_.empty())
       {
         for (Citation c : citations_) 
         {
-          lines.insert(++l, QString("  <citation doi=\"") + QString::fromStdString(c.doi) + "\" url=\"\">");
+          lines.insert(++l, QString("  <citation doi=\"") + QString::fromStdString(c.doi) + "\" url=\"\" />");
         }
       }
       lines.insert(++l, QString("</citations>"));

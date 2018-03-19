@@ -57,8 +57,8 @@ START_TEST(LocalLinearMap, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-LocalLinearMap* ptr = 0;
-LocalLinearMap* nullPointer = 0;
+LocalLinearMap* ptr = nullptr;
+LocalLinearMap* nullPointer = nullptr;
 LocalLinearMap llm;
 
 
