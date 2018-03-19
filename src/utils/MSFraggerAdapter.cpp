@@ -677,6 +677,10 @@ protected:
     std::vector<PeptideIdentification> peptide_identifications;
     std::vector<ProteinIdentification> protein_identifications;
     PepXMLFile().load(pepxmlfile, protein_identifications, peptide_identifications);
+    for (auto it=protein_identifications.begin(); it != protein_identifications.end(); it++)
+    { 
+        it->setSearchEngine("MSFragger");
+    }
     IdXMLFile().store(output_file, protein_identifications, peptide_identifications);
 
     // copies the .pepXML to the specified foler 
