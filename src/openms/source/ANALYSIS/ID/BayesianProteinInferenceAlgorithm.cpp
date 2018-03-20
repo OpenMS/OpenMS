@@ -443,6 +443,15 @@ namespace OpenMS
     //I split up in CCs.
     // OR I could save the outputs! One value for every protein, per parameter set.
 
+    vector<double> gamma_search{0.5};
+    vector<double> beta_search{0.001};
+    vector<double> alpha_search{0.008, 0.032, 0.128};
+
+    GridSearch<double,double,double> gs{alpha_search, beta_search, gamma_search};
+
+    std::array<size_t, 3> bestParams{};
+    gs.evaluate(GridSearchEvaluator(param_, ibg, proteinIDs[0]), -1.0, bestParams);
+
     // what to do, with which params and where to write additional output (here groups) not accessible via the graphs.
     FilteredGraphInferenceFunctor f{param_};
     // apply functor

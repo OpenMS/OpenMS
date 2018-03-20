@@ -64,19 +64,6 @@ protected:
     registerFlag_("separate_runs", "Process multiple protein identification runs in the input separately, don't merge them. Merging results in loss of descriptive information of the single protein identification runs.", false);
   }
 
-  struct Evaluator{
-    explicit Evaluator(const BayesianProteinInferenceAlgorithm& bpi) : bpi(bpi) {};
-    const BayesianProteinInferenceAlgorithm& bpi;
-    double operator() (double gamma, double beta, double alpha)
-    {
-      Param p = bpi.getParameters();
-      p.setValue("model_parameters:prot_prior", gamma);
-      p.setValue("model_parameters:pep_emission", alpha);
-      p.setValue("model_parameters:pep_spurious_emission", beta);
-
-    }
-  };
-
   ExitCodes main_(int, const char**) override
   {
     vector<PeptideIdentification> peps;
@@ -93,9 +80,6 @@ protected:
     fdr.setParameters(p);
     //fdr.applyEstimated(prots);
     double score = fdr.applyEvaluateProteinIDs(prots);
-    vector<double> gamma_search{0.5};
-    vector<double> beta_search{0.001};
-    vector<double> alpha_search{0.008, 0.032, 0.128};
 
     //fdr.applyBasic(peps);
     //BayesianProteinInferenceAlgorithm bpi;

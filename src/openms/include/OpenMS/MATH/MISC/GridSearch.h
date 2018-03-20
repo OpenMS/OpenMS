@@ -41,13 +41,6 @@
 #include <cmath>
 #include <tuple>
 
-
-#include <array>
-#include <iostream>
-#include <vector>
-#include <cmath>
-#include <tuple>
-
 // The general class template
 template <size_t param_index, size_t grid_size, typename EvalResult, typename Tuple, typename... TupleTypes>
 struct Looper
