@@ -298,11 +298,6 @@ namespace OpenMS
 
   EmpiricalFormula AASequence::getFormula(Residue::ResidueType type, Int charge) const
   {
-    if (has(*ResidueDB::getInstance()->getResidue("X"))) 
-    {
-      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Cannot get formula of sequence with unknown AA 'X'.", toString());
-    }
-
     if (peptide_.size() >= 1)
     {
       // Initialize with the missing/additional protons
@@ -327,12 +322,17 @@ namespace OpenMS
         ef += c_term_mod_->getDiffFormula();
       }
 
-      for (Size i = 0; i != peptide_.size(); ++i)
+      const auto rx = ResidueDB::getInstance()->getResidue("X");
+      for (const auto& e : peptide_)
       {
-        ef += peptide_[i]->getFormula(Residue::Internal);
+        // While PEPTIX[123]DE makes sense and represents an unknown mass of 123.0
+        // Da, the sequence PEPTIXDE does not make sense as it is unclear what a
+        // standard internal residue including named modifications
+        if (e == rx) throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Cannot get EF of sequence with unknown AA 'X'.", toString());
+        ef += e->getFormula(Residue::Internal);
       }
-
-          // add the missing formula part
+ 
+      // add the missing formula part
       switch (type)
       {
         case Residue::Full:
@@ -380,21 +380,18 @@ namespace OpenMS
 
   double AASequence::getAverageWeight(Residue::ResidueType type, Int charge) const
   {
-    // While PEPTIX[123]DE makes sense and represents an unknown mass of 123.0
-    // Da, the sequence PEPTIXDE does not make sense as it is unclear what a
-    // single, unknown residue should represent.
-    if (has(*ResidueDB::getInstance()->getResidue("X"))) 
-    {
-      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Cannot get weight of sequence with unknown AA 'X' with unknown mass.", toString());
-    }
-
     // check whether tags are present
     double tag_offset(0);
-    for (ConstIterator it = this->begin(); it != this->end(); ++it)
+    const auto rx = ResidueDB::getInstance()->getResidue("X");
+    for (const auto& e : peptide_)
     {
-      if (it->getOneLetterCode() == "")
+      // While PEPTIX[123]DE makes sense and represents an unknown mass of 123.0
+      // Da, the sequence PEPTIXDE does not make sense as it is unclear what a
+      // standard internal residue including named modifications
+      if (e == rx) throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Cannot get weight of sequence with unknown AA 'X' with unknown mass.", toString());
+      if (e->getOneLetterCode() == "")
       {
-        tag_offset += it->getAverageWeight(Residue::Internal);
+        tag_offset += e->getAverageWeight(Residue::Internal);
       }
     }
     // TODO inefficient, if averageWeight is already set in the Residue
@@ -403,14 +400,6 @@ namespace OpenMS
 
   double AASequence::getMonoWeight(Residue::ResidueType type, Int charge) const
   {
-    // While PEPTIX[123]DE makes sense and represents an unknown mass of 123.0
-    // Da, the sequence PEPTIXDE does not make sense as it is unclear what a
-    // single, unknown residue should represent.
-    if (has(*ResidueDB::getInstance()->getResidue("X"))) 
-    {
-      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Cannot get weight of sequence with unknown AA 'X' with unknown mass.", toString());
-    }
-
     if (peptide_.size() >= 1)
     {
       double mono_weight(Constants::PROTON_MASS_U * charge);
@@ -431,11 +420,15 @@ namespace OpenMS
       {
         mono_weight += c_term_mod_->getDiffMonoMass();
       }
-
-      for (ConstIterator it = this->begin(); it != this->end(); ++it)
+      const auto rx = ResidueDB::getInstance()->getResidue("X");
+      for (const auto& e : peptide_)
       {
+        // While PEPTIX[123]DE makes sense and represents an unknown mass of 123.0
+        // Da, the sequence PEPTIXDE does not make sense as it is unclear what a
         // standard internal residue including named modifications
-        mono_weight += it->getMonoWeight(Residue::Internal);
+        if (e == rx) throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Cannot get weight of sequence with unknown AA 'X' with unknown mass.", toString());
+        // single, unknown residue should represent.
+        mono_weight += e->getMonoWeight(Residue::Internal);
       }
 
       // add the missing formula part
