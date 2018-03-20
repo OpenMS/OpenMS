@@ -291,7 +291,7 @@ namespace OpenMS
       }
       else if (integration_type_ == INTEGRATION_TYPE_INTENSITYSUM)
       {
-        area = std::max(int_r, int_l) * std::distance(p.PosBegin(left), p.PosEnd(right));;
+        area = std::max(int_r, int_l) * std::distance(p.PosBegin(left), p.PosEnd(right));
       }
     }
     else
