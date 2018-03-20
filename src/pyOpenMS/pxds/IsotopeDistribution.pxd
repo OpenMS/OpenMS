@@ -50,25 +50,29 @@ cdef extern from "<OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopePatternGenerator.
 
          # wrap-inherits:
          #  IsotopeDistribution
-         
+
          # wrap-ignore
          # ABSTRACT class
          # no-pxd-import
+         
 
-         IsotopePatternGenerator() # wrap-pass-constructor
-         IsotopePatternGenerator(double probability_cutoff) nogil except +
-         IsotopePatternGenerator(IsotopeDistribution) nogil except +
+         IsotopePatternGenerator() 
+         IsotopePatternGenerator(double probability_cutoff) nogil except + 
+         IsotopePatternGenerator(IsotopeDistribution) nogil except + # wrap-ignore
          # virtual void run(EmpiricalFormula&) = 0; # wrap-ignore
          void merge(double) nogil except +
 
 
 cdef extern from "<OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopeDistribution.h>" namespace "OpenMS":
     cdef cppclass CoarseIsotopeDistribution(IsotopePatternGenerator):
-        # wrap-inherits
-        #  IsotopePatterngenerator
-        CoarseIsotopeDistribution() nogil except +
+        # wrap-inherits:
+        #  IsotopeDistribution
+        # wrap-inherits:
+        #  IsotopePatternGenerator
+
+        CoarseIsotopeDistribution() nogil except + 
         CoarseIsotopeDistribution(Size max_isotope) nogil except +
-        CoarseIsotopeDistribution(IsotopeDistribution) nogil except +
+        CoarseIsotopeDistribution(IsotopeDistribution) nogil except + # wrap-ignore
 
         # Estimate peptide IsotopeDistribution from average weight and exact number of sulfurs
         void estimateFromPeptideWeightAndS(double average_weight, UInt S);
