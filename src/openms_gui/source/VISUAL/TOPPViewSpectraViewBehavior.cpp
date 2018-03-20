@@ -38,7 +38,7 @@
 #include <OpenMS/KERNEL/ChromatogramTools.h>
 #include <OpenMS/VISUAL/AxisWidget.h>
 
-#include <QtGui/QMessageBox>
+#include <QtWidgets/QMessageBox>
 #include <QtCore/QString>
 
 using namespace OpenMS;

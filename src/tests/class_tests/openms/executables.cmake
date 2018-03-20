@@ -540,6 +540,7 @@ set(transformations_executables_list
   FeatureFinderAlgorithmPickedHelperStructs_test
   FeatureFinderAlgorithmPicked_test
   FeatureFinderAlgorithm_test
+  FeatureFinderIdentificationAlgorithm_test
   FeatureFinderDefs_test
   FeatureFinder_test
   Fitter1D_test

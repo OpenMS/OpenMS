@@ -18,6 +18,7 @@
     <Peptide id="tr_gr1" sequence="PEPTIDEAR">
       <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
       <cvParam cvRef="MS" accession="MS:1000893" name="peptide group label" value="tr_gr1"/>
+      <cvParam cvRef="MS" accession="MS:1002476" name="ion mobility drift time" value="4.5" unitAccession="UO:0000028" unitName="millisecond" unitCvRef="UO" />
       <userParam name="full_peptide_name" type="xsd:string" value="PEPTIDEAR"/>
       <userParam name="LabelType" type="xsd:string" value="light"/>
       <ProteinRef ref="ProteinA"/>
@@ -48,6 +49,7 @@
     <Peptide id="78" sequence="QVFIGCPASVADQDAFERM">
       <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="3"/>
       <cvParam cvRef="MS" accession="MS:1000893" name="peptide group label" value="78"/>
+      <cvParam cvRef="MS" accession="MS:1002476" name="ion mobility drift time" value="9" unitAccession="UO:0000028" unitName="millisecond" unitCvRef="UO" />
       <userParam name="full_peptide_name" type="xsd:string" value="(UniMod:5)QVFIGC(UniMod:4)PASVADQDAFERM(UniMod:11)"/>
       <userParam name="LabelType" type="xsd:string" value="light"/>
       <ProteinRef ref="ProteinC"/>

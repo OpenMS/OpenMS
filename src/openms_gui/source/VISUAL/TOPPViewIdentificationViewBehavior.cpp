@@ -48,8 +48,8 @@
 #include <OpenMS/FILTERING/ID/IDFilter.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
 
+#include <QtWidgets/QMessageBox>
 #include <QtCore/QString>
-#include <QtGui/QMessageBox>
 
 using namespace OpenMS;
 using namespace std;

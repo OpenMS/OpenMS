@@ -40,7 +40,7 @@
 
 #include <OpenMS/CONCEPT/Types.h>
 
-#include <QtGui/QWidget>
+#include <QtWidgets>
 
 class QPushButton;
 class QGridLayout;

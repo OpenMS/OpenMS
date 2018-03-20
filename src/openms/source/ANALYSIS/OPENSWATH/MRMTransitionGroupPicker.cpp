@@ -78,6 +78,9 @@ namespace OpenMS
     defaults_.setValue("compute_peak_shape_metrics", "false", "Calulates various peak shape metrics (e.g., tailing) that can be used for downstream QC/QA.", ListUtils::create<String>("advanced"));
     defaults_.setValidStrings("compute_peak_shape_metrics", ListUtils::create<String>("true,false"));
 
+    defaults_.setValue("boundary_selection_method", "largest", "Method to use when selecting the best boundaries for peaks.", ListUtils::create<String>("advanced"));
+    defaults_.setValidStrings("boundary_selection_method", ListUtils::create<String>("largest,widest"));
+
     defaults_.insert("PeakPickerMRM:", PeakPickerMRM().getDefaults());
     defaults_.insert("PeakIntegrator:", PeakIntegrator().getDefaults());
 
@@ -114,6 +117,7 @@ namespace OpenMS
     min_qual_ = (double)param_.getValue("minimal_quality");
     min_peak_width_ = (double)param_.getValue("min_peak_width");
     resample_boundary_ = (double)param_.getValue("resample_boundary");
+    boundary_selection_method_ = param_.getValue("boundary_selection_method");
 
     picker_.setParameters(param_.copy("PeakPickerMRM:", true));
     pi_.setParameters(param_.copy("PeakIntegrator:", true));
@@ -132,6 +136,28 @@ namespace OpenMS
           largest = picked_chroms[k][i].getIntensity();
           chr_idx = (int)k;
           peak_idx = (int)i;
+        }
+      }
+    }
+  }
+
+  void MRMTransitionGroupPicker::findWidestPeakIndices(const std::vector<MSChromatogram>& picked_chroms, Int& chrom_idx, Int& point_idx) const
+  {
+    double max_width{0};
+    for (Size i = 0; i < picked_chroms.size(); ++i)
+    {
+      for (Size k = 0; k < picked_chroms[i].size(); ++k)
+      {
+        const double left_rt = picked_chroms[i].getFloatDataArrays()[1][k];
+        const double right_rt = picked_chroms[i].getFloatDataArrays()[2][k];
+        const double local_peak_width = right_rt - left_rt;
+        LOG_DEBUG << "findWidestPeakIndices(): local_peak_width=" << local_peak_width << std::endl;
+        if (local_peak_width > max_width)
+        {
+          max_width = local_peak_width;
+          chrom_idx = static_cast<Int>(i);
+          point_idx = static_cast<Int>(k);
+          LOG_DEBUG << "findWidestPeakIndices(): max_width=" << max_width << "; chrom_idx=" << chrom_idx << "; point_idx=" << point_idx << std::endl;
         }
       }
     }

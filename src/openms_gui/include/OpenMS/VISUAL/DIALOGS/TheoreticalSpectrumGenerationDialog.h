@@ -36,7 +36,15 @@
 #ifndef OPENMS_VISUAL_DIALOGS_THEORETICALSPECTRUMGENERATIONDIALOG_H
 #define OPENMS_VISUAL_DIALOGS_THEORETICALSPECTRUMGENERATIONDIALOG_H
 
-#include <OpenMS/VISUAL/DIALOGS/UIC/ui_TheoreticalSpectrumGenerationDialog.h>
+#include <QtWidgets/QDialog>
+class QListWidgetItem;
+class QListWidget;
+#include <OpenMS/DATASTRUCTURES/Param.h>
+
+namespace Ui
+{
+  class TheoreticalSpectrumGenerationDialogTemplate;
+}
 
 namespace OpenMS
 {
@@ -46,8 +54,7 @@ namespace OpenMS
       @ingroup Dialogs
   */
   class TheoreticalSpectrumGenerationDialog :
-    public QDialog,
-    public Ui::TheoreticalSpectrumGenerationDialogTemplate
+    public QDialog
   {
     Q_OBJECT
 
@@ -55,6 +62,12 @@ public:
 
     /// Constructor
     TheoreticalSpectrumGenerationDialog();
+    /// Destructor
+    ~TheoreticalSpectrumGenerationDialog();
+
+    String getSequence() const;
+
+    Param getParam() const;
 
 protected slots:
 
@@ -63,7 +76,7 @@ protected slots:
 protected:
 
 private:
-
+    Ui::TheoreticalSpectrumGenerationDialogTemplate* ui_;
   };
 
 }

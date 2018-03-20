@@ -99,10 +99,6 @@ endforeach(i)
 set(UTILS_executables_INI ${UTILS_TOOLS})
 list(REMOVE_ITEM UTILS_executables_INI OpenMSInfo)
 
-if(NOT HAS_XSERVER) # remove IDEvaluator if we don't have a running Xserver
-  list(REMOVE_ITEM UTILS_executables_INI IDEvaluator)
-endif()
-
 foreach (i ${UTILS_executables_INI})
   add_test("UTILSWRITEINI_${i}" "${TOPP_BIN_PATH}/${i}" -test -write_ini "${i}.ini.tmp")
   add_test("UTILSWRITEINI_${i}_SectionName" ${CMAKE_COMMAND} -test -DNAME=${i} -DFILE=${i}.ini.tmp -P "${DATA_DIR_TOPP}/check_ini.cmake")
@@ -117,9 +113,6 @@ endforeach(i)
 # UTILS
 set(UTILS_executables_CTD ${UTILS_TOOLS})
 list(REMOVE_ITEM UTILS_executables_CTD OpenMSInfo)
-if(NOT HAS_XSERVER) # remove IDEvaluator if we don't have a running Xserver
-	list(REMOVE_ITEM UTILS_executables_CTD IDEvaluator)
-endif()
 foreach (i ${UTILS_executables_CTD})
   add_test("UTILSWRITECTD_${i}" "${TOPP_BIN_PATH}/${i}" -test -write_ctd)
 endforeach()

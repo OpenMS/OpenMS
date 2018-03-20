@@ -139,6 +139,14 @@ add_custom_target(SIMULATION_TEST)
 add_dependencies(SIMULATION_TEST ${simulation_executables_list})
 
 #------------------------------------------------------------------------------
+# QT dependencies
+find_package(Qt5 COMPONENTS Core Network REQUIRED)
+if (NOT Qt5Network_FOUND)
+  message(STATUS "QtNetwork module not found!")
+  message(FATAL_ERROR "To find a custom Qt installation use: cmake <..more options..> -D QT_QMAKE_EXECUTABLE='<path_to_qmake(.exe)' <src-dir>")
+endif()
+
+#------------------------------------------------------------------------------
 # Add the actual tests
 foreach(_class_test ${TEST_executables})
   add_executable(${_class_test} source/${_class_test}.cpp)

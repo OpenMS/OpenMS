@@ -38,10 +38,10 @@
 #include <OpenMS/VISUAL/MetaDataBrowser.h>
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
 //QT
-#include <QtGui/QLineEdit>
-#include <QtGui/QValidator>
-#include <QtGui/QPushButton>
-#include <QtGui/QComboBox>
+#include <QtWidgets/QLineEdit>
+#include <QValidator>
+#include <QtWidgets/QPushButton>
+#include <QtWidgets/QComboBox>
 
 // STL
 #include <iostream>

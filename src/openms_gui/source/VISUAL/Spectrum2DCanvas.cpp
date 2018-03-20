@@ -51,15 +51,15 @@
 #include <algorithm>
 
 //QT
-#include <QtGui/QMouseEvent>
-#include <QtGui/QPainter>
-#include <QtGui/QMenu>
-#include <QtGui/QBitmap>
-#include <QtGui/QPolygon>
+#include <QMouseEvent>
+#include <QPainter>
+#include <QtWidgets/QMenu>
+#include <QBitmap>
+#include <QPolygon>
 #include <QtCore/QTime>
-#include <QtGui/QComboBox>
-#include <QtGui/QFileDialog>
-#include <QtGui/QMessageBox>
+#include <QtWidgets/QComboBox>
+#include <QtWidgets/QFileDialog>
+#include <QtWidgets/QMessageBox>
 
 //boost
 #include <boost/math/special_functions/fpclassify.hpp>

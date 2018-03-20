@@ -180,7 +180,7 @@ START_SECTION(PeakBackground estimateBackground(
   pa = ptr->integratePeak(chromatogram, left, right);
   pb = ptr->estimateBackground(chromatogram, left, right, pa.apex_pos);
   TEST_REAL_SIMILAR(pb.area, 50217)
-  TEST_REAL_SIMILAR(pb.height, 1908.59690598823)
+  TEST_REAL_SIMILAR(pb.height, 881)
 
   params.setValue("baseline_type", BASELINE_TYPE_BASETOBASE);
   params.setValue("integration_type", INTEGRATION_TYPE_TRAPEZOID);
@@ -196,7 +196,7 @@ START_SECTION(PeakBackground estimateBackground(
   pa = ptr->integratePeak(chromatogram, left, right);
   pb = ptr->estimateBackground(chromatogram, left, right, pa.apex_pos);
   TEST_REAL_SIMILAR(pb.area, 476.606316373)
-  TEST_REAL_SIMILAR(pb.height, 1908.59690598823)
+  TEST_REAL_SIMILAR(pb.height, 881)
 }
 END_SECTION
 
@@ -223,7 +223,7 @@ START_SECTION(PeakBackground estimateBackground(
   pa = ptr->integratePeak(chromatogram, chrom_left_it, chrom_right_it);
   pb = ptr->estimateBackground(chromatogram, chrom_left_it, chrom_right_it, pa.apex_pos);
   TEST_REAL_SIMILAR(pb.area, 50217)
-  TEST_REAL_SIMILAR(pb.height, 1908.59690598823)
+  TEST_REAL_SIMILAR(pb.height, 881)
 
   params.setValue("baseline_type", BASELINE_TYPE_BASETOBASE);
   params.setValue("integration_type", INTEGRATION_TYPE_TRAPEZOID);
@@ -239,7 +239,7 @@ START_SECTION(PeakBackground estimateBackground(
   pa = ptr->integratePeak(chromatogram, chrom_left_it, chrom_right_it);
   pb = ptr->estimateBackground(chromatogram, chrom_left_it, chrom_right_it, pa.apex_pos);
   TEST_REAL_SIMILAR(pb.area, 476.606316373)
-  TEST_REAL_SIMILAR(pb.height, 1908.59690598823)
+  TEST_REAL_SIMILAR(pb.height, 881)
 }
 END_SECTION
 
@@ -266,7 +266,7 @@ START_SECTION(PeakBackground estimateBackground(
   pa = ptr->integratePeak(spectrum, left, right);
   pb = ptr->estimateBackground(spectrum, left, right, pa.apex_pos);
   TEST_REAL_SIMILAR(pb.area, 50217)
-  TEST_REAL_SIMILAR(pb.height, 1908.59690598823)
+  TEST_REAL_SIMILAR(pb.height, 881)
 
   params.setValue("baseline_type", BASELINE_TYPE_BASETOBASE);
   params.setValue("integration_type", INTEGRATION_TYPE_TRAPEZOID);
@@ -282,7 +282,7 @@ START_SECTION(PeakBackground estimateBackground(
   pa = ptr->integratePeak(spectrum, left, right);
   pb = ptr->estimateBackground(spectrum, left, right, pa.apex_pos);
   TEST_REAL_SIMILAR(pb.area, 476.606316373)
-  TEST_REAL_SIMILAR(pb.height, 1908.59690598823)
+  TEST_REAL_SIMILAR(pb.height, 881)
 }
 END_SECTION
 
@@ -309,7 +309,7 @@ START_SECTION(PeakBackground estimateBackground(
   pa = ptr->integratePeak(spectrum, spec_left_it, spec_right_it);
   pb = ptr->estimateBackground(spectrum, spec_left_it, spec_right_it, pa.apex_pos);
   TEST_REAL_SIMILAR(pb.area, 50217)
-  TEST_REAL_SIMILAR(pb.height, 1908.59690598823)
+  TEST_REAL_SIMILAR(pb.height, 881)
 
   params.setValue("baseline_type", BASELINE_TYPE_BASETOBASE);
   params.setValue("integration_type", INTEGRATION_TYPE_TRAPEZOID);
@@ -325,7 +325,7 @@ START_SECTION(PeakBackground estimateBackground(
   pa = ptr->integratePeak(spectrum, spec_left_it, spec_right_it);
   pb = ptr->estimateBackground(spectrum, spec_left_it, spec_right_it, pa.apex_pos);
   TEST_REAL_SIMILAR(pb.area, 476.606316373)
-  TEST_REAL_SIMILAR(pb.height, 1908.59690598823)
+  TEST_REAL_SIMILAR(pb.height, 881)
 }
 END_SECTION
 

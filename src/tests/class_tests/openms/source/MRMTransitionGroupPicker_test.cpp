@@ -379,6 +379,57 @@ START_SECTION(( void findLargestPeak(std::vector<RichPeakChromatogram> & picked_
 }
 END_SECTION
 
+START_SECTION(void findWidestPeakIndices(const std::vector<MSChromatogram>& picked_chroms, Int& chrom_idx, Int& point_idx) const)
+{
+  std::vector<MSChromatogram> chromatograms;
+  MSChromatogram c;
+  c.push_back(ChromatogramPeak(110.0, 2000.0));
+  c.push_back(ChromatogramPeak(150.0, 6000.0));
+  c.push_back(ChromatogramPeak(190.0, 2000.0));
+  c.getFloatDataArrays().resize(3);
+  c.getFloatDataArrays()[1].push_back(100.0);
+  c.getFloatDataArrays()[2].push_back(120.0);
+  c.getFloatDataArrays()[1].push_back(120.0);
+  c.getFloatDataArrays()[2].push_back(180.0);
+  c.getFloatDataArrays()[1].push_back(180.0);
+  c.getFloatDataArrays()[2].push_back(200.0);
+  chromatograms.push_back(c); // chromatogram containing a peak of highest intensity (should be skipped in favor of widest peak)
+
+  c.clear(true);
+  c.push_back(ChromatogramPeak(150.0, 5500.0)); // lower global intensity, if compared to the previous chromatogram
+  c.push_back(ChromatogramPeak(190.0, 2000.0));
+  c.getFloatDataArrays().resize(3);
+  c.getFloatDataArrays()[1].push_back(100.0);
+  c.getFloatDataArrays()[2].push_back(180.0);
+  c.getFloatDataArrays()[1].push_back(180.0);
+  c.getFloatDataArrays()[2].push_back(200.0);
+  chromatograms.push_back(c); // chromatogram containing the widest peak (this should be chosen)
+
+  c.clear(true);
+  c.push_back(ChromatogramPeak(110.0, 2000.0));
+  c.push_back(ChromatogramPeak(150.0, 7000.0));
+  c.push_back(ChromatogramPeak(190.0, 2000.0));
+  c.getFloatDataArrays().resize(3);
+  c.getFloatDataArrays()[1].push_back(105.0);
+  c.getFloatDataArrays()[2].push_back(115.0);
+  c.getFloatDataArrays()[1].push_back(125.0);
+  c.getFloatDataArrays()[2].push_back(175.0);
+  c.getFloatDataArrays()[1].push_back(185.0);
+  c.getFloatDataArrays()[2].push_back(195.0);
+  chromatograms.push_back(c); // just another chromatogram (it won't be chosen, it contains short peaks)
+
+  MRMTransitionGroupPicker picker;
+  Int chr_idx{-1}, peak_idx{-1};
+  picker.findWidestPeakIndices(chromatograms, chr_idx, peak_idx);
+  TEST_EQUAL(chr_idx, 1);
+  TEST_EQUAL(peak_idx, 0); // the point [0] (first) is the apex of the widest peak within the chosen chromatogram
+  TEST_REAL_SIMILAR(chromatograms[chr_idx][peak_idx].getRT(), 150.0)
+  TEST_REAL_SIMILAR(chromatograms[chr_idx][peak_idx].getIntensity(), 5500.0)
+  TEST_REAL_SIMILAR(chromatograms[chr_idx].getFloatDataArrays()[1][peak_idx], 100.0)
+  TEST_REAL_SIMILAR(chromatograms[chr_idx].getFloatDataArrays()[2][peak_idx], 180.0)
+}
+END_SECTION
+
 START_SECTION((template < typename SpectrumT > void remove_overlapping_features(std::vector< SpectrumT > &picked_chroms, double best_left, double best_right)))
 {
   MRMTransitionGroupType transition_group;

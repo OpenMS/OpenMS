@@ -3,6 +3,25 @@ set(directory source/VISUAL/DIALOGS)
 
 ### list all filenames of the directory here
 set(sources_list
+DataFilterDialog.ui
+FeatureEditDialog.ui
+LayerStatisticsDialog.ui
+Spectrum1DGoToDialog.ui
+Spectrum1DPrefDialog.ui
+Spectrum2DGoToDialog.ui
+Spectrum2DPrefDialog.ui
+Spectrum3DPrefDialog.ui
+TOPPViewOpenDialog.ui
+TOPPViewPrefDialog.ui
+SpectrumAlignmentDialog.ui
+TheoreticalSpectrumGenerationDialog.ui
+TOPPASInputFileDialog.ui
+TOPPASInputFilesDialog.ui
+TOPPASOutputFilesDialog.ui
+TOPPASIOMappingDialog.ui
+TOPPASVertexNameDialog.ui
+
+
 DataFilterDialog.cpp
 FeatureEditDialog.cpp
 HistogramDialog.cpp
