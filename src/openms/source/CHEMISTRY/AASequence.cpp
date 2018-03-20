@@ -660,14 +660,14 @@ namespace OpenMS
     {
       return true;
     }
-    if (sub.size() > peptide_.size())
+    Size full_size = peptide_.size();
+    Size sub_size = sub.peptide_.size();
+    if (sub_size > full_size)
     {
       return false;
     }
 
-    Size s_size = peptide_.size();
-    Size sub_size = sub.peptide_.size();
-    for (Size i = 0; i < s_size - sub_size + 1; ++i)
+    for (Size i = 0; i < full_size - sub_size + 1; ++i)
     {
       if (peptide_[i] == sub.peptide_[0])
       {
@@ -679,7 +679,8 @@ namespace OpenMS
             break;
           }
         }
-        if ((j == sub_size - 1) && (peptide_[j + i] == sub.peptide_.back()))
+        // check if we reached last position
+        if (j == sub_size)
         {
           return true;
         }

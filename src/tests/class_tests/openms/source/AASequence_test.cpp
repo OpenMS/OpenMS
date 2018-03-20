@@ -383,7 +383,7 @@ END_SECTION
 START_SECTION(bool hasSubsequence(const AASequence& peptide) const)
   AASequence seq1 = AASequence::fromString("DFPIANGER");
   AASequence seq2 = AASequence::fromString("IANG");
-  AASequence seq3 = AASequence::fromString("AIN");
+  AASequence seq3 = AASequence::fromString("DFPP");
   TEST_EQUAL(seq1.hasSubsequence(seq2), true)
   TEST_EQUAL(seq1.hasSubsequence(seq3), false)
 END_SECTION
