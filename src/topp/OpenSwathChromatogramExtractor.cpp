@@ -290,7 +290,7 @@ protected:
           }
         }
         extractor.extractChromatograms(expptr, chromatogram_ptrs, coordinates, 
-            mz_extraction_window, ppm, extraction_function);
+            mz_extraction_window, ppm, im_window, extraction_function);
 
 #ifdef _OPENMP
 #pragma omp critical (OpenSwathChromatogramExtractor_insertMS1)

@@ -75,12 +75,18 @@ public:
     /**
      * @brief Extract chromatograms defined by the TargetedExperiment from the input map and write them to the output map.
      *
+     * @param input The input spectra from which to extract chromatograms
+     * @param output The output vector in which to store the chromatograms
+     * @param transition_exp The extraction coordinates (m/z, RT, ion mobility)
      * @param mz_extraction_window Extracts a window of this size in m/z
      * dimension (e.g. a window of 50 ppm means an extraction of 25 ppm on
      * either side)
+     * @param ppm Whether mz windows in in ppm
+     * @param trafo A transformation description for RT space
      * @param rt_extraction_window Extracts a window of this size in RT
      * dimension (e.g. a window of 600 seconds means an extraction of 300
      * seconds on either side)
+     * @param filter Which filter to use (bartlett or tophat)
      *
      * @note: it will replace chromatograms in the output map, not append to them!
      * @note: TODO deprecate this function (use ChromatogramExtractorAlgorithm instead)
@@ -165,6 +171,17 @@ public:
     /**
      * @brief Extract chromatograms at the m/z and RT defined by the ExtractionCoordinates.
      *
+     * @param input The input spectra from which to extract chromatograms
+     * @param output The output vector in which to store the chromatograms
+     * (needs to be of the same length as the extraction coordinates, use
+     * prepare_coordinates)
+     * @param extraction_coordinates The extraction coordinates (m/z, RT, ion mobility)
+     * @param mz_extraction_window Extracts a window of this size in m/z
+     * dimension (e.g. a window of 50 ppm means an extraction of 25 ppm on
+     * either side)
+     * @param ppm Whether mz windows in in ppm
+     * @param filter Which filter to use (bartlett or tophat)
+     *
      * @note: whenever possible, please use this ChromatogramExtractorAlgorithm implementation
      *
     */
@@ -175,6 +192,33 @@ public:
     {
       ChromatogramExtractorAlgorithm().extractChromatograms(input, output, 
           extraction_coordinates, mz_extraction_window, ppm, -1, filter);
+    }
+
+    /**
+     * @brief Extract chromatograms at the m/z and RT defined by the ExtractionCoordinates.
+     *
+     * @param input The input spectra from which to extract chromatograms
+     * @param output The output vector in which to store the chromatograms
+     * (needs to be of the same length as the extraction coordinates, use
+     * prepare_coordinates)
+     * @param extraction_coordinates The extraction coordinates (m/z, RT, ion mobility)
+     * @param mz_extraction_window Extracts a window of this size in m/z
+     * dimension (e.g. a window of 50 ppm means an extraction of 25 ppm on
+     * either side)
+     * @param ppm Whether mz windows in in ppm
+     * @param im_extraction_window Extracts a window of this size in ion mobility
+     * @param filter Which filter to use (bartlett or tophat)
+     *
+     * @note: whenever possible, please use this ChromatogramExtractorAlgorithm implementation
+     *
+    */
+    void extractChromatograms(const OpenSwath::SpectrumAccessPtr input, 
+        std::vector< OpenSwath::ChromatogramPtr >& output, 
+        const std::vector<ExtractionCoordinates>& extraction_coordinates,
+        double mz_extraction_window, bool ppm, double im_extraction_window, String filter)
+    {
+      ChromatogramExtractorAlgorithm().extractChromatograms(input, output, 
+          extraction_coordinates, mz_extraction_window, ppm, im_extraction_window, filter);
     }
 
 public:
