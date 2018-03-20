@@ -322,8 +322,8 @@ namespace OpenMS
         ef += c_term_mod_->getDiffFormula();
       }
 
-      const auto rx = ResidueDB::getInstance()->getResidue("X");
-      for (const auto& e : peptide_)
+      auto const rx = ResidueDB::getInstance()->getResidue("X");
+      for (auto const& e : peptide_)
       {
         // While PEPTIX[123]DE makes sense and represents an unknown mass of 123.0
         // Da, the sequence PEPTIXDE does not make sense as it is unclear what a
@@ -382,8 +382,8 @@ namespace OpenMS
   {
     // check whether tags are present
     double tag_offset(0);
-    const auto rx = ResidueDB::getInstance()->getResidue("X");
-    for (const auto& e : peptide_)
+    auto const rx = ResidueDB::getInstance()->getResidue("X");
+    for (auto const& e : peptide_)
     {
       // While PEPTIX[123]DE makes sense and represents an unknown mass of 123.0
       // Da, the sequence PEPTIXDE does not make sense as it is unclear what a
@@ -420,8 +420,8 @@ namespace OpenMS
       {
         mono_weight += c_term_mod_->getDiffMonoMass();
       }
-      const auto rx = ResidueDB::getInstance()->getResidue("X");
-      for (const auto& e : peptide_)
+      auto const rx = ResidueDB::getInstance()->getResidue("X");
+      for (auto const& e : peptide_)
       {
         // While PEPTIX[123]DE makes sense and represents an unknown mass of 123.0
         // Da, the sequence PEPTIXDE does not make sense as it is unclear what a
