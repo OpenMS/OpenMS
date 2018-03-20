@@ -94,6 +94,7 @@ namespace OpenMS
     /// Alternative constructor (derived classes should implement this one!)
     /// Both data and params must be provided, since some derived classes require both to create a model!
     TransformationModel(const TransformationModel::DataPoints&, const Param&);
+    TransformationModel(const std::vector<std::pair<double,double>>& data, const Param&);
 
     /// Destructor
     virtual ~TransformationModel();
@@ -122,7 +123,7 @@ namespace OpenMS
     virtual void unWeightData(DataPoints& data);
     
     /**
-    @brief Check for a valid wighting function string
+    @brief Check for a valid weighting function string
     */
     bool checkValidWeight(const String& weight, const std::vector<String>& valid_weights) const;
 

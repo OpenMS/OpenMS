@@ -31,47 +31,10 @@
 // $Maintainer: Julianus Pfeuffer $
 // $Authors: Julianus Pfeuffer $
 // --------------------------------------------------------------------------
-#ifndef OPENMS_ANALYSIS_ID_BAYESIANPROTEININFERENCE_H
-#define OPENMS_ANALYSIS_ID_BAYESIANPROTEININFERENCE_H
+//
 
-
-#include <OpenMS/ANALYSIS/ID/MessagePasserFactory.h>
-#include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
-#include <OpenMS/CONCEPT/ProgressLogger.h>
-#include <OpenMS/METADATA/PeptideIdentification.h>
-#include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/MATH/MISC/GridSearch.h>
-#include <vector>
 
 namespace OpenMS
 {
-  class OPENMS_DLLAPI BayesianProteinInferenceAlgorithm :
-      public DefaultParamHandler,
-      public ProgressLogger
-  {
-  public:
-    /// Constructor
-    BayesianProteinInferenceAlgorithm();
-
-    /// Destructor
-    ~BayesianProteinInferenceAlgorithm() override = default;
-
-    /// A function object to pass into the IDBoostGraph class to perform algorithms on
-    /// connected components
-    class FilteredGraphInferenceFunctor;
-
-    /// Deprecated: A function object to pass into the IDBoostGraph class to perform algorithms on
-    /// connected components and on the fly finding groups (no preannotation needed)
-    class FilteredGraphInferenceFunctorNoGroups;
-
-    /// A function object to pass into the GridSearch;
-    struct GridSearchEvaluator;
-
-    /// Perform inference. Writes its results into proteins (as new score) and peptides.
-    void inferPosteriorProbabilities(std::vector<ProteinIdentification>& proteinIDs, std::vector<PeptideIdentification>& peptideIDs);
-
-  private:
-    GridSearch<double,double,double> grid{{0.008,0.032,0.128},{0.001},{0.5}};
-  };
 }
-#endif // OPENMS_ANALYSIS_ID_BAYESIANPROTEININFERENCE_H

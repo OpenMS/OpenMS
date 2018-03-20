@@ -71,9 +71,9 @@ namespace OpenMS
   public:
 
     //typedefs
-    // We can't make the pointers point to a const object because we want to set the scores in the end.
-    typedef boost::variant<PeptideHit*, ProteinHit*> IDPointer;
-    typedef boost::variant<const PeptideHit*, const ProteinHit*> IDPointerConst;
+    typedef ProteinIdentification::ProteinGroup ProteinGroup;
+    typedef boost::variant<PeptideHit*, ProteinHit*, ProteinGroup*> IDPointer;
+    typedef boost::variant<const PeptideHit*, const ProteinHit*, const ProteinGroup*> IDPointerConst;
     //TODO check the impact of different datastructures to store nodes/edges
     typedef boost::adjacency_list <boost::setS, boost::vecS, boost::undirectedS, IDPointer> Graph;
     typedef boost::adjacency_list <boost::setS, boost::vecS, boost::undirectedS, IDPointerConst> GraphConst;
@@ -83,13 +83,11 @@ namespace OpenMS
 
 
     /// Constructor
-    IDBoostGraph() = default;
+    IDBoostGraph(ProteinIdentification &proteins, std::vector<PeptideIdentification>& idedSpectra);
 
     /// Do sth on connected components
-    void applyFunctorOnCCs(ProteinIdentification &protein,
-                           std::vector<PeptideIdentification> &peptides,
-                           bool use_all_psms,
-                           std::function<void(FilteredGraph &)> functor);
+    void applyFunctorOnCCs(std::function<void(FilteredGraph &)> functor);
+    void annotateIndistinguishableGroups();
 
 
     /// Visits nodes in the boost graph (ptrs to an ID Object) and depending on their type creates a label
@@ -106,6 +104,11 @@ namespace OpenMS
       OpenMS::String operator()(const ProteinHit* prot) const
       {
         return prot->getAccession();
+      }
+
+      OpenMS::String operator()(const ProteinGroup* protgrp) const
+      {
+        return String("G(") + protgrp->accessions[0] + String(")");
       }
 
     };
@@ -126,6 +129,11 @@ namespace OpenMS
         std::cout << prot->getAccession() << ": " << prot << std::endl;
       }
 
+      void operator()(const ProteinGroup* protgrp) const
+      {
+        std::cout << "G(" << protgrp->accessions[0] << ")";
+      }
+
     };
 
     /// Visits nodes in the boost graph (ptrs to an ID Object) and depending on their type sets the posterior
@@ -144,6 +152,11 @@ namespace OpenMS
       {
         prot->setScore(posterior);
         //TODO set Score name and score ordering
+      }
+
+      void operator()(ProteinGroup* protgrp, double posterior) const
+      {
+        protgrp->probability = posterior;
       }
 
     };
@@ -167,22 +180,24 @@ namespace OpenMS
 
     };*/
 
-  private:
-    Graph g;
-    //GraphConst gconst;
-    std::vector<unsigned int> componentProperty;
-    unsigned int numCCs = 0;
-
     /// Compute connected component on the static graph. Needs to be recomputed if graph is changed.
-    void computeConnectedComponents_();
+    void computeConnectedComponents();
 
     /// Initialize and store the graph
     /// IMPORTANT: Once the graph is built, editing members like (protein/peptide)_hits_ will invalidate it!
     /// @param protein ProteinIdentification object storing IDs and groups
-    /// @param peptides vector of ProteinIdentifications with links to the proteins and PSMs in its PeptideHits
+    /// @param idedSpectra vector of ProteinIdentifications with links to the proteins and PSMs in its PeptideHits
     /// @param use_all_psms If all or just the FIRST psm should be used
-    void buildGraph_(ProteinIdentification& protein, std::vector<PeptideIdentification>& peptides, bool use_all_psms);
-    //void buildGraph_(const ProteinIdentification& protein, const std::vector<PeptideIdentification>& peptides);
+    void buildGraph(bool use_all_psms);
+    //void buildGraph(const ProteinIdentification& protein, const std::vector<PeptideIdentification>& peptides);
+
+  private:
+    Graph g;
+    //GraphConst gconst;
+    ProteinIdentification& proteins_;
+    std::vector<PeptideIdentification>& idedSpectra_;
+    std::vector<unsigned int> componentProperty_;
+    unsigned int numCCs_ = 0;
 
     vertex_t addVertexWithLookup_(IDPointer& ptr, std::unordered_map<IDPointer, vertex_t, boost::hash<IDPointer>>& vertex_map);
     //vertex_t addVertexWithLookup_(IDPointerConst& ptr, std::unordered_map<IDPointerConst, vertex_t, boost::hash<IDPointerConst>>& vertex_map);

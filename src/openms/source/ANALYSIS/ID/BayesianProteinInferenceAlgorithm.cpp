@@ -32,7 +32,7 @@
 // $Authors: Julianus Pfeuffer $
 // --------------------------------------------------------------------------
 #include <OpenMS/ANALYSIS/ID/BayesianProteinInferenceAlgorithm.h>
-
+#include <OpenMS/ANALYSIS/ID/FalseDiscoveryRate.h>
 #include <OpenMS/ANALYSIS/ID/IDBoostGraph.h>
 #include <set>
 
@@ -40,14 +40,16 @@ using namespace std;
 
 namespace OpenMS
 {
-  class BayesianProteinInferenceAlgorithm::FilteredGraphInferenceFunctor :
+
+  /// A functor that specifies what to do on a connected component (IDBoostGraph::FilteredGraph)
+  class BayesianProteinInferenceAlgorithm::FilteredGraphInferenceFunctorNoGroups :
   public std::function<void(IDBoostGraph::FilteredGraph&)>
   {
   public:
     const Param& param_;
     vector<ProteinIdentification::ProteinGroup>& indistGroups_;
 
-    explicit FilteredGraphInferenceFunctor(const Param& param, vector<ProteinIdentification::ProteinGroup>& indistGroups):
+    explicit FilteredGraphInferenceFunctorNoGroups(const Param& param, vector<ProteinIdentification::ProteinGroup>& indistGroups):
         param_(param),
         indistGroups_(indistGroups)
     {}
@@ -57,9 +59,10 @@ namespace OpenMS
       // Skip cc without peptide or protein
       //TODO this currently does not work because we do not filter edges I think
       //TODO introduce edge types or skip nodes without neighbors inside the if instead
+      //TODO do quick bruteforce calculation if the cc is really small
       if (boost::num_edges(fg) >= 1)
       {
-        //TODO allow estimatation via gold/grid search
+        //TODO allow estimation via gold/grid search
         MessagePasserFactory<unsigned long> mpf (param_.getValue("model_parameters:prot_prior"),
                                                  param_.getValue("model_parameters:pep_emission"),
                                                  param_.getValue("model_parameters:pep_spurious_emission"),
@@ -83,7 +86,7 @@ namespace OpenMS
           //Or use the static_visitor pattern: You have to pass the vertex with its neighbors as a second arg though.
           if (curr_idObj.which() == 0) //it's a peptide
           {
-            //TODO assert that there is at least one protein mapping to this peptide! Require IDFilter removeUnmatched before.
+            //TODO assert that there is at least one protein mapping to this peptide! Eg. Require IDFilter removeUnmatched before.
             //Or just check rigorously here.
             set<IDBoostGraph::vertex_t> parents;
             IDBoostGraph::FilteredGraph::adjacency_iterator adjIt, adjIt_end;
@@ -207,16 +210,158 @@ namespace OpenMS
     }
   };
 
+  /// A functor that specifies what to do on a connected component (IDBoostGraph::FilteredGraph)
+  class BayesianProteinInferenceAlgorithm::FilteredGraphInferenceFunctor :
+      public std::function<void(IDBoostGraph::FilteredGraph&)>
+  {
+  public:
+    const Param& param_;
+
+    explicit FilteredGraphInferenceFunctor(const Param& param):
+        param_(param)
+    {}
+
+    void operator() (IDBoostGraph::FilteredGraph& fg) {
+      //------------------ Now actual inference ------------------- //
+      // Skip cc without peptide or protein
+      //TODO this currently does not work because we do not filter edges I think
+      //TODO introduce edge types or skip nodes without neighbors inside the if instead
+      //TODO do quick bruteforce calculation if the cc is really small
+      if (boost::num_vertices(fg) >= 3)
+      {
+        MessagePasserFactory<unsigned long> mpf (param_.getValue("model_parameters:prot_prior"),
+                                                 param_.getValue("model_parameters:pep_emission"),
+                                                 param_.getValue("model_parameters:pep_spurious_emission"),
+                                                 1.0); // the p used for marginalization: 1 = sum product, inf = max product
+        BetheInferenceGraphBuilder<unsigned long> bigb;
+
+        boost::filtered_graph<IDBoostGraph::Graph, boost::function<bool(IDBoostGraph::edge_t)>, boost::function<bool(IDBoostGraph::vertex_t)> >::vertex_iterator ui, ui_end;
+        boost::tie(ui,ui_end) = boost::vertices(fg);
+
+        // Store the IDs of the nodes for which you want the posteriors in the end (usually at least proteins)
+        // Maybe later peptides (e.g. for an iterative procedure)
+        vector<vector<unsigned long>> posteriorVars;
+
+        //int count = 1; // count for the (hidden) sumfactors
+        for (; ui != ui_end; ++ui)
+        {
+          IDBoostGraph::IDPointer curr_idObj = fg[*ui];
+          //TODO introduce an enum for the types to make it more clear.
+          //Or use the static_visitor pattern: You have to pass the vertex with its neighbors as a second arg though.
+          //TODO we could actually filter for current connected component AND protein group type and then work our way
+          //to the PSMs from there in the original graph.
+          if (curr_idObj.which() == 2) //it's a protein group
+          {
+            vector<IDBoostGraph::vertex_t> indistProts;
+            vector<IDBoostGraph::vertex_t> sharedPeps;
+
+            // direct neighbors of indist. groups are proteins
+            IDBoostGraph::FilteredGraph::adjacency_iterator protVIt, protVIt_end;
+            boost::tie(protVIt, protVIt_end) = boost::adjacent_vertices(*ui, fg);
+
+            // neighbors of the first protein in the group are the shared peptides or the group again.
+            IDBoostGraph::FilteredGraph::adjacency_iterator pepVIt, pepVIt_end;
+            boost::tie(pepVIt, pepVIt_end) = boost::adjacent_vertices(*protVIt, fg);
+
+            for (; protVIt != protVIt_end; ++protVIt)
+            {
+              //TODO allow an already present prior probability here
+              bigb.insert_dependency(mpf.createProteinFactor(*protVIt));
+              posteriorVars.push_back({*protVIt});
+              indistProts.push_back(*protVIt);
+            }
+
+            bigb.insert_dependency(mpf.createPeptideProbabilisticAdderFactor(indistProts, *ui));
+
+            for (int j = 0; pepVIt != pepVIt_end; ++pepVIt, ++j)
+            {
+              //TODO if we use a directed graph, this can be avoided. Might actually be the better choice.
+              if (fg[*pepVIt].which() == 0)
+              {
+                sharedPeps.emplace_back(*pepVIt);
+                bigb.insert_dependency(mpf.createSumEvidenceFactor(indistProts.size(), *ui, *pepVIt));
+              }
+            }
+
+          }
+        }
+
+        // create factor graph for Bayesian network
+        InferenceGraph<unsigned long> ig = bigb.to_graph();
+
+        //TODO parametrize the type of scheduler.
+        PriorityScheduler<unsigned long> scheduler(param_.getValue("loopy_belief_propagation:dampening_lambda"),
+                                                   param_.getValue("loopy_belief_propagation:convergence_threshold"),
+                                                   param_.getValue("loopy_belief_propagation:max_nr_iterations"));
+        scheduler.add_ab_initio_edges(ig);
+
+        BeliefPropagationInferenceEngine<unsigned long> bpie(scheduler, ig);
+        auto posteriorFactors = bpie.estimate_posteriors(posteriorVars);
+
+        for (auto const& posteriorFactor : posteriorFactors)
+        {
+          double posterior = 0.0;
+          IDBoostGraph::SetPosteriorVisitor pv;
+          unsigned long nodeId = posteriorFactor.ordered_variables()[0];
+          const PMF& pmf = posteriorFactor.pmf();
+          // If Index 1 is in the range of this result PMFFactor it is non-zero
+          if (1 >= pmf.first_support()[0] && 1 <= pmf.last_support()[0]) {
+            posterior = pmf.table()[1 - pmf.first_support()[0]];
+          }
+          auto bound_visitor = std::bind(pv, std::placeholders::_1, posterior);
+          boost::apply_visitor(bound_visitor, fg[nodeId]);
+        }
+      }
+      else
+      {
+        std::cout << "Skipped cc with only one type (proteins or peptides)" << std::endl;
+      }
+    }
+  };
+
+  struct BayesianProteinInferenceAlgorithm::GridSearchEvaluator
+  {
+    Param& param_;
+    IDBoostGraph& ibg_;
+    const ProteinIdentification& prots_;
+
+    explicit GridSearchEvaluator(Param& param, IDBoostGraph& ibg, const ProteinIdentification& prots):
+        param_(param),
+        ibg_(ibg),
+        prots_(prots)
+    {}
+
+    double operator() (double alpha, double beta, double gamma)
+    {
+      param_.setValue("model_parameters:prot_prior", gamma);
+      param_.setValue("model_parameters:pep_emission", alpha);
+      param_.setValue("model_parameters:pep_spurious_emission", beta);
+      ibg_.applyFunctorOnCCs(FilteredGraphInferenceFunctor(const_cast<const Param&>(param_)));
+      FalseDiscoveryRate fdr;
+      return fdr.applyEvaluateProteinIDs(prots_);
+    }
+  };
+
+
   BayesianProteinInferenceAlgorithm::BayesianProteinInferenceAlgorithm() :
       DefaultParamHandler("BayesianProteinInference"),
       ProgressLogger()
   {
     // set default parameter values
 
+    /* More parameter TODOs:
+     * - grid search settings: e.g. fine, coarse, prob. threshold, lower convergence crit.
+     * - use own groups (and regularize)
+     * - use own priors
+     * - multiple runs
+     * - use add. pep. infos (rt, ms1dev)
+     * - ...
+     */
+
 /* TODO not yet implemented
- * defaults_.setValue("keep_zero_group",
+ * defaults_.setValue("keep_threshold",
                        "false",
-                       "Keep the group of proteins with estimated probability of zero, which is otherwise removed (it may be very large)");
+                       "Keep only proteins and protein groups with estimated probability higher than this threshold");
     defaults_.setValue("greedy_group_resolution",
                        "false",
                        "Post-process inference output with greedy resolution of shared peptides based on the parent protein probabilities. Also adds the resolved ambiguity groups to output.");
@@ -281,7 +426,10 @@ namespace OpenMS
   void BayesianProteinInferenceAlgorithm::inferPosteriorProbabilities(std::vector<ProteinIdentification>& proteinIDs, std::vector<PeptideIdentification>& peptideIDs)
   {
     // init empty graph
-    IDBoostGraph ibg;
+    IDBoostGraph ibg(proteinIDs[0], peptideIDs);
+    ibg.buildGraph(param_.getValue("all_PSMs").toBool());
+    ibg.computeConnectedComponents();
+    ibg.annotateIndistinguishableGroups();
 
     //TODO if we only perform group inference I think we should use another functor.
     // It is too different from the normal type of inference, since we kind of create a new "protein-like" entity
@@ -295,10 +443,11 @@ namespace OpenMS
     //I split up in CCs.
     // OR I could save the outputs! One value for every protein, per parameter set.
 
-    // what to do, with which params and where to write additional output (here groups).
-    FilteredGraphInferenceFunctor f{param_, proteinIDs[0].getIndistinguishableProteins()};
-    // build, find ccs and apply functor
-    ibg.applyFunctorOnCCs(proteinIDs[0], peptideIDs, param_.getValue("all_PSMs").toBool(), f);
+    // what to do, with which params and where to write additional output (here groups) not accessible via the graphs.
+    FilteredGraphInferenceFunctor f{param_};
+    // apply functor
+    ibg.applyFunctorOnCCs(f);
     //TODO write graphfile?
+    //TODO let user modify Grid for GridSearch and/or provide some more default settings
   }
 }

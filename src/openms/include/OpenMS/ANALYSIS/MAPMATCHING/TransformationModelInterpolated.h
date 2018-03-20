@@ -81,6 +81,7 @@ public:
       @exception IllegalArgument is thrown if there are not enough data points or if an unknown interpolation type is given.
     */
     TransformationModelInterpolated(const DataPoints& data, const Param& params);
+    TransformationModelInterpolated(const std::vector<std::pair<double,double>>& data, const Param& params, bool preprocess);
 
     /// Destructor
     ~TransformationModelInterpolated() override;
@@ -149,6 +150,9 @@ private:
 
     /// Preprocesses the incoming data and fills the (private) vectors x_ and y_
     void preprocessDataPoints_(const DataPoints& data);
+
+    /// Preprocesses the incoming data and fills the (private) vectors x_ and y_
+    void preprocessDataPoints_(const std::vector<std::pair<double,double>>& data);
   };
 
 } // namespace

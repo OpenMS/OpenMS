@@ -78,37 +78,167 @@ public:
     void apply(std::vector<PeptideIdentification> & fwd_ids, std::vector<PeptideIdentification> & rev_ids);
 
     /**
-        @brief Calculates the FDR of one run from a concatenated sequence db search
+    @brief Calculates the FDR of one run from a concatenated sequence db search
 
-@param id peptide identifications, containing target and decoy hits
+    @param id peptide identifications, containing target and decoy hits
     */
     void apply(std::vector<PeptideIdentification> & id);
 
     /**
-        @brief Calculates the FDR of two runs, a forward run and decoy run on protein level
+    @brief Calculates the FDR of two runs, a forward run and decoy run on protein level
 
-        @param fwd_ids forward protein identifications
-        @param rev_ids reverse protein identifications
+    @param fwd_ids forward protein identifications
+    @param rev_ids reverse protein identifications
     */
-    void apply(std::vector<ProteinIdentification> & fwd_ids, std::vector<ProteinIdentification> & rev_ids);
+    void apply(std::vector<ProteinIdentification>& fwd_ids, std::vector<ProteinIdentification>& rev_ids);
 
     /**
-        @brief Calculate the FDR of one run from a concatenated sequence db search
+    @brief Calculate the FDR of one run from a concatenated sequence db search
 
-
-        @param ids protein identifications, containing target and decoy hits
+    @param ids protein identifications, containing target and decoy hits
     */
-    void apply(std::vector<ProteinIdentification> & ids);
+    void apply(std::vector<ProteinIdentification>& ids);
+
+    /**
+    @brief Calculate the FDR based on PEPs pr PPs (if present) and modifies the IDs inplace
+
+    @param ids protein identifications, containing PEP scores (not necessarily) annotated with target decoy.
+    */
+    void applyEstimated(std::vector<ProteinIdentification>& ids);
+
+    /**
+    @brief Calculate a linear combination of the area of the difference in estimated vs. empirical (TD) FDR
+     and the ROC-N value (AUC up to first N false positives).
+
+    @param ids protein identifications, containing PEP scores annotated with target decoy. If vector, only first will be evaluated-
+    @param pepCutoff up to which PEP should the differences between the two FDRs be calculated
+    @param fpCutoff up to which nr. of false positives should the target-decoy AUC be evaluated
+    @param diffWeight which weight should the difference get. The ROC-N value gets 1 - this weight.
+    */
+    double applyEvaluateProteinIDs(const std::vector<ProteinIdentification>& ids, double pepCutoff = 1.0, UInt fpCutoff = 50, double diffWeight = 0.2);
+    double applyEvaluateProteinIDs(const ProteinIdentification& ids, double pepCutoff = 1.0, UInt fpCutoff = 50, double diffWeight = 0.2);
+
+    void applyBasic(std::vector<PeptideIdentification> & ids);
+    void applyBasic(ProteinIdentification & id);
+
 
 private:
+
     ///Not implemented
     FalseDiscoveryRate(const FalseDiscoveryRate &);
 
     ///Not implemented
     FalseDiscoveryRate & operator=(const FalseDiscoveryRate &);
 
-    /// calculates the fdr stored into fdrs, given two vectors of scores
-    void calculateFDRs_(Map<double, double> & score_to_fdr, std::vector<double> & target_scores, std::vector<double> & decoy_scores, bool q_value, bool higher_score_better);
+    //TODO we could add identifier here. If we need to combine runs.
+    void getScores_(std::vector<std::pair<double,bool>>& scores_labels, const ProteinIdentification & id);
+
+    void getScores_(std::vector<std::pair<double,bool>>& scores_labels, const std::vector<PeptideIdentification> & ids, bool all_hits, int charge, String identifier);
+    void getScores_(std::vector<std::pair<double,bool>>& scores_labels, const std::vector<PeptideIdentification> & targets, const std::vector<PeptideIdentification> & decoys, bool all_hits, int charge, const String& identifier);
+
+
+
+    void setScores_(const std::map<double,double>& scores_to_FDR, std::vector<PeptideIdentification> & id, const std::string& score_type, bool higher_better);
+
+    template <typename IDType>
+    void setScores_(const std::map<double,double>& scores_to_FDR, IDType & id, const std::string& score_type, bool higher_better)
+    {
+      String old_score_type = id.getScoreType() + "_score";
+      id.setScoreType(score_type);
+      id.setHigherScoreBetter(higher_better);
+      for (auto& hit : id.getHits())
+      {
+        double old_score = hit.getScore();
+        hit.setScore(scores_to_FDR.lower_bound(hit.getScore())->second);
+        hit.setMetaValue(old_score_type, old_score);
+      }
+    }
+
+    template <typename IDType>
+    void checkTDAnnotation_ (const IDType & id)
+    {
+      for (auto const& hit : id.getHits())
+      {
+        if (!hit.metaValueExists("target_decoy"))
+        {
+          throw Exception::MissingInformation(__FILE__,
+                                              __LINE__,
+                                              OPENMS_PRETTY_FUNCTION,
+                                              "Meta value 'target_decoy' does not exist in all ProteinHits! Reindex the idXML file with 'PeptideIndexer'");
+        }
+      }
+    }
+
+    template <typename HitType>
+    struct GetLabelFunctor: std::function<bool(const HitType&)>
+    {
+      bool operator() (const HitType& hit)
+      {
+          if (!hit.metaValueExists("target_decoy"))
+          {
+            throw Exception::MissingInformation(__FILE__,
+                                                __LINE__,
+                                                OPENMS_PRETTY_FUNCTION,
+                                                "Meta value 'target_decoy' does not exist in all ProteinHits! Reindex the idXML file with 'PeptideIndexer'");
+          }
+          else
+          {
+            return std::string(hit.getMetaValue("target_decoy"))[0] != 't';
+          }
+      }
+    };
+
+    template <typename HitType>
+    struct TrueFunctor: std::function<bool(const HitType&)>
+    {
+      bool operator() (const HitType& /*hit*/)
+      {
+        return true;
+      }
+    };
+
+    template <typename HitType>
+    struct FalseFunctor: std::function<bool(const HitType&)>
+    {
+      bool operator() (const HitType& /*hit*/)
+      {
+        return false;
+      }
+    };
+
+
+    template <typename HitType>
+    std::pair<double,bool> getScoreLabel_ (const HitType& hit, std::function<bool(const HitType&)> fun){
+      return std::make_pair(hit.getScore(), fun(hit));
+    }
+
+
+    /// calculates the fdr given two vectors of scores and fills a map for lookup in scores_to_FDR
+    void calculateFDRs_(Map<double, double>& score_to_fdr, std::vector<double>& target_scores, std::vector<double>& decoy_scores, bool q_value, bool higher_score_better);
+
+    /// calculates an estimated FDR (based on P(E)Ps) given a vector of score value pairs and fills a map for lookup
+    /// in scores_to_FDR
+    void calculateEstimatedQVal_(std::map<double, double> &scores_to_FDR,
+                                 std::vector<std::pair<double, bool>> &scores_labels,
+                                 bool higher_score_better);
+
+    /// calculates the FDR with a basic and faster algorithm
+    void calculateFDRBasic_(std::map<double,double>& scores_to_FDR, std::vector<std::pair<double,bool>>& scores_labels, bool qvalue, bool higher_score_better);
+
+    //TODO the next two methods could potentially be merged for speed (they iterate over the same structure)
+    //But since they have different cutoff types and it is more generic, I leave it like this.
+    /// calculates the area of the difference between estimated and  empirical FDR on the fly. Does not store results.
+    double diffEstimatedEmpirical_(const std::vector<std::pair<double, bool>>& scores_labels, double pepCutoff = 1.0);
+    /// calculates AUC of empirical FDR up to the first fpCutoff false positives on the fly. Does not store results.
+    double rocN_(std::vector<std::pair<double, bool>> const &scores_labels, UInt fpCutoff = 50);
+
+    /// calculates the error area around the x=x line between two consecutive values of expected and actual
+    /// i.e. it assumes exp2 > exp1
+    double trapezoidal_area_xEqy(double exp1, double exp2, double act1, double act2);
+
+    /// calculates the trapezoidal area for a trapezoid with a flat horizontal base e.g. for an AUC
+    double trapezoidal_area(double x1, double x2, double y1, double y2);
+
 
   };
 

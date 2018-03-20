@@ -46,9 +46,16 @@ using namespace std;
 //TODO go through the vectors and see if we can preallocate some.
 namespace OpenMS
 {
+
+  IDBoostGraph::IDBoostGraph(ProteinIdentification& proteins, std::vector<PeptideIdentification>& idedSpectra):
+    proteins_(proteins),
+    idedSpectra_(idedSpectra)
+  {}
+
+
   //TODO actually to build the graph, the inputs could be passed const. But if you want to do sth
   //on the graph later it needs to be non-const. Overload this function or somehow make sure it can be used const.
-  void IDBoostGraph::buildGraph_(ProteinIdentification& proteins, std::vector<PeptideIdentification>& psms, bool use_all_psms)
+  void IDBoostGraph::buildGraph(bool use_all_psms)
   {
     //TODO add support for (consensus) feature information
 
@@ -56,18 +63,18 @@ namespace OpenMS
 
     unordered_map<string, ProteinHit*> accession_map{};
 
-    auto protIt = proteins.getHits().begin();
-    auto protItEnd = proteins.getHits().end();
+    auto protIt = proteins_.getHits().begin();
+    auto protItEnd = proteins_.getHits().end();
     for (; protIt != protItEnd; ++protIt)
     {
       accession_map[string(protIt->getAccession())] = &(*protIt);
     }
 
-    for (auto & psm : psms)
+    for (auto & spectrum : idedSpectra_)
     {
       //TODO add psm nodes here if using all psms
-      auto pepIt = psm.getHits().begin();
-      auto pepItEnd = use_all_psms || psm.getHits().empty() ? psm.getHits().end() : psm.getHits().begin() + 1;
+      auto pepIt = spectrum.getHits().begin();
+      auto pepItEnd = use_all_psms || spectrum.getHits().empty() ? spectrum.getHits().end() : spectrum.getHits().begin() + 1;
       for (; pepIt != pepItEnd; ++pepIt)
       {
         IDPointer pepPtr(&(*pepIt));
@@ -84,7 +91,7 @@ namespace OpenMS
   }
 
 /* Const version
- * void IDBoostGraph::buildGraph_(const ProteinIdentification& proteins, const std::vector<PeptideIdentification>& psms)
+ * void IDBoostGraph::buildGraph(const ProteinIdentification& proteins, const std::vector<PeptideIdentification>& psms)
   {
     //TODO add support for (consensus) feature information
 
@@ -116,18 +123,16 @@ namespace OpenMS
   }*/
 
   /// Do sth on ccs
-  void IDBoostGraph::applyFunctorOnCCs(ProteinIdentification &protein,
-                                       std::vector<PeptideIdentification> &peptides,
-                                       bool use_all_psms,
-                                       std::function<void(FilteredGraph &)> functor)
+  void IDBoostGraph::applyFunctorOnCCs(std::function<void(FilteredGraph&)> functor)
   {
-    buildGraph_(protein, peptides, use_all_psms);
-    computeConnectedComponents_();
-    for (unsigned int i = 0; i < numCCs; ++i)
+    if (numCCs_ == 0) {
+      throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No connected components annotated. Run computeConnectedComponents first!");
+    }
+    for (unsigned int i = 0; i < numCCs_; ++i)
     {
       FilteredGraph fg(g,
-                       [& i, this](edge_t e) { return componentProperty[e.m_source] == i; },
-                       [& i, this](vertex_t v) { return componentProperty[v] == i; });
+                       [& i, this](edge_t e) { return componentProperty_[e.m_source] == i; },
+                       [& i, this](vertex_t v) { return componentProperty_[v] == i; });
 
       #ifdef INFERENCE_DEBUG
       // TODO make function for writing graph?
@@ -144,11 +149,103 @@ namespace OpenMS
     }
   }
 
-
-  void IDBoostGraph::computeConnectedComponents_()
+  /// Do sth on ccs
+  void IDBoostGraph::annotateIndistinguishableGroups()
   {
-    componentProperty.resize(num_vertices(g));
-    numCCs = boost::connected_components(g, &componentProperty[0]);
+    if (numCCs_ == 0) {
+      throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No connected components annotated. Run computeConnectedComponents first!");
+    }
+    for (unsigned int i = 0; i < numCCs_; ++i)
+    {
+      FilteredGraph fg(g,
+                       [& i, this](edge_t e) { return componentProperty_[e.m_source] == i; },
+                       [& i, this](vertex_t v) { return componentProperty_[v] == i; });
+
+      #ifdef INFERENCE_DEBUG
+      // TODO make function for writing graph?
+      // Also tried to save the labels in a member after build_graph. But could not get the type right for a member that would store them.
+      LabelVisitor lv;
+      auto labels = boost::make_transform_value_property_map([lv](IDPointer &p) { return boost::apply_visitor(lv, p); },
+                                                             boost::get(boost::vertex_bundle, fg));
+      std::cout << "Printing cc " << i << std::endl;
+      //boost::print_graph(fg);
+      boost::write_graphviz(std::cout, fg, boost::make_label_writer(labels));
+      #endif
+
+      // Skip cc without peptide or protein
+      //TODO this currently does not work because we do not filter edges I think
+      //TODO introduce edge types or skip nodes without neighbors inside the if instead
+      //TODO do quick bruteforce calculation if the cc is really small
+      if (boost::num_vertices(fg) >= 3)
+      {
+        // Cluster peptides with same parents
+        //TODO this could be sped up by a good hashing function for sets of uints and using unordered_map
+        map< set<IDBoostGraph::vertex_t>, set<IDBoostGraph::vertex_t> > pepClusters; //maps the parent (protein) set to peptides that have the same
+        boost::filtered_graph<IDBoostGraph::Graph, boost::function<bool(IDBoostGraph::edge_t)>, boost::function<bool(IDBoostGraph::vertex_t)> >::vertex_iterator ui, ui_end;
+        boost::tie(ui,ui_end) = boost::vertices(fg);
+
+
+        for (; ui != ui_end; ++ui)
+        {
+          IDBoostGraph::IDPointer curr_idObj = fg[*ui];
+          //TODO introduce an enum for the types to make it more clear.
+          //Or use the static_visitor pattern: You have to pass the vertex with its neighbors as a second arg though.
+          if (curr_idObj.which() == 0) //it's a peptide
+          {
+            //TODO assert that there is at least one protein mapping to this peptide! Eg. Require IDFilter removeUnmatched before.
+            //Or just check rigorously here.
+            set<IDBoostGraph::vertex_t> parents;
+            IDBoostGraph::FilteredGraph::adjacency_iterator adjIt, adjIt_end;
+            boost::tie(adjIt, adjIt_end) = boost::adjacent_vertices(*ui, fg);
+            for (; adjIt != adjIt_end; ++adjIt)
+            {
+              if (fg[*adjIt].which() == 1) //if there are only two types (pep,prot) this check for prot is actually unnecessary
+              {
+                parents.insert(*adjIt);
+              }
+            }
+
+            auto clusterIt = pepClusters.find(parents);
+            if (clusterIt != pepClusters.end())
+            {
+              clusterIt->second.insert(*ui);
+            }
+            else
+            {
+              pepClusters[parents] = std::set<IDBoostGraph::vertex_t>({*ui});
+            }
+          }
+        }
+
+        proteins_.getIndistinguishableProteins().clear();
+        // Afterwards go through all pepClusters, i.e. indist. groups and add them
+        for (auto const& setpair : pepClusters)
+        {
+          ProteinIdentification::ProteinGroup pg;
+          auto grp = boost::add_vertex(&pg, g);
+          for (auto const& proteinVID : setpair.first)
+          {
+            ProteinHit* proteinPtr = boost::get<ProteinHit*>(fg[proteinVID]);
+            pg.accessions.push_back(proteinPtr->getAccession());
+            boost::add_edge(grp, proteinVID, g);
+          }
+          pg.probability = -1.0;
+          proteins_.getIndistinguishableProteins().push_back(pg);
+        }
+
+      }
+      else
+      {
+        std::cout << "Skipped cc with only one type (proteins or peptides)" << std::endl;
+      }
+    }
+  }
+
+
+  void IDBoostGraph::computeConnectedComponents()
+  {
+    componentProperty_.resize(num_vertices(g));
+    numCCs_ = boost::connected_components(g, &componentProperty_[0]);
   }
 
   IDBoostGraph::vertex_t IDBoostGraph::addVertexWithLookup_(IDPointer& ptr, unordered_map<IDPointer, vertex_t, boost::hash<IDPointer>>& vertex_map)

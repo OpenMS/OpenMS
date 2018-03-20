@@ -28,6 +28,7 @@ public:
     TableDependency<Label> createSumFactor(size_t nrParents, Label nId);
 
     AdditiveDependency<Label> createPeptideProbabilisticAdderFactor(const std::set<Label> & parentProteinIDs, Label nId);
+    AdditiveDependency<Label> createPeptideProbabilisticAdderFactor(const std::vector<Label> & parentProteinIDs, Label nId);
 
     PseudoAdditiveDependency<Label> createBFPeptideProbabilisticAdderFactor(const std::set<Label> & parentProteinIDs, Label nId, const std::vector<TableDependency <Label> > & deps);
 
@@ -112,6 +113,13 @@ TableDependency<L> MessagePasserFactory<L>::createSumFactor(size_t nrParents, L 
 
 template <typename L>
 AdditiveDependency<L> MessagePasserFactory<L>::createPeptideProbabilisticAdderFactor(const std::set<L> & parentProteinIDs, L nId) {
+  std::vector<std::vector<L>> parents;
+  std::transform(parentProteinIDs.begin(), parentProteinIDs.end(), std::back_inserter(parents), [](const L& l){return std::vector<L>{l};});
+  return AdditiveDependency<L>(parents, {nId}, p);
+}
+
+template <typename L>
+AdditiveDependency<L> MessagePasserFactory<L>::createPeptideProbabilisticAdderFactor(const std::vector<L> & parentProteinIDs, L nId) {
   std::vector<std::vector<L>> parents;
   std::transform(parentProteinIDs.begin(), parentProteinIDs.end(), std::back_inserter(parents), [](const L& l){return std::vector<L>{l};});
   return AdditiveDependency<L>(parents, {nId}, p);
