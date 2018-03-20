@@ -264,9 +264,9 @@ namespace OpenMS
         // We construct the background area as the sum of a rectangular part
         // and a triangle on top. The triangle is constructed as the sum of the
         // line's y value at each sampled point: \sum_{i=0}^{n} (x_i - x_0)  * m
-        double rectangle_area = n_points * int_l;
-        double slope = delta_int / delta_pos;
-        double triangle_area = (pos_sum - n_points * p.PosBegin(left)->getPos()) * slope;
+        const double rectangle_area = n_points * int_l;
+        const double slope = delta_int / delta_pos;
+        const double triangle_area = (pos_sum - n_points * p.PosBegin(left)->getPos()) * slope;
         area = triangle_area + rectangle_area;
       }
     }

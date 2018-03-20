@@ -118,7 +118,7 @@ public:
     ///@}
 
     /** @name calculatePeakShapeMetrics() output
-     *
+      
         The calculatePeakShapeMetrics() method uses this struct to save its results.
     */
     ///@{
@@ -210,7 +210,7 @@ public:
     ///@}
 
     /** @name Constant expressions for parameters
-     *
+      
         Constants expressions used throughout the code and tests to set
         the integration and baseline types.
     */
@@ -223,7 +223,7 @@ public:
     static constexpr const char* INTEGRATION_TYPE_SIMPSON = "simpson";
     /// Baseline type: base to base
     static constexpr const char* BASELINE_TYPE_BASETOBASE = "base_to_base";
-    /// Baseline type: vertical division (min of end points)
+    /// Baseline type: vertical division (min of end points; only for backwards compatibility)
     static constexpr const char* BASELINE_TYPE_VERTICALDIVISION = "vertical_division";
     /// Baseline type: vertical division (min of end points)
     static constexpr const char* BASELINE_TYPE_VERTICALDIVISION_MIN = "vertical_division_min";
