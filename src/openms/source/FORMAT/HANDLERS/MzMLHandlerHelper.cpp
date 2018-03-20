@@ -222,14 +222,14 @@ namespace OpenMS
         }
 
         // check for unit multiplier and correct our units (e.g. seconds vs minutes)
-        double unit_multiplier = data_[i].unit_multiplier;
-        if (unit_multiplier != 1.0 && data_[i].precision == BinaryData::PRE_64)
+        double unit_multiplier = bindata.unit_multiplier;
+        if (unit_multiplier != 1.0 && bindata.precision == BinaryData::PRE_64)
         {
-          for (auto& it : data_[i].floats_64) it = it * unit_multiplier;
+          for (auto& it : bindata.floats_64) it = it * unit_multiplier;
         }
-        else if (unit_multiplier != 1.0 && data_[i].precision == BinaryData::PRE_32)
+        else if (unit_multiplier != 1.0 && bindata.precision == BinaryData::PRE_32)
         {
-          for (auto& it : data_[i].floats_32) it = it * unit_multiplier;
+          for (auto& it : bindata.floats_32) it = it * unit_multiplier;
         }
       }
       else if (bindata.data_type == BinaryData::DT_INT)
