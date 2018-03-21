@@ -65,14 +65,14 @@ namespace OpenMS
 
       /**
         @brief Constructor
-  
+
         Opens the output file and writes the header.
       */
       MSDataCachedConsumer(const String& filename, bool clearData=true);
 
       /**
         @brief Destructor
-  
+
         Closes the output file and writes the footer.
       */
       ~MSDataCachedConsumer() override;

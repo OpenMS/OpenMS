@@ -78,7 +78,16 @@ namespace OpenMS
     }
     writeSpectrum_(s, ofs_);
     spectra_written_++;
-    if (clearData_) { s.clear(false); }
+
+    // Clear all spectral data including all float/int data arrays
+    if (clearData_)
+    {
+      s.clear(false);
+      MSSpectrum::FloatDataArrays fempty;
+      s.setFloatDataArrays(fempty);
+      MSSpectrum::IntegerDataArrays iempty;
+      s.setIntegerDataArrays(iempty);
+    }
   }
 
   /**
@@ -88,6 +97,16 @@ namespace OpenMS
   {
     writeChromatogram_(c, ofs_);
     chromatograms_written_++;
-    if (clearData_) { c.clear(false); }
+
+    // Clear all chromatogram data including all float/int data arrays
+    if (clearData_)
+    {
+      c.clear(false);
+      MSChromatogram::FloatDataArrays fempty;
+      c.setFloatDataArrays(fempty);
+      MSChromatogram::IntegerDataArrays iempty;
+      c.setIntegerDataArrays(iempty);
+    }
   }
+
 } // namespace OpenMS
