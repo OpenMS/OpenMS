@@ -59,8 +59,7 @@ for PYBIN in /opt/python/cp27* /opt/python/cp3[4-9]*; do
   mkdir wheelhouse_fixed
   for whl in wheelhouse/pyopenms*.whl; do
     /bin/cp $whl wheelhouse_fixed
-    whln=`basename $whl`
-    bn=`basename $whl .whl`
+    bn=$(basename $whl .whl)
     cd wheelhouse_fixed
     mv $bn.whl $bn.zip
     unzip $bn.zip
