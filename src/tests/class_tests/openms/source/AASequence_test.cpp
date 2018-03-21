@@ -228,18 +228,6 @@ START_SECTION((EmpiricalFormula getFormula(Residue::ResidueType type = Residue::
   TEST_EQUAL(seq.getFormula(), EmpiricalFormula("O10SH33N5C24"))
   TEST_EQUAL(seq.getFormula(Residue::Full, 1), EmpiricalFormula("O10SH33N5C24+"))
   TEST_EQUAL(seq.getFormula(Residue::BIon, 0), EmpiricalFormula("O9SH31N5C24"))
-  StopWatch s;
-  seq = AASequence::fromString(string(10000, 'F'));
-  double w(0);
-  s.start();
-  for (int i = 1; i < 1e5; ++i)
-  {
-    w += seq.getMonoWeight();
-  }
-  s.stop();
-  std::cout << s.toString() << " for " << w << '\n';
-
-
 END_SECTION
 
 START_SECTION((double getAverageWeight(Residue::ResidueType type = Residue::Full, Int charge=0) const))
