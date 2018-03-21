@@ -11,8 +11,8 @@
 
 ## For a release, change to the following:
 ## git clone -b Release2.3.0 https://github.com/OpenMS/OpenMS.git
-git clone -b feature/qt5 https://github.com/hroest/OpenMS.git
-
+git clone https://github.com/OpenMS/OpenMS.git 
+ 
 # Bugfix 1:
 # make sure that we can find the link library
 ln -s /contrib-build/lib64/libxerces-c-3.2.a /contrib-build/lib/libxerces-c.a
