@@ -414,6 +414,10 @@ set_tests_properties("TOPP_FileConverter_26_out" PROPERTIES DEPENDS "TOPP_FileCo
 add_test("TOPP_FileConverter_27" ${TOPP_BIN_PATH}/FileConverter -test -in ${DATA_DIR_TOPP}/FileConverter_27_input.mzML -out FileConverter_27.tmp -out_type mzML  -convert_to_chromatograms)
 add_test("TOPP_FileConverter_27_out" ${DIFF} -in1 FileConverter_27.tmp -in2 ${DATA_DIR_TOPP}/FileConverter_27_output.mzML -whitelist "location=")
 set_tests_properties("TOPP_FileConverter_27_out" PROPERTIES DEPENDS "TOPP_FileConverter_27")
+# Purpose: test conversion of chromatogram data in minutes to data in seconds
+add_test("TOPP_FileConverter_28" ${TOPP_BIN_PATH}/FileConverter -test -in ${DATA_DIR_TOPP}/FileConverter_28_input.mzML -out FileConverter_28.tmp -out_type mzML  -convert_to_chromatograms)
+add_test("TOPP_FileConverter_28_out" ${DIFF} -in1 FileConverter_28.tmp -in2 ${DATA_DIR_TOPP}/FileConverter_28_output.mzML -whitelist "location=")
+set_tests_properties("TOPP_FileConverter_28_out" PROPERTIES DEPENDS "TOPP_FileConverter_28")
 
 #------------------------------------------------------------------------------
 # FileFilter tests

@@ -152,6 +152,13 @@ namespace OpenMS
       else if (map_multiple_assays_)
       {
         for (auto & c : mapped_chroms) output.addChromatogram(c);
+        if (mapped_chroms.size() > 1)
+        {
+          LOG_WARN << "Chromatogram " + String(chromatogram.getNativeID()) <<
+            " with " + String(chromatogram.getPrecursor().getMZ()) <<
+            " -> " + String(chromatogram.getProduct().getMZ()) <<
+            " maps to multiple assays!" << std::endl;
+        }
       }
       else
       {
@@ -161,7 +168,7 @@ namespace OpenMS
           throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Chromatogram " + String(chromatogram.getNativeID()) + \
            " with " + String(chromatogram.getPrecursor().getMZ()) + \
             " -> " + String(chromatogram.getProduct().getMZ()) + \
-              "maps to multiple assays! Either decrease your mapping tolerance or set map_multiple_assays to true.");
+              " maps to multiple assays! Either decrease your mapping tolerance or set map_multiple_assays to true.");
         }
       }
     }

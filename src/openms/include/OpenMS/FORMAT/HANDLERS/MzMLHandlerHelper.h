@@ -62,6 +62,7 @@ namespace OpenMS
         enum { DT_NONE, DT_FLOAT, DT_INT, DT_STRING } data_type;
         MSNumpressCoder::NumpressCompression np_compression;
         bool compression; // zlib compression
+        double unit_multiplier;
         String base64;
         Size size;
         std::vector<float> floats_32;
@@ -77,6 +78,7 @@ namespace OpenMS
           data_type(DT_NONE),
           np_compression(),
           compression(false),
+          unit_multiplier(1.0),
           base64(),
           size(0),
           floats_32(),
@@ -114,7 +116,7 @@ namespace OpenMS
       static void computeDataProperties_(std::vector<BinaryData>& data_, bool& precision_64, SignedSize& index, const String& index_name);
 
       static bool handleBinaryDataArrayCVParam(std::vector<BinaryData>& data_,
-        const String& accession, const String& value, const String& name);
+        const String& accession, const String& value, const String& name, const String& unit_accession);
     };
 
 
