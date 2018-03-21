@@ -196,6 +196,7 @@ namespace OpenMS
     static const XMLCh* TAG_userParam = xercesc::XMLString::transcode("userParam");
     static const XMLCh* TAG_referenceableParamGroupRef = xercesc::XMLString::transcode("referenceableParamGroupRef");
     static const XMLCh* TAG_accession = xercesc::XMLString::transcode("accession");
+    static const XMLCh* TAG_unit_accession = xercesc::XMLString::transcode("unitAccession");
     static const XMLCh* TAG_value = xercesc::XMLString::transcode("value");
     static const XMLCh* TAG_name = xercesc::XMLString::transcode("name");
 
@@ -255,9 +256,10 @@ namespace OpenMS
           std::string accession = sm.convert(currentElement->getAttribute(TAG_accession));
           std::string value = sm.convert(currentElement->getAttribute(TAG_value));
           std::string name = sm.convert(currentElement->getAttribute(TAG_name));
+          std::string unit_accession = sm.convert(currentElement->getAttribute(TAG_unit_accession));
 
           // set precision, data_type
-          Internal::MzMLHandlerHelper::handleBinaryDataArrayCVParam(data_, accession, value, name);
+          Internal::MzMLHandlerHelper::handleBinaryDataArrayCVParam(data_, accession, value, name, unit_accession);
         }
         else if (xercesc::XMLString::equals(currentElement->getTagName(), TAG_userParam))
         {

@@ -38,14 +38,15 @@
 // OpenMS_GUI config
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
+#include <OpenMS/DATASTRUCTURES/Param.h>
+#include <OpenMS/VISUAL/LayerData.h>
+
 class QComboBox;
 class QPushButton;
 class QRadioButton;
 class QString;
 
-#include <QtGui/QDialog>
-#include <OpenMS/DATASTRUCTURES/Param.h>
-#include <OpenMS/VISUAL/LayerData.h>
+#include <QtWidgets/QDialog>
 
 namespace OpenMS
 {

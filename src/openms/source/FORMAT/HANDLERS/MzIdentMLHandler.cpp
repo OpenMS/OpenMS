@@ -1333,7 +1333,7 @@ namespace OpenMS
 
               ProteinIdentification::SearchParameters search_params = cpro_id_->front().getSearchParameters();
               double iso_shift = String(search_params.getMetaValue("cross_link:mass_isoshift")).toDouble();
-              double cmz_heavy = atof(cmz.c_str()) + (iso_shift / jt->getCharge());
+              double cmz_heavy = cmz.toDouble() + (iso_shift / jt->getCharge());
 
               sii_tmp = sii_tmp.substitute(String("calculatedMassToCharge=\"") + String(cmz),
                                             String("calculatedMassToCharge=\"") + String(cmz_heavy));

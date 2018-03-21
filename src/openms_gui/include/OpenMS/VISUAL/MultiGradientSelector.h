@@ -43,7 +43,8 @@
 #include <OpenMS/VISUAL/MultiGradient.h>
 
 //QT
-#include <QtGui/QWidget>
+#include <QtWidgets>
+
 class QPaintEvent;
 class QMouseEvent;
 class QKeyEvent;

@@ -58,8 +58,8 @@
 */
 
 //QT
-#include <QtGui/QApplication>
-#include <QtGui/QSplashScreen>
+#include <QApplication>
+#include <QtWidgets/QSplashScreen>
 #include <QtCore/QDir>
 
 //OpenMS
