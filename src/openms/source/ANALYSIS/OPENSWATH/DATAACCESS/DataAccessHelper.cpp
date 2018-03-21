@@ -200,6 +200,10 @@ namespace OpenMS
     if (pep.hasRetentionTime())
     {
       p.rt = pep.getRetentionTime();
+      if (pep.getRetentionTimeUnit() == TargetedExperimentHelper::RetentionTime::RTUnit::MINUTE)
+      {
+        p.rt = 60 * pep.getRetentionTime();
+      }
     }
     p.setDriftTime(pep.getDriftTime());
 
@@ -267,6 +271,10 @@ namespace OpenMS
     if (compound.hasRetentionTime())
     {
       comp.rt = compound.getRetentionTime();
+      if (compound.getRetentionTimeUnit() == TargetedExperimentHelper::RetentionTime::RTUnit::MINUTE)
+      {
+        comp.rt = 60 * compound.getRetentionTime();
+      }
     }
     comp.setDriftTime(compound.getDriftTime());
 
