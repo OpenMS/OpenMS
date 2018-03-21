@@ -93,13 +93,13 @@ class TestIndexedMzMLFile(unittest.TestCase):
         self.filename = os.path.join(dirname, "test.indexed.mzML").encode()
 
     def test_readfile(self):
-        f = pyopenms.IndexedMzMLFile()
+        f = pyopenms.IndexedMzMLHandler()
         f.openFile(self.filename)
 
         self.assertTrue(f.getParsingSuccess())
 
     def test_readfile_content(self):
-        f = pyopenms.IndexedMzMLFile()
+        f = pyopenms.IndexedMzMLHandler()
         f.openFile(self.filename)
 
         self.assertEqual( f.getNrSpectra() ,  2)
