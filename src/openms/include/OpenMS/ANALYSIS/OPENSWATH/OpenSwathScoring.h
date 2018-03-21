@@ -263,6 +263,14 @@ namespace OpenMS
              scores.elution_model_fit_score          *  1.88443209;
     }
 
+    double calculate_lda_single_transition(OpenSwath_Scores scores)
+    {
+      // Manually derived scoring model for single transition peakgroups
+      return scores.norm_rt_score                    *  7.05496384 +
+             scores.log_sn_score                     * -0.72989582 +
+             scores.elution_model_fit_score          *  -1.08443209;
+    }
+
     double calculate_swath_lda_prescore(OpenSwath_Scores scores)
     {
 
