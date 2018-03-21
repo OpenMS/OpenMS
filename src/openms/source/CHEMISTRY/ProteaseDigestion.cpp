@@ -92,39 +92,50 @@ namespace OpenMS
     return sum;
   }
 
-  void ProteaseDigestion::digest(const AASequence& protein, vector<AASequence>& output) const
+  Size ProteaseDigestion::digest(const AASequence& protein, vector<AASequence>& output, Size min_length, Size max_length) const
   {
     // initialization
     output.clear();
 
+    // disable max length filter by setting to maximum length
+    if (max_length == 0 || max_length > protein.size())
+    {
+      max_length = protein.size();
+    }
+
     Size mc = (enzyme_->getName() == UnspecificCleavage) ? std::numeric_limits<Size>::max() : missed_cleavages_;
+    Size wrong_size(0);
 
     // naive cleavage sites
     std::vector<int> pep_positions = tokenize_(protein.toUnmodifiedString());
+    pep_positions.push_back(protein.size()); // positions now contains 0, x1, ... xn, end
     Size count = pep_positions.size();
     Size begin = pep_positions[0];
     for (Size i = 1; i < count; ++i)
     {
-      output.push_back(protein.getSubsequence(begin, pep_positions[i] - begin));
+      Size l = pep_positions[i] - begin;
+      if (l >= min_length && l <= max_length) output.push_back(protein.getSubsequence(begin, l));
+      else ++wrong_size;
       begin = pep_positions[i];
     }
-    output.push_back(protein.getSubsequence(begin, protein.size() - begin));
 
     // missed cleavages
-    if (pep_positions.size() > 0 && mc != 0) // there is at least one cleavage site!
+    if (pep_positions.size() > 1 && mc != 0) // there is at least one cleavage site (in addition to last position)!
     {
       // generate fragments with missed cleavages
-      for (Size i = 1; ((i <= mc) && (count > i)); ++i)
+      for (Size mcs = 1; ((mcs <= mc) && (mcs < count - 1)); ++mcs)
       {
         begin = pep_positions[0];
-        for (Size j = 1; j < count - i; ++j)
+        for (Size j = 1; j < count - mcs; ++j)
         {
-          output.push_back(protein.getSubsequence(begin, pep_positions[j + i] - begin));
+          Size l = pep_positions[j + mcs] - begin;
+          if (l >= min_length && l <= max_length) output.push_back(protein.getSubsequence(begin, l));
+          else ++wrong_size;
           begin = pep_positions[j];
         }
-        output.push_back(protein.getSubsequence(begin, protein.size() - begin));
       }
     }
+    return wrong_size;
   }
 
 } //namespace OpenMS
