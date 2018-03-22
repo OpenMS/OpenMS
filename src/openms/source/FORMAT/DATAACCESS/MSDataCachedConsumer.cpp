@@ -34,6 +34,8 @@
 
 #include <OpenMS/FORMAT/DATAACCESS/MSDataCachedConsumer.h>
 
+#include <OpenMS/CONCEPT/Macros.h>
+
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/KERNEL/MSChromatogram.h>
 
@@ -49,11 +51,6 @@ namespace OpenMS
     ofs_.write((char*)&file_identifier, sizeof(file_identifier));
   }
 
-  /**
-  @brief Destructor
-
-  Closes the output file and writes the footer.
-  */
   MSDataCachedConsumer::~MSDataCachedConsumer()
   {
     // Write size of file (to the end of the file)
@@ -66,9 +63,6 @@ namespace OpenMS
     ofs_.close();
   }
 
-  /**
-  @brief Write a spectrum to the output file
-  */
   void MSDataCachedConsumer::consumeSpectrum(SpectrumType & s)
   {
     if (chromatograms_written_ > 0)
@@ -79,34 +73,33 @@ namespace OpenMS
     writeSpectrum_(s, ofs_);
     spectra_written_++;
 
-    // Clear all spectral data including all float/int data arrays
+    // Clear all spectral data including all float/int data arrays (but not string arrays)
     if (clearData_)
     {
       s.clear(false);
-      MSSpectrum::FloatDataArrays fempty;
-      s.setFloatDataArrays(fempty);
-      MSSpectrum::IntegerDataArrays iempty;
-      s.setIntegerDataArrays(iempty);
+      s.setFloatDataArrays({});
+      s.setIntegerDataArrays({});
     }
+    OPENMS_POSTCONDITION( (!clearData_ || s.empty() ), "clearData implies spectrum is empty")
+    OPENMS_POSTCONDITION( (!clearData_ || s.getFloatDataArrays().empty() ), "clearData implies spectrum is empty")
+    OPENMS_POSTCONDITION( (!clearData_ || s.getIntegerDataArrays().empty() ), "clearData implies spectrum is empty")
   }
 
-  /**
-  @brief Write a chromatogram to the output file
-  */
   void MSDataCachedConsumer::consumeChromatogram(ChromatogramType & c)
   {
     writeChromatogram_(c, ofs_);
     chromatograms_written_++;
 
-    // Clear all chromatogram data including all float/int data arrays
+    // Clear all chromatogram data including all float/int data arrays (but not string arrays)
     if (clearData_)
     {
       c.clear(false);
-      MSChromatogram::FloatDataArrays fempty;
-      c.setFloatDataArrays(fempty);
-      MSChromatogram::IntegerDataArrays iempty;
-      c.setIntegerDataArrays(iempty);
+      c.setFloatDataArrays({});
+      c.setIntegerDataArrays({});
     }
+    OPENMS_POSTCONDITION( (!clearData_ || c.empty() ), "clearData implies chromatogram is empty")
+    OPENMS_POSTCONDITION( (!clearData_ || c.getFloatDataArrays().empty() ), "clearData implies chromatogram is empty")
+    OPENMS_POSTCONDITION( (!clearData_ || c.getIntegerDataArrays().empty() ), "clearData implies chromatogram is empty")
   }
 
 } // namespace OpenMS
