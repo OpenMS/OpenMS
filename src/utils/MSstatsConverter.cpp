@@ -57,7 +57,7 @@ using namespace std;
 
     @brief Converter to input for MSstats
 
-    This util consumes an ID-mapped consensusXML file and OpenMS experimental design in TSV format to create a file which can subsequently be used as input for the R package MSstats [1].
+    This util consumes an ID-mapped consensusXML file and OpenMS experimental design in TSV format to create a CSV file which can subsequently be used as input for the R package MSstats [1].
 
     [1] M. Choi et al. MSstats: an R package for statistical analysis for quantitative mass spectrometry-based proteomic experiments. Bioinformatics (2014), 30 (17): 2524-2526
 
@@ -87,7 +87,7 @@ protected:
   void registerOptionsAndFlags_() final override
   {
     // Input consensusXML
-    registerInputFile_(TOPPMSstatsConverter::param_in, "<in>", "", "Input consensusXML or featureXML with peptide intensities", true, false);
+    registerInputFile_(TOPPMSstatsConverter::param_in, "<in>", "", "Input consensusXML with peptide intensities", true, false);
     setValidFormats_(TOPPMSstatsConverter::param_in, ListUtils::create<String>("consensusXML"), true);
 
     registerInputFile_(TOPPMSstatsConverter::param_in_design, "<in_design>", "", "Experimental Design file", true, false);
@@ -103,8 +103,8 @@ protected:
     registerFlag_(TOPPMSstatsConverter::param_ambiguous_peptides, "If set, the output CSV file can contain peptides that have been assigned to multiple protein ids. Attention: you normally do not want to do this for MSstats", true);
 
     // Specifies how peptide ions eluding at different retention times should be resolved
-    registerStringOption_(TOPPMSstatsConverter::param_retention_time_resolution_method, "<retention_time_resolution_method>", "", "How undistinguishable peptides at different retention times should be treated", true, false);
-    setValidStrings_(TOPPMSstatsConverter::param_retention_time_resolution_method, ListUtils::create<String>("manual,max,min,mean,sum"));
+    registerStringOption_(TOPPMSstatsConverter::param_retention_time_summarization_method, "<retention_time_summarization_method>", "", "How undistinguishable peptides at different retention times should be treated", true, false);
+    setValidStrings_(TOPPMSstatsConverter::param_retention_time_summarization_method, ListUtils::create<String>("manual,max,min,mean,sum"));
 
     // Output CSV file
     registerOutputFile_(TOPPMSstatsConverter::param_out, "<out>", "", "Input CSV file for MSstats.", true, false);
@@ -129,7 +129,7 @@ protected:
       const String arg_out = getStringOption_(TOPPMSstatsConverter::param_out);
       const String arg_msstats_condition = getStringOption_(TOPPMSstatsConverter::param_msstats_condition);
       const String arg_msstats_bioreplicate = getStringOption_(TOPPMSstatsConverter::param_msstats_bioreplicate);
-      const String arg_retention_time_resolution_method = getStringOption_(TOPPMSstatsConverter::param_retention_time_resolution_method);
+      const String arg_retention_time_summarization_method = getStringOption_(TOPPMSstatsConverter::param_retention_time_summarization_method);
 
       // Experimental Design file
       const String arg_in_design = getStringOption_(TOPPMSstatsConverter::param_in_design);
@@ -158,15 +158,14 @@ protected:
       map< unsigned, unsigned > msstats_run_to_openms_run;
 
       // Mapping of filepath and channel to sample and fraction
-      const bool basename(true);
-      map< pair< String, unsigned >, unsigned> path_channel_to_sample = design.getPathChannelToSampleMapping(basename);
-      map< pair< String, unsigned >, unsigned> path_channel_to_fraction = design.getPathChannelToFractionMapping(basename);
-      map< pair< String, unsigned >, unsigned> path_channel_to_run = design.getPathChannelToRunMapping(basename);
+      map< pair< String, unsigned >, unsigned> path_channel_to_sample = design.getPathChannelToSampleMapping(true);
+      map< pair< String, unsigned >, unsigned> path_channel_to_fraction = design.getPathChannelToFractionMapping(true);
+      map< pair< String, unsigned >, unsigned> path_channel_to_run = design.getPathChannelToRunMapping(true);
 
       // The Retention Time is additionally written to the output as soon as the user wants to resolve multiple peptides manually
-      const bool rt_resolution_manual(arg_retention_time_resolution_method == "manual");
+      const bool rt_summarization_manual(arg_retention_time_summarization_method == "manual");
 
-      if (rt_resolution_manual)
+      if (rt_summarization_manual)
       {
         cout << "WARNING: One feature might appear at multiple retention times in the output file. This is invalid input for MSstats. Combining of features over retention times is needed!" << endl;
       }
@@ -224,6 +223,7 @@ protected:
           "The filenames in the consensusXML file are not the same as in the experimental design",
           ILLEGAL_PARAMETERS);
 
+      // Extract information from the consensus features.
       for (const ConsensusFeature &consensus_feature : consensus_map)
       {
         features.push_back(consensus_feature);
@@ -256,7 +256,7 @@ protected:
 
       // The output file of the MSstats converter (TODO Change to CSV file once store for CSV files has been implemented)
       TextFile csv_out;
-      csv_out.addLine(String(rt_resolution_manual ? "RetentionTime,": "") + "ProteinName,PeptideSequence,PrecursorCharge,FragmentIon,ProductCharge,IsotopeLabelType,Condition,BioReplicate,Run," + String(has_fraction ? "Fraction,": "") + "Intensity");
+      csv_out.addLine(String(rt_summarization_manual ? "RetentionTime,": "") + "ProteinName,PeptideSequence,PrecursorCharge,FragmentIon,ProductCharge,IsotopeLabelType,Condition,BioReplicate,Run," + String(has_fraction ? "Fraction,": "") + "Intensity");
 
       // Regex definition for fragment ions
       std::regex regex_msstats_FragmentIon("[abcxyz][0-9]+");
@@ -282,7 +282,10 @@ protected:
       std::map< String, std::set<String > > peptideseq_to_accessions;
 
       // Stores all the lines that will be present in the final MSstats output,
-      map< String, map< String, set< pair<Intensity, Coordinate> > > > peptideseq_to_prefix_to_intensities;
+      // We need to map peptide sequences to full features, because then we can ignore peptides
+      // that are mapped to multiple proteins. We also need to map to the
+      // intensities, such that we combine intensities over multiple retention times.
+      map< String, map< MSstatsLine, set< pair<Intensity, Coordinate> > > > peptideseq_to_prefix_to_intensities;
 
       for (Size i = 0; i < features.size(); ++i)
       {
@@ -350,18 +353,20 @@ protected:
                   const unsigned openms_run = path_channel_to_run[tpl1];
                   msstats_run_to_openms_run[run] = openms_run;
 
-                  const String prefix(
-                      accession
-                      + delim + sequence
-                      + delim + precursor_charge
-                      + delim + fragment_ion
-                      + delim + frag_charge
-                      + delim + isotope_label_type
-                      + delim + sampleSection.getFactorValue(sample, arg_msstats_condition)
-                      + delim + sampleSection.getFactorValue(sample, arg_msstats_bioreplicate)
-                      + delim + String(run)
-                      + (has_fraction ? delim + String(fraction) : ""));
-
+                  // Assemble MSstats line
+                  MSstatsLine prefix(
+                          has_fraction,
+                          accession,
+                          sequence,
+                          precursor_charge,
+                          fragment_ion,
+                          frag_charge,
+                          isotope_label_type,
+                          sampleSection.getFactorValue(sample, arg_msstats_condition),
+                          sampleSection.getFactorValue(sample, arg_msstats_bioreplicate),
+                          String(run),
+                          (has_fraction ? delim + String(fraction) : "")
+                  );
                   pair<Intensity, Coordinate> intensity_retention_time = make_pair(intensity, retention_time);
                   peptideseq_to_prefix_to_intensities[sequence][prefix].insert(intensity_retention_time);
                 }
@@ -380,12 +385,16 @@ protected:
 
       const bool write_ambigous_peptides(this->getFlag_(TOPPMSstatsConverter::param_ambiguous_peptides));
 
+      // sanity check that the triples (peptide_sequence, precursor_charge, run) only appears once
+      set< tuple<String, String, String> > peptideseq_precursor_charge_run;
+
       for (const pair< String, set< String> > &peptideseq_accessions : peptideseq_to_accessions)
       {
         // Only write if unique peptide
         if (write_ambigous_peptides || peptideseq_accessions.second.size() == 1)
         {
-          for (const pair< String, set< pair< Intensity, Coordinate > > > &line : peptideseq_to_prefix_to_intensities[peptideseq_accessions.first])
+          for (const pair< MSstatsLine, set< pair< Intensity, Coordinate > > > &line :
+                  peptideseq_to_prefix_to_intensities[peptideseq_accessions.first])
           {
             // First, we collect all retention times and intensities
             set< Coordinate > retention_times;
@@ -400,34 +409,44 @@ protected:
               intensities.insert(p.first);
             }
 
-            // If the rt resolution method is set to manual, we simply output all it,rt pairs
-            if (rt_resolution_manual)
+            tuple<String, String, String > tpl = make_tuple(
+                    line.first.sequence(), line.first.precursor_charge(), line.first.run());
+            fatalErrorIf_(
+                    peptideseq_precursor_charge_run.find(tpl) != peptideseq_precursor_charge_run.end(),
+                    "Peptide ion appears multiple times for the same run!",
+                    ILLEGAL_PARAMETERS
+            );
+            peptideseq_precursor_charge_run.insert(tpl);
+
+            // If the rt summarization method is set to manual, we simply output all it,rt pairs
+            if (rt_summarization_manual)
             {
               for (const pair< Intensity, Coordinate > &intensity : line.second)
               {
-                csv_out.addLine(String(intensity.second) + ',' + line.first + ',' + String(intensity.first));
+                csv_out.addLine(String(intensity.second) + ',' + line.first.toString() + ',' + String(intensity.first));
               }
             }
+            // Otherwise, the intensities are resolved over the retention times
             else
             {
               Intensity intensity;
-              if (arg_retention_time_resolution_method == "max")
+              if (arg_retention_time_summarization_method == "max")
               {
                 intensity = *(std::max_element(intensities.begin(), intensities.end()));
               }
-              else if (arg_retention_time_resolution_method == "min")
+              else if (arg_retention_time_summarization_method == "min")
               {
                 intensity = *(std::min_element(intensities.begin(), intensities.end()));
               }
-              else if (arg_retention_time_resolution_method == "mean")
+              else if (arg_retention_time_summarization_method == "mean")
               {
                 intensity = meanIntensity(intensities);
               }
-              else if (arg_retention_time_resolution_method == "sum")
+              else if (arg_retention_time_summarization_method == "sum")
               {
                 intensity = sumIntensity(intensities);
               }
-              csv_out.addLine(line.first + ',' + String(intensity));
+              csv_out.addLine(line.first.toString() + delim + String(intensity));
             }
 
           }
@@ -446,6 +465,75 @@ protected:
 
 private:
 
+  class MSstatsLine
+  {
+  public :
+      MSstatsLine(
+              bool _has_fraction,
+              String _accession,
+              String _sequence,
+              String _precursor_charge,
+              String _fragment_ion,
+              String _frag_charge,
+              String _isotope_label_type,
+              String _condition,
+              String _bioreplicate,
+              String _run,
+              String _fraction
+      ): has_fraction_(_has_fraction),
+         accession_(_accession),
+         sequence_(_sequence),
+         precursor_charge_(_precursor_charge),
+         fragment_ion_(_fragment_ion),
+         frag_charge_(_frag_charge),
+         isotope_label_type_(_isotope_label_type),
+         condition_(_condition),
+         bioreplicate_(_bioreplicate),
+         run_(_run),
+         fraction_(_fraction) {}
+
+      const String& accession() const {return this->accession_;}
+      const String& sequence() const {return this->sequence_;}
+      const String& precursor_charge() const {return this->precursor_charge_;}
+      const String& run() const {return this->run_;}
+
+      String toString() const
+      {
+        const String delim(",");
+        return  accession_
+                + delim + sequence_
+                + delim + precursor_charge_
+                + delim + fragment_ion_
+                + delim + frag_charge_
+                + delim + isotope_label_type_
+                + delim + condition_
+                + delim + bioreplicate_
+                + delim + run_
+                + (this->has_fraction_ ? delim + String(fraction_) : "");
+      }
+
+      friend bool operator<(const MSstatsLine &l,
+                            const MSstatsLine &r) {
+
+        return std::tie(l.accession_, l.run_, l.condition_, l.bioreplicate_, l.precursor_charge_, l.sequence_) <
+               std::tie(r.accession_, r.run_, r.condition_, r.bioreplicate_, r.precursor_charge_, r.sequence_);
+      }
+
+
+  private:
+      bool has_fraction_;
+      String accession_;
+      String sequence_;
+      String precursor_charge_;
+      String fragment_ion_;
+      String frag_charge_;
+      String isotope_label_type_;
+      String condition_;
+      String bioreplicate_;
+      String run_;
+      String fraction_;
+  };
+
   static const String param_in;
   static const String param_in_design;
   static const String param_msstats_bioreplicate;
@@ -453,7 +541,7 @@ private:
   static const String param_out;
   static const String param_labeled_reference_peptides;
   static const String param_ambiguous_peptides;
-  static const String param_retention_time_resolution_method;
+  static const String param_retention_time_summarization_method;
 
   static const String na_string;
 
@@ -526,7 +614,7 @@ const String TOPPMSstatsConverter::na_string = "NA";
 const String TOPPMSstatsConverter::param_labeled_reference_peptides = "labeled_reference_peptides";
 const String TOPPMSstatsConverter::meta_value_exp_design_key = "spectra_data";
 const String TOPPMSstatsConverter::param_ambiguous_peptides = "ambiguous_peptides";
-const String TOPPMSstatsConverter::param_retention_time_resolution_method = "retention_time_resolution_method";
+const String TOPPMSstatsConverter::param_retention_time_summarization_method = "retention_time_summarization_method";
 
 
 // the actual main function needed to create an executable
