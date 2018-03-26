@@ -68,18 +68,18 @@ namespace OpenMS
 /*
  * Run Section Format:
    Format: Single header line
-         Run:           Run index (prior fractionation) used to group fractions and source files.
-                        Note: For label-free this has same cardinality as sample.
-                              For multiplexed experiments, these might differ as multiple samples can be measured in single files
-         Fraction:      1st, 2nd, .., fraction. Note: All runs must have the same number of fractions.
-         Path:          Path to mzML files
-         Channel:       Channel in MS file:
-                          label-free: always 1
-                          TMT6Plex: 1..6
-                          SILAC with light and heavy: 1..2
-         Sample:        Index of sample measured in the specified channel X, in fraction Y of run Z
+         Run:                         Run index (prior fractionation) used to group fractions and source files.
+                                      Note: For label-free this has same cardinality as sample.
+                                      For multiplexed experiments, these might differ as multiple samples can be measured in single files
+         Fraction:                    1st, 2nd, .., fraction. Note: All runs must have the same number of fractions.
+         Path(Spectra File):          Path to mzML files
+         Channel:                     Channel in MS file:
+                                      label-free: always 1
+                                      TMT6Plex: 1..6
+                                      SILAC with light and heavy: 1..2
+         Sample:                      Index of sample measured in the specified channel X, in fraction Y of run Z
 
-	Run	Fraction	Path (Spectra File)	Channel		Sample (Condition)
+	Run	Fraction	Path(Spectra File)	Channel		Sample
 	1	1		SPECTRAFILE_F1_TR1.mzML	1		1
 	1	2		SPECTRAFILE_F2_TR1.mzML	1		1
 	1	3		SPECTRAFILE_F3_TR1.mzML	1		1
@@ -104,6 +104,21 @@ namespace OpenMS
 	2	1		SPECTRAFILE_F1_TR2.mzML	4		8
 	2	2		SPECTRAFILE_F2_TR2.mzML	4		8
 	2	3		SPECTRAFILE_F3_TR2.mzML	4		8
+
+  /// 2) Mandatory section with sample information of the experimental design.
+  ///    Required to process fractionated data. One Column must be 'Sample', other columns
+  ///    are unspecified and can contain arbitrary factors
+
+ Sample	Some_Condition	Technical_Replicate
+  1     1               1
+  2	    2	              1
+  3	    3	              1
+  4	    4	              1
+  5	    1	              2
+  6	    2	              2
+  7	    3	              2
+  8	    4	              2
+
 */
     class OPENMS_DLLAPI RunRow
     {
@@ -137,123 +152,38 @@ namespace OpenMS
       // Index of the column
       std::map< String, Size > columnname_to_columnindex_;
 
-      // Get Sample Attributes
-      void getSamples(std::set< unsigned > &samples) const
-      {
-        samples.clear();
-        for (auto it = sample_to_rowindex_.begin();
-             it != sample_to_rowindex_.end(); ++it)
-        {
-          samples.insert(it->first);
-        }
-      }
-      // Get Sample Attributes
-      void getFactors(std::set< String > &factors) const
-      {
-        factors.clear();
-        for (auto it = columnname_to_columnindex_.begin();
-             it != columnname_to_columnindex_.end(); ++it)
-        {
-          factors.insert(it->first);
-        }
-      }
+      // Get set of all samples that are present in the sample section
+      void getSamples(std::set< unsigned > &samples) const;
 
-      bool hasSample(const unsigned sample) const
-      {
-        return sample_to_rowindex_.find(sample) != sample_to_rowindex_.end();
-      }
+      // Get set of all factors (column names) that were defined for the sample section
+      void getFactors(std::set< String > &factors) const;
 
-      bool hasFactor(const String &factor) const
-      {
-        return columnname_to_columnindex_.find(factor) != columnname_to_columnindex_.end();
-      }
+      // Checks whether sample section has row for a sample number
+      bool hasSample(const unsigned sample) const;
 
-      String getFactorValue(const unsigned sample, const String &factor)
-      {
-        if (! hasSample(sample))
-        {
-          throw Exception::MissingInformation(
-            __FILE__,
-            __LINE__,
-            OPENMS_PRETTY_FUNCTION,
-            "Sample " + String(sample) + " is not present in the Experimental Design");
-        }
-        if (! hasFactor(factor))
-        {
-          throw Exception::MissingInformation(
-            __FILE__,
-            __LINE__,
-            OPENMS_PRETTY_FUNCTION,
-            "Factor " + factor + " is not present in the Experimental Design");
-        }
-        StringList sample_row = content_[sample_to_rowindex_[sample]];
-        const Size col_index = columnname_to_columnindex_[factor];
-        return sample_row[col_index];
-      }
+      // Checks whether Sample Section has a specific factor (i.e. column name)
+      bool hasFactor(const String &factor) const;
+
+      // Returns value of factor for given sample and factor name
+      String getFactorValue(const unsigned sample, const String &factor);
     };
-
 
     using RunRows = std::vector<RunRow>;
 
+    const RunRows& getRunSection() const;
 
-    const RunRows& getRunSection() const
-    {
-      return run_section_;
-    }
-
-    void setRunSection(const RunRows& run_section)
-    {
-      run_section_ = run_section;
-      sort_();
-      checkValidRunSection_();
-    }
-
+    void setRunSection(const RunRows& run_section);
 
     // Returns the Sample Section of the experimental design file
-    const SampleSection& getSampleSection() const
-    {
-      return sample_section_;
-    }
+    const ExperimentalDesign::SampleSection& getSampleSection() const;
 
-    void getFileNames(std::vector< String > &filenames, const bool basename) const
-    {
-      filenames.clear();
-      for (const RunRow &row : run_section_)
-      {
-        const String path = String(row.path);
-        filenames.push_back(basename ? path : File::basename(path));
-      }
-    }
+    // Gets vector of Filenames that appears in the run section, optionally trims to basename
+    void getFileNames(std::vector< String > &filenames, const bool basename) const;
 
-    void getChannels(std::vector<unsigned> &channels) const
-    {
-      channels.clear();
-      for (const RunRow &row : run_section_)
-      {
-        channels.push_back(row.channel);
-      }
-    }
+    // Returns vector of channels of the run section
+    void getChannels(std::vector<unsigned> &channels) const;
 
-
-    bool isLabelFree() const
-    {
-      std::vector<unsigned> channels;
-      getChannels(channels);
-      std::unique(channels.begin(), channels.end());
-
-      // At most one channel is label-free
-      return channels.size() < 2;
-    }
-
-    bool hasFractions() const
-    {
-      std::set<unsigned> fractions;
-      for (RunRow const & r : run_section_)
-      {
-        fractions.insert(r.fraction);
-      }
-      return fractions.size() > 1;
-    }
+    void getFractions(std::vector<unsigned> &fractions) const;
 
     /// return fraction index to file paths (ordered by run id)
     std::map<unsigned int, std::vector<String> > getFractionToMSFilesMapping() const;
@@ -271,69 +201,24 @@ namespace OpenMS
     /// return <file_path, channel> to run mapping
     std::map< std::pair< String, unsigned >, unsigned> getPathChannelToRunMapping(const bool) const;
 
-
     // @return the number of samples measured (= highest sample index)
-    unsigned getNumberOfSamples() const
-    {
-      if (run_section_.empty()) { return 0; }
-      return std::max_element(run_section_.begin(), run_section_.end(),
-        [](const RunRow& f1, const RunRow& f2)
-        {
-          return f1.sample < f2.sample;
-        })->sample;
-    }
+    unsigned getNumberOfSamples() const;
 
     // @return the number of fractions (= highest fraction index)
-    unsigned getNumberOfFractions() const
-    {
-      if (run_section_.empty()) { return 0; }
-      return std::max_element(run_section_.begin(), run_section_.end(),
-        [](const RunRow& f1, const RunRow& f2)
-        {
-          return f1.fraction < f2.fraction;
-        })->fraction;
-    }
+    unsigned getNumberOfFractions() const;
 
     // @return the number of channels per file
-    unsigned getNumberOfChannels() const
-    {
-      if (run_section_.empty()) { return 0; }
-      return std::max_element(run_section_.begin(), run_section_.end(),
-        [](const RunRow& f1, const RunRow& f2)
-        {
-          return f1.fraction < f2.fraction;
-        })->channel;
-    }
+    unsigned getNumberOfChannels() const;
 
     // @return the number of MS files (= fractions * runs)
-    unsigned getNumberOfMSFiles() const
-    {
-      std::set<std::string> unique_paths;
-      for (auto const & r : run_section_) { unique_paths.insert(r.path); }
-      return unique_paths.size();
-    }
+    unsigned getNumberOfMSFiles() const;
 
     // @return the number of runs (before fractionation)
     // Allows to group fraction ids and source files
-    unsigned getNumberOfPrefractionationRuns() const
-    {
-      if (run_section_.empty()) { return 0; }
-      return std::max_element(run_section_.begin(), run_section_.end(),
-        [](const RunRow& f1, const RunRow& f2)
-        {
-          return f1.run < f2.run;
-        })->run;
-    }
+    unsigned getNumberOfPrefractionationRuns() const;
 
     // @return sample index (depends on run and channel)
-    unsigned getSample(unsigned run, unsigned channel = 1)
-    {
-      return std::find_if(run_section_.begin(), run_section_.end(),
-        [&run, &channel](const RunRow& r)
-        {
-          return r.run == run && r.channel == channel;
-        })->sample;
-    }
+    unsigned getSample(unsigned run, unsigned channel = 1);
 
     /// return if each fraction number is associated with the same number of runs
     bool sameNrOfMSFilesPerFraction() const;
@@ -358,15 +243,7 @@ namespace OpenMS
           unsigned (*f)(const ExperimentalDesign::RunRow&)) const;
 
       // sort to obtain the default order
-      void sort_()
-      {
-        std::sort(run_section_.begin(), run_section_.end(),
-        [](const RunRow& a, const RunRow& b)
-        {
-          return std::tie(a.run, a.fraction, a.channel, a.sample, a.path) <
-            std::tie(b.run, b.fraction, b.channel, b.sample, b.path);
-        });
-      }
+      void sort_();
 
       template<typename T>
       void errorIfAlreadyExists(std::set<T> &container, T &item, const String &message)
