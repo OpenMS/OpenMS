@@ -139,7 +139,7 @@ namespace OpenMS
 #ifndef QT_NO_SSL
       manager_->connectToHostEncrypted(host_name_.c_str(), (UInt)param_.getValue("host_port"));
 #else
-      // should not happen since it checked during parameter reading. Kept for safety.
+      // should not happen since it is checked during parameter reading. Kept for safety.
       throw OpenMS::Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
           "Error: Usage of SSL encryption requested but the linked QT library was not compiled with SSL support. Please recompile QT.");
 #endif
