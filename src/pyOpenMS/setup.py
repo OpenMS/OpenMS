@@ -102,7 +102,7 @@ if iswin:
     else:
         libraries = ["OpenMS", "OpenSwathAlgo", "SuperHirn", "xerces-c_3", "QtCore5"]
 elif sys.platform.startswith("linux"):
-    libraries = ["OpenMS", "OpenSwathAlgo", "SuperHirn", "xerces-c", "Qt5Core"]
+    libraries = ["OpenMS", "OpenSwathAlgo", "SuperHirn", "xerces-c", "QtCore"]
 elif sys.platform == "darwin":
     libraries = ["OpenMS", "OpenSwathAlgo", "SuperHirn"]
 else:
@@ -138,9 +138,6 @@ include_dirs.extend(PYOPENMS_INCLUDE_DIRS.split(";"))
 include_dirs.extend(LIBRARIES_EXTEND)
 libraries.extend(LIBRARIES_EXTEND)
 library_dirs.extend(LIBRARY_DIRS_EXTEND)
-
-# Ensure we do not have any empty entries
-library_dirs = [l for l in library_dirs if len(l) > 0]
 
 extra_link_args = []
 extra_compile_args = []
