@@ -94,7 +94,7 @@ public:
     template <typename ExperimentT>
     void extractChromatograms(const ExperimentT& input, ExperimentT& output, 
         OpenMS::TargetedExperiment& transition_exp, double mz_extraction_window, bool ppm,
-        TransformationDescription trafo, double rt_extraction_window, String filter)
+        TransformationDescription trafo, double rt_extraction_window, const String& filter)
     {
       // invert the trafo because we want to transform nRT values to "real" RT values
       trafo.invert();
@@ -188,7 +188,7 @@ public:
     void extractChromatograms(const OpenSwath::SpectrumAccessPtr input, 
         std::vector< OpenSwath::ChromatogramPtr >& output, 
         const std::vector<ExtractionCoordinates>& extraction_coordinates,
-        double mz_extraction_window, bool ppm, String filter)
+        double mz_extraction_window, bool ppm, const String& filter)
     {
       ChromatogramExtractorAlgorithm().extractChromatograms(input, output, 
           extraction_coordinates, mz_extraction_window, ppm, -1, filter);
@@ -215,7 +215,7 @@ public:
     void extractChromatograms(const OpenSwath::SpectrumAccessPtr input, 
         std::vector< OpenSwath::ChromatogramPtr >& output, 
         const std::vector<ExtractionCoordinates>& extraction_coordinates,
-        double mz_extraction_window, bool ppm, double im_extraction_window, String filter)
+        double mz_extraction_window, bool ppm, double im_extraction_window, const String& filter)
     {
       ChromatogramExtractorAlgorithm().extractChromatograms(input, output, 
           extraction_coordinates, mz_extraction_window, ppm, im_extraction_window, filter);
@@ -608,7 +608,7 @@ private:
                                    const TransformationDescription& trafo, double rt_extraction_window);
 
      /// @note: TODO deprecate this function (use ChromatogramExtractorAlgorithm instead)
-    int getFilterNr_(String filter);
+    int getFilterNr_(const String& filter);
 
      /// @note: TODO deprecate this function (use ChromatogramExtractorAlgorithm instead)
     void populatePeptideRTMap_(OpenMS::TargetedExperiment& transition_exp, double rt_extraction_window);

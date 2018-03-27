@@ -143,7 +143,7 @@ namespace OpenMS
     return false;
   }
 
-  int ChromatogramExtractor::getFilterNr_(String filter)
+  int ChromatogramExtractor::getFilterNr_(const String& filter)
   {
     if (filter == "tophat")
     {
