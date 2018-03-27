@@ -121,10 +121,10 @@ namespace Internal
 
       Tries to parse the file, success can be checked with getParsingSuccess()
     */
-    explicit IndexedMzMLHandler(String filename);
+    explicit IndexedMzMLHandler(const String& filename);
 
     /// Copy constructor
-    IndexedMzMLHandler(const IndexedMzMLHandler & source);
+    IndexedMzMLHandler(const IndexedMzMLHandler& source);
 
     /// Destructor
     ~IndexedMzMLHandler();

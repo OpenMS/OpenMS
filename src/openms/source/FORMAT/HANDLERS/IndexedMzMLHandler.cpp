@@ -69,7 +69,7 @@ namespace Internal
     else parsing_success_ = false;
   }
 
-  IndexedMzMLHandler::IndexedMzMLHandler(String filename) :
+  IndexedMzMLHandler::IndexedMzMLHandler(const String& filename) :
     parsing_success_(false),
     skip_xml_checks_(false) 
   {
