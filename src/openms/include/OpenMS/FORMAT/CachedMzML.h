@@ -170,6 +170,10 @@ protected:
     /// write a single chromatogram to filestream
     void writeChromatogram_(const ChromatogramType& chromatogram, std::ofstream& ofs);
 
+    /// helper method for fast reading of spectra and chromatograms
+    static inline void readDataFast_(std::ifstream& ifs, std::vector<OpenSwath::BinaryDataArrayPtr>& data, const Size& data_size, 
+      const Size& nr_float_arrays);
+
     /// Members
     std::vector<std::streampos> spectra_index_;
     std::vector<std::streampos> chrom_index_;

@@ -288,15 +288,23 @@ namespace OpenMS
         "Read an invalid spectrum length, something is wrong here. Aborting.", "filestream");
     }
 
-    data[0]->data.resize(spec_size);
-    data[1]->data.resize(spec_size);
+    readDataFast_(ifs, data, spec_size, nr_float_arrays);
+    return data;
+  }
 
-    if (spec_size > 0)
+  void CachedmzML::readDataFast_(std::ifstream& ifs,
+                                 std::vector<OpenSwath::BinaryDataArrayPtr>& data,
+                                 const Size& data_size, const Size& nr_float_arrays)
+  {
+    data[0]->data.resize(data_size);
+    data[1]->data.resize(data_size);
+
+    if (data_size > 0)
     {
-      ifs.read((char*) &(data[0]->data)[0], spec_size * sizeof(DatumSingleton));
-      ifs.read((char*) &(data[1]->data)[0], spec_size * sizeof(DatumSingleton));
+      ifs.read((char*) &(data[0]->data)[0], data_size * sizeof(DatumSingleton));
+      ifs.read((char*) &(data[1]->data)[0], data_size * sizeof(DatumSingleton));
     }
-    if (nr_float_arrays == 0) return data;
+    if (nr_float_arrays == 0) return;
 
     char* buffer = new(std::nothrow) char[1024];
     for (Size k = 0; k < nr_float_arrays; k++)
@@ -318,7 +326,7 @@ namespace OpenMS
       ifs.read((char*)&(data.back()->data)[0], len * sizeof(DatumSingleton));
     }
     delete[] buffer;
-    return data;
+    return;
   }
 
   std::vector<OpenSwath::BinaryDataArrayPtr> CachedmzML::readChromatogramFast(std::ifstream& ifs)
@@ -338,32 +346,7 @@ namespace OpenMS
         "Read an invalid chromatogram length, something is wrong here. Aborting.", "filestream");
     }
 
-    data[0]->data.resize(chrom_size);
-    data[1]->data.resize(chrom_size);
-    ifs.read((char*) &(data[0]->data)[0], chrom_size * sizeof(DatumSingleton));
-    ifs.read((char*) &(data[1]->data)[0], chrom_size * sizeof(DatumSingleton));
-    if (nr_float_arrays == 0) return data;
-
-    char* buffer = new(std::nothrow) char[1024];
-    for (Size k = 0; k < nr_float_arrays; k++)
-    {
-      data.push_back(OpenSwath::BinaryDataArrayPtr(new OpenSwath::BinaryDataArray));
-      Size len, len_name;
-      ifs.read((char*)&len, sizeof(len));
-      ifs.read((char*)&len_name, sizeof(len_name));
-
-      // We will not read data longer than 1024 length as this is user-generated input data
-      if (len_name > 1023) ifs.seekg(len_name * sizeof(char), ifs.cur);
-      else
-      {
-        ifs.read(buffer, len_name);
-        buffer[len_name] = '\0';
-      }
-      data.back()->data.resize(len);
-      data.back()->description = buffer;
-      ifs.read((char*)&(data.back()->data)[0], len * sizeof(DatumSingleton));
-    }
-    delete[] buffer;
+    readDataFast_(ifs, data, chrom_size, nr_float_arrays);
     return data;
   }
 
@@ -430,6 +413,7 @@ namespace OpenMS
     ofs.write((char*)&mz_data.front(), mz_data.size() * sizeof(mz_data.front()));
     ofs.write((char*)&int_data.front(), int_data.size() * sizeof(int_data.front()));
 
+    Datavector tmp;
     for (const auto& fda : spectrum.getFloatDataArrays() )
     {
       Size len = fda.size();
@@ -438,7 +422,7 @@ namespace OpenMS
       ofs.write((char*)&len_name, sizeof(len_name));
       ofs.write((char*)&fda.getName().front(), len_name * sizeof(fda.getName().front()));
       // now go to the actual data
-      Datavector tmp;
+      tmp.clear();
       tmp.reserve(fda.size());
       for (const auto& val : fda) {tmp.push_back(val);}
       ofs.write((char*)&tmp.front(), tmp.size() * sizeof(tmp.front()));
@@ -451,7 +435,7 @@ namespace OpenMS
       ofs.write((char*)&len_name, sizeof(len_name));
       ofs.write((char*)&ida.getName().front(), len_name * sizeof(ida.getName().front()));
       // now go to the actual data
-      Datavector tmp;
+      tmp.clear();
       tmp.reserve(ida.size());
       for (const auto& val : ida) {tmp.push_back(val);}
       ofs.write((char*)&tmp.front(), tmp.size() * sizeof(tmp.front()));
@@ -484,6 +468,7 @@ namespace OpenMS
     ofs.write((char*)&rt_data.front(), rt_data.size() * sizeof(rt_data.front()));
     ofs.write((char*)&int_data.front(), int_data.size() * sizeof(int_data.front()));
 
+    Datavector tmp;
     for (const auto& fda : chromatogram.getFloatDataArrays() )
     {
       Size len = fda.size();
@@ -492,7 +477,7 @@ namespace OpenMS
       ofs.write((char*)&len_name, sizeof(len_name));
       ofs.write((char*)&fda.getName().front(), len_name * sizeof(fda.getName().front()));
       // now go to the actual data
-      Datavector tmp;
+      tmp.clear();
       tmp.reserve(fda.size());
       for (const auto& val : fda) {tmp.push_back(val);}
       ofs.write((char*)&tmp.front(), tmp.size() * sizeof(tmp.front()));
@@ -505,7 +490,7 @@ namespace OpenMS
       ofs.write((char*)&len_name, sizeof(len_name));
       ofs.write((char*)&ida.getName().front(), len_name * sizeof(ida.getName().front()));
       // now go to the actual data
-      Datavector tmp;
+      tmp.clear();
       tmp.reserve(ida.size());
       for (const auto& val : ida) {tmp.push_back(val);}
       ofs.write((char*)&tmp.front(), tmp.size() * sizeof(tmp.front()));
