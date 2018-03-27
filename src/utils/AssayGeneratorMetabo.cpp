@@ -93,10 +93,29 @@ protected:
     String in = getStringOption_("in");
     String id = getStringOption_("in_id");
     String out = getStringOption_("out");
+ 
+    MzMLFile f;
+    PeakMap exp;
+    f.load(in, exp);
 
-
+    for (MSExperimentType::ConstIterator spec_iter = exp.begin(); spec_iter != exp.end(); ++spec_iter) 
+    {
+      if(spec_iter->getMSLevel() != 2)
+      {
+        continue;
+      }
+              
+      const MSSpectrum& spectrum = *spec_iter;
+      const vector<Precursor>& precursor = spectrum.getPrecursors();
+      
+      feature.setRT(spectrum.getRT());
+      feature.setMZ(precursor[0].getMZ());
+      feature.setIntensity(precursor[0].getIntensity());
+      feature.setUniqueId();
+      fm push_back(feature);  
     
-
+    }
+   
     //-------------------------------------------------------------
     // Calculations
     //-------------------------------------------------------------
