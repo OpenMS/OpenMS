@@ -16,8 +16,8 @@ if "--no-optimization" in sys.argv:
     sys.argv.remove("--no-optimization")
 
 # import config
-from env import  (OPEN_MS_SRC, OPEN_MS_BUILD_DIR, OPEN_MS_CONTRIB_BUILD_DIRS,
-                  QT_LIBRARY_DIR, MSVS_RTLIBS,
+from env import  (OPEN_MS_COMPILER, OPEN_MS_SRC, OPEN_MS_BUILD_DIR, OPEN_MS_CONTRIB_BUILD_DIRS,
+                  QT_QTCORE_LIBRARY, QT_QTNETWORK_LIBRARY, MSVS_RTLIBS,
                   QT_QMAKE_VERSION_INFO, OPEN_MS_BUILD_TYPE, OPEN_MS_VERSION, LIBRARIES_EXTEND,
                   LIBRARY_DIRS_EXTEND, OPEN_MS_LIB, OPEN_SWATH_ALGO_LIB, PYOPENMS_INCLUDE_DIRS,
                   PY_NUM_MODULES, PY_NUM_THREADS)
@@ -33,6 +33,11 @@ import os
 import glob
 import shutil
 import time
+
+
+os.environ["CC"] = OPEN_MS_COMPILER
+# AFAIK distutils does not care about CXX (set it to be safe)
+os.environ["CXX"] = OPEN_MS_COMPILER
 
 j = os.path.join
 
@@ -93,9 +98,9 @@ for OPEN_MS_CONTRIB_BUILD_DIR in OPEN_MS_CONTRIB_BUILD_DIRS.split(";"):
 #
 if iswin:
     if IS_DEBUG:
-        libraries = ["OpenMSd", "OpenSwathAlgod", "SuperHirnd", "xerces-c_3D", "QtCored4"]
+        libraries = ["OpenMSd", "OpenSwathAlgod", "SuperHirnd", "xerces-c_3D", "QtCored5"]
     else:
-        libraries = ["OpenMS", "OpenSwathAlgo", "SuperHirn", "xerces-c_3", "QtCore4"]
+        libraries = ["OpenMS", "OpenSwathAlgo", "SuperHirn", "xerces-c_3", "QtCore5"]
 elif sys.platform.startswith("linux"):
     libraries = ["OpenMS", "OpenSwathAlgo", "SuperHirn", "xerces-c", "QtCore"]
 elif sys.platform == "darwin":
@@ -112,7 +117,8 @@ library_dirs = [OPEN_MS_BUILD_DIR,
                 j(OPEN_MS_BUILD_DIR, "bin"),
                 j(OPEN_MS_BUILD_DIR, "bin", "Release"),
                 j(OPEN_MS_BUILD_DIR, "Release"),
-                QT_LIBRARY_DIR,
+                QT_QTCORE_LIBRARY,
+                QT_QTNETWORK_LIBRARY,
                 ]
 
 # extend with contrib lib dirs

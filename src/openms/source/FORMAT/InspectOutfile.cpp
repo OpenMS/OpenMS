@@ -38,11 +38,10 @@
 #define OPENMS_IS_BIG_ENDIAN false
 #endif
 
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/FORMAT/InspectOutfile.h>
-#include <OpenMS/KERNEL/StandardTypes.h>
 #include <QRegExp>
 
-#include <set>
 #include <fstream>
 
 #pragma clang diagnostic push

@@ -213,6 +213,9 @@ namespace OpenMS
                                  const boost::regex& scan_regexp,
                                  bool no_error = false);
 
+    static Int extractScanNumber(const String& native_id,
+                                 const String& native_id_type_accession);
+
   protected:
 
     /// Named groups recognized in regular expression

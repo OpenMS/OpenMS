@@ -39,7 +39,6 @@
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmUnlabeled.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmQT.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmKD.h>
-#include <OpenMS/KERNEL/ConversionHelper.h>
 
 #include <OpenMS/CONCEPT/Factory.h>
 

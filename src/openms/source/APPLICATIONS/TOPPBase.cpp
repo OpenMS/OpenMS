@@ -54,10 +54,6 @@
 
 #include <iostream>
 
-#if  defined(__APPLE__)
-  #include <QCoreApplication.h> // needed to disable plugin loading on Mac OSX
-#endif
-
 #include <QDir>
 #include <QFile>
 
@@ -130,12 +126,6 @@ namespace OpenMS
     {
       writeLog_(String("Warning: Message to maintainer - If '") + tool_name_ + "' is an official TOPP tool, add it to the tools list in ToolHandler. If it is not, set the 'official' flag of the TOPPBase constructor to false.");
     }
-
-#if  defined(__APPLE__)
-    // we do not want to load plugins as this leads to serious problems
-    // when shipping on mac os x
-    QCoreApplication::setLibraryPaths(QStringList());
-#endif
   }
 
   TOPPBase::~TOPPBase()

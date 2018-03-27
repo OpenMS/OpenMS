@@ -1,9 +1,4 @@
 ## Windows installer
-## TODO readd UAC plugin.. otherwise fails as normal user "Cant write file"
-## No description of the search engines (subsections of Thirdparty)
-
-set(PACKAGE_LIB_DIR bin)
-set(PACKAGE_BIN_DIR TOPP)
 
 if (CMAKE_GENERATOR MATCHES ".*Win64.*")
   set(PLATFORM "64")
@@ -12,12 +7,31 @@ else()
   set(PLATFORM "32")
   set(ARCH "x86")
 endif()
+set(VC_REDIST_EXE "vcredist_${ARCH}.exe")
+
 
 ## Find redistributable to be installed by NSIS
 if (NOT VC_REDIST_PATH)
-	if(CMAKE_GENERATOR MATCHES ".*Visual Studio 1[1-9].*")
-	  set(VC_REDIST_PATH "$ENV{VSINSTALLDIR}VC\\redist\\1033")
-	  set(VC_REDIST_EXE "vcredist_${ARCH}.exe")
+	string(REGEX REPLACE ".*Visual Studio ([1-9][1-9]) .*" "\\1" OPENMS_MSVC_VERSION_STRING "${CMAKE_GENERATOR}")
+	if("${OPENMS_MSVC_VERSION_STRING}" GREATER "14")
+	  ## An old solution to find redists
+	  #execute_process(COMMAND "$ENV{PROGRAMFILES}/Microsoft Visual Studio/Installer/vswhere" -latest -version "${OPENMS_MSVC_VERSION_STRING}" -property installationPath
+	  #                OUTPUT_VARIABLE VC_ROOT_PATH
+	  #				  ERROR_VARIABLE VSWHERE_ERROR
+	  #				  RESULT_VARIABLE VSWHERE_RESULT)
+	  #if ("${VSWHERE_RESULT}" NOTEQUAL "0")
+	  #  message(FATAL_ERROR "Executing vswhere to find vsredist executable for win packaging failed. Either specify VC_REDIST_PATH or make sure vswhere works.")
+	  #endif()
+	  
+	  ## We have to glob recurse in the parent folder because there is a version number in the end.
+	  ## Unfortunately in my case the default version (latest) does not include the redist?!
+	  ## TODO Not sure if this environment variable always exists. In the VS command line it should! Fallback vswhere or VCINSTALLDIR/Redist/MSVC?
+	  get_filename_component(VC_ROOT_PATH "$ENV{VCToolsRedistDir}.." ABSOLUTE)
+	  file(GLOB_RECURSE VC_REDIST_ABS_PATH "${VC_ROOT_PATH}/${VC_REDIST_EXE}")
+	  ## TODO pick the latest of the found redists
+	  get_filename_component(VC_REDIST_PATH "${VC_REDIST_ABS_PATH}" DIRECTORY)
+	elseif(OPENMS_MSVC_VERSION_STRING GREATER "10")
+	  set(VC_REDIST_PATH "$ENV{VCINSTALLDIR}redist/1033")  
 	else()
 	  message(FATAL_ERROR "Variable VC_REDIST_PATH missing."
 	  "Before Visual Studio 2012 you have to provide the path"
@@ -25,7 +39,17 @@ if (NOT VC_REDIST_PATH)
 	endif()
 endif()
 
-##TODO try following instead once CMake generates NSIS commands for us.
+if(EXISTS ${SEARCH_ENGINES_DIRECTORY})
+  file(GLOB PWIZ_VCREDIST "${SEARCH_ENGINES_DIRECTORY}/*.exe")
+  install(FILES ${PWIZ_VCREDIST}
+          DESTINATION ${INSTALL_SHARE_DIR}/THIRDPARTY
+		  PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ
+		              GROUP_READ GROUP_EXECUTE
+					  WORLD_READ WORLD_EXECUTE
+		)
+endif()
+
+##TODO try following instead once CMake generates NSIS commands for us. Installs dll instead of redist though. Thirdparties?
 # ########################################################### System runtime libraries
 # set(CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS_SKIP TRUE)
 # include(InstallRequiredSystemLibraries)
@@ -33,9 +57,20 @@ endif()
 #         DESTINATION OpenMS-${CPACK_PACKAGE_VERSION}/${PACKAGE_LIB_DIR}/
 #         COMPONENT library)
 
-configure_file(${PROJECT_SOURCE_DIR}/cmake/Windows/Cfg_Settings.nsh.in ${PROJECT_BINARY_DIR}/Cfg_Settings.nsh)
+## Careful: the configured file needs to lie exactly in the Build directory so that it is found by the NSIS_template
+configure_file(${PROJECT_SOURCE_DIR}/cmake/Windows/Cfg_Settings.nsh.in ${PROJECT_BINARY_DIR}/Cfg_Settings.nsh.in.conf @ONLY)
+install(CODE "
+	set (PACKAGING_DIR \${CMAKE_INSTALL_PREFIX})
+	configure_file(${PROJECT_BINARY_DIR}/Cfg_Settings.nsh.in.conf ${PROJECT_BINARY_DIR}/Cfg_Settings.nsh)
+	")
 
 set(CPACK_GENERATOR NSIS)
+## Remove the next three lines if you use the NSIS autogeneration feature at some point!
+## For now it makes sure everything is merged into the usual folders bin/share/include
+set(CPACK_COMPONENT_ALL_IN_ONE 1)
+set(CPACK_COMPONENTS_ALL_GROUPS_IN_ONE_PACKAGE 1)
+set(CPACK_MONOLITHIC_INSTALL 1)
+##
 
 set(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAME}-${CPACK_PACKAGE_VERSION}-Win${PLATFORM}")
 set(CPACK_PACKAGE_ICON "${PROJECT_SOURCE_DIR}/cmake/Windows/OpenMS.ico")

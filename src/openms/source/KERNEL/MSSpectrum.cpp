@@ -33,7 +33,6 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/KERNEL/MSSpectrum.h>
-#include <ostream>
 
 namespace OpenMS
 {

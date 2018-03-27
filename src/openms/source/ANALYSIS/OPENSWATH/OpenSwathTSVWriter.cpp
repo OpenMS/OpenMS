@@ -38,7 +38,6 @@ namespace OpenMS
 {
 
 
-
   OpenSwathTSVWriter::OpenSwathTSVWriter(String output_filename, 
                        String input_filename,
                        bool ms1_scores, 

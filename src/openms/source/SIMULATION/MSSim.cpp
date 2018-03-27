@@ -43,8 +43,6 @@
 
 #include <OpenMS/SIMULATION/LABELING/BaseLabeler.h>
 
-#include <OpenMS/DATASTRUCTURES/ListUtils.h>
-
 //#define OPENMS_DEBUG_SIM_
 
 using namespace std;

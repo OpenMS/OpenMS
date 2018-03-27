@@ -36,14 +36,14 @@
 #include <OpenMS/VISUAL/MultiGradientSelector.h>
 
 //qt includes
-#include <QtGui/QPainter>
-#include <QtGui/QColorDialog>
-#include <QtGui/QPixmap>
-#include <QtGui/QMouseEvent>
-#include <QtGui/QKeyEvent>
-#include <QtGui/QPaintEvent>
-#include <QtGui/QContextMenuEvent>
-#include <QtGui/QMenu>
+#include <QPainter>
+#include <QtWidgets/QColorDialog>
+#include <QPixmap>
+#include <QMouseEvent>
+#include <QKeyEvent>
+#include <QPaintEvent>
+#include <QContextMenuEvent>
+#include <QtWidgets/QMenu>
 
 using namespace std;
 

@@ -39,7 +39,7 @@
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/VISUAL/TOPPASResources.h>
 
-#include <QtGui/QApplication>
+#include <QApplication>
 #include <QtCore/QDir>
 
 using namespace OpenMS;

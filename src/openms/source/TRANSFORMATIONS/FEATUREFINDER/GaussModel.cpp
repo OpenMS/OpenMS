@@ -34,10 +34,6 @@
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/GaussModel.h>
 
-#include <OpenMS/DATASTRUCTURES/ListUtils.h>
-
-#include <numeric>
-
 namespace OpenMS
 {
   GaussModel::GaussModel() :

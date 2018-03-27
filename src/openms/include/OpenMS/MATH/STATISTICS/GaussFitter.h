@@ -77,6 +77,16 @@ public:
 
         /// parameter sigma of Gaussian distribution (width)
         double sigma;
+
+      /**
+        @brief Evaluate the current Gaussian model at the specified point.
+
+        Returns the intensities (i.e. probabilities scaled by the factor 'A') of the PDF at the given positions.
+        This function can be called with any set of parameters, e.g. the initial parameters (to get a 'before-fit' status),
+        or after fitting.
+
+      */
+        double eval(const double x) const;
       };
 
       /// Constructor
@@ -113,7 +123,7 @@ protected:
 
 private:
 
-      /// Copy constructor (not implemented)
+     /// Copy constructor (not implemented)
       GaussFitter(const GaussFitter & rhs);
 
       /// Assignment operator (not implemented)

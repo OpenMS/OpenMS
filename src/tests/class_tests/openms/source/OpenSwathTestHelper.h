@@ -37,6 +37,7 @@
 
 #include <OpenMS/KERNEL/MRMTransitionGroup.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
+#include <OpenMS/KERNEL/MSChromatogram.h>
 #include <OpenMS/KERNEL/ChromatogramPeak.h>
 
 #include <OpenMS/ANALYSIS/MRM/ReactionMonitoringTransition.h>

@@ -35,14 +35,9 @@
 #ifndef OPENMS_MATH_MISC_CUBICSPLINE2D_H
 #define OPENMS_MATH_MISC_CUBICSPLINE2D_H
 
-#include <OpenMS/config.h>
-#include <OpenMS/KERNEL/StandardDeclarations.h>
-#include <OpenMS/CONCEPT/Types.h>
-#include <OpenMS/CONCEPT/Exception.h>
-#include <OpenMS/CONCEPT/Macros.h>
+#include <OpenMS/OpenMSConfig.h>
 
 #include <vector>
-#include <algorithm>
 #include <map>
 
 namespace OpenMS

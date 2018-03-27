@@ -34,11 +34,6 @@
 
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
-#include <OpenMS/CONCEPT/Exception.h>
-#include <OpenMS/CONCEPT/LogStream.h>
-#include <OpenMS/METADATA/PeptideHit.h>
-#include <sstream>
-#include <algorithm>
 #include <numeric>
 
 

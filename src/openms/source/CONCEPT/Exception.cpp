@@ -34,11 +34,9 @@
 
 #include <OpenMS/CONCEPT/Exception.h>
 
-#include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/CONCEPT/GlobalExceptionHandler.h>
 
 #include <cstdio>
-#include <exception>
 #include <iostream>
 #include <sstream>
 #include <typeinfo>
