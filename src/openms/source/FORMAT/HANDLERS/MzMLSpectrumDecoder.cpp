@@ -49,24 +49,24 @@ namespace OpenMS
 {
 
   /// Small internal function to check the default data vectors
-  void checkData_(std::vector<Internal::MzMLHandlerHelper::BinaryData>& data_,
+  void checkData_(std::vector<Internal::MzMLHandlerHelper::BinaryData>& data,
       SignedSize x_index, SignedSize int_index,
       bool x_precision_64, bool int_precision_64)
   {
     // Error if intensity or m/z (RT) is encoded as int32|64 - they should be float32|64!
-    if ((data_[x_index].ints_32.size() > 0) || (data_[x_index].ints_64.size() > 0))
+    if ((data[x_index].ints_32.size() > 0) || (data[x_index].ints_64.size() > 0))
     {
       throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
           "", "Encoding m/z or RT array as integer is not allowed!");
     }
-    if ((data_[int_index].ints_32.size() > 0) || (data_[int_index].ints_64.size() > 0))
+    if ((data[int_index].ints_32.size() > 0) || (data[int_index].ints_64.size() > 0))
     {
       throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
           "", "Encoding intensity array as integer is not allowed!");
     }
 
-    Size mz_size = x_precision_64 ? data_[x_index].floats_64.size() : data_[x_index].floats_32.size();
-    Size int_size = int_precision_64 ? data_[int_index].floats_64.size() : data_[int_index].floats_32.size();
+    Size mz_size = x_precision_64 ? data[x_index].floats_64.size() : data[x_index].floats_32.size();
+    Size int_size = int_precision_64 ? data[int_index].floats_64.size() : data[int_index].floats_32.size();
 
     // Check if int-size and mz-size are equal
     if (mz_size != int_size)
@@ -76,17 +76,17 @@ namespace OpenMS
     }
   }
 
-  inline void fillDataArray(const std::vector<Internal::MzMLHandlerHelper::BinaryData>& data_,
+  inline void fillDataArray(const std::vector<Internal::MzMLHandlerHelper::BinaryData>& data,
                             OpenMS::Interfaces::BinaryDataArrayPtr array, bool precision_64, SignedSize index)
   {
     // This seems to be the fastest method to move the data (faster than copy or assign)
     if (precision_64)
     {
-      array->data.insert(array->data.begin(), data_[index].floats_64.begin(), data_[index].floats_64.end());
+      array->data.insert(array->data.begin(), data[index].floats_64.begin(), data[index].floats_64.end());
     }
     else
     {
-      array->data.insert(array->data.begin(), data_[index].floats_32.begin(), data_[index].floats_32.end());
+      array->data.insert(array->data.begin(), data[index].floats_32.begin(), data[index].floats_32.end());
     }
   }
 
@@ -211,7 +211,7 @@ namespace OpenMS
   }
 
   template<class T>
-  inline void fillDataArray(const std::vector<Internal::MzMLHandlerHelper::BinaryData>& data_,
+  inline void fillDataArray(const std::vector<Internal::MzMLHandlerHelper::BinaryData>& data,
                             T& spectrum,
                             const bool x_precision_64,
                             const bool int_precision_64,
@@ -222,8 +222,8 @@ namespace OpenMS
     typename T::PeakType tmp;
     if (x_precision_64 && !int_precision_64)
     {
-      std::vector< double >::const_iterator mz_it = data_[x_index].floats_64.begin();
-      std::vector< float >::const_iterator int_it = data_[int_index].floats_32.begin();
+      std::vector< double >::const_iterator mz_it = data[x_index].floats_64.begin();
+      std::vector< float >::const_iterator int_it = data[int_index].floats_32.begin();
       for (Size n = 0; n < default_array_length_; n++)
       {
         //add peak
@@ -236,8 +236,8 @@ namespace OpenMS
     }
     else if (x_precision_64 && int_precision_64)
     {
-      std::vector< double >::const_iterator mz_it = data_[x_index].floats_64.begin();
-      std::vector< double >::const_iterator int_it = data_[int_index].floats_64.begin();
+      std::vector< double >::const_iterator mz_it = data[x_index].floats_64.begin();
+      std::vector< double >::const_iterator int_it = data[int_index].floats_64.begin();
       for (Size n = 0; n < default_array_length_; n++)
       {
         //add peak
@@ -250,8 +250,8 @@ namespace OpenMS
     }
     else if (!x_precision_64 && int_precision_64)
     {
-      std::vector< float >::const_iterator mz_it = data_[x_index].floats_32.begin();
-      std::vector< double >::const_iterator int_it = data_[int_index].floats_64.begin();
+      std::vector< float >::const_iterator mz_it = data[x_index].floats_32.begin();
+      std::vector< double >::const_iterator int_it = data[int_index].floats_64.begin();
       for (Size n = 0; n < default_array_length_; n++)
       {
         //add peak
@@ -264,8 +264,8 @@ namespace OpenMS
     }
     else if (!x_precision_64 && !int_precision_64)
     {
-      std::vector< float >::const_iterator mz_it = data_[x_index].floats_32.begin();
-      std::vector< float >::const_iterator int_it = data_[int_index].floats_32.begin();
+      std::vector< float >::const_iterator mz_it = data[x_index].floats_32.begin();
+      std::vector< float >::const_iterator int_it = data[int_index].floats_32.begin();
       for (Size n = 0; n < default_array_length_; n++)
       {
         //add peak
@@ -278,17 +278,17 @@ namespace OpenMS
     }
   }
 
-  void MzMLSpectrumDecoder::decodeBinaryDataMSSpectrum_(std::vector<BinaryData>& data_, OpenMS::MSSpectrum& spectrum)
+  void MzMLSpectrumDecoder::decodeBinaryDataMSSpectrum_(std::vector<BinaryData>& data, OpenMS::MSSpectrum& spectrum)
   {
-    Internal::MzMLHandlerHelper::decodeBase64Arrays(data_, skip_xml_checks_);
+    Internal::MzMLHandlerHelper::decodeBase64Arrays(data, skip_xml_checks_);
 
     //look up the precision and the index of the intensity and m/z array
     bool x_precision_64 = true;
     bool int_precision_64 = true;
     SignedSize x_index = -1;
     SignedSize int_index = -1;
-    Internal::MzMLHandlerHelper::computeDataProperties_(data_, x_precision_64, x_index, "m/z array");
-    Internal::MzMLHandlerHelper::computeDataProperties_(data_, int_precision_64, int_index, "intensity array");
+    Internal::MzMLHandlerHelper::computeDataProperties_(data, x_precision_64, x_index, "m/z array");
+    Internal::MzMLHandlerHelper::computeDataProperties_(data, int_precision_64, int_index, "intensity array");
 
     //Abort if no m/z or intensity array is present
     if (int_index == -1 || x_index == -1)
@@ -297,34 +297,34 @@ namespace OpenMS
       return;
     }
 
-    checkData_(data_, x_index, int_index, x_precision_64, int_precision_64);
+    checkData_(data, x_index, int_index, x_precision_64, int_precision_64);
 
     // At this point, we could check whether the defaultArrayLength from the
     // spectrum/chromatogram tag is equivalent to size of the decoded data
-    Size default_array_length_ = x_precision_64 ? data_[x_index].floats_64.size() : data_[x_index].floats_32.size();
+    Size default_array_length_ = x_precision_64 ? data[x_index].floats_64.size() : data[x_index].floats_32.size();
 
     spectrum.reserve(default_array_length_);
-    fillDataArray(data_, spectrum,
+    fillDataArray(data, spectrum,
                   x_precision_64, int_precision_64,
                   x_index, int_index, default_array_length_);
 
-    if (data_.size() > 2) 
+    if (data.size() > 2) 
     {
-      fillDataArrays(data_, spectrum);
+      fillDataArrays(data, spectrum);
     }
   }
 
-  void MzMLSpectrumDecoder::decodeBinaryDataMSChrom_(std::vector<BinaryData>& data_, OpenMS::MSChromatogram& chromatogram)
+  void MzMLSpectrumDecoder::decodeBinaryDataMSChrom_(std::vector<BinaryData>& data, OpenMS::MSChromatogram& chromatogram)
   {
-    Internal::MzMLHandlerHelper::decodeBase64Arrays(data_, skip_xml_checks_);
+    Internal::MzMLHandlerHelper::decodeBase64Arrays(data, skip_xml_checks_);
 
     //look up the precision and the index of the intensity and m/z array
     bool x_precision_64 = true;
     bool int_precision_64 = true;
     SignedSize x_index = -1;
     SignedSize int_index = -1;
-    Internal::MzMLHandlerHelper::computeDataProperties_(data_, x_precision_64, x_index, "time array");
-    Internal::MzMLHandlerHelper::computeDataProperties_(data_, int_precision_64, int_index, "intensity array");
+    Internal::MzMLHandlerHelper::computeDataProperties_(data, x_precision_64, x_index, "time array");
+    Internal::MzMLHandlerHelper::computeDataProperties_(data, int_precision_64, int_index, "intensity array");
 
     //Abort if no m/z or intensity array is present
     if (int_index == -1 || x_index == -1)
@@ -333,26 +333,26 @@ namespace OpenMS
       return;
     }
 
-    checkData_(data_, x_index, int_index, x_precision_64, int_precision_64);
+    checkData_(data, x_index, int_index, x_precision_64, int_precision_64);
 
     // At this point, we could check whether the defaultArrayLength from the
     // spectrum/chromatogram tag is equivalent to size of the decoded data
-    Size default_array_length_ = x_precision_64 ? data_[x_index].floats_64.size() : data_[x_index].floats_32.size();
+    Size default_array_length_ = x_precision_64 ? data[x_index].floats_64.size() : data[x_index].floats_32.size();
 
     chromatogram.reserve(default_array_length_);
-    fillDataArray(data_, chromatogram,
+    fillDataArray(data, chromatogram,
                   x_precision_64, int_precision_64,
                   x_index, int_index, default_array_length_);
 
-    if (data_.size() > 2) 
+    if (data.size() > 2) 
     {
-      fillDataArrays(data_, chromatogram);
+      fillDataArrays(data, chromatogram);
     }
   }
 
-  OpenMS::Interfaces::SpectrumPtr MzMLSpectrumDecoder::decodeBinaryDataSpectrum_(std::vector<BinaryData>& data_)
+  OpenMS::Interfaces::SpectrumPtr MzMLSpectrumDecoder::decodeBinaryDataSpectrum_(std::vector<BinaryData>& data)
   {
-    Internal::MzMLHandlerHelper::decodeBase64Arrays(data_, skip_xml_checks_);
+    Internal::MzMLHandlerHelper::decodeBase64Arrays(data, skip_xml_checks_);
     OpenMS::Interfaces::SpectrumPtr sptr(new OpenMS::Interfaces::Spectrum);
 
     //look up the precision and the index of the intensity and m/z array
@@ -360,8 +360,8 @@ namespace OpenMS
     bool int_precision_64 = true;
     SignedSize x_index = -1;
     SignedSize int_index = -1;
-    Internal::MzMLHandlerHelper::computeDataProperties_(data_, x_precision_64, x_index, "m/z array");
-    Internal::MzMLHandlerHelper::computeDataProperties_(data_, int_precision_64, int_index, "intensity array");
+    Internal::MzMLHandlerHelper::computeDataProperties_(data, x_precision_64, x_index, "m/z array");
+    Internal::MzMLHandlerHelper::computeDataProperties_(data, int_precision_64, int_index, "intensity array");
 
     //Abort if no m/z or intensity array is present
     if (int_index == -1 || x_index == -1)
@@ -370,14 +370,14 @@ namespace OpenMS
       return sptr;
     }
 
-    checkData_(data_, x_index, int_index, x_precision_64, int_precision_64);
+    checkData_(data, x_index, int_index, x_precision_64, int_precision_64);
 
     // At this point, we could check whether the defaultArrayLength from the
     // spectrum/chromatogram tag is equivalent to size of the decoded data
-    Size default_array_length_ = x_precision_64 ? data_[x_index].floats_64.size() : data_[x_index].floats_32.size();
+    Size default_array_length_ = x_precision_64 ? data[x_index].floats_64.size() : data[x_index].floats_32.size();
 
     // TODO: also handle non-default arrays
-    if (data_.size() > 2)
+    if (data.size() > 2)
     {
       std::cout << "MzMLSpectrumDecoder currently cannot handle meta data arrays, they are ignored." << std::endl;
     }
@@ -390,8 +390,8 @@ namespace OpenMS
     x_array->data.reserve(default_array_length_);
     intensity_array->data.reserve(default_array_length_);
 
-    fillDataArray(data_, x_array, x_precision_64, x_index);
-    fillDataArray(data_, intensity_array, int_precision_64, int_index);
+    fillDataArray(data, x_array, x_precision_64, x_index);
+    fillDataArray(data, intensity_array, int_precision_64, int_index);
 
     // TODO the other arrays
 
@@ -400,9 +400,9 @@ namespace OpenMS
     return sptr;
   }
 
-  OpenMS::Interfaces::ChromatogramPtr MzMLSpectrumDecoder::decodeBinaryDataChrom_(std::vector<BinaryData>& data_)
+  OpenMS::Interfaces::ChromatogramPtr MzMLSpectrumDecoder::decodeBinaryDataChrom_(std::vector<BinaryData>& data)
   {
-    Internal::MzMLHandlerHelper::decodeBase64Arrays(data_, skip_xml_checks_);
+    Internal::MzMLHandlerHelper::decodeBase64Arrays(data, skip_xml_checks_);
     OpenMS::Interfaces::ChromatogramPtr sptr(new OpenMS::Interfaces::Chromatogram);
 
     //look up the precision and the index of the intensity and m/z array
@@ -410,8 +410,8 @@ namespace OpenMS
     bool int_precision_64 = true;
     SignedSize x_index = -1;
     SignedSize int_index = -1;
-    Internal::MzMLHandlerHelper::computeDataProperties_(data_, x_precision_64, x_index, "time array");
-    Internal::MzMLHandlerHelper::computeDataProperties_(data_, int_precision_64, int_index, "intensity array");
+    Internal::MzMLHandlerHelper::computeDataProperties_(data, x_precision_64, x_index, "time array");
+    Internal::MzMLHandlerHelper::computeDataProperties_(data, int_precision_64, int_index, "intensity array");
 
     //Abort if no m/z or intensity array is present
     if (int_index == -1 || x_index == -1)
@@ -420,14 +420,14 @@ namespace OpenMS
       return sptr;
     }
 
-    checkData_(data_, x_index, int_index, x_precision_64, int_precision_64);
+    checkData_(data, x_index, int_index, x_precision_64, int_precision_64);
 
     // At this point, we could check whether the defaultArrayLength from the
     // spectrum/chromatogram tag is equivalent to size of the decoded data
-    Size default_array_length_ = x_precision_64 ? data_[x_index].floats_64.size() : data_[x_index].floats_32.size();
+    Size default_array_length_ = x_precision_64 ? data[x_index].floats_64.size() : data[x_index].floats_32.size();
 
     // TODO: also handle non-default arrays
-    if (data_.size() > 2)
+    if (data.size() > 2)
     {
       std::cout << "MzMLSpectrumDecoder currently cannot handle meta data arrays, they are ignored." << std::endl;
     }
@@ -440,8 +440,8 @@ namespace OpenMS
     x_array->data.reserve(default_array_length_);
     intensity_array->data.reserve(default_array_length_);
 
-    fillDataArray(data_, x_array, x_precision_64, x_index);
-    fillDataArray(data_, intensity_array, int_precision_64, int_index);
+    fillDataArray(data, x_array, x_precision_64, x_index);
+    fillDataArray(data, intensity_array, int_precision_64, int_index);
 
     // TODO the other arrays
 
@@ -450,10 +450,10 @@ namespace OpenMS
     return sptr;
   }
 
-  void MzMLSpectrumDecoder::handleBinaryDataArray_(xercesc::DOMNode* indexListNode, std::vector<BinaryData>& data_)
+  void MzMLSpectrumDecoder::handleBinaryDataArray_(xercesc::DOMNode* indexListNode, std::vector<BinaryData>& data)
   {
-    // access result through data_.back()
-    data_.push_back(BinaryData());
+    // access result through data.back()
+    data.push_back(BinaryData());
 
     static const XMLCh* TAG_CV = xercesc::XMLString::transcode("cvParam");
     static const XMLCh* TAG_binary = xercesc::XMLString::transcode("binary");
@@ -506,7 +506,7 @@ namespace OpenMS
           {
             xercesc::DOMText* textNode (static_cast<xercesc::DOMText*> (textNode_));
             sm.appendASCII(textNode->getData(),
-                textNode->getLength(), data_.back().base64);
+                textNode->getLength(), data.back().base64);
           }
           else
           {
@@ -521,7 +521,7 @@ namespace OpenMS
           std::string name = sm.convert(currentElement->getAttribute(TAG_name));
 
           // set precision, data_type
-          Internal::MzMLHandlerHelper::handleBinaryDataArrayCVParam(data_, accession, value, name);
+          Internal::MzMLHandlerHelper::handleBinaryDataArrayCVParam(data, accession, value, name);
         }
         else if (xercesc::XMLString::equals(currentElement->getTagName(), TAG_userParam))
         {
@@ -546,7 +546,7 @@ namespace OpenMS
     }
   }
 
-  void MzMLSpectrumDecoder::domParseString_(const std::string& in, std::vector<BinaryData>& data_)
+  void MzMLSpectrumDecoder::domParseString_(const std::string& in, std::vector<BinaryData>& data)
   {
     // PRECONDITON is below (since we first need to do XML parsing before validating)
     static const XMLCh* default_array_length_tag = xercesc::XMLString::transcode("defaultArrayLength");
@@ -597,10 +597,10 @@ namespace OpenMS
     xercesc::DOMNodeList* li = elementRoot->getElementsByTagName(binary_data_array_tag);
     for (Size i = 0; i < li->getLength(); i++)
     {
-      // Will append one single BinaryData object to data_
-      handleBinaryDataArray_(li->item(i), data_);
+      // Will append one single BinaryData object to data
+      handleBinaryDataArray_(li->item(i), data);
       // Set the size correctly (otherwise MzMLHandlerHelper complains).
-      data_.back().size = default_array_length;
+      data.back().size = default_array_length;
     }
 
     delete parser;
@@ -608,30 +608,30 @@ namespace OpenMS
 
   void MzMLSpectrumDecoder::domParseSpectrum(const std::string& in, OpenMS::Interfaces::SpectrumPtr& sptr)
   {
-    std::vector<BinaryData> data_;
-    domParseString_(in, data_);
-    sptr = decodeBinaryDataSpectrum_(data_);
+    std::vector<BinaryData> data;
+    domParseString_(in, data);
+    sptr = decodeBinaryDataSpectrum_(data);
   }
 
   void MzMLSpectrumDecoder::domParseSpectrum(const std::string& in, MSSpectrum& s)
   {
-    std::vector<BinaryData> data_;
-    domParseString_(in, data_);
-    decodeBinaryDataMSSpectrum_(data_, s);
+    std::vector<BinaryData> data;
+    domParseString_(in, data);
+    decodeBinaryDataMSSpectrum_(data, s);
   }
 
   void MzMLSpectrumDecoder::domParseChromatogram(const std::string& in, MSChromatogram& c)
   {
-    std::vector<BinaryData> data_;
-    domParseString_(in, data_);
-    decodeBinaryDataMSChrom_(data_, c);
+    std::vector<BinaryData> data;
+    domParseString_(in, data);
+    decodeBinaryDataMSChrom_(data, c);
   }
 
   void MzMLSpectrumDecoder::domParseChromatogram(const std::string& in, OpenMS::Interfaces::ChromatogramPtr& sptr)
   {
-    std::vector<BinaryData> data_;
-    domParseString_(in, data_);
-    sptr = decodeBinaryDataChrom_(data_);
+    std::vector<BinaryData> data;
+    domParseString_(in, data);
+    sptr = decodeBinaryDataChrom_(data);
   }
 
   void MzMLSpectrumDecoder::setSkipXMLChecks(bool skip)
@@ -640,3 +640,4 @@ namespace OpenMS
   }
 
 }
+

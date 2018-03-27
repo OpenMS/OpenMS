@@ -78,11 +78,11 @@ namespace OpenMS
       see void MzMLHandler<MapType>::fillData_() 
 
     */
-    OpenMS::Interfaces::SpectrumPtr decodeBinaryDataSpectrum_(std::vector<BinaryData> & data_);
+    OpenMS::Interfaces::SpectrumPtr decodeBinaryDataSpectrum_(std::vector<BinaryData> & data);
 
-    void decodeBinaryDataMSSpectrum_(std::vector<BinaryData>& data_, OpenMS::MSSpectrum& s);
+    void decodeBinaryDataMSSpectrum_(std::vector<BinaryData>& data, OpenMS::MSSpectrum& s);
 
-    void decodeBinaryDataMSChrom_(std::vector<BinaryData>& data_, OpenMS::MSChromatogram& c);
+    void decodeBinaryDataMSChrom_(std::vector<BinaryData>& data, OpenMS::MSChromatogram& c);
 
     /**
       @brief decode binary data
@@ -91,19 +91,19 @@ namespace OpenMS
       see void MzMLHandler<MapType>::fillData_() 
 
     */
-    OpenMS::Interfaces::ChromatogramPtr decodeBinaryDataChrom_(std::vector<BinaryData> & data_);
+    OpenMS::Interfaces::ChromatogramPtr decodeBinaryDataChrom_(std::vector<BinaryData> & data);
 
     /**
       @brief Convert a single DOMNode of type binaryDataArray to BinaryData object.
 
       This function will extract the data from a xerces DOMNode which points to
       a binaryDataArray tag and store the result as a BinaryData object. The
-      result will be appended to the data_ vector.
+      result will be appended to the data vector.
 
       @param in DOMNode of type binaryDataArray
-      @param data_ Binary data extracted from the string
+      @param data Binary data extracted from the string
     */
-    void handleBinaryDataArray_(xercesc::DOMNode * indexListNode, std::vector<BinaryData>& data_);
+    void handleBinaryDataArray_(xercesc::DOMNode * indexListNode, std::vector<BinaryData>& data);
 
     /**
       @brief Extract data from a string containing multiple <binaryDataArray> tags.
@@ -115,12 +115,12 @@ namespace OpenMS
       tags.
 
       @param in Input string containing the raw XML
-      @param data_ Binary data extracted from the string
+      @param data Binary data extracted from the string
 
       @pre in must have <spectrum> or <chromatogram> as root element.
 
     */
-    void domParseString_(const std::string& in, std::vector<BinaryData>& data_);
+    void domParseString_(const std::string& in, std::vector<BinaryData>& data);
 
   public:
 
