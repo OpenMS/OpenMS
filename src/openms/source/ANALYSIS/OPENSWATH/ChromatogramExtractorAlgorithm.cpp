@@ -140,10 +140,133 @@ namespace OpenMS
     }
   }
 
+  void ChromatogramExtractorAlgorithm::extract_value_tophat(const std::vector<double>::const_iterator& mz_start,
+                            std::vector<double>::const_iterator& mz_it,
+                            const std::vector<double>::const_iterator& mz_end,
+                            std::vector<double>::const_iterator& int_it,
+                            std::vector<double>::const_iterator& im_it,
+                            const double& mz,
+                            const double& im,
+                            double& integrated_intensity,
+                            const double& mz_extraction_window, const double& im_extraction_window, bool ppm)
+  {
+    // Note that we have a 3D spectrum with m/z, intensity and ion mobility.
+    // The spectrum is sorted by m/z but we expect to have ion mobility
+    // information for each m/z point as well. Right now we simply filter by
+    // ion mobility and skip data that does not fall within the ion mobility
+    // window.
+
+    integrated_intensity = 0;
+    if (mz_start == mz_end)
+    {
+      return;
+    }
+
+    // calculate extraction window
+    double left, right;
+    if (ppm)
+    {
+      left  = mz - mz * mz_extraction_window / 2.0 * 1.0e-6;
+      right = mz + mz * mz_extraction_window / 2.0 * 1.0e-6;
+    }
+    else
+    {
+      left  = mz - mz_extraction_window / 2.0;
+      right = mz + mz_extraction_window / 2.0;
+    }
+    double left_im  = im - im_extraction_window / 2.0;
+    double right_im = im + im_extraction_window / 2.0;
+
+    std::vector<double>::const_iterator mz_walker;
+    std::vector<double>::const_iterator im_walker;
+    std::vector<double>::const_iterator int_walker;
+
+    // advance the mz / int iterator until we hit the m/z value of the next transition
+    while (mz_it != mz_end && (*mz_it) < mz)
+    {
+      mz_it++;
+      im_it++;
+      int_it++;
+    }
+
+    // walk right and left and add to our intensity
+    mz_walker  = mz_it;
+    im_walker  = im_it;
+    int_walker = int_it;
+
+    // if we moved past the end of the spectrum, we need to try the last peak
+    // of the spectrum (it could still be within the window)
+    if (mz_it == mz_end)
+    {
+      --mz_walker;
+      --im_walker;
+      --int_walker;
+    }
+
+    // add the current peak if it is between right and left
+    if ((*mz_walker) > left && (*mz_walker) < right && (*im_walker) > left_im && (*im_walker) < right_im)
+    {
+      integrated_intensity += (*int_walker);
+    }
+
+    // (i) Walk to the left one step and then keep walking left until we go
+    // outside the window. Note for the first step to the left we have to
+    // check for the walker becoming equal to the first data point.
+    mz_walker  = mz_it;
+    int_walker = int_it;
+    im_walker = im_it;
+    if (mz_it != mz_start)
+    {
+      --mz_walker;
+      --im_walker;
+      --int_walker;
+
+      // Special case: target m/z is larger than first data point but the first
+      // data point is inside the window.
+      // Then, mz_it is the second data point, mz_walker now points to the very
+      // first data point. If mz_it was the first data point, we already added
+      // it above. We still need to add this point if it is inside the window
+      // (while loop below will not catch it)
+      if (mz_walker == mz_start && (*mz_walker) > left && (*mz_walker) < right && (*im_walker) > left_im && (*im_walker) < right_im)
+      {
+        integrated_intensity += (*int_walker);
+      }
+    }
+    while (mz_walker != mz_start && (*mz_walker) > left && (*mz_walker) < right)
+    {
+      if (*im_walker > left_im && *im_walker < right_im) integrated_intensity += (*int_walker);
+      --mz_walker;
+      --im_walker;
+      --int_walker;
+    }
+
+    // (ii) Walk to the right one step and then keep walking right until we are
+    // outside the window
+    mz_walker  = mz_it;
+    im_walker  = im_it;
+    int_walker = int_it;
+    if (mz_it != mz_end)
+    {
+      ++im_walker;
+      ++mz_walker;
+      ++int_walker;
+    }
+    while (mz_walker != mz_end && (*mz_walker) > left && (*mz_walker) < right)
+    {
+      if (*im_walker > left_im && *im_walker < right_im) integrated_intensity += (*int_walker);
+      ++mz_walker;
+      ++im_walker;
+      ++int_walker;
+    }
+  }
+
   void ChromatogramExtractorAlgorithm::extractChromatograms(const OpenSwath::SpectrumAccessPtr input,
       std::vector< OpenSwath::ChromatogramPtr >& output,
-      std::vector<ExtractionCoordinates> extraction_coordinates, double mz_extraction_window,
-      bool ppm, String filter)
+      const std::vector<ExtractionCoordinates>& extraction_coordinates,
+      double mz_extraction_window,
+      bool ppm,
+      double im_extraction_window,
+      String filter)
   {
     Size input_size = input->getNrSpectra();
     if (input_size < 1)
@@ -154,7 +277,7 @@ namespace OpenMS
     if (output.size() != extraction_coordinates.size())
     {
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-        "Output and extraction coordinates need to have the same size");
+        "Output and extraction coordinates need to have the same size: "+ String(output.size()) + " != " + String(extraction_coordinates.size()) );
     }
 
     int used_filter = getFilterNr_(filter);
@@ -181,10 +304,32 @@ namespace OpenMS
       std::vector<double>::const_iterator mz_end = mz_arr->data.end();
       std::vector<double>::const_iterator mz_it = mz_arr->data.begin();
       std::vector<double>::const_iterator int_it = int_arr->data.begin();
+      std::vector<double>::const_iterator im_it;
 
       if (sptr->getMZArray()->data.size() == 0)
       {
         continue;
+      }
+
+      // Look for ion mobility array
+      bool has_im = (im_extraction_window > 0.0);
+      if (has_im)
+      {
+        OpenSwath::BinaryDataArrayPtr im_arr = sptr->getMZArray();
+        bool found = false;
+        for (const auto& arr : sptr->getDataArrays())
+        {
+          if (arr->description == "Ion Mobility")
+          {
+            im_it = arr->data.begin();
+            found = true;
+          }
+        }
+        if (!found)
+        {
+          throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+            "Requested ion mobility extraction but no ion mobility array found (looked for 'Ion Mobility').");
+        }
       }
 
       // go through all transitions / chromatograms which are sorted by
@@ -202,10 +347,16 @@ namespace OpenMS
           continue;
         }
 
-        if (used_filter == 1)
+        if (!has_im && used_filter == 1)
         {
           extract_value_tophat(mz_start, mz_it, mz_end, int_it,
                                extraction_coordinates[k].mz, integrated_intensity, mz_extraction_window, ppm);
+        }
+        else if (has_im && used_filter == 1)
+        {
+          extract_value_tophat(mz_start, mz_it, mz_end, int_it, im_it,
+                               extraction_coordinates[k].mz, extraction_coordinates[k].ion_mobility,
+                               integrated_intensity, mz_extraction_window, im_extraction_window, ppm);
         }
         else if (used_filter == 2)
         {
@@ -238,3 +389,4 @@ namespace OpenMS
   }
 
 }
+

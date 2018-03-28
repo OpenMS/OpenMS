@@ -547,6 +547,87 @@ START_SECTION(( void domParseChromatogram(const std::string& in, OpenMS::Interfa
 }
 END_SECTION
 
+START_SECTION(( void domParseSpectrum(const std::string& in, OpenMS::Interfaces::SpectrumPtr & sptr) ))
+{
+  ptr = new MzMLSpectrumDecoder();
+  std::string testString = MULTI_LINE_STRING(
+      <spectrum index="2" id="index=2" defaultArrayLength="15">
+        <binaryDataArrayList count="3">
+          <binaryDataArray encodedLength="160" >
+            <cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" value=""/>
+            <cvParam cvRef="MS" accession="MS:1000576" name="no compression" value=""/>
+            <cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
+            <binary>AAAAAAAAAAAAAAAAAADwPwAAAAAAAABAAAAAAAAACEAAAAAAAAAQQAAAAAAAABRAAAAAAAAAGEAAAAAAAAAcQAAAAAAAACBAAAAAAAAAIkAAAAAAAAAkQAAAAAAAACZAAAAAAAAAKEAAAAAAAAAqQAAAAAAAACxA</binary>
+          </binaryDataArray>
+          <binaryDataArray encodedLength="160" >
+            <cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" value=""/>
+            <cvParam cvRef="MS" accession="MS:1000576" name="no compression" value=""/>
+            <cvParam cvRef="MS" accession="MS:1000515" name="intensity array" value="" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
+            <binary>AAAAAAAALkAAAAAAAAAsQAAAAAAAACpAAAAAAAAAKEAAAAAAAAAmQAAAAAAAACRAAAAAAAAAIkAAAAAAAAAgQAAAAAAAABxAAAAAAAAAGEAAAAAAAAAUQAAAAAAAABBAAAAAAAAACEAAAAAAAAAAQAAAAAAAAPA/</binary>
+          </binaryDataArray>
+          <binaryDataArray encodedLength="160" >
+            <cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" value=""/>
+            <cvParam cvRef="MS" accession="MS:1000576" name="no compression" value=""/>
+            <cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="Ion Mobility" />
+            <binary>AAAAAAAALkAAAAAAAAAsQAAAAAAAACpAAAAAAAAAKEAAAAAAAAAmQAAAAAAAACRAAAAAAAAAIkAAAAAAAAAgQAAAAAAAABxAAAAAAAAAGEAAAAAAAAAUQAAAAAAAABBAAAAAAAAACEAAAAAAAAAAQAAAAAAAAPA/</binary>
+          </binaryDataArray>
+        </binaryDataArrayList>
+      </spectrum>
+  );
+
+  MSSpectrum s;
+  ptr->domParseSpectrum(testString, s);
+
+  TEST_EQUAL(s.size(), 15)
+  TEST_EQUAL(s.getFloatDataArrays().size(), 1)
+
+  TEST_REAL_SIMILAR(s[7].getMZ(), 7)
+  TEST_REAL_SIMILAR(s[7].getIntensity(), 8)
+  TEST_REAL_SIMILAR(s.getFloatDataArrays()[0][7], 8)
+  TEST_EQUAL(s.getFloatDataArrays()[0].getName(), "Ion Mobility")
+}
+END_SECTION
+
+START_SECTION(( void domParseChromatogram(const std::string& in, OpenMS::Interfaces::ChromatogramPtr & cptr) ))
+{
+  ptr = new MzMLSpectrumDecoder();
+  std::string testString = MULTI_LINE_STRING( 
+      <chromatogram index="1" id="sic native" defaultArrayLength="10" >
+        <cvParam cvRef="MS" accession="MS:1000235" name="total ion current chromatogram" value=""/>
+        <binaryDataArrayList count="2">
+          <binaryDataArray encodedLength="108" >
+            <cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" value=""/>
+            <cvParam cvRef="MS" accession="MS:1000576" name="no compression" value=""/>
+            <cvParam cvRef="MS" accession="MS:1000595" name="time array" unitAccession="UO:0000010" unitName="second" unitCvRef="UO"/>
+            <binary>AAAAAAAAAAAAAAAAAADwPwAAAAAAAABAAAAAAAAACEAAAAAAAAAQQAAAAAAAABRAAAAAAAAAGEAAAAAAAAAcQAAAAAAAACBAAAAAAAAAIkA=</binary>
+          </binaryDataArray>
+          <binaryDataArray encodedLength="108" >
+            <cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" value=""/>
+            <cvParam cvRef="MS" accession="MS:1000576" name="no compression" value=""/>
+            <cvParam cvRef="MS" accession="MS:1000515" name="intensity array" value="" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
+            <binary>AAAAAAAAJEAAAAAAAAAiQAAAAAAAACBAAAAAAAAAHEAAAAAAAAAYQAAAAAAAABRAAAAAAAAAEEAAAAAAAAAIQAAAAAAAAABAAAAAAAAA8D8=</binary>
+          </binaryDataArray>
+          <binaryDataArray encodedLength="160" >
+            <cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" value=""/>
+            <cvParam cvRef="MS" accession="MS:1000576" name="no compression" value=""/>
+            <cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="Ion Mobility" />
+            <binary>AAAAAAAALkAAAAAAAAAsQAAAAAAAACpAAAAAAAAAKEAAAAAAAAAmQAAAAAAAACRAAAAAAAAAIkAAAAAAAAAgQAAAAAAAABxAAAAAAAAAGEAAAAAAAAAUQAAAAAAAABBAAAAAAAAACEAAAAAAAAAAQAAAAAAAAPA/</binary>
+          </binaryDataArray>
+        </binaryDataArrayList>
+      </chromatogram>);
+
+  MSChromatogram s;
+  ptr->domParseChromatogram(testString, s);
+
+  TEST_EQUAL(s.size(), 10)
+  TEST_EQUAL(s.getFloatDataArrays().size(), 1)
+
+  TEST_REAL_SIMILAR(s[5].getRT(), 5)
+  TEST_REAL_SIMILAR(s[5].getIntensity(), 5)
+  TEST_REAL_SIMILAR(s.getFloatDataArrays()[0][7], 8)
+  TEST_EQUAL(s.getFloatDataArrays()[0].getName(), "Ion Mobility")
+}
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
