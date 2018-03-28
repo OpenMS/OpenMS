@@ -59,6 +59,7 @@ macro(add_cpplint_tests _directory)
         "${PYTHON_EXECUTABLE}"
         "${PROJECT_SOURCE_DIR}/cpplint.py"
         "--verbose=5"
+        "--filter=-readability/namespace,-build/namespaces"
         "${OPENMS_HOST_DIRECTORY}/src/${_directory}/${_file_to_test}")
 
       set_tests_properties(
