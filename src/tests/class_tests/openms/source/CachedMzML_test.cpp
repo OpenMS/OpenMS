@@ -113,19 +113,43 @@ START_SECTION(( [EXTRA] testCaching))
     TEST_EQUAL(spectra_index.size(), 4)
     std::ifstream ifs_(tmp_filename.c_str(), std::ios::binary);
 
-    // retrieve the spectrum
+    // retrieve the spectrum (old interface)
     OpenSwath::BinaryDataArrayPtr mz_array(new OpenSwath::BinaryDataArray);
     OpenSwath::BinaryDataArrayPtr intensity_array(new OpenSwath::BinaryDataArray);
     int ms_level = -1;
     double rt = -1.0;
-    for (int i = 0; i  < 4; i++)
+    for (int i = 0; i < 4; i++)
     {
       ifs_.seekg(spectra_index[i]);
       CachedmzML::readSpectrumFast(mz_array, intensity_array, ifs_, ms_level, rt);
+      TEST_EQUAL(mz_array->data.size(), exp.getSpectrum(i).size())
+      TEST_EQUAL(intensity_array->data.size(), exp.getSpectrum(i).size())
+    }
+
+    // retrieve the spectrum (new interface)
+    ms_level = -1;
+    rt = -1.0;
+    for (int i = 0; i < 4; i++)
+    {
+      ifs_.seekg(spectra_index[i]);
+      std::vector<OpenSwath::BinaryDataArrayPtr> darray = CachedmzML::readSpectrumFast(ifs_, ms_level, rt);
+      TEST_EQUAL(darray.size() >= 2, true)
+      mz_array = darray[0];
+      intensity_array = darray[1];
 
       TEST_EQUAL(mz_array->data.size(), exp.getSpectrum(i).size())
       TEST_EQUAL(intensity_array->data.size(), exp.getSpectrum(i).size())
     }
+
+    // test spec 1
+    ifs_.seekg(spectra_index[1]);
+    std::vector<OpenSwath::BinaryDataArrayPtr> darray = CachedmzML::readSpectrumFast(ifs_, ms_level, rt);
+    TEST_EQUAL(darray.size(), 4)
+    TEST_EQUAL(darray[0]->description, "") // mz
+    TEST_EQUAL(darray[1]->description, "") // intensity
+    TEST_EQUAL(darray[2]->description, "signal to noise array")
+    TEST_EQUAL(darray[3]->description, "user-defined name")
+
   }
 
   // Check whether chromatograms were written to disk correctly...
@@ -139,10 +163,23 @@ START_SECTION(( [EXTRA] testCaching))
     // retrieve the chromatogram
     OpenSwath::BinaryDataArrayPtr time_array(new OpenSwath::BinaryDataArray);
     OpenSwath::BinaryDataArrayPtr intensity_array(new OpenSwath::BinaryDataArray);
-    for (int i = 0; i  < 2; i++)
+    for (int i = 0; i < 2; i++)
     {
       ifs_.seekg(chrom_index[i]);
       CachedmzML::readChromatogramFast(time_array, intensity_array, ifs_);
+
+      TEST_EQUAL(time_array->data.size(), exp.getChromatogram(i).size())
+      TEST_EQUAL(intensity_array->data.size(), exp.getChromatogram(i).size())
+    }
+
+    // retrieve the chromatogram (new interface)
+    for (int i = 0; i < 2; i++)
+    {
+      ifs_.seekg(chrom_index[i]);
+      std::vector<OpenSwath::BinaryDataArrayPtr> darray = CachedmzML::readChromatogramFast(ifs_);
+      TEST_EQUAL(darray.size() >= 2, true)
+      time_array = darray[0];
+      intensity_array = darray[1];
 
       TEST_EQUAL(time_array->data.size(), exp.getChromatogram(i).size())
       TEST_EQUAL(intensity_array->data.size(), exp.getChromatogram(i).size())

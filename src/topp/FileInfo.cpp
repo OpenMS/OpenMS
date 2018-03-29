@@ -46,7 +46,7 @@
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
-#include <OpenMS/FORMAT/IndexedMzMLFile.h>
+#include <OpenMS/FORMAT/HANDLERS/IndexedMzMLHandler.h>
 #include <OpenMS/FORMAT/MzDataFile.h>
 #include <OpenMS/FORMAT/MzIdentMLFile.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
@@ -366,7 +366,7 @@ protected:
       }
 
       std::cout << "Checking mzML file for valid indices ... " << std::endl;
-      IndexedMzMLFile ifile;
+      Internal::IndexedMzMLHandler ifile;
       ifile.openFile(in);
       if (ifile.getParsingSuccess())
       {

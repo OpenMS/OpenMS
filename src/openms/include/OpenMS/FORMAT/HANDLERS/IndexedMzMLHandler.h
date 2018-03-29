@@ -32,19 +32,24 @@
 // $Authors: Hannes Roest $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FORMAT_INDEXEDMZMLFILE_H
-#define OPENMS_FORMAT_INDEXEDMZMLFILE_H
+#ifndef OPENMS_FORMAT_INDEXEDMZMLHANDLER_H
+#define OPENMS_FORMAT_INDEXEDMZMLHANDLER_H
 
 #include <OpenMS/config.h>
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/INTERFACES/DataStructures.h>
 #include <OpenMS/INTERFACES/ISpectrumAccess.h>
+#include <OpenMS/KERNEL/MSSpectrum.h>
+#include <OpenMS/KERNEL/MSChromatogram.h>
 
 #include <string>
 #include <fstream>
 
 namespace OpenMS
+{
+
+namespace Internal
 {
 
   /**
@@ -71,7 +76,7 @@ namespace OpenMS
     atomically.
 
   */
-  class OPENMS_DLLAPI IndexedMzMLFile
+  class OPENMS_DLLAPI IndexedMzMLHandler
   {
       /// Name of the file
       String filename_;
@@ -100,25 +105,29 @@ namespace OpenMS
     */
     void parseFooter_(String filename);
 
+    std::string getChromatogramById_helper_(int id);
+
+    std::string getSpectrumById_helper_(int id);
+
     public:
 
     /**
       @brief Default constructor
     */
-    IndexedMzMLFile();
+    IndexedMzMLHandler();
 
     /**
       @brief Constructor
 
       Tries to parse the file, success can be checked with getParsingSuccess()
     */
-    explicit IndexedMzMLFile(String filename);
+    explicit IndexedMzMLHandler(const String& filename);
 
     /// Copy constructor
-    IndexedMzMLFile(const IndexedMzMLFile & source);
+    IndexedMzMLHandler(const IndexedMzMLHandler& source);
 
     /// Destructor
-    ~IndexedMzMLFile();
+    ~IndexedMzMLHandler();
 
     /**
       @brief Open a file
@@ -155,6 +164,27 @@ namespace OpenMS
     OpenMS::Interfaces::SpectrumPtr getSpectrumById(int id);
 
     /**
+      @brief Retrieve the raw data for the spectrum at position "id"
+
+      @throw Exception if getParsingSuccess() returns false
+      @throw Exception if id is not within [0, getNrSpectra()-1]
+
+      @return The spectrum at position id
+    */
+    const OpenMS::MSSpectrum getMSSpectrumById(int id);
+
+    /**
+      @brief Retrieve the raw data for the spectrum at position "id"
+
+      @throw Exception if getParsingSuccess() returns false
+      @throw Exception if id is not within [0, getNrSpectra()-1]
+
+      @param id The spectrum id
+      @param s The spectrum to be used and filled with data
+    */
+    void getMSSpectrumById(int id, OpenMS::MSSpectrum& s);
+
+    /**
       @brief Retrieve the raw data for the chromatogram at position "id"
 
       @throw Exception if getParsingSuccess() returns false
@@ -164,6 +194,27 @@ namespace OpenMS
     */
     OpenMS::Interfaces::ChromatogramPtr getChromatogramById(int id);
 
+    /**
+      @brief Retrieve the raw data for the chromatogram at position "id"
+
+      @throw Exception if getParsingSuccess() returns false
+      @throw Exception if id is not within [0, getNrChromatograms()-1]
+
+      @return The chromatogram at position id
+    */
+    const OpenMS::MSChromatogram getMSChromatogramById(int id);
+
+    /**
+      @brief Retrieve the raw data for the chromatogram at position "id"
+
+      @throw Exception if getParsingSuccess() returns false
+      @throw Exception if id is not within [0, getNrChromatograms()-1]
+
+      @param id The chromatogram id
+      @param c The chromatogram to be used and filled with data
+    */
+    void getMSChromatogramById(int id, OpenMS::MSChromatogram& c);
+
     /// Whether to skip some XML checks (removing whitespace from base64 arrays) and be fast instead
     void setSkipXMLChecks(bool skip)
     {
@@ -172,6 +223,7 @@ namespace OpenMS
 
   };
 }
+}
 
-#endif // OPENMS_FORMAT_INDEXEDMZMLFILE_H
+#endif // OPENMS_FORMAT_HANDLERS_INDEXEDMZMLHANDLER_H
 
