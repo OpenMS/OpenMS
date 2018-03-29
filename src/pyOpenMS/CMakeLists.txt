@@ -427,8 +427,10 @@ if(WIN32)
     endif()
 endif()
 
-get_target_property(QT_QTCORE_LIBRARY Qt5::Core LOCATION)
-get_target_property(QT_QTNETWORK_LIBRARY Qt5::Network LOCATION)
+get_target_property(QT_QTCORE_LIBRARY_FILE Qt5::Core LOCATION)
+get_filename_component(QT_QTCORE_LIBRARY ${QT_QTCORE_LIBRARY_FILE} PATH)
+get_target_property(QT_QTNETWORK_LIBRARY_FILE Qt5::Network LOCATION)
+get_filename_component(QT_QTNETWORK_LIBRARY ${QT_QTNETWORK_LIBRARY_FILE} PATH)
 
 configure_file(${_env_py_in} ${_env_py} @ONLY)
 
