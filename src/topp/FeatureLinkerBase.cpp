@@ -156,7 +156,7 @@ protected:
       if (!design_file.empty())
       {
         // parse design file and determine fractions
-        ExperimentalDesignTable ed = ExperimentalDesignTable::load(design_file);
+        ExperimentalDesignTable ed = ExperimentalDesignTable::load(design_file, false);
 
         // determine if design defines more than one fraction
         frac2files = ed.getFractionToMSFilesMapping();

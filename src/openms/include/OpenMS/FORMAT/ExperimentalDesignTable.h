@@ -137,21 +137,6 @@ namespace OpenMS
     public:
       SampleSection() = default;
 
-      // Number of columns of the Sample Section
-      Size n_columns_;
-
-      // The entries of the Sample Section, filled while parsing
-      // the Experimental Design File
-      std::vector< std::vector < String > > content_;
-
-      // Maps the Sample Entry to the row where the sample
-      // appears in the Sample section
-      std::map< unsigned, Size > sample_to_rowindex_;
-
-      // Maps the column name of the SampleSection to the
-      // Index of the column
-      std::map< String, Size > columnname_to_columnindex_;
-
       // Get set of all samples that are present in the sample section
       void getSamples(std::set< unsigned > &samples) const;
 
@@ -166,6 +151,22 @@ namespace OpenMS
 
       // Returns value of factor for given sample and factor name
       String getFactorValue(const unsigned sample, const String &factor);
+
+    private:
+
+      // The entries of the Sample Section, filled while parsing
+      // the Experimental Design File
+      std::vector< std::vector < String > > content_;
+
+      // Maps the Sample Entry to the row where the sample
+      // appears in the Sample section
+      std::map< unsigned, Size > sample_to_rowindex_;
+
+      // Maps the column name of the SampleSection to the
+      // Index of the column
+      std::map< String, Size > columnname_to_columnindex_;
+
+      friend class ExperimentalDesignTable;
     };
 
     using RunRows = std::vector<RunRow>;
@@ -224,7 +225,7 @@ namespace OpenMS
     bool sameNrOfMSFilesPerFraction() const;
 
     /// Loads an experimental design from a tabular separated file
-    static ExperimentalDesignTable load(const String & tsv_file);
+    static ExperimentalDesignTable load(const String & tsv_file, const bool require_spectra_file);
 
     /// Extract experimental design from consensus map
     static ExperimentalDesignTable fromConsensusMap(const ConsensusMap& c);
@@ -236,6 +237,14 @@ namespace OpenMS
     static ExperimentalDesignTable fromIdentifications(const std::vector<ProteinIdentification> & proteins);
 
     private:
+
+      static void parseHeader_(const StringList &header,
+                        const String &filename,
+                        std::map <String, Size> &column_map,
+                        const std::set <String> &required,
+                        const std::set <String> &optional,
+                        const bool allow_other_header);
+
 
       /// Generic Mapper (Path, Channel) -> f(row)
       std::map< std::pair< String, unsigned >, unsigned> pathChannelMapper(

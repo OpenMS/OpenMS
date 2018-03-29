@@ -37,6 +37,7 @@
 #include <OpenMS/FORMAT/ExperimentalDesignTable.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/FORMAT/TextFile.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 #include <QtCore/QString>
 #include <QtCore/QFileInfo>
@@ -63,21 +64,7 @@ namespace OpenMS
       }
     }
 
-    // Trims whitespace around all strings in vector
-    void trimAll(std::vector <String> &vec)
-    {
-      for (Size i = 0; i < vec.size(); ++i) {
-        vec[i] = vec[i].trim();
-      }
-    }
-
-    inline bool contains(const StringList &vec, const String &item)
-    {
-      auto e = std::end(vec);
-      return std::find(std::begin(vec), e, item) != e;
-    }
-
-    void parse_header(const StringList &header,
+    void ExperimentalDesignTable::parseHeader_(const StringList &header,
                       const String &filename,
                       std::map <String, Size> &column_map,
                       const std::set <String> &required,
@@ -91,7 +78,8 @@ namespace OpenMS
 
       // Check that all required headers are there
       for (const String &req_header : required) {
-        parseErrorIf(!contains(header, req_header), filename,
+
+        parseErrorIf( ! ListUtils::contains(header, req_header), filename,
                      "Missing column header: " + req_header);
       }
       // Assign index in column map and check for weird headers
@@ -107,7 +95,7 @@ namespace OpenMS
       }
     }
 
-    String findSpectraFile(const String &spec_file, const String &tsv_file)
+    String findSpectraFile(const String &spec_file, const String &tsv_file, const bool require_spectra_file)
     {
       String result;
       QFileInfo spectra_file_info(spec_file.toQString());
@@ -140,19 +128,19 @@ namespace OpenMS
         result = spec_file;
       }
 
-      /* Currently, existence of file is not required
-      if (!File::exists(result))
+      // Fail if the existence of the spectra files is required but they do not exist
+      if (require_spectra_file && !File::exists(result))
       {
             throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, tsv_file,
                 "Error: Spectra file does not exist: '" + result + "'");
       }
-      */
+
       return result;
     }
 
 
     // static
-    ExperimentalDesignTable ExperimentalDesignTable::load(const String &tsv_file)
+    ExperimentalDesignTable ExperimentalDesignTable::load(const String &tsv_file, const bool require_spectra_file)
     {
       ExperimentalDesignTable design;
       design.run_section_.clear();
@@ -162,62 +150,68 @@ namespace OpenMS
 
       // Maps the column header string to the column index for
       // the run section
-      std::map <String, Size> _run_column_header_to_index;
+      std::map <String, Size> run_column_header_to_index;
 
       unsigned line_number(0);
-      int state(0);
+
+      enum ParseState { RUN_HEADER, RUN_CONTENT, SAMPLE_HEADER, SAMPLE_CONTENT };
+
+      ParseState state(RUN_HEADER);
       Size n_col = 0;
 
       const TextFile text_file(tsv_file, true);
-      for (String s : text_file) {
+      for (String s : text_file)
+      {
         // skip empty lines (except in state 1, where the sample table is read)
         const String line(s.trim());
 
-        if (line.empty() && state != 1) {
+        if (line.empty() && state != RUN_CONTENT) {
           continue;
         }
 
         // Now split the line into individual cells
         StringList cells;
         line.split("\t", cells);
-        trimAll(cells);
 
-        // State = 0 : Run Section header
-        if (state == 0) {
-          state = 1;
-          parse_header(
+        // Trim whitespace from all cells (so , foo , and  ,foo, is the same)
+        std::transform(cells.begin(), cells.end(), cells.begin(),
+                       [](String cell) -> String { return cell.trim(); });
+
+        if (state == RUN_HEADER) {
+          state = RUN_CONTENT;
+          parseHeader_(
                   cells,
                   tsv_file,
-                  _run_column_header_to_index,
+                  run_column_header_to_index,
                   {"Run", "Fraction", "Path(Spectra File)"},
                   {"Channel", "Sample"}, false
           );
-          has_channel = _run_column_header_to_index.find("Channel") != _run_column_header_to_index.end();
-          has_sample = _run_column_header_to_index.find("Sample") != _run_column_header_to_index.end();
-          n_col = _run_column_header_to_index.size();
+          has_channel = run_column_header_to_index.find("Channel") != run_column_header_to_index.end();
+          has_sample = run_column_header_to_index.find("Sample") != run_column_header_to_index.end();
+          n_col = run_column_header_to_index.size();
         }
           // End of run section lines, empty line separates run and sample table
-        else if (state == 1 && line.empty()) {
+        else if (state == RUN_CONTENT && line.empty()) {
           // Next line is header of Sample table
-          state = 2;
+          state = SAMPLE_HEADER;
         }
           // Line is run line of run section
-        else if (state == 1) {
+        else if (state == RUN_CONTENT) {
           parseErrorIf(n_col != cells.size(), tsv_file,
                        "Wrong number of records in line");
 
           RunRow row;
 
           // Assign run and fraction
-          row.run = cells[_run_column_header_to_index["Run"]].toInt();
-          row.fraction = cells[_run_column_header_to_index["Fraction"]].toInt();
+          row.run = cells[run_column_header_to_index["Run"]].toInt();
+          row.fraction = cells[run_column_header_to_index["Fraction"]].toInt();
 
           // Assign channel
-          row.channel = has_channel ? cells[_run_column_header_to_index["Channel"]].toInt() : 1;
+          row.channel = has_channel ? cells[run_column_header_to_index["Channel"]].toInt() : 1;
 
           // Assign sample number
           if (has_sample) {
-            row.sample = cells[_run_column_header_to_index["Sample"]].toInt();
+            row.sample = cells[run_column_header_to_index["Sample"]].toInt();
           } else if (has_channel) {
             row.sample = row.channel;
           } else {
@@ -226,15 +220,16 @@ namespace OpenMS
 
           // Spectra files
           row.path = findSpectraFile(
-                  cells[_run_column_header_to_index["Path(Spectra File)"]],
-                  tsv_file);
+                  cells[run_column_header_to_index["Path(Spectra File)"]],
+                  tsv_file,
+                  require_spectra_file);
           design.run_section_.push_back(row);
         }
           // Parse header of the Condition Table
-        else if (state == 2) {
-          state = 3;
+        else if (state == SAMPLE_HEADER) {
+          state = SAMPLE_CONTENT;
           line_number = 0;
-          parse_header(
+          parseHeader_(
                   cells,
                   tsv_file,
                   design.sample_section_.columnname_to_columnindex_,
@@ -243,7 +238,7 @@ namespace OpenMS
           n_col = design.sample_section_.columnname_to_columnindex_.size();
         }
           // Parse Sample Row
-        else if (state == 3) {
+        else if (state == SAMPLE_CONTENT) {
           // Parse Error if sample appears multiple times
           unsigned sample = cells[design.sample_section_.columnname_to_columnindex_["Sample"]].toInt();
           parseErrorIf(
