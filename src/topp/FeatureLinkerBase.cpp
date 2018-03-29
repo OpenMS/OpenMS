@@ -39,7 +39,7 @@
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithm.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
-#include <OpenMS/METADATA/ExperimentalDesign.h>
+#include <OpenMS/FORMAT/ExperimentalDesignTable.h>
 
 #include <OpenMS/KERNEL/ConversionHelper.h>
 
@@ -156,7 +156,7 @@ protected:
       if (!design_file.empty())
       {
         // parse design file and determine fractions
-        ExperimentalDesign ed = ExperimentalDesign::load(design_file);
+        ExperimentalDesignTable ed = ExperimentalDesignTable::load(design_file);
 
         // determine if design defines more than one fraction
         frac2files = ed.getFractionToMSFilesMapping();

@@ -34,7 +34,7 @@
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmIdentification.h>
 #include <OpenMS/APPLICATIONS/MapAlignerBase.h>
-#include <OpenMS/METADATA/ExperimentalDesign.h>
+#include <OpenMS/FORMAT/ExperimentalDesignTable.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -315,7 +315,7 @@ private:
       if (!design_file.empty())
       {
         // parse design file and determine fractions
-        ExperimentalDesign ed = ExperimentalDesign::load(design_file);
+        ExperimentalDesignTable ed = ExperimentalDesignTable::load(design_file);
 
         // determine if design defines more than one fraction (note: fraction and run IDs are one-based)
         frac2files = ed.getFractionToMSFilesMapping();

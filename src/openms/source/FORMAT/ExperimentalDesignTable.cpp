@@ -34,7 +34,7 @@
 
 #include <OpenMS/KERNEL/StandardTypes.h>
 
-#include <OpenMS/METADATA/ExperimentalDesign.h>
+#include <OpenMS/FORMAT/ExperimentalDesignTable.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/FORMAT/TextFile.h>
 
@@ -47,7 +47,7 @@ using namespace std;
 
 namespace OpenMS
 {
-    using RunRows = std::vector<ExperimentalDesign::RunRow>;
+    using RunRows = std::vector<ExperimentalDesignTable::RunRow>;
 
 
     // Parse Error of filename if test holds
@@ -152,9 +152,9 @@ namespace OpenMS
 
 
     // static
-    ExperimentalDesign ExperimentalDesign::load(const String &tsv_file)
+    ExperimentalDesignTable ExperimentalDesignTable::load(const String &tsv_file)
     {
-      ExperimentalDesign design;
+      ExperimentalDesignTable design;
       design.run_section_.clear();
 
       bool has_sample(false);
@@ -262,9 +262,9 @@ namespace OpenMS
       return design;
     }
 
-    ExperimentalDesign ExperimentalDesign::fromConsensusMap(const ConsensusMap &cm)
+    ExperimentalDesignTable ExperimentalDesignTable::fromConsensusMap(const ConsensusMap &cm)
     {
-      ExperimentalDesign ed;
+      ExperimentalDesignTable ed;
       // path of the original MS run (mzML / raw file)
       StringList ms_run_paths;
       cm.getPrimaryMSRunPath(ms_run_paths);
@@ -272,9 +272,9 @@ namespace OpenMS
       // no fractionation -> as many runs as samples
       // each consensus element corresponds to one sample abundance
       size_t sample(1);
-      ExperimentalDesign::RunRows rows;
+      ExperimentalDesignTable::RunRows rows;
       for (auto const &f : ms_run_paths) {
-        ExperimentalDesign::RunRow r;
+        ExperimentalDesignTable::RunRow r;
         r.path = f;
         r.fraction = 1;
         r.sample = sample;
@@ -293,9 +293,9 @@ namespace OpenMS
       return ed;
     }
 
-    ExperimentalDesign ExperimentalDesign::fromFeatureMap(const FeatureMap &fm)
+    ExperimentalDesignTable ExperimentalDesignTable::fromFeatureMap(const FeatureMap &fm)
     {
-      ExperimentalDesign ed;
+      ExperimentalDesignTable ed;
       // path of the original MS run (mzML / raw file)
       StringList ms_paths;
       fm.getPrimaryMSRunPath(ms_paths);
@@ -309,14 +309,14 @@ namespace OpenMS
       }
 
       // Feature map is simple. One file, one fraction, one sample, one run
-      ExperimentalDesign::RunRow r;
+      ExperimentalDesignTable::RunRow r;
       r.path = ms_paths[0];
       r.fraction = 1;
       r.sample = 1;
       r.run = 1;
       r.channel = 1;
 
-      ExperimentalDesign::RunRows rows(1, r);
+      ExperimentalDesignTable::RunRows rows(1, r);
       ed.setRunSection(rows);
       LOG_INFO << "Experimental design (FeatureMap derived):\n"
                << "  files: " << ed.getNumberOfMSFiles()
@@ -327,9 +327,9 @@ namespace OpenMS
       return ed;
     }
 
-    ExperimentalDesign ExperimentalDesign::fromIdentifications(const vector <ProteinIdentification> &proteins)
+    ExperimentalDesignTable ExperimentalDesignTable::fromIdentifications(const vector <ProteinIdentification> &proteins)
     {
-      ExperimentalDesign ed;
+      ExperimentalDesignTable ed;
       // path of the original MS files (mzML / raw file)
       StringList ms_run_paths;
       for (auto const &p : proteins) {
@@ -349,9 +349,9 @@ namespace OpenMS
       // no fractionation -> as many runs as samples
       // each identification run corresponds to one sample abundance
       size_t sample(1);
-      ExperimentalDesign::RunRows rows;
+      ExperimentalDesignTable::RunRows rows;
       for (auto const &f : ms_run_paths) {
-        ExperimentalDesign::RunRow r;
+        ExperimentalDesignTable::RunRow r;
         r.path = f;
         r.fraction = 1;
         r.sample = sample;
@@ -372,7 +372,7 @@ namespace OpenMS
     }
 
 
-    map<unsigned, vector<String> > ExperimentalDesign::getFractionToMSFilesMapping() const
+    map<unsigned, vector<String> > ExperimentalDesignTable::getFractionToMSFilesMapping() const
     {
       map<unsigned, vector<String> > ret;
 
@@ -384,9 +384,9 @@ namespace OpenMS
     }
 
 
-    map<pair<String, unsigned>, unsigned> ExperimentalDesign::pathChannelMapper(
+    map<pair<String, unsigned>, unsigned> ExperimentalDesignTable::pathChannelMapper(
             const bool basename,
-            unsigned (*f)(const ExperimentalDesign::RunRow &row)) const
+            unsigned (*f)(const ExperimentalDesignTable::RunRow &row)) const
     {
       map<pair<String, unsigned>, unsigned> ret;
       for (RunRow const &r : run_section_) {
@@ -398,21 +398,21 @@ namespace OpenMS
     }
 
 
-    map<pair<String, unsigned>, unsigned> ExperimentalDesign::getPathChannelToSampleMapping(
+    map<pair<String, unsigned>, unsigned> ExperimentalDesignTable::getPathChannelToSampleMapping(
             const bool basename) const
     {
       return pathChannelMapper(basename, [](const RunRow &r)
       { return r.sample; });
     }
 
-    map<pair<String, unsigned>, unsigned> ExperimentalDesign::getPathChannelToFractionMapping(
+    map<pair<String, unsigned>, unsigned> ExperimentalDesignTable::getPathChannelToFractionMapping(
             const bool basename) const
     {
       return pathChannelMapper(basename, [](const RunRow &r)
       { return r.fraction; });
     }
 
-    map<pair<String, unsigned>, unsigned> ExperimentalDesign::getPathChannelToRunMapping(
+    map<pair<String, unsigned>, unsigned> ExperimentalDesignTable::getPathChannelToRunMapping(
             const bool basename) const
     {
       return pathChannelMapper(basename, [](const RunRow &r)
@@ -420,7 +420,7 @@ namespace OpenMS
     }
 
 
-    bool ExperimentalDesign::sameNrOfMSFilesPerFraction() const
+    bool ExperimentalDesignTable::sameNrOfMSFilesPerFraction() const
     {
       map<unsigned, vector<String>> frac2files = getFractionToMSFilesMapping();
       if (frac2files.size() <= 1) { return true; }
@@ -443,20 +443,20 @@ namespace OpenMS
 
     /* Implementation for the Experimental Design and RunSection */
 
-    const RunRows& ExperimentalDesign::getRunSection() const
+    const RunRows& ExperimentalDesignTable::getRunSection() const
     {
       return run_section_;
     }
 
 
-    void ExperimentalDesign::setRunSection(const RunRows& run_section)
+    void ExperimentalDesignTable::setRunSection(const RunRows& run_section)
     {
       run_section_ = run_section;
       sort_();
       checkValidRunSection_();
     }
 
-    unsigned ExperimentalDesign::getNumberOfSamples() const
+    unsigned ExperimentalDesignTable::getNumberOfSamples() const
     {
       if (run_section_.empty()) { return 0; }
       return std::max_element(run_section_.begin(), run_section_.end(),
@@ -466,7 +466,7 @@ namespace OpenMS
                               })->sample;
     }
 
-    unsigned ExperimentalDesign::getNumberOfFractions() const
+    unsigned ExperimentalDesignTable::getNumberOfFractions() const
     {
       if (run_section_.empty()) { return 0; }
       return std::max_element(run_section_.begin(), run_section_.end(),
@@ -477,7 +477,7 @@ namespace OpenMS
     }
 
     // @return the number of channels per file
-    unsigned ExperimentalDesign::getNumberOfChannels() const
+    unsigned ExperimentalDesignTable::getNumberOfChannels() const
     {
       if (run_section_.empty()) { return 0; }
       return std::max_element(run_section_.begin(), run_section_.end(),
@@ -488,7 +488,7 @@ namespace OpenMS
     }
 
     // @return the number of MS files (= fractions * runs)
-    unsigned ExperimentalDesign::getNumberOfMSFiles() const
+    unsigned ExperimentalDesignTable::getNumberOfMSFiles() const
     {
       std::set<std::string> unique_paths;
       for (auto const & r : run_section_) { unique_paths.insert(r.path); }
@@ -497,7 +497,7 @@ namespace OpenMS
 
     // @return the number of runs (before fractionation)
     // Allows to group fraction ids and source files
-    unsigned ExperimentalDesign::getNumberOfPrefractionationRuns() const
+    unsigned ExperimentalDesignTable::getNumberOfPrefractionationRuns() const
     {
       if (run_section_.empty()) { return 0; }
       return std::max_element(run_section_.begin(), run_section_.end(),
@@ -508,7 +508,7 @@ namespace OpenMS
     }
 
     // @return sample index (depends on run and channel)
-    unsigned ExperimentalDesign::getSample(unsigned run, unsigned channel)
+    unsigned ExperimentalDesignTable::getSample(unsigned run, unsigned channel)
     {
       return std::find_if(run_section_.begin(), run_section_.end(),
                           [&run, &channel](const RunRow& r)
@@ -517,12 +517,12 @@ namespace OpenMS
                           })->sample;
     }
 
-    const ExperimentalDesign::SampleSection& ExperimentalDesign::getSampleSection() const
+    const ExperimentalDesignTable::SampleSection& ExperimentalDesignTable::getSampleSection() const
     {
       return sample_section_;
     }
 
-    void ExperimentalDesign::getFileNames(std::vector< String > &filenames, const bool basename) const
+    void ExperimentalDesignTable::getFileNames(std::vector< String > &filenames, const bool basename) const
     {
       filenames.clear();
       for (const RunRow &row : run_section_)
@@ -532,7 +532,7 @@ namespace OpenMS
       }
     }
 
-    void ExperimentalDesign::getChannels(std::vector<unsigned> &channels) const
+    void ExperimentalDesignTable::getChannels(std::vector<unsigned> &channels) const
     {
       channels.clear();
       for (const RunRow &row : run_section_)
@@ -541,7 +541,7 @@ namespace OpenMS
       }
     }
 
-    void ExperimentalDesign::getFractions(std::vector<unsigned> &fractions) const
+    void ExperimentalDesignTable::getFractions(std::vector<unsigned> &fractions) const
     {
       fractions.clear();
       for (const RunRow &row : run_section_)
@@ -550,7 +550,7 @@ namespace OpenMS
       }
     }
 
-    void ExperimentalDesign::sort_()
+    void ExperimentalDesignTable::sort_()
     {
       std::sort(run_section_.begin(), run_section_.end(),
                 [](const RunRow& a, const RunRow& b)
@@ -563,7 +563,7 @@ namespace OpenMS
 
     /* Implementations of SampleSection */
 
-    void ExperimentalDesign::SampleSection::getSamples(std::set<unsigned> &samples) const
+    void ExperimentalDesignTable::SampleSection::getSamples(std::set<unsigned> &samples) const
     {
       samples.clear();
       for (auto it = sample_to_rowindex_.begin();
@@ -573,7 +573,7 @@ namespace OpenMS
       }
     }
 
-    void ExperimentalDesign::SampleSection::getFactors(std::set< String > &factors) const
+    void ExperimentalDesignTable::SampleSection::getFactors(std::set< String > &factors) const
     {
       factors.clear();
       for (auto it = columnname_to_columnindex_.begin();
@@ -583,17 +583,17 @@ namespace OpenMS
       }
     }
 
-    bool ExperimentalDesign::SampleSection::hasSample(const unsigned sample) const
+    bool ExperimentalDesignTable::SampleSection::hasSample(const unsigned sample) const
     {
       return sample_to_rowindex_.find(sample) != sample_to_rowindex_.end();
     }
 
-    bool ExperimentalDesign::SampleSection::hasFactor(const String &factor) const
+    bool ExperimentalDesignTable::SampleSection::hasFactor(const String &factor) const
     {
       return columnname_to_columnindex_.find(factor) != columnname_to_columnindex_.end();
     }
 
-    String ExperimentalDesign::SampleSection::getFactorValue(const unsigned sample, const String &factor)
+    String ExperimentalDesignTable::SampleSection::getFactorValue(const unsigned sample, const String &factor)
     {
       if (! hasSample(sample))
       {

@@ -18,6 +18,7 @@ CsvFile.cpp
 DTA2DFile.cpp
 DTAFile.cpp
 EDTAFile.cpp
+ExperimentalDesignTable.cpp
 FASTAFile.cpp
 FastaIterator.cpp
 FastaIteratorIntern.cpp
