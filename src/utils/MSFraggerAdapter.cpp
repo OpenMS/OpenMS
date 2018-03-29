@@ -679,7 +679,6 @@ protected:
     if (this->debug_level_ < 2)
     {
       String db_index = this->getStringOption_(TOPPMSFraggerAdapter::database) + ".1.pepindex"; 
-      std::cout << "db_ind: " << db_index << std::endl;
       File::remove(db_index);
     }
    
