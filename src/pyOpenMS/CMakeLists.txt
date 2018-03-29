@@ -168,13 +168,6 @@ else()
     endif()
 endif()
 
-#------------------------------------------------------------------------------
-# get the qt version
-execute_process(
-    COMMAND ${QT_QMAKE_EXECUTABLE} -v
-    OUTPUT_VARIABLE QT_QMAKE_VERSION_INFO
-    )
-
 
 #------------------------------------------------------------------------------
 # Check for Nose Test Framework
@@ -402,7 +395,7 @@ endif()
 # collection of include dirs that is necessary to compile pyOpenMS
 
 # Find Qt5 includes for pyOpenMS
-find_package(Qt5Core)
+find_package(Qt5 COMPONENTS Core Network REQUIRED)
 get_target_property(QT_QMAKE_EXECUTABLE Qt5::qmake IMPORTED_LOCATION)
 exec_program(${QT_QMAKE_EXECUTABLE} ARGS "-query QT_INSTALL_HEADERS" OUTPUT_VARIABLE QTHEADERS)
 set(QT_INCLUDE_DIR ${QTHEADERS} CACHE INTERNAL "" FORCE)
@@ -434,9 +427,8 @@ if(WIN32)
     endif()
 endif()
 
-
-find_library(QT_QTCORE_LIBRARY NAMES QtCore)
-find_library(QT_QTNETWORK_LIBRARY NAMES QtNetwork)
+get_target_property(QT_QTCORE_LIBRARY Qt5::Core LOCATION)
+get_target_property(QT_QTNETWORK_LIBRARY Qt5::Network LOCATION)
 
 configure_file(${_env_py_in} ${_env_py} @ONLY)
 
