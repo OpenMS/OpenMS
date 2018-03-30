@@ -36,9 +36,7 @@
 #define OPENMS_KERNEL_EXPERIMENTALDESIGNIO_H
 
 #include <OpenMS/DATASTRUCTURES/String.h>
-#include <OpenMS/KERNEL/ConsensusMap.h>
-#include <OpenMS/KERNEL/FeatureMap.h>
-#include <OpenMS/METADATA/ProteinIdentification.h>
+
 #include <OpenMS/FORMAT/ExperimentalDesign.h>
 
 namespace OpenMS
@@ -48,21 +46,12 @@ namespace OpenMS
 
   @ingroup Format
   */
-  class OPENMS_DLLAPI ExperimentalDesignIO
+  class OPENMS_DLLAPI ExperimentalDesignFile
   {
     public:
 
     /// Loads an experimental design from a tabular separated file
     static ExperimentalDesign load(const String &tsv_file, bool require_spectra_files);
-
-    /// Extract experimental design from consensus map
-    static ExperimentalDesign fromConsensusMap(const ConsensusMap& c);
-
-    /// Extract experimental design from feature map
-    static ExperimentalDesign fromFeatureMap(const FeatureMap& f);
-
-    /// Extract experimental design from identifications
-    static ExperimentalDesign fromIdentifications(const std::vector<ProteinIdentification> & proteins);
 
     private:
 

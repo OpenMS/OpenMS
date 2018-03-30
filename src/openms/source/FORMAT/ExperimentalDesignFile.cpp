@@ -35,7 +35,7 @@
 #include <OpenMS/KERNEL/StandardTypes.h>
 
 #include <OpenMS/FORMAT/ExperimentalDesign.h>
-#include <OpenMS/FORMAT/ExperimentalDesignIO.h>
+#include <OpenMS/FORMAT/ExperimentalDesignFile.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
@@ -114,7 +114,7 @@ namespace OpenMS
       }
     }
 
-    void ExperimentalDesignIO::parseHeader_(
+    void ExperimentalDesignFile::parseHeader_(
       const StringList &header,
       const String &filename,
       std::map <String, Size> &column_map,
@@ -150,13 +150,16 @@ namespace OpenMS
     }
 
     // static
-    ExperimentalDesign ExperimentalDesignIO::load(const String &tsv_file, const bool require_spectra_file)
+    ExperimentalDesign ExperimentalDesignFile::load(const String &tsv_file, const bool require_spectra_file)
     {
-      ExperimentalDesign design;
-      design.run_section_.clear();
-
+      ExperimentalDesign::RunRows run_rows;
       bool has_sample(false);
       bool has_channel(false);
+
+      // Attributes of the sample section
+      std::vector< std::vector < String > > sample_content_;
+      std::map< unsigned, Size > sample_sample_to_rowindex_;
+      std::map< String, Size > sample_columnname_to_columnindex_;
 
       // Maps the column header string to the column index for
       // the run section
@@ -238,7 +241,7 @@ namespace OpenMS
             cells[run_column_header_to_index["Path(Spectra File)"]],
             tsv_file,
             require_spectra_file);
-          design.run_section_.push_back(row);
+          run_rows.push_back(row);
         }
           // Parse header of the Condition Table
         else if (state == SAMPLE_HEADER)
@@ -248,143 +251,35 @@ namespace OpenMS
           parseHeader_(
             cells,
             tsv_file,
-            design.sample_section_.columnname_to_columnindex_,
+            sample_columnname_to_columnindex_,
             {"Sample"}, {}, true
           );
-          n_col = design.sample_section_.columnname_to_columnindex_.size();
+          n_col = sample_columnname_to_columnindex_.size();
         }
           // Parse Sample Row
         else if (state == SAMPLE_CONTENT)
         {
           // Parse Error if sample appears multiple times
-          unsigned sample = cells[design.sample_section_.columnname_to_columnindex_["Sample"]].toInt();
+          unsigned sample = cells[sample_columnname_to_columnindex_["Sample"]].toInt();
           parseErrorIf(
-            design.sample_section_.sample_to_rowindex_.find(sample) !=
-            design.sample_section_.sample_to_rowindex_.end(),
+            sample_sample_to_rowindex_.find(sample) != sample_sample_to_rowindex_.end(),
             tsv_file,
             "Sample: " + String(sample) + " appears multiple times in the sample table"
           );
-          design.sample_section_.sample_to_rowindex_[sample] = line_number++;
-          design.sample_section_.content_.push_back(cells);
+          sample_sample_to_rowindex_[sample] = line_number++;
+          sample_content_.push_back(cells);
         }
       }
 
-      design.sort_();
-      design.checkValidRunSection_();
+      // Create Sample Section and set in design
+      ExperimentalDesign::SampleSection sample_section(
+        sample_content_,
+        sample_sample_to_rowindex_,
+        sample_columnname_to_columnindex_);
+
+      // Create experimentalDesign
+      ExperimentalDesign design(run_rows, sample_section);
+
       return design;
-    }
-
-    ExperimentalDesign ExperimentalDesignIO::fromConsensusMap(const ConsensusMap &cm)
-    {
-      ExperimentalDesign experimental_design;
-      // path of the original MS run (mzML / raw file)
-      StringList ms_run_paths;
-      cm.getPrimaryMSRunPath(ms_run_paths);
-
-      // no fractionation -> as many runs as samples
-      // each consensus element corresponds to one sample abundance
-      size_t sample(1);
-      ExperimentalDesign::RunRows rows;
-      for (const auto &f : ms_run_paths)
-      {
-        ExperimentalDesign::RunRow r;
-        r.path = f;
-        r.fraction = 1;
-        r.sample = sample;
-        r.run = sample;
-        r.channel = 1; // TODO MULTIPLEXING: adapt for non-label-free
-        rows.push_back(r);
-        ++sample;
-      }
-      experimental_design.setRunSection(rows);
-      LOG_INFO << "Experimental design (ConsensusMap derived):\n"
-               << "  files: " << experimental_design.getNumberOfMSFiles()
-               << "  fractions: " << experimental_design.getNumberOfFractions()
-               << "  channels: " << experimental_design.getNumberOfChannels()
-               << "  samples: " << experimental_design.getNumberOfSamples() << "\n"
-               << endl;
-      return experimental_design;
-    }
-
-    ExperimentalDesign ExperimentalDesignIO::fromFeatureMap(const FeatureMap &fm)
-    {
-      ExperimentalDesign experimental_design;
-      // path of the original MS run (mzML / raw file)
-      StringList ms_paths;
-      fm.getPrimaryMSRunPath(ms_paths);
-
-      if (ms_paths.size() != 1)
-      {
-        throw Exception::MissingInformation(
-          __FILE__,
-          __LINE__,
-          OPENMS_PRETTY_FUNCTION,
-          "FeatureMap annotated with " + String(ms_paths.size()) + " MS files. Must be exactly one.");
-      }
-
-      // Feature map is simple. One file, one fraction, one sample, one run
-      ExperimentalDesign::RunRow r;
-      r.path = ms_paths[0];
-      r.fraction = 1;
-      r.sample = 1;
-      r.run = 1;
-      r.channel = 1;
-
-      ExperimentalDesign::RunRows rows(1, r);
-      experimental_design.setRunSection(rows);
-      LOG_INFO << "Experimental design (FeatureMap derived):\n"
-               << "  files: " << experimental_design.getNumberOfMSFiles()
-               << "  fractions: " << experimental_design.getNumberOfFractions()
-               << "  channels: " << experimental_design.getNumberOfChannels()
-               << "  samples: " << experimental_design.getNumberOfSamples() << "\n"
-               << endl;
-      return experimental_design;
-    }
-
-    ExperimentalDesign ExperimentalDesignIO::fromIdentifications(const vector <ProteinIdentification> &proteins)
-    {
-      ExperimentalDesign experimental_design;
-      // path of the original MS files (mzML / raw file)
-      StringList ms_run_paths;
-      for (const auto &protein : proteins)
-      {
-        StringList tmp_ms_run_paths;
-        protein.getPrimaryMSRunPath(tmp_ms_run_paths);
-        if (tmp_ms_run_paths.size() != 1)
-        {
-          throw Exception::MissingInformation(
-            __FILE__,
-            __LINE__,
-            OPENMS_PRETTY_FUNCTION,
-            "ProteinIdentification annotated with " + String(tmp_ms_run_paths.size()) +
-            " MS files. Must be exactly one.");
-        }
-        ms_run_paths.push_back(tmp_ms_run_paths[0]);
-      }
-
-      // no fractionation -> as many runs as samples
-      // each identification run corresponds to one sample abundance
-      unsigned sample(1);
-      ExperimentalDesign::RunRows rows;
-      for (const auto &f : ms_run_paths)
-      {
-        ExperimentalDesign::RunRow r;
-        r.path = f;
-        r.fraction = 1;
-        r.sample = sample;
-        r.run = sample;
-        r.channel = 1;
-
-        rows.push_back(r);
-        ++sample;
-      }
-      experimental_design.setRunSection(rows);
-      LOG_INFO << "Experimental design (Identification derived):\n"
-               << "  files: " << experimental_design.getNumberOfMSFiles()
-               << "  fractions: " << experimental_design.getNumberOfFractions()
-               << "  channels: " << experimental_design.getNumberOfChannels()
-               << "  samples: " << experimental_design.getNumberOfSamples() << "\n"
-               << endl;
-      return experimental_design;
     }
 }

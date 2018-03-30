@@ -38,6 +38,9 @@
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/KERNEL/ConsensusMap.h>
+#include <OpenMS/KERNEL/FeatureMap.h>
+#include <OpenMS/METADATA/ProteinIdentification.h>
 
 #include <vector>
 #include <map>
@@ -54,7 +57,6 @@ namespace OpenMS
   class OPENMS_DLLAPI ExperimentalDesign
   {
   public:
-  ExperimentalDesign() = default;
 
     /// 1) Mandatory section with run-level information of the experimental design.
     ///    Required to process fractionated data.
@@ -127,7 +129,16 @@ namespace OpenMS
     class OPENMS_DLLAPI SampleSection
     {
     public:
+
       SampleSection() = default;
+
+      SampleSection(
+        std::vector< std::vector < String > > _content,
+        std::map< unsigned, Size > _sample_to_rowindex,
+        std::map< String, Size > _columnname_to_columnindex
+      ) : content_(_content),
+          sample_to_rowindex_(_sample_to_rowindex),
+          columnname_to_columnindex_(_columnname_to_columnindex) {}
 
       // Get set of all samples that are present in the sample section
       std::set< unsigned > getSamples() const;
@@ -157,11 +168,19 @@ namespace OpenMS
       // Maps the column name of the SampleSection to the
       // Index of the column
       std::map< String, Size > columnname_to_columnindex_;
-
-      friend class ExperimentalDesignIO;
     };
 
     using RunRows = std::vector<RunRow>;
+
+    // Experimental Design c'tors
+    ExperimentalDesign() = default;
+
+    ExperimentalDesign(
+      RunRows run_rows, SampleSection sample_section) : run_section_(run_rows), sample_section_(sample_section)
+    {
+      sort_();
+      checkValidRunSection_();
+    }
 
     const RunRows& getRunSection() const;
 
@@ -169,6 +188,8 @@ namespace OpenMS
 
     // Returns the Sample Section of the experimental design file
     const ExperimentalDesign::SampleSection& getSampleSection() const;
+
+    void setSampleSection(const SampleSection& sample_section);
 
     // Gets vector of Filenames that appears in the run section, optionally trims to basename
     std::vector< String > getFileNames(bool basename) const;
@@ -219,7 +240,14 @@ namespace OpenMS
     /// return if each fraction number is associated with the same number of runs
     bool sameNrOfMSFilesPerFraction() const;
 
-    friend class ExperimentalDesignIO;
+    /// Extract experimental design from consensus map
+    static ExperimentalDesign fromConsensusMap(const ConsensusMap& c);
+
+    /// Extract experimental design from feature map
+    static ExperimentalDesign fromFeatureMap(const FeatureMap& f);
+
+    /// Extract experimental design from identifications
+    static ExperimentalDesign fromIdentifications(const std::vector<ProteinIdentification> & proteins);
 
     private:
 

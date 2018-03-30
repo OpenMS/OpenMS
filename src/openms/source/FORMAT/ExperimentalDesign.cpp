@@ -51,6 +51,120 @@ namespace OpenMS
     using RunRows = std::vector<ExperimentalDesign::RunRow>;
 
 
+    ExperimentalDesign ExperimentalDesign::fromConsensusMap(const ConsensusMap &cm)
+    {
+      ExperimentalDesign experimental_design;
+      // path of the original MS run (mzML / raw file)
+      StringList ms_run_paths;
+      cm.getPrimaryMSRunPath(ms_run_paths);
+
+      // no fractionation -> as many runs as samples
+      // each consensus element corresponds to one sample abundance
+      size_t sample(1);
+      ExperimentalDesign::RunRows rows;
+      for (const auto &f : ms_run_paths)
+      {
+        ExperimentalDesign::RunRow r;
+        r.path = f;
+        r.fraction = 1;
+        r.sample = sample;
+        r.run = sample;
+        r.channel = 1; // TODO MULTIPLEXING: adapt for non-label-free
+        rows.push_back(r);
+        ++sample;
+      }
+      experimental_design.setRunSection(rows);
+      LOG_INFO << "Experimental design (ConsensusMap derived):\n"
+               << "  files: " << experimental_design.getNumberOfMSFiles()
+               << "  fractions: " << experimental_design.getNumberOfFractions()
+               << "  channels: " << experimental_design.getNumberOfChannels()
+               << "  samples: " << experimental_design.getNumberOfSamples() << "\n"
+               << endl;
+      return experimental_design;
+    }
+
+    ExperimentalDesign ExperimentalDesign::fromFeatureMap(const FeatureMap &fm)
+    {
+      ExperimentalDesign experimental_design;
+      // path of the original MS run (mzML / raw file)
+      StringList ms_paths;
+      fm.getPrimaryMSRunPath(ms_paths);
+
+      if (ms_paths.size() != 1)
+      {
+        throw Exception::MissingInformation(
+          __FILE__,
+          __LINE__,
+          OPENMS_PRETTY_FUNCTION,
+          "FeatureMap annotated with " + String(ms_paths.size()) + " MS files. Must be exactly one.");
+      }
+
+      // Feature map is simple. One file, one fraction, one sample, one run
+      ExperimentalDesign::RunRow r;
+      r.path = ms_paths[0];
+      r.fraction = 1;
+      r.sample = 1;
+      r.run = 1;
+      r.channel = 1;
+
+      ExperimentalDesign::RunRows rows(1, r);
+      experimental_design.setRunSection(rows);
+      LOG_INFO << "Experimental design (FeatureMap derived):\n"
+               << "  files: " << experimental_design.getNumberOfMSFiles()
+               << "  fractions: " << experimental_design.getNumberOfFractions()
+               << "  channels: " << experimental_design.getNumberOfChannels()
+               << "  samples: " << experimental_design.getNumberOfSamples() << "\n"
+               << endl;
+      return experimental_design;
+    }
+
+    ExperimentalDesign ExperimentalDesign::fromIdentifications(const vector <ProteinIdentification> &proteins)
+    {
+      ExperimentalDesign experimental_design;
+      // path of the original MS files (mzML / raw file)
+      StringList ms_run_paths;
+      for (const auto &protein : proteins)
+      {
+        StringList tmp_ms_run_paths;
+        protein.getPrimaryMSRunPath(tmp_ms_run_paths);
+        if (tmp_ms_run_paths.size() != 1)
+        {
+          throw Exception::MissingInformation(
+            __FILE__,
+            __LINE__,
+            OPENMS_PRETTY_FUNCTION,
+            "ProteinIdentification annotated with " + String(tmp_ms_run_paths.size()) +
+            " MS files. Must be exactly one.");
+        }
+        ms_run_paths.push_back(tmp_ms_run_paths[0]);
+      }
+
+      // no fractionation -> as many runs as samples
+      // each identification run corresponds to one sample abundance
+      unsigned sample(1);
+      ExperimentalDesign::RunRows rows;
+      for (const auto &f : ms_run_paths)
+      {
+        ExperimentalDesign::RunRow r;
+        r.path = f;
+        r.fraction = 1;
+        r.sample = sample;
+        r.run = sample;
+        r.channel = 1;
+
+        rows.push_back(r);
+        ++sample;
+      }
+      experimental_design.setRunSection(rows);
+      LOG_INFO << "Experimental design (Identification derived):\n"
+               << "  files: " << experimental_design.getNumberOfMSFiles()
+               << "  fractions: " << experimental_design.getNumberOfFractions()
+               << "  channels: " << experimental_design.getNumberOfChannels()
+               << "  samples: " << experimental_design.getNumberOfSamples() << "\n"
+               << endl;
+      return experimental_design;
+    }
+
     map<unsigned, vector<String> > ExperimentalDesign::getFractionToMSFilesMapping() const
     {
       map<unsigned, vector<String> > ret;
@@ -136,6 +250,11 @@ namespace OpenMS
       run_section_ = run_section;
       sort_();
       checkValidRunSection_();
+    }
+
+    void ExperimentalDesign::setSampleSection(const SampleSection& sample_section)
+    {
+      sample_section_ = sample_section;
     }
 
     unsigned ExperimentalDesign::getNumberOfSamples() const

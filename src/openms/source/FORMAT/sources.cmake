@@ -19,7 +19,7 @@ DTA2DFile.cpp
 DTAFile.cpp
 EDTAFile.cpp
 ExperimentalDesign.cpp
-ExperimentalDesignIO.cpp
+ExperimentalDesignFile.cpp
 FASTAFile.cpp
 FastaIterator.cpp
 FastaIteratorIntern.cpp
