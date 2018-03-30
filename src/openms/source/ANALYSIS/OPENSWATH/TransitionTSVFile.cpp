@@ -135,7 +135,7 @@ namespace OpenMS
     force_invalid_mods_ = param_.getValue("force_invalid_mods").toBool();
   }
 
-  const char* TransitionTSVFile::strarray_[] =
+  const std::vector<std::string> TransitionTSVFile::header_names_ = 
   {
     "PrecursorMz",
     "ProductMz",
@@ -165,7 +165,6 @@ namespace OpenMS
     "QuantifyingTransition"
   };
 
-  const std::vector<std::string> TransitionTSVFile::header_names_(strarray_, strarray_ + 25);
 
   void TransitionTSVFile::getTSVHeader_(const std::string& line, char& delimiter,
                                           std::vector<std::string> header, std::map<std::string, int>& header_dict)
