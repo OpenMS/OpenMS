@@ -34,10 +34,13 @@
 
 // OpenMS includes
 #include <OpenMS/VISUAL/DIALOGS/SpectrumAlignmentDialog.h>
+#include <ui_SpectrumAlignmentDialog.h>
+
+
 #include <OpenMS/VISUAL/Spectrum1DWidget.h>
 
 // QT includes
-#include <QtGui/QButtonGroup>
+#include <QtWidgets/QButtonGroup>
 
 #include <vector>
 
@@ -45,14 +48,15 @@ namespace OpenMS
 {
   SpectrumAlignmentDialog::SpectrumAlignmentDialog(Spectrum1DWidget * parent) :
     layer_indices_1_(),
-    layer_indices_2_()
+    layer_indices_2_(),
+    ui_(new Ui::SpectrumAlignmentDialogTemplate)
   {
-    setupUi(this);
+    ui_->setupUi(this);
 
     QButtonGroup * button_group = new QButtonGroup(this);
-    button_group->addButton(ppm);
-    button_group->addButton(da);
-    da->setChecked(true);
+    button_group->addButton(ui_->ppm);
+    button_group->addButton(ui_->da);
+    ui_->da->setChecked(true);
 
     Spectrum1DCanvas * cc = parent->canvas();
     for (UInt i = 0; i < cc->getLayerCount(); ++i)
@@ -60,48 +64,64 @@ namespace OpenMS
       const LayerData & layer = cc->getLayer(i);
       if (layer.flipped)
       {
-        layer_list_2->addItem(layer.name.toQString());
+        ui_->layer_list_2->addItem(layer.name.toQString());
         layer_indices_2_.push_back(i);
       }
       else
       {
-        layer_list_1->addItem(layer.name.toQString());
+        ui_->layer_list_1->addItem(layer.name.toQString());
         layer_indices_1_.push_back(i);
       }
     }
     // select first item of each list
-    if (layer_list_1->count() > 0)
+    if (ui_->layer_list_1->count() > 0)
     {
-      layer_list_1->setCurrentRow(0);
+      ui_->layer_list_1->setCurrentRow(0);
     }
-    if (layer_list_2->count() > 0)
+    if (ui_->layer_list_2->count() > 0)
     {
-      layer_list_2->setCurrentRow(0);
+      ui_->layer_list_2->setCurrentRow(0);
     }
   }
 
+  SpectrumAlignmentDialog::~SpectrumAlignmentDialog()
+  {
+    delete ui_;
+  }
+
+  double SpectrumAlignmentDialog::getTolerance() const
+  {
+    return ui_->tolerance_spinbox->value();
+  }
+
+  bool SpectrumAlignmentDialog::isPPM() const
+  {
+    return ui_->ppm->isChecked();
+  }
+
+
   Int SpectrumAlignmentDialog::get1stLayerIndex()
   {
-    if (layer_list_1->count() == 0 || layer_list_1->currentRow() == -1)
+    if (ui_->layer_list_1->count() == 0 || ui_->layer_list_1->currentRow() == -1)
     {
       return -1;
     }
-    if (layer_indices_1_.size() > (Size)(layer_list_1->currentRow()))
+    if (layer_indices_1_.size() > (Size)(ui_->layer_list_1->currentRow()))
     {
-      return layer_indices_1_[(Size)(layer_list_1->currentRow())];
+      return layer_indices_1_[(Size)(ui_->layer_list_1->currentRow())];
     }
     return -1;
   }
 
   Int SpectrumAlignmentDialog::get2ndLayerIndex()
   {
-    if (layer_list_2->count() == 0 || layer_list_2->currentRow() == -1)
+    if (ui_->layer_list_2->count() == 0 || ui_->layer_list_2->currentRow() == -1)
     {
       return -1;
     }
-    if (layer_indices_2_.size() > (Size)(layer_list_2->currentRow()))
+    if (layer_indices_2_.size() > (Size)(ui_->layer_list_2->currentRow()))
     {
-      return layer_indices_2_[(Size)(layer_list_2->currentRow())];
+      return layer_indices_2_[(Size)(ui_->layer_list_2->currentRow())];
     }
     return -1;
   }

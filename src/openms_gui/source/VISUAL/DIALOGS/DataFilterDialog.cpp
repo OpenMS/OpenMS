@@ -34,11 +34,12 @@
 
 // OpenMS includes
 #include <OpenMS/VISUAL/DIALOGS/DataFilterDialog.h>
+#include <ui_DataFilterDialog.h>
 
 //Qt includes
-#include <QtGui/QDoubleValidator>
-#include <QtGui/QIntValidator>
-#include <QtGui/QMessageBox>
+#include <QDoubleValidator>
+#include <QIntValidator>
+#include <QtWidgets/QMessageBox>
 
 #include <iostream>
 
@@ -49,89 +50,95 @@ namespace OpenMS
 
   DataFilterDialog::DataFilterDialog(DataFilters::DataFilter & filter, QWidget * parent) :
     QDialog(parent),
-    filter_(filter)
+    filter_(filter),
+    ui_(new Ui::DataFilterDialogTemplate)
   {
-    setupUi(this);
-    connect(ok_button_, SIGNAL(clicked()), this, SLOT(check_()));
-    connect(field_, SIGNAL(activated(const QString &)), this, SLOT(field_changed_(const QString &)));
-    connect(op_, SIGNAL(activated(const QString &)), this, SLOT(op_changed_(const QString &)));
+    ui_->setupUi(this);
+    connect(ui_->ok_button_, SIGNAL(clicked()), this, SLOT(check_()));
+    connect(ui_->field_, SIGNAL(activated(const QString &)), this, SLOT(field_changed_(const QString &)));
+    connect(ui_->op_, SIGNAL(activated(const QString &)), this, SLOT(op_changed_(const QString &)));
 
     //set values for edit mode
-    field_->setCurrentIndex((UInt)filter.field);
-    op_->setCurrentIndex((UInt)filter.op);
+    ui_->field_->setCurrentIndex((UInt)filter.field);
+    ui_->op_->setCurrentIndex((UInt)filter.op);
     if (filter.field == DataFilters::META_DATA)
     {
-      meta_name_field_->setText(filter.meta_name.toQString());
+      ui_->meta_name_field_->setText(filter.meta_name.toQString());
       // if the value stored in filter is numerical, get value from filter.value (a double)
       if (filter.value_is_numerical)
       {
-        value_->setText(QString::number(filter.value));
+        ui_->value_->setText(QString::number(filter.value));
       }
       else       // get value from filter.value_string (a String)
       {
-        value_->setText(filter.value_string.toQString());
+        ui_->value_->setText(filter.value_string.toQString());
       }
-      meta_name_field_->setEnabled(true);
-      meta_name_label_->setEnabled(true);
+      ui_->meta_name_field_->setEnabled(true);
+      ui_->meta_name_label_->setEnabled(true);
       if (filter.op == DataFilters::EXISTS)
       {
-        value_->setEnabled(false);
-        value_label_->setEnabled(false);
+        ui_->value_->setEnabled(false);
+        ui_->value_label_->setEnabled(false);
       }
     }
     else     // for non meta data, the value is always numerical
     {
-      value_->setText(QString::number(filter.value));
+      ui_->value_->setText(QString::number(filter.value));
     }
 
     //focus the value if this is an edit operation
     if (filter != DataFilters::DataFilter())
     {
-      value_->selectAll();
-      setTabOrder(value_, cancel_button_);
-      setTabOrder(cancel_button_, ok_button_);
-      setTabOrder(ok_button_, field_);
-      setTabOrder(field_, meta_name_field_);
-      setTabOrder(meta_name_field_, op_);
+      ui_->value_->selectAll();
+      setTabOrder(ui_->value_, ui_->cancel_button_);
+      setTabOrder(ui_->cancel_button_, ui_->ok_button_);
+      setTabOrder(ui_->ok_button_, ui_->field_);
+      setTabOrder(ui_->field_, ui_->meta_name_field_);
+      setTabOrder(ui_->meta_name_field_, ui_->op_);
     }
+  }
+
+  DataFilterDialog::~DataFilterDialog()
+  {
+    delete ui_;
   }
 
   void DataFilterDialog::field_changed_(const QString & field)
   {
-    QString op(op_->currentText());
+    QString op(ui_->op_->currentText());
     if (field == "Meta data")
     {
-      meta_name_field_->setEnabled(true);
-      meta_name_label_->setEnabled(true);
+      ui_->meta_name_field_->setEnabled(true);
+      ui_->meta_name_label_->setEnabled(true);
     }
     else
     {
-      meta_name_field_->setEnabled(false);
-      meta_name_label_->setEnabled(false);
+      ui_->meta_name_field_->setEnabled(false);
+      ui_->meta_name_label_->setEnabled(false);
     }
   }
 
   void DataFilterDialog::op_changed_(const QString & op)
   {
-    QString field(field_->currentText());
+    QString field(ui_->field_->currentText());
     if (op != "exists")
     {
-      value_->setEnabled(true);
-      value_label_->setEnabled(true);
+      ui_->value_->setEnabled(true);
+      ui_->value_label_->setEnabled(true);
     }
     else
     {
-      value_->setEnabled(false);
-      value_label_->setEnabled(false);
+      ui_->value_->setEnabled(false);
+      ui_->value_label_->setEnabled(false);
     }
   }
 
   void DataFilterDialog::check_()
   {
-    QString field = field_->currentText();
-    QString op = op_->currentText();
-    QString value = value_->text();
-    QString meta_name_field = meta_name_field_->text();
+    QString field = ui_->field_->currentText();
+    QString op = ui_->op_->currentText();
+    QString value = ui_->value_->text();
+    QString meta_name_field = ui_->meta_name_field_->text();
     bool not_numerical = true;
     int tmp;
 

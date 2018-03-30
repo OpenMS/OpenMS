@@ -35,15 +35,11 @@
 #include <OpenMS/FORMAT/HANDLERS/MzMLSpectrumDecoder.h>
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
 
-#include <OpenMS/CONCEPT/Macros.h> // OPENMS_PRECONDITION
-
 #include <xercesc/framework/MemBufInputSource.hpp>
 #include <xercesc/parsers/XercesDOMParser.hpp>
-#include <xercesc/dom/DOMNode.hpp>
 #include <xercesc/dom/DOMText.hpp>
 #include <xercesc/dom/DOMElement.hpp>
 #include <xercesc/dom/DOMNodeList.hpp>
-#include <xercesc/util/XMLString.hpp>
 
 namespace OpenMS
 {
@@ -460,6 +456,7 @@ namespace OpenMS
     static const XMLCh* TAG_userParam = xercesc::XMLString::transcode("userParam");
     static const XMLCh* TAG_referenceableParamGroupRef = xercesc::XMLString::transcode("referenceableParamGroupRef");
     static const XMLCh* TAG_accession = xercesc::XMLString::transcode("accession");
+    static const XMLCh* TAG_unit_accession = xercesc::XMLString::transcode("unitAccession");
     static const XMLCh* TAG_value = xercesc::XMLString::transcode("value");
     static const XMLCh* TAG_name = xercesc::XMLString::transcode("name");
 
@@ -519,9 +516,10 @@ namespace OpenMS
           std::string accession = sm.convert(currentElement->getAttribute(TAG_accession));
           std::string value = sm.convert(currentElement->getAttribute(TAG_value));
           std::string name = sm.convert(currentElement->getAttribute(TAG_name));
+          std::string unit_accession = sm.convert(currentElement->getAttribute(TAG_unit_accession));
 
           // set precision, data_type
-          Internal::MzMLHandlerHelper::handleBinaryDataArrayCVParam(data, accession, value, name);
+          Internal::MzMLHandlerHelper::handleBinaryDataArrayCVParam(data, accession, value, name, unit_accession);
         }
         else if (xercesc::XMLString::equals(currentElement->getTagName(), TAG_userParam))
         {

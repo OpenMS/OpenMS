@@ -35,18 +35,10 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/DATASTRUCTURES/Param.h>
 
-#include <OpenMS/CONCEPT/Types.h>
-#include <OpenMS/DATASTRUCTURES/DataValue.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/DATASTRUCTURES/Map.h>
-#include <OpenMS/config.h>
 
 #include <QtCore/QString>
-#include <algorithm>
-#include <cctype>
 #include <fstream>
-#include <iostream>
-#include <limits>
 
 namespace OpenMS
 {

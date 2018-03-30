@@ -119,6 +119,7 @@ endif()
 #------------------------------------------------------------------------------
 # Find Crawdad libraries if requested
 # cmake args: -DCrawdad_DIR=/path/to/Crawdad/ -DWITH_CRAWDAD=TRUE
+## TODO check if necessary
 if (WITH_CRAWDAD)
   message(STATUS "Will compile with Crawdad support: ${Crawdad_DIR}" )
   find_package(Crawdad REQUIRED)
@@ -144,16 +145,25 @@ endif()
 #------------------------------------------------------------------------------
 # QT
 #------------------------------------------------------------------------------
-SET(QT_MIN_VERSION "4.8.1")
+SET(QT_MIN_VERSION "5.0.0")
 
 # find qt
-find_package(Qt4 REQUIRED QtCore QtNetwork)
+## TODO Use the component variable during install time 
+## Why were many more QT modules linked? Removed for now until complaints.
+set(OpenMS_QT_COMPONENTS Core Network CACHE INTERNAL "QT components for core lib")
+find_package(Qt5 COMPONENTS ${OpenMS_QT_COMPONENTS} REQUIRED)
 
-IF (NOT QT4_FOUND)
-  message(STATUS "QT4 not found!")
+IF (NOT Qt5Core_FOUND)
+  message(STATUS "QT5Core not found!")
 	message(FATAL_ERROR "To find a custom Qt installation use: cmake <..more options..> -D QT_QMAKE_EXECUTABLE='<path_to_qmake(.exe)' <src-dir>")
 ENDIF()
-include(${QT_USE_FILE})
-include(UseQt4)
+
+
+##TODO check if we can integrate the next lines into the openms_add_library cmake macro
+add_definitions(${Qt5Core_DEFINITIONS})
+add_definitions(${Qt5Network_DEFINITIONS})
+
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${Qt5Core_EXECUTABLE_COMPILE_FLAGS} ${Qt5Network_EXECUTABLE_COMPILE_FLAGS}")
+
 
 #------------------------------------------------------------------------------

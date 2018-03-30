@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 
-#include <QtGui/QApplication>
+#include <QApplication>
 #include <OpenMS/VISUAL/ListEditor.h>
 
 using namespace OpenMS;

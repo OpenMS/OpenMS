@@ -33,7 +33,6 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/UniqueIdIndexer.h>
-#include <vector>
 
 namespace OpenMS
 {

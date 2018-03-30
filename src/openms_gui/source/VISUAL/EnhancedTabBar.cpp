@@ -35,9 +35,9 @@
 #include <OpenMS/VISUAL/EnhancedTabBar.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 
-#include <QtGui/QMouseEvent>
-#include <QtGui/QMenu>
-#include <QtGui/QMessageBox>
+#include <QMouseEvent>
+#include <QtWidgets/QMenu>
+#include <QtWidgets/QMessageBox>
 
 #include <iostream>
 
@@ -70,11 +70,11 @@ namespace OpenMS
     int tab = tabAt_(e->pos());
     if (tab != -1)
     {
-      emit dropOnTab(e->mimeData(), e->source(), tabData(tab).toInt());
+      emit dropOnTab(e->mimeData(), dynamic_cast<QWidget*>(e->source()), tabData(tab).toInt());
     }
     else
     {
-      emit dropOnWidget(e->mimeData(), e->source());
+      emit dropOnWidget(e->mimeData(), dynamic_cast<QWidget*>(e->source()));
     }
 
     e->acceptProposedAction();

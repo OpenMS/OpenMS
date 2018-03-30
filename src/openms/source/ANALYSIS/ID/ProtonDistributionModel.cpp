@@ -35,17 +35,13 @@
 
 #include <OpenMS/ANALYSIS/ID/ProtonDistributionModel.h>
 
-#include <cmath>
-#include <numeric>
-#include <cstdlib>
-#include <boost/math/distributions.hpp>
-#include <iostream>
-
 #include <OpenMS/CONCEPT/Constants.h>
-#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/CHEMISTRY/AAIndex.h>
 
+#include <iostream>
+#include <numeric>
+#include <boost/math/distributions.hpp>
 
 
 #define COULOMB_REPULSION (double)47.0  // from zhang: 47.0 kJ/mol

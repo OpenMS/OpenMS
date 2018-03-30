@@ -168,13 +168,6 @@ else()
     endif()
 endif()
 
-#------------------------------------------------------------------------------
-# get the qt version
-execute_process(
-    COMMAND ${QT_QMAKE_EXECUTABLE} -v
-    OUTPUT_VARIABLE QT_QMAKE_VERSION_INFO
-    )
-
 
 #------------------------------------------------------------------------------
 # Check for Nose Test Framework
@@ -353,17 +346,20 @@ if(WIN32)
       file(COPY ${_runtime} DESTINATION ${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms NO_SOURCE_PERMISSIONS)
     endforeach()
     
-    set(FOUND_XERCES FALSE)
-    foreach(CONTRIB_PATH ${CMAKE_PREFIX_PATH})
-        if(EXISTS ${CONTRIB_PATH}/lib/xerces-c_3_1.dll)
-            file(COPY ${CONTRIB_PATH}/lib/xerces-c_3_1.dll DESTINATION ${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms)
-            set(FOUND_XERCES TRUE)
-            message(STATUS "found xerces-c-3_1_dll")
-        endif()
-    endforeach()
-    if(NOT FOUND_XERCES)
-        message(FATAL_ERROR "could not find xerces-c_3_1.dll in contrib dir")
-    endif()
+    find_package(XercesC)
+	if (XercesC_FOUND)
+	  get_filename_component(XercesC_LIBRARY_RELEASE_DIR ${XercesC_LIBRARY_RELEASE} DIRECTORY)
+	  get_filename_component(XercesC_LIBRARY_RELEASE_BASENAME ${XercesC_LIBRARY_RELEASE} NAME_WE)
+	  message("-- Looking for Xerces in Path found by module: ${XercesC_LIBRARY_RELEASE_DIR}/${XercesC_LIBRARY_RELEASE_BASENAME}")
+	  if(EXISTS "${XercesC_LIBRARY_RELEASE_DIR}/${XercesC_LIBRARY_RELEASE_BASENAME}.dll" )
+	    message("-- Found XercesC DLL. Assuming dynamic linkage. Copying.")
+	    file(COPY "${XercesC_LIBRARY_RELEASE_DIR}/${XercesC_LIBRARY_RELEASE_BASENAME}.dll" DESTINATION ${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms)
+	  else()
+	    message("-- XercesC found only with lib extension. Assuming static library. Not copying.")
+	  endif()
+	else()
+	  message(FATAL_ERROR "-- XercesC not found during pyOpenMS configure. If it went through the initial OpenMS configure, please report.")
+	endif()  
 endif()
 
 find_boost()
@@ -397,10 +393,19 @@ endif()
 
 #------------------------------------------------------------------------------
 # collection of include dirs that is necessary to compile pyOpenMS
+
+# Find Qt5 includes for pyOpenMS
+find_package(Qt5 COMPONENTS Core Network REQUIRED)
+get_target_property(QT_QMAKE_EXECUTABLE Qt5::qmake IMPORTED_LOCATION)
+exec_program(${QT_QMAKE_EXECUTABLE} ARGS "-query QT_INSTALL_HEADERS" OUTPUT_VARIABLE QTHEADERS)
+set(QT_INCLUDE_DIR ${QTHEADERS} CACHE INTERNAL "" FORCE)
+exec_program(${QT_QMAKE_EXECUTABLE} ARGS "-v" OUTPUT_VARIABLE QT_QMAKE_VERSION_INFO)
+
 set(PYOPENMS_INCLUDE_DIRS
   ${OpenSwathAlgo_INCLUDE_DIRECTORIES}
   ${OpenMS_INCLUDE_DIRECTORIES}
   ${SuperHirn_INCLUDE_DIRECTORIES}
+  ${QT_INCLUDE_DIR}
 )
 
 # TODO: this is a workaround; we need to clarify why exactly pyOpenMS needs
@@ -423,15 +428,28 @@ if(WIN32)
     endif()
 endif()
 
+get_target_property(QT_QTCORE_LIBRARY_FILE Qt5::Core LOCATION)
+get_filename_component(QT_QTCORE_LIBRARY ${QT_QTCORE_LIBRARY_FILE} PATH)
+get_target_property(QT_QTNETWORK_LIBRARY_FILE Qt5::Network LOCATION)
+get_filename_component(QT_QTNETWORK_LIBRARY ${QT_QTNETWORK_LIBRARY_FILE} PATH)
+
 configure_file(${_env_py_in} ${_env_py} @ONLY)
 
 #------------------------------------------------------------------------------
 # create targets in makefile
 
-add_custom_target(pyopenms_create_cpp
-	COMMAND ${PYTHON_EXECUTABLE} create_cpp_extension.py
-	DEPENDS OpenMS SuperHirn
-	WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS )
+IF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+  add_custom_target(pyopenms_create_cpp
+    COMMAND ${PYTHON_EXECUTABLE} create_cpp_extension.py 2> /dev/null
+    DEPENDS OpenMS SuperHirn
+    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS )
+ELSE()
+  add_custom_target(pyopenms_create_cpp
+    COMMAND ${PYTHON_EXECUTABLE} create_cpp_extension.py
+    DEPENDS OpenMS SuperHirn
+    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS )
+ENDIF()
+
 
 set(PY_EXTRA_ARGS "")
 if(PY_SINGLE_THREADED)

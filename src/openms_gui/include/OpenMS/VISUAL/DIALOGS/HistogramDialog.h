@@ -39,7 +39,7 @@
 // OpenMS_GUI config
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
-#include <QtGui/QDialog>
+#include <QtWidgets/QDialog>
 
 #include <OpenMS/MATH/STATISTICS/Histogram.h>
 #include <OpenMS/VISUAL/HistogramWidget.h>

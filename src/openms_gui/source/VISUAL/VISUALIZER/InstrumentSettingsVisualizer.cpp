@@ -35,8 +35,8 @@
 #include <OpenMS/VISUAL/VISUALIZER/InstrumentSettingsVisualizer.h>
 
 //QT
-#include <QtGui/QLineEdit>
-#include <QtGui/QComboBox>
+#include <QtWidgets/QLineEdit>
+#include <QtWidgets/QComboBox>
 
 //STL
 #include <iostream>

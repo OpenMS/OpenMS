@@ -446,7 +446,6 @@ TargetedFileConverter
 MultiplexPeakPattern
 SILACAnalyzer
 LowLevelComparator
-IDEvaluatorGUI
 AxisWidget
 SpectrumCanvas
 SpectrumWidget

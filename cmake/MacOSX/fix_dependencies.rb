@@ -41,12 +41,13 @@ require 'fileutils'
 
 ##### GLOBAL VARIABLES
 $handledLibraries = Set.new
-lib = nil
-bin = nil
+$lib_dir = nil
+$bin_dir = nil
+$plugin_dir = nil
 $install_name_tool=`which install_name_tool`.strip
 $DEBUG = false
 $currentIndent=0
-$executableId="@executable_path/../lib/"
+$executableId="@executable_path/"
 
 ###############################################################################
 def debug(message)
@@ -124,9 +125,9 @@ def handleDependencies(otool_out, targetPath, currentLib)
       newPath=""
       libname=""
       if isFramework(fix_lib)
-        newPath, libname = handleFramework(fix_lib, targetPath)
+        _, libname = handleFramework(fix_lib, $lib_dir)
       else
-        newPath, libname = handleDyLib(fix_lib, targetPath)
+        _, libname = handleDyLib(fix_lib, $lib_dir)
       end
       
       # fix loading of this library
@@ -231,11 +232,9 @@ end
 def handleDyLib(dylibPath, targetPath)
   $currentIndent+=1
 
-  
-
   # copy if necessary
   newDyLibPath,libname=copyLib(dylibPath, targetPath)
-  
+
   if not $handledLibraries.include?(libname)
     # run otool
     otool_out=`otool -L #{dylibPath}`.strip.split(/\n/)
@@ -262,7 +261,7 @@ def handleDyLib(dylibPath, targetPath)
 end
 
 ###############################################################################
-def handleBinary(binaryPath, targetPath)
+def handleBinary(binaryPath)
   $currentIndent+=1
   
   debug "Fixing binary #{binaryPath}"
@@ -275,7 +274,7 @@ def handleBinary(binaryPath, targetPath)
 
   # handle all referenced libraries and copy them if necessary to 
   # the lib ref path
-  handleDependencies(otool_out, targetPath, binaryPath)
+  handleDependencies(otool_out, $lib_dir, binaryPath)
   
   # readjust
   $currentIndent-=1
@@ -291,7 +290,8 @@ opts = GetoptLong.new(
   [ '--verbose', '-v', GetoptLong::NO_ARGUMENT ],
   [ '--lib-path', '-l', GetoptLong::REQUIRED_ARGUMENT ],
   [ '--install-name-tool', '-i', GetoptLong::OPTIONAL_ARGUMENT ],
-  [ '--bin-path', '-b', GetoptLong::REQUIRED_ARGUMENT ]
+  [ '--bin-path', '-b', GetoptLong::REQUIRED_ARGUMENT ],
+  [ '--plugin-path', '-p', GetoptLong::OPTIONAL_ARGUMENT ]
 )
 
 usage = "#{File.basename($0)} --bin-path PATH-TO-BINARIES --lib-path PATH-TO-STORE-LIBRARIES
@@ -303,6 +303,8 @@ usage = "#{File.basename($0)} --bin-path PATH-TO-BINARIES --lib-path PATH-TO-STO
   the target path where the handled libraries should be stored and possibly already libraries exist
 -b, --bin-path: 
   the path were all the binaries that should be handled are located
+-p, --plugin-path: 
+  the path were optional plugin libraries like from QT5 are located 
 -v, --verbose:
   increase verbosity
 "
@@ -315,36 +317,58 @@ opts.each do |opt, arg|
       $install_name_tool = arg
       puts "Use #{install_name_tool} to fix binaries in #{bin}"
     when '--lib-path'
-      lib = Pathname.new(arg).realpath
+      $lib_dir = Pathname.new(arg).realpath
     when '--bin-path'
-      bin = Pathname.new(arg).realpath
+      $bin_dir = Pathname.new(arg).realpath
+    when '--plugin-path'
+      $plugin_dir = Pathname.new(arg).realpath
     when '--verbose'
       $DEBUG = true
   end
 end
 
-if lib == nil or bin == nil
+if $lib_dir.nil? or $bin_dir.nil?
   puts "Please provide a bin and lib path"
   puts "#{usage}"
   exit 1
+else 
+  $executableId = $executableId + $lib_dir.relative_path_from($bin_dir).to_s
+  $executableId += "/"
+  puts "Substituting prefix to find libs with:"
+  puts $executableId
 end
 
+debug "HANDLING LIB DIR"
 # fix libraries contained in lib-path
-for content in Dir.entries(lib) 
-  if fixable(content, lib)
+for content in Dir.entries($lib_dir)
+  if fixable(content, $lib_dir)
     if isFramework(content)
-#      handleFramework(lib + content, lib)
+#      handleFramework($lib_dir + content, $lib_dir)
     else
-      handleDyLib(lib + content, lib)
+      handleDyLib($lib_dir + content, $lib_dir)
     end
   end
 end
 
+debug "HANDLING BIN DIR"
 # fix binary references
-for content in Dir.entries(bin)
-  if fixable(content, bin)
-    debug "Handle binary #{bin + content}"
-    handleBinary(bin + content, lib)
+for content in Dir.entries($bin_dir)
+  if fixable(content, $bin_dir)
+    if content.end_with?("dylib")
+      debug "Handle dylib #{$bin_dir + content}"
+      handleDyLib($bin_dir + content, $bin_dir)
+    else
+      debug "Handle binary #{$bin_dir + content}"
+      handleBinary($bin_dir + content)
+    end
+  end
+end
+
+if !$plugin_dir.nil?
+  debug "HANDLING PLUGIN DIR"
+  for content in Dir.glob("#{$plugin_dir}/**/*.dylib")
+    debug "Handle dylib #{$plugin_dir + content}"
+    handleDyLib($plugin_dir + content, File.dirname($plugin_dir + content))
   end
 end
   

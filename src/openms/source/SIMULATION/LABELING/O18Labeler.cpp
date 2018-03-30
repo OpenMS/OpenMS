@@ -34,7 +34,6 @@
 
 #include <OpenMS/SIMULATION/LABELING/O18Labeler.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
-#include <OpenMS/CHEMISTRY/ResidueModification.h>
 
 using std::vector;
 

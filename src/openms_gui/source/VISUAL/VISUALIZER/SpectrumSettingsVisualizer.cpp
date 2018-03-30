@@ -35,9 +35,9 @@
 #include <OpenMS/VISUAL/VISUALIZER/SpectrumSettingsVisualizer.h>
 
 //QT
-#include <QtGui/QComboBox>
-#include <QtGui/QTextEdit>
-#include <QtGui/QLineEdit>
+#include <QtWidgets/QComboBox>
+#include <QtWidgets/QTextEdit>
+#include <QtWidgets/QLineEdit>
 
 //STL
 #include <iostream>

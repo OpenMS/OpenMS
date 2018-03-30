@@ -39,6 +39,8 @@
 #include <OpenMS/DATASTRUCTURES/StringListUtils.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/METADATA/SpectrumLookup.h>
+#include <OpenMS/METADATA/SourceFile.h>
 
 namespace OpenMS
 {

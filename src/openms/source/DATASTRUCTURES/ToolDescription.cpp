@@ -35,9 +35,6 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/DATASTRUCTURES/ToolDescription.h>
 
-#include <OpenMS/DATASTRUCTURES/String.h>
-#include <OpenMS/config.h>
-
 using namespace std;
 
 namespace OpenMS

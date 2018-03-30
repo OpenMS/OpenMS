@@ -161,7 +161,7 @@
 
 // those are only added if GUI is enabled
 #ifdef WITH_GUI
-#include <QtGui/QApplication>
+#include <QApplication>
 
 #include <OpenMS/VISUAL/Spectrum1DCanvas.h>
 #include <OpenMS/VISUAL/Spectrum2DCanvas.h>

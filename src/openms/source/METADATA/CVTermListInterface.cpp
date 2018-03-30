@@ -37,8 +37,6 @@
 #include <OpenMS/METADATA/CVTermList.h>
 #include <OpenMS/CONCEPT/Helpers.h>
 
-#include <iostream>
-
 namespace OpenMS
 {
 
