@@ -40,7 +40,8 @@
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/MzTabFile.h>
 #include <OpenMS/FORMAT/MzTab.h>
-#include <OpenMS/METADATA/ExperimentalDesign.h>
+#include <OpenMS/FORMAT/ExperimentalDesign.h>
+#include <OpenMS/FORMAT/ExperimentalDesignFile.h>
 
 #include <regex>
 
@@ -133,7 +134,7 @@ protected:
 
       // Experimental Design file
       const String arg_in_design = getStringOption_(TOPPMSstatsConverter::param_in_design);
-      const ExperimentalDesign design = ExperimentalDesign::load(arg_in_design);
+      const ExperimentalDesign design = ExperimentalDesignFile::load(arg_in_design, false);
       ExperimentalDesign::SampleSection sampleSection = design.getSampleSection();
 
       // Sample Section must contain the column that contains the condition used for MSstats
@@ -174,15 +175,13 @@ protected:
       typedef OpenMS::Peak2D::CoordinateType Coordinate;
 
       // Load the filenames of the design run file
-      std::vector< String > design_run_filenames;
-      design.getFileNames(design_run_filenames, true);
+      const std::vector< String > design_run_filenames = design.getFileNames(true);
 
       // Determine if the experiment has fractions
-      const bool has_fraction = design.hasFractions();
+      const bool has_fraction = design.isFractionated();
 
-      // Determine if the experimental design is LFQ (one channel in design file)
-      std::vector< unsigned > channels;
-      design.getChannels(channels);
+      // Determine if the experimental design is LFQ (one channel token in design file)
+      std::vector< unsigned > channels = design.getChannels();
       auto last = std::unique(channels.begin(), channels.end());
       channels.erase(last, channels.end());
       const bool isLabelFree = channels.size() == 1;
