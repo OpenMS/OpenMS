@@ -32,31 +32,24 @@
 // $Authors: Timo Sachsenberg $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_KERNEL_ExperimentalDesign_H
-#define OPENMS_KERNEL_ExperimentalDesign_H
+#ifndef OPENMS_KERNEL_EXPERIMENTALDESIGN_H
+#define OPENMS_KERNEL_EXPERIMENTALDESIGN_H
 
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
-#include <OpenMS/KERNEL/ConsensusMap.h>
-#include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/SYSTEM/File.h>
-#include <OpenMS/METADATA/ProteinIdentification.h>
 
 #include <vector>
-#include <string>
 #include <map>
 #include <set>
-#include <algorithm>
-#include <tuple>
-
 
 namespace OpenMS
 {
   /**
-  @brief A TSV and user friendly representation of the experimental design.
-  Used for loading and storing the experimental design in OpenMS.
+  @brief Representation of the Experimental Design in OpenMS. Instances are loaded via
+   the ExperimentalDesignIO class.
 
-  @ingroup Metadata
+  @ingroup Format
   */
   class OPENMS_DLLAPI ExperimentalDesign
   {
@@ -165,7 +158,7 @@ namespace OpenMS
       // Index of the column
       std::map< String, Size > columnname_to_columnindex_;
 
-      friend class ExperimentalDesign;
+      friend class ExperimentalDesignIO;
     };
 
     using RunRows = std::vector<RunRow>;
@@ -223,30 +216,9 @@ namespace OpenMS
     /// return if each fraction number is associated with the same number of runs
     bool sameNrOfMSFilesPerFraction() const;
 
-    /// Loads an experimental design from a tabular separated file
-    static ExperimentalDesign load(const String &tsv_file, bool require_spectra_file);
-
-    /// Extract experimental design from consensus map
-    static ExperimentalDesign fromConsensusMap(const ConsensusMap& c);
-
-    /// Extract experimental design from feature map
-    static ExperimentalDesign fromFeatureMap(const FeatureMap& f);
-
-    /// Extract experimental design from identifications
-    static ExperimentalDesign fromIdentifications(const std::vector<ProteinIdentification> & proteins);
+    friend class ExperimentalDesignIO;
 
     private:
-
-      /// Reads header line of Run and Sample section, checks for the existence of required headers
-      /// and maps the column name to its position
-      static void parseHeader_(
-                        const StringList &header,
-                        const String &filename,
-                        std::map <String, Size> &column_map,
-                        const std::set <String> &required,
-                        const std::set <String> &optional,
-                        bool allow_other_header);
-
 
       /// Generic Mapper (Path, Channel) -> f(row)
       std::map< std::pair< String, unsigned >, unsigned> pathChannelMapper(

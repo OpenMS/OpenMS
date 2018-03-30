@@ -33,6 +33,7 @@ DTA2DFile.h
 DTAFile.h
 EDTAFile.h
 ExperimentalDesign.h
+ExperimentalDesignIO.h
 FASTAFile.h
 FastaIterator.h
 FastaIteratorIntern.h

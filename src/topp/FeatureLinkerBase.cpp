@@ -40,6 +40,7 @@
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/FORMAT/ExperimentalDesign.h>
+#include <OpenMS/FORMAT/ExperimentalDesignIO.h>
 
 #include <OpenMS/KERNEL/ConversionHelper.h>
 
@@ -156,7 +157,7 @@ protected:
       if (!design_file.empty())
       {
         // parse design file and determine fractions
-        ExperimentalDesignTable ed = ExperimentalDesignTable::load(design_file, false);
+        ExperimentalDesign ed = ExperimentalDesignIO::load(design_file, false);
 
         // determine if design defines more than one fraction
         frac2files = ed.getFractionToMSFilesMapping();
