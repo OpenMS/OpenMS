@@ -32,8 +32,8 @@
 // $Authors: Timo Sachsenberg, Lukas Zimmermann $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_KERNEL_EXPERIMENTALDESIGNIO_H
-#define OPENMS_KERNEL_EXPERIMENTALDESIGNIO_H
+#ifndef OPENMS_KERNEL_EXPERIMENTALDESIGNFILE_H
+#define OPENMS_KERNEL_EXPERIMENTALDESIGNFILE_H
 
 #include <OpenMS/DATASTRUCTURES/String.h>
 
