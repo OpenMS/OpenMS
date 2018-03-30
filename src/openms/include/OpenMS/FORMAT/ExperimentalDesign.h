@@ -32,8 +32,8 @@
 // $Authors: Timo Sachsenberg $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_KERNEL_EXPERIMENTALDESIGNTABLE_H
-#define OPENMS_KERNEL_EXPERIMENTALDESIGNTABLE_H
+#ifndef OPENMS_KERNEL_ExperimentalDesign_H
+#define OPENMS_KERNEL_ExperimentalDesign_H
 
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
@@ -58,10 +58,10 @@ namespace OpenMS
 
   @ingroup Metadata
   */
-  class OPENMS_DLLAPI ExperimentalDesignTable
+  class OPENMS_DLLAPI ExperimentalDesign
   {
   public:
-  ExperimentalDesignTable() = default;
+  ExperimentalDesign() = default;
 
     /// 1) Mandatory section with run-level information of the experimental design.
     ///    Required to process fractionated data.
@@ -165,7 +165,7 @@ namespace OpenMS
       // Index of the column
       std::map< String, Size > columnname_to_columnindex_;
 
-      friend class ExperimentalDesignTable;
+      friend class ExperimentalDesign;
     };
 
     using RunRows = std::vector<RunRow>;
@@ -175,7 +175,7 @@ namespace OpenMS
     void setRunSection(const RunRows& run_section);
 
     // Returns the Sample Section of the experimental design file
-    const ExperimentalDesignTable::SampleSection& getSampleSection() const;
+    const ExperimentalDesign::SampleSection& getSampleSection() const;
 
     // Gets vector of Filenames that appears in the run section, optionally trims to basename
     std::vector< String > getFileNames(bool basename) const;
@@ -224,16 +224,16 @@ namespace OpenMS
     bool sameNrOfMSFilesPerFraction() const;
 
     /// Loads an experimental design from a tabular separated file
-    static ExperimentalDesignTable load(const String &tsv_file, bool require_spectra_file);
+    static ExperimentalDesign load(const String &tsv_file, bool require_spectra_file);
 
     /// Extract experimental design from consensus map
-    static ExperimentalDesignTable fromConsensusMap(const ConsensusMap& c);
+    static ExperimentalDesign fromConsensusMap(const ConsensusMap& c);
 
     /// Extract experimental design from feature map
-    static ExperimentalDesignTable fromFeatureMap(const FeatureMap& f);
+    static ExperimentalDesign fromFeatureMap(const FeatureMap& f);
 
     /// Extract experimental design from identifications
-    static ExperimentalDesignTable fromIdentifications(const std::vector<ProteinIdentification> & proteins);
+    static ExperimentalDesign fromIdentifications(const std::vector<ProteinIdentification> & proteins);
 
     private:
 
@@ -251,7 +251,7 @@ namespace OpenMS
       /// Generic Mapper (Path, Channel) -> f(row)
       std::map< std::pair< String, unsigned >, unsigned> pathChannelMapper(
           bool,
-          unsigned (*f)(const ExperimentalDesignTable::RunRow&)) const;
+          unsigned (*f)(const ExperimentalDesign::RunRow&)) const;
 
       // sort to obtain the default order
       void sort_();

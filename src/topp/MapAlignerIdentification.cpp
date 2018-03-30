@@ -34,7 +34,7 @@
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmIdentification.h>
 #include <OpenMS/APPLICATIONS/MapAlignerBase.h>
-#include <OpenMS/FORMAT/ExperimentalDesignTable.h>
+#include <OpenMS/FORMAT/ExperimentalDesign.h>
 
 using namespace OpenMS;
 using namespace std;

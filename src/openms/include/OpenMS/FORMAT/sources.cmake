@@ -32,7 +32,7 @@ CsvFile.h
 DTA2DFile.h
 DTAFile.h
 EDTAFile.h
-ExperimentalDesignTable.h
+ExperimentalDesign.h
 FASTAFile.h
 FastaIterator.h
 FastaIteratorIntern.h
