@@ -213,6 +213,9 @@ namespace OpenMS
     // @return sample index (depends on run and channel)
     unsigned getSample(unsigned run, unsigned channel = 1);
 
+    /// @return whether at least one run in this experimental design is fractionated
+    bool isFractionated() const;
+
     /// return if each fraction number is associated with the same number of runs
     bool sameNrOfMSFilesPerFraction() const;
 

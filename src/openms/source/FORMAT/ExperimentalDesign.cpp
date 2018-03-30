@@ -177,6 +177,13 @@ namespace OpenMS
       return unique_paths.size();
     }
 
+    bool ExperimentalDesign::isFractionated() const
+    {
+      std::vector<unsigned> fractions = this->getFractions();
+      std::set<unsigned> fractions_set(fractions.begin(), fractions.end());
+      return fractions_set.size() < 2;
+    }
+
     // @return the number of runs (before fractionation)
     // Allows to group fraction ids and source files
     unsigned ExperimentalDesign::getNumberOfPrefractionationRuns() const
