@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -61,7 +61,7 @@ namespace OpenMS
   class OPENMS_DLLAPI ExperimentalDesignTable
   {
   public:
-  ExperimentalDesignTable() {};
+  ExperimentalDesignTable() = default;
 
     /// 1) Mandatory section with run-level information of the experimental design.
     ///    Required to process fractionated data.
@@ -131,26 +131,25 @@ namespace OpenMS
       unsigned sample = 1;  ///< allows grouping by sample
     };
 
-
     class OPENMS_DLLAPI SampleSection
     {
     public:
       SampleSection() = default;
 
       // Get set of all samples that are present in the sample section
-      void getSamples(std::set< unsigned > &samples) const;
+      std::set< unsigned > getSamples() const;
 
       // Get set of all factors (column names) that were defined for the sample section
-      void getFactors(std::set< String > &factors) const;
+      std::set< String > getFactors() const;
 
       // Checks whether sample section has row for a sample number
-      bool hasSample(const unsigned sample) const;
+      bool hasSample(unsigned sample) const;
 
       // Checks whether Sample Section has a specific factor (i.e. column name)
       bool hasFactor(const String &factor) const;
 
       // Returns value of factor for given sample and factor name
-      String getFactorValue(const unsigned sample, const String &factor);
+      String getFactorValue(unsigned sample, const String &factor);
 
     private:
 
@@ -179,12 +178,12 @@ namespace OpenMS
     const ExperimentalDesignTable::SampleSection& getSampleSection() const;
 
     // Gets vector of Filenames that appears in the run section, optionally trims to basename
-    void getFileNames(std::vector< String > &filenames, const bool basename) const;
+    std::vector< String > getFileNames(bool basename) const;
 
     // Returns vector of channels of the run section
-    void getChannels(std::vector<unsigned> &channels) const;
+    std::vector<unsigned> getChannels() const;
 
-    void getFractions(std::vector<unsigned> &fractions) const;
+    std::vector<unsigned> getFractions() const;
 
     /// return fraction index to file paths (ordered by run id)
     std::map<unsigned int, std::vector<String> > getFractionToMSFilesMapping() const;
@@ -194,13 +193,13 @@ namespace OpenMS
     *   uniquely to the sample number, fraction number, and run number
     */
     /// return <file_path, channel> to sample mapping
-    std::map< std::pair< String, unsigned >, unsigned> getPathChannelToSampleMapping(const bool) const;
+    std::map< std::pair< String, unsigned >, unsigned> getPathChannelToSampleMapping(bool) const;
 
     /// return <file_path, channel> to fraction mapping
-    std::map< std::pair< String, unsigned >, unsigned> getPathChannelToFractionMapping(const bool) const;
+    std::map< std::pair< String, unsigned >, unsigned> getPathChannelToFractionMapping(bool) const;
 
     /// return <file_path, channel> to run mapping
-    std::map< std::pair< String, unsigned >, unsigned> getPathChannelToRunMapping(const bool) const;
+    std::map< std::pair< String, unsigned >, unsigned> getPathChannelToRunMapping(bool) const;
 
     // @return the number of samples measured (= highest sample index)
     unsigned getNumberOfSamples() const;
@@ -225,7 +224,7 @@ namespace OpenMS
     bool sameNrOfMSFilesPerFraction() const;
 
     /// Loads an experimental design from a tabular separated file
-    static ExperimentalDesignTable load(const String & tsv_file, const bool require_spectra_file);
+    static ExperimentalDesignTable load(const String &tsv_file, bool require_spectra_file);
 
     /// Extract experimental design from consensus map
     static ExperimentalDesignTable fromConsensusMap(const ConsensusMap& c);
@@ -238,104 +237,32 @@ namespace OpenMS
 
     private:
 
-      static void parseHeader_(const StringList &header,
+      /// Reads header line of Run and Sample section, checks for the existence of required headers
+      /// and maps the column name to its position
+      static void parseHeader_(
+                        const StringList &header,
                         const String &filename,
                         std::map <String, Size> &column_map,
                         const std::set <String> &required,
                         const std::set <String> &optional,
-                        const bool allow_other_header);
+                        bool allow_other_header);
 
 
       /// Generic Mapper (Path, Channel) -> f(row)
       std::map< std::pair< String, unsigned >, unsigned> pathChannelMapper(
-          const bool,
+          bool,
           unsigned (*f)(const ExperimentalDesignTable::RunRow&)) const;
 
       // sort to obtain the default order
       void sort_();
 
       template<typename T>
-      void errorIfAlreadyExists(std::set<T> &container, T &item, const String &message)
-      {
-        if (container.find(item) != container.end())
-        {
-          throw Exception::MissingInformation(
-                  __FILE__,
-                  __LINE__,
-                  OPENMS_PRETTY_FUNCTION, message);
-        }
-        container.insert(item);
-      }
+      static void errorIfAlreadyExists(std::set<T> &container, T &item, const String &message);
 
-      void checkValidRunSection_()
-      {
-        if (getNumberOfMSFiles() == 0)
-        {
-          throw Exception::MissingInformation(
-            __FILE__,
-            __LINE__,
-            OPENMS_PRETTY_FUNCTION,
-            "No MS files provided.");
-        }
-
-        std::set< std::tuple< unsigned, unsigned, unsigned > > run_fraction_sample_set;
-        std::set< std::tuple< unsigned, unsigned, unsigned > > run_fraction_channel_set;
-        std::set< std::tuple< std::string, unsigned > > path_channel_set;
-        std::map< std::tuple< unsigned, unsigned >, std::set< unsigned > > run_channel_to_sample;
-
-        for (const RunRow &row : run_section_)
-        {
-          // Fail if sample section does not contain the run
-          if (sample_section_.hasSample(row.sample) == false)
-          {
-            throw Exception::MissingInformation(
-                    __FILE__,
-                    __LINE__,
-                    OPENMS_PRETTY_FUNCTION,
-                    "Sample Section does not contain sample for run " + String(row.run));
-          }
-
-          // RUN_FRACTION_SAMPLE TUPLE
-          std::tuple<unsigned, unsigned, unsigned> run_fraction_sample = std::make_tuple(row.run, row.fraction, row.sample);
-          errorIfAlreadyExists(
-                  run_fraction_sample_set,
-                  run_fraction_sample,
-                  "(Run, Fraction, Sample) combination can only appear once");
-
-          // RUN_FRACTION_CHANNEL TUPLE
-          std::tuple<unsigned, unsigned, unsigned> run_fraction_channel = std::make_tuple(row.run, row.fraction, row.channel);
-          errorIfAlreadyExists(
-                  run_fraction_channel_set,
-                  run_fraction_channel,
-                  "(Run, Fraction, Channel) combination can only appear once");
-
-
-          // PATH_CHANNEL_TUPLE
-          std::tuple<std::string, unsigned> path_channel = std::make_tuple(row.path, row.channel);
-          errorIfAlreadyExists(
-                  path_channel_set,
-                  path_channel,
-                  "(Path, Channel) combination can only appear once");
-
-          // RUN_CHANNEL TUPLE
-          std::tuple<unsigned, unsigned> run_channel = std::make_tuple(row.run, row.channel);
-          run_channel_to_sample[run_channel].insert(row.sample);
-
-          if (run_channel_to_sample[run_channel].size() > 1)
-          {
-            throw Exception::MissingInformation(
-              __FILE__,
-              __LINE__,
-              OPENMS_PRETTY_FUNCTION,
-              "Multiple Samples encountered for the same Run and the same Channel");
-          }
-        }
-      }
+      void checkValidRunSection_();
 
       RunRows run_section_;
       SampleSection sample_section_;
   };
 }
-
-
 #endif // header guard

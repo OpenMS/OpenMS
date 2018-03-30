@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -50,11 +50,11 @@ namespace OpenMS
 {
     using RunRows = std::vector<ExperimentalDesignTable::RunRow>;
 
-
     // Parse Error of filename if test holds
     void parseErrorIf(const bool test, const String &filename, const String &message)
     {
-      if (test) {
+      if (test)
+      {
         throw Exception::ParseError(
                 __FILE__,
                 __LINE__,
@@ -64,7 +64,8 @@ namespace OpenMS
       }
     }
 
-    void ExperimentalDesignTable::parseHeader_(const StringList &header,
+    void ExperimentalDesignTable::parseHeader_(
+                      const StringList &header,
                       const String &filename,
                       std::map <String, Size> &column_map,
                       const std::set <String> &required,
@@ -77,15 +78,18 @@ namespace OpenMS
                    "Some column headers of the table appear multiple times!");
 
       // Check that all required headers are there
-      for (const String &req_header : required) {
-
+      for (const String &req_header : required)
+      {
         parseErrorIf( ! ListUtils::contains(header, req_header), filename,
                      "Missing column header: " + req_header);
       }
       // Assign index in column map and check for weird headers
-      for (Size i = 0; i < header.size(); ++i) {
+      for (Size i = 0; i < header.size(); ++i)
+      {
         const String &h = header[i];
-        const bool header_unexpected = required.find(h) == required.end() && optional.find(h) == optional.end();
+
+        // A header is unexpected if it is neither required nor optional and we do not allow other headers
+        const bool header_unexpected = (required.find(h) == required.end()) && (optional.find(h) == optional.end());
         parseErrorIf(
                 !allow_other_header && header_unexpected,
                 filename,
@@ -99,7 +103,8 @@ namespace OpenMS
     {
       String result;
       QFileInfo spectra_file_info(spec_file.toQString());
-      if (spectra_file_info.isRelative()) {
+      if (spectra_file_info.isRelative())
+      {
         // file name is relative so we need to figure out the correct folder
 
         // first check folder relative to folder of design file
@@ -109,21 +114,28 @@ namespace OpenMS
         QString design_file_relative(design_file_info.absolutePath());
         design_file_relative = design_file_relative + "/" + spec_file.toQString();
 
-        if (File::exists(design_file_relative)) {
+        if (File::exists(design_file_relative))
+        {
           result = design_file_relative.toStdString();
-        } else {
+        }
+        else
+        {
           // check current folder
           String f = File::absolutePath(spec_file);
-          if (File::exists(f)) {
+          if (File::exists(f))
+          {
             result = f;
           }
         }
 
         // if result still empty, just use the provided value
-        if (result.empty()) {
+        if (result.empty())
+        {
           result = spec_file;
         }
-      } else {
+      }
+      else
+      {
         // set to absolute path
         result = spec_file;
       }
@@ -134,7 +146,6 @@ namespace OpenMS
             throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, tsv_file,
                 "Error: Spectra file does not exist: '" + result + "'");
       }
-
       return result;
     }
 
@@ -162,10 +173,11 @@ namespace OpenMS
       const TextFile text_file(tsv_file, true);
       for (String s : text_file)
       {
-        // skip empty lines (except in state 1, where the sample table is read)
+        // skip empty lines (except in state RUN_CONTENT, where the sample table is read)
         const String line(s.trim());
 
-        if (line.empty() && state != RUN_CONTENT) {
+        if (line.empty() && state != RUN_CONTENT)
+        {
           continue;
         }
 
@@ -177,7 +189,8 @@ namespace OpenMS
         std::transform(cells.begin(), cells.end(), cells.begin(),
                        [](String cell) -> String { return cell.trim(); });
 
-        if (state == RUN_HEADER) {
+        if (state == RUN_HEADER)
+        {
           state = RUN_CONTENT;
           parseHeader_(
                   cells,
@@ -191,12 +204,14 @@ namespace OpenMS
           n_col = run_column_header_to_index.size();
         }
           // End of run section lines, empty line separates run and sample table
-        else if (state == RUN_CONTENT && line.empty()) {
+        else if (state == RUN_CONTENT && line.empty())
+        {
           // Next line is header of Sample table
           state = SAMPLE_HEADER;
         }
           // Line is run line of run section
-        else if (state == RUN_CONTENT) {
+        else if (state == RUN_CONTENT)
+        {
           parseErrorIf(n_col != cells.size(), tsv_file,
                        "Wrong number of records in line");
 
@@ -210,12 +225,13 @@ namespace OpenMS
           row.channel = has_channel ? cells[run_column_header_to_index["Channel"]].toInt() : 1;
 
           // Assign sample number
-          if (has_sample) {
+          if (has_sample)
+          {
             row.sample = cells[run_column_header_to_index["Sample"]].toInt();
-          } else if (has_channel) {
-            row.sample = row.channel;
-          } else {
-            row.sample = row.run;
+          }
+          else
+          {
+            row.sample = has_channel ? row.channel : row.run;
           }
 
           // Spectra files
@@ -226,7 +242,8 @@ namespace OpenMS
           design.run_section_.push_back(row);
         }
           // Parse header of the Condition Table
-        else if (state == SAMPLE_HEADER) {
+        else if (state == SAMPLE_HEADER)
+        {
           state = SAMPLE_CONTENT;
           line_number = 0;
           parseHeader_(
@@ -238,7 +255,8 @@ namespace OpenMS
           n_col = design.sample_section_.columnname_to_columnindex_.size();
         }
           // Parse Sample Row
-        else if (state == SAMPLE_CONTENT) {
+        else if (state == SAMPLE_CONTENT)
+        {
           // Parse Error if sample appears multiple times
           unsigned sample = cells[design.sample_section_.columnname_to_columnindex_["Sample"]].toInt();
           parseErrorIf(
@@ -259,7 +277,7 @@ namespace OpenMS
 
     ExperimentalDesignTable ExperimentalDesignTable::fromConsensusMap(const ConsensusMap &cm)
     {
-      ExperimentalDesignTable ed;
+      ExperimentalDesignTable experimental_design;
       // path of the original MS run (mzML / raw file)
       StringList ms_run_paths;
       cm.getPrimaryMSRunPath(ms_run_paths);
@@ -268,7 +286,8 @@ namespace OpenMS
       // each consensus element corresponds to one sample abundance
       size_t sample(1);
       ExperimentalDesignTable::RunRows rows;
-      for (auto const &f : ms_run_paths) {
+      for (const auto &f : ms_run_paths)
+      {
         ExperimentalDesignTable::RunRow r;
         r.path = f;
         r.fraction = 1;
@@ -278,24 +297,25 @@ namespace OpenMS
         rows.push_back(r);
         ++sample;
       }
-      ed.setRunSection(rows);
+      experimental_design.setRunSection(rows);
       LOG_INFO << "Experimental design (ConsensusMap derived):\n"
-               << "  files: " << ed.getNumberOfMSFiles()
-               << "  fractions: " << ed.getNumberOfFractions()
-               << "  channels: " << ed.getNumberOfChannels()
-               << "  samples: " << ed.getNumberOfSamples() << "\n"
+               << "  files: " << experimental_design.getNumberOfMSFiles()
+               << "  fractions: " << experimental_design.getNumberOfFractions()
+               << "  channels: " << experimental_design.getNumberOfChannels()
+               << "  samples: " << experimental_design.getNumberOfSamples() << "\n"
                << endl;
-      return ed;
+      return experimental_design;
     }
 
     ExperimentalDesignTable ExperimentalDesignTable::fromFeatureMap(const FeatureMap &fm)
     {
-      ExperimentalDesignTable ed;
+      ExperimentalDesignTable experimental_design;
       // path of the original MS run (mzML / raw file)
       StringList ms_paths;
       fm.getPrimaryMSRunPath(ms_paths);
 
-      if (ms_paths.size() != 1) {
+      if (ms_paths.size() != 1)
+      {
         throw Exception::MissingInformation(
                 __FILE__,
                 __LINE__,
@@ -312,25 +332,27 @@ namespace OpenMS
       r.channel = 1;
 
       ExperimentalDesignTable::RunRows rows(1, r);
-      ed.setRunSection(rows);
+      experimental_design.setRunSection(rows);
       LOG_INFO << "Experimental design (FeatureMap derived):\n"
-               << "  files: " << ed.getNumberOfMSFiles()
-               << "  fractions: " << ed.getNumberOfFractions()
-               << "  channels: " << ed.getNumberOfChannels()
-               << "  samples: " << ed.getNumberOfSamples() << "\n"
+               << "  files: " << experimental_design.getNumberOfMSFiles()
+               << "  fractions: " << experimental_design.getNumberOfFractions()
+               << "  channels: " << experimental_design.getNumberOfChannels()
+               << "  samples: " << experimental_design.getNumberOfSamples() << "\n"
                << endl;
-      return ed;
+      return experimental_design;
     }
 
     ExperimentalDesignTable ExperimentalDesignTable::fromIdentifications(const vector <ProteinIdentification> &proteins)
     {
-      ExperimentalDesignTable ed;
+      ExperimentalDesignTable experimental_design;
       // path of the original MS files (mzML / raw file)
       StringList ms_run_paths;
-      for (auto const &p : proteins) {
+      for (const auto &protein : proteins)
+      {
         StringList tmp_ms_run_paths;
-        p.getPrimaryMSRunPath(tmp_ms_run_paths);
-        if (tmp_ms_run_paths.size() != 1) {
+        protein.getPrimaryMSRunPath(tmp_ms_run_paths);
+        if (tmp_ms_run_paths.size() != 1)
+        {
           throw Exception::MissingInformation(
                   __FILE__,
                   __LINE__,
@@ -343,9 +365,10 @@ namespace OpenMS
 
       // no fractionation -> as many runs as samples
       // each identification run corresponds to one sample abundance
-      size_t sample(1);
+      unsigned sample(1);
       ExperimentalDesignTable::RunRows rows;
-      for (auto const &f : ms_run_paths) {
+      for (const auto &f : ms_run_paths)
+      {
         ExperimentalDesignTable::RunRow r;
         r.path = f;
         r.fraction = 1;
@@ -356,35 +379,34 @@ namespace OpenMS
         rows.push_back(r);
         ++sample;
       }
-      ed.setRunSection(rows);
+      experimental_design.setRunSection(rows);
       LOG_INFO << "Experimental design (Identification derived):\n"
-               << "  files: " << ed.getNumberOfMSFiles()
-               << "  fractions: " << ed.getNumberOfFractions()
-               << "  channels: " << ed.getNumberOfChannels()
-               << "  samples: " << ed.getNumberOfSamples() << "\n"
+               << "  files: " << experimental_design.getNumberOfMSFiles()
+               << "  fractions: " << experimental_design.getNumberOfFractions()
+               << "  channels: " << experimental_design.getNumberOfChannels()
+               << "  samples: " << experimental_design.getNumberOfSamples() << "\n"
                << endl;
-      return ed;
+      return experimental_design;
     }
-
 
     map<unsigned, vector<String> > ExperimentalDesignTable::getFractionToMSFilesMapping() const
     {
       map<unsigned, vector<String> > ret;
 
-      for (RunRow const &r : run_section_) {
+      for (RunRow const &r : run_section_)
+      {
         ret[r.fraction].emplace_back(r.path);
       }
-
       return ret;
     }
-
 
     map<pair<String, unsigned>, unsigned> ExperimentalDesignTable::pathChannelMapper(
             const bool basename,
             unsigned (*f)(const ExperimentalDesignTable::RunRow &row)) const
     {
       map<pair<String, unsigned>, unsigned> ret;
-      for (RunRow const &r : run_section_) {
+      for (RunRow const &r : run_section_)
+      {
         const String path = String(r.path);
         pair<String, unsigned> tpl = make_pair((basename ? File::basename(path) : path), r.channel);
         ret[tpl] = f(r);
@@ -421,14 +443,17 @@ namespace OpenMS
       if (frac2files.size() <= 1) { return true; }
 
       Size files_per_fraction(0);
-      for (auto const &f : frac2files) {
+      for (auto const &f : frac2files)
+      {
         if (files_per_fraction == 0) // first fraction, initialize
         {
           files_per_fraction = f.second.size();
-        } else // fraction >= 2
+        }
+        else // fraction >= 2
         {
           // different number of associated MS files?
-          if (f.second.size() != files_per_fraction) {
+          if (f.second.size() != files_per_fraction)
+          {
             return false;
           }
         }
@@ -517,97 +542,177 @@ namespace OpenMS
       return sample_section_;
     }
 
-    void ExperimentalDesignTable::getFileNames(std::vector< String > &filenames, const bool basename) const
+    std::vector< String > ExperimentalDesignTable::getFileNames(const bool basename) const
     {
-      filenames.clear();
+      std::vector<String> filenames;
       for (const RunRow &row : run_section_)
       {
         const String path = String(row.path);
         filenames.push_back(basename ? path : File::basename(path));
       }
+      return filenames;
     }
 
-    void ExperimentalDesignTable::getChannels(std::vector<unsigned> &channels) const
+    template<typename T>
+    void ExperimentalDesignTable::errorIfAlreadyExists(std::set<T> &container, T &item, const String &message)
     {
-      channels.clear();
-      for (const RunRow &row : run_section_)
+      if (container.find(item) != container.end())
       {
-        channels.push_back(row.channel);
+       throw Exception::MissingInformation(
+       __FILE__,
+       __LINE__,
+        OPENMS_PRETTY_FUNCTION, message);
+      }
+      container.insert(item);
+    }
+
+    void ExperimentalDesignTable::checkValidRunSection_()
+    {
+      if (getNumberOfMSFiles() == 0)
+      {
+        throw Exception::MissingInformation(
+        __FILE__,
+        __LINE__,
+        OPENMS_PRETTY_FUNCTION,
+        "No MS files provided.");
+      }
+
+    std::set< std::tuple< unsigned, unsigned, unsigned > > run_fraction_sample_set;
+    std::set< std::tuple< unsigned, unsigned, unsigned > > run_fraction_channel_set;
+    std::set< std::tuple< std::string, unsigned > > path_channel_set;
+    std::map< std::tuple< unsigned, unsigned >, std::set< unsigned > > run_channel_to_sample;
+
+    for (const RunRow &row : run_section_)
+    {
+      // Fail if sample section does not contain the run
+      if (sample_section_.hasSample(row.sample) == false)
+      {
+        throw Exception::MissingInformation(
+        __FILE__,
+        __LINE__,
+        OPENMS_PRETTY_FUNCTION,
+        "Sample Section does not contain sample for run " + String(row.run));
+      }
+
+      // RUN_FRACTION_SAMPLE TUPLE
+      std::tuple<unsigned, unsigned, unsigned> run_fraction_sample = std::make_tuple(row.run, row.fraction, row.sample);
+      errorIfAlreadyExists(
+        run_fraction_sample_set,
+        run_fraction_sample,
+      "(Run, Fraction, Sample) combination can only appear once");
+
+      // RUN_FRACTION_CHANNEL TUPLE
+      std::tuple<unsigned, unsigned, unsigned> run_fraction_channel = std::make_tuple(row.run, row.fraction, row.channel);
+      errorIfAlreadyExists(
+        run_fraction_channel_set,
+        run_fraction_channel,
+      "(Run, Fraction, Channel) combination can only appear once");
+
+
+      // PATH_CHANNEL_TUPLE
+      std::tuple<std::string, unsigned> path_channel = std::make_tuple(row.path, row.channel);
+      errorIfAlreadyExists(
+        path_channel_set,
+        path_channel,
+        "(Path, Channel) combination can only appear once");
+
+      // RUN_CHANNEL TUPLE
+      std::tuple<unsigned, unsigned> run_channel = std::make_tuple(row.run, row.channel);
+      run_channel_to_sample[run_channel].insert(row.sample);
+
+      if (run_channel_to_sample[run_channel].size() > 1)
+      {
+        throw Exception::MissingInformation(
+          __FILE__,
+          __LINE__,
+          OPENMS_PRETTY_FUNCTION,
+          "Multiple Samples encountered for the same Run and the same Channel");
       }
     }
+  }
 
-    void ExperimentalDesignTable::getFractions(std::vector<unsigned> &fractions) const
+  std::vector<unsigned> ExperimentalDesignTable::getChannels() const
+  {
+    std::vector<unsigned> channels;
+    for (const RunRow &row : run_section_)
     {
-      fractions.clear();
-      for (const RunRow &row : run_section_)
-      {
-        fractions.push_back(row.fraction);
-      }
+      channels.push_back(row.channel);
     }
+    return channels;
+  }
 
-    void ExperimentalDesignTable::sort_()
+  std::vector<unsigned> ExperimentalDesignTable::getFractions() const
+  {
+    std::vector<unsigned> fractions;
+    for (const RunRow &row : run_section_)
     {
-      std::sort(run_section_.begin(), run_section_.end(),
+      fractions.push_back(row.fraction);
+    }
+    return fractions;
+  }
+
+  void ExperimentalDesignTable::sort_()
+  {
+    std::sort(run_section_.begin(), run_section_.end(),
                 [](const RunRow& a, const RunRow& b)
                 {
                   return std::tie(a.run, a.fraction, a.channel, a.sample, a.path) <
                          std::tie(b.run, b.fraction, b.channel, b.sample, b.path);
                 });
-    }
+  }
 
+  /* Implementations of SampleSection */
 
-    /* Implementations of SampleSection */
-
-    void ExperimentalDesignTable::SampleSection::getSamples(std::set<unsigned> &samples) const
+  std::set<unsigned> ExperimentalDesignTable::SampleSection::getSamples() const
+  {
+    std::set<unsigned> samples;
+    for (const auto &kv : sample_to_rowindex_)
     {
-      samples.clear();
-      for (auto it = sample_to_rowindex_.begin();
-           it != sample_to_rowindex_.end(); ++it)
-      {
-        samples.insert(it->first);
-      }
+      samples.insert(kv.first);
     }
+    return samples;
+  }
 
-    void ExperimentalDesignTable::SampleSection::getFactors(std::set< String > &factors) const
+  std::set< String > ExperimentalDesignTable::SampleSection::getFactors() const
+  {
+    std::set<String> factors;
+    for (const auto &kv : columnname_to_columnindex_)
     {
-      factors.clear();
-      for (auto it = columnname_to_columnindex_.begin();
-           it != columnname_to_columnindex_.end(); ++it)
-      {
-        factors.insert(it->first);
-      }
+      factors.insert(kv.first);
     }
+    return factors;
+  }
 
-    bool ExperimentalDesignTable::SampleSection::hasSample(const unsigned sample) const
-    {
-      return sample_to_rowindex_.find(sample) != sample_to_rowindex_.end();
-    }
+  bool ExperimentalDesignTable::SampleSection::hasSample(const unsigned sample) const
+  {
+    return sample_to_rowindex_.find(sample) != sample_to_rowindex_.end();
+  }
 
-    bool ExperimentalDesignTable::SampleSection::hasFactor(const String &factor) const
-    {
-      return columnname_to_columnindex_.find(factor) != columnname_to_columnindex_.end();
-    }
+  bool ExperimentalDesignTable::SampleSection::hasFactor(const String &factor) const
+  {
+    return columnname_to_columnindex_.find(factor) != columnname_to_columnindex_.end();
+  }
 
-    String ExperimentalDesignTable::SampleSection::getFactorValue(const unsigned sample, const String &factor)
-    {
-      if (! hasSample(sample))
-      {
-        throw Exception::MissingInformation(
+  String ExperimentalDesignTable::SampleSection::getFactorValue(const unsigned sample, const String &factor)
+  {
+   if (! hasSample(sample))
+   {
+    throw Exception::MissingInformation(
                 __FILE__,
                 __LINE__,
                 OPENMS_PRETTY_FUNCTION,
                 "Sample " + String(sample) + " is not present in the Experimental Design");
-      }
-      if (! hasFactor(factor))
-      {
-        throw Exception::MissingInformation(
+   }
+   if (! hasFactor(factor))
+   {
+    throw Exception::MissingInformation(
                 __FILE__,
                 __LINE__,
                 OPENMS_PRETTY_FUNCTION,
                 "Factor " + factor + " is not present in the Experimental Design");
-      }
-      StringList sample_row = content_[sample_to_rowindex_[sample]];
-      const Size col_index = columnname_to_columnindex_[factor];
-      return sample_row[col_index];
-    }
+   }
+   StringList sample_row = content_[sample_to_rowindex_[sample]];
+   const Size col_index = columnname_to_columnindex_[factor];
+   return sample_row[col_index];
+  }
 }
