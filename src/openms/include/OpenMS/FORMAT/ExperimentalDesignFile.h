@@ -42,7 +42,7 @@
 namespace OpenMS
 {
   /**
-  @brief Provides means to load an ExperimentalDesign from various sources.
+  @brief Provides means to load an ExperimentalDesign from a TSV file.
 
   @ingroup Format
   */
