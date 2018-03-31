@@ -110,10 +110,10 @@ class MaRaClusterAdapter :
 public:
   MaRaClusterAdapter() :
     TOPPBase("MaRaClusterAdapter", "Facilitate input to MaRaCluster and reintegrate.", true,
-         	{ // citation(s), specific for this tool
-          	 { "The M and Käll L", "MaRaCluster: A Fragment Rarity Metric for Clustering Fragment Spectra in Shotgun Proteomics", "J Proteome Res 2016; 15: 3", "10.1021/acs.jproteome.5b00749"}
-	 	}            
-	    )
+                { // citation(s), specific for this tool
+                 { "The M and Käll L", "MaRaCluster: A Fragment Rarity Metric for Clustering Fragment Spectra in Shotgun Proteomics", "J Proteome Res 2016; 15: 3", "10.1021/acs.jproteome.5b00749"}
+                }
+            )
   {
   }
 
