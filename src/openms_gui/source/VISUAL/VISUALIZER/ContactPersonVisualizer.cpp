@@ -36,7 +36,7 @@
 #include <OpenMS/VISUAL/VISUALIZER/ContactPersonVisualizer.h>
 
 //QT
-#include <QtGui/QLineEdit>
+#include <QtWidgets/QLineEdit>
 
 using namespace std;
 

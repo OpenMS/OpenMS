@@ -15,7 +15,7 @@
 			<sourceFile id="sf_ru_0" name="p1-C02_GC2_01_17898.mzXML" location="file:///Users/willi/Documents/Work/Foodomics/Sirius/test_data_ming/raw/Pretwick_Phytochemical_Library/mzxml">
 				<cvParam cvRef="MS" accession="MS:1000569" name="SHA-1" value="50784df532f9d0523b14b92878ffbd523ed1c451" />
 				<cvParam cvRef="MS" accession="MS:1000566" name="ISB mzXML format" />
-				<cvParam cvRef="MS" accession="MS:1000777" name="spectrum identifier nativeID format" />
+				<cvParam cvRef="MS" accession="MS:1000776" name="scan number only nativeID format" />
 			</sourceFile>
 		</sourceFileList>
 		<contact>

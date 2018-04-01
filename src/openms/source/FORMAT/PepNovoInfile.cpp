@@ -33,19 +33,10 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/PepNovoInfile.h>
-#include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
-#include <OpenMS/SYSTEM/File.h>
-#include <OpenMS/FORMAT/PTMXMLFile.h>
-#include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
-#include <OpenMS/CHEMISTRY/ResidueModification.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
 
-#include <algorithm>
-#include <set>
 #include <fstream>
-#include <iostream>
-#include <sstream>
 
 using namespace std;
 

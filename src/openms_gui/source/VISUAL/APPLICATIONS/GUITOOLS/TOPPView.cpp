@@ -48,7 +48,7 @@
 */
 
 //QT
-#include <QtGui/QSplashScreen>
+#include <QtWidgets/QSplashScreen>
 #include <QMessageBox>
 
 //OpenMS

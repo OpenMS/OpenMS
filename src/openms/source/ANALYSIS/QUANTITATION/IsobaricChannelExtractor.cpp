@@ -43,8 +43,6 @@
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
 
-#include <cmath>
-
 // #define ISOBARIC_CHANNEL_EXTRACTOR_DEBUG
 // #undef ISOBARIC_CHANNEL_EXTRACTOR_DEBUG
 

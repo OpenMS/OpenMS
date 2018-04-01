@@ -34,6 +34,7 @@
 
 #include <OpenMS/ANALYSIS/ID/SiriusMSConverter.h>
 
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <fstream>
 
 #include <QDir>
@@ -76,6 +77,10 @@ namespace OpenMS
     // determine type of spectral data (profile or centroided) - only checking first spectrum (could be ms2 spectrum)
     SpectrumSettings::SpectrumType spectrum_type = spectra[0].getType();
 
+    // extract native id type accession (e.g. MS:1000768) corresponding to native id type (Thermo nativeID format)
+    const String native_id_type_accession = spectra.getExperimentalSettings().getSourceFiles()[0].getNativeIDTypeAccession();
+    LOG_DEBUG << "native_id_type_accession: " << native_id_type_accession << std::endl;
+  
     if (spectrum_type == SpectrumSettings::PROFILE)
     {
       throw OpenMS::Exception::IllegalArgument(__FILE__, __LINE__, __FUNCTION__, "Error: Profile data provided but centroided spectra are needed. Please use PeakPicker to convert the spectra.");
@@ -103,7 +108,9 @@ namespace OpenMS
       const MSSpectrum& spectrum = *s_it;
 
       int scan_index = s_it - spectra.begin();
-
+      String native_id = spectrum.getNativeID();
+      int scan_number = SpectrumLookup::extractScanNumber(native_id, native_id_type_accession);     
+      
       // extract adducts for given precursor
       StringList adducts;
       if (map_precursor_to_adducts.find(scan_index) != map_precursor_to_adducts.end())
@@ -202,7 +209,7 @@ namespace OpenMS
           }
         }
 
-        String query_id = String("unknown") + String(scan_index);
+        String query_id = String("-" + String(scan_number) +"-") + String("unknown") + String(scan_index);
 
         // write internal unique .ms data as sirius input
         os << fixed;

@@ -114,21 +114,34 @@ public:
       /// name of the component group
       String component_group_name;
 
+      /// retention time lower bound
+      double retention_time_l;
+      /// retention time upper bound
+      double retention_time_u;
+      /// intensity lower bound
+      double intensity_l;
+      /// intensity upper bound
+      double intensity_u;
+      /// overall quality lower bound
+      double overall_quality_l;
+      /// overall quality upper bound
+      double overall_quality_u;
+
       // number of transitions and labels
       /// number of heavy ion lower bound
-      int n_heavy_l;
+      Int n_heavy_l;
       /// number of heavy ion upper bound
-      int n_heavy_u;
-      int n_light_l;
-      int n_light_u;
-      int n_detecting_l;
-      int n_detecting_u;
-      int n_quantifying_l;
-      int n_quantifying_u;
-      int n_identifying_l;
-      int n_identifying_u;
-      int n_transitions_l;
-      int n_transitions_u;
+      Int n_heavy_u;
+      Int n_light_l;
+      Int n_light_u;
+      Int n_detecting_l;
+      Int n_detecting_u;
+      Int n_quantifying_l;
+      Int n_quantifying_u;
+      Int n_identifying_l;
+      Int n_identifying_u;
+      Int n_transitions_l;
+      Int n_transitions_u;
 
       // Ion Ratio QCs
       String ion_ratio_pair_name_1;
@@ -136,6 +149,7 @@ public:
       double ion_ratio_l;
       double ion_ratio_u;
       String ion_ratio_feature_name;
+      std::map<String,std::pair<double,double>> meta_value_qc;
 
     };
 
@@ -169,7 +183,7 @@ public:
     /// list of all component group QCs
     std::vector<ComponentGroupQCs> component_group_qcs;
     /// list of all component group pair QCs
-    std::vector<ComponentGroupQCs> component_group_pair_qcs;
+    std::vector<ComponentGroupPairQCs> component_group_pair_qcs;
   };
 }
 

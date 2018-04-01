@@ -41,7 +41,7 @@
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/KERNEL/MSChromatogram.h>
 #include <OpenMS/METADATA/ExperimentalSettings.h>
-#include <OpenMS/FORMAT/IndexedMzMLFile.h>
+#include <OpenMS/FORMAT/HANDLERS/IndexedMzMLHandler.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 
 #include <vector>
@@ -180,24 +180,12 @@ public:
     /**
       @brief returns a single spectrum
 
-      TODO: make this more efficient by reducing the copying
+      @param id The index of the spectrum
     */
     MSSpectrum getSpectrum(Size id)
     {
-      OpenMS::Interfaces::SpectrumPtr sptr = indexed_mzml_file_.getSpectrumById(static_cast<int>(id));
       MSSpectrum spectrum(meta_ms_experiment_->operator[](id));
-
-      // recreate a spectrum from the data arrays!
-      OpenMS::Interfaces::BinaryDataArrayPtr mz_arr = sptr->getMZArray();
-      OpenMS::Interfaces::BinaryDataArrayPtr int_arr = sptr->getIntensityArray();
-      spectrum.reserve(mz_arr->data.size());
-      for (Size i = 0; i < mz_arr->data.size(); i++)
-      {
-        PeakT p;
-        p.setMZ(mz_arr->data[i]);
-        p.setIntensity(int_arr->data[i]);
-        spectrum.push_back(p);
-      }
+      indexed_mzml_file_.getMSSpectrumById(static_cast<int>(id), spectrum);
       return spectrum;
     }
 
@@ -212,25 +200,12 @@ public:
     /**
       @brief returns a single chromatogram
 
-      TODO: make this more efficient by reducing the copying
+      @param id The index of the chromatogram
     */
     MSChromatogram getChromatogram(Size id)
     {
-      OpenMS::Interfaces::ChromatogramPtr cptr = indexed_mzml_file_.getChromatogramById(static_cast<int>(id));
       MSChromatogram chromatogram(meta_ms_experiment_->getChromatogram(id));
-
-      // recreate a chromatogram from the data arrays!
-      OpenMS::Interfaces::BinaryDataArrayPtr rt_arr = cptr->getTimeArray();
-      OpenMS::Interfaces::BinaryDataArrayPtr int_arr = cptr->getIntensityArray();
-      chromatogram.reserve(rt_arr->data.size());
-      for (Size i = 0; i < rt_arr->data.size(); i++)
-      {
-        ChromatogramPeakT p;
-        p.setRT(rt_arr->data[i]);
-        p.setIntensity(int_arr->data[i]);
-        chromatogram.push_back(p);
-      }
-
+      indexed_mzml_file_.getMSChromatogramById(static_cast<int>(id), chromatogram);
       return chromatogram;
     }
 
@@ -250,7 +225,7 @@ public:
 
 private:
 
-    /// Private Assignment operator -> we cannot copy file streams in IndexedMzMLFile
+    /// Private Assignment operator -> we cannot copy file streams in IndexedMzMLHandler
     OnDiscMSExperiment& operator=(const OnDiscMSExperiment& /* source */);
 
     void loadMetaData_(const String& filename)
@@ -270,7 +245,7 @@ protected:
     /// The filename of the underlying data file
     String filename_;
     /// The index of the underlying data file
-    IndexedMzMLFile indexed_mzml_file_;
+    Internal::IndexedMzMLHandler indexed_mzml_file_;
     /// The meta-data
     boost::shared_ptr<PeakMap> meta_ms_experiment_;
   };

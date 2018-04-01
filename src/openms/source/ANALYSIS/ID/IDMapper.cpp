@@ -33,7 +33,6 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/ID/IDMapper.h>
-#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
 
 using namespace std;

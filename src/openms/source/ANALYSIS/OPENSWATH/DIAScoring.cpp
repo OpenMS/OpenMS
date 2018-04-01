@@ -35,9 +35,7 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/DIAScoring.h>
 
 #include <OpenMS/CONCEPT/Constants.h>
-#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/CHEMISTRY/IsotopeDistribution.h>
-#include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmPickedHelperStructs.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithm.h>
@@ -107,7 +105,7 @@ namespace OpenMS
       p.setValue("add_metainfo", "true",
           "Adds the type of peaks as metainfo to the peaks, like y8+, [M-H2O+2H]++");
       generator->setParameters(p);
-    }
+  }
 
     // for simulateSpectrumFromAASequence
     //  Param p;

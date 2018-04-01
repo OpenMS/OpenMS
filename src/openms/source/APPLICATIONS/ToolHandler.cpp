@@ -40,8 +40,6 @@
 #include <QStringList>
 #include <QDir>
 
-#include <vector>
-
 namespace OpenMS
 {
   ToolListType ToolHandler::getTOPPToolList(const bool includeGenericWrapper)
@@ -252,7 +250,6 @@ namespace OpenMS
 
     // ATTENTION: tools requiring the GUI lib
 #ifdef WITH_GUI
-    util_map["IDEvaluator"] = Internal::ToolDescription("IDEvaluator", util_category);
     util_map["ImageCreator"] = Internal::ToolDescription("ImageCreator", util_category);
     util_map["INIUpdater"] = Internal::ToolDescription("INIUpdater", util_category);
 #endif

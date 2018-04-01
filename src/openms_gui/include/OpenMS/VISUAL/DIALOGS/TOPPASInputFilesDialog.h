@@ -38,7 +38,12 @@
 // OpenMS_GUI config
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
-#include <OpenMS/VISUAL/DIALOGS/UIC/ui_TOPPASInputFilesDialog.h>
+#include <QtWidgets/QDialog>
+
+namespace Ui
+{
+  class TOPPASInputFilesDialogTemplate;
+}
 
 namespace OpenMS
 {
@@ -49,19 +54,20 @@ namespace OpenMS
       @ingroup Dialogs
   */
   class OPENMS_GUI_DLLAPI TOPPASInputFilesDialog :
-    public QDialog,
-    public Ui::TOPPASInputFilesDialogTemplate
+    public QDialog
   {
     Q_OBJECT
 
 public:
+    /// Constructor
+    TOPPASInputFilesDialog(const QStringList& list, const QString& cwd);
+    ~TOPPASInputFilesDialog();
+
     /// support drag'n'drop of files from OS window manager
     void dragEnterEvent(QDragEnterEvent *e) override;
     /// support drag'n'drop of files from OS window manager
     void dropEvent(QDropEvent *e) override;
 
-    /// Constructor
-    TOPPASInputFilesDialog(const QStringList& list, const QString& cwd);
 
     /// Stores the list of all filenames in the list widget in @p files
     void getFilenames(QStringList& files) const;
@@ -89,6 +95,8 @@ protected:
     /// current working dir, i.e. the last position a file was added from
     QString cwd_;
 
+private:
+    Ui::TOPPASInputFilesDialogTemplate* ui_;
   };
 
 }

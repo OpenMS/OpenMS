@@ -36,13 +36,8 @@
 #include <OpenMS/DATASTRUCTURES/QTCluster.h>
 
 #include <OpenMS/DATASTRUCTURES/GridFeature.h>
-#include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/CONCEPT/Macros.h>
 
-#include <vector>
-#include <set>
-#include <map> // for multimap<>
-#include <algorithm> // for min
 #include <numeric> // for make_pair
 
 using std::map;

@@ -48,8 +48,10 @@
 #include <OpenMS/FORMAT/CsvFile.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 
+#include <OpenMS/SYSTEM/JavaInfo.h>
+
 #include <QDir>
-#include <QProcess>
+#include <QtCore/QProcess>
 #include <fstream>
 
 using namespace OpenMS;
@@ -104,8 +106,10 @@ public:
   TOPPNovorAdapter() :
     TOPPBase("NovorAdapter", "Template for Tool creation", false, 
     {
-      { "Ma Bin", "Novor: Real-Time Peptide de Novo Sequencing Software", "Journal of The American Society for Mass Spectrometry; 30 June 2015", "0.1007/s13361-015-1204-0"        
-      }
+      {"Ma Bin",
+       "Novor: Real-Time Peptide de Novo Sequencing Software",
+       "Journal of The American Society for Mass Spectrometry; 30 June 2015",
+       "0.1007/s13361-015-1204-0"}
     })
     {}
 
@@ -153,25 +157,23 @@ protected:
   }
 
   // remove temporary folder 
-  void removeTempDir_(const String& tmp_dir)
+  void removeTempDir_(const QString& tmp_dir)
   {
-    if (tmp_dir.empty()) {return;} // no temporary directory created
-
     if (debug_level_ >= 2)
     {
-      writeDebug_("Keeping temporary files in directory '" + tmp_dir + "'. Set debug level to 1 or lower to remove them.", 2);
+      writeDebug_("Keeping temporary files in directory '" + String(tmp_dir) + ". Set debug level to 1 or lower to remove them.", 2);
     }
     else
     {
-      if (debug_level_ == 1) 
+      if (tmp_dir.isEmpty() == false)
       {
-        writeDebug_("Deleting temporary directory '" + tmp_dir + "'. Set debug level to 2 or higher to keep it.", 1);
+        writeDebug_("Deleting temporary directory '" + String(tmp_dir) + "'. Set debug level to 2 or higher to keep it.", 0);
+        File::removeDir(tmp_dir);
       }
-      File::removeDirRecursively(tmp_dir);
     }
   }
 
-  void createParamFile_(ostream& os)
+  void createParamFile_(ofstream& os)
   {
     vector<String> variable_mods = getStringList_("variable_modifications");
     vector<String> fixed_mods = getStringList_("fixed_modifications");
@@ -193,10 +195,11 @@ protected:
     // novorFile for custom alogrithm parameters of nova
     String cparamfile = getStringOption_("novorFile");
     ifstream cpfile(cparamfile);
-    if (!cpfile)
+    if (cpfile)
     {
       os << "novorFile" << cparamfile << "\n";
     }
+    os.close();
   }
 
   // the main_ function is called after all parameters are read
@@ -217,7 +220,7 @@ protected:
     //-------------------------------------------------------------
     // determining the executable
     //-------------------------------------------------------------
-    String java_executable = getStringOption_("java_executable");
+    const String java_executable = getStringOption_("java_executable");
     QString java_memory = "-Xmx" + QString::number(getIntOption_("java_memory")) + "m";
 
     QString executable = getStringOption_("executable").toQString();   
@@ -240,7 +243,7 @@ protected:
 
     writeLog_("Executable is: " + executable);
     const QString & path_to_executable = File::path(executable).toQString();
-                
+    
     //-------------------------------------------------------------
     // reading input
     //-------------------------------------------------------------
@@ -260,7 +263,8 @@ protected:
     f.setLogType(log_type_);
     f.load(in, exp);
  
-    String tmp_mgf = tmp_dir + "tmp_mgf.mgf";
+    String tmp_mgf = tmp_dir + "tmp_mgf.mgf"; 
+  
     MascotGenericFile mgf;
     mgf.setLogType(log_type_);
     mgf.store(tmp_mgf,exp);
@@ -270,7 +274,7 @@ protected:
     //-------------------------------------------------------------
 
     String tmp_out = tmp_dir + "tmp_out_novor.csv";
-  
+
     QStringList process_params;
     process_params << java_memory
                    << "-jar" << executable
@@ -282,118 +286,143 @@ protected:
     QProcess qp;
     qp.setWorkingDirectory(path_to_executable);
     qp.start(java_executable.toQString(), process_params);
+
+    // check if process has started    
+    if (!qp.waitForStarted(-1))
+    {
+      LOG_FATAL_ERROR << "FATAL: Invocation of NovorAdapter failed. Process (java -jar novor.jar ...) was not able to start." << std::endl;
+      const QString novor_stdout(qp.readAllStandardOutput());
+      const QString novor_stderr(qp.readAllStandardError());
+      writeLog_(novor_stdout);
+      writeLog_(novor_stderr);
+      writeLog_(String(qp.exitCode()));
+      return EXTERNAL_PROGRAM_ERROR;
+    } 
+   
+    // check if process has finised
+    if (!qp.waitForFinished(-1))
+    {
+      LOG_FATAL_ERROR << "FATAL: Invocation of NovorAdapter failed. Process (java -jar novor.jar ...) was not able to finish." << std::endl;
+      const QString novor_stdout(qp.readAllStandardOutput());
+      const QString novor_stderr(qp.readAllStandardError());
+      writeLog_(novor_stdout);
+      writeLog_(novor_stderr);
+      writeLog_(String(qp.exitCode()));
+      return EXTERNAL_PROGRAM_ERROR;
+    } 
+
+    // see if process was successfull
+    if (qp.exitStatus() != 0 || qp.exitCode() != 0)
+    {
+      LOG_FATAL_ERROR << "FATAL: Invocation of NovorAdapter  has failed. Error code was: " << qp.exitCode() << std::endl;
+      const QString novor_stdout(qp.readAllStandardOutput());
+      const QString novor_stderr(qp.readAllStandardError());
+      writeLog_(novor_stdout);
+      writeLog_(novor_stderr);
+      writeLog_(String(qp.exitCode()));
+      return EXTERNAL_PROGRAM_ERROR;
+    }
+
+    qp.close();
  
     // novor command line
     std::stringstream ss;
-    ss << "COMMAND: " << executable.toStdString();
+    ss << "COMMAND: " << java_executable;
     for (QStringList::const_iterator it = process_params.begin(); it != process_params.end(); ++it)
     {
         ss << " " << it->toStdString();
     }
     LOG_DEBUG << ss.str() << endl;
 
-    // see if process was successfull
-    const bool success = qp.waitForFinished(-1);
-
-    if (success == false || qp.exitStatus() != 0 || qp.exitCode() != 0)
-    {
-      writeLog_( "FATAL: External invocation of Novor failed. Standard output and error were:");
-      const QString nr_stdout(qp.readAllStandardOutput());
-      const QString nr_stderr(qp.readAllStandardError());
-      writeLog_(nr_stdout);
-      writeLog_(nr_stderr);
-      writeLog_(String(qp.exitCode()));
-
-      return EXTERNAL_PROGRAM_ERROR;
-    }
 
     //-------------------------------------------------------------
     // writing output
     //-------------------------------------------------------------
 
-   ifstream file(tmp_out);
-   if (file) 
-   {
-     CsvFile csv(tmp_out, ',');
-          
-     vector<PeptideIdentification> peptide_ids;
-     for (Size i = 0; i != csv.rowCount(); ++i)
-     {
-       StringList sl;
-       csv.getRow(i, sl);
-       
-       if (sl.empty() || sl[0][0] == '#') { continue; }
-       
-       PeptideIdentification pi;
-       pi.setMetaValue("scan_index", sl[1].toDouble());
-       pi.setScoreType("novorscore");
-       pi.setHigherScoreBetter(true);
-       pi.setRT(sl[2].toDouble());
-       pi.setMZ(sl[3].toDouble());
+    ifstream csvfile(tmp_out);
+    if (csvfile) 
+    {
+      CsvFile csv(tmp_out, ',');
 
-       PeptideHit ph;
-       ph.setCharge(sl[4].toInt());
-       ph.setScore(sl[8].toDouble());
-
-       // replace PTM name (see http://wiki.rapidnovor.com/wiki/Built-in_PTMs)
-       String sequence = sl[9];
-       sequence.substitute("(Cam)", "(Carbamidomethyl)");
-       sequence.substitute("(O)","(Oxidation)");
-       sequence.substitute("(PyroCam)", "(Pyro-carbamidomethyl)");
-       
-       ph.setSequence(AASequence::fromString(sequence));      
-       ph.setMetaValue("pepMass(denovo)", sl[5].toDouble());
-       ph.setMetaValue("err(data-denovo)", sl[6].toDouble());
-       ph.setMetaValue("ppm(1e6*err/(mz*z))", sl[7].toDouble());
-       ph.setMetaValue("aaScore", sl[10].toQString());
-
-       pi.getHits().push_back(ph);   
-       peptide_ids.emplace_back(pi);
-       
-     } 
-
-     // extract version from comment 
-     // #              v1.06.0634 (stable)
-     vector<ProteinIdentification> protein_ids;
-     StringList versionrow;
-     csv.getRow(2, versionrow);
-     versionrow[0].suffix('#').trim();
+      std::cout << "file was generated" << std::endl;
         
-     protein_ids = vector<ProteinIdentification>(1);
-     protein_ids[0].setDateTime(DateTime::now());
-     protein_ids[0].setSearchEngine("Novor");
-     protein_ids[0].setSearchEngineVersion(versionrow[0]);
+      vector<PeptideIdentification> peptide_ids;
+      for (Size i = 0; i != csv.rowCount(); ++i)
+      {
+        StringList sl;
+        csv.getRow(i, sl);
+        
+        if (sl.empty() || sl[0][0] == '#') { continue; }
+        
+        PeptideIdentification pi;
+        pi.setMetaValue("scan_index", sl[1].toDouble());
+        pi.setScoreType("novorscore");
+        pi.setHigherScoreBetter(true);
+        pi.setRT(sl[2].toDouble());
+        pi.setMZ(sl[3].toDouble());
 
-     ProteinIdentification::SearchParameters search_parameters;
-     search_parameters.db = "denovo";
-     search_parameters.mass_type = ProteinIdentification::MONOISOTOPIC;
+        PeptideHit ph;
+        ph.setCharge(sl[4].toInt());
+        ph.setScore(sl[8].toDouble());
+
+        // replace PTM name (see http://wiki.rapidnovor.com/wiki/Built-in_PTMs)
+        String sequence = sl[9];
+        sequence.substitute("(Cam)", "(Carbamidomethyl)");
+        sequence.substitute("(O)","(Oxidation)");
+        sequence.substitute("(PyroCam)", "(Pyro-carbamidomethyl)");
+        
+        ph.setSequence(AASequence::fromString(sequence));      
+        ph.setMetaValue("pepMass(denovo)", sl[5].toDouble());
+        ph.setMetaValue("err(data-denovo)", sl[6].toDouble());
+        ph.setMetaValue("ppm(1e6*err/(mz*z))", sl[7].toDouble());
+        ph.setMetaValue("aaScore", sl[10].toQString());
+
+        pi.getHits().push_back(ph);   
+        peptide_ids.emplace_back(pi);
+      } 
+
+      // extract version from comment 
+      // #              v1.06.0634 (stable)
+      vector<ProteinIdentification> protein_ids;
+      StringList versionrow;
+      csv.getRow(2, versionrow);
+      versionrow[0].suffix('#').trim();
+        
+      protein_ids = vector<ProteinIdentification>(1);
+      protein_ids[0].setDateTime(DateTime::now());
+      protein_ids[0].setSearchEngine("Novor");
+      protein_ids[0].setSearchEngineVersion(versionrow[0]);
+
+      ProteinIdentification::SearchParameters search_parameters;
+      search_parameters.db = "denovo";
+      search_parameters.mass_type = ProteinIdentification::MONOISOTOPIC;
     
-     // if a parameter file is used the modifications need to be parsed from the novor output csv
-     search_parameters.fixed_modifications = getStringList_("fixed_modifications");
-     search_parameters.variable_modifications = getStringList_("variable_modifications");
-     search_parameters.fragment_mass_tolerance = getDoubleOption_("fragment_mass_tolerance");
-     search_parameters.precursor_mass_tolerance = getDoubleOption_("precursor_mass_tolerance");
-     search_parameters.precursor_mass_tolerance_ppm = getStringOption_("precursor_error_units") == "ppm" ? true : false;
-     search_parameters.fragment_mass_tolerance_ppm = false;
-     search_parameters.digestion_enzyme = *ProteaseDB::getInstance()->getEnzyme(getStringOption_("enzyme"));
+      // if a parameter file is used the modifications need to be parsed from the novor output csv
+      search_parameters.fixed_modifications = getStringList_("fixed_modifications");
+      search_parameters.variable_modifications = getStringList_("variable_modifications");
+      search_parameters.fragment_mass_tolerance = getDoubleOption_("fragment_mass_tolerance");
+      search_parameters.precursor_mass_tolerance = getDoubleOption_("precursor_mass_tolerance");
+      search_parameters.precursor_mass_tolerance_ppm = getStringOption_("precursor_error_units") == "ppm" ? true : false;
+      search_parameters.fragment_mass_tolerance_ppm = false;
+      search_parameters.digestion_enzyme = *ProteaseDB::getInstance()->getEnzyme(getStringOption_("enzyme"));
      
-     //StringList inputFile;
-     //inputFile[0] = in;
-     //protein_ids[0].setPrimaryMSRunPath(inputFile); 
-     protein_ids[0].setSearchParameters(search_parameters);
+      //StringList inputFile;
+      //inputFile[0] = in;
+      //protein_ids[0].setPrimaryMSRunPath(inputFile); 
+      protein_ids[0].setSearchParameters(search_parameters);
      
-     IdXMLFile().store(out, protein_ids, peptide_ids);
+      IdXMLFile().store(out, protein_ids, peptide_ids);
 
-   }
-   else
-   {
-     writeLog_("Novor output is empty! No IdXML output was generated.");
-   } 
+    }
+    else
+    {
+      writeLog_("Novor output is empty! No IdXML output was generated.");
+    } 
 
    // remove tempdir
-  removeTempDir_(tmp_dir);
+   removeTempDir_(tmp_dir.toQString());
 
-  return EXECUTION_OK;
+   return EXECUTION_OK;
   }
 };
 

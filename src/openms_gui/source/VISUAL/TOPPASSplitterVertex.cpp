@@ -73,8 +73,50 @@ namespace OpenMS
     return "SplitterVertex";
   }
 
-  void TOPPASSplitterVertex::mouseDoubleClickEvent(QGraphicsSceneMouseEvent* /*e*/)
+  void TOPPASSplitterVertex::run()
   {
+    // check if everything ready
+    if (!isUpstreamFinished())  return;
+
+    RoundPackages pkg;
+    String error_msg("");
+    bool success = buildRoundPackages(pkg, error_msg);
+    if (!success)
+    {
+      std::cerr << "Could not retrieve input files from upstream nodes...\n";
+      // emit mergeFailed((String("Splitter #") + this->getTopoNr() + " failed. " + error_msg).toQString());
+      return;
+    }
+
+    output_files_.clear();
+    round_counter_ = 0;
+
+    // do the virtual splitting (1 round of N files becomes N rounds of 1 file):
+    for (RoundPackages::iterator pkg_it = pkg.begin(); pkg_it != pkg.end();
+      ++pkg_it)
+    {
+      // there can only be one upstream (input) node:
+      QStringList files = pkg_it->begin()->second.filenames.get();
+      for (QStringList::iterator file_it = files.begin();
+        file_it != files.end(); ++file_it)
+      {
+        RoundPackage new_pkg;
+        new_pkg[-1].filenames.push_back(*file_it);
+        output_files_.push_back(new_pkg);
+        ++round_counter_;
+      }
+    }
+
+    round_total_ = round_counter_;
+    finished_ = true;
+
+    // call all children, proceed in pipeline
+    for (ConstEdgeIterator it = outEdgesBegin(); it != outEdgesEnd(); ++it)
+    {
+      TOPPASVertex* tv = (*it)->getTargetVertex();
+      debugOut_(String("Starting child ") + tv->getTopoNr());
+      tv->run();
+    }
   }
 
   void TOPPASSplitterVertex::paint(QPainter* painter,
@@ -162,50 +204,8 @@ namespace OpenMS
     }
   }
 
-  void TOPPASSplitterVertex::run()
+  void TOPPASSplitterVertex::mouseDoubleClickEvent(QGraphicsSceneMouseEvent* /*e*/)
   {
-    // check if everything ready
-    if (!isUpstreamFinished())  return;
-
-    RoundPackages pkg;
-    String error_msg("");
-    bool success = buildRoundPackages(pkg, error_msg);
-    if (!success)
-    {
-      std::cerr << "Could not retrieve input files from upstream nodes...\n";
-      // emit mergeFailed((String("Splitter #") + this->getTopoNr() + " failed. " + error_msg).toQString());
-      return;
-    }
-
-    output_files_.clear();
-    round_counter_ = 0;
-
-    // do the virtual splitting (1 round of N files becomes N rounds of 1 file):
-    for (RoundPackages::iterator pkg_it = pkg.begin(); pkg_it != pkg.end();
-         ++pkg_it)
-    {
-      // there can only be one upstream (input) node:
-      QStringList files = pkg_it->begin()->second.filenames.get();
-      for (QStringList::iterator file_it = files.begin();
-           file_it != files.end(); ++file_it)
-      {
-        RoundPackage new_pkg;
-        new_pkg[-1].filenames.push_back(*file_it);
-        output_files_.push_back(new_pkg);
-        ++round_counter_;
-      }
-    }
-
-    round_total_ = round_counter_;
-    finished_ = true;
-
-    // call all children, proceed in pipeline
-    for (ConstEdgeIterator it = outEdgesBegin(); it != outEdgesEnd(); ++it)
-    {
-      TOPPASVertex* tv = (*it)->getTargetVertex();
-      debugOut_(String("Starting child ") + tv->getTopoNr());
-      tv->run();
-    }
   }
 
 }

@@ -33,25 +33,20 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
-#include <OpenMS/CHEMISTRY/ModificationDefinitionsSet.h>
+
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/FORMAT/CsvFile.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
-#include <OpenMS/FORMAT/IdXMLFile.h>
-#include <OpenMS/FORMAT/MascotXMLFile.h>
-#include <OpenMS/FORMAT/MzDataFile.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/MzIdentMLFile.h>
-#include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
+#include <OpenMS/METADATA/SpectrumMetaDataLookup.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/SYSTEM/JavaInfo.h>
 
-#include <QtCore/QFile>
 #include <QtCore/QProcess>
-#include <QDir>
 
 #include <algorithm>
 #include <fstream>
@@ -115,7 +110,7 @@ public:
     // parameter choices (the order of the values must be the same as in the MS-GF+ parameters!):
     fragment_methods_(ListUtils::create<String>("from_spectrum,CID,ETD,HCD")),
     instruments_(ListUtils::create<String>("low_res,high_res,TOF,Q_Exactive")),
-    protocols_(ListUtils::create<String>("none,phospho,iTRAQ,iTRAQ_phospho,TMT")),
+    protocols_(ListUtils::create<String>("automatic,phospho,iTRAQ,iTRAQ_phospho,TMT,none")),
     tryptic_(ListUtils::create<String>("non,semi,fully"))
   {
     ProteaseDB::getInstance()->getAllMSGFNames(enzymes_);
@@ -193,9 +188,9 @@ protected:
 
     vector<String> all_mods;
     ModificationsDB::getInstance()->getAllSearchModifications(all_mods);
-    registerStringList_("fixed_modifications", "<mods>", vector<String>(), "Fixed modifications, specified using UniMod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)'", false);
+    registerStringList_("fixed_modifications", "<mods>", ListUtils::create<String>("Carbamidomethyl (C)", ','), "Fixed modifications, specified using Unimod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)' or 'Oxidation (M)'", false);
     setValidStrings_("fixed_modifications", all_mods);
-    registerStringList_("variable_modifications", "<mods>", vector<String>(), "Variable modifications, specified using UniMod (www.unimod.org) terms, e.g. 'Oxidation (M)'", false);
+    registerStringList_("variable_modifications", "<mods>", ListUtils::create<String>("Oxidation (M)", ','), "Variable modifications, specified using Unimod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)' or 'Oxidation (M)'", false);
     setValidStrings_("variable_modifications", all_mods);
 
     registerFlag_("legacy_conversion", "Use the indirect conversion of MS-GF+ results to idXML via export to TSV. Try this only if the default conversion takes too long or uses too much memory.", true);
@@ -478,6 +473,11 @@ protected:
     Int instrument_code = ListUtils::getIndex<String>(instruments_, getStringOption_("instrument"));
     Int enzyme_code = ProteaseDB::getInstance()->getEnzyme(enzyme)->getMSGFID();
     Int protocol_code = ListUtils::getIndex<String>(protocols_, getStringOption_("protocol"));
+    // protocol code = 0 corresponds to "automatic" (MS-GF+ docu 2017) and "none" (MS-GF+ docu 2013). We keep 0 = "none" for backward compatibility.
+    if (protocol_code == 5)
+    {
+        protocol_code = 0;
+    }
     Int tryptic_code = ListUtils::getIndex<String>(tryptic_, getStringOption_("tryptic"));
 
     // Hack for KNIME. Looks for MSGFPLUS_PATH in the environment which is set in binaries.ini
@@ -745,17 +745,9 @@ protected:
     //-------------------------------------------------------------
 
     if (!mzid_out.empty())
-    {
-      // existing file? Qt won't overwrite, so try to remove it:
-      if (QFile::exists(mzid_out.toQString()) && !QFile::remove(mzid_out.toQString()))
+    { // move the temporary file to the actual destination:
+      if (!File::rename(mzid_temp, mzid_out))
       {
-        writeLog_("Fatal error: Could not overwrite existing file '" + mzid_out + "'");
-        return CANNOT_WRITE_OUTPUT_FILE;
-      }
-      // move the temporary file to the actual destination:
-      if (!QFile::rename(mzid_temp.toQString(), mzid_out.toQString()))
-      {
-        writeLog_("Fatal error: Could not move temporary mzid file to '" + mzid_out + "'");
         return CANNOT_WRITE_OUTPUT_FILE;
       }
     }

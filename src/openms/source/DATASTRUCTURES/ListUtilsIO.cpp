@@ -32,8 +32,6 @@
 // $Authors: Stephan Aiche $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/DATASTRUCTURES/ListUtilsIO.h>
-
 namespace OpenMS
 {
 

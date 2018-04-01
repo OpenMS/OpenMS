@@ -45,8 +45,24 @@
 
 namespace OpenMS
 {
+
   /**
     @brief Compute the area, background and shape metrics of a peak.
+
+    The area computation is performed in integratePeak() and it supports
+    integration by simple sum of the intensity, integration by Simpson's rule
+    implementations for an odd number of unequally spaced points or integration
+    by the trapezoid rule.
+
+    The background computation is performed in estimateBackground() and it
+    supports three different approaches to baseline correction, namely
+    computing a rectangular shape under the peak based on the minimum value of
+    the peak borders (vertical_division_min), a rectangular shape based on the
+    maximum value of the beak borders (vertical_division_max) or a trapezoidal
+    shape based on a straight line between the peak borders (base_to_base).
+
+    Peak shape metrics are computed in calculatePeakShapeMetrics() and multiple
+    metrics are supported.
 
     The containers supported by the methods are MSChromatogram and MSSpectrum.
   */
@@ -102,7 +118,8 @@ public:
     ///@}
 
     /** @name calculatePeakShapeMetrics() output
-      The calculatePeakShapeMetrics() method uses this struct to save its results.
+      
+        The calculatePeakShapeMetrics() method uses this struct to save its results.
     */
     ///@{
     struct PeakShapeMetrics
@@ -193,8 +210,9 @@ public:
     ///@}
 
     /** @name Constant expressions for parameters
-      Constants expressions used throughout the code and tests to set
-      the integration and baseline types.
+      
+        Constants expressions used throughout the code and tests to set
+        the integration and baseline types.
     */
     ///@{
     /// Integration type: intensity sum
@@ -205,8 +223,12 @@ public:
     static constexpr const char* INTEGRATION_TYPE_SIMPSON = "simpson";
     /// Baseline type: base to base
     static constexpr const char* BASELINE_TYPE_BASETOBASE = "base_to_base";
-    /// Baseline type: vertical division
+    /// Baseline type: vertical division (min of end points; only for backwards compatibility)
     static constexpr const char* BASELINE_TYPE_VERTICALDIVISION = "vertical_division";
+    /// Baseline type: vertical division (min of end points)
+    static constexpr const char* BASELINE_TYPE_VERTICALDIVISION_MIN = "vertical_division_min";
+    /// Baseline type: vertical division (max of end points)
+    static constexpr const char* BASELINE_TYPE_VERTICALDIVISION_MAX = "vertical_division_max";
     ///@}
 
     /**
@@ -518,7 +540,36 @@ protected:
       const double peak_height, const double peak_apex_pos
     ) const;
 
+    /**
+      @brief Find the position (RT/MZ) at a given percentage of peak's height
+
+      @note The method expects that the iterators span half of the peak's width.
+      Examples:
+      - Left half case: the range would be [leftMostPt, peakApexPos)
+      - Right half case: the range would be [peakApexPos + 1, rightMostPt + 1)
+
+      @note The method assumes a convex peak. If 5%, 10%, or 50% peak heights are not found on either side of the peak,
+      the closest left (for left peak height percentages) and closest right (for right peak height percentages) will be used.
+
+      @param[in] it_begin The iterator to the first point
+      @param[in] it_end The iterator to past-the-last point
+      @param[in] peak_height The peak's height
+      @param[in] percent At which percentage of the peak height we want to find the position (common values: 0.05, 0.1, 0.5)
+      @param[in] is_left_half According to which half of the peak, the algorithm proceeds to the correct direction
+
+      @return The position found
+    */
+    template <typename PeakContainerConstIteratorT>
+    double findPosAtPeakHeightPercent_(
+      PeakContainerConstIteratorT it_begin,
+      PeakContainerConstIteratorT it_end,
+      const double peak_height,
+      const double percent,
+      const bool is_left_half
+    ) const;
+
 private:
+
     /** @name Parameters
       The user is supposed to select a value for these parameters.
       By default, the integration_type_ is "intensity_sum" and the baseline_type_ is "base_to_base".
@@ -531,7 +582,7 @@ private:
     String integration_type_ = INTEGRATION_TYPE_INTENSITYSUM;
     /**
       The baseline type to use in estimateBackground().
-      Possible values are: "vertical_division", "base_to_base".
+      Possible values are: "vertical_division_max", "vertical_division_min", "base_to_base".
     */
     String baseline_type_ = BASELINE_TYPE_BASETOBASE;
     ///@}
@@ -540,6 +591,7 @@ private:
       The Simpson's rule implementations for an odd number of unequally spaced points.
     */
     ///@{
+
     /**
       @brief Simpson's rule algorithm
 
@@ -555,6 +607,7 @@ private:
       @return The computed area
     */
     double simpson(MSChromatogram::ConstIterator it_begin, MSChromatogram::ConstIterator it_end) const;
+
     /**
       @brief Simpson's rule algorithm
 

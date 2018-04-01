@@ -35,24 +35,15 @@
 #include <cmath>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerCWT.h>
 
-#include <OpenMS/DATASTRUCTURES/ListUtils.h>
-#include <OpenMS/MATH/MISC/MathFunctions.h>
 #include <OpenMS/FILTERING/NOISEESTIMATION/SignalToNoiseEstimatorMeanIterative.h>
-#include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakShape.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/TwoDOptimization.h>
-#include <OpenMS/TRANSFORMATIONS/RAW2PEAK/OptimizePick.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/TICFilter.h>
-#include <boost/math/special_functions/fpclassify.hpp>
 
 #ifdef _OPENMP
 #ifdef OPENMS_WINDOWSPLATFORM
 #include <omp.h>
 #endif
 #endif
-
-#include <cmath>
-#include <vector>
-#include <algorithm>
 
 //#define DEBUG_PEAK_PICKING2 1
 
