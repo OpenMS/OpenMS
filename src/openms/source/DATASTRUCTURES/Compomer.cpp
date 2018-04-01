@@ -36,11 +36,7 @@
 #include <OpenMS/DATASTRUCTURES/Compomer.h>
 
 #include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
-#include <OpenMS/config.h>
 
-#include <algorithm>
-#include <cmath>
 #include <iostream>
 
 using namespace std;

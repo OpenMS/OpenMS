@@ -34,6 +34,8 @@
 
 #include <OpenMS/FORMAT/HANDLERS/MzXMLHandler.h>
 
+#include <OpenMS/CONCEPT/LogStream.h>
+
 namespace OpenMS
 {
   namespace Internal

@@ -36,11 +36,7 @@
 #include <OpenMS/ANALYSIS/RNPXL/PScore.h>
 #include <OpenMS/ANALYSIS/ID/AScore.h>
 
-#include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
-
-#include <vector>
-#include <map>
 
 using std::map;
 using std::vector;

@@ -34,8 +34,6 @@
 
 #include <OpenMS/METADATA/PeptideHit.h>
 
-#include <algorithm>
-
 using namespace std;
 
 namespace OpenMS

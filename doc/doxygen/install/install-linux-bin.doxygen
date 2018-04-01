@@ -3,7 +3,11 @@
 
   @section deb_package_linux Install Debian package
   If you are using a Debian-based Linux we suggest to use the deb-package provided by us in our <a href="https://abibuilder.informatik.uni-tuebingen.de/archive/openms/OpenMSInstaller/release/latest">archive</a>.
-  To ensure the tool functionality please add the OPENMS_DATA_PATH variable to your environment as follows: 
+  It is most easily installed with
+  \code
+  sudo apt install /PATH/TO/OpenMS.deb
+  \endcode
+  To ensure the tool functionality please add the OPENMS_DATA_PATH variable to your environment as follows (you will get an error advising you this when executing a tool): 
   \code
   export OPENMS_DATA_PATH=/usr/share/OpenMS 
   \endcode
@@ -18,13 +22,12 @@
   Currently there are also packaged versions of %OpenMS provided for Fedora, OpenSUSE, Debian, and Ubuntu <a href="https://pkgs.org/search/openms">available in the corresponding package managers</a> of these distributions (they might require a lookup in thirdparty "science" repositories).
   For other GNU/Linux distributions or to obtain the most recent version of the library you need to build your own %OpenMS.
   
-  
   @note Please note that these packages are not directly maintained by us and we can not guarantee the same behaviour as when building it on your own.
-  Also their availability is subject to change and support might be limited (due to unforeseen or untested behaviour). We also suggest not to install
+  Also their availability and version is subject to change and support might be limited (due to unforeseen or untested behaviour). We also suggest not to install
   them parallel to our Debian package.
   
   @section build_your_own_linux Build it on your own
-  Please check <a href="http://www.openms.de/">OpenMS.de</a> for details on how to obtain the source code and @subpage install_linux on how to build %OpenMS.
+  Get the source code from Github and see @subpage install_linux on how to build %OpenMS.
 
   @note Some thirdparty software used via adapter tools in %OpenMS might also require an installed JavaVM.
 
@@ -40,4 +43,5 @@
   \endcode
   once you have successfully installed docker (see <a href="https://docs.docker.com/engine/installation/">Docker documentation</a>).
 
+  More dockerfiles to build different kinds of images (corresponding to build instructions, e.g. on ArchLinux) can be found on our Github under: https://github.com/OpenMS/dockerfiles
 */

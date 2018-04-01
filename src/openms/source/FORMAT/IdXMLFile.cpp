@@ -39,9 +39,7 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/PrecisionWrapper.h>
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
-#include <iostream>
 #include <fstream>
-#include <limits>
 
 using namespace std;
 
@@ -355,6 +353,26 @@ namespace OpenMS
           os << " >\n";
           writeFragmentAnnotations_("UserParam", os, p_hit.getPeakAnnotations(), 4);
           writeUserParam_("UserParam", os, p_hit, 4);
+
+          // write out the (optional) peptide prophet / interprophet results as UserParams
+          {
+            int k = 0;
+            for (std::vector<PeptideHit::PepXMLAnalysisResult>::const_iterator ar_it = p_hit.getAnalysisResults().begin();
+                ar_it != p_hit.getAnalysisResults().end(); ++ar_it, ++k)
+            {
+              os << "\t\t\t\t<UserParam type=\"string\" name=\"_ar_" << k << "_score_type\" value=\"" << ar_it->score_type << "\"/>" << "\n";
+              os << "\t\t\t\t<UserParam type=\"float\" name=\"_ar_" << k << "_score\" value=\"" << ar_it->main_score << "\"/>" << "\n";
+              if (!ar_it->sub_scores.empty())
+              {
+                for (std::map<String, double>::const_iterator subscore_it = ar_it->sub_scores.begin();
+                    subscore_it != ar_it->sub_scores.end(); ++subscore_it)
+                {
+                  os << "\t\t\t\t<UserParam type=\"float\" name=\"_ar_" << k << "_subscore_" << subscore_it->first <<"\" value=\"" << subscore_it->second << "\"/>" << "\n";
+                }
+              }
+            }
+
+          }
           os << "\t\t\t</PeptideHit>\n";
         }
 
@@ -728,6 +746,32 @@ namespace OpenMS
       String name = attributeAsString_(attributes, "name");
       String type = attributeAsString_(attributes, "type");
 
+      // Handle specially encoded pepXML analysis results
+      if (name.hasPrefix("_ar_"))
+      {
+        // must be in PeptideHit (indicated by special _ar_ prefix)
+        String sfx = name.substr(4, name.size());
+        String val_name = sfx.substr(sfx.find("_") + 1, sfx.size());
+        if (val_name.hasPrefix("subscore"))
+        {
+          String score_name = val_name.substr(val_name.find("_") + 1, val_name.size());
+          current_analysis_result_.sub_scores[score_name] = attributeAsDouble_(attributes, "value");
+        }
+        else if (val_name == "score_type")
+        {
+          if (!current_analysis_result_.score_type.empty())
+          {
+            pep_hit_.addAnalysisResults(current_analysis_result_);
+          }
+          current_analysis_result_.score_type = attributeAsString_(attributes, "value");
+        }
+        else if (val_name == "score")
+        {
+          current_analysis_result_.main_score = attributeAsDouble_(attributes, "value");
+        }
+        return;
+      }
+
       if (type == "int")
       {
         last_meta_->setMetaValue(name, attributeAsInt_(attributes, "value"));
@@ -747,7 +791,7 @@ namespace OpenMS
           parseFragmentAnnotation_(value, annotations);
           pep_hit_.setPeakAnnotations(annotations);
           return;
-        }
+      }
         last_meta_->setMetaValue(name, value);
       }
       else if (type == "intList")
@@ -831,6 +875,11 @@ namespace OpenMS
     else if (tag == "PeptideHit")
     {
       pep_hit_.setPeptideEvidences(peptide_evidences_);
+      if (!current_analysis_result_.score_type.empty())
+      {
+        pep_hit_.addAnalysisResults(current_analysis_result_);
+      }
+      current_analysis_result_ = PeptideHit::PepXMLAnalysisResult();
       pep_id_.insertHit(pep_hit_);
       last_meta_ = &pep_id_;
     }

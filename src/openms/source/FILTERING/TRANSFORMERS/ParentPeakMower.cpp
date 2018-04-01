@@ -34,7 +34,6 @@
 //
 
 #include <OpenMS/FILTERING/TRANSFORMERS/ParentPeakMower.h>
-#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 using namespace std;
 

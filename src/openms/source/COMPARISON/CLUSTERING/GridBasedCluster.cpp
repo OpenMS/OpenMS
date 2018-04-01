@@ -34,10 +34,6 @@
 //
 
 #include <OpenMS/COMPARISON/CLUSTERING/GridBasedCluster.h>
-#include <OpenMS/KERNEL/StandardTypes.h>
-#include <vector>
-#include <algorithm>
-#include <iostream>
 
 namespace OpenMS
 {

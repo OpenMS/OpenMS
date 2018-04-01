@@ -33,8 +33,6 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/TraceFitter.h>
-#include <OpenMS/DATASTRUCTURES/ListUtils.h>
-#include <OpenMS/KERNEL/Peak1D.h>
 
 #include <unsupported/Eigen/NonLinearOptimization>
 

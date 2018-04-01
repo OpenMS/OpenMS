@@ -66,6 +66,8 @@ SetCompressor /SOLID lzma
 
 # Defines
 !define REGKEY "SOFTWARE\$(^Name)"
+!define PRODUCT_UNINST_ROOT HKLM
+!define PRODUCT_UNINST_KEY ${REGKEY}
 !define COMPANY "OpenMS Developer Team"
 !define URL https://www.OpenMS.de
 !define APPNAME "OpenMS"
@@ -89,17 +91,17 @@ RequestExecutionLevel user    /* RequestExecutionLevel REQUIRED! */
 !include ${NSISRESOURCES}\EnvVarUpdate.nsh
 !include x64.nsh
 !include ${NSISRESOURCES}\LogicLib.nsh
+!include ${NSISRESOURCES}\AdvUninstLog2.nsh
+
+# For uninstalllog
+!insertmacro UNATTENDED_UNINSTALL
+
 
 # Reserved Files
 !insertmacro MUI_RESERVEFILE_LANGDLL
 # Modify the next line to adapt to the plugin for other NSIS versions (currently 3.0 release)
 # e.g. NSIS 2.x does not have the subfolders x86-unicode or x86-ansi, so remove them.
 ReserveFile "${NSISDIR}\Plugins\x86-unicode\advsplash.dll"
-
-!if ${THIRDPARTYDIR} == ""
-  !warning "Variable THIRDPARTYDIR not set. Will deactivate installation of Thirdparty binaries."
-  !insertmacro SetSectionFlag ${SEC_ThirdParty} ${SECTION_OFF} 
-!endif
 
 ;--------------------------------
 ;Interface Configuration
@@ -235,93 +237,79 @@ Section "OpenMS Library" SEC_Lib
     SetOverwrite on
 
     # open log file    
-    !insertmacro OpenUninstallLog
+    !insertmacro UNINSTALL.LOG_OPEN_INSTALL
 
-    # install file (with logging)
-    !insertmacro InstallFile "${CONTRIBDIR}\lib\xerces-c_3_1.dll"
-    !insertmacro InstallFile "${CONTRIBDIR}\lib\sqlite3.dll"
-    
-    !insertmacro InstallFile "${OPENMSDIR}\bin\Release\OpenMS.dll"
-    !insertmacro InstallFile "${OPENMSDIR}\bin\Release\OpenMS_GUI.dll"
-    !insertmacro InstallFile "${OPENMSDIR}\bin\Release\OpenSwathAlgo.dll"
-    !insertmacro InstallFile "${OPENMSDIR}\bin\Release\SuperHirn.dll"
-    
-    !if ${DEBUG_BUILD} == 0 
-        !insertmacro InstallFile "${QTLIBDIR}\QtCore4.dll"
-        !insertmacro InstallFile "${QTLIBDIR}\QtGui4.dll"
-        !insertmacro InstallFile "${QTLIBDIR}\QtNetwork4.dll"
-        !insertmacro InstallFile "${QTLIBDIR}\QtOpenGL4.dll"
-        !insertmacro InstallFile "${QTLIBDIR}\QtSql4.dll"
-        !insertmacro InstallFile "${QTLIBDIR}\QtSvg4.dll"
-        !insertmacro InstallFile "${QTLIBDIR}\QtWebKit4.dll"
-		!insertmacro InstallFile "${QTLIBDIR}\phonon4.dll"   ## WebKit4 depends on it
-    !endif
+    # install files
+	File "${OPENMSBINDIR}\*.dll"
+	File "${OPENMSBINDIR}\*.lib"
 
-    SetOutPath $INSTDIR\share
+    SetOutPath $INSTDIR\share\OpenMS
     SetOverwrite on
     !if ${DEBUG_BUILD} == 0 
-        !insertmacro InstallFolder "${OPENMSDIRSRC}\share\*.*" ".svn\"
+        File /r /x "THIRDPARTY" /x "doc" "${OPENMSSHAREDIR}\*.*"
     !endif
     
     # icon for *files* associated with TOPPView
-    !insertmacro InstallFile "${NSISRESOURCES}\OpenMS_TOPPView.ico"
-    !insertmacro InstallFile "${NSISRESOURCES}\OpenMS_TOPPAS.ico"
+    File "${NSISRESOURCES}\OpenMS_TOPPView.ico"
+    File "${NSISRESOURCES}\OpenMS_TOPPAS.ico"
     
-    !insertmacro CloseUninstallLog
+    !insertmacro UNINSTALL.LOG_CLOSE_INSTALL
 SectionEnd
 
 Section "TOPP tools" SEC_TOPP
     SectionIn 1 2 3 RO
     #open log file    
-    !insertmacro OpenUninstallLog
+    !insertmacro UNINSTALL.LOG_OPEN_INSTALL
 
     SetOutPath $INSTDIR\bin
     SetOverwrite on
     
     !if ${DEBUG_BUILD} == 0
-        !insertmacro InstallFile "${OPENMSDIR}\bin\Release\*.exe"
+        File /x "Tutorial_*.exe" "${OPENMSBINDIR}\*.exe"
     !endif
 
-    !insertmacro CloseUninstallLog
+    !insertmacro UNINSTALL.LOG_CLOSE_INSTALL
 SectionEnd
 
 
 Section "Documentation" SEC_Doc
     SectionIn 1 3
     #open log file    
-    !insertmacro OpenUninstallLog
+    !insertmacro UNINSTALL.LOG_OPEN_INSTALL
 
     SetOverwrite on
     
-		## html docu
+	## html docu
     !if ${DEBUG_SKIP_DOCU} == 0
-      SetOutPath $INSTDIR\doc\html
-      !insertmacro InstallFolder "${OPENMSDOCDIR}\html\*.*" ".svn\"
-      SetOutPath $INSTDIR\doc
-      !insertmacro InstallFile "${OPENMSDOCDIR}\TOPP_tutorial.pdf"
-      !insertmacro InstallFile "${OPENMSDOCDIR}\OpenMS_tutorial.pdf"
+      SetOutPath $INSTDIR\share\doc\html
+      File /r "${OPENMSDOCDIR}\html\*.*"
+      SetOutPath $INSTDIR\share\doc
+      File "${OPENMSDOCDIR}\TOPP_tutorial.pdf"
+      File "${OPENMSDOCDIR}\OpenMS_tutorial.pdf"
     !endif    
 
-    !insertmacro CloseUninstallLog
+    !insertmacro UNINSTALL.LOG_CLOSE_INSTALL
 SectionEnd
 
 ## Third party libs
+## TODO switch to packagedir
 SectionGroup "ThirdParty" SEC_ThirdParty   
 	!if ${DEBUG_BUILD} == 0
 		Section "Proteowizard" SEC_pwiz
 		    SectionIn 1 3
-			!insertmacro OpenUninstallLog
+			!insertmacro UNINSTALL.LOG_OPEN_INSTALL
+			
 			SetOverwrite on
 			CreateDirectory "$INSTDIR\share\OpenMS\THIRDPARTY\pwiz-bin"
 			SetOutPath "$INSTDIR\share\OpenMS\THIRDPARTY\pwiz-bin"
-      !insertmacro InstallFolder "${THIRDPARTYDIR}\pwiz-bin\*.*" ".git\"
+            File /r "${THIRDPARTYDIR}\pwiz-bin\*.*"
 
-      !insertmacro CloseUninstallLog
-    SectionEnd
+            !insertmacro UNINSTALL.LOG_CLOSE_INSTALL
+        SectionEnd
 
     Section ".NET and VCRedist for Proteowizard" SEC_dotnet
         SectionIn 1 3
-      !insertmacro OpenUninstallLog
+      !insertmacro UNINSTALL.LOG_OPEN_INSTALL
       SetOverwrite on
 
       Var /GLOBAL netSilentArgs
@@ -369,7 +357,7 @@ SectionGroup "ThirdParty" SEC_ThirdParty
 			SetOutPath $TEMP
 			SetOverwrite on
 
-			!insertmacro InstallFile  "${THIRDPARTYDIR}\${VS_PWIZ_REDISTRIBUTABLE_EXE}"
+			File  "${THIRDPARTYDIR}\${VS_PWIZ_REDISTRIBUTABLE_EXE}"
 			ClearErrors
 			ExecWait '$TEMP\${VS_PWIZ_REDISTRIBUTABLE_EXE} /q' $0
 			StrCmp $0 0 vs_pwiz_install_success
@@ -377,7 +365,7 @@ SectionGroup "ThirdParty" SEC_ThirdParty
 			
 			vs_pwiz_install_success:
 			
-      !insertmacro InstallFile  "${THIRDPARTYDIR}\${VS_PWIZ_ADD1_REDISTRIBUTABLE_EXE}"
+      File  "${THIRDPARTYDIR}\${VS_PWIZ_ADD1_REDISTRIBUTABLE_EXE}"
 			ClearErrors
 			ExecWait '$TEMP\${VS_PWIZ_ADD1_REDISTRIBUTABLE_EXE} /q' $0
 			StrCmp $0 0 vs_pwiz_add1_install_success
@@ -385,7 +373,7 @@ SectionGroup "ThirdParty" SEC_ThirdParty
 
 			vs_pwiz_add1_install_success:
 
-      !insertmacro InstallFile  "${THIRDPARTYDIR}\${VS_PWIZ_ADD2_REDISTRIBUTABLE_EXE}"
+      File  "${THIRDPARTYDIR}\${VS_PWIZ_ADD2_REDISTRIBUTABLE_EXE}"
 			ClearErrors
 			ExecWait '$TEMP\${VS_PWIZ_ADD2_REDISTRIBUTABLE_EXE} /q' $0
 			StrCmp $0 0 vs_pwiz_add2_install_success
@@ -396,12 +384,12 @@ SectionGroup "ThirdParty" SEC_ThirdParty
 
 			vs_pwiz_add2_install_success:
 			
-			!insertmacro CloseUninstallLog
+			!insertmacro UNINSTALL.LOG_CLOSE_INSTALL
 		SectionEnd
 
       ## Install every other directory in the given (flattened) THIRDPARTY folder.
       !tempfile filelist
-      !system 'FOR /D %A IN ("${THIRDPARTYDIR}\*") DO @( IF NOT "%~nA" == "pwiz-bin" ((echo Section "%~nA" & echo SectionIn 1 3 & echo !insertmacro OpenUninstallLog & echo SetOverwrite on & echo CreateDirectory "$INSTDIR\share\OpenMS\THIRDPARTY\%~nA" & echo SetOutPath "$INSTDIR\share\OpenMS\THIRDPARTY\%~nA" & echo !insertmacro InstallFolder "%~A\*.*" ".git\" & echo Var /GLOBAL %~nAInstalled & echo StrCpy $%~nAInstalled "1" & echo !insertmacro CloseUninstallLog & echo SectionEnd) >> "${filelist}"))'
+      !system 'FOR /D %A IN ("${THIRDPARTYDIR}\*") DO @( IF NOT "%~nA" == "pwiz-bin" ((echo Section "%~nA" & echo SectionIn 1 3 & echo !insertmacro UNINSTALL.LOG_OPEN_INSTALL & echo SetOverwrite on & echo CreateDirectory "$INSTDIR\share\OpenMS\THIRDPARTY\%~nA" & echo SetOutPath "$INSTDIR\share\OpenMS\THIRDPARTY\%~nA" & echo File /r "%~A\*.*" & echo Var /GLOBAL %~nAInstalled & echo StrCpy $%~nAInstalled "1" & echo !insertmacro UNINSTALL.LOG_CLOSE_INSTALL & echo SectionEnd) >> "${filelist}"))'
       !include "${filelist}"
       !delfile "${filelist}"
 
@@ -412,14 +400,14 @@ SectionGroupEnd
 Section "-License" SEC_License
     SectionIn 1 2 3
     #open log file    
-    !insertmacro OpenUninstallLog
+    !insertmacro UNINSTALL.LOG_OPEN_INSTALL
 
     SetOutPath $INSTDIR
     SetOverwrite on
 
-    !insertmacro InstallFile  "${NSISRESOURCES}\ReleaseNotes.txt"
+    File  "${NSISRESOURCES}\ReleaseNotes.txt"
 
-    !insertmacro CloseUninstallLog
+    !insertmacro UNINSTALL.LOG_CLOSE_INSTALL
 SectionEnd
 
 Function CreateShortcuts
@@ -452,7 +440,7 @@ SectionEnd
 Section "-Create_command_bat" SEC_CmdBat
     SectionIn 1 2 3
     #open log file    
-    !insertmacro OpenUninstallLog
+    !insertmacro UNINSTALL.LOG_OPEN_INSTALL
         
     ## create a command bat
     push $R0
@@ -466,7 +454,7 @@ Section "-Create_command_bat" SEC_CmdBat
 
     FileWrite $UninstallLog "$INSTDIR\bin\command.bat$\r$\n"
 
-    !insertmacro CloseUninstallLog
+    !insertmacro UNINSTALL.LOG_CLOSE_INSTALL
 SectionEnd
 
 
@@ -523,7 +511,7 @@ Section "-hidden VSRuntime"
     SetOutPath $TEMP
     SetOverwrite on
 
-    !insertmacro InstallFile "${VS_REDISTRIBUTABLE_PATH}\${VS_REDISTRIBUTABLE_EXE}"
+    File "${VS_REDISTRIBUTABLE_PATH}\${VS_REDISTRIBUTABLE_EXE}"
     ClearErrors
     ExecWait '$TEMP\${VS_REDISTRIBUTABLE_EXE} /q' $0
     StrCmp $0 0 vs_install_success
@@ -607,6 +595,8 @@ Function .onInit
       goto UAC_Elevate
 
   ## now our own code:
+  
+  !insertmacro UNINSTALL.LOG_PREPARE_INSTALL
  
   # Command line options for silent install (with "/S")
 
@@ -709,6 +699,7 @@ Function .OnInstFailed
 FunctionEnd
  
 Function .OnInstSuccess
+   !insertmacro UNINSTALL.LOG_UPDATE_INSTALL
    UAC::Unload ;Must call unload!
 FunctionEnd
 
@@ -762,29 +753,17 @@ Section "Uninstall"
     ${un.RefreshShellIcons}
 
     ## delete all installed files
-    FileOpen $UninstallLog "$INSTDIR\uninstall.log" r
-  UninstallLoop:
-    ClearErrors
-    FileRead $UninstallLog $R0
-    IfErrors UninstallEnd
-    Push $R0
-    Call un.TrimNewLines
-    Pop $R0
-    Delete $R0
-    Goto UninstallLoop
-  UninstallEnd:
-    FileClose $UninstallLog
-    Delete "$INSTDIR\uninstall.log"
-    Delete "$INSTDIR\uninstall.exe"
+	!insertmacro UNINSTALL.NEW_UNINSTALL
+
     # remove directories which are now empty
     Push "\"
     Call un.RemoveEmptyDirs
-    
+	
     ## clean up the registry
     DeleteRegKey HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\$(^Name)"
     # delete /Software/OpenMS (with all its content)
     DeleteRegKey HKLM "${REGKEY}"
-
+	
     RmDir /REBOOTOK $INSTDIR
 
     ## delete start menu entries (via user process to find the correct $SMPROGRAMS directory)

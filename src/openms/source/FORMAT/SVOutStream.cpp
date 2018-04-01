@@ -35,9 +35,6 @@
 #include <OpenMS/FORMAT/SVOutStream.h>
 #include <OpenMS/CONCEPT/Exception.h>
 
-#include <limits>
-#include <string>
-
 using namespace std;
 
 namespace OpenMS

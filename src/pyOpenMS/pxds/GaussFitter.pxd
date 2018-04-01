@@ -26,6 +26,8 @@ cdef extern from "<OpenMS/MATH/STATISTICS/GaussFitter.h>" namespace "OpenMS::Mat
         GaussFitResult(double, double, double) nogil except +
         GaussFitResult(GaussFitResult) nogil except +   # wrap-ignore
 
+        double eval(double) nogil except +
+
         # parameter A of gaussian distribution (amplitude)
         double A
         # parameter x0 of gaussian distribution (left/right shift)

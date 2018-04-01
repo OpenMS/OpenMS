@@ -404,6 +404,7 @@ set(analysis_executables_list
   AbsoluteQuantitationMethodFile_test
   AbsoluteQuantitationStandards_test
   AccurateMassSearchEngine_test
+  AhoCorasickAmbiguous_test
   AScore_test
   BaseGroupFinder_test
   BaseSuperimposer_test
@@ -539,6 +540,7 @@ set(transformations_executables_list
   FeatureFinderAlgorithmPickedHelperStructs_test
   FeatureFinderAlgorithmPicked_test
   FeatureFinderAlgorithm_test
+  FeatureFinderIdentificationAlgorithm_test
   FeatureFinderDefs_test
   FeatureFinder_test
   Fitter1D_test

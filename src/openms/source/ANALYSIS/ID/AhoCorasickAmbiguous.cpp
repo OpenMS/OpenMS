@@ -33,7 +33,6 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/ID/AhoCorasickAmbiguous.h>
-#include <OpenMS/DATASTRUCTURES/SeqanIncludeWrapper.h>
 
 //using namespace OpenMS;
 using namespace std;

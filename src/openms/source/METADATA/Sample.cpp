@@ -35,8 +35,6 @@
 #include <OpenMS/METADATA/Sample.h>
 #include <OpenMS/METADATA/SampleTreatment.h>
 
-#include <iostream>
-
 using namespace std;
 
 namespace OpenMS

@@ -46,7 +46,7 @@
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
-#include <OpenMS/FORMAT/IndexedMzMLFile.h>
+#include <OpenMS/FORMAT/HANDLERS/IndexedMzMLHandler.h>
 #include <OpenMS/FORMAT/MzDataFile.h>
 #include <OpenMS/FORMAT/MzIdentMLFile.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
@@ -59,6 +59,8 @@
 #include <OpenMS/SYSTEM/SysInfo.h>
 
 #include <QtCore/QString>
+
+#include <unordered_map>
 
 using namespace OpenMS;
 using namespace std;
@@ -364,7 +366,7 @@ protected:
       }
 
       std::cout << "Checking mzML file for valid indices ... " << std::endl;
-      IndexedMzMLFile ifile;
+      Internal::IndexedMzMLHandler ifile;
       ifile.openFile(in);
       if (ifile.getParsingSuccess())
       {
@@ -398,46 +400,80 @@ protected:
       vector<FASTAFile::FASTAEntry> entries;
       FASTAFile file;
 
-      map<char, int> aacids;
+      Map<char, int> aacids; // required for default construction of non-existing keys
       size_t number_of_aacids = 0;
 
       SysInfo::MemUsage mu;
-      //loading input
+      // loading input
       file.load(in, entries);
       std::cout << "\n\n" << mu.delta("loading FASTA") << std::endl;
 
-      os << "Number of sequences: " << entries.size() << "\n"
-         << "\n";
+      int dup_header(0);
+      int dup_seq(0);
 
+      typedef std::unordered_map<size_t, vector<ptrdiff_t> > SHashmap;
+      SHashmap m_headers;
+      SHashmap m_seqs;
+      
+      std::hash<string> s_hash;
       for (auto loopiter = entries.begin(); loopiter != entries.end(); ++loopiter)
       {
-        auto iter = find_if(entries.begin(), loopiter, [&loopiter](const FASTAFile::FASTAEntry& entry) { return entry.headerMatches(*loopiter); });
-        if (iter != loopiter)
         {
-          os << "Warning: Duplicate header, Number: " << std::distance(entries.begin(), loopiter) << ", ID: " << loopiter->identifier << " is same as Number: " << std::distance(entries.begin(), iter) << ", ID: " << iter->identifier << "\n";
+          size_t id_hash = s_hash(loopiter->identifier);
+          auto it_id = m_headers.find(id_hash);
+          if (it_id != m_headers.end())
+          { // hash matches ... test the real indices to make sure
+            vector<ptrdiff_t>::const_iterator iter = find_if(it_id->second.begin(), it_id->second.end(), [&loopiter, &entries](const ptrdiff_t& idx) { return entries[idx].headerMatches(*loopiter); });
+            if (iter != it_id->second.end())
+            {
+              os << "Warning: Duplicate header, #" << std::distance(entries.begin(), loopiter) << ", ID: " << loopiter->identifier << " = #" << *iter << ", ID: " << entries[*iter].identifier << "\n";
+              ++dup_header;
+            }
+
+          }
+          // add our own hash
+          m_headers[id_hash] = { std::distance(entries.begin(), loopiter) };
         }
 
-        iter = find_if(entries.begin(), loopiter, [&loopiter](const FASTAFile::FASTAEntry& entry) { return entry.sequenceMatches(*loopiter); });
-        if (iter != loopiter && iter != entries.end())
         {
-          os << "Warning: Duplicate sequence, Number: " << std::distance(entries.begin(), loopiter) << ", ID: " << loopiter->identifier << " is same as Number: " << std::distance(entries.begin(), iter) << ", ID: " << iter->identifier << "\n";
-        }
+          size_t id_seq = s_hash(loopiter->sequence);
+          auto it_id = m_seqs.find(id_seq);
+          if (it_id != m_seqs.end())
+          { // hash matches ... test the real indices to make sure
+            vector<ptrdiff_t>::const_iterator iter = find_if(it_id->second.begin(), it_id->second.end(), [&loopiter, &entries](const ptrdiff_t& idx) { return entries[idx].sequenceMatches(*loopiter); });
+            if (iter != it_id->second.end())
+            {
+              os << "Warning: Duplicate sequence, #" << std::distance(entries.begin(), loopiter) << ", ID: " << loopiter->identifier << " == #" << *iter << ", ID: " << entries[*iter].identifier << "\n";
+              ++dup_seq;
+            }
 
-        for (Size i = 0; i < loopiter->sequence.size(); i++)
+          }
+          // add our own hash
+          m_seqs[id_seq] = { std::distance(entries.begin(), loopiter) };
+        }
+        
+        for (char a : loopiter->sequence)
         {
-          ++aacids[loopiter->sequence[i]];
+          ++aacids[a];
         }
         number_of_aacids += loopiter->sequence.size();
       }
 
-      os << "Total amino acids: " << number_of_aacids << "\n\n";
-      os << "Amino acid counts: "
-         << "\n";
+      os << "\n";
+      os << "Number of sequences   : " << entries.size() << "\n";
+      os << "# duplicated headers  : " << dup_header << " (" << (entries.empty() ? 0 : (dup_header * 1000 / entries.size()) / 10.0) << "%)\n";
+      os << "# duplicated sequences: " << dup_seq << " (" << (entries.empty() ? 0 : (dup_seq * 1000 / entries.size()) / 10.0) << "%) [by exact string matching]\n";
+      os << "Total amino acids     : " << number_of_aacids << "\n\n";
+      os << "Amino acid counts: \n";
 
       for (auto it = aacids.begin(); it != aacids.end(); ++it)
       {
         os << it->first << '\t' << it->second << "\n";
       }
+      size_t amb = aacids['B'] + aacids['Z'] + aacids['X'] + aacids['b'] + aacids['z'] + aacids['x'];
+      size_t amb_I = amb + aacids['I'] + aacids['i'];
+      os << "Ambiguous amino acids (B/Z/X)  : " << amb   << " (" << (amb > 0 ? (amb * 10000 / number_of_aacids / 100.0) : 0) << "%)\n";
+      os << "                      (B/Z/X/I): " << amb_I << " (" << (amb_I > 0 ? (amb_I * 10000 / number_of_aacids / 100.0) : 0) << "%)\n\n";
     }
 
     else if (in_type == FileTypes::FEATUREXML) //features
@@ -590,11 +626,13 @@ protected:
           if (temp_hits[0].getSequence().isModified())
           {
             ++modified_peptide_count;
-            AASequence aa = temp_hits[0].getSequence();
+            const AASequence& aa = temp_hits[0].getSequence();
+            if (aa.hasCTerminalModification()) ++mod_counts[aa.getCTerminalModificationName()];
+            if (aa.hasNTerminalModification()) ++mod_counts[aa.getNTerminalModificationName()];
             for (Size ia = 0; ia < aa.size(); ++ia)
             {
               if (aa[ia].isModified())
-                ++mod_counts[aa[ia].getModificationName()];
+                ++mod_counts[aa[ia].getModification()->getFullId()];
             }
           }
           for (Size j = 0; j < temp_hits.size(); ++j)
@@ -638,8 +676,8 @@ protected:
         if (it != mod_counts.begin())
           os << ", ";
         else
-          os << "  Modifications (top-hits only): ";
-        os << it->first << "(" << it->second << ")";
+          os << "  Modification count (top-hits only): ";
+        os << it->first << " " << it->second;
       }
 
       os_tsv << "peptide hits"

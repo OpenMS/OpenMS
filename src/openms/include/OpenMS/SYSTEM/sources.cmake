@@ -13,13 +13,9 @@ foreach(i ${sources_list})
   list(APPEND sources ${directory}/${i})
 endforeach(i)
 
-### Apply MOC compiler
-QT4_WRAP_CPP(mocced_sources ${sources} OPTIONS ${BOOST_MOC_ARGS})
-
-### pass source file list to the upper instance
-set(OpenMS_sources ${OpenMS_sources} ${mocced_sources})
-
-source_group("Source Files\\OpenMS\\SYSTEM" FILES ${mocced_sources})
+### treat as source files, for autoMOC'ing instead of manually calling QT5_WRAP_CPP()
+set(OpenMS_sources ${OpenMS_sources} ${sources})
+source_group("Source Files\\OpenMS\\SYSTEM" FILES ${sources})
 
 ### list all header files of the directory here
 set(sources_list_h

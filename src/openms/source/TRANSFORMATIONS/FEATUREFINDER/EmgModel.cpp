@@ -35,9 +35,6 @@
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/EmgModel.h>
 
 #include <OpenMS/CONCEPT/Constants.h>
-#include <OpenMS/DATASTRUCTURES/ListUtils.h>
-
-#include <numeric>
 
 namespace OpenMS
 {

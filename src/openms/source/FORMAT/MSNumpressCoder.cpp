@@ -36,8 +36,9 @@
 
 #include <OpenMS/MATH/MISC/MSNumpress.h>
 #include <boost/math/special_functions/fpclassify.hpp> // boost::math::isfinite
-#include <iostream>
 // #define NUMPRESS_DEBUG
+
+#include <iostream>
 
 namespace OpenMS
 {

@@ -55,17 +55,22 @@ set(CPACK_RESOURCE_FILE_README ${PROJECT_SOURCE_DIR}/cmake/OpenMSPackageResource
 # Not done on Linux. Either install systemwide (omit CMAKE_INSTALL_PREFIX or set it to /usr/) or install and add the
 # install/lib/ folder to the LD_LIBRARY_PATH
 
+## If you want to do it, try it like this:
 #install(CODE "
 #  include(BundleUtilities)
 #  GET_BUNDLE_ALL_EXECUTABLES(\${CMAKE_INSTALL_PREFIX}/${INSTALL_BIN_DIR} EXECS)
-#  fixup_bundle(\"${EXECS}\" \"\" \"\${CMAKE_INSTALL_PREFIX}/${INSTALL_LIB_DIR}\")
+#  fixup_bundle(\"${EXECS}\" \"${QT_PLUGINS}\" \"\${CMAKE_INSTALL_PREFIX}/${INSTALL_LIB_DIR}\")
 #  " COMPONENT applications)
+
+find_package(Qt5 COMPONENTS ${OpenMS_QT_COMPONENTS}) ## we have to find again so the target variables are reloaded
+install_qt5_libs("${OpenMS_QT_COMPONENTS}" ${INSTALL_LIB_DIR} "QTLibs")
 
 ########################################################### SEARCHENGINES
 set(THIRDPARTY_COMPONENT_GROUP)
 ## populates the THIRDPARTY_COMPONENT_GROUP list
 if(EXISTS ${SEARCH_ENGINES_DIRECTORY})
   ## TODO we could think about just recursing over subfolders
+  install_thirdparty_folder("pwiz-bin")
   install_thirdparty_folder("Comet")
   install_thirdparty_folder("Fido")
   install_thirdparty_folder("MSGFPlus")

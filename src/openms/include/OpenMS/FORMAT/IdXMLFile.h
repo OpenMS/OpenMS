@@ -166,6 +166,8 @@ protected:
     ProteinHit prot_hit_;
     /// Temporary peptide hit
     PeptideHit pep_hit_;
+    /// Temporary analysis result instance
+    PeptideHit::PepXMLAnalysisResult current_analysis_result_;
     /// Temporary peptide evidences
     std::vector<PeptideEvidence> peptide_evidences_;
     /// Map from protein id to accession

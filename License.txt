@@ -64,11 +64,11 @@ GLPK
   - License:
   http://www.gnu.org/copyleft/gpl.html
 
-Qt 4
+Qt5 (open-source version)
   - URL:
   https://www.qt.io/
-  - License (links):
-  http://doc.qt.io/qt-4.8/opensourceedition.html
+  - License:
+  http://doc.qt.io/qt-5/licensing.html
 
 Xerces-C
   - URL:

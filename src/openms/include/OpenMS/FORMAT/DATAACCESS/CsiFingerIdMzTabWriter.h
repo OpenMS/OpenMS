@@ -64,6 +64,7 @@ namespace OpenMS
           struct CsiAdapterIdentification
           {
             OpenMS::String scan_index;
+            OpenMS::String scan_number;
             std::vector<CsiAdapterHit> hits;
           };
 
@@ -72,11 +73,16 @@ namespace OpenMS
             std::vector <CsiAdapterIdentification> identifications;
           };
 
-          // output of Sirius is one directory per spectrum/compound
-          // sirius_output_paths: Path to output directories of Sirius
-          // original_input_mzml: Path to original input mzml of SiriusAdapter
-          // top_n_hits: Top n  entries for each compound written to the result file
-          // result: Result written to mzTab
+          /**
+          @brief Conversion of CSI:FingerID output to mzTab
+          
+          Output of CSI:FingerID is one directory per spectrum/compound
+          @param sirius_output_paths: Path to output directories of Sirius
+          @param original_input_mzml: Path to original input mzml of SiriusAdapter
+          @param top_n_hits: Top n  entries for each compound written to the result file
+          
+          @return Result written to mzTab
+          */
           static void read(const std::vector<String> & sirius_output_paths, const String & original_input_mzml, const Size & top_n_hits, MzTab & result);
 
       };
