@@ -745,6 +745,7 @@ namespace OpenMS
     // ** collect related features ** //
     // ------------------------------ //
 
+    //Can we toggle here to keep metaValues from previous iteration, and modify the consistency check further down to only accept the pair if it is in agreement to old one? Probably too late then already. But we might check the metaValue and reuse the consistency code further below for evaluation further above? Should be able to compare existing annotation to the stuff we put into putativefeature_relation pairs before ILP computation itself.
     // fresh start for meta annotation
     for (Size i = 0; i < fm_out.size(); ++i)
     {
