@@ -33,12 +33,12 @@ namespace OpenMS
   
   void IsotopePatternGenerator::merge(double resolution)
   {
-    //raw must be ordered to work correctly ascending order on power field
+    // Sort by mass and trim the tails of the container
     sortByMass();
-
-    ContainerType raw = distribution_;
+    trimLeft(min_prob_);
+    trimRight(min_prob_);
     
-    // TODO trim masses before calculating the mass range, how to choose cutoff
+    ContainerType raw = distribution_;
     double mass_range = (raw.back().getMZ() - raw.front().getMZ());
     UInt output_size = ceil(mass_range / resolution);
     if (output_size > distribution_.size())

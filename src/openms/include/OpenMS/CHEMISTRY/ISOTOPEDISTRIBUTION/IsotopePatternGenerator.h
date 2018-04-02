@@ -20,6 +20,12 @@ namespace OpenMS
     IsotopePatternGenerator(double probability_cutoff);
     IsotopePatternGenerator(const IsotopeDistribution&);
     
+    /** 
+        @brief interface that is being used by the Isotope Pattern Generator methods.
+        
+        Method that calculates the isotope distribution for the given formula.
+
+     */
     virtual void run(const EmpiricalFormula&) = 0;
     /** @brief Merges distributions arbitrary data points with constant defined resolution.
         
