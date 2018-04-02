@@ -361,20 +361,13 @@ protected:
     writeLog_("Prepared maracluster command.");
 
     //-------------------------------------------------------------
-    // run MaRaCluster
+    // run MaRaCluster for idXML output
     //-------------------------------------------------------------
     // MaRaCluster execution with the executable and the arguments StringList
 
-    QString executable = maracluster_executable.toQString();
-    QFileInfo file_info(executable);
-    executable = file_info.canonicalFilePath();
-    const QString & path_to_executable = maracluster_executable.toQString();
-
     QProcess qp;
-    qp.setWorkingDirectory(path_to_executable);
-    qp.start(executable, arguments);
-
-    if (qp.exitStatus() != 0 || qp.exitCode() != 0)
+    qp.start(maracluster_executable.toQString(), arguments);
+    if (qp.waitForFinished(-1) == false || qp.exitStatus() != 0 || qp.exitCode() != 0)
     {
       writeLog_("MaRaCluster problem. Aborting! Calling command was: '" + maracluster_executable + " " + arguments.join(" ").toStdString() + "'.");
       const QString maracluster_stdout(qp.readAllStandardOutput());
@@ -484,26 +477,32 @@ protected:
       writeLog_("Prepared maracluster-consensus command.");
 
       //-------------------------------------------------------------
-      // run MaRaCluster
+      // run MaRaCluster for consensus output
       //-------------------------------------------------------------
       // MaRaCluster execution with the executable and the arguments StringList
-      int status_consensus = QProcess::execute(maracluster_executable.toQString(), arguments_consensus); // does automatic escaping etc...
-      if (status_consensus != 0)
+      QProcess qp_consensus;
+      qp_consensus.start(maracluster_executable.toQString(), arguments_consensus);
+      if (qp_consensus.waitForFinished(-1) == false || qp_consensus.exitStatus() != 0 || qp_consensus.exitCode() != 0)
       {
         writeLog_("MaRaCluster problem. Aborting! Calling command was: '" + maracluster_executable + " " + arguments_consensus.join(" ").toStdString() + "'.");
+        const QString maracluster_stdout_consensus(qp_consensus.readAllStandardOutput());
+        const QString maracluster_stderr_consensus(qp_consensus.readAllStandardError());
+        writeLog_(maracluster_stdout_consensus);
+        writeLog_(maracluster_stderr_consensus);
         // clean temporary files
         if (this->debug_level_ < 2)
         {
           File::removeDirRecursively(temp_directory_body);
-          LOG_WARN << "Set debug level to >=2 to keep the temporary files at '" << temp_directory_body << "'" << endl;
+          LOG_WARN << "Set debug level to >=2 to keep the temporary files at '" << temp_directory_body << "'" << qp_consensus.exitCode() << endl;
         }
         else
         {
-          LOG_WARN << "Keeping the temporary files at '" << temp_directory_body << "'. Set debug level to <2 to remove them." << endl;
+          LOG_WARN << "Keeping the temporary files at '" << temp_directory_body << "'. Set debug level to <2 to remove them." << qp_consensus.exitCode() << endl;
         }
         return EXTERNAL_PROGRAM_ERROR;
       }
       writeLog_("Executed maracluster!");
+      qp_consensus.close();
     }
 
     if (this->debug_level_ < 5)
