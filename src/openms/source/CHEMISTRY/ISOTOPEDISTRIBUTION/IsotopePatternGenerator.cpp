@@ -30,14 +30,22 @@ namespace OpenMS
   {
     
   }
+  
   void IsotopePatternGenerator::merge(double resolution)
   {
     //raw must be ordered to work correctly ascending order on power field
     sortByMass();
 
     ContainerType raw = distribution_;
+    
+    // TODO trim masses before calculating the mass range, how to choose cutoff
     double mass_range = (raw.back().getMZ() - raw.front().getMZ());
     UInt output_size = ceil(mass_range / resolution);
+    if (output_size > distribution_.size())
+    {
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "New Isotope Distribution has more points than the old one.");
+    }
+
     distribution_.clear();
     ContainerType distribution(output_size, Peak1D(0, 0));
     double delta = mass_range / output_size;

@@ -19,7 +19,15 @@ namespace OpenMS
     IsotopePatternGenerator();
     IsotopePatternGenerator(double probability_cutoff);
     IsotopePatternGenerator(const IsotopeDistribution&);
+    
     virtual void run(const EmpiricalFormula&) = 0;
+    /** @brief Merges distributions arbitrary data points with constant defined resolution.
+        
+        It creates a new IsotopeDistribution Container and assigns each isotope to the nearest bin.
+        This function should be used to downsample the existing distribution.
+        If the size of the new Container is larger this function throws an IllegalArgument Exception.
+        
+     */
     void merge(double);
  protected:
     double min_prob_;
