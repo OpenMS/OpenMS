@@ -32,8 +32,7 @@
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_DATASTRUCTURES_DATAVALUE_H
-#define OPENMS_DATASTRUCTURES_DATAVALUE_H
+#pragma once
 
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
@@ -424,4 +423,3 @@ private:
   };
 }
 
-#endif // OPENMS_DATASTRUCTURES_DATAVALUE_H

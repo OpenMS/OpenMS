@@ -33,8 +33,7 @@
 // --------------------------------------------------------------------------
 
 
-#ifndef OPENMS_CHEMISTRY_THEORETICALSPECTRUMGENERATORXLMS_H
-#define OPENMS_CHEMISTRY_THEORETICALSPECTRUMGENERATORXLMS_H
+#pragma once
 
 #include <OpenMS/CHEMISTRY/Residue.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
@@ -203,4 +202,3 @@ namespace OpenMS
   };
 }
 
-#endif // THEORETICALSPECTRUMGENERATORXLMS_H

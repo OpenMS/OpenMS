@@ -32,8 +32,7 @@
 // $Authors: Hendrik Weisser $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_TRANSFORMATIONS_FEATUREFINDER_SEEDLISTGENERATOR_H
-#define OPENMS_TRANSFORMATIONS_FEATUREFINDER_SEEDLISTGENERATOR_H
+#pragma once
 
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/DATASTRUCTURES/DPosition.h>
@@ -108,4 +107,3 @@ public:
 
 }
 
-#endif // OPENMS_TRANSFORMATIONS_FEATUREFINDER_SEEDLISTGENERATOR_H

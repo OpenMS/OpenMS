@@ -32,8 +32,7 @@
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_VISUAL_METADATABROWSER_H
-#define OPENMS_VISUAL_METADATABROWSER_H
+#pragma once
 
 // OpenMS_GUI config
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
@@ -279,4 +278,3 @@ protected:
     QTreeWidget * treeview_;
   };
 }
-#endif

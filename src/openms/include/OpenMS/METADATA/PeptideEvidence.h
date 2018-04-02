@@ -32,8 +32,7 @@
 // $Authors: Timo Sachsenberg $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_METADATA_PEPTIDEEVIDENCE_H
-#define OPENMS_METADATA_PEPTIDEEVIDENCE_H
+#pragma once
 
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
@@ -133,4 +132,3 @@ protected:
 
 }
 
-#endif // OPENMS_METADATA_PEPTIDEEVIDENCE_H

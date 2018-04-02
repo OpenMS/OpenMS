@@ -33,8 +33,7 @@
 // --------------------------------------------------------------------------
 //
 
-#ifndef OPENMS_MATH_STATISTICS_GAUSSFITTER_H
-#define OPENMS_MATH_STATISTICS_GAUSSFITTER_H
+#pragma once
 
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/DATASTRUCTURES/DPosition.h>
@@ -122,4 +121,3 @@ private:
   }
 }
 
-#endif

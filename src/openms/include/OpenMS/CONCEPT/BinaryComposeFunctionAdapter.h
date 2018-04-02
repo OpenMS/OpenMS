@@ -33,8 +33,7 @@
 // --------------------------------------------------------------------------
 //
 
-#ifndef OPENMS_CONCEPT_BINARYCOMPOSEFUNCTIONADAPTER_H
-#define OPENMS_CONCEPT_BINARYCOMPOSEFUNCTIONADAPTER_H
+#pragma once
 
 #include <functional>
 
@@ -142,4 +141,3 @@ public:
 
 } // namespace OpenMS
 
-#endif // OPENMS_CONCEPT_BINARYCOMPOSEFUNCTIONADAPTER_H

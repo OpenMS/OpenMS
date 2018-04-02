@@ -32,8 +32,7 @@
 // $Authors: Guillaume Belz $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FORMAT_HANDLERS_ACQUSHANDLER_H
-#define OPENMS_FORMAT_HANDLERS_ACQUSHANDLER_H
+#pragma once
 
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/DATASTRUCTURES/Map.h>
@@ -97,4 +96,3 @@ private:
   }   // namespace Internal
 } // namespace OpenMS
 
-#endif // OPENMS_FORMAT_HANDLERS_ACQUSHANDLER_H

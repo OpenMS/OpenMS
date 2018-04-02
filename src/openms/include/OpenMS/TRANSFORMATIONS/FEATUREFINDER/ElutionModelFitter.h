@@ -32,8 +32,7 @@
 // $Authors: Hendrik Weisser $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_TRANSFORMATIONS_FEATUREFINDER_ELUTIONMODELFITTER_H
-#define OPENMS_TRANSFORMATIONS_FEATUREFINDER_ELUTIONMODELFITTER_H
+#pragma once
 
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
@@ -81,4 +80,3 @@ namespace OpenMS
   };
 }
 
-#endif // #ifndef OPENMS_TRANSFORMATIONS_FEATUREFINDER_ELUTIONMODELFITTER_H

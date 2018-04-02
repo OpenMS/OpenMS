@@ -32,8 +32,7 @@
 // $Authors: Hannes Roest $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_OPENSWATH_MRMFEATUREFINDERSCORING_H
-#define OPENMS_ANALYSIS_OPENSWATH_MRMFEATUREFINDERSCORING_H
+#pragma once
 
 #define USE_SP_INTERFACE
 
@@ -304,5 +303,4 @@ private:
 }
 
 #undef run_identifier
-#endif // OPENMS_ANALYSIS_OPENSWATH_MRMFEATUREFINDERSCORING_H
 

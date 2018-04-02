@@ -32,8 +32,7 @@
 // $Authors: Clemens Groepl, Hendrik Weisser, Chris Bielow $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_MAPMATCHING_FEATUREDISTANCE_H
-#define OPENMS_ANALYSIS_MAPMATCHING_FEATUREDISTANCE_H
+#pragma once
 
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/KERNEL/BaseFeature.h>
@@ -181,4 +180,3 @@ protected:
 
 } // namespace OpenMS
 
-#endif  // OPENMS_ANALYSIS_MAPMATCHING_FEATUREDISTANCE_H

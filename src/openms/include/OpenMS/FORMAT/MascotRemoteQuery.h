@@ -32,8 +32,7 @@
 // $Authors: Andreas Bertsch, Daniel Jameson, Chris Bielow$
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FORMAT_MASCOTREMOTEQUERY_H
-#define OPENMS_FORMAT_MASCOTREMOTEQUERY_H
+#pragma once
 
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <QtCore/QObject>
@@ -184,4 +183,3 @@ private:
   };
 
 }
-#endif /*OPENMS_FORMAT_MASCOTREMOTEQUERY_H*/

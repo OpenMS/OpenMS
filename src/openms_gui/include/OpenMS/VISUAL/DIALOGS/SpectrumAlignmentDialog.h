@@ -33,8 +33,7 @@
 // --------------------------------------------------------------------------
 
 
-#ifndef OPENMS_VISUAL_DIALOGS_SPECTRUMALIGNMENTDIALOG_H
-#define OPENMS_VISUAL_DIALOGS_SPECTRUMALIGNMENTDIALOG_H
+#pragma once
 
 #include <OpenMS/VISUAL/DIALOGS/UIC/ui_SpectrumAlignmentDialog.h>
 #include <OpenMS/CONCEPT/Types.h>
@@ -78,4 +77,3 @@ private:
   };
 
 }
-#endif // OPENMS_VISUAL_DIALOGS_SPECTRUMALIGNMENTDIALOG_H

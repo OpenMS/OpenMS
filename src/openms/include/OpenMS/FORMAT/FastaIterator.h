@@ -33,8 +33,7 @@
 // --------------------------------------------------------------------------
 
 
-#ifndef OPENMS_FORMAT_FASTAITERATOR_H
-#define OPENMS_FORMAT_FASTAITERATOR_H
+#pragma once
 
 #include <OpenMS/CHEMISTRY/PepIterator.h>
 #include <OpenMS/CONCEPT/Exception.h>
@@ -208,4 +207,3 @@ private:
 
   };
 }
-#endif // OPENMS_FORMAT_FASTAITERATOR_H

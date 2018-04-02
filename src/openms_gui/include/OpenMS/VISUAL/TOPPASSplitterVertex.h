@@ -32,8 +32,7 @@
 // $Authors: Johannes Junker, Chris Bielow, Hendrik Weisser $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_VISUAL_TOPPASSPLITTERVERTEX_H
-#define OPENMS_VISUAL_TOPPASSPLITTERVERTEX_H
+#pragma once
 
 // OpenMS_GUI config
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
@@ -89,4 +88,3 @@ protected:
   };
 }
 
-#endif // OPENMS_VISUAL_TOPPASSPLITTERVERTEX_H

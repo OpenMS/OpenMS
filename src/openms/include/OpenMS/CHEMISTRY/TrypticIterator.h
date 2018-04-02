@@ -32,8 +32,7 @@
 // $Authors: Chris Bauer $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_CHEMISTRY_TRYPTICITERATOR_H
-#define OPENMS_CHEMISTRY_TRYPTICITERATOR_H
+#pragma once
 
 #include <OpenMS/CHEMISTRY/PepIterator.h>
 #include <OpenMS/CONCEPT/Exception.h>
@@ -210,4 +209,3 @@ protected:
   };
 
 }
-#endif //OPENMS_CHEMISTRY_EDWARDSLIPPERTITERATOR_H

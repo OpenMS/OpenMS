@@ -32,8 +32,7 @@
 // $Authors: Hannes Roest$
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_OPENSWATH_OPENSWATHALGO_ALGO_MRMSCORING_H
-#define OPENMS_ANALYSIS_OPENSWATH_OPENSWATHALGO_ALGO_MRMSCORING_H
+#pragma once
 
 #include <string>
 #include <boost/math/special_functions/fpclassify.hpp> // for isnan
@@ -164,4 +163,3 @@ private:
   };
 }
 
-#endif // OPENMS_ANALYSIS_OPENSWATH_OPENSWATHALGO_ALGO_MRMSCORING_H

@@ -33,8 +33,7 @@
 // --------------------------------------------------------------------------
 
 
-#ifndef OPENMS_CHEMISTRY_MODIFIERREP_H
-#define OPENMS_CHEMISTRY_MODIFIERREP_H
+#pragma once
 
 #include <map>
 #include <vector>
@@ -126,4 +125,3 @@ protected:
 
 }
 
-#endif //OPENMS_CHEMISTRY_MODIFIERREP_H

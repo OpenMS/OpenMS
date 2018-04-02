@@ -32,8 +32,7 @@
 // $Authors: David Wojnar $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_COMPARISON_SPECTRA_SPECTRASTSIMILARITYSCORE_H
-#define OPENMS_COMPARISON_SPECTRA_SPECTRASTSIMILARITYSCORE_H
+#pragma once
 
 #include <OpenMS/COMPARISON/SPECTRA/PeakSpectrumCompareFunctor.h>
 #include <OpenMS/COMPARISON/SPECTRA/BinnedSpectrum.h>
@@ -155,4 +154,3 @@ protected:
   };
 
 }
-#endif //OPENMS_COMPARISON_SPECTRA_SPECTRASTSIMILARTIYSCORE_H

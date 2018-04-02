@@ -32,8 +32,7 @@
 // $Authors: Hannes Roest $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FORMAT_INDEXEDMZMLFILELOADER_H
-#define OPENMS_FORMAT_INDEXEDMZMLFILELOADER_H
+#pragma once
 
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/IndexedMzMLFile.h>
@@ -134,5 +133,4 @@ private:
   };
 }
 
-#endif // OPENMS_FORMAT_INDEXEDMZMLFILELOADER_H
 

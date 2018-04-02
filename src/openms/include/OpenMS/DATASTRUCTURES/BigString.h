@@ -32,8 +32,7 @@
 // $Authors: Andreas Bertsch$
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_DATASTRUCTURES_BIGSTRING_H
-#define OPENMS_DATASTRUCTURES_BIGSTRING_H
+#pragma once
 
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/CONCEPT/Types.h>
@@ -149,4 +148,3 @@ protected:
 
   };
 }
-#endif // OPENMS_DATASTRUCTURES_BIGSTRING_H

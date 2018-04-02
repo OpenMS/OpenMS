@@ -32,8 +32,7 @@
 // $Authors: Marc Sturm, Clemens Groepl $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_TRANSFORMATIONS_FEATUREFINDER_FEAFIMODULE_H
-#define OPENMS_TRANSFORMATIONS_FEATUREFINDER_FEAFIMODULE_H
+#pragma once
 
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
@@ -425,4 +424,3 @@ private:
 
 } // namespace OpenMS
 
-#endif // OPENMS_TRANSFORMATIONS_FEATUREFINDER_FEAFIMODULE_H

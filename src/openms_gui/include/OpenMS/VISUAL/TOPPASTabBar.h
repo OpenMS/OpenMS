@@ -32,8 +32,7 @@
 // $Authors: Johannes Junker $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_VISUAL_TOPPASTABBAR_H
-#define OPENMS_VISUAL_TOPPASTABBAR_H
+#pragma once
 
 // OpenMS_GUI config
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
@@ -105,4 +104,3 @@ protected slots:
   };
 
 }
-#endif // OPENMS_VISUAL_TOPPASTABBAR_H

@@ -32,8 +32,7 @@
 // $Authors: Stephan Aiche, Marc Sturm $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_TRANSFORMATIONS_FEATUREFINDER_TRACEFITTER_H
-#define OPENMS_TRANSFORMATIONS_FEATUREFINDER_TRACEFITTER_H
+#pragma once
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmPickedHelperStructs.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
@@ -193,4 +192,3 @@ protected:
 
 }
 
-#endif // #ifndef OPENMS_TRANSFORMATIONS_FEATUREFINDER_TRACEFITTER_H

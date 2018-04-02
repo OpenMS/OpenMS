@@ -32,8 +32,7 @@
 // $Authors: Douglas McCloskey, Pasquale Domenico Colaianni $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_OPENSWATH_PEAKINTEGRATOR_H
-#define OPENMS_ANALYSIS_OPENSWATH_PEAKINTEGRATOR_H
+#pragma once
 
 #include <OpenMS/config.h> // OPENMS_DLLAPI
 #include <OpenMS/CONCEPT/LogStream.h>
@@ -602,4 +601,3 @@ private:
   };
 }
 
-#endif // OPENMS_ANALYSIS_OPENSWATH_PEAKINTEGRATOR_H

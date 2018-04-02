@@ -32,8 +32,7 @@
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_VISUAL_LAYERDATA_H
-#define OPENMS_VISUAL_LAYERDATA_H
+#pragma once
 
 // OpenMS_GUI config
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
@@ -350,4 +349,3 @@ private:
 
 } //namespace
 
-#endif

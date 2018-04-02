@@ -32,8 +32,7 @@
 // $Authors: George Rosenberger $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_OPENSWATH_OPENSWATHOSWWRITER_H
-#define OPENMS_ANALYSIS_OPENSWATH_OPENSWATHOSWWRITER_H
+#pragma once
 
 // Interfaces
 #include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/TransitionExperiment.h>
@@ -461,5 +460,4 @@ namespace OpenMS
 
 }
 
-#endif // OPENMS_ANALYSIS_OPENSWATH_OPENSWATHOSWWRITER_H
 

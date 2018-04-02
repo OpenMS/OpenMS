@@ -32,8 +32,7 @@
 // $Authors: Timo Sachsenberg $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_RNPXL_MORPHEUSSCORE_H
-#define OPENMS_ANALYSIS_RNPXL_MORPHEUSSCORE_H
+#pragma once
 
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/CONCEPT/Types.h>
@@ -68,5 +67,4 @@ struct OPENMS_DLLAPI MorpheusScore
 
 }
 
-#endif
 

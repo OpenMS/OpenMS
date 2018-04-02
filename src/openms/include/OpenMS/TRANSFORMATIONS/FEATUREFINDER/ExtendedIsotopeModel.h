@@ -33,8 +33,7 @@
 // --------------------------------------------------------------------------
 
 
-#ifndef OPENMS_TRANSFORMATIONS_FEATUREFINDER_EXTENDEDISOTOPEMODEL_H
-#define OPENMS_TRANSFORMATIONS_FEATUREFINDER_EXTENDEDISOTOPEMODEL_H
+#pragma once
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/InterpolationModel.h>
 
@@ -120,4 +119,3 @@ protected:
   };
 }
 
-#endif // OPENMS_TRANSFORMATIONS_FEATUREFINDER_EXTENDEDISOTOPEMODEL_H

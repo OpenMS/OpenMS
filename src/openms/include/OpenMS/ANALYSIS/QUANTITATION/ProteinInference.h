@@ -32,8 +32,7 @@
 // $Authors: $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_QUANTITATION_PROTEININFERENCE_H
-#define OPENMS_ANALYSIS_QUANTITATION_PROTEININFERENCE_H
+#pragma once
 
 #include <OpenMS/KERNEL/Peak2D.h>
 
@@ -96,4 +95,3 @@ protected:
 
 } // !namespace
 
-#endif // OPENMS_ANALYSIS_QUANTITATION_PROTEININFERENCE_H

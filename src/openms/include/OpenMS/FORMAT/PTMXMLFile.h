@@ -32,8 +32,7 @@
 // $Authors: $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FORMAT_PTMXMLFILE_H
-#define OPENMS_FORMAT_PTMXMLFILE_H
+#pragma once
 
 #include <OpenMS/FORMAT/XMLFile.h>
 
@@ -80,4 +79,3 @@ public:
 
 } // namespace OpenMS
 
-#endif // OPENMS_FORMAT_PTMXMLFILE_H

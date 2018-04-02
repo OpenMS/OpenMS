@@ -32,8 +32,7 @@
 // $Authors: Andreas Bertsch, Marc Sturm, Stephan Aiche $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FORMAT_FILETYPES_H
-#define OPENMS_FORMAT_FILETYPES_H
+#pragma once
 
 #include <OpenMS/config.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
@@ -137,4 +136,3 @@ private:
 
 } //namespace OpenMS
 
-#endif //OPENMS_FORMAT_FILETYPES_H

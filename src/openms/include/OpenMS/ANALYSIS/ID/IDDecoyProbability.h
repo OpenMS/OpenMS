@@ -32,8 +32,7 @@
 // $Authors: Andreas Bertsch$
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_ID_IDDECOYPROBABILITY_H
-#define OPENMS_ANALYSIS_ID_IDDECOYPROBABILITY_H
+#pragma once
 
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
@@ -152,4 +151,3 @@ protected:
 
 } // namespace OpenMS
 
-#endif // OPENMS_ANALYSIS_ID_IDDECOYPROBABILITY_H

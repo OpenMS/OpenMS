@@ -32,8 +32,7 @@
 // $Authors: Stephan Aiche $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_QUANTITATION_ITRAQFOURPLEXQUANTITATIONMETHOD_H
-#define OPENMS_ANALYSIS_QUANTITATION_ITRAQFOURPLEXQUANTITATIONMETHOD_H
+#pragma once
 
 #include <OpenMS/ANALYSIS/QUANTITATION/IsobaricQuantitationMethod.h>
 
@@ -94,4 +93,3 @@ protected:
   };
 } // namespace
 
-#endif // OPENMS_ANALYSIS_QUANTITATION_ITRAQFOURPLEXQUANTITATIONMETHOD_H

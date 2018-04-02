@@ -32,8 +32,7 @@
 // $Authors: Hannes Roest $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FORMAT_SWATHFILE_H
-#define OPENMS_FORMAT_SWATHFILE_H
+#pragma once
 
 // Datastructures
 #include <OpenMS/KERNEL/StandardTypes.h>
@@ -392,4 +391,3 @@ protected:
   };
 }
 
-#endif

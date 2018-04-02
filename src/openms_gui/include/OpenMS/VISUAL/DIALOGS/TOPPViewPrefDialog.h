@@ -32,8 +32,7 @@
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_VISUAL_DIALOGS_TOPPVIEWPREFDIALOG_H
-#define OPENMS_VISUAL_DIALOGS_TOPPVIEWPREFDIALOG_H
+#pragma once
 
 // OpenMS_GUI config
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
@@ -64,4 +63,3 @@ protected slots:
     };
   }
 }
-#endif // OPENMS_VISUAL_DIALOGS_TOPPVIEWPREFDIALOG_H

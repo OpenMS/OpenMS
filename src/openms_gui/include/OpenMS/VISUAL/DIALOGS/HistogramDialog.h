@@ -33,8 +33,7 @@
 // --------------------------------------------------------------------------
 
 
-#ifndef OPENMS_VISUAL_DIALOGS_HISTOGRAMDIALOG_H
-#define OPENMS_VISUAL_DIALOGS_HISTOGRAMDIALOG_H
+#pragma once
 
 // OpenMS_GUI config
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
@@ -83,4 +82,3 @@ protected:
 
 } //namespace
 
-#endif //OPENMS_VISUAL_DIALOGS_HISTOGRAMDIALOG_H

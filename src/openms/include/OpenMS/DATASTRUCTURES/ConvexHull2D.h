@@ -32,8 +32,7 @@
 // $Authors: Marc Sturm, Chris Bielow $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_DATASTRUCTURES_CONVEXHULL2D_H
-#define OPENMS_DATASTRUCTURES_CONVEXHULL2D_H
+#pragma once
 
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/DATASTRUCTURES/DBoundingBox.h>
@@ -155,4 +154,3 @@ protected:
   };
 } // namespace OPENMS
 
-#endif // OPENMS_DATASTRUCTURES_DCONVEXHULL_H

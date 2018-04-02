@@ -32,8 +32,7 @@
 // $Authors: Cornelia Friedle $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_VISUAL_SPECTRUM3DOPENGLCANVAS_H
-#define OPENMS_VISUAL_SPECTRUM3DOPENGLCANVAS_H
+#pragma once
 
 // OpenMS_GUI config
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
@@ -232,4 +231,3 @@ protected slots:
     void actionModeChange();
   };
 }
-#endif

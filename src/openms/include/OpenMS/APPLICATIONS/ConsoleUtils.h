@@ -32,8 +32,7 @@
 // $Authors:  Chris Bielow $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_APPLICATIONS_CONSOLEUTILS_H
-#define OPENMS_APPLICATIONS_CONSOLEUTILS_H
+#pragma once
 
 #include <OpenMS/DATASTRUCTURES/String.h>
 
@@ -79,4 +78,3 @@ private:
 
 } // namespace OpenMS
 
-#endif

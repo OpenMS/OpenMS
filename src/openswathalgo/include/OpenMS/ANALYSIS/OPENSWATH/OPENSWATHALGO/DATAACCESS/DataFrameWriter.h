@@ -32,8 +32,7 @@
 // $Authors: Witold Wolski $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_OPENSWATH_OPENSWATHALGO_DATAACCESS_DATAFRAMEWRITER_H
-#define OPENMS_ANALYSIS_OPENSWATH_OPENSWATHALGO_DATAACCESS_DATAFRAMEWRITER_H
+#pragma once
 
 #include <fstream>
 #include <string>
@@ -90,4 +89,3 @@ public:
   };
 }
 
-#endif // OPENMS_ANALYSIS_OPENSWATH_OPENSWATHALGO_DATAACCESS_DATAFRAMEWRITER_H

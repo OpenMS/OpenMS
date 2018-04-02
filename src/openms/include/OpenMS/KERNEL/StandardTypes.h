@@ -32,8 +32,7 @@
 // $Authors: $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_KERNEL_STANDARDTYPES_H
-#define OPENMS_KERNEL_STANDARDTYPES_H
+#pragma once
 
 #include <OpenMS/config.h>
 #include <OpenMS/KERNEL/StandardDeclarations.h>
@@ -68,5 +67,4 @@ namespace OpenMS
 
 }
 
-#endif // OPENMS_KERNEL_STANDARDTYPES_H
 

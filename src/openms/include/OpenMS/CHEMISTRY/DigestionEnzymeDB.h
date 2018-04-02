@@ -32,8 +32,7 @@
 // $Authors: Xiao Liang, Chris Bielow $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_CHEMISTRY_DIGESTIONENZYMEDB_H
-#define OPENMS_CHEMISTRY_DIGESTIONENZYMEDB_H
+#pragma once
 
 #include <OpenMS/CHEMISTRY/DigestionEnzyme.h>
 #include <OpenMS/CONCEPT/LogStream.h>
@@ -269,4 +268,3 @@ namespace OpenMS
   };
 }
 
-#endif

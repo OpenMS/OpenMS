@@ -33,8 +33,7 @@
 // --------------------------------------------------------------------------
 
 
-#ifndef OPENMS_VISUAL_DIALOGS_THEORETICALSPECTRUMGENERATIONDIALOG_H
-#define OPENMS_VISUAL_DIALOGS_THEORETICALSPECTRUMGENERATIONDIALOG_H
+#pragma once
 
 #include <OpenMS/VISUAL/DIALOGS/UIC/ui_TheoreticalSpectrumGenerationDialog.h>
 
@@ -67,4 +66,3 @@ private:
   };
 
 }
-#endif // OPENMS_VISUAL_DIALOGS_THEORETICALSPECTRUMGENERATIONDIALOG_H

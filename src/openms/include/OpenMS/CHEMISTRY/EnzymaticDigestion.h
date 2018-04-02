@@ -32,8 +32,7 @@
 // $Authors: Marc Sturm, Chris Bielow $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_CHEMISTRY_ENZYMATICDIGESTION_H
-#define OPENMS_CHEMISTRY_ENZYMATICDIGESTION_H
+#pragma once
 
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/CHEMISTRY/DigestionEnzyme.h>
@@ -198,5 +197,4 @@ protected:
 
 } // namespace OpenMS
 
-#endif // OPENMS_CHEMISTRY_ENZYMATICDIGESTION_H
 

@@ -32,8 +32,7 @@
 // $Authors: Chris Bauer $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_CHEMISTRY_PEPITERATOR_H
-#define OPENMS_CHEMISTRY_PEPITERATOR_H
+#pragma once
 
 #include <OpenMS/DATASTRUCTURES/String.h>
 
@@ -146,4 +145,3 @@ public:
 
   };
 }
-#endif // OPENMS_CHEMISTRY_PEPITERATOR_H

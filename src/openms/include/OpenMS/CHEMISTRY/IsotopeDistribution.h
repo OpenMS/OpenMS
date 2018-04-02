@@ -32,8 +32,7 @@
 // $Authors: Clemens Groepl, Andreas Bertsch, Chris Bielow $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_CHEMISTRY_ISOTOPEDISTRIBUTION_H
-#define OPENMS_CHEMISTRY_ISOTOPEDISTRIBUTION_H
+#pragma once
 
 #include <OpenMS/CONCEPT/Types.h>
 
@@ -392,4 +391,3 @@ protected:
 
 } // namespace OpenMS
 
-#endif // OPENMS_CHEMISTRY_ISOTOPEDISTRIBUTION_H

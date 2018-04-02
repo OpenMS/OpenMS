@@ -32,8 +32,7 @@
 // $Authors: Chris Bielow $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FORMAT_SPECARRAYFILE_H
-#define OPENMS_FORMAT_SPECARRAYFILE_H
+#pragma once
 
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/CONCEPT/Exception.h>
@@ -136,4 +135,3 @@ public:
   };
 } // namespace OpenMS
 
-#endif // OPENMS_FORMAT_SPECARRAYFILE_H

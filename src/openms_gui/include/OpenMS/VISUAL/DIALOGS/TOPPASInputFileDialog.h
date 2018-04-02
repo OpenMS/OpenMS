@@ -32,8 +32,7 @@
 // $Authors: Johannes Junker $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_VISUAL_DIALOGS_TOPPASINPUTFILEDIALOG_H
-#define OPENMS_VISUAL_DIALOGS_TOPPASINPUTFILEDIALOG_H
+#pragma once
 
 // OpenMS_GUI config
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
@@ -82,4 +81,3 @@ protected:
   };
 
 }
-#endif // OPENMS_VISUAL_DIALOGS_TOPPASINPUTFILESDIALOG_H

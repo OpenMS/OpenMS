@@ -32,8 +32,7 @@
 // $Authors: Marc Sturm, Chris Bielow $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_VISUAL_PARAMEDITOR_H
-#define OPENMS_VISUAL_PARAMEDITOR_H
+#pragma once
 
 // OpenMS_GUI config
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
@@ -228,4 +227,3 @@ protected:
 
 } // namespace OpenMS
 
-#endif // OPENMS_VISUAL_PARAMEDITOR_H

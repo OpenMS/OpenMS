@@ -32,8 +32,7 @@
 // $Authors: David Wojnar $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_MATH_STATISTICS_POSTERIORERRORPROBABILITYMODEL_H
-#define OPENMS_MATH_STATISTICS_POSTERIORERRORPROBABILITYMODEL_H
+#pragma once
 
 #include <OpenMS/DATASTRUCTURES/DPosition.h>
 #include <OpenMS/MATH/STATISTICS/GumbelDistributionFitter.h>
@@ -197,4 +196,3 @@ private:
   }
 }
 
-#endif // OPENMS_MATH_STATISTICS_POSTERIORERRORPROBABILITYMODEL_H

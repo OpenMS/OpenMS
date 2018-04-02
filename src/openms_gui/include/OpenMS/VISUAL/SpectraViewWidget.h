@@ -32,8 +32,7 @@
 // $Authors: Timo Sachsenberg $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_VISUAL_SPECTRAVIEWWIDGET_H
-#define OPENMS_VISUAL_SPECTRAVIEWWIDGET_H
+#pragma once
 
 #include <QWidget>
 #include <QtGui/QLineEdit>
@@ -85,4 +84,3 @@ private slots:
   };
 }
 
-#endif // OPENMS_VISUAL_SPECTRAVIEWWIDGET_H

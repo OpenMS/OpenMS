@@ -32,8 +32,7 @@
 // $Authors: Chris Bielow $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_QUANTITATION_ITRAQCONSTANTS_H
-#define OPENMS_ANALYSIS_QUANTITATION_ITRAQCONSTANTS_H
+#pragma once
 
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/DATASTRUCTURES/Map.h>
@@ -153,4 +152,3 @@ public:
 
 } // !namespace
 
-#endif // OPENMS_ANALYSIS_QUANTITATION_ITRAQCONSTANTS_H

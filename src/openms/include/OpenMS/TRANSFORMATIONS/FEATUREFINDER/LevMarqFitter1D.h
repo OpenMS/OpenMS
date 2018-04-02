@@ -32,8 +32,7 @@
 // $Authors: $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_TRANSFORMATIONS_FEATUREFINDER_LEVMARQFITTER1D_H
-#define OPENMS_TRANSFORMATIONS_FEATUREFINDER_LEVMARQFITTER1D_H
+#pragma once
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/Fitter1D.h>
 
@@ -153,4 +152,3 @@ protected:
   };
 }
 
-#endif // OPENMS_TRANSFORMATIONS_FEATUREFINDER_LEVMARQFITTER1D_H

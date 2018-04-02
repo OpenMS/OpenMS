@@ -32,8 +32,7 @@
 // $Authors: Hannes Roest $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_OPENSWATH_TEST_H
-#define OPENMS_OPENSWATH_TEST_H
+#pragma once
 
 #include <OpenMS/KERNEL/MRMTransitionGroup.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
@@ -248,4 +247,3 @@ namespace OpenSWATH_Test
 
 }
 
-#endif

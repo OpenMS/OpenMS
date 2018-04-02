@@ -32,8 +32,7 @@
 // $Authors: Timo Sachsenberg $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_VISUAL_SPECTRAIDENTIFICATIONVIEWWIDGET_H
-#define OPENMS_VISUAL_SPECTRAIDENTIFICATIONVIEWWIDGET_H
+#pragma once
 
 #include <OpenMS/VISUAL/LayerData.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
@@ -104,4 +103,3 @@ private slots:
   };
 }
 
-#endif // OPENMS_VISUAL_SPECTRAIDENTIFICATIONVIEWWIDGET_H

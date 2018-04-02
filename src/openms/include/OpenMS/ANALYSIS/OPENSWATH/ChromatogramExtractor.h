@@ -32,8 +32,7 @@
 // $Authors: Hannes Roest $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_OPENSWATH_CHROMATOGRAMEXTRACTOR_H
-#define OPENMS_ANALYSIS_OPENSWATH_CHROMATOGRAMEXTRACTOR_H
+#pragma once
 
 #include <OpenMS/ANALYSIS/OPENSWATH/ChromatogramExtractorAlgorithm.h>
 
@@ -610,4 +609,3 @@ private:
   }
 }
 
-#endif // OPENMS_ANALYSIS_OPENSWATH_CHROMATOGRAMEXTRACTOR_H

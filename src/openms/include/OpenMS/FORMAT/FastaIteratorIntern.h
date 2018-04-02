@@ -32,8 +32,7 @@
 // $Authors: Chris Bauer $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FORMAT_FASTAITERATORINTERN_H
-#define OPENMS_FORMAT_FASTAITERATORINTERN_H
+#pragma once
 
 #include <OpenMS/CHEMISTRY/PepIterator.h>
 #include <OpenMS/CONCEPT/Exception.h>
@@ -192,4 +191,3 @@ protected:
 
 }
 
-#endif //OpenMS/FORMAT/FastaIteratorIntern

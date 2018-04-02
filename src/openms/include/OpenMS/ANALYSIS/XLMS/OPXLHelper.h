@@ -32,8 +32,7 @@
 // $Authors: Eugen Netz $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_XLMS_OPXLHELPER_H
-#define OPENMS_ANALYSIS_XLMS_OPXLHELPER_H
+#pragma once
 
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/ANALYSIS/XLMS/OPXLDataStructs.h>
@@ -137,4 +136,3 @@ namespace OpenMS
   };
 }
 
-#endif // OPXLHELPER_H

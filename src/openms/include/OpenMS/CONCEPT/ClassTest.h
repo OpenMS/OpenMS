@@ -32,8 +32,7 @@
 // $Authors: Marc Sturm, Clemens Groepl $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_CONCEPT_CLASSTEST_H
-#define OPENMS_CONCEPT_CLASSTEST_H
+#pragma once
 
 // Avoid OpenMS includes here at all costs
 // When the included headers are changed, *all* tests have to be recompiled!
@@ -1225,4 +1224,3 @@ namespace TEST = OpenMS::Internal::ClassTest;
 
 //@} // end of ClassTest
 
-#endif //OPENMS_CONCEPT_CLASSTEST_H

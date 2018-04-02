@@ -32,8 +32,7 @@
 // $Authors: David Wojnar $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FORMAT_CSVFILE_H
-#define OPENMS_FORMAT_CSVFILE_H
+#pragma once
 
 #include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/DATASTRUCTURES/StringListUtils.h>
@@ -130,4 +129,3 @@ private:
 
 } // namespace OpenMS
 
-#endif // OPENMS_FORMAT_CSVFILE_H

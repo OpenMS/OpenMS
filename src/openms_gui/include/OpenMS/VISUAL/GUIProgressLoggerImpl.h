@@ -32,8 +32,7 @@
 // $Authors: Stephan Aiche, Marc Sturm $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_VISUAL_GUIPROGRESSLOGGERIMPL_H
-#define OPENMS_VISUAL_GUIPROGRESSLOGGERIMPL_H
+#pragma once
 
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
@@ -84,4 +83,3 @@ private:
   };
 }
 
-#endif

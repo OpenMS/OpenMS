@@ -32,8 +32,7 @@
 // $Authors: Eva Lange, Alexandra Zerck $
 // --------------------------------------------------------------------------
 //
-#ifndef OPENMS_TRANSFORMATIONS_RAW2PEAK_PEAKPICKERCWT_H
-#define OPENMS_TRANSFORMATIONS_RAW2PEAK_PEAKPICKERCWT_H
+#pragma once
 
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
@@ -280,4 +279,3 @@ protected:
 
 } // namespace OpenMS
 
-#endif

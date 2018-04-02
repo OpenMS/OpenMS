@@ -33,8 +33,7 @@
 // --------------------------------------------------------------------------
 //
 
-#ifndef OPENMS_CONCEPT_UNARYCOMPOSEFUNCTIONADAPTER_H
-#define OPENMS_CONCEPT_UNARYCOMPOSEFUNCTIONADAPTER_H
+#pragma once
 
 #include <functional>
 
@@ -154,4 +153,3 @@ public:
 
 } // namespace OpenMS
 
-#endif // OPENMS_CONCEPT_UNARYCOMPOSEFUNCTIONADAPTER_H

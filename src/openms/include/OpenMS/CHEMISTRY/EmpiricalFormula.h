@@ -32,8 +32,7 @@
 // $Authors: Andreas Bertsch, Chris Bielow $
 // --------------------------------------------------------------------------
 //
-#ifndef OPENMS_CHEMISTRY_EMPIRICALFORMULA_H
-#define OPENMS_CHEMISTRY_EMPIRICALFORMULA_H
+#pragma once
 
 #include <iosfwd>
 #include <map>
@@ -266,4 +265,3 @@ protected:
   OPENMS_DLLAPI std::ostream& operator<<(std::ostream& os, const EmpiricalFormula& formula);
 
 } // namespace OpenMS
-#endif
