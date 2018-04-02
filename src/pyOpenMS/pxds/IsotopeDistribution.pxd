@@ -124,7 +124,7 @@ cdef extern from "<OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopeDistributio
         void calcFragmentIsotopeDist(IsotopeDistribution& fragment_isotope_dist, IsotopeDistribution& comp_fragment_isotope_dist, libcpp_set[ unsigned int ]& precursor_isotopes) nogil except +
 
 
-    # cdef class _IsotopeDistribution(IsotopeDistribution):
-    # cdef IsotopeDistribution *
-    # cdef __cinit__(self):
+
+
+
         

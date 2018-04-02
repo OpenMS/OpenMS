@@ -142,7 +142,7 @@ END_SECTION
 START_SECTION(CoarseIsotopeDistribution& operator *= (Size factor))
 	EmpiricalFormula ef("C222N190O110");
 	CoarseIsotopeDistribution id = ef.getIsotopeDistribution(new CoarseIsotopeDistribution(11));
-	CoarseIsotopeDistribution::ContainerType container;
+	IsotopeDistribution::ContainerType container;
 	container.push_back(CoarseIsotopeDistribution::MassAbundance(7084, 0.0349429));
 	container.push_back(CoarseIsotopeDistribution::MassAbundance(7085, 0.109888));
 	container.push_back(CoarseIsotopeDistribution::MassAbundance(7086, 0.180185));
