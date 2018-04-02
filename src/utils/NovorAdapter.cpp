@@ -54,6 +54,8 @@
 #include <QtCore/QProcess>
 #include <fstream>
 
+#include <boost/regex.hpp>
+
 using namespace OpenMS;
 using namespace std;
 
@@ -385,15 +387,22 @@ protected:
 
       // extract version from comment 
       // #              v1.06.0634 (stable)
+      // v1.06.0634 (stable)
       vector<ProteinIdentification> protein_ids;
       StringList versionrow;
       csv.getRow(2, versionrow);
-      versionrow[0].suffix('#').trim();
-        
+      String version;
+      boost::smatch match;
+      boost::regex regexp("v.*");
+      if(boost::regex_search(versionrow[0], match, regexp))
+      {
+        version = match[0].str();
+      }
+
       protein_ids = vector<ProteinIdentification>(1);
       protein_ids[0].setDateTime(DateTime::now());
       protein_ids[0].setSearchEngine("Novor");
-      protein_ids[0].setSearchEngineVersion(versionrow[0]);
+      protein_ids[0].setSearchEngineVersion(version);
 
       ProteinIdentification::SearchParameters search_parameters;
       search_parameters.db = "denovo";
