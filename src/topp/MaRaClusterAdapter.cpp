@@ -377,6 +377,10 @@ protected:
     if (qp.exitStatus() != 0 || qp.exitCode() != 0)
     {
       writeLog_("MaRaCluster problem. Aborting! Calling command was: '" + maracluster_executable + " " + arguments.join(" ").toStdString() + "'.");
+      const QString maracluster_stdout(qp.readAllStandardOutput());
+      const QString maracluster_stderr(qp.readAllStandardError());
+      writeLog_(maracluster_stdout);
+      writeLog_(maracluster_stderr);
       // clean temporary files
       if (this->debug_level_ < 2)
       {
