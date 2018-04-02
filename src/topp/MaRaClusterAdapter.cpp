@@ -32,7 +32,7 @@
 // $Authors: Mathew The, Leon Bichmann $
 // --------------------------------------------------------------------------
 #include <OpenMS/config.h>
-
+#include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/DATASTRUCTURES/StringListUtils.h>
@@ -42,6 +42,8 @@
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <QtCore/QFile>
+#include <QtCore/QFileInfo>
+#include <QtCore/QTemporaryFile>
 #include <QtCore/QDir>
 #include <QtCore/QProcess>
 
@@ -273,6 +275,7 @@ protected:
 
     const String maracluster_executable(getStringOption_("maracluster_executable"));
     writeDebug_(String("Path to the maracluster executable: ") + maracluster_executable, 2);
+
     if (maracluster_executable.empty())  //TODO? - TOPPBase::findExecutable after registerInputFile_("maracluster_executable"... ???
     {
       writeLog_("No maracluster executable specified. Aborting!");
@@ -285,7 +288,8 @@ protected:
       printUsage_();
       return ILLEGAL_PARAMETERS;
     }
-    
+   
+ 
     const String consensus_out(getStringOption_("consensus_out"));
     const String out(getStringOption_("out"));
 
@@ -309,10 +313,12 @@ protected:
 
     // create temp directory to store maracluster temporary files
     String temp_directory_body = QDir::toNativeSeparators((File::getTempDirectory() + "/" + File::getUniqueName() + "/").toQString()); // body for the tmp files
+    writeDebug_("Creating temporary directory '" + temp_directory_body + "'", 1);
     {
       QDir d;
       d.mkpath(temp_directory_body.toQString());
     }
+
     double pcut = getDoubleOption_("pcut");
 
     String txt_designator = File::getUniqueName();
@@ -359,24 +365,34 @@ protected:
     // run MaRaCluster
     //-------------------------------------------------------------
     // MaRaCluster execution with the executable and the arguments StringList
-    int status = QProcess::execute(maracluster_executable.toQString(), arguments); // does automatic escaping etc...
-    if (status != 0)
+
+    QString executable = maracluster_executable.toQString();
+    QFileInfo file_info(executable);
+    executable = file_info.canonicalFilePath();
+    const QString & path_to_executable = maracluster_executable.toQString();
+
+    QProcess qp;
+    qp.setWorkingDirectory(path_to_executable);
+    qp.start(executable, arguments);
+
+    if (qp.exitStatus() != 0 || qp.exitCode() != 0)
     {
       writeLog_("MaRaCluster problem. Aborting! Calling command was: '" + maracluster_executable + " " + arguments.join(" ").toStdString() + "'.");
       // clean temporary files
       if (this->debug_level_ < 2)
       {
         File::removeDirRecursively(temp_directory_body);
-        LOG_WARN << "Set debug level to >=2 to keep the temporary files at '" << temp_directory_body << "'" << endl;
+        LOG_WARN << "Set debug level to >=2 to keep the temporary files at '" << temp_directory_body << "' Error code was: " << qp.exitCode() << endl;
       }
       else
       {
-        LOG_WARN << "Keeping the temporary files at '" << temp_directory_body << "'. Set debug level to <2 to remove them." << endl;
+         LOG_WARN << "Keeping the temporary files at '" << temp_directory_body << "'. Set debug level to <2 to remove them. Error code was: " << qp.exitCode() << endl;
       }
       return EXTERNAL_PROGRAM_ERROR;
     }
     writeLog_("Executed maracluster!");
 
+    qp.close();
 
     //-------------------------------------------------------------
     // reintegrate clustering results
