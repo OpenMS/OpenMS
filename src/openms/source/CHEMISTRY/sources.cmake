@@ -18,7 +18,6 @@ IsotopeDistribution.cpp
 ModificationDefinition.cpp
 ModificationDefinitionsSet.cpp
 ModificationsDB.cpp
-ModifierRep.cpp
 ProteaseDB.cpp
 ProteaseDigestion.cpp
 Residue.cpp

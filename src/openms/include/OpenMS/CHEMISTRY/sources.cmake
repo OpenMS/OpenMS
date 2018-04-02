@@ -19,7 +19,6 @@ IsotopeDistribution.h
 ModificationDefinition.h
 ModificationDefinitionsSet.h
 ModificationsDB.h
-ModifierRep.h
 ProteaseDB.h
 ProteaseDigestion.h
 Residue.h

@@ -250,8 +250,6 @@ PyOpenMSChecker:
         - getPenalties
         - setPenalties
         - optimize
-    OpenMS::ModifierRep:
-        - getModificationsForMass
     OpenMS_Matrix:
         - row
         - col

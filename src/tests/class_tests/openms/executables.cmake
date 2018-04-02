@@ -368,7 +368,6 @@ set(chemistry_executables_list
   ModificationDefinitionsSet_test
   ModificationsDB_test
   CrossLinksDB_test
-  ModifierRep_test
   ProteaseDB_test
   ProteaseDigestion_test
   ResidueDB_test
