@@ -72,7 +72,8 @@ namespace OpenMS
       {
         return indent + "<cvParam cvRef=\"MS\" accession=\"MS:1002748\" name=\"MS-Numpress short logged float compression followed by zlib compression\" />";
       }
-    } else
+    }
+    else
     {
       if (np.np_compression == MSNumpressCoder::NONE || !use_numpress)
       {
