@@ -166,8 +166,8 @@ START_TEST(ICPLLabeler, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-ICPLLabeler* ptr = 0;
-ICPLLabeler* nullPtr = 0;
+ICPLLabeler* ptr = nullptr;
+ICPLLabeler* nullPtr = nullptr;
 
 START_SECTION(ICPLLabeler())
 {
@@ -539,7 +539,7 @@ END_SECTION
 START_SECTION((static BaseLabeler* create()))
 {
   BaseLabeler* labeler = ICPLLabeler::create();
-  BaseLabeler* nullPointer = 0;
+  BaseLabeler* nullPointer = nullptr;
   TEST_NOT_EQUAL(labeler, nullPointer)
   delete labeler;
 }

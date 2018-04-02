@@ -50,7 +50,7 @@
 #include <string>
 #include <vector>
 #include <map>
-#include <math.h>
+#include <cmath>
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/MSPeak.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/BackgroundIntensityBin.h>
@@ -126,14 +126,14 @@ namespace OpenMS
     }
 
     addIntensity(peak->get_intensity());
-    peak = NULL;
+    peak = nullptr;
     return true;
   }
 
   void BackgroundIntensityBin::addMSPeak(MSPeak * peak)
   {
     addIntensity(peak->get_intensity());
-    peak = NULL;
+    peak = nullptr;
   }
 
   void BackgroundIntensityBin::addIntensity(double intens)

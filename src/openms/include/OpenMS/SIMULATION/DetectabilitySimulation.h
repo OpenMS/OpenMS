@@ -65,7 +65,7 @@ public:
     DetectabilitySimulation(const DetectabilitySimulation& source);
 
     /// Destructor
-    virtual ~DetectabilitySimulation();
+    ~DetectabilitySimulation() override;
     //@}
 
     /// Assignment operator
@@ -89,7 +89,7 @@ private:
     void setDefaultParams_();
 
     /// Synchronize members with param class
-    void updateMembers_();
+    void updateMembers_() override;
 
     /// Minimum allowed detectability likelihood of a peptide
     double min_detect_;

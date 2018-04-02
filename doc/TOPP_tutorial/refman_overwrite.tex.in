@@ -37,6 +37,8 @@
 \setcounter{tocdepth}{1}
 \renewcommand{\footrulewidth}{0.4pt}
 \newcommand{\+}{\discretionary{\mbox{\scriptsize$\hookleftarrow$}}{}{}}
+\setlength\parindent{0pt}
+
 \begin{document}
 
 \begin{titlepage}

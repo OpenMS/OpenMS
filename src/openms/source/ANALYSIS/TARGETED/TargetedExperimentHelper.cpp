@@ -37,7 +37,6 @@
 #include <OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/CONCEPT/LogStream.h>
-#include <iostream>
 
 namespace OpenMS
 {
@@ -94,7 +93,7 @@ namespace OpenMS
         // modification by using the mass difference
         const ResidueModification* mod = mod_db->getBestModificationByDiffMonoMass(
           it->mono_mass_delta, 1.0, peptide.sequence[it->location]);
-        if (mod != NULL)
+        if (mod != nullptr)
         {
           setModification(it->location, boost::numeric_cast<int>(peptide.sequence.size()), mod->getId(), aas);
         }

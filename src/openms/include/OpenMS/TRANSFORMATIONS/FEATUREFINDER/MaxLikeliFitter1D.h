@@ -64,7 +64,7 @@ public:
     }
 
     /// destructor
-    virtual ~MaxLikeliFitter1D()
+    ~MaxLikeliFitter1D() override
     {
     }
 
@@ -131,7 +131,7 @@ protected:
       return max_correlation;
     }
 
-    void updateMembers_()
+    void updateMembers_() override
     {
       Fitter1D::updateMembers_();
     }

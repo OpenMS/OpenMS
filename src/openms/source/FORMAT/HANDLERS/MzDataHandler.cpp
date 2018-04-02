@@ -43,7 +43,7 @@ namespace OpenMS
     MzDataHandler::MzDataHandler(MapType & exp, const String & filename, const String & version, ProgressLogger & logger) :
       XMLHandler(filename, version),
       exp_(&exp),
-      cexp_(0),
+      cexp_(nullptr),
       peak_count_(0),
       meta_id_descs_(),
       decoder_(),
@@ -55,7 +55,7 @@ namespace OpenMS
 
     MzDataHandler::MzDataHandler(const MapType & exp, const String & filename, const String & version, const ProgressLogger & logger) :
       XMLHandler(filename, version),
-      exp_(0),
+      exp_(nullptr),
       cexp_(&exp),
       peak_count_(0),
       meta_id_descs_(),
@@ -387,11 +387,11 @@ namespace OpenMS
         String tmp_type = attributeAsString_(attributes, s_spectrumtype);
         if (tmp_type == "discrete")
         {
-          spec_.setType(SpectrumSettings::PEAKS);
+          spec_.setType(SpectrumSettings::CENTROID);
         }
         else if (tmp_type == "continuous")
         {
-          spec_.setType(SpectrumSettings::RAWDATA);
+          spec_.setType(SpectrumSettings::PROFILE);
         }
         else
         {
@@ -827,11 +827,11 @@ namespace OpenMS
           if (!spec.getAcquisitionInfo().empty())
           {
             os << "\t\t\t\t\t<acqSpecification spectrumType=\"";
-            if (spec.getType() == SpectrumSettings::PEAKS)
+            if (spec.getType() == SpectrumSettings::CENTROID)
             {
               os << "discrete";
             }
-            else if (spec.getType() == SpectrumSettings::RAWDATA)
+            else if (spec.getType() == SpectrumSettings::PROFILE)
             {
               os << "continuous";
             }

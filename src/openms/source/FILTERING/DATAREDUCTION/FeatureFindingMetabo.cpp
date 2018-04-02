@@ -34,25 +34,14 @@
 
 #include <OpenMS/FILTERING/DATAREDUCTION/FeatureFindingMetabo.h>
 #include <OpenMS/CHEMISTRY/IsotopeDistribution.h>
-#include <OpenMS/CONCEPT/Constants.h>
-#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathHelper.h>
-#include <OpenMS/KERNEL/MSChromatogram.h>
-#include <OpenMS/CONCEPT/UniqueIdGenerator.h>
-#include <OpenMS/METADATA/SpectrumSettings.h>
 
-#include <vector>
-#include <map>
-#include <algorithm>
-#include <numeric>
-#include <sstream>
 #include <fstream>
 
 #include <boost/dynamic_bitset.hpp>
 
 #ifdef _OPENMP
-#include <omp.h>
 #endif
 
 // #define FFM_DEBUG
@@ -451,7 +440,7 @@ namespace OpenMS
     std::string scale_filename = File::find(search_name + ".scale");
 
     isotope_filt_svm_ = svm_load_model(model_filename.c_str());
-    if (isotope_filt_svm_ == NULL)
+    if (isotope_filt_svm_ == nullptr)
     {
       throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
           "Loading " + model_filename + " failed", model_filename);

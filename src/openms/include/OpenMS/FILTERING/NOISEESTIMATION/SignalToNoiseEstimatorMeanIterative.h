@@ -157,7 +157,7 @@ public:
 
 
     /// Destructor
-    virtual ~SignalToNoiseEstimatorMeanIterative()
+    ~SignalToNoiseEstimatorMeanIterative() override
     {}
 
 
@@ -169,7 +169,7 @@ protected:
                   @param scan_last_ last element in the scan (disregarded)
                   @exception Throws Exception::InvalidValue
            */
-    virtual void computeSTN_(const PeakIterator & scan_first_, const PeakIterator & scan_last_)
+    void computeSTN_(const PeakIterator & scan_first_, const PeakIterator & scan_last_) override
     {
       // reset counter for sparse windows
       double sparse_window_percent = 0;
@@ -402,7 +402,7 @@ protected:
     }   // end of shiftWindow_
 
     /// overridden function from DefaultParamHandler to keep members up to date, when a parameter is changed
-    void updateMembers_()
+    void updateMembers_() override
     {
       max_intensity_         = (double)param_.getValue("max_intensity");
       auto_max_stdev_Factor_ = (double)param_.getValue("auto_max_stdev_factor");

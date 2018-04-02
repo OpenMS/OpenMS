@@ -244,27 +244,16 @@ protected:
     in.sortByPosition();
   }
 
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "Input file with MS/MS spectra");
     setValidFormats_("in", ListUtils::create<String>("mzML"));
     registerInputFile_("id", "<file>", "", "Identification input file which contains a search against a concatenated sequence database");
     setValidFormats_("id", ListUtils::create<String>("idXML"));
     registerOutputFile_("out", "<file>", "", "Identification output annotated with phosphorylation scores");
-    setValidFormats_("out", ListUtils::create<String>("idXML"));
-    registerDoubleOption_("fragment_mass_tolerance", "<tolerance>", 0.05, "Fragment mass error", false);
 
-    StringList fragment_mass_tolerance_unit_valid_strings;
-    fragment_mass_tolerance_unit_valid_strings.push_back("Da");
-    fragment_mass_tolerance_unit_valid_strings.push_back("ppm");
-    registerStringOption_("fragment_mass_unit", "<unit>", "Da", "Unit of fragment mass error", false, false);
-    setValidStrings_("fragment_mass_unit", fragment_mass_tolerance_unit_valid_strings);  
-
-    registerIntOption_("max_peptide_length", "<num>", 40, "Restrict scoring to peptides with a length shorter than this value", false);
-    setMinInt_("max_peptide_length", 1);
-    
-    registerIntOption_("max_num_perm", "<num>", 16384, "Maximum number of permutations a sequence can have", false);
-    setMinInt_("max_num_perm", 1);
+    // Ascore algorithm parameters:
+    registerFullParam_(AScore().getDefaults());
   }
   
   // If the score_type has a different name in the meta_values, it is not possible to find it.
@@ -286,7 +275,7 @@ protected:
     }
   }
 
-  ExitCodes main_(int, const char**)
+  ExitCodes main_(int, const char**) override
   {
     //-------------------------------------------------------------
     // parameter handling
@@ -295,12 +284,11 @@ protected:
     String in(getStringOption_("in"));
     String id(getStringOption_("id"));
     String out(getStringOption_("out"));
-    double fragment_mass_tolerance(getDoubleOption_("fragment_mass_tolerance"));
-    bool fragment_mass_unit_ppm = getStringOption_("fragment_mass_unit") == "Da" ? false : true;
-    Size max_peptide_len = getIntOption_("max_peptide_length");
-    Size max_num_perm = getIntOption_("max_num_perm");
-    
+
     AScore ascore;
+    Param ascore_params = ascore.getDefaults();
+    ascore_params.update(getParam_(), false, false, false, false, Log_debug);
+    ascore.setParameters(ascore_params);
 
     //-------------------------------------------------------------
     // loading input
@@ -338,7 +326,7 @@ protected:
         
         LOG_DEBUG << "starting to compute AScore RT=" << pep_id->getRT() << " SEQUENCE: " << scored_hit.getSequence().toString() << std::endl;
         
-        PeptideHit phospho_sites = ascore.compute(scored_hit, temp, fragment_mass_tolerance, fragment_mass_unit_ppm, max_peptide_len, max_num_perm);
+        PeptideHit phospho_sites = ascore.compute(scored_hit, temp);
         scored_peptides.push_back(phospho_sites);
       }
 

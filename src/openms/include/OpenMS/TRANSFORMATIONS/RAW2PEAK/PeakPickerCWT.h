@@ -55,8 +55,8 @@ namespace OpenMS
 
          The algorithm is described in detail in Lange et al. (2006) Proc. PSB-06.
 
-         This peak picking algorithm uses the continuous wavelet transform of a raw data signal to detect mass peaks.
-         Afterwards a given asymmetric peak function is fitted to the raw data and important peak parameters (e.g. fwhm)
+         This peak picking algorithm uses the continuous wavelet transform of a profile data signal to detect mass peaks.
+         Afterwards a given asymmetric peak function is fitted to the profile data and important peak parameters (e.g. fwhm)
          are extracted.
          In an optional step these parameters can be optimized using a non-linear optimization method.
 
@@ -81,16 +81,16 @@ namespace OpenMS
     public ProgressLogger
   {
 public:
-    /// Raw data iterator type
+    /// Profile data iterator type
     typedef MSSpectrum::iterator PeakIterator;
-    /// Const raw data iterator type
+    /// Const profile data iterator type
     typedef MSSpectrum::const_iterator ConstPeakIterator;
 
     /// Constructor
     PeakPickerCWT();
 
     /// Destructor
-    virtual ~PeakPickerCWT();
+    ~PeakPickerCWT() override;
 
     /**
                 @brief Applies the peak picking algorithm to a single spectrum.
@@ -156,25 +156,25 @@ protected:
     bool two_d_optimization_;
 
 
-    void updateMembers_();
+    void updateMembers_() override;
 
     /**
       @brief Class for the internal peak representation
 
       A regular Data-Object which contains some additional useful information
       for analyzing peaks and their properties
-      The left and right iterators delimit a range in the raw data which represents a raw peak.
-      They define the raw peak endpoints. @p max points to the raw data point in [left, right] with the highest intensity, the
-      maximum of the raw peak.
+      The left and right iterators delimit a range in the profile data which represents a profile peak.
+      They define the profile peak endpoints. @p max points to the profile data point in [left, right] with the highest intensity, the
+      maximum of the profile peak.
 
     */
     struct OPENMS_DLLAPI PeakArea_
     {
       typedef MSSpectrum::iterator PeakIterator;
-      PeakIterator left;  //< iterator to the leftmost valid point
-      PeakIterator max;   //< iterator to the maximum position
-      PeakIterator right; //< iterator to the rightmost valid point (inclusive)
-      DPosition<1> centroid_position; //< The estimated centroid position in m/z
+      PeakIterator left;  ///< iterator to the leftmost valid point
+      PeakIterator max;   ///< iterator to the maximum position
+      PeakIterator right; ///< iterator to the rightmost valid point (inclusive)
+      DPosition<1> centroid_position; ///< The estimated centroid position in m/z
     };
 
     /// Computes the peak's left and right area
@@ -187,7 +187,7 @@ protected:
                 @brief Returns the squared Pearson coefficient.
 
                 Computes the correlation of the peak and the original data given by the peak endpoints area.left and area.right.
-                If the value is near 1, the fitted peakshape and the raw data are expected to be very similar.
+                If the value is near 1, the fitted peakshape and the profile data are expected to be very similar.
     */
     double correlate_(const PeakShape & peak, const PeakArea_ & area, Int direction = 0) const;
 
@@ -195,7 +195,7 @@ protected:
     /**
                 @brief Finds the next maximum position in the wavelet transform wt.
 
-                If the maximum is greater than peak_bound_cwt we search for the corresponding maximum in the raw data interval [first,last)
+                If the maximum is greater than peak_bound_cwt we search for the corresponding maximum in the profile data interval [first,last)
                 given a predefined search radius radius. Only peaks with intensities greater than peak_bound_
                 are relevant. If no peak is detected the method return false.
                 For direction=1, the method runs from first to last given direction=-1 it runs the other way around.
@@ -231,8 +231,8 @@ protected:
     /**
                 @brief Estimates a peak's centroid position.
 
-                Computes the centroid position of the peak using all raw data points which are greater than
-                'centroid_percentage' (user-param) of the most intensive raw data point.
+                Computes the centroid position of the peak using all profile data points which are greater than
+                'centroid_percentage' (user-param) of the most intensive profile data point.
     */
     void getPeakCentroid_(PeakArea_ & area) const;
 

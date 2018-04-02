@@ -38,12 +38,9 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/DataAccessHelper.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SimpleOpenMSSpectraAccessFactory.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/MRMFeatureAccessOpenMS.h>
-#include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/DataAccessHelper.h>
-#include <OpenMS/ANALYSIS/OPENSWATH/SONARScoring.h>
 
 // peak picking & noise estimation
 #include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/ALGO/MRMScoring.h>
-#include <OpenMS/FILTERING/NOISEESTIMATION/SignalToNoiseEstimatorMedian.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMTransitionGroupPicker.h>
 
 #include <boost/range/adaptor/map.hpp>
@@ -294,7 +291,7 @@ namespace OpenMS
   OpenSwath_Scores MRMFeatureFinderScoring::scoreIdentification_(MRMTransitionGroupType& trgr_ident,
                                                                  OpenSwathScoring& scorer,
                                                                  const size_t feature_idx,
-                                                                 const std::vector<std::string> native_ids_detection,
+                                                                 const std::vector<std::string>& native_ids_detection,
                                                                  const double sn_win_len_,
                                                                  const unsigned int sn_bin_count_,
                                                                  bool write_log_messages,

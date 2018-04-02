@@ -35,13 +35,8 @@
 
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/FILTERING/DATAREDUCTION/ElutionPeakDetection.h>
-#include <OpenMS/FILTERING/SMOOTHING/LowessSmoothing.h>
 #include <OpenMS/FILTERING/SMOOTHING/SavitzkyGolayFilter.h>
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
-
-#include <algorithm>
-#include <numeric>
-#include <sstream>
 
 #include <boost/dynamic_bitset.hpp>
 

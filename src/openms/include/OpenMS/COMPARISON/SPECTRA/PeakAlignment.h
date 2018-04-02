@@ -63,7 +63,7 @@ public:
     PeakAlignment(const PeakAlignment & source);
 
     /// destructor
-    virtual ~PeakAlignment();
+    ~PeakAlignment() override;
 
     /// assignment operator
     PeakAlignment & operator=(const PeakAlignment & source);
@@ -73,10 +73,10 @@ public:
         @param spec1 First spectrum given in a binned representation
         @param spec2 Second spectrum given in a binned representation
     */
-    double operator()(const PeakSpectrum & spec1, const PeakSpectrum & spec2) const;
+    double operator()(const PeakSpectrum & spec1, const PeakSpectrum & spec2) const override;
 
     /// function call operator, calculates self similarity
-    double operator()(const PeakSpectrum & spec) const;
+    double operator()(const PeakSpectrum & spec) const override;
 
     ///
     static PeakSpectrumCompareFunctor * create() { return new PeakAlignment(); }

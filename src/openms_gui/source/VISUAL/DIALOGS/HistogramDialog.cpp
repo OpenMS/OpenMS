@@ -35,8 +35,8 @@
 
 #include <OpenMS/VISUAL/DIALOGS/HistogramDialog.h>
 
-#include <QtGui/QPushButton>
-#include <QtGui/QGridLayout>
+#include <QtWidgets/QPushButton>
+#include <QtWidgets/QGridLayout>
 
 using namespace std;
 

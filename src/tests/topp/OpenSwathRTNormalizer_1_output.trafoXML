@@ -2,18 +2,24 @@
 <TrafoXML version="1.1" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/TrafoXML_1_1.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 	<Transformation name="linear">
 		<Param  type="string" name="symmetric_regression" value="false"/>
-		<Param  type="float" name="slope" value="0.983700965374142"/>
-		<Param  type="float" name="intercept" value="397.694894839287"/>
+		<Param  type="string" name="x_weight" value=""/>
+		<Param  type="string" name="y_weight" value=""/>
+		<Param  type="float" name="x_datum_min" value="1e-15"/>
+		<Param  type="float" name="x_datum_max" value="1e+15"/>
+		<Param  type="float" name="y_datum_min" value="1e-15"/>
+		<Param  type="float" name="y_datum_max" value="1e+15"/>
+		<Param  type="float" name="slope" value="0.983700965472649"/>
+		<Param  type="float" name="intercept" value="397.694894129905"/>
 		<Pairs count="9">
-			<Pair from="612.98318753916" to="990"/>
-			<Pair from="2045.97766275644" to="2409"/>
-			<Pair from="1133.89398921728" to="1519"/>
+			<Pair from="612.983188845456" to="990"/>
+			<Pair from="2045.97766340971" to="2409"/>
+			<Pair from="1133.89398856401" to="1519"/>
 			<Pair from="799.529083634436" to="1188"/>
 			<Pair from="2151.48153924227" to="2509"/>
-			<Pair from="1397.15423463106" to="1765"/>
-			<Pair from="1924.07503355205" to="2291"/>
-			<Pair from="1497.56882178068" to="1881"/>
-			<Pair from="1086.24743220985" to="1470"/>
+			<Pair from="1397.15423659086" to="1765"/>
+			<Pair from="1924.07503420413" to="2291"/>
+			<Pair from="1497.56882243395" to="1881"/>
+			<Pair from="1086.24743286192" to="1470"/>
 		</Pairs>
 	</Transformation>
 </TrafoXML>

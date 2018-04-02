@@ -36,6 +36,9 @@
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/FORMAT/MzTabFile.h>
 #include <OpenMS/FORMAT/CsvFile.h>
+#include <OpenMS/METADATA/SpectrumLookup.h>
+
+#include <boost/regex.hpp>
 
 #include <OpenMS/FORMAT/DATAACCESS/CsiFingerIdMzTabWriter.h>
 #include <OpenMS/FORMAT/DATAACCESS/SiriusMzTabWriter.h>
@@ -43,12 +46,12 @@
 using namespace OpenMS;
 using namespace std;
 
-void CsiFingerIdMzTabWriter::read(const std::vector<String> & paths, Size number, MzTab & result)
+void CsiFingerIdMzTabWriter::read(const std::vector<String> & sirius_output_paths, const String & original_input_mzml, const Size & top_n_hits, MzTab & result)
 {
 
   CsiFingerIdMzTabWriter::CsiAdapterRun csi_result;
 
-  for (std::vector<String>::const_iterator it = paths.begin(); it != paths.end(); ++it)
+  for (std::vector<String>::const_iterator it = sirius_output_paths.begin(); it != sirius_output_paths.end(); ++it)
   {
 
     const std::string pathtocsicsv = *it + "/summary_csi_fingerid.csv";
@@ -66,12 +69,16 @@ void CsiFingerIdMzTabWriter::read(const std::vector<String> & paths, Size number
         // fill identification structure containing all candidate hits for a single spectrum
         CsiFingerIdMzTabWriter::CsiAdapterIdentification csi_id;
 
-        //Extract scan_index from path
+        // extract scan_index from path
         OpenMS::String str = File::path(pathtocsicsv);
         std::string scan_index = SiriusMzTabWriter::extract_scan_index(str);
+    
+        // extract scan_number from string
+        boost::regex regexp("-(?<SCAN>\\d+)-");
+        int scan_number = SpectrumLookup::extractScanNumber(str, regexp, false);
 
-        const UInt number_cor = (number > rowcount) ? rowcount : number;
-        for (Size j = 1; j < number_cor; ++j)
+        const UInt top_n_hits_cor = (top_n_hits > rowcount) ? rowcount : top_n_hits;
+        for (Size j = 1; j < top_n_hits_cor; ++j)
         {
           
           StringList sl;
@@ -91,15 +98,16 @@ void CsiFingerIdMzTabWriter::read(const std::vector<String> & paths, Size number
         }
 
         csi_id.scan_index = scan_index;
+        csi_id.scan_number = scan_number;
         csi_result.identifications.push_back(csi_id);
 
         // write metadata to mzTab file
         MzTabFile mztab_out;
         MzTabMetaData md;
         MzTabMSRunMetaData md_run;
-        md_run.location = MzTabString(str);
+        md_run.location = MzTabString(original_input_mzml);
         md.ms_run[1] = md_run;
-        md.description = MzTabString("CSI:FingerID-3.5");
+        md.description = MzTabString("CSI:FingerID-4.0");
 
         //needed for header generation (score)
         std::map<Size, MzTabParameter> smallmolecule_search_engine_score;
@@ -144,8 +152,13 @@ void CsiFingerIdMzTabWriter::read(const std::vector<String> & paths, Size number
             compoundId.first = "compoundId";
             compoundId.second = MzTabString(id.scan_index);
 
+            MzTabOptionalColumnEntry compoundScanNumber;
+            compoundScanNumber.first = "compoundScanNumber";
+            compoundScanNumber.second = MzTabString(id.scan_number);
+
             smsr.opt_.push_back(rank);
             smsr.opt_.push_back(compoundId);
+            smsr.opt_.push_back(compoundScanNumber);
             smsd.push_back(smsr);
           } 
         }

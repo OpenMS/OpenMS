@@ -34,8 +34,8 @@
 
 #include <OpenMS/VISUAL/ANNOTATION/Annotation1DItem.h>
 
-#include <QtGui/QInputDialog>
-#include <QtGui/QPainter>
+#include <QtWidgets/QInputDialog>
+#include <QPainter>
 
 namespace OpenMS
 {
@@ -95,7 +95,7 @@ namespace OpenMS
   bool Annotation1DItem::editText()
   {
     bool ok;
-    QString text = QInputDialog::getText(NULL, "Edit text", "Enter text:", QLineEdit::Normal, this->getText(), &ok);
+    QString text = QInputDialog::getText(nullptr, "Edit text", "Enter text:", QLineEdit::Normal, this->getText(), &ok);
     if (ok && !text.isEmpty())
     {
       if (text == getText()) return false;

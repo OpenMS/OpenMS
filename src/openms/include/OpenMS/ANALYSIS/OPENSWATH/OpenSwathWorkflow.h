@@ -65,12 +65,12 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/SwathMapMassCorrection.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/LinearResamplerAlign.h>
 
-#include <assert.h>
+#include <cassert>
 #include <limits>
 
 // #define OPENSWATH_WORKFLOW_DEBUG
 
-// The workflow class 
+// The workflow class
 namespace OpenMS
 {
 
@@ -122,18 +122,17 @@ namespace OpenMS
      * @param debug_level Debug level (writes out the RT normalization chromatograms if larger than 1)
      *
     */
-       TransformationDescription performRTNormalization(const OpenMS::TargetedExperiment & irt_transitions, 
-       std::vector< OpenSwath::SwathMap > & swath_maps,
-       double min_rsq,
-       double min_coverage, 
-       const Param & feature_finder_param,
-       const ChromExtractParams & cp_irt,
-       const Param & irt_detection_param, 
-       const String & mz_correction_function,
-       Size debug_level, 
-       bool sonar = false);
-    /*
-       */
+    TransformationDescription performRTNormalization(const OpenMS::TargetedExperiment & irt_transitions,
+      std::vector< OpenSwath::SwathMap > & swath_maps,
+      double min_rsq,
+      double min_coverage,
+      const Param & feature_finder_param,
+      const ChromExtractParams & cp_irt,
+      const Param & irt_detection_param,
+      const String & mz_correction_function,
+      Size debug_level,
+      bool sonar = false,
+      bool load_into_memory = false);
 
   private:
 
@@ -152,22 +151,22 @@ namespace OpenMS
      * @note: This function is based on the algorithm inside the OpenSwathRTNormalizer tool
      *
     */
-     TransformationDescription RTNormalization(const TargetedExperiment& transition_exp_,
-     const std::vector< OpenMS::MSChromatogram >& chromatograms,
-     double min_rsq,
-     double min_coverage,
-     const Param& default_ffparam,
-     const Param& irt_detection_param,
-     std::vector< OpenSwath::SwathMap > & swath_maps,
-     const String & mz_correction_function, 
-     double mz_extraction_window, 
-     bool ppm);
+    TransformationDescription RTNormalization(const TargetedExperiment& transition_exp_,
+      const std::vector< OpenMS::MSChromatogram >& chromatograms,
+      double min_rsq,
+      double min_coverage,
+      const Param& default_ffparam,
+      const Param& irt_detection_param,
+      std::vector< OpenSwath::SwathMap > & swath_maps,
+      const String & mz_correction_function,
+      double mz_extraction_window,
+      bool ppm);
 
     /// Simple method to extract chromatograms (for the RT-normalization peptides)
     void simpleExtractChromatograms(const std::vector< OpenSwath::SwathMap > & swath_maps,
                                     const OpenMS::TargetedExperiment & irt_transitions,
                                     std::vector< OpenMS::MSChromatogram > & chromatograms,
-                                    const ChromExtractParams & cp, bool sonar);
+                                    const ChromExtractParams & cp, bool sonar, bool load_into_memory);
 
     static void addChromatograms(MSChromatogram& base_chrom, const MSChromatogram& newchrom);
   };
@@ -217,22 +216,22 @@ namespace OpenMS
      *
     */
     void performExtraction(const std::vector< OpenSwath::SwathMap > & swath_maps,
-                           const TransformationDescription trafo, 
+                           const TransformationDescription trafo,
                            const ChromExtractParams & cp,
-                           const Param & feature_finder_param, 
-                           const OpenSwath::LightTargetedExperiment& transition_exp, 
-                           FeatureMap& out_featureFile, 
-                           bool store_features, 
+                           const Param & feature_finder_param,
+                           const OpenSwath::LightTargetedExperiment& transition_exp,
+                           FeatureMap& out_featureFile,
+                           bool store_features,
                            OpenSwathTSVWriter & tsv_writer,
                            OpenSwathOSWWriter & osw_writer,
-                           Interfaces::IMSDataConsumer * chromConsumer, 
+                           Interfaces::IMSDataConsumer * chromConsumer,
                            int batchSize,
                            bool load_into_memory);
 
   protected:
 
 
-    /** @brief Write output features and chromatograms to disk 
+    /** @brief Write output features and chromatograms to disk
      *
     */
     void writeOutFeaturesAndChroms_(std::vector< OpenMS::MSChromatogram > & chromatograms,
@@ -244,13 +243,13 @@ namespace OpenMS
     /** @brief Perform MS1 extraction and store result in ms1_chromatograms
      *
     */
-    void MS1Extraction_(const std::vector< OpenSwath::SwathMap > & swath_maps, 
+    void MS1Extraction_(const std::vector< OpenSwath::SwathMap > & swath_maps,
                         std::map< std::string, OpenSwath::ChromatogramPtr >& ms1_chromatograms,
-                        Interfaces::IMSDataConsumer * chromConsumer, 
+                        Interfaces::IMSDataConsumer * chromConsumer,
                         const ChromExtractParams & cp,
-                        const OpenSwath::LightTargetedExperiment& transition_exp, 
+                        const OpenSwath::LightTargetedExperiment& transition_exp,
                         const TransformationDescription& trafo_inverse,
-                        bool load_into_memory, 
+                        bool load_into_memory,
                         bool ms1only = false);
 
     /** @brief Perform scoring on a set of chromatograms
@@ -273,10 +272,10 @@ namespace OpenMS
     void scoreAllChromatograms(
         const OpenSwath::SpectrumAccessPtr input,
         const std::map< std::string, OpenSwath::ChromatogramPtr > & ms1_chromatograms,
-        const std::vector< OpenSwath::SwathMap > swath_maps,
+        const std::vector< OpenSwath::SwathMap >& swath_maps,
         OpenSwath::LightTargetedExperiment& transition_exp,
         const Param& feature_finder_param,
-        TransformationDescription trafo, 
+        TransformationDescription trafo,
         const double rt_extraction_window,
         FeatureMap& output,
         OpenSwathTSVWriter & tsv_writer,
@@ -326,7 +325,7 @@ namespace OpenMS
      * @param chrom_list Output of chromatograms (will be filled with empty chromatogram ptrs)
      * @param coordinates Output of extraction coordinates (will be filled with matching extraction coordinates)
      * @param transition_exp_used The transition experiment used to create the coordinates
-     * @param ms1 Whether to perform MS1 (precursor ion) or MS2 (fragment ion) extraction 
+     * @param ms1 Whether to perform MS1 (precursor ion) or MS2 (fragment ion) extraction
      * @param trafo_inverse Inverse transformation function
      * @param cp Parameter set for the chromatogram extraction
      *
@@ -414,15 +413,15 @@ namespace OpenMS
      *
     */
     void performExtractionSonar(const std::vector< OpenSwath::SwathMap > & swath_maps,
-                                const TransformationDescription trafo, 
+                                const TransformationDescription trafo,
                                 const ChromExtractParams & cp,
-                                const Param & feature_finder_param, 
-                                const OpenSwath::LightTargetedExperiment& transition_exp, 
+                                const Param & feature_finder_param,
+                                const OpenSwath::LightTargetedExperiment& transition_exp,
                                 FeatureMap& out_featureFile,
-                                bool store_features, 
+                                bool store_features,
                                 OpenSwathTSVWriter & tsv_writer,
                                 OpenSwathOSWWriter & osw_writer,
-                                Interfaces::IMSDataConsumer * chromConsumer, 
+                                Interfaces::IMSDataConsumer * chromConsumer,
                                 int batchSize,
                                 bool load_into_memory);
 

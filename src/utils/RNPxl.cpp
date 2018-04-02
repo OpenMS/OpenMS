@@ -32,19 +32,15 @@
 // $Authors: Timo Sachsenberg $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/KERNEL/StandardTypes.h>
-#include <OpenMS/FORMAT/MzMLFile.h>
-#include <OpenMS/FORMAT/FeatureXMLFile.h>
-#include <OpenMS/KERNEL/MSExperiment.h>
-#include <OpenMS/KERNEL/FeatureMap.h>
-#include <OpenMS/DATASTRUCTURES/ListUtilsIO.h>
-#include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
-#include <OpenMS/FILTERING/TRANSFORMERS/Normalizer.h>
+
 #include <OpenMS/FORMAT/IdXMLFile.h>
+#include <OpenMS/FORMAT/MzMLFile.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/ANALYSIS/RNPXL/RNPxlModificationsGenerator.h>
 #include <OpenMS/ANALYSIS/RNPXL/RNPxlReport.h>
 #include <OpenMS/ANALYSIS/RNPXL/RNPxlMarkerIonExtractor.h>
+#include <OpenMS/SYSTEM/File.h>
 
 #include <QtCore/QStringList>
 #include <QtCore/QProcess>
@@ -103,7 +99,7 @@ public:
   }
 
 protected:
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     // input files
     registerInputFile_("in_mzML", "<file>", "", "Input file");
@@ -151,7 +147,7 @@ protected:
     setValidFormats_("out_csv", ListUtils::create<String>("csv"));
   }
 
-  ExitCodes main_(int, const char**)
+  ExitCodes main_(int, const char**) override
   {
     const string in_mzml(getStringOption_("in_mzML"));
 

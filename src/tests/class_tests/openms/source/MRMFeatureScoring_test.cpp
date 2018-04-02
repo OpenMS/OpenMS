@@ -67,8 +67,8 @@ START_TEST(MRMScoring, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-OpenSwath::MRMScoring* ptr = 0;
-OpenSwath::MRMScoring* nullPointer = 0;
+OpenSwath::MRMScoring* ptr = nullptr;
+OpenSwath::MRMScoring* nullPointer = nullptr;
 
 START_SECTION(MRMScoring())
 {
@@ -138,7 +138,6 @@ END_SECTION
 // dia_isotope_scores
 // dia_massdiff_score
 // dia_by_ion_score
-// set_dia_parameters
 START_SECTION((virtual void test_dia_scores()))
 {
   OpenSWATH_Test::MRMTransitionGroupType transition_group;
@@ -167,7 +166,16 @@ START_SECTION((virtual void test_dia_scores()))
 
   OpenSwath::MRMScoring mrmscore;
   DIAScoring diascoring;
-  diascoring.set_dia_parameters(0.05, false, 30, 50, 4, 4); // here we use 50 ppm and a cutoff of 30 in intensity -- because our peptide does not match with the testdata :-)
+  // diascoring.set_dia_parameters(0.05, false, 30, 50, 4, 4); // here we use 50 ppm and a cutoff of 30 in intensity -- because our peptide does not match with the testdata :-)
+  Param p_dia = diascoring.getDefaults();
+  p_dia.setValue("dia_extraction_window", 0.05);
+  p_dia.setValue("dia_extraction_unit", "Th");
+  p_dia.setValue("dia_centroided", "false");
+  p_dia.setValue("dia_byseries_intensity_min", 30.0);
+  p_dia.setValue("dia_byseries_ppm_diff", 50.0);
+  p_dia.setValue("dia_nr_isotopes", 4);
+  p_dia.setValue("dia_nr_charges", 4);
+  diascoring.setParameters(p_dia);
 
   // calculate the normalized library intensity (expected value of the intensities)
   // Numpy

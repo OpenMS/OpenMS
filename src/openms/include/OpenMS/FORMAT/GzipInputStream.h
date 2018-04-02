@@ -35,10 +35,11 @@
 #ifndef OPENMS_FORMAT_GZIPINPUTSTREAM_H
 #define OPENMS_FORMAT_GZIPINPUTSTREAM_H
 
-#include <xercesc/util/BinInputStream.hpp>
-#include <xercesc/util/PlatformUtils.hpp>
+#include <OpenMS/config.h>
 #include <OpenMS/FORMAT/GzipIfstream.h>
 
+#include <xercesc/util/BinInputStream.hpp>
+#include <xercesc/util/PlatformUtils.hpp>
 
 namespace OpenMS
 {
@@ -58,7 +59,7 @@ public:
     explicit GzipInputStream(const char* const file_name);
 
     ///Destructor
-    virtual ~GzipInputStream();
+    ~GzipInputStream() override;
 
     ///returns true if file is open
     bool getIsOpen() const;
@@ -68,7 +69,7 @@ public:
       *
       * @note Implementation of the xerces-c input stream interface
     */
-    virtual XMLFilePos curPos() const;
+    XMLFilePos curPos() const override;
 
     /**
       * @brief writes bytes into buffer from file
@@ -81,7 +82,7 @@ public:
       * @return returns the number of bytes which were actually read
       *
     */
-    virtual XMLSize_t readBytes(XMLByte* const  to_fill, const XMLSize_t max_to_read);
+    XMLSize_t readBytes(XMLByte* const to_fill, const XMLSize_t max_to_read) override;
 
     /**
       * @brief returns 0
@@ -93,14 +94,14 @@ public:
       *
       *
     */
-    virtual const XMLCh* getContentType() const;
+    const XMLCh* getContentType() const override;
 
 
 private:
     ///pointer to an compression stream
     GzipIfstream* gzip_;
     ///current index of the actual file
-    XMLSize_t       file_current_index_;
+    XMLSize_t file_current_index_;
 
     //not implemented
     GzipInputStream();

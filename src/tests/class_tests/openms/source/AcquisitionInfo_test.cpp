@@ -47,8 +47,8 @@ START_TEST(AcquisitionInfo, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-AcquisitionInfo* ptr = 0;
-AcquisitionInfo* nullPointer = 0;
+AcquisitionInfo* ptr = nullptr;
+AcquisitionInfo* nullPointer = nullptr;
 START_SECTION(AcquisitionInfo())
 	ptr = new AcquisitionInfo();
 	TEST_NOT_EQUAL(ptr, nullPointer)

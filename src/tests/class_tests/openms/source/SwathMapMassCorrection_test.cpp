@@ -98,8 +98,8 @@ START_TEST(SwathMapMassCorrection, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-SwathMapMassCorrection* ptr = 0;
-SwathMapMassCorrection* nullPointer = 0;
+SwathMapMassCorrection* ptr = nullptr;
+SwathMapMassCorrection* nullPointer = nullptr;
 
 START_SECTION(SwathMapMassCorrection())
   ptr = new SwathMapMassCorrection;

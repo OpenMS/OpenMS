@@ -32,8 +32,6 @@
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/KERNEL/AreaIterator.h>
-
 namespace OpenMS
 {
 

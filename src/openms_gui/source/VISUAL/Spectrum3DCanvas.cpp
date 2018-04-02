@@ -42,12 +42,12 @@
 #include <OpenMS/VISUAL/MultiGradientSelector.h>
 #include <OpenMS/SYSTEM/FileWatcher.h>
 
-#include <QtGui/QResizeEvent>
-#include <QtGui/QComboBox>
-#include <QtGui/QSpinBox>
-#include <QtGui/QMenu>
-#include <QtGui/QFileDialog>
-#include <QtGui/QMessageBox>
+#include <QResizeEvent>
+#include <QtWidgets/QComboBox>
+#include <QtWidgets/QSpinBox>
+#include <QtWidgets/QMenu>
+#include <QtWidgets/QFileDialog>
+#include <QtWidgets/QMessageBox>
 
 using namespace std;
 
@@ -199,10 +199,10 @@ namespace OpenMS
       {
         openglwidget()->updateIntensityScale();
       }
-      openglwidget()->initializeGL();
+      // openglwidget()->initializeGL();
     }
     openglwidget()->resizeGL(width(), height());
-    openglwidget()->glDraw();
+    // openglwidget()->paintGL();
   }
 
   void Spectrum3DCanvas::showCurrentLayerPreferences()
@@ -249,7 +249,7 @@ namespace OpenMS
       return;
 
     QMenu * context_menu = new QMenu(this);
-    QAction * result = 0;
+    QAction * result = nullptr;
 
     //Display name and warn if current layer invisible
     String layer_name = String("Layer: ") + getCurrentLayer().name;

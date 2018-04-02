@@ -168,7 +168,7 @@ private:
 
 public:
   TOPPIsobaricAnalyzer() :
-    TOPPBase("IsobaricAnalyzer", "Calculates isobaric quantitative values for peptides", true, true)
+    TOPPBase("IsobaricAnalyzer", "Calculates isobaric quantitative values for peptides")
   {
     ItraqFourPlexQuantitationMethod* itraq4plex = new ItraqFourPlexQuantitationMethod();
     ItraqEightPlexQuantitationMethod* itraq8plex = new ItraqEightPlexQuantitationMethod();
@@ -187,7 +187,7 @@ public:
     quant_method_names_[tmt11plex->getName()] = "TMT 11-plex";
   }
 
-  ~TOPPIsobaricAnalyzer()
+  ~TOPPIsobaricAnalyzer() override
   {
     // free allocated labelers
     for (std::map<String, IsobaricQuantitationMethod*>::iterator it = quant_methods_.begin();
@@ -199,7 +199,7 @@ public:
   }
 
 protected:
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     // initialize with the first available type
     registerStringOption_("type", "<mode>", quant_methods_.begin()->first, "Isobaric Quantitation method used in the experiment.", false);
@@ -227,7 +227,7 @@ protected:
     }
   }
 
-  Param getSubsectionDefaults_(const String& section) const
+  Param getSubsectionDefaults_(const String& section) const override
   {
     ItraqFourPlexQuantitationMethod temp_quant;
     if (section == "extraction")
@@ -254,7 +254,7 @@ protected:
     }
   }
 
-  ExitCodes main_(int, const char**)
+  ExitCodes main_(int, const char**) override
   {
     //-------------------------------------------------------------
     // parameter handling
@@ -296,9 +296,6 @@ protected:
     quantifier.setParameters(quant_param);
 
     quantifier.quantify(consensus_map_raw, consensus_map_quant);
-
-    // assign unique ID to output file (this might throw an exception... but that's ok, as we want the program to quit then)
-    if (getStringOption_("id_pool").trim().length() > 0) getDocumentIDTagger_().tag(consensus_map_quant);
 
     //-------------------------------------------------------------
     // writing output

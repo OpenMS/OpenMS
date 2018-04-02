@@ -189,7 +189,7 @@ public:
     MSQuantifications(FeatureMap fm, ExperimentalSettings& es, std::vector<DataProcessing>& dps, std::vector<std::vector<std::pair<String, double> > > labels = (std::vector<std::vector<std::pair<String, double> > >()));
 
     /// Destructor
-    ~MSQuantifications();
+    ~MSQuantifications() override;
 
     /// Copy constructor
     MSQuantifications(const MSQuantifications & source);

@@ -38,6 +38,7 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMIonSeries.h>
 #include <OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
+#include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 
 #include <boost/algorithm/string.hpp>
 #include <boost/lexical_cast.hpp>
@@ -87,10 +88,15 @@ namespace OpenMS
  */
 
   class OPENMS_DLLAPI MRMDecoy :
+    public DefaultParamHandler,
     public ProgressLogger
   {
+
 public:
-    MRMDecoy() {} // empty, no members
+
+    typedef std::vector<size_t> IndexType;
+
+    MRMDecoy();
 
     /**
       @brief Generate decoys from a TargetedExperiment
@@ -107,15 +113,11 @@ public:
       mz_threshold is used for the matching of theoretical ion series to the observed one
 
     */
-    void generateDecoys(OpenMS::TargetedExperiment& exp,
-                        OpenMS::TargetedExperiment& dec, String method, String decoy_tag,
-                        double identity_threshold, int max_attempts, double mz_threshold,
-                        double mz_shift, bool exclude_similar,
-                        double similarity_threshold, bool remove_CNterm_mods,
-                        double precursor_mass_shift, std::vector<String> fragment_types,
-                        std::vector<size_t> fragment_charges, bool enable_specific_losses,
-                        bool enable_unspecific_losses, bool remove_unannotated,
-                        int round_decPow = -4);
+    void generateDecoys(OpenMS::TargetedExperiment& exp, OpenMS::TargetedExperiment& dec,
+                        String method, String decoy_tag, int max_attempts, double identity_threshold,
+                        double precursor_mz_shift, double product_mz_shift, double product_mz_threshold,
+                        std::vector<String> fragment_types, std::vector<size_t> fragment_charges,
+                        bool enable_specific_losses, bool enable_unspecific_losses, int round_decPow = -4) const;
 
     typedef std::vector<OpenMS::TargetedExperiment::Protein> ProteinVectorType;
     typedef std::vector<OpenMS::TargetedExperiment::Peptide> PeptideVectorType;
@@ -124,20 +126,10 @@ public:
     typedef std::map<String, std::vector<const ReactionMonitoringTransition*> > PeptideTransitionMapType;
 
     /**
-      @brief Find all tryptic sites in a sequence
+      @brief Compute relative identity (relative number of matches of amino
+      acids at the same position) between two sequences.
     */
-    std::vector<std::pair<std::string::size_type, std::string> > find_all_tryptic(
-      std::string sequence);
-
-    /**
-      @brief Compute relative identity (relative number of matches of amino acids at the same position) between two sequences
-    */
-    float AASequenceIdentity(const String& sequence, const String& decoy);
-
-    /**
-      @brief Check if a peptide has C or N terminal modifications
-    */
-    bool has_CNterminal_mods(const OpenMS::TargetedExperiment::Peptide& peptide);
+    float AASequenceIdentity(const String& sequence, const String& decoy) const;
 
     /**
       @brief Shuffle a peptide (with its modifications) sequence
@@ -147,23 +139,81 @@ public:
       identity_threshold.
     */
     OpenMS::TargetedExperiment::Peptide shufflePeptide(
-      OpenMS::TargetedExperiment::Peptide peptide, double identity_threshold, int seed = -1,
-      int max_attempts = 10, bool replace_aa_instead_append = false);
+                OpenMS::TargetedExperiment::Peptide peptide,
+                const double identity_threshold,
+                int seed = -1,
+                const int max_attempts = 100) const;
+
+    /**
+      @brief Reverse a peptide sequence (with its modifications)
+
+      @param peptide The peptide sequence and modifications
+      @param keepN Whether to keep N terminus in place
+      @param keepC Whether to keep C terminus in place
+      @param const_pattern A list of AA to leave in place
+    */
+    static OpenMS::TargetedExperiment::Peptide reversePeptide(
+                const OpenMS::TargetedExperiment::Peptide& peptide,
+                const bool keepN,
+                const bool keepC, 
+                const String& const_pattern = String());
+
+    /**
+      @brief Find all residues in a sequence that should not be reversed / shuffled
+      
+      @param sequence The amino acid sequence
+      @param keepN Whether to keep N terminus constant
+      @param keepC Whether to keep C terminus constant
+      @param keep_const_pattern A string containing the AA to not change (e.g. 'KRP')
+    */
+    static IndexType findFixedResidues(const std::string& sequence,
+        bool keepN, bool keepC, const OpenMS::String& keep_const_pattern);
+
+protected:
+
+    /**
+      @brief Check if a peptide has C or N terminal modifications
+    */
+    bool hasCNterminalMods_(const OpenMS::TargetedExperiment::Peptide& peptide) const;
+
+    /**
+      @brief Find all K, R, P sites in a sequence to be set as fixed
+
+      This method was adapted from the SpectraST decoy generator
+    */
+    IndexType findFixedResidues_(const std::string& sequence) const;
+
+    /**
+      @brief Find all K, R, P and C-/N-terminal sites in a sequence to be set as fixed
+
+      This method was adapted from the SpectraST decoy generator
+    */
+    IndexType findFixedAndTermResidues_(const std::string& sequence) const;
 
     /**
       @brief Pseudo-reverse a peptide sequence (with its modifications)
 
-      Pseudo reverses a peptide sequence, leaving the last AA constant
+      @note Pseudo reverses a peptide sequence, leaving the C terminus (the
+            last AA constant)
     */
-    OpenMS::TargetedExperiment::Peptide pseudoreversePeptide(
-      OpenMS::TargetedExperiment::Peptide peptide);
+    OpenMS::TargetedExperiment::Peptide pseudoreversePeptide_(
+      const OpenMS::TargetedExperiment::Peptide& peptide) const;
 
     /**
       @brief Reverse a peptide sequence (with its modifications)
+
+      @note Does not keep N / C terminus in place.
     */
-    OpenMS::TargetedExperiment::Peptide reversePeptide(
-      OpenMS::TargetedExperiment::Peptide peptide);
+    OpenMS::TargetedExperiment::Peptide reversePeptide_(
+      const OpenMS::TargetedExperiment::Peptide& peptide) const;
+
+    /// Synchronize members with param class
+    void updateMembers_() override;
+
+    String keep_const_pattern_;
+    bool keepN_;
+    bool keepC_;
   };
 }
 
-#endif
+#endif // OPENMS_ANALYSIS_OPENSWATH_MRMDECOY_H

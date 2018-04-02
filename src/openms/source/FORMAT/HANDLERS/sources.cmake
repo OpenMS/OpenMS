@@ -6,6 +6,7 @@ set(sources_list
 	AcqusHandler.cpp
 	FidHandler.cpp
   IndexedMzMLDecoder.cpp
+  IndexedMzMLHandler.cpp
 	MascotXMLHandler.cpp
 	MzDataHandler.cpp
 	MzIdentMLHandler.cpp
@@ -15,6 +16,7 @@ set(sources_list
   MzMLHandlerHelper.cpp
   MzMLSpectrumDecoder.cpp
   MzMLSqliteHandler.cpp
+  MzMLSqliteSwathHandler.cpp
 	MzXMLHandler.cpp
 	PTMXMLHandler.cpp
 	ParamXMLHandler.cpp

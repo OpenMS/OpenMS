@@ -38,10 +38,10 @@
 // OpenMS_GUI config
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
-#include <QtGui/QDialog>
-#include <QtGui/QComboBox>
-#include <QtGui/QLineEdit>
-#include <QtGui/QCheckBox>
+#include <QtWidgets/QDialog>
+#include <QtWidgets/QComboBox>
+#include <QtWidgets/QLineEdit>
+#include <QtWidgets/QCheckBox>
 
 namespace OpenMS
 {
@@ -59,7 +59,7 @@ namespace OpenMS
 
 public:
     ///Constructor
-    SaveImageDialog(QWidget * parent = 0);
+    SaveImageDialog(QWidget * parent = nullptr);
     ///set size and size ratio
     void setSize(int x, int y);
     ///accessors for the width

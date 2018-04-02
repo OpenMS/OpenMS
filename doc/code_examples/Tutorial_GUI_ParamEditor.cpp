@@ -28,10 +28,11 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 
-#include <QtGui/QApplication>
 #include <OpenMS/VISUAL/ParamEditor.h>
 #include <OpenMS/DATASTRUCTURES/Param.h>
 #include <OpenMS/FORMAT/ParamXMLFile.h>
+
+#include <QApplication>
 
 using namespace OpenMS;
 using namespace std;
@@ -49,7 +50,7 @@ Int main(int argc, const char** argv)
 
   paramFile.load(tutorial_data_path + "/data/Tutorial_ParamEditor.ini", param);
 
-  ParamEditor* editor = new ParamEditor(0);
+  ParamEditor* editor = new ParamEditor(nullptr);
   editor->load(param);
   editor->show();
 

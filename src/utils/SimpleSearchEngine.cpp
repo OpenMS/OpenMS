@@ -108,7 +108,7 @@ class SimpleSearchEngine :
     }
 
   protected:
-    void registerOptionsAndFlags_()
+    void registerOptionsAndFlags_() override
     {
       registerInputFile_("in", "<file>", "", "input file ");
       setValidFormats_("in", ListUtils::create<String>("mzML"));
@@ -356,9 +356,9 @@ class SimpleSearchEngine :
       }
     }
 
-    void postProcessHits_(const PeakMap& exp, const vector<vector<PeptideHit> >& peptide_hits, vector<ProteinIdentification>& protein_ids, vector<PeptideIdentification>& peptide_ids, Size top_hits)
+    void postProcessHits_(const PeakMap& exp, vector<vector<PeptideHit> >& peptide_hits, vector<ProteinIdentification>& protein_ids, vector<PeptideIdentification>& peptide_ids, Size top_hits)
     {
-      for (vector<vector<PeptideHit> >::const_iterator pit = peptide_hits.begin(); pit != peptide_hits.end(); ++pit)
+      for (vector<vector<PeptideHit> >::iterator pit = peptide_hits.begin(); pit != peptide_hits.end(); ++pit)
       {
         if (!pit->empty())
         {
@@ -370,14 +370,16 @@ class SimpleSearchEngine :
           pi.setHigherScoreBetter(true);
           pi.setRT(exp[scan_index].getRT());
           pi.setMZ(exp[scan_index].getPrecursors()[0].getMZ());
-          pi.setHits(*pit);
+          pi.getHits().swap(*pit); // swap in hits to prevent copies
+
+          // only store top n hits
           pi.assignRanks();
-          peptide_ids.push_back(pi);
+          pi.getHits().resize(top_hits);
+          pi.getHits().shrink_to_fit();
+
+          peptide_ids.emplace_back(pi);
         }
       }
-
-      // only store top n hits
-      IDFilter::keepNBestHits(peptide_ids, top_hits);
 
       // protein identifications (leave as is...)
       protein_ids = vector<ProteinIdentification>(1);
@@ -402,7 +404,7 @@ class SimpleSearchEngine :
       protein_ids[0].setSearchParameters(search_parameters);
     }
 
-    ExitCodes main_(int, const char**)
+    ExitCodes main_(int, const char**) override
     {
       ProgressLogger progresslogger;
       progresslogger.setLogType(log_type_);
@@ -612,24 +614,16 @@ class SimpleSearchEngine :
             {
               const Size& scan_index = low_it->second;
               const PeakSpectrum& exp_spectrum = spectra[scan_index];
+              const int& charge = exp_spectrum.getPrecursors()[0].getCharge();
+              const double& score = HyperScore::compute(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, exp_spectrum, theo_spectrum);
 
-              double score = HyperScore::compute(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, exp_spectrum, theo_spectrum);
+              if (score == 0) { continue; } // no hit?
 
-              // no hit
-              if (score < 1e-16)
-              {
-                continue;
-              }
-
-              PeptideHit hit;
-              hit.setSequence(candidate);
-              hit.setCharge(exp_spectrum.getPrecursors()[0].getCharge());
-              hit.setScore(score);
 #ifdef _OPENMP
 #pragma omp critical (peptide_hits_access)
 #endif
               {
-                peptide_hits[scan_index].push_back(hit);
+                peptide_hits[scan_index].emplace_back(score, 0, charge, candidate);
               }
             }
           }

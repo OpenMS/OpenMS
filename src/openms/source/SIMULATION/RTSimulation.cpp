@@ -38,12 +38,6 @@
 #include <OpenMS/FORMAT/ParamXMLFile.h>
 #include <OpenMS/FORMAT/LibSVMEncoder.h>
 
-#include <OpenMS/CONCEPT/LogStream.h>
-#include <OpenMS/DATASTRUCTURES/ListUtils.h>
-
-#include <vector>
-#include <iostream>
-
 #include <boost/random/normal_distribution.hpp>
 #include <boost/random/cauchy_distribution.hpp>
 #include <boost/random/uniform_real.hpp>
@@ -490,7 +484,7 @@ namespace OpenMS
     String allowed_amino_acid_characters = "ACDEFGHIKLMNPQRSTVWY";
     SVMWrapper svm;
     LibSVMEncoder encoder;
-    svm_problem* training_data = NULL;
+    svm_problem* training_data = nullptr;
     SVMData prediction_samples;
     SVMData training_samples;
     UInt k_mer_length = 0;

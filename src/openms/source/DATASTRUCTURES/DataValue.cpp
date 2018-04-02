@@ -33,20 +33,11 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/DATASTRUCTURES/DataValue.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/DATASTRUCTURES/ListUtilsIO.h>
 
 #include <OpenMS/CONCEPT/PrecisionWrapper.h>
 
-#include <OpenMS/config.h>
-
 #include <QtCore/QString>
-
-#include <cstddef>
-#include <cmath>
-#include <cstdlib>
-#include <iostream>
-#include <sstream>
 
 using namespace std;
 
@@ -585,7 +576,7 @@ namespace OpenMS
     {
     case DataValue::STRING_VALUE: return const_cast<const char*>(data_.str_->c_str());
 
-    case DataValue::EMPTY_VALUE: return NULL;
+    case DataValue::EMPTY_VALUE: return nullptr;
 
     default: throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Could not convert DataValue to char*");
     }

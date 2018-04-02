@@ -45,8 +45,8 @@
 #include <OpenMS/FORMAT/TransformationXMLFile.h>
 #include <OpenMS/FORMAT/SwathFile.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/SwathWindowLoader.h>
-#include <OpenMS/ANALYSIS/OPENSWATH/TransitionTSVReader.h>
-#include <OpenMS/ANALYSIS/OPENSWATH/TransitionPQPReader.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/TransitionTSVFile.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/TransitionPQPFile.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathTSVWriter.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathOSWWriter.h>
 
@@ -71,7 +71,7 @@
 
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathWorkflow.h>
 
-#include <assert.h>
+#include <cassert>
 #include <limits>
 
 // #define OPENSWATH_WORKFLOW_DEBUG
@@ -126,7 +126,7 @@ static bool SortPairDoubleByFirst(const std::pair<double,double> & left, const s
   -swath_windows_file parameter (this is recommended). Note that the software
   expects extraction windows (e.g. which peptides to extract from
   which window) which cannot have overlaps, otherwise peptides will be
-  extracted from two different windwos.
+  extracted from two different windows.
 
   Alternatively, a set of split files (n+1 mzML files) can be provided, each
   containing one SWATH map (or MS1 map).
@@ -142,7 +142,7 @@ static bool SortPairDoubleByFirst(const std::pair<double,double> & left, const s
   peptides.  If your chromatography differs, please consider adjusting
   -Scoring:TransitionGroupPicker:min_peak_width  to allow for smaller or larger
   peaks and adjust the -rt_extraction_window to use a different extraction
-  window for the retention time. In m/z domain, it consider adjusting
+  window for the retention time. In m/z domain, consider adjusting
   -mz_extraction_window to your instrument resolution, which can be in Th or
   ppm (using -ppm).
 
@@ -160,7 +160,7 @@ static bool SortPairDoubleByFirst(const std::pair<double,double> & left, const s
   <h3>Output: Feature list and chromatograms </h3>
   The output of the OpenSwathWorkflow is a feature list, either as FeatureXML
   or as tsv (use -out_features or -out_tsv) while the latter is more memory
-  friendly. If you analyze large dataset, it is recommended to only use
+  friendly. If you analyze large datasets, it is recommended to only use
   -out_tsv and not -out_features. For downstream analysis (e.g. using mProphet or pyProphet)
   also the -out_tsv format is recommended.
 
@@ -396,10 +396,10 @@ public:
 
 protected:
 
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     registerInputFileList_("in", "<files>", StringList(), "Input files separated by blank");
-    setValidFormats_("in", ListUtils::create<String>("mzML,mzXML"));
+    setValidFormats_("in", ListUtils::create<String>("mzML,mzXML,sqMass"));
 
     registerInputFile_("tr", "<file>", "", "transition file ('TraML','tsv','pqp')");
     setValidFormats_("tr", ListUtils::create<String>("traML,tsv,pqp"));
@@ -414,7 +414,7 @@ protected:
     setValidFormats_("rt_norm", ListUtils::create<String>("trafoXML"));
 
     registerInputFile_("swath_windows_file", "<file>", "", "Optional, tab separated file containing the SWATH windows for extraction: lower_offset upper_offset \\newline 400 425 \\newline ... Note that the first line is a header and will be skipped.", false, true);
-    registerFlag_("sort_swath_maps", "Sort of input SWATH files when matching to SWATH windows from swath_windows_file", true);
+    registerFlag_("sort_swath_maps", "Sort input SWATH files when matching to SWATH windows from swath_windows_file", true);
 
     registerFlag_("use_ms1_traces", "Extract the precursor ion trace(s) and use for scoring", true);
     registerFlag_("enable_uis_scoring", "Enable additional scoring of identification assays", true);
@@ -468,9 +468,10 @@ protected:
     registerSubsection_("Library", "Library parameters section");
 
     registerSubsection_("RTNormalization", "Parameters for the RTNormalization for iRT petides. This specifies how the RT alignment is performed and how outlier detection is applied. Outlier detection can be done iteratively (by default) which removes one outlier per iteration or using the RANSAC algorithm.");
+    registerSubsection_("Debugging", "Debugging");
   }
 
-  Param getSubsectionDefaults_(const String& name) const
+  Param getSubsectionDefaults_(const String& name) const override
   {
     if (name == "Scoring")
     {
@@ -551,9 +552,18 @@ protected:
       p.setValue("MinBinsFilled", 8, "Minimal number of bins required to be covered");
       return p;
     }
+    else if (name == "Debugging")
+    {
+      Param p;
+      p.setValue("irt_mzml", "", "Chromatogram mzML containing the iRT peptides");
+      // p.setValidFormats_("irt_mzml", ListUtils::create<String>("mzML"));
+      p.setValue("irt_trafo", "", "Transformation file for RT transform");
+      // p.setValidFormats_("irt_trafo", ListUtils::create<String>("trafoXML"));
+      return p;
+    }
     else if (name == "Library")
     {
-      return TransitionTSVReader().getDefaults();
+      return TransitionTSVFile().getDefaults();
     }
     else
     {
@@ -575,16 +585,18 @@ protected:
     }
     else
     {
-      FileTypes::Type in_file_type = FileTypes::nameToType(file_list[0]);
-      if (in_file_type == FileTypes::MZML || file_list[0].suffix(4).toLower() == "mzml"
-        || file_list[0].suffix(7).toLower() == "mzml.gz"  )
+      FileTypes::Type in_file_type = FileHandler::getTypeByFileName(file_list[0]);
+      if (in_file_type == FileTypes::MZML)
       {
         swath_maps = swath_file.loadMzML(file_list[0], tmp, exp_meta, readoptions);
       }
-      else if (in_file_type == FileTypes::MZXML || file_list[0].suffix(5).toLower() == "mzxml"
-        || file_list[0].suffix(8).toLower() == "mzxml.gz"  )
+      else if (in_file_type == FileTypes::MZXML)
       {
         swath_maps = swath_file.loadMzXML(file_list[0], tmp, exp_meta, readoptions);
+      }
+      else if (in_file_type == FileTypes::SQMASS)
+      {
+        swath_maps = swath_file.loadSqMass(file_list[0], exp_meta);
       }
       else
       {
@@ -615,13 +627,16 @@ protected:
    * @param mz_correction_function If correction in m/z is desired, which function should be used
    * @param debug_level Debug level (writes out the RT normalization chromatograms if larger than 1)
    *
+   *
    */
   TransformationDescription loadTrafoFile(String trafo_in, String irt_tr_file,
     std::vector< OpenSwath::SwathMap > & swath_maps, double min_rsq, double min_coverage,
     const Param& feature_finder_param, const ChromExtractParams& cp_irt,
-    const Param& irt_detection_param, const String & mz_correction_function, Size debug_level, bool sonar)
+    const Param& irt_detection_param, const String & mz_correction_function,
+    Size debug_level, bool sonar, bool load_into_memory, const String& irt_trafo_out)
   {
     TransformationDescription trafo_rtnorm;
+    
     if (!trafo_in.empty())
     {
       // get read RT normalization file
@@ -646,12 +661,17 @@ protected:
       OpenSwathRetentionTimeNormalization wf;
       wf.setLogType(log_type_);
       trafo_rtnorm = wf.performRTNormalization(irt_transitions, swath_maps, min_rsq, min_coverage,
-          feature_finder_param, cp_irt, irt_detection_param, mz_correction_function, debug_level, sonar);
+          feature_finder_param, cp_irt, irt_detection_param, mz_correction_function, debug_level, sonar, load_into_memory);
+
+      if (!irt_trafo_out.empty())
+      {
+        TransformationXMLFile().store(irt_trafo_out, trafo_rtnorm);
+      }
     }
     return trafo_rtnorm;
   }
 
-  ExitCodes main_(int, const char **)
+  ExitCodes main_(int, const char **) override
   {
     ///////////////////////////////////
     // Prepare Parameters
@@ -662,18 +682,16 @@ protected:
     Param irt_detection_param = getParam_().copy("RTNormalization:", true);
 
     //tr_file input file type
-    FileHandler fh_tr_type;
     FileTypes::Type tr_type = FileTypes::nameToType(getStringOption_("tr_type"));
-
     if (tr_type == FileTypes::UNKNOWN)
     {
-      tr_type = fh_tr_type.getType(tr_file);
-      writeDebug_(String("Input file type: ") + FileTypes::typeToName(tr_type), 2);
+      tr_type = FileHandler::getType(tr_file);
+      writeDebug_(String("Input file type (-tr): ") + FileTypes::typeToName(tr_type), 2);
     }
 
     if (tr_type == FileTypes::UNKNOWN)
     {
-      writeLog_("Error: Could not determine input file type!");
+      writeLog_("Error: Could not determine input file type for '-tr' !");
       return PARSE_ERROR;
     }
 
@@ -707,6 +725,8 @@ protected:
     double min_rsq = getDoubleOption_("min_rsq");
     double min_coverage = getDoubleOption_("min_coverage");
 
+    Param debug_params = getParam_().copy("Debugging:", true);
+
     String readoptions = getStringOption_("readOptions");
     String mz_correction_function = getStringOption_("mz_correction_function");
     String tmp = getStringOption_("tempDirectory");
@@ -727,12 +747,18 @@ protected:
       load_into_memory = true;
     }
 
+    bool is_sqmass_input  = (FileHandler::getTypeByFileName(file_list[0]) == FileTypes::SQMASS);
+    if (is_sqmass_input && !load_into_memory)
+    {
+      std::cout << "When using sqMass input files, it is highly recommended to use the workingInMemory option as otherwise data access will be very slow." << std::endl;
+    }
+
     if (trafo_in.empty() && irt_tr_file.empty())
     {
       std::cout << "Since neither rt_norm nor tr_irt is set, OpenSWATH will " <<
         "not use RT-transformation (rather a null transformation will be applied)" << std::endl;
     }
-    if ( (out.empty() && out_tsv.empty() && out_osw.empty()) || (!out.empty() && !out_tsv.empty())  || (!out.empty() && !out_osw.empty())  || (!out_tsv.empty() && !out_osw.empty()) )
+    if ( int(!out.empty()) + int(!out_tsv.empty()) + int(!out_osw.empty()) != 1 )
     {
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
           "Either out_features, out_tsv or out_osw needs to be set (but not two or three at the same time)");
@@ -797,7 +823,7 @@ protected:
     OpenSwath::LightTargetedExperiment transition_exp;
     ProgressLogger progresslogger;
     progresslogger.setLogType(log_type_);
-    if (tr_type == FileTypes::TRAML || tr_file.suffix(5).toLower() == "traml"  )
+    if (tr_type == FileTypes::TRAML)
     {
       progresslogger.startProgress(0, 1, "Load TraML file");
       TargetedExperiment targeted_exp;
@@ -805,10 +831,10 @@ protected:
       OpenSwathDataAccessHelper::convertTargetedExp(targeted_exp, transition_exp);
       progresslogger.endProgress();
     }
-    else if (tr_type == FileTypes::PQP || tr_file.suffix(3).toLower() == "pqp"  )
+    else if (tr_type == FileTypes::PQP)
     {
       progresslogger.startProgress(0, 1, "Load PQP file");
-      TransitionPQPReader().convertPQPToTargetedExperiment(tr_file.c_str(), transition_exp);
+      TransitionPQPFile().convertPQPToTargetedExperiment(tr_file.c_str(), transition_exp);
       progresslogger.endProgress();
 
       remove(out_osw.c_str());
@@ -820,10 +846,10 @@ protected:
         dst << src.rdbuf();
       }
     }
-    else if (tr_type == FileTypes::TSV || tr_file.suffix(3).toLower() == "tsv"  )
+    else if (tr_type == FileTypes::TSV)
     {
       progresslogger.startProgress(0, 1, "Load TSV file");
-      TransitionTSVReader tsv_reader;
+      TransitionTSVFile tsv_reader;
       tsv_reader.setParameters(tsv_reader_param);
       tsv_reader.convertTSVToTargetedExperiment(tr_file.c_str(), tr_type, transition_exp);
       progresslogger.endProgress();
@@ -833,7 +859,7 @@ protected:
       LOG_ERROR << "Provide valid TraML, TSV or PQP transition file." << std::endl;
       return PARSE_ERROR;
     }
-    LOG_INFO << "Loaded " << transition_exp.getProteins().size() << " proteins, " << 
+    LOG_INFO << "Loaded " << transition_exp.getProteins().size() << " proteins, " <<
       transition_exp.getCompounds().size() << " compounds with " << transition_exp.getTransitions().size() << " transitions." << std::endl;
 
 
@@ -854,9 +880,9 @@ protected:
 
     for (Size i = 0; i < swath_maps.size(); i++)
     {
-      LOG_DEBUG << "Found swath map " << i 
+      LOG_DEBUG << "Found swath map " << i
         << " with lower " << swath_maps[i].lower
-        << " and upper " << swath_maps[i].upper 
+        << " and upper " << swath_maps[i].upper
         << " and " << swath_maps[i].sptr->getNrSpectra()
         << " spectra." << std::endl;
     }
@@ -908,10 +934,11 @@ protected:
     ///////////////////////////////////
     // Get the transformation information (using iRT peptides)
     ///////////////////////////////////
+    String irt_trafo_out = debug_params.getValue("irt_trafo");
     TransformationDescription trafo_rtnorm = loadTrafoFile(trafo_in,
         irt_tr_file, swath_maps, min_rsq, min_coverage, feature_finder_param,
         cp_irt, irt_detection_param, mz_correction_function, debug_level,
-        sonar);
+        sonar, load_into_memory, irt_trafo_out);
 
     ///////////////////////////////////
     // Set up chromatogram output
@@ -922,7 +949,9 @@ protected:
     {
       if (out_chrom.hasSuffix(".sqMass"))
       {
-        chromatogramConsumer = new MSDataSqlConsumer(out_chrom);
+        bool full_meta = false; // can lead to very large files in memory
+        bool lossy_compression = true;
+        chromatogramConsumer = new MSDataSqlConsumer(out_chrom, 500, full_meta, lossy_compression);
       }
       else
       {

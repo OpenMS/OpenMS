@@ -99,7 +99,7 @@ public:
   }
 
 protected:
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "input file ");
     setValidFormats_("in", ListUtils::create<String>("featureXML"));
@@ -113,7 +113,7 @@ protected:
     registerSubsection_("algorithm", "Feature decharging algorithm section");
   }
 
-  Param getSubsectionDefaults_(const String & /*section*/) const
+  Param getSubsectionDefaults_(const String & /*section*/) const override
   {
     // there is only one subsection: 'algorithm' (s.a) .. and in it belongs the FeatureDecharger param
     MetaboliteFeatureDeconvolution fdc;
@@ -122,7 +122,7 @@ protected:
     return tmp;
   }
 
-  ExitCodes main_(int, const char **)
+  ExitCodes main_(int, const char **) override
   {
     //-------------------------------------------------------------
     // parameter handling

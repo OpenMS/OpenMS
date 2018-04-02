@@ -40,6 +40,7 @@
 #include <OpenMS/SYSTEM/File.h>
 #include <QtCore/QProcess>
 #include <QDir>
+#include <sstream> 
 
 using namespace OpenMS;
 using namespace std;
@@ -96,7 +97,7 @@ protected:
 
   // this function will be used to register the tool parameters
   // it gets automatically called on tool execution
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
       StringList empty;
 
@@ -144,9 +145,8 @@ protected:
       registerInputFile_(TOPPSpectraSTSearchAdapter::param_user_mod_file, "<user_mod_file>", "", "Specify name of user-defined modifications file. Default is \"spectrast.usermods\".", false, true);
   }
 
-
   // the main_ function is called after all parameters are read
-  ExitCodes main_(int, const char **)
+  ExitCodes main_(int, const char **) override
   {
      // Assemble command line for SpectraST
      QStringList arguments;
@@ -197,7 +197,7 @@ protected:
          arguments << sequence_database_file.toQString().prepend("-sD");
      }
 
-     // Set the number of threads in spectraST
+     // Set the number of threads in SpectraST
      Int threads = getIntOption_("threads");
      arguments << (threads > 1 ?  QString::number(threads).prepend("-sP") : "-sP!");
 
@@ -249,16 +249,10 @@ protected:
          LOG_ERROR << "ERROR: Unrecognized output format from file: " << first_output_file << endl;
          return ILLEGAL_PARAMETERS;
      }
-     // Output files must agree on format and are not allowed to exist already
-     for (StringList::const_iterator it = output_files.begin();
-         it != output_files.end(); ++it)
+     // Output files must agree on format
+     for (StringList::const_iterator it = output_files.begin(); it != output_files.end(); ++it)
      {
          String output_file = *it;
-         if (File::exists(output_file))
-         {
-             LOG_ERROR << "ERROR: Output file already exists: " << output_file << endl;
-             return ILLEGAL_PARAMETERS;
-         }
          if (! output_file.hasSuffix(outputFormat))
          {
              LOG_ERROR << "ERROR: Output filename does not agree in format: "
@@ -269,7 +263,7 @@ protected:
 
      String temp_dir = File::getTempDirectory();
      arguments << outputFormat.toQString().prepend("-sE");
-     arguments <<  temp_dir.toQString().prepend("-sO");
+     arguments << temp_dir.toQString().prepend("-sO");
 
      // Check whether input files agree in format
      String first_input_file = spectra_files[0];
@@ -305,15 +299,16 @@ protected:
       arguments << input_file.toQString();
      }
 
-     // Writing the final spectrast command to the DEBUG LOG
-     LOG_DEBUG << "COMMAND: " << executable;
+     // Writing the final SpectraST command to the DEBUG LOG
+     std::stringstream ss;
+     ss << "COMMAND: " << executable;
      for (QStringList::const_iterator it = arguments.begin(); it != arguments.end(); ++it)
      {
-         LOG_DEBUG << " " << it->toStdString();
+         ss << " " << it->toStdString();
      }
-     LOG_DEBUG << endl;
+     LOG_DEBUG << ss.str() << endl;
 
-     // Run spectrast
+     // Run SpectraST
      QProcess spectrast_process;
      spectrast_process.start(executable.toQString(), arguments);
 
@@ -338,6 +333,7 @@ protected:
     // Exit the tool
     return EXECUTION_OK;
   }
+
 };
 // End of Tool definition
 
@@ -358,11 +354,10 @@ const String TOPPSpectraSTSearchAdapter::param_user_mod_file = "user_mod_file";
 const StringList TOPPSpectraSTSearchAdapter::param_output_file_formats = ListUtils::create<String>("txt,xls,pep.xml,xml,pepXML,html");
 const StringList TOPPSpectraSTSearchAdapter::param_input_file_formats = ListUtils::create<String>("mzML,mzXML,mzData,mgf,dta,msp");
 
-
-
 // the actual main function needed to create an executable
 int main(int argc, const char ** argv)
 {
   TOPPSpectraSTSearchAdapter tool;
   return tool.main(argc, argv);
 }
+

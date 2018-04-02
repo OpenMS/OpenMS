@@ -38,14 +38,15 @@
 // OpenMS_GUI config
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
+#include <OpenMS/DATASTRUCTURES/Param.h>
+#include <OpenMS/VISUAL/LayerData.h>
+
 class QComboBox;
 class QPushButton;
 class QRadioButton;
 class QString;
 
-#include <QtGui/QDialog>
-#include <OpenMS/DATASTRUCTURES/Param.h>
-#include <OpenMS/VISUAL/LayerData.h>
+#include <QtWidgets/QDialog>
 
 namespace OpenMS
 {
@@ -79,7 +80,7 @@ public:
     */
     TOPPASToolConfigDialog(QWidget * parent, Param & param, const String& default_dir, const String& tool_name, const String& tool_type, const String& tool_desc, const QVector<String>& hidden_entries);
     ///Destructor
-    ~TOPPASToolConfigDialog();
+    ~TOPPASToolConfigDialog() override;
 
 private:
     /// ParamEditor for reading ini-files

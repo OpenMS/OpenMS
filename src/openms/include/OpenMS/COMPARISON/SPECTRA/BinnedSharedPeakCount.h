@@ -70,7 +70,7 @@ public:
     BinnedSharedPeakCount(const BinnedSharedPeakCount& source);
 
     /// destructor
-    virtual ~BinnedSharedPeakCount();
+    ~BinnedSharedPeakCount() override;
 
     /// assignment operator
     BinnedSharedPeakCount& operator=(const BinnedSharedPeakCount& source);
@@ -81,22 +81,19 @@ public:
       @param spec2 Second spectrum given as a binned representation
       @throw IncompatibleBinning is thrown if the binning of the two input spectra are not the same
     */
-    double operator()(const BinnedSpectrum& spec1, const BinnedSpectrum& spec2) const;
+    double operator()(const BinnedSpectrum& spec1, const BinnedSpectrum& spec2) const override;
 
     /// function call operator, calculates self similarity
-    double operator()(const BinnedSpectrum& spec) const;
+    double operator()(const BinnedSpectrum& spec) const override;
 
     ///
     static BinnedSpectrumCompareFunctor* create() { return new BinnedSharedPeakCount(); }
 
     /// get the identifier for this DefaultParamHandler
-    static const String getProductName()
-    {
-      return "BinnedSharedPeakCount";
-    }
+    static const String getProductName() { return "BinnedSharedPeakCount"; }
 
 protected:
-    void updateMembers_();
+    void updateMembers_() override;
     double precursor_mass_tolerance_;
   };
 

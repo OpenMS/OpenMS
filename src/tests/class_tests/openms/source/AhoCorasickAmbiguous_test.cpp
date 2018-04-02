@@ -50,13 +50,13 @@ using namespace std;
 void setDB(const StringList& in, AhoCorasickAmbiguous::PeptideDB& out)
 {
   clear(out);
-  for (int i = 0; i< in.size(); ++i) 
+  for (size_t i = 0; i < in.size(); ++i) 
   {
     seqan::appendValue(out, in[i].c_str());
   }
 }
 
-void compareHits(int line, String protein, String expected_s, StringList observed, AhoCorasickAmbiguous::PeptideDB& pep_db)
+void compareHits(int line, const String& protein, String expected_s, StringList& observed)
 {
   std::cout << "results of test line " << line << " for protein " << protein << ":\n";
   StringList expected = ListUtils::create<String>(expected_s.removeWhitespaces(), ',');
@@ -65,7 +65,7 @@ void compareHits(int line, String protein, String expected_s, StringList observe
   TEST_EQUAL(observed.size(), expected.size()) // results should have same number of entries
   if (expected.size() == observed.size())
   {
-    for (int i = 0; i < expected.size(); ++i)
+    for (size_t i = 0; i < expected.size(); ++i)
     {
       expected[i] = expected[i].toUpper();
       std::cout << "hit " << i << ": " << expected[i] << " <> " << observed[i] << "\n";
@@ -95,35 +95,32 @@ START_SECTION(~AhoCorasickAmbiguous())
 }
 END_SECTION
 
+START_SECTION(AhoCorasickAmbiguous(const String& protein_sequence))
+  AhoCorasickAmbiguous fuzzyAC("XXX");
+  AhoCorasickAmbiguous fuzzyAC2("BXZU");
+  AhoCorasickAmbiguous fuzzyAC3("BXZU");
+END_SECTION
+
 AhoCorasickAmbiguous::FuzzyACPattern pattern;
 AhoCorasickAmbiguous::PeptideDB pep_db;
 
-START_SECTION(static void initPattern(const PeptideDB& pep_db, const int aaa_max, FuzzyACPattern& pattern))
+START_SECTION(static void initPattern(const PeptideDB& pep_db, const int aaa_max, const int mm_max, FuzzyACPattern& pattern))
   setDB(ListUtils::create<String>("withB", ','), pep_db); // ambiguous char in peptide DB not allowed
-  TEST_EXCEPTION_WITH_MESSAGE(Exception::InvalidValue, AhoCorasickAmbiguous::initPattern(pep_db, 2, pattern), "The value 'WITHB' was used but is not valid! Input peptide to FuzzyAC must NOT contain ambiguous amino acids (B/J/Z/X)!")
+  TEST_EXCEPTION(Exception::InvalidValue, AhoCorasickAmbiguous::initPattern(pep_db, 2, 0, pattern)) // "The value 'WITHB' was used but is not valid! Input peptide to FuzzyAC must NOT contain ambiguous amino acids (B/J/Z/X)!")
   setDB(ListUtils::create<String>("withJ", ','), pep_db); // unknown chars are converted to 'X'; ambiguous char in peptide DB not allowed
-  TEST_EXCEPTION_WITH_MESSAGE(Exception::InvalidValue, AhoCorasickAmbiguous::initPattern(pep_db, 2, pattern), "The value 'WITHJ' was used but is not valid! Input peptide to FuzzyAC must NOT contain ambiguous amino acids (B/J/Z/X)!")
+  TEST_EXCEPTION(Exception::InvalidValue, AhoCorasickAmbiguous::initPattern(pep_db, 2, 0, pattern)) //  "The value 'WITHJ' was used but is not valid! Input peptide to FuzzyAC must NOT contain ambiguous amino acids (B/J/Z/X)!")
   setDB(ListUtils::create<String>("withZ", ','), pep_db); // unknown chars are converted to 'X'; ambiguous char in peptide DB not allowed
-  TEST_EXCEPTION_WITH_MESSAGE(Exception::InvalidValue, AhoCorasickAmbiguous::initPattern(pep_db, 2, pattern), "The value 'WITHZ' was used but is not valid! Input peptide to FuzzyAC must NOT contain ambiguous amino acids (B/J/Z/X)!")
+  TEST_EXCEPTION(Exception::InvalidValue, AhoCorasickAmbiguous::initPattern(pep_db, 2, 0, pattern)) //  "The value 'WITHZ' was used but is not valid! Input peptide to FuzzyAC must NOT contain ambiguous amino acids (B/J/Z/X)!")
   setDB(ListUtils::create<String>("withX", ','), pep_db); // unknown chars are converted to 'X'; ambiguous char in peptide DB not allowed
-  TEST_EXCEPTION_WITH_MESSAGE(Exception::InvalidValue, AhoCorasickAmbiguous::initPattern(pep_db, 2, pattern), "The value 'WITHX' was used but is not valid! Input peptide to FuzzyAC must NOT contain ambiguous amino acids (B/J/Z/X)!")
+  TEST_EXCEPTION(Exception::InvalidValue, AhoCorasickAmbiguous::initPattern(pep_db, 2, 0, pattern)) //  "The value 'WITHX' was used but is not valid! Input peptide to FuzzyAC must NOT contain ambiguous amino acids (B/J/Z/X)!")
 
   setDB(ListUtils::create<String>("acd,adc,cad,cda,dac,dca", ','), pep_db);
-  AhoCorasickAmbiguous::initPattern(pep_db, 2, pattern);
+  AhoCorasickAmbiguous::initPattern(pep_db, 2, 0, pattern);
   TEST_EQUAL((UInt)pattern.max_ambAA, 2)
-  AhoCorasickAmbiguous::initPattern(pep_db, 3, pattern);
+  AhoCorasickAmbiguous::initPattern(pep_db, 3, 0, pattern);
   TEST_EQUAL((UInt)pattern.max_ambAA, 3)
 
   TEST_EQUAL(seqan::numVertices(pattern.data_graph), 16); // 1 root,5x3 subtrees
-
-END_SECTION
-
-START_SECTION(AhoCorasickAmbiguous(const String& protein_sequence))
-  AhoCorasickAmbiguous fuzzyAC("XXX");
-
-  AhoCorasickAmbiguous fuzzyAC2("BXZU");
-
-  AhoCorasickAmbiguous fuzzyAC3("BXZU");
 
 END_SECTION
 
@@ -139,7 +136,7 @@ START_SECTION(bool findNext(const FuzzyACPattern& pattern))
   /////////////////////////
   // "acd,adc,cad,cda,dac,dca"
   /////////////////////////
-  AhoCorasickAmbiguous::initPattern(pep_db, 0, pattern);
+  AhoCorasickAmbiguous::initPattern(pep_db, 0, 0, pattern);
   observed.clear();
   prot = "acdIadcIcadIcdaIdacIdca";
   fuzzyAC.setProtein(prot);
@@ -148,11 +145,11 @@ START_SECTION(bool findNext(const FuzzyACPattern& pattern))
   {
     observed.push_back(String(pep_db[fuzzyAC.getHitDBIndex()].data_begin, pep_db[fuzzyAC.getHitDBIndex()].data_end) + "@" + fuzzyAC.getHitProteinPosition());
   }
-  compareHits(__LINE__, "XXX", expected, observed, pep_db);
+  compareHits(__LINE__, prot, expected, observed);
   ///
   /// same, but with ambAA's allowed (but not used)
   ///
-  AhoCorasickAmbiguous::initPattern(pep_db, 3, pattern);
+  AhoCorasickAmbiguous::initPattern(pep_db, 3, 0, pattern);
   observed.clear();
   prot = "acdIadcIcadIcdaIdacIdca";
   fuzzyAC.setProtein(prot);
@@ -161,7 +158,7 @@ START_SECTION(bool findNext(const FuzzyACPattern& pattern))
   {
     observed.push_back(String(pep_db[fuzzyAC.getHitDBIndex()].data_begin, pep_db[fuzzyAC.getHitDBIndex()].data_end) + "@" + fuzzyAC.getHitProteinPosition());
   }
-  compareHits(__LINE__, "XXX", expected, observed, pep_db);
+  compareHits(__LINE__, prot, expected, observed);
   ///
   /// all ambAA's
   ///
@@ -173,7 +170,7 @@ START_SECTION(bool findNext(const FuzzyACPattern& pattern))
   {
     observed.push_back(String(pep_db[fuzzyAC.getHitDBIndex()].data_begin, pep_db[fuzzyAC.getHitDBIndex()].data_end) + "@" + fuzzyAC.getHitProteinPosition());
   }
-  compareHits(__LINE__, "XXX", expected, observed, pep_db);
+  compareHits(__LINE__, prot, expected, observed);
   ///
   /// with prefix
   ///
@@ -185,7 +182,7 @@ START_SECTION(bool findNext(const FuzzyACPattern& pattern))
   {
     observed.push_back(String(pep_db[fuzzyAC.getHitDBIndex()].data_begin, pep_db[fuzzyAC.getHitDBIndex()].data_end) + "@" + fuzzyAC.getHitProteinPosition());
   }
-  compareHits(__LINE__, prot, expected, observed, pep_db);
+  compareHits(__LINE__, prot, expected, observed);
   ///
   /// with preifx and B instead of X
   ///
@@ -197,11 +194,11 @@ START_SECTION(bool findNext(const FuzzyACPattern& pattern))
   {
     observed.push_back(String(pep_db[fuzzyAC.getHitDBIndex()].data_begin, pep_db[fuzzyAC.getHitDBIndex()].data_end) + "@" + fuzzyAC.getHitProteinPosition());
   }
-  compareHits(__LINE__, prot, expected, observed, pep_db);
+  compareHits(__LINE__, prot, expected, observed);
   ///
   /// test with two ambAA's: nothing should be found
   ///
-  AhoCorasickAmbiguous::initPattern(pep_db, 2, pattern);
+  AhoCorasickAmbiguous::initPattern(pep_db, 2, 0, pattern);
   fuzzyAC.setProtein("XXX");
   TEST_EQUAL(fuzzyAC.findNext(pattern), false);
   ///
@@ -215,7 +212,7 @@ START_SECTION(bool findNext(const FuzzyACPattern& pattern))
   {
     observed.push_back(String(pep_db[fuzzyAC.getHitDBIndex()].data_begin, pep_db[fuzzyAC.getHitDBIndex()].data_end) + "@" + fuzzyAC.getHitProteinPosition());
   }
-  compareHits(__LINE__, prot, expected, observed, pep_db);
+  compareHits(__LINE__, prot, expected, observed);
   ///
   /// with suffix
   ///
@@ -227,13 +224,13 @@ START_SECTION(bool findNext(const FuzzyACPattern& pattern))
   {
     observed.push_back(String(pep_db[fuzzyAC.getHitDBIndex()].data_begin, pep_db[fuzzyAC.getHitDBIndex()].data_end) + "@" + fuzzyAC.getHitProteinPosition());
   }
-  compareHits(__LINE__, prot, expected, observed, pep_db);
+  compareHits(__LINE__, prot, expected, observed);
 
   ///
   ///  new peptide DB
   ///
   setDB(ListUtils::create<String>("eq,nd,llll", ','), pep_db);
-  AhoCorasickAmbiguous::initPattern(pep_db, 2, pattern);
+  AhoCorasickAmbiguous::initPattern(pep_db, 2, 0, pattern);
   ///
   /// hits across the protein
   ///
@@ -245,9 +242,87 @@ START_SECTION(bool findNext(const FuzzyACPattern& pattern))
   {
     observed.push_back(String(pep_db[fuzzyAC.getHitDBIndex()].data_begin, pep_db[fuzzyAC.getHitDBIndex()].data_end) + "@" + fuzzyAC.getHitProteinPosition());
   }
-  compareHits(__LINE__, prot, expected, observed, pep_db);
+  compareHits(__LINE__, prot, expected, observed);
+
+  ///
+  /// mismatches
+  ///
+  ///
+  /// same, but with mm's allowed (but not sufficient)   
+  ///
+  setDB(ListUtils::create<String>("acd,adc,cad,cda,dac,dca", ','), pep_db);
+  AhoCorasickAmbiguous::initPattern(pep_db, 0, 1, pattern);
+  observed.clear();
+  prot = "aaaIIcccIIddd";
+  fuzzyAC.setProtein(prot);
+  TEST_EQUAL(fuzzyAC.findNext(pattern), false)
+
+  ///
+  /// full usage of mm's
+  ///
+  AhoCorasickAmbiguous::initPattern(pep_db, 0, 3, pattern);
+  observed.clear();
+  prot = "mmmm";
+  fuzzyAC.setProtein(prot);
+  expected  = "  dac@0,  cad@0,  cda@0,  dca@0,  adc@0,  acd@0"  // all six hits, found at first position
+              ", dac@1,  cad@1,  cda@1,  dca@1,  adc@1,  acd@1"; // all six hits, found at second position
+  while (fuzzyAC.findNext(pattern))
+  {
+    observed.push_back(String(pep_db[fuzzyAC.getHitDBIndex()].data_begin, pep_db[fuzzyAC.getHitDBIndex()].data_end) + "@" + fuzzyAC.getHitProteinPosition());
+  }
+  compareHits(__LINE__, prot, expected, observed);
+  ///
+  /// with prefix
+  ///
+  AhoCorasickAmbiguous::initPattern(pep_db, 0, 2, pattern);
+  observed.clear();
+  prot = "aMMM";
+  fuzzyAC.setProtein(prot);
+  expected = "acd@0,  adc@0"; // 2 hits of aXX at first pos
+  while (fuzzyAC.findNext(pattern))
+  {
+    observed.push_back(String(pep_db[fuzzyAC.getHitDBIndex()].data_begin, pep_db[fuzzyAC.getHitDBIndex()].data_end) + "@" + fuzzyAC.getHitProteinPosition());
+  }
+  compareHits(__LINE__, prot, expected, observed);
+  ///
+  /// with prefix and B 
+  ///
+  AhoCorasickAmbiguous::initPattern(pep_db, 1, 2, pattern);
+  observed.clear();
+  prot = "aMMB"; // B = D|N
+  fuzzyAC.setProtein(prot);
+  expected = "  adc@0,  acd@0"  // 2 hits of aXx at first pos
+             ", cad@1,  acd@1"; // 2 hits of XXB, found at second position
+  while (fuzzyAC.findNext(pattern))
+  {
+    observed.push_back(String(pep_db[fuzzyAC.getHitDBIndex()].data_begin, pep_db[fuzzyAC.getHitDBIndex()].data_end) + "@" + fuzzyAC.getHitProteinPosition());
+  }
+  compareHits(__LINE__, prot, expected, observed);
+  
+  ///
+  ///  new peptide DB
+  ///
+  setDB(ListUtils::create<String>("eq,nd,llll", ','), pep_db);
+  AhoCorasickAmbiguous::initPattern(pep_db, 1, 1, pattern);
+  ///
+  /// hits across the protein
+  ///
+  observed.clear();
+  prot = "aXXaBBkkZZlllllk";  // B = D|N,  Z = E|Q
+  fuzzyAC.setProtein(prot);
+  expected = "nd@0, nd@1, nd@2, nd@3, nd@4, nd@5, eq@0, eq@1, eq@2, eq@7, eq@8, eq@9, llll@9, llll@10, llll@11, llll@12    "; 
+  //          nd matches all positions of 'aXXaBk';;  eq matches 'aXXa' and 'kZZl' ;; llll matches 'Zlllllk' 
+  while (fuzzyAC.findNext(pattern))
+  {
+    observed.push_back(String(pep_db[fuzzyAC.getHitDBIndex()].data_begin, pep_db[fuzzyAC.getHitDBIndex()].data_end) + "@" + fuzzyAC.getHitProteinPosition());
+  }
+  compareHits(__LINE__, prot, expected, observed);
 
 
+END_SECTION
+
+START_SECTION(void setProtein(const String& protein_sequence))
+  NOT_TESTABLE // tested above
 END_SECTION
 
 START_SECTION(Size getHitDBIndex())
@@ -259,7 +334,7 @@ START_SECTION(Size getHitProteinPosition())
 END_SECTION
 
 START_SECTION([EXTRA]template<typename T> inline void _getSpawnRange(const AAcid c, T& idxFirst, T& idxLast))
-  
+{
   // test that our AAcid translation table is correct
   for (char c = 'A'; c <= 'Z'; ++c)
   {
@@ -296,6 +371,7 @@ START_SECTION([EXTRA]template<typename T> inline void _getSpawnRange(const AAcid
   TEST_EQUAL(ordValue(seqan::AAcid('B')) - ordValue(seqan::AAcid('J')), -1)
   TEST_EQUAL(ordValue(seqan::AAcid('J')) - ordValue(seqan::AAcid('Z')), -1)
   TEST_EQUAL(ordValue(seqan::AAcid('Z')) - ordValue(seqan::AAcid('X')), -1)
+}
 END_SECTION
 
 START_SECTION([EXTRA]inline bool isAmbiguous(AAcid c))
@@ -306,10 +382,18 @@ START_SECTION([EXTRA]inline bool isAmbiguous(AAcid c))
     TEST_EQUAL(seqan::isAmbiguous(seqan::AAcid(c)), amb.has(c));
   }
   amb = "bjzx"; // all amb AA's
-  for (char c = 'a'; c <= 'z'; ++c) // test all characters from A..Z
+  for (char c = 'a'; c <= 'z'; ++c) // test all characters from a..z
   {
     TEST_EQUAL(seqan::isAmbiguous(seqan::AAcid(c)), amb.has(c));
   }
+}
+END_SECTION
+
+START_SECTION([EXTRA]inline bool isAmbiguous(const AAString& s))
+{
+  TEST_EQUAL(seqan::isAmbiguous(seqan::AAString("PEPTIB")), true);
+  TEST_EQUAL(seqan::isAmbiguous(seqan::AAString("XEPTID")), true);
+  TEST_EQUAL(seqan::isAmbiguous(seqan::AAString("PEPTID")), false);
 }
 END_SECTION
 

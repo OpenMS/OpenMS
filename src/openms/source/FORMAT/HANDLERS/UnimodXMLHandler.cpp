@@ -34,7 +34,6 @@
 
 #include <OpenMS/CHEMISTRY/ResidueModification.h>
 #include <OpenMS/FORMAT/HANDLERS/UnimodXMLHandler.h>
-#include <xercesc/sax2/Attributes.hpp>
 
 using namespace std;
 using namespace xercesc;
@@ -48,7 +47,7 @@ namespace OpenMS
       XMLHandler(filename, "2.0"),
       avge_mass_(0.0),
       mono_mass_(0.0),
-      modification_(0),
+      modification_(nullptr),
       modifications_(mods)
     {
     }

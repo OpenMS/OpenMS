@@ -84,7 +84,7 @@ public:
   }
 
 protected:
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "input file ");
     setValidFormats_("in", ListUtils::create<String>("mzML"));
@@ -95,7 +95,7 @@ protected:
     registerStringOption_("level", "i[,j]...", "1,2,3", "MS levels to extract", false);
   }
 
-  ExitCodes main_(int, const char**)
+  ExitCodes main_(int, const char**) override
   {
 
     //-------------------------------------------------------------

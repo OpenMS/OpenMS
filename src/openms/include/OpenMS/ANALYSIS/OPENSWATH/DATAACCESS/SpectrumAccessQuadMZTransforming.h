@@ -67,11 +67,11 @@ public:
     explicit SpectrumAccessQuadMZTransforming(OpenSwath::SpectrumAccessPtr sptr,
         double a, double b, double c, bool ppm);
         
-    ~SpectrumAccessQuadMZTransforming();
+    ~SpectrumAccessQuadMZTransforming() override;
 
-    boost::shared_ptr<OpenSwath::ISpectrumAccess> lightClone() const;
+    boost::shared_ptr<OpenSwath::ISpectrumAccess> lightClone() const override;
 
-    OpenSwath::SpectrumPtr getSpectrumById(int id);
+    OpenSwath::SpectrumPtr getSpectrumById(int id) override;
 
 private:
 

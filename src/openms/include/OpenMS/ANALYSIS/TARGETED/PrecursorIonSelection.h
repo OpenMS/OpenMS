@@ -84,7 +84,7 @@ public:
 
     PrecursorIonSelection();
     PrecursorIonSelection(const PrecursorIonSelection & source);
-    ~PrecursorIonSelection();
+    ~PrecursorIonSelection() override;
 
     const double & getMaxScore() const;
     void setMaxScore(const double & max_score);
@@ -214,7 +214,7 @@ private:
     void shiftUp_(FeatureMap & features, PrecursorIonSelectionPreprocessing & preprocessed_db, String protein_acc);
 
     /// update members method from DefaultParamHandler to update the members
-    void updateMembers_();
+    void updateMembers_() override;
 
     void rescore_(FeatureMap & features, std::vector<PeptideIdentification> & new_pep_ids,
                   PrecursorIonSelectionPreprocessing & preprocessed_db, PSProteinInference & protein_inference);

@@ -36,9 +36,6 @@
 
 #include <unsupported/Eigen/NonLinearOptimization>
 
-#include <sstream>
-#include <cmath>
-
 #include <OpenMS/MATH/STATISTICS/GumbelDistributionFitter.h>
 
 using namespace std;

@@ -43,8 +43,6 @@
 
 #include <OpenMS/SIMULATION/LABELING/BaseLabeler.h>
 
-#include <OpenMS/DATASTRUCTURES/ListUtils.h>
-
 //#define OPENMS_DEBUG_SIM_
 
 using namespace std;
@@ -109,7 +107,7 @@ namespace OpenMS
     experiment_(),
     feature_maps_(),
     consensus_map_(),
-    labeler_(0)
+    labeler_(nullptr)
   {
     // section params
     defaults_.insert("Digestion:", DigestSimulation().getDefaults());

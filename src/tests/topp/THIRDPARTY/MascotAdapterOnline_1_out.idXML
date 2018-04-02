@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="https://www.openms.de/xml-stylesheet/IdXML.xsl" ?>
+<IdXML version="1.5" xsi:noNamespaceSchemaLocation="https://www.openms.de/xml-schema/IdXML_1_5.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<SearchParameters id="SP_0" db="SwissProt" db_version="SwissProt_2017_11.fasta" taxonomy="All entries" mass_type="monoisotopic" charges="" enzyme="trypsin" missed_cleavages="1" precursor_peak_tolerance="3" precursor_peak_tolerance_ppm="false" peak_mass_tolerance="0.3" peak_mass_tolerance_ppm="false" >
+	</SearchParameters>
+	<IdentificationRun date="2017-12-20T22:34:20" search_engine="Mascot" search_engine_version="2.6.0.242" search_parameters_ref="SP_0" >
+		<ProteinIdentification score_type="Mascot" higher_score_better="true" significance_threshold="0" >
+			<ProteinHit id="PH_0" accession="PUR2_YEAST" score="86" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_1" accession="ARO1_YEAS1" score="78" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_2" accession="ARO1_YEAS2" score="78" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_3" accession="ARO1_YEAS7" score="78" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_4" accession="ARO1_YEAS8" score="78" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_5" accession="ARO1_YEAST" score="78" sequence="" >
+			</ProteinHit>
+			<UserParam type="string" name="SearchNumber" value="TmAmbHOE"/>
+		</ProteinIdentification>
+		<PeptideIdentification score_type="Mascot" higher_score_better="true" significance_threshold="17" MZ="520.2628" RT="2655.096" >
+			<PeptideHit score="78.3" sequence="DFASSGGYVLHLHR" charge="3" aa_before="K K K K K" aa_after="D D D D D" protein_refs="PH_1 PH_2 PH_3 PH_4 PH_5" >
+				<UserParam type="float" name="homology_threshold" value="17"/>
+				<UserParam type="float" name="identity_threshold" value="35"/>
+				<UserParam type="float" name="EValue" value="5.5e-05"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="Mascot" higher_score_better="true" significance_threshold="13" MZ="775.3872" RT="4923.777" >
+			<PeptideHit score="85.75" sequence="RPGADSDIGGFGGLFDLAQAGFR" charge="3" aa_before="R" aa_after="Q" protein_refs="PH_0" >
+				<UserParam type="float" name="homology_threshold" value="13"/>
+				<UserParam type="float" name="identity_threshold" value="33"/>
+				<UserParam type="float" name="EValue" value="5.5e-06"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="Mascot" higher_score_better="true" significance_threshold="13" MZ="1063.2098" RT="4587.669" >
+			<PeptideHit score="9.36" sequence="ESGVRPGQTVAIVGAGGGLGSLALQYAKAMGIR" charge="3" >
+				<UserParam type="float" name="homology_threshold" value="13"/>
+				<UserParam type="float" name="identity_threshold" value="30"/>
+				<UserParam type="float" name="EValue" value="130"/>
+			</PeptideHit>
+		</PeptideIdentification>
+	</IdentificationRun>
+</IdXML>
