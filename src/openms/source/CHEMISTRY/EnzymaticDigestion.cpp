@@ -232,9 +232,10 @@ namespace OpenMS
     return count;
   }
 
-  void EnzymaticDigestion::digestAfterTokenize_(const std::vector<int>& fragment_positions, const StringView& sequence, std::vector<StringView>& output, Size min_length, Size max_length) const
+  Size EnzymaticDigestion::digestAfterTokenize_(const std::vector<int>& fragment_positions, const StringView& sequence, std::vector<StringView>& output, Size min_length, Size max_length) const
   {
     Size count = fragment_positions.size();
+    Size wrong_size(0);
 
     // no cleavage sites? return full string
     if (count == 0)
@@ -243,25 +244,27 @@ namespace OpenMS
       {
         output.push_back(sequence);
       }
-      return;
+      return wrong_size;
     }
 
     for (Size i = 1; i != count; ++i)
     {
-      // add if cleavage product larger then min length
+      // add if cleavage product larger than min length
       Size l = fragment_positions[i] - fragment_positions[i - 1];
       if (l >= min_length && l <= max_length)
       {
         output.push_back(sequence.substr(fragment_positions[i - 1], l));
       }
+      else ++wrong_size;
     }
 
-    // add last cleavage product (need to add because end is not a cleavage site) if larger then min length
+    // add last cleavage product (need to add because end is not a cleavage site) if larger than min length
     Size l = sequence.size() - fragment_positions[count - 1];
     if (l >= min_length && l <= max_length)
     {
       output.push_back(sequence.substr(fragment_positions[count - 1], l));
     }
+    else ++wrong_size;
 
     // generate fragments with missed cleavages
     for (Size i = 1; ((i <= missed_cleavages_) && (i < count)); ++i)
@@ -273,6 +276,7 @@ namespace OpenMS
         {
           output.push_back(sequence.substr(fragment_positions[j - 1], l));
         }
+        else ++wrong_size;
       }
 
       // add last cleavage product (need to add because end is not a cleavage site)
@@ -281,10 +285,12 @@ namespace OpenMS
       {
         output.push_back(sequence.substr(fragment_positions[count - i - 1], l));
       }
+      else ++wrong_size;
     }
+    return wrong_size;
   }
 
-  void EnzymaticDigestion::digestUnmodified(const StringView& sequence, std::vector<StringView>& output, Size min_length, Size max_length) const
+  Size EnzymaticDigestion::digestUnmodified(const StringView& sequence, std::vector<StringView>& output, Size min_length, Size max_length) const
   {
     // initialization
     output.clear();
@@ -309,11 +315,11 @@ namespace OpenMS
           output.push_back(sequence.substr(i, j - 1));
         }
       }
-      return;
+      return 0;
     }
 
     // naive cleavage sites
     std::vector<int> fragment_positions = tokenize_(sequence.getString());
-    digestAfterTokenize_(fragment_positions, sequence, output, min_length, max_length);
+    return digestAfterTokenize_(fragment_positions, sequence, output, min_length, max_length);
   }
 } //namespace

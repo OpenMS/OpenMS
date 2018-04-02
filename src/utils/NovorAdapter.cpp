@@ -291,6 +291,11 @@ protected:
     if (!qp.waitForStarted(-1))
     {
       LOG_FATAL_ERROR << "FATAL: Invocation of NovorAdapter failed. Process (java -jar novor.jar ...) was not able to start." << std::endl;
+      const QString novor_stdout(qp.readAllStandardOutput());
+      const QString novor_stderr(qp.readAllStandardError());
+      writeLog_(novor_stdout);
+      writeLog_(novor_stderr);
+      writeLog_(String(qp.exitCode()));
       return EXTERNAL_PROGRAM_ERROR;
     } 
    
@@ -298,6 +303,11 @@ protected:
     if (!qp.waitForFinished(-1))
     {
       LOG_FATAL_ERROR << "FATAL: Invocation of NovorAdapter failed. Process (java -jar novor.jar ...) was not able to finish." << std::endl;
+      const QString novor_stdout(qp.readAllStandardOutput());
+      const QString novor_stderr(qp.readAllStandardError());
+      writeLog_(novor_stdout);
+      writeLog_(novor_stderr);
+      writeLog_(String(qp.exitCode()));
       return EXTERNAL_PROGRAM_ERROR;
     } 
 
@@ -305,6 +315,11 @@ protected:
     if (qp.exitStatus() != 0 || qp.exitCode() != 0)
     {
       LOG_FATAL_ERROR << "FATAL: Invocation of NovorAdapter  has failed. Error code was: " << qp.exitCode() << std::endl;
+      const QString novor_stdout(qp.readAllStandardOutput());
+      const QString novor_stderr(qp.readAllStandardError());
+      writeLog_(novor_stdout);
+      writeLog_(novor_stderr);
+      writeLog_(String(qp.exitCode()));
       return EXTERNAL_PROGRAM_ERROR;
     }
 

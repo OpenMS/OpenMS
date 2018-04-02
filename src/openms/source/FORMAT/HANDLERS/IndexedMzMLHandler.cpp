@@ -32,7 +32,7 @@
 // $Authors: Hannes Roest $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/FORMAT/IndexedMzMLFile.h>
+#include <OpenMS/FORMAT/HANDLERS/IndexedMzMLHandler.h>
 
 #include <OpenMS/FORMAT/HANDLERS/IndexedMzMLDecoder.h>
 #include <OpenMS/FORMAT/HANDLERS/MzMLSpectrumDecoder.h>
@@ -41,8 +41,10 @@
 
 namespace OpenMS
 {
+namespace Internal
+{
 
-  void IndexedMzMLFile::parseFooter_(String filename)
+  void IndexedMzMLHandler::parseFooter_(String filename)
   {
     //-------------------------------------------------------------
     // Find offset
@@ -67,19 +69,19 @@ namespace OpenMS
     else parsing_success_ = false;
   }
 
-  IndexedMzMLFile::IndexedMzMLFile(String filename) :
+  IndexedMzMLHandler::IndexedMzMLHandler(const String& filename) :
     parsing_success_(false),
     skip_xml_checks_(false) 
   {
     openFile(filename);
   }
 
-  IndexedMzMLFile::IndexedMzMLFile() :
+  IndexedMzMLHandler::IndexedMzMLHandler() :
     parsing_success_(false),
     skip_xml_checks_(false) 
   {}
 
-  IndexedMzMLFile::IndexedMzMLFile(const IndexedMzMLFile& source) :
+  IndexedMzMLHandler::IndexedMzMLHandler(const IndexedMzMLHandler& source) :
     filename_(source.filename_),
     spectra_offsets_(source.spectra_offsets_),
     chromatograms_offsets_(source.chromatograms_offsets_),
@@ -93,11 +95,11 @@ namespace OpenMS
   {
   }
 
-  IndexedMzMLFile::~IndexedMzMLFile()
+  IndexedMzMLHandler::~IndexedMzMLHandler()
   {
   }
 
-  void IndexedMzMLFile::openFile(String filename) 
+  void IndexedMzMLHandler::openFile(String filename) 
   {
     if (filestream_.is_open())
     {
@@ -108,98 +110,41 @@ namespace OpenMS
     parseFooter_(filename);
   }
 
-  bool IndexedMzMLFile::getParsingSuccess() const
+  bool IndexedMzMLHandler::getParsingSuccess() const
   {
     return parsing_success_;
   }
 
-  size_t IndexedMzMLFile::getNrSpectra() const
+  size_t IndexedMzMLHandler::getNrSpectra() const
   {
     return spectra_offsets_.size();
   }
 
-  size_t IndexedMzMLFile::getNrChromatograms() const
+  size_t IndexedMzMLHandler::getNrChromatograms() const
   {
     return chromatograms_offsets_.size();
   }
 
-  OpenMS::Interfaces::SpectrumPtr IndexedMzMLFile::getSpectrumById(int id)
-  {
-    int spectrumToGet = id;
-
-    if (!parsing_success_)
-      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
-          "Parsing was unsuccessful, cannot read file", "");
-    if (spectrumToGet < 0)
-      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
-          String( "id needs to be positive, was " + String(id) ));
-    if (spectrumToGet >= (int)getNrSpectra())
-      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String( 
-        "id needs to be smaller than the number of spectra, was " + String(id) 
-        + " maximal allowed is " + String(getNrSpectra()) ));
-
-    std::streampos startidx = -1;
-    std::streampos endidx = -1;
-
-    if (spectrumToGet == int(getNrSpectra() - 1))
-    {
-      startidx = spectra_offsets_[spectrumToGet].second;
-      if (chromatograms_offsets_.empty() || !spectra_before_chroms_)
-      {
-        // just take everything until the index starts
-        endidx = index_offset_;
-      }
-      else
-      {
-        // just take everything until the chromatograms start
-        endidx = chromatograms_offsets_[0].second;
-      }
-    }
-    else
-    {
-      startidx = spectra_offsets_[spectrumToGet].second;
-      endidx = spectra_offsets_[spectrumToGet + 1].second;
-    }
-
-    std::streampos readl = endidx - startidx;
-    char* buffer = new char[readl + std::streampos(1)];
-    filestream_.seekg(startidx, filestream_.beg);
-    filestream_.read(buffer, readl);
-    buffer[readl] = '\0';
-    std::string text(buffer);
-    delete[] buffer;
-
-#ifdef DEBUG_READER
-    // print the full text we just read
-    std::cout << text << std::endl;
-#endif
-
-    OpenMS::Interfaces::SpectrumPtr sptr(new OpenMS::Interfaces::Spectrum);
-    MzMLSpectrumDecoder d;
-    d.setSkipXMLChecks(skip_xml_checks_);
-    d.domParseSpectrum(text, sptr);
-
-#ifdef DEBUG_READER
-    std::cout << sptr->getIntensityArray()->data.size() << " int and mz : " << sptr->getMZArray()->data.size() << std::endl;
-#endif
-
-    return sptr;
-  }
-
-  OpenMS::Interfaces::ChromatogramPtr IndexedMzMLFile::getChromatogramById(int id)
+  std::string IndexedMzMLHandler::getChromatogramById_helper_(int id)
   {
     int chromToGet = id;
 
     if (!parsing_success_)
+    {
       throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
           "Parsing was unsuccessful, cannot read file", "");
+    }
     if (chromToGet < 0)
+    {
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
           String( "id needs to be positive, was " + String(id) ));
+    }
     if (chromToGet >= (int)getNrChromatograms())
+    {
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String( 
-        "id needs to be smaller than the number of spectra, was " + String(id) 
-        + " maximal allowed is " + String(getNrSpectra()) ));
+            "id needs to be smaller than the number of spectra, was " + String(id) 
+            + " maximal allowed is " + String(getNrSpectra()) ));
+    }
 
     std::streampos startidx = -1;
     std::streampos endidx = -1;
@@ -237,16 +182,110 @@ namespace OpenMS
     std::cout << text << std::endl;
 #endif
 
-    OpenMS::Interfaces::ChromatogramPtr sptr(new OpenMS::Interfaces::Chromatogram);
-    MzMLSpectrumDecoder d;
-    d.setSkipXMLChecks(skip_xml_checks_);
-    d.domParseChromatogram(text, sptr);
+    return text;
+  }
+
+  std::string IndexedMzMLHandler::getSpectrumById_helper_(int id)
+  {
+    int spectrumToGet = id;
+
+    if (!parsing_success_)
+    {
+      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
+          "Parsing was unsuccessful, cannot read file", "");
+    }
+    if (spectrumToGet < 0)
+    {
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
+          String( "id needs to be positive, was " + String(id) ));
+    }
+    if (spectrumToGet >= (int)getNrSpectra())
+    {
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String( 
+            "id needs to be smaller than the number of spectra, was " + String(id) 
+            + " maximal allowed is " + String(getNrSpectra()) ));
+    }
+
+    std::streampos startidx = -1;
+    std::streampos endidx = -1;
+
+    if (spectrumToGet == int(getNrSpectra() - 1))
+    {
+      startidx = spectra_offsets_[spectrumToGet].second;
+      if (chromatograms_offsets_.empty() || !spectra_before_chroms_)
+      {
+        // just take everything until the index starts
+        endidx = index_offset_;
+      }
+      else
+      {
+        // just take everything until the chromatograms start
+        endidx = chromatograms_offsets_[0].second;
+      }
+    }
+    else
+    {
+      startidx = spectra_offsets_[spectrumToGet].second;
+      endidx = spectra_offsets_[spectrumToGet + 1].second;
+    }
+
+    std::streampos readl = endidx - startidx;
+    char* buffer = new char[readl + std::streampos(1)];
+    filestream_.seekg(startidx, filestream_.beg);
+    filestream_.read(buffer, readl);
+    buffer[readl] = '\0';
+    std::string text(buffer);
+    delete[] buffer;
 
 #ifdef DEBUG_READER
-    std::cout << sptr->getIntensityArray()->data.size() << " int and time : " << sptr->getTimeArray()->data.size() << std::endl;
+    // print the full text we just read
+    std::cout << text << std::endl;
 #endif
 
+    return text;
+  }
+
+  OpenMS::Interfaces::SpectrumPtr IndexedMzMLHandler::getSpectrumById(int id)
+  {
+    OpenMS::Interfaces::SpectrumPtr sptr(new OpenMS::Interfaces::Spectrum);
+    std::string text = IndexedMzMLHandler::getSpectrumById_helper_(id);
+    MzMLSpectrumDecoder(skip_xml_checks_).domParseSpectrum(text, sptr);
     return sptr;
   }
 
+  const OpenMS::MSSpectrum IndexedMzMLHandler::getMSSpectrumById(int id)
+  {
+    OpenMS::MSSpectrum s;
+    getMSSpectrumById(id, s);
+    return s;
+  }
+
+  void IndexedMzMLHandler::getMSSpectrumById(int id, MSSpectrum& s)
+  {
+    std::string text = IndexedMzMLHandler::getSpectrumById_helper_(id);
+    MzMLSpectrumDecoder(skip_xml_checks_).domParseSpectrum(text, s);
+  }
+
+  OpenMS::Interfaces::ChromatogramPtr IndexedMzMLHandler::getChromatogramById(int id)
+  {
+    OpenMS::Interfaces::ChromatogramPtr cptr(new OpenMS::Interfaces::Chromatogram);
+    std::string text = IndexedMzMLHandler::getChromatogramById_helper_(id);
+    MzMLSpectrumDecoder(skip_xml_checks_).domParseChromatogram(text, cptr);
+    return cptr;
+  }
+
+  const OpenMS::MSChromatogram IndexedMzMLHandler::getMSChromatogramById(int id)
+  {
+    OpenMS::MSChromatogram c;
+    getMSChromatogramById(id, c);
+    return c;
+  }
+
+  void IndexedMzMLHandler::getMSChromatogramById(int id, MSChromatogram& c)
+  {
+    std::string text = IndexedMzMLHandler::getChromatogramById_helper_(id);
+    MzMLSpectrumDecoder(skip_xml_checks_).domParseChromatogram(text, c);
+  }
+
+}
 }

@@ -343,7 +343,7 @@ protected:
     {
       writeLog_( "FATAL: External invocation of Sirius failed. Standard output and error were:");
       const QString sirius_stdout(qp.readAllStandardOutput());
-      const QString sirius_stderr(qp.readAllStandardOutput());
+      const QString sirius_stderr(qp.readAllStandardError());
       writeLog_(sirius_stdout);
       writeLog_(sirius_stderr);
       writeLog_(String(qp.exitCode()));

@@ -435,7 +435,8 @@ namespace OpenMS
 
   void TheoreticalSpectrumGenerator::addPeaks_(PeakSpectrum & spectrum, const AASequence & peptide, DataArrays::StringDataArray& ion_names, DataArrays::IntegerDataArray& charges, Residue::ResidueType res_type, Int charge) const
   {
-    spectrum.reserve(peptide.size());
+    int f = 1 + int(add_isotopes_) + int(add_losses_);
+    spectrum.reserve(spectrum.size() + f * peptide.size());
 
     // Generate the ion peaks:
     // Does not generate peaks of full peptide (therefore "<").

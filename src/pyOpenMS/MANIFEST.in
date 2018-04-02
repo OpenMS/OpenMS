@@ -5,8 +5,8 @@ include pyopenms/*.txt
 include pyopenms/libOpenMS.*
 include pyopenms/libOpenSwathAlgo.*
 include pyopenms/libSuperHirn.*
-include pyopenms/QtCore*
-include pyopenms/QtNetwork*
+include pyopenms/Qt*Core*
+include pyopenms/Qt*Network*
 include pyopenms/libz.*
 exclude pyopenms/*.cpp
 global-exclude pyopenms.cpp
