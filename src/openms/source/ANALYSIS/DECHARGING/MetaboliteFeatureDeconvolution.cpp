@@ -127,6 +127,7 @@ namespace OpenMS
     defaults_.setValue("potential_adducts", ListUtils::create<String>("H:+:0.25,Na:+:0.25,NH4:+:0.25,K:+:0.1,C2H3N:+:0.1,H-2O-1:0:0.05"), "Adducts used to explain mass differences in format: 'Element:Charge(+/-/0):Probability[:RTShift[:Label]]', i.e. the number of '+' or '-' indicate the charge ('0' if neutral adduct), e.g. 'Ca:++:0.5' indicates +2. Probabilites have to be in (0,1]. RTShift param is optional and indicates the expected RT shift caused by this adduct, e.g. '(2)H4H-4:0:1:-3' indicates a 4 deuterium label, which causes early elution by 3 seconds. As a fifth parameter you can add a label which is tagged on every feature which has this adduct. This also determines the map number in the consensus file.");
     defaults_.setValue("max_neutrals", 1, "Maximal number of neutral adducts(q=0) allowed. Add them in the 'potential_adducts' section!");
 
+    defaults_.setValue("use_minority_bound", "false", "Prune the considered adduct transitions by transition probabilities.");    
     defaults_.setValue("max_minority_bound", 2, "Limits allowed adduct compositions and changes between compositions in the underlying graph optimization problem by introducing a probability-based threshold: the minority bound sets the maximum count of the least probable adduct (according to 'potential_adducts' param) within a charge variant with maximum charge only containing the most likely adduct otherwise. E.g., for 'charge_max' 4 and 'max_minority_bound' 2 with most probable adduct being H+ and least probable adduct being Na+, this will allow adduct compositions of '2(H+),2(Na+)' but not of '1(H+),3(Na+)'. Further, adduct compositions/changes less likely than '2(H+),2(Na+)' will be discarded as well.");
     defaults_.setMinInt("max_minority_bound", 0);
 
@@ -344,10 +345,15 @@ namespace OpenMS
       adduct_lowest_log_p  = std::min(adduct_lowest_log_p, potential_adducts_[i].getLogProb());
       adduct_highest_log_p = std::max(adduct_highest_log_p, potential_adducts_[i].getLogProb());
     }
+    bool use_minority_bound = (param_.getValue("use_minority_bound") == "true" ? true : false);
     Int max_minority_bound = param_.getValue("max_minority_bound");
-    double thresh_logp = adduct_lowest_log_p * max_minority_bound +
-                         adduct_highest_log_p * std::max(q_max - max_minority_bound, 0);
-
+    double thresh_logp = log(0.0000000001); //We set a default threshold simply as a minimally small number
+    if (use_minority_bound)
+    {
+    thresh_logp = adduct_lowest_log_p * max_minority_bound +
+                  adduct_highest_log_p * std::max(q_max - max_minority_bound, 0);
+    }
+    
     Adduct default_adduct;
     if (is_neg)
     {
