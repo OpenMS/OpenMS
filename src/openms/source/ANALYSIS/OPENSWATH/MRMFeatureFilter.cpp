@@ -121,7 +121,7 @@ namespace OpenMS
         {
           if (filter_criteria.component_group_qcs[cg_qc_it].component_group_name == component_group_name)
           {
-            const double rt = features[feature_it].getRT(); //check!
+            const double rt = features[feature_it].getRT();
             if (!checkRange(rt,
               filter_criteria.component_group_qcs[cg_qc_it].retention_time_l,
               filter_criteria.component_group_qcs[cg_qc_it].retention_time_u))
@@ -243,7 +243,7 @@ namespace OpenMS
           if (filter_criteria.component_qcs[c_qc_it].component_name == component_name)
           {
             // RT check
-            double rt = features[feature_it].getSubordinates()[sub_it].getRT(); //check!
+            const double rt = features[feature_it].getSubordinates()[sub_it].getRT();
             // std::cout << "RT" << std::endl; //debugging
             if (!checkRange(rt,
               filter_criteria.component_qcs[c_qc_it].retention_time_l,

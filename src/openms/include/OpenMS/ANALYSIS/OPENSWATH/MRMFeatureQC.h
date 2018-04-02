@@ -88,7 +88,7 @@ public:
       /// retention time lower bound
       double retention_time_l { 0.0 };
       /// retention time upper bound
-      double retention_time_u { 100.0 };
+      double retention_time_u { 1e12 };
       /// intensity lower bound
       double intensity_l { 0.0 };
       /// intensity upper bound
@@ -117,7 +117,7 @@ public:
       /// retention time lower bound
       double retention_time_l { 0.0 };
       /// retention time upper bound
-      double retention_time_u { 100.0 };
+      double retention_time_u { 1e12 };
       /// intensity lower bound
       double intensity_l { 0.0 };
       /// intensity upper bound
