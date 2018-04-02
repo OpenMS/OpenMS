@@ -43,7 +43,6 @@
 #include <OpenMS/CONCEPT/Constants.h>
 #include <QtCore/QFile>
 #include <QtCore/QFileInfo>
-#include <QtCore/QTemporaryFile>
 #include <QtCore/QDir>
 #include <QtCore/QProcess>
 
