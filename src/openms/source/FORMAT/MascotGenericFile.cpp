@@ -39,8 +39,6 @@
 #include <OpenMS/FORMAT/MascotGenericFile.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/METADATA/Precursor.h>
-#include <OpenMS/METADATA/SpectrumLookup.h>
-#include <OpenMS/METADATA/SourceFile.h>
 
 #include <QFileInfo>
 #include <QtCore/QRegExp>
