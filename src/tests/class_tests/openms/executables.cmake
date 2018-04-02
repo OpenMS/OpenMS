@@ -364,15 +364,12 @@ set(chemistry_executables_list
   EmpiricalFormula_test
   EnzymaticDigestionLogModel_test
   EnzymaticDigestion_test
-  FastaIteratorIntern_test
-  FastaIterator_test
   IsotopeDistribution_test
   ModificationDefinition_test
   ModificationDefinitionsSet_test
   ModificationsDB_test
   CrossLinksDB_test
   ModifierRep_test
-  PepIterator_test
   ProteaseDB_test
   ProteaseDigestion_test
   ResidueDB_test
@@ -384,7 +381,6 @@ set(chemistry_executables_list
   SvmTheoreticalSpectrumGeneratorSet_test
   TheoreticalSpectrumGenerator_test
   TheoreticalSpectrumGeneratorXLMS_test
-  TrypticIterator_test
   WeightWrapper_test
   IMSAlphabetTextParser_test
   IMSElement_test
