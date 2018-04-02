@@ -171,6 +171,7 @@ namespace OpenMS
 
     // adducts might look like this:
     //   Element:Probability[:RTShift[:Label]]
+    double summed_probs = 0.0;
     for (StringList::iterator it = potential_adducts_s.begin(); it != potential_adducts_s.end(); ++it)
     {
       // skip disabled adducts
@@ -191,6 +192,7 @@ namespace OpenMS
         String error = "MetaboliteFeatureDeconvolution::potential_adducts (" + (*it) + ") does not have a proper probability (" + String(prob) + ") in [0,1]!";
         throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, error);
       }
+      summed_probs += prob;
 
 
       // RT Shift:
@@ -250,6 +252,13 @@ namespace OpenMS
       verbose_level_ = param_.getValue("verbose_level");
     }
 
+
+    if (abs(1.0 - summed_probs) > 0.001)
+    {
+    String error = "MetaboliteFeatureDeconvolution::potential_adducts probabilities do not sum up to 1.0!";
+        throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, error);
+    }
+    
     // RT sanity check:
     double rt_diff_max = param_.getValue("retention_max_diff");
     double rt_diff_max_local = param_.getValue("retention_max_diff_local");
