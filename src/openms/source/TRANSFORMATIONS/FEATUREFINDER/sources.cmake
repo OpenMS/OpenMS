@@ -13,7 +13,6 @@ EmgModel.cpp
 EmgScoring.cpp
 ExtendedIsotopeFitter1D.cpp
 ExtendedIsotopeModel.cpp
-FeaFiModule.cpp
 FeatureFinder.cpp
 FeatureFinderAlgorithm.cpp
 FeatureFinderAlgorithmIsotopeWavelet.cpp
