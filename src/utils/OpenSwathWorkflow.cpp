@@ -627,6 +627,7 @@ protected:
    * @param mz_correction_function If correction in m/z is desired, which function should be used
    * @param debug_level Debug level (writes out the RT normalization chromatograms if larger than 1)
    *
+   *
    */
   TransformationDescription loadTrafoFile(String trafo_in, String irt_tr_file,
     std::vector< OpenSwath::SwathMap > & swath_maps, double min_rsq, double min_coverage,
@@ -635,6 +636,7 @@ protected:
     Size debug_level, bool sonar, bool load_into_memory, const String& irt_trafo_out)
   {
     TransformationDescription trafo_rtnorm;
+    
     if (!trafo_in.empty())
     {
       // get read RT normalization file
