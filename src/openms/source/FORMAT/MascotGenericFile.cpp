@@ -39,7 +39,8 @@
 #include <OpenMS/FORMAT/MascotGenericFile.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/METADATA/Precursor.h>
-
+#include <OpenMS/METADATA/SpectrumLookup.h>
+#include <OpenMS/METADATA/SourceFile.h>
 
 #include <QFileInfo>
 #include <QtCore/QRegExp>
@@ -337,7 +338,7 @@ namespace OpenMS
            << "_" << spec.getNativeID() << "_" << filename << "\n";
         os << "PEPMASS=" << precisionWrapper(mz) <<  "\n";
         os << "RTINSECONDS=" << precisionWrapper(rt) << "\n";
-        os << "SCANS=" << spec.getNativeID().substr(spec.getNativeID().find("=")+1) << "\n";
+        os << "SCANS=" << spec.getNativeID().substr(spec.getNativeID().find_last_of("=")+1) << "\n";
      }
       else
       {
@@ -346,7 +347,7 @@ namespace OpenMS
            << spec.getNativeID() << "_" << filename << "\n";
         os << "PEPMASS=" << setprecision(HIGH_PRECISION) << mz << "\n";
         os << "RTINSECONDS=" << setprecision(LOW_PRECISION) << rt << "\n";
-        os << "SCANS=" << spec.getNativeID().substr(spec.getNativeID().find("=")+1) << "\n";
+        os << "SCANS=" << spec.getNativeID().substr(spec.getNativeID().find_last_of("=")+1) << "\n";
       }
 
       int charge(precursor.getCharge());
