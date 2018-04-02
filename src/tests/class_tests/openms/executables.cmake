@@ -149,7 +149,6 @@ set(format_executables_list
   AbsoluteQuantitationStandardsFile_test
   Base64_test
   MSNumpressCoder_test
-  BigString_test
   Bzip2Ifstream_test
   Bzip2InputStream_test
   ChromeleonFile_test

@@ -4,7 +4,6 @@ set(directory include/OpenMS/DATASTRUCTURES)
 ### list all header files of the directory here
 set(sources_list_h
 Adduct.h
-BigString.h
 BinaryTreeNode.h
 CalibrationData.h
 ChargePair.h
@@ -54,4 +53,3 @@ endforeach(i)
 source_group("Header Files\\OpenMS\\DATASTRUCTURES" FILES ${sources_h})
 
 set(OpenMS_sources_h ${OpenMS_sources_h} ${sources_h})
-

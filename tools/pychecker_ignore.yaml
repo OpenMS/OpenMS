@@ -1445,7 +1445,6 @@ PyOpenMSChecker:
     - OpenMS::BaseLabeler
     - OpenMS::BaseModel
     - OpenMS::BaseSuperimposer
-    - OpenMS::BigString
     - OpenMS::TOPPBase
     - OpenMS::TraceFitter
 
