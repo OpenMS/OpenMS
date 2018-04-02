@@ -1,5 +1,4 @@
 set(concept_executables_list
-  BinaryComposeFunctionAdapter_test
   ClassTest_test
   Exception_Base_test
   FactoryBase_test
@@ -11,7 +10,6 @@ set(concept_executables_list
   VersionInfo_test
   LogConfigHandler_test
   LogStream_test
-  UnaryComposeFunctionAdapter_test
   UniqueIdGenerator_test
   UniqueIdIndexer_test
   UniqueIdInterface_test

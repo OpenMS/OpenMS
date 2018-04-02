@@ -1009,9 +1009,7 @@ PyOpenMSChecker:
     # CONCEPT
     - OpenMS::SingletonRegistry
     - OpenMS::StreamHandler
-    - OpenMS::UnaryComposeFunctionAdapter
     - OpenMS::Factory
-    - OpenMS::BinaryComposeFunctionAdapter
     - OpenMS::UniqueIdIndexer
     - OpenMS::FactoryBase
 
