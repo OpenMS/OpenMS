@@ -11,7 +11,7 @@ from logging import basicConfig
 basicConfig(level=21)
 
 # import config
-from env import (QT_QMAKE_VERSION_INFO, QT_LIBRARY_DIR, OPEN_MS_BUILD_TYPE, OPEN_MS_SRC,
+from env import (QT_QMAKE_VERSION_INFO, QT_QTCORE_LIBRARY, QT_QTNETWORK_LIBRARY, OPEN_MS_BUILD_TYPE, OPEN_MS_SRC,
                  OPEN_MS_CONTRIB_BUILD_DIRS, OPEN_MS_LIB, OPEN_SWATH_ALGO_LIB, SUPERHIRN_LIB,
                  OPEN_MS_BUILD_DIR, MSVS_RTLIBS, OPEN_MS_VERSION,
                  Boost_MAJOR_VERSION, Boost_MINOR_VERSION, PY_NUM_THREADS, PY_NUM_MODULES)
@@ -260,14 +260,11 @@ if iswin:
     shutil.copy(SUPERHIRN_LIB, "pyopenms")
 
     if OPEN_MS_BUILD_TYPE.upper() == "DEBUG":
-        shutil.copy(j(QT_LIBRARY_DIR, "QtCored4.dll"), "pyopenms")
-        shutil.copy(j(QT_LIBRARY_DIR, "QtNetworkd4.dll"), "pyopenms")
-        shutil.copy(j(OPEN_MS_CONTRIB_BUILD_DIR, "lib", "xerces-c_3_1D.dll"), "pyopenms")
+        shutil.copy(j(QT_QTCORE_LIBRARY, "Qt5Cored.dll"), "pyopenms")
+        shutil.copy(j(QT_QTNETWORK_LIBRARY, "Qt5Networkd.dll"), "pyopenms")
     else:
-        shutil.copy(j(QT_LIBRARY_DIR, "QtCore4.dll"), "pyopenms")
-        shutil.copy(j(QT_LIBRARY_DIR, "QtNetwork4.dll"), "pyopenms")
-        shutil.copy(j(OPEN_MS_CONTRIB_BUILD_DIR, "lib", "xerces-c_3_1.dll"), "pyopenms")
-        shutil.copy(j(OPEN_MS_CONTRIB_BUILD_DIR, "lib", "sqlite3.dll"), "pyopenms")
+        shutil.copy(j(QT_QTCORE_LIBRARY, "Qt5Core.dll"), "pyopenms")
+        shutil.copy(j(QT_QTNETWORK_LIBRARY, "Qt5Network.dll"), "pyopenms")
 
 elif sys.platform.startswith("linux"):
 
@@ -281,8 +278,8 @@ elif sys.platform == "darwin":
     shutil.copy(j(OPEN_MS_BUILD_DIR, "lib", "libSuperHirn.dylib"), "pyopenms")
     shutil.copy(j(OPEN_MS_BUILD_DIR, "lib", "libOpenSwathAlgo.dylib"), "pyopenms")
     # copy and set correct permissions (needs to be writeable for next copy)
-    shutil.copy(j(QT_LIBRARY_DIR, "QtCore.framework", "QtCore"), "pyopenms")
-    shutil.copy(j(QT_LIBRARY_DIR, "QtNetwork.framework", "QtNetwork"), "pyopenms")
+    shutil.copy(j(QT_QTCORE_LIBRARY, "QtCore"), "pyopenms")
+    shutil.copy(j(QT_QTNETWORK_LIBRARY, "QtNetwork"), "pyopenms")
     os.chmod("pyopenms/QtCore", 0o744)
     os.chmod("pyopenms/QtNetwork", 0o744)
     shutil.copy(j(os.path.expanduser(OPEN_MS_CONTRIB_BUILD_DIR), "lib", "libz.1.dylib"), "pyopenms")

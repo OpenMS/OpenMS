@@ -40,7 +40,8 @@
 #include <OpenMS/VISUAL/ParamEditor.h>
 #include <OpenMS/DATASTRUCTURES/Param.h>
 
-#include <QtGui/QMainWindow>
+#include <QtWidgets/QMdiArea>
+#include <QtWidgets/QMainWindow>
 
 class QToolBar;
 class QAction;

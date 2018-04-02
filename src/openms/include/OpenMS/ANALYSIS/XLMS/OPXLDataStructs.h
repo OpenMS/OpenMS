@@ -145,11 +145,6 @@ namespace OpenMS
         double HyperAlpha;
         double HyperBeta;
         double HyperBoth;
-        double PScoreCommon;
-        double PScoreXlink;
-        double PScoreAlpha;
-        double PScoreBeta;
-        double PScoreBoth;
 
         std::vector<PeptideHit::PeakAnnotation> frag_annotations;
 
@@ -184,12 +179,7 @@ namespace OpenMS
                      HyperXlink == other.HyperXlink &&
                      HyperAlpha == other.HyperAlpha &&
                      HyperBeta == other.HyperBeta &&
-                     HyperBoth == other.HyperBoth &&
-                     PScoreCommon == other.PScoreCommon &&
-                     PScoreXlink == other.PScoreXlink &&
-                     PScoreAlpha == other.PScoreAlpha &&
-                     PScoreBeta == other.PScoreBeta &&
-                     PScoreBoth == other.PScoreBoth;
+                     HyperBoth == other.HyperBoth;
         }
       };
 

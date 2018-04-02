@@ -34,10 +34,14 @@
 
 #pragma once
 
-// OpenMS_GUI config
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
-#include <OpenMS/VISUAL/DIALOGS/UIC/ui_TOPPViewPrefDialog.h>
+#include <QtWidgets/QDialog>
+
+namespace Ui
+{
+  class TOPPViewPrefDialogTemplate;
+}
 
 namespace OpenMS
 {
@@ -49,17 +53,19 @@ namespace OpenMS
         @ingroup TOPPView_elements
     */
     class OPENMS_GUI_DLLAPI TOPPViewPrefDialog :
-      public QDialog,
-      public Ui::TOPPViewPrefDialogTemplate
+      public QDialog
     {
       Q_OBJECT
 
 public:
       TOPPViewPrefDialog(QWidget * parent);
+      ~TOPPViewPrefDialog();
 
 protected slots:
       void browseDefaultPath_();
       void browseTempPath_();
+private:
+      Ui::TOPPViewPrefDialogTemplate* ui_;
     };
   }
 }

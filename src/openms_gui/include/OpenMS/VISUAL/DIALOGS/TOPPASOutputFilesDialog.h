@@ -37,7 +37,12 @@
 // OpenMS_GUI config
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
-#include <OpenMS/VISUAL/DIALOGS/UIC/ui_TOPPASOutputFilesDialog.h>
+#include <QtWidgets/QDialog>
+
+namespace Ui
+{
+  class TOPPASOutputFilesDialogTemplate;
+}
 
 namespace OpenMS
 {
@@ -48,8 +53,7 @@ namespace OpenMS
       @ingroup Dialogs
   */
   class OPENMS_GUI_DLLAPI TOPPASOutputFilesDialog :
-    public QDialog,
-    public Ui::TOPPASOutputFilesDialogTemplate
+    public QDialog
   {
     Q_OBJECT
 
@@ -57,6 +61,7 @@ public:
 
     /// Constructor
     TOPPASOutputFilesDialog(const QString & dir_name, int num_jobs);
+    ~TOPPASOutputFilesDialog();
 
     /// Returns the name of the directory
     QString getDirectory();
@@ -76,7 +81,8 @@ protected slots:
 
     /// Called when OK is pressed; checks if the selected file is valid
     void checkValidity_();
-
+private:
+    Ui::TOPPASOutputFilesDialogTemplate* ui_;
   };
 
 }

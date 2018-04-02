@@ -38,8 +38,8 @@
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
 // QT
-#include <QtGui/QWidget>
-#include <QtGui/QPixmap>
+#include <QtWidgets>
+#include <QPixmap>
 class QPaintEvent;
 class QResizeEvent;
 class QMouseEvent;

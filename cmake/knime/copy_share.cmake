@@ -51,7 +51,7 @@ foreach(file ${share_files})
     string(LENGTH "${CMAKE_MATCH_1}" pos) 
   endif() 
   
-  # we only write out line that do not contain our parameter
+  # we only copy files that do not match
   if (pos EQUAL -1)  
     # copy
     configure_file(${file} ${TARGET_DIRECTORY}/${trimmed_file} COPYONLY)

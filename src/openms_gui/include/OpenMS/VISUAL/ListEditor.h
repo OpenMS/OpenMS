@@ -41,9 +41,9 @@
   #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #endif
 
-#include <QtGui/QDialog>
-#include <QtGui/QListWidget>
-#include <QtGui/QItemDelegate>
+#include <QDialog>
+#include <QListWidget>
+#include <QItemDelegate>
 
 class QPushButton;
 

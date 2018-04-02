@@ -43,6 +43,8 @@
 #include <OpenMS/ANALYSIS/QUANTITATION/KDTreeFeatureMaps.h>
 #include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
 #include <OpenMS/CHEMISTRY/Element.h>
+#include <OpenMS/SYSTEM/File.h>
+
 #include <QtCore/QProcess>
 #include <QDir>
 #include <QDebug>
@@ -341,7 +343,7 @@ protected:
     {
       writeLog_( "FATAL: External invocation of Sirius failed. Standard output and error were:");
       const QString sirius_stdout(qp.readAllStandardOutput());
-      const QString sirius_stderr(qp.readAllStandardOutput());
+      const QString sirius_stderr(qp.readAllStandardError());
       writeLog_(sirius_stdout);
       writeLog_(sirius_stderr);
       writeLog_(String(qp.exitCode()));

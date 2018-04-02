@@ -259,7 +259,8 @@ public:
       PeptideCompound() :
         CVTermList(),
         charge_(0),
-        charge_set_(false)
+        charge_set_(false),
+        drift_time_(-1)
       {
       }
 
@@ -268,7 +269,8 @@ public:
         id(rhs.id),
         rts(rhs.rts),
         charge_(rhs.charge_),
-        charge_set_(rhs.charge_set_)
+        charge_set_(rhs.charge_set_),
+        drift_time_(rhs.drift_time_)
       {
       }
 
@@ -281,6 +283,7 @@ public:
           id = rhs.id;
           charge_ = rhs.charge_;
           charge_set_ = rhs.charge_set_;
+          drift_time_ = rhs.drift_time_;
         }
         return *this;
       }
@@ -312,6 +315,18 @@ public:
       {
         OPENMS_PRECONDITION(charge_set_, "Cannot return charge which was never set")
         return charge_;
+      }
+
+      /// Set the peptide or compound ion mobility drift time
+      void setDriftTime(double dt)
+      {
+        drift_time_ = dt;
+      }
+
+      /// Return the peptide or compound ion mobility drift time
+      double getDriftTime() const
+      {
+        return drift_time_;
       }
 
       //@{
@@ -361,6 +376,7 @@ public:
 protected:
       int charge_;
       bool charge_set_;
+      double drift_time_;
 
     };
 

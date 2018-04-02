@@ -38,8 +38,8 @@
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
 //QT
-#include <QtGui/QTreeWidget>
-#include <QtGui/QMouseEvent>
+#include <QtWidgets/QTreeWidget>
+#include <QMouseEvent>
 #include <QtCore/QPoint>
 
 namespace OpenMS

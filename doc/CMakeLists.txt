@@ -75,9 +75,13 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "doxygen/parameters")
 set(_doc_progs_include )
 set(_doc_progs_link_libraries )
 if(WITH_GUI)
+  #------------------------------------------------------------------------------
+  # QT dependencies
+  find_package(Qt5 COMPONENTS Core Network Svg OpenGL REQUIRED)
   set(_doc_progs_include ${OpenMS_GUI_INCLUDE_DIRECTORIES})
   set(_doc_progs_link_libraries ${OpenMS_GUI_LIBRARIES})
 else()
+  find_package(Qt5 COMPONENTS Core Network REQUIRED)
   set(_doc_progs_include ${OpenMS_INCLUDE_DIRECTORIES})
   set(_doc_progs_link_libraries ${OpenMS_LIBRARIES})
 endif()

@@ -38,7 +38,7 @@
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
 // QT
-#include <QtGui/QWidget>
+#include <QtWidgets>
 class QPaintEvent;
 
 // OpenMS

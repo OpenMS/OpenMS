@@ -39,6 +39,8 @@
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <sqlite3.h>
 
+#include <map>
+
 namespace OpenMS
 {
   /**

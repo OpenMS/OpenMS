@@ -16,7 +16,6 @@
 // Instantiate the BSpline templates for type 
 
 #include "BSplineBase.cpp"
-#include "BSpline.cpp"
 
 
 namespace eol_bspline

@@ -37,13 +37,18 @@
 // OpenMS_GUI config
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
-#include <OpenMS/VISUAL/DIALOGS/UIC/ui_LayerStatisticsDialog.h>
 #include <OpenMS/VISUAL/LayerData.h>
 
-#include <QtGui/QPushButton>
+#include <QtWidgets/QDialog>
+#include <QtWidgets/QPushButton>
 
 #include <utility>
 #include <map>
+
+namespace Ui
+{
+  class LayerStatisticsDialogTemplate;
+}
 
 namespace OpenMS
 {
@@ -56,8 +61,7 @@ namespace OpenMS
       @ingroup Dialogs
   */
   class OPENMS_GUI_DLLAPI LayerStatisticsDialog :
-    public QDialog,
-    public Ui::LayerStatisticsDialogTemplate
+    public QDialog
   {
     Q_OBJECT
 
@@ -65,6 +69,8 @@ public:
 
     /// Constructor
     LayerStatisticsDialog(SpectrumWidget * parent);
+
+    ~LayerStatisticsDialog();
 
 protected slots:
 
@@ -149,6 +155,8 @@ protected:
 private:
     ///Not implemented
     LayerStatisticsDialog();
+
+    Ui::LayerStatisticsDialogTemplate* ui_;
 
   };
 

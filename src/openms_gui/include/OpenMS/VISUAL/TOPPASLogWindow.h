@@ -38,7 +38,7 @@
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
 //QT
-#include <QtGui/QTextEdit>
+#include <QtWidgets/QTextEdit>
 class QContextMenuEvent;
 
 namespace OpenMS

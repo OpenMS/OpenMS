@@ -33,20 +33,11 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/DATASTRUCTURES/DataValue.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/DATASTRUCTURES/ListUtilsIO.h>
 
 #include <OpenMS/CONCEPT/PrecisionWrapper.h>
 
-#include <OpenMS/config.h>
-
 #include <QtCore/QString>
-
-#include <cstddef>
-#include <cmath>
-#include <cstdlib>
-#include <iostream>
-#include <sstream>
 
 using namespace std;
 

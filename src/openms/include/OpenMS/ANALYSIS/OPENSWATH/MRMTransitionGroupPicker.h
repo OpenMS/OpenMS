@@ -164,7 +164,16 @@ public:
       while (true)
       {
         chr_idx = -1; peak_idx = -1;
-        findLargestPeak(picked_chroms_, chr_idx, peak_idx);
+
+        if (boundary_selection_method_ == "largest")
+        {
+          findLargestPeak(picked_chroms_, chr_idx, peak_idx);
+        }
+        else if (boundary_selection_method_ == "widest")
+        {
+          findWidestPeakIndices(picked_chroms_, chr_idx, peak_idx);
+        }
+
         if (chr_idx == -1 && peak_idx == -1) break;
 
         // Compute a feature from the individual chromatograms and add non-zero features
@@ -548,6 +557,16 @@ public:
     /// Find largest peak in a vector of chromatograms
     void findLargestPeak(std::vector<MSChromatogram >& picked_chroms, int& chr_idx, int& peak_idx);
 
+    /**
+      @brief Given a vector of chromatograms, find the indices of the chromatogram
+      containing the widest peak and of the position of highest intensity.
+
+      @param[in] picked_chroms The vector of chromatograms
+      @param[out] chrom_idx The index of the chromatogram containing the widest peak
+      @param[out] point_idx The index of the point with highest intensity
+    */
+    void findWidestPeakIndices(const std::vector<MSChromatogram>& picked_chroms, Int& chrom_idx, Int& point_idx) const;
+
 protected:
 
     /// Synchronize members with param class
@@ -922,6 +941,13 @@ protected:
     double min_peak_width_;
     double recalculate_peaks_max_z_;
     double resample_boundary_;
+
+    /**
+      @brief Which method to use for selecting peaks' boundaries
+
+      Valid values are: "largest", "widest"
+    */
+    String boundary_selection_method_;
 
     PeakPickerMRM picker_;
     PeakIntegrator pi_;

@@ -37,7 +37,7 @@
 // OpenMS_GUI config
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
-#include <QtGui/QGraphicsItem>
+#include <QtWidgets/QGraphicsItem>
 
 namespace OpenMS
 {

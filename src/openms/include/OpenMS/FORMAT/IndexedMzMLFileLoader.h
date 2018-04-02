@@ -35,7 +35,6 @@
 #pragma once
 
 #include <OpenMS/FORMAT/MzMLFile.h>
-#include <OpenMS/FORMAT/IndexedMzMLFile.h>
 #include <OpenMS/KERNEL/OnDiscMSExperiment.h>
 #include <OpenMS/FORMAT/DATAACCESS/MSDataWritingConsumer.h>
 

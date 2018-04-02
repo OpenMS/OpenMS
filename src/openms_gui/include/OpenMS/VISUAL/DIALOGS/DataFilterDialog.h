@@ -38,8 +38,14 @@
 // OpenMS_GUI config
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
-#include <OpenMS/VISUAL/DIALOGS/UIC/ui_DataFilterDialog.h>
 #include <OpenMS/FILTERING/DATAREDUCTION/DataFilters.h>
+
+#include <QDialog>
+
+namespace Ui
+{
+  class DataFilterDialogTemplate;
+}
 
 namespace OpenMS
 {
@@ -48,14 +54,16 @@ namespace OpenMS
 
   */
   class OPENMS_GUI_DLLAPI DataFilterDialog :
-    public QDialog,
-    public Ui::DataFilterDialogTemplate
+    public QDialog
   {
     Q_OBJECT
 
 public:
     /// constructor
     DataFilterDialog(DataFilters::DataFilter & filter, QWidget * parent);
+
+    /// destructor
+    virtual ~DataFilterDialog();
 
 protected slots:
     /// Checks if the settings are valid and writes them to filter_ if so
@@ -70,8 +78,10 @@ protected:
     DataFilters::DataFilter & filter_;
 
 private:
-    ///Not implemented
+    /// Not implemented
     DataFilterDialog();
+
+    Ui::DataFilterDialogTemplate* ui_;
   };
 
 }

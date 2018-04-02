@@ -34,10 +34,10 @@
 
 #pragma once
 
-#include <QWidget>
-#include <QtGui/QLineEdit>
-#include <QtGui/QComboBox>
-#include <QtGui/QTreeWidget>
+#include <QtWidgets>
+#include <QLineEdit>
+#include <QComboBox>
+#include <QTreeWidget>
 
 #include <OpenMS/VISUAL/LayerData.h>
 

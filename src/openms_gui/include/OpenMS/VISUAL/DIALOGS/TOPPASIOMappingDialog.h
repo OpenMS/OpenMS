@@ -37,10 +37,15 @@
 // OpenMS_GUI config
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
-#include <OpenMS/VISUAL/DIALOGS/UIC/ui_TOPPASIOMappingDialog.h>
 #include <OpenMS/VISUAL/TOPPASToolVertex.h>
 
 #include <QtCore/QVector>
+#include <QtWidgets/QDialog>
+
+namespace Ui
+{
+  class TOPPASIOMappingDialogTemplate;
+}
 
 namespace OpenMS
 {
@@ -57,8 +62,7 @@ namespace OpenMS
       @ingroup Dialogs
   */
   class OPENMS_GUI_DLLAPI TOPPASIOMappingDialog :
-    public QDialog,
-    public Ui::TOPPASIOMappingDialogTemplate
+    public QDialog
   {
     Q_OBJECT
 
@@ -66,6 +70,7 @@ public:
 
     /// Constructor
     TOPPASIOMappingDialog(TOPPASEdge * parent);
+    ~TOPPASIOMappingDialog();
 
 public slots:
 
@@ -88,6 +93,8 @@ protected slots:
     /// Called when OK is pressed; checks if the selected parameters are valid
     void checkValidity_();
 
+private:
+    Ui::TOPPASIOMappingDialogTemplate* ui_;
   };
 
 }

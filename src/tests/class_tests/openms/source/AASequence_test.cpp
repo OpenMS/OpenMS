@@ -224,7 +224,7 @@ START_SECTION(const Residue& getResidue(Size index) const)
 END_SECTION
 
 START_SECTION((EmpiricalFormula getFormula(Residue::ResidueType type = Residue::Full, Int charge=0) const))
-  AASequence seq = AASequence::fromString("ACDEF");
+  AASequence seq = AASequence::fromString("ACDEF"); 
   TEST_EQUAL(seq.getFormula(), EmpiricalFormula("O10SH33N5C24"))
   TEST_EQUAL(seq.getFormula(Residue::Full, 1), EmpiricalFormula("O10SH33N5C24+"))
   TEST_EQUAL(seq.getFormula(Residue::BIon, 0), EmpiricalFormula("O9SH31N5C24"))
@@ -383,7 +383,7 @@ END_SECTION
 START_SECTION(bool hasSubsequence(const AASequence& peptide) const)
   AASequence seq1 = AASequence::fromString("DFPIANGER");
   AASequence seq2 = AASequence::fromString("IANG");
-  AASequence seq3 = AASequence::fromString("AIN");
+  AASequence seq3 = AASequence::fromString("DFPP");
   TEST_EQUAL(seq1.hasSubsequence(seq2), true)
   TEST_EQUAL(seq1.hasSubsequence(seq3), false)
 END_SECTION

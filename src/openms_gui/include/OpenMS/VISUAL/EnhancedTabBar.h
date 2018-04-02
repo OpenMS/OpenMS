@@ -38,7 +38,7 @@
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
 //QT
-#include <QtGui/QTabBar>
+#include <QTabBar>
 class QMouseEvent;
 class QMimeData;
 

@@ -73,19 +73,43 @@ macro(add_mac_app_bundle _name)
 	## Results in duplicate libraries in the different bundles.. but well.. that's how it is
 	## If you are not packaging, libraries are linked via hardcoded paths specific to your machine.
 	if("${PACKAGE_TYPE}" STREQUAL "dmg")
+        set (APP_FOLDER "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${_name}.app")
+
+        set (PLUGIN_VAR_NAME QT_PLUGINS_APPS_${_name})
+        ## Install qt5 plugins needed on mac and save them in a var for fixing their dependencies later
+        install_qt5_plugin("Qt5::QCocoaIntegrationPlugin" ${PLUGIN_VAR_NAME} "${APP_FOLDER}/Contents/PlugIns" AAApplications)
+        install_qt5_plugin("Qt5::QMacStylePlugin" ${PLUGIN_VAR_NAME} "${APP_FOLDER}/Contents/PlugIns" AAApplications)
+
+        set (QT_PLUGINS_TO_FIX ${${PLUGIN_VAR_NAME}})
+
+        ## Find Qt library folder
+        get_target_property(QT_LIBRARY_DIR Qt5::Core LOCATION)
+        get_filename_component(QT_LIBRARY_DIR ${QT_LIBRARY_DIR} PATH)
+        get_filename_component(QT_LIBRARY_DIR "${QT_LIBRARY_DIR}/.." ABSOLUTE)
+
+        ## Write a qt.conf file with a ref to the plugin dir in app bundles = PlugIns
+        file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/qt.conf"
+        "[Paths]\nPlugins = PlugIns\n")
+        install(FILES "${CMAKE_CURRENT_BINARY_DIR}/qt.conf"
+                DESTINATION "${APP_FOLDER}/Contents/Resources"
+                COMPONENT AAApplications)
+
+        ## Fix up the dependencies in the bundle and make them rel. to their location in the bundle
+        ## Give additional plugins to fix and extra dirs where dependencies should be searched
 		install(CODE "
 			set(BU_CHMOD_BUNDLE_ITEMS On)
 			include(BundleUtilities)
-			fixup_bundle(${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${_name}.app \"\" \"\")
+			fixup_bundle(${APP_FOLDER} \"${QT_PLUGINS_TO_FIX}\" \"${QT_LIBRARY_DIR}\")
 			"
 			COMPONENT AApplications)
 
+		## Copy bundle to the target install destination
 		install(TARGETS ${_name} BUNDLE
 			DESTINATION .
 			COMPONENT Applications)
 		
 		if(DEFINED CPACK_BUNDLE_APPLE_CERT_APP)
-		   ## TODO try to find codesign to make sure the right exec is used
+		   ## TODO try to find codesign to make sure the right exec is used (currently needs to be in path)
 		   ## TODO allow choosing keychain
 		   ## Note: Signing identity has to be unique, and present in any of the keychains in search list
 		   ## which needs to be unlocked. Play around with keychain argument otherwise.

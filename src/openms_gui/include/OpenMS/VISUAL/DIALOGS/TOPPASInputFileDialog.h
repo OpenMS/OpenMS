@@ -37,7 +37,12 @@
 // OpenMS_GUI config
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
-#include <OpenMS/VISUAL/DIALOGS/UIC/ui_TOPPASInputFileDialog.h>
+#include <QtWidgets/QDialog>
+
+namespace Ui
+{
+  class TOPPASInputFileDialogTemplate;
+}
 
 namespace OpenMS
 {
@@ -48,8 +53,7 @@ namespace OpenMS
       @ingroup Dialogs
   */
   class OPENMS_GUI_DLLAPI TOPPASInputFileDialog :
-    public QDialog,
-    public Ui::TOPPASInputFileDialogTemplate
+    public QDialog
   {
     Q_OBJECT
 
@@ -57,6 +61,7 @@ public:
 
     /// Constructor
     TOPPASInputFileDialog(const QString & file_name);
+    ~TOPPASInputFileDialog();
 
     /// Returns the filename
     QString getFilename();
@@ -78,6 +83,9 @@ protected:
 
     /// The parent
     QObject* parent_;
+
+private:
+    Ui::TOPPASInputFileDialogTemplate* ui_;
   };
 
 }

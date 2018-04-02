@@ -36,11 +36,9 @@
 #include <OpenMS/MATH/STATISTICS/LinearRegression.h>
 #include <OpenMS/CONCEPT/LogStream.h> // LOG_DEBUG
 #include <OpenMS/MATH/MISC/RANSAC.h> // RANSAC algorithm
-#include <OpenMS/MATH/MISC/RANSACModelLinear.h> // RANSAC model
 
 #include <numeric>
 #include <boost/math/special_functions/erf.hpp>
-#include <algorithm>
 
 namespace OpenMS
 {

@@ -41,7 +41,7 @@
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/VISUAL/TOPPASToolVertex.h>
 
-#include <QtGui/QGraphicsScene>
+#include <QtWidgets/QGraphicsScene>
 #include <QtCore/QProcess>
 
 namespace OpenMS

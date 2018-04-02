@@ -3,17 +3,17 @@
 !define VS_REDISTRIBUTABLE_EXE "@VC_REDIST_EXE@"
 # define your platform:
 !define PLATFORM "@PLATFORM@"
-# path to QT dlls
-!define QTLIBDIR "@QT_BINARY_DIR@"
-# path to contrib
-!define CONTRIBDIR "@OPENMS_CONTRIB_LIBS@"
+# path to OpenMS - packaging tree (where all the install stuff lands during CPack)
+!define OPENMSPACKAGEDIR "${PACKAGING_DIR}"
 # path to OpenMS - build tree
-!define OPENMSDIR "@PROJECT_BINARY_DIR@"
+!define OPENMSBINDIR "${PACKAGING_DIR}/@INSTALL_BIN_DIR@"
+!define OPENMSLIBDIR "${PACKAGING_DIR}/@INSTALL_LIB_DIR@"
+!define OPENMSSHAREDIR "${PACKAGING_DIR}/@INSTALL_SHARE_DIR@"
 # path to OpenMS - source tree
 !define OPENMSDIRSRC "@PROJECT_SOURCE_DIR@"
 !define NSISRESOURCES "@PROJECT_SOURCE_DIR@/cmake/Windows"
 # path to OpenMS - doc
-!define OPENMSDOCDIR "@PROJECT_BINARY_DIR@/doc"
+!define OPENMSDOCDIR "${PACKAGING_DIR}/@INSTALL_DOC_DIR@"
 # path to Thirdparty executables
-!define THIRDPARTYDIR "@SEARCH_ENGINES_DIRECTORY@"
+!define THIRDPARTYDIR "${PACKAGING_DIR}/@INSTALL_SHARE_DIR@/THIRDPARTY"
 

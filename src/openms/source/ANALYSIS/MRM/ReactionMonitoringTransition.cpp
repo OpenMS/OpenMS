@@ -35,7 +35,6 @@
 #include <OpenMS/ANALYSIS/MRM/ReactionMonitoringTransition.h>
 
 #include <OpenMS/CONCEPT/Helpers.h>
-#include <algorithm>
 
 namespace OpenMS
 {

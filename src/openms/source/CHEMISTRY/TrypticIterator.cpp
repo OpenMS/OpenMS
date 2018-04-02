@@ -34,7 +34,6 @@
 
 #include <OpenMS/CHEMISTRY/TrypticIterator.h>
 #include <OpenMS/FORMAT/FastaIterator.h>
-#include <fstream>
 #include <OpenMS/CONCEPT/Factory.h>
 #include <OpenMS/CHEMISTRY/ResidueDB.h>
 #include <OpenMS/CHEMISTRY/Residue.h>

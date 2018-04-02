@@ -39,13 +39,13 @@
   They are not included in TOPP as they are not part of typical analysis pipelines,
   but they still might be very helpful to you.
 
-	Just as the TOPP tools, they can be found to the %OpenMS/bin folder.
+  Just as the TOPP tools, they can be found in the %OpenMS/bin folder.
 
- 	The UTILS tools are divided into several subgroups:
+  The UTILS tools are divided into several subgroups:
 
-	<b>Maintenance</b>
-	- @subpage UTILS_INIUpdater - Update INI and TOPPAS files from previous versions of %OpenMS as parameters and storage method might have changed
-
+  <b>Maintenance</b>
+  - @subpage UTILS_INIUpdater - Update INI and TOPPAS files from previous versions of %OpenMS as parameters and storage method might have change
+  
   <b>Signal Processing and Preprocessing</b>
   - @subpage UTILS_RNPxlXICFilter - Remove MS2 spectra from treatment based on the fold change between control and treatment for RNP cross linking experiments.
 
@@ -61,7 +61,6 @@
 
   <b>Algorithm Evaluation</b>
   - @subpage UTILS_FFEval - Evaluation tool for feature detection algorithms.
-  - @subpage UTILS_IDEvaluator - Evaluation tool, comparing peptide recovery at different q-value thresholds for multiple search engines (e.g., after ConsensusID). For interactive version use the @subpage UTILS_IDEvaluatorGUI tool.
   - @subpage UTILS_LabeledEval - Evaluation tool for isotope-labeled quantitation experiments.
   - @subpage UTILS_RTEvaluation - Application that evaluates TPs (true positives), TNs, FPs, and FNs for an idXML file with predicted RTs.
   - @subpage UTILS_TransformationEvaluation - Simple evaluation of transformations (e.g. RT transformations produced by a MapAligner tool).
