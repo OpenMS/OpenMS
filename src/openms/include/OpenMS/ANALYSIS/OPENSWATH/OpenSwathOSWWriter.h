@@ -35,7 +35,7 @@
 #pragma once
 
 // Interfaces
-#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/TransitionExperiment.h>
+#include <OpenMS/OPENSWATHALGO/DATAACCESS/TransitionExperiment.h>
 
 #include <OpenMS/CONCEPT/UniqueIdGenerator.h>
 

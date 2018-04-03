@@ -35,7 +35,7 @@
 #pragma once
 
 #include <OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>
-#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/TransitionExperiment.h>
+#include <OpenMS/OPENSWATHALGO/DATAACCESS/TransitionExperiment.h>
 
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/CHEMISTRY/ResidueModification.h>

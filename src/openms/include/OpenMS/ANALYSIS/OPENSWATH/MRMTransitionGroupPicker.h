@@ -48,8 +48,8 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 
 // Cross-correlation
-#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/ALGO/Scoring.h>
-#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/ALGO/StatsHelpers.h>
+#include <OpenMS/OPENSWATHALGO/ALGO/Scoring.h>
+#include <OpenMS/OPENSWATHALGO/ALGO/StatsHelpers.h>
 
 #include <numeric>
 
