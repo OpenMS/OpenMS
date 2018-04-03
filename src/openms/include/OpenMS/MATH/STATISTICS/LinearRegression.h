@@ -32,8 +32,7 @@
 // $Authors: $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_MATH_STATISTICS_LINEARREGRESSION_H
-#define OPENMS_MATH_STATISTICS_LINEARREGRESSION_H
+#pragma once
 
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/CONCEPT/Exception.h>
@@ -338,4 +337,3 @@ private:
 } // namespace OpenMS
 
 
-#endif

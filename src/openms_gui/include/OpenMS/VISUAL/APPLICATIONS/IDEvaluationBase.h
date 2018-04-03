@@ -32,8 +32,7 @@
 // $Authors: Chris Bielow $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_VISUAL_APPLICATIONS_IDEVALUATIONBASE_H
-#define OPENMS_VISUAL_APPLICATIONS_IDEVALUATIONBASE_H
+#pragma once
 
 // OpenMS_GUI config
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
@@ -213,4 +212,3 @@ protected:
 
 } //namespace
 
-#endif // OPENMS_VISUAL_APPLICATIONS_IDEVALUATIONBASE_H

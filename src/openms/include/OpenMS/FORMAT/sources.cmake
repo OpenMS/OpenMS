@@ -34,8 +34,6 @@ DTAFile.h
 EDTAFile.h
 ExperimentalDesignFile.h
 FASTAFile.h
-FastaIterator.h
-FastaIteratorIntern.h
 FeatureXMLFile.h
 FileHandler.h
 GzipIfstream.h
@@ -107,4 +105,3 @@ endforeach(i)
 source_group("Header Files\\OpenMS\\FORMAT" FILES ${sources_h})
 
 set(OpenMS_sources_h ${OpenMS_sources_h} ${sources_h})
-

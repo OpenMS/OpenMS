@@ -32,8 +32,7 @@
 // $Authors: Chris Bielow $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_VISUAL_MISC_GUIHELPERS_H
-#define OPENMS_VISUAL_MISC_GUIHELPERS_H
+#pragma once
 
 // OpenMS_GUI config
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
@@ -73,4 +72,3 @@ namespace OpenMS
   };
 
 }
-#endif

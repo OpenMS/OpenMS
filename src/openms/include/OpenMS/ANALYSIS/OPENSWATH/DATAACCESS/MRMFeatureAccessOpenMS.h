@@ -32,8 +32,7 @@
 // $Authors: Hannes Roest $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_OPENSWATH_DATAACCESS_MRMFEATUREACCESSOPENMS_H
-#define OPENMS_ANALYSIS_OPENSWATH_DATAACCESS_MRMFEATUREACCESSOPENMS_H
+#pragma once
 
 #include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/ITransition.h>
 
@@ -225,5 +224,4 @@ private:
 
 }
 
-#endif // OPENMS_ANALYSIS_OPENSWATH_DATAACCESS_MRMFEATUREACCESSOPENMS_H
 

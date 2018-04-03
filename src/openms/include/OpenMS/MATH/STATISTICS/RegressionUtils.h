@@ -33,8 +33,7 @@
 // --------------------------------------------------------------------------
 
 
-#ifndef OPENMS_MATH_STATISTICS_REGRESSIONUTILS_H
-#define OPENMS_MATH_STATISTICS_REGRESSIONUTILS_H
+#pragma once
 #include <vector>
 #include "Wm5Vector2.h"
 
@@ -55,4 +54,3 @@ namespace OpenMS {
     }
   }
 }
-#endif /* OPENMS_MATH_STATISTICS_REGRESSIONUTILS_H */

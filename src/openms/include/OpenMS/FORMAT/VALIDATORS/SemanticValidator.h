@@ -32,8 +32,7 @@
 // $Authors: Marc Sturm, Andreas Bertsch $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FORMAT_VALIDATORS_SEMANTICVALIDATOR_H
-#define OPENMS_FORMAT_VALIDATORS_SEMANTICVALIDATOR_H
+#pragma once
 
 #include <OpenMS/FORMAT/XMLFile.h>
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
@@ -212,5 +211,4 @@ private:
 
 } // namespace OpenMS
 
-#endif // OPENMS_FORMAT_VALIDATORS_SEMANTICVALIDATOR_H
 

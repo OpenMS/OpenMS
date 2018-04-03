@@ -319,7 +319,10 @@ protected:
           uis_swathes.push_back(std::make_pair((precursor_lower_mz_limit+(i*precursor_mz_threshold)),(precursor_lower_mz_limit+((i+1)*precursor_mz_threshold))));
         }
       }
-      else {uis_swathes = swathes;}
+      else
+      {
+        uis_swathes = swathes;
+      }
       
       LOG_INFO << "Generating identifying transitions for IPF" << std::endl;
       assays.uisTransitions(targeted_exp, allowed_fragment_types, allowed_fragment_charges, enable_identification_specific_losses, enable_identification_unspecific_losses, enable_identification_ms2_precursors, product_mz_threshold, uis_swathes, -4, max_num_alternative_localizations, uis_seed, disable_decoy_transitions);

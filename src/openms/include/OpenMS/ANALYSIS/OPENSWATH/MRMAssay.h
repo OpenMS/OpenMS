@@ -32,8 +32,7 @@
 // $Authors: George Rosenberger $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_OPENSWATH_MRMASSAY_H
-#define OPENMS_ANALYSIS_OPENSWATH_MRMASSAY_H
+#pragma once
 
 #include <OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
@@ -339,4 +338,3 @@ protected:
   };
 }
 
-#endif // OPENMS_ANALYSIS_OPENSWATH_MRMASSAY_H

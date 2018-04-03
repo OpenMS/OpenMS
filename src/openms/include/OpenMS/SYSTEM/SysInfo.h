@@ -32,8 +32,7 @@
 // $Authors: Chris Bielow $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_SYSTEM_SYSINFO_H
-#define OPENMS_SYSTEM_SYSINFO_H
+#pragma once
 
 #include <OpenMS/config.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
@@ -110,4 +109,3 @@ namespace OpenMS
   };
 }
 
-#endif

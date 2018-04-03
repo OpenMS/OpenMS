@@ -32,8 +32,7 @@
 // $Authors: Hannes Roest $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_METADATA_CVTERMLISTINTERFACE_H
-#define OPENMS_METADATA_CVTERMLISTINTERFACE_H
+#pragma once
 
 #include <OpenMS/METADATA/MetaInfoInterface.h>
 #include <OpenMS/METADATA/CVTerm.h>
@@ -115,5 +114,4 @@ namespace OpenMS
 
 } // namespace OpenMS
 
-#endif // OPENMS_DATASTRUCTURES_CVTERMLISTINTERFACE_H
 

@@ -32,8 +32,7 @@
 // $Authors: Chris Bielow $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_APPLICATIONS_TOOLHANDLER_H
-#define OPENMS_APPLICATIONS_TOOLHANDLER_H
+#pragma once
 
 #include <OpenMS/DATASTRUCTURES/ToolDescription.h>
 #include <OpenMS/DATASTRUCTURES/Map.h>
@@ -113,4 +112,3 @@ private:
 
 } // namespace OpenMS
 
-#endif //OPENMS_APPLICATIONS_TOOLHANDLER_H

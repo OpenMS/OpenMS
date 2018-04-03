@@ -20,8 +20,6 @@ DTAFile.cpp
 EDTAFile.cpp
 ExperimentalDesignFile.cpp
 FASTAFile.cpp
-FastaIterator.cpp
-FastaIteratorIntern.cpp
 FeatureXMLFile.cpp
 FileHandler.cpp
 FileTypes.cpp
@@ -94,4 +92,3 @@ set(OpenMS_sources ${OpenMS_sources} ${sources})
 
 ### source group definition
 source_group("Source Files\\FORMAT" FILES ${sources})
-

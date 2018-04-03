@@ -32,8 +32,7 @@
 // $Authors: Hannes Roest $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_KERNEL_MRMTRANSITIONGROUP_H
-#define OPENMS_KERNEL_MRMTRANSITIONGROUP_H
+#pragma once
 
 #include <OpenMS/CONCEPT/Macros.h>
 #include <OpenMS/KERNEL/MRMFeature.h>
@@ -460,5 +459,4 @@ protected:
 
   };
 }
-#endif // OPENMS_KERNEL_MRMTRANSITIONGROUP_H
 

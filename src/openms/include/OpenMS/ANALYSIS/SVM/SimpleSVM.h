@@ -32,8 +32,7 @@
 // $Authors: Hendrik Weisser $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_SVM_SIMPLESVM_H
-#define OPENMS_ANALYSIS_SVM_SIMPLESVM_H
+#pragma once
 
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 
@@ -169,4 +168,3 @@ namespace OpenMS
   };
 }
 
-#endif // #ifndef OPENMS_ANALYSIS_SVM_SIMPLESVM_H

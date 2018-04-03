@@ -32,8 +32,7 @@
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FORMAT_VALIDATORS_XMLVALIDATOR_H
-#define OPENMS_FORMAT_VALIDATORS_XMLVALIDATOR_H
+#pragma once
 
 #include <OpenMS/DATASTRUCTURES/String.h>
 
@@ -90,4 +89,3 @@ protected:
 
 } // namespace OpenMS
 
-#endif // OPENMS_FORMAT_VALIDATORS_XMLVALIDATOR_H

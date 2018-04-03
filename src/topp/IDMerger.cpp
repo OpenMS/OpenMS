@@ -185,8 +185,7 @@ protected:
         date_time = DateTime::now();
       }
       new_id = search_engine + "_" + date_time.toString(Qt::ISODate);
-    }
-    while (used_ids.find(new_id) != used_ids.end());
+    } while (used_ids.find(new_id) != used_ids.end());
   }
 
   void annotateFileOrigin_(vector<ProteinIdentification>& proteins,

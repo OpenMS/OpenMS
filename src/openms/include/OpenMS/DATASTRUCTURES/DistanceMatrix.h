@@ -32,8 +32,7 @@
 // $Authors: $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_DATASTRUCTURES_DISTANCEMATRIX_H
-#define OPENMS_DATASTRUCTURES_DISTANCEMATRIX_H
+#pragma once
 
 #include <OpenMS/CONCEPT/Macros.h>
 #include <OpenMS/CONCEPT/Types.h>
@@ -538,4 +537,3 @@ private:
 
 } // namespace OpenMS
 
-#endif // OPENMS_DATASTRUCTURES_DISTANCEMATRIX_H

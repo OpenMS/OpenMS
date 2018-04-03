@@ -32,8 +32,7 @@
 // $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_CHEMISTRY_THEORETICALSPECTRUMGENERATOR_H
-#define OPENMS_CHEMISTRY_THEORETICALSPECTRUMGENERATOR_H
+#pragma once
 
 #include <OpenMS/CHEMISTRY/Residue.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
@@ -138,4 +137,3 @@ namespace OpenMS
       double pre_int_NH3_;
   };
 }
-#endif // THEORETICALSPECTRUMGENERATORRPLESS_H

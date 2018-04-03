@@ -32,8 +32,7 @@
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FORMAT_HANDLERS_MZDATAHANDLER_H
-#define OPENMS_FORMAT_HANDLERS_MZDATAHANDLER_H
+#pragma once
 
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/CONCEPT/Exception.h>
@@ -221,4 +220,3 @@ protected:
 
 } // namespace OpenMS
 
-#endif

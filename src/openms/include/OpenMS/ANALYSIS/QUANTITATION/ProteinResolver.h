@@ -32,8 +32,7 @@
 // $Authors: David Wojnar $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_QUANTITATION_PROTEINRESOLVER_H
-#define OPENMS_ANALYSIS_QUANTITATION_PROTEINRESOLVER_H
+#pragma once
 
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
@@ -272,4 +271,3 @@ private:
 
 } // namespace
 
-#endif // OPENMS_ANALYSIS_QUANTITATION_PROTEINRESOLVER_H

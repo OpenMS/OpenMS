@@ -32,8 +32,7 @@
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_VISUAL_SPECTRUM2DWIDGET_H
-#define OPENMS_VISUAL_SPECTRUM2DWIDGET_H
+#pragma once
 
 // OpenMS_GUI config
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
@@ -147,4 +146,3 @@ private slots:
   };
 }
 
-#endif

@@ -32,8 +32,7 @@
 // $Authors: Steffen Sass, Hendrik Weisser $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_DATASTRUCTURES_GRIDFEATURE_H
-#define OPENMS_DATASTRUCTURES_GRIDFEATURE_H
+#pragma once
 
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/OpenMSConfig.h>
@@ -100,4 +99,3 @@ public:
   };
 }
 
-#endif // OPENMS_DATASTRUCTURES_GRIDFEATURE_H

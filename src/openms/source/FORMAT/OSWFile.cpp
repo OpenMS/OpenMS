@@ -213,7 +213,8 @@ namespace OpenMS
           insert_sql <<  feat.second[1] << ",";
           insert_sql <<  feat.second[2] << "); ";
         }
-        else {
+        else
+        {
           insert_sql << "INSERT INTO " << table;
           insert_sql << " (FEATURE_ID, SCORE, QVALUE, PEP) VALUES (";
           insert_sql <<  feat.first << ",";

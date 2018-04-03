@@ -241,8 +241,7 @@ namespace OpenMS
 
         // now enumerate all modifications
         recurseAndGenerateVariableModifiedPeptides_(subset_indices, map_compatibility, 0, peptide, modified_peptides);
-      }
-      while (next_permutation(subset_mask.begin(), subset_mask.end()));
+      } while (next_permutation(subset_mask.begin(), subset_mask.end()));
     }
     // add modified version of the current peptide to the list of all peptides
     all_modified_peptides.insert(all_modified_peptides.end(), modified_peptides.begin(), modified_peptides.end());

@@ -32,8 +32,7 @@
 // $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_CHEMISTRY_MASSDECOMPOSITION_MASSDECOMPOSITION_H
-#define OPENMS_CHEMISTRY_MASSDECOMPOSITION_MASSDECOMPOSITION_H
+#pragma once
 
 #include <OpenMS/config.h>
 #include <OpenMS/CONCEPT/Types.h>
@@ -115,4 +114,3 @@ protected:
   };
 } // namespace OpenMS
 
-#endif // OPENMS_CHEMISTRY_MASSDECOMPOSITION_MASSDECOMPOSITION_H

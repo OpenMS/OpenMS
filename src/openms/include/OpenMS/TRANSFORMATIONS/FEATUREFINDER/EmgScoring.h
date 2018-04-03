@@ -32,8 +32,7 @@
 // $Authors: Hannes Roest $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_TRANSFORMATIONS_FEATUREFINDER_EMGSCORING_H
-#define OPENMS_TRANSFORMATIONS_FEATUREFINDER_EMGSCORING_H
+#pragma once
 
 #include <vector>
 #include <boost/math/special_functions/fpclassify.hpp> // for isnan
@@ -222,4 +221,3 @@ namespace OpenMS
   };
 }
 
-#endif /* EMGSCORING_H_ */

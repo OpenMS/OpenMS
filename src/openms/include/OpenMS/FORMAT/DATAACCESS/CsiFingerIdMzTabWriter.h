@@ -32,8 +32,7 @@
 // $Authors: Oliver Alka $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_HOST_CSIFINGERIDMZTABWRITER_H
-#define OPENMS_HOST_CSIFINGERIDMZTABWRITER_H
+#pragma once
 
 namespace OpenMS
 {
@@ -88,4 +87,3 @@ namespace OpenMS
       };
 }
 
-#endif //OPENMS_HOST_CSIFINGERIDMZTABWRITER_H

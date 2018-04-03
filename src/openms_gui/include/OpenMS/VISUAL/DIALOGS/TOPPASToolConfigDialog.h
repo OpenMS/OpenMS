@@ -32,8 +32,7 @@
 // $Authors: Johannes Junker $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_VISUAL_DIALOGS_TOPPASTOOLCONFIGDIALOG_H
-#define OPENMS_VISUAL_DIALOGS_TOPPASTOOLCONFIGDIALOG_H
+#pragma once
 
 // OpenMS_GUI config
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
@@ -110,4 +109,3 @@ protected slots:
   };
 
 }
-#endif // OPENMS_VISUAL_DIALOGS_TOOLSDIALOG_H

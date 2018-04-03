@@ -32,8 +32,7 @@
 // $Authors: $
 // --------------------------------------------------------------------------
 //
-#ifndef OPENMS_COMPARISON_SPECTRA_ZHANGSIMILARITYSCORE_H
-#define OPENMS_COMPARISON_SPECTRA_ZHANGSIMILARITYSCORE_H
+#pragma once
 
 #include <OpenMS/COMPARISON/SPECTRA/PeakSpectrumCompareFunctor.h>
 
@@ -102,4 +101,3 @@ protected:
   };
 
 }
-#endif //OPENMS_COMPARISON_SPECTRA_ZHANGSIMILARTIYSCORE_H

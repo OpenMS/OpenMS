@@ -32,8 +32,7 @@
 // $Authors: Stephan Aiche $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FORMAT_IBSPECTRAFILE_H
-#define OPENMS_FORMAT_IBSPECTRAFILE_H
+#pragma once
 
 #include <OpenMS/config.h>
 #include <OpenMS/DATASTRUCTURES/StringListUtils.h>
@@ -108,4 +107,3 @@ private:
 
 }
 
-#endif // #ifndef OPENMS_FORMAT_IBSPECTRAFILE_H

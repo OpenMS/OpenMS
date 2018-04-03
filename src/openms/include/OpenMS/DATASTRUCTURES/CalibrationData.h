@@ -33,8 +33,7 @@
 // --------------------------------------------------------------------------
 
 
-#ifndef OPENMS_DATASTRUCTURES_CALIBRATIONDATA_H
-#define OPENMS_DATASTRUCTURES_CALIBRATIONDATA_H
+#pragma once
 
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/KERNEL/RichPeak2D.h>
@@ -208,4 +207,3 @@ namespace OpenMS
 
 } // namespace OpenMS
 
-#endif // OPENMS_DATASTRUCTURES_CALIBRATIONDATA_H

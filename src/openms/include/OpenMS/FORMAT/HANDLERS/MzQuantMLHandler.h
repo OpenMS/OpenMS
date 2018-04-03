@@ -32,8 +32,7 @@
 // $Authors: Mathias Walzer $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FORMAT_HANDLERS_MZQUANTMLHANDLER_H
-#define OPENMS_FORMAT_HANDLERS_MZQUANTMLHANDLER_H
+#pragma once
 
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
 #include <OpenMS/FORMAT/ControlledVocabulary.h>
@@ -156,4 +155,3 @@ private:
   }   // namespace Internal
 } // namespace OpenMS
 
-#endif

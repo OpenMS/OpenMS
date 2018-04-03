@@ -32,8 +32,7 @@
 // $Authors: Hannes Roest $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_OPENSWATH_SPECTRUMADDITION_H
-#define OPENMS_ANALYSIS_OPENSWATH_SPECTRUMADDITION_H
+#pragma once
 
 #include <OpenMS/config.h> // OPENMS_DLLAPI
 #include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/ISpectrumAccess.h>
@@ -66,5 +65,4 @@ public:
   };
 }
 
-#endif // OPENMS_ANALYSIS_OPENSWATH_SPECTRUMADDITION_H
 
