@@ -74,13 +74,4 @@ namespace OpenMS
     Factory<BinnedSpectrumCompareFunctor>::registerProduct(BinnedSumAgreeingIntensities::getProductName(), &BinnedSumAgreeingIntensities::create);
   }
 
-  BinnedSpectrumCompareFunctor::IncompatibleBinning::IncompatibleBinning(const char * file, int line, const char * function, const char * message) throw() :
-    BaseException(file, line, function, "BinnedSpectrumCompareFunctor::IncompatibleBinning", message)
-  {
-  }
-
-  BinnedSpectrumCompareFunctor::IncompatibleBinning::~IncompatibleBinning() throw()
-  {
-  }
-
 }

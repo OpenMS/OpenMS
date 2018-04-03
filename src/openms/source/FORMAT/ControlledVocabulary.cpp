@@ -34,12 +34,9 @@
 
 #include <OpenMS/FORMAT/ControlledVocabulary.h>
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
-#include <OpenMS/DATASTRUCTURES/DataValue.h>
 
-#include <fstream>
 #include <iostream>
-#include <utility>
-#include <algorithm>
+#include <fstream>
 
 using namespace std;
 

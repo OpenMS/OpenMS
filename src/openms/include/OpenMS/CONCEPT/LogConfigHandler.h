@@ -32,8 +32,7 @@
 // $Authors: Stephan Aiche$
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_CONCEPT_LOGCONFIGHANDLER_H
-#define OPENMS_CONCEPT_LOGCONFIGHANDLER_H
+#pragma once
 
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/StreamHandler.h>
@@ -189,4 +188,3 @@ private:
 
 } // end namespace OpenMS
 
-#endif // #ifndef OPENMS_CONCEPT_LOGCONFIGHANDLER_H

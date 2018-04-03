@@ -32,8 +32,7 @@
 // $Authors: Lars Nilse $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FILTERING_DATAREDUCTION_SPLINESPECTRUM_H
-#define OPENMS_FILTERING_DATAREDUCTION_SPLINESPECTRUM_H
+#pragma once
 
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/DATASTRUCTURES/DRange.h>
@@ -188,4 +187,3 @@ class OPENMS_DLLAPI SplineSpectrum
 
 }
 
-#endif // OPENMS_FILTERING_DATAREDUCTION_SPLINESPECTRUM_H

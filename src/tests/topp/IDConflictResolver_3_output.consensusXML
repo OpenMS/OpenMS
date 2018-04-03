@@ -401,6 +401,96 @@
 			<UserParam type="int" name="y_ions" value="10"/>
 			<UserParam type="string" name="protein_references" value="unique"/>
 		</PeptideHit>
+		<UserParam type="string" name="feature_id" value="not mapped"/>
+	</UnassignedPeptideIdentification>
+	<UnassignedPeptideIdentification identification_run_ref="PI_12" score_type="" higher_score_better="true" significance_threshold="0" MZ="763.75" RT="1586.72680664062" spectrum_reference="spectrum=2385" >
+		<UserParam type="int" name="spectrum_index" value="599"/>
+		<UserParam type="int" name="map_index" value="4"/>
+		<UserParam type="string" name="feature_id" value="17962861576887891871"/>
+	</UnassignedPeptideIdentification>
+	<UnassignedPeptideIdentification identification_run_ref="PI_12" score_type="" higher_score_better="true" significance_threshold="0" MZ="763.75048828125" RT="1525.90893554688" spectrum_reference="spectrum=2321" >
+		<UserParam type="int" name="spectrum_index" value="540"/>
+		<UserParam type="int" name="map_index" value="2"/>
+		<UserParam type="string" name="feature_id" value="17962861576887891871"/>
+	</UnassignedPeptideIdentification>
+	<UnassignedPeptideIdentification identification_run_ref="PI_15" score_type="" higher_score_better="true" significance_threshold="0" MZ="763.75048828125" RT="1525.90893554688" spectrum_reference="spectrum=2321" >
+		<UserParam type="int" name="spectrum_index" value="540"/>
+		<UserParam type="int" name="map_index" value="3"/>
+		<UserParam type="string" name="feature_id" value="17962861576887891871"/>
+	</UnassignedPeptideIdentification>
+	<UnassignedPeptideIdentification identification_run_ref="PI_15" score_type="" higher_score_better="true" significance_threshold="0" MZ="763.749572753906" RT="1571.3095703125" spectrum_reference="spectrum=2463" >
+		<UserParam type="int" name="spectrum_index" value="585"/>
+		<UserParam type="int" name="map_index" value="1"/>
+		<UserParam type="string" name="feature_id" value="17962861576887891871"/>
+	</UnassignedPeptideIdentification>
+	<UnassignedPeptideIdentification identification_run_ref="PI_15" score_type="" higher_score_better="true" significance_threshold="0" MZ="763.75" RT="1586.72680664062" spectrum_reference="spectrum=2385" >
+		<UserParam type="int" name="spectrum_index" value="599"/>
+		<UserParam type="int" name="map_index" value="5"/>
+		<UserParam type="string" name="feature_id" value="17962861576887891871"/>
+	</UnassignedPeptideIdentification>
+	<UnassignedPeptideIdentification identification_run_ref="PI_12" score_type="" higher_score_better="true" significance_threshold="0" MZ="531.220703125" RT="2365.1015625" spectrum_reference="spectrum=3126" >
+		<UserParam type="int" name="spectrum_index" value="1340"/>
+		<UserParam type="int" name="map_index" value="4"/>
+		<UserParam type="string" name="feature_id" value="13678817347185682579"/>
+	</UnassignedPeptideIdentification>
+	<UnassignedPeptideIdentification identification_run_ref="PI_15" score_type="" higher_score_better="true" significance_threshold="0" MZ="531.220703125" RT="2365.1015625" spectrum_reference="spectrum=3126" >
+		<UserParam type="int" name="spectrum_index" value="1340"/>
+		<UserParam type="int" name="map_index" value="5"/>
+		<UserParam type="string" name="feature_id" value="13678817347185682579"/>
+	</UnassignedPeptideIdentification>
+	<UnassignedPeptideIdentification identification_run_ref="PI_12" score_type="" higher_score_better="true" significance_threshold="0" MZ="531.220825195312" RT="2379.37158203125" spectrum_reference="spectrum=3343" >
+		<UserParam type="int" name="spectrum_index" value="1562"/>
+		<UserParam type="int" name="map_index" value="2"/>
+		<UserParam type="string" name="feature_id" value="13678817347185682579"/>
+	</UnassignedPeptideIdentification>
+	<UnassignedPeptideIdentification identification_run_ref="PI_12" score_type="" higher_score_better="true" significance_threshold="0" MZ="573.205688476562" RT="1985.32336425781" spectrum_reference="spectrum=2901" >
+		<PeptideHit score="0.132857142857143" sequence="AESGALSTGEAIGTGMSILVMVVQSWEDESRR" charge="4" aa_before="R" aa_after="L" start="1359" end="1390" protein_refs="PH_0">
+			<UserParam type="string" name="target_decoy" value="target"/>
+			<UserParam type="float" name="XTandem_score" value="36.2"/>
+			<UserParam type="float" name="nextscore" value="33.2"/>
+			<UserParam type="float" name="delta" value="2.016"/>
+			<UserParam type="float" name="mass" value="3366.63"/>
+			<UserParam type="float" name="E-Value" value="2.8e-06"/>
+			<UserParam type="float" name="hyperscore" value="36.2"/>
+			<UserParam type="float" name="b_score" value="7.4"/>
+			<UserParam type="int" name="b_ions" value="9"/>
+			<UserParam type="float" name="y_score" value="7.7"/>
+			<UserParam type="int" name="y_ions" value="10"/>
+			<UserParam type="string" name="protein_references" value="unique"/>
+		</PeptideHit>
+		<UserParam type="int" name="spectrum_index" value="1023"/>
+		<UserParam type="int" name="map_index" value="0"/>
+		<UserParam type="string" name="feature_id" value="7556036852336985019"/>
+	</UnassignedPeptideIdentification>
+	<UnassignedPeptideIdentification identification_run_ref="PI_12" score_type="" higher_score_better="true" significance_threshold="0" MZ="573.206665039062" RT="2017.35913085938" spectrum_reference="spectrum=2953" >
+		<UserParam type="int" name="spectrum_index" value="1075"/>
+		<UserParam type="int" name="map_index" value="0"/>
+		<UserParam type="string" name="feature_id" value="7556036852336985019"/>
+	</UnassignedPeptideIdentification>
+	<UnassignedPeptideIdentification identification_run_ref="PI_15" score_type="" higher_score_better="true" significance_threshold="0" MZ="573.205932617188" RT="1932.23840332031" spectrum_reference="spectrum=2680" >
+		<UserParam type="int" name="spectrum_index" value="894"/>
+		<UserParam type="int" name="map_index" value="5"/>
+		<UserParam type="string" name="feature_id" value="7556036852336985019"/>
+	</UnassignedPeptideIdentification>
+	<UnassignedPeptideIdentification identification_run_ref="PI_12" score_type="" higher_score_better="true" significance_threshold="0" MZ="573.20751953125" RT="1919.53979492188" spectrum_reference="spectrum=2753" >
+		<UserParam type="int" name="spectrum_index" value="972"/>
+		<UserParam type="int" name="map_index" value="2"/>
+		<UserParam type="string" name="feature_id" value="7556036852336985019"/>
+	</UnassignedPeptideIdentification>
+	<UnassignedPeptideIdentification identification_run_ref="PI_15" score_type="" higher_score_better="true" significance_threshold="0" MZ="573.20751953125" RT="1919.53979492188" spectrum_reference="spectrum=2753" >
+		<UserParam type="int" name="spectrum_index" value="972"/>
+		<UserParam type="int" name="map_index" value="3"/>
+		<UserParam type="string" name="feature_id" value="7556036852336985019"/>
+	</UnassignedPeptideIdentification>
+	<UnassignedPeptideIdentification identification_run_ref="PI_15" score_type="" higher_score_better="true" significance_threshold="0" MZ="573.205688476562" RT="1985.32336425781" spectrum_reference="spectrum=2901" >
+		<UserParam type="int" name="spectrum_index" value="1023"/>
+		<UserParam type="int" name="map_index" value="1"/>
+		<UserParam type="string" name="feature_id" value="7556036852336985019"/>
+	</UnassignedPeptideIdentification>
+	<UnassignedPeptideIdentification identification_run_ref="PI_15" score_type="" higher_score_better="true" significance_threshold="0" MZ="573.206665039062" RT="2017.35913085938" spectrum_reference="spectrum=2953" >
+		<UserParam type="int" name="spectrum_index" value="1075"/>
+		<UserParam type="int" name="map_index" value="1"/>
+		<UserParam type="string" name="feature_id" value="7556036852336985019"/>
 	</UnassignedPeptideIdentification>
 	<mapList count="6">
 		<map id="0" name="BSA1.featureXML" unique_id="2091680114383440625" label="" size="749">
@@ -427,6 +517,7 @@
 				<element map="4" id="8706416277738488178" rt="2315.04428672715" mz="696.265865935515" it="730870" charge="1"/>
 				<element map="5" id="4155744174359052958" rt="2315.04428672715" mz="696.265865935515" it="730870" charge="1"/>
 			</groupedElementList>
+			<UserParam type="string" name="feature_id" value="12173381914808106004"/>
 		</consensusElement>
 		<consensusElement id="e_17962861576887891871" quality="0.880406" charge="2">
 			<centroid rt="1571.27967669544" mz="763.749456309823" it="518860"/>
@@ -441,7 +532,9 @@
 			<PeptideIdentification identification_run_ref="PI_12" score_type="" higher_score_better="true" significance_threshold="0" MZ="763.749572753906" RT="1571.3095703125" spectrum_reference="spectrum=2463" >
 				<UserParam type="int" name="spectrum_index" value="585"/>
 				<UserParam type="int" name="map_index" value="0"/>
+				<UserParam type="string" name="feature_id" value="17962861576887891871"/>
 			</PeptideIdentification>
+			<UserParam type="string" name="feature_id" value="17962861576887891871"/>
 		</consensusElement>
 		<consensusElement id="e_13678817347185682579" quality="0.854528" charge="2">
 			<centroid rt="2397.48754239827" mz="531.221420810368" it="85397.1"/>
@@ -470,7 +563,9 @@
 				</PeptideHit>
 				<UserParam type="int" name="spectrum_index" value="1562"/>
 				<UserParam type="int" name="map_index" value="3"/>
+				<UserParam type="string" name="feature_id" value="13678817347185682579"/>
 			</PeptideIdentification>
+			<UserParam type="string" name="feature_id" value="13678817347185682579"/>
 		</consensusElement>
 		<consensusElement id="e_60107607427378258" quality="0.933285" charge="1">
 			<centroid rt="1623.98255993453" mz="371.315684578303" it="8.14429e+06"/>
@@ -482,6 +577,7 @@
 				<element map="4" id="1451417439224502937" rt="1645.0859325398" mz="371.315661191974" it="7.80614e+06" charge="1"/>
 				<element map="5" id="12347967316465216374" rt="1645.0859325398" mz="371.315661191974" it="7.80614e+06" charge="1"/>
 			</groupedElementList>
+			<UserParam type="string" name="feature_id" value="60107607427378258"/>
 		</consensusElement>
 		<consensusElement id="e_7556036852336985019" quality="0.860746" charge="2">
 			<centroid rt="1952.89643190768" mz="573.206594089431" it="4.49051e+06"/>
@@ -510,7 +606,9 @@
 				</PeptideHit>
 				<UserParam type="int" name="spectrum_index" value="894"/>
 				<UserParam type="int" name="map_index" value="4"/>
+				<UserParam type="string" name="feature_id" value="7556036852336985019"/>
 			</PeptideIdentification>
+			<UserParam type="string" name="feature_id" value="7556036852336985019"/>
 		</consensusElement>
 	</consensusElementList>
 </consensusXML>

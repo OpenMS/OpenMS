@@ -32,8 +32,7 @@
 // $Authors: Erhan Kenar $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_ID_METABOLITESPECTRALMATCHING_H
-#define OPENMS_ANALYSIS_ID_METABOLITESPECTRALMATCHING_H
+#pragma once
 
 #include <OpenMS/KERNEL/MassTrace.h>
 #include <OpenMS/KERNEL/Feature.h>
@@ -182,4 +181,3 @@ namespace OpenMS
 
 }
 
-#endif // OPENMS_ANALYSIS_ID_METABOLITESPECTRALMATCHING_H

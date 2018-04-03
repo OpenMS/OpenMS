@@ -32,8 +32,7 @@
 // $Authors: Johannes Junker $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_VISUAL_ANNOTATION_ANNOTATION1DITEM_H
-#define OPENMS_VISUAL_ANNOTATION_ANNOTATION1DITEM_H
+#pragma once
 
 #include <OpenMS/DATASTRUCTURES/DPosition.h>
 
@@ -122,4 +121,3 @@ protected:
   };
 } // namespace OpenMS
 
-#endif

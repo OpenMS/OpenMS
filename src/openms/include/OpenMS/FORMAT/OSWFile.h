@@ -32,13 +32,14 @@
 // $Authors: George Rosenberger $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FORMAT_OSWFILE_H
-#define OPENMS_FORMAT_OSWFILE_H
+#pragma once
 
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <sqlite3.h>
+
+#include <map>
 
 namespace OpenMS
 {
@@ -88,4 +89,3 @@ private:
 
 } // namespace OpenMS
 
-#endif // OPENMS_FORMAT_OSWFILE_H

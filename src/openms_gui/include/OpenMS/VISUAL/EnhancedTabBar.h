@@ -32,14 +32,13 @@
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_VISUAL_ENHANCEDTABBAR_H
-#define OPENMS_VISUAL_ENHANCEDTABBAR_H
+#pragma once
 
 // OpenMS_GUI config
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
 //QT
-#include <QtGui/QTabBar>
+#include <QTabBar>
 class QMouseEvent;
 class QMimeData;
 
@@ -110,4 +109,3 @@ protected slots:
   };
 
 }
-#endif // OPENMS_VISUAL_ENHANCEDTABBAR_H

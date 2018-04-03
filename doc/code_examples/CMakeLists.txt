@@ -36,6 +36,7 @@
 
 project("OpenMS_code_examples")
 cmake_minimum_required(VERSION 3.0.0 FATAL_ERROR)
+
 set(EXAMPLES_executables)
 
 # ensure the tutorials got into bin/
@@ -46,6 +47,14 @@ include(${CMAKE_CURRENT_LIST_DIR}/executables.cmake)
 
 # add OpenMS includes
 include_directories(SYSTEM ${OpenMS_INCLUDE_DIRECTORIES})
+
+#------------------------------------------------------------------------------
+# QT dependencies
+find_package(Qt5 COMPONENTS Core Network OpenGL Svg REQUIRED)
+if (NOT Qt5Network_FOUND)
+  message(STATUS "QtNetwork module not found!")
+  message(FATAL_ERROR "To find a custom Qt installation use: cmake <..more options..> -D QT_QMAKE_EXECUTABLE='<path_to_qmake(.exe)' <src-dir>")
+endif()
 
 # add the targets
 foreach(i ${EXAMPLES_executables})

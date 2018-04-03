@@ -49,7 +49,7 @@ namespace OpenSwath
     return xcorr_matrix_;
   }
 
-  void MRMScoring::initializeXCorrMatrix(OpenSwath::IMRMFeature* mrmfeature, std::vector<String> native_ids)
+  void MRMScoring::initializeXCorrMatrix(OpenSwath::IMRMFeature* mrmfeature, const std::vector<String>& native_ids)
   {
     std::vector<double> intensityi, intensityj;
     xcorr_matrix_.resize(native_ids.size());
@@ -72,7 +72,7 @@ namespace OpenSwath
     }
   }
 
-  void MRMScoring::initializeMS1XCorr(OpenSwath::IMRMFeature* mrmfeature, std::vector<String> native_ids, std::string precursor_id)
+  void MRMScoring::initializeMS1XCorr(OpenSwath::IMRMFeature* mrmfeature, const std::vector<String>& native_ids, const std::string& precursor_id)
   {
     std::vector<double> intensityi, intensity_ms1;
     mrmfeature->getPrecursorFeature(precursor_id)->getIntensity(intensity_ms1);
@@ -88,8 +88,8 @@ namespace OpenSwath
     }
   }
 
-  void MRMScoring::initializeXCorrIdMatrix(OpenSwath::IMRMFeature* mrmfeature, std::vector<String> native_ids_identification, std::vector<String> native_ids_detection)
-  { 
+  void MRMScoring::initializeXCorrIdMatrix(OpenSwath::IMRMFeature* mrmfeature, const std::vector<String>& native_ids_identification, const std::vector<String>& native_ids_detection)
+  {
     std::vector<double> intensityi, intensityj;
     xcorr_matrix_.resize(native_ids_identification.size());
     for (std::size_t i = 0; i < native_ids_identification.size(); i++)

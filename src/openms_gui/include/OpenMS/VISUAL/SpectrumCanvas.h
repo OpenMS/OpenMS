@@ -32,8 +32,7 @@
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_VISUAL_SPECTRUMCANVAS_H
-#define OPENMS_VISUAL_SPECTRUMCANVAS_H
+#pragma once
 
 // OpenMS_GUI config
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
@@ -46,8 +45,9 @@
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 
 //QT
-#include <QtGui/QWidget>
-#include <QtGui/QRubberBand>
+#include <QtWidgets>
+#include <QRubberBand>
+
 class QWheelEvent;
 class QKeyEvent;
 class QMouseEvent;
@@ -958,4 +958,3 @@ protected:
   };
 }
 
-#endif

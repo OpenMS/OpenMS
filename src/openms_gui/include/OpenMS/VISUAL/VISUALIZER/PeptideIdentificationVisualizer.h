@@ -32,8 +32,7 @@
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_VISUAL_VISUALIZER_PEPTIDEIDENTIFICATIONVISUALIZER_H
-#define OPENMS_VISUAL_VISUALIZER_PEPTIDEIDENTIFICATIONVISUALIZER_H
+#pragma once
 
 // OpenMS_GUI config
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
@@ -60,7 +59,7 @@ namespace OpenMS
 
 public:
     ///Constructor
-    PeptideIdentificationVisualizer(bool editable = FALSE, QWidget * parent = nullptr, MetaDataBrowser * caller = nullptr);
+    PeptideIdentificationVisualizer(bool editable = false, QWidget * parent = nullptr, MetaDataBrowser * caller = nullptr);
 
     /// Loads the meta data from the object to the viewer. Gets the id of the item in the tree as parameter.
     void load(PeptideIdentification & s, int tree_item_id);
@@ -102,4 +101,3 @@ protected:
     QLineEdit * filter_threshold_;
   };
 }
-#endif

@@ -32,8 +32,7 @@
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FILTERING_DATAREDUCTION_DATAFILTERS_H
-#define OPENMS_FILTERING_DATAREDUCTION_DATAFILTERS_H
+#pragma once
 
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
@@ -283,4 +282,3 @@ protected:
 
 } //namespace
 
-#endif

@@ -32,8 +32,7 @@
 // $Authors: Lars Nilse $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_TRANSFORMATIONS_FEATUREFINDER_MULTIPLEXSATELLITECENTROIDED_H
-#define OPENMS_TRANSFORMATIONS_FEATUREFINDER_MULTIPLEXSATELLITECENTROIDED_H
+#pragma once
 
 #include <OpenMS/KERNEL/StandardTypes.h>
 
@@ -85,4 +84,3 @@ namespace OpenMS
   
 }
 
-#endif /* MULTIPLEXSATELLITECENTROIDED_H */

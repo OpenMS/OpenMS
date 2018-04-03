@@ -32,8 +32,7 @@
 // $Authors: Lars Nilse $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_TRANSFORMATIONS_FEATUREFINDER_MULTIPLEXISOTOPICPEAKPATTERN_H
-#define OPENMS_TRANSFORMATIONS_FEATUREFINDER_MULTIPLEXISOTOPICPEAKPATTERN_H
+#pragma once
 
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexDeltaMasses.h>
@@ -134,4 +133,3 @@ namespace OpenMS
   
 }
 
-#endif /* MULTIPLEXISOTOPICPEAKPATTERN_H */

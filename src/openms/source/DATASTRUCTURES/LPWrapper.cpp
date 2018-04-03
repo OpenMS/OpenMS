@@ -48,11 +48,9 @@
 #include "coin/CbcHeuristic.hpp"
 #include "coin/CbcHeuristicLocal.hpp"
 #include "coin/CglGomory.hpp"
-#include "coin/CglProbing.hpp"
 #include "coin/CglKnapsackCover.hpp"
 #include "coin/CglOddHole.hpp"
 #include "coin/CglClique.hpp"
-#include "coin/CglFlowCover.hpp"
 #include "coin/CglMixedIntegerRounding.hpp"
 #ifdef _MSC_VER
 #pragma warning( pop ) // restore old warning state
@@ -63,7 +61,6 @@
 
 
 #include <glpk.h>
-#include <cstddef>
 
 namespace OpenMS
 {

@@ -35,16 +35,7 @@
 #include <OpenMS/ANALYSIS/MAPMATCHING/PoseClusteringAffineSuperimposer.h>
 #include <OpenMS/FILTERING/BASELINE/MorphologicalFilter.h>
 #include <OpenMS/MATH/STATISTICS/BasicStatistics.h>
-#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/MATH/MISC/LinearInterpolation.h>
-
-#include <fstream>
-#include <vector>
-#include <map>
-#include <cmath>
-#include <algorithm>
-
-#include <boost/math/special_functions/fpclassify.hpp>
 
 // #define Debug_PoseClusteringAffineSuperimposer
 
@@ -422,8 +413,7 @@ namespace OpenMS
         }
         freq_cutoff = buffer[--index];   // note that we have index >= 1
       }
-    }
-    while (0);
+    } while (0);
 
     // ***************************************************************************
     // apply freq_cutoff, setting smaller values to zero
@@ -621,8 +611,7 @@ namespace OpenMS
           freq_cutoff_high = buffer[--index]; // note that we have index >= 1
         }
       }
-    }
-    while (0);
+    } while (0);
 
     // apply freq_cutoff, setting smaller values to zero
     for (Size index = 0; index < rt_low_hash_.getData().size(); ++index)

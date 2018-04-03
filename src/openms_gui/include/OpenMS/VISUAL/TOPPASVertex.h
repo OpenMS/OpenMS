@@ -32,8 +32,7 @@
 // $Authors: Johannes Junker, Chris Bielow $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_VISUAL_TOPPASVERTEX_H
-#define OPENMS_VISUAL_TOPPASVERTEX_H
+#pragma once
 
 // ------------- DEBUGGING ----------------
 
@@ -75,13 +74,13 @@
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/DATASTRUCTURES/Map.h>
 
-#include <QtGui/QPainter>
-#include <QtGui/QPainterPath>
-#include <QtGui/QGraphicsSceneMouseEvent>
-#include <QtGui/QGraphicsSceneContextMenuEvent>
-#include <QtGui/QGraphicsItem>
+#include <QPainter>
+#include <QPainterPath>
+#include <QtWidgets/QGraphicsSceneMouseEvent>
+#include <QtWidgets/QGraphicsSceneContextMenuEvent>
+#include <QtWidgets/QGraphicsItem>
 #include <QtCore/QProcess>
-#include <QtGui/QMenu>
+#include <QtWidgets/QMenu>
 
 namespace OpenMS
 {
@@ -388,4 +387,3 @@ protected:
   };
 }
 
-#endif

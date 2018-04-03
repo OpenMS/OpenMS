@@ -32,8 +32,7 @@
 // $Authors: Hendrik Weisser $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_METADATA_SPECTRUMLOOKUP_H
-#define OPENMS_METADATA_SPECTRUMLOOKUP_H
+#pragma once
 
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
@@ -213,6 +212,9 @@ namespace OpenMS
                                  const boost::regex& scan_regexp,
                                  bool no_error = false);
 
+    static Int extractScanNumber(const String& native_id,
+                                 const String& native_id_type_accession);
+
   protected:
 
     /// Named groups recognized in regular expression
@@ -272,4 +274,3 @@ namespace OpenMS
 
 } //namespace OpenMS
 
-#endif // OPENMS_METADATA_SPECTRUMLOOKUP_H

@@ -32,15 +32,17 @@
 // $Authors: $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_KERNEL_STANDARDTYPES_H
-#define OPENMS_KERNEL_STANDARDTYPES_H
+#pragma once
 
 #include <OpenMS/config.h>
 #include <OpenMS/KERNEL/StandardDeclarations.h>
-#include <OpenMS/KERNEL/MSSpectrum.h>
-#include <OpenMS/KERNEL/MSChromatogram.h>
+
 namespace OpenMS
 {
+  class MSSpectrum;
+  class MSChromatogram;
+  class MSExperiment;
+
   //@{
   /**
       @brief Spectrum consisting of raw data points or peaks.
@@ -68,5 +70,4 @@ namespace OpenMS
 
 }
 
-#endif // OPENMS_KERNEL_STANDARDTYPES_H
 

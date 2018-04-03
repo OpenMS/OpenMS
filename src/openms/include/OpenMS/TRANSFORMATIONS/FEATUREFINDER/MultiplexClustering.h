@@ -32,8 +32,7 @@
 // $Authors: Lars Nilse $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_TRANSFORMATIONS_FEATUREFINDER_MULTIPLEXCLUSTERING_H
-#define OPENMS_TRANSFORMATIONS_FEATUREFINDER_MULTIPLEXCLUSTERING_H
+#pragma once
 
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
@@ -165,4 +164,3 @@ namespace OpenMS
   
 }
 
-#endif /* MULTIPLEXCLUSTERING_H_ */

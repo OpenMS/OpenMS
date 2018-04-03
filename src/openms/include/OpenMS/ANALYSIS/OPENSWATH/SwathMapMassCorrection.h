@@ -32,8 +32,7 @@
 // $Authors: Hannes Roest$
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_OPENSWATH_SWATHMAPMASSCORRECTION_H
-#define OPENMS_ANALYSIS_OPENSWATH_SWATHMAPMASSCORRECTION_H
+#pragma once
 
 #include <vector>
 
@@ -80,5 +79,4 @@ public:
   };
 }
 
-#endif // OPENMS_ANALYSIS_OPENSWATH_SWATHMAPMASSCORRECTION_H
 

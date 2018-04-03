@@ -32,8 +32,7 @@
 // $Authors: Stephan Aiche $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_SIMULATION_EGHMODEL_H
-#define OPENMS_SIMULATION_EGHMODEL_H
+#pragma once
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/InterpolationModel.h>
 #include <OpenMS/MATH/STATISTICS/BasicStatistics.h>
@@ -142,4 +141,3 @@ protected:
 
 } // namespace OpenMS
 
-#endif // OPENMS_SIMULATION_ELUTIONMODEL_H

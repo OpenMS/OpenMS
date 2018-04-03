@@ -32,8 +32,7 @@
 // $Authors: $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FORMAT_MASCOTINFILE_H
-#define OPENMS_FORMAT_MASCOTINFILE_H
+#pragma once
 
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
@@ -276,4 +275,3 @@ protected:
 
 } // namespace OpenMS
 
-#endif // OPENMS_FORMAT_MASCOTINFILE_H

@@ -36,12 +36,12 @@
 #include <OpenMS/VISUAL/VISUALIZER/MetaInfoVisualizer.h>
 
 //QT
-#include <QtGui/QGridLayout>
-#include <QtGui/QPushButton>
-#include <QtGui/QLineEdit>
-#include <QtGui/QGridLayout>
-#include <QtGui/QLabel>
-#include <QtGui/QButtonGroup>
+#include <QtWidgets/QGridLayout>
+#include <QtWidgets/QPushButton>
+#include <QtWidgets/QLineEdit>
+#include <QtWidgets/QGridLayout>
+#include <QtWidgets/QLabel>
+#include <QtWidgets/QButtonGroup>
 
 //STL
 #include <iostream>

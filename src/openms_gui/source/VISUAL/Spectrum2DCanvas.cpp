@@ -51,15 +51,15 @@
 #include <algorithm>
 
 //QT
-#include <QtGui/QMouseEvent>
-#include <QtGui/QPainter>
-#include <QtGui/QMenu>
-#include <QtGui/QBitmap>
-#include <QtGui/QPolygon>
+#include <QMouseEvent>
+#include <QPainter>
+#include <QtWidgets/QMenu>
+#include <QBitmap>
+#include <QPolygon>
 #include <QtCore/QTime>
-#include <QtGui/QComboBox>
-#include <QtGui/QFileDialog>
-#include <QtGui/QMessageBox>
+#include <QtWidgets/QComboBox>
+#include <QtWidgets/QFileDialog>
+#include <QtWidgets/QMessageBox>
 
 //boost
 #include <boost/math/special_functions/fpclassify.hpp>
@@ -1819,10 +1819,12 @@ namespace OpenMS
       lines.push_back("Quality: " + QString::number(quality, 'f', 4));
       // peptide identifications
       const PeptideIdentification* pis = nullptr;
-      if ( f && f->getPeptideIdentifications().size() > 0 ) {
+      if ( f && f->getPeptideIdentifications().size() > 0 )
+      {
         pis = &f->getPeptideIdentifications()[0];
       }
-      else if ( cf && cf->getPeptideIdentifications().size() > 0 ) {
+      else if ( cf && cf->getPeptideIdentifications().size() > 0 )
+      {
         pis = &cf->getPeptideIdentifications()[0];
       }
       if ( pis && pis->getHits().size() ) {

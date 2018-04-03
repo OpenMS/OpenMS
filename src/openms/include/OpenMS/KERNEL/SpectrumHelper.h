@@ -32,8 +32,7 @@
 // $Authors: Timo Sachsenberg $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_KERNEL_SPECTRUMHELPER_H
-#define OPENMS_KERNEL_SPECTRUMHELPER_H
+#pragma once
 
 namespace OpenMS
 {
@@ -69,5 +68,4 @@ namespace OpenMS
 
 } // namespace OpenMS
 
-#endif // OPENMS_KERNEL_SPECTRUMHELPER_H
 

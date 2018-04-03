@@ -32,8 +32,7 @@
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_MATH_MISC_MATHFUNCTIONS_H
-#define OPENMS_MATH_MISC_MATHFUNCTIONS_H
+#pragma once
 
 #include <OpenMS/CONCEPT/Types.h>
 
@@ -314,4 +313,3 @@ namespace OpenMS
   } // namespace Math
 } // namespace OpenMS
 
-#endif // OPENMS_MATH_MISC_MATHFUNCTIONS_H

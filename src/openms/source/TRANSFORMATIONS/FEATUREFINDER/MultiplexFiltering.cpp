@@ -43,12 +43,6 @@
 #include <OpenMS/FILTERING/DATAREDUCTION/SplinePackage.h>
 #include <OpenMS/FILTERING/DATAREDUCTION/SplineSpectrum.h>
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
-#include <OpenMS/MATH/MISC/CubicSpline2d.h>
-
-#include <vector>
-#include <algorithm>
-#include <iostream>
-#include <QDir>
 
 using namespace std;
 using namespace boost::math;

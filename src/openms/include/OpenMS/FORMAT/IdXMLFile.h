@@ -32,8 +32,7 @@
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FORMAT_IDXMLFILE_H
-#define OPENMS_FORMAT_IDXMLFILE_H
+#pragma once
 
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
@@ -166,6 +165,8 @@ protected:
     ProteinHit prot_hit_;
     /// Temporary peptide hit
     PeptideHit pep_hit_;
+    /// Temporary analysis result instance
+    PeptideHit::PepXMLAnalysisResult current_analysis_result_;
     /// Temporary peptide evidences
     std::vector<PeptideEvidence> peptide_evidences_;
     /// Map from protein id to accession
@@ -179,4 +180,3 @@ protected:
 
 } // namespace OpenMS
 
-#endif // OPENMS_FORMAT_IDXMLFILE_H

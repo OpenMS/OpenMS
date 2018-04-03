@@ -118,10 +118,10 @@ namespace OpenMS
   void PeakIntegrator::getDefaultParameters(Param& params)
   {
     params.clear();
-    params.setValue("integration_type", INTEGRATION_TYPE_INTENSITYSUM, "The integration technique to use in integratePeak() and estimateBackground().");
+    params.setValue("integration_type", INTEGRATION_TYPE_INTENSITYSUM, "The integration technique to use in integratePeak() and estimateBackground() which uses either the summed intensity, integration by Simpson's rule or trapezoidal integration.");
     params.setValidStrings("integration_type", ListUtils::create<String>("intensity_sum,simpson,trapezoid"));
-    params.setValue("baseline_type", BASELINE_TYPE_BASETOBASE, "The baseline type to use in estimateBackground().");
-    params.setValidStrings("baseline_type", ListUtils::create<String>("base_to_base,vertical_division"));
+    params.setValue("baseline_type", BASELINE_TYPE_BASETOBASE, "The baseline type to use in estimateBackground() based on the peak boundaries. A rectangular baseline shape is computed based either on the minimal intensity of the peak boundaries, the maximum intensity or the average intensity (base_to_base).");
+    params.setValidStrings("baseline_type", ListUtils::create<String>("base_to_base,vertical_division,vertical_division_min,vertical_division_max"));
   }
 
   void PeakIntegrator::updateMembers_()
@@ -190,7 +190,7 @@ namespace OpenMS
     }
     else if (integration_type_ == INTEGRATION_TYPE_INTENSITYSUM)
     {
-      std::cout << "\nWARNING: intensity_sum method is being used.\n";
+      LOG_DEBUG << "\nWARNING: intensity_sum method is being used.\n";
       for (auto it = p.PosBegin(left); it != p.PosEnd(right); ++it)
       {
         peak_area += it->getIntensity();
@@ -236,38 +236,62 @@ namespace OpenMS
     const double delta_pos = (p.PosEnd(right) - 1)->getPos() - p.PosBegin(left)->getPos();
     const double min_int_pos = int_r <= int_l ? (p.PosEnd(right) - 1)->getPos() : p.PosBegin(left)->getPos();
     const double delta_int_apex = std::fabs(delta_int) * std::fabs(min_int_pos - peak_apex_pos) / delta_pos;
-    double background = 0.0;
+    double area {0.0};
+    double height {0.0};
     if (baseline_type_ == BASELINE_TYPE_BASETOBASE)
     {
+      height = std::min(int_r, int_l) + delta_int_apex;
       if (integration_type_ == INTEGRATION_TYPE_TRAPEZOID || integration_type_ == INTEGRATION_TYPE_SIMPSON)
       {
         // formula for calculating the background using the trapezoidal rule
-        // background = intensity_min*delta_pos + 0.5*delta_int*delta_pos;
-        background = delta_pos * (std::min(int_r, int_l) + 0.5 * std::fabs(delta_int));
+        // area = intensity_min*delta_pos + 0.5*delta_int*delta_pos;
+        area = delta_pos * (std::min(int_r, int_l) + 0.5 * std::fabs(delta_int));
       }
       else if (integration_type_ == INTEGRATION_TYPE_INTENSITYSUM)
       {
-        // calculate the background using the formula
-        // y = mx + b where x = rt or mz, m = slope, b = left intensity
+        // calculate the background using an estimator of the form
+        //    y = mx + b
+        //    where x = rt or mz, m = slope, b = left intensity
         // sign of delta_int will determine line direction
-        // background += delta_int / delta_pos * (it->getPos() - left) + int_l;
+        // area += delta_int / delta_pos * (it->getPos() - left) + int_l;
+        double pos_sum = 0.0; // rt or mz
         for (auto it = p.PosBegin(left); it != p.PosEnd(right); ++it)
         {
-          background += it->getPos();
+          pos_sum += it->getPos();
         }
         UInt n_points = std::distance(p.PosBegin(left), p.PosEnd(right));
-        background = (background - n_points * p.PosBegin(left)->getPos()) * delta_int / delta_pos + n_points * int_l;
+
+        // We construct the background area as the sum of a rectangular part
+        // and a triangle on top. The triangle is constructed as the sum of the
+        // line's y value at each sampled point: \sum_{i=0}^{n} (x_i - x_0)  * m
+        const double rectangle_area = n_points * int_l;
+        const double slope = delta_int / delta_pos;
+        const double triangle_area = (pos_sum - n_points * p.PosBegin(left)->getPos()) * slope;
+        area = triangle_area + rectangle_area;
       }
     }
-    else if (baseline_type_ == BASELINE_TYPE_VERTICALDIVISION)
+    else if (baseline_type_ == BASELINE_TYPE_VERTICALDIVISION || baseline_type_ == BASELINE_TYPE_VERTICALDIVISION_MIN)
     {
+      height = std::min(int_r, int_l);
       if (integration_type_ == INTEGRATION_TYPE_TRAPEZOID || integration_type_ == INTEGRATION_TYPE_SIMPSON)
       {
-        background = delta_pos * std::min(int_r, int_l);
+        area = delta_pos * std::min(int_r, int_l);
       }
       else if (integration_type_ == INTEGRATION_TYPE_INTENSITYSUM)
       {
-        background = std::min(int_r, int_l) * std::distance(p.PosBegin(left), p.PosEnd(right));;
+        area = std::min(int_r, int_l) * std::distance(p.PosBegin(left), p.PosEnd(right));;
+      }
+    }
+    else if (baseline_type_ == BASELINE_TYPE_VERTICALDIVISION_MAX)
+    {
+      height = std::max(int_r, int_l);
+      if (integration_type_ == INTEGRATION_TYPE_TRAPEZOID || integration_type_ == INTEGRATION_TYPE_SIMPSON)
+      {
+        area = delta_pos * std::max(int_r, int_l);
+      }
+      else if (integration_type_ == INTEGRATION_TYPE_INTENSITYSUM)
+      {
+        area = std::max(int_r, int_l) * std::distance(p.PosBegin(left), p.PosEnd(right));
       }
     }
     else
@@ -275,8 +299,8 @@ namespace OpenMS
       throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Please set a valid value for the parameter \"baseline_type\".");
     }
     PeakBackground pb;
-    pb.area = background;
-    pb.height = std::min(int_r, int_l) + delta_int_apex;
+    pb.area = area;
+    pb.height = height;
     return pb;
   }
 
@@ -291,56 +315,23 @@ namespace OpenMS
     psm.points_across_half_height = 0;
     for (auto it = p.PosBegin(left); it != p.PosEnd(right); ++it)
     {
-      const double intensity = it->getIntensity();
-      const double intensity_prev = (it - 1)->getIntensity();
-      const double position = it->getPos();
-      const double position_prev = (it - 1)->getPos();
-      // start and end positions (rt or mz)
-      if (position < peak_apex_pos && psm.points_across_baseline > 1) // start positions
-      {
-        const double d_int_times_d_pos = (intensity - intensity_prev) * (position - position_prev);
-        if (intensity >= 0.05 * peak_height && intensity_prev < 0.05 * peak_height)
-        {
-          const double height_5 = intensity - 0.05 * peak_height;
-          psm.start_position_at_5 = position - d_int_times_d_pos / height_5;
-        }
-        if (intensity >= 0.1 * peak_height && intensity_prev < 0.1 * peak_height)
-        {
-          const double height_10 = intensity - 0.1 * peak_height;
-          psm.start_position_at_10 = position - d_int_times_d_pos / height_10;
-        }
-        if (intensity >= 0.5 * peak_height && intensity_prev < 0.5 * peak_height)
-        {
-          const double height_50 = intensity - 0.5 * peak_height;
-          psm.start_position_at_50 = position - d_int_times_d_pos / height_50;
-        }
-      }
-      else if (position > peak_apex_pos) // end positions
-      {
-        const double d_int_times_d_pos = (intensity_prev - intensity) * (position - position_prev);
-        if (intensity <= 0.05 * peak_height && intensity_prev > 0.05 * peak_height)
-        {
-          const double height_5 = 0.05 * peak_height - intensity;
-          psm.end_position_at_5 = position - d_int_times_d_pos / height_5;
-        }
-        if (intensity <= 0.1 * peak_height && intensity_prev > 0.1 * peak_height)
-        {
-          const double height_10 = 0.1 * peak_height - intensity;
-          psm.end_position_at_10 = position - d_int_times_d_pos / height_10;
-        }
-        if (intensity <= 0.5 * peak_height && intensity_prev > 0.5 * peak_height)
-        {
-          const double height_50 = 0.5 * peak_height - intensity;
-          psm.end_position_at_50 = position - d_int_times_d_pos / height_50;
-        }
-      }
       // points across the peak
       ++(psm.points_across_baseline);
-      if (intensity >= 0.5 * peak_height)
+      if (it->getIntensity() >= 0.5 * peak_height)
       {
         ++(psm.points_across_half_height);
       }
     }
+    // positions at peak heights
+    typename PeakContainerT::ConstIterator it_PosBegin_l = p.PosBegin(left);
+    typename PeakContainerT::ConstIterator it_PosEnd_apex = p.PosEnd(peak_apex_pos);
+    typename PeakContainerT::ConstIterator it_PosEnd_r = p.PosEnd(right);
+    psm.start_position_at_5 = findPosAtPeakHeightPercent_(it_PosBegin_l, it_PosEnd_apex - 1, peak_height, 0.05, true);
+    psm.start_position_at_10 = findPosAtPeakHeightPercent_(it_PosBegin_l, it_PosEnd_apex - 1, peak_height, 0.1, true);
+    psm.start_position_at_50 = findPosAtPeakHeightPercent_(it_PosBegin_l, it_PosEnd_apex - 1, peak_height, 0.5, true);
+    psm.end_position_at_5 = findPosAtPeakHeightPercent_(it_PosEnd_apex, it_PosEnd_r, peak_height, 0.05, false);
+    psm.end_position_at_10 = findPosAtPeakHeightPercent_(it_PosEnd_apex, it_PosEnd_r, peak_height, 0.1, false);
+    psm.end_position_at_50 = findPosAtPeakHeightPercent_(it_PosEnd_apex, it_PosEnd_r, peak_height, 0.5, false);
     // peak widths
     psm.width_at_5 = psm.end_position_at_5 - psm.start_position_at_5;
     psm.width_at_10 = psm.end_position_at_10 - psm.start_position_at_10;
@@ -348,10 +339,40 @@ namespace OpenMS
     psm.total_width = (p.PosEnd(right) - 1)->getPos() - p.PosBegin(left)->getPos();
     psm.slope_of_baseline = (p.PosEnd(right) - 1)->getIntensity() - p.PosBegin(left)->getIntensity();
     psm.baseline_delta_2_height = psm.slope_of_baseline / peak_height;
-    // other
-    psm.tailing_factor = psm.width_at_5 / std::min(peak_apex_pos - psm.start_position_at_5, psm.end_position_at_5 - peak_apex_pos);
-    psm.asymmetry_factor = std::min(peak_apex_pos - psm.start_position_at_10, psm.end_position_at_10 - peak_apex_pos) /
-      std::max(peak_apex_pos - psm.start_position_at_10, psm.end_position_at_10 - peak_apex_pos);
+    // Source of tailing_factor and asymmetry_factor formulas:
+    // USP 40 - NF 35 The United States Pharmacopeia and National Formulary - Supplementary
+    psm.tailing_factor = psm.width_at_5 / (2*(peak_apex_pos - psm.start_position_at_5));
+    psm.asymmetry_factor = (psm.end_position_at_10 - peak_apex_pos) / (peak_apex_pos - psm.start_position_at_10);
     return psm;
+  }
+
+  template <typename PeakContainerConstIteratorT>
+  double PeakIntegrator::findPosAtPeakHeightPercent_(
+    PeakContainerConstIteratorT it_begin,
+    PeakContainerConstIteratorT it_end,
+    const double peak_height,
+    const double percent,
+    const bool is_left_half
+  ) const
+  {
+    const double percent_intensity = peak_height * percent;
+    PeakContainerConstIteratorT closest = is_left_half ? it_begin : it_end - 1;
+    if (is_left_half)
+    {
+      for (
+        PeakContainerConstIteratorT it = it_begin;
+        it != it_end && it->getIntensity() <= percent_intensity;
+        closest = it++
+      ) {}
+    }
+    else
+    {
+      for (
+        PeakContainerConstIteratorT it = it_end - 1;
+        it != it_begin && it->getIntensity() <= percent_intensity;
+        closest = it--
+      ) {}
+    }
+    return closest->getPos();
   }
 }

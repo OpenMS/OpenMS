@@ -32,8 +32,7 @@
 // $Authors: Hannes Roest $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_OPENSWATH_OPENSWATHWORKFLOW_H
-#define OPENMS_ANALYSIS_OPENSWATH_OPENSWATHWORKFLOW_H
+#pragma once
 
 // Interfaces
 #include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/ISpectrumAccess.h>
@@ -453,5 +452,4 @@ namespace OpenMS
 
 }
 
-#endif // OPENMS_ANALYSIS_OPENSWATH_OPENSWATHWORKFLOW_H
 

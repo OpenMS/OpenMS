@@ -32,17 +32,21 @@
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_VISUAL_DIALOGS_TOPPVIEWOPENDIALOG_H
-#define OPENMS_VISUAL_DIALOGS_TOPPVIEWOPENDIALOG_H
+#pragma once
 
 // OpenMS_GUI config
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
-#include <OpenMS/VISUAL/DIALOGS/UIC/ui_TOPPViewOpenDialog.h>
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/DATASTRUCTURES/Map.h>
 
+#include <QtWidgets/QDialog>
 class QAbstractButton;
+
+namespace Ui
+{
+  class TOPPViewOpenDialogTemplate;
+}
 
 namespace OpenMS
 {
@@ -54,8 +58,7 @@ namespace OpenMS
       @ingroup TOPPView_elements
   */
   class OPENMS_GUI_DLLAPI TOPPViewOpenDialog :
-    public QDialog,
-    public Ui::TOPPViewOpenDialogTemplate
+    public QDialog
   {
     Q_OBJECT
 
@@ -96,7 +99,9 @@ protected slots:
 protected:
     ///Stores if this option is disabled, to avoid activating it in updateViewMode_()
     bool map_as_2d_disabled_;
+
+private: 
+    Ui::TOPPViewOpenDialogTemplate* ui_;
   };
 
 }
-#endif // OPENMS_VISUAL_DIALOGS_TOPPVIEWOPENDIALOG_H

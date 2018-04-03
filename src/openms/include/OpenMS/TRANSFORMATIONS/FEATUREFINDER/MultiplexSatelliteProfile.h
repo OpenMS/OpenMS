@@ -32,15 +32,7 @@
 // $Authors: Lars Nilse $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_TRANSFORMATIONS_FEATUREFINDER_MULTIPLEXSATELLITEPROFILE_H
-#define OPENMS_TRANSFORMATIONS_FEATUREFINDER_MULTIPLEXSATELLITEPROFILE_H
-
-#include <OpenMS/KERNEL/StandardTypes.h>
-
-#include <map>
-#include <vector>
-#include <algorithm>
-#include <iostream>
+#pragma once
 
 namespace OpenMS
 {
@@ -89,4 +81,3 @@ namespace OpenMS
   
 }
 
-#endif /* MULTIPLEXSATELLITEPROFILE_H */

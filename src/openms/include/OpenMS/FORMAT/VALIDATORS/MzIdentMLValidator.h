@@ -32,8 +32,7 @@
 // $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FORMAT_VALIDATORS_MZIDENTMLVALIDATOR_H
-#define OPENMS_FORMAT_VALIDATORS_MZIDENTMLVALIDATOR_H
+#pragma once
 
 #include <OpenMS/FORMAT/VALIDATORS/SemanticValidator.h>
 
@@ -78,4 +77,3 @@ private:
 
 } // namespace OpenMS
 
-#endif

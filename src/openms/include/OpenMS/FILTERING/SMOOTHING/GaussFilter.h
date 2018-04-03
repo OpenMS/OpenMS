@@ -32,8 +32,7 @@
 // $Authors: Eva Lange $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FILTERING_SMOOTHING_GAUSSFILTER_H
-#define OPENMS_FILTERING_SMOOTHING_GAUSSFILTER_H
+#pragma once
 
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CONCEPT/LogStream.h>
@@ -220,4 +219,3 @@ protected:
   };
 
 } // namespace OpenMS
-#endif

@@ -33,10 +33,12 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
+#include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/TraMLFile.h>
 #include <OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>
 #include <fstream>
+#include <clocale>
 
 using namespace OpenMS;
 
@@ -249,12 +251,10 @@ void write_out_body_(std::ostream &os, Feature *feature_it, TargetedExperiment &
   String meta_values = "";
   for (Size i = 0; i < meta_value_names.size(); i++)
   {
-    meta_values += (String)feature_it->getMetaValue(meta_value_names[i]) + "\t";
+    meta_values += feature_it->getMetaValue(meta_value_names[i]).toString() + "\t";
   }
 
   // Write out the individual transition
-  char intensity_char[40];
-  char intensity_apex_char[40];
   if (short_format)
   {
     String aggr_Peak_Area = "";
@@ -262,13 +262,11 @@ void write_out_body_(std::ostream &os, Feature *feature_it, TargetedExperiment &
     String aggr_Fragment_Annotation = "";
     for (std::vector<Feature>::iterator sub_it = feature_it->getSubordinates().begin(); sub_it != feature_it->getSubordinates().end(); ++sub_it)
     {
-      sprintf(intensity_char, "%f", sub_it->getIntensity());
-      aggr_Peak_Area += (String)intensity_char + ";";
+      aggr_Peak_Area += String(sub_it->getIntensity()) + ";";
 
       if (sub_it->metaValueExists("peak_apex_int"))
       {
-        sprintf(intensity_apex_char, "%f", (double)sub_it->getMetaValue("peak_apex_int"));
-        aggr_Peak_Apex += (String)intensity_apex_char + ";";
+        aggr_Peak_Apex += String((double)sub_it->getMetaValue("peak_apex_int")) + ";";
       }
       else
       {
@@ -289,19 +287,15 @@ void write_out_body_(std::ostream &os, Feature *feature_it, TargetedExperiment &
   }
   else
   {
-    char mz_char[40];
     for (std::vector<Feature>::iterator sub_it = feature_it->getSubordinates().begin(); sub_it != feature_it->getSubordinates().end(); ++sub_it)
     {
       os.precision(writtenDigits(double()));
-      sprintf(intensity_char, "%f", sub_it->getIntensity());
-      sprintf(mz_char, "%f", sub_it->getMZ());
       String apex = "NA";
       if (sub_it->metaValueExists("peak_apex_int"))
       {
-        sprintf(intensity_apex_char, "%f", (double)sub_it->getMetaValue("peak_apex_int"));
-        apex = (String) intensity_apex_char;
+        apex = String((double)sub_it->getMetaValue("peak_apex_int"));
       }
-      os << line << meta_values << (String)intensity_char << "\t" << apex << "\t" << (String)sub_it->getMetaValue("native_id") << "\t" << (String)mz_char << std::endl;
+      os << line << meta_values << String(sub_it->getIntensity()) << "\t" << apex << "\t" << (String)sub_it->getMetaValue("native_id") << "\t" << String(sub_it->getMZ()) << std::endl;
     }
   }
 }
@@ -405,7 +399,6 @@ protected:
 
   ExitCodes main_(int, const char **) override
   {
-
     StringList file_list = getStringList_("in");
     String tr_file = getStringOption_("tr");
     String out = getStringOption_("out");
@@ -433,7 +426,6 @@ protected:
     std::ofstream os(out.c_str());
     //set high precision for writing of floating point numbers
     os.precision(writtenDigits(double()));
-
     if (!os)
     {
       throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, out);
@@ -447,7 +439,12 @@ protected:
     FeatureMap feature_map;
     FeatureXMLFile feature_file;
     feature_file.setLogType(log_type_);
+    // feature_file.load() resets the locale to the user's (Don't know where, maybe QT or Xerces)
+    // Somehow even our variable OpenMS::Internal::OpenMS_locale is overwritten
+    // Create copy here and reset it later. TODO this needs to be fixed more thouroughly.
+    String locale_before = String(OpenMS::Internal::OpenMS_locale);
     feature_file.load(file_list[0], feature_map);
+    setlocale(LC_ALL, locale_before.c_str());
     if (feature_map.getIdentifier().size() == 0)
     {
       feature_map.setIdentifier("run0");
@@ -465,7 +462,6 @@ protected:
     }
 
     write_out_header(os, feature_map, /* main_var_name, */ meta_value_names, short_format);
-
     String filename;
     filename = file_list[0];
     if (getFlag_("test"))
@@ -521,7 +517,6 @@ protected:
 
 int main(int argc, const char **argv)
 {
-
   TOPPOpenSwathFeatureXMLToTSV tool;
   int code = tool.main(argc, argv);
   return code;

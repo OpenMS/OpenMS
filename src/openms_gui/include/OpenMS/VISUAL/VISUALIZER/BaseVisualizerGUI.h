@@ -32,15 +32,14 @@
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_VISUAL_VISUALIZER_BASEVISUALIZERGUI_H
-#define OPENMS_VISUAL_VISUALIZER_BASEVISUALIZERGUI_H
+#pragma once
 
 // OpenMS_GUI config
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
 #include <OpenMS/CONCEPT/Types.h>
 
-#include <QtGui/QWidget>
+#include <QtWidgets>
 
 class QPushButton;
 class QGridLayout;
@@ -132,4 +131,3 @@ protected:
 
 
 }
-#endif //OPENMS_VISUAL_VISUALIZER_BASEVISUALIZERGUI_H

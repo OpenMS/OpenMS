@@ -32,8 +32,7 @@
 // $Authors: $
 // --------------------------------------------------------------------------
 //
-#ifndef OPENMS_COMPARISON_CLUSTERING_EUCLIDEANSIMILARITY_H
-#define OPENMS_COMPARISON_CLUSTERING_EUCLIDEANSIMILARITY_H
+#pragma once
 
 #include <cmath>
 #include <OpenMS/CONCEPT/Exception.h>
@@ -101,4 +100,3 @@ public:
   };
 
 }
-#endif //OPENMS_COMPARISON_CLUSTERING_EUCLIDEANSIMILARITY_H

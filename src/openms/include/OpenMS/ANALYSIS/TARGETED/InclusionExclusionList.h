@@ -32,8 +32,7 @@
 // $Authors: Alexandra Zerck, Chris Bielow $
 // --------------------------------------------------------------------------
 //
-#ifndef OPENMS_ANALYSIS_TARGETED_INCLUSIONEXCLUSIONLIST_H
-#define OPENMS_ANALYSIS_TARGETED_INCLUSIONEXCLUSIONLIST_H
+#pragma once
 
 #include <OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>
 #include <OpenMS/FORMAT/FASTAFile.h>
@@ -201,4 +200,3 @@ public:
 
 }
 
-#endif

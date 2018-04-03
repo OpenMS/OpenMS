@@ -33,8 +33,7 @@
 // --------------------------------------------------------------------------
 //
 
-#ifndef OPENMS_CHEMISTRY_DIGESTIONENZYMERNA_H
-#define OPENMS_CHEMISTRY_DIGESTIONENZYMERNA_H
+#pragma once
 
 #include <OpenMS/CHEMISTRY/DigestionEnzyme.h>
 
@@ -75,4 +74,3 @@ namespace OpenMS
   typedef DigestionEnzymeRNA RNase;
 }
 
-#endif

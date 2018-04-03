@@ -32,8 +32,7 @@
 // $Authors: Lars Nilse $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_TRANSFORMATIONS_FEATUREFINDER_MULTIPLEXFILTERINGCENTROIDED_H
-#define OPENMS_TRANSFORMATIONS_FEATUREFINDER_MULTIPLEXFILTERINGCENTROIDED_H
+#pragma once
 
 #include <OpenMS/KERNEL/BaseFeature.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
@@ -98,4 +97,3 @@ public:
 
 }
 
-#endif /* MULTIPLEXFILTERINGCENTROIDED_H_ */

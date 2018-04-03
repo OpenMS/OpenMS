@@ -32,8 +32,7 @@
 // $Authors: Marc Sturm, Chris Bielow $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_KERNEL_RANGEUTILS_H
-#define OPENMS_KERNEL_RANGEUTILS_H
+#pragma once
 
 #include <functional>
 #include <algorithm>
@@ -711,4 +710,3 @@ private:
 
 } // namespace OpenMS
 
-#endif // OPENMS_KERNEL_RANGEUTILS_H

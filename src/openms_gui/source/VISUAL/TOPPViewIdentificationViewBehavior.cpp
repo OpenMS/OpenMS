@@ -47,8 +47,8 @@
 #include <OpenMS/FILTERING/ID/IDFilter.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
 
+#include <QtWidgets/QMessageBox>
 #include <QtCore/QString>
-#include <QtGui/QMessageBox>
 
 using namespace OpenMS;
 using namespace std;
@@ -863,7 +863,7 @@ namespace OpenMS
 
     MSSpectrum ann_spectrum;
     vector<String> labels;
-    for (const auto& ann : annotations) // NOLINT
+    for (const auto& ann : annotations)
     {
       Peak1D peak(ann.mz, ann.intensity);
       if (align) // align to the measured spectrum
@@ -935,24 +935,30 @@ namespace OpenMS
                               ann_spectrum[i].getIntensity());
         const String& label = labels[i];
         QColor color;
+        QColor peak_color;
+        LayerData& annotated_layer = current_canvas->getCurrentLayer();
         // XL-MS specific coloring of the labels, green for linear fragments and red for cross-linked fragments
         if (label.hasSubstring("[alpha|") || label.hasSubstring("[beta|"))
         {
           if (label.hasSubstring("|ci$"))
           {
             color = Qt::darkGreen;
+            peak_color = Qt::green;
           }
           else if (label.hasSubstring("|xi$"))
           {
             color = Qt::darkRed;
+            peak_color = Qt::red;
           }
         }
         else // different colors for left/right fragments (e.g. b/y ions)
         {
           color = (label.at(0) < 'n') ? Qt::darkRed : Qt::darkGreen;
+          peak_color = (label.at(0) < 'n') ? Qt::red : Qt::green;
         }
 
         Annotation1DItem* item = new Annotation1DPeakItem(position, label.toQString(), color);
+        annotated_layer.peak_colors_1d.push_back(peak_color);
         item->setSelected(false);
         tv_->getActive1DWidget()->canvas()->getCurrentLayer().getCurrentAnnotations().push_front(item);
       }

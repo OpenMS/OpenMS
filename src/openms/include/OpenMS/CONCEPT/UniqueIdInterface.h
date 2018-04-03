@@ -32,8 +32,7 @@
 // $Authors: $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_CONCEPT_UNIQUEIDINTERFACE_H
-#define OPENMS_CONCEPT_UNIQUEIDINTERFACE_H
+#pragma once
 
 #include <OpenMS/CONCEPT/UniqueIdGenerator.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
@@ -192,4 +191,3 @@ protected:
 
 } //namespace OpenMS
 
-#endif // OPENMS_CONCEPT_UNIQUEIDINTERFACE_H

@@ -32,8 +32,7 @@
 // $Authors: Andreas Bertsch, Marc Sturm, Stephan Aiche $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FORMAT_FILETYPES_H
-#define OPENMS_FORMAT_FILETYPES_H
+#pragma once
 
 #include <OpenMS/config.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
@@ -108,6 +107,7 @@ namespace OpenMS
       PARAMXML,           ///< internal format for writing and reading parameters (also used as part of CTD)
       SPLIB,              ///< SpectraST binary spectral library file (sptxt is the equivalent text-based format, similar to the MSP format)
       NOVOR,               ///< Novor custom parameter file
+      XQUESTXML,          ///< xQuest XML file format for protein-protein cross-link identifications (.xquest.xml)
       SIZE_OF_TYPE        ///< No file type. Simply stores the number of types
     };
 
@@ -123,7 +123,7 @@ namespace OpenMS
 private:
     /// Maps the FileType::Type to the preferred extension.
     static const std::map<Type, String> name_of_types_;
-    
+
     /// Maps the FileType::Type to the preferred mzML CV name.
     static const std::map<Type, String> name_of_MZMLtypes_;
 
@@ -137,4 +137,3 @@ private:
 
 } //namespace OpenMS
 
-#endif //OPENMS_FORMAT_FILETYPES_H

@@ -32,8 +32,7 @@
 // $Authors: $
 // --------------------------------------------------------------------------
 //
-#ifndef OPENMS_FILTERING_TRANSFORMERS_PARENTPEAKMOWER_H
-#define OPENMS_FILTERING_TRANSFORMERS_PARENTPEAKMOWER_H
+#pragma once
 
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
@@ -200,4 +199,3 @@ private:
   };
 
 }
-#endif // OPENMS_FILTERING/TRANSFORMERS_PARENTPEAKMOWER_H

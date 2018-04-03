@@ -40,6 +40,9 @@
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
+#include <OpenMS/METADATA/PeptideIdentification.h>
+#include <OpenMS/METADATA/ProteinIdentification.h>
+#include <OpenMS/METADATA/PeptideHit.h>
 
 #include <QDir>
 
@@ -67,8 +70,6 @@ namespace OpenMS
       defaults_.setValue("max_nr_iterations", 1000, "Bounds the number of iterations for the EM algorithm when convergence is slow.", ListUtils::create<String>("advanced"));
       defaults_.setValidStrings("incorrectly_assigned", ListUtils::create<String>("Gumbel,Gauss"));
       defaultsToParam_();
-      calc_incorrect_ = &PosteriorErrorProbabilityModel::getGumbel;
-      calc_correct_ = &PosteriorErrorProbabilityModel::getGauss;
       getNegativeGnuplotFormula_ = &PosteriorErrorProbabilityModel::getGumbelGnuplotFormula;
       getPositiveGnuplotFormula_ = &PosteriorErrorProbabilityModel::getGaussGnuplotFormula;
     }
@@ -79,31 +80,26 @@ namespace OpenMS
 
     bool PosteriorErrorProbabilityModel::fit(std::vector<double>& search_engine_scores)
     {
-      if (search_engine_scores.empty())
-      {
-        return false;
-      }
+      // nothing to fit?
+      if (search_engine_scores.empty()) { return false; }
+
       //-------------------------------------------------------------
       // Initializing Parameters
       //-------------------------------------------------------------
       sort(search_engine_scores.begin(), search_engine_scores.end());
 
       smallest_score_ = search_engine_scores[0];
-      vector<double> x_scores;
-      x_scores.resize(search_engine_scores.size());
-      std::vector<double>::iterator it = x_scores.begin();
-      for (std::vector<double>::iterator iti = search_engine_scores.begin(); iti < search_engine_scores.end(); ++it, ++iti)
-      {
-        *it = *iti + fabs(smallest_score_) + 0.001;
-      }
+
+      vector<double> x_scores{search_engine_scores};
+      for (double & d : x_scores) { d += fabs(smallest_score_) + 0.001; }
+
       negative_prior_ = 0.7;
       if (param_.getValue("incorrectly_assigned") == "Gumbel")
       {
         incorrectly_assigned_fit_param_.x0 = Math::mean(x_scores.begin(), x_scores.begin() + ceil(0.5 * x_scores.size())) + x_scores[0];
         incorrectly_assigned_fit_param_.sigma = Math::sd(x_scores.begin(), x_scores.end(), incorrectly_assigned_fit_param_.x0);
         incorrectly_assigned_fit_param_.A = 1   / sqrt(2 * Constants::PI * pow(incorrectly_assigned_fit_param_.sigma, 2));
-        //TODO: compute directly with gauss. Workaround:
-        calc_incorrect_ = &PosteriorErrorProbabilityModel::getGauss;
+        //TODO: Currently, the fit is calculated using the Gauss. 
         getNegativeGnuplotFormula_ = &PosteriorErrorProbabilityModel::getGumbelGnuplotFormula;
       }
       else
@@ -111,21 +107,20 @@ namespace OpenMS
         incorrectly_assigned_fit_param_.x0 = Math::mean(x_scores.begin(), x_scores.begin() + ceil(0.5 * x_scores.size())) + x_scores[0];
         incorrectly_assigned_fit_param_.sigma = Math::sd(x_scores.begin(), x_scores.end(), incorrectly_assigned_fit_param_.x0);
         incorrectly_assigned_fit_param_.A = 1   / sqrt(2 * Constants::PI * pow(incorrectly_assigned_fit_param_.sigma, 2));
-        calc_incorrect_ = &PosteriorErrorProbabilityModel::getGauss;
         getNegativeGnuplotFormula_ = &PosteriorErrorProbabilityModel::getGaussGnuplotFormula;
       }
       getPositiveGnuplotFormula_ = &PosteriorErrorProbabilityModel::getGaussGnuplotFormula;
-      calc_correct_ = &PosteriorErrorProbabilityModel::getGauss;
+
       Size x_score_start = std::min(x_scores.size() - 1, (Size) ceil(x_scores.size() * 0.7)); // if only one score is present, ceil(...) will yield 1, which is an invalid index
       correctly_assigned_fit_param_.x0 = Math::mean(x_scores.begin() + x_score_start, x_scores.end()) + x_scores[x_score_start]; //(gauss_scores.begin()->getX() + (gauss_scores.end()-1)->getX())/2;
       correctly_assigned_fit_param_.sigma = incorrectly_assigned_fit_param_.sigma;
       correctly_assigned_fit_param_.A = 1.0   / sqrt(2 * Constants::PI * pow(correctly_assigned_fit_param_.sigma, 2));
 
-      vector<double> incorrect_density;
-      vector<double> correct_density;
+      vector<double> incorrect_density, correct_density;
       fillDensities(x_scores, incorrect_density, correct_density);
 
       double maxlike = computeMaxLikelihood(incorrect_density, correct_density);
+ 
       //-------------------------------------------------------------
       // create files for output
       //-------------------------------------------------------------
@@ -148,6 +143,7 @@ namespace OpenMS
         //
         file = initPlots(x_scores);
       }
+
       //-------------------------------------------------------------
       // Estimate Parameters - EM algorithm
       //-------------------------------------------------------------
@@ -158,22 +154,23 @@ namespace OpenMS
       
       do
       {
-        //E-STEP
+        //-------------------------------------------------------------
+        // E-STEP
         double one_minus_sum_posterior = one_minus_sum_post(incorrect_density, correct_density);
         double sum_posterior = sum_post(incorrect_density, correct_density);
 
-        //new mean
+        // new mean
         double sum_positive_x0 = sum_pos_x0(x_scores, incorrect_density, correct_density);
         double sum_negative_x0 = sum_neg_x0(x_scores, incorrect_density, correct_density);
 
         double positive_mean = sum_positive_x0 / one_minus_sum_posterior;
         double negative_mean = sum_negative_x0 / sum_posterior;
 
-        //new standard deviation
+        //i new standard deviation
         double sum_positive_sigma = sum_pos_sigma(x_scores, incorrect_density, correct_density, positive_mean);
         double sum_negative_sigma = sum_neg_sigma(x_scores, incorrect_density, correct_density, negative_mean);
 
-        //update parameters
+        // update parameters
         correctly_assigned_fit_param_.x0 = positive_mean;
         if (sum_positive_sigma  != 0)
         {
@@ -188,18 +185,19 @@ namespace OpenMS
           incorrectly_assigned_fit_param_.A = 1 / sqrt(2 * Constants::PI * pow(incorrectly_assigned_fit_param_.sigma, 2));
         }
 
-
-        //compute new prior probabilities negative peptides
+        // compute new prior probabilities negative peptides
         fillDensities(x_scores, incorrect_density, correct_density);
         sum_posterior = sum_post(incorrect_density, correct_density);
         negative_prior_ = sum_posterior / x_scores.size();
 
         double new_maxlike(computeMaxLikelihood(incorrect_density, correct_density));
-        if (boost::math::isnan(new_maxlike - maxlike) || new_maxlike < maxlike)
+        if (boost::math::isnan(new_maxlike - maxlike) 
+          || new_maxlike < maxlike)
         {
           return false;
-          //throw Exception::UnableToFit(__FILE__,__LINE__,OPENMS_PRETTY_FUNCTION,"UnableToFit-PosteriorErrorProbability","Could not fit mixture model to data");
         }
+
+        // check termination criterium
         if ((new_maxlike - maxlike) < pow(10.0, -delta) || itns >= max_itns)
         {
           if (itns >= max_itns)
@@ -212,6 +210,7 @@ namespace OpenMS
           negative_prior_ = sum_posterior / x_scores.size();
 
         }
+
         if (output_plots)
         {
           String formula1, formula2, formula3;
@@ -224,18 +223,21 @@ namespace OpenMS
         //update maximum likelihood
         maxlike = new_maxlike;
         ++itns;
-      }
-      while (!stop_em_init);
+      } while (!stop_em_init);
+
       //-------------------------------------------------------------
       // Finished fitting
       //-------------------------------------------------------------
-      //!!Workaround:
       if (param_.getValue("incorrectly_assigned") == "Gumbel")
       {
-        calc_incorrect_ = &PosteriorErrorProbabilityModel::getGumbel;
+        max_incorrectly_ = getGumbel_(incorrectly_assigned_fit_param_.x0, incorrectly_assigned_fit_param_);
       }
-      max_incorrectly_ = ((this)->*(calc_incorrect_))(incorrectly_assigned_fit_param_.x0, incorrectly_assigned_fit_param_);
-      max_correctly_ = ((this)->*(calc_correct_))(correctly_assigned_fit_param_.x0, correctly_assigned_fit_param_);
+      else
+      {
+        max_incorrectly_ = incorrectly_assigned_fit_param_.eval(incorrectly_assigned_fit_param_.x0);
+      }
+      max_correctly_ = correctly_assigned_fit_param_.eval(correctly_assigned_fit_param_.x0);
+
       if (output_plots)
       {
         String formula1 = ((this)->*(getNegativeGnuplotFormula_))(incorrectly_assigned_fit_param_) + "*" + String(negative_prior_); //String(incorrectly_assigned_fit_param_.A) +" * exp(-(x - " + String(incorrectly_assigned_fit_param_.x0) + ") ** 2 / 2 / (" + String(incorrectly_assigned_fit_param_.sigma) + ") ** 2)"+ "*" + String(negative_prior_);
@@ -251,17 +253,13 @@ namespace OpenMS
 
     bool PosteriorErrorProbabilityModel::fit(std::vector<double>& search_engine_scores, vector<double>& probabilities)
     {
-      bool return_value;
-      return_value = fit(search_engine_scores);
-      if (!return_value)
-        return false;
+      bool return_value = fit(search_engine_scores);
 
-      probabilities.resize(search_engine_scores.size());
-      vector<double>::iterator probs = probabilities.begin();
-      for (vector<double>::iterator scores = search_engine_scores.begin(); scores != search_engine_scores.end(); ++scores, ++probs)
-      {
-        *probs = computeProbability(*scores);
-      }
+      if (!return_value) return false;
+
+      probabilities = std::vector<double>(search_engine_scores);
+      for (double & p : probabilities) { p = computeProbability(p); }
+
       return true;
     }
 
@@ -272,12 +270,15 @@ namespace OpenMS
         incorrect_density.resize(x_scores.size());
         correct_density.resize(x_scores.size());
       }
-      vector<double>::iterator incorrect = incorrect_density.begin();
-      vector<double>::iterator correct = correct_density.begin();
-      for (vector<double>::iterator scores = x_scores.begin(); scores != x_scores.end(); ++scores, ++incorrect, ++correct)
+      vector<double>::iterator incorrect(incorrect_density.begin());
+      vector<double>::iterator correct(correct_density.begin());
+      for (double const & score : x_scores)
       {
-        *incorrect = ((this)->*(calc_incorrect_))(*scores, incorrectly_assigned_fit_param_);
-        *correct = ((this)->*(calc_correct_))(*scores, correctly_assigned_fit_param_);
+        // TODO: incorrect is currently filled with gauss as fitting gumble is not supported
+        *incorrect = incorrectly_assigned_fit_param_.eval(score);
+        *correct = correctly_assigned_fit_param_.eval(score);
+        ++incorrect;
+        ++correct;
       }
     }
 
@@ -362,28 +363,28 @@ namespace OpenMS
       return neg_sigma;
     }
 
-    double PosteriorErrorProbabilityModel::computeProbability(double score)
+    double PosteriorErrorProbabilityModel::computeProbability(double score) const
     {
       score = score + fabs(smallest_score_) + 0.001;
-      double x_neg;
-      double x_pos;
+      double x_neg, x_pos;
+
       // the score is smaller than the peak of incorrectly assigned sequences. To ensure that the probabilities wont rise again use the incorrectly assigned peak for computation
       if (score < incorrectly_assigned_fit_param_.x0)
       {
         x_neg = max_incorrectly_;
-        x_pos = ((this)->*(calc_correct_))(score, correctly_assigned_fit_param_);
+        x_pos = correctly_assigned_fit_param_.eval(score);
       }
       // same as above. However, this time to ensure that probabilities wont drop again.
       else if (score > correctly_assigned_fit_param_.x0)
       {
-        x_neg = ((this)->*(calc_incorrect_))(score, incorrectly_assigned_fit_param_);
+        x_neg = getGumbel_(score, incorrectly_assigned_fit_param_);
         x_pos = max_correctly_;
       }
       // if its in between use the normal formula
       else
       {
-        x_neg = ((this)->*(calc_incorrect_))(score, incorrectly_assigned_fit_param_);
-        x_pos = ((this)->*(calc_correct_))(score, correctly_assigned_fit_param_);
+        x_neg = getGumbel_(score, incorrectly_assigned_fit_param_);
+        x_pos = correctly_assigned_fit_param_.eval(score);
       }
       return (negative_prior_ * x_neg) / ((negative_prior_ * x_neg) + (1 - negative_prior_) * x_pos);
     }
@@ -581,5 +582,270 @@ namespace OpenMS
 
     }
 
+    double PosteriorErrorProbabilityModel::transformScore_(const String & engine, const PeptideHit & hit)
+    {
+      // Set fixed e-value threshold
+      const double smallest_e_value_ = numeric_limits<double>::denorm_min();
+
+      if (engine == "OMSSA")
+      {
+        return (-1) * log10(max(hit.getScore(), smallest_e_value_));
+      }
+      else if (engine == "MYRIMATCH" ) 
+      {
+        return hit.getScore();
+      }
+      else if (engine == "XTANDEM")
+      {
+        return (-1) * log10(max((double)hit.getMetaValue("E-Value"), smallest_e_value_));
+      }
+      else if (engine == "MASCOT")
+      {
+        // issue #740: unable to fit data with score 0
+        if (hit.getScore() == 0.0) 
+        {
+          return numeric_limits<double>::quiet_NaN();
+        }
+        // end issue #740
+        if (hit.metaValueExists("EValue"))
+        {
+          return (-1) * log10(max((double)hit.getMetaValue("EValue"), smallest_e_value_));
+        }
+        if (hit.metaValueExists("expect"))
+        {
+          return (-1) * log10(max((double)hit.getMetaValue("expect"), smallest_e_value_));
+        }
+      }
+      else if (engine == "SPECTRAST")
+      {
+        return 100 * hit.getScore(); // f-val
+      }
+      else if (engine == "SIMTANDEM")
+      {
+        if (hit.metaValueExists("E-Value"))
+        {
+          return (-1) * log10(max((double)hit.getMetaValue("E-Value"), smallest_e_value_));
+        }
+      }
+      else if ((engine == "MSGFPLUS") || (engine == "MS-GF+"))
+      {
+        if (hit.metaValueExists("MS:1002053"))  // name: MS-GF:EValue
+        {
+          return (-1) * log10(max((double)hit.getMetaValue("MS:1002053"), smallest_e_value_));
+        }
+        else if (hit.metaValueExists("expect"))
+        {
+          return (-1) * log10(max((double)hit.getMetaValue("expect"), smallest_e_value_));
+        }
+      }
+      else if (engine == "COMET")
+      {
+        if (hit.metaValueExists("MS:1002257")) // name: Comet:expectation value
+        {
+          return (-1) * log10(max((double)hit.getMetaValue("MS:1002257"), smallest_e_value_));
+        }
+        else if (hit.metaValueExists("expect"))
+        {
+          return (-1) * log10(max((double)hit.getMetaValue("expect"), smallest_e_value_));
+        }
+      }
+
+      throw Exception::UnableToFit(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No parameters for chosen search engine", "The chosen search engine is currently not supported");
+    }
+
+    map<String, vector<vector<double>>> PosteriorErrorProbabilityModel::extractAndTransformScores(
+      const vector<ProteinIdentification> & protein_ids,
+      const vector<PeptideIdentification> & peptide_ids,
+      const bool split_charge,
+      const bool top_hits_only,
+      const bool target_decoy_available,
+      const double fdr_for_targets_smaller)
+    {
+      std::set<Int> charges;
+      const StringList search_engines = ListUtils::create<String>("XTandem,OMSSA,MASCOT,SpectraST,MyriMatch,SimTandem,MSGFPlus,MS-GF+,Comet");
+
+      if (split_charge)
+      {  // determine different charges in data
+        for (PeptideIdentification const & pep_id : peptide_ids)
+        {
+          const vector<PeptideHit>& hits = pep_id.getHits();
+          for (PeptideHit const & hit : hits) { charges.insert(hit.getCharge()); }
+        }
+        if (charges.empty())
+        {
+          throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "'split_charge' is set, but the list of charge states is empty");
+        }
+      }
+
+      set<Int>::iterator charge_it = charges.begin(); // charges can be empty, no problem if split_charge is not set
+      map<String, vector<vector<double> > > all_scores;
+      char splitter = ','; // to split the engine from the charge state later on
+      do
+      {
+        vector<double> scores, decoy, target;
+        for (String supported_engine : search_engines)
+        {
+          supported_engine.toUpper();
+          for (ProteinIdentification const & prot : protein_ids)
+          {
+            String search_engine = prot.getSearchEngine();
+            search_engine.toUpper();
+
+            if (supported_engine == search_engine)
+            {
+              for (PeptideIdentification pep : peptide_ids)
+              {
+                // make sure we are comparing peptide and proteins of the same search run
+                if (prot.getIdentifier() == pep.getIdentifier())
+                {
+                  pep.sort();
+                  vector<PeptideHit>& hits = pep.getHits();
+                  if (top_hits_only)
+                  {
+                    if (!hits.empty() && (!split_charge || hits[0].getCharge() == *charge_it))
+                    {
+                      double score = PosteriorErrorProbabilityModel::transformScore_(supported_engine, hits[0]);
+                      if (!boost::math::isnan(score)) // issue #740: ignore scores with 0 values, otherwise you will get the error "unable to fit data"
+                      {
+                        scores.push_back(score);
+
+                        if (target_decoy_available)
+                        {
+                          if (hits[0].getScore() < fdr_for_targets_smaller)
+                          {
+                            target.push_back(score);
+                          }
+                          else
+                          {
+                            decoy.push_back(score);
+                          }
+                        }
+                      }
+                    }
+                  }
+                  else
+                  {
+                    for (PeptideHit const & hit : hits)
+                    {
+                      if (!split_charge || (hit.getCharge() == *charge_it))
+                      {
+                        double score = PosteriorErrorProbabilityModel::transformScore_(supported_engine, hit);
+                        if (!boost::math::isnan(score)) // issue #740: ignore scores with 0 values, otherwise you will get the error "unable to fit data"
+                        {
+                          scores.push_back(score);
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+
+          if (scores.size() > 2)
+          {
+            vector<vector<double> > tmp;
+            tmp.push_back(scores);
+            tmp.push_back(target);
+            tmp.push_back(decoy);
+
+            if (split_charge)
+            {
+              String engine_with_charge_state = supported_engine + String(splitter) + String(*charge_it);
+              all_scores.insert(make_pair(engine_with_charge_state, tmp));
+            }
+            else
+            {
+              all_scores.insert(make_pair(supported_engine, tmp));
+            }
+          }
+
+          scores.clear();
+          target.clear();
+          decoy.clear();
+        }
+
+        if (split_charge) { ++charge_it; }
+      } while (charge_it != charges.end());
+      return all_scores;
+    }
+
+
+    void PosteriorErrorProbabilityModel::updateScores(
+      const PosteriorErrorProbabilityModel & PEP_model,
+      const String & search_engine,
+      const Int charge,
+      const bool prob_correct,
+      const bool split_charge,
+      vector<ProteinIdentification> & protein_ids,
+      vector<PeptideIdentification> & peptide_ids,
+      bool & unable_to_fit_data,
+      bool & data_might_not_be_well_fit)
+    {
+      String engine(search_engine);
+      unable_to_fit_data = true;
+      data_might_not_be_well_fit = true;
+
+      engine.toUpper();
+      for (ProteinIdentification & prot : protein_ids)
+      {
+        String search_engine = prot.getSearchEngine();
+        search_engine.toUpper();
+
+        if (engine == search_engine)
+        {
+          for (PeptideIdentification & pep : peptide_ids)
+          {
+            if (prot.getIdentifier() == pep.getIdentifier())
+            {
+              String score_type = pep.getScoreType() + "_score";
+              vector<PeptideHit> hits = pep.getHits();
+              for (PeptideHit & hit : hits)
+              {
+                if (!split_charge || (hit.getCharge() == charge))
+                {
+                  double score;
+                  hit.setMetaValue(score_type, hit.getScore());
+                  score = PosteriorErrorProbabilityModel::transformScore_(engine, hit);
+
+                  if (boost::math::isnan(score)) // issue #740: ignore scores with 0 values, otherwise you will get the error "unable to fit data"
+                  {
+                    score = 1.0;
+                  }
+                  else 
+                  { 
+                    score = PEP_model.computeProbability(score);
+
+                    // invalid score? invalid fit!
+                    if ((score > 0.0) && (score < 1.0)) unable_to_fit_data = false; 
+                    if ((score > 0.2) && (score < 0.8)) data_might_not_be_well_fit = false;
+                  }
+                  hit.setScore(score);
+                  if (prob_correct)
+                  {
+                    hit.setScore(1.0 - score);
+                  }
+                  else
+                  {
+                    hit.setScore(score);
+                  }
+                }
+              }
+              pep.setHits(hits);
+            }
+            if (prob_correct)
+            {
+              pep.setScoreType("Posterior Probability");
+              pep.setHigherScoreBetter(true);
+            }
+            else
+            {
+              pep.setScoreType("Posterior Error Probability");
+              pep.setHigherScoreBetter(false);
+            }
+          }
+        }
+      }
+    }
   } // namespace Math
 } // namespace OpenMS

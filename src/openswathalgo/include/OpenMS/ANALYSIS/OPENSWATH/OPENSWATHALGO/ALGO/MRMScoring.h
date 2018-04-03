@@ -32,8 +32,7 @@
 // $Authors: Hannes Roest$
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_OPENSWATH_OPENSWATHALGO_ALGO_MRMSCORING_H
-#define OPENMS_ANALYSIS_OPENSWATH_OPENSWATHALGO_ALGO_MRMSCORING_H
+#pragma once
 
 #include <string>
 #include <boost/math/special_functions/fpclassify.hpp> // for isnan
@@ -103,13 +102,13 @@ public:
     /** @name Scores */
     //@{
     /// Initialize the scoring object and building the cross-correlation matrix
-    void initializeXCorrMatrix(OpenSwath::IMRMFeature* mrmfeature, std::vector<String> native_ids);
+    void initializeXCorrMatrix(OpenSwath::IMRMFeature* mrmfeature, const std::vector<String>& native_ids);
 
     /// Initialize the cross-correlation vector with the MS1 trace
-    void initializeMS1XCorr(OpenSwath::IMRMFeature* mrmfeature, std::vector<String> native_ids, std::string precursor_id);
+    void initializeMS1XCorr(OpenSwath::IMRMFeature* mrmfeature, const std::vector<String>& native_ids, const std::string& precursor_id);
 
     /// Initialize the scoring object and building the cross-correlation matrix of identification vs detection chromatograms
-    void initializeXCorrIdMatrix(OpenSwath::IMRMFeature* mrmfeature, std::vector<String> native_ids_identification, std::vector<String> native_ids_detection);
+    void initializeXCorrIdMatrix(OpenSwath::IMRMFeature* mrmfeature, const std::vector<String>& native_ids_identification, const std::vector<String>& native_ids_detection);
 
     /// calculate the cross-correlation score
     double calcXcorrCoelutionScore();
@@ -145,6 +144,7 @@ public:
     //  each chromatogram of the transition_group.
     static double calcSNScore(OpenSwath::IMRMFeature* mrmfeature, 
         std::vector<OpenSwath::ISignalToNoisePtr>& signal_noise_estimators);
+
     static std::string calcIndSNScore(OpenSwath::IMRMFeature* mrmfeature, 
         std::vector<OpenSwath::ISignalToNoisePtr>& signal_noise_estimators);
 
@@ -164,4 +164,3 @@ private:
   };
 }
 
-#endif // OPENMS_ANALYSIS_OPENSWATH_OPENSWATHALGO_ALGO_MRMSCORING_H

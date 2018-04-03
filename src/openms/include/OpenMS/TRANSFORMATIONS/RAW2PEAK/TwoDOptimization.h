@@ -32,8 +32,7 @@
 // $Authors: $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_TRANSFORMATIONS_RAW2PEAK_TWODOPTIMIZATION_H
-#define OPENMS_TRANSFORMATIONS_RAW2PEAK_TWODOPTIMIZATION_H
+#pragma once
 
 //#define DEBUG_2D
 #undef DEBUG_2D
@@ -1053,4 +1052,3 @@ protected:
 
 }
 
-#endif //OPENMS_TRANSFORMATIONS_RAW2PEAK_TWODOPTIMIZATION_H

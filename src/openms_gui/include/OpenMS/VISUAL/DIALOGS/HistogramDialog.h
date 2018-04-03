@@ -33,13 +33,12 @@
 // --------------------------------------------------------------------------
 
 
-#ifndef OPENMS_VISUAL_DIALOGS_HISTOGRAMDIALOG_H
-#define OPENMS_VISUAL_DIALOGS_HISTOGRAMDIALOG_H
+#pragma once
 
 // OpenMS_GUI config
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
-#include <QtGui/QDialog>
+#include <QtWidgets/QDialog>
 
 #include <OpenMS/MATH/STATISTICS/Histogram.h>
 #include <OpenMS/VISUAL/HistogramWidget.h>
@@ -83,4 +82,3 @@ protected:
 
 } //namespace
 
-#endif //OPENMS_VISUAL_DIALOGS_HISTOGRAMDIALOG_H

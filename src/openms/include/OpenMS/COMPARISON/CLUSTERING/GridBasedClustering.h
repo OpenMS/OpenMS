@@ -32,8 +32,7 @@
 // $Authors: Lars Nilse, Johannes Veit $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_COMPARISON_CLUSTERING_GRIDBASEDCLUSTERING_H
-#define OPENMS_COMPARISON_CLUSTERING_GRIDBASEDCLUSTERING_H
+#pragma once
 
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/DATASTRUCTURES/DRange.h>
@@ -687,4 +686,3 @@ private:
     }
   };
 }
-#endif /* OPENMS_COMPARISON_CLUSTERING_GRIDBASEDCLUSTERING_H */
