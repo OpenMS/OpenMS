@@ -46,8 +46,9 @@
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 
 //QT
-#include <QtGui/QWidget>
-#include <QtGui/QRubberBand>
+#include <QtWidgets>
+#include <QRubberBand>
+
 class QWheelEvent;
 class QKeyEvent;
 class QMouseEvent;

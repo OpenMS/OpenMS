@@ -47,10 +47,8 @@
 #include <OpenMS/FILTERING/ID/IDFilter.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
 
-#include <boost/range/adaptor/reversed.hpp>
-
+#include <QtWidgets/QMessageBox>
 #include <QtCore/QString>
-#include <QtGui/QMessageBox>
 
 using namespace OpenMS;
 using namespace std;
@@ -135,7 +133,7 @@ namespace OpenMS
             break;
           }
           default:
-            LOG_WARN << "Annotation of MS level > 2 not supported.!" << endl;
+            LOG_WARN << "Annotation of MS level > 2 not supported.!" << std::endl;
         }
       }
 
@@ -148,21 +146,21 @@ namespace OpenMS
   }
 
 
-  void TOPPViewIdentificationViewBehavior::addPeakAnnotations_(const vector<PeptideIdentification>& ph)
+  void TOPPViewIdentificationViewBehavior::addPeakAnnotations_(const std::vector<PeptideIdentification>& ph)
   {
     // called anew for every click on a spectrum
     LayerData& current_layer = tv_->getActive1DWidget()->canvas()->getCurrentLayer();
 
     if (current_layer.getCurrentSpectrum().empty())
     {
-      LOG_WARN << "Spectrum is empty! Nothing to annotate!" << endl;
+      LOG_WARN << "Spectrum is empty! Nothing to annotate!" << std::endl;
     }
 
     // mass precision to match a peak's m/z to a feature m/z
     // m/z values of features are usually an average over multiple scans...
     double ppm = 0.5;
 
-    vector<QColor> cols;
+    std::vector<QColor> cols;
     cols.push_back(Qt::blue);
     cols.push_back(Qt::green);
     cols.push_back(Qt::red);
@@ -175,7 +173,7 @@ namespace OpenMS
       QMessageBox::warning(tv_, "Error", "The spectrum is not sorted! Aborting!");
       return;
     }
-    for (vector<PeptideIdentification>::const_iterator it = ph.begin();
+    for (std::vector<PeptideIdentification>::const_iterator it = ph.begin();
                                                             it!= ph.end();
                                                             ++it)
     {
@@ -190,9 +188,10 @@ namespace OpenMS
 
       Annotation1DCaret* first_dit(nullptr);
       // we could have many many hits for different compounds which have the exact same sum formula... so first group by sum formula
-      map<String, StringList> formula_to_names;
-      for (vector<PeptideHit>::const_iterator ith = it->getHits().begin();
-           ith != it->getHits().end(); ++ith)
+      std::map<String, StringList> formula_to_names;
+      for (std::vector< PeptideHit >::const_iterator ith = it->getHits().begin();
+                                                      ith!= it->getHits().end();
+                                                      ++ith)
       {
         if (ith->metaValueExists("identifier") && ith->metaValueExists("chemical_formula"))
         {
@@ -216,13 +215,14 @@ namespace OpenMS
 
       // assemble annotation (each formula gets a paragraph)
       String text = "<html><body>";
-      Size i = 0;
-      for (map<String, StringList>::iterator ith = formula_to_names.begin();
-           ith!= formula_to_names.end(); ++ith)
+      Size i(0);
+      for (std::map<String, StringList>::iterator ith = formula_to_names.begin();
+                                                  ith!= formula_to_names.end();
+                                                  ++ith)
       {
         if (++i >= 4)
         { // at this point, this is the 4th entry.. which we don't show any more...
-          text += String("<b><span style=\"color:") + cols[i].name() + "\">..." + Size(distance(formula_to_names.begin(), formula_to_names.end()) - 4 + 1) + " more</span></b><br>";
+          text += String("<b><span style=\"color:") + cols[i].name() + "\">..." + Size(std::distance(formula_to_names.begin(), formula_to_names.end()) - 4 + 1) + " more</span></b><br>";
           break;
         }
         text += String("<b><span style=\"color:") + cols[i].name() + "\">" + ith->first + "</span></b><br>\n";
@@ -357,8 +357,8 @@ namespace OpenMS
 
 
                   // String formatting
-                  Size prefix_length = max(xl_pos_alpha, xl_pos_beta);
-                  //Size suffix_length = max(seq_alpha.size() - xl_pos_alpha, seq_beta.size() - xl_pos_beta);
+                  Size prefix_length = std::max(xl_pos_alpha, xl_pos_beta);
+                  //Size suffix_length = std::max(seq_alpha.size() - xl_pos_alpha, seq_beta.size() - xl_pos_beta);
                   Size alpha_space = prefix_length - xl_pos_alpha;
                   Size beta_space = prefix_length - xl_pos_beta;
 
@@ -421,7 +421,7 @@ namespace OpenMS
           break;
         }
         default:
-          LOG_WARN << "Annotation of MS level > 2 not supported." << endl;
+          LOG_WARN << "Annotation of MS level > 2 not supported.!" << std::endl;
       }
     } // end DT_PEAK
     // else if (current_layer.type == LayerData::DT_CHROMATOGRAM)
@@ -948,7 +948,7 @@ namespace OpenMS
       param.setValue("tolerance", tolerance, "Defines the absolute (in Da) or relative (in ppm) tolerance in the alignment");
       tv_->getActive1DWidget()->performAlignment(current_spectrum_layer_index, theoretical_spectrum_layer_index, param);
 
-      vector<pair<Size, Size> > aligned_peak_indices = tv_->getActive1DWidget()->canvas()->getAlignedPeaksIndices();
+      std::vector<std::pair<Size, Size> > aligned_peak_indices = tv_->getActive1DWidget()->canvas()->getAlignedPeaksIndices();
 
       // annotate original spectrum with ions and sequence
       for (Size i = 0; i != aligned_peak_indices.size(); ++i)
@@ -1032,7 +1032,7 @@ namespace OpenMS
 
       // remove all graphical peak annotations as these will be recreated from the stored peak annotations
       Annotations1DContainer& las = current_layer.getAnnotations(spectrum_index);
-      auto new_end = remove_if(las.begin(), las.end(),
+      auto new_end = std::remove_if(las.begin(), las.end(),
                               [](const Annotation1DItem* a)
                               { return dynamic_cast<const Annotation1DPeakItem*>(a) != nullptr; });
       las.erase(new_end, las.end());
@@ -1066,7 +1066,7 @@ namespace OpenMS
     {
       if (current_spectrum.empty())
       {
-        LOG_WARN << "Spectrum is empty! Nothing to annotate!" << endl;
+        LOG_WARN << "Spectrum is empty! Nothing to annotate!" << std::endl;
       }
       else if (!current_spectrum.isSorted())
       {

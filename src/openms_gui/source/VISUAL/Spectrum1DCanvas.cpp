@@ -33,20 +33,21 @@
 // --------------------------------------------------------------------------
 
 // Qt
-#include <QtGui/QMouseEvent>
-#include <QtGui/QMessageBox>
-#include <QtGui/QPainterPath>
-#include <QtGui/QPainter>
+#include <QMouseEvent>
+#include <QtWidgets/QMessageBox>
+#include <QPainterPath>
+#include <QPainter>
 #include <QtCore/QTime>
-#include <QtGui/QMenu>
-#include <QtGui/QComboBox>
-#include <QtGui/QFileDialog>
-#include <QtGui/QInputDialog>
+#include <QtWidgets/QMenu>
+#include <QtWidgets/QComboBox>
+#include <QtWidgets/QFileDialog>
+#include <QtWidgets/QInputDialog>
 #include <QtSvg/QSvgGenerator>
 
 // OpenMS
 #include <OpenMS/VISUAL/Spectrum1DCanvas.h>
 #include <OpenMS/VISUAL/AxisWidget.h>
+#include <OpenMS/VISUAL/ColorSelector.h>
 #include <OpenMS/VISUAL/SpectrumWidget.h>
 #include <OpenMS/VISUAL/Spectrum1DWidget.h>
 #include <OpenMS/VISUAL/APPLICATIONS/TOPPViewBase.h>

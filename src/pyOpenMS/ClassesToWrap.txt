@@ -119,7 +119,6 @@ ok   FeatureFinderSuperHirn.cpp
 n    FFEval.cpp
 n    FuzzyDiff.cpp
 ok   IDDecoyProbability.cpp
-n    IDEvaluator.cpp # plotting tool
 x    IDExtractor.cpp  # 200 lines
 n    IDMassAccuracy.cpp
 n    IDSplitter.cpp

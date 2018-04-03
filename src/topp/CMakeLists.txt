@@ -33,7 +33,7 @@
 # --------------------------------------------------------------------------
 
 project("OpenMS_TOPP")
-cmake_minimum_required(VERSION 2.8.3 FATAL_ERROR)
+cmake_minimum_required(VERSION 2.8.11 FATAL_ERROR)
 
 # --------------------------------------------------------------------------
 # OpenMS' TOPP tools
@@ -42,6 +42,9 @@ cmake_minimum_required(VERSION 2.8.3 FATAL_ERROR)
 include_directories(SYSTEM ${OpenMS_INCLUDE_DIRECTORIES})
 add_definitions(/DBOOST_ALL_NO_LIB)
 
+find_package(Qt5 COMPONENTS Core Network REQUIRED)
+
+# add all the tools
 include(executables.cmake)
 foreach(i ${TOPP_executables})
   add_executable(${i} ${i}.cpp)
@@ -55,6 +58,14 @@ endforeach(i)
 
 # some regular TOPP tools need the GUI lib, only build them when WITH_GUI is enabled
 if(WITH_GUI)
+  ## TODO Check if the find command actually does anything but double check.
+  ## Libraries are I think anyway already hardcoded in OpenMS_GUI_LIBRARIES
+  find_package(Qt5 COMPONENTS Core Network Widgets Svg OpenGL PrintSupport REQUIRED)
+  if (NOT Qt5Widgets_FOUND)
+    message(STATUS "QtWidgets module not found!")
+    message(FATAL_ERROR "To find a custom Qt installation use: cmake <..more options..> -D QT_QMAKE_EXECUTABLE='<path_to_qmake(.exe)' <src-dir>")
+  endif()
+
   ## some regular TOPP tools need the GUI lib
   include_directories(SYSTEM ${OpenMS_GUI_INCLUDE_DIRECTORIES})
   foreach(i ${TOPP_executables_with_GUIlib})

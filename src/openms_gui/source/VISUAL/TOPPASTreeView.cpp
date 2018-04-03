@@ -35,8 +35,8 @@
 #include <OpenMS/VISUAL/TOPPASTreeView.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 
-#include <QtGui/QDrag>
-#include <QtGui/QApplication>
+#include <QDrag>
+#include <QApplication>
 #include <QtCore/QMimeData>
 
 #include <iostream>

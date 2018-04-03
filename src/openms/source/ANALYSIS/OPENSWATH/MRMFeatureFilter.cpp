@@ -442,7 +442,7 @@ namespace OpenMS
     else
     {
       key_exists = false;
-      LOG_INFO << "Warning: no metaValue found for transition_id " << component.getMetaValue("native_id") << " for metaValue key " << meta_value_key << ".";
+      LOG_DEBUG << "Warning: no metaValue found for transition_id " << component.getMetaValue("native_id") << " for metaValue key " << meta_value_key << ".";
     }
     return check;
   }

@@ -110,7 +110,7 @@ public:
     // parameter choices (the order of the values must be the same as in the MS-GF+ parameters!):
     fragment_methods_(ListUtils::create<String>("from_spectrum,CID,ETD,HCD")),
     instruments_(ListUtils::create<String>("low_res,high_res,TOF,Q_Exactive")),
-    protocols_(ListUtils::create<String>("none,phospho,iTRAQ,iTRAQ_phospho,TMT")),
+    protocols_(ListUtils::create<String>("automatic,phospho,iTRAQ,iTRAQ_phospho,TMT,none")),
     tryptic_(ListUtils::create<String>("non,semi,fully"))
   {
     ProteaseDB::getInstance()->getAllMSGFNames(enzymes_);
@@ -473,6 +473,11 @@ protected:
     Int instrument_code = ListUtils::getIndex<String>(instruments_, getStringOption_("instrument"));
     Int enzyme_code = ProteaseDB::getInstance()->getEnzyme(enzyme)->getMSGFID();
     Int protocol_code = ListUtils::getIndex<String>(protocols_, getStringOption_("protocol"));
+    // protocol code = 0 corresponds to "automatic" (MS-GF+ docu 2017) and "none" (MS-GF+ docu 2013). We keep 0 = "none" for backward compatibility.
+    if (protocol_code == 5)
+    {
+        protocol_code = 0;
+    }
     Int tryptic_code = ListUtils::getIndex<String>(tryptic_, getStringOption_("tryptic"));
 
     // Hack for KNIME. Looks for MSGFPLUS_PATH in the environment which is set in binaries.ini
