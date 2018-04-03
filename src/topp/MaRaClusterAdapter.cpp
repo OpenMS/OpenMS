@@ -403,7 +403,7 @@ protected:
       vector<PeptideIdentification> all_peptide_ids;
       vector<ProteinIdentification> all_protein_ids;
       if (!id_in.empty()) {
-        for (StringList::const_iterator fit = id_in.begin(); fit != id_in.end(); ++fit, ++file_idx){
+        for (StringList::const_iterator fit = id_in.begin(); fit != id_in.end(); ++fit, ++file_idx) {
           vector<PeptideIdentification> peptide_ids;
           vector<ProteinIdentification> protein_ids;
           IdXMLFile().load(*fit, protein_ids, peptide_ids);
