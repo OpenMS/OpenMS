@@ -524,6 +524,10 @@ public:
       The output is a reconstruction of the input peak. Additional points are added
       to produce a peak with similar intensities on boundaries' points.
 
+      Metadata will be added to the output peak, containing the optimal parameters
+      for the EMG peak model. These information will be found in a `FloatDataArray`
+      with name "emg_parameters".
+
       @note All optimal gradient descent parameters are currently hard coded to allow for a simplified user interface
 
       @note Cutoff peak: The intensities of the left and right baselines are not equal
@@ -549,6 +553,10 @@ public:
       In addition, the method is able to fine tune the peak area of well acquired peaks.
       The output is a reconstruction of the input peak. Additional points are added
       to produce a peak with similar intensities on boundaries' points.
+
+      Metadata will be added to the output peak, containing the optimal parameters
+      for the EMG peak model. These information will be found in a `FloatDataArray`
+      with name "emg_parameters".
 
       @note All optimal gradient descent parameters are currently hard coded to allow for a simplified user interface
 
