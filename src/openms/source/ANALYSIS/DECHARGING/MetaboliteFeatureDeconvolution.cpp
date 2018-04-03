@@ -559,12 +559,14 @@ namespace OpenMS
       } // RT-window
     } // RT sweep line
 
+
     LOG_INFO << no_cmp_hit << " of " << (no_cmp_hit + cmp_hit) << " valid net charge compomer results did not pass the feature charge constraints\n";
 
-    LOG_INFO << "Found " << feature_relation.size() << " putative edges (of " << possibleEdges << ")"
-             << " and avg hit-size of " << (1.0 * overallHits / feature_relation.size())
-             << std::endl;
+    inferMoreEdges_(feature_relation, feature_adducts);
 
+    LOG_INFO << "Found " << feature_relation.size() << " putative edges (of " << possibleEdges << ")"
+               << " and avg hit-size of " << (1.0 * overallHits / feature_relation.size())
+               << std::endl;
 
   }
 
@@ -577,18 +579,6 @@ namespace OpenMS
     cons_map = ConsensusMap();
     cons_map_p = ConsensusMap();
 
-    Int q_min = param_.getValue("charge_min");
-    Int q_max = param_.getValue("charge_max");
-    Int q_span = param_.getValue("charge_span_max");
-    Size max_neutrals = param_.getValue("max_neutrals");
-
-    double rt_diff_max = param_.getValue("retention_max_diff");
-    double rt_diff_max_local = param_.getValue("retention_max_diff_local");
-
-    double mz_diff_max = param_.getValue("mass_max_diff");
-
-    double rt_min_overlap = param_.getValue("min_rt_overlap");
-
 
     // sort by RT and then m/z
     fm_out = fm_in;
@@ -596,23 +586,6 @@ namespace OpenMS
     fm_out.applyMemberFunction(&UniqueIdInterface::ensureUniqueId);
     FeatureMapType fm_out_untouched = fm_out;
 
-
-    // search for most & least probable adduct to fix p threshold
-    double adduct_lowest_log_p = log(1.0);
-    double adduct_highest_log_p = log(0.0000000001);
-    for (Size i = 0; i < potential_adducts_.size(); ++i)
-    {
-      adduct_lowest_log_p  = std::min(adduct_lowest_log_p, potential_adducts_[i].getLogProb());
-      adduct_highest_log_p = std::max(adduct_highest_log_p, potential_adducts_[i].getLogProb());
-    }
-    bool use_minority_bound = (param_.getValue("use_minority_bound") == "true" ? true : false);
-    Int max_minority_bound = param_.getValue("max_minority_bound");
-    double thresh_logp = log(0.0000000001); //We set a default threshold simply as a minimally small number
-    if (use_minority_bound)
-    {
-    thresh_logp = adduct_lowest_log_p * max_minority_bound +
-                  adduct_highest_log_p * std::max(q_max - max_minority_bound, 0);
-    }
 
     Adduct default_adduct;
     if (is_neg)
@@ -626,240 +599,18 @@ namespace OpenMS
     }
 
 
-
-
-    // create mass difference list
-    LOG_INFO << "Generating Masses with threshold: " << thresh_logp << " ...\n";
-
-    //make it proof for charge 1..3 and charge -3..-1
-    if ((q_min * q_max) < 0)
-    {
-       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Min and max charge switch charge signs! Please use same charge sign."), String(q_min)+" "+String(q_max));
-    }
-
-
-    int small, large;
-    small = q_min;
-    large = q_max;
-    //if both negative, we assume that it goes min->max: -3 -> -1, i.e. q_max woud be -1
-    if ((q_min < 0) &&  (q_max < 0))
-    {
-      small = abs(q_max);
-      large = abs(q_min);
-    }
-    MassExplainer me(potential_adducts_, small, large, q_span, thresh_logp, max_neutrals);
-    me.compute();
-    LOG_INFO << "done\n";
-
-    // holds query results for a mass difference
-    MassExplainer::CompomerIterator md_s, md_e;
-    Compomer null_compomer(0, 0, -std::numeric_limits<double>::max());
-    SignedSize hits(0);
-
-    CoordinateType mz1, mz2, m1;
-
-    Size possibleEdges(0), overallHits(0);
-
     // edges
     PairsType feature_relation;
     // for each feature, hold the explicit adduct type induced by edges
     Map<Size, std::set<CmpInfo_> > feature_adducts;
 
-    // # compomer results that either passed or failed the feature charge constraints
-    Size no_cmp_hit(0), cmp_hit(0);
 
-    /*DoubleList dl_massdiff;
-    IntList il_chargediff;*/
-
-    for (Size i_RT = 0; i_RT < fm_out.size(); ++i_RT) // ** RT-sweep line
-    {
-      mz1 = fm_out[i_RT].getMZ();
-
-      for (Size i_RT_window = i_RT + 1
-           ; (i_RT_window < fm_out.size())
-          && ((fm_out[i_RT_window].getRT() - fm_out[i_RT].getRT()) <= rt_diff_max)
-           ; ++i_RT_window)
-      { // ** RT-window
-
-        // knock-out criterion first: RT overlap
-        // use sorted structure and use 2nd start--1stend / 1st start--2ndend
-        const Feature& f1 = fm_out[i_RT];
-        const Feature& f2 = fm_out[i_RT_window];
-
-        if (!(f1.getConvexHull().getBoundingBox().isEmpty() || f2.getConvexHull().getBoundingBox().isEmpty()))
-        {
-          double f_start1 = std::min(f1.getConvexHull().getBoundingBox().minX(), f2.getConvexHull().getBoundingBox().minX());
-          double f_start2 = std::max(f1.getConvexHull().getBoundingBox().minX(), f2.getConvexHull().getBoundingBox().minX());
-          double f_end1 = std::min(f1.getConvexHull().getBoundingBox().maxX(), f2.getConvexHull().getBoundingBox().maxX());
-          double f_end2 = std::max(f1.getConvexHull().getBoundingBox().maxX(), f2.getConvexHull().getBoundingBox().maxX());
-
-          double union_length = f_end2 - f_start1;
-          double intersect_length = std::max(0., f_end1 - f_start2);
-
-          if (intersect_length / union_length < rt_min_overlap)
-            continue;
-        }
-
-        // start guessing charges ...
-        mz2 = fm_out[i_RT_window].getMZ();
-
-        for (Int q1 = q_min; q1 <= q_max; ++q1) // ** q1
-        {
-          //We assume that ionization modes won't get mixed in pipeline -> detected features should have same charge sign as provided to decharger settings.
-          if (!chargeTestworthy_(f1.getCharge(), q1, true))
-            continue;
-
-          m1 = mz1 * abs(q1);
-          // additionally: forbid q1 and q2 with distance greater than q_span
-          for (Int q2 = std::max(q_min, q1 - q_span + 1)
-               ; (q2 <= q_max) && (q2 <= q1 + q_span - 1)
-               ; ++q2)
-          { // ** q2
-            if (!chargeTestworthy_(f2.getCharge(), q2, f1.getCharge() == q1))
-              continue;
-
-            ++possibleEdges; // internal count, not vital
-
-            // find possible adduct combinations
-            CoordinateType naive_mass_diff = mz2 * abs(q2) - m1;
-            double abs_mass_diff = mz_diff_max * abs(q1) + mz_diff_max * abs(q2); // tolerance must increase when looking at M instead of m/z, as error margins increase as well
-            //abs charge "3" to abs charge "1" -> simply invert charge delta for negative case?
-            hits = me.query(q2 - q1, naive_mass_diff, abs_mass_diff, thresh_logp, md_s, md_e);
-            OPENMS_PRECONDITION(hits >= 0, "MetaboliteFeatureDeconvolution querying #hits got negative result!");
-
-            overallHits += hits;
-            // choose most probable hit (TODO think of something clever here)
-            // for now, we take the one that has highest p in terms of the compomer structure
-            if (hits > 0)
-            {
-              Compomer best_hit = null_compomer;
-              for (; md_s != md_e; ++md_s)
-              {
-                // post-filter hits by local RT
-                if (fabs(f1.getRT() - f2.getRT() + md_s->getRTShift()) > rt_diff_max_local)
-                  continue;
-
-                //std::cout << md_s->getAdductsAsString() << " neg: " << md_s->getNegativeCharges() << " pos: " << md_s->getPositiveCharges() << " p: " << md_s->getLogP() << " \n";
-                int left_charges, right_charges;
-                if (is_neg)
-                {
-                  left_charges = -md_s->getPositiveCharges();
-                  right_charges = -md_s->getNegativeCharges();//for negative, a pos charge means either losing an H-1 from the left (decreasing charge) or the Na  case. (We do H-1Na as neutral, because of the pos,negcharges)
-                }else
-                {
-                  left_charges = md_s->getNegativeCharges();//for positive mode neutral switches still have to fulfill requirement that they have at most charge as each side
-                  right_charges = md_s->getPositiveCharges();
-                }
-
-                if ( // compomer fits charge assignment of left & right feature. doesnt consider charge sign switch over span!
-                  (abs(q1)  >= abs(left_charges)) && (abs(q2) >= abs(right_charges)))
-                {
-                  // compomer has better probability
-                  if (best_hit.getLogP() < md_s->getLogP())
-                    best_hit = *md_s;
-
-
-                  /** testing: we just add every explaining edge
-                      - a first estimate shows that 90% of hits are of |1|
-                      - the remaining 10% have |2|, so the additional overhead is minimal
-                  **/
-                  Compomer cmp = me.getCompomerById(md_s->getID());
-                  if (is_neg)
-                  {
-                    left_charges = -cmp.getPositiveCharges();
-                    right_charges = -cmp.getNegativeCharges();
-                  }else
-                  {
-                    left_charges = cmp.getNegativeCharges();
-                    right_charges = cmp.getPositiveCharges();
-                  }
-
-                  //this block should only be of interest if we have something multiply charges instead of protonation or deprotonation
-                  if (((q1 - left_charges) % default_adduct.getCharge() != 0) ||
-                      ((q2 - right_charges) % default_adduct.getCharge() != 0))
-                  {
-                    LOG_WARN << "Cannot add enough default adduct (" << default_adduct.getFormula() << ") to exactly fit feature charge! Next...)\n";
-                    continue;
-                  }
-
-                  int hc_left  = (q1 - left_charges) / default_adduct.getCharge();//this should always be positive! check!!
-                  int hc_right = (q2 - right_charges) / default_adduct.getCharge();//this should always be positive! check!!
-
-
-                  if (hc_left < 0 || hc_right < 0)
-                  {
-                    throw Exception::Postcondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "WARNING!!! implicit number of default adduct is negative!!! left:" + String(hc_left) + " right: " + String(hc_right) + "\n");
-                  }
-
-                  // intensity constraint:
-                  // no edge is drawn if low-prob feature has higher intensity
-                  if (!intensityFilterPassed_(q1, q2, cmp, f1, f2))
-                    continue;
-
-                  // get non-default adducts of this edge
-                  Compomer cmp_stripped(cmp.removeAdduct(default_adduct));
-
-                  // save new adduct candidate
-                  if (cmp_stripped.getComponent()[Compomer::LEFT].size() > 0)
-                  {
-                    String tmp = cmp_stripped.getAdductsAsString(Compomer::LEFT);
-                    CmpInfo_ cmp_left(tmp, feature_relation.size(), Compomer::LEFT);
-                    feature_adducts[i_RT].insert(cmp_left);
-                  }
-                  if (cmp_stripped.getComponent()[Compomer::RIGHT].size() > 0)
-                  {
-                    String tmp = cmp_stripped.getAdductsAsString(Compomer::RIGHT);
-                    CmpInfo_ cmp_right(tmp, feature_relation.size(), Compomer::RIGHT);
-                    feature_adducts[i_RT_window].insert(cmp_right);
-                  }
-
-                  // add implicit default adduct (H+ or H-) (if != 0)
-                  if (hc_left > 0)
-                  {
-                    cmp.add(default_adduct * hc_left, Compomer::LEFT);
-                  }
-                  if (hc_right > 0)
-                  {
-                    cmp.add(default_adduct * hc_right, Compomer::RIGHT);
-                  }
-
-                  ChargePair cp(i_RT, i_RT_window, q1, q2, cmp, naive_mass_diff - md_s->getMass(), false);
-                  feature_relation.push_back(cp);
-                }
-              } // ! hits loop
-
-              if (best_hit == null_compomer)
-              {
-                std::cout << "MetaboliteFeatureDeconvolution.h:: could not find a compomer which complies with assumed q1 and q2 values!\n with q1: " << q1 << " q2: " << q2 << "\n";
-                ++no_cmp_hit;
-              }
-              else
-              {
-                ++cmp_hit;
-              }
-            }
-
-          } // q2
-        } // q1
-      } // RT-window
-    } // RT sweep line
-
-    LOG_INFO << no_cmp_hit << " of " << (no_cmp_hit + cmp_hit) << " valid net charge compomer results did not pass the feature charge constraints\n";
+    candidateEdges(fm_out, default_adduct, feature_relation, feature_adducts);
 
     inferMoreEdges_(feature_relation, feature_adducts);
 
-
-    if (feature_relation.empty())
+    if (not feature_relation.empty())
     {
-      LOG_INFO << "Found NO putative edges. The output generated will be trivial (only singleton clusters and no pairings). "
-               << "Your parameters might need revision or the input was ill-formed." << std::endl;
-    }
-    else
-    {
-      LOG_INFO << "Found " << feature_relation.size() << " putative edges (of " << possibleEdges << ")"
-               << " and avg hit-size of " << (1.0 * overallHits / feature_relation.size())
-               << std::endl;
-
       // -------------------------- //
       // ** compute ILP solution ** //
       // -------------------------- //
