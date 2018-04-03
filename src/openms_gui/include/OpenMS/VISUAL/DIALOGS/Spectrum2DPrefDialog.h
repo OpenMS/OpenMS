@@ -32,13 +32,17 @@
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_VISUAL_DIALOGS_SPECTRUM2DPREFDIALOG_H
-#define OPENMS_VISUAL_DIALOGS_SPECTRUM2DPREFDIALOG_H
+#pragma once
 
 // OpenMS_GUI config
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
-#include <OpenMS/VISUAL/DIALOGS/UIC/ui_Spectrum2DPrefDialog.h>
+#include <QtWidgets/QDialog>
+
+namespace Ui
+{
+  class Spectrum2DPrefDialogTemplate;
+}
 
 namespace OpenMS
 {
@@ -46,15 +50,16 @@ namespace OpenMS
   {
     ///Preferences dialog for Spectrum2DWidget
     class OPENMS_GUI_DLLAPI Spectrum2DPrefDialog :
-      public QDialog,
-      public Ui::Spectrum2DPrefDialogTemplate
+      public QDialog
     {
       Q_OBJECT
 
 public:
       ///Constructor
       Spectrum2DPrefDialog(QWidget * parent);
+      ~Spectrum2DPrefDialog();
+private:
+      Ui::Spectrum2DPrefDialogTemplate* ui_;
     };
   }
 }
-#endif // OPENMS_VISUAL_DIALOGS_SPECTRUM2DPREFDIALOG_H

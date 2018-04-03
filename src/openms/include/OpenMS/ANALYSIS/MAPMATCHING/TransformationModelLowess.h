@@ -32,8 +32,7 @@
 // $Authors: Hannes Roest $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_MAPMATCHING_TRANSFORMATIONMODELLOWESS_H
-#define OPENMS_ANALYSIS_MAPMATCHING_TRANSFORMATIONMODELLOWESS_H
+#pragma once
 
 #include <OpenMS/config.h> // is this needed?
 #include <OpenMS/ANALYSIS/MAPMATCHING/TransformationModel.h>
@@ -79,4 +78,3 @@ protected:
   };
 } // namespace
 
-#endif // OPENMS_ANALYSIS_MAPMATCHING_TRANSFORMATIONMODELLOWESS_H

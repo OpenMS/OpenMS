@@ -176,7 +176,8 @@ namespace OpenMS
         {
           addPrecursorPeaks_(spectrum, peptide, ion_names, charges, z);
         }
-      } else // add_all_precursor_charges_ = false, only add precursor with highest charge
+      }
+      else // add_all_precursor_charges_ = false, only add precursor with highest charge
       {
         addPrecursorPeaks_(spectrum, peptide, ion_names, charges, max_charge);
       }
@@ -434,7 +435,8 @@ namespace OpenMS
 
   void TheoreticalSpectrumGenerator::addPeaks_(PeakSpectrum & spectrum, const AASequence & peptide, DataArrays::StringDataArray& ion_names, DataArrays::IntegerDataArray& charges, Residue::ResidueType res_type, Int charge) const
   {
-    spectrum.reserve(peptide.size());
+    int f = 1 + int(add_isotopes_) + int(add_losses_);
+    spectrum.reserve(spectrum.size() + f * peptide.size());
 
     // Generate the ion peaks:
     // Does not generate peaks of full peptide (therefore "<").

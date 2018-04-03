@@ -51,12 +51,13 @@
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/FORMAT/ParamXMLFile.h>
 
+#include <QApplication>
 #include <QtCore/QFile>
 #include <QtCore/QFileInfo>
 #include <QtCore/QDir>
 #include <QtCore/QSet>
 #include <QtCore/QTextStream>
-#include <QtGui/QMessageBox>
+#include <QtWidgets/QMessageBox>
 
 namespace OpenMS
 {
@@ -238,7 +239,7 @@ namespace OpenMS
 
       // check for parameter copy action (only if source is a tool node (--> edge is purple already, user expects this to happen))
       TOPPASToolVertex* tv_source = qobject_cast<TOPPASToolVertex*>(source);
-      if (QApplication::keyboardModifiers() && Qt::ControlModifier && tv_source)
+      if ((QGuiApplication::keyboardModifiers() & Qt::ControlModifier) && tv_source)
       {
         TOPPASToolVertex* tv_target = qobject_cast<TOPPASToolVertex*>(target);
         if (!(tv_source && tv_target))
@@ -1695,7 +1696,7 @@ namespace OpenMS
   void TOPPASScene::contextMenuEvent(QGraphicsSceneContextMenuEvent* event)
   {
     QPointF scene_pos = event->scenePos();
-    QGraphicsItem* clicked_item = itemAt(scene_pos);
+    QGraphicsItem* clicked_item = itemAt(scene_pos, QTransform());
     QMenu menu;
 
     if (clicked_item == nullptr)
@@ -2191,7 +2192,8 @@ namespace OpenMS
           {
             return false;
           }
-      } else 
+      }
+      else 
       { // do not allow silent execution with invalid edges
         return false;
       }

@@ -33,20 +33,21 @@
 // --------------------------------------------------------------------------
 
 // Qt
-#include <QtGui/QMouseEvent>
-#include <QtGui/QMessageBox>
-#include <QtGui/QPainterPath>
-#include <QtGui/QPainter>
+#include <QMouseEvent>
+#include <QtWidgets/QMessageBox>
+#include <QPainterPath>
+#include <QPainter>
 #include <QtCore/QTime>
-#include <QtGui/QMenu>
-#include <QtGui/QComboBox>
-#include <QtGui/QFileDialog>
-#include <QtGui/QInputDialog>
+#include <QtWidgets/QMenu>
+#include <QtWidgets/QComboBox>
+#include <QtWidgets/QFileDialog>
+#include <QtWidgets/QInputDialog>
 #include <QtSvg/QSvgGenerator>
 
 // OpenMS
 #include <OpenMS/VISUAL/Spectrum1DCanvas.h>
 #include <OpenMS/VISUAL/AxisWidget.h>
+#include <OpenMS/VISUAL/ColorSelector.h>
 #include <OpenMS/VISUAL/SpectrumWidget.h>
 #include <OpenMS/VISUAL/Spectrum1DWidget.h>
 #include <OpenMS/VISUAL/APPLICATIONS/TOPPViewBase.h>
@@ -1636,7 +1637,8 @@ namespace OpenMS
     if (!zoom_in)
     {
       zoomBack_();
-    } else
+    }
+    else
     {
       const PointType::CoordinateType zoom_factor = 0.8;
       AreaType new_area;
@@ -1646,7 +1648,8 @@ namespace OpenMS
         new_area.setMaxX(new_area.min_[0] + zoom_factor * (visible_area_.max_[0] - visible_area_.min_[0]));
         new_area.setMinY(visible_area_.minY());
         new_area.setMaxY(visible_area_.maxY());
-      } else
+      }
+      else
       {
         new_area.setMinX(visible_area_.min_[0] + (1.0 - zoom_factor) * (visible_area_.max_[0] - visible_area_.min_[0]) * (PointType::CoordinateType)(height() - y) / height());
         new_area.setMaxX(new_area.min_[0] + zoom_factor * (visible_area_.max_[0] - visible_area_.min_[0]));

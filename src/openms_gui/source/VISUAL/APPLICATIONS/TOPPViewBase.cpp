@@ -90,28 +90,28 @@
 #include <QtCore/QDir>
 #include <QtCore/QTime>
 #include <QtCore/QUrl>
-#include <QtGui/QCheckBox>
-#include <QtGui/QCloseEvent>
-#include <QtGui/QDesktopWidget>
-#include <QtGui/QDockWidget>
-#include <QtGui/QFileDialog>
-#include <QtGui/QHeaderView>
-#include <QtGui/QInputDialog>
-#include <QtGui/QListWidget>
-#include <QtGui/QListWidgetItem>
-#include <QtGui/QMenu>
-#include <QtGui/QMenuBar>
-#include <QtGui/QMessageBox>
-#include <QtGui/QPainter>
-#include <QtGui/QSplashScreen>
-#include <QtGui/QStatusBar>
-#include <QtGui/QTextEdit>
-#include <QtGui/QToolBar>
-#include <QtGui/QToolTip>
-#include <QtGui/QToolButton>
-#include <QtGui/QTreeWidget>
-#include <QtGui/QTreeWidgetItem>
-#include <QtGui/QWhatsThis>
+#include <QtWidgets/QCheckBox>
+#include <QCloseEvent>
+#include <QtWidgets/QDesktopWidget>
+#include <QtWidgets/QDockWidget>
+#include <QtWidgets/QFileDialog>
+#include <QtWidgets/QHeaderView>
+#include <QtWidgets/QInputDialog>
+#include <QtWidgets/QListWidget>
+#include <QtWidgets/QListWidgetItem>
+#include <QtWidgets/QMenu>
+#include <QtWidgets/QMenuBar>
+#include <QtWidgets/QMessageBox>
+#include <QPainter>
+#include <QtWidgets/QSplashScreen>
+#include <QtWidgets/QStatusBar>
+#include <QtWidgets/QTextEdit>
+#include <QtWidgets/QToolBar>
+#include <QtWidgets/QToolTip>
+#include <QtWidgets/QToolButton>
+#include <QtWidgets/QTreeWidget>
+#include <QtWidgets/QTreeWidgetItem>
+#include <QtWidgets/QWhatsThis>
 #include <QTextCodec>
 
 #include <boost/math/special_functions/fpclassify.hpp>
@@ -134,17 +134,9 @@ namespace OpenMS
     watcher_(nullptr),
     watcher_msgbox_(false)
   {
-#if defined(__APPLE__)
-    // we do not want to load plugins as this leads to serious problems
-    // when shipping on mac os x
-    QApplication::setLibraryPaths(QStringList());
-#endif
 
     setWindowTitle("TOPPView");
     setWindowIcon(QIcon(":/TOPPView.png"));
-
-    // ensure correct encoding of paths
-    QTextCodec::setCodecForCStrings(QTextCodec::codecForName("UTF-8"));
 
     //prevents errors caused by too small width, height values
     setMinimumSize(400, 400);
@@ -186,13 +178,13 @@ namespace OpenMS
     box_layout->addWidget(tab_bar_);
 
     ws_ = new EnhancedWorkspace(dummy);
-    connect(ws_, SIGNAL(windowActivated(QWidget*)), this, SLOT(updateToolBar()));
-    connect(ws_, SIGNAL(windowActivated(QWidget*)), this, SLOT(updateTabBar(QWidget*)));
-    connect(ws_, SIGNAL(windowActivated(QWidget*)), this, SLOT(updateLayerBar()));
-    connect(ws_, SIGNAL(windowActivated(QWidget*)), this, SLOT(updateViewBar()));
-    connect(ws_, SIGNAL(windowActivated(QWidget*)), this, SLOT(updateFilterBar()));
-    connect(ws_, SIGNAL(windowActivated(QWidget*)), this, SLOT(updateMenu()));
-    connect(ws_, SIGNAL(windowActivated(QWidget*)), this, SLOT(updateCurrentPath()));
+    connect(ws_, SIGNAL(subWindowActivated(QMdiSubWindow*)), this, SLOT(updateToolBar()));
+    connect(ws_, SIGNAL(subWindowActivated(QMdiSubWindow*)), this, SLOT(updateTabBar(QMdiSubWindow*)));
+    connect(ws_, SIGNAL(subWindowActivated(QMdiSubWindow*)), this, SLOT(updateLayerBar()));
+    connect(ws_, SIGNAL(subWindowActivated(QMdiSubWindow*)), this, SLOT(updateViewBar()));
+    connect(ws_, SIGNAL(subWindowActivated(QMdiSubWindow*)), this, SLOT(updateFilterBar()));
+    connect(ws_, SIGNAL(subWindowActivated(QMdiSubWindow*)), this, SLOT(updateMenu()));
+    connect(ws_, SIGNAL(subWindowActivated(QMdiSubWindow*)), this, SLOT(updateCurrentPath()));
     connect(ws_, SIGNAL(dropReceived(const QMimeData*, QWidget*, int)), this, SLOT(copyLayer(const QMimeData*, QWidget*, int)));
 
     box_layout->addWidget(ws_);
@@ -254,10 +246,10 @@ namespace OpenMS
     //Windows menu
     QMenu* windows = new QMenu("&Windows", this);
     menuBar()->addMenu(windows);
-    windows->addAction("&Cascade", this->ws_, SLOT(cascade()));
-    windows->addAction("&Tile automatic", this->ws_, SLOT(tile()));
-    windows->addAction(QIcon(":/tile_horizontal.png"), "Tile &vertical", this, SLOT(tileHorizontal()));
-    windows->addAction(QIcon(":/tile_vertical.png"), "Tile &horizontal", this, SLOT(tileVertical()));
+    windows->addAction("&Cascade", this->ws_, SLOT(cascadeSubWindows()));
+    windows->addAction("&Tile automatic", this->ws_, SLOT(tileSubWindows()));
+    windows->addAction(QIcon(":/tile_vertical.png"), "Tile &vertical", this, SLOT(tileVertical()));
+    windows->addAction(QIcon(":/tile_horizontal.png"), "Tile &horizontal", this, SLOT(tileHorizontal()));
     linkZoom_action_ = windows->addAction("Link &Zoom", this, SLOT(linkZoom()));
     windows->addSeparator();
 
@@ -641,7 +633,7 @@ namespace OpenMS
 
   void TOPPViewBase::closeEvent(QCloseEvent* event)
   {
-    ws_->closeAllWindows();
+    ws_->closeAllSubWindows();
     QSettings settings("OpenMS", "TOPPView");
     settings.setValue("geometry", saveGeometry());
     settings.setValue("windowState", saveState());
@@ -1026,8 +1018,8 @@ namespace OpenMS
   {
     set<String> filename_set;
     // iterate over all windows
-    QWidgetList wl = ws_->windowList();
-    for (int i = 0; i != ws_->windowList().count(); ++i)
+    QList<QMdiSubWindow *> wl = ws_->subWindowList();
+    for (int i = 0; i != ws_->subWindowList().count(); ++i)
     {
       QWidget* w = wl[i];
       // iterate over all widgets
@@ -1465,15 +1457,13 @@ namespace OpenMS
   EnhancedTabBarWidgetInterface* TOPPViewBase::window_(int id) const
   {
     // return window with window_id == id
-    QList<QWidget*> windows = ws_->windowList();
+    QList<QMdiSubWindow *> windows = ws_->subWindowList();
 
+    // return the actual widget
     for (int i = 0; i < windows.size(); ++i)
     {
-      EnhancedTabBarWidgetInterface* w = dynamic_cast<EnhancedTabBarWidgetInterface*>(windows.at(i));
-      if (w->getWindowId() == id)
-      {
-        return w;
-      }
+      EnhancedTabBarWidgetInterface* w = dynamic_cast<EnhancedTabBarWidgetInterface*>(windows.at(i)->widget());
+      if (w != 0 && w->getWindowId() == id) { return w; }
     }
     return nullptr;
   }
@@ -1483,7 +1473,8 @@ namespace OpenMS
     QWidget* w = dynamic_cast<QWidget*>(window_(id));
     if (w)
     {
-      w->close();
+      QMdiSubWindow* parent = qobject_cast<QMdiSubWindow*>(w->parentWidget());
+      parent->close();
       updateMenu();
     }
   }
@@ -1529,7 +1520,7 @@ namespace OpenMS
 
   void TOPPViewBase::closeFile()
   {
-    ws_->activeWindow()->close();
+    ws_->activeSubWindow()->close();
     updateMenu();
   }
 
@@ -1627,7 +1618,6 @@ namespace OpenMS
     Spectrum1DWidget* w = getActive1DWidget();
     if (w)
     {
-      draw_group_1d_->button(Spectrum1DCanvas::DM_PEAKS)->setChecked(true);
       w->canvas()->setDrawMode((OpenMS::Spectrum1DCanvas::DrawModes)index);
     }
   }
@@ -2198,33 +2188,39 @@ namespace OpenMS
     }
   }
 
-  void TOPPViewBase::updateTabBar(QWidget* w)
+  void TOPPViewBase::updateTabBar(QMdiSubWindow* w)
   {
     if (w)
     {
-      EnhancedTabBarWidgetInterface* tbw = dynamic_cast<EnhancedTabBarWidgetInterface*>(w);
+      EnhancedTabBarWidgetInterface* tbw = dynamic_cast<EnhancedTabBarWidgetInterface*>(w->widget());
       Int window_id = tbw->getWindowId();
       tab_bar_->setCurrentId(window_id);
     }
   }
 
-  void TOPPViewBase::tileVertical()
+  void TOPPViewBase::tileHorizontal()
   {
     // primitive horizontal tiling
-    QWidgetList windows = ws_->windowList();
+    QList<QMdiSubWindow *> windows = ws_->subWindowList();
     if (!windows.count())
+    {
       return;
+    }
 
     if (getActive1DWidget())
+    {
       getActive1DWidget()->showNormal();
+    }
     if (getActive2DWidget())
+    {
       getActive2DWidget()->showNormal();
+    }
 
     int heightForEach = ws_->height() / windows.count();
     int y = 0;
     for (int i = 0; i < int(windows.count()); ++i)
     {
-      QWidget* window = windows.at(i);
+      QMdiSubWindow* window = windows.at(i);
       if (window->isMaximized() || window->isFullScreen())
       {
         // prevent flicker
@@ -2232,42 +2228,47 @@ namespace OpenMS
         window->setWindowState(Qt::WindowNoState);
         window->show();
       }
-      int preferredHeight = window->minimumHeight() + window->parentWidget()->baseSize().height();
+      int preferredHeight = window->widget()->minimumHeight() + window->baseSize().height();
       int actHeight = std::max(heightForEach, preferredHeight);
 
-      window->parentWidget()->setGeometry(0, y, ws_->width(), actHeight);
+      window->setGeometry(0, y, ws_->width(), actHeight);
       y += actHeight;
     }
   }
 
-  void TOPPViewBase::tileHorizontal()
+  void TOPPViewBase::tileVertical()
   {
-    // primitive horizontal tiling
-    QWidgetList windows = ws_->windowList();
+    // primitive vertical tiling
+    QList<QMdiSubWindow *> windows = ws_->subWindowList();
     if (!windows.count())
+    {
       return;
+    }
 
     if (getActive1DWidget())
+    {
       getActive1DWidget()->showNormal();
+    }
     if (getActive2DWidget())
+    {
       getActive2DWidget()->showNormal();
+    }
 
     int widthForEach = ws_->width() / windows.count();
     int y = 0;
     for (int i = 0; i < int(windows.count()); ++i)
     {
-      QWidget* window = windows.at(i);
+      QMdiSubWindow* window = windows.at(i);
       if (window->windowState() & Qt::WindowMaximized)
       {
         // prevent flicker
         window->hide();
         window->showNormal();
       }
-      int preferredWidth = window->minimumWidth() + window->parentWidget()->baseSize().width();
-
+      int preferredWidth = window->widget()->minimumWidth() + window->baseSize().width();
       int actWidth = std::max(widthForEach, preferredWidth);
 
-      window->parentWidget()->setGeometry(y, 0, actWidth, ws_->height());
+      window->setGeometry(y, 0, actWidth, ws_->height());
       y += actWidth;
     }
   }
@@ -2294,7 +2295,7 @@ namespace OpenMS
 
   void TOPPViewBase::layerZoomChanged()
   {
-    QWidgetList windows = ws_->windowList();
+    QList<QMdiSubWindow *> windows = ws_->subWindowList();
     if (!windows.count())
       return;
 
@@ -2355,13 +2356,16 @@ namespace OpenMS
       // go through all windows, adjust the visible area where necessary
       for (int i = 0; i < int(windows.count()); ++i)
       {
-        QWidget* window = windows.at(i);
         DRange<2> visible_area;
-        SpectrumWidget* specwidg = qobject_cast<SpectrumWidget*>(window);
+
+        QMdiSubWindow* window = windows.at(i);
+        SpectrumWidget* specwidg = qobject_cast<SpectrumWidget*>(window->widget());
 
         // Skip if its not a SpectrumWidget, if it is not a chromatogram or if the dimensions don't match.
         if (!specwidg)
+        {
           continue;
+        }
         if (!(specwidg->canvas()->getCurrentLayer().type == LayerData::DT_CHROMATOGRAM) &&
             !(specwidg->canvas()->getCurrentLayer().getPeakData()->size() > 0 &&
               specwidg->canvas()->getCurrentLayer().getPeakData()->metaValueExists("is_chromatogram") &&
@@ -2379,7 +2383,7 @@ namespace OpenMS
         visible_area = specwidg->canvas()->getVisibleArea();
 
         // if we found a min/max RT, change all windows of 1 dimension
-        if (minRT != -1 && maxRT != -1 && qobject_cast<Spectrum1DWidget*>(window))
+        if (minRT != -1 && maxRT != -1 && qobject_cast<Spectrum1DWidget*>(window->widget()))
         {
           visible_area.setMinX(minRT);
           visible_area.setMaxX(maxRT);
@@ -2393,12 +2397,15 @@ namespace OpenMS
       // go through all windows, adjust the visible area where necessary
       for (int i = 0; i < int(windows.count()); ++i)
       {
-        QWidget* window = windows.at(i);
-        SpectrumWidget* specwidg = qobject_cast<SpectrumWidget*>(window);
+
+        QMdiSubWindow* window = windows.at(i);
+        SpectrumWidget* specwidg = qobject_cast<SpectrumWidget*>(window->widget());
 
         // Skip if its not a SpectrumWidget, if it is a chromatogram or if the dimensions don't match.
         if (!specwidg)
+        {
           continue;
+        }
         if ((specwidg->canvas()->getCurrentLayer().type == LayerData::DT_CHROMATOGRAM) ||
             (specwidg->canvas()->getCurrentLayer().getPeakData()->size() > 0 &&
              specwidg->canvas()->getCurrentLayer().getPeakData()->metaValueExists("is_chromatogram") &&
@@ -2414,7 +2421,6 @@ namespace OpenMS
         }
         specwidg->canvas()->setVisibleArea(new_visible_area);
       }
-      return;
     }
 
   }
@@ -2426,7 +2432,7 @@ namespace OpenMS
 
   void TOPPViewBase::showSpectrumWidgetInWindow(SpectrumWidget* sw, const String& caption)
   {
-    ws_->addWindow(sw);
+    ws_->addSubWindow(sw);
     connect(sw->canvas(), SIGNAL(preferencesChange()), this, SLOT(updateLayerBar()));
     connect(sw->canvas(), SIGNAL(layerActivated(QWidget*)), this, SLOT(layerActivated()));
     connect(sw->canvas(), SIGNAL(layerModficationChange(Size, bool)), this, SLOT(updateLayerBar()));
@@ -2480,7 +2486,7 @@ namespace OpenMS
     tab_bar_->setCurrentId(sw->getWindowId());
 
     //show first window maximized (only visible windows are in the list)
-    if (ws_->windowList().count() == 0)
+    if (ws_->subWindowList().count() == 1)
     {
       sw->showMaximized();
     }
@@ -2507,16 +2513,20 @@ namespace OpenMS
 
   SpectrumWidget* TOPPViewBase::getActiveSpectrumWidget() const
   {
-    if (!ws_->activeWindow())
+    if (!ws_->activeSubWindow())
     {
       return nullptr;
     }
-    return qobject_cast<SpectrumWidget*>(ws_->activeWindow());
+    return qobject_cast<SpectrumWidget*>(ws_->activeSubWindow()->widget());
   }
 
   SpectrumCanvas* TOPPViewBase::getActiveCanvas() const
   {
-    SpectrumWidget* sw = qobject_cast<SpectrumWidget*>(ws_->activeWindow());
+    if (ws_->currentSubWindow() == nullptr)
+    {
+      return nullptr;
+    }
+    SpectrumWidget* sw = qobject_cast<SpectrumWidget*>(ws_->currentSubWindow()->widget());
     if (sw == nullptr)
     {
       return nullptr;
@@ -3115,7 +3125,7 @@ namespace OpenMS
     TheoreticalSpectrumGenerationDialog spec_gen_dialog;
     if (spec_gen_dialog.exec())
     {
-      String seq_string(spec_gen_dialog.line_edit->text());
+      String seq_string(spec_gen_dialog.getSequence());
       if (seq_string == "")
       {
         QMessageBox::warning(this, "Error", "You must enter a peptide sequence!");
@@ -3131,11 +3141,10 @@ namespace OpenMS
         QMessageBox::warning(this, "Error", QString("Spectrum generation failed! (") + e.what() + ")");
         return;
       }
-      Int charge = spec_gen_dialog.spin_box->value();
 
       PeakSpectrum spectrum;
-      TheoreticalSpectrumGenerator generator;
-      Param p;
+      Param p = spec_gen_dialog.getParam();
+      Int charge = p.getValue("charge");
 
       p.setValue("add_metainfo", "true", "Adds the type of peaks as metainfo to the peaks, like y8+, [M-H2O+2H]++");
 
@@ -3143,57 +3152,33 @@ namespace OpenMS
       p.setValue("add_y_ions", "false", "Add peaks of y-ions to the spectrum");
       p.setValue("add_b_ions", "false", "Add peaks of b-ions to the spectrum");
 
-      bool losses = (spec_gen_dialog.list_widget->item(7)->checkState() == Qt::Checked); // "Neutral losses"
-      String losses_str = losses ? "true" : "false";
-      p.setValue("add_losses", losses_str, "Adds common losses to those ion expect to have them, only water and ammonia loss is considered");
-
-      bool isotopes = (spec_gen_dialog.list_widget->item(8)->checkState() == Qt::Checked); // "Isotope clusters"
-      String iso_str = isotopes ? "true" : "false";
-      p.setValue("add_isotopes", iso_str, "If set to 1 isotope peaks of the product ion peaks are added");
-
-      bool abundant_immonium_ions = (spec_gen_dialog.list_widget->item(9)->checkState() == Qt::Checked); // "abundant immonium-ions"
-      String abundant_immonium_ions_str = abundant_immonium_ions ? "true" : "false";
-      p.setValue("add_abundant_immonium_ions", abundant_immonium_ions_str, "Add most abundant immonium ions");
-
-      bool precursor_ions = (spec_gen_dialog.list_widget->item(6)->checkState() == Qt::Checked); // "add precursor ions"
-      String precursor_ions_str = precursor_ions ? "true" : "false";
-      p.setValue("add_precursor_peaks", precursor_ions_str, "Adds peaks of the precursor to the spectrum, which happen to occur sometimes");
-
-      Size max_iso_count = (Size)spec_gen_dialog.max_iso_spinbox->value();
-      p.setValue("max_isotope", max_iso_count, "Number of isotopic peaks");
-      p.setValue("a_intensity", spec_gen_dialog.a_intensity->value(), "Intensity of the a-ions");
-      p.setValue("b_intensity", spec_gen_dialog.b_intensity->value(), "Intensity of the b-ions");
-      p.setValue("c_intensity", spec_gen_dialog.c_intensity->value(), "Intensity of the c-ions");
-      p.setValue("x_intensity", spec_gen_dialog.x_intensity->value(), "Intensity of the x-ions");
-      p.setValue("y_intensity", spec_gen_dialog.y_intensity->value(), "Intensity of the y-ions");
-      p.setValue("z_intensity", spec_gen_dialog.z_intensity->value(), "Intensity of the z-ions");
-      double rel_loss_int = (double)(spec_gen_dialog.rel_loss_intensity->value()) / 100.0;
-      p.setValue("relative_loss_intensity", rel_loss_int, "Intensity of loss ions, in relation to the intact ion intensity");
-
-      if (spec_gen_dialog.list_widget->item(0)->checkState() == Qt::Checked) // "A-ions"
+      // for losses, isotopes, abundant_immonium_ions see getParam
+      if (p.getValue("has_A").toBool()) // "A-ions"
       {
         p.setValue("add_a_ions", "true", "Add peaks of a-ions to the spectrum");
       }
-      if (spec_gen_dialog.list_widget->item(1)->checkState() == Qt::Checked) // "B-ions"
+      if (p.getValue("has_B").toBool()) // "B-ions"
       {
         p.setValue("add_b_ions", "true", "Add peaks of b-ions to the spectrum");
       }
-      if (spec_gen_dialog.list_widget->item(2)->checkState() == Qt::Checked) // "C-ions"
+      if (p.getValue("has_C").toBool()) // "C-ions"
       {
         p.setValue("add_c_ions", "true", "Add peaks of c-ions to the spectrum");
       }
-      if (spec_gen_dialog.list_widget->item(3)->checkState() == Qt::Checked) // "X-ions"
+      if (p.getValue("has_X").toBool()) // "X-ions"
       {
         p.setValue("add_x_ions", "true", "Add peaks of x-ions to the spectrum");
       }
-      if (spec_gen_dialog.list_widget->item(4)->checkState() == Qt::Checked) // "Y-ions"
+      if (p.getValue("has_Y").toBool()) // "Y-ions"
       {
         p.setValue("add_y_ions", "true", "Add peaks of y-ions to the spectrum");
       }
-      if (spec_gen_dialog.list_widget->item(5)->checkState() == Qt::Checked) // "Z-ions"
+      if (p.getValue("has_Z").toBool()) // "Z-ions"
       {
         p.setValue("add_z_ions", "true", "Add peaks of z-ions to the spectrum");
       }
+
+      TheoreticalSpectrumGenerator generator;
       generator.setParameters(p);
 
       try
@@ -3252,9 +3237,9 @@ namespace OpenMS
       }
 
       Param param;
-      double tolerance = spec_align_dialog.tolerance_spinbox->value();
+      double tolerance = spec_align_dialog.getTolerance();
       param.setValue("tolerance", tolerance, "Defines the absolute (in Da) or relative (in ppm) mass tolerance");
-      String unit_is_ppm = spec_align_dialog.ppm->isChecked() ? "true" : "false";
+      String unit_is_ppm = spec_align_dialog.isPPM() ? "true" : "false";
       param.setValue("is_relative_tolerance", unit_is_ppm, "If true, the mass tolerance is interpreted as ppm value otherwise in Dalton");
 
       active_1d_window->performAlignment((UInt)layer_index_1, (UInt)layer_index_2, param);
@@ -3442,8 +3427,6 @@ namespace OpenMS
     QString text = QString("<BR>"
                            "<FONT size=+3>TOPPView</font><BR>"
                            "<BR>"
-                           "Version: %1%2<BR>"
-                           "<BR>"
                            "OpenMS and TOPP is free software available under the<BR>"
                            "BSD 3-Clause License (BSD-new)<BR>"
                            "<BR>"
@@ -3452,7 +3435,7 @@ namespace OpenMS
                            "<BR>"
                            "<BR>"
                            "Any published work based on TOPP and OpenMS shall cite these papers:<BR>"
-                           "Sturm et al., BMC Bioinformatics (2008), 9, 163<BR>"
+                           "Roest, Sachsenberg, Aiche, Bielow, Weisser et al., Nat Methods (2016), 13(9):741-748<BR>"
                            "Kohlbacher et al., Bioinformatics (2007), 23:e191-e197<BR>"
                            ).arg(VersionInfo::getVersion().toQString()
                            ).arg( // if we have a revision, embed it also into the shown version number
@@ -3859,13 +3842,13 @@ namespace OpenMS
       return;
     }
 
-    QWidgetList wl = ws_->windowList();
+    QList<QMdiSubWindow *> wl = ws_->subWindowList();
 
     // iterate over all windows and determine which need an update
     std::vector<std::pair<const SpectrumWidget*, Size> > needs_update;
-    for (int i = 0; i != ws_->windowList().count(); ++i)
+    for (int i = 0; i != ws_->subWindowList().count(); ++i)
     {
-      //std::cout << "Number of windows: " << ws_->windowList().count() << std::endl;
+      //std::cout << "Number of windows: " << ws_->subWindowList().count() << std::endl;
       QWidget* w = wl[i];
       const SpectrumWidget* sw = qobject_cast<const SpectrumWidget*>(w);
       if (sw != nullptr)

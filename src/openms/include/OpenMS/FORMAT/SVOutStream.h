@@ -32,8 +32,7 @@
 // $Authors: Hendrik Weisser $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FORMAT_SVOUTSTREAM_H
-#define OPENMS_FORMAT_SVOUTSTREAM_H
+#pragma once
 
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <ostream>
@@ -199,4 +198,3 @@ protected:
 
 }
 
-#endif

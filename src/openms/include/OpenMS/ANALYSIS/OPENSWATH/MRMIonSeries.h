@@ -32,8 +32,7 @@
 // $Authors: George Rosenberger $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_OPENSWATH_MRMIONSERIES_H
-#define OPENMS_ANALYSIS_OPENSWATH_MRMIONSERIES_H
+#pragma once
 
 #include <OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
@@ -150,4 +149,3 @@ public:
   };
 }
 
-#endif

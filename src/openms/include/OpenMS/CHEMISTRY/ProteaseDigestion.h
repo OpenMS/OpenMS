@@ -32,8 +32,7 @@
 // $Authors: Marc Sturm, Chris Bielow $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_CHEMISTRY_PROTEASEDIGESTION_H
-#define OPENMS_CHEMISTRY_PROTEASEDIGESTION_H
+#pragma once
 
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
@@ -66,8 +65,17 @@ namespace OpenMS
     /// Sets the enzyme for the digestion (by name)
     void setEnzyme(const String& name);
 
-    /// Performs the enzymatic digestion of a protein.
-    void digest(const AASequence& protein, std::vector<AASequence>& output) const;
+    /** 
+       @brief: Performs the enzymatic digestion of a protein.
+
+       @param protein Sequence to digest
+       @param output Digestion products (peptides)
+       @param min_length Minimal length of reported products
+       @param max_length Maximal length of reported products (0 = no restriction)
+       @return Number of discarded digestion products (which are not matching length restrictions)
+
+    */
+    Size digest(const AASequence& protein, std::vector<AASequence>& output, Size min_length = 1, Size max_length = 0) const;
 
     /// Returns the number of peptides a digestion of @p protein would yield under the current enzyme and missed cleavage settings.
     Size peptideCount(const AASequence& protein);
@@ -95,4 +103,3 @@ namespace OpenMS
 
 } // namespace OpenMS
 
-#endif // OPENMS_CHEMISTRY_PROTEASEDIGESTION_H

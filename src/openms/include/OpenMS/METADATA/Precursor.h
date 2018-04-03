@@ -32,8 +32,7 @@
 // $Authors: Marc Sturm, Mathias Walzer $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_METADATA_PRECURSOR_H
-#define OPENMS_METADATA_PRECURSOR_H
+#pragma once
 
 #include <OpenMS/KERNEL/Peak1D.h>
 #include <OpenMS/METADATA/CVTermList.h>
@@ -181,4 +180,3 @@ protected:
   };
 } // namespace OpenMS
 
-#endif // OPENMS_METADATA_PRECURSOR_H

@@ -32,8 +32,7 @@
 // $Authors: $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_MATH_STATISTICS_ASYMMETRICSTATISTICS_H
-#define OPENMS_MATH_STATISTICS_ASYMMETRICSTATISTICS_H
+#pragma once
 
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/MATH/STATISTICS/BasicStatistics.h>
@@ -149,4 +148,3 @@ protected:
 
 } // namespace OpenMS
 
-#endif // OPENMS_MATH_STATISTICS_ASYMMETRICSTATISTICS_H

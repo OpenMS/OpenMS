@@ -32,8 +32,7 @@
 // $Authors: Douglas McCloskey, Pasquale Domenico Colaianni $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_QUANTITATION_ABSOLUTEQUANTITATION_H
-#define OPENMS_ANALYSIS_QUANTITATION_ABSOLUTEQUANTITATION_H
+#pragma once
 
 #include <OpenMS/config.h>
 
@@ -335,5 +334,4 @@ private:
   };
 
 }
-#endif // OPENMS_ANALYSIS_QUANTITATION_ABSOLUTEQUANTITATION_H
 

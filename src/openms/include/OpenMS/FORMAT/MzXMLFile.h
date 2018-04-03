@@ -32,8 +32,7 @@
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FORMAT_MZXMLFILE_H
-#define OPENMS_FORMAT_MZXMLFILE_H
+#pragma once
 
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/FORMAT/XMLFile.h>
@@ -137,4 +136,3 @@ private:
   };
 } // namespace OpenMS
 
-#endif // OPENMS_FORMAT_MZXMLFILE_H

@@ -32,8 +32,7 @@
 // $Authors: Hannes Roest$
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_OPENSWATH_OPENSWATHALGO_ALGO_SCORING_H
-#define OPENMS_ANALYSIS_OPENSWATH_OPENSWATHALGO_ALGO_SCORING_H
+#pragma once
 
 #include <numeric>
 #include <map>
@@ -119,8 +118,8 @@ public:
                                                                    std::vector<double>& data2, const int& maxdelay, const int& lag);
 
     /// Calculate crosscorrelation on std::vector data without normalization
-    OPENSWATHALGO_DLLAPI XCorrArrayType calculateCrossCorrelation(std::vector<double>& data1,
-                                                                  std::vector<double>& data2, const int& maxdelay, const int& lag);
+    OPENSWATHALGO_DLLAPI XCorrArrayType calculateCrossCorrelation(const std::vector<double>& data1,
+                                                                  const std::vector<double>& data2, const int& maxdelay, const int& lag);
 
     /// Find best peak in an cross-correlation (highest apex)
     OPENSWATHALGO_DLLAPI XCorrArrayType::const_iterator xcorrArrayGetMaxPeak(const XCorrArrayType & array);
@@ -135,4 +134,3 @@ public:
   }
 }
 
-#endif // OPENMS_ANALYSIS_OPENSWATH_OPENSWATHALGO_ALGO_SCORING_H

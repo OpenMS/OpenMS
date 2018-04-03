@@ -32,8 +32,7 @@
 // $Authors: Hannes Roest $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_KERNEL_MRMFEATURE_H
-#define OPENMS_KERNEL_MRMFEATURE_H
+#pragma once
 
 #include <OpenMS/KERNEL/Feature.h>
 
@@ -130,5 +129,4 @@ protected:
   };
 }
 
-#endif // OPENMS_KERNEL_MRMFEATURE_H
 

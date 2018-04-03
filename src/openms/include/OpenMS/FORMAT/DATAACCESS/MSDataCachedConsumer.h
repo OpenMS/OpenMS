@@ -32,8 +32,7 @@
 // $Authors: Hannes Roest $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FORMAT_DATAACCESS_MSDATACACHEDCONSUMER_H
-#define OPENMS_FORMAT_DATAACCESS_MSDATACACHEDCONSUMER_H
+#pragma once
 
 #include <OpenMS/INTERFACES/IMSDataConsumer.h>
 
@@ -44,8 +43,6 @@
 
 namespace OpenMS
 {
-  class MSSpectrum;
-  class MSChromatogram;
 
     /**
       @brief Transforming and cached writing consumer of MS data
@@ -65,25 +62,38 @@ namespace OpenMS
 
       /**
         @brief Constructor
-  
+
         Opens the output file and writes the header.
+
+        @param filename The output file name to which data is written
+        @param clearData Whether to clear the spectral and chromatogram data
+        after writing (only keep meta-data)
+
+        @note Clearing data from spectra and chromatograms also clears float
+        and integer data arrays associated with the structure as these are
+        written to disk as well.
+
       */
       MSDataCachedConsumer(const String& filename, bool clearData=true);
 
       /**
         @brief Destructor
-  
+
         Closes the output file and writes the footer.
       */
       ~MSDataCachedConsumer() override;
 
       /**
         @brief Write a spectrum to the output file
+
+        @note May delete data from spectrum (if clearData is set)
       */
       void consumeSpectrum(SpectrumType & s) override;
 
       /**
         @brief Write a chromatogram to the output file
+
+        @note May delete data from chromatogram (if clearData is set)
       */
       void consumeChromatogram(ChromatogramType & c) override;
 
@@ -101,4 +111,3 @@ namespace OpenMS
 
 } //end namespace OpenMS
 
-#endif

@@ -32,8 +32,7 @@
 // $Authors: Timo Sachsenberg $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_RNPXL_MODIFIEDPEPTIDEGENERATOR_H
-#define OPENMS_ANALYSIS_RNPXL_MODIFIEDPEPTIDEGENERATOR_H
+#pragma once
 
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/CHEMISTRY/ResidueModification.h>
@@ -68,5 +67,4 @@ namespace OpenMS
   };
 }
 
-#endif
 

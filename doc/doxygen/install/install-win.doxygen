@@ -33,9 +33,9 @@
     <b>Pre-Requisites (Software)</b>
     <ul>
       <li>Have a Visual Studio 2015 or 2017 installed (The C++ Express editions should work as well, we tested VSE2015 Update 3).
-        <br><b>Not supported are MinGW (g++ based compiler) and VS2013 (and earlier). Do not use a MinGW-enabled shell since CMake will get confused! Please use the Command Prompt of the Visual Studio version you want to build with.</b>
+        <br><b>Not supported are MinGW (g++ based compiler) and VS2013 (and earlier, due to missing C11 support). Do not use a MinGW-enabled shell since CMake will get confused! Please use the Command Prompt of the Visual Studio version you want to build with.</b>
             Other compilers which are close to the VS toolchain might work, but are not tested.
-      <li>Have CMake 3.0.2 or greater installed (see http://www.cmake.org).<br>
+      <li>Have CMake 3.1 or greater installed (see http://www.cmake.org).<br>
 	      CMake's Generator (-G flag) must support your version of Visual Studio. If it doesn't, upgrade CMake.<br>
       <li>To extract archives within submodules of the contrib you will need <tt>7-Zip</tt> (see http://www.7-zip.org/)
         <br>7z.exe is searched in "C:/Program Files/7-Zip/" and "C:/Programme/7-Zip/". Make sure it is in either of these locations or add
@@ -50,7 +50,7 @@
   @subsection install_win_contrib Contrib installation
         In order to make the
         installation of the remaining required libraries easier, we composed a
-        "contrib-package" containing the libraries Boost, Eigen, WildMagic, libSVM, SeqAn, glpk, zlib, libbz2 and Xerces-C.
+        "contrib-package" containing the libraries Boost, Eigen, sqlite3, CoinMP, WildMagic, libSVM, SeqAn, glpk, zlib, libbz2 and Xerces-C.
         This contrib package has several advantages over manual installation
         <ul>
             <li>You get all the libraries in versions tested with %OpenMS.</li>
@@ -96,7 +96,7 @@
         Example:
         \code
         cd c:\dev\contrib_win64_build
-        cmake -DBUILD_TYPE=ALL -DNUMBER_OF_JOBS=4 -G "Visual Studio 9 2008 Win64" "c:\dev\OpenMS\contrib"
+        cmake -DBUILD_TYPE=ALL -DNUMBER_OF_JOBS=4 -G "Visual Studio 15 2017 Win64" "c:\dev\OpenMS\contrib"
         \endcode
 
       <li>Add the &lt;path_to_contrib_build&gt;/lib directory to your PATH Environment Variable (this is so Windows can find the DLL's when running our executables).
@@ -105,53 +105,58 @@
 	@subsection install_qt QT installation
 
     Qt comes in two flavors: commercial or non-commercial - choose whatever is applicable to you: read more on the Qt website
-    Recently (beginning with Qt 4.6) there are binary development versions available for VS2010 and VS2008. We found these to contain only
-    32bit compilations. If you are compiling for 32bit as well, you can download these and save a lot of time. They are incompatible for 64bit builds -
-    compile Qt yourself in this case (or see if you can find 64bit builds on the Qt website). Make sure NOT to use the MinGW precompiled binaries, since
-    they are incompatible with Visual Studio binaries.
+    For several recent QT5 versions, there are binary development versions available for the most recent compilers. Go to https://www.qt.io/download
+    and click on "Go open source" at the end of the right column to download the installer. Follow steps, download, save and run the installer.
+    Create a Qt account. Choose a folder like "c:\dev\QT". From the components choose a matching version, e.g. QT 5.10.0 and the MSVC component that fits
+    your Visual Studio version and architecture (most likely only 64bit is supported anymore). You can deselect QTCreator under Tools.
+    Accept the license, choose startmenu entries if wanted and install. Resulting files appear under "c:\dev\QT\$VERSION".
 
-    To build Qt from sources, download Qt 4.8.7 (see below), which supports all VS versions up to VS 2015!
-    @note Qt 5.X IS NOT SUPPORTED YET!
+    To build Qt from sources, download Qt5 from their git repository ad follow the steps below:
 
     Follow this procedure if you want to compile Qt yourself:
     <ol>
       <li>non-commercial:
         <ol>
-          <li>download <b>Qt 4.8.7 source</b> from https://download.qt.io/official_releases/qt/4.8/ as .zip or .tar.gz
-          <li>extract zip file to a temp location (called <tt>&lt;path-to-tmp-qt&gt;</tt> henceforth)
-					<li>[VS2015 only] Qt 4.8.7 will not compile with VS2015 out of the box (previous VS version should be fine).
-							We have included a patch file in our contrib (see above) which should be applied to the extracted Qt sources, i.e.
-							\code
-								cd <path-to-tmp-qt>
-  							<path_to_contrib>\tools\patch.exe -p0 -b -N -l -i <path_to_contrib>\patches\qt\qt4.8.7_build_with_msvc2015.diff
-							\endcode
+          <li>install perl (e.g. Strawberry Perl) and git
+          <li>download <b>Qt5 source</b> via git:
+            \code
+            git clone git://github.com/qt/qt5 --branch 5.9 qt-5.9
+            \endcode
+          <li>activate the needed modules via:
+            \code
+             perl init-repository --module-subset="essential,qtsvg" --branch
+            \endcode
           <li>open a Visual Studio Command Line (use x64 version if you want 64bit apps!)
           <li>
             \code
-            cd <path-to-tmp-qt>
+            cd qt-5.9
             \endcode
           <li>if you have multiple versions of VS installed you might need to provide the <tt>-platform</tt> param for the next configure command (e.g., <tt>-platform win32-msvc2012</tt>)
-          <li>To save disk space, we use the -prefix switch do install only the required parts of Qt to a new directory of your choice (called <tt>&lt;path-to-qt&gt;</tt>, e.g. <tt>c:/dev/Qt4.8.7/</tt>).
+          <li>To save disk space, we use the -prefix switch do install only the required parts of Qt to a new directory of your choice (called <tt>&lt;path-to-qt&gt;</tt>, e.g. <tt>c:/dev/Qt/5.9/</tt>).
+              Check more options and supported compilers here: http://doc.qt.io/qt-5/configure-options.html (especially for developers)
             \code
-            configure.exe -opensource -nomake demos -nomake examples -no-script -webkit -prefix <path-to-qt>
+            configure -release -nomake example -nomake demos -nomake tests -opensource -confirm-license -prefix <path-to-qt> -platform win32-msvc
             \endcode
           <li>
             \code
             nmake
             \endcode
           <li>
-						\code
-						nmake install
-						\endcode
-          <li>all Qt files (libs, includes etc) are now in <tt><path-to-qt></tt> and sub-directories. You can delete <tt><path-to-tmp-qt></tt> (since it will consume quite a lot of disk space)
+	    \code
+	    nmake install
+	    \endcode
+          <li>all Qt files (libs, includes etc) are now in <tt><path-to-qt></tt> and sub-directories.
           <li>alternatively to nmake, you can download JOM (http://qt-project.org/wiki/jom) and type "jom" in your Qt build directory to use multiple cores (builds a lot faster usually)
         </ol>
       <li>commercial:
         <ol>
           <li>we have no experience here, but it should be possible to get the DLL's and Link-Libraries here as well.
         </ol>
-      <li>add the <tt>&lt;path-to-qt&gt;/bin</tt> (!) directory to your PATH Environment Variable
-        </ol>
+      <li>add the <tt>&lt;path-to-qt&gt;/bin</tt> (!) directory to your PATH Environment Variable, so the dlls are found during runtime.
+      <li>set the environment variable QT_QPA_PLATFORM_PLUGIN_PATH to <tt>&lt;path-to-qt&gt;/plugins/platforms</tt>,
+          otherwise you might get an error "This application failed to start because it could not find or load the Qt platform plugin "windows".
+          Alternatively, you can copy the entire platforms-folder into the folder where your openms executables will be created (but they will depend on the build-type, i.e. release|debug|...).
+    </ol>
 
  
 
@@ -163,18 +168,18 @@
   you will need to install three programs:
 
   <ol>
-    <li> Doxygen (version 1.5.8 and 1.8.2 are tested, others might work as well)
+    <li> Doxygen (version 1.5.8 and 1.8.2 and 1.8.14 are tested, others might work as well)
       <ul>
         <li> Download the installer for Windows (http://www.doxygen.org)
         <li> Execute the installer. It should automatically add doxygen.exe to the Windows PATH Environment (please recheck)
       </ul>
-    <li> MikTeX (version 2.7 and 2.9 are tested, others might work as well) - basic version (for DVIPS, LATEX etc).
+    <li> MikTeX (version 2.7 and 2.9 are tested, others might work as well, texlive is an option, too) - basic version (for DVIPS, LATEX etc).
       <ul>
          <li> Download binaries for Windows (http://miktex.org/)
          <li> During installation tick "install missing packages on the fly = yes"
          <li> The installer SHOULD add the bin directory of MikTeX automatically to the Windows PATH Environment (please recheck)
       </ul>
-    <li> GPL Ghostscript (8.60) for Windows
+    <li> GPL Ghostscript (e.g. 8.60, 9.19) for Windows
       <ul>
          <li> Download binaries for Windows (http://www.ghostscript.com/) and install
          <li> Add the <i>&lt;path_to_GHOSTSCRIPT&gt;/bin</i> directory (e.g. c:/programs/gs/gs8.60/bin) to the Windows PATH Environment
@@ -220,7 +225,7 @@
         Example:
         \code
         cd c:\dev\OpenMS_Win64
-        cmake -D OPENMS_CONTRIB_LIBS="C:\dev\contrib_win64_build" -G "Visual Studio 9 2008 Win64" ..\OpenMS
+        cmake -D OPENMS_CONTRIB_LIBS="C:\dev\contrib_win64_build" -G "Visual Studio 15 2017 Win64" ..\OpenMS
         \endcode
     </ol>
 

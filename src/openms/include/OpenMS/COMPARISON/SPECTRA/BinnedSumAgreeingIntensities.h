@@ -32,8 +32,7 @@
 // $Authors: $
 // --------------------------------------------------------------------------
 //
-#ifndef OPENMS_COMPARISON_SPECTRA_BINNEDSUMAGREEINGINTENSITIES_H
-#define OPENMS_COMPARISON_SPECTRA_BINNEDSUMAGREEINGINTENSITIES_H
+#pragma once
 
 #include <OpenMS/COMPARISON/SPECTRA/BinnedSpectrumCompareFunctor.h>
 
@@ -105,4 +104,3 @@ protected:
   };
 
 }
-#endif //OPENMS_COMPARISON_SPECTRA_BINNEDSUMAGREEINGINTENSITIES_H

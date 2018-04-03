@@ -692,8 +692,8 @@ namespace OpenMS
                   throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "the line (" + line + ") should contain m/z and intensity value separated by whitespace!", "");
                 }
               }
-            }
-            while (getline(is, line, '\n') && line.trim() != "END IONS");
+            } while (getline(is, line, '\n') && line.trim() != "END IONS");
+            
             if (line.trim() == "END IONS")
             {
               // found spectrum

@@ -32,8 +32,7 @@
 // $Authors: Eva Lange $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_TRANSFORMATIONS_RAW2PEAK_OPTIMIZEPICK_H
-#define OPENMS_TRANSFORMATIONS_RAW2PEAK_OPTIMIZEPICK_H
+#pragma once
 
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakShape.h>
 #include <OpenMS/KERNEL/Peak1D.h>
@@ -172,4 +171,3 @@ protected:
   };
 }
 
-#endif

@@ -47,8 +47,8 @@
 #include <OpenMS/FILTERING/ID/IDFilter.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
 
+#include <QtWidgets/QMessageBox>
 #include <QtCore/QString>
-#include <QtGui/QMessageBox>
 
 using namespace OpenMS;
 using namespace std;
@@ -863,7 +863,7 @@ namespace OpenMS
 
     MSSpectrum ann_spectrum;
     vector<String> labels;
-    for (const auto& ann : annotations) // NOLINT
+    for (const auto& ann : annotations)
     {
       Peak1D peak(ann.mz, ann.intensity);
       if (align) // align to the measured spectrum

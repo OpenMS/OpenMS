@@ -32,8 +32,7 @@
 // $Authors: Hannes Roest $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FORMAT_HANDLERS_MZMLHANDLERHELPER_H
-#define OPENMS_FORMAT_HANDLERS_MZMLHANDLERHELPER_H
+#pragma once
 
 #include <OpenMS/FORMAT/OPTIONS/PeakFileOptions.h>
 #include <OpenMS/FORMAT/MSNumpressCoder.h>
@@ -62,6 +61,7 @@ namespace OpenMS
         enum { DT_NONE, DT_FLOAT, DT_INT, DT_STRING } data_type;
         MSNumpressCoder::NumpressCompression np_compression;
         bool compression; // zlib compression
+        double unit_multiplier;
         String base64;
         Size size;
         std::vector<float> floats_32;
@@ -77,6 +77,7 @@ namespace OpenMS
           data_type(DT_NONE),
           np_compression(),
           compression(false),
+          unit_multiplier(1.0),
           base64(),
           size(0),
           floats_32(),
@@ -109,17 +110,16 @@ namespace OpenMS
         @param data_ The input and output
         @param skipXMLCheck whether to skip cleaning the Base64 arrays and remove whitespaces 
       */
-      static void decodeBase64Arrays(std::vector<BinaryData> & data_, bool skipXMLCheck = false);
+      static void decodeBase64Arrays(std::vector<BinaryData> & data_, const bool skipXMLCheck = false);
 
-      static void computeDataProperties_(std::vector<BinaryData>& data_, bool& precision_64, SignedSize& index, const String& index_name);
+      static void computeDataProperties_(const std::vector<BinaryData>& data_, bool& precision_64, SignedSize& index, const String& index_name);
 
       static bool handleBinaryDataArrayCVParam(std::vector<BinaryData>& data_,
-        const String& accession, const String& value, const String& name);
+        const String& accession, const String& value, const String& name, const String& unit_accession);
     };
 
 
   } // namespace Internal
 } // namespace OpenMS
 
-#endif // OPENMS_FORMAT_HANDLERS_MZMLHANDLERHELPER_H
 

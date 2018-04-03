@@ -32,8 +32,7 @@
 // $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_METADATA_CHROMATOGRAMSETTINGS_H
-#define OPENMS_METADATA_CHROMATOGRAMSETTINGS_H
+#pragma once
 
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/METADATA/InstrumentSettings.h>
@@ -175,4 +174,3 @@ protected:
 
 } // namespace OpenMS
 
-#endif // OPENMS_METADATA_CHROMATOGRAMSETTINGS_H

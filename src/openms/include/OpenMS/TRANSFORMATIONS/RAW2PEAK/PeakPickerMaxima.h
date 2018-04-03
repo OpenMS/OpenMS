@@ -32,8 +32,7 @@
 // $Authors: Hannes Roest $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_TRANSFORMATIONS_RAW2PEAK_PEAKPICKERMAXIMA_H
-#define OPENMS_TRANSFORMATIONS_RAW2PEAK_PEAKPICKERMAXIMA_H
+#pragma once
 
 #include <OpenMS/config.h>
 #include <vector>
@@ -155,4 +154,3 @@ protected:
 
 } // namespace OpenMS
 
-#endif

@@ -255,10 +255,12 @@ namespace OpenMS
       if (!map.getProteinIdentifications().empty())
       {
         empty_protein_id.setIdentifier(map.getProteinIdentifications()[0].getIdentifier());
-      } else if (!map.getUnassignedPeptideIdentifications().empty())
+      }
+      else if (!map.getUnassignedPeptideIdentifications().empty())
       {
         empty_protein_id.setIdentifier(map.getUnassignedPeptideIdentifications()[0].getIdentifier());
-      } else
+      }
+      else
       {
         // No search run identifier given so we create a new one
         empty_protein_id.setIdentifier("UNKNOWN_SEARCH_RUN_IDENTIFIER");
@@ -585,10 +587,12 @@ namespace OpenMS
       if (!map.getProteinIdentifications().empty())
       {
         empty_protein_id.setIdentifier(map.getProteinIdentifications()[0].getIdentifier());
-      } else if (!map.getUnassignedPeptideIdentifications().empty())
+      }
+      else if (!map.getUnassignedPeptideIdentifications().empty())
       {
         empty_protein_id.setIdentifier(map.getUnassignedPeptideIdentifications()[0].getIdentifier());
-      } else
+      }
+      else
       {
         // add a new search identification run (mandatory)
         empty_protein_id.setIdentifier("UNKNOWN_SEARCH_RUN_IDENTIFIER");

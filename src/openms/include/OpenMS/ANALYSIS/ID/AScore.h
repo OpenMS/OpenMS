@@ -32,8 +32,7 @@
 // $Authors: David Wojnar, Timo Sachsenberg, Petra Gutenbrunner $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_ID_ASCORE_H
-#define OPENMS_ANALYSIS_ID_ASCORE_H
+#pragma once
 
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
@@ -203,5 +202,4 @@ namespace OpenMS
 
 } // namespace OpenMS
 
-#endif // OPENMS_ANALYSIS_ID_ASCORE_H
 

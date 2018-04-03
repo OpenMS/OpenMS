@@ -32,8 +32,7 @@
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_DATASTRUCTURES_DEFAULTPARAMHANDLER_H
-#define OPENMS_DATASTRUCTURES_DEFAULTPARAMHANDLER_H
+#pragma once
 
 #include <OpenMS/DATASTRUCTURES/Param.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
@@ -191,4 +190,3 @@ private:
 
 } // namespace OPENMS
 
-#endif // OPENMS_DATASTRUCTURES_DEFAULTPARAMHANDLER_H

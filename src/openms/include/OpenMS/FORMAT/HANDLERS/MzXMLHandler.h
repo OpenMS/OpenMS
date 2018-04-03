@@ -32,8 +32,7 @@
 // $Authors: Marc Sturm, Chris Bielow $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FORMAT_HANDLERS_MZXMLHANDLER_H
-#define OPENMS_FORMAT_HANDLERS_MZXMLHANDLER_H
+#pragma once
 
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
@@ -242,4 +241,3 @@ private:
 
 } // namespace OpenMS
 
-#endif

@@ -124,7 +124,8 @@ namespace OpenMS
     if (use_ppm_) // the above prediction is the ppm error
     { // ... so we convert to actual mass diff
       predict = Math::ppmToMass(-predict, mz) + mz;
-    } else
+    }
+    else
     {
       predict = (-predict) + mz;
     }

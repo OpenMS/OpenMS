@@ -32,8 +32,7 @@
 // $Authors: Chris Bielow $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_SYSTEM_RWRAPPER_H
-#define OPENMS_SYSTEM_RWRAPPER_H
+#pragma once
 
 #include <OpenMS/config.h>
 
@@ -112,4 +111,3 @@ public:
 
 
 
-#endif // OPENMS_SYSTEM_RWRAPPER_H

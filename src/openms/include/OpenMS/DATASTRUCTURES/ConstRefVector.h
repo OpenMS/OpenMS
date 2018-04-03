@@ -32,8 +32,7 @@
 // $Authors: $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_DATASTRUCTURES_CONSTREFVECTOR_H
-#define OPENMS_DATASTRUCTURES_CONSTREFVECTOR_H
+#pragma once
 
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/KERNEL/ComparatorUtils.h>
@@ -804,4 +803,3 @@ protected:
 
 } // namespace OpenMS
 
-#endif // OPENMS_DATASTRUCTURES_CONSTREFVECTOR_H

@@ -1368,16 +1368,16 @@ namespace OpenMS
         // Attributes
         String peptide = XMLString::transcode(cl_sii->getAttribute(XMLString::transcode("peptide_ref")));
         peptides.push_back(peptide);
-        double exp_mz = atof(XMLString::transcode(cl_sii->getAttribute(XMLString::transcode("experimentalMassToCharge"))));
+        double exp_mz = String(XMLString::transcode(cl_sii->getAttribute(XMLString::transcode("experimentalMassToCharge")))).toDouble();
         exp_mzs.push_back(exp_mz);
 
         if (rank == 0)
         {
-          rank = atoi(XMLString::transcode(cl_sii->getAttribute(XMLString::transcode("rank"))));
+          rank = String(XMLString::transcode(cl_sii->getAttribute(XMLString::transcode("rank")))).toInt();
         }
         if (charge == 0)
         {
-          charge = atoi(XMLString::transcode(cl_sii->getAttribute(XMLString::transcode("chargeState"))));
+          charge = String(XMLString::transcode(cl_sii->getAttribute(XMLString::transcode("chargeState")))).toInt();
         }
 
         // CVs
@@ -1388,31 +1388,31 @@ namespace OpenMS
           DOMElement* element_sii_cvp = dynamic_cast<xercesc::DOMElement*>(sii_cvp->item(i));
           if (String(XMLString::transcode(element_sii_cvp->getAttribute(XMLString::transcode("accession")))) == String("MS:1002681")) // OpenXQuest:combined score
           {
-            score = atof(XMLString::transcode(element_sii_cvp->getAttribute(XMLString::transcode("value"))));
+            score = String(XMLString::transcode(element_sii_cvp->getAttribute(XMLString::transcode("value")))).toDouble();
           }
           else if (String(XMLString::transcode(element_sii_cvp->getAttribute(XMLString::transcode("accession")))) == String("MS:1002682")) // OpenXQuest: xcorr common
           {
-            xcorrx = atof(XMLString::transcode(element_sii_cvp->getAttribute(XMLString::transcode("value"))));
+            xcorrx = String(XMLString::transcode(element_sii_cvp->getAttribute(XMLString::transcode("value")))).toDouble();
           }
           else if (String(XMLString::transcode(element_sii_cvp->getAttribute(XMLString::transcode("accession")))) == String("MS:1002683")) // OpenXQuest: xcorr xlink
           {
-            xcorrc = atof(XMLString::transcode(element_sii_cvp->getAttribute(XMLString::transcode("value"))));
+            xcorrc = String(XMLString::transcode(element_sii_cvp->getAttribute(XMLString::transcode("value")))).toDouble();
           }
           else if (String(XMLString::transcode(element_sii_cvp->getAttribute(XMLString::transcode("accession")))) == String("MS:1002684")) // OpenXQuest: match-odds
           {
-            matchodds = atof(XMLString::transcode(element_sii_cvp->getAttribute(XMLString::transcode("value"))));
+            matchodds = String(XMLString::transcode(element_sii_cvp->getAttribute(XMLString::transcode("value")))).toDouble();
           }
           else if (String(XMLString::transcode(element_sii_cvp->getAttribute(XMLString::transcode("accession")))) == String("MS:1002685")) // OpenXQuest: intsum
           {
-            intsum = atof(XMLString::transcode(element_sii_cvp->getAttribute(XMLString::transcode("value"))));
+            intsum = String(XMLString::transcode(element_sii_cvp->getAttribute(XMLString::transcode("value")))).toDouble();
           }
           else if (String(XMLString::transcode(element_sii_cvp->getAttribute(XMLString::transcode("accession")))) == String("MS:1002686")) // OpenXQuest: wTIC
           {
-            wTIC = atof(XMLString::transcode(element_sii_cvp->getAttribute(XMLString::transcode("value"))));
+            wTIC = String(XMLString::transcode(element_sii_cvp->getAttribute(XMLString::transcode("value")))).toDouble();
           }
           else if (String(XMLString::transcode(element_sii_cvp->getAttribute(XMLString::transcode("accession")))) == String("MS:1000894")) // retention time
           {
-            double RT = atof(XMLString::transcode(element_sii_cvp->getAttribute(XMLString::transcode("value"))));
+            double RT = String(XMLString::transcode(element_sii_cvp->getAttribute(XMLString::transcode("value")))).toDouble();
             RTs.push_back(RT);
           }
         }
@@ -1712,7 +1712,8 @@ namespace OpenMS
         if (userParamUnits_alpha[i] == "xsd:double")
         {
           ph_alpha.setMetaValue(userParamNames_alpha[i], userParamValues_alpha[i].toDouble());
-        } else
+        }
+        else
         {
           ph_alpha.setMetaValue(userParamNames_alpha[i], userParamValues_alpha[i]);
         }
@@ -1790,7 +1791,8 @@ namespace OpenMS
           if (userParamUnits_beta[i] == "xsd:double")
           {
             ph_beta.setMetaValue(userParamNames_beta[i], userParamValues_beta[i].toDouble());
-          } else
+          }
+          else
           {
             ph_beta.setMetaValue(userParamNames_beta[i], userParamValues_beta[i]);
           }
@@ -2327,7 +2329,8 @@ namespace OpenMS
                 {
                   String donor_val = XMLString::transcode(cvp->getAttribute(XMLString::transcode("value")));
                   xl_id_donor_map_.insert(make_pair(pep_id, donor_val));
-                  double monoisotopicMassDelta = atof(XMLString::transcode(element_sib->getAttribute(XMLString::transcode("monoisotopicMassDelta"))));
+                  String massdelta = XMLString::transcode(element_sib->getAttribute(XMLString::transcode("monoisotopicMassDelta")));
+                  double monoisotopicMassDelta = massdelta.toDouble();
                   xl_mass_map_.insert(make_pair(pep_id, monoisotopicMassDelta));
                   xl_donor_pos_map_.insert(make_pair(donor_val, index-1));
 

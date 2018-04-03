@@ -446,7 +446,6 @@ TargetedFileConverter
 MultiplexPeakPattern
 SILACAnalyzer
 LowLevelComparator
-IDEvaluatorGUI
 AxisWidget
 SpectrumCanvas
 SpectrumWidget
@@ -588,8 +587,6 @@ ProteinsHits
 AlphabetTextParser
 DocumentID
 DocumentIDs
-bigString
-bigStringPosition
 IsotopeSpecies
 IsotopeDisribution
 StringLists
@@ -632,7 +629,7 @@ DWidget
 MetaDataBrowser
 #  }}}
 
-# Functions {{{ 
+# Functions {{{
 computeFwhmAreaRobust
 computeFwhmAreaSmoothRobust
 encodeInt
@@ -732,7 +729,7 @@ PEPIons
 PEPs
 ConsensusID
 PEPs
-  
+
 lastPackage
 AAD
 Elephas
@@ -1707,7 +1704,7 @@ matchmatrix
 matchscore
 retentiontimes
 scorefunction
-#}}} 
+#}}}
 
 # MSInspectFile {{{
 taccurateMZ
@@ -1893,4 +1890,3 @@ XXXXX
 #  }}}
 
 # }}}
-

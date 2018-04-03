@@ -32,8 +32,7 @@
 // $Authors: Clemens Groepl, Hendrik Weisser $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_MAPMATCHING_TRANSFORMATIONDESCRIPTION_H
-#define OPENMS_ANALYSIS_MAPMATCHING_TRANSFORMATIONDESCRIPTION_H
+#pragma once
 
 #include <OpenMS/DATASTRUCTURES/Param.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/TransformationModel.h>
@@ -145,4 +144,3 @@ protected:
 
 } // end of namespace OpenMS
 
-#endif // OPENMS_ANALYSIS_MAPMATCHING_TRANSFORMATIONDESCRIPTION_H

@@ -8,6 +8,5 @@ cdef extern from "<OpenMS/FORMAT/MRMFeatureQCFile.h>" namespace "OpenMS":
         MRMFeatureQCFile() nogil except +
         MRMFeatureQCFile(MRMFeatureQCFile &) nogil except +
 
-        void load(String filename, MRMFeatureQC mrmfqc) nogil except +
+        void load(const String& filename, MRMFeatureQC& mrmfqc, const bool is_component_group) nogil except +
         # void store(String filename, MRMFeatureQC mrmfqc) nogil except +
-

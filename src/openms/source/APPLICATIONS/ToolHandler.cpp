@@ -46,7 +46,6 @@ namespace OpenMS
   {
     ToolListType tools_map;
 
-    tools_map["AdditiveSeries"] = Internal::ToolDescription("AdditiveSeries", "Quantitation");
     tools_map["BaselineFilter"] = Internal::ToolDescription("BaselineFilter", "Signal processing and preprocessing");
     tools_map["CompNovo"] = Internal::ToolDescription("CompNovo", "Identification");
     tools_map["CompNovoCID"] = Internal::ToolDescription("CompNovoCID", "Identification");
@@ -251,7 +250,6 @@ namespace OpenMS
 
     // ATTENTION: tools requiring the GUI lib
 #ifdef WITH_GUI
-    util_map["IDEvaluator"] = Internal::ToolDescription("IDEvaluator", util_category);
     util_map["ImageCreator"] = Internal::ToolDescription("ImageCreator", util_category);
     util_map["INIUpdater"] = Internal::ToolDescription("INIUpdater", util_category);
 #endif

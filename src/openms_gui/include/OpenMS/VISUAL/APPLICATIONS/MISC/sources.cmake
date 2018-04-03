@@ -3,7 +3,7 @@ set(directory include/OpenMS/VISUAL/APPLICATIONS/MISC)
 
 ### list all MOC filenames of the directory here
 set(sources_list
-QApplicationTOPP.h
+  QApplicationTOPP.h
 )
 
 ### add path to the filenames
@@ -13,16 +13,16 @@ foreach(i ${sources_list})
 endforeach(i)
 
 ### Apply MOC compiler
-QT4_WRAP_CPP(mocced_sources ${sources} OPTIONS ${BOOST_MOC_ARGS})
+#QT5_WRAP_CPP(mocced_sources ${sources} OPTIONS ${BOOST_MOC_ARGS})
 
 ### pass source file list to the upper instance
-set(OpenMSVisual_sources ${OpenMSVisual_sources} ${mocced_sources})
+set(OpenMSVisual_sources ${OpenMSVisual_sources} ${sources})
 
-source_group("Source Files\\OpenMS\\VISUAL\\MISC" FILES ${mocced_sources})
+source_group("Source Files\\OpenMS\\VISUAL\\MISC" FILES ${sources})
 
 ### list all header files of the directory here
 set(sources_list_h
-QApplicationTOPP.h
+  QApplicationTOPP.h
 )
 
 ### add path to the filenames

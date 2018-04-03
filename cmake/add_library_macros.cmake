@@ -118,7 +118,7 @@ function(openms_add_library)
   # parse arguments to function
   set(options )
   set(oneValueArgs TARGET_NAME DLL_EXPORT_PATH)
-  set(multiValueArgs INTERNAL_INCLUDES PRIVATE_INCLUDES EXTERNAL_INCLUDES SOURCE_FILES HEADER_FILES LINK_LIBRARIES)
+  set(multiValueArgs INTERNAL_INCLUDES PRIVATE_INCLUDES EXTERNAL_INCLUDES SOURCE_FILES HEADER_FILES LINK_LIBRARIES PRIVATE_LINK_LIBRARIES)
   cmake_parse_arguments(openms_add_library "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN} )
 
   #------------------------------------------------------------------------------
@@ -129,7 +129,7 @@ function(openms_add_library)
   # merge into global exported includes
   set(${openms_add_library_TARGET_NAME}_INCLUDE_DIRECTORIES ${openms_add_library_INTERNAL_INCLUDES}
                                                             ${openms_add_library_EXTERNAL_INCLUDES}
-      CACHE INTERNAL "${openms_add_library_TARGET_NAME} include directories" FORCE)
+  CACHE INTERNAL "${openms_add_library_TARGET_NAME} include directories" FORCE)
 
   #------------------------------------------------------------------------------
   # Include directories
@@ -169,7 +169,7 @@ function(openms_add_library)
   if(openms_add_library_LINK_LIBRARIES)
     ## check for consistent lib arch (e.g. all 64bit)?
     check_lib_architecture(openms_add_library_LINK_LIBRARIES)
-    target_link_libraries(${openms_add_library_TARGET_NAME} ${openms_add_library_LINK_LIBRARIES})
+    target_link_libraries(${openms_add_library_TARGET_NAME} ${openms_add_library_LINK_LIBRARIES} ${openms_add_library_PRIVATE_LINK_LIBRARIES})
     list(LENGTH openms_add_library_LINK_LIBRARIES _library_count)
   endif()
 

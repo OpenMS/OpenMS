@@ -31,8 +31,7 @@
 // $Maintainer: Lars Nilse $
 // $Authors: Lars Nilse $
 // --------------------------------------------------------------------------
-#ifndef OPENMS_COMPARISON_CLUSTERING_CLUSTERINGGRID_H
-#define OPENMS_COMPARISON_CLUSTERING_CLUSTERINGGRID_H
+#pragma once
 
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/DATASTRUCTURES/DPosition.h>
@@ -164,4 +163,3 @@ class OPENMS_DLLAPI ClusteringGrid
 
 }
 
-#endif /* OPENMS_COMPARISON_CLUSTERING_CLUSTERINGGRID_H */

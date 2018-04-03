@@ -228,12 +228,13 @@ namespace OpenMS
           DateTime date_time = prot_it->getDateTime();
           String new_id;
           String search_engine = prot_it->getSearchEngine();
+          
           do
           {
             date_time = date_time.addSecs(1);
             new_id = search_engine + "_" + date_time.toString(Qt::ISODate);
-          }
-          while (used_ids.find(new_id) != used_ids.end());
+          } while (used_ids.find(new_id) != used_ids.end());
+
           LOG_INFO << "New identifier '" + new_id + "' generated as replacement." << endl;
           // update fields:
           prot_it->setIdentifier(new_id);

@@ -3,7 +3,6 @@ set(directory include/OpenMS/CONCEPT)
 
 ### list all header files of the directory here
 set(sources_list_h
-BinaryComposeFunctionAdapter.h
 ClassTest.h
 Constants.h
 Exception.h
@@ -21,7 +20,6 @@ SingletonRegistry.h
 StreamHandler.h
 Types.h
 TypeAsString.h
-UnaryComposeFunctionAdapter.h
 UniqueIdGenerator.h
 UniqueIdIndexer.h
 UniqueIdInterface.h
@@ -38,4 +36,3 @@ endforeach(i)
 source_group("Header Files\\OpenMS\\CONCEPT" FILES ${sources_h})
 
 set(OpenMS_sources_h ${OpenMS_sources_h} ${sources_h})
-

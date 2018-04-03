@@ -33,8 +33,7 @@
 // --------------------------------------------------------------------------
 
 
-#ifndef OPENMS_FILTERING_SMOOTHING_LOWESSSMOOTHING_H
-#define OPENMS_FILTERING_SMOOTHING_LOWESSSMOOTHING_H
+#pragma once
 
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 
@@ -84,4 +83,3 @@ private:
 
 
 } // namespace OpenMS
-#endif // OPENMS_FILTERING_SMOOTHING_LOWESSSMOOTHING_H

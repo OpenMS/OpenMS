@@ -33,8 +33,7 @@
 // --------------------------------------------------------------------------
 //
 
-#ifndef OPENMS_CHEMISTRY_MASSDECOMPOSITION_IMS_IMSALPHABETPARSER_H
-#define OPENMS_CHEMISTRY_MASSDECOMPOSITION_IMS_IMSALPHABETPARSER_H
+#pragma once
 
 #include <fstream>
 #include <istream>
@@ -110,4 +109,3 @@ public:
   } // namespace ims
 } // namespace OpenMS
 
-#endif // OPENMS_CHEMISTRY_MASSDECOMPOSITION_IMS_ALPHABETPARSER_H

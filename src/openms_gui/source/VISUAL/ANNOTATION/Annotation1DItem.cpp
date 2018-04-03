@@ -34,8 +34,8 @@
 
 #include <OpenMS/VISUAL/ANNOTATION/Annotation1DItem.h>
 
-#include <QtGui/QInputDialog>
-#include <QtGui/QPainter>
+#include <QtWidgets/QInputDialog>
+#include <QPainter>
 
 namespace OpenMS
 {

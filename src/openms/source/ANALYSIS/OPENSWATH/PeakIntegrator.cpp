@@ -118,10 +118,10 @@ namespace OpenMS
   void PeakIntegrator::getDefaultParameters(Param& params)
   {
     params.clear();
-    params.setValue("integration_type", INTEGRATION_TYPE_INTENSITYSUM, "The integration technique to use in integratePeak() and estimateBackground().");
+    params.setValue("integration_type", INTEGRATION_TYPE_INTENSITYSUM, "The integration technique to use in integratePeak() and estimateBackground() which uses either the summed intensity, integration by Simpson's rule or trapezoidal integration.");
     params.setValidStrings("integration_type", ListUtils::create<String>("intensity_sum,simpson,trapezoid"));
-    params.setValue("baseline_type", BASELINE_TYPE_BASETOBASE, "The baseline type to use in estimateBackground().");
-    params.setValidStrings("baseline_type", ListUtils::create<String>("base_to_base,vertical_division"));
+    params.setValue("baseline_type", BASELINE_TYPE_BASETOBASE, "The baseline type to use in estimateBackground() based on the peak boundaries. A rectangular baseline shape is computed based either on the minimal intensity of the peak boundaries, the maximum intensity or the average intensity (base_to_base).");
+    params.setValidStrings("baseline_type", ListUtils::create<String>("base_to_base,vertical_division,vertical_division_min,vertical_division_max"));
   }
 
   void PeakIntegrator::updateMembers_()
@@ -249,19 +249,28 @@ namespace OpenMS
       }
       else if (integration_type_ == INTEGRATION_TYPE_INTENSITYSUM)
       {
-        // calculate the background using the formula
-        // y = mx + b where x = rt or mz, m = slope, b = left intensity
+        // calculate the background using an estimator of the form
+        //    y = mx + b
+        //    where x = rt or mz, m = slope, b = left intensity
         // sign of delta_int will determine line direction
         // area += delta_int / delta_pos * (it->getPos() - left) + int_l;
+        double pos_sum = 0.0; // rt or mz
         for (auto it = p.PosBegin(left); it != p.PosEnd(right); ++it)
         {
-          area += it->getPos();
+          pos_sum += it->getPos();
         }
         UInt n_points = std::distance(p.PosBegin(left), p.PosEnd(right));
-        area = (area - n_points * p.PosBegin(left)->getPos()) * delta_int / delta_pos + n_points * int_l;
+
+        // We construct the background area as the sum of a rectangular part
+        // and a triangle on top. The triangle is constructed as the sum of the
+        // line's y value at each sampled point: \sum_{i=0}^{n} (x_i - x_0)  * m
+        const double rectangle_area = n_points * int_l;
+        const double slope = delta_int / delta_pos;
+        const double triangle_area = (pos_sum - n_points * p.PosBegin(left)->getPos()) * slope;
+        area = triangle_area + rectangle_area;
       }
     }
-    else if (baseline_type_ == BASELINE_TYPE_VERTICALDIVISION)
+    else if (baseline_type_ == BASELINE_TYPE_VERTICALDIVISION || baseline_type_ == BASELINE_TYPE_VERTICALDIVISION_MIN)
     {
       height = std::min(int_r, int_l);
       if (integration_type_ == INTEGRATION_TYPE_TRAPEZOID || integration_type_ == INTEGRATION_TYPE_SIMPSON)
@@ -271,6 +280,18 @@ namespace OpenMS
       else if (integration_type_ == INTEGRATION_TYPE_INTENSITYSUM)
       {
         area = std::min(int_r, int_l) * std::distance(p.PosBegin(left), p.PosEnd(right));;
+      }
+    }
+    else if (baseline_type_ == BASELINE_TYPE_VERTICALDIVISION_MAX)
+    {
+      height = std::max(int_r, int_l);
+      if (integration_type_ == INTEGRATION_TYPE_TRAPEZOID || integration_type_ == INTEGRATION_TYPE_SIMPSON)
+      {
+        area = delta_pos * std::max(int_r, int_l);
+      }
+      else if (integration_type_ == INTEGRATION_TYPE_INTENSITYSUM)
+      {
+        area = std::max(int_r, int_l) * std::distance(p.PosBegin(left), p.PosEnd(right));
       }
     }
     else

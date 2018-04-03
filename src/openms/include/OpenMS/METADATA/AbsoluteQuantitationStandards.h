@@ -32,8 +32,7 @@
 // $Authors: Douglas McCloskey, Pasquale Domenico Colaianni $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_METADATA_ABSOLUTEQUANTITATIONSTANDARDS_H
-#define OPENMS_METADATA_ABSOLUTEQUANTITATIONSTANDARDS_H
+#pragma once
 
 #include <OpenMS/config.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
@@ -132,4 +131,3 @@ private:
     ) const;
   };
 }
-#endif // OPENMS_METADATA_ABSOLUTEQUANTITATIONSTANDARDS_H

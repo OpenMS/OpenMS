@@ -32,8 +32,7 @@
 // $Authors:  Marc Sturm, Clemens Groepl $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_APPLICATIONS_PARAMETERINFORMATION_H
-#define OPENMS_APPLICATIONS_PARAMETERINFORMATION_H
+#pragma once
 
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/DATASTRUCTURES/StringListUtils.h>
@@ -103,4 +102,3 @@ namespace OpenMS
 
 } // namespace
 
-#endif // #ifndef OPENMS_APPLICATIONS_PARAMETERINFORMATION_H

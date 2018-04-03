@@ -33,8 +33,7 @@
 // --------------------------------------------------------------------------
 //
 
-#ifndef OPENMS_CHEMISTRY_MODIFICATIONDEFINITION_H
-#define OPENMS_CHEMISTRY_MODIFICATIONDEFINITION_H
+#pragma once
 
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
@@ -136,4 +135,3 @@ protected:
 
 } // namespace OpenMS
 
-#endif

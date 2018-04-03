@@ -32,8 +32,7 @@
 // $Authors: Hannes Roest $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_OPENSWATH_OPENSWATHALGO_DATAACCESS_TRANSITIONEXPERIMENT_H
-#define OPENMS_ANALYSIS_OPENSWATH_OPENSWATHALGO_DATAACCESS_TRANSITIONEXPERIMENT_H
+#pragma once
 
 #include <string>
 #include <vector>
@@ -151,10 +150,12 @@ public:
   {
 
     LightCompound() :
+      drift_time(-1),
       charge(0)
     {
     }
 
+    double drift_time;
     double rt;
     int charge;
     std::string sequence;
@@ -181,6 +182,16 @@ public:
     int getChargeState() const
     {
       return charge;
+    }
+
+    void setDriftTime(double d)
+    {
+      drift_time = d;
+    }
+
+    int getDriftTime() const
+    {
+      return drift_time;
     }
 
     std::vector<LightModification> modifications;
@@ -269,4 +280,3 @@ public:
 } //end Namespace OpenSwath
 
 
-#endif // OPENMS_ANALYSIS_OPENSWATH_OPENSWATHALGO_DATAACCESS_TRANSITIONEXPERIMENT_H

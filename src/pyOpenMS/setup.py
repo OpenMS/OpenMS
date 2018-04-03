@@ -17,7 +17,7 @@ if "--no-optimization" in sys.argv:
 
 # import config
 from env import  (OPEN_MS_COMPILER, OPEN_MS_SRC, OPEN_MS_BUILD_DIR, OPEN_MS_CONTRIB_BUILD_DIRS,
-                  QT_LIBRARY_DIR, MSVS_RTLIBS,
+                  QT_QTCORE_LIBRARY, QT_QTNETWORK_LIBRARY, MSVS_RTLIBS,
                   QT_QMAKE_VERSION_INFO, OPEN_MS_BUILD_TYPE, OPEN_MS_VERSION, LIBRARIES_EXTEND,
                   LIBRARY_DIRS_EXTEND, OPEN_MS_LIB, OPEN_SWATH_ALGO_LIB, PYOPENMS_INCLUDE_DIRS,
                   PY_NUM_MODULES, PY_NUM_THREADS)
@@ -98,11 +98,12 @@ for OPEN_MS_CONTRIB_BUILD_DIR in OPEN_MS_CONTRIB_BUILD_DIRS.split(";"):
 #
 if iswin:
     if IS_DEBUG:
-        libraries = ["OpenMSd", "OpenSwathAlgod", "SuperHirnd", "xerces-c_3D", "QtCored4"]
+        libraries = ["OpenMSd", "OpenSwathAlgod", "SuperHirnd", "Qt5Cored", "Qt5Networkd"]
     else:
-        libraries = ["OpenMS", "OpenSwathAlgo", "SuperHirn", "xerces-c_3", "QtCore4"]
+        libraries = ["OpenMS", "OpenSwathAlgo", "SuperHirn", "Qt5Core", "Qt5Network"]
 elif sys.platform.startswith("linux"):
-    libraries = ["OpenMS", "OpenSwathAlgo", "SuperHirn", "xerces-c", "QtCore"]
+    ## TODO evaluate if xerces can be removed here since we usually build it statically
+    libraries = ["OpenMS", "OpenSwathAlgo", "SuperHirn", "xerces-c", "Qt5Core", "Qt5Network"]
 elif sys.platform == "darwin":
     libraries = ["OpenMS", "OpenSwathAlgo", "SuperHirn"]
 else:
@@ -117,7 +118,8 @@ library_dirs = [OPEN_MS_BUILD_DIR,
                 j(OPEN_MS_BUILD_DIR, "bin"),
                 j(OPEN_MS_BUILD_DIR, "bin", "Release"),
                 j(OPEN_MS_BUILD_DIR, "Release"),
-                QT_LIBRARY_DIR,
+                QT_QTCORE_LIBRARY,
+                QT_QTNETWORK_LIBRARY,
                 ]
 
 # extend with contrib lib dirs
@@ -190,8 +192,10 @@ for module in mnames:
     ))
 
 share_data = []
-if iswin:
-    share_data += MSVS_RTLIBS.split(";") + ["xerces-c_3_1.dll", "sqlite3.dll"]
+
+# Preferred to link statically (as it is now)
+#if iswin:
+#    share_data += MSVS_RTLIBS.split(";") + ["xerces-c_3_1.dll", "sqlite3.dll"]
 
 share_data.append("License.txt")
 

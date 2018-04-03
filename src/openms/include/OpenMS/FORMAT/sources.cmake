@@ -12,13 +12,8 @@ foreach(i ${sources_list})
   list(APPEND sources ${directory}/${i})
 endforeach(i)
 
-### Apply MOC compiler
-QT4_WRAP_CPP(mocced_sources ${sources} OPTIONS ${BOOST_MOC_ARGS})
-
-### pass source file list to the upper instance
-set(OpenMS_sources ${OpenMS_sources} ${mocced_sources})
-
-source_group("Source Files\\OpenMS\\FORMAT" FILES ${mocced_sources})
+### treat as source files, for autoMOC'ing instead of manually calling QT5_WRAP_CPP()
+set(OpenMS_sources ${OpenMS_sources} ${sources})
 
 ### list all header files of the directory here
 set(sources_list_h
@@ -38,15 +33,12 @@ DTA2DFile.h
 DTAFile.h
 EDTAFile.h
 FASTAFile.h
-FastaIterator.h
-FastaIteratorIntern.h
 FeatureXMLFile.h
 FileHandler.h
 GzipIfstream.h
 GzipInputStream.h
 IBSpectraFile.h
 IdXMLFile.h
-IndexedMzMLFile.h
 IndexedMzMLFileLoader.h
 InspectInfile.h
 InspectOutfile.h
@@ -112,4 +104,3 @@ endforeach(i)
 source_group("Header Files\\OpenMS\\FORMAT" FILES ${sources_h})
 
 set(OpenMS_sources_h ${OpenMS_sources_h} ${sources_h})
-

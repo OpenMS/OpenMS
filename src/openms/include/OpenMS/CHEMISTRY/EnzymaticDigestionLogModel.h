@@ -32,8 +32,7 @@
 // $Authors: Marc Sturm, Chris Bielow, Xiao Liang $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_CHEMISTRY_ENZYMATICDIGESTIONLOGMODEL_H
-#define OPENMS_CHEMISTRY_ENZYMATICDIGESTIONLOGMODEL_H
+#pragma once
 
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
@@ -140,4 +139,3 @@ protected:
 
 } // namespace OpenMS
 
-#endif // OPENMS_CHEMISTRY_ENZYMATICDIGESTIONLOGMODEL_H

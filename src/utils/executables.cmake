@@ -81,7 +81,6 @@ endif(NOT DISABLE_OPENSWATH)
 
 ## all targets requiring OpenMS_GUI
 set(UTILS_executables_with_GUIlib
-IDEvaluator
 ImageCreator
 INIUpdater
 )

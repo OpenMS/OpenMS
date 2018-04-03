@@ -32,8 +32,7 @@
 // $Authors: $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FORMAT_TRANSFORMATIONXMLFILE_H
-#define OPENMS_FORMAT_TRANSFORMATIONXMLFILE_H
+#pragma once
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/TransformationDescription.h>
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
@@ -101,4 +100,3 @@ protected:
 
 } // namespace OpenMS
 
-#endif // OPENMS_FORMAT_TRANSFORMATIONXMLFILE_H
