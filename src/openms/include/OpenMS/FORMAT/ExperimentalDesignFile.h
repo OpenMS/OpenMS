@@ -37,7 +37,7 @@
 
 #include <OpenMS/DATASTRUCTURES/String.h>
 
-#include <OpenMS/FORMAT/ExperimentalDesign.h>
+#include <OpenMS/METADATA/ExperimentalDesign.h>
 
 namespace OpenMS
 {

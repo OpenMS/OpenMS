@@ -39,7 +39,7 @@
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithm.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
-#include <OpenMS/FORMAT/ExperimentalDesign.h>
+#include <OpenMS/METADATA/ExperimentalDesign.h>
 #include <OpenMS/FORMAT/ExperimentalDesignFile.h>
 
 #include <OpenMS/KERNEL/ConversionHelper.h>

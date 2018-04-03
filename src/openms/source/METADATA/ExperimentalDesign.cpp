@@ -34,7 +34,7 @@
 
 #include <OpenMS/KERNEL/StandardTypes.h>
 
-#include <OpenMS/FORMAT/ExperimentalDesign.h>
+#include <OpenMS/METADATA/ExperimentalDesign.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
