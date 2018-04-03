@@ -3178,6 +3178,8 @@ namespace OpenMS
       {
         p.setValue("add_z_ions", "true", "Add peaks of z-ions to the spectrum");
       }
+
+      TheoreticalSpectrumGenerator generator;
       generator.setParameters(p);
 
       try
