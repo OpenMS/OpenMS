@@ -32,8 +32,8 @@
 // $Authors: Hannes Roest $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/ALGO/Scoring.h>
-#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/Macros.h>
+#include <OpenMS/OPENSWATHALGO/ALGO/Scoring.h>
+#include <OpenMS/OPENSWATHALGO/Macros.h>
 #include <cmath>
 
 #include <boost/numeric/conversion/cast.hpp>

@@ -39,7 +39,7 @@
 #include <OpenMS/FORMAT/Base64.h>
 #include <OpenMS/FORMAT/MSNumpressCoder.h>
 
-#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/SwathMap.h>
+#include <OpenMS/OPENSWATHALGO/DATAACCESS/SwathMap.h>
 
 // forward declarations
 struct sqlite3;

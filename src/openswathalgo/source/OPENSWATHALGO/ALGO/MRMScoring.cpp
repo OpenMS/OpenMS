@@ -32,9 +32,9 @@
 // $Authors: Hannes Roest $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/ALGO/MRMScoring.h>
-#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/ALGO/StatsHelpers.h>
-#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/Macros.h>
+#include <OpenMS/OPENSWATHALGO/ALGO/MRMScoring.h>
+#include <OpenMS/OPENSWATHALGO/ALGO/StatsHelpers.h>
+#include <OpenMS/OPENSWATHALGO/Macros.h>
 //#define MRMSCORING_TESTING
 #include <algorithm>
 #include <iostream>

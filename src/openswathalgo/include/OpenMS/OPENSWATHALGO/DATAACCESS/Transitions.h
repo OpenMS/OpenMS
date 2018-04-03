@@ -35,10 +35,10 @@
 #ifndef OPENMS_ANALYSIS_OPENSWATH_OPENSWATHALGO_DATAACCESS_TRANSITIONS_H
 #define OPENMS_ANALYSIS_OPENSWATH_OPENSWATHALGO_DATAACCESS_TRANSITIONS_H
 
-#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/OpenSwathAlgoConfig.h>
+#include <OpenMS/OPENSWATHALGO/OpenSwathAlgoConfig.h>
 #include <string>
 #include <vector>
-#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/TransitionExperiment.h>
+#include <OpenMS/OPENSWATHALGO/DATAACCESS/TransitionExperiment.h>
 
 namespace OpenSwath
 {

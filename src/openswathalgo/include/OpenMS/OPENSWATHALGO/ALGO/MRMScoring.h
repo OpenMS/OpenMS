@@ -39,14 +39,14 @@
 #include <boost/math/special_functions/fpclassify.hpp> // for isnan
 #include <boost/numeric/conversion/cast.hpp>
 
-#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/OpenSwathAlgoConfig.h>
+#include <OpenMS/OPENSWATHALGO/OpenSwathAlgoConfig.h>
 
-#include "OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/ISpectrumAccess.h"
-#include "OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/ITransition.h"
-#include "OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/TransitionExperiment.h"
-#include "OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/ALGO/StatsHelpers.h"
-#include "OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/ALGO/Scoring.h"
-//#include "OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/ALGO/DIAHelpers.h"
+#include "OpenMS/OPENSWATHALGO/DATAACCESS/ISpectrumAccess.h"
+#include "OpenMS/OPENSWATHALGO/DATAACCESS/ITransition.h"
+#include "OpenMS/OPENSWATHALGO/DATAACCESS/TransitionExperiment.h"
+#include "OpenMS/OPENSWATHALGO/ALGO/StatsHelpers.h"
+#include "OpenMS/OPENSWATHALGO/ALGO/Scoring.h"
+//#include "OpenMS/OPENSWATHALGO/ALGO/DIAHelpers.h"
 
 namespace OpenSwath
 {

@@ -39,7 +39,7 @@
 #include <string>
 #include <vector>
 
-#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/OpenSwathAlgoConfig.h>
+#include <OpenMS/OPENSWATHALGO/OpenSwathAlgoConfig.h>
 
 namespace OpenSwath
 {

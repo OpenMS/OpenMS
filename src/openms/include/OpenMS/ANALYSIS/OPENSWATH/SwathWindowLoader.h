@@ -36,7 +36,7 @@
 #define OPENMS_ANALYSIS_OPENSWATH_SWATHWINDOWLOADER_H
 
 #include <OpenMS/config.h>
-#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/SwathMap.h>
+#include <OpenMS/OPENSWATHALGO/DATAACCESS/SwathMap.h>
 
 #include <vector>
 

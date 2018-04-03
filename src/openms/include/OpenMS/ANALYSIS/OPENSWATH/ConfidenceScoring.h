@@ -49,7 +49,7 @@
 #include <OpenMS/FORMAT/TransformationXMLFile.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 
-#include "OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/ALGO/Scoring.h"
+#include "OpenMS/OPENSWATHALGO/ALGO/Scoring.h"
 #include <OpenMS/ANALYSIS/MAPMATCHING/TransformationDescription.h>
 #include <OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>
 

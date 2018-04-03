@@ -35,8 +35,8 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathScoring.h>
 
 // scoring
-#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/ALGO/Scoring.h>
-#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/ALGO/MRMScoring.h>
+#include <OpenMS/OPENSWATHALGO/ALGO/Scoring.h>
+#include <OpenMS/OPENSWATHALGO/ALGO/MRMScoring.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/SONARScoring.h>
 
 // auxiliary

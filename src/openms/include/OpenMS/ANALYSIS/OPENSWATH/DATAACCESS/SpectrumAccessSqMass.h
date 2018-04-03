@@ -42,7 +42,7 @@
 
 #include <OpenMS/FORMAT/HANDLERS/MzMLSqliteHandler.h>
 
-#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/ISpectrumAccess.h>
+#include <OpenMS/OPENSWATHALGO/DATAACCESS/ISpectrumAccess.h>
 
 #include <boost/shared_ptr.hpp>
 #include <algorithm>    // std::lower_bound, std::upper_bound, std::sort

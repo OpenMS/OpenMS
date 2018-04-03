@@ -36,7 +36,7 @@
 #define OPENMS_ANALYSIS_OPENSWATH_OPENSWATHTSVWRITER_H
 
 // Interfaces
-#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/TransitionExperiment.h>
+#include <OpenMS/OPENSWATHALGO/DATAACCESS/TransitionExperiment.h>
 
 #include <OpenMS/KERNEL/FeatureMap.h>
 

@@ -32,7 +32,7 @@
 // $Authors: Witold Wolski $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/DataFrameWriter.h>
+#include <OpenMS/OPENSWATHALGO/DATAACCESS/DataFrameWriter.h>
 
 #include <iostream>
 #include <iomanip>

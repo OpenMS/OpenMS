@@ -33,7 +33,7 @@
 # --------------------------------------------------------------------------
 
 ### the directory name
-set(directory source/ANALYSIS/OPENSWATH/OPENSWATHALGO)
+set(directory source/OPENSWATHALGO)
 
 ### list all files of the directory here
 set(sources_algo_list
@@ -70,7 +70,7 @@ source_group("Source Files\\ANALYSIS\\OPENSWATH\\OPENSWATHALGO\\DATAACESS" FILES
 source_group("Source Files\\ANALYSIS\\OPENSWATH\\OPENSWATHALGO\\ALGO" FILES ${sources_algo})
 
 ## the header directory
-set(header_directory include/OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO)
+set(header_directory include/OpenMS/OPENSWATHALGO)
 
 ## add groups for headers
 set(header_algo_list

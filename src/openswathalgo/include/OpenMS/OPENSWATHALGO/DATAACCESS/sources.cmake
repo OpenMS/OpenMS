@@ -1,5 +1,5 @@
 ### the directory name
-set(directory include/OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS)
+set(directory include/OpenMS/OPENSWATHALGO/DATAACCESS)
 
 ### list all header files of the directory here
 set(sources_list_h
