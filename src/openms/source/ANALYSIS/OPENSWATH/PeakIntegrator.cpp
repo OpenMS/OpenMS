@@ -122,12 +122,16 @@ namespace OpenMS
     params.setValidStrings("integration_type", ListUtils::create<String>("intensity_sum,simpson,trapezoid"));
     params.setValue("baseline_type", BASELINE_TYPE_BASETOBASE, "The baseline type to use in estimateBackground() based on the peak boundaries. A rectangular baseline shape is computed based either on the minimal intensity of the peak boundaries, the maximum intensity or the average intensity (base_to_base).");
     params.setValidStrings("baseline_type", ListUtils::create<String>("base_to_base,vertical_division,vertical_division_min,vertical_division_max"));
+    params.setValue("print_debug", (UInt)0, "The level of debug information to print in the terminal. Valid values are: 0, 1, 2. Higher values mean more information.");
+    params.setValue("max_gd_iter", (UInt)100000, "The maximum number of iterations permitted to the gradient descent algorithm for EMG Peak Model.");
   }
 
   void PeakIntegrator::updateMembers_()
   {
     integration_type_ = (String)param_.getValue("integration_type");
     baseline_type_ = (String)param_.getValue("baseline_type");
+    print_debug_ = (UInt)param_.getValue("print_debug");
+    max_gd_iter_ = (UInt)param_.getValue("max_gd_iter");
   }
 
   template <typename PeakContainerT>
@@ -675,14 +679,17 @@ namespace OpenMS
   {
     const double max_intensity = *std::max_element(ys.begin(), ys.end());
     // The intensity levels at which the mean candidates are computed
-    std::vector<double> percentages = { 0.6, 0.65, 0.7, 0.75, 0.8, 0.85 };
+    const std::vector<double> percentages = { 0.6, 0.65, 0.7, 0.75, 0.8, 0.85 };
     Size i = 0;
     Size j = xs.size() - 1;
     // Make sure left and right positions have an initial value
     // This is to avoid situations (eg. cutoff peaks) where `max_intensity_threshold`
     // is higher than the first point on a boundary of the peak. In such a case,
     // the following nested loops would not get a chance to execute and the
-    // algorithm would fail
+    // algorithm would fail.
+    // The avoidance of using the highest points of the peak apex also provides
+    // robustness to spurious points or random fluctuations in detector sampling
+    // from inflating the maximum peak height.
     double left_pos = xs.front();
     double right_pos = xs.back();
     std::vector<double> mean_candidates;
@@ -715,7 +722,7 @@ namespace OpenMS
   {
     if (prev_diff_E_param * diff_E_param > 0.0)
     {
-      // Using value 2000 as upper bound (paper recommends 50)
+      // Using value 2000 as upper bound (iRprop+ paper recommends a value of 50)
       param_lr = std::min(param_lr * 1.2, 2000.0);
       param_update = - ( diff_E_param / std::fabs(diff_E_param) ) * param_lr;
       param += param_update;
@@ -853,7 +860,6 @@ namespace OpenMS
     double sigma { mu * 1e-2 };
     double tau { sigma * 2.0 };
 
-    const UInt max_num_iter { 400000 }; // Maximum number of iterations
     const double h_lower_boundary { h }; // Parameter `h` won't decrease below this value
 
     std::vector<double> TrX, TrY; // Training set (positions and intensities)
@@ -884,7 +890,7 @@ namespace OpenMS
 
     // Learning rates (used in gradient descent and iRprop+)
     double lr_h, lr_mu, lr_sigma, lr_tau;
-    lr_h = lr_mu = lr_sigma = lr_tau = 0.0125; // iRprop+ paper recommends 0.0125 // TODO: improve references to papers, maybe with something like [REF_NUM]
+    lr_h = lr_mu = lr_sigma = lr_tau = 0.0125; // iRprop+ paper recommends 0.0125
 
     // Variables to limit the change in position `mu`
     const double mu_max_dist = computeMuMaxDistance(TrX);
@@ -897,7 +903,7 @@ namespace OpenMS
     const Size last_few_Es_dim { 10 };
     std::vector<double> last_few_Es(last_few_Es_dim, 0.0);
     Size last_few_Es_idx = 0;
-    const double Es_std_dev_min = 1.0; // TODO: improve this value?
+    const double Es_std_dev_min = 1.0; // TODO: find a reasoning for this chosen value
 
     if (print_debug_ == 1)
     {
@@ -905,7 +911,7 @@ namespace OpenMS
       std::cout << "The possible mu range is [" << mu_left_boundary << " " << mu_right_boundary << "]" << std::endl;
     }
 
-    while (++iter_idx <= max_num_iter)
+    while (++iter_idx <= max_gd_iter_)
     {
       // Break if parameters are `nan` or `inf`
       if (
@@ -960,7 +966,7 @@ namespace OpenMS
 
       // If the cost function doesn't change enough, the gradient descent algorithm is terminated
       // This is decided by computing the standard deviation between a selection of the last few Es
-      if (iter_idx % 100 == 0) // TODO: maybe use a different value than 1000, otherwise a minimum of 10k iterations is needed
+      if (iter_idx % 50 == 0) // TODO: find reasoning
       {
         last_few_Es[last_few_Es_idx++ % last_few_Es_dim] = current_E;
         const double mean = std::accumulate(last_few_Es.begin(), last_few_Es.end(), 0.0) / last_few_Es_dim;
@@ -993,8 +999,8 @@ namespace OpenMS
       {
         mu = mu < mu_left_boundary ? mu_left_boundary : mu_right_boundary;
       }
-      sigma = std::min(std::max(1e-4, sigma), 20.0); // `sigma` constraints // TODO: find non-magic values for min and max sigmas. maybe remove std::min (the upper boundary)
-      tau = std::min(std::max(sigma, tau), sigma * 15.0); // `tau` constraints // TODO: is this a good constraint?
+      sigma = std::min(std::max(1e-4, sigma), 20.0); // TODO: find a reasoning for the constant literals
+      tau = std::min(std::max(sigma, tau), sigma * 15.0); // TODO: find a reasoning for the constant literals
 
       // Saving values to be used at the next iteration
       prev_diff_E_h = diff_E_h;
@@ -1006,11 +1012,13 @@ namespace OpenMS
     if (print_debug_ == 1)
     {
       std::cout << std::endl << "[" << best_iter << "] RESULT: best_E=" << best_E << std::endl;
+      // TODO: Remove the following "GEOGEBRA" line
       std::cout << "[" << best_iter << "] GEOGEBRA: Execute[{\"h = " << best_h << "\", \"mu = " << best_mu << "\",\"sigma = " << best_sigma << "\", \"tau = " << best_tau << "\"}]" << std::endl;
     }
-    // Return the number of iterations that occurred.
-    // Note: it is not the index of the best iteration,
-    // neither the maximum number of iterationt permitted.
+    // The method has a maximum number of iterations permitted
+    // (see class parameter "max_gd_iter_").
+    // Said limit is rarely reached, and instead the method will finish after
+    // a lower number of iterations. The method returns such number.
     return iter_idx;
   }
 

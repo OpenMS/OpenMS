@@ -519,11 +519,18 @@ public:
     /**
       @brief Fit the given peak (a MSChromatogram) to the EMG peak model
 
-      It is desirable to use this method when dealing with saturated or cutoff peaks.
+      The method is able to recapitulate the actual peak area of saturated or cutoff peaks.
+      In addition, the method is able to fine tune the peak area of well acquired peaks.
       The output is a reconstruction of the input peak. Additional points are added
       to produce a peak with similar intensities on boundaries' points.
 
-      Inspired by the results of the paper:
+      @note All optimal gradient descent parameters are currently hard coded to allow for a simplified user interface
+
+      @note Cutoff peak: The intensities of the left and right baselines are not equal
+
+      @note Saturated peak: The maximum intensity of the peak is lower than expected due to saturation of the detector
+
+      Inspired by the results found in:
       Yuri Kalambet, Yuri Kozmin, Ksenia Mikhailova, Igor Nagaev, Pavel Tikhonov
       Reconstruction of chromatographic peaks using the exponentially modified Gaussian function
 
@@ -538,11 +545,18 @@ public:
     /**
       @brief Fit the given peak (a MSSpectrum) to the EMG peak model
 
-      It is desirable to use this method when dealing with saturated or cutoff peaks.
+      The method is able to recapitulate the actual peak area of saturated or cutoff peaks.
+      In addition, the method is able to fine tune the peak area of well acquired peaks.
       The output is a reconstruction of the input peak. Additional points are added
       to produce a peak with similar intensities on boundaries' points.
 
-      Inspired by the results of the paper:
+      @note All optimal gradient descent parameters are currently hard coded to allow for a simplified user interface
+
+      @note Cutoff peak: The intensities of the left and right baselines are not equal
+
+      @note Saturated peak: The maximum intensity of the peak is lower than expected due to saturation of the detector
+
+      Inspired by the results found in:
       Yuri Kalambet, Yuri Kozmin, Ksenia Mikhailova, Igor Nagaev, Pavel Tikhonov
       Reconstruction of chromatographic peaks using the exponentially modified Gaussian function
 
@@ -606,8 +620,7 @@ protected:
     ) const;
 
     /**
-      @brief Given a saturated or cutoff peak, extract a training set to be used
-      with the gradient descent algorithm.
+      @brief Given a peak, extract a training set to be used with the gradient descent algorithm
 
       The algorithm tries to select a subset of points that best describe a non-saturated
       peak. The decision of which points to skip is based on the derivatives between consecutive points.
@@ -617,7 +630,8 @@ protected:
       the algorithm selects those points that present a high derivative.
       Once a low value is found, the algorithm stops taking points from that side.
       It then repeats the same procedure on the other side of the peak.
-      The skipped points will be found in the middle part of the peak, which is the saturated part.
+      If points are actually skipped, these will be found in the middle part of the peak,
+      possibly being a saturated peak apex region.
 
       @param[in] xs Positions
       @param[in] ys Intensities
@@ -634,7 +648,7 @@ protected:
     ) const;
 
     /**
-      @brief Compute the boundary for the mean (`mu`) parameter in gradient descent.
+      @brief Compute the boundary for the mean (`mu`) parameter in gradient descent
 
       Together with the value returned by computeInitialMean(), this method
       decides the minimum and maximum value that `mu` can assume during iterations
@@ -648,7 +662,7 @@ protected:
     double computeMuMaxDistance(const std::vector<double>& xs) const;
 
     /**
-      @brief Compute an estimation of the mean of a saturated peak.
+      @brief Compute an estimation of the mean of a peak
 
       The method computes the middle point on different levels of intensity of the peak.
       The returned mean is the average of these middle points.
@@ -744,8 +758,9 @@ private:
     /**
       @brief Apply the iRprop+ algorithm for gradient descent.
 
-      Paper:
-      Christian Igel and Michael Hüsken. Improving the Rprop Learning Algorithm. Second International Symposium on Neural Computation (NC 2000), pp. 115-121, ICSC Academic Press, 2000
+      Reference:
+      Christian Igel and Michael Hüsken. Improving the Rprop Learning Algorithm.
+      Second International Symposium on Neural Computation (NC 2000), pp. 115-121, ICSC Academic Press, 2000
 
       @param[in] prev_diff_E_param The cost of the partial derivative of E with
       respect to the given parameter, at the previous iteration of gradient descent
@@ -890,11 +905,14 @@ private:
       @brief Compute EMG's z parameter
 
       The value of z decides which formula is to be used during EMG function computation.
-      The interested ranges for z are:
+      Z values in the following ranges will each use a different EMG formula to
+      avoid numerical instability and potential numerical overflow:
       (-inf, 0), [0, 6.71e7], (6.71e7, +inf)
 
-      Paper:
-      Kalambet, Y.; Kozmin, Y.; Mikhailova, K.; Nagaev, I.; Tikhonov, P. (2011). "Reconstruction of chromatographic peaks using the exponentially modified Gaussian function". Journal of Chemometrics. 25 (7): 352.
+      Reference:
+      Kalambet, Y.; Kozmin, Y.; Mikhailova, K.; Nagaev, I.; Tikhonov, P. (2011).
+      "Reconstruction of chromatographic peaks using the exponentially modified
+      Gaussian function". Journal of Chemometrics. 25 (7): 352.
 
       @param[in] x Position
       @param[in] mu Mean
@@ -962,7 +980,16 @@ private:
     ) const;
 
     const double PI = OpenMS::Constants::PI;
-    const UInt print_debug_ = 0;
+
+    /**
+      Level of debug information to print to the terminal
+      Valid values are: 0, 1, 2
+      Higher values mean more information
+    */
+    UInt print_debug_;
+
+    /// Maximum number of gradient descent iterations in `fitEMGPeakModel()`
+    UInt max_gd_iter_;
   };
 }
 
