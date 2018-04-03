@@ -16,12 +16,12 @@ cdef extern from "<OpenMS/METADATA/ExperimentalDesign.h>" namespace "OpenMS":
         setSampleSection(const SampleSection& sample_section) nogil except +
 
         # Gets vector of Filenames that appears in the run section, optionally trims to basename
-        lib_cpp[ String ] getFileNames(bool basename) nogil except +
+        libcpp_vector[ String ] getFileNames(bool basename) nogil except +
 
         # Returns vector of channels of the run section
-        lib_cpp[ unsigned int ] getChannels() nogil except +
+        libcpp_vector[ unsigned int ] getChannels() nogil except +
 
-        lib_cpp[ unsigned int ] getFractions() nogil except +
+        libcpp_vector[ unsigned int ] getFractions() nogil except +
 
         # return fraction index to file paths (ordered by run id)
         #lib_map[unsigned int, lib_cpp[ String ] ] getFractionToMSFilesMapping() nogil except +
