@@ -101,6 +101,7 @@ public:
 
 protected:
 
+    
     void updateMembers_() override;
 
     /**
@@ -126,6 +127,9 @@ protected:
     ///      (Na+) -> (H+Na+)
     void inferMoreEdges_(PairsType& edges, Map<Size, std::set<CmpInfo_> >& feature_adducts);
 
+    void candidateEdges(FeatureMapType& fm_out, const Adduct& default_adduct, PairsType& feature_relation, Map<Size, std::set<CmpInfo_> >& feature_adducts);
+
+    
     /// A function mostly for debugging
     void printEdgesOfConnectedFeatures_(Size idx_1, Size idx_2, const PairsType& feature_relation);
 
