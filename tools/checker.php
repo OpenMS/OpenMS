@@ -1303,14 +1303,14 @@ if ($ctestReporting)
     <Test></Test>
   </TestList>
   <Test Status="passed">
-    <Name>BinaryComposeFunctionAdapter_test</Name>
+    <Name>SomeTool_test</Name>
     <Path>./source/TEST</Path>
-    <FullName>./source/TEST/BinaryComposeFunctionAdapter_test</FullName>
-    <FullCommandLine>/Users/aiche/dev/openms/openms-src/build/ninja/source/TEST/bin/BinaryComposeFunctionAdapter_test</FullCommandLine>
+    <FullName>./source/TEST/SomeTool_test</FullName>
+    <FullCommandLine>/Users/aiche/dev/openms/openms-src/build/ninja/source/TEST/bin/SomeTool_test</FullCommandLine>
     <Results>
             <NamedMeasurement type="numeric/double" name="Execution Time"><Value>0.469694</Value></NamedMeasurement>
             <NamedMeasurement type="text/string" name="Completion Status"><Value>Completed</Value></NamedMeasurement>
-            <NamedMeasurement type="text/string" name="Command Line"><Value>/Users/aiche/dev/openms/openms-src/build/ninja/source/TEST/bin/BinaryComposeFunctionAdapter_test</Value></NamedMeasurement>
+            <NamedMeasurement type="text/string" name="Command Line"><Value>/Users/aiche/dev/openms/openms-src/build/ninja/source/TEST/bin/SomeTool_test</Value></NamedMeasurement>
             <Measurement>
               <Value>
               </Value>
