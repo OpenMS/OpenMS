@@ -5,7 +5,7 @@ PyOpenMSChecker:
 
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
     # TODO items (nested STL etc)
-    #  - go through these, some of them might need some work done 
+    #  - go through these, some of them might need some work done
     #  - status Jan 2015 (Release 2.0)
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
@@ -27,7 +27,7 @@ PyOpenMSChecker:
         - evaluate
         - getDefaultParameters
     OpenMS::TransformationModelLinear:
-        # TODO 
+        # TODO
         - TransformationModelLinear
         - evaluate
         - getParameters
@@ -113,7 +113,7 @@ PyOpenMSChecker:
     OpenMS::MassTraceDetection:
         - updateIterativeWeightedMeanMZ
     OpenMS::ClusteringGrid:
-        # TODO 
+        # TODO
         - getClusters
     OpenMS::PepXMLFileMascot:
         # TODO map
@@ -150,12 +150,12 @@ PyOpenMSChecker:
 
     OpenMS::PeptideAndProteinQuant::PeptideData:
         # STL attributes / map
-        - abundances 
-        - total_abundances 
+        - abundances
+        - total_abundances
     OpenMS::PeptideAndProteinQuant::ProteinData:
         # STL attributes / map
-        - abundances 
-        - total_abundances 
+        - abundances
+        - total_abundances
 
     OpenMS::ProteinResolver::PeptideEntry:
         - proteins # std::list
@@ -250,8 +250,6 @@ PyOpenMSChecker:
         - getPenalties
         - setPenalties
         - optimize
-    OpenMS::ModifierRep:
-        - getModificationsForMass
     OpenMS_Matrix:
         - row
         - col
@@ -383,9 +381,9 @@ PyOpenMSChecker:
         - NamesOfPeakMassType
         - NamesOfDigestionEnzyme
     OpenMS::PercolatorOutfile:
-        - score_type_names 
+        - score_type_names
     OpenMS::BaseFeature:
-        - NamesOfAnnotationState 
+        - NamesOfAnnotationState
     OpenMS::MSNumpressCoder:
         - NamesOfNumpressCompression
     OpenMS::Modification:
@@ -469,7 +467,7 @@ PyOpenMSChecker:
         - isSortedByRT
         - size
         - empty
-        - getExperimentalSettings # TODO 
+        - getExperimentalSettings # TODO
 
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
     #  Renamed methods
@@ -696,7 +694,7 @@ PyOpenMSChecker:
         - createHRData
         - create
     OpenMS::UnimodXMLFile:
-        # TODO should now work ... 
+        # TODO should now work ...
         - load
     OpenMS::Tagging:
         - clone
@@ -761,10 +759,6 @@ PyOpenMSChecker:
     OpenMS::IsotopeDiffFilter:
         - create
     OpenMS::TICFilter:
-        - create
-    OpenMS::EdwardsLippertIteratorTryptic:
-        - isDigestingEnd # inherited
-        - getProductName # inherited
         - create
     OpenMS::IsotopeModel:
         - create
@@ -851,25 +845,6 @@ PyOpenMSChecker:
         - getNumberOfChannels
         - getIsotopeCorrectionMatrix
         - getReferenceChannel
-    OpenMS::EdwardsLippertIterator:
-        # see base class
-        - setFastaFile
-        - getFastaFile
-        - setSpectrum
-        - getSpectrum
-        - setTolerance
-        - getTolerance
-        - isAtEnd
-        - create # factory pattern
-    OpenMS::TrypticIterator:
-        - setFastaFile
-        - getFastaFile
-        - setSpectrum
-        - getSpectrum
-        - setTolerance
-        - getTolerance
-        - isAtEnd
-        - create # factory pattern
     OpenMS::SpectrumAccessOpenMS:
         - getSpectrumById
         - getSpectraByRT
@@ -878,16 +853,16 @@ PyOpenMSChecker:
         - getNrChromatograms
         - getChromatogramNativeID
 
-        - getSpectrumMetaById # todo 
-        - getSpectraMetaInfo # todo 
-        - getChromatogramMetaInfo # todo 
-        - lightClone # todo 
+        - getSpectrumMetaById # todo
+        - getSpectraMetaInfo # todo
+        - getChromatogramMetaInfo # todo
+        - lightClone # todo
     OpenMS::SpectrumAccessQuadMZTransforming:
         - getSpectrumById
-        - getSpectrumMetaById # todo 
-        - getSpectraMetaInfo # todo 
-        - getChromatogramMetaInfo # todo 
-        - lightClone # todo 
+        - getSpectrumMetaById # todo
+        - getSpectraMetaInfo # todo
+        - getChromatogramMetaInfo # todo
+        - lightClone # todo
 
     OpenMS::SpectrumAccessOpenMSCached:
         - getSpectrumById
@@ -897,10 +872,10 @@ PyOpenMSChecker:
         - getNrChromatograms
         - getChromatogramNativeID
 
-        - getSpectrumMetaById # todo 
-        - getSpectraMetaInfo # todo 
-        - getChromatogramMetaInfo # todo 
-        - lightClone # todo 
+        - getSpectrumMetaById # todo
+        - getSpectraMetaInfo # todo
+        - getChromatogramMetaInfo # todo
+        - lightClone # todo
     OpenMS::SpectrumAccessOpenMSInMemory:
         - getSpectrumById
         - getSpectraByRT
@@ -909,10 +884,10 @@ PyOpenMSChecker:
         - getNrChromatograms
         - getChromatogramNativeID
 
-        - getSpectrumMetaById # todo 
-        - getSpectraMetaInfo # todo 
-        - getChromatogramMetaInfo # todo 
-        - lightClone # todo 
+        - getSpectrumMetaById # todo
+        - getSpectraMetaInfo # todo
+        - getChromatogramMetaInfo # todo
+        - lightClone # todo
 
 
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
@@ -965,7 +940,7 @@ PyOpenMSChecker:
     - OpenMS::FileWatcher
     - OpenMS::MSDataTransformingConsumer # not really useful since it uses function pointers
     - OpenMS::NoopMSDataConsumer
-    - OpenMS::MSDataChainingConsumer 
+    - OpenMS::MSDataChainingConsumer
     - OpenMS::GUIProgressLoggerImpl
     - OpenMS::ProgressLogger::ProgressLoggerImpl
     - OpenMS::UpdateCheck
@@ -998,13 +973,13 @@ PyOpenMSChecker:
     - OpenMS::MzTabStringList
     - OpenMS::MzTabIntegerList
     - OpenMS::MzTabAssayMetaData
-    - OpenMS::MzTabContactMetaData 
-    - OpenMS::MzTabCVMetaData 
+    - OpenMS::MzTabContactMetaData
+    - OpenMS::MzTabCVMetaData
     - OpenMS::MzTabInstrumentMetaData
     - OpenMS::MzTabMetaData
     - OpenMS::MzTabModificationMetaData
     - OpenMS::MzTabMSRunMetaData
-    - OpenMS::MzTabPSMSectionRow 
+    - OpenMS::MzTabPSMSectionRow
     - OpenMS::MzTabSampleMetaData
     - OpenMS::MzTabSoftwareMetaData
     - OpenMS::MzTabStudyVariableMetaData
@@ -1012,7 +987,7 @@ PyOpenMSChecker:
     # MultiplexFiltering
     - OpenMS::MultiplexFiltering
     - OpenMS::MultiplexFilterResult
-    - OpenMS::MultiplexFilterResultPeak 
+    - OpenMS::MultiplexFilterResultPeak
     - OpenMS::MultiplexFilterResultRaw
     - OpenMS::MultiplexPeakPattern
     - OpenMS::MultiplexFiltering::BlackListEntry
@@ -1034,9 +1009,7 @@ PyOpenMSChecker:
     # CONCEPT
     - OpenMS::SingletonRegistry
     - OpenMS::StreamHandler
-    - OpenMS::UnaryComposeFunctionAdapter
     - OpenMS::Factory
-    - OpenMS::BinaryComposeFunctionAdapter
     - OpenMS::UniqueIdIndexer
     - OpenMS::FactoryBase
 
@@ -1049,13 +1022,11 @@ PyOpenMSChecker:
     # FORMAT: helpers, old or not supported file formats
     - OpenMS::SpecArrayFile
     - OpenMS::PersistentObject
-    - OpenMS::FastaIterator
     - OpenMS::MascotRemoteQuery
     - OpenMS::LibSVMEncoder
     - OpenMS::CsvFile
     - OpenMS::ToolDescriptionFile
     - OpenMS::PTMXMLFile
-    - OpenMS::FastaIteratorIntern
     - OpenMS::XMassFile
     - OpenMS::PepNovoOutfile
     - OpenMS::PepNovoInfile
@@ -1069,7 +1040,6 @@ PyOpenMSChecker:
     - OpenMS::LmaGaussModel
     - OpenMS::FeatureFinderAlgorithm
     - OpenMS::FeatureFinderDefs::NoSuccessor
-    - OpenMS::FeaFiModule
     - OpenMS::ProductModel< 2 >
     - OpenMS::LmaGaussFitter1D
     - OpenMS::MaxLikeliFitter1D
@@ -1470,7 +1440,6 @@ PyOpenMSChecker:
     - OpenMS::BaseLabeler
     - OpenMS::BaseModel
     - OpenMS::BaseSuperimposer
-    - OpenMS::BigString
     - OpenMS::TOPPBase
     - OpenMS::TraceFitter
 
@@ -1664,7 +1633,7 @@ PyOpenMSChecker:
     - OpenMS::OpenSwathWorkflowSonar
     - OpenMS::OpenSwathWindowLoader
     - OpenMS::OpenSwathWorkflow::ChromExtractParams
-    - OpenMS::OpenSwathTSVWriter 
+    - OpenMS::OpenSwathTSVWriter
     - ModificationMassesResult
     - RNPxlReportRow
     - TOPPFuzzyDiff
@@ -1672,5 +1641,3 @@ PyOpenMSChecker:
     - MarkerIonExtractor
     - RNPxlReportRowHeader
     - TOPPRNPxl
-
-
