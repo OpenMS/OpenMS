@@ -320,7 +320,7 @@ namespace OpenMS
        @param x an integer value
        @return natural logarithm of factorial x
     */
-    inline double fact_ln(UInt x)
+    inline double factLn(UInt x)
     {
       return lgamma(double(x+1));
     }

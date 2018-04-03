@@ -88,7 +88,7 @@ public:
     //@}
 
 
-    enum Sorted { intensity, mass, undefined};
+    enum Sorted {INTENSITY, MASS, UNDEFINED};
 
 
     /// @name Constructors and Destructors
@@ -230,7 +230,7 @@ protected:
     ContainerType distribution_;
 
     ///Holds the distribution sorted state
-    Sorted sort_type;
+    Sorted sort_type_;
   };
 
 

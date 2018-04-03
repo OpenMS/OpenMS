@@ -174,7 +174,7 @@ public:
     */
     IsotopeDistribution getIsotopeDistribution(IsotopePatternGenerator* method) const;
 
-    IsotopeDistribution getIsotopeDistribution(CoarseIsotopeDistribution* coarse_solver) const;
+//    IsotopeDistribution getIsotopeDistribution(CoarseIsotopeDistribution* coarse_solver) const;
 
     /**
       @brief returns the fragment isotope distribution of this given a precursor formula

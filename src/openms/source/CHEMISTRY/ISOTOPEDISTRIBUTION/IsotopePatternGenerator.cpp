@@ -15,6 +15,7 @@ namespace OpenMS
     IsotopeDistribution(),
     min_prob_(probability_cutoff)
   {
+
   }
 
   IsotopePatternGenerator::IsotopePatternGenerator() : 
@@ -24,7 +25,8 @@ namespace OpenMS
   }
 
   IsotopePatternGenerator::IsotopePatternGenerator(const IsotopeDistribution& rhs) :
-    IsotopeDistribution(rhs)
+    IsotopeDistribution(rhs),
+    min_prob_(1e-15)
   {
   }
   

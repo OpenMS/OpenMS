@@ -36,15 +36,13 @@
 #ifndef OPENMS_CHEMISTRY_ISOTOPEDISTRIBUTION_ISOTOPEPATTERNGENERATOR_H
 #define OPENMS_CHEMISTRY_ISOTOPEDISTRIBUTION_ISOTOPEPATTERNGENERATOR_H
 
-#include <OpenMS/CHEMISTRY/Element.h>
-#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopeDistribution.h>
-#include <OpenMS/CONCEPT/Types.h>
 
-#include <deque>
-#include <algorithm>
+#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopeDistribution.h>
 
 namespace OpenMS
 {
+  class EmpiricalFormula;
+
   class OPENMS_DLLAPI IsotopePatternGenerator : public IsotopeDistribution
   {
  public:
@@ -66,7 +64,7 @@ namespace OpenMS
         If the size of the new Container is larger this function throws an IllegalArgument Exception.
         
      */
-    void merge(double);
+    void merge(double resolution);
  protected:
     double min_prob_;
   };
