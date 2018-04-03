@@ -231,9 +231,7 @@ p.setValue("use_minority_bound","true","enable bound");
 
   c1.store(out_file,cm);
 
-  WHITELIST("xml-stylesheet,consensusXML version=");
-  
-  //WHITELIST("xml-stylesheet,consensusElement id=");
+  WHITELIST("xml-stylesheet,consensusXML version=,consensusElement id=");
   // WHITELIST("xml-stylesheet,map id,consensusElement id=");
   TEST_FILE_SIMILAR(out_file, OPENMS_GET_TEST_DATA_PATH("MetaboliteFeatureDeconvolution_easy_output.consensusXML"));
 
