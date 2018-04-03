@@ -789,12 +789,14 @@ void MzTabFile::load(const String& filename, MzTab& mz_tab)
           String s = cells[i];
           Size n = (Size)s.substitute("protein_abundance_study_variable[", "").substitute("]","").trim().toInt();
           protein_abundance_study_variable_to_column_indices[n] = i;
-        }  else if (cells[i].hasPrefix("protein_abundance_stdev_study_variable["))
+        }
+        else if (cells[i].hasPrefix("protein_abundance_stdev_study_variable["))
         {
           String s = cells[i];
           Size n = (Size)s.substitute("protein_abundance_stdev_study_variable[", "").substitute("]","").trim().toInt();
           protein_abundance_stdev_study_variable_to_column_indices[n] = i;
-        }  else if (cells[i].hasPrefix("protein_abundance_std_error_study_variable["))
+        }
+        else if (cells[i].hasPrefix("protein_abundance_std_error_study_variable["))
         {
           String s = cells[i];
           Size n = (Size)s.substitute("protein_abundance_std_error_study_variable[", "").substitute("]","").trim().toInt();
@@ -1059,10 +1061,12 @@ void MzTabFile::load(const String& filename, MzTab& mz_tab)
         else if (cells[i] == "retention_time_window")
         {
           peptide_retention_time_window_index = i;
-        }  else if (cells[i] == "charge")
+        }
+        else if (cells[i] == "charge")
         {
           peptide_charge_index = i;
-        }  else if (cells[i] == "mass_to_charge")
+        }
+        else if (cells[i] == "mass_to_charge")
         {
           peptide_mass_to_charge_index = i;
         }
@@ -1085,12 +1089,14 @@ void MzTabFile::load(const String& filename, MzTab& mz_tab)
           String s = cells[i];
           Size n = (Size)s.substitute("peptide_abundance_study_variable[", "").substitute("]","").trim().toInt();
           peptide_abundance_study_variable_to_column_indices[n] = i;
-        }  else if (cells[i].hasPrefix("peptide_abundance_stdev_study_variable["))
+        }
+        else if (cells[i].hasPrefix("peptide_abundance_stdev_study_variable["))
         {
           String s = cells[i];
           Size n = (Size)s.substitute("peptide_abundance_stdev_study_variable[", "").substitute("]","").trim().toInt();
           peptide_abundance_study_variable_stdev_to_column_indices[n] = i;
-        }  else if (cells[i].hasPrefix("peptide_abundance_std_error_study_variable["))
+        }
+        else if (cells[i].hasPrefix("peptide_abundance_std_error_study_variable["))
         {
           String s = cells[i];
           Size n = (Size)s.substitute("peptide_abundance_std_error_study_variable[", "").substitute("]","").trim().toInt();
@@ -1232,7 +1238,8 @@ void MzTabFile::load(const String& filename, MzTab& mz_tab)
         else if (cells[i] == "charge")
         {
           psm_charge_index = i;
-        }  else if (cells[i] == "exp_mass_to_charge")
+        }
+        else if (cells[i] == "exp_mass_to_charge")
         {
           psm_exp_mass_to_charge_index = i;
         }
@@ -1263,7 +1270,8 @@ void MzTabFile::load(const String& filename, MzTab& mz_tab)
         else if (cells[i] == "end")
         {
           psm_end_index = i;
-        }  else if (cells[i] == "opt_")
+        }
+        else if (cells[i] == "opt_")
         {
           psm_custom_opt_columns[cells[i]] = i;
         }
@@ -1422,12 +1430,14 @@ void MzTabFile::load(const String& filename, MzTab& mz_tab)
           String s = cells[i];
           Size n = (Size)s.substitute("smallmolecule_abundance_study_variable[", "").substitute("]","").trim().toInt();
           smallmolecule_abundance_study_variable_indices[n] = i;
-        }  else if (cells[i].hasPrefix("smallmolecule_abundance_stdev_study_variable["))
+        }
+        else if (cells[i].hasPrefix("smallmolecule_abundance_stdev_study_variable["))
         {
           String s = cells[i];
           Size n = (Size)s.substitute("smallmolecule_abundance_stdev_study_variable[", "").substitute("]","").trim().toInt();
           smallmolecule_abundance_stdev_study_variable_indices[n] = i;
-        }  else if (cells[i].hasPrefix("smallmolecule_abundance_std_error_study_variable["))
+        }
+        else if (cells[i].hasPrefix("smallmolecule_abundance_std_error_study_variable["))
         {
           String s = cells[i];
           Size n = (Size)s.substitute("smallmolecule_abundance_std_error_study_variable[", "").substitute("]","").trim().toInt();
