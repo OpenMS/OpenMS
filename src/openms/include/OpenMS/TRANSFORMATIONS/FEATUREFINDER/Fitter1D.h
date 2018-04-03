@@ -32,8 +32,7 @@
 // $Authors: $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_TRANSFORMATIONS_FEATUREFINDER_FITTER1D_H
-#define OPENMS_TRANSFORMATIONS_FEATUREFINDER_FITTER1D_H
+#pragma once
 
 #include <OpenMS/DATASTRUCTURES/IsotopeCluster.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
@@ -112,4 +111,3 @@ protected:
 
 }
 
-#endif // OPENMS_TRANSFORMATIONS_FEATUREFINDER_FITTER1D_H

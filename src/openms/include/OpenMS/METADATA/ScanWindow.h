@@ -32,8 +32,7 @@
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_METADATA_SCANWINDOW_H
-#define OPENMS_METADATA_SCANWINDOW_H
+#pragma once
 
 #include <OpenMS/METADATA/MetaInfoInterface.h>
 
@@ -66,4 +65,3 @@ namespace OpenMS
 
 } // namespace OpenMS
 
-#endif // OPENMS_METADATA_SCANWINDOW_H

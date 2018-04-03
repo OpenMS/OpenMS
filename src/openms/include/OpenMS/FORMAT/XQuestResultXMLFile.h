@@ -31,8 +31,7 @@
 // $Maintainer: Lukas Zimmermann $
 // $Authors: Lukas Zimmermann, Eugen Netz $
 // --------------------------------------------------------------------------
-#ifndef OPENMS_FORMAT_XQUESTRESULTXMLFILE_H
-#define OPENMS_FORMAT_XQUESTRESULTXMLFILE_H
+#pragma once
 
 #include <OpenMS/FORMAT/XMLFile.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
@@ -133,4 +132,3 @@ private:
     double max_score_; // Maximum score encountered in file
   };
 } // namespace OpenMS
-#endif // OPENMS_FORMAT_XQUESTRESULTXMLFILE_H

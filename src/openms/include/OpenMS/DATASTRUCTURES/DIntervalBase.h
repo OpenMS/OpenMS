@@ -32,8 +32,7 @@
 // $Authors: Clemens Groepl, Marc Sturm $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_DATASTRUCTURES_DINTERVALBASE_H
-#define OPENMS_DATASTRUCTURES_DINTERVALBASE_H
+#pragma once
 
 #include <OpenMS/DATASTRUCTURES/DPosition.h>
 #include <OpenMS/CONCEPT/Types.h>
@@ -356,4 +355,3 @@ protected:
 
 } // namespace OpenMS
 
-#endif // OPENMS_KERNEL_DINTERVALBASE_H

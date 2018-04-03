@@ -32,8 +32,7 @@
 // $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_MRM_REACTIONMONITORINGTRANSITION_H
-#define OPENMS_ANALYSIS_MRM_REACTIONMONITORINGTRANSITION_H
+#pragma once
 
 #include <OpenMS/ANALYSIS/TARGETED/TargetedExperimentHelper.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
@@ -295,4 +294,3 @@ protected:
   };
 }
 
-#endif // OPENMS_ANALYSIS_MRM_REACTIONMONITORINGTRANSITION_H

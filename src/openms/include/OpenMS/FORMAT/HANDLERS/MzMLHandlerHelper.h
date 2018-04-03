@@ -32,8 +32,7 @@
 // $Authors: Hannes Roest $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FORMAT_HANDLERS_MZMLHANDLERHELPER_H
-#define OPENMS_FORMAT_HANDLERS_MZMLHANDLERHELPER_H
+#pragma once
 
 #include <OpenMS/FORMAT/OPTIONS/PeakFileOptions.h>
 #include <OpenMS/FORMAT/MSNumpressCoder.h>
@@ -123,5 +122,4 @@ namespace OpenMS
   } // namespace Internal
 } // namespace OpenMS
 
-#endif // OPENMS_FORMAT_HANDLERS_MZMLHANDLERHELPER_H
 

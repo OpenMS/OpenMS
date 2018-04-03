@@ -32,8 +32,7 @@
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_CONCEPT_EXCEPTION_H
-#define OPENMS_CONCEPT_EXCEPTION_H
+#pragma once
 
 #include <OpenMS/OpenMSConfig.h>
 #include <OpenMS/CONCEPT/Types.h>
@@ -737,4 +736,3 @@ public:
 
 } // namespace OPENMS
 
-#endif // OPENMS_CONCEPT_EXCEPTION_H

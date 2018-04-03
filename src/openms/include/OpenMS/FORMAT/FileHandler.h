@@ -32,8 +32,7 @@
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FORMAT_FILEHANDLER_H
-#define OPENMS_FORMAT_FILEHANDLER_H
+#pragma once
 
 #include <OpenMS/config.h>
 #include <OpenMS/FORMAT/FileTypes.h>
@@ -161,4 +160,3 @@ private:
 
 } //namespace
 
-#endif //OPENMS_FORMAT_FILEHANDLER_H

@@ -32,8 +32,7 @@
 // $Authors: Hannes Roest $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_OPENSWATH_CHROMATOGRAMEXTRACTORALGORITHM_H
-#define OPENMS_ANALYSIS_OPENSWATH_CHROMATOGRAMEXTRACTORALGORITHM_H
+#pragma once
 
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/ISpectrumAccess.h>
@@ -184,5 +183,4 @@ private:
 
 }
 
-#endif // OPENMS_ANALYSIS_OPENSWATH_CHROMATOGRAMEXTRACTORALGORITHM_H
 

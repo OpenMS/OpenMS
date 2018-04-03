@@ -32,8 +32,7 @@
 // $Authors: Nico Pfeifer, Chris Bielow $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FORMAT_FASTAFILE_H
-#define OPENMS_FORMAT_FASTAFILE_H
+#pragma once
 
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
@@ -223,4 +222,3 @@ protected:
 
 } // namespace OpenMS
 
-#endif // OPENMS_FORMAT_FASTAFILE_H

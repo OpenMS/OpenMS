@@ -33,8 +33,7 @@
 // --------------------------------------------------------------------------
 //
 
-#ifndef OPENMS_CHEMISTRY_RESIDUE_H
-#define OPENMS_CHEMISTRY_RESIDUE_H
+#pragma once
 
 #include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
 #include <OpenMS/CHEMISTRY/ResidueModification.h>
@@ -446,4 +445,3 @@ protected:
 
 }
 
-#endif

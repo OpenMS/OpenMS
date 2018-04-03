@@ -32,8 +32,7 @@
 // $Authors: Nico Pfeifer, Chris Bielow $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FORMAT_HANDLERS_MASCOTXMLHANDLER_H
-#define OPENMS_FORMAT_HANDLERS_MASCOTXMLHANDLER_H
+#pragma once
 
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
@@ -115,4 +114,3 @@ private:
   } // namespace Internal
 } // namespace OpenMS
 
-#endif // OPENMS_FORMAT_HANDLERS_MASCOTXMLHANDLER_H

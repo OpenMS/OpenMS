@@ -33,8 +33,7 @@
 // --------------------------------------------------------------------------
 //
 
-#ifndef OPENMS_ANALYSIS_TARGETED_PSPROTEININFERENCE_H
-#define OPENMS_ANALYSIS_TARGETED_PSPROTEININFERENCE_H
+#pragma once
 
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/DATASTRUCTURES/LPWrapper.h>
@@ -92,4 +91,3 @@ private:
 
 
 
-#endif // #ifndef OPENMS_ANALYSIS_TARGETED_PSPROTEININFERENCE_H

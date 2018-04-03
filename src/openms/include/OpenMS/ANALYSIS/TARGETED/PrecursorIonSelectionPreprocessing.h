@@ -33,8 +33,7 @@
 // --------------------------------------------------------------------------
 //
 
-#ifndef OPENMS_ANALYSIS_TARGETED_PRECURSORIONSELECTIONPREPROCESSING_H
-#define OPENMS_ANALYSIS_TARGETED_PRECURSORIONSELECTIONPREPROCESSING_H
+#pragma once
 
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
@@ -173,4 +172,3 @@ protected:
   };
 }
 
-#endif //#ifndef OPENMS_ANALYSIS_ID_PRECURSORIONSELECTIONPREPROCESSING_H

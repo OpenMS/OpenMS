@@ -33,8 +33,7 @@
 // --------------------------------------------------------------------------
 //
 
-#ifndef OPENMS_CHEMISTRY_MASSDECOMPOSITION_IMS_MASSDECOMPOSER_H
-#define OPENMS_CHEMISTRY_MASSDECOMPOSITION_IMS_MASSDECOMPOSER_H
+#pragma once
 
 #include <vector>
 
@@ -131,4 +130,3 @@ public:
   } // namespace ims
 } // namespace OpenMS
 
-#endif //OPENMS_CHEMISTRY_MASSDECOMPOSITION_IMS_MASSDECOMPOSER_H

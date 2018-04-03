@@ -32,8 +32,7 @@
 // $Authors: Darren Kessner, Hannes Roest, Witold Wolski$
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_OPENSWATH_OPENSWATHALGO_DATAACCESS_DATASTRUCTURES_H
-#define OPENMS_ANALYSIS_OPENSWATH_OPENSWATHALGO_DATAACCESS_DATASTRUCTURES_H
+#pragma once
 
 #include <string>
 #include <vector>
@@ -271,4 +270,3 @@ public:
   typedef boost::shared_ptr<Spectrum> SpectrumPtr;
 } //end Namespace OpenSwath
 
-#endif // OPENMS_ANALYSIS_OPENSWATH_OPENSWATHALGO_DATAACCESS_DATASTRUCTURES_H

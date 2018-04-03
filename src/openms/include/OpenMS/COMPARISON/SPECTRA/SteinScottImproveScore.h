@@ -32,8 +32,7 @@
 // $Authors: Vipul Patel $
 // --------------------------------------------------------------------------
 //
-#ifndef OPENMS_COMPARISON_SPECTRA_STEINSCOTTIMPROVESCORE_H
-#define OPENMS_COMPARISON_SPECTRA_STEINSCOTTIMPROVESCORE_H
+#pragma once
 
 #include <OpenMS/COMPARISON/SPECTRA/PeakSpectrumCompareFunctor.h>
 #include <cmath>
@@ -111,4 +110,3 @@ public:
 }
 
 
-#endif /*OPENMS_COMPARISON_SPECTRA_STEINSCOTTIMPROVESCORE_H*/

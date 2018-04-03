@@ -32,8 +32,7 @@
 // $Authors: Stephan Aiche $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_DATASTRUCTURES_LISTUTILSIO_H
-#define OPENMS_DATASTRUCTURES_LISTUTILSIO_H
+#pragma once
 
 #include <OpenMS/DATASTRUCTURES/String.h>
 
@@ -84,4 +83,3 @@ namespace OpenMS
 
 }
 
-#endif // #ifndef

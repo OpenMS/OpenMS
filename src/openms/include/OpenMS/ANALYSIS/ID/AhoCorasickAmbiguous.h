@@ -33,8 +33,7 @@
 // --------------------------------------------------------------------------
 
 
-#ifndef OPENMS_ANALYSIS_ID_AHOCORASICKAMBIGUOUS_H
-#define OPENMS_ANALYSIS_ID_AHOCORASICKAMBIGUOUS_H
+#pragma once
 
 #include <OpenMS/DATASTRUCTURES/SeqanIncludeWrapper.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
@@ -1071,4 +1070,3 @@ namespace OpenMS
 
 } // namespace OpenMS
 
-#endif //#ifndef OPENMS_ANALYSIS_ID_AHOCORASICKAMBIGUOUS_H

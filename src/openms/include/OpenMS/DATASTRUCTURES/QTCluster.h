@@ -33,8 +33,7 @@
 // --------------------------------------------------------------------------
 
 
-#ifndef OPENMS_DATASTRUCTURES_QTCLUSTER_H
-#define OPENMS_DATASTRUCTURES_QTCLUSTER_H
+#pragma once
 
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
@@ -300,4 +299,3 @@ public:
   };
 } // namespace OpenMS
 
-#endif // OPENMS_DATASTRUCTURES_QTCLUSTER_H

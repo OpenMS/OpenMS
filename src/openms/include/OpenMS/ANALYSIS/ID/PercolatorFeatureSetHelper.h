@@ -32,8 +32,7 @@
 // $Authors: Mathias Walzer, Matthew The $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_ID_PERCOLATORFEATURESETHELPER_H
-#define OPENMS_ANALYSIS_ID_PERCOLATORFEATURESETHELPER_H
+#pragma once
 
 #include <vector>
 #include <iostream>
@@ -199,5 +198,4 @@ namespace OpenMS
 
 } //namespace OpenMS
 
-#endif //OPENMS_ANALYSIS_ID_PERCOLATORFEATURESETHELPER_H
 
