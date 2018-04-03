@@ -8,12 +8,12 @@ cdef extern from "<OpenMS/METADATA/ExperimentalDesign.h>" namespace "OpenMS":
         ExperimentalDesign() nogil except +
         ExperimentalDesign(ExperimentalDesign) nogil except + #wrap-ignore
 
-        RunRows& getRunSection() nogil except +
+        libcpp_vector[ ExperimentalDesign_RunRow ] getRunSection() nogil except +
         setRunSection() nogil except +
 
         # Returns the Sample Section of the experimental design file
         ExperimentalDesign_SampleSection getSampleSection() nogil except +
-        setSampleSection(SampleSection& sample_section) nogil except +
+        setSampleSection(ExperimentalDesign_SampleSection sample_section) nogil except +
 
         # Gets vector of Filenames that appears in the run section, optionally trims to basename
         libcpp_vector[ String ] getFileNames(bool basename) nogil except +
