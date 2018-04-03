@@ -13,7 +13,7 @@ cdef extern from "<OpenMS/METADATA/ExperimentalDesign.h>" namespace "OpenMS":
 
         # Returns the Sample Section of the experimental design file
         ExperimentalDesign_SampleSection getSampleSection() nogil except +
-        setSampleSection(const SampleSection& sample_section) nogil except +
+        setSampleSection(SampleSection& sample_section) nogil except +
 
         # Gets vector of Filenames that appears in the run section, optionally trims to basename
         libcpp_vector[ String ] getFileNames(bool basename) nogil except +
@@ -95,8 +95,8 @@ cdef extern from "<OpenMS/METADATA/ExperimentalDesign.h>" namespace "OpenMS::Exp
           bool hasSample(unsigned int sample) nogil except +
 
           # Checks whether Sample Section has a specific factor (i.e. column name)
-          bool hasFactor(const String& factor) nogil except +
+          bool hasFactor(String& factor) nogil except +
 
           # Returns value of factor for given sample and factor name
-          String getFactorValue(unsigned int sample, const String &factor) nogil except +
+          String getFactorValue(unsigned int sample, String &factor) nogil except +
                    
