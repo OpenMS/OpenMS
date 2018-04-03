@@ -283,8 +283,7 @@ namespace OpenMS
             }
           }
         }
-      }
-      while (peptide_not_found);
+      } while (peptide_not_found);
 
       // store permutation of peptide without the phospho site i (seq_2)
       sites[i].seq_2 = rev->second;

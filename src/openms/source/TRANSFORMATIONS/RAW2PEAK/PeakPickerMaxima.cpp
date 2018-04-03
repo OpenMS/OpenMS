@@ -295,8 +295,7 @@ namespace OpenMS
         {
           lefthand = mid;
         }
-      }
-      while (std::fabs(lefthand - righthand) > threshold);
+      } while (std::fabs(lefthand - righthand) > threshold);
 
       // sanity check?
       max_peak_mz = (lefthand + righthand) / 2;

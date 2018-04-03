@@ -170,7 +170,7 @@ void SimpleSVM::predict(vector<Prediction>& predictions, vector<Size> indexes)
   if (indexes.empty())
   {
     indexes.reserve(n_obs);
-    for (Size i = 0; i < n_obs; indexes.push_back(i++));
+    for (Size i = 0; i < n_obs; indexes.push_back(i++)){};
   }
   Size n_classes = svm_get_nr_class(model_);
   vector<Int> labels(n_classes);
