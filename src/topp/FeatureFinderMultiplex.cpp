@@ -1537,10 +1537,6 @@ private:
       MultiplexFilteringCentroided filtering(exp_centroid_, patterns, isotopes_per_peptide_min_, isotopes_per_peptide_max_, intensity_cutoff_, rt_band_, mz_tolerance_, mz_unit_, peptide_similarity_, averagine_similarity_, averagine_similarity_scaling_, averagine_type_);
       filtering.setLogType(log_type_);
       filter_results = filtering.filter();
-        
-      // free memory
-      MSExperiment exp_temp;
-      exp_centroid_.swap(exp_temp);
     }
     else
     {
@@ -1548,12 +1544,6 @@ private:
       MultiplexFilteringProfile filtering(exp_profile_, exp_centroid_, boundaries_exp_s, patterns, isotopes_per_peptide_min_, isotopes_per_peptide_max_, intensity_cutoff_, rt_band_, mz_tolerance_, mz_unit_, peptide_similarity_, averagine_similarity_, averagine_similarity_scaling_, averagine_type_);
       filtering.setLogType(log_type_);
       filter_results = filtering.filter();
-      
-      // free memory
-      MSExperiment exp_temp_1;
-      MSExperiment exp_temp_2;
-      exp_centroid_.swap(exp_temp_1);
-      exp_profile_.swap(exp_temp_2);
     }
 
     /**
