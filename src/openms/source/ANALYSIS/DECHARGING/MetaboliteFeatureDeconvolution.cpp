@@ -127,7 +127,7 @@ namespace OpenMS
     defaults_.setValue("potential_adducts", ListUtils::create<String>("H:+:0.25,Na:+:0.25,NH4:+:0.25,K:+:0.1,C2H3N:+:0.1,H-2O-1:0:0.05"), "Adducts used to explain mass differences in format: 'Element:Charge(+/-/0):Probability[:RTShift[:Label]]', i.e. the number of '+' or '-' indicate the charge ('0' if neutral adduct), e.g. 'Ca:++:0.5' indicates +2. Probabilites have to be in (0,1]. RTShift param is optional and indicates the expected RT shift caused by this adduct, e.g. '(2)H4H-4:0:1:-3' indicates a 4 deuterium label, which causes early elution by 3 seconds. As a fifth parameter you can add a label which is tagged on every feature which has this adduct. This also determines the map number in the consensus file.");
     defaults_.setValue("max_neutrals", 1, "Maximal number of neutral adducts(q=0) allowed. Add them in the 'potential_adducts' section!");
 
-    defaults_.setValue("use_minority_bound", "false", "Prune the considered adduct transitions by transition probabilities.");    
+    defaults_.setValue("use_minority_bound", "false", "Prune the considered adduct transitions by transition probabilities.");
     defaults_.setValue("max_minority_bound", 2, "Limits allowed adduct compositions and changes between compositions in the underlying graph optimization problem by introducing a probability-based threshold: the minority bound sets the maximum count of the least probable adduct (according to 'potential_adducts' param) within a charge variant with maximum charge only containing the most likely adduct otherwise. E.g., for 'charge_max' 4 and 'max_minority_bound' 2 with most probable adduct being H+ and least probable adduct being Na+, this will allow adduct compositions of '2(H+),2(Na+)' but not of '1(H+),3(Na+)'. Further, adduct compositions/changes less likely than '2(H+),2(Na+)' will be discarded as well.");
     defaults_.setMinInt("max_minority_bound", 0);
 
@@ -138,7 +138,7 @@ namespace OpenMS
     defaults_.setValue("intensity_filter", "false", "Enable the intensity filter, which will only allow edges between two equally charged features if the intensity of the feature with less likely adducts is smaller than that of the other feature. It is not used for features of different charge.");
     defaults_.setValidStrings("intensity_filter", ListUtils::create<String>("true,false"));
 
-    defaults_.setValue("negative_mode", "false", "Enable negative ionization mode.");    
+    defaults_.setValue("negative_mode", "false", "Enable negative ionization mode.");
 
     defaults_.setValue("default_map_label", "decharged features", "Label of map in output consensus file where all features are put by default", ListUtils::create<String>("advanced"));
 
@@ -231,18 +231,18 @@ namespace OpenMS
         if (adduct[0] == "H-1")
         {
           potential_adducts_.push_back(Adduct((Int)-neg_charge, 1, -Constants::PROTON_MASS_U, adduct[0], log(prob), rt_shift,label));
-        }else        
+        }else
         {
           EmpiricalFormula ef(adduct[0]);
           ef.setCharge(0);//ensures we get without additional protons, now just add electron masses
           potential_adducts_.push_back(Adduct((Int)-neg_charge, 1, ef.getMonoWeight() + Constants::ELECTRON_MASS_U * neg_charge, adduct[0], log(prob), rt_shift, label));
-        }        
+        }
       }else if (adduct[1] == "0")//pos,neg == 0
       {//in principle no change because pos_charge 0 and ef.getMonoWeight() only adds for nonzero charges
         EmpiricalFormula ef(adduct[0]);
         ef -= EmpiricalFormula("H" + String(pos_charge));
         ef.setCharge(pos_charge); // effectively subtract electron masses
-        potential_adducts_.push_back(Adduct((Int)pos_charge, 1, ef.getMonoWeight(), adduct[0], log(prob), rt_shift, label));      
+        potential_adducts_.push_back(Adduct((Int)pos_charge, 1, ef.getMonoWeight(), adduct[0], log(prob), rt_shift, label));
       }else//adduct charge not +,- or 0
       {
       String error = "MetaboliteFeatureDeconvolution::potential_adduct charge must only contain '+','-' or '0'!";
@@ -258,7 +258,7 @@ namespace OpenMS
     String error = "MetaboliteFeatureDeconvolution::potential_adducts probabilities do not sum up to 1.0!";
         throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, error);
     }
-    
+
     // RT sanity check:
     double rt_diff_max = param_.getValue("retention_max_diff");
     double rt_diff_max_local = param_.getValue("retention_max_diff_local");
@@ -362,7 +362,7 @@ namespace OpenMS
     thresh_logp = adduct_lowest_log_p * max_minority_bound +
                   adduct_highest_log_p * std::max(q_max - max_minority_bound, 0);
     }
-    
+
     Adduct default_adduct;
     if (is_neg)
     {
@@ -373,20 +373,20 @@ namespace OpenMS
     {
       default_adduct = Adduct(1, 1, Constants::PROTON_MASS_U, "H1", log(1.0),0);
     }
-    
+
 
 
 
     // create mass difference list
     LOG_INFO << "Generating Masses with threshold: " << thresh_logp << " ...\n";
-    
+
     //make it proof for charge 1..3 and charge -3..-1
     if ((q_min * q_max) < 0)
     {
        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Min and max charge switch charge signs! Please use same charge sign."), String(q_min)+" "+String(q_max));
     }
-    
-    
+
+
     int small, large;
     small = q_min;
     large = q_max;
@@ -472,7 +472,7 @@ namespace OpenMS
             // find possible adduct combinations
             CoordinateType naive_mass_diff = mz2 * abs(q2) - m1;
             double abs_mass_diff = mz_diff_max * abs(q1) + mz_diff_max * abs(q2); // tolerance must increase when looking at M instead of m/z, as error margins increase as well
-            //abs charge "3" to abs charge "1" -> simply invert charge delta for negative case? 
+            //abs charge "3" to abs charge "1" -> simply invert charge delta for negative case?
             hits = me.query(q2 - q1, naive_mass_diff, abs_mass_diff, thresh_logp, md_s, md_e);
             OPENMS_PRECONDITION(hits >= 0, "MetaboliteFeatureDeconvolution querying #hits got negative result!");
 
@@ -480,7 +480,7 @@ namespace OpenMS
             // choose most probable hit (TODO think of something clever here)
             // for now, we take the one that has highest p in terms of the compomer structure
             if (hits > 0)
-            {      
+            {
               Compomer best_hit = null_compomer;
               for (; md_s != md_e; ++md_s)
               {
@@ -493,11 +493,11 @@ namespace OpenMS
                 if (is_neg)
                 {
                   left_charges = -md_s->getPositiveCharges();
-                  right_charges = -md_s->getNegativeCharges();//for negative, a pos charge means either losing an H-1 from the left (decreasing charge) or the Na  case. (We do H-1Na as neutral, because of the pos,negcharges)                                
+                  right_charges = -md_s->getNegativeCharges();//for negative, a pos charge means either losing an H-1 from the left (decreasing charge) or the Na  case. (We do H-1Na as neutral, because of the pos,negcharges)
                 }else
                 {
                   left_charges = md_s->getNegativeCharges();//for positive mode neutral switches still have to fulfill requirement that they have at most charge as each side
-                  right_charges = md_s->getPositiveCharges();                   
+                  right_charges = md_s->getPositiveCharges();
                 }
 
                 if ( // compomer fits charge assignment of left & right feature. doesnt consider charge sign switch over span!
@@ -516,11 +516,11 @@ namespace OpenMS
                   if (is_neg)
                   {
                     left_charges = -cmp.getPositiveCharges();
-                    right_charges = -cmp.getNegativeCharges();                                   
+                    right_charges = -cmp.getNegativeCharges();
                   }else
                   {
                     left_charges = cmp.getNegativeCharges();
-                    right_charges = cmp.getPositiveCharges();                   
+                    right_charges = cmp.getPositiveCharges();
                   }
 
                   //this block should only be of interest if we have something multiply charges instead of protonation or deprotonation
@@ -597,16 +597,6 @@ namespace OpenMS
 
     inferMoreEdges_(feature_relation, feature_adducts);
 
-    // DEBUG:
-#ifdef DC_DEVEL
-    std::ofstream out_m("diffs_mass.txt");
-    out_m << "a=c(" << dl_massdiff << ")\n";
-    out_m << "hist(abs(a), 150, xlab=\"delta M\", main=\"Histogram of Mass Differences\")\n";
-    out_m.close();
-    std::ofstream out_q("diffs_charge.txt");
-    out_q << "c=c(" << il_chargediff << ")\n";
-    out_q.close();
-#endif
 
     if (feature_relation.empty())
     {
@@ -1119,14 +1109,14 @@ namespace OpenMS
   void MetaboliteFeatureDeconvolution::inferMoreEdges_(PairsType& edges, Map<Size, std::set<CmpInfo_> >& feature_adducts)
   {
     Adduct default_adduct;
-    
+
     bool is_neg = (param_.getValue("negative_mode") == "true" ? true : false);
     if (is_neg)
     {
       default_adduct = Adduct(-1, 1, -Constants::PROTON_MASS_U, "H-1", log(1.0),0);
     }else
     {
-      default_adduct = Adduct(1, 1, Constants::PROTON_MASS_U, "H1", log(1.0), 0);    
+      default_adduct = Adduct(1, 1, Constants::PROTON_MASS_U, "H1", log(1.0), 0);
     }
 
     int left_charges, right_charges;
@@ -1156,12 +1146,12 @@ namespace OpenMS
         {
           it->second.setLogProb(0);
         }
-        ChargePair cp(edges[i]); // make a copy       
+        ChargePair cp(edges[i]); // make a copy
         Compomer new_cmp = cp.getCompomer().removeAdduct(default_adduct);
 
         new_cmp.add(to_add, Compomer::LEFT);
         new_cmp.add(to_add, Compomer::RIGHT);
-        
+
         //We again need to consider inverted behavior (but cp.getCharge(x) gets negative charges as assigned before!
         if (is_neg)
         {
