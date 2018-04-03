@@ -32,8 +32,8 @@
 // $Authors: Timo Sachsenberg $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_KERNEL_EXPERIMENTALDESIGN_H
-#define OPENMS_KERNEL_EXPERIMENTALDESIGN_H
+#ifndef OPENMS_METADATA_EXPERIMENTALDESIGN_H
+#define OPENMS_METADATA_EXPERIMENTALDESIGN_H
 
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/DATASTRUCTURES/String.h>

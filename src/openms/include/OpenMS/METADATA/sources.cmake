@@ -16,6 +16,7 @@ DataProcessing.h
 Digestion.h
 DocumentIDTagger.h
 DocumentIdentifier.h
+ExperimentalDesign.h
 ExperimentalSettings.h
 Gradient.h
 HPLC.h
