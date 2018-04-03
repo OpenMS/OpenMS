@@ -32,8 +32,7 @@
 // $Authors: Witold Wolski $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_OPENSWATH_OPENSWATHALGO_ALGO_STATSHELPERS_H
-#define OPENMS_ANALYSIS_OPENSWATH_OPENSWATHALGO_ALGO_STATSHELPERS_H
+#pragma once
 
 #include <OpenMS/OPENSWATHALGO/OpenSwathAlgoConfig.h>
 #include <algorithm>
@@ -234,4 +233,3 @@ public:
 
 } //end namespace OpenSwath
 
-#endif // OPENMS_ANALYSIS_OPENSWATH_OPENSWATHALGO_ALGO_STATSHELPERS_H

@@ -32,8 +32,7 @@
 // $Authors: Hannes Roest $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_OPENSWATH_SONARSCORING_H
-#define OPENMS_ANALYSIS_OPENSWATH_SONARSCORING_H
+#pragma once
 
 #include <OpenMS/OPENSWATHALGO/DATAACCESS/ISpectrumAccess.h>
 #include <OpenMS/OPENSWATHALGO/DATAACCESS/DataStructures.h>
@@ -93,5 +92,4 @@ private:
   };
 }
 
-#endif // OPENMS_ANALYSIS_OPENSWATH_SONARSCORING_H
 

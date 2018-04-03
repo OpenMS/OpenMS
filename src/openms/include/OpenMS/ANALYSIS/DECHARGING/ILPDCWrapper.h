@@ -32,8 +32,7 @@
 // $Authors: Chris Bielow $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_DECHARGING_ILPDCWRAPPER_H
-#define OPENMS_ANALYSIS_DECHARGING_ILPDCWRAPPER_H
+#pragma once
 
 #include <OpenMS/DATASTRUCTURES/ChargePair.h>
 #include <OpenMS/DATASTRUCTURES/Map.h>
@@ -96,4 +95,3 @@ private:
 
 } // !namespace
 
-#endif // OPENMS_ANALYSIS_DECHARGING_ILPDCWRAPPER_H

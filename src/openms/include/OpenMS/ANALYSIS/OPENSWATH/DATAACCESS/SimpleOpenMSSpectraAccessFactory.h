@@ -32,8 +32,7 @@
 // $Authors:  Hannes Roest, Witold Wolski $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_OPENSWATH_DATAACCESS_SIMPLEOPENMSSPECTRAACCESSFACTORY_H
-#define OPENMS_ANALYSIS_OPENSWATH_DATAACCESS_SIMPLEOPENMSSPECTRAACCESSFACTORY_H
+#pragma once
 
 #include <fstream>
 
@@ -58,5 +57,4 @@ namespace OpenMS
   };
 }
 
-#endif // OPENMS_ANALYSIS_OPENSWATH_DATAACCESS_SIMPLEOPENMSSPECTRAACCESSFACTORY_H
 

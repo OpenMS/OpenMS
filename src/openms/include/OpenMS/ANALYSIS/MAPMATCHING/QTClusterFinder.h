@@ -32,8 +32,7 @@
 // $Authors: Steffen Sass, Hendrik Weisser $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_MAPMATCHING_QTCLUSTERFINDER_H
-#define OPENMS_ANALYSIS_MAPMATCHING_QTCLUSTERFINDER_H
+#pragma once
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/BaseGroupFinder.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
@@ -218,4 +217,3 @@ public:
   };
 } // namespace OpenMS
 
-#endif /* OPENMS_ANALYSIS_MAPMATCHING_QTCLUSTERFINDER_H */

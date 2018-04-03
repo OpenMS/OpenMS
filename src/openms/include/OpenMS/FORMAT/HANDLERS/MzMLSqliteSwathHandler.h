@@ -32,8 +32,7 @@
 // $Authors: Hannes Roest
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FORMAT_HANDLERS_MZMLSQLITESWATHHANDLER_H
-#define OPENMS_FORMAT_HANDLERS_MZMLSQLITESWATHHANDLER_H
+#pragma once
 
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/FORMAT/Base64.h>
@@ -121,4 +120,3 @@ protected:
   }   // namespace Internal
 } // namespace OpenMS
 
-#endif // OPENMS_FORMAT_HANDLERS_MZMLSQLITESWATHHANDLER_H

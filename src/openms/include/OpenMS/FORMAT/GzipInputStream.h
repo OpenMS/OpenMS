@@ -32,8 +32,7 @@
 // $Authors: David Wojnar $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FORMAT_GZIPINPUTSTREAM_H
-#define OPENMS_FORMAT_GZIPINPUTSTREAM_H
+#pragma once
 
 #include <OpenMS/config.h>
 #include <OpenMS/FORMAT/GzipIfstream.h>
@@ -121,4 +120,3 @@ private:
 
 } // namespace OpenMS
 
-#endif // OPENMS_FORMAT_GZIPInputStream_H

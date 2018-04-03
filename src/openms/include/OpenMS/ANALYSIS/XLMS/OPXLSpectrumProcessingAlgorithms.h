@@ -32,8 +32,7 @@
 // $Authors: Eugen Netz $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_XLMS_OPXLSPECTRUMPROCESSINGALGORITHMS_H
-#define OPENMS_ANALYSIS_XLMS_OPXLSPECTRUMPROCESSINGALGORITHMS_H
+#pragma once
 
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
@@ -108,4 +107,3 @@ namespace OpenMS
 
 }
 
-#endif // OPXLSPECTRUMPROCESSINGALGORITHMS_H

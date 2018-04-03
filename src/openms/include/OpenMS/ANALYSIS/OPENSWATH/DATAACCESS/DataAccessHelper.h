@@ -32,8 +32,7 @@
 // $Authors: Hannes Roest $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_OPENSWATH_DATAACCESS_DATAACCESSHELPER_H
-#define OPENMS_ANALYSIS_OPENSWATH_DATAACCESS_DATAACCESSHELPER_H
+#pragma once
 
 #include <fstream>
 
@@ -82,5 +81,4 @@ public:
 
 } //end namespace OpenMS
 
-#endif // OPENMS_ANALYSIS_OPENSWATH_DATAACCESS_DATAACCESSHELPER_H
 

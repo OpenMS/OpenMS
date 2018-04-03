@@ -64,8 +64,7 @@
 
  */
 
-#ifndef OPENMS_MATH_MISC_MSNUMPRESS_H
-#define OPENMS_MATH_MISC_MSNUMPRESS_H
+#pragma once
 
 #include <cstddef>
 #include <vector>
@@ -353,4 +352,3 @@ namespace MSNumpress {
 } // namespace msdata
 } // namespace pwiz
 
-#endif // _MSNUMPRESS_HPP_

@@ -32,8 +32,7 @@
 // $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FORMAT_OMSSAXMLFILE_H
-#define OPENMS_FORMAT_OMSSAXMLFILE_H
+#pragma once
 
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
 #include <OpenMS/FORMAT/XMLFile.h>
@@ -158,4 +157,3 @@ private:
 
 } // namespace OpenMS
 
-#endif // OPENMS_FORMAT_OMSSAXMLFILE_H

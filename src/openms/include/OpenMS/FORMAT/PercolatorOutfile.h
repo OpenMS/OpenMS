@@ -32,8 +32,7 @@
 // $Authors: Hendrik Weisser $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FORMAT_PERCOLATOROUTFILE_H
-#define OPENMS_FORMAT_PERCOLATOROUTFILE_H
+#pragma once
 
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
@@ -83,4 +82,3 @@ namespace OpenMS
 
 } // namespace OpenMS
 
-#endif // OPENMS_FORMAT_PERCOLATOROUTFILE_H

@@ -32,8 +32,7 @@
 // $Authors: Chris Bielow $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_METADATA_METAINFOINTERFACEUTILS_H
-#define OPENMS_METADATA_METAINFOINTERFACEUTILS_H
+#pragma once
 
 #include <OpenMS/OpenMSConfig.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
@@ -111,4 +110,3 @@ private:
 
 } // namespace OPENMS
 
-#endif // OPENMS_METADATA_METAINFOINTERFACEUTILS_H

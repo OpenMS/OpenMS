@@ -32,8 +32,7 @@
 // $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FORMAT_XTANDEMXMLFILE_H
-#define OPENMS_FORMAT_XTANDEMXMLFILE_H
+#pragma once
 
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/FORMAT/XMLFile.h>
@@ -147,4 +146,3 @@ private:
 
 } // namespace OpenMS
 
-#endif // OPENMS_FORMAT_XTANDEMXMLFILE_H

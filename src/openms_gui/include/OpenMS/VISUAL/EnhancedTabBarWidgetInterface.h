@@ -32,8 +32,7 @@
 // $Authors: Timo Sachsenberg $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_VISUAL_ENHANCEDTABBARWIDGETINTERFACE_H
-#define OPENMS_VISUAL_ENHANCEDTABBARWIDGETINTERFACE_H
+#pragma once
 
 #include <OpenMS/KERNEL/StandardTypes.h>
 
@@ -63,4 +62,3 @@ public:
   };
 }  // namespace OpenMS
 
-#endif // OPENMS_VISUAL_ENHANCEDTABBARWIDGETINTERFACE_H

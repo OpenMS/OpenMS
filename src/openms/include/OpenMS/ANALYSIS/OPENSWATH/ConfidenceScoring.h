@@ -32,8 +32,7 @@
 // $Authors: Hannes Roest, Hendrik Weisser $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_OPENSWATH_CONFIDENCESCORING_H
-#define OPENMS_ANALYSIS_OPENSWATH_CONFIDENCESCORING_H
+#pragma once
 
 #include <cmath> // for "exp"
 #include <ctime> // for "time" (random number seed)
@@ -237,5 +236,4 @@ public:
 
 }
 
-#endif // OPENMS_ANALYSIS_OPENSWATH_CONFIDENCESCORING
 

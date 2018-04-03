@@ -32,8 +32,7 @@
 // $Authors: Hendrik Weisser $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_METADATA_SPECTRUMMETADATALOOKUP_H
-#define OPENMS_METADATA_SPECTRUMMETADATALOOKUP_H
+#pragma once
 
 #include <OpenMS/METADATA/SpectrumLookup.h>
 
@@ -317,4 +316,3 @@ namespace OpenMS
 
 } //namespace OpenMS
 
-#endif // OPENMS_METADATA_SPECTRUMMETADATALOOKUP_H

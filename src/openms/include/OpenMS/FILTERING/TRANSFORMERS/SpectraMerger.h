@@ -32,8 +32,7 @@
 // $Authors: Chris Bielow, Andreas Bertsch, Lars Nilse $
 // --------------------------------------------------------------------------
 //
-#ifndef OPENMS_FILTERING_TRANSFORMERS_SPECTRAMERGER_H
-#define OPENMS_FILTERING_TRANSFORMERS_SPECTRAMERGER_H
+#pragma once
 
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/COMPARISON/CLUSTERING/CompleteLinkage.h>
@@ -924,4 +923,3 @@ protected:
   };
 
 }
-#endif //OPENMS_FILTERING_TRANSFORMERS_SPECTRAMERGER_H

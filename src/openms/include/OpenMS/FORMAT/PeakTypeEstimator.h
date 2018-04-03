@@ -32,8 +32,7 @@
 // $Authors: Marc Sturm, Marcel Schilling $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FORMAT_PEAKTYPEESTIMATOR_H
-#define OPENMS_FORMAT_PEAKTYPEESTIMATOR_H
+#pragma once
 
 #include <OpenMS/METADATA/SpectrumSettings.h>
 
@@ -134,4 +133,3 @@ public:
 
 } // namespace OpenMS
 
-#endif // OPENMS_FORMAT_PEAKTYPEESTIMATOR_H

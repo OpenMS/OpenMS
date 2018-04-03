@@ -33,8 +33,7 @@
 // --------------------------------------------------------------------------
 //
 
-#ifndef OPENMS_CHEMISTRY_MODIFICATIONDEFINITIONSSET_H
-#define OPENMS_CHEMISTRY_MODIFICATIONDEFINITIONSSET_H
+#pragma once
 
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/CHEMISTRY/ModificationDefinition.h>
@@ -187,4 +186,3 @@ protected:
 
 } // namespace OpenMS
 
-#endif

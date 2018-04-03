@@ -32,8 +32,7 @@
 // $Authors: $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_PIP_LOCALLINEARMAP_H
-#define OPENMS_ANALYSIS_PIP_LOCALLINEARMAP_H
+#pragma once
 
 #include <OpenMS/DATASTRUCTURES/Matrix.h>
 
@@ -115,4 +114,3 @@ private:
 
 
 }
-#endif

@@ -32,8 +32,7 @@
 // $Authors: $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_DATASTRUCTURES_DBOUNDINGBOX_H
-#define OPENMS_DATASTRUCTURES_DBOUNDINGBOX_H
+#pragma once
 
 #include <OpenMS/DATASTRUCTURES/DIntervalBase.h>
 #include <OpenMS/CONCEPT/Types.h>
@@ -223,4 +222,3 @@ public:
 
 } // namespace OpenMS
 
-#endif // OPENMS_KERNEL_DBOUNDINGBOX_H

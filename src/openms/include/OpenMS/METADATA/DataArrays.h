@@ -32,8 +32,7 @@
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_METADATA_DATAARRAYS_H
-#define OPENMS_METADATA_DATAARRAYS_H
+#pragma once
 
 #include <OpenMS/METADATA/MetaInfoDescription.h>
 
@@ -64,4 +63,3 @@ namespace OpenMS
 } // namespace OpenMS
 
 
-#endif // OPENMS_METADATA_DATAARRAYS_H

@@ -32,8 +32,7 @@
 // $Authors: Chris Bielow $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_CONCEPT_FACTORY_H
-#define OPENMS_CONCEPT_FACTORY_H
+#pragma once
 
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/FactoryBase.h>
@@ -164,4 +163,3 @@ private:
   Factory<FactoryProduct> * Factory<FactoryProduct>::instance_ptr_ = nullptr;
 
 }
-#endif //OPENMS_CONCEPT_FACTORY_H

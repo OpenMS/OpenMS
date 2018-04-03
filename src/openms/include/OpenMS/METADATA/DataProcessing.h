@@ -32,8 +32,7 @@
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_METADATA_DATAPROCESSING_H
-#define OPENMS_METADATA_DATAPROCESSING_H
+#pragma once
 
 #include <OpenMS/METADATA/MetaInfoInterface.h>
 #include <OpenMS/METADATA/Software.h>
@@ -129,4 +128,3 @@ protected:
 
 } // namespace OpenMS
 
-#endif // OPENMS_METADATA_DATAPROCESSING_H

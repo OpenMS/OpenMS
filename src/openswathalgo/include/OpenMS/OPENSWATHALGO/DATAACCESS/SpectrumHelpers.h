@@ -32,8 +32,7 @@
 // $Authors: Hannes Roest, Witold Wolski $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_OPENSWATH_OPENSWATHALGO_DATAACCESS_SPECTRUMHELPERS_H
-#define OPENMS_ANALYSIS_OPENSWATH_OPENSWATHALGO_DATAACCESS_SPECTRUMHELPERS_H
+#pragma once
 
 #include <OpenMS/OPENSWATHALGO/DATAACCESS/DataStructures.h>
 #include <OpenMS/OPENSWATHALGO/OpenSwathAlgoConfig.h>
@@ -69,4 +68,3 @@ namespace OpenSwath
 
 }
 
-#endif // OPENMS_ANALYSIS_OPENSWATH_OPENSWATHALGO_DATAACCESS_SPECTRUMHELPERS_H

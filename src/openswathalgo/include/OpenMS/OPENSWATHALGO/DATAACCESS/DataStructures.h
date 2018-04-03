@@ -32,8 +32,7 @@
 // $Authors: Darren Kessner, Hannes Roest, Witold Wolski$
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_OPENSWATH_OPENSWATHALGO_DATAACCESS_DATASTRUCTURES_H
-#define OPENMS_ANALYSIS_OPENSWATH_OPENSWATHALGO_DATAACCESS_DATASTRUCTURES_H
+#pragma once
 
 #include <string>
 #include <vector>
@@ -72,6 +71,9 @@ namespace OpenSwath
 
     /// the binary data.
     std::vector<double> data;
+
+    /// (optional) data description for non-standard arrays.
+    std::string description;
   };
   typedef OSBinaryDataArray BinaryDataArray;
   typedef boost::shared_ptr<BinaryDataArray> BinaryDataArrayPtr;
@@ -149,6 +151,18 @@ public:
     void setIntensityArray(BinaryDataArrayPtr data)
     {
       binaryDataArrayPtrs[1] = data;
+    }
+
+    /// non-mutable access to the underlying data arrays
+    const std::vector<BinaryDataArrayPtr> & getDataArrays() const
+    {
+      return binaryDataArrayPtrs;
+    }
+
+    /// mutable access to the underlying data arrays
+    std::vector<BinaryDataArrayPtr> & getDataArrays()
+    {
+      return binaryDataArrayPtrs;
     }
 
   };
@@ -239,9 +253,20 @@ public:
       binaryDataArrayPtrs[1] = data;
     }
 
+    /// non-mutable access to the underlying data arrays
+    const std::vector<BinaryDataArrayPtr> & getDataArrays() const
+    {
+      return binaryDataArrayPtrs;
+    }
+
+    /// mutable access to the underlying data arrays
+    std::vector<BinaryDataArrayPtr> & getDataArrays()
+    {
+      return binaryDataArrayPtrs;
+    }
+
   };
   typedef OSSpectrum Spectrum;
   typedef boost::shared_ptr<Spectrum> SpectrumPtr;
 } //end Namespace OpenSwath
 
-#endif // OPENMS_ANALYSIS_OPENSWATH_OPENSWATHALGO_DATAACCESS_DATASTRUCTURES_H

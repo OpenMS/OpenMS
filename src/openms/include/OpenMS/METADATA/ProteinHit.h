@@ -32,8 +32,7 @@
 // $Authors: $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_METADATA_PROTEINHIT_H
-#define OPENMS_METADATA_PROTEINHIT_H
+#pragma once
 
 #include <vector>
 
@@ -179,4 +178,3 @@ protected:
 
 } // namespace OpenMS
 
-#endif // OPENMS_METADATA_PROTEINHIT_H

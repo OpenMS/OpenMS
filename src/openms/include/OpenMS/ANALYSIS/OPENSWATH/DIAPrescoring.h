@@ -32,8 +32,7 @@
 // $Authors: Witold Wolski $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_OPENSWATH_DIAPRESCORING_H
-#define OPENMS_ANALYSIS_OPENSWATH_DIAPRESCORING_H
+#pragma once
 
 #include <algorithm>
 #include <iterator>
@@ -103,4 +102,3 @@ public:
 
 }
 
-#endif

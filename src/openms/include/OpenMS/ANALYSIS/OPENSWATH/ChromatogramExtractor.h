@@ -32,8 +32,7 @@
 // $Authors: Hannes Roest $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_OPENSWATH_CHROMATOGRAMEXTRACTOR_H
-#define OPENMS_ANALYSIS_OPENSWATH_CHROMATOGRAMEXTRACTOR_H
+#pragma once
 
 #include <OpenMS/ANALYSIS/OPENSWATH/ChromatogramExtractorAlgorithm.h>
 
@@ -75,12 +74,18 @@ public:
     /**
      * @brief Extract chromatograms defined by the TargetedExperiment from the input map and write them to the output map.
      *
+     * @param input The input spectra from which to extract chromatograms
+     * @param output The output vector in which to store the chromatograms
+     * @param transition_exp The extraction coordinates (m/z, RT, ion mobility)
      * @param mz_extraction_window Extracts a window of this size in m/z
      * dimension (e.g. a window of 50 ppm means an extraction of 25 ppm on
      * either side)
+     * @param ppm Whether mz windows in in ppm
+     * @param trafo A transformation description for RT space
      * @param rt_extraction_window Extracts a window of this size in RT
      * dimension (e.g. a window of 600 seconds means an extraction of 300
      * seconds on either side)
+     * @param filter Which filter to use (bartlett or tophat)
      *
      * @note: it will replace chromatograms in the output map, not append to them!
      * @note: TODO deprecate this function (use ChromatogramExtractorAlgorithm instead)
@@ -88,7 +93,7 @@ public:
     template <typename ExperimentT>
     void extractChromatograms(const ExperimentT& input, ExperimentT& output, 
         OpenMS::TargetedExperiment& transition_exp, double mz_extraction_window, bool ppm,
-        TransformationDescription trafo, double rt_extraction_window, String filter)
+        TransformationDescription trafo, double rt_extraction_window, const String& filter)
     {
       // invert the trafo because we want to transform nRT values to "real" RT values
       trafo.invert();
@@ -165,16 +170,54 @@ public:
     /**
      * @brief Extract chromatograms at the m/z and RT defined by the ExtractionCoordinates.
      *
+     * @param input The input spectra from which to extract chromatograms
+     * @param output The output vector in which to store the chromatograms
+     * (needs to be of the same length as the extraction coordinates, use
+     * prepare_coordinates)
+     * @param extraction_coordinates The extraction coordinates (m/z, RT, ion mobility)
+     * @param mz_extraction_window Extracts a window of this size in m/z
+     * dimension (e.g. a window of 50 ppm means an extraction of 25 ppm on
+     * either side)
+     * @param ppm Whether mz windows in in ppm
+     * @param filter Which filter to use (bartlett or tophat)
+     *
      * @note: whenever possible, please use this ChromatogramExtractorAlgorithm implementation
      *
     */
     void extractChromatograms(const OpenSwath::SpectrumAccessPtr input, 
         std::vector< OpenSwath::ChromatogramPtr >& output, 
-        std::vector<ExtractionCoordinates> extraction_coordinates,
-        double mz_extraction_window, bool ppm, String filter)
+        const std::vector<ExtractionCoordinates>& extraction_coordinates,
+        double mz_extraction_window, bool ppm, const String& filter)
     {
       ChromatogramExtractorAlgorithm().extractChromatograms(input, output, 
-          extraction_coordinates, mz_extraction_window, ppm, filter);
+          extraction_coordinates, mz_extraction_window, ppm, -1, filter);
+    }
+
+    /**
+     * @brief Extract chromatograms at the m/z and RT defined by the ExtractionCoordinates.
+     *
+     * @param input The input spectra from which to extract chromatograms
+     * @param output The output vector in which to store the chromatograms
+     * (needs to be of the same length as the extraction coordinates, use
+     * prepare_coordinates)
+     * @param extraction_coordinates The extraction coordinates (m/z, RT, ion mobility)
+     * @param mz_extraction_window Extracts a window of this size in m/z
+     * dimension (e.g. a window of 50 ppm means an extraction of 25 ppm on
+     * either side)
+     * @param ppm Whether mz windows in in ppm
+     * @param im_extraction_window Extracts a window of this size in ion mobility
+     * @param filter Which filter to use (bartlett or tophat)
+     *
+     * @note: whenever possible, please use this ChromatogramExtractorAlgorithm implementation
+     *
+    */
+    void extractChromatograms(const OpenSwath::SpectrumAccessPtr input, 
+        std::vector< OpenSwath::ChromatogramPtr >& output, 
+        const std::vector<ExtractionCoordinates>& extraction_coordinates,
+        double mz_extraction_window, bool ppm, double im_extraction_window, const String& filter)
+    {
+      ChromatogramExtractorAlgorithm().extractChromatograms(input, output, 
+          extraction_coordinates, mz_extraction_window, ppm, im_extraction_window, filter);
     }
 
 public:
@@ -564,7 +607,7 @@ private:
                                    const TransformationDescription& trafo, double rt_extraction_window);
 
      /// @note: TODO deprecate this function (use ChromatogramExtractorAlgorithm instead)
-    int getFilterNr_(String filter);
+    int getFilterNr_(const String& filter);
 
      /// @note: TODO deprecate this function (use ChromatogramExtractorAlgorithm instead)
     void populatePeptideRTMap_(OpenMS::TargetedExperiment& transition_exp, double rt_extraction_window);
@@ -610,4 +653,3 @@ private:
   }
 }
 
-#endif // OPENMS_ANALYSIS_OPENSWATH_CHROMATOGRAMEXTRACTOR_H

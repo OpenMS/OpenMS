@@ -32,8 +32,7 @@
 // $Authors: Hannes Roest
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FORMAT_HANDLERS_MZMLSQLITEHANDLER_H
-#define OPENMS_FORMAT_HANDLERS_MZMLSQLITEHANDLER_H
+#pragma once
 
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/METADATA/ExperimentalSettings.h>
@@ -259,5 +258,4 @@ protected:
   } // namespace Internal
 } // namespace OpenMS
 
-#endif // OPENMS_FORMAT_HANDLERS_MZMLSQLITEHANDLER_H
 

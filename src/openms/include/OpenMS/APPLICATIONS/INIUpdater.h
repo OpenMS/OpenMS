@@ -32,8 +32,7 @@
 // $Authors: Chris Bielow $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_APPLICATIONS_INIUPDATER_H
-#define OPENMS_APPLICATIONS_INIUPDATER_H
+#pragma once
 
 #include <OpenMS/DATASTRUCTURES/Map.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
@@ -77,4 +76,3 @@ private:
 
 } // namespace OpenMS
 
-#endif //OPENMS_APPLICATIONS_INIUPDATER_H

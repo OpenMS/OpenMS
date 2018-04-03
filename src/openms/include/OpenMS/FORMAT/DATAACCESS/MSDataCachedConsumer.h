@@ -32,8 +32,7 @@
 // $Authors: Hannes Roest $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FORMAT_DATAACCESS_MSDATACACHEDCONSUMER_H
-#define OPENMS_FORMAT_DATAACCESS_MSDATACACHEDCONSUMER_H
+#pragma once
 
 #include <OpenMS/INTERFACES/IMSDataConsumer.h>
 
@@ -112,4 +111,3 @@ namespace OpenMS
 
 } //end namespace OpenMS
 
-#endif
