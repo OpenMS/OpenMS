@@ -33,11 +33,11 @@ cdef extern from "<OpenMS/ANALYSIS/XLMS/OPXLDataStructs.h>" namespace "OpenMS::O
         double xcorrx_max
         libcpp_vector[ double ] xcorrc
         double xcorrc_max
-        Size matched_common_alpha
-        Size matched_common_beta
+        Size matched_linear_alpha
+        Size matched_linear_beta
         Size matched_xlink_alpha
         Size matched_xlink_beta
-        double HyperCommon
+        double HyperLinear
         double HyperXlink
         double HyperAlpha
         double HyperBeta
