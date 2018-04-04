@@ -755,8 +755,8 @@ protected:
 
       const std::vector<PeptideHit> & first_pep_hits = spec_hits[0]->getHits();
 
-      Size alpha_ions = Size(first_pep_hits[0].getMetaValue("matched_common_alpha")) + Size(first_pep_hits[0].getMetaValue("matched_xlink_alpha"));
-      Size beta_ions = Size(first_pep_hits[0].getMetaValue("matched_common_beta")) + Size(first_pep_hits[0].getMetaValue("matched_xlink_beta"));
+      Size alpha_ions = Size(first_pep_hits[0].getMetaValue("matched_linear_alpha")) + Size(first_pep_hits[0].getMetaValue("matched_xlink_alpha"));
+      Size beta_ions = Size(first_pep_hits[0].getMetaValue("matched_linear_beta")) + Size(first_pep_hits[0].getMetaValue("matched_xlink_beta"));
       n_min_ions_matched.push_back(std::min(alpha_ions, beta_ions));
     }
 
@@ -991,17 +991,20 @@ protected:
     // Write idXML
     if ( ! arg_out_idXML.empty())
     {
+      LOG_DEBUG << "Writing idXML file..." << endl;
       IdXMLFile().store( arg_out_idXML, prot_ids, all_ids);
     }
 
     // Write mzid file
     if (! arg_out_mzid.empty())
     {
+      LOG_DEBUG << "Writing mzid file..." << endl;
       MzIdentMLFile().store( arg_out_mzid, prot_ids, all_ids);
     }
 
     if (! arg_out_xquest.empty())
     {
+      LOG_DEBUG << "Writing xquest.xml file..." << endl;
       XQuestResultXMLFile().store(arg_out_xquest, prot_ids, all_ids);
     }
 
