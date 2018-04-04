@@ -173,6 +173,7 @@ namespace OpenMS
     {
       os << "--" << param_.getValue("internal:boundary") << "\n" << "Content-Disposition: form-data; name=\"" << name << "\"" << "\n\n";
     }
+    else
     {
       os << name << "=";
     }
@@ -338,8 +339,15 @@ namespace OpenMS
            << "_" << spec.getNativeID() << "_" << filename << "\n";
         os << "PEPMASS=" << precisionWrapper(mz) <<  "\n";
         os << "RTINSECONDS=" << precisionWrapper(rt) << "\n";
-        os << "SCANS=" << SpectrumLookup::extractScanNumber(spec.getNativeID(), native_id_type_accession) << "\n";
-     }
+	if (native_id_type_accession == "UNKOWN")
+	{
+	  os << "SCANS=" << spec.getNativeID().substr(spec.getNativeID().find_last_of("=")+1) << "\n";
+	}
+	else
+	{
+          os << "SCANS=" << SpectrumLookup::extractScanNumber(spec.getNativeID(), native_id_type_accession) << "\n";
+	}
+      }
       else
       {
         os << "TITLE=" << fixed << setprecision(HIGH_PRECISION) << mz << "_"
@@ -347,7 +355,14 @@ namespace OpenMS
            << spec.getNativeID() << "_" << filename << "\n";
         os << "PEPMASS=" << setprecision(HIGH_PRECISION) << mz << "\n";
         os << "RTINSECONDS=" << setprecision(LOW_PRECISION) << rt << "\n";
-        os << "SCANS=" << SpectrumLookup::extractScanNumber(spec.getNativeID(), native_id_type_accession) << "\n";
+	if (native_id_type_accession == "UNKOWN")
+	{
+	  os << "SCANS=" << spec.getNativeID().substr(spec.getNativeID().find_last_of("=")+1) << "\n";
+	}
+	else
+	{
+          os << "SCANS=" << SpectrumLookup::extractScanNumber(spec.getNativeID(), native_id_type_accession) << "\n";
+	}
       }
 
       int charge(precursor.getCharge());
@@ -404,7 +419,12 @@ namespace OpenMS
     QFileInfo fileinfo(filename.c_str());
     QString filtered_filename = fileinfo.completeBaseName();
     filtered_filename.remove(QRegExp("[^a-zA-Z0-9]"));
+   
     String native_id_type_accession = experiment.getExperimentalSettings().getSourceFiles()[0].getNativeIDTypeAccession();
+    if (native_id_type_accession.empty())
+    {
+      String native_id_type_accession = "UNKOWN";
+    }
     this->startProgress(0, experiment.size(), "storing mascot generic file");
     for (Size i = 0; i < experiment.size(); i++)
     {

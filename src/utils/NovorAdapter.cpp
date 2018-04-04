@@ -54,8 +54,6 @@
 #include <QtCore/QProcess>
 #include <fstream>
 
-#include <boost/regex.hpp>
-
 using namespace OpenMS;
 using namespace std;
 
@@ -261,10 +259,8 @@ protected:
     // convert mzML to mgf format
     MzMLFile f;
     MSExperiment exp;
-    vector <int> levels;
-    levels.push_back(2);
     f.setLogType(log_type_);
-    f.getOptions().setMSLevels(levels);
+    f.getOptions().setMSLevels( {2} );
     f.load(in, exp);
  
     String tmp_mgf = tmp_dir + "tmp_mgf.mgf"; 
@@ -391,14 +387,8 @@ protected:
       vector<ProteinIdentification> protein_ids;
       StringList versionrow;
       csv.getRow(2, versionrow);
-      String version;
-      boost::smatch match;
-      boost::regex regexp("v.*");
-      if(boost::regex_search(versionrow[0], match, regexp))
-      {
-        version = match[0].str();
-      }
-
+      String version = versionrow[0].substr(versionrow[0].find("v."));
+      
       protein_ids = vector<ProteinIdentification>(1);
       protein_ids[0].setDateTime(DateTime::now());
       protein_ids[0].setSearchEngine("Novor");
