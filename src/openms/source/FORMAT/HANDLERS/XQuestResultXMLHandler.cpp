@@ -568,11 +568,11 @@ namespace OpenMS
           this->addMetaValues_(peptide_hit_alpha);
 
         // Store specific stuff for peptide hit alpha
-        peptide_hit_alpha.setMetaValue("matched_common_alpha",
+        peptide_hit_alpha.setMetaValue("matched_linear_alpha",
                                         DataValue(this->attributeAsInt_(attributes, "num_of_matched_common_ions_alpha")));
         peptide_hit_alpha.setMetaValue("matched_xlink_alpha",
                                         DataValue(this->attributeAsInt_(attributes, "num_of_matched_xlink_ions_alpha")));
-        peptide_hit_alpha.setMetaValue("matched_common_beta",
+        peptide_hit_alpha.setMetaValue("matched_linear_beta",
                                         DataValue(this->attributeAsInt_(attributes, "num_of_matched_common_ions_beta")));
         peptide_hit_alpha.setMetaValue("matched_xlink_beta",
                                         DataValue(this->attributeAsInt_(attributes, "num_of_matched_xlink_ions_beta")));
@@ -627,7 +627,9 @@ namespace OpenMS
           std::pair<SignedSize, SignedSize> positions;
           this->getLinkPosition_(attributes, positions);
           peptide_hit_alpha.setMetaValue("xl_pos", DataValue(positions.first - 1));
-          peptide_hit_beta.setMetaValue("xl_pos", DataValue(positions.second - 1));
+          peptide_hit_alpha.setMetaValue("xl_pos2", DataValue(positions.second - 1));
+          peptide_hit_beta.setMetaValue("xl_pos", DataValue(positions.first - 1));
+          peptide_hit_beta.setMetaValue("xl_pos2", DataValue(positions.second - 1));
 
           // Protein
           String prot2_string = this->attributeAsString_(attributes, "prot2");
@@ -646,11 +648,11 @@ namespace OpenMS
           peptide_hit_beta.setMetaValue("xl_chain", "MS:1002510");
 
           // Set peptide_hit specific stuff
-          peptide_hit_beta.setMetaValue("matched_common_alpha",
+          peptide_hit_beta.setMetaValue("matched_linear_alpha",
                                           DataValue(this->attributeAsInt_(attributes, "num_of_matched_common_ions_alpha")));
           peptide_hit_beta.setMetaValue("matched_xlink_alpha",
                                           DataValue(this->attributeAsInt_(attributes, "num_of_matched_xlink_ions_alpha")));
-          peptide_hit_beta.setMetaValue("matched_common_beta",
+          peptide_hit_beta.setMetaValue("matched_linear_beta",
                                           DataValue(this->attributeAsInt_(attributes, "num_of_matched_common_ions_beta")));
           peptide_hit_beta.setMetaValue("matched_xlink_beta",
                                           DataValue(this->attributeAsInt_(attributes, "num_of_matched_xlink_ions_beta")));
@@ -691,6 +693,7 @@ namespace OpenMS
           std::pair< SignedSize, SignedSize > xlink_pos;
           this->getLinkPosition_(attributes, xlink_pos);
           peptide_hit_alpha.setMetaValue("xl_pos", DataValue(xlink_pos.first - 1));
+          peptide_hit_alpha.setMetaValue("xl_pos2", DataValue("-"));
         }
         else
         {
@@ -906,7 +909,7 @@ namespace OpenMS
         if (xltype_OPXL == "cross-link")
         {
           xltype = "xlink";
-          beta_pos = Int(pep_hits[1].getMetaValue("xl_pos")) + 1;
+          beta_pos = Int(pep_hits[1].getMetaValue("xl_pos2")) + 1;
           structure += "-" + pep_hits[1].getSequence().toUnmodifiedString();
           topology += String("-b") + beta_pos;
           weight += pep_hits[1].getSequence().getMonoWeight() + double(pep_hits[0].getMetaValue("xl_mass"));
@@ -978,11 +981,11 @@ namespace OpenMS
               << "\" prot1=\"" << prot_alpha << "\" prot2=\"" << prot_beta << "\" topology=\"" << topology << "\" xlinkposition=\"" << xlinkposition
               << "\" Mr=\"" << weight << "\" mz=\"" << theo_mz << "\" charge=\"" << precursor_charge << "\" xlinkermass=\"" << pep_hits[0].getMetaValue("xl_mass").toString()
               << "\" measured_mass=\"" << precursor_mass << "\" error=\"" << error << "\" error_rel=\"" << rel_error
-              << "\" xlinkions_matched=\"" << (Int(pep_hits[0].getMetaValue("matched_xlink_alpha")) + Int(pep_hits[0].getMetaValue("matched_xlink_beta"))) << "\" backboneions_matched=\"" << (Int(pep_hits[0].getMetaValue("matched_common_alpha")) + Int(pep_hits[0].getMetaValue("matched_common_beta")))
+              << "\" xlinkions_matched=\"" << (Int(pep_hits[0].getMetaValue("matched_xlink_alpha")) + Int(pep_hits[0].getMetaValue("matched_xlink_beta"))) << "\" backboneions_matched=\"" << (Int(pep_hits[0].getMetaValue("matched_linear_alpha")) + Int(pep_hits[0].getMetaValue("matched_linear_beta")))
               << "\" xcorrx=\"" << pep_hits[0].getMetaValue("OpenXQuest:xcorr xlink").toString() << "\" xcorrb=\"" << pep_hits[0].getMetaValue("OpenXQuest:xcorr common").toString() << "\" match_odds=\"" << pep_hits[0].getMetaValue("OpenXQuest:match-odds").toString() << "\" prescore=\"" << pep_hits[0].getMetaValue("OpenXQuest:prescore").toString()
-              << "\" num_of_matched_ions_alpha=\"" << (Int(pep_hits[0].getMetaValue("matched_common_alpha")) + Int(pep_hits[0].getMetaValue("matched_xlink_alpha")))
-              << "\" num_of_matched_ions_beta=\"" << (Int(pep_hits[0].getMetaValue("matched_xlink_beta")) + Int(pep_hits[0].getMetaValue("matched_common_beta")))
-              << "\" num_of_matched_common_ions_alpha=\"" << pep_hits[0].getMetaValue("matched_common_alpha").toString() << "\" num_of_matched_common_ions_beta=\"" << pep_hits[0].getMetaValue("matched_common_beta").toString()
+              << "\" num_of_matched_ions_alpha=\"" << (Int(pep_hits[0].getMetaValue("matched_linear_alpha")) + Int(pep_hits[0].getMetaValue("matched_xlink_alpha")))
+              << "\" num_of_matched_ions_beta=\"" << (Int(pep_hits[0].getMetaValue("matched_xlink_beta")) + Int(pep_hits[0].getMetaValue("matched_linear_beta")))
+              << "\" num_of_matched_common_ions_alpha=\"" << pep_hits[0].getMetaValue("matched_linear_alpha").toString() << "\" num_of_matched_common_ions_beta=\"" << pep_hits[0].getMetaValue("matched_linear_beta").toString()
               << "\" num_of_matched_xlink_ions_alpha=\"" << pep_hits[0].getMetaValue("matched_xlink_alpha").toString() << "\" num_of_matched_xlink_ions_beta=\"" << pep_hits[0].getMetaValue("matched_xlink_beta").toString()
               << "\" TIC=\"" << pep_hits[0].getMetaValue("OpenXQuest:TIC").toString() << "\" wTIC=\"" << pep_hits[0].getMetaValue("OpenXQuest:wTIC").toString() << "\" intsum=\"" << pep_hits[0].getMetaValue("OpenXQuest:intsum").toString();
 
@@ -1001,9 +1004,9 @@ namespace OpenMS
           pep_hits[0].removeMetaValue("xl_pos2");
         }
         pep_hits[0].removeMetaValue("matched_xlink_alpha");
-        pep_hits[0].removeMetaValue("matched_common_alpha");
+        pep_hits[0].removeMetaValue("matched_linear_alpha");
         pep_hits[0].removeMetaValue("matched_xlink_beta");
-        pep_hits[0].removeMetaValue("matched_common_beta");
+        pep_hits[0].removeMetaValue("matched_linear_beta");
         pep_hits[0].removeMetaValue("OpenXQuest:xcorr xlink");
         pep_hits[0].removeMetaValue("OpenXQuest:xcorr common");
         pep_hits[0].removeMetaValue("OpenXQuest:match-odds");
