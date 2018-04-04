@@ -50,6 +50,11 @@ The most important CMake variables are:
     (Default: On)</td>
   </tr>
   <tr>
+    <td valign="top">\c BUILD_DOCS</td>
+    <td>Defines if %OpenMS should build the documentation.
+    (Default: On)</td>
+  </tr>
+  <tr>
     <td valign="top">\c SEARCH_ENGINES_DIRECTORY (optional)</td>
     <td>The location where thirdparty search engines (X!Tandem, OMSSA, MyriMatch, MSGF+, Fido)
     are located. This directory should have the same structure as the example
