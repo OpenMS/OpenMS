@@ -177,14 +177,6 @@ if (CMAKE_COMPILER_IS_INTELCXX OR CMAKE_COMPILER_IS_GNUCXX OR CMAKE_COMPILER_IS_
   set(${CMAKE_CXX_FLAGS_RELEASE} ${_TMP_CMAKE_CXX_FLAGS_RELEASE})
 endif()
 
-if(BUILD_DOCS)
-#------------------------------------------------------------------------------
-# all target that we require to show up in the targets list
-# and in the nightly build log (to test if they can be build properly)
-add_custom_target(extra_targets ALL)
-add_dependencies(extra_targets Tutorials_build)
-endif()
-
 #------------------------------------------------------------------------------
 # add filenames to Visual Studio solution tree
 set(sources_VS)
