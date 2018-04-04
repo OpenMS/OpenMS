@@ -834,6 +834,7 @@ namespace OpenMS
           target_cf1 = clique_register[f1_idx];
         }
 
+
         ConsensusFeature cf(fm_out[f0_idx]);
         cf.setPeptideIdentifications(vector<PeptideIdentification>()); // delete ID's as they are added later again
         cf.setQuality(0.0);
@@ -845,10 +846,22 @@ namespace OpenMS
                         + String(fm_out[f1_idx].getCharge()) + "(" + String(fm_out[f1_idx].getMetaValue("dc_charge_adducts")) + ") "
                         + String("Score: ") + feature_relation[i].getEdgeScore());
         //cf.computeDechargeConsensus(fm_out);
-#if 1
+
+        //remove info not wanted in pair info nor in decharged consensus
+        cf.removeMetaValue("label");
+        cf.removeMetaValue("dc_charge_adducts");
+        cf.removeMetaValue("adducts");
+        cf.removeMetaValue("dc_charge_adduct_mass");
+        cf.removeMetaValue("is_backbone");
+        cf.removeMetaValue("old_charge");
+        cf.removeMetaValue("map_idx");
         // print pairs only
         cons_map_p.push_back(cf);
-#endif
+
+        //remove info not wanted in decharged consensus
+        cf.removeMetaValue("Local");
+        cf.removeMetaValue("CP");
+
 
         // seen both features for the first time
         if ((target_cf0 == -1) &&
