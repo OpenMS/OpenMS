@@ -1073,13 +1073,17 @@ protected:
           // vector< double > xcorrc = XQuestScores::xCorrelation(linear_peaks, theoretical_spec_linear, 5, 0.2);
           // vector< double > xcorrx = XQuestScores::xCorrelation(xlink_peaks, theoretical_spec_xlinks, 5, 0.3);
 
-          vector< double > xcorrc = XQuestScores::xCorrelation(linear_peaks, theoretical_spec_linear, 5, 0.02);
-          vector< double > xcorrx = XQuestScores::xCorrelation(xlink_peaks, theoretical_spec_xlinks, 5, 0.03);
+          // vector< double > xcorrc = XQuestScores::xCorrelation(linear_peaks, theoretical_spec_linear, 5, 0.02);
+          // vector< double > xcorrx = XQuestScores::xCorrelation(xlink_peaks, theoretical_spec_xlinks, 5, 0.03);
+          //
+          // double aucorr_sumx = accumulate(aucorrx.begin(), aucorrx.end(), 0.0);
+          // double aucorr_sumc = accumulate(aucorrc.begin(), aucorrc.end(), 0.0);
+          // double xcorrx_max = accumulate(xcorrx.begin(), xcorrx.end(), 0.0) / aucorr_sumx;
+          // double xcorrc_max = accumulate(xcorrc.begin(), xcorrc.end(), 0.0) / aucorr_sumc;
 
-          double aucorr_sumx = accumulate(aucorrx.begin(), aucorrx.end(), 0.0);
-          double aucorr_sumc = accumulate(aucorrc.begin(), aucorrc.end(), 0.0);
-          double xcorrx_max = accumulate(xcorrx.begin(), xcorrx.end(), 0.0) / aucorr_sumx;
-          double xcorrc_max = accumulate(xcorrc.begin(), xcorrc.end(), 0.0) / aucorr_sumc;
+          // TODO is this xcorr good enough?
+          double xcorrx_max = XQuestScores::xCorrelationPrescore(xlink_peaks, theoretical_spec_xlinks, 0.1);
+          double xcorrc_max = XQuestScores::xCorrelationPrescore(linear_peaks, theoretical_spec_linear, 0.1);
 
           csm.PScoreLinear = 0;
           csm.PScoreXlink = 0;
