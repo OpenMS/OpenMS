@@ -520,9 +520,9 @@ START_SECTION(virtual void getComplexXLinkIonSpectrum(PeakSpectrum & spectrum, O
   // ptr->getXLinkIonSpectrum(spec, crosslink.beta, 5, 2000.0, true, 2, 4);
   ptr->getComplexXLinkIonSpectrum(spec, crosslink, 3, 3);
 
-  TEST_EQUAL(spec.size(), 462)
-  TEST_EQUAL(spec.getStringDataArrayByName("IonNames").size(), 462)
-  TEST_EQUAL(spec.getIntegerDataArrayByName("Charges").size(), 462)
+  TEST_EQUAL(spec.size(), 94)
+  TEST_EQUAL(spec.getStringDataArrayByName("IonNames").size(), 94)
+  TEST_EQUAL(spec.getIntegerDataArrayByName("Charges").size(), 94)
 
   // write out all the names and charges
   // for (Size i = 0; i < spec.size(); ++i)
