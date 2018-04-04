@@ -318,6 +318,59 @@ namespace OpenMS
   }
 
 
+  void MetaboliteFeatureDeconvolution::annotate_feature(FeatureMapType& fm_out, Adduct& default_adduct, Compomer& c, const Size f_idx, const UInt comp_side, const Int new_q, const Int old_q)
+  {
+    StringList labels;
+    fm_out[f_idx].setMetaValue("map_idx", 0);
+
+    EmpiricalFormula ef_(c.getAdductsAsString(comp_side));
+    if (fm_out[f_idx].metaValueExists("dc_charge_adducts"))
+    {
+      if (ef_.toString() != fm_out[f_idx].getMetaValue("dc_charge_adducts"))
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Decharging produced inconsistent adduct annotation! [expected: ") + String(fm_out[f_idx].getMetaValue("dc_charge_adducts")) + "]", ef_.toString());
+    }
+    else
+    {
+      fm_out[f_idx].setMetaValue("dc_charge_adducts", ef_.toString());
+      String charge_sign = new_q >= 0 ? "+" : "-";
+      String s("[M");
+
+      //need elements sorted canonically (by string)
+      map<String, String> sorted_elem_map;
+      for (auto element_count : ef_)
+      {
+        String e_symbol(element_count.first->getSymbol());
+        String tmp = element_count.second > 0 ? "+" : "-";
+        tmp += abs(element_count.second) > 1 ? String(abs(element_count.second)) : "";
+        tmp += e_symbol;
+        sorted_elem_map[e_symbol] = tmp;
+      }
+      for (auto sorted_e_cnt : sorted_elem_map)
+      {
+        s += sorted_e_cnt.second;
+      }
+      s += String("]");
+      s += abs(new_q) > 1 ? String(abs(new_q)) : "";
+      s += charge_sign;
+
+      StringList dc_new_adducts = ListUtils::create<String>(s);
+      fm_out[f_idx].setMetaValue("adducts", dc_new_adducts);
+    }
+    fm_out[f_idx].setMetaValue("dc_charge_adduct_mass", ef_.getMonoWeight());
+    fm_out[f_idx].setMetaValue("is_backbone", Size(c.isSingleAdduct(default_adduct, comp_side) ? 1 : 0));
+    if (new_q != old_q)
+      fm_out[f_idx].setMetaValue("old_charge", old_q);
+    fm_out[f_idx].setCharge(new_q);
+    labels = c.getLabels(comp_side);
+    if (labels.size() > 1)
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Decharging produced inconsistent label annotation! [expected: a single label]"), ListUtils::concatenate(labels, ","));
+    if (labels.size() > 0)
+    {
+      fm_out[f_idx].setMetaValue("map_idx", map_label_inverse_[labels[0]]);
+    }
+
+  }
+
   void MetaboliteFeatureDeconvolution::candidateEdges(FeatureMapType& fm_out, const Adduct& default_adduct, PairsType& feature_relation, Map<Size, std::set<CmpInfo_> >& feature_adducts)
   {
     bool is_neg = (param_.getValue("negative_mode") == "true" ? true : false);
@@ -761,103 +814,10 @@ namespace OpenMS
         //
 
         Compomer c = feature_relation[i].getCompomer();
-        StringList labels;
-        fm_out[f0_idx].setMetaValue("map_idx", 0);
-        fm_out[f1_idx].setMetaValue("map_idx", 0);
-
         // - left
-        EmpiricalFormula ef_l(c.getAdductsAsString(Compomer::LEFT));
-        if (fm_out[f0_idx].metaValueExists("dc_charge_adducts"))
-        {
-          if (ef_l.toString() != fm_out[f0_idx].getMetaValue("dc_charge_adducts"))
-            throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Decharging produced inconsistent adduct annotation! [expected: ") + String(fm_out[f0_idx].getMetaValue("dc_charge_adducts")) + "]", ef_l.toString());
-        }
-        else
-        {
-          fm_out[f0_idx].setMetaValue("dc_charge_adducts", ef_l.toString());
-          String charge_sign = new_q0 >= 0 ? "+" : "-";
-          String s("[M");
-
-          //need elements sorted canonically (by string)
-          map<String, String> sorted_elem_map_l;
-          for (auto element_count : ef_l)
-          {
-            String e_symbol(element_count.first->getSymbol());
-            String tmp = element_count.second > 0 ? "+" : "-";
-            tmp += abs(element_count.second) > 1 ? String(abs(element_count.second)) : "";
-            tmp += e_symbol;
-            sorted_elem_map_l[e_symbol] = tmp;
-          }
-          for (auto sorted_e_cnt : sorted_elem_map_l)
-          {
-            s += sorted_e_cnt.second;
-          }
-          s += String("]");
-          s += abs(new_q0) > 1 ? String(abs(new_q0)) : "";
-          s += charge_sign;
-
-          StringList dc_new_adducts = ListUtils::create<String>(s);
-          fm_out[f0_idx].setMetaValue("adducts", dc_new_adducts);
-        }
-        fm_out[f0_idx].setMetaValue("dc_charge_adduct_mass", ef_l.getMonoWeight());
-        fm_out[f0_idx].setMetaValue("is_backbone", Size(c.isSingleAdduct(default_adduct, Compomer::LEFT) ? 1 : 0));
-        if (new_q0 != old_q0)
-          fm_out[f0_idx].setMetaValue("old_charge", old_q0);
-        fm_out[f0_idx].setCharge(new_q0);
-        labels = c.getLabels(Compomer::LEFT);
-        if (labels.size() > 1)
-          throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Decharging produced inconsistent label annotation! [expected: a single label]"), ListUtils::concatenate(labels, ","));
-        if (labels.size() > 0)
-        {
-          fm_out[f0_idx].setMetaValue("map_idx", map_label_inverse_[labels[0]]);
-        }
-
+        annotate_feature(fm_out, default_adduct, c, f0_idx, Compomer::LEFT, new_q0, old_q0);
         // - right
-        EmpiricalFormula ef_r(c.getAdductsAsString(Compomer::RIGHT));
-        if (fm_out[f1_idx].metaValueExists("dc_charge_adducts"))
-        {
-          if (ef_r.toString() != fm_out[f1_idx].getMetaValue("dc_charge_adducts"))
-            throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Decharging produced inconsistent adduct annotation! [expected: ") + String(fm_out[f1_idx].getMetaValue("dc_charge_adducts")) + "]", ef_r.toString());
-        }
-        else
-        {
-          fm_out[f1_idx].setMetaValue("dc_charge_adducts", ef_r.toString());
-          String charge_sign = new_q1 >= 0 ? "+" : "-";
-          String s("[M");
-
-          //need elements sorted canonically (by string)
-          map<String, String> sorted_elem_map_r;
-          for (auto element_count : ef_r)
-          {
-            String e_symbol(element_count.first->getSymbol());
-            String tmp = element_count.second > 0 ? "+" : "-";
-            tmp += abs(element_count.second) > 1 ? String(abs(element_count.second)) : "";
-            tmp += e_symbol;
-            sorted_elem_map_r[e_symbol] = tmp;
-          }
-          for (auto sorted_e_cnt : sorted_elem_map_r)
-          {
-            s += sorted_e_cnt.second;
-          }
-          s += String("]");
-          s += abs(new_q1) > 1 ? String(abs(new_q1)) : "";
-          s += charge_sign;
-          StringList dc_new_adducts = ListUtils::create<String>(s);
-          fm_out[f1_idx].setMetaValue("adducts", dc_new_adducts);
-        }
-        fm_out[f1_idx].setMetaValue("dc_charge_adduct_mass", ef_r.getMonoWeight());
-        fm_out[f1_idx].setMetaValue("is_backbone", Size(c.isSingleAdduct(default_adduct, Compomer::RIGHT) ? 1 : 0));
-        if (new_q1 != old_q1)
-          fm_out[f1_idx].setMetaValue("old_charge", old_q1);
-        fm_out[f1_idx].setCharge(new_q1);
-        labels = c.getLabels(Compomer::RIGHT);
-        if (labels.size() > 1)
-          throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Decharging produced inconsistent label annotation! [expected: a single label]"), ListUtils::concatenate(labels, ","));
-        if (labels.size() > 0)
-        {
-          fm_out[f1_idx].setMetaValue("map_idx", map_label_inverse_[labels[0]]);
-        }
-
+        annotate_feature(fm_out, default_adduct, c, f1_idx, Compomer::RIGHT, new_q1, old_q1);
 
         //
         // create cliques
