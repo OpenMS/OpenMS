@@ -12,7 +12,7 @@ cdef extern from "<OpenMS/METADATA/ExperimentalDesign.h>" namespace "OpenMS":
         ExperimentalDesign(ExperimentalDesign) nogil except + #wrap-ignore
 
         libcpp_vector[ ExperimentalDesign_RunRow ] getRunSection() nogil except +
-        void setRunSection(ExperimentalDesign_RunRow run_section) nogil except +
+        void setRunSection(libcpp_vector[ ExperimentalDesign_RunRow ] run_section) nogil except +
 
         # Returns the Sample Section of the experimental design file
         ExperimentalDesign_SampleSection getSampleSection() nogil except +
@@ -81,11 +81,13 @@ cdef extern from "<OpenMS/METADATA/ExperimentalDesign.h>" namespace "OpenMS::Exp
 
         ExperimentalDesign_RunRow() nogil except +
         ExperimentalDesign_RunRow(ExperimentalDesign_RunRow) nogil except + #wrap-ignore
-        # libcpp_string file
-        # unsigned fraction
-        # unsigned technical_replicate        
-        
 
+        libcpp_string path
+        unsigned int run
+        unsigned int fraction
+        unsigned int channel
+        unsigned int sample
+        
 cdef extern from "<OpenMS/METADATA/ExperimentalDesign.h>" namespace "OpenMS::ExperimentalDesign":
 
     cdef cppclass ExperimentalDesign_SampleSection "OpenMS::ExperimentalDesign::SampleSection":
