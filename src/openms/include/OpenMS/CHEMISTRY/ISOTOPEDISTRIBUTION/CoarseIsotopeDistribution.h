@@ -44,7 +44,14 @@ namespace OpenMS
 
   /**
     *         @ingroup Chemistry
-    *         @brief Isotope pattern generator for coarse (nominal mass) isotope distributions.
+    *         @brief Isotope pattern generator for coarse isotope distributions.
+    *         
+    *         This algorithm generates theoretical pattern distributions for empirical
+    *         formulas with resolution of 1Da.
+    *         It assumes that every isotope has atomic mass that is rounded
+    *         to the closest integer in Daltons.
+    *         For example for (13)Carbon it assumes that the mass of the isotope is 13Da
+    *         instead of 13.0033548378
     *
     *         The most important value which should be set is the max isotope value.
     *         It limits the number of calculated isotopes.
