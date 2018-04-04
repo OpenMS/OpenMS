@@ -674,6 +674,11 @@ protected:
     {
       File::remove(pepxmlfile);
     }
+    else
+    {
+    // rename the pepXML file to the opt_out
+      QFile::rename(pepxmlfile.toQString(), optional_output_file.toQString()); 
+    }
 
     // remove ".pepindex" database file
     if (this->debug_level_ < 2)
