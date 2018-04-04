@@ -2,9 +2,9 @@ from libcpp cimport bool
 from Types cimport *
 from String cimport *
 from Peak1D cimport *
+from EmpiricalFormula cimport *
 
-
-cdef extern from "<OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/Container.h>" namespace "OpenMS":
+cdef extern from "<OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopeDistribution.h>" namespace "OpenMS":
 
     cdef cppclass IsotopeDistribution:        
 
@@ -32,7 +32,7 @@ cdef extern from "<OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/Container.h>" namespace 
         # Estimate Peptide Isotopedistribution from weight and number of isotopes that should be reported
         #   Implementation using the averagine model proposed by Senko et al. in
 
-# Estimate Isotopedistribution from weight, average composition, and number of isotopes that should be reported
+        # Estimate Isotopedistribution from weight, average composition, and number of isotopes that should be reported
 
 
         # renormalizes the sum of the probabilities of the isotopes to 1
@@ -74,6 +74,8 @@ cdef extern from "<OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopeDistributio
         CoarseIsotopeDistribution(Size max_isotope) nogil except +
         CoarseIsotopeDistribution(IsotopeDistribution) nogil except + # wrap-ignore
 
+        void run(EmpiricalFormula) nogil except +
+
         # Estimate peptide IsotopeDistribution from average weight and exact number of sulfurs
         void estimateFromPeptideWeightAndS(double average_weight, UInt S);
         
@@ -83,9 +85,9 @@ cdef extern from "<OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopeDistributio
         #  sets the maximal isotope with @p max_isotope
         void setMaxIsotope(Size max_isotope) nogil except +
 
+        # @brief Estimate Peptide Isotopedistribution from weight and number of isotopes that should be reported
         #   "Determination of Monoisotopic Masses and Ion Populations for Large Biomolecules from Resolved Isotopic Distributions"
         void estimateFromPeptideWeight(double average_weight) nogil except +
-
 
         # Estimate Nucleotide Isotopedistribution from weight
         void estimateFromRNAWeight(double average_weight) nogil except +
