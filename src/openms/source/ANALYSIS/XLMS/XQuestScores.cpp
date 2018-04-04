@@ -151,14 +151,6 @@ namespace OpenMS
 
     if (fragment_mass_tolerance_unit_ppm)
     {
-      // log transform theoretical spectrum for more accurate a_priori_p estimation
-      //
-      // vector<double> log_theo_spec;
-      // for (auto peak : theoretical_spec)
-      // {
-      //   log_theo_spec.push_back(std::log(peak.getMZ()));
-      // }
-      // range = log_theo_spec.back() - log_theo_spec[0];
       range = std::log(theoretical_spec.back().getMZ()) - std::log(theoretical_spec[0].getMZ());
       used_tolerance = fragment_mass_tolerance / 1e6;
     }
