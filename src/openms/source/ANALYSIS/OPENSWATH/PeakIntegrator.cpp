@@ -425,7 +425,7 @@ namespace OpenMS
     if (print_debug_ == 2)
     {
       std::cout << std::endl << "E_wrt_h() diffs:" << std::endl;
-      for (double d : diffs)
+      for (const double d : diffs)
       {
         std::cout << d << " ";
       }
@@ -470,7 +470,7 @@ namespace OpenMS
     if (print_debug_ == 2)
     {
       std::cout << std::endl << "E_wrt_mu() diffs:" << std::endl;
-      for (double d : diffs)
+      for (const double d : diffs)
       {
         std::cout << d << " ";
       }
@@ -515,7 +515,7 @@ namespace OpenMS
     if (print_debug_ == 2)
     {
       std::cout << std::endl << "E_wrt_sigma() diffs:" << std::endl;
-      for (double d : diffs)
+      for (const double d : diffs)
       {
         std::cout << d << " ";
       }
@@ -561,7 +561,7 @@ namespace OpenMS
     if (print_debug_ == 2)
     {
       std::cout << std::endl << "E_wrt_tau() diffs:" << std::endl;
-      for (double d : diffs)
+      for (const double d : diffs)
       {
         std::cout << d << " ";
       }
@@ -606,7 +606,7 @@ namespace OpenMS
     if (print_debug_ == 2)
     {
       std::cout << std::endl << "Loss_function() diffs:" << std::endl;
-      for (double d : diffs)
+      for (const double d : diffs)
       {
         std::cout << d << " ";
       }
