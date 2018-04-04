@@ -99,9 +99,6 @@ StringList cross_link_residue1 = StringListUtils::fromQStringList(q_str_list3);
 StringList cross_link_residue2 = StringListUtils::fromQStringList(q_str_list4);
 
 Size max_variable_mods_per_peptide = 5;
-Size count_proteins = 0;
-Size count_peptides = 0;
-
 
 START_SECTION(static std::vector<OPXLDataStructs::AASeqWithMass> digestDatabase(std::vector<FASTAFile::FASTAEntry> fasta_db, EnzymaticDigestion digestor, Size min_peptide_length, StringList cross_link_residue1, StringList cross_link_residue2, std::vector<ResidueModification> fixed_modifications, std::vector<ResidueModification> variable_modifications, Size max_variable_mods_per_peptide))
 
@@ -142,23 +139,25 @@ START_SECTION(static std::vector<OPXLDataStructs::XLPrecursor> enumerateCrossLin
   std::cout << std::endl;
   std::vector< int > spectrum_precursor_correction_positions;
   std::vector<OPXLDataStructs::XLPrecursor> precursors = OPXLHelper::enumerateCrossLinksAndMasses(peptides, cross_link_mass, cross_link_mass_mono_link, cross_link_residue1, cross_link_residue2, spectrum_precursors, spectrum_precursor_correction_positions, precursor_mass_tolerance, precursor_mass_tolerance_unit_ppm);
-  std::sort(precursors.begin(), precursors.end(), OPXLDataStructs::XLPrecursorComparator());
+  // std::sort(precursors.begin(), precursors.end(), OPXLDataStructs::XLPrecursorComparator());
 
   TOLERANCE_ABSOLUTE(1e-3)
   TEST_EQUAL(precursors.size(), 15990)
+  TEST_EQUAL(spectrum_precursor_correction_positions.size(), 15990)
   // sample about 1/15 of the data, since a lot of precursors are generated
-  int sampler = 14;
-  for (Size i = 0; i < precursors.size() / 15; ++i)
+
+  for (Size i = 0; i < precursors.size(); i += 2000)
   {
-    if (precursors[i*sampler].beta_index > peptides.size())
+    if (precursors[i].beta_index > peptides.size())
     {
       // mono-link
-      TEST_REAL_SIMILAR(peptides[precursors[i*sampler].alpha_index].peptide_mass + 50.0, precursors[i*sampler].precursor_mass)
+      TEST_REAL_SIMILAR(peptides[precursors[i].alpha_index].peptide_mass + cross_link_mass_mono_link[0], precursors[i].precursor_mass)
     }
     else
     {
       // cross-link
-      TEST_REAL_SIMILAR(peptides[precursors[i*sampler].alpha_index].peptide_mass + peptides[precursors[i*sampler].beta_index].peptide_mass + cross_link_mass, precursors[i*sampler].precursor_mass)
+      double computed_precursor = peptides[precursors[i].alpha_index].peptide_mass + peptides[precursors[i].beta_index].peptide_mass + cross_link_mass;
+      TEST_REAL_SIMILAR(computed_precursor, precursors[i].precursor_mass)
     }
   }
 
@@ -170,13 +169,12 @@ std::vector< int > spectrum_precursor_correction_positions;
 std::vector<OPXLDataStructs::XLPrecursor> precursors = OPXLHelper::enumerateCrossLinksAndMasses(peptides, cross_link_mass, cross_link_mass_mono_link, cross_link_residue1, cross_link_residue2, spectrum_precursors, spectrum_precursor_correction_positions, precursor_mass_tolerance, precursor_mass_tolerance_unit_ppm);
 std::sort(precursors.begin(), precursors.end(), OPXLDataStructs::XLPrecursorComparator());
 
-
 START_SECTION(static std::vector <OPXLDataStructs::ProteinProteinCrossLink> buildCandidates(const std::vector< OPXLDataStructs::XLPrecursor > & candidates, const std::vector< int > precursor_corrections, std::vector< int >& precursor_correction_positions, const std::vector<OPXLDataStructs::AASeqWithMass> & peptide_masses, const StringList & cross_link_residue1, const StringList & cross_link_residue2, double cross_link_mass, const DoubleList & cross_link_mass_mono_link, std::vector< double >& spectrum_precursor_vector, std::vector< double >& allowed_error_vector, String cross_link_name))
-  double precursor_mass = 3425.57034;
-  double allowed_error = precursor_mass * precursor_mass_tolerance * 1e-6;
+  double precursor_mass = 10668.85060;
+  double allowed_error = 0.1;
   String cross_link_name = "MyLinker";
 
-  std::vector< OPXLDataStructs::XLPrecursor > candidates;
+  std::vector< OPXLDataStructs::XLPrecursor > filtered_precursors;
 
   // determine MS2 precursors that match to the current peptide mass
   std::vector< OPXLDataStructs::XLPrecursor >::const_iterator low_it;
@@ -189,21 +187,23 @@ START_SECTION(static std::vector <OPXLDataStructs::ProteinProteinCrossLink> buil
   {
     for (; low_it != up_it; ++low_it)
     {
-      candidates.push_back(*low_it);
+      filtered_precursors.push_back(*low_it);
     }
   }
-  std::vector< int > precursor_corrections(0, 59);
-  std::vector< int > precursor_correction_positions(0, 59);
-  std::vector< double > spectrum_precursor_vector(0.0);
-  std::vector< double > allowed_error_vector(allowed_error);
+  TEST_EQUAL(precursors.size(), 15990)
+  TEST_EQUAL(filtered_precursors.size(), 35)
+  std::vector< int > precursor_corrections(59, 0);
+  std::vector< int > precursor_correction_positions(59, 0);
+  std::vector< double > spectrum_precursor_vector(1, 0.0);
+  std::vector< double > allowed_error_vector(1, allowed_error);
 
-  std::vector <OPXLDataStructs::ProteinProteinCrossLink> spectrum_candidates = OPXLHelper::buildCandidates(candidates, precursor_corrections, precursor_correction_positions, peptides, cross_link_residue1, cross_link_residue2, cross_link_mass, cross_link_mass_mono_link, spectrum_precursor_vector, allowed_error_vector, cross_link_name);
+  std::vector <OPXLDataStructs::ProteinProteinCrossLink> spectrum_candidates = OPXLHelper::buildCandidates(filtered_precursors, precursor_corrections, precursor_correction_positions, peptides, cross_link_residue1, cross_link_residue2, cross_link_mass, cross_link_mass_mono_link, spectrum_precursor_vector, allowed_error_vector, cross_link_name);
 
-  TEST_EQUAL(spectrum_candidates.size(), 59)
+  TEST_EQUAL(spectrum_candidates.size(), 1680)
   TEST_EQUAL(spectrum_candidates[50].cross_linker_name, "MyLinker")
-  for (Size i = 0; i < spectrum_candidates.size(); ++i)
+  for (Size i = 0; i < spectrum_candidates.size(); i += 200)
   {
-    TEST_REAL_SIMILAR(spectrum_candidates[i].alpha.getMonoWeight() + spectrum_candidates[i].beta.getMonoWeight() + cross_link_mass, precursor_mass)
+    TEST_REAL_SIMILAR(spectrum_candidates[i].alpha.getMonoWeight() + spectrum_candidates[i].beta.getMonoWeight() + spectrum_candidates[i].cross_linker_mass, precursor_mass)
   }
 
 END_SECTION
