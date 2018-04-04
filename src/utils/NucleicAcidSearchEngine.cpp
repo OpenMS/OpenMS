@@ -402,7 +402,7 @@ protected:
   }
 
 
-  void preprocessSpectra_(PeakMap& exp, double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, bool single_charge_spectra, bool negative_mode)
+  void preprocessSpectra_(PeakMap& exp, double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, bool single_charge_spectra, bool negative_mode, Int min_charge, Int max_charge)
   {
     // filter MS2 map
     // remove 0 intensities
@@ -440,6 +440,51 @@ protected:
 
       if (spec.getPrecursors().empty()) continue; // this shouldn't happen
       Int precursor_charge = spec.getPrecursors()[0].getCharge();
+      if (precursor_charge == 0) // no charge information
+      {
+        // maybe we are able to infer the charge state:
+        if (spec.getPrecursors().size() > 1) // multiplexed PRM experiment
+        {
+          // all precursors belong to the same parent, but with different charge
+          // states; we want to find the precursor with highest charge and infer
+          // its charge state:
+          map<double, Size> precursors; // precursor: m/z -> index
+          for (Size i = 0; i < spec.getPrecursors().size(); ++i)
+          {
+            precursors[spec.getPrecursors()[i].getMZ()] = i;
+          }
+          double mz1 = precursors.begin()->first;
+          double mz2 = (++precursors.begin())->first;
+          double mz_ratio = mz1 / mz2;
+
+          Int step = negative_mode ? -1 : 1;
+          Int inferred_charge = 0;
+          for (Int charge = max_charge; abs(charge) > abs(min_charge);
+               charge -= step)
+          {
+            double charge_ratio = (abs(charge) - 1.0) / abs(charge);
+            double ratios_ratio = mz_ratio / charge_ratio;
+            if ((ratios_ratio > 0.99) && (ratios_ratio < 1.01))
+            {
+              inferred_charge = charge;
+              break;
+            }
+          }
+          if (inferred_charge == 0)
+          {
+            LOG_ERROR << "Error: unable to determine charge state for spectrum '" << spec.getNativeID() << "' based on precursor m/z values " << mz1 << " and " << mz2 << endl;
+          }
+          else
+          {
+            LOG_DEBUG << "Inferred charge state " << inferred_charge << " for spectrum '" << spec.getNativeID() << "'" << endl;
+            // keep only precursor with highest charge, set inferred charge:
+            Precursor prec = spec.getPrecursors()[precursors.begin()->second];
+            prec.setCharge(abs(inferred_charge));
+            spec.setPrecursors(vector<Precursor>(1, prec));
+          }
+        }
+      }
+
       // deisotope
       Int coef = negative_mode ? -1 : 1;
       deisotopeAndSingleChargeMSSpectrum_(spec, coef, coef * precursor_charge, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, false, 3, 20, single_charge_spectra);
@@ -698,7 +743,7 @@ protected:
     // @TODO: move this into the loop below (run only when checks pass)
     preprocessSpectra_(spectra, search_param.fragment_mass_tolerance,
                        search_param.fragment_tolerance_ppm, true,
-                       negative_mode);
+                       negative_mode, min_charge, max_charge);
     progresslogger.endProgress();
     LOG_DEBUG << "preprocessed spectra: " << spectra.getNrSpectra() << endl;
 
