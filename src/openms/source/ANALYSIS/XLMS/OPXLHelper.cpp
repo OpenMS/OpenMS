@@ -46,7 +46,7 @@ namespace OpenMS
   // check whether the candidate pair is within the given tolerance to at least one precursor mass in the spectra data
   bool filter_and_add_candidate(vector<OPXLDataStructs::XLPrecursor>& mass_to_candidates, vector< double >& spectrum_precursors, vector< int >& precursor_correction_positions, bool precursor_mass_tolerance_unit_ppm, double precursor_mass_tolerance, OPXLDataStructs::XLPrecursor precursor)
   {
-    bool found_matching_precursors = false;
+    // bool found_matching_precursors = false;
 
     vector< double >::iterator low_it;
     vector< double >::iterator up_it;
@@ -70,25 +70,35 @@ namespace OpenMS
 
     if (low_it != up_it) // if they are not equal, there are matching precursors in the data
     {
-      found_matching_precursors = true;
-      // take the position of the highest matching precursor mass in the vector (prioritize smallest correction)
-      precursor_correction_positions.push_back(std::distance(spectrum_precursors.begin(), std::prev(up_it, 1)));
-      // cout << "Mass candidate: " << precursor.precursor_mass << " | precursor mass: " << spectrum_precursors[precursor_correction_positions.back()] << " | allowed_error: " << allowed_error
-      // << " | alpha: " << precursor.alpha_index << " | beta: " << precursor.beta_index << endl;
-    }
+      // found_matching_precursors = true;
 
-
-    // if precursors were found in the above for-loop, add candidate to results vector
-    if (found_matching_precursors)
-    {
 // don't access this vector from two processing threads at the same time
 #ifdef _OPENMP
 #pragma omp critical
 #endif
-      mass_to_candidates.push_back(precursor);
+      {
+        mass_to_candidates.push_back(precursor);
+        // take the position of the highest matching precursor mass in the vector (prioritize smallest correction)
+        precursor_correction_positions.push_back(std::distance(spectrum_precursors.begin(), std::prev(up_it, 1)));
+      }
       return true;
+
+      // cout << "Mass candidate: " << precursor.precursor_mass << " | precursor mass: " << spectrum_precursors[precursor_correction_positions.back()] << " | allowed_error: " << allowed_error
+      // << " | alpha: " << precursor.alpha_index << " | beta: " << precursor.beta_index << endl;
     }
-    return false;
+    else
+    {
+      return false;
+    }
+
+//     // if precursors were found in the above for-loop, add candidate to results vector
+//     if (found_matching_precursors)
+//     {
+//
+//
+//       return true;
+//     }
+//     return false;
   }
 
 
@@ -872,8 +882,8 @@ namespace OpenMS
 
       ph_alpha.setMetaValue("matched_xlink_alpha",top_csms_spectrum[i].matched_xlink_alpha);
       ph_alpha.setMetaValue("matched_xlink_beta",top_csms_spectrum[i].matched_xlink_beta);
-      ph_alpha.setMetaValue("matched_common_alpha",top_csms_spectrum[i].matched_common_alpha);
-      ph_alpha.setMetaValue("matched_common_beta",top_csms_spectrum[i].matched_common_beta);
+      ph_alpha.setMetaValue("matched_linear_alpha",top_csms_spectrum[i].matched_linear_alpha);
+      ph_alpha.setMetaValue("matched_linear_beta",top_csms_spectrum[i].matched_linear_beta);
 
       ph_alpha.setMetaValue("selected", "false");
 
