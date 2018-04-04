@@ -453,6 +453,9 @@ protected:
         aa_before = aa_before=="["?'-':aa_before;
         aa_after = aa_after=="]"?'-':aa_after;
         sequence += aa_before;
+        // In OpenMS sequence nomenclature, dots are set only for modified N/C-term modifications, e.g. .(Dimethyl)VGDMYTSSDIFDSVR
+        // In Percolator sequence nomenclature, dots are always present for all N/C-term modifications, e.g. R.(Dimethyl)VGDMYTSSDIFDSVR.F
+        // Consequently, dots need only be added for unmodified N/C-termini.
         if (hit.getSequence().getNTerminalModificationName().empty())
         {
           sequence += ".";
