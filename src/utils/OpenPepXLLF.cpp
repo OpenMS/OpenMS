@@ -570,7 +570,7 @@ protected:
       // determine candidates
       vector< OPXLDataStructs::XLPrecursor > candidates;
       // use a set to make them unique
-      set< OPXLDataStructs::ProteinProteinCrossLink > cross_link_candidates_set;
+      // set< OPXLDataStructs::ProteinProteinCrossLink > cross_link_candidates_set;
       // vector< int > precursor_corrections;
       // double allowed_error = 0;
 
@@ -915,6 +915,13 @@ protected:
         LOG_DEBUG << "Matched peaks: " << matched_spec_linear_alpha.size() << " | " << matched_spec_linear_beta.size()
                               <<  " | " << matched_spec_xlinks_alpha.size() <<  " | " << matched_spec_xlinks_beta.size() << endl;
 
+        // TODO define good exclusion criteria for total crap
+        Size matched_peaks = matched_spec_linear_alpha.size() + matched_spec_linear_beta.size() + matched_spec_xlinks_alpha.size() + matched_spec_xlinks_beta.size();
+        if (matched_peaks < 1)
+        {
+          continue;
+        }
+
         LOG_DEBUG << "Computing Intsum..." << endl;
         // compute intsum score
         double intsum = XQuestScores::totalMatchedCurrent(matched_spec_linear_alpha, matched_spec_linear_beta, matched_spec_xlinks_alpha, matched_spec_xlinks_beta, spectrum, spectrum);
@@ -988,8 +995,6 @@ protected:
           log_occu_alpha = log_occu;
         }
 
-        Size matched_peaks = matched_spec_linear_alpha.size() + matched_spec_linear_beta.size() + matched_spec_xlinks_alpha.size() + matched_spec_xlinks_beta.size();
-
         //Cross-correlation
         PeakSpectrum theoretical_spec_linear;
         PeakSpectrum theoretical_spec_xlinks;
@@ -1041,6 +1046,7 @@ protected:
         csm.PScoreXlink = 0;
         csm.PScoreBoth = 0;
         csm.PScoreAlpha = 0;
+        csm.PScoreBeta = 0;
 
         // LOG_DEBUG << "Computing HyperScore..." << endl;
         // csm.HyperLinear = HyperScore::compute(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, spectrum, theoretical_spec_linear);
@@ -1427,8 +1433,8 @@ protected:
 
       if (out_xquest.size() > 0)
       {
-        String precursor_mass_tolerance_unit_string = precursor_mass_tolerance_unit_ppm ? "ppm" : "Da";
-        String fragment_mass_tolerance_unit_string = fragment_mass_tolerance_unit_ppm ? "ppm" : "Da";
+        // String precursor_mass_tolerance_unit_string = precursor_mass_tolerance_unit_ppm ? "ppm" : "Da";
+        // String fragment_mass_tolerance_unit_string = fragment_mass_tolerance_unit_ppm ? "ppm" : "Da";
         XQuestResultXMLFile().store(out_xquest, protein_ids, peptide_ids);
       }
       if (out_xquest_specxml.size() > 0)
