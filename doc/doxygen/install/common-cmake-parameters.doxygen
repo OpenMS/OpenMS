@@ -34,18 +34,16 @@ The most important CMake variables are:
   <tr>
     <td valign="top">\c WITH_GUI=On/Off</td>
     <td>Defines if the %OpenMS GUI tools (TOPPView, TOPPAS) should be built or
-    not. These components need Qt > 4.7 which may not be available on some
-    systems (specifically older CentOS / RHEL servers). If you plan to use
-    %OpenMS without a GUI, set this flag to "Off" (Default: On)</td>
+    not. If you plan to use %OpenMS without a GUI, set this flag to "Off" (Default: On)</td>
   </tr>
   <tr>
     <td valign="top">\c ENABLE_TUTORIALS=On/Off</td>
-    <td>Defines if %OpenMS should build and install the pdf tutorials.
+    <td>Enables targets to build and install the pdf tutorials (needs LaTeX).
     (Default: On)</td>
   </tr>
   <tr>
     <td valign="top">\c ENABLE_DOCS=On/Off</td>
-    <td>Defines if %OpenMS should build the documentation.
+    <td>Enables documentation targets, allowing to build the %OpenMS documentation.
     (Default: On)</td>
   </tr>
   <tr>
@@ -80,14 +78,13 @@ The most important CMake variables are:
     <td valign="top">\c SEARCH_ENGINES_DIRECTORY (optional)</td>
     <td>The location where thirdparty search engines (X!Tandem, OMSSA, MyriMatch, MSGF+, Fido)
     are located. This directory should have the same structure as the example
-    in the search engine repository at
-    https://open-ms.svn.sourceforge.net/svnroot/open-ms/THIRDPARTY/SEARCHENGINES/.
+    in the search engine repository at https://github.com/OpenMS/THIRDPARTY after flattening for your platform.
+    /.
     This directory is only needed to include thirdparty tools in the installer for %OpenMS.
-    For using/running thirdparty tools, see section @ref linux_openms_environment </td>
   </tr>
   <tr>
     <td valign="top">\c PYOPENMS</td>
-    <td>Use ON to also build the Python bindings, see also @ref pyOpenMS.</td>
+    <td>Use ON to enable the target for Python bindings, see also @ref pyOpenMS.</td>
   </tr>
   <tr>
     <td valign="top">\c CMAKE_INSTALL_PREFIX</td>
