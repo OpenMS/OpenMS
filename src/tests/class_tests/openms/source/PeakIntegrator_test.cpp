@@ -945,6 +945,8 @@ START_SECTION(void fitEMGPeakModel(
 ) const)
 {
   MSChromatogram out_min, out_sec;
+  const MSChromatogram::FloatDataArray * fda_emg;
+
   ptr->fitEMGPeakModel(saturated_chrom_min, out_min);
   ptr->fitEMGPeakModel(saturated_chrom_sec, out_sec);
   TEST_EQUAL(out_min.size(), 87)
@@ -954,33 +956,19 @@ START_SECTION(void fitEMGPeakModel(
     TEST_REAL_SIMILAR(out_min[i].getIntensity(), out_sec[i].getIntensity())
   }
 
-  MSChromatogram::FloatDataArrays::const_iterator emg_params;
+  fda_emg = &out_min.getFloatDataArrays()[0];
+  TEST_EQUAL(fda_emg->getName(), "emg_parameters")
+  TEST_REAL_SIMILAR((*fda_emg)[0], 7735860)
+  TEST_REAL_SIMILAR((*fda_emg)[1], 2.66296)
+  TEST_REAL_SIMILAR((*fda_emg)[2], 0.0394313)
+  TEST_REAL_SIMILAR((*fda_emg)[3], 0.0394313)
 
-  emg_params = find_if(
-    out_min.getFloatDataArrays().begin(),
-    out_min.getFloatDataArrays().end(),
-    [](const MSChromatogram::FloatDataArray& fda)
-    {
-      return fda.getName() == "emg_parameters";
-    }
-  );
-  TEST_REAL_SIMILAR((*emg_params)[0], 7735860)
-  TEST_REAL_SIMILAR((*emg_params)[1], 2.66296)
-  TEST_REAL_SIMILAR((*emg_params)[2], 0.0394313)
-  TEST_REAL_SIMILAR((*emg_params)[3], 0.0394313)
-
-  emg_params = find_if(
-    out_sec.getFloatDataArrays().begin(),
-    out_sec.getFloatDataArrays().end(),
-    [](const MSChromatogram::FloatDataArray& fda)
-    {
-      return fda.getName() == "emg_parameters";
-    }
-  );
-  TEST_REAL_SIMILAR((*emg_params)[0], 7735860)
-  TEST_REAL_SIMILAR((*emg_params)[1], 159.778)
-  TEST_REAL_SIMILAR((*emg_params)[2], 2.36584)
-  TEST_REAL_SIMILAR((*emg_params)[3], 2.36584)
+  fda_emg = &out_sec.getFloatDataArrays()[0];
+  TEST_EQUAL(fda_emg->getName(), "emg_parameters")
+  TEST_REAL_SIMILAR((*fda_emg)[0], 7735860)
+  TEST_REAL_SIMILAR((*fda_emg)[1], 159.778)
+  TEST_REAL_SIMILAR((*fda_emg)[2], 2.36584)
+  TEST_REAL_SIMILAR((*fda_emg)[3], 2.36584)
 
   ptr->fitEMGPeakModel(saturated_cutoff_chrom_min, out_min);
   ptr->fitEMGPeakModel(saturated_cutoff_chrom_sec, out_sec);
@@ -991,31 +979,19 @@ START_SECTION(void fitEMGPeakModel(
     TEST_REAL_SIMILAR(out_min[i].getIntensity(), out_sec[i].getIntensity())
   }
 
-  emg_params = find_if(
-    out_min.getFloatDataArrays().begin(),
-    out_min.getFloatDataArrays().end(),
-    [](const MSChromatogram::FloatDataArray& fda)
-    {
-      return fda.getName() == "emg_parameters";
-    }
-  );
-  TEST_REAL_SIMILAR((*emg_params)[0], 15515900)
-  TEST_REAL_SIMILAR((*emg_params)[1], 14.3453)
-  TEST_REAL_SIMILAR((*emg_params)[2], 0.0344277)
-  TEST_REAL_SIMILAR((*emg_params)[3], 0.188507)
+  fda_emg = &out_min.getFloatDataArrays()[0];
+  TEST_EQUAL(fda_emg->getName(), "emg_parameters")
+  TEST_REAL_SIMILAR((*fda_emg)[0], 15515900)
+  TEST_REAL_SIMILAR((*fda_emg)[1], 14.3453)
+  TEST_REAL_SIMILAR((*fda_emg)[2], 0.0344277)
+  TEST_REAL_SIMILAR((*fda_emg)[3], 0.188507)
 
-  emg_params = find_if(
-    out_sec.getFloatDataArrays().begin(),
-    out_sec.getFloatDataArrays().end(),
-    [](const MSChromatogram::FloatDataArray& fda)
-    {
-      return fda.getName() == "emg_parameters";
-    }
-  );
-  TEST_REAL_SIMILAR((*emg_params)[0], 15515900)
-  TEST_REAL_SIMILAR((*emg_params)[1], 860.719)
-  TEST_REAL_SIMILAR((*emg_params)[2], 2.06566)
-  TEST_REAL_SIMILAR((*emg_params)[3], 11.3104)
+  fda_emg = &out_sec.getFloatDataArrays()[0];
+  TEST_EQUAL(fda_emg->getName(), "emg_parameters")
+  TEST_REAL_SIMILAR((*fda_emg)[0], 15515900)
+  TEST_REAL_SIMILAR((*fda_emg)[1], 860.719)
+  TEST_REAL_SIMILAR((*fda_emg)[2], 2.06566)
+  TEST_REAL_SIMILAR((*fda_emg)[3], 11.3104)
 
   ptr->fitEMGPeakModel(cutoff_chrom_min, out_min);
   ptr->fitEMGPeakModel(cutoff_chrom_sec, out_sec);
@@ -1026,31 +1002,19 @@ START_SECTION(void fitEMGPeakModel(
     TEST_REAL_SIMILAR(out_min[i].getIntensity(), out_sec[i].getIntensity())
   }
 
-  emg_params = find_if(
-    out_min.getFloatDataArrays().begin(),
-    out_min.getFloatDataArrays().end(),
-    [](const MSChromatogram::FloatDataArray& fda)
-    {
-      return fda.getName() == "emg_parameters";
-    }
-  );
-  TEST_REAL_SIMILAR((*emg_params)[0], 3791.07)
-  TEST_REAL_SIMILAR((*emg_params)[1], 15.4227)
-  TEST_REAL_SIMILAR((*emg_params)[2], 0.0210588)
-  TEST_REAL_SIMILAR((*emg_params)[3], 0.0476741)
+  fda_emg = &out_min.getFloatDataArrays()[0];
+  TEST_EQUAL(fda_emg->getName(), "emg_parameters")
+  TEST_REAL_SIMILAR((*fda_emg)[0], 3791.07)
+  TEST_REAL_SIMILAR((*fda_emg)[1], 15.4227)
+  TEST_REAL_SIMILAR((*fda_emg)[2], 0.0210588)
+  TEST_REAL_SIMILAR((*fda_emg)[3], 0.0476741)
 
-  emg_params = find_if(
-    out_sec.getFloatDataArrays().begin(),
-    out_sec.getFloatDataArrays().end(),
-    [](const MSChromatogram::FloatDataArray& fda)
-    {
-      return fda.getName() == "emg_parameters";
-    }
-  );
-  TEST_REAL_SIMILAR((*emg_params)[0], 3791.13)
-  TEST_REAL_SIMILAR((*emg_params)[1], 925.363)
-  TEST_REAL_SIMILAR((*emg_params)[2], 1.26351)
-  TEST_REAL_SIMILAR((*emg_params)[3], 2.8605)
+  fda_emg = &out_sec.getFloatDataArrays()[0];
+  TEST_EQUAL(fda_emg->getName(), "emg_parameters")
+  TEST_REAL_SIMILAR((*fda_emg)[0], 3791.13)
+  TEST_REAL_SIMILAR((*fda_emg)[1], 925.363)
+  TEST_REAL_SIMILAR((*fda_emg)[2], 1.26351)
+  TEST_REAL_SIMILAR((*fda_emg)[3], 2.8605)
 }
 END_SECTION
 
@@ -1060,6 +1024,7 @@ START_SECTION(void fitEMGPeakModel(
 ) const)
 {
   MSSpectrum out_min, out_sec;
+  const MSSpectrum::FloatDataArray * fda_emg;
 
   ptr->fitEMGPeakModel(saturated_spec_min, out_min);
   ptr->fitEMGPeakModel(saturated_spec_sec, out_sec);
@@ -1070,33 +1035,19 @@ START_SECTION(void fitEMGPeakModel(
     TEST_REAL_SIMILAR(out_min[i].getIntensity(), out_sec[i].getIntensity())
   }
 
-  MSSpectrum::FloatDataArrays::const_iterator emg_params;
+  fda_emg = &out_min.getFloatDataArrays()[0];
+  TEST_EQUAL(fda_emg->getName(), "emg_parameters")
+  TEST_REAL_SIMILAR((*fda_emg)[0], 7735860)
+  TEST_REAL_SIMILAR((*fda_emg)[1], 2.66296)
+  TEST_REAL_SIMILAR((*fda_emg)[2], 0.0394313)
+  TEST_REAL_SIMILAR((*fda_emg)[3], 0.0394313)
 
-  emg_params = find_if(
-    out_min.getFloatDataArrays().begin(),
-    out_min.getFloatDataArrays().end(),
-    [](const MSSpectrum::FloatDataArray& fda)
-    {
-      return fda.getName() == "emg_parameters";
-    }
-  );
-  TEST_REAL_SIMILAR((*emg_params)[0], 7735860)
-  TEST_REAL_SIMILAR((*emg_params)[1], 2.66296)
-  TEST_REAL_SIMILAR((*emg_params)[2], 0.0394313)
-  TEST_REAL_SIMILAR((*emg_params)[3], 0.0394313)
-
-  emg_params = find_if(
-    out_sec.getFloatDataArrays().begin(),
-    out_sec.getFloatDataArrays().end(),
-    [](const MSSpectrum::FloatDataArray& fda)
-    {
-      return fda.getName() == "emg_parameters";
-    }
-  );
-  TEST_REAL_SIMILAR((*emg_params)[0], 7735860)
-  TEST_REAL_SIMILAR((*emg_params)[1], 159.778)
-  TEST_REAL_SIMILAR((*emg_params)[2], 2.36584)
-  TEST_REAL_SIMILAR((*emg_params)[3], 2.36584)
+  fda_emg = &out_sec.getFloatDataArrays()[0];
+  TEST_EQUAL(fda_emg->getName(), "emg_parameters")
+  TEST_REAL_SIMILAR((*fda_emg)[0], 7735860)
+  TEST_REAL_SIMILAR((*fda_emg)[1], 159.778)
+  TEST_REAL_SIMILAR((*fda_emg)[2], 2.36584)
+  TEST_REAL_SIMILAR((*fda_emg)[3], 2.36584)
 
   ptr->fitEMGPeakModel(saturated_cutoff_spec_min, out_min);
   ptr->fitEMGPeakModel(saturated_cutoff_spec_sec, out_sec);
@@ -1107,31 +1058,19 @@ START_SECTION(void fitEMGPeakModel(
     TEST_REAL_SIMILAR(out_min[i].getIntensity(), out_sec[i].getIntensity())
   }
 
-  emg_params = find_if(
-    out_min.getFloatDataArrays().begin(),
-    out_min.getFloatDataArrays().end(),
-    [](const MSSpectrum::FloatDataArray& fda)
-    {
-      return fda.getName() == "emg_parameters";
-    }
-  );
-  TEST_REAL_SIMILAR((*emg_params)[0], 15515900)
-  TEST_REAL_SIMILAR((*emg_params)[1], 14.3453)
-  TEST_REAL_SIMILAR((*emg_params)[2], 0.0344277)
-  TEST_REAL_SIMILAR((*emg_params)[3], 0.188507)
+  fda_emg = &out_min.getFloatDataArrays()[0];
+  TEST_EQUAL(fda_emg->getName(), "emg_parameters")
+  TEST_REAL_SIMILAR((*fda_emg)[0], 15515900)
+  TEST_REAL_SIMILAR((*fda_emg)[1], 14.3453)
+  TEST_REAL_SIMILAR((*fda_emg)[2], 0.0344277)
+  TEST_REAL_SIMILAR((*fda_emg)[3], 0.188507)
 
-  emg_params = find_if(
-    out_sec.getFloatDataArrays().begin(),
-    out_sec.getFloatDataArrays().end(),
-    [](const MSSpectrum::FloatDataArray& fda)
-    {
-      return fda.getName() == "emg_parameters";
-    }
-  );
-  TEST_REAL_SIMILAR((*emg_params)[0], 15515900)
-  TEST_REAL_SIMILAR((*emg_params)[1], 860.719)
-  TEST_REAL_SIMILAR((*emg_params)[2], 2.06566)
-  TEST_REAL_SIMILAR((*emg_params)[3], 11.3104)
+  fda_emg = &out_sec.getFloatDataArrays()[0];
+  TEST_EQUAL(fda_emg->getName(), "emg_parameters")
+  TEST_REAL_SIMILAR((*fda_emg)[0], 15515900)
+  TEST_REAL_SIMILAR((*fda_emg)[1], 860.719)
+  TEST_REAL_SIMILAR((*fda_emg)[2], 2.06566)
+  TEST_REAL_SIMILAR((*fda_emg)[3], 11.3104)
 
   ptr->fitEMGPeakModel(cutoff_spec_min, out_min);
   ptr->fitEMGPeakModel(cutoff_spec_sec, out_sec);
@@ -1142,31 +1081,19 @@ START_SECTION(void fitEMGPeakModel(
     TEST_REAL_SIMILAR(out_min[i].getIntensity(), out_sec[i].getIntensity())
   }
 
-  emg_params = find_if(
-    out_min.getFloatDataArrays().begin(),
-    out_min.getFloatDataArrays().end(),
-    [](const MSSpectrum::FloatDataArray& fda)
-    {
-      return fda.getName() == "emg_parameters";
-    }
-  );
-  TEST_REAL_SIMILAR((*emg_params)[0], 3791.07)
-  TEST_REAL_SIMILAR((*emg_params)[1], 15.4227)
-  TEST_REAL_SIMILAR((*emg_params)[2], 0.0210588)
-  TEST_REAL_SIMILAR((*emg_params)[3], 0.0476741)
+  fda_emg = &out_min.getFloatDataArrays()[0];
+  TEST_EQUAL(fda_emg->getName(), "emg_parameters")
+  TEST_REAL_SIMILAR((*fda_emg)[0], 3791.07)
+  TEST_REAL_SIMILAR((*fda_emg)[1], 15.4227)
+  TEST_REAL_SIMILAR((*fda_emg)[2], 0.0210588)
+  TEST_REAL_SIMILAR((*fda_emg)[3], 0.0476741)
 
-  emg_params = find_if(
-    out_sec.getFloatDataArrays().begin(),
-    out_sec.getFloatDataArrays().end(),
-    [](const MSSpectrum::FloatDataArray& fda)
-    {
-      return fda.getName() == "emg_parameters";
-    }
-  );
-  TEST_REAL_SIMILAR((*emg_params)[0], 3791.13)
-  TEST_REAL_SIMILAR((*emg_params)[1], 925.363)
-  TEST_REAL_SIMILAR((*emg_params)[2], 1.26351)
-  TEST_REAL_SIMILAR((*emg_params)[3], 2.8605)
+  fda_emg = &out_sec.getFloatDataArrays()[0];
+  TEST_EQUAL(fda_emg->getName(), "emg_parameters")
+  TEST_REAL_SIMILAR((*fda_emg)[0], 3791.13)
+  TEST_REAL_SIMILAR((*fda_emg)[1], 925.363)
+  TEST_REAL_SIMILAR((*fda_emg)[2], 1.26351)
+  TEST_REAL_SIMILAR((*fda_emg)[3], 2.8605)
 }
 END_SECTION
 
