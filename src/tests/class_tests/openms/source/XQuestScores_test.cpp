@@ -98,6 +98,8 @@ START_SECTION(static double matchOddsScore(const PeakSpectrum& theoretical_spec,
         TEST_EQUAL(theo_spec_1.size(), 46)
         TEST_EQUAL(alignment1.size(), 28)
         TEST_EQUAL(alignment2.size(), 10)
+        TEST_REAL_SIMILAR(theo_spec_1.back().getMZ() - theo_spec_1[0].getMZ(), 1903.33405)
+        TEST_REAL_SIMILAR(std::log(theo_spec_1.back().getMZ()) - std::log(theo_spec_1[0].getMZ()), 3.99930)
 
         TEST_REAL_SIMILAR(XQuestScores::matchOddsScore(theo_spec_1, alignment1.size(), 0.1, false), 708.39641);
         TEST_REAL_SIMILAR(XQuestScores::matchOddsScore(theo_spec_2, alignment1.size(), 0.1, false), 708.39641);
