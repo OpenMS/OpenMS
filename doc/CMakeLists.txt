@@ -45,6 +45,9 @@ macro(make_doxygen_path doxygen_style_list_var doc_path_list_var)
   endforeach()
 endmacro()
 
+if(BUILD_DOCS)
+  message(STATUS "Documentation is built (-D BUILD_DOCS=On).")
+
 #------------------------------------------------------------------------------
 # decide which doc target is part of all
 #------------------------------------------------------------------------------
@@ -406,3 +409,7 @@ option(BUILD_EXAMPLES "Compile OpenMS code examples" ON)
 if(BUILD_EXAMPLES AND "${PACKAGE_TYPE}" STREQUAL "none")
   add_subdirectory(code_examples)
 endif(BUILD_EXAMPLES AND "${PACKAGE_TYPE}" STREQUAL "none")
+
+else()
+  message(STATUS "Documentation is not built (-D BUILD_DOCS=Off).")
+endif()

@@ -366,6 +366,11 @@
       %OpenMS without a GUI, set this flag to "Off" (Default: On)</td>
     </tr>
     <tr>
+      <td valign="top">\c BUILD_DOCS</td>
+      <td>Defines if %OpenMS should build the documentation.
+      (Default: On)</td>
+    </tr>
+    <tr>
       <td valign="top">\c ENABLE_TUTORIALS</td>
       <td>Defines if %OpenMS should build and install the pdf tutorials.
       (Default: On)</td>
