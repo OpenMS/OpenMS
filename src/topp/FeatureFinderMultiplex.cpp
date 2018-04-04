@@ -869,7 +869,7 @@ public:
    * @param consensus_map    consensus map with peptide multiplets (to be filled)
    * @param feature_map    feature map with peptides (to be filled)
    */
-  void generateMaps_(std::vector<MultiplexIsotopicPeakPattern> patterns, std::vector<MultiplexFilteredMSExperiment> filter_results, std::vector<std::map<int, GridBasedCluster> > cluster_results, ConsensusMap& consensus_map, FeatureMap& feature_map)
+  void generateMapsCentroided_(std::vector<MultiplexIsotopicPeakPattern> patterns, std::vector<MultiplexFilteredMSExperiment> filter_results, std::vector<std::map<int, GridBasedCluster> > cluster_results, ConsensusMap& consensus_map, FeatureMap& feature_map)
   {
     // loop over peak patterns
     for (unsigned pattern = 0; pattern < patterns.size(); ++pattern)
@@ -1117,9 +1117,12 @@ public:
             {
               if (isotope == 0)
               {
-                rt += (satellite_it->second).getRT() * (satellite_it->second).getIntensity();
-                mz += (satellite_it->second).getMZ() * (satellite_it->second).getIntensity();
-                intensity_sum += (satellite_it->second).getIntensity();
+                // Satellites of zero intensity makes sense (borders of peaks), but mess up feature/consensus construction.
+                double intensity_temp = (satellite_it->second).getIntensity() + 0.0001;
+                
+                rt += (satellite_it->second).getRT() * intensity_temp;
+                mz += (satellite_it->second).getMZ() * intensity_temp;
+                intensity_sum += intensity_temp;
               }
               
               mass_trace.enlarge((satellite_it->second).getRT(), (satellite_it->second).getMZ());
@@ -1148,6 +1151,11 @@ public:
           rt /= intensity_sum;
           mz /= intensity_sum;
           
+          /*if (intensity_sum==0)
+          {
+            std::cout << "intensity sum = 0    peptide = " << peptide << "\n";
+          }*/
+          
           feature.setRT(rt);
           feature.setMZ(mz);
           feature.setIntensity(peptide_intensities[peptide]);
@@ -1170,6 +1178,12 @@ public:
             // All peptide feature handles are connected to this point.
             consensus.setRT(rt);
             consensus.setMZ(mz);
+            
+            if ((812 < mz) && (mz < 813) && (3249 < rt) && (rt < 3250))
+            {
+              std::cout << "Consensus of interest.    " << peptide_intensities[0] << "  " << peptide_intensities[1] << "\n";
+            }
+            
             consensus.setIntensity(peptide_intensities[peptide]);
             consensus.setCharge(patterns[pattern].getCharge());
             consensus.setQuality(1.0);
@@ -1575,7 +1589,7 @@ private:
     {
       //consensus_map.setPrimaryMSRunPath(exp_centroid_.getPrimaryMSRunPath());
       //feature_map.setPrimaryMSRunPath(exp_centroid_.getPrimaryMSRunPath());
-      generateMaps_(patterns, filter_results, cluster_results, consensus_map, feature_map);
+      generateMapsCentroided_(patterns, filter_results, cluster_results, consensus_map, feature_map);
     }
     else
     {
