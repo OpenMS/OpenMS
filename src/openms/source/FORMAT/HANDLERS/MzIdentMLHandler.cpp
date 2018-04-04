@@ -775,7 +775,14 @@ namespace OpenMS
             pepi += "_" + jt->getMetaValue("xl_chain").toString();
             if (jt->getMetaValue("xl_type") != "mono-link")  //sequence may contain more than one linker anchors; also code position linked
             {
-              pepi += "_" + jt->getMetaValue("xl_pos").toString();
+              if (jt->getMetaValue("xl_chain") == "MS:1002509")
+              {
+                pepi += "_" + jt->getMetaValue("xl_pos").toString();
+              }
+              else
+              {
+                pepi += "_" + jt->getMetaValue("xl_pos2").toString();
+              }
             }
             pepi += ppxl_linkid;
             //TODO ppxl : should also code for which position is linked
@@ -1026,13 +1033,14 @@ namespace OpenMS
               }
               else // xl_chain = "MS:1002510", acceptor
               {
+                i = jt->getMetaValue("xl_pos2").toString().toInt();
                 if (jt->metaValueExists("xl_term_spec") && jt->getMetaValue("xl_term_spec") == "N_TERM")
                 {
                   p += "\t\t<Modification location=\"0";
                 }
                 else if (jt->metaValueExists("xl_term_spec") && jt->getMetaValue("xl_term_spec") == "C_TERM")
                 {
-                  p += "\t\t<Modification location=\"" + String(i + 2);
+                  p += "\t\t<Modification location=\"" + String(jt->getSequence().size() + 2);
                 }
                 else
                 {
@@ -1277,6 +1285,7 @@ namespace OpenMS
             copy_jt.removeMetaValue("xl_rank");  // not so sure: it->getMetaValue("xl_rank")
             copy_jt.removeMetaValue("xl_type");
             copy_jt.removeMetaValue("xl_pos");
+            copy_jt.removeMetaValue("xl_pos2");
             copy_jt.removeMetaValue("xl_mod");
             copy_jt.removeMetaValue("xl_chain");
             copy_jt.removeMetaValue("xl_mass");

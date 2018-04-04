@@ -1753,7 +1753,7 @@ namespace OpenMS
         ph_alpha.setMetaValue("xl_term_spec", "ANYWHERE");
       }
 
-      phs.push_back(ph_alpha);
+
 
       if (xl_type == "cross-link")
       {
@@ -1799,21 +1799,28 @@ namespace OpenMS
         // correction for terminal modifications
         if (beta_pos == -1)
         {
-          ph_beta.setMetaValue("xl_pos", ++beta_pos);
+          ph_beta.setMetaValue("xl_pos2", ++beta_pos);
           ph_beta.setMetaValue("xl_term_spec", "N_TERM");
         }
         else if (beta_pos == static_cast<SignedSize>(ph_beta.getSequence().size()))
         {
-          ph_beta.setMetaValue("xl_pos", --beta_pos);
+          ph_beta.setMetaValue("xl_pos2", --beta_pos);
           ph_beta.setMetaValue("xl_term_spec", "C_TERM");
         }
         else
         {
-          ph_beta.setMetaValue("xl_pos", beta_pos);
+          ph_beta.setMetaValue("xl_pos2", beta_pos);
           ph_beta.setMetaValue("xl_term_spec", "ANYWHERE");
         }
+        ph_alpha.setMetaValue("xl_pos2", ph_beta.getMetaValue("xl_pos2"));
+        ph_beta.setMetaValue("xl_pos", ph_alpha.getMetaValue("xl_pos"));
 
+        phs.push_back(ph_alpha);
         phs.push_back(ph_beta);
+      }
+      else
+      {
+        phs.push_back(ph_alpha);
       }
 
       std::vector<String> unique_peptides;
