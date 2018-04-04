@@ -1,6 +1,9 @@
 from libcpp cimport *
 from Types cimport *
 from String cimport *
+from ProteinIdentification cimport *
+from ConsensusMap cimport *
+from FeatureMap cimport *
 
 cdef extern from "<OpenMS/METADATA/ExperimentalDesign.h>" namespace "OpenMS":
     
@@ -9,11 +12,11 @@ cdef extern from "<OpenMS/METADATA/ExperimentalDesign.h>" namespace "OpenMS":
         ExperimentalDesign(ExperimentalDesign) nogil except + #wrap-ignore
 
         libcpp_vector[ ExperimentalDesign_RunRow ] getRunSection() nogil except +
-        setRunSection() nogil except +
+        void setRunSection(ExperimentalDesign_RunRow run_section) nogil except +
 
         # Returns the Sample Section of the experimental design file
         ExperimentalDesign_SampleSection getSampleSection() nogil except +
-        setSampleSection(ExperimentalDesign_SampleSection sample_section) nogil except +
+        void setSampleSection(ExperimentalDesign_SampleSection sample_section) nogil except +
 
         # Gets vector of Filenames that appears in the run section, optionally trims to basename
         libcpp_vector[ String ] getFileNames(bool basename) nogil except +
@@ -59,20 +62,23 @@ cdef extern from "<OpenMS/METADATA/ExperimentalDesign.h>" namespace "OpenMS":
 
         # return if each fraction number is associated with the same number of runs
         bool sameNrOfMSFilesPerFraction() nogil except +
+                
+# COMMENT: wrap static methods
+cdef extern from "<OpenMS/METADATA/ExperimentalDesign.h>" namespace "OpenMS::ExperimentalDesign":
 
         # Extract experimental design from consensus map
-        # static ExperimentalDesign fromConsensusMap(const ConsensusMap& c);
+        ExperimentalDesign fromConsensusMap(ConsensusMap c) nogil except + #wrap-attach:ExperimentalDesign
 
         # Extract experimental design from feature map
-        # static ExperimentalDesign fromFeatureMap(const FeatureMap& f);
+        ExperimentalDesign fromFeatureMap(FeatureMap f) nogil except + #wrap-attach:ExperimentalDesign
 
         # Extract experimental design from identifications
-        # static ExperimentalDesign fromIdentifications(const std::vector<ProteinIdentification> & proteins);
-                
-        
+        ExperimentalDesign fromIdentifications(libcpp_vector[ProteinIdentification] & proteins) nogil except + #wrap-attach:ExperimentalDesign
+
 cdef extern from "<OpenMS/METADATA/ExperimentalDesign.h>" namespace "OpenMS::ExperimentalDesign":
     
     cdef cppclass ExperimentalDesign_RunRow "OpenMS::ExperimentalDesign::RunRow":
+
         ExperimentalDesign_RunRow() nogil except +
         ExperimentalDesign_RunRow(ExperimentalDesign_RunRow) nogil except + #wrap-ignore
         # libcpp_string file
@@ -83,13 +89,15 @@ cdef extern from "<OpenMS/METADATA/ExperimentalDesign.h>" namespace "OpenMS::Exp
 cdef extern from "<OpenMS/METADATA/ExperimentalDesign.h>" namespace "OpenMS::ExperimentalDesign":
 
     cdef cppclass ExperimentalDesign_SampleSection "OpenMS::ExperimentalDesign::SampleSection":
+
           ExperimentalDesign_SampleSection() nogil except +
+          ExperimentalDesign_SampleSection(ExperimentalDesign_SampleSection) nogil except +
 
           # Get set of all samples that are present in the sample section
           libcpp_set[ unsigned int ] getSamples() nogil except +
 
           # Get set of all factors (column names) that were defined for the sample section
-          libcpp_set[ unsigned int ] getFactors() nogil except +
+          libcpp_set[ String ] getFactors() nogil except +
 
           # Checks whether sample section has row for a sample number
           bool hasSample(unsigned int sample) nogil except +
