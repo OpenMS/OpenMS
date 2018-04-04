@@ -148,6 +148,9 @@ protected:
     registerFlag_("precursor:use_adducts", "Consider possible salt adducts (see 'precursor:potential_adducts') when matching precursor masses?", false);
     registerStringList_("precursor:potential_adducts", "<list>", ListUtils::create<String>("K:+"), "Adducts considered to explain mass differences. Format: 'Element:Charge(+/-)', i.e. the number of '+' or '-' indicates the charge, e.g. 'Ca:++' indicates +2. Only used if 'precursor:use_adducts' is set.", false, false);
 
+    //Whether we single charge the MS2s prior to scoring
+    registerFlag_("decharge_ms2","Whether to decharge the MS2 spectra for scoring",false);
+
     // consider one before annotated monoisotopic peak and the annotated one
     IntList isotopes = {0, 1};
     registerIntList_("precursor:isotopes", "<num>", isotopes, "Corrects for mono-isotopic peak misassignments. (E.g.: 1 = prec. may be misassigned to first isotopic peak)", false, false);
@@ -630,6 +633,7 @@ protected:
     StringList potential_adducts = getStringList_("precursor:potential_adducts");
     DoubleList adduct_masses;
     bool use_adducts = getFlag_("precursor:use_adducts");
+    bool single_charge_spectra = getFlag_("decharge_ms2");
     if (use_adducts)
     {
       for (StringList::iterator it = potential_adducts.begin(); it != potential_adducts.end(); ++it)
@@ -697,7 +701,7 @@ protected:
     progresslogger.startProgress(0, 1, "filtering spectra...");
     // @TODO: move this into the loop below (run only when checks pass)
     preprocessSpectra_(spectra, search_param.fragment_mass_tolerance,
-                       search_param.fragment_tolerance_ppm, true,
+                       search_param.fragment_tolerance_ppm, single_charge_spectra,
                        negative_mode);
     progresslogger.endProgress();
     LOG_DEBUG << "preprocessed spectra: " << spectra.getNrSpectra() << endl;
@@ -893,8 +897,7 @@ protected:
         PeakSpectrum theo_spectrum;
         // add peaks for b and y ions with charge 1
         Int charge = negative_mode ? -1 : 1;
-        spectrum_generator.getSpectrum(theo_spectrum, candidate, charge,
-                                       charge);
+
         // sort by mz
         theo_spectrum.sortByPosition();
 
@@ -905,6 +908,9 @@ protected:
 
           const Size& scan_index = low_it->second;
           const PeakSpectrum& exp_spectrum = spectra[scan_index];
+          Int max_charge = single_charge_spectra ? charge : charge * exp_spectrum.getPrecursors()[0].getCharge() ;
+          spectrum_generator.getSpectrum(theo_spectrum, candidate, charge,
+                                         max_charge);
 
           vector<PeptideHit::PeakAnnotation> annotations;
           double score = MetaboliteSpectralMatching::computeHyperScore(
