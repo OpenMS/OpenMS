@@ -339,7 +339,7 @@ namespace OpenMS
            << "_" << spec.getNativeID() << "_" << filename << "\n";
         os << "PEPMASS=" << precisionWrapper(mz) <<  "\n";
         os << "RTINSECONDS=" << precisionWrapper(rt) << "\n";
-	if (native_id_type_accession == "UNKOWN")
+	if (native_id_type_accession == "UNKNOWN")
 	{
 	  os << "SCANS=" << spec.getNativeID().substr(spec.getNativeID().find_last_of("=")+1) << "\n";
 	}
@@ -355,7 +355,7 @@ namespace OpenMS
            << spec.getNativeID() << "_" << filename << "\n";
         os << "PEPMASS=" << setprecision(HIGH_PRECISION) << mz << "\n";
         os << "RTINSECONDS=" << setprecision(LOW_PRECISION) << rt << "\n";
-	if (native_id_type_accession == "UNKOWN")
+	if (native_id_type_accession == "UNKNOWN")
 	{
 	  os << "SCANS=" << spec.getNativeID().substr(spec.getNativeID().find_last_of("=")+1) << "\n";
 	}
@@ -419,11 +419,17 @@ namespace OpenMS
     QFileInfo fileinfo(filename.c_str());
     QString filtered_filename = fileinfo.completeBaseName();
     filtered_filename.remove(QRegExp("[^a-zA-Z0-9]"));
-   
-    String native_id_type_accession = experiment.getExperimentalSettings().getSourceFiles()[0].getNativeIDTypeAccession();
-    if (native_id_type_accession.empty())
+
+
+    String native_id_type_accession;
+    vector<SourceFile> sourcefiles = experiment.getExperimentalSettings().getSourceFiles();
+    if (sourcefiles.empty())
     {
-      String native_id_type_accession = "UNKOWN";
+      native_id_type_accession = "UNKNOWN";
+    }
+    else
+    {
+      native_id_type_accession = experiment.getExperimentalSettings().getSourceFiles()[0].getNativeIDTypeAccession();
     }
     this->startProgress(0, experiment.size(), "storing mascot generic file");
     for (Size i = 0; i < experiment.size(); i++)
