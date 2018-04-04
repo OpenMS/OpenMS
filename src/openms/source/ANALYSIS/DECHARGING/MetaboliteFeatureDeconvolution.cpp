@@ -630,7 +630,6 @@ namespace OpenMS
     // **       DEBUG          ** //
     // -------------------------- //
 
-    //printEdgesOfConnectedFeatures_(888, 889, feature_relation);
     Map<Size, Size> features_aes, features_des; // count of adjacent active and dead edges
     UInt agreeing_fcharge = 0;
     std::vector<Size> f_idx_v(2);
@@ -639,7 +638,6 @@ namespace OpenMS
     StringList scores_clean_edge_idx, scores_dirty_edge_idx;
     EmpiricalFormula ef_clean_edge, ef_dirty_edge;
     // find # edges (active and dead) for each feature
-    TextFile out_massdeltas;
     for (Size i = 0; i < feature_relation.size(); ++i)
     {
       Size f0_idx = feature_relation[i].getElementIndex(0);
@@ -654,16 +652,9 @@ namespace OpenMS
         ++features_des[f0_idx];
         ++features_des[f1_idx];
       }
-
-      // print mass delta of each edge
-      out_massdeltas.addLine(String(feature_relation[i].getMassDiff()) + ", " + String(feature_relation[i].getCharge(0)) + ", " + String(feature_relation[i].isActive() == 0));
-
     }
 
-#ifdef DC_DEVEL
-    out_massdeltas.store("mass_deltas.csv");
-#endif
-    TextFile out_dead;
+
     for (Size i = 0; i < feature_relation.size(); ++i)
     {
       f_idx_v[0] = feature_relation[i].getElementIndex(0);
@@ -673,11 +664,6 @@ namespace OpenMS
 
       if (!feature_relation[i].isActive())
       {
-        out_dead.addLine(String("dead e") + i + " (" + (c.getAdductsAsString(Compomer::LEFT)) + " -> " + (c.getAdductsAsString(Compomer::RIGHT)) + "): "
-                         + f_idx_v[0] + " (q_ff:" + fm_out[f_idx_v[0]].getCharge() + " q_de:" + feature_relation[i].getCharge(0) + ")"
-                         + f_idx_v[1] + " (q_ff:" + fm_out[f_idx_v[1]].getCharge() + " q_de:" + feature_relation[i].getCharge(1) + ")"
-                         + "score: " + feature_relation[i].getEdgeScore()
-                         );
         continue;
       }
       ++aedges;
@@ -725,11 +711,6 @@ namespace OpenMS
     }
     LOG_INFO << "Agreeing charges: " << agreeing_fcharge << "/" << (aedges * 2) << std::endl;
 
-#ifdef DC_DEVEL
-    out_dead.store("ILP_dead_edges.txt"); // TODO disable
-    //std::cout << "Edge score distribution (clean):\n" + scores_clean_edge.concatenate(" ") + "\n(dirty)\n" + scores_dirty_edge.concatenate(" ") + "\n\n";
-    //std::cout << "Edge empirical formula (clean):\n" + ef_clean_edge.toString() + "\n(dirty)\n" + ef_dirty_edge.toString() + "\n\n";
-#endif
 
     // END DEBUG
 
@@ -755,7 +736,7 @@ namespace OpenMS
     CliqueMap clique_register;
 
     StringList scores;
-    StringList scores_e_inactive_idx, scores_e_active_idx;
+    StringList scores_e_active_idx;
 
     for (Size i = 0; i < feature_relation.size(); ++i)
     {
@@ -949,53 +930,8 @@ namespace OpenMS
 
         scores_e_active_idx.push_back(String(i));
       }
-      else // inactive edges
-      {
-        scores_e_inactive_idx.push_back(String(i));
-
-        // DEBUG
-#ifdef DC_DEVEL
-        ConsensusFeature cf(fm_out[f0_idx]);
-        cf.setQuality(0.0);
-        cf.insert(0, fm_out[f0_idx].getUniqueId(), fm_out[f0_idx]);
-        cf.insert(0, fm_out[f1_idx].getUniqueId(), fm_out[f1_idx]);
-        cf.setMetaValue("Local", String(old_q0) + ":" + String(old_q1));
-        cf.setMetaValue("CP", String(fm_out[f0_idx].getCharge()) + "(" + String(fm_out[f0_idx].getMetaValue("dc_charge_adducts")) + "):"
-                        + String(fm_out[f1_idx].getCharge()) + "(" + String(fm_out[f1_idx].getMetaValue("dc_charge_adducts")) + ") "
-                        + String("Score: ") + feature_relation[i].getEdgeScore());
-        cf.setUniqueId();
-
-        // print pairs only
-        cons_map_p_neg.push_back(cf);
-        cons_map_p_neg.getFileDescriptions()[0].size = fm_out.size();
-        cons_map_p_neg.getFileDescriptions()[0].label = "charged features pairs (inactive)";
-#endif
-      }
 
     } // !for feature_relation (i.e. edges)
-
-
-    //  DEBUG
-#ifdef DC_DEVEL
-    // todo?!: CM has no file descriptions (channels) set
-    ConsensusXMLFile cf_neg;
-    cons_map_p_neg.ensureUniqueId();
-    cf_neg.store("dc_pairs_neg.consensusXML", cons_map_p_neg);
-
-    // DEBUG print scores
-    TextFile tf;
-    tf.push_back("scr = c(" + scores.concatenate(", ") + ")");
-    tf.push_back("s_ia_idx = c(" + scores_e_inactive_idx.concatenate(", ") + ")+1");
-    tf.push_back("s_a_idx =   c(" +   scores_e_active_idx.concatenate(", ") + ")+1");
-    tf.push_back("s_a_idx_clean = c(" + scores_clean_edge_idx.concatenate(", ") + ")+1");
-    tf.push_back("s_a_idx_dirty = c(" +   scores_dirty_edge_idx.concatenate(", ") + ")+1");
-
-    tf.push_back("plot( density(scr[s_ia_idx]), xlim=range( scr ), main=" ", xlab=" " )");
-    tf.push_back("lines(density(scr[s_a_idx_dirty]), col=2)");
-    tf.push_back("lines(density(scr[s_a_idx_clean]), col=3)");
-    tf.push_back("legend(x=\"topright\",c(\"dead\", \"active_dirty\", \"active_clean\"), text.col=c(1,2,3))");
-    tf.store("plot_scores.r");
-#endif
 
 
     // remove empty ConsensusFeatures from map
@@ -1084,14 +1020,7 @@ namespace OpenMS
       cons_map_p.getFileDescriptions()[i].label = map_label_[i];
     }
 
-#ifdef DC_DEVEL
-    ChargeLadder cl;
-    FeatureMapType fm_missing;
-    cl.suggestMissingFeatures(fm_out, cons_map, fm_missing);
-
-    FeatureXMLFile fmf;
-    fmf.store("fm_missing.featureXML", fm_missing);
-#endif
+    //see Proteomics Decharger for use of ChargeLadder for candidate missing features. Could e.g., be used to predict undetected features and look for them in mzML like FeatureFinderIdentification?!
 
     cons_map_p.applyMemberFunction(&UniqueIdInterface::ensureUniqueId);
     cons_map.applyMemberFunction(&UniqueIdInterface::ensureUniqueId);
