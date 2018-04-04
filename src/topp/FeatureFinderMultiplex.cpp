@@ -1151,11 +1151,7 @@ public:
           rt /= intensity_sum;
           mz /= intensity_sum;
           
-          /*if (intensity_sum==0)
-          {
-            std::cout << "intensity sum = 0    peptide = " << peptide << "\n";
-          }*/
-          
+
           feature.setRT(rt);
           feature.setMZ(mz);
           feature.setIntensity(peptide_intensities[peptide]);
@@ -1177,13 +1173,7 @@ public:
             // The first/lightest peptide acts as anchor of the peptide multiplet consensus.
             // All peptide feature handles are connected to this point.
             consensus.setRT(rt);
-            consensus.setMZ(mz);
-            
-            if ((812 < mz) && (mz < 813) && (3249 < rt) && (rt < 3250))
-            {
-              std::cout << "Consensus of interest.    " << peptide_intensities[0] << "  " << peptide_intensities[1] << "\n";
-            }
-            
+            consensus.setMZ(mz);            
             consensus.setIntensity(peptide_intensities[peptide]);
             consensus.setCharge(patterns[pattern].getCharge());
             consensus.setQuality(1.0);
