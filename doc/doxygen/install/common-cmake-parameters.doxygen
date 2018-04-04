@@ -10,7 +10,53 @@ The most important CMake variables are:
   </tr>
   <tr>
     <td valign="top">\c CMAKE_PREFIX_PATH</td>
-    <td>Additional search path for the contrib libraries.</td>
+    <td>Additional search path for the contrib libraries.
+
+    [MacOSX only]
+    If you want to use libraries installed via Homebrew or MacPorts you might
+    need to provide the corresponding paths
+
+    <code>-DCMAKE_PREFIX_PATH=/usr/local/Cellar</code> for Homebrew
+    <code>-DCMAKE_PREFIX_PATH=/opt/local</code> for MacPorts
+
+    Please keep in mind that both Homebrew and MacPorts do not provide all libraries so
+    you also need to specify the path to your self-build contrib via -DOPENMS_CONTRIB_LIBS
+
+</td>
+  </tr>
+  <tr>
+    <td valign="top">\c HAS_XSERVER=On/Off</td>
+    <td>Defines if a running X Server is available when building %OpenMS.
+    As building parts of the documentation and running certain tests requires
+    a running X Server, this flag can be used to disable those parts of the
+    documentation and the tests that need an X Server. (Default: On)</td>
+  </tr>
+  <tr>
+    <td valign="top">\c WITH_GUI=On/Off</td>
+    <td>Defines if the %OpenMS GUI tools (TOPPView, TOPPAS) should be built or
+    not. These components need Qt > 4.7 which may not be available on some
+    systems (specifically older CentOS / RHEL servers). If you plan to use
+    %OpenMS without a GUI, set this flag to "Off" (Default: On)</td>
+  </tr>
+  <tr>
+    <td valign="top">\c ENABLE_TUTORIALS=On/Off</td>
+    <td>Defines if %OpenMS should build and install the pdf tutorials.
+    (Default: On)</td>
+  </tr>
+  <tr>
+    <td valign="top">\c ENABLE_DOCS=On/Off</td>
+    <td>Defines if %OpenMS should build the documentation.
+    (Default: On)</td>
+  </tr>
+  <tr>
+    <td valign="top">\c GIT_TRACKING=On/Off</td>
+    <td>Embed Git checksum into the library.
+    (Default: On)</td>
+  </tr>
+  <tr>
+    <td valign="top">\c ENABLE_UPDATE_CHECK=On/Off</td>
+    <td>Check online for OpenMS Updates upon invocation of any TOPP/UTIL.
+    (Default: On)</td>
   </tr>
   <tr>
     <td valign="top">\c CMAKE_BUILD_TYPE</td>
@@ -29,30 +75,6 @@ The most important CMake variables are:
     lead to undefined behaviour as some internal settings (e.g., %OpenMP
     support) are determined using the C compiler and are assumed to be the
     same for the C++ compiler.</td>
-  </tr>
-  <tr>
-    <td valign="top">\c HAS_XSERVER</td>
-    <td>Defines if a running X Server is available when building %OpenMS.
-    As building parts of the documentation and running certain tests requires
-    a running X Server, this flag can be used to disable those parts of the
-    documentation and the tests that need an X Server. (Default: On)</td>
-  </tr>
-  <tr>
-    <td valign="top">\c WITH_GUI</td>
-    <td>Defines if the %OpenMS GUI tools (TOPPView, TOPPAS) should be built or
-    not. These components need Qt > 4.7 which may not be available on some
-    systems (specifically older CentOS / RHEL servers). If you plan to use
-    %OpenMS without a GUI, set this flag to "Off" (Default: On)</td>
-  </tr>
-  <tr>
-    <td valign="top">\c ENABLE_TUTORIALS</td>
-    <td>Defines if %OpenMS should build and install the pdf tutorials.
-    (Default: On)</td>
-  </tr>
-  <tr>
-    <td valign="top">\c BUILD_DOCS</td>
-    <td>Defines if %OpenMS should build the documentation.
-    (Default: On)</td>
   </tr>
   <tr>
     <td valign="top">\c SEARCH_ENGINES_DIRECTORY (optional)</td>

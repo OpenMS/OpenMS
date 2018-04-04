@@ -70,7 +70,7 @@
     If you want to use a release version of %OpenMS, use the corresponding Release-tagged version
     on GitHub (https://github.com/OpenMS/contrib/releases) or download the contrib source from a .tar.gz
     for older releases.
-    
+
     @b Installation:
 
     After you got the source code for the contrib package follow these steps:
@@ -101,7 +101,7 @@
 
       <li>Add the &lt;path_to_contrib_build&gt;/lib directory to your PATH Environment Variable (this is so Windows can find the DLL's when running our executables).
     </ol>
-   
+
 	@subsection install_qt QT installation
 
     Qt comes in two flavors: commercial or non-commercial - choose whatever is applicable to you: read more on the Qt website
@@ -158,7 +158,7 @@
           Alternatively, you can copy the entire platforms-folder into the folder where your openms executables will be created (but they will depend on the build-type, i.e. release|debug|...).
     </ol>
 
- 
+
 
 @section create_doc Building the documentation (optional)
 
@@ -208,7 +208,7 @@
     If you have not installed the libraries which %OpenMS requires,
     please refer to the section @ref install_win_contrib above (and skip the clone step).
     <br>
-    
+
     Now, we create the build system:
     <ol>
       <li>Open a Visual Studio Command Line (use x64 version if you want 64bit apps!)
@@ -228,6 +228,9 @@
         cmake -D OPENMS_CONTRIB_LIBS="C:\dev\contrib_win64_build" -G "Visual Studio 15 2017 Win64" ..\OpenMS
         \endcode
     </ol>
+
+    \includedoc "../doxygen/install/common-cmake-parameters.doxygen"
+
 
     Now there should be a <tt>OpenMS_host.sln</tt> file in your build directory, which you can open using Visual Studio.
     If you want to work on only a subset of %OpenMS (e.g., OpenMS_GUI) you can open the specific solution that you will find in the src/ folder of your
@@ -262,19 +265,18 @@
   For more syntax on CTest look at the online documentation at http://cmake.org/.
 
   @section install_win_cmdline_openms Building OpenMS on the commandline
-  
+
   The Visual Studio solution files can contain many targets, which makes the IDE a bit sluggish especially when starting up the first time.
   The %OpenMS class tests are by far the largest.
-  
+
   If you just want to compile the library or executables, it's usually faster to use the commandline. Visual Studio solution files can be used here as well,
   as arguments to <tt>MSBuild.exe</tt>, e.g.
   \code
   MSBuild.exe <solution.sln> /maxcpucount /target:<target> /p:Configuration=<Config>
   \endcode
-  
-  @note Since the call can be a bit lengthy, there is a batch file in <tt>OpenMS/tools/build.bat</tt>, which allows to build the most important targets (TOPP, UTILS, Gui, Tests, Doc) in Release or Debug using very short notation. Call it without arguments to see its usage help text.  
-  
-  
-  
-*/
 
+  @note Since the call can be a bit lengthy, there is a batch file in <tt>OpenMS/tools/build.bat</tt> and in the root of your build tree (copied there by cmake for convenience), which allows to build the most important targets (TOPP, UTILS, Gui, Tests, Doc) in Release or Debug using very short notation. Call it without arguments to see its usage help text.
+
+
+
+*/

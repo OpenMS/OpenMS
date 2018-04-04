@@ -45,8 +45,8 @@ macro(make_doxygen_path doxygen_style_list_var doc_path_list_var)
   endforeach()
 endmacro()
 
-if(BUILD_DOCS)
-  message(STATUS "Documentation is built (-D BUILD_DOCS=On).")
+if(ENABLE_DOCS)
+  message(STATUS "Documentation is built (-D ENABLE_DOCS=On).")
 
   #------------------------------------------------------------------------------
   # decide which doc target is part of all
@@ -411,5 +411,5 @@ if(BUILD_DOCS)
   endif(BUILD_EXAMPLES AND "${PACKAGE_TYPE}" STREQUAL "none")
 
 else()
-  message(STATUS "Documentation is not built (-D BUILD_DOCS=Off).")
+  message(STATUS "Documentation is not built (-D ENABLE_DOCS=Off).")
 endif()

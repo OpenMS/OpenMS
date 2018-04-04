@@ -228,7 +228,7 @@
   <tt>HAS_XSERVER=Off</tt>, especially as you may not have compiled Qt with
   OpenGL and you may not have an X server.
 
-  \includedoc common-cmake-parameters.doxygen
+  \includedoc "../doxygen/install/common-cmake-parameters.doxygen"
 
   A full list of the CMake variables is shown when you execute
 
