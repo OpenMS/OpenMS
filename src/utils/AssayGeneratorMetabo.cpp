@@ -61,6 +61,22 @@ using namespace std;
 
 /// @cond TOPPCLASSES
 
+
+/// struct to hold assay information of one row 
+struct assayrow
+{
+  int precursor_mz;
+  int product_mz;
+  int library_int; // relative intensity
+  int normalized_rt;
+  String compound_name;
+  String smiles;
+  String sumformula;
+  String transition_group_id;
+  String transition_id;
+  bool decoy; 
+}
+
 class TOPPAssayGeneratorMetabo :
   public TOPPBase
 {
@@ -93,6 +109,8 @@ protected:
     String in = getStringOption_("in");
     String id = getStringOption_("in_id");
     String out = getStringOption_("out");
+
+    vector<assayrow> assaylib;
  
     MzMLFile f;
     PeakMap exp;
@@ -108,11 +126,11 @@ protected:
       const MSSpectrum& spectrum = *spec_iter;
       const vector<Precursor>& precursor = spectrum.getPrecursors();
       
-      feature.setRT(spectrum.getRT());
-      feature.setMZ(precursor[0].getMZ());
-      feature.setIntensity(precursor[0].getIntensity());
-      feature.setUniqueId();
-      fm push_back(feature);  
+     // feature.setRT(spectrum.getRT());
+     // feature.setMZ(precursor[0].getMZ());
+     // feature.setIntensity(precursor[0].getIntensity());
+     // feature.setUniqueId();
+     // fm push_back(feature);  
     
     }
    
