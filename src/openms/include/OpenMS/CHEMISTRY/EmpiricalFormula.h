@@ -177,6 +177,14 @@ public:
 
 
     /**
+       @brief formula's isotope distribution using the CoarseIsotopeDistribution
+       This is used as a wrapper for the pyOpenMS
+     */
+    IsotopeDistribution getIsotopeDistribution() const;
+    
+
+
+    /**
       @brief returns the fragment iUsotope distribution of this given a precursor formula
       and conditioned on a set of isolated precursor isotopes.
 

@@ -1749,7 +1749,7 @@ public:
     {
       double a = abundance / 100.0;
       IsotopeDistribution isotopes;
-      isotope.clear();
+      isotopes.clear();
       isotopes.insert(1, 1.0 - a);
       isotopes.insert(2, a);
       e2->setIsotopeDistribution(isotopes);

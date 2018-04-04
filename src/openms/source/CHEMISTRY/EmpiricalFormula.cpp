@@ -192,6 +192,11 @@ namespace OpenMS
     return solver.run(*this);
   }
 
+  IsotopeDistribution EmpiricalFormula::getIsotopeDistribution() const 
+  {
+    return getIsotopeDistribution(CoarseIsotopeDistribution());
+  }
+
 
   IsotopeDistribution EmpiricalFormula::getConditionalFragmentIsotopeDist(const EmpiricalFormula& precursor, const std::set<UInt>& precursor_isotopes) const
   {
