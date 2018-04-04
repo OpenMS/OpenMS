@@ -32,8 +32,7 @@
 // $Authors: Erhan Kenar, Chris Bielow $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_ID_ACCURATEMASSSEARCHENGINE_H
-#define OPENMS_ANALYSIS_ID_ACCURATEMASSSEARCHENGINE_H
+#pragma once
 
 #include <OpenMS/KERNEL/MassTrace.h>
 #include <OpenMS/KERNEL/Feature.h>
@@ -411,4 +410,3 @@ private:
 
 }
 
-#endif // OPENMS_ANALYSIS_ID_ACCURATEMASSSEARCHENGINE_H

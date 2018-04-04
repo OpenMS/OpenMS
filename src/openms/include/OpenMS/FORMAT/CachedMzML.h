@@ -32,10 +32,9 @@
 // $Authors: Hannes Roest $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FORMAT_CACHEDMZML_H
-#define OPENMS_FORMAT_CACHEDMZML_H
+#pragma once
 
-#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/ISpectrumAccess.h>
+#include <OpenMS/OPENSWATHALGO/DATAACCESS/ISpectrumAccess.h>
 
 #include <OpenMS/KERNEL/StandardDeclarations.h>
 #include <OpenMS/CONCEPT/Types.h>
@@ -47,7 +46,7 @@
 
 #include <fstream>
 
-#define CACHED_MZML_FILE_IDENTIFIER 8093
+#define CACHED_MZML_FILE_IDENTIFIER 8094
 
 namespace OpenMS
 {
@@ -127,62 +126,36 @@ public:
 
       @throws Exception::ParseError is thrown if the spectrum size cannot be read
     */
-    static inline void readSpectrumFast(OpenSwath::BinaryDataArrayPtr data1,
-                                        OpenSwath::BinaryDataArrayPtr data2, std::ifstream& ifs, int& ms_level,
+    static inline void readSpectrumFast(OpenSwath::BinaryDataArrayPtr& data1,
+                                        OpenSwath::BinaryDataArrayPtr& data2,
+                                        std::ifstream& ifs, 
+                                        int& ms_level,
                                         double& rt)
     {
-      Size spec_size = -1;
-      ifs.read((char*) &spec_size, sizeof(spec_size));
-      ifs.read((char*) &ms_level, sizeof(ms_level));
-      ifs.read((char*) &rt, sizeof(rt));
-
-      if ( static_cast<int>(spec_size) < 0)
-      {
-        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
-          "Read an invalid spectrum length, something is wrong here. Aborting.", "filestream");
-      }
-
-      data1->data.resize(spec_size);
-      data2->data.resize(spec_size);
-
-      if (spec_size > 0)
-      {
-        ifs.read((char*) &(data1->data)[0], spec_size * sizeof(double));
-        ifs.read((char*) &(data2->data)[0], spec_size * sizeof(double));
-      }
+      std::vector<OpenSwath::BinaryDataArrayPtr> data = readSpectrumFast(ifs, ms_level, rt);
+      data1 = data[0];
+      data2 = data[1];
     }
+
+    static std::vector<OpenSwath::BinaryDataArrayPtr> readSpectrumFast(std::ifstream& ifs, int& ms_level, double& rt);
 
     /**
       @brief fast access to a chromatogram (a direct copy of the data into the provided arrays)
 
       @throws Exception::ParseError is thrown if the chromatogram size cannot be read
     */
-    static inline void readChromatogramFast(OpenSwath::BinaryDataArrayPtr data1,
-                                            OpenSwath::BinaryDataArrayPtr data2, std::ifstream& ifs)
+    static inline void readChromatogramFast(OpenSwath::BinaryDataArrayPtr& data1,
+                                            OpenSwath::BinaryDataArrayPtr& data2, std::ifstream& ifs)
     {
-      Size spec_size = -1;
-      ifs.read((char*) &spec_size, sizeof(spec_size));
-
-      if ( static_cast<int>(spec_size) < 0)
-      {
-        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
-          "Read an invalid chromatogram length, something is wrong here. Aborting.", "filestream");
-      }
-
-      data1->data.resize(spec_size);
-      data2->data.resize(spec_size);
-      ifs.read((char*) &(data1->data)[0], spec_size * sizeof(double));
-      ifs.read((char*) &(data2->data)[0], spec_size * sizeof(double));
+      std::vector<OpenSwath::BinaryDataArrayPtr> data = readChromatogramFast(ifs);
+      data1 = data[0];
+      data2 = data[1];
     }
+
+    static std::vector<OpenSwath::BinaryDataArrayPtr> readChromatogramFast(std::ifstream& ifs);
     //@}
 
 protected:
-
-    /// read a single spectrum directly into a datavector (assuming file is already at the correct position)
-    void readSpectrum_(Datavector& data1, Datavector& data2, std::ifstream& ifs, int& ms_level, double& rt) const;
-
-    /// read a single chromatogram directly into a datavector (assuming file is already at the correct position)
-    void readChromatogram_(Datavector& data1, Datavector& data2, std::ifstream& ifs) const;
 
     /// read a single spectrum directly into an OpenMS MSSpectrum (assuming file is already at the correct position)
     void readSpectrum_(SpectrumType& spectrum, std::ifstream& ifs) const;
@@ -196,11 +169,14 @@ protected:
     /// write a single chromatogram to filestream
     void writeChromatogram_(const ChromatogramType& chromatogram, std::ofstream& ofs);
 
+    /// helper method for fast reading of spectra and chromatograms
+    static inline void readDataFast_(std::ifstream& ifs, std::vector<OpenSwath::BinaryDataArrayPtr>& data, const Size& data_size, 
+      const Size& nr_float_arrays);
+
     /// Members
     std::vector<std::streampos> spectra_index_;
     std::vector<std::streampos> chrom_index_;
 
   };
 }
-#endif // OPENMS_FORMAT_CACHEDMZML_H
 

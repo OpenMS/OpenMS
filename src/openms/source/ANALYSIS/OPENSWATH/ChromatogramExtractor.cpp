@@ -41,7 +41,8 @@ namespace OpenMS
   void ChromatogramExtractor::prepare_coordinates(std::vector< OpenSwath::ChromatogramPtr > & output_chromatograms,
     std::vector< ExtractionCoordinates > & coordinates,
     const OpenMS::TargetedExperiment & transition_exp_used,
-    const double rt_extraction_window, const bool ms1) const
+    const double rt_extraction_window,
+    const bool ms1) const
   {
     // hash of the peptide reference containing all transitions
     typedef std::map<String, std::vector<const ReactionMonitoringTransition*> > PeptideTransitionMapType;
@@ -53,8 +54,14 @@ namespace OpenMS
 
     // Determine iteration size (nr peptides or nr transitions)
     Size itersize;
-    if (ms1) {itersize = transition_exp_used.getPeptides().size();}
-    else     {itersize = transition_exp_used.getTransitions().size();}
+    if (ms1)
+    {
+      itersize = transition_exp_used.getPeptides().size();
+    }
+    else
+    {
+      itersize = transition_exp_used.getTransitions().size();
+    }
 
     for (Size i = 0; i < itersize; i++)
     {
@@ -139,7 +146,7 @@ namespace OpenMS
     return false;
   }
 
-  int ChromatogramExtractor::getFilterNr_(String filter)
+  int ChromatogramExtractor::getFilterNr_(const String& filter)
   {
     if (filter == "tophat")
     {

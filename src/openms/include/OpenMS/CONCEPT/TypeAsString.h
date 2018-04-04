@@ -32,8 +32,7 @@
 // $Authors: Marc Sturm, Clemens Groepl $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_CONCEPT_TYPEASSTRING_H
-#define OPENMS_CONCEPT_TYPEASSTRING_H
+#pragma once
 
 #include <OpenMS/config.h>
 
@@ -108,5 +107,4 @@ namespace OpenMS
 
 } // namespace OpenMS
 
-#endif // #ifdef
 

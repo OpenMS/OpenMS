@@ -32,8 +32,7 @@
 // $Authors: Timo Sachsenberg $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_VISUAL_TOPPVIEWSPECTRAVIEWBEHAVIOR_H
-#define OPENMS_VISUAL_TOPPVIEWSPECTRAVIEWBEHAVIOR_H
+#pragma once
 
 #include <OpenMS/METADATA/SpectrumSettings.h>
 #include <OpenMS/VISUAL/LayerData.h>
@@ -99,4 +98,3 @@ private:
     TOPPViewBase * tv_;
   };
 }
-#endif // OPENMS_VISUAL_TOPPVIEWSPECTRAVIEWBEHAVIOR_H

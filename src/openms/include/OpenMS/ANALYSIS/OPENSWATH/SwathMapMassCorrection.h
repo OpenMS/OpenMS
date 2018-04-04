@@ -32,12 +32,11 @@
 // $Authors: Hannes Roest$
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_OPENSWATH_SWATHMAPMASSCORRECTION_H
-#define OPENMS_ANALYSIS_OPENSWATH_SWATHMAPMASSCORRECTION_H
+#pragma once
 
 #include <vector>
 
-#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/SwathMap.h>
+#include <OpenMS/OPENSWATHALGO/DATAACCESS/SwathMap.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMFeatureFinderScoring.h>
 
 namespace OpenMS
@@ -80,5 +79,4 @@ public:
   };
 }
 
-#endif // OPENMS_ANALYSIS_OPENSWATH_SWATHMAPMASSCORRECTION_H
 

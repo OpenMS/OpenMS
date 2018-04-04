@@ -33,8 +33,7 @@
 // --------------------------------------------------------------------------
 //
 
-#ifndef OPENMS_CHEMISTRY_MASSDECOMPOSITION_IMS_IMSELEMENT_H
-#define OPENMS_CHEMISTRY_MASSDECOMPOSITION_IMS_IMSELEMENT_H
+#pragma once
 
 #include <string>
 #include <iosfwd>
@@ -267,4 +266,3 @@ private:
   } // namespace ims
 } // namespace OpenMS
 
-#endif // OPENMS_CHEMISTRY_MASSDECOMPOSITION_IMS_ELEMENT_H

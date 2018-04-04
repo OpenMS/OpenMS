@@ -32,8 +32,7 @@
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_KERNEL_MSEXPERIMENT_H
-#define OPENMS_KERNEL_MSEXPERIMENT_H
+#pragma once
 
 #include <OpenMS/KERNEL/StandardDeclarations.h>
 #include <OpenMS/CONCEPT/Exception.h>
@@ -625,5 +624,4 @@ private:
 
 #include <OpenMS/KERNEL/StandardTypes.h>
 
-#endif // OPENMS_KERNEL_MSEXPERIMENT_H
 

@@ -31,8 +31,7 @@
 // $Maintainer: Timo Sachsenberg $
 // $Authors: Clemens Groepl, Johannes Junker, Mathias Walzer, Chris Bielow $
 // --------------------------------------------------------------------------
-#ifndef OPENMS_MATH_STATISTICS_STATISTICFUNCTIONS_H
-#define OPENMS_MATH_STATISTICS_STATISTICFUNCTIONS_H
+#pragma once
 
 #include <vector>
 #include <OpenMS/CONCEPT/Exception.h>
@@ -696,4 +695,3 @@ namespace OpenMS
   }   // namespace Math
 } // namespace OpenMS
 
-#endif // OPENMS_MATH_STATISTICS_STATISTICFUNCTIONS_H

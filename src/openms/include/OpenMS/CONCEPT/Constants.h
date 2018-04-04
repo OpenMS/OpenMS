@@ -32,8 +32,7 @@
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_CONCEPT_CONSTANTS_H
-#define OPENMS_CONCEPT_CONSTANTS_H
+#pragma once
 
 #include <OpenMS/config.h>
 #include <string>
@@ -263,4 +262,3 @@ namespace OpenMS
   }
 }
 
-#endif // OPENMS_CONCEPT_CONSTANTS_H

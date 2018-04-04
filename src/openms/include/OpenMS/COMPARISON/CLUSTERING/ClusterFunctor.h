@@ -32,8 +32,7 @@
 // $Authors: $
 // --------------------------------------------------------------------------
 //
-#ifndef OPENMS_COMPARISON_CLUSTERING_CLUSTERFUNCTOR_H
-#define OPENMS_COMPARISON_CLUSTERING_CLUSTERFUNCTOR_H
+#pragma once
 
 #include <OpenMS/DATASTRUCTURES/DistanceMatrix.h>
 #include <OpenMS/CONCEPT/Exception.h>
@@ -103,4 +102,3 @@ public:
   };
 
 }
-#endif // OPENMS_COMPARISON_CLUSTERFUNCTOR_H

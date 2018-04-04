@@ -33,8 +33,7 @@
 // --------------------------------------------------------------------------
 
 
-#ifndef OPENMS_CHEMISTRY_SVMTHEORETICALSPECTRUMGENERATOR_H
-#define OPENMS_CHEMISTRY_SVMTHEORETICALSPECTRUMGENERATOR_H
+#pragma once
 
 #include <OpenMS/config.h>
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
@@ -299,4 +298,3 @@ protected:
 
 } // namespace OpenMS
 
-#endif // #ifdef OPENMS_CHEMISTRY_SVMTHEORETICALSPECTRUMGENERATORTRAINER_H

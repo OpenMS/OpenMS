@@ -33,8 +33,7 @@
 // --------------------------------------------------------------------------
 
 
-#ifndef OPENMS_ANALYSIS_ID_HIDDENMARKOVMODEL_H
-#define OPENMS_ANALYSIS_ID_HIDDENMARKOVMODEL_H
+#pragma once
 
 #include <vector>
 #include <set>
@@ -327,4 +326,3 @@ private:
     StringList var_modifications_;
   };
 }
-#endif

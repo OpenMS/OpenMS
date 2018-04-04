@@ -32,8 +32,7 @@
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_VISUAL_AXISTICKCALCULATOR_H
-#define OPENMS_VISUAL_AXISTICKCALCULATOR_H
+#pragma once
 
 // OpenMS_GUI config
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
@@ -81,4 +80,3 @@ private:
     AxisTickCalculator();
   };
 }
-#endif

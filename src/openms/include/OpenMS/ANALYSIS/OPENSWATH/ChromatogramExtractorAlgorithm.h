@@ -32,18 +32,17 @@
 // $Authors: Hannes Roest $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_OPENSWATH_CHROMATOGRAMEXTRACTORALGORITHM_H
-#define OPENMS_ANALYSIS_OPENSWATH_CHROMATOGRAMEXTRACTORALGORITHM_H
+#pragma once
 
 #include <OpenMS/CONCEPT/ProgressLogger.h>
-#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/ISpectrumAccess.h>
+#include <OpenMS/OPENSWATHALGO/DATAACCESS/ISpectrumAccess.h>
 
 namespace OpenMS
 {
 
   /**
    * @brief The ChromatogramExtractorAlgorithm extracts chromatograms from a MS data.
-   * 
+   *
    * It will take as input a set of transitions coordinates and will extract
    * the signal of the provided map at the product ion m/z and retention time
    * (rt) values specified by the extraction coordinates. This interface only
@@ -51,7 +50,7 @@ namespace OpenMS
    * convenient prepare_coordinates function is provided (in the
    * ChromatogramExtractor class) to create the coordinates for the most common
    * case of an MS2 and MS1 extraction.
-   * 
+   *
    * In the case of MS2 extraction, the map is assumed to originate from a SWATH
    * (data-independent acquisition or DIA) experiment.
    *
@@ -65,6 +64,7 @@ public:
     struct ExtractionCoordinates
     {
       double mz; ///< m/z value around which should be extracted
+      double ion_mobility; ///< ion mobility value around which should be extracted
       double mz_precursor; ///< precursor m/z value (is currently ignored by the algorithm)
       double rt_start; ///< rt start of extraction (in seconds)
       double rt_end; ///< rt end of extraction (in seconds)
@@ -99,30 +99,81 @@ public:
      * @param filter Which function to apply in m/z space (currently "tophat" only)
      *
     */
-    void extractChromatograms(const OpenSwath::SpectrumAccessPtr input, 
-        std::vector< OpenSwath::ChromatogramPtr >& output, 
-        std::vector<ExtractionCoordinates> extraction_coordinates, double mz_extraction_window,
-        bool ppm, String filter);
+    void extractChromatograms(const OpenSwath::SpectrumAccessPtr input,
+        std::vector< OpenSwath::ChromatogramPtr >& output,
+        const std::vector<ExtractionCoordinates>& extraction_coordinates,
+        double mz_extraction_window,
+        bool ppm,
+        double im_extraction_window,
+        String filter);
 
     /**
-     * @brief Extract the next mz value and add the integrated intensity to integrated_intensity. 
+     * @brief Extract the next mz value and add the integrated intensity to integrated_intensity.
      *
-     * This function will sum up all intensities within mz +/-
-     * mz_extract_window / 2.0 and add the result to integrated_intensity.
+     * This function will sum up all intensities within a window of
+     * mass-to-charge. It will extract around mz +/- mz_extract_window / 2.0
+     * and add the result to integrated_intensity.
      *
+     * @param mz_start Start of the spectrum (m/z coordinates)
+     * @param mz_it Current m/z position (will be modified)
+     * @param mz_end End of the spectrum (m/z coordinates)
+     * @param int_int Current intensity position (will be modified)
+     * @param mz Target m/z for the current ion
+     * @param integrated_intensity Resulting intensity (will be overwritten)
      * @param mz_extraction_window Extracts a window of this size in m/z
      * dimension (e.g. a window of 50 ppm means an extraction of 25 ppm on
      * either side)
+     * @param ppm Whether the parameter mz_extraction_window is given in ppm or Th
      *
-     * @note It will change the position of the iterators mz_it and int_it and
-     * it can *not* extract any data if the mz-iterator is already passed the
-     * mz value given. It is thus critically important to provide all mz values
-     * to be extracted in ascending order!
+     * @note This function will change the position of the iterators mz_it and
+     * int_it and it can *not* extract any data if the mz-iterator is already
+     * passed the mz value given. It is thus critically important to provide
+     * all mz values to be extracted in ascending order!
      *
     */
-    void extract_value_tophat(const std::vector<double>::const_iterator& mz_start, std::vector<double>::const_iterator& mz_it,
-                              const std::vector<double>::const_iterator& mz_end, std::vector<double>::const_iterator& int_it,
+    void extract_value_tophat(const std::vector<double>::const_iterator& mz_start,
+                              std::vector<double>::const_iterator& mz_it,
+                              const std::vector<double>::const_iterator& mz_end,
+                              std::vector<double>::const_iterator& int_it,
                               const double& mz, double& integrated_intensity, const double& mz_extraction_window, bool ppm);
+
+    /**
+     * @brief Extract the next m/z value and add the integrated intensity to integrated_intensity.
+     *
+     * This function will sum up all intensities within a two-dimensional
+     * window of mass-to-charge and ion mobility. It will extract around mz +/-
+     * mz_extract_window / 2.0 and im +/- im_extraction_window / 2.0 and add
+     * the result to integrated_intensity.
+     *
+     * @param mz_start Start of the spectrum (m/z coordinates)
+     * @param mz_it Current m/z position (will be modified)
+     * @param mz_end End of the spectrum (m/z coordinates)
+     * @param int_int Current intensity position (will be modified)
+     * @param im_int Current ion mobility position (will be modified)
+     * @param mz Target m/z for the current ion
+     * @param im Target ion mobility for the current ion
+     * @param integrated_intensity Resulting intensity (will be overwritten)
+     * @param mz_extraction_window Extracts a window of this size in m/z
+     * dimension (e.g. a window of 50 ppm means an extraction of 25 ppm on
+     * either side)
+     * @param im_extraction_window Extracts a window of this size in ion mobility dimension.
+     * @param ppm Whether the parameter mz_extraction_window is given in ppm or Th
+     *
+     * @note This function will change the position of the iterators mz_it,
+     * int_it and im_it and it can *not* extract any data if the mz-iterator is
+     * already passed the mz value given. It is thus critically important to
+     * provide all mz values to be extracted in ascending order!
+     *
+    */
+    void extract_value_tophat(const std::vector<double>::const_iterator& mz_start,
+                              std::vector<double>::const_iterator& mz_it,
+                              const std::vector<double>::const_iterator& mz_end,
+                              std::vector<double>::const_iterator& int_it,
+                              std::vector<double>::const_iterator& im_it,
+                              const double& mz,
+                              const double& im,
+                              double& integrated_intensity,
+                              const double& mz_extraction_window, const double& im_extraction_window, bool ppm);
 
 private:
 
@@ -132,5 +183,4 @@ private:
 
 }
 
-#endif // OPENMS_ANALYSIS_OPENSWATH_CHROMATOGRAMEXTRACTORALGORITHM_H
 

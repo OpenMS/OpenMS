@@ -161,8 +161,7 @@ print s
         case Z_BUF_ERROR:
           compressed_length *= 2;
         }
-      }
-      while (zlib_error == Z_BUF_ERROR);
+      } while (zlib_error == Z_BUF_ERROR);
 
       if (zlib_error != Z_OK)
       {

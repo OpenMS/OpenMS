@@ -39,8 +39,8 @@
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmPickedHelperStructs.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithm.h>
-#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/ALGO/StatsHelpers.h>
-#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/SpectrumHelpers.h> // integrateWindow
+#include <OpenMS/OPENSWATHALGO/ALGO/StatsHelpers.h>
+#include <OpenMS/OPENSWATHALGO/DATAACCESS/SpectrumHelpers.h> // integrateWindow
 #include <OpenMS/ANALYSIS/OPENSWATH/DIAHelper.h>
 
 #include <OpenMS/ANALYSIS/OPENSWATH/DIAPrescoring.h>
@@ -355,8 +355,14 @@ namespace OpenMS
 
       // Compute ratio between the (presumed) monoisotopic peak intensity and the now found peak
       double ratio;
-      if (mono_int != 0) { ratio = intensity / mono_int; }
-      else { ratio = 0; }
+      if (mono_int != 0)
+      {
+        ratio = intensity / mono_int;
+      }
+      else
+      {
+        ratio = 0;
+      }
       if (ratio > max_ratio) {max_ratio = ratio;}
 
       double ddiff_ppm = std::fabs(mz - (mono_mz - 1.0 / (double) ch)) * 1000000 / mono_mz;

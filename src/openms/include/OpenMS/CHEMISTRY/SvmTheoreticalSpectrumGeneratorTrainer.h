@@ -32,8 +32,7 @@
 // $Authors: Sandro Andreotti $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_CHEMISTRY_SVMTHEORETICALSPECTRUMGENERATORTRAINER_H
-#define OPENMS_CHEMISTRY_SVMTHEORETICALSPECTRUMGENERATORTRAINER_H
+#pragma once
 
 #include <OpenMS/KERNEL/StandardDeclarations.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
@@ -119,4 +118,3 @@ protected:
   };
 }
 
-#endif // SvmTheoreticalSpectrumGeneratorTrainer_H

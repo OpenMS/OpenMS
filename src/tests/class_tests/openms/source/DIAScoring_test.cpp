@@ -40,8 +40,8 @@
 
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
 
-#include "OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/DataStructures.h"
-#include "OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/MockObjects.h"
+#include "OpenMS/OPENSWATHALGO/DATAACCESS/DataStructures.h"
+#include "OpenMS/OPENSWATHALGO/DATAACCESS/MockObjects.h"
 
 using namespace std;
 using namespace OpenMS;

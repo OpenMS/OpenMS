@@ -130,8 +130,8 @@ namespace OpenMS
           String aggr_prec_Fragment_Annotation = "";
           for (std::vector<Feature>::const_iterator sub_it = feature_it->getSubordinates().begin(); sub_it != feature_it->getSubordinates().end(); ++sub_it)
           {
-            sprintf(intensity_char, "%f", sub_it->getIntensity());
-            sprintf(intensity_apex_char, "%f", (double)sub_it->getMetaValue("peak_apex_int"));
+            snprintf(intensity_char, 40, "%f", sub_it->getIntensity());
+            snprintf(intensity_apex_char, 40, "%f", (double)sub_it->getMetaValue("peak_apex_int"));
             if (sub_it->metaValueExists("FeatureLevel") && sub_it->getMetaValue("FeatureLevel") == "MS2")
             {
               aggr_Peak_Area += (String)intensity_char + ";";

@@ -32,8 +32,7 @@
 // $Authors: Marc Sturm, Hendrik Weisser, Chris Bielow $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_ID_IDMAPPER_H
-#define OPENMS_ANALYSIS_ID_IDMAPPER_H
+#pragma once
 
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
@@ -392,4 +391,3 @@ protected:
 
 } // namespace OpenMS
 
-#endif // OPENMS_ANALYSIS_ID_IDMAPPER_H

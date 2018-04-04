@@ -32,8 +32,7 @@
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_CONCEPT_MACROS_H
-#define OPENMS_CONCEPT_MACROS_H
+#pragma once
 
 
 #include <OpenMS/config.h>
@@ -117,4 +116,3 @@
 
 /** @} */ // end of Conditions
 
-#endif //OPENMS_CONCEPT_MACROS_H

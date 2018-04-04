@@ -33,8 +33,7 @@
 // --------------------------------------------------------------------------
 
 
-#ifndef OPENMS_FILTERING_DATAREDUCTION_ELUTIONPEAKDETECTION_H
-#define OPENMS_FILTERING_DATAREDUCTION_ELUTIONPEAKDETECTION_H
+#pragma once
 
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
@@ -170,4 +169,3 @@ private:
 
 } // namespace OpenMS
 
-#endif // OPENMS_FILTERING_DATAREDUCTION_ELUTIONPEAKDETECTION_H

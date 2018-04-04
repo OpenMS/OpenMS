@@ -32,8 +32,7 @@
 // $Authors: $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_DATASTRUCTURES_BINARYTREENODE_H
-#define OPENMS_DATASTRUCTURES_BINARYTREENODE_H
+#pragma once
 
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/OpenMSConfig.h>
@@ -71,4 +70,3 @@ private:
 
 }
 
-#endif /* BINARYTREENODE_H_ */

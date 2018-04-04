@@ -32,8 +32,7 @@
 // $Authors: Mathias Walzer$
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FORMAT_HANDLERS_MZIDENTMLDOMHANDLER_H
-#define OPENMS_FORMAT_HANDLERS_MZIDENTMLDOMHANDLER_H
+#pragma once
 
 #include <OpenMS/KERNEL/StandardTypes.h>
 
@@ -288,4 +287,3 @@ private:
   } // namespace Internal
 } // namespace OpenMS
 
-#endif

@@ -32,8 +32,7 @@
 // $Authors: David Wojnar $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_VISUAL_LISTEDITOR_H
-#define OPENMS_VISUAL_LISTEDITOR_H
+#pragma once
 
 // OpenMS_GUI config
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
@@ -183,4 +182,3 @@ private:
   }
 
 } // namespace OpenMS
-#endif //OPENMS_VISUAL_LISTEDITOR_H

@@ -32,8 +32,7 @@
 // $Authors: Stephan Aiche, Chris Bielow$
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_SIMULATION_SIMTYPES_H
-#define OPENMS_SIMULATION_SIMTYPES_H
+#pragma once
 
 #include <vector>
 #include <utility>
@@ -178,4 +177,3 @@ private:
 
 }
 
-#endif

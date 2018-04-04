@@ -33,8 +33,7 @@
 // --------------------------------------------------------------------------
 
 
-#ifndef OPENMS_SYSTEM_UPDATECHECK_H
-#define OPENMS_SYSTEM_UPDATECHECK_H
+#pragma once
 
 #include <OpenMS/config.h>
 
@@ -53,5 +52,4 @@ public:
   };
 }
 
-#endif // OPENMS_SYSTEM_UPDATECHECK_H
 
