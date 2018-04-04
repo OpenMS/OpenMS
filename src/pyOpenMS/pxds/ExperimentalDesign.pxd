@@ -1,6 +1,9 @@
 from libcpp cimport *
 from Types cimport *
 from String cimport *
+from ProteinIdentification cimport *
+from ConsensusMap cimport *
+from FeatureMap cimport *
 
 cdef extern from "<OpenMS/METADATA/ExperimentalDesign.h>" namespace "OpenMS":
     
@@ -8,20 +11,20 @@ cdef extern from "<OpenMS/METADATA/ExperimentalDesign.h>" namespace "OpenMS":
         ExperimentalDesign() nogil except +
         ExperimentalDesign(ExperimentalDesign) nogil except + #wrap-ignore
 
-        RunRows& getRunSection() nogil except +
-        setRunSection() nogil except +
+        libcpp_vector[ ExperimentalDesign_RunRow ] getRunSection() nogil except +
+        void setRunSection(libcpp_vector[ ExperimentalDesign_RunRow ] run_section) nogil except +
 
         # Returns the Sample Section of the experimental design file
         ExperimentalDesign_SampleSection getSampleSection() nogil except +
-        setSampleSection(const SampleSection& sample_section) nogil except +
+        void setSampleSection(ExperimentalDesign_SampleSection sample_section) nogil except +
 
         # Gets vector of Filenames that appears in the run section, optionally trims to basename
-        lib_cpp[ String ] getFileNames(bool basename) nogil except +
+        libcpp_vector[ String ] getFileNames(bool basename) nogil except +
 
         # Returns vector of channels of the run section
-        lib_cpp[ unsigned ] getChannels() nogil except +
+        libcpp_vector[ unsigned int ] getChannels() nogil except +
 
-        lib_cpp[ unsigned ] getFractions() nogil except +
+        libcpp_vector[ unsigned int ] getFractions() nogil except +
 
         # return fraction index to file paths (ordered by run id)
         #lib_map[unsigned int, lib_cpp[ String ] ] getFractionToMSFilesMapping() nogil except +
@@ -36,64 +39,74 @@ cdef extern from "<OpenMS/METADATA/ExperimentalDesign.h>" namespace "OpenMS":
         #std::map< std::pair< String, unsigned >, unsigned> getPathChannelToRunMapping(bool) const;
 
         # @return the number of samples measured (= highest sample index)
-        unsigned getNumberOfSamples() nogil except +
+        unsigned int getNumberOfSamples() nogil except +
 
         # @return the number of fractions (= highest fraction index)
-        unsigned getNumberOfFractions() nogil except +
+        unsigned int getNumberOfFractions() nogil except +
 
         # @return the number of channels per file
-        unsigned getNumberOfChannels() nogil except +
+        unsigned int getNumberOfChannels() nogil except +
 
         # @return the number of MS files (= fractions * runs)
-        unsigned getNumberOfMSFiles() nogil except +
+        unsigned int getNumberOfMSFiles() nogil except +
 
-       # @return the number of runs (before fractionation)
-       # Allows to group fraction ids and source files
-       unsigned getNumberOfPrefractionationRuns() nogil except +
+        # @return the number of runs (before fractionation)
+        # Allows to group fraction ids and source files
+        unsigned int getNumberOfPrefractionationRuns() nogil except +
 
-       # @return sample index (depends on run and channel)
-       unsigned getSample(unsigned run, unsigned channel) nogil except +
+        # @return sample index (depends on run and channel)
+        unsigned int getSample(unsigned int run, unsigned int channel) nogil except +
 
-       # @return whether at least one run in this experimental design is fractionated
-       bool isFractionated() nogil except +
+        # @return whether at least one run in this experimental design is fractionated
+        bool isFractionated() nogil except +
 
-       # return if each fraction number is associated with the same number of runs
-       bool sameNrOfMSFilesPerFraction() nogil except +
-
-       # Extract experimental design from consensus map
-       # static ExperimentalDesign fromConsensusMap(const ConsensusMap& c);
-
-       # Extract experimental design from feature map
-       # static ExperimentalDesign fromFeatureMap(const FeatureMap& f);
-
-       # Extract experimental design from identifications
-       # static ExperimentalDesign fromIdentifications(const std::vector<ProteinIdentification> & proteins);
+        # return if each fraction number is associated with the same number of runs
+        bool sameNrOfMSFilesPerFraction() nogil except +
                 
-        
+# COMMENT: wrap static methods
+cdef extern from "<OpenMS/METADATA/ExperimentalDesign.h>" namespace "OpenMS::ExperimentalDesign":
+
+        # Extract experimental design from consensus map
+        ExperimentalDesign fromConsensusMap(ConsensusMap c) nogil except + #wrap-attach:ExperimentalDesign
+
+        # Extract experimental design from feature map
+        ExperimentalDesign fromFeatureMap(FeatureMap f) nogil except + #wrap-attach:ExperimentalDesign
+
+        # Extract experimental design from identifications
+        ExperimentalDesign fromIdentifications(libcpp_vector[ProteinIdentification] & proteins) nogil except + #wrap-attach:ExperimentalDesign
+
 cdef extern from "<OpenMS/METADATA/ExperimentalDesign.h>" namespace "OpenMS::ExperimentalDesign":
     
     cdef cppclass ExperimentalDesign_RunRow "OpenMS::ExperimentalDesign::RunRow":
+
         ExperimentalDesign_RunRow() nogil except +
         ExperimentalDesign_RunRow(ExperimentalDesign_RunRow) nogil except + #wrap-ignore
-        # libcpp_string file
-        # unsigned fraction
-        # unsigned technical_replicate        
+
+        libcpp_string path
+        unsigned int run
+        unsigned int fraction
+        unsigned int channel
+        unsigned int sample
         
-cdef cppclass ExperimentalDesign_SampleSection "OpenMS::ExperimentalDesign::SampleSection":
-      ExperimentalDesign_SampleSection() nogil except +
+cdef extern from "<OpenMS/METADATA/ExperimentalDesign.h>" namespace "OpenMS::ExperimentalDesign":
 
-      // Get set of all samples that are present in the sample section
-      libcpp_set[ unsigned ] getSamples() nogil except +
+    cdef cppclass ExperimentalDesign_SampleSection "OpenMS::ExperimentalDesign::SampleSection":
 
-      // Get set of all factors (column names) that were defined for the sample section
-      libcpp_set[ unsigned ] getFactors() nogil except +
+          ExperimentalDesign_SampleSection() nogil except +
+          ExperimentalDesign_SampleSection(ExperimentalDesign_SampleSection) nogil except +
 
-      // Checks whether sample section has row for a sample number
-      bool hasSample(unsigned sample) nogil except +
+          # Get set of all samples that are present in the sample section
+          libcpp_set[ unsigned int ] getSamples() nogil except +
 
-      // Checks whether Sample Section has a specific factor (i.e. column name)
-      bool hasFactor(const String& factor) nogil except +
+          # Get set of all factors (column names) that were defined for the sample section
+          libcpp_set[ String ] getFactors() nogil except +
 
-      // Returns value of factor for given sample and factor name
-      String getFactorValue(unsigned sample, const String &factor) nogil except +
-               
+          # Checks whether sample section has row for a sample number
+          bool hasSample(unsigned int sample) nogil except +
+
+          # Checks whether Sample Section has a specific factor (i.e. column name)
+          bool hasFactor(String& factor) nogil except +
+
+          # Returns value of factor for given sample and factor name
+          String getFactorValue(unsigned int sample, String &factor) nogil except +
+                   
