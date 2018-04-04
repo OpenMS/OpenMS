@@ -36,6 +36,8 @@
 #include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
 #include <OpenMS/CHEMISTRY/Element.h>
 #include <OpenMS/CHEMISTRY/ElementDB.h>
+#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopePatternGenerator.h>
+#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopeDistribution.h>
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopeDistribution.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
@@ -185,10 +187,9 @@ namespace OpenMS
     return true;
   }
 
-  IsotopeDistribution EmpiricalFormula::getIsotopeDistribution(IsotopePatternGenerator* solver) const
+  IsotopeDistribution EmpiricalFormula::getIsotopeDistribution(const IsotopePatternGenerator& solver) const
   {
-    solver->run(*this);
-    return *solver;
+    return solver.run(*this);
   }
 
 
@@ -200,11 +201,12 @@ namespace OpenMS
     // Treat *this as the fragment molecule
     EmpiricalFormula complementary_fragment = precursor-*this;
 
-    IsotopeDistribution fragment_isotope_dist = getIsotopeDistribution(new CoarseIsotopeDistribution(max_depth));
-    IsotopeDistribution comp_fragment_isotope_dist = complementary_fragment.getIsotopeDistribution(new CoarseIsotopeDistribution(max_depth));
+    IsotopeDistribution fragment_isotope_dist = getIsotopeDistribution(CoarseIsotopeDistribution(max_depth));
+    IsotopeDistribution comp_fragment_isotope_dist = complementary_fragment.getIsotopeDistribution(CoarseIsotopeDistribution(max_depth));
 
-    CoarseIsotopeDistribution result;
-    result.calcFragmentIsotopeDist(fragment_isotope_dist, comp_fragment_isotope_dist, precursor_isotopes);
+    IsotopeDistribution result;
+    CoarseIsotopeDistribution solver;
+    result = solver.calcFragmentIsotopeDist(fragment_isotope_dist, comp_fragment_isotope_dist, precursor_isotopes);
 
     // Renormalize to make these conditional probabilities (conditioned on the isolated precursor isotopes)
     result.renormalize();

@@ -229,7 +229,7 @@ namespace OpenMS
         text += String("<b><span style=\"color:") + cols[i].name() + "\">" + ith->first + "</span></b><br>\n";
         // carets for isotope profile
         EmpiricalFormula ef(ith->first);
-        IsotopeDistribution id = ef.getIsotopeDistribution(new CoarseIsotopeDistribution(3)); // three isotopes at most
+        IsotopeDistribution id = ef.getIsotopeDistribution(CoarseIsotopeDistribution(3)); // three isotopes at most
         double int_factor = peak_int / id.begin()->getIntensity();
         Annotation1DCaret::PositionsType points;
         Size itic(0);

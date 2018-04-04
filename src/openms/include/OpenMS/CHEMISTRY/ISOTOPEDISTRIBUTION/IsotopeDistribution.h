@@ -129,6 +129,9 @@ public:
     /// clears the distribution and resets max isotope to 0
     void clear();
 
+    // resizes distribution container
+    void resize(UInt size);
+
     /// remove intensities below the cutoff
     void trimIntensities(double cutoff);
 
@@ -144,6 +147,16 @@ public:
             the calculations tend to be inexact.
     */
     void renormalize();
+
+     /** @brief Merges distributions arbitrary data points with constant defined resolution.
+        
+        It creates a new IsotopeDistribution Container and assigns each isotope to the nearest bin.
+        This function should be used to downsample the existing distribution.
+        If the size of the new Container is larger this function throws an IllegalArgument Exception.
+        
+     */
+    void merge(double resolution, double min_prob);
+
 
     /** @brief Trims the right side of the isotope distribution to isotopes with a significant contribution.
 
@@ -165,7 +178,7 @@ public:
     */
     void trimLeft(double cutoff);
 
-
+    
     
     bool isNormalized() const;
 

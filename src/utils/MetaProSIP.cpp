@@ -1335,7 +1335,6 @@ public:
   static IsotopePatterns calculateIsotopePatternsFor13CRange(const AASequence& peptide, Size additional_isotopes = 5)
   {
     IsotopePatterns ret;
-
     const Element* e1 = ElementDB::getInstance()->getElement("Carbon");
     Element* e2 = const_cast<Element*>(e1);
 
@@ -1350,16 +1349,18 @@ public:
 
     if (modifications_ef.getNumberOf(e1) > 0) // modification adds additional (unlabeled) carbon atoms
     {
-      IsotopeDistribution modification_dist = modifications_ef.getIsotopeDistribution(new CoarseIsotopeDistribution(max_labeling_carbon + additional_isotopes));
+      IsotopeDistribution modification_dist = modifications_ef.getIsotopeDistribution(CoarseIsotopeDistribution(max_labeling_carbon + additional_isotopes));
+      
       for (double abundance = 0.0; abundance < 100.0 - 1e-8; abundance += 100.0 / (double)max_labeling_carbon)
       {
         double a = abundance / 100.0;
         IsotopeDistribution isotopes;
+        isotopes.clear();
         isotopes.insert(12, 1.0 - a);
         isotopes.insert(13, a);
         e2->setIsotopeDistribution(isotopes);
-        CoarseIsotopeDistribution dist = unmodified_peptide_ef.getIsotopeDistribution(new CoarseIsotopeDistribution(max_labeling_carbon + additional_isotopes));
-        dist += modification_dist; // convole with modification distribution (which follows the natural distribution)
+        IsotopeDistribution dist = unmodified_peptide_ef.getIsotopeDistribution(CoarseIsotopeDistribution(max_labeling_carbon + additional_isotopes));
+        dist.set(CoarseIsotopeDistribution().convolve_(dist.getContainer(), modification_dist.getContainer())); // convole with modification distribution (which follows the natural distribution)
         IsotopeDistribution::ContainerType container = dist.getContainer();
         vector<double> intensities;
         for (Size i = 0; i != container.size(); ++i)
@@ -1371,18 +1372,22 @@ public:
     }
     else
     {
+      
       // calculate isotope distribution for a given peptide and varying incoperation rates
       // modification of isotope distribution in static ElementDB
       for (double abundance = 0.0; abundance < 100.0 - 1e-8; abundance += 100.0 / (double)MAXISOTOPES)
       {
         double a = abundance / 100.0;
         IsotopeDistribution isotopes;
+        isotopes.clear();
         isotopes.insert(12, 1.0 - a);
         isotopes.insert(13, a);
         e2->setIsotopeDistribution(isotopes);
-        IsotopeDistribution dist = peptide_ef.getIsotopeDistribution(new CoarseIsotopeDistribution(MAXISOTOPES + additional_isotopes));
+        IsotopeDistribution dist = peptide_ef.getIsotopeDistribution(CoarseIsotopeDistribution(MAXISOTOPES + additional_isotopes));
+
         IsotopeDistribution::ContainerType container = dist.getContainer();
         vector<double> intensities;
+
         for (Size i = 0; i != container.size(); ++i)
         {
           intensities.push_back(container[i].getIntensity());
@@ -1393,6 +1398,7 @@ public:
 
     // reset to natural occurance
     IsotopeDistribution isotopes;
+    isotopes.clear();
     isotopes.insert(12, 0.9893);
     isotopes.insert(13, 0.0107);
     e2->setIsotopeDistribution(isotopes);
@@ -1460,16 +1466,17 @@ public:
 
     if (modifications_ef.getNumberOf(e1) > 0) // modification adds additional (unlabeled) nitrogen atoms
     {
-      IsotopeDistribution modification_dist = modifications_ef.getIsotopeDistribution(new CoarseIsotopeDistribution(max_labeling_nitrogens + additional_isotopes));
+      IsotopeDistribution modification_dist = modifications_ef.getIsotopeDistribution(CoarseIsotopeDistribution(max_labeling_nitrogens + additional_isotopes));
       for (double abundance = 0; abundance < 100.0 - 1e-8; abundance += 100.0 / (double)max_labeling_nitrogens)
       {
         double a = abundance / 100.0;
         IsotopeDistribution isotopes;
+        isotopes.clear();
         isotopes.insert(14, 1.0 - a);
         isotopes.insert(15, a);
         e2->setIsotopeDistribution(isotopes);
-        CoarseIsotopeDistribution dist = unmodified_peptide_ef.getIsotopeDistribution(new CoarseIsotopeDistribution(max_labeling_nitrogens + additional_isotopes));
-        dist += modification_dist; // calculate convolution with isotope distribution of modification(s)
+        IsotopeDistribution dist = unmodified_peptide_ef.getIsotopeDistribution(CoarseIsotopeDistribution(max_labeling_nitrogens + additional_isotopes));
+        dist.set(CoarseIsotopeDistribution().convolve_(dist.getContainer(), modification_dist.getContainer())); // calculate convolution with isotope distribution of modification(s)
         IsotopeDistribution::ContainerType container = dist.getContainer();
         vector<double> intensities;
         for (Size i = 0; i != container.size(); ++i)
@@ -1487,10 +1494,11 @@ public:
       {
         double a = abundance / 100.0;
         IsotopeDistribution isotopes;
+        isotopes.clear();
         isotopes.insert(14, 1.0 - a);
         isotopes.insert(15, a);
         e2->setIsotopeDistribution(isotopes);
-        IsotopeDistribution dist = peptide_ef.getIsotopeDistribution(new CoarseIsotopeDistribution(MAXISOTOPES + additional_isotopes));
+        IsotopeDistribution dist = peptide_ef.getIsotopeDistribution(CoarseIsotopeDistribution(MAXISOTOPES + additional_isotopes));
         IsotopeDistribution::ContainerType container = dist.getContainer();
         vector<double> intensities;
         for (Size i = 0; i != container.size(); ++i)
@@ -1502,6 +1510,7 @@ public:
     }
     // reset to natural occurance
     IsotopeDistribution isotopes;
+    isotopes.clear();
     isotopes.insert(14, 0.99632);
     isotopes.insert(15, 0.368);
     e2->setIsotopeDistribution(isotopes);
@@ -1526,16 +1535,18 @@ public:
 
     if (modifications_ef.getNumberOf(e1) > 0) // modification adds additional (unlabeled) atoms
     {
-      IsotopeDistribution modification_dist = modifications_ef.getIsotopeDistribution(new CoarseIsotopeDistribution(max_labeling_element + additional_isotopes));
+      IsotopeDistribution modification_dist = modifications_ef.getIsotopeDistribution(CoarseIsotopeDistribution(max_labeling_element + additional_isotopes));
       for (double abundance = 0.0; abundance < 100.0 - 1e-8; abundance += 100.0 / (double)max_labeling_element)
       {
         double a = abundance / 100.0;
         IsotopeDistribution isotopes;
+        isotopes.clear();
         isotopes.insert(1, 1.0 - a);
         isotopes.insert(2, a);
         e2->setIsotopeDistribution(isotopes);
-        CoarseIsotopeDistribution dist = unmodified_peptide_ef.getIsotopeDistribution(new CoarseIsotopeDistribution(max_labeling_element + additional_isotopes));
-        dist += modification_dist; // convole with modification distribution (which follows the natural distribution)
+        
+        IsotopeDistribution dist = unmodified_peptide_ef.getIsotopeDistribution(CoarseIsotopeDistribution(max_labeling_element + additional_isotopes));
+        dist.set(CoarseIsotopeDistribution().convolve_(dist.getContainer(), modification_dist.getContainer())); // convole with modification distribution (which follows the natural distribution)
         IsotopeDistribution::ContainerType container = dist.getContainer();
         vector<double> intensities;
         for (Size i = 0; i != container.size(); ++i)
@@ -1553,10 +1564,11 @@ public:
       {
         double a = abundance / 100.0;
         IsotopeDistribution isotopes;
+        isotopes.clear();
         isotopes.insert(1, 1.0 - a);
         isotopes.insert(2, a);
         e2->setIsotopeDistribution(isotopes);
-        IsotopeDistribution dist = peptide_ef.getIsotopeDistribution(new CoarseIsotopeDistribution(MAXISOTOPES + additional_isotopes));
+        IsotopeDistribution dist = peptide_ef.getIsotopeDistribution(CoarseIsotopeDistribution(MAXISOTOPES + additional_isotopes));
         IsotopeDistribution::ContainerType container = dist.getContainer();
         vector<double> intensities;
         for (Size i = 0; i != container.size(); ++i)
@@ -1569,6 +1581,7 @@ public:
 
     // reset to natural occurance
     IsotopeDistribution isotopes;
+    isotopes.clear();
     isotopes.insert(1, 0.999885);
     isotopes.insert(2, 0.000115);
     e2->setIsotopeDistribution(isotopes);
@@ -1592,17 +1605,18 @@ public:
 
     if (modifications_ef.getNumberOf(e1) > 0) // modification adds additional (unlabeled) atoms
     {
-      IsotopeDistribution modification_dist = modifications_ef.getIsotopeDistribution(new CoarseIsotopeDistribution(max_labeling_element + additional_isotopes));
+      IsotopeDistribution modification_dist = modifications_ef.getIsotopeDistribution(CoarseIsotopeDistribution(max_labeling_element + additional_isotopes));
       for (double abundance = 0.0; abundance < 100.0 - 1e-8; abundance += 100.0 / static_cast<double>(max_labeling_element * 2.0))
       {
         double a = abundance / 100.0;
-        CoarseIsotopeDistribution isotopes;
+        IsotopeDistribution isotopes;
         isotopes.insert(1, 1.0 - a);
         isotopes.insert(2, 0.0); // 17O is neglectable (=0.038%)
         isotopes.insert(3, a);
         e2->setIsotopeDistribution(isotopes);
-        CoarseIsotopeDistribution dist = unmodified_peptide_ef.getIsotopeDistribution(new CoarseIsotopeDistribution(max_labeling_element * 2 + additional_isotopes)); // 2 * isotopic traces
-        dist += modification_dist; // convole with modification distribution (which follows the natural distribution)
+        
+        IsotopeDistribution dist = unmodified_peptide_ef.getIsotopeDistribution(CoarseIsotopeDistribution(max_labeling_element * 2 + additional_isotopes)); // 2 * isotopic traces
+        dist.set(CoarseIsotopeDistribution().convolve_(dist.getContainer(), modification_dist.getContainer())); // convole with modification distribution (which follows the natural distribution)
         IsotopeDistribution::ContainerType container = dist.getContainer();
         vector<double> intensities;
         for (Size i = 0; i != container.size(); ++i)
@@ -1620,11 +1634,12 @@ public:
       {
         double a = abundance / 100.0;
         IsotopeDistribution isotopes;
+        isotopes.clear();
         isotopes.insert(1, 1.0 - a);
         isotopes.insert(2, 0.0); // 17O is neglectable (=0.038%)
         isotopes.insert(3, a);
         e2->setIsotopeDistribution(isotopes);
-        IsotopeDistribution dist = peptide_ef.getIsotopeDistribution(new CoarseIsotopeDistribution(MAXISOTOPES * 2 + additional_isotopes)); // 2 * isotopic traces
+        IsotopeDistribution dist = peptide_ef.getIsotopeDistribution(CoarseIsotopeDistribution(MAXISOTOPES * 2 + additional_isotopes)); // 2 * isotopic traces
         IsotopeDistribution::ContainerType container = dist.getContainer();
         vector<double> intensities;
         for (Size i = 0; i != container.size(); ++i)
@@ -1637,6 +1652,7 @@ public:
 
     // reset to natural occurance
     IsotopeDistribution isotopes;
+    isotopes.clear();
     isotopes.insert(1, 0.99757);
     isotopes.insert(2, 0.00038);
     isotopes.insert(3, 0.00205);
@@ -1659,11 +1675,12 @@ public:
     {
       double a = abundance / 100.0;
       IsotopeDistribution isotopes;
+      isotopes.clear();
       isotopes.insert(14, 1.0 - a);
       isotopes.insert(15, a);
       e2->setIsotopeDistribution(isotopes);
-      CoarseIsotopeDistribution dist(element_count);
-      dist.estimateFromPeptideWeight(mass);
+      CoarseIsotopeDistribution solver(element_count);
+      auto dist = solver.estimateFromPeptideWeight(mass);
       IsotopeDistribution::ContainerType container = dist.getContainer();
       vector<double> intensities;
       for (Size i = 0; i != container.size(); ++i)
@@ -1675,6 +1692,7 @@ public:
 
     // reset to natural occurance
     IsotopeDistribution isotopes;
+    isotopes.clear();
     isotopes.insert(14, 0.99632);
     isotopes.insert(15, 0.368);
     e2->setIsotopeDistribution(isotopes);
@@ -1684,7 +1702,6 @@ public:
   static IsotopePatterns calculateIsotopePatternsFor13CRangeOfAveraginePeptide(double mass)
   {
     IsotopePatterns ret;
-
     const Element* e1 = ElementDB::getInstance()->getElement("Carbon");
     Element* e2 = const_cast<Element*>(e1);
     Size element_count = mass * 0.0444398894906044;
@@ -1695,11 +1712,12 @@ public:
     {
       double a = abundance / 100.0;
       IsotopeDistribution isotopes;
+      isotopes.clear();
       isotopes.insert(12, 1.0 - a);
       isotopes.insert(13, a);
       e2->setIsotopeDistribution(isotopes);
-      CoarseIsotopeDistribution dist(element_count);
-      dist.estimateFromPeptideWeight(mass);
+      CoarseIsotopeDistribution solver(element_count);
+      auto dist = solver.estimateFromPeptideWeight(mass);
       IsotopeDistribution::ContainerType container = dist.getContainer();
       vector<double> intensities;
       for (Size i = 0; i != container.size(); ++i)
@@ -1731,11 +1749,12 @@ public:
     {
       double a = abundance / 100.0;
       IsotopeDistribution isotopes;
+      isotope.clear();
       isotopes.insert(1, 1.0 - a);
       isotopes.insert(2, a);
       e2->setIsotopeDistribution(isotopes);
-      CoarseIsotopeDistribution dist(element_count);
-      dist.estimateFromPeptideWeight(mass);
+      CoarseIsotopeDistribution solver(element_count);
+      auto dist = solver.estimateFromPeptideWeight(mass);
       IsotopeDistribution::ContainerType container = dist.getContainer();
       vector<double> intensities;
       for (Size i = 0; i != container.size(); ++i)
@@ -1747,6 +1766,7 @@ public:
 
     // reset to natural occurance
     IsotopeDistribution isotopes;
+    isotopes.clear();
     isotopes.insert(1, 0.999885);
     isotopes.insert(2, 0.000115);
     e2->setIsotopeDistribution(isotopes);
@@ -1767,12 +1787,13 @@ public:
     {
       double a = abundance / 100.0;
       IsotopeDistribution isotopes;
+      isotopes.clear();
       isotopes.insert(1, 1.0 - a);
       isotopes.insert(2, 0);
       isotopes.insert(3, a);
       e2->setIsotopeDistribution(isotopes);
-      CoarseIsotopeDistribution dist(element_count * 2); // spaces are 2 Da between 18O and 16O but we observe isotopic peaks at every (approx.) nominal mass
-      dist.estimateFromPeptideWeight(mass);
+      CoarseIsotopeDistribution solver(element_count * 2); // spaces are 2 Da between 18O and 16O but we observe isotopic peaks at every (approx.) nominal mass
+      auto dist = solver.estimateFromPeptideWeight(mass);
       IsotopeDistribution::ContainerType container = dist.getContainer();
       vector<double> intensities;
       for (Size i = 0; i != container.size(); ++i)
@@ -1784,6 +1805,7 @@ public:
 
     // reset to natural occurance
     IsotopeDistribution isotopes;
+    isotopes.clear();
     isotopes.insert(1, 0.99757);
     isotopes.insert(2, 0.00038);
     isotopes.insert(3, 0.00205);
@@ -2208,8 +2230,8 @@ protected:
       // calculate isotope distribution of averagine peptide as this will be used to detect spurious correlations with coeluting peptides
       // Note: actually it would be more accurate to use 15N-14N or 13C-12C distances. This doesn't affect averagine distribution much so this approximation is sufficient. (see TODO)
       double current_weight = peptide_weight + ii * 1.0; // TODO: use 13C-12C or 15N-14N instead of 1.0 as mass distance to be super accurate
-      CoarseIsotopeDistribution averagine = CoarseIsotopeDistribution(10);
-      averagine.estimateFromPeptideWeight(current_weight);
+      CoarseIsotopeDistribution solver(10);
+      IsotopeDistribution averagine = solver.estimateFromPeptideWeight(current_weight);
 
       IsotopeDistribution::ContainerType averagine_intensities_pairs = averagine.getContainer();
 

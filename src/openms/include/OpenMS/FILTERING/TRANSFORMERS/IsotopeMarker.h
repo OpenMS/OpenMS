@@ -102,8 +102,8 @@ public:
         Size j = i + 1;
 
         //std::vector<std::pair<double, double> > isotopes = SpectrumGenerator::instance()->isotopepeaks(mz, intensity);
-        CoarseIsotopeDistribution id;
-        id.estimateFromPeptideWeight(mz);
+        CoarseIsotopeDistribution solver;
+        auto id = solver.estimateFromPeptideWeight(mz);
 
         while (j < spectrum.size() && spectrum[j].getPosition()[0] <= mz + 3 + mzvariation)
         {

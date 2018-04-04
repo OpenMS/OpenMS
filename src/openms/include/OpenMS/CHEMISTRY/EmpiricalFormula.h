@@ -42,6 +42,8 @@
 
 #include <OpenMS/CONCEPT/Types.h>
 
+
+
 namespace OpenMS
 {
   class String;
@@ -49,7 +51,6 @@ namespace OpenMS
   class ElementDB;
   class IsotopeDistribution;
   class IsotopePatternGenerator;
-  class CoarseIsotopeDistribution;
   /**
     @ingroup Chemistry
 
@@ -172,12 +173,11 @@ public:
 
       @param method: the maximum isotope which is considered, if 0 all are reported
     */
-    IsotopeDistribution getIsotopeDistribution(IsotopePatternGenerator* method) const;
+    IsotopeDistribution getIsotopeDistribution(const IsotopePatternGenerator& method) const;
 
-//    IsotopeDistribution getIsotopeDistribution(CoarseIsotopeDistribution* coarse_solver) const;
 
     /**
-      @brief returns the fragment isotope distribution of this given a precursor formula
+      @brief returns the fragment iUsotope distribution of this given a precursor formula
       and conditioned on a set of isolated precursor isotopes.
 
       The max_depth of the isotopic distribution is set to max(precursor_isotopes)+1.

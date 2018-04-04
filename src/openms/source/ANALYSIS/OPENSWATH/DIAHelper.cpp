@@ -110,11 +110,10 @@ namespace OpenMS
     {
       typedef OpenMS::FeatureFinderAlgorithmPickedHelperStructs::TheoreticalIsotopePattern TheoreticalIsotopePattern;
       // create the theoretical distribution
-      CoarseIsotopeDistribution d;
+      CoarseIsotopeDistribution solver(nr_isotopes);
       TheoreticalIsotopePattern isotopes;
-      d.setMaxIsotope(nr_isotopes);
       //std::cout << product_mz * charge << std::endl;
-      d.estimateFromPeptideWeight(product_mz * charge);
+      auto d = solver.estimateFromPeptideWeight(product_mz * charge);
 
       double mass = product_mz;
       for (IsotopeDistribution::Iterator it = d.begin(); it != d.end(); ++it)

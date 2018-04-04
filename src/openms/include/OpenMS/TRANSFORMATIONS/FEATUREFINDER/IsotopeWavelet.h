@@ -248,7 +248,8 @@ protected:
     static std::vector<double> sine_table_;
 
     /** Internally used averagine model. */
-    static CoarseIsotopeDistribution averagine_;
+    static CoarseIsotopeDistribution solver_;
+    static IsotopeDistribution averagine_;
 
     static Size gamma_table_max_index_;
     static Size exp_table_max_index_;

@@ -127,7 +127,7 @@ namespace OpenMS
     typedef std::vector<double> ContainerType;
     ContainerType isotopes_exact;
 
-    isotope_distribution_ = formula.getIsotopeDistribution(new CoarseIsotopeDistribution(max_isotope_));
+    isotope_distribution_ = formula.getIsotopeDistribution(CoarseIsotopeDistribution(max_isotope_));
 
     isotope_distribution_.trimRight(trim_right_cutoff_);
     isotope_distribution_.renormalize();

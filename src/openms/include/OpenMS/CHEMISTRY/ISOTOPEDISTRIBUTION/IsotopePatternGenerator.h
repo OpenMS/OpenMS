@@ -42,13 +42,13 @@
 namespace OpenMS
 {
   class EmpiricalFormula;
+  /* class IsotopeDistribution; */
 
-  class OPENMS_DLLAPI IsotopePatternGenerator : public IsotopeDistribution
+  class OPENMS_DLLAPI IsotopePatternGenerator
   {
  public:
     IsotopePatternGenerator();
     IsotopePatternGenerator(double probability_cutoff);
-    IsotopePatternGenerator(const IsotopeDistribution&);
     
     /** 
         @brief interface that is being used by the Isotope Pattern Generator methods.
@@ -56,15 +56,8 @@ namespace OpenMS
         Method that calculates the isotope distribution for the given formula.
 
      */
-    virtual void run(const EmpiricalFormula&) = 0;
-    /** @brief Merges distributions arbitrary data points with constant defined resolution.
-        
-        It creates a new IsotopeDistribution Container and assigns each isotope to the nearest bin.
-        This function should be used to downsample the existing distribution.
-        If the size of the new Container is larger this function throws an IllegalArgument Exception.
-        
-     */
-    void merge(double resolution);
+    virtual IsotopeDistribution run(const EmpiricalFormula&) const = 0;
+    ~IsotopePatternGenerator();
  protected:
     double min_prob_;
   };

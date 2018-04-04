@@ -250,8 +250,8 @@ namespace OpenMS
     }
 
     // get the theoretical isotope distribution
-    CoarseIsotopeDistribution iso_dist(iso_pattern.size());
-    iso_dist.estimateFromPeptideWeight((it_pos - charge * Constants::PROTON_MASS_U) * charge + Constants::PROTON_MASS_U);
+    CoarseIsotopeDistribution solver(iso_pattern.size());
+    auto iso_dist = solver.estimateFromPeptideWeight((it_pos - charge * Constants::PROTON_MASS_U) * charge + Constants::PROTON_MASS_U);
 
     // compare the distribution sizes
     if (iso_dist.size() != iso_pattern.size())
@@ -351,8 +351,8 @@ namespace OpenMS
 
 
     // get the theoretical isotope distribution
-    CoarseIsotopeDistribution iso_dist(UInt(iso_pattern.size()));
-    iso_dist.estimateFromPeptideWeight(it_pos * (double)charge - (double)(charge - 1) * Constants::PROTON_MASS_U);
+    CoarseIsotopeDistribution solver(UInt(iso_pattern.size()));
+    auto iso_dist = solver.estimateFromPeptideWeight(it_pos * (double)charge - (double)(charge - 1) * Constants::PROTON_MASS_U);
 
     // compare the distribution sizes
     if (iso_dist.size() != iso_pattern.size())
@@ -386,10 +386,10 @@ namespace OpenMS
   {
     double max_mz(param_.getValue("max_mz"));
     Size max_isotope(param_.getValue("max_isotope"));
-    CoarseIsotopeDistribution iso_dist(max_isotope);
+    CoarseIsotopeDistribution solver(max_isotope);
     for (Size i = 1; i <= max_mz; ++i)
     {
-      iso_dist.estimateFromPeptideWeight((double)i);
+      auto iso_dist = solver.estimateFromPeptideWeight((double)i);
       iso_dist.renormalize();
       vector<double> iso(max_isotope, 0.0);
 

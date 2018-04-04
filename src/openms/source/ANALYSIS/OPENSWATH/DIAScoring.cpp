@@ -384,18 +384,18 @@ namespace OpenMS
     typedef OpenMS::FeatureFinderAlgorithmPickedHelperStructs::TheoreticalIsotopePattern TheoreticalIsotopePattern;
 
     TheoreticalIsotopePattern isotopes;
-    CoarseIsotopeDistribution isotope_dist;
+    IsotopeDistribution isotope_dist;
     if (!sum_formula.empty())
     {
       // create the theoretical distribution from the sum formula
       EmpiricalFormula empf(sum_formula);
-      isotope_dist = empf.getIsotopeDistribution(new CoarseIsotopeDistribution(dia_nr_isotopes_));
+      isotope_dist = empf.getIsotopeDistribution(CoarseIsotopeDistribution(dia_nr_isotopes_));
     }
     else
     {
       // create the theoretical distribution from the peptide weight
-      isotope_dist.setMaxIsotope(dia_nr_isotopes_ + 1);
-      isotope_dist.estimateFromPeptideWeight(std::fabs(product_mz * putative_fragment_charge));
+      CoarseIsotopeDistribution solver(dia_nr_isotopes_ + 1);
+      isotope_dist = solver.estimateFromPeptideWeight(std::fabs(product_mz * putative_fragment_charge));
     }
 
 

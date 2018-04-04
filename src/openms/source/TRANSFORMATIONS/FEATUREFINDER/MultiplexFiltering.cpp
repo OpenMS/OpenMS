@@ -389,20 +389,20 @@ namespace OpenMS
 
   {
     // construct averagine distribution
-    CoarseIsotopeDistribution distribution;
+    CoarseIsotopeDistribution solver(pattern.size());
+    IsotopeDistribution distribution;
     vector<double> averagine_pattern;
-    distribution.setMaxIsotope(pattern.size());
     if (averagine_type_ == "peptide")
     {
-        distribution.estimateFromPeptideWeight(m);
+        distribution = solver.estimateFromPeptideWeight(m);
     }
     else if (averagine_type_ == "RNA")
     {
-        distribution.estimateFromRNAWeight(m);
+      distribution = solver.estimateFromRNAWeight(m);
     }
     else if (averagine_type_ == "DNA")
     {
-        distribution.estimateFromDNAWeight(m);
+        distribution = solver.estimateFromDNAWeight(m);
     }
     else
     {

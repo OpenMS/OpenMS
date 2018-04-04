@@ -36,6 +36,7 @@
 #define OPENMS_CHEMISTRY_ISOTOPEDISTRIBUTION_COARSEID_H
 
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopePatternGenerator.h>
+#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopeDistribution.h>
 
 
 namespace OpenMS
@@ -62,7 +63,7 @@ namespace OpenMS
 
     CoarseIsotopeDistribution(Size max_isotope);
 
-    CoarseIsotopeDistribution(const IsotopeDistribution& isotope_distribution);
+    virtual ~CoarseIsotopeDistribution();
 
     /// @name Accessors
     //@{
@@ -86,10 +87,10 @@ namespace OpenMS
     // bool operator==(const CoarseIsotopeDistribution& isotope_distribution) const;
 
     /// inequality operator, returns true if the @p isotope_distribution differs from this, false else
-    bool operator!=(const CoarseIsotopeDistribution& isotope_distribution) const;
+    
 
 
-    void run(const EmpiricalFormula&);
+    IsotopeDistribution run(const EmpiricalFormula&) const;
 
     /**
        @brief Estimate Peptide Isotopedistribution from weight and number of isotopes that should be reported
@@ -97,7 +98,7 @@ namespace OpenMS
        Implementation using the averagine model proposed by Senko et al. in
        "Determination of Monoisotopic Masses and Ion Populations for Large Biomolecules from Resolved Isotopic Distributions"
     */
-    void estimateFromPeptideWeight(double average_weight);
+    IsotopeDistribution estimateFromPeptideWeight(double average_weight);
 
     /**
        @brief Estimate peptide IsotopeDistribution from average weight and exact number of sulfurs
@@ -108,7 +109,7 @@ namespace OpenMS
        @pre S <= average_weight / average_weight(sulfur)
        @pre average_weight >= 0
     */
-    void estimateFromPeptideWeightAndS(double average_weight, UInt S);
+    IsotopeDistribution estimateFromPeptideWeightAndS(double average_weight, UInt S);
 
     /**
        @brief Estimate Nucleotide Isotopedistribution from weight and number of isotopes that should be reported
@@ -116,21 +117,21 @@ namespace OpenMS
        averagine model from Zubarev, R. A.; Demirev, P. A. in
        "Isotope  depletion  of  large biomolecules: Implications for molecular mass measurements."
     */
-    void estimateFromRNAWeight(double average_weight);
+    IsotopeDistribution estimateFromRNAWeight(double average_weight);
 
     /**
        @brief Estimate Nucleotide Isotopedistribution from weight and number of isotopes that should be reported
        averagine model from Zubarev, R. A.; Demirev, P. A. in
        "Isotope  depletion  of  large biomolecules: Implications for molecular mass measurements."
     */
-    void estimateFromDNAWeight(double average_weight);
+    IsotopeDistribution estimateFromDNAWeight(double average_weight);
 
     /**
 
        @brief Estimate Isotopedistribution from weight, average composition, and number of isotopes that should be reported
 
     */
-    void estimateFromWeightAndComp(double average_weight, double C, double H, double N, double O, double S, double P);
+    IsotopeDistribution estimateFromWeightAndComp(double average_weight, double C, double H, double N, double O, double S, double P);
 
     /**
        @brief Estimate IsotopeDistribution from weight, exact number of sulfurs, and average remaining composition
@@ -146,7 +147,7 @@ namespace OpenMS
        @pre S, C, H, N, O, P >= 0
        @pre average_weight >= 0
     */
-    void estimateFromWeightAndCompAndS(double average_weight, UInt S, double C, double H, double N, double O, double P);
+    IsotopeDistribution estimateFromWeightAndCompAndS(double average_weight, UInt S, double C, double H, double N, double O, double P);
 
     /**
        @brief Estimate peptide fragment IsotopeDistribution from the precursor's average weight,
@@ -162,7 +163,7 @@ namespace OpenMS
        @pre average_weight_precursor > 0
        @pre precursor_isotopes.size() > 0
     */
-    void estimateForFragmentFromPeptideWeight(double average_weight_precursor, double average_weight_fragment, const std::set<UInt>& precursor_isotopes);
+    IsotopeDistribution estimateForFragmentFromPeptideWeight(double average_weight_precursor, double average_weight_fragment, const std::set<UInt>& precursor_isotopes);
 
     /**
        @brief Estimate peptide fragment IsotopeDistribution from the precursor's average weight,
@@ -183,7 +184,7 @@ namespace OpenMS
        @pre average_weight_fragment > 0
        @pre precursor_isotopes.size() > 0
     */
-    void estimateForFragmentFromPeptideWeightAndS(double average_weight_precursor, UInt S_precursor, double average_weight_fragment, UInt S_fragment, const std::set<UInt>& precursor_isotopes);
+    IsotopeDistribution estimateForFragmentFromPeptideWeightAndS(double average_weight_precursor, UInt S_precursor, double average_weight_fragment, UInt S_fragment, const std::set<UInt>& precursor_isotopes);
 
     /**
        @brief Estimate RNA fragment IsotopeDistribution from the precursor's average weight,
@@ -199,7 +200,7 @@ namespace OpenMS
        @pre average_weight_fragment > 0
        @pre precursor_isotopes.size() > 0
     */
-    void estimateForFragmentFromRNAWeight(double average_weight_precursor, double average_weight_fragment, const std::set<UInt>& precursor_isotopes);
+    IsotopeDistribution estimateForFragmentFromRNAWeight(double average_weight_precursor, double average_weight_fragment, const std::set<UInt>& precursor_isotopes);
 
     /**
        @brief Estimate DNA fragment IsotopeDistribution from the precursor's average weight,
@@ -215,7 +216,7 @@ namespace OpenMS
        @pre average_weight_fragment > 0
        @pre precursor_isotopes.size() > 0
     */
-    void estimateForFragmentFromDNAWeight(double average_weight_precursor, double average_weight_fragment, const std::set<UInt>& precursor_isotopes);
+    IsotopeDistribution estimateForFragmentFromDNAWeight(double average_weight_precursor, double average_weight_fragment, const std::set<UInt>& precursor_isotopes);
 
     /**
        @brief Estimate fragment IsotopeDistribution from the precursor's average weight,
@@ -238,7 +239,7 @@ namespace OpenMS
        @pre average_weight_fragment > 0
        @pre precursor_isotopes.size() > 0
     */
-    void estimateForFragmentFromWeightAndComp(double average_weight_precursor, double average_weight_fragment, const std::set<UInt>& precursor_isotopes, double C, double H, double N, double O, double S, double P);
+    IsotopeDistribution estimateForFragmentFromWeightAndComp(double average_weight_precursor, double average_weight_fragment, const std::set<UInt>& precursor_isotopes, double C, double H, double N, double O, double S, double P);
 
     /**
        @brief Calculate isotopic distribution for a fragment molecule
@@ -253,35 +254,20 @@ namespace OpenMS
        @param comp_fragment_isotope_dist the isotopic distribution of the complementary fragment (as if it was a precursor).
        @param precursor_isotopes a list of which precursor isotopes were isolated. 0 corresponds to the mono-isotopic molecule (M0), 1->M1, etc.
     */
-    void calcFragmentIsotopeDist(const IsotopeDistribution& fragment_isotope_dist, const IsotopeDistribution& comp_fragment_isotope_dist, const std::set<UInt>& precursor_isotopes);
+    IsotopeDistribution calcFragmentIsotopeDist(const IsotopeDistribution& fragment_isotope_dist, const IsotopeDistribution& comp_fragment_isotope_dist, const std::set<UInt>& precursor_isotopes);
 
     CoarseIsotopeDistribution& operator=(const CoarseIsotopeDistribution& iso);
 
-    /// equality operator, returns true if the @p isotope_distribution is identical to this, false else
-    bool operator==(const CoarseIsotopeDistribution& isotope_distribution) const;
-
-    /// operator which adds this distribution and the @p isotope_distribution to return IsotopeDisribution (similar to convolve distributions)
-    CoarseIsotopeDistribution operator+(const CoarseIsotopeDistribution& isotope_distribution) const;
-
-    /// operator which adds @p isotope_distribution to this (similar to convolve distributions)
-    CoarseIsotopeDistribution& operator+=(const CoarseIsotopeDistribution& isotope_distribution);
-
-    /// operator which multiplies this distribution by @p factor (similar to @p factor times applying operator '+')
-    CoarseIsotopeDistribution operator*(Size factor) const;
-
-    /// operator which multiplies this distribution by @p factor (similar to @p factor times applying operator '+=')
-    CoarseIsotopeDistribution& operator*=(Size factor);
-    
- protected:
     /// convolves the distributions @p left and @p right and stores the result in @p result
-    void convolve_(ContainerType & result, const ContainerType & left, const ContainerType & right) const;
+    IsotopeDistribution::ContainerType convolve_(const IsotopeDistribution::ContainerType & left, const IsotopeDistribution::ContainerType & right) const;
 
     /// convolves the distribution @p input @p factor times and stores the result in @p result
-    void convolvePow_(ContainerType & result, const ContainerType & input, Size factor) const;
+    IsotopeDistribution::ContainerType convolvePow_(const IsotopeDistribution::ContainerType & input, Size factor) const;
 
     /// convolves the distribution @p input with itself and stores the result in @p result
-    void convolveSquare_(ContainerType & result, const ContainerType & input) const;
+    IsotopeDistribution::ContainerType convolveSquare_(const IsotopeDistribution::ContainerType & input) const;
 
+protected:
 
     /** @brief calculates the fragment distribution for a fragment molecule and stores it in @p result.
 
@@ -289,10 +275,10 @@ namespace OpenMS
         @param comp_fragment_isotope_dist the isotopic distribution of the complementary fragment (as if it was a precursor).
         @param precursor_isotopes which precursor isotopes were isolated. 0 corresponds to the mono-isotopic molecule (M0), 1->M1, etc.
     */
-    void calcFragmentIsotopeDist_(ContainerType& result, const ContainerType& fragment_isotope_dist, const ContainerType& comp_fragment_isotope_dist, const std::set<UInt>& precursor_isotopes);
+    IsotopeDistribution calcFragmentIsotopeDist_(const IsotopeDistribution::ContainerType& fragment_isotope_dist, const IsotopeDistribution::ContainerType& comp_fragment_isotope_dist, const std::set<UInt>& precursor_isotopes);
 
     /// fill a gapped isotope pattern (i.e. certain masses are missing), with zero probability masses
-    ContainerType fillGaps_(const ContainerType& id) const;
+    IsotopeDistribution::ContainerType fillGaps_(const IsotopeDistribution::ContainerType& id) const;
 
  protected:
     /// maximal isotopes which is used to calculate the distribution
