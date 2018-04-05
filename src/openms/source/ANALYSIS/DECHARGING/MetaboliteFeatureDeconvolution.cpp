@@ -806,33 +806,15 @@ namespace OpenMS
 
       if (feature_relation[i].isActive())
       {
-        //std::cout << "feature #" << f0_idx << " #" << f1_idx << " ACTIVE q:" << new_q0 << ":" << new_q1 << " score: " << feature_relation[i].getEdgeScore() << " with RT: " << fm_out[f1_idx].getRT() << "\n";
-
         //
         // annotate the affected features
         // ... and check consistency
         //
-
         Compomer c = feature_relation[i].getCompomer();
         // - left
         annotate_feature(fm_out, default_adduct, c, f0_idx, Compomer::LEFT, new_q0, old_q0);
         // - right
         annotate_feature(fm_out, default_adduct, c, f1_idx, Compomer::RIGHT, new_q1, old_q1);
-
-        //
-        // create cliques
-        //
-        SignedSize target_cf0 = -1, target_cf1 = -1;
-
-        // find the index of the ConsensusFeatures for the current pair
-        if (clique_register.count(f0_idx) > 0)
-        {
-          target_cf0 = clique_register[f0_idx];
-        }
-        if (clique_register.count(f1_idx) > 0)
-        {
-          target_cf1 = clique_register[f1_idx];
-        }
 
 
         ConsensusFeature cf(fm_out[f0_idx]);
@@ -863,6 +845,22 @@ namespace OpenMS
         cf.removeMetaValue("CP");
 
 
+        //
+        // create cliques for decharge consensus features
+        //
+        SignedSize target_cf0 = -1, target_cf1 = -1;
+
+        // find the index of the ConsensusFeatures for the current pair
+        if (clique_register.count(f0_idx) > 0)
+        {
+          target_cf0 = clique_register[f0_idx];
+        }
+        if (clique_register.count(f1_idx) > 0)
+        {
+          target_cf1 = clique_register[f1_idx];
+        }
+
+
         // seen both features for the first time
         if ((target_cf0 == -1) &&
             (target_cf1 == -1))
@@ -870,7 +868,6 @@ namespace OpenMS
           cons_map.push_back(cf);
           clique_register[f0_idx] = cons_map.size() - 1;
           clique_register[f1_idx] = cons_map.size() - 1;
-          //std::cout << "new: F" << f0_idx << " + F" << f1_idx << " are " << (cons_map.size()-1) << "\n";
         }
         else if (target_cf0 != target_cf1)
         {
@@ -897,7 +894,6 @@ namespace OpenMS
             cons_map[target_cf0].insert(hst);
             // clear cf1; do NOT delete cf1 (will invalidate higher indices) - do that afterwards
             cons_map[target_cf1].clear();
-            //std::cout << "conflict: F" << f0_idx << " + F" << f1_idx << " --> "<< target_cf0 << "(" << target_cf1 << " killed)" << "\n";
           }
         }
 
