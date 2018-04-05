@@ -69,6 +69,13 @@ protected:
   // Is the experiment <exp> centroided or profile?
   bool centroided_;
   
+  unsigned charge_min_;
+  unsigned charge_max_;
+  
+  unsigned isotopes_per_peptide_min_;
+  unsigned isotopes_per_peptide_max_;
+
+  
   // mass shift names and their values
   std::map<String, double> label_mass_shift_;
   

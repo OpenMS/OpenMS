@@ -36,6 +36,8 @@
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexDeltaMassesGenerator.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexDeltaMasses.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexIsotopicPeakPattern.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFilteredMSExperiment.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFilteringCentroided.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerHiRes.h>
 
 #include <OpenMS/CHEMISTRY/IsotopeDistribution.h>
@@ -86,7 +88,7 @@ namespace OpenMS
     defaults_.setValidStrings("algorithm:knock_out", ListUtils::create<String>("true,false"));
     defaults_.setValue("algorithm:averagine_type","peptide","The type of averagine to use, currently RNA, DNA or peptide", ListUtils::create<String>("advanced"));
     defaults_.setValidStrings("algorithm:averagine_type", ListUtils::create<String>("peptide,RNA,DNA"));
-
+    
     // parameter section: labels
     MultiplexDeltaMassesGenerator generator;
     Param p = generator.getParameters();
@@ -98,6 +100,24 @@ namespace OpenMS
       label_mass_shift_.insert(make_pair(it->name, it->value));
     }
     
+    // parameter section: algorithm, get selected charge range
+    String charge_string = param_.getValue("algorithm:charge");
+    charge_min_ = charge_string.prefix(':').toInt();
+    charge_max_ = charge_string.suffix(':').toInt();
+    if (charge_min_ > charge_max_)
+    {
+      swap(charge_min_, charge_max_);
+    }
+    
+    // parameter section: algorithm, get isotopes per peptide range
+    String isotopes_per_peptide_string = param_.getValue("algorithm:isotopes_per_peptide");
+    isotopes_per_peptide_min_ = isotopes_per_peptide_string.prefix(':').toInt();
+    isotopes_per_peptide_max_ = isotopes_per_peptide_string.suffix(':').toInt();
+    if (isotopes_per_peptide_min_ > isotopes_per_peptide_max_)
+    {
+      swap(isotopes_per_peptide_min_, isotopes_per_peptide_max_);
+    }
+
     // check for empty experimental data
     if (exp.getSpectra().empty())
     {
@@ -248,5 +268,15 @@ namespace OpenMS
 
     std::vector<MultiplexDeltaMasses> masses = generator.getDeltaMassesList();
     std::vector<MultiplexIsotopicPeakPattern> patterns = generatePeakPatterns_(param_.getValue("algorithm:charge_min"), param_.getValue("algorithm:charge_max"), param_.getValue("algorithm:isotopes_per_peptide_max"), masses);
+    
+    std::vector<MultiplexFilteredMSExperiment> filter_results;
+    if (centroided_)
+    {
+      // centroided data
+      MultiplexFilteringCentroided filtering(exp_centroid_, patterns, isotopes_per_peptide_min_, isotopes_per_peptide_max_, param_.getValue("algorithm:intensity_cutoff"), param_.getValue("algorithm:rt_band"), param_.getValue("algorithm:mz_tolerance"), (param_.getValue("algorithm:mz_unit") == "ppm"), param_.getValue("algorithm:peptide_similarity"), param_.getValue("algorithm:averagine_similarity"), param_.getValue("algorithm:averagine_similarity_scaling"), param_.getValue("algorithm:averagine_type"));
+      filtering.setLogType(getLogType());
+      filter_results = filtering.filter();
+    }
+
   }
 }
