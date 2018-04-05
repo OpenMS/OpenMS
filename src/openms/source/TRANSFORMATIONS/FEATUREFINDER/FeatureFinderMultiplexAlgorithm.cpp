@@ -39,12 +39,16 @@
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFilteredMSExperiment.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFilteringCentroided.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFilteringProfile.h>
+#include <OpenMS/COMPARISON/CLUSTERING/GridBasedCluster.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexClustering.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerHiRes.h>
 
 #include <OpenMS/CHEMISTRY/IsotopeDistribution.h>
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
-#include <OpenMS/MATH/MISC/MathFunctions.h>
+#include <OpenMS/MATH/STATISTICS/LinearRegression.h>
 #include <OpenMS/CONCEPT/Constants.h>
+#include <OpenMS/KERNEL/ConsensusMap.h>
+#include <OpenMS/KERNEL/FeatureMap.h>
 
 #include <vector>
 #include <numeric>
@@ -118,6 +122,8 @@ namespace OpenMS
     {
       swap(isotopes_per_peptide_min_, isotopes_per_peptide_max_);
     }
+    
+    rt_min_ = param_.getValue("algorithm:rt_min");
 
     // check for empty experimental data
     if (exp.getSpectra().empty())
@@ -151,7 +157,7 @@ namespace OpenMS
    *
    * Order charge states by the likelihood of their occurrence, i.e. we search for the most likely charge states first.
    */
-  static size_t order_charge(int charge)
+  static size_t orderCharge(int charge)
   {
     if ((1 < charge) && (charge < 5))
     {
@@ -180,7 +186,7 @@ namespace OpenMS
    *
    * @return true if pattern1 should be searched before pattern2
    */
-  static bool less_pattern(const MultiplexIsotopicPeakPattern& pattern1, const MultiplexIsotopicPeakPattern& pattern2)
+  static bool lessPattern(const MultiplexIsotopicPeakPattern& pattern1, const MultiplexIsotopicPeakPattern& pattern2)
   {
     if (pattern1.getMassShiftCount() == pattern2.getMassShiftCount())
     {
@@ -190,7 +196,7 @@ namespace OpenMS
         if (pattern1.getMassShiftAt(1) == pattern2.getMassShiftAt(1))
         {
           // 2+ before 3+ before 4+ before 1+ before 5+ before 6+ etc.
-          return order_charge(pattern1.getCharge()) < order_charge(pattern2.getCharge());
+          return orderCharge(pattern1.getCharge()) < orderCharge(pattern2.getCharge());
         }
         else
         {
@@ -200,7 +206,7 @@ namespace OpenMS
       else
       {
         // 2+ before 3+ before 4+ before 1+ before 5+ before 6+ etc.
-        return order_charge(pattern1.getCharge()) < order_charge(pattern2.getCharge());
+        return orderCharge(pattern1.getCharge()) < orderCharge(pattern2.getCharge());
       }
     }
     else
@@ -225,7 +231,7 @@ namespace OpenMS
       }
     }
     
-    sort(list.begin(), list.end(), less_pattern);
+    sort(list.begin(), list.end(), lessPattern);
     
     // debug output
     /*for (int i = 0; i < list.size(); ++i)
@@ -234,6 +240,776 @@ namespace OpenMS
      }*/
     
     return list;
+  }
+  
+  /**
+   * @brief simple linear regression through the origin
+   *
+   * TODO: combine with OpenMS/MATH/STATISTICS/LinearRegression
+   */
+  class LinearRegressionWithoutIntercept
+  {
+  public:
+    /**
+     * @brief constructor
+     */
+    LinearRegressionWithoutIntercept() :
+    sum_xx_(0), sum_xy_(0), n_(0)
+    {
+    }
+    
+    /**
+     * @brief adds an observation (x,y) to the regression data set.
+     *
+     * @param x    independent variable value
+     * @param y    dependent variable value
+     */
+    void addData(double x, double y)
+    {
+      sum_xx_ += x * x;
+      sum_xy_ += x * y;
+      
+      ++n_;
+    }
+    
+    /**
+     * @brief adds observations (x,y) to the regression data set.
+     *
+     * @param x    vector of independent variable values
+     * @param y    vector of dependent variable values
+     */
+    void addData(std::vector<double>& x, std::vector<double>& y)
+    {
+      for (unsigned i = 0; i < x.size(); ++i)
+      {
+        addData(x[i], y[i]);
+      }
+    }
+    
+    /**
+     * @brief returns the slope of the estimated regression line.
+     */
+    double getSlope()
+    {
+      if (n_ < 2)
+      {
+        return std::numeric_limits<double>::quiet_NaN(); // not enough data
+      }
+      
+      return sum_xy_ / sum_xx_;
+    }
+    
+  private:
+    /**
+     * @brief total variation in x
+     */
+    double sum_xx_;
+    
+    /**
+     * @brief sum of products
+     */
+    double sum_xy_;
+    
+    /**
+     * @brief number of observations
+     */
+    int n_;
+    
+  };
+  
+  std::vector<double> FeatureFinderMultiplexAlgorithm::determinePeptideIntensitiesCentroided_(MultiplexIsotopicPeakPattern& pattern, std::multimap<size_t, MultiplexSatelliteCentroided >& satellites)
+  {
+    // determine RT shift between the peptides
+    // i.e. first determine the RT centre of mass for each peptide
+    std::vector<double> rt_peptide;
+    std::vector<double> intensity_peptide;
+    // loop over peptides
+    for (size_t peptide = 0; peptide < pattern.getMassShiftCount(); ++peptide)
+    {
+      // coordinates of the peptide feature
+      // RT is the intensity-average of all satellites peaks of all (!) mass traces
+      double rt(0);
+      double intensity_sum(0);
+      
+      // loop over isotopes i.e. mass traces of the peptide
+      for (size_t isotope = 0; isotope < isotopes_per_peptide_max_; ++isotope)
+      {
+        // find satellites for this isotope i.e. mass trace
+        size_t idx = peptide * isotopes_per_peptide_max_ + isotope;
+        std::pair<std::multimap<size_t, MultiplexSatelliteCentroided >::const_iterator, std::multimap<size_t, MultiplexSatelliteCentroided >::const_iterator> satellites_isotope;
+        satellites_isotope = satellites.equal_range(idx);
+        
+        // loop over satellites for this isotope i.e. mass trace
+        for (std::multimap<size_t, MultiplexSatelliteCentroided >::const_iterator satellite_it = satellites_isotope.first; satellite_it != satellites_isotope.second; ++satellite_it)
+        {
+          // find indices of the peak
+          size_t rt_idx = (satellite_it->second).getRTidx();
+          size_t mz_idx = (satellite_it->second).getMZidx();
+          
+          // find peak itself
+          MSExperiment::ConstIterator it_rt = exp_centroid_.begin();
+          std::advance(it_rt, rt_idx);
+          MSSpectrum::ConstIterator it_mz = it_rt->begin();
+          std::advance(it_mz, mz_idx);
+          
+          rt += it_rt->getRT() * it_mz->getIntensity();
+          intensity_sum += it_mz->getIntensity();
+        }
+      }
+      
+      rt /= intensity_sum;
+      rt_peptide.push_back(rt);
+      intensity_peptide.push_back(intensity_sum);
+    }
+    
+    // determine the fold changes between the lightest peptide and the remaining ones
+    // TODO Replace the lightest peptide by the highest intensity peptide in the multiplet
+    std::vector<double> ratio_peptide;
+    ratio_peptide.push_back(1.0);
+    // loop over other peptides
+    for (size_t peptide = 1; peptide < pattern.getMassShiftCount(); ++peptide)
+    {
+      // fill the vectors from which the Pearson correlation for the ratio i.e. fold change will be calculated
+      std::vector<double> intensities_light;
+      std::vector<double> intensities_other;
+      // loop over isotopes i.e. mass traces of the peptide
+      for (size_t isotope = 0; isotope < isotopes_per_peptide_max_; ++isotope)
+      {
+        // find satellites for this isotope in the light peptide
+        std::pair<std::multimap<size_t, MultiplexSatelliteCentroided >::const_iterator, std::multimap<size_t, MultiplexSatelliteCentroided >::const_iterator> satellites_isotope_1;
+        satellites_isotope_1 = satellites.equal_range(isotope);
+        
+        // find satellites for this isotope in the second peptide
+        std::pair<std::multimap<size_t, MultiplexSatelliteCentroided >::const_iterator, std::multimap<size_t, MultiplexSatelliteCentroided >::const_iterator> satellites_isotope_2;
+        satellites_isotope_2 = satellites.equal_range(peptide * isotopes_per_peptide_max_ + isotope);
+        
+        // loop over satellites for this isotope in the light peptide
+        for (std::multimap<size_t, MultiplexSatelliteCentroided >::const_iterator satellite_it_1 = satellites_isotope_1.first; satellite_it_1 != satellites_isotope_1.second; ++satellite_it_1)
+        {
+          // find indices of the peak
+          size_t rt_idx_1 = (satellite_it_1->second).getRTidx();
+          size_t mz_idx_1 = (satellite_it_1->second).getMZidx();
+          
+          // find peak itself
+          MSExperiment::ConstIterator it_rt_1 = exp_centroid_.begin();
+          std::advance(it_rt_1, rt_idx_1);
+          MSSpectrum::ConstIterator it_mz_1 = it_rt_1->begin();
+          std::advance(it_mz_1, mz_idx_1);
+          
+          // find corresponding spectra
+          double rt_1 = it_rt_1->getRT();
+          double rt_2_target = rt_1 + rt_peptide[peptide] - rt_peptide[0];
+          
+          MSExperiment::ConstIterator it_rt_2 = exp_centroid_.RTBegin(rt_2_target);
+          double rt_2 = it_rt_2->getRT();
+          // The previous spectrum might be a better match for the target RT <rt_2_target>.
+          if (it_rt_2 != exp_centroid_.begin())
+          {
+            if (std::abs((it_rt_2 - 1)->getRT() - rt_2_target) < std::abs(rt_2 - rt_2_target))
+            {
+              --it_rt_2;
+              rt_2 = it_rt_2->getRT();
+            }
+          }
+          
+          // loop over satellites for this isotope in the second peptide
+          double rt_earlier = -1;
+          double intensity_earlier = -1;
+          double rt_later = -1;
+          double intensity_later = -1;
+          for (std::multimap<size_t, MultiplexSatelliteCentroided >::const_iterator satellite_it_2 = satellites_isotope_2.first; satellite_it_2 != satellites_isotope_2.second; ++satellite_it_2)
+          {
+            // find indices of the peak
+            size_t rt_idx_2 = (satellite_it_2->second).getRTidx();
+            size_t mz_idx_2 = (satellite_it_2->second).getMZidx();
+            
+            // find peak itself
+            MSExperiment::ConstIterator it_rt_2 = exp_centroid_.begin();
+            std::advance(it_rt_2, rt_idx_2);
+            MSSpectrum::ConstIterator it_mz_2 = it_rt_2->begin();
+            std::advance(it_mz_2, mz_idx_2);
+            
+            if (it_rt_2->getRT() <= rt_2 && (std::abs(it_rt_2->getRT() - rt_2) < std::abs(rt_earlier - rt_2)))
+            {
+              rt_earlier = it_rt_2->getRT();
+              intensity_earlier = it_mz_2->getIntensity();
+            }
+            
+            if (it_rt_2->getRT() >= rt_2 && (std::abs(it_rt_2->getRT() - rt_2) < std::abs(rt_later - rt_2)))
+            {
+              rt_later = it_rt_2->getRT();
+              intensity_later = it_mz_2->getIntensity();
+            }
+            
+          }
+          
+          // Our target lies on or between two satellites of the 'other' peptide.
+          if ((rt_earlier > 0) && (rt_later > 0))
+          {
+            // linearly interpolated intensity
+            double intensity_other;
+            if ((rt_2 == rt_earlier) || (rt_later == rt_earlier))
+            {
+              intensity_other = intensity_earlier;
+            }
+            else
+            {
+              intensity_other = intensity_earlier + (intensity_later - intensity_earlier)*(rt_2 - rt_earlier)/(rt_later - rt_earlier);
+            }
+            
+            intensities_light.push_back(it_mz_1->getIntensity());
+            intensities_other.push_back(intensity_other);
+          }
+        }
+        
+      }
+      
+      // If less than three matches are found, we cannot reliably calculate the intensity ratio (aka slope) and report the uncorrected intensities.
+      if ((intensities_light.size() < 3) || (intensities_other.size() < 3))
+      {
+        return intensity_peptide;
+      }
+      
+      // determine ratios through linear regression of all corresponding intensities
+      LinearRegressionWithoutIntercept linreg;
+      linreg.addData(intensities_light, intensities_other);
+      double slope = linreg.getSlope();
+      
+      ratio_peptide.push_back(slope);
+    }
+    
+    // correct peptide intensities
+    // The peptide ratios are calculated as linear regression of (spline-interpolated) profile intensities, @see linreg
+    // The individual peptide intensities are the sum of the same profile intensities. But the quotient of these peptide intensities
+    // is not necessarily the same as the independently calculated ratio from the linear regression. Since the peptide ratio
+    // from linear regression is the more accurate one, we correct the two peptide intensities by projecting them onto the ratio.
+    // In the end, both peptide ratio from linear regression and the quotient of the peptide intensities are identical.
+    std::vector<double> intensity_peptide_corrected;
+    if (intensity_peptide.size() == 2)
+    {
+      double intensity1 = (intensity_peptide[0] + ratio_peptide[1] * intensity_peptide[1]) / (1 + ratio_peptide[1] * ratio_peptide[1]);
+      double intensity2 = ratio_peptide[1] * intensity1;
+      intensity_peptide_corrected.push_back(intensity1);
+      intensity_peptide_corrected.push_back(intensity2);
+    }
+    else if (intensity_peptide.size() > 2)
+    {
+      // Now with n instead of two peptide intensities, one needs to project the peptide intensities onto the hyperplane defined
+      // by the set of all peptide ratios (TODO). Instead, it is simpler to keep the lightest peptide intensity fixed, and correct
+      // only the remaining ones. The correct peptide ratio (from linear regression) is reported on both cases.
+      intensity_peptide_corrected.push_back(intensity_peptide[0]);
+      for (unsigned i = 1; i < intensity_peptide.size(); ++i)
+      {
+        intensity_peptide_corrected.push_back(ratio_peptide[i] * intensity_peptide[0]);
+      }
+    }
+    else
+    {
+      // For simple feature detection (singlets) the intensities remain unchanged.
+      intensity_peptide_corrected.push_back(intensity_peptide[0]);
+    }
+    
+    return intensity_peptide_corrected;
+  }
+
+  std::vector<double> FeatureFinderMultiplexAlgorithm::determinePeptideIntensitiesProfile_(MultiplexIsotopicPeakPattern& pattern, std::multimap<size_t, MultiplexSatelliteProfile >& satellites)
+  {
+    // determine RT shift between the peptides
+    // i.e. first determine the RT centre of mass for each peptide
+    std::vector<double> rt_peptide;
+    std::vector<double> intensity_peptide;
+    // loop over peptides
+    for (size_t peptide = 0; peptide < pattern.getMassShiftCount(); ++peptide)
+    {
+      // coordinates of the peptide feature
+      // RT is the intensity-average of all satellites peaks of all (!) mass traces
+      double rt(0);
+      double intensity_sum(0);
+      
+      // loop over isotopes i.e. mass traces of the peptide
+      for (size_t isotope = 0; isotope < isotopes_per_peptide_max_; ++isotope)
+      {
+        // find satellites for this isotope i.e. mass trace
+        size_t idx = peptide * isotopes_per_peptide_max_ + isotope;
+        std::pair<std::multimap<size_t, MultiplexSatelliteProfile >::const_iterator, std::multimap<size_t, MultiplexSatelliteProfile >::const_iterator> satellites_isotope;
+        satellites_isotope = satellites.equal_range(idx);
+        
+        // loop over satellites for this isotope i.e. mass trace
+        for (std::multimap<size_t, MultiplexSatelliteProfile >::const_iterator satellite_it = satellites_isotope.first; satellite_it != satellites_isotope.second; ++satellite_it)
+        {
+          rt += (satellite_it->second).getRT() * (satellite_it->second).getIntensity();
+          intensity_sum += (satellite_it->second).getIntensity();
+        }
+      }
+      
+      rt /= intensity_sum;
+      rt_peptide.push_back(rt);
+      intensity_peptide.push_back(intensity_sum);
+    }
+    
+    // determine the fold changes between the lightest peptide and the remaining ones
+    // TODO Replace the lightest peptide by the highest intensity peptide in the multiplet
+    std::vector<double> ratio_peptide;
+    ratio_peptide.push_back(1.0);
+    // loop over other peptides
+    for (size_t peptide = 1; peptide < pattern.getMassShiftCount(); ++peptide)
+    {
+      // fill the vectors from which the Pearson correlation for the ratio i.e. fold change will be calculated
+      std::vector<double> intensities_light;
+      std::vector<double> intensities_other;
+      // loop over isotopes i.e. mass traces of the peptide
+      for (size_t isotope = 0; isotope < isotopes_per_peptide_max_; ++isotope)
+      {
+        // find satellites for this isotope in the light peptide
+        std::pair<std::multimap<size_t, MultiplexSatelliteProfile >::const_iterator, std::multimap<size_t, MultiplexSatelliteProfile >::const_iterator> satellites_isotope_1;
+        satellites_isotope_1 = satellites.equal_range(isotope);
+        
+        // find satellites for this isotope in the second peptide
+        std::pair<std::multimap<size_t, MultiplexSatelliteProfile >::const_iterator, std::multimap<size_t, MultiplexSatelliteProfile >::const_iterator> satellites_isotope_2;
+        satellites_isotope_2 = satellites.equal_range(peptide * isotopes_per_peptide_max_ + isotope);
+        
+        // loop over satellites for this isotope in the light peptide
+        for (std::multimap<size_t, MultiplexSatelliteProfile >::const_iterator satellite_it_1 = satellites_isotope_1.first; satellite_it_1 != satellites_isotope_1.second; ++satellite_it_1)
+        {
+          // find corresponding spectra
+          double rt_1 = (satellite_it_1->second).getRT();
+          double rt_2_target = rt_1 + rt_peptide[peptide] - rt_peptide[0];
+          
+          MSExperiment::ConstIterator it_rt_2 = exp_centroid_.RTBegin(rt_2_target);
+          double rt_2 = it_rt_2->getRT();
+          // The previous spectrum might be a better match for the target RT <rt_2_target>.
+          if (it_rt_2 != exp_centroid_.begin())
+          {
+            if (std::abs((it_rt_2 - 1)->getRT() - rt_2_target) < std::abs(rt_2 - rt_2_target))
+            {
+              --it_rt_2;
+              rt_2 = it_rt_2->getRT();
+            }
+          }
+          
+          // loop over satellites for this isotope in the second peptide
+          double rt_earlier = -1;
+          double intensity_earlier = -1;
+          double rt_later = -1;
+          double intensity_later = -1;
+          for (std::multimap<size_t, MultiplexSatelliteProfile >::const_iterator satellite_it_2 = satellites_isotope_2.first; satellite_it_2 != satellites_isotope_2.second; ++satellite_it_2)
+          {
+            if ((satellite_it_2->second).getRT() <= rt_2 && (std::abs((satellite_it_2->second).getRT() - rt_2) < std::abs(rt_earlier - rt_2)))
+            {
+              rt_earlier = (satellite_it_2->second).getRT();
+              intensity_earlier = (satellite_it_2->second).getIntensity();
+            }
+            
+            if ((satellite_it_2->second).getRT() >= rt_2 && (std::abs((satellite_it_2->second).getRT() - rt_2) < std::abs(rt_later - rt_2)))
+            {
+              rt_later = (satellite_it_2->second).getRT();
+              intensity_later = (satellite_it_2->second).getIntensity();
+            }
+            
+          }
+          
+          // Our target lies on or between two satellites of the 'other' peptide.
+          if ((rt_earlier > 0) && (rt_later > 0))
+          {
+            // linearly interpolated intensity
+            double intensity_other;
+            if ((rt_2 == rt_earlier) || (rt_later == rt_earlier))
+            {
+              intensity_other = intensity_earlier;
+            }
+            else
+            {
+              intensity_other = intensity_earlier + (intensity_later - intensity_earlier)*(rt_2 - rt_earlier)/(rt_later - rt_earlier);
+            }
+            
+            intensities_light.push_back((satellite_it_1->second).getIntensity());
+            intensities_other.push_back(intensity_other);
+          }
+        }
+        
+      }
+      
+      // If less than three matches are found, we cannot reliably calculate the intensity ratio (aka slope) and report the uncorrected intensities.
+      if ((intensities_light.size() < 3) || (intensities_other.size() < 3))
+      {
+        return intensity_peptide;
+      }
+      
+      // determine ratios through linear regression of all corresponding intensities
+      LinearRegressionWithoutIntercept linreg;
+      linreg.addData(intensities_light, intensities_other);
+      double slope = linreg.getSlope();
+      
+      ratio_peptide.push_back(slope);
+    }
+    
+    // correct peptide intensities
+    // The peptide ratios are calculated as linear regression of (spline-interpolated) profile intensities, @see linreg
+    // The individual peptide intensities are the sum of the same profile intensities. But the quotient of these peptide intensities
+    // is not necessarily the same as the independently calculated ratio from the linear regression. Since the peptide ratio
+    // from linear regression is the more accurate one, we correct the two peptide intensities by projecting them onto the ratio.
+    // In the end, both peptide ratio from linear regression and the quotient of the peptide intensities are identical.
+    std::vector<double> intensity_peptide_corrected;
+    if (intensity_peptide.size() == 2)
+    {
+      double intensity1 = (intensity_peptide[0] + ratio_peptide[1] * intensity_peptide[1]) / (1 + ratio_peptide[1] * ratio_peptide[1]);
+      double intensity2 = ratio_peptide[1] * intensity1;
+      intensity_peptide_corrected.push_back(intensity1);
+      intensity_peptide_corrected.push_back(intensity2);
+    }
+    else if (intensity_peptide.size() > 2)
+    {
+      // Now with n instead of two peptide intensities, one needs to project the peptide intensities onto the hyperplane defined
+      // by the set of all peptide ratios (TODO). Instead, it is simpler to keep the lightest peptide intensity fixed, and correct
+      // only the remaining ones. The correct peptide ratio (from linear regression) is reported on both cases.
+      intensity_peptide_corrected.push_back(intensity_peptide[0]);
+      for (unsigned i = 1; i < intensity_peptide.size(); ++i)
+      {
+        intensity_peptide_corrected.push_back(ratio_peptide[i] * intensity_peptide[0]);
+      }
+    }
+    else
+    {
+      // For simple feature detection (singlets) the intensities remain unchanged.
+      intensity_peptide_corrected.push_back(intensity_peptide[0]);
+    }
+    
+    return intensity_peptide_corrected;
+  }
+
+  void FeatureFinderMultiplexAlgorithm::generateMapsCentroided_(std::vector<MultiplexIsotopicPeakPattern> patterns, std::vector<MultiplexFilteredMSExperiment> filter_results, std::vector<std::map<int, GridBasedCluster> > cluster_results, ConsensusMap& consensus_map, FeatureMap& feature_map)
+  {
+    // loop over peak patterns
+    for (unsigned pattern = 0; pattern < patterns.size(); ++pattern)
+    {
+      // loop over clusters
+      for (std::map<int, GridBasedCluster>::const_iterator cluster_it = cluster_results[pattern].begin(); cluster_it != cluster_results[pattern].end(); ++cluster_it)
+      {
+        GridBasedCluster cluster = cluster_it->second;
+        std::vector<int> points = cluster.getPoints();
+        
+        // Construct a satellite set for the complete peptide multiplet
+        // Make sure there are no duplicates, i.e. the same satellite from different filtered peaks.
+        std::multimap<size_t, MultiplexSatelliteCentroided > satellites;
+        // loop over points in cluster
+        for (std::vector<int>::const_iterator point_it = points.begin(); point_it != points.end(); ++point_it)
+        {
+          MultiplexFilteredPeak peak = filter_results[pattern].getPeak(*point_it);
+          // loop over satellites of the peak
+          for (std::multimap<size_t, MultiplexSatelliteCentroided >::const_iterator satellite_it = peak.getSatellites().begin(); satellite_it != peak.getSatellites().end(); ++satellite_it)
+          {
+            // check if this satellite (i.e. these indices) are already in the set
+            bool satellite_in_set = false;
+            for (std::multimap<size_t, MultiplexSatelliteCentroided >::const_iterator satellite_it_2 = satellites.begin(); satellite_it_2 != satellites.end(); ++satellite_it_2)
+            {
+              if ((satellite_it_2->second.getRTidx() == satellite_it->second.getRTidx()) && (satellite_it_2->second.getMZidx() == satellite_it->second.getMZidx()))
+              {
+                satellite_in_set = true;
+                continue;
+              }
+            }
+            if (satellite_in_set)
+            {
+              continue;
+            }
+            
+            satellites.insert(std::make_pair(satellite_it->first, MultiplexSatelliteCentroided(satellite_it->second.getRTidx(), satellite_it->second.getMZidx())));
+          }
+        }
+        
+        // determine peptide intensities
+        std::vector<double> peptide_intensities = determinePeptideIntensitiesCentroided_(patterns[pattern], satellites);
+        
+        // If no reliable peptide intensity can be determined, we do not report the peptide multiplet.
+        if (peptide_intensities[0] == -1)
+        {
+          continue;
+        }
+        
+        std::vector<Feature> features;
+        ConsensusFeature consensus;
+        bool abort = false;
+        
+        // construct the feature and consensus maps
+        // loop over peptides
+        for (size_t peptide = 0; (peptide < patterns[pattern].getMassShiftCount() && !abort); ++peptide)
+        {
+          // coordinates of the peptide feature
+          // RT is the intensity-average of all satellites peaks of the mono-isotopic mass trace
+          // m/z is the intensity-average of all satellites peaks of the mono-isotopic mass trace
+          Feature feature;
+          double rt(0);
+          double mz(0);
+          double intensity_sum(0);
+          
+          // loop over isotopes i.e. mass traces of the peptide
+          for (size_t isotope = 0; isotope < isotopes_per_peptide_max_; ++isotope)
+          {
+            // find satellites for this isotope i.e. mass trace
+            size_t idx = peptide * isotopes_per_peptide_max_ + isotope;
+            std::pair<std::multimap<size_t, MultiplexSatelliteCentroided >::const_iterator, std::multimap<size_t, MultiplexSatelliteCentroided >::const_iterator> satellites_isotope;
+            satellites_isotope = satellites.equal_range(idx);
+            
+            DBoundingBox<2> mass_trace;
+            
+            // loop over satellites for this isotope i.e. mass trace
+            for (std::multimap<size_t, MultiplexSatelliteCentroided >::const_iterator satellite_it = satellites_isotope.first; satellite_it != satellites_isotope.second; ++satellite_it)
+            {
+              // find indices of the peak
+              size_t rt_idx = (satellite_it->second).getRTidx();
+              size_t mz_idx = (satellite_it->second).getMZidx();
+              
+              // find peak itself
+              MSExperiment::ConstIterator it_rt = exp_centroid_.begin();
+              std::advance(it_rt, rt_idx);
+              MSSpectrum::ConstIterator it_mz = it_rt->begin();
+              std::advance(it_mz, mz_idx);
+              
+              if (isotope == 0)
+              {
+                rt += it_rt->getRT() * it_mz->getIntensity();
+                mz += it_mz->getMZ() * it_mz->getIntensity();
+                intensity_sum += it_mz->getIntensity();
+              }
+              
+              mass_trace.enlarge(it_rt->getRT(), it_mz->getMZ());
+            }
+            
+            if ((mass_trace.width() == 0) || (mass_trace.height() == 0))
+            {
+              // The mass trace contains only a single point. Add a small margin around
+              // the point, otherwise the mass trace is considered empty and not drawn.
+              // TODO: Remove the magic number for the margin.
+              mass_trace.enlarge(mass_trace.minX() - 0.01, mass_trace.minY() - 0.01);
+              mass_trace.enlarge(mass_trace.maxX() + 0.01, mass_trace.maxY() + 0.01);
+            }
+            
+            if (!(mass_trace.isEmpty()))
+            {
+              ConvexHull2D hull;
+              hull.addPoint(DPosition<2>(mass_trace.minX(), mass_trace.minY()));
+              hull.addPoint(DPosition<2>(mass_trace.minX(), mass_trace.maxY()));
+              hull.addPoint(DPosition<2>(mass_trace.maxX(), mass_trace.minY()));
+              hull.addPoint(DPosition<2>(mass_trace.maxX(), mass_trace.maxY()));
+              feature.getConvexHulls().push_back(hull);
+            }
+          }
+          
+          rt /= intensity_sum;
+          mz /= intensity_sum;
+          
+          feature.setRT(rt);
+          feature.setMZ(mz);
+          feature.setIntensity(peptide_intensities[peptide]);
+          feature.setCharge(patterns[pattern].getCharge());
+          feature.setOverallQuality(1.0);
+          
+          // Check that the feature eluted long enough.
+          DBoundingBox<2> box = feature.getConvexHull().getBoundingBox();
+          if (box.maxX() - box.minX() < rt_min_)
+          {
+            abort = true;
+            continue;
+          }
+          
+          features.push_back(feature);
+          
+          if (peptide == 0)
+          {
+            // The first/lightest peptide acts as anchor of the peptide multiplet consensus.
+            // All peptide feature handles are connected to this point.
+            consensus.setRT(rt);
+            consensus.setMZ(mz);
+            consensus.setIntensity(peptide_intensities[peptide]);
+            consensus.setCharge(patterns[pattern].getCharge());
+            consensus.setQuality(1.0);
+          }
+          
+          FeatureHandle feature_handle;
+          feature_handle.setRT(rt);
+          feature_handle.setMZ(mz);
+          feature_handle.setIntensity(peptide_intensities[peptide]);
+          feature_handle.setCharge(patterns[pattern].getCharge());
+          feature_handle.setMapIndex(peptide);
+          //feature_handle.setUniqueId(&UniqueIdInterface::setUniqueId);    // TODO: Do we need to set unique ID?
+          consensus.insert(feature_handle);
+          consensus_map.getFileDescriptions()[peptide].size++;
+        }
+        
+        if (!abort)
+        {
+          consensus_map.push_back(consensus);
+          for(std::vector<Feature>::iterator it = features.begin(); it != features.end(); ++it)
+          {
+            feature_map.push_back(*it);
+          }
+        }
+        
+      }
+      
+    }
+    
+  }
+
+  void FeatureFinderMultiplexAlgorithm::generateMapsProfile_(std::vector<MultiplexIsotopicPeakPattern> patterns, std::vector<MultiplexFilteredMSExperiment> filter_results, std::vector<std::map<int, GridBasedCluster> > cluster_results, ConsensusMap& consensus_map, FeatureMap& feature_map)
+  {
+    // progress logger
+    //unsigned progress = 0;
+    //startProgress(0, patterns.size(), "constructing feature maps");
+    
+    
+    // loop over peak patterns
+    for (unsigned pattern = 0; pattern < patterns.size(); ++pattern)
+    {
+      //setProgress(++progress);
+      
+      // loop over clusters
+      for (std::map<int, GridBasedCluster>::const_iterator cluster_it = cluster_results[pattern].begin(); cluster_it != cluster_results[pattern].end(); ++cluster_it)
+      {
+        GridBasedCluster cluster = cluster_it->second;
+        std::vector<int> points = cluster.getPoints();
+        
+        // Construct a satellite set for the complete peptide multiplet
+        // Make sure there are no duplicates, i.e. the same satellite from different filtered peaks.
+        std::multimap<size_t, MultiplexSatelliteProfile > satellites;
+        // loop over points in cluster
+        for (std::vector<int>::const_iterator point_it = points.begin(); point_it != points.end(); ++point_it)
+        {
+          MultiplexFilteredPeak peak = filter_results[pattern].getPeak(*point_it);
+          // loop over satellites of the peak
+          for (std::multimap<size_t, MultiplexSatelliteProfile >::const_iterator satellite_it = peak.getSatellitesProfile().begin(); satellite_it != peak.getSatellitesProfile().end(); ++satellite_it)
+          {
+            satellites.insert(std::make_pair(satellite_it->first, MultiplexSatelliteProfile(satellite_it->second.getRT(), satellite_it->second.getMZ(), satellite_it->second.getIntensity())));
+          }
+        }
+        
+        // determine peptide intensities
+        std::vector<double> peptide_intensities = determinePeptideIntensitiesProfile_(patterns[pattern], satellites);
+        
+        // If no reliable peptide intensity can be determined, we do not report the peptide multiplet.
+        if (peptide_intensities[0] == -1)
+        {
+          continue;
+        }
+        
+        std::vector<Feature> features;
+        ConsensusFeature consensus;
+        bool abort = false;
+        
+        // construct the feature and consensus maps
+        // loop over peptides
+        for (size_t peptide = 0; (peptide < patterns[pattern].getMassShiftCount() && !abort); ++peptide)
+        {
+          // coordinates of the peptide feature
+          // RT is the intensity-average of all satellites peaks of the mono-isotopic mass trace
+          // m/z is the intensity-average of all satellites peaks of the mono-isotopic mass trace
+          Feature feature;
+          double rt(0);
+          double mz(0);
+          double intensity_sum(0);
+          
+          // loop over isotopes i.e. mass traces of the peptide
+          for (size_t isotope = 0; isotope < isotopes_per_peptide_max_; ++isotope)
+          {
+            // find satellites for this isotope i.e. mass trace
+            size_t idx = peptide * isotopes_per_peptide_max_ + isotope;
+            std::pair<std::multimap<size_t, MultiplexSatelliteProfile >::const_iterator, std::multimap<size_t, MultiplexSatelliteProfile >::const_iterator> satellites_isotope;
+            satellites_isotope = satellites.equal_range(idx);
+            
+            DBoundingBox<2> mass_trace;
+            
+            // loop over satellites for this isotope i.e. mass trace
+            for (std::multimap<size_t, MultiplexSatelliteProfile >::const_iterator satellite_it = satellites_isotope.first; satellite_it != satellites_isotope.second; ++satellite_it)
+            {
+              if (isotope == 0)
+              {
+                // Satellites of zero intensity makes sense (borders of peaks), but mess up feature/consensus construction.
+                double intensity_temp = (satellite_it->second).getIntensity() + 0.0001;
+                
+                rt += (satellite_it->second).getRT() * intensity_temp;
+                mz += (satellite_it->second).getMZ() * intensity_temp;
+                intensity_sum += intensity_temp;
+              }
+              
+              mass_trace.enlarge((satellite_it->second).getRT(), (satellite_it->second).getMZ());
+            }
+            
+            if ((mass_trace.width() == 0) || (mass_trace.height() == 0))
+            {
+              // The mass trace contains only a single point. Add a small margin around
+              // the point, otherwise the mass trace is considered empty and not drawn.
+              // TODO: Remove the magic number for the margin.
+              mass_trace.enlarge(mass_trace.minX() - 0.01, mass_trace.minY() - 0.01);
+              mass_trace.enlarge(mass_trace.maxX() + 0.01, mass_trace.maxY() + 0.01);
+            }
+            
+            if (!(mass_trace.isEmpty()))
+            {
+              ConvexHull2D hull;
+              hull.addPoint(DPosition<2>(mass_trace.minX(), mass_trace.minY()));
+              hull.addPoint(DPosition<2>(mass_trace.minX(), mass_trace.maxY()));
+              hull.addPoint(DPosition<2>(mass_trace.maxX(), mass_trace.minY()));
+              hull.addPoint(DPosition<2>(mass_trace.maxX(), mass_trace.maxY()));
+              feature.getConvexHulls().push_back(hull);
+            }
+          }
+          
+          rt /= intensity_sum;
+          mz /= intensity_sum;
+          
+          
+          feature.setRT(rt);
+          feature.setMZ(mz);
+          feature.setIntensity(peptide_intensities[peptide]);
+          feature.setCharge(patterns[pattern].getCharge());
+          feature.setOverallQuality(1.0);
+          
+          // Check that the feature eluted long enough.
+          DBoundingBox<2> box = feature.getConvexHull().getBoundingBox();
+          if (box.maxX() - box.minX() < rt_min_)
+          {
+            abort = true;
+            continue;
+          }
+          
+          features.push_back(feature);
+          
+          if (peptide == 0)
+          {
+            // The first/lightest peptide acts as anchor of the peptide multiplet consensus.
+            // All peptide feature handles are connected to this point.
+            consensus.setRT(rt);
+            consensus.setMZ(mz);
+            consensus.setIntensity(peptide_intensities[peptide]);
+            consensus.setCharge(patterns[pattern].getCharge());
+            consensus.setQuality(1.0);
+          }
+          
+          FeatureHandle feature_handle;
+          feature_handle.setRT(rt);
+          feature_handle.setMZ(mz);
+          feature_handle.setIntensity(peptide_intensities[peptide]);
+          feature_handle.setCharge(patterns[pattern].getCharge());
+          feature_handle.setMapIndex(peptide);
+          //feature_handle.setUniqueId(&UniqueIdInterface::setUniqueId);    // TODO: Do we need to set unique ID?
+          consensus.insert(feature_handle);
+          consensus_map.getFileDescriptions()[peptide].size++;
+        }
+        
+        if (!abort)
+        {
+          consensus_map.push_back(consensus);
+          for(std::vector<Feature>::iterator it = features.begin(); it != features.end(); ++it)
+          {
+            feature_map.push_back(*it);
+          }
+        }
+        
+      }
+      
+    }
+    
+    //endProgress();
   }
 
   void FeatureFinderMultiplexAlgorithm::run()
@@ -286,6 +1062,43 @@ namespace OpenMS
       filter_results = filtering.filter();
     }
 
+    /**
+     * cluster filter results
+     */
+    std::vector<std::map<int, GridBasedCluster> > cluster_results;
+    if (centroided_)
+    {
+      // centroided data
+      MultiplexClustering clustering(exp_centroid_, param_.getValue("algorithm:mz_tolerance"), (param_.getValue("algorithm:mz_unit") == "ppm"), param_.getValue("algorithm:rt_typical"), param_.getValue("algorithm:rt_min"));
+      clustering.setLogType(getLogType());
+      cluster_results = clustering.cluster(filter_results);
+    }
+    else
+    {
+      // profile data
+      MultiplexClustering clustering(exp_profile_, exp_centroid_, boundaries_exp_s, param_.getValue("algorithm:rt_typical"), param_.getValue("algorithm:rt_min"));
+      clustering.setLogType(getLogType());
+      cluster_results = clustering.cluster(filter_results);
+    }
+
+    /**
+     * construct feature and consensus maps i.e. the final results
+     */
+    ConsensusMap consensus_map;
+    FeatureMap feature_map;
+
+    if (centroided_)
+    {
+      //consensus_map.setPrimaryMSRunPath(exp_centroid_.getPrimaryMSRunPath());
+      //feature_map.setPrimaryMSRunPath(exp_centroid_.getPrimaryMSRunPath());
+      generateMapsCentroided_(patterns, filter_results, cluster_results, consensus_map, feature_map);
+    }
+    else
+    {
+      //consensus_map.setPrimaryMSRunPath(exp_profile_.getPrimaryMSRunPath());
+      //feature_map.setPrimaryMSRunPath(exp_profile_.getPrimaryMSRunPath());
+      generateMapsProfile_(patterns, filter_results, cluster_results, consensus_map, feature_map);
+    }
 
   }
 }

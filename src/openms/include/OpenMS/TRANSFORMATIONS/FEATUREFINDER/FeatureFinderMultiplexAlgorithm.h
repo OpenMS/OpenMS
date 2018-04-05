@@ -42,6 +42,8 @@
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexDeltaMasses.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexIsotopicPeakPattern.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFilteredMSExperiment.h>
+#include <OpenMS/COMPARISON/CLUSTERING/GridBasedCluster.h>
 
 #include <vector>
 #include <fstream>
@@ -69,6 +71,8 @@ protected:
   // Is the experiment <exp> centroided or profile?
   bool centroided_;
   
+  double rt_min_;
+  
   unsigned charge_min_;
   unsigned charge_max_;
   
@@ -94,6 +98,48 @@ protected:
    * @return list of m/z shifts
    */
   std::vector<MultiplexIsotopicPeakPattern> generatePeakPatterns_(int charge_min, int charge_max, int peaks_per_peptide_max, std::vector<MultiplexDeltaMasses> mass_pattern_list);
+  
+  /**
+   * @brief calculate peptide intensities
+   *
+   * @param pattern
+   * @param satellites
+   *
+   * @return vector with intensities for each of the peptides
+   */
+  std::vector<double> determinePeptideIntensitiesCentroided_(MultiplexIsotopicPeakPattern& pattern, std::multimap<size_t, MultiplexSatelliteCentroided >& satellites);
+  
+  /**
+   * @brief calculate peptide intensities
+   *
+   * @param pattern
+   * @param satellites
+   *
+   * @return vector with intensities for each of the peptides
+   */
+  std::vector<double> determinePeptideIntensitiesProfile_(MultiplexIsotopicPeakPattern& pattern, std::multimap<size_t, MultiplexSatelliteProfile >& satellites);
+  
+  /**
+   * @brief generates consensus and feature maps containing all peptide multiplets
+   *
+   * @param patterns    patterns of isotopic peaks we have been searching for
+   * @param filter_results    filter results for each of the patterns
+   * @param cluster_results    clusters of filter results
+   * @param consensus_map    consensus map with peptide multiplets (to be filled)
+   * @param feature_map    feature map with peptides (to be filled)
+   */
+  void generateMapsCentroided_(std::vector<MultiplexIsotopicPeakPattern> patterns, std::vector<MultiplexFilteredMSExperiment> filter_results, std::vector<std::map<int, GridBasedCluster> > cluster_results, ConsensusMap& consensus_map, FeatureMap& feature_map);
+  
+  /**
+   * @brief generates consensus and feature maps containing all peptide multiplets
+   *
+   * @param patterns    patterns of isotopic peaks we have been searching for
+   * @param filter_results    filter results for each of the patterns
+   * @param cluster_results    clusters of filter results
+   * @param consensus_map    consensus map with peptide multiplets (to be filled)
+   * @param feature_map    feature map with peptides (to be filled)
+   */
+  void generateMapsProfile_(std::vector<MultiplexIsotopicPeakPattern> patterns, std::vector<MultiplexFilteredMSExperiment> filter_results, std::vector<std::map<int, GridBasedCluster> > cluster_results, ConsensusMap& consensus_map, FeatureMap& feature_map);
   
 };
 
