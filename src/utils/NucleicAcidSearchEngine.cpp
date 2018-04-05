@@ -673,6 +673,8 @@ protected:
           {
             EmpiricalFormula ef(adduct[0]);
             ef.setCharge(0); // ensures we get without additional protons, now just add electron masses
+            //TODO triple check salt proton correctness
+            ef += EmpiricalFormula("H" + String(neg_charge));
             adduct_masses.push_back(ef.getMonoWeight());
             LOG_DEBUG << "Added adduct: " << ef.toString() << ", mass: "<< ef.getMonoWeight() << endl;
           }
