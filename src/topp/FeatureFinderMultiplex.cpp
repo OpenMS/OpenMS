@@ -1505,7 +1505,6 @@ private:
     /**
      * pick peaks
      */
-    //MSExperiment exp_picked;
     std::vector<std::vector<PeakPickerHiRes::PeakBoundary> > boundaries_exp_s; // peak boundaries for spectra
     std::vector<std::vector<PeakPickerHiRes::PeakBoundary> > boundaries_exp_c; // peak boundaries for chromatograms
 

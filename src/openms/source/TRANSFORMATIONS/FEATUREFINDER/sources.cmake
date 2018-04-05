@@ -20,6 +20,7 @@ FeatureFinderAlgorithmMRM.cpp
 FeatureFinderAlgorithmPicked.cpp
 FeatureFinderAlgorithmPickedHelperStructs.cpp
 FeatureFinderIdentificationAlgorithm.cpp
+FeatureFinderMultiplexAlgorithm.cpp
 Fitter1D.cpp
 GaussFitter1D.cpp
 GaussModel.cpp
