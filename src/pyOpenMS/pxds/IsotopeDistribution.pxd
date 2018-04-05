@@ -70,9 +70,6 @@ cdef extern from "<OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopeDistributio
         CoarseIsotopeDistribution(IsotopeDistribution) nogil except + # wrap-ignore
 
         IsotopeDistribution run(EmpiricalFormula) nogil except +
-
-        # Estimate peptide IsotopeDistribution from average weight and exact number of sulfurs
-        void estimateFromPeptideWeightAndS(double average_weight, UInt S);
         
         # returns the currently set maximum isotope
         Size getMaxIsotope() nogil except +
@@ -83,6 +80,9 @@ cdef extern from "<OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopeDistributio
         # @brief Estimate Peptide Isotopedistribution from weight and number of isotopes that should be reported
         #   "Determination of Monoisotopic Masses and Ion Populations for Large Biomolecules from Resolved Isotopic Distributions"
         IsotopeDistribution estimateFromPeptideWeight(double average_weight) nogil except +
+
+        # Estimate peptide IsotopeDistribution from average weight and exact number of sulfurs
+        IsotopeDistribution estimateFromPeptideWeightAndS(double average_weight, UInt S) nogil except +
 
         # Estimate Nucleotide Isotopedistribution from weight
         IsotopeDistribution estimateFromRNAWeight(double average_weight) nogil except +
@@ -120,8 +120,4 @@ cdef extern from "<OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopeDistributio
 
         IsotopeDistribution calcFragmentIsotopeDist(IsotopeDistribution& fragment_isotope_dist, IsotopeDistribution& comp_fragment_isotope_dist, libcpp_set[ unsigned int ]& precursor_isotopes) nogil except +
 
-
-
-
-
-        
+        IsotopeDistribution run(EmpiricalFormula&) nogil except +
