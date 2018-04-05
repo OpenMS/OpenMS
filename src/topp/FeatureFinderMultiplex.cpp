@@ -852,13 +852,6 @@ public:
     
     return intensity_peptide_corrected;
   }
-  
-
-
-
-
-
-
 
   /**
    * @brief generates consensus and feature maps containing all peptide multiplets
@@ -1054,9 +1047,16 @@ public:
    */
   void generateMapsProfile_(std::vector<MultiplexIsotopicPeakPattern> patterns, std::vector<MultiplexFilteredMSExperiment> filter_results, std::vector<std::map<int, GridBasedCluster> > cluster_results, ConsensusMap& consensus_map, FeatureMap& feature_map)
   {
+    // progress logger
+    //unsigned progress = 0;
+    //startProgress(0, patterns.size(), "constructing feature maps");
+
+    
     // loop over peak patterns
     for (unsigned pattern = 0; pattern < patterns.size(); ++pattern)
     {
+      //setProgress(++progress);
+      
       // loop over clusters
       for (std::map<int, GridBasedCluster>::const_iterator cluster_it = cluster_results[pattern].begin(); cluster_it != cluster_results[pattern].end(); ++cluster_it)
       {
@@ -1203,6 +1203,7 @@ public:
       
     }
     
+    //endProgress();
   }
   
   /**
