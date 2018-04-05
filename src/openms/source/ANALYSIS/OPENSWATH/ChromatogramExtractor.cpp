@@ -54,8 +54,14 @@ namespace OpenMS
 
     // Determine iteration size (nr peptides or nr transitions)
     Size itersize;
-    if (ms1) {itersize = transition_exp_used.getPeptides().size();}
-    else     {itersize = transition_exp_used.getTransitions().size();}
+    if (ms1)
+    {
+      itersize = transition_exp_used.getPeptides().size();
+    }
+    else
+    {
+      itersize = transition_exp_used.getTransitions().size();
+    }
 
     for (Size i = 0; i < itersize; i++)
     {

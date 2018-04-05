@@ -32,8 +32,7 @@
 // $Authors: Stephan Aiche $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_QUANTITATION_TMTSIXPLEXQUANTITATIONMETHOD_H
-#define OPENMS_ANALYSIS_QUANTITATION_TMTSIXPLEXQUANTITATIONMETHOD_H
+#pragma once
 
 #include <OpenMS/config.h>
 
@@ -97,4 +96,3 @@ public:
   };
 } // namespace
 
-#endif // OPENMS_ANALYSIS_QUANTITATION_TMTSIXPLEXQUANTITATIONMETHOD_H

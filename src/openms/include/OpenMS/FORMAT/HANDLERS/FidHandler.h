@@ -32,8 +32,7 @@
 // $Authors: Guillaume Belz $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FORMAT_HANDLERS_FIDHANDLER_H
-#define OPENMS_FORMAT_HANDLERS_FIDHANDLER_H
+#pragma once
 
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <fstream>
@@ -82,4 +81,3 @@ private:
   }   // namespace Internal
 } // namespace OpenMS
 
-#endif // OPENMS_FORMAT_HANDLERS_FIDHANDLER_H

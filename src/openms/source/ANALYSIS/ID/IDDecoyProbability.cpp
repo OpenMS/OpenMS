@@ -330,7 +330,7 @@ namespace OpenMS
     //Changed it to try-catch-block but I am not sure if this correction should be made
     //at all. Can someone please verify?
     Math::GaussFitter::GaussFitResult result_gauss (gauss_A, gauss_x0, gauss_sigma);
-    try{
+    try {
         result_gauss = gf.fit(diff_data);
     }
     catch(Exception::UnableToFit& /* e */)

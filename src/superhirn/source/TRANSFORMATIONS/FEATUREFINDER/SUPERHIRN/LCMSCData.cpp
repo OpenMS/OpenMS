@@ -66,8 +66,8 @@ namespace OpenMS
 // Constructor & destructor
 ///////////////////////////////////////////////////////////////////////////////
 
-  LCMSCData::MZ_LIST_ITERATOR LCMSCData::get_DATA_start(){ return DATA.begin(); }
-  LCMSCData::MZ_LIST_ITERATOR LCMSCData::get_DATA_end(){ return DATA.end(); }
+  LCMSCData::MZ_LIST_ITERATOR LCMSCData::get_DATA_start() { return DATA.begin(); }
+  LCMSCData::MZ_LIST_ITERATOR LCMSCData::get_DATA_end() { return DATA.end(); }
 
   LCMSCData::LCMSCData()
   {

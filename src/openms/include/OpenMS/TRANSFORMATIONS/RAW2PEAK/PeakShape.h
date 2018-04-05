@@ -33,8 +33,7 @@
 // --------------------------------------------------------------------------
 //
 
-#ifndef OPENMS_TRANSFORMATIONS_RAW2PEAK_PEAKSHAPE_H
-#define OPENMS_TRANSFORMATIONS_RAW2PEAK_PEAKSHAPE_H
+#pragma once
 
 #include <cmath>
 
@@ -161,4 +160,3 @@ protected:
   };
 } // namespace OpenMS
 
-#endif

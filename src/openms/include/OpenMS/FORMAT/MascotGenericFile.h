@@ -32,8 +32,7 @@
 // $Authors: Andreas Bertsch, Chris Bielow $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FORMAT_MASCOTGENERICFILE_H
-#define OPENMS_FORMAT_MASCOTGENERICFILE_H
+#pragma once
 
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/SYSTEM/File.h>
@@ -315,4 +314,3 @@ protected:
 
 } // namespace OpenMS
 
-#endif // OPENMS_FORMAT_MASCOTGENERICFILE_H

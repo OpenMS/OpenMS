@@ -32,8 +32,7 @@
 // $Authors: Marc Sturm, Timo Sachsenberg $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_VISUAL_APPLICATIONS_TOPPVIEWBASE_H
-#define OPENMS_VISUAL_APPLICATIONS_TOPPVIEWBASE_H
+#pragma once
 
 // OpenMS_GUI config
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
@@ -556,4 +555,3 @@ private:
 
 } //namespace
 
-#endif

@@ -32,8 +32,7 @@
 // $Authors: Hannes Roest $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_INTERFACES_IMSDATACONSUMER_H
-#define OPENMS_INTERFACES_IMSDATACONSUMER_H
+#pragma once
 
 #include <OpenMS/config.h>
 #include <OpenMS/KERNEL/StandardDeclarations.h>
@@ -128,4 +127,3 @@ namespace Interfaces
 } //end namespace Interfaces
 } //end namespace OpenMS
 
-#endif

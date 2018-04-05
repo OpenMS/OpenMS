@@ -45,11 +45,9 @@
 // $Authors: $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_IRRELEVANT_CLASS_H
-#define OPENMS_IRRELEVANT_CLASS_H
+#pragma once
 
 class irrelevant_class 
 {
 };
   
-#endif // OPENMS_IRRELEVANT_CLASS_H

@@ -32,8 +32,7 @@
 // $Authors: Mathias Walzer, Timo Sachsenberg$
 // --------------------------------------------------------------------------
 //
-#ifndef OPENMS_FILTERING_TRANSFORMERS_WINDOWMOWER_H
-#define OPENMS_FILTERING_TRANSFORMERS_WINDOWMOWER_H
+#pragma once
 
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
@@ -242,5 +241,4 @@ private:
 
 }
 
-#endif //OPENMS_FILTERING_TRANSFORMERS_WINDOWMOWER_H
 

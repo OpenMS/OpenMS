@@ -32,8 +32,7 @@
 // $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 //
-#ifndef OPENMS_FILTERING_TRANSFORMERS_NORMALIZER_H
-#define OPENMS_FILTERING_TRANSFORMERS_NORMALIZER_H
+#pragma once
 
 #include <OpenMS/KERNEL/StandardTypes.h>
 
@@ -139,4 +138,3 @@ private:
 
 
 }
-#endif //OPENMS_FILTERING_TRANSFORMERS_NORMALIZER_H

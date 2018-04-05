@@ -32,8 +32,7 @@
 // $Authors: Andreas Bertsch, Chris Bielow $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_ID_PEPTIDEINDEXING_H
-#define OPENMS_ANALYSIS_ID_PEPTIDEINDEXING_H
+#pragma once
 
 
 #include <OpenMS/ANALYSIS/ID/AhoCorasickAmbiguous.h>
@@ -824,4 +823,3 @@ protected:
   };
 }
 
-#endif // OPENMS_ANALYSIS_ID_PEPTIDEINDEXING_H

@@ -32,8 +32,7 @@
 // $Authors: Marc Sturm, Chris Bielow $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_CHEMISTRY_PROTEASEDIGESTION_H
-#define OPENMS_CHEMISTRY_PROTEASEDIGESTION_H
+#pragma once
 
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
@@ -104,4 +103,3 @@ namespace OpenMS
 
 } // namespace OpenMS
 
-#endif // OPENMS_CHEMISTRY_PROTEASEDIGESTION_H

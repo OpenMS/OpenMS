@@ -32,8 +32,7 @@
 // $Authors: $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_MATH_STATISTICS_AVERAGEPOSITION_H
-#define OPENMS_MATH_STATISTICS_AVERAGEPOSITION_H
+#pragma once
 
 #include <OpenMS/DATASTRUCTURES/DPosition.h>
 
@@ -142,4 +141,3 @@ protected:
 
 } // namespace OpenMS
 
-#endif //  OPENMS_MATH_STATISTICS_AVERAGEPOSITION_H

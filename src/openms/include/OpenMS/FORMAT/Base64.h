@@ -32,8 +32,7 @@
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FORMAT_BASE64_H
-#define OPENMS_FORMAT_BASE64_H
+#pragma once
 
 #ifndef OPENMS_IS_BIG_ENDIAN
 #if defined OPENMS_BIG_ENDIAN
@@ -893,4 +892,3 @@ private:
 
 } //namespace OpenMS
 
-#endif /* OPENMS_FORMAT_BASE64_H */

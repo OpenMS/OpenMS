@@ -32,8 +32,7 @@
 // $Authors: Xiao Liang, Chris Bielow $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_CHEMISTRY_PROTEASEDB_H
-#define OPENMS_CHEMISTRY_PROTEASEDB_H
+#pragma once
 
 #include <OpenMS/CHEMISTRY/DigestionEnzymeDB.h>
 #include <OpenMS/CHEMISTRY/DigestionEnzymeProtein.h>
@@ -77,5 +76,4 @@ namespace OpenMS
   };
 }
 
-#endif // OPENMS_CHEMISTRY_PROTEASEDB_H
 

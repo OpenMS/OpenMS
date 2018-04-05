@@ -32,8 +32,7 @@
 // $Authors: Timo Sachsenberg $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_SYSTEM_NETWORKGETREQUEST_H
-#define OPENMS_SYSTEM_NETWORKGETREQUEST_H
+#pragma once
 
 #include <OpenMS/config.h>
 
@@ -107,4 +106,3 @@ namespace OpenMS
   };
 }
 
-#endif

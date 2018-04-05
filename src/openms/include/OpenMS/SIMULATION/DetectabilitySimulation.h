@@ -32,8 +32,7 @@
 // $Authors: Stephan Aiche, Chris Bielow$
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_SIMULATION_DETECTABILITYSIMULATION_H
-#define OPENMS_SIMULATION_DETECTABILITYSIMULATION_H
+#pragma once
 
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/SIMULATION/SimTypes.h>
@@ -108,4 +107,3 @@ protected:
 
 }
 
-#endif

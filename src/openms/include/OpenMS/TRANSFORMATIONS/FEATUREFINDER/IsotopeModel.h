@@ -33,8 +33,7 @@
 // --------------------------------------------------------------------------
 
 
-#ifndef OPENMS_TRANSFORMATIONS_FEATUREFINDER_ISOTOPEMODEL_H
-#define OPENMS_TRANSFORMATIONS_FEATUREFINDER_ISOTOPEMODEL_H
+#pragma once
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/InterpolationModel.h>
 #include <OpenMS/CHEMISTRY/IsotopeDistribution.h>
@@ -144,4 +143,3 @@ protected:
   };
 }
 
-#endif // OPENMS_TRANSFORMATIONS_FEATUREFINDER_ISOTOPEMODEL_H

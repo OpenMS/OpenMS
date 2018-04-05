@@ -32,8 +32,7 @@
 // $Authors: $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FORMAT_INSPECTINFILE_H
-#define OPENMS_FORMAT_INSPECTINFILE_H
+#pragma once
 
 #include <OpenMS/DATASTRUCTURES/String.h>
 
@@ -186,4 +185,3 @@ private:
 
 } // namespace OpenMS
 
-#endif // OPENMS_FORMAT_INSPECTINFILE_H

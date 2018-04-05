@@ -32,8 +32,7 @@
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_KERNEL_AREAITERATOR_H
-#define OPENMS_KERNEL_AREAITERATOR_H
+#pragma once
 
 // OpenMS includes
 #include <OpenMS/CONCEPT/Types.h>
@@ -262,4 +261,3 @@ private:
   }
 }
 
-#endif

@@ -32,8 +32,7 @@
 // $Authors: $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_DATASTRUCTURES_ADDUCT_H
-#define OPENMS_DATASTRUCTURES_ADDUCT_H
+#pragma once
 
 #include <OpenMS/OpenMSConfig.h>
 #include <OpenMS/CONCEPT/Types.h>
@@ -108,4 +107,3 @@ private:
 } // namespace OpenMS
 
 
-#endif

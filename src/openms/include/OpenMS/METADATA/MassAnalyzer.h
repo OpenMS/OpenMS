@@ -32,8 +32,7 @@
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_METADATA_MASSANALYZER_H
-#define OPENMS_METADATA_MASSANALYZER_H
+#pragma once
 
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/METADATA/MetaInfoInterface.h>
@@ -256,4 +255,3 @@ protected:
   };
 } // namespace OpenMS
 
-#endif // OPENMS_METADATA_MASSANALYZER_H

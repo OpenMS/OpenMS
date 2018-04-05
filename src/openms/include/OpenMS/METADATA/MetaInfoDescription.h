@@ -32,8 +32,7 @@
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_METADATA_METAINFODESCRIPTION_H
-#define OPENMS_METADATA_METAINFODESCRIPTION_H
+#pragma once
 
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/METADATA/DataProcessing.h>
@@ -82,4 +81,3 @@ protected:
   };
 } // namespace OpenMS
 
-#endif // OPENMS_METADATA_METAINFODESCRIPTION_H

@@ -32,8 +32,7 @@
 // $Authors: Marc Sturm, Chris Bielow, Clemens Groepl $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FORMAT_FEATUREXMLFILE_H
-#define OPENMS_FORMAT_FEATUREXMLFILE_H
+#pragma once
 
 #include <OpenMS/FORMAT/OPTIONS/FeatureFileOptions.h>
 #include <OpenMS/FORMAT/XMLFile.h>
@@ -194,4 +193,3 @@ protected:
 
 } // namespace OpenMS
 
-#endif // OPENMS_FORMAT_FeatureXMLFile_H

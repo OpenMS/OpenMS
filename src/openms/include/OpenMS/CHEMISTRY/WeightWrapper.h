@@ -32,8 +32,7 @@
 // $Authors: Chris Bielow $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_CHEMISTRY_WEIGHTWRAPPER_H
-#define OPENMS_CHEMISTRY_WEIGHTWRAPPER_H
+#pragma once
 
 #include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
@@ -129,4 +128,3 @@ private:
 
   };
 }
-#endif // OPENMS_CHEMISTRY_WeightWrapper_H

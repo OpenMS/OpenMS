@@ -32,8 +32,7 @@
 // $Authors: $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_CONCEPT_SINGLETONREGISTRY_H
-#define OPENMS_CONCEPT_SINGLETONREGISTRY_H
+#pragma once
 
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/CONCEPT/Exception.h>
@@ -122,4 +121,3 @@ private:
 
 
 }
-#endif //OPENMS_CONCEPT_SINGLETONREGISTRY_H

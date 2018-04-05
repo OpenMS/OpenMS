@@ -71,7 +71,7 @@ using namespace std;
 
 /**
   @page TOPP_FileInfo FileInfo
-  @brief Shows basic information about the data in an OpenMS readable file.
+  @brief Shows basic information about the data in an %OpenMS readable file.
 
   <CENTER>
   <table>
@@ -414,7 +414,7 @@ protected:
       typedef std::unordered_map<size_t, vector<ptrdiff_t> > SHashmap;
       SHashmap m_headers;
       SHashmap m_seqs;
-      
+
       std::hash<string> s_hash;
       for (auto loopiter = entries.begin(); loopiter != entries.end(); ++loopiter)
       {
@@ -451,7 +451,7 @@ protected:
           // add our own hash
           m_seqs[id_seq] = { std::distance(entries.begin(), loopiter) };
         }
-        
+
         for (char a : loopiter->sequence)
         {
           ++aacids[a];
@@ -654,7 +654,7 @@ protected:
       }
       if (peptide_length.empty())
       { // avoid invalid-range exception when computing mean()
-        peptide_length.push_back(0); 
+        peptide_length.push_back(0);
       }
 
       os << "Number of:"
@@ -726,8 +726,8 @@ protected:
       map<Size, UInt> level_annotated_picked;
       map<Size, UInt> level_estimated_picked;
       map<Size, UInt> counts;
-      for (Size i = 0; i != exp.size(); ++i) 
-      { 
+      for (Size i = 0; i != exp.size(); ++i)
+      {
         // read stored metadata
         auto peak_type = exp[i].getType();
 
@@ -753,8 +753,8 @@ protected:
           }
           level_annotated_picked[level] = peak_type;
         }
-        
-        // estimate peak type once for every level (take a spectrum with enough peaks for stable estimation) 
+
+        // estimate peak type once for every level (take a spectrum with enough peaks for stable estimation)
         if (level_estimated_picked.count(level) == 0 && exp[i].size() > 10)
         {
           level_estimated_picked[level] = PeakTypeEstimator().estimateType(exp[i].begin(), exp[i].end());
@@ -799,10 +799,10 @@ protected:
       writeRangesMachineReadable_(exp, os_tsv);
 
       // write peak types (centroided / profile mode)
-      os << "Peak type metadata (estimated)\n"; 
+      os << "Peak type metadata (estimated)\n";
       for (auto const l : levels)
       {
-        os << "  level " << l << ": " 
+        os << "  level " << l << ": "
            << SpectrumSettings::NamesOfSpectrumType[level_annotated_picked[l]] << " ("
            << SpectrumSettings::NamesOfSpectrumType[level_estimated_picked[l]] << ")\n";
       }

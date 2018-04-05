@@ -31,8 +31,7 @@
 // $Maintainer: Lukas Zimmermann $
 // $Authors: Lukas Zimmermann $
 // --------------------------------------------------------------------------
-#ifndef OPENMS_FORMAT_HANDLERS_XQUESTRESULTXMLHANDLER_H
-#define OPENMS_FORMAT_HANDLERS_XQUESTRESULTXMLHANDLER_H
+#pragma once
 
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
 #include <OpenMS/METADATA/MetaInfoInterface.h>
@@ -183,4 +182,3 @@ namespace OpenMS
     };
   } // namespace Internal
 } // namespace OpenMS
-#endif // OPENMS_FORMAT_HANDLERS_XQUESTRESULTXMLHANDLER_H

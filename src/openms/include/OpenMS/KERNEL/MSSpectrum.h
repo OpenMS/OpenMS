@@ -32,8 +32,7 @@
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_KERNEL_MSSPECTRUM_H
-#define OPENMS_KERNEL_MSSPECTRUM_H
+#pragma once
 
 #include <OpenMS/KERNEL/Peak1D.h>
 #include <OpenMS/KERNEL/StandardDeclarations.h>
@@ -548,4 +547,3 @@ protected:
 
 } // namespace OpenMS
 
-#endif // OPENMS_KERNEL_MSSPECTRUM_H

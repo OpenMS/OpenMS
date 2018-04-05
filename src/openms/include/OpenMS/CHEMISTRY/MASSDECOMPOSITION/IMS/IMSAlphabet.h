@@ -33,8 +33,7 @@
 // --------------------------------------------------------------------------
 //
 
-#ifndef OPENMS_CHEMISTRY_MASSDECOMPOSITION_IMS_IMSALPHABET_H
-#define OPENMS_CHEMISTRY_MASSDECOMPOSITION_IMS_IMSALPHABET_H
+#pragma once
 
 #include <vector>
 #include <string>
@@ -340,4 +339,3 @@ public:
 
 } // namespace OpenMS
 
-#endif // OPENMS_CHEMISTRY_MASSDECOMPOSITION_IMS_ALPHABET_H

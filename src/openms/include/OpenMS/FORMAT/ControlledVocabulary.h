@@ -32,8 +32,7 @@
 // $Authors: Marc Sturm, Andreas Bertsch, Mathias Walzer $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FORMAT_CONTROLLEDVOCABULARY_H
-#define OPENMS_FORMAT_CONTROLLEDVOCABULARY_H
+#pragma once
 
 #include <OpenMS/DATASTRUCTURES/ListUtils.h> // StringList
 #include <OpenMS/DATASTRUCTURES/StringListUtils.h>
@@ -186,4 +185,3 @@ protected:
 
 } // namespace OpenMS
 
-#endif // OPENMS_FORMAT_CONTROLLEDVOCABULARY_H

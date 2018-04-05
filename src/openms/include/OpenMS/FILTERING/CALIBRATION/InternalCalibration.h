@@ -32,8 +32,7 @@
 // $Authors: Chris Bielow $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FILTERING_CALIBRATION_INTERNALCALIBRATION_H
-#define OPENMS_FILTERING_CALIBRATION_INTERNALCALIBRATION_H
+#pragma once
 
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
@@ -276,4 +275,3 @@ namespace OpenMS
   
 } // namespace OpenMS
 
-#endif // OPENMS_FILTERING_CALIBRATION_INTERNALCALIBRATION_H

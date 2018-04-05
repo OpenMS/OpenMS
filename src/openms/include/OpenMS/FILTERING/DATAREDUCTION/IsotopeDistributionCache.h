@@ -32,8 +32,7 @@
 // $Authors: Steffen Sass, Holger Plattfaut, Bastian Blank $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FILTERING_DATAREDUCTION_ISOTOPEDISTRIBUTIONCACHE_H
-#define OPENMS_FILTERING_DATAREDUCTION_ISOTOPEDISTRIBUTIONCACHE_H
+#pragma once
 
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmPickedHelperStructs.h>
@@ -61,4 +60,3 @@ private:
   };
 }
 
-#endif
