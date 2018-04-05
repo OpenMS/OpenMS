@@ -54,8 +54,7 @@ namespace OpenMS
 {
   EmpiricalFormula::EmpiricalFormula() :
     charge_(0)
-  {
-  }
+  {}
 
   EmpiricalFormula::EmpiricalFormula(const EmpiricalFormula& formula) :
     formula_(formula.formula_),
@@ -673,4 +672,4 @@ namespace OpenMS
     }
   }
 
-}
+} // namespace OpenMS

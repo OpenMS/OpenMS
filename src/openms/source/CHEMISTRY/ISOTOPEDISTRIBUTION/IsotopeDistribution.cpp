@@ -33,6 +33,12 @@
 // --------------------------------------------------------------------------
 //
 
+#include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopeDistribution.h>
+#include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
+#include <OpenMS/CHEMISTRY/Element.h>
+#include <OpenMS/KERNEL/Peak1D.h>
 
 #include <cmath>
 #include <iostream>
@@ -43,35 +49,28 @@
 #include <numeric>
 #include <fstream>
 
-#include <OpenMS/CONCEPT/LogStream.h>
-
-#include <OpenMS/CONCEPT/Exception.h>
-#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopeDistribution.h>
-#include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
-#include <OpenMS/CHEMISTRY/Element.h>
-
-#include <OpenMS/KERNEL/Peak1D.h>
-
 
 using namespace std;
 
 namespace OpenMS
 {
-
+  
+  
   IsotopeDistribution::IsotopeDistribution()
   {
-    distribution_.push_back(Peak1D(0,1));
+    distribution_.push_back(Peak1D(0, 1));
   }
 
-  IsotopeDistribution::IsotopeDistribution(const IsotopeDistribution & isotope_distribution) :
-    distribution_(isotope_distribution.distribution_)
+  IsotopeDistribution::IsotopeDistribution(const IsotopeDistribution & id) :
+    distribution_(id.distribution_)
   {}
 
   IsotopeDistribution::~IsotopeDistribution()
   {
   }
 
-  IsotopeDistribution & IsotopeDistribution::operator=(const IsotopeDistribution & iso)
+  IsotopeDistribution& IsotopeDistribution::operator= 
+  (const IsotopeDistribution & iso)
   {
     if (this != &iso)
     {
@@ -86,7 +85,7 @@ namespace OpenMS
     distribution_ = distribution;
   }
 
-  const IsotopeDistribution::ContainerType & IsotopeDistribution::getContainer() const
+  const IsotopeDistribution::ContainerType& IsotopeDistribution::getContainer() const
   {
     return distribution_;
   }
@@ -136,7 +135,8 @@ namespace OpenMS
                 }), distribution_.end());
   }
 
-  void IsotopeDistribution::sort_(function<bool(const MassAbundance& p1, const MassAbundance& p2)> sorter)
+  void IsotopeDistribution::sort_(
+    function<bool(const MassAbundance& p1, const MassAbundance& p2)> sorter)
   {
     sort(distribution_.begin(), distribution_.end(), sorter);
   }
@@ -177,7 +177,7 @@ namespace OpenMS
     {
       double sum(0);
       // loop backwards as most distributions contains a lot of small values at the end
-      for (ContainerType::const_reverse_iterator it = distribution_.rbegin(); it != distribution_.rend(); ++it)
+      for (auto it = distribution_.rbegin(); it != distribution_.rend(); ++it)
       {
         sum += it->getIntensity();
       }
@@ -187,12 +187,11 @@ namespace OpenMS
         it->setIntensity(it->getIntensity() / sum);
       }
     }
-    return;
   }
 
   void IsotopeDistribution::trimRight(double cutoff)
   {
-    ContainerType::reverse_iterator riter = distribution_.rbegin();
+    auto riter = distribution_.rbegin();
 
     // loop from right to left until an entry is larger than the cutoff
     for (; riter != distribution_.rend(); ++riter)
@@ -206,7 +205,7 @@ namespace OpenMS
 
   void IsotopeDistribution::trimLeft(double cutoff)
   {
-    for (ContainerType::iterator iter = distribution_.begin(); iter != distribution_.end(); ++iter)
+    for (auto iter = distribution_.begin(); iter != distribution_.end(); ++iter)
     {
       if (iter->getIntensity() >= cutoff)
       {
@@ -231,15 +230,19 @@ namespace OpenMS
 
   double IsotopeDistribution::averageMass() const
   {
-    double prob_sum = accumulate(distribution_.begin(), distribution_.end(), 0.0,
-               [](double total_prob, const Peak1D& iso)
-               {
-                 return  total_prob + iso.getIntensity();
-               });
+    double prob_sum = accumulate(distribution_.begin(),
+                                 distribution_.end(), 
+                                 0.0,
+                                 [](double total_prob, const Peak1D& iso)
+                                 {
+                                   return  total_prob + iso.getIntensity();
+                                 });
+
     return accumulate(distribution_.begin(), distribution_.end(), 0.0,
                       [&prob_sum](double average_mass, const Peak1D& iso)
                       {
-                        return average_mass + iso.getMZ()*(iso.getIntensity()/prob_sum);
+                        return average_mass + 
+                          iso.getMZ() * (iso.getIntensity() / prob_sum);
                       });
   }
 
@@ -255,17 +258,22 @@ namespace OpenMS
     UInt output_size = ceil(mass_range / resolution);
     if (output_size > distribution_.size())
     {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "New Isotope Distribution has more points than the old one.");
+      throw Exception::IllegalArgument(__FILE__,
+                                       __LINE__,
+                                       OPENMS_PRETTY_FUNCTION,
+                                       "New Isotope Distribution "
+                                       "has more points than the old one.");
     }
 
     distribution_.clear();
     ContainerType distribution(output_size, Peak1D(0, 0));
     double delta = mass_range / output_size;
 
-    for(auto& p : raw)
+    for (auto& p : raw)
     {
       UInt index = round((p.getMZ() - raw.front().getMZ())/resolution);
-      if(index >= distribution.size()){
+      if (index >= distribution.size())
+      {
         continue;
       }
       double mass = raw.front().getMZ() + (index * delta);
@@ -277,5 +285,5 @@ namespace OpenMS
   }
 
 
-}
+} // namespace OpenMS
 
