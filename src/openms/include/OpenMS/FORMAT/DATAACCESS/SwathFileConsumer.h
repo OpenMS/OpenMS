@@ -538,7 +538,7 @@ protected:
    *
    * Writes all spectra immediately to disk to an mzML file location using the
    * PlainMSDataWritingConsumer. Internally, it handles n+1 (n SWATH + 1 MS1
-   * map) objects of MSDataCachedConsumerwhich can consume the spectra and
+   * map) objects of MSDataCachedConsumer which can consume the spectra and
    * write them to disk immediately.
    *
    */
