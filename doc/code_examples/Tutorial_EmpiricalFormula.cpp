@@ -56,9 +56,9 @@ Int main()
   // extract the isotope distribution
   IsotopeDistribution iso_dist = sum.getIsotopeDistribution(CoarseIsotopeDistribution(3));
 
-  for (auto it = iso_dist.begin(); it != iso_dist.end(); ++it)
+  for (const auto& it : iso_dist)
   {
-    cout << it->getMZ() << " " << it->getIntensity() << endl;
+    cout << it.getMZ() << " " << it.getIntensity() << endl;
   }
 
   return 0;
