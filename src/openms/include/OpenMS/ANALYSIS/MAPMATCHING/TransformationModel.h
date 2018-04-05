@@ -121,7 +121,7 @@ namespace OpenMS
     virtual void unWeightData(DataPoints& data);
     
     /**
-    @brief Check for a valid wighting function string
+    @brief Check for a valid weighting function string
     */
     bool checkValidWeight(const String& weight, const std::vector<String>& valid_weights) const;
 

@@ -121,7 +121,7 @@
 
   You can check which dependencies you still need by attempting to configure %OpenMS (see the next section),
   it will complain about anything unusual/missing.
-  @note In most cases, the only dependencies left unresolved (e.g. inavailable through your distributions packaging system) at this point are SeqAn, WildMagic and maybe CoinOR.
+  @note In most cases, the only dependencies left unresolved (e.g. unavailable through your distributions packaging system) at this point are SeqAn, WildMagic and maybe CoinOR.
   Contact us if you still have trouble with the dependencies \b after these
   instructions.
 

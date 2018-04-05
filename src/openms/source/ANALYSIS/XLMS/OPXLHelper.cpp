@@ -88,7 +88,7 @@ namespace OpenMS
   }
 
 
-  // Enumerate all pairs of peptides from the searched database and calculate their masses (inlcuding mono-links and loop-links)
+  // Enumerate all pairs of peptides from the searched database and calculate their masses (including mono-links and loop-links)
   vector<OPXLDataStructs::XLPrecursor> OPXLHelper::enumerateCrossLinksAndMasses(const vector<OPXLDataStructs::AASeqWithMass>&  peptides, double cross_link_mass, const DoubleList& cross_link_mass_mono_link, const StringList& cross_link_residue1, const StringList& cross_link_residue2, vector< double >& spectrum_precursors, double precursor_mass_tolerance, bool precursor_mass_tolerance_unit_ppm)
   {
     // initialize empty vector for the results
@@ -316,7 +316,7 @@ namespace OpenMS
         vector<AASequence> all_modified_peptides;
 
         // generate all modified variants of a peptide
-        // Note: no critial section is needed despite ResidueDB not beeing thread sage.
+        // Note: no critical section is needed despite ResidueDB not being thread safe.
         //       It is only written to on introduction of novel modified residues. These residues have been already added above (single thread context).
         {
           AASequence aas = AASequence::fromString(cit->getString());

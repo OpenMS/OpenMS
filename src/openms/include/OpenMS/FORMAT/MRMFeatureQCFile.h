@@ -44,7 +44,7 @@ namespace OpenMS
   /**
       @brief File adapter for MRMFeatureQC files.
 
-      loads and stores .csv or .tsv files describing an MRMFeatureQC.
+      Loads and stores .csv or .tsv files describing an MRMFeatureQC.
 
       @ingroup FileIO
   */
@@ -86,7 +86,7 @@ protected:
 
     @param[in] line A line containing the values from a row in the input file
     @param[in] headers A mapping from headers names to position indices
-    @param[out] c_qcs The ouptput will be saved in a new element of this vector
+    @param[out] c_qcs The output will be saved in a new element of this vector
   */
   void pushValuesFromLine_(
     const StringList& line,
@@ -101,7 +101,7 @@ protected:
 
     @param[in] line A line containing the values from a row in the input file
     @param[in] headers A mapping from headers names to position indices
-    @param[out] cg_qcs The ouptput will be saved in a new element of this vector
+    @param[out] cg_qcs The output will be saved in a new element of this vector
   */
   void pushValuesFromLine_(
     const StringList& line,
@@ -139,7 +139,7 @@ protected:
     Otherwise, `default_value` (provided by the user) is returned.
 
     @param[in] headers The mapping from columns' name to positions' indices
-    @param[in] line A list of strings containinig a single row's values
+    @param[in] line A list of strings containing a single row's values
     @param[in] header The desired value's column name
     @param[in] default_value A default value to return in case the information is not found or invalid
     @return The found information (if found and valid) converted to `Int`. Otherwise `default_value`.
@@ -160,7 +160,7 @@ protected:
     Otherwise, `default_value` (provided by the user) is returned.
 
     @param[in] headers The mapping from columns' name to positions' indices
-    @param[in] line A list of strings containinig a single row's values
+    @param[in] line A list of strings containing a single row's values
     @param[in] header The desired value's column name
     @param[in] default_value A default value to return in case the information is not found or invalid
     @return The found information (if found and valid) converted to `double`. Otherwise `default_value`.
@@ -181,7 +181,7 @@ protected:
     Otherwise, `default_value` (provided by the user) is returned.
 
     @param[in] headers The mapping from columns' name to positions' indices
-    @param[in] line A list of strings containinig a single row's values
+    @param[in] line A list of strings containing a single row's values
     @param[in] header The desired value's column name
     @param[in] default_value A default value to return in case the information is not found or invalid
     @return The found information (if found and valid) converted to `String`. Otherwise `default_value`.

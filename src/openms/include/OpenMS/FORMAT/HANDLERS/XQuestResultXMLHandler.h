@@ -160,7 +160,9 @@ namespace OpenMS
       inline void extractDateTime_(const String & xquest_datetime_string, DateTime & date_time);
 
       /**
-       * @brief Assignes all meta values stored in the peptide_id_attributes member to an meta info interface
+       * @brief Assigns all meta values stored in the peptide_id_attributes
+       * member to an meta info interface
+       *
        * @param meta_info_interface Where the meta values from the peptide_id_attributes member should be assigned to
        */
       void addMetaValues_(MetaInfoInterface & meta_info_interface);
