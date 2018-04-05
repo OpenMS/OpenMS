@@ -119,5 +119,3 @@ cdef extern from "<OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopeDistributio
         # Calculate isotopic distribution for a fragment molecule
 
         IsotopeDistribution calcFragmentIsotopeDist(IsotopeDistribution& fragment_isotope_dist, IsotopeDistribution& comp_fragment_isotope_dist, libcpp_set[ unsigned int ]& precursor_isotopes) nogil except +
-
-        IsotopeDistribution run(EmpiricalFormula&) nogil except +
