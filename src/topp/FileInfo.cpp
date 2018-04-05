@@ -634,11 +634,11 @@ protected:
       std::cout << "\n\n" << mu.delta("loading idXML") << std::endl;
 
       // export metadata to second output stream
-      os_tsv << "database"
+      os_tsv << "general: database"
              << "\t" << id_data.proteins[0].getSearchParameters().db << "\n"
-             << "database version"
+             << "general: database version"
              << "\t" << id_data.proteins[0].getSearchParameters().db_version << "\n"
-             << "taxonomy"
+             << "general: taxonomy"
              << "\t" << id_data.proteins[0].getSearchParameters().taxonomy << "\n";
 
       // calculations
@@ -707,14 +707,16 @@ protected:
         os << it->first << " " << it->second;
       }
 
-      os_tsv << "peptide hits"
-             << "\t" << peptide_hit_count << "\n";
-      os_tsv << "non-redundant peptide hits (only hits that differ in sequence and/or modifications): "
-             << "\t" << peptides.size() << "\n";
-      os_tsv << "protein hits"
-             << "\t" << protein_hit_count << "\n";
-      os_tsv << "non-redundant protein hits (only hits that differ in the accession)"
+      os_tsv << "general: num. of runs" << "\t" << runs_count << "\n";
+      os_tsv << "general: num. of protein hits" << "\t" << protein_hit_count << "\n";
+      os_tsv << "general: num. of non-redundant protein hits (only hits that differ in the accession)"
              << "\t" << proteins.size() << "\n";
+      os_tsv << "general: num. of matched spectra" << "\t" << spectrum_count << "\n";
+      os_tsv << "general: num. of peptide hits" << "\t" << peptide_hit_count << "\n";
+      os_tsv << "general: num. of modified top-hits" << "\t" << modified_peptide_count << "\n";
+      os_tsv << "general: num. of non-redundant peptide hits (only hits that differ in sequence and/or modifications): "
+             << "\t" << peptides.size() << "\n";
+
     }
     else if (in_type == FileTypes::PEPXML)
     {
@@ -1136,6 +1138,8 @@ protected:
       {
         os << "Document ID: " << id_data.identifier << "\n"
            << "\n";
+        os_tsv << "meta: document ID" << "\t"
+               << id_data.identifier;
       }
       else if (in_type == FileTypes::PEPXML)
       {
