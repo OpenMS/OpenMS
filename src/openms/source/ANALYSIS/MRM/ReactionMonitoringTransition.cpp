@@ -52,7 +52,7 @@ namespace OpenMS
     prediction_(nullptr)
   {
     // Default is: true, false, true
-    // NOTE: do not change that, the same default is implicitely assumed in TraMLHandler
+    // NOTE: do not change that, the same default is implicitly assumed in TraMLHandler
     transition_flags_[DETECTING_TRANSITION_LOC] = true;
     transition_flags_[IDENTIFYING_TRANSITION_LOC] = false;
     transition_flags_[QUANTIFYING_TRANSITION_LOC] = true;

@@ -134,7 +134,7 @@ namespace OpenMS
         spec_xml_file << "</spectrum>" << std::endl;
 
         // the preprocessed pair spectra are sorted by another index
-        // because some pairs do not yield any resonable hits, the index from the spectrum matches or spectrum_indices does not address the right pair anymore
+        // because some pairs do not yield any reasonable hits, the index from the spectrum matches or spectrum_indices does not address the right pair anymore
         // use find with the pair of spectrum indices to find the correct index for the preprocessed common and cross-linked ion spectra
         std::vector<std::pair <Size, Size> >::const_iterator pair_it = std::find(spectrum_pairs.begin(), spectrum_pairs.end(), spectrum_indices[i]);
         Size pair_index = std::distance(spectrum_pairs.begin(), pair_it);
