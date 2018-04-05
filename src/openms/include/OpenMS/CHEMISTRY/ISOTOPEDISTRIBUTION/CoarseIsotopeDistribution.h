@@ -51,6 +51,10 @@ namespace OpenMS
     *         calculated.
     *         By default all possible isotopes are calculated, which leads to a large
     *         number of values, if the mass value is large!
+    *
+    *         See also method run()
+    *
+    *         Distributions can be added to one another or multiplied with an integer.
     **/
 
   class OPENMS_DLLAPI CoarseIsotopeDistribution 
@@ -89,6 +93,13 @@ namespace OpenMS
     bool operator!=(const CoarseIsotopeDistribution& isotope_distribution) const;
 
 
+    /**
+      * @brief Creates an isotope distribution from an empirical sum formula
+      *
+      * Iterates through all elements, convolves them according to the number
+      * of atoms from that element and sums up the result.
+      *
+      **/
     void run(const EmpiricalFormula&);
 
     /**
@@ -244,11 +255,14 @@ namespace OpenMS
        @brief Calculate isotopic distribution for a fragment molecule
 
        This calculates the isotopic distribution for a fragment molecule given
-       the isotopic distribution of the fragment and complementary fragment
-       (as if they were precursors), and which precursor isotopes were isolated.
-       Do consider normalising the distribution afterwards to get conditional probabilities.
+       the isotopic distribution of the fragment and complementary fragment (as
+       if they were precursors), and which precursor isotopes were isolated.
+
+       @note Do consider normalising the distribution afterwards to get conditional probabilities.
+
        Equations come from Rockwood, AL; Kushnir, MA; Nelson, GJ. in
        "Dissociation of Individual Isotopic Peaks: Predicting Isotopic Distributions of Product Ions in MSn"
+
        @param fragment_isotope_dist the isotopic distribution of the fragment (as if it was a precursor).
        @param comp_fragment_isotope_dist the isotopic distribution of the complementary fragment (as if it was a precursor).
        @param precursor_isotopes a list of which precursor isotopes were isolated. 0 corresponds to the mono-isotopic molecule (M0), 1->M1, etc.

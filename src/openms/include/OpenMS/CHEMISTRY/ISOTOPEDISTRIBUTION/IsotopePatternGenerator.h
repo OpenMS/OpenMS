@@ -45,6 +45,10 @@
 
 namespace OpenMS
 {
+    /** 
+        @brief TODO explain what this is doing and how it relates to other fxns in this class
+
+     */
   class OPENMS_DLLAPI IsotopePatternGenerator : public IsotopeDistribution
   {
  public:
