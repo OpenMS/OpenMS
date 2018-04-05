@@ -116,7 +116,7 @@ namespace OpenMS
       form.append("S").append(String(S_num));
 
     EmpiricalFormula formula(form);
-    IsotopeDistribution isotope_distribution = formula.getIsotopeDistribution(new CoarseIsotopeDistribution(max_isotope_));
+    IsotopeDistribution isotope_distribution = formula.getIsotopeDistribution(CoarseIsotopeDistribution(max_isotope_));
     isotope_distribution.trimRight(trim_right_cutoff_);
     isotope_distribution.renormalize();
 

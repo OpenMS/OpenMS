@@ -32,8 +32,7 @@
 // $Authors: David Wojnar $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FORMAT_BZIP2INPUTSTREAM_H
-#define OPENMS_FORMAT_BZIP2INPUTSTREAM_H
+#pragma once
 
 #include <xercesc/util/BinInputStream.hpp>
 #include <xercesc/util/PlatformUtils.hpp>
@@ -119,4 +118,3 @@ private:
 
 } // namespace OpenMS
 
-#endif // OPENMS_FORMAT_BZIP2InputStream_H

@@ -40,7 +40,7 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/MRMFeatureAccessOpenMS.h>
 
 // peak picking & noise estimation
-#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/ALGO/MRMScoring.h>
+#include <OpenMS/OPENSWATHALGO/ALGO/MRMScoring.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMTransitionGroupPicker.h>
 
 #include <boost/range/adaptor/map.hpp>
@@ -95,6 +95,8 @@ namespace OpenMS
     defaults_.setMinFloat("spacing_for_spectra_resampling", 0.0);
     defaults_.setValue("uis_threshold_sn", -1, "S/N threshold to consider identification transition (set to -1 to consider all)");
     defaults_.setValue("uis_threshold_peak_area", 0, "Peak area threshold to consider identification transition (set to -1 to consider all)");
+    defaults_.setValue("scoring_model", "default", "Scoring model to use", ListUtils::create<String>("advanced"));
+    defaults_.setValidStrings("scoring_model", ListUtils::create<String>("default,single_transition"));
 
     defaults_.insert("TransitionGroupPicker:", MRMTransitionGroupPicker().getDefaults());
 
@@ -473,14 +475,6 @@ namespace OpenMS
                                          "Error: Transition group " + transition_group_detection.getTransitionGroupID() + 
                                          " has no chromatograms.");
       }
-      if (group_size < 2 && !ms1only)
-      {
-        LOG_ERROR << "Error: Transition group " << transition_group_detection.getTransitionGroupID()
-                  << " has only one chromatogram." << std::endl;
-        delete imrmfeature; // free resources before continuing
-        continue;
-      }
-
       bool swath_present = (!swath_maps.empty() && swath_maps[0].sptr->getNrSpectra() > 0);
       bool sonar_present = (swath_maps.size() > 1);
       double xx_lda_prescore;
@@ -499,8 +493,14 @@ namespace OpenMS
         OpenSwath::MRMScoring mrmscore_;
         scores.sn_ratio = mrmscore_.calcSNScore(imrmfeature, ms1_signal_noise_estimators);
         // everything below S/N 1 can be set to zero (and the log safely applied)
-        if (scores.sn_ratio < 1) { scores.log_sn_score = 0; }
-        else { scores.log_sn_score = std::log(scores.sn_ratio); }
+        if (scores.sn_ratio < 1)
+        { 
+          scores.log_sn_score = 0;
+        }
+        else
+        { 
+          scores.log_sn_score = std::log(scores.sn_ratio);
+        }
         if (su_.use_sn_score_) 
         { 
           mrmfeature->addScore("sn_ratio", scores.sn_ratio);
@@ -546,6 +546,10 @@ namespace OpenMS
           mrmfeature->addScore("var_ms1_isotope_overlap", scores.ms1_isotope_overlap);
         }
         xx_lda_prescore = -scores.calculate_lda_prescore(scores);
+        if (scoring_model_ == "single_transition")
+        {
+          xx_lda_prescore = -scores.calculate_lda_single_transition(scores);
+        }
         mrmfeature->addScore("main_var_xx_lda_prelim_score", xx_lda_prescore);
         mrmfeature->setOverallQuality(xx_lda_prescore);
       }
@@ -688,6 +692,10 @@ namespace OpenMS
         }
 
         xx_lda_prescore = -scores.calculate_lda_prescore(scores);
+        if (scoring_model_ == "single_transition")
+        {
+          xx_lda_prescore = -scores.calculate_lda_single_transition(scores);
+        }
         if (!swath_present)
         {
           mrmfeature->addScore("main_var_xx_lda_prelim_score", xx_lda_prescore);
@@ -839,6 +847,7 @@ namespace OpenMS
     spacing_for_spectra_resampling_ = param_.getValue("spacing_for_spectra_resampling");
     uis_threshold_sn_ = param_.getValue("uis_threshold_sn");
     uis_threshold_peak_area_ = param_.getValue("uis_threshold_peak_area");
+    scoring_model_ = param_.getValue("scoring_model");
 
     // set SONAR values
     Param p = sonarscoring_.getDefaults();

@@ -32,8 +32,7 @@
 // $Authors: Alexandra Zerck $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_DATASTRUCTURES_LPWRAPPER_H
-#define OPENMS_DATASTRUCTURES_LPWRAPPER_H
+#pragma once
 
 #include <OpenMS/DATASTRUCTURES/String.h> // for String
 
@@ -326,4 +325,3 @@ protected:
 
 } // namespace
 
-#endif // OPENMS_DATASTRUCTURES_LPWRAPPER_H

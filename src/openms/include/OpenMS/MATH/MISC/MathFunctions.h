@@ -32,8 +32,7 @@
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_MATH_MISC_MATHFUNCTIONS_H
-#define OPENMS_MATH_MISC_MATHFUNCTIONS_H
+#pragma once
 
 #include <OpenMS/CONCEPT/Types.h>
 
@@ -320,7 +319,7 @@ namespace OpenMS
        @param x an integer value
        @return natural logarithm of factorial x
     */
-    inline double fact_ln(UInt x)
+    inline double factLn(UInt x)
     {
       return lgamma(double(x+1));
     }
@@ -328,4 +327,3 @@ namespace OpenMS
   } // namespace Math
 } // namespace OpenMS
 
-#endif // OPENMS_MATH_MISC_MATHFUNCTIONS_H

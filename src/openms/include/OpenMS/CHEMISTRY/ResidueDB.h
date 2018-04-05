@@ -32,8 +32,7 @@
 // $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_CHEMISTRY_RESIDUEDB_H
-#define OPENMS_CHEMISTRY_RESIDUEDB_H
+#pragma once
 
 #include <OpenMS/DATASTRUCTURES/Map.h>
 #include <boost/unordered_map.hpp>
@@ -230,4 +229,3 @@ protected:
     std::set<String> residue_sets_;
   };
 }
-#endif

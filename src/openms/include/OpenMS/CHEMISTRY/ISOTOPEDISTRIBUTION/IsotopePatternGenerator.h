@@ -36,25 +36,22 @@
 #ifndef OPENMS_CHEMISTRY_ISOTOPEDISTRIBUTION_ISOTOPEPATTERNGENERATOR_H
 #define OPENMS_CHEMISTRY_ISOTOPEDISTRIBUTION_ISOTOPEPATTERNGENERATOR_H
 
-#include <OpenMS/CHEMISTRY/Element.h>
-#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopeDistribution.h>
-#include <OpenMS/CONCEPT/Types.h>
 
-#include <deque>
-#include <algorithm>
+#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopeDistribution.h>
 
 namespace OpenMS
 {
-    /** 
-        @brief TODO explain what this is doing and how it relates to other fxns in this class
+  class EmpiricalFormula;
 
-     */
-  class OPENMS_DLLAPI IsotopePatternGenerator : public IsotopeDistribution
+  /** 
+      @brief TODO explain what this is doing and how it relates to other fxns in this class
+
+   */
+  class OPENMS_DLLAPI IsotopePatternGenerator
   {
  public:
     IsotopePatternGenerator();
     IsotopePatternGenerator(double probability_cutoff);
-    IsotopePatternGenerator(const IsotopeDistribution&);
     
     /** 
         @brief interface that is being used by the Isotope Pattern Generator methods.
@@ -62,15 +59,8 @@ namespace OpenMS
         Method that calculates the isotope distribution for the given formula.
 
      */
-    virtual void run(const EmpiricalFormula&) = 0;
-    /** @brief Merges distributions arbitrary data points with constant defined resolution.
-        
-        It creates a new IsotopeDistribution Container and assigns each isotope to the nearest bin.
-        This function should be used to downsample the existing distribution.
-        If the size of the new Container is larger this function throws an IllegalArgument Exception.
-        
-     */
-    void merge(double);
+    virtual IsotopeDistribution run(const EmpiricalFormula&) const = 0;
+    ~IsotopePatternGenerator();
  protected:
     double min_prob_;
   };

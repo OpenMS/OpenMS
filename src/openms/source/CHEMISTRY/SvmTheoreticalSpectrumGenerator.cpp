@@ -956,7 +956,7 @@ namespace OpenMS
 
       if (add_isotopes)
       {
-        IsotopeDistribution dist = ion_formula.getIsotopeDistribution(new CoarseIsotopeDistribution((Int)max_isotope));
+        IsotopeDistribution dist = ion_formula.getIsotopeDistribution(CoarseIsotopeDistribution((Int)max_isotope));
         Size j = 0;
         for (IsotopeDistribution::ConstIterator it = dist.begin(); it != dist.end(); ++it, ++j)
         {

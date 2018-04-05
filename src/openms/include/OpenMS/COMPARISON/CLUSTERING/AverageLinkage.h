@@ -32,8 +32,7 @@
 // $Authors: $
 // --------------------------------------------------------------------------
 //
-#ifndef OPENMS_COMPARISON_CLUSTERING_AVERAGELINKAGE_H
-#define OPENMS_COMPARISON_CLUSTERING_AVERAGELINKAGE_H
+#pragma once
 
 #include <vector>
 #include <set>
@@ -93,4 +92,3 @@ public:
   };
 
 }
-#endif //OPENMS_COMPARISON_CLUSTERING_AVERAGELINKAGE_H

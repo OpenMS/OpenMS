@@ -59,14 +59,17 @@ namespace OpenMS
 {
 
   IsotopeDistribution::IsotopeDistribution()
-  {}
+  {
+    distribution_.push_back(Peak1D(0,1));
+  }
 
   IsotopeDistribution::IsotopeDistribution(const IsotopeDistribution & isotope_distribution) :
     distribution_(isotope_distribution.distribution_)
   {}
 
   IsotopeDistribution::~IsotopeDistribution()
-  {}
+  {
+  }
 
   IsotopeDistribution & IsotopeDistribution::operator=(const IsotopeDistribution & iso)
   {
@@ -115,6 +118,11 @@ namespace OpenMS
   void IsotopeDistribution::clear()
   {
     distribution_.clear();
+  }
+
+  void IsotopeDistribution::resize(UInt new_size)
+  {
+    distribution_.resize(new_size);
   }
 
   void IsotopeDistribution::trimIntensities(double cutoff)
@@ -234,6 +242,38 @@ namespace OpenMS
                         return average_mass + iso.getMZ()*(iso.getIntensity()/prob_sum);
                       });
   }
+
+  void IsotopeDistribution::merge(double resolution, double min_prob)
+  {
+    // Sort by mass and trim the tails of the container
+    sortByMass();
+    trimLeft(min_prob);
+    trimRight(min_prob);
+    
+    ContainerType raw = distribution_;
+    double mass_range = (raw.back().getMZ() - raw.front().getMZ());
+    UInt output_size = ceil(mass_range / resolution);
+    if (output_size > distribution_.size())
+    {
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "New Isotope Distribution has more points than the old one.");
+    }
+
+    distribution_.clear();
+    ContainerType distribution(output_size, Peak1D(0, 0));
+    double delta = mass_range / output_size;
+
+    for (auto& p : raw)
+    {
+      UInt index = round((p.getMZ() - raw.front().getMZ())/resolution);
+      if (index >= distribution.size()){ continue; }
+      double mass = raw.front().getMZ() + (index * delta);
+      distribution[index].setMZ(mass);
+      distribution[index].setIntensity(distribution[index].getIntensity() + p.getIntensity());
+    }
+    distribution_ = distribution;
+    trimIntensities(min_prob);
+  }
+
 
 }
 

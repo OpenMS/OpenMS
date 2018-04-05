@@ -32,8 +32,7 @@
 // $Authors: Andreas Bertsch, Chris Bielow $
 // --------------------------------------------------------------------------
 //
-#ifndef OPENMS_CHEMISTRY_EMPIRICALFORMULA_H
-#define OPENMS_CHEMISTRY_EMPIRICALFORMULA_H
+#pragma once
 
 #include <iosfwd>
 #include <map>
@@ -42,6 +41,8 @@
 
 #include <OpenMS/CONCEPT/Types.h>
 
+
+
 namespace OpenMS
 {
   class String;
@@ -49,7 +50,6 @@ namespace OpenMS
   class ElementDB;
   class IsotopeDistribution;
   class IsotopePatternGenerator;
-  class CoarseIsotopeDistribution;
   /**
     @ingroup Chemistry
 
@@ -172,12 +172,19 @@ public:
 
       @param method: the maximum isotope which is considered, if 0 all are reported
     */
-    IsotopeDistribution getIsotopeDistribution(IsotopePatternGenerator* method) const;
+    IsotopeDistribution getIsotopeDistribution(const IsotopePatternGenerator& method) const;
 
-    IsotopeDistribution getIsotopeDistribution(CoarseIsotopeDistribution* coarse_solver) const;
 
     /**
-      @brief returns the fragment isotope distribution of this given a precursor formula
+       @brief formula's isotope distribution using the CoarseIsotopeDistribution
+       This is used as a wrapper for the pyOpenMS
+     */
+    IsotopeDistribution getIsotopeDistribution() const;
+    
+
+
+    /**
+      @brief returns the fragment iUsotope distribution of this given a precursor formula
       and conditioned on a set of isolated precursor isotopes.
 
       The max_depth of the isotopic distribution is set to max(precursor_isotopes)+1.
@@ -280,4 +287,3 @@ protected:
   OPENMS_DLLAPI std::ostream& operator<<(std::ostream& os, const EmpiricalFormula& formula);
 
 } // namespace OpenMS
-#endif

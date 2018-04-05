@@ -32,8 +32,7 @@
 // $Maintainer: Timo Sachsenberg $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_TRANSFORMATIONS_RAW2PEAK_PEAKPICKERHIRES_H
-#define OPENMS_TRANSFORMATIONS_RAW2PEAK_PEAKPICKERHIRES_H
+#pragma once
 
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/OnDiscMSExperiment.h>
@@ -660,4 +659,3 @@ protected:
 
 } // namespace OpenMS
 
-#endif

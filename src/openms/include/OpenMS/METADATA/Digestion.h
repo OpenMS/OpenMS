@@ -32,8 +32,7 @@
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_METADATA_DIGESTION_H
-#define OPENMS_METADATA_DIGESTION_H
+#pragma once
 
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/METADATA/SampleTreatment.h>
@@ -100,4 +99,3 @@ protected:
   };
 } // namespace OpenMS
 
-#endif // OPENMS_METADATA_DIGESTION_H

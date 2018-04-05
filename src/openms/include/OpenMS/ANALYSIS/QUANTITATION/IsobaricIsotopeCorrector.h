@@ -32,8 +32,7 @@
 // $Authors: Stephan Aiche, Chris Bielow $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_QUANTITATION_ISOBARICISOTOPECORRECTOR_H
-#define OPENMS_ANALYSIS_QUANTITATION_ISOBARICISOTOPECORRECTOR_H
+#pragma once
 
 #include <OpenMS/DATASTRUCTURES/Matrix.h>
 #include <Eigen/Core>
@@ -99,4 +98,3 @@ private:
   };
 } // namespace
 
-#endif // OPENMS_ANALYSIS_QUANTITATION_ISOBARICISOTOPECORRECTOR_H

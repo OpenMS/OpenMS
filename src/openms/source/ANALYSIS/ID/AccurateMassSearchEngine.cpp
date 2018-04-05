@@ -1493,7 +1493,7 @@ namespace OpenMS
     Size common_size = std::min(num_traces, MAX_THEORET_ISOS);
 
     // compute theoretical isotope distribution
-    IsotopeDistribution iso_dist(form.getIsotopeDistribution(new CoarseIsotopeDistribution((UInt)common_size)));
+    IsotopeDistribution iso_dist(form.getIsotopeDistribution(CoarseIsotopeDistribution((UInt)common_size)));
     std::vector<double> theoretical_iso_dist;
     for (auto iso_it = iso_dist.begin(); iso_it != iso_dist.end(); ++iso_it)
     {

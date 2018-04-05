@@ -32,8 +32,7 @@
 // $Authors: Hannes Roest $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_CONCEPT_INIT_H
-#define OPENMS_CONCEPT_INIT_H
+#pragma once
 
 #include <OpenMS/config.h>
 #include <OpenMS/CONCEPT/Exception.h>
@@ -46,5 +45,4 @@
 
 */
 
-#endif // OPENMS_CONCEPT_INIT_H
 

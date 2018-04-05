@@ -32,8 +32,7 @@
 // $Authors: Johannes Junker $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_VISUAL_TOPPASLOGWINDOW_H
-#define OPENMS_VISUAL_TOPPASLOGWINDOW_H
+#pragma once
 
 // OpenMS_GUI config
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
@@ -80,4 +79,3 @@ namespace OpenMS
 
   };
 }
-#endif // OPENMS_VISUAL_TOPPASLOGWINDOW_H

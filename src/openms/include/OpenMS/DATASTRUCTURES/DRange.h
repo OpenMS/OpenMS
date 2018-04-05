@@ -32,8 +32,7 @@
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_DATASTRUCTURES_DRANGE_H
-#define OPENMS_DATASTRUCTURES_DRANGE_H
+#pragma once
 
 #include <OpenMS/DATASTRUCTURES/DIntervalBase.h>
 #include <OpenMS/CONCEPT/Macros.h>
@@ -346,4 +345,3 @@ public:
 
 } // namespace OpenMS
 
-#endif // OPENMS_DATASTRUCTURES_DRANGE_H

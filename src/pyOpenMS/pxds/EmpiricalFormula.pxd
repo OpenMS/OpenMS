@@ -43,9 +43,7 @@ cdef extern from "<OpenMS/CHEMISTRY/EmpiricalFormula.h>" namespace "OpenMS":
         # @brief returns the isotope distribution of the formula
         #   *	The details of the calculation of the isotope distribution
         #   * are described in the doc to the IsotopeDistribution class.
-        #   *	@param method: interface to the isotope distribution calculation method
-        # IsotopeDistribution getIsotopeDistribution(IsotopePatternGenerator* method) nogil except + # wrap-ignore
-        IsotopeDistribution getIsotopeDistribution(CoarseIsotopeDistribution* method) nogil except + 
+        IsotopeDistribution getIsotopeDistribution() nogil except +
 
 
         # @brief returns the fragment isotope distribution of this conditioned

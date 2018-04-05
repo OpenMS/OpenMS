@@ -32,8 +32,7 @@
 // $Authors: Marc Sturm, Stephan Aiche $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FORMAT_HANDLERS_PARAMXMLHANDLER_H
-#define OPENMS_FORMAT_HANDLERS_PARAMXMLHANDLER_H
+#pragma once
 
 #include <OpenMS/DATASTRUCTURES/Param.h>
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
@@ -94,4 +93,3 @@ private:
   } // namespace Internal
 } // namespace OpenMS
 
-#endif // OPENMS_FORMAT_HANDLERS_PARAMXMLHANDLER_H

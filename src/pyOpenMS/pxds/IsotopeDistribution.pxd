@@ -43,30 +43,25 @@ cdef extern from "<OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopeDistribution.h>" 
 
         # Trims the left side of the isotope distribution to isotopes with a significant contribution.
         void trimLeft(double cutoff) nogil except +
+        
+        void merge(double, double) nogil except +
 
 
 cdef extern from "<OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopePatternGenerator.h>" namespace "OpenMS":
-    cdef cppclass IsotopePatternGenerator(IsotopeDistribution):
-
-         # wrap-inherits:
-         #  IsotopeDistribution
+    cdef cppclass IsotopePatternGenerator:
 
          # wrap-ignore
          # ABSTRACT class
          # no-pxd-import
-         
-
          IsotopePatternGenerator() 
          IsotopePatternGenerator(double probability_cutoff) nogil except + 
          IsotopePatternGenerator(IsotopeDistribution) nogil except + # wrap-ignore
          # virtual void run(EmpiricalFormula&) = 0; # wrap-ignore
-         void merge(double) nogil except +
+
 
 
 cdef extern from "<OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopeDistribution.h>" namespace "OpenMS":
     cdef cppclass CoarseIsotopeDistribution(IsotopePatternGenerator):
-        # wrap-inherits:
-        #  IsotopeDistribution
         # wrap-inherits:
         #  IsotopePatternGenerator
 
@@ -87,43 +82,43 @@ cdef extern from "<OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopeDistributio
 
         # @brief Estimate Peptide Isotopedistribution from weight and number of isotopes that should be reported
         #   "Determination of Monoisotopic Masses and Ion Populations for Large Biomolecules from Resolved Isotopic Distributions"
-        void estimateFromPeptideWeight(double average_weight) nogil except +
+        IsotopeDistribution estimateFromPeptideWeight(double average_weight) nogil except +
 
         # Estimate Nucleotide Isotopedistribution from weight
-        void estimateFromRNAWeight(double average_weight) nogil except +
+        IsotopeDistribution estimateFromRNAWeight(double average_weight) nogil except +
 
         # Estimate Nucleotide Isotopedistribution from weight
-        void estimateFromDNAWeight(double average_weight) nogil except +
+        IsotopeDistribution estimateFromDNAWeight(double average_weight) nogil except +
 
-        void estimateFromWeightAndComp(double average_weight, double C, double H, double N, double O, double S, double P) nogil except +
+        IsotopeDistribution estimateFromWeightAndComp(double average_weight, double C, double H, double N, double O, double S, double P) nogil except +
 
         # Estimate IsotopeDistribution from weight, exact number of sulfurs, and average remaining composition
-        void estimateFromWeightAndCompAndS(double average_weight, UInt S, double C, double H, double N, double O, double P);
+        IsotopeDistribution estimateFromWeightAndCompAndS(double average_weight, UInt S, double C, double H, double N, double O, double P);
 
         # Estimate peptide fragment IsotopeDistribution from the precursor's average weight,
         # fragment's average weight, and a set of isolated precursor isotopes.
-        void estimateForFragmentFromPeptideWeight(double average_weight_precursor, double average_weight_fragment, libcpp_set[ unsigned int ]& precursor_isotopes) nogil except +
+        IsotopeDistribution estimateForFragmentFromPeptideWeight(double average_weight_precursor, double average_weight_fragment, libcpp_set[ unsigned int ]& precursor_isotopes) nogil except +
 
         # Estimate peptide fragment IsotopeDistribution from the precursor's average weight,
         # number of sulfurs in the precursor, fragment's average weight, number of sulfurs in the fragment,
         # and a set of isolated precursor isotopes.
-        void estimateForFragmentFromPeptideWeightAndS(double average_weight_precursor, UInt S_precursor, double average_weight_fragment, UInt S_fragment, libcpp_set[ unsigned int ]& precursor_isotopes);
+        IsotopeDistribution estimateForFragmentFromPeptideWeightAndS(double average_weight_precursor, UInt S_precursor, double average_weight_fragment, UInt S_fragment, libcpp_set[ unsigned int ]& precursor_isotopes);
 
         # Estimate RNA fragment IsotopeDistribution from the precursor's average weight,
         # fragment's average weight, and a set of isolated precursor isotopes.
-        void estimateForFragmentFromRNAWeight(double average_weight_precursor, double average_weight_fragment, libcpp_set[ unsigned int ]& precursor_isotopes) nogil except +
+        IsotopeDistribution estimateForFragmentFromRNAWeight(double average_weight_precursor, double average_weight_fragment, libcpp_set[ unsigned int ]& precursor_isotopes) nogil except +
 
         # Estimate DNA fragment IsotopeDistribution from the precursor's average weight,
         # fragment's average weight, and a set of isolated precursor isotopes.
-        void estimateForFragmentFromDNAWeight(double average_weight_precursor, double average_weight_fragment, libcpp_set[ unsigned int ]& precursor_isotopes) nogil except +
+        IsotopeDistribution estimateForFragmentFromDNAWeight(double average_weight_precursor, double average_weight_fragment, libcpp_set[ unsigned int ]& precursor_isotopes) nogil except +
 
         # Estimate fragment IsotopeDistribution from the precursor's average weight,
         # fragment's average weight, a set of isolated precursor isotopes, and average composition
-        void estimateForFragmentFromWeightAndComp(double average_weight_precursor, double average_weight_fragment, libcpp_set[ unsigned int ]& precursor_isotopes, double C, double H, double N, double O, double S, double P) nogil except +
+        IsotopeDistribution estimateForFragmentFromWeightAndComp(double average_weight_precursor, double average_weight_fragment, libcpp_set[ unsigned int ]& precursor_isotopes, double C, double H, double N, double O, double S, double P) nogil except +
 
         # Calculate isotopic distribution for a fragment molecule
 
-        void calcFragmentIsotopeDist(IsotopeDistribution& fragment_isotope_dist, IsotopeDistribution& comp_fragment_isotope_dist, libcpp_set[ unsigned int ]& precursor_isotopes) nogil except +
+        IsotopeDistribution calcFragmentIsotopeDist(IsotopeDistribution& fragment_isotope_dist, IsotopeDistribution& comp_fragment_isotope_dist, libcpp_set[ unsigned int ]& precursor_isotopes) nogil except +
 
 
 

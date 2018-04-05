@@ -32,8 +32,7 @@
 // $Authors: Timo Sachsenberg $
 // --------------------------------------------------------------------------
 //
-#ifndef OPENMS_FILTERING_TRANSFORMERS_THRESHOLDMOWER_H
-#define OPENMS_FILTERING_TRANSFORMERS_THRESHOLDMOWER_H
+#pragma once
 
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
@@ -101,4 +100,3 @@ private:
 
 }
 
-#endif //OPENMS_FILTERING_TRANSFORMERS_THRESHOLDMOWER_H

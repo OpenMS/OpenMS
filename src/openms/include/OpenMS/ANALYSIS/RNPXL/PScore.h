@@ -32,8 +32,7 @@
 // $Authors: Timo Sachsenberg $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_RNPXL_PSCORE_H
-#define OPENMS_ANALYSIS_RNPXL_PSCORE_H
+#pragma once
 
 #include <OpenMS/KERNEL/StandardTypes.h>
 
@@ -111,5 +110,4 @@ struct OPENMS_DLLAPI PScore
 };
 
 }
-#endif
 

@@ -36,6 +36,8 @@
 #include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
 #include <OpenMS/CHEMISTRY/Element.h>
 #include <OpenMS/CHEMISTRY/ElementDB.h>
+#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopePatternGenerator.h>
+#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopeDistribution.h>
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopeDistribution.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
@@ -110,21 +112,22 @@ namespace OpenMS
   double EmpiricalFormula::calculateTheoreticalIsotopesNumber() const
   {
     double total = 1;
-    for(const auto& element : formula_)
+    for (const auto& element : formula_)
     {
       UInt non_trace_isotopes = 0;
       const auto& distr = element.first->getIsotopeDistribution();
-      for(auto isotope : distr)
+      for (auto isotope : distr)
       {
-        if(isotope.getIntensity() != 0)
+        if (isotope.getIntensity() != 0)
         {
           non_trace_isotopes++;
         }
       }
-      if(non_trace_isotopes>1 && element.second!=1)
+      if (non_trace_isotopes>1 && element.second!=1)
       {
         total *= boost::math::binomial_coefficient<double>(UInt(element.second), non_trace_isotopes);
-      }else
+      }
+      else
       {
         total *= element.second*non_trace_isotopes;
       }
@@ -185,16 +188,16 @@ namespace OpenMS
     return true;
   }
 
-  IsotopeDistribution EmpiricalFormula::getIsotopeDistribution(IsotopePatternGenerator* solver) const
+  IsotopeDistribution EmpiricalFormula::getIsotopeDistribution(const IsotopePatternGenerator& solver) const
   {
-    solver->run(*this);
-    return *solver;
+    return solver.run(*this);
   }
 
-  IsotopeDistribution EmpiricalFormula::getIsotopeDistribution(CoarseIsotopeDistribution* coarse_solver) const
+  IsotopeDistribution EmpiricalFormula::getIsotopeDistribution() const 
   {
-    return this->getIsotopeDistribution((IsotopePatternGenerator*)coarse_solver);
+    return getIsotopeDistribution(CoarseIsotopeDistribution());
   }
+
 
   IsotopeDistribution EmpiricalFormula::getConditionalFragmentIsotopeDist(const EmpiricalFormula& precursor, const std::set<UInt>& precursor_isotopes) const
   {
@@ -204,11 +207,12 @@ namespace OpenMS
     // Treat *this as the fragment molecule
     EmpiricalFormula complementary_fragment = precursor-*this;
 
-    IsotopeDistribution fragment_isotope_dist = getIsotopeDistribution(new CoarseIsotopeDistribution(max_depth));
-    IsotopeDistribution comp_fragment_isotope_dist = complementary_fragment.getIsotopeDistribution(new CoarseIsotopeDistribution(max_depth));
+    IsotopeDistribution fragment_isotope_dist = getIsotopeDistribution(CoarseIsotopeDistribution(max_depth));
+    IsotopeDistribution comp_fragment_isotope_dist = complementary_fragment.getIsotopeDistribution(CoarseIsotopeDistribution(max_depth));
 
-    CoarseIsotopeDistribution result;
-    result.calcFragmentIsotopeDist(fragment_isotope_dist, comp_fragment_isotope_dist, precursor_isotopes);
+    IsotopeDistribution result;
+    CoarseIsotopeDistribution solver;
+    result = solver.calcFragmentIsotopeDist(fragment_isotope_dist, comp_fragment_isotope_dist, precursor_isotopes);
 
     // Renormalize to make these conditional probabilities (conditioned on the isolated precursor isotopes)
     result.renormalize();

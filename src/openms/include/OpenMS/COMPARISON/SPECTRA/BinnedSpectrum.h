@@ -32,8 +32,7 @@
 // $Authors: Timo Sachsenberg, Mathias Walzer $
 // --------------------------------------------------------------------------
 //
-#ifndef OPENMS_COMPARISON_SPECTRA_BINNEDSPECTRUM_H
-#define OPENMS_COMPARISON_SPECTRA_BINNEDSPECTRUM_H
+#pragma once
 
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
@@ -210,5 +209,4 @@ private:
   };
 
 }
-#endif //OPENMS_COMPARISON_SPECTRA_BINNEDSPECTRUM_H
 

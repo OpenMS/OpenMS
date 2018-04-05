@@ -32,8 +32,7 @@
 // $Authors: Hannes Roest $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FILTERING_TRANSFORMERS_LINEARRESAMPLERALIGN_H
-#define OPENMS_FILTERING_TRANSFORMERS_LINEARRESAMPLERALIGN_H
+#pragma once
 
 #include <OpenMS/FILTERING/TRANSFORMERS/LinearResampler.h>
 #include <OpenMS/CONCEPT/Macros.h>
@@ -387,5 +386,4 @@ protected:
 
 }
 
-#endif // OPENMS_FILTERING_TRANSFORMERS_LINEARRESAMPLERALIGN_H
 

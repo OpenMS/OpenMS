@@ -619,7 +619,8 @@ namespace OpenMS
               // remove leading "," of first position
               positions = positions.suffix(positions.size()-1);
               addTextItemToBottomRow_(positions.toQString(), 16, c);
-            } else
+            }
+            else
             {
               addTextItemToBottomRow_("-", 16, c);
             }
@@ -960,7 +961,8 @@ namespace OpenMS
       {
         hits[1].setMetaValue("selected", sel);
       }
-    } else // general case, update only the selected PepideHit
+    }
+    else // general case, update only the selected PepideHit
     {
       hits[num_ph].setMetaValue("selected", sel);
     }

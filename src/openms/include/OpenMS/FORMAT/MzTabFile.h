@@ -32,8 +32,7 @@
 // $Authors: Timo Sachsenberg $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FORMAT_MZTABFILE_H
-#define OPENMS_FORMAT_MZTABFILE_H
+#pragma once
 
 #include <OpenMS/FORMAT/MzTab.h>
 
@@ -180,4 +179,3 @@ protected:
 
 } // namespace OpenMS
 
-#endif // OPENMS_FORMAT_MZTABFILE_H

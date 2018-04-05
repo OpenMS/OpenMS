@@ -32,8 +32,7 @@
 // $Authors: Johannes Veit $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_QUANTITATION_KDTREEFEATUREMAPS_H
-#define OPENMS_ANALYSIS_QUANTITATION_KDTREEFEATUREMAPS_H
+#pragma once
 
 #include <OpenMS/config.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
@@ -161,4 +160,3 @@ protected:
 };
 }
 
-#endif // OPENMS_ANALYSIS_QUANTITATION_KDTREEFEATUREMAPS_H

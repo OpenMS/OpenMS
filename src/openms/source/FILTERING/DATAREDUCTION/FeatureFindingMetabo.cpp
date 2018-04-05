@@ -324,8 +324,8 @@ namespace OpenMS
 
   double FeatureFindingMetabo::computeAveragineSimScore_(const std::vector<double>& hypo_ints, const double& mol_weight) const
   {
-    CoarseIsotopeDistribution isodist(hypo_ints.size());
-    isodist.estimateFromPeptideWeight(mol_weight);
+    CoarseIsotopeDistribution solver(hypo_ints.size());
+    auto isodist = solver.estimateFromPeptideWeight(mol_weight);
     // isodist.renormalize();
 
     IsotopeDistribution::ContainerType averagine_dist = isodist.getContainer();

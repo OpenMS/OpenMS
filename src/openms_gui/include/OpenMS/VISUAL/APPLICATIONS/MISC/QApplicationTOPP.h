@@ -32,8 +32,7 @@
 // $Authors: Chris Bielow $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_VISUAL_APPLICATIONS_MISC_QAPPLICATIONTOPP_H
-#define OPENMS_VISUAL_APPLICATIONS_MISC_QAPPLICATIONTOPP_H
+#pragma once
 
 // OpenMS_GUI config
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
@@ -81,4 +80,3 @@ signals:
 
 }
 
-#endif

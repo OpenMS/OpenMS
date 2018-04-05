@@ -54,7 +54,7 @@ Int main()
        << sum.getAverageWeight() << endl;
 
   // extract the isotope distribution
-  IsotopeDistribution iso_dist = sum.getIsotopeDistribution(new CoarseIsotopeDistribution(3));
+  IsotopeDistribution iso_dist = sum.getIsotopeDistribution(CoarseIsotopeDistribution(3));
 
   for (auto it = iso_dist.begin(); it != iso_dist.end(); ++it)
   {

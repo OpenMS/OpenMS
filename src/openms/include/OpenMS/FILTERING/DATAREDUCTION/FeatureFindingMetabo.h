@@ -32,8 +32,7 @@
 // $Authors: Erhan Kenar, Holger Franken $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FILTERING_DATAREDUCTION_FEATUREFINDINGMETABO_H
-#define OPENMS_FILTERING_DATAREDUCTION_FEATUREFINDINGMETABO_H
+#pragma once
 
 #include <OpenMS/KERNEL/MassTrace.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
@@ -289,4 +288,3 @@ e conditions are fulfilled. Mainly the
 
 }
 
-#endif // OPENMS_FILTERING_DATAREDUCTION_FEATUREFINDINGMETABO_H

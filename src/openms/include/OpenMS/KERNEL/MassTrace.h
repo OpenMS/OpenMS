@@ -32,8 +32,7 @@
 // $Authors: Erhan Kenar, Holger Franken, Chris Bielow $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_KERNEL_MASSTRACE_H
-#define OPENMS_KERNEL_MASSTRACE_H
+#pragma once
 
 #include <OpenMS/KERNEL/Peak2D.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
@@ -351,4 +350,3 @@ private:
 
 }
 
-#endif // OPENMS_KERNEL_MASSTRACE_H

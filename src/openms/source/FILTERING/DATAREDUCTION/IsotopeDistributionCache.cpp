@@ -52,9 +52,8 @@ namespace OpenMS
     for (Size index = 0; index < num_isotopes; ++index)
     {
       //log_ << "Calculating iso dist for mass: " << 0.5*mass_window_width_ + index * mass_window_width_ << std::endl;
-      CoarseIsotopeDistribution d;
-      d.setMaxIsotope(20);
-      d.estimateFromPeptideWeight(0.5 * mass_window_width + index * mass_window_width);
+      CoarseIsotopeDistribution solver(20);
+      auto d = solver.estimateFromPeptideWeight(0.5 * mass_window_width + index * mass_window_width);
 
       //trim left and right. And store the number of isotopes on the left, to reconstruct the monoisotopic peak
       Size size_before = d.size();

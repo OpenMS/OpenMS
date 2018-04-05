@@ -98,7 +98,10 @@ namespace OpenMS
       {
         return true;
       }
-      else { return false; }
+      else
+      { 
+        return false;
+      }
     }
   }
 
@@ -141,8 +144,7 @@ namespace OpenMS
         }
       }
       combinations.push_back(combination);
-    }
-    while (std::prev_permutation(bitmask.begin(), bitmask.end()));
+    } while (std::prev_permutation(bitmask.begin(), bitmask.end()));
 
     return combinations;
   }

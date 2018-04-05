@@ -32,8 +32,7 @@
 // $Authors: $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_TRANSFORMATIONS_FEATUREFINDER_ISOTOPEWAVELET_H
-#define OPENMS_TRANSFORMATIONS_FEATUREFINDER_ISOTOPEWAVELET_H
+#pragma once
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/IsotopeWaveletConstants.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
@@ -248,7 +247,8 @@ protected:
     static std::vector<double> sine_table_;
 
     /** Internally used averagine model. */
-    static CoarseIsotopeDistribution averagine_;
+    static CoarseIsotopeDistribution solver_;
+    static IsotopeDistribution averagine_;
 
     static Size gamma_table_max_index_;
     static Size exp_table_max_index_;
@@ -257,4 +257,3 @@ protected:
 
 } //namespace
 
-#endif

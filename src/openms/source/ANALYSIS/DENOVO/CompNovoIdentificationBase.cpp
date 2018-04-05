@@ -583,10 +583,10 @@ for (set<Size>::const_iterator it = used_pos.begin(); it != used_pos.end(); ++it
 
   void CompNovoIdentificationBase::initIsotopeDistributions_()
   {
-    CoarseIsotopeDistribution iso_dist(max_isotope_);
+    CoarseIsotopeDistribution solver(max_isotope_);
     for (Size i = 1; i <= max_mz_ * 2; ++i)
     {
-      iso_dist.estimateFromPeptideWeight((double)i);
+      auto iso_dist = solver.estimateFromPeptideWeight((double)i);
       iso_dist.renormalize();
       vector<double> iso(max_isotope_, 0.0);
 
