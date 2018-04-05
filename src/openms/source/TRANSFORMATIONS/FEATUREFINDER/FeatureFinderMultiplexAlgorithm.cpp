@@ -34,6 +34,7 @@
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderMultiplexAlgorithm.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexDeltaMassesGenerator.h>
+#include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerHiRes.h>
 
 #include <OpenMS/CHEMISTRY/IsotopeDistribution.h>
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
@@ -49,53 +50,108 @@ using namespace std;
 
 namespace OpenMS
 {
-  FeatureFinderMultiplexAlgorithm::FeatureFinderMultiplexAlgorithm() :
-    DefaultParamHandler("FeatureFinderMultiplexAlgorithm")
+  FeatureFinderMultiplexAlgorithm::FeatureFinderMultiplexAlgorithm(MSExperiment& exp, bool centroided) :
+    DefaultParamHandler("FeatureFinderMultiplexAlgorithm"), centroided_(centroided)
   {
     // parameter section: algorithm
-    defaults_.setValue("algorithm::labels", "[][Lys8,Arg10]", "Labels used for labelling the samples. If the sample is unlabelled (i.e. you want to detect only single peptide features) please leave this parameter empty. [...] specifies the labels for a single sample. For example\n\n[][Lys8,Arg10]        ... SILAC\n[][Lys4,Arg6][Lys8,Arg10]        ... triple-SILAC\n[Dimethyl0][Dimethyl6]        ... Dimethyl\n[Dimethyl0][Dimethyl4][Dimethyl8]        ... triple Dimethyl\n[ICPL0][ICPL4][ICPL6][ICPL10]        ... ICPL");
-    defaults_.setValue("algorithm::charge", "1:4", "Range of charge states in the sample, i.e. min charge : max charge.");
-    defaults_.setValue("algorithm::isotopes_per_peptide", "3:6", "Range of isotopes per peptide in the sample. For example 3:6, if isotopic peptide patterns in the sample consist of either three, four, five or six isotopic peaks. ", ListUtils::create<String>("advanced"));
-    defaults_.setValue("algorithm::rt_typical", 40.0, "Typical retention time [s] over which a characteristic peptide elutes. (This is not an upper bound. Peptides that elute for longer will be reported.)");
-    defaults_.setMinFloat("algorithm::rt_typical", 0.0);
-    defaults_.setValue("algorithm::rt_band", 10.0, "RT band which is taken into considerations when filtering.TODO docu");
-    defaults_.setMinFloat("algorithm::rt_band", 0.0);
-    defaults_.setValue("algorithm::rt_min", 2.0, "Lower bound for the retention time [s]. (Any peptides seen for a shorter time period are not reported.)");
-    defaults_.setMinFloat("algorithm::rt_min", 0.0);
-    defaults_.setValue("algorithm::mz_tolerance", 6.0, "m/z tolerance for search of peak patterns.");
-    defaults_.setMinFloat("algorithm::mz_tolerance", 0.0);
-    defaults_.setValue("algorithm::mz_unit", "ppm", "Unit of the 'mz_tolerance' parameter.");
-    defaults_.setValidStrings("algorithm::mz_unit", ListUtils::create<String>("Da,ppm"));
-    defaults_.setValue("algorithm::intensity_cutoff", 1000.0, "Lower bound for the intensity of isotopic peaks.");
-    defaults_.setMinFloat("algorithm::intensity_cutoff", 0.0);
-    defaults_.setValue("algorithm::peptide_similarity", 0.5, "Two peptides in a multiplet are expected to have the same isotopic pattern. This parameter is a lower bound on their similarity.");
-    defaults_.setMinFloat("algorithm::peptide_similarity", -1.0);
-    defaults_.setMaxFloat("algorithm::peptide_similarity", 1.0);
-    defaults_.setValue("algorithm::averagine_similarity", 0.4, "The isotopic pattern of a peptide should resemble the averagine model at this m/z position. This parameter is a lower bound on similarity between measured isotopic pattern and the averagine model.");
-    defaults_.setMinFloat("algorithm::averagine_similarity", -1.0);
-    defaults_.setMaxFloat("algorithm::averagine_similarity", 1.0);
+    defaults_.setValue("algorithm:labels", "[][Lys8,Arg10]", "Labels used for labelling the samples. If the sample is unlabelled (i.e. you want to detect only single peptide features) please leave this parameter empty. [...] specifies the labels for a single sample. For example\n\n[][Lys8,Arg10]        ... SILAC\n[][Lys4,Arg6][Lys8,Arg10]        ... triple-SILAC\n[Dimethyl0][Dimethyl6]        ... Dimethyl\n[Dimethyl0][Dimethyl4][Dimethyl8]        ... triple Dimethyl\n[ICPL0][ICPL4][ICPL6][ICPL10]        ... ICPL");
+    defaults_.setValue("algorithm:charge", "1:4", "Range of charge states in the sample, i.e. min charge : max charge.");
+    defaults_.setValue("algorithm:isotopes_per_peptide", "3:6", "Range of isotopes per peptide in the sample. For example 3:6, if isotopic peptide patterns in the sample consist of either three, four, five or six isotopic peaks. ", ListUtils::create<String>("advanced"));
+    defaults_.setValue("algorithm:rt_typical", 40.0, "Typical retention time [s] over which a characteristic peptide elutes. (This is not an upper bound. Peptides that elute for longer will be reported.)");
+    defaults_.setMinFloat("algorithm:rt_typical", 0.0);
+    defaults_.setValue("algorithm:rt_band", 10.0, "RT band which is taken into considerations when filtering.TODO docu");
+    defaults_.setMinFloat("algorithm:rt_band", 0.0);
+    defaults_.setValue("algorithm:rt_min", 2.0, "Lower bound for the retention time [s]. (Any peptides seen for a shorter time period are not reported.)");
+    defaults_.setMinFloat("algorithm:rt_min", 0.0);
+    defaults_.setValue("algorithm:mz_tolerance", 6.0, "m/z tolerance for search of peak patterns.");
+    defaults_.setMinFloat("algorithm:mz_tolerance", 0.0);
+    defaults_.setValue("algorithm:mz_unit", "ppm", "Unit of the 'mz_tolerance' parameter.");
+    defaults_.setValidStrings("algorithm:mz_unit", ListUtils::create<String>("Da,ppm"));
+    defaults_.setValue("algorithm:intensity_cutoff", 1000.0, "Lower bound for the intensity of isotopic peaks.");
+    defaults_.setMinFloat("algorithm:intensity_cutoff", 0.0);
+    defaults_.setValue("algorithm:peptide_similarity", 0.5, "Two peptides in a multiplet are expected to have the same isotopic pattern. This parameter is a lower bound on their similarity.");
+    defaults_.setMinFloat("algorithm:peptide_similarity", -1.0);
+    defaults_.setMaxFloat("algorithm:peptide_similarity", 1.0);
+    defaults_.setValue("algorithm:averagine_similarity", 0.4, "The isotopic pattern of a peptide should resemble the averagine model at this m/z position. This parameter is a lower bound on similarity between measured isotopic pattern and the averagine model.");
+    defaults_.setMinFloat("algorithm:averagine_similarity", -1.0);
+    defaults_.setMaxFloat("algorithm:averagine_similarity", 1.0);
     defaults_.setValue("averagine_similarity_scaling", 0.75, "Let x denote this scaling factor, and p the averagine similarity parameter. For the detection of single peptides, the averagine parameter p is replaced by p' = p + x(1-p), i.e. x = 0 -> p' = p and x = 1 -> p' = 1. (For knock_out = true, peptide doublets and singlets are detected simulataneously. For singlets, the peptide similarity filter is irreleavant. In order to compensate for this 'missing filter', the averagine parameter p is replaced by the more restrictive p' when searching for singlets.)", ListUtils::create<String>("advanced"));
-    defaults_.setMinFloat("algorithm::averagine_similarity_scaling", 0.0);
-    defaults_.setMaxFloat("algorithm::averagine_similarity_scaling", 1.0);
-    defaults_.setValue("algorithm::missed_cleavages", 0, "Maximum number of missed cleavages due to incomplete digestion. (Only relevant if enzymatic cutting site coincides with labelling site. For example, Arg/Lys in the case of trypsin digestion and SILAC labelling.)");
-    defaults_.setMinInt("algorithm::missed_cleavages", 0);
-    defaults_.setValue("algorithm::knock_out", "false", "Is it likely that knock-outs are present? (Supported for doublex, triplex and quadruplex experiments only.)", ListUtils::create<String>("advanced"));
-    defaults_.setValidStrings("algorithm::knock_out", ListUtils::create<String>("true,false"));
-    defaults_.setValue("algorithm::averagine_type","peptide","The type of averagine to use, currently RNA, DNA or peptide", ListUtils::create<String>("advanced"));
-    defaults_.setValidStrings("algorithm::averagine_type", ListUtils::create<String>("peptide,RNA,DNA"));
+    defaults_.setMinFloat("algorithm:averagine_similarity_scaling", 0.0);
+    defaults_.setMaxFloat("algorithm:averagine_similarity_scaling", 1.0);
+    defaults_.setValue("algorithm:missed_cleavages", 0, "Maximum number of missed cleavages due to incomplete digestion. (Only relevant if enzymatic cutting site coincides with labelling site. For example, Arg/Lys in the case of trypsin digestion and SILAC labelling.)");
+    defaults_.setMinInt("algorithm:missed_cleavages", 0);
+    defaults_.setValue("algorithm:knock_out", "false", "Is it likely that knock-outs are present? (Supported for doublex, triplex and quadruplex experiments only.)", ListUtils::create<String>("advanced"));
+    defaults_.setValidStrings("algorithm:knock_out", ListUtils::create<String>("true,false"));
+    defaults_.setValue("algorithm:averagine_type","peptide","The type of averagine to use, currently RNA, DNA or peptide", ListUtils::create<String>("advanced"));
+    defaults_.setValidStrings("algorithm:averagine_type", ListUtils::create<String>("peptide,RNA,DNA"));
 
     // parameter section: labels
     MultiplexDeltaMassesGenerator generator;
     Param p = generator.getParameters();
     for (Param::ParamIterator it = p.begin(); it != p.end(); ++it)
     {
-      defaults_.setValue(("labels::" + it->name), it->value, it->description, ListUtils::create<String>("advanced"));
+      defaults_.setValue(("labels:" + it->name), it->value, it->description, ListUtils::create<String>("advanced"));
       defaults_.setMinFloat(it->name, 0.0);
+      
+      label_mass_shift_.insert(make_pair(it->name, it->value));
+    }
+    
+    // check for empty experimental data
+    if (exp.getSpectra().empty())
+    {
+      throw OpenMS::Exception::FileEmpty(__FILE__, __LINE__, __FUNCTION__, "Error: No MS1 spectra in input file.");
+    }
+    
+    // update m/z and RT ranges
+    exp.updateRanges();
+    
+    // sort according to RT and MZ
+    exp.sortSpectra();
+
+    // store experiment in member varaibles
+    if (centroided_)
+    {
+      exp.swap(exp_centroid_);
+      // exp_profile_ will never be used.
+    }
+    else
+    {
+      exp.swap(exp_profile_);
+      // exp_centroid_ will be constructed later on.
     }
 
   }
-
-  void FeatureFinderMultiplexAlgorithm::run(bool centroided)
+  
+  void FeatureFinderMultiplexAlgorithm::run()
   {
+    /**
+     * pick peaks (if input data are in profile mode)
+     */
+    std::vector<std::vector<PeakPickerHiRes::PeakBoundary> > boundaries_exp_s; // peak boundaries for spectra
+    std::vector<std::vector<PeakPickerHiRes::PeakBoundary> > boundaries_exp_c; // peak boundaries for chromatograms
+    
+    if (!centroided_)
+    {
+      PeakPickerHiRes picker;
+      Param param = picker.getParameters();
+      picker.setLogType(getLogType());
+      param.setValue("ms_levels", ListUtils::create<Int>("1"));
+      param.setValue("signal_to_noise", 0.0); // signal-to-noise estimation switched off
+      picker.setParameters(param);
+      
+      picker.pickExperiment(exp_profile_, exp_centroid_, boundaries_exp_s, boundaries_exp_c);
+    }
+
+    /**
+     * filter for peak patterns
+     */
+    MultiplexDeltaMassesGenerator generator = MultiplexDeltaMassesGenerator(param_.getValue("algorithm:labels"), param_.getValue("algorithm:missed_cleavages"), label_mass_shift_);
+    if (param_.getValue("algorithm:knock_out"))
+    {
+      generator.generateKnockoutDeltaMasses();
+    }
+    generator.printSamplesLabelsList();
+    generator.printDeltaMassesList();
+
   }
 }

@@ -48,17 +48,14 @@ namespace OpenMS
 {
 
 class OPENMS_DLLAPI FeatureFinderMultiplexAlgorithm :
-  public DefaultParamHandler
+  public DefaultParamHandler, public ProgressLogger
 {
 public:
   /// default constructor
-  FeatureFinderMultiplexAlgorithm();
+  FeatureFinderMultiplexAlgorithm(MSExperiment& exp, bool centroided);
 
   /// main method for feature detection
-  void run(bool centroided);
-
-  ProgressLogger& getProgressLogger() { return prog_log_; }
-  const ProgressLogger& getProgressLogger() const { return prog_log_; }
+  void run();
 
 protected:
   
@@ -67,6 +64,12 @@ protected:
   // experimental data
   MSExperiment exp_profile_;
   MSExperiment exp_centroid_;
+  
+  // Is the experiment <exp> centroided or profile?
+  bool centroided_;
+  
+  // mass shift names and their values
+  std::map<String, double> label_mass_shift_;
   
   // final results, maps of detected features
   FeatureMap feature_map_;
