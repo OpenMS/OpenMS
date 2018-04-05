@@ -171,31 +171,31 @@ protected:
   template <class Map>
   void writeRangesMachineReadable_(const Map& map, ostream &os)
   {
-    os << "retention time (min)"
+    os << "general: ranges: retention time: min"
        << "\t" << String::number(map.getMin()[Peak2D::RT], 2) << "\n"
-       << "retention time (max)"
+       << "general: ranges: retention time: max"
        << "\t" << String::number(map.getMax()[Peak2D::RT], 2) << "\n"
-       << "mass-to-charge (min)"
+       << "general: ranges: mass-to-charge: min"
        << "\t" << String::number(map.getMin()[Peak2D::MZ], 2) << "\n"
-       << "mass-to-charge (max)"
+       << "general: ranges: mass-to-charge: max"
        << "\t" << String::number(map.getMax()[Peak2D::MZ], 2) << "\n"
-       << "intensity (min)"
+       << "general: ranges: intensity: min"
        << "\t" << String::number(map.getMinInt(), 2) << "\n"
-       << "intensity (max)"
+       << "general: ranges: intensity: max"
        << "\t" << String::number(map.getMaxInt(), 2) << "\n";
   }
 
   template <class T>
-  void writeSummaryStatisticsMachineReadable_(const Math::SummaryStatistics<T> &stats, ostream &os, String prefix)
+  void writeSummaryStatisticsMachineReadable_(const Math::SummaryStatistics<T> &stats, ostream &os, String title)
   {
-    os << prefix << ": num. of values" << "\t" << stats.count    << "\n"
-       << prefix << ": mean"           << "\t" << stats.mean     << "\n"
-       << prefix << ": minimum"        << "\t" << stats.min      << "\n"
-       << prefix << ": lower quartile" << "\t" << stats.lowerq   << "\n"
-       << prefix << ": median"         << "\t" << stats.median   << "\n"
-       << prefix << ": upper quartile" << "\t" << stats.upperq   << "\n"
-       << prefix << ": maximum"        << "\t" << stats.max      << "\n"
-       << prefix << ": variance"       << "\t" << stats.variance << "\n";
+    os << "statistics: " << title << ": num. of values" << "\t" << stats.count    << "\n"
+       << "statistics: " << title << ": mean"           << "\t" << stats.mean     << "\n"
+       << "statistics: " << title << ": minimum"        << "\t" << stats.min      << "\n"
+       << "statistics: " << title << ": lower quartile" << "\t" << stats.lowerq   << "\n"
+       << "statistics: " << title << ": median"         << "\t" << stats.median   << "\n"
+       << "statistics: " << title << ": upper quartile" << "\t" << stats.upperq   << "\n"
+       << "statistics: " << title << ": maximum"        << "\t" << stats.max      << "\n"
+       << "statistics: " << title << ": variance"       << "\t" << stats.variance << "\n";
   }
 
   ExitCodes outputTo_(ostream &os, ostream &os_tsv)
@@ -230,9 +230,9 @@ protected:
        << "File name: " << in << "\n"
        << "File type: " << FileTypes::typeToName(in_type) << "\n";
 
-    os_tsv << "file name"
+    os_tsv << "general: file name"
            << "\t" << in << "\n"
-           << "file type"
+           << "general: file type"
            << "\t" << FileTypes::typeToName(in_type) << "\n";
 
     PeakMap exp;
@@ -504,7 +504,7 @@ protected:
 
       os << "Number of features: " << feat.size() << "\n"
          << "\n";
-      os_tsv << "number of features" << "\t"
+      os_tsv << "general: number of features" << "\t"
              << feat.size() << "\n";
 
       writeRangesHumanReadable_(feat, os);
@@ -523,7 +523,7 @@ protected:
       }
 
       os << "Total ion current in features: " << tic << "\n";
-      os_tsv << "total ion current in features" << "\t"
+      os_tsv << "general: total ion current in features" << "\t"
              << tic << "\n";
 
       os << "\n"
@@ -532,7 +532,8 @@ protected:
       for (auto it = charges.begin(); it != charges.end(); ++it)
       {
         os << "  charge " << it->first << ": " << it->second << "\n";
-        os_tsv << "charge distribution: charge " << it->first << "\t"
+        os_tsv << "general: charge distribution: charge: "
+               << it->first << "\t"
                << it->second << "\n";
       }
 
@@ -541,14 +542,14 @@ protected:
       for (auto it = numberofids.begin(); it != numberofids.end(); ++it)
       {
         os << "  " << it->first << " IDs: " << it->second << "\n";
-        os_tsv << "distribution of peptide identifications (IDs) per feature: "
-               << it->first << " IDs" << "\t"
+        os_tsv << "general: distribution of peptide identifications (IDs) per feature: IDs: "
+               << it->first << "\t"
                << it->second << "\n";
       }
 
       os << "\n"
          << "Unassigned peptide identifications: " << feat.getUnassignedPeptideIdentifications().size() << "\n";
-      os_tsv << "unassigned peptide identifications" << "\t"
+      os_tsv << "general: unassigned peptide identifications" << "\t"
              << feat.getUnassignedPeptideIdentifications().size() << "\n";
     }
     else if (in_type == FileTypes::CONSENSUSXML) //consensus features
@@ -1123,7 +1124,7 @@ protected:
       {
         os << "Document ID: " << feat.getIdentifier() << "\n"
            << "\n";
-        os_tsv << "document ID" << "\t"
+        os_tsv << "meta: document ID" << "\t"
                << feat.getIdentifier() << "\n";
       }
       else if (in_type == FileTypes::CONSENSUSXML) //consensus features
@@ -1285,15 +1286,18 @@ protected:
           os << "  software version: " << dp[i].getSoftware().getVersion() << "\n";
           os << "  completion time:  " << dp[i].getCompletionTime().get() << "\n";
 
-          os_tsv << "data processing " << (i + 1) << ": software name" << "\t"
+          os_tsv << "data processing: " << (i + 1)
+                 << ": software name" << "\t"
                  << dp[i].getSoftware().getName() << "\n";
-          os_tsv << "data processing " << (i + 1) << ": software version" << "\t"
+          os_tsv << "data processing: " << (i + 1)
+                 << ": software version" << "\t"
                  << dp[i].getSoftware().getVersion() << "\n";
-          os_tsv << "data processing " << (i + 1) << ": completion time" << "\t"
+          os_tsv << "data processing: " << (i + 1)
+                 << ": completion time" << "\t"
                  << dp[i].getCompletionTime().get() << "\n";
 
           os << "  actions:          ";
-          os_tsv << "data processing " << (i + 1)
+          os_tsv << "data processing: " << (i + 1)
                  << ": actions" << "\t";
           for (set<DataProcessing::ProcessingAction>::const_iterator it = dp[i].getProcessingActions().begin();
                it != dp[i].getProcessingActions().end(); ++it)
