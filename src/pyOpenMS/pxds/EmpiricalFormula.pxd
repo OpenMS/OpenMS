@@ -3,10 +3,7 @@ from Types cimport *
 from String cimport *
 from Element cimport *
 from smart_ptr cimport shared_ptr
-# from IsotopeDistribution cimport *
-from IsotopePatternGenerator cimport *
-
-
+from IsotopeDistribution cimport *
 
 # cdef cppclass IsotopeDistribution:
 #     pass

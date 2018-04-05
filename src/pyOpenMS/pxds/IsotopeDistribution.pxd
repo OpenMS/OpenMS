@@ -48,6 +48,7 @@ cdef extern from "<OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopeDistribution.h>" 
 
 
 cdef extern from "<OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopePatternGenerator.h>" namespace "OpenMS":
+
     cdef cppclass IsotopePatternGenerator:
 
          # wrap-ignore
@@ -61,7 +62,8 @@ cdef extern from "<OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopePatternGenerator.
 
 
 cdef extern from "<OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopeDistribution.h>" namespace "OpenMS":
-    cdef cppclass CoarseIsotopeDistribution(IsotopePatternGenerator):
+
+    cdef cppclass CoarseIsotopeDistribution:
         # wrap-inherits:
         #  IsotopePatternGenerator
 
