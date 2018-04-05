@@ -242,7 +242,7 @@ namespace OpenMS
     writeParameterHeader_("FORMVER", os);
     os << "1.01" << "\n";
 
-    //db name
+    // db name
     writeParameterHeader_("DB", os);
     os << param_.getValue("database") << "\n";
 
@@ -262,43 +262,43 @@ namespace OpenMS
       os << "AUTO" << "\n";
     }
 
-    //cleavage enzyme
+    // cleavage enzyme
     writeParameterHeader_("CLE", os);
     os << param_.getValue("enzyme") << "\n";
 
-    //average/monoisotopic
+    // average/monoisotopic
     writeParameterHeader_("MASS", os);
     os << param_.getValue("mass_type") << "\n";
 
-    //fixed modifications
+    // fixed modifications
     vector<String> fixed_mods = param_.getValue("fixed_modifications");
     writeModifications_(fixed_mods, os);
 
-    //variable modifications
+    // variable modifications
     vector<String> var_mods = param_.getValue("variable_modifications");
     writeModifications_(var_mods, os, true);
 
-    //instrument
+    // instrument
     writeParameterHeader_("INSTRUMENT", os);
     os << param_.getValue("instrument") << "\n";
 
-    //missed cleavages
+    // missed cleavages
     writeParameterHeader_("PFA", os);
     os << param_.getValue("missed_cleavages") << "\n";
 
-    //precursor mass tolerance
+    // precursor mass tolerance
     writeParameterHeader_("TOL", os);
     os << param_.getValue("precursor_mass_tolerance") << "\n";
 
-    //ion mass tolerance_
+    // ion mass tolerance_
     writeParameterHeader_("ITOL", os);
     os << param_.getValue("fragment_mass_tolerance") << "\n";
 
-    //taxonomy
+    // taxonomy
     writeParameterHeader_("TAXONOMY", os);
     os << param_.getValue("taxonomy") << "\n";
 
-    //charge
+    // charge
     writeParameterHeader_("CHARGE", os);
     os << param_.getValue("charges") << "\n";
   }
@@ -325,7 +325,7 @@ namespace OpenMS
 
     if (mz == 0)
     {
-      //retention time
+      // retention time
       cout << "No precursor m/z information for spectrum with rt " << rt
            << " present, skipping spectrum!\n";
     }
@@ -339,14 +339,14 @@ namespace OpenMS
            << "_" << spec.getNativeID() << "_" << filename << "\n";
         os << "PEPMASS=" << precisionWrapper(mz) <<  "\n";
         os << "RTINSECONDS=" << precisionWrapper(rt) << "\n";
-	if (native_id_type_accession == "UNKNOWN")
-	{
-	  os << "SCANS=" << spec.getNativeID().substr(spec.getNativeID().find_last_of("=")+1) << "\n";
-	}
-	else
-	{
+  if (native_id_type_accession == "UNKNOWN")
+  {
+    os << "SCANS=" << spec.getNativeID().substr(spec.getNativeID().find_last_of("=")+1) << "\n";
+  }
+  else
+  {
           os << "SCANS=" << SpectrumLookup::extractScanNumber(spec.getNativeID(), native_id_type_accession) << "\n";
-	}
+  }
       }
       else
       {
@@ -355,14 +355,14 @@ namespace OpenMS
            << spec.getNativeID() << "_" << filename << "\n";
         os << "PEPMASS=" << setprecision(HIGH_PRECISION) << mz << "\n";
         os << "RTINSECONDS=" << setprecision(LOW_PRECISION) << rt << "\n";
-	if (native_id_type_accession == "UNKNOWN")
-	{
-	  os << "SCANS=" << spec.getNativeID().substr(spec.getNativeID().find_last_of("=")+1) << "\n";
-	}
-	else
-	{
-          os << "SCANS=" << SpectrumLookup::extractScanNumber(spec.getNativeID(), native_id_type_accession) << "\n";
-	}
+  if (native_id_type_accession == "UNKNOWN")
+  {
+    os << "SCANS=" << spec.getNativeID().substr(spec.getNativeID().find_last_of("=")+1) << "\n";
+  }
+  else
+  {
+    os << "SCANS=" << SpectrumLookup::extractScanNumber(spec.getNativeID(), native_id_type_accession) << "\n";
+  }
       }
 
       int charge(precursor.getCharge());
