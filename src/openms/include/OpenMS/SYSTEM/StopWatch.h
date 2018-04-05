@@ -32,8 +32,7 @@
 // $Authors: Marc Sturm, Chris Bielow $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_SYSTEM_STOPWATCH_H
-#define OPENMS_SYSTEM_STOPWATCH_H
+#pragma once
 
 #include <OpenMS/config.h>
 
@@ -271,4 +270,3 @@ private:
 
 
 
-#endif // OPENMS_SYSTEM_STOPWATCH_H

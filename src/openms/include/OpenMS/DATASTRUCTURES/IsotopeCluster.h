@@ -32,8 +32,7 @@
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_DATASTRUCTURES_ISOTOPECLUSTER_H
-#define OPENMS_DATASTRUCTURES_ISOTOPECLUSTER_H
+#pragma once
 
 #include <OpenMS/CONCEPT/Types.h>
 #include <vector>
@@ -77,4 +76,3 @@ namespace OpenMS
 
 } // namespace OPENMS
 
-#endif // OPENMS_DATASTRUCTURES_ISOTOPECLUSTER_H

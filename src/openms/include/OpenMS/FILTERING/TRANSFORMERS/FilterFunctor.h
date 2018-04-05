@@ -32,8 +32,7 @@
 // $Authors: $
 // --------------------------------------------------------------------------
 //
-#ifndef OPENMS_FILTERING_TRANSFORMERS_FILTERFUNCTOR_H
-#define OPENMS_FILTERING_TRANSFORMERS_FILTERFUNCTOR_H
+#pragma once
 
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 
@@ -71,4 +70,3 @@ public:
 
   };
 }
-#endif // OPENMS_FILTERING_TRANSFORMERS_FILTERFUNCTOR_H

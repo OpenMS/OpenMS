@@ -39,7 +39,7 @@
 #include <OpenMS/FORMAT/MzTab.h>
 ///////////////////////////
 
-START_TEST(FeaFiModule, "$Id$")
+START_TEST(MzTab, "$Id$")
 
 using namespace OpenMS;
 using namespace std;
@@ -69,7 +69,7 @@ START_SECTION(std::vector<String> getPSMOptionalColumnNames() const)
   MzTabPSMSectionRows rows;
   MzTabString s;
   MzTabOptionalColumnEntry e;
-  
+
   // row 1 //////////////////////
   row.sequence.fromCellString("NDYKAPPQPAPGK");
   row.PSM_ID.fromCellString("38");
@@ -79,29 +79,29 @@ START_SECTION(std::vector<String> getPSMOptionalColumnNames() const)
   row.database_version.fromCellString("null");
   row.search_engine.fromCellString("[, , Percolator, ]");
   row.search_engine_score[0].fromCellString("51.9678841193106");
-  
+
   e.first = "Percolator_score";
   s.fromCellString("0.359083");
   e.second = s;
   row.opt_.push_back(e);
-  
+
   e.first = "Percolator_qvalue";
-  s.fromCellString("0.00649874");  
+  s.fromCellString("0.00649874");
   e.second = s;
   row.opt_.push_back(e);
-  
+
   e.first = "Percolator_PEP";
-  s.fromCellString("0.0420992");  
+  s.fromCellString("0.0420992");
   e.second = s;
   row.opt_.push_back(e);
-  
+
   e.first = "search_engine_sequence";
-  s.fromCellString("NDYKAPPQPAPGK");  
+  s.fromCellString("NDYKAPPQPAPGK");
   e.second = s;
   row.opt_.push_back(e);
-  
+
   rows.push_back(row);
-  
+
   // row 2 //////////////////////
   row.sequence.fromCellString("IRRS(Phospho)SFSSK");
   row.PSM_ID.fromCellString("39");
@@ -111,38 +111,38 @@ START_SECTION(std::vector<String> getPSMOptionalColumnNames() const)
   row.database_version.fromCellString("null");
   row.search_engine.fromCellString("[, , Percolator, ]");
   row.search_engine_score[0].fromCellString("9.55915773892318");
-  
+
   e.first = "Percolator_score";
   s.fromCellString("0.157068");
   e.second = s;
   row.opt_.push_back(e);
-  
+
   e.first = "Percolator_qvalue";
-  s.fromCellString("0.00774619");  
+  s.fromCellString("0.00774619");
   e.second = s;
   row.opt_.push_back(e);
-  
+
   e.first = "Percolator_PEP";
-  s.fromCellString("0.0779777");  
+  s.fromCellString("0.0779777");
   e.second = s;
   row.opt_.push_back(e);
-  
+
   e.first = "search_engine_sequence";
-  s.fromCellString("IRRSSFS(Phospho)SK");  
+  s.fromCellString("IRRSSFS(Phospho)SK");
   e.second = s;
   row.opt_.push_back(e);
-  
+
   e.first = "AScore_1";
-  s.fromCellString("3.64384830671351");  
+  s.fromCellString("3.64384830671351");
   e.second = s;
   row.opt_.push_back(e);
   rows.push_back(row);
-  
+
   mztab.setPSMSectionRows(rows);
-  
-  // Tests ///////////////////////////////  
+
+  // Tests ///////////////////////////////
   vector<String> optional_columns = mztab.getPSMOptionalColumnNames();
-  
+
   TEST_EQUAL(mztab.getPSMSectionRows().size(),2)
   TEST_EQUAL(optional_columns.size(),5)
 }
@@ -151,6 +151,3 @@ END_SECTION
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
-
-
-

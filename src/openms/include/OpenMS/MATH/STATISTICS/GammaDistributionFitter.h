@@ -32,8 +32,7 @@
 // $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 //
-#ifndef OPENMS_MATH_STATISTICS_GAMMADISTRIBUTIONFITTER_H
-#define OPENMS_MATH_STATISTICS_GAMMADISTRIBUTIONFITTER_H
+#pragma once
 
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/DATASTRUCTURES/DPosition.h>
@@ -110,4 +109,3 @@ private:
   }
 }
 
-#endif

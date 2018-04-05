@@ -32,8 +32,7 @@
 // $Authors: $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_KERNEL_CONVERSIONHELPER_H
-#define OPENMS_KERNEL_CONVERSIONHELPER_H
+#pragma once
 
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
@@ -105,4 +104,3 @@ public:
   };
 } // namespace OpenMS
 
-#endif // OPENMS_KERNEL_CONSENSUSMAP_H

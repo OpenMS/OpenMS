@@ -32,8 +32,7 @@
 // $Authors: Christian Ehrlich $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_DATASTRUCTURES_UTILS_MATRIXUTILS_H
-#define OPENMS_DATASTRUCTURES_UTILS_MATRIXUTILS_H
+#pragma once
 
 #include <OpenMS/DATASTRUCTURES/Matrix.h>
 
@@ -83,4 +82,3 @@ namespace OpenMS
   }
 }//namespace
 
-#endif /* OPENMS_DATASTRUCTURES_UTILS_MATRIXUTILS_H */

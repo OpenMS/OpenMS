@@ -32,8 +32,7 @@
 // $Authors: Douglas McCloskey, Pasquale Domenico Colaianni $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_OPENSWATH_TARGETEDSPECTRAEXTRACTOR_H
-#define OPENMS_ANALYSIS_OPENSWATH_TARGETEDSPECTRAEXTRACTOR_H
+#pragma once
 
 #include <OpenMS/config.h> // OPENMS_DLLAPI
 #include <OpenMS/ANALYSIS/OPENSWATH/TransitionTSVFile.h>
@@ -259,4 +258,3 @@ private:
   };
 }
 
-#endif // OPENMS_ANALYSIS_OPENSWATH_TARGETEDSPECTRAEXTRACTOR_H

@@ -33,8 +33,7 @@
 // --------------------------------------------------------------------------
 //
 
-#ifndef OPENMS_ANALYSIS_PIP_PEAKINTENSITYPREDICTOR_H
-#define OPENMS_ANALYSIS_PIP_PEAKINTENSITYPREDICTOR_H
+#pragma once
 
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/ANALYSIS/PIP/LocalLinearMap.h>
@@ -150,4 +149,3 @@ private:
 
 } // namespace OpenMS
 
-#endif // OPENMS_ANALYSIS_PIP_PEAKINTENSITYPREDICTOR_H

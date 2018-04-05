@@ -176,7 +176,8 @@ namespace OpenMS
         {
           addPrecursorPeaks_(spectrum, peptide, ion_names, charges, z);
         }
-      } else // add_all_precursor_charges_ = false, only add precursor with highest charge
+      }
+      else // add_all_precursor_charges_ = false, only add precursor with highest charge
       {
         addPrecursorPeaks_(spectrum, peptide, ion_names, charges, max_charge);
       }

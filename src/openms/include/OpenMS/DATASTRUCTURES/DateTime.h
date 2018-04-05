@@ -32,8 +32,7 @@
 // $Authors: Nico Pfeifer $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_DATASTRUCTURES_DATETIME_H
-#define OPENMS_DATASTRUCTURES_DATETIME_H
+#pragma once
 
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/OpenMSConfig.h>
@@ -184,4 +183,3 @@ protected:
 
 } // namespace OPENMS
 
-#endif // OPENMS_DATASTRUCTURES_DATETIME_H

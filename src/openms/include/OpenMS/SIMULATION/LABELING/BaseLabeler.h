@@ -32,8 +32,7 @@
 // $Authors: Stephan Aiche, Chris Bielow $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_SIMULATION_LABELING_BASELABELER_H
-#define OPENMS_SIMULATION_LABELING_BASELABELER_H
+#pragma once
 
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 
@@ -171,4 +170,3 @@ protected:
   };
 } // namespace OpenMS
 
-#endif //#ifndef OPENMS_SIMULATION_LABELING_BASELABELER_H

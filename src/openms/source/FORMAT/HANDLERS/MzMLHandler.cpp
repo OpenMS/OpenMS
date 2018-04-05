@@ -59,8 +59,8 @@ namespace OpenMS
       chromatogram_count(0),
       skip_chromatogram_(false),
       skip_spectrum_(false),
-      rt_set_(false) /* ,
-              validator_(mapping_, cv_) */
+      rt_set_(false) // ,
+      // validator_(mapping_, cv_)
     {
       cv_.loadFromOBO("MS", File::find("/CV/psi-ms.obo"));
       cv_.loadFromOBO("PATO", File::find("/CV/quality.obo"));
@@ -96,8 +96,8 @@ namespace OpenMS
       chromatogram_count(0),
       skip_chromatogram_(false),
       skip_spectrum_(false),
-      rt_set_(false) /* ,
-              validator_(mapping_, cv_) */
+      rt_set_(false) // ,
+      // validator_(mapping_, cv_) */
     {
       cv_.loadFromOBO("MS", File::find("/CV/psi-ms.obo"));
       cv_.loadFromOBO("PATO", File::find("/CV/quality.obo"));

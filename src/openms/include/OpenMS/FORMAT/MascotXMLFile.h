@@ -32,8 +32,7 @@
 // $Authors: Nico Pfeifer $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FORMAT_MASCOTXMLFILE_H
-#define OPENMS_FORMAT_MASCOTXMLFILE_H
+#pragma once
 
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/FORMAT/XMLFile.h>
@@ -110,4 +109,3 @@ public:
 
 } // namespace OpenMS
 
-#endif // OPENMS_FORMAT_MASCOTXMLFILE_H

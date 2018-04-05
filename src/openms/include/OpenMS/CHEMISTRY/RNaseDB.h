@@ -32,8 +32,7 @@
 // $Authors: Hendrik Weisser $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_CHEMISTRY_RNASEDB_H
-#define OPENMS_CHEMISTRY_RNASEDB_H
+#pragma once
 
 #include <OpenMS/CHEMISTRY/DigestionEnzymeDB.h>
 #include <OpenMS/CHEMISTRY/DigestionEnzymeRNA.h>
@@ -61,4 +60,3 @@ namespace OpenMS
   };
 }
 
-#endif

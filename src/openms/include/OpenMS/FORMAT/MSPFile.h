@@ -32,8 +32,7 @@
 // $Authors: $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FORMAT_MSPFILE_H
-#define OPENMS_FORMAT_MSPFILE_H
+#pragma once
 
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
@@ -101,4 +100,3 @@ protected:
 
 } // namespace OpenMS
 
-#endif // OPENMS_FORMAT_MSPFILE_H

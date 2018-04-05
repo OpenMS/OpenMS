@@ -1819,10 +1819,12 @@ namespace OpenMS
       lines.push_back("Quality: " + QString::number(quality, 'f', 4));
       // peptide identifications
       const PeptideIdentification* pis = nullptr;
-      if ( f && f->getPeptideIdentifications().size() > 0 ) {
+      if ( f && f->getPeptideIdentifications().size() > 0 )
+      {
         pis = &f->getPeptideIdentifications()[0];
       }
-      else if ( cf && cf->getPeptideIdentifications().size() > 0 ) {
+      else if ( cf && cf->getPeptideIdentifications().size() > 0 )
+      {
         pis = &cf->getPeptideIdentifications()[0];
       }
       if ( pis && pis->getHits().size() ) {

@@ -32,8 +32,7 @@
 // $Authors: Mathias Walzer $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_CHEMISTRY_SPECTRUMANNOTATOR_H
-#define OPENMS_CHEMISTRY_SPECTRUMANNOTATOR_H
+#pragma once
 
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
@@ -133,5 +132,4 @@ namespace OpenMS
 
   };
 }
-#endif
 

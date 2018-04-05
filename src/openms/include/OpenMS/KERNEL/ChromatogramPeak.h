@@ -32,8 +32,7 @@
 // $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_KERNEL_CHROMATOGRAMPEAK_H
-#define OPENMS_KERNEL_CHROMATOGRAMPEAK_H
+#pragma once
 
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/DATASTRUCTURES/DPosition.h>
@@ -291,4 +290,3 @@ protected:
 
 } // namespace OpenMS
 
-#endif // OPENMS_KERNEL_CHROMATOGRAMPEAK_H

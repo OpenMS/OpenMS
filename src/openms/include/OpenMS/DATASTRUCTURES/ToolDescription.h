@@ -32,8 +32,7 @@
 // $Authors: Chris Bielow, Mathias Walzer $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_DATASTRUCTURES_TOOLDESCRIPTION_H
-#define OPENMS_DATASTRUCTURES_TOOLDESCRIPTION_H
+#pragma once
 
 #include <OpenMS/DATASTRUCTURES/Param.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
@@ -143,4 +142,3 @@ namespace OpenMS
 
 } // namespace OPENMS
 
-#endif // OPENMS_DATASTRUCTURES_TOOLDESCRIPTION_H

@@ -32,8 +32,7 @@
 // $Authors: $
 // --------------------------------------------------------------------------
 //
-#ifndef OPENMS_COMPARISON_CLUSTERING_SINGLELINKAGE_H
-#define OPENMS_COMPARISON_CLUSTERING_SINGLELINKAGE_H
+#pragma once
 
 #include <vector>
 #include <set>
@@ -94,4 +93,3 @@ public:
 
 
 }
-#endif //OPENMS_COMPARISON_CLUSTERING_SINGLELINKAGE_H

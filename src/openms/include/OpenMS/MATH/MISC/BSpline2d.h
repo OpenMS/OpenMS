@@ -32,8 +32,7 @@
 // $Authors: Stephan Aiche, Timo Sachsenberg $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_MATH_MISC_BSPLINE2D_H
-#define OPENMS_MATH_MISC_BSPLINE2D_H
+#pragma once
 
 #include <vector>
 
@@ -143,4 +142,3 @@ private:
 
 }
 
-#endif // OPENMS_MATH_MISC_BSPLINE2D_H

@@ -33,8 +33,7 @@
 // --------------------------------------------------------------------------
 //
 
-#ifndef OPENMS_CHEMISTRY_MASSDECOMPOSITION_IMS_WEIGHTS_H
-#define OPENMS_CHEMISTRY_MASSDECOMPOSITION_IMS_WEIGHTS_H
+#pragma once
 
 #include <vector>
 #include <ostream>
@@ -247,4 +246,3 @@ private:
   } // namespace ims
 } // namespace OpenMS
 
-#endif // OPENMS_CHEMISTRY_MASSDECOMPOSITION_IMS_WEIGHTS_H

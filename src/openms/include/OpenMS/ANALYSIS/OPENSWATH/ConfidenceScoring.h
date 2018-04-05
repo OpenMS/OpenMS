@@ -32,8 +32,7 @@
 // $Authors: Hannes Roest, Hendrik Weisser $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_OPENSWATH_CONFIDENCESCORING_H
-#define OPENMS_ANALYSIS_OPENSWATH_CONFIDENCESCORING_H
+#pragma once
 
 #include <cmath> // for "exp"
 #include <ctime> // for "time" (random number seed)
@@ -49,7 +48,7 @@
 #include <OpenMS/FORMAT/TransformationXMLFile.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 
-#include "OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/ALGO/Scoring.h"
+#include "OpenMS/OPENSWATHALGO/ALGO/Scoring.h"
 #include <OpenMS/ANALYSIS/MAPMATCHING/TransformationDescription.h>
 #include <OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>
 
@@ -237,5 +236,4 @@ public:
 
 }
 
-#endif // OPENMS_ANALYSIS_OPENSWATH_CONFIDENCESCORING
 
