@@ -185,6 +185,19 @@ protected:
        << "\t" << String::number(map.getMaxInt(), 2) << "\n";
   }
 
+  template <class T>
+  void writeSummaryStatisticsMachineReadable_(const Math::SummaryStatistics<T> &stats, ostream &os, String prefix)
+  {
+    os << prefix << ": num. of values" << "\t" << stats.count    << "\n"
+       << prefix << ": mean"           << "\t" << stats.mean     << "\n"
+       << prefix << ": minimum"        << "\t" << stats.min      << "\n"
+       << prefix << ": lower quartile" << "\t" << stats.lowerq   << "\n"
+       << prefix << ": median"         << "\t" << stats.median   << "\n"
+       << prefix << ": upper quartile" << "\t" << stats.upperq   << "\n"
+       << prefix << ": maximum"        << "\t" << stats.max      << "\n"
+       << prefix << ": variance"       << "\t" << stats.variance << "\n";
+  }
+
   ExitCodes outputTo_(ostream &os, ostream &os_tsv)
   {
     //-------------------------------------------------------------
@@ -491,6 +504,9 @@ protected:
 
       os << "Number of features: " << feat.size() << "\n"
          << "\n";
+      os_tsv << "number of features" << "\t"
+             << feat.size() << "\n";
+
       writeRangesHumanReadable_(feat, os);
       writeRangesMachineReadable_(feat, os_tsv);
 
@@ -507,12 +523,17 @@ protected:
       }
 
       os << "Total ion current in features: " << tic << "\n";
+      os_tsv << "total ion current in features" << "\t"
+             << tic << "\n";
+
       os << "\n"
          << "Charge distribution:"
          << "\n";
       for (auto it = charges.begin(); it != charges.end(); ++it)
       {
         os << "  charge " << it->first << ": " << it->second << "\n";
+        os_tsv << "charge distribution: charge " << it->first << "\t"
+               << it->second << "\n";
       }
 
       os << "\n"
@@ -520,10 +541,15 @@ protected:
       for (auto it = numberofids.begin(); it != numberofids.end(); ++it)
       {
         os << "  " << it->first << " IDs: " << it->second << "\n";
+        os_tsv << "distribution of peptide identifications (IDs) per feature: "
+               << it->first << " IDs" << "\t"
+               << it->second << "\n";
       }
 
       os << "\n"
          << "Unassigned peptide identifications: " << feat.getUnassignedPeptideIdentifications().size() << "\n";
+      os_tsv << "unassigned peptide identifications" << "\t"
+             << feat.getUnassignedPeptideIdentifications().size() << "\n";
     }
     else if (in_type == FileTypes::CONSENSUSXML) //consensus features
     {
@@ -1097,6 +1123,8 @@ protected:
       {
         os << "Document ID: " << feat.getIdentifier() << "\n"
            << "\n";
+        os_tsv << "document ID" << "\t"
+               << feat.getIdentifier() << "\n";
       }
       else if (in_type == FileTypes::CONSENSUSXML) //consensus features
       {
@@ -1256,16 +1284,31 @@ protected:
           os << "  software name:    " << dp[i].getSoftware().getName() << "\n";
           os << "  software version: " << dp[i].getSoftware().getVersion() << "\n";
           os << "  completion time:  " << dp[i].getCompletionTime().get() << "\n";
+
+          os_tsv << "data processing " << (i + 1) << ": software name" << "\t"
+                 << dp[i].getSoftware().getName() << "\n";
+          os_tsv << "data processing " << (i + 1) << ": software version" << "\t"
+                 << dp[i].getSoftware().getVersion() << "\n";
+          os_tsv << "data processing " << (i + 1) << ": completion time" << "\t"
+                 << dp[i].getCompletionTime().get() << "\n";
+
           os << "  actions:          ";
+          os_tsv << "data processing " << (i + 1)
+                 << ": actions" << "\t";
           for (set<DataProcessing::ProcessingAction>::const_iterator it = dp[i].getProcessingActions().begin();
                it != dp[i].getProcessingActions().end(); ++it)
           {
             if (it != dp[i].getProcessingActions().begin())
+            {
               os << ", ";
+              os_tsv << ", ";
+            }
             os << DataProcessing::NamesOfProcessingAction[*it];
+            os_tsv << DataProcessing::NamesOfProcessingAction[*it];
           }
           os << "\n"
              << "\n";
+          os_tsv << "\n";
         }
       }
     }
@@ -1301,30 +1344,40 @@ protected:
           peak_widths[idx] = fm_iter->getWidth();
         }
 
+        Math::SummaryStatistics<vector<double>> intensities_summary;
+        intensities_summary = Math::SummaryStatistics<vector<double>>(intensities);
         os.precision(writtenDigits<>(Feature::IntensityType()));
-        os << "Intensities:"
-           << "\n"
-           << Math::SummaryStatistics<vector<double>>(intensities) << "\n";
+        os << "Intensities:" << "\n" << intensities_summary << "\n";
+        os_tsv.precision(writtenDigits<>(Feature::IntensityType()));
+        writeSummaryStatisticsMachineReadable_(intensities_summary, os_tsv, "intensities");
 
+        Math::SummaryStatistics<vector<double>> peak_widths_summary;
+        peak_widths_summary = Math::SummaryStatistics<vector<double>>(peak_widths);
         os.precision(writtenDigits<>(Feature::QualityType()));
-        os << "Feature FWHM in RT dimension:"
-           << "\n"
-           << Math::SummaryStatistics<vector<double>>(peak_widths) << "\n";
+        os << "Feature FWHM in RT dimension:" << "\n" << peak_widths_summary << "\n";
+        os_tsv.precision(writtenDigits<>(Feature::QualityType()));
+        writeSummaryStatisticsMachineReadable_(peak_widths_summary, os_tsv, "feature FWHM in RT dimension");
 
+        Math::SummaryStatistics<vector<double>> overall_qualities_summary;
+        overall_qualities_summary = Math::SummaryStatistics<vector<double>>(overall_qualities);
         os.precision(writtenDigits<>(Feature::QualityType()));
-        os << "Overall qualities:"
-           << "\n"
-           << Math::SummaryStatistics<vector<double>>(overall_qualities) << "\n";
+        os << "Overall qualities:" << "\n" << overall_qualities_summary << "\n";
+        os_tsv.precision(writtenDigits<>(Feature::QualityType()));
+        writeSummaryStatisticsMachineReadable_(overall_qualities_summary, os_tsv, "overall qualities");
 
+        Math::SummaryStatistics<vector<double>> rt_qualities_summary;
+        rt_qualities_summary = Math::SummaryStatistics<vector<double>>(rt_qualities);
         os.precision(writtenDigits<>(Feature::QualityType()));
-        os << "Qualities in retention time dimension:"
-           << "\n"
-           << Math::SummaryStatistics<vector<double>>(rt_qualities) << "\n";
+        os << "Qualities in retention time dimension:" << "\n" << rt_qualities_summary << "\n";
+        os_tsv.precision(writtenDigits<>(Feature::QualityType()));
+        writeSummaryStatisticsMachineReadable_(rt_qualities_summary, os_tsv, "qualities in retention time dimension");
 
+        Math::SummaryStatistics<vector<double>> mz_qualities_summary;
+        mz_qualities_summary = Math::SummaryStatistics<vector<double>>(mz_qualities);
         os.precision(writtenDigits<>(Feature::QualityType()));
-        os << "Qualities in mass-to-charge dimension:"
-           << "\n"
-           << Math::SummaryStatistics<vector<double>>(mz_qualities) << "\n";
+        os << "Qualities in mass-to-charge dimension:" << "\n" << mz_qualities_summary << "\n";
+        os_tsv.precision(writtenDigits<>(Feature::QualityType()));
+        writeSummaryStatisticsMachineReadable_(mz_qualities_summary, os_tsv, "qualities in mass-to-charge dimension");
       }
       else if (in_type == FileTypes::CONSENSUSXML) //consensus features
       {
