@@ -2,14 +2,7 @@ from libcpp cimport bool
 from Types cimport *
 from String cimport *
 from Element cimport *
-from smart_ptr cimport shared_ptr
 from IsotopeDistribution cimport *
-
-# cdef cppclass IsotopeDistribution:
-#     pass
-
-# cdef cppclass CoarseIsotopeDistribution:
-#     pass
 
 cdef extern from "<OpenMS/CHEMISTRY/EmpiricalFormula.h>" namespace "OpenMS":
 
@@ -42,6 +35,7 @@ cdef extern from "<OpenMS/CHEMISTRY/EmpiricalFormula.h>" namespace "OpenMS":
         #   * are described in the doc to the IsotopeDistribution class.
         IsotopeDistribution getIsotopeDistribution() nogil except +
 
+        IsotopeDistribution getIsotopeDistribution(CoarseIsotopeDistribution) nogil except +
 
         # @brief returns the fragment isotope distribution of this conditioned
         # on a precursor formula and a list of isolated precursor isotopes.
@@ -81,5 +75,12 @@ cdef extern from "<OpenMS/CHEMISTRY/EmpiricalFormula.h>" namespace "OpenMS":
 
         # returns true if the formulas differ in elements composition
         bool operator!=(EmpiricalFormula) nogil except +
+
+        EmpiricalFormula operator+(EmpiricalFormula) nogil except +
+        # EmpiricalFormula operator-(EmpiricalFormula) nogil except +
+        # EmpiricalFormula operator*(EmpiricalFormula) nogil except +
+
+        EmpiricalFormula iadd(EmpiricalFormula)   nogil except + # wrap-as:operator+=
+        # EmpiricalFormula iminus(EmpiricalFormula)   nogil except + # wrap-as:operator-=
 
 
