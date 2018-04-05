@@ -40,6 +40,9 @@
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexDeltaMasses.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexIsotopicPeakPattern.h>
+
 #include <vector>
 #include <fstream>
 #include <map>
@@ -59,8 +62,6 @@ public:
 
 protected:
   
-  ProgressLogger prog_log_;
-  
   // experimental data
   MSExperiment exp_profile_;
   MSExperiment exp_centroid_;
@@ -75,6 +76,18 @@ protected:
   FeatureMap feature_map_;
   ConsensusMap consensus_map_;
 
-  };
+  /**
+   * @brief generate list of m/z shifts
+   *
+   * @param charge_min    minimum charge
+   * @param charge_max    maximum charge
+   * @param peaks_per_peptide_max    maximum number of isotopes in peptide
+   * @param mass_pattern_list    mass shifts due to labelling
+   *
+   * @return list of m/z shifts
+   */
+  std::vector<MultiplexIsotopicPeakPattern> generatePeakPatterns_(int charge_min, int charge_max, int peaks_per_peptide_max, std::vector<MultiplexDeltaMasses> mass_pattern_list);
+  
+};
 
 }

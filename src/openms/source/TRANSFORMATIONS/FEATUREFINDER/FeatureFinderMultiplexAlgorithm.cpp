@@ -34,6 +34,8 @@
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderMultiplexAlgorithm.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexDeltaMassesGenerator.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexDeltaMasses.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexIsotopicPeakPattern.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerHiRes.h>
 
 #include <OpenMS/CHEMISTRY/IsotopeDistribution.h>
@@ -119,9 +121,100 @@ namespace OpenMS
       exp.swap(exp_profile_);
       // exp_centroid_ will be constructed later on.
     }
-
   }
   
+  /**
+   * @brief order of charge states
+   *
+   * 2+ 3+ 4+ 1+ 5+ 6+ ...
+   *
+   * Order charge states by the likelihood of their occurrence, i.e. we search for the most likely charge states first.
+   */
+  static size_t order_charge(int charge)
+  {
+    if ((1 < charge) && (charge < 5))
+    {
+      return (charge - 1);
+    }
+    else if (charge == 1)
+    {
+      return 4;
+    }
+    else
+    {
+      return charge;
+    }
+  }
+
+  /**
+   * @brief comparator of peak patterns
+   *
+   * The comperator determines in which order the peak patterns are searched for.
+   * First we check the number of mass shifts (triplets before doublets before singlets).
+   * Then we check the first mass shift (for example 6 Da before 12 Da i.e. misscleavage).
+   * Finally we check for charges (2+ before 1+, most likely first).
+   *
+   * @param pattern1    first peak pattern
+   * @param pattern2    second peak pattern
+   *
+   * @return true if pattern1 should be searched before pattern2
+   */
+  static bool less_pattern(const MultiplexIsotopicPeakPattern& pattern1, const MultiplexIsotopicPeakPattern& pattern2)
+  {
+    if (pattern1.getMassShiftCount() == pattern2.getMassShiftCount())
+    {
+      // The first mass shift is by definition always zero.
+      if ((pattern1.getMassShiftCount() > 1) && (pattern2.getMassShiftCount() > 1))
+      {
+        if (pattern1.getMassShiftAt(1) == pattern2.getMassShiftAt(1))
+        {
+          // 2+ before 3+ before 4+ before 1+ before 5+ before 6+ etc.
+          return order_charge(pattern1.getCharge()) < order_charge(pattern2.getCharge());
+        }
+        else
+        {
+          return pattern1.getMassShiftAt(1) < pattern2.getMassShiftAt(1);
+        }
+      }
+      else
+      {
+        // 2+ before 3+ before 4+ before 1+ before 5+ before 6+ etc.
+        return order_charge(pattern1.getCharge()) < order_charge(pattern2.getCharge());
+      }
+    }
+    else
+    {
+      // triplets before doublets before singlets
+      return pattern1.getMassShiftCount() > pattern2.getMassShiftCount();
+    }
+  }
+
+  std::vector<MultiplexIsotopicPeakPattern> FeatureFinderMultiplexAlgorithm::generatePeakPatterns_(int charge_min, int charge_max, int peaks_per_peptide_max, std::vector<MultiplexDeltaMasses> mass_pattern_list)
+  {
+    std::vector<MultiplexIsotopicPeakPattern> list;
+    
+    // iterate over all charge states
+    for (int c = charge_max; c >= charge_min; --c)
+    {
+      // iterate over all mass shifts
+      for (unsigned i = 0; i < mass_pattern_list.size(); ++i)
+      {
+        MultiplexIsotopicPeakPattern pattern(c, peaks_per_peptide_max, mass_pattern_list[i], i);
+        list.push_back(pattern);
+      }
+    }
+    
+    sort(list.begin(), list.end(), less_pattern);
+    
+    // debug output
+    /*for (int i = 0; i < list.size(); ++i)
+     {
+     std::cout << "charge = " << list[i].getCharge() << "+    shift = " << list[i].getMassShiftAt(1) << " Da\n";
+     }*/
+    
+    return list;
+  }
+
   void FeatureFinderMultiplexAlgorithm::run()
   {
     /**
@@ -146,12 +239,14 @@ namespace OpenMS
      * filter for peak patterns
      */
     MultiplexDeltaMassesGenerator generator = MultiplexDeltaMassesGenerator(param_.getValue("algorithm:labels"), param_.getValue("algorithm:missed_cleavages"), label_mass_shift_);
-    if (param_.getValue("algorithm:knock_out"))
+    if (param_.getValue("algorithm:knock_out") == "true")
     {
       generator.generateKnockoutDeltaMasses();
     }
     generator.printSamplesLabelsList();
     generator.printDeltaMassesList();
 
+    std::vector<MultiplexDeltaMasses> masses = generator.getDeltaMassesList();
+    std::vector<MultiplexIsotopicPeakPattern> patterns = generatePeakPatterns_(param_.getValue("algorithm:charge_min"), param_.getValue("algorithm:charge_max"), param_.getValue("algorithm:isotopes_per_peptide_max"), masses);
   }
 }
