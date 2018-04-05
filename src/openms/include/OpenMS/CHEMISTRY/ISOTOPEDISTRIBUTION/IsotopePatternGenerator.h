@@ -60,7 +60,8 @@ namespace OpenMS
 
      */
     virtual IsotopeDistribution run(const EmpiricalFormula&) const = 0;
-    ~IsotopePatternGenerator();
+    virtual ~IsotopePatternGenerator();
+
  protected:
     double min_prob_;
   };

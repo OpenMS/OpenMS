@@ -265,7 +265,7 @@ namespace OpenMS
     for (auto& p : raw)
     {
       UInt index = round((p.getMZ() - raw.front().getMZ())/resolution);
-      if (index >= distribution.size()){ continue; }
+      if (index >= distribution.size()) {continue;}
       double mass = raw.front().getMZ() + (index * delta);
       distribution[index].setMZ(mass);
       distribution[index].setIntensity(distribution[index].getIntensity() + p.getIntensity());
