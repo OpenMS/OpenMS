@@ -2,7 +2,7 @@ from libcpp cimport bool
 from Types cimport *
 from String cimport *
 from Peak1D cimport *
-
+from EmpiricalFormula cimport *
 
 cdef extern from "<OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopeDistribution.h>" namespace "OpenMS":
 
@@ -32,7 +32,7 @@ cdef extern from "<OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopeDistribution.h>" 
         # Estimate Peptide Isotopedistribution from weight and number of isotopes that should be reported
         #   Implementation using the averagine model proposed by Senko et al. in
 
-# Estimate Isotopedistribution from weight, average composition, and number of isotopes that should be reported
+        # Estimate Isotopedistribution from weight, average composition, and number of isotopes that should be reported
 
 
         # renormalizes the sum of the probabilities of the isotopes to 1
@@ -48,6 +48,7 @@ cdef extern from "<OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopeDistribution.h>" 
 
 
 cdef extern from "<OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopePatternGenerator.h>" namespace "OpenMS":
+
     cdef cppclass IsotopePatternGenerator:
 
          # wrap-ignore
@@ -58,9 +59,8 @@ cdef extern from "<OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopePatternGenerator.
          IsotopePatternGenerator(IsotopeDistribution) nogil except + # wrap-ignore
          # virtual void run(EmpiricalFormula&) = 0; # wrap-ignore
 
-
-
 cdef extern from "<OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopeDistribution.h>" namespace "OpenMS":
+
     cdef cppclass CoarseIsotopeDistribution(IsotopePatternGenerator):
         # wrap-inherits:
         #  IsotopePatternGenerator
@@ -68,6 +68,8 @@ cdef extern from "<OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopeDistributio
         CoarseIsotopeDistribution() nogil except + 
         CoarseIsotopeDistribution(Size max_isotope) nogil except +
         CoarseIsotopeDistribution(IsotopeDistribution) nogil except + # wrap-ignore
+
+        IsotopeDistribution run(EmpiricalFormula) nogil except +
 
         # Estimate peptide IsotopeDistribution from average weight and exact number of sulfurs
         void estimateFromPeptideWeightAndS(double average_weight, UInt S);
@@ -78,9 +80,9 @@ cdef extern from "<OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopeDistributio
         #  sets the maximal isotope with @p max_isotope
         void setMaxIsotope(Size max_isotope) nogil except +
 
+        # @brief Estimate Peptide Isotopedistribution from weight and number of isotopes that should be reported
         #   "Determination of Monoisotopic Masses and Ion Populations for Large Biomolecules from Resolved Isotopic Distributions"
         IsotopeDistribution estimateFromPeptideWeight(double average_weight) nogil except +
-
 
         # Estimate Nucleotide Isotopedistribution from weight
         IsotopeDistribution estimateFromRNAWeight(double average_weight) nogil except +

@@ -318,12 +318,26 @@ def testCoarseIsotopeDistribution():
     CoarseIsotopeDistribution.setMaxIsotope()
     CoarseIsotopeDistribution.estimateFromPeptideWeight()
     """
-    iso = pyopenms.CoarseIsotopeDistribution()
-    ins.setMaxIsotope(5)
-    iso.getMaxIsotope()
-    iso.estimateFromPeptideWeight(500)
-    
 
+    iso = pyopenms.CoarseIsotopeDistribution()
+    iso.setMaxIsotope(5)
+    assert iso.getMaxIsotope() == 5
+    res = iso.estimateFromPeptideWeight(500)
+
+    methanol = pyopenms.EmpiricalFormula("CH3OH")
+    water = pyopenms.EmpiricalFormula("H2O")
+    mw = methanol + water
+    iso_dist = mw.getIsotopeDistribution(pyopenms.CoarseIsotopeDistribution(3))
+    assert len(iso_dist.getContainer()) == 3, len(iso_dist.getContainer())
+    iso_dist = mw.getIsotopeDistribution()
+    assert len(iso_dist.getContainer()) == 18, len(iso_dist.getContainer()) 
+
+    iso = pyopenms.CoarseIsotopeDistribution(10)
+    isod = iso.run(methanol)
+    assert len(isod.getContainer()) == 10, len(isod.getContainer()) 
+    assert isod.getContainer()[0].getMZ() == 32.0, isod.getContainer()[0].getMZ()
+    assert isod.getContainer()[0].getIntensity() - 0.986442089081 < 1e-5
+    
 @report
 def testEmpiricalFormula():
     """

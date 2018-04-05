@@ -42,8 +42,11 @@
 namespace OpenMS
 {
   class EmpiricalFormula;
-  /* class IsotopeDistribution; */
 
+  /** 
+      @brief TODO explain what this is doing and how it relates to other fxns in this class
+
+   */
   class OPENMS_DLLAPI IsotopePatternGenerator
   {
  public:
@@ -57,7 +60,8 @@ namespace OpenMS
 
      */
     virtual IsotopeDistribution run(const EmpiricalFormula&) const = 0;
-    ~IsotopePatternGenerator();
+    virtual ~IsotopePatternGenerator();
+
  protected:
     double min_prob_;
   };

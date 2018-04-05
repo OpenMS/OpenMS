@@ -64,6 +64,10 @@ namespace OpenMS
         calculated.
         By default all possible isotopes are calculated, which leads to a large
         number of values, if the mass value is large!
+
+        TODO indicate how this does not hold mass defect information, simply probabilities
+        TODO indicate how this relates to other isotope models (Coarse ... )
+
     */
   class Element; 
 
