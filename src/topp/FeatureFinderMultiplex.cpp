@@ -199,6 +199,8 @@ public:
 
     registerSubsection_("algorithm", "Parameters for the algorithm.");
     registerSubsection_("labels", "Isotopic labels that can be specified in section \'algorithm:labels\'.");
+    
+    //registerFullParam_(FeatureFinderMultiplexAlgorithm().getDefaults());
   }
 
   // create parameters for sections (set default values and restrictions)
@@ -1360,6 +1362,19 @@ private:
     file.setLogType(log_type_);
     file.load(in_, exp);
 
+    
+    
+    
+    /// FeatureFinderMultiplexAlgorithm Tescht (Start)
+    
+    //FeatureFinderMultiplexAlgorithm algorithm;
+    //algorithm.setParameters(getParam_());
+    
+    /// FeatureFinderMultiplexAlgorithm Tescht (End)
+
+    
+    
+    
     if (exp.getSpectra().empty())
     {
       throw OpenMS::Exception::FileEmpty(__FILE__, __LINE__, __FUNCTION__, "Error: No MS1 spectra in input file.");
