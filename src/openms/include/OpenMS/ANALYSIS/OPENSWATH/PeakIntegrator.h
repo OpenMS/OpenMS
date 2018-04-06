@@ -1009,6 +1009,11 @@ public:
     PeakIntegrator_friend() = default;
     ~PeakIntegrator_friend() = default;
 
+    double computeMuMaxDistance(const std::vector<double>& xs) const
+    {
+      return peakIntegrator.computeMuMaxDistance(xs);
+    }
+
     bool extractTrainingSet(
       const std::vector<double>& xs,
       const std::vector<double>& ys,

@@ -1101,6 +1101,15 @@ TOLERANCE_RELATIVE(1.0 + 1e-5)
 
 PeakIntegrator_friend pi_f;
 
+START_SECTION(double computeMuMaxDistance(const std::vector<double>& xs) const)
+{
+  vector<double> xs { 3, 2, 4, 2, 4, 5, 7, 9, 3 };
+  TEST_REAL_SIMILAR(pi_f.computeMuMaxDistance(xs), 2.45)
+  xs.clear();
+  TEST_REAL_SIMILAR(pi_f.computeMuMaxDistance(xs), 0.0)
+}
+END_SECTION
+
 START_SECTION(void iRpropPlus(
   const double prev_diff_E_param,
   double& diff_E_param,

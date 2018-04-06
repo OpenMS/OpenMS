@@ -846,6 +846,7 @@ namespace OpenMS
       std::vector<double>::const_iterator,
       std::vector<double>::const_iterator
     > p = std::minmax_element(xs.begin(), xs.end());
+    if (p.first == xs.end() || p.second == xs.end()) return 0.0;
     const double min_pos = *p.first;
     const double max_pos = *p.second;
     // Return the maximum distance permitted for the Mean parameter, to avoid
