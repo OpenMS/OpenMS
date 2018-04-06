@@ -54,7 +54,7 @@ namespace OpenMS
   {
   }
 
-  CoarseIsotopeDistribution::CoarseIsotopeDistribution(Size max_isotope) :
+  CoarseIsotopeDistribution::CoarseIsotopeDistribution(const Size& max_isotope) :
     IsotopePatternGenerator(),
     max_isotope_(max_isotope)
   {
@@ -63,64 +63,8 @@ namespace OpenMS
   CoarseIsotopeDistribution::~CoarseIsotopeDistribution()
   {}
 
-  // bool CoarseIsotopeDistribution::operator==(const CoarseIsotopeDistribution& isotope_distribution) const
-  // {
-  //   return max_isotope_ == isotope_distribution.max_isotope_ &&
-  //          this->distribution_ == isotope_distribution.distribution_;
-  // }
-  
-  // bool CoarseIsotopeDistribution::operator!=(const CoarseIsotopeDistribution& isotope_distribution) const
-  // {
-  //   return !(isotope_distribution == *this);
-  // }
 
-  // CoarseIsotopeDistribution & CoarseIsotopeDistribution::operator=(const CoarseIsotopeDistribution& iso)
-  // {
-  //   if (this != &iso)
-  //   {
-  //     IsotopeDistribution::operator=(iso);
-  //     max_isotope_ = iso.max_isotope_;
-  //   }
-  //   return *this;
-  // }
-
-  // CoarseIsotopeDistribution CoarseIsotopeDistribution::operator+(const CoarseIsotopeDistribution& iso) const
-  // {
-  //   ContainerType result;
-  //   convolve_(result, distribution_, iso.getContainer());
-  //   CoarseIsotopeDistribution result_iso;
-  //   result_iso.setMaxIsotope(max_isotope_);
-  //   result_iso.set(result);
-  //   return result_iso;
-  // }
-
-  // CoarseIsotopeDistribution& CoarseIsotopeDistribution::operator+=(const CoarseIsotopeDistribution& iso)
-  // {
-  //   ContainerType result;
-  //   convolve_(result, distribution_, iso.getContainer());
-  //   distribution_ = result;
-  //   return *this;
-  // }
-
-  // IsotopeDistribution CoarseIsotopeDistribution::operator*=(Size factor)
-  // {
-  //   ContainerType result, distribution_;
-  //   convolvePow_(result, distribution_, factor);
-  //   distribution_ = result;
-  //   return result;
-  // }
-
-  // CoarseIsotopeDistribution CoarseIsotopeDistribution::operator*(Size factor) const
-  // {
-  //   ContainerType result;
-  //   convolvePow_(result, distribution_, factor);
-  //   CoarseIsotopeDistribution result_iso;
-  //   result_iso.setMaxIsotope(max_isotope_);
-  //   result_iso.set(result);
-  //   return result_iso;
-  // }
-
-  void CoarseIsotopeDistribution::setMaxIsotope(Size max_isotope)
+  void CoarseIsotopeDistribution::setMaxIsotope(const Size& max_isotope)
   {
     max_isotope_ = max_isotope;
   }
@@ -241,7 +185,7 @@ namespace OpenMS
 
     if (left.empty() || right.empty())
     {
-      result.clear(); // Not needed
+      result.clear();
       return result;
     }
 

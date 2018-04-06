@@ -1495,10 +1495,14 @@ namespace OpenMS
     // compute theoretical isotope distribution
     IsotopeDistribution iso_dist(form.getIsotopeDistribution(CoarseIsotopeDistribution((UInt)common_size)));
     std::vector<double> theoretical_iso_dist;
-    for (auto iso_it = iso_dist.begin(); iso_it != iso_dist.end(); ++iso_it)
-    {
-      theoretical_iso_dist.push_back(iso_it->getIntensity());
-    }
+    std::transform(
+      iso_dist.begin(),
+      iso_dist.end(),
+      back_inserter(theoretical_iso_dist),
+      [](const IsotopeDistribution::MassAbundance& p)
+      {
+        return p.getIntensity();
+      });
     
     // same for observed isotope distribution
     std::vector<double> observed_iso_dist;

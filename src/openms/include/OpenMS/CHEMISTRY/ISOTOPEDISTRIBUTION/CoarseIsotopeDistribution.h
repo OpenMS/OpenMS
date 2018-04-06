@@ -72,7 +72,7 @@ namespace OpenMS
  public:
     CoarseIsotopeDistribution();
 
-    CoarseIsotopeDistribution(Size max_isotope);
+    CoarseIsotopeDistribution(const Size& max_isotope);
 
     virtual ~CoarseIsotopeDistribution();
 
@@ -84,7 +84,7 @@ namespace OpenMS
             and used to limit the calculations. This is useful as distributions
             with numerous isotopes tend to have a lot of numerical zeros at the end
     */
-    void setMaxIsotope(Size max_isotope);
+    void setMaxIsotope(const Size& max_isotope);
 
     /// returns the currently set maximum isotope
     Size getMaxIsotope() const;
