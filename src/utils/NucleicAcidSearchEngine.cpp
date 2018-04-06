@@ -916,9 +916,7 @@ protected:
                     << endl;
 
           const Size& scan_index = low_it->second;
-          const PeakSpectrum& exp_spectrum = spectra[scan_index];
-          Int max_charge = single_charge_spectra ? charge : charge * exp_spectrum.getPrecursors()[0].getCharge() ;
-          
+          const PeakSpectrum& exp_spectrum = spectra[scan_index];          
           vector<PeptideHit::PeakAnnotation> annotations;
           double score = MetaboliteSpectralMatching::computeHyperScore(
             search_param.fragment_mass_tolerance,
