@@ -902,6 +902,13 @@ protected:
 
         // sort by mz
         theo_spectrum.sortByPosition();
+        vector<PeakSpectrum> theo_spectrum_array;
+        for (int i=abs(min_charge); i<=abs(max_charge); ++i) //generate the theoretical with all the possible max charge states.
+        {
+          spectrum_generator.getSpectrum(theo_spectrum, candidate, charge,
+                                         i*charge);
+          theo_spectrum_array.push_back(theo_spectrum);
+        }
 
         for (; low_it != up_it; ++low_it)
         {
@@ -911,14 +918,12 @@ protected:
           const Size& scan_index = low_it->second;
           const PeakSpectrum& exp_spectrum = spectra[scan_index];
           Int max_charge = single_charge_spectra ? charge : charge * exp_spectrum.getPrecursors()[0].getCharge() ;
-          spectrum_generator.getSpectrum(theo_spectrum, candidate, charge,
-                                         max_charge);
-
+          
           vector<PeptideHit::PeakAnnotation> annotations;
           double score = MetaboliteSpectralMatching::computeHyperScore(
             search_param.fragment_mass_tolerance,
-            search_param.fragment_tolerance_ppm, exp_spectrum, theo_spectrum,
-            annotations);
+            search_param.fragment_tolerance_ppm, exp_spectrum, theo_spectrum_array[exp_spectrum.getPrecursors()[0].getCharge()-1],
+            annotations); // pic up the theoretical spectrum with the correct max charge
 
           if (!exp_ms2_out.empty())
           {
