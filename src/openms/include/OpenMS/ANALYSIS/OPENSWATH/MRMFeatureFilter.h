@@ -161,7 +161,7 @@ public:
       @brief Sorts, removes duplicates, and concatenates a list of Strings
 
       @param str_vec vector of Strings
-      @param delim token to seperate Strings in the list
+      @param delim token to separate Strings in the list
 
       @return A concatenated string.
     */ 

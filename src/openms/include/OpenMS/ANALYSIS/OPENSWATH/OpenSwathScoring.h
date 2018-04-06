@@ -35,11 +35,11 @@
 #pragma once
 
 // data access
-#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/DataStructures.h>
-#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/ISpectrumAccess.h>
-#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/ITransition.h>
-#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/TransitionExperiment.h>
-#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/SwathMap.h>
+#include <OpenMS/OPENSWATHALGO/DATAACCESS/DataStructures.h>
+#include <OpenMS/OPENSWATHALGO/DATAACCESS/ISpectrumAccess.h>
+#include <OpenMS/OPENSWATHALGO/DATAACCESS/ITransition.h>
+#include <OpenMS/OPENSWATHALGO/DATAACCESS/TransitionExperiment.h>
+#include <OpenMS/OPENSWATHALGO/DATAACCESS/SwathMap.h>
 
 // scoring
 #include <OpenMS/ANALYSIS/OPENSWATH/DIAScoring.h>
@@ -260,6 +260,14 @@ namespace OpenMS
              scores.xcorr_shape_score                * -5.71823862 +
              scores.log_sn_score                     * -0.72989582 +
              scores.elution_model_fit_score          *  1.88443209;
+    }
+
+    double calculate_lda_single_transition(OpenSwath_Scores scores)
+    {
+      // Manually derived scoring model for single transition peakgroups
+      return scores.norm_rt_score                    *  7.05496384 +
+             scores.log_sn_score                     * -0.72989582 +
+             scores.elution_model_fit_score          *  -1.08443209;
     }
 
     double calculate_swath_lda_prescore(OpenSwath_Scores scores)

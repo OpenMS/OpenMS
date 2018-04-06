@@ -158,7 +158,7 @@ namespace OpenMS
 
         // total weight = precursor RNA weight + peptide weight
         // this hack ensures that sequences with additional reported partial loss match the total weight
-        // Note that the partial loss is only relevent on the MS2 and would otherwise be added to the totalweight
+        // Note that the partial loss is only relevant on the MS2 and would otherwise be added to the totalweight
         String sequence_string = ph.getSequence().toString();
         sequence_string.substitute("(RNA:U_prime-H2O)", "");
         sequence_string.substitute("(RNA:U_prime)", "");

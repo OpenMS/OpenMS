@@ -53,7 +53,7 @@
 #include <OpenMS/KERNEL/MSChromatogram.h>
 #include <OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>
 
-#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/SwathMap.h>
+#include <OpenMS/OPENSWATHALGO/DATAACCESS/SwathMap.h>
 
 #include <boost/shared_ptr.hpp>
 #include <boost/make_shared.hpp>
@@ -281,6 +281,7 @@ private:
     int stop_report_after_feature_;
     bool write_convex_hull_;
     bool strict_;
+    String scoring_model_;
 
     // scoring parameters
     double rt_normalization_factor_;
