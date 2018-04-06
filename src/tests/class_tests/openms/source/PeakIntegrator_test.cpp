@@ -1099,6 +1099,101 @@ END_SECTION
 
 TOLERANCE_RELATIVE(1.0 + 1e-5)
 
+PeakIntegrator_friend pi_f;
+
+START_SECTION(double compute_z(
+  const double x,
+  const double mu,
+  const double sigma,
+  const double tau
+) const)
+{
+  double x;
+  double mu { 14.3453 };
+  double sigma { 0.0344277 };
+  double tau { 0.188507 };
+
+  x = mu - 1.0 / 60.0;
+  TEST_REAL_SIMILAR(pi_f.compute_z(x, mu, sigma, tau), 0.471456263584609)
+
+  x = mu + 1.0 / 60.0;
+  TEST_REAL_SIMILAR(pi_f.compute_z(x, mu, sigma, tau), -0.213173439809831)
+
+  x = -3333333;
+  TEST_REAL_SIMILAR(pi_f.compute_z(x, mu, sigma, tau), 68463258.2588395)
+}
+END_SECTION
+
+START_SECTION(double emg_point(
+  const double x,
+  const double h,
+  const double mu,
+  const double sigma,
+  const double tau
+) const)
+{
+  double x;
+  double h { 15515900 };
+  double mu { 14.3453 };
+  double sigma { 0.0344277 };
+  double tau { 0.188507 };
+
+  x = mu - 1.0 / 60.0;
+  TEST_REAL_SIMILAR(pi_f.emg_point(x, h, mu, sigma, tau), 1992032.65711041)
+
+  x = mu + 1.0 / 60.0;
+  TEST_REAL_SIMILAR(pi_f.emg_point(x, h, mu, sigma, tau), 4088964.97520213)
+
+  x = -3333333;
+  TEST_REAL_SIMILAR(pi_f.emg_point(x, h, mu, sigma, tau), 0.0)
+
+  mu = 860.719;
+  sigma = 2.06566;
+  tau = 11.3104;
+
+  x = mu - 1;
+  TEST_REAL_SIMILAR(pi_f.emg_point(x, h, mu, sigma, tau), 1992033.06584247)
+
+  x = mu + 1;
+  TEST_REAL_SIMILAR(pi_f.emg_point(x, h, mu, sigma, tau), 4088968.52957875)
+
+  x = -200000000;
+  TEST_REAL_SIMILAR(pi_f.emg_point(x, h, mu, sigma, tau), 0.0)
+}
+END_SECTION
+
+START_SECTION(void emg_vector(
+  const std::vector<double>& xs,
+  const double h,
+  const double mu,
+  const double sigma,
+  const double tau,
+  std::vector<double>& out_xs,
+  std::vector<double>& out_ys,
+  const bool compute_additional_points = true
+) const)
+{
+  double h { 15515900 };
+  double mu { 14.3453 };
+  double sigma { 0.0344277 };
+  double tau { 0.188507 };
+  vector<double> out_xs;
+  vector<double> out_ys;
+  bool compute_additional_points { false };
+
+  pi_f.emg_vector(saturated_cutoff_pos_min, h, mu, sigma, tau, out_xs, out_ys, compute_additional_points);
+  TEST_EQUAL(out_xs.size(), saturated_cutoff_pos_min.size())
+  TEST_REAL_SIMILAR(out_xs.front(), 14.3310337)
+  TEST_REAL_SIMILAR(out_ys.front(), 2144281.1472228)
+
+  compute_additional_points = true;
+  pi_f.emg_vector(saturated_cutoff_pos_min, h, mu, sigma, tau, out_xs, out_ys, true);
+  TEST_EQUAL(out_xs.size(), 71) // more points than before
+  TEST_REAL_SIMILAR(out_xs.front(), 14.2717555076923) // peak was cutoff on the left side
+  TEST_REAL_SIMILAR(out_ys.front(), 108845.941990663)
+}
+END_SECTION
+
 delete ptr;
 
 /////////////////////////////////////////////////////////////

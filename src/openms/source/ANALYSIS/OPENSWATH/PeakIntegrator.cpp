@@ -628,6 +628,7 @@ namespace OpenMS
   ) const
   {
     out_xs = xs; // Copy all positions to output
+    out_ys.clear();
     for (const double x : out_xs) // For each x, estimate y
     {
       out_ys.push_back(emg_point(x, h, mu, sigma, tau));
@@ -1063,7 +1064,7 @@ namespace OpenMS
 
     // Prepare the output peak
     output_peak = input_peak;
-    output_peak.clear(false); // Keep the metadata, but remove the points
+    output_peak.clear(false); // Remove the points, but keep the metadata
     for (Size i = 0; i < out_xs.size(); ++i)
     {
       typename PeakContainerT::PeakType point { out_xs[i], out_ys[i] };

@@ -230,6 +230,9 @@ public:
     static constexpr const char* BASELINE_TYPE_VERTICALDIVISION_MAX = "vertical_division_max";
     ///@}
 
+    /// To test private and protected methods
+    friend class PeakIntegrator_friend;
+
     /**
       @brief Compute the area of a peak contained in a MSChromatogram.
 
@@ -998,6 +1001,61 @@ private:
 
     /// Maximum number of gradient descent iterations in `fitEMGPeakModel()`
     UInt max_gd_iter_;
+  };
+
+  class PeakIntegrator_friend
+  {
+public:
+    PeakIntegrator_friend() = default;
+    ~PeakIntegrator_friend() = default;
+
+    bool extractTrainingSet(
+      const std::vector<double>& xs,
+      const std::vector<double>& ys,
+      std::vector<double>& TrX,
+      std::vector<double>& TrY
+    ) const
+    {
+      return peakIntegrator.extractTrainingSet(xs, ys, TrX, TrY);
+    }
+
+    double compute_z(
+      const double x,
+      const double mu,
+      const double sigma,
+      const double tau
+    ) const
+    {
+      return peakIntegrator.compute_z(x, mu, sigma, tau);
+    }
+
+    void emg_vector(
+      const std::vector<double>& xs,
+      const double h,
+      const double mu,
+      const double sigma,
+      const double tau,
+      std::vector<double>& out_xs,
+      std::vector<double>& out_ys,
+      const bool compute_additional_points = true
+    ) const
+    {
+      peakIntegrator.emg_vector(xs, h, mu, sigma, tau, out_xs, out_ys, compute_additional_points);
+    }
+
+    double emg_point(
+      const double x,
+      const double h,
+      const double mu,
+      const double sigma,
+      const double tau
+    ) const
+    {
+      return peakIntegrator.emg_point(x, h, mu, sigma, tau);
+    }
+
+private:
+    PeakIntegrator peakIntegrator;
   };
 }
 
