@@ -739,7 +739,14 @@ namespace OpenMS
     }
     else
     {
-      param_update = - ( diff_E_param / std::fabs(diff_E_param) ) * param_lr;
+      if (diff_E_param)
+      {
+        param_update = - ( diff_E_param / std::fabs(diff_E_param) ) * param_lr;
+      }
+      else
+      {
+        param_update = - param_lr;
+      }
       param += param_update;
     }
   }

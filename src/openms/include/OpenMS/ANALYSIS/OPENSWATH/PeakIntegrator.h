@@ -1019,6 +1019,22 @@ public:
       return peakIntegrator.extractTrainingSet(xs, ys, TrX, TrY);
     }
 
+    void iRpropPlus(
+      const double prev_diff_E_param,
+      double& diff_E_param,
+      double& param_lr,
+      double& param_update,
+      double& param,
+      const double current_E,
+      const double previous_E
+    ) const
+    {
+      peakIntegrator.iRpropPlus(
+        prev_diff_E_param, diff_E_param, param_lr,
+        param_update, param, current_E, previous_E
+      );
+    }
+
     double compute_z(
       const double x,
       const double mu,

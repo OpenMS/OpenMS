@@ -1101,6 +1101,61 @@ TOLERANCE_RELATIVE(1.0 + 1e-5)
 
 PeakIntegrator_friend pi_f;
 
+START_SECTION(void iRpropPlus(
+  const double prev_diff_E_param,
+  double& diff_E_param,
+  double& param_lr,
+  double& param_update,
+  double& param,
+  const double current_E,
+  const double previous_E
+) const)
+{
+  const double prev_diff_E_param { 10.0 };
+  double diff_E_param { 20.0 };
+  double param_lr { 4.0 };
+  double param_update { 0.5 };
+  double param { 860.0 };
+  const double current_E { 13.0 };
+  const double previous_E { 14.0 };
+
+  pi_f.iRpropPlus(
+    prev_diff_E_param, diff_E_param, param_lr,
+    param_update, param, current_E, previous_E
+  );
+  TEST_REAL_SIMILAR(diff_E_param, 20.0)
+  TEST_REAL_SIMILAR(param_lr, 4.8)
+  TEST_REAL_SIMILAR(param_update, -4.8)
+  TEST_REAL_SIMILAR(param, 855.2)
+
+  diff_E_param = -20.0;
+  param_lr = 4.0;
+  param_update = 0.5;
+  param = 860.0;
+  pi_f.iRpropPlus(
+    prev_diff_E_param, diff_E_param, param_lr,
+    param_update, param, current_E, previous_E
+  );
+  TEST_REAL_SIMILAR(diff_E_param, 0.0)
+  TEST_REAL_SIMILAR(param_lr, 2.0)
+  TEST_REAL_SIMILAR(param_update, 0.5)
+  TEST_REAL_SIMILAR(param, 860.0)
+
+  diff_E_param = 0.0;
+  param_lr = 4.0;
+  param_update = 0.5;
+  param = 860.0;
+  pi_f.iRpropPlus(
+    prev_diff_E_param, diff_E_param, param_lr,
+    param_update, param, current_E, previous_E
+  );
+  TEST_REAL_SIMILAR(diff_E_param, 0.0)
+  TEST_REAL_SIMILAR(param_lr, 4.0)
+  TEST_REAL_SIMILAR(param_update, -4.0)
+  TEST_REAL_SIMILAR(param, 856.0)
+}
+END_SECTION
+
 START_SECTION(double compute_z(
   const double x,
   const double mu,
