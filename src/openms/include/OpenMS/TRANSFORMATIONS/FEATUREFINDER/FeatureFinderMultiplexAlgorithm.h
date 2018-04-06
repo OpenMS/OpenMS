@@ -61,6 +61,10 @@ public:
 
   /// main method for feature detection
   void run();
+  
+  /// get methods
+  FeatureMap& getFeatureMap();
+  ConsensusMap& getConsensusMap();
 
 protected:
   
@@ -125,10 +129,8 @@ protected:
    * @param patterns    patterns of isotopic peaks we have been searching for
    * @param filter_results    filter results for each of the patterns
    * @param cluster_results    clusters of filter results
-   * @param consensus_map    consensus map with peptide multiplets (to be filled)
-   * @param feature_map    feature map with peptides (to be filled)
    */
-  void generateMapsCentroided_(std::vector<MultiplexIsotopicPeakPattern> patterns, std::vector<MultiplexFilteredMSExperiment> filter_results, std::vector<std::map<int, GridBasedCluster> > cluster_results, ConsensusMap& consensus_map, FeatureMap& feature_map);
+  void generateMapsCentroided_(std::vector<MultiplexIsotopicPeakPattern> patterns, std::vector<MultiplexFilteredMSExperiment> filter_results, std::vector<std::map<int, GridBasedCluster> > cluster_results);
   
   /**
    * @brief generates consensus and feature maps containing all peptide multiplets
@@ -136,10 +138,8 @@ protected:
    * @param patterns    patterns of isotopic peaks we have been searching for
    * @param filter_results    filter results for each of the patterns
    * @param cluster_results    clusters of filter results
-   * @param consensus_map    consensus map with peptide multiplets (to be filled)
-   * @param feature_map    feature map with peptides (to be filled)
    */
-  void generateMapsProfile_(std::vector<MultiplexIsotopicPeakPattern> patterns, std::vector<MultiplexFilteredMSExperiment> filter_results, std::vector<std::map<int, GridBasedCluster> > cluster_results, ConsensusMap& consensus_map, FeatureMap& feature_map);
+  void generateMapsProfile_(std::vector<MultiplexIsotopicPeakPattern> patterns, std::vector<MultiplexFilteredMSExperiment> filter_results, std::vector<std::map<int, GridBasedCluster> > cluster_results);
   
 };
 

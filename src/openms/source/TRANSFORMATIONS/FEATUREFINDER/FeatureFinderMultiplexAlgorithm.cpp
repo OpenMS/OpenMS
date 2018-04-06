@@ -400,15 +400,15 @@ namespace OpenMS
           double rt_1 = it_rt_1->getRT();
           double rt_2_target = rt_1 + rt_peptide[peptide] - rt_peptide[0];
           
-          MSExperiment::ConstIterator it_rt_2 = exp_centroid_.RTBegin(rt_2_target);
-          double rt_2 = it_rt_2->getRT();
+          MSExperiment::ConstIterator it_rt_2_tmp = exp_centroid_.RTBegin(rt_2_target);
+          double rt_2 = it_rt_2_tmp->getRT();
           // The previous spectrum might be a better match for the target RT <rt_2_target>.
-          if (it_rt_2 != exp_centroid_.begin())
+          if (it_rt_2_tmp != exp_centroid_.begin())
           {
-            if (std::abs((it_rt_2 - 1)->getRT() - rt_2_target) < std::abs(rt_2 - rt_2_target))
+            if (std::abs((it_rt_2_tmp - 1)->getRT() - rt_2_target) < std::abs(rt_2 - rt_2_target))
             {
-              --it_rt_2;
-              rt_2 = it_rt_2->getRT();
+              --it_rt_2_tmp;
+              rt_2 = it_rt_2_tmp->getRT();
             }
           }
           
@@ -677,7 +677,7 @@ namespace OpenMS
     return intensity_peptide_corrected;
   }
 
-  void FeatureFinderMultiplexAlgorithm::generateMapsCentroided_(std::vector<MultiplexIsotopicPeakPattern> patterns, std::vector<MultiplexFilteredMSExperiment> filter_results, std::vector<std::map<int, GridBasedCluster> > cluster_results, ConsensusMap& consensus_map, FeatureMap& feature_map)
+  void FeatureFinderMultiplexAlgorithm::generateMapsCentroided_(std::vector<MultiplexIsotopicPeakPattern> patterns, std::vector<MultiplexFilteredMSExperiment> filter_results, std::vector<std::map<int, GridBasedCluster> > cluster_results)
   {
     // loop over peak patterns
     for (unsigned pattern = 0; pattern < patterns.size(); ++pattern)
@@ -833,15 +833,15 @@ namespace OpenMS
           feature_handle.setMapIndex(peptide);
           //feature_handle.setUniqueId(&UniqueIdInterface::setUniqueId);    // TODO: Do we need to set unique ID?
           consensus.insert(feature_handle);
-          consensus_map.getFileDescriptions()[peptide].size++;
+          consensus_map_.getFileDescriptions()[peptide].size++;
         }
         
         if (!abort)
         {
-          consensus_map.push_back(consensus);
+          consensus_map_.push_back(consensus);
           for(std::vector<Feature>::iterator it = features.begin(); it != features.end(); ++it)
           {
-            feature_map.push_back(*it);
+            feature_map_.push_back(*it);
           }
         }
         
@@ -851,7 +851,7 @@ namespace OpenMS
     
   }
 
-  void FeatureFinderMultiplexAlgorithm::generateMapsProfile_(std::vector<MultiplexIsotopicPeakPattern> patterns, std::vector<MultiplexFilteredMSExperiment> filter_results, std::vector<std::map<int, GridBasedCluster> > cluster_results, ConsensusMap& consensus_map, FeatureMap& feature_map)
+  void FeatureFinderMultiplexAlgorithm::generateMapsProfile_(std::vector<MultiplexIsotopicPeakPattern> patterns, std::vector<MultiplexFilteredMSExperiment> filter_results, std::vector<std::map<int, GridBasedCluster> > cluster_results)
   {
     // progress logger
     //unsigned progress = 0;
@@ -993,15 +993,15 @@ namespace OpenMS
           feature_handle.setMapIndex(peptide);
           //feature_handle.setUniqueId(&UniqueIdInterface::setUniqueId);    // TODO: Do we need to set unique ID?
           consensus.insert(feature_handle);
-          consensus_map.getFileDescriptions()[peptide].size++;
+          consensus_map_.getFileDescriptions()[peptide].size++;
         }
         
         if (!abort)
         {
-          consensus_map.push_back(consensus);
+          consensus_map_.push_back(consensus);
           for(std::vector<Feature>::iterator it = features.begin(); it != features.end(); ++it)
           {
-            feature_map.push_back(*it);
+            feature_map_.push_back(*it);
           }
         }
         
@@ -1084,21 +1084,28 @@ namespace OpenMS
     /**
      * construct feature and consensus maps i.e. the final results
      */
-    ConsensusMap consensus_map;
-    FeatureMap feature_map;
-
     if (centroided_)
     {
       //consensus_map.setPrimaryMSRunPath(exp_centroid_.getPrimaryMSRunPath());
       //feature_map.setPrimaryMSRunPath(exp_centroid_.getPrimaryMSRunPath());
-      generateMapsCentroided_(patterns, filter_results, cluster_results, consensus_map, feature_map);
+      generateMapsCentroided_(patterns, filter_results, cluster_results);
     }
     else
     {
       //consensus_map.setPrimaryMSRunPath(exp_profile_.getPrimaryMSRunPath());
       //feature_map.setPrimaryMSRunPath(exp_profile_.getPrimaryMSRunPath());
-      generateMapsProfile_(patterns, filter_results, cluster_results, consensus_map, feature_map);
+      generateMapsProfile_(patterns, filter_results, cluster_results);
     }
 
+  }
+  
+  FeatureMap& FeatureFinderMultiplexAlgorithm::getFeatureMap()
+  {
+    return(feature_map_);
+  }
+  
+  ConsensusMap& FeatureFinderMultiplexAlgorithm::getConsensusMap()
+  {
+    return(consensus_map_);
   }
 }
