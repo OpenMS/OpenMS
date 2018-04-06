@@ -858,6 +858,10 @@ namespace OpenMS
       ph_alpha.setMetaValue("OpenXQuest:xcorr common", top_csms_spectrum[i].xcorrc_max);
       ph_alpha.setMetaValue("OpenXQuest:match-odds", top_csms_spectrum[i].match_odds);
       ph_alpha.setMetaValue("OpenXQuest:intsum", top_csms_spectrum[i].int_sum);
+      ph_alpha.setMetaValue("OpenXQuest:intsum_alpha", top_csms_spectrum[i].intsum_alpha);
+      ph_alpha.setMetaValue("OpenXQuest:intsum_beta", top_csms_spectrum[i].intsum_beta);
+      ph_alpha.setMetaValue("OpenXQuest:total_current", top_csms_spectrum[i].total_current);
+
       ph_alpha.setMetaValue("OpenXQuest:wTIC", top_csms_spectrum[i].wTIC);
       ph_alpha.setMetaValue("OpenXQuest:TIC", top_csms_spectrum[i].percTIC);
       ph_alpha.setMetaValue("OpenXQuest:prescore", top_csms_spectrum[i].pre_score);
@@ -884,6 +888,44 @@ namespace OpenMS
       ph_alpha.setMetaValue("matched_xlink_beta",top_csms_spectrum[i].matched_xlink_beta);
       ph_alpha.setMetaValue("matched_linear_alpha",top_csms_spectrum[i].matched_linear_alpha);
       ph_alpha.setMetaValue("matched_linear_beta",top_csms_spectrum[i].matched_linear_beta);
+
+
+      // TODO set these as MetaValues
+      ph_alpha.setMetaValue("num_iso_peaks_mean", top_csms_spectrum[i].num_iso_peaks_mean);
+      ph_alpha.setMetaValue("num_iso_peaks_mean_linear_alpha", top_csms_spectrum[i].num_iso_peaks_mean_linear_alpha);
+      ph_alpha.setMetaValue("num_iso_peaks_mean_linear_beta", top_csms_spectrum[i].num_iso_peaks_mean_linear_beta);
+      ph_alpha.setMetaValue("num_iso_peaks_mean_xlinks_alpha", top_csms_spectrum[i].num_iso_peaks_mean_xlinks_alpha);
+      ph_alpha.setMetaValue("num_iso_peaks_mean_xlinks_beta", top_csms_spectrum[i].num_iso_peaks_mean_xlinks_beta);
+
+      ph_alpha.setMetaValue("ppm_error_abs_sum_linear_alpha", top_csms_spectrum[i].ppm_error_abs_sum_linear_alpha);
+      ph_alpha.setMetaValue("ppm_error_abs_sum_linear_beta", top_csms_spectrum[i].ppm_error_abs_sum_linear_beta);
+      ph_alpha.setMetaValue("ppm_error_abs_sum_xlinks_alpha", top_csms_spectrum[i].ppm_error_abs_sum_xlinks_alpha);
+      ph_alpha.setMetaValue("ppm_error_abs_sum_xlinks_beta", top_csms_spectrum[i].ppm_error_abs_sum_xlinks_beta);
+
+      ph_alpha.setMetaValue("ppm_error_abs_sum_linear", top_csms_spectrum[i].ppm_error_abs_sum_linear);
+      ph_alpha.setMetaValue("ppm_error_abs_sum_xlinks", top_csms_spectrum[i].ppm_error_abs_sum_xlinks);
+      ph_alpha.setMetaValue("ppm_error_abs_sum_alpha", top_csms_spectrum[i].ppm_error_abs_sum_alpha);
+      ph_alpha.setMetaValue("ppm_error_abs_sum_beta", top_csms_spectrum[i].ppm_error_abs_sum_beta);
+      ph_alpha.setMetaValue("ppm_error_abs_sum", top_csms_spectrum[i].ppm_error_abs_sum);
+
+
+      // csm.num_iso_peaks_mean = 0;
+      // csm.num_iso_peaks_mean_linear_alpha = 0;
+      // csm.num_iso_peaks_mean_linear_beta = 0;
+      // csm.num_iso_peaks_mean_xlinks_alpha = 0;
+      // csm.num_iso_peaks_mean_xlinks_beta = 0;
+      //
+      // csm.ppm_error_abs_sum_linear_alpha = 0;
+      // csm.ppm_error_abs_sum_linear_beta = 0;
+      // csm.ppm_error_abs_sum_xlinks_alpha = 0;
+      // csm.ppm_error_abs_sum_xlinks_beta = 0;
+      //
+      // csm.ppm_error_abs_sum_linear = 0;
+      // csm.ppm_error_abs_sum_xlinks = 0;
+      // csm.ppm_error_abs_sum_alpha = 0;
+      // csm.ppm_error_abs_sum_beta = 0;
+      // csm.ppm_error_abs_sum = 0;
+
 
       ph_alpha.setMetaValue("selected", "false");
 

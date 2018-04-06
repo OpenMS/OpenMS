@@ -145,6 +145,10 @@ namespace OpenMS
         double wTIC;
         double wTICold;
         double int_sum;
+        double intsum_alpha;
+        double intsum_beta;
+        double total_current;
+
         double match_odds;
         double match_odds_alpha;
         double match_odds_beta;
