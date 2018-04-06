@@ -46,7 +46,6 @@
 #include <OpenMS/MATH/STATISTICS/LinearRegression.h>
 #include <OpenMS/KERNEL/RangeUtils.h>
 #include <OpenMS/KERNEL/ChromatogramTools.h>
-#include <OpenMS/FORMAT/MzQuantMLFile.h>
 #include <OpenMS/FORMAT/PeakTypeEstimator.h>
 
 #include <OpenMS/METADATA/MSQuantifications.h>
@@ -64,6 +63,7 @@
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFilteringProfile.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexClustering.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexSatelliteCentroided.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderMultiplexAlgorithm.h>
 #include <OpenMS/COMPARISON/CLUSTERING/GridBasedCluster.h>
 #include <OpenMS/DATASTRUCTURES/DPosition.h>
 #include <OpenMS/DATASTRUCTURES/DBoundingBox.h>
@@ -196,8 +196,6 @@ public:
     setValidFormats_("out", ListUtils::create<String>("consensusXML"));
     registerOutputFile_("out_features", "<file>", "", "Optional output file containing the individual peptide features in \'out\'.", false, true);
     setValidFormats_("out_features", ListUtils::create<String>("featureXML"));
-    registerOutputFile_("out_mzq", "<file>", "", "Optional output file of MzQuantML.", false, true);
-    setValidFormats_("out_mzq", ListUtils::create<String>("mzq"));
 
     registerSubsection_("algorithm", "Parameters for the algorithm.");
     registerSubsection_("labels", "Isotopic labels that can be specified in section \'algorithm:labels\'.");
@@ -267,7 +265,6 @@ public:
     in_ = getStringOption_("in");
     out_ = getStringOption_("out");
     out_features_ = getStringOption_("out_features");
-    out_mzq_ = getStringOption_("out_mzq");
   }
 
   /**
@@ -1207,92 +1204,6 @@ public:
   }
   
   /**
-   * @brief generates the data structure for mzQuantML output
-   *
-   * @param exp    experimental data
-   * @param consensus_map    consensus map with complete quantitative information
-   * @param quantifications    MSQuantifications data structure for writing mzQuantML (mzq)
-   */
-  void generateMSQuantifications(MSExperiment& exp, ConsensusMap& consensus_map, MSQuantifications& quantifications)
-  {
-    // generate the labels
-    // (for each sample a list of (label string, mass shift) pairs)
-    // for example triple-SILAC: [(none,0)][(Lys4,4.0251),(Arg6,6.0201)][Lys8,8.0141)(Arg10,10.0082)]
-    std::vector<std::vector<std::pair<String, double> > > labels;
-    
-    for (unsigned sample = 0; sample < samples_labels_.size(); ++sample)
-    {
-      // The labels are required to be ordered in mass shift.
-      std::map<double, String> single_label_map;
-      std::vector<std::pair<String, double> > single_label;
-      for (unsigned label = 0; label < samples_labels_[sample].size(); ++label)
-      {
-        String label_string = samples_labels_[sample][label];
-        double shift;
-        if (label_string == "")
-        {
-          label_string = "none";
-          shift = 0;
-        }
-        else
-        {
-          shift = label_mass_shift_[label_string];
-        }
-
-        single_label_map[shift] = label_string;
-      }
-      for (std::map<double, String>::const_iterator it = single_label_map.begin(); it != single_label_map.end(); ++it)
-      {
-        std::pair<String, double> label_shift(it->second, it->first);
-        single_label.push_back(label_shift);
-      }
-      labels.push_back(single_label);
-    }
-
-    quantifications.registerExperiment(exp, labels);
-    quantifications.assignUIDs();
-
-    MSQuantifications::QUANT_TYPES quant_type = MSQuantifications::MS1LABEL;
-    quantifications.setAnalysisSummaryQuantType(quant_type);
-
-    // add results from  analysis
-    LOG_DEBUG << "Generating output mzQuantML file..." << endl;
-    ConsensusMap numap(consensus_map);
-    
-    //calculate ratios
-    for (ConsensusMap::iterator cit = numap.begin(); cit != numap.end(); ++cit)
-    {
-      // make ratio templates
-      std::vector<ConsensusFeature::Ratio> rts;
-      for (std::vector<MSQuantifications::Assay>::const_iterator ait = quantifications.getAssays().begin() + 1; ait != quantifications.getAssays().end(); ++ait)
-      {
-        ConsensusFeature::Ratio r;
-        r.numerator_ref_ = String(quantifications.getAssays().begin()->uid_);
-        r.denominator_ref_ = String(ait->uid_);
-        r.description_.push_back("Simple ratio calc");
-        r.description_.push_back("light to medium/.../heavy");
-        rts.push_back(r);
-      }
-
-      const ConsensusFeature::HandleSetType& feature_handles = cit->getFeatures();
-      if (feature_handles.size() > 1)
-      {
-        std::set<FeatureHandle, FeatureHandle::IndexLess>::const_iterator fit = feature_handles.begin(); // this is unlabeled
-        ++fit;
-        for (; fit != feature_handles.end(); ++fit)
-        {
-          Size ri = std::distance(feature_handles.begin(), fit);
-          rts[ri - 1].ratio_value_ =  feature_handles.begin()->getIntensity() / fit->getIntensity(); // a proper algo should never have 0-intensities so no 0devison ...
-        }
-      }
-
-      cit->setRatios(rts);
-    }
-    quantifications.addConsensusMap(numap); //add FeatureFinderMultiplex result
-
-  }
-
-  /**
    * @brief Write consensus map to consensusXML file.
    *
    * @param filename    name of consensusXML file
@@ -1346,18 +1257,6 @@ public:
 
     FeatureXMLFile file;
     file.store(filename, map);
-  }
-
-  /**
-   * @brief Write MS quantification map to mzq file.
-   *
-   * @param filename    name of mzq file
-   * @param map    MS quantification map for output
-   */
-  void writeMSQuantifications(const String& filename, MSQuantifications& msq) const
-  {
-    MzQuantMLFile file;
-    file.store(filename, msq);
   }
 
   /**
@@ -1596,13 +1495,6 @@ private:
     {
       writeFeatureMap_(out_features_, feature_map);
     }
-
-    /*if (out_mzq_ != "")
-    {
-      MSQuantifications quantifications;
-      generateMSQuantifications(exp, consensus_map, quantifications);
-      writeMSQuantifications(out_mzq_, quantifications);
-    }*/
 
     return EXECUTION_OK;
   }

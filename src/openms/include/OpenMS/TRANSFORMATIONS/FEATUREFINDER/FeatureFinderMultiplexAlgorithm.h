@@ -57,10 +57,10 @@ class OPENMS_DLLAPI FeatureFinderMultiplexAlgorithm :
 {
 public:
   /// default constructor
-  FeatureFinderMultiplexAlgorithm(MSExperiment& exp, bool centroided);
+  FeatureFinderMultiplexAlgorithm();
 
   /// main method for feature detection
-  void run();
+  void run(MSExperiment& exp, bool centroided);
   
   /// get methods
   FeatureMap& getFeatureMap();

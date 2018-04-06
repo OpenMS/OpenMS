@@ -59,8 +59,8 @@ using namespace std;
 
 namespace OpenMS
 {
-  FeatureFinderMultiplexAlgorithm::FeatureFinderMultiplexAlgorithm(MSExperiment& exp, bool centroided) :
-    DefaultParamHandler("FeatureFinderMultiplexAlgorithm"), centroided_(centroided)
+  FeatureFinderMultiplexAlgorithm::FeatureFinderMultiplexAlgorithm() :
+    DefaultParamHandler("FeatureFinderMultiplexAlgorithm")
   {
     // parameter section: algorithm
     defaults_.setValue("algorithm:labels", "[][Lys8,Arg10]", "Labels used for labelling the samples. If the sample is unlabelled (i.e. you want to detect only single peptide features) please leave this parameter empty. [...] specifies the labels for a single sample. For example\n\n[][Lys8,Arg10]        ... SILAC\n[][Lys4,Arg6][Lys8,Arg10]        ... triple-SILAC\n[Dimethyl0][Dimethyl6]        ... Dimethyl\n[Dimethyl0][Dimethyl4][Dimethyl8]        ... triple Dimethyl\n[ICPL0][ICPL4][ICPL6][ICPL10]        ... ICPL");
@@ -125,29 +125,6 @@ namespace OpenMS
     
     rt_min_ = param_.getValue("algorithm:rt_min");
 
-    // check for empty experimental data
-    if (exp.getSpectra().empty())
-    {
-      throw OpenMS::Exception::FileEmpty(__FILE__, __LINE__, __FUNCTION__, "Error: No MS1 spectra in input file.");
-    }
-    
-    // update m/z and RT ranges
-    exp.updateRanges();
-    
-    // sort according to RT and MZ
-    exp.sortSpectra();
-
-    // store experiment in member varaibles
-    if (centroided_)
-    {
-      exp.swap(exp_centroid_);
-      // exp_profile_ will never be used.
-    }
-    else
-    {
-      exp.swap(exp_profile_);
-      // exp_centroid_ will be constructed later on.
-    }
   }
   
   /**
@@ -1012,8 +989,34 @@ namespace OpenMS
     //endProgress();
   }
 
-  void FeatureFinderMultiplexAlgorithm::run()
+  void FeatureFinderMultiplexAlgorithm::run(MSExperiment& exp, bool centroided)
   {
+    centroided_ = centroided;
+    
+    // check for empty experimental data
+    if (exp.getSpectra().empty())
+    {
+      throw OpenMS::Exception::FileEmpty(__FILE__, __LINE__, __FUNCTION__, "Error: No MS1 spectra in input file.");
+    }
+    
+    // update m/z and RT ranges
+    exp.updateRanges();
+    
+    // sort according to RT and MZ
+    exp.sortSpectra();
+    
+    // store experiment in member varaibles
+    if (centroided_)
+    {
+      exp.swap(exp_centroid_);
+      // exp_profile_ will never be used.
+    }
+    else
+    {
+      exp.swap(exp_profile_);
+      // exp_centroid_ will be constructed later on.
+    }
+
     /**
      * pick peaks (if input data are in profile mode)
      */
