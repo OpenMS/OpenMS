@@ -95,7 +95,7 @@ namespace OpenMS
     defaults_.setValidStrings("algorithm:averagine_type", ListUtils::create<String>("peptide,RNA,DNA"));
     
     // parameter section: labels
-    MultiplexDeltaMassesGenerator generator;
+    /*MultiplexDeltaMassesGenerator generator;
     Param p = generator.getParameters();
     for (Param::ParamIterator it = p.begin(); it != p.end(); ++it)
     {
@@ -103,19 +103,19 @@ namespace OpenMS
       defaults_.setMinFloat(it->name, 0.0);
       
       label_mass_shift_.insert(make_pair(it->name, it->value));
-    }
+    }*/
     
     // parameter section: algorithm, get selected charge range
-    String charge_string = param_.getValue("algorithm:charge");
+    /*String charge_string = param_.getValue("algorithm:charge");
     charge_min_ = charge_string.prefix(':').toInt();
     charge_max_ = charge_string.suffix(':').toInt();
     if (charge_min_ > charge_max_)
     {
       swap(charge_min_, charge_max_);
-    }
+    }*/
     
     // parameter section: algorithm, get isotopes per peptide range
-    String isotopes_per_peptide_string = param_.getValue("algorithm:isotopes_per_peptide");
+    /*String isotopes_per_peptide_string = param_.getValue("algorithm:isotopes_per_peptide");
     isotopes_per_peptide_min_ = isotopes_per_peptide_string.prefix(':').toInt();
     isotopes_per_peptide_max_ = isotopes_per_peptide_string.suffix(':').toInt();
     if (isotopes_per_peptide_min_ > isotopes_per_peptide_max_)
@@ -123,7 +123,7 @@ namespace OpenMS
       swap(isotopes_per_peptide_min_, isotopes_per_peptide_max_);
     }
     
-    rt_min_ = param_.getValue("algorithm:rt_min");
+    rt_min_ = param_.getValue("algorithm:rt_min");*/
 
   }
   
