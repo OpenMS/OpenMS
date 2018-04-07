@@ -1345,6 +1345,13 @@ ${TOPP_BIN_PATH}/OpenSwathDecoyGenerator -test -in ${DATA_DIR_TOPP}/OpenSwathDec
   set_tests_properties("TOPP_OpenSwathWorkflow_16_out1" PROPERTIES DEPENDS "TOPP_OpenSwathWorkflow_16")
   set_tests_properties("TOPP_OpenSwathWorkflow_16_out2" PROPERTIES DEPENDS "TOPP_OpenSwathWorkflow_16")
 
+  # Test with ion mobility
+  add_test("TOPP_OpenSwathWorkflow_17" ${TOPP_BIN_PATH}/OpenSwathWorkflow -in ${DATA_DIR_TOPP}/OpenSwathWorkflow_17_input.mzML -tr ${DATA_DIR_TOPP}/OpenSwathWorkflow_17_input.tsv -out_chrom OpenSwathWorkflow_17.chrom.mzML.tmp -out_features OpenSwathWorkflow_17.featureXML.tmp -test -use_ms1_traces -readOptions workingInMemory)
+  add_test("TOPP_OpenSwathWorkflow_17_out1" ${DIFF} -whitelist "id=" -in1 OpenSwathWorkflow_17.featureXML.tmp -in2 ${DATA_DIR_TOPP}/OpenSwathWorkflow_17_output.featureXML)
+  add_test("TOPP_OpenSwathWorkflow_17_out2" ${DIFF} -whitelist "id=" -in1 OpenSwathWorkflow_17.chrom.mzML.tmp -in2 ${DATA_DIR_TOPP}/OpenSwathWorkflow_17_output.chrom.mzML)
+  set_tests_properties("TOPP_OpenSwathWorkflow_17_out1" PROPERTIES DEPENDS "TOPP_OpenSwathWorkflow_17")
+  set_tests_properties("TOPP_OpenSwathWorkflow_17_out2" PROPERTIES DEPENDS "TOPP_OpenSwathWorkflow_17")
+
   add_test("TOPP_OpenSwathFileSplitter_1" ${TOPP_BIN_PATH}/OpenSwathFileSplitter -in ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.mzML -outputDirectory "" -test)
   add_test("TOPP_OpenSwathFileSplitter_1_out1" ${DIFF} -whitelist "id=" -in1 openswath_tmpfile_ms1.mzML -in2 ${DATA_DIR_TOPP}/openswath_tmpfile_ms1.mzML)
   add_test("TOPP_OpenSwathFileSplitter_1_out2" ${DIFF} -whitelist "id=" -in1 openswath_tmpfile_4.mzML -in2 ${DATA_DIR_TOPP}/openswath_tmpfile_4.mzML)
