@@ -58,6 +58,7 @@
 							<selectedIon>
 								<cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="412.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 								<cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2" />
+								<cvParam cvRef="MS" accession="MS:1002476" name="ion mobility drift time" value="0.2" unitAccession="UO:0000028" unitName="millisecond" unitCvRef="UO" />
 							</selectedIon>
 						</selectedIonList>
 						<activation>
@@ -95,6 +96,7 @@
 							<selectedIon>
 								<cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="417.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 								<cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2" />
+								<cvParam cvRef="MS" accession="MS:1002476" name="ion mobility drift time" value="0.3" unitAccession="UO:0000028" unitName="millisecond" unitCvRef="UO" />
 							</selectedIon>
 						</selectedIonList>
 						<activation>
@@ -132,6 +134,7 @@
 							<selectedIon>
 								<cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="412.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 								<cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2" />
+								<cvParam cvRef="MS" accession="MS:1002476" name="ion mobility drift time" value="0.2" unitAccession="UO:0000028" unitName="millisecond" unitCvRef="UO" />
 							</selectedIon>
 						</selectedIonList>
 						<activation>
@@ -169,6 +172,7 @@
 							<selectedIon>
 								<cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="417.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 								<cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2" />
+								<cvParam cvRef="MS" accession="MS:1002476" name="ion mobility drift time" value="0.3" unitAccession="UO:0000028" unitName="millisecond" unitCvRef="UO" />
 							</selectedIon>
 						</selectedIonList>
 						<activation>
@@ -206,6 +210,7 @@
 							<selectedIon>
 								<cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="412.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 								<cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2" />
+								<cvParam cvRef="MS" accession="MS:1002476" name="ion mobility drift time" value="0.2" unitAccession="UO:0000028" unitName="millisecond" unitCvRef="UO" />
 							</selectedIon>
 						</selectedIonList>
 						<activation>
@@ -243,6 +248,7 @@
 							<selectedIon>
 								<cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="417.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 								<cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2" />
+								<cvParam cvRef="MS" accession="MS:1002476" name="ion mobility drift time" value="0.3" unitAccession="UO:0000028" unitName="millisecond" unitCvRef="UO" />
 							</selectedIon>
 						</selectedIonList>
 						<activation>
@@ -280,6 +286,7 @@
 							<selectedIon>
 								<cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="412.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 								<cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2" />
+								<cvParam cvRef="MS" accession="MS:1002476" name="ion mobility drift time" value="0.2" unitAccession="UO:0000028" unitName="millisecond" unitCvRef="UO" />
 							</selectedIon>
 						</selectedIonList>
 						<activation>
@@ -317,6 +324,7 @@
 							<selectedIon>
 								<cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="417.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 								<cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2" />
+								<cvParam cvRef="MS" accession="MS:1002476" name="ion mobility drift time" value="0.3" unitAccession="UO:0000028" unitName="millisecond" unitCvRef="UO" />
 							</selectedIon>
 						</selectedIonList>
 						<activation>
@@ -350,15 +358,15 @@
 <indexList count="1">
 	<index name="chromatogram">
 		<offset idRef="PEPTIDEA_Precursor_i0">3268</offset>
-		<offset idRef="PEPTIDEB_Precursor_i0">5431</offset>
-		<offset idRef="tr1">7594</offset>
-		<offset idRef="4">9909</offset>
-		<offset idRef="tr2">12222</offset>
-		<offset idRef="5">14537</offset>
-		<offset idRef="3">16850</offset>
-		<offset idRef="6">19163</offset>
+		<offset idRef="PEPTIDEB_Precursor_i0">5593</offset>
+		<offset idRef="tr1">7918</offset>
+		<offset idRef="4">10395</offset>
+		<offset idRef="tr2">12870</offset>
+		<offset idRef="5">15347</offset>
+		<offset idRef="3">17822</offset>
+		<offset idRef="6">20297</offset>
 	</index>
 </indexList>
-<indexListOffset>21510</indexListOffset>
+<indexListOffset>22806</indexListOffset>
 <fileChecksum>0</fileChecksum>
 </indexedmzML>
