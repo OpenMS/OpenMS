@@ -987,6 +987,7 @@ namespace OpenMS
       }
 
       double rt = pep.rt;
+      coord.ion_mobility = pep.getDriftTime();
       coord.rt_start = rt - rt_extraction_window / 2.0;
       coord.rt_end = rt + rt_extraction_window / 2.0;
       coordinates.push_back(coord);
