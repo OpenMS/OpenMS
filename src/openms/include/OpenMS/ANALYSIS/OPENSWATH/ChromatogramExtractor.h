@@ -260,6 +260,7 @@ public:
      * 5) the meta-data, e.g. InstrumentSettings, AcquisitionInfo, 
      *     sourceFile and DataProcessing
      * 6) the native ID from the transition
+     * 7) ion mobility extraction target and window (lower/upper)
      *
      */
     template <typename TransitionExpT>
@@ -268,7 +269,7 @@ public:
       TransitionExpT& transition_exp_used,
       SpectrumSettings settings,
       std::vector<OpenMS::MSChromatogram > & output_chromatograms,
-      bool ms1)
+      bool ms1, double im_extraction_width = 0.0)
     {
       typedef std::map<String, const typename TransitionExpT::Transition* > TransitionMapType;
       TransitionMapType trans_map;
@@ -331,6 +332,13 @@ public:
             String r = extract_id_(transition_exp_used, transition.getCompoundRef());
             prec.setMetaValue("peptide_sequence", r);
           }
+        }
+
+        if (coord.ion_mobility >= 0 && im_extraction_width > 0.0)
+        {
+          prec.setDriftTime(coord.ion_mobility);
+          prec.setDriftTimeWindowLowerOffset(im_extraction_width / 2.0);
+          prec.setDriftTimeWindowUpperOffset(im_extraction_width / 2.0);
         }
         chrom.setPrecursor(prec);
 

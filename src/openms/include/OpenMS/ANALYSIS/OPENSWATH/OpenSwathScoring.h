@@ -635,6 +635,7 @@ var_yseries_score   -0.0327896378737766
                                               double RT, int nr_spectra_to_add);
 
   protected:
+
     /** @brief Returns an averaged spectrum
      *
      * This function will sum up (add) the intensities of multiple spectra
