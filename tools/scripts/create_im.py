@@ -88,19 +88,27 @@ for rt_idx in range(NR_RT_SAMPLES):
         sp.setMSLevel(2)
 
         # peaks of a precursor at 412.5 m/z : 100, 101, 102, .. 100 + NR_PEAKS
-        #  range from window 0 to 10
+        # and ion mobility 100
         for i in range(NR_PEAKS):
-            if im_idx > 50*i and im_idx < 50*i + 20:
-                apex_dist = abs( 50*i+10 - im_idx)
+            if im_idx > 90 and im_idx < 90 + 20:
+                apex_dist = abs( 100 - im_idx)
                 p = Peak1D()
                 p.setMZ(100+i)
                 p.setIntensity(base_int * (i + 1) - base_int * (i + 1) * apex_dist / 10.0)
                 allmz.append(p.getMZ())
                 allint.append(p.getIntensity())
-                ## print (base_int * (i + 1) )
-                ## print (base_int * (i + 1) * apex_dist / 10.0)
-                ## print ("apex dist", apex_dist)
-                ## print ("intensity", p.getIntensity())
+                allim.append( im_idx / 500.0)
+
+        # peaks of a precursor at 417.5 m/z : 100, 101, 102, .. 100 + NR_PEAKS
+        # and ion mobility 150
+        for i in range(NR_PEAKS):
+            if im_idx > 130 and im_idx < 130 + 40:
+                apex_dist = abs( 150 - im_idx)
+                p = Peak1D()
+                p.setMZ(100+i)
+                p.setIntensity(base_int * (i + 1) - base_int * (i + 1) * apex_dist / 20.0)
+                allmz.append(p.getMZ())
+                allint.append(p.getIntensity())
                 allim.append( im_idx / 500.0)
 
     mz = allmz
