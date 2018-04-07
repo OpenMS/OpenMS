@@ -122,6 +122,28 @@ START_SECTION((void setIsolationWindowLowerOffset(double bound)))
   TEST_REAL_SIMILAR(tmp.getIsolationWindowLowerOffset(), 22.8);
 END_SECTION
 
+START_SECTION((double getDriftTimeWindowUpperOffset() const))
+  Precursor tmp;
+  TEST_REAL_SIMILAR(tmp.getDriftTimeWindowUpperOffset(), 0);
+END_SECTION
+
+START_SECTION((void setDriftTimeWindowUpperOffset(double bound)))
+  Precursor tmp;
+  tmp.setDriftTimeWindowUpperOffset(22.7);
+  TEST_REAL_SIMILAR(tmp.getDriftTimeWindowUpperOffset(), 22.7);
+END_SECTION
+
+START_SECTION((double getDriftTimeWindowLowerOffset() const))
+  Precursor tmp;
+  TEST_REAL_SIMILAR(tmp.getDriftTimeWindowLowerOffset(), 0);
+END_SECTION
+
+START_SECTION((void setDriftTimeWindowLowerOffset(double bound)))
+  Precursor tmp;
+  tmp.setDriftTimeWindowLowerOffsetj(22.8);
+  TEST_REAL_SIMILAR(tmp.getDriftTimeWindowLowerOffset(), 22.8);
+END_SECTION
+
 START_SECTION((Int getCharge() const))
   Precursor tmp;
   TEST_EQUAL(tmp.getCharge(), 0);
@@ -158,6 +180,8 @@ START_SECTION((Precursor(const Precursor& source)))
 	tmp.getActivationMethods().insert(Precursor::CID);
   tmp.setIsolationWindowUpperOffset(22.7);
   tmp.setIsolationWindowLowerOffset(22.8);
+  tmp.setDriftTimeWindowUpperOffset(12.8);
+  tmp.setDriftTimeWindowLowerOffset(12.7);
 	tmp.setMetaValue("label",String("label"));
 	
 	Precursor tmp2(tmp);
@@ -165,6 +189,8 @@ START_SECTION((Precursor(const Precursor& source)))
 	TEST_EQUAL(tmp2.getActivationMethods().size(),1);
 	TEST_REAL_SIMILAR(tmp2.getIsolationWindowUpperOffset(), 22.7);
 	TEST_REAL_SIMILAR(tmp2.getIsolationWindowLowerOffset(), 22.8);
+	TEST_REAL_SIMILAR(tmp2.getDriftTimeWindowUpperOffset(), 12.7);
+	TEST_REAL_SIMILAR(tmp2.getDriftTimeWindowLowerOffset(), 12.8);
 	TEST_REAL_SIMILAR(tmp2.getActivationEnergy(),47.11);
 	TEST_REAL_SIMILAR(tmp2.getDriftTime(),7.11);
 END_SECTION
@@ -176,6 +202,8 @@ START_SECTION((Precursor& operator= (const Precursor& source)))
 	tmp.getActivationMethods().insert(Precursor::CID);
   tmp.setIsolationWindowUpperOffset(22.7);
   tmp.setIsolationWindowLowerOffset(22.8);
+  tmp.setDriftTimeWindowUpperOffset(12.8);
+  tmp.setDriftTimeWindowLowerOffset(12.7);
 	tmp.setMetaValue("label",String("label"));
 	
 	//normal assignment
@@ -185,6 +213,8 @@ START_SECTION((Precursor& operator= (const Precursor& source)))
 	TEST_EQUAL(tmp2.getActivationMethods().size(),1);
 	TEST_REAL_SIMILAR(tmp2.getIsolationWindowUpperOffset(), 22.7);
 	TEST_REAL_SIMILAR(tmp2.getIsolationWindowLowerOffset(), 22.8);
+	TEST_REAL_SIMILAR(tmp2.getDriftTimeWindowUpperOffset(), 12.7);
+	TEST_REAL_SIMILAR(tmp2.getDriftTimeWindowLowerOffset(), 12.8);
 	TEST_REAL_SIMILAR(tmp2.getActivationEnergy(),47.11);
 	TEST_REAL_SIMILAR(tmp2.getDriftTime(),7.11);
 		
@@ -194,6 +224,8 @@ START_SECTION((Precursor& operator= (const Precursor& source)))
 	TEST_EQUAL(tmp2.getActivationMethods().size(),0);
 	TEST_REAL_SIMILAR(tmp2.getIsolationWindowUpperOffset(), 0.0);
 	TEST_REAL_SIMILAR(tmp2.getIsolationWindowLowerOffset(), 0.0);
+	TEST_REAL_SIMILAR(tmp2.getDriftTimeWindowUpperOffset(), 0.0);
+	TEST_REAL_SIMILAR(tmp2.getDriftTimeWindowLowerOffset(), 0.0);
 	TEST_REAL_SIMILAR(tmp2.getActivationEnergy(),0.0);
 	TEST_REAL_SIMILAR(tmp2.getDriftTime(),-1.0);
 END_SECTION
@@ -220,6 +252,14 @@ START_SECTION((bool operator== (const Precursor& rhs) const))
 
 	tmp2 = tmp;
   tmp.setIsolationWindowLowerOffset(22.8);
+	TEST_EQUAL(tmp==tmp2, false);
+
+	tmp2 = tmp;
+  tmp.setDriftTimeWindowUpperOffset(22.7);
+	TEST_EQUAL(tmp==tmp2, false);
+
+	tmp2 = tmp;
+  tmp.setDriftTimeWindowLowerOffset(22.8);
 	TEST_EQUAL(tmp==tmp2, false);
 
 	tmp2 = tmp;
@@ -257,6 +297,14 @@ START_SECTION((bool operator!= (const Precursor& rhs) const))
 
 	tmp2 = tmp;	tmp2 = tmp;
   tmp.setIsolationWindowLowerOffset(22.8);
+	TEST_EQUAL(tmp!=tmp2, true);
+
+	tmp2 = tmp;	tmp2 = tmp;
+  tmp.setDriftTimeWindowUpperOffset(22.7);
+	TEST_EQUAL(tmp!=tmp2, true);
+
+	tmp2 = tmp;	tmp2 = tmp;
+  tmp.setDriftTimeWindowLowerOffset(22.8);
 	TEST_EQUAL(tmp!=tmp2, true);
 
 	tmp2 = tmp;
