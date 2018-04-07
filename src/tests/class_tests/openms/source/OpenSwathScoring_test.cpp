@@ -119,7 +119,8 @@ START_SECTION((void getNormalized_library_intensities_(const std::vector<Transit
 }
 END_SECTION
 
-START_SECTION((OpenSwath::SpectrumPtr getAddedSpectra_(OpenSwath::SpectrumAccessPtr swath_map, double RT, int nr_spectra_to_add)))
+START_SECTION((OpenSwath::SpectrumPtr OpenSwathScoring::fetchSpectrumSwath(std::vector<OpenSwath::SwathMap> swath_maps,
+                                                              double RT, int nr_spectra_to_add)))
 {
 
   // test result for empty map
@@ -128,7 +129,7 @@ START_SECTION((OpenSwath::SpectrumPtr getAddedSpectra_(OpenSwath::SpectrumAccess
     OpenSwath::SpectrumAccessPtr swath_ptr = SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(swath_map);
 
     OpenSwathScoring sc;
-    OpenSwath::SpectrumPtr sp = sc.getAddedSpectra_(swath_ptr, 20.0, 1);
+    OpenSwath::SpectrumPtr sp = sc.fetchSpectrumSwath(swath_ptr, 20.0, 1);
 
     TEST_EQUAL(sp->getMZArray()->data.empty(), true);
   }
@@ -148,7 +149,7 @@ START_SECTION((OpenSwath::SpectrumPtr getAddedSpectra_(OpenSwath::SpectrumAccess
 
     TEST_EQUAL(swath_ptr->getNrSpectra(), 1)
     OpenSwathScoring sc;
-    OpenSwath::SpectrumPtr sp = sc.getAddedSpectra_(swath_ptr, 20.0, 1);
+    OpenSwath::SpectrumPtr sp = sc.fetchSpectrumSwath(swath_ptr, 20.0, 1);
 
     TEST_EQUAL(sp->getMZArray()->data.size(), 1);
     TEST_EQUAL(sp->getIntensityArray()->data.size(), 1);
@@ -176,7 +177,7 @@ START_SECTION((OpenSwath::SpectrumPtr getAddedSpectra_(OpenSwath::SpectrumAccess
 
     TEST_EQUAL(swath_ptr->getNrSpectra(), 3)
     OpenSwathScoring sc;
-    OpenSwath::SpectrumPtr sp = sc.getAddedSpectra_(swath_ptr, 20.0, 3);
+    OpenSwath::SpectrumPtr sp = sc.fetchSpectrumSwath(swath_ptr, 20.0, 3);
 
     TEST_EQUAL(sp->getMZArray()->data.size(), 1);
     TEST_EQUAL(sp->getIntensityArray()->data.size(), 1);
@@ -206,7 +207,7 @@ START_SECTION((OpenSwath::SpectrumPtr getAddedSpectra_(OpenSwath::SpectrumAccess
 
     TEST_EQUAL(swath_ptr->getNrSpectra(), 2)
     OpenSwathScoring sc;
-    OpenSwath::SpectrumPtr sp = sc.getAddedSpectra_(swath_ptr, 20.0, 3);
+    OpenSwath::SpectrumPtr sp = sc.fetchSpectrumSwath(swath_ptr, 20.0, 3);
 
     TEST_EQUAL(sp->getMZArray()->data.size(), 1);
     TEST_EQUAL(sp->getIntensityArray()->data.size(), 1);

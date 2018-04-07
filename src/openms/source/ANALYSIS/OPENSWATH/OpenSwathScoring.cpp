@@ -106,7 +106,7 @@ namespace OpenMS
     getNormalized_library_intensities_(transitions, normalized_library_intensity);
 
     // find spectrum that is closest to the apex of the peak using binary search
-    OpenSwath::SpectrumPtr spectrum = getAddedSpectra_(used_swath_maps, imrmfeature->getRT(), add_up_spectra_);
+    OpenSwath::SpectrumPtr spectrum = fetchSpectrumSwath(used_swath_maps, imrmfeature->getRT(), add_up_spectra_);
 
     // Mass deviation score
     diascoring.dia_massdiff_score(transitions, spectrum, normalized_library_intensity,
@@ -158,7 +158,7 @@ namespace OpenMS
     // - compute isotopic pattern score
     if (ms1_map && ms1_map->getNrSpectra() > 0)
     {
-      OpenSwath::SpectrumPtr ms1_spectrum = getAddedSpectra_(ms1_map, rt, add_up_spectra_);
+      OpenSwath::SpectrumPtr ms1_spectrum = fetchSpectrumSwath(ms1_map, rt, add_up_spectra_);
       diascoring.dia_ms1_massdiff_score(precursor_mz, ms1_spectrum, scores.ms1_ppm_score);
 
       // derive precursor charge state (get from data if possible)
@@ -211,7 +211,7 @@ namespace OpenMS
     }
 
     // find spectrum that is closest to the apex of the peak using binary search
-    OpenSwath::SpectrumPtr spectrum = getAddedSpectra_(used_swath_maps, imrmfeature->getRT(), add_up_spectra_);
+    OpenSwath::SpectrumPtr spectrum = fetchSpectrumSwath(used_swath_maps, imrmfeature->getRT(), add_up_spectra_);
 
     // If no charge is given, we assume it to be 1
     int putative_product_charge = 1;
@@ -362,8 +362,14 @@ namespace OpenMS
     OpenSwath::Scoring::normalize_sum(&normalized_library_intensity[0], boost::numeric_cast<int>(normalized_library_intensity.size()));
   }
 
-  OpenSwath::SpectrumPtr OpenSwathScoring::getAddedSpectra_(std::vector<OpenSwath::SwathMap> swath_maps,
-                                                            double RT, int nr_spectra_to_add)
+  OpenSwath::SpectrumPtr OpenSwathScoring::fetchSpectrumSwath(OpenSwath::SpectrumAccessPtr swath_map,
+                                                              double RT, int nr_spectra_to_add)
+  {
+      return getAddedSpectra_(swath_map, RT, nr_spectra_to_add);
+  }
+
+  OpenSwath::SpectrumPtr OpenSwathScoring::fetchSpectrumSwath(std::vector<OpenSwath::SwathMap> swath_maps,
+                                                              double RT, int nr_spectra_to_add)
   {
     if (swath_maps.size() == 1)
     {
@@ -371,6 +377,7 @@ namespace OpenMS
     }
     else
     {
+      // multiple SWATH maps for a single precursor -> this is SONAR data
       std::vector<OpenSwath::SpectrumPtr> all_spectra;
       for (size_t i = 0; i < swath_maps.size(); ++i)
       {

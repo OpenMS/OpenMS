@@ -40,10 +40,6 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/OpenSwathScoring.h>" namespace "Ope
         void getNormalized_library_intensities_(libcpp_vector[LightTransition] transitions,
                                                 libcpp_vector[double] normalized_library_intensity) nogil except +
 
-        # TODO OpenSwath::SpectrumAccessPtr swath_map, 
-        shared_ptr[OSSpectrum] getAddedSpectra_(shared_ptr[ SpectrumAccessOpenMS ] swath_map,
-                                                double RT, int nr_spectra_to_add) nogil except +
-
     cdef cppclass OpenSwath_Scores_Usage:
 
         OpenSwath_Scores_Usage() nogil except +
