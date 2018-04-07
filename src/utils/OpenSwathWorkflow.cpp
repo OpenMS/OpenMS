@@ -435,6 +435,7 @@ protected:
     registerDoubleOption_("min_upper_edge_dist", "<double>", 0.0, "Minimal distance to the edge to still consider a precursor, in Thomson", false, true);
     registerDoubleOption_("rt_extraction_window", "<double>", 600.0, "Only extract RT around this value (-1 means extract over the whole range, a value of 600 means to extract around +/- 300 s of the expected elution).", false);
     registerDoubleOption_("extra_rt_extraction_window", "<double>", 0.0, "Output an XIC with a RT-window that by this much larger (e.g. to visually inspect a larger area of the chromatogram)", false, true);
+    registerDoubleOption_("ion_mobility_window", "<double>", -1, "Extraction window in ion mobility dimension (in milliseconds). This is the full window size, e.g. a value of 10 milliseconds would extract 5 milliseconds on either side.", false);
     registerDoubleOption_("mz_extraction_window", "<double>", 0.05, "Extraction window used (in Thomson, to use ppm see -ppm flag)", false);
     setMinFloat_("mz_extraction_window", 0.0);
     setMinFloat_("extra_rt_extraction_window", 0.0);
@@ -716,6 +717,7 @@ protected:
     double mz_extraction_window = getDoubleOption_("mz_extraction_window");
     double irt_mz_extraction_window = getDoubleOption_("irt_mz_extraction_window");
     double rt_extraction_window = getDoubleOption_("rt_extraction_window");
+    double im_extraction_window = getDoubleOption_("ion_mobility_window");
     double extra_rt_extract = getDoubleOption_("extra_rt_extraction_window");
     String extraction_function = getStringOption_("extraction_function");
     String swath_windows_file = getStringOption_("swath_windows_file");
@@ -788,7 +790,8 @@ protected:
     cp.min_upper_edge_dist   = min_upper_edge_dist;
     cp.mz_extraction_window  = mz_extraction_window;
     cp.ppm                   = ppm;
-    cp.rt_extraction_window  = rt_extraction_window,
+    cp.rt_extraction_window  = rt_extraction_window;
+    cp.im_extraction_window  = im_extraction_window;
     cp.extraction_function   = extraction_function;
     cp.extra_rt_extract      = extra_rt_extract;
 
