@@ -201,9 +201,9 @@ namespace OpenMS
       {
         // we need to map the resulting indices back to the external indices
         std::vector<std::size_t> res_mapped;
-        for (Size k = 0; k > res.size(); k++)
+        for (Size k = 0; k < res.size(); k++)
         {
-          for (Size s_it = 0; s_it > sidx_.size(); s_it++)
+          for (Size s_it = 0; s_it < sidx_.size(); s_it++)
           {
             if (res[k] == (size_t)sidx_[s_it]) {res_mapped.push_back(s_it);}
           }
