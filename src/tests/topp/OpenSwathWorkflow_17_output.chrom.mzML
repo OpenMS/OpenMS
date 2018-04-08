@@ -54,12 +54,6 @@
 						<isolationWindow>
 							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="412.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						</isolationWindow>
-						<selectedIonList count="1">
-							<selectedIon>
-								<cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="412.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-								<cvParam cvRef="MS" accession="MS:1002476" name="ion mobility drift time" value="0.2" unitAccession="UO:0000028" unitName="millisecond" unitCvRef="UO" />
-							</selectedIon>
-						</selectedIonList>
 						<activation>
 							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
 							<userParam name="peptide_sequence" type="xsd:string" value="PEPTIDEA"/>
@@ -91,12 +85,6 @@
 						<isolationWindow>
 							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="417.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						</isolationWindow>
-						<selectedIonList count="1">
-							<selectedIon>
-								<cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="417.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-								<cvParam cvRef="MS" accession="MS:1002476" name="ion mobility drift time" value="0.3" unitAccession="UO:0000028" unitName="millisecond" unitCvRef="UO" />
-							</selectedIon>
-						</selectedIonList>
 						<activation>
 							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
 							<userParam name="peptide_sequence" type="xsd:string" value="PEPTIDEB"/>
@@ -155,7 +143,7 @@
 						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1002748" name="MS-Numpress short logged float compression followed by zlib compression" />
-						<binary>eJwBbACT/0C//wAAAAAAAAA8mUevNbxkxYTMV9JE14nbTd+r4rflf+gO623tou+y8aLzdvUx99X4Zfrh+039qv74/6r+Tf3h+2X61fgx93b1ovOy8aLvbe0O63/ot+Wr4k3fidtE11fShMxkxTW8R688maZVRHo=</binary>
+						<binary>eJwBbACT/0DChoAAAAAAAACXidGisLFFvH7EN8vo0NbVMNoV3pvh0uTI54XqE+1277Tx0fPR9bf3hvk+++P8d/76/3f+4/w++4b5t/fR9dHztPF27xPtherI59Lkm+EV3jDa1tXo0DfLfsRFvLCx0aKXiW8HSHA=</binary>
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</chromatogram>
@@ -192,7 +180,7 @@
 						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1002748" name="MS-Numpress short logged float compression followed by zlib compression" />
-						<binary>eJwBbACT/0C//wAAAAAAAAA8mUevNbxkxYTMV9JE14nbTd+r4rflf+gO623tou+y8aLzdvUx99X4Zfrh+039qv74/6r+Tf3h+2X61fgx93b1ovOy8aLvbe0O63/ot+Wr4k3fidtE11fShMxkxTW8R688maZVRHo=</binary>
+						<binary>eJwBbACT/0DBLYAAAAAAAADckW2pRrcewcLIAc9K1N7Y6NyF4Mvjx+aG6RHsb+6m8LvysfSN9k/4/PmV+xz9kv75/5L+HP2V+/z5T/iN9rH0u/Km8G/uEeyG6cfmy+OF4Ojc3thK1AHPwsgewUa3banckRhERxs=</binary>
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</chromatogram>
@@ -229,7 +217,7 @@
 						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1002748" name="MS-Numpress short logged float compression followed by zlib compression" />
-						<binary>eJwBbACT/0C9bAAAAAAAAABfobW1ncESyqHQ/dWF2nLe6eEC5dDnX+q67Oju7/DV8p70TPbj92b51foz/IL9w/72/8P+gv0z/NX6Zvnj90z2nvTV8u/w6O667F/q0OcC5enhct6F2v3VodASyp3BtbVfocBoSsc=</binary>
+						<binary>eJwBbACT/0DA1oAAAAAAAAD9kx+rtLhcwtrJ+s8p1abZnN0n4VvkSef66Xjsy+738AHz7fS/9nn4Hfqu+y39nP78/5z+Lf2u+x36efi/9u30AfP38MvueOz66UnnW+Qn4Zzdptkp1frP2slcwrS4H6v9k4dPSJg=</binary>
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</chromatogram>
@@ -266,7 +254,7 @@
 						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1002748" name="MS-Numpress short logged float compression followed by zlib compression" />
-						<binary>eJwBbACT/0C9bAAAAAAAAABfobW1ncESyqHQ/dWF2nLe6eEC5dDnX+q67Oju7/DV8p70TPbj92b51foz/IL9w/72/8P+gv0z/NX6Zvnj90z2nvTV8u/w6O667F/q0OcC5enhct6F2v3VodASyp3BtbVfocBoSsc=</binary>
+						<binary>eJwBbACT/0C/bwAAAAAAAAAFm7GwZr1sxm3NJtP91y/c4t8x4y/m6+hv68Pt7u/18d3zqPVb9/j4gPr3+1z9sv77/7L+XP33+4D6+Phb96j13fP18e7vw+1v6+voL+Yx4+LfL9z91ybTbc1sxma9sbAFm4YWSZU=</binary>
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</chromatogram>
@@ -303,7 +291,7 @@
 						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1002748" name="MS-Numpress short logged float compression followed by zlib compression" />
-						<binary>eJwBbACT/0C8HQAAAAAAAACOpQG5ZMR4zL3S3dcy3PPfQuM45uboWOuY7a3vnfFu8yL1vfZC+LT5E/th/KH91P75/9T+of1h/BP7tPlC+L32IvVu853xre+Y7Vjr5ug45kLj898y3N3XvdJ4zGTEAbmOpbtuReo=</binary>
+						<binary>eJwBbACT/0C/+AAAAAAAAABRmVivQ7xvxY7MYNJM15DbUt+w4rvlg+gS63DtpO+08aTzd/Uy99X4ZPrh+039qf73/6n+Tf3h+2T61fgy93f1pPO08aTvcO0S64Pou+Ww4lLfkNtM12DSjsxvxUO8WK9RmdU9RXI=</binary>
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</chromatogram>
@@ -340,7 +328,7 @@
 						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1002748" name="MS-Numpress short logged float compression followed by zlib compression" />
-						<binary>eJwBbACT/0C8HQAAAAAAAACOpQG5ZMR4zL3S3dcy3PPfQuM45uboWOuY7a3vnfFu8yL1vfZC+LT5E/th/KH91P75/9T+of1h/BP7tPlC+L32IvVu853xre+Y7Vjr5ug45kLj898y3N3XvdJ4zGTEAbmOpbtuReo=</binary>
+						<binary>eJwBbACT/0C98QAAAAAAAAC6n2m0hsAgyc3PQdXe2d3dY+GK5GTn/+lk7JzurfCb8mz0IvbA90n5v/ok/Hj9vv73/77+eP0k/L/6SfnA9yL2bPSb8q3wnO5k7P/pZOeK5GPh3d3e2UHVzc8gyYbAabS6n16gSD0=</binary>
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</chromatogram>
@@ -350,15 +338,15 @@
 <indexList count="1">
 	<index name="chromatogram">
 		<offset idRef="PEPTIDEA_Precursor_i0">3268</offset>
-		<offset idRef="PEPTIDEB_Precursor_i0">5509</offset>
-		<offset idRef="tr1">7750</offset>
-		<offset idRef="4">10143</offset>
-		<offset idRef="tr2">12534</offset>
-		<offset idRef="5">14927</offset>
-		<offset idRef="3">17318</offset>
-		<offset idRef="6">19709</offset>
+		<offset idRef="PEPTIDEB_Precursor_i0">5096</offset>
+		<offset idRef="tr1">6924</offset>
+		<offset idRef="4">9317</offset>
+		<offset idRef="tr2">11708</offset>
+		<offset idRef="5">14101</offset>
+		<offset idRef="3">16492</offset>
+		<offset idRef="6">18883</offset>
 	</index>
 </indexList>
-<indexListOffset>22134</indexListOffset>
+<indexListOffset>21308</indexListOffset>
 <fileChecksum>0</fileChecksum>
 </indexedmzML>

@@ -23,7 +23,6 @@
 					<quality dim="1">0</quality>
 					<overallquality>0</overallquality>
 					<charge>0</charge>
-					<UserParam type="float" name="MZ" value="500.01"/>
 					<UserParam type="float" name="peak_apex_position" value="101"/>
 					<UserParam type="string" name="native_id" value="1"/>
 					<UserParam type="float" name="peak_apex_int" value="1436.26623535156"/>
@@ -38,7 +37,6 @@
 					<quality dim="1">0</quality>
 					<overallquality>0</overallquality>
 					<charge>0</charge>
-					<UserParam type="float" name="MZ" value="500.15"/>
 					<UserParam type="float" name="peak_apex_position" value="101"/>
 					<UserParam type="string" name="native_id" value="2"/>
 					<UserParam type="float" name="peak_apex_int" value="718.058654785156"/>
@@ -53,7 +51,6 @@
 					<quality dim="1">0</quality>
 					<overallquality>0</overallquality>
 					<charge>0</charge>
-					<UserParam type="float" name="MZ" value="500.25"/>
 					<UserParam type="float" name="peak_apex_position" value="101"/>
 					<UserParam type="string" name="native_id" value="3"/>
 					<UserParam type="float" name="peak_apex_int" value="478.716003417969"/>
@@ -134,7 +131,6 @@
 					<quality dim="1">0</quality>
 					<overallquality>0</overallquality>
 					<charge>0</charge>
-					<UserParam type="float" name="MZ" value="501.01"/>
 					<UserParam type="float" name="peak_apex_position" value="112"/>
 					<UserParam type="string" name="native_id" value="4"/>
 					<UserParam type="float" name="peak_apex_int" value="1436.26623535156"/>
@@ -149,7 +145,6 @@
 					<quality dim="1">0</quality>
 					<overallquality>0</overallquality>
 					<charge>0</charge>
-					<UserParam type="float" name="MZ" value="501.15"/>
 					<UserParam type="float" name="peak_apex_position" value="112"/>
 					<UserParam type="string" name="native_id" value="5"/>
 					<UserParam type="float" name="peak_apex_int" value="718.058654785156"/>
@@ -164,7 +159,6 @@
 					<quality dim="1">0</quality>
 					<overallquality>0</overallquality>
 					<charge>0</charge>
-					<UserParam type="float" name="MZ" value="501.25"/>
 					<UserParam type="float" name="peak_apex_position" value="112"/>
 					<UserParam type="string" name="native_id" value="6"/>
 					<UserParam type="float" name="peak_apex_int" value="478.716003417969"/>
@@ -245,7 +239,6 @@
 					<quality dim="1">0</quality>
 					<overallquality>0</overallquality>
 					<charge>0</charge>
-					<UserParam type="float" name="MZ" value="502.01"/>
 					<UserParam type="float" name="peak_apex_position" value="123"/>
 					<UserParam type="string" name="native_id" value="7"/>
 					<UserParam type="float" name="peak_apex_int" value="1436.26623535156"/>
@@ -260,7 +253,6 @@
 					<quality dim="1">0</quality>
 					<overallquality>0</overallquality>
 					<charge>0</charge>
-					<UserParam type="float" name="MZ" value="502.15"/>
 					<UserParam type="float" name="peak_apex_position" value="123"/>
 					<UserParam type="string" name="native_id" value="8"/>
 					<UserParam type="float" name="peak_apex_int" value="718.058654785156"/>
@@ -275,7 +267,6 @@
 					<quality dim="1">0</quality>
 					<overallquality>0</overallquality>
 					<charge>0</charge>
-					<UserParam type="float" name="MZ" value="502.25"/>
 					<UserParam type="float" name="peak_apex_position" value="123"/>
 					<UserParam type="string" name="native_id" value="9"/>
 					<UserParam type="float" name="peak_apex_int" value="478.716003417969"/>
@@ -356,7 +347,6 @@
 					<quality dim="1">0</quality>
 					<overallquality>0</overallquality>
 					<charge>0</charge>
-					<UserParam type="float" name="MZ" value="503.01"/>
 					<UserParam type="float" name="peak_apex_position" value="134"/>
 					<UserParam type="string" name="native_id" value="10"/>
 					<UserParam type="float" name="peak_apex_int" value="1436.26623535156"/>
@@ -371,7 +361,6 @@
 					<quality dim="1">0</quality>
 					<overallquality>0</overallquality>
 					<charge>0</charge>
-					<UserParam type="float" name="MZ" value="503.15"/>
 					<UserParam type="float" name="peak_apex_position" value="134"/>
 					<UserParam type="string" name="native_id" value="11"/>
 					<UserParam type="float" name="peak_apex_int" value="718.058654785156"/>
@@ -386,7 +375,6 @@
 					<quality dim="1">0</quality>
 					<overallquality>0</overallquality>
 					<charge>0</charge>
-					<UserParam type="float" name="MZ" value="503.25"/>
 					<UserParam type="float" name="peak_apex_position" value="134"/>
 					<UserParam type="string" name="native_id" value="12"/>
 					<UserParam type="float" name="peak_apex_int" value="478.716003417969"/>
@@ -467,7 +455,6 @@
 					<quality dim="1">0</quality>
 					<overallquality>0</overallquality>
 					<charge>0</charge>
-					<UserParam type="float" name="MZ" value="504.01"/>
 					<UserParam type="float" name="peak_apex_position" value="145"/>
 					<UserParam type="string" name="native_id" value="13"/>
 					<UserParam type="float" name="peak_apex_int" value="1436.26623535156"/>
@@ -482,7 +469,6 @@
 					<quality dim="1">0</quality>
 					<overallquality>0</overallquality>
 					<charge>0</charge>
-					<UserParam type="float" name="MZ" value="504.15"/>
 					<UserParam type="float" name="peak_apex_position" value="145"/>
 					<UserParam type="string" name="native_id" value="14"/>
 					<UserParam type="float" name="peak_apex_int" value="718.058654785156"/>
@@ -497,7 +483,6 @@
 					<quality dim="1">0</quality>
 					<overallquality>0</overallquality>
 					<charge>0</charge>
-					<UserParam type="float" name="MZ" value="504.25"/>
 					<UserParam type="float" name="peak_apex_position" value="145"/>
 					<UserParam type="string" name="native_id" value="15"/>
 					<UserParam type="float" name="peak_apex_int" value="478.716003417969"/>
@@ -578,7 +563,6 @@
 					<quality dim="1">0</quality>
 					<overallquality>0</overallquality>
 					<charge>0</charge>
-					<UserParam type="float" name="MZ" value="504.01"/>
 					<UserParam type="float" name="peak_apex_position" value="145"/>
 					<UserParam type="string" name="native_id" value="16"/>
 					<UserParam type="float" name="peak_apex_int" value="1436.26623535156"/>
@@ -593,7 +577,6 @@
 					<quality dim="1">0</quality>
 					<overallquality>0</overallquality>
 					<charge>0</charge>
-					<UserParam type="float" name="MZ" value="504.15"/>
 					<UserParam type="float" name="peak_apex_position" value="145"/>
 					<UserParam type="string" name="native_id" value="17"/>
 					<UserParam type="float" name="peak_apex_int" value="718.058654785156"/>
@@ -608,7 +591,6 @@
 					<quality dim="1">0</quality>
 					<overallquality>0</overallquality>
 					<charge>0</charge>
-					<UserParam type="float" name="MZ" value="504.25"/>
 					<UserParam type="float" name="peak_apex_position" value="145"/>
 					<UserParam type="string" name="native_id" value="18"/>
 					<UserParam type="float" name="peak_apex_int" value="478.716003417969"/>
