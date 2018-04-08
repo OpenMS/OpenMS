@@ -245,7 +245,7 @@ namespace OpenMS
      *
     */
     void MS1Extraction_(const std::vector< OpenSwath::SwathMap > & swath_maps,
-                        std::map< std::string, OpenSwath::ChromatogramPtr >& ms1_chromatograms,
+                        std::vector< MSChromatogram >& ms1_chromatograms,
                         Interfaces::IMSDataConsumer * chromConsumer,
                         const ChromExtractParams & cp,
                         const OpenSwath::LightTargetedExperiment& transition_exp,
@@ -271,8 +271,8 @@ namespace OpenMS
      *
     */
     void scoreAllChromatograms(
-        const OpenSwath::SpectrumAccessPtr input,
-        const std::map< std::string, OpenSwath::ChromatogramPtr > & ms1_chromatograms,
+        const std::vector< OpenMS::MSChromatogram > & chrom_input,
+        const std::vector< OpenMS::MSChromatogram > & ms1_chromatograms,
         const std::vector< OpenSwath::SwathMap >& swath_maps,
         OpenSwath::LightTargetedExperiment& transition_exp,
         const Param& feature_finder_param,

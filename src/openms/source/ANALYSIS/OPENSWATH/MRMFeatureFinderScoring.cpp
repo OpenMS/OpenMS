@@ -217,6 +217,8 @@ namespace OpenMS
     // Step 3
     //
     // Go through all transition groups: first create consensus features, then score them
+    MRMTransitionGroupPicker trgroup_picker;
+    trgroup_picker.setParameters(param_.copy("TransitionGroupPicker:", true));
     Size progress = 0;
     startProgress(0, transition_group_map.size(), "picking peaks");
     for (TransitionGroupMapType::iterator trgroup_it = transition_group_map.begin(); trgroup_it != transition_group_map.end(); ++trgroup_it)
@@ -229,8 +231,6 @@ namespace OpenMS
         continue;
       }
 
-      MRMTransitionGroupPicker trgroup_picker;
-      trgroup_picker.setParameters(param_.copy("TransitionGroupPicker:", true));
       trgroup_picker.pickTransitionGroup(transition_group);
       scorePeakgroups(trgroup_it->second, trafo, swath_maps, output);
     }
