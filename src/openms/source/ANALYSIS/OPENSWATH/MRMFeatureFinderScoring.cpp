@@ -43,6 +43,9 @@
 #include <OpenMS/OPENSWATHALGO/ALGO/MRMScoring.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMTransitionGroupPicker.h>
 
+// Helpers
+#include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathHelper.h>
+
 #include <boost/range/adaptor/map.hpp>
 #include <boost/foreach.hpp>
 
@@ -573,7 +576,10 @@ namespace OpenMS
         {
           // try to identify the correct precursor native id
           String precursor_chrom_id = transition_group_detection.getPrecursorChromatograms()[i].getNativeID();
-          if (precursor_chrom_id.hasSuffix("_Precursor_i0")) {precursor_id = precursor_chrom_id;}
+          if (OpenSwathHelper::computePrecursorId(transition_group.getTransitionGroupID(), 0) == precursor_chrom_id)
+          {
+            precursor_id = precursor_chrom_id;
+          }
         }
 
         OpenSwath_Scores scores;
