@@ -118,7 +118,7 @@ namespace OpenMS
 
       // Get the spectrum for this RT and extract raw data points for all the
       // calibrating transitions (fragment m/z values) from the spectrum
-      OpenSwath::SpectrumPtr sp = OpenSwathScoring().fetchSpectrumSwath(used_maps, bestRT, 1);
+      OpenSwath::SpectrumPtr sp = OpenSwathScoring().fetchSpectrumSwath(used_maps, bestRT, 1, 0, 0);
       for (std::vector< OpenMS::MRMFeatureFinderScoring::TransitionType >::const_iterator
           tr = transition_group->getTransitions().begin();
           tr != transition_group->getTransitions().end(); ++tr)

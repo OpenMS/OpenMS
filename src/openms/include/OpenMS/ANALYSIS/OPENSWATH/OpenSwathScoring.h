@@ -569,7 +569,8 @@ var_yseries_score   -0.0327896378737766
         OpenSwath::SpectrumAccessPtr ms1_map,
         OpenMS::DIAScoring & diascoring,
         const CompoundType& compound,
-        OpenSwath_Scores & scores);
+        OpenSwath_Scores & scores, 
+        double im_start, double im_end);
 
     /** @brief Score a single chromatographic feature using the precursor map.
      *
@@ -587,7 +588,8 @@ var_yseries_score   -0.0327896378737766
                                      double precursor_mz, 
                                      double rt, 
                                      const CompoundType& compound, 
-                                     OpenSwath_Scores & scores);
+                                     OpenSwath_Scores & scores,
+                                     double drift_lower, double drift_upper);
 
     /** @brief Score a single chromatographic feature using DIA / SWATH scores.
      *
@@ -604,7 +606,8 @@ var_yseries_score   -0.0327896378737766
         const TransitionType & transition,
         std::vector<OpenSwath::SwathMap> swath_maps,
         OpenMS::DIAScoring & diascoring,
-        OpenSwath_Scores & scores);
+        OpenSwath_Scores & scores,
+        double drift_lower, double drift_upper);
 
     /** @brief Computing the normalized library intensities from the transition objects
      *
@@ -630,9 +633,9 @@ var_yseries_score   -0.0327896378737766
      *
     */
     OpenSwath::SpectrumPtr fetchSpectrumSwath(std::vector<OpenSwath::SwathMap> swath_maps,
-                                              double RT, int nr_spectra_to_add);
+                                              double RT, int nr_spectra_to_add, const double, const double);
     OpenSwath::SpectrumPtr fetchSpectrumSwath(OpenSwath::SpectrumAccessPtr swath_map,
-                                              double RT, int nr_spectra_to_add);
+                                              double RT, int nr_spectra_to_add, const double, const double);
 
   protected:
 
@@ -648,7 +651,7 @@ var_yseries_score   -0.0327896378737766
      *
     */
     OpenSwath::SpectrumPtr getAddedSpectra_(OpenSwath::SpectrumAccessPtr swath_map, 
-        double RT, int nr_spectra_to_add);
+        double RT, int nr_spectra_to_add, const double, const double);
 
 
   };
