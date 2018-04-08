@@ -210,6 +210,7 @@ private:
 
     /// list of binary data arrays.
     std::vector<BinaryDataArrayPtr> binaryDataArrayPtrs;
+
 public:
     OSSpectrum() :
       defaultArrayLength(2),
@@ -246,6 +247,30 @@ public:
     BinaryDataArrayPtr getIntensityArray() const
     {
       return binaryDataArrayPtrs[1];
+    }
+
+    /// get drift time array (may be null)
+    BinaryDataArrayPtr getDriftTimeArray() const
+    {
+      if (binaryDataArrayPtrs.size() == 3 && binaryDataArrayPtrs[2]->description == "Ion Mobility")
+      {
+        return binaryDataArrayPtrs[2];
+      }
+      else if (binaryDataArrayPtrs.size() == 2)
+      {
+        return BinaryDataArrayPtr(); // return null
+      }
+      else
+      {
+        for (auto & bd : binaryDataArrayPtrs)
+        {
+          if (bd->description == "Ion Mobility")
+          {
+            return bd;
+          }
+        }
+        return BinaryDataArrayPtr(); // return null
+      }
     }
 
     void setIntensityArray(BinaryDataArrayPtr data)
