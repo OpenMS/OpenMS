@@ -762,8 +762,6 @@ namespace OpenMS
         // Convert chromatogram to MSChromatogram and filter
         auto chromatogram = chrom_input[ chromatogram_map[transition->getNativeID()] ];
         chromatogram.setNativeID(transition->getNativeID());
-        chromatogram.setMetaValue("product_mz", transition->getProductMZ());
-        chromatogram.setMetaValue("precursor_mz", transition->getPrecursorMZ());
         if (rt_extraction_window > 0)
         {
           double de_normalized_experimental_rt = trafo_inv.apply(expected_rt);
@@ -788,7 +786,6 @@ namespace OpenMS
       if (!ms1_chromatograms.empty() && ms1_chromatogram_map.find(prec_id) != ms1_chromatogram_map.end())
       {
         MSChromatogram chromatogram = ms1_chromatograms [ ms1_chromatogram_map[prec_id] ];
-        chromatogram.setMetaValue("precursor_mz", precursor_mz);
         transition_group.addPrecursorChromatogram(chromatogram, chromatogram.getNativeID());
       }
 
