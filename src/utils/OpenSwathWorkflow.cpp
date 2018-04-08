@@ -442,6 +442,9 @@ protected:
     registerFlag_("ppm", "m/z extraction_window is in ppm");
     registerFlag_("sonar", "data is scanning SWATH data");
 
+    registerStringOption_("use_ms1_ion_mobility", "<name>", "true", "Also perform precursor extraction using the same ion mobility window as for fragment ion extraction", false, true);
+    setValidStrings_("use_ms1_ion_mobility", ListUtils::create<String>("true,false"));
+
     registerDoubleOption_("min_rsq", "<double>", 0.95, "Minimum r-squared of RT peptides regression", false, true);
     registerDoubleOption_("min_coverage", "<double>", 0.6, "Minimum relative amount of RT peptides to keep", false, true);
 
@@ -712,6 +715,7 @@ protected:
     bool sonar = getFlag_("sonar");
     bool sort_swath_maps = getFlag_("sort_swath_maps");
     bool use_ms1_traces = getFlag_("use_ms1_traces");
+    bool use_ms1_im = getStringOption_("use_ms1_ion_mobility") == "true";
     bool enable_uis_scoring = getFlag_("enable_uis_scoring");
     double min_upper_edge_dist = getDoubleOption_("min_upper_edge_dist");
     double mz_extraction_window = getDoubleOption_("mz_extraction_window");
@@ -1005,7 +1009,7 @@ protected:
     }
     else
     {
-      OpenSwathWorkflow wf(use_ms1_traces);
+      OpenSwathWorkflow wf(use_ms1_traces, use_ms1_im);
       wf.setLogType(log_type_);
       wf.performExtraction(swath_maps, trafo_rtnorm, cp, feature_finder_param, transition_exp,
           out_featureFile, !out.empty(), tsvwriter, oswwriter, chromatogramConsumer, batchSize, load_into_memory);

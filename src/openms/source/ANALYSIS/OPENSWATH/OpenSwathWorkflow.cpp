@@ -428,7 +428,12 @@ namespace OpenMS
 
     // (i) Obtain precursor chromatograms (MS1) if precursor extraction is enabled
     std::vector< MSChromatogram > ms1_chromatograms;
-    MS1Extraction_(swath_maps, ms1_chromatograms, chromConsumer, cp,
+    ChromExtractParams ms1_cp(cp);
+    if (!use_ms1_ion_mobility_)
+    {
+      ms1_cp.im_extraction_window = -1;
+    }
+    MS1Extraction_(swath_maps, ms1_chromatograms, chromConsumer, ms1_cp,
                    transition_exp, trafo_inverse, load_into_memory, ms1_only);
 
     if (ms1_only && !use_ms1_traces_)

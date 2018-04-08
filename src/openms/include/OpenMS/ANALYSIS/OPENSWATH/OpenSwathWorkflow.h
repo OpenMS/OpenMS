@@ -188,8 +188,9 @@ namespace OpenMS
 
   public:
 
-    explicit OpenSwathWorkflow(bool use_ms1_traces) :
-      use_ms1_traces_(use_ms1_traces)
+    explicit OpenSwathWorkflow(bool use_ms1_traces, bool use_ms1_ion_mobility) :
+      use_ms1_traces_(use_ms1_traces),
+      use_ms1_ion_mobility_(use_ms1_ion_mobility)
     {
     }
 
@@ -367,6 +368,9 @@ namespace OpenMS
     /// Whether to use the MS1 traces
     bool use_ms1_traces_;
 
+    /// Whether to use ion mobility extraction on MS1 traces
+    bool use_ms1_ion_mobility_;
+
   };
 
   /**
@@ -383,8 +387,9 @@ namespace OpenMS
   {
 
   public:
+
     explicit OpenSwathWorkflowSonar(bool use_ms1_traces) :
-      OpenSwathWorkflow(use_ms1_traces)
+      OpenSwathWorkflow(use_ms1_traces, false)
     {}
 
     /** @brief Execute the OpenSWATH workflow on a set of SONAR SwathMaps and transitions.
