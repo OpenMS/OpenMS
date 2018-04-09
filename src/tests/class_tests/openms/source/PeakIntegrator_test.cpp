@@ -976,7 +976,7 @@ START_SECTION(void fitEMGPeakModel(
 
   ptr->fitEMGPeakModel(cutoff_chrom_min, out_min);
   ptr->fitEMGPeakModel(cutoff_chrom_sec, out_sec);
-  TEST_EQUAL(out_min.size(), 40)
+  TEST_EQUAL(out_min.size(), 28)
   TEST_EQUAL(out_min.size(), out_sec.size())
   for (Size i = 0; i < out_min.size(); i += 9)
   {
@@ -1055,7 +1055,7 @@ START_SECTION(void fitEMGPeakModel(
 
   ptr->fitEMGPeakModel(cutoff_spec_min, out_min);
   ptr->fitEMGPeakModel(cutoff_spec_sec, out_sec);
-  TEST_EQUAL(out_min.size(), 40)
+  TEST_EQUAL(out_min.size(), 28)
   TEST_EQUAL(out_min.size(), out_sec.size())
   for (Size i = 0; i < out_min.size(); i += 9)
   {

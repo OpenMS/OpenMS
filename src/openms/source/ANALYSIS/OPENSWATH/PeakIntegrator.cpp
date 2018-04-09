@@ -639,26 +639,35 @@ namespace OpenMS
     // Stop adding points if the estimated y <= `est_y_threshold`
     const double est_y_threshold { 1e-3 };
 
+    // Stop adding points if the peak becomes too large
+    std::vector<double>::const_iterator apex_pos_it = std::max_element(out_ys.cbegin(), out_ys.cend());
+    const double apex_pos = out_xs[std::distance(out_ys.cbegin(), apex_pos_it)];
+
     // Decide on which side the eventual additional points should be added
     // The loop stops once the last added point's intensity is:
     // - lower than the intensity on the opposite boundary
     // - lower than `est_y_threshold`
+    // The loop stops if the cutoff side becomes 3 times larger than the other side
     if (out_ys.front() > out_ys.back())
     {
+      const double pos_boundary = apex_pos - (out_xs.back() - apex_pos) * 3;
       const double target_intensity = out_ys.back();
       while (out_ys.front() > target_intensity && out_ys.front() > est_y_threshold)
       {
         const double position = out_xs.front() - avg_sampling;
+        if (position < pos_boundary) break;
         out_xs.insert(out_xs.begin(), position);
         out_ys.insert(out_ys.begin(), emg_point(position, h, mu, sigma, tau));
       }
     }
     else
     {
+      const double pos_boundary = apex_pos + (apex_pos - out_xs.front()) * 3;
       const double target_intensity = out_ys.front();
       while (out_ys.back() > target_intensity && out_ys.back() > est_y_threshold)
       {
         const double position = out_xs.back() + avg_sampling;
+        if (position > pos_boundary) break;
         out_xs.push_back(position);
         out_ys.push_back(emg_point(position, h, mu, sigma, tau));
       }
