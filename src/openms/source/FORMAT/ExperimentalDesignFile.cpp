@@ -152,7 +152,7 @@ namespace OpenMS
     // static
     ExperimentalDesign ExperimentalDesignFile::load(const String &tsv_file, const bool require_spectra_file)
     {
-      ExperimentalDesign::RunRows run_rows;
+      ExperimentalDesign::MSFileSection msfile_section;
       bool has_sample(false);
       bool has_channel(false);
 
@@ -217,31 +217,31 @@ namespace OpenMS
           parseErrorIf(n_col != cells.size(), tsv_file,
                        "Wrong number of records in line");
 
-          ExperimentalDesign::RunRow row;
+          ExperimentalDesign::MSFileSectionEntry e;
 
           // Assign run and fraction
-          row.run = cells[run_column_header_to_index["Run"]].toInt();
-          row.fraction = cells[run_column_header_to_index["Fraction"]].toInt();
+          e.run = cells[run_column_header_to_index["Run"]].toInt();
+          e.fraction = cells[run_column_header_to_index["Fraction"]].toInt();
 
           // Assign channel
-          row.channel = has_channel ? cells[run_column_header_to_index["Channel"]].toInt() : 1;
+          e.channel = has_channel ? cells[run_column_header_to_index["Channel"]].toInt() : 1;
 
           // Assign sample number
           if (has_sample)
           {
-            row.sample = cells[run_column_header_to_index["Sample"]].toInt();
+            e.sample = cells[run_column_header_to_index["Sample"]].toInt();
           }
           else
           {
-            row.sample = has_channel ? row.channel : row.run;
+            e.sample = has_channel ? e.channel : e.run;
           }
 
           // Spectra files
-          row.path = findSpectraFile(
+          e.path = findSpectraFile(
             cells[run_column_header_to_index["Path(Spectra File)"]],
             tsv_file,
             require_spectra_file);
-          run_rows.push_back(row);
+          msfile_section.push_back(e);
         }
           // Parse header of the Condition Table
         else if (state == SAMPLE_HEADER)
@@ -278,7 +278,7 @@ namespace OpenMS
         sample_columnname_to_columnindex_);
 
       // Create experimentalDesign
-      ExperimentalDesign design(run_rows, sample_section);
+      ExperimentalDesign design(msfile_section, sample_section);
 
       return design;
     }
