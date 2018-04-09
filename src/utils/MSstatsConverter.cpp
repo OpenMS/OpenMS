@@ -567,10 +567,10 @@ private:
           const ExperimentalDesign &design)
   {
     run_map.clear();
-    const vector< ExperimentalDesign::RunRow > &run_rows = design.getRunSection();
+    const ExperimentalDesign::MSFileSection& msfile_section = design.getMSFileSection();
     unsigned run_counter = 1;
 
-    for (const ExperimentalDesign::RunRow &r : run_rows)
+    for (ExperimentalDesign::MSFileSectionEntry const& r : msfile_section)
     {
       std::pair< String, unsigned> tpl = std::make_pair(File::basename(r.path), r.fraction);
       if (run_map.find(tpl) == run_map.end())

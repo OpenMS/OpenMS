@@ -49,7 +49,7 @@ namespace OpenMS
 {
   /**
   @brief Representation of the Experimental Design in OpenMS. Instances are loaded via
-   the ExperimentalDesignIO class.
+   the ExperimentalDesignFile class.
 
   @ingroup Format
   */
@@ -57,10 +57,10 @@ namespace OpenMS
   {
   public:
 
-    /// 1) Mandatory section with run-level information of the experimental design.
-    ///    Required to process fractionated data.
+    /// 1) Mandatory section with file-level information of the experimental design.
+    ///    Required to group and process fractionated data.
 /*
- * Run Section Format:
+ * MSFileSection Format:
    Format: Single header line
          Run:                         Run index (prior fractionation) used to group fractions and source files.
                                       Note: For label-free this has same cardinality as sample.
@@ -114,10 +114,10 @@ namespace OpenMS
   8	    4	              2
 
 */
-    class OPENMS_DLLAPI RunRow
+    class OPENMS_DLLAPI MSFileSectionEntry
     {
     public:
-      RunRow() = default;
+      MSFileSectionEntry() = default;
       unsigned run = 1; ///< run index (before prefractionation)
       unsigned fraction = 1; ///< fraction 1..m, mandatory, 1 if not set
       std::string path = "UNKNOWN_FILE"; ///< file name, mandatory
@@ -169,21 +169,24 @@ namespace OpenMS
       std::map< String, Size > columnname_to_columnindex_;
     };
 
-    using RunRows = std::vector<RunRow>;
+    using MSFileSection = std::vector<MSFileSectionEntry>;
 
     // Experimental Design c'tors
     ExperimentalDesign() = default;
 
     ExperimentalDesign(
-      RunRows run_rows, SampleSection sample_section) : run_section_(run_rows), sample_section_(sample_section)
+      MSFileSection msfile_section, SampleSection sample_section) 
+        : 
+        msfile_section_(msfile_section), 
+        sample_section_(sample_section)
     {
       sort_();
       checkValidRunSection_();
     }
 
-    const RunRows& getRunSection() const;
+    const MSFileSection& getMSFileSection() const;
 
-    void setRunSection(const RunRows& run_section);
+    void setMSFileSection(const MSFileSection& msfile_section);
 
     // Returns the Sample Section of the experimental design file
     const ExperimentalDesign::SampleSection& getSampleSection() const;
@@ -251,9 +254,9 @@ namespace OpenMS
     private:
 
       /// Generic Mapper (Path, Channel) -> f(row)
-      std::map< std::pair< String, unsigned >, unsigned> pathChannelMapper(
+      std::map< std::pair< String, unsigned >, unsigned> pathChannelMapper_(
           bool,
-          unsigned (*f)(const ExperimentalDesign::RunRow&)) const;
+          unsigned (*f)(const ExperimentalDesign::MSFileSectionEntry&)) const;
 
       // sort to obtain the default order
       void sort_();
@@ -263,7 +266,7 @@ namespace OpenMS
 
       void checkValidRunSection_();
 
-      RunRows run_section_;
+      MSFileSection msfile_section_;
       SampleSection sample_section_;
   };
 }
