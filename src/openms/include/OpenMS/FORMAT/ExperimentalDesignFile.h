@@ -37,10 +37,10 @@
 
 #include <OpenMS/DATASTRUCTURES/String.h>
 
-#include <OpenMS/FORMAT/ExperimentalDesign.h>
-
 namespace OpenMS
 {
+  class ExperimentalDesign;
+ 
   /**
   @brief Provides means to load an ExperimentalDesign from a TSV file.
 
