@@ -11,22 +11,22 @@ cdef extern from "<OpenMS/METADATA/ExperimentalDesign.h>" namespace "OpenMS":
         ExperimentalDesign() nogil except +
         ExperimentalDesign(ExperimentalDesign) nogil except + #wrap-ignore
 
-        libcpp_vector[ ExperimentalDesign_RunRow ] getRunSection() nogil except +
-        void setRunSection(libcpp_vector[ ExperimentalDesign_RunRow ] run_section) nogil except +
+        libcpp_vector[ ExperimentalDesign_MSFileSectionEntry ] getMSFileSection() nogil except +
+        void setMSFileSection(libcpp_vector[ ExperimentalDesign_MSFileSectionEntry ] msfile_section) nogil except +
 
         # Returns the Sample Section of the experimental design file
         ExperimentalDesign_SampleSection getSampleSection() nogil except +
         void setSampleSection(ExperimentalDesign_SampleSection sample_section) nogil except +
 
-        # Gets vector of Filenames that appears in the run section, optionally trims to basename
+        # Gets vector of Filenames, optionally trims to basename
         libcpp_vector[ String ] getFileNames(bool basename) nogil except +
 
-        # Returns vector of channels of the run section
+        # Returns vector of channels
         libcpp_vector[ unsigned int ] getChannels() nogil except +
 
         libcpp_vector[ unsigned int ] getFractions() nogil except +
 
-        # return fraction index to file paths (ordered by run id)
+        # fraction index to file paths (ordered by fraction_group)
         #lib_map[unsigned int, lib_cpp[ String ] ] getFractionToMSFilesMapping() nogil except +
      
         # return <file_path, channel> to sample mapping
@@ -35,8 +35,8 @@ cdef extern from "<OpenMS/METADATA/ExperimentalDesign.h>" namespace "OpenMS":
         # return <file_path, channel> to fraction mapping
         #std::map< std::pair< String, unsigned >, unsigned> getPathChannelToFractionMapping(bool) const;
 
-        # return <file_path, channel> to run mapping
-        #std::map< std::pair< String, unsigned >, unsigned> getPathChannelToRunMapping(bool) const;
+        # return <file_path, channel> to fraction_group mapping
+        #std::map< std::pair< String, unsigned >, unsigned> getPathChannelToFractionGroupMapping(bool) const;
 
         # @return the number of samples measured (= highest sample index)
         unsigned int getNumberOfSamples() nogil except +
@@ -47,20 +47,20 @@ cdef extern from "<OpenMS/METADATA/ExperimentalDesign.h>" namespace "OpenMS":
         # @return the number of channels per file
         unsigned int getNumberOfChannels() nogil except +
 
-        # @return the number of MS files (= fractions * runs)
+        # @return the number of MS files (= fractions * fraction_groups)
         unsigned int getNumberOfMSFiles() nogil except +
 
-        # @return the number of runs (before fractionation)
+        # @return the number of fraction_groups
         # Allows to group fraction ids and source files
-        unsigned int getNumberOfPrefractionationRuns() nogil except +
+        unsigned int getNumberOfFractionGroups() nogil except +
 
-        # @return sample index (depends on run and channel)
-        unsigned int getSample(unsigned int run, unsigned int channel) nogil except +
+        # @return sample index (depends on fraction_group and channel)
+        unsigned int getSample(unsigned int fraction_group, unsigned int channel) nogil except +
 
-        # @return whether at least one run in this experimental design is fractionated
+        # @return whether at least one fraction_group in this experimental design is fractionated
         bool isFractionated() nogil except +
 
-        # return if each fraction number is associated with the same number of runs
+        # return if each fraction number is associated with the same number of fraction_group
         bool sameNrOfMSFilesPerFraction() nogil except +
                 
 # COMMENT: wrap static methods
@@ -77,13 +77,13 @@ cdef extern from "<OpenMS/METADATA/ExperimentalDesign.h>" namespace "OpenMS::Exp
 
 cdef extern from "<OpenMS/METADATA/ExperimentalDesign.h>" namespace "OpenMS::ExperimentalDesign":
     
-    cdef cppclass ExperimentalDesign_RunRow "OpenMS::ExperimentalDesign::RunRow":
+    cdef cppclass ExperimentalDesign_MSFileSectionEntry "OpenMS::ExperimentalDesign::MSFileSectionEntry":
 
-        ExperimentalDesign_RunRow() nogil except +
-        ExperimentalDesign_RunRow(ExperimentalDesign_RunRow) nogil except + #wrap-ignore
+        ExperimentalDesign_MSFileSectionEntry() nogil except +
+        ExperimentalDesign_MSFileSectionEntry(ExperimentalDesign_MSFileSectionEntry) nogil except + #wrap-ignore
 
         libcpp_string path
-        unsigned int run
+        unsigned int fraction_group
         unsigned int fraction
         unsigned int channel
         unsigned int sample

@@ -50,14 +50,36 @@ namespace OpenMS
 {
     using MSFileSection = std::vector<ExperimentalDesign::MSFileSection>;
 
+    ExperimentalDesign::SampleSection::SampleSection(
+        std::vector< std::vector < String > > _content,
+        std::map< unsigned, Size > _sample_to_rowindex,
+        std::map< String, Size > _columnname_to_columnindex
+      ) : 
+      content_(_content),
+      sample_to_rowindex_(_sample_to_rowindex),
+      columnname_to_columnindex_(_columnname_to_columnindex) 
+    {    
+    }
+
+    ExperimentalDesign::ExperimentalDesign(
+      ExperimentalDesign::MSFileSection msfile_section, 
+      ExperimentalDesign::SampleSection sample_section) : 
+        msfile_section_(msfile_section), 
+        sample_section_(sample_section)
+    {
+      sort_();
+      checkValidMSFileSection_();
+    }
+
     ExperimentalDesign ExperimentalDesign::fromConsensusMap(const ConsensusMap &cm)
     {
       ExperimentalDesign experimental_design;
+
       // path of the original MS run (mzML / raw file)
       StringList ms_run_paths;
       cm.getPrimaryMSRunPath(ms_run_paths);
 
-      // no fractionation -> as many runs as samples
+      // no fractionation -> as many fraction_groups as samples
       // each consensus element corresponds to one sample abundance
       size_t sample(1);
       ExperimentalDesign::MSFileSection msfile_section;
@@ -67,7 +89,7 @@ namespace OpenMS
         r.path = f;
         r.fraction = 1;
         r.sample = sample;
-        r.run = sample;
+        r.fraction_group = sample;
         r.channel = 1; // TODO MULTIPLEXING: adapt for non-label-free
         msfile_section.push_back(r);
         ++sample;
@@ -98,12 +120,12 @@ namespace OpenMS
           "FeatureMap annotated with " + String(ms_paths.size()) + " MS files. Must be exactly one.");
       }
 
-      // Feature map is simple. One file, one fraction, one sample, one run
+      // Feature map is simple. One file, one fraction, one sample, one fraction_group
       ExperimentalDesign::MSFileSectionEntry r;
       r.path = ms_paths[0];
       r.fraction = 1;
       r.sample = 1;
-      r.run = 1;
+      r.fraction_group = 1;
       r.channel = 1;
 
       ExperimentalDesign::MSFileSection rows(1, r);
@@ -138,7 +160,7 @@ namespace OpenMS
         ms_run_paths.push_back(tmp_ms_run_paths[0]);
       }
 
-      // no fractionation -> as many runs as samples
+      // no fractionation -> as many fraction_groups as samples
       // each identification run corresponds to one sample abundance
       unsigned sample(1);
       ExperimentalDesign::MSFileSection rows;
@@ -148,7 +170,7 @@ namespace OpenMS
         r.path = f;
         r.fraction = 1;
         r.sample = sample;
-        r.run = sample;
+        r.fraction_group = sample;
         r.channel = 1;
 
         rows.push_back(r);
@@ -189,7 +211,6 @@ namespace OpenMS
       return ret;
     }
 
-
     map<pair<String, unsigned>, unsigned> ExperimentalDesign::getPathChannelToSampleMapping(
             const bool basename) const
     {
@@ -204,11 +225,11 @@ namespace OpenMS
       { return r.fraction; });
     }
 
-    map<pair<String, unsigned>, unsigned> ExperimentalDesign::getPathChannelToRunMapping(
+    map<pair<String, unsigned>, unsigned> ExperimentalDesign::getPathChannelToFractionGroupMapping(
             const bool basename) const
     {
       return pathChannelMapper_(basename, [](const MSFileSectionEntry &r)
-      { return r.run; });
+      { return r.fraction_group; });
     }
 
     bool ExperimentalDesign::sameNrOfMSFilesPerFraction() const
@@ -244,7 +265,7 @@ namespace OpenMS
     {
       msfile_section_ = msfile_section;
       sort_();
-      checkValidRunSection_();
+      checkValidMSFileSection_();
     }
 
     void ExperimentalDesign::setSampleSection(const SampleSection& sample_section)
@@ -283,7 +304,7 @@ namespace OpenMS
                               })->channel;
     }
 
-    // @return the number of MS files (= fractions * runs)
+    // @return the number of MS files (= fractions * fraction_groups)
     unsigned ExperimentalDesign::getNumberOfMSFiles() const
     {
       std::set<std::string> unique_paths;
@@ -298,25 +319,22 @@ namespace OpenMS
       return fractions_set.size() < 2;
     }
 
-    // @return the number of runs (before fractionation)
-    // Allows to group fraction ids and source files
-    unsigned ExperimentalDesign::getNumberOfPrefractionationRuns() const
+    unsigned ExperimentalDesign::getNumberOfFractionGroups() const
     {
       if (msfile_section_.empty()) { return 0; }
       return std::max_element(msfile_section_.begin(), msfile_section_.end(),
                               [](const MSFileSectionEntry& f1, const MSFileSectionEntry& f2)
                               {
-                                  return f1.run < f2.run;
-                              })->run;
+                                  return f1.fraction_group < f2.fraction_group;
+                              })->fraction_group;
     }
 
-    // @return sample index (depends on run and channel)
-    unsigned ExperimentalDesign::getSample(unsigned run, unsigned channel)
+    unsigned ExperimentalDesign::getSample(unsigned fraction_group, unsigned channel)
     {
       return std::find_if(msfile_section_.begin(), msfile_section_.end(),
-                          [&run, &channel](const MSFileSectionEntry& r)
+                          [&fraction_group, &channel](const MSFileSectionEntry& r)
                           {
-                              return r.run == run && r.channel == channel;
+                              return r.fraction_group == fraction_group && r.channel == channel;
                           })->sample;
     }
 
@@ -349,7 +367,7 @@ namespace OpenMS
       container.insert(item);
     }
 
-    void ExperimentalDesign::checkValidRunSection_()
+    void ExperimentalDesign::checkValidMSFileSection_()
     {
       if (getNumberOfMSFiles() == 0)
       {
@@ -360,36 +378,36 @@ namespace OpenMS
         "No MS files provided.");
       }
 
-    std::set< std::tuple< unsigned, unsigned, unsigned > > run_fraction_sample_set;
-    std::set< std::tuple< unsigned, unsigned, unsigned > > run_fraction_channel_set;
+    std::set< std::tuple< unsigned, unsigned, unsigned > > fractiongroup_fraction_sample_set;
+    std::set< std::tuple< unsigned, unsigned, unsigned > > fractiongroup_fraction_channel_set;
     std::set< std::tuple< std::string, unsigned > > path_channel_set;
-    std::map< std::tuple< unsigned, unsigned >, std::set< unsigned > > run_channel_to_sample;
+    std::map< std::tuple< unsigned, unsigned >, std::set< unsigned > > fractiongroup_channel_to_sample;
 
     for (const MSFileSectionEntry& row : msfile_section_)
     {
-      // Fail if sample section does not contain the run
+      // Fail if sample section does not contain the fraction_group
       if (sample_section_.hasSample(row.sample) == false)
       {
         throw Exception::MissingInformation(
         __FILE__,
         __LINE__,
         OPENMS_PRETTY_FUNCTION,
-        "Sample Section does not contain sample for run " + String(row.run));
+        "Sample Section does not contain sample for fraction group " + String(row.fraction_group));
       }
 
-      // RUN_FRACTION_SAMPLE TUPLE
-      std::tuple<unsigned, unsigned, unsigned> run_fraction_sample = std::make_tuple(row.run, row.fraction, row.sample);
+      // FRACTIONGROUP_FRACTION_SAMPLE TUPLE
+      std::tuple<unsigned, unsigned, unsigned> fractiongroup_fraction_sample = std::make_tuple(row.fraction_group, row.fraction, row.sample);
       errorIfAlreadyExists(
-        run_fraction_sample_set,
-        run_fraction_sample,
-      "(Run, Fraction, Sample) combination can only appear once");
+        fractiongroup_fraction_sample_set,
+        fractiongroup_fraction_sample,
+      "(Fraction Group, Fraction, Sample) combination can only appear once");
 
-      // RUN_FRACTION_CHANNEL TUPLE
-      std::tuple<unsigned, unsigned, unsigned> run_fraction_channel = std::make_tuple(row.run, row.fraction, row.channel);
+      // FRACTIONGROUP__FRACTION_CHANNEL TUPLE
+      std::tuple<unsigned, unsigned, unsigned> fractiongroup_fraction_channel = std::make_tuple(row.fraction_group, row.fraction, row.channel);
       errorIfAlreadyExists(
-        run_fraction_channel_set,
-        run_fraction_channel,
-      "(Run, Fraction, Channel) combination can only appear once");
+        fractiongroup_fraction_channel_set,
+        fractiongroup_fraction_channel,
+      "(Fraction Group, Fraction, Channel) combination can only appear once");
 
 
       // PATH_CHANNEL_TUPLE
@@ -399,17 +417,17 @@ namespace OpenMS
         path_channel,
         "(Path, Channel) combination can only appear once");
 
-      // RUN_CHANNEL TUPLE
-      std::tuple<unsigned, unsigned> run_channel = std::make_tuple(row.run, row.channel);
-      run_channel_to_sample[run_channel].insert(row.sample);
+      // FRACTIONGROUP_CHANNEL TUPLE
+      std::tuple<unsigned, unsigned> fractiongroup_channel = std::make_tuple(row.fraction_group, row.channel);
+      fractiongroup_channel_to_sample[fractiongroup_channel].insert(row.sample);
 
-      if (run_channel_to_sample[run_channel].size() > 1)
+      if (fractiongroup_channel_to_sample[fractiongroup_channel].size() > 1)
       {
         throw Exception::MissingInformation(
           __FILE__,
           __LINE__,
           OPENMS_PRETTY_FUNCTION,
-          "Multiple Samples encountered for the same Run and the same Channel");
+          "Multiple Samples encountered for the same fraction group and the same channel");
       }
     }
   }
@@ -437,11 +455,11 @@ namespace OpenMS
   void ExperimentalDesign::sort_()
   {
     std::sort(msfile_section_.begin(), msfile_section_.end(),
-                [](const MSFileSectionEntry& a, const MSFileSectionEntry& b)
-                {
-                  return std::tie(a.run, a.fraction, a.channel, a.sample, a.path) <
-                         std::tie(b.run, b.fraction, b.channel, b.sample, b.path);
-                });
+      [](const MSFileSectionEntry& a, const MSFileSectionEntry& b)
+      {
+        return std::tie(a.fraction_group, a.fraction, a.channel, a.sample, a.path) <
+          std::tie(b.fraction_group, b.fraction, b.channel, b.sample, b.path);
+      });
   }
 
   /* Implementations of SampleSection */

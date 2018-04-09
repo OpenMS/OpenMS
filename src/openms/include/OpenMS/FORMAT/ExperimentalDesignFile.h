@@ -54,7 +54,7 @@ namespace OpenMS
 /*
  * Run Section Format:
    Format: Single header line
-         Run:                         Run index (prior fractionation) used to group fractions and source files.
+         Fraction Group:              Index used to group fractions and source files.
                                       Note: For label-free this has same cardinality as sample.
                                       For multiplexed experiments, these might differ as multiple samples can be measured in single files
          Fraction:                    1st, 2nd, .., fraction. Note: All runs must have the same number of fractions.
@@ -65,7 +65,7 @@ namespace OpenMS
                                       SILAC with light and heavy: 1..2
          Sample:                      Index of sample measured in the specified channel X, in fraction Y of run Z
 
-	Run	Fraction	Path(Spectra File)	Channel		Sample
+	Fraction Group	Fraction	Path(Spectra File)	Channel		Sample
 	1	1		SPECTRAFILE_F1_TR1.mzML	1		1
 	1	2		SPECTRAFILE_F2_TR1.mzML	1		1
 	1	3		SPECTRAFILE_F3_TR1.mzML	1		1
