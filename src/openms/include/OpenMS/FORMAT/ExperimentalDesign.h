@@ -32,8 +32,7 @@
 // $Authors: Timo Sachsenberg $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_KERNEL_EXPERIMENTALDESIGN_H
-#define OPENMS_KERNEL_EXPERIMENTALDESIGN_H
+#pragma once
 
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
@@ -268,4 +267,4 @@ namespace OpenMS
       SampleSection sample_section_;
   };
 }
-#endif // header guard
+
