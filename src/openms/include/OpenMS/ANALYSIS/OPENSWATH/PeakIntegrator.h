@@ -944,8 +944,8 @@ private:
     /**
       @brief Compute the EMG function on a set of points.
 
-      If the argument `compute_additional_points` is `true`, the algorithm will
-      detect which side of the peak is cutoff and add points to it.
+      If class parameter `compute_additional_points` is `true`, the algorithm
+      will detect which side of the peak is cutoff and add points to it.
 
       @param[in] xs Positions
       @param[in] h Amplitude
@@ -954,7 +954,6 @@ private:
       @param[in] tau Exponent relaxation time
       @param[out] out_xs The output positions
       @param[out] out_ys The output estimated intensities
-      @param[in] compute_additional_points Flag for additional points computation
     */
     void emg_vector(
       const std::vector<double>& xs,
@@ -963,8 +962,7 @@ private:
       const double sigma,
       const double tau,
       std::vector<double>& out_xs,
-      std::vector<double>& out_ys,
-      const bool compute_additional_points = true
+      std::vector<double>& out_ys
     ) const;
 
     /**
@@ -1003,6 +1001,12 @@ private:
 
     /// Maximum number of gradient descent iterations in `fitEMGPeakModel()`
     UInt max_gd_iter_;
+
+    /**
+      Whether additional points should be added when fitting EMG peak model,
+      particularly useful with cutoff peaks
+    */
+    bool compute_additional_points_;
   };
 
   class PeakIntegrator_friend
@@ -1010,6 +1014,18 @@ private:
 public:
     PeakIntegrator_friend() = default;
     ~PeakIntegrator_friend() = default;
+
+    double Loss_function(
+      const std::vector<double>& xs,
+      const std::vector<double>& ys,
+      const double h,
+      const double mu,
+      const double sigma,
+      const double tau
+    ) const
+    {
+      return peakIntegrator.Loss_function(xs, ys, h, mu, sigma, tau);
+    }
 
     double computeMuMaxDistance(const std::vector<double>& xs) const
     {
@@ -1059,11 +1075,10 @@ public:
       const double sigma,
       const double tau,
       std::vector<double>& out_xs,
-      std::vector<double>& out_ys,
-      const bool compute_additional_points = true
+      std::vector<double>& out_ys
     ) const
     {
-      peakIntegrator.emg_vector(xs, h, mu, sigma, tau, out_xs, out_ys, compute_additional_points);
+      peakIntegrator.emg_vector(xs, h, mu, sigma, tau, out_xs, out_ys);
     }
 
     double emg_point(
@@ -1077,7 +1092,6 @@ public:
       return peakIntegrator.emg_point(x, h, mu, sigma, tau);
     }
 
-private:
     PeakIntegrator peakIntegrator;
   };
 }

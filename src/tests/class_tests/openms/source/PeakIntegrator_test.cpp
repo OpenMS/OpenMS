@@ -218,6 +218,7 @@ START_SECTION(getParameters())
   Param params = ptr->getParameters();
   TEST_EQUAL(params.getValue("integration_type"), INTEGRATION_TYPE_INTENSITYSUM)
   TEST_EQUAL(params.getValue("baseline_type"), BASELINE_TYPE_BASETOBASE)
+  // TODO: add other parameters tests
 }
 END_SECTION
 
@@ -911,28 +912,6 @@ START_SECTION(PeakShapeMetrics calculatePeakShapeMetrics(
 }
 END_SECTION
 
-// START_SECTION(gradient_descent)
-// {
-  // std::cout.precision(std::numeric_limits< double >::max_digits10);
-  // double h, mu, sigma, tau;
-  // peakIntegrator.gradient_descent(Sat_RTs, Sat_Ints, h, mu, sigma, tau, true);
-  // std::vector<double> out_xs;
-  // std::vector<double> out_ys;
-  // const bool compute_additional_points { false };
-  // peakIntegrator.emg_vector(Sat_RTs, h, mu, sigma, tau, out_xs, out_ys, compute_additional_points);
-  // std::cout << std::endl;
-  // for (const double x : out_xs)
-  // {
-  //   std::cout << x << ", ";
-  // }
-  // std::cout << std::endl;
-  // for (const double y : out_ys)
-  // {
-  //   std::cout << y << ", ";
-  // }
-// }
-// END_SECTION
-
 Param params = ptr->getParameters();
 params.setValue("print_debug", (UInt)0);
 params.setValue("max_gd_iter", (UInt)10000);
@@ -1099,14 +1078,46 @@ END_SECTION
 
 TOLERANCE_RELATIVE(1.0 + 1e-5)
 
-PeakIntegrator_friend pi_f;
+START_SECTION(double Loss_function(
+  const std::vector<double>& xs,
+  const std::vector<double>& ys,
+  const double h,
+  const double mu,
+  const double sigma,
+  const double tau
+) const)
+{
+  const vector<double>& xs = position;
+  const vector<double>& ys = intensity;
+  MSChromatogram out_min;
+  PeakIntegrator pi;
+  Param params = pi.getParameters();
+  params.setValue("compute_additional_points", "false");
+  pi.setParameters(params);
+  pi.fitEMGPeakModel(chromatogram, out_min);
+  PeakIntegrator_friend pi_f;
+
+  const MSChromatogram::FloatDataArray& fda_emg = out_min.getFloatDataArrays()[0];
+  const double h = fda_emg[0];
+  const double mu = fda_emg[1];
+  const double sigma = fda_emg[2];
+  const double tau = fda_emg[3];
+  TEST_REAL_SIMILAR(pi_f.Loss_function(xs, ys, h, mu, sigma, tau), 69531919.6839022)
+  // for (Size i = 0; i < chromatogram.size(); ++i)
+  // {
+  //   const double est_y = pi_f.emg_point(xs[i], h, mu, sigma, tau);
+  //   printf("%f\t%f\t%f\t%f\n", xs[i], ys[i], est_y, std::fabs(est_y - ys[i]));
+  // }
+}
+END_SECTION
 
 START_SECTION(double computeMuMaxDistance(const std::vector<double>& xs) const)
 {
+  PeakIntegrator_friend pi_f;
   vector<double> xs { 3, 2, 4, 2, 4, 5, 7, 9, 3 };
   TEST_REAL_SIMILAR(pi_f.computeMuMaxDistance(xs), 2.45)
   xs.clear();
-  TEST_REAL_SIMILAR(pi_f.computeMuMaxDistance(xs), 0.0)
+  TEST_REAL_SIMILAR(pi_f.computeMuMaxDistance(xs), 0.0) // empty vector case
 }
 END_SECTION
 
@@ -1120,6 +1131,7 @@ START_SECTION(void iRpropPlus(
   const double previous_E
 ) const)
 {
+  PeakIntegrator_friend pi_f;
   const double prev_diff_E_param { 10.0 };
   double diff_E_param { 20.0 };
   double param_lr { 4.0 };
@@ -1172,10 +1184,11 @@ START_SECTION(double compute_z(
   const double tau
 ) const)
 {
+  PeakIntegrator_friend pi_f;
   double x;
-  double mu { 14.3453 };
-  double sigma { 0.0344277 };
-  double tau { 0.188507 };
+  const double mu { 14.3453 };
+  const double sigma { 0.0344277 };
+  const double tau { 0.188507 };
 
   x = mu - 1.0 / 60.0;
   TEST_REAL_SIMILAR(pi_f.compute_z(x, mu, sigma, tau), 0.471456263584609)
@@ -1196,6 +1209,7 @@ START_SECTION(double emg_point(
   const double tau
 ) const)
 {
+  PeakIntegrator_friend pi_f;
   double x;
   double h { 15515900 };
   double mu { 14.3453 };
@@ -1233,25 +1247,28 @@ START_SECTION(void emg_vector(
   const double sigma,
   const double tau,
   std::vector<double>& out_xs,
-  std::vector<double>& out_ys,
-  const bool compute_additional_points = true
+  std::vector<double>& out_ys
 ) const)
 {
-  double h { 15515900 };
-  double mu { 14.3453 };
-  double sigma { 0.0344277 };
-  double tau { 0.188507 };
+  PeakIntegrator_friend pi_f;
+  const double h { 15515900 };
+  const double mu { 14.3453 };
+  const double sigma { 0.0344277 };
+  const double tau { 0.188507 };
   vector<double> out_xs;
   vector<double> out_ys;
-  bool compute_additional_points { false };
 
-  pi_f.emg_vector(saturated_cutoff_pos_min, h, mu, sigma, tau, out_xs, out_ys, compute_additional_points);
+  Param params = pi_f.peakIntegrator.getParameters();
+  params.setValue("compute_additional_points", "false");
+  pi_f.peakIntegrator.setParameters(params);
+  pi_f.emg_vector(saturated_cutoff_pos_min, h, mu, sigma, tau, out_xs, out_ys);
   TEST_EQUAL(out_xs.size(), saturated_cutoff_pos_min.size())
   TEST_REAL_SIMILAR(out_xs.front(), 14.3310337)
   TEST_REAL_SIMILAR(out_ys.front(), 2144281.1472228)
 
-  compute_additional_points = true;
-  pi_f.emg_vector(saturated_cutoff_pos_min, h, mu, sigma, tau, out_xs, out_ys, true);
+  params.setValue("compute_additional_points", "true");
+  pi_f.peakIntegrator.setParameters(params);
+  pi_f.emg_vector(saturated_cutoff_pos_min, h, mu, sigma, tau, out_xs, out_ys);
   TEST_EQUAL(out_xs.size(), 71) // more points than before
   TEST_REAL_SIMILAR(out_xs.front(), 14.2717555076923) // peak was cutoff on the left side
   TEST_REAL_SIMILAR(out_ys.front(), 108845.941990663)

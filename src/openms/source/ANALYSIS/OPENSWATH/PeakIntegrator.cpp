@@ -118,12 +118,21 @@ namespace OpenMS
   void PeakIntegrator::getDefaultParameters(Param& params)
   {
     params.clear();
+
     params.setValue("integration_type", INTEGRATION_TYPE_INTENSITYSUM, "The integration technique to use in integratePeak() and estimateBackground() which uses either the summed intensity, integration by Simpson's rule or trapezoidal integration.");
     params.setValidStrings("integration_type", ListUtils::create<String>("intensity_sum,simpson,trapezoid"));
+
     params.setValue("baseline_type", BASELINE_TYPE_BASETOBASE, "The baseline type to use in estimateBackground() based on the peak boundaries. A rectangular baseline shape is computed based either on the minimal intensity of the peak boundaries, the maximum intensity or the average intensity (base_to_base).");
     params.setValidStrings("baseline_type", ListUtils::create<String>("base_to_base,vertical_division,vertical_division_min,vertical_division_max"));
+
     params.setValue("print_debug", (UInt)0, "The level of debug information to print in the terminal. Valid values are: 0, 1, 2. Higher values mean more information.");
+    params.setMinInt("print_debug", 0);
+    params.setMaxInt("print_debug", 2);
+
     params.setValue("max_gd_iter", (UInt)100000, "The maximum number of iterations permitted to the gradient descent algorithm for EMG Peak Model.");
+
+    params.setValue("compute_additional_points", "true", "Whether additional points should be added when fitting EMG peak model.");
+    params.setValidStrings("compute_additional_points", ListUtils::create<String>("true,false"));
   }
 
   void PeakIntegrator::updateMembers_()
@@ -132,6 +141,7 @@ namespace OpenMS
     baseline_type_ = (String)param_.getValue("baseline_type");
     print_debug_ = (UInt)param_.getValue("print_debug");
     max_gd_iter_ = (UInt)param_.getValue("max_gd_iter");
+    compute_additional_points_ = param_.getValue("compute_additional_points").toBool();
   }
 
   template <typename PeakContainerT>
@@ -580,27 +590,10 @@ namespace OpenMS
     const double tau
   ) const
   {
-    const double u = mu;
-    const double s = sigma;
-    const double t = tau;
     std::vector<double> diffs(xs.size());
     for (Size i = 0; i < xs.size(); ++i)
     {
-      const double x = xs[i];
-      const double y = ys[i];
-      const double z = compute_z(x, mu, sigma, tau);
-      if (z < 0)
-      {
-        diffs[i] = (std::pow(((((h*s)/t) * std::sqrt(PI/2.0) * std::exp((1.0/2.0)*(std::pow(s/t,2.0))-(x-u)/t) * std::erfc((1/std::sqrt(2.0)) * (s/t - (x-u)/s)))-y),2.0)) / static_cast<double>(xs.size());
-      }
-      else if (z <= 6.71e7)
-      {
-        diffs[i] = (std::pow((h * std::exp(-1.0/2.0 * std::pow(((x - u)/s),2.0)) * (s/t) * std::sqrt(PI/2.0) * std::exp(std::pow((1.0/std::sqrt(2.0) * (s/t - (x - u)/s)),2.0)) * std::erfc(1.0/std::sqrt(2.0) * (s/t - (x - u)/s)) - y),2.0)) / static_cast<double>(xs.size());
-      }
-      else
-      {
-        diffs[i] = (std::pow((((h * std::exp(-(1.0/2.0) * (std::pow(((x-u) / s),2.0)))) / (  1.0 - (((x-u) * t) / (std::pow(s,2.0)))))-y),2.0)) / static_cast<double>(xs.size());
-      }
+      diffs[i] = std::pow(emg_point(xs[i], h, mu, sigma, tau) - ys[i], 2.0) / xs.size();
     }
     const double result = std::accumulate(diffs.begin(), diffs.end(), 0.0);
     if (print_debug_ == 2)
@@ -623,8 +616,7 @@ namespace OpenMS
     const double sigma,
     const double tau,
     std::vector<double>& out_xs,
-    std::vector<double>& out_ys,
-    const bool compute_additional_points
+    std::vector<double>& out_ys
   ) const
   {
     out_xs = xs; // Copy all positions to output
@@ -634,7 +626,7 @@ namespace OpenMS
       out_ys.push_back(emg_point(x, h, mu, sigma, tau));
     }
 
-    if (!compute_additional_points) return;
+    if (!compute_additional_points_) return;
 
     // Compute the sampling step for the additional points
     double avg_sampling { 0.0 };
@@ -769,11 +761,11 @@ namespace OpenMS
     const double t = tau;
     if (z < 0)
     {
-      return ((h*s)/t) * std::sqrt(PI/2.0) * std::exp((1.0/2.0)*(std::pow(s/t,2.0))-(x-u)/t) * std::erfc((1.0/std::sqrt(2.0))* (s/t - (x-u)/s));
+      return ((h*s)/t) * std::sqrt(PI/2.0) * std::exp((1.0/2.0)*(std::pow(s/t,2.0))-(x-u)/t) * std::erfc((1.0/std::sqrt(2.0)) * (s/t - (x-u)/s));
     }
     else if (z <= 6.71e7)
     {
-      return h * std::exp(-(1.0/2.0) * (std::pow(((x-u)/s),2.0))) * (s/t) * std::sqrt(PI/2.0) * std::exp(std::pow(((1.0/std::sqrt(2.0))*((s/t) - ((x-u)/s))),2.0)) * std::erfc((1.0/std::sqrt(2.0))*((s/t) - ((x-u)/s)));
+      return h * std::exp(-(1.0/2.0) * std::pow(((x - u)/s),2.0)) * (s/t) * std::sqrt(PI/2.0) * std::exp(std::pow((1.0/std::sqrt(2.0) * (s/t - (x - u)/s)),2.0)) * std::erfc(1.0/std::sqrt(2.0) * (s/t - (x - u)/s));
     }
     else
     {
@@ -1076,7 +1068,7 @@ namespace OpenMS
     // Estimate the intensities for each point
     std::vector<double> out_xs;
     std::vector<double> out_ys;
-    emg_vector(xs, h, mu, sigma, tau, out_xs, out_ys, true);
+    emg_vector(xs, h, mu, sigma, tau, out_xs, out_ys);
 
     // Prepare the output peak
     output_peak = input_peak;
