@@ -34,8 +34,8 @@
 
 #include <OpenMS/ANALYSIS/OPENSWATH/MasstraceCorrelator.h>
 
-#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/ALGO/MRMScoring.h>
-#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/ALGO/Scoring.h>
+#include <OpenMS/OPENSWATHALGO/ALGO/MRMScoring.h>
+#include <OpenMS/OPENSWATHALGO/ALGO/Scoring.h>
 #include <OpenMS/FILTERING/NOISEESTIMATION/SignalToNoiseEstimatorMedian.h>
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
 

@@ -32,8 +32,7 @@
 // $Authors: Oliver Alka $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FORMAT_DATAACCESS_SIRIUSMZTABWRITER_H
-#define OPENMS_FORMAT_DATAACCESS_SIRIUSMZTABWRITER_H
+#pragma once
 
 namespace OpenMS
 {
@@ -95,4 +94,3 @@ namespace OpenMS
 
 }
 
-#endif //OPENMS_FORMAT_DATAACCESS_SIRIUSMZTABWRITER_H

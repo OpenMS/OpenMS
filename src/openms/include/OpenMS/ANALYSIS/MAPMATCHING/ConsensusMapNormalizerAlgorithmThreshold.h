@@ -32,8 +32,7 @@
 // $Authors: Hendrik Brauer, Oliver Kohlbacher, Johannes Junker $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_MAPMATCHING_CONSENSUSMAPNORMALIZERALGORITHMTHRESHOLD_H
-#define OPENMS_ANALYSIS_MAPMATCHING_CONSENSUSMAPNORMALIZERALGORITHMTHRESHOLD_H
+#pragma once
 
 #include <OpenMS/KERNEL/ConsensusMap.h>
 
@@ -79,4 +78,3 @@ public:
 
 } // namespace OpenMS
 
-#endif // OPENMS_ANALYSIS_MAPMATCHING_CONSENSUSMAPNORMALIZERALGORITHMTHRESHOLD_H

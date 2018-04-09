@@ -32,8 +32,7 @@
 // $Authors: Lars Nilse $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_MATH_MISC_CUBICSPLINE2D_H
-#define OPENMS_MATH_MISC_CUBICSPLINE2D_H
+#pragma once
 
 #include <OpenMS/OpenMSConfig.h>
 
@@ -111,4 +110,3 @@ private:
 
 }
 
-#endif /* OPENMS_MATH_MISC_CUBICSPLINE2D_H */

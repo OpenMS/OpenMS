@@ -32,8 +32,7 @@
 // $Authors: Nico Pfeifer, Chris Bielow $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_METADATA_PROTEINIDENTIFICATION_H
-#define OPENMS_METADATA_PROTEINIDENTIFICATION_H
+#pragma once
 
 #include <OpenMS/METADATA/ProteinHit.h>
 #include <OpenMS/METADATA/MetaInfoInterface.h>
@@ -253,4 +252,3 @@ protected:
   };
 
 } //namespace OpenMS
-#endif // OPENMS_METADATA_PROTEINIDENTIFICATION_H

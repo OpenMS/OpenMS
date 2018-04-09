@@ -32,8 +32,7 @@
 // $Authors: $
 // --------------------------------------------------------------------------
 //
-#ifndef OPENMS_COMPARISON_SPECTRA_SPECTRUMCHEAPDPCORR_H
-#define OPENMS_COMPARISON_SPECTRA_SPECTRUMCHEAPDPCORR_H
+#pragma once
 
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/COMPARISON/SPECTRA/PeakSpectrumCompareFunctor.h>
@@ -130,4 +129,3 @@ private:
   };
 
 }
-#endif //OPENMS_COMPARISON_SPECTRA_SPECTRUMCHEAPDPCORR_H

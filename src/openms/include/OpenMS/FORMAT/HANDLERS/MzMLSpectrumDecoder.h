@@ -32,8 +32,7 @@
 // $Authors: Hannes Roest $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FORMAT_HANDLERS_MZMLSPECTRUMDECODER_H
-#define OPENMS_FORMAT_HANDLERS_MZMLSPECTRUMDECODER_H
+#pragma once
 
 #include <OpenMS/config.h>
 #include <OpenMS/CONCEPT/Types.h>
@@ -193,5 +192,4 @@ namespace OpenMS
   };
 }
 
-#endif // OPENMS_FORMAT_HANDLERS_MZMLSPECTRUMDECODER_H
 

@@ -559,8 +559,7 @@ public:
           // Find the next i for which we'll run a regression.
           update_indices(x, n, delta, i, last, ys);
 
-        }
-        while (last < n - 1);
+        } while (last < n - 1);
 
         // compute current residuals
         for (i = 0; i < n; i++)

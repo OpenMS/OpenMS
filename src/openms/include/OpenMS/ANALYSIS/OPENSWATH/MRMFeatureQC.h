@@ -32,8 +32,7 @@
 // $Authors: Douglas McCloskey $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_OPENSWATH_MRMFEATUREQC_H
-#define OPENMS_ANALYSIS_OPENSWATH_MRMFEATUREQC_H
+#pragma once
 
 #include <OpenMS/KERNEL/MRMFeature.h>
 #include <OpenMS/KERNEL/Feature.h>
@@ -187,5 +186,4 @@ public:
   };
 }
 
-#endif //  OPENMS_ANALYSIS_OPENSWATH_MRMFEATUREQC_H
 

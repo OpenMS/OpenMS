@@ -32,8 +32,7 @@
 // $Authors:  Marc Sturm, Clemens Groepl $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_DATASTRUCTURES_PARAM_H
-#define OPENMS_DATASTRUCTURES_PARAM_H
+#pragma once
 
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/DATASTRUCTURES/DataValue.h>
@@ -629,4 +628,3 @@ protected:
 
 } // namespace OpenMS
 
-#endif // OPENMS_DATASTRUCTURES_PARAM_H

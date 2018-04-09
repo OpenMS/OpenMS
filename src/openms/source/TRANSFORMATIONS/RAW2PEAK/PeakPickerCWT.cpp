@@ -1248,8 +1248,7 @@ namespace OpenMS
 
       }               //end while (getMaxPosition_(it_pick_begin, it_pick_end, wt, area, distance_from_scan_border, ms_level, direction))
       it_pick_begin = raw_peak_array.begin();
-    }
-    while (number_of_peaks != 0);
+    } while (number_of_peaks != 0);
 
     // start the nonlinear optimization for all peaks in split
 #ifdef DEBUG_PEAK_PICKING

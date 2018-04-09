@@ -32,8 +32,7 @@
 // $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_CHEMISTRY_AASEQUENCE_H
-#define OPENMS_CHEMISTRY_AASEQUENCE_H
+#pragma once
 
 #include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
@@ -634,4 +633,3 @@ protected:
 } // namespace OpenMS
 
 
-#endif

@@ -32,8 +32,7 @@
 // $Authors: Marc Sturm, Timo Sachsenberg, Chris Bielow $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_VISUAL_SPECTRUM1DCANVAS_H
-#define OPENMS_VISUAL_SPECTRUM1DCANVAS_H
+#pragma once
 
 // OpenMS_GUI config
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
@@ -309,4 +308,3 @@ protected:
   };
 } // namespace OpenMS
 
-#endif

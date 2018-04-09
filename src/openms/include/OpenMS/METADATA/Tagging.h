@@ -32,8 +32,7 @@
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_METADATA_TAGGING_H
-#define OPENMS_METADATA_TAGGING_H
+#pragma once
 
 #include <OpenMS/METADATA/Modification.h>
 
@@ -93,4 +92,3 @@ protected:
   };
 } // namespace OpenMS
 
-#endif // OPENMS_METADATA_TAGGING_H

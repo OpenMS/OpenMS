@@ -32,8 +32,7 @@
 // $Authors: Douglas McCloskey, Pasquale Domenico Colaianni $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_OPENSWATH_MRMFEATUREFILTER_H
-#define OPENMS_ANALYSIS_OPENSWATH_MRMFEATUREFILTER_H
+#pragma once
 
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMFeatureQC.h>
 #include <OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>
@@ -193,6 +192,5 @@ private:
   };
 }
 
-#endif //  OPENMS_ANALYSIS_OPENSWATH_MRMFEATUREFILTER_H
 
 

@@ -32,8 +32,7 @@
 // $Authors: Andreas Bertsch, Chris Bielow $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FORMAT_XTANDEMINFILE_H
-#define OPENMS_FORMAT_XTANDEMINFILE_H
+#pragma once
 
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/CHEMISTRY/ModificationDefinitionsSet.h>
@@ -300,4 +299,3 @@ protected:
 
 } // namespace OpenMS
 
-#endif // OPENMS_FORMAT_XTANDEMINFILE_H

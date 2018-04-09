@@ -32,8 +32,7 @@
 // $Authors: Stephan Aiche $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_QUANTITATION_TMTELEVENPLEXQUANTITATIONMETHOD_H
-#define OPENMS_ANALYSIS_QUANTITATION_TMTELEVENPLEXQUANTITATIONMETHOD_H
+#pragma once
 
 #include <OpenMS/config.h>
 
@@ -100,4 +99,3 @@ public:
   };
 } // namespace
 
-#endif // OPENMS_ANALYSIS_QUANTITATION_TMTELEVENPLEXQUANTITATIONMETHOD_H

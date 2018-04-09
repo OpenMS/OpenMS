@@ -33,8 +33,7 @@
 // --------------------------------------------------------------------------
 
 
-#ifndef OPENMS_VISUAL_DIALOGS_THEORETICALSPECTRUMGENERATIONDIALOG_H
-#define OPENMS_VISUAL_DIALOGS_THEORETICALSPECTRUMGENERATIONDIALOG_H
+#pragma once
 
 #include <QtWidgets/QDialog>
 class QListWidgetItem;
@@ -80,4 +79,3 @@ private:
   };
 
 }
-#endif // OPENMS_VISUAL_DIALOGS_THEORETICALSPECTRUMGENERATIONDIALOG_H

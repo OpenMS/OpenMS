@@ -46,7 +46,6 @@ namespace OpenMS
   {
     ToolListType tools_map;
 
-    tools_map["AdditiveSeries"] = Internal::ToolDescription("AdditiveSeries", "Quantitation");
     tools_map["BaselineFilter"] = Internal::ToolDescription("BaselineFilter", "Signal processing and preprocessing");
     tools_map["CompNovo"] = Internal::ToolDescription("CompNovo", "Identification");
     tools_map["CompNovoCID"] = Internal::ToolDescription("CompNovoCID", "Identification");

@@ -32,8 +32,7 @@
 // $Authors: Stephan Aiche, Chris Bielow$
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_SIMULATION_IONIZATIONSIMULATION_H
-#define OPENMS_SIMULATION_IONIZATIONSIMULATION_H
+#pragma once
 
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
@@ -187,5 +186,4 @@ protected:
 
 }
 
-#endif // OPENMS_SIMULATION_IONIZATIONSIMULATION_H
 

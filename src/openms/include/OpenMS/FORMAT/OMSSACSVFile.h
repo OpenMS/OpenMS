@@ -32,8 +32,7 @@
 // $Authors: $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FORMAT_OMSSACSVFILE_H
-#define OPENMS_FORMAT_OMSSACSVFILE_H
+#pragma once
 
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
@@ -75,4 +74,3 @@ public:
   };
 } // namespace OpenMS
 
-#endif // OPENMS_FORMAT_OMSSACSVFILE_H

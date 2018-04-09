@@ -32,8 +32,7 @@
 // $Authors: $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_KERNEL_FEATURE_H
-#define OPENMS_KERNEL_FEATURE_H
+#pragma once
 
 #include <OpenMS/DATASTRUCTURES/ConvexHull2D.h>
 #include <OpenMS/KERNEL/BaseFeature.h>
@@ -195,4 +194,3 @@ protected:
 
 } // namespace OpenMS
 
-#endif // OPENMS_KERNEL_FEATURE_H

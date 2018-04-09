@@ -32,8 +32,7 @@
 // $Authors: $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_MATH_STATISTICS_BASICSTATISTICS_H
-#define OPENMS_MATH_STATISTICS_BASICSTATISTICS_H
+#pragma once
 
 #include <OpenMS/CONCEPT/Types.h>
 #include <vector>
@@ -312,4 +311,3 @@ private:
 
 } // namespace OpenMS
 
-#endif // OPENMS_MATH_STATISTICS_BASICSTATISTICS_H

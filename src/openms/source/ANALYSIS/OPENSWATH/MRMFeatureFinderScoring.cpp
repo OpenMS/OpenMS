@@ -40,7 +40,7 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/MRMFeatureAccessOpenMS.h>
 
 // peak picking & noise estimation
-#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/ALGO/MRMScoring.h>
+#include <OpenMS/OPENSWATHALGO/ALGO/MRMScoring.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMTransitionGroupPicker.h>
 
 #include <boost/range/adaptor/map.hpp>
@@ -499,8 +499,14 @@ namespace OpenMS
         OpenSwath::MRMScoring mrmscore_;
         scores.sn_ratio = mrmscore_.calcSNScore(imrmfeature, ms1_signal_noise_estimators);
         // everything below S/N 1 can be set to zero (and the log safely applied)
-        if (scores.sn_ratio < 1) { scores.log_sn_score = 0; }
-        else { scores.log_sn_score = std::log(scores.sn_ratio); }
+        if (scores.sn_ratio < 1)
+        { 
+          scores.log_sn_score = 0;
+        }
+        else
+        { 
+          scores.log_sn_score = std::log(scores.sn_ratio);
+        }
         if (su_.use_sn_score_) 
         { 
           mrmfeature->addScore("sn_ratio", scores.sn_ratio);

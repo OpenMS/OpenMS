@@ -33,8 +33,7 @@
 // --------------------------------------------------------------------------
 
 
-#ifndef OPENMS_VISUAL_VISUALIZER_TAGGINGVISUALIZER_H
-#define OPENMS_VISUAL_VISUALIZER_TAGGINGVISUALIZER_H
+#pragma once
 
 // OpenMS_GUI config
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
@@ -93,4 +92,3 @@ protected:
   };
 
 }
-#endif

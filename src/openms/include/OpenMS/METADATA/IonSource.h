@@ -32,8 +32,7 @@
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_METADATA_IONSOURCE_H
-#define OPENMS_METADATA_IONSOURCE_H
+#pragma once
 
 #include <OpenMS/METADATA/MetaInfoInterface.h>
 
@@ -201,4 +200,3 @@ protected:
 
 } // namespace OpenMS
 
-#endif // OPENMS_METADATA_IONSOURCE_H

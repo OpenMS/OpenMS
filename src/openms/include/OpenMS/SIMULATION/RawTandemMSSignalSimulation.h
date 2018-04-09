@@ -32,8 +32,7 @@
 // $Authors: Stephan Aiche, Chris Bielow, Sandro Andreotti $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_SIMULATION_RAWTANDEMMSSIGNALSIMULATION_H
-#define OPENMS_SIMULATION_RAWTANDEMMSSIGNALSIMULATION_H
+#pragma once
 
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/SIMULATION/SimTypes.h>
@@ -97,4 +96,3 @@ protected:
 
 }
 
-#endif

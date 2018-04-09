@@ -32,8 +32,7 @@
 // $Authors: George Rosenberger, Hannes Roest, Chris Bielow $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_MATH_MISC_RANSAC_H
-#define OPENMS_MATH_MISC_RANSAC_H
+#pragma once
 
 #include <OpenMS/config.h>
 
@@ -244,4 +243,3 @@ public:
 
 
 } // namespace OpenMS
-#endif // OPENMS_MATH_MISC_RANSAC_H

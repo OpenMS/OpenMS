@@ -645,7 +645,7 @@ namespace OpenMS
           // are guaranteed to overlap.
           chromatograms[j].setNativeID( chromatograms[j].getNativeID() +  "_Precursor_i0");
           // write MS1 chromatograms to disk
-          ms1_chromatograms [ coordinates[j].id ] = chrom_list[j];
+          ms1_chromatograms[coordinates[j].id] = chrom_list[j];
 
           // only write precursor chromatograms that have a corresponding swath windows
           for (SignedSize i = 0; i < boost::numeric_cast<SignedSize>(swath_maps.size()); ++i)
@@ -937,8 +937,14 @@ namespace OpenMS
     // When extracting MS1/precursor transitions, we iterate over compounds.
     // Otherwise (for SWATH/fragment ions), we iterate over the transitions.
     Size itersize;
-    if (ms1) {itersize = transition_exp_used.getCompounds().size();}
-    else     {itersize = transition_exp_used.getTransitions().size();}
+    if (ms1)
+    {
+      itersize = transition_exp_used.getCompounds().size();
+    }
+    else
+    {
+      itersize = transition_exp_used.getTransitions().size();
+    }
 
     for (Size i = 0; i < itersize; i++)
     {

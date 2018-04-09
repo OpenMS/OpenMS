@@ -32,8 +32,7 @@
 // $Authors: Hannes Roest $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FORMAT_ZLIBCOMPRESSION_H
-#define OPENMS_FORMAT_ZLIBCOMPRESSION_H
+#pragma once
 
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/OpenMSConfig.h>
@@ -99,5 +98,4 @@ public:
 
 } // namespace OpenMS
 
-#endif // OPENMS_FORMAT_ZLIBCOMPRESSION_H
 

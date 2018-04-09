@@ -32,8 +32,7 @@
 // $Authors: $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_METADATA_DOCUMENTIDTAGGER_H
-#define OPENMS_METADATA_DOCUMENTIDTAGGER_H
+#pragma once
 
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
@@ -131,4 +130,3 @@ protected:
 
 } // namespace OpenMS
 
-#endif // OPENMS_METADATA_DOCUMENTIDTAGGER_H

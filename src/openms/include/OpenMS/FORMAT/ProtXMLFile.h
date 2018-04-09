@@ -32,8 +32,7 @@
 // $Authors: $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FORMAT_PROTXMLFILE_H
-#define OPENMS_FORMAT_PROTXMLFILE_H
+#pragma once
 
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
@@ -142,4 +141,3 @@ protected:
 
 } // namespace OpenMS
 
-#endif // OPENMS_FORMAT_PROTXMLFILE_H

@@ -199,7 +199,8 @@ namespace OpenMS
         if (peptides[p2].peptide_mass < min_second_peptide_mass)
         {
           continue;
-        } else if (peptides[p2].peptide_mass > max_second_peptide_mass)
+        }
+        else if (peptides[p2].peptide_mass > max_second_peptide_mass)
         {
           break;
         }
@@ -258,7 +259,8 @@ namespace OpenMS
         if (fasta_db[fasta_index].sequence.hasPrefix(cit->getString()))
         {
           position = OPXLDataStructs::N_TERM;
-        } else if (fasta_db[fasta_index].sequence.hasSuffix(cit->getString()))
+        }
+        else if (fasta_db[fasta_index].sequence.hasSuffix(cit->getString()))
         {
           position = OPXLDataStructs::C_TERM;
         }
@@ -379,7 +381,8 @@ namespace OpenMS
             if (seq_second.substr(k, 1) == cross_link_residue2[x]) link_pos_second.push_back(k);
           }
         }
-      } else
+      } 
+      else
       {
         // Second position defining a mono-link and the second positions on the same peptide for loop links (only one of these two is valid for any specific precursor)
         if (!is_loop)
@@ -404,7 +407,8 @@ namespace OpenMS
       if (seq_second.size() > seq_first.size())
       {
         alpha_first = false;
-      } else if (seq_second.size() == seq_first.size() && peptide_second.getMonoWeight() > peptide_first.getMonoWeight())
+      }
+      else if (seq_second.size() == seq_first.size() && peptide_second.getMonoWeight() > peptide_first.getMonoWeight())
       {
         alpha_first = false;
       }

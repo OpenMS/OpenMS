@@ -32,8 +32,7 @@
 // $Authors: Marc Sturm, Clemens Groepl $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_CONCEPT_PRECISIONWRAPPER_H
-#define OPENMS_CONCEPT_PRECISIONWRAPPER_H
+#pragma once
 
 #include <OpenMS/config.h>
 #include <OpenMS/CONCEPT/Types.h>
@@ -124,4 +123,3 @@ private:
   }
 } // namespace OpenMS
 
-#endif // #ifndef

@@ -33,8 +33,7 @@
 // --------------------------------------------------------------------------
 
 
-#ifndef OPENMS_FILTERING_CALIBRATION_MZTRAFOMODEL_H
-#define OPENMS_FILTERING_CALIBRATION_MZTRAFOMODEL_H
+#pragma once
 
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/DATASTRUCTURES/CalibrationData.h>
@@ -304,4 +303,3 @@ namespace OpenMS
 
 } // namespace OpenMS
 
-#endif // OPENMS_FILTERING_CALIBRATION_MZTRAFOMODEL_H

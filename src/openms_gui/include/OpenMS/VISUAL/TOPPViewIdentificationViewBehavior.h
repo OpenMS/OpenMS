@@ -32,8 +32,7 @@
 // $Authors: Timo Sachsenberg $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_VISUAL_TOPPVIEWIDENTIFICATIONVIEWBEHAVIOR_H
-#define OPENMS_VISUAL_TOPPVIEWIDENTIFICATIONVIEWBEHAVIOR_H
+#pragma once
 
 #include <OpenMS/METADATA/SpectrumSettings.h>
 #include <OpenMS/VISUAL/LayerData.h>
@@ -134,4 +133,3 @@ private:
   };
 }
 
-#endif // OPENMS_VISUAL_TOPPVIEWIDENTIFICATIONVIEWBEHAVIOR_H
