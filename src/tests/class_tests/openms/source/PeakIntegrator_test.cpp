@@ -218,7 +218,9 @@ START_SECTION(getParameters())
   Param params = ptr->getParameters();
   TEST_EQUAL(params.getValue("integration_type"), INTEGRATION_TYPE_INTENSITYSUM)
   TEST_EQUAL(params.getValue("baseline_type"), BASELINE_TYPE_BASETOBASE)
-  // TODO: add other parameters tests
+  TEST_EQUAL(params.getValue("print_debug"), 0)
+  TEST_EQUAL(params.getValue("max_gd_iter"), 100000)
+  TEST_EQUAL(params.getValue("compute_additional_points"), "true")
 }
 END_SECTION
 
