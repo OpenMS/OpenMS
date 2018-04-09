@@ -35,10 +35,11 @@
 #pragma once
 
 #include <OpenMS/DATASTRUCTURES/String.h>
-#include <OpenMS/METADATA/ExperimentalDesign.h>
 
 namespace OpenMS
 {
+  class ExperimentalDesign;
+ 
   /**
   @brief Provides means to load an ExperimentalDesign from a TSV file.
 
