@@ -136,6 +136,17 @@ if(ENABLE_DOCS)
   # Probably only affects class documentation.
 
   if (DOXYGEN_FOUND)
+  
+    # check doxygen for bug with generated latex files
+    set(DOXYGEN_MIN_REQUIRED "1.8.13")
+    exec_program(${DOXYGEN_EXECUTABLE}
+      ARGS "--version"
+      OUTPUT_VARIABLE DOXYGEN_VERSION)
+
+    if (DOXYGEN_VERSION STRLESS DOXYGEN_MIN_REQUIRED )
+      message(STATUS "Warning: Doxygen ( vers. installed < 1.8.13 ) does not correctly process \\includedoc commands in developer's installation instructions. This will make them incomplete. Upgrade to Doxygen>=1.8.13 to fix.")
+    endif()
+    
     #------------------------------------------------------------------------------
     # configure doxygen configuration files
     configure_file(${PROJECT_SOURCE_DIR}/doxygen/Doxyfile.in ${PROJECT_BINARY_DIR}/doxygen/Doxyfile)
@@ -331,12 +342,8 @@ if(ENABLE_DOCS)
         # check doxygen for bug with generated latex files
         set(DOXYGEN_START_BUGGY "1.6.3")
         set(DOXYGEN_END_BUGGY "1.7.2")
-        exec_program(${DOXYGEN_EXECUTABLE}
-          ARGS "--version"
-          OUTPUT_VARIABLE DOXYGEN_VERSION)
-
         if (DOXYGEN_VERSION STRGREATER DOXYGEN_START_BUGGY AND DOXYGEN_VERSION STRLESS DOXYGEN_END_BUGGY )
-          message(ERROR "Warning, DoxygenBug ( 1.6.? < vers. installed < 1.7.3 ) disguises generated tex inputfiles and files will not be recognized")
+          message(STATUS "Warning: Doxygen ( 1.6.? < vers. installed < 1.7.3 ) disguises generated tex inputfiles and files will not be recognized")
         endif()
 
         #------------------------------------------------------------------------------
