@@ -678,6 +678,10 @@ namespace OpenMS
     const std::vector<double>& ys
   ) const
   {
+    if (xs.size() == 0)
+    {
+      throw Exception::SizeUnderflow(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 0);
+    }
     const double max_intensity = *std::max_element(ys.begin(), ys.end());
     // The intensity levels at which the mean candidates are computed
     const std::vector<double> percentages = { 0.6, 0.65, 0.7, 0.75, 0.8, 0.85 };
@@ -777,14 +781,17 @@ namespace OpenMS
     }
   }
 
-  bool PeakIntegrator::extractTrainingSet(
+  void PeakIntegrator::extractTrainingSet(
     const std::vector<double>& xs,
     const std::vector<double>& ys,
     std::vector<double>& TrX,
     std::vector<double>& TrY
   ) const
   {
-    if (xs.size() < 4) return false; // A valid training set cannot be computed
+    if (xs.size() < 4) // A valid training set cannot be computed
+    {
+      throw Exception::SizeUnderflow(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, xs.size());
+    }
 
     const double intensity_threshold = *std::max_element(ys.begin(), ys.end()) * 0.8;
     std::vector<std::pair<double,double>> points;
@@ -809,12 +816,15 @@ namespace OpenMS
     // According to the value of the highest derivative,
     // it will be decided if a given point is to be added or to be skipped
     std::vector<double> derivatives;
-    for (Size k = i; k <= j + 1; ++k) // This loop starts where the earlier "left side" loop stopped
+    for (Size k = i; k <= j + 1; ++k) // This loop starts where the earlier "LEFT side" loop stopped
     {
       derivatives.push_back(std::fabs( (ys[k - 1] - ys[k]) / (xs[k - 1] - xs[k]) ));
     }
 
-    const double derivative_threshold { *std::max_element(derivatives.begin(), derivatives.end()) * 0.4 };
+    const double derivative_threshold = derivatives.size()
+      ? *std::max_element(derivatives.begin(), derivatives.end()) * 0.4
+      : std::numeric_limits<double>::max()
+    ;
 
     // Starting from the LEFT side, add points until `derivative_threshold` is crossed
     for (Size k = 0; k < derivatives.size() && derivatives[k] >= derivative_threshold; ++k)
@@ -836,8 +846,6 @@ namespace OpenMS
       TrX.push_back(point.first);
       TrY.push_back(point.second);
     }
-
-    return true; // A valid training set was computed
   }
 
   double PeakIntegrator::computeMuMaxDistance(const std::vector<double>& xs) const
@@ -872,7 +880,7 @@ namespace OpenMS
     const double h_lower_boundary { h }; // Parameter `h` won't decrease below this value
 
     std::vector<double> TrX, TrY; // Training set (positions and intensities)
-    if (!extractTrainingSet(xs, ys, TrX, TrY)) return 0;
+    extractTrainingSet(xs, ys, TrX, TrY);
 
     // Variables containing the "previous" differentials
     double prev_diff_E_h, prev_diff_E_mu, prev_diff_E_sigma, prev_diff_E_tau, previous_E;

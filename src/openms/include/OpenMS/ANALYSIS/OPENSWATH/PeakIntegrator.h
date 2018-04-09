@@ -644,14 +644,14 @@ protected:
       If points are actually skipped, these will be found in the middle part of the peak,
       possibly being a saturated peak apex region.
 
+      @throw Exception::SizeUnderflow if the input has less than 4 elements
+
       @param[in] xs Positions
       @param[in] ys Intensities
       @param[out] TrX Extracted training set positions
       @param[out] TrY Extracted training set intensities
-
-      @return `true` if successful, otherwise `false`
     */
-    bool extractTrainingSet(
+    void extractTrainingSet(
       const std::vector<double>& xs,
       const std::vector<double>& ys,
       std::vector<double>& TrX,
@@ -677,6 +677,8 @@ protected:
 
       The method computes the middle point on different levels of intensity of the peak.
       The returned mean is the average of these middle points.
+
+      @throw Exception::SizeUnderflow if the input is empty
 
       @param[in] xs Positions
       @param[in] ys Intensities
@@ -1014,14 +1016,14 @@ public:
       return peakIntegrator.computeMuMaxDistance(xs);
     }
 
-    bool extractTrainingSet(
+    void extractTrainingSet(
       const std::vector<double>& xs,
       const std::vector<double>& ys,
       std::vector<double>& TrX,
       std::vector<double>& TrY
     ) const
     {
-      return peakIntegrator.extractTrainingSet(xs, ys, TrX, TrY);
+      peakIntegrator.extractTrainingSet(xs, ys, TrX, TrY);
     }
 
     void iRpropPlus(
