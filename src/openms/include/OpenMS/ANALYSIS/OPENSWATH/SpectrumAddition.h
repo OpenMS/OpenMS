@@ -35,7 +35,7 @@
 #pragma once
 
 #include <OpenMS/config.h> // OPENMS_DLLAPI
-#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/ISpectrumAccess.h>
+#include <OpenMS/OPENSWATHALGO/DATAACCESS/ISpectrumAccess.h>
 
 #include <OpenMS/KERNEL/MSSpectrum.h>
 

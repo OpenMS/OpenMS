@@ -36,7 +36,7 @@
 #include <OpenMS/test_config.h>
 
 #include <OpenMS/ANALYSIS/OPENSWATH/DIAPrescoring.h>
-#include "OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/MockObjects.h"
+#include "OpenMS/OPENSWATHALGO/DATAACCESS/MockObjects.h"
 
 using namespace std;
 using namespace OpenMS;
