@@ -34,7 +34,7 @@
 
 #include <OpenMS/METADATA/IdentificationDataConverter.h>
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
-
+#include <OpenMS/CONCEPT/ProgressLogger.h>
 using namespace std;
 
 namespace OpenMS
@@ -44,10 +44,17 @@ namespace OpenMS
     const vector<PeptideIdentification>& peptides)
   {
     map<String, IdentificationData::ProcessingStepRef> id_to_step;
+    ProgressLogger progresslogger;
+    progresslogger.setLogType(ProgressLogger::CMD);
 
     // ProteinIdentification:
+    progresslogger.startProgress(0, proteins.size(),
+                                 "converting protein identification runs");
+    Size proteins_counter = 0;
     for (const ProteinIdentification& prot : proteins)
     {
+      proteins_counter++;
+      progresslogger.setProgress(proteins_counter);
       Software software(prot.getSearchEngine(), prot.getSearchEngineVersion());
       IdentificationData::ProcessingSoftwareRef software_ref =
         id_data.registerDataProcessingSoftware(software);
@@ -74,9 +81,19 @@ namespace OpenMS
       id_to_step[prot.getIdentifier()] = step_ref;
       id_data.setCurrentProcessingStep(step_ref);
 
+      ProgressLogger sublogger;
+      sublogger.setLogType(ProgressLogger::CMD);
+      String run_label = "(run " + String(proteins_counter) + "/" +
+        String(proteins.size()) + ")";
+
       // ProteinHit:
+      sublogger.startProgress(0, prot.getHits().size(),
+                              "converting protein hits " + run_label);
+      Size hits_counter = 0;
       for (const ProteinHit& hit : prot.getHits())
       {
+        ++hits_counter;
+        sublogger.setProgress(hits_counter);
         IdentificationData::ParentMolecule parent(hit.getAccession());
         parent.sequence = hit.getSequence();
         parent.description = hit.getDescription();
@@ -85,13 +102,79 @@ namespace OpenMS
         parent.scores.push_back(make_pair(score_ref, hit.getScore()));
         id_data.registerParentMolecule(parent);
       }
+      sublogger.endProgress();
+
+      // indistinguishable protein groups:
+      if (!prot.getIndistinguishableProteins().empty())
+      {
+        sublogger.startProgress(0, prot.getIndistinguishableProteins().size(),
+                                "converting indistinguishable proteins " +
+                                run_label);
+        Size groups_counter = 0;
+
+        IdentificationData::ScoreType score("indistinguishable_protein_group_probability", true);
+        IdentificationData::ScoreTypeRef score_ref =
+          id_data.registerScoreType(score);
+
+        for (const auto& group : prot.getIndistinguishableProteins())
+        {
+          ++groups_counter;
+          sublogger.setProgress(groups_counter);
+          IdentificationData::ParentMoleculeGroup new_group;
+          new_group.scores.push_back(make_pair(score_ref, group.probability));
+          for (const String& acc : group.accessions)
+          {
+            IdentificationData::ParentMolecule parent(acc);
+            IdentificationData::ParentMoleculeRef ref =
+              id_data.registerParentMolecule(parent);
+            new_group.parent_molecule_refs.insert(ref);
+          }
+          id_data.registerParentMoleculeGroup(new_group);
+        }
+        sublogger.endProgress();
+      }
+      // other protein groups:
+      if (!prot.getProteinGroups().empty())
+      {
+        sublogger.startProgress(0, prot.getProteinGroups().size(),
+                                "converting protein groups " + run_label);
+        Size groups_counter = 0;
+
+        IdentificationData::ScoreType score("protein_group_probability", true);
+        IdentificationData::ScoreTypeRef score_ref =
+          id_data.registerScoreType(score);
+
+        for (const auto& group : prot.getProteinGroups())
+        {
+          ++groups_counter;
+          sublogger.setProgress(groups_counter);
+          IdentificationData::ParentMoleculeGroup new_group;
+          new_group.scores.push_back(make_pair(score_ref, group.probability));
+          for (const String& acc : group.accessions)
+          {
+            IdentificationData::ParentMolecule parent(acc);
+            IdentificationData::ParentMoleculeRef ref =
+              id_data.registerParentMolecule(parent);
+            new_group.parent_molecule_refs.insert(ref);
+          }
+          id_data.registerParentMoleculeGroup(new_group);
+        }
+        sublogger.endProgress();
+      }
+
       id_data.clearCurrentProcessingStep();
     }
+    progresslogger.endProgress();
 
     // PeptideIdentification:
     Size unknown_query_counter = 1;
+    progresslogger.startProgress(0, peptides.size(),
+                                 "converting peptide identifications");
+    Size peptides_counter = 0;
     for (const PeptideIdentification& pep : peptides)
     {
+      peptides_counter++;
+      progresslogger.setProgress(peptides_counter);
       const String& id = pep.getIdentifier();
       IdentificationData::ProcessingStepRef step_ref = id_to_step[id];
       IdentificationData::DataQuery query(""); // fill in "data_id" later
@@ -207,6 +290,7 @@ namespace OpenMS
         id_data.registerMoleculeQueryMatch(match);
       }
     }
+    progresslogger.endProgress();
   }
 
 
@@ -214,6 +298,8 @@ namespace OpenMS
     const IdentificationData& id_data, vector<ProteinIdentification>& proteins,
     vector<PeptideIdentification>& peptides)
   {
+    // @TODO: export ParentMoleculeGroups
+
     proteins.clear();
     peptides.clear();
 
