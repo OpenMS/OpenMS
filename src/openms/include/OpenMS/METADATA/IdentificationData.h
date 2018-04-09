@@ -222,6 +222,11 @@ namespace OpenMS
       return parent_molecules_;
     }
 
+    const ParentMoleculeGroups& getParentMoleculeGroups() const
+    {
+      return parent_molecule_groups_;
+    }
+
     const IdentifiedPeptides& getIdentifiedPeptides() const
     {
       return identified_peptides_;
