@@ -677,7 +677,8 @@ class IgnoreFile(object):
         return res
 
 class PXDFileParseError(Exception):
-    pass
+    def __init__(self, message):
+        self.message = message
 
 #
 ## Class for the .pxd file
