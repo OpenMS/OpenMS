@@ -32,8 +32,7 @@
 // $Authors: George Rosenberger $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FORMAT_OSWFILE_H
-#define OPENMS_FORMAT_OSWFILE_H
+#pragma once
 
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
@@ -90,4 +89,3 @@ private:
 
 } // namespace OpenMS
 
-#endif // OPENMS_FORMAT_OSWFILE_H

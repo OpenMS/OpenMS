@@ -32,8 +32,7 @@
 // $Authors: Nico Pfeifer, Chris Bielow $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_SVM_SVMWRAPPER_H
-#define OPENMS_ANALYSIS_SVM_SVMWRAPPER_H
+#pragma once
 
 #include <svm.h>
 
@@ -518,4 +517,3 @@ private:
 
 } // namespace OpenMS
 
-#endif // OPENMS_ANALYSIS_SVM_SVMWRAPPER_H

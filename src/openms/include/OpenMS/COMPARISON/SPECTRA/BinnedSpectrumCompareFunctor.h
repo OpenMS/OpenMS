@@ -32,8 +32,7 @@
 // $Authors: $
 // --------------------------------------------------------------------------
 //
-#ifndef OPENMS_COMPARISON_SPECTRA_BINNEDSPECTRUMCOMPAREFUNCTOR_H
-#define OPENMS_COMPARISON_SPECTRA_BINNEDSPECTRUMCOMPAREFUNCTOR_H
+#pragma once
 
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/CONCEPT/Exception.h>
@@ -92,4 +91,3 @@ public:
 
 }
 
-#endif // OPENMS_COMPARISON_SPECTRA_BINNEDSPECTRUMCOMPAREFUNCTOR_H

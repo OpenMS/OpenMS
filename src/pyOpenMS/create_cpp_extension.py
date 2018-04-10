@@ -260,14 +260,11 @@ if iswin:
     shutil.copy(SUPERHIRN_LIB, "pyopenms")
 
     if OPEN_MS_BUILD_TYPE.upper() == "DEBUG":
-        shutil.copy(j(QT_QTCORE_LIBRARY, "QtCored5.dll"), "pyopenms")
-        shutil.copy(j(QT_QTNETWORK_LIBRARY, "QtNetworkd5.dll"), "pyopenms")
-        shutil.copy(j(OPEN_MS_CONTRIB_BUILD_DIR, "lib", "xerces-c_3_1D.dll"), "pyopenms")
+        shutil.copy(j(QT_QTCORE_LIBRARY, "Qt5Cored.dll"), "pyopenms")
+        shutil.copy(j(QT_QTNETWORK_LIBRARY, "Qt5Networkd.dll"), "pyopenms")
     else:
-        shutil.copy(j(QT_QTCORE_LIBRARY, "QtCore5.dll"), "pyopenms")
-        shutil.copy(j(QT_QTNETWORK_LIBRARY, "QtNetwork5.dll"), "pyopenms")
-        shutil.copy(j(OPEN_MS_CONTRIB_BUILD_DIR, "lib", "xerces-c_3_1.dll"), "pyopenms")
-        shutil.copy(j(OPEN_MS_CONTRIB_BUILD_DIR, "lib", "sqlite3.dll"), "pyopenms")
+        shutil.copy(j(QT_QTCORE_LIBRARY, "Qt5Core.dll"), "pyopenms")
+        shutil.copy(j(QT_QTNETWORK_LIBRARY, "Qt5Network.dll"), "pyopenms")
 
 elif sys.platform.startswith("linux"):
 

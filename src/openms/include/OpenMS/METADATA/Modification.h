@@ -32,8 +32,7 @@
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_METADATA_MODIFICATION_H
-#define OPENMS_METADATA_MODIFICATION_H
+#pragma once
 
 #include <OpenMS/METADATA/SampleTreatment.h>
 
@@ -115,4 +114,3 @@ protected:
   };
 } // namespace OpenMS
 
-#endif // OPENMS_METADATA_MODIFICATION_H

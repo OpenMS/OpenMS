@@ -98,9 +98,9 @@ for OPEN_MS_CONTRIB_BUILD_DIR in OPEN_MS_CONTRIB_BUILD_DIRS.split(";"):
 #
 if iswin:
     if IS_DEBUG:
-        libraries = ["OpenMSd", "OpenSwathAlgod", "SuperHirnd", "xerces-c_3D", "QtCored5"]
+        libraries = ["OpenMSd", "OpenSwathAlgod", "SuperHirnd", "Qt5Cored", "Qt5Networkd"]
     else:
-        libraries = ["OpenMS", "OpenSwathAlgo", "SuperHirn", "xerces-c_3", "QtCore5"]
+        libraries = ["OpenMS", "OpenSwathAlgo", "SuperHirn", "Qt5Core", "Qt5Network"]
 elif sys.platform.startswith("linux"):
     libraries = ["OpenMS", "OpenSwathAlgo", "SuperHirn", "xerces-c", "Qt5Core", "Qt5Network"]
 elif sys.platform == "darwin":
@@ -191,8 +191,10 @@ for module in mnames:
     ))
 
 share_data = []
-if iswin:
-    share_data += MSVS_RTLIBS.split(";") + ["xerces-c_3_1.dll", "sqlite3.dll"]
+
+# Preferred to link statically (as it is now)
+#if iswin:
+#    share_data += MSVS_RTLIBS.split(";") + ["xerces-c_3_1.dll", "sqlite3.dll"]
 
 share_data.append("License.txt")
 

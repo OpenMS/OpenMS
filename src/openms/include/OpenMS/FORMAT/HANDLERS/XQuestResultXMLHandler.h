@@ -31,8 +31,7 @@
 // $Maintainer: Lukas Zimmermann $
 // $Authors: Lukas Zimmermann $
 // --------------------------------------------------------------------------
-#ifndef OPENMS_FORMAT_HANDLERS_XQUESTRESULTXMLHANDLER_H
-#define OPENMS_FORMAT_HANDLERS_XQUESTRESULTXMLHANDLER_H
+#pragma once
 
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
 #include <OpenMS/METADATA/MetaInfoInterface.h>
@@ -161,7 +160,9 @@ namespace OpenMS
       inline void extractDateTime_(const String & xquest_datetime_string, DateTime & date_time);
 
       /**
-       * @brief Assignes all meta values stored in the peptide_id_attributes member to an meta info interface
+       * @brief Assigns all meta values stored in the peptide_id_attributes
+       * member to an meta info interface
+       *
        * @param meta_info_interface Where the meta values from the peptide_id_attributes member should be assigned to
        */
       void addMetaValues_(MetaInfoInterface & meta_info_interface);
@@ -183,4 +184,3 @@ namespace OpenMS
     };
   } // namespace Internal
 } // namespace OpenMS
-#endif // OPENMS_FORMAT_HANDLERS_XQUESTRESULTXMLHANDLER_H

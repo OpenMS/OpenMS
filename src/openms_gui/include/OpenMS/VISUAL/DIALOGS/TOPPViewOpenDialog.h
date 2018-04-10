@@ -32,8 +32,7 @@
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_VISUAL_DIALOGS_TOPPVIEWOPENDIALOG_H
-#define OPENMS_VISUAL_DIALOGS_TOPPVIEWOPENDIALOG_H
+#pragma once
 
 // OpenMS_GUI config
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
@@ -106,4 +105,3 @@ private:
   };
 
 }
-#endif // OPENMS_VISUAL_DIALOGS_TOPPVIEWOPENDIALOG_H

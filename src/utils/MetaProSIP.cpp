@@ -1414,13 +1414,16 @@ public:
     else if (labeling_element == "C")
     {
       e = ElementDB::getInstance()->getElement("Carbon");
-    } else if (labeling_element == "H")
+    }
+    else if (labeling_element == "H")
     {
       e = ElementDB::getInstance()->getElement("Hydrogen");
-    } else if (labeling_element == "O")
+    }
+    else if (labeling_element == "O")
     {
       e = ElementDB::getInstance()->getElement("Oxygen");
-    } else
+    }
+    else
     {
       return 0;
     }
@@ -2213,13 +2216,16 @@ protected:
     if (labeling_element == "N")
     {
       TIC_threshold = getDoubleOption_("pattern_15N_TIC_threshold");
-    } else if (labeling_element == "C")
+    }
+    else if (labeling_element == "C")
     {
       TIC_threshold = getDoubleOption_("pattern_13C_TIC_threshold");
-    } else if (labeling_element == "H")
+    }
+    else if (labeling_element == "H")
     {
       TIC_threshold = getDoubleOption_("pattern_2H_TIC_threshold");
-    } else if (labeling_element == "O")
+    }
+    else if (labeling_element == "O")
     {
       TIC_threshold = getDoubleOption_("pattern_18O_TIC_threshold");
     }
@@ -3269,13 +3275,16 @@ protected:
       if (labeling_element == "C")
       {
         sip_peptide.mass_diff = 1.003354837810;
-      } else if (labeling_element == "N")
+      }
+      else if (labeling_element == "N")
       {
         sip_peptide.mass_diff = 0.9970349;
-      } else if (labeling_element == "H")
+      }
+      else if (labeling_element == "H")
       {
         sip_peptide.mass_diff = 1.00627675;
-      } else if (labeling_element == "O")
+      }
+      else if (labeling_element == "O")
       {
         // 18O-16O distance is approx. 2.0042548 Dalton but natural isotopic pattern is dominated by 13C-12C distance (approx. 1.0033548)
         // After the convolution of the O-isotope distribution with the natural one we get multiple copies of the O-distribution (with 2 Da spaces) 
@@ -3295,13 +3304,16 @@ protected:
         if (labeling_element == "C")
         {
           element_count = sip_peptide.mass_theo * 0.0444398894906044;
-        } else if (labeling_element == "N")
+        }
+        else if (labeling_element == "N")
         {
           element_count = sip_peptide.mass_theo * 0.0122177302837372;
-        } else if (labeling_element == "H")
+        }
+        else if (labeling_element == "H")
         {
           element_count = sip_peptide.mass_theo * 0.06981572169;
-        } else if (labeling_element == "O")
+        }
+        else if (labeling_element == "O")
         {
           element_count = sip_peptide.mass_theo * 0.01329399039;
         }
@@ -3416,13 +3428,16 @@ protected:
        if (labeling_element == "N")
        {
          patterns = MetaProSIPDecomposition::calculateIsotopePatternsFor15NRange(AASequence::fromString(feature_hit_seq));
-       } else if (labeling_element == "C")
+       }
+       else if (labeling_element == "C")
        {
          patterns = MetaProSIPDecomposition::calculateIsotopePatternsFor13CRange(AASequence::fromString(feature_hit_seq));
-       } else if (labeling_element == "H")
+       }
+       else if (labeling_element == "H")
        {
          patterns = MetaProSIPDecomposition::calculateIsotopePatternsFor2HRange(AASequence::fromString(feature_hit_seq));
-       } else if (labeling_element == "O")
+       }
+       else if (labeling_element == "O")
        { 
          patterns = MetaProSIPDecomposition::calculateIsotopePatternsFor18ORange(AASequence::fromString(feature_hit_seq));
        }
@@ -3432,13 +3447,16 @@ protected:
        if (labeling_element == "N")
        {
          patterns = MetaProSIPDecomposition::calculateIsotopePatternsFor15NRangeOfAveraginePeptide(sip_peptide.mass_theo);
-       } else if (labeling_element == "C")
+       }
+       else if (labeling_element == "C")
        {
          patterns = MetaProSIPDecomposition::calculateIsotopePatternsFor13CRangeOfAveraginePeptide(sip_peptide.mass_theo);
-       } else if (labeling_element == "H")
+       }
+       else if (labeling_element == "H")
        {
          patterns = MetaProSIPDecomposition::calculateIsotopePatternsFor2HRangeOfAveraginePeptide(sip_peptide.mass_theo);
-       } else if (labeling_element == "O")
+       }
+       else if (labeling_element == "O")
        {
          patterns = MetaProSIPDecomposition::calculateIsotopePatternsFor18ORangeOfAveraginePeptide(sip_peptide.mass_theo);
        }

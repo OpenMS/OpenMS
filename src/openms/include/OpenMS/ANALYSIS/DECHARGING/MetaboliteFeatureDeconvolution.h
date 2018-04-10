@@ -32,8 +32,7 @@
 // $Authors: $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_DECHARGING_METABOLITEFEATUREDECONVOLUTION_H
-#define OPENMS_ANALYSIS_DECHARGING_METABOLITEFEATUREDECONVOLUTION_H
+#pragma once
 
 // OpenMS
 #include <OpenMS/KERNEL/FeatureMap.h>
@@ -163,4 +162,3 @@ protected:
   };
 } // namespace OpenMS
 
-#endif // OPENMS_ANALYSIS_DECHARGING_METABOLITEFEATUREDECONVOLUTION_H

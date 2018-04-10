@@ -32,8 +32,7 @@
 // $Authors: Mathias Walzer$
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_METADATA_MSQUANTIFICATIONS_H
-#define OPENMS_METADATA_MSQUANTIFICATIONS_H
+#pragma once
 
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/CONCEPT/Exception.h>
@@ -247,4 +246,3 @@ private:
 
 } // namespace OpenMS
 
-#endif // OPENMS_METADATA_MSQUANTIFICATIONS_H

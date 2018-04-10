@@ -32,8 +32,7 @@
 // $Authors: Marc Sturm, Clemens Groepl $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_CONCEPT_TYPES_H
-#define OPENMS_CONCEPT_TYPES_H
+#pragma once
 
 #include <OpenMS/config.h>
 
@@ -310,4 +309,3 @@ namespace OpenMS
 
 } // namespace OpenMS
 
-#endif // OPENMS_CONCEPT_TYPES_H

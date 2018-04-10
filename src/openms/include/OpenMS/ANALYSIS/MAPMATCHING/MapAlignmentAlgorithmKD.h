@@ -32,8 +32,7 @@
 // $Authors: Johannes Veit $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_MAPMATCHING_MAPALIGNMENTALGORITHMKD_H
-#define OPENMS_ANALYSIS_MAPMATCHING_MAPALIGNMENTALGORITHMKD_H
+#pragma once
 
 #include <OpenMS/ANALYSIS/QUANTITATION/KDTreeFeatureMaps.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/TransformationModelLowess.h>
@@ -121,4 +120,3 @@ private:
 
 } // namespace OpenMS
 
-#endif // OPENMS_ANALYSIS_MAPMATCHING_MAPALIGNMENTALGORITHMKD_H

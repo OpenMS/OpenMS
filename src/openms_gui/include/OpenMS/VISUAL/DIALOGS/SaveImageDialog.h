@@ -32,8 +32,7 @@
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_VISUAL_DIALOGS_SAVEIMAGEDIALOG_H
-#define OPENMS_VISUAL_DIALOGS_SAVEIMAGEDIALOG_H
+#pragma once
 
 // OpenMS_GUI config
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
@@ -93,4 +92,3 @@ private:
     void setSizeRatio_(float r);
   };
 }
-#endif

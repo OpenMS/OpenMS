@@ -32,8 +32,7 @@
 // $Authors: Marc Sturm, Clemens Groepl, Chris Bielow $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_MAPMATCHING_FEATUREGROUPINGALGORITHM_H
-#define OPENMS_ANALYSIS_MAPMATCHING_FEATUREGROUPINGALGORITHM_H
+#pragma once
 
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
@@ -81,4 +80,3 @@ private:
 
 } // namespace OpenMS
 
-#endif // OPENMS_ANALYSIS_MAPMATCHING_FEATUREGROUPINGALGORITHM_H

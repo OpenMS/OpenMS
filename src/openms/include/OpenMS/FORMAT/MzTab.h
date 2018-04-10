@@ -32,8 +32,7 @@
 // $Authors: Timo Sachsenberg $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FORMAT_MZTAB_H
-#define OPENMS_FORMAT_MZTAB_H
+#pragma once
 
 #include <OpenMS/FORMAT/SVOutStream.h>
 #include <OpenMS/CONCEPT/Exception.h>
@@ -760,4 +759,3 @@ protected:
 
 #pragma clang diagnostic pop
 
-#endif // OPENMS_FORMAT_MZTAB_H

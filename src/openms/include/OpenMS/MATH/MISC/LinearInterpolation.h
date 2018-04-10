@@ -32,8 +32,7 @@
 // $Authors: $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_MATH_MISC_LINEARINTERPOLATION_H
-#define OPENMS_MATH_MISC_LINEARINTERPOLATION_H
+#pragma once
 
 #include <OpenMS/CONCEPT/Types.h>
 
@@ -485,4 +484,3 @@ protected:
 
 } // namespace OpenMS
 
-#endif // OPENMS_MATH_MISC_LINEARINTERPOLATION_H

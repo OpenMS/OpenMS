@@ -32,8 +32,7 @@
 // $Authors: Clemens Groepl, Chris Bielow $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_CONCEPT_VERSIONINFO_H
-#define OPENMS_CONCEPT_VERSIONINFO_H
+#pragma once
 
 #include <OpenMS/CONCEPT/Types.h>
 
@@ -133,4 +132,3 @@ public:
 
 }
 
-#endif // OPENMS_CONCEPT_VERSIONINFO_H

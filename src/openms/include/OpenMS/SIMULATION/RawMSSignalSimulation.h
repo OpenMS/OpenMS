@@ -32,8 +32,7 @@
 // $Authors: Stephan Aiche, Chris Bielow$
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_SIMULATION_RAWMSSIGNALSIMULATION_H
-#define OPENMS_SIMULATION_RAWMSSIGNALSIMULATION_H
+#pragma once
 
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
@@ -280,4 +279,3 @@ protected:
 
 }
 
-#endif

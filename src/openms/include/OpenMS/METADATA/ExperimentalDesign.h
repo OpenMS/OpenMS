@@ -32,8 +32,7 @@
 // $Authors: Timo Sachsenberg $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_KERNEL_EXPERIMENTALDESIGN_H
-#define OPENMS_KERNEL_EXPERIMENTALDESIGN_H
+#pragma once
 
 #include <OpenMS/DATASTRUCTURES/String.h>
 
@@ -102,4 +101,3 @@ namespace OpenMS
 }
 
 
-#endif // header guard

@@ -438,7 +438,7 @@ configure_file(${_env_py_in} ${_env_py} @ONLY)
 #------------------------------------------------------------------------------
 # create targets in makefile
 
-IF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+IF(${CMAKE_SYSTEM_NAME} MATCHES "Linux" AND PY_NO_OUTPUT)
   add_custom_target(pyopenms_create_cpp
     COMMAND ${PYTHON_EXECUTABLE} create_cpp_extension.py 2> /dev/null
     DEPENDS OpenMS SuperHirn

@@ -32,8 +32,7 @@
 // $Authors: Hannes Roest $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FILTERING_NOISEESTIMATION_SIGNALTONOISEESTIMATORMEDIANRAPID_H
-#define OPENMS_FILTERING_NOISEESTIMATION_SIGNALTONOISEESTIMATORMEDIANRAPID_H
+#pragma once
 
 #include <OpenMS/INTERFACES/DataStructures.h>
 #include <OpenMS/INTERFACES/ISpectrumAccess.h>
@@ -215,5 +214,4 @@ private:
 
 } // namespace OpenMS
 
-#endif // OPENMS_FILTERING_NOISEESTIMATION_SIGNALTONOISEESTIMATORMEDIANRAPID_H
 

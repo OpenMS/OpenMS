@@ -32,8 +32,7 @@
 // $Authors: David Wojnar $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FORMAT_COMPRESSEDINPUTSOURCE_H
-#define OPENMS_FORMAT_COMPRESSEDINPUTSOURCE_H
+#pragma once
 
 #include <OpenMS/DATASTRUCTURES/String.h>
 
@@ -71,4 +70,3 @@ private:
 
 } // namespace OpenMS
 
-#endif // OPENMS_FORMAT_COMPRESSEDINPUTSOURCE_H

@@ -33,8 +33,7 @@
 // --------------------------------------------------------------------------
 //
 
-#ifndef OPENMS_MATH_STATISTICS_GAUSSFITTER_H
-#define OPENMS_MATH_STATISTICS_GAUSSFITTER_H
+#pragma once
 
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/DATASTRUCTURES/DPosition.h>
@@ -61,7 +60,7 @@ namespace OpenMS
 public:
 
       /// struct of parameters of a Gaussian distribution
-      struct GaussFitResult
+      struct OPENMS_DLLAPI GaussFitResult
       {
 public:
         GaussFitResult()
@@ -132,4 +131,3 @@ private:
   }
 }
 
-#endif
