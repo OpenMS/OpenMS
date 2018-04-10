@@ -43,29 +43,24 @@ namespace OpenMS
   /**
   @brief Provides means to load an ExperimentalDesign from a TSV file.
 
-  @ingroup Format
-  */
-  class OPENMS_DLLAPI ExperimentalDesignFile
-  {
-    public:
+     1) Mandatory section with file-level information of the experimental design.
+          Required to process fractionated data and multiplexed data.
 
-    /// 1) Mandatory section with run-level information of the experimental design.
-    ///    Required to process fractionated data.
-/*
- * Run Section Format:
-   Format: Single header line
-         Fraction Group:              Index used to group fractions and source files.
+          File Section format:
+
+          Single header line
+            Fraction_Group:           Index used to group fractions and source files.
                                       Note: For label-free this has same cardinality as sample.
                                       For multiplexed experiments, these might differ as multiple samples can be measured in single files
-         Fraction:                    1st, 2nd, .., fraction. Note: All runs must have the same number of fractions.
-         Path(Spectra File):          Path to mzML files
-         Channel:                     Channel in MS file:
-                                      label-free: always 1
-                                      TMT6Plex: 1..6
-                                      SILAC with light and heavy: 1..2
-         Sample:                      Index of sample measured in the specified channel X, in fraction Y of run Z
+            Fraction:                    1st, 2nd, .., fraction. Note: All runs must have the same number of fractions.
+            Spectra_Filepath:         Path to mzML files
+            Channel:                  Channel in MS file:
+                                        label-free: always 1
+                                        TMT6Plex: 1..6
+                                        SILAC with light and heavy: 1..2
+            Sample:                   Index of sample measured in the specified channel X, in fraction Y of fraction group Z
 
-	Fraction Group	Fraction	Path(Spectra File)	Channel		Sample
+	Fraction_Group	Fraction	Spectra_Filepath	Channel		Sample
 	1	1		SPECTRAFILE_F1_TR1.mzML	1		1
 	1	2		SPECTRAFILE_F2_TR1.mzML	1		1
 	1	3		SPECTRAFILE_F3_TR1.mzML	1		1
@@ -91,28 +86,34 @@ namespace OpenMS
 	2	2		SPECTRAFILE_F2_TR2.mzML	4		8
 	2	3		SPECTRAFILE_F3_TR2.mzML	4		8
 
-  /// 2) Mandatory section with sample information of the experimental design.
-  ///    Required to process fractionated data. One Column must be 'Sample', other columns
-  ///    are unspecified and can contain arbitrary factors
+        2) Mandatory section with sample information of the experimental design.
+           One Column must be 'Sample', other columns
+           are unspecified and can contain arbitrary factors
 
- Sample	Some_Condition	Technical_Replicate
-  1     1               1
-  2	    2	              1
-  3	    3	              1
-  4	    4	              1
-  5	    1	              2
-  6	    2	              2
-  7	    3	              2
-  8	    4	              2
+	Sample	Some_Condition1	Some_Condition2
+	1	1	1
+	2	2	1
+	3	3	1
+	4	4	1
+	5	1	2
+	6	2	2
+	7	3	2
+	8	4	2
 
-*/
+  @ingroup Format
+  */
+
+  class OPENMS_DLLAPI ExperimentalDesignFile
+  {
+    public:
+
 
     /// Loads an experimental design from a tabular separated file
     static ExperimentalDesign load(const String &tsv_file, bool require_spectra_files);
 
     private:
 
-    /// Reads header line of Run and Sample section, checks for the existence of required headers
+    /// Reads header line of File and Sample section, checks for the existence of required headers
     /// and maps the column name to its position
     static void parseHeader_(
       const StringList &header,
@@ -123,3 +124,4 @@ namespace OpenMS
       bool allow_other_header);
   };
 }
+

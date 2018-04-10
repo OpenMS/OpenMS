@@ -198,7 +198,7 @@ namespace OpenMS
             cells,
             tsv_file,
             fs_column_header_to_index,
-            {"Fraction Group", "Fraction", "Spectra Filepath"},
+            {"Fraction_Group", "Fraction", "Spectra_Filepath"},
             {"Channel", "Sample"}, false
           );
           has_channel = fs_column_header_to_index.find("Channel") != fs_column_header_to_index.end();
@@ -220,7 +220,7 @@ namespace OpenMS
           ExperimentalDesign::MSFileSectionEntry e;
 
           // Assign fraction group and fraction
-          e.fraction_group = cells[fs_column_header_to_index["Fraction Group"]].toInt();
+          e.fraction_group = cells[fs_column_header_to_index["Fraction_Group"]].toInt();
           e.fraction = cells[fs_column_header_to_index["Fraction"]].toInt();
 
           // Assign channel
@@ -238,7 +238,7 @@ namespace OpenMS
 
           // Spectra files
           e.path = findSpectraFile(
-            cells[fs_column_header_to_index["Spectra Filepath"]],
+            cells[fs_column_header_to_index["Spectra_Filepath"]],
             tsv_file,
             require_spectra_file);
           msfile_section.push_back(e);
