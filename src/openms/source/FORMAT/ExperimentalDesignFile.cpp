@@ -162,8 +162,8 @@ namespace OpenMS
       std::map< String, Size > sample_columnname_to_columnindex_;
 
       // Maps the column header string to the column index for
-      // the run section
-      std::map <String, Size> run_column_header_to_index;
+      // the file section
+      std::map <String, Size> fs_column_header_to_index;
 
       unsigned line_number(0);
 
@@ -197,21 +197,21 @@ namespace OpenMS
           parseHeader_(
             cells,
             tsv_file,
-            run_column_header_to_index,
-            {"Run", "Fraction", "Path(Spectra File)"},
+            fs_column_header_to_index,
+            {"Fraction Group", "Fraction", "Path(Spectra File)"},
             {"Channel", "Sample"}, false
           );
-          has_channel = run_column_header_to_index.find("Channel") != run_column_header_to_index.end();
-          has_sample = run_column_header_to_index.find("Sample") != run_column_header_to_index.end();
-          n_col = run_column_header_to_index.size();
+          has_channel = fs_column_header_to_index.find("Channel") != fs_column_header_to_index.end();
+          has_sample = fs_column_header_to_index.find("Sample") != fs_column_header_to_index.end();
+          n_col = fs_column_header_to_index.size();
         }
-          // End of run section lines, empty line separates run and sample table
+          // End of file section lines, empty line separates file and sample section
         else if (state == RUN_CONTENT && line.empty())
         {
           // Next line is header of Sample table
           state = SAMPLE_HEADER;
         }
-          // Line is run line of run section
+          // Line is file section line
         else if (state == RUN_CONTENT)
         {
           parseErrorIf(n_col != cells.size(), tsv_file,
@@ -219,26 +219,26 @@ namespace OpenMS
 
           ExperimentalDesign::MSFileSectionEntry e;
 
-          // Assign run and fraction
-          e.run = cells[run_column_header_to_index["Run"]].toInt();
-          e.fraction = cells[run_column_header_to_index["Fraction"]].toInt();
+          // Assign fraction group and fraction
+          e.fraction_group = cells[fs_column_header_to_index["Fraction Group"]].toInt();
+          e.fraction = cells[fs_column_header_to_index["Fraction"]].toInt();
 
           // Assign channel
-          e.channel = has_channel ? cells[run_column_header_to_index["Channel"]].toInt() : 1;
+          e.channel = has_channel ? cells[fs_column_header_to_index["Channel"]].toInt() : 1;
 
           // Assign sample number
           if (has_sample)
           {
-            e.sample = cells[run_column_header_to_index["Sample"]].toInt();
+            e.sample = cells[fs_column_header_to_index["Sample"]].toInt();
           }
           else
           {
-            e.sample = has_channel ? e.channel : e.run;
+            e.sample = has_channel ? e.channel : e.fraction_group;
           }
 
           // Spectra files
           e.path = findSpectraFile(
-            cells[run_column_header_to_index["Path(Spectra File)"]],
+            cells[fs_column_header_to_index["Path(Spectra File)"]],
             tsv_file,
             require_spectra_file);
           msfile_section.push_back(e);
@@ -283,3 +283,4 @@ namespace OpenMS
       return design;
     }
 }
+

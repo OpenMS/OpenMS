@@ -48,7 +48,7 @@
 namespace OpenMS
 {
   /**
-  @brief Representation of the Experimental Design in OpenMS. Instances are loaded via
+  @brief Representation of the Experimental Design in OpenMS. Instances can be loaded via
    the ExperimentalDesignFile class.
 
   @ingroup Format
@@ -57,71 +57,20 @@ namespace OpenMS
   {
   public:
 
-    /// 1) Mandatory section with file-level information of the experimental design.
-    ///    Required to group and process fractionated data.
-/*
- * MSFileSection Format:
-   Format: Single header line
-         Run:                         Run index (prior fractionation) used to group fractions and source files.
-                                      Note: For label-free this has same cardinality as sample.
-                                      For multiplexed experiments, these might differ as multiple samples can be measured in single files
-         Fraction:                    1st, 2nd, .., fraction. Note: All runs must have the same number of fractions.
-         Path(Spectra File):          Path to mzML files
-         Channel:                     Channel in MS file:
-                                      label-free: always 1
-                                      TMT6Plex: 1..6
-                                      SILAC with light and heavy: 1..2
-         Sample:                      Index of sample measured in the specified channel X, in fraction Y of run Z
-
-	Run	Fraction	Path(Spectra File)	Channel		Sample
-	1	1		SPECTRAFILE_F1_TR1.mzML	1		1
-	1	2		SPECTRAFILE_F2_TR1.mzML	1		1
-	1	3		SPECTRAFILE_F3_TR1.mzML	1		1
-	1	1		SPECTRAFILE_F1_TR1.mzML	2		2
-	1	2		SPECTRAFILE_F2_TR1.mzML	2		2
-	1	3		SPECTRAFILE_F3_TR1.mzML	2		2
-	1	1		SPECTRAFILE_F1_TR1.mzML	3		3
-	1	2		SPECTRAFILE_F2_TR1.mzML	3		3
-	1	3		SPECTRAFILE_F3_TR1.mzML	3		3
-	1	1		SPECTRAFILE_F1_TR1.mzML	4		4
-	1	2		SPECTRAFILE_F2_TR1.mzML	4		4
-	1	3		SPECTRAFILE_F3_TR1.mzML	4		4
-	2	1		SPECTRAFILE_F1_TR2.mzML	1		5
-	2	2		SPECTRAFILE_F2_TR2.mzML	1		5
-	2	3		SPECTRAFILE_F3_TR2.mzML	1		5
-	2	1		SPECTRAFILE_F1_TR2.mzML	2		6
-	2	2		SPECTRAFILE_F2_TR2.mzML	2		6
-	2	3		SPECTRAFILE_F3_TR2.mzML	2		6
-	2	1		SPECTRAFILE_F1_TR2.mzML	3		7
-	2	2		SPECTRAFILE_F2_TR2.mzML	3		7
-	2	3		SPECTRAFILE_F3_TR2.mzML	3		7
-	2	1		SPECTRAFILE_F1_TR2.mzML	4		8
-	2	2		SPECTRAFILE_F2_TR2.mzML	4		8
-	2	3		SPECTRAFILE_F3_TR2.mzML	4		8
-
-  /// 2) Mandatory section with sample information of the experimental design.
-  ///    Required to process fractionated data. One Column must be 'Sample', other columns
-  ///    are unspecified and can contain arbitrary factors
-
- Sample	Some_Condition	Technical_Replicate
-  1     1               1
-  2	    2	              1
-  3	    3	              1
-  4	    4	              1
-  5	    1	              2
-  6	    2	              2
-  7	    3	              2
-  8	    4	              2
-
-*/
+    /// MSFileSectionEntry links single quant. values back the MS file
+    /// It supports:
+    ///  - multiplexed data via specification of the quantified channel
+    ///  - multiple fractions via specification of the:
+    ///    - fraction index (e.g., 1..10 if ten fractions were measured)
+    ///    - fraction group to trace which fractions belong together
     class OPENMS_DLLAPI MSFileSectionEntry
     {
     public:
       MSFileSectionEntry() = default;
-      unsigned run = 1; ///< run index (before prefractionation)
+      unsigned fraction_group = 1; ///< fraction group id
       unsigned fraction = 1; ///< fraction 1..m, mandatory, 1 if not set
       std::string path = "UNKNOWN_FILE"; ///< file name, mandatory
-      unsigned channel = 1;  ///< if and how many multiplexed channels are in a file
+      unsigned channel = 1;  ///< the channel (e.g.,: 1 for label-free, 1..8 for TMT8plex)
       unsigned sample = 1;  ///< allows grouping by sample
     };
 
@@ -135,9 +84,7 @@ namespace OpenMS
         std::vector< std::vector < String > > _content,
         std::map< unsigned, Size > _sample_to_rowindex,
         std::map< String, Size > _columnname_to_columnindex
-      ) : content_(_content),
-          sample_to_rowindex_(_sample_to_rowindex),
-          columnname_to_columnindex_(_columnname_to_columnindex) {}
+      );
 
       // Get set of all samples that are present in the sample section
       std::set< unsigned > getSamples() const;
@@ -174,15 +121,7 @@ namespace OpenMS
     // Experimental Design c'tors
     ExperimentalDesign() = default;
 
-    ExperimentalDesign(
-      MSFileSection msfile_section, SampleSection sample_section) 
-        : 
-        msfile_section_(msfile_section), 
-        sample_section_(sample_section)
-    {
-      sort_();
-      checkValidRunSection_();
-    }
+    ExperimentalDesign(MSFileSection msfile_section, SampleSection sample_section);
 
     const MSFileSection& getMSFileSection() const;
 
@@ -193,20 +132,20 @@ namespace OpenMS
 
     void setSampleSection(const SampleSection& sample_section);
 
-    // Gets vector of Filenames that appears in the run section, optionally trims to basename
+    // Gets vector of MS filenames, optionally trims to basename
     std::vector< String > getFileNames(bool basename) const;
 
-    // Returns vector of channels of the run section
+    // Returns vector of channels
     std::vector<unsigned> getChannels() const;
 
     std::vector<unsigned> getFractions() const;
 
-    /// return fraction index to file paths (ordered by run id)
+    /// return fraction index to file paths (ordered by fraction_group)
     std::map<unsigned int, std::vector<String> > getFractionToMSFilesMapping() const;
 
    /*
     *   The (Path, Channel) tuples in the experimental design have to be unique, so we can map them
-    *   uniquely to the sample number, fraction number, and run number
+    *   uniquely to the sample number, fraction number, and fraction_group number
     */
     /// return <file_path, channel> to sample mapping
     std::map< std::pair< String, unsigned >, unsigned> getPathChannelToSampleMapping(bool) const;
@@ -214,8 +153,8 @@ namespace OpenMS
     /// return <file_path, channel> to fraction mapping
     std::map< std::pair< String, unsigned >, unsigned> getPathChannelToFractionMapping(bool) const;
 
-    /// return <file_path, channel> to run mapping
-    std::map< std::pair< String, unsigned >, unsigned> getPathChannelToRunMapping(bool) const;
+    /// return <file_path, channel> to fraction_group mapping
+    std::map< std::pair< String, unsigned >, unsigned> getPathChannelToFractionGroupMapping(bool) const;
 
     // @return the number of samples measured (= highest sample index)
     unsigned getNumberOfSamples() const;
@@ -226,20 +165,21 @@ namespace OpenMS
     // @return the number of channels per file
     unsigned getNumberOfChannels() const;
 
-    // @return the number of MS files (= fractions * runs)
+    // @return the number of MS files (= fractions * fraction groups)
     unsigned getNumberOfMSFiles() const;
 
-    // @return the number of runs (before fractionation)
+    // @return the number of fraction_groups
     // Allows to group fraction ids and source files
-    unsigned getNumberOfPrefractionationRuns() const;
+    unsigned getNumberOfFractionGroups() const;
 
-    // @return sample index (depends on run and channel)
-    unsigned getSample(unsigned run, unsigned channel = 1);
+    // @return sample index (depends on fraction_group and channel)
+    unsigned getSample(unsigned fraction_group, unsigned channel = 1);
 
-    /// @return whether at least one run in this experimental design is fractionated
+    /// @return whether we have a fractionated design 
+    // This is the case if we have at least one fraction group with >= 2 fractions
     bool isFractionated() const;
 
-    /// return if each fraction number is associated with the same number of runs
+    /// @returns whether all fraction groups have the same number of fractions
     bool sameNrOfMSFilesPerFraction() const;
 
     /// Extract experimental design from consensus map
@@ -264,7 +204,7 @@ namespace OpenMS
       template<typename T>
       static void errorIfAlreadyExists(std::set<T> &container, T &item, const String &message);
 
-      void checkValidRunSection_();
+      void checkValidMSFileSection_();
 
       MSFileSection msfile_section_;
       SampleSection sample_section_;
