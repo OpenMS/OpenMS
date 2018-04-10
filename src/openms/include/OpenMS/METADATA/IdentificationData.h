@@ -43,6 +43,8 @@
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 
+#include <boost/unordered_set.hpp>
+
 namespace OpenMS
 {
   class OPENMS_DLLAPI IdentificationData: public MetaInfoInterface
@@ -117,6 +119,8 @@ namespace OpenMS
     using ParentMoleculeGroups =
       IdentificationDataInternal::ParentMoleculeGroups;
     using ParentGroupRef = IdentificationDataInternal::ParentGroupRef;
+
+    using AddressLookup = boost::unordered_set<uintptr_t>;
 
 
     /// Default constructor
@@ -328,6 +332,15 @@ namespace OpenMS
     /// Reference to the current data processing step (see @ref setCurrentProcessingStep())
     ProcessingStepRef current_step_ref_;
 
+    // look-up tables for fast checking of reference validity:
+    AddressLookup data_query_lookup_;
+    AddressLookup parent_molecule_lookup_;
+    // @TODO: just use one "identified_molecule_lookup_" for all molecule types?
+    AddressLookup identified_peptide_lookup_;
+    AddressLookup identified_compound_lookup_;
+    AddressLookup identified_oligo_lookup_;
+    AddressLookup query_match_lookup_;
+
     /// Helper function to check if all score types are valid
     void checkScoreTypes_(const ScoreList& scores);
 
@@ -393,23 +406,17 @@ namespace OpenMS
     template <typename ElementType>
     struct ModifyMultiIndexRemoveParentMatches
     {
-      ModifyMultiIndexRemoveParentMatches(const ParentMolecules&
-                                          parent_molecules):
-        parent_molecules(parent_molecules)
+      ModifyMultiIndexRemoveParentMatches(const AddressLookup& lookup):
+        lookup(lookup)
       {
       }
 
       void operator()(ElementType& element)
       {
-        removeFromSetIf_(element.parent_matches,
-                         [&](ParentMatches::iterator it) -> bool
-                         {
-                           return !isValidReference_(it->first,
-                                                     parent_molecules);
-                         });
+        removeFromSetIfNotHashed_(element.parent_matches, lookup);
       }
 
-      const ParentMolecules& parent_molecules;
+      const AddressLookup& lookup;
     };
 
 
@@ -441,6 +448,18 @@ namespace OpenMS
       return result.first;
     }
 
+    /// Variant of insertIntoMultiIndex_() that also updates a look-up table of valid references (addresses)
+    template <typename ContainerType, typename ElementType>
+    typename ContainerType::iterator insertIntoMultiIndex_(
+      ContainerType& container, const ElementType& element,
+      AddressLookup& lookup)
+    {
+      typename ContainerType::iterator ref =
+        insertIntoMultiIndex_(container, element);
+      lookup.insert(uintptr_t(&(*ref)));
+      return ref;
+    }
+
     /// Check whether a reference points to an element in a container
     template <typename RefType, typename ContainerType>
     static bool isValidReference_(RefType ref, ContainerType& container)
@@ -450,6 +469,14 @@ namespace OpenMS
         if (ref == it) return true;
       }
       return false;
+    }
+
+    /// Check validity of a reference based on a look-up table of addresses
+    template <typename RefType>
+    static bool isValidHashedReference_(
+      RefType ref, const AddressLookup& lookup)
+    {
+      return lookup.count(ref);
     }
 
     /// Remove elements from a set (or ordered multi_index_container) if they fulfil a predicate
@@ -470,16 +497,30 @@ namespace OpenMS
       }
     }
 
-    /// Remove elements from a set (or ordered multi_index_container) if they don't occur in a reference set
-    template <typename ContainerType, typename RefType>
-    static void removeFromSetIfMissing_(ContainerType& container,
-                                        const std::set<RefType>& refs)
+    /// Remove elements from a set (or ordered multi_index_container) if they don't occur in a look-up table
+    template <typename ContainerType>
+    static void removeFromSetIfNotHashed_(
+      ContainerType& container, const AddressLookup& lookup)
     {
-      removeFromSetIf_(container, [&refs](RefType it)
+      removeFromSetIf_(container, [&lookup](typename ContainerType::iterator it)
                        {
-                         return !refs.count(it);
+                         return !lookup.count(uintptr_t(&(*it)));
                        });
     }
+
+    /// Recreate the address look-up table for a container
+    template <typename ContainerType>
+    static void updateAddressLookup_(const ContainerType& container,
+                                     AddressLookup& lookup)
+    {
+      lookup.clear();
+      lookup.rehash(container.size());
+      for (const auto& element : container)
+      {
+        lookup.insert(uintptr_t(&element));
+      }
+    }
+
 
     // IDFilter needs access to do its job:
     friend class IDFilter;
