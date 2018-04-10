@@ -156,12 +156,12 @@ protected:
       assembleRunMap(run_map, design);
 
       // Maps run in MSstats input to run for OpenMS
-      map< unsigned, unsigned > msstats_run_to_openms_run;
+      map< unsigned, unsigned > msstats_run_to_openms_fractiongroup;
 
       // Mapping of filepath and channel to sample and fraction
       map< pair< String, unsigned >, unsigned> path_channel_to_sample = design.getPathChannelToSampleMapping(true);
       map< pair< String, unsigned >, unsigned> path_channel_to_fraction = design.getPathChannelToFractionMapping(true);
-      map< pair< String, unsigned >, unsigned> path_channel_to_run = design.getPathChannelToRunMapping(true);
+      map< pair< String, unsigned >, unsigned> path_channel_to_fractiongroup = design.getPathChannelToFractionGroupMapping(true);
 
       // The Retention Time is additionally written to the output as soon as the user wants to resolve multiple peptides manually
       const bool rt_summarization_manual(arg_retention_time_summarization_method == "manual");
@@ -175,7 +175,7 @@ protected:
       typedef OpenMS::Peak2D::CoordinateType Coordinate;
 
       // Load the filenames of the design run file
-      const std::vector< String > design_run_filenames = design.getFileNames(true);
+      const std::vector< String > design_filenames = design.getFileNames(true);
 
       // Determine if the experiment has fractions
       const bool has_fraction = design.isFractionated();
@@ -218,7 +218,7 @@ protected:
       }
 
       fatalErrorIf_(
-          checkUnorderedContent_(spectra_paths, design_run_filenames) == false,
+          checkUnorderedContent_(spectra_paths, design_filenames) == false,
           "The filenames in the consensusXML file are not the same as in the experimental design",
           ILLEGAL_PARAMETERS);
 
@@ -349,8 +349,8 @@ protected:
 
                   // Resolve run
                   const unsigned run = run_map[tpl2];  // MSstats run according to the run table
-                  const unsigned openms_run = path_channel_to_run[tpl1];
-                  msstats_run_to_openms_run[run] = openms_run;
+                  const unsigned openms_fractiongroup = path_channel_to_fractiongroup[tpl1];
+                  msstats_run_to_openms_fractiongroup[run] = openms_fractiongroup;
 
                   // Assemble MSstats line
                   MSstatsLine prefix(
@@ -376,10 +376,10 @@ protected:
       }
 
       // Print the run mapping between MSstats and OpenMS
-      for (const auto run_mapping : msstats_run_to_openms_run)
+      for (const auto run_mapping : msstats_run_to_openms_fractiongroup)
       {
         cout << "MSstats run " << String(run_mapping.first)
-             << " corresponds to OpenMS run " << String(run_mapping.second) << endl;
+             << " corresponds to OpenMS fraction group " << String(run_mapping.second) << endl;
       }
 
       const bool write_ambigous_peptides(this->getFlag_(TOPPMSstatsConverter::param_ambiguous_peptides));
