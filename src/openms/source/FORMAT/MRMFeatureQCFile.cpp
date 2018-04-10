@@ -84,7 +84,7 @@ namespace OpenMS
     c.component_name = getCastValue_(headers, line, "component_name", "");
     if (c.component_name.empty()) return;
     c.retention_time_l = getCastValue_(headers, line, "retention_time_l", 0.0);
-    c.retention_time_u = getCastValue_(headers, line, "retention_time_u", 100.0);
+    c.retention_time_u = getCastValue_(headers, line, "retention_time_u", 1e12);
     c.intensity_l = getCastValue_(headers, line, "intensity_l", 0.0);
     c.intensity_u = getCastValue_(headers, line, "intensity_u", 1e12);
     c.overall_quality_l = getCastValue_(headers, line, "overall_quality_l", 0.0);
@@ -112,7 +112,7 @@ namespace OpenMS
     cg.component_group_name = getCastValue_(headers, line, "component_group_name", "");
     if (cg.component_group_name.empty()) return;
     cg.retention_time_l = getCastValue_(headers, line, "retention_time_l", 0.0);
-    cg.retention_time_u = getCastValue_(headers, line, "retention_time_u", 100.0);
+    cg.retention_time_u = getCastValue_(headers, line, "retention_time_u", 1e12);
     cg.intensity_l = getCastValue_(headers, line, "intensity_l", 0.0);
     cg.intensity_u = getCastValue_(headers, line, "intensity_u", 1e12);
     cg.overall_quality_l = getCastValue_(headers, line, "overall_quality_l", 0.0);
