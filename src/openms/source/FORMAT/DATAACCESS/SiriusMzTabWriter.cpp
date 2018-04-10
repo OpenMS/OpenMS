@@ -72,7 +72,7 @@ void SiriusMzTabWriter::read(const std::vector<String> & sirius_output_paths, co
       {
         const UInt top_n_hits_cor = (top_n_hits >= rowcount) ? rowcount : top_n_hits;
         
-        // fill indentification structure containing all candidate hits for a single spectrum
+        // fill identification structure containing all candidate hits for a single spectrum
         SiriusMzTabWriter::SiriusAdapterIdentification sirius_id;
 
         // extract scan_number from path

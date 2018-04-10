@@ -123,5 +123,5 @@ else()
     COMMAND ${PROJECT_SOURCE_DIR}/cmake/MacOSX/fixdmg.sh
     WORKING_DIRECTORY ${PROJECT_BINARY_DIR}
     COMMENT "Finalizing dmg image"
-    DEPENDS dmg)
+    DEPENDS dist)
 endif()

@@ -89,7 +89,7 @@ public:
         @param cluster_tree vector< BinaryTreeNode >, represents the clustering, each node contains the next merged clusters (not element indices) and their distance, strict order is kept: left_child < right_child,
         @param threshold float value, the minimal distance from which on cluster merging is considered unrealistic. By default set to 1, i.e. complete clustering until only one cluster remains
 
-        @p original_distance is considered mirrored at the main diagonal, so only entrys up the main diagonal are used.
+        @p original_distance is considered mirrored at the main diagonal, so only entries up the main diagonal are used.
         The @p threshold can be taken from the maximal distance of two elements considered related and adapted in a way corresponding to the employed clustering method.
         The results are represented by @p cluster_tree, to get the actual clustering (with element indices) from a certain step of the clustering
         @see BinaryTreeNode , ClusterAnalyzer::cut

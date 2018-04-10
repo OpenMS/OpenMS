@@ -257,7 +257,7 @@ The extensible %OpenMS library implements common mass spectrometric data process
  <tr><th>Folder        <th>Description
  <tr><td>ANALYSIS</td><td>Source code of high-level analysis like PeakPicking, Quantitation, Identification, MapAlignment</td></tr>
  <tr><td>APPLICATIONS</td><td>Source code for tool base and handling</td></tr>
- <tr><td>CHEMISTRY</td><td>Source code dealing with Elements, Enzymes, Residues, Modifications, Isotope distibutions and amino acid sequences</td></tr>
+ <tr><td>CHEMISTRY</td><td>Source code dealing with Elements, Enzymes, Residues, Modifications, Isotope distributions and amino acid sequences</td></tr>
  <tr><td>COMPARISON</td><td>Different scoring functions for clustering and spectra comparison</td></tr>
  <tr><td>CONCEPT</td><td>%OpenMS concepts (types, macros, ...)</td></tr>
  <tr><td>DATASTRUCTURES</td><td>Auxiliary datastructures</td></tr>
@@ -276,7 +276,7 @@ The extensible %OpenMS library implements common mass spectrometric data process
 
 For the sake of completeness you will find a short list of the THIRDPARTY tools, which are integrated via wrappers into the %OpenMS framework (usually called -Adapter e.g. SiriusAdapter)
 
-Wrapper to thid-party tools:
+Wrapper to third-party tools:
     - Search Engines (MSGFPLUS, XTandem, OMSSA, Comet, MyriMatch)
     - Protein Inference (Fido)
     - Spectral Library Search (SpectraST)
@@ -535,7 +535,7 @@ If it is well tested it will be promoted to a stable Tool in future %OpenMS vers
 Imagine that you want to create a new tool that allows filtering of sequence databases. What you usually would first do is check if such or similar functionality has already been implemented in any of the >150 TOPP tools. If you are unsure which one to use, just ask on the mailing list, the gitter chat or contact one of the developers directly. The following subsection demonstrates how the original “DatabaseFilter” tool was created from scratch an integrated into %OpenMS. Basically any tool you want to integrate needs to follow the steps outlined below.
 
 But let’s first get started by defining what our tool should actually do:
-The DatabaseFilter tool should provide functionality to reduce a fasta database by filtering its entries based on different criteria. A simple criterium could be the length of a protein. To make the task a bit more interesting and to show other parts of the %OpenMS library, we will start with a bit more complex filtering step that keeps all entries from the fasta database that have been identified in a peptide search  (e.g., using X!Tandem, Mascot or MSGF+). This functionality might come in handy if the size of large databases needs to be reduced to a manageable size. In addition, we want the user to be able to choose between keeping and removing matching protein id.
+The DatabaseFilter tool should provide functionality to reduce a fasta database by filtering its entries based on different criteria. A simple criterion could be the length of a protein. To make the task a bit more interesting and to show other parts of the %OpenMS library, we will start with a bit more complex filtering step that keeps all entries from the fasta database that have been identified in a peptide search  (e.g., using X!Tandem, Mascot or MSGF+). This functionality might come in handy if the size of large databases needs to be reduced to a manageable size. In addition, we want the user to be able to choose between keeping and removing matching protein id.
 
 @subsection tutorial_create Create and register a minimal tool in OpenMS
 - Create an empty file src/utils/DatabaseFilter.cpp
@@ -632,7 +632,7 @@ Later (when we have a working application) we will write an application test (th
 @subsection tutorial_polish Polish your code 
 This is how a util should look after code polishing: 
 Here, the support for different formats was extended (idXML and MZIdentML).
-Since different filter criteria may be introduced in the future, the structure was slightly changed with a function for the filtering by ID (filterByProteinIDs_) - in order to allow higher felixbility when adding new a functionalty later on.
+Since different filter criteria may be introduced in the future, the structure was slightly changed with a function for the filtering by ID (filterByProteinIDs_) - in order to allow higher flexibility when adding new a functionality later on.
 <br><br>
 <b>Example: Tutorial_final.cpp</b>
 <br>
@@ -645,7 +645,7 @@ Afterwards you can commit your changes to a new branch “feature/DatabaseFilter
 
 @section tutorial_appendix Appendix 
 @subsection tutorial_d_dim D-dimensional data points 
-The d-dimensional data points are neededin special cases only, e.g. in template classes that operate in any number of dimensions. The base class of the d-dimensional data points is DPeak. The methods to access the position are getPosition and setPosition. Note that the one-dimensional and two-dimensional data points also have the methods getPosition and setPosition. They are needed in order to be able to write algorithms that can operate on all data point types. It is, however, recommended not to use these members unless you really write such a generic algorithm.
+The d-dimensional data points are needed in special cases only, e.g. in template classes that operate in any number of dimensions. The base class of the d-dimensional data points is DPeak. The methods to access the position are getPosition and setPosition. Note that the one-dimensional and two-dimensional data points also have the methods getPosition and setPosition. They are needed in order to be able to write algorithms that can operate on all data point types. It is, however, recommended not to use these members unless you really write such a generic algorithm.
 
 @subsection tutorial_ext_project OpenMS as external project
 If %OpenMS TOPP_tools and UTILS_tools are not sufficient for a certain scenario, you can either request changes to %OpenMS or modify/extend your own fork of %OpenMS. A third alternative is using %OpenMS as a dependency while not touching %OpenMS itself. Once you've finished your new tool, and it runs on the development machine, you're done. If you want to develop with %OpenMS as external project have a look the example code ( /share/%OpenMS/examples/external_code/).

@@ -142,7 +142,7 @@ START_SECTION(void load(const String& filename, MRMFeatureQC& mrmfqc, const bool
   TEST_REAL_SIMILAR(c_qcs[0].retention_time_u, 2.0);
   TEST_REAL_SIMILAR(c_qcs[1].retention_time_u, 4.0);
   TEST_REAL_SIMILAR(c_qcs[2].retention_time_u, 6.0);
-  TEST_REAL_SIMILAR(c_qcs[3].retention_time_u, 100.0); // default value
+  TEST_REAL_SIMILAR(c_qcs[3].retention_time_u, 1e12); // default value
   TEST_REAL_SIMILAR(c_qcs[0].intensity_l, 1000.0);
   TEST_REAL_SIMILAR(c_qcs[1].intensity_l, 2000.0);
   TEST_REAL_SIMILAR(c_qcs[2].intensity_l, 3000.0);
@@ -258,7 +258,7 @@ START_SECTION(void load(const String& filename, MRMFeatureQC& mrmfqc, const bool
   TEST_REAL_SIMILAR(cg_qcs[3].ion_ratio_u, 1e12);
   TEST_EQUAL(cg_qcs[3].ion_ratio_feature_name, "");
   TEST_REAL_SIMILAR(cg_qcs[3].retention_time_l, 0.0);
-  TEST_REAL_SIMILAR(cg_qcs[3].retention_time_u, 100.0);
+  TEST_REAL_SIMILAR(cg_qcs[3].retention_time_u, 1e12);
   TEST_REAL_SIMILAR(cg_qcs[3].intensity_l, 0.0);
   TEST_REAL_SIMILAR(cg_qcs[3].intensity_u, 1e12);
   TEST_REAL_SIMILAR(cg_qcs[3].overall_quality_l, 0.0);
@@ -339,7 +339,7 @@ START_SECTION(void pushValuesFromLine_(
   TEST_EQUAL(c_qcs.size(), 2);
   TEST_EQUAL(c_qcs[1].component_name, "component3");
   TEST_REAL_SIMILAR(c_qcs[1].retention_time_l, 0.0);
-  TEST_REAL_SIMILAR(c_qcs[1].retention_time_u, 100.0);
+  TEST_REAL_SIMILAR(c_qcs[1].retention_time_u, 1e12);
   TEST_REAL_SIMILAR(c_qcs[1].intensity_l, 0.0);
   TEST_REAL_SIMILAR(c_qcs[1].intensity_u, 1e12);
   TEST_REAL_SIMILAR(c_qcs[1].overall_quality_l, 0.0);
@@ -498,7 +498,7 @@ START_SECTION(void pushValuesFromLine_(
   TEST_REAL_SIMILAR(cg_qcs[1].ion_ratio_u, 1e12);
   TEST_EQUAL(cg_qcs[1].ion_ratio_feature_name, "");
   TEST_REAL_SIMILAR(cg_qcs[1].retention_time_l, 0.0);
-  TEST_REAL_SIMILAR(cg_qcs[1].retention_time_u, 100.0);
+  TEST_REAL_SIMILAR(cg_qcs[1].retention_time_u, 1e12);
   TEST_REAL_SIMILAR(cg_qcs[1].intensity_l, 0.0);
   TEST_REAL_SIMILAR(cg_qcs[1].intensity_u, 1e12);
   TEST_REAL_SIMILAR(cg_qcs[1].overall_quality_l, 0.0);

@@ -85,17 +85,17 @@ public:
 
       // Feature members
       /// retention time lower bound
-      double retention_time_l;
+      double retention_time_l { 0.0 };
       /// retention time upper bound
-      double retention_time_u;
+      double retention_time_u { 1e12 };
       /// intensity lower bound
-      double intensity_l;
+      double intensity_l { 0.0 };
       /// intensity upper bound
-      double intensity_u;
+      double intensity_u { 1e12 };
       /// overall quality lower bound
-      double overall_quality_l;
+      double overall_quality_l { 0.0 };
       /// overall quality upper bound
-      double overall_quality_u;
+      double overall_quality_u { 1e12 };
 
       /// Feature MetaValues
       std::map<String,std::pair<double,double>> meta_value_qc;
@@ -114,39 +114,39 @@ public:
       String component_group_name;
 
       /// retention time lower bound
-      double retention_time_l;
+      double retention_time_l { 0.0 };
       /// retention time upper bound
-      double retention_time_u;
+      double retention_time_u { 1e12 };
       /// intensity lower bound
-      double intensity_l;
+      double intensity_l { 0.0 };
       /// intensity upper bound
-      double intensity_u;
+      double intensity_u { 1e12 };
       /// overall quality lower bound
-      double overall_quality_l;
+      double overall_quality_l { 0.0 };
       /// overall quality upper bound
-      double overall_quality_u;
+      double overall_quality_u { 1e12 };
 
       // number of transitions and labels
       /// number of heavy ion lower bound
-      Int n_heavy_l;
+      Int n_heavy_l { 0 };
       /// number of heavy ion upper bound
-      Int n_heavy_u;
-      Int n_light_l;
-      Int n_light_u;
-      Int n_detecting_l;
-      Int n_detecting_u;
-      Int n_quantifying_l;
-      Int n_quantifying_u;
-      Int n_identifying_l;
-      Int n_identifying_u;
-      Int n_transitions_l;
-      Int n_transitions_u;
+      Int n_heavy_u { 100 };
+      Int n_light_l { 0 };
+      Int n_light_u { 100 };
+      Int n_detecting_l { 0 };
+      Int n_detecting_u { 100 };
+      Int n_quantifying_l { 0 };
+      Int n_quantifying_u { 100 };
+      Int n_identifying_l { 0 };
+      Int n_identifying_u { 100 };
+      Int n_transitions_l { 0 };
+      Int n_transitions_u { 100 };
 
       // Ion Ratio QCs
       String ion_ratio_pair_name_1;
       String ion_ratio_pair_name_2;
-      double ion_ratio_l;
-      double ion_ratio_u;
+      double ion_ratio_l { 0.0 };
+      double ion_ratio_u { 1e12 };
       String ion_ratio_feature_name;
       std::map<String,std::pair<double,double>> meta_value_qc;
 
