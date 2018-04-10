@@ -177,7 +177,7 @@ namespace OpenMS
       {
         // skip empty lines (except in state RUN_CONTENT, where the sample table is read)
         const String line(s.trim());
-
+	
         if (line.empty() && state != RUN_CONTENT)
         {
           continue;
@@ -198,7 +198,7 @@ namespace OpenMS
             cells,
             tsv_file,
             fs_column_header_to_index,
-            {"Fraction Group", "Fraction", "Path(Spectra File)"},
+            {"Fraction Group", "Fraction", "Spectra Filepath"},
             {"Channel", "Sample"}, false
           );
           has_channel = fs_column_header_to_index.find("Channel") != fs_column_header_to_index.end();
@@ -238,7 +238,7 @@ namespace OpenMS
 
           // Spectra files
           e.path = findSpectraFile(
-            cells[fs_column_header_to_index["Path(Spectra File)"]],
+            cells[fs_column_header_to_index["Spectra Filepath"]],
             tsv_file,
             require_spectra_file);
           msfile_section.push_back(e);
