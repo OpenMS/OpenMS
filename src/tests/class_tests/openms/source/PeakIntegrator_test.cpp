@@ -1142,6 +1142,17 @@ START_SECTION(double Loss_function(
 }
 END_SECTION
 
+START_SECTION(void extractTrainingSet(
+  const std::vector<double>& xs,
+  const std::vector<double>& ys,
+  std::vector<double>& TrX,
+  std::vector<double>& TrY
+) const)
+{
+// TODO: test
+}
+END_SECTION
+
 START_SECTION(double computeMuMaxDistance(const std::vector<double>& xs) const)
 {
   PeakIntegrator_friend pi_f;
@@ -1149,6 +1160,26 @@ START_SECTION(double computeMuMaxDistance(const std::vector<double>& xs) const)
   TEST_REAL_SIMILAR(pi_f.computeMuMaxDistance(xs), 2.45)
   xs.clear();
   TEST_REAL_SIMILAR(pi_f.computeMuMaxDistance(xs), 0.0) // empty vector case
+}
+END_SECTION
+
+START_SECTION(double PeakIntegrator::computeInitialMean(
+  const std::vector<double>& xs,
+  const std::vector<double>& ys
+) const)
+{
+  PeakIntegrator_friend pi_f;
+  double mu;
+  mu = pi_f.computeInitialMean(position, intensity);
+  TEST_REAL_SIMILAR(mu, 2.69743333333333)
+  mu = pi_f.computeInitialMean(saturated_pos_min, saturated_int);
+  TEST_REAL_SIMILAR(mu, 2.69516110583333)
+  mu = pi_f.computeInitialMean(saturated_cutoff_pos_sec, saturated_cutoff_int);
+  TEST_REAL_SIMILAR(mu, 865.1314205)
+  mu = pi_f.computeInitialMean(cutoff_pos_sec, cutoff_int);
+  TEST_REAL_SIMILAR(mu, 926.90050115)
+  const vector<double> empty;
+  TEST_EXCEPTION(Exception::SizeUnderflow, pi_f.computeInitialMean(empty, empty))
 }
 END_SECTION
 

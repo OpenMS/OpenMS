@@ -990,6 +990,7 @@ private:
       PeakContainerT& output_peak
     ) const;
 
+    /// Alias for OpenMS::Constants:PI
     const double PI = OpenMS::Constants::PI;
 
     /**
@@ -1040,6 +1041,14 @@ public:
     ) const
     {
       peakIntegrator.extractTrainingSet(xs, ys, TrX, TrY);
+    }
+
+    double computeInitialMean(
+      const std::vector<double>& xs,
+      const std::vector<double>& ys
+    ) const
+    {
+      return peakIntegrator.computeInitialMean(xs, ys);
     }
 
     void iRpropPlus(
