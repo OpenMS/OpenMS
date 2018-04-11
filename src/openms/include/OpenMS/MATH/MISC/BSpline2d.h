@@ -139,6 +139,7 @@ public:
     static void debug(bool enable);
 
 private:
+
     // Pointer to actual implementation. Note: This class follows the PIMPL idiom hiding the actual 
     // B-spline implementation behind this pointer to avoid any dependency of the interface to the 
     // implementation. Thus, the eol splines are only required during compilation of OpenMS and 

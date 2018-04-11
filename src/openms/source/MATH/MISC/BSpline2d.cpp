@@ -73,6 +73,12 @@ namespace OpenMS
     return spline_->slope(x);
   }
 
+  double BSpline2d::derivatives(const double x, unsigned order) const
+  {
+    OPENMS_PRECONDITION(order == 1, "Spline was not initialized properly.")
+    return derivative(x);
+  }
+
   bool BSpline2d::ok() const
   {
     return spline_->ok();
