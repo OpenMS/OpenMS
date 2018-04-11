@@ -37,7 +37,6 @@
 #include <BSpline/BSplineBase.cpp>
 #include <BSpline/BSpline.cpp>
 
-
 namespace OpenMS
 {
 
@@ -73,9 +72,9 @@ namespace OpenMS
     return spline_->slope(x);
   }
 
-  double BSpline2d::derivatives(const double x, unsigned order) const
+  double BSpline2d::derivatives(const double x, unsigned /* order */) const
   {
-    OPENMS_PRECONDITION(order == 1, "Spline was not initialized properly.")
+    // OPENMS_PRECONDITION(order == 1, "Spline was not initialized properly.")
     return derivative(x);
   }
 
