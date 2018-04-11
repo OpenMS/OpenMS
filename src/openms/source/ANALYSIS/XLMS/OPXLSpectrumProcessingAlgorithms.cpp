@@ -386,6 +386,162 @@ namespace OpenMS
       std::reverse(ppm_error_array.begin(), ppm_error_array.end());
   }
 
+  void OPXLSpectrumProcessingAlgorithms::getSpectrumAlignmentFastCharge(
+    std::vector<std::pair<Size, Size> > & alignment, double fragment_mass_tolerance,
+    bool fragment_mass_tolerance_unit_ppm,
+    const PeakSpectrum& theo_spectrum,
+    const PeakSpectrum& exp_spectrum,
+    const DataArrays::IntegerDataArray& theo_charges,
+    const DataArrays::IntegerDataArray& exp_charges,
+    DataArrays::FloatDataArray& ppm_error_array,
+    double intensity_cutoff)
+  {
+    OPENMS_PRECONDITION(exp_spectrum.isSorted(), "Spectrum needs to be sorted.");
+    OPENMS_PRECONDITION(theo_spectrum.isSorted(), "Spectrum needs to be sorted.");
+    OPENMS_PRECONDITION((alignment.empty() == true), "Alignment result vector needs to be empty.");
+    OPENMS_PRECONDITION((ppm_error_array.empty() == true), "ppm error result vector needs to be empty.");
+
+    const Size n_t(theo_spectrum.size());
+    const Size n_e(exp_spectrum.size());
+    const bool has_charge = !(exp_charges.empty() || theo_charges.empty());
+
+    if (n_t == 0 || n_e == 0) { return; }
+
+    Size t(0), e(0);
+    alignment.reserve(theo_spectrum.size());
+    ppm_error_array.reserve(theo_spectrum.size());
+
+    while (t < n_t && e < n_e)
+    {
+      const double theo_mz = theo_spectrum[t].getMZ();
+      const double exp_mz = exp_spectrum[e].getMZ();
+
+      int tz(0), ez(0);
+      if (has_charge)
+      {
+        tz = theo_charges[t];
+        ez = exp_charges[e];
+      }
+      const bool tz_matches_ez = (ez == tz || !ez || !tz);
+
+      double d = exp_mz - theo_mz;
+      const double max_dist_dalton = fragment_mass_tolerance_unit_ppm ? theo_mz * fragment_mass_tolerance * 1e-6 : fragment_mass_tolerance;
+
+      if (fabs(d) <= max_dist_dalton) // match in tolerance window?
+      {
+        // get first peak with matching charge in tolerance window
+        if (!tz_matches_ez)
+        {
+          Size e_candidate(e);
+          while (true)
+          {
+            ++e_candidate;
+            double new_ez = has_charge ? exp_charges[e_candidate] : 0;
+            const bool charge_matches = (new_ez == tz || !new_ez || !tz);
+            double new_d = exp_spectrum[e].getMZ() - theo_mz;
+            if (charge_matches && new_d <= max_dist_dalton)
+            { // found a match
+              break;
+            }
+            else if (new_d > max_dist_dalton)
+            { // no match found
+              e_candidate = e;
+              break;
+            }
+          }
+          if (e == e_candidate)
+          { // no match found continue with next theo. peak
+            ++t;
+            continue;
+          }
+          else
+          { // match found
+            e = e_candidate;
+          }
+        }
+
+        // Invariant: e now points to the first peak in tolerance window, that matches in charge
+
+        // last peak? there can't be a better one in this tolerance window
+        if (e >= n_e - 1)
+        {
+          // add match
+          alignment.emplace_back(std::make_pair(t, e));
+          // add ppm error
+          double ppm_error = (exp_spectrum[e].getMZ() - theo_mz) / theo_mz * 1e6;
+          ppm_error_array.emplace_back(ppm_error);
+          return;
+        }
+
+        Size closest_exp_peak(e);
+
+        // Invariant: closest_exp_peak always point to best match
+
+        double new_d, new_ez(0);
+        double best_d = exp_spectrum[closest_exp_peak].getMZ() - theo_mz;
+
+//        std::cerr << "first peak in window:" <<  exp_spectrum[closest_exp_peak].getMZ() << "\t theo: " << theo_mz << "\t best d:" << best_d << "\n";
+
+        do // check for better match in tolerance window
+        {
+          // advance to next exp. peak
+          ++e;
+
+          // determine distance of next peak
+          new_d = exp_spectrum[e].getMZ() - theo_mz;
+          const bool in_tolerance_window = (fabs(new_d) < max_dist_dalton);
+//          std::cerr << "  new peak:" << exp_spectrum[e].getMZ() << "\t theo: " << theo_mz << "\t new d: " << new_d << "\t in window:" << in_tolerance_window << "\n";
+
+          if (!in_tolerance_window) { break; }
+
+          // Invariant: e is in tolerance window
+
+          // check if charge of next peak matches
+          if (has_charge) { new_ez = exp_charges[e]; }
+          const bool charge_matches = (new_ez == tz || !new_ez || !tz);
+          if (!charge_matches) { continue; }
+
+          // Invariant: charge matches
+
+          const bool better_distance = (fabs(new_d) <= fabs(best_d));
+
+          // better distance (and matching charge)? better match found
+          if (better_distance)
+          { // found a better match
+            closest_exp_peak = e;
+            best_d = new_d;
+          }
+          else
+          { // distance got worse -> no additional matches!
+            break;
+          }
+        }
+        while (e < n_e - 1);
+
+//        std::cerr << "added peak:" << exp_spectrum[closest_exp_peak].getMZ() << "\t theo: " << theo_mz << "\n";
+
+        // search in tolerance window for an experimental peak closer to theoretical one
+        alignment.emplace_back(std::make_pair(t, closest_exp_peak));
+
+        // add ppm error for this match
+        double ppm_error = (exp_spectrum[closest_exp_peak].getMZ() - theo_mz) / theo_mz * 1e6;
+        ppm_error_array.emplace_back(ppm_error);
+
+
+        e = closest_exp_peak + 1;  // advance experimental peak to 1-after the best match
+        ++t; // advance theoretical peak
+      }
+      else if (d < 0) // exp. peak is left of theo. peak (outside of tolerance window)
+      {
+        ++e;
+      }
+      else if (d > 0) // theo. peak is left of exp. peak (outside of tolerance window)
+      {
+        ++t;
+      }
+    }
+  }
+
     PeakSpectrum OPXLSpectrumProcessingAlgorithms::deisotopeAndSingleChargeMSSpectrum(PeakSpectrum& old_spectrum, Int min_charge, Int max_charge, double fragment_tolerance, bool fragment_tolerance_unit_ppm, bool keep_only_deisotoped, Size min_isopeaks, Size max_isopeaks, bool make_single_charged)
     {
       PeakSpectrum out;
