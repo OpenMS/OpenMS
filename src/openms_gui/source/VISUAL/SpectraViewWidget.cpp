@@ -633,13 +633,13 @@ namespace OpenMS
           QString mz_string = QString::number(mit->first.getMZ());
           QString charge = QString::number(mit->first.getCharge());
           QString description = "";
-          if (mit->first.metaValueExists("peptide_sequence"))
-          {
-            description = String(mit->first.getMetaValue("peptide_sequence")).toQString();
-          }
           if (mit->first.metaValueExists("description"))
           {
             description = String(mit->first.getMetaValue("description")).toQString();
+          }
+          if (mit->first.metaValueExists("peptide_sequence"))
+          {
+            description = String(mit->first.getMetaValue("peptide_sequence")).toQString();
           }
 
           // Show all: iterate over all chromatograms corresponding to the current precursor and add action containing all chromatograms

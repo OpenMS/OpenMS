@@ -216,7 +216,7 @@ namespace OpenMS
     {
       // align internal and external IDs to estimate RT shifts:
       MapAlignmentAlgorithmIdentification aligner;
-      aligner.setReference(peptides_ext); // go from interal to external scale
+      aligner.setReference(peptides_ext); // go from internal to external scale
       vector<vector<PeptideIdentification> > aligner_peptides(1, peptides);
       vector<TransformationDescription> aligner_trafos;
 
@@ -1125,7 +1125,7 @@ namespace OpenMS
         svm_predictor_names_.push_back("rt_delta");
       }
     }
-    // values for all featues per predictor (this way around to simplify scaling
+    // values for all features per predictor (this way around to simplify scaling
     // of predictors):
     SimpleSVM::PredictorMap predictors;
     for (vector<String>::iterator pred_it = svm_predictor_names_.begin();

@@ -60,7 +60,7 @@ namespace OpenMS
 public:
 
       /// struct of parameters of a Gaussian distribution
-      struct GaussFitResult
+      struct OPENMS_DLLAPI GaussFitResult
       {
 public:
         GaussFitResult()

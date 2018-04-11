@@ -118,7 +118,7 @@ namespace OpenMS
     map<String, StringList> design2FilePath;
     findRelevantFilePaths_(design2FileBaseName, design2FilePath, file_paths);
 
-    //determine wether we deal with idXML or featureXML
+    //determine whether we deal with idXML or featureXML
     FileTypes::Type in_type = FileHandler::getType(file_paths.front());
 
     if (in_type == FileTypes::FEATUREXML)

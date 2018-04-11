@@ -206,7 +206,7 @@ private:
       For each transition in the target list, annotateSpectra() looks for
       the first spectrum whose RT time falls within the RT Window, whose
       left and right limits are computed at each analyzed spectrum.
-      Also the spectrum's percursor MZ is checked against the transition MZ.
+      Also the spectrum's precursor MZ is checked against the transition MZ.
     */
     double rt_window_;
 

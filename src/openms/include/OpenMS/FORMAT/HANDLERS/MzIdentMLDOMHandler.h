@@ -280,7 +280,7 @@ private:
       std::map<String, String> xl_id_acceptor_map_; //mapping  peptide id of acceptor peptide -> cross-link acceptor value
       std::map<String, SignedSize> xl_donor_pos_map_; //mapping donor value -> cross-link modification location
       std::map<String, SignedSize> xl_acceptor_pos_map_; //mapping acceptor value -> cross-link modification location
-      std::map<String, double> xl_mass_map_; //mapping Peptide id -> crosslink mass
+      std::map<String, double> xl_mass_map_; //mapping Peptide id -> cross-link mass
       std::map<String, String> xl_mod_map_; //mapping peptide id -> cross-linking reagent name
 
     };

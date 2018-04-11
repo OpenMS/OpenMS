@@ -168,7 +168,7 @@
   you will need to install three programs:
 
   <ol>
-    <li> Doxygen (version 1.5.8 and 1.8.2 and 1.8.14 are tested, others might work as well)
+    <li> Doxygen (>= 1.8.14 is tested, others might work as well; older versions produce (mildly) incomplete documentation due to lack of support for certain commands or bugs)
       <ul>
         <li> Download the installer for Windows (http://www.doxygen.org)
         <li> Execute the installer. It should automatically add doxygen.exe to the Windows PATH Environment (please recheck)
@@ -217,15 +217,16 @@
       <li>Call CMake to create the build system
         \code
         cd <path_to_OpenMS_build>
-        cmake -D OPENMS_CONTRIB_LIBS="<path_to_contrib_build>" -G "<generator>" "<path_to_OpenMS>"
+        cmake -D OPENMS_CONTRIB_LIBS="<path_to_contrib_build>" -D CMAKE_PREFIX_PATH=<path_to_QT5_prefix> -G "<generator>" "<path_to_OpenMS>"
         \endcode
 
-        The choice of <tt>&lt;generator&gt;</tt> is dependent on your system. Type <tt>cmake</tt> to see a list of available generators.
-        @note We strongly recommend the Visual Studio Generator and it should be identical to the one used for building the contrib. Other generators (such as nmake) are not tested! If you need compiling on the command line, you can use <tt>MSBuild</tt> also on VS solution files!
+        The CMAKE_PREFIX_PATH should hold the path to your Qt5 build directory (see example below). Note that it is NOT the main Qt5 directory, but the subfolder which is named after the toolchain it was build with (e.g. "5.6/msvc2015_64").
+        The choice of <tt>&lt;generator&gt;</tt> depends on your system. Type <tt>cmake</tt> to see a list of available generators.
+        @note We strongly recommend the Visual Studio Generator and it should be identical to the one used for building the contrib. Other generators (such as nmake) are not supported! If you need compiling on the command line, you can use <tt>MSBuild</tt> also on VS solution files!
         Example:
         \code
         cd c:\dev\OpenMS_Win64
-        cmake -D OPENMS_CONTRIB_LIBS="C:\dev\contrib_win64_build" -G "Visual Studio 15 2017 Win64" ..\OpenMS
+        cmake -D OPENMS_CONTRIB_LIBS="C:\dev\contrib_win64_build" -D CMAKE_PREFIX_PATH=c:\dev\Qt5.6.2\5.6\msvc2015_64\ -G "Visual Studio 15 2017 Win64" ..\OpenMS
         \endcode
     </ol>
 
@@ -238,7 +239,7 @@
 
     In Visual Studio execute the 'targets' project, which will show you the most prominent targets.
 
-    Try to build the %OpenMS library - the target is called '%OpenMS'. This will create the %OpenMS library dll. If you used the debug configuration it will be called
+    Try to build the %OpenMS library - the target is called '%OpenMS'. This will create the %OpenMS.dll library. If you used the debug configuration it will be called
     OpenMSd.dll, in release mode its called OpenMS.dll.<br>
     As a last step you should add the location of the %OpenMS.dll to your PATH environment. This makes calling TOPPView and TOPP tools more convenient if you are working the command line. Also, external projects (see @subpage external_code) require the %OpenMS dll (OpenMS.dll or OpenMSd.dll) to be in the PATH. Depending on the generator and
     configuration used you will find the dll in [OpenMS_build]/bin/Release or [OpenMS_build]/bin/Debug (for VS) or just [OpenMS_build]/bin (nmake). In the same folder the

@@ -307,7 +307,7 @@ namespace OpenMS
     //Potential Optimizations: create a map for each unknown FeatureMap
     // to reduce multiple loops
 
-    // initalize all other variables
+    // initialize all other variables
     Feature empty_feature;
     size_t IS_component_it, IS_component_group_it;
 
@@ -626,7 +626,7 @@ namespace OpenMS
       AbsoluteQuantitationMethod& component_aqm = quant_method.second;
       if (cc.count(component_name) && optimization_method_ == "iterative")
       {
-        // optimize the calibraiton curve for the component
+        // optimize the calibration curve for the component
         Param optimized_params;
         bool optimal_calibration_found = optimizeCalibrationCurveIterative(
           cc[component_name],
