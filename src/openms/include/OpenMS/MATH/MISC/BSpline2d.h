@@ -123,6 +123,12 @@ public:
     double derivative(const double x) const;
 
     /**
+     * Return the first derivative of the spline curve at the given @p x.
+     * Returns zero if the current state is not ok().
+     */
+    double derivatives(double x, unsigned order = 1) const;
+
+    /**
      * Return whether the spline fit was successful.
      */
     bool ok() const;
