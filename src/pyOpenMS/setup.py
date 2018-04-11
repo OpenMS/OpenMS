@@ -204,7 +204,7 @@ setup(
     ext_package="pyopenms",
 	install_requires=[
           'numpy',
-    ]
+    ],
 
     version=version,
 
