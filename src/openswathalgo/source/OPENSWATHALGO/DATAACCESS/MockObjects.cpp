@@ -47,22 +47,22 @@ namespace OpenSwath
   {
   }
 
-  void MockFeature::getRT(std::vector<double>& rt)
+  void MockFeature::getRT(std::vector<double>& rt) const
   {
     rt = m_rt_vec;
   }
 
-  void MockFeature::getIntensity(std::vector<double>& intens)
+  void MockFeature::getIntensity(std::vector<double>& intens) const
   {
     intens = m_intensity_vec;
   }
 
-  float MockFeature::getIntensity()
+  float MockFeature::getIntensity() const
   {
     return m_intensity;
   }
 
-  double MockFeature::getRT()
+  double MockFeature::getRT() const
   {
     return m_rt;
   }
@@ -107,17 +107,17 @@ namespace OpenSwath
     return v;
   }
 
-  float MockMRMFeature::getIntensity()
+  float MockMRMFeature::getIntensity() const
   {
     return m_intensity;
   }
 
-  double MockMRMFeature::getRT()
+  double MockMRMFeature::getRT() const
   {
     return m_rt;
   }
 
-  size_t MockMRMFeature::size()
+  size_t MockMRMFeature::size() const
   {
     return m_features.size();
   }
@@ -130,17 +130,17 @@ namespace OpenSwath
   {
   }
 
-  std::size_t MockTransitionGroup::size()
+  std::size_t MockTransitionGroup::size() const
   {
     return m_size;
   }
 
-  std::vector<std::string> MockTransitionGroup::getNativeIDs()
+  std::vector<std::string> MockTransitionGroup::getNativeIDs() const
   {
     return m_native_ids;
   }
 
-  void MockTransitionGroup::getLibraryIntensities(std::vector<double>& intensities)
+  void MockTransitionGroup::getLibraryIntensities(std::vector<double>& intensities) const
   {
     intensities = m_library_intensities;
   }
