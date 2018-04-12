@@ -108,8 +108,8 @@ namespace OpenMS
       String label_name = "labels:";
       label_name += it->name;
       
-      //defaults_.setValue(label_name, it->value, it->description, ListUtils::create<String>("advanced"));
-      //defaults_.setMinFloat(it->name, 0.0);
+      defaults_.setValue(label_name, it->value, it->description, ListUtils::create<String>("advanced"));
+      defaults_.setMinFloat(label_name, 0.0);
       
       label_mass_shift_.insert(make_pair(it->name, it->value));
     }
