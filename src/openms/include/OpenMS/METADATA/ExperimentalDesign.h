@@ -232,7 +232,8 @@ namespace OpenMS
       template<typename T>
       static void errorIfAlreadyExists(std::set<T> &container, T &item, const String &message);
 
-      void checkValidMSFileSection_();
+      // basic consistency checks
+      void isValid_();
 
       MSFileSection msfile_section_;
       SampleSection sample_section_;
