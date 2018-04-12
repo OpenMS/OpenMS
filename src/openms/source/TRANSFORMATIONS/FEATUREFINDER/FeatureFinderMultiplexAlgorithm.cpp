@@ -94,16 +94,25 @@ namespace OpenMS
     defaults_.setValue("algorithm:averagine_type","peptide","The type of averagine to use, currently RNA, DNA or peptide", ListUtils::create<String>("advanced"));
     defaults_.setValidStrings("algorithm:averagine_type", ListUtils::create<String>("peptide,RNA,DNA"));
     
+    defaults_.setSectionDescription("algorithm", "algorithmic parameters");
+    
     // parameter section: labels
-    /*MultiplexDeltaMassesGenerator generator;
+    defaults_.setValue("labels:Arg6", 12.08, "description", ListUtils::create<String>("advanced"));
+    
+    defaults_.setSectionDescription("labels", "mass shifts for all possible labels");
+    
+    MultiplexDeltaMassesGenerator generator;
     Param p = generator.getParameters();
     for (Param::ParamIterator it = p.begin(); it != p.end(); ++it)
     {
-      defaults_.setValue(("labels:" + it->name), it->value, it->description, ListUtils::create<String>("advanced"));
-      defaults_.setMinFloat(it->name, 0.0);
+      String label_name = "labels:";
+      label_name += it->name;
+      
+      //defaults_.setValue(label_name, it->value, it->description, ListUtils::create<String>("advanced"));
+      //defaults_.setMinFloat(it->name, 0.0);
       
       label_mass_shift_.insert(make_pair(it->name, it->value));
-    }*/
+    }
     
     // parameter section: algorithm, get selected charge range
     /*String charge_string = param_.getValue("algorithm:charge");
