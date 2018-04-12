@@ -69,6 +69,7 @@ set(metadata_executables_list
   DataProcessing_test
   Digestion_test
   DocumentIdentifier_test
+  ExperimentalDesign_test
   ExperimentalSettings_test
   Gradient_test
   HPLC_test
@@ -158,6 +159,7 @@ set(format_executables_list
   DTA2DFile_test
   DTAFile_test
   EDTAFile_test
+  ExperimentalDesignFile_test
   FASTAFile_test
   FeatureFileOptions_test
   FeatureXMLFile_test
