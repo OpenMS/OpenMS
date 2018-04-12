@@ -48,21 +48,49 @@
 namespace OpenMS
 {
   /**
-  @brief Representation of the Experimental Design in OpenMS. Instances can be loaded via
-   the ExperimentalDesignFile class.
 
-  @ingroup Format
-  */
+  @brief Representation of the Experimental Design in OpenMS. Instances can be loaded via
+         the ExperimentalDesignFile class.
+
+  The experimental design in OpenMS consists of two sections:
+    1. FileSection captures the mapping of quantitative values to files and, optionally, to samples.
+    2. SampleSection captures the experimental factors and conditions associated with a sample.
+
+  The FileSection is mandatory while the SampleSection is optional and only required for downstream analysis.
+
+  Details on the FileSection:
+
+  To unambigously map a single quantitative value we need to define:
+    a. the label (e.g., label = 2 in the case of a heavy peptide in a light/heavy experiment)
+    b. which spectra file did produce the result (e.g., path = "/data/SILAC_file.mzML")  
+    c. which fraction the file corresponds to (e.g., fraction = 1)
+    d. a fraction group identifier that groups fractions (e.g., fraction_group = 1)
+       Note: in the case of label-free data, the fraction group identifier has 
+             the same cardinality as the sample identifier.
+   (e.) optionally, the sample that has been measured (e.g., sample = 1)
+
+   This information is defined in the FileSection and enables fraction aware data processing.
+
+  Details on the SampleSection:
+  
+  To map a sample to conditions / factors we need to define:
+    a. the sample ( e.g., sample = 1)
+    b. multiple columns containing conditions / factors
+
+  @ingroup Metadata
+
+  **/
+
   class OPENMS_DLLAPI ExperimentalDesign
   {
   public:
 
     /// MSFileSectionEntry links single quant. values back the MS file
     /// It supports:
-    ///  - multiplexed data via specification of the quantified label
+    ///  - multiplexed/labeled data via specification of the quantified label
     ///  - multiple fractions via specification of the:
     ///    - fraction index (e.g., 1..10 if ten fractions were measured)
-    ///    - fraction group to trace which fractions belong together
+    ///    - fraction_group to trace which fractions belong together
     class OPENMS_DLLAPI MSFileSectionEntry
     {
     public:
