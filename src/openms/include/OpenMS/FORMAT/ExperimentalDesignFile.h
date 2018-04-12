@@ -54,13 +54,13 @@ namespace OpenMS
                                       For multiplexed experiments, these might differ as multiple samples can be measured in single files
             Fraction:                    1st, 2nd, .., fraction. Note: All runs must have the same number of fractions.
             Spectra_Filepath:         Path to mzML files
-            Channel:                  Channel in MS file:
+            Label:                    Label in MS file:
                                         label-free: always 1
                                         TMT6Plex: 1..6
                                         SILAC with light and heavy: 1..2
-            Sample:                   Index of sample measured in the specified channel X, in fraction Y of fraction group Z
+            Sample:                   Index of sample measured in the specified label X, in fraction Y of fraction group Z
 
-	Fraction_Group	Fraction	Spectra_Filepath	Channel		Sample
+	Fraction_Group	Fraction	Spectra_Filepath	Label		Sample
 	1	1		SPECTRAFILE_F1_TR1.mzML	1		1
 	1	2		SPECTRAFILE_F2_TR1.mzML	1		1
 	1	3		SPECTRAFILE_F3_TR1.mzML	1		1
