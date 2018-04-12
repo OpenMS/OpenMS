@@ -312,7 +312,7 @@ namespace OpenMS
 
           extractor.prepare_coordinates(tmp_out, coordinates, transition_exp_used, cp.rt_extraction_window, false);
           extractor.extractChromatograms(current_swath_map, tmp_out, coordinates, cp.mz_extraction_window,
-              cp.ppm, cp.extraction_function);
+                cp.ppm, cp.im_extraction_window, cp.extraction_function);
           extractor.return_chromatogram(tmp_out, coordinates,
               transition_exp_used, SpectrumSettings(), tmp_chromatograms, false);
 
@@ -518,7 +518,7 @@ namespace OpenMS
             // Step 2.2: prepare the extraction coordinates and extract chromatograms
             prepareExtractionCoordinates_(chrom_list, coordinates, transition_exp_used, false, trafo_inverse, cp);
             extractor.extractChromatograms(current_swath_map, chrom_list, coordinates, cp.mz_extraction_window,
-                cp.ppm, cp.extraction_function);
+                cp.ppm, cp.im_extraction_window, cp.extraction_function);
 
             // Step 2.3: convert chromatograms back to OpenMS::MSChromatogram and write to output
             std::vector< OpenMS::MSChromatogram > chromatograms;
@@ -624,7 +624,7 @@ namespace OpenMS
         // prepare the extraction coordinates and extract chromatogram
         prepareExtractionCoordinates_(chrom_list, coordinates, transition_exp_used, true, trafo_inverse, cp);
         extractor.extractChromatograms(ms1_map_, chrom_list, coordinates, cp.mz_extraction_window,
-            cp.ppm, cp.extraction_function);
+            cp.ppm, cp.im_extraction_window, cp.extraction_function);
 
         std::vector< OpenMS::MSChromatogram > chromatograms;
         extractor.return_chromatogram(chrom_list, coordinates, transition_exp_used,  SpectrumSettings(), chromatograms, true);
@@ -987,6 +987,7 @@ namespace OpenMS
       }
 
       double rt = pep.rt;
+      coord.ion_mobility = pep.getDriftTime();
       coord.rt_start = rt - rt_extraction_window / 2.0;
       coord.rt_end = rt + rt_extraction_window / 2.0;
       coordinates.push_back(coord);
@@ -1254,7 +1255,7 @@ namespace OpenMS
 
         extractor.extractChromatograms(used_maps[map_idx].sptr,
             tmp_chromatogram_list, coordinates_used,
-            cp.mz_extraction_window, cp.ppm, cp.extraction_function);
+            cp.mz_extraction_window, cp.ppm, cp.im_extraction_window, cp.extraction_function);
 
         // In order to reach maximal sensitivity and identify peaks in
         // the data, we will aggregate the data by adding all

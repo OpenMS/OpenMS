@@ -189,7 +189,7 @@ public:
       drift_time = d;
     }
 
-    int getDriftTime() const
+    double getDriftTime() const
     {
       return drift_time;
     }

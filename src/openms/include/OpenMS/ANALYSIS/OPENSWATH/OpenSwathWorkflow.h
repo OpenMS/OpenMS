@@ -85,6 +85,8 @@ namespace OpenMS
     double min_upper_edge_dist;
     /// Extraction window in Da or ppm (e.g. 50ppm means extraction +/- 25ppm)
     double mz_extraction_window;
+    /// Extraction window in ion mobility
+    double im_extraction_window;
     /// Whether the extraction window is given in ppm or Da
     bool ppm;
     /// The extraction function in mass space

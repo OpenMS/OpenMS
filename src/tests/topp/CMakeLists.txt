@@ -1147,6 +1147,10 @@ ${TOPP_BIN_PATH}/OpenSwathDecoyGenerator -test -in ${DATA_DIR_TOPP}/OpenSwathDec
   add_test("TOPP_OpenSwathChromatogramExtractor_test_3_out1" ${DIFF} -whitelist ${INDEX_WHITELIST} -in1 OpenSwathChromatogramExtractor_output_3.mzML.tmp -in2 ${DATA_DIR_TOPP}/OpenSwathChromatogramExtractor_output_3.mzML)
   set_tests_properties("TOPP_OpenSwathChromatogramExtractor_test_3_out1" PROPERTIES DEPENDS "TOPP_OpenSwathChromatogramExtractor_test_3")
 
+  add_test("TOPP_OpenSwathChromatogramExtractor_test_4" ${TOPP_BIN_PATH}/OpenSwathChromatogramExtractor -in ${DATA_DIR_TOPP}/OpenSwathChromatogramExtractor_4_input.mzML -tr ${DATA_DIR_TOPP}/OpenSwathChromatogramExtractor_4_input.TraML -out OpenSwathChromatogramExtractor_output_4.mzML.tmp -ion_mobility_window 0.05 -is_swath -test)
+  add_test("TOPP_OpenSwathChromatogramExtractor_test_4_out1" ${DIFF} -whitelist ${INDEX_WHITELIST} -in1 OpenSwathChromatogramExtractor_output_4.mzML.tmp -in2 ${DATA_DIR_TOPP}/OpenSwathChromatogramExtractor_4_output.mzML)
+  set_tests_properties("TOPP_OpenSwathChromatogramExtractor_test_4_out1" PROPERTIES DEPENDS "TOPP_OpenSwathChromatogramExtractor_test_4")
+
   add_test("TOPP_OpenSwathAnalyzer_test_1" ${TOPP_BIN_PATH}/OpenSwathAnalyzer -in ${DATA_DIR_TOPP}/OpenSwathAnalyzer_1_input_chrom.mzML -tr ${DATA_DIR_TOPP}/OpenSwathAnalyzer_1_input.TraML -out OpenSwathAnalyzer_1_output.featureXML.tmp -rt_norm ${DATA_DIR_TOPP}/OpenSwathAnalyzer_input.trafoXML -algorithm:TransitionGroupPicker:PeakPickerMRM:peak_width 40.0 -algorithm:TransitionGroupPicker:PeakPickerMRM:method legacy -test)
   add_test("TOPP_OpenSwathAnalyzer_test_1_out1" ${DIFF} -whitelist "id="  -in1 OpenSwathAnalyzer_1_output.featureXML.tmp -in2 ${DATA_DIR_TOPP}/OpenSwathAnalyzer_1_output.featureXML)
   set_tests_properties("TOPP_OpenSwathAnalyzer_test_1_out1" PROPERTIES DEPENDS "TOPP_OpenSwathAnalyzer_test_1")
@@ -1344,6 +1348,13 @@ ${TOPP_BIN_PATH}/OpenSwathDecoyGenerator -test -in ${DATA_DIR_TOPP}/OpenSwathDec
   set_tests_properties("TOPP_OpenSwathWorkflow_16" PROPERTIES DEPENDS "TOPP_OpenSwathWorkflow_16_prepare")
   set_tests_properties("TOPP_OpenSwathWorkflow_16_out1" PROPERTIES DEPENDS "TOPP_OpenSwathWorkflow_16")
   set_tests_properties("TOPP_OpenSwathWorkflow_16_out2" PROPERTIES DEPENDS "TOPP_OpenSwathWorkflow_16")
+
+  # Test with ion mobility
+  add_test("TOPP_OpenSwathWorkflow_17" ${TOPP_BIN_PATH}/OpenSwathWorkflow -in ${DATA_DIR_TOPP}/OpenSwathWorkflow_17_input.mzML -tr ${DATA_DIR_TOPP}/OpenSwathWorkflow_17_input.tsv -out_chrom OpenSwathWorkflow_17.chrom.mzML.tmp -out_features OpenSwathWorkflow_17.featureXML.tmp -test -use_ms1_traces -readOptions workingInMemory)
+  add_test("TOPP_OpenSwathWorkflow_17_out1" ${DIFF} -whitelist "id=" -in1 OpenSwathWorkflow_17.featureXML.tmp -in2 ${DATA_DIR_TOPP}/OpenSwathWorkflow_17_output.featureXML)
+  add_test("TOPP_OpenSwathWorkflow_17_out2" ${DIFF} -whitelist "id=" -in1 OpenSwathWorkflow_17.chrom.mzML.tmp -in2 ${DATA_DIR_TOPP}/OpenSwathWorkflow_17_output.chrom.mzML)
+  set_tests_properties("TOPP_OpenSwathWorkflow_17_out1" PROPERTIES DEPENDS "TOPP_OpenSwathWorkflow_17")
+  set_tests_properties("TOPP_OpenSwathWorkflow_17_out2" PROPERTIES DEPENDS "TOPP_OpenSwathWorkflow_17")
 
   add_test("TOPP_OpenSwathFileSplitter_1" ${TOPP_BIN_PATH}/OpenSwathFileSplitter -in ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.mzML -outputDirectory "" -test)
   add_test("TOPP_OpenSwathFileSplitter_1_out1" ${DIFF} -whitelist "id=" -in1 openswath_tmpfile_ms1.mzML -in2 ${DATA_DIR_TOPP}/openswath_tmpfile_ms1.mzML)
