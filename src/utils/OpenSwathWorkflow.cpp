@@ -627,6 +627,10 @@ protected:
    * @param irt_detection_param Parameter set for the detection of the iRTs (outlier detection, peptides per bin etc)
    * @param mz_correction_function If correction in m/z is desired, which function should be used
    * @param debug_level Debug level (writes out the RT normalization chromatograms if larger than 1)
+   * @param irt_trafo_out Output trafoXML file (if not empty and no input trafoXML file is given,
+   *        the transformation parameters will be stored in this file)
+   * @param irt_mzml_out Output Chromatogram mzML containing the iRT peptides (if not empty,
+   *        iRT chromatograms will be stored in this file)
    *
    *
    */
@@ -634,7 +638,8 @@ protected:
     std::vector< OpenSwath::SwathMap > & swath_maps, double min_rsq, double min_coverage,
     const Param& feature_finder_param, const ChromExtractParams& cp_irt,
     const Param& irt_detection_param, const String & mz_correction_function,
-    Size debug_level, bool sonar, bool load_into_memory, const String& irt_trafo_out)
+    Size debug_level, bool sonar, bool load_into_memory, const String& irt_trafo_out,
+    const String& irt_mzml_out)
   {
     TransformationDescription trafo_rtnorm;
     
@@ -662,7 +667,8 @@ protected:
       OpenSwathRetentionTimeNormalization wf;
       wf.setLogType(log_type_);
       trafo_rtnorm = wf.performRTNormalization(irt_transitions, swath_maps, min_rsq, min_coverage,
-          feature_finder_param, cp_irt, irt_detection_param, mz_correction_function, debug_level, sonar, load_into_memory);
+      feature_finder_param, cp_irt, irt_detection_param, mz_correction_function, irt_mzml_out,
+      debug_level, sonar, load_into_memory);
 
       if (!irt_trafo_out.empty())
       {
@@ -938,10 +944,11 @@ protected:
     // Get the transformation information (using iRT peptides)
     ///////////////////////////////////
     String irt_trafo_out = debug_params.getValue("irt_trafo");
+    String irt_mzml_out = debug_params.getValue("irt_mzml");
     TransformationDescription trafo_rtnorm = loadTrafoFile(trafo_in,
         irt_tr_file, swath_maps, min_rsq, min_coverage, feature_finder_param,
         cp_irt, irt_detection_param, mz_correction_function, debug_level,
-        sonar, load_into_memory, irt_trafo_out);
+        sonar, load_into_memory, irt_trafo_out, irt_mzml_out);
 
     ///////////////////////////////////
     // Set up chromatogram output
