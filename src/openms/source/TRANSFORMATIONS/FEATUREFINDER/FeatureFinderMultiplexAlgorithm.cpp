@@ -115,16 +115,16 @@ namespace OpenMS
     }
     
     // parameter section: algorithm, get selected charge range
-    /*String charge_string = param_.getValue("algorithm:charge");
+    String charge_string = defaults_.getValue("algorithm:charge");
     charge_min_ = charge_string.prefix(':').toInt();
     charge_max_ = charge_string.suffix(':').toInt();
     if (charge_min_ > charge_max_)
     {
       swap(charge_min_, charge_max_);
-    }*/
+    }
     
     // parameter section: algorithm, get isotopes per peptide range
-    /*String isotopes_per_peptide_string = param_.getValue("algorithm:isotopes_per_peptide");
+    String isotopes_per_peptide_string = defaults_.getValue("algorithm:isotopes_per_peptide");
     isotopes_per_peptide_min_ = isotopes_per_peptide_string.prefix(':').toInt();
     isotopes_per_peptide_max_ = isotopes_per_peptide_string.suffix(':').toInt();
     if (isotopes_per_peptide_min_ > isotopes_per_peptide_max_)
@@ -132,7 +132,7 @@ namespace OpenMS
       swap(isotopes_per_peptide_min_, isotopes_per_peptide_max_);
     }
     
-    rt_min_ = param_.getValue("algorithm:rt_min");*/
+    rt_min_ = defaults_.getValue("algorithm:rt_min");
 
   }
   

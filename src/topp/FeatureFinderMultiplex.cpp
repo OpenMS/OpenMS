@@ -182,8 +182,7 @@ public:
      */
     getParameters_in_out_();
     
-    
-    //FeatureFinderMultiplexAlgorithm algorithm;
+    FeatureFinderMultiplexAlgorithm algorithm;
     //algorithm.setParameters(getParam_());
     
 
