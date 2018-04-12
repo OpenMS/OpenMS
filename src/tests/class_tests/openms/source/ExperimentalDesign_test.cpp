@@ -48,6 +48,9 @@ START_TEST(ExperimentalDesign, "$Id$")
 
 ExperimentalDesign* ptr = 0;
 ExperimentalDesign* null_ptr = 0;
+
+ExperimentalDesignFile design = ExperimentalDesignFile::load(OPENMS_GET_TEST_DATA_PATH("ExperimentalDesign_input_1.tsv", false));
+
 START_SECTION(ExperimentalDesign())
 {
 	ptr = new ExperimentalDesign();
@@ -61,12 +64,6 @@ START_SECTION(~ExperimentalDesign())
 }
 END_SECTION
 
-START_SECTION((ExperimentalDesign()=default))
-{
-  // TODO
-}
-END_SECTION
-
 START_SECTION((ExperimentalDesign(MSFileSection msfile_section, SampleSection sample_section)))
 {
   // TODO
@@ -75,115 +72,118 @@ END_SECTION
 
 START_SECTION((const MSFileSection& getMSFileSection() const ))
 {
-  // TODO
+  MSFileSection fs = design.getMSFileSection();
 }
 END_SECTION
 
 START_SECTION((void setMSFileSection(const MSFileSection &msfile_section)))
 {
-  // TODO
+  ExperimentalDesign design2 = design;
+  MSFileSection fs;
+  design2.setMSFileSection(fs);
 }
 END_SECTION
 
 START_SECTION((const SampleSection& getSampleSection() const ))
 {
-  // TODO
 }
 END_SECTION
 
 START_SECTION((void setSampleSection(const SampleSection &sample_section)))
 {
-  // TODO
+  ExperimentalDesign design2 = design;
+  SampleSection fs;
+  design2.setSampleSection(fs);
 }
 END_SECTION
 
 START_SECTION((std::vector< String > getFileNames(bool basename) const ))
 {
-  // TODO
+  std::vector< String > fns = design.getFileNames();
 }
 END_SECTION
 
 START_SECTION((std::vector<unsigned> getLabels() const ))
 {
-  // TODO
+  std::vector< unsigned > ls = design.getLabels();
 }
 END_SECTION
 
 START_SECTION((std::vector<unsigned> getFractions() const ))
 {
-  // TODO
+  std::vector< unsigned > fs = design.getFractions();
 }
 END_SECTION
 
 START_SECTION((std::map<unsigned int, std::vector<String> > getFractionToMSFilesMapping() const ))
 {
-  // TODO
+  std::map<unsigned int, std::vector<String> > f2ms = design.getFractionToMSFilesMapping();
 }
 END_SECTION
 
 START_SECTION((std::map< std::pair< String, unsigned >, unsigned> getPathLabelToSampleMapping(bool) const ))
 {
-  // TODO
+  std::map< std::pair< String, unsigned > pl2s = getPathLabelToSampleMapping(true);
 }
 END_SECTION
 
 START_SECTION((std::map< std::pair< String, unsigned >, unsigned> getPathLabelToFractionMapping(bool) const ))
 {
-  // TODO
+  std::map< std::pair< String, unsigned > pl2f = getPathLabelToFractionMappingMapping(true);
 }
 END_SECTION
 
 START_SECTION((std::map< std::pair< String, unsigned >, unsigned> getPathLabelToFractionGroupMapping(bool) const ))
 {
-  // TODO
+  std::map< std::pair< String, unsigned > pl2fg = design.getPathLabelToFractionGroupMapping(true);
 }
 END_SECTION
 
 START_SECTION((unsigned getNumberOfSamples() const ))
 {
-  // TODO
+  unsigned ns = design.getNumberOfSamples();
 }
 END_SECTION
 
 START_SECTION((unsigned getNumberOfFractions() const ))
 {
-  // TODO
+  unsigned nf = design.getNumberOfFractions();
 }
 END_SECTION
 
 START_SECTION((unsigned getNumberOfLabels() const ))
 {
-  // TODO
+  unsigned nl = design.getNumberOfLabels();
 }
 END_SECTION
 
 START_SECTION((unsigned getNumberOfMSFiles() const ))
 {
-  // TODO
+  unsigned nms = design.getNumberOfMSFiles();
 }
 END_SECTION
 
 START_SECTION((unsigned getNumberOfFractionGroups() const ))
 {
-  // TODO
+  unsigned nfg = design.getNumberOfFractionGroups(); 
 }
 END_SECTION
 
 START_SECTION((unsigned getSample(unsigned fraction_group, unsigned label=1)))
 {
-  // TODO
+  unsigned s = design.getSample(1, 1); 
 }
 END_SECTION
 
 START_SECTION((bool isFractionated() const ))
 {
-  // TODO
+  bool b = design.isFractionated(); 
 }
 END_SECTION
 
 START_SECTION((bool sameNrOfMSFilesPerFraction() const ))
 {
-  // TODO
+  bool b = design.sameNrOfMSFilesPerFraction(); 
 }
 END_SECTION
 
@@ -200,18 +200,6 @@ START_SECTION((static ExperimentalDesign fromFeatureMap(const FeatureMap &f)))
 END_SECTION
 
 START_SECTION((static ExperimentalDesign fromIdentifications(const std::vector< ProteinIdentification > &proteins)))
-{
-  // TODO
-}
-END_SECTION
-
-START_SECTION(([ExperimentalDesign::MSFileSectionEntry] MSFileSectionEntry()=default))
-{
-  // TODO
-}
-END_SECTION
-
-START_SECTION(([ExperimentalDesign::SampleSection] SampleSection()=default))
 {
   // TODO
 }

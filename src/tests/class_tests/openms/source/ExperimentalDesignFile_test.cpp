@@ -50,20 +50,20 @@ ExperimentalDesignFile* ptr = 0;
 ExperimentalDesignFile* null_ptr = 0;
 START_SECTION(ExperimentalDesignFile())
 {
-	ptr = new ExperimentalDesignFile();
-	TEST_NOT_EQUAL(ptr, null_ptr)
+  ptr = new ExperimentalDesignFile();
+  TEST_NOT_EQUAL(ptr, null_ptr)
 }
 END_SECTION
 
 START_SECTION(~ExperimentalDesignFile())
 {
-	delete ptr;
+  delete ptr;
 }
 END_SECTION
 
 START_SECTION((static ExperimentalDesign load(const String &tsv_file, bool require_spectra_files)))
 {
-  // TODO
+  ExperimentalDesignFile::load(OPENMS_GET_TEST_DATA_PATH("ExperimentalDesign_input_1.tsv", false));
 }
 END_SECTION
 
