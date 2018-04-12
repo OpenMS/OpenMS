@@ -1155,7 +1155,7 @@ ${TOPP_BIN_PATH}/OpenSwathDecoyGenerator -test -in ${DATA_DIR_TOPP}/OpenSwathDec
   set_tests_properties("TOPP_OpenSwathChromatogramExtractor_test_3_out1" PROPERTIES DEPENDS "TOPP_OpenSwathChromatogramExtractor_test_3")
   # test metabolomic extraction for OpenSwathChromatogramExtractor
   add_test("TOPP_OpenSwathChromatogramExtractor_test_4" ${TOPP_BIN_PATH}/OpenSwathChromatogramExtractor -in ${DATA_DIR_TOPP}/OpenSwathChromatogramExtractor_input.mzML -tr ${DATA_DIR_TOPP}/OpenSwathChromatogramExtractor_4_input.TraML -out OpenSwathChromatogramExtractor_output_4.mzML.tmp -test -extract_MS1)
-  add_test("TOPP_OpenSwathChromatogramExtractor_test_4_out1" ${DIFF} -whitelist ${INDEX_WHITELIST} -in1 OpenSwathChromatogramExtractor_output_4.mzML.tmp -in2 ${DATA_DIR_TOPP}/OpenSwathChromatogramExtractor_output_3.mzML)
+  add_test("TOPP_OpenSwathChromatogramExtractor_test_4_out1" ${DIFF} -whitelist ${INDEX_WHITELIST} -in1 OpenSwathChromatogramExtractor_output_4.mzML.tmp -in2 ${DATA_DIR_TOPP}/OpenSwathChromatogramExtractor_output_4.mzML)
   set_tests_properties("TOPP_OpenSwathChromatogramExtractor_test_4_out1" PROPERTIES DEPENDS "TOPP_OpenSwathChromatogramExtractor_test_4")
 
   add_test("TOPP_OpenSwathAnalyzer_test_1" ${TOPP_BIN_PATH}/OpenSwathAnalyzer -in ${DATA_DIR_TOPP}/OpenSwathAnalyzer_1_input_chrom.mzML -tr ${DATA_DIR_TOPP}/OpenSwathAnalyzer_1_input.TraML -out OpenSwathAnalyzer_1_output.featureXML.tmp -rt_norm ${DATA_DIR_TOPP}/OpenSwathAnalyzer_input.trafoXML -algorithm:TransitionGroupPicker:PeakPickerMRM:peak_width 40.0 -algorithm:TransitionGroupPicker:PeakPickerMRM:method legacy -test)
