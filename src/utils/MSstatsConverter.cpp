@@ -158,10 +158,10 @@ protected:
       // Maps run in MSstats input to run for OpenMS
       map< unsigned, unsigned > msstats_run_to_openms_fractiongroup;
 
-      // Mapping of filepath and channel to sample and fraction
-      map< pair< String, unsigned >, unsigned> path_channel_to_sample = design.getPathChannelToSampleMapping(true);
-      map< pair< String, unsigned >, unsigned> path_channel_to_fraction = design.getPathChannelToFractionMapping(true);
-      map< pair< String, unsigned >, unsigned> path_channel_to_fractiongroup = design.getPathChannelToFractionGroupMapping(true);
+      // Mapping of filepath and label to sample and fraction
+      map< pair< String, unsigned >, unsigned> path_label_to_sample = design.getPathLabelToSampleMapping(true);
+      map< pair< String, unsigned >, unsigned> path_label_to_fraction = design.getPathLabelToFractionMapping(true);
+      map< pair< String, unsigned >, unsigned> path_label_to_fractiongroup = design.getPathLabelToFractionGroupMapping(true);
 
       // The Retention Time is additionally written to the output as soon as the user wants to resolve multiple peptides manually
       const bool rt_summarization_manual(arg_retention_time_summarization_method == "manual");
@@ -180,21 +180,21 @@ protected:
       // Determine if the experiment has fractions
       const bool has_fraction = design.isFractionated();
 
-      // Determine if the experimental design is LFQ (one channel token in design file)
-      std::vector< unsigned > channels = design.getChannels();
-      auto last = std::unique(channels.begin(), channels.end());
-      channels.erase(last, channels.end());
-      const bool isLabelFree = channels.size() == 1;
+      // Determine if the experimental design is LFQ (one label token in design file)
+      std::vector< unsigned > labels = design.getLabels();
+      auto last = std::unique(labels.begin(), labels.end());
+      labels.erase(last, labels.end());
+      const bool isLabelFree = labels.size() == 1;
 
-      // Currently, we cannot support multiple channels for MSstats
+      // Currently, we cannot support multiple labels for MSstats
       fatalErrorIf_(
         isLabelFree == false,
         "MSstatsConverter can only support label-free quantitation experiments",
         ILLEGAL_PARAMETERS
       );
 
-      // The channel id that is used in case the experimental design specifies a LFQ experiment
-      const unsigned channel_lfq(channels[0]);
+      // The label id that is used in case the experimental design specifies a LFQ experiment
+      const unsigned label_lfq(labels[0]);
 
       vector< OpenMS::BaseFeature> features;
       vector< String > spectra_paths;
@@ -203,13 +203,13 @@ protected:
       vector< vector< String > > consensus_feature_filenames;           // Filenames of ConsensusFeature
       vector< vector< Intensity > > consensus_feature_intensites;       // Intensites of ConsensusFeature
       vector< vector< Coordinate > > consensus_feature_retention_times; // Retention times of ConsensusFeature
-      vector< vector< unsigned > > consensus_feature_channels;          // Channels of ConsensusFeature
+      vector< vector< unsigned > > consensus_feature_labels;          // Labels of ConsensusFeature
 
       ConsensusMap consensus_map;
       features.reserve(consensus_map.size());
       ConsensusXMLFile().load(arg_in, consensus_map);
       consensus_map.getPrimaryMSRunPath(spectra_paths);
-      ConsensusMap::FileDescriptions &file_descriptions = consensus_map.getFileDescriptions(); // needed for channel_id
+      ConsensusMap::FileDescriptions &file_descriptions = consensus_map.getFileDescriptions(); // needed for label_id
 
       // Reduce spectra path to the basename of the files
       for (Size i = 0; i < spectra_paths.size(); ++i)
@@ -230,7 +230,7 @@ protected:
         vector< String > filenames;
         vector< Intensity > intensities;
         vector< Coordinate > retention_times;
-        vector< unsigned > cf_channels;
+        vector< unsigned > cf_labels;
 
         // Store the file names and the run intensities of this feature
         const ConsensusFeature::HandleSetType fs(consensus_feature.getFeatures());
@@ -240,14 +240,14 @@ protected:
           intensities.push_back(fit->getIntensity());
           retention_times.push_back(fit->getRT());
 
-          // If experiment is labelfree, us placeholder value for channel (usually '1' in experimental design,
-          // else get the channel_id form the file description MetaValue
-          cf_channels.push_back(
-            isLabelFree ? channel_lfq
-                        : Int(file_descriptions[fit->getMapIndex()].getMetaValue("channel_id"))
+          // If experiment is labelfree, us placeholder value for label (usually '1' in experimental design,
+          // else get the label_id form the file description MetaValue
+          cf_labels.push_back(
+            isLabelFree ? label_lfq
+                        : Int(file_descriptions[fit->getMapIndex()].getMetaValue("label_id"))
           );
         }
-        consensus_feature_channels.push_back(cf_channels);
+        consensus_feature_labels.push_back(cf_labels);
         consensus_feature_filenames.push_back(filenames);
         consensus_feature_intensites.push_back(intensities);
         consensus_feature_retention_times.push_back(retention_times);
@@ -336,20 +336,20 @@ protected:
                   const String &filename = consensus_feature_filenames[i][j];
                   const Intensity intensity(consensus_feature_intensites[i][j]);
                   const Coordinate retention_time(consensus_feature_retention_times[i][j]);
-                  const unsigned channel(consensus_feature_channels[i][j]);
+                  const unsigned label(consensus_feature_labels[i][j]);
 
                   const String & accession = pep_ev.getProteinAccession();
                   peptideseq_to_accessions[sequence].insert(accession);
 
-                  const pair< String, unsigned> tpl1 = make_pair(filename, channel);
-                  const unsigned sample = path_channel_to_sample[tpl1];
-                  const unsigned fraction = path_channel_to_fraction[tpl1];
+                  const pair< String, unsigned> tpl1 = make_pair(filename, label);
+                  const unsigned sample = path_label_to_sample[tpl1];
+                  const unsigned fraction = path_label_to_fraction[tpl1];
 
                   const pair< String, unsigned> tpl2 = make_pair(filename, fraction);
 
                   // Resolve run
                   const unsigned run = run_map[tpl2];  // MSstats run according to the run table
-                  const unsigned openms_fractiongroup = path_channel_to_fractiongroup[tpl1];
+                  const unsigned openms_fractiongroup = path_label_to_fractiongroup[tpl1];
                   msstats_run_to_openms_fractiongroup[run] = openms_fractiongroup;
 
                   // Assemble MSstats line
@@ -428,7 +428,7 @@ protected:
             // Otherwise, the intensities are resolved over the retention times
             else
             {
-              Intensity intensity;
+              Intensity intensity(0);
               if (arg_retention_time_summarization_method == "max")
               {
                 intensity = *(std::max_element(intensities.begin(), intensities.end()));
