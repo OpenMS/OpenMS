@@ -414,10 +414,7 @@ endforeach()
 	
 # fixup these dependencies
 if (APPLE) ## On APPLE use our script because the executables need to be relinked
-  add_custom_command(
-    TARGET prepare_pyopenms_libs POST_BUILD
-    COMMAND ${PROJECT_SOURCE_DIR}/cmake/MacOSX/fix_dependencies.rb -l ${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms -b ${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms
-  )
+## this is done before setup.py so that we fixup the resulting pyopenms.so's too
 elseif(LINUX)
 	## Assemble common required libraries for lnx (TODO replace with the Windows way)
 	## Note that we do not need the QT plugins or QTGui libraries since we do not include GUI tools here.
@@ -446,7 +443,7 @@ configure_file(${_env_py_in} ${_env_py} @ONLY)
 #------------------------------------------------------------------------------
 # create targets in makefile
 
-IF(${CMAKE_SYSTEM_NAME} MATCHES "Linux" AND PY_NO_OUTPUT)
+IF(LINUX AND PY_NO_OUTPUT)
   add_custom_target(pyopenms_create_cpp
     COMMAND ${PYTHON_EXECUTABLE} create_cpp_extension.py 2> /dev/null
     DEPENDS prepare_pyopenms_libs
@@ -470,29 +467,24 @@ if(PY_NO_OPTIMIZATION)
 endif()
 message(STATUS "Py extra args ${PY_EXTRA_ARGS}")
 
-IF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-    add_custom_target(pyopenms
-        COMMAND ${PYTHON_EXECUTABLE} setup.py build_ext ${PY_EXTRA_ARGS}
-        COMMAND ${CMAKE_BINARY_DIR}/pyOpenMS/fix_pyopenms_dependencies_on_mac.sh
-        COMMAND ${PYTHON_EXECUTABLE} setup.py bdist_egg
-        COMMAND ${PYTHON_EXECUTABLE} setup.py bdist_wheel
-        COMMAND ${PYTHON_EXECUTABLE} setup.py bdist --format=zip
-        COMMAND ${PYTHON_EXECUTABLE} setup.py build_ext --inplace
-        DEPENDS pyopenms_create_cpp
-        WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS )
-ELSE()
-    add_custom_target(pyopenms 
-        COMMAND ${PYTHON_EXECUTABLE} setup.py build_ext ${PY_EXTRA_ARGS}
-        COMMAND ${PYTHON_EXECUTABLE} setup.py bdist_egg
-        COMMAND ${PYTHON_EXECUTABLE} setup.py bdist_wheel
-        COMMAND ${PYTHON_EXECUTABLE} setup.py bdist --format=zip
-        COMMAND ${PYTHON_EXECUTABLE} setup.py build_ext --inplace
-        DEPENDS pyopenms_create_cpp
-        WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS )
-ENDIF()
+
+add_custom_target(pyopenms
+          COMMAND ${PYTHON_EXECUTABLE} setup.py build_ext ${PY_EXTRA_ARGS}
+          COMMAND ${PYTHON_EXECUTABLE} setup.py bdist_egg
+          COMMAND ${PYTHON_EXECUTABLE} setup.py bdist_wheel
+          COMMAND ${PYTHON_EXECUTABLE} setup.py bdist --format=zip
+          COMMAND ${PYTHON_EXECUTABLE} setup.py build_ext --inplace
+          DEPENDS pyopenms_create_cpp
+          WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS )
+
+if(APPLE)
+add_custom_command(
+  TARGET pyOpenMS POST_BUILD
+  COMMAND ${CMAKE_SOURCE_DIR}/cmake/MacOSX/fix_dependencies.rb -l ${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms -e "@loader_path/"
+  )
+endif()
 
 add_dependencies(pyopenms OpenMS)
-
 ###########################################################################
 #####                      Testing pyOpenMS                           #####
 ###########################################################################
