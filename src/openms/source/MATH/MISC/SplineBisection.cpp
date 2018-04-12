@@ -50,7 +50,7 @@ namespace OpenMS
         double const right_neighbor_mz,
         double & max_peak_mz,
         double & max_peak_int,
-        double const threshold = 1e-6);
+        double const threshold);
 
 
     // explicit instantiation.
@@ -60,7 +60,7 @@ namespace OpenMS
         double const right_neighbor_mz,
         double & max_peak_mz,
         double & max_peak_int,
-        double const threshold = 1e-6);
+        double const threshold);
 
   }
 
