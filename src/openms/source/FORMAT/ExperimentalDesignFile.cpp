@@ -154,7 +154,7 @@ namespace OpenMS
     {
       ExperimentalDesign::MSFileSection msfile_section;
       bool has_sample(false);
-      bool has_channel(false);
+      bool has_label(false);
 
       // Attributes of the sample section
       std::vector< std::vector < String > > sample_content_;
@@ -199,9 +199,9 @@ namespace OpenMS
             tsv_file,
             fs_column_header_to_index,
             {"Fraction_Group", "Fraction", "Spectra_Filepath"},
-            {"Channel", "Sample"}, false
+            {"Label", "Sample"}, false
           );
-          has_channel = fs_column_header_to_index.find("Channel") != fs_column_header_to_index.end();
+          has_label = fs_column_header_to_index.find("Label") != fs_column_header_to_index.end();
           has_sample = fs_column_header_to_index.find("Sample") != fs_column_header_to_index.end();
           n_col = fs_column_header_to_index.size();
         }
@@ -223,8 +223,8 @@ namespace OpenMS
           e.fraction_group = cells[fs_column_header_to_index["Fraction_Group"]].toInt();
           e.fraction = cells[fs_column_header_to_index["Fraction"]].toInt();
 
-          // Assign channel
-          e.channel = has_channel ? cells[fs_column_header_to_index["Channel"]].toInt() : 1;
+          // Assign label
+          e.label = has_label ? cells[fs_column_header_to_index["Label"]].toInt() : 1;
 
           // Assign sample number
           if (has_sample)
@@ -233,7 +233,7 @@ namespace OpenMS
           }
           else
           {
-            e.sample = has_channel ? e.channel : e.fraction_group;
+            e.sample = has_label ? e.label : e.fraction_group;
           }
 
           // Spectra files

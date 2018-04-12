@@ -59,7 +59,7 @@ namespace OpenMS
 
     /// MSFileSectionEntry links single quant. values back the MS file
     /// It supports:
-    ///  - multiplexed data via specification of the quantified channel
+    ///  - multiplexed data via specification of the quantified label
     ///  - multiple fractions via specification of the:
     ///    - fraction index (e.g., 1..10 if ten fractions were measured)
     ///    - fraction group to trace which fractions belong together
@@ -70,7 +70,7 @@ namespace OpenMS
       unsigned fraction_group = 1; ///< fraction group id
       unsigned fraction = 1; ///< fraction 1..m, mandatory, 1 if not set
       std::string path = "UNKNOWN_FILE"; ///< file name, mandatory
-      unsigned channel = 1;  ///< the channel (e.g.,: 1 for label-free, 1..8 for TMT8plex)
+      unsigned label = 1;  ///< the label (e.g.,: 1 for label-free, 1..8 for TMT8plex)
       unsigned sample = 1;  ///< allows grouping by sample
     };
 
@@ -135,8 +135,8 @@ namespace OpenMS
     // Gets vector of MS filenames, optionally trims to basename
     std::vector< String > getFileNames(bool basename) const;
 
-    // Returns vector of channels
-    std::vector<unsigned> getChannels() const;
+    // Returns vector of labels
+    std::vector<unsigned> getLabels() const;
 
     std::vector<unsigned> getFractions() const;
 
@@ -144,17 +144,17 @@ namespace OpenMS
     std::map<unsigned int, std::vector<String> > getFractionToMSFilesMapping() const;
 
    /*
-    *   The (Path, Channel) tuples in the experimental design have to be unique, so we can map them
+    *   The (Path, Label) tuples in the experimental design have to be unique, so we can map them
     *   uniquely to the sample number, fraction number, and fraction_group number
     */
-    /// return <file_path, channel> to sample mapping
-    std::map< std::pair< String, unsigned >, unsigned> getPathChannelToSampleMapping(bool) const;
+    /// return <file_path, label> to sample mapping
+    std::map< std::pair< String, unsigned >, unsigned> getPathLabelToSampleMapping(bool) const;
 
-    /// return <file_path, channel> to fraction mapping
-    std::map< std::pair< String, unsigned >, unsigned> getPathChannelToFractionMapping(bool) const;
+    /// return <file_path, label> to fraction mapping
+    std::map< std::pair< String, unsigned >, unsigned> getPathLabelToFractionMapping(bool) const;
 
-    /// return <file_path, channel> to fraction_group mapping
-    std::map< std::pair< String, unsigned >, unsigned> getPathChannelToFractionGroupMapping(bool) const;
+    /// return <file_path, label> to fraction_group mapping
+    std::map< std::pair< String, unsigned >, unsigned> getPathLabelToFractionGroupMapping(bool) const;
 
     // @return the number of samples measured (= highest sample index)
     unsigned getNumberOfSamples() const;
@@ -162,8 +162,8 @@ namespace OpenMS
     // @return the number of fractions (= highest fraction index)
     unsigned getNumberOfFractions() const;
 
-    // @return the number of channels per file
-    unsigned getNumberOfChannels() const;
+    // @return the number of labels per file
+    unsigned getNumberOfLabels() const;
 
     // @return the number of MS files (= fractions * fraction groups)
     unsigned getNumberOfMSFiles() const;
@@ -172,8 +172,8 @@ namespace OpenMS
     // Allows to group fraction ids and source files
     unsigned getNumberOfFractionGroups() const;
 
-    // @return sample index (depends on fraction_group and channel)
-    unsigned getSample(unsigned fraction_group, unsigned channel = 1);
+    // @return sample index (depends on fraction_group and label)
+    unsigned getSample(unsigned fraction_group, unsigned label = 1);
 
     /// @return whether we have a fractionated design 
     // This is the case if we have at least one fraction group with >= 2 fractions
@@ -193,8 +193,8 @@ namespace OpenMS
 
     private:
 
-      /// Generic Mapper (Path, Channel) -> f(row)
-      std::map< std::pair< String, unsigned >, unsigned> pathChannelMapper_(
+      /// Generic Mapper (Path, Label) -> f(row)
+      std::map< std::pair< String, unsigned >, unsigned> pathLabelMapper_(
           bool,
           unsigned (*f)(const ExperimentalDesign::MSFileSectionEntry&)) const;
 
