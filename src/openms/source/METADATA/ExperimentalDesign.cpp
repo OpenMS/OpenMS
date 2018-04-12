@@ -53,11 +53,11 @@ namespace OpenMS
     ExperimentalDesign::SampleSection::SampleSection(
         std::vector< std::vector < String > > _content,
         std::map< unsigned, Size > _sample_to_rowindex,
-        std::map< String, Size > _columnname_to_columnindex
+        std::map< String, Size > columnname_to_columnindex
       ) : 
       content_(_content),
       sample_to_rowindex_(_sample_to_rowindex),
-      columnname_to_columnindex_(_columnname_to_columnindex) 
+      columnname_to_columnindex_(columnname_to_columnindex) 
     {    
     }
 
@@ -68,7 +68,7 @@ namespace OpenMS
         sample_section_(sample_section)
     {
       sort_();
-      checkValidMSFileSection_();
+      isValid_();
     }
 
     ExperimentalDesign ExperimentalDesign::fromConsensusMap(const ConsensusMap &cm)
@@ -265,7 +265,6 @@ namespace OpenMS
     {
       msfile_section_ = msfile_section;
       sort_();
-      checkValidMSFileSection_();
     }
 
     void ExperimentalDesign::setSampleSection(const SampleSection& sample_section)
@@ -367,16 +366,8 @@ namespace OpenMS
       container.insert(item);
     }
 
-    void ExperimentalDesign::checkValidMSFileSection_()
+    void ExperimentalDesign::isValid_()
     {
-      if (getNumberOfMSFiles() == 0)
-      {
-        throw Exception::MissingInformation(
-        __FILE__,
-        __LINE__,
-        OPENMS_PRETTY_FUNCTION,
-        "No MS files provided.");
-      }
 
     std::set< std::tuple< unsigned, unsigned, unsigned > > fractiongroup_fraction_sample_set;
     std::set< std::tuple< unsigned, unsigned, unsigned > > fractiongroup_fraction_label_set;
@@ -395,29 +386,21 @@ namespace OpenMS
         "Sample Section does not contain sample for fraction group " + String(row.fraction_group));
       }
 
-      // FRACTIONGROUP_FRACTION_SAMPLE TUPLE
-      std::tuple<unsigned, unsigned, unsigned> fractiongroup_fraction_sample = std::make_tuple(row.fraction_group, row.fraction, row.sample);
-      errorIfAlreadyExists(
-        fractiongroup_fraction_sample_set,
-        fractiongroup_fraction_sample,
-      "(Fraction Group, Fraction, Sample) combination can only appear once");
-
-      // FRACTIONGROUP__FRACTION_CHANNEL TUPLE
+      // FRACTIONGROUP__FRACTION_LABEL TUPLE
       std::tuple<unsigned, unsigned, unsigned> fractiongroup_fraction_label = std::make_tuple(row.fraction_group, row.fraction, row.label);
       errorIfAlreadyExists(
         fractiongroup_fraction_label_set,
         fractiongroup_fraction_label,
       "(Fraction Group, Fraction, Label) combination can only appear once");
 
-
-      // PATH_CHANNEL_TUPLE
+      // PATH_LABEL_TUPLE
       std::tuple<std::string, unsigned> path_label = std::make_tuple(row.path, row.label);
       errorIfAlreadyExists(
         path_label_set,
         path_label,
         "(Path, Label) combination can only appear once");
 
-      // FRACTIONGROUP_CHANNEL TUPLE
+      // FRACTIONGROUP_LABEL TUPLE
       std::tuple<unsigned, unsigned> fractiongroup_label = std::make_tuple(row.fraction_group, row.label);
       fractiongroup_label_to_sample[fractiongroup_label].insert(row.sample);
 

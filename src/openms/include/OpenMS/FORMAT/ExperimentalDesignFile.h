@@ -36,6 +36,8 @@
 
 #include <OpenMS/DATASTRUCTURES/String.h>
 
+#include <map>
+
 namespace OpenMS
 {
   class ExperimentalDesign;
