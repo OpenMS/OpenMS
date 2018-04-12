@@ -124,7 +124,7 @@ namespace OpenMS
 
     defaults_.setValue("mass_max_diff", 0.05, "Maximum allowed mass difference [in Th] for a single feature.");
     // Na+:0.1 , (2)H4H-4:0.1:-2:heavy
-    defaults_.setValue("potential_adducts", ListUtils::create<String>("H:+:0.25,Na:+:0.25,NH4:+:0.25,K:+:0.1,C2H3N:+:0.1,H-2O-1:0:0.05"), "Adducts used to explain mass differences in format: 'Element:Charge(+/-/0):Probability[:RTShift[:Label]]', i.e. the number of '+' or '-' indicate the charge ('0' if neutral adduct), e.g. 'Ca:++:0.5' indicates +2. Probabilites have to be in (0,1]. RTShift param is optional and indicates the expected RT shift caused by this adduct, e.g. '(2)H4H-4:0:1:-3' indicates a 4 deuterium label, which causes early elution by 3 seconds. As a fifth parameter you can add a label which is tagged on every feature which has this adduct. This also determines the map number in the consensus file.");
+    defaults_.setValue("potential_adducts", ListUtils::create<String>("H:+:0.3,Na:+:0.25,NH4:+:0.25,K:+:0.1,C2H3N:+:0.1,H-2O-1:0:0.05"), "Adducts used to explain mass differences in format: 'Element:Charge(+/-/0):Probability[:RTShift[:Label]]', i.e. the number of '+' or '-' indicate the charge ('0' if neutral adduct), e.g. 'Ca:++:0.5' indicates +2. Probabilites have to be in (0,1]. RTShift param is optional and indicates the expected RT shift caused by this adduct, e.g. '(2)H4H-4:0:1:-3' indicates a 4 deuterium label, which causes early elution by 3 seconds. As a fifth parameter you can add a label which is tagged on every feature which has this adduct. This also determines the map number in the consensus file.");
     defaults_.setValue("max_neutrals", 1, "Maximal number of neutral adducts(q=0) allowed. Add them in the 'potential_adducts' section!");
 
     defaults_.setValue("use_minority_bound", "false", "Prune the considered adduct transitions by transition probabilities.");
@@ -187,13 +187,17 @@ namespace OpenMS
       }
       // determine probability
       float prob = adduct[2].toFloat();
+      //LOG_WARN << "Adduct " << *it << " prob " << String(prob) << std::endl;
       if (prob > 1.0 || prob <= 0.0)
       {
         String error = "MetaboliteFeatureDeconvolution::potential_adducts (" + (*it) + ") does not have a proper probability (" + String(prob) + ") in [0,1]!";
         throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, error);
       }
-      summed_probs += prob;
-
+      if (adduct[1] != "0")//if neutral adduct, assume separate process to ionization -> better not count it for total probs, makes everything easier
+      {
+        summed_probs += prob;
+      }
+      //LOG_WARN << "Total prob" << String(summed_probs) << std::endl;
 
       // RT Shift:
       double rt_shift(0);
@@ -223,26 +227,28 @@ namespace OpenMS
       }else if (pos_charge > 0)
       {
         EmpiricalFormula ef(adduct[0]);
+        ef.setCharge(pos_charge);
+        //getMonoWeight internally adds charge*proton_masses, we need to remove charge*H to get overall charge*electron loss.
+        //E.g., for H: M-(p+e)+p <-> M-e == H+
+        //E.g., for Na: Na -(p+e)+p <-> Na-e == Na+
         ef -= EmpiricalFormula("H" + String(pos_charge));
-        ef.setCharge(pos_charge); // effectively subtract electron masses
-        potential_adducts_.push_back(Adduct((Int)pos_charge, 1, ef.getMonoWeight(), adduct[0], log(prob), rt_shift, label));
+        potential_adducts_.push_back(Adduct(pos_charge, 1, ef.getMonoWeight(), adduct[0], log(prob), rt_shift, label));
       }else if (neg_charge > 0)
       {
         if (adduct[0] == "H-1")
         {
-          potential_adducts_.push_back(Adduct((Int)-neg_charge, 1, -Constants::PROTON_MASS_U, adduct[0], log(prob), rt_shift,label));
+          potential_adducts_.push_back(Adduct(-neg_charge, 1, -Constants::PROTON_MASS_U, adduct[0], log(prob), rt_shift,label));
         }else
         {
           EmpiricalFormula ef(adduct[0]);
-          ef.setCharge(0);//ensures we get without additional protons, now just add electron masses
+          ef.setCharge(0);//ensures we get without additional protons, now just add electron masses // effectively subtract electron masses
           potential_adducts_.push_back(Adduct((Int)-neg_charge, 1, ef.getMonoWeight() + Constants::ELECTRON_MASS_U * neg_charge, adduct[0], log(prob), rt_shift, label));
         }
       }else if (adduct[1] == "0")//pos,neg == 0
-      {//in principle no change because pos_charge 0 and ef.getMonoWeight() only adds for nonzero charges
+      {//getMonoWeight simple for Charge 0: sums individual atom monoisotopic weights
         EmpiricalFormula ef(adduct[0]);
-        ef -= EmpiricalFormula("H" + String(pos_charge));
-        ef.setCharge(pos_charge); // effectively subtract electron masses
-        potential_adducts_.push_back(Adduct((Int)pos_charge, 1, ef.getMonoWeight(), adduct[0], log(prob), rt_shift, label));
+        ef.setCharge(0);
+        potential_adducts_.push_back(Adduct(ef.getCharge(), 1, ef.getMonoWeight(), adduct[0], log(prob), rt_shift, label));
       }else//adduct charge not +,- or 0
       {
       String error = "MetaboliteFeatureDeconvolution::potential_adduct charge must only contain '+','-' or '0'!";
@@ -255,7 +261,7 @@ namespace OpenMS
 
     if (abs(1.0 - summed_probs) > 0.001)
     {
-    String error = "MetaboliteFeatureDeconvolution::potential_adducts probabilities do not sum up to 1.0!";
+    String error = "MetaboliteFeatureDeconvolution::potential_adducts charged adduct probabilities do not sum up to 1.0!: " + String(summed_probs);
         throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, error);
     }
 
@@ -598,7 +604,7 @@ namespace OpenMS
 
               if (best_hit == null_compomer)
               {
-                std::cout << "MetaboliteFeatureDeconvolution.h:: could not find a compomer which complies with assumed q1 and q2 values!\n with q1: " << q1 << " q2: " << q2 << "\n";
+                //std::cout << "MetaboliteFeatureDeconvolution.h:: could find no compomer complying with assumed q1 and q2 values!\n with q1: " << q1 << " q2: " << q2 << "\n";
                 ++no_cmp_hit;
               }
               else
@@ -826,7 +832,8 @@ namespace OpenMS
         cf.setMetaValue("Local", String(old_q0) + ":" + String(old_q1));
         cf.setMetaValue("CP", String(fm_out[f0_idx].getCharge()) + "(" + String(fm_out[f0_idx].getMetaValue("dc_charge_adducts")) + "):"
                         + String(fm_out[f1_idx].getCharge()) + "(" + String(fm_out[f1_idx].getMetaValue("dc_charge_adducts")) + ") "
-                        + String("Score: ") + feature_relation[i].getEdgeScore());
+                        + String("Delta M: ") + feature_relation[i].getMassDiff()
+                        + String(" Score: ") + feature_relation[i].getEdgeScore());
         //cf.computeDechargeConsensus(fm_out);
 
         //remove info not wanted in pair info nor in decharged consensus
