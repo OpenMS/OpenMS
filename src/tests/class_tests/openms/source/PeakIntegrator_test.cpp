@@ -42,6 +42,12 @@
 using namespace OpenMS;
 using namespace std;
 
+// TODO: remove helper function
+void geogebra_print_execute(const double h, const double mu, const double sigma, const double tau)
+{
+  std::cout << "\nGEOGEBRA: Execute[{\"h = " << h << "\", \"mu = " << mu << "\",\"sigma = " << sigma << "\", \"tau = " << tau << "\"}]\n\n";
+}
+
 START_TEST(PeakIntegrator, "$Id$")
 
 /////////////////////////////////////////////////////////////
@@ -924,28 +930,29 @@ START_SECTION(void fitEMGPeakModel(
 
   PeakIntegrator pi;
   Param params = pi.getParameters();
-  params.setValue("max_gd_iter", (UInt)10000);
   pi.setParameters(params);
-  TOLERANCE_RELATIVE(1.0 + 1e-3)
 
   pi.fitEMGPeakModel(chromatogram, out_min);
   TEST_EQUAL(out_min.size(), 107)
 
   fda_emg = &out_min.getFloatDataArrays()[0];
   TEST_EQUAL(fda_emg->getName(), "emg_parameters")
-  TEST_REAL_SIMILAR((*fda_emg)[0], 1356660)
-  TEST_REAL_SIMILAR((*fda_emg)[1], 2.68099)
-  TEST_REAL_SIMILAR((*fda_emg)[2], 0.0207767)
-  TEST_REAL_SIMILAR((*fda_emg)[3], 0.0238017)
+  TEST_REAL_SIMILAR((*fda_emg)[0], 1317410)
+  TEST_REAL_SIMILAR((*fda_emg)[1], 2.68121)
+  TEST_REAL_SIMILAR((*fda_emg)[2], 0.0212625)
+  TEST_REAL_SIMILAR((*fda_emg)[3], 0.0235329)
+geogebra_print_execute((*fda_emg)[0], (*fda_emg)[1], (*fda_emg)[2], (*fda_emg)[3]);
 
   pi.fitEMGPeakModel(saturated_chrom_min, out_min);
   pi.fitEMGPeakModel(saturated_chrom_sec, out_sec);
   TEST_EQUAL(out_min.size(), 87)
   TEST_EQUAL(out_min.size(), out_sec.size())
+  TOLERANCE_RELATIVE(1.0 + 1e-2)
   for (Size i = 0; i < out_min.size(); i += 9)
   {
     TEST_REAL_SIMILAR(out_min[i].getIntensity(), out_sec[i].getIntensity())
   }
+  TOLERANCE_RELATIVE(1.0 + 1e-5)
 
   fda_emg = &out_min.getFloatDataArrays()[0];
   TEST_EQUAL(fda_emg->getName(), "emg_parameters")
@@ -953,10 +960,11 @@ START_SECTION(void fitEMGPeakModel(
   TEST_REAL_SIMILAR((*fda_emg)[1], 2.66296)
   TEST_REAL_SIMILAR((*fda_emg)[2], 0.0394313)
   TEST_REAL_SIMILAR((*fda_emg)[3], 0.0394313)
+geogebra_print_execute((*fda_emg)[0], (*fda_emg)[1], (*fda_emg)[2], (*fda_emg)[3]);
 
   fda_emg = &out_sec.getFloatDataArrays()[0];
   TEST_EQUAL(fda_emg->getName(), "emg_parameters")
-  TEST_REAL_SIMILAR((*fda_emg)[0], 7735860)
+  TEST_REAL_SIMILAR((*fda_emg)[0], 7736020)
   TEST_REAL_SIMILAR((*fda_emg)[1], 159.778)
   TEST_REAL_SIMILAR((*fda_emg)[2], 2.36584)
   TEST_REAL_SIMILAR((*fda_emg)[3], 2.36584)
@@ -965,10 +973,12 @@ START_SECTION(void fitEMGPeakModel(
   pi.fitEMGPeakModel(saturated_cutoff_chrom_sec, out_sec);
   TEST_EQUAL(out_min.size(), 71)
   TEST_EQUAL(out_min.size(), out_sec.size())
+  TOLERANCE_RELATIVE(1.0 + 1e-2)
   for (Size i = 0; i < out_min.size(); i += 9)
   {
     TEST_REAL_SIMILAR(out_min[i].getIntensity(), out_sec[i].getIntensity())
   }
+  TOLERANCE_RELATIVE(1.0 + 1e-5)
 
   fda_emg = &out_min.getFloatDataArrays()[0];
   TEST_EQUAL(fda_emg->getName(), "emg_parameters")
@@ -976,6 +986,7 @@ START_SECTION(void fitEMGPeakModel(
   TEST_REAL_SIMILAR((*fda_emg)[1], 14.3453)
   TEST_REAL_SIMILAR((*fda_emg)[2], 0.0344277)
   TEST_REAL_SIMILAR((*fda_emg)[3], 0.188507)
+geogebra_print_execute((*fda_emg)[0], (*fda_emg)[1], (*fda_emg)[2], (*fda_emg)[3]);
 
   fda_emg = &out_sec.getFloatDataArrays()[0];
   TEST_EQUAL(fda_emg->getName(), "emg_parameters")
@@ -988,10 +999,12 @@ START_SECTION(void fitEMGPeakModel(
   pi.fitEMGPeakModel(cutoff_chrom_sec, out_sec);
   TEST_EQUAL(out_min.size(), 28)
   TEST_EQUAL(out_min.size(), out_sec.size())
+  TOLERANCE_RELATIVE(1.0 + 1e-2)
   for (Size i = 0; i < out_min.size(); i += 9)
   {
     TEST_REAL_SIMILAR(out_min[i].getIntensity(), out_sec[i].getIntensity())
   }
+  TOLERANCE_RELATIVE(1.0 + 1e-5)
 
   fda_emg = &out_min.getFloatDataArrays()[0];
   TEST_EQUAL(fda_emg->getName(), "emg_parameters")
@@ -999,6 +1012,7 @@ START_SECTION(void fitEMGPeakModel(
   TEST_REAL_SIMILAR((*fda_emg)[1], 15.4227)
   TEST_REAL_SIMILAR((*fda_emg)[2], 0.0210588)
   TEST_REAL_SIMILAR((*fda_emg)[3], 0.0476741)
+geogebra_print_execute((*fda_emg)[0], (*fda_emg)[1], (*fda_emg)[2], (*fda_emg)[3]);
 
   fda_emg = &out_sec.getFloatDataArrays()[0];
   TEST_EQUAL(fda_emg->getName(), "emg_parameters")
@@ -1006,8 +1020,6 @@ START_SECTION(void fitEMGPeakModel(
   TEST_REAL_SIMILAR((*fda_emg)[1], 925.363)
   TEST_REAL_SIMILAR((*fda_emg)[2], 1.26351)
   TEST_REAL_SIMILAR((*fda_emg)[3], 2.8605)
-
-  TOLERANCE_RELATIVE(1.0 + 1e-5)
 }
 END_SECTION
 
@@ -1021,28 +1033,28 @@ START_SECTION(void fitEMGPeakModel(
 
   PeakIntegrator pi;
   Param params = pi.getParameters();
-  params.setValue("max_gd_iter", (UInt)10000);
   pi.setParameters(params);
-  TOLERANCE_RELATIVE(1.0 + 1e-3)
 
   pi.fitEMGPeakModel(spectrum, out_min);
   TEST_EQUAL(out_min.size(), 107)
 
   fda_emg = &out_min.getFloatDataArrays()[0];
   TEST_EQUAL(fda_emg->getName(), "emg_parameters")
-  TEST_REAL_SIMILAR((*fda_emg)[0], 1356660)
-  TEST_REAL_SIMILAR((*fda_emg)[1], 2.68099)
-  TEST_REAL_SIMILAR((*fda_emg)[2], 0.0207767)
-  TEST_REAL_SIMILAR((*fda_emg)[3], 0.0238017)
+  TEST_REAL_SIMILAR((*fda_emg)[0], 1317410)
+  TEST_REAL_SIMILAR((*fda_emg)[1], 2.68121)
+  TEST_REAL_SIMILAR((*fda_emg)[2], 0.0212625)
+  TEST_REAL_SIMILAR((*fda_emg)[3], 0.0235329)
 
   pi.fitEMGPeakModel(saturated_spec_min, out_min);
   pi.fitEMGPeakModel(saturated_spec_sec, out_sec);
   TEST_EQUAL(out_min.size(), 87)
   TEST_EQUAL(out_min.size(), out_sec.size())
+  TOLERANCE_RELATIVE(1.0 + 1e-2)
   for (Size i = 0; i < out_min.size(); i += 9)
   {
     TEST_REAL_SIMILAR(out_min[i].getIntensity(), out_sec[i].getIntensity())
   }
+  TOLERANCE_RELATIVE(1.0 + 1e-5)
 
   fda_emg = &out_min.getFloatDataArrays()[0];
   TEST_EQUAL(fda_emg->getName(), "emg_parameters")
@@ -1053,7 +1065,7 @@ START_SECTION(void fitEMGPeakModel(
 
   fda_emg = &out_sec.getFloatDataArrays()[0];
   TEST_EQUAL(fda_emg->getName(), "emg_parameters")
-  TEST_REAL_SIMILAR((*fda_emg)[0], 7735860)
+  TEST_REAL_SIMILAR((*fda_emg)[0], 7736020)
   TEST_REAL_SIMILAR((*fda_emg)[1], 159.778)
   TEST_REAL_SIMILAR((*fda_emg)[2], 2.36584)
   TEST_REAL_SIMILAR((*fda_emg)[3], 2.36584)
@@ -1062,10 +1074,12 @@ START_SECTION(void fitEMGPeakModel(
   pi.fitEMGPeakModel(saturated_cutoff_spec_sec, out_sec);
   TEST_EQUAL(out_min.size(), 71)
   TEST_EQUAL(out_min.size(), out_sec.size())
+  TOLERANCE_RELATIVE(1.0 + 1e-2)
   for (Size i = 0; i < out_min.size(); i += 9)
   {
     TEST_REAL_SIMILAR(out_min[i].getIntensity(), out_sec[i].getIntensity())
   }
+  TOLERANCE_RELATIVE(1.0 + 1e-5)
 
   fda_emg = &out_min.getFloatDataArrays()[0];
   TEST_EQUAL(fda_emg->getName(), "emg_parameters")
@@ -1085,10 +1099,12 @@ START_SECTION(void fitEMGPeakModel(
   pi.fitEMGPeakModel(cutoff_spec_sec, out_sec);
   TEST_EQUAL(out_min.size(), 28)
   TEST_EQUAL(out_min.size(), out_sec.size())
+  TOLERANCE_RELATIVE(1.0 + 1e-2)
   for (Size i = 0; i < out_min.size(); i += 9)
   {
     TEST_REAL_SIMILAR(out_min[i].getIntensity(), out_sec[i].getIntensity())
   }
+  TOLERANCE_RELATIVE(1.0 + 1e-5)
 
   fda_emg = &out_min.getFloatDataArrays()[0];
   TEST_EQUAL(fda_emg->getName(), "emg_parameters")
@@ -1103,8 +1119,6 @@ START_SECTION(void fitEMGPeakModel(
   TEST_REAL_SIMILAR((*fda_emg)[1], 925.363)
   TEST_REAL_SIMILAR((*fda_emg)[2], 1.26351)
   TEST_REAL_SIMILAR((*fda_emg)[3], 2.8605)
-
-  TOLERANCE_RELATIVE(1.0 + 1e-5)
 }
 END_SECTION
 
@@ -1117,28 +1131,32 @@ START_SECTION(double Loss_function(
   const double tau
 ) const)
 {
-  const vector<double>& xs = position;
-  const vector<double>& ys = intensity;
   MSChromatogram out_min;
   PeakIntegrator pi;
   Param params = pi.getParameters();
   params.setValue("compute_additional_points", "false");
-  params.setValue("max_gd_iter", (UInt)10000);
   pi.setParameters(params);
   pi.fitEMGPeakModel(chromatogram, out_min);
   PeakIntegrator_friend pi_f;
 
   const MSChromatogram::FloatDataArray& fda_emg = out_min.getFloatDataArrays()[0];
-  const double h = fda_emg[0];
-  const double mu = fda_emg[1];
-  const double sigma = fda_emg[2];
-  const double tau = fda_emg[3];
-  TEST_REAL_SIMILAR(pi_f.Loss_function(xs, ys, h, mu, sigma, tau), 69531919.6839022)
-  // for (Size i = 0; i < chromatogram.size(); ++i)
-  // {
-  //   const double est_y = pi_f.emg_point(xs[i], h, mu, sigma, tau);
-  //   printf("%f\t%f\t%f\t%f\n", xs[i], ys[i], est_y, std::fabs(est_y - ys[i]));
-  // }
+  TEST_REAL_SIMILAR(pi_f.Loss_function(position, intensity, fda_emg[0], fda_emg[1], fda_emg[2], fda_emg[3]), 60778399.8312241)
+geogebra_print_execute(fda_emg[0], fda_emg[1], fda_emg[2], fda_emg[3]);
+
+  pi.fitEMGPeakModel(saturated_chrom_min, out_min);
+  const MSChromatogram::FloatDataArray& fda_emg_sat = out_min.getFloatDataArrays()[0];
+  TEST_REAL_SIMILAR(pi_f.Loss_function(saturated_pos_min, saturated_int, fda_emg_sat[0], fda_emg_sat[1], fda_emg_sat[2], fda_emg_sat[3]), 187412764882.422)
+geogebra_print_execute(fda_emg_sat[0], fda_emg_sat[1], fda_emg_sat[2], fda_emg_sat[3]);
+
+  pi.fitEMGPeakModel(saturated_cutoff_chrom_min, out_min);
+  const MSChromatogram::FloatDataArray& fda_emg_sat_cut = out_min.getFloatDataArrays()[0];
+  TEST_REAL_SIMILAR(pi_f.Loss_function(saturated_cutoff_pos_min, saturated_cutoff_int, fda_emg_sat_cut[0], fda_emg_sat_cut[1], fda_emg_sat_cut[2], fda_emg_sat_cut[3]), 56213636966.189)
+geogebra_print_execute(fda_emg_sat_cut[0], fda_emg_sat_cut[1], fda_emg_sat_cut[2], fda_emg_sat_cut[3]);
+
+  pi.fitEMGPeakModel(cutoff_chrom_min, out_min);
+  const MSChromatogram::FloatDataArray& fda_emg_cut = out_min.getFloatDataArrays()[0];
+  TEST_REAL_SIMILAR(pi_f.Loss_function(cutoff_pos_min, cutoff_int, fda_emg_cut[0], fda_emg_cut[1], fda_emg_cut[2], fda_emg_cut[3]), 651.824632922326)
+geogebra_print_execute(fda_emg_cut[0], fda_emg_cut[1], fda_emg_cut[2], fda_emg_cut[3]);
 }
 END_SECTION
 
@@ -1149,7 +1167,24 @@ START_SECTION(void extractTrainingSet(
   std::vector<double>& TrY
 ) const)
 {
-// TODO: test
+  PeakIntegrator_friend pi_f;
+  vector<double> TrX, TrY;
+
+  pi_f.extractTrainingSet(position, intensity, TrX, TrY);
+  // non-saturated, non-cutoff peak: no point is filtered, all are valid
+  TEST_EQUAL(TrX.size(), position.size())
+
+  pi_f.extractTrainingSet(saturated_pos_min, saturated_int, TrX, TrY);
+  TEST_NOT_EQUAL(TrX.size(), saturated_pos_min.size())
+  TEST_EQUAL(TrX.size(), 77)
+
+  pi_f.extractTrainingSet(saturated_cutoff_pos_min, saturated_cutoff_int, TrX, TrY);
+  TEST_NOT_EQUAL(TrX.size(), saturated_cutoff_pos_min.size())
+  TEST_EQUAL(TrX.size(), 61)
+
+  pi_f.extractTrainingSet(cutoff_pos_min, cutoff_int, TrX, TrY);
+  // cutoff but non-saturated peak: no point is filtered, all are valid
+  TEST_EQUAL(TrX.size(), cutoff_pos_min.size())
 }
 END_SECTION
 
@@ -1163,7 +1198,7 @@ START_SECTION(double computeMuMaxDistance(const std::vector<double>& xs) const)
 }
 END_SECTION
 
-START_SECTION(double PeakIntegrator::computeInitialMean(
+START_SECTION(double computeInitialMean(
   const std::vector<double>& xs,
   const std::vector<double>& ys
 ) const)
@@ -1321,7 +1356,6 @@ START_SECTION(void emg_vector(
   vector<double> out_ys;
 
   Param params = pi_f.peakIntegrator.getParameters();
-  params.setValue("max_gd_iter", (UInt)10000);
 
   params.setValue("compute_additional_points", "false");
   pi_f.peakIntegrator.setParameters(params);

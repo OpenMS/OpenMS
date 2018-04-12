@@ -644,7 +644,7 @@ protected:
       If points are actually skipped, these will be found in the middle part of the peak,
       possibly being a saturated peak apex region.
 
-      @throw Exception::SizeUnderflow if the input has less than 4 elements
+      @throw Exception::SizeUnderflow if the input has less than 2 elements
 
       @param[in] xs Positions
       @param[in] ys Intensities

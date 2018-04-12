@@ -789,7 +789,7 @@ namespace OpenMS
     std::vector<double>& TrY
   ) const
   {
-    if (xs.size() < 4) // A valid training set cannot be computed
+    if (xs.size() < 2) // A valid training set cannot be computed
     {
       throw Exception::SizeUnderflow(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, xs.size());
     }
@@ -808,35 +808,62 @@ namespace OpenMS
     // Add points from the RIGHT side, until `intensity_threshold` is reached
     points.push_back({xs.back(), ys.back()}); // Add LAST point, no matter the threshold
     Size j = xs.size() - 2;
-    for (; j > 0 && ys[j] < intensity_threshold; --j)
+    for (; i <= j && ys[j] < intensity_threshold; --j)
     {
       points.push_back({xs[j], ys[j]});
     }
 
-    // Collect data about all the derivatives involved above `intensity_threshold` value
-    // According to the value of the highest derivative,
-    // it will be decided if a given point is to be added or to be skipped
-    std::vector<double> derivatives;
-    for (Size k = i; k <= j + 1; ++k) // This loop starts where the earlier "LEFT side" loop stopped
+    // Compute the derivative for points of intensity greater than `intensity_threshold`
+    // According to the value of the highest derivative, it will be decided if
+    // a given point is to be added or to be skipped
+    // `derivatives` contains the information for both directions
+    std::vector<double> derivatives(xs.size() + 1); // One more element to account for derivatives from right to left
+    derivatives.front() = 1.0;
+    derivatives.back() = -1.0;
+    for (Size k = i - 1; k < xs.size() && k <= j + 1; ++k)
     {
-      derivatives.push_back(std::fabs( (ys[k - 1] - ys[k]) / (xs[k - 1] - xs[k]) ));
+      derivatives[k] = (ys[k] - ys[k - 1]) / (xs[k] - xs[k - 1]);
     }
 
-    const double derivative_threshold = derivatives.size()
-      ? *std::max_element(derivatives.begin(), derivatives.end()) * 0.4
-      : std::numeric_limits<double>::max()
-    ;
+    const double max_derivative = *std::max_element(
+      derivatives.begin() + i,
+      derivatives.begin() + j + 2,
+      [](const double a, const double b)
+      {
+        return std::fabs(a) < std::fabs(b);
+      }
+    );
+    const double derivative_percent { 0.3 };
+    const double derivative_threshold = std::fabs(max_derivative) * derivative_percent;
 
-    // Starting from the LEFT side, add points until `derivative_threshold` is crossed
-    for (Size k = 0; k < derivatives.size() && derivatives[k] >= derivative_threshold; ++k)
+    // Starting from `i` and proceeding toward the RIGHT side,
+    // add points until the derivative conditions are satisfied
+    for (
+      ;
+      i < xs.size() - 1 &&
+      i <= j &&
+      derivatives[i] > 0.0 &&
+      (std::fabs(derivatives[i]) >= derivative_threshold ||
+       derivatives[i] / derivatives[i - 1] >= 0.6);
+      ++i
+    )
     {
-      points.push_back({xs[k + i], ys[k + i]});
+      points.push_back({xs[i], ys[i]});
     }
 
-    // Starting from the RIGHT side, add points until `derivative_threshold` is crossed
-    for (Size k = derivatives.size() - 1; k > 0 && derivatives[k] >= derivative_threshold; --k)
+    // Starting from `j` and proceeding toward the LEFT side,
+    // add points until the derivative conditions are satisfied
+    for (
+      ;
+      j > 0 &&
+      i <= j &&
+      derivatives[j + 1] < 0.0 &&
+      (std::fabs(derivatives[j + 1]) >= derivative_threshold ||
+       derivatives[j + 1] / derivatives[j + 2] >= 0.6);
+      --j
+    )
     {
-      points.push_back({xs[k + i - 1], ys[k + i - 1]});
+      points.push_back({xs[j], ys[j]});
     }
 
     // Create the output vectors containing the training set
