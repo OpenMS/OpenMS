@@ -33,9 +33,11 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
+#include <OpenMS/test_config.h>
 
 ///////////////////////////
 #include <OpenMS/METADATA/ExperimentalDesign.h>
+#include <OpenMS/FORMAT/ExperimentalDesignFile.h>
 ///////////////////////////
 
 using namespace OpenMS;
@@ -49,18 +51,20 @@ START_TEST(ExperimentalDesign, "$Id$")
 ExperimentalDesign* ptr = 0;
 ExperimentalDesign* null_ptr = 0;
 
-ExperimentalDesignFile design = ExperimentalDesignFile::load(OPENMS_GET_TEST_DATA_PATH("ExperimentalDesign_input_1.tsv", false));
+ExperimentalDesign design = ExperimentalDesignFile::load(
+  OPENMS_GET_TEST_DATA_PATH("ExperimentalDesign_input_1.tsv")
+  , false);
 
 START_SECTION(ExperimentalDesign())
 {
-	ptr = new ExperimentalDesign();
-	TEST_NOT_EQUAL(ptr, null_ptr)
+  ptr = new ExperimentalDesign();
+  TEST_NOT_EQUAL(ptr, null_ptr)
 }
 END_SECTION
 
 START_SECTION(~ExperimentalDesign())
 {
-	delete ptr;
+  delete ptr;
 }
 END_SECTION
 
@@ -72,34 +76,34 @@ END_SECTION
 
 START_SECTION((const MSFileSection& getMSFileSection() const ))
 {
-  MSFileSection fs = design.getMSFileSection();
+  ExperimentalDesign::MSFileSection fs = design.getMSFileSection();
 }
 END_SECTION
 
 START_SECTION((void setMSFileSection(const MSFileSection &msfile_section)))
 {
   ExperimentalDesign design2 = design;
-  MSFileSection fs;
+  ExperimentalDesign::MSFileSection fs;
   design2.setMSFileSection(fs);
 }
 END_SECTION
 
-START_SECTION((const SampleSection& getSampleSection() const ))
+START_SECTION((const ExperimentalDesign::SampleSection& getSampleSection() const ))
 {
 }
 END_SECTION
 
-START_SECTION((void setSampleSection(const SampleSection &sample_section)))
+START_SECTION((void setSampleSection(const ExperimentalDesign::SampleSection &sample_section)))
 {
   ExperimentalDesign design2 = design;
-  SampleSection fs;
+  ExperimentalDesign::SampleSection fs;
   design2.setSampleSection(fs);
 }
 END_SECTION
 
 START_SECTION((std::vector< String > getFileNames(bool basename) const ))
 {
-  std::vector< String > fns = design.getFileNames();
+  std::vector< String > fns = design.getFileNames(false);
 }
 END_SECTION
 
@@ -123,19 +127,19 @@ END_SECTION
 
 START_SECTION((std::map< std::pair< String, unsigned >, unsigned> getPathLabelToSampleMapping(bool) const ))
 {
-  std::map< std::pair< String, unsigned > pl2s = getPathLabelToSampleMapping(true);
+  std::map< std::pair< String, unsigned >, unsigned > pl2s = design.getPathLabelToSampleMapping(true);
 }
 END_SECTION
 
 START_SECTION((std::map< std::pair< String, unsigned >, unsigned> getPathLabelToFractionMapping(bool) const ))
 {
-  std::map< std::pair< String, unsigned > pl2f = getPathLabelToFractionMappingMapping(true);
+  std::map< std::pair< String, unsigned >, unsigned > pl2f = design.getPathLabelToFractionMapping(true);
 }
 END_SECTION
 
 START_SECTION((std::map< std::pair< String, unsigned >, unsigned> getPathLabelToFractionGroupMapping(bool) const ))
 {
-  std::map< std::pair< String, unsigned > pl2fg = design.getPathLabelToFractionGroupMapping(true);
+  std::map< std::pair< String, unsigned >, unsigned > pl2fg = design.getPathLabelToFractionGroupMapping(true);
 }
 END_SECTION
 

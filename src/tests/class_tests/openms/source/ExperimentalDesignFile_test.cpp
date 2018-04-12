@@ -33,8 +33,10 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
+#include <OpenMS/test_config.h>
 
 ///////////////////////////
+#include <OpenMS/METADATA/ExperimentalDesign.h>
 #include <OpenMS/FORMAT/ExperimentalDesignFile.h>
 ///////////////////////////
 
@@ -63,7 +65,8 @@ END_SECTION
 
 START_SECTION((static ExperimentalDesign load(const String &tsv_file, bool require_spectra_files)))
 {
-  ExperimentalDesignFile::load(OPENMS_GET_TEST_DATA_PATH("ExperimentalDesign_input_1.tsv", false));
+ExperimentalDesign design = ExperimentalDesignFile::load(
+  OPENMS_GET_TEST_DATA_PATH("ExperimentalDesign_input_1.tsv"), false);
 }
 END_SECTION
 
