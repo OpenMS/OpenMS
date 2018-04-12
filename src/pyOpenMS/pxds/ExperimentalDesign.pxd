@@ -21,22 +21,22 @@ cdef extern from "<OpenMS/METADATA/ExperimentalDesign.h>" namespace "OpenMS":
         # Gets vector of Filenames, optionally trims to basename
         libcpp_vector[ String ] getFileNames(bool basename) nogil except +
 
-        # Returns vector of channels
-        libcpp_vector[ unsigned int ] getChannels() nogil except +
+        # Returns vector of labels
+        libcpp_vector[ unsigned int ] getLabels() nogil except +
 
         libcpp_vector[ unsigned int ] getFractions() nogil except +
 
         # fraction index to file paths (ordered by fraction_group)
         #lib_map[unsigned int, lib_cpp[ String ] ] getFractionToMSFilesMapping() nogil except +
      
-        # return <file_path, channel> to sample mapping
-        #lib_map[ std::pair< String, unsigned >, unsigned] getPathChannelToSampleMapping(bool) nogil except +
+        # return <file_path, label> to sample mapping
+        #lib_map[ std::pair< String, unsigned >, unsigned] getPathLabelToSampleMapping(bool) nogil except +
 
-        # return <file_path, channel> to fraction mapping
-        #std::map< std::pair< String, unsigned >, unsigned> getPathChannelToFractionMapping(bool) const;
+        # return <file_path, label> to fraction mapping
+        #std::map< std::pair< String, unsigned >, unsigned> getPathLabelToFractionMapping(bool) const;
 
-        # return <file_path, channel> to fraction_group mapping
-        #std::map< std::pair< String, unsigned >, unsigned> getPathChannelToFractionGroupMapping(bool) const;
+        # return <file_path, label> to fraction_group mapping
+        #std::map< std::pair< String, unsigned >, unsigned> getPathLabelToFractionGroupMapping(bool) const;
 
         # @return the number of samples measured (= highest sample index)
         unsigned int getNumberOfSamples() nogil except +
@@ -44,8 +44,8 @@ cdef extern from "<OpenMS/METADATA/ExperimentalDesign.h>" namespace "OpenMS":
         # @return the number of fractions (= highest fraction index)
         unsigned int getNumberOfFractions() nogil except +
 
-        # @return the number of channels per file
-        unsigned int getNumberOfChannels() nogil except +
+        # @return the number of labels per file
+        unsigned int getNumberOfLabels() nogil except +
 
         # @return the number of MS files (= fractions * fraction_groups)
         unsigned int getNumberOfMSFiles() nogil except +
@@ -54,8 +54,8 @@ cdef extern from "<OpenMS/METADATA/ExperimentalDesign.h>" namespace "OpenMS":
         # Allows to group fraction ids and source files
         unsigned int getNumberOfFractionGroups() nogil except +
 
-        # @return sample index (depends on fraction_group and channel)
-        unsigned int getSample(unsigned int fraction_group, unsigned int channel) nogil except +
+        # @return sample index (depends on fraction_group and label)
+        unsigned int getSample(unsigned int fraction_group, unsigned int label) nogil except +
 
         # @return whether at least one fraction_group in this experimental design is fractionated
         bool isFractionated() nogil except +
@@ -85,7 +85,7 @@ cdef extern from "<OpenMS/METADATA/ExperimentalDesign.h>" namespace "OpenMS::Exp
         libcpp_string path
         unsigned int fraction_group
         unsigned int fraction
-        unsigned int channel
+        unsigned int label
         unsigned int sample
         
 cdef extern from "<OpenMS/METADATA/ExperimentalDesign.h>" namespace "OpenMS::ExperimentalDesign":
