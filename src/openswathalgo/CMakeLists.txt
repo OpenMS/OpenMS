@@ -49,16 +49,19 @@ endif()
 include(source/OPENSWATHALGO/OpenSwathAlgoFiles.cmake)
 
 #------------------------------------------------------------------------------
+# get information regarding the MIToolbox files
+set(MITOOLBOX_INCLUDE_DIRECTORY ../openms/thirdparty/MIToolbox/include)
+set(MITOOLBOX_SOURCE_DIRECTORY ../openms/thirdparty/MIToolbox/src)
+
+#------------------------------------------------------------------------------
 # add the library
 openms_add_library(TARGET_NAME OpenSwathAlgo
                    SOURCE_FILES ${OpenSwathAlgoFiles}
                    HEADER_FILES ${OpenSwathAlgoHeaders}
                    INTERNAL_INCLUDES ${PROJECT_SOURCE_DIR}/include ${PROJECT_BINARY_DIR}/include
+                   EXTERNAL_INCLUDES ${MITOOLBOX_INCLUDE_DIRECTORY}
+                   EXTERNAL_INCLUDES ${MITOOLBOX_SOURCE_DIRECTORY}
                    EXTERNAL_INCLUDES ${Boost_INCLUDE_DIRS}
                    DLL_EXPORT_PATH "OpenMS/OPENSWATHALGO/")
-
-find_library (MITOOLBOX_LIBRARY NAMES MIToolbox libMIToolbox MITOOLBOX "MITOOLBOX library location" )
-
-target_link_libraries(OpenSwathAlgo ${MITOOLBOX_LIBRARY})
 
 openms_doc_path("${PROJECT_SOURCE_DIR}/include")

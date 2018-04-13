@@ -1,16 +1,8 @@
-# - Try to find MITOOLBOX
-# Once done this will define
-#
-#  MITOOLBOX_FOUND - system has MITOOLBOX
-#  MITOOLBOX_INCLUDE_DIR - the MITOOLBOX include directory
-#  MITOOLBOX_LIBRARIES - Link these to use MITOOLBOX
-#  MITOOLBOX_VERSION_STRING - the version of MITOOLBOX found
-#
-# Inspired by Julien Schueller <schueller at phimeca dot com>
-#
-#=============================================================================
+# --------------------------------------------------------------------------
+#                   OpenMS -- Open-Source Mass Spectrometry
+# --------------------------------------------------------------------------
 # Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-# ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+# ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 #
 # This software is released under a three-clause BSD license:
 #  * Redistributions of source code must retain the above copyright
@@ -34,21 +26,25 @@
 # WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
 # OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 # ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-#=============================================================================
+#
+# --------------------------------------------------------------------------
+# $Maintainer: George Rosenberger $
+# $Authors: Stephan Aiche, George Rosenberger $
+# --------------------------------------------------------------------------
 
-# set MITOOLBOX_INCLUDE_DIR
-find_path(MITOOLBOX_INCLUDE_DIR MIToolbox.h PATH_SUFFIXES ./include/MIToolbox)
+project("OpenMS-MIToolbox")
+cmake_minimum_required(VERSION 2.8.3 FATAL_ERROR)
 
-# find MITOOLBOX_LIBRARY
-find_library (MITOOLBOX_LIBRARY NAMES libMIToolbox MITOOLBOX "MITOOLBOX library location" )
+# export include directory
+set(MITOOLBOX_INCLUDE_DIRECTORY
+  ${PROJECT_SOURCE_DIR}/include
+  CACHE
+  INTERNAL "MIToolbox include directories" FORCE
+)
 
-include(${CMAKE_CURRENT_LIST_DIR}/SelectLibraryConfigurations.cmake)
-select_library_configurations(MITOOLBOX)
-
-include (FindPackageHandleStandardArgs)
-find_package_handle_standard_args (MITOOLBOX
-                                  REQUIRED_VARS MITOOLBOX_LIBRARY MITOOLBOX_INCLUDE_DIR)
-mark_as_advanced (
-  MITOOLBOX_LIBRARY
-  MITOOLBOX_INCLUDE_DIR
+# export source directory
+set(MITOOLBOX_SOURCE_DIRECTORY
+  ${PROJECT_SOURCE_DIR}/src
+  CACHE
+  INTERNAL "MIToolbox source directories" FORCE
 )

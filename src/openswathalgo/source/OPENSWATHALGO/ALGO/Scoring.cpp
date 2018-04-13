@@ -38,6 +38,12 @@
 
 #include <boost/numeric/conversion/cast.hpp>
 
+// Import dependencies from MIToolbox
+#include <ArrayOperations.c>
+#include <CalculateProbability.c>
+#include <Entropy.c>
+#include <MutualInformation.c>
+
 namespace OpenSwath
 {
   namespace Scoring
