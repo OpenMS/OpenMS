@@ -174,6 +174,101 @@ public:
     out_ = getStringOption_("out");
   }
   
+  /**
+   * @brief Write feature map to featureXML file.
+   *
+   * @param filename    name of featureXML file
+   * @param map    feature map for output
+   */
+  void writeFeatureMap_(const String& filename, FeatureMap& map) const
+  {
+    map.sortByPosition();
+    map.applyMemberFunction(&UniqueIdInterface::setUniqueId);
+    
+    FeatureXMLFile file;
+    file.store(filename, map);
+  }
+  
+  /**
+   * @brief Write consensus map to consensusXML file.
+   *
+   * @param filename    name of consensusXML file
+   * @param map    consensus map for output
+   */
+  void writeConsensusMap_(const String& filename, ConsensusMap& map) const
+  {
+    Param params = getParam_();
+    
+    // construct sample_labels
+    std::vector<std::vector<String> > samples_labels;
+    std::vector<String> temp_samples;
+    
+    String labels(getParam_().getValue("algorithm:labels"));
+    boost::replace_all(labels, "[]", "no_label");
+    boost::replace_all(labels, "()", "no_label");
+    boost::replace_all(labels, "{}", "no_label");
+    boost::split(temp_samples, labels, boost::is_any_of("[](){}")); // any bracket allowed to separate samples
+    
+    for (unsigned i = 0; i < temp_samples.size(); ++i)
+    {
+      if (!temp_samples[i].empty())
+      {
+        if (temp_samples[i]=="no_label")
+        {
+          vector<String> temp_labels;
+          temp_labels.push_back("no_label");
+          samples_labels.push_back(temp_labels);
+        }
+        else
+        {
+          vector<String> temp_labels;
+          boost::split(temp_labels, temp_samples[i], boost::is_any_of(",;: ")); // various separators allowed to separate labels
+          samples_labels.push_back(temp_labels);
+        }
+      }
+    }
+
+    if (samples_labels.empty())
+    {
+      vector<String> temp_labels;
+      temp_labels.push_back("no_label");
+      samples_labels.push_back(temp_labels);
+    }
+
+    // prepare map
+    map.sortByPosition();
+    map.applyMemberFunction(&UniqueIdInterface::setUniqueId);
+    map.setExperimentType("labeled_MS1");
+    
+    // annotate maps
+    for (unsigned i = 0; i < samples_labels.size(); ++i)
+    {
+      ConsensusMap::FileDescription& desc = map.getFileDescriptions()[i];
+      desc.filename = filename;
+      
+      if (getParam_().getValue("algorithm:knock_out") == "true")
+      {
+        // With knock-outs present, the correct labels can only be determined during ID mapping.
+        // For now, we simply store a unique identifier.
+        std::stringstream stream;
+        stream << "label " << i;
+        desc.label = stream.str();
+      }
+      else
+      {
+        String label_string;
+        for (unsigned j = 0; j < samples_labels[i].size(); ++j)
+        {
+          label_string.append(samples_labels[i][j]);
+        }
+        desc.label = label_string;
+      }
+    }
+    
+    ConsensusXMLFile file;
+    file.store(filename, map);
+  }
+  
   ExitCodes main_(int, const char**) override
   {
 
@@ -197,13 +292,26 @@ public:
     file.setLogType(log_type_);
     file.load(in_, exp);
 
-    // run feature detection algorithm
     FeatureFinderMultiplexAlgorithm algorithm;
-    algorithm.setParameters(getParam_());
-    algorithm.run(exp, false);
+    // pass only relevant parameters to the algorithm
+    Param params = getParam_();
+    params.remove("in");
+    params.remove("out");
+    params.remove("log");
+    params.remove("debug");
+    params.remove("threads");
+    params.remove("no_progress");
+    params.remove("force");
+    params.remove("test");
+    algorithm.setParameters(params);
+    // run feature detection algorithm
+    algorithm.run(exp, false, true);
     
     // debug output
     std::cout << "number of consensus features = " << algorithm.getConsensusMap().size() << "\n";
+    
+    // write consensus map
+    writeConsensusMap_(out_, algorithm.getConsensusMap());
     
     }
   

@@ -998,9 +998,11 @@ namespace OpenMS
     //endProgress();
   }
 
-  void FeatureFinderMultiplexAlgorithm::run(MSExperiment& exp, bool centroided)
+  void FeatureFinderMultiplexAlgorithm::run(MSExperiment& exp, bool centroided, bool progress)
   {
     centroided_ = centroided;
+    
+    progress_ = progress;
     
     // check for empty experimental data
     if (exp.getSpectra().empty())

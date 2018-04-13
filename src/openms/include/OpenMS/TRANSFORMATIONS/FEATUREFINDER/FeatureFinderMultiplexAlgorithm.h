@@ -60,7 +60,7 @@ public:
   FeatureFinderMultiplexAlgorithm();
 
   /// main method for feature detection
-  void run(MSExperiment& exp, bool centroided);
+  void run(MSExperiment& exp, bool centroided, bool progress);
   
   /// get methods
   FeatureMap& getFeatureMap();
@@ -71,6 +71,8 @@ protected:
   // experimental data
   MSExperiment exp_profile_;
   MSExperiment exp_centroid_;
+  
+  bool progress_;
   
   // Is the experiment <exp> centroided or profile?
   bool centroided_;
