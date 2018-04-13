@@ -51,8 +51,12 @@ START_TEST(ExperimentalDesign, "$Id$")
 ExperimentalDesign* ptr = 0;
 ExperimentalDesign* null_ptr = 0;
 
-ExperimentalDesign design = ExperimentalDesignFile::load(
+ExperimentalDesign labelfree_unfractionated_design = ExperimentalDesignFile::load(
   OPENMS_GET_TEST_DATA_PATH("ExperimentalDesign_input_1.tsv")
+  , false);
+
+ExperimentalDesign fourplex_fractionated_design = ExperimentalDesignFile::load(
+  OPENMS_GET_TEST_DATA_PATH("ExperimentalDesign_input_2.tsv")
   , false);
 
 START_SECTION(ExperimentalDesign())
@@ -76,124 +80,176 @@ END_SECTION
 
 START_SECTION((const MSFileSection& getMSFileSection() const ))
 {
-  ExperimentalDesign::MSFileSection fs = design.getMSFileSection();
+  ExperimentalDesign::MSFileSection fs = labelfree_unfractionated_design.getMSFileSection();
 }
 END_SECTION
 
 START_SECTION((void setMSFileSection(const MSFileSection &msfile_section)))
 {
-  ExperimentalDesign design2 = design;
+  ExperimentalDesign labelfree_unfractionated_design2 = labelfree_unfractionated_design;
   ExperimentalDesign::MSFileSection fs;
-  design2.setMSFileSection(fs);
+  labelfree_unfractionated_design2.setMSFileSection(fs);
 }
 END_SECTION
 
 START_SECTION((const ExperimentalDesign::SampleSection& getSampleSection() const ))
 {
+  ExperimentalDesign::SampleSection ss = labelfree_unfractionated_design.getSampleSection();
 }
 END_SECTION
 
 START_SECTION((void setSampleSection(const ExperimentalDesign::SampleSection &sample_section)))
 {
-  ExperimentalDesign design2 = design;
+  ExperimentalDesign labelfree_unfractionated_design2 = labelfree_unfractionated_design;
   ExperimentalDesign::SampleSection fs;
-  design2.setSampleSection(fs);
+  labelfree_unfractionated_design2.setSampleSection(fs);
 }
 END_SECTION
 
 START_SECTION((std::map<unsigned int, std::vector<String> > getFractionToMSFilesMapping() const ))
 {
-  std::map<unsigned int, std::vector<String> > f2ms = design.getFractionToMSFilesMapping();
+  std::map<unsigned int, std::vector<String> > f2ms = labelfree_unfractionated_design.getFractionToMSFilesMapping();
   // unfractionated data so only one fraction
   TEST_EQUAL(f2ms.size(), 1);
-
   // we have unfactionated data so fraction 1 mapps to all 12 files
   TEST_EQUAL(f2ms[1].size(), 12);
+
+  f2ms = fourplex_fractionated_design.getFractionToMSFilesMapping();
+  // tripple fractionated data
+  TEST_EQUAL(f2ms.size(), 3);
+  // three fractions, 24 files, fraction 1..3 map to 8 files each
+  TEST_EQUAL(f2ms[1].size(), 8);
+  TEST_EQUAL(f2ms[2].size(), 8);
+  TEST_EQUAL(f2ms[3].size(), 8);
 }
 END_SECTION
 
 START_SECTION((std::map< std::pair< String, unsigned >, unsigned> getPathLabelToSampleMapping(bool) const ))
 {
-  std::map< std::pair< String, unsigned >, unsigned > pl2s = design.getPathLabelToSampleMapping(true);
-
   // 12 quant. values from label-free, unfractionated files map to 12 samples
+  std::map< std::pair< String, unsigned >, unsigned > pl2s = labelfree_unfractionated_design.getPathLabelToSampleMapping(true);
   TEST_EQUAL(pl2s.size(), 12);
+
+  // 24 quant. values from 4plex, tripple fractionated files map to 8 samples
+  pl2s = fourplex_fractionated_design.getPathLabelToSampleMapping(true);
+  TEST_EQUAL(pl2s.size(), 8);
 }
 END_SECTION
 
 START_SECTION((std::map< std::pair< String, unsigned >, unsigned> getPathLabelToFractionMapping(bool) const ))
 {
-  std::map< std::pair< String, unsigned >, unsigned > pl2f = design.getPathLabelToFractionMapping(true);
   // 12 quant. values from label-free, unfractionated files map to fraction 1 each
+  std::map< std::pair< String, unsigned >, unsigned > pl2f = labelfree_unfractionated_design.getPathLabelToFractionMapping(true);
   TEST_EQUAL(pl2f.size(), 12);
   for (auto i : pl2f) { TEST_EQUAL(i.second, 1); }
+
+  // 24 quant. values map to fractions 1..3
+  pl2f = fourplex_fractionated_design.getPathLabelToFractionMapping(true);
+  TEST_EQUAL(pl2f.size(), 24);
+  for (auto i : pl2f) { TEST_EQUAL((i.second >=1 && i.second <=3), true)}
 }
 END_SECTION
 
 START_SECTION((std::map< std::pair< String, unsigned >, unsigned> getPathLabelToFractionGroupMapping(bool) const ))
 {
-  std::map< std::pair< String, unsigned >, unsigned > pl2fg = design.getPathLabelToFractionGroupMapping(true);
   // 12 quant. values from label-free, unfractionated files map to different fraction groups
+  std::map< std::pair< String, unsigned >, unsigned > pl2fg = labelfree_unfractionated_design.getPathLabelToFractionGroupMapping(true);
   TEST_EQUAL(pl2fg.size(), 12);
   int count = 1; // also checks if in canonical order of increasing fraction groups
   for (auto i : pl2fg) { TEST_EQUAL(i.second, count); ++count; }
+
+  pl2fg = fourplex_fractionated_design.getPathLabelToFractionGroupMapping(true);
+  TEST_EQUAL(pl2fg.size(), 24);
+  count = 1; // also checks if in canonical order of increasing fraction groups (first 8 are fraction group 1, last 8 fraction group 2)
+  for (auto i : pl2fg) 
+  { 
+    TEST_EQUAL((i.second == 1 && count <= 8) ||
+               (i.second == 2 && count > 8), true); 
+    ++count; 
+  }
 }
 END_SECTION
 
 START_SECTION((unsigned getNumberOfSamples() const ))
 {
-  unsigned ns = design.getNumberOfSamples();
+  unsigned ns = labelfree_unfractionated_design.getNumberOfSamples();
   TEST_EQUAL(ns, 12);
+
+  ns = fourplex_fractionated_design.getNumberOfSamples();
+  TEST_EQUAL(ns, 8);
 }
 END_SECTION
 
 START_SECTION((unsigned getNumberOfFractions() const ))
 {
-  unsigned nf = design.getNumberOfFractions();
+  unsigned nf = labelfree_unfractionated_design.getNumberOfFractions();
   TEST_EQUAL(nf, 1);
+
+  nf = fourplex_fractionated_design.getNumberOfFractions();
+  TEST_EQUAL(nf, 3);
 }
 END_SECTION
 
 START_SECTION((unsigned getNumberOfLabels() const ))
 {
-  unsigned nl = design.getNumberOfLabels();
+  unsigned nl = labelfree_unfractionated_design.getNumberOfLabels();
   TEST_EQUAL(nl, 1);
+
+  nl = fourplex_fractionated_design.getNumberOfLabels();
+  TEST_EQUAL(nl, 4);
 }
 END_SECTION
 
 START_SECTION((unsigned getNumberOfMSFiles() const ))
 {
-  unsigned nms = design.getNumberOfMSFiles();
+  unsigned nms = labelfree_unfractionated_design.getNumberOfMSFiles();
   TEST_EQUAL(nms, 12);
+
+  nms = fourplex_fractionated_design.getNumberOfMSFiles();
+  TEST_EQUAL(nms, 6);
 }
 END_SECTION
 
 START_SECTION((unsigned getNumberOfFractionGroups() const ))
 {
-  unsigned nfg = design.getNumberOfFractionGroups(); 
+  unsigned nfg = labelfree_unfractionated_design.getNumberOfFractionGroups(); 
   TEST_EQUAL(nfg, 12);
+
+  nfg = fourplex_fractionated_design.getNumberOfFractionGroups();
+  TEST_EQUAL(nfg, 2);
 }
 END_SECTION
 
 START_SECTION((unsigned getSample(unsigned fraction_group, unsigned label=1)))
 {
-  unsigned s = design.getSample(1, 1); 
+  unsigned s = labelfree_unfractionated_design.getSample(1, 1); 
   TEST_EQUAL(s, 1);
-  s = design.getSample(12, 1);
+  s = labelfree_unfractionated_design.getSample(12, 1);
   TEST_EQUAL(s, 12);
+
+  s = fourplex_fractionated_design.getSample(1, 1); // first sample, first lable 
+  TEST_EQUAL(s, 1);
+  s = fourplex_fractionated_design.getSample(8, 4); // last sample, last lable
+  TEST_EQUAL(s, 2);
 }
 END_SECTION
 
 START_SECTION((bool isFractionated() const ))
 {
-  bool b = design.isFractionated(); 
+  bool b = labelfree_unfractionated_design.isFractionated(); 
   TEST_EQUAL(b, false);
+
+  b = fourplex_fractionated_design.isFractionated(); 
+  TEST_EQUAL(b, true);
 }
 END_SECTION
 
 START_SECTION((bool sameNrOfMSFilesPerFraction() const ))
 {
-  bool b = design.sameNrOfMSFilesPerFraction(); 
+  bool b = labelfree_unfractionated_design.sameNrOfMSFilesPerFraction(); 
+  TEST_EQUAL(b, true);
+
+  b = fourplex_fractionated_design.sameNrOfMSFilesPerFraction(); 
   TEST_EQUAL(b, true);
 }
 END_SECTION
@@ -216,7 +272,7 @@ START_SECTION((static ExperimentalDesign fromIdentifications(const std::vector< 
 }
 END_SECTION
 
-START_SECTION(([ExperimentalDesign::SampleSection] SampleSection(std::vector< std::vector< String > > _content, std::map< unsigned, Size > _sample_to_rowindex, std::map< String, Size > _columnname_to_columnindex)))
+START_SECTION(([ExperimentalDesign::SampleSection] SampleSection(std::vector< std::vector< String > > _content, std::map< unsigned, Size > sample_to_rowindex, std::map< String, Size > columnname_to_columnindex)))
 {
   // TODO
 }
