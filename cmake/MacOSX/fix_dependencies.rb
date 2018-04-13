@@ -69,7 +69,10 @@ def fixable(name, path)
   elsif name.match(/\.app$/)
     return false
   else
-    return true
+    filename = "#{path}/#{name}"
+    debug "#{filename}"
+    `otool -L #{filename} 2> /dev/null`
+    return ($? >> 8) == 0
   end
 end
 
@@ -117,7 +120,7 @@ def handleDependencies(otool_out, targetPath, currentLib)
     # (\/usr\/lib|\/System)
     if fix_lib.match(/^(\/usr\/lib|\/System)/)
       debug "Ignoring system-lib: #{fix_lib}"
-    elsif fix_lib.match(/^@executable/)
+    elsif fix_lib.start_with?($executableId)
       puts "Ignoring libs that were already relinked (#{fix_lib})"
     elsif not fix_lib.match(/\//) # we need a path here, otherwise it is a lib in the same directory
       debug "we do not fix libs which are in the same directory #{fix_lib}"
@@ -290,8 +293,9 @@ opts = GetoptLong.new(
   [ '--verbose', '-v', GetoptLong::NO_ARGUMENT ],
   [ '--lib-path', '-l', GetoptLong::REQUIRED_ARGUMENT ],
   [ '--install-name-tool', '-i', GetoptLong::OPTIONAL_ARGUMENT ],
-  [ '--bin-path', '-b', GetoptLong::REQUIRED_ARGUMENT ],
-  [ '--plugin-path', '-p', GetoptLong::OPTIONAL_ARGUMENT ]
+  [ '--bin-path', '-b', GetoptLong::OPTIONAL_ARGUMENT ],
+  [ '--plugin-path', '-p', GetoptLong::OPTIONAL_ARGUMENT ],
+  [ '--path-prefix', '-e', GetoptLong::OPTIONAL_ARGUMENT ]
 )
 
 usage = "#{File.basename($0)} --bin-path PATH-TO-BINARIES --lib-path PATH-TO-STORE-LIBRARIES
@@ -304,7 +308,9 @@ usage = "#{File.basename($0)} --bin-path PATH-TO-BINARIES --lib-path PATH-TO-STO
 -b, --bin-path: 
   the path were all the binaries that should be handled are located
 -p, --plugin-path: 
-  the path were optional plugin libraries like from QT5 are located 
+  the path were optional plugin libraries like from QT5 are located
+-e, --path-prefix: 
+  the prefix that is added to the new install_name (default: @executable_path/)
 -v, --verbose:
   increase verbosity
 "
@@ -322,16 +328,18 @@ opts.each do |opt, arg|
       $bin_dir = Pathname.new(arg).realpath
     when '--plugin-path'
       $plugin_dir = Pathname.new(arg).realpath
+    when '--path-prefix'
+      $executableId = arg
     when '--verbose'
       $DEBUG = true
   end
 end
 
-if $lib_dir.nil? or $bin_dir.nil?
-  puts "Please provide a bin and lib path"
+if $lib_dir.nil?
+  puts "Please provide at least a lib path"
   puts "#{usage}"
   exit 1
-else 
+elsif !$bin_dir.nil?
   $executableId = $executableId + $lib_dir.relative_path_from($bin_dir).to_s
   $executableId += "/"
   puts "Substituting prefix to find libs with:"
@@ -347,19 +355,25 @@ for content in Dir.entries($lib_dir)
     else
       handleDyLib($lib_dir + content, $lib_dir)
     end
+  else
+    debug "Skipped #{$lib_dir + content}. No binary or object?"
   end
 end
 
 debug "HANDLING BIN DIR"
 # fix binary references
-for content in Dir.entries($bin_dir)
-  if fixable(content, $bin_dir)
-    if content.end_with?("dylib")
-      debug "Handle dylib #{$bin_dir + content}"
-      handleDyLib($bin_dir + content, $bin_dir)
+if !$bin_dir.nil?
+  for content in Dir.entries($bin_dir)
+    if fixable(content, $bin_dir)
+      if (content.end_with?(".dylib") or content.end_with?(".so"))
+        debug "Handle dylib #{$bin_dir + content}"
+        handleDyLib($bin_dir + content, $bin_dir)
+      else
+        debug "Handle binary #{$bin_dir + content}"
+        handleBinary($bin_dir + content)
+      end
     else
-      debug "Handle binary #{$bin_dir + content}"
-      handleBinary($bin_dir + content)
+      debug "Skipped #{$bin_dir + content}. No binary or object?"
     end
   end
 end
