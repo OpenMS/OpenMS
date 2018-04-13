@@ -340,27 +340,7 @@ foreach(pyfile ${_sub_pyopenms_files})
   configure_file(${PROJECT_SOURCE_DIR}/${pyfile} ${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/${pyfile} COPYONLY)
 endforeach()
 
-if(WIN32)
-    # copy all runtime files (dont preserve permissions, due to issues when deleting them from tmp folders)
-    foreach (_runtime ${MSVS_RTLIBS})
-      file(COPY ${_runtime} DESTINATION ${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms NO_SOURCE_PERMISSIONS)
-    endforeach()
-    
-    find_package(XercesC)
-	if (XercesC_FOUND)
-	  get_filename_component(XercesC_LIBRARY_RELEASE_DIR ${XercesC_LIBRARY_RELEASE} DIRECTORY)
-	  get_filename_component(XercesC_LIBRARY_RELEASE_BASENAME ${XercesC_LIBRARY_RELEASE} NAME_WE)
-	  message("-- Looking for Xerces in Path found by module: ${XercesC_LIBRARY_RELEASE_DIR}/${XercesC_LIBRARY_RELEASE_BASENAME}")
-	  if(EXISTS "${XercesC_LIBRARY_RELEASE_DIR}/${XercesC_LIBRARY_RELEASE_BASENAME}.dll" )
-	    message("-- Found XercesC DLL. Assuming dynamic linkage. Copying.")
-	    file(COPY "${XercesC_LIBRARY_RELEASE_DIR}/${XercesC_LIBRARY_RELEASE_BASENAME}.dll" DESTINATION ${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms)
-	  else()
-	    message("-- XercesC found only with lib extension. Assuming static library. Not copying.")
-	  endif()
-	else()
-	  message(FATAL_ERROR "-- XercesC not found during pyOpenMS configure. If it went through the initial OpenMS configure, please report.")
-	endif()  
-endif()
+
 
 find_boost()
 #------------------------------------------------------------------------------
@@ -400,6 +380,8 @@ get_target_property(QT_QMAKE_EXECUTABLE Qt5::qmake IMPORTED_LOCATION)
 exec_program(${QT_QMAKE_EXECUTABLE} ARGS "-query QT_INSTALL_HEADERS" OUTPUT_VARIABLE QTHEADERS)
 set(QT_INCLUDE_DIR ${QTHEADERS} CACHE INTERNAL "" FORCE)
 exec_program(${QT_QMAKE_EXECUTABLE} ARGS "-v" OUTPUT_VARIABLE QT_QMAKE_VERSION_INFO)
+exec_program(${QT_QMAKE_EXECUTABLE} ARGS "-query QT_INSTALL_LIBS" OUTPUT_VARIABLE QT_INSTALL_LIBS)
+exec_program(${QT_QMAKE_EXECUTABLE} ARGS "-query QT_INSTALL_BINS" OUTPUT_VARIABLE QT_INSTALL_BINS)
 
 set(PYOPENMS_INCLUDE_DIRS
   ${OpenSwathAlgo_INCLUDE_DIRECTORIES}
@@ -408,30 +390,48 @@ set(PYOPENMS_INCLUDE_DIRS
   ${QT_INCLUDE_DIR}
 )
 
-# TODO: this is a workaround; we need to clarify why exactly pyOpenMS needs
-#       access to the directories and not the library locations itself
+list(REMOVE_DUPLICATES PYOPENMS_INCLUDE_DIRS)
+
 set(CONTRIB_DIR ${CMAKE_PREFIX_PATH})
 set(OPEN_MS_BUILD_TYPE ${CMAKE_BUILD_TYPE})
-set(OPEN_MS_LIB "")
-set(OPEN_SWATH_ALGO_LIB "")
-set(SUPERHIRN_LIB "")
 
-if(WIN32)
-    if(CMAKE_BUILD_TYPE STREQUAL "Debug")
-      set(OPEN_MS_LIB "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/Debug/OpenMSd.dll")
-      set(OPEN_SWATH_ALGO_LIB "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/Debug/OpenSwathAlgod.dll")
-      set(SUPERHIRN_LIB "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/Debug/SuperHirnd.dll")
-    else()
-      set(OPEN_MS_LIB "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/Release/OpenMS.dll")
-      set(OPEN_SWATH_ALGO_LIB "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/Release/OpenSwathAlgo.dll")
-      set(SUPERHIRN_LIB "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/Release/SuperHirn.dll")
+add_custom_target(
+  prepare_pyopenms_libs
+  DEPENDS OpenMS SuperHirn
+)
+
+# assemble the libraries
+
+# copy the direct dependencies
+set(PYOPENMS_DEPENDENCIES OpenMS OpenSwathAlgo SuperHirn)
+
+foreach (PYOPENMS_DEPENDENCY ${PYOPENMS_DEPENDENCIES})
+	add_custom_command(
+		TARGET prepare_pyopenms_libs POST_BUILD
+		COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:${PYOPENMS_DEPENDENCY}> ${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms
+	)
+endforeach()
+	
+# fixup these dependencies
+if (APPLE) ## On APPLE use our script because the executables need to be relinked
+## this is done before setup.py so that we fixup the resulting pyopenms.so's too
+else()
+    ## Assemble common required non-system libraries
+    ## Note that we do not need the QT plugins or QTGui libraries since we do not include GUI tools here.
+    foreach (PYOPENMS_DEPENDENCY ${PYOPENMS_DEPENDENCIES})
+        add_custom_command(
+            TARGET prepare_pyopenms_libs POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -DDEPS="$<TARGET_FILE:${PYOPENMS_DEPENDENCY}>" -DTARGET="${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/" -DLOOKUP_DIRS="${OPENMS_CONTRIB_LIBS}/lib\;${QT_INSTALL_BINS}\;${QT_INSTALL_LIBS}" -P ${PROJECT_SOURCE_DIR}/pyopenms_copy_deps.cmake
+        )
+    endforeach()
+
+    if(WIN32)
+        # copy all runtime files (do not preserve permissions, due to issues when deleting them from tmp folders)
+        foreach (_runtime ${MSVS_RTLIBS})
+            file(COPY ${_runtime} DESTINATION ${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms NO_SOURCE_PERMISSIONS)
+        endforeach()
     endif()
 endif()
-
-get_target_property(QT_QTCORE_LIBRARY_FILE Qt5::Core LOCATION)
-get_filename_component(QT_QTCORE_LIBRARY ${QT_QTCORE_LIBRARY_FILE} PATH)
-get_target_property(QT_QTNETWORK_LIBRARY_FILE Qt5::Network LOCATION)
-get_filename_component(QT_QTNETWORK_LIBRARY ${QT_QTNETWORK_LIBRARY_FILE} PATH)
 
 configure_file(${_env_py_in} ${_env_py} @ONLY)
 
@@ -441,12 +441,12 @@ configure_file(${_env_py_in} ${_env_py} @ONLY)
 IF(${CMAKE_SYSTEM_NAME} MATCHES "Linux" AND PY_NO_OUTPUT)
   add_custom_target(pyopenms_create_cpp
     COMMAND ${PYTHON_EXECUTABLE} create_cpp_extension.py 2> /dev/null
-    DEPENDS OpenMS SuperHirn
+    DEPENDS prepare_pyopenms_libs
     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS )
 ELSE()
   add_custom_target(pyopenms_create_cpp
     COMMAND ${PYTHON_EXECUTABLE} create_cpp_extension.py
-    DEPENDS OpenMS SuperHirn
+    DEPENDS prepare_pyopenms_libs
     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS )
 ENDIF()
 
@@ -462,28 +462,29 @@ if(PY_NO_OPTIMIZATION)
 endif()
 message(STATUS "Py extra args ${PY_EXTRA_ARGS}")
 
-IF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-    add_custom_target(pyopenms
-        COMMAND ${PYTHON_EXECUTABLE} setup.py build_ext ${PY_EXTRA_ARGS}
-        COMMAND ${CMAKE_BINARY_DIR}/pyOpenMS/fix_pyopenms_dependencies_on_mac.sh
-        COMMAND ${PYTHON_EXECUTABLE} setup.py bdist_egg
-        COMMAND ${PYTHON_EXECUTABLE} setup.py bdist_wheel
-        COMMAND ${PYTHON_EXECUTABLE} setup.py bdist --format=zip
-        COMMAND ${PYTHON_EXECUTABLE} setup.py build_ext --inplace
-        DEPENDS pyopenms_create_cpp
-        WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS )
-ELSE()
-    add_custom_target(pyopenms 
-        COMMAND ${PYTHON_EXECUTABLE} setup.py build_ext ${PY_EXTRA_ARGS}
-        COMMAND ${PYTHON_EXECUTABLE} setup.py bdist_egg
-        COMMAND ${PYTHON_EXECUTABLE} setup.py bdist_wheel
-        COMMAND ${PYTHON_EXECUTABLE} setup.py bdist --format=zip
-        COMMAND ${PYTHON_EXECUTABLE} setup.py build_ext --inplace
-        DEPENDS pyopenms_create_cpp
-        WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS )
-ENDIF()
 
-add_dependencies(pyopenms OpenMS)
+add_custom_target(pyopenms_build
+          COMMAND ${PYTHON_EXECUTABLE} setup.py build_ext ${PY_EXTRA_ARGS}
+          DEPENDS pyopenms_create_cpp
+          WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS )
+
+add_dependencies(pyopenms_build OpenMS)
+
+if(APPLE)
+add_custom_command(
+  TARGET pyopenms_build POST_BUILD
+  COMMAND ${CMAKE_SOURCE_DIR}/cmake/MacOSX/fix_dependencies.rb -l ${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms -e "@loader_path/"
+  )
+endif()
+
+add_custom_target(pyopenms
+          COMMAND ${PYTHON_EXECUTABLE} setup.py bdist_egg
+          COMMAND ${PYTHON_EXECUTABLE} setup.py bdist_wheel
+          COMMAND ${PYTHON_EXECUTABLE} setup.py bdist --format=zip
+          COMMAND ${PYTHON_EXECUTABLE} setup.py build_ext --inplace
+          DEPENDS pyopenms_build
+          WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS )
+
 
 ###########################################################################
 #####                      Testing pyOpenMS                           #####
