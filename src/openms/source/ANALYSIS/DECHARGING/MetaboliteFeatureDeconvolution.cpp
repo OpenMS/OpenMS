@@ -666,7 +666,6 @@ namespace OpenMS
 
     candidateEdges(fm_out, default_adduct, feature_relation, feature_adducts);
 
-    inferMoreEdges_(feature_relation, feature_adducts);
 
     if (not feature_relation.empty())
     {
