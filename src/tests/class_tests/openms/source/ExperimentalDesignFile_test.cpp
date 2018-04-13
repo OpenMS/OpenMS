@@ -33,15 +33,10 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
-<<<<<<< HEAD
-
-///////////////////////////
-=======
 #include <OpenMS/test_config.h>
 
 ///////////////////////////
 #include <OpenMS/METADATA/ExperimentalDesign.h>
->>>>>>> feature/experimental_design
 #include <OpenMS/FORMAT/ExperimentalDesignFile.h>
 ///////////////////////////
 
