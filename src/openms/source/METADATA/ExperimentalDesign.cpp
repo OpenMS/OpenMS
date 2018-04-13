@@ -313,9 +313,9 @@ namespace OpenMS
 
     bool ExperimentalDesign::isFractionated() const
     {
-      std::vector<unsigned> fractions = this->getFractions();
+      std::vector<unsigned> fractions = getFractions_();
       std::set<unsigned> fractions_set(fractions.begin(), fractions.end());
-      return fractions_set.size() < 2;
+      return fractions_set.size() > 1;
     }
 
     unsigned ExperimentalDesign::getNumberOfFractionGroups() const
@@ -342,7 +342,7 @@ namespace OpenMS
       return sample_section_;
     }
 
-    std::vector< String > ExperimentalDesign::getFileNames(const bool basename) const
+    std::vector< String > ExperimentalDesign::getFileNames_(const bool basename) const
     {
       std::vector<String> filenames;
       for (const MSFileSectionEntry& row : msfile_section_)
@@ -415,7 +415,7 @@ namespace OpenMS
     }
   }
 
-  std::vector<unsigned> ExperimentalDesign::getLabels() const
+  std::vector<unsigned> ExperimentalDesign::getLabels_() const
   {
     std::vector<unsigned> labels;
     for (const MSFileSectionEntry &row : msfile_section_)
@@ -425,7 +425,7 @@ namespace OpenMS
     return labels;
   }
 
-  std::vector<unsigned> ExperimentalDesign::getFractions() const
+  std::vector<unsigned> ExperimentalDesign::getFractions_() const
   {
     std::vector<unsigned> fractions;
     for (const MSFileSectionEntry &row : msfile_section_)

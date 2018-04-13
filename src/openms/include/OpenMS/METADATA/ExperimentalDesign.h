@@ -160,13 +160,6 @@ namespace OpenMS
 
     void setSampleSection(const SampleSection& sample_section);
 
-    // Gets vector of MS filenames, optionally trims to basename
-    std::vector< String > getFileNames(bool basename) const;
-
-    // Returns vector of labels
-    std::vector<unsigned> getLabels() const;
-
-    std::vector<unsigned> getFractions() const;
 
     /// return fraction index to file paths (ordered by fraction_group)
     std::map<unsigned int, std::vector<String> > getFractionToMSFilesMapping() const;
@@ -220,23 +213,31 @@ namespace OpenMS
     static ExperimentalDesign fromIdentifications(const std::vector<ProteinIdentification> & proteins);
 
     private:
+    // MS filename column, optionally trims to basename
+    std::vector< String > getFileNames_(bool basename) const;
 
-      /// Generic Mapper (Path, Label) -> f(row)
-      std::map< std::pair< String, unsigned >, unsigned> pathLabelMapper_(
-          bool,
-          unsigned (*f)(const ExperimentalDesign::MSFileSectionEntry&)) const;
+    // returns label column
+    std::vector<unsigned> getLabels_() const;
 
-      // sort to obtain the default order
-      void sort_();
+    // returns fraction column
+    std::vector<unsigned> getFractions_() const;
 
-      template<typename T>
-      static void errorIfAlreadyExists(std::set<T> &container, T &item, const String &message);
+    /// Generic Mapper (Path, Label) -> f(row)
+    std::map< std::pair< String, unsigned >, unsigned> pathLabelMapper_(
+        bool,
+        unsigned (*f)(const ExperimentalDesign::MSFileSectionEntry&)) const;
 
-      // basic consistency checks
-      void isValid_();
+    // sort to obtain the default order
+    void sort_();
 
-      MSFileSection msfile_section_;
-      SampleSection sample_section_;
+    template<typename T>
+    static void errorIfAlreadyExists(std::set<T> &container, T &item, const String &message);
+
+    // basic consistency checks
+    void isValid_();
+
+    MSFileSection msfile_section_;
+    SampleSection sample_section_;
   };
 }
 
