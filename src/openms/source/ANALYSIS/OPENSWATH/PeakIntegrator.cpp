@@ -133,6 +133,29 @@ namespace OpenMS
   template <typename PeakContainerT>
   PeakIntegrator::PeakArea PeakIntegrator::integratePeak_(const PeakContainerT& p, const double left, const double right) const
   {
+    std::function<double(const double, const double)>
+    compute_peak_area_trapezoid = [&p](const double left, const double right)
+    {
+      double peak_area { 0.0 };
+      for (typename PeakContainerT::ConstIterator it = p.PosBegin(left); it != p.PosEnd(right) - 1; ++it)
+      {
+        peak_area += ((it + 1)->getPos() - it->getPos()) * ((it->getIntensity() + (it + 1)->getIntensity()) / 2.0);
+      }
+      return peak_area;
+    };
+
+    std::function<double(const double, const double)>
+    compute_peak_area_intensity_sum = [&p](const double left, const double right)
+    {
+      LOG_WARN << "\nWARNING: intensity_sum method is being used.\n";
+      double peak_area { 0.0 };
+      for (typename PeakContainerT::ConstIterator it = p.PosBegin(left); it != p.PosEnd(right); ++it)
+      {
+        peak_area += it->getIntensity();
+      }
+      return peak_area;
+    };
+
     double peak_area(0.0), peak_height(0.0), peak_apex_pos(0.0);
     ConvexHull2D::PointArrayType hull_points;
     UInt n_points = std::distance(p.PosBegin(left), p.PosEnd(right));
@@ -145,21 +168,26 @@ namespace OpenMS
         peak_apex_pos = it->getPos();
       }
     }
+
     if (integration_type_ == INTEGRATION_TYPE_TRAPEZOID)
     {
-      for (auto it = p.PosBegin(left); it != p.PosEnd(right) - 1; ++it)
-      {
-        peak_area += ((it + 1)->getPos() - it->getPos()) * ((it->getIntensity() + (it + 1)->getIntensity()) / 2.0);
-      }
+      peak_area = compute_peak_area_trapezoid(left, right);
     }
     else if (integration_type_ == INTEGRATION_TYPE_SIMPSON)
     {
-      if (n_points < 3)
+      if (n_points == 1)
       {
-        LOG_DEBUG << std::endl << "Error in integratePeak: number of points must be >=3 for Simpson's rule" << std::endl;
-        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "The number of points must be >= 3.");
+        LOG_WARN << std::endl << "PeakIntegrator::integratePeak: "
+          "number of points is 1, falling back to `intensity_sum`." << std::endl;
+        peak_area = compute_peak_area_intensity_sum(left, right);
       }
-      if (n_points % 2)
+      else if (n_points == 2)
+      {
+        LOG_WARN << std::endl << "PeakIntegrator::integratePeak:"
+          "number of points is 2, falling back to `trapezoid`." << std::endl;
+        peak_area = compute_peak_area_trapezoid(left, right);
+      }
+      else if (n_points % 2)
       {
         peak_area = simpson(p.PosBegin(left), p.PosEnd(right));
       }
@@ -190,11 +218,7 @@ namespace OpenMS
     }
     else if (integration_type_ == INTEGRATION_TYPE_INTENSITYSUM)
     {
-      LOG_DEBUG << "\nWARNING: intensity_sum method is being used.\n";
-      for (auto it = p.PosBegin(left); it != p.PosEnd(right); ++it)
-      {
-        peak_area += it->getIntensity();
-      }
+      peak_area = compute_peak_area_intensity_sum(left, right);
     }
     else
     {
