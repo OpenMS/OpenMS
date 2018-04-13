@@ -102,7 +102,7 @@ if iswin:
     else:
         libraries = ["OpenMS", "OpenSwathAlgo", "SuperHirn", "Qt5Core", "Qt5Network"]
 elif sys.platform.startswith("linux"):
-    libraries = ["OpenMS", "OpenSwathAlgo", "SuperHirn", "xerces-c", "Qt5Core", "Qt5Network"]
+    libraries = ["OpenMS", "OpenSwathAlgo", "SuperHirn", "Qt5Core", "Qt5Network"]
 elif sys.platform == "darwin":
     libraries = ["OpenMS", "OpenSwathAlgo", "SuperHirn"]
 else:
