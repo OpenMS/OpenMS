@@ -468,23 +468,29 @@ endif()
 message(STATUS "Py extra args ${PY_EXTRA_ARGS}")
 
 
-add_custom_target(pyopenms
+add_custom_target(pyopenms_build
           COMMAND ${PYTHON_EXECUTABLE} setup.py build_ext ${PY_EXTRA_ARGS}
-          COMMAND ${PYTHON_EXECUTABLE} setup.py bdist_egg
-          COMMAND ${PYTHON_EXECUTABLE} setup.py bdist_wheel
-          COMMAND ${PYTHON_EXECUTABLE} setup.py bdist --format=zip
-          COMMAND ${PYTHON_EXECUTABLE} setup.py build_ext --inplace
           DEPENDS pyopenms_create_cpp
           WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS )
 
+add_dependencies(pyopenms_build OpenMS)
+
 if(APPLE)
 add_custom_command(
-  TARGET pyOpenMS POST_BUILD
+  TARGET pyopenms_build POST_BUILD
   COMMAND ${CMAKE_SOURCE_DIR}/cmake/MacOSX/fix_dependencies.rb -l ${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms -e "@loader_path/"
   )
 endif()
 
-add_dependencies(pyopenms OpenMS)
+add_custom_target(pyopenms
+          COMMAND ${PYTHON_EXECUTABLE} setup.py bdist_egg
+          COMMAND ${PYTHON_EXECUTABLE} setup.py bdist_wheel
+          COMMAND ${PYTHON_EXECUTABLE} setup.py bdist --format=zip
+          COMMAND ${PYTHON_EXECUTABLE} setup.py build_ext --inplace
+          DEPENDS pyopenms_build
+          WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS )
+
+
 ###########################################################################
 #####                      Testing pyOpenMS                           #####
 ###########################################################################
