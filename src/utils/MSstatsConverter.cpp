@@ -42,6 +42,7 @@
 #include <OpenMS/FORMAT/MzTab.h>
 #include <OpenMS/METADATA/ExperimentalDesign.h>
 #include <OpenMS/FORMAT/ExperimentalDesignFile.h>
+#include <OpenMS/SYSTEM/File.h>
 
 #include <regex>
 
@@ -174,17 +175,21 @@ protected:
       typedef OpenMS::Peak2D::IntensityType Intensity;
       typedef OpenMS::Peak2D::CoordinateType Coordinate;
 
-      // Load the filenames of the design run file
-      const std::vector< String > design_filenames = design.getFileNames(true);
+      ExperimentalDesign::MSFileSection msfile_section = design.getMSFileSection();
+
+      // Extract the Spectra Filepath column from the design
+      std::vector<String> design_filenames;
+      for (ExperimentalDesign::MSFileSectionEntry const& f : msfile_section)
+      {
+        const String fn = File::basename(f.path);
+        design_filenames.push_back(fn);
+      }
 
       // Determine if the experiment has fractions
       const bool has_fraction = design.isFractionated();
 
       // Determine if the experimental design is LFQ (one label token in design file)
-      std::vector< unsigned > labels = design.getLabels();
-      auto last = std::unique(labels.begin(), labels.end());
-      labels.erase(last, labels.end());
-      const bool isLabelFree = labels.size() == 1;
+      const bool isLabelFree = (design.getNumberOfLabels() == 1);
 
       // Currently, we cannot support multiple labels for MSstats
       fatalErrorIf_(
@@ -193,8 +198,8 @@ protected:
         ILLEGAL_PARAMETERS
       );
 
-      // The label id that is used in case the experimental design specifies a LFQ experiment
-      const unsigned label_lfq(labels[0]);
+      // label id 1 is used in case the experimental design specifies a LFQ experiment
+      const unsigned label_lfq(1);
 
       vector< OpenMS::BaseFeature> features;
       vector< String > spectra_paths;
