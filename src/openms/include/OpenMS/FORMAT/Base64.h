@@ -79,8 +79,6 @@ public:
       BYTEORDER_LITTLEENDIAN            ///< Little endian type
     };
 	
-	void test();
-
     /**
         @brief Encodes a vector of floating point numbers to a Base64 string
 
