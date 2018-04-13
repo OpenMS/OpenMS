@@ -98,6 +98,9 @@ protected:
     registerStringOption_(TOPPMSstatsConverter::param_msstats_bioreplicate, "<msstats_bioreplicate>", "Biological Replicate", "Which column in the condition table should be used for MSstats 'BioReplicate'", false, false);
     registerStringOption_(TOPPMSstatsConverter::param_msstats_condition, "<msstats_condition>", "", "Which column in the condition table should be used for MSstats 'Condition'", true, false);
 
+    // advanced option to overwrite MS file annotations in consensusXML
+    registerInputFileList_("reannotate_filenames", "<file(s)>", StringList(), "Overwrite MS file names in consensusXML", false, true);
+
     // Isotope label type
     registerFlag_(TOPPMSstatsConverter::param_labeled_reference_peptides, "If set, IsotopeLabelType is 'H', else 'L'");
 
@@ -213,7 +216,16 @@ protected:
       ConsensusMap consensus_map;
       features.reserve(consensus_map.size());
       ConsensusXMLFile().load(arg_in, consensus_map);
-      consensus_map.getPrimaryMSRunPath(spectra_paths);
+
+      StringList reannotate_filenames = getStringList_("reannotate_filenames");
+      if (reannotate_filenames.empty())
+      {
+        consensus_map.getPrimaryMSRunPath(spectra_paths);
+      }
+      else
+      {
+        spectra_paths = reannotate_filenames;
+      }
       ConsensusMap::FileDescriptions &file_descriptions = consensus_map.getFileDescriptions(); // needed for label_id
 
       // Reduce spectra path to the basename of the files
