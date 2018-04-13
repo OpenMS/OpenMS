@@ -18,14 +18,6 @@ cdef extern from "<OpenMS/METADATA/ExperimentalDesign.h>" namespace "OpenMS":
         ExperimentalDesign_SampleSection getSampleSection() nogil except +
         void setSampleSection(ExperimentalDesign_SampleSection sample_section) nogil except +
 
-        # Gets vector of Filenames, optionally trims to basename
-        libcpp_vector[ String ] getFileNames(bool basename) nogil except +
-
-        # Returns vector of labels
-        libcpp_vector[ unsigned int ] getLabels() nogil except +
-
-        libcpp_vector[ unsigned int ] getFractions() nogil except +
-
         # fraction index to file paths (ordered by fraction_group)
         #lib_map[unsigned int, lib_cpp[ String ] ] getFractionToMSFilesMapping() nogil except +
      

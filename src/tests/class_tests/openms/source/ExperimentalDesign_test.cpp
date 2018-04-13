@@ -101,93 +101,100 @@ START_SECTION((void setSampleSection(const ExperimentalDesign::SampleSection &sa
 }
 END_SECTION
 
-START_SECTION((std::vector< String > getFileNames(bool basename) const ))
-{
-  std::vector< String > fns = design.getFileNames(false);
-}
-END_SECTION
-
-START_SECTION((std::vector<unsigned> getLabels() const ))
-{
-  std::vector< unsigned > ls = design.getLabels();
-}
-END_SECTION
-
-START_SECTION((std::vector<unsigned> getFractions() const ))
-{
-  std::vector< unsigned > fs = design.getFractions();
-}
-END_SECTION
-
 START_SECTION((std::map<unsigned int, std::vector<String> > getFractionToMSFilesMapping() const ))
 {
   std::map<unsigned int, std::vector<String> > f2ms = design.getFractionToMSFilesMapping();
+  // unfractionated data so only one fraction
+  TEST_EQUAL(f2ms.size(), 1);
+
+  // we have unfactionated data so fraction 1 mapps to all 12 files
+  TEST_EQUAL(f2ms[1].size(), 12);
 }
 END_SECTION
 
 START_SECTION((std::map< std::pair< String, unsigned >, unsigned> getPathLabelToSampleMapping(bool) const ))
 {
   std::map< std::pair< String, unsigned >, unsigned > pl2s = design.getPathLabelToSampleMapping(true);
+
+  // 12 quant. values from label-free, unfractionated files map to 12 samples
+  TEST_EQUAL(pl2s.size(), 12);
 }
 END_SECTION
 
 START_SECTION((std::map< std::pair< String, unsigned >, unsigned> getPathLabelToFractionMapping(bool) const ))
 {
   std::map< std::pair< String, unsigned >, unsigned > pl2f = design.getPathLabelToFractionMapping(true);
+  // 12 quant. values from label-free, unfractionated files map to fraction 1 each
+  TEST_EQUAL(pl2f.size(), 12);
+  for (auto i : pl2f) { TEST_EQUAL(i.second, 1); }
 }
 END_SECTION
 
 START_SECTION((std::map< std::pair< String, unsigned >, unsigned> getPathLabelToFractionGroupMapping(bool) const ))
 {
   std::map< std::pair< String, unsigned >, unsigned > pl2fg = design.getPathLabelToFractionGroupMapping(true);
+  // 12 quant. values from label-free, unfractionated files map to different fraction groups
+  TEST_EQUAL(pl2fg.size(), 12);
+  int count = 1; // also checks if in canonical order of increasing fraction groups
+  for (auto i : pl2fg) { TEST_EQUAL(i.second, count); ++count; }
 }
 END_SECTION
 
 START_SECTION((unsigned getNumberOfSamples() const ))
 {
   unsigned ns = design.getNumberOfSamples();
+  TEST_EQUAL(ns, 12);
 }
 END_SECTION
 
 START_SECTION((unsigned getNumberOfFractions() const ))
 {
   unsigned nf = design.getNumberOfFractions();
+  TEST_EQUAL(nf, 1);
 }
 END_SECTION
 
 START_SECTION((unsigned getNumberOfLabels() const ))
 {
   unsigned nl = design.getNumberOfLabels();
+  TEST_EQUAL(nl, 1);
 }
 END_SECTION
 
 START_SECTION((unsigned getNumberOfMSFiles() const ))
 {
   unsigned nms = design.getNumberOfMSFiles();
+  TEST_EQUAL(nms, 12);
 }
 END_SECTION
 
 START_SECTION((unsigned getNumberOfFractionGroups() const ))
 {
   unsigned nfg = design.getNumberOfFractionGroups(); 
+  TEST_EQUAL(nfg, 12);
 }
 END_SECTION
 
 START_SECTION((unsigned getSample(unsigned fraction_group, unsigned label=1)))
 {
   unsigned s = design.getSample(1, 1); 
+  TEST_EQUAL(s, 1);
+  s = design.getSample(12, 1);
+  TEST_EQUAL(s, 12);
 }
 END_SECTION
 
 START_SECTION((bool isFractionated() const ))
 {
   bool b = design.isFractionated(); 
+  TEST_EQUAL(b, false);
 }
 END_SECTION
 
 START_SECTION((bool sameNrOfMSFilesPerFraction() const ))
 {
   bool b = design.sameNrOfMSFilesPerFraction(); 
+  TEST_EQUAL(b, true);
 }
 END_SECTION
 
