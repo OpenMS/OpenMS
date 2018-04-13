@@ -42,7 +42,7 @@
 using namespace OpenMS;
 using namespace std;
 
-// TODO: remove helper function
+// TODO: remove helper function and its calls
 void geogebra_print_execute(const double h, const double mu, const double sigma, const double tau)
 {
   std::cout << "\nGEOGEBRA: Execute[{\"h = " << h << "\", \"mu = " << mu << "\",\"sigma = " << sigma << "\", \"tau = " << tau << "\"}]\n\n";
@@ -941,7 +941,7 @@ START_SECTION(void fitEMGPeakModel(
   TEST_REAL_SIMILAR((*fda_emg)[1], 2.68121)
   TEST_REAL_SIMILAR((*fda_emg)[2], 0.0212625)
   TEST_REAL_SIMILAR((*fda_emg)[3], 0.0235329)
-geogebra_print_execute((*fda_emg)[0], (*fda_emg)[1], (*fda_emg)[2], (*fda_emg)[3]);
+  // geogebra_print_execute((*fda_emg)[0], (*fda_emg)[1], (*fda_emg)[2], (*fda_emg)[3]);
 
   pi.fitEMGPeakModel(saturated_chrom_min, out_min);
   pi.fitEMGPeakModel(saturated_chrom_sec, out_sec);
@@ -960,7 +960,7 @@ geogebra_print_execute((*fda_emg)[0], (*fda_emg)[1], (*fda_emg)[2], (*fda_emg)[3
   TEST_REAL_SIMILAR((*fda_emg)[1], 2.66296)
   TEST_REAL_SIMILAR((*fda_emg)[2], 0.0394313)
   TEST_REAL_SIMILAR((*fda_emg)[3], 0.0394313)
-geogebra_print_execute((*fda_emg)[0], (*fda_emg)[1], (*fda_emg)[2], (*fda_emg)[3]);
+  // geogebra_print_execute((*fda_emg)[0], (*fda_emg)[1], (*fda_emg)[2], (*fda_emg)[3]);
 
   fda_emg = &out_sec.getFloatDataArrays()[0];
   TEST_EQUAL(fda_emg->getName(), "emg_parameters")
@@ -986,7 +986,7 @@ geogebra_print_execute((*fda_emg)[0], (*fda_emg)[1], (*fda_emg)[2], (*fda_emg)[3
   TEST_REAL_SIMILAR((*fda_emg)[1], 14.3453)
   TEST_REAL_SIMILAR((*fda_emg)[2], 0.0344277)
   TEST_REAL_SIMILAR((*fda_emg)[3], 0.188507)
-geogebra_print_execute((*fda_emg)[0], (*fda_emg)[1], (*fda_emg)[2], (*fda_emg)[3]);
+  // geogebra_print_execute((*fda_emg)[0], (*fda_emg)[1], (*fda_emg)[2], (*fda_emg)[3]);
 
   fda_emg = &out_sec.getFloatDataArrays()[0];
   TEST_EQUAL(fda_emg->getName(), "emg_parameters")
@@ -1012,7 +1012,7 @@ geogebra_print_execute((*fda_emg)[0], (*fda_emg)[1], (*fda_emg)[2], (*fda_emg)[3
   TEST_REAL_SIMILAR((*fda_emg)[1], 15.4227)
   TEST_REAL_SIMILAR((*fda_emg)[2], 0.0210588)
   TEST_REAL_SIMILAR((*fda_emg)[3], 0.0476741)
-geogebra_print_execute((*fda_emg)[0], (*fda_emg)[1], (*fda_emg)[2], (*fda_emg)[3]);
+  // geogebra_print_execute((*fda_emg)[0], (*fda_emg)[1], (*fda_emg)[2], (*fda_emg)[3]);
 
   fda_emg = &out_sec.getFloatDataArrays()[0];
   TEST_EQUAL(fda_emg->getName(), "emg_parameters")
@@ -1141,22 +1141,22 @@ START_SECTION(double Loss_function(
 
   const MSChromatogram::FloatDataArray& fda_emg = out_min.getFloatDataArrays()[0];
   TEST_REAL_SIMILAR(pi_f.Loss_function(position, intensity, fda_emg[0], fda_emg[1], fda_emg[2], fda_emg[3]), 60778399.8312241)
-geogebra_print_execute(fda_emg[0], fda_emg[1], fda_emg[2], fda_emg[3]);
+  // geogebra_print_execute(fda_emg[0], fda_emg[1], fda_emg[2], fda_emg[3]);
 
   pi.fitEMGPeakModel(saturated_chrom_min, out_min);
   const MSChromatogram::FloatDataArray& fda_emg_sat = out_min.getFloatDataArrays()[0];
   TEST_REAL_SIMILAR(pi_f.Loss_function(saturated_pos_min, saturated_int, fda_emg_sat[0], fda_emg_sat[1], fda_emg_sat[2], fda_emg_sat[3]), 187412764882.422)
-geogebra_print_execute(fda_emg_sat[0], fda_emg_sat[1], fda_emg_sat[2], fda_emg_sat[3]);
+  // geogebra_print_execute(fda_emg_sat[0], fda_emg_sat[1], fda_emg_sat[2], fda_emg_sat[3]);
 
   pi.fitEMGPeakModel(saturated_cutoff_chrom_min, out_min);
   const MSChromatogram::FloatDataArray& fda_emg_sat_cut = out_min.getFloatDataArrays()[0];
   TEST_REAL_SIMILAR(pi_f.Loss_function(saturated_cutoff_pos_min, saturated_cutoff_int, fda_emg_sat_cut[0], fda_emg_sat_cut[1], fda_emg_sat_cut[2], fda_emg_sat_cut[3]), 56213636966.189)
-geogebra_print_execute(fda_emg_sat_cut[0], fda_emg_sat_cut[1], fda_emg_sat_cut[2], fda_emg_sat_cut[3]);
+  // geogebra_print_execute(fda_emg_sat_cut[0], fda_emg_sat_cut[1], fda_emg_sat_cut[2], fda_emg_sat_cut[3]);
 
   pi.fitEMGPeakModel(cutoff_chrom_min, out_min);
   const MSChromatogram::FloatDataArray& fda_emg_cut = out_min.getFloatDataArrays()[0];
   TEST_REAL_SIMILAR(pi_f.Loss_function(cutoff_pos_min, cutoff_int, fda_emg_cut[0], fda_emg_cut[1], fda_emg_cut[2], fda_emg_cut[3]), 651.824632922326)
-geogebra_print_execute(fda_emg_cut[0], fda_emg_cut[1], fda_emg_cut[2], fda_emg_cut[3]);
+  // geogebra_print_execute(fda_emg_cut[0], fda_emg_cut[1], fda_emg_cut[2], fda_emg_cut[3]);
 }
 END_SECTION
 

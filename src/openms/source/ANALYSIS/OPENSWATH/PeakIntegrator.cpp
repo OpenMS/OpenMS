@@ -948,7 +948,7 @@ namespace OpenMS
     const Size last_few_Es_dim { 10 };
     std::vector<double> last_few_Es(last_few_Es_dim, 0.0);
     Size last_few_Es_idx = 0;
-    const double Es_std_dev_min = 1.0; // TODO: find a reasoning for this chosen value
+    const double Es_std_dev_min = 1.0; // NOTE: magic value
 
     if (print_debug_ == 1)
     {
@@ -1011,7 +1011,7 @@ namespace OpenMS
 
       // If the cost function doesn't change enough, the gradient descent algorithm is terminated
       // This is decided by computing the standard deviation between a selection of the last few Es
-      if (iter_idx % 50 == 0) // TODO: find reasoning
+      if (iter_idx % 50 == 0) // NOTE: magic value
       {
         last_few_Es[last_few_Es_idx++ % last_few_Es_dim] = current_E;
         const double mean = std::accumulate(last_few_Es.begin(), last_few_Es.end(), 0.0) / last_few_Es_dim;
@@ -1044,8 +1044,8 @@ namespace OpenMS
       {
         mu = mu < mu_left_boundary ? mu_left_boundary : mu_right_boundary;
       }
-      sigma = std::min(std::max(1e-4, sigma), 20.0); // TODO: find a reasoning for the constant literals
-      tau = std::min(std::max(sigma, tau), sigma * 15.0); // TODO: find a reasoning for the constant literals
+      sigma = std::min(std::max(1e-4, sigma), 20.0); // NOTE: magic value
+      tau = std::min(std::max(sigma, tau), sigma * 15.0); // NOTE: magic value
 
       // Saving values to be used at the next iteration
       prev_diff_E_h = diff_E_h;
@@ -1061,7 +1061,7 @@ namespace OpenMS
       std::cout << "[" << best_iter << "] GEOGEBRA: Execute[{\"h = " << best_h << "\", \"mu = " << best_mu << "\",\"sigma = " << best_sigma << "\", \"tau = " << best_tau << "\"}]" << std::endl;
     }
     // The method has a maximum number of iterations permitted
-    // (see class parameter "max_gd_iter_").
+    // (see class parameter `max_gd_iter`).
     // Said limit is rarely reached, and instead the method will finish after
     // a lower number of iterations. The method returns such number.
     return iter_idx;
