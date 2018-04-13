@@ -172,7 +172,7 @@ public:
   {
     in_ = getStringOption_("in");
     out_ = getStringOption_("out");
-   }
+  }
   
   ExitCodes main_(int, const char**) override
   {
@@ -182,14 +182,32 @@ public:
      */
     getParameters_in_out_();
     
-    FeatureFinderMultiplexAlgorithm algorithm;
-    //algorithm.setParameters(getParam_());
+    /**
+     * load input
+     */
+    MzMLFile file;
+    MSExperiment exp;
     
+    // only read MS1 spectra
+    std::vector<int> levels;
+    levels.push_back(1);
+    file.getOptions().setMSLevels(levels);
+    
+    LOG_DEBUG << "Loading input..." << endl;
+    file.setLogType(log_type_);
+    file.load(in_, exp);
 
-    return EXECUTION_OK;
-  }
-
-};
+    // run feature detection algorithm
+    FeatureFinderMultiplexAlgorithm algorithm;
+    algorithm.setParameters(getParam_());
+    algorithm.run(exp, false);
+    
+    // debug output
+    std::cout << "number of consensus features = " << algorithm.getConsensusMap().size() << "\n";
+    
+    }
+  
+  };
 
 int main(int argc, const char** argv)
 {

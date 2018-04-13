@@ -1056,7 +1056,7 @@ namespace OpenMS
     generator.printDeltaMassesList();
 
     std::vector<MultiplexDeltaMasses> masses = generator.getDeltaMassesList();
-    std::vector<MultiplexIsotopicPeakPattern> patterns = generatePeakPatterns_(param_.getValue("algorithm:charge_min"), param_.getValue("algorithm:charge_max"), param_.getValue("algorithm:isotopes_per_peptide_max"), masses);
+    std::vector<MultiplexIsotopicPeakPattern> patterns = generatePeakPatterns_(charge_min_, charge_max_, isotopes_per_peptide_max_, masses);
     
     std::vector<MultiplexFilteredMSExperiment> filter_results;
     if (centroided_)
