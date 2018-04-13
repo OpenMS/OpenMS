@@ -57,7 +57,7 @@ namespace OpenMS
     simpleExtractChromatograms(swath_maps, irt_transitions, irt_chromatograms, cp_irt, sonar, load_into_memory);
 
     // debug output of the iRT chromatograms
-    if (irt_mzml_out.empty() and debug_level > 1)
+    if (irt_mzml_out.empty() && debug_level > 1)
       {
         String irt_mzml_out = "debug_irts.mzML";
       }
