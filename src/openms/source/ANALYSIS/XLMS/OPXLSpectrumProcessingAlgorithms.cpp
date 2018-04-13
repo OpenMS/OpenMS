@@ -405,6 +405,8 @@ namespace OpenMS
     const Size n_e(exp_spectrum.size());
     const bool has_charge = !(exp_charges.empty() || theo_charges.empty());
 
+    // std::cout << "Attempt new alignment!" << std::endl;
+
     if (n_t == 0 || n_e == 0) { return; }
 
     Size t(0), e(0);
@@ -429,11 +431,12 @@ namespace OpenMS
 
       if (fabs(d) <= max_dist_dalton) // match in tolerance window?
       {
+        // std::cout << "initial match | exp_mz: " << exp_mz << " | theo_mz: " << theo_mz << " | int: " << exp_spectrum[e].getIntensity() << " | d = " << d << " | max_dist_dalton = " << max_dist_dalton << std::endl;
         // get first peak with matching charge in tolerance window
         if (!tz_matches_ez)
         {
           Size e_candidate(e);
-          while (true)
+          while (e_candidate < n_e-1)
           {
             ++e_candidate;
             double new_ez = has_charge ? exp_charges[e_candidate] : 0;
@@ -465,6 +468,7 @@ namespace OpenMS
         // last peak? there can't be a better one in this tolerance window
         if (e >= n_e - 1)
         {
+          // std::cout << "added final peak | exp_mz: " << exp_spectrum[e].getMZ() << " | theo_mz: " << theo_mz << " | exp_int: " << exp_spectrum[e].getIntensity() << std::endl;
           // add match
           alignment.emplace_back(std::make_pair(t, e));
           // add ppm error
@@ -480,8 +484,6 @@ namespace OpenMS
         double new_d, new_ez(0);
         double best_d = exp_spectrum[closest_exp_peak].getMZ() - theo_mz;
 
-//        std::cerr << "first peak in window:" <<  exp_spectrum[closest_exp_peak].getMZ() << "\t theo: " << theo_mz << "\t best d:" << best_d << "\n";
-
         do // check for better match in tolerance window
         {
           // advance to next exp. peak
@@ -490,7 +492,7 @@ namespace OpenMS
           // determine distance of next peak
           new_d = exp_spectrum[e].getMZ() - theo_mz;
           const bool in_tolerance_window = (fabs(new_d) < max_dist_dalton);
-//          std::cerr << "  new peak:" << exp_spectrum[e].getMZ() << "\t theo: " << theo_mz << "\t new d: " << new_d << "\t in window:" << in_tolerance_window << "\n";
+          // std::cout << "  new peak | exp_mz: " << exp_spectrum[e].getMZ() << " | theo_mz: " << theo_mz << " | new d: " << new_d << " | in window:" << in_tolerance_window << "\n";
 
           if (!in_tolerance_window) { break; }
 
@@ -518,7 +520,7 @@ namespace OpenMS
         }
         while (e < n_e - 1);
 
-//        std::cerr << "added peak:" << exp_spectrum[closest_exp_peak].getMZ() << "\t theo: " << theo_mz << "\n";
+      //  std::cout << "added peak | exp_mz: " << exp_spectrum[closest_exp_peak].getMZ() << " | theo_mz: " << theo_mz << " | exp_int: " << exp_spectrum[closest_exp_peak].getIntensity() << std::endl;
 
         // search in tolerance window for an experimental peak closer to theoretical one
         alignment.emplace_back(std::make_pair(t, closest_exp_peak));
