@@ -299,7 +299,7 @@ namespace OpenMS
       return std::max_element(msfile_section_.begin(), msfile_section_.end(),
                               [](const MSFileSectionEntry& f1, const MSFileSectionEntry& f2)
                               {
-                                return f1.fraction < f2.fraction;
+                                return f1.label < f2.label;
                               })->label;
     }
 
@@ -376,16 +376,6 @@ namespace OpenMS
 
     for (const MSFileSectionEntry& row : msfile_section_)
     {
-      // Fail if sample section does not contain the fraction_group
-      if (sample_section_.hasSample(row.sample) == false)
-      {
-        throw Exception::MissingInformation(
-        __FILE__,
-        __LINE__,
-        OPENMS_PRETTY_FUNCTION,
-        "Sample Section does not contain sample for fraction group " + String(row.fraction_group));
-      }
-
       // FRACTIONGROUP__FRACTION_LABEL TUPLE
       std::tuple<unsigned, unsigned, unsigned> fractiongroup_fraction_label = std::make_tuple(row.fraction_group, row.fraction, row.label);
       errorIfAlreadyExists(
