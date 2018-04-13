@@ -579,7 +579,8 @@ namespace OpenMS
       }
       removeFromSetIfNotHashed_(parent_molecules_, parent_molecule_lookup_);
     }
-    // update look-up table of parent molecule addresses:
+    // update look-up table of parent molecule addresses (in case parent
+    // molecules were removed):
     updateAddressLookup_(parent_molecules_, parent_molecule_lookup_);
 
     // remove parent matches based on parent molecules:

@@ -55,7 +55,8 @@ namespace OpenMS
     /// Export to legacy peptide/protein identifications
     static void exportIDs(const IdentificationData& id_data,
                           std::vector<ProteinIdentification>& proteins,
-                          std::vector<PeptideIdentification>& peptides);
+                          std::vector<PeptideIdentification>& peptides,
+                          bool export_oligonucleotides = false);
 
     /// Export to mzTab format
     static MzTab exportMzTab(const IdentificationData& id_data);

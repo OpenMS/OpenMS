@@ -33,7 +33,6 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/KERNEL/StandardTypes.h>
-#include <OpenMS/CONCEPT/Constants.h>
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
@@ -1046,45 +1045,11 @@ protected:
     // dummy "peptide" results:
     if (!id_out.empty())
     {
+      vector<ProteinIdentification> proteins;
       vector<PeptideIdentification> peptides;
-      vector<ProteinIdentification> proteins(1);
-      proteins[0].setIdentifier("id");
-      proteins[0].setDateTime(DateTime::now());
-      proteins[0].setSearchEngine(toolName_());
-      map<IdentificationData::DataQueryRef, PeptideIdentification> id_map;
-      String score_name = "hyperscore";
-      IdentificationData::ScoreTypeRef score_ref =
-        id_data.findScoreType(score_name);
-      // @TODO: write out q-values, if available?
-      for (const auto& osm : id_data.getMoleculeQueryMatches())
-      {
-        IdentificationData::DataQueryRef query_ref = osm.data_query_ref;
-        IdentificationData::IdentifiedOligoRef oligo_ref =
-          osm.getIdentifiedOligoRef();
-        const NASequence& seq = oligo_ref->sequence;
-        PeptideHit hit;
-        hit.setMetaValue("label", seq.toString());
-        hit.setScore(osm.getScore(score_ref).first);
-        hit.setCharge(osm.charge);
-        hit.setPeakAnnotations(osm.peak_annotations.begin()->second);
-        double precursor_error_ppm =
-          osm.getMetaValue(Constants::PRECURSOR_ERROR_PPM_USERPARAM);
-        hit.setMetaValue(Constants::PRECURSOR_ERROR_PPM_USERPARAM,
-                         precursor_error_ppm);
-        id_map[query_ref].insertHit(hit);
-      }
-      for (auto& id_pair : id_map)
-      {
-        const IdentificationData::DataQuery& query = *id_pair.first;
-        PeptideIdentification& peptide = id_pair.second;
-        peptide.setRT(query.rt);
-        peptide.setMZ(query.mz);
-        peptide.setMetaValue("spectrum_reference", query.data_id);
-        peptide.setScoreType(score_name);
-        peptide.setHigherScoreBetter(score_ref->higher_better);
-        peptide.setIdentifier("id");
-        peptides.push_back(peptide);
-      }
+      IdentificationDataConverter::exportIDs(id_data, proteins, peptides, true);
+      // proteins[0].setDateTime(DateTime::now());
+      // proteins[0].setSearchEngine(toolName_());
       IdXMLFile().store(id_out, proteins, peptides);
     }
 
