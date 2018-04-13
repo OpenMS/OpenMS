@@ -524,7 +524,7 @@ public:
 
       The method is able to recapitulate the actual peak area of saturated or cutoff peaks.
       In addition, the method is able to fine tune the peak area of well acquired peaks.
-      The output is a reconstruction of the input peak. Additional points are added
+      The output is a reconstruction of the input peak. Additional points are often added
       to produce a peak with similar intensities on boundaries' points.
 
       Metadata will be added to the output peak, containing the optimal parameters
@@ -554,7 +554,7 @@ public:
 
       The method is able to recapitulate the actual peak area of saturated or cutoff peaks.
       In addition, the method is able to fine tune the peak area of well acquired peaks.
-      The output is a reconstruction of the input peak. Additional points are added
+      The output is a reconstruction of the input peak. Additional points are often added
       to produce a peak with similar intensities on boundaries' points.
 
       Metadata will be added to the output peak, containing the optimal parameters
@@ -633,16 +633,17 @@ protected:
     /**
       @brief Given a peak, extract a training set to be used with the gradient descent algorithm
 
-      The algorithm tries to select a subset of points that best describe a non-saturated
-      peak. The decision of which points to skip is based on the derivatives between consecutive points.
+      The algorithm tries to select only those points that can help in finding the optimal
+      parameters with gradient descent. The decision of which points to skip is based on the
+      derivatives between consecutive points.
 
       It first selects all those points whose intensity is below a certain value (`intensity_threshold`).
       Then, the derivatives of all the remaining points are computed. Based on the results,
-      the algorithm selects those points that present a high derivative.
+      the algorithm selects those points that present a high enough derivative.
       Once a low value is found, the algorithm stops taking points from that side.
       It then repeats the same procedure on the other side of the peak.
       If points are actually skipped, these will be found in the middle part of the peak,
-      possibly being a saturated peak apex region.
+      possibly being the saturated region.
 
       @throw Exception::SizeUnderflow if the input has less than 2 elements
 
@@ -769,7 +770,7 @@ private:
     ) const;
 
     /**
-      @brief Apply the iRprop+ algorithm for gradient descent.
+      @brief Apply the iRprop+ algorithm for gradient descent
 
       Reference:
       Christian Igel and Michael Hüsken. Improving the Rprop Learning Algorithm.
@@ -820,7 +821,7 @@ private:
 
     /**
       @brief Compute the cost given by the partial derivative of the loss function E,
-      with respect to `h` (the amplitude).
+      with respect to `h` (the amplitude)
 
       Needed by the gradient descent algorithm.
 
@@ -844,7 +845,7 @@ private:
 
     /**
       @brief Compute the cost given by the partial derivative of the loss function E,
-      with respect to `mu` (the mean).
+      with respect to `mu` (the mean)
 
       Needed by the gradient descent algorithm.
 
@@ -868,7 +869,7 @@ private:
 
     /**
       @brief Compute the cost given by the partial derivative of the loss function E,
-      with respect to `sigma` (the standard deviation).
+      with respect to `sigma` (the standard deviation)
 
       Needed by the gradient descent algorithm.
 
@@ -892,7 +893,7 @@ private:
 
     /**
       @brief Compute the cost given by the partial derivative of the loss function E,
-      with respect to `tau` (the exponent relaxation time).
+      with respect to `tau` (the exponent relaxation time)
 
       Needed by the gradient descent algorithm.
 
@@ -942,9 +943,9 @@ private:
     ) const;
 
     /**
-      @brief Compute the EMG function on a set of points.
+      @brief Compute the EMG function on a set of points
 
-      If class parameter `compute_additional_points` is `true`, the algorithm
+      If class parameter `compute_additional_points` is `"true"`, the algorithm
       will detect which side of the peak is cutoff and add points to it.
 
       @param[in] xs Positions
@@ -953,7 +954,7 @@ private:
       @param[in] sigma Standard deviation
       @param[in] tau Exponent relaxation time
       @param[out] out_xs The output positions
-      @param[out] out_ys The output estimated intensities
+      @param[out] out_ys The output intensities
     */
     void emg_vector(
       const std::vector<double>& xs,
@@ -966,7 +967,7 @@ private:
     ) const;
 
     /**
-      @brief Compute the EMG function on a single point.
+      @brief Compute the EMG function on a single point
 
       @param[in] x Position
       @param[in] h Amplitude
