@@ -85,6 +85,8 @@ namespace OpenMS
     double min_upper_edge_dist;
     /// Extraction window in Da or ppm (e.g. 50ppm means extraction +/- 25ppm)
     double mz_extraction_window;
+    /// Extraction window in ion mobility
+    double im_extraction_window;
     /// Whether the extraction window is given in ppm or Da
     bool ppm;
     /// The extraction function in mass space
@@ -119,6 +121,8 @@ namespace OpenMS
      * @param irt_detection_param Parameter set for the detection of the iRTs (outlier detection, peptides per bin etc)
      * @param mz_correction_function If correction in m/z is desired, which function should be used
      * @param debug_level Debug level (writes out the RT normalization chromatograms if larger than 1)
+     * @param irt_mzml_out Output Chromatogram mzML containing the iRT peptides (if not empty,
+     *        iRT chromatograms will be stored in this file)
      *
     */
     TransformationDescription performRTNormalization(const OpenMS::TargetedExperiment & irt_transitions,
@@ -129,6 +133,7 @@ namespace OpenMS
       const ChromExtractParams & cp_irt,
       const Param & irt_detection_param,
       const String & mz_correction_function,
+      const String& irt_mzml_out,
       Size debug_level,
       bool sonar = false,
       bool load_into_memory = false);
