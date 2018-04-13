@@ -503,6 +503,17 @@ protected:
       }
       writeLog_("Executed maracluster!");
       qp_consensus.close();
+    
+
+      // sort mzML
+      FileHandler fh;
+      FileTypes::Type in_type = fh.getType(in);
+
+      PeakMap exp;
+      fh.loadExperiment(consensus_output_file, exp, in_type, log_type_);
+      exp.sortSpectra();
+      fh.storeExperiment(consensus_output_file, exp, log_type_);
+
     }
 
     if (this->debug_level_ < 5)
