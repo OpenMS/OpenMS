@@ -413,7 +413,11 @@ namespace OpenMS
 
       void operator()(ElementType& element)
       {
-        removeFromSetIfNotHashed_(element.parent_matches, lookup);
+        removeFromSetIf_(element.parent_matches,
+                         [&](const ParentMatches::iterator it)
+                         {
+                           return !lookup.count(it->first);
+                         });
       }
 
       const AddressLookup& lookup;
@@ -514,7 +518,7 @@ namespace OpenMS
                                      AddressLookup& lookup)
     {
       lookup.clear();
-      lookup.rehash(container.size());
+      lookup.reserve(container.size());
       for (const auto& element : container)
       {
         lookup.insert(uintptr_t(&element));
