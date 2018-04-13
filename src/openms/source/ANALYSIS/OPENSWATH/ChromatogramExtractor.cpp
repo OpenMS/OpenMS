@@ -163,7 +163,7 @@ namespace OpenMS
         coord.rt_start = rt - rt_extraction_window / 2.0;
         coord.rt_end = rt + rt_extraction_window / 2.0;
       }
-      coord.ion_mobility = pep.getDriftTime();
+      coord.ion_mobility = pep->getDriftTime();
       coordinates.push_back(coord);
     }
 
