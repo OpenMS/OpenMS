@@ -131,7 +131,8 @@ START_SECTION((std::map< std::pair< String, unsigned >, unsigned> getPathLabelTo
 
   // 24 quant. values from 4plex, tripple fractionated files map to 8 samples
   pl2s = fourplex_fractionated_design.getPathLabelToSampleMapping(true);
-  TEST_EQUAL(pl2s.size(), 8);
+  TEST_EQUAL(pl2s.size(), 24);
+  for (auto i : pl2s) { TEST_EQUAL((i.second >=1 && i.second <=8), true)}
 }
 END_SECTION
 
@@ -154,17 +155,17 @@ START_SECTION((std::map< std::pair< String, unsigned >, unsigned> getPathLabelTo
   // 12 quant. values from label-free, unfractionated files map to different fraction groups
   std::map< std::pair< String, unsigned >, unsigned > pl2fg = labelfree_unfractionated_design.getPathLabelToFractionGroupMapping(true);
   TEST_EQUAL(pl2fg.size(), 12);
-  int count = 1; // also checks if in canonical order of increasing fraction groups
+  int count = 1;
   for (auto i : pl2fg) { TEST_EQUAL(i.second, count); ++count; }
 
   pl2fg = fourplex_fractionated_design.getPathLabelToFractionGroupMapping(true);
   TEST_EQUAL(pl2fg.size(), 24);
-  count = 1; // also checks if in canonical order of increasing fraction groups (first 8 are fraction group 1, last 8 fraction group 2)
   for (auto i : pl2fg) 
-  { 
-    TEST_EQUAL((i.second == 1 && count <= 8) ||
-               (i.second == 2 && count > 8), true); 
-    ++count; 
+  {
+    // extract fraction group from file name
+    int file(1); 
+    if (i.first.first.hasSubstring("TR2")) { file = 2; }
+    TEST_EQUAL(i.second, file); 
   }
 }
 END_SECTION
@@ -226,10 +227,10 @@ START_SECTION((unsigned getSample(unsigned fraction_group, unsigned label=1)))
   s = labelfree_unfractionated_design.getSample(12, 1);
   TEST_EQUAL(s, 12);
 
-  s = fourplex_fractionated_design.getSample(1, 1); // first sample, first lable 
+  s = fourplex_fractionated_design.getSample(1, 1);
   TEST_EQUAL(s, 1);
-  s = fourplex_fractionated_design.getSample(8, 4); // last sample, last lable
-  TEST_EQUAL(s, 2);
+  s = fourplex_fractionated_design.getSample(2, 4);
+  TEST_EQUAL(s, 8);
 }
 END_SECTION
 
