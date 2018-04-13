@@ -44,7 +44,7 @@
 #include <OpenMS/FORMAT/ExperimentalDesignFile.h>
 #include <OpenMS/SYSTEM/File.h>
 
-#include <regex>
+#include <boost/regex.hpp>
 
 
 using namespace OpenMS;
@@ -224,7 +224,7 @@ protected:
 
       fatalErrorIf_(
           checkUnorderedContent_(spectra_paths, design_filenames) == false,
-          "The filenames in the consensusXML file are not the same as in the experimental design",
+          "The filenames (extension ignored) in the consensusXML file are not the same as in the experimental design",
           ILLEGAL_PARAMETERS);
 
       // Extract information from the consensus features.
@@ -263,7 +263,7 @@ protected:
       csv_out.addLine(String(rt_summarization_manual ? "RetentionTime,": "") + "ProteinName,PeptideSequence,PrecursorCharge,FragmentIon,ProductCharge,IsotopeLabelType,Condition,BioReplicate,Run," + String(has_fraction ? "Fraction,": "") + "Intensity");
 
       // Regex definition for fragment ions
-      std::regex regex_msstats_FragmentIon("[abcxyz][0-9]+");
+      boost::regex regex_msstats_FragmentIon("[abcxyz][0-9]+");
 
       // These are placeholder fragment annotations and peptide evidences in case the original ones are empty
 
@@ -320,8 +320,8 @@ protected:
               if (frag_ann.annotation != TOPPMSstatsConverter::na_string)
               {
                 std::set< std::string > frag_ions;
-                std::smatch sm;
-                std::regex_search(frag_ann.annotation, sm, regex_msstats_FragmentIon);
+                boost::smatch sm;
+                boost::regex_search(frag_ann.annotation, sm, regex_msstats_FragmentIon);
                 frag_ions.insert(sm.begin(), sm.end());
                 if (frag_ions.size() == 1)
                 {
@@ -353,7 +353,7 @@ protected:
                   const pair< String, unsigned> tpl2 = make_pair(filename, fraction);
 
                   // Resolve run
-                  const unsigned run = run_map[tpl2];  // MSstats run according to the run table
+                  const unsigned run = run_map[tpl2];  // MSstats run according to the file table
                   const unsigned openms_fractiongroup = path_label_to_fractiongroup[tpl1];
                   msstats_run_to_openms_fractiongroup[run] = openms_fractiongroup;
 
