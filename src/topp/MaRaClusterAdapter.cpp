@@ -507,7 +507,7 @@ protected:
 
       // sort mzML
       FileHandler fh;
-      FileTypes::Type in_type = fh.getType(in);
+      FileTypes::Type in_type = fh.getType(consensus_output_file);
 
       PeakMap exp;
       fh.loadExperiment(consensus_output_file, exp, in_type, log_type_);
