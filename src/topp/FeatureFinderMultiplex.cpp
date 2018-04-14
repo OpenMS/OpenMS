@@ -147,7 +147,8 @@ private:
   // input and output files
   String in_;
   String out_;
-  
+  String out_multiplets_;
+
 public:
   TOPPFeatureFinderMultiplex() :
     TOPPBase("FeatureFinderMultiplex", "Determination of peak ratios in LC-MS data", true)
@@ -156,10 +157,12 @@ public:
 
   void registerOptionsAndFlags_() override
   {
-    registerInputFile_("in", "<file>", "", "LC-MS dataset in centroid or profile mode");
+    registerInputFile_("in", "<file>", "", "LC-MS dataset in either centroid or profile mode");
     setValidFormats_("in", ListUtils::create<String>("mzML"));
-    registerOutputFile_("out", "<file>", "", "Set of all identified peptide groups (i.e. peptide pairs or triplets or singlets or ..). The m/z-RT positions correspond to the lightest peptide in each group.", false);
-    setValidFormats_("out", ListUtils::create<String>("consensusXML"));
+    registerOutputFile_("out", "<file>", "", "Output file containing the individual peptide features.", false);
+    setValidFormats_("out", ListUtils::create<String>("featureXML"));
+    registerOutputFile_("out_multiplets", "<file>", "", "Optional output file conatining all detected peptide groups (i.e. peptide pairs or triplets or singlets or ..). The m/z-RT positions correspond to the lightest peptide in each group.", false, true);
+    setValidFormats_("out_multiplets", ListUtils::create<String>("consensusXML"));
     
     registerFullParam_(FeatureFinderMultiplexAlgorithm().getDefaults());
   }
@@ -172,6 +175,7 @@ public:
   {
     in_ = getStringOption_("in");
     out_ = getStringOption_("out");
+    out_multiplets_ = getStringOption_("out_multiplets");
   }
   
   /**
@@ -297,6 +301,7 @@ public:
     Param params = getParam_();
     params.remove("in");
     params.remove("out");
+    params.remove("out_multiplets");
     params.remove("log");
     params.remove("debug");
     params.remove("threads");
@@ -307,12 +312,10 @@ public:
     // run feature detection algorithm
     algorithm.run(exp, false, true);
     
-    // debug output
-    std::cout << "number of consensus features = " << algorithm.getConsensusMap().size() << "\n";
-    
-    // write consensus map
-    writeConsensusMap_(out_, algorithm.getConsensusMap());
-    
+    // write feature and consensus maps
+    writeFeatureMap_(out_, algorithm.getFeatureMap());
+    writeConsensusMap_(out_multiplets_, algorithm.getConsensusMap());
+
     }
   
   };
