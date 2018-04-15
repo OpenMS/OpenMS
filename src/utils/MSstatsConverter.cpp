@@ -95,17 +95,14 @@ protected:
     registerInputFile_(TOPPMSstatsConverter::param_in_design, "<in_design>", "", "Experimental Design file", true, false);
     setValidFormats_(TOPPMSstatsConverter::param_in_design, ListUtils::create<String>("tsv"), true);
 
-    registerStringOption_(TOPPMSstatsConverter::param_msstats_bioreplicate, "<msstats_bioreplicate>", "Biological Replicate", "Which column in the condition table should be used for MSstats 'BioReplicate'", false, false);
-    registerStringOption_(TOPPMSstatsConverter::param_msstats_condition, "<msstats_condition>", "", "Which column in the condition table should be used for MSstats 'Condition'", true, false);
+    registerStringOption_(TOPPMSstatsConverter::param_msstats_bioreplicate, "<msstats_bioreplicate>", "MSstats_BioReplicate", "Which column in the condition table should be used for MSstats 'BioReplicate'", false, false);
+    registerStringOption_(TOPPMSstatsConverter::param_msstats_condition, "<msstats_condition>", "MSstats_Condition", "Which column in the condition table should be used for MSstats 'Condition'", true, false);
 
     // advanced option to overwrite MS file annotations in consensusXML
     registerInputFileList_("reannotate_filenames", "<file(s)>", StringList(), "Overwrite MS file names in consensusXML", false, true);
 
     // Isotope label type
     registerFlag_(TOPPMSstatsConverter::param_labeled_reference_peptides, "If set, IsotopeLabelType is 'H', else 'L'");
-
-    // Non-unique Peptides
-    registerFlag_(TOPPMSstatsConverter::param_ambiguous_peptides, "If set, the output CSV file can contain peptides that have been assigned to multiple protein ids. Attention: you normally do not want to do this for MSstats", true);
 
     // Specifies how peptide ions eluding at different retention times should be resolved
     registerStringOption_(TOPPMSstatsConverter::param_retention_time_summarization_method, "<retention_time_summarization_method>", "", "How undistinguishable peptides at different retention times should be treated", true, false);
@@ -399,15 +396,13 @@ protected:
              << " corresponds to OpenMS fraction group " << String(run_mapping.second) << endl;
       }
 
-      const bool write_ambigous_peptides(this->getFlag_(TOPPMSstatsConverter::param_ambiguous_peptides));
-
       // sanity check that the triples (peptide_sequence, precursor_charge, run) only appears once
       set< tuple<String, String, String> > peptideseq_precursor_charge_run;
 
       for (const pair< String, set< String> > &peptideseq_accessions : peptideseq_to_accessions)
       {
         // Only write if unique peptide
-        if (write_ambigous_peptides || peptideseq_accessions.second.size() == 1)
+        if (peptideseq_accessions.second.size() == 1)
         {
           for (const pair< MSstatsLine, set< pair< Intensity, Coordinate > > > &line :
                   peptideseq_to_prefix_to_intensities[peptideseq_accessions.first])
@@ -556,7 +551,6 @@ private:
   static const String param_msstats_condition;
   static const String param_out;
   static const String param_labeled_reference_peptides;
-  static const String param_ambiguous_peptides;
   static const String param_retention_time_summarization_method;
 
   static const String na_string;
@@ -629,7 +623,6 @@ const String TOPPMSstatsConverter::param_out = "out";
 const String TOPPMSstatsConverter::na_string = "NA";
 const String TOPPMSstatsConverter::param_labeled_reference_peptides = "labeled_reference_peptides";
 const String TOPPMSstatsConverter::meta_value_exp_design_key = "spectra_data";
-const String TOPPMSstatsConverter::param_ambiguous_peptides = "ambiguous_peptides";
 const String TOPPMSstatsConverter::param_retention_time_summarization_method = "retention_time_summarization_method";
 
 
