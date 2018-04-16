@@ -369,7 +369,6 @@ namespace OpenMS
     void ExperimentalDesign::isValid_()
     {
 
-    std::set< std::tuple< unsigned, unsigned, unsigned > > fractiongroup_fraction_sample_set;
     std::set< std::tuple< unsigned, unsigned, unsigned > > fractiongroup_fraction_label_set;
     std::set< std::tuple< std::string, unsigned > > path_label_set;
     std::map< std::tuple< unsigned, unsigned >, std::set< unsigned > > fractiongroup_label_to_sample;
