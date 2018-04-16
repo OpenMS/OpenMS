@@ -528,8 +528,10 @@ public:
       to produce a peak with similar intensities on boundaries' points.
 
       Metadata will be added to the output peak, containing the optimal parameters
-      for the EMG peak model. These information will be found in a `FloatDataArray`
-      with name "emg_parameters".
+      for the EMG peak model. This information will be found in a `FloatDataArray`
+      of name "emg_parameters", with the parameters being saved in the following
+      order (from index 0 to 3): amplitude `h`, mean `mu`, standard deviation `sigma`,
+      exponent relaxation time `tau`.
 
       @note All optimal gradient descent parameters are currently hard coded to allow for a simplified user interface
 
@@ -558,8 +560,10 @@ public:
       to produce a peak with similar intensities on boundaries' points.
 
       Metadata will be added to the output peak, containing the optimal parameters
-      for the EMG peak model. These information will be found in a `FloatDataArray`
-      with name "emg_parameters".
+      for the EMG peak model. This information will be found in a `FloatDataArray`
+      of name "emg_parameters", with the parameters being saved in the following
+      order (from index 0 to 3): amplitude `h`, mean `mu`, standard deviation `sigma`,
+      exponent relaxation time `tau`.
 
       @note All optimal gradient descent parameters are currently hard coded to allow for a simplified user interface
 
@@ -642,8 +646,8 @@ protected:
       the algorithm selects those points that present a high enough derivative.
       Once a low value is found, the algorithm stops taking points from that side.
       It then repeats the same procedure on the other side of the peak.
-      If points are actually skipped, these will be found in the middle part of the peak,
-      possibly being the saturated region.
+      The goal is to limit the inclusion of saturated or spurious points near the
+      peak apex during training.
 
       @throw Exception::SizeUnderflow if the input has less than 2 elements
 
@@ -799,7 +803,8 @@ private:
     /**
       @brief Compute the cost given by loss function E
 
-      Needed by the gradient descent algorithm. The mean squared error is used.
+      Needed by the gradient descent algorithm.
+      The mean squared error is used as the loss function E.
 
       @param[in] xs Positions
       @param[in] ys Intensities
