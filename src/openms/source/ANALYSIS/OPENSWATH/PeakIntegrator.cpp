@@ -171,7 +171,16 @@ namespace OpenMS
 
     if (integration_type_ == INTEGRATION_TYPE_TRAPEZOID)
     {
-      peak_area = compute_peak_area_trapezoid(left, right);
+      if (n_points == 1)
+      {
+        LOG_WARN << std::endl << "PeakIntegrator::integratePeak: "
+          "number of points is 1, falling back to `intensity_sum`." << std::endl;
+        peak_area = compute_peak_area_intensity_sum(left, right);
+      }
+      else
+      {
+        peak_area = compute_peak_area_trapezoid(left, right);
+      }
     }
     else if (integration_type_ == INTEGRATION_TYPE_SIMPSON)
     {
