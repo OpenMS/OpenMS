@@ -96,7 +96,7 @@ protected:
     setValidFormats_(TOPPMSstatsConverter::param_in_design, ListUtils::create<String>("tsv"), true);
 
     registerStringOption_(TOPPMSstatsConverter::param_msstats_bioreplicate, "<msstats_bioreplicate>", "MSstats_BioReplicate", "Which column in the condition table should be used for MSstats 'BioReplicate'", false, false);
-    registerStringOption_(TOPPMSstatsConverter::param_msstats_condition, "<msstats_condition>", "MSstats_Condition", "Which column in the condition table should be used for MSstats 'Condition'", true, false);
+    registerStringOption_(TOPPMSstatsConverter::param_msstats_condition, "<msstats_condition>", "MSstats_Condition", "Which column in the condition table should be used for MSstats 'Condition'", false, false);
 
     // advanced option to overwrite MS file annotations in consensusXML
     registerInputFileList_("reannotate_filenames", "<file(s)>", StringList(), "Overwrite MS file names in consensusXML", false, true);
