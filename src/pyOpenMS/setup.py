@@ -187,7 +187,8 @@ for module in mnames:
         libraries=libraries,
         include_dirs=include_dirs + autowrap_include_dirs,
         extra_compile_args=extra_compile_args,
-        extra_link_args=extra_link_args
+        extra_link_args=extra_link_args,
+		define_macros=[('BOOST_ALL_NO_LIB', None)]
     ))
 
 share_data = []
