@@ -53,6 +53,10 @@
 #include <QByteArray>
 #include <zlib.h>
 
+#ifdef OPENMS_COMPILER_MSVC
+#pragma comment(linker, "/export:compress")
+#endif
+
 namespace OpenMS
 {
   /**
@@ -74,7 +78,7 @@ public:
       BYTEORDER_BIGENDIAN,                  ///< Big endian type
       BYTEORDER_LITTLEENDIAN            ///< Little endian type
     };
-
+	
     /**
         @brief Encodes a vector of floating point numbers to a Base64 string
 
