@@ -1109,7 +1109,10 @@ namespace OpenMS
     output_peak.clear(false); // Remove the points, but keep the metadata
     for (Size i = 0; i < out_xs.size(); ++i)
     {
-      typename PeakContainerT::PeakType point { out_xs[i], out_ys[i] };
+      // NOTE: casting to avoid -Wnarrowing compiler warning/error
+      // TODO: remove cast once issue #3379 is solved
+      // https://github.com/OpenMS/OpenMS/issues/3379
+      typename PeakContainerT::PeakType point { out_xs[i], static_cast<float>(out_ys[i]) };
       output_peak.push_back(point);
     }
 
