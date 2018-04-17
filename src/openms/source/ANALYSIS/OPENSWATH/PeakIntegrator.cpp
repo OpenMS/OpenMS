@@ -839,8 +839,7 @@ namespace OpenMS
     // Starting from `i` and proceeding toward the RIGHT side,
     // add points until the derivative conditions are satisfied
     for (
-      ;
-      i < xs.size() - 1 &&
+      ; i < xs.size() - 1 &&
       i <= j &&
       derivatives[i] > 0.0 &&
       (std::fabs(derivatives[i]) >= derivative_threshold ||
@@ -854,8 +853,7 @@ namespace OpenMS
     // Starting from `j` and proceeding toward the LEFT side,
     // add points until the derivative conditions are satisfied
     for (
-      ;
-      j > 0 &&
+      ; j > 0 &&
       i <= j &&
       derivatives[j + 1] < 0.0 &&
       (std::fabs(derivatives[j + 1]) >= derivative_threshold ||
