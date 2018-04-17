@@ -310,7 +310,7 @@ public:
     params.remove("test");
     algorithm.setParameters(params);
     // run feature detection algorithm
-    algorithm.run(exp, false, true);
+    algorithm.run(exp, true);
     
     // write feature and consensus maps
     writeFeatureMap_(out_, algorithm.getFeatureMap());

@@ -42,6 +42,7 @@
 #include <OpenMS/COMPARISON/CLUSTERING/GridBasedCluster.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexClustering.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerHiRes.h>
+#include <OpenMS/FORMAT/PeakTypeEstimator.h>
 
 #include <OpenMS/CHEMISTRY/IsotopeDistribution.h>
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
@@ -89,11 +90,13 @@ namespace OpenMS
     defaults_.setMaxFloat("algorithm:averagine_similarity_scaling", 1.0);
     defaults_.setValue("algorithm:missed_cleavages", 0, "Maximum number of missed cleavages due to incomplete digestion. (Only relevant if enzymatic cutting site coincides with labelling site. For example, Arg/Lys in the case of trypsin digestion and SILAC labelling.)");
     defaults_.setMinInt("algorithm:missed_cleavages", 0);
-    defaults_.setValue("algorithm:knock_out", "false", "Is it likely that knock-outs are present? (Supported for doublex, triplex and quadruplex experiments only.)", ListUtils::create<String>("advanced"));
-    defaults_.setValidStrings("algorithm:knock_out", ListUtils::create<String>("true,false"));
+    defaults_.setValue("algorithm:spectrum_type", "automatic", "Type of MS1 spectra in input mzML file. 'automatic' determines the spectrum type directly from the input mzML file.", ListUtils::create<String>("advanced"));
+    defaults_.setValidStrings("algorithm:spectrum_type", ListUtils::create<String>("profile,centroid,automatic"));
     defaults_.setValue("algorithm:averagine_type","peptide","The type of averagine to use, currently RNA, DNA or peptide", ListUtils::create<String>("advanced"));
     defaults_.setValidStrings("algorithm:averagine_type", ListUtils::create<String>("peptide,RNA,DNA"));
-    
+    defaults_.setValue("algorithm:knock_out", "false", "Is it likely that knock-outs are present? (Supported for doublex, triplex and quadruplex experiments only.)", ListUtils::create<String>("advanced"));
+    defaults_.setValidStrings("algorithm:knock_out", ListUtils::create<String>("true,false"));
+
     defaults_.setSectionDescription("algorithm", "algorithmic parameters");
     
     // parameter section: labels
@@ -998,10 +1001,8 @@ namespace OpenMS
     //endProgress();
   }
 
-  void FeatureFinderMultiplexAlgorithm::run(MSExperiment& exp, bool centroided, bool progress)
+  void FeatureFinderMultiplexAlgorithm::run(MSExperiment& exp, bool progress)
   {
-    centroided_ = centroided;
-    
     progress_ = progress;
     
     // check for empty experimental data
@@ -1016,8 +1017,29 @@ namespace OpenMS
     // sort according to RT and MZ
     exp.sortSpectra();
     
+    // determine type of spectral data (profile or centroided)
+    SpectrumSettings::SpectrumType spectrum_type = exp[0].getType();
+    if (spectrum_type == SpectrumSettings::UNKNOWN)
+    {
+      spectrum_type = PeakTypeEstimator().estimateType(exp[0].begin(), exp[0].end());
+    }
+
+    bool centroided;
+    if (param_.getValue("algorithm:spectrum_type")=="automatic")
+    {
+      centroided = spectrum_type == SpectrumSettings::CENTROID;
+    }
+    else if (param_.getValue("algorithm:spectrum_type")=="centroid")
+    {
+      centroided = true;
+    }
+    else  // "profile"
+    {
+      centroided = false;
+    }
+    
     // store experiment in member varaibles
-    if (centroided_)
+    if (centroided)
     {
       exp.swap(exp_centroid_);
       // exp_profile_ will never be used.
@@ -1034,7 +1056,7 @@ namespace OpenMS
     std::vector<std::vector<PeakPickerHiRes::PeakBoundary> > boundaries_exp_s; // peak boundaries for spectra
     std::vector<std::vector<PeakPickerHiRes::PeakBoundary> > boundaries_exp_c; // peak boundaries for chromatograms
     
-    if (!centroided_)
+    if (!centroided)
     {
       PeakPickerHiRes picker;
       Param param = picker.getParameters();
@@ -1061,7 +1083,7 @@ namespace OpenMS
     std::vector<MultiplexIsotopicPeakPattern> patterns = generatePeakPatterns_(charge_min_, charge_max_, isotopes_per_peptide_max_, masses);
     
     std::vector<MultiplexFilteredMSExperiment> filter_results;
-    if (centroided_)
+    if (centroided)
     {
       // centroided data
       MultiplexFilteringCentroided filtering(exp_centroid_, patterns, isotopes_per_peptide_min_, isotopes_per_peptide_max_, param_.getValue("algorithm:intensity_cutoff"), param_.getValue("algorithm:rt_band"), param_.getValue("algorithm:mz_tolerance"), (param_.getValue("algorithm:mz_unit") == "ppm"), param_.getValue("algorithm:peptide_similarity"), param_.getValue("algorithm:averagine_similarity"), param_.getValue("algorithm:averagine_similarity_scaling"), param_.getValue("algorithm:averagine_type"));
@@ -1080,7 +1102,7 @@ namespace OpenMS
      * cluster filter results
      */
     std::vector<std::map<int, GridBasedCluster> > cluster_results;
-    if (centroided_)
+    if (centroided)
     {
       // centroided data
       MultiplexClustering clustering(exp_centroid_, param_.getValue("algorithm:mz_tolerance"), (param_.getValue("algorithm:mz_unit") == "ppm"), param_.getValue("algorithm:rt_typical"), param_.getValue("algorithm:rt_min"));
@@ -1098,7 +1120,7 @@ namespace OpenMS
     /**
      * construct feature and consensus maps i.e. the final results
      */
-    if (centroided_)
+    if (centroided)
     {
       //consensus_map.setPrimaryMSRunPath(exp_centroid_.getPrimaryMSRunPath());
       //feature_map.setPrimaryMSRunPath(exp_centroid_.getPrimaryMSRunPath());
