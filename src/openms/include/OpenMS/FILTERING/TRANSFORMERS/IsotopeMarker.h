@@ -35,7 +35,7 @@
 #pragma once
 
 #include <OpenMS/FILTERING/TRANSFORMERS/PeakMarker.h>
-#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopeDistribution.h>
+#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h>
 
 #include <map>
 #include <vector>
@@ -101,7 +101,7 @@ public:
         Size j = i + 1;
 
         //std::vector<std::pair<double, double> > isotopes = SpectrumGenerator::instance()->isotopepeaks(mz, intensity);
-        CoarseIsotopeDistribution solver;
+        CoarseIsotopePatternGenerator solver;
         auto id = solver.estimateFromPeptideWeight(mz);
 
         while (j < spectrum.size() && spectrum[j].getPosition()[0] <= mz + 3 + mzvariation)

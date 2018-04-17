@@ -35,7 +35,7 @@
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/ExtendedIsotopeModel.h>
 #include <OpenMS/MATH/STATISTICS/BasicStatistics.h>
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopeDistribution.h>
-#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopeDistribution.h>
+#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h>
 #include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
 
 namespace OpenMS
@@ -116,7 +116,7 @@ namespace OpenMS
       form.append("S").append(String(S_num));
 
     EmpiricalFormula formula(form);
-    IsotopeDistribution isotope_distribution = formula.getIsotopeDistribution(CoarseIsotopeDistribution(max_isotope_));
+    IsotopeDistribution isotope_distribution = formula.getIsotopeDistribution(CoarseIsotopePatternGenerator(max_isotope_));
     isotope_distribution.trimRight(trim_right_cutoff_);
     isotope_distribution.renormalize();
 

@@ -45,7 +45,7 @@
 #include <iterator>
 #include <utility>
 #include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
-#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopeDistribution.h>
+#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h>
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/test_config.h>
 
@@ -64,7 +64,7 @@ using namespace std;
 
 IsotopeDistribution* nullPointer = nullptr;
 
-START_SECTION(CoarseIsotopeDistribution())
+START_SECTION(CoarseIsotopePatternGenerator())
 	IsotopeDistribution* ptr = nullptr;
 	ptr = new IsotopeDistribution();
 	Size container_size = ptr->size();
@@ -95,7 +95,7 @@ START_SECTION(~IsotopeDistribution())
 	delete ptr;
 END_SECTION
 
-START_SECTION(IsotopeDistribution& operator = (const CoarseIsotopeDistribution& isotope_distribution))
+START_SECTION(IsotopeDistribution& operator = (const CoarseIsotopePatternGenerator& isotope_distribution))
 	IsotopeDistribution copy;
 	copy = *iso;
 	for (Size i = 0; i != copy.getContainer().size(); ++i)
@@ -112,13 +112,13 @@ END_SECTION
 START_SECTION(bool operator==(const IsotopeDistribution &isotope_distribution) const)
 	IsotopeDistribution iso1, iso2;
 	TEST_EQUAL(iso1 == iso2, true)
-	IsotopeDistribution iso3(EmpiricalFormula("C4").getIsotopeDistribution(CoarseIsotopeDistribution(11))),
-    iso4(EmpiricalFormula("C4").getIsotopeDistribution(CoarseIsotopeDistribution(11)));
+	IsotopeDistribution iso3(EmpiricalFormula("C4").getIsotopeDistribution(CoarseIsotopePatternGenerator(11))),
+    iso4(EmpiricalFormula("C4").getIsotopeDistribution(CoarseIsotopePatternGenerator(11)));
 	TEST_EQUAL(iso3 == iso4, true)
 END_SECTION
 
 START_SECTION(void set(const ContainerType &distribution))
-	IsotopeDistribution iso1(EmpiricalFormula("C4").getIsotopeDistribution(CoarseIsotopeDistribution(11))), iso2;
+	IsotopeDistribution iso1(EmpiricalFormula("C4").getIsotopeDistribution(CoarseIsotopePatternGenerator(11))), iso2;
 	TEST_EQUAL(iso1 == iso2, false)
 	IsotopeDistribution::ContainerType container = iso1.getContainer();
 	iso2.set(container);
@@ -131,25 +131,25 @@ START_SECTION(const ContainerType& getContainer() const)
 END_SECTION
 
 START_SECTION(Size getMax() const)
-	IsotopeDistribution iso(EmpiricalFormula("H2").getIsotopeDistribution(CoarseIsotopeDistribution(11)));
+	IsotopeDistribution iso(EmpiricalFormula("H2").getIsotopeDistribution(CoarseIsotopePatternGenerator(11)));
 	TEST_EQUAL(iso.getMax(), 6)
 END_SECTION
 
 START_SECTION(Size getMin() const)
-	IsotopeDistribution iso(EmpiricalFormula("H2").getIsotopeDistribution(CoarseIsotopeDistribution(11)));
+	IsotopeDistribution iso(EmpiricalFormula("H2").getIsotopeDistribution(CoarseIsotopePatternGenerator(11)));
 	TEST_EQUAL(iso.getMin(), 2)
-	IsotopeDistribution iso2(EmpiricalFormula("C4").getIsotopeDistribution(CoarseIsotopeDistribution(11)));
+	IsotopeDistribution iso2(EmpiricalFormula("C4").getIsotopeDistribution(CoarseIsotopePatternGenerator(11)));
 	TEST_EQUAL(iso2.getMin(), 48)
 END_SECTION
 
 START_SECTION(Size size() const)
-	IsotopeDistribution iso1, iso2(EmpiricalFormula("C4").getIsotopeDistribution(CoarseIsotopeDistribution(11)));
+	IsotopeDistribution iso1, iso2(EmpiricalFormula("C4").getIsotopeDistribution(CoarseIsotopePatternGenerator(11)));
 	TEST_EQUAL(iso1.size(), 1)
 	TEST_EQUAL(iso2.size(), 5)
 END_SECTION
 
 START_SECTION(void clear())
-	IsotopeDistribution iso2(EmpiricalFormula("C4").getIsotopeDistribution(CoarseIsotopeDistribution(11)));
+	IsotopeDistribution iso2(EmpiricalFormula("C4").getIsotopeDistribution(CoarseIsotopePatternGenerator(11)));
 	TEST_EQUAL(iso2.size(), 5)
 	iso2.clear();
 	TEST_EQUAL(iso2.size(), 0)
@@ -157,21 +157,21 @@ END_SECTION
 
 
 START_SECTION(void trimRight(double cutoff))
-	IsotopeDistribution iso(EmpiricalFormula("C160").getIsotopeDistribution(CoarseIsotopeDistribution(10)));
+	IsotopeDistribution iso(EmpiricalFormula("C160").getIsotopeDistribution(CoarseIsotopePatternGenerator(10)));
 	TEST_NOT_EQUAL(iso.size(),3)
 	iso.trimRight(0.2);
 	TEST_EQUAL(iso.size(),3)
 END_SECTION
 
 START_SECTION(void trimLeft(double cutoff))
-  IsotopeDistribution iso(EmpiricalFormula("C160").getIsotopeDistribution(CoarseIsotopeDistribution(10)));
+  IsotopeDistribution iso(EmpiricalFormula("C160").getIsotopeDistribution(CoarseIsotopePatternGenerator(10)));
 	iso.trimRight(0.2);
 	iso.trimLeft(0.2);
 	TEST_EQUAL(iso.size(),2)
 END_SECTION
 
 START_SECTION(void renormalize())
-	IsotopeDistribution iso(EmpiricalFormula("C160").getIsotopeDistribution(CoarseIsotopeDistribution(10)));
+	IsotopeDistribution iso(EmpiricalFormula("C160").getIsotopeDistribution(CoarseIsotopePatternGenerator(10)));
 	iso.trimRight(0.2);
 	iso.trimLeft(0.2);
 	iso.renormalize();
@@ -190,8 +190,8 @@ START_SECTION(bool operator!=(const IsotopeDistribution &isotope_distribution) c
   IsotopeDistribution iso1;
   IsotopeDistribution iso2;
   TEST_EQUAL(iso1 != iso2, false)
-  IsotopeDistribution iso3(EmpiricalFormula("C4").getIsotopeDistribution(CoarseIsotopeDistribution(11))),
-                      iso4(EmpiricalFormula("C4").getIsotopeDistribution(CoarseIsotopeDistribution(11)));
+  IsotopeDistribution iso3(EmpiricalFormula("C4").getIsotopeDistribution(CoarseIsotopePatternGenerator(11))),
+                      iso4(EmpiricalFormula("C4").getIsotopeDistribution(CoarseIsotopePatternGenerator(11)));
   TEST_EQUAL(iso3 != iso4, false)
   TEST_EQUAL(iso2 != iso3, true)
 END_SECTION

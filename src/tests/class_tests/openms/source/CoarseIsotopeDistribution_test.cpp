@@ -37,7 +37,7 @@
 
 // This one is going to be tested.
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopeDistribution.h>
-#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopeDistribution.h>
+#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h>
 ///////////////////////////
 
 // More headers
@@ -52,7 +52,7 @@
 
 /////////////////////////////////////////////////////////////
 
-START_TEST(CoarseIsotopeDistribution, "$Id$")
+START_TEST(CoarseIsotopePatternGenerator, "$Id$")
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
@@ -65,9 +65,9 @@ using namespace std;
 
 IsotopeDistribution* nullPointer = nullptr;
 
-START_SECTION(CoarseIsotopeDistribution())
-	CoarseIsotopeDistribution* ptr = nullptr;
-	ptr = new CoarseIsotopeDistribution();
+START_SECTION(CoarseIsotopePatternGenerator())
+	CoarseIsotopePatternGenerator* ptr = nullptr;
+	ptr = new CoarseIsotopePatternGenerator();
 	Size max_isotope = ptr->getMaxIsotope();
   TEST_EQUAL(max_isotope, 0)
 	TEST_NOT_EQUAL(ptr, nullPointer)
@@ -76,8 +76,8 @@ END_SECTION
 
 
 
-START_SECTION(CoarseIsotopeDistribution(Size max_isotope))
-	CoarseIsotopeDistribution* ptr = new CoarseIsotopeDistribution(117);
+START_SECTION(CoarseIsotopePatternGenerator(Size max_isotope))
+	CoarseIsotopePatternGenerator* ptr = new CoarseIsotopePatternGenerator(117);
 	Size max_isotope = ptr->getMaxIsotope();
   TEST_EQUAL(max_isotope, 117)
 	TEST_NOT_EQUAL(ptr, nullPointer)
@@ -85,10 +85,10 @@ START_SECTION(CoarseIsotopeDistribution(Size max_isotope))
 END_SECTION
 
 
-CoarseIsotopeDistribution* solver = new CoarseIsotopeDistribution();
+CoarseIsotopePatternGenerator* solver = new CoarseIsotopePatternGenerator();
 
-START_SECTION(~CoarseIsotopeDistribution())
-	CoarseIsotopeDistribution* ptr = new CoarseIsotopeDistribution(117);
+START_SECTION(~CoarseIsotopePatternGenerator())
+	CoarseIsotopePatternGenerator* ptr = new CoarseIsotopePatternGenerator(117);
 	delete ptr;
 END_SECTION
 
@@ -107,7 +107,7 @@ START_SECTION(Size getMaxIsotope() const)
 END_SECTION
 
 
-START_SECTION(IsotopeDistribution convolve_(const CoarseIsotopeDistribution& isotope_distribution) const)
+START_SECTION(IsotopeDistribution convolve_(const CoarseIsotopePatternGenerator& isotope_distribution) const)
 	IsotopeDistribution iso1, iso2;
   solver->setMaxIsotope(1);
 	IsotopeDistribution::ContainerType result = solver->convolve_(iso1.getContainer(), iso2.getContainer());
@@ -119,15 +119,15 @@ END_SECTION
 
 
 
-START_SECTION(CoarseIsotopeDistribution& convolvePow_(Size factor))
-  // IsotopeDistribution iso = EmpiricalFormula("C60H97N15O19").getIsotopeDistribution(CoarseIsotopeDistribution());
+START_SECTION(CoarseIsotopePatternGenerator& convolvePow_(Size factor))
+  // IsotopeDistribution iso = EmpiricalFormula("C60H97N15O19").getIsotopeDistribution(CoarseIsotopePatternGenerator());
   // for(auto elem : iso.getContainer())
   // {
     // std::cout << elem.getMZ() << " " << elem.getIntensity() << std::endl;
   // }
 
 	EmpiricalFormula ef("C222N190O110");
-	IsotopeDistribution id = ef.getIsotopeDistribution(CoarseIsotopeDistribution(11));
+	IsotopeDistribution id = ef.getIsotopeDistribution(CoarseIsotopePatternGenerator(11));
 	IsotopeDistribution::ContainerType container;
 	container.push_back(IsotopeDistribution::MassAbundance(7084, 0.0349429));
 	container.push_back(IsotopeDistribution::MassAbundance(7085, 0.109888));
@@ -150,7 +150,7 @@ START_SECTION(CoarseIsotopeDistribution& convolvePow_(Size factor))
   // test gapped isotope distributions, e.g. bromide 79,81 (missing 80)
   {
     EmpiricalFormula ef("Br2");
-    IsotopeDistribution id = ef.getIsotopeDistribution(CoarseIsotopeDistribution(5));
+    IsotopeDistribution id = ef.getIsotopeDistribution(CoarseIsotopePatternGenerator(5));
     container.clear();
     // the expected results as pairs of
     // [nominal mass, probability]
@@ -172,7 +172,7 @@ START_SECTION(CoarseIsotopeDistribution& convolvePow_(Size factor))
     // testing a formula which has more than one element (here: C and Br), since the internal computation is different
     // The convolution is similar to the one above, but add another convolution step with Carbon (hence the lightest mass is 12 Da heavier)
     EmpiricalFormula ef("CBr2");
-    IsotopeDistribution id = ef.getIsotopeDistribution(CoarseIsotopeDistribution(7));
+    IsotopeDistribution id = ef.getIsotopeDistribution(CoarseIsotopePatternGenerator(7));
     container.clear();
     container.push_back(IsotopeDistribution::MassAbundance(170, 0.254198270573));
     container.push_back(IsotopeDistribution::MassAbundance(171, 0.002749339427));
@@ -200,7 +200,7 @@ START_SECTION(IsotopeDistribution estimateFromWeightAndComp(double average_weigh
 END_SECTION
 
 
-START_SECTION(IsotopeDitribution CoarseIsotopeDistribution::estimateFromPeptideWeight(double average_weight))
+START_SECTION(IsotopeDitribution CoarseIsotopePatternGenerator::estimateFromPeptideWeight(double average_weight))
 	// hard to test as this is an rough estimate
 	IsotopeDistribution iso;
   solver->setMaxIsotope(3);
@@ -216,7 +216,7 @@ END_SECTION
 
 
 
-START_SECTION(IsotopeDistribution CoarseIsotopeDistribution::estimateForFragmentFromPeptideWeightAndS(double average_weight_precursor, UInt S_precursor, double average_weight_fragment, UInt S_fragment, const std::vector<UInt>& precursor_isotopes))
+START_SECTION(IsotopeDistribution CoarseIsotopePatternGenerator::estimateForFragmentFromPeptideWeightAndS(double average_weight_precursor, UInt S_precursor, double average_weight_fragment, UInt S_fragment, const std::vector<UInt>& precursor_isotopes))
 	IsotopeDistribution iso;
 	IsotopeDistribution iso2;
 	std::set<UInt> precursor_isotopes;
@@ -261,7 +261,7 @@ START_SECTION(IsotopeDistribution CoarseIsotopeDistribution::estimateForFragment
 END_SECTION
 
 
-START_SECTION(IsotopeDistribution CoarseIsotopeDistribution::estimateFromPeptideWeightAndS(double average_weight_precursor, UInt S))
+START_SECTION(IsotopeDistribution CoarseIsotopePatternGenerator::estimateFromPeptideWeightAndS(double average_weight_precursor, UInt S))
 	IsotopeDistribution iso;
 	IsotopeDistribution iso2;
 	// These are regression tests, but the results also follow an expected pattern.
@@ -318,7 +318,7 @@ START_SECTION(IsotopeDistribution estimateFromRNAWeight(double average_weight))
 END_SECTION
 
 
-START_SECTION(IsotopeDistribution CoarseIsotopeDistribution::estimateFromDNAWeight(double average_weight))
+START_SECTION(IsotopeDistribution CoarseIsotopePatternGenerator::estimateFromDNAWeight(double average_weight))
   // hard to test as this is an rough estimate
   IsotopeDistribution iso;
   solver->setMaxIsotope(3);
@@ -405,7 +405,7 @@ START_SECTION(IsotopeDistribution estimateForFragmentFromPeptideWeight(double av
 END_SECTION
 
 
-START_SECTION(IsotopeDistribution CoarseIsotopeDistribution::estimateForFragmentFromDNAWeight(double average_weight_precursor, double average_weight_fragment, const std::set<UInt>& precursor_isotopes))
+START_SECTION(IsotopeDistribution CoarseIsotopePatternGenerator::estimateForFragmentFromDNAWeight(double average_weight_precursor, double average_weight_fragment, const std::set<UInt>& precursor_isotopes))
 	IsotopeDistribution iso;
   solver->setMaxIsotope(0);
 	std::set<UInt> precursor_isotopes;
@@ -454,7 +454,7 @@ START_SECTION(IsotopeDistribution CoarseIsotopeDistribution::estimateForFragment
 END_SECTION
 
 
-START_SECTION(IsotopeDistribution CoarseIsotopeDistribution::estimateForFragmentFromRNAWeight(double average_weight_precursor, double average_weight_fragment, const std::set<UInt>& precursor_isotopes))
+START_SECTION(IsotopeDistribution CoarseIsotopePatternGenerator::estimateForFragmentFromRNAWeight(double average_weight_precursor, double average_weight_fragment, const std::set<UInt>& precursor_isotopes))
 	IsotopeDistribution iso;
   solver->setMaxIsotope(0);
 	std::set<UInt> precursor_isotopes;
@@ -502,9 +502,9 @@ START_SECTION(IsotopeDistribution CoarseIsotopeDistribution::estimateForFragment
 
 END_SECTION
 
-START_SECTION(IsotopeDistribution calcFragmentIsotopeDist(const CoarseIsotopeDistribution & comp_fragment_isotope_distribution, const std::set<UInt>& precursor_isotopes))
-  IsotopeDistribution iso1(EmpiricalFormula("C1").getIsotopeDistribution(CoarseIsotopeDistribution(11))); // fragment
-  IsotopeDistribution iso2(EmpiricalFormula("C2").getIsotopeDistribution(CoarseIsotopeDistribution(11))); // complementary fragment
+START_SECTION(IsotopeDistribution calcFragmentIsotopeDist(const CoarseIsotopePatternGenerator & comp_fragment_isotope_distribution, const std::set<UInt>& precursor_isotopes))
+  IsotopeDistribution iso1(EmpiricalFormula("C1").getIsotopeDistribution(CoarseIsotopePatternGenerator(11))); // fragment
+  IsotopeDistribution iso2(EmpiricalFormula("C2").getIsotopeDistribution(CoarseIsotopePatternGenerator(11))); // complementary fragment
 
   std::set<UInt> precursor_isotopes;
   precursor_isotopes.insert(0);

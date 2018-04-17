@@ -176,7 +176,7 @@ public:
 
 
     /**
-       @brief formula's isotope distribution using the CoarseIsotopeDistribution
+       @brief formula's isotope distribution using the CoarseIsotopePatternGenerator
        This is used as a wrapper for the pyOpenMS
      */
     IsotopeDistribution getIsotopeDistribution() const;

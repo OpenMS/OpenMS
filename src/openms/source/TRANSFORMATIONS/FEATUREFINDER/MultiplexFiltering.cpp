@@ -34,7 +34,7 @@
 
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/KERNEL/BaseFeature.h>
-#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopeDistribution.h>
+#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerHiRes.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFiltering.h>
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
@@ -389,7 +389,7 @@ namespace OpenMS
 
   {
     // construct averagine distribution
-    CoarseIsotopeDistribution solver(pattern.size());
+    CoarseIsotopePatternGenerator solver(pattern.size());
     IsotopeDistribution distribution;
     vector<double> averagine_pattern;
     if (averagine_type_ == "peptide")

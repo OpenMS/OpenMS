@@ -65,16 +65,16 @@ namespace OpenMS
     *         Distributions can be added to one another or multiplied with an integer.
     **/
 
-  class OPENMS_DLLAPI CoarseIsotopeDistribution 
+  class OPENMS_DLLAPI CoarseIsotopePatternGenerator 
     : public IsotopePatternGenerator
   {
 
  public:
-    CoarseIsotopeDistribution();
+    CoarseIsotopePatternGenerator();
 
-    CoarseIsotopeDistribution(const Size& max_isotope);
+    CoarseIsotopePatternGenerator(const Size& max_isotope);
 
-    virtual ~CoarseIsotopeDistribution();
+    virtual ~CoarseIsotopePatternGenerator();
 
     /// @name Accessors
     //@{
@@ -95,7 +95,7 @@ namespace OpenMS
     void clear();
     //@}
     /// equality operator, returns true if the @p isotope_distribution is identical to this, false else
-    // bool operator==(const CoarseIsotopeDistribution& isotope_distribution) const;
+    // bool operator==(const CoarseIsotopePatternGenerator& isotope_distribution) const;
 
     /// inequality operator, returns true if the @p isotope_distribution differs from this, false else
     
@@ -277,7 +277,7 @@ namespace OpenMS
     */
     IsotopeDistribution calcFragmentIsotopeDist(const IsotopeDistribution& fragment_isotope_dist, const IsotopeDistribution& comp_fragment_isotope_dist, const std::set<UInt>& precursor_isotopes);
 
-    CoarseIsotopeDistribution& operator=(const CoarseIsotopeDistribution& iso);
+    CoarseIsotopePatternGenerator& operator=(const CoarseIsotopePatternGenerator& iso);
 
     /// convolves the distributions @p left and @p right and stores the result in @p result
     IsotopeDistribution::ContainerType convolve_(const IsotopeDistribution::ContainerType & left, const IsotopeDistribution::ContainerType & right) const;

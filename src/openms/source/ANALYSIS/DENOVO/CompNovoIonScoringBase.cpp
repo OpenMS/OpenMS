@@ -34,7 +34,7 @@
 //
 
 #include <OpenMS/ANALYSIS/DENOVO/CompNovoIonScoringBase.h>
-#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopeDistribution.h>
+#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h>
 
 #include <numeric>
 
@@ -250,7 +250,7 @@ namespace OpenMS
     }
 
     // get the theoretical isotope distribution
-    CoarseIsotopeDistribution solver(iso_pattern.size());
+    CoarseIsotopePatternGenerator solver(iso_pattern.size());
     auto iso_dist = solver.estimateFromPeptideWeight((it_pos - charge * Constants::PROTON_MASS_U) * charge + Constants::PROTON_MASS_U);
 
     // compare the distribution sizes
@@ -351,7 +351,7 @@ namespace OpenMS
 
 
     // get the theoretical isotope distribution
-    CoarseIsotopeDistribution solver(UInt(iso_pattern.size()));
+    CoarseIsotopePatternGenerator solver(UInt(iso_pattern.size()));
     auto iso_dist = solver.estimateFromPeptideWeight(it_pos * (double)charge - (double)(charge - 1) * Constants::PROTON_MASS_U);
 
     // compare the distribution sizes
@@ -386,7 +386,7 @@ namespace OpenMS
   {
     double max_mz(param_.getValue("max_mz"));
     Size max_isotope(param_.getValue("max_isotope"));
-    CoarseIsotopeDistribution solver(max_isotope);
+    CoarseIsotopePatternGenerator solver(max_isotope);
     for (Size i = 1; i <= max_mz; ++i)
     {
       auto iso_dist = solver.estimateFromPeptideWeight((double)i);

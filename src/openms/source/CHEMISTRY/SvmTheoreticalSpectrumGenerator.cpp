@@ -35,7 +35,7 @@
 #include <OpenMS/CHEMISTRY/SvmTheoreticalSpectrumGenerator.h>
 
 #include <OpenMS/CHEMISTRY/ResidueDB.h>
-#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopeDistribution.h>
+#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 
 #include <boost/bind.hpp>
@@ -956,7 +956,7 @@ namespace OpenMS
 
       if (add_isotopes)
       {
-        IsotopeDistribution dist = ion_formula.getIsotopeDistribution(CoarseIsotopeDistribution((Int)max_isotope));
+        IsotopeDistribution dist = ion_formula.getIsotopeDistribution(CoarseIsotopePatternGenerator((Int)max_isotope));
         Size j = 0;
         for (IsotopeDistribution::ConstIterator it = dist.begin(); it != dist.end(); ++it, ++j)
         {

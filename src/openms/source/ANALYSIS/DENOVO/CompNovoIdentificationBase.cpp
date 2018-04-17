@@ -34,7 +34,7 @@
 //
 
 #include <OpenMS/ANALYSIS/DENOVO/CompNovoIdentificationBase.h>
-#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopeDistribution.h>
+#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h>
 #include <OpenMS/CHEMISTRY/ModificationDefinitionsSet.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/CHEMISTRY/ResidueDB.h>
@@ -583,7 +583,7 @@ for (set<Size>::const_iterator it = used_pos.begin(); it != used_pos.end(); ++it
 
   void CompNovoIdentificationBase::initIsotopeDistributions_()
   {
-    CoarseIsotopeDistribution solver(max_isotope_);
+    CoarseIsotopePatternGenerator solver(max_isotope_);
     for (Size i = 1; i <= max_mz_ * 2; ++i)
     {
       auto iso_dist = solver.estimateFromPeptideWeight((double)i);

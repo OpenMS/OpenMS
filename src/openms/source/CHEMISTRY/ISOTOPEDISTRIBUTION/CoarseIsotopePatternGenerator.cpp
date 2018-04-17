@@ -40,7 +40,7 @@
 #include <functional>
 #include <numeric>
 
-#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopeDistribution.h>
+#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h>
 #include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
 #include <OpenMS/CHEMISTRY/Element.h>
 
@@ -48,34 +48,34 @@ using namespace std;
 
 namespace OpenMS
 {
-  CoarseIsotopeDistribution::CoarseIsotopeDistribution() : 
+  CoarseIsotopePatternGenerator::CoarseIsotopePatternGenerator() : 
     IsotopePatternGenerator(),
     max_isotope_(0)
   {
   }
 
-  CoarseIsotopeDistribution::CoarseIsotopeDistribution(const Size& max_isotope) :
+  CoarseIsotopePatternGenerator::CoarseIsotopePatternGenerator(const Size& max_isotope) :
     IsotopePatternGenerator(),
     max_isotope_(max_isotope)
   {
   }
 
-  CoarseIsotopeDistribution::~CoarseIsotopeDistribution()
+  CoarseIsotopePatternGenerator::~CoarseIsotopePatternGenerator()
   {}
 
 
-  void CoarseIsotopeDistribution::setMaxIsotope(const Size& max_isotope)
+  void CoarseIsotopePatternGenerator::setMaxIsotope(const Size& max_isotope)
   {
     max_isotope_ = max_isotope;
   }
 
-  Size CoarseIsotopeDistribution::getMaxIsotope() const
+  Size CoarseIsotopePatternGenerator::getMaxIsotope() const
   {
     return max_isotope_;
   }
 
 
-  IsotopeDistribution CoarseIsotopeDistribution::run(const EmpiricalFormula& formula) const
+  IsotopeDistribution CoarseIsotopePatternGenerator::run(const EmpiricalFormula& formula) const
   {
     IsotopeDistribution result;
 
@@ -91,56 +91,56 @@ namespace OpenMS
     return result;
   }
 
-  IsotopeDistribution CoarseIsotopeDistribution::estimateFromPeptideWeight(double average_weight)
+  IsotopeDistribution CoarseIsotopePatternGenerator::estimateFromPeptideWeight(double average_weight)
   {
     // Element counts are from Senko's Averagine model
     return estimateFromWeightAndComp(average_weight, 4.9384, 7.7583, 1.3577, 1.4773, 0.0417, 0);
   }
 
-  IsotopeDistribution CoarseIsotopeDistribution::estimateFromPeptideWeightAndS(double average_weight, UInt S)
+  IsotopeDistribution CoarseIsotopePatternGenerator::estimateFromPeptideWeightAndS(double average_weight, UInt S)
   {
     // Element counts are from Senko's Averagine model, excluding sulfur.
     return estimateFromWeightAndCompAndS(average_weight, S, 4.9384, 7.7583, 1.3577, 1.4773, 0);
   }
 
-  IsotopeDistribution CoarseIsotopeDistribution::estimateFromRNAWeight(double average_weight)
+  IsotopeDistribution CoarseIsotopePatternGenerator::estimateFromRNAWeight(double average_weight)
   {
     return estimateFromWeightAndComp(average_weight, 9.75, 12.25, 3.75, 7, 0, 1);
   }
 
-  IsotopeDistribution CoarseIsotopeDistribution::estimateFromDNAWeight(double average_weight)
+  IsotopeDistribution CoarseIsotopePatternGenerator::estimateFromDNAWeight(double average_weight)
   {
     return estimateFromWeightAndComp(average_weight, 9.75, 12.25, 3.75, 6, 0, 1);
   }
 
-  IsotopeDistribution CoarseIsotopeDistribution::estimateFromWeightAndComp(double average_weight, double C, double H, double N, double O, double S, double P)
+  IsotopeDistribution CoarseIsotopePatternGenerator::estimateFromWeightAndComp(double average_weight, double C, double H, double N, double O, double S, double P)
   {
     EmpiricalFormula ef;
     ef.estimateFromWeightAndComp(average_weight, C, H, N, O, S, P);
     return ef.getIsotopeDistribution(*this);
   }
 
-  IsotopeDistribution CoarseIsotopeDistribution::estimateFromWeightAndCompAndS(double average_weight, UInt S, double C, double H, double N, double O, double P)
+  IsotopeDistribution CoarseIsotopePatternGenerator::estimateFromWeightAndCompAndS(double average_weight, UInt S, double C, double H, double N, double O, double P)
   {
     EmpiricalFormula ef;
     ef.estimateFromWeightAndCompAndS(average_weight, S, C, H, N, O, P);
     return ef.getIsotopeDistribution(*this);
   }
 
-  IsotopeDistribution CoarseIsotopeDistribution::estimateForFragmentFromPeptideWeight(double average_weight_precursor, double average_weight_fragment, const std::set<UInt>& precursor_isotopes)
+  IsotopeDistribution CoarseIsotopePatternGenerator::estimateForFragmentFromPeptideWeight(double average_weight_precursor, double average_weight_fragment, const std::set<UInt>& precursor_isotopes)
   {
     // Element counts are from Senko's Averagine model
     return estimateForFragmentFromWeightAndComp(average_weight_precursor, average_weight_fragment, precursor_isotopes, 4.9384, 7.7583, 1.3577, 1.4773, 0.0417, 0);
   }
 
-  IsotopeDistribution CoarseIsotopeDistribution::estimateForFragmentFromPeptideWeightAndS(double average_weight_precursor, UInt S_precursor, double average_weight_fragment, UInt S_fragment, const std::set<UInt>& precursor_isotopes)
+  IsotopeDistribution CoarseIsotopePatternGenerator::estimateForFragmentFromPeptideWeightAndS(double average_weight_precursor, UInt S_precursor, double average_weight_fragment, UInt S_fragment, const std::set<UInt>& precursor_isotopes)
   {
     UInt max_depth = *std::max_element(precursor_isotopes.begin(), precursor_isotopes.end())+1;
 
     double average_weight_comp_fragment = average_weight_precursor - average_weight_fragment;
     double S_comp_fragment = S_precursor - S_fragment;
 
-    CoarseIsotopeDistribution solver(max_depth);
+    CoarseIsotopePatternGenerator solver(max_depth);
     
     IsotopeDistribution id_fragment(solver.estimateFromPeptideWeightAndS(average_weight_fragment, S_fragment));
     IsotopeDistribution id_comp_fragment(solver.estimateFromPeptideWeightAndS(average_weight_comp_fragment, S_comp_fragment));
@@ -148,38 +148,38 @@ namespace OpenMS
     return calcFragmentIsotopeDist(id_fragment, id_comp_fragment, precursor_isotopes);
   }
 
-  IsotopeDistribution CoarseIsotopeDistribution::estimateForFragmentFromRNAWeight(double average_weight_precursor, double average_weight_fragment, const std::set<UInt>& precursor_isotopes)
+  IsotopeDistribution CoarseIsotopePatternGenerator::estimateForFragmentFromRNAWeight(double average_weight_precursor, double average_weight_fragment, const std::set<UInt>& precursor_isotopes)
   {
     return estimateForFragmentFromWeightAndComp(average_weight_precursor, average_weight_fragment, precursor_isotopes, 9.75, 12.25, 3.75, 7, 0, 1);
   }
 
-  IsotopeDistribution CoarseIsotopeDistribution::estimateForFragmentFromDNAWeight(double average_weight_precursor, double average_weight_fragment, const std::set<UInt>& precursor_isotopes)
+  IsotopeDistribution CoarseIsotopePatternGenerator::estimateForFragmentFromDNAWeight(double average_weight_precursor, double average_weight_fragment, const std::set<UInt>& precursor_isotopes)
   {
     return estimateForFragmentFromWeightAndComp(average_weight_precursor, average_weight_fragment, precursor_isotopes, 9.75, 12.25, 3.75, 6, 0, 1);
   }
 
-  IsotopeDistribution CoarseIsotopeDistribution::estimateForFragmentFromWeightAndComp(double average_weight_precursor, double average_weight_fragment, const std::set<UInt>& precursor_isotopes, double C, double H, double N, double O, double S, double P)
+  IsotopeDistribution CoarseIsotopePatternGenerator::estimateForFragmentFromWeightAndComp(double average_weight_precursor, double average_weight_fragment, const std::set<UInt>& precursor_isotopes, double C, double H, double N, double O, double S, double P)
   {
     UInt max_depth = *std::max_element(precursor_isotopes.begin(), precursor_isotopes.end()) + 1;
 
     EmpiricalFormula ef_fragment;
     ef_fragment.estimateFromWeightAndComp(average_weight_fragment, C, H, N, O, S, P);
-    IsotopeDistribution id_fragment = ef_fragment.getIsotopeDistribution(CoarseIsotopeDistribution(max_depth));
+    IsotopeDistribution id_fragment = ef_fragment.getIsotopeDistribution(CoarseIsotopePatternGenerator(max_depth));
 
     EmpiricalFormula ef_comp_frag;
     ef_comp_frag.estimateFromWeightAndComp(average_weight_precursor-average_weight_fragment, C, H, N, O, S, P);
-    IsotopeDistribution id_comp_fragment = ef_comp_frag.getIsotopeDistribution(CoarseIsotopeDistribution(max_depth));
+    IsotopeDistribution id_comp_fragment = ef_comp_frag.getIsotopeDistribution(CoarseIsotopePatternGenerator(max_depth));
 
     return calcFragmentIsotopeDist(id_fragment, id_comp_fragment, precursor_isotopes);
   }
 
-  IsotopeDistribution CoarseIsotopeDistribution::calcFragmentIsotopeDist(const IsotopeDistribution& fragment_isotope_dist, const IsotopeDistribution& comp_fragment_isotope_dist, const std::set<UInt>& precursor_isotopes)
+  IsotopeDistribution CoarseIsotopePatternGenerator::calcFragmentIsotopeDist(const IsotopeDistribution& fragment_isotope_dist, const IsotopeDistribution& comp_fragment_isotope_dist, const std::set<UInt>& precursor_isotopes)
   {
     // Simple wrapper maybe refactor ??
     return calcFragmentIsotopeDist_(fragment_isotope_dist.getContainer(), comp_fragment_isotope_dist.getContainer(), precursor_isotopes);
   }
 
-  IsotopeDistribution::ContainerType CoarseIsotopeDistribution::convolve_(const IsotopeDistribution::ContainerType & left, const IsotopeDistribution::ContainerType & right) const
+  IsotopeDistribution::ContainerType CoarseIsotopePatternGenerator::convolve_(const IsotopeDistribution::ContainerType & left, const IsotopeDistribution::ContainerType & right) const
   {
     IsotopeDistribution::ContainerType result;
 
@@ -223,7 +223,7 @@ namespace OpenMS
     return result;
   }
 
-  IsotopeDistribution::ContainerType CoarseIsotopeDistribution::convolvePow_(const IsotopeDistribution::ContainerType & input, Size n) const
+  IsotopeDistribution::ContainerType CoarseIsotopePatternGenerator::convolvePow_(const IsotopeDistribution::ContainerType & input, Size n) const
   {
     IsotopeDistribution::ContainerType result;
     // TODO: use FFT convolve?
@@ -281,7 +281,7 @@ namespace OpenMS
     return result;
   }
 
-  IsotopeDistribution::ContainerType CoarseIsotopeDistribution::convolveSquare_(const IsotopeDistribution::ContainerType & input) const
+  IsotopeDistribution::ContainerType CoarseIsotopePatternGenerator::convolveSquare_(const IsotopeDistribution::ContainerType & input) const
   {
     IsotopeDistribution::ContainerType result;
     IsotopeDistribution::ContainerType::size_type r_max = 2 * input.size() - 1;
@@ -310,7 +310,7 @@ namespace OpenMS
     return result;
   }
 
-  IsotopeDistribution CoarseIsotopeDistribution::calcFragmentIsotopeDist_(const IsotopeDistribution::ContainerType& fragment_isotope_dist, const IsotopeDistribution::ContainerType& comp_fragment_isotope_dist, const std::set<UInt>& precursor_isotopes)
+  IsotopeDistribution CoarseIsotopePatternGenerator::calcFragmentIsotopeDist_(const IsotopeDistribution::ContainerType& fragment_isotope_dist, const IsotopeDistribution::ContainerType& comp_fragment_isotope_dist, const std::set<UInt>& precursor_isotopes)
   {
     
     IsotopeDistribution result;
@@ -390,7 +390,7 @@ namespace OpenMS
 
   }
 
-  IsotopeDistribution::ContainerType CoarseIsotopeDistribution::fillGaps_(const IsotopeDistribution::ContainerType& id) const
+  IsotopeDistribution::ContainerType CoarseIsotopePatternGenerator::fillGaps_(const IsotopeDistribution::ContainerType& id) const
   {
     IsotopeDistribution::ContainerType id_gapless;
     Size mass = round(id.begin()->getMZ());

@@ -45,7 +45,7 @@
 #include <OpenMS/CHEMISTRY/Element.h>
 #include <OpenMS/CHEMISTRY/ElementDB.h>
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopeDistribution.h>
-#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopeDistribution.h>
+#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h>
 #include <boost/math/special_functions/fpclassify.hpp>
 
 #include <QtCore/QDir>
@@ -394,7 +394,7 @@ namespace OpenMS
       for (Size index = 0; index < num_isotopes; ++index)
       {
         //if(debug_) log_ << "Calculating iso dist for mass: " << 0.5*mass_window_width_ + index * mass_window_width_ << std::endl;
-        CoarseIsotopeDistribution solver(max_isotopes);
+        CoarseIsotopePatternGenerator solver(max_isotopes);
         auto d = solver.estimateFromPeptideWeight(0.5 * mass_window_width_ + index * mass_window_width_);
         //trim left and right. And store the number of isotopes on the left, to reconstruct the monoisotopic peak
         Size size_before = d.size();
