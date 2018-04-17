@@ -246,9 +246,15 @@ namespace OpenMS
         }
       }else if (adduct[1] == "0")//pos,neg == 0
       {//getMonoWeight simple for Charge 0: sums individual atom monoisotopic weights
-        EmpiricalFormula ef(adduct[0]);
-        ef.setCharge(0);
-        potential_adducts_.push_back(Adduct(ef.getCharge(), 1, ef.getMonoWeight(), adduct[0], log(prob), rt_shift, label));
+        if ((Int)param_.getValue("max_neutrals") > 0)
+        {
+          EmpiricalFormula ef(adduct[0]);
+          ef.setCharge(0);
+          potential_adducts_.push_back(Adduct(ef.getCharge(), 1, ef.getMonoWeight(), adduct[0], log(prob), rt_shift, label));
+        }else
+        {
+          continue;//not to be used anyway, don't add
+        }
       }else//adduct charge not +,- or 0
       {
       String error = "MetaboliteFeatureDeconvolution::potential_adduct charge must only contain '+','-' or '0'!";
