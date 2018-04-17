@@ -43,7 +43,6 @@ namespace OpenMS
                                                                         const OpenMS::ReactionMonitoringTransition& transition,
                                                                         bool do_peptides)
   {
-    OPENMS_PRECONDITION(i >= 0, "Index i must be larger than zero")
     OPENMS_PRECONDITION(IMPLIES(do_peptides, !transition.getPeptideRef().empty()), "PeptideRef cannot be empty for peptides")
     OPENMS_PRECONDITION(IMPLIES(!do_peptides, !transition.getCompoundRef().empty()), "CompoundRef cannot be empty for compounds")
 
