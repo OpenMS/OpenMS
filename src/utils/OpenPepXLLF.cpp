@@ -237,6 +237,27 @@ protected:
     registerIntOption_("algorithm:number_of_scored_candidates", "<num>", 10000, "Number of candidates that are scored using the full scoring function after ranking by a faster pre-scoring function.", false, false);
     registerIntOption_("algorithm:number_top_hits", "<num>", 5, "Number of top hits reported for each spectrum pair", false, false);
 
+    // void registerStringOption_(const String& name, const String& argument, const String& default_value, const String& description, bool required = true, bool advanced = false);
+    StringList bool_strings = ListUtils::create<String>("true,false");
+    registerTOPPSubsection_("ions", "Ion types to search for");
+    registerStringOption_("ions:b_ions", "<true/false>", "true", "Search for peaks of b-ions.", false, true);
+    setValidStrings_("ions:b_ions", bool_strings);
+    registerStringOption_("ions:y_ions", "<true/false>", "true", "Search for peaks of y-ions.", false, true);
+    setValidStrings_("ions:y_ions", bool_strings);
+    registerStringOption_("ions:a_ions", "<true/false>", "false", "Search for peaks of a-ions.", false, true);
+    setValidStrings_("ions:a_ions", bool_strings);
+    registerStringOption_("ions:x_ions", "<true/false>", "false", "Search for peaks of x-ions.", false, true);
+    setValidStrings_("ions:x_ions", bool_strings);
+    registerStringOption_("ions:c_ions", "<true/false>", "false", "Search for peaks of c-ions.", false, true);
+    setValidStrings_("ions:c_ions", bool_strings);
+    registerStringOption_("ions:z_ions", "<true/false>", "false", "Search for peaks of z-ions.", false, true);
+    setValidStrings_("ions:z_ions", bool_strings);
+    registerStringOption_("ions:neutral_losses", "<true/false>", "true", "Search for neutral losses of H2O and H3N.", false, true);
+    setValidStrings_("ions:neutral_losses", bool_strings);
+
+    // TODO not implemented yet
+    registerDoubleOption_("ions:cleaved_linker", "<mass>", 0.0, "desc", false, true);
+
     // output file
     registerOutputFile_("out_xquestxml", "<file>", "", "Results in the xquest.xml format (at least one of these output parameters should be set, otherwise you will not have any results).", false);
     setValidFormats_("out_xquestxml", ListUtils::create<String>("xml,xquest.xml"));
@@ -454,20 +475,22 @@ protected:
     specGenParams_fast.setValue("add_k_linked_ions", "false");
     specGen_fast.setParameters(specGenParams_fast);
 
+
     // settings fpr full-scoring, annotations, 2nd isotopic peaks, losses and precursors
     Param specGenParams_full = specGen_full.getParameters();
-    specGenParams_full.setValue("add_first_prefix_ion", "true", "If set to true e.g. b1 ions are added");
-    specGenParams_full.setValue("add_y_ions", "true", "Add peaks of y-ions to the spectrum");
-    specGenParams_full.setValue("add_b_ions", "true", "Add peaks of b-ions to the spectrum");
-    specGenParams_full.setValue("add_a_ions", "true", "Add peaks of a-ions to the spectrum");
-    specGenParams_full.setValue("add_c_ions", "false", "Add peaks of c-ions to the spectrum");
-    specGenParams_full.setValue("add_x_ions", "false", "Add peaks of  x-ions to the spectrum");
-    specGenParams_full.setValue("add_z_ions", "false", "Add peaks of z-ions to the spectrum");
+    specGenParams_full.setValue("add_b_ions", getStringOption_("ions:b_ions"), "Add peaks of y-ions to the spectrum");
+    specGenParams_full.setValue("add_y_ions", getStringOption_("ions:y_ions"), "Add peaks of b-ions to the spectrum");
+    specGenParams_full.setValue("add_a_ions", getStringOption_("ions:a_ions"), "Add peaks of a-ions to the spectrum");
+    specGenParams_full.setValue("add_x_ions", getStringOption_("ions:x_ions"), "Add peaks of c-ions to the spectrum");
+    specGenParams_full.setValue("add_c_ions", getStringOption_("ions:c_ions"), "Add peaks of x-ions to the spectrum");
+    specGenParams_full.setValue("add_z_ions", getStringOption_("ions:z_ions"), "Add peaks of z-ions to the spectrum");
+    specGenParams_full.setValue("add_losses", getStringOption_("ions:neutral_losses"), "Adds common losses to those ion expect to have them, only water and ammonia loss is considered");
 
+    specGenParams_full.setValue("add_first_prefix_ion", "true", "If set to true e.g. b1 ions are added");
     specGenParams_full.setValue("add_metainfo", "true");
     specGenParams_full.setValue("add_isotopes", "true", "If set to 1 isotope peaks of the product ion peaks are added");
     specGenParams_full.setValue("max_isotope", 2, "Defines the maximal isotopic peak which is added, add_isotopes must be set to 1");
-    specGenParams_full.setValue("add_losses", "true", "Adds common losses to those ion expect to have them, only water and ammonia loss is considered");
+
     specGenParams_full.setValue("add_precursor_peaks", "true");
     specGenParams_full.setValue("add_k_linked_ions", "true");
     specGen_full.setParameters(specGenParams_full);
