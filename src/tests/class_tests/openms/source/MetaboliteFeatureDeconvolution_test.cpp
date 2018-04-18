@@ -1,32 +1,32 @@
 // --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry               
+//                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
 // ETH Zurich, and Freie Universitaet Berlin 2002-2017.
-// 
+//
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
 //    notice, this list of conditions and the following disclaimer.
 //  * Redistributions in binary form must reproduce the above copyright
 //    notice, this list of conditions and the following disclaimer in the
 //    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution 
-//    may be used to endorse or promote products derived from this software 
+//  * Neither the name of any author or any participating institution
+//    may be used to endorse or promote products derived from this software
 //    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS. 
+// For a full list of authors, refer to the file AUTHORS.
 // --------------------------------------------------------------------------
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING 
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
+// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 // --------------------------------------------------------------------------
 // $Maintainer: Chris Bielow $
 // --------------------------------------------------------------------------
@@ -47,7 +47,7 @@
 namespace OpenMS
 {
   class MetaboliteFeatureDeconvolutionTest
-    : public MetaboliteFeatureDeconvolution 
+    : public MetaboliteFeatureDeconvolution
   {
   public:
       /// List of adducts used to explain mass differences
@@ -95,15 +95,15 @@ END_SECTION
 
 START_SECTION([EXTRA](void updateMembers_()))
   MetaboliteFeatureDeconvolutionTest fdt;
-	
+
   Param p;
   p.setValue("charge_min", 11, "minimal possible charge");
   p.setValue("charge_max", 13, "maximal possible charge");
   p.setValue("retention_max_diff", 1.0, "maximum allowed RT difference between any two features if their relation shall be determined");
   p.setValue("retention_max_diff_local", 2.0, "maxi");
-  p.setValue("potential_adducts", ListUtils::create<String>("H:+:0.7,Na:+:0.1,(2)H4H-4:0:0.2:-2:heavy"), "Ad");
+  p.setValue("potential_adducts", ListUtils::create<String>("H:+:0.7,Na:+:0.3,(2)H4H-4:0:0.2:-2:heavy"), "Ad");
   fdt.setParameters(p);
-  
+
   {
   MassExplainer::AdductsType adducts = fdt.getPotentialAdducts();
   Map<Size, String> map = fdt.getMapLabels();
@@ -119,7 +119,7 @@ START_SECTION([EXTRA](void updateMembers_()))
   TEST_EQUAL(adducts[1].getFormula(), "Na1");
   TEST_EQUAL(adducts[1].getRTShift(), 0);
   TEST_EQUAL(adducts[1].getCharge(), 1);
-  TEST_REAL_SIMILAR(adducts[1].getLogProb(), log(0.1));
+  TEST_REAL_SIMILAR(adducts[1].getLogProb(), log(0.3));
   TEST_EQUAL(adducts[2].getFormula(), "(2)H4H-4");
   TEST_EQUAL(adducts[2].getRTShift(), -2);
   TEST_EQUAL(adducts[2].getCharge(), 0);
@@ -189,7 +189,7 @@ START_SECTION(MetaboliteFeatureDeconvolution(const MetaboliteFeatureDeconvolutio
   fd.setParameters(p);
   MetaboliteFeatureDeconvolution fd2(fd);
   MetaboliteFeatureDeconvolution fd_untouched;
-	
+
   TEST_EQUAL(fd2.getParameters(), fd.getParameters())
   TEST_NOT_EQUAL(fd2.getParameters(), fd_untouched.getParameters())
 
@@ -203,7 +203,7 @@ START_SECTION(MetaboliteFeatureDeconvolution& operator=(const MetaboliteFeatureD
   fd.setParameters(p);
   MetaboliteFeatureDeconvolution fd2 = fd;
   MetaboliteFeatureDeconvolution fd_untouched;
-	
+
   TEST_EQUAL(fd2.getParameters(), fd.getParameters())
   TEST_NOT_EQUAL(fd2.getParameters(), fd_untouched.getParameters())
 END_SECTION
@@ -214,9 +214,9 @@ START_SECTION(void compute(const FeatureMapType &fm_in, FeatureMapType &fm_out, 
 
   MetaboliteFeatureDeconvolution fd;
   Param p;
-  p.setValue("potential_adducts", ListUtils::create<String>("H:+:0.7,Na:+:0.1,(2)H4H-4:0:0.2:-2:heavy"), "Ad");
+  p.setValue("potential_adducts", ListUtils::create<String>("H:+:0.7,Na:+:0.3,(2)H4H-4:0:0.2:-2:heavy"), "Ad");
   p.setValue("mass_max_diff", 0.1);
-p.setValue("use_minority_bound","true","enable bound"); 
+p.setValue("use_minority_bound","true","enable bound");
   fd.setParameters(p);
 
   FeatureMap fm_in, fm_out;
@@ -240,5 +240,3 @@ END_SECTION
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
-
-
