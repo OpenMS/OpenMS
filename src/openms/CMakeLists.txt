@@ -90,8 +90,9 @@ set(OPENMS_DEP_LIBRARIES  ${COIN_LIBRARIES}
                           ${BZIP2_LIBRARIES}
                           ${ZLIB_LIBRARIES}
                           ${SQLite_LIBRARY}
-                          ${GLPK_LIBRARIES}
-                          ${Qt5Core_LIBRARIES}
+                          ${GLPK_LIBRARIES})
+
+set(OPENMS_QT_LIBRARIES   ${Qt5Core_LIBRARIES}
                           ${Qt5Network_LIBRARIES})
 
 # xerces requires linking against CoreFoundation&CoreServices
@@ -154,7 +155,8 @@ openms_add_library(TARGET_NAME  OpenMS
                                      ${Qt5Core_INCLUDE_DIRS}
                                      ${Qt5Network_INCLUDE_DIRS}
                    LINK_LIBRARIES OpenSwathAlgo
-                                  ${OPENMS_DEP_LIBRARIES}
+                                  ${OPENMS_QT_LIBRARIES}
+                   PRIVATE_LINK_LIBRARIES ${OPENMS_DEP_LIBRARIES}
                    DLL_EXPORT_PATH "OpenMS/")
                    
 #------------------------------------------------------------------------------
