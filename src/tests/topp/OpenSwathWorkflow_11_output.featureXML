@@ -80,6 +80,7 @@
 			<UserParam type="float" name="nr_peaks" value="3"/>
 			<UserParam type="float" name="sn_ratio" value="2.0448098550324"/>
 			<UserParam type="float" name="var_log_sn_score" value="0.715304804747562"/>
+			<UserParam type="float" name="xx_lda_prelim_score" value="5.14493545318084"/>
 			<UserParam type="float" name="PrecursorMZ" value="412.5"/>
 			<UserParam type="string" name="potentialOutlier" value="tr1"/>
 			<UserParam type="float" name="initialPeakQuality" value="1.25"/>
@@ -88,7 +89,6 @@
 			<UserParam type="float" name="norm_RT" value="0.5"/>
 			<UserParam type="float" name="rt_score" value="2.22044604925031e-16"/>
 			<UserParam type="float" name="var_norm_rt_score" value="2.22044604925031e-18"/>
-			<UserParam type="float" name="xx_lda_prelim_score" value="5.14493545318084"/>
 			<UserParam type="float" name="var_isotope_correlation_score" value="0.0260894299407082"/>
 			<UserParam type="float" name="var_isotope_overlap_score" value="0"/>
 			<UserParam type="float" name="var_massdev_score" value="27.1945494817822"/>
@@ -180,6 +180,7 @@
 			<UserParam type="float" name="nr_peaks" value="3"/>
 			<UserParam type="float" name="sn_ratio" value="1.63412592298157"/>
 			<UserParam type="float" name="var_log_sn_score" value="0.491108057716722"/>
+			<UserParam type="float" name="xx_lda_prelim_score" value="4.96579223436568"/>
 			<UserParam type="float" name="PrecursorMZ" value="462.5"/>
 			<UserParam type="string" name="potentialOutlier" value="7"/>
 			<UserParam type="float" name="initialPeakQuality" value="1.25"/>
@@ -188,7 +189,6 @@
 			<UserParam type="float" name="norm_RT" value="0.7"/>
 			<UserParam type="float" name="rt_score" value="1.11022302462516e-16"/>
 			<UserParam type="float" name="var_norm_rt_score" value="1.11022302462516e-18"/>
-			<UserParam type="float" name="xx_lda_prelim_score" value="4.96579223436568"/>
 			<UserParam type="float" name="var_isotope_correlation_score" value="0.135147817700222"/>
 			<UserParam type="float" name="var_isotope_overlap_score" value="0"/>
 			<UserParam type="float" name="var_massdev_score" value="16.3566522647397"/>

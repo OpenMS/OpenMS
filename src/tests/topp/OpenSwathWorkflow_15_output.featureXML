@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
-<featureMap version="1.9" id="fm_3332699010107892018" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/FeatureXML_1_9.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<featureMap version="1.9" id="fm_15916652588957785155" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/FeatureXML_1_9.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 	<dataProcessing completion_time="1999-12-31T23:59:59">
 		<software name="OpenSwathWorkflow" version="version_string" />
 		<processingAction name="Quantitation" />
@@ -9,13 +9,13 @@
 		<feature id="f_4835329514588776807">
 			<position dim="0">99.9999997019768</position>
 			<position dim="1">510.05</position>
-			<intensity>0</intensity>
+			<intensity>11792.9</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.529182</overallquality>
 			<charge>0</charge>
 			<subordinate>
-				<feature id="f_4835329514588776807_17749660155506638460">
+				<feature id="f_4835329514588776807_7804704400743266335">
 					<position dim="0">99.9999997019768</position>
 					<position dim="1">510.05</position>
 					<intensity>11792.9</intensity>
@@ -33,7 +33,7 @@
 			<UserParam type="float" name="leftWidth" value="10"/>
 			<UserParam type="float" name="rightWidth" value="190"/>
 			<UserParam type="float" name="total_xic" value="0"/>
-			<UserParam type="float" name="peak_apices_sum" value="0"/>
+			<UserParam type="float" name="peak_apices_sum" value="1196.82678222656"/>
 			<UserParam type="float" name="sn_ratio" value="2.12550151956495"/>
 			<UserParam type="float" name="var_log_sn_score" value="0.754007783737623"/>
 			<UserParam type="float" name="delta_rt" value="-60.0000002980232"/>
@@ -45,19 +45,20 @@
 			<UserParam type="float" name="var_ms1_isotope_correlation" value="0.854105802182403"/>
 			<UserParam type="float" name="var_ms1_isotope_overlap" value="0"/>
 			<UserParam type="float" name="main_var_xx_lda_prelim_score" value="0.529182237972428"/>
+			<UserParam type="float" name="xx_lda_prelim_score" value="0.529182237972428"/>
 			<UserParam type="float" name="PrecursorMZ" value="510.05"/>
 			<UserParam type="float" name="xx_swath_prelim_score" value="0"/>
 		</feature>
-		<feature id="f_7804704400743266335">
+		<feature id="f_15004869347769368353">
 			<position dim="0">99.9999997019768</position>
 			<position dim="1">500.01</position>
-			<intensity>0</intensity>
+			<intensity>11792.9</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.529182</overallquality>
 			<charge>0</charge>
 			<subordinate>
-				<feature id="f_7804704400743266335_15004869347769368353">
+				<feature id="f_15004869347769368353_13440783915218733453">
 					<position dim="0">99.9999997019768</position>
 					<position dim="1">500.01</position>
 					<intensity>11792.9</intensity>
@@ -75,7 +76,7 @@
 			<UserParam type="float" name="leftWidth" value="10"/>
 			<UserParam type="float" name="rightWidth" value="190"/>
 			<UserParam type="float" name="total_xic" value="0"/>
-			<UserParam type="float" name="peak_apices_sum" value="0"/>
+			<UserParam type="float" name="peak_apices_sum" value="1196.82678222656"/>
 			<UserParam type="float" name="sn_ratio" value="2.12550151956495"/>
 			<UserParam type="float" name="var_log_sn_score" value="0.754007783737623"/>
 			<UserParam type="float" name="delta_rt" value="-60.0000002980232"/>
@@ -87,6 +88,7 @@
 			<UserParam type="float" name="var_ms1_isotope_correlation" value="0.968503425907342"/>
 			<UserParam type="float" name="var_ms1_isotope_overlap" value="1.50000005099749"/>
 			<UserParam type="float" name="main_var_xx_lda_prelim_score" value="0.529182237972428"/>
+			<UserParam type="float" name="xx_lda_prelim_score" value="0.529182237972428"/>
 			<UserParam type="float" name="PrecursorMZ" value="500.01"/>
 			<UserParam type="float" name="xx_swath_prelim_score" value="0"/>
 		</feature>

@@ -38,7 +38,7 @@ cmake_minimum_required(VERSION 3.0.0 FATAL_ERROR)
 # --------------------------------------------------------------------------
 # Find Qt
 #---------------------------------------------------------------------------
-set (TEMP_OpenMS_GUI_QT_COMPONENTS Widgets Network Svg OpenGL Concurrent)
+set (TEMP_OpenMS_GUI_QT_COMPONENTS Gui Widgets Network Svg OpenGL Concurrent)
 ##TODO Why is Concurrent here, if not linked, but only includes? Header only?
 
 # On macOS the platform plugin of QT requires PrintSupport. We link
