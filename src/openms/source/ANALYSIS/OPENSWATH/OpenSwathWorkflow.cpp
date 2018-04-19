@@ -819,7 +819,7 @@ namespace OpenMS
       }
 
       // Add to the output tsv if given
-      if (tsv_writer.isActive())
+      if (tsv_writer.isActive() && output.size() > 0) // implies that detection_assay_it was set
       {
         const OpenSwath::LightCompound pep = transition_exp.getCompounds()[ assay_peptide_map[id] ];
         const TransitionType* transition = assay_it->second[detection_assay_it];
@@ -827,7 +827,7 @@ namespace OpenMS
       }
 
       // Add to the output osw if given
-      if (osw_writer.isActive())
+      if (osw_writer.isActive() && output.size() > 0) // implies that detection_assay_it was set
       {
         const OpenSwath::LightCompound pep = transition_exp.getCompounds()[ assay_peptide_map[id] ];
         const TransitionType* transition = assay_it->second[detection_assay_it];

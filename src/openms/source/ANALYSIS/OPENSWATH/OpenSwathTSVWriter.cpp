@@ -186,6 +186,16 @@ namespace OpenMS
             protein_name = pep.protein_refs[0];
           }
 
+          String main_var = "0";
+          if (feature_it->metaValueExists("main_var_xx_swath_prelim_score"))
+          {
+            main_var = (String)feature_it->getMetaValue("main_var_xx_swath_prelim_score");
+          }
+          else if (feature_it->metaValueExists("main_var_xx_lda_prelim_score"))
+          {
+            main_var = (String)feature_it->getMetaValue("main_var_xx_lda_prelim_score");
+          }
+
           String line = "";
           line += id + "_run0"
             + "\t" + group_label
@@ -204,7 +214,7 @@ namespace OpenMS
             + "\t" + (String)feature_it->getMetaValue("assay_rt")
             + "\t" + (String)feature_it->getMetaValue("delta_rt")
             + "\t" + (String)feature_it->getMetaValue("leftWidth")
-            + "\t" + (String)feature_it->getMetaValue("main_var_xx_swath_prelim_score")
+            + "\t" + main_var
             + "\t" + (String)feature_it->getMetaValue("norm_RT")
             + "\t" + (String)feature_it->getMetaValue("nr_peaks")
             + "\t" + (String)feature_it->getMetaValue("peak_apices_sum")
