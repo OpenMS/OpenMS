@@ -323,7 +323,20 @@ public:
       current_spectrum_ = index;
       updateCache_();
     }
-    
+
+    /// Check whether the current layer should be represented as ion mobility
+    bool isIonMobilityData() const
+    {
+      return this->getPeakData()->size() > 0 &&
+             this->getPeakData()->metaValueExists("is_ion_mobility") &&
+             this->getPeakData()->getMetaValue("is_ion_mobility").toBool();
+    }
+
+    void labelAsIonMobilityData() const
+    {
+      this->getPeakData()->setMetaValue("is_ion_mobility", "true");
+    }
+
     /**
     @brief Check whether the current layer is a chromatogram
      

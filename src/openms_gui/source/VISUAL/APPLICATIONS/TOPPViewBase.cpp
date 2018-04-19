@@ -85,7 +85,8 @@
 #include <OpenMS/VISUAL/DIALOGS/TOPPViewPrefDialog.h>
 #include <OpenMS/VISUAL/DIALOGS/SpectrumAlignmentDialog.h>
 #include <OpenMS/VISUAL/MISC/GUIHelpers.h>
-
+#include <OpenMS/VISUAL/AxisWidget.h>
+#include <OpenMS/VISUAL/Spectrum3DOpenGLCanvas.h>
 
 //Qt
 #include <QtCore/QSettings>
@@ -3495,6 +3496,7 @@ namespace OpenMS
     }
     tmpe->sortSpectra();
     tmpe->updateRanges();
+    tmpe->setMetaValue("is_ion_mobility", "true");
 
     // open new 2D widget
     Spectrum2DWidget* w = new Spectrum2DWidget(getSpectrumParameters(2), ws_);
@@ -3504,6 +3506,7 @@ namespace OpenMS
     {
       return;
     }
+    w->xAxis()->setLegend(String("Ion Mobility [ms]"));
 
     String caption = layer.name;
     caption += " (Ion Mobility Scan " + String(spidx) + ")";
@@ -3560,6 +3563,11 @@ namespace OpenMS
       Spectrum3DWidget* w = new Spectrum3DWidget(getSpectrumParameters(3), ws_);
 
       ExperimentSharedPtrType exp_sptr = layer.getPeakDataMuteable();
+
+      if (layer.isIonMobilityData())
+      {
+        w->canvas()->openglwidget()->setYLabel("Ion Mobility [ms]");
+      }
 
       if (!w->canvas()->addLayer(exp_sptr, SpectrumCanvas::ODExperimentSharedPtrType(new OnDiscMSExperiment()), layer.filename))
       {
