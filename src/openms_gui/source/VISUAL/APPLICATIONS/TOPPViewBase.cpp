@@ -677,6 +677,15 @@ namespace OpenMS
   }
 
   // static
+  bool TOPPViewBase::containsIMData(const MSSpectrum& s)
+  {
+    if (s.getFloatDataArrays().empty() || s.getFloatDataArrays()[0].getName() != "Ion Mobility")
+    {
+      return false;
+    }
+    return true;
+  }
+
   float TOPPViewBase::estimateNoiseFromRandomMS1Scans(const ExperimentType& exp, UInt n_scans)
   {
     if (!TOPPViewBase::containsMS1Scans(exp))
@@ -3455,7 +3464,7 @@ namespace OpenMS
     auto spidx = layer.getCurrentSpectrumIndex();
     MSSpectrum tmps = exp_sptr->getSpectrum(spidx);
 
-    if (tmps.getFloatDataArrays().empty() || tmps.getFloatDataArrays()[0].getName() != "Ion Mobility")
+    if (!containsIMData(tmps))
     {
       std::cout << "Cannot display ion mobility data, no float array with the correct name 'Ion Mobility' available." <<
         " Number of float arrays: " << tmps.getFloatDataArrays().size() << std::endl;
@@ -3464,7 +3473,7 @@ namespace OpenMS
 
     // Fill temporary spectral map (mobility -> Spectrum) with data from current spectrum
     std::map< int, boost::shared_ptr<MSSpectrum> > im_map;
-    auto im_arr = tmps.getFloatDataArrays()[0];
+    auto im_arr = tmps.getFloatDataArrays()[0]; // the first array should be the IM array (see containsIMData)
     for (Size k = 0;  k < tmps.size(); k++)
     {
       double im = im_arr[ k ];

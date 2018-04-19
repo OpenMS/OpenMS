@@ -1425,7 +1425,13 @@ namespace OpenMS
         context_menu->addAction("Switch to 2D view");
         context_menu->addAction("Switch to 3D view");
       }
-      context_menu->addAction("Switch to ion mobility view");
+
+      // TODO only if its im data!!!
+      if (TOPPViewBase::containsIMData(getCurrentLayer().getPeakData()->getSpectrum( 
+              getCurrentLayer().getCurrentSpectrumIndex() ) ))
+      {
+        context_menu->addAction("Switch to ion mobility view");
+      }
 
       //add external context menu
       if (context_add_)
