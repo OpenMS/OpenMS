@@ -240,6 +240,9 @@ public:
 
       @note Make sure the chromatogram is sorted with respect to retention time.
 
+      @throw Exception::InvalidSize when the number of points is lower than
+      required for the chosen integration type.
+
       @param[in] chromatogram The chromatogram which contains the peak
       @param[in] left The left retention time boundary
       @param[in] right The right retention time boundary
@@ -259,6 +262,9 @@ public:
       - "intensity_sum" for the simple sum of the intensities
 
       @note Make sure the chromatogram is sorted with respect to retention time.
+
+      @throw Exception::InvalidSize when the number of points is lower than
+      required for the chosen integration type.
 
       @param[in] chromatogram The chromatogram which contains the peak
       @param[in] left The iterator to the first point
@@ -280,6 +286,9 @@ public:
 
       @note Make sure the spectrum is sorted with respect to mass-to-charge ratio.
 
+      @throw Exception::InvalidSize when the number of points is lower than
+      required for the chosen integration type.
+
       @param[in] spectrum The spectrum which contains the peak
       @param[in] left The left mass-to-charge ratio boundary
       @param[in] right The right mass-to-charge ratio boundary
@@ -299,6 +308,9 @@ public:
       - "intensity_sum" for the simple sum of the intensities
 
       @note Make sure the spectrum is sorted with respect to mass-to-charge ratio.
+
+      @throw Exception::InvalidSize when the number of points is lower than
+      required for the chosen integration type.
 
       @param[in] spectrum The spectrum which contains the peak
       @param[in] left The iterator to the first point

@@ -435,10 +435,7 @@ START_SECTION(PeakArea integratePeak(
   }
 
   STATUS("Integration type: trapezoid (1 point)")
-  pa = ptr->integratePeak(chromatogram, left, 2.478);
-  TEST_REAL_SIMILAR(pa.area, 881)
-  TEST_REAL_SIMILAR(pa.height, 881)
-  TEST_REAL_SIMILAR(pa.apex_pos, 2.477966667)
+  TEST_EXCEPTION(Exception::InvalidSize, ptr->integratePeak(chromatogram, left, 2.478))
 
   params.setValue("integration_type", INTEGRATION_TYPE_SIMPSON);
   ptr->setParameters(params);
@@ -466,10 +463,7 @@ START_SECTION(PeakArea integratePeak(
   }
 
   STATUS("Integration type: simpson (1 point)")
-  pa = ptr->integratePeak(chromatogram, left, 2.478);
-  TEST_REAL_SIMILAR(pa.area, 881)
-  TEST_REAL_SIMILAR(pa.height, 881)
-  TEST_REAL_SIMILAR(pa.apex_pos, 2.477966667)
+  TEST_EXCEPTION(Exception::InvalidSize, ptr->integratePeak(chromatogram, left, 2.478))
 
   STATUS("Integration type: simpson (2 points)")
   pa = ptr->integratePeak(chromatogram, left, 2.489);
@@ -516,10 +510,7 @@ START_SECTION(PeakArea integratePeak(
   }
 
   STATUS("Integration type: trapezoid (1 point)")
-  pa = ptr->integratePeak(chromatogram, chrom_left_it, chrom_right_1pt_it);
-  TEST_REAL_SIMILAR(pa.area, 881)
-  TEST_REAL_SIMILAR(pa.height, 881)
-  TEST_REAL_SIMILAR(pa.apex_pos, 2.477966667)
+  TEST_EXCEPTION(Exception::InvalidSize, ptr->integratePeak(chromatogram, chrom_left_it, chrom_right_1pt_it))
 
   params.setValue("integration_type", INTEGRATION_TYPE_SIMPSON);
   ptr->setParameters(params);
@@ -548,10 +539,7 @@ START_SECTION(PeakArea integratePeak(
   }
 
   STATUS("Integration type: simpson (1 point)")
-  pa = ptr->integratePeak(chromatogram, chrom_left_it, chrom_right_1pt_it);
-  TEST_REAL_SIMILAR(pa.area, 881)
-  TEST_REAL_SIMILAR(pa.height, 881)
-  TEST_REAL_SIMILAR(pa.apex_pos, 2.477966667)
+  TEST_EXCEPTION(Exception::InvalidSize, ptr->integratePeak(chromatogram, chrom_left_it, chrom_right_1pt_it))
 
   STATUS("Integration type: simpson (2 points)")
   pa = ptr->integratePeak(chromatogram, chrom_left_it, chrom_right_2pt_it);
@@ -598,10 +586,7 @@ START_SECTION(PeakArea integratePeak(
   }
 
   STATUS("Integration type: trapezoid (1 point)")
-  pa = ptr->integratePeak(spectrum, left, 2.478);
-  TEST_REAL_SIMILAR(pa.area, 881)
-  TEST_REAL_SIMILAR(pa.height, 881)
-  TEST_REAL_SIMILAR(pa.apex_pos, 2.477966667)
+  TEST_EXCEPTION(Exception::InvalidSize, ptr->integratePeak(spectrum, left, 2.478))
 
   params.setValue("integration_type", INTEGRATION_TYPE_SIMPSON);
   ptr->setParameters(params);
@@ -629,10 +614,7 @@ START_SECTION(PeakArea integratePeak(
   }
 
   STATUS("Integration type: simpson (1 point)")
-  pa = ptr->integratePeak(spectrum, left, 2.478);
-  TEST_REAL_SIMILAR(pa.area, 881)
-  TEST_REAL_SIMILAR(pa.height, 881)
-  TEST_REAL_SIMILAR(pa.apex_pos, 2.477966667)
+  TEST_EXCEPTION(Exception::InvalidSize, ptr->integratePeak(spectrum, left, 2.478))
 
   STATUS("Integration type: simpson (2 points)")
   pa = ptr->integratePeak(spectrum, left, 2.489);
@@ -679,10 +661,7 @@ START_SECTION(PeakArea integratePeak(
   }
 
   STATUS("Integration type: trapezoid (1 point)")
-  pa = ptr->integratePeak(spectrum, spec_left_it, spec_right_1pt_it);
-  TEST_REAL_SIMILAR(pa.area, 881)
-  TEST_REAL_SIMILAR(pa.height, 881)
-  TEST_REAL_SIMILAR(pa.apex_pos, 2.477966667)
+  TEST_EXCEPTION(Exception::InvalidSize, ptr->integratePeak(spectrum, spec_left_it, spec_right_1pt_it))
 
   params.setValue("integration_type", INTEGRATION_TYPE_SIMPSON);
   ptr->setParameters(params);
@@ -711,10 +690,7 @@ START_SECTION(PeakArea integratePeak(
   }
 
   STATUS("Integration type: simpson (1 point)")
-  pa = ptr->integratePeak(spectrum, spec_left_it, spec_right_1pt_it);
-  TEST_REAL_SIMILAR(pa.area, 881)
-  TEST_REAL_SIMILAR(pa.height, 881)
-  TEST_REAL_SIMILAR(pa.apex_pos, 2.477966667)
+  TEST_EXCEPTION(Exception::InvalidSize, ptr->integratePeak(spectrum, spec_left_it, spec_right_1pt_it))
 
   STATUS("Integration type: simpson (2 points)")
   pa = ptr->integratePeak(spectrum, spec_left_it, spec_right_2pt_it);
