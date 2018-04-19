@@ -296,6 +296,7 @@ private:
     // scoring parameters
     double rt_normalization_factor_;
     int add_up_spectra_;
+    String spectrum_addition_method_ ;
     double spacing_for_spectra_resampling_;
     double uis_threshold_sn_;
     double uis_threshold_peak_area_;

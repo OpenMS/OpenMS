@@ -88,7 +88,8 @@ namespace OpenMS
     void initialize(double rt_normalization_factor,
                     int add_up_spectra,
                     double spacing_for_spectra_resampling,
-                    const OpenSwath_Scores_Usage & su);
+                    const OpenSwath_Scores_Usage & su,
+                    std::string spectrum_addition_method);
 
     /** @brief Score a single peakgroup in a chromatogram using only chromatographic properties.
      *

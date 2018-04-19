@@ -109,10 +109,11 @@ namespace OpenMS
 
   void OpenSwathScoring::initialize(double rt_normalization_factor,
     int add_up_spectra, double spacing_for_spectra_resampling,
-    const OpenSwath_Scores_Usage & su)
+    const OpenSwath_Scores_Usage & su, std::string spectrum_addition_method)
   {
     this->rt_normalization_factor_ = rt_normalization_factor;
     this->add_up_spectra_ = add_up_spectra;
+    this->spectra_addition_method_ = spectrum_addition_method;
     this->spacing_for_spectra_resampling_ = spacing_for_spectra_resampling;
     this->su_ = su;
   }
