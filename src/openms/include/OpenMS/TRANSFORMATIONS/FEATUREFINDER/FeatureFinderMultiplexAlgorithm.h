@@ -66,9 +66,6 @@ public:
   FeatureMap& getFeatureMap();
   ConsensusMap& getConsensusMap();
   
-  ProgressLogger& getProgressLogger() { return prog_log_; }
-  const ProgressLogger& getProgressLogger() const { return prog_log_; }
-
 protected:
   
   // experimental data

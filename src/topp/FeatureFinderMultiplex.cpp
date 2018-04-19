@@ -297,8 +297,7 @@ public:
     file.load(in_, exp);
 
     FeatureFinderMultiplexAlgorithm algorithm;
-    algorithm.getProgressLogger().setLogType(log_type_);
-    // pass only relevant parameters to the algorithm
+    // pass only relevant parameters to the algorithm and set the log type
     Param params = getParam_();
     params.remove("in");
     params.remove("out");
@@ -310,6 +309,7 @@ public:
     params.remove("force");
     params.remove("test");
     algorithm.setParameters(params);
+    algorithm.setLogType(this->log_type_);
     // run feature detection algorithm
     algorithm.run(exp, true);
     
