@@ -216,7 +216,7 @@ START_SECTION(void compute(const FeatureMapType &fm_in, FeatureMapType &fm_out, 
   Param p;
   p.setValue("potential_adducts", ListUtils::create<String>("H:+:0.7,Na:+:0.3,(2)H4H-4:0:0.2:-2:heavy"), "Ad");
   p.setValue("mass_max_diff", 0.1);
-p.setValue("use_minority_bound","true","enable bound");
+  p.setValue("use_minority_bound","true","enable bound");
   fd.setParameters(p);
 
   FeatureMap fm_in, fm_out;
@@ -228,12 +228,41 @@ p.setValue("use_minority_bound","true","enable bound");
   String out_file;
   NEW_TMP_FILE(out_file)
   ConsensusXMLFile c1;
-
   c1.store(out_file,cm);
 
   WHITELIST("xml-stylesheet,consensusXML version=,consensusElement id=,<UserParam type=");
   // WHITELIST("xml-stylesheet,map id,consensusElement id=");
   TEST_FILE_SIMILAR(out_file, OPENMS_GET_TEST_DATA_PATH("MetaboliteFeatureDeconvolution_easy_output.consensusXML"));
+
+
+  Param p_pos;
+  p_pos.setValue("potential_adducts", ListUtils::create<String>("H:+:0.6,Na:+:0.2,NH4:+:0.1,K:+:0.1,C2H3N:0:0.05,H-2O-1:0:0.05,H-1Na:0:0.05"), "Ad_p");
+  p_pos.setValue("charge_min", 1, "minimal possible charge");
+  p_pos.setValue("charge_max", 3, "maximal possible charge");
+  p_pos.setValue("charge_span_max", 3);
+  p_pos.setValue("max_neutrals", 1);
+  p_pos.setValue("q_try", "heuristic", "Try dif");
+  p_pos.setValue("mass_max_diff", 0.05);
+  p_pos.setValue("retention_max_diff", 1.0);
+  p_pos.setValue("retention_max_diff_local", 1.0);
+  p_pos.setValue("intensity_filter", "false");
+  p_pos.setValue("use_minority_bound", "false");
+
+  fd.setParameters(p_pos);
+
+  FeatureMap fm_p_in, fm_p_out;
+  ConsensusMap cm_p, cm_p2;
+  FeatureXMLFile fl_p;
+  fl_p.load(OPENMS_GET_TEST_DATA_PATH("DC_test.featureXML"), fm_p_in);
+  fd.compute(fm_p_in, fm_p_out, cm_p, cm_p2);
+
+  String out_file_p;
+  NEW_TMP_FILE(out_file_p)
+  ConsensusXMLFile c_p;
+  c_p.store(out_file_p,cm_p);
+
+  WHITELIST("xml-stylesheet,consensusXML version=,consensusElement id=,<UserParam type=");
+  TEST_FILE_SIMILAR(out_file_p, OPENMS_GET_TEST_DATA_PATH("DC_test_p_output.consensusXML"));
 
 END_SECTION
 
