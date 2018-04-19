@@ -551,6 +551,7 @@ namespace OpenMS
           xx_lda_prescore = -scores.calculate_lda_single_transition(scores);
         }
         mrmfeature->addScore("main_var_xx_lda_prelim_score", xx_lda_prescore);
+        mrmfeature->addScore("xx_lda_prelim_score", xx_lda_prescore);
         mrmfeature->setOverallQuality(xx_lda_prescore);
       }
       else
@@ -699,6 +700,7 @@ namespace OpenMS
         if (!swath_present)
         {
           mrmfeature->addScore("main_var_xx_lda_prelim_score", xx_lda_prescore);
+          mrmfeature->addScore("xx_lda_prelim_score", xx_lda_prescore);
           mrmfeature->setOverallQuality(xx_lda_prescore);
         }
         else
@@ -811,6 +813,11 @@ namespace OpenMS
           curr_feature.setCharge(pep->getChargeState());
         }
         processFeatureForOutput(curr_feature, write_convex_hull_, quantification_cutoff_, total_intensity, total_peak_apices, "MS1");
+        if (ms1only)
+        {
+          total_intensity += curr_feature.getIntensity();
+          total_peak_apices += (double)curr_feature.getMetaValue("peak_apex_int");
+        }
         allFeatures.push_back(curr_feature);
       }
       mrmfeature->setSubordinates(allFeatures); // add all the subfeatures as subordinates

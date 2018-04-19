@@ -242,7 +242,7 @@ Section "OpenMS Library" SEC_Lib
     # install files
 	File "${OPENMSBINDIR}\*.dll"
 	File "${OPENMSBINDIR}\*.lib"
-
+        File /r "${OPENMSBINDIR}\plugins\*.*"
     SetOutPath $INSTDIR\share\OpenMS
     SetOverwrite on
     !if ${DEBUG_BUILD} == 0 
