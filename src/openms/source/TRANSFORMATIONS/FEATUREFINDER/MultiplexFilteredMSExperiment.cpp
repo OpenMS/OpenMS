@@ -61,7 +61,7 @@ namespace OpenMS
     result_.push_back(peak);
   }
 
-  void MultiplexFilteredMSExperiment::addPeak(MultiplexFilteredPeak peak)
+  void MultiplexFilteredMSExperiment::addPeak(const MultiplexFilteredPeak& peak)
   {
     result_.push_back(peak);
   }
@@ -125,11 +125,12 @@ namespace OpenMS
       int count = 0;
       
       // loop over satellites
-      for (std::multimap<size_t, MultiplexSatelliteCentroided >::const_iterator it_satellite = satellites.begin(); it_satellite != satellites.end(); ++it_satellite)
+      //for (std::multimap<size_t, MultiplexSatelliteCentroided >::const_iterator it_satellite = satellites.begin(); it_satellite != satellites.end(); ++it_satellite)
+      for (const auto &it_satellite : satellites)
       {
         // find indices of the peak
-        size_t rt_idx = (it_satellite->second).getRTidx();
-        size_t mz_idx = (it_satellite->second).getMZidx();
+        size_t rt_idx = (it_satellite.second).getRTidx();
+        size_t mz_idx = (it_satellite.second).getMZidx();
         
         // find peak itself
         MSExperiment::ConstIterator it_rt = exp_picked.begin();
@@ -142,7 +143,7 @@ namespace OpenMS
         feature_handle.setRT(it_rt->getRT());
         feature_handle.setMZ(it_mz->getMZ());
         feature_handle.setIntensity(1.0);
-        feature_handle.setCharge(it_satellite->first);
+        feature_handle.setCharge(it_satellite.first);
         feature_handle.setMapIndex(count);
         
         consensus.insert(feature_handle);

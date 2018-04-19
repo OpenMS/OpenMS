@@ -65,7 +65,7 @@ namespace OpenMS
         /**
          * @brief adds a single peak to the results
          */
-        void addPeak(MultiplexFilteredPeak peak);
+        void addPeak(const MultiplexFilteredPeak& peak);
         
         /**
          * @brief returns a single peak from the results
