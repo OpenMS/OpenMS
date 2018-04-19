@@ -51,6 +51,47 @@
 
 namespace OpenMS
 {
+  void sortSpectrumByMZ(OpenSwath::SpectrumPtr spec)
+  {
+    //sort index list
+    std::vector<std::pair<double, Size> > sorted_indices;
+    sorted_indices.reserve(spec->getMZArray()->data.size());
+    auto mz_it = spec->getMZArray()->data.begin();
+    for (Size i = 0; i < spec->getMZArray()->data.size(); ++i)
+    {
+      sorted_indices.push_back(std::make_pair(*mz_it, i));
+      ++mz_it;
+    }
+    std::stable_sort(sorted_indices.begin(), sorted_indices.end(), PairComparatorFirstElement<std::pair<double, Size> >());
+
+    // extract list of indices
+    std::vector<Size> select_indices;
+    select_indices.reserve(sorted_indices.size());
+    for (Size i = 0; i < sorted_indices.size(); ++i)
+    {
+      select_indices.push_back(sorted_indices[i].second);
+    }
+
+    for (auto& da : spec->getDataArrays() )
+    {
+      OpenSwath::BinaryDataArrayPtr tmp(new OpenSwath::BinaryDataArray);
+      tmp->description = da->description;
+      tmp->data.reserve(select_indices.size());
+      for (Size i = 0; i < select_indices.size(); ++i)
+      {
+        tmp->data.push_back( da->data[ select_indices[i] ] );
+      }
+      da = tmp;
+    }
+
+    OPENMS_POSTCONDITION( std::adjacent_find(spec->getMZArray()->data.begin(),
+           spec->getMZArray()->data.end(), std::greater<double>()) == spec->getMZArray()->data.end(),
+           "Postcondition violated: m/z vector needs to be sorted!" )
+  }
+}
+
+namespace OpenMS
+{
 
   /// Constructor
   OpenSwathScoring::OpenSwathScoring() :
@@ -484,43 +525,6 @@ namespace OpenMS
     return output;
   }
 
-  void sort_(OpenSwath::SpectrumPtr spec)
-  {
-    //sort index list
-    std::vector<std::pair<double, Size> > sorted_indices;
-    sorted_indices.reserve(spec->getMZArray()->data.size());
-    auto mz_it = spec->getMZArray()->data.begin();
-    for (Size i = 0; i < spec->getMZArray()->data.size(); ++i)
-    {
-      sorted_indices.push_back(std::make_pair(*mz_it, i));
-      ++mz_it;
-    }
-    std::stable_sort(sorted_indices.begin(), sorted_indices.end(), PairComparatorFirstElement<std::pair<double, Size> >());
-
-    // extract list of indices
-    std::vector<Size> select_indices;
-    select_indices.reserve(sorted_indices.size());
-    for (Size i = 0; i < sorted_indices.size(); ++i)
-    {
-      select_indices.push_back(sorted_indices[i].second);
-    }
-
-    for (auto& da : spec->getDataArrays() )
-    {
-      OpenSwath::BinaryDataArrayPtr tmp(new OpenSwath::BinaryDataArray);
-      tmp->description = da->description;
-      tmp->data.reserve(select_indices.size());
-      for (Size i = 0; i < select_indices.size(); ++i)
-      {
-        tmp->data.push_back( da->data[ select_indices[i] ] );
-      }
-      da = tmp;
-    }
-
-    OPENMS_POSTCONDITION( std::adjacent_find(spec->getMZArray()->data.begin(),
-           spec->getMZArray()->data.end(), std::greater<double>()) == spec->getMZArray()->data.end(),
-           "Postcondition violated: m/z vector needs to be sorted!" )
-  }
 
   OpenSwath::SpectrumPtr OpenSwathScoring::getAddedSpectra_(OpenSwath::SpectrumAccessPtr swath_map,
                                                             double RT, int nr_spectra_to_add, const double drift_lower, const double drift_upper)
@@ -597,7 +601,7 @@ namespace OpenMS
             v1.insert( v1.end(), v2.begin(), v2.end() );
           }
         }
-        sort_(added_spec);
+        sortSpectrumByMZ(added_spec);
       }
       else
       {
