@@ -297,6 +297,7 @@ public:
     file.load(in_, exp);
 
     FeatureFinderMultiplexAlgorithm algorithm;
+    algorithm.getProgressLogger().setLogType(log_type_);
     // pass only relevant parameters to the algorithm
     Param params = getParam_();
     params.remove("in");

@@ -65,12 +65,17 @@ public:
   /// get methods
   FeatureMap& getFeatureMap();
   ConsensusMap& getConsensusMap();
+  
+  ProgressLogger& getProgressLogger() { return prog_log_; }
+  const ProgressLogger& getProgressLogger() const { return prog_log_; }
 
 protected:
   
   // experimental data
   MSExperiment exp_profile_;
   MSExperiment exp_centroid_;
+  
+  ProgressLogger prog_log_;
   
   bool progress_;
   
