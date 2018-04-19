@@ -76,7 +76,7 @@ namespace OpenMS
     satellites_.insert(std::make_pair(pattern_idx, MultiplexSatelliteCentroided(rt_idx, mz_idx)));
   }
   
-  void MultiplexFilteredPeak::addSatellite(MultiplexSatelliteCentroided satellite, size_t pattern_idx)
+  void MultiplexFilteredPeak::addSatellite(const MultiplexSatelliteCentroided& satellite, size_t pattern_idx)
   {
     satellites_.insert(std::make_pair(pattern_idx, satellite));
   }
@@ -86,7 +86,7 @@ namespace OpenMS
     satellites_profile_.insert(std::make_pair(pattern_idx, MultiplexSatelliteProfile(rt, mz, intensity)));
   }
   
-  void MultiplexFilteredPeak::addSatelliteProfile(MultiplexSatelliteProfile satellite, size_t pattern_idx)
+  void MultiplexFilteredPeak::addSatelliteProfile(const MultiplexSatelliteProfile& satellite, size_t pattern_idx)
   {
     satellites_profile_.insert(std::make_pair(pattern_idx, satellite));
   }

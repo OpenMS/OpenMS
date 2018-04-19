@@ -50,8 +50,14 @@ using namespace boost::math;
 namespace OpenMS
 {
 
-  MultiplexFiltering::MultiplexFiltering(const MSExperiment& exp_picked, const std::vector<MultiplexIsotopicPeakPattern> patterns, int isotopes_per_peptide_min, int isotopes_per_peptide_max, double intensity_cutoff, double rt_band, double mz_tolerance, bool mz_tolerance_unit, double peptide_similarity, double averagine_similarity, double averagine_similarity_scaling, String averigine_type) :
-    patterns_(patterns), isotopes_per_peptide_min_(isotopes_per_peptide_min), isotopes_per_peptide_max_(isotopes_per_peptide_max), intensity_cutoff_(intensity_cutoff), rt_band_(rt_band), mz_tolerance_(mz_tolerance), mz_tolerance_unit_(mz_tolerance_unit), peptide_similarity_(peptide_similarity), averagine_similarity_(averagine_similarity), averagine_similarity_scaling_(averagine_similarity_scaling), averagine_type_(averigine_type)
+  MultiplexFiltering::MultiplexFiltering(const MSExperiment& exp_picked, const std::vector<MultiplexIsotopicPeakPattern>& patterns,
+                                         int isotopes_per_peptide_min, int isotopes_per_peptide_max, double intensity_cutoff, double rt_band,
+                                         double mz_tolerance, bool mz_tolerance_unit, double peptide_similarity, double averagine_similarity,
+                                         double averagine_similarity_scaling, String averigine_type) :
+    patterns_(patterns), isotopes_per_peptide_min_(isotopes_per_peptide_min), isotopes_per_peptide_max_(isotopes_per_peptide_max),
+  intensity_cutoff_(intensity_cutoff), rt_band_(rt_band), mz_tolerance_(mz_tolerance), mz_tolerance_unit_in_ppm_(mz_tolerance_unit),
+  peptide_similarity_(peptide_similarity), averagine_similarity_(averagine_similarity),
+  averagine_similarity_scaling_(averagine_similarity_scaling), averagine_type_(averigine_type)
   {
     // initialise experiment exp_picked_
     // Any peaks below the intensity cutoff cannot be relevant and are therefore removed.
@@ -159,7 +165,7 @@ namespace OpenMS
     
     // determine absolute m/z tolerance in Th
     double mz_tolerance;
-    if (mz_tolerance_unit_)
+    if (mz_tolerance_unit_in_ppm_)
     {
       // m/z tolerance in ppm
       // Note that the absolute tolerance varies minimally within an m/z pattern.
@@ -316,7 +322,7 @@ namespace OpenMS
   {
     // determine absolute m/z tolerance in Th
     double mz_tolerance;
-    if (mz_tolerance_unit_)
+    if (mz_tolerance_unit_in_ppm_)
     {
       // m/z tolerance in ppm
       // Note that the absolute tolerance varies minimally within an m/z pattern.

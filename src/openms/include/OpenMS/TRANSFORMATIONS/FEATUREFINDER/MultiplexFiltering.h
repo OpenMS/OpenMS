@@ -118,7 +118,9 @@ public:
      * @param averagine_similarity    similarity score for peptide isotope pattern and averagine model
      * @param averagine_similarity_scaling    scaling factor x for the averagine similarity parameter p when detecting peptide singlets. With p' = p + x(1-p). 
      */
-    MultiplexFiltering(const MSExperiment& exp_picked, const std::vector<MultiplexIsotopicPeakPattern> patterns, int isotopes_per_peptide_min, int isotopes_per_peptide_max, double intensity_cutoff, double rt_band, double mz_tolerance, bool mz_tolerance_unit, double peptide_similarity, double averagine_similarity, double averagine_similarity_scaling, String averagine_type="peptide");
+    MultiplexFiltering(const MSExperiment& exp_picked, const std::vector<MultiplexIsotopicPeakPattern>& patterns, int isotopes_per_peptide_min,
+                       int isotopes_per_peptide_max, double intensity_cutoff, double rt_band, double mz_tolerance, bool mz_tolerance_unit,
+                       double peptide_similarity, double averagine_similarity, double averagine_similarity_scaling, String averagine_type="peptide");
 
 protected:
     /**
@@ -127,7 +129,7 @@ protected:
      * 
      * @param mapping    index mapping of 'white' peak positions to their position in the corresponding, original spectrum 
      */
-    MSExperiment getWhiteMSExperiment_(White2Original& mapping); 
+    MSExperiment getWhiteMSExperiment_(White2Original& mapping);
 
     /**
      * @brief check for significant peak
@@ -257,7 +259,7 @@ protected:
     /**
      * @brief unit for m/z shift tolerance (ppm - true, Da - false)
      */
-    bool mz_tolerance_unit_;
+    bool mz_tolerance_unit_in_ppm_;
 
     /**
       * @brief peptide similarity
