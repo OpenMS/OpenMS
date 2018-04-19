@@ -205,7 +205,7 @@ namespace OpenMS
     }
   }
 
-  std::vector<MultiplexIsotopicPeakPattern> FeatureFinderMultiplexAlgorithm::generatePeakPatterns_(int charge_min, int charge_max, int peaks_per_peptide_max, std::vector<MultiplexDeltaMasses> mass_pattern_list)
+  std::vector<MultiplexIsotopicPeakPattern> FeatureFinderMultiplexAlgorithm::generatePeakPatterns_(int charge_min, int charge_max, int peaks_per_peptide_max, const std::vector<MultiplexDeltaMasses>& mass_pattern_list)
   {
     std::vector<MultiplexIsotopicPeakPattern> list;
     
@@ -306,7 +306,7 @@ namespace OpenMS
     
   };
   
-  std::vector<double> FeatureFinderMultiplexAlgorithm::determinePeptideIntensitiesCentroided_(MultiplexIsotopicPeakPattern& pattern, std::multimap<size_t, MultiplexSatelliteCentroided >& satellites)
+  std::vector<double> FeatureFinderMultiplexAlgorithm::determinePeptideIntensitiesCentroided_(const MultiplexIsotopicPeakPattern& pattern, const std::multimap<size_t, MultiplexSatelliteCentroided >& satellites)
   {
     // determine RT shift between the peptides
     // i.e. first determine the RT centre of mass for each peptide
@@ -501,7 +501,7 @@ namespace OpenMS
     return intensity_peptide_corrected;
   }
 
-  std::vector<double> FeatureFinderMultiplexAlgorithm::determinePeptideIntensitiesProfile_(MultiplexIsotopicPeakPattern& pattern, std::multimap<size_t, MultiplexSatelliteProfile >& satellites)
+  std::vector<double> FeatureFinderMultiplexAlgorithm::determinePeptideIntensitiesProfile_(const MultiplexIsotopicPeakPattern& pattern, const std::multimap<size_t, MultiplexSatelliteProfile >& satellites)
   {
     // determine RT shift between the peptides
     // i.e. first determine the RT centre of mass for each peptide
@@ -843,14 +843,14 @@ namespace OpenMS
   void FeatureFinderMultiplexAlgorithm::generateMapsProfile_(std::vector<MultiplexIsotopicPeakPattern> patterns, std::vector<MultiplexFilteredMSExperiment> filter_results, std::vector<std::map<int, GridBasedCluster> > cluster_results)
   {
     // progress logger
-    //unsigned progress = 0;
-    //startProgress(0, patterns.size(), "constructing feature maps");
+    unsigned progress = 0;
+    startProgress(0, patterns.size(), "constructing maps");
     
     
     // loop over peak patterns
     for (unsigned pattern = 0; pattern < patterns.size(); ++pattern)
     {
-      //setProgress(++progress);
+      setProgress(++progress);
       
       // loop over clusters
       for (std::map<int, GridBasedCluster>::const_iterator cluster_it = cluster_results[pattern].begin(); cluster_it != cluster_results[pattern].end(); ++cluster_it)
@@ -998,7 +998,7 @@ namespace OpenMS
       
     }
     
-    //endProgress();
+    endProgress();
   }
 
   void FeatureFinderMultiplexAlgorithm::run(MSExperiment& exp, bool progress)

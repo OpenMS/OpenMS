@@ -102,7 +102,7 @@ protected:
    *
    * @return list of m/z shifts
    */
-  std::vector<MultiplexIsotopicPeakPattern> generatePeakPatterns_(int charge_min, int charge_max, int peaks_per_peptide_max, std::vector<MultiplexDeltaMasses> mass_pattern_list);
+  std::vector<MultiplexIsotopicPeakPattern> generatePeakPatterns_(int charge_min, int charge_max, int peaks_per_peptide_max, const std::vector<MultiplexDeltaMasses>& mass_pattern_list);
   
   /**
    * @brief calculate peptide intensities
@@ -112,7 +112,7 @@ protected:
    *
    * @return vector with intensities for each of the peptides
    */
-  std::vector<double> determinePeptideIntensitiesCentroided_(MultiplexIsotopicPeakPattern& pattern, std::multimap<size_t, MultiplexSatelliteCentroided >& satellites);
+  std::vector<double> determinePeptideIntensitiesCentroided_(const MultiplexIsotopicPeakPattern& pattern, const std::multimap<size_t, MultiplexSatelliteCentroided >& satellites);
   
   /**
    * @brief calculate peptide intensities
@@ -122,7 +122,7 @@ protected:
    *
    * @return vector with intensities for each of the peptides
    */
-  std::vector<double> determinePeptideIntensitiesProfile_(MultiplexIsotopicPeakPattern& pattern, std::multimap<size_t, MultiplexSatelliteProfile >& satellites);
+  std::vector<double> determinePeptideIntensitiesProfile_(const MultiplexIsotopicPeakPattern& pattern, const std::multimap<size_t, MultiplexSatelliteProfile >& satellites);
   
   /**
    * @brief generates consensus and feature maps containing all peptide multiplets
