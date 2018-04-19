@@ -2559,6 +2559,7 @@ namespace OpenMS
     {
       connect(sw1, SIGNAL(showCurrentPeaksAs2D()), this, SLOT(showCurrentPeaksAs2D()));
       connect(sw1, SIGNAL(showCurrentPeaksAs3D()), this, SLOT(showCurrentPeaksAs3D()));
+      connect(sw1, SIGNAL(showCurrentPeaksAsIonMobility()), this, SLOT(showCurrentPeaksAsIonMobility()));
     }
 
     // 2D spectrum specific signals
@@ -3443,6 +3444,73 @@ namespace OpenMS
     updateMenu();
   }
 
+  void TOPPViewBase::showCurrentPeaksAsIonMobility()
+  {
+    double IM_BINNING = 1e5;
+
+    const LayerData& layer = getActiveCanvas()->getCurrentLayer();
+    ExperimentSharedPtrType exp_sptr = layer.getPeakData();
+
+    // Get current spectrum
+    auto spidx = layer.getCurrentSpectrumIndex();
+    MSSpectrum tmps = exp_sptr->getSpectrum(spidx);
+
+    if (tmps.getFloatDataArrays().empty() || tmps.getFloatDataArrays()[0].getName() != "Ion Mobility")
+    {
+      std::cout << "Cannot display ion mobility data, no float array with the correct name 'Ion Mobility' available." <<
+        " Number of float arrays: " << tmps.getFloatDataArrays().size() << std::endl;
+      return;
+    }
+
+    // Fill temporary spectral map (mobility -> Spectrum) with data from current spectrum
+    std::map< int, boost::shared_ptr<MSSpectrum> > im_map;
+    auto im_arr = tmps.getFloatDataArrays()[0];
+    for (Size k = 0;  k < tmps.size(); k++)
+    {
+      double im = im_arr[ k ];
+      if (im_map.find( int(im*IM_BINNING) ) == im_map.end() )
+      {
+        boost::shared_ptr<MSSpectrum> news(new OpenMS::MSSpectrum() );
+        news->setRT(im);
+        news->setMSLevel(1);
+        im_map[ int(im*IM_BINNING) ] = news;
+      }
+      im_map[ int(im*IM_BINNING) ]->push_back( tmps[k] );
+    }
+
+    // Add spectra into a MSExperiment, sort and prepare it for display
+    ExperimentSharedPtrType tmpe(new OpenMS::MSExperiment() );
+    for (auto s : im_map)
+    {
+      tmpe->addSpectrum( *(s.second) );
+    }
+    tmpe->sortSpectra();
+    tmpe->updateRanges();
+
+    // open new 2D widget
+    Spectrum2DWidget* w = new Spectrum2DWidget(getSpectrumParameters(2), ws_);
+
+    // add data
+    if (!w->canvas()->addLayer(tmpe, layer.filename))
+    {
+      return;
+    }
+
+    String caption = layer.name;
+    caption += " (Ion Mobility Scan " + String(spidx) + ")";
+    // remove 3D suffix added when opening data in 3D mode (see below showCurrentPeaksAs3D())
+    if (caption.hasSuffix(CAPTION_3D_SUFFIX_))
+    {
+      caption = caption.prefix(caption.rfind(CAPTION_3D_SUFFIX_));
+    }
+    w->canvas()->setLayerName(w->canvas()->activeLayerIndex(), caption);
+    showSpectrumWidgetInWindow(w, caption);
+    updateLayerBar();
+    updateViewBar();
+    updateFilterBar();
+    updateMenu();
+  }
+
   void TOPPViewBase::showCurrentPeaksAs3D()
   {
     // we first pick the layer with 3D support which is closest (or ideally identical) to the currently active layer
@@ -3463,14 +3531,16 @@ namespace OpenMS
 
     if (best_candidate == BIGINDEX)
     {
-      showLogMessage_(LS_NOTICE, "No compatible layer", "No layer found which is supported by the 3D view.");
+      showLogMessage_(LS_NOTICE, "No compatible layer",
+          "No layer found which is supported by the 3D view.");
       return;
     }
 
 
     if (best_candidate != target_layer)
     {
-      showLogMessage_(LS_NOTICE, "Auto-selected compatible layer", "The currently active layer cannot be viewed in 3D view. The closest layer which is supported by the 3D view was selected!");
+      showLogMessage_(LS_NOTICE, "Auto-selected compatible layer",
+          "The currently active layer cannot be viewed in 3D view. The closest layer which is supported by the 3D view was selected!");
     }
 
     LayerData& layer = const_cast<LayerData&>(getActiveCanvas()->getLayer(best_candidate));

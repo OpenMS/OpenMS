@@ -1425,6 +1425,7 @@ namespace OpenMS
         context_menu->addAction("Switch to 2D view");
         context_menu->addAction("Switch to 3D view");
       }
+      context_menu->addAction("Switch to ion mobility view");
 
       //add external context menu
       if (context_add_)
@@ -1506,6 +1507,10 @@ namespace OpenMS
         else if (result->text() == "Switch to 3D view")
         {
           emit showCurrentPeaksAs3D();
+        }
+        else if (result->text() == "Switch to ion mobility view")
+        {
+          emit showCurrentPeaksAsIonMobility();
         }
       }
     }

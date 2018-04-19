@@ -320,6 +320,8 @@ public slots:
     void showCurrentPeaksAs2D();
     /// Shows the current peak data of the active layer in 3D
     void showCurrentPeaksAs3D();
+    /// Shows the current peak data of the active layer as ion mobility
+    void showCurrentPeaksAsIonMobility();
     /// Shows the 'About' dialog
     void showAboutDialog();
     /// Saves the whole current layer data
