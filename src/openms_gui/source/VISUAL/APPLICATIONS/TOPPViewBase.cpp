@@ -1200,6 +1200,8 @@ namespace OpenMS
             f.setLogType(ProgressLogger::GUI);
             f.load(filename, *peak_map_sptr);
 
+            // Load at least one spectrum into memory (TOPPView assumes that at least one spectrum is in memory)
+            if (cache_ms1_on_disc) peak_map_sptr->getSpectrum(0) = on_disc_peaks->getSpectrum(0);
             // Load all MS1 data into memory
             for (Size k = 0; k < indexed_mzml_file_.getNrSpectra() && !cache_ms1_on_disc; k++)
             {
