@@ -39,6 +39,7 @@
 
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/KERNEL/OnDiscMSExperiment.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
@@ -122,6 +123,9 @@ public:
     /// SharedPtr on MSExperiment
     typedef boost::shared_ptr<ExperimentType> ExperimentSharedPtrType;
 
+    /// SharedPtr on On-Disc MSExperiment
+    typedef boost::shared_ptr<OnDiscMSExperiment> ODExperimentSharedPtrType;
+
     //@}
 
     /// Default constructor
@@ -146,6 +150,7 @@ public:
       features(new FeatureMapType()),
       consensus(new ConsensusMapType()),
       peaks(new ExperimentType()),
+      on_disc_peaks(new OnDiscMSExperiment()),
       chromatograms(new ExperimentType()),
       current_spectrum_(0)
     {
@@ -153,7 +158,10 @@ public:
     }
 
     /// Returns a const reference to the current spectrum (1d view)
-    const ExperimentType::SpectrumType & getCurrentSpectrum() const;
+    const ExperimentType::SpectrumType & getCurrentSpectrum() const
+    {
+      return cached_spectrum_;
+    }
 
     /// Returns a const reference to the current feature data
     const FeatureMapSharedPtrType & getFeatureMap() const
@@ -189,6 +197,16 @@ public:
     ExperimentSharedPtrType & getPeakData()
     {
       return peaks;
+    }
+
+    ODExperimentSharedPtrType & getOnDiscPeakData()
+    {
+      return on_disc_peaks;
+    }
+
+    const ODExperimentSharedPtrType & getOnDiscPeakData() const
+    {
+      return on_disc_peaks;
     }
 
     /// Returns a const reference to the current chromatogram data
@@ -230,7 +248,7 @@ public:
     /// Returns a mutable reference to the current spectrum (1d view)
     ExperimentType::SpectrumType & getCurrentSpectrum()
     {
-      return (*peaks)[current_spectrum_];
+      return cached_spectrum_;
     }
 
     /// Get the index of the current spectrum
@@ -243,6 +261,7 @@ public:
     void setCurrentSpectrumIndex(Size index)
     {
       current_spectrum_ = index;
+      updateCache_();
     }
 
     /// Check whether the current layer is a chromatogram
@@ -325,6 +344,20 @@ public:
     int peptide_hit_index;
 
 private:
+
+    /// Update current cached spectrum for easy retrieval
+    void updateCache_()
+    {
+      if ((*peaks)[current_spectrum_].size() > 0)
+      {
+        cached_spectrum_ = (*peaks)[current_spectrum_];
+      }
+      else if (!on_disc_peaks->empty())
+      {
+        cached_spectrum_ = on_disc_peaks->getSpectrum(current_spectrum_);
+      }
+    }
+
     /// updates the PeakAnnotations in the current PeptideHit with manually changed annotations
     void updatePeptideHitAnnotations_(PeptideHit& hit);
 
@@ -337,11 +370,18 @@ private:
     /// peak data
     ExperimentSharedPtrType peaks;
 
+    /// on disc peak data
+    ODExperimentSharedPtrType on_disc_peaks;
+
     /// chromatogram data
     ExperimentSharedPtrType chromatograms;
 
     /// Index of the current spectrum
     Size current_spectrum_;
+
+    /// Current cached spectrum
+    ExperimentType::SpectrumType cached_spectrum_;
+
   };
 
   /// Print the contents to a stream.

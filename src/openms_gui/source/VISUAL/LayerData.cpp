@@ -33,6 +33,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/VISUAL/LayerData.h>
+
 #include <OpenMS/VISUAL/ANNOTATION/Annotation1DPeakItem.h>
 
 using namespace std;
@@ -40,11 +41,6 @@ using namespace std;
 namespace OpenMS
 {
   const std::string LayerData::NamesOfLabelType[] = {"None", "Index", "Label meta data", "Peptide identification", "All peptide identifications"};
-
-  const LayerData::ExperimentType::SpectrumType & LayerData::getCurrentSpectrum() const
-  {
-    return (*peaks)[current_spectrum_];
-  }
 
   std::ostream & operator<<(std::ostream & os, const LayerData & rhs)
   {
