@@ -411,7 +411,7 @@ namespace OpenMS
 
     // mzTab file format
     for (Size i = 0; i != complete_file.size(); ++i) {
-        if (complete_file[i].hasSubstring("MTD mzTab-version")) {
+        if (complete_file[i].hasSubstring("MTD\tmzTab-version")) {
             return FileTypes::MZTAB;
         }
     }
