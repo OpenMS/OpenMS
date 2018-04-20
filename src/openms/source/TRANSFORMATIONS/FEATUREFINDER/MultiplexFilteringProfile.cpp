@@ -154,7 +154,7 @@ namespace OpenMS
           double peak_min = (*it_rt_boundaries)[mz_idx].mz_min;
           double peak_max = (*it_rt_boundaries)[mz_idx].mz_max;
           
-          double rt_peak = peak.getRT();
+          //double rt_peak = peak.getRT();
           double mz_peak = peak.getMZ();
 
           //std::cout << "        mz = " << mz << " (" << peak_min << ", " << peak_max << ")\n";

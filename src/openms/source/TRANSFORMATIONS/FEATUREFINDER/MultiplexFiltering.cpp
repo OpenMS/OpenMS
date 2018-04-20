@@ -133,13 +133,13 @@ namespace OpenMS
   
   bool MultiplexFiltering::checkForSignificantPeak_(double mz, double mz_tolerance, MSExperiment::ConstIterator& it_rt, double intensity_first_peak) const
   {
-    // Any peak with an intensity greater than <threshold>*<intensity_first_peak> is significant.
-    double threshold = 0.3;
-    
     // Check that there is a peak.
     int mz_idx = it_rt->findNearest(mz, mz_tolerance);
     if (mz_idx != -1)
     {
+      // Any peak with an intensity greater than <threshold>*<intensity_first_peak> is significant.
+      double threshold = 0.3;
+      
       MSSpectrum::ConstIterator it_mz = it_rt->begin();
       std::advance(it_mz, mz_idx);
       double intensity = it_mz->getIntensity();
@@ -534,7 +534,7 @@ namespace OpenMS
     int debug_charge = 4;
     size_t debug_rt_idx = 35;
     size_t debug_mz_idx = 6;
-    bool debug_now = ((pattern.getCharge() == debug_charge) && (peak.getRTidx() == debug_rt_idx) && (peak.getMZidx() == debug_mz_idx));
+    //bool debug_now = ((pattern.getCharge() == debug_charge) && (peak.getRTidx() == debug_rt_idx) && (peak.getMZidx() == debug_mz_idx));
     
     // debug output
     /*if (debug_now)
