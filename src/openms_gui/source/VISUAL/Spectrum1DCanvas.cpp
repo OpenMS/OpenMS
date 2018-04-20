@@ -296,7 +296,7 @@ namespace OpenMS
           if (selected_peak_.isValid())
           {
             measurement_start_ = selected_peak_;
-            const ExperimentType::PeakType & peak = measurement_start_.getPeak((*getCurrentLayer().getPeakData()));
+            const ExperimentType::PeakType & peak = getCurrentLayer().getCurrentSpectrum()[measurement_start_.peak];
             if (intensity_mode_ == IM_PERCENTAGE)
             {
               updatePercentageFactor_(current_layer_);
@@ -318,7 +318,7 @@ namespace OpenMS
           if (selected_peak_.isValid())
           {
             measurement_start_ = selected_peak_;
-            const ExperimentType::PeakType & peak = measurement_start_.getPeak((*getCurrentLayer().getPeakData()));
+            const ExperimentType::PeakType & peak = getCurrentLayer().getCurrentSpectrum()[measurement_start_.peak];
             updatePercentageFactor_(current_layer_);
             dataToWidget(peak, measurement_start_point_, getCurrentLayer().flipped);
             measurement_start_point_.setX(last_mouse_pos_.x());
@@ -427,7 +427,7 @@ namespace OpenMS
     if (selected_peak_.isValid())
     {
       String status;
-      const ExperimentType::SpectrumType & s = selected_peak_.getSpectrum(*getCurrentLayer().getPeakData());
+      const ExperimentType::SpectrumType & s = getCurrentLayer().getCurrentSpectrum();
       for (Size m = 0; m < s.getFloatDataArrays().size(); ++m)
       {
         if (selected_peak_.peak < s.getFloatDataArrays()[m].size())
@@ -480,8 +480,8 @@ namespace OpenMS
         }
         if (measurement_start_.isValid() && selected_peak_.peak != measurement_start_.peak)
         {
-          const ExperimentType::PeakType & peak_1 = measurement_start_.getPeak(*getCurrentLayer().getPeakData());
-          const ExperimentType::PeakType & peak_2 = selected_peak_.getPeak(*getCurrentLayer().getPeakData());
+          const ExperimentType::PeakType & peak_1 = getCurrentLayer().getCurrentSpectrum()[measurement_start_.peak];
+          const ExperimentType::PeakType & peak_2 = getCurrentLayer().getCurrentSpectrum()[selected_peak_.peak];
           updatePercentageFactor_(current_layer_);
           PointType p = widgetToData(measurement_start_point_, true);
           bool peak_1_less = peak_1.getMZ() < peak_2.getMZ();
@@ -913,7 +913,8 @@ namespace OpenMS
     if (peak.isValid())
     {
       QPoint begin;
-      const ExperimentType::PeakType & sel = peak.getPeak(*getLayer_(layer_index).getPeakData());
+
+      const ExperimentType::PeakType & sel = getLayer_(layer_index).getCurrentSpectrum()[peak.peak];
 
       painter.setPen(QPen(QColor(param_.getValue("highlighted_peak_color").toQString()), 2));
 
@@ -1141,8 +1142,8 @@ namespace OpenMS
       QMessageBox::critical(this, "Error", "This widget supports peak data only. Aborting!");
       return;
     }
-    mz = peak.getPeak(*getCurrentLayer().getPeakData()).getMZ();
-    it = peak.getPeak(*getCurrentLayer().getPeakData()).getIntensity();
+    mz = getCurrentLayer().getCurrentSpectrum()[peak.peak].getMZ();
+    it = getCurrentLayer().getCurrentSpectrum()[peak.peak].getIntensity();
 
     //draw text
     QStringList lines;
@@ -1182,18 +1183,16 @@ namespace OpenMS
 
     if (end.isValid())
     {
-      mz = end.getPeak(*getCurrentLayer().getPeakData()).getMZ() - start.getPeak(*getCurrentLayer().getPeakData()).getMZ();
-      //rt = end.getSpectrum(*getCurrentLayer().getPeakData()).getRT() - start.getSpectrum(*getCurrentLayer().getPeakData()).getRT();
-      it = end.getPeak(*getCurrentLayer().getPeakData()).getIntensity() / start.getPeak(*getCurrentLayer().getPeakData()).getIntensity();
+      mz = getCurrentLayer().getCurrentSpectrum()[end.peak].getMZ() - getCurrentLayer().getCurrentSpectrum()[start.peak].getMZ();
+      it = getCurrentLayer().getCurrentSpectrum()[end.peak].getIntensity() - getCurrentLayer().getCurrentSpectrum()[start.peak].getIntensity();
     }
     else
     {
       PointType point = widgetToData_(last_mouse_pos_);
-      mz = point[0] - start.getPeak(*getCurrentLayer().getPeakData()).getMZ();
-      //rt = point[1] - start.getSpectrum(*getCurrentLayer().getPeakData()).getRT();
+      mz = point[0] - getCurrentLayer().getCurrentSpectrum()[start.peak].getMZ();
       it = std::numeric_limits<double>::quiet_NaN();
     }
-    ppm = (mz / start.getPeak(*getCurrentLayer().getPeakData()).getMZ()) * 1e6;
+    ppm = (mz / getCurrentLayer().getCurrentSpectrum()[start.peak].getMZ()) * 1e6;
 
     //draw text
     QStringList lines;
@@ -1480,7 +1479,7 @@ namespace OpenMS
         }
         else if (result->text() == "Add peak annotation mz")
         {
-          QString label = String::number(near_peak.getPeak(*getCurrentLayer().getPeakData()).getMZ(), 4).toQString();
+          QString label = String::number(getCurrentLayer().getCurrentSpectrum()[near_peak.peak].getMZ(), 4).toQString();
           addPeakAnnotation(near_peak, label, getCurrentLayer_().param.getValue("peak_color").toQString());
         }
         else if (result->text() == "Reset alignment")
@@ -1538,7 +1537,7 @@ namespace OpenMS
 
   Annotation1DItem * Spectrum1DCanvas::addPeakAnnotation(const PeakIndex& peak_index, const QString& text, const QColor& color)
   {
-    PeakType peak = peak_index.getPeak(*getCurrentLayer().getPeakData());
+    PeakType peak = getCurrentLayer().getCurrentSpectrum()[peak_index.peak];
     PointType position(peak.getMZ(), peak.getIntensity());
     Annotation1DItem * item = new Annotation1DPeakItem(position, text, color);
     item->setSelected(false);
