@@ -1193,16 +1193,19 @@ namespace OpenMS
               LOG_INFO << "log INFO: will use cached MS1 spectra" << std::endl;
             }
             parsing_success = true;
-            MzMLFile f;
-            PeakFileOptions options = f.getOptions();
-            options.setFillData(false);
-            f.setOptions(options);
-            f.setLogType(ProgressLogger::GUI);
-            f.load(filename, *peak_map_sptr);
 
-            // Load at least one spectrum into memory (TOPPView assumes that at least one spectrum is in memory)
-            if (cache_ms1_on_disc) peak_map_sptr->getSpectrum(0) = on_disc_peaks->getSpectrum(0);
-            // Load all MS1 data into memory
+            // Caching strategy: peak_map_sptr will contain a MSSpectrum entry
+            // for each actual spectrum on disk. However, initially these will
+            // only be populated by the meta data (all data except the actual
+            // raw data) which will allow us to read out RT, MS level etc.
+            //
+            // In a second step (see below), we populate some of these maps
+            // with actual spectra including raw data (allowing us to only
+            // populate MS1 spectra with actual data).
+
+            // peak_map_sptr = boost::static_pointer_cast<ExperimentSharedPtrType>(on_disc_peaks->getMetaData());
+            peak_map_sptr = on_disc_peaks->getMetaData();
+
             for (Size k = 0; k < indexed_mzml_file_.getNrSpectra() && !cache_ms1_on_disc; k++)
             {
               if ( peak_map_sptr->getSpectrum(k).getMSLevel() == 1)
@@ -1210,6 +1213,9 @@ namespace OpenMS
                 peak_map_sptr->getSpectrum(k) = on_disc_peaks->getSpectrum(k);
               }
             }
+
+            // Load at least one spectrum into memory (TOPPView assumes that at least one spectrum is in memory)
+            if (cache_ms1_on_disc) peak_map_sptr->getSpectrum(0) = on_disc_peaks->getSpectrum(0);
           }
         }
 
