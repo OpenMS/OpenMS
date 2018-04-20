@@ -107,6 +107,7 @@ public:
     typedef LayerData::ExperimentType ExperimentType;
     /// Main managed data type (experiment)
     typedef LayerData::ExperimentSharedPtrType ExperimentSharedPtrType;
+    typedef LayerData::ODExperimentSharedPtrType ODExperimentSharedPtrType;
     /// Main data type (features)
     typedef LayerData::FeatureMapType FeatureMapType;
     /// Main managed data type (features)
@@ -351,6 +352,7 @@ public:
         @return If a new layer was created
     */
     bool addLayer(ExperimentSharedPtrType map, const String & filename = "");
+    bool addLayer(ExperimentSharedPtrType map, ODExperimentSharedPtrType od_map, const String & filename = "");
 
     /**
         @brief Add a feature data layer

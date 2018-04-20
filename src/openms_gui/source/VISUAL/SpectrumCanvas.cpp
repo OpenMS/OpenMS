@@ -389,12 +389,13 @@ namespace OpenMS
     return current_layer_;
   }
 
-  bool SpectrumCanvas::addLayer(ExperimentSharedPtrType map, const String & filename)
+  bool SpectrumCanvas::addLayer(ExperimentSharedPtrType map, ODExperimentSharedPtrType od_map, const String & filename)
   {
     layers_.resize(layers_.size() + 1);
     layers_.back().param = param_;
     layers_.back().filename = filename;
     layers_.back().getPeakData() = map;
+    layers_.back().getOnDiscPeakData() = od_map;
 
     if (layers_.back().getPeakData()->getChromatograms().size() != 0 
         && layers_.back().getPeakData()->size() != 0)
@@ -413,6 +414,12 @@ namespace OpenMS
       layers_.back().type = LayerData::DT_PEAK;
     }
     return finishAdding_();
+  }
+
+  bool SpectrumCanvas::addLayer(ExperimentSharedPtrType map, const String & filename)
+  {
+    ODExperimentSharedPtrType od_dummy(new OnDiscMSExperiment());
+    return addLayer(map, od_dummy, filename);
   }
 
   bool SpectrumCanvas::addLayer(FeatureMapSharedPtrType map, const String & filename)
