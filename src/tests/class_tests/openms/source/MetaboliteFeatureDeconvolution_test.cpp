@@ -234,14 +234,14 @@ START_SECTION(void compute(const FeatureMapType &fm_in, FeatureMapType &fm_out, 
   // WHITELIST("xml-stylesheet,map id,consensusElement id=");
   TEST_FILE_SIMILAR(out_file, OPENMS_GET_TEST_DATA_PATH("MetaboliteFeatureDeconvolution_easy_output.consensusXML"));
 
-
+  //small pos test file with specific ions
   Param p_pos;
   p_pos.setValue("potential_adducts", ListUtils::create<String>("H:+:0.6,Na:+:0.2,NH4:+:0.1,K:+:0.1,C2H3N:0:0.05,H-2O-1:0:0.05,H-1Na:0:0.05"), "Ad_p");
   p_pos.setValue("charge_min", 1, "minimal possible charge");
   p_pos.setValue("charge_max", 3, "maximal possible charge");
   p_pos.setValue("charge_span_max", 3);
   p_pos.setValue("max_neutrals", 1);
-  p_pos.setValue("q_try", "heuristic", "Try dif");
+  p_pos.setValue("q_try", "feature");
   p_pos.setValue("mass_max_diff", 0.05);
   p_pos.setValue("retention_max_diff", 1.0);
   p_pos.setValue("retention_max_diff_local", 1.0);
@@ -263,6 +263,40 @@ START_SECTION(void compute(const FeatureMapType &fm_in, FeatureMapType &fm_out, 
 
   WHITELIST("xml-stylesheet,consensusXML version=,consensusElement id=,<UserParam type=");
   TEST_FILE_SIMILAR(out_file_p, OPENMS_GET_TEST_DATA_PATH("DC_test_p_output.consensusXML"));
+
+
+  //small neg test file with specific ions
+  Param p_neg;
+  p_neg.setValue("potential_adducts", ListUtils::create<String>("H-1:-:0.6,Cl:-:0.2,Br:-:0.2,CH2O2:0:0.05,H-2O-1:0:0.05,H-1Na:0:0.05,H-1K:0:0.05"), "Ad_n");
+  p_neg.setValue("charge_min", -3, "minimal possible charge");
+  p_neg.setValue("charge_max", -1, "maximal possible charge");
+  p_neg.setValue("charge_span_max", 3);
+  p_neg.setValue("max_neutrals", 1);
+  p_neg.setValue("q_try", "feature");
+  p_neg.setValue("mass_max_diff", 0.05);
+  p_neg.setValue("retention_max_diff", 1.0);
+  p_neg.setValue("retention_max_diff_local", 1.0);
+  p_neg.setValue("intensity_filter", "false");
+  p_neg.setValue("use_minority_bound", "false");
+  p_neg.setValue("negative_mode", "true");
+
+  fd.setParameters(p_neg);
+
+  FeatureMap fm_n_in, fm_n_out;
+  ConsensusMap cm_n, cm_n2;
+  FeatureXMLFile fl_n;
+  fl_n.load(OPENMS_GET_TEST_DATA_PATH("DC_test.featureXML"), fm_n_in);
+  fd.compute(fm_n_in, fm_n_out, cm_n, cm_n2);
+
+  String out_file_n;
+  NEW_TMP_FILE(out_file_n)
+  ConsensusXMLFile c_n;
+  c_n.store(out_file_n,cm_n);
+
+  WHITELIST("xml-stylesheet,consensusXML version=,consensusElement id=,<UserParam type=");
+  TEST_FILE_SIMILAR(out_file_n, OPENMS_GET_TEST_DATA_PATH("DC_test_n_output.consensusXML"));
+
+
 
 END_SECTION
 
