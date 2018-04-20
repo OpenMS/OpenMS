@@ -416,12 +416,6 @@ namespace OpenMS
     return finishAdding_();
   }
 
-  bool SpectrumCanvas::addLayer(ExperimentSharedPtrType map, const String & filename)
-  {
-    ODExperimentSharedPtrType od_dummy(new OnDiscMSExperiment());
-    return addLayer(map, od_dummy, filename);
-  }
-
   bool SpectrumCanvas::addLayer(FeatureMapSharedPtrType map, const String & filename)
   {
     layers_.resize(layers_.size() + 1);

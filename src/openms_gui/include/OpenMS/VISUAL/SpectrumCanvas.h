@@ -341,17 +341,20 @@ public:
     virtual void activateLayer(Size layer_index) = 0;
     ///removes the layer with index @p layer_index
     virtual void removeLayer(Size layer_index) = 0;
+
     /**
         @brief Add a peak data layer
 
-        If chromatograms are present, a chromatogram layer is shown. Otherwise a peak layer is shown. Make sure to remove chromatograms from peak data and vice versa.
+        If chromatograms are present, a chromatogram layer is shown. Otherwise
+        a peak layer is shown. Make sure to remove chromatograms from peak data
+        and vice versa.
 
-  @param map Shared Pointer to input map. It can be performed in constant time and does not double the required memory.
+        @param map Shared pointer to input map. It can be performed in constant time and does not double the required memory.
+        @param od_map Shared pointer to on disk data which potentially caches some data to save memory (the map can be empty, but do not pass nullptr).
         @param filename This @em absolute filename is used to monitor changes in the file and reload the data
 
         @return If a new layer was created
     */
-    bool addLayer(ExperimentSharedPtrType map, const String & filename = "");
     bool addLayer(ExperimentSharedPtrType map, ODExperimentSharedPtrType od_map, const String & filename = "");
 
     /**
