@@ -6,6 +6,7 @@ set(sources_list
 BilinearInterpolation.cpp
 BSpline2d.cpp
 CubicSpline2d.cpp
+EmgGradientDescent.cpp
 LinearInterpolation.cpp
 MathFunctions.cpp
 NonNegativeLeastSquaresSolver.cpp
