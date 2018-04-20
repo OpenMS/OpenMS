@@ -753,7 +753,7 @@ namespace OpenMS
         if (!abort)
         {
           consensus_map_.push_back(consensus);
-          for(std::vector<Feature>::iterator it = features.begin(); it != features.end(); ++it)
+          for (std::vector<Feature>::iterator it = features.begin(); it != features.end(); ++it)
           {
             feature_map_.push_back(*it);
           }
@@ -913,7 +913,7 @@ namespace OpenMS
         if (!abort)
         {
           consensus_map_.push_back(consensus);
-          for(std::vector<Feature>::iterator it = features.begin(); it != features.end(); ++it)
+          for (std::vector<Feature>::iterator it = features.begin(); it != features.end(); ++it)
           {
             feature_map_.push_back(*it);
           }
