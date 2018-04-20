@@ -46,7 +46,7 @@
 
 #include <OpenMS/CHEMISTRY/IsotopeDistribution.h>
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
-#include <OpenMS/MATH/STATISTICS/LinearRegression.h>
+#include <OpenMS/MATH/STATISTICS/LinearRegressionWithoutIntercept.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
@@ -231,81 +231,6 @@ namespace OpenMS
     return list;
   }
   
-  /**
-   * @brief simple linear regression through the origin
-   *
-   * TODO: combine with OpenMS/MATH/STATISTICS/LinearRegression
-   */
-  class LinearRegressionWithoutIntercept
-  {
-  public:
-    /**
-     * @brief constructor
-     */
-    LinearRegressionWithoutIntercept() :
-    sum_xx_(0), sum_xy_(0), n_(0)
-    {
-    }
-    
-    /**
-     * @brief adds an observation (x,y) to the regression data set.
-     *
-     * @param x    independent variable value
-     * @param y    dependent variable value
-     */
-    void addData(double x, double y)
-    {
-      sum_xx_ += x * x;
-      sum_xy_ += x * y;
-      
-      ++n_;
-    }
-    
-    /**
-     * @brief adds observations (x,y) to the regression data set.
-     *
-     * @param x    vector of independent variable values
-     * @param y    vector of dependent variable values
-     */
-    void addData(std::vector<double>& x, std::vector<double>& y)
-    {
-      for (unsigned i = 0; i < x.size(); ++i)
-      {
-        addData(x[i], y[i]);
-      }
-    }
-    
-    /**
-     * @brief returns the slope of the estimated regression line.
-     */
-    double getSlope()
-    {
-      if (n_ < 2)
-      {
-        return std::numeric_limits<double>::quiet_NaN(); // not enough data
-      }
-      
-      return sum_xy_ / sum_xx_;
-    }
-    
-  private:
-    /**
-     * @brief total variation in x
-     */
-    double sum_xx_;
-    
-    /**
-     * @brief sum of products
-     */
-    double sum_xy_;
-    
-    /**
-     * @brief number of observations
-     */
-    int n_;
-    
-  };
-  
   std::vector<double> FeatureFinderMultiplexAlgorithm::determinePeptideIntensitiesCentroided_(const MultiplexIsotopicPeakPattern& pattern, const std::multimap<size_t, MultiplexSatelliteCentroided >& satellites)
   {
     // determine RT shift between the peptides
@@ -460,7 +385,7 @@ namespace OpenMS
       }
       
       // determine ratios through linear regression of all corresponding intensities
-      LinearRegressionWithoutIntercept linreg;
+      Math::LinearRegressionWithoutIntercept linreg;
       linreg.addData(intensities_light, intensities_other);
       double slope = linreg.getSlope();
       
@@ -625,7 +550,7 @@ namespace OpenMS
       }
       
       // determine ratios through linear regression of all corresponding intensities
-      LinearRegressionWithoutIntercept linreg;
+      Math::LinearRegressionWithoutIntercept linreg;
       linreg.addData(intensities_light, intensities_other);
       double slope = linreg.getSlope();
       
