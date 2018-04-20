@@ -230,9 +230,6 @@ public:
     static constexpr const char* BASELINE_TYPE_VERTICALDIVISION_MAX = "vertical_division_max";
     ///@}
 
-    /// To test private and protected methods
-    friend class PeakIntegrator_friend;
-
     /**
       @brief Compute the area of a peak contained in a MSChromatogram.
 
