@@ -124,6 +124,8 @@ public:
     typedef LayerData::ExperimentType ExperimentType;
     //Main managed data type (experiment)
     typedef LayerData::ExperimentSharedPtrType ExperimentSharedPtrType;
+    //Main on-disc managed data type (experiment)
+    typedef LayerData::ODExperimentSharedPtrType ODExperimentSharedPtrType;
     ///Peak spectrum type
     typedef ExperimentType::SpectrumType SpectrumType;
     //@}
@@ -154,6 +156,7 @@ public:
       @param consensus_map The consensus feature data (empty if not consensus feature data)
       @param peptides The peptide identifications (empty if not ID data)
       @param peak_map The peak data (empty if not peak data)
+      @param on_disc_peak_map The peak data managed on disc (empty if not peak data)
       @param data_type Type of the data
       @param show_as_1d Force dataset to be opened in 1D mode (even if it contains several spectra)
       @param show_options If the options dialog should be shown (otherwise the defaults are used)
@@ -162,7 +165,19 @@ public:
       @param window_id in which window the file is opened if opened as a new layer (0 or default equals current
       @param spectrum_id determines the spectrum to show in 1D view.
     */
-    void addData(FeatureMapSharedPtrType feature_map, ConsensusMapSharedPtrType consensus_map, std::vector<PeptideIdentification>& peptides, ExperimentSharedPtrType peak_map, LayerData::DataType data_type, bool show_as_1d, bool show_options, bool as_new_window = true, const String& filename = "", const String& caption = "", UInt window_id = 0, Size spectrum_id = 0);
+    void addData(FeatureMapSharedPtrType feature_map,
+                 ConsensusMapSharedPtrType consensus_map,
+                 std::vector<PeptideIdentification>& peptides,
+                 ExperimentSharedPtrType peak_map,
+                 ODExperimentSharedPtrType on_disc_peak_map,
+                 LayerData::DataType data_type,
+                 bool show_as_1d,
+                 bool show_options,
+                 bool as_new_window = true,
+                 const String& filename = "",
+                 const String& caption = "",
+                 UInt window_id = 0,
+                 Size spectrum_id = 0);
 
     /// Opens all the files in the string list
     void loadFiles(const StringList& list, QSplashScreen* splash_screen);

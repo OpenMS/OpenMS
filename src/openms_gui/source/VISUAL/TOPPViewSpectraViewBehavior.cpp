@@ -58,6 +58,7 @@ namespace OpenMS
     // basic behavior 1
     const LayerData & layer = tv_->getActiveCanvas()->getCurrentLayer();
     ExperimentSharedPtrType exp_sptr = layer.getPeakData();
+    LayerData::ODExperimentSharedPtrType od_exp_sptr = layer.getOnDiscPeakData();
 
     // open new 1D widget
     Spectrum1DWidget * w = new Spectrum1DWidget(tv_->getSpectrumParameters(1), (QWidget *)tv_->getWorkspace());
@@ -96,7 +97,7 @@ namespace OpenMS
       caption = layer.name;
 
       //add data
-      if (!w->canvas()->addLayer(exp_sptr, layer.filename) || (Size)index >= w->canvas()->getCurrentLayer().getPeakData()->size())
+      if (!w->canvas()->addLayer(exp_sptr, od_exp_sptr, layer.filename) || (Size)index >= w->canvas()->getCurrentLayer().getPeakData()->size())
       {
         return;
       }
@@ -113,7 +114,7 @@ namespace OpenMS
       UInt ms_level = w->canvas()->getCurrentLayer().getCurrentSpectrum().getMSLevel();
       if (ms_level == 1)
       {
-        // set visible aree to visible area in 2D view
+        // set visible area to visible area in 2D view
         w->canvas()->setVisibleArea(tv_->getActiveCanvas()->getVisibleArea());
       }
     }

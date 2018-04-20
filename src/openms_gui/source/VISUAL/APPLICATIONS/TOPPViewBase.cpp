@@ -36,6 +36,8 @@
 
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/KERNEL/OnDiscMSExperiment.h>
+#include <OpenMS/FORMAT/HANDLERS/IndexedMzMLHandler.h>
 #include <OpenMS/ANALYSIS/ID/IDMapper.h>
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
@@ -1075,8 +1077,7 @@ namespace OpenMS
     FeatureMapType* feature_map = new FeatureMapType();
     FeatureMapSharedPtrType feature_map_sptr(feature_map);
 
-    ExperimentType* peak_map = new ExperimentType();
-    ExperimentSharedPtrType peak_map_sptr(peak_map);
+    ExperimentSharedPtrType peak_map_sptr(new ExperimentType());
 
     ConsensusMapType* consensus_map = new ConsensusMapType();
     ConsensusMapSharedPtrType consensus_map_sptr(consensus_map);
@@ -1084,6 +1085,11 @@ namespace OpenMS
     vector<PeptideIdentification> peptides;
 
     LayerData::DataType data_type;
+
+    ODExperimentSharedPtrType on_disc_peaks(new OnDiscMSExperiment);
+
+    bool cache_ms2_on_disc = true;
+    bool cache_ms1_on_disc = false;
 
     try
     {
@@ -1165,11 +1171,45 @@ namespace OpenMS
       }
       else
       {
+        FileTypes::Type type;
+        type = FileHandler::getType(filename);
+        bool parsing_success = false;
+        if (type == FileTypes::MZML)
+        {
+          MzMLFile f;
+          on_disc_peaks->openFile(filename);
+
+          Internal::IndexedMzMLHandler indexed_mzml_file_;
+          indexed_mzml_file_.openFile(filename);
+          if ( indexed_mzml_file_.getParsingSuccess() && cache_ms2_on_disc)
+          {
+            MzMLFile f;
+            PeakFileOptions options = f.getOptions();
+            options.setFillData(false);
+            f.setOptions(options);
+            f.load(filename, *peak_map_sptr);
+
+            // Load all MS1 data into memory
+            for (Size k = 0; k < indexed_mzml_file_.getNrSpectra() && !cache_ms1_on_disc; k++)
+            {
+              if ( peak_map_sptr->getSpectrum(k).getMSLevel() == 1) 
+              {
+                peak_map_sptr->getSpectrum(k) = on_disc_peaks->getSpectrum(k);
+              }
+            }
+          }
+        }
+
+        // Load all data into memory
+        if (!parsing_success)
+        {
+          fh.loadExperiment(abs_filename, *peak_map_sptr, file_type, ProgressLogger::GUI);
+        }
+
         // a mzML file may contain both, chromatogram and peak data
         // -> this is handled in SpectrumCanvas::addLayer
-        fh.loadExperiment(abs_filename, *peak_map, file_type, ProgressLogger::GUI);
         data_type = LayerData::DT_CHROMATOGRAM;
-        if (TOPPViewBase::containsMS1Scans(*peak_map))
+        if (TOPPViewBase::containsMS1Scans(*peak_map_sptr))
         {
           data_type = LayerData::DT_PEAK;
         }
@@ -1196,7 +1236,7 @@ namespace OpenMS
       abs_filename = "";
     }
 
-    addData(feature_map_sptr, consensus_map_sptr, peptides, peak_map_sptr, data_type, false, show_options, true, abs_filename, caption, window_id, spectrum_id);
+    addData(feature_map_sptr, consensus_map_sptr, peptides, peak_map_sptr, on_disc_peaks, data_type, false, show_options, true, abs_filename, caption, window_id, spectrum_id);
 
     // add to recent file
     if (add_to_recent)
@@ -1211,7 +1251,15 @@ namespace OpenMS
     setCursor(Qt::ArrowCursor);
   }
 
-  void TOPPViewBase::addData(FeatureMapSharedPtrType feature_map, ConsensusMapSharedPtrType consensus_map, vector<PeptideIdentification>& peptides, ExperimentSharedPtrType peak_map, LayerData::DataType data_type, bool show_as_1d, bool show_options, bool as_new_window, const String& filename, const String& caption, UInt window_id, Size spectrum_id)
+  void TOPPViewBase::addData(FeatureMapSharedPtrType feature_map,
+                             ConsensusMapSharedPtrType consensus_map,
+                             vector<PeptideIdentification>& peptides,
+                             ExperimentSharedPtrType peak_map,
+                             ODExperimentSharedPtrType on_disc_peak_map,
+                             LayerData::DataType data_type, bool show_as_1d,
+                             bool show_options, bool as_new_window,
+                             const String& filename, const String& caption,
+                             UInt window_id, Size spectrum_id)
   {
     // initialize flags with defaults from the parameters
     bool maps_as_2d = ((String)param_.getValue("preferences:default_map_view") == "2d");
@@ -1336,7 +1384,7 @@ namespace OpenMS
       }
       else //peaks
       {
-        if (!target_window->canvas()->addLayer(peak_map, filename))
+        if (!target_window->canvas()->addLayer(peak_map, on_disc_peak_map, filename))
           return;
 
         //calculate noise
@@ -3205,8 +3253,9 @@ namespace OpenMS
       ExperimentSharedPtrType new_exp_sptr(new PeakMap(new_exp));
       FeatureMapSharedPtrType f_dummy(new FeatureMapType());
       ConsensusMapSharedPtrType c_dummy(new ConsensusMapType());
+      ODExperimentSharedPtrType od_dummy(new OnDiscMSExperiment()); // TODO 
       vector<PeptideIdentification> p_dummy;
-      addData(f_dummy, c_dummy, p_dummy, new_exp_sptr, LayerData::DT_CHROMATOGRAM, false, true, true, "", seq_string + QString(" (theoretical)"));
+      addData(f_dummy, c_dummy, p_dummy, new_exp_sptr, od_dummy, LayerData::DT_CHROMATOGRAM, false, true, true, "", seq_string + QString(" (theoretical)"));
 
       // ensure spectrum is drawn as sticks
       draw_group_1d_->button(Spectrum1DCanvas::DM_PEAKS)->setChecked(true);
@@ -3310,12 +3359,13 @@ namespace OpenMS
   {
     const LayerData& layer = getActiveCanvas()->getCurrentLayer();
     ExperimentSharedPtrType exp_sptr = layer.getPeakData();
+    ODExperimentSharedPtrType od_exp_sptr = layer.getOnDiscPeakData();
 
     //open new 2D widget
     Spectrum2DWidget* w = new Spectrum2DWidget(getSpectrumParameters(2), ws_);
 
     //add data
-    if (!w->canvas()->addLayer(exp_sptr, layer.filename))
+    if (!w->canvas()->addLayer(exp_sptr, od_exp_sptr, layer.filename))
     {
       return;
     }
@@ -3336,7 +3386,6 @@ namespace OpenMS
 
   void TOPPViewBase::showCurrentPeaksAs3D()
   {
-
     // we first pick the layer with 3D support which is closest (or ideally identical) to the currently active layer
     // we might find that there is no compatible layer though...
     // if some day more than one type of data is supported, we need to adapt the code below accordingly
@@ -3767,9 +3816,10 @@ namespace OpenMS
         ExperimentSharedPtrType peaks = layer.getPeakData();
         ConsensusMapSharedPtrType consensus = layer.getConsensusMap();
         vector<PeptideIdentification> peptides = layer.peptides;
+        ODExperimentSharedPtrType od_dummy(new OnDiscMSExperiment()); // TODO 
 
         //add the data
-        addData(features, consensus, peptides, peaks, layer.type, false, false, true, layer.filename, layer.name, new_id);
+        addData(features, consensus, peptides, peaks, od_dummy, layer.type, false, false, true, layer.filename, layer.name, new_id);
       }
       else if (source == spectra_view_treewidget)
       {
@@ -3782,10 +3832,11 @@ namespace OpenMS
           ExperimentType new_exp;
           new_exp.addSpectrum(spectrum);
           ExperimentSharedPtrType new_exp_sptr(new ExperimentType(new_exp));
+          ODExperimentSharedPtrType od_dummy(new OnDiscMSExperiment());
           FeatureMapSharedPtrType f_dummy(new FeatureMapType());
           ConsensusMapSharedPtrType c_dummy(new ConsensusMapType());
           vector<PeptideIdentification> p_dummy;
-          addData(f_dummy, c_dummy, p_dummy, new_exp_sptr, LayerData::DT_CHROMATOGRAM, false, false, true, layer.filename, layer.name, new_id);
+          addData(f_dummy, c_dummy, p_dummy, new_exp_sptr, od_dummy, LayerData::DT_CHROMATOGRAM, false, false, true, layer.filename, layer.name, new_id);
         }
       }
       else if (source == nullptr)
