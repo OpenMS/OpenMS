@@ -155,7 +155,7 @@ namespace OpenMS
     return false;
   }
   
-  bool MultiplexFiltering::filterPeakPositions_(const MSSpectrum::ConstIterator& it_mz, White2Original& index_mapping, const MSExperiment::ConstIterator& it_rt_begin, const MSExperiment::ConstIterator& it_rt_band_begin, const MSExperiment::ConstIterator& it_rt_band_end, const MultiplexIsotopicPeakPattern& pattern, MultiplexFilteredPeak& peak) const
+  bool MultiplexFiltering::filterPeakPositions_(const MSSpectrum::ConstIterator& it_mz, const White2Original& index_mapping, const MSExperiment::ConstIterator& it_rt_begin, const MSExperiment::ConstIterator& it_rt_band_begin, const MSExperiment::ConstIterator& it_rt_band_end, const MultiplexIsotopicPeakPattern& pattern, MultiplexFilteredPeak& peak) const
   {
     // check if peak position is blacklisted
     if (blacklist_[peak.getRTidx()][peak.getMZidx()] == black)
@@ -218,7 +218,7 @@ namespace OpenMS
           if (i != -1)
           {
             // Note that unlike primary peaks, satellite peaks are not restricted by the blacklist.
-            peak.addSatellite(it_rt - it_rt_begin, index_mapping[it_rt - it_rt_begin][i], idx_mz_shift);
+            peak.addSatellite(it_rt - it_rt_begin, index_mapping.at(it_rt - it_rt_begin).at(i), idx_mz_shift);
             found = true;
           }          
         }
