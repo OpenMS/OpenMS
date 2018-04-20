@@ -1196,7 +1196,7 @@ namespace OpenMS
             // Load all MS1 data into memory
             for (Size k = 0; k < indexed_mzml_file_.getNrSpectra() && !cache_ms1_on_disc; k++)
             {
-              if ( peak_map_sptr->getSpectrum(k).getMSLevel() == 1) 
+              if ( peak_map_sptr->getSpectrum(k).getMSLevel() == 1)
               {
                 peak_map_sptr->getSpectrum(k) = on_disc_peaks->getSpectrum(k);
               }
@@ -3257,7 +3257,7 @@ namespace OpenMS
       ExperimentSharedPtrType new_exp_sptr(new PeakMap(new_exp));
       FeatureMapSharedPtrType f_dummy(new FeatureMapType());
       ConsensusMapSharedPtrType c_dummy(new ConsensusMapType());
-      ODExperimentSharedPtrType od_dummy(new OnDiscMSExperiment()); // TODO 
+      ODExperimentSharedPtrType od_dummy(new OnDiscMSExperiment());
       vector<PeptideIdentification> p_dummy;
       addData(f_dummy, c_dummy, p_dummy, new_exp_sptr, od_dummy, LayerData::DT_CHROMATOGRAM, false, true, true, "", seq_string + QString(" (theoretical)"));
 
@@ -3427,7 +3427,7 @@ namespace OpenMS
 
       ExperimentSharedPtrType exp_sptr = layer.getPeakData();
 
-      if (!w->canvas()->addLayer(exp_sptr, layer.filename))
+      if (!w->canvas()->addLayer(exp_sptr, SpectrumCanvas::ODExperimentSharedPtrType(new OnDiscMSExperiment()), layer.filename))
       {
         return;
       }
@@ -3820,10 +3820,10 @@ namespace OpenMS
         ExperimentSharedPtrType peaks = layer.getPeakData();
         ConsensusMapSharedPtrType consensus = layer.getConsensusMap();
         vector<PeptideIdentification> peptides = layer.peptides;
-        ODExperimentSharedPtrType od_dummy(new OnDiscMSExperiment()); // TODO 
+        ODExperimentSharedPtrType on_disc_peaks = layer.getOnDiscPeakData();
 
         //add the data
-        addData(features, consensus, peptides, peaks, od_dummy, layer.type, false, false, true, layer.filename, layer.name, new_id);
+        addData(features, consensus, peptides, peaks, on_disc_peaks, layer.type, false, false, true, layer.filename, layer.name, new_id);
       }
       else if (source == spectra_view_treewidget)
       {
@@ -4009,7 +4009,7 @@ namespace OpenMS
           }
           layer.getConsensusMap()->updateRanges();
         }
-        else if (layer.type == LayerData::DT_CHROMATOGRAM) //chromatgram
+        else if (layer.type == LayerData::DT_CHROMATOGRAM) //chromatogram
         {
           //TODO CHROM
           try

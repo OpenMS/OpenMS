@@ -85,7 +85,8 @@ namespace OpenMS
 
       caption = layer.name + "[" + index + "]";
       //add chromatogram data as peak spectrum
-      if (!w->canvas()->addLayer(chrom_exp_sptr, layer.filename))
+      LayerData::ODExperimentSharedPtrType od_dummy(new OnDiscMSExperiment());
+      if (!w->canvas()->addLayer(chrom_exp_sptr, od_dummy, layer.filename))
       {
         return;
       }
@@ -188,7 +189,8 @@ namespace OpenMS
         caption = caption + " [" + indices[index] + "];";
         chromatogram_caption = layer.name + "[" + indices[index] + "]";
         //add chromatogram data as peak spectrum
-        if (!w->canvas()->addLayer(chrom_exp_sptr, layer.filename))
+        LayerData::ODExperimentSharedPtrType od_dummy(new OnDiscMSExperiment());
+        if (!w->canvas()->addLayer(chrom_exp_sptr, od_dummy, layer.filename))
         {
           return;
         }
@@ -277,7 +279,8 @@ namespace OpenMS
       chrom_exp_sptr->addSpectrum(spectrum);
       caption = lname + "[" + index + "]";
       //add chromatogram data as peak spectrum
-      if (!widget_1d->canvas()->addLayer(chrom_exp_sptr, fname))
+      LayerData::ODExperimentSharedPtrType od_dummy(new OnDiscMSExperiment());
+      if (!widget_1d->canvas()->addLayer(chrom_exp_sptr, od_dummy, fname))
       {
         return;
       }
@@ -355,7 +358,8 @@ namespace OpenMS
           caption = String(current_chrom.getPrecursor().getMetaValue("peptide_sequence")) + "[" + indices[index] + "]";
         }
         //add chromatogram data as peak spectrum
-        if (!widget_1d->canvas()->addLayer(chrom_exp_sptr, fname))
+        LayerData::ODExperimentSharedPtrType od_dummy(new OnDiscMSExperiment());
+        if (!widget_1d->canvas()->addLayer(chrom_exp_sptr, od_dummy, fname))
         {
           return;
         }

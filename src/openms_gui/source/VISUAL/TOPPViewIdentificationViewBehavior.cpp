@@ -71,13 +71,14 @@ namespace OpenMS
     // basic behavior 1
     const LayerData& layer = tv_->getActiveCanvas()->getCurrentLayer();
     ExperimentSharedPtrType exp_sptr = layer.getPeakData();
+    LayerData::ODExperimentSharedPtrType od_exp_sptr = layer.getOnDiscPeakData();
 
     if (layer.type == LayerData::DT_PEAK)
     {
       // open new 1D widget with the current default parameters
       Spectrum1DWidget* w = new Spectrum1DWidget(tv_->getSpectrumParameters(1), (QWidget*)tv_->getWorkspace());
       // add data
-      if (!w->canvas()->addLayer(exp_sptr, layer.filename) || (Size)spectrum_index >= w->canvas()->getCurrentLayer().getPeakData()->size())
+      if (!w->canvas()->addLayer(exp_sptr, od_exp_sptr, layer.filename) || (Size)spectrum_index >= w->canvas()->getCurrentLayer().getPeakData()->size())
       {
         return;
       }
@@ -144,7 +145,6 @@ namespace OpenMS
     }
     // else if (layer.type == LayerData::DT_CHROMATOGRAM)
   }
-
 
   void TOPPViewIdentificationViewBehavior::addPeakAnnotations_(const std::vector<PeptideIdentification>& ph)
   {
@@ -671,13 +671,13 @@ namespace OpenMS
     ExperimentSharedPtrType new_exp_sptr(new PeakMap(new_exp));
     FeatureMapSharedPtrType f_dummy(new FeatureMapType());
     ConsensusMapSharedPtrType c_dummy(new ConsensusMapType());
+    LayerData::ODExperimentSharedPtrType od_dummy(new OnDiscMSExperiment());
     vector<PeptideIdentification> p_dummy;
 
     // Block update events for identification widget
     tv_->getSpectraIdentificationViewWidget()->ignore_update = true;
 
     String layer_caption = aa_sequence.toString().toQString() + QString(" (identification view)");
-    LayerData::ODExperimentSharedPtrType od_dummy(new OnDiscMSExperiment()); // TODO 
     tv_->addData(f_dummy, c_dummy, p_dummy, new_exp_sptr, od_dummy, LayerData::DT_CHROMATOGRAM, false, false, false, "", layer_caption.toQString());
 
     // get layer index of new layer
@@ -907,6 +907,7 @@ namespace OpenMS
 
     PeakMap new_exp;
     new_exp.addSpectrum(ann_spectrum);
+    LayerData::ODExperimentSharedPtrType od_dummy(new OnDiscMSExperiment());
     ExperimentSharedPtrType new_exp_sptr(new PeakMap(new_exp));
     FeatureMapSharedPtrType f_dummy(new FeatureMapType());
     ConsensusMapSharedPtrType c_dummy(new ConsensusMapType());
@@ -916,7 +917,6 @@ namespace OpenMS
     tv_->getSpectraIdentificationViewWidget()->ignore_update = true;
 
     String layer_caption = seq + " (identification view)";
-    LayerData::ODExperimentSharedPtrType od_dummy(new OnDiscMSExperiment()); // TODO 
     tv_->addData(f_dummy, c_dummy, p_dummy, new_exp_sptr, od_dummy, LayerData::DT_PEAK, true, false, false, "", layer_caption);
 
     // get layer index of new layer
