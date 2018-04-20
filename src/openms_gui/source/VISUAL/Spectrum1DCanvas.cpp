@@ -1041,8 +1041,8 @@ namespace OpenMS
     current_layer_ = getLayerCount() - 1;
     currentPeakData_()->updateRanges();
 
-    // Abort if no data points are contained
-    if (getCurrentLayer().getPeakData()->size() == 0 || getCurrentLayer().getPeakData()->getSize() == 0)
+    // Abort if no data points are contained (note that all data could be on disk)
+    if (getCurrentLayer().getPeakData()->size() == 0)
     {
       layers_.resize(getLayerCount() - 1);
       if (current_layer_ != 0)

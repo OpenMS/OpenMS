@@ -1230,8 +1230,8 @@ namespace OpenMS
     if (layers_.back().type == LayerData::DT_PEAK)   //peak data
     {
       update_buffer_ = true;
-      //Abort if no data points are contained
-      if ((currentPeakData_()->size() == 0 || currentPeakData_()->getSize() == 0) && currentPeakData_()->getDataRange().isEmpty())
+      // Abort if no data points are contained (note that all data could be on disk)
+      if (currentPeakData_()->size() == 0)
       {
         layers_.resize(getLayerCount() - 1);
         if (current_layer_ != 0)
