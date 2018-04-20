@@ -82,12 +82,12 @@ namespace OpenMS
         - Activated using the CTRL key
         - Zoom stack traversal with CTRL+/CTRL- or mouses wheel
         - Pressing the @em Backspace key resets the zoom (and stack)
-  - Measure mode
-    - Activated using the SHIFT key
+      - Measure mode
+        - Activated using the SHIFT key
 
-  @improvement Add log mode (Hiwi)
+      @improvement Add log mode (Hiwi)
 
-  @todo Allow reordering the layer list by drag-and-drop (Hiwi, Johannes)
+      @todo Allow reordering the layer list by drag-and-drop (Hiwi, Johannes)
 
       @htmlinclude OpenMS_SpectrumCanvas.parameters
 
@@ -662,17 +662,17 @@ protected:
     double getIdentificationMZ_(const Size layer_index,
                                     const PeptideIdentification & peptide) const;
 
-    ///Method that is called when a new layer has been added
+    /// Method that is called when a new layer has been added
     virtual bool finishAdding_() = 0;
 
-    ///Returns the layer with index @p index
+    /// Returns the layer with index @p index
     inline LayerData & getLayer_(Size index)
     {
       OPENMS_PRECONDITION(index < layers_.size(), "SpectrumCanvas::getLayer_(index) index overflow");
       return layers_[index];
     }
 
-    ///Returns the currently active layer
+    /// Returns the currently active layer
     inline LayerData & getCurrentLayer_()
     {
       return getLayer_(current_layer_);
