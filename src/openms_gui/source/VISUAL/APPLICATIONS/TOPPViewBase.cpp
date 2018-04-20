@@ -611,6 +611,8 @@ namespace OpenMS
     defaults_.setValidStrings("preferences:topp_cleanup", ListUtils::create<String>("true,false"));
     defaults_.setValue("preferences:use_cached_ms2", "false", "If possible, only load MS1 spectra into memory and keep MS2 spectra on disk (using indexed mzML).");
     defaults_.setValidStrings("preferences:use_cached_ms2", ListUtils::create<String>("true,false"));
+    defaults_.setValue("preferences:use_cached_ms1", "false", "If possible, do not load MS1 spectra into memory spectra into memory and keep MS2 spectra on disk (using indexed mzML).");
+    defaults_.setValidStrings("preferences:use_cached_ms1", ListUtils::create<String>("true,false"));
     // 1d view
     Spectrum1DCanvas* def1 = new Spectrum1DCanvas(Param(), nullptr);
     defaults_.insert("preferences:1d:", def1->getDefaults());
@@ -1091,7 +1093,7 @@ namespace OpenMS
     ODExperimentSharedPtrType on_disc_peaks(new OnDiscMSExperiment);
 
     bool cache_ms2_on_disc = ((String)param_.getValue("preferences:use_cached_ms2") == "true");
-    bool cache_ms1_on_disc = false;
+    bool cache_ms1_on_disc = ((String)param_.getValue("preferences:use_cached_ms1") == "true");
 
     try
     {
@@ -1185,12 +1187,17 @@ namespace OpenMS
           indexed_mzml_file_.openFile(filename);
           if ( indexed_mzml_file_.getParsingSuccess() && cache_ms2_on_disc)
           {
-            std::cout << "INFO: will use cached MS2 spectra" << std::endl;
+            LOG_INFO << "INFO: will use cached MS2 spectra" << std::endl;
+            if (cache_ms1_on_disc)
+            {
+              LOG_INFO << "log INFO: will use cached MS1 spectra" << std::endl;
+            }
             parsing_success = true;
             MzMLFile f;
             PeakFileOptions options = f.getOptions();
             options.setFillData(false);
             f.setOptions(options);
+            f.setLogType(ProgressLogger::GUI);
             f.load(filename, *peak_map_sptr);
 
             // Load all MS1 data into memory
