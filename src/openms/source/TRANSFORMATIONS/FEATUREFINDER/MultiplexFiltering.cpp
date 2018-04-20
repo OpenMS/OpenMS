@@ -155,7 +155,7 @@ namespace OpenMS
     return false;
   }
   
-  bool MultiplexFiltering::filterPeakPositions_(const MSSpectrum::ConstIterator& it_mz, White2Original& index_mapping, const MSExperiment::ConstIterator& it_rt_begin, const MSExperiment::ConstIterator& it_rt_band_begin, const MSExperiment::ConstIterator& it_rt_band_end, const MultiplexIsotopicPeakPattern& pattern, MultiplexFilteredPeak& peak) const
+  bool MultiplexFiltering::filterPeakPositions_(const MSSpectrum::ConstIterator& it_mz, const White2Original& index_mapping, const MSExperiment::ConstIterator& it_rt_begin, const MSExperiment::ConstIterator& it_rt_band_begin, const MSExperiment::ConstIterator& it_rt_band_end, const MultiplexIsotopicPeakPattern& pattern, MultiplexFilteredPeak& peak) const
   {
     // check if peak position is blacklisted
     if (blacklist_[peak.getRTidx()][peak.getMZidx()] == black)
@@ -531,13 +531,13 @@ namespace OpenMS
     }
     
     // debug output variables
-    int debug_charge = 4;
+    /*int debug_charge = 4;
     size_t debug_rt_idx = 35;
     size_t debug_mz_idx = 6;
-    //bool debug_now = ((pattern.getCharge() == debug_charge) && (peak.getRTidx() == debug_rt_idx) && (peak.getMZidx() == debug_mz_idx));
+    bool debug_now = ((pattern.getCharge() == debug_charge) && (peak.getRTidx() == debug_rt_idx) && (peak.getMZidx() == debug_mz_idx));
     
     // debug output
-    /*if (debug_now)
+    if (debug_now)
     {
       std::cout << "Inside the Peptide Correlation Filter.\n";
     }*/
