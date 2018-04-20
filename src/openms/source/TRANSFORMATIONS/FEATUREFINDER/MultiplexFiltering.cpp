@@ -155,7 +155,7 @@ namespace OpenMS
     return false;
   }
   
-  bool MultiplexFiltering::filterPeakPositions_(const MSSpectrum::ConstIterator& it_mz, const White2Original& index_mapping, const MSExperiment::ConstIterator& it_rt_begin, const MSExperiment::ConstIterator& it_rt_band_begin, const MSExperiment::ConstIterator& it_rt_band_end, const MultiplexIsotopicPeakPattern& pattern, MultiplexFilteredPeak& peak) const
+  bool MultiplexFiltering::filterPeakPositions_(const MSSpectrum::ConstIterator& it_mz, White2Original& index_mapping, const MSExperiment::ConstIterator& it_rt_begin, const MSExperiment::ConstIterator& it_rt_band_begin, const MSExperiment::ConstIterator& it_rt_band_end, const MultiplexIsotopicPeakPattern& pattern, MultiplexFilteredPeak& peak) const
   {
     // check if peak position is blacklisted
     if (blacklist_[peak.getRTidx()][peak.getMZidx()] == black)
