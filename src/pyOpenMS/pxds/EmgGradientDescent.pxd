@@ -1,5 +1,6 @@
 from MSChromatogram cimport *
 from MSSpectrum cimport *
+from DefaultParamHandler cimport *
 
 cdef extern from "<OpenMS/MATH/MISC/EmgGradientDescent.h>" namespace "OpenMS":
 
@@ -12,5 +13,5 @@ cdef extern from "<OpenMS/MATH/MISC/EmgGradientDescent.h>" namespace "OpenMS":
 
         void getDefaultParameters(Param&) nogil except +
 
-        void fitEMGPeakModel(const MSChromatogram& input_peak, MSChromatogram& output_peak) nogil except +
-        void fitEMGPeakModel(const MSSpectrum& input_peak, MSSpectrum& output_peak) nogil except +
+        void fitEMGPeakModel(MSChromatogram input_peak, MSChromatogram& output_peak) nogil except +
+        void fitEMGPeakModel(MSSpectrum input_peak, MSSpectrum& output_peak) nogil except +
