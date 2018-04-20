@@ -252,6 +252,22 @@ public:
       return cached_spectrum_;
     }
 
+    /// Returns a copy of the required spectrum
+    ExperimentType::SpectrumType getSpectrum(Size spectrum_idx) const
+    {
+      if (spectrum_idx == current_spectrum_) return cached_spectrum_;
+
+      if ((*peaks)[spectrum_idx].size() > 0)
+      {
+        return (*peaks)[spectrum_idx];
+      }
+      else if (!on_disc_peaks->empty())
+      {
+        return on_disc_peaks->getSpectrum(spectrum_idx);
+      }
+      return (*peaks)[spectrum_idx];
+    }
+      
     /// Get the index of the current spectrum
     Size getCurrentSpectrumIndex() const
     {
