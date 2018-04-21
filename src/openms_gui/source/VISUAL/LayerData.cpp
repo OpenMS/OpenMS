@@ -91,12 +91,10 @@ namespace OpenMS
 
   void LayerData::synchronizePeakAnnotations()
   {
-    int spectrum_index = getCurrentSpectrumIndex();
-
     // Return if no valid peak layer attached
     if (getPeakData()->size() == 0 || type != LayerData::DT_PEAK) { return; }
 
-    MSSpectrum & spectrum = (*getPeakDataMuteable())[spectrum_index];
+    MSSpectrum & spectrum = getCurrentSpectrum();
     int ms_level = spectrum.getMSLevel();
 
     if (ms_level == 2)
@@ -215,15 +213,13 @@ namespace OpenMS
 
   void LayerData::removePeakAnnotationsFromPeptideHit(const std::vector<Annotation1DItem*>& selected_annotations)
   {
-    int spectrum_index = getCurrentSpectrumIndex();
-
     // Return if no valid peak layer attached
     if (getPeakData()->size() == 0 || type != LayerData::DT_PEAK) { return; }
 
     // no ID selected
     if (peptide_id_index == -1 || peptide_hit_index == -1) { return; }
 
-    MSSpectrum & spectrum = (*getPeakDataMuteable())[spectrum_index];
+    MSSpectrum & spectrum = getCurrentSpectrum();
     int ms_level = spectrum.getMSLevel();
 
     // wrong MS level
@@ -270,4 +266,5 @@ namespace OpenMS
     }
     if (annotations_changed) { hit.setPeakAnnotations(fas); }
   }
+
 } //Namespace
