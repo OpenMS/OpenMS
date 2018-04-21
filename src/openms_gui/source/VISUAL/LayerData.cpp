@@ -69,11 +69,11 @@ namespace OpenMS
 
   void LayerData::updateCache_()
   {
-    if ((*peaks)[current_spectrum_].size() > 0)
+    if (peaks->getNrSpectra() > current_spectrum_ && (*peaks)[current_spectrum_].size() > 0)
     {
       cached_spectrum_ = (*peaks)[current_spectrum_];
     }
-    else if (!on_disc_peaks->empty())
+    else if (on_disc_peaks->getNrSpectra() > current_spectrum_)
     {
       cached_spectrum_ = on_disc_peaks->getSpectrum(current_spectrum_);
     }
