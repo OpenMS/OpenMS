@@ -57,7 +57,7 @@ namespace OpenMS
   /**
   @brief Class that stores the data for one layer
 
-      @ingroup SpectrumWidgets
+  @ingroup SpectrumWidgets
   */
   class LayerData
   {
@@ -152,16 +152,14 @@ public:
       peaks(new ExperimentType()),
       on_disc_peaks(new OnDiscMSExperiment()),
       chromatograms(new ExperimentType()),
-      current_spectrum_(0)
+      current_spectrum_(0),
+      cached_spectrum_()
     {
       annotations_1d.resize(1);
     }
 
     /// Returns a const reference to the current spectrum (1d view)
-    const ExperimentType::SpectrumType & getCurrentSpectrum() const
-    {
-      return cached_spectrum_;
-    }
+    const ExperimentType::SpectrumType & getCurrentSpectrum() const;
 
     /// Returns a const reference to the current feature data
     const FeatureMapSharedPtrType & getFeatureMap() const
@@ -188,10 +186,7 @@ public:
     }
 
     /// Returns a const reference to the current peak data
-    const ExperimentSharedPtrType & getPeakData() const
-    {
-      return peaks;
-    }
+    const ExperimentSharedPtrType & getPeakData() const;
 
     /// Returns a mutable reference to the current peak data
     void setPeakData(ExperimentSharedPtrType p)
@@ -247,10 +242,7 @@ public:
     }
 
     /// Returns a mutable reference to the current spectrum (1d view)
-    ExperimentType::SpectrumType & getCurrentSpectrum()
-    {
-      return cached_spectrum_;
-    }
+    ExperimentType::SpectrumType & getCurrentSpectrum();
 
     /// Returns a copy of the required spectrum
     ExperimentType::SpectrumType getSpectrum(Size spectrum_idx) const
@@ -363,17 +355,7 @@ public:
 private:
 
     /// Update current cached spectrum for easy retrieval
-    void updateCache_()
-    {
-      if ((*peaks)[current_spectrum_].size() > 0)
-      {
-        cached_spectrum_ = (*peaks)[current_spectrum_];
-      }
-      else if (!on_disc_peaks->empty())
-      {
-        cached_spectrum_ = on_disc_peaks->getSpectrum(current_spectrum_);
-      }
-    }
+    void updateCache_();
 
     /// updates the PeakAnnotations in the current PeptideHit with manually changed annotations
     void updatePeptideHitAnnotations_(PeptideHit& hit);

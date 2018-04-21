@@ -52,6 +52,33 @@ namespace OpenMS
     return os;
   }
 
+  const LayerData::ExperimentSharedPtrType & LayerData::getPeakData() const
+  {
+    return peaks;
+  }
+
+  void LayerData::updateCache_()
+  {
+    if ((*peaks)[current_spectrum_].size() > 0)
+    {
+      cached_spectrum_ = (*peaks)[current_spectrum_];
+    }
+    else if (!on_disc_peaks->empty())
+    {
+      cached_spectrum_ = on_disc_peaks->getSpectrum(current_spectrum_);
+    }
+  }
+
+  LayerData::ExperimentType::SpectrumType & LayerData::getCurrentSpectrum()
+  {
+    return cached_spectrum_;
+  }
+
+  const LayerData::ExperimentType::SpectrumType & LayerData::getCurrentSpectrum() const
+  {
+    return cached_spectrum_;
+  }
+
   void LayerData::synchronizePeakAnnotations()
   {
     int spectrum_index = getCurrentSpectrumIndex();
