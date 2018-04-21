@@ -147,7 +147,7 @@ namespace OpenMS
     else if (getCurrentLayer().type == LayerData::DT_CHROMATOGRAM)
     {
       const LayerData & layer = getCurrentLayer();
-      const ExperimentSharedPtrType exp = layer.getPeakData();
+      const ConstExperimentSharedPtrType exp = layer.getPeakData();
 
       // create iterator on chromatogram spectrum passed by PeakIndex
       vector<MSChromatogram >::const_iterator chrom_it = exp->getChromatograms().begin();
@@ -166,7 +166,7 @@ namespace OpenMS
     if (getCurrentLayer().type == LayerData::DT_CHROMATOGRAM) // highlight: chromatogram
     {
       const LayerData & layer = getCurrentLayer();
-      const ExperimentSharedPtrType exp = layer.getPeakData();
+      const ConstExperimentSharedPtrType exp = layer.getPeakData();
 
       vector<MSChromatogram >::const_iterator iter = exp->getChromatograms().begin();
       iter += peak.spectrum;
@@ -1227,7 +1227,7 @@ namespace OpenMS
 
     current_layer_ = getLayerCount() - 1;
 
-    if (layers_.back().type == LayerData::DT_PEAK)   //peak data
+    if (layers_.back().type == LayerData::DT_PEAK)   // peak data
     {
       update_buffer_ = true;
       // Abort if no data points are contained (note that all data could be on disk)
@@ -1246,7 +1246,7 @@ namespace OpenMS
         setLayerFlag(LayerData::P_PRECURSORS, true); // show precursors if no MS1 data is contained
       }
     }
-    else if (layers_.back().type == LayerData::DT_FEATURE)  //feature data
+    else if (layers_.back().type == LayerData::DT_FEATURE)  // feature data
     {
       getCurrentLayer_().getFeatureMap()->updateRanges();
       setLayerFlag(LayerData::F_HULL, true);
@@ -1263,7 +1263,7 @@ namespace OpenMS
         return false;
       }
     }
-    else if (layers_.back().type == LayerData::DT_CONSENSUS)  //consensus feature data
+    else if (layers_.back().type == LayerData::DT_CONSENSUS)  // consensus feature data
     {
       getCurrentLayer_().getConsensusMap()->updateRanges();
 
@@ -1277,12 +1277,10 @@ namespace OpenMS
         return false;
       }
     }
-    else if (layers_.back().type == LayerData::DT_CHROMATOGRAM)  //chromatogram data
+    else if (layers_.back().type == LayerData::DT_CHROMATOGRAM)  // chromatogram data
     {
-
-      //TODO CHROM
-      getCurrentLayer_().getPeakData()->sortChromatograms(true);
-      getCurrentLayer_().getPeakData()->updateRanges(1);
+      getCurrentLayer_().getPeakDataMuteable()->sortChromatograms(true);
+      getCurrentLayer_().getPeakDataMuteable()->updateRanges(1);
 
       update_buffer_ = true;
 

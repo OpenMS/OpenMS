@@ -52,9 +52,9 @@ namespace OpenMS
     return os;
   }
 
-  const LayerData::ExperimentSharedPtrType & LayerData::getPeakData() const
+  const LayerData::ConstExperimentSharedPtrType LayerData::getPeakData() const
   {
-    return peaks;
+    return boost::static_pointer_cast<const ExperimentType>(peaks);
   }
 
   void LayerData::updateRanges()
@@ -96,7 +96,7 @@ namespace OpenMS
     // Return if no valid peak layer attached
     if (getPeakData()->size() == 0 || type != LayerData::DT_PEAK) { return; }
 
-    MSSpectrum & spectrum = (*getPeakData())[spectrum_index];
+    MSSpectrum & spectrum = (*getPeakDataMuteable())[spectrum_index];
     int ms_level = spectrum.getMSLevel();
 
     if (ms_level == 2)
@@ -131,7 +131,7 @@ namespace OpenMS
         // copy user annotations to fragment annotation vector
         Annotations1DContainer & las = getAnnotations(current_spectrum_);
 
-        // no annoations so we don't need to synchronize
+        // no annotations so we don't need to synchronize
         bool has_peak_annotation(false);
         for (auto& a : las)
         {
@@ -145,7 +145,7 @@ namespace OpenMS
         pep_id.setIdentifier("Unknown");
 
         // create a dummy ProteinIdentification for all ID-less PeakAnnotations
-        vector<ProteinIdentification>& prot_ids = getPeakData()->getProteinIdentifications();
+        vector<ProteinIdentification>& prot_ids = getPeakDataMuteable()->getProteinIdentifications();
         if (prot_ids.back().getIdentifier() != String("Unknown"))
         {
           ProteinIdentification prot_id;
@@ -223,13 +223,13 @@ namespace OpenMS
     // no ID selected
     if (peptide_id_index == -1 || peptide_hit_index == -1) { return; }
 
-    MSSpectrum & spectrum = (*getPeakData())[spectrum_index];
+    MSSpectrum & spectrum = (*getPeakDataMuteable())[spectrum_index];
     int ms_level = spectrum.getMSLevel();
 
     // wrong MS level
     if (ms_level < 2) { return; }
 
-    // extract Peptideidentification and PeptideHit if possible.
+    // extract PeptideIdentification and PeptideHit if possible.
     // that this function returns prematurely is unlikely,
     // since we are deleting existing annotations,
     // that have to be somewhere, but better make sure

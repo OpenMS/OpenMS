@@ -1095,7 +1095,7 @@ namespace OpenMS
     // sort spectra in ascending order of position (ensure that we sort all spectra as well as the currently 
     for (Size i = 0; i < getCurrentLayer_().getPeakData()->size(); ++i)
     {
-      (*getCurrentLayer_().getPeakData())[i].sortByPosition();
+      (*getCurrentLayer_().getPeakDataMuteable())[i].sortByPosition();
     }
     getCurrentLayer_().getCurrentSpectrum().sortByPosition();
 

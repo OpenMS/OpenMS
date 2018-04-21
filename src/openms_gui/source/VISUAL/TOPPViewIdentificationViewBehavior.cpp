@@ -69,8 +69,8 @@ namespace OpenMS
   void TOPPViewIdentificationViewBehavior::showSpectrumAs1D(int spectrum_index, int peptide_id_index, int peptide_hit_index)
   {
     // basic behavior 1
-    const LayerData& layer = tv_->getActiveCanvas()->getCurrentLayer();
-    ExperimentSharedPtrType exp_sptr = layer.getPeakData();
+    LayerData & layer = const_cast<LayerData&>(tv_->getActiveCanvas()->getCurrentLayer());
+    ExperimentSharedPtrType exp_sptr = layer.getPeakDataMuteable();
     LayerData::ODExperimentSharedPtrType od_exp_sptr = layer.getOnDiscPeakData();
 
     if (layer.type == LayerData::DT_PEAK)
@@ -809,7 +809,7 @@ namespace OpenMS
     // Return if no valid peak layer attached
     if (current_layer.getPeakData()->size() == 0 || current_layer.type != LayerData::DT_PEAK) { return; }
 
-    MSSpectrum& spectrum = (*current_layer.getPeakData())[spectrum_index];
+    MSSpectrum& spectrum = (*current_layer.getPeakDataMuteable())[spectrum_index];
     int ms_level = spectrum.getMSLevel();
 
     if (ms_level == 2)

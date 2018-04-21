@@ -123,6 +123,8 @@ public:
     /// SharedPtr on MSExperiment
     typedef boost::shared_ptr<ExperimentType> ExperimentSharedPtrType;
 
+    typedef boost::shared_ptr<const ExperimentType> ConstExperimentSharedPtrType;
+
     /// SharedPtr on On-Disc MSExperiment
     typedef boost::shared_ptr<OnDiscMSExperiment> ODExperimentSharedPtrType;
 
@@ -186,7 +188,9 @@ public:
     }
 
     /// Returns a const reference to the current peak data
-    const ExperimentSharedPtrType & getPeakData() const;
+    const ConstExperimentSharedPtrType getPeakData() const;
+
+    const ExperimentSharedPtrType & getPeakDataMuteable() {return peaks;}
 
     /// Returns a mutable reference to the current peak data
     void setPeakData(ExperimentSharedPtrType p)
@@ -287,7 +291,7 @@ public:
     // set the chromatogram flag
     void set_chromatogram_flag()
     {
-      this->getPeakData()->setMetaValue("is_chromatogram", "true");
+      peaks->setMetaValue("is_chromatogram", "true");
     }
 
     // remove the chromatogram flag
@@ -295,7 +299,7 @@ public:
     {
       if (this->chromatogram_flag_set())
       {
-        this->getPeakData()->removeMetaValue("is_chromatogram");
+        peaks->removeMetaValue("is_chromatogram");
       }
     }
 

@@ -873,11 +873,11 @@ namespace OpenMS
     {
       if (layer.type == LayerData::DT_PEAK)
       {
-        dlg.add(*layer.getPeakData());
+        dlg.add(*layer.getPeakDataMuteable());
         // Exception for Spectrum1DCanvas, here we add the meta data of the one spectrum
         if (getName() == "Spectrum1DCanvas")
         {
-          dlg.add((*layer.getPeakData())[layer.getCurrentSpectrumIndex()]);
+          dlg.add((*layer.getPeakDataMuteable())[layer.getCurrentSpectrumIndex()]);
         }
       }
       else if (layer.type == LayerData::DT_FEATURE)
@@ -901,7 +901,7 @@ namespace OpenMS
     {
       if (layer.type == LayerData::DT_PEAK)
       {
-        dlg.add((*layer.getPeakData())[index]);
+        dlg.add((*layer.getPeakDataMuteable())[index]);
       }
       else if (layer.type == LayerData::DT_FEATURE)
       {

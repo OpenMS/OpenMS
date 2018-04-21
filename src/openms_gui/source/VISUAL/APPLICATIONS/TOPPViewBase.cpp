@@ -3050,7 +3050,7 @@ namespace OpenMS
 
   bool TOPPViewBase::annotateMS1FromMassFingerprinting_(const FeatureMap& identifications)
   {
-    const LayerData& layer = getActiveCanvas()->getCurrentLayer();
+    LayerData& layer = getActiveCanvas()->getCurrentLayer();
     if (layer.type == LayerData::DT_PEAK)
     {
       IDMapper im;
@@ -3058,7 +3058,7 @@ namespace OpenMS
       p.setValue("rt_tolerance", 30.0);
       im.setParameters(p);
       showLogMessage_(LS_NOTICE, "Note", "Mapping matches with 30 sec tolerance and no m/z limit to spectra...");
-      im.annotate((*layer.getPeakData()), identifications, true, true);
+      im.annotate((*layer.getPeakDataMuteable()), identifications, true, true);
     }
     else
     {
@@ -3069,7 +3069,7 @@ namespace OpenMS
 
   void TOPPViewBase::annotateWithID()
   {
-    const LayerData& layer = getActiveCanvas()->getCurrentLayer();
+    LayerData& layer = getActiveCanvas()->getCurrentLayer();
     // warn if hidden layer => wrong layer selected...
     if (!layer.visible)
     {
@@ -3134,7 +3134,7 @@ namespace OpenMS
         p.setValue("mz_tolerance", 1.0, "m/z tolerance (in ppm or Da) for the matching");
         p.setValue("mz_measure", "Da", "unit of 'mz_tolerance' (ppm or Da)");
         mapper.setParameters(p);
-        mapper.annotate(*layer.getPeakData(), identifications, protein_identifications, true);
+        mapper.annotate(*layer.getPeakDataMuteable(), identifications, protein_identifications, true);
         views_tabwidget_->setTabEnabled(1, true); // enable identification view
       }
       else if (layer.type == LayerData::DT_FEATURE)
@@ -3169,7 +3169,7 @@ namespace OpenMS
         p.setValue("mz_tolerance", 1.0, "m/z tolerance (in ppm or Da) for the matching");
         p.setValue("mz_measure", "Da", "unit of 'mz_tolerance' (ppm or Da)");
         mapper.setParameters(p);
-        mapper.annotate(*layer.getPeakData(), identifications, protein_identifications, true);
+        mapper.annotate(*layer.getPeakDataMuteable(), identifications, protein_identifications, true);
         views_tabwidget_->setTabEnabled(1, true); // enable identification view
       }
       else if (layer.type == LayerData::DT_FEATURE)
@@ -3380,8 +3380,8 @@ namespace OpenMS
 
   void TOPPViewBase::showCurrentPeaksAs2D()
   {
-    const LayerData& layer = getActiveCanvas()->getCurrentLayer();
-    ExperimentSharedPtrType exp_sptr = layer.getPeakData();
+    LayerData& layer = getActiveCanvas()->getCurrentLayer();
+    ExperimentSharedPtrType exp_sptr = layer.getPeakDataMuteable();
     ODExperimentSharedPtrType od_exp_sptr = layer.getOnDiscPeakData();
 
     //open new 2D widget
@@ -3437,14 +3437,14 @@ namespace OpenMS
       showLogMessage_(LS_NOTICE, "Auto-selected compatible layer", "The currently active layer cannot be viewed in 3D view. The closest layer which is supported by the 3D view was selected!");
     }
 
-    const LayerData& layer = getActiveCanvas()->getLayer(best_candidate);
+    LayerData& layer = const_cast<LayerData&>(getActiveCanvas()->getLayer(best_candidate));
 
     if (layer.type == LayerData::DT_PEAK)
     {
       //open new 3D widget
       Spectrum3DWidget* w = new Spectrum3DWidget(getSpectrumParameters(3), ws_);
 
-      ExperimentSharedPtrType exp_sptr = layer.getPeakData();
+      ExperimentSharedPtrType exp_sptr = layer.getPeakDataMuteable();
 
       if (!w->canvas()->addLayer(exp_sptr, SpectrumCanvas::ODExperimentSharedPtrType(new OnDiscMSExperiment()), layer.filename))
       {
@@ -3831,17 +3831,17 @@ namespace OpenMS
 
       if (source == layer_manager_)
       {
-        //only the selected row can be dragged => the source layer is the selected layer
-        const LayerData& layer = getActiveCanvas()->getCurrentLayer();
+        // only the selected row can be dragged => the source layer is the selected layer
+        LayerData& layer = getActiveCanvas()->getCurrentLayer();
 
-        //attach feature, consensus and peak data
+        // attach feature, consensus and peak data
         FeatureMapSharedPtrType features = layer.getFeatureMap();
-        ExperimentSharedPtrType peaks = layer.getPeakData();
+        ExperimentSharedPtrType peaks = layer.getPeakDataMuteable();
         ConsensusMapSharedPtrType consensus = layer.getConsensusMap();
         vector<PeptideIdentification> peptides = layer.peptides;
         ODExperimentSharedPtrType on_disc_peaks = layer.getOnDiscPeakData();
 
-        //add the data
+        // add the data
         addData(features, consensus, peptides, peaks, on_disc_peaks, layer.type, false, false, true, layer.filename, layer.name, new_id);
       }
       else if (source == spectra_view_treewidget)
@@ -3986,21 +3986,21 @@ namespace OpenMS
       }
       else //if (user_wants_update == true)
       {
-        const LayerData& layer = sw->canvas()->getLayer(layer_index);
+        LayerData& layer = const_cast<LayerData&>(sw->canvas()->getLayer(layer_index));
         // reload data
         if (layer.type == LayerData::DT_PEAK) //peak data
         {
           try
           {
-            FileHandler().loadExperiment(layer.filename, *layer.getPeakData());
+            FileHandler().loadExperiment(layer.filename, *layer.getPeakDataMuteable());
           }
           catch (Exception::BaseException& e)
           {
             QMessageBox::critical(this, "Error", (String("Error while loading file") + layer.filename + "\nError message: " + e.what()).toQString());
-            layer.getPeakData()->clear(true);
+            layer.getPeakDataMuteable()->clear(true);
           }
-          layer.getPeakData()->sortSpectra(true);
-          layer.getPeakData()->updateRanges(1);
+          layer.getPeakDataMuteable()->sortSpectra(true);
+          layer.getPeakDataMuteable()->updateRanges(1);
         }
         else if (layer.type == LayerData::DT_FEATURE) //feature data
         {
@@ -4033,15 +4033,15 @@ namespace OpenMS
           //TODO CHROM
           try
           {
-            FileHandler().loadExperiment(layer.filename, *layer.getPeakData());
+            FileHandler().loadExperiment(layer.filename, *layer.getPeakDataMuteable());
           }
           catch (Exception::BaseException& e)
           {
             QMessageBox::critical(this, "Error", (String("Error while loading file") + layer.filename + "\nError message: " + e.what()).toQString());
-            layer.getPeakData()->clear(true);
+            layer.getPeakDataMuteable()->clear(true);
           }
-          layer.getPeakData()->sortChromatograms(true);
-          layer.getPeakData()->updateRanges(1);
+          layer.getPeakDataMuteable()->sortChromatograms(true);
+          layer.getPeakDataMuteable()->updateRanges(1);
 
         }
         /*      else if (layer.type == LayerData::DT_IDENT) // identifications

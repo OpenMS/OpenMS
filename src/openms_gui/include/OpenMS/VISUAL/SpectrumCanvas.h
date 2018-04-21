@@ -107,6 +107,7 @@ public:
     typedef LayerData::ExperimentType ExperimentType;
     /// Main managed data type (experiment)
     typedef LayerData::ExperimentSharedPtrType ExperimentSharedPtrType;
+    typedef LayerData::ConstExperimentSharedPtrType ConstExperimentSharedPtrType;
     typedef LayerData::ODExperimentSharedPtrType ODExperimentSharedPtrType;
     /// Main data type (features)
     typedef LayerData::FeatureMapType FeatureMapType;
