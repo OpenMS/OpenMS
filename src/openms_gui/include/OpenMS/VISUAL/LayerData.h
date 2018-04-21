@@ -194,14 +194,15 @@ public:
     }
 
     /// Returns a mutable reference to the current peak data
-    ExperimentSharedPtrType & getPeakData()
+    void setPeakData(ExperimentSharedPtrType p)
     {
-      return peaks;
+      peaks = p;
+      updateCache_();
     }
 
-    ODExperimentSharedPtrType & getOnDiscPeakData()
+    void setOnDiscPeakData(ODExperimentSharedPtrType p)
     {
-      return on_disc_peaks;
+      on_disc_peaks = p;
     }
 
     const ODExperimentSharedPtrType & getOnDiscPeakData() const

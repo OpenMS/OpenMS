@@ -394,8 +394,8 @@ namespace OpenMS
     layers_.resize(layers_.size() + 1);
     layers_.back().param = param_;
     layers_.back().filename = filename;
-    layers_.back().getPeakData() = map;
-    layers_.back().getOnDiscPeakData() = od_map;
+    layers_.back().setPeakData(map);
+    layers_.back().setOnDiscPeakData(od_map);
 
     if (layers_.back().getPeakData()->getChromatograms().size() != 0 
         && layers_.back().getPeakData()->size() != 0)
