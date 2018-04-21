@@ -299,6 +299,8 @@ public:
       }
     }
 
+    void updateRanges();
+
     /// updates the PeakAnnotations in the current PeptideHit with manually changed annotations
     /// if no PeptideIdentification or PeptideHit for the spectrum exist, it is generated
     void synchronizePeakAnnotations();

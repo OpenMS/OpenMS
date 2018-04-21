@@ -57,6 +57,16 @@ namespace OpenMS
     return peaks;
   }
 
+  void LayerData::updateRanges()
+  {
+    peaks->updateRanges();
+    features->updateRanges();
+    consensus->updateRanges();
+    // on_disc_peaks->updateRanges(); // note: this is not going to work since its on disk! We currently don't have a good way to access these ranges
+    chromatograms->updateRanges();
+    cached_spectrum_.updateRanges();
+  }
+
   void LayerData::updateCache_()
   {
     if ((*peaks)[current_spectrum_].size() > 0)
