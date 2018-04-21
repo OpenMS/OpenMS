@@ -1092,7 +1092,7 @@ namespace OpenMS
       break;
     }
 
-    // sort spectra in ascending order of position
+    // sort spectra in ascending order of position (ensure that we sort all spectra as well as the currently 
     for (Size i = 0; i < getCurrentLayer_().getPeakData()->size(); ++i)
     {
       (*getCurrentLayer_().getPeakData())[i].sortByPosition();
@@ -2000,6 +2000,10 @@ namespace OpenMS
 
   void Spectrum1DCanvas::activateSpectrum(Size index, bool repaint)
   {
+    // Note: even though the current spectrum may be on disk, there will still
+    // be an in-memory representation in the peak data structure. Using
+    // setCurrentSpectrumIndex will select the appropriate spectrum and load it
+    // into memory.
     if (index < getCurrentLayer_().getPeakData()->size())
     {
       getCurrentLayer_().setCurrentSpectrumIndex(index);
