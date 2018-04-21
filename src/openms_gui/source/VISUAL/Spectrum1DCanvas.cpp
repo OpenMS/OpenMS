@@ -1039,10 +1039,10 @@ namespace OpenMS
     }
 
     current_layer_ = getLayerCount() - 1;
-    currentPeakData_()->updateRanges();
+    getCurrentLayer_().updateRanges();
 
     // Abort if no data points are contained (note that all data could be on disk)
-    if (getCurrentLayer().getPeakData()->size() == 0)
+    if (getCurrentLayer().getCurrentSpectrum().size() == 0)
     {
       layers_.resize(getLayerCount() - 1);
       if (current_layer_ != 0)
@@ -1093,12 +1093,13 @@ namespace OpenMS
     }
 
     // sort spectra in ascending order of position
-    for (Size i = 0; i < currentPeakData_()->size(); ++i)
+    for (Size i = 0; i < getCurrentLayer_().getPeakData()->size(); ++i)
     {
       (*getCurrentLayer_().getPeakData())[i].sortByPosition();
     }
+    getCurrentLayer_().getCurrentSpectrum().sortByPosition();
 
-    getCurrentLayer_().annotations_1d.resize(currentPeakData_()->size());
+    getCurrentLayer_().annotations_1d.resize(getCurrentLayer_().getPeakData()->size());
 
     // update nearest peak
     selected_peak_.clear();
@@ -1999,7 +2000,7 @@ namespace OpenMS
 
   void Spectrum1DCanvas::activateSpectrum(Size index, bool repaint)
   {
-    if (index < currentPeakData_()->size())
+    if (index < getCurrentLayer_().getPeakData()->size())
     {
       getCurrentLayer_().setCurrentSpectrumIndex(index);
       recalculateSnapFactor_();
