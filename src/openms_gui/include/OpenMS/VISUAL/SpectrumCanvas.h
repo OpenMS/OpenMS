@@ -678,12 +678,6 @@ protected:
       return getLayer_(current_layer_);
     }
 
-    /// Returns the currently active layer (mutable)
-    inline ExperimentSharedPtrType currentPeakData_()
-    {
-      return getCurrentLayer_().getPeakData();
-    }
-
     ///@name reimplemented QT events
     //@{
     void resizeEvent(QResizeEvent * e) override;

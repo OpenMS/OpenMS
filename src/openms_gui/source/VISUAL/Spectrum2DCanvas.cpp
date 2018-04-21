@@ -1231,7 +1231,7 @@ namespace OpenMS
     {
       update_buffer_ = true;
       // Abort if no data points are contained (note that all data could be on disk)
-      if (currentPeakData_()->size() == 0)
+      if (getCurrentLayer_().getPeakData()->size() == 0)
       {
         layers_.resize(getLayerCount() - 1);
         if (current_layer_ != 0)
@@ -1241,7 +1241,7 @@ namespace OpenMS
         QMessageBox::critical(this, "Error", "Cannot add a dataset that contains no survey scans. Aborting!");
         return false;
       }
-      if ((currentPeakData_()->getSize() == 0) && (!currentPeakData_()->getDataRange().isEmpty()))
+      if ((getCurrentLayer_().getPeakData()->getSize() == 0) && (!getCurrentLayer_().getPeakData()->getDataRange().isEmpty()))
       {
         setLayerFlag(LayerData::P_PRECURSORS, true); // show precursors if no MS1 data is contained
       }
@@ -1281,13 +1281,13 @@ namespace OpenMS
     {
 
       //TODO CHROM
-      currentPeakData_()->sortChromatograms(true);
-      currentPeakData_()->updateRanges(1);
+      getCurrentLayer_().getPeakData()->sortChromatograms(true);
+      getCurrentLayer_().getPeakData()->updateRanges(1);
 
       update_buffer_ = true;
 
       // abort if no data points are contained
-      if (currentPeakData_()->getChromatograms().empty())
+      if (getCurrentLayer_().getPeakData()->getChromatograms().empty())
       {
         layers_.resize(getLayerCount() - 1);
         if (current_layer_ != 0)

@@ -97,7 +97,7 @@ namespace OpenMS
     {
       caption = layer.name;
 
-      //add data
+      // add data
       if (!w->canvas()->addLayer(exp_sptr, od_exp_sptr, layer.filename) || (Size)index >= w->canvas()->getCurrentLayer().getPeakData()->size())
       {
         return;
