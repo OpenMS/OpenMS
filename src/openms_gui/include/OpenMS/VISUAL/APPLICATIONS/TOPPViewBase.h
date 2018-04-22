@@ -90,6 +90,28 @@ namespace OpenMS
   /**
     @brief Main window of TOPPView tool
 
+    Uses the default QMainWindow layout (see Qt documentation) with a central
+    widget in the middle (consistent of a EnhancedTabBar and an
+    EnhancedWorkspace) and multiple docked widgets around it (to the right and
+    below) and multiple tool bars. On top and bottom are a menu bar and a
+    status bar.
+
+    The main layout is using 
+    - Central Widget: 
+      - EnhancedTabBar: tab_bar_
+      - EnhancedWorkspace: ws_
+    - Docked to the right:
+      - layer_dock_widget_
+      - views_dockwidget_
+      - filter_dock_widget_
+    - Docked to the bottom:
+      - log_bar (only connected through slots)
+
+    The views_dockwidget_ internally holds a tab widget views_tabwidget_ which
+    holds the two different views on the data (spectra and identification view)
+    which are implemented using identificationview_behavior_ and
+    spectraview_behavior_.
+
     @improvement Use DataRepository singleton to share data between TOPPView and the canvas classes (Hiwi)
 
     @improvement For painting single mass traces with no width we currently paint each line twice (once going down, and then coming back up).
@@ -438,15 +460,15 @@ protected:
     */
     //@{
     QToolBar* tool_bar_;
-    //common intensity modes
 
+    // common intensity modes
     QButtonGroup* intensity_button_group_;
-    //1D specific stuff
 
+    // 1D specific stuff
     QToolBar* tool_bar_1d_;
     QButtonGroup* draw_group_1d_;
 
-    //2D specific stuff
+    // 2D specific stuff
     QToolBar* tool_bar_2d_peak_;
     QToolBar* tool_bar_2d_feat_;
     QToolBar* tool_bar_2d_cons_;

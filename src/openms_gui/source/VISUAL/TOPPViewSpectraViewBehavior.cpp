@@ -174,7 +174,6 @@ namespace OpenMS
       SpectrumType spectrum;
       if (layer.type == LayerData::DT_CHROMATOGRAM)
       {
-
         const MSChromatogram & current_chrom = exp_sptr->getChromatograms()[indices[index]];
         for (Size i = 0; i != current_chrom.size(); ++i)
         {

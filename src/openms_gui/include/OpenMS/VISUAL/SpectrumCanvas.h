@@ -65,14 +65,18 @@ namespace OpenMS
   /**
       @brief Base class for visualization canvas classes
 
-      This class is the base class for the spectrum data views.
+      This class is the base class for the spectrum data views which are used
+      for 1D, 2D and 3D visualization of data. In TOPPView, each SpectrumCanvas
+      is paired with an enclosing SpectrumWidget (see also the
+      getSpectrumWidget() function that provides a back-reference).  To provide
+      additional spectrum views, you can derive from this class and you should
+      also create a subclass from SpectrumWidget which encloses your class
+      derived from SpectrumCanvas. A spectrum canvas can display multiple data
+      layers at the same time (see layers_ member variable).
 
-      It also provides commonly used constants such as ActionModes or IntensityModes.
-
-      To provide additional spectrum views, you can derive from this class.
-      You should also create a subclass from SpectrumWidget which encloses
-      your class derived from SpectrumCanvas. To integrate your class into
-      TOPPView, you also need to derive a class from SpectrumWidget.
+      The actual data to be displayed is stored as a vector of LayerData
+      objects which hold the actual data.  It also stores information about the
+      commonly used constants such as ActionModes or IntensityModes.
 
       All derived classes should follow these interface conventions:
       - Translate mode
@@ -133,19 +137,19 @@ public:
     typedef DRange<2> AreaType;
 
 
-    ///Mouse action modes
+    /// Mouse action modes
     enum ActionModes
     {
-      AM_TRANSLATE,       ///< translate
-      AM_ZOOM,                  ///< zoom
-      AM_MEASURE          ///< measure
+      AM_TRANSLATE,   ///< translate
+      AM_ZOOM,        ///< zoom
+      AM_MEASURE      ///< measure
     };
 
-    ///Display modes of intensity
+    /// Display modes of intensity
     enum IntensityModes
     {
-      IM_NONE,                  ///< Normal mode: f(x)=x
-      IM_PERCENTAGE,        ///< Shows intensities normalized by layer maximum: f(x)=x/max(x)*100
+      IM_NONE,        ///< Normal mode: f(x)=x
+      IM_PERCENTAGE,  ///< Shows intensities normalized by layer maximum: f(x)=x/max(x)*100
       IM_SNAP,        ///< Shows the maximum displayed intensity as if it was the overall maximum intensity
       IM_LOG          ///< Logarithmic mode
     };
@@ -745,11 +749,11 @@ protected:
     */
     virtual void updateScrollbars_();
 
-
     /**
         @brief Convert widget to chart coordinates
 
         Translates widget coordinates to chart coordinates.
+
         @param x the widget coordinate x
         @param y the widget coordinate y
         @return chart coordinates
@@ -822,7 +826,7 @@ protected:
       }
     }
 
-    ///Helper function to paint grid lines
+    /// Helper function to paint grid lines
     virtual void paintGridLines_(QPainter & painter);
 
     /// Buffer that stores the actual peak information

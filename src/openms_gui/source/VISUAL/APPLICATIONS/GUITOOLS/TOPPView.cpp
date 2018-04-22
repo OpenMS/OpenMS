@@ -165,7 +165,7 @@ int main(int argc, const char** argv)
     }
 
     // We are about to show the application.
-    // Proper time to  remove the splashscreen, if at least 1.5 seconds have passed...
+    // Proper time to remove the splashscreen, if at least 1.5 seconds have passed...
     while (stop_watch.getClockTime() < 1.5) /*wait*/
     {
     }

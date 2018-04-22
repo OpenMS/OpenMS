@@ -159,13 +159,16 @@ namespace OpenMS
       (int)(0.8 * screen_geometry.height())
       );
 
-    // create dummy widget (to be able to have a layout), Tab bar and workspace
-    QWidget* dummy = new QWidget(this);
-    setCentralWidget(dummy);
-    QVBoxLayout* box_layout = new QVBoxLayout(dummy);
+    //################## Main Window #################
+    // Create main workspace using a QVBoxLayout ordering the items vertically
+    // (the tab bar and the main workspace). Uses a dummy central widget (to be able to
+    // have a layout), then adds vertically the tab bar and workspace.
+    QWidget* dummy_cw = new QWidget(this);
+    setCentralWidget(dummy_cw);
+    QVBoxLayout* box_layout = new QVBoxLayout(dummy_cw);
 
     // create empty tab bar and workspace which will hold the main visualization widgets (e.g. spectrawidgets...)
-    tab_bar_ = new EnhancedTabBar(dummy);
+    tab_bar_ = new EnhancedTabBar(dummy_cw);
     tab_bar_->setWhatsThis("Tab bar<BR><BR>Close tabs through the context menu or by double-clicking them.<BR>The tab bar accepts drag-and-drop from the layer bar.");
     tab_bar_->addTab("dummy", 4710);
     tab_bar_->setMinimumSize(tab_bar_->sizeHint());
@@ -179,7 +182,7 @@ namespace OpenMS
     connect(tab_bar_, SIGNAL(dropOnTab(const QMimeData*, QWidget*, int)), this, SLOT(copyLayer(const QMimeData*, QWidget*, int)));
     box_layout->addWidget(tab_bar_);
 
-    ws_ = new EnhancedWorkspace(dummy);
+    ws_ = new EnhancedWorkspace(dummy_cw);
     connect(ws_, SIGNAL(subWindowActivated(QMdiSubWindow*)), this, SLOT(updateToolBar()));
     connect(ws_, SIGNAL(subWindowActivated(QMdiSubWindow*)), this, SLOT(updateTabBar(QMdiSubWindow*)));
     connect(ws_, SIGNAL(subWindowActivated(QMdiSubWindow*)), this, SLOT(updateLayerBar()));
@@ -200,11 +203,11 @@ namespace OpenMS
     file->addAction("&Close", this, SLOT(closeFile()), Qt::CTRL + Qt::Key_W);
     file->addSeparator();
 
-    //Meta data
+    // Meta data
     file->addAction("&Show meta data (file)", this, SLOT(metadataFileDialog()));
     file->addSeparator();
 
-    //Recent files
+    // Recent files
     QMenu* recent_menu = new QMenu("&Recent files", this);
     recent_actions_.resize(20);
     for (Size i = 0; i < 20; ++i)
@@ -218,7 +221,7 @@ namespace OpenMS
     file->addAction("&Preferences", this, SLOT(preferencesDialog()));
     file->addAction("&Quit", qApp, SLOT(quit()));
 
-    //Tools menu
+    // Tools menu
     QMenu* tools = new QMenu("&Tools", this);
     menuBar()->addMenu(tools);
     tools->addAction("&Select data range", this, SLOT(showGoToDialog()), Qt::CTRL + Qt::Key_G);
@@ -234,7 +237,7 @@ namespace OpenMS
     tools->addAction("Align spectra", this, SLOT(showSpectrumAlignmentDialog()));
     tools->addAction("Generate theoretical spectrum", this, SLOT(showSpectrumGenerationDialog()));
 
-    //Layer menu
+    // Layer menu
     QMenu* layer = new QMenu("&Layer", this);
     menuBar()->addMenu(layer);
     layer->addAction("Save all data", this, SLOT(saveLayerAll()), Qt::CTRL + Qt::Key_S);
@@ -245,7 +248,7 @@ namespace OpenMS
     layer->addSeparator();
     layer->addAction("Preferences", this, SLOT(showPreferences()));
 
-    //Windows menu
+    // Windows menu
     QMenu* windows = new QMenu("&Windows", this);
     menuBar()->addMenu(windows);
     windows->addAction("&Cascade", this->ws_, SLOT(cascadeSubWindows()));
@@ -255,7 +258,7 @@ namespace OpenMS
     linkZoom_action_ = windows->addAction("Link &Zoom", this, SLOT(linkZoom()));
     windows->addSeparator();
 
-    //Help menu
+    // Help menu
     QMenu* help = new QMenu("&Help", this);
     menuBar()->addMenu(help);
     help->addAction(QWhatsThis::createAction(help));
@@ -268,7 +271,8 @@ namespace OpenMS
     help->addSeparator();
     help->addAction("&About", this, SLOT(showAboutDialog()));
 
-    //create status bar
+    //################## STATUS #################
+    // create status bar
     message_label_ = new QLabel(statusBar());
     statusBar()->addWidget(message_label_, 1);
 
@@ -472,6 +476,9 @@ namespace OpenMS
     connect(dm_ident_2d_, SIGNAL(toggled(bool)), this, SLOT(changeLayerFlag(bool)));
 
     //################## Dock widgets #################
+    // This creates the three default dock widgets on the right (Layers, Views,
+    // Filters) and the Log dock widget on the bottom (by default hidden).
+
     // layer dock widget
     layer_dock_widget_ = new QDockWidget("Layers", this);
     layer_dock_widget_->setObjectName("layer_dock_widget");
@@ -500,7 +507,7 @@ namespace OpenMS
     spectraview_behavior_ = new TOPPViewSpectraViewBehavior(this);
     identificationview_behavior_ = new TOPPViewIdentificationViewBehavior(this);
 
-      // Hook-up controller and views for spectra inspection
+    // Hook-up controller and views for spectra inspection
     spectra_view_widget_ = new SpectraViewWidget();
     connect(spectra_view_widget_, SIGNAL(showSpectrumMetaData(int)), this, SLOT(showSpectrumMetaData(int)));
     connect(spectra_view_widget_, SIGNAL(showSpectrumAs1D(int)), this, SLOT(showSpectrumAs1D(int)));
@@ -551,7 +558,7 @@ namespace OpenMS
 
     windows->addAction(filter_dock_widget_->toggleViewAction());
 
-    //log window
+    // log window
     QDockWidget* log_bar = new QDockWidget("Log", this);
     log_bar->setObjectName("log_bar");
     addDockWidget(Qt::BottomDockWidgetArea, log_bar);
@@ -646,13 +653,11 @@ namespace OpenMS
     event->accept();
   }
 
-
   void TOPPViewBase::showURL()
   {
     QString target = qobject_cast<QAction*>(sender())->data().toString();
     GUIHelpers::openURL(target);
   }
-
 
   // static
   bool TOPPViewBase::containsMS1Scans(const ExperimentType& exp)
