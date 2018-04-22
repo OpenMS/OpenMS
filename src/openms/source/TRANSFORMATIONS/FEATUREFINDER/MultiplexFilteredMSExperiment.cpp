@@ -125,7 +125,6 @@ namespace OpenMS
       int count = 0;
       
       // loop over satellites
-      //for (std::multimap<size_t, MultiplexSatelliteCentroided >::const_iterator it_satellite = satellites.begin(); it_satellite != satellites.end(); ++it_satellite)
       for (const auto &it_satellite : satellites)
       {
         // find indices of the peak

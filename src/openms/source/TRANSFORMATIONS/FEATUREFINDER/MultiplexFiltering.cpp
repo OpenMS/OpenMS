@@ -340,19 +340,19 @@ namespace OpenMS
     // <rt_boundaries> is a map from the mass trace index to the spectrum indices for beginning and end of the mass trace.
     std::map<size_t, std::pair<size_t, size_t> > rt_boundaries;
     // loop over satellites
-    for (std::multimap<size_t, MultiplexSatelliteCentroided >::const_iterator it = satellites.begin(); it != satellites.end(); ++it)
+     for (const auto &it : satellites)
     {
-      size_t idx_masstrace = it->first;    // mass trace index i.e. the index within the peptide multiplet pattern
+      size_t idx_masstrace = it.first;    // mass trace index i.e. the index within the peptide multiplet pattern
       if (rt_boundaries.find(idx_masstrace) == rt_boundaries.end())
       {
         // That's the first satellite within this mass trace.
-        rt_boundaries[idx_masstrace] = std::make_pair((it->second).getRTidx(), (it->second).getRTidx());
+        rt_boundaries[idx_masstrace] = std::make_pair((it.second).getRTidx(), (it.second).getRTidx());
       }
       else
       {
         // We have seen a satellite of this mass trace before.
-        size_t idx_min = std::min((it->second).getRTidx(), rt_boundaries[idx_masstrace].first);
-        size_t idx_max = std::max((it->second).getRTidx(), rt_boundaries[idx_masstrace].second);
+        size_t idx_min = std::min((it.second).getRTidx(), rt_boundaries[idx_masstrace].first);
+        size_t idx_max = std::max((it.second).getRTidx(), rt_boundaries[idx_masstrace].second);
         
         rt_boundaries[idx_masstrace] = std::make_pair(idx_min, idx_max);
       }      
@@ -360,14 +360,15 @@ namespace OpenMS
         
     // Blacklist all peaks along the mass traces
     // loop over mass traces (i.e. the mass trace boundaries)
-    for (std::map<size_t, std::pair<size_t, size_t> >::const_iterator it = rt_boundaries.begin(); it != rt_boundaries.end(); ++it)
+    //for (std::map<size_t, std::pair<size_t, size_t> >::const_iterator it = rt_boundaries.begin(); it != rt_boundaries.end(); ++it)
+    for (const auto &it : rt_boundaries)
     {
-      double mz = peak.getMZ() + patterns_[pattern_idx].getMZShiftAt(it->first);
+      double mz = peak.getMZ() + patterns_[pattern_idx].getMZShiftAt(it.first);
       
-      MSExperiment::ConstIterator it_rt_begin = exp_picked_.begin() + (it->second).first;
+      MSExperiment::ConstIterator it_rt_begin = exp_picked_.begin() + (it.second).first;
       it_rt_begin = exp_picked_.RTBegin(it_rt_begin->getRT() - rt_band_);
       
-      MSExperiment::ConstIterator it_rt_end = exp_picked_.begin() + (it->second).second;
+      MSExperiment::ConstIterator it_rt_end = exp_picked_.begin() + (it.second).second;
       it_rt_end = exp_picked_.RTBegin(it_rt_end->getRT() + rt_band_);
       
       // prepare for loop
@@ -383,7 +384,7 @@ namespace OpenMS
        
         if (idx_mz != -1)
         {
-          if (it->first == 0)
+          if (it.first == 0)
           {
             // Any mono-isotopic peaks of the lightest peptide can pass the filter in this pattern.
             blacklist_[it_rt - exp_picked_.begin()][idx_mz] = grey;
