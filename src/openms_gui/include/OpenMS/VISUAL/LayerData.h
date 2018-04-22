@@ -73,7 +73,8 @@ namespace OpenMS
   @note The spectrum for 1D viewing retrieved through getCurrentSpectrum() may
   be different than the one retrieved through getPeakData()[index] due to the
   getCurrentSpectrum() being loaded from disk on-demoand and the calling code
-  cannot assume that they are the same.
+  cannot assume that they are the same. Therefore all calls in Spectrum1DCanvas
+  should only go through getCurrentSpectrum() and never through getPeakData().
 
   @note Layer is mainly used as a member variable of SpectrumCanvas which holds
   a vector of LayerData objects.

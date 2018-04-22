@@ -1599,6 +1599,7 @@ namespace OpenMS
       }
       else
       {
+        // TODO: this will not work if the data is cached on disk
         FileHandler().storeExperiment(file_name, *layer.getPeakData(), ProgressLogger::GUI);
       }
     }
