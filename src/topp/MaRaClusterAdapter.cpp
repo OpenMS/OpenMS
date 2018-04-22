@@ -391,7 +391,7 @@ protected:
     qp.close();
 
     //-------------------------------------------------------------
-    // reintegrate clustering results
+    // reintegrate clustering results 
     //-------------------------------------------------------------
     Map<MaRaClusterResult, Int> specid_to_clusterid_map;
     readMClusterOutputAsMap_(consensus_output_file, specid_to_clusterid_map, filename_to_file_idx);
