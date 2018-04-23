@@ -253,7 +253,7 @@ START_SECTION(void compute(const FeatureMapType &fm_in, FeatureMapType &fm_out, 
   FeatureMap fm_p_in, fm_p_out;
   ConsensusMap cm_p, cm_p2;
   FeatureXMLFile fl_p;
-  fl_p.load(OPENMS_GET_TEST_DATA_PATH("DC_test.featureXML"), fm_p_in);
+  fl_p.load(OPENMS_GET_TEST_DATA_PATH("MetaboliteFeatureDeconvolution_test.featureXML"), fm_p_in);
   fd.compute(fm_p_in, fm_p_out, cm_p, cm_p2);
 
   String out_file_p;
@@ -262,7 +262,7 @@ START_SECTION(void compute(const FeatureMapType &fm_in, FeatureMapType &fm_out, 
   c_p.store(out_file_p,cm_p);
 
   WHITELIST("xml-stylesheet,consensusXML version=,consensusElement id=,<UserParam type=");
-  TEST_FILE_SIMILAR(out_file_p, OPENMS_GET_TEST_DATA_PATH("DC_test_p_output.consensusXML"));
+  TEST_FILE_SIMILAR(out_file_p, OPENMS_GET_TEST_DATA_PATH("MetaboliteFeatureDeconvolution_pos_output.consensusXML"));
 
 
   //small neg test file with specific ions
@@ -285,7 +285,7 @@ START_SECTION(void compute(const FeatureMapType &fm_in, FeatureMapType &fm_out, 
   FeatureMap fm_n_in, fm_n_out;
   ConsensusMap cm_n, cm_n2;
   FeatureXMLFile fl_n;
-  fl_n.load(OPENMS_GET_TEST_DATA_PATH("DC_test.featureXML"), fm_n_in);
+  fl_n.load(OPENMS_GET_TEST_DATA_PATH("MetaboliteFeatureDeconvolution_test.featureXML"), fm_n_in);
   fd.compute(fm_n_in, fm_n_out, cm_n, cm_n2);
 
   String out_file_n;
@@ -294,7 +294,7 @@ START_SECTION(void compute(const FeatureMapType &fm_in, FeatureMapType &fm_out, 
   c_n.store(out_file_n,cm_n);
 
   WHITELIST("xml-stylesheet,consensusXML version=,consensusElement id=,<UserParam type=");
-  TEST_FILE_SIMILAR(out_file_n, OPENMS_GET_TEST_DATA_PATH("DC_test_n_output.consensusXML"));
+  TEST_FILE_SIMILAR(out_file_n, OPENMS_GET_TEST_DATA_PATH("MetaboliteFeatureDeconvolution_neg_output.consensusXML"));
 
 
 
