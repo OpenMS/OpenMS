@@ -33,8 +33,7 @@
 // --------------------------------------------------------------------------
 //
 
-#ifndef OPENMS_CHEMISTRY_DIGESTIONENZYME_H
-#define OPENMS_CHEMISTRY_DIGESTIONENZYME_H
+#pragma once
 
 #include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
@@ -154,4 +153,3 @@ namespace OpenMS
   OPENMS_DLLAPI std::ostream& operator<<(std::ostream& os, const DigestionEnzyme& enzyme);
 }
 
-#endif

@@ -32,8 +32,7 @@
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_METADATA_METAINFOINTERFACE_H
-#define OPENMS_METADATA_METAINFOINTERFACE_H
+#pragma once
 
 #include <OpenMS/METADATA/MetaInfo.h>
 
@@ -116,4 +115,3 @@ protected:
 
 } // namespace OpenMS
 
-#endif // OPENMS_METADATA_METAINFOINTERFACE_H

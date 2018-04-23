@@ -32,8 +32,7 @@
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FORMAT_XMLFILE_H
-#define OPENMS_FORMAT_XMLFILE_H
+#pragma once
 
 // OpenMS includes
 #include <OpenMS/CONCEPT/Types.h>
@@ -121,5 +120,4 @@ protected:
   }   // namespace Internal
 } // namespace OpenMS
 
-#endif // OPENMS_FORMAT_XMLFILE_H
 

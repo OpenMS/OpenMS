@@ -32,8 +32,7 @@
 // $Authors: Johannes Junker, Chris Bielow $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_VISUAL_APPLICATIONS_TOPPASBASE_H
-#define OPENMS_VISUAL_APPLICATIONS_TOPPASBASE_H
+#pragma once
 
 // OpenMS_GUI config
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
@@ -307,4 +306,3 @@ public:
 
 } //namespace
 
-#endif // OPENMS_APPLICATIONS_TOPPASBASE_H

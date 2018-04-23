@@ -32,8 +32,7 @@
 // $Authors: George Rosenberger, Hannes Roest $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_OPENSWATH_MRMRTNORMALIZER_H
-#define OPENMS_ANALYSIS_OPENSWATH_MRMRTNORMALIZER_H
+#pragma once
 
 #include <OpenMS/config.h>
 
@@ -189,5 +188,4 @@ public:
   };
 
 }
-#endif // OPENMS_ANALYSIS_OPENSWATH_MRMRTNORMALIZER_H
 

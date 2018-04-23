@@ -32,8 +32,7 @@
 // $Authors: Hannes Roest $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_OPENSWATH_MRMTRANSITIONGROUPPICKER_H
-#define OPENMS_ANALYSIS_OPENSWATH_MRMTRANSITIONGROUPPICKER_H
+#pragma once
 
 #include <OpenMS/KERNEL/MRMTransitionGroup.h>
 #include <OpenMS/KERNEL/MRMFeature.h>
@@ -49,8 +48,8 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 
 // Cross-correlation
-#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/ALGO/Scoring.h>
-#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/ALGO/StatsHelpers.h>
+#include <OpenMS/OPENSWATHALGO/ALGO/Scoring.h>
+#include <OpenMS/OPENSWATHALGO/ALGO/StatsHelpers.h>
 
 #include <numeric>
 
@@ -955,5 +954,4 @@ protected:
   };
 }
 
-#endif //  OPENMS_ANALYSIS_OPENSWATH_MRMTRANSITIONGROUPPICKER_H
 

@@ -32,8 +32,7 @@
 // $Authors: $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_METADATA_IDENTIFICATION_H
-#define OPENMS_METADATA_IDENTIFICATION_H
+#pragma once
 
 #include <OpenMS/METADATA/MetaInfoInterface.h>
 #include <OpenMS/DATASTRUCTURES/DateTime.h>
@@ -97,4 +96,3 @@ protected:
   };
 
 } //namespace OpenMS
-#endif // OPENMS_METADATA_IDENTIFICATION_H

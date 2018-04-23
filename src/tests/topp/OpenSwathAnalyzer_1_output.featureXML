@@ -84,6 +84,7 @@
 			<UserParam type="float" name="var_log_sn_score" value="4.45439541136954"/>
 			<UserParam type="float" name="var_elution_model_fit_score" value="0.985403120517731"/>
 			<UserParam type="float" name="main_var_xx_lda_prelim_score" value="6.92258985582744"/>
+			<UserParam type="float" name="xx_lda_prelim_score" value="6.92258985582744"/>
 			<UserParam type="float" name="PrecursorMZ" value="500"/>
 		</feature>
 		<feature id="f_15004869347769368353">
@@ -171,6 +172,7 @@
 			<UserParam type="float" name="var_log_sn_score" value="1.23074598364098"/>
 			<UserParam type="float" name="var_elution_model_fit_score" value="0.88344943523407"/>
 			<UserParam type="float" name="main_var_xx_lda_prelim_score" value="1.95350659622369"/>
+			<UserParam type="float" name="xx_lda_prelim_score" value="1.95350659622369"/>
 			<UserParam type="float" name="PrecursorMZ" value="501"/>
 		</feature>
 		<feature id="f_7804704400743266335">
@@ -229,7 +231,7 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="1.24830437428909" sequence="PEPTIDEB" charge="0">
+				<PeptideHit score="1.2483045614906" sequence="PEPTIDEB" charge="0">
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="string" name="PeptideRef" value="tr_gr2"/>
@@ -256,8 +258,9 @@
 			<UserParam type="float" name="nr_peaks" value="3"/>
 			<UserParam type="float" name="sn_ratio" value="30.180081980405"/>
 			<UserParam type="float" name="var_log_sn_score" value="3.40718216971789"/>
-			<UserParam type="float" name="var_elution_model_fit_score" value="0.902114470799764"/>
-			<UserParam type="float" name="main_var_xx_lda_prelim_score" value="1.24830437428909"/>
+			<UserParam type="float" name="var_elution_model_fit_score" value="0.902114371458689"/>
+			<UserParam type="float" name="main_var_xx_lda_prelim_score" value="1.2483045614906"/>
+			<UserParam type="float" name="xx_lda_prelim_score" value="1.2483045614906"/>
 			<UserParam type="float" name="PrecursorMZ" value="501"/>
 		</feature>
 	</featureList>

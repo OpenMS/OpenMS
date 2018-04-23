@@ -32,8 +32,7 @@
 // $Authors: $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_DATASTRUCTURES_CHARGEPAIR_H
-#define OPENMS_DATASTRUCTURES_CHARGEPAIR_H
+#pragma once
 
 #include <OpenMS/DATASTRUCTURES/Compomer.h>
 #include <OpenMS/CONCEPT/Types.h>
@@ -154,4 +153,3 @@ protected:
 
 } // namespace OpenMS
 
-#endif // OPENMS_DATASTRUCTURES_CHARGEPAIR_H

@@ -32,10 +32,9 @@
 // $Authors: Hannes Roest $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FORMAT_CACHEDMZML_H
-#define OPENMS_FORMAT_CACHEDMZML_H
+#pragma once
 
-#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/ISpectrumAccess.h>
+#include <OpenMS/OPENSWATHALGO/DATAACCESS/ISpectrumAccess.h>
 
 #include <OpenMS/KERNEL/StandardDeclarations.h>
 #include <OpenMS/CONCEPT/Types.h>
@@ -180,5 +179,4 @@ protected:
 
   };
 }
-#endif // OPENMS_FORMAT_CACHEDMZML_H
 

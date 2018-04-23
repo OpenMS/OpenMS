@@ -32,8 +32,7 @@
 // $Authors: Lars Nilse $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FILTERING_DATAREDUCTION_SPLINEPACKAGE_H
-#define OPENMS_FILTERING_DATAREDUCTION_SPLINEPACKAGE_H
+#pragma once
 
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/DATASTRUCTURES/DRange.h>
@@ -114,4 +113,3 @@ CubicSpline2d spline_;
 
 }
 
-#endif /* SPLINEPACKAGE_H_ */

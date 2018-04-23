@@ -32,8 +32,7 @@
 // $Authors: Clemens Groepl, Marc Sturm $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FORMAT_CONSENSUSXMLFILE_H
-#define OPENMS_FORMAT_CONSENSUSXMLFILE_H
+#pragma once
 
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
@@ -150,5 +149,4 @@ protected:
   };
 } // namespace OpenMS
 
-#endif // OPENMS_FORMAT_CONSENSUSXMLFILE_H
 

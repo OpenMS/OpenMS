@@ -32,8 +32,7 @@
 // $Authors: Stephan Aiche, Chris Bielow $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_QUANTITATION_ISOBARICQUANTIFIER_H
-#define OPENMS_ANALYSIS_QUANTITATION_ISOBARICQUANTIFIER_H
+#pragma once
 
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/IsobaricQuantifierStatistics.h>
@@ -102,4 +101,3 @@ private:
   };
 } // namespace
 
-#endif // OPENMS_ANALYSIS_QUANTITATION_ISOBARICQUANTIFIER_H

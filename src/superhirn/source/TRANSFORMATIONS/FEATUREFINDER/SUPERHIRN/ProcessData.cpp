@@ -802,8 +802,7 @@ namespace OpenMS
           break;
         }
 
-      }
-      while (down != get_MZ_LIST_start());
+      } while (down != get_MZ_LIST_start());
     }
 
     // go increasing order
@@ -1002,23 +1001,23 @@ namespace OpenMS
 
   }
 
-  int ProcessData::getNbMSTraces(){ return (int) pMZ_LIST.size(); }
+  int ProcessData::getNbMSTraces() { return (int) pMZ_LIST.size(); }
 
 
-  double ProcessData::getMinimalIntensityLevel(){return SuperHirnParameters::instance()->getIntensityThreshold(); }
+  double ProcessData::getMinimalIntensityLevel() { return SuperHirnParameters::instance()->getIntensityThreshold(); }
 
   // add the scan vs TR index to the data structure:
   // void add_scan_TR_index(std::map<int, float> IN){scan_TR_index = IN;};
 
   // get the processed data:
-  LCMSCData * ProcessData::getProcessedData(){return data_; }
+  LCMSCData * ProcessData::getProcessedData() { return data_; }
 
   // increase the LC_elution_profile counter:
-  void ProcessData::increase_LC_elution_peak_counter(){LC_elution_peak_counter++; }
-  unsigned int ProcessData::get_LC_elution_peak_counter(){return LC_elution_peak_counter; }
+  void ProcessData::increase_LC_elution_peak_counter() { LC_elution_peak_counter++; }
+  unsigned int ProcessData::get_LC_elution_peak_counter() { return LC_elution_peak_counter; }
 
   // get the maximal scan distance between two same monoisotopic masses
-  int ProcessData::getMaxScanDistance(){ return max_inter_scan_distance; }
-  void ProcessData::setMaxScanDistance(int in){ max_inter_scan_distance = in; }
+  int ProcessData::getMaxScanDistance() { return max_inter_scan_distance; }
+  void ProcessData::setMaxScanDistance(int in) { max_inter_scan_distance = in; }
 
 }

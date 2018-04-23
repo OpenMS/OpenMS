@@ -32,8 +32,7 @@
 // $Authors: $
 // --------------------------------------------------------------------------
 //
-#ifndef OPENMS_COMPARISON_SPECTRA_BINNEDSHAREDPEAKCOUNT_H
-#define OPENMS_COMPARISON_SPECTRA_BINNEDSHAREDPEAKCOUNT_H
+#pragma once
 
 #include <OpenMS/COMPARISON/SPECTRA/BinnedSpectrumCompareFunctor.h>
 
@@ -98,4 +97,3 @@ protected:
   };
 
 }
-#endif //OPENMS_COMPARISON_SPECTRA_BINNEDSHAREDPEAKCOUNT_H

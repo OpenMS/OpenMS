@@ -32,8 +32,7 @@
 // $Authors: $
 // --------------------------------------------------------------------------
 //
-#ifndef OPENMS_COMPARISON_SPECTRA_BINNEDSPECTRALCONTRASTANGLE_H
-#define OPENMS_COMPARISON_SPECTRA_BINNEDSPECTRALCONTRASTANGLE_H
+#pragma once
 
 #include <OpenMS/COMPARISON/SPECTRA/BinnedSpectrumCompareFunctor.h>
 
@@ -99,4 +98,3 @@ protected:
   };
 
 }
-#endif //OPENMS_COMPARISON_SPECTRA_BINNEDSPECTRALCONTRASTANGLE_H

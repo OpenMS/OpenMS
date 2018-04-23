@@ -32,8 +32,7 @@
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FORMAT_DTAFILE_H
-#define OPENMS_FORMAT_DTAFILE_H
+#pragma once
 
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/CONCEPT/Constants.h>
@@ -243,4 +242,3 @@ protected:
   };
 } // namespace OpenMS
 
-#endif // OPENMS_FORMAT_DTAFILE_H

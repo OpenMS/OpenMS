@@ -14,7 +14,6 @@ EmgModel.h
 EmgScoring.h
 ExtendedIsotopeFitter1D.h
 ExtendedIsotopeModel.h
-FeaFiModule.h
 FeatureFinder.h
 FeatureFinderAlgorithm.h
 FeatureFinderAlgorithmIsotopeWavelet.h
@@ -62,4 +61,3 @@ endforeach(i)
 source_group("Header Files\\OpenMS\\TRANSFORMATIONS\\FEATUREFINDER" FILES ${sources_h})
 
 set(OpenMS_sources_h ${OpenMS_sources_h} ${sources_h})
-

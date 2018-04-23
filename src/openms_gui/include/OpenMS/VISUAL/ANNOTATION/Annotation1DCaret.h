@@ -32,8 +32,7 @@
 // $Authors: Chris Bielow $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_VISUAL_ANNOTATION_ANNOTATION1DCARET_H
-#define OPENMS_VISUAL_ANNOTATION_ANNOTATION1DCARET_H
+#pragma once
 
 #include <OpenMS/VISUAL/ANNOTATION/Annotation1DItem.h>
 
@@ -118,4 +117,3 @@ protected:
   };
 } // namespace OpenMS
 
-#endif

@@ -32,13 +32,12 @@
 // $Authors: Hannes Roest $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_OPENSWATH_OPENSWATHHELPER_H
-#define OPENMS_ANALYSIS_OPENSWATH_OPENSWATHHELPER_H
+#pragma once
 
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>
-#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/TransitionExperiment.h>
+#include <OpenMS/OPENSWATHALGO/DATAACCESS/TransitionExperiment.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMFeatureFinderScoring.h>
 
 namespace OpenMS
@@ -135,4 +134,3 @@ public:
         bool useQualCutoff = false, double qualCutoff = 0.0);
   };
 }
-#endif // OPENMS_ANALYSIS_OPENSWATH_OPENSWATHHELPER_H

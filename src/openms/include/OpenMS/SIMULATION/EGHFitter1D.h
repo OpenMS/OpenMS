@@ -32,8 +32,7 @@
 // $Authors: Stephan Aiche $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_SIMULATION_EGHFITTER1D_H
-#define OPENMS_SIMULATION_EGHFITTER1D_H
+#pragma once
 
 #define DEBUG_FEATUREFINDER
 
@@ -120,4 +119,3 @@ protected:
 
 }
 
-#endif // OPENMS_SIMULATION_EGHFITTER1D_H

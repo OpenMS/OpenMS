@@ -32,8 +32,7 @@
 // $Authors: Johannes Veit $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_QUANTITATION_KDTREEFEATURENODE_H
-#define OPENMS_ANALYSIS_QUANTITATION_KDTREEFEATURENODE_H
+#pragma once
 
 #include <OpenMS/config.h>
 
@@ -90,4 +89,3 @@ private:
 
 }
 
-#endif // OPENMS_ANALYSIS_QUANTITATION_KDTREEFEATURENODE_H

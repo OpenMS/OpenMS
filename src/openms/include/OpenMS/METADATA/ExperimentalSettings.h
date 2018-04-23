@@ -32,8 +32,7 @@
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_METADATA_EXPERIMENTALSETTINGS_H
-#define OPENMS_METADATA_EXPERIMENTALSETTINGS_H
+#pragma once
 
 #include <OpenMS/METADATA/Sample.h>
 #include <OpenMS/METADATA/MetaInfoInterface.h>
@@ -150,4 +149,3 @@ protected:
 
 } // namespace OpenMS
 
-#endif // OPENMS_METADATA_EXPERIMENTALSETTINGS_H

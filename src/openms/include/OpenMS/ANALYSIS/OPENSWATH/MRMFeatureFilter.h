@@ -32,8 +32,7 @@
 // $Authors: Douglas McCloskey, Pasquale Domenico Colaianni $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_OPENSWATH_MRMFEATUREFILTER_H
-#define OPENMS_ANALYSIS_OPENSWATH_MRMFEATUREFILTER_H
+#pragma once
 
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMFeatureQC.h>
 #include <OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>
@@ -162,7 +161,7 @@ public:
       @brief Sorts, removes duplicates, and concatenates a list of Strings
 
       @param str_vec vector of Strings
-      @param delim token to seperate Strings in the list
+      @param delim token to separate Strings in the list
 
       @return A concatenated string.
     */ 
@@ -193,6 +192,5 @@ private:
   };
 }
 
-#endif //  OPENMS_ANALYSIS_OPENSWATH_MRMFEATUREFILTER_H
 
 

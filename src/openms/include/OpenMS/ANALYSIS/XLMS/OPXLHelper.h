@@ -32,8 +32,7 @@
 // $Authors: Eugen Netz $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_XLMS_OPXLHELPER_H
-#define OPENMS_ANALYSIS_XLMS_OPXLHELPER_H
+#pragma once
 
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/ANALYSIS/XLMS/OPXLDataStructs.h>
@@ -111,15 +110,16 @@ namespace OpenMS
       static std::vector <OPXLDataStructs::ProteinProteinCrossLink> buildCandidates(const std::vector< OPXLDataStructs::XLPrecursor > & candidates, const std::vector<OPXLDataStructs::AASeqWithMass> & peptide_masses, const StringList & cross_link_residue1, const StringList & cross_link_residue2, double cross_link_mass, const DoubleList & cross_link_mass_mono_link, double precursor_mass, double allowed_error, String cross_link_name, bool n_term_linker, bool c_term_linker);
 
       /**
-       * @brief Fills up the given FragmentAnnotation vector with annotations from a theoretical spectrum4
+       * @brief Fills up the given FragmentAnnotation vector with annotations from a theoretical spectrum
 
           This function takes an alignment of a theoretical spectrum with meta information and an experimental spectrum
           and builds annotations taking the MZ and intensity values from the experimental spectrum and the ion names and charges from the theoretical spectrum
           to annotate matched experimental peaks.
+
        * @param frag_annotations The vector to fill. Does not have to be empty, as annotations from several alignments can just be added on to the same vector.
        * @param matching The alignment between the two spectra
        * @param theoretical_spectrum The theoretical spectrum with meta information
-       * @param experiment_spectrum The experimental specrum
+       * @param experiment_spectrum The experimental spectrum
        */
       static void buildFragmentAnnotations(std::vector<PeptideHit::PeakAnnotation> & frag_annotations, const std::vector< std::pair< Size, Size > > & matching, const PeakSpectrum & theoretical_spectrum, const PeakSpectrum & experiment_spectrum);
 
@@ -137,4 +137,3 @@ namespace OpenMS
   };
 }
 
-#endif // OPXLHELPER_H

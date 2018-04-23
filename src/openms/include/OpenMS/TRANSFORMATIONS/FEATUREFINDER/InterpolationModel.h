@@ -33,8 +33,7 @@
 // --------------------------------------------------------------------------
 
 
-#ifndef OPENMS_TRANSFORMATIONS_FEATUREFINDER_INTERPOLATIONMODEL_H
-#define OPENMS_TRANSFORMATIONS_FEATUREFINDER_INTERPOLATIONMODEL_H
+#pragma once
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/BaseModel.h>
 #include <OpenMS/MATH/MISC/LinearInterpolation.h>
@@ -196,4 +195,3 @@ protected:
   };
 }
 
-#endif // OPENMS_TRANSFORMATIONS_FEATUREFINDER_INTERPOLATIONMODEL_H

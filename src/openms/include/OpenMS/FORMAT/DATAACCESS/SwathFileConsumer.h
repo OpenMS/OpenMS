@@ -32,14 +32,13 @@
 // $Authors: Hannes Roest $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FORMAT_DATAACCESS_SWATHFILECONSUMER_H
-#define OPENMS_FORMAT_DATAACCESS_SWATHFILECONSUMER_H
+#pragma once
 
 #include <boost/cast.hpp>
 
 // Datastructures
-#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/DataStructures.h>
-#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/SwathMap.h>
+#include <OpenMS/OPENSWATHALGO/DATAACCESS/DataStructures.h>
+#include <OpenMS/OPENSWATHALGO/DATAACCESS/SwathMap.h>
 
 // Consumers
 #include <OpenMS/FORMAT/DATAACCESS/MSDataCachedConsumer.h>
@@ -539,7 +538,7 @@ protected:
    *
    * Writes all spectra immediately to disk to an mzML file location using the
    * PlainMSDataWritingConsumer. Internally, it handles n+1 (n SWATH + 1 MS1
-   * map) objects of MSDataCachedConsumerwhich can consume the spectra and
+   * map) objects of MSDataCachedConsumer which can consume the spectra and
    * write them to disk immediately.
    *
    */
@@ -650,4 +649,3 @@ protected:
 
 }
 
-#endif

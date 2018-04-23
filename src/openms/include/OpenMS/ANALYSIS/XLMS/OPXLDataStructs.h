@@ -32,8 +32,7 @@
 // $Authors: Eugen Netz $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_XLMS_OPXLDATASTRUCTS
-#define OPENMS_ANALYSIS_XLMS_OPXLDATASTRUCTS
+#pragma once
 
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/METADATA/PeptideHit.h>
@@ -302,4 +301,3 @@ namespace OpenMS
 } // namespace OpenMS
 
 
-#endif

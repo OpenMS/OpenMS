@@ -32,8 +32,7 @@
 // $Authors: Hannes Roest $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_KERNEL_ONDISCMSEXPERIMENT_H
-#define OPENMS_KERNEL_ONDISCMSEXPERIMENT_H
+#pragma once
 
 #include <OpenMS/INTERFACES/DataStructures.h>
 
@@ -254,5 +253,4 @@ typedef OpenMS::OnDiscMSExperiment OnDiscPeakMap;
 
 } // namespace OpenMS
 
-#endif // OPENMS_KERNEL_ONDISCMSEXPERIMENT_H
 

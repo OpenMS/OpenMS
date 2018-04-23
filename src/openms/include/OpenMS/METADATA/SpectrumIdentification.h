@@ -32,8 +32,7 @@
 // $Authors: $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_METADATA_SPECTRUMIDENTIFICATION_H
-#define OPENMS_METADATA_SPECTRUMIDENTIFICATION_H
+#pragma once
 
 #include <OpenMS/METADATA/MetaInfoInterface.h>
 #include <OpenMS/METADATA/IdentificationHit.h>
@@ -87,4 +86,3 @@ protected:
   };
 
 } //namespace OpenMS
-#endif // OPENMS_METADATA_SPECTRUMIDENTIFICATION_H

@@ -33,8 +33,7 @@
 // --------------------------------------------------------------------------
 
 
-#ifndef OPENMS_ANALYSIS_DENOVO_COMPNOVOIDENTIFICATIONCID_H
-#define OPENMS_ANALYSIS_DENOVO_COMPNOVOIDENTIFICATIONCID_H
+#pragma once
 
 // OpenMS includes
 #include <OpenMS/ANALYSIS/DENOVO/CompNovoIdentificationBase.h>
@@ -102,4 +101,3 @@ protected:
   };
 }
 
-#endif

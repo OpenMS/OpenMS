@@ -32,8 +32,7 @@
 // $Authors: Marc Sturm, Stephan Aiche, Chris Bielow $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_DATASTRUCTURES_STRINGUTILS_H
-#define OPENMS_DATASTRUCTURES_STRINGUTILS_H
+#pragma once
 
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
@@ -862,4 +861,3 @@ public:
 
 } // namespace OPENMS
 
-#endif // OPENMS_DATASTRUCTURES_STRINGUTILS_H

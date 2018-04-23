@@ -32,8 +32,7 @@
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_DATASTRUCTURES_DATE_H
-#define OPENMS_DATASTRUCTURES_DATE_H
+#pragma once
 
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
@@ -113,4 +112,3 @@ protected:
   };
 } // namespace OPENMS
 
-#endif // OPENMS_DATASTRUCTURES_DATE_H

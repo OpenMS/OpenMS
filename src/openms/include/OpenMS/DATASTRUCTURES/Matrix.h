@@ -32,8 +32,7 @@
 // $Authors: $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_DATASTRUCTURES_MATRIX_H
-#define OPENMS_DATASTRUCTURES_MATRIX_H
+#pragma once
 
 #include <OpenMS/CONCEPT/Macros.h>
 
@@ -398,4 +397,3 @@ protected:
 
 } // namespace OpenMS
 
-#endif // OPENMS_DATASTRUCTURES_MATRIX_H

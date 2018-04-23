@@ -32,8 +32,7 @@
 // $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_DATASTRUCTURES_CVMAPPINGRULE_H
-#define OPENMS_DATASTRUCTURES_CVMAPPINGRULE_H
+#pragma once
 
 #include <OpenMS/OpenMSConfig.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
@@ -153,4 +152,3 @@ protected:
 
 } // namespace OpenMS
 
-#endif // OPENMS_DATASTRUCTURES_CVMAPPINGRULE_H

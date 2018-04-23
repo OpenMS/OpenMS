@@ -32,8 +32,7 @@
 // $Authors: $
 // --------------------------------------------------------------------------
 //
-#ifndef OPENMS_FILTERING_TRANSFORMERS_TICFILTER_H
-#define OPENMS_FILTERING_TRANSFORMERS_TICFILTER_H
+#pragma once
 
 #include <OpenMS/FILTERING/TRANSFORMERS/FilterFunctor.h>
 
@@ -99,4 +98,3 @@ public:
 
   };
 }
-#endif //OPENMS_FILTERING_TRANSFORMERS_TICFILTER_H

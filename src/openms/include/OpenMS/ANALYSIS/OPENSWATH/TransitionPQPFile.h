@@ -32,8 +32,7 @@
 // $Authors: George Rosenberger, Hannes Roest $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_OPENSWATH_TRANSITIONPQPFILE_H
-#define OPENMS_ANALYSIS_OPENSWATH_TRANSITIONPQPFILE_H
+#pragma once
 
 #include <OpenMS/ANALYSIS/OPENSWATH/TransitionTSVFile.h>
 
@@ -113,5 +112,4 @@ public:
   };
 }
 
-#endif // OPENMS_ANALYSIS_OPENSWATH_TRANSITIONPQPREADER_H
 

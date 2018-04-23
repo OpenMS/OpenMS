@@ -224,7 +224,8 @@ namespace OpenMS
       {
         String error = "MetaboliteFeatureDeconvolution::potential_adduct mixes charges for an adduct!";
         throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, error);
-      }else if (pos_charge > 0)
+      }
+      else if (pos_charge > 0)
       {
         EmpiricalFormula ef(adduct[0]);
         ef.setCharge(pos_charge);
@@ -233,32 +234,37 @@ namespace OpenMS
         //E.g., for Na: Na -(p+e)+p <-> Na-e == Na+
         ef -= EmpiricalFormula("H" + String(pos_charge));
         potential_adducts_.push_back(Adduct(pos_charge, 1, ef.getMonoWeight(), adduct[0], log(prob), rt_shift, label));
-      }else if (neg_charge > 0)
+      }
+      else if (neg_charge > 0)
       {
         if (adduct[0] == "H-1")
         {
           potential_adducts_.push_back(Adduct(-neg_charge, 1, -Constants::PROTON_MASS_U, adduct[0], log(prob), rt_shift,label));
-        }else
+        }
+        else
         {
           EmpiricalFormula ef(adduct[0]);
           ef.setCharge(0);//ensures we get without additional protons, now just add electron masses // effectively subtract electron masses
           potential_adducts_.push_back(Adduct((Int)-neg_charge, 1, ef.getMonoWeight() + Constants::ELECTRON_MASS_U * neg_charge, adduct[0], log(prob), rt_shift, label));
         }
-      }else if (adduct[1] == "0")//pos,neg == 0
+      }
+      else if (adduct[1] == "0")//pos,neg == 0
       {//getMonoWeight simple for Charge 0: sums individual atom monoisotopic weights
         if ((Int)param_.getValue("max_neutrals") > 0)
         {
           EmpiricalFormula ef(adduct[0]);
           ef.setCharge(0);
           potential_adducts_.push_back(Adduct(ef.getCharge(), 1, ef.getMonoWeight(), adduct[0], log(prob), rt_shift, label));
-        }else
+        }
+        else
         {
           continue;//not to be used anyway, don't add
         }
-      }else//adduct charge not +,- or 0
+      }
+      else//adduct charge not +,- or 0
       {
-      String error = "MetaboliteFeatureDeconvolution::potential_adduct charge must only contain '+','-' or '0'!";
-      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, error);
+        String error = "MetaboliteFeatureDeconvolution::potential_adduct charge must only contain '+','-' or '0'!";
+        throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, error);
       }
 
       verbose_level_ = param_.getValue("verbose_level");
@@ -410,11 +416,11 @@ namespace OpenMS
     }
     bool use_minority_bound = (param_.getValue("use_minority_bound") == "true" ? true : false);
     Int max_minority_bound = param_.getValue("max_minority_bound");
-    double thresh_logp = log(0.0000000001); //We set a default threshold simply as a minimally small number
+    double thresh_logp = log(1e-10); //We set a default threshold simply as a minimally small number
     if (use_minority_bound)
     {
-    thresh_logp = adduct_lowest_log_p * max_minority_bound +
-                  adduct_highest_log_p * std::max(q_max - max_minority_bound, 0);
+      thresh_logp = adduct_lowest_log_p * max_minority_bound +
+                    adduct_highest_log_p * std::max(q_max - max_minority_bound, 0);
     }
 
     // create mass difference list
@@ -525,7 +531,8 @@ namespace OpenMS
                 {
                   left_charges = -md_s->getPositiveCharges();
                   right_charges = -md_s->getNegativeCharges();//for negative, a pos charge means either losing an H-1 from the left (decreasing charge) or the Na  case. (We do H-1Na as neutral, because of the pos,negcharges)
-                }else
+                }
+                else
                 {
                   left_charges = md_s->getNegativeCharges();//for positive mode neutral switches still have to fulfill requirement that they have at most charge as each side
                   right_charges = md_s->getPositiveCharges();
@@ -548,7 +555,8 @@ namespace OpenMS
                   {
                     left_charges = -cmp.getPositiveCharges();
                     right_charges = -cmp.getNegativeCharges();
-                  }else
+                  }
+                  else
                   {
                     left_charges = cmp.getNegativeCharges();
                     right_charges = cmp.getPositiveCharges();
@@ -1026,7 +1034,8 @@ namespace OpenMS
     if (is_neg)
     {
       default_adduct = Adduct(-1, 1, -Constants::PROTON_MASS_U, "H-1", log(1.0),0);
-    }else
+    }
+    else
     {
       default_adduct = Adduct(1, 1, Constants::PROTON_MASS_U, "H1", log(1.0), 0);
     }
@@ -1069,7 +1078,8 @@ namespace OpenMS
         {
           left_charges =  -new_cmp.getPositiveCharges();
           right_charges =  -new_cmp.getNegativeCharges();
-        }else
+        }
+        else
         {
           left_charges = new_cmp.getNegativeCharges();
           right_charges = new_cmp.getPositiveCharges();
@@ -1099,7 +1109,8 @@ namespace OpenMS
             {
               left_charge =  -new_cmp.getPositiveCharges();
               right_charge =  -new_cmp.getNegativeCharges();
-            }else
+            }
+            else
             {
               left_charge = new_cmp.getNegativeCharges();
               right_charge = new_cmp.getPositiveCharges();
@@ -1118,7 +1129,8 @@ namespace OpenMS
             }
           }
 
-        }else // have nonzero modulo.SHOULD NOT HAPPEN FOR DEFAULT CHARGE 1/-1 !!
+        }
+        else // have nonzero modulo.SHOULD NOT HAPPEN FOR DEFAULT CHARGE 1/-1 !!
         {
           throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "MetaboliteFeatureDeconvolution::inferMoreEdges_(): Modulo returns leftover charge!", String(new_cmp.getNegativeCharges()));
         }
@@ -1243,8 +1255,5 @@ namespace OpenMS
       LOG_WARN << ".\n..\nWarning: a significant portion of your decharged molecules have gapped, even-numbered charge ladders (" << ladders_total - ladders_with_odd << " of " << ladders_total << ")";
       LOG_WARN <<"This might indicate a too low charge interval being tested.\n..\n.\n";
     }
-
   }
-
-
 }
