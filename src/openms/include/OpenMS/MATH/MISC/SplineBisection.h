@@ -28,64 +28,72 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Timo Sachsenberg $
-// $Authors: Stephan Aiche, Timo Sachsenberg $
+// $Maintainer: Hannes Roest $
+// $Authors: Hannes Roest $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/MATH/MISC/BSpline2d.h>
+#pragma once
 
-#include <BSpline/BSplineBase.cpp>
-#include <BSpline/BSpline.cpp>
+#include <OpenMS/config.h>
+
+#include <limits> 
+#include <cmath> 
 
 namespace OpenMS
 {
-
-  BSpline2d::BSpline2d(const std::vector<double>& x, const std::vector<double>& y, 
-                       double wavelength, BoundaryCondition boundary_condition, 
-                       Size num_nodes)
+  /**
+   * @brief Uses bisection to find the maximum point of a spline
+   *
+   * Should work with BSpline2d and CubicSpline2d
+   *
+   */
+  namespace Math
   {
-    OPENMS_PRECONDITION(x.size() == y.size(), "x and y vectors passed to BSpline2d constructor must have the same size.")
-    spline_ = new eol_bspline::BSpline<double>(&x[0], static_cast<int>(x.size()), &y[0], wavelength, boundary_condition, num_nodes);
-  }
 
-  BSpline2d::~BSpline2d()
-  {
-    delete spline_;
-  }
+    template <class T>
+    void spline_bisection(const T & peak_spline, 
+        double const left_neighbor_mz,
+        double const right_neighbor_mz,
+        double & max_peak_mz,
+        double & max_peak_int,
+        double const threshold = 1e-6)
+    {
+      // calculate maximum by evaluating the spline's 1st derivative
+      // (bisection method)
+      double lefthand = left_neighbor_mz;
+      double righthand = right_neighbor_mz;
 
-  bool BSpline2d::solve(const std::vector<double>& y)
-  {
-    OPENMS_PRECONDITION(static_cast<Size>(spline_->nX()) == y.size(), "y vector passed to 'BSpline2d::solve' must match size of x.")
-    // pass vector as array
-    return spline_->solve(&y[0]);
-  }
+      bool lefthand_sign = 1;
+      double eps = std::numeric_limits<double>::epsilon();
 
-  double BSpline2d::eval(const double x) const
-  {
-    OPENMS_PRECONDITION(ok(), "Spline was not initialized properly.")
-    return spline_->evaluate(x);
-  }
+      // bisection
+      do
+      {
+        double mid = (lefthand + righthand) / 2.0;
+        double midpoint_deriv_val = peak_spline.derivatives(mid, 1);
 
-  double BSpline2d::derivative(const double x) const
-  {
-    OPENMS_PRECONDITION(ok(), "Spline was not initialized properly.")
-    return spline_->slope(x);
-  }
+        // if deriv nearly zero then maximum already found
+        if (!(std::fabs(midpoint_deriv_val) > eps))
+        {
+          break;
+        }
 
-  double BSpline2d::derivatives(const double x, unsigned /* order */) const
-  {
-    // OPENMS_PRECONDITION(order == 1, "Spline was not initialized properly.")
-    return derivative(x);
-  }
+        bool midpoint_sign = (midpoint_deriv_val < 0.0) ? 0 : 1;
 
-  bool BSpline2d::ok() const
-  {
-    return spline_->ok();
-  }
+        if (lefthand_sign ^ midpoint_sign)
+        {
+          righthand = mid;
+        }
+        else
+        {
+          lefthand = mid;
+        }
+      }
+      while (righthand - lefthand > threshold);
 
-  void BSpline2d::debug(bool enable)
-  {
-    eol_bspline::BSplineBase<double>::Debug(int(enable));
-  }
+      max_peak_mz = (lefthand + righthand) / 2;
+      max_peak_int = peak_spline.eval(max_peak_mz);
+    }
 
+  }
 }

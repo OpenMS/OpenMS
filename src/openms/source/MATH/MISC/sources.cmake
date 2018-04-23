@@ -14,6 +14,7 @@ RANSAC.cpp
 RANSACModel.cpp
 RANSACModelLinear.cpp
 RANSACModelQuadratic.cpp
+SplineBisection.cpp
 )
 
 ### add path to the filenames
