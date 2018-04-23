@@ -666,7 +666,8 @@ namespace OpenMS
       //for negative mode, the default adduct should be deprotonation (added by the user)
       default_adduct = Adduct(-1, 1, -Constants::PROTON_MASS_U, "H-1", log(1.0),0);
     // e^(log prob_H)*e^(log prob_Na) = *e^(log prob_Na) * *e^(log prob_Na)
-    }else
+    }
+    else
     {
       default_adduct = Adduct(1, 1, Constants::PROTON_MASS_U, "H1", log(1.0),0);
     }
