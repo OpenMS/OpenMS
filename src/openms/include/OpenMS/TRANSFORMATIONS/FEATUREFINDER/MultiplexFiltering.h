@@ -182,7 +182,9 @@ protected:
      * @param pattern_idx    index of the pattern in <patterns_>
      */
     void blacklistPeak_(const MultiplexFilteredPeak& peak, unsigned pattern_idx);
-
+    
+    void blacklistPeak2_(const MultiplexFilteredPeak& peak, unsigned pattern_idx);
+    
     /**
      * @brief turn grey blacklist_ entries into black ones
      * 
@@ -219,15 +221,17 @@ protected:
     bool filterPeptideCorrelation_(const MultiplexIsotopicPeakPattern& pattern, const MultiplexFilteredPeak& peak) const;
 
     /**
-    * @brief centroided experimental data
-    */
+     * @brief centroided experimental data
+     */
     MSExperiment exp_picked_;
 
     /**
-    * @brief auxiliary structs for blacklisting
-    */
+     * @brief auxiliary structs for blacklisting
+     */
     std::vector<std::vector<BlacklistEntry> > blacklist_;
-
+    
+    std::vector<std::vector<int> > blacklist2_;
+    
     /**
      * @brief list of peak patterns
      */

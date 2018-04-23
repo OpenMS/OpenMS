@@ -222,6 +222,7 @@ namespace OpenMS
             
             result.addPeak(peak);
             blacklistPeak_(peak, pattern_idx);
+            blacklistPeak2_(peak, pattern_idx);
           }
           
         }
