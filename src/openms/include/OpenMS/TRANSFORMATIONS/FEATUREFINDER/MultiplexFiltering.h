@@ -170,7 +170,7 @@ protected:
      * @param peak    peak to be blacklisted
      */
     void blacklistPeak_(const MultiplexFilteredPeak& peak);
-    
+
     /**
      * @brief blacklist this peak
      * 

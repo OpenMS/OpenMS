@@ -317,7 +317,7 @@ namespace OpenMS
     // Automatically length >= isotopes_per_peptide_min_
     return true;
   }
-
+  
   void MultiplexFiltering::blacklistPeak_(const MultiplexFilteredPeak& peak, unsigned pattern_idx)
   {
     // determine absolute m/z tolerance in Th
@@ -333,14 +333,14 @@ namespace OpenMS
     {
       // m/z tolerance in Th
       mz_tolerance = mz_tolerance_;
-    }    
-
-    // Determine the boundaries for each of the mass traces.
-    std::multimap<size_t, MultiplexSatelliteCentroided > satellites = peak.getSatellites();    
+    }
+    
+    // Determine the RT boundaries for each of the mass traces.
+    std::multimap<size_t, MultiplexSatelliteCentroided > satellites = peak.getSatellites();
     // <rt_boundaries> is a map from the mass trace index to the spectrum indices for beginning and end of the mass trace.
     std::map<size_t, std::pair<size_t, size_t> > rt_boundaries;
     // loop over satellites
-     for (const auto &it : satellites)
+    for (const auto &it : satellites)
     {
       size_t idx_masstrace = it.first;    // mass trace index i.e. the index within the peptide multiplet pattern
       if (rt_boundaries.find(idx_masstrace) == rt_boundaries.end())
@@ -355,19 +355,20 @@ namespace OpenMS
         size_t idx_max = std::max((it.second).getRTidx(), rt_boundaries[idx_masstrace].second);
         
         rt_boundaries[idx_masstrace] = std::make_pair(idx_min, idx_max);
-      }      
+      }
     }
-        
+    
     // Blacklist all peaks along the mass traces
     // loop over mass traces (i.e. the mass trace boundaries)
-    //for (std::map<size_t, std::pair<size_t, size_t> >::const_iterator it = rt_boundaries.begin(); it != rt_boundaries.end(); ++it)
     for (const auto &it : rt_boundaries)
     {
       double mz = peak.getMZ() + patterns_[pattern_idx].getMZShiftAt(it.first);
       
+      // Extend the RT boundary by rt_band_ erlier
       MSExperiment::ConstIterator it_rt_begin = exp_picked_.begin() + (it.second).first;
       it_rt_begin = exp_picked_.RTBegin(it_rt_begin->getRT() - rt_band_);
       
+      // Extend the RT boundary by rt_band_ later
       MSExperiment::ConstIterator it_rt_end = exp_picked_.begin() + (it.second).second;
       it_rt_end = exp_picked_.RTBegin(it_rt_end->getRT() + rt_band_);
       
@@ -376,12 +377,12 @@ namespace OpenMS
       {
         ++it_rt_end;
       }
-
+      
       // loop over RT along the mass trace
       for (MSExperiment::ConstIterator it_rt = it_rt_begin; it_rt < it_rt_end; ++it_rt)
-      {        
+      {
         int idx_mz = it_rt->findNearest(mz, mz_tolerance);
-       
+        
         if (idx_mz != -1)
         {
           if (it.first == 0)
@@ -395,7 +396,7 @@ namespace OpenMS
           }
         }
       }
-    
+      
     }
     
   }
