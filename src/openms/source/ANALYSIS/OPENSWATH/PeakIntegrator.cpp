@@ -171,54 +171,49 @@ namespace OpenMS
 
     if (integration_type_ == INTEGRATION_TYPE_TRAPEZOID)
     {
-      if (n_points == 1)
-      {
-        throw Exception::InvalidSize(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, n_points);
-      }
-      else
+      if (n_points >= 2)
       {
         peak_area = compute_peak_area_trapezoid(left, right);
       }
     }
     else if (integration_type_ == INTEGRATION_TYPE_SIMPSON)
     {
-      if (n_points == 1)
-      {
-        throw Exception::InvalidSize(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, n_points);
-      }
-      else if (n_points == 2)
+      if (n_points == 2)
       {
         LOG_WARN << std::endl << "PeakIntegrator::integratePeak:"
           "number of points is 2, falling back to `trapezoid`." << std::endl;
         peak_area = compute_peak_area_trapezoid(left, right);
       }
-      else if (n_points % 2)
+      else if (n_points > 2)
       {
-        peak_area = simpson(p.PosBegin(left), p.PosEnd(right));
-      }
-      else
-      {
-        double areas[4] = {-1.0, -1.0, -1.0, -1.0};
-        areas[0] = simpson(p.PosBegin(left), p.PosEnd(right) - 1);   // without last point
-        areas[1] = simpson(p.PosBegin(left) + 1, p.PosEnd(right));   // without first point
-        if (p.begin() <= p.PosBegin(left) - 1)
+        if (n_points % 2)
         {
-          areas[2] = simpson(p.PosBegin(left) - 1, p.PosEnd(right)); // with one more point on the left
+          peak_area = simpson(p.PosBegin(left), p.PosEnd(right));
         }
-        if (p.PosEnd(right) < p.end())
+        else
         {
-          areas[3] = simpson(p.PosBegin(left), p.PosEnd(right) + 1); // with one more point on the right
-        }
-        UInt valids = 0;
-        for (auto area : areas)
-        {
-          if (area != -1.0)
+          double areas[4] = {-1.0, -1.0, -1.0, -1.0};
+          areas[0] = simpson(p.PosBegin(left), p.PosEnd(right) - 1);   // without last point
+          areas[1] = simpson(p.PosBegin(left) + 1, p.PosEnd(right));   // without first point
+          if (p.begin() <= p.PosBegin(left) - 1)
           {
-            peak_area += area;
-            ++valids;
+            areas[2] = simpson(p.PosBegin(left) - 1, p.PosEnd(right)); // with one more point on the left
           }
+          if (p.PosEnd(right) < p.end())
+          {
+            areas[3] = simpson(p.PosBegin(left), p.PosEnd(right) + 1); // with one more point on the right
+          }
+          UInt valids = 0;
+          for (auto area : areas)
+          {
+            if (area != -1.0)
+            {
+              peak_area += area;
+              ++valids;
+            }
+          }
+          peak_area /= valids;
         }
-        peak_area /= valids;
       }
     }
     else if (integration_type_ == INTEGRATION_TYPE_INTENSITYSUM)
