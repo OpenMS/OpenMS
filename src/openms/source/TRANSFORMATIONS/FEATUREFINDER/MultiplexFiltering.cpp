@@ -83,23 +83,18 @@ namespace OpenMS
     
     // initialise blacklist blacklist_
     blacklist_.reserve(exp_picked_.getNrSpectra());
-    blacklist2_.reserve(exp_picked_.getNrSpectra());
     // loop over spectra
     for (MSExperiment::ConstIterator it_rt = exp_picked_.begin(); it_rt < exp_picked_.end(); ++it_rt)
     {
-      std::vector<BlacklistEntry> blacklist_spectrum;
       std::vector<int> blacklist_spectrum2;
-      blacklist_spectrum.reserve(it_rt->size());
       blacklist_spectrum2.reserve(it_rt->size());
       // loop over m/z
       for (MSSpectrum::ConstIterator it_mz = it_rt->begin(); it_mz < it_rt->end(); ++it_mz)
       {
         BlacklistEntry entry = white;
-        blacklist_spectrum.push_back(entry);
         blacklist_spectrum2.push_back(-1);
       }
-      blacklist_.push_back(blacklist_spectrum);
-      blacklist2_.push_back(blacklist_spectrum2);
+      blacklist_.push_back(blacklist_spectrum2);
     }
   }
 
@@ -117,7 +112,7 @@ namespace OpenMS
       // loop over m/z
       for (MSSpectrum::ConstIterator it_mz = it_rt->begin(); it_mz < it_rt->end(); ++it_mz)
       {
-        if (blacklist2_[it_rt - exp_picked_.begin()][it_mz - it_rt->begin()] == -1)
+        if (blacklist_[it_rt - exp_picked_.begin()][it_mz - it_rt->begin()] == -1)
         {
           Peak1D peak;
           peak.setMZ(it_mz->getMZ());
@@ -164,7 +159,7 @@ namespace OpenMS
   {
     // check if peak position is blacklisted
     // i.e. -1 = white or 0 = mono-isotopic peak of the lightest (or only) peptide are ok.
-    if (blacklist2_[peak.getRTidx()][peak.getMZidx()] > 0)
+    if (blacklist_[peak.getRTidx()][peak.getMZidx()] > 0)
     {
       return false;
     }
@@ -227,7 +222,7 @@ namespace OpenMS
             // The peak can either be pure white i.e. untouched, or have been seen earlier as part of the same mass trace.
             size_t rt_idx = it_rt - it_rt_begin;
             size_t mz_idx = index_mapping.at(it_rt - it_rt_begin).at(i);
-            if ((blacklist2_[rt_idx][mz_idx] == -1) || (blacklist2_[rt_idx][mz_idx] == idx_mz_shift))
+            if ((blacklist_[rt_idx][mz_idx] == -1) || (blacklist_[rt_idx][mz_idx] == idx_mz_shift))
             {
               peak.addSatellite(it_rt - it_rt_begin, index_mapping.at(it_rt - it_rt_begin).at(i), idx_mz_shift);
               found = true;
@@ -378,89 +373,6 @@ namespace OpenMS
       
       // Extend the RT boundary by rt_band_ erlier
       MSExperiment::ConstIterator it_rt_begin = exp_picked_.begin() + (it.second).first;
-      it_rt_begin = exp_picked_.RTBegin(it_rt_begin->getRT() - rt_band_);
-      
-      // Extend the RT boundary by rt_band_ later
-      MSExperiment::ConstIterator it_rt_end = exp_picked_.begin() + (it.second).second;
-      it_rt_end = exp_picked_.RTBegin(it_rt_end->getRT() + rt_band_);
-      
-      // prepare for loop
-      if (it_rt_end != exp_picked_.end())
-      {
-        ++it_rt_end;
-      }
-      
-      // loop over RT along the mass trace
-      for (MSExperiment::ConstIterator it_rt = it_rt_begin; it_rt < it_rt_end; ++it_rt)
-      {
-        int idx_mz = it_rt->findNearest(mz, mz_tolerance);
-        
-        if (idx_mz != -1)
-        {
-          if (it.first == 0)
-          {
-            // Any mono-isotopic peaks of the lightest peptide can pass the filter in this pattern.
-            blacklist_[it_rt - exp_picked_.begin()][idx_mz] = grey;
-          }
-          else
-          {
-            blacklist_[it_rt - exp_picked_.begin()][idx_mz] = black;
-          }
-        }
-      }
-      
-    }
-    
-  }
-  
-  void MultiplexFiltering::blacklistPeak2_(const MultiplexFilteredPeak& peak, unsigned pattern_idx)
-  {
-    // determine absolute m/z tolerance in Th
-    double mz_tolerance;
-    if (mz_tolerance_unit_in_ppm_)
-    {
-      // m/z tolerance in ppm
-      // Note that the absolute tolerance varies minimally within an m/z pattern.
-      // Hence we calculate it only once here.
-      mz_tolerance = peak.getMZ() * mz_tolerance_ * 1e-6;
-    }
-    else
-    {
-      // m/z tolerance in Th
-      mz_tolerance = mz_tolerance_;
-    }
-    
-    // Determine the RT boundaries for each of the mass traces.
-    std::multimap<size_t, MultiplexSatelliteCentroided > satellites = peak.getSatellites();
-    // <rt_boundaries> is a map from the mass trace index to the spectrum indices for beginning and end of the mass trace.
-    std::map<size_t, std::pair<size_t, size_t> > rt_boundaries;
-    // loop over satellites
-    for (const auto &it : satellites)
-    {
-      size_t idx_masstrace = it.first;    // mass trace index i.e. the index within the peptide multiplet pattern
-      if (rt_boundaries.find(idx_masstrace) == rt_boundaries.end())
-      {
-        // That's the first satellite within this mass trace.
-        rt_boundaries[idx_masstrace] = std::make_pair((it.second).getRTidx(), (it.second).getRTidx());
-      }
-      else
-      {
-        // We have seen a satellite of this mass trace before.
-        size_t idx_min = std::min((it.second).getRTidx(), rt_boundaries[idx_masstrace].first);
-        size_t idx_max = std::max((it.second).getRTidx(), rt_boundaries[idx_masstrace].second);
-        
-        rt_boundaries[idx_masstrace] = std::make_pair(idx_min, idx_max);
-      }
-    }
-    
-    // Blacklist all peaks along the mass traces
-    // loop over mass traces (i.e. the mass trace boundaries)
-    for (const auto &it : rt_boundaries)
-    {
-      double mz = peak.getMZ() + patterns_[pattern_idx].getMZShiftAt(it.first);
-      
-      // Extend the RT boundary by rt_band_ erlier
-      MSExperiment::ConstIterator it_rt_begin = exp_picked_.begin() + (it.second).first;
       it_rt_begin = exp_picked_.RTBegin(it_rt_begin->getRT() - 2 * rt_band_);
       
       // Extend the RT boundary by rt_band_ later
@@ -481,28 +393,12 @@ namespace OpenMS
         if (idx_mz != -1)
         {
           // blacklist entries: -1 = white, any isotope pattern index (it.first) = black
-          blacklist2_[it_rt - exp_picked_.begin()][idx_mz] = it.first;
+          blacklist_[it_rt - exp_picked_.begin()][idx_mz] = it.first;
         }
       }
       
     }
     
-  }
-  
-  void MultiplexFiltering::ungreyBlacklist_()
-  {
-    // loop over spectra
-    for (MSExperiment::ConstIterator it_rt = exp_picked_.begin(); it_rt < exp_picked_.end(); ++it_rt)
-    {
-      // loop over m/z
-      for (MSSpectrum::ConstIterator it_mz = it_rt->begin(); it_mz < it_rt->end(); ++it_mz)
-      {
-        if (blacklist_[it_rt - exp_picked_.begin()][it_mz - it_rt->begin()] == grey)
-        {
-          blacklist_[it_rt - exp_picked_.begin()][it_mz - it_rt->begin()] = black;
-        }
-      }
-    }
   }
   
   bool MultiplexFiltering::filterAveragineModel_(const MultiplexIsotopicPeakPattern& pattern, const MultiplexFilteredPeak& peak) const

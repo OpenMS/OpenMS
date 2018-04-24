@@ -167,8 +167,6 @@ namespace OpenMS
       
       // add results of this pattern to list
       filter_results.push_back(result);
-      
-      ungreyBlacklist_();
     }
             
     std::cout << "\nFiltering took me " << (float)(clock()-start)/CLOCKS_PER_SEC << " seconds.\n\n";

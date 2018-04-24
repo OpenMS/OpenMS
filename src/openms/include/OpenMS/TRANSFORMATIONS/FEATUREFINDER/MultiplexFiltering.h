@@ -182,16 +182,6 @@ protected:
      * @param pattern_idx    index of the pattern in <patterns_>
      */
     void blacklistPeak_(const MultiplexFilteredPeak& peak, unsigned pattern_idx);
-    
-    void blacklistPeak2_(const MultiplexFilteredPeak& peak, unsigned pattern_idx);
-    
-    /**
-     * @brief turn grey blacklist_ entries into black ones
-     * 
-     * Grey entries function as white in the current pattern but black in subsequent patterns,
-     * i.e. at the end of a pattern these entries need to be turned black.
-     */
-    void ungreyBlacklist_();
 
     /**
      * @brief check if the satellite peaks conform with the averagine model
@@ -228,9 +218,7 @@ protected:
     /**
      * @brief auxiliary structs for blacklisting
      */
-    std::vector<std::vector<BlacklistEntry> > blacklist_;
-    
-    std::vector<std::vector<int> > blacklist2_;
+    std::vector<std::vector<int> > blacklist_;
     
     /**
      * @brief list of peak patterns
