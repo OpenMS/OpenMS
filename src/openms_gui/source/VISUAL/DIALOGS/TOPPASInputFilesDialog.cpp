@@ -34,39 +34,49 @@
 
 // OpenMS includes
 #include <OpenMS/VISUAL/DIALOGS/TOPPASInputFilesDialog.h>
+#include <ui_TOPPASInputFilesDialog.h>
+
+
 #include <OpenMS/VISUAL/DIALOGS/TOPPASInputFileDialog.h>
 
 #include <OpenMS/SYSTEM/File.h>
 
-#include <QtGui/QFileDialog>
+#include <QtWidgets/QFileDialog>
 #include <QApplication>
 #include <QClipboard>
 #include <QKeyEvent>
 #include <QUrl>
+#include <QMimeData>
 
 #include <iostream>
 
 namespace OpenMS
 {
   TOPPASInputFilesDialog::TOPPASInputFilesDialog(const QStringList & list, const QString& cwd)
-    : cwd_(cwd)
+    : cwd_(cwd),
+      ui_(new Ui::TOPPASInputFilesDialogTemplate)
   {
-    setupUi(this);
+    ui_->setupUi(this);
 
     //input_file_list->setSortingEnabled(true);
-    input_file_list->addItems(list);
+    ui_->input_file_list->addItems(list);
 
-    connect(ok_button, SIGNAL(clicked()), this, SLOT(accept()));
-    connect(cancel_button, SIGNAL(clicked()), this, SLOT(reject()));
-    connect(add_button, SIGNAL(clicked()), this, SLOT(showFileDialog()));
-    connect(remove_button, SIGNAL(clicked()), this, SLOT(removeSelected()));
-    connect(remove_all_button, SIGNAL(clicked()), this, SLOT(removeAll()));
-    connect(edit_button, SIGNAL(clicked()), this, SLOT(editCurrentItem()));
-    connect(up_button, SIGNAL(clicked()), this, SLOT(moveCurrentItem()));
-    connect(down_button, SIGNAL(clicked()), this, SLOT(moveCurrentItem()));
+    connect(ui_->ok_button, SIGNAL(clicked()), this, SLOT(accept()));
+    connect(ui_->cancel_button, SIGNAL(clicked()), this, SLOT(reject()));
+    connect(ui_->add_button, SIGNAL(clicked()), this, SLOT(showFileDialog()));
+    connect(ui_->remove_button, SIGNAL(clicked()), this, SLOT(removeSelected()));
+    connect(ui_->remove_all_button, SIGNAL(clicked()), this, SLOT(removeAll()));
+    connect(ui_->edit_button, SIGNAL(clicked()), this, SLOT(editCurrentItem()));
+    connect(ui_->up_button, SIGNAL(clicked()), this, SLOT(moveCurrentItem()));
+    connect(ui_->down_button, SIGNAL(clicked()), this, SLOT(moveCurrentItem()));
 
     // allow dragging of filenames from OS window manager (Finder, Explorer etc)
     setAcceptDrops(true);
+  }
+
+  TOPPASInputFilesDialog::~TOPPASInputFilesDialog()
+  {
+    delete ui_;
   }
 
   void TOPPASInputFilesDialog::dragEnterEvent(QDragEnterEvent* e)
@@ -82,7 +92,7 @@ namespace OpenMS
   {
     foreach (const QUrl& url, e->mimeData()->urls())
     {
-      input_file_list->addItem(url.toLocalFile());
+      ui_->input_file_list->addItem(url.toLocalFile());
     }
   }
 
@@ -91,7 +101,7 @@ namespace OpenMS
     if (e->matches(QKeySequence::Copy))
     {
       QStringList strings;
-      QList<QListWidgetItem*> selected_items = input_file_list->selectedItems();
+      QList<QListWidgetItem*> selected_items = ui_->input_file_list->selectedItems();
       foreach (QListWidgetItem* item, selected_items)
       {
         strings << item->text();
@@ -113,33 +123,33 @@ namespace OpenMS
                                                            cwd_);
     if (!file_names.isEmpty())
     {
-      input_file_list->addItems(file_names);
+      ui_->input_file_list->addItems(file_names);
       cwd_ = File::path(file_names.back()).toQString();
     }
   }
 
   void TOPPASInputFilesDialog::removeSelected()
   {
-    QList<QListWidgetItem *> selected_items = input_file_list->selectedItems();
+    QList<QListWidgetItem *> selected_items = ui_->input_file_list->selectedItems();
     foreach(QListWidgetItem * item, selected_items)
     {
-      input_file_list->takeItem(input_file_list->row(item));
+      ui_->input_file_list->takeItem(ui_->input_file_list->row(item));
     }
   }
 
   void TOPPASInputFilesDialog::removeAll()
   {
-    input_file_list->clear();
+    ui_->input_file_list->clear();
   }
 
   void TOPPASInputFilesDialog::getFilenames(QStringList& files) const
   {
     files.clear();
-    for (int i = 0; i < input_file_list->count(); ++i)
+    for (int i = 0; i < ui_->input_file_list->count(); ++i)
     {
-      files.push_back(input_file_list->item(i)->text());
+      files.push_back(ui_->input_file_list->item(i)->text());
     }
-    if (flag_sort_list->isChecked())
+    if (ui_->flag_sort_list->isChecked())
       files.sort();
   }
 
@@ -150,7 +160,7 @@ namespace OpenMS
 
   void TOPPASInputFilesDialog::editCurrentItem()
   {
-    QListWidgetItem * item = input_file_list->currentItem();
+    QListWidgetItem * item = ui_->input_file_list->currentItem();
     if (!item)
     {
       return;
@@ -164,35 +174,35 @@ namespace OpenMS
 
   void TOPPASInputFilesDialog::moveCurrentItem()
   {
-    if (input_file_list->count() < 2)
+    if (ui_->input_file_list->count() < 2)
     {
       return;
     }
-    int row = input_file_list->currentRow();
+    int row = ui_->input_file_list->currentRow();
     if (row < 0)
     {
       return;
     }
 
-    if (QObject::sender() == up_button)     // move upwards
+    if (QObject::sender() == ui_->up_button)     // move upwards
     {
       if (row == 0)
       {
         return;
       }
-      QListWidgetItem * item = input_file_list->takeItem(row);
-      input_file_list->insertItem(row - 1, item);
-      input_file_list->setCurrentItem(item);
+      QListWidgetItem * item = ui_->input_file_list->takeItem(row);
+      ui_->input_file_list->insertItem(row - 1, item);
+      ui_->input_file_list->setCurrentItem(item);
     }
-    else if (QObject::sender() == down_button) // move downwards
+    else if (QObject::sender() == ui_->down_button) // move downwards
     {
-      if (row == input_file_list->count() - 1)
+      if (row == ui_->input_file_list->count() - 1)
       {
         return;
       }
-      QListWidgetItem * item = input_file_list->takeItem(row);
-      input_file_list->insertItem(row + 1, item);
-      input_file_list->setCurrentItem(item);
+      QListWidgetItem * item = ui_->input_file_list->takeItem(row);
+      ui_->input_file_list->insertItem(row + 1, item);
+      ui_->input_file_list->setCurrentItem(item);
     }
   }
 

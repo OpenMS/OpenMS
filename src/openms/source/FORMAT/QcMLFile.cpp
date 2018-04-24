@@ -34,11 +34,8 @@
 
 #include <OpenMS/FORMAT/QcMLFile.h>
 #include <OpenMS/SYSTEM/File.h>
-#include <OpenMS/CONCEPT/LogStream.h>
 
 #include <fstream>
-#include <iostream>
-#include <algorithm>
 #include <boost/range/adaptor/map.hpp>
 #include <boost/range/algorithm/copy.hpp>
 

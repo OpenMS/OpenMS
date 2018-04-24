@@ -32,14 +32,13 @@
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_VISUAL_COLORSELECTOR_H
-#define OPENMS_VISUAL_COLORSELECTOR_H
+#pragma once
 
 // OpenMS_GUI config
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
 //QT
-#include <QtGui/QWidget>
+#include <QtWidgets/QWidget>
 
 class QPaintEvent;
 class QMouseEvent;
@@ -88,4 +87,3 @@ protected:
   };
 
 }
-#endif // OPENMS_VISUAL_COLORSELECTOR_H

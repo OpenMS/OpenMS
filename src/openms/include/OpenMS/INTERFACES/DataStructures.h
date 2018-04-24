@@ -32,8 +32,7 @@
 // $Authors: Darren Kessner, Hannes Roest, Witold Wolski$
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_INTERFACES_DATASTRUCTURES_H
-#define OPENMS_INTERFACES_DATASTRUCTURES_H
+#pragma once
 
 #include <string>
 #include <vector>
@@ -238,4 +237,3 @@ public:
 
 } //end namespace Interfaces
 } //end namespace OpenMS
-#endif

@@ -17,7 +17,10 @@ ListEditor.cpp
 MetaDataBrowser.cpp
 MultiGradient.cpp
 MultiGradientSelector.cpp
+
 ParamEditor.cpp
+ParamEditor.ui
+
 SpectraIdentificationViewWidget.cpp
 SpectraViewWidget.cpp
 Spectrum1DCanvas.cpp
@@ -63,5 +66,5 @@ source_group("Source Files\\VISUAL" FILES ${sources})
 ### icons
 # add   : icons are added to source/VISUAL/ICONS/resources.qrc
 # remove: after removing an icon, you have to rerun 'cmake' to fix the dependencies
-QT4_ADD_RESOURCES(qt_resource_file source/VISUAL/ICONS/resources.qrc)
+QT5_ADD_RESOURCES(qt_resource_file source/VISUAL/ICONS/resources.qrc)
 set(OpenMSVisual_sources ${OpenMSVisual_sources} ${qt_resource_file})

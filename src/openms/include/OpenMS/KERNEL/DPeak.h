@@ -32,8 +32,7 @@
 // $Authors: $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_KERNEL_DPEAK_H
-#define OPENMS_KERNEL_DPEAK_H
+#pragma once
 
 #include <OpenMS/KERNEL/Peak1D.h>
 #include <OpenMS/KERNEL/Peak2D.h>
@@ -80,4 +79,3 @@ namespace OpenMS
 
 } // namespace OpenMS
 
-#endif // OPENMS_KERNEL_DPEAK_H

@@ -34,8 +34,6 @@
 
 #include <OpenMS/FORMAT/OPTIONS/FeatureFileOptions.h>
 
-#include <algorithm>
-
 using namespace std;
 
 namespace OpenMS

@@ -32,8 +32,7 @@
 // $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_CHEMISTRY_MASSDECOMPOSITION_MASSDECOMPOSITIONALGORITHM_H
-#define OPENMS_CHEMISTRY_MASSDECOMPOSITION_MASSDECOMPOSITIONALGORITHM_H
+#pragma once
 
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/CHEMISTRY/MASSDECOMPOSITION/MassDecomposition.h>
@@ -110,4 +109,3 @@ private:
 
 } // namespace OpenMS
 
-#endif // OPENMS_CHEMISTRY_MASSDECOMPOSITION_MASSDECOMPOSITIONALGORITHM_H

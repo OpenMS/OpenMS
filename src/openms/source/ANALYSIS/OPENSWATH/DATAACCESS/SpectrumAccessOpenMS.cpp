@@ -63,6 +63,8 @@ namespace OpenMS
     const MSSpectrumType& spectrum = (*ms_experiment_)[id];
     OpenSwath::BinaryDataArrayPtr intensity_array(new OpenSwath::BinaryDataArray);
     OpenSwath::BinaryDataArrayPtr mz_array(new OpenSwath::BinaryDataArray);
+    mz_array->data.reserve(spectrum.size());
+    intensity_array->data.reserve(spectrum.size());
     for (MSSpectrumType::const_iterator it = spectrum.begin(); it != spectrum.end(); ++it)
     {
       mz_array->data.push_back(it->getMZ());
@@ -72,6 +74,31 @@ namespace OpenMS
     OpenSwath::SpectrumPtr sptr(new OpenSwath::Spectrum);
     sptr->setMZArray(mz_array);
     sptr->setIntensityArray(intensity_array);
+
+    for (const auto& fda : spectrum.getFloatDataArrays() )
+    {
+      OpenSwath::BinaryDataArrayPtr tmp(new OpenSwath::BinaryDataArray);
+      tmp->data.reserve(fda.size());
+      for (const auto& val : fda)
+      {
+        tmp->data.push_back(val);
+      }
+      tmp->description = fda.getName();
+      sptr->getDataArrays().push_back(tmp);
+    }
+
+    for (const auto& ida : spectrum.getIntegerDataArrays() )
+    {
+      OpenSwath::BinaryDataArrayPtr tmp(new OpenSwath::BinaryDataArray);
+      tmp->data.reserve(ida.size());
+      for (const auto& val : ida)
+      {
+        tmp->data.push_back(val);
+      }
+      tmp->description = ida.getName();
+      sptr->getDataArrays().push_back(tmp);
+    }
+
     return sptr;
   }
 
@@ -94,6 +121,8 @@ namespace OpenMS
     const MSChromatogramType& chromatogram = ms_experiment_->getChromatograms()[id];
     OpenSwath::BinaryDataArrayPtr intensity_array(new OpenSwath::BinaryDataArray);
     OpenSwath::BinaryDataArrayPtr rt_array(new OpenSwath::BinaryDataArray);
+    rt_array->data.reserve(chromatogram.size());
+    intensity_array->data.reserve(chromatogram.size());
     for (MSChromatogramType::const_iterator it = chromatogram.begin(); it != chromatogram.end(); ++it)
     {
       rt_array->data.push_back(it->getRT());
@@ -103,6 +132,31 @@ namespace OpenMS
     OpenSwath::ChromatogramPtr cptr(new OpenSwath::Chromatogram);
     cptr->setTimeArray(rt_array);
     cptr->setIntensityArray(intensity_array);
+
+    for (const auto& fda : chromatogram.getFloatDataArrays() )
+    {
+      OpenSwath::BinaryDataArrayPtr tmp(new OpenSwath::BinaryDataArray);
+      tmp->data.reserve(fda.size());
+      for (const auto& val : fda)
+      {
+        tmp->data.push_back(val);
+      }
+      tmp->description = fda.getName();
+      cptr->getDataArrays().push_back(tmp);
+    }
+
+    for (const auto& ida : chromatogram.getIntegerDataArrays() )
+    {
+      OpenSwath::BinaryDataArrayPtr tmp(new OpenSwath::BinaryDataArray);
+      tmp->data.reserve(ida.size());
+      for (const auto& val : ida)
+      {
+        tmp->data.push_back(val);
+      }
+      tmp->description = ida.getName();
+      cptr->getDataArrays().push_back(tmp);
+    }
+
     return cptr;
   }
 

@@ -46,7 +46,7 @@ endif()
 
 #------------------------------------------------------------------------------
 # get information regarding the openswath files
-include(source/ANALYSIS/OPENSWATH/OPENSWATHALGO/OpenSwathAlgoFiles.cmake)
+include(source/OPENSWATHALGO/OpenSwathAlgoFiles.cmake)
 
 #------------------------------------------------------------------------------
 # add the library
@@ -55,6 +55,6 @@ openms_add_library(TARGET_NAME OpenSwathAlgo
                    HEADER_FILES ${OpenSwathAlgoHeaders}
                    INTERNAL_INCLUDES ${PROJECT_SOURCE_DIR}/include ${PROJECT_BINARY_DIR}/include
                    EXTERNAL_INCLUDES ${Boost_INCLUDE_DIRS}
-                   DLL_EXPORT_PATH "OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/")
+                   DLL_EXPORT_PATH "OpenMS/OPENSWATHALGO/")
 
 openms_doc_path("${PROJECT_SOURCE_DIR}/include")

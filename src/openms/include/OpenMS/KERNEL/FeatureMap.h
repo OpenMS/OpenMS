@@ -32,8 +32,7 @@
 // $Authors: Marc Sturm, Chris Bielow, Clemens Groepl $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_KERNEL_FEATUREMAP_H
-#define OPENMS_KERNEL_FEATUREMAP_H
+#pragma once
 
 #include <OpenMS/KERNEL/Feature.h>
 #include <OpenMS/KERNEL/RangeManager.h>
@@ -314,4 +313,3 @@ protected:
 
 } // namespace OpenMS
 
-#endif // OPENMS_KERNEL_DFEATUREMAP_H

@@ -33,8 +33,7 @@
 // --------------------------------------------------------------------------
 
 
-#ifndef OPENMS_ANALYSIS_DENOVO_COMPNOVOIONSCORINGBASE_H
-#define OPENMS_ANALYSIS_DENOVO_COMPNOVOIONSCORINGBASE_H
+#pragma once
 
 // OpenMS includes
 #include <OpenMS/KERNEL/StandardTypes.h>
@@ -135,4 +134,3 @@ public:
 
 }
 
-#endif

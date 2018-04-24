@@ -33,9 +33,9 @@
 // --------------------------------------------------------------------------
 
 // Qt
-#include <QtGui/QPaintEvent>
-#include <QtGui/QPainter>
-#include <QtGui/QBrush>
+#include <QPaintEvent>
+#include <QPainter>
+#include <QBrush>
 
 // STL
 #include <iostream>

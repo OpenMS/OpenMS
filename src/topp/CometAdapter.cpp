@@ -32,26 +32,19 @@
 // $Authors: Leon Bichmann, Timo Sachsenberg $
 // --------------------------------------------------------------------------
 
+#include <OpenMS/APPLICATIONS/TOPPBase.h>
+
 #include <OpenMS/FORMAT/MzMLFile.h>
-#include <OpenMS/FORMAT/MzDataFile.h>
 #include <OpenMS/FORMAT/PepXMLFile.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
+#include <OpenMS/CHEMISTRY/ProteaseDB.h>
 #include <OpenMS/CHEMISTRY/ResidueDB.h>
 #include <OpenMS/CHEMISTRY/ResidueModification.h>
-#include <OpenMS/KERNEL/StandardTypes.h>
-#include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/SYSTEM/File.h>
-#include <OpenMS/FORMAT/FileHandler.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
-#include <OpenMS/CHEMISTRY/ModificationDefinitionsSet.h>
-#include <OpenMS/CHEMISTRY/ProteaseDB.h>
 
-#include <QtCore/QFile>
 #include <QtCore/QProcess>
-#include <QDir>
-#include <QDebug>
-#include <iostream>
+
 #include <fstream>
 
 using namespace OpenMS;
@@ -165,12 +158,13 @@ protected:
     setValidStrings_("num_enzyme_termini", ListUtils::create<String>("semi,fully,C-term unspecific,N-term unspecific"));
     registerIntOption_("allowed_missed_cleavages", "<num>", 0, "Number of possible cleavage sites missed by the enzyme. It has no effect if enzyme is unspecific cleavage.", false, false);
     setMinInt_("allowed_missed_cleavages", 0);
+    setMaxInt_("allowed_missed_cleavages", 5);
     //Fragment Ions
     registerDoubleOption_("fragment_bin_tolerance", "<tolerance>", 0.02, "Bin size (in Da) for matching fragment ions. Ion trap: 1.0005, high res: 0.02. CAUTION: Low tolerances have heavy impact on RAM usage. Consider using use_sparse_matrix and/or spectrum_batch_size.", false, true);
-    setMinFloat_("fragment_bin_tolerance",0.01);
+    setMinFloat_("fragment_bin_tolerance", 0.01);
     registerDoubleOption_("fragment_bin_offset", "<fraction>", 0.0, "Offset of fragment bins scaled by tolerance. Ion trap: 0.4, high res: 0.0.", false, true);
-    setMinFloat_("fragment_bin_offset",0.0);
-    setMaxFloat_("fragment_bin_offset",1.0);
+    setMinFloat_("fragment_bin_offset", 0.0);
+    setMaxFloat_("fragment_bin_offset", 1.0);
     registerStringOption_("instrument", "<choice>", "high_res", "Comets theoretical_fragment_ions parameter: theoretical fragment ion peak representation, high res ms/ms: sum of intensities plus flanking bins, ion trap (low_res) ms/ms: sum of intensities of central M bin only", false, true);
     setValidStrings_("instrument", ListUtils::create<String>("low_res,high_res"));
     registerStringOption_("use_A_ions", "<num>", "false", "use A ions for PSM", false, true);
@@ -226,11 +220,11 @@ protected:
     registerStringOption_("clear_mz_range", "[minfloatmz]:[maxfloatmz]", "0:0", "for iTRAQ/TMT type data; will clear out all peaks in the specified m/z range, if not 0:0", false, true);
 
     //Modifications
-    registerStringList_("fixed_modifications", "<mods>", vector<String>(), "Fixed modifications, specified using UniMod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)' or 'Oxidation (M)'", false, false);
     vector<String> all_mods;
     ModificationsDB::getInstance()->getAllSearchModifications(all_mods);
+    registerStringList_("fixed_modifications", "<mods>", ListUtils::create<String>("Carbamidomethyl (C)", ','), "Fixed modifications, specified using Unimod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)' or 'Oxidation (M)'", false);
     setValidStrings_("fixed_modifications", all_mods);
-    registerStringList_("variable_modifications", "<mods>", vector<String>(), "Variable modifications, specified using UniMod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)' or 'Oxidation (M)'", false, false);
+    registerStringList_("variable_modifications", "<mods>", ListUtils::create<String>("Oxidation (M)", ','), "Variable modifications, specified using Unimod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)' or 'Oxidation (M)'", false);
     setValidStrings_("variable_modifications", all_mods);
     registerIntOption_("max_variable_mods_in_peptide", "<num>", 5, "Set a maximum number of variable modifications per peptide", false, true);
     registerStringOption_("require_variable_mod", "<bool>", "false", "If true, requires at least one variable modification per peptide", false, true);
@@ -522,24 +516,19 @@ protected:
     //-------------------------------------------------------------
     // parsing parameters
     //-------------------------------------------------------------
+    
+    // do this early, to see if comet is installed
+    String comet_executable = getStringOption_("comet_executable");
+    String tmp_param = File::getTemporaryFile();
+    int status = QProcess::execute(comet_executable.toQString(), QStringList() << "-p" << tmp_param.c_str()); // does automatic escaping etc...
+    if (status != 0)
+    {
+      writeLog_("Comet problem. Aborting! Calling command was: '" + comet_executable + " -p \"" + tmp_param + "\"'.\nDoes the Comet executable exist?");
+      return EXTERNAL_PROGRAM_ERROR;
+    }
 
     String inputfile_name = getStringOption_("in");
-    writeDebug_(String("Input file: ") + inputfile_name, 1);
-    if (inputfile_name.empty())
-    {
-      writeLog_("No input file specified. Aborting!");
-      printUsage_();
-      return ILLEGAL_PARAMETERS;
-    }
-
     String out = getStringOption_("out");
-    writeDebug_(String("Output file___real one: ") + out, 1);
-    if (out.empty())
-    {
-      writeLog_("No output file specified. Aborting!");
-      printUsage_();
-      return ILLEGAL_PARAMETERS;
-    }
 
 
     //-------------------------------------------------------------
@@ -563,11 +552,8 @@ protected:
     }
 
     //tmp_dir
-    //const String tmp_dir = QDir::toNativeSeparators((File::getTempDirectory() + "/").toQString());
     const String tmp_dir = makeTempDirectory_(); //OpenMS::File::getTempDirectory() + "/";
     writeDebug_("Creating temporary directory '" + tmp_dir + "'", 1);
-    //QDir d;
-    //d.mkpath(tmp_dir.toQString());
     String tmp_pepxml = tmp_dir + "result.pep.xml";
     String tmp_pin = tmp_dir + "result.pin";
     String default_params = getStringOption_("default_params_file");
@@ -588,7 +574,7 @@ protected:
 
     PeakMap exp;
     MzMLFile mzml_file;
-    mzml_file.getOptions().addMSLevel(2); // only load msLevel 2 //TO DO: setMSLevels or clearMSLevels
+    mzml_file.getOptions().setMSLevels({2}); // only load msLevel 2 
     mzml_file.setLogType(log_type_);
     mzml_file.load(inputfile_name, exp);
 
@@ -615,13 +601,11 @@ protected:
     String paramN = "-N" + File::removeExtension(File::removeExtension(tmp_pepxml));
     QStringList process_params;
     process_params << paramP.toQString() << paramN.toQString() << inputfile_name.toQString();
-    qDebug() << process_params;
 
-    String comet_executable = getStringOption_("comet_executable");
-    int status = QProcess::execute(comet_executable.toQString(),process_params); // does automatic escaping etc...
+    status = QProcess::execute(comet_executable.toQString(), process_params); // does automatic escaping etc...
     if (status != 0)
     {
-      writeLog_("Comet problem. Aborting! Calling command was: '" + comet_executable + " \"" + inputfile_name + "\"'.\nDoes the Comet executable exist?");
+      writeLog_("Comet problem. Aborting! Calling command was: '" + comet_executable + " \"" + inputfile_name + "\"'.\n");
       return EXTERNAL_PROGRAM_ERROR;
     }
 
@@ -646,17 +630,9 @@ protected:
 
     String pin_out = getStringOption_("pin_out");
     if (!pin_out.empty())
-    {
-      // existing file? Qt won't overwrite, so try to remove it:
-      if (QFile::exists(pin_out.toQString()) && !QFile::remove(pin_out.toQString()))
+    { // move the temporary file to the actual destination:
+      if (!File::rename(tmp_pin, pin_out))
       {
-        writeLog_("Fatal error: Could not overwrite existing file '" + pin_out + "'");
-        return CANNOT_WRITE_OUTPUT_FILE;
-      }
-      // move the temporary file to the actual destination:
-      if (!QFile::rename(tmp_pin.toQString(), pin_out.toQString()))
-      {
-        writeLog_("Fatal error: Could not move temporary mzid file to '" + pin_out + "'");
         return CANNOT_WRITE_OUTPUT_FILE;
       }
     }

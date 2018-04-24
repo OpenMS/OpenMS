@@ -32,8 +32,7 @@
 // $Authors: Stephan Aiche, Marc Sturm$
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_TRANSFORMATIONS_FEATUREFINDER_GAUSSTRACEFITTER_H
-#define OPENMS_TRANSFORMATIONS_FEATUREFINDER_GAUSSTRACEFITTER_H
+#pragma once
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/TraceFitter.h>
 
@@ -120,4 +119,3 @@ protected:
 
 } // namespace OpenMS
 
-#endif // #ifndef OPENMS_TRANSFORMATIONS_FEATUREFINDER_FEATUREFINDERALGORITHMPICKEDTRACEFITTERGAUSS_H

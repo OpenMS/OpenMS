@@ -34,30 +34,38 @@
 
 // OpenMS includes
 #include <OpenMS/VISUAL/DIALOGS/TOPPASVertexNameDialog.h>
+#include <ui_TOPPASVertexNameDialog.h>
+
 #include <iostream>
 
 namespace OpenMS
 {
   TOPPASVertexNameDialog::TOPPASVertexNameDialog(const QString& name, const QString& input_regex)
+    : ui_(new Ui::TOPPASVertexNameDialogTemplate)
   {
-    setupUi(this);
+    ui_->setupUi(this);
     
     if (!input_regex.isEmpty())
     {
       QRegExp rx(input_regex);
-      QRegExpValidator* v = new QRegExpValidator(rx, line_edit);
-      line_edit->setValidator(v);
+      QRegExpValidator* v = new QRegExpValidator(rx, ui_->line_edit);
+      ui_->line_edit->setValidator(v);
     }
 
-    line_edit->setText(name);
-    connect(ok_button, SIGNAL(clicked()), this, SLOT(accept()));
-    connect(cancel_button, SIGNAL(clicked()), this, SLOT(reject()));
+    ui_->line_edit->setText(name);
+    connect(ui_->ok_button, SIGNAL(clicked()), this, SLOT(accept()));
+    connect(ui_->cancel_button, SIGNAL(clicked()), this, SLOT(reject()));
+  }
+
+  TOPPASVertexNameDialog::~TOPPASVertexNameDialog()
+  {
+    delete ui_;
   }
 
   QString TOPPASVertexNameDialog::getName()
   {
     
-    return line_edit->text();
+    return ui_->line_edit->text();
   }
 
 } // namespace

@@ -32,8 +32,7 @@
 // $Authors: Oliver Alka $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FORMAT_DATAACCESS_SIRIUSMZTABWRITER_H
-#define OPENMS_FORMAT_DATAACCESS_SIRIUSMZTABWRITER_H
+#pragma once
 
 namespace OpenMS
 {
@@ -45,10 +44,10 @@ namespace OpenMS
     @brief Internal structure used in @ref SiriusAdapter that is used
     for the conversion of the sirius output to an mzTab.
     @ingroup ID
-    */
 
-     /// store a specific @param number of lines from sirius output
-     /// @return mzTab
+    Store a specific @param number of lines from sirius output
+    @return mzTab
+    */
 
     struct SiriusAdapterHit
     {
@@ -65,6 +64,7 @@ namespace OpenMS
     struct SiriusAdapterIdentification
     {
       OpenMS::String scan_index;
+      OpenMS::String scan_number;
       std::vector<SiriusAdapterHit> hits;
     };
 
@@ -73,18 +73,24 @@ namespace OpenMS
       std::vector<SiriusAdapterIdentification> identifications;
     };
 
-    // extract scan_index from filepath
+    /**
+    @brief Extract scan_index from filepath
+    */
     static String extract_scan_index(const String & path);
-
-    // output of Sirius is one directory per spectrum/compound
-    // sirius_output_paths: Path to output directories of Sirius
-    // original_input_mzml: Path to mzml input of SiriusAdapter
-    // top_n_hits: Top n  entries for each compound written to the result file     
-    // result: Result written to mzTab
+ 
+    /**
+    @brief Conversion of sirius output to mzTab
+    
+    Output of Sirius is one directory per spectrum/compound
+    @param sirius_output_paths: Path to output directories of Sirius
+    @param original_input_mzml: Path to mzml input of SiriusAdapter
+    @param top_n_hits: Top n  entries for each compound written to the result file     
+    
+    @return: Result written to mzTab
+    */
     static void read(const std::vector<String> & sirius_output_paths, const String & original_input_mzml, const Size & top_n_hits, MzTab & result);
 
   };
 
 }
 
-#endif //OPENMS_FORMAT_DATAACCESS_SIRIUSMZTABWRITER_H

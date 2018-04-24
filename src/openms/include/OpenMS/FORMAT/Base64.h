@@ -32,8 +32,7 @@
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FORMAT_BASE64_H
-#define OPENMS_FORMAT_BASE64_H
+#pragma once
 
 #ifndef OPENMS_IS_BIG_ENDIAN
 #if defined OPENMS_BIG_ENDIAN
@@ -53,6 +52,10 @@
 
 #include <QByteArray>
 #include <zlib.h>
+
+#ifdef OPENMS_COMPILER_MSVC
+#pragma comment(linker, "/export:compress")
+#endif
 
 namespace OpenMS
 {
@@ -75,7 +78,7 @@ public:
       BYTEORDER_BIGENDIAN,                  ///< Big endian type
       BYTEORDER_LITTLEENDIAN            ///< Little endian type
     };
-
+	
     /**
         @brief Encodes a vector of floating point numbers to a Base64 string
 
@@ -893,4 +896,3 @@ private:
 
 } //namespace OpenMS
 
-#endif /* OPENMS_FORMAT_BASE64_H */

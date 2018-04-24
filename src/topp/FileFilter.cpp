@@ -483,12 +483,8 @@ protected:
 
     int mz32 = getStringOption_("peak_options:mz_precision").toInt();
     int int32 = getStringOption_("peak_options:int_precision").toInt();
-    bool indexed_file;
-    if (getStringOption_("peak_options:indexed_file") == "true") {indexed_file = true; }
-    else {indexed_file = false; }
-    bool zlib_compression;
-    if (getStringOption_("peak_options:zlib_compression") == "true") {zlib_compression = true; }
-    else {zlib_compression = false; }
+    bool indexed_file = getStringOption_("peak_options:indexed_file") == "true";
+    bool zlib_compression = getStringOption_("peak_options:zlib_compression") == "true";
 
 
     MSNumpressCoder::NumpressConfig npconfig_mz;
@@ -580,8 +576,8 @@ protected:
       f.getOptions().setMSLevels(levels);
 
       // set precision options
-      if (mz32 == 32) { f.getOptions().setMz32Bit(true); }else if (mz32 == 64) { f.getOptions().setMz32Bit(false); }
-      if (int32 == 32) { f.getOptions().setIntensity32Bit(true); }else if (int32 == 64) { f.getOptions().setIntensity32Bit(false); }
+      if (mz32 == 32) { f.getOptions().setMz32Bit(true); } else if (mz32 == 64) { f.getOptions().setMz32Bit(false); }
+      if (int32 == 32) { f.getOptions().setIntensity32Bit(true); } else if (int32 == 64) { f.getOptions().setIntensity32Bit(false); }
 
       // set writing index (e.g. indexedmzML)
       f.getOptions().setWriteIndex(indexed_file);

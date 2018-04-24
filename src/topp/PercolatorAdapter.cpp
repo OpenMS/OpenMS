@@ -33,17 +33,17 @@
 // --------------------------------------------------------------------------
 #include <OpenMS/config.h>
 
+#include <OpenMS/APPLICATIONS/TOPPBase.h>
+
+#include <OpenMS/ANALYSIS/ID/PercolatorFeatureSetHelper.h>
+#include <OpenMS/FORMAT/CsvFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/FileTypes.h>
-#include <OpenMS/DATASTRUCTURES/StringListUtils.h>
-#include <OpenMS/APPLICATIONS/TOPPBase.h>
-#include <OpenMS/FORMAT/MzIdentMLFile.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
+#include <OpenMS/FORMAT/MzIdentMLFile.h>
 #include <OpenMS/FORMAT/OSWFile.h>
-#include <OpenMS/FORMAT/CsvFile.h>
-#include <OpenMS/CONCEPT/ProgressLogger.h>
-#include <OpenMS/CONCEPT/Constants.h>
-#include <OpenMS/ANALYSIS/ID/PercolatorFeatureSetHelper.h>
+#include <OpenMS/SYSTEM/File.h>
+
 #include <QtCore/QFile>
 #include <QtCore/QDir>
 #include <QtCore/QProcess>
@@ -52,9 +52,9 @@
 #include <cmath>
 #include <string>
 #include <set>
+//#include <typeinfo>
 
 #include <boost/algorithm/clamp.hpp>
-#include <typeinfo>
 
 using namespace OpenMS;
 using namespace std;
@@ -452,9 +452,21 @@ protected:
         String aa_after(hit.getPeptideEvidences().front().getAAAfter());
         aa_before = aa_before=="["?'-':aa_before;
         aa_after = aa_after=="]"?'-':aa_after;
-        sequence += aa_before; 
-        sequence += "." + hit.getSequence().toString() + ".";
+        sequence += aa_before;
+        // In OpenMS sequence nomenclature, dots are set only for modified N/C-term modifications, e.g. .(Dimethyl)VGDMYTSSDIFDSVR
+        // In Percolator sequence nomenclature, dots are always present for all N/C-term modifications, e.g. R.(Dimethyl)VGDMYTSSDIFDSVR.F
+        // Consequently, dots need only be added for unmodified N/C-termini.
+        if (hit.getSequence().getNTerminalModificationName().empty())
+        {
+          sequence += ".";
+        }
+        sequence += hit.getSequence().toString();
+        if (hit.getSequence().getCTerminalModificationName().empty())
+        {
+          sequence += ".";
+        }
         sequence += aa_after;
+        
         hit.setMetaValue("Peptide", sequence);
         
         //proteinId1

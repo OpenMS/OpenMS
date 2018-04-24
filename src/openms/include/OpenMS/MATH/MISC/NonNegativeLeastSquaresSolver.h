@@ -32,8 +32,7 @@
 // $Authors: Chris Bielow $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_MATH_MISC_NONNEGATIVELEASTSQUARESSOLVER_H
-#define OPENMS_MATH_MISC_NONNEGATIVELEASTSQUARESSOLVER_H
+#pragma once
 
 #include <OpenMS/DATASTRUCTURES/Matrix.h>
 
@@ -69,4 +68,3 @@ public:
 
 } // namespace OpenMS
 
-#endif // OPENMS_MATH_MISC_NONNEGATIVELEASTSQUARESSOLVER_H

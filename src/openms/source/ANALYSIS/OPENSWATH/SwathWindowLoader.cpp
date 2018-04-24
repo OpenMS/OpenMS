@@ -37,8 +37,8 @@
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/CONCEPT/Exception.h>
 
-#include <iostream>
 #include <fstream>
+#include <iostream>
 #include <sstream>
 
 namespace OpenMS

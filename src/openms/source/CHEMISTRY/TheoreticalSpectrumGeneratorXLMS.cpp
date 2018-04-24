@@ -33,8 +33,6 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGeneratorXLMS.h>
-#include <OpenMS/DATASTRUCTURES/ListUtils.h>
-#include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
@@ -404,7 +402,8 @@ void TheoreticalSpectrumGeneratorXLMS::addCommonPeaks_(PeakSpectrum & spectrum, 
     if (frag_alpha)
     {
       ion_type = "alpha|xi";
-    } else
+    }
+    else
     {
       ion_type = "beta|xi";
     }

@@ -34,9 +34,6 @@
 
 #include <OpenMS/FORMAT/PTMXMLFile.h>
 #include <OpenMS/FORMAT/HANDLERS/PTMXMLHandler.h>
-#include <OpenMS/SYSTEM/File.h>
-
-#include <iostream>
 
 using namespace std;
 

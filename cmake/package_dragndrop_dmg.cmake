@@ -47,7 +47,8 @@ set(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAME}-${CPACK_PACKAGE_VERSION}-Darw
 ## Note: That the mac app bundles (TOPPView) take care of themselves
 ##       when installed as dmg (see src/openms_gui/add_mac_bundle.cmake)
 
-## Fix OpenMS dependencies for all executables in the install directory
+## Fix OpenMS dependencies for all executables in the install directory under bin.
+## That affects everything but the bundles (which have their own structure and are fixed up in add_mac_bundle.cmake)
 ########################################################### Fix Dependencies
 install(CODE "execute_process(COMMAND ${PROJECT_SOURCE_DIR}/cmake/MacOSX/fix_dependencies.rb -b \${CMAKE_INSTALL_PREFIX}/${INSTALL_BIN_DIR}/ -l \${CMAKE_INSTALL_PREFIX}/${INSTALL_LIB_DIR}/ -v)"
   COMPONENT zzz-fixing-dependencies
@@ -122,5 +123,5 @@ else()
     COMMAND ${PROJECT_SOURCE_DIR}/cmake/MacOSX/fixdmg.sh
     WORKING_DIRECTORY ${PROJECT_BINARY_DIR}
     COMMENT "Finalizing dmg image"
-    DEPENDS dmg)
+    DEPENDS dist)
 endif()

@@ -32,8 +32,7 @@
 // $Authors: Stephan Aiche$
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_CONCEPT_STREAMHANDLER_H
-#define OPENMS_CONCEPT_STREAMHANDLER_H
+#pragma once
 
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <map>
@@ -175,4 +174,3 @@ private:
   OPENMS_DLLAPI extern StreamHandler STREAM_HANDLER;
 } // end namespace OpenMS
 
-#endif // #ifndef OPENMS_CONCEPT_STREAMHANDLER_H

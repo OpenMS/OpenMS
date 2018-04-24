@@ -19,6 +19,7 @@ ConsensusIDAlgorithmWorst.cpp
 FalseDiscoveryRate.cpp
 HiddenMarkovModel.cpp
 IDBoostGraph.cpp
+IDConflictResolverAlgorithm.cpp
 IDMapper.cpp
 IDRipper.cpp
 IDDecoyProbability.cpp

@@ -37,11 +37,6 @@
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 
-#include <vector>
-#include <map>
-#include <cmath>
-#include <iostream>
-
 using std::vector;
 
 namespace OpenMS
@@ -51,8 +46,8 @@ namespace OpenMS
     if (x < 2) { return 0; }
     double z(0);
     for (double y = 2; y <= static_cast<double>(x); ++y) { z += log(static_cast<double>(y)); }
-    return z;
-  }
+      return z;
+    }
 
   double HyperScore::compute(double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, const PeakSpectrum& exp_spectrum, const PeakSpectrum& theo_spectrum)
   {
@@ -116,8 +111,8 @@ namespace OpenMS
     const double yFact = logfactorial_(y_ion_count);
     const double bFact = logfactorial_(b_ion_count);
     const double hyperScore = log1p(dot_product) + yFact + bFact;
-    return hyperScore;
-  }
+      return hyperScore;
+    }
 
 }
 

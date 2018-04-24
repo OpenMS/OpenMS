@@ -32,8 +32,7 @@
 // $Authors: Stephan Aiche$
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_SIMULATION_LABELING_BASELABELER_IMPL_H
-#define OPENMS_SIMULATION_LABELING_BASELABELER_IMPL_H
+#pragma once
 
 #include <OpenMS/SIMULATION/LABELING/BaseLabeler.h>
 
@@ -61,4 +60,3 @@ namespace OpenMS
 
 } // namespace OpenMS
 
-#endif // OPENMS_SIMULATION_LABELING_BASELABELER_IMPL_H

@@ -35,9 +35,6 @@
 #include <OpenMS/FORMAT/PepXMLFileMascot.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 
-#include <iostream>
-#include <fstream>
-
 using namespace std;
 
 namespace OpenMS

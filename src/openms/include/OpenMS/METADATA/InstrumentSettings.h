@@ -32,8 +32,7 @@
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_METADATA_INSTRUMENTSETTINGS_H
-#define OPENMS_METADATA_INSTRUMENTSETTINGS_H
+#pragma once
 
 #include <OpenMS/METADATA/ScanWindow.h>
 #include <OpenMS/METADATA/IonSource.h>
@@ -118,4 +117,3 @@ protected:
   };
 } // namespace OpenMS
 
-#endif // OPENMS_METADATA_INSTRUMENTSETTINGS_H

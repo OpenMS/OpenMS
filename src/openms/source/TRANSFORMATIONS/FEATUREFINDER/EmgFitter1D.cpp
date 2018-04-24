@@ -38,8 +38,6 @@
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CONCEPT/Factory.h>
 
-#include <boost/math/special_functions/fpclassify.hpp>
-
 namespace OpenMS
 {
   int EmgFitter1D::EgmFitterFunctor::operator()(const Eigen::VectorXd& x, Eigen::VectorXd& fvec)
@@ -97,7 +95,7 @@ namespace OpenMS
       // f'(h)
       derivative_height = w / s * sqrt_2pi * exp1 / exp2;
 
-      // f'(h)
+      // f'(w)
       derivative_width = h / s * sqrt_2pi * exp1 / exp2 + (h * w * w) / (s * s * s) * sqrt_2pi * exp1 / exp2 + (emg_const * h * w) / s * sqrt_2pi * exp1 * (-(t - z) / (w * w) - 1 / s) * exp3 / ((exp2 * exp2) * sqrt_2);
 
       // f'(s)
@@ -229,7 +227,9 @@ namespace OpenMS
 
     QualityType correlation = Math::pearsonCorrelationCoefficient(real_data.begin(), real_data.end(), model_data.begin(), model_data.end());
     if (boost::math::isnan(correlation))
+    {
       correlation = -1.0;
+    }
 
     return correlation;
   }
@@ -251,6 +251,8 @@ namespace OpenMS
         median = i;
     }
 
+    double max_peak_width = fabs(set[set.size() - 1].getPos() - set[median].getPos()); // cannot be wider than this
+
     // calculate the height of the peak
     height_ = set[median].getIntensity();
 
@@ -267,7 +269,7 @@ namespace OpenMS
     if (boost::math::isinf(symmetry_) || boost::math::isnan(symmetry_))
     {
       symmetric_ = true;
-      symmetry_ = 10;
+      symmetry_ = 10.0;
     }
 
     // optimize the symmetry
@@ -275,7 +277,12 @@ namespace OpenMS
     // For s~5 the parameter can be approximated by the Levenberg-Marquardt algorithms.
     // (the other parameters are much greater than one)
     if (symmetry_ < 1)
+    {
       symmetry_ += 5;
+    }
+
+    // Need to ensure that we do not go beyond the maximal width of the peak
+    symmetry_ = std::min(symmetry_, max_peak_width);
 
     // calculate the width of the peak
     // rt-values with intensity zero are not allowed for calculation of the width

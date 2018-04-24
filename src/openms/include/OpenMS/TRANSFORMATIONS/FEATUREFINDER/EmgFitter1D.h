@@ -32,8 +32,7 @@
 // $Authors: $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_TRANSFORMATIONS_FEATUREFINDER_EMGFITTER1D_H
-#define OPENMS_TRANSFORMATIONS_FEATUREFINDER_EMGFITTER1D_H
+#pragma once
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/LevMarqFitter1D.h>
 
@@ -122,4 +121,3 @@ protected:
 
 }
 
-#endif // OPENMS_TRANSFORMATIONS_FEATUREFINDER_EMGFITTER1D_H

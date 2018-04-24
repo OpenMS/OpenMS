@@ -33,8 +33,7 @@
 // --------------------------------------------------------------------------
 //
 
-#ifndef OPENMS_CHEMISTRY_ELEMENTDB_H
-#define OPENMS_CHEMISTRY_ELEMENTDB_H
+#pragma once
 
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/DATASTRUCTURES/Map.h>
@@ -160,4 +159,3 @@ private:
   };
 
 } // namespace OpenMS
-#endif

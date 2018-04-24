@@ -1,39 +1,39 @@
 // --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry               
+//                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
 // ETH Zurich, and Freie Universitaet Berlin 2002-2017.
-// 
+//
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
 //    notice, this list of conditions and the following disclaimer.
 //  * Redistributions in binary form must reproduce the above copyright
 //    notice, this list of conditions and the following disclaimer in the
 //    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution 
-//    may be used to endorse or promote products derived from this software 
+//  * Neither the name of any author or any participating institution
+//    may be used to endorse or promote products derived from this software
 //    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS. 
+// For a full list of authors, refer to the file AUTHORS.
 // --------------------------------------------------------------------------
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING 
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
+// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 // --------------------------------------------------------------------------
 // $Maintainer:  $
 // $Authors: $
 // --------------------------------------------------------------------------
 
 /**
-	@mainpage OpenMS / TOPP documentation
+	@mainpage %OpenMS / TOPP documentation
 
 	<TABLE width="100%" bgcolor="#e8eef2" border="0">
 		<TR>
@@ -44,8 +44,7 @@
 			</TD>
 			<TD width="50%" bgcolor="#cccccc">
 				<H3>%OpenMS library</H3>
-					Information for developers (please make sure to read the
-					<a class="el" href="OpenMS_tutorial.html">Quickstart Guide</a>).
+					Information for developers (please make sure to read the Developer Quickstart Guide).
 				<BR>&nbsp;
 			</TD>
 		</TR>
@@ -72,7 +71,7 @@
 
 				Misc:
 				<UL>
-				  <LI> <a class="el" href="http://www.OpenMS.de/support/bugs" target="_blank">Support</a> 
+				  <LI> <a class="el" href="http://www.OpenMS.de/support/bugs" target="_blank">Support</a>
 					<LI> @subpage FAQ
 					<LI> @subpage ChangeLog
 				</UL>
@@ -90,11 +89,11 @@
 
 				Development:
 				<UL>
-                                  <LI> <a class="el" href="https://github.com/OpenMS/OpenMS/wiki/Coding-conventions" target="_blank">Coding conventions (online)</a> 
-                                  <LI> <a class="el" href="https://github.com/OpenMS/OpenMS/wiki/Developer-FAQ" target="_blank">Developer FAQ (online)</a> 
-                                  <LI> <a class="el" href="https://github.com/OpenMS/OpenMS/wiki/C&%2343;&%2343;-Guide" target="_blank">CPP Guide (online)</a> 
+                                  <LI> <a class="el" href="https://github.com/OpenMS/OpenMS/wiki/Coding-conventions" target="_blank">Coding conventions (online)</a>
+                                  <LI> <a class="el" href="https://github.com/OpenMS/OpenMS/wiki/Developer-FAQ" target="_blank">Developer FAQ (online)</a>
+                                  <LI> <a class="el" href="https://github.com/OpenMS/OpenMS/wiki/C&%2343;&%2343;-Guide" target="_blank">CPP Guide (online)</a>
 				</UL>
-			
+
 				Documentation:
 				<UL>
 				  <LI> @subpage OpenMS_tutorial

@@ -20,6 +20,7 @@ FalseDiscoveryRate.h
 HiddenMarkovModel.h
 IDBoostGraph.h
 IDDecoyProbability.h
+IDConflictResolverAlgorithm.h
 IDMapper.h
 IDRipper.h
 MessagePasserFactory.h

@@ -32,15 +32,14 @@
 // $Authors: Johannes Junker $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_VISUAL_TOPPASTREEVIEW_H
-#define OPENMS_VISUAL_TOPPASTREEVIEW_H
+#pragma once
 
 // OpenMS_GUI config
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
 //QT
-#include <QtGui/QTreeWidget>
-#include <QtGui/QMouseEvent>
+#include <QtWidgets/QTreeWidget>
+#include <QMouseEvent>
 #include <QtCore/QPoint>
 
 namespace OpenMS
@@ -78,4 +77,3 @@ protected:
   };
 
 }
-#endif // OPENMS_VISUAL_TOPPASTREEVIEW_H

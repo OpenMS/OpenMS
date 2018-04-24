@@ -33,8 +33,7 @@
 // --------------------------------------------------------------------------
 //
 
-#ifndef OPENMS_FILTERING_NOISEESTIMATION_SIGNALTONOISEESTIMATORMEANITERATIVE_H
-#define OPENMS_FILTERING_NOISEESTIMATION_SIGNALTONOISEESTIMATORMEANITERATIVE_H
+#pragma once
 
 #include <OpenMS/FILTERING/NOISEESTIMATION/SignalToNoiseEstimator.h>
 #include <OpenMS/CONCEPT/Exception.h>
@@ -443,4 +442,3 @@ protected:
 
 } // namespace OpenMS
 
-#endif //OPENMS_FILTERING_NOISEESTIMATION_SIGNALTONOISEESTIMATORMEANITERATIVE_H

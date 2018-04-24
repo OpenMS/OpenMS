@@ -32,8 +32,7 @@
 // $Authors: Hendrik Weisser $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_MAPMATCHING_TRANSFORMATIONMODEL_H
-#define OPENMS_ANALYSIS_MAPMATCHING_TRANSFORMATIONMODEL_H
+#pragma once
 
 #include <OpenMS/DATASTRUCTURES/Param.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
@@ -181,4 +180,3 @@ namespace OpenMS
 
 } // end of namespace OpenMS
 
-#endif // OPENMS_ANALYSIS_MAPMATCHING_TRANSFORMATIONMODEL_H

@@ -36,7 +36,9 @@
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/FORMAT/MzTabFile.h>
 #include <OpenMS/FORMAT/CsvFile.h>
+#include <boost/regex.hpp>
 
+#include <OpenMS/METADATA/SpectrumLookup.h>
 #include <OpenMS/FORMAT/DATAACCESS/SiriusMzTabWriter.h>
 
 using namespace OpenMS;
@@ -70,13 +72,17 @@ void SiriusMzTabWriter::read(const std::vector<String> & sirius_output_paths, co
       {
         const UInt top_n_hits_cor = (top_n_hits >= rowcount) ? rowcount : top_n_hits;
         
-        // fill indentification structure containing all candidate hits for a single spectrum
+        // fill identification structure containing all candidate hits for a single spectrum
         SiriusMzTabWriter::SiriusAdapterIdentification sirius_id;
 
-        //Extract scan_index from path
+        // extract scan_number from path
         OpenMS::String str = File::path(pathtosiriuscsv);
         std::string scan_index = SiriusMzTabWriter::extract_scan_index(str);
-
+        
+        // extract scan_number from string
+        boost::regex regexp("-(?<SCAN>\\d+)-");
+        int scan_number = SpectrumLookup::extractScanNumber(str, regexp, false);      
+ 
         for (Size j = 1; j < top_n_hits_cor; ++j)
 
         {
@@ -99,6 +105,7 @@ void SiriusMzTabWriter::read(const std::vector<String> & sirius_output_paths, co
         }
 
         sirius_id.scan_index = scan_index;
+        sirius_id.scan_number = scan_number;
         sirius_result.identifications.push_back(sirius_id);
 
         // write metadata to mzTab file
@@ -106,7 +113,7 @@ void SiriusMzTabWriter::read(const std::vector<String> & sirius_output_paths, co
         MzTabMSRunMetaData md_run;
         md_run.location = MzTabString(original_input_mzml);
         md.ms_run[1] = md_run;
-        md.description = MzTabString("Sirius-3.5");
+        md.description = MzTabString("Sirius-4.0");
 
         //needed for header generation (score)
         std::map<Size, MzTabParameter> smallmolecule_search_engine_score;
@@ -153,12 +160,17 @@ void SiriusMzTabWriter::read(const std::vector<String> & sirius_output_paths, co
             MzTabOptionalColumnEntry compoundId;
             compoundId.first = "compoundId";
             compoundId.second = MzTabString(id.scan_index);
+  
+            MzTabOptionalColumnEntry compoundScanNumber;
+            compoundScanNumber.first = "compoundScanNumber";
+            compoundScanNumber.second = MzTabString(id.scan_number);
 
             smsr.opt_.push_back(adduct);
             smsr.opt_.push_back(rank);
             smsr.opt_.push_back(explainedPeaks);
             smsr.opt_.push_back(explainedIntensity);
             smsr.opt_.push_back(compoundId);
+            smsr.opt_.push_back(compoundScanNumber);
             smsd.push_back(smsr);
           }
         }  

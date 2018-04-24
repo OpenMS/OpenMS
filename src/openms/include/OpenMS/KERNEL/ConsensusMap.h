@@ -32,8 +32,7 @@
 // $Authors: $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_KERNEL_CONSENSUSMAP_H
-#define OPENMS_KERNEL_CONSENSUSMAP_H
+#pragma once
 
 #include <OpenMS/CONCEPT/UniqueIdInterface.h>
 #include <OpenMS/CONCEPT/UniqueIdIndexer.h>
@@ -342,4 +341,3 @@ protected:
 
 } // namespace OpenMS
 
-#endif // OPENMS_KERNEL_CONSENSUSMAP_H

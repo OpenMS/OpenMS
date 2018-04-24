@@ -32,8 +32,7 @@
 // $Authors: Lars Nilse $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_TRANSFORMATIONS_FEATUREFINDER_MULTIPLEXFILTERINGPROFILE_H
-#define OPENMS_TRANSFORMATIONS_FEATUREFINDER_MULTIPLEXFILTERINGPROFILE_H
+#pragma once
 
 #include <OpenMS/KERNEL/BaseFeature.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
@@ -143,4 +142,3 @@ private:
 
 }
 
-#endif /* MULTIPLEXFILTERINGPROFILE_H_ */

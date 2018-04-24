@@ -38,13 +38,8 @@
 #include <OpenMS/MATH/STATISTICS/LinearRegression.h>
 #include <OpenMS/MATH/STATISTICS/QuadraticRegression.h>
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
-#include <OpenMS/MATH/MISC/RANSACModelLinear.h>
 #include <OpenMS/MATH/MISC/RANSACModelQuadratic.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
-
-#include <algorithm>
-#include <iterator>
-#include <map>
 
 namespace OpenMS
 {
@@ -129,7 +124,8 @@ namespace OpenMS
     if (use_ppm_) // the above prediction is the ppm error
     { // ... so we convert to actual mass diff
       predict = Math::ppmToMass(-predict, mz) + mz;
-    } else
+    }
+    else
     {
       predict = (-predict) + mz;
     }

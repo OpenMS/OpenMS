@@ -51,7 +51,7 @@ endif()
 
 if (TBB_FOUND)
   INCLUDE_DIRECTORIES(${TBB_INCLUDE_DIRS})
-  add_definitions(/DOPENMS_HAS_TBB)
+  add_compile_options(/DOPENMS_HAS_TBB)
 endif()
 
 #------------------------------------------------------------------------------

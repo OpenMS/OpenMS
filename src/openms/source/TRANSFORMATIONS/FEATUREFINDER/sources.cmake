@@ -13,13 +13,13 @@ EmgModel.cpp
 EmgScoring.cpp
 ExtendedIsotopeFitter1D.cpp
 ExtendedIsotopeModel.cpp
-FeaFiModule.cpp
 FeatureFinder.cpp
 FeatureFinderAlgorithm.cpp
 FeatureFinderAlgorithmIsotopeWavelet.cpp
 FeatureFinderAlgorithmMRM.cpp
 FeatureFinderAlgorithmPicked.cpp
 FeatureFinderAlgorithmPickedHelperStructs.cpp
+FeatureFinderIdentificationAlgorithm.cpp
 Fitter1D.cpp
 GaussFitter1D.cpp
 GaussModel.cpp

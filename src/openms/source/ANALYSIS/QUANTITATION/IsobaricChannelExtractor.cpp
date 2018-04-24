@@ -43,8 +43,6 @@
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
 
-#include <cmath>
-
 // #define ISOBARIC_CHANNEL_EXTRACTOR_DEBUG
 // #undef ISOBARIC_CHANNEL_EXTRACTOR_DEBUG
 
@@ -585,7 +583,7 @@ namespace OpenMS
 
       // store RT&MZ of MS1 parent ion as centroid of ConsensusFeature
       if (it_last_MS2 == ms_exp_data.end())
-      { // this only happens if an MS3 spec does not have a preceeding MS2
+      { // this only happens if an MS3 spec does not have a preceding MS2
         throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("No MS2 precursor information given for MS3 scan native ID ") + it->getNativeID() + " with RT " + String(it->getRT()));
       }
       ConsensusFeature cf;

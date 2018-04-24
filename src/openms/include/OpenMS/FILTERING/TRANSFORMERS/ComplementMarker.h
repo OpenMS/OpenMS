@@ -32,8 +32,7 @@
 // $Authors: $
 // --------------------------------------------------------------------------
 //
-#ifndef OPENMS_FILTERING_TRANSFORMERS_COMPLEMENTMARKER_H
-#define OPENMS_FILTERING_TRANSFORMERS_COMPLEMENTMARKER_H
+#pragma once
 
 #include <OpenMS/FILTERING/TRANSFORMERS/PeakMarker.h>
 
@@ -132,4 +131,3 @@ public:
   };
 
 }
-#endif //OPENMS_FILTERING_TRANSFORMERS_COMPLEMENTMARKER_H

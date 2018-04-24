@@ -34,11 +34,6 @@
 
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/FILTERING/DATAREDUCTION/SplinePackage.h>
-#include <OpenMS/MATH/MISC/CubicSpline2d.h>
-
-#include <vector>
-#include <algorithm>
-#include <iostream>
 
 using namespace std;
 

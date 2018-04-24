@@ -32,8 +32,7 @@
 // $Authors: Stephan Aiche, Hendrik Weisser $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_MAPMATCHING_TRANSFORMATIONMODELINTERPOLATED_H
-#define OPENMS_ANALYSIS_MAPMATCHING_TRANSFORMATIONMODELINTERPOLATED_H
+#pragma once
 
 #include <OpenMS/config.h>
 
@@ -157,4 +156,3 @@ private:
 
 } // namespace
 
-#endif // OPENMS_ANALYSIS_MAPMATCHING_TRANSFORMATIONMODELINTERPOLATED_H

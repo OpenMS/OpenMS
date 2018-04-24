@@ -32,8 +32,7 @@
 // $Authors: Marc Sturm, Chris Bielow $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FORMAT_TEXTFILE_H
-#define OPENMS_FORMAT_TEXTFILE_H
+#pragma once
 
 #include <OpenMS/DATASTRUCTURES/StringListUtils.h>
 
@@ -135,4 +134,3 @@ protected:
 
 } // namespace OpenMS
 
-#endif // OPENMS_FORMAT_TEXTFILE_H

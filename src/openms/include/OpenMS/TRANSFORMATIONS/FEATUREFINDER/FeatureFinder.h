@@ -32,8 +32,7 @@
 // $Authors: Marc Sturm, Clemens Groepl $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_TRANSFORMATIONS_FEATUREFINDER_FEATUREFINDER_H
-#define OPENMS_TRANSFORMATIONS_FEATUREFINDER_FEATUREFINDER_H
+#pragma once
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderDefs.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithm.h>
@@ -110,4 +109,3 @@ protected:
 
 } // namespace OpenMS
 
-#endif // OPENMS_TRANSFORMATIONS_FEATUREFINDER_FEATUREFINDER_H

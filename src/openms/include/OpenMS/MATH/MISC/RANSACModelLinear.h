@@ -32,8 +32,7 @@
 // $Authors: George Rosenberger, Hannes Roest, Chris Bielow $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_MATH_MISC_RANSACMODELLINEAR_H
-#define OPENMS_MATH_MISC_RANSACMODELLINEAR_H
+#pragma once
 
 #include <OpenMS/config.h>
 #include <OpenMS/MATH/MISC/RANSACModel.h>
@@ -68,4 +67,3 @@ namespace OpenMS
 
 
 }
-#endif // OPENMS_MATH_MISC_RANSACMODELLINEAR_H

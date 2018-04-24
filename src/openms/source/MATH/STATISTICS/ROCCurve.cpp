@@ -36,7 +36,6 @@
 #include <OpenMS/DATASTRUCTURES/DPosition.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/TransformationModelInterpolated.h>
 
-#include <iostream>
 #include <cmath>
 #include <numeric>
 

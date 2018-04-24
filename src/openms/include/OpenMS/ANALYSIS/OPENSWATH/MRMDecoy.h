@@ -32,8 +32,7 @@
 // $Authors: George Rosenberger, Hannes Roest $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_OPENSWATH_MRMDECOY_H
-#define OPENMS_ANALYSIS_OPENSWATH_MRMDECOY_H
+#pragma once
 
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMIonSeries.h>
 #include <OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>
@@ -216,4 +215,3 @@ protected:
   };
 }
 
-#endif // OPENMS_ANALYSIS_OPENSWATH_MRMDECOY_H

@@ -36,11 +36,11 @@
 #include <OpenMS/VISUAL/Spectrum1DWidget.h>
 #include <OpenMS/VISUAL/AxisWidget.h>
 #include <OpenMS/VISUAL/DIALOGS/Spectrum1DGoToDialog.h>
-#include <QtGui/QSpacerItem>
-#include <QtGui/QScrollBar>
-#include <QtGui/QFileDialog>
-#include <QtGui/QPainter>
-#include <QtGui/QPaintEvent>
+#include <QtWidgets/QSpacerItem>
+#include <QtWidgets/QScrollBar>
+#include <QtWidgets/QFileDialog>
+#include <QPainter>
+#include <QPaintEvent>
 #include <QtSvg/QtSvg>
 #include <QtSvg/QSvgGenerator>
 
@@ -238,8 +238,7 @@ namespace OpenMS
     {
       goto_dialog.fixRange();
       SpectrumCanvas::AreaType area(goto_dialog.getMin(), 0, goto_dialog.getMax(), 0);
-      if (goto_dialog.clip_checkbox->checkState() == Qt::Checked)
-        correctAreaToObeyMinMaxRanges_(area);
+      if (goto_dialog.checked()) correctAreaToObeyMinMaxRanges_(area);
       canvas()->setVisibleArea(area);
     }
   }

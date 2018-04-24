@@ -32,8 +32,7 @@
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_METADATA_CONTACTPERSON_H
-#define OPENMS_METADATA_CONTACTPERSON_H
+#pragma once
 
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/METADATA/MetaInfoInterface.h>
@@ -115,4 +114,3 @@ protected:
   };
 } // namespace OpenMS
 
-#endif // OPENMS_METADATA_CONTACTPERSON_H

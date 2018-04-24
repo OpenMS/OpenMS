@@ -32,8 +32,7 @@
 // $Authors: Johannes Junker $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_VISUAL_TOPPASWIDGET_H
-#define OPENMS_VISUAL_TOPPASWIDGET_H
+#pragma once
 
 // OpenMS_GUI config
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
@@ -42,7 +41,7 @@
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/VISUAL/EnhancedTabBarWidgetInterface.h>
 
-#include <QtGui/QGraphicsView>
+#include <QtWidgets/QGraphicsView>
 
 namespace OpenMS
 {
@@ -120,4 +119,3 @@ protected:
   };
 }
 
-#endif

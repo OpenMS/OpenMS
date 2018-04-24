@@ -32,8 +32,7 @@
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_MAPMATCHING_LABELEDPAIRFINDER_H
-#define OPENMS_ANALYSIS_MAPMATCHING_LABELEDPAIRFINDER_H
+#pragma once
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/BaseGroupFinder.h>
 
@@ -119,4 +118,3 @@ private:
 
 } // end of namespace OpenMS
 
-#endif  // OPENMS_ANALYSIS_MAPMATCHER_LABELEDPAIRFINDER_H

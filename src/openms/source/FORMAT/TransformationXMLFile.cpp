@@ -33,9 +33,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/TransformationXMLFile.h>
-#include <OpenMS/SYSTEM/File.h>
 
-#include <iostream>
 #include <fstream>
 
 using namespace std;

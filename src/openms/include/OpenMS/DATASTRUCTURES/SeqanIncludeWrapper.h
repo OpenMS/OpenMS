@@ -32,8 +32,7 @@
 // $Authors: Chris Bielow$
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_DATASTRUCTURES_SEQANINCLUDEWRAPPER_H
-#define OPENMS_DATASTRUCTURES_SEQANINCLUDEWRAPPER_H
+#pragma once
 
 #include <cstdio> // required to prevent Seqan from defining std functions which later conflict
 
@@ -50,4 +49,3 @@
 #   pragma warning( pop )  // restore old warning state
 #endif
 
-#endif // OPENMS_DATASTRUCTURES_SEQANINCLUDEWRAPPER_H

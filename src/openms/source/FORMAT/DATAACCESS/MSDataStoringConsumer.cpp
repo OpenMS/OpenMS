@@ -34,7 +34,37 @@
 
 #include <OpenMS/FORMAT/DATAACCESS/MSDataStoringConsumer.h>
 
+#include <OpenMS/KERNEL/MSSpectrum.h>
+#include <OpenMS/KERNEL/MSChromatogram.h>
+
+
 namespace OpenMS
 {
+  MSDataStoringConsumer::MSDataStoringConsumer() {}
 
+  void MSDataStoringConsumer::setExperimentalSettings(const ExperimentalSettings & settings)
+  {
+    exp_ = settings; // only override the settings, keep the data
+  }
+
+  void MSDataStoringConsumer::setExpectedSize(Size s_size, Size c_size)
+  {
+    exp_.reserveSpaceSpectra(s_size);
+    exp_.reserveSpaceChromatograms(c_size);
+  }
+
+  void MSDataStoringConsumer::consumeSpectrum(SpectrumType & s)
+  {
+    exp_.addSpectrum(s);
+  }
+
+  void MSDataStoringConsumer::consumeChromatogram(ChromatogramType & c)
+  {
+    exp_.addChromatogram(c);
+  }
+
+  const PeakMap& MSDataStoringConsumer::getData() const
+  {
+    return exp_;
+  }
 } // namespace OpenMS
