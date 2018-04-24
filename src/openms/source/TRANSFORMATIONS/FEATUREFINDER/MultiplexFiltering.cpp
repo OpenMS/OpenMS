@@ -163,7 +163,8 @@ namespace OpenMS
   bool MultiplexFiltering::filterPeakPositions_(const MSSpectrum::ConstIterator& it_mz, const White2Original& index_mapping, const MSExperiment::ConstIterator& it_rt_begin, const MSExperiment::ConstIterator& it_rt_band_begin, const MSExperiment::ConstIterator& it_rt_band_end, const MultiplexIsotopicPeakPattern& pattern, MultiplexFilteredPeak& peak) const
   {
     // check if peak position is blacklisted
-    if (blacklist_[peak.getRTidx()][peak.getMZidx()] == black)
+    // i.e. -1 = white or 0 = mono-isotopic peak of the lightest (or only) peptide are ok.
+    if (blacklist2_[peak.getRTidx()][peak.getMZidx()] > 0)
     {
       return false;
     }
@@ -222,10 +223,16 @@ namespace OpenMS
           
           if (i != -1)
           {
-            // Note that unlike primary peaks, satellite peaks are not restricted by the blacklist.
-            peak.addSatellite(it_rt - it_rt_begin, index_mapping.at(it_rt - it_rt_begin).at(i), idx_mz_shift);
-            found = true;
-          }          
+            // Note that as primary peaks, satellite peaks are also restricted by the blacklist.
+            // The peak can either be pure white i.e. untouched, or have been seen earlier as part of the same mass trace.
+            size_t rt_idx = it_rt - it_rt_begin;
+            size_t mz_idx = index_mapping.at(it_rt - it_rt_begin).at(i);
+            if ((blacklist2_[rt_idx][mz_idx] == -1) || (blacklist2_[rt_idx][mz_idx] == idx_mz_shift))
+            {
+              peak.addSatellite(it_rt - it_rt_begin, index_mapping.at(it_rt - it_rt_begin).at(i), idx_mz_shift);
+              found = true;
+            }
+          }
         }
                 
         if (found && (!interrupted))
