@@ -35,6 +35,7 @@
 #include <OpenMS/ANALYSIS/ID/FalseDiscoveryRate.h>
 #include <OpenMS/ANALYSIS/ID/IDBoostGraph.h>
 #include <set>
+#include <OpenMS/CHEMISTRY/EnzymaticDigestion.h>
 
 using namespace std;
 
@@ -258,6 +259,11 @@ namespace OpenMS
             // direct neighbors of indist. groups are proteins
             IDBoostGraph::FilteredGraph::adjacency_iterator protVIt, protVIt_end;
             boost::tie(protVIt, protVIt_end) = boost::adjacent_vertices(*ui, fg);
+            if (protVIt == protVIt_end)
+            {
+              std::cout << "Skipped group without proteins??" << std::endl;
+              continue;
+            }
 
             // neighbors of the first protein in the group are the shared peptides or the group again.
             IDBoostGraph::FilteredGraph::adjacency_iterator pepVIt, pepVIt_end;
@@ -333,6 +339,7 @@ namespace OpenMS
 
     double operator() (double alpha, double beta, double gamma)
     {
+      std::cout << "Evaluating: " << alpha << " " << beta << " " << gamma << std::endl;
       param_.setValue("model_parameters:prot_prior", gamma);
       param_.setValue("model_parameters:pep_emission", alpha);
       param_.setValue("model_parameters:pep_spurious_emission", beta);
@@ -418,6 +425,17 @@ namespace OpenMS
                        1ul<<32,
                        "If not all messages converge, how many iterations should be done at max?");
 
+    defaults_.addSection("param_optimize","Settings for the parameter optimization.");
+    defaults_.setValue("param_optimize:aucweight",
+                       0.2,
+                       "How important is AUC vs calibration of the posteriors?"
+                       " 0 = maximize calibration only,"
+                       " 1 = maximize AUC only,"
+                       " between = convex combination.");
+    defaults_.setMinFloat("param_optimize:aucweight", 0.0);
+    defaults_.setMaxFloat("param_optimize:aucweight", 1.0);
+
+
     // write defaults into Param object param_
     defaultsToParam_();
     updateMembers_();
@@ -425,6 +443,37 @@ namespace OpenMS
 
   void BayesianProteinInferenceAlgorithm::inferPosteriorProbabilities(std::vector<ProteinIdentification>& proteinIDs, std::vector<PeptideIdentification>& peptideIDs)
   {
+    // get enzyme settings from peptideID
+    const DigestionEnzymeProtein enzyme = proteinIDs[0].getSearchParameters().digestion_enzyme;
+    Size missed_cleavages = proteinIDs[0].getSearchParameters().missed_cleavages;
+    EnzymaticDigestion ed{};
+    ed.setEnzyme(&enzyme);
+    ed.setMissedCleavages(missed_cleavages);
+
+    // if not annotated, assign max nr of digests
+    for (auto& protein : proteinIDs[0].getHits())
+    {
+      // check for existing max nr peptides metavalue annotation
+      if (!protein.metaValueExists("nrTheoreticalDigests"))
+      {
+        if(!protein.getSequence().empty())
+        {
+          std::vector<StringView> tempDigests{};
+          ed.digestUnmodified(protein.getSequence(), tempDigests);
+          protein.setMetaValue("nrTheoreticalDigests", tempDigests.size());
+        }
+        else
+        {
+          //TODO Exception
+          std::cerr << "Protein sequence not annotated" << std::endl;
+        }
+      }
+      // check for and get protein sequence
+
+      // digest protein seq. and get nr of digests
+      //
+    }
+
     // init empty graph
     IDBoostGraph ibg(proteinIDs[0], peptideIDs);
     ibg.buildGraph(param_.getValue("all_PSMs").toBool());
@@ -453,9 +502,9 @@ namespace OpenMS
     gs.evaluate(GridSearchEvaluator(param_, ibg, proteinIDs[0]), -1.0, bestParams);
 
     // what to do, with which params and where to write additional output (here groups) not accessible via the graphs.
-    FilteredGraphInferenceFunctor f{param_};
+    //FilteredGraphInferenceFunctor f{param_};
     // apply functor
-    ibg.applyFunctorOnCCs(f);
+    //ibg.applyFunctorOnCCs(f);
     //TODO write graphfile?
     //TODO let user modify Grid for GridSearch and/or provide some more default settings
   }

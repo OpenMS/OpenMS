@@ -70,10 +70,12 @@ namespace OpenMS
 
   public:
 
+    BOOST_STRONG_TYPEDEF(char, PeptideCluster)
+
     //typedefs
     typedef ProteinIdentification::ProteinGroup ProteinGroup;
-    typedef boost::variant<PeptideHit*, ProteinHit*, ProteinGroup*> IDPointer;
-    typedef boost::variant<const PeptideHit*, const ProteinHit*, const ProteinGroup*> IDPointerConst;
+    typedef boost::variant<PeptideHit*, ProteinHit*, ProteinGroup*, PeptideCluster*> IDPointer;
+    typedef boost::variant<const PeptideHit*, const ProteinHit*, const ProteinGroup*, const PeptideCluster> IDPointerConst;
     //TODO check the impact of different datastructures to store nodes/edges
     typedef boost::adjacency_list <boost::setS, boost::vecS, boost::undirectedS, IDPointer> Graph;
     typedef boost::adjacency_list <boost::setS, boost::vecS, boost::undirectedS, IDPointerConst> GraphConst;
@@ -111,6 +113,11 @@ namespace OpenMS
         return String("G(") + protgrp->accessions[0] + String(")");
       }
 
+      OpenMS::String operator()(const PeptideCluster* /*pc*/) const
+      {
+        return String("PeptideCluster");
+      }
+
     };
 
     /// Visits nodes in the boost graph (ptrs to an ID Object) and depending on their type prints the address. For debug
@@ -131,7 +138,12 @@ namespace OpenMS
 
       void operator()(const ProteinGroup* protgrp) const
       {
-        std::cout << "G(" << protgrp->accessions[0] << ")";
+        std::cout << "G(" << protgrp->accessions[0] << ")" << std::endl;
+      }
+
+      void operator()(const PeptideCluster* /*pc*/) const
+      {
+        std::cout << "PeptideCluster" << std::endl;
       }
 
     };
@@ -157,6 +169,11 @@ namespace OpenMS
       void operator()(ProteinGroup* protgrp, double posterior) const
       {
         protgrp->probability = posterior;
+      }
+
+      void operator()(const PeptideCluster* /*pc*/, double posterior) const
+      {
+        return; // do nothing
       }
 
     };
@@ -193,6 +210,7 @@ namespace OpenMS
 
   private:
     Graph g;
+    static PeptideCluster staticPC;
     //GraphConst gconst;
     ProteinIdentification& proteins_;
     std::vector<PeptideIdentification>& idedSpectra_;

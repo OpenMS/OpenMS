@@ -72,19 +72,12 @@ protected:
     idXML.load(getStringOption_("in"), prots, peps);
     //TODO filter unmatched proteins and peptides before!
     //TODO check t+d annotations
-    FalseDiscoveryRate fdr;
-    Param p = fdr.getParameters();
-    p.setValue("use_all_hits", "true");
-    p.setValue("add_decoy_peptides", "true");
-    p.setValue("add_decoy_proteins", "true");
-    fdr.setParameters(p);
-    //fdr.applyEstimated(prots);
-    double score = fdr.applyEvaluateProteinIDs(prots);
 
-    //fdr.applyBasic(peps);
-    //BayesianProteinInferenceAlgorithm bpi;
-    //bpi.inferPosteriorProbabilities(prots, peps);
+    BayesianProteinInferenceAlgorithm bpi;
+    bpi.inferPosteriorProbabilities(prots, peps);
     idXML.store(getStringOption_("out"),prots, peps);
+
+    return ExitCodes::EXECUTION_OK;
   }
 
 };
