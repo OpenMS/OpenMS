@@ -756,6 +756,8 @@ namespace OpenMS
     // default tab
     QLineEdit* default_path = dlg.findChild<QLineEdit*>("default_path");
     QCheckBox* default_path_current = dlg.findChild<QCheckBox*>("default_path_current");
+    QCheckBox* use_cached_ms1 = dlg.findChild<QCheckBox*>("use_cached_ms1");
+    QCheckBox* use_cached_ms2 = dlg.findChild<QCheckBox*>("use_cached_ms2");
     QLineEdit* temp_path = dlg.findChild<QLineEdit*>("temp_path");
     QSpinBox* recent_files = dlg.findChild<QSpinBox*>("recent_files");
     QComboBox* map_default = dlg.findChild<QComboBox*>("map_default");
@@ -815,6 +817,23 @@ namespace OpenMS
     {
       default_path_current->setChecked(false);
     }
+    if ((String)param_.getValue("preferences:use_cached_ms1") == "true")
+    {
+      use_cached_ms1->setChecked(true);
+    }
+    else
+    {
+      use_cached_ms1->setChecked(false);
+    }
+    if ((String)param_.getValue("preferences:use_cached_ms2") == "true")
+    {
+      use_cached_ms2->setChecked(true);
+    }
+    else
+    {
+      use_cached_ms2->setChecked(false);
+    }
+
     temp_path->setText(param_.getValue("preferences:tmp_file_path").toQString());
     recent_files->setValue((Int)param_.getValue("preferences:number_of_recent_files"));
     map_default->setCurrentIndex(map_default->findText(param_.getValue("preferences:default_map_view").toQString()));
@@ -960,6 +979,22 @@ namespace OpenMS
       else
       {
         param_.setValue("preferences:default_path_current", "false");
+      }
+      if (use_cached_ms1->isChecked())
+      {
+        param_.setValue("preferences:use_cached_ms1", "true");
+      }
+      else
+      {
+        param_.setValue("preferences:use_cached_ms1", "false");
+      }
+      if (use_cached_ms2->isChecked())
+      {
+        param_.setValue("preferences:use_cached_ms2", "true");
+      }
+      else
+      {
+        param_.setValue("preferences:use_cached_ms2", "false");
       }
       param_.setValue("preferences:tmp_file_path", temp_path->text());
       param_.setValue("preferences:number_of_recent_files", recent_files->value());
@@ -3894,7 +3929,9 @@ namespace OpenMS
   {
     //do not update if the user disabled this feature.
     if (param_.getValue("preferences:default_path_current") != "true")
+    {
       return;
+    }
 
     //reset
     current_path_ = param_.getValue("preferences:default_path");
