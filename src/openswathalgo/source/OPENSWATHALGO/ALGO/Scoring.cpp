@@ -39,6 +39,7 @@
 #include <boost/numeric/conversion/cast.hpp>
 
 // Import dependencies from MIToolbox
+#include <MIToolbox/MIToolbox.h>
 #include <ArrayOperations.c>
 #include <CalculateProbability.c>
 #include <Entropy.c>
