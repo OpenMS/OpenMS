@@ -134,9 +134,6 @@ namespace OpenMS
     {
       swap(isotopes_per_peptide_min_, isotopes_per_peptide_max_);
     }
-    
-    rt_min_ = defaults_.getValue("algorithm:rt_min");
-
   }
   
   /**
@@ -721,7 +718,7 @@ namespace OpenMS
           // Check that the feature eluted long enough.
           // DBoundingBox<2> box = feature.getConvexHull().getBoundingBox();    // convex hull of the entire peptide feature
           DBoundingBox<2> box = feature.getConvexHulls()[0].getBoundingBox();    // convex hull of the mono-isotopic mass trace
-          if (box.maxX() - box.minX() < rt_min_)
+          if (box.maxX() - box.minX() < static_cast<double>(param_.getValue("algorithm:rt_min")))
           {
             abort = true;
             continue;
@@ -872,7 +869,6 @@ namespace OpenMS
           rt /= intensity_sum;
           mz /= intensity_sum;
           
-          
           feature.setRT(rt);
           feature.setMZ(mz);
           feature.setIntensity(peptide_intensities[peptide]);
@@ -880,8 +876,9 @@ namespace OpenMS
           feature.setOverallQuality(1.0);
           
           // Check that the feature eluted long enough.
-          DBoundingBox<2> box = feature.getConvexHull().getBoundingBox();
-          if (box.maxX() - box.minX() < rt_min_)
+          // DBoundingBox<2> box = feature.getConvexHull().getBoundingBox();    // convex hull of the entire peptide feature
+          DBoundingBox<2> box = feature.getConvexHulls()[0].getBoundingBox();    // convex hull of the mono-isotopic mass trace
+          if (box.maxX() - box.minX() < static_cast<double>(param_.getValue("algorithm:rt_min")))
           {
             abort = true;
             continue;
@@ -1031,14 +1028,14 @@ namespace OpenMS
     if (centroided)
     {
       // centroided data
-      MultiplexClustering clustering(exp_centroid_, param_.getValue("algorithm:mz_tolerance"), (param_.getValue("algorithm:mz_unit") == "ppm"), param_.getValue("algorithm:rt_typical"), param_.getValue("algorithm:rt_min"));
+      MultiplexClustering clustering(exp_centroid_, param_.getValue("algorithm:mz_tolerance"), (param_.getValue("algorithm:mz_unit") == "ppm"), param_.getValue("algorithm:rt_typical"), static_cast<double>(param_.getValue("algorithm:rt_min")));
       clustering.setLogType(getLogType());
       cluster_results = clustering.cluster(filter_results);
     }
     else
     {
       // profile data
-      MultiplexClustering clustering(exp_profile_, exp_centroid_, boundaries_exp_s, param_.getValue("algorithm:rt_typical"), param_.getValue("algorithm:rt_min"));
+      MultiplexClustering clustering(exp_profile_, exp_centroid_, boundaries_exp_s, param_.getValue("algorithm:rt_typical"), static_cast<double>(param_.getValue("algorithm:rt_min")));
       clustering.setLogType(getLogType());
       cluster_results = clustering.cluster(filter_results);
     }

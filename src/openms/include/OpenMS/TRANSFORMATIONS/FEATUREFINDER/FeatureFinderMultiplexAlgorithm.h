@@ -76,8 +76,6 @@ protected:
   
   bool progress_;
   
-  double rt_min_;
-  
   unsigned charge_min_;
   unsigned charge_max_;
   
