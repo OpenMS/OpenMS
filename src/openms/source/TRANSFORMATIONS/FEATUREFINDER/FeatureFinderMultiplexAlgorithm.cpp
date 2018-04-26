@@ -944,8 +944,6 @@ namespace OpenMS
       swap(isotopes_per_peptide_min_, isotopes_per_peptide_max_);
     }
 
-    std::cout << "charge max = " << charge_max_ << "\n";
-    
     progress_ = progress;
     
     // check for empty experimental data
