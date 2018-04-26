@@ -78,7 +78,9 @@ namespace OpenMS
     size_t first_dot = version.find('.');
     // we demand at least one "."
     if (first_dot == string::npos)
+    {
       return VersionInfo::VersionDetails::EMPTY;
+    }
 
     try
     {
@@ -108,7 +110,7 @@ namespace OpenMS
     size_t third_dot = version.find('.', second_dot + 1);
     try
     {
-      result.version_patch = String(version.substr(second_dot + 1, third_dot - (second_dot + 1))).toInt();
+      result.version_patch = String(version.substr(second_dot + 1, third_dot - (second_dot + 1)));
     }
     catch (Exception::ConversionError & /*e*/)
     {

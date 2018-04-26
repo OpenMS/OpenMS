@@ -35,6 +35,7 @@
 #pragma once
 
 #include <OpenMS/CONCEPT/Types.h>
+#include <OpenMS/DATASTRUCTURES/String.h>
 
 namespace OpenMS
 {
@@ -63,10 +64,10 @@ public:
     {
       Int version_major;
       Int version_minor;
-      Int version_patch;
+      String version_patch;
 
       VersionDetails() :
-        version_major(0), version_minor(0), version_patch(0)
+        version_major(0), version_minor(0), version_patch("")
       {
       }
 
