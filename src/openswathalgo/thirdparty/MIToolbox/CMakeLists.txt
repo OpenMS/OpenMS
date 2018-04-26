@@ -28,40 +28,23 @@
 # ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 # --------------------------------------------------------------------------
-# $Maintainer: Stephan Aiche, Chris Bielow, Hannes Röst $
-# $Authors: Hannes Röst, Stephan Aiche $
+# $Maintainer: George Rosenberger $
+# $Authors: Stephan Aiche, George Rosenberger $
 # --------------------------------------------------------------------------
 
-project("OpenSWATHAlgo")
-cmake_minimum_required(VERSION 3.0.0 FATAL_ERROR)
+project("OpenMS-MIToolbox")
+cmake_minimum_required(VERSION 2.8.3 FATAL_ERROR)
 
-#------------------------------------------------------------------------------
-# Find Boost lib
-#------------------------------------------------------------------------------
-find_boost()
+# export include directory
+set(MITOOLBOX_INCLUDE_DIRECTORY
+  ${PROJECT_SOURCE_DIR}/include
+  CACHE
+  INTERNAL "MIToolbox include directories" FORCE
+)
 
-if(NOT Boost_FOUND)
-  message(FATAL_ERROR "Boost was not found!")
-endif()
-
-#------------------------------------------------------------------------------
-# get information regarding the openswath files
-include(source/OPENSWATHALGO/OpenSwathAlgoFiles.cmake)
-
-#------------------------------------------------------------------------------
-# third party libs shipped with OpenSwathAlgo directly
-#------------------------------------------------------------------------------
-add_subdirectory(thirdparty)
-
-#------------------------------------------------------------------------------
-# add the library
-openms_add_library(TARGET_NAME OpenSwathAlgo
-                   SOURCE_FILES ${OpenSwathAlgoFiles}
-                   HEADER_FILES ${OpenSwathAlgoHeaders}
-                   INTERNAL_INCLUDES ${PROJECT_SOURCE_DIR}/include ${PROJECT_BINARY_DIR}/include
-                   EXTERNAL_INCLUDES ${Boost_INCLUDE_DIRS}
-                   PRIVATE_INCLUDES ${MITOOLBOX_INCLUDE_DIRECTORY}
-                   PRIVATE_INCLUDES ${MITOOLBOX_SOURCE_DIRECTORY}
-                   DLL_EXPORT_PATH "OpenMS/OPENSWATHALGO/")
-
-openms_doc_path("${PROJECT_SOURCE_DIR}/include")
+# export source directory
+set(MITOOLBOX_SOURCE_DIRECTORY
+  ${PROJECT_SOURCE_DIR}/src
+  CACHE
+  INTERNAL "MIToolbox source directories" FORCE
+)

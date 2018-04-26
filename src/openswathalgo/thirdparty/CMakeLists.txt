@@ -32,19 +32,9 @@
 # $Authors: Stephan Aiche, George Rosenberger $
 # --------------------------------------------------------------------------
 
-project("OpenMS-MIToolbox")
+project("OpenSwathAlgo-3rd-party-libs")
 cmake_minimum_required(VERSION 2.8.3 FATAL_ERROR)
 
-# export include directory
-set(MITOOLBOX_INCLUDE_DIRECTORY
-  ${PROJECT_SOURCE_DIR}/include
-  CACHE
-  INTERNAL "MIToolbox include directories" FORCE
-)
-
-# export source directory
-set(MITOOLBOX_SOURCE_DIRECTORY
-  ${PROJECT_SOURCE_DIR}/src
-  CACHE
-  INTERNAL "MIToolbox source directories" FORCE
-)
+# MIToolbox lib .. note this library will not be compiled
+# but we only expose the sources
+add_subdirectory(MIToolbox)
