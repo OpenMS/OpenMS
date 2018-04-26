@@ -283,8 +283,6 @@
 			<UserParam type="float" name="nr_peaks" value="3"/>
 			<UserParam type="float" name="sn_ratio" value="30.180081980405"/>
 			<UserParam type="float" name="var_log_sn_score" value="3.40718216971789"/>
-			<UserParam type="float" name="var_elution_model_fit_score" value="0.902114371458689"/>
-			<UserParam type="float" name="main_var_xx_lda_prelim_score" value="1.2483045614906"/>
 			<UserParam type="float" name="var_mi_score" value="3.66449777920046"/>
 			<UserParam type="float" name="var_mi_weighted_score" value="3.56432195667905"/>
 			<UserParam type="float" name="var_mi_ratio_score" value="0.952289505151783"/>
