@@ -926,6 +926,26 @@ namespace OpenMS
 
   void FeatureFinderMultiplexAlgorithm::run(MSExperiment& exp, bool progress)
   {
+    // parameter section: algorithm, get selected charge range
+    String charge_string = param_.getValue("algorithm:charge");
+    charge_min_ = charge_string.prefix(':').toInt();
+    charge_max_ = charge_string.suffix(':').toInt();
+    if (charge_min_ > charge_max_)
+    {
+      swap(charge_min_, charge_max_);
+    }
+    
+    // parameter section: algorithm, get isotopes per peptide range
+    String isotopes_per_peptide_string = param_.getValue("algorithm:isotopes_per_peptide");
+    isotopes_per_peptide_min_ = isotopes_per_peptide_string.prefix(':').toInt();
+    isotopes_per_peptide_max_ = isotopes_per_peptide_string.suffix(':').toInt();
+    if (isotopes_per_peptide_min_ > isotopes_per_peptide_max_)
+    {
+      swap(isotopes_per_peptide_min_, isotopes_per_peptide_max_);
+    }
+
+    std::cout << "charge max = " << charge_max_ << "\n";
+    
     progress_ = progress;
     
     // check for empty experimental data
