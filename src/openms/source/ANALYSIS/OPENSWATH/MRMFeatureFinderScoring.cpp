@@ -122,11 +122,11 @@ namespace OpenMS
     scores_to_use.setValidStrings("use_nr_peaks_score", ListUtils::create<String>("true,false"));
     scores_to_use.setValue("use_total_xic_score", "true", "Use the total XIC score", ListUtils::create<String>("advanced"));
     scores_to_use.setValidStrings("use_total_xic_score", ListUtils::create<String>("true,false"));
-    scores_to_use.setValue("use_total_mi_score", "true", "Use the total MI score", ListUtils::create<String>("advanced"));
+    scores_to_use.setValue("use_total_mi_score", "false", "Use the total MI score", ListUtils::create<String>("advanced"));
     scores_to_use.setValidStrings("use_total_mi_score", ListUtils::create<String>("true,false"));
     scores_to_use.setValue("use_sn_score", "true", "Use the SN (signal to noise) score", ListUtils::create<String>("advanced"));
     scores_to_use.setValidStrings("use_sn_score", ListUtils::create<String>("true,false"));
-    scores_to_use.setValue("use_mi_score", "true", "Use the MI (mutual information) score", ListUtils::create<String>("advanced"));
+    scores_to_use.setValue("use_mi_score", "false", "Use the MI (mutual information) score", ListUtils::create<String>("advanced"));
     scores_to_use.setValidStrings("use_mi_score", ListUtils::create<String>("true,false"));
     scores_to_use.setValue("use_dia_scores", "true", "Use the DIA (SWATH) scores. If turned off, will not use fragment ion spectra for scoring.", ListUtils::create<String>("advanced"));
     scores_to_use.setValidStrings("use_dia_scores", ListUtils::create<String>("true,false"));
@@ -233,7 +233,15 @@ namespace OpenMS
       }
 
       MRMTransitionGroupPicker trgroup_picker;
-      trgroup_picker.setParameters(param_.copy("TransitionGroupPicker:", true));
+      Param trgroup_picker_param = param_.copy("TransitionGroupPicker:", true);
+
+      // If use_total_mi_score is defined, we need to instruct MRMTransitionGroupPicker to compute the score
+      if (su_.use_total_mi_score_)
+      {
+        trgroup_picker_param.setValue("compute_total_mi", "true");
+      }
+
+      trgroup_picker.setParameters(trgroup_picker_param);
       trgroup_picker.pickTransitionGroup(transition_group);
       scorePeakgroups(trgroup_it->second, trafo, swath_maps, output);
     }
@@ -638,12 +646,23 @@ namespace OpenMS
           sonarscoring_.computeSonarScores(imrmfeature, transition_group_detection.getTransitions(), swath_maps, scores);
         }
 
+        double det_intensity_ratio_score = 0;
+        if ((double)mrmfeature->getMetaValue("total_xic") > 0)
+        {
+          det_intensity_ratio_score = mrmfeature->getIntensity() / (double)mrmfeature->getMetaValue("total_xic");
+        }
+
+        double det_mi_ratio_score = 0;
+        if (su_.use_mi_score_ && su_.use_total_mi_score_)
+        {
+          if ((double)mrmfeature->getMetaValue("total_mi") > 0)
+          {
+            det_mi_ratio_score = scores.mi_score / (double)mrmfeature->getMetaValue("total_mi");
+          }
+        }
+
         if (su_.use_uis_scores && transition_group_identification.getTransitions().size() > 0)
         {
-          double det_intensity_ratio_score = mrmfeature->getIntensity() / (double)mrmfeature->getMetaValue("total_xic");
-
-          double det_mi_ratio_score = scores.mi_score / (double)mrmfeature->getMetaValue("total_mi");
-
           OpenSwath_Scores idscores = scoreIdentification_(transition_group_identification, 
                                                            scorer, feature_idx,
                                                            native_ids_detection,
@@ -677,10 +696,6 @@ namespace OpenMS
 
         if (su_.use_uis_scores && transition_group_identification_decoy.getTransitions().size() > 0)
         {
-          double det_intensity_ratio_score = mrmfeature->getIntensity() / (double)mrmfeature->getMetaValue("total_xic");
-
-          double det_mi_ratio_score = scores.mi_score / (double)mrmfeature->getMetaValue("total_mi");
-
           OpenSwath_Scores idscores = scoreIdentification_(transition_group_identification_decoy, 
                                                            scorer, feature_idx,
                                                            native_ids_detection,
@@ -738,9 +753,20 @@ namespace OpenMS
           mrmfeature->addScore("var_norm_rt_score", scores.norm_rt_score);
         }
         // TODO do we really want these intensity scores ?
-        if (su_.use_intensity_score_) { mrmfeature->addScore("var_intensity_score", mrmfeature->getIntensity() / (double)mrmfeature->getMetaValue("total_xic")); }
+        if (su_.use_intensity_score_)
+        {
+          if ((double)mrmfeature->getMetaValue("total_xic") > 0)
+          {
+            mrmfeature->addScore("var_intensity_score", mrmfeature->getIntensity() / (double)mrmfeature->getMetaValue("total_xic"));
+          }
+          else
+          {
+            mrmfeature->addScore("var_intensity_score", 0);
+          }
+        }
         if (su_.use_total_xic_score_) { mrmfeature->addScore("total_xic", (double)mrmfeature->getMetaValue("total_xic")); }
         if (su_.use_total_mi_score_) { mrmfeature->addScore("total_mi", (double)mrmfeature->getMetaValue("total_mi")); }
+
         if (su_.use_nr_peaks_score_) { mrmfeature->addScore("nr_peaks", scores.nr_peaks); }
         if (su_.use_sn_score_)
         {
@@ -760,7 +786,17 @@ namespace OpenMS
         {
           mrmfeature->addScore("var_mi_score", scores.mi_score);
           mrmfeature->addScore("var_mi_weighted_score", scores.weighted_mi_score);
-          mrmfeature->addScore("var_mi_ratio_score", scores.mi_score  / (double)mrmfeature->getMetaValue("total_mi"));
+          if (su_.use_total_mi_score_)
+          {
+            if (((double)mrmfeature->getMetaValue("total_mi")) > 0)
+            {
+              mrmfeature->addScore("var_mi_ratio_score", scores.mi_score  / (double)mrmfeature->getMetaValue("total_mi"));
+            }
+            else
+            {
+              mrmfeature->addScore("var_mi_ratio_score", 0);
+            }
+          }
         }
 
         // TODO get it working with imrmfeature

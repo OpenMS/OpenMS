@@ -36,7 +36,6 @@
 					<UserParam type="string" name="native_id" value="tr1"/>
 					<UserParam type="float" name="peak_apex_int" value="169.79216003418"/>
 					<UserParam type="float" name="total_xic" value="812.494094371796"/>
-					<UserParam type="float" name="total_mi" value="2.73422729278948"/>
 					<UserParam type="float" name="logSN" value="4.45869633337531"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 				</feature>
@@ -53,7 +52,6 @@
 					<UserParam type="string" name="native_id" value="tr2"/>
 					<UserParam type="float" name="peak_apex_int" value="577.326416015625"/>
 					<UserParam type="float" name="total_xic" value="2867.66653496027"/>
-					<UserParam type="float" name="total_mi" value="3.586033627559"/>
 					<UserParam type="float" name="logSN" value="4.45007591150298"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 				</feature>
@@ -63,7 +61,6 @@
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="float" name="total_xic" value="3680.16062933207"/>
-			<UserParam type="float" name="total_mi" value="3.16013046017424"/>
 			<UserParam type="string" name="PeptideRef" value="tr_gr1"/>
 			<UserParam type="float" name="leftWidth" value="3096.28002929688"/>
 			<UserParam type="float" name="rightWidth" value="3147.67993164062"/>
@@ -87,9 +84,6 @@
 			<UserParam type="float" name="nr_peaks" value="2"/>
 			<UserParam type="float" name="sn_ratio" value="86.0041379995282"/>
 			<UserParam type="float" name="var_log_sn_score" value="4.45439541136954"/>
-			<UserParam type="float" name="var_mi_score" value="3.8073549220576"/>
-			<UserParam type="float" name="var_mi_weighted_score" value="3.8073549220576"/>
-			<UserParam type="float" name="var_mi_ratio_score" value="1.20480941215562"/>
 			<UserParam type="float" name="var_elution_model_fit_score" value="0.985403120517731"/>
 			<UserParam type="float" name="xx_lda_prelim_score" value="-21994.8526299932"/>
 			<UserParam type="float" name="var_isotope_correlation_score" value="0.998094062533601"/>
@@ -126,7 +120,6 @@
 					<UserParam type="string" name="native_id" value="tr3"/>
 					<UserParam type="float" name="peak_apex_int" value="35.5928192138672"/>
 					<UserParam type="float" name="total_xic" value="412.092581033707"/>
-					<UserParam type="float" name="total_mi" value="4.42794793968087"/>
 					<UserParam type="float" name="logSN" value="1.86739581779823"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 				</feature>
@@ -143,7 +136,6 @@
 					<UserParam type="string" name="native_id" value="tr4"/>
 					<UserParam type="float" name="peak_apex_int" value="0.236183270812035"/>
 					<UserParam type="float" name="total_xic" value="812.494094371796"/>
-					<UserParam type="float" name="total_mi" value="2.78992957612118"/>
 					<UserParam type="float" name="logSN" value="0"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 				</feature>
@@ -160,7 +152,6 @@
 					<UserParam type="string" name="native_id" value="tr5"/>
 					<UserParam type="float" name="peak_apex_int" value="20.925838470459"/>
 					<UserParam type="float" name="total_xic" value="385.687290549278"/>
-					<UserParam type="float" name="total_mi" value="4.32639896538122"/>
 					<UserParam type="float" name="logSN" value="1.33498168074371"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 				</feature>
@@ -170,7 +161,6 @@
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="float" name="total_xic" value="1610.27396595478"/>
-			<UserParam type="float" name="total_mi" value="3.84809216039442"/>
 			<UserParam type="string" name="PeptideRef" value="tr_gr2"/>
 			<UserParam type="float" name="leftWidth" value="3044.8798828125"/>
 			<UserParam type="float" name="rightWidth" value="3065.43994140625"/>
@@ -194,9 +184,6 @@
 			<UserParam type="float" name="nr_peaks" value="3"/>
 			<UserParam type="float" name="sn_ratio" value="3.42378266973528"/>
 			<UserParam type="float" name="var_log_sn_score" value="1.23074598364098"/>
-			<UserParam type="float" name="var_mi_score" value="1.75162916738782"/>
-			<UserParam type="float" name="var_mi_weighted_score" value="2.20105644479131"/>
-			<UserParam type="float" name="var_mi_ratio_score" value="0.455194183085335"/>
 			<UserParam type="float" name="var_elution_model_fit_score" value="0.88344943523407"/>
 			<UserParam type="float" name="xx_lda_prelim_score" value="-21551.8862238136"/>
 			<UserParam type="float" name="var_isotope_correlation_score" value="0.972666514028789"/>
@@ -233,7 +220,6 @@
 					<UserParam type="string" name="native_id" value="tr3"/>
 					<UserParam type="float" name="peak_apex_int" value="8.40812492370605"/>
 					<UserParam type="float" name="total_xic" value="412.092581033707"/>
-					<UserParam type="float" name="total_mi" value="4.42794793968087"/>
 					<UserParam type="float" name="logSN" value="0"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 				</feature>
@@ -250,7 +236,6 @@
 					<UserParam type="string" name="native_id" value="tr4"/>
 					<UserParam type="float" name="peak_apex_int" value="169.79216003418"/>
 					<UserParam type="float" name="total_xic" value="812.494094371796"/>
-					<UserParam type="float" name="total_mi" value="2.78992957612118"/>
 					<UserParam type="float" name="logSN" value="4.45869633337531"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 				</feature>
@@ -267,7 +252,6 @@
 					<UserParam type="string" name="native_id" value="tr5"/>
 					<UserParam type="float" name="peak_apex_int" value="24.303258895874"/>
 					<UserParam type="float" name="total_xic" value="385.687290549278"/>
-					<UserParam type="float" name="total_mi" value="4.32639896538122"/>
 					<UserParam type="float" name="logSN" value="1.16692266163571"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 				</feature>
@@ -277,7 +261,6 @@
 				</PeptideHit>
 			</PeptideIdentification>
 			<UserParam type="float" name="total_xic" value="1610.27396595478"/>
-			<UserParam type="float" name="total_mi" value="3.84809216039442"/>
 			<UserParam type="string" name="PeptideRef" value="tr_gr2"/>
 			<UserParam type="float" name="leftWidth" value="3099.69995117188"/>
 			<UserParam type="float" name="rightWidth" value="3147.67993164062"/>
@@ -301,9 +284,6 @@
 			<UserParam type="float" name="nr_peaks" value="3"/>
 			<UserParam type="float" name="sn_ratio" value="30.180081980405"/>
 			<UserParam type="float" name="var_log_sn_score" value="3.40718216971789"/>
-			<UserParam type="float" name="var_mi_score" value="3.66449777920046"/>
-			<UserParam type="float" name="var_mi_weighted_score" value="3.56432195667905"/>
-			<UserParam type="float" name="var_mi_ratio_score" value="0.952289505151783"/>
 			<UserParam type="float" name="var_elution_model_fit_score" value="0.902114371458689"/>
 			<UserParam type="float" name="xx_lda_prelim_score" value="-22000.322668871"/>
 			<UserParam type="float" name="var_isotope_correlation_score" value="0.907549839418365"/>

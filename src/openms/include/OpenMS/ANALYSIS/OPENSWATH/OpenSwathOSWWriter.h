@@ -130,7 +130,7 @@ namespace OpenMS
         "AREA_INTENSITY REAL NOT NULL," \
         "APEX_INTENSITY REAL NOT NULL," \
         "VAR_MASSDEV_SCORE REAL NOT NULL," \
-        "VAR_MI_SCORE REAL NOT NULL," \
+        "VAR_MI_SCORE REAL NULL," \
         "VAR_ISOTOPE_CORRELATION_SCORE REAL NOT NULL," \
         "VAR_ISOTOPE_OVERLAP_SCORE REAL NOT NULL," \
         "VAR_XCORR_COELUTION REAL NOT NULL," \
@@ -141,7 +141,7 @@ namespace OpenMS
         "AREA_INTENSITY REAL NOT NULL," \
         "TOTAL_AREA_INTENSITY REAL NOT NULL," \
         "APEX_INTENSITY REAL NOT NULL," \
-        "TOTAL_MI REAL NOT NULL," \
+        "TOTAL_MI REAL NULL," \
         "VAR_BSERIES_SCORE REAL NOT NULL," \
         "VAR_DOTPROD_SCORE REAL NOT NULL," \
         "VAR_INTENSITY_SCORE REAL NOT NULL," \
@@ -157,9 +157,9 @@ namespace OpenMS
         "VAR_MANHATTAN_SCORE REAL NOT NULL," \
         "VAR_MASSDEV_SCORE REAL NOT NULL," \
         "VAR_MASSDEV_SCORE_WEIGHTED REAL NOT NULL," \
-        "VAR_MI_SCORE REAL NOT NULL," \
-        "VAR_MI_WEIGHTED_SCORE REAL NOT NULL," \
-        "VAR_MI_RATIO_SCORE REAL NOT NULL," \
+        "VAR_MI_SCORE REAL NULL," \
+        "VAR_MI_WEIGHTED_SCORE REAL NULL," \
+        "VAR_MI_RATIO_SCORE REAL NULL," \
         "VAR_NORM_RT_SCORE REAL NOT NULL," \
         "VAR_XCORR_COELUTION REAL NOT NULL," \
         "VAR_XCORR_COELUTION_WEIGHTED REAL NOT NULL," \
@@ -180,7 +180,7 @@ namespace OpenMS
         "AREA_INTENSITY REAL NOT NULL," \
         "TOTAL_AREA_INTENSITY REAL NOT NULL," \
         "APEX_INTENSITY REAL NOT NULL," \
-        "TOTAL_MI REAL NOT NULL," \
+        "TOTAL_MI REAL NULL," \
         "VAR_INTENSITY_SCORE REAL NULL," \
         "VAR_INTENSITY_RATIO_SCORE REAL NULL," \
         "VAR_LOG_INTENSITY REAL NULL," \
@@ -252,22 +252,32 @@ namespace OpenMS
         {
           if (sub_it->metaValueExists("FeatureLevel") && sub_it->getMetaValue("FeatureLevel") == "MS2")
           {
+            std::string total_mi = "NULL";
+            if (!sub_it->getMetaValue("total_mi").isEmpty())
+            {
+              total_mi = sub_it->getMetaValue("total_mi").toString();
+            }
             sql_feature_ms2_transition  << "INSERT INTO FEATURE_TRANSITION (FEATURE_ID, TRANSITION_ID, AREA_INTENSITY, TOTAL_AREA_INTENSITY, APEX_INTENSITY, TOTAL_MI) VALUES (" 
                                         << feature_id << ", " 
                                         << sub_it->getMetaValue("native_id") << ", " 
                                         << sub_it->getIntensity() << ", " 
                                         << sub_it->getMetaValue("total_xic") << ", " 
                                         << sub_it->getMetaValue("peak_apex_int") << ", " 
-                                        << sub_it->getMetaValue("total_mi") << "); ";
+                                        << total_mi << "); ";
           }
           else if (sub_it->metaValueExists("FeatureLevel") && sub_it->getMetaValue("FeatureLevel") == "MS1")
           {
+            std::string var_ms1_mi_score = "NULL";
+            if (!feature_it->getMetaValue("var_ms1_mi_score").isEmpty())
+            {
+              var_ms1_mi_score = feature_it->getMetaValue("var_ms1_mi_score").toString();
+            }
             sql_feature_ms1 << "INSERT INTO FEATURE_MS1 (FEATURE_ID, AREA_INTENSITY, APEX_INTENSITY, VAR_MASSDEV_SCORE, VAR_MI_SCORE, VAR_ISOTOPE_CORRELATION_SCORE, VAR_ISOTOPE_OVERLAP_SCORE, VAR_XCORR_COELUTION, VAR_XCORR_SHAPE) VALUES (" 
                             << feature_id << ", " 
                             << sub_it->getIntensity() << ", " 
                             << sub_it->getMetaValue("peak_apex_int") << ", " 
                             << feature_it->getMetaValue("var_ms1_ppm_diff") << ", " 
-                            << feature_it->getMetaValue("var_ms1_mi_score") << ", " 
+                            << var_ms1_mi_score << ", " 
                             << feature_it->getMetaValue("var_ms1_isotope_correlation") << ", " 
                             << feature_it->getMetaValue("var_ms1_isotope_overlap") << ", " 
                             << feature_it->getMetaValue("var_ms1_xcorr_coelution") << ", " 
@@ -285,7 +295,7 @@ namespace OpenMS
                     << feature_it->getMetaValue("leftWidth") << ", " 
                     << feature_it->getMetaValue("rightWidth") << "); ";
 
-        std::string var_elution_model_fit_score = "NULL", var_sonar_lag = "NULL", var_sonar_shape = "NULL", var_sonar_log_sn = "NULL", var_sonar_log_diff = "NULL", var_sonar_log_trend = "NULL", var_sonar_rsq = "NULL";
+        std::string var_elution_model_fit_score = "NULL", var_sonar_lag = "NULL", var_sonar_shape = "NULL", var_sonar_log_sn = "NULL", var_sonar_log_diff = "NULL", var_sonar_log_trend = "NULL", var_sonar_rsq = "NULL", total_mi = "NULL", var_mi_score = "NULL", var_mi_weighted_score = "NULL", var_mi_ratio_score = "NULL";
 
         if (!feature_it->getMetaValue("var_elution_model_fit_score").isEmpty())
         {
@@ -315,13 +325,29 @@ namespace OpenMS
         {
           var_sonar_rsq = feature_it->getMetaValue("var_sonar_rsq").toString();
         }
+        if (!feature_it->getMetaValue("total_mi").isEmpty())
+        {
+          total_mi = feature_it->getMetaValue("total_mi").toString();
+        }
+        if (!feature_it->getMetaValue("var_mi_score").isEmpty())
+        {
+          var_mi_score = feature_it->getMetaValue("var_mi_score").toString();
+        }
+        if (!feature_it->getMetaValue("var_mi_weighted_score").isEmpty())
+        {
+          var_mi_weighted_score = feature_it->getMetaValue("var_mi_weighted_score").toString();
+        }
+        if (!feature_it->getMetaValue("var_mi_ratio_score").isEmpty())
+        {
+          var_mi_ratio_score = feature_it->getMetaValue("var_mi_ratio_score").toString();
+        }
 
         sql_feature_ms2 << "INSERT INTO FEATURE_MS2 (FEATURE_ID, AREA_INTENSITY, TOTAL_AREA_INTENSITY, APEX_INTENSITY, TOTAL_MI, VAR_BSERIES_SCORE, VAR_DOTPROD_SCORE, VAR_INTENSITY_SCORE, VAR_ISOTOPE_CORRELATION_SCORE, VAR_ISOTOPE_OVERLAP_SCORE, VAR_LIBRARY_CORR, VAR_LIBRARY_DOTPROD, VAR_LIBRARY_MANHATTAN, VAR_LIBRARY_RMSD, VAR_LIBRARY_ROOTMEANSQUARE, VAR_LIBRARY_SANGLE, VAR_LOG_SN_SCORE, VAR_MANHATTAN_SCORE, VAR_MASSDEV_SCORE, VAR_MASSDEV_SCORE_WEIGHTED, VAR_MI_SCORE, VAR_MI_WEIGHTED_SCORE, VAR_MI_RATIO_SCORE, VAR_NORM_RT_SCORE, VAR_XCORR_COELUTION,VAR_XCORR_COELUTION_WEIGHTED, VAR_XCORR_SHAPE, VAR_XCORR_SHAPE_WEIGHTED, VAR_YSERIES_SCORE, VAR_ELUTION_MODEL_FIT_SCORE, VAR_SONAR_LAG, VAR_SONAR_SHAPE, VAR_SONAR_LOG_SN, VAR_SONAR_LOG_DIFF, VAR_SONAR_LOG_TREND, VAR_SONAR_RSQ) VALUES (" 
                         << feature_id << ", " 
                         << feature_it->getIntensity() << ", " 
                         << feature_it->getMetaValue("total_xic") << ", " 
                         << feature_it->getMetaValue("peak_apices_sum") << ", " 
-                        << feature_it->getMetaValue("total_mi") << ", " 
+                        << total_mi << ", " 
                         << feature_it->getMetaValue("var_bseries_score") << ", " 
                         << feature_it->getMetaValue("var_dotprod_score") << ", " 
                         << feature_it->getMetaValue("var_intensity_score") << ", " 
@@ -337,9 +363,9 @@ namespace OpenMS
                         << feature_it->getMetaValue("var_manhatt_score") << ", " 
                         << feature_it->getMetaValue("var_massdev_score") << ", " 
                         << feature_it->getMetaValue("var_massdev_score_weighted") << ", " 
-                        << feature_it->getMetaValue("var_mi_score") << ", " 
-                        << feature_it->getMetaValue("var_mi_weighted_score") << ", " 
-                        << feature_it->getMetaValue("var_mi_ratio_score") << ", " 
+                        << var_mi_score << ", " 
+                        << var_mi_weighted_score << ", " 
+                        << var_mi_ratio_score << ", " 
                         << feature_it->getMetaValue("var_norm_rt_score") << ", " 
                         << feature_it->getMetaValue("var_xcorr_coelution") << ", " 
                         << feature_it->getMetaValue("var_xcorr_coelution_weighted") << ", " 

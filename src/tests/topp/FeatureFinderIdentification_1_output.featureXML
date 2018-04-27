@@ -135,7 +135,6 @@
 					<UserParam type="string" name="native_id" value="AEFVEVTK/2_i1"/>
 					<UserParam type="float" name="peak_apex_int" value="7658254.25976562"/>
 					<UserParam type="float" name="total_xic" value="52302725.4296875"/>
-					<UserParam type="float" name="total_mi" value="4.34636951301244"/>
 					<UserParam type="float" name="logSN" value="4.59546331992326"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 					<UserParam type="float" name="isotope_probability" value="0.66642596900412"/>
@@ -153,7 +152,6 @@
 					<UserParam type="string" name="native_id" value="AEFVEVTK/2_i2"/>
 					<UserParam type="float" name="peak_apex_int" value="3833793.71875"/>
 					<UserParam type="float" name="total_xic" value="26553423.6960449"/>
-					<UserParam type="float" name="total_mi" value="4.99885712400326"/>
 					<UserParam type="float" name="logSN" value="4.59717042478583"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 					<UserParam type="float" name="isotope_probability" value="0.33357403099588"/>
@@ -174,7 +172,6 @@
 				<UserParam type="string" name="FFId_category" value="internal"/>
 			</PeptideIdentification>
 			<UserParam type="float" name="total_xic" value="78856149.1257324"/>
-			<UserParam type="float" name="total_mi" value="4.67261331850785"/>
 			<UserParam type="string" name="PeptideRef" value="AEFVEVTK/2"/>
 			<UserParam type="float" name="leftWidth" value="1998.99108886719"/>
 			<UserParam type="float" name="rightWidth" value="2087.48876953125"/>
@@ -193,9 +190,6 @@
 			<UserParam type="float" name="nr_peaks" value="2"/>
 			<UserParam type="float" name="sn_ratio" value="99.118612261271"/>
 			<UserParam type="float" name="var_log_sn_score" value="4.59631723663037"/>
-			<UserParam type="float" name="var_mi_score" value="5.04424961038329"/>
-			<UserParam type="float" name="var_mi_weighted_score" value="4.97640601852527"/>
-			<UserParam type="float" name="var_mi_ratio_score" value="1.07953499819971"/>
 			<UserParam type="float" name="var_elution_model_fit_score" value="0.998269975185394"/>
 			<UserParam type="float" name="xx_lda_prelim_score" value="7.53476000862051"/>
 			<UserParam type="float" name="var_isotope_correlation_score" value="0.990779334771225"/>
@@ -247,7 +241,6 @@
 					<UserParam type="string" name="native_id" value="AGAFSLPK/2_i1"/>
 					<UserParam type="float" name="peak_apex_int" value="1920706.55371094"/>
 					<UserParam type="float" name="total_xic" value="18501905.6374512"/>
-					<UserParam type="float" name="total_mi" value="5.7335264358027"/>
 					<UserParam type="float" name="logSN" value="4.50573682255772"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 					<UserParam type="float" name="isotope_probability" value="0.692511512336989"/>
@@ -265,7 +258,6 @@
 					<UserParam type="string" name="native_id" value="AGAFSLPK/2_i2"/>
 					<UserParam type="float" name="peak_apex_int" value="789740.9375"/>
 					<UserParam type="float" name="total_xic" value="7174887.46520996"/>
-					<UserParam type="float" name="total_mi" value="5.37583349411335"/>
 					<UserParam type="float" name="logSN" value="4.49812710953621"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 					<UserParam type="float" name="isotope_probability" value="0.307488487663011"/>
@@ -279,7 +271,6 @@
 				<UserParam type="string" name="FFId_category" value="internal"/>
 			</PeptideIdentification>
 			<UserParam type="float" name="total_xic" value="25676793.1026611"/>
-			<UserParam type="float" name="total_mi" value="5.55467996495802"/>
 			<UserParam type="string" name="PeptideRef" value="AGAFSLPK/2"/>
 			<UserParam type="float" name="leftWidth" value="2045.21923828125"/>
 			<UserParam type="float" name="rightWidth" value="2151.267578125"/>
@@ -298,9 +289,6 @@
 			<UserParam type="float" name="nr_peaks" value="2"/>
 			<UserParam type="float" name="sn_ratio" value="90.1918622910647"/>
 			<UserParam type="float" name="var_log_sn_score" value="4.50193920449604"/>
-			<UserParam type="float" name="var_mi_score" value="5.7279204545632"/>
-			<UserParam type="float" name="var_mi_weighted_score" value="5.7279204545632"/>
-			<UserParam type="float" name="var_mi_ratio_score" value="1.03118820358654"/>
 			<UserParam type="float" name="var_elution_model_fit_score" value="0.994736403226852"/>
 			<UserParam type="float" name="xx_lda_prelim_score" value="7.40740214460034"/>
 			<UserParam type="float" name="var_isotope_correlation_score" value="0.819482947211859"/>
@@ -352,7 +340,6 @@
 					<UserParam type="string" name="native_id" value="AGDLLFFK/2_i1"/>
 					<UserParam type="float" name="peak_apex_int" value="328280.53125"/>
 					<UserParam type="float" name="total_xic" value="4157313.87615967"/>
-					<UserParam type="float" name="total_mi" value="3.7403024050518"/>
 					<UserParam type="float" name="logSN" value="4.37532407446154"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 					<UserParam type="float" name="isotope_probability" value="0.652807062123664"/>
@@ -370,7 +357,6 @@
 					<UserParam type="string" name="native_id" value="AGDLLFFK/2_i2"/>
 					<UserParam type="float" name="peak_apex_int" value="157846.099365234"/>
 					<UserParam type="float" name="total_xic" value="1839811.16845703"/>
-					<UserParam type="float" name="total_mi" value="3.76810249206817"/>
 					<UserParam type="float" name="logSN" value="4.46522979466635"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 					<UserParam type="float" name="isotope_probability" value="0.347192937876336"/>
@@ -384,7 +370,6 @@
 				<UserParam type="string" name="FFId_category" value="internal"/>
 			</PeptideIdentification>
 			<UserParam type="float" name="total_xic" value="5997125.0446167"/>
-			<UserParam type="float" name="total_mi" value="3.75420244855998"/>
 			<UserParam type="string" name="PeptideRef" value="AGDLLFFK/2"/>
 			<UserParam type="float" name="leftWidth" value="2094.08325195312"/>
 			<UserParam type="float" name="rightWidth" value="2197.34326171875"/>
@@ -403,9 +388,6 @@
 			<UserParam type="float" name="nr_peaks" value="2"/>
 			<UserParam type="float" name="sn_ratio" value="83.2032969856814"/>
 			<UserParam type="float" name="var_log_sn_score" value="4.42128697427377"/>
-			<UserParam type="float" name="var_mi_score" value="5.79133965994361"/>
-			<UserParam type="float" name="var_mi_weighted_score" value="5.77066823702163"/>
-			<UserParam type="float" name="var_mi_ratio_score" value="1.54262849148293"/>
 			<UserParam type="float" name="var_elution_model_fit_score" value="0.995133340358734"/>
 			<UserParam type="float" name="xx_lda_prelim_score" value="7.2763159435793"/>
 			<UserParam type="float" name="var_isotope_correlation_score" value="0.0261017196079495"/>
@@ -457,7 +439,6 @@
 					<UserParam type="string" name="native_id" value="C(Carbamidomethyl)C(Carbamidomethyl)TESLVNR/2_i1"/>
 					<UserParam type="float" name="peak_apex_int" value="1354679.41699219"/>
 					<UserParam type="float" name="total_xic" value="9324534.19262695"/>
-					<UserParam type="float" name="total_mi" value="3.4123447354961"/>
 					<UserParam type="float" name="logSN" value="4.77002905621228"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 					<UserParam type="float" name="isotope_probability" value="0.644498608917742"/>
@@ -475,7 +456,6 @@
 					<UserParam type="string" name="native_id" value="C(Carbamidomethyl)C(Carbamidomethyl)TESLVNR/2_i2"/>
 					<UserParam type="float" name="peak_apex_int" value="754406.354980469"/>
 					<UserParam type="float" name="total_xic" value="5162144.00280762"/>
-					<UserParam type="float" name="total_mi" value="3.21414128172997"/>
 					<UserParam type="float" name="logSN" value="4.76501488124851"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 					<UserParam type="float" name="isotope_probability" value="0.355501391082258"/>
@@ -496,7 +476,6 @@
 				<UserParam type="string" name="FFId_category" value="internal"/>
 			</PeptideIdentification>
 			<UserParam type="float" name="total_xic" value="14486678.1954346"/>
-			<UserParam type="float" name="total_mi" value="3.31324300861303"/>
 			<UserParam type="string" name="PeptideRef" value="C(Carbamidomethyl)C(Carbamidomethyl)TESLVNR/2"/>
 			<UserParam type="float" name="leftWidth" value="1735.69311523438"/>
 			<UserParam type="float" name="rightWidth" value="1806.53210449219"/>
@@ -515,9 +494,6 @@
 			<UserParam type="float" name="nr_peaks" value="2"/>
 			<UserParam type="float" name="sn_ratio" value="117.627765815645"/>
 			<UserParam type="float" name="var_log_sn_score" value="4.76752511147092"/>
-			<UserParam type="float" name="var_mi_score" value="4.82088885135019"/>
-			<UserParam type="float" name="var_mi_weighted_score" value="4.82088885135019"/>
-			<UserParam type="float" name="var_mi_ratio_score" value="1.45503630093474"/>
 			<UserParam type="float" name="var_elution_model_fit_score" value="0.99731856584549"/>
 			<UserParam type="float" name="xx_lda_prelim_score" value="7.66028853965821"/>
 			<UserParam type="float" name="var_isotope_correlation_score" value="0.993260451842917"/>
@@ -569,7 +545,6 @@
 					<UserParam type="string" name="native_id" value="DDSPDLPK/2_i1"/>
 					<UserParam type="float" name="peak_apex_int" value="2805595.68164062"/>
 					<UserParam type="float" name="total_xic" value="25546599.3964844"/>
-					<UserParam type="float" name="total_mi" value="4.1411207902557"/>
 					<UserParam type="float" name="logSN" value="4.51465397165232"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 					<UserParam type="float" name="isotope_probability" value="0.691417156355378"/>
@@ -587,7 +562,6 @@
 					<UserParam type="string" name="native_id" value="DDSPDLPK/2_i2"/>
 					<UserParam type="float" name="peak_apex_int" value="1242968.625"/>
 					<UserParam type="float" name="total_xic" value="11345401.914917"/>
-					<UserParam type="float" name="total_mi" value="3.87935362079345"/>
 					<UserParam type="float" name="logSN" value="4.50258985282365"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 					<UserParam type="float" name="isotope_probability" value="0.308582843644622"/>
@@ -601,7 +575,6 @@
 				<UserParam type="string" name="FFId_category" value="internal"/>
 			</PeptideIdentification>
 			<UserParam type="float" name="total_xic" value="36892001.3114014"/>
-			<UserParam type="float" name="total_mi" value="4.01023720552457"/>
 			<UserParam type="string" name="PeptideRef" value="DDSPDLPK/2"/>
 			<UserParam type="float" name="leftWidth" value="1720.42810058594"/>
 			<UserParam type="float" name="rightWidth" value="1794.18957519531"/>
@@ -620,9 +593,6 @@
 			<UserParam type="float" name="nr_peaks" value="2"/>
 			<UserParam type="float" name="sn_ratio" value="90.798258417387"/>
 			<UserParam type="float" name="var_log_sn_score" value="4.50864010499805"/>
-			<UserParam type="float" name="var_mi_score" value="5.5262200573514"/>
-			<UserParam type="float" name="var_mi_weighted_score" value="5.53237854036285"/>
-			<UserParam type="float" name="var_mi_ratio_score" value="1.37802822479887"/>
 			<UserParam type="float" name="var_elution_model_fit_score" value="0.996718049049377"/>
 			<UserParam type="float" name="xx_lda_prelim_score" value="7.47518657598361"/>
 			<UserParam type="float" name="var_isotope_correlation_score" value="0.990743065551955"/>
@@ -674,7 +644,6 @@
 					<UserParam type="string" name="native_id" value="DLGEEHFK/2_i1"/>
 					<UserParam type="float" name="peak_apex_int" value="6209169.34082031"/>
 					<UserParam type="float" name="total_xic" value="58662293.2398071"/>
-					<UserParam type="float" name="total_mi" value="5.09942882757185"/>
 					<UserParam type="float" name="logSN" value="4.58290781658702"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 					<UserParam type="float" name="isotope_probability" value="0.658472827804029"/>
@@ -692,7 +661,6 @@
 					<UserParam type="string" name="native_id" value="DLGEEHFK/2_i2"/>
 					<UserParam type="float" name="peak_apex_int" value="3290300"/>
 					<UserParam type="float" name="total_xic" value="30629906.5578003"/>
-					<UserParam type="float" name="total_mi" value="4.89250838938735"/>
 					<UserParam type="float" name="logSN" value="4.57438827070168"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 					<UserParam type="float" name="isotope_probability" value="0.341527172195971"/>
@@ -727,7 +695,6 @@
 				<UserParam type="string" name="FFId_category" value="internal"/>
 			</PeptideIdentification>
 			<UserParam type="float" name="total_xic" value="89292199.7976074"/>
-			<UserParam type="float" name="total_mi" value="4.9959686084796"/>
 			<UserParam type="string" name="PeptideRef" value="DLGEEHFK/2"/>
 			<UserParam type="float" name="leftWidth" value="1825.08544921875"/>
 			<UserParam type="float" name="rightWidth" value="2023.54016113281"/>
@@ -746,9 +713,6 @@
 			<UserParam type="float" name="nr_peaks" value="2"/>
 			<UserParam type="float" name="sn_ratio" value="97.3835316174288"/>
 			<UserParam type="float" name="var_log_sn_score" value="4.57865711644968"/>
-			<UserParam type="float" name="var_mi_score" value="6.38025953765446"/>
-			<UserParam type="float" name="var_mi_weighted_score" value="6.38025953765446"/>
-			<UserParam type="float" name="var_mi_ratio_score" value="1.27708159071002"/>
 			<UserParam type="float" name="var_elution_model_fit_score" value="0.979632318019867"/>
 			<UserParam type="float" name="xx_lda_prelim_score" value="7.55575107395343"/>
 			<UserParam type="float" name="var_isotope_correlation_score" value="0.990054921294836"/>
@@ -800,7 +764,6 @@
 					<UserParam type="string" name="native_id" value="DLGEEHFK/3_i1"/>
 					<UserParam type="float" name="peak_apex_int" value="4028305.46582031"/>
 					<UserParam type="float" name="total_xic" value="42562271.1983032"/>
-					<UserParam type="float" name="total_mi" value="4.86814739278312"/>
 					<UserParam type="float" name="logSN" value="4.55388754649503"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 					<UserParam type="float" name="isotope_probability" value="0.658472827804029"/>
@@ -818,7 +781,6 @@
 					<UserParam type="string" name="native_id" value="DLGEEHFK/3_i2"/>
 					<UserParam type="float" name="peak_apex_int" value="2084444.0234375"/>
 					<UserParam type="float" name="total_xic" value="21939724.2783203"/>
-					<UserParam type="float" name="total_mi" value="4.46736587315104"/>
 					<UserParam type="float" name="logSN" value="4.55380707152941"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 					<UserParam type="float" name="isotope_probability" value="0.341527172195971"/>
@@ -832,7 +794,6 @@
 				<UserParam type="string" name="FFId_category" value="internal"/>
 			</PeptideIdentification>
 			<UserParam type="float" name="total_xic" value="64501995.4766235"/>
-			<UserParam type="float" name="total_mi" value="4.66775663296708"/>
 			<UserParam type="string" name="PeptideRef" value="DLGEEHFK/3"/>
 			<UserParam type="float" name="leftWidth" value="1825.08544921875"/>
 			<UserParam type="float" name="rightWidth" value="2033.83422851562"/>
@@ -851,9 +812,6 @@
 			<UserParam type="float" name="nr_peaks" value="2"/>
 			<UserParam type="float" name="sn_ratio" value="94.9971897725802"/>
 			<UserParam type="float" name="var_log_sn_score" value="4.55384730982174"/>
-			<UserParam type="float" name="var_mi_score" value="6.41835124159337"/>
-			<UserParam type="float" name="var_mi_weighted_score" value="6.42271076460694"/>
-			<UserParam type="float" name="var_mi_ratio_score" value="1.37503982025591"/>
 			<UserParam type="float" name="var_elution_model_fit_score" value="0.978488326072693"/>
 			<UserParam type="float" name="xx_lda_prelim_score" value="7.54116206616567"/>
 			<UserParam type="float" name="var_isotope_correlation_score" value="0.989630306349789"/>
@@ -905,7 +863,6 @@
 					<UserParam type="string" name="native_id" value="EAC(Carbamidomethyl)FAVEGPK/2_i1"/>
 					<UserParam type="float" name="peak_apex_int" value="1290034.34765625"/>
 					<UserParam type="float" name="total_xic" value="10295684.1871338"/>
-					<UserParam type="float" name="total_mi" value="3.0956469734353"/>
 					<UserParam type="float" name="logSN" value="4.62416465928969"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 					<UserParam type="float" name="isotope_probability" value="0.630481343594174"/>
@@ -923,7 +880,6 @@
 					<UserParam type="string" name="native_id" value="EAC(Carbamidomethyl)FAVEGPK/2_i2"/>
 					<UserParam type="float" name="peak_apex_int" value="740503.5625"/>
 					<UserParam type="float" name="total_xic" value="6003118.07592773"/>
-					<UserParam type="float" name="total_mi" value="3.0956469734353"/>
 					<UserParam type="float" name="logSN" value="4.600106227039"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 					<UserParam type="float" name="isotope_probability" value="0.369518656405826"/>
@@ -944,7 +900,6 @@
 				<UserParam type="string" name="FFId_category" value="internal"/>
 			</PeptideIdentification>
 			<UserParam type="float" name="total_xic" value="16298802.2630615"/>
-			<UserParam type="float" name="total_mi" value="3.0956469734353"/>
 			<UserParam type="string" name="PeptideRef" value="EAC(Carbamidomethyl)FAVEGPK/2"/>
 			<UserParam type="float" name="leftWidth" value="2047.82275390625"/>
 			<UserParam type="float" name="rightWidth" value="2133.37890625"/>
@@ -963,9 +918,6 @@
 			<UserParam type="float" name="nr_peaks" value="2"/>
 			<UserParam type="float" name="sn_ratio" value="100.706242859935"/>
 			<UserParam type="float" name="var_log_sn_score" value="4.61220779243982"/>
-			<UserParam type="float" name="var_mi_score" value="5.22759609339651"/>
-			<UserParam type="float" name="var_mi_weighted_score" value="5.23255442373208"/>
-			<UserParam type="float" name="var_mi_ratio_score" value="1.68869258615602"/>
 			<UserParam type="float" name="var_elution_model_fit_score" value="0.994817167520523"/>
 			<UserParam type="float" name="xx_lda_prelim_score" value="7.55151430071494"/>
 			<UserParam type="float" name="var_isotope_correlation_score" value="0.987365732853106"/>
@@ -1017,7 +969,6 @@
 					<UserParam type="string" name="native_id" value="EC(Carbamidomethyl)C(Carbamidomethyl)DKPLLEK/2_i1"/>
 					<UserParam type="float" name="peak_apex_int" value="62205.6015625"/>
 					<UserParam type="float" name="total_xic" value="810330.094482422"/>
-					<UserParam type="float" name="total_mi" value="3.56074250371716"/>
 					<UserParam type="float" name="logSN" value="4.53672659042566"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 					<UserParam type="float" name="isotope_probability" value="0.602938310378619"/>
@@ -1035,7 +986,6 @@
 					<UserParam type="string" name="native_id" value="EC(Carbamidomethyl)C(Carbamidomethyl)DKPLLEK/2_i2"/>
 					<UserParam type="float" name="peak_apex_int" value="37560.74609375"/>
 					<UserParam type="float" name="total_xic" value="447849.311279297"/>
-					<UserParam type="float" name="total_mi" value="3.26573387464645"/>
 					<UserParam type="float" name="logSN" value="4.47233649208969"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 					<UserParam type="float" name="isotope_probability" value="0.397061689621381"/>
@@ -1056,7 +1006,6 @@
 				<UserParam type="string" name="FFId_category" value="internal"/>
 			</PeptideIdentification>
 			<UserParam type="float" name="total_xic" value="1258179.40576172"/>
-			<UserParam type="float" name="total_mi" value="3.41323818918181"/>
 			<UserParam type="string" name="PeptideRef" value="EC(Carbamidomethyl)C(Carbamidomethyl)DKPLLEK/2"/>
 			<UserParam type="float" name="leftWidth" value="1744.55932617188"/>
 			<UserParam type="float" name="rightWidth" value="1848.68237304688"/>
@@ -1075,9 +1024,6 @@
 			<UserParam type="float" name="nr_peaks" value="2"/>
 			<UserParam type="float" name="sn_ratio" value="90.4728415543284"/>
 			<UserParam type="float" name="var_log_sn_score" value="4.50504971234653"/>
-			<UserParam type="float" name="var_mi_score" value="4.98979188646242"/>
-			<UserParam type="float" name="var_mi_weighted_score" value="5.00774807169232"/>
-			<UserParam type="float" name="var_mi_ratio_score" value="1.46189384095064"/>
 			<UserParam type="float" name="var_elution_model_fit_score" value="0.980602443218231"/>
 			<UserParam type="float" name="xx_lda_prelim_score" value="7.3707575924871"/>
 			<UserParam type="float" name="var_isotope_correlation_score" value="0.968902708499444"/>
@@ -1129,7 +1075,6 @@
 					<UserParam type="string" name="native_id" value="EC(Carbamidomethyl)C(Carbamidomethyl)DKPLLEK/3_i1"/>
 					<UserParam type="float" name="peak_apex_int" value="576804.491455078"/>
 					<UserParam type="float" name="total_xic" value="8760362.47814941"/>
-					<UserParam type="float" name="total_mi" value="5.03421853550807"/>
 					<UserParam type="float" name="logSN" value="2.87064380469375"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 					<UserParam type="float" name="isotope_probability" value="0.602938310378619"/>
@@ -1147,7 +1092,6 @@
 					<UserParam type="string" name="native_id" value="EC(Carbamidomethyl)C(Carbamidomethyl)DKPLLEK/3_i2"/>
 					<UserParam type="float" name="peak_apex_int" value="383256.839111328"/>
 					<UserParam type="float" name="total_xic" value="5559175.78918457"/>
-					<UserParam type="float" name="total_mi" value="4.69139437827877"/>
 					<UserParam type="float" name="logSN" value="3.3210516663648"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 					<UserParam type="float" name="isotope_probability" value="0.397061689621381"/>
@@ -1161,7 +1105,6 @@
 				<UserParam type="string" name="FFId_category" value="internal"/>
 			</PeptideIdentification>
 			<UserParam type="float" name="total_xic" value="14319538.267334"/>
-			<UserParam type="float" name="total_mi" value="4.86280645689342"/>
 			<UserParam type="string" name="PeptideRef" value="EC(Carbamidomethyl)C(Carbamidomethyl)DKPLLEK/3"/>
 			<UserParam type="float" name="leftWidth" value="1746.17114257812"/>
 			<UserParam type="float" name="rightWidth" value="1918.98767089844"/>
@@ -1180,9 +1123,6 @@
 			<UserParam type="float" name="nr_peaks" value="2"/>
 			<UserParam type="float" name="sn_ratio" value="22.6689159856313"/>
 			<UserParam type="float" name="var_log_sn_score" value="3.12099464624477"/>
-			<UserParam type="float" name="var_mi_score" value="6.47187839625088"/>
-			<UserParam type="float" name="var_mi_weighted_score" value="6.47187839625089"/>
-			<UserParam type="float" name="var_mi_ratio_score" value="1.33089368323028"/>
 			<UserParam type="float" name="var_elution_model_fit_score" value="0.981038093566895"/>
 			<UserParam type="float" name="xx_lda_prelim_score" value="6.46880384807173"/>
 			<UserParam type="float" name="var_isotope_correlation_score" value="0.98312975722697"/>
@@ -1234,7 +1174,6 @@
 					<UserParam type="string" name="native_id" value="GAC(Carbamidomethyl)LLPK/2_i1"/>
 					<UserParam type="float" name="peak_apex_int" value="2254385.11621094"/>
 					<UserParam type="float" name="total_xic" value="22937908.4869385"/>
-					<UserParam type="float" name="total_mi" value="3.74348255407414"/>
 					<UserParam type="float" name="logSN" value="4.51735439746189"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 					<UserParam type="float" name="isotope_probability" value="0.710034950213183"/>
@@ -1252,7 +1191,6 @@
 					<UserParam type="string" name="native_id" value="GAC(Carbamidomethyl)LLPK/2_i2"/>
 					<UserParam type="float" name="peak_apex_int" value="911381.791015625"/>
 					<UserParam type="float" name="total_xic" value="9069641.45635986"/>
-					<UserParam type="float" name="total_mi" value="4.00235989497022"/>
 					<UserParam type="float" name="logSN" value="4.51233661403883"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 					<UserParam type="float" name="isotope_probability" value="0.289965049786817"/>
@@ -1280,7 +1218,6 @@
 				<UserParam type="string" name="FFId_category" value="internal"/>
 			</PeptideIdentification>
 			<UserParam type="float" name="total_xic" value="32007549.9432983"/>
-			<UserParam type="float" name="total_mi" value="3.87292122452218"/>
 			<UserParam type="string" name="PeptideRef" value="GAC(Carbamidomethyl)LLPK/2"/>
 			<UserParam type="float" name="leftWidth" value="1974.81298828125"/>
 			<UserParam type="float" name="rightWidth" value="2079.67431640625"/>
@@ -1299,9 +1236,6 @@
 			<UserParam type="float" name="nr_peaks" value="2"/>
 			<UserParam type="float" name="sn_ratio" value="91.3637373498437"/>
 			<UserParam type="float" name="var_log_sn_score" value="4.51484865301587"/>
-			<UserParam type="float" name="var_mi_score" value="5.51892239652445"/>
-			<UserParam type="float" name="var_mi_weighted_score" value="5.53584348562192"/>
-			<UserParam type="float" name="var_mi_ratio_score" value="1.4250024920673"/>
 			<UserParam type="float" name="var_elution_model_fit_score" value="0.997166931629181"/>
 			<UserParam type="float" name="xx_lda_prelim_score" value="7.45899626636676"/>
 			<UserParam type="float" name="var_isotope_correlation_score" value="0.989965074783456"/>
@@ -1353,7 +1287,6 @@
 					<UserParam type="string" name="native_id" value="HLVDEPQNLIK/3_i1"/>
 					<UserParam type="float" name="peak_apex_int" value="16826.505859375"/>
 					<UserParam type="float" name="total_xic" value="6172455.15795898"/>
-					<UserParam type="float" name="total_mi" value="2.96556322968597"/>
 					<UserParam type="float" name="logSN" value="1.20774307201212"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 					<UserParam type="float" name="isotope_probability" value="0.586748524736467"/>
@@ -1371,7 +1304,6 @@
 					<UserParam type="string" name="native_id" value="HLVDEPQNLIK/3_i2"/>
 					<UserParam type="float" name="peak_apex_int" value="8652.01141357422"/>
 					<UserParam type="float" name="total_xic" value="4467143.92340088"/>
-					<UserParam type="float" name="total_mi" value="3.43955667052683"/>
 					<UserParam type="float" name="logSN" value="0.962914427282685"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 					<UserParam type="float" name="isotope_probability" value="0.413251475263533"/>
@@ -1385,7 +1317,6 @@
 				<UserParam type="string" name="FFId_category" value="internal"/>
 			</PeptideIdentification>
 			<UserParam type="float" name="total_xic" value="10639599.0813599"/>
-			<UserParam type="float" name="total_mi" value="3.2025599501064"/>
 			<UserParam type="string" name="PeptideRef" value="HLVDEPQNLIK/3"/>
 			<UserParam type="float" name="leftWidth" value="2290.19189453125"/>
 			<UserParam type="float" name="rightWidth" value="2307.17138671875"/>
@@ -1404,9 +1335,6 @@
 			<UserParam type="float" name="nr_peaks" value="2"/>
 			<UserParam type="float" name="sn_ratio" value="2.98262189450483"/>
 			<UserParam type="float" name="var_log_sn_score" value="1.0928027440642"/>
-			<UserParam type="float" name="var_mi_score" value="2.93826892807646"/>
-			<UserParam type="float" name="var_mi_weighted_score" value="2.94128291218265"/>
-			<UserParam type="float" name="var_mi_ratio_score" value="0.917475074269521"/>
 			<UserParam type="float" name="var_elution_model_fit_score" value="0.987533986568451"/>
 			<UserParam type="float" name="xx_lda_prelim_score" value="4.72432463295052"/>
 			<UserParam type="float" name="var_isotope_correlation_score" value="0.958327911516158"/>
@@ -1458,7 +1386,6 @@
 					<UserParam type="string" name="native_id" value="KSDDGGEVEK/2_i1"/>
 					<UserParam type="float" name="peak_apex_int" value="16335.642578125"/>
 					<UserParam type="float" name="total_xic" value="94357.4943847656"/>
-					<UserParam type="float" name="total_mi" value="0.827964730214137"/>
 					<UserParam type="float" name="logSN" value="4.82108329622124"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 					<UserParam type="float" name="isotope_probability" value="0.66039156605171"/>
@@ -1476,7 +1403,6 @@
 					<UserParam type="string" name="native_id" value="KSDDGGEVEK/2_i2"/>
 					<UserParam type="float" name="peak_apex_int" value="8075.73193359375"/>
 					<UserParam type="float" name="total_xic" value="46786.9100952148"/>
-					<UserParam type="float" name="total_mi" value="0.743494260523586"/>
 					<UserParam type="float" name="logSN" value="4.26176982337882"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 					<UserParam type="float" name="isotope_probability" value="0.33960843394829"/>
@@ -1490,7 +1416,6 @@
 				<UserParam type="string" name="FFId_category" value="internal"/>
 			</PeptideIdentification>
 			<UserParam type="float" name="total_xic" value="141144.40447998"/>
-			<UserParam type="float" name="total_mi" value="0.785729495368862"/>
 			<UserParam type="string" name="PeptideRef" value="KSDDGGEVEK/2"/>
 			<UserParam type="float" name="leftWidth" value="1634.86328125"/>
 			<UserParam type="float" name="rightWidth" value="1685.81030273438"/>
@@ -1509,9 +1434,6 @@
 			<UserParam type="float" name="nr_peaks" value="2"/>
 			<UserParam type="float" name="sn_ratio" value="97.517435020494"/>
 			<UserParam type="float" name="var_log_sn_score" value="4.5800311827403"/>
-			<UserParam type="float" name="var_mi_score" value="2.3620051930846"/>
-			<UserParam type="float" name="var_mi_weighted_score" value="2.37726787411926"/>
-			<UserParam type="float" name="var_mi_ratio_score" value="3.00613023566814"/>
 			<UserParam type="float" name="var_elution_model_fit_score" value="0.975425690412521"/>
 			<UserParam type="float" name="xx_lda_prelim_score" value="7.398324822031"/>
 			<UserParam type="float" name="var_isotope_correlation_score" value="0.974755927449578"/>
@@ -1563,7 +1485,6 @@
 					<UserParam type="string" name="native_id" value="LAADDFR/2_i1"/>
 					<UserParam type="float" name="peak_apex_int" value="33353.1411132812"/>
 					<UserParam type="float" name="total_xic" value="950034.294372559"/>
-					<UserParam type="float" name="total_mi" value="3.4488864583102"/>
 					<UserParam type="float" name="logSN" value="1.28464131865243"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 					<UserParam type="float" name="isotope_probability" value="0.701130386577533"/>
@@ -1581,7 +1502,6 @@
 					<UserParam type="string" name="native_id" value="LAADDFR/2_i2"/>
 					<UserParam type="float" name="peak_apex_int" value="7695.240234375"/>
 					<UserParam type="float" name="total_xic" value="31598.8132324219"/>
-					<UserParam type="float" name="total_mi" value="0.524263362565068"/>
 					<UserParam type="float" name="logSN" value="4.2173420876759"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 					<UserParam type="float" name="isotope_probability" value="0.298869613422467"/>
@@ -1595,7 +1515,6 @@
 				<UserParam type="string" name="FFId_category" value="internal"/>
 			</PeptideIdentification>
 			<UserParam type="float" name="total_xic" value="981633.10760498"/>
-			<UserParam type="float" name="total_mi" value="1.98657491043763"/>
 			<UserParam type="string" name="PeptideRef" value="LAADDFR/2"/>
 			<UserParam type="float" name="leftWidth" value="1961.46557617188"/>
 			<UserParam type="float" name="rightWidth" value="2026.06115722656"/>
@@ -1614,9 +1533,6 @@
 			<UserParam type="float" name="nr_peaks" value="2"/>
 			<UserParam type="float" name="sn_ratio" value="35.7331345136229"/>
 			<UserParam type="float" name="var_log_sn_score" value="3.57607839596868"/>
-			<UserParam type="float" name="var_mi_score" value="2.56049156782566"/>
-			<UserParam type="float" name="var_mi_weighted_score" value="3.1247356760008"/>
-			<UserParam type="float" name="var_mi_ratio_score" value="1.28889756654663"/>
 			<UserParam type="float" name="var_elution_model_fit_score" value="0.921455174684525"/>
 			<UserParam type="float" name="xx_lda_prelim_score" value="5.63303054486374"/>
 			<UserParam type="float" name="var_isotope_correlation_score" value="0.977395240636197"/>
@@ -1668,7 +1584,6 @@
 					<UserParam type="string" name="native_id" value="LALDLVVR/3_i1"/>
 					<UserParam type="float" name="peak_apex_int" value="658591.118286133"/>
 					<UserParam type="float" name="total_xic" value="13690006.6939087"/>
-					<UserParam type="float" name="total_mi" value="5.54832220407302"/>
 					<UserParam type="float" name="logSN" value="2.32498002648157"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 					<UserParam type="float" name="isotope_probability" value="0.668051514852376"/>
@@ -1686,7 +1601,6 @@
 					<UserParam type="string" name="native_id" value="LALDLVVR/3_i2"/>
 					<UserParam type="float" name="peak_apex_int" value="306532.15625"/>
 					<UserParam type="float" name="total_xic" value="3795652.68945312"/>
-					<UserParam type="float" name="total_mi" value="3.97770333542255"/>
 					<UserParam type="float" name="logSN" value="4.36501162167554"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 					<UserParam type="float" name="isotope_probability" value="0.331948485147624"/>
@@ -1700,7 +1614,6 @@
 				<UserParam type="string" name="FFId_category" value="internal"/>
 			</PeptideIdentification>
 			<UserParam type="float" name="total_xic" value="17485659.3833618"/>
-			<UserParam type="float" name="total_mi" value="4.76301276974778"/>
 			<UserParam type="string" name="PeptideRef" value="LALDLVVR/3"/>
 			<UserParam type="float" name="leftWidth" value="1763.34350585938"/>
 			<UserParam type="float" name="rightWidth" value="1851.12512207031"/>
@@ -1719,9 +1632,6 @@
 			<UserParam type="float" name="nr_peaks" value="2"/>
 			<UserParam type="float" name="sn_ratio" value="44.4383949049717"/>
 			<UserParam type="float" name="var_log_sn_score" value="3.79410384586919"/>
-			<UserParam type="float" name="var_mi_score" value="5.62729152374559"/>
-			<UserParam type="float" name="var_mi_weighted_score" value="5.64434201327966"/>
-			<UserParam type="float" name="var_mi_ratio_score" value="1.18145631678488"/>
 			<UserParam type="float" name="var_elution_model_fit_score" value="0.98045688867569"/>
 			<UserParam type="float" name="xx_lda_prelim_score" value="6.88090703930314"/>
 			<UserParam type="float" name="var_isotope_correlation_score" value="0.70019046030159"/>
@@ -1773,7 +1683,6 @@
 					<UserParam type="string" name="native_id" value="LAMTLAEAER/3_i1"/>
 					<UserParam type="float" name="peak_apex_int" value="361844.1875"/>
 					<UserParam type="float" name="total_xic" value="6273312.26599121"/>
-					<UserParam type="float" name="total_mi" value="5.61455858029347"/>
 					<UserParam type="float" name="logSN" value="2.85914040049617"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 					<UserParam type="float" name="isotope_probability" value="0.637366103952144"/>
@@ -1791,7 +1700,6 @@
 					<UserParam type="string" name="native_id" value="LAMTLAEAER/3_i2"/>
 					<UserParam type="float" name="peak_apex_int" value="208531.59375"/>
 					<UserParam type="float" name="total_xic" value="4122049.44696045"/>
-					<UserParam type="float" name="total_mi" value="6.15196441823725"/>
 					<UserParam type="float" name="logSN" value="2.79933895654908"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 					<UserParam type="float" name="isotope_probability" value="0.362633896047856"/>
@@ -1812,7 +1720,6 @@
 				<UserParam type="string" name="FFId_category" value="internal"/>
 			</PeptideIdentification>
 			<UserParam type="float" name="total_xic" value="10395361.7129517"/>
-			<UserParam type="float" name="total_mi" value="5.88326149926536"/>
 			<UserParam type="string" name="PeptideRef" value="LAMTLAEAER/3"/>
 			<UserParam type="float" name="leftWidth" value="1595.50939941406"/>
 			<UserParam type="float" name="rightWidth" value="1764.53942871094"/>
@@ -1831,9 +1738,6 @@
 			<UserParam type="float" name="nr_peaks" value="2"/>
 			<UserParam type="float" name="sn_ratio" value="16.9401516016668"/>
 			<UserParam type="float" name="var_log_sn_score" value="2.82968663851485"/>
-			<UserParam type="float" name="var_mi_score" value="6.58880855973304"/>
-			<UserParam type="float" name="var_mi_weighted_score" value="6.58880855973304"/>
-			<UserParam type="float" name="var_mi_ratio_score" value="1.11992447735933"/>
 			<UserParam type="float" name="var_elution_model_fit_score" value="0.940495908260345"/>
 			<UserParam type="float" name="xx_lda_prelim_score" value="6.15988578920748"/>
 			<UserParam type="float" name="var_isotope_correlation_score" value="0.509134767132634"/>
@@ -1885,7 +1789,6 @@
 					<UserParam type="string" name="native_id" value="LC(Carbamidomethyl)VLHEK/2_i1"/>
 					<UserParam type="float" name="peak_apex_int" value="109567.890625"/>
 					<UserParam type="float" name="total_xic" value="1759939.75524902"/>
-					<UserParam type="float" name="total_mi" value="4.96323059195709"/>
 					<UserParam type="float" name="logSN" value="2.98021662171035"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 					<UserParam type="float" name="isotope_probability" value="0.674606839793181"/>
@@ -1903,7 +1806,6 @@
 					<UserParam type="string" name="native_id" value="LC(Carbamidomethyl)VLHEK/2_i2"/>
 					<UserParam type="float" name="peak_apex_int" value="44756.20703125"/>
 					<UserParam type="float" name="total_xic" value="662411.90802002"/>
-					<UserParam type="float" name="total_mi" value="4.4984792842451"/>
 					<UserParam type="float" name="logSN" value="3.38276550507305"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 					<UserParam type="float" name="isotope_probability" value="0.325393160206819"/>
@@ -1917,7 +1819,6 @@
 				<UserParam type="string" name="FFId_category" value="internal"/>
 			</PeptideIdentification>
 			<UserParam type="float" name="total_xic" value="2422351.66326904"/>
-			<UserParam type="float" name="total_mi" value="4.73085493810109"/>
 			<UserParam type="string" name="PeptideRef" value="LC(Carbamidomethyl)VLHEK/2"/>
 			<UserParam type="float" name="leftWidth" value="1761.75610351562"/>
 			<UserParam type="float" name="rightWidth" value="1881.08850097656"/>
@@ -1936,9 +1837,6 @@
 			<UserParam type="float" name="nr_peaks" value="2"/>
 			<UserParam type="float" name="sn_ratio" value="24.5720952313712"/>
 			<UserParam type="float" name="var_log_sn_score" value="3.20161145889938"/>
-			<UserParam type="float" name="var_mi_score" value="5.43689179775728"/>
-			<UserParam type="float" name="var_mi_weighted_score" value="5.5140553307191"/>
-			<UserParam type="float" name="var_mi_ratio_score" value="1.14924086003355"/>
 			<UserParam type="float" name="var_elution_model_fit_score" value="0.981171160936356"/>
 			<UserParam type="float" name="xx_lda_prelim_score" value="6.35219320308861"/>
 			<UserParam type="float" name="var_isotope_correlation_score" value="0.984152837341836"/>
@@ -1990,7 +1888,6 @@
 					<UserParam type="string" name="native_id" value="LC(Carbamidomethyl)VLHEK/3_i1"/>
 					<UserParam type="float" name="peak_apex_int" value="61659.5291137695"/>
 					<UserParam type="float" name="total_xic" value="17064033.5638428"/>
-					<UserParam type="float" name="total_mi" value="6.84965445065994"/>
 					<UserParam type="float" name="logSN" value="0"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 					<UserParam type="float" name="isotope_probability" value="0.674606839793181"/>
@@ -2008,7 +1905,6 @@
 					<UserParam type="string" name="native_id" value="LC(Carbamidomethyl)VLHEK/3_i2"/>
 					<UserParam type="float" name="peak_apex_int" value="21973.2578125"/>
 					<UserParam type="float" name="total_xic" value="5095957.03662109"/>
-					<UserParam type="float" name="total_mi" value="5.89195397926229"/>
 					<UserParam type="float" name="logSN" value="0.481182626816772"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 					<UserParam type="float" name="isotope_probability" value="0.325393160206819"/>
@@ -2029,7 +1925,6 @@
 				<UserParam type="string" name="FFId_category" value="internal"/>
 			</PeptideIdentification>
 			<UserParam type="float" name="total_xic" value="22159990.6004639"/>
-			<UserParam type="float" name="total_mi" value="6.37080421496112"/>
 			<UserParam type="string" name="PeptideRef" value="LC(Carbamidomethyl)VLHEK/3"/>
 			<UserParam type="float" name="leftWidth" value="1939.34069824219"/>
 			<UserParam type="float" name="rightWidth" value="2036.53295898438"/>
@@ -2048,9 +1943,6 @@
 			<UserParam type="float" name="nr_peaks" value="2"/>
 			<UserParam type="float" name="sn_ratio" value="1.2668993900222"/>
 			<UserParam type="float" name="var_log_sn_score" value="0.236572490153024"/>
-			<UserParam type="float" name="var_mi_score" value="5.4594316186373"/>
-			<UserParam type="float" name="var_mi_weighted_score" value="5.4594316186373"/>
-			<UserParam type="float" name="var_mi_ratio_score" value="0.856945439606579"/>
 			<UserParam type="float" name="var_elution_model_fit_score" value="0.687795549631119"/>
 			<UserParam type="float" name="xx_lda_prelim_score" value="3.06104265743219"/>
 			<UserParam type="float" name="var_isotope_correlation_score" value="0.981719188551002"/>
@@ -2102,7 +1994,6 @@
 					<UserParam type="string" name="native_id" value="LVTDLTK/2_i1"/>
 					<UserParam type="float" name="peak_apex_int" value="12176436.2207031"/>
 					<UserParam type="float" name="total_xic" value="63479969.7155151"/>
-					<UserParam type="float" name="total_mi" value="3.65433124959522"/>
 					<UserParam type="float" name="logSN" value="4.64464550873581"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 					<UserParam type="float" name="isotope_probability" value="0.704209887318509"/>
@@ -2120,7 +2011,6 @@
 					<UserParam type="string" name="native_id" value="LVTDLTK/2_i2"/>
 					<UserParam type="float" name="peak_apex_int" value="5051440.5"/>
 					<UserParam type="float" name="total_xic" value="26425108.5435181"/>
-					<UserParam type="float" name="total_mi" value="3.20177182815577"/>
 					<UserParam type="float" name="logSN" value="4.64211942601004"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 					<UserParam type="float" name="isotope_probability" value="0.295790112681491"/>
@@ -2134,7 +2024,6 @@
 				<UserParam type="string" name="FFId_category" value="internal"/>
 			</PeptideIdentification>
 			<UserParam type="float" name="total_xic" value="89905078.2590332"/>
-			<UserParam type="float" name="total_mi" value="3.42805153887549"/>
 			<UserParam type="string" name="PeptideRef" value="LVTDLTK/2"/>
 			<UserParam type="float" name="leftWidth" value="1918.98767089844"/>
 			<UserParam type="float" name="rightWidth" value="1998.99108886719"/>
@@ -2153,9 +2042,6 @@
 			<UserParam type="float" name="nr_peaks" value="2"/>
 			<UserParam type="float" name="sn_ratio" value="103.895258829532"/>
 			<UserParam type="float" name="var_log_sn_score" value="4.64338326500946"/>
-			<UserParam type="float" name="var_mi_score" value="5.16450843445826"/>
-			<UserParam type="float" name="var_mi_weighted_score" value="5.184851624031"/>
-			<UserParam type="float" name="var_mi_ratio_score" value="1.50654340399806"/>
 			<UserParam type="float" name="var_elution_model_fit_score" value="0.997846633195877"/>
 			<UserParam type="float" name="xx_lda_prelim_score" value="7.56821623209286"/>
 			<UserParam type="float" name="var_isotope_correlation_score" value="0.99176717726236"/>
@@ -2207,7 +2093,6 @@
 					<UserParam type="string" name="native_id" value="LVVSTQTALA/2_i1"/>
 					<UserParam type="float" name="peak_apex_int" value="5217008.28320312"/>
 					<UserParam type="float" name="total_xic" value="24630421.7536011"/>
-					<UserParam type="float" name="total_mi" value="4.71811310088178"/>
 					<UserParam type="float" name="logSN" value="4.69568679503664"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 					<UserParam type="float" name="isotope_probability" value="0.653030735732608"/>
@@ -2225,7 +2110,6 @@
 					<UserParam type="string" name="native_id" value="LVVSTQTALA/2_i2"/>
 					<UserParam type="float" name="peak_apex_int" value="2826096.25"/>
 					<UserParam type="float" name="total_xic" value="12884847.3779297"/>
-					<UserParam type="float" name="total_mi" value="4.52669984652367"/>
 					<UserParam type="float" name="logSN" value="4.71879720189093"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 					<UserParam type="float" name="isotope_probability" value="0.346969264267392"/>
@@ -2239,7 +2123,6 @@
 				<UserParam type="string" name="FFId_category" value="internal"/>
 			</PeptideIdentification>
 			<UserParam type="float" name="total_xic" value="37515269.1315308"/>
-			<UserParam type="float" name="total_mi" value="4.62240647370272"/>
 			<UserParam type="string" name="PeptideRef" value="LVVSTQTALA/2"/>
 			<UserParam type="float" name="leftWidth" value="2367.25073242188"/>
 			<UserParam type="float" name="rightWidth" value="2447.93408203125"/>
@@ -2258,9 +2141,6 @@
 			<UserParam type="float" name="nr_peaks" value="2"/>
 			<UserParam type="float" name="sn_ratio" value="110.753693509412"/>
 			<UserParam type="float" name="var_log_sn_score" value="4.70730875834126"/>
-			<UserParam type="float" name="var_mi_score" value="5.23386108578663"/>
-			<UserParam type="float" name="var_mi_weighted_score" value="5.23386108578663"/>
-			<UserParam type="float" name="var_mi_ratio_score" value="1.13228058059423"/>
 			<UserParam type="float" name="var_elution_model_fit_score" value="0.996171712875366"/>
 			<UserParam type="float" name="xx_lda_prelim_score" value="7.61278146293146"/>
 			<UserParam type="float" name="var_isotope_correlation_score" value="0.990586607081022"/>
@@ -2312,7 +2192,6 @@
 					<UserParam type="string" name="native_id" value="SHC(Carbamidomethyl)IAEVEK/3_i1"/>
 					<UserParam type="float" name="peak_apex_int" value="86037.9240722656"/>
 					<UserParam type="float" name="total_xic" value="1087899.78582764"/>
-					<UserParam type="float" name="total_mi" value="5.48063248171402"/>
 					<UserParam type="float" name="logSN" value="2.41365803639093"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 					<UserParam type="float" name="isotope_probability" value="0.646660950740033"/>
@@ -2330,7 +2209,6 @@
 					<UserParam type="string" name="native_id" value="SHC(Carbamidomethyl)IAEVEK/3_i2"/>
 					<UserParam type="float" name="peak_apex_int" value="43015.8828125"/>
 					<UserParam type="float" name="total_xic" value="446300.303771973"/>
-					<UserParam type="float" name="total_mi" value="4.997828068955"/>
 					<UserParam type="float" name="logSN" value="2.51156489486958"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 					<UserParam type="float" name="isotope_probability" value="0.353339049259967"/>
@@ -2344,7 +2222,6 @@
 				<UserParam type="string" name="FFId_category" value="internal"/>
 			</PeptideIdentification>
 			<UserParam type="float" name="total_xic" value="1534200.08959961"/>
-			<UserParam type="float" name="total_mi" value="5.23923027533451"/>
 			<UserParam type="string" name="PeptideRef" value="SHC(Carbamidomethyl)IAEVEK/3"/>
 			<UserParam type="float" name="leftWidth" value="1539.38354492188"/>
 			<UserParam type="float" name="rightWidth" value="1615.81567382812"/>
@@ -2363,9 +2240,6 @@
 			<UserParam type="float" name="nr_peaks" value="2"/>
 			<UserParam type="float" name="sn_ratio" value="11.7494826105578"/>
 			<UserParam type="float" name="var_log_sn_score" value="2.46380920647666"/>
-			<UserParam type="float" name="var_mi_score" value="5.38183639704935"/>
-			<UserParam type="float" name="var_mi_weighted_score" value="5.41517987717237"/>
-			<UserParam type="float" name="var_mi_ratio_score" value="1.02721890701888"/>
 			<UserParam type="float" name="var_elution_model_fit_score" value="0.977227956056595"/>
 			<UserParam type="float" name="xx_lda_prelim_score" value="5.81651671719193"/>
 			<UserParam type="float" name="var_isotope_correlation_score" value="0.985290582455854"/>
@@ -2417,7 +2291,6 @@
 					<UserParam type="string" name="native_id" value="VATVSLPR/2_i1"/>
 					<UserParam type="float" name="peak_apex_int" value="525831.856689453"/>
 					<UserParam type="float" name="total_xic" value="8455773.67687988"/>
-					<UserParam type="float" name="total_mi" value="6.00294179364038"/>
 					<UserParam type="float" name="logSN" value="4.27426201203986"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 					<UserParam type="float" name="isotope_probability" value="0.688369804746839"/>
@@ -2435,7 +2308,6 @@
 					<UserParam type="string" name="native_id" value="VATVSLPR/2_i2"/>
 					<UserParam type="float" name="peak_apex_int" value="236379.609375"/>
 					<UserParam type="float" name="total_xic" value="3421617.34454346"/>
-					<UserParam type="float" name="total_mi" value="5.68578428466209"/>
 					<UserParam type="float" name="logSN" value="4.32673447388325"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 					<UserParam type="float" name="isotope_probability" value="0.311630195253161"/>
@@ -2449,7 +2321,6 @@
 				<UserParam type="string" name="FFId_category" value="internal"/>
 			</PeptideIdentification>
 			<UserParam type="float" name="total_xic" value="11877391.0214233"/>
-			<UserParam type="float" name="total_mi" value="5.84436303915123"/>
 			<UserParam type="string" name="PeptideRef" value="VATVSLPR/2"/>
 			<UserParam type="float" name="leftWidth" value="2038.14636230469"/>
 			<UserParam type="float" name="rightWidth" value="2210.38159179688"/>
@@ -2468,9 +2339,6 @@
 			<UserParam type="float" name="nr_peaks" value="2"/>
 			<UserParam type="float" name="sn_ratio" value="73.7619026004993"/>
 			<UserParam type="float" name="var_log_sn_score" value="4.30084237339098"/>
-			<UserParam type="float" name="var_mi_score" value="6.52356195605701"/>
-			<UserParam type="float" name="var_mi_weighted_score" value="6.52356195605701"/>
-			<UserParam type="float" name="var_mi_ratio_score" value="1.11621436114694"/>
 			<UserParam type="float" name="var_elution_model_fit_score" value="0.993695646524429"/>
 			<UserParam type="float" name="xx_lda_prelim_score" value="7.25604411976596"/>
 			<UserParam type="float" name="var_isotope_correlation_score" value="0.988314481916404"/>
@@ -2522,7 +2390,6 @@
 					<UserParam type="string" name="native_id" value="YIC(Carbamidomethyl)DNQDTISSK/2_i1"/>
 					<UserParam type="float" name="peak_apex_int" value="2373589.49951172"/>
 					<UserParam type="float" name="total_xic" value="13898492.4309082"/>
-					<UserParam type="float" name="total_mi" value="2.87861832785119"/>
 					<UserParam type="float" name="logSN" value="5.03029842213158"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 					<UserParam type="float" name="isotope_probability" value="0.579648044979989"/>
@@ -2540,7 +2407,6 @@
 					<UserParam type="string" name="native_id" value="YIC(Carbamidomethyl)DNQDTISSK/2_i2"/>
 					<UserParam type="float" name="peak_apex_int" value="1749065.44458008"/>
 					<UserParam type="float" name="total_xic" value="10208590.852417"/>
-					<UserParam type="float" name="total_mi" value="2.78389945925099"/>
 					<UserParam type="float" name="logSN" value="5.03198176188001"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 					<UserParam type="float" name="isotope_probability" value="0.420351955020011"/>
@@ -2554,7 +2420,6 @@
 				<UserParam type="string" name="FFId_category" value="internal"/>
 			</PeptideIdentification>
 			<UserParam type="float" name="total_xic" value="24107083.2833252"/>
-			<UserParam type="float" name="total_mi" value="2.83125889355109"/>
 			<UserParam type="string" name="PeptideRef" value="YIC(Carbamidomethyl)DNQDTISSK/2"/>
 			<UserParam type="float" name="leftWidth" value="1763.34350585938"/>
 			<UserParam type="float" name="rightWidth" value="1829.82446289062"/>
@@ -2573,9 +2438,6 @@
 			<UserParam type="float" name="nr_peaks" value="2"/>
 			<UserParam type="float" name="sn_ratio" value="153.107524061801"/>
 			<UserParam type="float" name="var_log_sn_score" value="5.03114044620984"/>
-			<UserParam type="float" name="var_mi_score" value="5.22747070380508"/>
-			<UserParam type="float" name="var_mi_weighted_score" value="5.22798943994475"/>
-			<UserParam type="float" name="var_mi_ratio_score" value="1.84634146870566"/>
 			<UserParam type="float" name="var_elution_model_fit_score" value="0.998875975608826"/>
 			<UserParam type="float" name="xx_lda_prelim_score" value="7.84773822298969"/>
 			<UserParam type="float" name="var_isotope_correlation_score" value="0.989854474520114"/>
@@ -2627,7 +2489,6 @@
 					<UserParam type="string" name="native_id" value="YLYEIAR/2_i1"/>
 					<UserParam type="float" name="peak_apex_int" value="4030730.61230469"/>
 					<UserParam type="float" name="total_xic" value="83670845.203186"/>
-					<UserParam type="float" name="total_mi" value="5.23585576215958"/>
 					<UserParam type="float" name="logSN" value="4.17805499424384"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 					<UserParam type="float" name="isotope_probability" value="0.655742026441336"/>
@@ -2645,7 +2506,6 @@
 					<UserParam type="string" name="native_id" value="YLYEIAR/2_i2"/>
 					<UserParam type="float" name="peak_apex_int" value="2149916.96875"/>
 					<UserParam type="float" name="total_xic" value="44079645.5690918"/>
-					<UserParam type="float" name="total_mi" value="5.12908842225636"/>
 					<UserParam type="float" name="logSN" value="4.17070855700728"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 					<UserParam type="float" name="isotope_probability" value="0.344257973558664"/>
@@ -2673,7 +2533,6 @@
 				<UserParam type="string" name="FFId_category" value="internal"/>
 			</PeptideIdentification>
 			<UserParam type="float" name="total_xic" value="127750490.772278"/>
-			<UserParam type="float" name="total_mi" value="5.18247209220797"/>
 			<UserParam type="string" name="PeptideRef" value="YLYEIAR/2"/>
 			<UserParam type="float" name="leftWidth" value="2307.17138671875"/>
 			<UserParam type="float" name="rightWidth" value="2424.5244140625"/>
@@ -2692,9 +2551,6 @@
 			<UserParam type="float" name="nr_peaks" value="2"/>
 			<UserParam type="float" name="sn_ratio" value="65.000081378898"/>
 			<UserParam type="float" name="var_log_sn_score" value="4.1743885218779"/>
-			<UserParam type="float" name="var_mi_score" value="5.97916666666667"/>
-			<UserParam type="float" name="var_mi_weighted_score" value="5.9821874251638"/>
-			<UserParam type="float" name="var_mi_ratio_score" value="1.15372867625405"/>
 			<UserParam type="float" name="var_elution_model_fit_score" value="0.985789656639099"/>
 			<UserParam type="float" name="xx_lda_prelim_score" value="7.25028509156927"/>
 			<UserParam type="float" name="var_isotope_correlation_score" value="0.990655139144809"/>

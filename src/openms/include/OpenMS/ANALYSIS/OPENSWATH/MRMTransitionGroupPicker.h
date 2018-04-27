@@ -286,38 +286,47 @@ public:
           }
         }
 
-        double transition_total_xic = 0;
-        std::vector<double> chrom_vect_id, chrom_vect_det;
-          chrom_vect_id.clear();
+        // Compute total intensity on transition-level
+        double transition_total_xic = 0; 
+
         for (typename SpectrumT::const_iterator it = chromatogram.begin(); it != chromatogram.end(); it++)
         {
           transition_total_xic += it->getIntensity();
-          chrom_vect_id.push_back(it->getIntensity());
         }
 
-        // compute baseline mutual information
+        // Compute total mutual information on transition-level.
         double transition_total_mi = 0;
-        int transition_total_mi_norm = 0;
-        for (Size m = 0; m < transition_group.getTransitions().size(); m++)
+        if (compute_total_mi_)
         {
-          if (transition_group.getTransitions()[m].isDetectingTransition())
+          std::vector<double> chrom_vect_id, chrom_vect_det;
+          for (typename SpectrumT::const_iterator it = chromatogram.begin(); it != chromatogram.end(); it++)
           {
-            const SpectrumT& chromatogram_det = selectChromHelper_(transition_group, transition_group.getTransitions()[m].getNativeID());
-            chrom_vect_det.clear();
-            for (typename SpectrumT::const_iterator it = chromatogram_det.begin(); it != chromatogram_det.end(); it++)
-            {
-              chrom_vect_det.push_back(it->getIntensity());
-            }
-            transition_total_mi += OpenSwath::Scoring::rankedMutualInformation(chrom_vect_det, chrom_vect_id);
-            transition_total_mi_norm++;
+            chrom_vect_id.push_back(it->getIntensity());
           }
-        }
-        if (transition_total_mi_norm > 0) { transition_total_mi /= transition_total_mi_norm; }
 
-        if (transition_group.getTransitions()[k].isDetectingTransition())
-        {
-          // sum up all transition-level total MI and divide by the number of detection transitions to have peak group level total MI
-          total_mi += transition_total_mi / transition_total_mi_norm;
+          // compute baseline mutual information
+          int transition_total_mi_norm = 0;
+          for (Size m = 0; m < transition_group.getTransitions().size(); m++)
+          {
+            if (transition_group.getTransitions()[m].isDetectingTransition())
+            {
+              const SpectrumT& chromatogram_det = selectChromHelper_(transition_group, transition_group.getTransitions()[m].getNativeID());
+              chrom_vect_det.clear();
+              for (typename SpectrumT::const_iterator it = chromatogram_det.begin(); it != chromatogram_det.end(); it++)
+              {
+                chrom_vect_det.push_back(it->getIntensity());
+              }
+              transition_total_mi += OpenSwath::Scoring::rankedMutualInformation(chrom_vect_det, chrom_vect_id);
+              transition_total_mi_norm++;
+            }
+          }
+          if (transition_total_mi_norm > 0) { transition_total_mi /= transition_total_mi_norm; }
+
+          if (transition_group.getTransitions()[k].isDetectingTransition())
+          {
+            // sum up all transition-level total MI and divide by the number of detection transitions to have peak group level total MI
+            total_mi += transition_total_mi / transition_total_mi_norm;
+          }
         }
 
         SpectrumT used_chromatogram;
@@ -400,7 +409,10 @@ public:
         f.setMetaValue("native_id", chromatogram.getNativeID());
         f.setMetaValue("peak_apex_int", peak_apex_int);
         f.setMetaValue("total_xic", transition_total_xic);
-        f.setMetaValue("total_mi", transition_total_mi);
+        if (compute_total_mi_)
+        {
+          f.setMetaValue("total_mi", transition_total_mi);
+        }
 
         if (transition_group.getTransitions()[k].isDetectingTransition())
         {
@@ -533,7 +545,10 @@ public:
       mrmFeature.setMetaValue("leftWidth", best_left);
       mrmFeature.setMetaValue("rightWidth", best_right);
       mrmFeature.setMetaValue("total_xic", total_xic);
-      mrmFeature.setMetaValue("total_mi", total_mi);
+      if (compute_total_mi_)
+      {
+        mrmFeature.setMetaValue("total_mi", total_mi);
+      }
       mrmFeature.setMetaValue("peak_apices_sum", total_peak_apices);
 
       mrmFeature.ensureUniqueId();
@@ -971,6 +986,7 @@ protected:
     bool use_precursors_;
     bool compute_peak_quality_;
     bool compute_peak_shape_metrics_;
+    bool compute_total_mi_;
     double min_qual_;
 
     int stop_after_feature_;

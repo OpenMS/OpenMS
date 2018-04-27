@@ -820,7 +820,6 @@ protected:
     {
       feature_finder_param.setValue("Scores:use_ms1_correlation", "true");
       feature_finder_param.setValue("Scores:use_ms1_fullscan", "true");
-      feature_finder_param.setValue("Scores:use_ms1_mi", "true");
     }
     if (enable_uis_scoring)
     {

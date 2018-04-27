@@ -28,7 +28,6 @@
 					<UserParam type="string" name="native_id" value="tr1"/>
 					<UserParam type="float" name="peak_apex_int" value="2980"/>
 					<UserParam type="float" name="total_xic" value="74499.9999857545"/>
-					<UserParam type="float" name="total_mi" value="4.68385618977472"/>
 					<UserParam type="float" name="logSN" value="0.736903731150572"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 				</feature>
@@ -45,7 +44,6 @@
 					<UserParam type="string" name="native_id" value="tr2"/>
 					<UserParam type="float" name="peak_apex_int" value="6000"/>
 					<UserParam type="float" name="total_xic" value="149999.999972224"/>
-					<UserParam type="float" name="total_mi" value="4.68385618977472"/>
 					<UserParam type="float" name="logSN" value="0.736903731152949"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 				</feature>
@@ -62,7 +60,6 @@
 					<UserParam type="string" name="native_id" value="3"/>
 					<UserParam type="float" name="peak_apex_int" value="9000"/>
 					<UserParam type="float" name="total_xic" value="225000.000281811"/>
-					<UserParam type="float" name="total_mi" value="4.68385618977472"/>
 					<UserParam type="float" name="logSN" value="0.736903728269678"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 				</feature>
@@ -82,7 +79,6 @@
 			<UserParam type="string" name="potentialOutlier" value="tr1"/>
 			<UserParam type="float" name="initialPeakQuality" value="1.25"/>
 			<UserParam type="float" name="total_xic" value="449500.000239789"/>
-			<UserParam type="float" name="total_mi" value="4.68385618977472"/>
 			<UserParam type="string" name="PeptideRef" value="PEPTIDEA"/>
 			<UserParam type="float" name="leftWidth" value="2.20000004768372"/>
 			<UserParam type="float" name="rightWidth" value="48.2000007629395"/>
@@ -106,9 +102,6 @@
 			<UserParam type="float" name="nr_peaks" value="3"/>
 			<UserParam type="float" name="sn_ratio" value="2.08945596902642"/>
 			<UserParam type="float" name="var_log_sn_score" value="0.736903730191066"/>
-			<UserParam type="float" name="var_mi_score" value="4.56704021692658"/>
-			<UserParam type="float" name="var_mi_weighted_score" value="4.56704021692658"/>
-			<UserParam type="float" name="var_mi_ratio_score" value="0.975059872012475"/>
 			<UserParam type="float" name="xx_lda_prelim_score" value="3.40061644582877"/>
 			<UserParam type="float" name="var_isotope_correlation_score" value="0.195988638113476"/>
 			<UserParam type="float" name="var_isotope_overlap_score" value="0"/>
@@ -120,7 +113,6 @@
 			<UserParam type="float" name="var_manhatt_score" value="0.963083186881608"/>
 			<UserParam type="float" name="var_ms1_xcorr_shape" value="0"/>
 			<UserParam type="float" name="var_ms1_xcorr_coelution" value="46"/>
-			<UserParam type="float" name="var_ms1_mi_score" value="0"/>
 			<UserParam type="float" name="var_ms1_ppm_diff" value="121.212121212121"/>
 			<UserParam type="float" name="var_ms1_isotope_correlation" value="0"/>
 			<UserParam type="float" name="var_ms1_isotope_overlap" value="0"/>
@@ -150,7 +142,6 @@
 					<UserParam type="string" name="native_id" value="4"/>
 					<UserParam type="float" name="peak_apex_int" value="2980"/>
 					<UserParam type="float" name="total_xic" value="74499.9999857545"/>
-					<UserParam type="float" name="total_mi" value="4.68385618977472"/>
 					<UserParam type="float" name="logSN" value="0.736903731150572"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 				</feature>
@@ -167,7 +158,6 @@
 					<UserParam type="string" name="native_id" value="5"/>
 					<UserParam type="float" name="peak_apex_int" value="6000"/>
 					<UserParam type="float" name="total_xic" value="149999.999972224"/>
-					<UserParam type="float" name="total_mi" value="4.68385618977472"/>
 					<UserParam type="float" name="logSN" value="0.736903731152949"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 				</feature>
@@ -184,7 +174,6 @@
 					<UserParam type="string" name="native_id" value="6"/>
 					<UserParam type="float" name="peak_apex_int" value="9000"/>
 					<UserParam type="float" name="total_xic" value="225000.000281811"/>
-					<UserParam type="float" name="total_mi" value="4.68385618977472"/>
 					<UserParam type="float" name="logSN" value="0.736903728269678"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 				</feature>
@@ -204,7 +193,6 @@
 			<UserParam type="string" name="potentialOutlier" value="4"/>
 			<UserParam type="float" name="initialPeakQuality" value="1.25"/>
 			<UserParam type="float" name="total_xic" value="449500.000239789"/>
-			<UserParam type="float" name="total_mi" value="4.68385618977472"/>
 			<UserParam type="string" name="PeptideRef" value="PEPTIDEB"/>
 			<UserParam type="float" name="leftWidth" value="2.20000004768372"/>
 			<UserParam type="float" name="rightWidth" value="48.2000007629395"/>
@@ -228,9 +216,6 @@
 			<UserParam type="float" name="nr_peaks" value="3"/>
 			<UserParam type="float" name="sn_ratio" value="2.08945596902642"/>
 			<UserParam type="float" name="var_log_sn_score" value="0.736903730191066"/>
-			<UserParam type="float" name="var_mi_score" value="4.56704021692658"/>
-			<UserParam type="float" name="var_mi_weighted_score" value="4.56704021692658"/>
-			<UserParam type="float" name="var_mi_ratio_score" value="0.975059872012475"/>
 			<UserParam type="float" name="xx_lda_prelim_score" value="3.40767140966877"/>
 			<UserParam type="float" name="var_isotope_correlation_score" value="0.195988638113476"/>
 			<UserParam type="float" name="var_isotope_overlap_score" value="0"/>
@@ -242,7 +227,6 @@
 			<UserParam type="float" name="var_manhatt_score" value="0.963083186881608"/>
 			<UserParam type="float" name="var_ms1_xcorr_shape" value="0"/>
 			<UserParam type="float" name="var_ms1_xcorr_coelution" value="46"/>
-			<UserParam type="float" name="var_ms1_mi_score" value="0"/>
 			<UserParam type="float" name="var_ms1_ppm_diff" value="119.760479041916"/>
 			<UserParam type="float" name="var_ms1_isotope_correlation" value="0"/>
 			<UserParam type="float" name="var_ms1_isotope_overlap" value="0"/>
