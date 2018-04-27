@@ -174,7 +174,6 @@ protected:
     /// Compute a distance even if adducts don't match?
     bool ignore_adduct_;
 
-
     /// Always return @ref infinity if "max. difference" constraints are not met?
     bool force_constraints_;
 
