@@ -48,6 +48,7 @@ using namespace std;
 namespace OpenMS
 {
   IDBoostGraph::PeptideCluster IDBoostGraph::staticPC{};
+  IDBoostGraph::ProteinGroup IDBoostGraph::staticPG{};
 
   IDBoostGraph::IDBoostGraph(ProteinIdentification& proteins, std::vector<PeptideIdentification>& idedSpectra):
     proteins_(proteins),
@@ -192,38 +193,13 @@ namespace OpenMS
         boost::filtered_graph<IDBoostGraph::Graph, boost::function<bool(IDBoostGraph::edge_t)>, boost::function<bool(IDBoostGraph::vertex_t)> >::vertex_iterator ui, ui_end;
         boost::tie(ui,ui_end) = boost::vertices(fg);
 
-
+        // Cluster proteins
         for (; ui != ui_end; ++ui)
         {
           IDBoostGraph::IDPointer curr_idObj = fg[*ui];
           //TODO introduce an enum for the types to make it more clear.
           //Or use the static_visitor pattern: You have to pass the vertex with its neighbors as a second arg though.
-          if (curr_idObj.which() == 0) //peptide: find peptide clusters
-          {
-            //TODO assert that there is at least one protein mapping to this peptide! Eg. Require IDFilter removeUnmatched before.
-            //Or just check rigorously here.
-            set<IDBoostGraph::vertex_t> parents;
-            IDBoostGraph::FilteredGraph::adjacency_iterator adjIt, adjIt_end;
-            boost::tie(adjIt, adjIt_end) = boost::adjacent_vertices(*ui, fg);
-            for (; adjIt != adjIt_end; ++adjIt)
-            {
-              if (fg[*adjIt].which() == 1) //if there are only two types (pep,prot) this check for prot is actually unnecessary
-              {
-                parents.insert(*adjIt);
-              }
-            }
-
-            auto clusterIt = pepClusters.find(parents);
-            if (clusterIt != pepClusters.end())
-            {
-              clusterIt->second.insert(*ui);
-            }
-            else
-            {
-              pepClusters[parents] = std::set<IDBoostGraph::vertex_t>({*ui});
-            }
-          }
-          else if (curr_idObj.which() == 1) //protein: find indist. ones
+          if (curr_idObj.which() == 1) //protein: find indist. ones
           {
             //TODO assert that there is at least one peptide mapping to this peptide! Eg. Require IDFilter removeUnmatched before.
             //Or just check rigorously here.
@@ -232,7 +208,8 @@ namespace OpenMS
             boost::tie(adjIt, adjIt_end) = boost::adjacent_vertices(*ui, fg);
             for (; adjIt != adjIt_end; ++adjIt)
             {
-              if (fg[*adjIt].which() == 0) //if there are only two types (pep,prot) this check for pep is actually unnecessary
+              if (fg[*adjIt].which() ==
+                  0) //if there are only two types (pep,prot) this check for pep is actually unnecessary
               {
                 childPeps.insert(*adjIt);
               }
@@ -250,15 +227,85 @@ namespace OpenMS
           }
         }
 
+        // add the protein groups to the underlying datastructure
+        // and edges from the groups to the proteins for quick access
+        for (auto const& pepsToGrps : indistProteins)
+        {
+          //We can't point to protein groups while we fill them. Pointers invalidate in growing vectors.
+          //proteins_.getIndistinguishableProteins().push_back(ProteinGroup{});
+          //ProteinGroup& pg = proteins_.getIndistinguishableProteins().back();
+          auto grpVID = boost::add_vertex(&staticPG, g);
+          componentProperty_.push_back(i);
+          for (auto const &proteinVID : pepsToGrps.second)
+          {
+            ProteinHit *proteinPtr = boost::get<ProteinHit*>(fg[proteinVID]);
+            //pg.accessions.push_back(proteinPtr->getAccession());
+            boost::add_edge(proteinVID, grpVID, g);
+            for (auto const &pepVID : pepsToGrps.first)
+            {
+              boost::remove_edge(proteinVID, pepVID, g);
+            }
+          }
+          for (auto const &pepVID : pepsToGrps.first)
+          {
+            boost::add_edge(grpVID, pepVID, g);
+          }
+          //pg.probability = -1.0;
+        }
+
+
+        // Refilter graph and cluster peptides
+        FilteredGraph fgNew(g,
+                            [& i, this](edge_t e) { return componentProperty_[e.m_source] == i; },
+                            [& i, this](vertex_t v) { return componentProperty_[v] == i; });
+        boost::filtered_graph<IDBoostGraph::Graph, boost::function<bool(IDBoostGraph::edge_t)>, boost::function<bool(IDBoostGraph::vertex_t)> >::vertex_iterator uiNew, uiNew_end;
+        boost::tie(uiNew,uiNew_end) = boost::vertices(fgNew);
+
+        for (; uiNew != uiNew_end; ++uiNew)
+        {
+          IDBoostGraph::IDPointer curr_idObj = fgNew[*uiNew];
+          //TODO introduce an enum for the types to make it more clear.
+          //Or use the static_visitor pattern: You have to pass the vertex with its neighbors as a second arg though.
+          if (curr_idObj.which() == 0) //peptide: find peptide clusters
+          {
+            //TODO assert that there is at least one protein mapping to this peptide! Eg. Require IDFilter removeUnmatched before.
+            //Or just check rigorously here.
+            set<IDBoostGraph::vertex_t> parents;
+            IDBoostGraph::FilteredGraph::adjacency_iterator adjIt, adjIt_end;
+            boost::tie(adjIt, adjIt_end) = boost::adjacent_vertices(*uiNew, fgNew);
+            for (; adjIt != adjIt_end; ++adjIt)
+            {
+              if (fgNew[*adjIt].which() == 2) //if there are only two types (pep,prot) this check for prot is actually unnecessary
+              {
+                parents.insert(*adjIt);
+              }
+            }
+
+            auto clusterIt = pepClusters.find(parents);
+            if (clusterIt != pepClusters.end())
+            {
+              clusterIt->second.insert(*uiNew);
+            }
+            else
+            {
+              pepClusters[parents] = std::set<IDBoostGraph::vertex_t>({*uiNew});
+            }
+          }
+        }
+
         // we add an edge from protein to pepCluster and from pepCluster to peptides
         // peptides can use the same info from there.
         for (auto const& protsToPepClusters : pepClusters)
         {
           auto pcVID = boost::add_vertex(&staticPC, g);
           componentProperty_.push_back(i);
-          for (auto const& proteinVID : protsToPepClusters.first)
+          for (auto const& pgVID : protsToPepClusters.first)
           {
-            boost::add_edge(proteinVID, pcVID, g);
+            boost::add_edge(pgVID, pcVID, g);
+            for (auto const& peptideVID : protsToPepClusters.second)
+            {
+              boost::remove_edge(pgVID, peptideVID, g);
+            }
           }
           for (auto const& peptideVID : protsToPepClusters.second)
           {
@@ -266,40 +313,22 @@ namespace OpenMS
           }
         }
 
-        // add the protein groups to the underlying datastructure
-        // and edges from the groups to the proteins for quick access
-        for (auto const& pepsToGrps : indistProteins)
-        {
-          ProteinIdentification::ProteinGroup pg;
-          auto grpVID = boost::add_vertex(&pg, g);
-          componentProperty_.push_back(i);
-          for (auto const &proteinVID : pepsToGrps.second)
-          {
-            ProteinHit *proteinPtr = boost::get<ProteinHit*>(fg[proteinVID]);
-            pg.accessions.push_back(proteinPtr->getAccession());
-            boost::add_edge(grpVID, proteinVID, g);
-            //we do not add edge from peptides to groups yet.
-          }
-          pg.probability = -1.0;
-          proteins_.getIndistinguishableProteins().push_back(pg);
-        }
-
         //TODO we could skip adding groups for single proteins to save a little but we have to add them at write-out
-        // Afterwards go through all pepClusters, i.e. indist. groups and add them
-/*        for (auto const& setpair : pepClusters)
-        {
-          std::cout << "Peps with same parent:" << std::endl;
-          ProteinIdentification::ProteinGroup pg;
-          auto grp = boost::add_vertex(&pg, g);
-          for (auto const& proteinVID : setpair.first)
-          {
-            ProteinHit* proteinPtr = boost::get<ProteinHit*>(fg[proteinVID]);
-            pg.accessions.push_back(proteinPtr->getAccession());
-            boost::add_edge(grp, proteinVID, g);
-          }
-          pg.probability = -1.0;
-          proteins_.getIndistinguishableProteins().push_back(pg);
-        }*/
+        //anyway
+
+        #ifdef INFERENCE_DEBUG
+        FilteredGraph fgNewNew(g,
+                            [& i, this](edge_t e) { return componentProperty_[e.m_source] == i; },
+                            [& i, this](vertex_t v) { return componentProperty_[v] == i; });
+
+        // TODO make function for writing graph?
+        // Also tried to save the labels in a member after build_graph. But could not get the type right for a member that would store them.
+        auto labelsNew = boost::make_transform_value_property_map([lv](IDPointer &p) { return boost::apply_visitor(lv, p); },
+                                                               boost::get(boost::vertex_bundle, fgNewNew));
+        std::cout << "Printing cc after clustering" << i << std::endl;
+        //boost::print_graph(fg);
+        boost::write_graphviz(std::cout, fgNewNew, boost::make_label_writer(labelsNew));
+        #endif
 
       }
       else

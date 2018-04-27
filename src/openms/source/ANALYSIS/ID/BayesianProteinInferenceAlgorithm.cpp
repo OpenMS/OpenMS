@@ -253,8 +253,6 @@ namespace OpenMS
           //to the PSMs from there in the original graph.
           if (curr_idObj.which() == 2) //it's a protein group
           {
-            vector<IDBoostGraph::vertex_t> indistProts;
-            vector<IDBoostGraph::vertex_t> sharedPeps;
 
             // direct neighbors of indist. groups are proteins
             IDBoostGraph::FilteredGraph::adjacency_iterator protVIt, protVIt_end;
@@ -274,18 +272,16 @@ namespace OpenMS
               //TODO allow an already present prior probability here
               bigb.insert_dependency(mpf.createProteinFactor(*protVIt));
               posteriorVars.push_back({*protVIt});
-              indistProts.push_back(*protVIt);
             }
 
-            bigb.insert_dependency(mpf.createPeptideProbabilisticAdderFactor(indistProts, *ui));
+            //bigb.insert_dependency(mpf.createPeptideProbabilisticAdderFactor(indistProts, *ui));
 
             for (int j = 0; pepVIt != pepVIt_end; ++pepVIt, ++j)
             {
               //TODO if we use a directed graph, this can be avoided. Might actually be the better choice.
               if (fg[*pepVIt].which() == 0)
               {
-                sharedPeps.emplace_back(*pepVIt);
-                bigb.insert_dependency(mpf.createSumEvidenceFactor(indistProts.size(), *ui, *pepVIt));
+                //bigb.insert_dependency(mpf.createSumEvidenceFactor(indistProts.size(), *ui, *pepVIt));
               }
             }
 
@@ -459,8 +455,9 @@ namespace OpenMS
         if(!protein.getSequence().empty())
         {
           std::vector<StringView> tempDigests{};
-          ed.digestUnmodified(protein.getSequence(), tempDigests);
-          protein.setMetaValue("nrTheoreticalDigests", tempDigests.size());
+          //TODO check which peptide lengths we should support. Parameter?
+          Size maxPeps = ed.digestUnmodified(protein.getSequence(), tempDigests);
+          protein.setMetaValue("nrTheoreticalDigests", maxPeps);
         }
         else
         {
@@ -473,6 +470,11 @@ namespace OpenMS
       // digest protein seq. and get nr of digests
       //
     }
+
+    //TODO would be better if we set this after inference but only here we currently have
+    // non-const access.
+    proteinIDs[0].setScoreType("Posterior Probability");
+    proteinIDs[0].setHigherScoreBetter(true);
 
     // init empty graph
     IDBoostGraph ibg(proteinIDs[0], peptideIDs);

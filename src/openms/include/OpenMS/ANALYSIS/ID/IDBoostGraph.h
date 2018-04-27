@@ -71,11 +71,13 @@ namespace OpenMS
   public:
 
     BOOST_STRONG_TYPEDEF(char, PeptideCluster)
+    BOOST_STRONG_TYPEDEF(char, ProteinGroup)
 
     //typedefs
-    typedef ProteinIdentification::ProteinGroup ProteinGroup;
+    //typedef ProteinIdentification::ProteinGroup ProteinGroup;
+
     typedef boost::variant<PeptideHit*, ProteinHit*, ProteinGroup*, PeptideCluster*> IDPointer;
-    typedef boost::variant<const PeptideHit*, const ProteinHit*, const ProteinGroup*, const PeptideCluster> IDPointerConst;
+    typedef boost::variant<const PeptideHit*, const ProteinHit*, const ProteinGroup*, const PeptideCluster*> IDPointerConst;
     //TODO check the impact of different datastructures to store nodes/edges
     typedef boost::adjacency_list <boost::setS, boost::vecS, boost::undirectedS, IDPointer> Graph;
     typedef boost::adjacency_list <boost::setS, boost::vecS, boost::undirectedS, IDPointerConst> GraphConst;
@@ -108,14 +110,14 @@ namespace OpenMS
         return prot->getAccession();
       }
 
-      OpenMS::String operator()(const ProteinGroup* protgrp) const
+      OpenMS::String operator()(const ProteinGroup* /*protgrp*/) const
       {
-        return String("G(") + protgrp->accessions[0] + String(")");
+        return String("PG");
       }
 
       OpenMS::String operator()(const PeptideCluster* /*pc*/) const
       {
-        return String("PeptideCluster");
+        return String("PepClust");
       }
 
     };
@@ -138,17 +140,18 @@ namespace OpenMS
 
       void operator()(const ProteinGroup* protgrp) const
       {
-        std::cout << "G(" << protgrp->accessions[0] << ")" << std::endl;
+        std::cout << "PG" << std::endl;
       }
 
       void operator()(const PeptideCluster* /*pc*/) const
       {
-        std::cout << "PeptideCluster" << std::endl;
+        std::cout << "PepClust" << std::endl;
       }
 
     };
 
     /// Visits nodes in the boost graph (ptrs to an ID Object) and depending on their type sets the posterior
+    /// Don't forget to set higherScoreBetter and score names in the parent ID objects.
     class SetPosteriorVisitor:
         public boost::static_visitor<>
     {
@@ -157,23 +160,22 @@ namespace OpenMS
       void operator()(PeptideHit* pep, double posterior) const
       {
         pep->setScore(posterior);
-        //TODO set Score name and score ordering
       }
 
       void operator()(ProteinHit* prot, double posterior) const
       {
         prot->setScore(posterior);
-        //TODO set Score name and score ordering
       }
 
-      void operator()(ProteinGroup* protgrp, double posterior) const
+      void operator()(ProteinGroup* /*protgrp*/, double /*posterior*/) const
       {
-        protgrp->probability = posterior;
+        // do nothing
+        //protgrp->probability = posterior;
       }
 
-      void operator()(const PeptideCluster* /*pc*/, double posterior) const
+      void operator()(const PeptideCluster* /*pc*/, double /*posterior*/) const
       {
-        return; // do nothing
+        // do nothing
       }
 
     };
@@ -211,6 +213,7 @@ namespace OpenMS
   private:
     Graph g;
     static PeptideCluster staticPC;
+    static ProteinGroup staticPG;
     //GraphConst gconst;
     ProteinIdentification& proteins_;
     std::vector<PeptideIdentification>& idedSpectra_;
