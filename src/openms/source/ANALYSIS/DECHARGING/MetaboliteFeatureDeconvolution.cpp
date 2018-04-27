@@ -682,7 +682,7 @@ namespace OpenMS
     candidateEdges_(fm_out, default_adduct, feature_relation, feature_adducts);
 
 
-    if (not feature_relation.empty())
+    if (!feature_relation.empty())
     {
       // -------------------------- //
       // ** compute ILP solution ** //
