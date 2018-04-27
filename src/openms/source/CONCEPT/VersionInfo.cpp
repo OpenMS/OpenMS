@@ -31,7 +31,9 @@
 // $Maintainer: Chris Bielow $
 // $Authors: Clemens Groepl, Chris Bielow $
 // --------------------------------------------------------------------------
+
 #include <OpenMS/CONCEPT/VersionInfo.h>
+
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/CONCEPT/Exception.h>
 
@@ -49,6 +51,13 @@ namespace OpenMS
 
   bool VersionInfo::VersionDetails::operator<(const VersionInfo::VersionDetails & rhs) const
   {
+    // first try to compare with integer patch numbers
+    try {
+      return (this->version_major  < rhs.version_major)
+             || (this->version_major == rhs.version_major && this->version_minor  < rhs.version_minor)
+             || (this->version_major == rhs.version_major && this->version_minor == rhs.version_minor && this->version_patch.toInt() < rhs.version_patch.toInt());
+    } catch (Exception::ConversionError) {}
+
     return (this->version_major  < rhs.version_major)
            || (this->version_major == rhs.version_major && this->version_minor  < rhs.version_minor)
            || (this->version_major == rhs.version_major && this->version_minor == rhs.version_minor && this->version_patch < rhs.version_patch);

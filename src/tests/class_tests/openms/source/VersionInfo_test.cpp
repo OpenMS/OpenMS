@@ -137,6 +137,8 @@ START_SECTION(([VersionInfo::VersionDetails] bool operator>(const VersionDetails
   TEST_EQUAL(detail > c, false)
   c.version_patch = "1";
   TEST_EQUAL(detail > c, true)
+  c.version_patch = "11";
+  TEST_EQUAL(detail < c, true)
   c.version_major = 2;
   TEST_EQUAL(detail > c, false)
 }
