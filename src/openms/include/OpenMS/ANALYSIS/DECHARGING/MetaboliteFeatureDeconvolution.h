@@ -96,11 +96,11 @@ public:
       @param cons_map_p [out] Output of paired features connected by an edge
     */
     void compute(const FeatureMapType& fm_in, FeatureMapType& fm_out, ConsensusMap& cons_map, ConsensusMap& cons_map_p);
-    
+
 
 protected:
 
-    
+
     void updateMembers_() override;
 
     /**
@@ -126,10 +126,10 @@ protected:
     ///      (Na+) -> (H+Na+)
     void inferMoreEdges_(PairsType& edges, Map<Size, std::set<CmpInfo_> >& feature_adducts);
 
-    void candidateEdges(FeatureMapType& fm_out, const Adduct& default_adduct, PairsType& feature_relation, Map<Size, std::set<CmpInfo_> >& feature_adducts);
+    void candidateEdges_(FeatureMapType& fm_out, const Adduct& default_adduct, PairsType& feature_relation, Map<Size, std::set<CmpInfo_> >& feature_adducts);
 
-    void annotate_feature(FeatureMapType& fm_out, Adduct& default_adduct, Compomer& c, const Size f_idx, const UInt side, const Int new_q, const Int old_q);
-    
+    void annotate_feature_(FeatureMapType& fm_out, Adduct& default_adduct, Compomer& c, const Size f_idx, const UInt side, const Int new_q, const Int old_q);
+
     /// A function mostly for debugging
     void printEdgesOfConnectedFeatures_(Size idx_1, Size idx_2, const PairsType& feature_relation);
 
@@ -166,4 +166,3 @@ protected:
 
   };
 } // namespace OpenMS
-
