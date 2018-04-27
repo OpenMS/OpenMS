@@ -336,7 +336,7 @@ namespace OpenMS
   }
 
 
-  void MetaboliteFeatureDeconvolution::annotate_feature(FeatureMapType& fm_out, Adduct& default_adduct, Compomer& c, const Size f_idx, const UInt comp_side, const Int new_q, const Int old_q)
+  void MetaboliteFeatureDeconvolution::annotate_feature_(FeatureMapType& fm_out, Adduct& default_adduct, Compomer& c, const Size f_idx, const UInt comp_side, const Int new_q, const Int old_q)
   {
     StringList labels;
     fm_out[f_idx].setMetaValue("map_idx", 0);
@@ -389,7 +389,7 @@ namespace OpenMS
 
   }
 
-  void MetaboliteFeatureDeconvolution::candidateEdges(FeatureMapType& fm_out, const Adduct& default_adduct, PairsType& feature_relation, Map<Size, std::set<CmpInfo_> >& feature_adducts)
+  void MetaboliteFeatureDeconvolution::candidateEdges_(FeatureMapType& fm_out, const Adduct& default_adduct, PairsType& feature_relation, Map<Size, std::set<CmpInfo_> >& feature_adducts)
   {
     bool is_neg = (param_.getValue("negative_mode") == "true" ? true : false);
 
@@ -679,7 +679,7 @@ namespace OpenMS
     Map<Size, std::set<CmpInfo_> > feature_adducts;
 
 
-    candidateEdges(fm_out, default_adduct, feature_relation, feature_adducts);
+    candidateEdges_(fm_out, default_adduct, feature_relation, feature_adducts);
 
 
     if (not feature_relation.empty())
@@ -832,9 +832,9 @@ namespace OpenMS
         //
         Compomer c = feature_relation[i].getCompomer();
         // - left
-        annotate_feature(fm_out, default_adduct, c, f0_idx, Compomer::LEFT, new_q0, old_q0);
+        annotate_feature_(fm_out, default_adduct, c, f0_idx, Compomer::LEFT, new_q0, old_q0);
         // - right
-        annotate_feature(fm_out, default_adduct, c, f1_idx, Compomer::RIGHT, new_q1, old_q1);
+        annotate_feature_(fm_out, default_adduct, c, f1_idx, Compomer::RIGHT, new_q1, old_q1);
 
 
         ConsensusFeature cf(fm_out[f0_idx]);
