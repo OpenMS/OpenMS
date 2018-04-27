@@ -38,7 +38,6 @@
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/KDTreeFeatureMaps.h>
-#include <vector>
 #include <OpenMS/FORMAT/TextFile.h>
 
 using namespace OpenMS;
@@ -51,7 +50,9 @@ using namespace std;
 /**
   @page UTILS_AssayGeneratorMetabo AssayGeneratorMetabo
 
-  @brief Assay Library generator using metabolomics DDA Data
+  @brief Assay Library Generator using DDA data (Metabolomics)
+
+
 
   mzml blablabla
 
@@ -101,7 +102,7 @@ class TOPPAssayGeneratorMetabo :
 {
 public:
   TOPPAssayGeneratorMetabo() :
-    TOPPBase("AssayGeneratorMetabo", "Tool for assay library generation from metabolomics DDA data", false)
+    TOPPBase("AssayGeneratorMetabo", "Assay library generation from DDA data (Metabolomics)", false)
     {}
 
 protected:
@@ -112,22 +113,23 @@ protected:
     registerInputFile_("in", "<file>", "", "MzML Input file");
     setValidFormats_("in", ListUtils::create<String>("mzml"));
 
-    registerInputFile_("in_id", "<file>", "", "FeatureXML Input with id information (accurate mass search)", false);
+    registerInputFile_("in_id", "<file>", "", "FeatureXML Input with id information (accurate mass search)");
     setValidFormats_("in_id", ListUtils::create<String>("featurexml"));
 
     registerOutputFile_("out", "<file>", "", "Assay library output file");
     setValidFormats_("out", ListUtils::create<String>("tsv"));
+
+    // The report_confex_hulls parameter have to be enabled in the FeatureFinderMetabo
+    registerIntOption_("filter_by_convex_hulls", "<num>", 2, "Features have to have at least x MassTraces", false);
+
+    registerDoubleOption_("transition_threshold", "<num>", 10, "Further transitions need at least x% of the maximum intensity (default 10%)", false);
   }
 
   // map precursors to closest feature and retrieve annotated metadata (if possible)
   // extract meta information from featureXML (MetaboliteAdductDecharger)
-  map<const BaseFeature*, std::vector<size_t>> extractMetaInformation(const PeakMap & spectra, const FeatureMap & feature_map)
+  map<const BaseFeature*, vector<size_t>> extractMetaInformation(const PeakMap & spectra, const KDTreeFeatureMaps& fp_map_kd)
   {
     map<const BaseFeature*, vector<size_t>> map_feature_to_precursors;
-    KDTreeFeatureMaps fp_map_kd;
-    vector<FeatureMap> fp_map;
-    fp_map.push_back(feature_map);
-    fp_map_kd.addMaps(fp_map);
 
     // map precursors to closest feature and retrieve annotated metadata (if possible)
     for (size_t index = 0; index != spectra.size(); ++index)
@@ -148,7 +150,7 @@ protected:
         // TODO: optimize query mz
         fp_map_kd.queryRegion(rt - 5.0, rt + 5.0, mz - 0.2, mz + 0.2, matches, true);
 
-        // no precuros matches the feature information found
+        // no precursor matches the feature information found
         if (matches.empty()) { continue; }
 
         // in the case of multiple features in tolerance window, select the one closest in m/z to the precursor
@@ -243,52 +245,55 @@ protected:
     String in = getStringOption_("in");
     String id = getStringOption_("in_id");
     String out = getStringOption_("out");
- 
-    MzMLFile f;
-    PeakMap spectra;
-    f.load(in, spectra);
+    unsigned int hull_size_filter = getIntOption_("filter_by_convex_hulls");
+    double transition_threshold = getDoubleOption_("transition_threshold");
 
-    // reannotate precursor mz and intensity
+    //load mzML
+    MzMLFile mzml;
+    PeakMap spectra;
+    mzml.load(in, spectra);
+
+    //load featurexml
+    FeatureXMLFile fxml;
+    FeatureMap feature_map;
+    fxml.load(id, feature_map);
+
+    // annotate precursor mz and intensity
     annotatePrecursorIntensity(spectra, 0.2, 0.2);
 
-    // read FeatureXML in KDTree for range query
-    map<const BaseFeature*, std::vector<size_t> > map_feature_to_precursors;
-    std::ifstream id_file(id);
-    if (id_file)
-    {
-      FeatureXMLFile fxml;
-      FeatureMap feature_map;
-      fxml.load(id, feature_map);
-      map_feature_to_precursors = extractMetaInformation(spectra, feature_map);
-    }
+    // filter feature by convexhull size
+    auto map_it = remove_if(feature_map.begin(), feature_map.end(),
+                                                 [&hull_size_filter](const Feature& f) -> bool
+                                                 {
+                                                   return f.getConvexHulls().size() < hull_size_filter;
+                                                 });
+    feature_map.erase(map_it, feature_map.end());
+
+    KDTreeFeatureMaps fp_map_kd;
+    vector<FeatureMap> v_fp;
+    v_fp.push_back(feature_map);
+    fp_map_kd.addMaps(v_fp);
+
+    // read FeatureMap in KDTree for feature-precursor assignment
+    map<const BaseFeature*, vector<size_t> > map_feature_to_precursors = extractMetaInformation(spectra, fp_map_kd);
 
     std::vector<AssayRow> assaylib;
-
     int transition_group_counter = 0;
+
     for (std::map<const BaseFeature*, std::vector<size_t>>::iterator it = map_feature_to_precursors.begin();
          it != map_feature_to_precursors.end();
          ++it)
     {
 
-      AssayRow row;
-      String description = "";
-      String sumformula = "";
-
+      String description("UNKNOWN"), sumformula("UNKNOWN");
       const BaseFeature* min_distance_feature = it->first;
 
-      std::cout << "des: " << min_distance_feature->getIntensity() << std::endl;
-
       // extract metadata from featureXML
-      if (!min_distance_feature->getPeptideIdentifications().empty() &&
-          !min_distance_feature->getPeptideIdentifications()[0].getHits().empty())
+      if (!(min_distance_feature->getPeptideIdentifications().empty()) &&
+          !(min_distance_feature->getPeptideIdentifications()[0].getHits().empty()))
       {
         description = min_distance_feature->getPeptideIdentifications()[0].getHits()[0].getMetaValue("description");
         sumformula = min_distance_feature->getPeptideIdentifications()[0].getHits()[0].getMetaValue("chemical_formula");
-      }
-      else
-      {
-        description = "UNKOWN";
-        sumformula = "UNKOWN";
       }
 
       double spectrum_rt = 0.0;
@@ -308,7 +313,7 @@ protected:
         float precursor_int = precursor[0].getIntensity();
 
         // TODO: add other methods
-        // e.g. pearson correlation and consensusspectrum
+        // e.g. pearson correlation + consensusspectrum
 
         // spectrum with highest intensity precursor
         if (precursor_int > highest_precursor_int)
@@ -319,15 +324,10 @@ protected:
           spectrum_rt = spectra[*index_it].getRT();
         }
       }
-      // extract transistions by  iterating over peaks in in MS2 and get one with highest int
-      // TODO: ggf. sort by intensity (?)
-      if (!highest_precursor_int_spectrum.isSorted())
-      {
-        highest_precursor_int_spectrum.sortByIntensity();
-      }
 
       // calculate max intensity peak and threshold
       float max_int = 0.0;
+      float min_int = numeric_limits<float>::max();
       for(MSSpectrum::iterator spec_it = highest_precursor_int_spectrum.begin(); spec_it != highest_precursor_int_spectrum.end(); ++spec_it)
       {
         //find the max intensity peak
@@ -335,18 +335,30 @@ protected:
         {
           max_int = spec_it->getIntensity();
         }
+        if(spec_it->getIntensity() < min_int)
+        {
+          min_int = spec_it->getIntensity();
+        }
       }
-      // threshold should be at 25 % of the maximum intensity
-      float threshold = max_int * 0.25;
 
+      // no peaks or all peaks have same intensity (single peak / noise)
+      if (min_int >= max_int){ continue;}
+
+      // threshold should be at x % of the maximum intensity
+      float threshold_transition = max_int * (transition_threshold/100);
+      float threshold_noise = min_int * 1.1;
+
+      AssayRow row;
       int transition_counter = 1;
+
       for(MSSpectrum::iterator spec_it = highest_precursor_int_spectrum.begin(); spec_it != highest_precursor_int_spectrum.end(); ++spec_it)
       {
         float current_int = spec_it->getIntensity();
         double current_mz = spec_it->getMZ();
 
-        //write row for each transistion
-        if (current_int > threshold)
+        // write row for each transistion
+        // current int has to be higher than transition thresold and should not be smaller than threshold noise
+        if (current_int > threshold_transition && current_int > threshold_noise)
         {
           float rel_int = current_int/max_int;
           row.precursor_mz = highest_precursor_mz;
@@ -354,7 +366,7 @@ protected:
           row.library_int = rel_int;
           row.normalized_rt = spectrum_rt;
           row.compound_name = description;
-          //TODO: add simles to AccurateMassSearchMetadata
+          //TODO: add simles to AccurateMassSearchMetadata (FeatureXML)
           row.smiles = "none";
           row.sumformula = sumformula;
           row.transition_group_id = String(transition_group_counter)+"_"+sumformula;
