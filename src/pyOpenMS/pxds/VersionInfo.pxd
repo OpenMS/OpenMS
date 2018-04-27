@@ -12,7 +12,8 @@ cdef extern from "<OpenMS/CONCEPT/VersionInfo.h>" namespace "OpenMS::VersionInfo
     cdef cppclass VersionDetails:
         Int version_major
         Int version_minor
-        String version_patch
+        Int version_patch
+        String pre_release_identifier
 
         VersionDetails() nogil except +
         VersionDetails(VersionDetails) nogil except +   #wrap-ignore

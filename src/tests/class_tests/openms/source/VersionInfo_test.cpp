@@ -69,7 +69,12 @@ START_SECTION((static VersionDetails getVersionStruct()))
   VersionInfo::VersionDetails detail;
   detail.version_major = 2;
   detail.version_minor = 4;
-  detail.version_patch = "alpha";
+  detail.version_patch = 0;
+  detail.pre_release_identifier = "alpha";
+  TEST_EQUAL(VersionInfo::getVersionStruct().version_major, detail.version_major);
+  TEST_EQUAL(VersionInfo::getVersionStruct().version_minor, detail.version_minor);
+  TEST_EQUAL(VersionInfo::getVersionStruct().version_patch, detail.version_patch);
+  TEST_EQUAL(VersionInfo::getVersionStruct().pre_release_identifier, detail.pre_release_identifier);
   TEST_EQUAL(VersionInfo::getVersionStruct() == detail, true);
 }
 END_SECTION
@@ -97,11 +102,11 @@ START_SECTION(([VersionInfo::VersionDetails] bool operator<(const VersionDetails
   VersionInfo::VersionDetails c;
   c.version_major = 1;
   c.version_minor = 9;
-  c.version_patch = "2";
+  c.version_patch = 2;
   TEST_EQUAL(detail < c, false)
-  c.version_patch = "3";
+  c.version_patch = 3;
   TEST_EQUAL(detail < c, true)
-  c.version_patch = "1";
+  c.version_patch = 1;
   TEST_EQUAL(detail < c, false)
   c.version_major = 2;
   TEST_EQUAL(detail < c, true)
@@ -114,11 +119,11 @@ START_SECTION(([VersionInfo::VersionDetails] bool operator==(const VersionDetail
   VersionInfo::VersionDetails c;
   c.version_major = 1;
   c.version_minor = 9;
-  c.version_patch = "2";
+  c.version_patch = 2;
   TEST_EQUAL(detail == c, true)
-  c.version_patch = "3";
+  c.version_patch = 3;
   TEST_EQUAL(detail == c, false)
-  c.version_patch = "1";
+  c.version_patch = 1;
   TEST_EQUAL(detail == c, false)
   c.version_major = 2;
   TEST_EQUAL(detail == c, false)
@@ -131,16 +136,18 @@ START_SECTION(([VersionInfo::VersionDetails] bool operator>(const VersionDetails
   VersionInfo::VersionDetails c;
   c.version_major = 1;
   c.version_minor = 9;
-  c.version_patch = "2";
+  c.version_patch = 2;
   TEST_EQUAL(detail > c, false)
-  c.version_patch = "3";
+  c.version_patch = 3;
   TEST_EQUAL(detail > c, false)
-  c.version_patch = "1";
+  c.version_patch = 1;
   TEST_EQUAL(detail > c, true)
-  c.version_patch = "11";
+  c.version_patch = 11;
   TEST_EQUAL(detail < c, true)
-  c.version_major = 2;
+  c.version_patch = 2;
   TEST_EQUAL(detail > c, false)
+  c.pre_release_identifier = "alpha";
+  TEST_EQUAL(detail > c, true)
 }
 END_SECTION
 
@@ -150,40 +157,42 @@ START_SECTION(([VersionInfo::VersionDetails] static VersionDetails create(const 
   VersionInfo::VersionDetails c;
   c.version_major = 1;
   c.version_minor = 9;
-  c.version_patch = "2";
+  c.version_patch = 2;
   TEST_EQUAL(detail == c, true)
 
   detail = VersionInfo::VersionDetails::create("1.9");
   c.version_major = 1;
   c.version_minor = 9;
-  c.version_patch = "";
+  c.version_patch = 0;
   TEST_EQUAL(detail == c, true)
 
   detail = VersionInfo::VersionDetails::create("1.0");
   c.version_major = 1;
   c.version_minor = 0;
-  c.version_patch = "";
+  c.version_patch = 0;
   TEST_EQUAL(detail == c, true)
 
   detail = VersionInfo::VersionDetails::create("somestring");
   c.version_major = 0;
   c.version_minor = 0;
-  c.version_patch = "";
+  c.version_patch = 0;
   TEST_EQUAL(detail == c, true)
 
   detail = VersionInfo::VersionDetails::create("1.2a.bla");
   c.version_major = 0;
   c.version_minor = 0;
-  c.version_patch = "";
+  c.version_patch = 0;
   TEST_EQUAL(detail == c, true)
 
-  detail = VersionInfo::VersionDetails::create("1.2.bla");
+  detail = VersionInfo::VersionDetails::create("1.2.1-bla");
   c.version_major = 1;
   c.version_minor = 2;
-  c.version_patch = "bla";
+  c.version_patch = 1;
+  c.pre_release_identifier = "bla";
   TEST_EQUAL(detail.version_major, c.version_major)
   TEST_EQUAL(detail.version_minor, c.version_minor)
   TEST_EQUAL(detail.version_patch, c.version_patch)
+  TEST_EQUAL(detail.pre_release_identifier, c.pre_release_identifier)
   TEST_EQUAL(detail == c, true)
 }
 END_SECTION

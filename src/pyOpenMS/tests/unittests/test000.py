@@ -4195,13 +4195,19 @@ def testVersion():
     vd = pyopenms.VersionDetails.create(b"19.2.1")
     assert vd.version_major == 19
     assert vd.version_minor == 2
-    assert vd.version_patch == b"1"
+    assert vd.version_patch == 1
+
+    vd = pyopenms.VersionDetails.create(b"19.2.1-alpha")
+    assert vd.version_major == 19
+    assert vd.version_minor == 2
+    assert vd.version_patch == 1
+    assert vd.pre_release_identifier == b"alpha"
 
     assert vd == vd
     assert not vd < vd
     assert not vd > vd
 
-    assert  isinstance(pyopenms.version.version, str)
+    assert isinstance(pyopenms.version.version, str)
 
 @report
 def testInspectInfile():

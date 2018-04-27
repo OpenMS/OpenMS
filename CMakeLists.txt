@@ -96,7 +96,7 @@ list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake/Windows")
 
 set(OPENMS_PACKAGE_VERSION_MAJOR "2")
 set(OPENMS_PACKAGE_VERSION_MINOR "4")
-set(OPENMS_PACKAGE_VERSION_PATCH "alpha")
+set(OPENMS_PACKAGE_VERSION_PATCH "0-alpha")
 
 #------------------------------------------------------------------------------
 # retrieve detailed informations on the working copy (git)
