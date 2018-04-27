@@ -4195,7 +4195,7 @@ def testVersion():
     vd = pyopenms.VersionDetails.create(b"19.2.1")
     assert vd.version_major == 19
     assert vd.version_minor == 2
-    assert vd.version_patch == 1
+    assert vd.version_patch == b"1"
 
     assert vd == vd
     assert not vd < vd
