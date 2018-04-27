@@ -310,7 +310,7 @@ public:
     {
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "String for output file is empty. Please specify a valid output file.");
     }
-   params.remove("log");
+    params.remove("log");
     params.remove("debug");
     params.remove("threads");
     params.remove("no_progress");
@@ -325,9 +325,9 @@ public:
     writeFeatureMap_(out_, algorithm.getFeatureMap());
     writeConsensusMap_(out_multiplets_, algorithm.getConsensusMap());
 
-    }
+  }
   
-  };
+};
 
 int main(int argc, const char** argv)
 {
