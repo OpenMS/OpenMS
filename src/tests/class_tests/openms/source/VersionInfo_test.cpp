@@ -146,6 +146,8 @@ START_SECTION(([VersionInfo::VersionDetails] bool operator>(const VersionDetails
   TEST_EQUAL(detail < c, true)
   c.version_patch = 2;
   TEST_EQUAL(detail > c, false)
+  
+  // note that any version with a pre-release identifier should be "less than" the release version
   c.pre_release_identifier = "alpha";
   TEST_EQUAL(detail > c, true)
 }
