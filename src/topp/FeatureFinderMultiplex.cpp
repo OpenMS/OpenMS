@@ -280,7 +280,12 @@ public:
      * handle parameters
      */
     getParameters_in_out_();
-    
+
+    if ((out_.empty()) && (out_multiplets_.empty()))
+    {
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Strings for all output files are empty. Please specify at least one output file.");
+    }
+
     /**
      * load input
      */
@@ -301,15 +306,7 @@ public:
     Param params = getParam_();
     params.remove("in");
     params.remove("out");
-    if (out_.empty())
-    {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "String for output file is empty. Please specify a valid output file.");
-    }
     params.remove("out_multiplets");
-    if (out_multiplets_.empty())
-    {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "String for output file is empty. Please specify a valid output file.");
-    }
     params.remove("log");
     params.remove("debug");
     params.remove("threads");
@@ -322,8 +319,14 @@ public:
     algorithm.run(exp, true);
     
     // write feature and consensus maps
-    writeFeatureMap_(out_, algorithm.getFeatureMap());
-    writeConsensusMap_(out_multiplets_, algorithm.getConsensusMap());
+    if (!(out_.empty()))
+		{
+    	writeFeatureMap_(out_, algorithm.getFeatureMap());
+		}
+    if (!(out_multiplets_.empty()))
+		{
+    	writeConsensusMap_(out_multiplets_, algorithm.getConsensusMap());
+		}
 
   }
   
