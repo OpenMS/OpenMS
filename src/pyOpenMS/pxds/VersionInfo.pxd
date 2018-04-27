@@ -12,8 +12,7 @@ cdef extern from "<OpenMS/CONCEPT/VersionInfo.h>" namespace "OpenMS::VersionInfo
     cdef cppclass VersionDetails:
         Int version_major
         Int version_minor
-        Int version_patch
-        # VersionDetails EMPTY
+        String version_patch
 
         VersionDetails() nogil except +
         VersionDetails(VersionDetails) nogil except +   #wrap-ignore
@@ -30,5 +29,4 @@ cdef extern from "<OpenMS/CONCEPT/VersionInfo.h>" namespace "OpenMS::VersionInfo
 cdef extern from "<OpenMS/CONCEPT/VersionInfo.h>" namespace "OpenMS::VersionInfo::VersionDetails":
 
     VersionDetails create(String) #wrap-attach:VersionDetails
-
 
