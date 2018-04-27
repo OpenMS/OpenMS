@@ -301,8 +301,16 @@ public:
     Param params = getParam_();
     params.remove("in");
     params.remove("out");
+    if (out_.empty())
+    {
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "String for output file is empty. Please specify a valid output file.");
+    }
     params.remove("out_multiplets");
-    params.remove("log");
+    if (out_multiplets_.empty())
+    {
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "String for output file is empty. Please specify a valid output file.");
+    }
+   params.remove("log");
     params.remove("debug");
     params.remove("threads");
     params.remove("no_progress");
