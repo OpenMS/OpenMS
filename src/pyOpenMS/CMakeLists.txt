@@ -463,10 +463,17 @@ endif()
 message(STATUS "Py extra args ${PY_EXTRA_ARGS}")
 
 
-add_custom_target(pyopenms_build
-          COMMAND ${PYTHON_EXECUTABLE} setup.py build_ext ${PY_EXTRA_ARGS}
-          DEPENDS pyopenms_create_cpp
-          WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS )
+IF(${CMAKE_SYSTEM_NAME} MATCHES "Linux" AND PY_NO_OUTPUT)
+  add_custom_target(pyopenms_build
+            COMMAND ${PYTHON_EXECUTABLE} setup.py build_ext ${PY_EXTRA_ARGS} 2> /dev/null
+            DEPENDS pyopenms_create_cpp
+            WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS )
+ELSE()
+  add_custom_target(pyopenms_build
+            COMMAND ${PYTHON_EXECUTABLE} setup.py build_ext ${PY_EXTRA_ARGS}
+            DEPENDS pyopenms_create_cpp
+            WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS )
+ENDIF()
 
 add_dependencies(pyopenms_build OpenMS)
 
