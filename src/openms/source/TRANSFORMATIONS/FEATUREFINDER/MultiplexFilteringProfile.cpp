@@ -135,15 +135,11 @@ namespace OpenMS
         MSExperiment::ConstIterator it_rt_picked_band_begin = exp_picked_white.RTBegin(rt - rt_band_/2);
         MSExperiment::ConstIterator it_rt_picked_band_end = exp_picked_white.RTEnd(rt + rt_band_/2);
         
-        //std::cout << "    RT = " << rt << "\n";
-        
         // loop over mz
         for (MSSpectrum::ConstIterator it_mz = it_rt_picked->begin(); it_mz != it_rt_picked->end(); ++it_mz)
         {
           double mz = it_mz->getMZ();
           MultiplexFilteredPeak peak(mz, rt, exp_picked_mapping[it_rt_picked - exp_picked_white.begin()][it_mz - it_rt_picked->begin()], it_rt_picked - exp_picked_white.begin());
-          
-          //std::cout << "        mz = " << mz << "     mz idx (white) = " << (it_mz - it_rt_picked->begin()) << "     mz idx (original) = " << exp_picked_mapping[it_rt_picked - exp_picked_white.begin()][it_mz - it_rt_picked->begin()] << "\n";
           
           if (!(filterPeakPositions_(it_mz, exp_picked_mapping, exp_picked_white.begin(), it_rt_picked_band_begin, it_rt_picked_band_end, pattern, peak)))
           {
@@ -157,8 +153,6 @@ namespace OpenMS
           //double rt_peak = peak.getRT();
           double mz_peak = peak.getMZ();
 
-          //std::cout << "        mz = " << mz << " (" << peak_min << ", " << peak_max << ")\n";
-          
           std::multimap<size_t, MultiplexSatelliteCentroided > satellites = peak.getSatellites();
           
           // Arrangement of peaks looks promising. Now scan through the spline fitted profile data around the peak i.e. from peak boundary to peak boundary.
@@ -224,6 +218,11 @@ namespace OpenMS
         }
         
       }
+      
+      // write filtered peaks to debug output
+      std::stringstream debug_out;
+      debug_out << "filter_result_" << pattern_idx << ".consensusXML";
+      result.writeDebugOutput(exp_picked_, debug_out.str());
       
       // add results of this pattern to list
       filter_results.push_back(result);
