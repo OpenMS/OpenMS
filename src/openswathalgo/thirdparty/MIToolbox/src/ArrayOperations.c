@@ -89,7 +89,7 @@ double **generateDoubleIndices(double *featureMatrix, uint noOfSamples, uint noO
 }
 
 int maxState(uint *vector, int vectorLength) {
-    int i, max;
+    uint i, max;
     max = 0;
     for (i = 0; i < vectorLength; i++) {
         if (vector[i] > max) {
