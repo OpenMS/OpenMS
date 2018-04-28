@@ -123,6 +123,8 @@ protected:
     registerIntOption_("filter_by_convex_hulls", "<num>", 2, "Features have to have at least x MassTraces", false);
 
     registerDoubleOption_("transition_threshold", "<num>", 10, "Further transitions need at least x% of the maximum intensity (default 10%)", false);
+
+    registerFlag_("use_known_unknowns", "Use features which have no identification as well", false);
   }
 
   // map precursors to closest feature and retrieve annotated metadata (if possible)
@@ -247,6 +249,7 @@ protected:
     String out = getStringOption_("out");
     unsigned int hull_size_filter = getIntOption_("filter_by_convex_hulls");
     double transition_threshold = getDoubleOption_("transition_threshold");
+    bool use_known_unknowns = getFlag_("use_known_unknowns");
 
     //load mzML
     MzMLFile mzml;
@@ -295,6 +298,9 @@ protected:
         description = min_distance_feature->getPeptideIdentifications()[0].getHits()[0].getMetaValue("description");
         sumformula = min_distance_feature->getPeptideIdentifications()[0].getHits()[0].getMetaValue("chemical_formula");
       }
+
+      // check if known unknown should be used
+      if (description == "UNKNOWN" && sumformula == "UNKNOWN" && !use_known_unknowns) { continue; }
 
       double spectrum_rt = 0.0;
       double highest_precursor_mz = 0.0;
