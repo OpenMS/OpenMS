@@ -252,7 +252,7 @@ namespace OpenMS
         {
           if (sub_it->metaValueExists("FeatureLevel") && sub_it->getMetaValue("FeatureLevel") == "MS2")
           {
-            std::string total_mi = "NULL";
+            std::string total_mi = "NULL"; // total_mi is not guaranteed to be set
             if (!sub_it->getMetaValue("total_mi").isEmpty())
             {
               total_mi = sub_it->getMetaValue("total_mi").toString();
@@ -267,7 +267,7 @@ namespace OpenMS
           }
           else if (sub_it->metaValueExists("FeatureLevel") && sub_it->getMetaValue("FeatureLevel") == "MS1")
           {
-            std::string var_ms1_mi_score = "NULL";
+            std::string var_ms1_mi_score = "NULL"; // var_ms1_mi_score is not guaranteed to be set
             if (!feature_it->getMetaValue("var_ms1_mi_score").isEmpty())
             {
               var_ms1_mi_score = feature_it->getMetaValue("var_ms1_mi_score").toString();
@@ -295,6 +295,7 @@ namespace OpenMS
                     << feature_it->getMetaValue("leftWidth") << ", " 
                     << feature_it->getMetaValue("rightWidth") << "); ";
 
+        // these variables are not guaranteed to be set
         std::string var_elution_model_fit_score = "NULL", var_sonar_lag = "NULL", var_sonar_shape = "NULL", var_sonar_log_sn = "NULL", var_sonar_log_diff = "NULL", var_sonar_log_trend = "NULL", var_sonar_rsq = "NULL", total_mi = "NULL", var_mi_score = "NULL", var_mi_weighted_score = "NULL", var_mi_ratio_score = "NULL";
 
         if (!feature_it->getMetaValue("var_elution_model_fit_score").isEmpty())
