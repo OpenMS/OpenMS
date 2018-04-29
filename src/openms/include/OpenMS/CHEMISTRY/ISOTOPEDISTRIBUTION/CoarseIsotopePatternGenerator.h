@@ -94,12 +94,6 @@ namespace OpenMS
     
     void clear();
     //@}
-    /// equality operator, returns true if the @p isotope_distribution is identical to this, false else
-    // bool operator==(const CoarseIsotopePatternGenerator& isotope_distribution) const;
-
-    /// inequality operator, returns true if the @p isotope_distribution differs from this, false else
-    
-
 
     /**
       * @brief Creates an isotope distribution from an empirical sum formula
