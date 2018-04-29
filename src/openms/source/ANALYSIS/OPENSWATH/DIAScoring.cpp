@@ -206,7 +206,7 @@ namespace OpenMS
 
   /// Precursor isotope scores
   void DIAScoring::dia_ms1_isotope_scores(double precursor_mz, SpectrumPtrType spectrum, size_t charge_state,
-                                          double& isotope_corr, double& isotope_overlap, std::string sum_formula)
+                                          double& isotope_corr, double& isotope_overlap, const std::string& sum_formula)
   {
     // collect the potential isotopes of this peak
     double max_ratio;
@@ -292,8 +292,9 @@ namespace OpenMS
   }
 
   void DIAScoring::diaIsotopeScoresSub_(const std::vector<TransitionType>& transitions, SpectrumPtrType spectrum,
-                                          std::map<std::string, double>& intensities, //relative intensities
-                                          double& isotope_corr, double& isotope_overlap)
+                                        std::map<std::string, double>& intensities, //relative intensities
+                                        double& isotope_corr,
+                                        double& isotope_overlap)
   {
     std::vector<double> isotopes_int;
     double max_ratio;
@@ -301,7 +302,7 @@ namespace OpenMS
     for (Size k = 0; k < transitions.size(); k++)
     {
       isotopes_int.clear();
-      String native_id = transitions[k].getNativeID();
+      const String native_id = transitions[k].getNativeID();
       double rel_intensity = intensities[native_id];
 
       // If no charge is given, we assume it to be 1
@@ -382,8 +383,9 @@ namespace OpenMS
   }
 
   double DIAScoring::scoreIsotopePattern_(double product_mz,
-                                          const std::vector<double>& isotopes_int, int putative_fragment_charge,
-                                          std::string sum_formula)
+                                          const std::vector<double>& isotopes_int,
+                                          int putative_fragment_charge,
+                                          const std::string& sum_formula)
   {
     OPENMS_PRECONDITION(putative_fragment_charge != 0, "Charge needs to be set"); // charge can be positive and negative
 

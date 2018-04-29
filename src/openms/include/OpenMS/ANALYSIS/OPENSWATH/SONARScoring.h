@@ -67,9 +67,9 @@ public:
     //
 
     void computeSonarScores(OpenSwath::IMRMFeature* imrmfeature,
-                      const std::vector<OpenSwath::LightTransition> & transitions,
-                      std::vector<OpenSwath::SwathMap>& swath_maps,
-                      OpenSwath_Scores & scores);
+                            const std::vector<OpenSwath::LightTransition> & transitions,
+                            const std::vector<OpenSwath::SwathMap>& swath_maps,
+                            OpenSwath_Scores & scores);
 
 private:
 

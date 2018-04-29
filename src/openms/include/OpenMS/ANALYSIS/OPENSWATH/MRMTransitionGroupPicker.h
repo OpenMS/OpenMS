@@ -213,8 +213,11 @@ public:
 
     /// Create feature from a vector of chromatograms and a specified peak
     template <typename SpectrumT, typename TransitionT>
-    MRMFeature createMRMFeature(MRMTransitionGroup<SpectrumT, TransitionT>& transition_group,
-                                std::vector<SpectrumT>& picked_chroms, std::vector<SpectrumT>& smoothed_chroms, const int chr_idx, const int peak_idx)
+    MRMFeature createMRMFeature(const MRMTransitionGroup<SpectrumT, TransitionT>& transition_group,
+                                std::vector<SpectrumT>& picked_chroms,
+                                const std::vector<SpectrumT>& smoothed_chroms,
+                                const int chr_idx,
+                                const int peak_idx)
     {
       OPENMS_PRECONDITION(transition_group.isInternallyConsistent(), "Consistent state required")
       OPENMS_PRECONDITION(transition_group.chromatogramIdsMatch(), "Chromatogram native IDs need to match keys in transition group")
@@ -555,7 +558,7 @@ public:
     }
 
     /// Find largest peak in a vector of chromatograms
-    void findLargestPeak(std::vector<MSChromatogram >& picked_chroms, int& chr_idx, int& peak_idx);
+    void findLargestPeak(const std::vector<MSChromatogram >& picked_chroms, int& chr_idx, int& peak_idx);
 
     /**
       @brief Given a vector of chromatograms, find the indices of the chromatogram
@@ -579,7 +582,7 @@ protected:
       @brief Select matching precursor or fragment ion chromatogram
     */
     template <typename SpectrumT, typename TransitionT>
-    const SpectrumT& selectChromHelper_(MRMTransitionGroup<SpectrumT, TransitionT>& transition_group, String native_id)
+    const SpectrumT& selectChromHelper_(const MRMTransitionGroup<SpectrumT, TransitionT>& transition_group, const String& native_id)
     {
       if (transition_group.hasChromatogram(native_id))
       {
@@ -612,11 +615,13 @@ protected:
 
     */
     template <typename SpectrumT, typename TransitionT>
-    double computeQuality_(MRMTransitionGroup<SpectrumT, TransitionT>& transition_group,
-                           std::vector<SpectrumT>& picked_chroms, const int chr_idx,
-                           const double best_left, const double best_right, String& outlier)
+    double computeQuality_(const MRMTransitionGroup<SpectrumT, TransitionT>& transition_group,
+                           const std::vector<SpectrumT>& picked_chroms,
+                           const int chr_idx,
+                           const double best_left,
+                           const double best_right,
+                           String& outlier)
     {
-
       // Resample all chromatograms around the current estimated peak and
       // collect the raw intensities. For resampling, use a bit more on either
       // side to correctly identify shoulders etc.
@@ -762,7 +767,7 @@ protected:
       (in this case), then we fall back to the "consensus" (a median here).
     */
     template <typename SpectrumT>
-    void recalculatePeakBorders_(std::vector<SpectrumT>& picked_chroms, double& best_left, double& best_right, double max_z)
+    void recalculatePeakBorders_(const std::vector<SpectrumT>& picked_chroms, double& best_left, double& best_right, double max_z)
     {
       // 1. Collect all seeds that lie within the current seed 
       // - Per chromatogram only the most intense one counts, otherwise very

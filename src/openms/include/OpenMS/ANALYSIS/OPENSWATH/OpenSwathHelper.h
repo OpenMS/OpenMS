@@ -54,18 +54,32 @@ public:
       @brief Select transitions between lower and upper and write them into the new TargetedExperiment
 
       Version for the OpenMS TargetedExperiment
+
+      @param[in] targeted_exp Transition list for selection
+      @param[out] selected_transitions Selected transitions for SWATH window
+      @param[in] min_upper_edge_dist Distance in Th to the upper edge
+      @param[in] lower Lower edge of SWATH window (in Th)
+      @param[in] upper Upper edge of SWATH window (in Th)
     */
     static void selectSwathTransitions(const OpenMS::TargetedExperiment& targeted_exp,
-                                       OpenMS::TargetedExperiment& transition_exp_used, double min_upper_edge_dist,
+                                       OpenMS::TargetedExperiment& selected_transitions,
+                                       double min_upper_edge_dist,
                                        double lower, double upper);
 
     /**
       @brief Select transitions between lower and upper and write them into the new TargetedExperiment
 
       Version for the LightTargetedExperiment
+
+      @param[in] targeted_exp Transition list for selection
+      @param[out] selected_transitions Selected transitions for SWATH window
+      @param[in] min_upper_edge_dist Distance in Th to the upper edge
+      @param[in] lower Lower edge of SWATH window (in Th)
+      @param[in] upper Upper edge of SWATH window (in Th)
     */
     static void selectSwathTransitions(const OpenSwath::LightTargetedExperiment& targeted_exp,
-                                       OpenSwath::LightTargetedExperiment& transition_exp_used, double min_upper_edge_dist,
+                                       OpenSwath::LightTargetedExperiment& selected_transitions,
+                                       double min_upper_edge_dist,
                                        double lower, double upper);
 
     /**
@@ -79,6 +93,10 @@ public:
        - all scans need to have the same precursor isolation window (otherwise
          extracting an XIC from them makes no sense)
 
+      @param[in] swath_map Input SWATH map to check
+      @param[in] lower Lower edge of SWATH window (in Th)
+      @param[in] upper Upper edge of SWATH window (in Th)
+
       @throw throws IllegalArgument exception if the sanity checks fail.
     */
     static void checkSwathMap(const OpenMS::PeakMap& swath_map,
@@ -86,10 +104,20 @@ public:
 
     /**
       @brief Check the map and select transition in one function
+
+      Performs sanity check for input experiment and selects appropriate
+      transitions for the provided SWATH MS2 map.
+
+      @param[in] exp Input SWATH map to check
+      @param[in] targeted_exp Transition list for selection
+      @param[out] selected_transitions Selected transitions for SWATH window
+      @param[in] min_upper_edge_dist Distance in Th to the upper edge
     */
     template <class TargetedExperimentT>
     static bool checkSwathMapAndSelectTransitions(const OpenMS::PeakMap& exp,
-                                                  const TargetedExperimentT& targeted_exp, TargetedExperimentT& transition_exp_used, double min_upper_edge_dist)
+                                                  const TargetedExperimentT& targeted_exp,
+                                                  TargetedExperimentT& selected_transitions,
+                                                  double min_upper_edge_dist)
     {
       if (exp.size() == 0 || exp[0].getPrecursors().size() == 0)
       {
@@ -101,12 +129,11 @@ public:
       }
       double upper, lower;
       OpenSwathHelper::checkSwathMap(exp, lower, upper);
-      OpenSwathHelper::selectSwathTransitions(targeted_exp, transition_exp_used, min_upper_edge_dist, lower, upper);
-      if (transition_exp_used.getTransitions().size() == 0)
+      OpenSwathHelper::selectSwathTransitions(targeted_exp, selected_transitions, min_upper_edge_dist, lower, upper);
+      if (selected_transitions.getTransitions().size() == 0)
       {
         std::cerr << "WARNING: For File " << exp.getLoadedFilePath()
                   << " no transition were within the precursor window of " << lower << " to " << upper
-                  << "I will move to the next map."
                   << std::endl;
         return false;
       }
@@ -117,20 +144,22 @@ public:
     /**
       @brief Estimate the retention time span of a targeted experiment (returns min/max values as a pair)
     */
-    static std::pair<double,double> estimateRTRange(OpenSwath::LightTargetedExperiment & exp);
+    static std::pair<double,double> estimateRTRange(const OpenSwath::LightTargetedExperiment & exp);
 
     /**
       @brief Simple method to extract the best Feature for each transition group (e.g. for RT alignment)
 
-      @param transition_group_map Input data containing the picked and scored map
+      @param[in] transition_group_map Input data containing the picked and scored map
       @param useQualCutoff Whether to apply a quality cutoff to the data
-      @param qualCutoff When applying a quality cutoff, what it should be
+      @param qualCutoff What quality cutoff should be applied (all data above the cutoff will be kept)
 
       @return Result of the best scoring peaks (stored as map of peptide id and RT)
 
     */
-    static std::map<std::string, double> simpleFindBestFeature(
-        OpenMS::MRMFeatureFinderScoring::TransitionGroupMapType & transition_group_map, 
-        bool useQualCutoff = false, double qualCutoff = 0.0);
+    static std::map<std::string, double> simpleFindBestFeature(const OpenMS::MRMFeatureFinderScoring::TransitionGroupMapType & transition_group_map, 
+                                                               bool useQualCutoff = false,
+                                                               double qualCutoff = 0.0);
   };
-}
+
+} // namespace OpenMS
+
