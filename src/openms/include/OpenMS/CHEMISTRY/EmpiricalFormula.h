@@ -168,12 +168,12 @@ public:
     /**
       @brief returns the isotope distribution of the formula
       The details of the calculation of the isotope distribution
-      are described in the doc to the IsotopeDistribution class.
+      are described in the doc to the CoarseIsotopePatternGenerator class.
 
-      @param method: the maximum isotope which is considered, if 0 all are reported
+      @param method: the method that will be used for the calculation of the IsotopeDistribution 
     */
     IsotopeDistribution getIsotopeDistribution(const IsotopePatternGenerator& method) const;    
-
+    
     /**
       @brief returns the fragment iUsotope distribution of this given a precursor formula
       and conditioned on a set of isolated precursor isotopes.
