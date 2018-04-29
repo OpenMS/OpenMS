@@ -46,28 +46,25 @@ cdef extern from "<OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopeDistribution.h>" 
         
         void merge(double, double) nogil except +
 
-
 cdef extern from "<OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopePatternGenerator.h>" namespace "OpenMS":
+     cdef cppclass IsotopePatternGenerator:
+          # wrap-ignore
+          # ABSTRACT class
+          # no-pxd import 
+          IsotopePatternGenerator() nogil except +
+          IsotopePatternGenerator(double probability_cutoff) nogil except +
+          # virtual void run(EmpiricalFormula) # wrap-ignore
 
-    cdef cppclass IsotopePatternGenerator:
 
-         # wrap-ignore
-         # ABSTRACT class
-         # no-pxd-import
-         IsotopePatternGenerator() 
-         IsotopePatternGenerator(double probability_cutoff) nogil except + 
-         IsotopePatternGenerator(IsotopeDistribution) nogil except + # wrap-ignore
-         # virtual void run(EmpiricalFormula&) = 0; # wrap-ignore
+cdef extern from "<OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h>" namespace "OpenMS":
 
-cdef extern from "<OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopeDistribution.h>" namespace "OpenMS":
-
-    cdef cppclass CoarseIsotopeDistribution(IsotopePatternGenerator):
+    cdef cppclass CoarseIsotopePatternGenerator(IsotopePatternGenerator):
         # wrap-inherits:
         #  IsotopePatternGenerator
 
-        CoarseIsotopeDistribution() nogil except + 
-        CoarseIsotopeDistribution(Size max_isotope) nogil except +
-        CoarseIsotopeDistribution(IsotopeDistribution) nogil except + # wrap-ignore
+        CoarseIsotopePatternGenerator() nogil except + 
+        CoarseIsotopePatternGenerator(Size max_isotope) nogil except +
+
 
         IsotopeDistribution run(EmpiricalFormula) nogil except +
         
