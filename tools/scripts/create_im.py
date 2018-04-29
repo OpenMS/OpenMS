@@ -66,8 +66,8 @@ for rt_idx in range(NR_RT_SAMPLES):
 for rt_idx in range(NR_RT_SAMPLES):
     # Base intensity is a single peak at 25 RT with 100 *i intensity spread across ion mobility scans
     # Second base intensity is a single peak at 10 RT with 100 *i intensity spread across ion mobility scans
-    base_int = 100 - abs(25 - rt_idx)*(100)/25.0 
-    base_int_second = 100 - abs(10 - rt_idx)*(100)/40.0 
+    base_int = 100 - abs(25 - rt_idx)*(100)/25.0
+    base_int_second = 100 - abs(10 - rt_idx)*(100)/40.0
     print("base int", base_int, abs(25 - rt_idx)*(100)/25.0  )
 
     allmz = []
@@ -145,5 +145,5 @@ pf = f.getOptions()
 pf.setCompression(True)
 f.setOptions(pf)
 exp.sortSpectra()
-f.store('output.mzML', exp) 
+f.store('output.mzML', exp)
 
