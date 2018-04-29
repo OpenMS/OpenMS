@@ -41,7 +41,6 @@ from __future__ import print_function
 # Create simulated ion mobility scans for testing
 
 from pyopenms import *
-import numpy as np, matplotlib.pyplot as plt
 
 exp = MSExperiment()
 # print(dir(exp))

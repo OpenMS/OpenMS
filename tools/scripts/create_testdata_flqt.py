@@ -1,6 +1,5 @@
 
 import pyopenms
-import sys
 """
 Producing the test data for TOPP_FeatureLinkerUnlabeledQT_5 and TOPP_FeatureLinkerUnlabeledQT_6
 """

@@ -46,8 +46,8 @@ from PythonCheckerLib import create_pxd_file_map
 
 # Try non-standard libs
 try:
-    import breathe.parser
     import yaml
+    from breathe.parser.eoxygen.compound import parse as doxygen_parse
     from Cython.Compiler.Nodes import CEnumDefNode, CppClassNode, CTypeDefNode, CVarDefNode, CImportStatNode, CDefExternNode
     from autowrap.PXDParser import CppClassDecl, CTypeDefDecl, MethodOrAttributeDecl, EnumDecl
 except ImportError:

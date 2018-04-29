@@ -28,7 +28,6 @@ import pickle
 import os.path
 import os
 import shutil
-import time
 
 def chunkIt(seq, num):
     avg = len(seq) / float(num)
