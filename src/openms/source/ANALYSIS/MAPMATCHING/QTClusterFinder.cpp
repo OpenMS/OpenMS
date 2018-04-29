@@ -104,7 +104,7 @@ namespace OpenMS
          map_it != input_maps.end(); ++map_it)
     {
       for (typename MapType::const_iterator feat_it = map_it->begin();
-          feat_it != map_it->end(); feat_it++)
+          feat_it != map_it->end(); ++feat_it)
       {
         massrange.push_back(feat_it->getMZ());
       }

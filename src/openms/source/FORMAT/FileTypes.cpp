@@ -115,6 +115,7 @@ namespace OpenMS
     targetMap[FileTypes::PNG] = "png";
     targetMap[FileTypes::XMASS] = "fid";
     targetMap[FileTypes::TSV] = "tsv";
+    targetMap[FileTypes::MZTAB] = "mzTab";
     targetMap[FileTypes::PEPLIST] = "peplist";
     targetMap[FileTypes::HARDKLOER] = "hardkloer";
     targetMap[FileTypes::KROENIK] = "kroenik";
