@@ -87,8 +87,12 @@ for d in decls:
 # as setup.py relies on it as well.
 pxd_files_chunk = chunkIt(list(pxd_decl_mapping.keys()), int(PY_NUM_MODULES))
 print (len(pxd_files_chunk), PY_NUM_MODULES)
-assert (len(pxd_files_chunk) == int(PY_NUM_MODULES)), "Internal Error: number of chunks not equal to number of modules"
-assert (sum( [len(ch) for ch in pxd_files_chunk]) == len(pxd_decl_mapping)), "Internal Error: chunking lost files"
+
+# Sanity checks: we should find all of our chunks and not have lost files
+if len(pxd_files_chunk) != int(PY_NUM_MODULES):
+    raise Exception("Internal Error: number of chunks not equal to number of modules")
+if sum([len(ch) for ch in pxd_files_chunk]) != len(pxd_decl_mapping)
+    raise Exception("Internal Error: chunking lost files")
 
 mnames = ["pyopenms_%s" % (k+1) for k in range(int(PY_NUM_MODULES))]
 allDecl_mapping = {}

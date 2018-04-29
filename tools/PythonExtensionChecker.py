@@ -166,7 +166,8 @@ def handle_member_definition(mdef, pxd_class, cnt):
             py_return_type = [str(d.result_type) for d in py_methods]
             if mdef.definition == mdef.name:
                 # Constructor, no return type -> all is good
-                assert len(c_return_type) == 0
+                if len(c_return_type) != 0:
+                    raise AssertionError()
                 tres.setPassed(True)
             elif "void" in py_return_type and not "void" in c_return_type:
                 tres.setPassed(False)
