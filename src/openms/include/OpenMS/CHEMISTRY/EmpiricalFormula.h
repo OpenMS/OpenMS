@@ -172,16 +172,7 @@ public:
 
       @param method: the maximum isotope which is considered, if 0 all are reported
     */
-    IsotopeDistribution getIsotopeDistribution(const IsotopePatternGenerator& method) const;
-
-
-    /**
-       @brief formula's isotope distribution using the CoarseIsotopePatternGenerator
-       This is used as a wrapper for the pyOpenMS
-     */
-    IsotopeDistribution getIsotopeDistribution() const;
-    
-
+    IsotopeDistribution getIsotopeDistribution(const IsotopePatternGenerator& method) const;    
 
     /**
       @brief returns the fragment iUsotope distribution of this given a precursor formula
