@@ -321,6 +321,11 @@ private:
     /// median of trace intensities
     double computeMedianIntensity_() const;
 
+    /// calculate x coordinate of start/end indexes at half_max
+    /// calculation is based on (yB - yA) / (xB - xA) = (yC - yA) / (xC - xA)
+    /// solve for xC: xC = xA + ((yC - yA) * (xB - xA) / (yB - yA))
+    double calculateXCoordinateAtHalfMax_(double xA, double xB, double yA, double yB, double fwhm_int) const;
+
     /// Actual MassTrace container for doing centroid calculation, peak width estimation etc.
     std::vector<PeakType> trace_peaks_;
 
