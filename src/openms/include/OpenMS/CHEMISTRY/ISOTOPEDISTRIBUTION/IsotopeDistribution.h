@@ -231,7 +231,7 @@ public:
     /// @name Data Access Operators
     //@{
     /// operator which access a cell of the distribution and wraps it in SpectrumFragment struct
-    Peak1D& operator[](const UInt64& index){ return distribution_[index];}
+    Peak1D& operator[](const Size& index){ return distribution_[index];}
 
     //@}
 
