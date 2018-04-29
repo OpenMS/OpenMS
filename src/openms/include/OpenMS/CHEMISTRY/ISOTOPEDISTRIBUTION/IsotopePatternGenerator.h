@@ -44,7 +44,12 @@ namespace OpenMS
   class EmpiricalFormula;
 
   /** 
-      @brief TODO explain what this is doing and how it relates to other fxns in this class
+      @brief Provides an interface for different isotope pattern generator methods.
+      
+      The IsotopePatternGenerator interface  allows the developer integrate various 
+      isotope pattern generator methods in the OpenMS code. It provides a run() method 
+      that generates but  does not hold any generated isotope distribution data in 
+      the class. Instead it returns an IsotopeDistribution to the caller.
 
    */
   class OPENMS_DLLAPI IsotopePatternGenerator
