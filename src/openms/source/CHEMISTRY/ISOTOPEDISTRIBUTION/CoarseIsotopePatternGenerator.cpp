@@ -75,7 +75,7 @@ namespace OpenMS
   }
 
 
-  IsotopeDistribution CoarseIsotopePatternGenerator::run(const EmpiricalFormula& formula) override const
+  IsotopeDistribution CoarseIsotopePatternGenerator::run(const EmpiricalFormula& formula) const override
   {
     IsotopeDistribution result;
 

@@ -102,7 +102,7 @@ namespace OpenMS
       * of atoms from that element and sums up the result.
       *
       **/
-    IsotopeDistribution run(const EmpiricalFormula&) override const;
+    IsotopeDistribution run(const EmpiricalFormula&) const override;
 
     /**
        @brief Estimate Peptide Isotopedistribution from weight and number of isotopes that should be reported
