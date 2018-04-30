@@ -103,6 +103,13 @@ namespace OpenMS
         return;
       }
     }
+    else
+    {
+      // Behavior if its neither (user may have clicked on an empty tree or a
+      // dummy entry as drawn by SpectraViewWidget::updateEntries)
+      QMessageBox::critical(w, "Error", "Cannot open data that is neither chromatogram nor spectrum data. Aborting!");
+      return;
+    }
 
     w->canvas()->activateSpectrum(index);
 
