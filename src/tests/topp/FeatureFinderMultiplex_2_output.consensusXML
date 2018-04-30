@@ -1,33 +1,39 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
-<?xml-stylesheet type="text/xsl" href="file:////nfs/wsi/abi/old-data/sachsenb/OpenMS_IDE/share/OpenMS/XSL/ConsensusXML.xsl"?>
-<consensusXML version="1.7" id="cm_5233264595117471314" experiment_type="labeled_MS1" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/ConsensusXML_1_7.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-	<UserParam type="stringList" name="spectra_data" value="[file:///20111214_EXQ0_NiKu_SA_HeLa_L-H_1-5_01.raw]"/>
+<?xml-stylesheet type="text/xsl" href="file:////Users/lars/Code/OpenMS-develop/OpenMS/share/OpenMS/XSL/ConsensusXML.xsl"?>
+<consensusXML version="1.7" id="cm_6408859317243173796" experiment_type="labeled_MS1" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/ConsensusXML_1_7.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 	<mapList count="2">
-		<map id="0" name="FeatureFinderMultiplex_4.tmp" label="no_label" size="3">
+		<map id="0" name="FeatureFinderMultiplex_2_output.consensusXML" label="no_label" size="4">
 		</map>
-		<map id="1" name="FeatureFinderMultiplex_4.tmp" label="Lys8Arg10" size="3">
+		<map id="1" name="FeatureFinderMultiplex_2_output.consensusXML" label="Lys8Arg10" size="4">
 		</map>
 	</mapList>
 	<consensusElementList>
-		<consensusElement id="e_4835329514588776807" quality="1" charge="2">
-			<centroid rt="1791.17380504536" mz="815.907472334338" it="6.71254e+08"/>
+		<consensusElement id="e_474525871221756682" quality="1" charge="3">
+			<centroid rt="1789.60347016162" mz="830.443470890996" it="908986"/>
 			<groupedElementList>
-				<element map="0" id="0" rt="1791.17380504536" mz="815.907472334338" it="3.03426e+08" charge="2"/>
-				<element map="1" id="0" rt="1790.99392651759" mz="819.914932086195" it="1.03908e+09" charge="2"/>
+				<element map="0" id="0" rt="1789.60347016162" mz="830.443470890996" it="908986" charge="3"/>
+				<element map="1" id="0" rt="1789.36138" mz="833.779044601332" it="47853.9" charge="3"/>
 			</groupedElementList>
 		</consensusElement>
-		<consensusElement id="e_17749660155506638460" quality="1" charge="2">
-			<centroid rt="1792.26259891743" mz="827.402992847177" it="7.064e+07"/>
+		<consensusElement id="e_12999979801269632061" quality="1" charge="2">
+			<centroid rt="1791.32678898787" mz="827.402216566649" it="8.17825e+08"/>
 			<groupedElementList>
-				<element map="0" id="0" rt="1792.26259891743" mz="827.402992847177" it="3.95515e+07" charge="2"/>
-				<element map="1" id="0" rt="1792.03824698337" mz="831.409701579247" it="1.01728e+08" charge="2"/>
+				<element map="0" id="0" rt="1791.32678898787" mz="827.402216566649" it="8.17825e+08" charge="2"/>
+				<element map="1" id="0" rt="1790.86968028088" mz="831.409991007326" it="1.31735e+09" charge="2"/>
 			</groupedElementList>
 		</consensusElement>
-		<consensusElement id="e_7804704400743266335" quality="1" charge="1">
-			<centroid rt="1793.73208132981" mz="841.478013248002" it="1.05662e+08"/>
+		<consensusElement id="e_17413765565443951891" quality="1" charge="2">
+			<centroid rt="1791.33683335845" mz="815.907842856672" it="3.00524e+09"/>
 			<groupedElementList>
-				<element map="0" id="0" rt="1793.73208132981" mz="841.478013248002" it="4.81236e+07" charge="1"/>
-				<element map="1" id="0" rt="1793.55442622676" mz="849.492524214813" it="1.632e+08" charge="1"/>
+				<element map="0" id="0" rt="1791.33683335845" mz="815.907842856672" it="3.00524e+09" charge="2"/>
+				<element map="1" id="0" rt="1791.13951130889" mz="819.915254361739" it="1.26959e+09" charge="2"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_2927519776102075938" quality="1" charge="1">
+			<centroid rt="1792.8285208535" mz="841.478004706224" it="5.9253e+08"/>
+			<groupedElementList>
+				<element map="0" id="0" rt="1792.8285208535" mz="841.478004706224" it="5.9253e+08" charge="1"/>
+				<element map="1" id="0" rt="1792.49962264938" mz="849.49265083165" it="5.65415e+07" charge="1"/>
 			</groupedElementList>
 		</consensusElement>
 	</consensusElementList>
