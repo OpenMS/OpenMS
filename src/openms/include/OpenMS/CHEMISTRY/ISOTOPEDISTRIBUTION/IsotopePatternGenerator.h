@@ -27,41 +27,49 @@
 // OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
+// --------------------------------------------------------------------------
+// $Maintainer: Timo Sachsenberg $
+// $Authors: Nikos Patikos $
+// --------------------------------------------------------------------------
+//
 
-//! [EmpiricalFormula]
+#ifndef OPENMS_CHEMISTRY_ISOTOPEDISTRIBUTION_ISOTOPEPATTERNGENERATOR_H
+#define OPENMS_CHEMISTRY_ISOTOPEDISTRIBUTION_ISOTOPEPATTERNGENERATOR_H
 
-#include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
-#include <OpenMS/CHEMISTRY/ElementDB.h>
-#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h>
-#include <iostream>
 
-using namespace OpenMS;
-using namespace std;
+#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopeDistribution.h>
 
-Int main()
+namespace OpenMS
 {
-  EmpiricalFormula methanol("CH3OH"), water("H2O");
+  class EmpiricalFormula;
 
-  // sum up empirical formula
-  EmpiricalFormula sum = methanol + water;
+  /** 
+      @brief Provides an interface for different isotope pattern generator methods.
+      
+      The IsotopePatternGenerator interface  allows the developer integrate various 
+      isotope pattern generator methods in the OpenMS code. It provides a run() method 
+      that generates but  does not hold any generated isotope distribution data in 
+      the class. Instead it returns an IsotopeDistribution to the caller.
 
-  // get element from ElementDB
-  const Element * carbon = ElementDB::getInstance()->getElement("Carbon");
-
-  // output number of carbon atoms and average weight 
-  cout << sum << " "
-       << sum.getNumberOf(carbon) << " "
-       << sum.getAverageWeight() << endl;
-
-  // extract the isotope distribution
-  IsotopeDistribution iso_dist = sum.getIsotopeDistribution(CoarseIsotopePatternGenerator(3));
-
-  for (const auto& it : iso_dist)
+   */
+  class OPENMS_DLLAPI IsotopePatternGenerator
   {
-    cout << it.getMZ() << " " << it.getIntensity() << endl;
-  }
+ public:
+    IsotopePatternGenerator();
+    IsotopePatternGenerator(double probability_cutoff);
+    
+    /** 
+        @brief interface that is being used by the Isotope Pattern Generator methods.
+        
+        Method that calculates the isotope distribution for the given formula.
 
-  return 0;
-} //end of main
+     */
+    virtual IsotopeDistribution run(const EmpiricalFormula&) const = 0;
+    virtual ~IsotopePatternGenerator();
 
-//! [EmpiricalFormula]
+ protected:
+    double min_prob_;
+  };
+}
+
+#endif

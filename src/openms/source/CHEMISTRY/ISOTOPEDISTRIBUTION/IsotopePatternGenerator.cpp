@@ -27,41 +27,35 @@
 // OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
+// --------------------------------------------------------------------------
+// $Maintainer: Nikos Patikos $
+// $Authors: Nikos Patikos $
+// --------------------------------------------------------------------------
+//
 
-//! [EmpiricalFormula]
+#include <OpenMS/CHEMISTRY/Element.h>
+#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopePatternGenerator.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 
-#include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
-#include <OpenMS/CHEMISTRY/ElementDB.h>
-#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h>
-#include <iostream>
+#include <cmath>
+#include <fstream>
 
-using namespace OpenMS;
 using namespace std;
 
-Int main()
+namespace OpenMS
 {
-  EmpiricalFormula methanol("CH3OH"), water("H2O");
-
-  // sum up empirical formula
-  EmpiricalFormula sum = methanol + water;
-
-  // get element from ElementDB
-  const Element * carbon = ElementDB::getInstance()->getElement("Carbon");
-
-  // output number of carbon atoms and average weight 
-  cout << sum << " "
-       << sum.getNumberOf(carbon) << " "
-       << sum.getAverageWeight() << endl;
-
-  // extract the isotope distribution
-  IsotopeDistribution iso_dist = sum.getIsotopeDistribution(CoarseIsotopePatternGenerator(3));
-
-  for (const auto& it : iso_dist)
+  IsotopePatternGenerator::IsotopePatternGenerator(double probability_cutoff) :
+    min_prob_(probability_cutoff)
   {
-    cout << it.getMZ() << " " << it.getIntensity() << endl;
   }
 
-  return 0;
-} //end of main
+  IsotopePatternGenerator::IsotopePatternGenerator() :
+    min_prob_(1e-15)
+  {
+  }
+  
+  IsotopePatternGenerator::~IsotopePatternGenerator()
+  {
+  }
 
-//! [EmpiricalFormula]
+}
