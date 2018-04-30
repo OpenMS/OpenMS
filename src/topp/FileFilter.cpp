@@ -364,8 +364,7 @@ protected:
     registerStringList_("f_and_c:remove_meta", "<name> 'lt|eq|gt' <value>", StringList(), "Expects a 3-tuple (=3 entries in the list), i.e. <name> 'lt|eq|gt' <value>; the first is the name of meta value, followed by the comparison operator (equal, less or greater) and the value to compare to. All comparisons are done after converting the given value to the corresponding data value type of the meta value (for lists, this simply compares length, not content!)!", false);
 
     addEmptyLine_();
-    // XXX: MFreidank What priority should the new flag "id:sequences_whitelist_enforce_exact_matches" have?
-    registerTOPPSubsection_("id", "ID options. The Priority of the id-flags is: remove_annotated_features / remove_unannotated_features -> remove_clashes -> keep_best_score_id -> sequences_whitelist / accessions_whitelist");
+    registerTOPPSubsection_("id", "ID options. The Priority of the id-flags is: remove_annotated_features / remove_unannotated_features -> remove_clashes -> keep_best_score_id -> sequences_whitelist (sequences_whitelist_enforce_exact_matches) / accessions_whitelist");
     registerFlag_("id:remove_clashes", "Remove features with id clashes (different sequences mapped to one feature)", true);
     registerFlag_("id:keep_best_score_id", "in case of multiple peptide identifications, keep only the id with best score");
     registerStringList_("id:sequences_whitelist", "<sequence>", StringList(), "keep only features with white listed sequences, e.g. LYSNLVER or the modification (Oxidation)", false);
