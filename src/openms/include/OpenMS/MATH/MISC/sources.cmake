@@ -6,6 +6,7 @@ set(sources_list_h
 BilinearInterpolation.h
 BSpline2d.h
 CubicSpline2d.h
+EmgGradientDescent.h
 LinearInterpolation.h
 MathFunctions.h
 NonNegativeLeastSquaresSolver.h
