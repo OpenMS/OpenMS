@@ -78,4 +78,4 @@ namespace OpenMS
     }
 
   }   //namespace Internal
-} //namspace OpenMS
+} //namespace OpenMS

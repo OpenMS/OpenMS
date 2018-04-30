@@ -385,7 +385,7 @@ namespace OpenMS
 
     PeakMap* exp = new PeakMap();
     exp->addSpectrum(points);
-    spec_1d_->canvas()->addLayer(SpectrumCanvas::ExperimentSharedPtrType(exp));
+    spec_1d_->canvas()->addLayer(SpectrumCanvas::ExperimentSharedPtrType(exp), SpectrumCanvas::ODExperimentSharedPtrType(new OnDiscMSExperiment()));
     spec_1d_->canvas()->setLayerName(spec_1d_->canvas()->getLayerCount() - 1, points.getMetaValue("search_engine"));
     // set intensity mode (after spectrum has been added!)
     setIntensityMode((int) SpectrumCanvas::IM_SNAP);
