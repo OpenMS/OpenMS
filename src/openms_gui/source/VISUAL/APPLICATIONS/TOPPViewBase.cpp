@@ -2588,10 +2588,10 @@ namespace OpenMS
 
     tab_bar_->addTab(caption.toQString(), sw->getWindowId());
 
-    //connect slots and sigals for removing the widget from the bar, when it is closed
+    //connect slots and signals for removing the widget from the bar, when it is closed
     //- through the menu entry
     //- through the tab bar
-    //- thourgh the MDI close button
+    //- through the MDI close button
     connect(sw, SIGNAL(aboutToBeDestroyed(int)), tab_bar_, SLOT(removeId(int)));
 
     tab_bar_->setCurrentId(sw->getWindowId());
@@ -2813,7 +2813,6 @@ namespace OpenMS
       addDataFile(filename, true, true);
     }
   }
-
 
   void TOPPViewBase::rerunTOPPTool()
   {
@@ -3525,19 +3524,21 @@ namespace OpenMS
 
   void TOPPViewBase::showAboutDialog()
   {
-    //dialog and grid layout
+    // dialog and grid layout
     QDialog* dlg = new QDialog(this);
     QGridLayout* grid = new QGridLayout(dlg);
     dlg->setWindowTitle("About TOPPView");
 
-    //image
+    // image
     QLabel* label = new QLabel(dlg);
     label->setPixmap(QPixmap(":/TOPP_about.png"));
     grid->addWidget(label, 0, 0);
 
-    //text
+    // text
     QString text = QString("<BR>"
                            "<FONT size=+3>TOPPView</font><BR>"
+                           "<BR>"
+                           "Version %1 %2"
                            "<BR>"
                            "OpenMS and TOPP is free software available under the<BR>"
                            "BSD 3-Clause License (BSD-new)<BR>"
@@ -3551,16 +3552,18 @@ namespace OpenMS
                            "Kohlbacher et al., Bioinformatics (2007), 23:e191-e197<BR>"
                            ).arg(VersionInfo::getVersion().toQString()
                            ).arg( // if we have a revision, embed it also into the shown version number
-                             VersionInfo::getRevision() != "" ? QString(" (") + VersionInfo::getRevision().toQString() + ")" : "");    label = new QLabel(text, dlg);
+                             VersionInfo::getRevision() != "" ? QString(" (") + VersionInfo::getRevision().toQString() + ")" : "");
+
+    label = new QLabel(text, dlg);
 
     grid->addWidget(label, 0, 1, Qt::AlignTop | Qt::AlignLeft);
 
-    //close button
+    // close button
     QPushButton* button = new QPushButton("Close", dlg);
     grid->addWidget(button, 1, 1, Qt::AlignBottom | Qt::AlignRight);
     connect(button, SIGNAL(clicked()), dlg, SLOT(close()));
 
-    //execute
+    // execute
     dlg->exec();
   }
 
