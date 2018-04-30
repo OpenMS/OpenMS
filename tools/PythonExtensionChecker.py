@@ -46,8 +46,8 @@ from PythonCheckerLib import create_pxd_file_map
 
 # Try non-standard libs
 try:
-    import breathe.parser
     import yaml
+    from breathe.parser.eoxygen.compound import parse as doxygen_parse
     from Cython.Compiler.Nodes import CEnumDefNode, CppClassNode, CTypeDefNode, CVarDefNode, CImportStatNode, CDefExternNode
     from autowrap.PXDParser import CppClassDecl, CTypeDefDecl, MethodOrAttributeDecl, EnumDecl
 except ImportError:
@@ -72,7 +72,7 @@ def handle_member_definition(mdef, pxd_class, cnt):
     """ Matches a doxygen member definition (mdef) to a Cython pxd file.
 
     This tries to ensure that all C++ functions are wrapped and have an
-    equivalent in the Python wrapper. 
+    equivalent in the Python wrapper.
 
     Parameters
     ----------
@@ -80,7 +80,7 @@ def handle_member_definition(mdef, pxd_class, cnt):
         A doxygen entry
     pxd_class : autowrap.PXDParser.CppClassDecl
         A PXD class file as parsed by autowrap
-    cnt : 
+    cnt :
         A count object to keep track of how many functions we wrapped
     """
     pxd_class_methods_str = str([ str(m) for m in pxd_class.methods.keys()])
@@ -111,7 +111,7 @@ def handle_member_definition(mdef, pxd_class, cnt):
                 break
 
             # Sometimes we rename things in pyOpenMS for sanity (and namespace consistency) sake
-            # E.g. OpenMS::PercolatorOutfile::ScoreType becomes PercolatorOutfile_ScoreType 
+            # E.g. OpenMS::PercolatorOutfile::ScoreType becomes PercolatorOutfile_ScoreType
             # and we have to go back to the full cname. However, the doxygen name needs to be inferred
             if hasattr(klass[0], "cname") and klass[0].cname.endswith(mdef.get_name()):
                 assumed_fullname = mdef.compoundname + "::" + mdef.get_name()
@@ -166,7 +166,8 @@ def handle_member_definition(mdef, pxd_class, cnt):
             py_return_type = [str(d.result_type) for d in py_methods]
             if mdef.definition == mdef.name:
                 # Constructor, no return type -> all is good
-                assert len(c_return_type) == 0
+                if len(c_return_type) != 0:
+                    raise AssertionError()
                 tres.setPassed(True)
             elif "void" in py_return_type and not "void" in c_return_type:
                 tres.setPassed(False)
@@ -1081,7 +1082,7 @@ def checkPythonPxdHeader(src_path, bin_path, ignorefilename, pxds_out, print_pxd
             if verbose: print ("  - Skip file without namespace:", comp_name)
             continue
 
-        if verbose: 
+        if verbose:
             print ("  - Found class", comp_name, compound.prot, "in namespace", comp_name.split("::")[0])
 
         namespace = comp_name.split("::")[0]
@@ -1118,7 +1119,7 @@ def checkPythonPxdHeader(src_path, bin_path, ignorefilename, pxds_out, print_pxd
         # Get file location and skip empty files
         file_location = dfile.getCompoundFileLocation(src_path)
         internal_file_name = dfile.getInternalFileName()
-        if verbose: 
+        if verbose:
             print ("  - Header file location identified as", internal_file_name)
 
         if file_location is None:
@@ -1152,7 +1153,7 @@ def checkPythonPxdHeader(src_path, bin_path, ignorefilename, pxds_out, print_pxd
             pxd_text_printout(pxd_text, pxds_out, comp_name, print_pxd)
             continue
 
-        if verbose: 
+        if verbose:
             print ("  - Matching pxd files", pxdfiles)
 
         # At this point we have

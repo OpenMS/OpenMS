@@ -67,8 +67,8 @@ NR_PEAKS = 5
 for rt_idx in range(NR_RT_SAMPLES):
     # Base intensity is a single peak at 25 RT with 100 *i intensity spread across 9 SONAR scans
     # Second base intensity is a single peak at 10 RT with 100 *i intensity spread across 9 SONAR scans
-    base_int = 100 - abs(25 - rt_idx)*(100)/25.0 
-    base_int_second = 100 - abs(10 - rt_idx)*(100)/40.0 
+    base_int = 100 - abs(25 - rt_idx)*(100)/25.0
+    base_int_second = 100 - abs(10 - rt_idx)*(100)/40.0
     print("base int", base_int, abs(25 - rt_idx)*(100)/25.0  )
 
     for sonar_idx in range(NR_SONAR_SP):
@@ -123,6 +123,6 @@ f = MzMLFile()
 pf = f.getOptions()
 pf.setCompression(True)
 f.setOptions(pf)
-f.store('sonar.mzML', exp) 
+f.store('sonar.mzML', exp)
 
 

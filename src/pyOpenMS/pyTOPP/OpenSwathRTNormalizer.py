@@ -1,7 +1,5 @@
-import unittest
-import os,sys
+import sys
 
-import pdb
 import pyopenms
 
 """
