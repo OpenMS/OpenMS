@@ -378,7 +378,7 @@ protected:
     registerTOPPSubsection_("id", "ID options. The Priority of the id-flags is: remove_annotated_features / remove_unannotated_features -> remove_clashes -> keep_best_score_id -> sequences_whitelist (sequences_whitelist_enforce_exact_matches) / accessions_whitelist");
     registerFlag_("id:remove_clashes", "Remove features with id clashes (different sequences mapped to one feature)", true);
     registerFlag_("id:keep_best_score_id", "in case of multiple peptide identifications, keep only the id with best score");
-    registerStringList_("id:sequences_whitelist", "<sequence>", StringList(), "keep only features with white listed sequences, e.g. LYSNLVER or the modification (Oxidation)", false);
+    registerStringList_("id:sequences_whitelist", "<sequence>", StringList(), "Keep only features containing whitelisted substrings, e.g. features containing LYSNLVER or the modification (Oxidation). To keep only features matching whitelisted sequences *exactly*, set flag 'id:sequences_whitelist_enforce_exact_matches'.", false);
     registerFlag_("id:sequences_whitelist_enforce_exact_matches", "Require exact matches when using 'id:sequences_whitelist'.", true);
     registerStringList_("id:accessions_whitelist", "<accessions>", StringList(), "keep only features with white listed accessions, e.g. sp|P02662|CASA1_BOVIN", false);
     registerFlag_("id:remove_annotated_features", "Remove features with annotations");
