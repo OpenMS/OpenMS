@@ -135,7 +135,15 @@ public:
   }
 
 private:
-  static bool checkPeptideIdentification_(BaseFeature& feature, const bool remove_annotated_features, const bool remove_unannotated_features, const StringList& sequences, const bool whitelist_enforce_exact_matches, const StringList& accessions, const bool keep_best_score_id, const bool remove_clashes)
+
+  static bool checkPeptideIdentification_(BaseFeature& feature,
+                                          const bool remove_annotated_features,
+                                          const bool remove_unannotated_features,
+                                          const StringList& sequences,
+                                          const bool whitelist_enforce_exact_matches,
+                                          const StringList& accessions,
+                                          const bool keep_best_score_id,
+                                          const bool remove_clashes)
   {
     //flag: remove_annotated_features and non-empty peptideIdentifications
     if (remove_annotated_features && !feature.getPeptideIdentifications().empty())
@@ -202,18 +210,21 @@ private:
           //loop over all sequence entries of the StringList
           for (StringList::const_iterator seq_it = sequences.begin(); seq_it != sequences.end(); ++seq_it)
           {
-            if (whitelist_enforce_exact_matches) {
-                if (pep_hit_it->getSequence().toString() == *seq_it 
-                || pep_hit_it->getSequence().toUnmodifiedString() == *seq_it) {
-                    sequen = true;
-                }
+            if (whitelist_enforce_exact_matches)
+            {
+              if (pep_hit_it->getSequence().toString() == *seq_it 
+                || pep_hit_it->getSequence().toUnmodifiedString() == *seq_it)
+              {
+                sequen = true;
+              }
             }
-            else {
-                if (pep_hit_it->getSequence().toString().hasSubstring(*seq_it)
+            else
+            {
+              if (pep_hit_it->getSequence().toString().hasSubstring(*seq_it)
                    || pep_hit_it->getSequence().toUnmodifiedString().hasSubstring(*seq_it))
-                {
-                  sequen = true;
-                }
+              {
+                sequen = true;
+              }
             }
           }
 
