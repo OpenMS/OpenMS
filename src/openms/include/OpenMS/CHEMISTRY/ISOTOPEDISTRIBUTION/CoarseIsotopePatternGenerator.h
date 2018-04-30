@@ -54,7 +54,8 @@ namespace OpenMS
     *         instead of 13.0033548378
     *
     *         The most important value which should be set is the max isotope value.
-    *         It limits the number of calculated isotopes.
+    *         This value can be set using the setMaxIsotope method. It is an upper
+    *         bound for the number of isotopes which are calculated
     *         If e.g., set to 3, only the first three isotopes, Monoisotopic mass, +1 and +2 are
     *         calculated.
     *         By default all possible isotopes are calculated, which leads to a large
@@ -62,7 +63,7 @@ namespace OpenMS
     *
     *         See also method run()
     *
-    *         Distributions can be added to one another or multiplied with an integer.
+    *         Distributions can be added to one another or scaled by an integer.
     **/
 
   class OPENMS_DLLAPI CoarseIsotopePatternGenerator 

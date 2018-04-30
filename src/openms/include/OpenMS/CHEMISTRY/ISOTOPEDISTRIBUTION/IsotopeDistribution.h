@@ -54,19 +54,17 @@ namespace OpenMS
 
         @brief Isotope distribution class
 
-        Holds an isotope distribution with the weight value and according
-        probability. Distribution can be add using the '+' or '+=' operators.
+        A container that holds an isotope distribution. It consists from mass values and its 
+        correspondent probabilities. The container mass values does not relate to the 
+        atomic number of the of the molecule. It is a floating precision number and 
+        it maps a specific atomic mass to an abundance of an isotope.
 
-        The most important value which should be set is the max isotope value.
-        This value can be set using the setMaxIsotope method. It is an upper
-        bound for the number of isotopes which are calculated. E.g. if it is set
-        to 3, only the first three isotopes, Monoisotopic mass, +1 and +2 are
-        calculated.
-        By default all possible isotopes are calculated, which leads to a large
-        number of values, if the mass value is large!
-
-        TODO indicate how this does not hold mass defect information, simply probabilities
-        TODO indicate how this relates to other isotope models (Coarse ... )
+        To bypass this behavior the CoarseIsotopePatternGenerator can be used. It employs
+        an Coarse Isotopic model so the calculations happen with atomic numbers instead of
+        atomic masses.
+        The CoarseIsotopePatternGenerator solver quantizes the atomic masses to integer 
+        numbers that correspond to the atomic number. Then the calculation of the 
+        IsotopeDistribution produces only atomic numbers.
 
     */
   class Element; 
