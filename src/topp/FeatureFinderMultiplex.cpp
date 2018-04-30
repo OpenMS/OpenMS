@@ -327,7 +327,8 @@ public:
 		{
     	writeConsensusMap_(out_multiplets_, algorithm.getConsensusMap());
 		}
-
+    
+    return EXECUTION_OK;
   }
   
 };
