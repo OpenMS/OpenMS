@@ -471,6 +471,7 @@ set(analysis_executables_list
   MetaboliteSpectralMatching_test
   ModifiedPeptideGenerator_test
   OfflinePrecursorIonSelection_test
+  PeptideIndexing_test
   PeptideAndProteinQuant_test
   PeakIntensityPredictor_test
   PScore_test
