@@ -592,8 +592,8 @@ namespace OpenMS
                                      int round_decPow,
                                      const PeptideMapT& DecoyPeptideMap,
                                      boost::unordered_map<String, TargetedExperiment::Peptide>& TargetDecoyMap,
-                                     IonMapT DecoyIonMap,
-                                     IonMapT TargetIonMap)
+                                     const IonMapT& DecoyIonMap,
+                                     const IonMapT& TargetIonMap)
   {
     MRMIonSeries mrmis;
 
@@ -627,7 +627,8 @@ namespace OpenMS
       for (std::vector<std::pair<std::string, double> >::iterator decoy_tr_it = decoy_tr_vec.begin(); decoy_tr_it != decoy_tr_vec_end; ++decoy_tr_it)
       {
         // Check mapping of transitions to other peptidoforms
-        std::vector<std::string> decoy_isoforms = getMatchingPeptidoforms_(decoy_tr_it->second, DecoyIonMap[target_precursor_swath][decoy_peptide_sequence.toUnmodifiedString()], mz_threshold);
+        std::vector<std::string> decoy_isoforms = getMatchingPeptidoforms_(
+            decoy_tr_it->second, DecoyIonMap.at(target_precursor_swath).at(decoy_peptide_sequence.toUnmodifiedString()), mz_threshold);
 
         // Check that transition maps to at least one peptidoform
         if (decoy_isoforms.size() > 0)
@@ -642,16 +643,23 @@ namespace OpenMS
           mrmis.annotateTransitionCV(trn, decoy_tr_it->first);
           trn.setIdentifyingTransition(true);
           trn.setQuantifyingTransition(false);
+
           // Set transition name containing mapping to peptidoforms with potential peptidoforms enumerated in brackets
-          trn.setName(String(transition_index) + "_" + String("UISDECOY") + "_{" + ListUtils::concatenate(decoy_isoforms, "|") + "}_" + String(trn.getPrecursorMZ()) + "_" + String(trn.getProductMZ()) + "_" + String(decoy_peptide.getRetentionTime()) + "_" + decoy_tr_it->first);
-          trn.setNativeID(String(transition_index) + "_" + String("UISDECOY") + "_{" + ListUtils::concatenate(decoy_isoforms, "|") + "}_" + String(trn.getPrecursorMZ()) + "_" + String(trn.getProductMZ()) + "_" + String(decoy_peptide.getRetentionTime()) + "_" + decoy_tr_it->first);
+          trn.setName(String(transition_index) + "_" + String("UISDECOY") +
+                "_{" + ListUtils::concatenate(decoy_isoforms, "|") + "}_" +
+                String(trn.getPrecursorMZ()) + "_" + String(trn.getProductMZ()) + "_" +
+                String(decoy_peptide.getRetentionTime()) + "_" + decoy_tr_it->first);
+          trn.setNativeID(String(transition_index) + "_" + String("UISDECOY") +
+              "_{" + ListUtils::concatenate(decoy_isoforms, "|") + "}_" +
+              String(trn.getPrecursorMZ()) + "_" + String(trn.getProductMZ()) + "_" +
+              String(decoy_peptide.getRetentionTime()) + "_" + decoy_tr_it->first);
           trn.setMetaValue("Peptidoforms", ListUtils::concatenate(decoy_isoforms, "|"));
 
           LOG_DEBUG << "[uis] Decoy transition " << trn.getNativeID() << std::endl;
 
-
           // Check if decoy transition is overlapping with target transition
-          std::vector<std::string> target_isoforms_overlap = getMatchingPeptidoforms_(decoy_tr_it->second, TargetIonMap[target_precursor_swath][target_peptide_sequence.toUnmodifiedString()], mz_threshold);
+          std::vector<std::string> target_isoforms_overlap = getMatchingPeptidoforms_(
+              decoy_tr_it->second, TargetIonMap.at(target_precursor_swath).at(target_peptide_sequence.toUnmodifiedString()), mz_threshold);
 
           if (target_isoforms_overlap.size() > 0)
           {

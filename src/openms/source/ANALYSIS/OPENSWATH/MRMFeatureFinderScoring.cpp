@@ -840,7 +840,9 @@ namespace OpenMS
       if (stop_report_after_feature_ >= 0 && i >= (Size)stop_report_after_feature_) {break;}
       output.push_back(feature_list[i]);
     }
-    transition_group = transition_group_detection; // TODO why is this here?
+
+    // store all data manipulation performed on the features of the transition group
+    transition_group = transition_group_detection;
   }
 
   void MRMFeatureFinderScoring::updateMembers_()

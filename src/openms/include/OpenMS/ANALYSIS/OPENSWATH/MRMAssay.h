@@ -293,7 +293,7 @@ protected:
 
     */
     void generateDecoySequences_(const SequenceMapT& TargetSequenceMap,
-                                 boost::unordered_map<String, String>& DecoySequenceMap, 
+                                 boost::unordered_map<String, String>& DecoySequenceMap,
                                  int shuffle_seed);
 
     /**
@@ -335,8 +335,6 @@ protected:
 
       @details Used internally by MRMAssay::uisTransitions
 
-      TODO: why make copy of IonMapT ?
-
     */
    void generateDecoyAssays_(const OpenMS::TargetedExperiment& exp,
                              TransitionVectorType& transitions,
@@ -344,9 +342,9 @@ protected:
                              const std::vector<std::pair<double, double> >& swathes,
                              int round_decPow,
                              const PeptideMapT& DecoyPeptideMap,
-                             TargetDecoyMapT& TargetDecoyMap, 
-                             IonMapT DecoyIonMap, 
-                             IonMapT TargetIonMap);
+                             TargetDecoyMapT& TargetDecoyMap,
+                             const IonMapT& DecoyIonMap,
+                             const IonMapT& TargetIonMap);
 
   };
 }

@@ -407,7 +407,6 @@ public:
     }
     //@}
 
-
     /**
       @brief Returns the best feature by overall quality.
 
