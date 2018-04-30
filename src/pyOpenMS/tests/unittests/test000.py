@@ -329,7 +329,7 @@ def testCoarseIsotopePatternGenerator():
     mw = methanol + water
     iso_dist = mw.getIsotopeDistribution(pyopenms.CoarseIsotopePatternGenerator(3))
     assert len(iso_dist.getContainer()) == 3, len(iso_dist.getContainer())
-    iso_dist = mw.getIsotopeDistribution()
+    iso_dist = mw.getIsotopeDistribution(pyopenms.CoarseIsotopePatternGenerator(0))
     assert len(iso_dist.getContainer()) == 18, len(iso_dist.getContainer()) 
 
     iso = pyopenms.CoarseIsotopePatternGenerator(10)
@@ -359,7 +359,7 @@ def testEmpiricalFormula():
 
     ins.getMonoWeight()
     ins.getAverageWeight()
-    ins.getIsotopeDistribution()
+    ins.getIsotopeDistribution(pyopenms.CoarseIsotopePatternGenerator(0))
     # ins.getNumberOf(0)
     # ins.getNumberOf(b"test")
     ins.getNumberOfAtoms()
