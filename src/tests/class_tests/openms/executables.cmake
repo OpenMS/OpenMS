@@ -303,6 +303,8 @@ set(filtering_executables_list
   MultiplexFilteringCentroided_test
   MultiplexFilteringProfile_test
   MultiplexIsotopicPeakPattern_test
+  MultiplexSatelliteCentroided_test
+  MultiplexSatelliteProfile_test
   MZTrafoModel_test
   NLargest_test
   NeutralLossDiffFilter_test
