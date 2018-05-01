@@ -38,11 +38,11 @@
 #include <OpenMS/VISUAL/LayerData.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 
-#include <QWidget>
-#include <QtGui/QLineEdit>
-#include <QtGui/QComboBox>
-#include <QtGui/QTableWidget>
-#include <QtGui/QCheckBox>
+#include <QtWidgets>
+#include <QLineEdit>
+#include <QComboBox>
+#include <QTableWidget>
+#include <QCheckBox>
 
 namespace OpenMS
 {

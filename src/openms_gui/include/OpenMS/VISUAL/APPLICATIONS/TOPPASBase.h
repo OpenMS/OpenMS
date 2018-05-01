@@ -43,17 +43,17 @@
 #include <OpenMS/VISUAL/TOPPASTreeView.h>
 
 //QT
-#include <QtGui/QMainWindow>
-#include <QtGui/QWorkspace>
-#include <QtGui/QButtonGroup>
+#include <QtWidgets/QMainWindow>
+#include <QtWidgets/QMdiArea>
+#include <QtWidgets/QButtonGroup>
 #include <QtCore/QProcess>
-#include <QtGui/QSplashScreen>
-#include <QNetworkReply>
+#include <QtWidgets/QSplashScreen>
+#include <QtNetwork/QNetworkReply>
 
 class QToolBar;
 class QListWidget;
 class QTextEdit;
-class QWorkspace;
+class QMdiArea;
 class QLabel;
 class QWidget;
 class QTreeWidget;
@@ -127,7 +127,7 @@ public slots:
     /// changes the current path according to the currently active window/layer
     void updateCurrentPath();
     /// brings the tab corresponding to the active window in front
-    void updateTabBar(QWidget* w);
+    void updateTabBar(QMdiSubWindow* w);
     /// Shows the 'About' dialog
     void showAboutDialog();
     /// shows the URL stored in the data of the sender QAction
@@ -217,7 +217,7 @@ protected:
     //@}
 
     /// Main workspace
-    QWorkspace* ws_;
+    QMdiArea* ws_;
 
     /// OpenMS homepage workflow browser
     QWebView* webview_;
@@ -259,7 +259,7 @@ protected:
     static qreal z_value_;
 
     ///returns a pointer to the active TOPPASWidget (0 if none is active)
-    TOPPASWidget* activeWindow_() const;
+    TOPPASWidget* activeSubWindow_() const;
 
     ///@name reimplemented Qt events
     //@{

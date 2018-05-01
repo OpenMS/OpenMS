@@ -39,11 +39,11 @@
 #include <OpenMS/VISUAL/DIALOGS/Spectrum2DGoToDialog.h>
 #include <OpenMS/CONCEPT/UniqueIdInterface.h>
 
-#include <QtGui/QPushButton>
-#include <QtGui/QGridLayout>
-#include <QtGui/QGroupBox>
-#include <QtGui/QMessageBox>
-#include <QtGui/QCheckBox>
+#include <QtWidgets/QPushButton>
+#include <QtWidgets/QGridLayout>
+#include <QtWidgets/QGroupBox>
+#include <QtWidgets/QMessageBox>
+#include <QtWidgets/QCheckBox>
 #include <QtCore/QTimer>
 
 using namespace std;
@@ -407,8 +407,7 @@ namespace OpenMS
       {
         goto_dialog.fixRange();
         SpectrumCanvas::AreaType area(goto_dialog.getMinMZ(), goto_dialog.getMinRT(), goto_dialog.getMaxMZ(), goto_dialog.getMaxRT());
-        if (goto_dialog.clip_checkbox->checkState() == Qt::Checked)
-          correctAreaToObeyMinMaxRanges_(area);
+        if (goto_dialog.checked()) correctAreaToObeyMinMaxRanges_(area);
         canvas()->setVisibleArea(area);
       }
       else

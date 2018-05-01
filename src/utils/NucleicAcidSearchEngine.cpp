@@ -143,9 +143,12 @@ protected:
     registerIntOption_("precursor:min_charge", "<num>", -1, "Minimum precursor charge to be considered.", false, false);
     registerIntOption_("precursor:max_charge", "<num>", -9, "Maximum precursor charge to be considered.", false, false);
 
-    //Whether to look for precursors with salt adducts
+    // Whether to look for precursors with salt adducts
     registerFlag_("precursor:use_adducts", "Consider possible salt adducts (see 'precursor:potential_adducts') when matching precursor masses?", false);
     registerStringList_("precursor:potential_adducts", "<list>", ListUtils::create<String>("K:+"), "Adducts considered to explain mass differences. Format: 'Element:Charge(+/-)', i.e. the number of '+' or '-' indicates the charge, e.g. 'Ca:++' indicates +2. Only used if 'precursor:use_adducts' is set.", false, false);
+
+    // Whether we single charge the MS2s prior to scoring
+    registerFlag_("decharge_ms2", "Whether to decharge the MS2 spectra for scoring", false);
 
     // consider one before annotated monoisotopic peak and the annotated one
     IntList isotopes = {0, 1};
@@ -674,6 +677,7 @@ protected:
     StringList potential_adducts = getStringList_("precursor:potential_adducts");
     DoubleList adduct_masses;
     bool use_adducts = getFlag_("precursor:use_adducts");
+    bool single_charge_spectra = getFlag_("decharge_ms2");
     if (use_adducts)
     {
       for (StringList::iterator it = potential_adducts.begin(); it != potential_adducts.end(); ++it)
@@ -713,6 +717,8 @@ protected:
           {
             EmpiricalFormula ef(adduct[0]);
             ef.setCharge(0); // ensures we get without additional protons, now just add electron masses
+            //TODO triple check salt proton correctness
+            ef += EmpiricalFormula("H" + String(neg_charge));
             adduct_masses.push_back(ef.getMonoWeight());
             LOG_DEBUG << "Added adduct: " << ef.toString() << ", mass: "<< ef.getMonoWeight() << endl;
           }
@@ -741,7 +747,7 @@ protected:
     progresslogger.startProgress(0, 1, "filtering spectra...");
     // @TODO: move this into the loop below (run only when checks pass)
     preprocessSpectra_(spectra, search_param.fragment_mass_tolerance,
-                       search_param.fragment_tolerance_ppm, true,
+                       search_param.fragment_tolerance_ppm, single_charge_spectra,
                        negative_mode, min_charge, max_charge);
     progresslogger.endProgress();
     LOG_DEBUG << "preprocessed spectra: " << spectra.getNrSpectra() << endl;
@@ -937,10 +943,16 @@ protected:
         PeakSpectrum theo_spectrum;
         // add peaks for b and y ions with charge 1
         Int charge = negative_mode ? -1 : 1;
-        spectrum_generator.getSpectrum(theo_spectrum, candidate, charge,
-                                       charge);
+
         // sort by mz
         theo_spectrum.sortByPosition();
+        vector<PeakSpectrum> theo_spectrum_array;
+        for (Size i = abs(min_charge); i <= abs(max_charge); ++i) // generate the theoretical with all the possible max charge states.
+        {
+          spectrum_generator.getSpectrum(theo_spectrum, candidate, charge,
+                                         i * charge);
+          theo_spectrum_array.push_back(theo_spectrum);
+        }
 
         for (; low_it != up_it; ++low_it)
         {
@@ -948,13 +960,12 @@ protected:
                     << endl;
 
           const Size& scan_index = low_it->second;
-          const PeakSpectrum& exp_spectrum = spectra[scan_index];
-
+          const PeakSpectrum& exp_spectrum = spectra[scan_index];          
           vector<PeptideHit::PeakAnnotation> annotations;
           double score = MetaboliteSpectralMatching::computeHyperScore(
             search_param.fragment_mass_tolerance,
-            search_param.fragment_tolerance_ppm, exp_spectrum, theo_spectrum,
-            annotations);
+            search_param.fragment_tolerance_ppm, exp_spectrum, theo_spectrum_array[exp_spectrum.getPrecursors()[0].getCharge() - 1],
+            annotations); // pick up the theoretical spectrum with the correct max. charge
 
           if (!exp_ms2_out.empty())
           {

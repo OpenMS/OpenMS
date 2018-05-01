@@ -217,19 +217,37 @@ class TOPPOpenSwathMzMLFileCacher
       return EXECUTION_OK;
     }
 
-
     if (!convert_back)
     {
-      MapType exp;
-      CachedmzML cacher;
-      MzMLFile f;
+      if (process_lowmemory)
+      {
+        MapType exp;
+        MzMLFile f;
+        f.setLogType(log_type_);
 
-      cacher.setLogType(log_type_);
-      f.setLogType(log_type_);
+        MSDataCachedConsumer consumer(out_cached, true);
+        PeakFileOptions opt = f.getOptions();
+        opt.setMaxDataPoolSize(batchSize);
+        f.setOptions(opt);
+        f.transform(in, &consumer, exp, false, false);
 
-      f.load(in,exp);
-      cacher.writeMemdump(exp, out_cached);
-      cacher.writeMetadata(exp, out_meta, true);
+        CachedmzML cacher;
+        cacher.setLogType(log_type_);
+        cacher.writeMetadata(exp, out_meta, true);
+      }
+      else
+      {
+        MapType exp;
+        CachedmzML cacher;
+        MzMLFile f;
+
+        cacher.setLogType(log_type_);
+        f.setLogType(log_type_);
+
+        f.load(in, exp);
+        cacher.writeMemdump(exp, out_cached);
+        cacher.writeMetadata(exp, out_meta, true);
+      }
     }
     else
     {

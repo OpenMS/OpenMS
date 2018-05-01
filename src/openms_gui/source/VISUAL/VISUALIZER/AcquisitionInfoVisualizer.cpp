@@ -36,8 +36,8 @@
 #include <OpenMS/VISUAL/VISUALIZER/AcquisitionInfoVisualizer.h>
 
 // QT
-#include <QtGui/QValidator>
-#include <QtGui/QLineEdit>
+#include <QValidator>
+#include <QtWidgets/QLineEdit>
 
 // STL
 #include <iostream>

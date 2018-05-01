@@ -20,6 +20,7 @@ FeatureFinderAlgorithmIsotopeWavelet.cpp
 FeatureFinderAlgorithmMRM.cpp
 FeatureFinderAlgorithmPicked.cpp
 FeatureFinderAlgorithmPickedHelperStructs.cpp
+FeatureFinderIdentificationAlgorithm.cpp
 Fitter1D.cpp
 GaussFitter1D.cpp
 GaussModel.cpp

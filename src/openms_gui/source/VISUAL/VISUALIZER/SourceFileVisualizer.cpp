@@ -34,8 +34,8 @@
 
 #include <OpenMS/VISUAL/VISUALIZER/SourceFileVisualizer.h>
 
-#include <QtGui/QLineEdit>
-#include <QtGui/QComboBox>
+#include <QtWidgets/QLineEdit>
+#include <QtWidgets/QComboBox>
 
 #include <iostream>
 

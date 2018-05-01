@@ -516,7 +516,7 @@ namespace OpenMS
       {
         for (std::vector<TargetedExperiment::CV>::const_iterator it = exp.getCVs().begin(); it != exp.getCVs().end(); ++it)
         {
-          os << "    <cv id=\"" << it->id << "\" fullName=\"" << it->fullname << "\" version=\"" << it->version << "\" URI=\"" << it->URI << "\"/>" << "\n";
+          os << "    <cv id=\"" << writeXMLEscape(it->id) << "\" fullName=\"" << writeXMLEscape(it->fullname) << "\" version=\"" << writeXMLEscape(it->version) << "\" URI=\"" << writeXMLEscape(it->URI) << "\"/>" << "\n";
         }
       }
       os << "  </cvList>" << "\n";
@@ -528,9 +528,9 @@ namespace OpenMS
         for (std::vector<SourceFile>::const_iterator it = exp.getSourceFiles().begin(); it != exp.getSourceFiles().end(); ++it)
         {
           os << "    <SourceFile id=\""
-             << it->getNativeIDType() << "\" name=\""
-             << it->getNameOfFile() << "\" location=\""
-             << it->getPathToFile() << "\">"
+             << writeXMLEscape(it->getNativeIDType()) << "\" name=\""
+             << writeXMLEscape(it->getNameOfFile()) << "\" location=\""
+             << writeXMLEscape(it->getPathToFile()) << "\">"
              << "\n";
           writeCVParams_(os, *it, 3);
           writeUserParam_(os, (MetaInfoInterface) * it, 3);
@@ -545,7 +545,7 @@ namespace OpenMS
         os << "  <ContactList>" << "\n";
         for (std::vector<TargetedExperiment::Contact>::const_iterator it = exp.getContacts().begin(); it != exp.getContacts().end(); ++it)
         {
-          os << "    <Contact id=\"" << it->id << "\">" << "\n";
+          os << "    <Contact id=\"" << writeXMLEscape(it->id) << "\">" << "\n";
           writeCVParams_(os, *it, 3);
           writeUserParam_(os, (MetaInfoInterface) * it, 3);
           os << "    </Contact>" << "\n";
@@ -559,7 +559,7 @@ namespace OpenMS
         os << "  <PublicationList>"  << "\n";
         for (std::vector<TargetedExperiment::Publication>::const_iterator it = exp.getPublications().begin(); it != exp.getPublications().end(); ++it)
         {
-          os << "    <Publication id=\"" << it->id << "\">" << "\n";
+          os << "    <Publication id=\"" << writeXMLEscape(it->id) << "\">" << "\n";
           writeCVParams_(os, *it, 3);
           writeUserParam_(os, (MetaInfoInterface) * it, 3);
           os << "    </Publication>" << "\n";
@@ -573,7 +573,7 @@ namespace OpenMS
         os << "  <InstrumentList>" << "\n";
         for (std::vector<TargetedExperiment::Instrument>::const_iterator it = exp.getInstruments().begin(); it != exp.getInstruments().end(); ++it)
         {
-          os << "    <Instrument id=\"" << it->id << "\">" << "\n";
+          os << "    <Instrument id=\"" << writeXMLEscape(it->id) << "\">" << "\n";
           writeCVParams_(os, *it, 3);
           writeUserParam_(os, (MetaInfoInterface) * it, 3);
           os << "    </Instrument>" << "\n";
@@ -587,7 +587,7 @@ namespace OpenMS
         os << "  <SoftwareList>" << "\n";
         for (std::vector<Software>::const_iterator it = exp.getSoftware().begin(); it != exp.getSoftware().end(); ++it)
         {
-          os << "    <Software id=\"" << it->getName() << "\" version=\"" << it->getVersion() << "\">" << "\n";
+          os << "    <Software id=\"" << writeXMLEscape(it->getName()) << "\" version=\"" << writeXMLEscape(it->getVersion()) << "\">" << "\n";
           writeCVParams_(os, *it, 3);
           writeUserParam_(os, (MetaInfoInterface) * it, 3);
           os << "    </Software>" << "\n";
@@ -603,7 +603,7 @@ namespace OpenMS
         os << "  <ProteinList>" << "\n";
         for (std::vector<TargetedExperiment::Protein>::const_iterator it = exp.getProteins().begin(); it != exp.getProteins().end(); ++it)
         {
-          os << "    <Protein id=\"" << it->id << "\">" << "\n";
+          os << "    <Protein id=\"" << writeXMLEscape(it->id) << "\">" << "\n";
           writeCVParams_(os, *it, 3);
           writeUserParam_(os, (MetaInfoInterface) * it, 3);
           os << "      <Sequence>" << it->sequence << "</Sequence>" << "\n";
@@ -624,7 +624,7 @@ namespace OpenMS
         // 1. do peptides
         for (std::vector<TargetedExperiment::Peptide>::const_iterator it = exp_peptides.begin(); it != exp_peptides.end(); ++it)
         {
-          os << "    <Peptide id=\"" << it->id << "\" sequence=\"" << it->sequence << "\">" << "\n";
+          os << "    <Peptide id=\"" << writeXMLEscape(it->id) << "\" sequence=\"" << it->sequence << "\">" << "\n";
           if (it->hasCharge())
           {
             os << "      <cvParam cvRef=\"MS\" accession=\"MS:1000041\" name=\"charge state\" value=\"" <<  it->getChargeState() << "\"/>\n";
@@ -633,12 +633,16 @@ namespace OpenMS
           {
             os << "      <cvParam cvRef=\"MS\" accession=\"MS:1000893\" name=\"peptide group label\" value=\"" <<  it->getPeptideGroupLabel() << "\"/>\n";
           }
+          if (it->getDriftTime() >= 0.0)
+          {
+            os << "      <cvParam cvRef=\"MS\" accession=\"MS:1002476\" name=\"ion mobility drift time\" value=\"" << it->getDriftTime() << "\" unitAccession=\"UO:0000028\" unitName=\"millisecond\" unitCvRef=\"UO\" />\n";
+          }
           writeCVParams_(os,  *it, 3);
           writeUserParam_(os, (MetaInfoInterface) * it, 3);
 
           for (std::vector<String>::const_iterator rit = it->protein_refs.begin(); rit != it->protein_refs.end(); ++rit)
           {
-            os << "      <ProteinRef ref=\"" << *rit << "\"/>" << "\n";
+            os << "      <ProteinRef ref=\"" << writeXMLEscape(*rit) << "\"/>" << "\n";
           }
 
           if (it->mods.size() > 0)
@@ -711,7 +715,7 @@ namespace OpenMS
         // 2. do compounds
         for (std::vector<TargetedExperiment::Compound>::const_iterator it = exp.getCompounds().begin(); it != exp.getCompounds().end(); ++it)
         {
-          os << "    <Compound id=\"" << it->id << "\">" << "\n";
+          os << "    <Compound id=\"" << writeXMLEscape(it->id) << "\">" << "\n";
 
           if (it->hasCharge())
           {
@@ -763,16 +767,16 @@ namespace OpenMS
         {
           logger_.setProgress(progress++);
           os << "    <Transition";
-          os << " id=\"" << it->getName() << "\"";
+          os << " id=\"" << writeXMLEscape(it->getName()) << "\"";
 
           if (it->getPeptideRef() != "")
           {
-            os << " peptideRef=\"" << it->getPeptideRef() << "\"";
+            os << " peptideRef=\"" << writeXMLEscape(it->getPeptideRef()) << "\"";
           }
 
           if (it->getCompoundRef() != "")
           {
-            os << " compoundRef=\"" << it->getCompoundRef() << "\"";
+            os << " compoundRef=\"" << writeXMLEscape(it->getCompoundRef()) << "\"";
           }
           os << ">" << "\n";
 
@@ -811,10 +815,10 @@ namespace OpenMS
 
           if (it->hasPrediction())
           {
-            os << "      <Prediction softwareRef=\"" << it->getPrediction().software_ref << "\"";
+            os << "      <Prediction softwareRef=\"" << writeXMLEscape(it->getPrediction().software_ref) << "\"";
             if (!it->getPrediction().contact_ref.empty())
             {
-              os << " contactRef=\"" << it->getPrediction().contact_ref << "\"";
+              os << " contactRef=\"" << writeXMLEscape(it->getPrediction().contact_ref) << "\"";
             }
             os << ">" << "\n";
             writeCVParams_(os, it->getPrediction(), 4);
@@ -904,7 +908,7 @@ namespace OpenMS
       os << "        <RetentionTime";
       if (rit->software_ref != "")
       {
-        os << " softwareRef=\"" << rit->software_ref << "\"";
+        os << " softwareRef=\"" << writeXMLEscape(rit->software_ref) << "\"";
       }
       os << ">" << "\n";
 
@@ -957,14 +961,14 @@ namespace OpenMS
 
     void TraMLHandler::writeTarget_(std::ostream& os, const std::vector<IncludeExcludeTarget>::const_iterator& it) const
     {
-      os << "      <Target id=\"" << it->getName() << "\"";
+      os << "      <Target id=\"" << writeXMLEscape(it->getName()) << "\"";
       if (!it->getPeptideRef().empty())
       {
-        os << " peptideRef=\"" << it->getPeptideRef() << "\"";
+        os << " peptideRef=\"" << writeXMLEscape(it->getPeptideRef()) << "\"";
       }
       if (!it->getCompoundRef().empty())
       {
-        os << " compoundRef=\"" << it->getCompoundRef() << "\"";
+        os << " compoundRef=\"" << writeXMLEscape(it->getCompoundRef()) << "\"";
       }
       os << ">\n";
       os << "        <Precursor>\n";
@@ -981,7 +985,7 @@ namespace OpenMS
       if (!it->getConfigurations().empty())
       {
         os << "        <ConfigurationList>\n";
-        for (std::vector<TargetedExperimentHelper::Configuration>::const_iterator config_it = it->getConfigurations().begin(); config_it != it->getConfigurations().end(); ++config_it)
+        for (auto config_it = it->getConfigurations().begin(); config_it != it->getConfigurations().end(); ++config_it)
         {
           writeConfiguration_(os, config_it);
         }
@@ -1094,10 +1098,10 @@ namespace OpenMS
 
     void TraMLHandler::writeConfiguration_(std::ostream& os, const std::vector<ReactionMonitoringTransition::Configuration>::const_iterator& cit) const
     {
-      os << "          <Configuration instrumentRef=\"" << cit->instrument_ref << "\"";
+      os << "          <Configuration instrumentRef=\"" << writeXMLEscape(cit->instrument_ref) << "\"";
       if (cit->contact_ref != "")
       {
-        os << " contactRef=\"" << cit->contact_ref << "\"";
+        os << " contactRef=\"" << writeXMLEscape(cit->contact_ref) << "\"";
       }
       os << ">" << "\n";
 
@@ -1329,6 +1333,10 @@ namespace OpenMS
         {
           actual_peptide_.setPeptideGroupLabel(cv_term.getValue().toString());
         }
+        else if (cv_term.getAccession() == "MS:1002476")
+        {
+          actual_peptide_.setDriftTime(cv_term.getValue().toString().toDouble());
+        }
         else
         {
           actual_peptide_.addCVTerm(cv_term);
@@ -1366,6 +1374,10 @@ namespace OpenMS
         else if (cv_term.getAccession() == "MS:1000041")
         {
           actual_compound_.setChargeState(cv_term.getValue().toString().toInt());
+        }
+        else if (cv_term.getAccession() == "MS:1002476")
+        {
+          actual_peptide_.setDriftTime(cv_term.getValue().toString().toDouble());
         }
         else
         {
@@ -1716,7 +1728,7 @@ namespace OpenMS
 
       for (Size i = 0; i != keys.size(); ++i)
       {
-        os << String(2 * indent, ' ') << "<userParam name=\"" << keys[i] << "\" type=\"";
+        os << String(2 * indent, ' ') << "<userParam name=\"" << writeXMLEscape(keys[i]) << "\" type=\"";
 
         DataValue d = meta.getMetaValue(keys[i]);
         //determine type
@@ -1732,7 +1744,7 @@ namespace OpenMS
         {
           os << "xsd:string";
         }
-        os << "\" value=\"" << (String)(d) << "\"/>" << "\n";
+        os << "\" value=\"" << writeXMLEscape((String)(d)) << "\"/>" << "\n";
       }
     }
 

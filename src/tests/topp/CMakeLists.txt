@@ -99,10 +99,6 @@ endforeach(i)
 set(UTILS_executables_INI ${UTILS_TOOLS})
 list(REMOVE_ITEM UTILS_executables_INI OpenMSInfo)
 
-if(NOT HAS_XSERVER) # remove IDEvaluator if we don't have a running Xserver
-  list(REMOVE_ITEM UTILS_executables_INI IDEvaluator)
-endif()
-
 foreach (i ${UTILS_executables_INI})
   add_test("UTILSWRITEINI_${i}" "${TOPP_BIN_PATH}/${i}" -test -write_ini "${i}.ini.tmp")
   add_test("UTILSWRITEINI_${i}_SectionName" ${CMAKE_COMMAND} -test -DNAME=${i} -DFILE=${i}.ini.tmp -P "${DATA_DIR_TOPP}/check_ini.cmake")
@@ -117,9 +113,6 @@ endforeach(i)
 # UTILS
 set(UTILS_executables_CTD ${UTILS_TOOLS})
 list(REMOVE_ITEM UTILS_executables_CTD OpenMSInfo)
-if(NOT HAS_XSERVER) # remove IDEvaluator if we don't have a running Xserver
-	list(REMOVE_ITEM UTILS_executables_CTD IDEvaluator)
-endif()
 foreach (i ${UTILS_executables_CTD})
   add_test("UTILSWRITECTD_${i}" "${TOPP_BIN_PATH}/${i}" -test -write_ctd)
 endforeach()
@@ -421,6 +414,10 @@ set_tests_properties("TOPP_FileConverter_26_out" PROPERTIES DEPENDS "TOPP_FileCo
 add_test("TOPP_FileConverter_27" ${TOPP_BIN_PATH}/FileConverter -test -in ${DATA_DIR_TOPP}/FileConverter_27_input.mzML -out FileConverter_27.tmp -out_type mzML  -convert_to_chromatograms)
 add_test("TOPP_FileConverter_27_out" ${DIFF} -in1 FileConverter_27.tmp -in2 ${DATA_DIR_TOPP}/FileConverter_27_output.mzML -whitelist "location=")
 set_tests_properties("TOPP_FileConverter_27_out" PROPERTIES DEPENDS "TOPP_FileConverter_27")
+# Purpose: test conversion of chromatogram data in minutes to data in seconds
+add_test("TOPP_FileConverter_28" ${TOPP_BIN_PATH}/FileConverter -test -in ${DATA_DIR_TOPP}/FileConverter_28_input.mzML -out FileConverter_28.tmp -out_type mzML  -convert_to_chromatograms)
+add_test("TOPP_FileConverter_28_out" ${DIFF} -in1 FileConverter_28.tmp -in2 ${DATA_DIR_TOPP}/FileConverter_28_output.mzML -whitelist "location=")
+set_tests_properties("TOPP_FileConverter_28_out" PROPERTIES DEPENDS "TOPP_FileConverter_28")
 
 #------------------------------------------------------------------------------
 # FileFilter tests
@@ -1227,6 +1224,15 @@ ${TOPP_BIN_PATH}/OpenSwathDecoyGenerator -test -in ${DATA_DIR_TOPP}/OpenSwathDec
   add_test("TOPP_OpenSwathMzMLFileCacher_test_4_out1" ${DIFF} -whitelist ${INDEX_WHITELIST} -in1 OpenSwathMzMLFileCacher_4_output.tmp.mzML -in2 ${DATA_DIR_TOPP}/OpenSwathMzMLFileCacher_4_output.mzML)
   set_tests_properties("TOPP_OpenSwathMzMLFileCacher_test_4_step2" PROPERTIES DEPENDS "TOPP_OpenSwathMzMLFileCacher_test_4_step1")
   set_tests_properties("TOPP_OpenSwathMzMLFileCacher_test_4_out1" PROPERTIES DEPENDS "TOPP_OpenSwathMzMLFileCacher_test_4_step2")
+
+  # Test with low-memory option
+  add_test("TOPP_OpenSwathMzMLFileCacher_test_5_step1" ${TOPP_BIN_PATH}/OpenSwathMzMLFileCacher -in ${DATA_DIR_TOPP}/OpenSwathMzMLFileCacher_1_input.mzML -out OpenSwathMzMLFileCacher_1_input.cached.tmp.mzML -test -process_lowmemory)
+  add_test("TOPP_OpenSwathMzMLFileCacher_test_5_step2" ${TOPP_BIN_PATH}/OpenSwathMzMLFileCacher -in OpenSwathMzMLFileCacher_1_input.cached.tmp.mzML -out OpenSwathMzMLFileCacher_1_output.tmp.mzML -convert_back -test)
+  add_test("TOPP_OpenSwathMzMLFileCacher_test_5_out1" ${DIFF} -whitelist ${INDEX_WHITELIST} -in1 OpenSwathMzMLFileCacher_1_input.cached.tmp.mzML -in2 ${DATA_DIR_TOPP}/OpenSwathMzMLFileCacher_1_output_1.mzML)
+  add_test("TOPP_OpenSwathMzMLFileCacher_test_5_out2" ${DIFF} -whitelist ${INDEX_WHITELIST} -in1 OpenSwathMzMLFileCacher_1_output.tmp.mzML -in2 ${DATA_DIR_TOPP}/OpenSwathMzMLFileCacher_1_output_2.mzML)
+  set_tests_properties("TOPP_OpenSwathMzMLFileCacher_test_5_step2" PROPERTIES DEPENDS "TOPP_OpenSwathMzMLFileCacher_test_5_step1")
+  set_tests_properties("TOPP_OpenSwathMzMLFileCacher_test_5_out1" PROPERTIES DEPENDS "TOPP_OpenSwathMzMLFileCacher_test_5_step1")
+  set_tests_properties("TOPP_OpenSwathMzMLFileCacher_test_5_out2" PROPERTIES DEPENDS "TOPP_OpenSwathMzMLFileCacher_test_5_step2")
 
   # Testing the OpenSwathAnalyzer together with the FileCacher (for spectra and chromatograms)
   add_test("TOPP_OpenSwathAnalyzer_test_3_prepare" ${TOPP_BIN_PATH}/OpenSwathMzMLFileCacher -in ${DATA_DIR_TOPP}/OpenSwathAnalyzer_2_swathfile.mzML -out OpenSwathAnalyzer_3_swathfile.mzML.cached.tmp -out_type mzML -test)

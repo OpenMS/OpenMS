@@ -34,6 +34,7 @@
 
 #include <OpenMS/METADATA/IdentificationData.h>
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
+#include <numeric>
 
 using namespace std;
 
