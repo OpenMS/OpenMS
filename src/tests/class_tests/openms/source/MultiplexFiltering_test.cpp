@@ -60,19 +60,20 @@ picker.pickExperiment(exp, exp_picked, boundaries_exp_s, boundaries_exp_c);
 
 // set parameters
 int charge_min = 1;
-int charge_max = 4;
-int peaks_per_peptide_min = 3;
-int peaks_per_peptide_max = 6;
-bool missing_peaks = false;
+int charge_max = 6;
+int isotopes_per_peptide_min = 3;
+int isotopes_per_peptide_max = 6;
 double intensity_cutoff = 10.0;
+double rt_band = 2.0;
+double mz_tolerance = 40;
+bool mz_tolerance_unit = true;    // ppm (true), Da (false)
 double peptide_similarity = 0.8;
 double averagine_similarity = 0.75;
 double averagine_similarity_scaling = 0.75;
-double mz_tolerance = 40;
-bool mz_tolerance_unit = true;    // ppm (true), Da (false)
+String averagine_type="peptide";
 
 // construct list of peak patterns
-/*MultiplexDeltaMasses shifts1;
+MultiplexDeltaMasses shifts1;
 shifts1.getDeltaMasses().push_back(MultiplexDeltaMasses::DeltaMass(0, "no_label"));
 shifts1.getDeltaMasses().push_back(MultiplexDeltaMasses::DeltaMass(8.0443702794, "Arg8"));
 MultiplexDeltaMasses shifts2;
@@ -84,20 +85,20 @@ shifts2.getDeltaMasses().push_back(MultiplexDeltaMasses::DeltaMass(2*8.044370279
 std::vector<MultiplexIsotopicPeakPattern> patterns;
 for (int c = charge_max; c >= charge_min; --c)
 {
-    MultiplexIsotopicPeakPattern pattern1(c, peaks_per_peptide_max, shifts1, 0);
+    MultiplexIsotopicPeakPattern pattern1(c, isotopes_per_peptide_max, shifts1, 0);
     patterns.push_back(pattern1);
-    MultiplexIsotopicPeakPattern pattern2(c, peaks_per_peptide_max, shifts2, 1);
+    MultiplexIsotopicPeakPattern pattern2(c, isotopes_per_peptide_max, shifts2, 1);
     patterns.push_back(pattern2);
 }
 
 MultiplexFiltering* nullPointer = nullptr;
 MultiplexFiltering* ptr;
 
-START_SECTION(MultiplexFiltering(const MSExperiment& exp_picked, const std::vector<MultiplexIsotopicPeakPattern> patterns, int peaks_per_peptide_min, int peaks_per_peptide_max, bool missing_peaks, double intensity_cutoff, double mz_tolerance, bool mz_tolerance_unit, double peptide_similarity, double averagine_similarity, double averagine_similarity_scaling))
-    MultiplexFiltering filtering(exp_picked, patterns, peaks_per_peptide_min, peaks_per_peptide_max, missing_peaks, intensity_cutoff, mz_tolerance, mz_tolerance_unit, peptide_similarity, averagine_similarity, averagine_similarity_scaling);
-    ptr = new MultiplexFiltering(exp_picked, patterns, peaks_per_peptide_min, peaks_per_peptide_max, missing_peaks, intensity_cutoff, mz_tolerance, mz_tolerance_unit, peptide_similarity, averagine_similarity, averagine_similarity_scaling);
-    TEST_NOT_EQUAL(ptr, nullPointer);
-    delete ptr;
-END_SECTION*/
+START_SECTION(MultiplexFiltering(const MSExperiment& exp_picked, const std::vector<MultiplexIsotopicPeakPattern>& patterns, int isotopes_per_peptide_min, int isotopes_per_peptide_max, double intensity_cutoff, double rt_band, double mz_tolerance, bool mz_tolerance_unit, double peptide_similarity, double averagine_similarity, double averagine_similarity_scaling, String averagine_type="peptide"))
+  MultiplexFiltering filtering(exp_picked, patterns, isotopes_per_peptide_min, isotopes_per_peptide_max, intensity_cutoff, rt_band, mz_tolerance, mz_tolerance_unit, peptide_similarity, averagine_similarity, averagine_similarity_scaling, averagine_type);
+  ptr = new MultiplexFiltering(exp_picked, patterns, isotopes_per_peptide_min, isotopes_per_peptide_max, intensity_cutoff, rt_band, mz_tolerance, mz_tolerance_unit, peptide_similarity, averagine_similarity, averagine_similarity_scaling, averagine_type);
+  TEST_NOT_EQUAL(ptr, nullPointer);
+  delete ptr;
+END_SECTION
 
 END_TEST

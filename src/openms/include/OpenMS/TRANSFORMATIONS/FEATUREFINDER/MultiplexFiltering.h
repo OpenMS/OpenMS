@@ -67,7 +67,7 @@ namespace OpenMS
    * specific functions and the primary filter() method.
    *
    * @see MultiplexIsotopicPeakPattern
-   * @see MultiplexFilterResult
+   * @see MultiplexFilteredMSExperiment
    * @see MultiplexFilteringCentroided
    * @see MultiplexFilteringProfile
    */
