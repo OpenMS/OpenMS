@@ -97,15 +97,9 @@ list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake/Windows")
 set(OPENMS_PACKAGE_VERSION_MAJOR "2")
 set(OPENMS_PACKAGE_VERSION_MINOR "4")
 set(OPENMS_PACKAGE_VERSION_PATCH "0")
-set(OPENMS_PACKAGE_VERSION_PRERELEASE_IDENTIFIER "alpha")
-
 set(OPENMS_PACKAGE_VERSION "${OPENMS_PACKAGE_VERSION_MAJOR}.${OPENMS_PACKAGE_VERSION_MINOR}.${OPENMS_PACKAGE_VERSION_PATCH}")
-if (OPENMS_PACKAGE_VERSION_PRERELEASE_IDENTIFIER STREQUAL "")
-  set(OPENMS_PACKAGE_VERSION_FULLSTRING "${OPENMS_PACKAGE_VERSION}")
-else
-  set(OPENMS_PACKAGE_VERSION_FULLSTRING "${OPENMS_PACKAGE_VERSION}-${OPENMS_PACKAGE_VERSION_PRERELEASE_IDENTIFIER}")
-endif()
 
+message(STATUS "Building OpenMS ${OPENMS_PACKAGE_VERSION}")
 #------------------------------------------------------------------------------
 # retrieve detailed informations on the working copy (git)
 include(GetGitRevisionDescription)
@@ -115,7 +109,6 @@ if (GIT_TRACKING)
   git_short_info(OPENMS_GIT_SHORT_REFSPEC OPENMS_GIT_SHORT_SHA1 OPENMS_GIT_LC_DATE)
 endif()
 
-message(STATUS "Building OpenMS ${OPENMS_PACKAGE_VERSION_FULLSTRING}")
 if(NOT GIT_TRACKING)
   set(OPENMS_GIT_SHORT_SHA1 "disabled")
   set(OPENMS_GIT_SHORT_REFSPEC "disabled")
@@ -131,6 +124,19 @@ else()
   message(STATUS "  - Repository last change date ${OPENMS_GIT_LC_DATE}")
   message(STATUS "  [CMake is tracking Git commits and branching. To disable use '-D GIT_TRACKING=OFF'.]")
 endif()
+
+# Additional versioning information for packaging
+if(${OPENMS_GIT_SHORT_REFSPEC} MATCHES "release*")
+  set(OPENMS_PACKAGE_VERSION_FULLSTRING "${OPENMS_PACKAGE_VERSION}")
+else()
+  string(REPLACE "/" "-" OPENMS_GIT_SHORT_REFSPEC_REPLACED ${OPENMS_GIT_SHORT_REFSPEC})
+  set(OPENMS_GIT_LC_DATE_LIST "${OPENMS_GIT_LC_DATE}")
+  separate_arguments(OPENMS_GIT_LC_DATE_LIST)
+  list(GET OPENMS_GIT_LC_DATE_LIST 0 OPENMS_GIT_LC_DATE_ONLY)
+  set(OPENMS_PACKAGE_VERSION_FULLSTRING "${OPENMS_PACKAGE_VERSION}-${OPENMS_GIT_SHORT_REFSPEC_REPLACED}-${OPENMS_GIT_LC_DATE_ONLY}")
+endif()
+
+
 
 #------------------------------------------------------------------------------
 # Unsupported systems
