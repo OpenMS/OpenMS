@@ -80,12 +80,12 @@ namespace OpenMS
     double getRT() const;
     
     /**
-     * @brief returns the m/z index of the peak
+     * @brief returns the index of the peak in the spectrum
      */
     size_t getMZidx() const;
      
     /**
-     * @brief returns the RT index of the peak
+     * @brief returns the index of the corresponding spectrum in the MS experiment
      */
     size_t getRTidx() const;
     
