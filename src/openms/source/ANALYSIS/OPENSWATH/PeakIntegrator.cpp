@@ -149,7 +149,7 @@ namespace OpenMS
     std::function<double(const double, const double)>
     compute_peak_area_intensity_sum = [&p](const double left, const double right)
     {
-      LOG_WARN << "\nWARNING: intensity_sum method is being used.\n";
+      // LOG_WARN << "WARNING: intensity_sum method is being used." << std::endl;
       double peak_area { 0.0 };
       for (typename PeakContainerT::ConstIterator it = p.PosBegin(left); it != p.PosEnd(right); ++it)
       {
