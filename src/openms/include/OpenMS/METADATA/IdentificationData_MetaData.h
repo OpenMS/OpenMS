@@ -46,7 +46,7 @@ namespace OpenMS
 {
   namespace IdentificationDataInternal
   {
-    /// Wrapper that adds @p operator< to iterators, so they can be used as (part of) keys in maps/sets
+    /// Wrapper that adds @p operator< to iterators, so they can be used as (part of) keys in maps/sets or @p multi_index_containers
     template <typename Iterator>
     struct IteratorWrapper: public Iterator
     {
@@ -58,6 +58,12 @@ namespace OpenMS
       {
         // compare by address of referenced element:
         return &(**this) < &(*other);
+      }
+
+      /// Conversion to pointer type for hashing
+      operator uintptr_t() const
+      {
+        return uintptr_t(&(**this));
       }
     };
 

@@ -81,7 +81,7 @@ namespace OpenMS
   {
     for (const auto& pair : matches)
     {
-      if (!isValidReference_(pair.first, parent_molecules_))
+      if (!isValidHashedReference_(pair.first, parent_molecule_lookup_))
       {
         String msg = "invalid reference to a parent molecule - register that first";
         throw Exception::IllegalArgument(__FILE__, __LINE__,
@@ -217,7 +217,9 @@ namespace OpenMS
       throw Exception::IllegalArgument(__FILE__, __LINE__,
                                        OPENMS_PRETTY_FUNCTION, msg);
     }
-    return data_queries_.insert(query).first;
+    DataQueryRef ref = data_queries_.insert(query).first;
+    data_query_lookup_.insert(ref);
+    return ref;
   }
 
 
@@ -233,7 +235,8 @@ namespace OpenMS
     }
     checkParentMatches_(peptide.parent_matches, MoleculeType::PROTEIN);
 
-    return insertIntoMultiIndex_(identified_peptides_, peptide);
+    return insertIntoMultiIndex_(identified_peptides_, peptide,
+                                 identified_peptide_lookup_);
   }
 
 
@@ -248,7 +251,8 @@ namespace OpenMS
                                        OPENMS_PRETTY_FUNCTION, msg);
     }
 
-    return insertIntoMultiIndex_(identified_compounds_, compound);
+    return insertIntoMultiIndex_(identified_compounds_, compound,
+                                 identified_compound_lookup_);
   }
 
 
@@ -263,7 +267,8 @@ namespace OpenMS
     }
     checkParentMatches_(oligo.parent_matches, MoleculeType::RNA);
 
-    return insertIntoMultiIndex_(identified_oligos_, oligo);
+    return insertIntoMultiIndex_(identified_oligos_, oligo,
+                                 identified_oligo_lookup_);
   }
 
 
@@ -277,7 +282,8 @@ namespace OpenMS
                                        OPENMS_PRETTY_FUNCTION, msg);
     }
 
-    return insertIntoMultiIndex_(parent_molecules_, parent);
+    return insertIntoMultiIndex_(parent_molecules_, parent,
+                                 parent_molecule_lookup_);
   }
 
 
@@ -287,7 +293,7 @@ namespace OpenMS
   {
     for (auto ref : group.parent_molecule_refs)
     {
-      if (!isValidReference_(ref, parent_molecules_))
+      if (!isValidHashedReference_(ref, parent_molecule_lookup_))
       {
         String msg = "invalid reference to a parent molecule - register that first";
         throw Exception::IllegalArgument(__FILE__, __LINE__,
@@ -306,7 +312,7 @@ namespace OpenMS
     if (const IdentifiedPeptideRef* ref_ptr =
         boost::get<IdentifiedPeptideRef>(&match.identified_molecule_ref))
     {
-      if (!isValidReference_(*ref_ptr, identified_peptides_))
+      if (!isValidHashedReference_(*ref_ptr, identified_peptide_lookup_))
       {
         String msg = "invalid reference to an identified peptide - register that first";
         throw Exception::IllegalArgument(__FILE__, __LINE__,
@@ -316,7 +322,7 @@ namespace OpenMS
     else if (const IdentifiedCompoundRef* ref_ptr =
              boost::get<IdentifiedCompoundRef>(&match.identified_molecule_ref))
     {
-      if (!isValidReference_(*ref_ptr, identified_compounds_))
+      if (!isValidHashedReference_(*ref_ptr, identified_compound_lookup_))
       {
         String msg = "invalid reference to an identified compound - register that first";
         throw Exception::IllegalArgument(__FILE__, __LINE__,
@@ -326,21 +332,22 @@ namespace OpenMS
     else if (const IdentifiedOligoRef* ref_ptr =
              boost::get<IdentifiedOligoRef>(&match.identified_molecule_ref))
     {
-      if (!isValidReference_(*ref_ptr, identified_oligos_))
+      if (!isValidHashedReference_(*ref_ptr, identified_oligo_lookup_))
       {
         String msg = "invalid reference to an identified oligonucleotide - register that first";
         throw Exception::IllegalArgument(__FILE__, __LINE__,
                                          OPENMS_PRETTY_FUNCTION, msg);
       }
     }
-    if (!isValidReference_(match.data_query_ref, data_queries_))
+
+    if (!isValidHashedReference_(match.data_query_ref, data_query_lookup_))
     {
       String msg = "invalid reference to a data query - register that first";
       throw Exception::IllegalArgument(__FILE__, __LINE__,
                                        OPENMS_PRETTY_FUNCTION, msg);
     }
 
-    return insertIntoMultiIndex_(query_matches_, match);
+    return insertIntoMultiIndex_(query_matches_, match, query_match_lookup_);
   }
 
 
@@ -349,7 +356,7 @@ namespace OpenMS
   {
     for (auto ref : group.query_match_refs)
     {
-      if (!isValidReference_(ref, query_matches_))
+      if (!isValidHashedReference_(ref, query_match_lookup_))
       {
         String msg = "invalid reference to a molecule-query match - register that first";
         throw Exception::IllegalArgument(__FILE__, __LINE__,
@@ -563,25 +570,30 @@ namespace OpenMS
     // remove parent molecules based on parent groups:
     if (require_parent_group)
     {
-      set<ParentMoleculeRef> parent_refs;
+      parent_molecule_lookup_.clear(); // will become invalid anyway
       for (const auto& group : parent_molecule_groups_)
       {
-        parent_refs.insert(group.parent_molecule_refs.begin(),
-                           group.parent_molecule_refs.end());
+        for (const auto& ref : group.parent_molecule_refs)
+        {
+          parent_molecule_lookup_.insert(ref);
+        }
       }
-      removeFromSetIfMissing_(parent_molecules_, parent_refs);
+      removeFromSetIfNotHashed_(parent_molecules_, parent_molecule_lookup_);
     }
+    // update look-up table of parent molecule addresses (in case parent
+    // molecules were removed):
+    updateAddressLookup_(parent_molecules_, parent_molecule_lookup_);
 
     // remove parent matches based on parent molecules:
     ModifyMultiIndexRemoveParentMatches<IdentifiedPeptide>
-      pep_modifier(parent_molecules_);
+      pep_modifier(parent_molecule_lookup_);
     for (auto it = identified_peptides_.begin();
          it != identified_peptides_.end(); ++it)
     {
       identified_peptides_.modify(it, pep_modifier);
     }
     ModifyMultiIndexRemoveParentMatches<IdentifiedOligo>
-      oli_modifier(parent_molecules_);
+      oli_modifier(parent_molecule_lookup_);
     for (auto it = identified_oligos_.begin();
          it != identified_oligos_.end(); ++it)
     {
@@ -626,65 +638,78 @@ namespace OpenMS
     // remove molecule-query matches based on query match groups:
     if (require_match_group)
     {
-      set<QueryMatchRef> match_refs;
+      query_match_lookup_.clear(); // will become invalid anyway
       for (const auto& group : query_match_groups_)
       {
-        match_refs.insert(group.query_match_refs.begin(),
-                          group.query_match_refs.end());
+        for (const auto& ref : group.query_match_refs)
+        {
+          query_match_lookup_.insert(ref);
+        }
       }
-      removeFromSetIfMissing_(query_matches_, match_refs);
+      removeFromSetIfNotHashed_(query_matches_, query_match_lookup_);
     }
+    // update look-up table of query match addresses:
+    updateAddressLookup_(query_matches_, query_match_lookup_);
 
     // remove id'd molecules and data queries based on molecule-query matches:
     if (require_query_match)
     {
-      set<DataQueryRef> query_refs;
-      set<IdentifiedPeptideRef> peptide_refs;
-      set<IdentifiedCompoundRef> compound_refs;
-      set<IdentifiedOligoRef> oligo_refs;
+      data_query_lookup_.clear();
+      identified_peptide_lookup_.clear();
+      identified_compound_lookup_.clear();
+      identified_oligo_lookup_.clear();
       for (const auto& match : query_matches_)
       {
-        query_refs.insert(match.data_query_ref);
+        data_query_lookup_.insert(match.data_query_ref);
         IdentificationData::MoleculeType molecule_type =
           match.getMoleculeType();
         if (molecule_type == IdentificationData::MoleculeType::PROTEIN)
         {
-          peptide_refs.insert(match.getIdentifiedPeptideRef());
+          identified_peptide_lookup_.insert(match.getIdentifiedPeptideRef());
         }
         else if (molecule_type == IdentificationData::MoleculeType::COMPOUND)
         {
-          compound_refs.insert(match.getIdentifiedCompoundRef());
+          identified_compound_lookup_.insert(match.getIdentifiedCompoundRef());
         }
         else if (molecule_type == IdentificationData::MoleculeType::RNA)
         {
-          oligo_refs.insert(match.getIdentifiedOligoRef());
+          identified_oligo_lookup_.insert(match.getIdentifiedOligoRef());
         }
       }
-      removeFromSetIfMissing_(data_queries_, query_refs);
-      removeFromSetIfMissing_(identified_peptides_, peptide_refs);
-      removeFromSetIfMissing_(identified_compounds_, compound_refs);
-      removeFromSetIfMissing_(identified_oligos_, oligo_refs);
+      removeFromSetIfNotHashed_(data_queries_, data_query_lookup_);
+      removeFromSetIfNotHashed_(identified_peptides_,
+                                identified_peptide_lookup_);
+      removeFromSetIfNotHashed_(identified_compounds_,
+                                identified_compound_lookup_);
+      removeFromSetIfNotHashed_(identified_oligos_, identified_oligo_lookup_);
     }
+    // update look-up tables of addresses:
+    updateAddressLookup_(data_queries_, data_query_lookup_);
+    updateAddressLookup_(identified_peptides_, identified_peptide_lookup_);
+    updateAddressLookup_(identified_compounds_, identified_compound_lookup_);
+    updateAddressLookup_(identified_oligos_, identified_oligo_lookup_);
 
     // remove parent molecules based on identified molecules:
     if (require_identified_sequence)
     {
-      set<IdentificationData::ParentMoleculeRef> parent_refs;
+      parent_molecule_lookup_.clear(); // will become invalid anyway
       for (const auto& peptide : identified_peptides_)
       {
         for (const auto& parent_pair : peptide.parent_matches)
         {
-          parent_refs.insert(parent_pair.first);
+          parent_molecule_lookup_.insert(parent_pair.first);
         }
       }
       for (const auto& oligo : identified_oligos_)
       {
         for (const auto& parent_pair : oligo.parent_matches)
         {
-          parent_refs.insert(parent_pair.first);
+          parent_molecule_lookup_.insert(parent_pair.first);
         }
       }
-      removeFromSetIfMissing_(parent_molecules_, parent_refs);
+      removeFromSetIfNotHashed_(parent_molecules_, parent_molecule_lookup_);
+      // update look-up table of parent molecule addresses (again):
+      updateAddressLookup_(parent_molecules_, parent_molecule_lookup_);
     }
 
     // remove entries from parent molecule groups based on parent molecules:
@@ -693,15 +718,11 @@ namespace OpenMS
          group_it != parent_molecule_groups_.end(); )
     {
       Size old_size = group_it->parent_molecule_refs.size();
-      // nested lambda expressions, oh my!
       parent_molecule_groups_.modify(
         group_it, [&](ParentMoleculeGroup& group)
         {
-          removeFromSetIf_(group.parent_molecule_refs,
-                           [&](set<ParentMoleculeRef>::iterator it) -> bool
-                           {
-                             return !isValidReference_(*it, parent_molecules_);
-                           });
+          removeFromSetIfNotHashed_(group.parent_molecule_refs,
+                                    parent_molecule_lookup_);
         });
       if (group_it->parent_molecule_refs.empty())
       {
@@ -727,15 +748,11 @@ namespace OpenMS
          group_it != query_match_groups_.end(); )
     {
       Size old_size = group_it->query_match_refs.size();
-      // and more nested lambda expressions!
       query_match_groups_.modify(
         group_it, [&](QueryMatchGroup& group)
         {
-          removeFromSetIf_(group.query_match_refs,
-                           [&](set<QueryMatchRef>::iterator it) -> bool
-                           {
-                             return !isValidReference_(*it, query_matches_);
-                           });
+          removeFromSetIfNotHashed_(group.query_match_refs,
+                                    query_match_lookup_);
         });
       if (group_it->query_match_refs.empty())
       {

@@ -33,7 +33,6 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/KERNEL/StandardTypes.h>
-#include <OpenMS/CONCEPT/Constants.h>
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
@@ -144,12 +143,12 @@ protected:
     registerIntOption_("precursor:min_charge", "<num>", -1, "Minimum precursor charge to be considered.", false, false);
     registerIntOption_("precursor:max_charge", "<num>", -9, "Maximum precursor charge to be considered.", false, false);
 
-    //Whether to look for precursors with salt adducts
+    // Whether to look for precursors with salt adducts
     registerFlag_("precursor:use_adducts", "Consider possible salt adducts (see 'precursor:potential_adducts') when matching precursor masses?", false);
     registerStringList_("precursor:potential_adducts", "<list>", ListUtils::create<String>("K:+"), "Adducts considered to explain mass differences. Format: 'Element:Charge(+/-)', i.e. the number of '+' or '-' indicates the charge, e.g. 'Ca:++' indicates +2. Only used if 'precursor:use_adducts' is set.", false, false);
 
-    //Whether we single charge the MS2s prior to scoring
-    registerFlag_("decharge_ms2","Whether to decharge the MS2 spectra for scoring",false);
+    // Whether we single charge the MS2s prior to scoring
+    registerFlag_("decharge_ms2", "Whether to decharge the MS2 spectra for scoring", false);
 
     // consider one before annotated monoisotopic peak and the annotated one
     IntList isotopes = {0, 1};
@@ -405,7 +404,7 @@ protected:
   }
 
 
-  void preprocessSpectra_(PeakMap& exp, double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, bool single_charge_spectra, bool negative_mode)
+  void preprocessSpectra_(PeakMap& exp, double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, bool single_charge_spectra, bool negative_mode, Int min_charge, Int max_charge)
   {
     // filter MS2 map
     // remove 0 intensities
@@ -443,6 +442,51 @@ protected:
 
       if (spec.getPrecursors().empty()) continue; // this shouldn't happen
       Int precursor_charge = spec.getPrecursors()[0].getCharge();
+      if (precursor_charge == 0) // no charge information
+      {
+        // maybe we are able to infer the charge state:
+        if (spec.getPrecursors().size() > 1) // multiplexed PRM experiment
+        {
+          // all precursors belong to the same parent, but with different charge
+          // states; we want to find the precursor with highest charge and infer
+          // its charge state:
+          map<double, Size> precursors; // precursor: m/z -> index
+          for (Size i = 0; i < spec.getPrecursors().size(); ++i)
+          {
+            precursors[spec.getPrecursors()[i].getMZ()] = i;
+          }
+          double mz1 = precursors.begin()->first;
+          double mz2 = (++precursors.begin())->first;
+          double mz_ratio = mz1 / mz2;
+
+          Int step = negative_mode ? -1 : 1;
+          Int inferred_charge = 0;
+          for (Int charge = max_charge; abs(charge) > abs(min_charge);
+               charge -= step)
+          {
+            double charge_ratio = (abs(charge) - 1.0) / abs(charge);
+            double ratios_ratio = mz_ratio / charge_ratio;
+            if ((ratios_ratio > 0.99) && (ratios_ratio < 1.01))
+            {
+              inferred_charge = charge;
+              break;
+            }
+          }
+          if (inferred_charge == 0)
+          {
+            LOG_ERROR << "Error: unable to determine charge state for spectrum '" << spec.getNativeID() << "' based on precursor m/z values " << mz1 << " and " << mz2 << endl;
+          }
+          else
+          {
+            LOG_DEBUG << "Inferred charge state " << inferred_charge << " for spectrum '" << spec.getNativeID() << "'" << endl;
+            // keep only precursor with highest charge, set inferred charge:
+            Precursor prec = spec.getPrecursors()[precursors.begin()->second];
+            prec.setCharge(abs(inferred_charge));
+            spec.setPrecursors(vector<Precursor>(1, prec));
+          }
+        }
+      }
+
       // deisotope
       Int coef = negative_mode ? -1 : 1;
       deisotopeAndSingleChargeMSSpectrum_(spec, coef, coef * precursor_charge, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, false, 3, 20, single_charge_spectra);
@@ -704,7 +748,7 @@ protected:
     // @TODO: move this into the loop below (run only when checks pass)
     preprocessSpectra_(spectra, search_param.fragment_mass_tolerance,
                        search_param.fragment_tolerance_ppm, single_charge_spectra,
-                       negative_mode);
+                       negative_mode, min_charge, max_charge);
     progresslogger.endProgress();
     LOG_DEBUG << "preprocessed spectra: " << spectra.getNrSpectra() << endl;
 
@@ -903,10 +947,10 @@ protected:
         // sort by mz
         theo_spectrum.sortByPosition();
         vector<PeakSpectrum> theo_spectrum_array;
-        for (int i=abs(min_charge); i<=abs(max_charge); ++i) //generate the theoretical with all the possible max charge states.
+        for (Size i = abs(min_charge); i <= abs(max_charge); ++i) // generate the theoretical with all the possible max charge states.
         {
           spectrum_generator.getSpectrum(theo_spectrum, candidate, charge,
-                                         i*charge);
+                                         i * charge);
           theo_spectrum_array.push_back(theo_spectrum);
         }
 
@@ -920,8 +964,8 @@ protected:
           vector<PeptideHit::PeakAnnotation> annotations;
           double score = MetaboliteSpectralMatching::computeHyperScore(
             search_param.fragment_mass_tolerance,
-            search_param.fragment_tolerance_ppm, exp_spectrum, theo_spectrum_array[exp_spectrum.getPrecursors()[0].getCharge()-1],
-            annotations); // pic up the theoretical spectrum with the correct max charge
+            search_param.fragment_tolerance_ppm, exp_spectrum, theo_spectrum_array[exp_spectrum.getPrecursors()[0].getCharge() - 1],
+            annotations); // pick up the theoretical spectrum with the correct max. charge
 
           if (!exp_ms2_out.empty())
           {
@@ -1012,45 +1056,11 @@ protected:
     // dummy "peptide" results:
     if (!id_out.empty())
     {
+      vector<ProteinIdentification> proteins;
       vector<PeptideIdentification> peptides;
-      vector<ProteinIdentification> proteins(1);
-      proteins[0].setIdentifier("id");
-      proteins[0].setDateTime(DateTime::now());
-      proteins[0].setSearchEngine(toolName_());
-      map<IdentificationData::DataQueryRef, PeptideIdentification> id_map;
-      String score_name = "hyperscore";
-      IdentificationData::ScoreTypeRef score_ref =
-        id_data.findScoreType(score_name);
-      // @TODO: write out q-values, if available?
-      for (const auto& osm : id_data.getMoleculeQueryMatches())
-      {
-        IdentificationData::DataQueryRef query_ref = osm.data_query_ref;
-        IdentificationData::IdentifiedOligoRef oligo_ref =
-          osm.getIdentifiedOligoRef();
-        const NASequence& seq = oligo_ref->sequence;
-        PeptideHit hit;
-        hit.setMetaValue("label", seq.toString());
-        hit.setScore(osm.getScore(score_ref).first);
-        hit.setCharge(osm.charge);
-        hit.setPeakAnnotations(osm.peak_annotations.begin()->second);
-        double precursor_error_ppm =
-          osm.getMetaValue(Constants::PRECURSOR_ERROR_PPM_USERPARAM);
-        hit.setMetaValue(Constants::PRECURSOR_ERROR_PPM_USERPARAM,
-                         precursor_error_ppm);
-        id_map[query_ref].insertHit(hit);
-      }
-      for (auto& id_pair : id_map)
-      {
-        const IdentificationData::DataQuery& query = *id_pair.first;
-        PeptideIdentification& peptide = id_pair.second;
-        peptide.setRT(query.rt);
-        peptide.setMZ(query.mz);
-        peptide.setMetaValue("spectrum_reference", query.data_id);
-        peptide.setScoreType(score_name);
-        peptide.setHigherScoreBetter(score_ref->higher_better);
-        peptide.setIdentifier("id");
-        peptides.push_back(peptide);
-      }
+      IdentificationDataConverter::exportIDs(id_data, proteins, peptides, true);
+      // proteins[0].setDateTime(DateTime::now());
+      // proteins[0].setSearchEngine(toolName_());
       IdXMLFile().store(id_out, proteins, peptides);
     }
 

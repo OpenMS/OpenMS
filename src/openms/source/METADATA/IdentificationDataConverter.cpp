@@ -34,6 +34,8 @@
 
 #include <OpenMS/METADATA/IdentificationDataConverter.h>
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
+#include <OpenMS/CONCEPT/Constants.h>
+#include <OpenMS/CONCEPT/ProgressLogger.h>
 
 using namespace std;
 
@@ -44,10 +46,17 @@ namespace OpenMS
     const vector<PeptideIdentification>& peptides)
   {
     map<String, IdentificationData::ProcessingStepRef> id_to_step;
+    ProgressLogger progresslogger;
+    progresslogger.setLogType(ProgressLogger::CMD);
 
     // ProteinIdentification:
+    progresslogger.startProgress(0, proteins.size(),
+                                 "converting protein identification runs");
+    Size proteins_counter = 0;
     for (const ProteinIdentification& prot : proteins)
     {
+      proteins_counter++;
+      progresslogger.setProgress(proteins_counter);
       Software software(prot.getSearchEngine(), prot.getSearchEngineVersion());
       IdentificationData::ProcessingSoftwareRef software_ref =
         id_data.registerDataProcessingSoftware(software);
@@ -74,9 +83,19 @@ namespace OpenMS
       id_to_step[prot.getIdentifier()] = step_ref;
       id_data.setCurrentProcessingStep(step_ref);
 
+      ProgressLogger sublogger;
+      sublogger.setLogType(ProgressLogger::CMD);
+      String run_label = "(run " + String(proteins_counter) + "/" +
+        String(proteins.size()) + ")";
+
       // ProteinHit:
+      sublogger.startProgress(0, prot.getHits().size(),
+                              "converting protein hits " + run_label);
+      Size hits_counter = 0;
       for (const ProteinHit& hit : prot.getHits())
       {
+        ++hits_counter;
+        sublogger.setProgress(hits_counter);
         IdentificationData::ParentMolecule parent(hit.getAccession());
         parent.sequence = hit.getSequence();
         parent.description = hit.getDescription();
@@ -85,13 +104,79 @@ namespace OpenMS
         parent.scores.push_back(make_pair(score_ref, hit.getScore()));
         id_data.registerParentMolecule(parent);
       }
+      sublogger.endProgress();
+
+      // indistinguishable protein groups:
+      if (!prot.getIndistinguishableProteins().empty())
+      {
+        sublogger.startProgress(0, prot.getIndistinguishableProteins().size(),
+                                "converting indistinguishable proteins " +
+                                run_label);
+        Size groups_counter = 0;
+
+        IdentificationData::ScoreType score("indistinguishable_protein_group_probability", true);
+        IdentificationData::ScoreTypeRef score_ref =
+          id_data.registerScoreType(score);
+
+        for (const auto& group : prot.getIndistinguishableProteins())
+        {
+          ++groups_counter;
+          sublogger.setProgress(groups_counter);
+          IdentificationData::ParentMoleculeGroup new_group;
+          new_group.scores.push_back(make_pair(score_ref, group.probability));
+          for (const String& acc : group.accessions)
+          {
+            IdentificationData::ParentMolecule parent(acc);
+            IdentificationData::ParentMoleculeRef ref =
+              id_data.registerParentMolecule(parent);
+            new_group.parent_molecule_refs.insert(ref);
+          }
+          id_data.registerParentMoleculeGroup(new_group);
+        }
+        sublogger.endProgress();
+      }
+      // other protein groups:
+      if (!prot.getProteinGroups().empty())
+      {
+        sublogger.startProgress(0, prot.getProteinGroups().size(),
+                                "converting protein groups " + run_label);
+        Size groups_counter = 0;
+
+        IdentificationData::ScoreType score("protein_group_probability", true);
+        IdentificationData::ScoreTypeRef score_ref =
+          id_data.registerScoreType(score);
+
+        for (const auto& group : prot.getProteinGroups())
+        {
+          ++groups_counter;
+          sublogger.setProgress(groups_counter);
+          IdentificationData::ParentMoleculeGroup new_group;
+          new_group.scores.push_back(make_pair(score_ref, group.probability));
+          for (const String& acc : group.accessions)
+          {
+            IdentificationData::ParentMolecule parent(acc);
+            IdentificationData::ParentMoleculeRef ref =
+              id_data.registerParentMolecule(parent);
+            new_group.parent_molecule_refs.insert(ref);
+          }
+          id_data.registerParentMoleculeGroup(new_group);
+        }
+        sublogger.endProgress();
+      }
+
       id_data.clearCurrentProcessingStep();
     }
+    progresslogger.endProgress();
 
     // PeptideIdentification:
     Size unknown_query_counter = 1;
+    progresslogger.startProgress(0, peptides.size(),
+                                 "converting peptide identifications");
+    Size peptides_counter = 0;
     for (const PeptideIdentification& pep : peptides)
     {
+      peptides_counter++;
+      progresslogger.setProgress(peptides_counter);
       const String& id = pep.getIdentifier();
       IdentificationData::ProcessingStepRef step_ref = id_to_step[id];
       IdentificationData::DataQuery query(""); // fill in "data_id" later
@@ -207,13 +292,16 @@ namespace OpenMS
         id_data.registerMoleculeQueryMatch(match);
       }
     }
+    progresslogger.endProgress();
   }
 
 
   void IdentificationDataConverter::exportIDs(
     const IdentificationData& id_data, vector<ProteinIdentification>& proteins,
-    vector<PeptideIdentification>& peptides)
+    vector<PeptideIdentification>& peptides, bool export_oligonucleotides)
   {
+    // @TODO: export ParentMoleculeGroups
+
     proteins.clear();
     peptides.clear();
 
@@ -222,18 +310,41 @@ namespace OpenMS
     map<pair<IdentificationData::DataQueryRef,
              IdentificationData::ProcessingStepRef>,
         pair<vector<PeptideHit>, IdentificationData::ScoreTypeRef>> psm_data;
-    // we only export peptides and proteins, so start by getting the PSMs:
+    // we only export peptides and proteins (or oligos and RNAs), so start by
+    // getting the PSMs (or OSMs):
+    const String& ppm_error_name = Constants::PRECURSOR_ERROR_PPM_USERPARAM;
     for (const IdentificationData::MoleculeQueryMatch& query_match :
            id_data.getMoleculeQueryMatches())
     {
-      if (query_match.getMoleculeType() !=
-          IdentificationData::MoleculeType::PROTEIN) continue;
-      IdentificationData::IdentifiedPeptideRef peptide_ref =
-        query_match.getIdentifiedPeptideRef();
       PeptideHit hit;
-      hit.setSequence(peptide_ref->sequence);
+      const IdentificationData::ParentMatches* parent_matches_ptr;
+      if (!export_oligonucleotides) // export peptides
+      {
+        if (query_match.getMoleculeType() !=
+            IdentificationData::MoleculeType::PROTEIN) continue;
+        static_cast<MetaInfoInterface&>(hit) = query_match;
+        IdentificationData::IdentifiedPeptideRef peptide_ref =
+          query_match.getIdentifiedPeptideRef();
+        hit.setSequence(peptide_ref->sequence);
+        parent_matches_ptr = &(peptide_ref->parent_matches);
+      }
+      else
+      {
+        if (query_match.getMoleculeType() !=
+            IdentificationData::MoleculeType::RNA) continue;
+        static_cast<MetaInfoInterface&>(hit) = query_match;
+        IdentificationData::IdentifiedOligoRef oligo_ref =
+          query_match.getIdentifiedOligoRef();
+        hit.setMetaValue("label", oligo_ref->sequence.toString());
+        parent_matches_ptr = &(oligo_ref->parent_matches);
+      }
       hit.setCharge(query_match.charge);
-      for (const auto& pair : peptide_ref->parent_matches)
+      if (query_match.metaValueExists(ppm_error_name))
+      {
+        hit.setMetaValue(ppm_error_name,
+                         query_match.getMetaValue(ppm_error_name));
+      }
+      for (const auto& pair : *parent_matches_ptr)
       {
         IdentificationData::ParentMoleculeRef parent_ref = pair.first;
         for (const IdentificationData::MoleculeParentMatch& parent_match :
@@ -248,7 +359,6 @@ namespace OpenMS
           hit.addPeptideEvidence(evidence);
         }
       }
-      static_cast<MetaInfoInterface&>(hit) = query_match;
       // find all steps that assigned a score:
       for (IdentificationData::ProcessingStepRef step_ref :
              query_match.processing_step_refs)
@@ -290,6 +400,7 @@ namespace OpenMS
       peptide.setHits(psm_it->second.first);
       const IdentificationData::ScoreType& score_type = *psm_it->second.second;
       peptide.setScoreType(score_type.name);
+      peptide.setHigherScoreBetter(score_type.higher_better);
       peptide.setIdentifier(String(Size(&(*psm_it->first.second))));
       peptides.push_back(peptide);
       steps.insert(psm_it->first.second);
@@ -299,19 +410,27 @@ namespace OpenMS
         pair<vector<ProteinHit>, IdentificationData::ScoreTypeRef>> prot_data;
     for (const auto& parent : id_data.getParentMolecules())
     {
-      if (parent.molecule_type != IdentificationData::MoleculeType::PROTEIN)
-        continue;
+      bool right_type =
+        parent.molecule_type == (export_oligonucleotides ?
+                                 IdentificationData::MoleculeType::RNA :
+                                 IdentificationData::MoleculeType::PROTEIN);
+      if (!right_type) continue;
       ProteinHit hit;
       hit.setAccession(parent.accession);
       hit.setSequence(parent.sequence);
       hit.setDescription(parent.description);
       hit.setCoverage(parent.coverage * 100.0); // convert to percents
       static_cast<MetaInfoInterface&>(hit) = parent;
+      if (!parent.metaValueExists("target_decoy"))
+      {
+        hit.setMetaValue("target_decoy", parent.is_decoy ? "decoy" : "target");
+      }
       // find all steps that assigned a score:
       for (IdentificationData::ProcessingStepRef step_ref :
              parent.processing_step_refs)
       {
         // give priority to "later" scores:
+        bool found = false;
         for (IdentificationData::ScoreList::const_reverse_iterator
                score_it = parent.scores.rbegin(); score_it !=
                parent.scores.rend(); ++score_it)
@@ -323,7 +442,22 @@ namespace OpenMS
             prot_data[step_ref].first.push_back(hit);
             prot_data[step_ref].second = score_ref;
             steps.insert(step_ref);
+            found = true;
             break;
+          }
+        }
+        if (!found && steps.count(step_ref)) // no score, but relevant step
+        {
+          auto pos = prot_data.find(step_ref);
+          if (pos != prot_data.end())
+          {
+            pos->second.first.push_back(hit);
+            // existing entry, don't overwrite score type
+          }
+          else
+          {
+            prot_data[step_ref].first.push_back(hit);
+            prot_data[step_ref].second = id_data.getScoreTypes().end();
           }
         }
       }
@@ -344,9 +478,13 @@ namespace OpenMS
       if (pd_pos != prot_data.end())
       {
         protein.setHits(pd_pos->second.first);
-        const IdentificationData::ScoreType& score_type =
-          *pd_pos->second.second;
-        protein.setScoreType(score_type.name);
+        if (pd_pos->second.second != id_data.getScoreTypes().end())
+        {
+          const IdentificationData::ScoreType& score_type =
+            *pd_pos->second.second;
+          protein.setScoreType(score_type.name);
+          protein.setHigherScoreBetter(score_type.higher_better);
+        }
       }
       IdentificationData::DBSearchSteps::const_iterator ss_pos =
         id_data.getDBSearchSteps().find(step_ref);
@@ -650,12 +788,6 @@ namespace OpenMS
     IdentificationData::SearchParamRef ref)
   {
     const IdentificationData::DBSearchParam& dbsp = *ref;
-    if (dbsp.molecule_type != IdentificationData::MoleculeType::PROTEIN)
-    {
-      String msg = "only proteomics search parameters can be exported";
-      throw Exception::IllegalArgument(__FILE__, __LINE__,
-                                       OPENMS_PRETTY_FUNCTION, msg);
-    }
     ProteinIdentification::SearchParameters pisp;
     pisp.mass_type = ProteinIdentification::PeakMassType(dbsp.mass_type);
     pisp.db = dbsp.database;
@@ -672,10 +804,11 @@ namespace OpenMS
     pisp.fragment_mass_tolerance = dbsp.fragment_mass_tolerance;
     pisp.precursor_mass_tolerance_ppm = dbsp.precursor_tolerance_ppm;
     pisp.fragment_mass_tolerance_ppm = dbsp.fragment_tolerance_ppm;
-    if (dbsp.digestion_enzyme)
+    if (dbsp.digestion_enzyme &&
+        (dbsp.molecule_type == IdentificationData::MoleculeType::PROTEIN))
     {
-      pisp.digestion_enzyme = *(static_cast<const DigestionEnzymeProtein*>(
-                                  dbsp.digestion_enzyme));
+      pisp.digestion_enzyme =
+        *(static_cast<const DigestionEnzymeProtein*>(dbsp.digestion_enzyme));
     }
     else
     {
