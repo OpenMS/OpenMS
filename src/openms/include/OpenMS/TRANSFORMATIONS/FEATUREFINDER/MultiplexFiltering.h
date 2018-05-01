@@ -76,23 +76,6 @@ namespace OpenMS
   {
 public:
     /**
-     * @brief type for peak blacklisting
-     * 
-     * white    white in this and subsequent patterns
-     * grey     white in this pattern and black in subsequent patterns
-     * black    black in this and in subsequent patterns
-     * 
-     * We assume that one peak cannot belong to two or more patterns
-     * i.e. peptides at the same time.
-     */
-    enum BlacklistEntry
-    {
-      white,
-      grey,
-      black
-    };
-    
-    /**
      * @brief index mapping from a 'white' experiment to its original experiment
      * 
      * An MSExperiment contains a set of spectra each containing a number of peaks.

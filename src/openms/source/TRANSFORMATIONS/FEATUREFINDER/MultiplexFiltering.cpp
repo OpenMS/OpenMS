@@ -86,15 +86,14 @@ namespace OpenMS
     // loop over spectra
     for (MSExperiment::ConstIterator it_rt = exp_picked_.begin(); it_rt < exp_picked_.end(); ++it_rt)
     {
-      std::vector<int> blacklist_spectrum2;
-      blacklist_spectrum2.reserve(it_rt->size());
+      std::vector<int> blacklist_spectrum;
+      blacklist_spectrum.reserve(it_rt->size());
       // loop over m/z
       for (MSSpectrum::ConstIterator it_mz = it_rt->begin(); it_mz < it_rt->end(); ++it_mz)
       {
-        BlacklistEntry entry = white;
-        blacklist_spectrum2.push_back(-1);
+        blacklist_spectrum.push_back(-1);
       }
-      blacklist_.push_back(blacklist_spectrum2);
+      blacklist_.push_back(blacklist_spectrum);
     }
   }
 
