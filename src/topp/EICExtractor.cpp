@@ -47,7 +47,7 @@
 
 #include <functional>
 #include <numeric>
-//#include <boost/serialization/array_wrapper.hpp> // fix for compile error: 'make_array' is not a member of 'boost::serialization'
+#include <boost/serialization/array_wrapper.hpp> // fix for compile error: 'make_array' is not a member of 'boost::serialization'
 #include <boost/accumulators/accumulators.hpp> //SPW: refactor stats to use boost's accumulators
 #include <boost/accumulators/statistics.hpp>
 #include <boost/accumulators/statistics/stats.hpp>
