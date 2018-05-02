@@ -139,12 +139,13 @@ private:
                                      const StringList& whitelist, 
                                      const String& sequence_comparison_method) 
   {
+    const String& sequence_str = peptide_hit_sequence.toString();
+    const String& sequence_unmodified_str = peptide_hit_sequence.toUnmodifiedString();
     if (sequence_comparison_method == "substring") 
     {
       for (StringList::const_iterator seq_it = whitelist.begin(); seq_it != whitelist.end(); ++seq_it)
       {
-        if (peptide_hit_sequence.toString().hasSubstring(*seq_it)
-          || peptide_hit_sequence.toUnmodifiedString().hasSubstring(*seq_it))
+        if (sequence_str.hasSubstring(*seq_it) || sequence_unmodified_str.hasSubstring(*seq_it))
         {
           return true;
         }
@@ -152,11 +153,14 @@ private:
     } 
     else if (sequence_comparison_method == "exact")
     {
-      if (peptide_hit_sequence.toString() == *seq_it || peptide_hit_sequence.toUnmodifiedString() == *seq_it) 
+      for (StringList::const_iterator seq_it = whitelist.begin(); seq_it != whitelist.end(); ++seq_it)
       {
-        return true;
-      }
-    } 
+       if (sequence_str == *seq_it || sequence_unmodified_str ==  *seq_it)
+       {
+         return true;
+       }
+      } 
+    }
     else 
     {
       throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Invalid sequence comparison method given: '" + sequence_comparison_method + "'");
