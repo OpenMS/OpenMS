@@ -320,13 +320,13 @@ public:
     
     // write feature and consensus maps
     if (!(out_.empty()))
-		{
-    	writeFeatureMap_(out_, algorithm.getFeatureMap());
-		}
+    {
+      writeFeatureMap_(out_, algorithm.getFeatureMap());
+    }
     if (!(out_multiplets_.empty()))
-		{
-    	writeConsensusMap_(out_multiplets_, algorithm.getConsensusMap());
-		}
+    {
+      writeConsensusMap_(out_multiplets_, algorithm.getConsensusMap());
+    }
     
     return EXECUTION_OK;
   }
