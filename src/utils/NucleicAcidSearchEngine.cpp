@@ -939,19 +939,15 @@ protected:
 
         if (low_it == up_it) continue; // no matching precursor in data
 
-        // create theoretical spectrum
-        PeakSpectrum theo_spectrum;
-        // add peaks for b and y ions with charge 1
+        // generate theoretical spectra with all possible max. charge states:
+        Size n_theo_spectra = abs(max_charge) - abs(min_charge) + 1;
+        vector<PeakSpectrum> theo_spectrum_array(n_theo_spectra);
         Int charge = negative_mode ? -1 : 1;
-
-        // sort by mz
-        theo_spectrum.sortByPosition();
-        vector<PeakSpectrum> theo_spectrum_array;
-        for (Size i = abs(min_charge); i <= abs(max_charge); ++i) // generate the theoretical with all the possible max charge states.
+        for (Size i = abs(min_charge); i <= abs(max_charge); ++i)
         {
-          spectrum_generator.getSpectrum(theo_spectrum, candidate, charge,
-                                         i * charge);
-          theo_spectrum_array.push_back(theo_spectrum);
+          Size array_index = i - abs(min_charge);
+          spectrum_generator.getSpectrum(theo_spectrum_array[array_index],
+                                         candidate, charge, i * charge);
         }
 
         for (; low_it != up_it; ++low_it)
@@ -960,12 +956,17 @@ protected:
                     << endl;
 
           const Size& scan_index = low_it->second;
-          const PeakSpectrum& exp_spectrum = spectra[scan_index];          
+          const PeakSpectrum& exp_spectrum = spectra[scan_index];
+          // charge listed in mzML is always positive, even in negative mode:
+          Size exp_charge = exp_spectrum.getPrecursors()[0].getCharge();
+          // pick up the theoretical spectrum with the correct max. charge:
+          PeakSpectrum& theo_spectrum = theo_spectrum_array[exp_charge -
+                                                            abs(min_charge)];
           vector<PeptideHit::PeakAnnotation> annotations;
           double score = MetaboliteSpectralMatching::computeHyperScore(
             search_param.fragment_mass_tolerance,
-            search_param.fragment_tolerance_ppm, exp_spectrum, theo_spectrum_array[exp_spectrum.getPrecursors()[0].getCharge() - 1],
-            annotations); // pick up the theoretical spectrum with the correct max. charge
+            search_param.fragment_tolerance_ppm, exp_spectrum, theo_spectrum,
+            annotations);
 
           if (!exp_ms2_out.empty())
           {
