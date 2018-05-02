@@ -283,10 +283,10 @@ namespace OpenMS
     std::vector<QueryMatchRef> getBestMatchPerQuery(ScoreTypeRef
                                                     score_ref) const;
 
-    ScoreTypeRef findScoreType(const String& score_name) const;
+    std::pair<ScoreTypeRef, bool> findScoreType(const String& score_name) const;
 
-    ScoreTypeRef findScoreType(const String& score_name,
-                               ProcessingSoftwareRef software_ref) const;
+    std::pair<ScoreTypeRef, bool> findScoreType(
+      const String& score_name, ProcessingSoftwareRef software_ref) const;
 
     /// Calculate sequence coverages of parent molecules
     void calculateCoverages(bool check_molecule_length = false);

@@ -298,7 +298,8 @@ namespace OpenMS
 
   void IdentificationDataConverter::exportIDs(
     const IdentificationData& id_data, vector<ProteinIdentification>& proteins,
-    vector<PeptideIdentification>& peptides, bool export_oligonucleotides)
+    vector<PeptideIdentification>& peptides, const String& protein_score,
+    const String& peptide_score, bool export_oligonucleotides)
   {
     // @TODO: export ParentMoleculeGroups
 
@@ -368,21 +369,34 @@ namespace OpenMS
         {
           hit.setPeakAnnotations(pos->second);
         }
-        // give priority to "later" scores:
-        for (IdentificationData::ScoreList::const_reverse_iterator score_it =
-               query_match.scores.rbegin(); score_it !=
-               query_match.scores.rend(); ++score_it)
+
+        if (!peptide_score.empty()) // specific score type requested
         {
-          IdentificationData::ScoreTypeRef score_ref = score_it->first;
-          if (score_ref->software_opt == step_ref->software_ref)
+          const auto& pair = id_data.findScoreType(peptide_score,
+                                                   step_ref->software_ref);
+          if (pair.second) // score type found
           {
-            hit.setScore(score_it->second);
-            pair<IdentificationData::DataQueryRef,
-                 IdentificationData::ProcessingStepRef> key =
-              make_pair(query_match.data_query_ref, step_ref);
+            hit.setScore(query_match.getScore(pair.first).first);
+            auto key = make_pair(query_match.data_query_ref, step_ref);
             psm_data[key].first.push_back(hit);
-            psm_data[key].second = score_ref;
-            break;
+            psm_data[key].second = pair.first;
+          }
+        }
+        else // no specific request - give priority to "later" scores
+        {
+          for (IdentificationData::ScoreList::const_reverse_iterator score_it =
+                 query_match.scores.rbegin(); score_it !=
+                 query_match.scores.rend(); ++score_it)
+          {
+            IdentificationData::ScoreTypeRef score_ref = score_it->first;
+            if (score_ref->software_opt == step_ref->software_ref)
+            {
+              hit.setScore(score_it->second);
+              auto key = make_pair(query_match.data_query_ref, step_ref);
+              psm_data[key].first.push_back(hit);
+              psm_data[key].second = score_ref;
+              break;
+            }
           }
         }
       }
@@ -429,21 +443,36 @@ namespace OpenMS
       for (IdentificationData::ProcessingStepRef step_ref :
              parent.processing_step_refs)
       {
-        // give priority to "later" scores:
         bool found = false;
-        for (IdentificationData::ScoreList::const_reverse_iterator
-               score_it = parent.scores.rbegin(); score_it !=
-               parent.scores.rend(); ++score_it)
+        if (!protein_score.empty()) // specific score type requested
         {
-          IdentificationData::ScoreTypeRef score_ref = score_it->first;
-          if (score_ref->software_opt == step_ref->software_ref)
+          const auto& pair = id_data.findScoreType(protein_score,
+                                                   step_ref->software_ref);
+          if (pair.second) // score type found
           {
-            hit.setScore(score_it->second);
+            hit.setScore(parent.getScore(pair.first).first);
             prot_data[step_ref].first.push_back(hit);
-            prot_data[step_ref].second = score_ref;
+            prot_data[step_ref].second = pair.first;
             steps.insert(step_ref);
             found = true;
-            break;
+          }
+        }
+        else // no specific request - give priority to "later" scores
+        {
+          for (IdentificationData::ScoreList::const_reverse_iterator
+                 score_it = parent.scores.rbegin(); score_it !=
+                 parent.scores.rend(); ++score_it)
+          {
+            IdentificationData::ScoreTypeRef score_ref = score_it->first;
+            if (score_ref->software_opt == step_ref->software_ref)
+            {
+              hit.setScore(score_it->second);
+              prot_data[step_ref].first.push_back(hit);
+              prot_data[step_ref].second = score_ref;
+              steps.insert(step_ref);
+              found = true;
+              break;
+            }
           }
         }
         if (!found && steps.count(step_ref)) // no score, but relevant step

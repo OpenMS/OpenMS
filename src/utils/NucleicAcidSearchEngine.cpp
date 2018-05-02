@@ -596,7 +596,7 @@ protected:
   void calculateAndFilterFDR_(IdentificationData& id_data, bool only_top_hits)
   {
     IdentificationData::ScoreTypeRef score_ref =
-      id_data.findScoreType("hyperscore");
+      id_data.findScoreType("hyperscore").first;
     FalseDiscoveryRate fdr;
     Param fdr_params = fdr.getDefaults();
     fdr_params.setValue("use_all_hits", only_top_hits ? "true" : "false");
@@ -1058,7 +1058,8 @@ protected:
     {
       vector<ProteinIdentification> proteins;
       vector<PeptideIdentification> peptides;
-      IdentificationDataConverter::exportIDs(id_data, proteins, peptides, true);
+      IdentificationDataConverter::exportIDs(id_data, proteins, peptides, "",
+                                             "hyperscore", true);
       // proteins[0].setDateTime(DateTime::now());
       // proteins[0].setSearchEngine(toolName_());
       IdXMLFile().store(id_out, proteins, peptides);
