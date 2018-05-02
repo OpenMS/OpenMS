@@ -145,7 +145,7 @@ private:
         {
               return true;
         }
-       } else {
+       } else if (sequence_comparison_method == "exact") {
             if (peptide_hit_sequence.toString() == *seq_it 
             || peptide_hit_sequence.toUnmodifiedString() == *seq_it) {
                 return true;
