@@ -135,7 +135,9 @@ public:
   }
 
 private:
-  static bool sequenceIsWhiteListed_(const AASequence& peptide_hit_sequence, const StringList& whitelist, const String& sequence_comparison_method) {
+  static bool sequenceIsWhiteListed_(const AASequence& peptide_hit_sequence, 
+                                     const StringList& whitelist, 
+                                     const String& sequence_comparison_method) {
     //loop over all sequence entries of the StringList
     for (StringList::const_iterator seq_it = whitelist.begin(); seq_it != whitelist.end(); ++seq_it)
     {
@@ -160,7 +162,7 @@ private:
                                           const bool remove_annotated_features,
                                           const bool remove_unannotated_features,
                                           const StringList& sequences,
-                                          const bool whitelist_enforce_exact_matches,
+                                          const String& sequence_comparison_method,
                                           const StringList& accessions,
                                           const bool keep_best_score_id,
                                           const bool remove_clashes)
