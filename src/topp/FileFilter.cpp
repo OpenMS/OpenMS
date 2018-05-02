@@ -135,6 +135,50 @@ public:
   }
 
 private:
+  static FeatureMap makeUnique(const FeatureMap& feature_map) {
+    std::map<std::pair<Int, AASequence>, const Feature*> feature_set;
+    FeatureMap unique_features;
+    for (auto fm_it = feature_map.begin(); fm_it != feature_map.end(); ++fm_it) {
+      Int charge = fm_it->getCharge();
+      
+      // XXX: Raise an error if there are multiple identifications?
+      // XXX: If len(peptideidentifications) > 1 error
+      std::vector<PeptideIdentification> pep_ids = fm_it->getPeptideIdentifications();
+
+      if(!pep_ids.empty()) {
+
+        if (pep_ids.size() != 1)
+        {
+          throw OpenMS::Exception::IllegalArgument(__FILE__, __LINE__, __FUNCTION__, "Features may contain at most one identification. Run IDConflictResolver first to remove ambiguities!");
+        }
+
+        for () {
+            
+        }
+
+
+        AASequence sequence = peptide_identifications.begin()->getHits().front().getSequence();
+        // sequence = ?
+        auto pair = std::make_pair(charge, sequence);
+        auto feature_in_map = feature_set.find(pair);
+        auto feature_ptr = &(*fm_it);
+
+        if (feature_set.find(pair) != feature_set.end()) {
+          if (feature_set[pair]->getIntensity() < feature_ptr->getIntensity()) {
+            feature_set[pair] = feature_ptr;            
+          }
+        } else{
+            feature_set[pair] = feature_ptr;
+        }
+      }
+    }
+
+    for (auto const& element : feature_set) {
+      unique_features.push_back(*(element.second));
+    }
+    // Copy features in feature_set into a FeatureMap
+    return unique_features;
+  }
   static bool checkPeptideIdentification_(BaseFeature& feature, const bool remove_annotated_features, const bool remove_unannotated_features, const StringList& sequences, const StringList& accessions, const bool keep_best_score_id, const bool remove_clashes)
   {
     //flag: remove_annotated_features and non-empty peptideIdentifications
@@ -478,6 +522,7 @@ protected:
     String charge = getStringOption_("f_and_c:charge");
     String size = getStringOption_("f_and_c:size");
     String q = getStringOption_("feature:q");
+    bool make_unique = getFlag_("f_and_c:make_unique");
     String remove_collision_energy = getStringOption_("spectra:remove_collision_energy");
     String select_collision_energy = getStringOption_("spectra:select_collision_energy");
     String remove_isolation_width = getStringOption_("spectra:remove_isolation_window_width");
@@ -879,6 +924,11 @@ protected:
         }
         //update minimum and maximum position/intensity
         map_sm.updateRanges();
+
+        // Make unique.
+        if (make_unique) {
+            map_sm = makeUnique(map_sm);
+        }
 
         // sort if desired
         if (sort)
