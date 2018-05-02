@@ -135,7 +135,27 @@ public:
   }
 
 private:
-  static bool checkPeptideIdentification_(BaseFeature& feature, const bool remove_annotated_features, const bool remove_unannotated_features, const StringList& sequences, const bool whitelist_enforce_exact_matches, const StringList& accessions, const bool keep_best_score_id, const bool remove_clashes)
+  static bool sequenceIsWhiteListed_(const AASequence& peptide_hit_sequence, const StringList& whitelist, const String& sequence_comparison_method) {
+    //loop over all sequence entries of the StringList
+    for (StringList::const_iterator seq_it = whitelist.begin(); seq_it != whitelist.end(); ++seq_it)
+    {
+      if (sequence_comparison_method == "substring") {
+        if (peptide_hit_sequence.toString().hasSubstring(*seq_it)
+          || peptide_hit_sequence.toUnmodifiedString().hasSubstring(*seq_it))
+        {
+              return true;
+        }
+       } else {
+            if (peptide_hit_sequence.toString() == *seq_it 
+            || peptide_hit_sequence.toUnmodifiedString() == *seq_it) {
+                return true;
+            }
+        }
+      }
+      return false;
+  }
+
+  static bool checkPeptideIdentification_(BaseFeature& feature, const bool remove_annotated_features, const bool remove_unannotated_features, const StringList& sequences, const String& sequence_comparison_method, const StringList& accessions, const bool keep_best_score_id, const bool remove_clashes)
   {
     //flag: remove_annotated_features and non-empty peptideIdentifications
     if (remove_annotated_features && !feature.getPeptideIdentifications().empty())
@@ -199,22 +219,8 @@ private:
         //loop over all peptideHits
         for (vector<PeptideHit>::const_iterator pep_hit_it = pep_id_it->getHits().begin(); pep_hit_it != pep_id_it->getHits().end(); ++pep_hit_it)
         {
-          //loop over all sequence entries of the StringList
-          for (StringList::const_iterator seq_it = sequences.begin(); seq_it != sequences.end(); ++seq_it)
-          {
-            if (whitelist_enforce_exact_matches) {
-                if (pep_hit_it->getSequence().toString() == *seq_it 
-                || pep_hit_it->getSequence().toUnmodifiedString() == *seq_it) {
-                    sequen = true;
-                }
-            }
-            else {
-                if (pep_hit_it->getSequence().toString().hasSubstring(*seq_it)
-                   || pep_hit_it->getSequence().toUnmodifiedString().hasSubstring(*seq_it))
-                {
-                  sequen = true;
-                }
-            }
+          if (sequenceIsWhiteListed_(pep_hit_it->getSequence(), sequences, sequence_comparison_method)) {
+              sequen = true;
           }
 
           //loop over all accessions of the peptideHits
@@ -364,12 +370,14 @@ protected:
     registerStringList_("f_and_c:remove_meta", "<name> 'lt|eq|gt' <value>", StringList(), "Expects a 3-tuple (=3 entries in the list), i.e. <name> 'lt|eq|gt' <value>; the first is the name of meta value, followed by the comparison operator (equal, less or greater) and the value to compare to. All comparisons are done after converting the given value to the corresponding data value type of the meta value (for lists, this simply compares length, not content!)!", false);
 
     addEmptyLine_();
-    registerTOPPSubsection_("id", "ID options. The Priority of the id-flags is: remove_annotated_features / remove_unannotated_features -> remove_clashes -> keep_best_score_id -> sequences_whitelist (sequences_whitelist_enforce_exact_matches) / accessions_whitelist");
+    registerTOPPSubsection_("id", "ID options. The Priority of the id-flags is: remove_annotated_features / remove_unannotated_features -> remove_clashes -> keep_best_score_id -> sequences_whitelist  / accessions_whitelist");
     registerFlag_("id:remove_clashes", "Remove features with id clashes (different sequences mapped to one feature)", true);
     registerFlag_("id:keep_best_score_id", "in case of multiple peptide identifications, keep only the id with best score");
-    registerStringList_("id:sequences_whitelist", "<sequence>", StringList(), "keep only features with white listed sequences, e.g. LYSNLVER or the modification (Oxidation)", false);
-    registerFlag_("id:sequences_whitelist_enforce_exact_matches", "Require exact matches when using 'id:sequences_whitelist'.", true);
+    registerStringList_("id:sequences_whitelist", "<sequence>", StringList(), "Keep only features with white listed sequences, e.g. LYSNLVER or the modification (Oxidation)", false);
+    registerStringOption_("id:sequence_comparison_method", "substring|exact", "substring", "Comparison method used to determine if a feature is whitelisted.", false, true);
     registerStringList_("id:accessions_whitelist", "<accessions>", StringList(), "keep only features with white listed accessions, e.g. sp|P02662|CASA1_BOVIN", false);
+    // XXX: Proper description of this parameter.
+    setValidStrings_("id:sequence_comparison_method", ListUtils::create<String>("substring,exact"));
     registerFlag_("id:remove_annotated_features", "Remove features with annotations");
     registerFlag_("id:remove_unannotated_features", "Remove features without annotations");
     registerFlag_("id:remove_unassigned_ids", "Remove unassigned peptide identifications");
@@ -514,7 +522,7 @@ protected:
     bool remove_unannotated_features = getFlag_("id:remove_unannotated_features");
     bool remove_unassigned_ids = getFlag_("id:remove_unassigned_ids");
     StringList sequences = getStringList_("id:sequences_whitelist");
-    bool whitelist_enforce_exact_matches = getFlag_("id:sequences_whitelist_enforce_exact_matches");
+    String sequence_comparison_method = getStringOption_("id:sequence_comparison_method");
     StringList accessions = getStringList_("id:accessions_whitelist");
     bool keep_best_score_id = getFlag_("id:keep_best_score_id");
     bool remove_clashes = getFlag_("id:remove_clashes");
@@ -876,7 +884,7 @@ protected:
             {
               meta_ok = checkMetaOk(*fm_it, meta_info);
             }
-            bool const annotation_ok = checkPeptideIdentification_(*fm_it, remove_annotated_features, remove_unannotated_features, sequences, whitelist_enforce_exact_matches, accessions, keep_best_score_id, remove_clashes);
+            bool const annotation_ok = checkPeptideIdentification_(*fm_it, remove_annotated_features, remove_unannotated_features, sequences, sequence_comparison_method, accessions, keep_best_score_id, remove_clashes);
             if (annotation_ok && meta_ok) map_sm.push_back(*fm_it);
           }
         }
@@ -938,7 +946,7 @@ protected:
             {
               meta_ok = checkMetaOk(*cm_it, meta_info);
             }
-            const bool annotation_ok = checkPeptideIdentification_(*cm_it, remove_annotated_features, remove_unannotated_features, sequences, whitelist_enforce_exact_matches, accessions, keep_best_score_id, remove_clashes);
+            const bool annotation_ok = checkPeptideIdentification_(*cm_it, remove_annotated_features, remove_unannotated_features, sequences, sequence_comparison_method, accessions, keep_best_score_id, remove_clashes);
             if (annotation_ok && meta_ok) consensus_map_filtered.push_back(*cm_it);
           }
         }

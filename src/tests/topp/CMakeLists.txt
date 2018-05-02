@@ -562,7 +562,7 @@ set_tests_properties("TOPP_FileFilter_44_out" PROPERTIES DEPENDS "TOPP_FileFilte
 add_test("TOPP_FileFilter_45" ${TOPP_BIN_PATH}/FileFilter -test -in ${DATA_DIR_TOPP}/FileFilter_45_input.featureXML -id:sequences_whitelist "YSFS" "STLIPPPSK(Label:13C(6)15N(2))" -out FileFilter_45.tmp)
 add_test("TOPP_FileFilter_45_out" ${DIFF} -in1 FileFilter_45.tmp -in2 ${DATA_DIR_TOPP}/FileFilter_45_output.featureXML)
 set_tests_properties("TOPP_FileFilter_45_out" PROPERTIES DEPENDS "TOPP_FileFilter_45")
-add_test("TOPP_FileFilter_46" ${TOPP_BIN_PATH}/FileFilter -test -in ${DATA_DIR_TOPP}/FileFilter_46_input.featureXML -id:sequences_whitelist "YSFS" "STLIPPPSK(Label:13C(6)15N(2))" -id:sequences_whitelist_enforce_exact_matches -out FileFilter_46.tmp)
+add_test("TOPP_FileFilter_46" ${TOPP_BIN_PATH}/FileFilter -test -in ${DATA_DIR_TOPP}/FileFilter_46_input.featureXML -id:sequences_whitelist "YSFS" "STLIPPPSK(Label:13C(6)15N(2))" -id:sequence_comparison_method "exact" -out FileFilter_46.tmp)
 add_test("TOPP_FileFilter_46_out" ${DIFF} -in1 FileFilter_46.tmp -in2 ${DATA_DIR_TOPP}/FileFilter_46_output.featureXML)
 set_tests_properties("TOPP_FileFilter_46_out" PROPERTIES DEPENDS "TOPP_FileFilter_46")
 
