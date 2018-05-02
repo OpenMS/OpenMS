@@ -199,7 +199,7 @@ namespace OpenMS
       {
         openglwidget()->updateIntensityScale();
       }
-      // openglwidget()->initializeGL();
+      openglwidget()->initializeGL();
     }
     openglwidget()->resizeGL(width(), height());
     // openglwidget()->paintGL();

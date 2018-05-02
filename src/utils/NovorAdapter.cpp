@@ -82,7 +82,6 @@ using namespace std;
 
 
     This tool can be used for de novo sequencing of peptides from MS/MS data.
-    Please use MS2-Spectra only. If filtering is needed please use the @ref TOPP_FileFilter.
 
     Novor must be installed before this wrapper can be used. This wrapper was successfully tested with version v1.06.0634 (stable).
     
@@ -136,8 +135,8 @@ protected:
     // mass error tolerance
     registerDoubleOption_("fragment_mass_tolerance", "<double>", 0.5, "Fragmentation error tolerance  (Da)", false);
     registerDoubleOption_("precursor_mass_tolerance", "<double>" , 15.0, "Precursor error tolerance  (ppm or Da)", false);
-    registerStringOption_("precursor_error_units", "<choice>", "Da", "Unit of precursor mass tolerance", false);
-    setValidStrings_("precursor_error_units", ListUtils::create<String>("Da,ppm"));
+    registerStringOption_("precursor_error_units", "<choice>", "ppm", "Unit of precursor mass tolerance", false);
+    setValidStrings_("precursor_error_units", ListUtils::create<String>("ppm,Da"));
     // post-translational-modification
     registerStringList_("variable_modifications", "<mods>", vector<String>(), "Variable modifications", false);
     setValidStrings_("variable_modifications", ListUtils::create<String>("Acetyl (K),Acetyl (N-term),Amidated (C-term),Ammonia-loss (N-term C),Biotin (K),Biotin (N-term),Carbamidomethyl (C),Carbamyl (K),Carbamyl (N-term),Carboxymethyl (C),Deamidated (NQ),Dehydrated (N-term C),Dioxidation (M),Methyl (C-term),Methyl (DE),Oxidation (M),Oxidation (HW),Phospho (ST),Phospho (Y),Pyro-carbamidomethyl (N-term C),Pyro-Glu (E),Pyro-Glu (Q),Sodium (C-term),Sodium (DE),Sulfo (STY),Trimethyl (RK)"));
@@ -261,6 +260,7 @@ protected:
     MzMLFile f;
     MSExperiment exp;
     f.setLogType(log_type_);
+    f.getOptions().setMSLevels( {2} );
     f.load(in, exp);
  
     String tmp_mgf = tmp_dir + "tmp_mgf.mgf"; 
@@ -383,15 +383,16 @@ protected:
 
       // extract version from comment 
       // #              v1.06.0634 (stable)
+      // v1.06.0634 (stable)
       vector<ProteinIdentification> protein_ids;
       StringList versionrow;
       csv.getRow(2, versionrow);
-      versionrow[0].suffix('#').trim();
-        
+      String version = versionrow[0].substr(versionrow[0].find("v."));
+      
       protein_ids = vector<ProteinIdentification>(1);
       protein_ids[0].setDateTime(DateTime::now());
       protein_ids[0].setSearchEngine("Novor");
-      protein_ids[0].setSearchEngineVersion(versionrow[0]);
+      protein_ids[0].setSearchEngineVersion(version);
 
       ProteinIdentification::SearchParameters search_parameters;
       search_parameters.db = "denovo";

@@ -123,6 +123,12 @@ public:
     double derivative(const double x) const;
 
     /**
+     * Return the first derivative of the spline curve at the given @p x.
+     * Returns zero if the current state is not ok().
+     */
+    double derivatives(double x, unsigned order = 1) const;
+
+    /**
      * Return whether the spline fit was successful.
      */
     bool ok() const;
@@ -133,6 +139,7 @@ public:
     static void debug(bool enable);
 
 private:
+
     // Pointer to actual implementation. Note: This class follows the PIMPL idiom hiding the actual 
     // B-spline implementation behind this pointer to avoid any dependency of the interface to the 
     // implementation. Thus, the eol splines are only required during compilation of OpenMS and 

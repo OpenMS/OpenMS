@@ -1,7 +1,7 @@
 from smart_ptr cimport shared_ptr
 from libcpp.vector cimport vector as libcpp_vector
 
-cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/DataStructures.h>" namespace "OpenSwath":
+cdef extern from "<OpenMS/OPENSWATHALGO/DATAACCESS/DataStructures.h>" namespace "OpenSwath":
 
   cdef cppclass OSBinaryDataArray:
         OSBinaryDataArray() nogil except +

@@ -36,7 +36,8 @@
 #include <OpenMS/KERNEL/BaseFeature.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/CONCEPT/Constants.h>
-#include <OpenMS/CHEMISTRY/IsotopeDistribution.h>
+#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopeDistribution.h>
+#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerHiRes.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFiltering.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexIsotopicPeakPattern.h>
@@ -403,21 +404,21 @@ namespace OpenMS
   bool MultiplexFiltering::filterAveragineModel_(const MultiplexIsotopicPeakPattern& pattern, const MultiplexFilteredPeak& peak) const
   {
     // construct averagine distribution
-    // Note that the peptide(s) are very close in mass. We therefore calculate the averagine distribution only once (for the lightest peptide).
     double mass = peak.getMZ() * pattern.getCharge();
+    CoarseIsotopePatternGenerator solver(isotopes_per_peptide_max_);
     IsotopeDistribution distribution;
-    distribution.setMaxIsotope(isotopes_per_peptide_max_);
+    vector<double> averagine_pattern;
     if (averagine_type_ == "peptide")
     {
-        distribution.estimateFromPeptideWeight(mass);
+        distribution = solver.estimateFromPeptideWeight(mass);
     }
     else if (averagine_type_ == "RNA")
     {
-        distribution.estimateFromRNAWeight(mass);
+      distribution = solver.estimateFromRNAWeight(mass);
     }
     else if (averagine_type_ == "DNA")
     {
-        distribution.estimateFromDNAWeight(mass);
+        distribution = solver.estimateFromDNAWeight(mass);
     }
     else
     {
@@ -472,7 +473,8 @@ namespace OpenMS
         
         if (count > 0)
         {
-          intensities_model.push_back(distribution.getContainer()[isotope].second);
+          //intensities_model.push_back(distribution.getContainer()[isotope].second);
+          intensities_model.push_back(distribution[isotope].getIntensity());
           intensities_data.push_back(sum_intensities/count);
         }
         

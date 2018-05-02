@@ -44,7 +44,6 @@
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerHiRes.h>
 #include <OpenMS/FORMAT/PeakTypeEstimator.h>
 
-#include <OpenMS/CHEMISTRY/IsotopeDistribution.h>
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
 #include <OpenMS/MATH/STATISTICS/LinearRegressionWithoutIntercept.h>
 #include <OpenMS/CONCEPT/Constants.h>

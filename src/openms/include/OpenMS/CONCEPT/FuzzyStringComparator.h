@@ -387,7 +387,7 @@ protected:
 
     /// Whitelist
     StringList whitelist_;
-    /// Occurences of whitelist entries
+    /// Occurrences of whitelist entries
     std::map<String, UInt> whitelist_cases_;
 
     /// Alternative Whitelist

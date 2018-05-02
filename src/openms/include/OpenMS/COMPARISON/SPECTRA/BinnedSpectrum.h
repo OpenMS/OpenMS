@@ -178,7 +178,7 @@ public:
     /// mutable access to the bin container
     SparseVectorType& getBins();
 
-    // inmutable access to precursors
+    // immutable access to precursors
     const std::vector<Precursor>& getPrecursors() const;
 
     /// mutable access to precursors
@@ -201,7 +201,7 @@ private:
     /// bins
     SparseVectorType bins_;
 
-    /// calculate binnning of peak spectrum
+    /// calculate binning of peak spectrum
     void binSpectrum_(const PeakSpectrum& ps);
 
     /// precursor information

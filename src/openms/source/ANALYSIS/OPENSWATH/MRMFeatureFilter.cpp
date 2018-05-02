@@ -121,6 +121,32 @@ namespace OpenMS
         {
           if (filter_criteria.component_group_qcs[cg_qc_it].component_group_name == component_group_name)
           {
+            const double rt = features[feature_it].getRT();
+            if (!checkRange(rt,
+              filter_criteria.component_group_qcs[cg_qc_it].retention_time_l,
+              filter_criteria.component_group_qcs[cg_qc_it].retention_time_u))
+            {
+              cg_qc_pass = false;
+              cg_qc_fail_message_vec.push_back("retention_time");
+            }
+
+            const double intensity = features[feature_it].getIntensity();
+            if (!checkRange(intensity,
+              filter_criteria.component_group_qcs[cg_qc_it].intensity_l,
+              filter_criteria.component_group_qcs[cg_qc_it].intensity_u))
+            {
+              cg_qc_pass = false;
+              cg_qc_fail_message_vec.push_back("intensity");
+            }
+
+            const double quality = features[feature_it].getOverallQuality();
+            if (!checkRange(quality,
+              filter_criteria.component_group_qcs[cg_qc_it].overall_quality_l,
+              filter_criteria.component_group_qcs[cg_qc_it].overall_quality_u))
+            {
+              cg_qc_pass = false;
+              cg_qc_fail_message_vec.push_back("overall_quality");
+            }
             // labels and transition counts QC
             // std::cout << "n_heavy" << std::endl; //debugging
             if (!checkRange(labels_and_transition_types["n_heavy"],
@@ -171,13 +197,12 @@ namespace OpenMS
               cg_qc_fail_message_vec.push_back("n_transitions");
             }
 
-            cg_tests_count += 6;
+            cg_tests_count += 9;
 
             // ion ratio QC
             for (size_t sub_it2 = 0; sub_it2 < features[feature_it].getSubordinates().size(); ++sub_it2)
             {
               String component_name2 = (String)features[feature_it].getSubordinates()[sub_it2].getMetaValue("native_id"); 
-
               // find the ion ratio pair
               if (filter_criteria.component_group_qcs[cg_qc_it].ion_ratio_pair_name_1 != ""
                 && filter_criteria.component_group_qcs[cg_qc_it].ion_ratio_pair_name_2 != ""
@@ -197,6 +222,17 @@ namespace OpenMS
                 ++cg_tests_count;
               }
             }
+
+            for (const std::pair<String,std::pair<double,double>>& kv : filter_criteria.component_group_qcs[cg_qc_it].meta_value_qc)
+            {
+              bool metavalue_exists {false};
+              if (!checkMetaValue(features[feature_it], kv.first, kv.second.first, kv.second.second, metavalue_exists))
+              {
+                cg_qc_pass = false;
+                cg_qc_fail_message_vec.push_back("metaValue[" + kv.first + "]");
+              }
+              if (metavalue_exists) ++cg_tests_count;
+            }
           }
         }
         
@@ -207,7 +243,7 @@ namespace OpenMS
           if (filter_criteria.component_qcs[c_qc_it].component_name == component_name)
           {
             // RT check
-            double rt = features[feature_it].getSubordinates()[sub_it].getRT(); //check!
+            const double rt = features[feature_it].getSubordinates()[sub_it].getRT();
             // std::cout << "RT" << std::endl; //debugging
             if (!checkRange(rt,
               filter_criteria.component_qcs[c_qc_it].retention_time_l,

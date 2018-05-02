@@ -76,6 +76,7 @@ option(MT_ENABLE_TBB "Enable Intel TBB support" OFF)
 option(MT_ENABLE_OPENMP "Enable OpenMP support" ON)
 option(BOOST_USE_STATIC "Use Boost static libraries." ON)
 option(HAS_XSERVER "Indicates if an X server is available. If set to Off it will disable certain tests and the doc target." ON)
+option(ENABLE_DOCS "Indicates whether documentation should be built." ON)
 option(ENABLE_TUTORIALS "Indicates whether tutorials should be build. Note that this also depends on the availability of (pdf)latex." ON)
 option(WITH_GUI "Build GUI parts of OpenMS (TOPPView&Co). This requires QtGui." ON)
 
@@ -94,8 +95,8 @@ list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake/Windows")
 #------------------------------------------------------------------------------
 
 set(OPENMS_PACKAGE_VERSION_MAJOR "2")
-set(OPENMS_PACKAGE_VERSION_MINOR "3")
-set(OPENMS_PACKAGE_VERSION_PATCH "0")
+set(OPENMS_PACKAGE_VERSION_MINOR "4")
+set(OPENMS_PACKAGE_VERSION_PATCH "0-alpha")
 
 #------------------------------------------------------------------------------
 # retrieve detailed informations on the working copy (git)
