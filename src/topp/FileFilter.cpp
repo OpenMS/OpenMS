@@ -151,17 +151,13 @@ private:
         }
       } else if (sequence_comparison_method == "exact") 
        {
-            if (peptide_hit_sequence.toString() == *seq_it 
-            || peptide_hit_sequence.toUnmodifiedString() == *seq_it) 
-            {
-              return true;
-            }
+         if (peptide_hit_sequence.toString() == *seq_it || peptide_hit_sequence.toUnmodifiedString() == *seq_it) 
+         {
+           return true;
+         }
        } else 
        {
-         throw Exception::InvalidParameter(
-           __FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
-           "Invalid sequence comparison method given: '" + sequence_comparison_method + "'"
-          );
+         throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Invalid sequence comparison method given: '" + sequence_comparison_method + "'");
        }
     }
     return false;
@@ -239,8 +235,9 @@ private:
         //loop over all peptideHits
         for (vector<PeptideHit>::const_iterator pep_hit_it = pep_id_it->getHits().begin(); pep_hit_it != pep_id_it->getHits().end(); ++pep_hit_it)
         {
-          if (sequenceIsWhiteListed_(pep_hit_it->getSequence(), sequences, sequence_comparison_method)) {
-              sequen = true;
+          if (sequenceIsWhiteListed_(pep_hit_it->getSequence(), sequences, sequence_comparison_method)) 
+          {
+            sequen = true;
           }
           
           //loop over all accessions of the peptideHits
