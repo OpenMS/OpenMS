@@ -137,29 +137,34 @@ public:
 private:
   static bool sequenceIsWhiteListed_(const AASequence& peptide_hit_sequence, 
                                      const StringList& whitelist, 
-                                     const String& sequence_comparison_method) {
+                                     const String& sequence_comparison_method) 
+  {
     //loop over all sequence entries of the StringList
     for (StringList::const_iterator seq_it = whitelist.begin(); seq_it != whitelist.end(); ++seq_it)
     {
-      if (sequence_comparison_method == "substring") {
+      if (sequence_comparison_method == "substring") 
+      {
         if (peptide_hit_sequence.toString().hasSubstring(*seq_it)
           || peptide_hit_sequence.toUnmodifiedString().hasSubstring(*seq_it))
         {
-              return true;
+          return true;
         }
-       } else if (sequence_comparison_method == "exact") {
+      } else if (sequence_comparison_method == "exact") 
+       {
             if (peptide_hit_sequence.toString() == *seq_it 
-            || peptide_hit_sequence.toUnmodifiedString() == *seq_it) {
-                return true;
+            || peptide_hit_sequence.toUnmodifiedString() == *seq_it) 
+            {
+              return true;
             }
-       } else {
-           throw Exception::InvalidParameter(
-                __FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
-                "Invalid sequence comparison method given: '" + sequence_comparison_method + "'"
-            );
+       } else 
+       {
+         throw Exception::InvalidParameter(
+           __FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
+           "Invalid sequence comparison method given: '" + sequence_comparison_method + "'"
+          );
        }
-      }
-      return false;
+    }
+    return false;
   }
 
 
