@@ -407,10 +407,9 @@ namespace OpenMS
     double mass = peak.getMZ() * pattern.getCharge();
     CoarseIsotopePatternGenerator solver(isotopes_per_peptide_max_);
     IsotopeDistribution distribution;
-    vector<double> averagine_pattern;
     if (averagine_type_ == "peptide")
     {
-        distribution = solver.estimateFromPeptideWeight(mass);
+      distribution = solver.estimateFromPeptideWeight(mass);
     }
     else if (averagine_type_ == "RNA")
     {
@@ -418,11 +417,11 @@ namespace OpenMS
     }
     else if (averagine_type_ == "DNA")
     {
-        distribution = solver.estimateFromDNAWeight(mass);
+      distribution = solver.estimateFromDNAWeight(mass);
     }
     else
     {
-        throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Invalid averagine type.");
+      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Invalid averagine type.");
     }
     
     // debug output variables
