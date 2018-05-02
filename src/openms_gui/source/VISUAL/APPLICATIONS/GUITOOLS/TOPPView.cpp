@@ -145,10 +145,15 @@ int main(int argc, const char** argv)
     a.connect(&a, SIGNAL(fileOpen(QString)), mw, SLOT(loadFile(QString)));
     mw->show();
 
-    // Create the splashscreen that is displayed while the application loads
-    QSplashScreen* splash_screen = new QSplashScreen(QPixmap(":/TOPPView_Splashscreen.png"));
+    // Create the splashscreen that is displayed while the application loads (version is drawn dynamically)
+    QPixmap qpm(":/TOPPView_Splashscreen.png");
+    QPainter pt_ver(&qpm);
+    pt_ver.setFont(QFont("Helvetica [Cronyx]", 15, 2, true));
+    pt_ver.setPen(QColor(44, 50, 152));
+    pt_ver.drawText(490, 94, VersionInfo::getVersion().toQString());
+    QSplashScreen* splash_screen = new QSplashScreen(qpm);
     splash_screen->show();
-    splash_screen->showMessage("Loading parameters");
+
     QApplication::processEvents();
     StopWatch stop_watch;
     stop_watch.start();
