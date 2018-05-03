@@ -18,6 +18,6 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderMultiplexAl
 
         void run(MSExperiment& exp, bool progress) nogil except +
 
-        FeatureMap& getFeatureMap() nogil except +
+        FeatureMap getFeatureMap() nogil except +
 
-        ConsensusMap& getConsensusMap() nogil except +
+        ConsensusMap getConsensusMap() nogil except +
