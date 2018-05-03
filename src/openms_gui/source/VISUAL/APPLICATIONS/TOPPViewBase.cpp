@@ -33,6 +33,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/VISUAL/APPLICATIONS/TOPPViewBase.h>
+#include <OpenMS/VISUAL/APPLICATIONS/MISC/QApplicationTOPP.h>
 
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
@@ -3524,47 +3525,7 @@ namespace OpenMS
 
   void TOPPViewBase::showAboutDialog()
   {
-    // dialog and grid layout
-    QDialog* dlg = new QDialog(this);
-    QGridLayout* grid = new QGridLayout(dlg);
-    dlg->setWindowTitle("About TOPPView");
-
-    // image
-    QLabel* label = new QLabel(dlg);
-    label->setPixmap(QPixmap(":/TOPP_about.png"));
-    grid->addWidget(label, 0, 0);
-
-    // text
-    QString text = QString("<BR>"
-                           "<FONT size=+3>TOPPView</font><BR>"
-                           "<BR>"
-                           "Version %1 %2"
-                           "<BR>"
-                           "OpenMS and TOPP is free software available under the<BR>"
-                           "BSD 3-Clause License (BSD-new)<BR>"
-                           "<BR>"
-                           "<BR>"
-                           "<BR>"
-                           "<BR>"
-                           "<BR>"
-                           "Any published work based on TOPP and OpenMS shall cite these papers:<BR>"
-                           "Roest, Sachsenberg, Aiche, Bielow, Weisser et al., Nat Methods (2016), 13(9):741-748<BR>"
-                           "Kohlbacher et al., Bioinformatics (2007), 23:e191-e197<BR>"
-                           ).arg(VersionInfo::getVersion().toQString()
-                           ).arg( // if we have a revision, embed it also into the shown version number
-                             VersionInfo::getRevision() != "" ? QString(" (") + VersionInfo::getRevision().toQString() + ")" : "");
-
-    label = new QLabel(text, dlg);
-
-    grid->addWidget(label, 0, 1, Qt::AlignTop | Qt::AlignLeft);
-
-    // close button
-    QPushButton* button = new QPushButton("Close", dlg);
-    grid->addWidget(button, 1, 1, Qt::AlignBottom | Qt::AlignRight);
-    connect(button, SIGNAL(clicked()), dlg, SLOT(close()));
-
-    // execute
-    dlg->exec();
+    QApplicationTOPP::showAboutDialog(this, "TOPPView");
   }
 
   void TOPPViewBase::updateProcessLog()
