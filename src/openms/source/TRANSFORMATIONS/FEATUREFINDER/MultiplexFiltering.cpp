@@ -222,7 +222,7 @@ namespace OpenMS
             // The peak can either be pure white i.e. untouched, or have been seen earlier as part of the same mass trace.
             size_t rt_idx = it_rt - it_rt_begin;
             size_t mz_idx = index_mapping.at(it_rt - it_rt_begin).at(i);
-            if ((blacklist_[rt_idx][mz_idx] == -1) || (blacklist_[rt_idx][mz_idx] == idx_mz_shift))
+            if ((blacklist_[rt_idx][mz_idx] == -1) || (blacklist_[rt_idx][mz_idx] == static_cast<int>(idx_mz_shift)))
             {
               peak.addSatellite(it_rt - it_rt_begin, index_mapping.at(it_rt - it_rt_begin).at(i), idx_mz_shift);
               found = true;

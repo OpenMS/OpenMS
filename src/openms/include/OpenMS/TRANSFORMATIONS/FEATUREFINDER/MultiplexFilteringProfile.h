@@ -120,12 +120,11 @@ private:
      * @brief peptide correlation filter for profile mode
      *
      * @param pattern    m/z pattern to search for
-     * @param peak    peak to be filtered
      * @param satellites    spline-interpolated satellites of the peak. If they pass, they will be added to the peak.
      *
      * @return boolean if this filter was passed i.e. the correlation coefficient is greater than <averagine_similarity_>
      */
-    bool filterPeptideCorrelation_(const MultiplexIsotopicPeakPattern& pattern, const MultiplexFilteredPeak& peak, const std::multimap<size_t, MultiplexSatelliteProfile > satellites_profile) const;
+    bool filterPeptideCorrelation_(const MultiplexIsotopicPeakPattern& pattern, const std::multimap<size_t, MultiplexSatelliteProfile > satellites_profile) const;
     
     /**
      * @brief spline interpolated profile data and peak boundaries

@@ -192,7 +192,7 @@ namespace OpenMS
               continue;
             }
             
-            if (!(filterPeptideCorrelation_(pattern, peak, satellites_profile)))
+            if (!(filterPeptideCorrelation_(pattern, satellites_profile)))
             {
               continue;
             }
@@ -335,25 +335,13 @@ namespace OpenMS
     return true;
   }
   
-  bool MultiplexFilteringProfile::filterPeptideCorrelation_(const MultiplexIsotopicPeakPattern& pattern, const MultiplexFilteredPeak& peak, const std::multimap<size_t, MultiplexSatelliteProfile > satellites_profile) const
+  bool MultiplexFilteringProfile::filterPeptideCorrelation_(const MultiplexIsotopicPeakPattern& pattern, const std::multimap<size_t, MultiplexSatelliteProfile > satellites_profile) const
   {
     if (pattern.getMassShiftCount() < 2)
     {
       // filter irrelevant for singlet feature detection
       return true;
     }
-
-    // debug output variables
-    /*int debug_charge = 4;
-    size_t debug_rt_idx = 35;
-    size_t debug_mz_idx = 6;
-    bool debug_now = ((pattern.getCharge() == debug_charge) && (peak.getRTidx() == debug_rt_idx) && (peak.getMZidx() == debug_mz_idx));*/
-    
-    // debug output
-    /*if (debug_now)
-     {
-     std::cout << "Inside the Peptide Correlation Filter.\n";
-     }*/
 
     // We will calculate the correlations between all possible peptide combinations.
     // For example (light, medium), (light, heavy) and (medium, heavy) in the case of triplets.
@@ -410,13 +398,6 @@ namespace OpenMS
         // calculate correlation between peak insities in peptides 1 and 2
         double correlation_Pearson = OpenMS::Math::pearsonCorrelationCoefficient(intensities_1.begin(), intensities_1.end(), intensities_2.begin(), intensities_2.end());
         double correlation_Spearman = OpenMS::Math::rankCorrelationCoefficient(intensities_1.begin(), intensities_1.end(), intensities_2.begin(), intensities_2.end());
-        
-        // debug output
-        /*if (debug_now)
-         {
-         std::cout << "        Pearson correlation = " << correlation_Pearson << "    rank correlation = " << correlation_Spearman << "\n";
-         //std::cout << "        Pearson correlation = " << correlation_Pearson << "\n";
-         }*/
         
         if ((correlation_Pearson < peptide_similarity_) || (correlation_Spearman < peptide_similarity_))
         //if (correlation_Pearson < peptide_similarity_)
