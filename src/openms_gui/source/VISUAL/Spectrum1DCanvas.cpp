@@ -1050,17 +1050,25 @@ namespace OpenMS
       return false;
     }
 
-    // add new draw mode and style
-    draw_modes_.push_back(DM_PEAKS);
-    peak_penstyle_.push_back(Qt::SolidLine);
+    const MSSpectrum & spectrum = getCurrentLayer_().getCurrentSpectrum(); 
 
-    //estimate peak type
-    PeakTypeEstimator pte;
-    if (pte.estimateType(getCurrentLayer_().getCurrentSpectrum().begin(), getCurrentLayer_().getCurrentSpectrum().end()) == SpectrumSettings::PROFILE)
+    // add new draw mode and style (default: peaks)
+    draw_modes_.push_back(DM_PEAKS);
+    SpectrumSettings::SpectrumType spectrum_type = spectrum.getType();
+
+    if (spectrum_type == SpectrumSettings::PROFILE)
     {
       draw_modes_.back() = DM_CONNECTEDLINES;
-      peak_penstyle_.push_back(Qt::SolidLine);
+    } 
+    else if (spectrum_type == SpectrumSettings::UNKNOWN)
+    {
+      if (PeakTypeEstimator().estimateType(spectrum.begin(), spectrum.end()) == SpectrumSettings::PROFILE)
+      {
+        draw_modes_.back() = DM_CONNECTEDLINES;
+      }
     }
+    peak_penstyle_.push_back(Qt::SolidLine);
+
 
     //Change peak color if this is not the first layer
     switch (current_layer_ % 5)
