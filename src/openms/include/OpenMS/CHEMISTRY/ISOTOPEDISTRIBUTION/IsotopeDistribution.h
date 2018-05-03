@@ -96,12 +96,8 @@ public:
     /// @name Constructors and Destructors
     //@{
     /** Default constructor, note max_isotope must be set later
-            @see setMaxIsotope(Size max_isotope)
     */
     IsotopeDistribution();
-
-    /// Detailed constructor which sets the @p max_isotope
-    explicit IsotopeDistribution(Size max_isotope);
 
     /// Copy constructor
     IsotopeDistribution(const IsotopeDistribution & isotope_distribution);
