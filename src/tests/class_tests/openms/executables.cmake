@@ -535,6 +535,7 @@ set(transformations_executables_list
   FeatureFinderAlgorithmPicked_test
   FeatureFinderAlgorithm_test
   FeatureFinderIdentificationAlgorithm_test
+  FeatureFinderMultiplexAlgorithm_test
   FeatureFinderDefs_test
   FeatureFinder_test
   Fitter1D_test
