@@ -261,19 +261,19 @@ namespace OpenMS
     double left_rt_bottom = trace_peaks_[left_border].getRT();
     double left_rt_top = trace_peaks_[fwhm_left_top_idx].getRT();
 
-    double fwhm_begin_rt = calculateXCoordinateAtHalfMax_(left_rt_bottom, left_rt_top,
-                                                          (tmp_ints[left_border]),
-                                                          (tmp_ints[fwhm_left_top_idx]),
-                                                          (half_max_int));
+    double fwhm_begin_rt = linearInterpolationAtY_(left_rt_bottom, left_rt_top,
+                                                   (tmp_ints[left_border]),
+                                                   (tmp_ints[fwhm_left_top_idx]),
+                                                   (half_max_int));
 
     Size fwhm_right_top_idx = right_border - 1;
     double right_rt_bottom = trace_peaks_[right_border].getRT();
     double right_rt_top = trace_peaks_[fwhm_right_top_idx].getRT();
 
-    double fwhm_end_rt = calculateXCoordinateAtHalfMax_(right_rt_top, right_rt_bottom,
-                                                        (tmp_ints[fwhm_right_top_idx]),
-                                                        (tmp_ints[right_border]),
-                                                        (half_max_int));
+    double fwhm_end_rt = linearInterpolationAtY_(right_rt_top, right_rt_bottom,
+                                                 (tmp_ints[fwhm_right_top_idx]),
+                                                 (tmp_ints[right_border]),
+                                                 (half_max_int));
 
     fwhm_ = std::fabs(fwhm_end_rt - fwhm_begin_rt);
 
@@ -283,12 +283,12 @@ namespace OpenMS
     return fwhm_;
   }
 
-    double MassTrace::calculateXCoordinateAtHalfMax_(double xA, double xB, double yA, double yB, double fwhm_int) const
+    double MassTrace::linearInterpolationAtY_(double xA, double xB, double yA, double yB, double y_eval) const
     {
       // no solution -> return an estimate
       if (std::fabs(xA - xB) == 0 || std::fabs(yA - yB) == 0)  { return xA; }
 
-      double xC = (xA + ((fwhm_int - yA) * (xB - xA) / (yB - yA)));
+      double xC = (xA + ((y_eval - yA) * (xB - xA) / (yB - yA)));
 
       return xC;
     }
