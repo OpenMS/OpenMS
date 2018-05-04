@@ -227,7 +227,7 @@ class SimpleSearchEngine :
         exp[exp_index].sortByPosition();
 
         // deisotope
-        Deisotoper::deisotopeAndSingleChargeMSSpectrum(exp[exp_index], 
+        Deisotoper::deisotopeAndSingleCharge(exp[exp_index], 
           fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, 
           1, 3,   // min / max charge 
           false,  // keep only deisotoped

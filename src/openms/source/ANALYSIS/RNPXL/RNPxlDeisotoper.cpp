@@ -38,18 +38,29 @@
 #include <OpenMS/ANALYSIS/RNPXL/RNPxlDeisotoper.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 
-using namespace OpenMS;
+namespace OpenMS
+{
 
-void Deisotoper::deisotopeAndSingleChargeMSSpectrum(MSSpectrum& in, 
+// static
+void Deisotoper::deisotopeAndSingleCharge(MSSpectrum& in, 
                                         double fragment_tolerance, 
       				        bool fragment_unit_ppm, 
-                                        int min_charge, int max_charge,
+                                        int min_charge, 
+					int max_charge,
                                         bool keep_only_deisotoped, 
                                         unsigned int min_isopeaks, 
       				        unsigned int max_isopeaks, 
                                         bool make_single_charged,
                                         bool annotate_charge)
 {
+  if (min_isopeaks < 2 || max_isopeaks < 2 || min_isopeaks > max_isopeaks)
+  {
+    throw Exception::IllegalArgument(__FILE__, 
+		    __LINE__, 
+		    OPENMS_PRETTY_FUNCTION, 
+		    "Minimum/maximum number of isotopic peaks must be at least 2 (and min_isopeaks <= max_isopeaks).");
+  }
+
   if (in.empty()) { return; }
 
   MSSpectrum old_spectrum = in;
@@ -69,7 +80,7 @@ void Deisotoper::deisotopeAndSingleChargeMSSpectrum(MSSpectrum& in,
 
   for (unsigned int current_peak = 0; current_peak != old_spectrum.size(); ++current_peak)
   {
-    double current_mz = old_spectrum[current_peak].getPosition()[0];
+    const double current_mz = old_spectrum[current_peak].getMZ();
 
     for (int q = max_charge; q >= min_charge; --q) // important: test charge hypothesis from high to low
     {
@@ -83,31 +94,27 @@ void Deisotoper::deisotopeAndSingleChargeMSSpectrum(MSSpectrum& in,
         std::vector<unsigned int> extensions;
         for (unsigned int i = 0; i < max_isopeaks; ++i)
         {
-          double expected_mz = current_mz + i * Constants::C13C12_MASSDIFF_U / q;
-          unsigned int p = old_spectrum.findNearest(expected_mz);
-          double tolerance_dalton = fragment_unit_ppm ? fragment_tolerance * old_spectrum[p].getPosition()[0] * 1e-6 : fragment_tolerance;
-          if (fabs(old_spectrum[p].getPosition()[0] - expected_mz) > tolerance_dalton) // test for missing peak
+          const double expected_mz = current_mz + static_cast<double>(i) * Constants::C13C12_MASSDIFF_U / static_cast<double>(q);
+          const unsigned int p = old_spectrum.findNearest(expected_mz);
+          const double tolerance_dalton = fragment_unit_ppm ? fragment_tolerance * expected_mz * 1e-6 : fragment_tolerance;
+          const double distance_to_closest = fabs(old_spectrum[p].getMZ() - expected_mz);
+	  if (distance_to_closest > tolerance_dalton) // test for missing peak
           {
-            if (i < min_isopeaks)
-            {
-              has_min_isopeaks = false;
-            }
-            break;
+            if (i < min_isopeaks) { has_min_isopeaks = false;}
+	    break;
           }
           else
           {
-            // TODO: include proper averagine model filtering. for now start at the second peak to test hypothesis
+            // Possible improvement: include proper averagine model filtering. for now start at the second peak to test hypothesis
+	    // Note: this is a common approach used in several other search engines
             unsigned int n_extensions = extensions.size();
             if (n_extensions != 0)
             {
               if (old_spectrum[p].getIntensity() > old_spectrum[extensions[n_extensions - 1]].getIntensity())
               {
-                if (i < min_isopeaks)
-                {
-                  has_min_isopeaks = false;
-                }
-                break;
-              }
+                if (i < min_isopeaks) { has_min_isopeaks = false; }
+               break;
+	      }
             }
 
             // averagine check passed
@@ -117,13 +124,13 @@ void Deisotoper::deisotopeAndSingleChargeMSSpectrum(MSSpectrum& in,
 
         if (has_min_isopeaks)
         {
-          //cout << "min peaks at " << current_mz << " " << " extensions: " << extensions.size() << endl;
+	  // std::cout << "min peaks at " << current_mz << " " << " extensions: " << extensions.size() << std::endl;
           mono_isotopic_peak[current_peak] = q;
           for (unsigned int i = 0; i != extensions.size(); ++i)
           {
             features[extensions[i]] = feature_number;
           }
-          feature_number++;
+          ++feature_number;
         }
       }
     }
@@ -135,10 +142,7 @@ void Deisotoper::deisotopeAndSingleChargeMSSpectrum(MSSpectrum& in,
     int z = mono_isotopic_peak[i];
     if (keep_only_deisotoped)
     {
-      if (z == 0)
-      {
-        continue;
-      }
+      if (z == 0) { continue; }
 
       // if already single charged or no decharging selected keep peak as it is
       if (!make_single_charged)
@@ -158,10 +162,7 @@ void Deisotoper::deisotopeAndSingleChargeMSSpectrum(MSSpectrum& in,
         in.push_back(p);
 
         // add peak charge to annotation array
-        if (annotate_charge)
-        {
-          in.getIntegerDataArrays().back().push_back(z);
-        }
+        if (annotate_charge) { in.getIntegerDataArrays().back().push_back(z); }
       }
     }
     else
@@ -172,10 +173,7 @@ void Deisotoper::deisotopeAndSingleChargeMSSpectrum(MSSpectrum& in,
         in.push_back(old_spectrum[i]);
 
         // add peak charge to annotation array
-        if (annotate_charge)
-        {
-          in.getIntegerDataArrays().back().push_back(z);
-        }
+        if (annotate_charge) { in.getIntegerDataArrays().back().push_back(z); }
         continue;
       }
 
@@ -186,10 +184,7 @@ void Deisotoper::deisotopeAndSingleChargeMSSpectrum(MSSpectrum& in,
         {
           in.push_back(old_spectrum[i]);
 
-          if (annotate_charge)
-          {
-            in.getIntegerDataArrays().back().push_back(z);
-          }
+          if (annotate_charge) { in.getIntegerDataArrays().back().push_back(z); }
         }
         else // make single charged
         {
@@ -208,4 +203,5 @@ void Deisotoper::deisotopeAndSingleChargeMSSpectrum(MSSpectrum& in,
   }
   in.sortByPosition();
 }
+} // namespace
 
