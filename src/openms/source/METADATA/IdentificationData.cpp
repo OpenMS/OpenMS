@@ -408,15 +408,16 @@ namespace OpenMS
   }
 
 
-  IdentificationData::ScoreTypeRef IdentificationData::findScoreType(
-    const String& score_name) const
+  pair<IdentificationData::ScoreTypeRef, bool>
+  IdentificationData::findScoreType(const String& score_name) const
   {
     return findScoreType(score_name, processing_software_.end());
   }
 
 
-  IdentificationData::ScoreTypeRef IdentificationData::findScoreType(
-    const String& score_name, ProcessingSoftwareRef software_ref) const
+  pair<IdentificationData::ScoreTypeRef, bool>
+  IdentificationData::findScoreType(const String& score_name,
+                                    ProcessingSoftwareRef software_ref) const
   {
     for (ScoreTypeRef it = score_types_.begin(); it != score_types_.end(); ++it)
     {
@@ -424,10 +425,10 @@ namespace OpenMS
           ((software_ref == processing_software_.end()) ||
            (it->software_opt == software_ref)))
       {
-        return it;
+        return make_pair(it, true);
       }
     }
-    return score_types_.end();
+    return make_pair(score_types_.end(), false);
   }
 
 

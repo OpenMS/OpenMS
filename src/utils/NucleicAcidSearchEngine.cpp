@@ -140,19 +140,21 @@ protected:
     registerStringOption_("precursor:mass_tolerance_unit", "<unit>", "ppm", "Unit of precursor mass tolerance.", false, false);
     setValidStrings_("precursor:mass_tolerance_unit", ListUtils::create<String>("Da,ppm"));
 
-    registerIntOption_("precursor:min_charge", "<num>", -1, "Minimum precursor charge to be considered.", false, false);
-    registerIntOption_("precursor:max_charge", "<num>", -9, "Maximum precursor charge to be considered.", false, false);
+    registerIntOption_("precursor:min_charge", "<num>", -1, "Minimum precursor charge to be considered", false, false);
+    registerIntOption_("precursor:max_charge", "<num>", -9, "Maximum precursor charge to be considered", false, false);
+
+    registerFlag_("precursor:use_avg_mass", "Use average instead of monoisotopic precursor masses (appropriate for low-resolution instruments)", false);
 
     // Whether to look for precursors with salt adducts
-    registerFlag_("precursor:use_adducts", "Consider possible salt adducts (see 'precursor:potential_adducts') when matching precursor masses?", false);
+    registerFlag_("precursor:use_adducts", "Consider possible salt adducts (see 'precursor:potential_adducts') when matching precursor masses", false);
     registerStringList_("precursor:potential_adducts", "<list>", ListUtils::create<String>("K:+"), "Adducts considered to explain mass differences. Format: 'Element:Charge(+/-)', i.e. the number of '+' or '-' indicates the charge, e.g. 'Ca:++' indicates +2. Only used if 'precursor:use_adducts' is set.", false, false);
 
     // Whether we single charge the MS2s prior to scoring
-    registerFlag_("decharge_ms2", "Whether to decharge the MS2 spectra for scoring", false);
+    registerFlag_("decharge_ms2", "Decharge the MS2 spectra for scoring", false);
 
     // consider one before annotated monoisotopic peak and the annotated one
     IntList isotopes = {0, 1};
-    registerIntList_("precursor:isotopes", "<num>", isotopes, "Corrects for mono-isotopic peak misassignments. (E.g.: 1 = prec. may be misassigned to first isotopic peak)", false, false);
+    registerIntList_("precursor:isotopes", "<list>", isotopes, "Correct for mono-isotopic peak misassignments. E.g.: 1 = precursor may be misassigned to the first isotopic peak. Ignored if 'use_avg_mass' is set.", false, false);
 
     registerTOPPSubsection_("fragment", "Fragment (Product Ion) Options");
     registerDoubleOption_("fragment:mass_tolerance", "<tolerance>", 10.0, "Fragment mass tolerance (+/- around fragment m/z)", false);
@@ -181,27 +183,41 @@ protected:
     setValidStrings_("modifications:fixed", all_mods);
     registerStringList_("modifications:variable", "<mods>", ListUtils::create<String>(""), "Variable modifications", false);
     setValidStrings_("modifications:variable", all_mods);
-    registerIntOption_("modifications:variable_max_per_oligo", "<num>", 2, "Maximum number of residues carrying a variable modification per candidate oligo", false, false);
+    registerIntOption_("modifications:variable_max_per_oligo", "<num>", 2, "Maximum number of residues carrying a variable modification per candidate oligonucleotide", false, false);
 
     registerTOPPSubsection_("oligo", "Oligonucleotide Options");
-    registerIntOption_("oligo:min_size", "<num>", 5, "Minimum size an oligonucleotide must have after digestion to be considered in the search.", false);
-    registerIntOption_("oligo:missed_cleavages", "<num>", 1, "Number of missed cleavages.", false, false);
+    registerIntOption_("oligo:min_size", "<num>", 5, "Minimum size an oligonucleotide must have after digestion to be considered in the search", false);
+    registerIntOption_("oligo:missed_cleavages", "<num>", 1, "Number of missed cleavages", false, false);
 
     StringList all_enzymes;
     RNaseDB::getInstance()->getAllNames(all_enzymes);
-    registerStringOption_("oligo:enzyme", "<choice>", "no cleavage", "The enzyme used for RNA digestion.", false);
+    registerStringOption_("oligo:enzyme", "<choice>", "no cleavage", "The enzyme used for RNA digestion", false);
     setValidStrings_("oligo:enzyme", all_enzymes);
 
     registerTOPPSubsection_("report", "Reporting Options");
-    registerIntOption_("report:top_hits", "<num>", 1, "Maximum number of top scoring hits per spectrum that are reported.", false, true);
+    registerIntOption_("report:top_hits", "<num>", 1, "Maximum number of top scoring hits per spectrum that are reported", false, true);
 
     registerTOPPSubsection_("fdr", "False Discovery Rate Options");
     registerStringOption_("fdr:decoy_pattern", "<string>", "", "String used as part of the accession to annotate decoy sequences (e.g. 'DECOY_'). Leave empty to skip the FDR/q-value calculation.", false);
-    registerDoubleOption_("fdr:cutoff", "<value>", 1.0, "Cut-off for FDR filtering; search hits with higher q-values will be removed.", false);
+    registerDoubleOption_("fdr:cutoff", "<value>", 1.0, "Cut-off for FDR filtering; search hits with higher q-values will be removed", false);
     setMinFloat_("fdr:cutoff", 0.0);
     setMaxFloat_("fdr:cutoff", 1.0);
     registerFlag_("fdr:remove_decoys", "Do not score hits to decoy sequences and remove them when filtering");
   }
+
+
+  struct PrecursorInfo
+  {
+    Size scan_index;
+    Int charge;
+    Size isotope;
+    String adduct;
+
+    PrecursorInfo(Size scan_index, Int charge, Size isotope, const String& adduct):
+      scan_index(scan_index), charge(charge), isotope(isotope), adduct(adduct)
+    {
+    }
+  };
 
 
   // slimmer structure to store basic hit information
@@ -212,6 +228,8 @@ protected:
     double score; // the score
     double precursor_error_ppm; // precursor mass error in ppm
     vector<PeptideHit::PeakAnnotation> annotations; // peak/ion annotations
+    Int charge;
+    String adduct;
 
     static bool hasBetterScore(const AnnotatedHit& a, const AnnotatedHit& b)
     {
@@ -430,6 +448,7 @@ protected:
     // Note: we expect a higher number for NA than e.g., for peptides
     NLargest nlargest_filter = NLargest(1000);
 
+    Size n_zero_charge = 0, n_inferred_charge = 0;
 #ifdef _OPENMP
 #pragma omp parallel for
 #endif
@@ -444,6 +463,7 @@ protected:
       Int precursor_charge = spec.getPrecursors()[0].getCharge();
       if (precursor_charge == 0) // no charge information
       {
+        n_zero_charge++;
         // maybe we are able to infer the charge state:
         if (spec.getPrecursors().size() > 1) // multiplexed PRM experiment
         {
@@ -478,6 +498,7 @@ protected:
           }
           else
           {
+            ++n_inferred_charge;
             LOG_DEBUG << "Inferred charge state " << inferred_charge << " for spectrum '" << spec.getNativeID() << "'" << endl;
             // keep only precursor with highest charge, set inferred charge:
             Precursor prec = spec.getPrecursors()[precursors.begin()->second];
@@ -489,6 +510,7 @@ protected:
 
       // deisotope
       Int coef = negative_mode ? -1 : 1;
+      // @TODO: what happens here if "precursor_charge" is zero?
       deisotopeAndSingleChargeMSSpectrum_(spec, coef, coef * precursor_charge, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, false, 3, 20, single_charge_spectra);
 
       // remove noise
@@ -498,6 +520,39 @@ protected:
       // sort (nlargest changes order)
       spec.sortByPosition();
     }
+
+    if (n_zero_charge)
+    {
+      LOG_WARN << "Warning: no charge state information available for " << n_zero_charge << " out of " << exp.size() << " spectra." << endl;
+      if (n_inferred_charge)
+      {
+        LOG_INFO << "Inferred charge states for " << n_inferred_charge << " spectra." << endl;
+      }
+    }
+  }
+
+
+  void insertSpectrumPrecursorMass_(multimap<double, PrecursorInfo>& precursor_mass_map, Size scan_index, double mz, Int charge, Size isotope, double adduct_mass, const String& adduct, bool negative_mode)
+  {
+    // we want to calculate the unadducted (!) precursor mass at neutral charge:
+    double mass = mz * charge - adduct_mass;
+    // compensate for loss or gain of protons that confer the charge:
+    if (negative_mode)
+    {
+      mass += Constants::PROTON_MASS_U * charge;
+    }
+    else
+    {
+      mass -= Constants::PROTON_MASS_U * charge;
+    }
+    // correct for precursor not being the monoisotopic peak:
+    if (isotope > 0)
+    {
+      mass -= isotope * Constants::C13C12_MASSDIFF_U;
+    }
+
+    PrecursorInfo info(scan_index, charge, isotope, adduct);
+    precursor_mass_map.insert(make_pair(mass, info));
   }
 
 
@@ -534,9 +589,6 @@ protected:
       if (!annotated_hits[scan_index].empty())
       {
         const MSSpectrum& spectrum = exp[scan_index];
-        Int charge = spectrum.getPrecursors()[0].getCharge();
-        if ((charge > 0) && negative_mode) charge = -charge;
-
         IdentificationData::DataQuery query(spectrum.getNativeID(), file_ref, spectrum.getRT(), spectrum.getPrecursors()[0].getMZ());
         query.setMetaValue("scan_index", static_cast<unsigned int>(scan_index));
         IdentificationData::DataQueryRef query_ref = id_data.registerDataQuery(query);
@@ -558,6 +610,8 @@ protected:
           IdentificationData::IdentifiedOligoRef oligo_ref =
             id_data.registerIdentifiedOligo(oligo);
 
+          Int charge = hit.charge;
+          if ((charge > 0) && negative_mode) charge = -charge;
           IdentificationData::MoleculeQueryMatch match(oligo_ref, query_ref,
                                                        charge);
           match.scores.push_back(make_pair(score_ref, hit.score));
@@ -566,6 +620,7 @@ protected:
           // @TODO: add a field for this to "IdentificationData::MoleculeQueryMatch"?
           match.setMetaValue(Constants::PRECURSOR_ERROR_PPM_USERPARAM,
                              hit.precursor_error_ppm);
+          if (!hit.adduct.empty()) match.setMetaValue("adduct", hit.adduct);
           id_data.registerMoleculeQueryMatch(match);
         }
       }
@@ -596,7 +651,7 @@ protected:
   void calculateAndFilterFDR_(IdentificationData& id_data, bool only_top_hits)
   {
     IdentificationData::ScoreTypeRef score_ref =
-      id_data.findScoreType("hyperscore");
+      id_data.findScoreType("hyperscore").first;
     FalseDiscoveryRate fdr;
     Param fdr_params = fdr.getDefaults();
     fdr_params.setValue("use_all_hits", only_top_hits ? "true" : "false");
@@ -625,9 +680,13 @@ protected:
     String id_out = getStringOption_("id_out");
     String theo_ms2_out = getStringOption_("theo_ms2_out");
     String exp_ms2_out = getStringOption_("exp_ms2_out");
+    bool use_avg_mass = getFlag_("precursor:use_avg_mass");
 
     IdentificationData::DBSearchParam search_param;
     search_param.molecule_type = IdentificationData::MoleculeType::RNA;
+    search_param.mass_type = (use_avg_mass ?
+                              IdentificationData::MassType::AVERAGE :
+                              IdentificationData::MassType::MONOISOTOPIC);
     search_param.database = in_db;
     Int min_charge = getIntOption_("precursor:min_charge");
     Int max_charge = getIntOption_("precursor:max_charge");
@@ -670,65 +729,67 @@ protected:
     vector<ConstRibonucleotidePtr> variable_modifications = getModifications_(search_param.variable_mods);
 
     // @TODO: add slots for these to "IdentificationData::DBSearchParam"?
-    IntList precursor_isotopes = getIntList_("precursor:isotopes");
+    IntList precursor_isotopes = (use_avg_mass ? vector<Int>(1, 0) :
+                                  getIntList_("precursor:isotopes"));
     Size max_variable_mods_per_oligo = getIntOption_("modifications:variable_max_per_oligo");
     Int report_top_hits = getIntOption_("report:top_hits");
 
     StringList potential_adducts = getStringList_("precursor:potential_adducts");
-    DoubleList adduct_masses;
+    map<double, String> adduct_masses;
+    adduct_masses[0.0] = ""; // always consider "no adduct"
     bool use_adducts = getFlag_("precursor:use_adducts");
     bool single_charge_spectra = getFlag_("decharge_ms2");
     if (use_adducts)
     {
-      for (StringList::iterator it = potential_adducts.begin(); it != potential_adducts.end(); ++it)
+      for (const String& adduct : potential_adducts)
       {
-        StringList adduct;
-        it->split(':', adduct);
-        if (adduct.size() != 2)
+        StringList parts;
+        adduct.split(':', parts);
+        if (parts.size() != 2)
         {
           String error = "entry in parameter 'precursor:potential_adducts' does not have two parts separated by ':'";
-          throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, error, *it);
+          throw Exception::InvalidValue(__FILE__, __LINE__,
+                                        OPENMS_PRETTY_FUNCTION, error, adduct);
         }
 
         // determine charge of adduct (by # of '+' or '-')
-        Int pos_charge = adduct[1].size() - adduct[1].remove('+').size();
-        Int neg_charge = adduct[1].size() - adduct[1].remove('-').size();
+        Int pos_charge = parts[1].size() - parts[1].remove('+').size();
+        Int neg_charge = parts[1].size() - parts[1].remove('-').size();
         LOG_DEBUG << ": " << pos_charge - neg_charge << endl;
         if (pos_charge > 0 && neg_charge > 0)
         {
           String error = "entry in parameter 'precursor:potential_adducts' mixes positive and negative charges";
-          throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, error, *it);
+          throw Exception::InvalidValue(__FILE__, __LINE__,
+                                        OPENMS_PRETTY_FUNCTION, error, adduct);
         }
-        else if (pos_charge > 0)
+
+        // generate the formula for the adduct at neutral charge (!) -
+        // compensate for intrinsic charge by adding/removing hydrogens:
+        EmpiricalFormula ef(parts[0]);
+        if (pos_charge > 0)
         {
-          EmpiricalFormula ef(adduct[0]);
           ef -= EmpiricalFormula("H" + String(pos_charge));
           // ef.setCharge(pos_charge); // effectively subtract electron masses
-          adduct_masses.push_back(ef.getMonoWeight());
-          LOG_DEBUG << "Added adduct: " << ef.toString() << ", mass: "<< ef.getMonoWeight() << endl;
         }
         else if (neg_charge > 0)
         {
-          if (adduct[0] == "H-1")
+          if (parts[0] == "H-1") // @TODO: does this need a special case?
           {
-            adduct_masses.push_back(-Constants::PROTON_MASS_U);
+            adduct_masses[-Constants::PROTON_MASS_U] = adduct;
+            LOG_DEBUG << "Added adduct: " << adduct << ", mass: "
+                      << -Constants::PROTON_MASS_U << endl;
+            continue;
           }
           else
           {
-            EmpiricalFormula ef(adduct[0]);
             ef.setCharge(0); // ensures we get without additional protons, now just add electron masses
             //TODO triple check salt proton correctness
             ef += EmpiricalFormula("H" + String(neg_charge));
-            adduct_masses.push_back(ef.getMonoWeight());
-            LOG_DEBUG << "Added adduct: " << ef.toString() << ", mass: "<< ef.getMonoWeight() << endl;
           }
         }
-        else // uncharged
-        {
-          EmpiricalFormula ef(adduct[0]);
-          adduct_masses.push_back(ef.getMonoWeight());
-          LOG_DEBUG << "Added adduct: " << ef.toString() << ", mass: "<< ef.getMonoWeight() << endl;
-        }
+        double mass = use_avg_mass ? ef.getAverageWeight() : ef.getMonoWeight();
+        adduct_masses[mass] = adduct;
+        LOG_DEBUG << "Added adduct: " << adduct << ", mass: " << mass << endl;
       }
     }
 
@@ -747,86 +808,66 @@ protected:
     progresslogger.startProgress(0, 1, "filtering spectra...");
     // @TODO: move this into the loop below (run only when checks pass)
     preprocessSpectra_(spectra, search_param.fragment_mass_tolerance,
-                       search_param.fragment_tolerance_ppm, single_charge_spectra,
-                       negative_mode, min_charge, max_charge);
+                       search_param.fragment_tolerance_ppm,
+                       single_charge_spectra, negative_mode, min_charge,
+                       max_charge);
     progresslogger.endProgress();
     LOG_DEBUG << "preprocessed spectra: " << spectra.getNrSpectra() << endl;
 
-    // build multimap of precursor mass to scan index
-    multimap<double, Size> multimap_mass_2_scan_index;
+    // build multimap of precursor mass to scan index (and other information):
+    multimap<double, PrecursorInfo> precursor_mass_map;
     for (PeakMap::ConstIterator s_it = spectra.begin(); s_it != spectra.end();
          ++s_it)
     {
       int scan_index = s_it - spectra.begin();
-      vector<Precursor> precursor = s_it->getPrecursors();
+      const vector<Precursor>& precursors = s_it->getPrecursors();
 
-      // there should be only one precursor and MS2 should contain at least a few peaks to be considered (e.g. at least one per nucleotide in the chain)
-      if (precursor.size() == 1 && s_it->size() >= search_param.min_length)
+      // there should be only one precursor and MS2 should contain at least a
+      // few peaks to be considered (at least one per nucleotide in the chain):
+      if ((precursors.size() != 1) || (s_it->size() < search_param.min_length))
       {
-        int precursor_charge = precursor[0].getCharge();
-        // the charge value in mzML seems to be always positive, so compare by
-        // absolute value in negative mode:
-        if ((negative_mode &&
-             ((precursor_charge > abs(*search_param.charges.begin())) ||
-              (precursor_charge < abs(*(--search_param.charges.end()))))) ||
-            (!negative_mode &&
-             ((precursor_charge < *search_param.charges.begin()) ||
-              (precursor_charge > *(--search_param.charges.end())))))
+        continue;
+      }
+
+      set<Int> possible_charges;
+      Int precursor_charge = precursors[0].getCharge();
+      if (precursor_charge == 0) // charge information missing
+      {
+        possible_charges = search_param.charges; // try all allowed charges
+      }
+      // compare to charge parameters (the charge value in mzML seems to be
+      // always positive, so compare by absolute value in negative mode):
+      else if ((negative_mode &&
+                ((precursor_charge > abs(*search_param.charges.begin())) ||
+                 (precursor_charge < abs(*(--search_param.charges.end()))))) ||
+               (!negative_mode &&
+                ((precursor_charge < *search_param.charges.begin()) ||
+                 (precursor_charge > *(--search_param.charges.end())))))
+      {
+        continue; // charge not in user-supplied range
+      }
+      else
+      {
+        possible_charges.insert(precursor_charge); // only one possibility
+      }
+
+      double precursor_mz = precursors[0].getMZ();
+
+      for (Int precursor_charge : possible_charges)
+      {
+        precursor_charge = abs(precursor_charge); // adjust for neg. mode
+
+        // calculate precursor mass (optionally corrected for adducts and peak
+        // misassignment) and map it to MS scan index:
+        for (const auto& adduct_pair : adduct_masses)
         {
-          continue;
-        }
-
-        double precursor_mz = precursor[0].getMZ();
-
-        // calculate precursor mass (optionally corrected for misassignment) and map it to MS scan index
-        for (int isotope_number : precursor_isotopes)
-        {
-          double precursor_mass = precursor_mz * precursor_charge;
-          if (negative_mode)
+          for (Int isotope_number : precursor_isotopes)
           {
-            precursor_mass += Constants::PROTON_MASS_U * precursor_charge;
+            insertSpectrumPrecursorMass_(precursor_mass_map, scan_index,
+                                         precursor_mz, precursor_charge,
+                                         isotope_number, adduct_pair.first,
+                                         adduct_pair.second, negative_mode);
           }
-          else
-          {
-            precursor_mass -= Constants::PROTON_MASS_U * precursor_charge;
-          }
-
-          // correct for monoisotopic misassignments of the precursor annotation
-          if (isotope_number != 0) { precursor_mass -= isotope_number * Constants::C13C12_MASSDIFF_U; }
-
-          multimap_mass_2_scan_index.insert(make_pair(precursor_mass, scan_index));
-        }
-
-        // Calculate precursor mass correcting for adducts if enabled
-        for (double add_mass : adduct_masses)
-        {
-          double precursor_mass = precursor_mz * precursor_charge;
-          if (negative_mode)
-          {
-            precursor_mass += Constants::PROTON_MASS_U * precursor_charge + add_mass;
-          }
-          else
-          {
-            precursor_mass -= Constants::PROTON_MASS_U * precursor_charge - add_mass;
-          }
-
-          for (int isotope_number : precursor_isotopes)
-          {
-            double precursor_mass = precursor_mz * precursor_charge;
-            if (negative_mode)
-            {
-              precursor_mass += Constants::PROTON_MASS_U * precursor_charge;
-            }
-            else
-            {
-              precursor_mass -= Constants::PROTON_MASS_U * precursor_charge;
-            }
-
-            // correct for monoisotopic misassignments of the precursor annotation
-            if (isotope_number != 0) { precursor_mass -= isotope_number * Constants::C13C12_MASSDIFF_U; }
-          }
-
-          multimap_mass_2_scan_index.insert(make_pair(precursor_mass, scan_index));
         }
       }
     }
@@ -918,54 +959,54 @@ protected:
       for (SignedSize mod_idx = 0; mod_idx < (SignedSize)all_modified_oligos.size(); ++mod_idx)
       {
         const NASequence& candidate = all_modified_oligos[mod_idx];
-        double candidate_mass = candidate.getMonoWeight();
-        LOG_DEBUG << "candidate: " << candidate.toString() << " ("
+        double candidate_mass = (use_avg_mass ? candidate.getAverageWeight() :
+                                 candidate.getMonoWeight());
+        LOG_DEBUG << "Candidate: " << candidate.toString() << " ("
                   << float(candidate_mass) << " Da)" << endl;
 
         // determine MS2 precursors that match to the current mass
-        multimap<double, Size>::const_iterator low_it;
-        multimap<double, Size>::const_iterator up_it;
-
-        if (search_param.precursor_tolerance_ppm) // ppm
+        double tol = search_param.precursor_mass_tolerance;
+        if (search_param.precursor_tolerance_ppm)
         {
-          low_it = multimap_mass_2_scan_index.lower_bound(candidate_mass - candidate_mass * search_param.precursor_mass_tolerance * 1e-6);
-          up_it = multimap_mass_2_scan_index.upper_bound(candidate_mass + candidate_mass * search_param.precursor_mass_tolerance * 1e-6);
+          tol *= candidate_mass * 1e-6;
         }
-        else // Dalton
-        {
-          low_it = multimap_mass_2_scan_index.lower_bound(candidate_mass - search_param.precursor_mass_tolerance);
-          up_it = multimap_mass_2_scan_index.upper_bound(candidate_mass + search_param.precursor_mass_tolerance);
-        }
+        multimap<double, PrecursorInfo>::const_iterator low_it =
+          precursor_mass_map.lower_bound(candidate_mass - tol), up_it =
+          precursor_mass_map.upper_bound(candidate_mass + tol);
 
         if (low_it == up_it) continue; // no matching precursor in data
 
-        // create theoretical spectrum
-        PeakSpectrum theo_spectrum;
-        // add peaks for b and y ions with charge 1
-        Int charge = negative_mode ? -1 : 1;
-
-        // sort by mz
-        theo_spectrum.sortByPosition();
-        vector<PeakSpectrum> theo_spectrum_array;
-        for (Size i = abs(min_charge); i <= abs(max_charge); ++i) // generate the theoretical with all the possible max charge states.
-        {
-          spectrum_generator.getSpectrum(theo_spectrum, candidate, charge,
-                                         i * charge);
-          theo_spectrum_array.push_back(theo_spectrum);
-        }
-
+        Int base_charge = negative_mode ? -1 : 1;
+        map<Int, PeakSpectrum> theo_spectra_by_charge;
         for (; low_it != up_it; ++low_it)
         {
-          LOG_DEBUG << "matching precursor mass: " << float(low_it->first)
+          LOG_DEBUG << "Matching precursor mass: " << float(low_it->first)
                     << endl;
 
-          const Size& scan_index = low_it->second;
-          const PeakSpectrum& exp_spectrum = spectra[scan_index];          
+          Size charge = low_it->second.charge;
+          // look up theoretical spectrum for this charge:
+          auto pos = theo_spectra_by_charge.find(charge);
+          if (pos == theo_spectra_by_charge.end())
+          {
+            // no spectrum for this charge yet - generate it:
+            PeakSpectrum theo_spectrum;
+            // @TODO: avoid regenerating spectra with lower charges as part of
+            // higher-charged spectra
+            spectrum_generator.getSpectrum(theo_spectrum, candidate,
+                                           base_charge, charge * base_charge);
+            theo_spectrum.setName(candidate.toString());
+            pos = theo_spectra_by_charge.insert(make_pair(charge,
+                                                          theo_spectrum)).first;
+          }
+          const PeakSpectrum& theo_spectrum = pos->second;
+
+          Size scan_index = low_it->second.scan_index;
+          const PeakSpectrum& exp_spectrum = spectra[scan_index];
           vector<PeptideHit::PeakAnnotation> annotations;
           double score = MetaboliteSpectralMatching::computeHyperScore(
             search_param.fragment_mass_tolerance,
-            search_param.fragment_tolerance_ppm, exp_spectrum, theo_spectrum_array[exp_spectrum.getPrecursors()[0].getCharge() - 1],
-            annotations); // pick up the theoretical spectrum with the correct max. charge
+            search_param.fragment_tolerance_ppm, exp_spectrum, theo_spectrum,
+            annotations);
 
           if (!exp_ms2_out.empty())
           {
@@ -973,7 +1014,6 @@ protected:
           }
           if (!theo_ms2_out.empty())
           {
-            theo_spectrum.setName(candidate.toString());
             theo_ms2_spectra.addSpectrum(theo_spectrum);
           }
 
@@ -992,6 +1032,8 @@ protected:
           ah.precursor_error_ppm =
             (low_it->first - candidate_mass) / candidate_mass * 1.0e6;
           ah.annotations = annotations;
+          ah.charge = charge;
+          ah.adduct = low_it->second.adduct;
 
 #ifdef _OPENMP
 #pragma omp atomic
@@ -1058,7 +1100,8 @@ protected:
     {
       vector<ProteinIdentification> proteins;
       vector<PeptideIdentification> peptides;
-      IdentificationDataConverter::exportIDs(id_data, proteins, peptides, true);
+      IdentificationDataConverter::exportIDs(id_data, proteins, peptides, "",
+                                             "hyperscore", true);
       // proteins[0].setDateTime(DateTime::now());
       // proteins[0].setSearchEngine(toolName_());
       IdXMLFile().store(id_out, proteins, peptides);
