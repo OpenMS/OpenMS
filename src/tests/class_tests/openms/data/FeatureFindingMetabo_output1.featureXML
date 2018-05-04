@@ -1,74 +1,13 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
-<featureMap version="1.9" id="fm_16237515440356837086" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/FeatureXML_1_9.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-	<featureList count="91">
-		<feature id="f_3525220823171556399">
-			<position dim="0">283.75</position>
-			<position dim="1">150.059438008007</position>
-			<intensity>38961</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>2.24708e-005</overallquality>
-			<charge>0</charge>
-			<convexhull nr="0">
-				<pt x="278.25" y="150.059695867384" />
-				<pt x="278.5" y="150.059700014463" />
-				<pt x="278.75" y="150.059326258952" />
-				<pt x="279" y="150.059325740567" />
-				<pt x="279.25" y="150.059326777336" />
-				<pt x="279.5" y="150.059331961185" />
-				<pt x="279.75" y="150.059328332491" />
-				<pt x="280" y="150.059331961185" />
-				<pt x="280.25" y="150.059323148642" />
-				<pt x="280.5" y="150.059327295721" />
-				<pt x="280.75" y="150.059329369261" />
-				<pt x="281" y="150.059326777336" />
-				<pt x="281.25" y="150.059324703797" />
-				<pt x="281.5" y="150.059321593487" />
-				<pt x="281.75" y="150.059324703797" />
-				<pt x="282" y="150.059327295721" />
-				<pt x="282.25" y="150.059322630257" />
-				<pt x="282.5" y="150.059328850876" />
-				<pt x="282.75" y="150.059323148642" />
-				<pt x="283" y="150.059698459308" />
-				<pt x="283.25" y="150.059700014463" />
-				<pt x="283.5" y="150.059697940923" />
-				<pt x="283.75" y="150.059700014463" />
-				<pt x="283.5" y="150.059697940923" />
-				<pt x="283.25" y="150.059700014463" />
-				<pt x="283" y="150.059698459308" />
-				<pt x="282.75" y="150.059323148642" />
-				<pt x="282.5" y="150.059328850876" />
-				<pt x="282.25" y="150.059322630257" />
-				<pt x="282" y="150.059327295721" />
-				<pt x="281.75" y="150.059324703797" />
-				<pt x="281.5" y="150.059321593487" />
-				<pt x="281.25" y="150.059324703797" />
-				<pt x="281" y="150.059326777336" />
-				<pt x="280.75" y="150.059329369261" />
-				<pt x="280.5" y="150.059327295721" />
-				<pt x="280.25" y="150.059323148642" />
-				<pt x="280" y="150.059331961185" />
-				<pt x="279.75" y="150.059328332491" />
-				<pt x="279.5" y="150.059331961185" />
-				<pt x="279.25" y="150.059326777336" />
-				<pt x="279" y="150.059325740567" />
-				<pt x="278.75" y="150.059326258952" />
-				<pt x="278.5" y="150.059700014463" />
-			</convexhull>
-			<UserParam type="string" name="label" value="T122"/>
-			<UserParam type="float" name="FWHM" value="3.75"/>
-			<UserParam type="int" name="num_of_masstraces" value="1"/>
-			<UserParam type="float" name="masstrace_intensity_0" value="38961.0277099609"/>
-			<UserParam type="floatList" name="isotope_distances" value="[]"/>
-			<UserParam type="int" name="legal_isotope_pattern" value="-1"/>
-		</feature>
-		<feature id="f_6399120712684448661">
+<featureMap version="1.9" id="fm_7663173331611516166" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/FeatureXML_1_9.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<featureList count="93">
+		<feature id="f_15243115420869295268">
 			<position dim="0">261.75</position>
 			<position dim="1">151.042465205975</position>
 			<intensity>32014.2</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
-			<overallquality>1.84642e-005</overallquality>
+			<overallquality>1.84854e-05</overallquality>
 			<charge>0</charge>
 			<convexhull nr="0">
 				<pt x="256.25" y="151.042205278933" />
@@ -133,19 +72,19 @@
 				<pt x="256.5" y="151.042202687009" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T150"/>
-			<UserParam type="float" name="FWHM" value="7"/>
+			<UserParam type="float" name="FWHM" value="10.4680185317993"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="32014.2206420898"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
 			<UserParam type="int" name="legal_isotope_pattern" value="-1"/>
 		</feature>
-		<feature id="f_13274758323738176245">
+		<feature id="f_13642629991834873305">
 			<position dim="0">291.25</position>
 			<position dim="1">151.042468871585</position>
 			<intensity>165028</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
-			<overallquality>9.51801e-005</overallquality>
+			<overallquality>9.52892e-05</overallquality>
 			<charge>0</charge>
 			<convexhull nr="0">
 				<pt x="289.25" y="151.042264374811" />
@@ -258,19 +197,19 @@
 				<pt x="289.5" y="151.042259709347" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T105"/>
-			<UserParam type="float" name="FWHM" value="7.5"/>
+			<UserParam type="float" name="FWHM" value="11.6773061752319"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="165028.236938477"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
 			<UserParam type="int" name="legal_isotope_pattern" value="-1"/>
 		</feature>
-		<feature id="f_3749176663227866731">
+		<feature id="f_15293667471402875533">
 			<position dim="0">291</position>
 			<position dim="1">152.057301994844</position>
-			<intensity>529091</intensity>
+			<intensity>529090</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
-			<overallquality>0.000305153</overallquality>
+			<overallquality>0.000305503</overallquality>
 			<charge>0</charge>
 			<convexhull nr="0">
 				<pt x="283.25" y="152.057040654324" />
@@ -433,19 +372,19 @@
 				<pt x="283.5" y="152.057043246248" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T77"/>
-			<UserParam type="float" name="FWHM" value="10.25"/>
+			<UserParam type="float" name="FWHM" value="9.94184398651123"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="529090.522949219"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
 			<UserParam type="int" name="legal_isotope_pattern" value="-1"/>
 		</feature>
-		<feature id="f_17648507968597771516">
+		<feature id="f_15910133104259167033">
 			<position dim="0">234</position>
 			<position dim="1">152.05742008023</position>
-			<intensity>1.19849e+006</intensity>
+			<intensity>1.19849e+06</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
-			<overallquality>0.000707901</overallquality>
+			<overallquality>0.000708712</overallquality>
 			<charge>1</charge>
 			<convexhull nr="0">
 				<pt x="230" y="152.057420112069" />
@@ -696,7 +635,7 @@
 				<pt x="230.25" y="154.058510229895" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T53_T127_T177"/>
-			<UserParam type="float" name="FWHM" value="9"/>
+			<UserParam type="float" name="FWHM" value="9.5618782043457"/>
 			<UserParam type="int" name="num_of_masstraces" value="3"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="1198491.69628906"/>
 			<UserParam type="float" name="masstrace_intensity_1" value="88055.7040405273"/>
@@ -704,13 +643,13 @@
 			<UserParam type="floatList" name="isotope_distances" value="[1.00006049118045, 1.00096002366425]"/>
 			<UserParam type="int" name="legal_isotope_pattern" value="1"/>
 		</feature>
-		<feature id="f_3393824606581918541">
+		<feature id="f_17990019612716402684">
 			<position dim="0">247</position>
 			<position dim="1">155.034292167412</position>
 			<intensity>265315</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
-			<overallquality>0.000155874</overallquality>
+			<overallquality>0.000156052</overallquality>
 			<charge>1</charge>
 			<convexhull nr="0">
 				<pt x="236.75" y="155.034075875739" />
@@ -913,20 +852,20 @@
 				<pt x="244" y="156.03468210407" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T78.2_T165"/>
-			<UserParam type="float" name="FWHM" value="8.5"/>
+			<UserParam type="float" name="FWHM" value="8.32129001617432"/>
 			<UserParam type="int" name="num_of_masstraces" value="2"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="265315.241943359"/>
 			<UserParam type="float" name="masstrace_intensity_1" value="16221.690246582"/>
 			<UserParam type="floatList" name="isotope_distances" value="[1.00010055009034]"/>
 			<UserParam type="int" name="legal_isotope_pattern" value="1"/>
 		</feature>
-		<feature id="f_1233230981423630429">
+		<feature id="f_2048478857282415711">
 			<position dim="0">272.25</position>
 			<position dim="1">155.03429323353</position>
-			<intensity>1.19023e+006</intensity>
+			<intensity>1.19023e+06</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
-			<overallquality>0.00070085</overallquality>
+			<overallquality>0.000701653</overallquality>
 			<charge>1</charge>
 			<convexhull nr="0">
 				<pt x="261.25" y="155.034021445325" />
@@ -1145,20 +1084,20 @@
 				<pt x="268.5" y="156.034677956991" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T52_T123"/>
-			<UserParam type="float" name="FWHM" value="9.25"/>
+			<UserParam type="float" name="FWHM" value="8.96433734893799"/>
 			<UserParam type="int" name="num_of_masstraces" value="2"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="1190234.875"/>
 			<UserParam type="float" name="masstrace_intensity_1" value="87993.7280273438"/>
 			<UserParam type="floatList" name="isotope_distances" value="[1.00005711337434]"/>
 			<UserParam type="int" name="legal_isotope_pattern" value="1"/>
 		</feature>
-		<feature id="f_16419438213446853038">
+		<feature id="f_156607002372377903">
 			<position dim="0">232.5</position>
 			<position dim="1">155.072512401134</position>
 			<intensity>703520</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
-			<overallquality>0.000419288</overallquality>
+			<overallquality>0.000419769</overallquality>
 			<charge>1</charge>
 			<convexhull nr="0">
 				<pt x="230" y="155.072511523985" />
@@ -1241,7 +1180,7 @@
 			<convexhull nr="1">
 				<pt x="230" y="156.072572929789" />
 				<pt x="230.25" y="156.072576558483" />
-				<pt x="230.5" y="156.072578632023" />
+				<pt x="230.5" y="156.072578632022" />
 				<pt x="230.75" y="156.072576558483" />
 				<pt x="231" y="156.072575003328" />
 				<pt x="231.25" y="156.072576040098" />
@@ -1268,7 +1207,7 @@
 				<pt x="236.5" y="156.07256463563" />
 				<pt x="236.75" y="156.072575521713" />
 				<pt x="237" y="156.072586407796" />
-				<pt x="237.25" y="156.072583815872" />
+				<pt x="237.25" y="156.072583815871" />
 				<pt x="237.5" y="156.072578113638" />
 				<pt x="237.75" y="156.072588481336" />
 				<pt x="238" y="156.072565154015" />
@@ -1288,7 +1227,7 @@
 				<pt x="238" y="156.072565154015" />
 				<pt x="237.75" y="156.072588481336" />
 				<pt x="237.5" y="156.072578113638" />
-				<pt x="237.25" y="156.072583815872" />
+				<pt x="237.25" y="156.072583815871" />
 				<pt x="237" y="156.072586407796" />
 				<pt x="236.75" y="156.072575521713" />
 				<pt x="236.5" y="156.07256463563" />
@@ -1315,7 +1254,7 @@
 				<pt x="231.25" y="156.072576040098" />
 				<pt x="231" y="156.072575003328" />
 				<pt x="230.75" y="156.072576558483" />
-				<pt x="230.5" y="156.072578632023" />
+				<pt x="230.5" y="156.072578632022" />
 				<pt x="230.25" y="156.072576558483" />
 			</convexhull>
 			<convexhull nr="2">
@@ -1377,7 +1316,7 @@
 				<pt x="230.25" y="157.07353165985" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T58_T126_T175"/>
-			<UserParam type="float" name="FWHM" value="6.25"/>
+			<UserParam type="float" name="FWHM" value="7.42480421066284"/>
 			<UserParam type="int" name="num_of_masstraces" value="3"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="703520.171875"/>
 			<UserParam type="float" name="masstrace_intensity_1" value="62460.037902832"/>
@@ -1385,13 +1324,13 @@
 			<UserParam type="floatList" name="isotope_distances" value="[1.00006229916289, 1.00096011231622]"/>
 			<UserParam type="int" name="legal_isotope_pattern" value="1"/>
 		</feature>
-		<feature id="f_2934336688081369014">
+		<feature id="f_11341729441040481455">
 			<position dim="0">302.75</position>
 			<position dim="1">155.072512501047</position>
-			<intensity>4.76365e+006</intensity>
+			<intensity>4.76365e+06</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
-			<overallquality>0.00283652</overallquality>
+			<overallquality>0.00283977</overallquality>
 			<charge>1</charge>
 			<convexhull nr="0">
 				<pt x="292.25" y="155.072238853529" />
@@ -1730,7 +1669,7 @@
 				<pt x="297.5" y="157.073568983563" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T29.1_T81.1_T147"/>
-			<UserParam type="float" name="FWHM" value="9.5"/>
+			<UserParam type="float" name="FWHM" value="9.31697463989258"/>
 			<UserParam type="int" name="num_of_masstraces" value="3"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="4763652.83203125"/>
 			<UserParam type="float" name="masstrace_intensity_1" value="422857.790527344"/>
@@ -1738,13 +1677,13 @@
 			<UserParam type="floatList" name="isotope_distances" value="[1.00005949385724, 1.0009526194423]"/>
 			<UserParam type="int" name="legal_isotope_pattern" value="1"/>
 		</feature>
-		<feature id="f_1096306363186424871">
+		<feature id="f_16170023514779667135">
 			<position dim="0">248.25</position>
 			<position dim="1">158.083358357044</position>
-			<intensity>4.45069e+006</intensity>
+			<intensity>4.45068e+06</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
-			<overallquality>0.0026448</overallquality>
+			<overallquality>0.00264783</overallquality>
 			<charge>1</charge>
 			<convexhull nr="0">
 				<pt x="230" y="158.083312264102" />
@@ -2137,7 +2076,7 @@
 				<pt x="245.5" y="160.084386830382" />
 				<pt x="245.75" y="160.084390977461" />
 				<pt x="246" y="160.084391495846" />
-				<pt x="246.25" y="160.084398753235" />
+				<pt x="246.25" y="160.084398753234" />
 				<pt x="246.5" y="160.084389422306" />
 				<pt x="246.75" y="160.084389422306" />
 				<pt x="247" y="160.084377499454" />
@@ -2193,7 +2132,7 @@
 				<pt x="247" y="160.084377499454" />
 				<pt x="246.75" y="160.084389422306" />
 				<pt x="246.5" y="160.084389422306" />
-				<pt x="246.25" y="160.084398753235" />
+				<pt x="246.25" y="160.084398753234" />
 				<pt x="246" y="160.084391495846" />
 				<pt x="245.75" y="160.084390977461" />
 				<pt x="245.5" y="160.084386830382" />
@@ -2225,7 +2164,7 @@
 				<pt x="239" y="160.083985600471" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T35_T90_T156"/>
-			<UserParam type="float" name="FWHM" value="11.5"/>
+			<UserParam type="float" name="FWHM" value="11.4343852996826"/>
 			<UserParam type="int" name="num_of_masstraces" value="3"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="4450684.859375"/>
 			<UserParam type="float" name="masstrace_intensity_1" value="363922.592529297"/>
@@ -2233,13 +2172,13 @@
 			<UserParam type="floatList" name="isotope_distances" value="[1.00006125192277, 1.00095696966739]"/>
 			<UserParam type="int" name="legal_isotope_pattern" value="1"/>
 		</feature>
-		<feature id="f_12315563168554078198">
+		<feature id="f_16444949008730473126">
 			<position dim="0">281.25</position>
 			<position dim="1">160.07500553926</position>
 			<intensity>36699</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
-			<overallquality>2.11661e-005</overallquality>
+			<overallquality>2.11904e-05</overallquality>
 			<charge>0</charge>
 			<convexhull nr="0">
 				<pt x="275.25" y="160.074747981592" />
@@ -2294,19 +2233,19 @@
 				<pt x="275.5" y="160.074746944823" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T141"/>
-			<UserParam type="float" name="FWHM" value="6.25"/>
+			<UserParam type="float" name="FWHM" value="474.508666992188"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="36698.9653930664"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
 			<UserParam type="int" name="legal_isotope_pattern" value="-1"/>
 		</feature>
-		<feature id="f_11914004532768579511">
+		<feature id="f_9118123799893131497">
 			<position dim="0">308.25</position>
 			<position dim="1">160.075018056482</position>
-			<intensity>3.02104e+007</intensity>
+			<intensity>3.02104e+07</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
-			<overallquality>0.018078</overallquality>
+			<overallquality>0.0180987</overallquality>
 			<charge>1</charge>
 			<convexhull nr="0">
 				<pt x="295.75" y="160.074746944823" />
@@ -2387,7 +2326,7 @@
 				<pt x="309.75" y="161.075077392388" />
 				<pt x="310" y="161.075076874003" />
 				<pt x="310.25" y="161.075076874003" />
-				<pt x="310.5" y="161.075075837234" />
+				<pt x="310.5" y="161.075075837233" />
 				<pt x="310.75" y="161.075075318849" />
 				<pt x="311" y="161.075074282079" />
 				<pt x="311.25" y="161.075073245309" />
@@ -2433,7 +2372,7 @@
 				<pt x="311.25" y="161.075073245309" />
 				<pt x="311" y="161.075074282079" />
 				<pt x="310.75" y="161.075075318849" />
-				<pt x="310.5" y="161.075075837234" />
+				<pt x="310.5" y="161.075075837233" />
 				<pt x="310.25" y="161.075076874003" />
 				<pt x="310" y="161.075076874003" />
 				<pt x="309.75" y="161.075077392388" />
@@ -2517,7 +2456,7 @@
 				<pt x="313.5" y="162.075952662481" />
 				<pt x="313.75" y="162.0759314087" />
 				<pt x="314" y="162.075903415916" />
-				<pt x="314.25" y="162.075865055434" />
+				<pt x="314.25" y="162.075865055433" />
 				<pt x="314.5" y="162.075803886016" />
 				<pt x="314.75" y="162.0757323489" />
 				<pt x="315" y="162.075632818999" />
@@ -2531,7 +2470,7 @@
 				<pt x="315" y="162.075632818999" />
 				<pt x="314.75" y="162.0757323489" />
 				<pt x="314.5" y="162.075803886016" />
-				<pt x="314.25" y="162.075865055434" />
+				<pt x="314.25" y="162.075865055433" />
 				<pt x="314" y="162.075903415916" />
 				<pt x="313.75" y="162.0759314087" />
 				<pt x="313.5" y="162.075952662481" />
@@ -2585,7 +2524,7 @@
 				<pt x="301.25" y="162.075141390116" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T10_T33_T94"/>
-			<UserParam type="float" name="FWHM" value="8.25"/>
+			<UserParam type="float" name="FWHM" value="8.02648830413818"/>
 			<UserParam type="int" name="num_of_masstraces" value="3"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="30210435.71875"/>
 			<UserParam type="float" name="masstrace_intensity_1" value="3420227.9921875"/>
@@ -2593,13 +2532,13 @@
 			<UserParam type="floatList" name="isotope_distances" value="[1.00002560773601, 1.00094764091085]"/>
 			<UserParam type="int" name="legal_isotope_pattern" value="1"/>
 		</feature>
-		<feature id="f_18087326716024951394">
+		<feature id="f_17817196797064002289">
 			<position dim="0">316.5</position>
 			<position dim="1">160.134470512512</position>
-			<intensity>2.16441e+006</intensity>
+			<intensity>2.16441e+06</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
-			<overallquality>0.00128791</overallquality>
+			<overallquality>0.00128279</overallquality>
 			<charge>1</charge>
 			<convexhull nr="0">
 				<pt x="299" y="160.134540569243" />
@@ -2805,80 +2744,21 @@
 				<pt x="307.25" y="161.134851836567" />
 				<pt x="307" y="161.13485961234" />
 			</convexhull>
-			<convexhull nr="2">
-				<pt x="312.75" y="162.135509903388" />
-				<pt x="313" y="162.135512495312" />
-				<pt x="313.25" y="162.13547102452" />
-				<pt x="313.5" y="162.135479837064" />
-				<pt x="313.75" y="162.13549849892" />
-				<pt x="314" y="162.135512495312" />
-				<pt x="314.25" y="162.135493315071" />
-				<pt x="314.5" y="162.135519752701" />
-				<pt x="314.75" y="162.135517160776" />
-				<pt x="315" y="162.135465322287" />
-				<pt x="315.25" y="162.135480873834" />
-				<pt x="315.5" y="162.13549849892" />
-				<pt x="315.75" y="162.135472579675" />
-				<pt x="316" y="162.135491759916" />
-				<pt x="316.25" y="162.135468432596" />
-				<pt x="316.5" y="162.135510940158" />
-				<pt x="316.75" y="162.135471542905" />
-				<pt x="317" y="162.135436811117" />
-				<pt x="317.25" y="162.135478800294" />
-				<pt x="317.5" y="162.135467914211" />
-				<pt x="317.75" y="162.135478800294" />
-				<pt x="318" y="162.135469987751" />
-				<pt x="318.25" y="162.135481392218" />
-				<pt x="318.5" y="162.135490723147" />
-				<pt x="318.75" y="162.135509385003" />
-				<pt x="319" y="162.135491241532" />
-				<pt x="319.25" y="162.135493833456" />
-				<pt x="319.5" y="162.135455991358" />
-				<pt x="319.75" y="162.135486057683" />
-				<pt x="319.5" y="162.135455991358" />
-				<pt x="319.25" y="162.135493833456" />
-				<pt x="319" y="162.135491241532" />
-				<pt x="318.75" y="162.135509385003" />
-				<pt x="318.5" y="162.135490723147" />
-				<pt x="318.25" y="162.135481392218" />
-				<pt x="318" y="162.135469987751" />
-				<pt x="317.75" y="162.135478800294" />
-				<pt x="317.5" y="162.135467914211" />
-				<pt x="317.25" y="162.135478800294" />
-				<pt x="317" y="162.135436811117" />
-				<pt x="316.75" y="162.135471542905" />
-				<pt x="316.5" y="162.135510940158" />
-				<pt x="316.25" y="162.135468432596" />
-				<pt x="316" y="162.135491759916" />
-				<pt x="315.75" y="162.135472579675" />
-				<pt x="315.5" y="162.13549849892" />
-				<pt x="315.25" y="162.135480873834" />
-				<pt x="315" y="162.135465322287" />
-				<pt x="314.75" y="162.135517160776" />
-				<pt x="314.5" y="162.135519752701" />
-				<pt x="314.25" y="162.135493315071" />
-				<pt x="314" y="162.135512495312" />
-				<pt x="313.75" y="162.13549849892" />
-				<pt x="313.5" y="162.135479837064" />
-				<pt x="313.25" y="162.13547102452" />
-				<pt x="313" y="162.135512495312" />
-			</convexhull>
-			<UserParam type="string" name="label" value="T43_T106_T170"/>
-			<UserParam type="float" name="FWHM" value="9.5"/>
-			<UserParam type="int" name="num_of_masstraces" value="3"/>
+			<UserParam type="string" name="label" value="T43_T106"/>
+			<UserParam type="float" name="FWHM" value="12.3870420455933"/>
+			<UserParam type="int" name="num_of_masstraces" value="2"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="2164408.96777344"/>
 			<UserParam type="float" name="masstrace_intensity_1" value="201042.262207031"/>
-			<UserParam type="float" name="masstrace_intensity_2" value="13909.6817016602"/>
-			<UserParam type="floatList" name="isotope_distances" value="[1.00006313468424, 1.00095261509017]"/>
+			<UserParam type="floatList" name="isotope_distances" value="[1.00006313468424]"/>
 			<UserParam type="int" name="legal_isotope_pattern" value="1"/>
 		</feature>
-		<feature id="f_1296294151079368601">
+		<feature id="f_15841157984621667971">
 			<position dim="0">284.75</position>
 			<position dim="1">161.060231720537</position>
-			<intensity>1.76181e+008</intensity>
+			<intensity>1.76181e+08</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
-			<overallquality>0.105355</overallquality>
+			<overallquality>0.105476</overallquality>
 			<charge>1</charge>
 			<convexhull nr="0">
 				<pt x="268" y="161.059973211621" />
@@ -3257,7 +3137,7 @@
 				<pt x="281" y="163.061399761246" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T4_T13_T49"/>
-			<UserParam type="float" name="FWHM" value="10"/>
+			<UserParam type="float" name="FWHM" value="9.93908596038818"/>
 			<UserParam type="int" name="num_of_masstraces" value="3"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="176180631.375"/>
 			<UserParam type="float" name="masstrace_intensity_1" value="19339653.15625"/>
@@ -3265,13 +3145,13 @@
 			<UserParam type="floatList" name="isotope_distances" value="[1.00006031695472, 0.999866030252434]"/>
 			<UserParam type="int" name="legal_isotope_pattern" value="1"/>
 		</feature>
-		<feature id="f_786497535322792801">
+		<feature id="f_15137680205934325659">
 			<position dim="0">261.5</position>
 			<position dim="1">161.132412915305</position>
 			<intensity>19156.9</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
-			<overallquality>1.10488e-005</overallquality>
+			<overallquality>1.10614e-05</overallquality>
 			<charge>0</charge>
 			<convexhull nr="0">
 				<pt x="256.75" y="161.132153124789" />
@@ -3322,19 +3202,19 @@
 				<pt x="257" y="161.132154679944" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T160"/>
-			<UserParam type="float" name="FWHM" value="5.75"/>
+			<UserParam type="float" name="FWHM" value="17.7734203338623"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="19156.9463806152"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
 			<UserParam type="int" name="legal_isotope_pattern" value="-1"/>
 		</feature>
-		<feature id="f_5078032111301433689">
+		<feature id="f_4856186755425804029">
 			<position dim="0">238.75</position>
 			<position dim="1">162.058215356937</position>
-			<intensity>3.10507e+006</intensity>
+			<intensity>3.10507e+06</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
-			<overallquality>0.00185533</overallquality>
+			<overallquality>0.00185746</overallquality>
 			<charge>1</charge>
 			<convexhull nr="0">
 				<pt x="230" y="162.058614242805" />
@@ -3687,7 +3567,7 @@
 				<pt x="232.25" y="164.0594342821" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T31_T80_T151"/>
-			<UserParam type="float" name="FWHM" value="7"/>
+			<UserParam type="float" name="FWHM" value="6.68576955795288"/>
 			<UserParam type="int" name="num_of_masstraces" value="3"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="3105067.62304688"/>
 			<UserParam type="float" name="masstrace_intensity_1" value="318290.341308594"/>
@@ -3695,13 +3575,86 @@
 			<UserParam type="floatList" name="isotope_distances" value="[1.00005132621587, 1.00097434914224]"/>
 			<UserParam type="int" name="legal_isotope_pattern" value="1"/>
 		</feature>
-		<feature id="f_5441031069051211757">
-			<position dim="0">284.5</position>
-			<position dim="1">163.039965127824</position>
-			<intensity>1.9463e+006</intensity>
+		<feature id="f_13545369430369729812">
+			<position dim="0">316.5</position>
+			<position dim="1">162.135486262286</position>
+			<intensity>13909.7</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
-			<overallquality>0.00113026</overallquality>
+			<overallquality>8.03161e-06</overallquality>
+			<charge>0</charge>
+			<convexhull nr="0">
+				<pt x="312.75" y="162.135509903388" />
+				<pt x="313" y="162.135512495312" />
+				<pt x="313.25" y="162.13547102452" />
+				<pt x="313.5" y="162.135479837064" />
+				<pt x="313.75" y="162.13549849892" />
+				<pt x="314" y="162.135512495312" />
+				<pt x="314.25" y="162.135493315071" />
+				<pt x="314.5" y="162.135519752701" />
+				<pt x="314.75" y="162.135517160776" />
+				<pt x="315" y="162.135465322287" />
+				<pt x="315.25" y="162.135480873834" />
+				<pt x="315.5" y="162.13549849892" />
+				<pt x="315.75" y="162.135472579675" />
+				<pt x="316" y="162.135491759916" />
+				<pt x="316.25" y="162.135468432596" />
+				<pt x="316.5" y="162.135510940158" />
+				<pt x="316.75" y="162.135471542905" />
+				<pt x="317" y="162.135436811117" />
+				<pt x="317.25" y="162.135478800294" />
+				<pt x="317.5" y="162.135467914211" />
+				<pt x="317.75" y="162.135478800294" />
+				<pt x="318" y="162.135469987751" />
+				<pt x="318.25" y="162.135481392218" />
+				<pt x="318.5" y="162.135490723147" />
+				<pt x="318.75" y="162.135509385003" />
+				<pt x="319" y="162.135491241531" />
+				<pt x="319.25" y="162.135493833456" />
+				<pt x="319.5" y="162.135455991358" />
+				<pt x="319.75" y="162.135486057682" />
+				<pt x="319.5" y="162.135455991358" />
+				<pt x="319.25" y="162.135493833456" />
+				<pt x="319" y="162.135491241531" />
+				<pt x="318.75" y="162.135509385003" />
+				<pt x="318.5" y="162.135490723147" />
+				<pt x="318.25" y="162.135481392218" />
+				<pt x="318" y="162.135469987751" />
+				<pt x="317.75" y="162.135478800294" />
+				<pt x="317.5" y="162.135467914211" />
+				<pt x="317.25" y="162.135478800294" />
+				<pt x="317" y="162.135436811117" />
+				<pt x="316.75" y="162.135471542905" />
+				<pt x="316.5" y="162.135510940158" />
+				<pt x="316.25" y="162.135468432596" />
+				<pt x="316" y="162.135491759916" />
+				<pt x="315.75" y="162.135472579675" />
+				<pt x="315.5" y="162.13549849892" />
+				<pt x="315.25" y="162.135480873834" />
+				<pt x="315" y="162.135465322287" />
+				<pt x="314.75" y="162.135517160776" />
+				<pt x="314.5" y="162.135519752701" />
+				<pt x="314.25" y="162.135493315071" />
+				<pt x="314" y="162.135512495312" />
+				<pt x="313.75" y="162.13549849892" />
+				<pt x="313.5" y="162.135479837064" />
+				<pt x="313.25" y="162.13547102452" />
+				<pt x="313" y="162.135512495312" />
+			</convexhull>
+			<UserParam type="string" name="label" value="T170"/>
+			<UserParam type="float" name="FWHM" value="12.2772064208984"/>
+			<UserParam type="int" name="num_of_masstraces" value="1"/>
+			<UserParam type="float" name="masstrace_intensity_0" value="13909.6817016602"/>
+			<UserParam type="floatList" name="isotope_distances" value="[]"/>
+			<UserParam type="int" name="legal_isotope_pattern" value="-1"/>
+		</feature>
+		<feature id="f_16637585501784403748">
+			<position dim="0">284.5</position>
+			<position dim="1">163.039965127824</position>
+			<intensity>1.9463e+06</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0.00113155</overallquality>
 			<charge>1</charge>
 			<convexhull nr="0">
 				<pt x="277.5" y="163.041011164832" />
@@ -3882,21 +3835,21 @@
 				<pt x="278" y="164.039176318679" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T41_T102"/>
-			<UserParam type="float" name="FWHM" value="8.25"/>
+			<UserParam type="float" name="FWHM" value="7.88508081436157"/>
 			<UserParam type="int" name="num_of_masstraces" value="2"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="1946295.74023438"/>
 			<UserParam type="float" name="masstrace_intensity_1" value="156431.582885742"/>
 			<UserParam type="floatList" name="isotope_distances" value="[0.999247937666297]"/>
 			<UserParam type="int" name="legal_isotope_pattern" value="1"/>
 		</feature>
-		<feature id="f_4855303058344677492">
+		<feature id="f_12763661291376677520">
 			<position dim="0">319</position>
 			<position dim="1">163.077366639892</position>
 			<intensity>418417</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
-			<overallquality>0.000248866</overallquality>
-			<charge>1</charge>
+			<overallquality>0.000241598</overallquality>
+			<charge>0</charge>
 			<convexhull nr="0">
 				<pt x="309.75" y="163.077438071599" />
 				<pt x="310" y="163.077437553214" />
@@ -3977,83 +3930,20 @@
 				<pt x="310.25" y="163.077396082422" />
 				<pt x="310" y="163.077437553214" />
 			</convexhull>
-			<convexhull nr="1">
-				<pt x="312.25" y="164.077368844408" />
-				<pt x="312.5" y="164.07741135197" />
-				<pt x="312.75" y="164.077397355578" />
-				<pt x="313" y="164.077425348362" />
-				<pt x="313.25" y="164.07743675283" />
-				<pt x="313.5" y="164.077420682898" />
-				<pt x="313.75" y="164.077427421902" />
-				<pt x="314" y="164.0774377896" />
-				<pt x="314.25" y="164.077443491834" />
-				<pt x="314.5" y="164.07743882637" />
-				<pt x="314.75" y="164.077444528603" />
-				<pt x="315" y="164.077435197675" />
-				<pt x="315.25" y="164.077431568981" />
-				<pt x="315.5" y="164.07743571606" />
-				<pt x="315.75" y="164.077424311592" />
-				<pt x="316" y="164.077426903517" />
-				<pt x="316.25" y="164.077432087366" />
-				<pt x="316.5" y="164.077432087366" />
-				<pt x="316.75" y="164.07743571606" />
-				<pt x="317" y="164.077432605751" />
-				<pt x="317.25" y="164.077427940287" />
-				<pt x="317.5" y="164.077431568981" />
-				<pt x="317.75" y="164.077431568981" />
-				<pt x="318" y="164.077426385132" />
-				<pt x="318.25" y="164.077428977057" />
-				<pt x="318.5" y="164.077427940287" />
-				<pt x="318.75" y="164.077431568981" />
-				<pt x="319" y="164.077427940287" />
-				<pt x="319.25" y="164.077424829977" />
-				<pt x="319.5" y="164.077426903517" />
-				<pt x="319.75" y="164.077430013826" />
-				<pt x="319.5" y="164.077426903517" />
-				<pt x="319.25" y="164.077424829977" />
-				<pt x="319" y="164.077427940287" />
-				<pt x="318.75" y="164.077431568981" />
-				<pt x="318.5" y="164.077427940287" />
-				<pt x="318.25" y="164.077428977057" />
-				<pt x="318" y="164.077426385132" />
-				<pt x="317.75" y="164.077431568981" />
-				<pt x="317.5" y="164.077431568981" />
-				<pt x="317.25" y="164.077427940287" />
-				<pt x="317" y="164.077432605751" />
-				<pt x="316.75" y="164.07743571606" />
-				<pt x="316.5" y="164.077432087366" />
-				<pt x="316.25" y="164.077432087366" />
-				<pt x="316" y="164.077426903517" />
-				<pt x="315.75" y="164.077424311592" />
-				<pt x="315.5" y="164.07743571606" />
-				<pt x="315.25" y="164.077431568981" />
-				<pt x="315" y="164.077435197675" />
-				<pt x="314.75" y="164.077444528603" />
-				<pt x="314.5" y="164.07743882637" />
-				<pt x="314.25" y="164.077443491834" />
-				<pt x="314" y="164.0774377896" />
-				<pt x="313.75" y="164.077427421902" />
-				<pt x="313.5" y="164.077420682898" />
-				<pt x="313.25" y="164.07743675283" />
-				<pt x="313" y="164.077425348362" />
-				<pt x="312.75" y="164.077397355578" />
-				<pt x="312.5" y="164.07741135197" />
-			</convexhull>
-			<UserParam type="string" name="label" value="T69_T134"/>
-			<UserParam type="float" name="FWHM" value="5.5"/>
-			<UserParam type="int" name="num_of_masstraces" value="2"/>
+			<UserParam type="string" name="label" value="T69"/>
+			<UserParam type="float" name="FWHM" value="17.8169326782227"/>
+			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="418416.587402344"/>
-			<UserParam type="float" name="masstrace_intensity_1" value="46038.3464355469"/>
-			<UserParam type="floatList" name="isotope_distances" value="[1.00006294281505]"/>
-			<UserParam type="int" name="legal_isotope_pattern" value="1"/>
+			<UserParam type="floatList" name="isotope_distances" value="[]"/>
+			<UserParam type="int" name="legal_isotope_pattern" value="-1"/>
 		</feature>
-		<feature id="f_2488803413840905623">
+		<feature id="f_2442927385720299860">
 			<position dim="0">267.25</position>
 			<position dim="1">163.077368733932</position>
-			<intensity>1.8172e+008</intensity>
+			<intensity>1.8172e+08</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
-			<overallquality>0.109014</overallquality>
+			<overallquality>0.109139</overallquality>
 			<charge>1</charge>
 			<convexhull nr="0">
 				<pt x="252.25" y="163.078892659622" />
@@ -4365,7 +4255,7 @@
 				<pt x="269.5" y="165.078435916914" />
 				<pt x="269.75" y="165.078437990453" />
 				<pt x="270" y="165.078440063993" />
-				<pt x="270.25" y="165.078441619148" />
+				<pt x="270.25" y="165.078441619147" />
 				<pt x="270.5" y="165.078443174302" />
 				<pt x="270.75" y="165.078445247842" />
 				<pt x="271" y="165.078447839766" />
@@ -4433,7 +4323,7 @@
 				<pt x="271" y="165.078447839766" />
 				<pt x="270.75" y="165.078445247842" />
 				<pt x="270.5" y="165.078443174302" />
-				<pt x="270.25" y="165.078441619148" />
+				<pt x="270.25" y="165.078441619147" />
 				<pt x="270" y="165.078440063993" />
 				<pt x="269.75" y="165.078437990453" />
 				<pt x="269.5" y="165.078435916914" />
@@ -4816,7 +4706,7 @@
 				<pt x="256.5" y="167.072641883297" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T3_T12_T48_T61_T101"/>
-			<UserParam type="float" name="FWHM" value="9.5"/>
+			<UserParam type="float" name="FWHM" value="9.29382038116455"/>
 			<UserParam type="int" name="num_of_masstraces" value="5"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="181719781"/>
 			<UserParam type="float" name="masstrace_intensity_1" value="19989520.265625"/>
@@ -4826,13 +4716,90 @@
 			<UserParam type="float" name="masstrace_intensity_3" value="1032537.10205078"/>
 			<UserParam type="float" name="masstrace_intensity_4" value="230955.790283203"/>
 		</feature>
-		<feature id="f_11708330324181821974">
+		<feature id="f_8950785236510355755">
+			<position dim="0">319</position>
+			<position dim="1">164.077429582707</position>
+			<intensity>46038.3</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>2.65831e-05</overallquality>
+			<charge>0</charge>
+			<convexhull nr="0">
+				<pt x="312.25" y="164.077368844408" />
+				<pt x="312.5" y="164.07741135197" />
+				<pt x="312.75" y="164.077397355578" />
+				<pt x="313" y="164.077425348362" />
+				<pt x="313.25" y="164.07743675283" />
+				<pt x="313.5" y="164.077420682898" />
+				<pt x="313.75" y="164.077427421902" />
+				<pt x="314" y="164.0774377896" />
+				<pt x="314.25" y="164.077443491834" />
+				<pt x="314.5" y="164.07743882637" />
+				<pt x="314.75" y="164.077444528603" />
+				<pt x="315" y="164.077435197675" />
+				<pt x="315.25" y="164.077431568981" />
+				<pt x="315.5" y="164.07743571606" />
+				<pt x="315.75" y="164.077424311592" />
+				<pt x="316" y="164.077426903517" />
+				<pt x="316.25" y="164.077432087366" />
+				<pt x="316.5" y="164.077432087366" />
+				<pt x="316.75" y="164.07743571606" />
+				<pt x="317" y="164.077432605751" />
+				<pt x="317.25" y="164.077427940287" />
+				<pt x="317.5" y="164.077431568981" />
+				<pt x="317.75" y="164.077431568981" />
+				<pt x="318" y="164.077426385132" />
+				<pt x="318.25" y="164.077428977057" />
+				<pt x="318.5" y="164.077427940287" />
+				<pt x="318.75" y="164.077431568981" />
+				<pt x="319" y="164.077427940287" />
+				<pt x="319.25" y="164.077424829977" />
+				<pt x="319.5" y="164.077426903517" />
+				<pt x="319.75" y="164.077430013826" />
+				<pt x="319.5" y="164.077426903517" />
+				<pt x="319.25" y="164.077424829977" />
+				<pt x="319" y="164.077427940287" />
+				<pt x="318.75" y="164.077431568981" />
+				<pt x="318.5" y="164.077427940287" />
+				<pt x="318.25" y="164.077428977057" />
+				<pt x="318" y="164.077426385132" />
+				<pt x="317.75" y="164.077431568981" />
+				<pt x="317.5" y="164.077431568981" />
+				<pt x="317.25" y="164.077427940287" />
+				<pt x="317" y="164.077432605751" />
+				<pt x="316.75" y="164.07743571606" />
+				<pt x="316.5" y="164.077432087366" />
+				<pt x="316.25" y="164.077432087366" />
+				<pt x="316" y="164.077426903517" />
+				<pt x="315.75" y="164.077424311592" />
+				<pt x="315.5" y="164.07743571606" />
+				<pt x="315.25" y="164.077431568981" />
+				<pt x="315" y="164.077435197675" />
+				<pt x="314.75" y="164.077444528603" />
+				<pt x="314.5" y="164.07743882637" />
+				<pt x="314.25" y="164.077443491834" />
+				<pt x="314" y="164.0774377896" />
+				<pt x="313.75" y="164.077427421902" />
+				<pt x="313.5" y="164.077420682898" />
+				<pt x="313.25" y="164.07743675283" />
+				<pt x="313" y="164.077425348362" />
+				<pt x="312.75" y="164.077397355578" />
+				<pt x="312.5" y="164.07741135197" />
+			</convexhull>
+			<UserParam type="string" name="label" value="T134"/>
+			<UserParam type="float" name="FWHM" value="17.7961597442627"/>
+			<UserParam type="int" name="num_of_masstraces" value="1"/>
+			<UserParam type="float" name="masstrace_intensity_0" value="46038.3464355469"/>
+			<UserParam type="floatList" name="isotope_distances" value="[]"/>
+			<UserParam type="int" name="legal_isotope_pattern" value="-1"/>
+		</feature>
+		<feature id="f_6336744049132682698">
 			<position dim="0">289.25</position>
 			<position dim="1">165.056236591302</position>
 			<intensity>986260</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
-			<overallquality>0.000568826</overallquality>
+			<overallquality>0.000569478</overallquality>
 			<charge>0</charge>
 			<convexhull nr="0">
 				<pt x="278.75" y="165.056483871647" />
@@ -4841,7 +4808,7 @@
 				<pt x="279.5" y="165.056028211322" />
 				<pt x="279.75" y="165.055981038296" />
 				<pt x="280" y="165.055974817677" />
-				<pt x="280.25" y="165.055949416818" />
+				<pt x="280.25" y="165.055949416817" />
 				<pt x="280.5" y="165.055955119051" />
 				<pt x="280.75" y="165.055958747746" />
 				<pt x="281" y="165.055965486749" />
@@ -5013,7 +4980,7 @@
 				<pt x="281" y="165.055965486749" />
 				<pt x="280.75" y="165.055958747746" />
 				<pt x="280.5" y="165.055955119051" />
-				<pt x="280.25" y="165.055949416818" />
+				<pt x="280.25" y="165.055949416817" />
 				<pt x="280" y="165.055974817677" />
 				<pt x="279.75" y="165.055981038296" />
 				<pt x="279.5" y="165.056028211322" />
@@ -5021,20 +4988,20 @@
 				<pt x="279" y="165.056276517688" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T59"/>
-			<UserParam type="float" name="FWHM" value="9.5"/>
+			<UserParam type="float" name="FWHM" value="9.30398368835449"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="986260.217773438"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
 			<UserParam type="int" name="legal_isotope_pattern" value="-1"/>
 		</feature>
-		<feature id="f_15754571732265416845">
+		<feature id="f_1824675934376688563">
 			<position dim="0">231.75</position>
 			<position dim="1">165.05629076752</position>
 			<intensity>168058</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
-			<overallquality>9.96696e-005</overallquality>
-			<charge>1</charge>
+			<overallquality>9.70387e-05</overallquality>
+			<charge>0</charge>
 			<convexhull nr="0">
 				<pt x="230" y="165.056291032465" />
 				<pt x="230.25" y="165.05629155085" />
@@ -5115,7 +5082,22 @@
 				<pt x="230.5" y="165.056291032465" />
 				<pt x="230.25" y="165.05629155085" />
 			</convexhull>
-			<convexhull nr="1">
+			<UserParam type="string" name="label" value="T98"/>
+			<UserParam type="float" name="FWHM" value="9.5411376953125"/>
+			<UserParam type="int" name="num_of_masstraces" value="1"/>
+			<UserParam type="float" name="masstrace_intensity_0" value="168058.269287109"/>
+			<UserParam type="floatList" name="isotope_distances" value="[]"/>
+			<UserParam type="int" name="legal_isotope_pattern" value="-1"/>
+		</feature>
+		<feature id="f_8152704396902481008">
+			<position dim="0">231.75</position>
+			<position dim="1">166.05635438868</position>
+			<intensity>16705.8</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>9.64609e-06</overallquality>
+			<charge>0</charge>
+			<convexhull nr="0">
 				<pt x="230" y="166.056352956654" />
 				<pt x="230.25" y="166.056343107341" />
 				<pt x="230.5" y="166.056363324352" />
@@ -5183,86 +5165,20 @@
 				<pt x="230.5" y="166.056363324352" />
 				<pt x="230.25" y="166.056343107341" />
 			</convexhull>
-			<UserParam type="string" name="label" value="T98_T163"/>
-			<UserParam type="float" name="FWHM" value="5.75"/>
-			<UserParam type="int" name="num_of_masstraces" value="2"/>
-			<UserParam type="float" name="masstrace_intensity_0" value="168058.269287109"/>
-			<UserParam type="float" name="masstrace_intensity_1" value="16705.7516937256"/>
-			<UserParam type="floatList" name="isotope_distances" value="[1.00006362116017]"/>
-			<UserParam type="int" name="legal_isotope_pattern" value="1"/>
-		</feature>
-		<feature id="f_14287932400598464088">
-			<position dim="0">258.75</position>
-			<position dim="1">165.057161287125</position>
-			<intensity>36680.8</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>2.11557e-005</overallquality>
-			<charge>0</charge>
-			<convexhull nr="0">
-				<pt x="252.75" y="165.05608834397" />
-				<pt x="253" y="165.056428922848" />
-				<pt x="253.25" y="165.05644602955" />
-				<pt x="253.5" y="165.05644395601" />
-				<pt x="253.75" y="165.056420110305" />
-				<pt x="254" y="165.056442400855" />
-				<pt x="254.25" y="165.056463654636" />
-				<pt x="254.5" y="165.056477651028" />
-				<pt x="254.75" y="165.056492165805" />
-				<pt x="255" y="165.056507717352" />
-				<pt x="255.25" y="165.056552298454" />
-				<pt x="255.5" y="165.056579254468" />
-				<pt x="255.75" y="165.056621243645" />
-				<pt x="256" y="165.056664269592" />
-				<pt x="256.25" y="165.056716108081" />
-				<pt x="256.5" y="165.056783498118" />
-				<pt x="256.75" y="165.056860219083" />
-				<pt x="257" y="165.056962340908" />
-				<pt x="257.25" y="165.05707690397" />
-				<pt x="257.5" y="165.057206500195" />
-				<pt x="257.75" y="165.057362015664" />
-				<pt x="258" y="165.05751079213" />
-				<pt x="258.25" y="165.057801606057" />
-				<pt x="258.5" y="165.058251564149" />
-				<pt x="258.75" y="165.059426742712" />
-				<pt x="258.5" y="165.058251564149" />
-				<pt x="258.25" y="165.057801606057" />
-				<pt x="258" y="165.05751079213" />
-				<pt x="257.75" y="165.057362015664" />
-				<pt x="257.5" y="165.057206500195" />
-				<pt x="257.25" y="165.05707690397" />
-				<pt x="257" y="165.056962340908" />
-				<pt x="256.75" y="165.056860219083" />
-				<pt x="256.5" y="165.056783498118" />
-				<pt x="256.25" y="165.056716108081" />
-				<pt x="256" y="165.056664269592" />
-				<pt x="255.75" y="165.056621243645" />
-				<pt x="255.5" y="165.056579254468" />
-				<pt x="255.25" y="165.056552298454" />
-				<pt x="255" y="165.056507717352" />
-				<pt x="254.75" y="165.056492165805" />
-				<pt x="254.5" y="165.056477651028" />
-				<pt x="254.25" y="165.056463654636" />
-				<pt x="254" y="165.056442400855" />
-				<pt x="253.75" y="165.056420110305" />
-				<pt x="253.5" y="165.05644395601" />
-				<pt x="253.25" y="165.05644602955" />
-				<pt x="253" y="165.056428922848" />
-			</convexhull>
-			<UserParam type="string" name="label" value="T121"/>
-			<UserParam type="float" name="FWHM" value="3.5"/>
+			<UserParam type="string" name="label" value="T163"/>
+			<UserParam type="float" name="FWHM" value="9.54618644714355"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
-			<UserParam type="float" name="masstrace_intensity_0" value="36680.7935791016"/>
+			<UserParam type="float" name="masstrace_intensity_0" value="16705.7516937256"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
 			<UserParam type="int" name="legal_isotope_pattern" value="-1"/>
 		</feature>
-		<feature id="f_4566459421321501746">
+		<feature id="f_6891291037723608303">
 			<position dim="0">255.5</position>
 			<position dim="1">168.067425218033</position>
 			<intensity>115129</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
-			<overallquality>6.6401e-005</overallquality>
+			<overallquality>6.6477e-05</overallquality>
 			<charge>0</charge>
 			<convexhull nr="0">
 				<pt x="247" y="168.066861091303" />
@@ -5391,19 +5307,19 @@
 				<pt x="247.25" y="168.066855907454" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T128"/>
-			<UserParam type="float" name="FWHM" value="12.5"/>
+			<UserParam type="float" name="FWHM" value="12.0591907501221"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="115129.47052002"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
 			<UserParam type="int" name="legal_isotope_pattern" value="-1"/>
 		</feature>
-		<feature id="f_18356596520196770536">
+		<feature id="f_1181678480467704704">
 			<position dim="0">291.5</position>
 			<position dim="1">169.05235014966</position>
 			<intensity>709527</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
-			<overallquality>0.00040922</overallquality>
+			<overallquality>0.000409689</overallquality>
 			<charge>0</charge>
 			<convexhull nr="0">
 				<pt x="284" y="169.052075435249" />
@@ -5554,19 +5470,19 @@
 				<pt x="284.25" y="169.052075953634" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T67"/>
-			<UserParam type="float" name="FWHM" value="9.25"/>
+			<UserParam type="float" name="FWHM" value="9.07733154296875"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="709526.831054688"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
 			<UserParam type="int" name="legal_isotope_pattern" value="-1"/>
 		</feature>
-		<feature id="f_2205439982488162092">
+		<feature id="f_10864646576305715151">
 			<position dim="0">256.5</position>
 			<position dim="1">171.06948653446</position>
 			<intensity>100939</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
-			<overallquality>5.82164e-005</overallquality>
+			<overallquality>5.82832e-05</overallquality>
 			<charge>0</charge>
 			<convexhull nr="0">
 				<pt x="248.25" y="171.069228227518" />
@@ -5689,19 +5605,19 @@
 				<pt x="248.5" y="171.069230301058" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T129"/>
-			<UserParam type="float" name="FWHM" value="11"/>
+			<UserParam type="float" name="FWHM" value="10.6621923446655"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="100938.72076416"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
 			<UserParam type="int" name="legal_isotope_pattern" value="-1"/>
 		</feature>
-		<feature id="f_16854092442615782435">
+		<feature id="f_10636067406658306791">
 			<position dim="0">234.25</position>
 			<position dim="1">171.069488733802</position>
 			<intensity>168719</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
-			<overallquality>9.97834e-005</overallquality>
+			<overallquality>9.98977e-05</overallquality>
 			<charge>1</charge>
 			<convexhull nr="0">
 				<pt x="230" y="171.069486901582" />
@@ -5896,21 +5812,21 @@
 				<pt x="230.25" y="172.069541568382" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T112_T171"/>
-			<UserParam type="float" name="FWHM" value="9.5"/>
+			<UserParam type="float" name="FWHM" value="9.70189952850342"/>
 			<UserParam type="int" name="num_of_masstraces" value="2"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="168718.729492188"/>
 			<UserParam type="float" name="masstrace_intensity_1" value="15076.3125762939"/>
 			<UserParam type="floatList" name="isotope_distances" value="[1.00006283416536]"/>
 			<UserParam type="int" name="legal_isotope_pattern" value="1"/>
 		</feature>
-		<feature id="f_10007307242740334043">
+		<feature id="f_6500553203967987365">
 			<position dim="0">231</position>
 			<position dim="1">173.082368401455</position>
 			<intensity>575242</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
-			<overallquality>0.00034031</overallquality>
-			<charge>1</charge>
+			<overallquality>0.000332151</overallquality>
+			<charge>0</charge>
 			<convexhull nr="0">
 				<pt x="230" y="173.082377014837" />
 				<pt x="230.25" y="173.082376496452" />
@@ -5991,91 +5907,20 @@
 				<pt x="230.75" y="173.082376496452" />
 				<pt x="230.25" y="173.082376496452" />
 			</convexhull>
-			<convexhull nr="1">
-				<pt x="230" y="174.082446714799" />
-				<pt x="230.25" y="174.082446714799" />
-				<pt x="230.5" y="174.082449825108" />
-				<pt x="230.75" y="174.08244153095" />
-				<pt x="231" y="174.08244049418" />
-				<pt x="231.25" y="174.08244256772" />
-				<pt x="231.5" y="174.082442049335" />
-				<pt x="231.75" y="174.08244360449" />
-				<pt x="232" y="174.082443086105" />
-				<pt x="232.25" y="174.082439975795" />
-				<pt x="232.5" y="174.082438939025" />
-				<pt x="232.75" y="174.08244049418" />
-				<pt x="233" y="174.082437902256" />
-				<pt x="233.25" y="174.08244256772" />
-				<pt x="233.5" y="174.082436347101" />
-				<pt x="233.75" y="174.082445159644" />
-				<pt x="234" y="174.082445678029" />
-				<pt x="234.25" y="174.082442049335" />
-				<pt x="234.5" y="174.082442049335" />
-				<pt x="234.75" y="174.08244049418" />
-				<pt x="235" y="174.082437902256" />
-				<pt x="235.25" y="174.082433236792" />
-				<pt x="235.5" y="174.08244256772" />
-				<pt x="235.75" y="174.082447233184" />
-				<pt x="236" y="174.082434273561" />
-				<pt x="236.25" y="174.082450861878" />
-				<pt x="236.5" y="174.082449825108" />
-				<pt x="236.75" y="174.082445159644" />
-				<pt x="237" y="174.082439975795" />
-				<pt x="237.25" y="174.082429089712" />
-				<pt x="237.5" y="174.08244049418" />
-				<pt x="237.75" y="174.082430126482" />
-				<pt x="238" y="174.082398505003" />
-				<pt x="238.25" y="174.082421832324" />
-				<pt x="238.5" y="174.082342519434" />
-				<pt x="238.25" y="174.082421832324" />
-				<pt x="238" y="174.082398505003" />
-				<pt x="237.75" y="174.082430126482" />
-				<pt x="237.5" y="174.08244049418" />
-				<pt x="237.25" y="174.082429089712" />
-				<pt x="237" y="174.082439975795" />
-				<pt x="236.75" y="174.082445159644" />
-				<pt x="236.5" y="174.082449825108" />
-				<pt x="236.25" y="174.082450861878" />
-				<pt x="236" y="174.082434273561" />
-				<pt x="235.75" y="174.082447233184" />
-				<pt x="235.5" y="174.08244256772" />
-				<pt x="235.25" y="174.082433236792" />
-				<pt x="235" y="174.082437902256" />
-				<pt x="234.75" y="174.08244049418" />
-				<pt x="234.5" y="174.082442049335" />
-				<pt x="234.25" y="174.082442049335" />
-				<pt x="234" y="174.082445678029" />
-				<pt x="233.75" y="174.082445159644" />
-				<pt x="233.5" y="174.082436347101" />
-				<pt x="233.25" y="174.08244256772" />
-				<pt x="233" y="174.082437902256" />
-				<pt x="232.75" y="174.08244049418" />
-				<pt x="232.5" y="174.082438939025" />
-				<pt x="232.25" y="174.082439975795" />
-				<pt x="232" y="174.082443086105" />
-				<pt x="231.75" y="174.08244360449" />
-				<pt x="231.5" y="174.082442049335" />
-				<pt x="231.25" y="174.08244256772" />
-				<pt x="231" y="174.08244049418" />
-				<pt x="230.75" y="174.08244153095" />
-				<pt x="230.5" y="174.082449825108" />
-				<pt x="230.25" y="174.082446714799" />
-			</convexhull>
-			<UserParam type="string" name="label" value="T57_T125"/>
-			<UserParam type="float" name="FWHM" value="5"/>
-			<UserParam type="int" name="num_of_masstraces" value="2"/>
-			<UserParam type="float" name="masstrace_intensity_0" value="575242.415039063"/>
-			<UserParam type="float" name="masstrace_intensity_1" value="51385.1544799805"/>
-			<UserParam type="floatList" name="isotope_distances" value="[1.00007329107336]"/>
-			<UserParam type="int" name="legal_isotope_pattern" value="1"/>
+			<UserParam type="string" name="label" value="T57"/>
+			<UserParam type="float" name="FWHM" value="13.79567527771"/>
+			<UserParam type="int" name="num_of_masstraces" value="1"/>
+			<UserParam type="float" name="masstrace_intensity_0" value="575242.415039062"/>
+			<UserParam type="floatList" name="isotope_distances" value="[]"/>
+			<UserParam type="int" name="legal_isotope_pattern" value="-1"/>
 		</feature>
-		<feature id="f_1357389176320956578">
+		<feature id="f_15332133443730299502">
 			<position dim="0">299.25</position>
 			<position dim="1">174.059099726944</position>
 			<intensity>154523</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
-			<overallquality>8.91214e-005</overallquality>
+			<overallquality>8.92236e-05</overallquality>
 			<charge>0</charge>
 			<convexhull nr="0">
 				<pt x="294.5" y="174.058830135626" />
@@ -6172,19 +6017,104 @@
 				<pt x="294.75" y="174.059166567424" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T113"/>
-			<UserParam type="float" name="FWHM" value="9"/>
+			<UserParam type="float" name="FWHM" value="8.60647678375244"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="154523.424804688"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
 			<UserParam type="int" name="legal_isotope_pattern" value="-1"/>
 		</feature>
-		<feature id="f_8849766613366018196">
+		<feature id="f_10942192923364184174">
+			<position dim="0">231</position>
+			<position dim="1">174.082441692528</position>
+			<intensity>51385.2</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>2.96704e-05</overallquality>
+			<charge>0</charge>
+			<convexhull nr="0">
+				<pt x="230" y="174.082446714799" />
+				<pt x="230.25" y="174.082446714799" />
+				<pt x="230.5" y="174.082449825108" />
+				<pt x="230.75" y="174.08244153095" />
+				<pt x="231" y="174.08244049418" />
+				<pt x="231.25" y="174.08244256772" />
+				<pt x="231.5" y="174.082442049335" />
+				<pt x="231.75" y="174.08244360449" />
+				<pt x="232" y="174.082443086105" />
+				<pt x="232.25" y="174.082439975795" />
+				<pt x="232.5" y="174.082438939025" />
+				<pt x="232.75" y="174.08244049418" />
+				<pt x="233" y="174.082437902256" />
+				<pt x="233.25" y="174.08244256772" />
+				<pt x="233.5" y="174.082436347101" />
+				<pt x="233.75" y="174.082445159644" />
+				<pt x="234" y="174.082445678029" />
+				<pt x="234.25" y="174.082442049335" />
+				<pt x="234.5" y="174.082442049335" />
+				<pt x="234.75" y="174.08244049418" />
+				<pt x="235" y="174.082437902256" />
+				<pt x="235.25" y="174.082433236792" />
+				<pt x="235.5" y="174.08244256772" />
+				<pt x="235.75" y="174.082447233184" />
+				<pt x="236" y="174.082434273561" />
+				<pt x="236.25" y="174.082450861878" />
+				<pt x="236.5" y="174.082449825108" />
+				<pt x="236.75" y="174.082445159644" />
+				<pt x="237" y="174.082439975795" />
+				<pt x="237.25" y="174.082429089712" />
+				<pt x="237.5" y="174.08244049418" />
+				<pt x="237.75" y="174.082430126482" />
+				<pt x="238" y="174.082398505003" />
+				<pt x="238.25" y="174.082421832324" />
+				<pt x="238.5" y="174.082342519434" />
+				<pt x="238.25" y="174.082421832324" />
+				<pt x="238" y="174.082398505003" />
+				<pt x="237.75" y="174.082430126482" />
+				<pt x="237.5" y="174.08244049418" />
+				<pt x="237.25" y="174.082429089712" />
+				<pt x="237" y="174.082439975795" />
+				<pt x="236.75" y="174.082445159644" />
+				<pt x="236.5" y="174.082449825108" />
+				<pt x="236.25" y="174.082450861878" />
+				<pt x="236" y="174.082434273561" />
+				<pt x="235.75" y="174.082447233184" />
+				<pt x="235.5" y="174.08244256772" />
+				<pt x="235.25" y="174.082433236792" />
+				<pt x="235" y="174.082437902256" />
+				<pt x="234.75" y="174.08244049418" />
+				<pt x="234.5" y="174.082442049335" />
+				<pt x="234.25" y="174.082442049335" />
+				<pt x="234" y="174.082445678029" />
+				<pt x="233.75" y="174.082445159644" />
+				<pt x="233.5" y="174.082436347101" />
+				<pt x="233.25" y="174.08244256772" />
+				<pt x="233" y="174.082437902256" />
+				<pt x="232.75" y="174.08244049418" />
+				<pt x="232.5" y="174.082438939025" />
+				<pt x="232.25" y="174.082439975795" />
+				<pt x="232" y="174.082443086105" />
+				<pt x="231.75" y="174.08244360449" />
+				<pt x="231.5" y="174.082442049335" />
+				<pt x="231.25" y="174.08244256772" />
+				<pt x="231" y="174.08244049418" />
+				<pt x="230.75" y="174.08244153095" />
+				<pt x="230.5" y="174.082449825108" />
+				<pt x="230.25" y="174.082446714799" />
+			</convexhull>
+			<UserParam type="string" name="label" value="T125"/>
+			<UserParam type="float" name="FWHM" value="13.8155956268311"/>
+			<UserParam type="int" name="num_of_masstraces" value="1"/>
+			<UserParam type="float" name="masstrace_intensity_0" value="51385.1544799805"/>
+			<UserParam type="floatList" name="isotope_distances" value="[]"/>
+			<UserParam type="int" name="legal_isotope_pattern" value="-1"/>
+		</feature>
+		<feature id="f_1720960513837645167">
 			<position dim="0">283.5</position>
 			<position dim="1">175.040063661983</position>
 			<intensity>351265</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
-			<overallquality>0.000202592</overallquality>
+			<overallquality>0.000202824</overallquality>
 			<charge>0</charge>
 			<convexhull nr="0">
 				<pt x="274.75" y="175.039797352104" />
@@ -6297,19 +6227,19 @@
 				<pt x="275" y="175.040132228748" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T85"/>
-			<UserParam type="float" name="FWHM" value="9.5"/>
+			<UserParam type="float" name="FWHM" value="9.47790908813477"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="351264.628173828"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
 			<UserParam type="int" name="legal_isotope_pattern" value="-1"/>
 		</feature>
-		<feature id="f_12140363040088978058">
+		<feature id="f_2303942764430575446">
 			<position dim="0">318</position>
 			<position dim="1">175.040066023653</position>
 			<intensity>12126.1</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
-			<overallquality>6.99371e-006</overallquality>
+			<overallquality>7.00173e-06</overallquality>
 			<charge>0</charge>
 			<convexhull nr="0">
 				<pt x="313.25" y="175.039797352104" />
@@ -6366,19 +6296,19 @@
 				<pt x="313.5" y="175.040137412597" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T169"/>
-			<UserParam type="float" name="FWHM" value="6.5"/>
+			<UserParam type="float" name="FWHM" value="11.4108047485352"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="12126.0638580322"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
 			<UserParam type="int" name="legal_isotope_pattern" value="-1"/>
 		</feature>
-		<feature id="f_14527496877349041651">
+		<feature id="f_14905444215334290385">
 			<position dim="0">299.25</position>
 			<position dim="1">175.059141384176</position>
 			<intensity>12304.2</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
-			<overallquality>7.09647e-006</overallquality>
+			<overallquality>7.1046e-06</overallquality>
 			<charge>0</charge>
 			<convexhull nr="0">
 				<pt x="297.5" y="175.059019064114" />
@@ -6429,19 +6359,19 @@
 				<pt x="297.75" y="175.059051203978" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T168"/>
-			<UserParam type="float" name="FWHM" value="5.75"/>
+			<UserParam type="float" name="FWHM" value="9.78164005279541"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="12304.2298126221"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
 			<UserParam type="int" name="legal_isotope_pattern" value="-1"/>
 		</feature>
-		<feature id="f_9976655738061632604">
+		<feature id="f_10510671445944774358">
 			<position dim="0">240.5</position>
 			<position dim="1">175.079192914405</position>
 			<intensity>38001.6</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
-			<overallquality>2.19174e-005</overallquality>
+			<overallquality>2.19425e-05</overallquality>
 			<charge>0</charge>
 			<convexhull nr="0">
 				<pt x="230" y="175.082588988647" />
@@ -6566,19 +6496,19 @@
 				<pt x="230.25" y="175.082527300844" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T157"/>
-			<UserParam type="float" name="FWHM" value="12"/>
+			<UserParam type="float" name="FWHM" value="11.998161315918"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="38001.5506134033"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
 			<UserParam type="int" name="legal_isotope_pattern" value="-1"/>
 		</feature>
-		<feature id="f_12139883638283978275">
+		<feature id="f_9641220869132620802">
 			<position dim="0">234.5</position>
 			<position dim="1">175.120754056372</position>
-			<intensity>5.61043e+006</intensity>
+			<intensity>5.61043e+06</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
-			<overallquality>0.00332982</overallquality>
+			<overallquality>0.00333363</overallquality>
 			<charge>1</charge>
 			<convexhull nr="0">
 				<pt x="230" y="175.120754039976" />
@@ -6797,7 +6727,7 @@
 				<pt x="230.25" y="177.121769510377" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T22_T73_T142"/>
-			<UserParam type="float" name="FWHM" value="7.25"/>
+			<UserParam type="float" name="FWHM" value="6.9578652381897"/>
 			<UserParam type="int" name="num_of_masstraces" value="3"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="5610425.640625"/>
 			<UserParam type="float" name="masstrace_intensity_1" value="460015.689453125"/>
@@ -6805,13 +6735,13 @@
 			<UserParam type="floatList" name="isotope_distances" value="[1.00006070133176, 1.00095290847565]"/>
 			<UserParam type="int" name="legal_isotope_pattern" value="1"/>
 		</feature>
-		<feature id="f_6463064246057032747">
+		<feature id="f_10552316216812319830">
 			<position dim="0">314</position>
 			<position dim="1">176.092992494682</position>
 			<intensity>124463</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
-			<overallquality>7.1784e-005</overallquality>
+			<overallquality>7.18662e-05</overallquality>
 			<charge>0</charge>
 			<convexhull nr="0">
 				<pt x="306.75" y="176.092949665599" />
@@ -6910,19 +6840,19 @@
 				<pt x="307" y="176.092953294294" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T119"/>
-			<UserParam type="float" name="FWHM" value="10"/>
+			<UserParam type="float" name="FWHM" value="10.5746488571167"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="124462.811584473"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
 			<UserParam type="int" name="legal_isotope_pattern" value="-1"/>
 		</feature>
-		<feature id="f_13017146639186110139">
+		<feature id="f_3795838034862127361">
 			<position dim="0">285</position>
 			<position dim="1">177.057180710638</position>
 			<intensity>399909</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
-			<overallquality>0.000230648</overallquality>
+			<overallquality>0.000230912</overallquality>
 			<charge>0</charge>
 			<convexhull nr="0">
 				<pt x="277.5" y="177.057183417577" />
@@ -7025,19 +6955,19 @@
 				<pt x="277.75" y="177.057179788883" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T20.2"/>
-			<UserParam type="float" name="FWHM" value="10"/>
+			<UserParam type="float" name="FWHM" value="9.72749900817871"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="399908.836181641"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
 			<UserParam type="int" name="legal_isotope_pattern" value="-1"/>
 		</feature>
-		<feature id="f_7090053517809447365">
+		<feature id="f_12510079157871345298">
 			<position dim="0">315.25</position>
 			<position dim="1">177.057302569982</position>
 			<intensity>170396</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
-			<overallquality>0.000100867</overallquality>
+			<overallquality>0.000100982</overallquality>
 			<charge>1</charge>
 			<convexhull nr="0">
 				<pt x="308.75" y="177.056938739906" />
@@ -7192,20 +7122,20 @@
 				<pt x="312.5" y="178.057228753449" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T107_T167"/>
-			<UserParam type="float" name="FWHM" value="8.5"/>
+			<UserParam type="float" name="FWHM" value="8.3460865020752"/>
 			<UserParam type="int" name="num_of_masstraces" value="2"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="170395.811401367"/>
 			<UserParam type="float" name="masstrace_intensity_1" value="17229.6696166992"/>
 			<UserParam type="floatList" name="isotope_distances" value="[0.9999718845838]"/>
 			<UserParam type="int" name="legal_isotope_pattern" value="1"/>
 		</feature>
-		<feature id="f_3689261140477220175">
+		<feature id="f_8271287132178108720">
 			<position dim="0">264</position>
 			<position dim="1">177.057489529635</position>
-			<intensity>8.97602e+006</intensity>
+			<intensity>8.97602e+06</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
-			<overallquality>0.00517693</overallquality>
+			<overallquality>0.00518286</overallquality>
 			<charge>0</charge>
 			<convexhull nr="0">
 				<pt x="258.5" y="177.05973127935" />
@@ -7342,136 +7272,19 @@
 				<pt x="258.75" y="177.059404178479" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T20.1"/>
-			<UserParam type="float" name="FWHM" value="10.25"/>
+			<UserParam type="float" name="FWHM" value="10.0138063430786"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="8976023.30078125"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
 			<UserParam type="int" name="legal_isotope_pattern" value="-1"/>
 		</feature>
-		<feature id="f_4867232715518835913">
-			<position dim="0">258.25</position>
-			<position dim="1">177.063423146538</position>
-			<intensity>1.71854e+006</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>0.00099117</overallquality>
-			<charge>0</charge>
-			<convexhull nr="0">
-				<pt x="245.75" y="177.065430921301" />
-				<pt x="246" y="177.065741433855" />
-				<pt x="246.25" y="177.065689595365" />
-				<pt x="246.5" y="177.065677154128" />
-				<pt x="246.75" y="177.065673525433" />
-				<pt x="247" y="177.065654345192" />
-				<pt x="247.25" y="177.065652790037" />
-				<pt x="247.5" y="177.065625315638" />
-				<pt x="247.75" y="177.065625834023" />
-				<pt x="248" y="177.065621168559" />
-				<pt x="248.25" y="177.06561391117" />
-				<pt x="248.5" y="177.065606653781" />
-				<pt x="248.75" y="177.065597322853" />
-				<pt x="249" y="177.065594730929" />
-				<pt x="249.25" y="177.065583844846" />
-				<pt x="249.5" y="177.065573477148" />
-				<pt x="249.75" y="177.065560517526" />
-				<pt x="250" y="177.065547039518" />
-				<pt x="250.25" y="177.065532524741" />
-				<pt x="250.5" y="177.065515936424" />
-				<pt x="250.75" y="177.065497274568" />
-				<pt x="251" y="177.065476020787" />
-				<pt x="251.25" y="177.065452693467" />
-				<pt x="251.5" y="177.065425737452" />
-				<pt x="251.75" y="177.065395152743" />
-				<pt x="252" y="177.06536197611" />
-				<pt x="252.25" y="177.065324134012" />
-				<pt x="252.5" y="177.065281626451" />
-				<pt x="252.75" y="177.065233416655" />
-				<pt x="253" y="177.065178986241" />
-				<pt x="253.25" y="177.065116780053" />
-				<pt x="253.5" y="177.065047316477" />
-				<pt x="253.75" y="177.064968003587" />
-				<pt x="254" y="177.064878323" />
-				<pt x="254.25" y="177.06477671956" />
-				<pt x="254.5" y="177.064660601343" />
-				<pt x="254.75" y="177.064527376424" />
-				<pt x="255" y="177.064372897725" />
-				<pt x="255.25" y="177.06419561009" />
-				<pt x="255.5" y="177.06399136644" />
-				<pt x="255.75" y="177.063757056466" />
-				<pt x="256" y="177.063490088244" />
-				<pt x="256.25" y="177.063188388233" />
-				<pt x="256.5" y="177.06285143805" />
-				<pt x="256.75" y="177.062482866387" />
-				<pt x="257" y="177.06208733871" />
-				<pt x="257.25" y="177.061675222717" />
-				<pt x="257.5" y="177.061257922874" />
-				<pt x="257.75" y="177.06084788042" />
-				<pt x="258" y="177.060457018207" />
-				<pt x="258.25" y="177.060084299465" />
-				<pt x="258" y="177.060457018207" />
-				<pt x="257.75" y="177.06084788042" />
-				<pt x="257.5" y="177.061257922874" />
-				<pt x="257.25" y="177.061675222717" />
-				<pt x="257" y="177.06208733871" />
-				<pt x="256.75" y="177.062482866387" />
-				<pt x="256.5" y="177.06285143805" />
-				<pt x="256.25" y="177.063188388233" />
-				<pt x="256" y="177.063490088244" />
-				<pt x="255.75" y="177.063757056466" />
-				<pt x="255.5" y="177.06399136644" />
-				<pt x="255.25" y="177.06419561009" />
-				<pt x="255" y="177.064372897725" />
-				<pt x="254.75" y="177.064527376424" />
-				<pt x="254.5" y="177.064660601343" />
-				<pt x="254.25" y="177.06477671956" />
-				<pt x="254" y="177.064878323" />
-				<pt x="253.75" y="177.064968003587" />
-				<pt x="253.5" y="177.065047316477" />
-				<pt x="253.25" y="177.065116780053" />
-				<pt x="253" y="177.065178986241" />
-				<pt x="252.75" y="177.065233416655" />
-				<pt x="252.5" y="177.065281626451" />
-				<pt x="252.25" y="177.065324134012" />
-				<pt x="252" y="177.06536197611" />
-				<pt x="251.75" y="177.065395152743" />
-				<pt x="251.5" y="177.065425737452" />
-				<pt x="251.25" y="177.065452693467" />
-				<pt x="251" y="177.065476020787" />
-				<pt x="250.75" y="177.065497274568" />
-				<pt x="250.5" y="177.065515936424" />
-				<pt x="250.25" y="177.065532524741" />
-				<pt x="250" y="177.065547039518" />
-				<pt x="249.75" y="177.065560517526" />
-				<pt x="249.5" y="177.065573477148" />
-				<pt x="249.25" y="177.065583844846" />
-				<pt x="249" y="177.065594730929" />
-				<pt x="248.75" y="177.065597322853" />
-				<pt x="248.5" y="177.065606653781" />
-				<pt x="248.25" y="177.06561391117" />
-				<pt x="248" y="177.065621168559" />
-				<pt x="247.75" y="177.065625834023" />
-				<pt x="247.5" y="177.065625315638" />
-				<pt x="247.25" y="177.065652790037" />
-				<pt x="247" y="177.065654345192" />
-				<pt x="246.75" y="177.065673525433" />
-				<pt x="246.5" y="177.065677154128" />
-				<pt x="246.25" y="177.065689595365" />
-				<pt x="246" y="177.065741433855" />
-			</convexhull>
-			<UserParam type="string" name="label" value="T34"/>
-			<UserParam type="float" name="FWHM" value="4.75"/>
-			<UserParam type="int" name="num_of_masstraces" value="1"/>
-			<UserParam type="float" name="masstrace_intensity_0" value="1718543.08007813"/>
-			<UserParam type="floatList" name="isotope_distances" value="[]"/>
-			<UserParam type="int" name="legal_isotope_pattern" value="-1"/>
-		</feature>
-		<feature id="f_5830204045439265130">
+		<feature id="f_302058626034829165">
 			<position dim="0">279.5</position>
 			<position dim="1">178.050993097963</position>
-			<intensity>6.58338e+006</intensity>
+			<intensity>6.58338e+06</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
-			<overallquality>0.00379697</overallquality>
+			<overallquality>0.00380132</overallquality>
 			<charge>0</charge>
 			<convexhull nr="0">
 				<pt x="270.25" y="178.052551884901" />
@@ -7640,19 +7453,19 @@
 				<pt x="270.5" y="178.0522807696" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T26"/>
-			<UserParam type="float" name="FWHM" value="11"/>
+			<UserParam type="float" name="FWHM" value="10.6790037155151"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="6583380.9609375"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
 			<UserParam type="int" name="legal_isotope_pattern" value="-1"/>
 		</feature>
-		<feature id="f_18260815667738914815">
+		<feature id="f_16045765133676609560">
 			<position dim="0">259.5</position>
 			<position dim="1">178.053827827786</position>
-			<intensity>2.11912e+006</intensity>
+			<intensity>2.11912e+06</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
-			<overallquality>0.0012222</overallquality>
+			<overallquality>0.0012236</overallquality>
 			<charge>0</charge>
 			<convexhull nr="0">
 				<pt x="251" y="178.057921834057" />
@@ -7674,7 +7487,7 @@
 				<pt x="255" y="178.052517671498" />
 				<pt x="255.25" y="178.052446652767" />
 				<pt x="255.5" y="178.052387038504" />
-				<pt x="255.75" y="178.052337791939" />
+				<pt x="255.75" y="178.052337791938" />
 				<pt x="256" y="178.052297876301" />
 				<pt x="256.25" y="178.052266773208" />
 				<pt x="256.5" y="178.052245519427" />
@@ -7788,7 +7601,7 @@
 				<pt x="256.5" y="178.052245519427" />
 				<pt x="256.25" y="178.052266773208" />
 				<pt x="256" y="178.052297876301" />
-				<pt x="255.75" y="178.052337791939" />
+				<pt x="255.75" y="178.052337791938" />
 				<pt x="255.5" y="178.052387038504" />
 				<pt x="255.25" y="178.052446652767" />
 				<pt x="255" y="178.052517671498" />
@@ -7809,19 +7622,19 @@
 				<pt x="251.25" y="178.056965932306" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T47.1"/>
-			<UserParam type="float" name="FWHM" value="11.75"/>
+			<UserParam type="float" name="FWHM" value="11.4743566513062"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="2119120.04492188"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
 			<UserParam type="int" name="legal_isotope_pattern" value="-1"/>
 		</feature>
-		<feature id="f_186343499514562290">
+		<feature id="f_15558137063691963958">
 			<position dim="0">254.75</position>
 			<position dim="1">179.03674370292</position>
 			<intensity>557492</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
-			<overallquality>0.00033579</overallquality>
+			<overallquality>0.000336174</overallquality>
 			<charge>1</charge>
 			<convexhull nr="0">
 				<pt x="245.25" y="179.035852351805" />
@@ -8024,20 +7837,20 @@
 				<pt x="249.25" y="180.036535301101" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T75_T138"/>
-			<UserParam type="float" name="FWHM" value="8.75"/>
+			<UserParam type="float" name="FWHM" value="8.47022819519043"/>
 			<UserParam type="int" name="num_of_masstraces" value="2"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="557491.495117188"/>
 			<UserParam type="float" name="masstrace_intensity_1" value="55266.863067627"/>
 			<UserParam type="floatList" name="isotope_distances" value="[1.00001908517132]"/>
 			<UserParam type="int" name="legal_isotope_pattern" value="1"/>
 		</feature>
-		<feature id="f_14452738833205457198">
+		<feature id="f_15994842383974939382">
 			<position dim="0">279.25</position>
 			<position dim="1">179.051694057324</position>
 			<intensity>506859</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
-			<overallquality>0.000292331</overallquality>
+			<overallquality>0.000292666</overallquality>
 			<charge>0</charge>
 			<convexhull nr="0">
 				<pt x="277.25" y="179.053504394344" />
@@ -8118,86 +7931,19 @@
 				<pt x="277.5" y="179.053087094501" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T74"/>
-			<UserParam type="float" name="FWHM" value="7.5"/>
+			<UserParam type="float" name="FWHM" value="12.978588104248"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
-			<UserParam type="float" name="masstrace_intensity_0" value="506858.762695313"/>
+			<UserParam type="float" name="masstrace_intensity_0" value="506858.762695312"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
 			<UserParam type="int" name="legal_isotope_pattern" value="-1"/>
 		</feature>
-		<feature id="f_9445498515401092467">
-			<position dim="0">259.5</position>
-			<position dim="1">179.053459468364</position>
-			<intensity>135850</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>7.83513e-005</overallquality>
-			<charge>0</charge>
-			<convexhull nr="0">
-				<pt x="259.5" y="179.039974548512" />
-				<pt x="259.75" y="179.040817442356" />
-				<pt x="260" y="179.042279806152" />
-				<pt x="260.25" y="179.046201906289" />
-				<pt x="260.5" y="179.048811455865" />
-				<pt x="260.75" y="179.05020280093" />
-				<pt x="261" y="179.051183066772" />
-				<pt x="261.25" y="179.051941463877" />
-				<pt x="261.5" y="179.05258840823" />
-				<pt x="261.75" y="179.053181958938" />
-				<pt x="262" y="179.053737149163" />
-				<pt x="262.25" y="179.054255015676" />
-				<pt x="262.5" y="179.054748518099" />
-				<pt x="262.75" y="179.055210917428" />
-				<pt x="263" y="179.05565361813" />
-				<pt x="263.25" y="179.056084914365" />
-				<pt x="263.5" y="179.056506361287" />
-				<pt x="263.75" y="179.05694802522" />
-				<pt x="264" y="179.0574327151" />
-				<pt x="264.25" y="179.057991534019" />
-				<pt x="264.5" y="179.058666989541" />
-				<pt x="264.75" y="179.05956224026" />
-				<pt x="265" y="179.060948919861" />
-				<pt x="265.25" y="179.067835144843" />
-				<pt x="265.5" y="179.070747949584" />
-				<pt x="265.75" y="179.071746877282" />
-				<pt x="265.5" y="179.070747949584" />
-				<pt x="265.25" y="179.067835144843" />
-				<pt x="265" y="179.060948919861" />
-				<pt x="264.75" y="179.05956224026" />
-				<pt x="264.5" y="179.058666989541" />
-				<pt x="264.25" y="179.057991534019" />
-				<pt x="264" y="179.0574327151" />
-				<pt x="263.75" y="179.05694802522" />
-				<pt x="263.5" y="179.056506361287" />
-				<pt x="263.25" y="179.056084914365" />
-				<pt x="263" y="179.05565361813" />
-				<pt x="262.75" y="179.055210917428" />
-				<pt x="262.5" y="179.054748518099" />
-				<pt x="262.25" y="179.054255015676" />
-				<pt x="262" y="179.053737149163" />
-				<pt x="261.75" y="179.053181958938" />
-				<pt x="261.5" y="179.05258840823" />
-				<pt x="261.25" y="179.051941463877" />
-				<pt x="261" y="179.051183066772" />
-				<pt x="260.75" y="179.05020280093" />
-				<pt x="260.5" y="179.048811455865" />
-				<pt x="260.25" y="179.046201906289" />
-				<pt x="260" y="179.042279806152" />
-				<pt x="259.75" y="179.040817442356" />
-			</convexhull>
-			<UserParam type="string" name="label" value="T97.1"/>
-			<UserParam type="float" name="FWHM" value="6.25"/>
-			<UserParam type="int" name="num_of_masstraces" value="1"/>
-			<UserParam type="float" name="masstrace_intensity_0" value="135849.637451172"/>
-			<UserParam type="floatList" name="isotope_distances" value="[]"/>
-			<UserParam type="int" name="legal_isotope_pattern" value="-1"/>
-		</feature>
-		<feature id="f_17302145189775431217">
+		<feature id="f_3444197654479705595">
 			<position dim="0">274.5</position>
 			<position dim="1">179.074067440553</position>
-			<intensity>1.56315e+006</intensity>
+			<intensity>1.56315e+06</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
-			<overallquality>0.000934674</overallquality>
+			<overallquality>0.000935745</overallquality>
 			<charge>1</charge>
 			<convexhull nr="0">
 				<pt x="266" y="179.072340946375" />
@@ -8438,20 +8184,20 @@
 				<pt x="268.75" y="180.074685837653" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T51_T114"/>
-			<UserParam type="float" name="FWHM" value="10.25"/>
+			<UserParam type="float" name="FWHM" value="9.75758743286133"/>
 			<UserParam type="int" name="num_of_masstraces" value="2"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="1563150.05175781"/>
 			<UserParam type="float" name="masstrace_intensity_1" value="172983.271240234"/>
 			<UserParam type="floatList" name="isotope_distances" value="[1.00008484752215]"/>
 			<UserParam type="int" name="legal_isotope_pattern" value="1"/>
 		</feature>
-		<feature id="f_16385054960749080843">
+		<feature id="f_16592400209660070320">
 			<position dim="0">302.25</position>
 			<position dim="1">181.053264027021</position>
 			<intensity>44270.2</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
-			<overallquality>2.55329e-005</overallquality>
+			<overallquality>2.55621e-05</overallquality>
 			<charge>0</charge>
 			<convexhull nr="0">
 				<pt x="297.25" y="181.052990110912" />
@@ -8526,19 +8272,19 @@
 				<pt x="297.5" y="181.053282998379" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T143"/>
-			<UserParam type="float" name="FWHM" value="8.25"/>
+			<UserParam type="float" name="FWHM" value="8.33195018768311"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="44270.2174072266"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
 			<UserParam type="int" name="legal_isotope_pattern" value="-1"/>
 		</feature>
-		<feature id="f_17821717839519891680">
+		<feature id="f_1538047222060608585">
 			<position dim="0">273.5</position>
 			<position dim="1">181.053288866409</position>
 			<intensity>604285</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
-			<overallquality>0.00035711</overallquality>
+			<overallquality>0.00035752</overallquality>
 			<charge>1</charge>
 			<convexhull nr="0">
 				<pt x="265.75" y="181.053013438232" />
@@ -8731,20 +8477,20 @@
 				<pt x="270.75" y="182.053274422221" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T71_T136"/>
-			<UserParam type="float" name="FWHM" value="8.5"/>
+			<UserParam type="float" name="FWHM" value="8.23392200469971"/>
 			<UserParam type="int" name="num_of_masstraces" value="2"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="604285.42578125"/>
 			<UserParam type="float" name="masstrace_intensity_1" value="54150.1049194336"/>
 			<UserParam type="floatList" name="isotope_distances" value="[1.00003378183314]"/>
 			<UserParam type="int" name="legal_isotope_pattern" value="1"/>
 		</feature>
-		<feature id="f_2977862407641390108">
+		<feature id="f_5789119613208130341">
 			<position dim="0">302.75</position>
 			<position dim="1">182.085193533739</position>
 			<intensity>239859</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
-			<overallquality>0.00014174</overallquality>
+			<overallquality>0.000141902</overallquality>
 			<charge>1</charge>
 			<convexhull nr="0">
 				<pt x="296" y="182.08526032557" />
@@ -8789,7 +8535,7 @@
 				<pt x="305.75" y="182.085189825223" />
 				<pt x="306" y="182.08518412299" />
 				<pt x="306.25" y="182.085186714914" />
-				<pt x="306.5" y="182.085184641375" />
+				<pt x="306.5" y="182.085184641374" />
 				<pt x="306.75" y="182.085200711306" />
 				<pt x="307" y="182.085203303231" />
 				<pt x="307.25" y="182.085198637767" />
@@ -8821,7 +8567,7 @@
 				<pt x="307.25" y="182.085198637767" />
 				<pt x="307" y="182.085203303231" />
 				<pt x="306.75" y="182.085200711306" />
-				<pt x="306.5" y="182.085184641375" />
+				<pt x="306.5" y="182.085184641374" />
 				<pt x="306.25" y="182.085186714914" />
 				<pt x="306" y="182.08518412299" />
 				<pt x="305.75" y="182.085189825223" />
@@ -8925,20 +8671,20 @@
 				<pt x="298.25" y="183.085194727073" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T96_T162"/>
-			<UserParam type="float" name="FWHM" value="8.5"/>
+			<UserParam type="float" name="FWHM" value="8.26207733154297"/>
 			<UserParam type="int" name="num_of_masstraces" value="2"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="239858.677246094"/>
 			<UserParam type="float" name="masstrace_intensity_1" value="20756.5061340332"/>
 			<UserParam type="floatList" name="isotope_distances" value="[1.000059063637]"/>
 			<UserParam type="int" name="legal_isotope_pattern" value="1"/>
 		</feature>
-		<feature id="f_4820763536411289908">
+		<feature id="f_13269260776690842586">
 			<position dim="0">256</position>
 			<position dim="1">182.085196626734</position>
 			<intensity>65878.3</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
-			<overallquality>3.79954e-005</overallquality>
+			<overallquality>3.80389e-05</overallquality>
 			<charge>0</charge>
 			<convexhull nr="0">
 				<pt x="249.25" y="182.084910934148" />
@@ -9045,19 +8791,19 @@
 				<pt x="249.5" y="182.084914044458" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T139"/>
-			<UserParam type="float" name="FWHM" value="10.5"/>
+			<UserParam type="float" name="FWHM" value="10.2390584945679"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="65878.340057373"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
 			<UserParam type="int" name="legal_isotope_pattern" value="-1"/>
 		</feature>
-		<feature id="f_12978135214886648823">
+		<feature id="f_11050812636563376890">
 			<position dim="0">318</position>
 			<position dim="1">183.066167361631</position>
 			<intensity>10557.3</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
-			<overallquality>6.08893e-006</overallquality>
+			<overallquality>6.09591e-06</overallquality>
 			<charge>0</charge>
 			<convexhull nr="0">
 				<pt x="313.25" y="183.065962647365" />
@@ -9114,19 +8860,19 @@
 				<pt x="313.5" y="183.066249314214" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T173"/>
-			<UserParam type="float" name="FWHM" value="6.5"/>
+			<UserParam type="float" name="FWHM" value="12.7047328948975"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="10557.3042449951"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
 			<UserParam type="int" name="legal_isotope_pattern" value="-1"/>
 		</feature>
-		<feature id="f_13318104195778538062">
+		<feature id="f_16352937405748713653">
 			<position dim="0">286.5</position>
 			<position dim="1">187.079242952423</position>
 			<intensity>452530</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
-			<overallquality>0.000260997</overallquality>
+			<overallquality>0.000261296</overallquality>
 			<charge>0</charge>
 			<convexhull nr="0">
 				<pt x="275.75" y="187.078927880817" />
@@ -9212,11 +8958,11 @@
 				<pt x="296" y="187.079572233245" />
 				<pt x="296.25" y="187.079696127235" />
 				<pt x="296.5" y="187.079849569165" />
-				<pt x="296.75" y="187.080023746491" />
+				<pt x="296.75" y="187.08002374649" />
 				<pt x="297" y="187.080282938939" />
 				<pt x="297.25" y="187.080622999432" />
 				<pt x="297" y="187.080282938939" />
-				<pt x="296.75" y="187.080023746491" />
+				<pt x="296.75" y="187.08002374649" />
 				<pt x="296.5" y="187.079849569165" />
 				<pt x="296.25" y="187.079696127235" />
 				<pt x="296" y="187.079572233245" />
@@ -9301,19 +9047,19 @@
 				<pt x="276" y="187.078932027896" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T84"/>
-			<UserParam type="float" name="FWHM" value="11.5"/>
+			<UserParam type="float" name="FWHM" value="11.1703691482544"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="452530.274902344"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
 			<UserParam type="int" name="legal_isotope_pattern" value="-1"/>
 		</feature>
-		<feature id="f_5821247793124038316">
+		<feature id="f_730425933204812403">
 			<position dim="0">309</position>
 			<position dim="1">187.087662071873</position>
 			<intensity>359884</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
-			<overallquality>0.000207563</overallquality>
+			<overallquality>0.000207801</overallquality>
 			<charge>0</charge>
 			<convexhull nr="0">
 				<pt x="299.5" y="187.086257324886" />
@@ -9379,7 +9125,7 @@
 				<pt x="315" y="187.087692732668" />
 				<pt x="315.25" y="187.08768651205" />
 				<pt x="315.5" y="187.087688585589" />
-				<pt x="315.75" y="187.087681846586" />
+				<pt x="315.75" y="187.087681846585" />
 				<pt x="316" y="187.087673552427" />
 				<pt x="316.25" y="187.087671478888" />
 				<pt x="316.5" y="187.087652298646" />
@@ -9411,7 +9157,7 @@
 				<pt x="316.5" y="187.087652298646" />
 				<pt x="316.25" y="187.087671478888" />
 				<pt x="316" y="187.087673552427" />
-				<pt x="315.75" y="187.087681846586" />
+				<pt x="315.75" y="187.087681846585" />
 				<pt x="315.5" y="187.087688585589" />
 				<pt x="315.25" y="187.08768651205" />
 				<pt x="315" y="187.087692732668" />
@@ -9476,19 +9222,19 @@
 				<pt x="299.75" y="187.08659427507" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T87"/>
-			<UserParam type="float" name="FWHM" value="10.5"/>
+			<UserParam type="float" name="FWHM" value="10.1169939041138"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="359884.271972656"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
 			<UserParam type="int" name="legal_isotope_pattern" value="-1"/>
 		</feature>
-		<feature id="f_11173610145820618725">
+		<feature id="f_16883570598529716779">
 			<position dim="0">245.75</position>
 			<position dim="1">188.072911692933</position>
-			<intensity>4.39348e+007</intensity>
+			<intensity>4.39348e+07</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
-			<overallquality>0.0264639</overallquality>
+			<overallquality>0.0264942</overallquality>
 			<charge>1</charge>
 			<convexhull nr="0">
 				<pt x="230" y="188.072905003075" />
@@ -9905,7 +9651,7 @@
 				<pt x="234.5" y="190.073027296297" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T9_T30_T82"/>
-			<UserParam type="float" name="FWHM" value="11.25"/>
+			<UserParam type="float" name="FWHM" value="10.9250478744507"/>
 			<UserParam type="int" name="num_of_masstraces" value="3"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="43934793.0625"/>
 			<UserParam type="float" name="masstrace_intensity_1" value="5464965.85546875"/>
@@ -9913,13 +9659,13 @@
 			<UserParam type="floatList" name="isotope_distances" value="[1.00006012280582, 1.00094446094798]"/>
 			<UserParam type="int" name="legal_isotope_pattern" value="1"/>
 		</feature>
-		<feature id="f_2109097196062066881">
+		<feature id="f_15792311372534317618">
 			<position dim="0">305.5</position>
 			<position dim="1">188.073445431087</position>
 			<intensity>308556</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
-			<overallquality>0.00017796</overallquality>
+			<overallquality>0.000178164</overallquality>
 			<charge>0</charge>
 			<convexhull nr="0">
 				<pt x="296.25" y="188.074007089368" />
@@ -10060,19 +9806,19 @@
 				<pt x="296.5" y="188.073822025959" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T92"/>
-			<UserParam type="float" name="FWHM" value="10.25"/>
+			<UserParam type="float" name="FWHM" value="9.87993717193604"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="308555.855712891"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
 			<UserParam type="int" name="legal_isotope_pattern" value="-1"/>
 		</feature>
-		<feature id="f_12009660396631036810">
+		<feature id="f_3472315020043783123">
 			<position dim="0">258</position>
-			<position dim="1">189.041219314869</position>
+			<position dim="1">189.041219314868</position>
 			<intensity>76322.8</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
-			<overallquality>4.40192e-005</overallquality>
+			<overallquality>4.40697e-05</overallquality>
 			<charge>0</charge>
 			<convexhull nr="0">
 				<pt x="254.25" y="189.04194573821" />
@@ -10143,19 +9889,19 @@
 				<pt x="254.5" y="189.041497853658" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T120"/>
-			<UserParam type="float" name="FWHM" value="6.75"/>
+			<UserParam type="float" name="FWHM" value="6.67704725265503"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="76322.8473510742"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
 			<UserParam type="int" name="legal_isotope_pattern" value="-1"/>
 		</feature>
-		<feature id="f_9946751218450875390">
+		<feature id="f_13673046051557027683">
 			<position dim="0">305.25</position>
 			<position dim="1">189.073152174932</position>
 			<intensity>27345.6</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
-			<overallquality>1.57716e-005</overallquality>
+			<overallquality>1.57897e-05</overallquality>
 			<charge>0</charge>
 			<convexhull nr="0">
 				<pt x="298.5" y="189.073081490326" />
@@ -10230,76 +9976,19 @@
 				<pt x="298.75" y="189.073041574689" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T154"/>
-			<UserParam type="float" name="FWHM" value="7"/>
+			<UserParam type="float" name="FWHM" value="11.197979927063"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="27345.6065063477"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
 			<UserParam type="int" name="legal_isotope_pattern" value="-1"/>
 		</feature>
-		<feature id="f_780027561974931583">
-			<position dim="0">230</position>
-			<position dim="1">190.052094010111</position>
-			<intensity>20328.6</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>1.17245e-005</overallquality>
-			<charge>0</charge>
-			<convexhull nr="0">
-				<pt x="230" y="190.051850236453" />
-				<pt x="230.25" y="190.051856457072" />
-				<pt x="230.5" y="190.051855938687" />
-				<pt x="230.75" y="190.051856975456" />
-				<pt x="231" y="190.051871490234" />
-				<pt x="231.25" y="190.051877192467" />
-				<pt x="231.5" y="190.051887560165" />
-				<pt x="231.75" y="190.051913997795" />
-				<pt x="232" y="190.051935769961" />
-				<pt x="232.25" y="190.051953913432" />
-				<pt x="232.5" y="190.051985534911" />
-				<pt x="232.75" y="190.052023895394" />
-				<pt x="233" y="190.052064329416" />
-				<pt x="233.25" y="190.052124980449" />
-				<pt x="233.5" y="190.052206366878" />
-				<pt x="233.75" y="190.052309007087" />
-				<pt x="234" y="190.052469706406" />
-				<pt x="234.25" y="190.052665137512" />
-				<pt x="234.5" y="190.052935734429" />
-				<pt x="234.75" y="190.05331156348" />
-				<pt x="235" y="190.054414168157" />
-				<pt x="234.75" y="190.05331156348" />
-				<pt x="234.5" y="190.052935734429" />
-				<pt x="234.25" y="190.052665137512" />
-				<pt x="234" y="190.052469706406" />
-				<pt x="233.75" y="190.052309007087" />
-				<pt x="233.5" y="190.052206366878" />
-				<pt x="233.25" y="190.052124980449" />
-				<pt x="233" y="190.052064329416" />
-				<pt x="232.75" y="190.052023895394" />
-				<pt x="232.5" y="190.051985534911" />
-				<pt x="232.25" y="190.051953913432" />
-				<pt x="232" y="190.051935769961" />
-				<pt x="231.75" y="190.051913997795" />
-				<pt x="231.5" y="190.051887560165" />
-				<pt x="231.25" y="190.051877192467" />
-				<pt x="231" y="190.051871490234" />
-				<pt x="230.75" y="190.051856975456" />
-				<pt x="230.5" y="190.051855938687" />
-				<pt x="230.25" y="190.051856457072" />
-			</convexhull>
-			<UserParam type="string" name="label" value="T137"/>
-			<UserParam type="float" name="FWHM" value="3.25"/>
-			<UserParam type="int" name="num_of_masstraces" value="1"/>
-			<UserParam type="float" name="masstrace_intensity_0" value="20328.6083374023"/>
-			<UserParam type="floatList" name="isotope_distances" value="[]"/>
-			<UserParam type="int" name="legal_isotope_pattern" value="-1"/>
-		</feature>
-		<feature id="f_17689450036681742932">
+		<feature id="f_8241495329926346207">
 			<position dim="0">289.5</position>
 			<position dim="1">191.037043219287</position>
-			<intensity>1.00169e+006</intensity>
+			<intensity>1.00169e+06</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
-			<overallquality>0.000577727</overallquality>
+			<overallquality>0.000578389</overallquality>
 			<charge>0</charge>
 			<convexhull nr="0">
 				<pt x="277.5" y="191.036768582622" />
@@ -10482,19 +10171,19 @@
 				<pt x="277.75" y="191.036773248086" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T63"/>
-			<UserParam type="float" name="FWHM" value="10.75"/>
+			<UserParam type="float" name="FWHM" value="10.6443605422974"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="1001693.98486328"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
 			<UserParam type="int" name="legal_isotope_pattern" value="-1"/>
 		</feature>
-		<feature id="f_1622772445154574932">
+		<feature id="f_14342240007709533259">
 			<position dim="0">269.25</position>
 			<position dim="1">192.107192843466</position>
 			<intensity>640824</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
-			<overallquality>0.000379883</overallquality>
+			<overallquality>0.000380318</overallquality>
 			<charge>1</charge>
 			<convexhull nr="0">
 				<pt x="262.25" y="192.106919773686" />
@@ -10526,12 +10215,12 @@
 				<pt x="270.75" y="192.107192962527" />
 				<pt x="271" y="192.107193480912" />
 				<pt x="271.5" y="192.107193480912" />
-				<pt x="271.75" y="192.107193999297" />
+				<pt x="271.75" y="192.107193999296" />
 				<pt x="272" y="192.107195036066" />
 				<pt x="272.25" y="192.107195554451" />
 				<pt x="272.5" y="192.107195554451" />
 				<pt x="272.75" y="192.107192444142" />
-				<pt x="273" y="192.107193999297" />
+				<pt x="273" y="192.107193999296" />
 				<pt x="273.25" y="192.107195554451" />
 				<pt x="273.5" y="192.107196591221" />
 				<pt x="273.75" y="192.107198146376" />
@@ -10557,12 +10246,12 @@
 				<pt x="273.75" y="192.107198146376" />
 				<pt x="273.5" y="192.107196591221" />
 				<pt x="273.25" y="192.107195554451" />
-				<pt x="273" y="192.107193999297" />
+				<pt x="273" y="192.107193999296" />
 				<pt x="272.75" y="192.107192444142" />
 				<pt x="272.5" y="192.107195554451" />
 				<pt x="272.25" y="192.107195554451" />
 				<pt x="272" y="192.107195036066" />
-				<pt x="271.75" y="192.107193999297" />
+				<pt x="271.75" y="192.107193999296" />
 				<pt x="271.5" y="192.107193480912" />
 				<pt x="271" y="192.107193480912" />
 				<pt x="270.75" y="192.107192962527" />
@@ -10649,20 +10338,20 @@
 				<pt x="266.75" y="193.107503711466" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T60_T124"/>
-			<UserParam type="float" name="FWHM" value="6.5"/>
+			<UserParam type="float" name="FWHM" value="6.34994077682495"/>
 			<UserParam type="int" name="num_of_masstraces" value="2"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="640824.399902344"/>
 			<UserParam type="float" name="masstrace_intensity_1" value="63508.9141235352"/>
 			<UserParam type="floatList" name="isotope_distances" value="[1.00004926751009]"/>
 			<UserParam type="int" name="legal_isotope_pattern" value="1"/>
 		</feature>
-		<feature id="f_6468485500888308239">
+		<feature id="f_5929008091435456265">
 			<position dim="0">260</position>
 			<position dim="1">193.054185085241</position>
-			<intensity>2.50257e+006</intensity>
+			<intensity>2.50257e+06</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
-			<overallquality>0.0014886</overallquality>
+			<overallquality>0.00149031</overallquality>
 			<charge>1</charge>
 			<convexhull nr="0">
 				<pt x="248.75" y="193.053917746197" />
@@ -10805,7 +10494,7 @@
 				<pt x="253.25" y="194.054228495137" />
 				<pt x="253.5" y="194.05423730768" />
 				<pt x="253.75" y="194.054233160601" />
-				<pt x="254" y="194.054238862835" />
+				<pt x="254" y="194.054238862834" />
 				<pt x="254.25" y="194.054233678986" />
 				<pt x="254.5" y="194.054252340842" />
 				<pt x="254.75" y="194.054254414381" />
@@ -10905,7 +10594,7 @@
 				<pt x="254.75" y="194.054254414381" />
 				<pt x="254.5" y="194.054252340842" />
 				<pt x="254.25" y="194.054233678986" />
-				<pt x="254" y="194.054238862835" />
+				<pt x="254" y="194.054238862834" />
 				<pt x="253.75" y="194.054233160601" />
 				<pt x="253.5" y="194.05423730768" />
 				<pt x="253.25" y="194.054228495137" />
@@ -10917,20 +10606,20 @@
 				<pt x="251.75" y="194.054191171424" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T38_T88"/>
-			<UserParam type="float" name="FWHM" value="8.5"/>
+			<UserParam type="float" name="FWHM" value="8.42146015167236"/>
 			<UserParam type="int" name="num_of_masstraces" value="2"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="2502574.03710938"/>
 			<UserParam type="float" name="masstrace_intensity_1" value="276648.188720703"/>
 			<UserParam type="floatList" name="isotope_distances" value="[1.00006092077771]"/>
 			<UserParam type="int" name="legal_isotope_pattern" value="1"/>
 		</feature>
-		<feature id="f_12262480791455599226">
+		<feature id="f_10682168268104542135">
 			<position dim="0">289.25</position>
 			<position dim="1">193.054187018967</position>
-			<intensity>5.67922e+008</intensity>
+			<intensity>5.67922e+08</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
-			<overallquality>0.341519</overallquality>
+			<overallquality>0.34191</overallquality>
 			<charge>1</charge>
 			<convexhull nr="0">
 				<pt x="273" y="193.053912562348" />
@@ -11120,7 +10809,7 @@
 				<pt x="275.5" y="194.054227976752" />
 				<pt x="275.75" y="194.054233160601" />
 				<pt x="276" y="194.054239381219" />
-				<pt x="276.25" y="194.054238862835" />
+				<pt x="276.25" y="194.054238862834" />
 				<pt x="276.5" y="194.054254932766" />
 				<pt x="276.75" y="194.054254932766" />
 				<pt x="277" y="194.054255969536" />
@@ -11264,7 +10953,7 @@
 				<pt x="277" y="194.054255969536" />
 				<pt x="276.75" y="194.054254932766" />
 				<pt x="276.5" y="194.054254932766" />
-				<pt x="276.25" y="194.054238862835" />
+				<pt x="276.25" y="194.054238862834" />
 				<pt x="276" y="194.054239381219" />
 				<pt x="275.75" y="194.054233160601" />
 				<pt x="275.5" y="194.054227976752" />
@@ -11427,7 +11116,7 @@
 				<pt x="277.25" y="195.056010420416" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T1.1_T7_T21"/>
-			<UserParam type="float" name="FWHM" value="9"/>
+			<UserParam type="float" name="FWHM" value="8.60585880279541"/>
 			<UserParam type="int" name="num_of_masstraces" value="3"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="567922272.5"/>
 			<UserParam type="float" name="masstrace_intensity_1" value="62777240.5625"/>
@@ -11435,13 +11124,13 @@
 			<UserParam type="floatList" name="isotope_distances" value="[1.00006200477958, 1.00095488451274]"/>
 			<UserParam type="int" name="legal_isotope_pattern" value="1"/>
 		</feature>
-		<feature id="f_1689548244641891662">
+		<feature id="f_11866788156008836843">
 			<position dim="0">257</position>
 			<position dim="1">193.087947435366</position>
 			<intensity>158515</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
-			<overallquality>9.14235e-005</overallquality>
+			<overallquality>9.15282e-05</overallquality>
 			<charge>0</charge>
 			<convexhull nr="0">
 				<pt x="249.75" y="193.087842927448" />
@@ -11556,19 +11245,19 @@
 				<pt x="250" y="193.088187653405" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T108"/>
-			<UserParam type="float" name="FWHM" value="8.25"/>
+			<UserParam type="float" name="FWHM" value="7.99451160430908"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="158514.781738281"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
 			<UserParam type="int" name="legal_isotope_pattern" value="-1"/>
 		</feature>
-		<feature id="f_6385792639293407798">
+		<feature id="f_4052794166287809012">
 			<position dim="0">284.75</position>
 			<position dim="1">193.088121135083</position>
-			<intensity>1.59814e+008</intensity>
+			<intensity>1.59814e+08</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
-			<overallquality>0.0963761</overallquality>
+			<overallquality>0.0964865</overallquality>
 			<charge>1</charge>
 			<convexhull nr="0">
 				<pt x="274.75" y="193.088689449986" />
@@ -11899,21 +11588,21 @@
 				<pt x="277.75" y="195.089118108683" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T2.1_T11_T36"/>
-			<UserParam type="float" name="FWHM" value="6"/>
+			<UserParam type="float" name="FWHM" value="5.68267297744751"/>
 			<UserParam type="int" name="num_of_masstraces" value="3"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="159814242.75"/>
 			<UserParam type="float" name="masstrace_intensity_1" value="19399929.671875"/>
-			<UserParam type="float" name="masstrace_intensity_2" value="2059420.69726563"/>
+			<UserParam type="float" name="masstrace_intensity_2" value="2059420.69726562"/>
 			<UserParam type="floatList" name="isotope_distances" value="[1.00006572151474, 1.00094375138434]"/>
 			<UserParam type="int" name="legal_isotope_pattern" value="1"/>
 		</feature>
-		<feature id="f_16708561783842155992">
+		<feature id="f_16548417231024316199">
 			<position dim="0">257</position>
 			<position dim="1">194.088052927986</position>
 			<intensity>13755</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
-			<overallquality>7.93321e-006</overallquality>
+			<overallquality>7.9423e-06</overallquality>
 			<charge>0</charge>
 			<convexhull nr="0">
 				<pt x="255" y="194.088422199764" />
@@ -11960,19 +11649,19 @@
 				<pt x="255.25" y="194.088436196156" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T166"/>
-			<UserParam type="float" name="FWHM" value="5.25"/>
+			<UserParam type="float" name="FWHM" value="8.06485462188721"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="13755.0170898438"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
 			<UserParam type="int" name="legal_isotope_pattern" value="-1"/>
 		</feature>
-		<feature id="f_1041328343054656013">
+		<feature id="f_15200756151288519760">
 			<position dim="0">264.25</position>
 			<position dim="1">195.067059921809</position>
-			<intensity>9.28128e+006</intensity>
+			<intensity>9.28128e+06</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
-			<overallquality>0.00558561</overallquality>
+			<overallquality>0.00559201</overallquality>
 			<charge>1</charge>
 			<convexhull nr="0">
 				<pt x="252" y="195.066175429877" />
@@ -12275,7 +11964,7 @@
 				<pt x="254.75" y="196.067085950143" />
 			</convexhull>
 			<convexhull nr="2">
-				<pt x="257.25" y="197.068119846015" />
+				<pt x="257.25" y="197.068119846014" />
 				<pt x="257.5" y="197.068111033471" />
 				<pt x="257.75" y="197.068109996701" />
 				<pt x="258" y="197.068102739313" />
@@ -12371,7 +12060,7 @@
 				<pt x="257.5" y="197.068111033471" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T17_T55_T117"/>
-			<UserParam type="float" name="FWHM" value="8.25"/>
+			<UserParam type="float" name="FWHM" value="8.01616382598877"/>
 			<UserParam type="int" name="num_of_masstraces" value="3"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="9281279.890625"/>
 			<UserParam type="float" name="masstrace_intensity_1" value="1027127.61035156"/>
@@ -12379,13 +12068,13 @@
 			<UserParam type="floatList" name="isotope_distances" value="[1.00007736916038, 1.0009552381386]"/>
 			<UserParam type="int" name="legal_isotope_pattern" value="1"/>
 		</feature>
-		<feature id="f_3095780957324093544">
+		<feature id="f_16515260749601495495">
 			<position dim="0">232.5</position>
 			<position dim="1">197.084216141952</position>
 			<intensity>163312</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
-			<overallquality>9.71622e-005</overallquality>
+			<overallquality>9.72735e-05</overallquality>
 			<charge>1</charge>
 			<convexhull nr="0">
 				<pt x="230" y="197.08421777063" />
@@ -12548,20 +12237,20 @@
 				<pt x="230.25" y="198.084282286743" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T103_T164"/>
-			<UserParam type="float" name="FWHM" value="6.75"/>
+			<UserParam type="float" name="FWHM" value="8.14122581481934"/>
 			<UserParam type="int" name="num_of_masstraces" value="2"/>
-			<UserParam type="float" name="masstrace_intensity_0" value="163312.258789063"/>
+			<UserParam type="float" name="masstrace_intensity_0" value="163312.258789062"/>
 			<UserParam type="float" name="masstrace_intensity_1" value="18142.2137145996"/>
 			<UserParam type="floatList" name="isotope_distances" value="[1.00006200328698]"/>
 			<UserParam type="int" name="legal_isotope_pattern" value="1"/>
 		</feature>
-		<feature id="f_5127159779622715996">
+		<feature id="f_9976695787961576560">
 			<position dim="0">278.25</position>
 			<position dim="1">199.101345618327</position>
 			<intensity>37797</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
-			<overallquality>2.17994e-005</overallquality>
+			<overallquality>2.18244e-05</overallquality>
 			<charge>0</charge>
 			<convexhull nr="0">
 				<pt x="274" y="199.10108804313" />
@@ -12620,19 +12309,19 @@
 				<pt x="274.25" y="199.101079748972" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T145"/>
-			<UserParam type="float" name="FWHM" value="6.75"/>
+			<UserParam type="float" name="FWHM" value="11.6370010375977"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="37797.0207214355"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
 			<UserParam type="int" name="legal_isotope_pattern" value="-1"/>
 		</feature>
-		<feature id="f_14929859954397689983">
+		<feature id="f_14816286313012063164">
 			<position dim="0">242.75</position>
 			<position dim="1">201.0420616492</position>
 			<intensity>37844.5</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
-			<overallquality>2.18268e-005</overallquality>
+			<overallquality>2.18518e-05</overallquality>
 			<charge>0</charge>
 			<convexhull nr="0">
 				<pt x="233.25" y="201.041777507821" />
@@ -12649,7 +12338,7 @@
 				<pt x="236" y="201.042060545976" />
 				<pt x="236.25" y="201.042047067968" />
 				<pt x="236.5" y="201.042047067968" />
-				<pt x="236.75" y="201.042055880512" />
+				<pt x="236.75" y="201.042055880511" />
 				<pt x="237" y="201.042048623123" />
 				<pt x="237.25" y="201.042057954051" />
 				<pt x="237.5" y="201.042053806972" />
@@ -12662,7 +12351,7 @@
 				<pt x="239.25" y="201.042067284979" />
 				<pt x="239.5" y="201.04206210113" />
 				<pt x="239.75" y="201.04206521144" />
-				<pt x="240" y="201.042061064361" />
+				<pt x="240" y="201.04206106436" />
 				<pt x="240.25" y="201.042062619515" />
 				<pt x="240.5" y="201.042067284979" />
 				<pt x="240.75" y="201.042064693055" />
@@ -12724,7 +12413,7 @@
 				<pt x="240.75" y="201.042064693055" />
 				<pt x="240.5" y="201.042067284979" />
 				<pt x="240.25" y="201.042062619515" />
-				<pt x="240" y="201.042061064361" />
+				<pt x="240" y="201.04206106436" />
 				<pt x="239.75" y="201.04206521144" />
 				<pt x="239.5" y="201.04206210113" />
 				<pt x="239.25" y="201.042067284979" />
@@ -12737,7 +12426,7 @@
 				<pt x="237.5" y="201.042053806972" />
 				<pt x="237.25" y="201.042057954051" />
 				<pt x="237" y="201.042048623123" />
-				<pt x="236.75" y="201.042055880512" />
+				<pt x="236.75" y="201.042055880511" />
 				<pt x="236.5" y="201.042047067968" />
 				<pt x="236.25" y="201.042047067968" />
 				<pt x="236" y="201.042060545976" />
@@ -12753,19 +12442,19 @@
 				<pt x="233.5" y="201.041738628954" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T152"/>
-			<UserParam type="float" name="FWHM" value="9.5"/>
+			<UserParam type="float" name="FWHM" value="9.40550804138184"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="37844.4725952148"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
 			<UserParam type="int" name="legal_isotope_pattern" value="-1"/>
 		</feature>
-		<feature id="f_3234152552746739377">
+		<feature id="f_7713265789804861212">
 			<position dim="0">257</position>
 			<position dim="1">204.142080509223</position>
-			<intensity>1.36678e+007</intensity>
+			<intensity>1.36678e+07</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
-			<overallquality>0.00854499</overallquality>
+			<overallquality>0.00855478</overallquality>
 			<charge>1</charge>
 			<convexhull nr="0">
 				<pt x="240.5" y="204.141790733693" />
@@ -13314,7 +13003,7 @@
 				<pt x="249.75" y="207.143241365409" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T16_T50_T70_T135"/>
-			<UserParam type="float" name="FWHM" value="10.25"/>
+			<UserParam type="float" name="FWHM" value="10.0560522079468"/>
 			<UserParam type="int" name="num_of_masstraces" value="4"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="13667752.984375"/>
 			<UserParam type="float" name="masstrace_intensity_1" value="1675394.27929688"/>
@@ -13323,13 +13012,13 @@
 			<UserParam type="int" name="legal_isotope_pattern" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_3" value="80394.1800537109"/>
 		</feature>
-		<feature id="f_11615228266221962187">
+		<feature id="f_11070939211194956898">
 			<position dim="0">245.75</position>
 			<position dim="1">205.09756756394</position>
-			<intensity>3.91803e+007</intensity>
+			<intensity>3.91803e+07</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
-			<overallquality>0.023636</overallquality>
+			<overallquality>0.0236631</overallquality>
 			<charge>1</charge>
 			<convexhull nr="0">
 				<pt x="230" y="205.097569627988" />
@@ -13575,7 +13264,7 @@
 				<pt x="236.5" y="207.098585616774" />
 				<pt x="236.75" y="207.09858198808" />
 				<pt x="237" y="207.098587171929" />
-				<pt x="237.25" y="207.098583543235" />
+				<pt x="237.25" y="207.098583543234" />
 				<pt x="237.5" y="207.098580432925" />
 				<pt x="237.75" y="207.098584580004" />
 				<pt x="238" y="207.09858302485" />
@@ -13583,9 +13272,9 @@
 				<pt x="238.5" y="207.09858198808" />
 				<pt x="238.75" y="207.098584580004" />
 				<pt x="239" y="207.098585098389" />
-				<pt x="239.25" y="207.098583543235" />
+				<pt x="239.25" y="207.098583543234" />
 				<pt x="239.5" y="207.098582506465" />
-				<pt x="239.75" y="207.098583543235" />
+				<pt x="239.75" y="207.098583543234" />
 				<pt x="240" y="207.098581469695" />
 				<pt x="240.25" y="207.09858302485" />
 				<pt x="240.5" y="207.098584061619" />
@@ -13593,10 +13282,10 @@
 				<pt x="241" y="207.098585098389" />
 				<pt x="241.25" y="207.098584580004" />
 				<pt x="241.5" y="207.098584580004" />
-				<pt x="241.75" y="207.098583543235" />
+				<pt x="241.75" y="207.098583543234" />
 				<pt x="242" y="207.098582506465" />
 				<pt x="242.25" y="207.098585098389" />
-				<pt x="242.5" y="207.098583543235" />
+				<pt x="242.5" y="207.098583543234" />
 				<pt x="242.75" y="207.098582506465" />
 				<pt x="243" y="207.09858302485" />
 				<pt x="243.25" y="207.098582506465" />
@@ -13604,33 +13293,33 @@
 				<pt x="243.75" y="207.09858302485" />
 				<pt x="244" y="207.098584580004" />
 				<pt x="244.25" y="207.098582506465" />
-				<pt x="244.5" y="207.098583543235" />
+				<pt x="244.5" y="207.098583543234" />
 				<pt x="244.75" y="207.098584580004" />
 				<pt x="245" y="207.098584061619" />
 				<pt x="246" y="207.098584061619" />
 				<pt x="246.25" y="207.09858302485" />
 				<pt x="246.5" y="207.098584061619" />
 				<pt x="246.75" y="207.098582506465" />
-				<pt x="247" y="207.098583543235" />
+				<pt x="247" y="207.098583543234" />
 				<pt x="247.25" y="207.09858302485" />
-				<pt x="247.5" y="207.098583543235" />
-				<pt x="247.75" y="207.098583543235" />
+				<pt x="247.5" y="207.098583543234" />
+				<pt x="247.75" y="207.098583543234" />
 				<pt x="248" y="207.09858302485" />
-				<pt x="248.25" y="207.098583543235" />
-				<pt x="248.5" y="207.098583543235" />
+				<pt x="248.25" y="207.098583543234" />
+				<pt x="248.5" y="207.098583543234" />
 				<pt x="248.75" y="207.09858302485" />
 				<pt x="249" y="207.098584580004" />
 				<pt x="249.25" y="207.09858302485" />
-				<pt x="249.5" y="207.098583543235" />
+				<pt x="249.5" y="207.098583543234" />
 				<pt x="249.75" y="207.098582506465" />
-				<pt x="250" y="207.098583543235" />
+				<pt x="250" y="207.098583543234" />
 				<pt x="250.25" y="207.098586135159" />
-				<pt x="250.5" y="207.098583543235" />
+				<pt x="250.5" y="207.098583543234" />
 				<pt x="250.75" y="207.098584061619" />
 				<pt x="251" y="207.098582506465" />
 				<pt x="251.25" y="207.09857887777" />
 				<pt x="251.5" y="207.098577841001" />
-				<pt x="251.75" y="207.098583543235" />
+				<pt x="251.75" y="207.098583543234" />
 				<pt x="252" y="207.098581469695" />
 				<pt x="252.25" y="207.098581469695" />
 				<pt x="252.5" y="207.098580432925" />
@@ -13660,33 +13349,33 @@
 				<pt x="252.5" y="207.098580432925" />
 				<pt x="252.25" y="207.098581469695" />
 				<pt x="252" y="207.098581469695" />
-				<pt x="251.75" y="207.098583543235" />
+				<pt x="251.75" y="207.098583543234" />
 				<pt x="251.5" y="207.098577841001" />
 				<pt x="251.25" y="207.09857887777" />
 				<pt x="251" y="207.098582506465" />
 				<pt x="250.75" y="207.098584061619" />
-				<pt x="250.5" y="207.098583543235" />
+				<pt x="250.5" y="207.098583543234" />
 				<pt x="250.25" y="207.098586135159" />
-				<pt x="250" y="207.098583543235" />
+				<pt x="250" y="207.098583543234" />
 				<pt x="249.75" y="207.098582506465" />
-				<pt x="249.5" y="207.098583543235" />
+				<pt x="249.5" y="207.098583543234" />
 				<pt x="249.25" y="207.09858302485" />
 				<pt x="249" y="207.098584580004" />
 				<pt x="248.75" y="207.09858302485" />
-				<pt x="248.5" y="207.098583543235" />
-				<pt x="248.25" y="207.098583543235" />
+				<pt x="248.5" y="207.098583543234" />
+				<pt x="248.25" y="207.098583543234" />
 				<pt x="248" y="207.09858302485" />
-				<pt x="247.75" y="207.098583543235" />
-				<pt x="247.5" y="207.098583543235" />
+				<pt x="247.75" y="207.098583543234" />
+				<pt x="247.5" y="207.098583543234" />
 				<pt x="247.25" y="207.09858302485" />
-				<pt x="247" y="207.098583543235" />
+				<pt x="247" y="207.098583543234" />
 				<pt x="246.75" y="207.098582506465" />
 				<pt x="246.5" y="207.098584061619" />
 				<pt x="246.25" y="207.09858302485" />
 				<pt x="246" y="207.098584061619" />
 				<pt x="245" y="207.098584061619" />
 				<pt x="244.75" y="207.098584580004" />
-				<pt x="244.5" y="207.098583543235" />
+				<pt x="244.5" y="207.098583543234" />
 				<pt x="244.25" y="207.098582506465" />
 				<pt x="244" y="207.098584580004" />
 				<pt x="243.75" y="207.09858302485" />
@@ -13694,10 +13383,10 @@
 				<pt x="243.25" y="207.098582506465" />
 				<pt x="243" y="207.09858302485" />
 				<pt x="242.75" y="207.098582506465" />
-				<pt x="242.5" y="207.098583543235" />
+				<pt x="242.5" y="207.098583543234" />
 				<pt x="242.25" y="207.098585098389" />
 				<pt x="242" y="207.098582506465" />
-				<pt x="241.75" y="207.098583543235" />
+				<pt x="241.75" y="207.098583543234" />
 				<pt x="241.5" y="207.098584580004" />
 				<pt x="241.25" y="207.098584580004" />
 				<pt x="241" y="207.098585098389" />
@@ -13705,9 +13394,9 @@
 				<pt x="240.5" y="207.098584061619" />
 				<pt x="240.25" y="207.09858302485" />
 				<pt x="240" y="207.098581469695" />
-				<pt x="239.75" y="207.098583543235" />
+				<pt x="239.75" y="207.098583543234" />
 				<pt x="239.5" y="207.098582506465" />
-				<pt x="239.25" y="207.098583543235" />
+				<pt x="239.25" y="207.098583543234" />
 				<pt x="239" y="207.098585098389" />
 				<pt x="238.75" y="207.098584580004" />
 				<pt x="238.5" y="207.09858198808" />
@@ -13715,7 +13404,7 @@
 				<pt x="238" y="207.09858302485" />
 				<pt x="237.75" y="207.098584580004" />
 				<pt x="237.5" y="207.098580432925" />
-				<pt x="237.25" y="207.098583543235" />
+				<pt x="237.25" y="207.098583543234" />
 				<pt x="237" y="207.098587171929" />
 				<pt x="236.75" y="207.09858198808" />
 				<pt x="236.5" y="207.098585616774" />
@@ -13734,7 +13423,7 @@
 				<pt x="233.25" y="207.098571101997" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T8_T28_T79"/>
-			<UserParam type="float" name="FWHM" value="9.5"/>
+			<UserParam type="float" name="FWHM" value="9.30761241912842"/>
 			<UserParam type="int" name="num_of_masstraces" value="3"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="39180292.84375"/>
 			<UserParam type="float" name="masstrace_intensity_1" value="5031695.3046875"/>
@@ -13742,13 +13431,13 @@
 			<UserParam type="floatList" name="isotope_distances" value="[1.0000604068334, 1.00095548421569]"/>
 			<UserParam type="int" name="legal_isotope_pattern" value="1"/>
 		</feature>
-		<feature id="f_2090649501315172700">
+		<feature id="f_2974601804439772355">
 			<position dim="0">318</position>
 			<position dim="1">207.063747496684</position>
-			<intensity>1.40379e+006</intensity>
+			<intensity>1.40379e+06</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
-			<overallquality>0.000847554</overallquality>
+			<overallquality>0.000848525</overallquality>
 			<charge>1</charge>
 			<convexhull nr="0">
 				<pt x="309.5" y="207.063472815723" />
@@ -13765,7 +13454,7 @@
 				<pt x="312.25" y="207.063747559718" />
 				<pt x="312.5" y="207.063748078103" />
 				<pt x="312.75" y="207.063748078103" />
-				<pt x="313" y="207.063747041334" />
+				<pt x="313" y="207.063747041333" />
 				<pt x="313.25" y="207.063747559718" />
 				<pt x="314" y="207.063747559718" />
 				<pt x="314.25" y="207.063748078103" />
@@ -13775,7 +13464,7 @@
 				<pt x="314.25" y="207.063748078103" />
 				<pt x="314" y="207.063747559718" />
 				<pt x="313.25" y="207.063747559718" />
-				<pt x="313" y="207.063747041334" />
+				<pt x="313" y="207.063747041333" />
 				<pt x="312.75" y="207.063748078103" />
 				<pt x="312.5" y="207.063748078103" />
 				<pt x="312.25" y="207.063747559718" />
@@ -13909,7 +13598,7 @@
 				<pt x="313.5" y="209.064815905379" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T40_T93_T155"/>
-			<UserParam type="float" name="FWHM" value="5.5"/>
+			<UserParam type="float" name="FWHM" value="7.31070566177368"/>
 			<UserParam type="int" name="num_of_masstraces" value="3"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="1403792.828125"/>
 			<UserParam type="float" name="masstrace_intensity_1" value="170670.994873047"/>
@@ -13917,13 +13606,13 @@
 			<UserParam type="floatList" name="isotope_distances" value="[1.00006125423377, 1.00095512503523]"/>
 			<UserParam type="int" name="legal_isotope_pattern" value="1"/>
 		</feature>
-		<feature id="f_2465523124087750518">
+		<feature id="f_5797569762986416799">
 			<position dim="0">284</position>
 			<position dim="1">207.063747597368</position>
-			<intensity>6.09073e+006</intensity>
+			<intensity>6.09073e+06</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
-			<overallquality>0.00363426</overallquality>
+			<overallquality>0.00363843</overallquality>
 			<charge>1</charge>
 			<convexhull nr="0">
 				<pt x="271" y="207.063477999572" />
@@ -13951,8 +13640,8 @@
 				<pt x="276.75" y="207.063748078103" />
 				<pt x="277" y="207.063747559718" />
 				<pt x="277.25" y="207.063747559718" />
-				<pt x="277.5" y="207.063747041334" />
-				<pt x="277.75" y="207.063747041334" />
+				<pt x="277.5" y="207.063747041333" />
+				<pt x="277.75" y="207.063747041333" />
 				<pt x="278" y="207.063747559718" />
 				<pt x="284.25" y="207.063747559718" />
 				<pt x="284.5" y="207.063748078103" />
@@ -14030,8 +13719,8 @@
 				<pt x="284.5" y="207.063748078103" />
 				<pt x="284.25" y="207.063747559718" />
 				<pt x="278" y="207.063747559718" />
-				<pt x="277.75" y="207.063747041334" />
-				<pt x="277.5" y="207.063747041334" />
+				<pt x="277.75" y="207.063747041333" />
+				<pt x="277.5" y="207.063747041333" />
 				<pt x="277.25" y="207.063747559718" />
 				<pt x="277" y="207.063747559718" />
 				<pt x="276.75" y="207.063748078103" />
@@ -14186,77 +13875,20 @@
 				<pt x="274" y="208.063762310881" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T25_T68"/>
-			<UserParam type="float" name="FWHM" value="9.75"/>
+			<UserParam type="float" name="FWHM" value="9.63646984100342"/>
 			<UserParam type="int" name="num_of_masstraces" value="2"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="6090731.5078125"/>
-			<UserParam type="float" name="masstrace_intensity_1" value="740593.465820313"/>
+			<UserParam type="float" name="masstrace_intensity_1" value="740593.465820312"/>
 			<UserParam type="floatList" name="isotope_distances" value="[1.00006233857243]"/>
 			<UserParam type="int" name="legal_isotope_pattern" value="1"/>
 		</feature>
-		<feature id="f_13070730053885120843">
-			<position dim="0">282.75</position>
-			<position dim="1">209.064743231252</position>
-			<intensity>34083.3</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>1.96575e-005</overallquality>
-			<charge>0</charge>
-			<convexhull nr="0">
-				<pt x="277.75" y="209.064396013612" />
-				<pt x="278" y="209.064778063282" />
-				<pt x="278.25" y="209.064781173591" />
-				<pt x="278.5" y="209.064770805893" />
-				<pt x="278.75" y="209.064780655206" />
-				<pt x="279" y="209.064778063282" />
-				<pt x="279.25" y="209.064781691976" />
-				<pt x="279.5" y="209.064773397818" />
-				<pt x="279.75" y="209.064774952972" />
-				<pt x="280" y="209.064778063282" />
-				<pt x="280.25" y="209.064778063282" />
-				<pt x="280.5" y="209.064773916202" />
-				<pt x="280.75" y="209.064774952972" />
-				<pt x="281" y="209.064780655206" />
-				<pt x="281.25" y="209.064783765515" />
-				<pt x="281.5" y="209.064780136821" />
-				<pt x="281.75" y="209.064782728746" />
-				<pt x="282" y="209.064780655206" />
-				<pt x="282.25" y="209.064774952972" />
-				<pt x="282.5" y="209.064778063282" />
-				<pt x="282.75" y="209.064394976842" />
-				<pt x="282.5" y="209.064778063282" />
-				<pt x="282.25" y="209.064774952972" />
-				<pt x="282" y="209.064780655206" />
-				<pt x="281.75" y="209.064782728746" />
-				<pt x="281.5" y="209.064780136821" />
-				<pt x="281.25" y="209.064783765515" />
-				<pt x="281" y="209.064780655206" />
-				<pt x="280.75" y="209.064774952972" />
-				<pt x="280.5" y="209.064773916202" />
-				<pt x="280.25" y="209.064778063282" />
-				<pt x="280" y="209.064778063282" />
-				<pt x="279.75" y="209.064774952972" />
-				<pt x="279.5" y="209.064773397818" />
-				<pt x="279.25" y="209.064781691976" />
-				<pt x="279" y="209.064778063282" />
-				<pt x="278.75" y="209.064780655206" />
-				<pt x="278.5" y="209.064770805893" />
-				<pt x="278.25" y="209.064781173591" />
-				<pt x="278" y="209.064778063282" />
-			</convexhull>
-			<UserParam type="string" name="label" value="T130"/>
-			<UserParam type="float" name="FWHM" value="4"/>
-			<UserParam type="int" name="num_of_masstraces" value="1"/>
-			<UserParam type="float" name="masstrace_intensity_0" value="34083.2650756836"/>
-			<UserParam type="floatList" name="isotope_distances" value="[]"/>
-			<UserParam type="int" name="legal_isotope_pattern" value="-1"/>
-		</feature>
-		<feature id="f_3234757344363654404">
+		<feature id="f_10392294260945888374">
 			<position dim="0">276</position>
 			<position dim="1">211.059730296663</position>
 			<intensity>143651</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
-			<overallquality>8.28509e-005</overallquality>
+			<overallquality>8.29459e-05</overallquality>
 			<charge>0</charge>
 			<convexhull nr="0">
 				<pt x="270" y="211.059535072812" />
@@ -14353,19 +13985,19 @@
 				<pt x="270.25" y="211.059530925733" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T118"/>
-			<UserParam type="float" name="FWHM" value="9.75"/>
+			<UserParam type="float" name="FWHM" value="9.51842880249023"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="143651.299072266"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
 			<UserParam type="int" name="legal_isotope_pattern" value="-1"/>
 		</feature>
-		<feature id="f_836311546943113514">
+		<feature id="f_11660156826096494560">
 			<position dim="0">303</position>
 			<position dim="1">211.059804837141</position>
 			<intensity>961224</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
-			<overallquality>0.000572282</overallquality>
+			<overallquality>0.000572938</overallquality>
 			<charge>1</charge>
 			<convexhull nr="0">
 				<pt x="293" y="211.059535072812" />
@@ -14601,7 +14233,7 @@
 				<pt x="303.25" y="212.059869149072" />
 				<pt x="303.5" y="212.059868112302" />
 				<pt x="303.75" y="212.059871740996" />
-				<pt x="304" y="212.059869667457" />
+				<pt x="304" y="212.059869667456" />
 				<pt x="304.25" y="212.059875888075" />
 				<pt x="304.5" y="212.059873814536" />
 				<pt x="304.75" y="212.059858781374" />
@@ -14695,7 +14327,7 @@
 				<pt x="304.75" y="212.059858781374" />
 				<pt x="304.5" y="212.059873814536" />
 				<pt x="304.25" y="212.059875888075" />
-				<pt x="304" y="212.059869667457" />
+				<pt x="304" y="212.059869667456" />
 				<pt x="303.75" y="212.059871740996" />
 				<pt x="303.5" y="212.059868112302" />
 				<pt x="303.25" y="212.059869149072" />
@@ -14728,20 +14360,20 @@
 				<pt x="296.5" y="212.059815237042" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T65.1_T131"/>
-			<UserParam type="float" name="FWHM" value="12"/>
+			<UserParam type="float" name="FWHM" value="11.8097219467163"/>
 			<UserParam type="int" name="num_of_masstraces" value="2"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="961224.182128906"/>
 			<UserParam type="float" name="masstrace_intensity_1" value="106941.140563965"/>
 			<UserParam type="floatList" name="isotope_distances" value="[1.00007382702225]"/>
 			<UserParam type="int" name="legal_isotope_pattern" value="1"/>
 		</feature>
-		<feature id="f_1656241528015988681">
+		<feature id="f_6029229265220702588">
 			<position dim="0">284.75</position>
 			<position dim="1">211.09802620505</position>
-			<intensity>1.80323e+007</intensity>
+			<intensity>1.80323e+07</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
-			<overallquality>0.0108729</overallquality>
+			<overallquality>0.0108854</overallquality>
 			<charge>1</charge>
 			<convexhull nr="0">
 				<pt x="271.25" y="211.097748333937" />
@@ -15078,7 +14710,7 @@
 				<pt x="277" y="213.099044768953" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T14_T42_T95"/>
-			<UserParam type="float" name="FWHM" value="9.5"/>
+			<UserParam type="float" name="FWHM" value="9.20785617828369"/>
 			<UserParam type="int" name="num_of_masstraces" value="3"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="18032343.421875"/>
 			<UserParam type="float" name="masstrace_intensity_1" value="2200543.74609375"/>
@@ -15086,13 +14718,13 @@
 			<UserParam type="floatList" name="isotope_distances" value="[1.00006024621123, 1.00096436358311]"/>
 			<UserParam type="int" name="legal_isotope_pattern" value="1"/>
 		</feature>
-		<feature id="f_14294997508743319537">
+		<feature id="f_7528114357710443332">
 			<position dim="0">303.25</position>
 			<position dim="1">213.060836190099</position>
 			<intensity>7060.51</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
-			<overallquality>4.07215e-006</overallquality>
+			<overallquality>4.07682e-06</overallquality>
 			<charge>0</charge>
 			<convexhull nr="0">
 				<pt x="298.5" y="213.060871423465" />
@@ -15137,19 +14769,19 @@
 				<pt x="298.75" y="213.060866758001" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T174"/>
-			<UserParam type="float" name="FWHM" value="5"/>
+			<UserParam type="float" name="FWHM" value="1120.197265625"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="7060.51300048828"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
 			<UserParam type="int" name="legal_isotope_pattern" value="-1"/>
 		</feature>
-		<feature id="f_8032178914115410322">
+		<feature id="f_16323779991507978406">
 			<position dim="0">296.25</position>
 			<position dim="1">213.153362771415</position>
 			<intensity>14887.3</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
-			<overallquality>8.58623e-006</overallquality>
+			<overallquality>8.59607e-06</overallquality>
 			<charge>0</charge>
 			<convexhull nr="0">
 				<pt x="296.25" y="213.153116979256" />
@@ -15204,19 +14836,19 @@
 				<pt x="296.5" y="213.153110240252" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T159"/>
-			<UserParam type="float" name="FWHM" value="4.75"/>
+			<UserParam type="float" name="FWHM" value="26.2552509307861"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="14887.2601776123"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
 			<UserParam type="int" name="legal_isotope_pattern" value="-1"/>
 		</feature>
-		<feature id="f_1269538463348692280">
+		<feature id="f_9890895322033681722">
 			<position dim="0">300.25</position>
 			<position dim="1">217.098484699323</position>
-			<intensity>3.92768e+006</intensity>
+			<intensity>3.92768e+06</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
-			<overallquality>0.00237586</overallquality>
+			<overallquality>0.0023573</overallquality>
 			<charge>1</charge>
 			<convexhull nr="0">
 				<pt x="290.5" y="217.09821215158" />
@@ -15458,78 +15090,21 @@
 				<pt x="293.75" y="218.098523937289" />
 				<pt x="293.5" y="218.098494389349" />
 			</convexhull>
-			<convexhull nr="2">
-				<pt x="296.25" y="219.099510660135" />
-				<pt x="296.5" y="219.099517917523" />
-				<pt x="296.75" y="219.099519991063" />
-				<pt x="297" y="219.099497700512" />
-				<pt x="297.25" y="219.099503402746" />
-				<pt x="297.5" y="219.099502365976" />
-				<pt x="297.75" y="219.099513252059" />
-				<pt x="298" y="219.099500810822" />
-				<pt x="298.25" y="219.099498218897" />
-				<pt x="298.5" y="219.099511696905" />
-				<pt x="298.75" y="219.099514288829" />
-				<pt x="299" y="219.099517917523" />
-				<pt x="299.25" y="219.099517917523" />
-				<pt x="299.5" y="219.099530358761" />
-				<pt x="299.75" y="219.099539171304" />
-				<pt x="300" y="219.099550575772" />
-				<pt x="300.25" y="219.099573384707" />
-				<pt x="300.5" y="219.099585825945" />
-				<pt x="300.75" y="219.099621594503" />
-				<pt x="301" y="219.099645958593" />
-				<pt x="301.25" y="219.099700389007" />
-				<pt x="301.5" y="219.099755856191" />
-				<pt x="301.75" y="219.099815470455" />
-				<pt x="302" y="219.099918629049" />
-				<pt x="302.25" y="219.100035265651" />
-				<pt x="302.5" y="219.100163825106" />
-				<pt x="302.75" y="219.100327116349" />
-				<pt x="303" y="219.100518400376" />
-				<pt x="302.75" y="219.100327116349" />
-				<pt x="302.5" y="219.100163825106" />
-				<pt x="302.25" y="219.100035265651" />
-				<pt x="302" y="219.099918629049" />
-				<pt x="301.75" y="219.099815470455" />
-				<pt x="301.5" y="219.099755856191" />
-				<pt x="301.25" y="219.099700389007" />
-				<pt x="301" y="219.099645958593" />
-				<pt x="300.75" y="219.099621594503" />
-				<pt x="300.5" y="219.099585825945" />
-				<pt x="300.25" y="219.099573384707" />
-				<pt x="300" y="219.099550575772" />
-				<pt x="299.75" y="219.099539171304" />
-				<pt x="299.5" y="219.099530358761" />
-				<pt x="299.25" y="219.099517917523" />
-				<pt x="299" y="219.099517917523" />
-				<pt x="298.75" y="219.099514288829" />
-				<pt x="298.5" y="219.099511696905" />
-				<pt x="298.25" y="219.099498218897" />
-				<pt x="298" y="219.099500810822" />
-				<pt x="297.75" y="219.099513252059" />
-				<pt x="297.5" y="219.099502365976" />
-				<pt x="297.25" y="219.099503402746" />
-				<pt x="297" y="219.099497700512" />
-				<pt x="296.75" y="219.099519991063" />
-				<pt x="296.5" y="219.099517917523" />
-			</convexhull>
-			<UserParam type="string" name="label" value="T32_T76_T140"/>
-			<UserParam type="float" name="FWHM" value="9.25"/>
-			<UserParam type="int" name="num_of_masstraces" value="3"/>
+			<UserParam type="string" name="label" value="T32_T76"/>
+			<UserParam type="float" name="FWHM" value="9.15952682495117"/>
+			<UserParam type="int" name="num_of_masstraces" value="2"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="3927684"/>
 			<UserParam type="float" name="masstrace_intensity_1" value="546900.376953125"/>
-			<UserParam type="float" name="masstrace_intensity_2" value="43179.6359863281"/>
-			<UserParam type="floatList" name="isotope_distances" value="[1.00006012027714, 1.00114859046269]"/>
+			<UserParam type="floatList" name="isotope_distances" value="[1.00006012027714]"/>
 			<UserParam type="int" name="legal_isotope_pattern" value="1"/>
 		</feature>
-		<feature id="f_7991454687784186734">
+		<feature id="f_4487837263731137067">
 			<position dim="0">308.5</position>
 			<position dim="1">219.060419740494</position>
-			<intensity>1.81545e+006</intensity>
+			<intensity>1.81545e+06</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
-			<overallquality>0.00108743</overallquality>
+			<overallquality>0.00108867</overallquality>
 			<charge>1</charge>
 			<convexhull nr="0">
 				<pt x="297" y="219.060487681799" />
@@ -15852,20 +15427,91 @@
 				<pt x="298.75" y="220.060460443785" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T44_T99"/>
-			<UserParam type="float" name="FWHM" value="9.5"/>
+			<UserParam type="float" name="FWHM" value="9.23695182800293"/>
 			<UserParam type="int" name="num_of_masstraces" value="2"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="1815452.06054688"/>
 			<UserParam type="float" name="masstrace_intensity_1" value="246557.291625977"/>
 			<UserParam type="floatList" name="isotope_distances" value="[1.00006222793706]"/>
 			<UserParam type="int" name="legal_isotope_pattern" value="1"/>
 		</feature>
-		<feature id="f_11416859672354594246">
-			<position dim="0">316</position>
-			<position dim="1">219.102876730444</position>
-			<intensity>5.08489e+006</intensity>
+		<feature id="f_11298420852353369661">
+			<position dim="0">301.75</position>
+			<position dim="1">219.099693410063</position>
+			<intensity>43179.6</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
-			<overallquality>0.00305366</overallquality>
+			<overallquality>2.49324e-05</overallquality>
+			<charge>0</charge>
+			<convexhull nr="0">
+				<pt x="296.25" y="219.099510660135" />
+				<pt x="296.5" y="219.099517917523" />
+				<pt x="296.75" y="219.099519991063" />
+				<pt x="297" y="219.099497700512" />
+				<pt x="297.25" y="219.099503402746" />
+				<pt x="297.5" y="219.099502365976" />
+				<pt x="297.75" y="219.099513252059" />
+				<pt x="298" y="219.099500810822" />
+				<pt x="298.25" y="219.099498218897" />
+				<pt x="298.5" y="219.099511696905" />
+				<pt x="298.75" y="219.099514288829" />
+				<pt x="299" y="219.099517917523" />
+				<pt x="299.25" y="219.099517917523" />
+				<pt x="299.5" y="219.099530358761" />
+				<pt x="299.75" y="219.099539171304" />
+				<pt x="300" y="219.099550575772" />
+				<pt x="300.25" y="219.099573384707" />
+				<pt x="300.5" y="219.099585825945" />
+				<pt x="300.75" y="219.099621594503" />
+				<pt x="301" y="219.099645958593" />
+				<pt x="301.25" y="219.099700389007" />
+				<pt x="301.5" y="219.099755856191" />
+				<pt x="301.75" y="219.099815470455" />
+				<pt x="302" y="219.099918629049" />
+				<pt x="302.25" y="219.100035265651" />
+				<pt x="302.5" y="219.100163825106" />
+				<pt x="302.75" y="219.100327116349" />
+				<pt x="303" y="219.100518400376" />
+				<pt x="302.75" y="219.100327116349" />
+				<pt x="302.5" y="219.100163825106" />
+				<pt x="302.25" y="219.100035265651" />
+				<pt x="302" y="219.099918629049" />
+				<pt x="301.75" y="219.099815470455" />
+				<pt x="301.5" y="219.099755856191" />
+				<pt x="301.25" y="219.099700389007" />
+				<pt x="301" y="219.099645958593" />
+				<pt x="300.75" y="219.099621594503" />
+				<pt x="300.5" y="219.099585825945" />
+				<pt x="300.25" y="219.099573384707" />
+				<pt x="300" y="219.099550575772" />
+				<pt x="299.75" y="219.099539171304" />
+				<pt x="299.5" y="219.099530358761" />
+				<pt x="299.25" y="219.099517917523" />
+				<pt x="299" y="219.099517917523" />
+				<pt x="298.75" y="219.099514288829" />
+				<pt x="298.5" y="219.099511696905" />
+				<pt x="298.25" y="219.099498218897" />
+				<pt x="298" y="219.099500810822" />
+				<pt x="297.75" y="219.099513252059" />
+				<pt x="297.5" y="219.099502365976" />
+				<pt x="297.25" y="219.099503402746" />
+				<pt x="297" y="219.099497700512" />
+				<pt x="296.75" y="219.099519991063" />
+				<pt x="296.5" y="219.099517917523" />
+			</convexhull>
+			<UserParam type="string" name="label" value="T140"/>
+			<UserParam type="float" name="FWHM" value="25.3070297241211"/>
+			<UserParam type="int" name="num_of_masstraces" value="1"/>
+			<UserParam type="float" name="masstrace_intensity_0" value="43179.6359863281"/>
+			<UserParam type="floatList" name="isotope_distances" value="[]"/>
+			<UserParam type="int" name="legal_isotope_pattern" value="-1"/>
+		</feature>
+		<feature id="f_6657284363215479467">
+			<position dim="0">316</position>
+			<position dim="1">219.102876730444</position>
+			<intensity>5.08489e+06</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0.00305715</overallquality>
 			<charge>1</charge>
 			<convexhull nr="0">
 				<pt x="303.25" y="219.100735085263" />
@@ -15969,11 +15615,11 @@
 				<pt x="309.75" y="220.102953490627" />
 				<pt x="310" y="220.102948825163" />
 				<pt x="310.25" y="220.102942604544" />
-				<pt x="310.5" y="220.102944159699" />
-				<pt x="310.75" y="220.102944159699" />
+				<pt x="310.5" y="220.102944159698" />
+				<pt x="310.75" y="220.102944159698" />
 				<pt x="311" y="220.102943641314" />
-				<pt x="311.25" y="220.102944159699" />
-				<pt x="311.5" y="220.102944159699" />
+				<pt x="311.25" y="220.102944159698" />
+				<pt x="311.5" y="220.102944159698" />
 				<pt x="311.75" y="220.102945714853" />
 				<pt x="312" y="220.102944678083" />
 				<pt x="312.25" y="220.102945714853" />
@@ -16009,11 +15655,11 @@
 				<pt x="312.25" y="220.102945714853" />
 				<pt x="312" y="220.102944678083" />
 				<pt x="311.75" y="220.102945714853" />
-				<pt x="311.5" y="220.102944159699" />
-				<pt x="311.25" y="220.102944159699" />
+				<pt x="311.5" y="220.102944159698" />
+				<pt x="311.25" y="220.102944159698" />
 				<pt x="311" y="220.102943641314" />
-				<pt x="310.75" y="220.102944159699" />
-				<pt x="310.5" y="220.102944159699" />
+				<pt x="310.75" y="220.102944159698" />
+				<pt x="310.5" y="220.102944159698" />
 				<pt x="310.25" y="220.102942604544" />
 				<pt x="310" y="220.102948825163" />
 				<pt x="309.75" y="220.102953490627" />
@@ -16032,20 +15678,20 @@
 				<pt x="306.5" y="220.102897505058" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T27_T64"/>
-			<UserParam type="float" name="FWHM" value="8.25"/>
+			<UserParam type="float" name="FWHM" value="8.78665161132812"/>
 			<UserParam type="int" name="num_of_masstraces" value="2"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="5084892.6640625"/>
 			<UserParam type="float" name="masstrace_intensity_1" value="728510.267089844"/>
 			<UserParam type="floatList" name="isotope_distances" value="[1.00006813695992]"/>
 			<UserParam type="int" name="legal_isotope_pattern" value="1"/>
 		</feature>
-		<feature id="f_15657216322412451945">
+		<feature id="f_14383320735032295802">
 			<position dim="0">308.5</position>
 			<position dim="1">221.077530127951</position>
-			<intensity>7.50433e+006</intensity>
+			<intensity>7.50433e+06</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
-			<overallquality>0.00471989</overallquality>
+			<overallquality>0.0047253</overallquality>
 			<charge>1</charge>
 			<convexhull nr="0">
 				<pt x="295.25" y="221.07760885259" />
@@ -16732,7 +16378,7 @@
 				<pt x="299.5" y="224.078462823288" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T23_T62_T83_T149"/>
-			<UserParam type="float" name="FWHM" value="10.5"/>
+			<UserParam type="float" name="FWHM" value="10.1976861953735"/>
 			<UserParam type="int" name="num_of_masstraces" value="4"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="7504330.42578125"/>
 			<UserParam type="float" name="masstrace_intensity_1" value="1020583.87988281"/>
@@ -16741,14 +16387,14 @@
 			<UserParam type="int" name="legal_isotope_pattern" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_3" value="49486.5360412598"/>
 		</feature>
-		<feature id="f_6776505626977817358">
+		<feature id="f_6820508849251108796">
 			<position dim="0">318</position>
 			<position dim="1">225.077863276215</position>
-			<intensity>7.86438e+006</intensity>
+			<intensity>7.86438e+06</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
-			<overallquality>0.00476173</overallquality>
-			<charge>1</charge>
+			<overallquality>0.00454098</overallquality>
+			<charge>0</charge>
 			<convexhull nr="0">
 				<pt x="301" y="225.077856549344" />
 				<pt x="301.25" y="225.077866917042" />
@@ -16813,253 +16459,20 @@
 				<pt x="301.5" y="225.077846181646" />
 				<pt x="301.25" y="225.077866917042" />
 			</convexhull>
-			<convexhull nr="1">
-				<pt x="305" y="226.078245574403" />
-				<pt x="305.25" y="226.078246611172" />
-				<pt x="305.5" y="226.077873374046" />
-				<pt x="305.75" y="226.077882186589" />
-				<pt x="306" y="226.077871300506" />
-				<pt x="306.25" y="226.077872855661" />
-				<pt x="306.5" y="226.077900330061" />
-				<pt x="306.75" y="226.077895664597" />
-				<pt x="307" y="226.077908105834" />
-				<pt x="307.25" y="226.07790447714" />
-				<pt x="307.5" y="226.077909660989" />
-				<pt x="307.75" y="226.077908105834" />
-				<pt x="308" y="226.077912252913" />
-				<pt x="308.25" y="226.077914844838" />
-				<pt x="308.5" y="226.077912252913" />
-				<pt x="308.75" y="226.07792884123" />
-				<pt x="309" y="226.077931951539" />
-				<pt x="309.25" y="226.077930396385" />
-				<pt x="309.5" y="226.077929359615" />
-				<pt x="309.75" y="226.077929359615" />
-				<pt x="310" y="226.077926249306" />
-				<pt x="310.25" y="226.077925212536" />
-				<pt x="310.5" y="226.077927286075" />
-				<pt x="310.75" y="226.077922102226" />
-				<pt x="311" y="226.077922620611" />
-				<pt x="311.25" y="226.077923138996" />
-				<pt x="311.5" y="226.077922620611" />
-				<pt x="311.75" y="226.077924175766" />
-				<pt x="312" y="226.077922620611" />
-				<pt x="312.25" y="226.077923138996" />
-				<pt x="312.5" y="226.077924694151" />
-				<pt x="312.75" y="226.077923657381" />
-				<pt x="313" y="226.077924175766" />
-				<pt x="313.25" y="226.077924175766" />
-				<pt x="313.5" y="226.077923657381" />
-				<pt x="314.25" y="226.077923657381" />
-				<pt x="314.5" y="226.077924175766" />
-				<pt x="314.75" y="226.077923657381" />
-				<pt x="315" y="226.077923657381" />
-				<pt x="315.25" y="226.077924175766" />
-				<pt x="315.5" y="226.077923657381" />
-				<pt x="316.75" y="226.077923657381" />
-				<pt x="317" y="226.077924175766" />
-				<pt x="317.25" y="226.077923657381" />
-				<pt x="319.25" y="226.077923657381" />
-				<pt x="319.5" y="226.077924175766" />
-				<pt x="319.75" y="226.077923657381" />
-				<pt x="319.5" y="226.077924175766" />
-				<pt x="319.25" y="226.077923657381" />
-				<pt x="317.25" y="226.077923657381" />
-				<pt x="317" y="226.077924175766" />
-				<pt x="316.75" y="226.077923657381" />
-				<pt x="315.5" y="226.077923657381" />
-				<pt x="315.25" y="226.077924175766" />
-				<pt x="315" y="226.077923657381" />
-				<pt x="314.75" y="226.077923657381" />
-				<pt x="314.5" y="226.077924175766" />
-				<pt x="314.25" y="226.077923657381" />
-				<pt x="313.5" y="226.077923657381" />
-				<pt x="313.25" y="226.077924175766" />
-				<pt x="313" y="226.077924175766" />
-				<pt x="312.75" y="226.077923657381" />
-				<pt x="312.5" y="226.077924694151" />
-				<pt x="312.25" y="226.077923138996" />
-				<pt x="312" y="226.077922620611" />
-				<pt x="311.75" y="226.077924175766" />
-				<pt x="311.5" y="226.077922620611" />
-				<pt x="311.25" y="226.077923138996" />
-				<pt x="311" y="226.077922620611" />
-				<pt x="310.75" y="226.077922102226" />
-				<pt x="310.5" y="226.077927286075" />
-				<pt x="310.25" y="226.077925212536" />
-				<pt x="310" y="226.077926249306" />
-				<pt x="309.75" y="226.077929359615" />
-				<pt x="309.5" y="226.077929359615" />
-				<pt x="309.25" y="226.077930396385" />
-				<pt x="309" y="226.077931951539" />
-				<pt x="308.75" y="226.07792884123" />
-				<pt x="308.5" y="226.077912252913" />
-				<pt x="308.25" y="226.077914844838" />
-				<pt x="308" y="226.077912252913" />
-				<pt x="307.75" y="226.077908105834" />
-				<pt x="307.5" y="226.077909660989" />
-				<pt x="307.25" y="226.07790447714" />
-				<pt x="307" y="226.077908105834" />
-				<pt x="306.75" y="226.077895664597" />
-				<pt x="306.5" y="226.077900330061" />
-				<pt x="306.25" y="226.077872855661" />
-				<pt x="306" y="226.077871300506" />
-				<pt x="305.75" y="226.077882186589" />
-				<pt x="305.5" y="226.077873374046" />
-				<pt x="305.25" y="226.078246611172" />
-			</convexhull>
-			<convexhull nr="2">
-				<pt x="309.75" y="227.078879277133" />
-				<pt x="310" y="227.078899494144" />
-				<pt x="310.25" y="227.078890681601" />
-				<pt x="310.5" y="227.07889690222" />
-				<pt x="310.75" y="227.078880832288" />
-				<pt x="311" y="227.078888089677" />
-				<pt x="311.25" y="227.078876166824" />
-				<pt x="311.5" y="227.078880313903" />
-				<pt x="311.75" y="227.078878240364" />
-				<pt x="312" y="227.078878758748" />
-				<pt x="312.25" y="227.078881350673" />
-				<pt x="312.5" y="227.078872019745" />
-				<pt x="312.75" y="227.078874611669" />
-				<pt x="313" y="227.078876685209" />
-				<pt x="313.25" y="227.078879277133" />
-				<pt x="313.5" y="227.078883942597" />
-				<pt x="313.75" y="227.078880832288" />
-				<pt x="314" y="227.078880832288" />
-				<pt x="314.25" y="227.078882905828" />
-				<pt x="314.5" y="227.078880832288" />
-				<pt x="314.75" y="227.078878758748" />
-				<pt x="315" y="227.078879277133" />
-				<pt x="315.25" y="227.078878758748" />
-				<pt x="315.5" y="227.078880832288" />
-				<pt x="315.75" y="227.078879277133" />
-				<pt x="316" y="227.078878240364" />
-				<pt x="316.25" y="227.078880832288" />
-				<pt x="316.5" y="227.078878758748" />
-				<pt x="316.75" y="227.078877721979" />
-				<pt x="317" y="227.078880313903" />
-				<pt x="317.25" y="227.078879795518" />
-				<pt x="317.5" y="227.078878240364" />
-				<pt x="317.75" y="227.078879277133" />
-				<pt x="318" y="227.078879277133" />
-				<pt x="318.25" y="227.078877721979" />
-				<pt x="318.5" y="227.078878240364" />
-				<pt x="318.75" y="227.078876685209" />
-				<pt x="319" y="227.078879277133" />
-				<pt x="319.25" y="227.078877203594" />
-				<pt x="319.5" y="227.078880313903" />
-				<pt x="319.75" y="227.078879795518" />
-				<pt x="319.5" y="227.078880313903" />
-				<pt x="319.25" y="227.078877203594" />
-				<pt x="319" y="227.078879277133" />
-				<pt x="318.75" y="227.078876685209" />
-				<pt x="318.5" y="227.078878240364" />
-				<pt x="318.25" y="227.078877721979" />
-				<pt x="318" y="227.078879277133" />
-				<pt x="317.75" y="227.078879277133" />
-				<pt x="317.5" y="227.078878240364" />
-				<pt x="317.25" y="227.078879795518" />
-				<pt x="317" y="227.078880313903" />
-				<pt x="316.75" y="227.078877721979" />
-				<pt x="316.5" y="227.078878758748" />
-				<pt x="316.25" y="227.078880832288" />
-				<pt x="316" y="227.078878240364" />
-				<pt x="315.75" y="227.078879277133" />
-				<pt x="315.5" y="227.078880832288" />
-				<pt x="315.25" y="227.078878758748" />
-				<pt x="315" y="227.078879277133" />
-				<pt x="314.75" y="227.078878758748" />
-				<pt x="314.5" y="227.078880832288" />
-				<pt x="314.25" y="227.078882905828" />
-				<pt x="314" y="227.078880832288" />
-				<pt x="313.75" y="227.078880832288" />
-				<pt x="313.5" y="227.078883942597" />
-				<pt x="313.25" y="227.078879277133" />
-				<pt x="313" y="227.078876685209" />
-				<pt x="312.75" y="227.078874611669" />
-				<pt x="312.5" y="227.078872019745" />
-				<pt x="312.25" y="227.078881350673" />
-				<pt x="312" y="227.078878758748" />
-				<pt x="311.75" y="227.078878240364" />
-				<pt x="311.5" y="227.078880313903" />
-				<pt x="311.25" y="227.078876166824" />
-				<pt x="311" y="227.078888089677" />
-				<pt x="310.75" y="227.078880832288" />
-				<pt x="310.5" y="227.07889690222" />
-				<pt x="310.25" y="227.078890681601" />
-				<pt x="310" y="227.078899494144" />
-			</convexhull>
-			<convexhull nr="3">
-				<pt x="313.25" y="228.0790277716" />
-				<pt x="313.5" y="228.079023624521" />
-				<pt x="313.75" y="228.07889973053" />
-				<pt x="314" y="228.07889973053" />
-				<pt x="314.25" y="228.078909061458" />
-				<pt x="314.5" y="228.078897138606" />
-				<pt x="314.75" y="228.078906987919" />
-				<pt x="315" y="228.078916837232" />
-				<pt x="315.25" y="228.078897138606" />
-				<pt x="315.5" y="228.078909579843" />
-				<pt x="315.75" y="228.078916837232" />
-				<pt x="316" y="228.078913208537" />
-				<pt x="316.25" y="228.078913726922" />
-				<pt x="316.5" y="228.078908024688" />
-				<pt x="316.75" y="228.078914245307" />
-				<pt x="317" y="228.078898175375" />
-				<pt x="317.25" y="228.078890399602" />
-				<pt x="317.5" y="228.078909061458" />
-				<pt x="317.75" y="228.078910616613" />
-				<pt x="318" y="228.078906469534" />
-				<pt x="318.25" y="228.078907506303" />
-				<pt x="318.5" y="228.078911653383" />
-				<pt x="318.75" y="228.078923576235" />
-				<pt x="319" y="228.078918392386" />
-				<pt x="319.25" y="228.07892409462" />
-				<pt x="319.5" y="228.078919947541" />
-				<pt x="319.75" y="228.078917874001" />
-				<pt x="319.5" y="228.078919947541" />
-				<pt x="319.25" y="228.07892409462" />
-				<pt x="319" y="228.078918392386" />
-				<pt x="318.75" y="228.078923576235" />
-				<pt x="318.5" y="228.078911653383" />
-				<pt x="318.25" y="228.078907506303" />
-				<pt x="318" y="228.078906469534" />
-				<pt x="317.75" y="228.078910616613" />
-				<pt x="317.5" y="228.078909061458" />
-				<pt x="317.25" y="228.078890399602" />
-				<pt x="317" y="228.078898175375" />
-				<pt x="316.75" y="228.078914245307" />
-				<pt x="316.5" y="228.078908024688" />
-				<pt x="316.25" y="228.078913726922" />
-				<pt x="316" y="228.078913208537" />
-				<pt x="315.75" y="228.078916837232" />
-				<pt x="315.5" y="228.078909579843" />
-				<pt x="315.25" y="228.078897138606" />
-				<pt x="315" y="228.078916837232" />
-				<pt x="314.75" y="228.078906987919" />
-				<pt x="314.5" y="228.078897138606" />
-				<pt x="314.25" y="228.078909061458" />
-				<pt x="314" y="228.07889973053" />
-				<pt x="313.75" y="228.07889973053" />
-				<pt x="313.5" y="228.079023624521" />
-			</convexhull>
-			<UserParam type="string" name="label" value="T19.2_T54_T111_T172"/>
-			<UserParam type="float" name="FWHM" value="7.25"/>
-			<UserParam type="int" name="num_of_masstraces" value="4"/>
+			<UserParam type="string" name="label" value="T19.2"/>
+			<UserParam type="float" name="FWHM" value="12.8925151824951"/>
+			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="7864383.5390625"/>
-			<UserParam type="float" name="masstrace_intensity_1" value="960907.399414063"/>
-			<UserParam type="float" name="masstrace_intensity_2" value="134373.188110352"/>
-			<UserParam type="floatList" name="isotope_distances" value="[1.00006052561662, 1.00095581293917, 1.00003621218863]"/>
-			<UserParam type="int" name="legal_isotope_pattern" value="1"/>
-			<UserParam type="float" name="masstrace_intensity_3" value="10909.5789642334"/>
+			<UserParam type="floatList" name="isotope_distances" value="[]"/>
+			<UserParam type="int" name="legal_isotope_pattern" value="-1"/>
 		</feature>
-		<feature id="f_2352700004324398218">
+		<feature id="f_11047192120259688734">
 			<position dim="0">284</position>
 			<position dim="1">225.077863349404</position>
-			<intensity>9.89351e+006</intensity>
+			<intensity>9.89351e+06</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
-			<overallquality>0.00590382</overallquality>
+			<overallquality>0.00591059</overallquality>
 			<charge>1</charge>
 			<convexhull nr="0">
 				<pt x="269.5" y="225.077594246585" />
@@ -17350,20 +16763,20 @@
 				<pt x="272.5" y="226.077877521125" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T19.1_T56"/>
-			<UserParam type="float" name="FWHM" value="10.75"/>
+			<UserParam type="float" name="FWHM" value="10.6584053039551"/>
 			<UserParam type="int" name="num_of_masstraces" value="2"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="9893513.046875"/>
 			<UserParam type="float" name="masstrace_intensity_1" value="1208806.6796875"/>
 			<UserParam type="floatList" name="isotope_distances" value="[1.0000610581279]"/>
 			<UserParam type="int" name="legal_isotope_pattern" value="1"/>
 		</feature>
-		<feature id="f_8549516402849884275">
+		<feature id="f_3377156640460825497">
 			<position dim="0">301</position>
 			<position dim="1">225.150042134232</position>
 			<intensity>24984.8</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
-			<overallquality>1.441e-005</overallquality>
+			<overallquality>1.44265e-05</overallquality>
 			<charge>0</charge>
 			<convexhull nr="0">
 				<pt x="297.25" y="225.149784527451" />
@@ -17428,19 +16841,128 @@
 				<pt x="297.5" y="225.150133918872" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T158"/>
-			<UserParam type="float" name="FWHM" value="7.5"/>
+			<UserParam type="float" name="FWHM" value="8.3212947845459"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="24984.8320922852"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
 			<UserParam type="int" name="legal_isotope_pattern" value="-1"/>
 		</feature>
-		<feature id="f_12511772691995177188">
+		<feature id="f_14437998707142743741">
+			<position dim="0">318</position>
+			<position dim="1">226.077923801832</position>
+			<intensity>960907</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0.000554839</overallquality>
+			<charge>0</charge>
+			<convexhull nr="0">
+				<pt x="305" y="226.078245574403" />
+				<pt x="305.25" y="226.078246611172" />
+				<pt x="305.5" y="226.077873374046" />
+				<pt x="305.75" y="226.077882186589" />
+				<pt x="306" y="226.077871300506" />
+				<pt x="306.25" y="226.077872855661" />
+				<pt x="306.5" y="226.077900330061" />
+				<pt x="306.75" y="226.077895664597" />
+				<pt x="307" y="226.077908105834" />
+				<pt x="307.25" y="226.07790447714" />
+				<pt x="307.5" y="226.077909660989" />
+				<pt x="307.75" y="226.077908105834" />
+				<pt x="308" y="226.077912252913" />
+				<pt x="308.25" y="226.077914844838" />
+				<pt x="308.5" y="226.077912252913" />
+				<pt x="308.75" y="226.07792884123" />
+				<pt x="309" y="226.077931951539" />
+				<pt x="309.25" y="226.077930396385" />
+				<pt x="309.5" y="226.077929359615" />
+				<pt x="309.75" y="226.077929359615" />
+				<pt x="310" y="226.077926249306" />
+				<pt x="310.25" y="226.077925212536" />
+				<pt x="310.5" y="226.077927286075" />
+				<pt x="310.75" y="226.077922102226" />
+				<pt x="311" y="226.077922620611" />
+				<pt x="311.25" y="226.077923138996" />
+				<pt x="311.5" y="226.077922620611" />
+				<pt x="311.75" y="226.077924175766" />
+				<pt x="312" y="226.077922620611" />
+				<pt x="312.25" y="226.077923138996" />
+				<pt x="312.5" y="226.077924694151" />
+				<pt x="312.75" y="226.077923657381" />
+				<pt x="313" y="226.077924175766" />
+				<pt x="313.25" y="226.077924175766" />
+				<pt x="313.5" y="226.077923657381" />
+				<pt x="314.25" y="226.077923657381" />
+				<pt x="314.5" y="226.077924175766" />
+				<pt x="314.75" y="226.077923657381" />
+				<pt x="315" y="226.077923657381" />
+				<pt x="315.25" y="226.077924175766" />
+				<pt x="315.5" y="226.077923657381" />
+				<pt x="316.75" y="226.077923657381" />
+				<pt x="317" y="226.077924175766" />
+				<pt x="317.25" y="226.077923657381" />
+				<pt x="319.25" y="226.077923657381" />
+				<pt x="319.5" y="226.077924175766" />
+				<pt x="319.75" y="226.077923657381" />
+				<pt x="319.5" y="226.077924175766" />
+				<pt x="319.25" y="226.077923657381" />
+				<pt x="317.25" y="226.077923657381" />
+				<pt x="317" y="226.077924175766" />
+				<pt x="316.75" y="226.077923657381" />
+				<pt x="315.5" y="226.077923657381" />
+				<pt x="315.25" y="226.077924175766" />
+				<pt x="315" y="226.077923657381" />
+				<pt x="314.75" y="226.077923657381" />
+				<pt x="314.5" y="226.077924175766" />
+				<pt x="314.25" y="226.077923657381" />
+				<pt x="313.5" y="226.077923657381" />
+				<pt x="313.25" y="226.077924175766" />
+				<pt x="313" y="226.077924175766" />
+				<pt x="312.75" y="226.077923657381" />
+				<pt x="312.5" y="226.077924694151" />
+				<pt x="312.25" y="226.077923138996" />
+				<pt x="312" y="226.077922620611" />
+				<pt x="311.75" y="226.077924175766" />
+				<pt x="311.5" y="226.077922620611" />
+				<pt x="311.25" y="226.077923138996" />
+				<pt x="311" y="226.077922620611" />
+				<pt x="310.75" y="226.077922102226" />
+				<pt x="310.5" y="226.077927286075" />
+				<pt x="310.25" y="226.077925212536" />
+				<pt x="310" y="226.077926249306" />
+				<pt x="309.75" y="226.077929359615" />
+				<pt x="309.5" y="226.077929359615" />
+				<pt x="309.25" y="226.077930396385" />
+				<pt x="309" y="226.077931951539" />
+				<pt x="308.75" y="226.07792884123" />
+				<pt x="308.5" y="226.077912252913" />
+				<pt x="308.25" y="226.077914844838" />
+				<pt x="308" y="226.077912252913" />
+				<pt x="307.75" y="226.077908105834" />
+				<pt x="307.5" y="226.077909660989" />
+				<pt x="307.25" y="226.07790447714" />
+				<pt x="307" y="226.077908105834" />
+				<pt x="306.75" y="226.077895664597" />
+				<pt x="306.5" y="226.077900330061" />
+				<pt x="306.25" y="226.077872855661" />
+				<pt x="306" y="226.077871300506" />
+				<pt x="305.75" y="226.077882186589" />
+				<pt x="305.5" y="226.077873374046" />
+				<pt x="305.25" y="226.078246611172" />
+			</convexhull>
+			<UserParam type="string" name="label" value="T54"/>
+			<UserParam type="float" name="FWHM" value="12.8921632766724"/>
+			<UserParam type="int" name="num_of_masstraces" value="1"/>
+			<UserParam type="float" name="masstrace_intensity_0" value="960907.399414062"/>
+			<UserParam type="floatList" name="isotope_distances" value="[]"/>
+			<UserParam type="int" name="legal_isotope_pattern" value="-1"/>
+		</feature>
+		<feature id="f_16758681949914325396">
 			<position dim="0">284</position>
 			<position dim="1">227.078875433763</position>
 			<intensity>110831</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
-			<overallquality>6.39216e-005</overallquality>
+			<overallquality>6.39948e-05</overallquality>
 			<charge>0</charge>
 			<convexhull nr="0">
 				<pt x="276" y="227.078888608062" />
@@ -17517,19 +17039,185 @@
 				<pt x="276.25" y="227.078890681601" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T116"/>
-			<UserParam type="float" name="FWHM" value="6.75"/>
+			<UserParam type="float" name="FWHM" value="15.6213998794556"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="110830.602905273"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
 			<UserParam type="int" name="legal_isotope_pattern" value="-1"/>
 		</feature>
-		<feature id="f_13896582253227932873">
+		<feature id="f_9138630121417105143">
+			<position dim="0">318</position>
+			<position dim="1">227.078879614771</position>
+			<intensity>134373</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>7.75886e-05</overallquality>
+			<charge>0</charge>
+			<convexhull nr="0">
+				<pt x="309.75" y="227.078879277133" />
+				<pt x="310" y="227.078899494144" />
+				<pt x="310.25" y="227.078890681601" />
+				<pt x="310.5" y="227.07889690222" />
+				<pt x="310.75" y="227.078880832288" />
+				<pt x="311" y="227.078888089677" />
+				<pt x="311.25" y="227.078876166824" />
+				<pt x="311.5" y="227.078880313903" />
+				<pt x="311.75" y="227.078878240364" />
+				<pt x="312" y="227.078878758748" />
+				<pt x="312.25" y="227.078881350673" />
+				<pt x="312.5" y="227.078872019745" />
+				<pt x="312.75" y="227.078874611669" />
+				<pt x="313" y="227.078876685209" />
+				<pt x="313.25" y="227.078879277133" />
+				<pt x="313.5" y="227.078883942597" />
+				<pt x="313.75" y="227.078880832288" />
+				<pt x="314" y="227.078880832288" />
+				<pt x="314.25" y="227.078882905828" />
+				<pt x="314.5" y="227.078880832288" />
+				<pt x="314.75" y="227.078878758748" />
+				<pt x="315" y="227.078879277133" />
+				<pt x="315.25" y="227.078878758748" />
+				<pt x="315.5" y="227.078880832288" />
+				<pt x="315.75" y="227.078879277133" />
+				<pt x="316" y="227.078878240364" />
+				<pt x="316.25" y="227.078880832288" />
+				<pt x="316.5" y="227.078878758748" />
+				<pt x="316.75" y="227.078877721979" />
+				<pt x="317" y="227.078880313903" />
+				<pt x="317.25" y="227.078879795518" />
+				<pt x="317.5" y="227.078878240364" />
+				<pt x="317.75" y="227.078879277133" />
+				<pt x="318" y="227.078879277133" />
+				<pt x="318.25" y="227.078877721979" />
+				<pt x="318.5" y="227.078878240364" />
+				<pt x="318.75" y="227.078876685209" />
+				<pt x="319" y="227.078879277133" />
+				<pt x="319.25" y="227.078877203594" />
+				<pt x="319.5" y="227.078880313903" />
+				<pt x="319.75" y="227.078879795518" />
+				<pt x="319.5" y="227.078880313903" />
+				<pt x="319.25" y="227.078877203594" />
+				<pt x="319" y="227.078879277133" />
+				<pt x="318.75" y="227.078876685209" />
+				<pt x="318.5" y="227.078878240364" />
+				<pt x="318.25" y="227.078877721979" />
+				<pt x="318" y="227.078879277133" />
+				<pt x="317.75" y="227.078879277133" />
+				<pt x="317.5" y="227.078878240364" />
+				<pt x="317.25" y="227.078879795518" />
+				<pt x="317" y="227.078880313903" />
+				<pt x="316.75" y="227.078877721979" />
+				<pt x="316.5" y="227.078878758748" />
+				<pt x="316.25" y="227.078880832288" />
+				<pt x="316" y="227.078878240364" />
+				<pt x="315.75" y="227.078879277133" />
+				<pt x="315.5" y="227.078880832288" />
+				<pt x="315.25" y="227.078878758748" />
+				<pt x="315" y="227.078879277133" />
+				<pt x="314.75" y="227.078878758748" />
+				<pt x="314.5" y="227.078880832288" />
+				<pt x="314.25" y="227.078882905828" />
+				<pt x="314" y="227.078880832288" />
+				<pt x="313.75" y="227.078880832288" />
+				<pt x="313.5" y="227.078883942597" />
+				<pt x="313.25" y="227.078879277133" />
+				<pt x="313" y="227.078876685209" />
+				<pt x="312.75" y="227.078874611669" />
+				<pt x="312.5" y="227.078872019745" />
+				<pt x="312.25" y="227.078881350673" />
+				<pt x="312" y="227.078878758748" />
+				<pt x="311.75" y="227.078878240364" />
+				<pt x="311.5" y="227.078880313903" />
+				<pt x="311.25" y="227.078876166824" />
+				<pt x="311" y="227.078888089677" />
+				<pt x="310.75" y="227.078880832288" />
+				<pt x="310.5" y="227.07889690222" />
+				<pt x="310.25" y="227.078890681601" />
+				<pt x="310" y="227.078899494144" />
+			</convexhull>
+			<UserParam type="string" name="label" value="T111"/>
+			<UserParam type="float" name="FWHM" value="12.891505241394"/>
+			<UserParam type="int" name="num_of_masstraces" value="1"/>
+			<UserParam type="float" name="masstrace_intensity_0" value="134373.188110352"/>
+			<UserParam type="floatList" name="isotope_distances" value="[]"/>
+			<UserParam type="int" name="legal_isotope_pattern" value="-1"/>
+		</feature>
+		<feature id="f_4751004140825127748">
+			<position dim="0">318</position>
+			<position dim="1">228.078915826959</position>
+			<intensity>10909.6</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>6.29931e-06</overallquality>
+			<charge>0</charge>
+			<convexhull nr="0">
+				<pt x="313.25" y="228.0790277716" />
+				<pt x="313.5" y="228.079023624521" />
+				<pt x="313.75" y="228.07889973053" />
+				<pt x="314" y="228.07889973053" />
+				<pt x="314.25" y="228.078909061458" />
+				<pt x="314.5" y="228.078897138605" />
+				<pt x="314.75" y="228.078906987919" />
+				<pt x="315" y="228.078916837232" />
+				<pt x="315.25" y="228.078897138605" />
+				<pt x="315.5" y="228.078909579843" />
+				<pt x="315.75" y="228.078916837232" />
+				<pt x="316" y="228.078913208537" />
+				<pt x="316.25" y="228.078913726922" />
+				<pt x="316.5" y="228.078908024688" />
+				<pt x="316.75" y="228.078914245307" />
+				<pt x="317" y="228.078898175375" />
+				<pt x="317.25" y="228.078890399602" />
+				<pt x="317.5" y="228.078909061458" />
+				<pt x="317.75" y="228.078910616613" />
+				<pt x="318" y="228.078906469534" />
+				<pt x="318.25" y="228.078907506303" />
+				<pt x="318.5" y="228.078911653383" />
+				<pt x="318.75" y="228.078923576235" />
+				<pt x="319" y="228.078918392386" />
+				<pt x="319.25" y="228.07892409462" />
+				<pt x="319.5" y="228.078919947541" />
+				<pt x="319.75" y="228.078917874001" />
+				<pt x="319.5" y="228.078919947541" />
+				<pt x="319.25" y="228.07892409462" />
+				<pt x="319" y="228.078918392386" />
+				<pt x="318.75" y="228.078923576235" />
+				<pt x="318.5" y="228.078911653383" />
+				<pt x="318.25" y="228.078907506303" />
+				<pt x="318" y="228.078906469534" />
+				<pt x="317.75" y="228.078910616613" />
+				<pt x="317.5" y="228.078909061458" />
+				<pt x="317.25" y="228.078890399602" />
+				<pt x="317" y="228.078898175375" />
+				<pt x="316.75" y="228.078914245307" />
+				<pt x="316.5" y="228.078908024688" />
+				<pt x="316.25" y="228.078913726922" />
+				<pt x="316" y="228.078913208537" />
+				<pt x="315.75" y="228.078916837232" />
+				<pt x="315.5" y="228.078909579843" />
+				<pt x="315.25" y="228.078897138605" />
+				<pt x="315" y="228.078916837232" />
+				<pt x="314.75" y="228.078906987919" />
+				<pt x="314.5" y="228.078897138605" />
+				<pt x="314.25" y="228.078909061458" />
+				<pt x="314" y="228.07889973053" />
+				<pt x="313.75" y="228.07889973053" />
+				<pt x="313.5" y="228.079023624521" />
+			</convexhull>
+			<UserParam type="string" name="label" value="T172"/>
+			<UserParam type="float" name="FWHM" value="12.7368021011353"/>
+			<UserParam type="int" name="num_of_masstraces" value="1"/>
+			<UserParam type="float" name="masstrace_intensity_0" value="10909.5789642334"/>
+			<UserParam type="floatList" name="isotope_distances" value="[]"/>
+			<UserParam type="int" name="legal_isotope_pattern" value="-1"/>
+		</feature>
+		<feature id="f_15018534122431767786">
 			<position dim="0">270</position>
 			<position dim="1">233.082587022595</position>
 			<intensity>28075.4</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
-			<overallquality>1.61925e-005</overallquality>
+			<overallquality>1.6211e-05</overallquality>
 			<charge>0</charge>
 			<convexhull nr="0">
 				<pt x="270" y="233.082447701929" />
@@ -17578,19 +17266,19 @@
 				<pt x="270.25" y="233.082456514472" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T148"/>
-			<UserParam type="float" name="FWHM" value="5.5"/>
+			<UserParam type="float" name="FWHM" value="46.3815536499023"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="28075.3842163086"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
 			<UserParam type="int" name="legal_isotope_pattern" value="-1"/>
 		</feature>
-		<feature id="f_101457032213127092">
+		<feature id="f_16698668501742344674">
 			<position dim="0">235</position>
 			<position dim="1">233.150667053605</position>
 			<intensity>661546</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
-			<overallquality>0.000398836</overallquality>
+			<overallquality>0.000399293</overallquality>
 			<charge>1</charge>
 			<convexhull nr="0">
 				<pt x="230" y="233.150667154477" />
@@ -17716,7 +17404,7 @@
 				<pt x="231.5" y="234.150725449972" />
 				<pt x="231.75" y="234.150724931587" />
 				<pt x="232" y="234.150725449972" />
-				<pt x="232.25" y="234.15073581767" />
+				<pt x="232.25" y="234.150735817669" />
 				<pt x="232.5" y="234.150727005126" />
 				<pt x="232.75" y="234.150728560281" />
 				<pt x="233" y="234.150729078666" />
@@ -17798,7 +17486,7 @@
 				<pt x="233" y="234.150729078666" />
 				<pt x="232.75" y="234.150728560281" />
 				<pt x="232.5" y="234.150727005126" />
-				<pt x="232.25" y="234.15073581767" />
+				<pt x="232.25" y="234.150735817669" />
 				<pt x="232" y="234.150725449972" />
 				<pt x="231.75" y="234.150724931587" />
 				<pt x="231.5" y="234.150725449972" />
@@ -17883,7 +17571,7 @@
 				<pt x="230.25" y="235.151613161302" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T72_T133_T176"/>
-			<UserParam type="float" name="FWHM" value="9.5"/>
+			<UserParam type="float" name="FWHM" value="9.26960372924805"/>
 			<UserParam type="int" name="num_of_masstraces" value="3"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="661545.7265625"/>
 			<UserParam type="float" name="masstrace_intensity_1" value="78934.5051269531"/>
@@ -17891,20 +17579,20 @@
 			<UserParam type="floatList" name="isotope_distances" value="[1.00006062634415, 1.00096324061951]"/>
 			<UserParam type="int" name="legal_isotope_pattern" value="1"/>
 		</feature>
-		<feature id="f_4040114418401744339">
+		<feature id="f_10616742974967927011">
 			<position dim="0">275</position>
 			<position dim="1">234.097646308602</position>
-			<intensity>1.75462e+006</intensity>
+			<intensity>1.75462e+06</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
-			<overallquality>0.00113323</overallquality>
+			<overallquality>0.00113452</overallquality>
 			<charge>1</charge>
 			<convexhull nr="0">
 				<pt x="264.5" y="234.097122896386" />
 				<pt x="264.75" y="234.097157628174" />
 				<pt x="265" y="234.097510129904" />
 				<pt x="265.25" y="234.097473324577" />
-				<pt x="265.5" y="234.097499762207" />
+				<pt x="265.5" y="234.097499762206" />
 				<pt x="265.75" y="234.097523089527" />
 				<pt x="266" y="234.097536567534" />
 				<pt x="266.25" y="234.097555229391" />
@@ -17917,7 +17605,7 @@
 				<pt x="268" y="234.097596700182" />
 				<pt x="268.25" y="234.09760810465" />
 				<pt x="268.5" y="234.097612251729" />
-				<pt x="268.75" y="234.097616398809" />
+				<pt x="268.75" y="234.097616398808" />
 				<pt x="269" y="234.097619509118" />
 				<pt x="269.25" y="234.097623656197" />
 				<pt x="269.5" y="234.097626248122" />
@@ -18017,7 +17705,7 @@
 				<pt x="269.5" y="234.097626248122" />
 				<pt x="269.25" y="234.097623656197" />
 				<pt x="269" y="234.097619509118" />
-				<pt x="268.75" y="234.097616398809" />
+				<pt x="268.75" y="234.097616398808" />
 				<pt x="268.5" y="234.097612251729" />
 				<pt x="268.25" y="234.09760810465" />
 				<pt x="268" y="234.097596700182" />
@@ -18030,7 +17718,7 @@
 				<pt x="266.25" y="234.097555229391" />
 				<pt x="266" y="234.097536567534" />
 				<pt x="265.75" y="234.097523089527" />
-				<pt x="265.5" y="234.097499762207" />
+				<pt x="265.5" y="234.097499762206" />
 				<pt x="265.25" y="234.097473324577" />
 				<pt x="265" y="234.097510129904" />
 				<pt x="264.75" y="234.097157628174" />
@@ -18179,7 +17867,7 @@
 				<pt x="278" y="236.098673858386" />
 				<pt x="278.25" y="236.098672821617" />
 				<pt x="278.5" y="236.098671784847" />
-				<pt x="278.75" y="236.098683189315" />
+				<pt x="278.75" y="236.098683189314" />
 				<pt x="279" y="236.098685781239" />
 				<pt x="279.25" y="236.09867956062" />
 				<pt x="279.5" y="236.098679042235" />
@@ -18197,7 +17885,7 @@
 				<pt x="279.5" y="236.098679042235" />
 				<pt x="279.25" y="236.09867956062" />
 				<pt x="279" y="236.098685781239" />
-				<pt x="278.75" y="236.098683189315" />
+				<pt x="278.75" y="236.098683189314" />
 				<pt x="278.5" y="236.098671784847" />
 				<pt x="278.25" y="236.098672821617" />
 				<pt x="278" y="236.098673858386" />
@@ -18238,7 +17926,7 @@
 				<pt x="269.25" y="236.098688891548" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T46_T100_T109"/>
-			<UserParam type="float" name="FWHM" value="9.25"/>
+			<UserParam type="float" name="FWHM" value="8.93852996826172"/>
 			<UserParam type="int" name="num_of_masstraces" value="3"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="1754618.12597656"/>
 			<UserParam type="float" name="masstrace_intensity_1" value="228933.749633789"/>
@@ -18246,13 +17934,13 @@
 			<UserParam type="floatList" name="isotope_distances" value="[1.00006488573425, 1.00096203128876]"/>
 			<UserParam type="int" name="legal_isotope_pattern" value="1"/>
 		</feature>
-		<feature id="f_10770675153070148776">
+		<feature id="f_13184001961305817747">
 			<position dim="0">308</position>
 			<position dim="1">237.07028733581</position>
-			<intensity>8.15277e+007</intensity>
+			<intensity>8.15277e+07</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
-			<overallquality>0.0513464</overallquality>
+			<overallquality>0.0514053</overallquality>
 			<charge>1</charge>
 			<convexhull nr="0">
 				<pt x="296.25" y="237.070012075389" />
@@ -18271,17 +17959,17 @@
 				<pt x="317.75" y="237.070286819384" />
 				<pt x="318" y="237.070287337769" />
 				<pt x="318.25" y="237.070288374539" />
-				<pt x="318.5" y="237.070286301" />
+				<pt x="318.5" y="237.070286300999" />
 				<pt x="318.75" y="237.070287856154" />
-				<pt x="319" y="237.070291484849" />
+				<pt x="319" y="237.070291484848" />
 				<pt x="319.25" y="237.070289411309" />
 				<pt x="319.5" y="237.070285782615" />
 				<pt x="319.75" y="237.070281635535" />
 				<pt x="319.5" y="237.070285782615" />
 				<pt x="319.25" y="237.070289411309" />
-				<pt x="319" y="237.070291484849" />
+				<pt x="319" y="237.070291484848" />
 				<pt x="318.75" y="237.070287856154" />
-				<pt x="318.5" y="237.070286301" />
+				<pt x="318.5" y="237.070286300999" />
 				<pt x="318.25" y="237.070288374539" />
 				<pt x="318" y="237.070287337769" />
 				<pt x="317.75" y="237.070286819384" />
@@ -18623,22 +18311,22 @@
 				<pt x="299.25" y="240.071342960193" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T5.1_T15_T24_T66"/>
-			<UserParam type="float" name="FWHM" value="7.25"/>
+			<UserParam type="float" name="FWHM" value="6.92289018630981"/>
 			<UserParam type="int" name="num_of_masstraces" value="4"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="81527727.5"/>
 			<UserParam type="float" name="masstrace_intensity_1" value="11122416.1953125"/>
 			<UserParam type="float" name="masstrace_intensity_2" value="4717390.34375"/>
 			<UserParam type="floatList" name="isotope_distances" value="[1.00006036962688, 1.00095520513679, 1.00003311618988]"/>
 			<UserParam type="int" name="legal_isotope_pattern" value="1"/>
-			<UserParam type="float" name="masstrace_intensity_3" value="563025.188476563"/>
+			<UserParam type="float" name="masstrace_intensity_3" value="563025.188476562"/>
 		</feature>
-		<feature id="f_6127813626462972040">
+		<feature id="f_7191103951900963819">
 			<position dim="0">302.75</position>
 			<position dim="1">243.087732299184</position>
-			<intensity>1.87537e+006</intensity>
+			<intensity>1.87537e+06</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
-			<overallquality>0.00113572</overallquality>
+			<overallquality>0.00113702</overallquality>
 			<charge>1</charge>
 			<convexhull nr="0">
 				<pt x="294.75" y="243.087459219052" />
@@ -18733,7 +18421,7 @@
 				<pt x="296.5" y="244.087751306135" />
 				<pt x="296.75" y="244.087764784143" />
 				<pt x="297" y="244.087778780535" />
-				<pt x="297.25" y="244.087776706996" />
+				<pt x="297.25" y="244.087776706995" />
 				<pt x="297.5" y="244.087798997546" />
 				<pt x="297.75" y="244.087797442391" />
 				<pt x="298" y="244.087794850467" />
@@ -18771,8 +18459,8 @@
 				<pt x="306.75" y="244.08778033569" />
 				<pt x="307" y="244.087783964384" />
 				<pt x="307.25" y="244.08777826215" />
-				<pt x="307.5" y="244.087781890845" />
-				<pt x="307.75" y="244.087776706996" />
+				<pt x="307.5" y="244.087781890844" />
+				<pt x="307.75" y="244.087776706995" />
 				<pt x="308" y="244.087765302528" />
 				<pt x="308.25" y="244.087743530362" />
 				<pt x="308.5" y="244.087743011977" />
@@ -18780,8 +18468,8 @@
 				<pt x="308.5" y="244.087743011977" />
 				<pt x="308.25" y="244.087743530362" />
 				<pt x="308" y="244.087765302528" />
-				<pt x="307.75" y="244.087776706996" />
-				<pt x="307.5" y="244.087781890845" />
+				<pt x="307.75" y="244.087776706995" />
+				<pt x="307.5" y="244.087781890844" />
 				<pt x="307.25" y="244.08777826215" />
 				<pt x="307" y="244.087783964384" />
 				<pt x="306.75" y="244.08778033569" />
@@ -18819,7 +18507,7 @@
 				<pt x="298" y="244.087794850467" />
 				<pt x="297.75" y="244.087797442391" />
 				<pt x="297.5" y="244.087798997546" />
-				<pt x="297.25" y="244.087776706996" />
+				<pt x="297.25" y="244.087776706995" />
 				<pt x="297" y="244.087778780535" />
 				<pt x="296.75" y="244.087764784143" />
 				<pt x="296.5" y="244.087751306135" />
@@ -18889,7 +18577,7 @@
 				<pt x="298.25" y="245.088762911457" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T39_T89_T144"/>
-			<UserParam type="float" name="FWHM" value="7.25"/>
+			<UserParam type="float" name="FWHM" value="7.01466846466064"/>
 			<UserParam type="int" name="num_of_masstraces" value="3"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="1875373.5078125"/>
 			<UserParam type="float" name="masstrace_intensity_1" value="230297.778808594"/>
@@ -18897,13 +18585,13 @@
 			<UserParam type="floatList" name="isotope_distances" value="[1.00006164359502, 1.00095650581562]"/>
 			<UserParam type="int" name="legal_isotope_pattern" value="1"/>
 		</feature>
-		<feature id="f_13544601804648356514">
+		<feature id="f_16042285718192614719">
 			<position dim="0">274.75</position>
 			<position dim="1">252.107530103247</position>
-			<intensity>1.06097e+008</intensity>
+			<intensity>1.06097e+08</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
-			<overallquality>0.0640835</overallquality>
+			<overallquality>0.0641569</overallquality>
 			<charge>1</charge>
 			<convexhull nr="0">
 				<pt x="256.25" y="252.10725535546" />
@@ -19380,11 +19068,11 @@
 				<pt x="268.5" y="255.108693545939" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T6_T18_T45_T115"/>
-			<UserParam type="float" name="FWHM" value="10.75"/>
+			<UserParam type="float" name="FWHM" value="10.5901527404785"/>
 			<UserParam type="int" name="num_of_masstraces" value="4"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="106096979.3125"/>
 			<UserParam type="float" name="masstrace_intensity_1" value="11203045.3515625"/>
-			<UserParam type="float" name="masstrace_intensity_2" value="2059411.75976563"/>
+			<UserParam type="float" name="masstrace_intensity_2" value="2059411.75976562"/>
 			<UserParam type="floatList" name="isotope_distances" value="[1.00006043012777, 1.00095481113209, 1.00003117887641]"/>
 			<UserParam type="int" name="legal_isotope_pattern" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_3" value="178497.388671875"/>

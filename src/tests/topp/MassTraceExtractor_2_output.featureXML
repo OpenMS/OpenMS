@@ -30,7 +30,7 @@
 				<pt x="2489.7476" y="1579.20333220016" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T1.1"/>
-			<UserParam type="float" name="FWHM" value="10.3793001174927"/>
+			<UserParam type="float" name="FWHM" value="2.80164813995361"/>
 			<UserParam type="float" name="SD" value="0.0477869713269535"/>
 			<UserParam type="float" name="SD_ppm" value="30.2605646491675"/>
 		</feature>
@@ -53,7 +53,7 @@
 				<pt x="2489.7476" y="1662.17686963463" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T2.1"/>
-			<UserParam type="float" name="FWHM" value="8.64550018310547"/>
+			<UserParam type="float" name="FWHM" value="2.42196416854858"/>
 			<UserParam type="float" name="SD" value="0.0272612201411989"/>
 			<UserParam type="float" name="SD_ppm" value="16.4007404512026"/>
 		</feature>
@@ -122,7 +122,7 @@
 				<pt x="2489.7476" y="1373.34023042445" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T5.1"/>
-			<UserParam type="float" name="FWHM" value="8.64550018310547"/>
+			<UserParam type="float" name="FWHM" value="8.22833728790283"/>
 			<UserParam type="float" name="SD" value="0.0414713174894492"/>
 			<UserParam type="float" name="SD_ppm" value="30.1975566252211"/>
 		</feature>
@@ -145,7 +145,7 @@
 				<pt x="2491.4704" y="1435.68022184938" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T6.1"/>
-			<UserParam type="float" name="FWHM" value="10.3793001174927"/>
+			<UserParam type="float" name="FWHM" value="6.93090629577637"/>
 			<UserParam type="float" name="SD" value="0.016456683772425"/>
 			<UserParam type="float" name="SD_ppm" value="11.4625427951563"/>
 		</feature>
@@ -170,7 +170,7 @@
 				<pt x="2450.3192" y="1327.73994352344" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T7.1"/>
-			<UserParam type="float" name="FWHM" value="11.9455003738403"/>
+			<UserParam type="float" name="FWHM" value="11.3398847579956"/>
 			<UserParam type="float" name="SD" value="0.0254516778389911"/>
 			<UserParam type="float" name="SD_ppm" value="19.1694889166565"/>
 		</feature>
@@ -191,7 +191,7 @@
 				<pt x="2406.691" y="1571.43991914051" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T8.1"/>
-			<UserParam type="float" name="FWHM" value="8.67580032348633"/>
+			<UserParam type="float" name="FWHM" value="10.4244003295898"/>
 			<UserParam type="float" name="SD" value="0.0198517769347103"/>
 			<UserParam type="float" name="SD_ppm" value="12.6326401688894"/>
 		</feature>
@@ -253,7 +253,7 @@
 				<pt x="2415.4186" y="1248.71963124749" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T11.1"/>
-			<UserParam type="float" name="FWHM" value="3.51909995079041"/>
+			<UserParam type="float" name="FWHM" value="0"/>
 			<UserParam type="float" name="SD" value="0.0210218758850838"/>
 			<UserParam type="float" name="SD_ppm" value="16.8343785857495"/>
 		</feature>
@@ -278,7 +278,7 @@
 				<pt x="2489.7476" y="1754.53622723658" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T12.1"/>
-			<UserParam type="float" name="FWHM" value="10.3793001174927"/>
+			<UserParam type="float" name="FWHM" value="0.709354519844055"/>
 			<UserParam type="float" name="SD" value="0.0410774023758532"/>
 			<UserParam type="float" name="SD_ppm" value="23.4116616293998"/>
 		</feature>
@@ -360,7 +360,7 @@
 				<pt x="2438.2814" y="1646.9974434268" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T16.1"/>
-			<UserParam type="float" name="FWHM" value="8.65100002288818"/>
+			<UserParam type="float" name="FWHM" value="3.2108838558197"/>
 			<UserParam type="float" name="SD" value="0.0679316556073509"/>
 			<UserParam type="float" name="SD_ppm" value="41.2480968027092"/>
 		</feature>
@@ -450,7 +450,7 @@
 				<pt x="2489.7476" y="1435.76206632191" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T20.1"/>
-			<UserParam type="float" name="FWHM" value="6.92019987106323"/>
+			<UserParam type="float" name="FWHM" value="0.418851345777512"/>
 			<UserParam type="float" name="SD" value="0.00374452689034526"/>
 			<UserParam type="float" name="SD_ppm" value="2.60803782554616"/>
 		</feature>
@@ -469,7 +469,7 @@
 				<pt x="2226.0058" y="1700.394585237" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T21.1"/>
-			<UserParam type="float" name="FWHM" value="7.02479982376099"/>
+			<UserParam type="float" name="FWHM" value="0.602316975593567"/>
 			<UserParam type="float" name="SD" value="0.00475371570451811"/>
 			<UserParam type="float" name="SD_ppm" value="2.79566434966343"/>
 		</feature>
@@ -492,7 +492,7 @@
 				<pt x="2399.7595" y="1109.33433673986" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T22.1"/>
-			<UserParam type="float" name="FWHM" value="10.4102001190186"/>
+			<UserParam type="float" name="FWHM" value="0.338584035634995"/>
 			<UserParam type="float" name="SD" value="0.00740228638553306"/>
 			<UserParam type="float" name="SD_ppm" value="6.67272989071242"/>
 		</feature>
@@ -511,7 +511,7 @@
 				<pt x="2398.0174" y="1194.62763609997" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T23.1"/>
-			<UserParam type="float" name="FWHM" value="6.93959999084473"/>
+			<UserParam type="float" name="FWHM" value="2.63005805015564"/>
 			<UserParam type="float" name="SD" value="0.00315269727132602"/>
 			<UserParam type="float" name="SD_ppm" value="2.63905990565327"/>
 		</feature>
@@ -530,7 +530,7 @@
 				<pt x="2453.7277" y="1170.88415557857" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T24.1"/>
-			<UserParam type="float" name="FWHM" value="8.51760005950928"/>
+			<UserParam type="float" name="FWHM" value="4.98883628845215"/>
 			<UserParam type="float" name="SD" value="0.0104358814873511"/>
 			<UserParam type="float" name="SD_ppm" value="8.9128805104503"/>
 		</feature>
@@ -575,7 +575,7 @@
 				<pt x="2260.6347" y="1307.3166830086" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T26.1"/>
-			<UserParam type="float" name="FWHM" value="5.19659996032715"/>
+			<UserParam type="float" name="FWHM" value="3.23785996437073"/>
 			<UserParam type="float" name="SD" value="0.0223707135928687"/>
 			<UserParam type="float" name="SD_ppm" value="17.1119685019045"/>
 		</feature>
@@ -614,7 +614,7 @@
 				<pt x="2413.6647" y="1729.98471617756" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T28.1"/>
-			<UserParam type="float" name="FWHM" value="8.78890037536621"/>
+			<UserParam type="float" name="FWHM" value="4.04961061477661"/>
 			<UserParam type="float" name="SD" value="0.0649210505090013"/>
 			<UserParam type="float" name="SD_ppm" value="37.5252175951522"/>
 		</feature>
@@ -700,7 +700,7 @@
 				<pt x="2450.3192" y="1770.78213677595" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T32.1"/>
-			<UserParam type="float" name="FWHM" value="8.51760005950928"/>
+			<UserParam type="float" name="FWHM" value="5.77794599533081"/>
 			<UserParam type="float" name="SD" value="0.0535776679559192"/>
 			<UserParam type="float" name="SD_ppm" value="30.2562650460358"/>
 		</feature>
@@ -761,7 +761,7 @@
 				<pt x="2387.5374" y="1233.61632142391" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T35.1"/>
-			<UserParam type="float" name="FWHM" value="8.73950004577637"/>
+			<UserParam type="float" name="FWHM" value="6.02173757553101"/>
 			<UserParam type="float" name="SD" value="0.0308230750821615"/>
 			<UserParam type="float" name="SD_ppm" value="24.9863878914933"/>
 		</feature>
@@ -780,7 +780,7 @@
 				<pt x="2253.7202" y="1312.17140083423" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T36.1"/>
-			<UserParam type="float" name="FWHM" value="8.63549995422363"/>
+			<UserParam type="float" name="FWHM" value="6.04498529434204"/>
 			<UserParam type="float" name="SD" value="0.0219719430622362"/>
 			<UserParam type="float" name="SD_ppm" value="16.7447548478632"/>
 		</feature>
@@ -799,7 +799,7 @@
 				<pt x="2357.1125" y="1763.48109942807" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T37.1"/>
-			<UserParam type="float" name="FWHM" value="7.2733998298645"/>
+			<UserParam type="float" name="FWHM" value="0"/>
 			<UserParam type="float" name="SD" value="0.0339743828780008"/>
 			<UserParam type="float" name="SD_ppm" value="19.2656664924864"/>
 		</feature>
@@ -843,7 +843,7 @@
 				<pt x="2111.4734" y="1494.94832812981" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T39.1"/>
-			<UserParam type="float" name="FWHM" value="9.28689956665039"/>
+			<UserParam type="float" name="FWHM" value="5.73594903945923"/>
 			<UserParam type="float" name="SD" value="0.0333861432086166"/>
 			<UserParam type="float" name="SD_ppm" value="22.3329131543802"/>
 		</feature>
@@ -941,7 +941,7 @@
 				<pt x="2380.5096" y="1527.12601113059" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T44.1"/>
-			<UserParam type="float" name="FWHM" value="7.0460000038147"/>
+			<UserParam type="float" name="FWHM" value="3.02713584899902"/>
 			<UserParam type="float" name="SD" value="0.00641059929624884"/>
 			<UserParam type="float" name="SD_ppm" value="4.19781041206794"/>
 		</feature>
@@ -966,7 +966,7 @@
 				<pt x="2314.4472" y="1092.57718694492" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T45.1"/>
-			<UserParam type="float" name="FWHM" value="10.476300239563"/>
+			<UserParam type="float" name="FWHM" value="8.18987846374512"/>
 			<UserParam type="float" name="SD" value="0.0298802385417161"/>
 			<UserParam type="float" name="SD_ppm" value="27.3473603202651"/>
 		</feature>
@@ -1078,7 +1078,7 @@
 				<pt x="2286.7695" y="1087.00762903325" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T50.1"/>
-			<UserParam type="float" name="FWHM" value="8.66419982910156"/>
+			<UserParam type="float" name="FWHM" value="4.71969223022461"/>
 			<UserParam type="float" name="SD" value="0.0418085008606726"/>
 			<UserParam type="float" name="SD_ppm" value="38.4621005108341"/>
 		</feature>
@@ -1122,7 +1122,7 @@
 				<pt x="2403.2204" y="1071.21717255596" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T52.1"/>
-			<UserParam type="float" name="FWHM" value="8.66499996185303"/>
+			<UserParam type="float" name="FWHM" value="4.06012153625488"/>
 			<UserParam type="float" name="SD" value="0.0256795406039039"/>
 			<UserParam type="float" name="SD_ppm" value="23.9731663844463"/>
 		</feature>
@@ -1141,7 +1141,7 @@
 				<pt x="2231.2626" y="2124.25569482034" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T53.1"/>
-			<UserParam type="float" name="FWHM" value="8.71739959716797"/>
+			<UserParam type="float" name="FWHM" value="2.71994352340698"/>
 			<UserParam type="float" name="SD" value="0.0524230689253112"/>
 			<UserParam type="float" name="SD_ppm" value="24.6792127507146"/>
 		</feature>
@@ -1182,7 +1182,7 @@
 				<pt x="2392.784" y="1336.33897175272" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T55.1"/>
-			<UserParam type="float" name="FWHM" value="8.72939968109131"/>
+			<UserParam type="float" name="FWHM" value="1.70750033855438"/>
 			<UserParam type="float" name="SD" value="0.0263203996356195"/>
 			<UserParam type="float" name="SD_ppm" value="19.6953518441163"/>
 		</feature>
@@ -1345,7 +1345,7 @@
 				<pt x="2202.4805" y="2472.23975344239" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T63.1"/>
-			<UserParam type="float" name="FWHM" value="7.32509994506836"/>
+			<UserParam type="float" name="FWHM" value="2.62334966659546"/>
 			<UserParam type="float" name="SD" value="0.0499805931903082"/>
 			<UserParam type="float" name="SD_ppm" value="20.2161510882361"/>
 		</feature>
@@ -1409,7 +1409,7 @@
 				<pt x="2433.0371" y="1502.37138027029" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T66.1"/>
-			<UserParam type="float" name="FWHM" value="6.97109985351563"/>
+			<UserParam type="float" name="FWHM" value="10.0638933181763"/>
 			<UserParam type="float" name="SD" value="0.0257042172877947"/>
 			<UserParam type="float" name="SD_ppm" value="17.1085168738248"/>
 		</feature>
@@ -1492,7 +1492,7 @@
 				<pt x="2137.5334" y="1210.06964604583" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T70.1"/>
-			<UserParam type="float" name="FWHM" value="7.30730009078979"/>
+			<UserParam type="float" name="FWHM" value="0.0105249667540193"/>
 			<UserParam type="float" name="SD" value="0.0186403660606977"/>
 			<UserParam type="float" name="SD_ppm" value="15.4042290466854"/>
 		</feature>
@@ -1634,7 +1634,7 @@
 				<pt x="2083.147" y="1238.09594554339" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T77"/>
-			<UserParam type="float" name="FWHM" value="9.34000015258789"/>
+			<UserParam type="float" name="FWHM" value="0.911022424697876"/>
 			<UserParam type="float" name="SD" value="0.0178943825574434"/>
 			<UserParam type="float" name="SD_ppm" value="14.4533416281513"/>
 			<UserParam type="float" name="FWHM_mz_avg" value="1"/>
@@ -1654,7 +1654,7 @@
 				<pt x="2218.8696" y="1302.69712304136" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T78.1"/>
-			<UserParam type="float" name="FWHM" value="7.16559982299805"/>
+			<UserParam type="float" name="FWHM" value="4.05955600738525"/>
 			<UserParam type="float" name="SD" value="0.0482657860520709"/>
 			<UserParam type="float" name="SD_ppm" value="37.0524805941507"/>
 		</feature>
@@ -1772,7 +1772,7 @@
 				<pt x="2081.286" y="1656.27784321011" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T84.1"/>
-			<UserParam type="float" name="FWHM" value="9.27110004425049"/>
+			<UserParam type="float" name="FWHM" value="7.73297166824341"/>
 			<UserParam type="float" name="SD" value="0.00958574851422785"/>
 			<UserParam type="float" name="SD_ppm" value="5.7875600012452"/>
 		</feature>
@@ -1791,7 +1791,7 @@
 				<pt x="2155.4741" y="1600.05255548578" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T85"/>
-			<UserParam type="float" name="FWHM" value="5.33050012588501"/>
+			<UserParam type="float" name="FWHM" value="0"/>
 			<UserParam type="float" name="SD" value="0.048214530543606"/>
 			<UserParam type="float" name="SD_ppm" value="30.1322388440513"/>
 			<UserParam type="float" name="FWHM_mz_avg" value="1"/>
@@ -1869,7 +1869,7 @@
 				<pt x="2141.1918" y="2246.26226315293" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T89.1"/>
-			<UserParam type="float" name="FWHM" value="7.22849988937378"/>
+			<UserParam type="float" name="FWHM" value="0.0370245017111301"/>
 			<UserParam type="float" name="SD" value="0.014188033880049"/>
 			<UserParam type="float" name="SD_ppm" value="6.31625561433672"/>
 		</feature>
@@ -1909,7 +1909,7 @@
 				<pt x="2218.8696" y="1788.98969850671" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T91.1"/>
-			<UserParam type="float" name="FWHM" value="7.16559982299805"/>
+			<UserParam type="float" name="FWHM" value="2.87898874282837"/>
 			<UserParam type="float" name="SD" value="0.0137316349783092"/>
 			<UserParam type="float" name="SD_ppm" value="7.67559796329925"/>
 		</feature>
@@ -1930,7 +1930,7 @@
 				<pt x="2403.2204" y="1035.45205889972" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T92"/>
-			<UserParam type="float" name="FWHM" value="8.67580032348633"/>
+			<UserParam type="float" name="FWHM" value="3.27960610389709"/>
 			<UserParam type="float" name="SD" value="0.0356756415176259"/>
 			<UserParam type="float" name="SD_ppm" value="34.4559385704705"/>
 			<UserParam type="float" name="FWHM_mz_avg" value="2.5"/>
@@ -1950,7 +1950,7 @@
 				<pt x="2180.5441" y="1367.76574862775" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T93"/>
-			<UserParam type="float" name="FWHM" value="5.47650003433228"/>
+			<UserParam type="float" name="FWHM" value="0"/>
 			<UserParam type="float" name="SD" value="0.0107672341296384"/>
 			<UserParam type="float" name="SD_ppm" value="7.87219073066347"/>
 			<UserParam type="float" name="FWHM_mz_avg" value="2"/>
@@ -1970,7 +1970,7 @@
 				<pt x="2100.1645" y="1131.52316890555" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T94.1"/>
-			<UserParam type="float" name="FWHM" value="7.54909992218018"/>
+			<UserParam type="float" name="FWHM" value="4.61496305465698"/>
 			<UserParam type="float" name="SD" value="0.0232664863544197"/>
 			<UserParam type="float" name="SD_ppm" value="20.5626468729417"/>
 		</feature>
@@ -1991,7 +1991,7 @@
 				<pt x="2117.0278" y="1340.44023825573" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T95.1"/>
-			<UserParam type="float" name="FWHM" value="11.1485004425049"/>
+			<UserParam type="float" name="FWHM" value="5.41333389282227"/>
 			<UserParam type="float" name="SD" value="0.0118045236206405"/>
 			<UserParam type="float" name="SD_ppm" value="8.8065487461752"/>
 		</feature>
@@ -2012,7 +2012,7 @@
 				<pt x="2290.2434" y="1007.64471686243" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T96.1"/>
-			<UserParam type="float" name="FWHM" value="8.63459968566895"/>
+			<UserParam type="float" name="FWHM" value="6.53521108627319"/>
 			<UserParam type="float" name="SD" value="0.0379102079038374"/>
 			<UserParam type="float" name="SD_ppm" value="37.6232937638301"/>
 		</feature>
@@ -2090,7 +2090,7 @@
 				<pt x="2207.9703" y="922.155047036216" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T100.1"/>
-			<UserParam type="float" name="FWHM" value="9.14299964904785"/>
+			<UserParam type="float" name="FWHM" value="6.43857622146606"/>
 			<UserParam type="float" name="SD" value="0.0255738677676383"/>
 			<UserParam type="float" name="SD_ppm" value="27.7330165314838"/>
 		</feature>
@@ -2109,7 +2109,7 @@
 				<pt x="2030.6544" y="1444.60190877006" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T101.1"/>
-			<UserParam type="float" name="FWHM" value="5.60519981384277"/>
+			<UserParam type="float" name="FWHM" value="0"/>
 			<UserParam type="float" name="SD" value="0.0193249559978627"/>
 			<UserParam type="float" name="SD_ppm" value="13.3771256593677"/>
 		</feature>

@@ -271,7 +271,7 @@
 				<pt x="3.51509784" y="776.547046062399" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T2_T4_T12"/>
-			<UserParam type="float" name="FWHM" value="59.5185050964355"/>
+			<UserParam type="float" name="FWHM" value="57.9756164550781"/>
 			<UserParam type="int" name="num_of_masstraces" value="3"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="1462041.875"/>
 			<UserParam type="float" name="masstrace_intensity_1" value="554132.3125"/>
@@ -527,7 +527,7 @@
 				<pt x="1.38960882" y="776.556250572984" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T26_T5_T1"/>
-			<UserParam type="float" name="FWHM" value="43.5767288208008"/>
+			<UserParam type="float" name="FWHM" value="61.5109634399414"/>
 			<UserParam type="int" name="num_of_masstraces" value="3"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="65200.14453125"/>
 			<UserParam type="float" name="masstrace_intensity_1" value="423106.9375"/>
@@ -600,7 +600,7 @@
 				<pt x="13.0804104" y="776.571083142212" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T16_T25_T14"/>
-			<UserParam type="float" name="FWHM" value="11.6911649703979"/>
+			<UserParam type="float" name="FWHM" value="6.36800289154053"/>
 			<UserParam type="int" name="num_of_masstraces" value="3"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="76421.875"/>
 			<UserParam type="float" name="masstrace_intensity_1" value="68497.09765625"/>
@@ -627,7 +627,7 @@
 				<pt x="20.5203828" y="774.571196475939" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T18"/>
-			<UserParam type="float" name="FWHM" value="49.9536895751953"/>
+			<UserParam type="float" name="FWHM" value="37.6525993347168"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="66768.421875"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -762,7 +762,7 @@
 				<pt x="15.2060448" y="775.593127489378" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T8_T21"/>
-			<UserParam type="float" name="FWHM" value="2.12575507164001"/>
+			<UserParam type="float" name="FWHM" value="1.57500267028809"/>
 			<UserParam type="int" name="num_of_masstraces" value="2"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="212593.5546875"/>
 			<UserParam type="float" name="masstrace_intensity_1" value="72429.6171875"/>
@@ -1068,7 +1068,7 @@
 				<pt x="1.38960882" y="776.613216578271" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T3_T6_T15"/>
-			<UserParam type="float" name="FWHM" value="15.9425201416016"/>
+			<UserParam type="float" name="FWHM" value="14.2445621490479"/>
 			<UserParam type="int" name="num_of_masstraces" value="3"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="945869.5"/>
 			<UserParam type="float" name="masstrace_intensity_1" value="423995.25"/>
@@ -1121,7 +1121,7 @@
 				<pt x="35.4000258" y="775.62875691989" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T13_T24"/>
-			<UserParam type="float" name="FWHM" value="11.6910276412964"/>
+			<UserParam type="float" name="FWHM" value="9.5500020980835"/>
 			<UserParam type="int" name="num_of_masstraces" value="2"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="77205.21875"/>
 			<UserParam type="float" name="masstrace_intensity_1" value="67114.9375"/>
@@ -1257,7 +1257,7 @@
 				<pt x="16.2687708" y="775.637911272492" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T9_T10"/>
-			<UserParam type="float" name="FWHM" value="6.37681579589844"/>
+			<UserParam type="float" name="FWHM" value="5.33436298370361"/>
 			<UserParam type="int" name="num_of_masstraces" value="2"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="198293.140625"/>
 			<UserParam type="float" name="masstrace_intensity_1" value="88339.51171875"/>
@@ -1287,7 +1287,7 @@
 				<pt x="14.1432996" y="774.645597924221" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T19"/>
-			<UserParam type="float" name="FWHM" value="49.9530715942383"/>
+			<UserParam type="float" name="FWHM" value="90.3642730712891"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="81640.5859375"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -1450,7 +1450,7 @@
 				<pt x="27.9603348" y="776.649132794789" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T7_T17_T20"/>
-			<UserParam type="float" name="FWHM" value="3.18834185600281"/>
+			<UserParam type="float" name="FWHM" value="2.25667858123779"/>
 			<UserParam type="int" name="num_of_masstraces" value="3"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="197882.96875"/>
 			<UserParam type="float" name="masstrace_intensity_1" value="84955.67578125"/>
@@ -1473,7 +1473,7 @@
 				<pt x="33.2742846" y="776.52040905479" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T23"/>
-			<UserParam type="float" name="FWHM" value="42.5132446289063"/>
+			<UserParam type="float" name="FWHM" value="120.390251159668"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="77429.9375"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -1494,7 +1494,7 @@
 				<pt x="48.1542276" y="776.535668917991" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T22"/>
-			<UserParam type="float" name="FWHM" value="36.1363792419434"/>
+			<UserParam type="float" name="FWHM" value="269.190612792969"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="72566.1171875"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -1585,7 +1585,7 @@
 				<pt x="2.4523587" y="776.674036961458" />
 			</convexhull>
 			<UserParam type="string" name="label" value="T11"/>
-			<UserParam type="float" name="FWHM" value="2.12577605247498"/>
+			<UserParam type="float" name="FWHM" value="1.81729030609131"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="99794.62890625"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>

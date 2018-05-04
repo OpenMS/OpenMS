@@ -511,7 +511,7 @@ test_mt2.updateWeightedMeanMZ();
 START_SECTION((double getFWHM() const))
 {
   double test_mt_fwhm = test_mt.getFWHM();
-  TEST_REAL_SIMILAR(test_mt_fwhm, 4.01);
+  TEST_REAL_SIMILAR(test_mt_fwhm, 2.16656743986252);
 }
 END_SECTION
                                          
@@ -600,8 +600,8 @@ START_SECTION((double estimateFWHM(bool use_smoothed_ints = false)))
   double test_fwhm1 = test_mt.estimateFWHM(false);
   double test_fwhm2 = test_mt.estimateFWHM(true);
 
-  TEST_REAL_SIMILAR(test_fwhm1, 4.01);
-  TEST_REAL_SIMILAR(test_fwhm2, 4.01);
+  TEST_REAL_SIMILAR(test_fwhm1, 2.15250939241199);
+  TEST_REAL_SIMILAR(test_fwhm2, 2.16656743986252);
 }
 END_SECTION
 

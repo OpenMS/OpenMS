@@ -15,7 +15,7 @@
 			<overallquality>7.68712e-005</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T447.1"/>
-			<UserParam type="float" name="FWHM" value="5.11630010604858"/>
+			<UserParam type="float" name="FWHM" value="0"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="1999.98115590826"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -31,7 +31,7 @@
 			<overallquality>0.000145689</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T437.1"/>
-			<UserParam type="float" name="FWHM" value="5.25680017471313"/>
+			<UserParam type="float" name="FWHM" value="0"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="3790.42560238045"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -46,7 +46,7 @@
 			<overallquality>0.000174207</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T429.1"/>
-			<UserParam type="float" name="FWHM" value="5.31710004806519"/>
+			<UserParam type="float" name="FWHM" value="0"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="4532.40594209421"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -61,7 +61,7 @@
 			<overallquality>0.000170585</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T441.1"/>
-			<UserParam type="float" name="FWHM" value="5.15399980545044"/>
+			<UserParam type="float" name="FWHM" value="0"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="4438.15614587402"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -76,7 +76,7 @@
 			<overallquality>0.000177431</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T440.1"/>
-			<UserParam type="float" name="FWHM" value="5.19210004806519"/>
+			<UserParam type="float" name="FWHM" value="0"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="4616.27982130756"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -91,7 +91,7 @@
 			<overallquality>0.000250951</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T426.1"/>
-			<UserParam type="float" name="FWHM" value="5.34019994735718"/>
+			<UserParam type="float" name="FWHM" value="0"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="6529.08321109575"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -106,7 +106,7 @@
 			<overallquality>0.00016055</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T436.1"/>
-			<UserParam type="float" name="FWHM" value="5.23339986801147"/>
+			<UserParam type="float" name="FWHM" value="0"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="4177.0795431275"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -121,7 +121,7 @@
 			<overallquality>0.000252481</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T428.1"/>
-			<UserParam type="float" name="FWHM" value="5.21280002593994"/>
+			<UserParam type="float" name="FWHM" value="0"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="6568.87314023468"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -136,7 +136,7 @@
 			<overallquality>0.000270718</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T422.1"/>
-			<UserParam type="float" name="FWHM" value="5.23850011825562"/>
+			<UserParam type="float" name="FWHM" value="0"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="7043.35604879751"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -151,7 +151,7 @@
 			<overallquality>0.000204154</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T417.1"/>
-			<UserParam type="float" name="FWHM" value="5.32630014419556"/>
+			<UserParam type="float" name="FWHM" value="0"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="5311.53450422075"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -166,7 +166,7 @@
 			<overallquality>0.000141017</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T446.1"/>
-			<UserParam type="float" name="FWHM" value="5.6725001335144"/>
+			<UserParam type="float" name="FWHM" value="0"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="3668.88360549906"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -181,7 +181,7 @@
 			<overallquality>0.000137637</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T445.1"/>
-			<UserParam type="float" name="FWHM" value="5.6725001335144"/>
+			<UserParam type="float" name="FWHM" value="0"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="3580.95137306193"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -196,7 +196,7 @@
 			<overallquality>0.000670085</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T362"/>
-			<UserParam type="float" name="FWHM" value="12.2164001464844"/>
+			<UserParam type="float" name="FWHM" value="25.3473472595215"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="17433.8109114316"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -211,7 +211,7 @@
 			<overallquality>0.000276564</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T434.1"/>
-			<UserParam type="float" name="FWHM" value="9.14299964904785"/>
+			<UserParam type="float" name="FWHM" value="6.43857622146606"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="7195.44060687867"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -226,7 +226,7 @@
 			<overallquality>0.000145032</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T443.1"/>
-			<UserParam type="float" name="FWHM" value="5.49139976501465"/>
+			<UserParam type="float" name="FWHM" value="0"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="3773.33084644768"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -241,7 +241,7 @@
 			<overallquality>0.000122092</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T444.1"/>
-			<UserParam type="float" name="FWHM" value="5.66179990768433"/>
+			<UserParam type="float" name="FWHM" value="0"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="3176.50288618766"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -256,7 +256,7 @@
 			<overallquality>0.000254393</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T410.1"/>
-			<UserParam type="float" name="FWHM" value="5.46950006484985"/>
+			<UserParam type="float" name="FWHM" value="0"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="6618.61444226065"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -271,7 +271,7 @@
 			<overallquality>0.000424667</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T425"/>
-			<UserParam type="float" name="FWHM" value="8.72970008850098"/>
+			<UserParam type="float" name="FWHM" value="72.8151779174805"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="11048.6858909117"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -286,7 +286,7 @@
 			<overallquality>0.000201847</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T432"/>
-			<UserParam type="float" name="FWHM" value="5.33029985427856"/>
+			<UserParam type="float" name="FWHM" value="25.3082714080811"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="5251.51408283089"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -301,7 +301,7 @@
 			<overallquality>0.000217815</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T431.1"/>
-			<UserParam type="float" name="FWHM" value="5.24469995498657"/>
+			<UserParam type="float" name="FWHM" value="0"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="5666.96621354952"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -316,7 +316,7 @@
 			<overallquality>0.000151517</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T442.1"/>
-			<UserParam type="float" name="FWHM" value="5.60519981384277"/>
+			<UserParam type="float" name="FWHM" value="44.0152854919434"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="3942.06435355239"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -331,7 +331,7 @@
 			<overallquality>0.000327355</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T395.1"/>
-			<UserParam type="float" name="FWHM" value="5.31839990615845"/>
+			<UserParam type="float" name="FWHM" value="0"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="8516.90374335955"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -346,7 +346,7 @@
 			<overallquality>0.000253341</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T404.1"/>
-			<UserParam type="float" name="FWHM" value="5.31090021133423"/>
+			<UserParam type="float" name="FWHM" value="0"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="6591.25267314141"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -361,7 +361,7 @@
 			<overallquality>0.000225897</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T435.1"/>
-			<UserParam type="float" name="FWHM" value="5.24429988861084"/>
+			<UserParam type="float" name="FWHM" value="0"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="5877.23538001996"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -376,7 +376,7 @@
 			<overallquality>0.000366855</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T355.1"/>
-			<UserParam type="float" name="FWHM" value="5.23820018768311"/>
+			<UserParam type="float" name="FWHM" value="0"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="9544.58483784139"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -391,7 +391,7 @@
 			<overallquality>0.000745633</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T405.1"/>
-			<UserParam type="float" name="FWHM" value="10.4853000640869"/>
+			<UserParam type="float" name="FWHM" value="9.51646137237549"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="19399.3708468623"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -406,7 +406,7 @@
 			<overallquality>0.00027082</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T394.1"/>
-			<UserParam type="float" name="FWHM" value="5.42589998245239"/>
+			<UserParam type="float" name="FWHM" value="0"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="7046.00373052362"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -421,7 +421,7 @@
 			<overallquality>0.000261285</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T414.1"/>
-			<UserParam type="float" name="FWHM" value="5.26119995117188"/>
+			<UserParam type="float" name="FWHM" value="0"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="6797.94469152821"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -436,7 +436,7 @@
 			<overallquality>0.000573743</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T420"/>
-			<UserParam type="float" name="FWHM" value="6.97989988327026"/>
+			<UserParam type="float" name="FWHM" value="13.0168781280518"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="14927.2443467037"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -451,7 +451,7 @@
 			<overallquality>0.000377502</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T363.1"/>
-			<UserParam type="float" name="FWHM" value="5.18389987945557"/>
+			<UserParam type="float" name="FWHM" value="0"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="9821.60032552489"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -466,7 +466,7 @@
 			<overallquality>0.000377494</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T413.1"/>
-			<UserParam type="float" name="FWHM" value="5.18389987945557"/>
+			<UserParam type="float" name="FWHM" value="0"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="9821.37947822265"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -481,7 +481,7 @@
 			<overallquality>0.000319131</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T407"/>
-			<UserParam type="float" name="FWHM" value="5.16069984436035"/>
+			<UserParam type="float" name="FWHM" value="46.0034484863281"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="8302.93509717465"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -496,7 +496,7 @@
 			<overallquality>0.000439637</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T354.1"/>
-			<UserParam type="float" name="FWHM" value="5.22410011291504"/>
+			<UserParam type="float" name="FWHM" value="2243.29833984375"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="11438.1685900145"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -511,7 +511,7 @@
 			<overallquality>0.000351132</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T402.1"/>
-			<UserParam type="float" name="FWHM" value="5.31669998168945"/>
+			<UserParam type="float" name="FWHM" value="0"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="9135.50057689873"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -526,7 +526,7 @@
 			<overallquality>0.00134715</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T254.1"/>
-			<UserParam type="float" name="FWHM" value="15.5156002044678"/>
+			<UserParam type="float" name="FWHM" value="13.9727258682251"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="35049.2370956912"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -541,7 +541,7 @@
 			<overallquality>0.00116269</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T336.1"/>
-			<UserParam type="float" name="FWHM" value="17.4470996856689"/>
+			<UserParam type="float" name="FWHM" value="2.08596754074097"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="30250.0045130735"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -556,7 +556,7 @@
 			<overallquality>0.00052902</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T226.1"/>
-			<UserParam type="float" name="FWHM" value="5.23820018768311"/>
+			<UserParam type="float" name="FWHM" value="3.47267723083496"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="13763.6881749139"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -571,7 +571,7 @@
 			<overallquality>0.000221692</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T430.1"/>
-			<UserParam type="float" name="FWHM" value="5.52570009231567"/>
+			<UserParam type="float" name="FWHM" value="0"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="5767.81918274198"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -586,7 +586,7 @@
 			<overallquality>0.000475707</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T328.1"/>
-			<UserParam type="float" name="FWHM" value="5.19180011749268"/>
+			<UserParam type="float" name="FWHM" value="0"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="12376.6199704103"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -601,7 +601,7 @@
 			<overallquality>0.000268841</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T418.1"/>
-			<UserParam type="float" name="FWHM" value="5.33029985427856"/>
+			<UserParam type="float" name="FWHM" value="0"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="6994.53131521007"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -616,7 +616,7 @@
 			<overallquality>0.00147545</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T235.1"/>
-			<UserParam type="float" name="FWHM" value="15.7424001693726"/>
+			<UserParam type="float" name="FWHM" value="13.7181949615479"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="38387.1350015562"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -631,7 +631,7 @@
 			<overallquality>0.00104194</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T278.1"/>
-			<UserParam type="float" name="FWHM" value="10.444299697876"/>
+			<UserParam type="float" name="FWHM" value="14.0777616500854"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="27108.5081095268"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -646,7 +646,7 @@
 			<overallquality>0.000878228</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T279.1"/>
-			<UserParam type="float" name="FWHM" value="8.66499996185303"/>
+			<UserParam type="float" name="FWHM" value="4.06012153625488"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="22849.1263715575"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -661,7 +661,7 @@
 			<overallquality>0.000963166</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T277.1"/>
-			<UserParam type="float" name="FWHM" value="8.66419982910156"/>
+			<UserParam type="float" name="FWHM" value="4.71969223022461"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="25058.9905914054"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -676,7 +676,7 @@
 			<overallquality>0.000390677</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T353.1"/>
-			<UserParam type="float" name="FWHM" value="5.36180019378662"/>
+			<UserParam type="float" name="FWHM" value="0"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="10164.3774157839"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -691,7 +691,7 @@
 			<overallquality>0.00111331</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T247.1"/>
-			<UserParam type="float" name="FWHM" value="10.476300239563"/>
+			<UserParam type="float" name="FWHM" value="8.18987846374512"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="28965.2764092522"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -706,7 +706,7 @@
 			<overallquality>0.000664799</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T396"/>
-			<UserParam type="float" name="FWHM" value="8.93610000610352"/>
+			<UserParam type="float" name="FWHM" value="26.2839202880859"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="17296.2793445677"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -721,7 +721,7 @@
 			<overallquality>0.000372533</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T389"/>
-			<UserParam type="float" name="FWHM" value="5.42589998245239"/>
+			<UserParam type="float" name="FWHM" value="23.6142349243164"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="9692.29641061395"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -736,7 +736,7 @@
 			<overallquality>0.0003036</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T419.1"/>
-			<UserParam type="float" name="FWHM" value="5.45979976654053"/>
+			<UserParam type="float" name="FWHM" value="0"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="7898.8613459596"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -751,7 +751,7 @@
 			<overallquality>0.000679352</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T228.1"/>
-			<UserParam type="float" name="FWHM" value="5.24020004272461"/>
+			<UserParam type="float" name="FWHM" value="0.163374215364456"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="17674.9189088126"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -766,7 +766,7 @@
 			<overallquality>0.0027966</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T134.1"/>
-			<UserParam type="float" name="FWHM" value="17.4011993408203"/>
+			<UserParam type="float" name="FWHM" value="15.5916976928711"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="72760.063062182"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -781,7 +781,7 @@
 			<overallquality>0.000387181</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T388.1"/>
-			<UserParam type="float" name="FWHM" value="5.2842001914978"/>
+			<UserParam type="float" name="FWHM" value="0"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="10073.4077898552"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -796,7 +796,7 @@
 			<overallquality>0.0012441</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T248.1"/>
-			<UserParam type="float" name="FWHM" value="10.3836002349854"/>
+			<UserParam type="float" name="FWHM" value="44.4428215026855"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="32368.1232825439"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -811,7 +811,7 @@
 			<overallquality>0.000714442</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T300.1"/>
-			<UserParam type="float" name="FWHM" value="6.98509979248047"/>
+			<UserParam type="float" name="FWHM" value="14.6151866912842"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="18587.8598693966"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -826,7 +826,7 @@
 			<overallquality>0.000314351</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T411.1"/>
-			<UserParam type="float" name="FWHM" value="5.3516001701355"/>
+			<UserParam type="float" name="FWHM" value="0"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="8178.5614686767"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -841,7 +841,7 @@
 			<overallquality>0.000312819</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T416.1"/>
-			<UserParam type="float" name="FWHM" value="7.54909992218018"/>
+			<UserParam type="float" name="FWHM" value="4.61496305465698"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="8138.71210331748"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -856,7 +856,7 @@
 			<overallquality>0.000885419</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T350"/>
-			<UserParam type="float" name="FWHM" value="12.1765003204346"/>
+			<UserParam type="float" name="FWHM" value="24.2779140472412"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="23036.2357592041"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -871,7 +871,7 @@
 			<overallquality>0.000429519</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T331.1"/>
-			<UserParam type="float" name="FWHM" value="5.20359992980957"/>
+			<UserParam type="float" name="FWHM" value="0"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="11174.9266431637"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -886,7 +886,7 @@
 			<overallquality>0.000587536</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T295"/>
-			<UserParam type="float" name="FWHM" value="5.1609001159668"/>
+			<UserParam type="float" name="FWHM" value="118.056266784668"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="15286.1125675411"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -901,7 +901,7 @@
 			<overallquality>0.00163917</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T274.1"/>
-			<UserParam type="float" name="FWHM" value="15.5775995254517"/>
+			<UserParam type="float" name="FWHM" value="18.4986209869385"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="42646.8322725636"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -916,7 +916,7 @@
 			<overallquality>0.00390545</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T82.1"/>
-			<UserParam type="float" name="FWHM" value="19.1341991424561"/>
+			<UserParam type="float" name="FWHM" value="15.6923065185547"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="101609.397142249"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -931,7 +931,7 @@
 			<overallquality>0.000578158</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T174"/>
-			<UserParam type="float" name="FWHM" value="5.26849985122681"/>
+			<UserParam type="float" name="FWHM" value="2.31465005874634"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="15042.1291234865"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -946,7 +946,7 @@
 			<overallquality>0.000340321</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T408.1"/>
-			<UserParam type="float" name="FWHM" value="5.33230018615723"/>
+			<UserParam type="float" name="FWHM" value="0"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="8854.22686943365"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -961,7 +961,7 @@
 			<overallquality>0.000583875</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T339"/>
-			<UserParam type="float" name="FWHM" value="7.05649995803833"/>
+			<UserParam type="float" name="FWHM" value="52.5758857727051"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="15190.8494835941"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -976,7 +976,7 @@
 			<overallquality>0.00125607</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T257.1"/>
-			<UserParam type="float" name="FWHM" value="10.476300239563"/>
+			<UserParam type="float" name="FWHM" value="20.284049987793"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="32679.6103066279"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -991,7 +991,7 @@
 			<overallquality>0.0005035</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T382.1"/>
-			<UserParam type="float" name="FWHM" value="7.09460020065308"/>
+			<UserParam type="float" name="FWHM" value="10.4879884719849"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="13099.7265855284"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -1006,7 +1006,7 @@
 			<overallquality>0.000368153</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T401.1"/>
-			<UserParam type="float" name="FWHM" value="5.34439992904663"/>
+			<UserParam type="float" name="FWHM" value="0"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="9578.33943283682"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -1021,7 +1021,7 @@
 			<overallquality>0.00248908</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T316.1"/>
-			<UserParam type="float" name="FWHM" value="30.4302005767822"/>
+			<UserParam type="float" name="FWHM" value="27.198278427124"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="64759.0966830928"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -1036,7 +1036,7 @@
 			<overallquality>0.00327609</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T133.1"/>
-			<UserParam type="float" name="FWHM" value="20.484899520874"/>
+			<UserParam type="float" name="FWHM" value="21.6320323944092"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="85234.9414252559"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -1051,7 +1051,7 @@
 			<overallquality>0.00111839</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T166.1"/>
-			<UserParam type="float" name="FWHM" value="8.51760005950928"/>
+			<UserParam type="float" name="FWHM" value="4.98883628845215"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="29097.5045528325"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -1066,7 +1066,7 @@
 			<overallquality>0.000635591</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T333"/>
-			<UserParam type="float" name="FWHM" value="6.94449996948242"/>
+			<UserParam type="float" name="FWHM" value="25.9108123779297"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="16536.3655541383"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -1081,7 +1081,7 @@
 			<overallquality>0.00142559</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T275.1"/>
-			<UserParam type="float" name="FWHM" value="13.8222999572754"/>
+			<UserParam type="float" name="FWHM" value="59.7553291320801"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="37090.0288780403"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -1096,7 +1096,7 @@
 			<overallquality>0.00357894</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T239.1"/>
-			<UserParam type="float" name="FWHM" value="33.1248016357422"/>
+			<UserParam type="float" name="FWHM" value="3.90301179885864"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="93114.3324487856"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -1111,7 +1111,7 @@
 			<overallquality>0.00194505</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T197.1"/>
-			<UserParam type="float" name="FWHM" value="17.2504997253418"/>
+			<UserParam type="float" name="FWHM" value="4.26094532012939"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="50604.9338035587"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -1126,7 +1126,7 @@
 			<overallquality>0.00111767</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T218.1"/>
-			<UserParam type="float" name="FWHM" value="8.609299659729"/>
+			<UserParam type="float" name="FWHM" value="5.92530393600464"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="29078.7484964846"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -1141,7 +1141,7 @@
 			<overallquality>0.000545539</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T296.1"/>
-			<UserParam type="float" name="FWHM" value="5.14589977264404"/>
+			<UserParam type="float" name="FWHM" value="0"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="14193.4694971801"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -1156,7 +1156,7 @@
 			<overallquality>0.00189792</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T198.1"/>
-			<UserParam type="float" name="FWHM" value="17.5622997283936"/>
+			<UserParam type="float" name="FWHM" value="14.0606336593628"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="49378.7247903563"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -1171,7 +1171,7 @@
 			<overallquality>0.000447821</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T357.1"/>
-			<UserParam type="float" name="FWHM" value="5.2185001373291"/>
+			<UserParam type="float" name="FWHM" value="0"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="11651.0879745482"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -1186,7 +1186,7 @@
 			<overallquality>0.000434446</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T361.1"/>
-			<UserParam type="float" name="FWHM" value="5.38420009613037"/>
+			<UserParam type="float" name="FWHM" value="0"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="11303.1219773803"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -1201,7 +1201,7 @@
 			<overallquality>0.00471874</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T73.1"/>
-			<UserParam type="float" name="FWHM" value="20.8880996704102"/>
+			<UserParam type="float" name="FWHM" value="16.4060230255127"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="122768.865134375"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -1216,7 +1216,7 @@
 			<overallquality>0.00173367</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T165.1"/>
-			<UserParam type="float" name="FWHM" value="6.93959999084473"/>
+			<UserParam type="float" name="FWHM" value="2.63005805015564"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="45105.3235555671"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -1231,7 +1231,7 @@
 			<overallquality>0.000602004</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T290.1"/>
-			<UserParam type="float" name="FWHM" value="5.28879976272583"/>
+			<UserParam type="float" name="FWHM" value="0"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="15662.5139193367"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -1246,7 +1246,7 @@
 			<overallquality>0.00119525</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T319.1"/>
-			<UserParam type="float" name="FWHM" value="12.4392995834351"/>
+			<UserParam type="float" name="FWHM" value="29.5919132232666"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="31097.3225098633"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -1261,7 +1261,7 @@
 			<overallquality>0.00295534</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T219.1"/>
-			<UserParam type="float" name="FWHM" value="28.4969997406006"/>
+			<UserParam type="float" name="FWHM" value="25.8781871795654"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="76890.0440707337"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -1276,7 +1276,7 @@
 			<overallquality>0.00246922</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T191.1"/>
-			<UserParam type="float" name="FWHM" value="21.3089008331299"/>
+			<UserParam type="float" name="FWHM" value="19.9321765899658"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="64242.3654380066"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -1291,7 +1291,7 @@
 			<overallquality>0.000514973</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T326.1"/>
-			<UserParam type="float" name="FWHM" value="7.30730009078979"/>
+			<UserParam type="float" name="FWHM" value="0.0105249667540193"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="13398.2112898863"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -1306,7 +1306,7 @@
 			<overallquality>0.000676975</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T244.1"/>
-			<UserParam type="float" name="FWHM" value="5.16039991378784"/>
+			<UserParam type="float" name="FWHM" value="14.9644269943237"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="17613.0739533072"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -1321,7 +1321,7 @@
 			<overallquality>0.000269975</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T423.1"/>
-			<UserParam type="float" name="FWHM" value="5.57480001449585"/>
+			<UserParam type="float" name="FWHM" value="0"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="7024.0220681639"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -1336,7 +1336,7 @@
 			<overallquality>0.00117274</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T163.1"/>
-			<UserParam type="float" name="FWHM" value="6.91919994354248"/>
+			<UserParam type="float" name="FWHM" value="39.0452270507812"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="30511.6026967522"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -1351,7 +1351,7 @@
 			<overallquality>0.00317126</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T124.1"/>
-			<UserParam type="float" name="FWHM" value="17.3892002105713"/>
+			<UserParam type="float" name="FWHM" value="19.9639759063721"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="82507.6520010867"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -1366,7 +1366,7 @@
 			<overallquality>0.000554481</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T130.1"/>
-			<UserParam type="float" name="FWHM" value="3.44470000267029"/>
+			<UserParam type="float" name="FWHM" value="0"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="14426.1109350586"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -1381,7 +1381,7 @@
 			<overallquality>0.000596681</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T406.1"/>
-			<UserParam type="float" name="FWHM" value="9.11699962615967"/>
+			<UserParam type="float" name="FWHM" value="14.6106433868408"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="15524.0261097904"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -1396,7 +1396,7 @@
 			<overallquality>0.00510083</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T70.1"/>
-			<UserParam type="float" name="FWHM" value="22.2129993438721"/>
+			<UserParam type="float" name="FWHM" value="20.2961845397949"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="132709.954920728"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -1411,7 +1411,7 @@
 			<overallquality>0.00152967</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T148.1"/>
-			<UserParam type="float" name="FWHM" value="8.54300022125244"/>
+			<UserParam type="float" name="FWHM" value="67.3203811645508"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="39797.8054267583"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -1426,7 +1426,7 @@
 			<overallquality>0.000299418</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T421.1"/>
-			<UserParam type="float" name="FWHM" value="5.72389984130859"/>
+			<UserParam type="float" name="FWHM" value="0"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="7790.05496723017"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -1441,7 +1441,7 @@
 			<overallquality>0.00201132</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T164.1"/>
-			<UserParam type="float" name="FWHM" value="13.6372003555298"/>
+			<UserParam type="float" name="FWHM" value="9.02462959289551"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="52329.0816884407"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -1456,7 +1456,7 @@
 			<overallquality>0.00122684</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T286"/>
-			<UserParam type="float" name="FWHM" value="8.5241003036499"/>
+			<UserParam type="float" name="FWHM" value="13.8293552398682"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="31919.0774777713"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -1471,7 +1471,7 @@
 			<overallquality>0.000406026</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T380.1"/>
-			<UserParam type="float" name="FWHM" value="5.36180019378662"/>
+			<UserParam type="float" name="FWHM" value="0"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="10563.6976671389"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -1486,7 +1486,7 @@
 			<overallquality>0.00315512</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T127.1"/>
-			<UserParam type="float" name="FWHM" value="17.2504997253418"/>
+			<UserParam type="float" name="FWHM" value="18.2395668029785"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="82087.6268559211"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -1501,7 +1501,7 @@
 			<overallquality>0.001027</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T203.1"/>
-			<UserParam type="float" name="FWHM" value="8.73950004577637"/>
+			<UserParam type="float" name="FWHM" value="6.02173757553101"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="26719.8180806997"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -1516,7 +1516,7 @@
 			<overallquality>0.000579674</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T340"/>
-			<UserParam type="float" name="FWHM" value="9.34000015258789"/>
+			<UserParam type="float" name="FWHM" value="0.911022424697876"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="15081.5687834718"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -1531,7 +1531,7 @@
 			<overallquality>0.00264299</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T105.1"/>
-			<UserParam type="float" name="FWHM" value="15.9622001647949"/>
+			<UserParam type="float" name="FWHM" value="14.5132884979248"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="68763.3694427744"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -1546,7 +1546,7 @@
 			<overallquality>0.00438471</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T64.1"/>
-			<UserParam type="float" name="FWHM" value="17.38450050354"/>
+			<UserParam type="float" name="FWHM" value="14.4129390716553"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="114078.25882721"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -1561,7 +1561,7 @@
 			<overallquality>0.000554299</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T121.1"/>
-			<UserParam type="float" name="FWHM" value="3.51909995079041"/>
+			<UserParam type="float" name="FWHM" value="0"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="14421.3779056762"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -1576,7 +1576,7 @@
 			<overallquality>0.00264965</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T168.1"/>
-			<UserParam type="float" name="FWHM" value="19.5767002105713"/>
+			<UserParam type="float" name="FWHM" value="18.1447563171387"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="68936.6754393558"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -1591,7 +1591,7 @@
 			<overallquality>0.0030014</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T149.1"/>
-			<UserParam type="float" name="FWHM" value="19.5767002105713"/>
+			<UserParam type="float" name="FWHM" value="18.2549228668213"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="78088.4838973882"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -1606,7 +1606,7 @@
 			<overallquality>0.00377916</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T160.1"/>
-			<UserParam type="float" name="FWHM" value="24.257999420166"/>
+			<UserParam type="float" name="FWHM" value="29.1975765228271"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="98323.5676153927"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -1621,7 +1621,7 @@
 			<overallquality>0.00536226</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T106.1"/>
-			<UserParam type="float" name="FWHM" value="27.9356994628906"/>
+			<UserParam type="float" name="FWHM" value="26.764612197876"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="139511.611326342"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -1636,7 +1636,7 @@
 			<overallquality>0.00180672</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T150.1"/>
-			<UserParam type="float" name="FWHM" value="10.306300163269"/>
+			<UserParam type="float" name="FWHM" value="12.8354873657227"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="47006.033624291"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -1651,7 +1651,7 @@
 			<overallquality>0.00080093</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T202.1"/>
-			<UserParam type="float" name="FWHM" value="5.10900020599365"/>
+			<UserParam type="float" name="FWHM" value="0"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="20838.0412547604"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -1666,7 +1666,7 @@
 			<overallquality>0.00101867</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T231"/>
-			<UserParam type="float" name="FWHM" value="6.92269992828369"/>
+			<UserParam type="float" name="FWHM" value="6405.09912109375"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="26503.0007077988"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -1681,7 +1681,7 @@
 			<overallquality>0.00614912</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T35.1"/>
-			<UserParam type="float" name="FWHM" value="22.190299987793"/>
+			<UserParam type="float" name="FWHM" value="19.692066192627"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="159983.629045655"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -1696,7 +1696,7 @@
 			<overallquality>0.00131009</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T93.1"/>
-			<UserParam type="float" name="FWHM" value="5.1149001121521"/>
+			<UserParam type="float" name="FWHM" value="0"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="34085.0317599123"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -1711,7 +1711,7 @@
 			<overallquality>0.00036862</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T398.1"/>
-			<UserParam type="float" name="FWHM" value="5.5048999786377"/>
+			<UserParam type="float" name="FWHM" value="0"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="9590.50211423324"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -1726,7 +1726,7 @@
 			<overallquality>0.00273008</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T108.1"/>
-			<UserParam type="float" name="FWHM" value="13.6429996490479"/>
+			<UserParam type="float" name="FWHM" value="24.8175849914551"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="71029.4390946778"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -1741,7 +1741,7 @@
 			<overallquality>0.000376248</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T378.1"/>
-			<UserParam type="float" name="FWHM" value="5.31710004806519"/>
+			<UserParam type="float" name="FWHM" value="0"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="9788.97030100663"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -1756,7 +1756,7 @@
 			<overallquality>0.00149929</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T227.1"/>
-			<UserParam type="float" name="FWHM" value="12.2536001205444"/>
+			<UserParam type="float" name="FWHM" value="19.2628402709961"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="39007.464294983"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -1771,7 +1771,7 @@
 			<overallquality>0.00317704</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T116.1"/>
-			<UserParam type="float" name="FWHM" value="17.7847003936768"/>
+			<UserParam type="float" name="FWHM" value="16.1849498748779"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="82658.1368380867"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -1786,7 +1786,7 @@
 			<overallquality>0.000805621</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T151"/>
-			<UserParam type="float" name="FWHM" value="5.38600015640259"/>
+			<UserParam type="float" name="FWHM" value="0"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="20960.0897490233"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -1801,7 +1801,7 @@
 			<overallquality>0.00435982</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T90.1"/>
-			<UserParam type="float" name="FWHM" value="18.9683990478516"/>
+			<UserParam type="float" name="FWHM" value="24.2285060882568"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="113430.706289063"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -1816,7 +1816,7 @@
 			<overallquality>0.00390084</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T86.1"/>
-			<UserParam type="float" name="FWHM" value="19.1378002166748"/>
+			<UserParam type="float" name="FWHM" value="17.2495002746582"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="101489.480347485"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -1831,7 +1831,7 @@
 			<overallquality>0.000413533</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T433.1"/>
-			<UserParam type="float" name="FWHM" value="9.34519958496094"/>
+			<UserParam type="float" name="FWHM" value="19.8095054626465"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="10759.0172916195"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -1846,7 +1846,7 @@
 			<overallquality>0.000551801</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T343.1"/>
-			<UserParam type="float" name="FWHM" value="7.16559982299805"/>
+			<UserParam type="float" name="FWHM" value="4.05955600738525"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="14356.3814521603"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -1861,7 +1861,7 @@
 			<overallquality>0.000449392</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T358.1"/>
-			<UserParam type="float" name="FWHM" value="5.48759984970093"/>
+			<UserParam type="float" name="FWHM" value="0"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="11691.9688492674"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -1876,7 +1876,7 @@
 			<overallquality>0.0024054</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T85.1"/>
-			<UserParam type="float" name="FWHM" value="13.8572998046875"/>
+			<UserParam type="float" name="FWHM" value="9.75554656982422"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="62581.9559295904"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -1891,7 +1891,7 @@
 			<overallquality>0.00113455</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T94.1"/>
-			<UserParam type="float" name="FWHM" value="5.19659996032715"/>
+			<UserParam type="float" name="FWHM" value="6.9588565826416"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="29517.8751268785"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -1906,7 +1906,7 @@
 			<overallquality>0.00615595</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T61.1"/>
-			<UserParam type="float" name="FWHM" value="25.9885997772217"/>
+			<UserParam type="float" name="FWHM" value="23.7322483062744"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="160161.330062695"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -1921,7 +1921,7 @@
 			<overallquality>0.000574233</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T283.1"/>
-			<UserParam type="float" name="FWHM" value="5.2039999961853"/>
+			<UserParam type="float" name="FWHM" value="0"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="14940.0119013677"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -1936,7 +1936,7 @@
 			<overallquality>0.00482611</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T120.1"/>
-			<UserParam type="float" name="FWHM" value="32.0952987670898"/>
+			<UserParam type="float" name="FWHM" value="25.8097972869873"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="125562.498612415"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -1951,7 +1951,7 @@
 			<overallquality>0.00172805</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T289.1"/>
-			<UserParam type="float" name="FWHM" value="16.1667003631592"/>
+			<UserParam type="float" name="FWHM" value="5.809974193573"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="44959.2044894902"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -1966,7 +1966,7 @@
 			<overallquality>0.000379524</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T387"/>
-			<UserParam type="float" name="FWHM" value="5.47650003433228"/>
+			<UserParam type="float" name="FWHM" value="12.3241033554077"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="9874.20392471351"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -1981,7 +1981,7 @@
 			<overallquality>0.00249212</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T122.1"/>
-			<UserParam type="float" name="FWHM" value="13.7607002258301"/>
+			<UserParam type="float" name="FWHM" value="12.0251455307007"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="64838.3633631343"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -1996,7 +1996,7 @@
 			<overallquality>0.000793061</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T272.1"/>
-			<UserParam type="float" name="FWHM" value="5.14589977264404"/>
+			<UserParam type="float" name="FWHM" value="0"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="20633.3259020873"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -2011,7 +2011,7 @@
 			<overallquality>0.000943912</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T208.1"/>
-			<UserParam type="float" name="FWHM" value="8.63549995422363"/>
+			<UserParam type="float" name="FWHM" value="6.04498529434204"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="24558.0474063729"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -2026,7 +2026,7 @@
 			<overallquality>0.00125025</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T312.1"/>
-			<UserParam type="float" name="FWHM" value="8.64550018310547"/>
+			<UserParam type="float" name="FWHM" value="16.0381126403809"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="32528.0852194565"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -2041,7 +2041,7 @@
 			<overallquality>0.00877302</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T36.1"/>
-			<UserParam type="float" name="FWHM" value="29.0393009185791"/>
+			<UserParam type="float" name="FWHM" value="25.3149700164795"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="228250.437706044"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -2056,7 +2056,7 @@
 			<overallquality>0.00289249</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T140.1"/>
-			<UserParam type="float" name="FWHM" value="17.044900894165"/>
+			<UserParam type="float" name="FWHM" value="9.24224090576172"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="75254.9414903456"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -2071,7 +2071,7 @@
 			<overallquality>0.00280178</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T104.1"/>
-			<UserParam type="float" name="FWHM" value="13.6429996490479"/>
+			<UserParam type="float" name="FWHM" value="9.97032737731934"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="72894.8335132081"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -2086,7 +2086,7 @@
 			<overallquality>0.00519021</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T109.1"/>
-			<UserParam type="float" name="FWHM" value="26.6989994049072"/>
+			<UserParam type="float" name="FWHM" value="24.9943733215332"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="135035.238991456"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -2101,7 +2101,7 @@
 			<overallquality>0.00188008</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T276.1"/>
-			<UserParam type="float" name="FWHM" value="15.8179998397827"/>
+			<UserParam type="float" name="FWHM" value="23.4616947174072"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="48914.5497133919"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -2131,7 +2131,7 @@
 			<overallquality>0.00097004</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T351.1"/>
-			<UserParam type="float" name="FWHM" value="14.8649997711182"/>
+			<UserParam type="float" name="FWHM" value="20.1446628570557"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="25237.8377396482"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -2146,7 +2146,7 @@
 			<overallquality>0.00319559</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T62.1"/>
-			<UserParam type="float" name="FWHM" value="13.8856000900269"/>
+			<UserParam type="float" name="FWHM" value="11.4262275695801"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="83140.5462599607"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -2161,7 +2161,7 @@
 			<overallquality>0.000446948</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T360.1"/>
-			<UserParam type="float" name="FWHM" value="5.25909996032715"/>
+			<UserParam type="float" name="FWHM" value="0"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="11628.3952396245"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -2176,7 +2176,7 @@
 			<overallquality>0.00090025</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T136.1"/>
-			<UserParam type="float" name="FWHM" value="5.19339990615845"/>
+			<UserParam type="float" name="FWHM" value="4.68508195877075"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="23422.0725713609"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -2191,7 +2191,7 @@
 			<overallquality>0.00444004</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T99.1"/>
-			<UserParam type="float" name="FWHM" value="22.4881992340088"/>
+			<UserParam type="float" name="FWHM" value="6.23520660400391"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="115517.875826723"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -2206,7 +2206,7 @@
 			<overallquality>0.00803461</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T53.1"/>
-			<UserParam type="float" name="FWHM" value="32.9398994445801"/>
+			<UserParam type="float" name="FWHM" value="29.361499786377"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="209038.985287233"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -2221,7 +2221,7 @@
 			<overallquality>0.00054032</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T307.1"/>
-			<UserParam type="float" name="FWHM" value="5.20410013198853"/>
+			<UserParam type="float" name="FWHM" value="0"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="14057.6812144407"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -2236,7 +2236,7 @@
 			<overallquality>0.00603879</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T78.1"/>
-			<UserParam type="float" name="FWHM" value="28.4857006072998"/>
+			<UserParam type="float" name="FWHM" value="27.8412570953369"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="157113.098296654"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -2251,7 +2251,7 @@
 			<overallquality>0.00239549</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T77.1"/>
-			<UserParam type="float" name="FWHM" value="10.3340997695923"/>
+			<UserParam type="float" name="FWHM" value="10.1951789855957"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="62324.0934163333"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -2266,7 +2266,7 @@
 			<overallquality>0.00202845</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T103.1"/>
-			<UserParam type="float" name="FWHM" value="10.3793001174927"/>
+			<UserParam type="float" name="FWHM" value="6.7416877746582"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="52774.8889006082"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -2281,7 +2281,7 @@
 			<overallquality>0.000965471</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T96.1"/>
-			<UserParam type="float" name="FWHM" value="5.18610000610352"/>
+			<UserParam type="float" name="FWHM" value="0.596389174461365"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="25118.9513976806"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -2296,7 +2296,7 @@
 			<overallquality>0.0105082</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T20.1"/>
-			<UserParam type="float" name="FWHM" value="29.0669002532959"/>
+			<UserParam type="float" name="FWHM" value="24.2803421020508"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="273395.257858742"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -2311,7 +2311,7 @@
 			<overallquality>0.00174712</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T114.1"/>
-			<UserParam type="float" name="FWHM" value="12.08899974823"/>
+			<UserParam type="float" name="FWHM" value="4.01083278656006"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="45455.4890693351"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -2326,7 +2326,7 @@
 			<overallquality>0.00224935</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T65.1"/>
-			<UserParam type="float" name="FWHM" value="8.53400039672852"/>
+			<UserParam type="float" name="FWHM" value="10.3460369110107"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="58522.1636979992"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -2341,7 +2341,7 @@
 			<overallquality>0.00345886</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T49.1"/>
-			<UserParam type="float" name="FWHM" value="11.9455003738403"/>
+			<UserParam type="float" name="FWHM" value="11.2158689498901"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="89990.2608028098"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -2356,7 +2356,7 @@
 			<overallquality>0.00579016</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T67.1"/>
-			<UserParam type="float" name="FWHM" value="24.9181003570557"/>
+			<UserParam type="float" name="FWHM" value="22.8204975128174"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="150644.367989698"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -2371,7 +2371,7 @@
 			<overallquality>0.000784646</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T205.1"/>
-			<UserParam type="float" name="FWHM" value="5.14909982681274"/>
+			<UserParam type="float" name="FWHM" value="0"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="20414.3794407108"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -2386,7 +2386,7 @@
 			<overallquality>0.00107781</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T332.1"/>
-			<UserParam type="float" name="FWHM" value="14.8968000411987"/>
+			<UserParam type="float" name="FWHM" value="14.3082752227783"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="28041.6634397826"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -2401,7 +2401,7 @@
 			<overallquality>0.000326338</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T385.1"/>
-			<UserParam type="float" name="FWHM" value="5.57810020446777"/>
+			<UserParam type="float" name="FWHM" value="0"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="8490.42553335529"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -2416,7 +2416,7 @@
 			<overallquality>0.00224027</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T185.1"/>
-			<UserParam type="float" name="FWHM" value="13.9881000518799"/>
+			<UserParam type="float" name="FWHM" value="30.9122409820557"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="58285.8878881348"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -2431,7 +2431,7 @@
 			<overallquality>0.00222177</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T204.1"/>
-			<UserParam type="float" name="FWHM" value="15.7712001800537"/>
+			<UserParam type="float" name="FWHM" value="96.8843765258789"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="57804.5981234622"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -2446,7 +2446,7 @@
 			<overallquality>0.00667779</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T25.1"/>
-			<UserParam type="float" name="FWHM" value="18.9683990478516"/>
+			<UserParam type="float" name="FWHM" value="5.24467420578003"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="173738.030380153"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -2461,7 +2461,7 @@
 			<overallquality>0.000261149</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T427.1"/>
-			<UserParam type="float" name="FWHM" value="5.87120008468628"/>
+			<UserParam type="float" name="FWHM" value="0"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="6794.40248134771"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -2476,7 +2476,7 @@
 			<overallquality>0.00086252</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T176.1"/>
-			<UserParam type="float" name="FWHM" value="5.20279979705811"/>
+			<UserParam type="float" name="FWHM" value="0"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="22440.4639332032"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -2491,7 +2491,7 @@
 			<overallquality>0.000289414</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T424.1"/>
-			<UserParam type="float" name="FWHM" value="5.60370016098022"/>
+			<UserParam type="float" name="FWHM" value="0"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="7529.76529328629"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -2506,7 +2506,7 @@
 			<overallquality>0.00427723</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T55.1"/>
-			<UserParam type="float" name="FWHM" value="15.6472997665405"/>
+			<UserParam type="float" name="FWHM" value="14.3049898147583"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="111282.037535642"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -2521,7 +2521,7 @@
 			<overallquality>0.000602952</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T271.1"/>
-			<UserParam type="float" name="FWHM" value="5.36269998550415"/>
+			<UserParam type="float" name="FWHM" value="0"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="15687.1903872671"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -2536,7 +2536,7 @@
 			<overallquality>0.00220251</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T76.1"/>
-			<UserParam type="float" name="FWHM" value="8.67650032043457"/>
+			<UserParam type="float" name="FWHM" value="10.3938961029053"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="57303.3363599366"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -2551,7 +2551,7 @@
 			<overallquality>0.00210167</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T141"/>
-			<UserParam type="float" name="FWHM" value="12.2073001861572"/>
+			<UserParam type="float" name="FWHM" value="324.880889892578"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="54679.7631661134"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -2566,7 +2566,7 @@
 			<overallquality>0.011241</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T44.1"/>
-			<UserParam type="float" name="FWHM" value="39.7677993774414"/>
+			<UserParam type="float" name="FWHM" value="45.9952049255371"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="292461.539743653"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -2581,7 +2581,7 @@
 			<overallquality>0.00925546</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T42.1"/>
-			<UserParam type="float" name="FWHM" value="29.482400894165"/>
+			<UserParam type="float" name="FWHM" value="28.6226558685303"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="240802.101465724"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -2596,7 +2596,7 @@
 			<overallquality>0.00100359</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T101.1"/>
-			<UserParam type="float" name="FWHM" value="5.24249982833862"/>
+			<UserParam type="float" name="FWHM" value="0"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="26110.6481826774"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -2611,7 +2611,7 @@
 			<overallquality>0.00881866</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T37.1"/>
-			<UserParam type="float" name="FWHM" value="30.2709999084473"/>
+			<UserParam type="float" name="FWHM" value="27.4425830841064"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="229437.720332811"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -2626,7 +2626,7 @@
 			<overallquality>0.00487</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T63.1"/>
-			<UserParam type="float" name="FWHM" value="18.9528007507324"/>
+			<UserParam type="float" name="FWHM" value="16.1754055023193"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="126704.346760352"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -2641,7 +2641,7 @@
 			<overallquality>0.000635317</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T281.1"/>
-			<UserParam type="float" name="FWHM" value="5.25279998779297"/>
+			<UserParam type="float" name="FWHM" value="0"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="16529.229804882"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -2656,7 +2656,7 @@
 			<overallquality>0.00129637</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T229.1"/>
-			<UserParam type="float" name="FWHM" value="8.66329956054688"/>
+			<UserParam type="float" name="FWHM" value="10.7525329589844"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="33728.0069576789"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -2671,7 +2671,7 @@
 			<overallquality>0.000650526</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T221.1"/>
-			<UserParam type="float" name="FWHM" value="5.25930023193359"/>
+			<UserParam type="float" name="FWHM" value="0.769387006759644"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="16924.9343071173"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -2686,7 +2686,7 @@
 			<overallquality>0.00168666</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T215"/>
-			<UserParam type="float" name="FWHM" value="12.0853004455566"/>
+			<UserParam type="float" name="FWHM" value="37.8885765075684"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="43882.4853303841"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -2699,13 +2699,14 @@
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.00257518</overallquality>
-			<charge>0</charge>
-			<UserParam type="string" name="label" value="T47.1"/>
-			<UserParam type="float" name="FWHM" value="10.3793001174927"/>
-			<UserParam type="int" name="num_of_masstraces" value="1"/>
+			<charge>1</charge>
+			<UserParam type="string" name="label" value="T47.1_T255.1"/>
+			<UserParam type="float" name="FWHM" value="6.42718410491943"/>
+			<UserParam type="int" name="num_of_masstraces" value="2"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="66999.2248379367"/>
-			<UserParam type="floatList" name="isotope_distances" value="[]"/>
-			<UserParam type="int" name="legal_isotope_pattern" value="-1"/>
+			<UserParam type="floatList" name="isotope_distances" value="[1.05107030214572]"/>
+			<UserParam type="int" name="legal_isotope_pattern" value="1"/>
+			<UserParam type="float" name="masstrace_intensity_1" value="18092.9185582031"/>
 		</feature>
 		<feature id="f_11356404697098357181">
 			<position dim="0">2465.6642</position>
@@ -2723,15 +2724,15 @@
 			<UserParam type="int" name="legal_isotope_pattern" value="-1"/>
 		</feature>
 		<feature id="f_15137961832517596447">
-			<position dim="0">2498.3931</position>
+			<position dim="0">2115.1782</position>
 			<position dim="1">1436.76581148869</position>
-			<intensity>18092.9</intensity>
+			<intensity>30226</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.000695418</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T255.1"/>
-			<UserParam type="float" name="FWHM" value="5.18839979171753"/>
+			<UserParam type="float" name="FWHM" value="67.1202545166016"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="18092.9185582031"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -2740,30 +2741,30 @@
 		<feature id="f_16437269819074619437">
 			<position dim="0">2115.1782</position>
 			<position dim="1">1439.59765015814</position>
-			<intensity>30226</intensity>
+			<intensity>183248</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.00116177</overallquality>
 			<charge>0</charge>
-			<UserParam type="string" name="label" value="T302.1"/>
+			<UserParam type="string" name="label" value="T48.1"/>
 			<UserParam type="float" name="FWHM" value="11.128999710083"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
-			<UserParam type="float" name="masstrace_intensity_0" value="30226.0100915281"/>
+			<UserParam type="float" name="masstrace_intensity_0" value="183248.258405836"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
 			<UserParam type="int" name="legal_isotope_pattern" value="-1"/>
 		</feature>
 		<feature id="f_12959367150092654332">
 			<position dim="0">2054.1124</position>
 			<position dim="1">1444.4130133159</position>
-			<intensity>183248</intensity>
+			<intensity>19037.4</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.00704332</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T48.1"/>
-			<UserParam type="float" name="FWHM" value="23.1235008239746"/>
+			<UserParam type="float" name="FWHM" value="0"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
-			<UserParam type="float" name="masstrace_intensity_0" value="183248.258405836"/>
+			<UserParam type="float" name="masstrace_intensity_0" value="19037.3789399421"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
 			<UserParam type="int" name="legal_isotope_pattern" value="-1"/>
 		</feature>
@@ -2775,7 +2776,7 @@
 			<quality dim="1">0</quality>
 			<overallquality>0.00073172</overallquality>
 			<charge>0</charge>
-			<UserParam type="string" name="label" value="T438.1"/>
+			<UserParam type="string" name="label" value="T26.1"/>
 			<UserParam type="float" name="FWHM" value="5.60519981384277"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="19037.3789399421"/>
@@ -2785,7 +2786,7 @@
 		<feature id="f_11504199178185045470">
 			<position dim="0">2450.3192</position>
 			<position dim="1">1448.25747813093</position>
-			<intensity>161515</intensity>
+			<intensity>14009</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.00620798</overallquality>
@@ -2821,7 +2822,7 @@
 			<overallquality>0.00400835</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T81.1"/>
-			<UserParam type="float" name="FWHM" value="19.2723999023438"/>
+			<UserParam type="float" name="FWHM" value="0"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="104286.423174098"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -2829,13 +2830,13 @@
 		</feature>
 		<feature id="f_7207371083159283456">
 			<position dim="0">2385.791</position>
-			<position dim="1">1463.60830586887</position>
-			<intensity>11487.5</intensity>
+			<position dim="1">1467.80386783409</position>
+			<intensity>253162</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.000441533</overallquality>
 			<charge>0</charge>
-			<UserParam type="string" name="label" value="T356.1"/>
+			<UserParam type="string" name="label" value="T15.1"/>
 			<UserParam type="float" name="FWHM" value="5.28140020370483"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="11487.5124090583"/>
@@ -2881,7 +2882,7 @@
 			<overallquality>0.00480122</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T41.1"/>
-			<UserParam type="float" name="FWHM" value="13.829400062561"/>
+			<UserParam type="float" name="FWHM" value="327.891815185547"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="124914.751524195"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -2941,7 +2942,7 @@
 			<overallquality>0.00730472</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T128.1"/>
-			<UserParam type="float" name="FWHM" value="48.5442008972168"/>
+			<UserParam type="float" name="FWHM" value="0"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="190049.212210145"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -2956,7 +2957,7 @@
 			<overallquality>0.000972472</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T131.1"/>
-			<UserParam type="float" name="FWHM" value="5.18540000915527"/>
+			<UserParam type="float" name="FWHM" value="0"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="25301.1142444084"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -2971,7 +2972,7 @@
 			<overallquality>0.000944629</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T154.1"/>
-			<UserParam type="float" name="FWHM" value="5.1806001663208"/>
+			<UserParam type="float" name="FWHM" value="0"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="24576.6981010727"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -3001,7 +3002,7 @@
 			<overallquality>0.00128279</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T125"/>
-			<UserParam type="float" name="FWHM" value="6.92749977111816"/>
+			<UserParam type="float" name="FWHM" value="0"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="33374.8327155385"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -3046,7 +3047,7 @@
 			<overallquality>0.00282042</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T84.1"/>
-			<UserParam type="float" name="FWHM" value="15.6342000961304"/>
+			<UserParam type="float" name="FWHM" value="0"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="73379.8580202505"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -3070,15 +3071,15 @@
 		<feature id="f_3103608995878612024">
 			<position dim="0">2155.4741</position>
 			<position dim="1">1497.84337882895</position>
-			<intensity>247791</intensity>
+			<intensity>8661.94</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.00952409</overallquality>
 			<charge>0</charge>
-			<UserParam type="string" name="label" value="T7.1"/>
-			<UserParam type="float" name="FWHM" value="21.31369972229"/>
+			<UserParam type="string" name="label" value="T391.1"/>
+			<UserParam type="float" name="FWHM" value="0"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
-			<UserParam type="float" name="masstrace_intensity_0" value="247791.284938869"/>
+			<UserParam type="float" name="masstrace_intensity_0" value="8661.93971276249"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
 			<UserParam type="int" name="legal_isotope_pattern" value="-1"/>
 		</feature>
@@ -3091,7 +3092,7 @@
 			<overallquality>0.00033293</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T391.1"/>
-			<UserParam type="float" name="FWHM" value="5.57690000534058"/>
+			<UserParam type="float" name="FWHM" value="16.2182235717773"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="8661.93971276249"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -3151,7 +3152,7 @@
 			<overallquality>0.0032017</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T158.1"/>
-			<UserParam type="float" name="FWHM" value="18.9683990478516"/>
+			<UserParam type="float" name="FWHM" value="0"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="83299.709896327"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -3195,8 +3196,8 @@
 			<quality dim="1">0</quality>
 			<overallquality>0.0174452</overallquality>
 			<charge>0</charge>
-			<UserParam type="string" name="label" value="T2.1"/>
-			<UserParam type="float" name="FWHM" value="27.3393993377686"/>
+			<UserParam type="string" name="label" value="T187.1"/>
+			<UserParam type="float" name="FWHM" value="0"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="453877.915745755"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -3226,7 +3227,7 @@
 			<overallquality>0.0106984</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T24.1"/>
-			<UserParam type="float" name="FWHM" value="28.4969997406006"/>
+			<UserParam type="float" name="FWHM" value="0"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="278344.360928443"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -3256,7 +3257,7 @@
 			<overallquality>0.0012434</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T236"/>
-			<UserParam type="float" name="FWHM" value="11.2031002044678"/>
+			<UserParam type="float" name="FWHM" value="0"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="32350.0312893069"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -3286,7 +3287,7 @@
 			<overallquality>0.00889084</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T10.1"/>
-			<UserParam type="float" name="FWHM" value="22.1989002227783"/>
+			<UserParam type="float" name="FWHM" value="0"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="231315.688608792"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -3301,7 +3302,7 @@
 			<overallquality>0.000521726</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T266.1"/>
-			<UserParam type="float" name="FWHM" value="5.57810020446777"/>
+			<UserParam type="float" name="FWHM" value="0"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="13573.9103947808"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -3331,7 +3332,7 @@
 			<overallquality>0.00548884</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T45.1"/>
-			<UserParam type="float" name="FWHM" value="19.2723999023438"/>
+			<UserParam type="float" name="FWHM" value="0"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="142804.987510719"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -3346,7 +3347,7 @@
 			<overallquality>0.000774325</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T179.1"/>
-			<UserParam type="float" name="FWHM" value="5.16029977798462"/>
+			<UserParam type="float" name="FWHM" value="0"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="20145.8502550049"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -3361,7 +3362,7 @@
 			<overallquality>0.000951932</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T159.1"/>
-			<UserParam type="float" name="FWHM" value="5.26849985122681"/>
+			<UserParam type="float" name="FWHM" value="17.0982685089111"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="24766.7117155768"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -3376,7 +3377,7 @@
 			<overallquality>0.00181427</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T173.1"/>
-			<UserParam type="float" name="FWHM" value="14.0389995574951"/>
+			<UserParam type="float" name="FWHM" value="0"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="47202.5256289677"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -3390,8 +3391,8 @@
 			<quality dim="1">0</quality>
 			<overallquality>0.000434801</overallquality>
 			<charge>0</charge>
-			<UserParam type="string" name="label" value="T376.1"/>
-			<UserParam type="float" name="FWHM" value="5.82100009918213"/>
+			<UserParam type="string" name="label" value="T5.1"/>
+			<UserParam type="float" name="FWHM" value="21.3037490844727"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="11312.3428854368"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -3420,8 +3421,8 @@
 			<quality dim="1">0</quality>
 			<overallquality>0.00162576</overallquality>
 			<charge>0</charge>
-			<UserParam type="string" name="label" value="T5.2"/>
-			<UserParam type="float" name="FWHM" value="14.2459001541138"/>
+			<UserParam type="string" name="label" value="T240.1"/>
+			<UserParam type="float" name="FWHM" value="0"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="42297.9582527952"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -3436,7 +3437,7 @@
 			<overallquality>0.000673102</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T240.1"/>
-			<UserParam type="float" name="FWHM" value="5.31790018081665"/>
+			<UserParam type="float" name="FWHM" value="0"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="17512.3146901856"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -3451,7 +3452,7 @@
 			<overallquality>0.000496415</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T324.1"/>
-			<UserParam type="float" name="FWHM" value="5.35260009765625"/>
+			<UserParam type="float" name="FWHM" value="0"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="12915.3794923821"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -3496,7 +3497,7 @@
 			<overallquality>0.0122215</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T22.1"/>
-			<UserParam type="float" name="FWHM" value="34.6806983947754"/>
+			<UserParam type="float" name="FWHM" value="0"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="317970.255369701"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -3526,7 +3527,7 @@
 			<overallquality>0.0116564</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T11.1"/>
-			<UserParam type="float" name="FWHM" value="27.7565994262695"/>
+			<UserParam type="float" name="FWHM" value="0"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="303269.171584523"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -3541,7 +3542,7 @@
 			<overallquality>0.000542003</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T282.1"/>
-			<UserParam type="float" name="FWHM" value="5.42819976806641"/>
+			<UserParam type="float" name="FWHM" value="0"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="14101.4643659175"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -3556,7 +3557,7 @@
 			<overallquality>0.000716285</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T251.1"/>
-			<UserParam type="float" name="FWHM" value="5.17799997329712"/>
+			<UserParam type="float" name="FWHM" value="15.6481046676636"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="18635.8053032239"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -3646,7 +3647,7 @@
 			<overallquality>0.000691585</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T294"/>
-			<UserParam type="float" name="FWHM" value="7.42700004577637"/>
+			<UserParam type="float" name="FWHM" value="0"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="17993.1766402946"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -3676,7 +3677,7 @@
 			<overallquality>0.00196141</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T142.1"/>
-			<UserParam type="float" name="FWHM" value="10.3636999130249"/>
+			<UserParam type="float" name="FWHM" value="0"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="51030.7426515864"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -3691,7 +3692,7 @@
 			<overallquality>0.000522994</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T303.1"/>
-			<UserParam type="float" name="FWHM" value="5.46950006484985"/>
+			<UserParam type="float" name="FWHM" value="0"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="13606.9025214537"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -3706,7 +3707,7 @@
 			<overallquality>0.000674443</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T242.1"/>
-			<UserParam type="float" name="FWHM" value="5.23339986801147"/>
+			<UserParam type="float" name="FWHM" value="0"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="17547.2068943362"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -3781,7 +3782,7 @@
 			<overallquality>0.00730869</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T27.1"/>
-			<UserParam type="float" name="FWHM" value="24.0970001220703"/>
+			<UserParam type="float" name="FWHM" value="0"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="190152.59664988"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -3790,15 +3791,15 @@
 		<feature id="f_6675346238472377214">
 			<position dim="0">2026.8324</position>
 			<position dim="1">1574.09964496988</position>
-			<intensity>7512.44</intensity>
+			<intensity>300242</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
-			<overallquality>0.000288748</overallquality>
+			<overallquality>0.0115401</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T415.1"/>
 			<UserParam type="float" name="FWHM" value="5.74149990081787"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
-			<UserParam type="float" name="masstrace_intensity_0" value="7512.43490695202"/>
+			<UserParam type="float" name="masstrace_intensity_0" value="300242.380484157"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
 			<UserParam type="int" name="legal_isotope_pattern" value="-1"/>
 		</feature>
@@ -3811,7 +3812,7 @@
 			<overallquality>0.0115401</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T18.1"/>
-			<UserParam type="float" name="FWHM" value="28.50950050354"/>
+			<UserParam type="float" name="FWHM" value="0"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="300242.380484157"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -3826,7 +3827,7 @@
 			<overallquality>0.000406559</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T370.1"/>
-			<UserParam type="float" name="FWHM" value="5.60519981384277"/>
+			<UserParam type="float" name="FWHM" value="0"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="10577.5792833256"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -3841,7 +3842,7 @@
 			<overallquality>0.000521064</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T291.1"/>
-			<UserParam type="float" name="FWHM" value="5.50050020217896"/>
+			<UserParam type="float" name="FWHM" value="0"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="13556.6966704093"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -3871,7 +3872,7 @@
 			<overallquality>0.000946998</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T320.1"/>
-			<UserParam type="float" name="FWHM" value="10.6562995910645"/>
+			<UserParam type="float" name="FWHM" value="16.6235504150391"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="24638.3399707278"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -3916,7 +3917,7 @@
 			<overallquality>0.00327698</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T39.1"/>
-			<UserParam type="float" name="FWHM" value="10.3793001174927"/>
+			<UserParam type="float" name="FWHM" value="0"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="85258.1451639613"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -3930,7 +3931,7 @@
 			<quality dim="1">0</quality>
 			<overallquality>0.000635579</overallquality>
 			<charge>0</charge>
-			<UserParam type="string" name="label" value="T246.1"/>
+			<UserParam type="string" name="label" value="T1.1"/>
 			<UserParam type="float" name="FWHM" value="5.5789999961853"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="16536.0586126714"/>
@@ -3945,8 +3946,8 @@
 			<quality dim="1">0</quality>
 			<overallquality>0.0146595</overallquality>
 			<charge>0</charge>
-			<UserParam type="string" name="label" value="T1.1"/>
-			<UserParam type="float" name="FWHM" value="20.484899520874"/>
+			<UserParam type="string" name="label" value="T113.1"/>
+			<UserParam type="float" name="FWHM" value="0"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="381401.29904375"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -3961,7 +3962,7 @@
 			<overallquality>0.00100161</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T113.1"/>
-			<UserParam type="float" name="FWHM" value="5.18590021133423"/>
+			<UserParam type="float" name="FWHM" value="0"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="26059.0784981565"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -3976,7 +3977,7 @@
 			<overallquality>0.000883178</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T171.1"/>
-			<UserParam type="float" name="FWHM" value="5.14589977264404"/>
+			<UserParam type="float" name="FWHM" value="0"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="22977.9297303954"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -4005,8 +4006,8 @@
 			<quality dim="1">0</quality>
 			<overallquality>0.00921249</overallquality>
 			<charge>0</charge>
-			<UserParam type="string" name="label" value="T6.1"/>
-			<UserParam type="float" name="FWHM" value="18.7626991271973"/>
+			<UserParam type="string" name="label" value="T386.1"/>
+			<UserParam type="float" name="FWHM" value="0"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="239684.204646048"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -4021,7 +4022,7 @@
 			<overallquality>0.000416158</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T386.1"/>
-			<UserParam type="float" name="FWHM" value="5.44869995117188"/>
+			<UserParam type="float" name="FWHM" value="0"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="10827.3214837584"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -4034,13 +4035,14 @@
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.000906055</overallquality>
-			<charge>0</charge>
-			<UserParam type="string" name="label" value="T379"/>
+			<charge>1</charge>
+			<UserParam type="string" name="label" value="T379_T304.1"/>
 			<UserParam type="float" name="FWHM" value="5.33050012588501"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="23573.1133562013"/>
-			<UserParam type="floatList" name="isotope_distances" value="[]"/>
-			<UserParam type="int" name="legal_isotope_pattern" value="-1"/>
+			<UserParam type="floatList" name="isotope_distances" value="[0.853876796129953]"/>
+			<UserParam type="int" name="legal_isotope_pattern" value="1"/>
+			<UserParam type="float" name="masstrace_intensity_1" value="40110.3857409786"/>
 		</feature>
 		<feature id="f_17877631333404726869">
 			<position dim="0">2387.5374</position>
@@ -4049,14 +4051,13 @@
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.00577418</overallquality>
-			<charge>1</charge>
-			<UserParam type="string" name="label" value="T17.1_T304.1"/>
+			<charge>0</charge>
+			<UserParam type="string" name="label" value="T17.1"/>
 			<UserParam type="float" name="FWHM" value="15.7405004501343"/>
 			<UserParam type="int" name="num_of_masstraces" value="2"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="143729.174130177"/>
-			<UserParam type="floatList" name="isotope_distances" value="[0.853876796129953]"/>
-			<UserParam type="int" name="legal_isotope_pattern" value="1"/>
-			<UserParam type="float" name="masstrace_intensity_1" value="40110.3857409786"/>
+			<UserParam type="floatList" name="isotope_distances" value="[]"/>
+			<UserParam type="int" name="legal_isotope_pattern" value="-1"/>
 		</feature>
 		<feature id="f_9681608301587048926">
 			<position dim="0">2238.1823</position>
@@ -4067,7 +4068,7 @@
 			<overallquality>0.00298039</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T170.1"/>
-			<UserParam type="float" name="FWHM" value="18.9969997406006"/>
+			<UserParam type="float" name="FWHM" value="0"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="77541.8706000014"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -4082,7 +4083,7 @@
 			<overallquality>0.000424809</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T369.1"/>
-			<UserParam type="float" name="FWHM" value="5.54759979248047"/>
+			<UserParam type="float" name="FWHM" value="0"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="11052.3753993162"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -4097,7 +4098,7 @@
 			<overallquality>0.000582847</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T284.1"/>
-			<UserParam type="float" name="FWHM" value="5.45529985427856"/>
+			<UserParam type="float" name="FWHM" value="0"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="15164.123114905"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -4112,7 +4113,7 @@
 			<overallquality>0.000619343</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T253.1"/>
-			<UserParam type="float" name="FWHM" value="5.44579982757568"/>
+			<UserParam type="float" name="FWHM" value="0"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="16113.633593678"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -4127,7 +4128,7 @@
 			<overallquality>0.00102342</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T83.1"/>
-			<UserParam type="float" name="FWHM" value="5.23850011825562"/>
+			<UserParam type="float" name="FWHM" value="0"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="26626.5313389279"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -4142,7 +4143,7 @@
 			<overallquality>0.000348901</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T412.1"/>
-			<UserParam type="float" name="FWHM" value="5.64449977874756"/>
+			<UserParam type="float" name="FWHM" value="0"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="9077.47807864361"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -4201,7 +4202,7 @@
 			<quality dim="1">0</quality>
 			<overallquality>0.0142099</overallquality>
 			<charge>0</charge>
-			<UserParam type="string" name="label" value="T8.1"/>
+			<UserParam type="string" name="label" value="T325.1"/>
 			<UserParam type="float" name="FWHM" value="32.9398994445801"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="369703.440127786"/>
@@ -4292,7 +4293,7 @@
 			<overallquality>0.00123001</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T180.1"/>
-			<UserParam type="float" name="FWHM" value="8.66720008850098"/>
+			<UserParam type="float" name="FWHM" value="0"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="32001.5815849377"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -4307,7 +4308,7 @@
 			<overallquality>0.00153335</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T52.1"/>
-			<UserParam type="float" name="FWHM" value="5.1149001121521"/>
+			<UserParam type="float" name="FWHM" value="0"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="39893.5813809329"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -4352,7 +4353,7 @@
 			<overallquality>0.000754231</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T348.1"/>
-			<UserParam type="float" name="FWHM" value="8.99250030517578"/>
+			<UserParam type="float" name="FWHM" value="0"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="19623.0724489132"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -4397,7 +4398,7 @@
 			<overallquality>0.011279</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T13.1"/>
-			<UserParam type="float" name="FWHM" value="28.4969997406006"/>
+			<UserParam type="float" name="FWHM" value="0"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="293448.589007008"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -4412,7 +4413,7 @@
 			<overallquality>0.000528652</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T318.1"/>
-			<UserParam type="float" name="FWHM" value="5.41599988937378"/>
+			<UserParam type="float" name="FWHM" value="0"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="13754.113150391"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -4616,15 +4617,15 @@
 		<feature id="f_9206404168793008851">
 			<position dim="0">2465.6642</position>
 			<position dim="1">1663.31531244445</position>
-			<intensity>368976</intensity>
+			<intensity>8757.71</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
-			<overallquality>0.014182</overallquality>
+			<overallquality>0.000336611</overallquality>
 			<charge>0</charge>
-			<UserParam type="string" name="label" value="T3.1"/>
-			<UserParam type="float" name="FWHM" value="25.6215000152588"/>
+			<UserParam type="string" name="label" value="T392.1"/>
+			<UserParam type="float" name="FWHM" value="0"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
-			<UserParam type="float" name="masstrace_intensity_0" value="368976.409112697"/>
+			<UserParam type="float" name="masstrace_intensity_0" value="8757.71092882094"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
 			<UserParam type="int" name="legal_isotope_pattern" value="-1"/>
 		</feature>
@@ -4652,7 +4653,7 @@
 			<overallquality>0.00354985</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T123.1"/>
-			<UserParam type="float" name="FWHM" value="17.05419921875"/>
+			<UserParam type="float" name="FWHM" value="0"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="92357.6195847413"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -4667,7 +4668,7 @@
 			<overallquality>0.000792743</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T232.1"/>
-			<UserParam type="float" name="FWHM" value="5.32670021057129"/>
+			<UserParam type="float" name="FWHM" value="0"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="20625.0318176272"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -4682,7 +4683,7 @@
 			<overallquality>0.000485527</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T344.1"/>
-			<UserParam type="float" name="FWHM" value="5.5048999786377"/>
+			<UserParam type="float" name="FWHM" value="0"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="12632.1192966306"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -4742,7 +4743,7 @@
 			<overallquality>0.00489185</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T28.1"/>
-			<UserParam type="float" name="FWHM" value="15.3636999130249"/>
+			<UserParam type="float" name="FWHM" value="0"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="127272.683045166"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -4817,7 +4818,7 @@
 			<overallquality>0.00944295</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T33.1"/>
-			<UserParam type="float" name="FWHM" value="26.0270004272461"/>
+			<UserParam type="float" name="FWHM" value="0.602316975593567"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="245680.201519581"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -4832,7 +4833,7 @@
 			<overallquality>0.000982621</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T162.1"/>
-			<UserParam type="float" name="FWHM" value="7.02479982376099"/>
+			<UserParam type="float" name="FWHM" value="278.958740234375"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="25565.1641298833"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -4877,7 +4878,7 @@
 			<overallquality>0.00100867</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T153"/>
-			<UserParam type="float" name="FWHM" value="5.18450021743774"/>
+			<UserParam type="float" name="FWHM" value="1754.26831054688"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="26242.9449966079"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -4892,7 +4893,7 @@
 			<overallquality>0.00144943</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T135.1"/>
-			<UserParam type="float" name="FWHM" value="6.91450023651123"/>
+			<UserParam type="float" name="FWHM" value="0"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="37710.3818496086"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -4922,7 +4923,7 @@
 			<overallquality>0.00211694</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T188.1"/>
-			<UserParam type="float" name="FWHM" value="12.1168003082275"/>
+			<UserParam type="float" name="FWHM" value="0"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="55077.0454832164"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -4937,7 +4938,7 @@
 			<overallquality>0.000866988</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T193.1"/>
-			<UserParam type="float" name="FWHM" value="5.18100023269653"/>
+			<UserParam type="float" name="FWHM" value="0"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="22556.7028564455"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -4952,7 +4953,7 @@
 			<overallquality>0.000489893</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T321.1"/>
-			<UserParam type="float" name="FWHM" value="5.48979997634888"/>
+			<UserParam type="float" name="FWHM" value="0"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="12745.6898364742"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -5012,7 +5013,7 @@
 			<overallquality>0.00119871</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T126"/>
-			<UserParam type="float" name="FWHM" value="6.94600009918213"/>
+			<UserParam type="float" name="FWHM" value="0"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="31187.2914152462"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -5055,13 +5056,14 @@
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.000972406</overallquality>
-			<charge>0</charge>
-			<UserParam type="string" name="label" value="T214.1"/>
+			<charge>1</charge>
+			<UserParam type="string" name="label" value="T214.1_T273.1"/>
 			<UserParam type="float" name="FWHM" value="5.1806001663208"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="25299.3886355698"/>
-			<UserParam type="floatList" name="isotope_distances" value="[]"/>
-			<UserParam type="int" name="legal_isotope_pattern" value="-1"/>
+			<UserParam type="floatList" name="isotope_distances" value="[0.975464807392882]"/>
+			<UserParam type="int" name="legal_isotope_pattern" value="1"/>
+			<UserParam type="float" name="masstrace_intensity_1" value="85422.9922374757"/>
 		</feature>
 		<feature id="f_5529354363062563465">
 			<position dim="0">2050.5696</position>
@@ -5070,14 +5072,13 @@
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.0120215</overallquality>
-			<charge>1</charge>
-			<UserParam type="string" name="label" value="T43.1_T273.1"/>
-			<UserParam type="float" name="FWHM" value="30.3178005218506"/>
+			<charge>0</charge>
+			<UserParam type="string" name="label" value="T43.1"/>
+			<UserParam type="float" name="FWHM" value="0"/>
 			<UserParam type="int" name="num_of_masstraces" value="2"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="235168.545135328"/>
-			<UserParam type="floatList" name="isotope_distances" value="[0.975464807392882]"/>
-			<UserParam type="int" name="legal_isotope_pattern" value="1"/>
-			<UserParam type="float" name="masstrace_intensity_1" value="85422.9922374757"/>
+			<UserParam type="floatList" name="isotope_distances" value="[]"/>
+			<UserParam type="int" name="legal_isotope_pattern" value="-1"/>
 		</feature>
 		<feature id="f_12746178122571865423">
 			<position dim="0">2364.3859</position>
@@ -5222,8 +5223,8 @@
 			<quality dim="1">0</quality>
 			<overallquality>0.00919113</overallquality>
 			<charge>0</charge>
-			<UserParam type="string" name="label" value="T9.1"/>
-			<UserParam type="float" name="FWHM" value="22.1968002319336"/>
+			<UserParam type="string" name="label" value="T313.1"/>
+			<UserParam type="float" name="FWHM" value="0"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="239128.593524022"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -5238,7 +5239,7 @@
 			<overallquality>0.000533784</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T313.1"/>
-			<UserParam type="float" name="FWHM" value="5.38420009613037"/>
+			<UserParam type="float" name="FWHM" value="0"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="13887.6191478759"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -5253,7 +5254,7 @@
 			<overallquality>0.000366789</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T374.1"/>
-			<UserParam type="float" name="FWHM" value="5.49590015411377"/>
+			<UserParam type="float" name="FWHM" value="0"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="9542.87627387677"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -5268,7 +5269,7 @@
 			<overallquality>0.000572961</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T393.1"/>
-			<UserParam type="float" name="FWHM" value="5.3516001701355"/>
+			<UserParam type="float" name="FWHM" value="0"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="14906.9128303954"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -5283,7 +5284,7 @@
 			<overallquality>0.000401862</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T377.1"/>
-			<UserParam type="float" name="FWHM" value="5.45979976654053"/>
+			<UserParam type="float" name="FWHM" value="0"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="10455.3693747926"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -5343,7 +5344,7 @@
 			<overallquality>0.00127343</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T196.1"/>
-			<UserParam type="float" name="FWHM" value="8.51760005950928"/>
+			<UserParam type="float" name="FWHM" value="0"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="33131.26717981"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -5358,7 +5359,7 @@
 			<overallquality>0.00102169</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T139.1"/>
-			<UserParam type="float" name="FWHM" value="5.14589977264404"/>
+			<UserParam type="float" name="FWHM" value="0"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="26581.6464666503"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -5388,7 +5389,7 @@
 			<overallquality>0.00394809</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T107.1"/>
-			<UserParam type="float" name="FWHM" value="22.7935009002686"/>
+			<UserParam type="float" name="FWHM" value="0"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="102718.699994996"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -5418,7 +5419,7 @@
 			<overallquality>0.000850424</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T352"/>
-			<UserParam type="float" name="FWHM" value="8.73950004577637"/>
+			<UserParam type="float" name="FWHM" value="0"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="22125.7520957878"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -5463,7 +5464,7 @@
 			<overallquality>0.0091327</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T75.1"/>
-			<UserParam type="float" name="FWHM" value="38.2467002868652"/>
+			<UserParam type="float" name="FWHM" value="0"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="237608.411063573"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -5568,7 +5569,7 @@
 			<overallquality>0.0025709</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T152.1"/>
-			<UserParam type="float" name="FWHM" value="17.4011993408203"/>
+			<UserParam type="float" name="FWHM" value="0"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="66887.9218190298"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -5613,7 +5614,7 @@
 			<overallquality>0.00560237</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T143.1"/>
-			<UserParam type="float" name="FWHM" value="35.7000999450684"/>
+			<UserParam type="float" name="FWHM" value="0"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="145758.527330914"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -5643,7 +5644,7 @@
 			<overallquality>0.000695717</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T337.1"/>
-			<UserParam type="float" name="FWHM" value="8.87440013885498"/>
+			<UserParam type="float" name="FWHM" value="0"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="18100.6764942691"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -5658,7 +5659,7 @@
 			<overallquality>0.00086576</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T138.1"/>
-			<UserParam type="float" name="FWHM" value="5.17220020294189"/>
+			<UserParam type="float" name="FWHM" value="0"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="22524.7516903319"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -5718,7 +5719,7 @@
 			<overallquality>0.00342306</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T32.1"/>
-			<UserParam type="float" name="FWHM" value="11.9364995956421"/>
+			<UserParam type="float" name="FWHM" value="0"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="89058.7126826427"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -5733,7 +5734,7 @@
 			<overallquality>0.00067528</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T243.1"/>
-			<UserParam type="float" name="FWHM" value="5.26849985122681"/>
+			<UserParam type="float" name="FWHM" value="0"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="17568.9683068852"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -5778,7 +5779,7 @@
 			<overallquality>0.000594543</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T260.1"/>
-			<UserParam type="float" name="FWHM" value="5.11630010604858"/>
+			<UserParam type="float" name="FWHM" value="0"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="15468.3993981816"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -5853,7 +5854,7 @@
 			<overallquality>0.00150636</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T155.1"/>
-			<UserParam type="float" name="FWHM" value="8.71739959716797"/>
+			<UserParam type="float" name="FWHM" value="0"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="39191.3242469726"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -5868,7 +5869,7 @@
 			<overallquality>0.000612205</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T238.1"/>
-			<UserParam type="float" name="FWHM" value="5.19169998168945"/>
+			<UserParam type="float" name="FWHM" value="0"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="15927.9213916744"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -5883,7 +5884,7 @@
 			<overallquality>0.000525708</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T261.1"/>
-			<UserParam type="float" name="FWHM" value="5.45529985427856"/>
+			<UserParam type="float" name="FWHM" value="0"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="13677.500923456"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -5943,7 +5944,7 @@
 			<overallquality>0.00331952</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T181.1"/>
-			<UserParam type="float" name="FWHM" value="25.9416007995605"/>
+			<UserParam type="float" name="FWHM" value="0"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="86364.9133594975"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -5988,7 +5989,7 @@
 			<overallquality>0.00202941</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T129.1"/>
-			<UserParam type="float" name="FWHM" value="13.6457004547119"/>
+			<UserParam type="float" name="FWHM" value="0"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="52799.8349739134"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -6003,7 +6004,7 @@
 			<overallquality>0.00039078</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T383.1"/>
-			<UserParam type="float" name="FWHM" value="5.44579982757568"/>
+			<UserParam type="float" name="FWHM" value="0"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="10167.0340497811"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -6033,7 +6034,7 @@
 			<overallquality>0.00411846</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T334.1"/>
-			<UserParam type="float" name="FWHM" value="36.3068008422852"/>
+			<UserParam type="float" name="FWHM" value="0"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="107151.388394653"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -6048,7 +6049,7 @@
 			<overallquality>0.000460007</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T329.1"/>
-			<UserParam type="float" name="FWHM" value="5.18410015106201"/>
+			<UserParam type="float" name="FWHM" value="0"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="11968.1517220458"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -6063,7 +6064,7 @@
 			<overallquality>0.000484613</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T338.1"/>
-			<UserParam type="float" name="FWHM" value="5.18079996109009"/>
+			<UserParam type="float" name="FWHM" value="0"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="12608.3166562502"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -6078,7 +6079,7 @@
 			<overallquality>0.000409042</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T365.1"/>
-			<UserParam type="float" name="FWHM" value="5.33349990844727"/>
+			<UserParam type="float" name="FWHM" value="0"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="10642.1834692997"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -6093,7 +6094,7 @@
 			<overallquality>0.000564267</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T250.1"/>
-			<UserParam type="float" name="FWHM" value="5.24429988861084"/>
+			<UserParam type="float" name="FWHM" value="0"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="14680.7117388057"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -6168,7 +6169,7 @@
 			<overallquality>0.000744564</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T280.1"/>
-			<UserParam type="float" name="FWHM" value="8.71739959716797"/>
+			<UserParam type="float" name="FWHM" value="0"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="19371.557415869"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -6213,7 +6214,7 @@
 			<overallquality>0.00108393</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T384.1"/>
-			<UserParam type="float" name="FWHM" value="15.9884004592896"/>
+			<UserParam type="float" name="FWHM" value="0"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="28200.821495972"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -6228,7 +6229,7 @@
 			<overallquality>0.000505597</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T309.1"/>
-			<UserParam type="float" name="FWHM" value="5.26669979095459"/>
+			<UserParam type="float" name="FWHM" value="0"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="13154.2660179935"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -6243,7 +6244,7 @@
 			<overallquality>0.000582857</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T262.1"/>
-			<UserParam type="float" name="FWHM" value="5.21799993515015"/>
+			<UserParam type="float" name="FWHM" value="0.0370245017111301"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="15164.3717216806"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -6258,7 +6259,7 @@
 			<overallquality>0.000384381</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T399.1"/>
-			<UserParam type="float" name="FWHM" value="7.22849988937378"/>
+			<UserParam type="float" name="FWHM" value="0"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="10000.5712785463"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -6273,7 +6274,7 @@
 			<overallquality>0.000572098</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T285.1"/>
-			<UserParam type="float" name="FWHM" value="5.10939979553223"/>
+			<UserParam type="float" name="FWHM" value="0"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="14884.4574666255"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -6288,7 +6289,7 @@
 			<overallquality>0.00077689</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T167.1"/>
-			<UserParam type="float" name="FWHM" value="5.18610000610352"/>
+			<UserParam type="float" name="FWHM" value="0"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="20212.5898814571"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -6303,7 +6304,7 @@
 			<overallquality>0.000555339</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T264.1"/>
-			<UserParam type="float" name="FWHM" value="5.17220020294189"/>
+			<UserParam type="float" name="FWHM" value="0"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="14448.4377863525"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -6318,7 +6319,7 @@
 			<overallquality>0.000422092</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T347.1"/>
-			<UserParam type="float" name="FWHM" value="5.67259979248047"/>
+			<UserParam type="float" name="FWHM" value="0"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="10981.7021186525"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -6333,7 +6334,7 @@
 			<overallquality>0.000354494</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T372.1"/>
-			<UserParam type="float" name="FWHM" value="5.65360021591187"/>
+			<UserParam type="float" name="FWHM" value="0.127421036362648"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="9222.97917280289"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -6363,7 +6364,7 @@
 			<overallquality>0.000527589</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T297"/>
-			<UserParam type="float" name="FWHM" value="5.49270009994507"/>
+			<UserParam type="float" name="FWHM" value="0"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="13726.4492501958"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -6378,7 +6379,7 @@
 			<overallquality>0.000748834</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T146.1"/>
-			<UserParam type="float" name="FWHM" value="5.16029977798462"/>
+			<UserParam type="float" name="FWHM" value="0"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="19482.641469104"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -6393,7 +6394,7 @@
 			<overallquality>0.000730718</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T201.1"/>
-			<UserParam type="float" name="FWHM" value="5.20279979705811"/>
+			<UserParam type="float" name="FWHM" value="0"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="19011.3297004884"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -6408,7 +6409,7 @@
 			<overallquality>0.00050316</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T314.1"/>
-			<UserParam type="float" name="FWHM" value="5.28529977798462"/>
+			<UserParam type="float" name="FWHM" value="0"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="13090.8693688355"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -6423,7 +6424,7 @@
 			<overallquality>0.000458693</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T299.1"/>
-			<UserParam type="float" name="FWHM" value="5.43009996414185"/>
+			<UserParam type="float" name="FWHM" value="0"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="11933.9522295228"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -6438,7 +6439,7 @@
 			<overallquality>0.000503145</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T323.1"/>
-			<UserParam type="float" name="FWHM" value="5.19409990310669"/>
+			<UserParam type="float" name="FWHM" value="0"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="13090.4863209954"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -6453,7 +6454,7 @@
 			<overallquality>0.000659931</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T212.1"/>
-			<UserParam type="float" name="FWHM" value="5.21120023727417"/>
+			<UserParam type="float" name="FWHM" value="0"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="17169.6355511725"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -6468,7 +6469,7 @@
 			<overallquality>0.000844638</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T145.1"/>
-			<UserParam type="float" name="FWHM" value="5.32670021057129"/>
+			<UserParam type="float" name="FWHM" value="0"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="21975.2111179935"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -6483,7 +6484,7 @@
 			<overallquality>0.000618938</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T207.1"/>
-			<UserParam type="float" name="FWHM" value="5.36819982528687"/>
+			<UserParam type="float" name="FWHM" value="0"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="16103.1039550045"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -6513,7 +6514,7 @@
 			<overallquality>0.000622156</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T306.1"/>
-			<UserParam type="float" name="FWHM" value="7.32509994506836"/>
+			<UserParam type="float" name="FWHM" value="0"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="16186.8290182677"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -6528,7 +6529,7 @@
 			<overallquality>0.000364997</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T375.1"/>
-			<UserParam type="float" name="FWHM" value="5.32399988174438"/>
+			<UserParam type="float" name="FWHM" value="0"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="9496.23981689465"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -6543,7 +6544,7 @@
 			<overallquality>0.000323227</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T409.1"/>
-			<UserParam type="float" name="FWHM" value="5.48199987411499"/>
+			<UserParam type="float" name="FWHM" value="0"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="8409.48737463375"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -6558,7 +6559,7 @@
 			<overallquality>0.00064348</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T256.1"/>
-			<UserParam type="float" name="FWHM" value="5.19059991836548"/>
+			<UserParam type="float" name="FWHM" value="0"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="16741.6162681638"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -6573,7 +6574,7 @@
 			<overallquality>0.00070708</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T183.1"/>
-			<UserParam type="float" name="FWHM" value="5.13609981536865"/>
+			<UserParam type="float" name="FWHM" value="0"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="18396.3333860724"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -6588,7 +6589,7 @@
 			<overallquality>0.000192799</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T439.1"/>
-			<UserParam type="float" name="FWHM" value="5.79689979553223"/>
+			<UserParam type="float" name="FWHM" value="0"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="5016.11074834904"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -6633,7 +6634,7 @@
 			<overallquality>0.00208845</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T241.1"/>
-			<UserParam type="float" name="FWHM" value="18.8416004180908"/>
+			<UserParam type="float" name="FWHM" value="0"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="54335.8001707038"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -6648,7 +6649,7 @@
 			<overallquality>0.000297758</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T397.1"/>
-			<UserParam type="float" name="FWHM" value="5.82100009918213"/>
+			<UserParam type="float" name="FWHM" value="0"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="7746.85496960438"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -6663,7 +6664,7 @@
 			<overallquality>0.000733385</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T211.1"/>
-			<UserParam type="float" name="FWHM" value="5.19210004806519"/>
+			<UserParam type="float" name="FWHM" value="0"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="19080.7184161018"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
@@ -6678,26 +6679,11 @@
 			<overallquality>0.000821124</overallquality>
 			<charge>0</charge>
 			<UserParam type="string" name="label" value="T182.1"/>
-			<UserParam type="float" name="FWHM" value="5.18839979171753"/>
+			<UserParam type="float" name="FWHM" value="0"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
 			<UserParam type="float" name="masstrace_intensity_0" value="21363.4384051758"/>
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
 			<UserParam type="int" name="legal_isotope_pattern" value="-1"/>
 		</feature>
-		<feature id="f_7459857709672936328">
-			<position dim="0">2351.6877</position>
-			<position dim="1">2763.66328984605</position>
-			<intensity>10225.8</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>0.000393037</overallquality>
-			<charge>0</charge>
-			<UserParam type="string" name="label" value="T373.1"/>
-			<UserParam type="float" name="FWHM" value="5.38969993591309"/>
-			<UserParam type="int" name="num_of_masstraces" value="1"/>
-			<UserParam type="float" name="masstrace_intensity_0" value="10225.7751083194"/>
-			<UserParam type="floatList" name="isotope_distances" value="[]"/>
-			<UserParam type="int" name="legal_isotope_pattern" value="-1"/>
-		</feature>
-	</featureList>
+		</featureList>
 </featureMap>
