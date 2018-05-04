@@ -140,19 +140,21 @@ protected:
     registerStringOption_("precursor:mass_tolerance_unit", "<unit>", "ppm", "Unit of precursor mass tolerance.", false, false);
     setValidStrings_("precursor:mass_tolerance_unit", ListUtils::create<String>("Da,ppm"));
 
-    registerIntOption_("precursor:min_charge", "<num>", -1, "Minimum precursor charge to be considered.", false, false);
-    registerIntOption_("precursor:max_charge", "<num>", -9, "Maximum precursor charge to be considered.", false, false);
+    registerIntOption_("precursor:min_charge", "<num>", -1, "Minimum precursor charge to be considered", false, false);
+    registerIntOption_("precursor:max_charge", "<num>", -9, "Maximum precursor charge to be considered", false, false);
+
+    registerFlag_("precursor:use_avg_mass", "Use average instead of monoisotopic precursor masses (appropriate for low-resolution instruments)", false);
 
     // Whether to look for precursors with salt adducts
-    registerFlag_("precursor:use_adducts", "Consider possible salt adducts (see 'precursor:potential_adducts') when matching precursor masses?", false);
+    registerFlag_("precursor:use_adducts", "Consider possible salt adducts (see 'precursor:potential_adducts') when matching precursor masses", false);
     registerStringList_("precursor:potential_adducts", "<list>", ListUtils::create<String>("K:+"), "Adducts considered to explain mass differences. Format: 'Element:Charge(+/-)', i.e. the number of '+' or '-' indicates the charge, e.g. 'Ca:++' indicates +2. Only used if 'precursor:use_adducts' is set.", false, false);
 
     // Whether we single charge the MS2s prior to scoring
-    registerFlag_("decharge_ms2", "Whether to decharge the MS2 spectra for scoring", false);
+    registerFlag_("decharge_ms2", "Decharge the MS2 spectra for scoring", false);
 
     // consider one before annotated monoisotopic peak and the annotated one
     IntList isotopes = {0, 1};
-    registerIntList_("precursor:isotopes", "<num>", isotopes, "Corrects for mono-isotopic peak misassignments. (E.g.: 1 = prec. may be misassigned to first isotopic peak)", false, false);
+    registerIntList_("precursor:isotopes", "<num>", isotopes, "Correct for mono-isotopic peak misassignments. (E.g.: 1 = precursor may be misassigned to first isotopic peak)", false, false);
 
     registerTOPPSubsection_("fragment", "Fragment (Product Ion) Options");
     registerDoubleOption_("fragment:mass_tolerance", "<tolerance>", 10.0, "Fragment mass tolerance (+/- around fragment m/z)", false);
@@ -181,23 +183,23 @@ protected:
     setValidStrings_("modifications:fixed", all_mods);
     registerStringList_("modifications:variable", "<mods>", ListUtils::create<String>(""), "Variable modifications", false);
     setValidStrings_("modifications:variable", all_mods);
-    registerIntOption_("modifications:variable_max_per_oligo", "<num>", 2, "Maximum number of residues carrying a variable modification per candidate oligo", false, false);
+    registerIntOption_("modifications:variable_max_per_oligo", "<num>", 2, "Maximum number of residues carrying a variable modification per candidate oligonucleotide", false, false);
 
     registerTOPPSubsection_("oligo", "Oligonucleotide Options");
-    registerIntOption_("oligo:min_size", "<num>", 5, "Minimum size an oligonucleotide must have after digestion to be considered in the search.", false);
-    registerIntOption_("oligo:missed_cleavages", "<num>", 1, "Number of missed cleavages.", false, false);
+    registerIntOption_("oligo:min_size", "<num>", 5, "Minimum size an oligonucleotide must have after digestion to be considered in the search", false);
+    registerIntOption_("oligo:missed_cleavages", "<num>", 1, "Number of missed cleavages", false, false);
 
     StringList all_enzymes;
     RNaseDB::getInstance()->getAllNames(all_enzymes);
-    registerStringOption_("oligo:enzyme", "<choice>", "no cleavage", "The enzyme used for RNA digestion.", false);
+    registerStringOption_("oligo:enzyme", "<choice>", "no cleavage", "The enzyme used for RNA digestion", false);
     setValidStrings_("oligo:enzyme", all_enzymes);
 
     registerTOPPSubsection_("report", "Reporting Options");
-    registerIntOption_("report:top_hits", "<num>", 1, "Maximum number of top scoring hits per spectrum that are reported.", false, true);
+    registerIntOption_("report:top_hits", "<num>", 1, "Maximum number of top scoring hits per spectrum that are reported", false, true);
 
     registerTOPPSubsection_("fdr", "False Discovery Rate Options");
     registerStringOption_("fdr:decoy_pattern", "<string>", "", "String used as part of the accession to annotate decoy sequences (e.g. 'DECOY_'). Leave empty to skip the FDR/q-value calculation.", false);
-    registerDoubleOption_("fdr:cutoff", "<value>", 1.0, "Cut-off for FDR filtering; search hits with higher q-values will be removed.", false);
+    registerDoubleOption_("fdr:cutoff", "<value>", 1.0, "Cut-off for FDR filtering; search hits with higher q-values will be removed", false);
     setMinFloat_("fdr:cutoff", 0.0);
     setMaxFloat_("fdr:cutoff", 1.0);
     registerFlag_("fdr:remove_decoys", "Do not score hits to decoy sequences and remove them when filtering");
@@ -625,9 +627,13 @@ protected:
     String id_out = getStringOption_("id_out");
     String theo_ms2_out = getStringOption_("theo_ms2_out");
     String exp_ms2_out = getStringOption_("exp_ms2_out");
+    bool use_avg_mass = getFlag_("precursor:use_avg_mass");
 
     IdentificationData::DBSearchParam search_param;
     search_param.molecule_type = IdentificationData::MoleculeType::RNA;
+    search_param.mass_type = (use_avg_mass ?
+                              IdentificationData::MassType::AVERAGE :
+                              IdentificationData::MassType::MONOISOTOPIC);
     search_param.database = in_db;
     Int min_charge = getIntOption_("precursor:min_charge");
     Int max_charge = getIntOption_("precursor:max_charge");
@@ -699,36 +705,31 @@ protected:
           String error = "entry in parameter 'precursor:potential_adducts' mixes positive and negative charges";
           throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, error, *it);
         }
-        else if (pos_charge > 0)
+
+        EmpiricalFormula ef(adduct[0]);
+        if (pos_charge > 0)
         {
-          EmpiricalFormula ef(adduct[0]);
           ef -= EmpiricalFormula("H" + String(pos_charge));
           // ef.setCharge(pos_charge); // effectively subtract electron masses
-          adduct_masses.push_back(ef.getMonoWeight());
-          LOG_DEBUG << "Added adduct: " << ef.toString() << ", mass: "<< ef.getMonoWeight() << endl;
         }
         else if (neg_charge > 0)
         {
-          if (adduct[0] == "H-1")
+          if (adduct[0] == "H-1") // @TODO: does this need a special case?
           {
             adduct_masses.push_back(-Constants::PROTON_MASS_U);
+            LOG_DEBUG << "Added adduct: " << ef.toString() << ", mass: " << adduct_masses.back() << endl;
+            continue;
           }
           else
           {
-            EmpiricalFormula ef(adduct[0]);
             ef.setCharge(0); // ensures we get without additional protons, now just add electron masses
             //TODO triple check salt proton correctness
             ef += EmpiricalFormula("H" + String(neg_charge));
-            adduct_masses.push_back(ef.getMonoWeight());
-            LOG_DEBUG << "Added adduct: " << ef.toString() << ", mass: "<< ef.getMonoWeight() << endl;
           }
         }
-        else // uncharged
-        {
-          EmpiricalFormula ef(adduct[0]);
-          adduct_masses.push_back(ef.getMonoWeight());
-          LOG_DEBUG << "Added adduct: " << ef.toString() << ", mass: "<< ef.getMonoWeight() << endl;
-        }
+        adduct_masses.push_back(use_avg_mass ? ef.getAverageWeight() :
+                                ef.getMonoWeight());
+        LOG_DEBUG << "Added adduct: " << ef.toString() << ", mass: " << adduct_masses.back() << endl;
       }
     }
 
@@ -918,7 +919,8 @@ protected:
       for (SignedSize mod_idx = 0; mod_idx < (SignedSize)all_modified_oligos.size(); ++mod_idx)
       {
         const NASequence& candidate = all_modified_oligos[mod_idx];
-        double candidate_mass = candidate.getMonoWeight();
+        double candidate_mass = (use_avg_mass ? candidate.getAverageWeight() :
+                                 candidate.getMonoWeight());
         LOG_DEBUG << "candidate: " << candidate.toString() << " ("
                   << float(candidate_mass) << " Da)" << endl;
 
