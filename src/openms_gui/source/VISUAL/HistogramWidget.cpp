@@ -34,11 +34,11 @@
 
 
 // Qt
-#include <QtGui/QResizeEvent>
-#include <QtGui/QMouseEvent>
-#include <QtGui/QPaintEvent>
-#include <QtGui/QPainter>
-#include <QtGui/QMenu>
+#include <QResizeEvent>
+#include <QMouseEvent>
+#include <QPaintEvent>
+#include <QPainter>
+#include <QtWidgets/QMenu>
 
 // STL
 #include <iostream>

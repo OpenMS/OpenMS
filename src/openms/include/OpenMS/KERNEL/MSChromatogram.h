@@ -32,8 +32,7 @@
 // $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_KERNEL_MSCHROMATOGRAM_H
-#define OPENMS_KERNEL_MSCHROMATOGRAM_H
+#pragma once
 
 #include <OpenMS/KERNEL/StandardDeclarations.h>
 #include <OpenMS/METADATA/ChromatogramSettings.h>
@@ -447,4 +446,3 @@ protected:
 
 } // namespace OpenMS
 
-#endif // OPENMS_KERNEL_MSCHROMATOGRAM_H

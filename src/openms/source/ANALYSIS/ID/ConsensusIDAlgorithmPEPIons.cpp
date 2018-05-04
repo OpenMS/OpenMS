@@ -35,8 +35,6 @@
 #include <OpenMS/ANALYSIS/ID/ConsensusIDAlgorithmPEPIons.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 
-#include <cmath>
-
 using namespace std;
 
 namespace OpenMS

@@ -32,8 +32,7 @@
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_METADATA_METAINFO_H
-#define OPENMS_METADATA_METAINFO_H
+#pragma once
 
 #include <vector>
 
@@ -129,4 +128,3 @@ private:
 
 } // namespace OpenMS
 
-#endif // OPENMS_METADATA_METAINFO_H

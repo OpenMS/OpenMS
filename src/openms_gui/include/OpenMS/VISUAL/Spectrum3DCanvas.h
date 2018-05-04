@@ -32,8 +32,7 @@
 // $Authors: Cornelia Friedle $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_VISUAL_SPECTRUM3DCANVAS_H
-#define OPENMS_VISUAL_SPECTRUM3DCANVAS_H
+#pragma once
 
 // OpenMS_GUI config
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
@@ -44,7 +43,7 @@
 
 
 class QPainter;
-class QGLWidget;
+class QOpenGLWidget;
 class QResizeEvent;
 
 namespace OpenMS
@@ -54,13 +53,13 @@ namespace OpenMS
   /**
     @brief Canvas for 3D-visualization of peak map data
 
-        The Spectrum3DCanvas uses the helper class Spectrum3DOpenGLCanvas for the actual 3D rendering.
-        Deriving Spectrum3DCanvas directly from QGLWidget is not possible due to the "Deadly Diamond" shape
-        of inheritance.
+    The Spectrum3DCanvas uses the helper class Spectrum3DOpenGLCanvas for the
+    actual 3D rendering.  Deriving Spectrum3DCanvas directly from QGLWidget is
+    not possible due to the "Deadly Diamond" shape of inheritance.
 
-        @image html Spectrum3DWidget.png
+    @image html Spectrum3DWidget.png
 
-        @htmlinclude OpenMS_Spectrum3DCanvas.parameters
+    @htmlinclude OpenMS_Spectrum3DCanvas.parameters
 
     @ingroup SpectrumWidgets
   */
@@ -152,4 +151,3 @@ protected:
   };
 
 } //namespace
-#endif

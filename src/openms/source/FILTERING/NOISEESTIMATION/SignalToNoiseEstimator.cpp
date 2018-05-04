@@ -33,4 +33,3 @@
 // --------------------------------------------------------------------------
 //
 
-#include <OpenMS/FILTERING/NOISEESTIMATION/SignalToNoiseEstimator.h>

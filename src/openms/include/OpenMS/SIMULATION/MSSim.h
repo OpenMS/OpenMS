@@ -32,8 +32,7 @@
 // $Authors: Stephan Aiche, Chris Bielow$
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_SIMULATION_MSSIM_H
-#define OPENMS_SIMULATION_MSSIM_H
+#pragma once
 
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/SIMULATION/SimTypes.h>
@@ -172,4 +171,3 @@ private:
 
 }
 
-#endif

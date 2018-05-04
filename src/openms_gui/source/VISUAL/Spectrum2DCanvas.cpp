@@ -51,15 +51,15 @@
 #include <algorithm>
 
 //QT
-#include <QtGui/QMouseEvent>
-#include <QtGui/QPainter>
-#include <QtGui/QMenu>
-#include <QtGui/QBitmap>
-#include <QtGui/QPolygon>
+#include <QMouseEvent>
+#include <QPainter>
+#include <QtWidgets/QMenu>
+#include <QBitmap>
+#include <QPolygon>
 #include <QtCore/QTime>
-#include <QtGui/QComboBox>
-#include <QtGui/QFileDialog>
-#include <QtGui/QMessageBox>
+#include <QtWidgets/QComboBox>
+#include <QtWidgets/QFileDialog>
+#include <QtWidgets/QMessageBox>
 
 //boost
 #include <boost/math/special_functions/fpclassify.hpp>
@@ -147,7 +147,7 @@ namespace OpenMS
     else if (getCurrentLayer().type == LayerData::DT_CHROMATOGRAM)
     {
       const LayerData & layer = getCurrentLayer();
-      const ExperimentSharedPtrType exp = layer.getPeakData();
+      const ConstExperimentSharedPtrType exp = layer.getPeakData();
 
       // create iterator on chromatogram spectrum passed by PeakIndex
       vector<MSChromatogram >::const_iterator chrom_it = exp->getChromatograms().begin();
@@ -166,7 +166,7 @@ namespace OpenMS
     if (getCurrentLayer().type == LayerData::DT_CHROMATOGRAM) // highlight: chromatogram
     {
       const LayerData & layer = getCurrentLayer();
-      const ExperimentSharedPtrType exp = layer.getPeakData();
+      const ConstExperimentSharedPtrType exp = layer.getPeakData();
 
       vector<MSChromatogram >::const_iterator iter = exp->getChromatograms().begin();
       iter += peak.spectrum;
@@ -1227,11 +1227,11 @@ namespace OpenMS
 
     current_layer_ = getLayerCount() - 1;
 
-    if (layers_.back().type == LayerData::DT_PEAK)   //peak data
+    if (layers_.back().type == LayerData::DT_PEAK)   // peak data
     {
       update_buffer_ = true;
-      //Abort if no data points are contained
-      if ((currentPeakData_()->size() == 0 || currentPeakData_()->getSize() == 0) && currentPeakData_()->getDataRange().isEmpty())
+      // Abort if no data points are contained (note that all data could be on disk)
+      if (getCurrentLayer_().getPeakData()->size() == 0)
       {
         layers_.resize(getLayerCount() - 1);
         if (current_layer_ != 0)
@@ -1241,12 +1241,12 @@ namespace OpenMS
         QMessageBox::critical(this, "Error", "Cannot add a dataset that contains no survey scans. Aborting!");
         return false;
       }
-      if ((currentPeakData_()->getSize() == 0) && (!currentPeakData_()->getDataRange().isEmpty()))
+      if ((getCurrentLayer_().getPeakData()->getSize() == 0) && (!getCurrentLayer_().getPeakData()->getDataRange().isEmpty()))
       {
         setLayerFlag(LayerData::P_PRECURSORS, true); // show precursors if no MS1 data is contained
       }
     }
-    else if (layers_.back().type == LayerData::DT_FEATURE)  //feature data
+    else if (layers_.back().type == LayerData::DT_FEATURE)  // feature data
     {
       getCurrentLayer_().getFeatureMap()->updateRanges();
       setLayerFlag(LayerData::F_HULL, true);
@@ -1263,7 +1263,7 @@ namespace OpenMS
         return false;
       }
     }
-    else if (layers_.back().type == LayerData::DT_CONSENSUS)  //consensus feature data
+    else if (layers_.back().type == LayerData::DT_CONSENSUS)  // consensus feature data
     {
       getCurrentLayer_().getConsensusMap()->updateRanges();
 
@@ -1277,17 +1277,15 @@ namespace OpenMS
         return false;
       }
     }
-    else if (layers_.back().type == LayerData::DT_CHROMATOGRAM)  //chromatogram data
+    else if (layers_.back().type == LayerData::DT_CHROMATOGRAM)  // chromatogram data
     {
-
-      //TODO CHROM
-      currentPeakData_()->sortChromatograms(true);
-      currentPeakData_()->updateRanges(1);
+      getCurrentLayer_().getPeakDataMuteable()->sortChromatograms(true);
+      getCurrentLayer_().getPeakDataMuteable()->updateRanges(1);
 
       update_buffer_ = true;
 
       // abort if no data points are contained
-      if (currentPeakData_()->getChromatograms().empty())
+      if (getCurrentLayer_().getPeakData()->getChromatograms().empty())
       {
         layers_.resize(getLayerCount() - 1);
         if (current_layer_ != 0)
@@ -1819,10 +1817,12 @@ namespace OpenMS
       lines.push_back("Quality: " + QString::number(quality, 'f', 4));
       // peptide identifications
       const PeptideIdentification* pis = nullptr;
-      if ( f && f->getPeptideIdentifications().size() > 0 ) {
+      if ( f && f->getPeptideIdentifications().size() > 0 )
+      {
         pis = &f->getPeptideIdentifications()[0];
       }
-      else if ( cf && cf->getPeptideIdentifications().size() > 0 ) {
+      else if ( cf && cf->getPeptideIdentifications().size() > 0 )
+      {
         pis = &cf->getPeptideIdentifications()[0];
       }
       if ( pis && pis->getHits().size() ) {

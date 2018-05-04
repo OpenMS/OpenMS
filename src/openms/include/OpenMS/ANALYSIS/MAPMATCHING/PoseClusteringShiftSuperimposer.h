@@ -33,8 +33,7 @@
 // --------------------------------------------------------------------------
 
 
-#ifndef OPENMS_ANALYSIS_MAPMATCHING_POSECLUSTERINGSHIFTSUPERIMPOSER_H
-#define OPENMS_ANALYSIS_MAPMATCHING_POSECLUSTERINGSHIFTSUPERIMPOSER_H
+#pragma once
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/BaseSuperimposer.h>
 
@@ -105,4 +104,3 @@ public:
   };
 } // namespace OpenMS
 
-#endif  // OPENMS_ANALYSIS_MAPMATCHING_POSECLUSTERINGSHIFTSUPERIMPOSER_H

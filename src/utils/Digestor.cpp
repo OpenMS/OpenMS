@@ -111,7 +111,15 @@ protected:
     ProteaseDB::getInstance()->getAllNames(all_enzymes);
     registerStringOption_("enzyme", "<string>", "Trypsin", "The type of digestion enzyme", false);
     setValidStrings_("enzyme", all_enzymes);
+
+    registerTOPPSubsection_("FASTA", "Options for FASTA output files");
+    registerStringOption_("FASTA:ID", "<option>", "parent", "Identifier to use for each peptide: copy from parent protein (parent); a consecutive number (number); parent ID + consecutive number (both)", false);
+    setValidStrings_("FASTA:ID", ListUtils::create<String>("parent,number,both"));
+    registerStringOption_("FASTA:description", "<option>", "remove", "Keep or remove the (possibly lengthy) FASTA header description. Keeping it can increase resulting FASTA file significantly.", false);
+    setValidStrings_("FASTA:description", ListUtils::create<String>("remove,keep"));
   }
+
+  enum FASTAID {PARENT, NUMBER, BOTH};
 
   ExitCodes main_(int, const char**) override
   {
@@ -131,6 +139,9 @@ protected:
     //-------------------------------------------------------------
     String inputfile_name = getStringOption_("in");
     String outputfile_name = getStringOption_("out");
+
+    FASTAID FASTA_ID = getStringOption_("FASTA:ID") == "parent" ? PARENT : (getStringOption_("FASTA:ID") == "number" ? NUMBER : BOTH);
+    bool keep_FASTA_desc = (getStringOption_("FASTA:description") == "keep");
 
     // output file type
     FileHandler fh;
@@ -158,8 +169,10 @@ protected:
     //-------------------------------------------------------------
     // reading input
     //-------------------------------------------------------------
-    std::vector<FASTAFile::FASTAEntry> protein_data;
-    FASTAFile().load(inputfile_name, protein_data);
+    FASTAFile ff;
+    ff.readStart(inputfile_name);
+    if (has_FASTA_output) ff.writeStart(outputfile_name);
+
     //-------------------------------------------------------------
     // calculations
     //-------------------------------------------------------------
@@ -180,48 +193,34 @@ protected:
     protein_identifications[0].setSearchEngine("In-silico digestion");
     protein_identifications[0].setIdentifier("In-silico_digestion" + date_time_string);
 
-    std::vector<FASTAFile::FASTAEntry> all_peptides;
+    Size dropped_by_length(0); // stats for removing candidates
+    Size fasta_out_count(0);
 
-    Size dropped_bylength(0); // stats for removing candidates
-
-    for (Size i = 0; i < protein_data.size(); ++i)
+    FASTAFile::FASTAEntry fe;
+    while (ff.readNext(fe))
     {
       if (!has_FASTA_output)
       {
         ProteinHit temp_protein_hit;
-        temp_protein_hit.setSequence(protein_data[i].sequence);
-        temp_protein_hit.setAccession(protein_data[i].identifier);
+        temp_protein_hit.setSequence(fe.sequence);
+        temp_protein_hit.setAccession(fe.identifier);
         protein_identifications[0].insertHit(temp_protein_hit);
-        temp_pe.setProteinAccession(protein_data[i].identifier);
+        temp_pe.setProteinAccession(fe.identifier);
         temp_peptide_hit.setPeptideEvidences(vector<PeptideEvidence>(1, temp_pe));
       }
 
-      vector<AASequence> temp_peptides;
+      vector<AASequence> current_digest;
       if (enzyme == "none")
       {
-        temp_peptides.push_back(AASequence::fromString(protein_data[i].sequence));
+        current_digest.push_back(AASequence::fromString(fe.sequence));
       }
       else
       {
-        vector<AASequence> current_digest;
-        digestor.digest(AASequence::fromString(protein_data[i].sequence), current_digest);
-
-        // keep peptides that match length restrictions (and count those that don't match)
-        std::copy_if(current_digest.begin(), current_digest.end(), std::back_inserter(temp_peptides), 
-          [&dropped_bylength, &min_size, &max_size](const AASequence& s) -> bool
-          {
-            bool valid_length = (s.size() >= min_size && s.size() <= max_size);
-            if (!valid_length)
-            {
-              ++dropped_bylength;
-              return false;
-            }
-            
-            return true;
-          });
+        dropped_by_length += digestor.digest(AASequence::fromString(fe.sequence), current_digest, min_size, max_size);
       }
 
-      for (auto s : temp_peptides)
+      String id = fe.identifier;
+      for (auto const& s : current_digest)
       {
         if (!has_FASTA_output)
         {
@@ -232,8 +231,14 @@ protected:
         }
         else // for FASTA file output
         {
-          FASTAFile::FASTAEntry pep(protein_data[i].identifier, protein_data[i].description, s.toString());
-          all_peptides.push_back(pep);
+          ++fasta_out_count;
+          switch (FASTA_ID)
+          {
+            case PARENT: break;
+            case NUMBER: id = String(fasta_out_count); break;
+            case BOTH: id = fe.identifier + "_" + String(fasta_out_count); break;
+          }
+          ff.writeNext(FASTAFile::FASTAEntry(id, keep_FASTA_desc ? fe.description : "", s.toString()));
         }
       }
     }
@@ -244,7 +249,7 @@ protected:
 
     if (has_FASTA_output)
     {
-      FASTAFile().store(outputfile_name, all_peptides);
+      ff.writeEnd();
     }
     else
     {
@@ -253,10 +258,11 @@ protected:
                         identifications);
     }
 
-    Size pep_remaining_count = (has_FASTA_output ? all_peptides.size() : identifications.size());
+    Size pep_remaining_count = (has_FASTA_output ? fasta_out_count : identifications.size());
     LOG_INFO << "Statistics:\n"
-             << "  total #peptides after digestion:         " << pep_remaining_count + dropped_bylength << "\n"
-             << "  removed #peptides (length restrictions): " << dropped_bylength << "\n"
+             << "  file:                                    " << inputfile_name << "\n"
+             << "  total #peptides after digestion:         " << pep_remaining_count + dropped_by_length << "\n"
+             << "  removed #peptides (length restrictions): " << dropped_by_length << "\n"
              << "  remaining #peptides:                     " << pep_remaining_count << std::endl;
 
     return EXECUTION_OK;

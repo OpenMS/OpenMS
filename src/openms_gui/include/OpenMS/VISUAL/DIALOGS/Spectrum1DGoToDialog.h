@@ -32,15 +32,19 @@
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_VISUAL_DIALOGS_SPECTRUM1DGOTODIALOG_H
-#define OPENMS_VISUAL_DIALOGS_SPECTRUM1DGOTODIALOG_H
+#pragma once
 
 // OpenMS_GUI config
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
-#include <QtGui/QDialog>
-#include <OpenMS/VISUAL/DIALOGS/UIC/ui_Spectrum1DGoToDialog.h>
 #include <OpenMS/CONCEPT/Types.h>
+
+#include <QtWidgets/QDialog>
+
+namespace Ui
+{
+  class Spectrum1DGoToDialogTemplate;
+}
 
 namespace OpenMS
 {
@@ -51,8 +55,7 @@ namespace OpenMS
       @ingroup Dialogs
   */
   class OPENMS_GUI_DLLAPI Spectrum1DGoToDialog :
-    public QDialog,
-    public Ui::Spectrum1DGoToDialogTemplate
+    public QDialog
   {
     Q_OBJECT
 
@@ -68,6 +71,9 @@ public:
     ///Sets the m/z range displayed initially
     void setMinMaxOfRange(float min, float max);
 
+
+    bool checked();
+
     /// Fixes the currently stored range (i.e. ensure correct order of min-max; enforce minimum of 1 Da window IFF min==max
     void fixRange();
 
@@ -75,7 +81,10 @@ public:
     float getMin() const;
     ///Returns the upper m/z bound
     float getMax() const;
+
+  private:
+    Ui::Spectrum1DGoToDialogTemplate* ui_;
+
   };
 
 }
-#endif // OPENMS_VISUAL_DIALOGS_SPECTRUM1DGOTODIALOG_H

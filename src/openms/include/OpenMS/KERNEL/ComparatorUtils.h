@@ -33,8 +33,7 @@
 // --------------------------------------------------------------------------
 
 
-#ifndef OPENMS_KERNEL_COMPARATORUTILS_H
-#define OPENMS_KERNEL_COMPARATORUTILS_H
+#pragma once
 
 #include <functional>
 
@@ -429,4 +428,3 @@ protected:
   };
 }
 
-#endif // OPENMS_KERNEL_COMPARATORUTILS_H

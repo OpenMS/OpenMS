@@ -33,7 +33,6 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/Base64.h>
-#include <OpenMS/CONCEPT/Exception.h>
 
 #include <QtCore/QList>
 #include <QtCore/QString>
@@ -122,17 +121,8 @@ print s
 
   */
 
-
   const char Base64::encoder_[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
   const char Base64::decoder_[] = "|$$$}rstuvwxyz{$$$$$$$>?@ABCDEFGHIJKLMNOPQRSTUVW$$$$$$XYZ[\\]^_`abcdefghijklmnopq";
-
-  Base64::Base64()
-  {
-  }
-
-  Base64::~Base64()
-  {
-  }
 
   void Base64::encodeStrings(const std::vector<String>& in, String& out, bool zlib_compression, bool append_null_byte)
   {
@@ -170,8 +160,7 @@ print s
         case Z_BUF_ERROR:
           compressed_length *= 2;
         }
-      }
-      while (zlib_error == Z_BUF_ERROR);
+      } while (zlib_error == Z_BUF_ERROR);
 
       if (zlib_error != Z_OK)
       {

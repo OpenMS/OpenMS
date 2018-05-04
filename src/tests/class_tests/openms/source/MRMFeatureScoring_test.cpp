@@ -41,8 +41,8 @@
 
 #include "OpenSwathTestHelper.h"
 
-#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/DataStructures.h>
-#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/ISpectrumAccess.h>
+#include <OpenMS/OPENSWATHALGO/DATAACCESS/DataStructures.h>
+#include <OpenMS/OPENSWATHALGO/DATAACCESS/ISpectrumAccess.h>
 
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/DataAccessHelper.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/MRMFeatureAccessOpenMS.h>
@@ -50,12 +50,12 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/DIAScoring.h>
 
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMTransitionGroupPicker.h>
-#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/ALGO/MRMScoring.h>
-#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/ALGO/Scoring.h>
+#include <OpenMS/OPENSWATHALGO/ALGO/MRMScoring.h>
+#include <OpenMS/OPENSWATHALGO/ALGO/Scoring.h>
 
 ///////////////////////////
 
-#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/ALGO/MRMScoring.h>
+#include <OpenMS/OPENSWATHALGO/ALGO/MRMScoring.h>
 
 ///////////////////////////
 

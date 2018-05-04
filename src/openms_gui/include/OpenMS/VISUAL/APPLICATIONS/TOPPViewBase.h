@@ -32,8 +32,7 @@
 // $Authors: Marc Sturm, Timo Sachsenberg $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_VISUAL_APPLICATIONS_TOPPVIEWBASE_H
-#define OPENMS_VISUAL_APPLICATIONS_TOPPVIEWBASE_H
+#pragma once
 
 // OpenMS_GUI config
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
@@ -54,9 +53,9 @@
 #include <map>
 
 //QT
-#include <QtGui/QMainWindow>
-#include <QtGui/QButtonGroup>
-#include <QtGui/QActionGroup>
+#include <QtWidgets/QMainWindow>
+#include <QtWidgets/QButtonGroup>
+#include <QtWidgets/QActionGroup>
 #include <QtCore/QStringList>
 #include <QtCore/QProcess>
 
@@ -91,14 +90,34 @@ namespace OpenMS
   /**
     @brief Main window of TOPPView tool
 
+    Uses the default QMainWindow layout (see Qt documentation) with a central
+    widget in the middle (consistent of a EnhancedTabBar and an
+    EnhancedWorkspace) and multiple docked widgets around it (to the right and
+    below) and multiple tool bars. On top and bottom are a menu bar and a
+    status bar.
+
+    The main layout is using 
+    - Central Widget: 
+      - EnhancedTabBar: tab_bar_
+      - EnhancedWorkspace: ws_
+    - Docked to the right:
+      - layer_dock_widget_
+      - views_dockwidget_
+      - filter_dock_widget_
+    - Docked to the bottom:
+      - log_bar (only connected through slots)
+
+    The views_dockwidget_ internally holds a tab widget views_tabwidget_ which
+    holds the two different views on the data (spectra and identification view)
+    which are implemented using identificationview_behavior_ and
+    spectraview_behavior_.
+
     @improvement Use DataRepository singleton to share data between TOPPView and the canvas classes (Hiwi)
 
-        @improvement For painting single mass traces with no width we currently paint each line twice (once going down, and then coming back up).
-        This could be more efficient...
+    @improvement For painting single mass traces with no width we currently paint each line twice (once going down, and then coming back up).
+    This could be more efficient...
 
     @improvement Keep spectrum browser widgets of all layers in memory in order to avoid rebuilding the entire tree view every time the active layer changes (Hiwi, Johannes)
-
-    @todo Add TOPPView live-tutorial (Stephan, Marc)
 
     @ingroup TOPPView_elements
   */
@@ -127,6 +146,8 @@ public:
     typedef LayerData::ExperimentType ExperimentType;
     //Main managed data type (experiment)
     typedef LayerData::ExperimentSharedPtrType ExperimentSharedPtrType;
+    //Main on-disc managed data type (experiment)
+    typedef LayerData::ODExperimentSharedPtrType ODExperimentSharedPtrType;
     ///Peak spectrum type
     typedef ExperimentType::SpectrumType SpectrumType;
     //@}
@@ -157,6 +178,7 @@ public:
       @param consensus_map The consensus feature data (empty if not consensus feature data)
       @param peptides The peptide identifications (empty if not ID data)
       @param peak_map The peak data (empty if not peak data)
+      @param on_disc_peak_map The peak data managed on disc (empty if not peak data)
       @param data_type Type of the data
       @param show_as_1d Force dataset to be opened in 1D mode (even if it contains several spectra)
       @param show_options If the options dialog should be shown (otherwise the defaults are used)
@@ -165,7 +187,19 @@ public:
       @param window_id in which window the file is opened if opened as a new layer (0 or default equals current
       @param spectrum_id determines the spectrum to show in 1D view.
     */
-    void addData(FeatureMapSharedPtrType feature_map, ConsensusMapSharedPtrType consensus_map, std::vector<PeptideIdentification>& peptides, ExperimentSharedPtrType peak_map, LayerData::DataType data_type, bool show_as_1d, bool show_options, bool as_new_window = true, const String& filename = "", const String& caption = "", UInt window_id = 0, Size spectrum_id = 0);
+    void addData(FeatureMapSharedPtrType feature_map,
+                 ConsensusMapSharedPtrType consensus_map,
+                 std::vector<PeptideIdentification>& peptides,
+                 ExperimentSharedPtrType peak_map,
+                 ODExperimentSharedPtrType on_disc_peak_map,
+                 LayerData::DataType data_type,
+                 bool show_as_1d,
+                 bool show_options,
+                 bool as_new_window = true,
+                 const String& filename = "",
+                 const String& caption = "",
+                 UInt window_id = 0,
+                 Size spectrum_id = 0);
 
     /// Opens all the files in the string list
     void loadFiles(const StringList& list, QSplashScreen* splash_screen);
@@ -255,7 +289,7 @@ public slots:
     /// enabled/disabled menu entries depending on the current state
     void updateMenu();
     /// brings the tab corresponding to the active window in front
-    void updateTabBar(QWidget* w);
+    void updateTabBar(QMdiSubWindow* w);
     /// tile the open windows vertically
     void tileVertical();
     /// tile the open windows horizontally
@@ -426,15 +460,15 @@ protected:
     */
     //@{
     QToolBar* tool_bar_;
-    //common intensity modes
 
+    // common intensity modes
     QButtonGroup* intensity_button_group_;
-    //1D specific stuff
 
+    // 1D specific stuff
     QToolBar* tool_bar_1d_;
     QButtonGroup* draw_group_1d_;
 
-    //2D specific stuff
+    // 2D specific stuff
     QToolBar* tool_bar_2d_peak_;
     QToolBar* tool_bar_2d_feat_;
     QToolBar* tool_bar_2d_cons_;
@@ -558,4 +592,3 @@ private:
 
 } //namespace
 
-#endif

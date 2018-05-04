@@ -32,8 +32,7 @@
 // $Authors: Andreas Bertsch, Chris Bielow $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FORMAT_MASCOTGENERICFILE_H
-#define OPENMS_FORMAT_MASCOTGENERICFILE_H
+#pragma once
 
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/SYSTEM/File.h>
@@ -150,7 +149,7 @@ protected:
     void writeHeader_(std::ostream& os);
 
     /// writes the spectrum
-    void writeSpectrum_(std::ostream& os, const PeakSpectrum& spec, const String& filename);
+    void writeSpectrum_(std::ostream& os, const PeakSpectrum& spec, const String& filename, const String& native_id_type_accession);
 
     /// writes the MSExperiment
     void writeMSExperiment_(std::ostream& os, const String& filename, const PeakMap& experiment);
@@ -315,4 +314,3 @@ protected:
 
 } // namespace OpenMS
 
-#endif // OPENMS_FORMAT_MASCOTGENERICFILE_H

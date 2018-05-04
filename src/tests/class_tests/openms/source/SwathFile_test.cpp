@@ -39,6 +39,13 @@
 #include <OpenMS/FORMAT/SwathFile.h>
 
 ///////////////////////////
+#include <OpenMS/FORMAT/MzMLFile.h>
+#include <OpenMS/OPENSWATHALGO/DATAACCESS/SwathMap.h>
+#include <OpenMS/METADATA/Precursor.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
+
+
+using namespace OpenMS;
 
 bool sortSwathMaps(const OpenSwath::SwathMap& left, const OpenSwath::SwathMap& right)
 {
@@ -48,10 +55,6 @@ bool sortSwathMaps(const OpenSwath::SwathMap& left, const OpenSwath::SwathMap& r
   return left.lower < right.lower;
 }
 
-#include <OpenMS/FORMAT/MzMLFile.h>
-#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/SwathMap.h>
-
-using namespace OpenMS;
 
 void storeSwathFile(String filename, int nr_swathes=32)
 {

@@ -32,8 +32,7 @@
 // $Authors: Steffen Sass, Hendrik Weisser $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_MAPMATCHING_FEATUREGROUPINGALGORITHMQT_H
-#define OPENMS_ANALYSIS_MAPMATCHING_FEATUREGROUPINGALGORITHMQT_H
+#pragma once
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithm.h>
 
@@ -112,4 +111,3 @@ private:
 
 } // namespace OpenMS
 
-#endif // OPENMS_ANALYSIS_MAPMATCHING_FEATUREGROUPINGALGORITHMQT_H

@@ -32,8 +32,7 @@
 // $Authors: Hannes Roest $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FORMAT_MSNUMPRESSCODER_H
-#define OPENMS_FORMAT_MSNUMPRESSCODER_H
+#pragma once
 
 #include <OpenMS/FORMAT/Base64.h>
 
@@ -206,5 +205,4 @@ private:
 
 } //namespace OpenMS
 
-#endif /* OPENMS_FORMAT_MSNUMPRESSCODER_H */
 

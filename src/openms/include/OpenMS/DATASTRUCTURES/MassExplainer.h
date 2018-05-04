@@ -32,8 +32,7 @@
 // $Authors: Chris Bielow $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_DATASTRUCTURES_MASSEXPLAINER_H
-#define OPENMS_DATASTRUCTURES_MASSEXPLAINER_H
+#pragma once
 
 #include <OpenMS/DATASTRUCTURES/Adduct.h>
 
@@ -145,4 +144,3 @@ protected:
 
 } // namespace OpenMS
 
-#endif // OPENMS_DATASTRUCTURES_MASSEXPLAINER_H

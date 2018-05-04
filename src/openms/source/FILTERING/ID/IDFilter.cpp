@@ -34,13 +34,6 @@
 
 #include <OpenMS/FILTERING/ID/IDFilter.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
-#include <OpenMS/CHEMISTRY/AASequence.h>
-#include <OpenMS/CHEMISTRY/EnzymaticDigestion.h>
-#include <OpenMS/CONCEPT/LogStream.h>
-
-#include <cmath>
-#include <climits>
-#include <functional>
 
 using namespace std;
 
@@ -160,7 +153,7 @@ namespace OpenMS
     const set<String>& sequences;
     bool ignore_mods;
 
-    HasMatchingSequence(const set<String>& sequences, bool ignore_mods = false):
+    explicit HasMatchingSequence(const set<String>& sequences, bool ignore_mods = false):
       sequences(sequences), ignore_mods(ignore_mods)
     {}
 

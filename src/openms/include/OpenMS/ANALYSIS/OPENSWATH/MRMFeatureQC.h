@@ -32,8 +32,7 @@
 // $Authors: Douglas McCloskey $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_OPENSWATH_MRMFEATUREQC_H
-#define OPENMS_ANALYSIS_OPENSWATH_MRMFEATUREQC_H
+#pragma once
 
 #include <OpenMS/KERNEL/MRMFeature.h>
 #include <OpenMS/KERNEL/Feature.h>
@@ -86,17 +85,17 @@ public:
 
       // Feature members
       /// retention time lower bound
-      double retention_time_l;
+      double retention_time_l { 0.0 };
       /// retention time upper bound
-      double retention_time_u;
+      double retention_time_u { 1e12 };
       /// intensity lower bound
-      double intensity_l;
+      double intensity_l { 0.0 };
       /// intensity upper bound
-      double intensity_u;
+      double intensity_u { 1e12 };
       /// overall quality lower bound
-      double overall_quality_l;
+      double overall_quality_l { 0.0 };
       /// overall quality upper bound
-      double overall_quality_u;
+      double overall_quality_u { 1e12 };
 
       /// Feature MetaValues
       std::map<String,std::pair<double,double>> meta_value_qc;
@@ -114,28 +113,42 @@ public:
       /// name of the component group
       String component_group_name;
 
+      /// retention time lower bound
+      double retention_time_l { 0.0 };
+      /// retention time upper bound
+      double retention_time_u { 1e12 };
+      /// intensity lower bound
+      double intensity_l { 0.0 };
+      /// intensity upper bound
+      double intensity_u { 1e12 };
+      /// overall quality lower bound
+      double overall_quality_l { 0.0 };
+      /// overall quality upper bound
+      double overall_quality_u { 1e12 };
+
       // number of transitions and labels
       /// number of heavy ion lower bound
-      int n_heavy_l;
+      Int n_heavy_l { 0 };
       /// number of heavy ion upper bound
-      int n_heavy_u;
-      int n_light_l;
-      int n_light_u;
-      int n_detecting_l;
-      int n_detecting_u;
-      int n_quantifying_l;
-      int n_quantifying_u;
-      int n_identifying_l;
-      int n_identifying_u;
-      int n_transitions_l;
-      int n_transitions_u;
+      Int n_heavy_u { 100 };
+      Int n_light_l { 0 };
+      Int n_light_u { 100 };
+      Int n_detecting_l { 0 };
+      Int n_detecting_u { 100 };
+      Int n_quantifying_l { 0 };
+      Int n_quantifying_u { 100 };
+      Int n_identifying_l { 0 };
+      Int n_identifying_u { 100 };
+      Int n_transitions_l { 0 };
+      Int n_transitions_u { 100 };
 
       // Ion Ratio QCs
       String ion_ratio_pair_name_1;
       String ion_ratio_pair_name_2;
-      double ion_ratio_l;
-      double ion_ratio_u;
+      double ion_ratio_l { 0.0 };
+      double ion_ratio_u { 1e12 };
       String ion_ratio_feature_name;
+      std::map<String,std::pair<double,double>> meta_value_qc;
 
     };
 
@@ -169,9 +182,8 @@ public:
     /// list of all component group QCs
     std::vector<ComponentGroupQCs> component_group_qcs;
     /// list of all component group pair QCs
-    std::vector<ComponentGroupQCs> component_group_pair_qcs;
+    std::vector<ComponentGroupPairQCs> component_group_pair_qcs;
   };
 }
 
-#endif //  OPENMS_ANALYSIS_OPENSWATH_MRMFEATUREQC_H
 

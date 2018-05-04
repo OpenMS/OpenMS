@@ -34,10 +34,6 @@
 //
 
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/TwoDOptimization.h>
-#include <OpenMS/DATASTRUCTURES/ListUtils.h>
-
-#include <map>
-#include <Eigen/Core>
 
 using Eigen::VectorXd;
 

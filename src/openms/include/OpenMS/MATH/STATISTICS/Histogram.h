@@ -32,8 +32,7 @@
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_MATH_STATISTICS_HISTOGRAM_H
-#define OPENMS_MATH_STATISTICS_HISTOGRAM_H
+#pragma once
 
 //OpenMS
 #include <OpenMS/CONCEPT/Types.h>
@@ -416,4 +415,3 @@ protected:
 
 } // namespace OpenMS
 
-#endif // OPENMS_MATH_STATISTICS_HISTOGRAM_H

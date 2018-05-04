@@ -32,8 +32,7 @@
 // $Authors: Johannes Junker, Chris Bielow $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_VISUAL_TOPPASSCENE_H
-#define OPENMS_VISUAL_TOPPASSCENE_H
+#pragma once
 
 // OpenMS_GUI config
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
@@ -42,7 +41,7 @@
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/VISUAL/TOPPASToolVertex.h>
 
-#include <QtGui/QGraphicsScene>
+#include <QtWidgets/QGraphicsScene>
 #include <QtCore/QProcess>
 
 namespace OpenMS
@@ -386,4 +385,3 @@ protected:
 
 }
 
-#endif

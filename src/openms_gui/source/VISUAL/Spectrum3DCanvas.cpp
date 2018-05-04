@@ -42,12 +42,12 @@
 #include <OpenMS/VISUAL/MultiGradientSelector.h>
 #include <OpenMS/SYSTEM/FileWatcher.h>
 
-#include <QtGui/QResizeEvent>
-#include <QtGui/QComboBox>
-#include <QtGui/QSpinBox>
-#include <QtGui/QMenu>
-#include <QtGui/QFileDialog>
-#include <QtGui/QMessageBox>
+#include <QResizeEvent>
+#include <QtWidgets/QComboBox>
+#include <QtWidgets/QSpinBox>
+#include <QtWidgets/QMenu>
+#include <QtWidgets/QFileDialog>
+#include <QtWidgets/QMessageBox>
 
 using namespace std;
 
@@ -202,7 +202,7 @@ namespace OpenMS
       openglwidget()->initializeGL();
     }
     openglwidget()->resizeGL(width(), height());
-    openglwidget()->glDraw();
+    // openglwidget()->paintGL();
   }
 
   void Spectrum3DCanvas::showCurrentLayerPreferences()

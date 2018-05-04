@@ -38,14 +38,14 @@
 #include <OpenMS/FORMAT/MzIdentMLFile.h>
 #include <OpenMS/METADATA/MetaInfoInterfaceUtils.h>
 
-#include <QtGui/QVBoxLayout>
-#include <QtGui/QTreeWidget>
-#include <QtGui/QComboBox>
-#include <QtGui/QLineEdit>
-#include <QtGui/QHeaderView>
-#include <QtGui/QMenu>
-#include <QtGui/QPushButton>
-#include <QtGui/QFileDialog>
+#include <QtWidgets/QVBoxLayout>
+#include <QtWidgets/QTreeWidget>
+#include <QtWidgets/QComboBox>
+#include <QtWidgets/QLineEdit>
+#include <QtWidgets/QHeaderView>
+#include <QtWidgets/QMenu>
+#include <QtWidgets/QPushButton>
+#include <QtWidgets/QFileDialog>
 #include <QtCore/QTextStream>
 
 
@@ -159,7 +159,7 @@ namespace OpenMS
     table_widget_->setSelectionBehavior(QAbstractItemView::SelectRows);
     table_widget_->setSelectionMode(QAbstractItemView::SingleSelection);
 
-    table_widget_->horizontalHeader()->setMovable(true);
+    table_widget_->horizontalHeader()->setSectionsMovable(true);
 
     // header context menu
     table_widget_->horizontalHeader()->setContextMenuPolicy(Qt::CustomContextMenu);
@@ -619,7 +619,8 @@ namespace OpenMS
               // remove leading "," of first position
               positions = positions.suffix(positions.size()-1);
               addTextItemToBottomRow_(positions.toQString(), 16, c);
-            } else
+            }
+            else
             {
               addTextItemToBottomRow_("-", 16, c);
             }
@@ -960,12 +961,13 @@ namespace OpenMS
       {
         hits[1].setMetaValue("selected", sel);
       }
-    } else // general case, update only the selected PepideHit
+    }
+    else // general case, update only the selected PepideHit
     {
       hits[num_ph].setMetaValue("selected", sel);
     }
     pep_id[num_id].setHits(hits);
-    (*layer_->getPeakData())[spectrum_index].setPeptideIdentifications(pep_id);
+    (*layer_->getPeakDataMuteable())[spectrum_index].setPeptideIdentifications(pep_id);
 
   }
 

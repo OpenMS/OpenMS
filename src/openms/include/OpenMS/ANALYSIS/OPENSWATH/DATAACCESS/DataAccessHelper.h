@@ -32,8 +32,7 @@
 // $Authors: Hannes Roest $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_OPENSWATH_DATAACCESS_DATAACCESSHELPER_H
-#define OPENMS_ANALYSIS_OPENSWATH_DATAACCESS_DATAACCESSHELPER_H
+#pragma once
 
 #include <fstream>
 
@@ -42,8 +41,8 @@
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/KERNEL/MSChromatogram.h>
 #include <OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>
-#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/TransitionExperiment.h>
-#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/ISpectrumAccess.h>
+#include <OpenMS/OPENSWATHALGO/DATAACCESS/TransitionExperiment.h>
+#include <OpenMS/OPENSWATHALGO/DATAACCESS/ISpectrumAccess.h>
 
 namespace OpenMS
 {
@@ -82,5 +81,4 @@ public:
 
 } //end namespace OpenMS
 
-#endif // OPENMS_ANALYSIS_OPENSWATH_DATAACCESS_DATAACCESSHELPER_H
 

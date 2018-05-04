@@ -32,8 +32,6 @@
 // $Authors: $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/ProductModel.h>
-
 namespace OpenMS
 {
 

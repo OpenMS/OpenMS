@@ -37,67 +37,68 @@
 
 #include <OpenMS/CONCEPT/LogStream.h>
 
-#include <map>
-#include <utility> //for pair
-#include <string>
-#include <vector>
-#include <algorithm> // for sort
 
 namespace OpenMS
 {
-  std::vector<std::pair<std::string::size_type, std::string> > MRMDecoy::findFixedResidues(std::string sequence)
-  {
-    std::vector<std::pair<std::string::size_type, std::string> > idx;
-    std::vector<std::string> pattern;
-    pattern.push_back("K");
-    pattern.push_back("R");
-    pattern.push_back("P");
 
-    for (Size i = 0; i < sequence.size(); i++)
-    {
-      for (Size j = 0; j < pattern.size(); j++)
-      {
-        if (sequence.substr(i, 1) == pattern[j])
-        {
-          std::pair<std::string::size_type, std::string> idx_pair(i, pattern[j]);
-          idx.push_back(idx_pair);
-        }
-      }
-    }
-    return idx;
+  MRMDecoy::MRMDecoy() :
+    DefaultParamHandler("MRMDecoy"),
+    ProgressLogger()
+  {
+    defaults_.setValue("non_shuffle_pattern", "KRP", "Residues to not shuffle (keep at a constant position when shuffling). Default is 'KPR' to not shuffle lysine, arginine and proline.");
+
+    defaults_.setValue("keepPeptideNTerm", "true", "Whether to keep peptide N terminus constant when shuffling / reversing.", ListUtils::create<String>("advanced"));
+    defaults_.setValidStrings("keepPeptideNTerm", ListUtils::create<String>("true,false"));
+
+    defaults_.setValue("keepPeptideCTerm", "true", "Whether to keep peptide C terminus constant when shuffling / reversing.", ListUtils::create<String>("advanced"));
+    defaults_.setValidStrings("keepPeptideCTerm", ListUtils::create<String>("true,false"));
+
+    // write defaults into Param object param_
+    defaultsToParam_();
   }
 
-  std::vector<std::pair<std::string::size_type, std::string> > MRMDecoy::findFixedAndTermResidues(std::string sequence)
-  {
-    // also blocks both N- and C-terminus from shuffling
-    std::vector<std::pair<std::string::size_type, std::string> > idx;
-    std::vector<std::string> pattern;
-    pattern.push_back("K");
-    pattern.push_back("R");
-    pattern.push_back("P");
-
-    for (Size i = 0; i < sequence.size(); i++)
+  void MRMDecoy::updateMembers_()
     {
-      if (i == 0 || i + 1 == sequence.size())
+    keep_const_pattern_ = param_.getValue("non_shuffle_pattern");
+    keepN_ = param_.getValue("keepPeptideNTerm").toBool();
+    keepC_ = param_.getValue("keepPeptideCTerm").toBool();
+  }
+
+  MRMDecoy::IndexType MRMDecoy::findFixedResidues(const std::string& sequence,
+      bool keepN, bool keepC, const OpenMS::String& keep_const_pattern)
       {
-        std::pair<std::string::size_type, std::string> idx_pair(i, String(sequence[i]));
-        idx.push_back(idx_pair);
+    // also blocks both N- and C-terminus from shuffling if required
+    MRMDecoy::IndexType idx;
+    for (size_t i = 0; i < sequence.size(); i++)
+        {
+      if ( (keepN && i == 0) || (keepC && i + 1 == sequence.size()) )
+      {
+        idx.push_back(i);
         continue;
-      }
-
-      for (Size j = 0; j < pattern.size(); j++)
-      {
-        if (sequence.substr(i, 1) == pattern[j])
-        {
-          std::pair<std::string::size_type, std::string> idx_pair(i, pattern[j]);
-          idx.push_back(idx_pair);
         }
+
+      for (size_t j = 0; j < keep_const_pattern.size(); j++)
+      {
+        if (sequence[i] == keep_const_pattern[j])
+        {
+          idx.push_back(i);
       }
+    }
     }
     return idx;
   }
 
-  float MRMDecoy::AASequenceIdentity(const String& sequence, const String& decoy)
+  MRMDecoy::IndexType MRMDecoy::findFixedResidues_(const std::string& sequence) const
+  {
+    return MRMDecoy::findFixedResidues(sequence, false, false, keep_const_pattern_);
+  }
+
+  MRMDecoy::IndexType MRMDecoy::findFixedAndTermResidues_(const std::string& sequence) const
+  {
+    return MRMDecoy::findFixedResidues(sequence, keepN_, keepC_, keep_const_pattern_);
+  }
+
+  float MRMDecoy::AASequenceIdentity(const String& sequence, const String& decoy) const
   {
     OPENMS_PRECONDITION(sequence.size() == decoy.size(), "Cannot compare two sequences of unequal length");
 
@@ -116,8 +117,8 @@ namespace OpenMS
   }
 
   OpenMS::TargetedExperiment::Peptide MRMDecoy::shufflePeptide(
-    OpenMS::TargetedExperiment::Peptide peptide, double identity_threshold, int seed,
-    int max_attempts)
+    OpenMS::TargetedExperiment::Peptide peptide, const double identity_threshold, int seed,
+    const int max_attempts) const
   {
 #ifdef DEBUG_MRMDECOY
     std::cout << " shuffle peptide " << peptide.sequence << std::endl;
@@ -133,8 +134,6 @@ namespace OpenMS
     boost::uniform_int<> uni_dist;
     boost::variate_generator<boost::mt19937&, boost::uniform_int<> > pseudoRNG(generator, uni_dist);
 
-    typedef std::vector<std::pair<std::string::size_type, std::string> > IndexType;
-
     std::string aa[] =
     {
       "A", "N", "D", "C", "E", "Q", "G", "H", "I", "L", "M", "F", "S", "T", "W",
@@ -148,7 +147,7 @@ namespace OpenMS
            attempts < max_attempts)
     {
       // Block tryptic residues and N-/C-terminus from shuffling
-      IndexType idx = MRMDecoy::findFixedAndTermResidues(peptide.sequence);
+      MRMDecoy::IndexType idx = findFixedAndTermResidues_(peptide.sequence);
 
       shuffled = peptide;
       std::vector<Size> peptide_index;
@@ -161,7 +160,7 @@ namespace OpenMS
       // to not delete indices we access later)
       for (IndexType::reverse_iterator it = idx.rbegin(); it != idx.rend(); ++it)
       {
-        peptide_index.erase(peptide_index.begin() + it->first);
+        peptide_index.erase(peptide_index.begin() + *it);
       }
 
       // shuffle the peptide index (without the K/P/R which we leave in place)
@@ -185,12 +184,12 @@ namespace OpenMS
       // re-insert the missing K/P/R at the appropriate places
       for (IndexType::iterator it = idx.begin(); it != idx.end(); ++it)
       {
-        peptide_index.insert(peptide_index.begin() + it->first, it->first);
+        peptide_index.insert(peptide_index.begin() + *it, *it);
       }
 
       // use the shuffled index to create the new peptide sequence and
-      // then to place the modifications at their appropriate places (at the
-      // same, shuffled AA where they were before).
+      // then to place the modifications at their appropriate places (make sure
+      // that the modifications are placed with their initial amino acids).
       for (Size i = 0; i < peptide_index.size(); i++)
       {
         shuffled.sequence[i] = peptide.sequence[peptide_index[i]];
@@ -222,100 +221,110 @@ namespace OpenMS
       // the new sequence.
       if (attempts % 10 == 9)
       {
-        OpenMS::AASequence shuffled_sequence = TargetedExperimentHelper::getAASequence(shuffled);
-        int res_pos = (pseudoRNG() % aa_size);
-        int pep_pos = -1;
-        size_t pos_trials = 0;
-        while (pep_pos < 0 && pos_trials < shuffled_sequence.size())
-        {
-          pep_pos = (pseudoRNG() % shuffled_sequence.size());
+          OpenMS::AASequence shuffled_sequence = TargetedExperimentHelper::getAASequence(shuffled);
+          int res_pos = (pseudoRNG() % aa_size);
+          int pep_pos = -1;
+          size_t pos_trials = 0;
+          while (pep_pos < 0 && pos_trials < shuffled_sequence.size())
+          {
+          // select position to mutate (and ensure we are not changing N/C terminus or any modified position doing it)
+            pep_pos = (pseudoRNG() % shuffled_sequence.size());
           if (shuffled_sequence[pep_pos].isModified() || (pep_pos == 0) || (pep_pos == (int)(shuffled_sequence.size() - 1)))
-          {
-            pep_pos = -1;
-          }
-          else
-          {
-            if (pep_pos == 0)
             {
-              shuffled_sequence = AASequence::fromString(aa[res_pos]) + shuffled_sequence.getSuffix(shuffled_sequence.size() - pep_pos - 1);
-            }
-            else if (pep_pos == (int)(shuffled_sequence.size() - 1))
-            {
-              shuffled_sequence = shuffled_sequence.getPrefix(pep_pos) + AASequence::fromString(aa[res_pos]);
+              pep_pos = -1;
             }
             else
             {
-              shuffled_sequence = shuffled_sequence.getPrefix(pep_pos) + AASequence::fromString(aa[res_pos]) + shuffled_sequence.getSuffix(shuffled_sequence.size() - pep_pos - 1);
+              if (pep_pos == 0)
+              {
+                shuffled_sequence = AASequence::fromString(aa[res_pos]) + shuffled_sequence.getSuffix(shuffled_sequence.size() - pep_pos - 1);
+              }
+              else if (pep_pos == (int)(shuffled_sequence.size() - 1))
+              {
+                shuffled_sequence = shuffled_sequence.getPrefix(pep_pos) + AASequence::fromString(aa[res_pos]);
+              }
+              else
+              {
+                shuffled_sequence = shuffled_sequence.getPrefix(pep_pos) + AASequence::fromString(aa[res_pos]) + shuffled_sequence.getSuffix(shuffled_sequence.size() - pep_pos - 1);
+              }
             }
+            ++pos_trials;
           }
-          ++pos_trials;
+          shuffled.sequence = shuffled_sequence.toUnmodifiedString();
+          peptide = shuffled;
         }
-        shuffled.sequence = shuffled_sequence.toUnmodifiedString();
-        peptide = shuffled;
-      }
-    }
+        }
 
     return shuffled;
   }
 
-  OpenMS::TargetedExperiment::Peptide MRMDecoy::pseudoreversePeptide(
-    OpenMS::TargetedExperiment::Peptide peptide)
-  {
-    OpenMS::TargetedExperiment::Peptide peptideorig = peptide;
-    std::vector<Size> peptide_index;
-    for (Size i = 0; i < peptide.sequence.size(); i++)
-    {
-      peptide_index.push_back(i);
-    }
-
-    peptide.sequence = peptide.sequence.substr(0, peptide.sequence.size() - 1).reverse()
-                       + peptide.sequence.substr(peptide.sequence.size() - 1, 1); // pseudo-reverse
-    std::reverse(peptide_index.begin(), peptide_index.end() - 1);
-
-    for (Size j = 0; j < peptide.mods.size(); j++)
-    {
-      for (Size k = 0; k < peptide_index.size(); k++)
-      {
-        if (boost::numeric_cast<int>(peptide_index[k])  == peptide.mods[j].location)
-        {
-          peptide.mods[j].location = boost::numeric_cast<int>(k);
-          break;
-        }
-      }
-    }
-
-    return peptide;
-  }
-
   OpenMS::TargetedExperiment::Peptide MRMDecoy::reversePeptide(
-    OpenMS::TargetedExperiment::Peptide peptide)
+      const OpenMS::TargetedExperiment::Peptide& peptide, const bool keepN, const bool keepC, 
+      const String& const_pattern)
   {
-    OpenMS::TargetedExperiment::Peptide peptideorig = peptide;
+    OpenMS::TargetedExperiment::Peptide reversed = peptide;
+    {
+      // Block tryptic residues and N-/C-terminus from shuffling
+      MRMDecoy::IndexType idx = MRMDecoy::findFixedResidues(peptide.sequence, keepN, keepC, const_pattern);
+
     std::vector<Size> peptide_index;
     for (Size i = 0; i < peptide.sequence.size(); i++)
     {
       peptide_index.push_back(i);
     }
 
-    peptide.sequence = peptide.sequence.reverse();
-    std::reverse(peptide_index.begin(), peptide_index.end());
-
-    for (Size j = 0; j < peptide.mods.size(); j++)
+      // we erase the indices where K/P/R are (from the back / in reverse order
+      // to not delete indices we access later)
+      for (IndexType::reverse_iterator it = idx.rbegin(); it != idx.rend(); ++it)
     {
+        peptide_index.erase(peptide_index.begin() + *it);
+        }
+
+      // reverse the peptide index
+      std::reverse(peptide_index.begin(), peptide_index.end());
+
+      // re-insert the missing K/P/R at the appropriate places
+      for (IndexType::iterator it = idx.begin(); it != idx.end(); ++it)
+  {
+        peptide_index.insert(peptide_index.begin() + *it, *it);
+    }
+
+      // use the reversed index to create the new peptide sequence and
+      // then to place the modifications at their appropriate places (make sure
+      // that the modifications are placed with their initial amino acids).
+      for (Size i = 0; i < peptide_index.size(); i++)
+    {
+        reversed.sequence[i] = peptide.sequence[peptide_index[i]];
+      }
+      for (Size j = 0; j < reversed.mods.size(); j++)
+      {
       for (Size k = 0; k < peptide_index.size(); k++)
       {
-        if (boost::numeric_cast<int>(peptide_index[k]) == peptide.mods[j].location)
+          // C and N terminal mods are implicitly not reversed because they live at positions -1 and sequence.size()
+          if (boost::numeric_cast<int>(peptide_index[k]) == reversed.mods[j].location)
         {
-          peptide.mods[j].location = boost::numeric_cast<int>(k);
+            reversed.mods[j].location = boost::numeric_cast<int>(k);
           break;
         }
       }
     }
-
-    return peptide;
+      return reversed;
+    }
   }
 
-  bool MRMDecoy::hasCNterminalMods(const OpenMS::TargetedExperiment::Peptide& peptide)
+  OpenMS::TargetedExperiment::Peptide MRMDecoy::pseudoreversePeptide_(
+    const OpenMS::TargetedExperiment::Peptide& peptide) const
+  {
+    return MRMDecoy::reversePeptide(peptide, false, true);
+  }
+
+  OpenMS::TargetedExperiment::Peptide MRMDecoy::reversePeptide_(
+    const OpenMS::TargetedExperiment::Peptide& peptide) const
+  {
+    return MRMDecoy::reversePeptide(peptide, false, false);
+  }
+
+  bool MRMDecoy::hasCNterminalMods_(const OpenMS::TargetedExperiment::Peptide& peptide) const
   {
     for (Size j = 0; j < peptide.mods.size(); j++)
     {
@@ -331,7 +340,7 @@ namespace OpenMS
                                 String method, String decoy_tag, int max_attempts, double identity_threshold,
                                 double precursor_mz_shift, double product_mz_shift, double product_mz_threshold,
                                 std::vector<String> fragment_types, std::vector<size_t> fragment_charges,
-                                bool enable_specific_losses, bool enable_unspecific_losses, int round_decPow)
+                                bool enable_specific_losses, bool enable_unspecific_losses, int round_decPow) const
   {
     MRMIonSeries mrmis;
     MRMDecoy::PeptideVectorType peptides, decoy_peptides;
@@ -366,27 +375,27 @@ namespace OpenMS
       if (method == "pseudo-reverse")
       {
         // exclude peptide if it has C/N terminal modifications because we can't do a (partial) reverse
-        if (MRMDecoy::hasCNterminalMods(peptide))
+        if (MRMDecoy::hasCNterminalMods_(peptide))
         {
           LOG_DEBUG << "[peptide] Skipping " << peptide.id << " due to C/N-terminal modifications" << std::endl;
           exclusion_peptides.push_back(peptide.id);
-        }
+      }
         else
         {
-          peptide = MRMDecoy::pseudoreversePeptide(peptide);
+          peptide = MRMDecoy::pseudoreversePeptide_(peptide);
         }
       }
       else if (method == "reverse")
       {
         // exclude peptide if it has C/N terminal modifications because we can't do a (partial) reverse
-        if (MRMDecoy::hasCNterminalMods(peptide))
+        if (MRMDecoy::hasCNterminalMods_(peptide))
         {
           LOG_DEBUG << "[peptide] Skipping " << peptide.id << " due to C/N-terminal modifications" << std::endl;
           exclusion_peptides.push_back(peptide.id);
-        }
+      }
         else
         {
-          peptide = MRMDecoy::reversePeptide(peptide);
+          peptide = MRMDecoy::reversePeptide_(peptide);
         }
       }
       else if (method == "shuffle")
@@ -471,9 +480,9 @@ namespace OpenMS
         else
         {
           // transition could not be annotated, remove whole peptide
-          exclusion_peptides.push_back(decoy_tr.getPeptideRef());
+            exclusion_peptides.push_back(decoy_tr.getPeptideRef());
           LOG_DEBUG << "[peptide] Skipping " << decoy_tr.getPeptideRef() << " due to missing annotation" << std::endl;
-        }
+          }
       } // end loop over transitions
     } // end loop over peptides
     endProgress();
@@ -529,3 +538,4 @@ namespace OpenMS
   }
 
 }
+

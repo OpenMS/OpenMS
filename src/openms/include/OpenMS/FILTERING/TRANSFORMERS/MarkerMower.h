@@ -32,8 +32,7 @@
 // $Authors: $
 // --------------------------------------------------------------------------
 //
-#ifndef OPENMS_FILTERING_TRANSFORMERS_MARKERMOWER_H
-#define OPENMS_FILTERING_TRANSFORMERS_MARKERMOWER_H
+#pragma once
 
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
@@ -127,4 +126,3 @@ private:
 
   };
 }
-#endif // OPENMS_COMPARISON_CLUSTERING_MARKERMOWER_H

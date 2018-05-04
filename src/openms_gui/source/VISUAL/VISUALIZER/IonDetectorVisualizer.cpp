@@ -35,8 +35,8 @@
 #include <OpenMS/VISUAL/VISUALIZER/IonDetectorVisualizer.h>
 
 //QT
-#include <QtGui/QLineEdit>
-#include <QtGui/QComboBox>
+#include <QtWidgets/QLineEdit>
+#include <QtWidgets/QComboBox>
 
 
 //STL

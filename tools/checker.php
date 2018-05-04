@@ -110,7 +110,6 @@ function xmlentities($string) {
 ######################## declarations ###############################
 $GLOBALS["all_tests"] = array(
   "(none)"               => "performs all tests",
-  "guards"               => "check if header guards present and correct",
   "maintainers"          => "check if maintainers are consistent in header, source and test file",
   "missing_tests"        => "check for missing tests",
   "old_files"            => "check for unneeded .cpp files",
@@ -576,53 +575,6 @@ foreach ($files_todo as $f)
   else
   {
     unset($class_info);
-  }
-
-  ########################### guards ######################################
-  if (in_array("guards", $tests))
-  {
-    $dont_report = array(
-      "TypeNameIdStringMiscellanyDefs.h",
-    );
-
-    if (endsWith($f, ".h"))
-    {
-      $message = "";
-      $result = true;
-
-      for ($i = 0;$i < count($file);$i++)
-      {
-        $line = trim($file[$i]);
-        if (beginsWith($line, "#ifndef"))
-        {
-          $guard = trim(substr($line, 8));
-          $nextline = trim($file[$i+1]);
-          //header guards
-          if (beginsWith($nextline, "#define") AND trim(substr($nextline, 8)) == $guard)
-          {
-            $right_guard = includeToGuard(suffix($f, strlen($guard)));
-            if ($right_guard != $guard OR !beginsWith($guard, "OPENMS_"))
-            {
-              $message = "Wrong header guard '$guard' in '$f' should be '$right_guard'";
-              $result = false;
-              realOutput($message, $user, $f);
-            }
-            break;
-          }
-        }
-
-        $class = trim(substr($f, strrpos($f, "/")+1));
-        if ($i == count($file)-1 AND !in_array($class, $dont_report))
-        {
-          $message = "Missing header guard in '$f' ";
-          $result = false;
-          realOutput($message, $user, $f);
-        }
-      }
-
-      #report test result to ctest
-      reportTestResult($message, $user, "guards", $f, $result);
-    }
   }
 
   ########################### maintainers #####################################
@@ -1351,14 +1303,14 @@ if ($ctestReporting)
     <Test></Test>
   </TestList>
   <Test Status="passed">
-    <Name>BinaryComposeFunctionAdapter_test</Name>
+    <Name>SomeTool_test</Name>
     <Path>./source/TEST</Path>
-    <FullName>./source/TEST/BinaryComposeFunctionAdapter_test</FullName>
-    <FullCommandLine>/Users/aiche/dev/openms/openms-src/build/ninja/source/TEST/bin/BinaryComposeFunctionAdapter_test</FullCommandLine>
+    <FullName>./source/TEST/SomeTool_test</FullName>
+    <FullCommandLine>/Users/aiche/dev/openms/openms-src/build/ninja/source/TEST/bin/SomeTool_test</FullCommandLine>
     <Results>
             <NamedMeasurement type="numeric/double" name="Execution Time"><Value>0.469694</Value></NamedMeasurement>
             <NamedMeasurement type="text/string" name="Completion Status"><Value>Completed</Value></NamedMeasurement>
-            <NamedMeasurement type="text/string" name="Command Line"><Value>/Users/aiche/dev/openms/openms-src/build/ninja/source/TEST/bin/BinaryComposeFunctionAdapter_test</Value></NamedMeasurement>
+            <NamedMeasurement type="text/string" name="Command Line"><Value>/Users/aiche/dev/openms/openms-src/build/ninja/source/TEST/bin/SomeTool_test</Value></NamedMeasurement>
             <Measurement>
               <Value>
               </Value>

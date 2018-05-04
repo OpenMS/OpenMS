@@ -32,8 +32,7 @@
 // $Authors: $
 // --------------------------------------------------------------------------
 //
-#ifndef OPENMS_COMPARISON_SPECTRA_PEAKSPECTRUMCOMPAREFUNCTOR_H
-#define OPENMS_COMPARISON_SPECTRA_PEAKSPECTRUMCOMPAREFUNCTOR_H
+#pragma once
 
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
@@ -86,4 +85,3 @@ public:
   };
 
 }
-#endif // OPENMS_COMPARISON_SPECTRA_COMPAREFUNCTOR_H

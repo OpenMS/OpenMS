@@ -36,8 +36,8 @@
 #include <OpenMS/VISUAL/VISUALIZER/ProteinHitVisualizer.h>
 
 //QT
-#include <QtGui/QTextEdit>
-#include <QtGui/QLineEdit>
+#include <QtWidgets/QTextEdit>
+#include <QtWidgets/QLineEdit>
 
 #include <iostream>
 

@@ -32,8 +32,7 @@
 // $Authors: Andreas Bertsch, Chris Bielow $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_ID_FALSEDISCOVERYRATE_H
-#define OPENMS_ANALYSIS_ID_FALSEDISCOVERYRATE_H
+#pragma once
 
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
@@ -114,4 +113,3 @@ private:
 
 } // namespace OpenMS
 
-#endif // OPENMS_ANALYSIS_ID_FALSEDISCOVERYRATE_H

@@ -32,8 +32,7 @@
 // $Authors: Eva Lange $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FILTERING_SMOOTHING_GAUSSFILTERALGORITHM_H
-#define OPENMS_FILTERING_SMOOTHING_GAUSSFILTERALGORITHM_H
+#pragma once
 
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/CONCEPT/Constants.h>
@@ -385,4 +384,3 @@ protected:
   };
 
 } // namespace OpenMS
-#endif

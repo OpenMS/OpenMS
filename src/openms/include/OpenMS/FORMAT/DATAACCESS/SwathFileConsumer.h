@@ -32,14 +32,13 @@
 // $Authors: Hannes Roest $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FORMAT_DATAACCESS_SWATHFILECONSUMER_H
-#define OPENMS_FORMAT_DATAACCESS_SWATHFILECONSUMER_H
+#pragma once
 
 #include <boost/cast.hpp>
 
 // Datastructures
-#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/DataStructures.h>
-#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/SwathMap.h>
+#include <OpenMS/OPENSWATHALGO/DATAACCESS/DataStructures.h>
+#include <OpenMS/OPENSWATHALGO/DATAACCESS/SwathMap.h>
 
 // Consumers
 #include <OpenMS/FORMAT/DATAACCESS/MSDataCachedConsumer.h>
@@ -539,7 +538,7 @@ protected:
    *
    * Writes all spectra immediately to disk to an mzML file location using the
    * PlainMSDataWritingConsumer. Internally, it handles n+1 (n SWATH + 1 MS1
-   * map) objects of MSDataCachedConsumerwhich can consume the spectra and
+   * map) objects of MSDataCachedConsumer which can consume the spectra and
    * write them to disk immediately.
    *
    */
@@ -598,6 +597,7 @@ protected:
     {
       String mzml_file = cachedir_ + basename_ + "_" + String(swath_consumers_.size()) +  ".mzML";
       PlainMSDataWritingConsumer* consumer = new PlainMSDataWritingConsumer(mzml_file);
+      consumer->getOptions().setCompression(true);
       consumer->setExpectedSize(nr_ms2_spectra_[swath_consumers_.size()], 0);
       swath_consumers_.push_back(consumer);
     }
@@ -618,6 +618,7 @@ protected:
       String mzml_file = cachedir_ + basename_ + "_ms1.mzML";
       ms1_consumer_ = new PlainMSDataWritingConsumer(mzml_file);
       ms1_consumer_->setExpectedSize(nr_ms1_spectra_, 0);
+      ms1_consumer_->getOptions().setCompression(true);
       boost::shared_ptr<PeakMap > exp(new PeakMap(settings_));
       // ms1_map_ = exp;
     }
@@ -648,4 +649,3 @@ protected:
 
 }
 
-#endif

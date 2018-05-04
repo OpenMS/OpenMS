@@ -34,23 +34,10 @@
 
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/KERNEL/BaseFeature.h>
-#include <OpenMS/CONCEPT/Constants.h>
-#include <OpenMS/CHEMISTRY/IsotopeDistribution.h>
+#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerHiRes.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFiltering.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexIsotopicPeakPattern.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFilterResult.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFilterResultRaw.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFilterResultPeak.h>
-#include <OpenMS/FILTERING/DATAREDUCTION/SplinePackage.h>
-#include <OpenMS/FILTERING/DATAREDUCTION/SplineSpectrum.h>
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
-#include <OpenMS/MATH/MISC/CubicSpline2d.h>
-
-#include <vector>
-#include <algorithm>
-#include <iostream>
-#include <QDir>
 
 #include <QDir>
 
@@ -402,20 +389,20 @@ namespace OpenMS
 
   {
     // construct averagine distribution
+    CoarseIsotopePatternGenerator solver(pattern.size());
     IsotopeDistribution distribution;
     vector<double> averagine_pattern;
-    distribution.setMaxIsotope(pattern.size());
     if (averagine_type_ == "peptide")
     {
-        distribution.estimateFromPeptideWeight(m);
+        distribution = solver.estimateFromPeptideWeight(m);
     }
     else if (averagine_type_ == "RNA")
     {
-        distribution.estimateFromRNAWeight(m);
+      distribution = solver.estimateFromRNAWeight(m);
     }
     else if (averagine_type_ == "DNA")
     {
-        distribution.estimateFromDNAWeight(m);
+        distribution = solver.estimateFromDNAWeight(m);
     }
     else
     {
@@ -425,7 +412,7 @@ namespace OpenMS
 
     for (IsotopeDistribution::Iterator it = distribution.begin(); it != distribution.end(); ++it)
     {
-      averagine_pattern.push_back(it->second);
+      averagine_pattern.push_back(it->getIntensity());
     }
 
     return getPatternSimilarity_(pattern, averagine_pattern);

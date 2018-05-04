@@ -34,6 +34,8 @@
 
 #include <OpenMS/ANALYSIS/XLMS/OPXLSpectrumProcessingAlgorithms.h>
 
+#include <OpenMS/CONCEPT/LogStream.h>
+
 // preprocessing and filtering
 #include <OpenMS/FILTERING/TRANSFORMERS/ThresholdMower.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/Normalizer.h>

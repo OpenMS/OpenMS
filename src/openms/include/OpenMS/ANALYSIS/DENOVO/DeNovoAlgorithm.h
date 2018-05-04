@@ -32,8 +32,7 @@
 // $Authors: Sandro Andreotti, Andreas Bertsch$
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_DENOVO_DENOVOALGORITHM_H
-#define OPENMS_ANALYSIS_DENOVO_DENOVOALGORITHM_H
+#pragma once
 
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/ANALYSIS/DENOVO/DeNovoIonScoring.h>
@@ -78,4 +77,3 @@ public:
 
 } // namespace OpenMS
 
-#endif // OPENMS_ANALYSIS_DENOVO_DENOVOALGORITHM_H

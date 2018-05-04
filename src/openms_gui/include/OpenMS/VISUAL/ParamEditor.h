@@ -32,25 +32,27 @@
 // $Authors: Marc Sturm, Chris Bielow $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_VISUAL_PARAMEDITOR_H
-#define OPENMS_VISUAL_PARAMEDITOR_H
+#pragma once
 
 // OpenMS_GUI config
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
 #include <OpenMS/CONCEPT/Types.h>
 
-#include <OpenMS/VISUAL/UIC/ui_ParamEditor.h>
-#include <QtGui/QLineEdit>
-
-#include <QtGui/QItemDelegate>
-#include <QtGui/QTreeWidget>
+#include <QtWidgets/QLineEdit>
+#include <QtWidgets/QItemDelegate>
+#include <QtWidgets/QTreeWidget>
 
 class QModelIndex;
 class QStyleOptionViewItem;
 class QAbstractItemModel;
 class QStringList;
 class QString;
+
+namespace Ui
+{
+  class ParamEditorTemplate;
+}
 
 namespace OpenMS
 {
@@ -159,6 +161,7 @@ protected slots:
 
   }
 
+  
   /**
       @brief A GUI for editing or viewing a Param object
 
@@ -171,8 +174,7 @@ protected slots:
       @ingroup Visual
   */
   class OPENMS_GUI_DLLAPI ParamEditor :
-    public QWidget,
-    public Ui::ParamEditorTemplate
+    public QWidget
   {
     Q_OBJECT
 
@@ -187,6 +189,9 @@ public:
 
     /// constructor
     ParamEditor(QWidget * parent = nullptr);
+    /// destructor
+    virtual ~ParamEditor();
+    
     /// load method for Param object
     void load(Param & param);
     /// store edited data in Param object
@@ -223,9 +228,11 @@ protected:
     bool modified_;
     /// Indicates if normal mode or advanced mode is activated
     bool advanced_mode_;
+
+private:
+    Ui::ParamEditorTemplate* ui_;
   };
 
 
 } // namespace OpenMS
 
-#endif // OPENMS_VISUAL_PARAMEDITOR_H

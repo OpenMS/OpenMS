@@ -33,8 +33,7 @@
 // --------------------------------------------------------------------------
 
 
-#ifndef OPENMS_ANALYSIS_MAPMATCHING_POSECLUSTERINGAFFINESUPERIMPOSER_H
-#define OPENMS_ANALYSIS_MAPMATCHING_POSECLUSTERINGAFFINESUPERIMPOSER_H
+#pragma once
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/BaseSuperimposer.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
@@ -116,4 +115,3 @@ public:
   };
 } // namespace OpenMS
 
-#endif  // OPENMS_ANALYSIS_MAPMATCHING_POSECLUSTERINGAFFINESUPERIMPOSER_H

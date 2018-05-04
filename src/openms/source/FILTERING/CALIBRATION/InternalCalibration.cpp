@@ -39,6 +39,7 @@
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
+#include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/SYSTEM/RWrapper.h>
 
 #include <QtCore/QStringList>
@@ -291,7 +292,8 @@ namespace OpenMS
         applyTransformation(exp, target_mslvl, tms[0]);
         hasValidModels = true;
       }
-    } else
+    }
+    else
     { // one model per spectrum (not all might be needed, if certain MS levels are excluded from calibration)
       tms.reserve(exp.size());
       // go through spectra and calibrate

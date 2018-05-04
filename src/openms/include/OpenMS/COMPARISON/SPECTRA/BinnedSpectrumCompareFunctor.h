@@ -32,8 +32,7 @@
 // $Authors: $
 // --------------------------------------------------------------------------
 //
-#ifndef OPENMS_COMPARISON_SPECTRA_BINNEDSPECTRUMCOMPAREFUNCTOR_H
-#define OPENMS_COMPARISON_SPECTRA_BINNEDSPECTRUMCOMPAREFUNCTOR_H
+#pragma once
 
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/CONCEPT/Exception.h>
@@ -61,22 +60,6 @@ namespace OpenMS
 private:
 
 public:
-
-    /**
-      @brief Exception thrown if compared spectra are incompatible
-
-      the compared spectra have different settings in binsize and/or binspread
-      due to which comparison would fail
-    */
-    class OPENMS_DLLAPI IncompatibleBinning :
-      public Exception::BaseException
-    {
-public:
-      IncompatibleBinning(const char* file, int line, const char* function, const char* message
-                            = "compared spectra have different settings in binsize and/or binspread")  throw();
-      ~IncompatibleBinning() throw() override;
-    };
-
     /// default constructor
     BinnedSpectrumCompareFunctor();
 
@@ -108,4 +91,3 @@ public:
 
 }
 
-#endif // OPENMS_COMPARISON_SPECTRA_BINNEDSPECTRUMCOMPAREFUNCTOR_H

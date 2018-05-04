@@ -32,8 +32,7 @@
 // $Authors: Marc Sturm, Stephan Aiche $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_TRANSFORMATIONS_FEATUREFINDER_FEATUREFINDERALGORITHMPICKEDHELPERSTRUCTS_H
-#define OPENMS_TRANSFORMATIONS_FEATUREFINDER_FEATUREFINDERALGORITHMPICKEDHELPERSTRUCTS_H
+#pragma once
 
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/CONCEPT/Exception.h>
@@ -214,4 +213,3 @@ namespace OpenMS
   };
 }
 
-#endif // #ifndef OPENMS_TRANSFORMATIONS_FEATUREFINDER_FEATUREFINDERALGORITHMPICKEDHELPERSTRUCTS_H

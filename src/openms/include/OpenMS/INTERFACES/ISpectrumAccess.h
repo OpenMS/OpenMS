@@ -32,8 +32,7 @@
 // $Authors: Hannes Roest, Witold Wolski $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_INTERFACES_ISPECTRUMACCESS_H
-#define OPENMS_INTERFACES_ISPECTRUMACCESS_H
+#pragma once
 
 #include <OpenMS/INTERFACES/DataStructures.h>
 
@@ -131,4 +130,3 @@ public:
 } //end namespace Interfaces
 } //end namespace OpenMS
 
-#endif
