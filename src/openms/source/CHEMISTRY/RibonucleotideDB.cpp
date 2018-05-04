@@ -137,7 +137,14 @@ namespace OpenMS
     }
     Ribonucleotide* ribo = new Ribonucleotide();
     ribo->setName(parts[0]);
-    ribo->setCode(parts[1]);
+    if (parts[1].hasSuffix("QtRNA")) // use just "Q" instead of "QtRNA"
+    {
+      ribo->setCode(parts[1].chop(4));
+    }
+    else
+    {
+      ribo->setCode(parts[1]);
+    }
     ribo->setNewCode(parts[2]);
     if (parts[3] == "preQ0base")
     {
