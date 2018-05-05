@@ -96,7 +96,7 @@ namespace OpenMS
     return modified_residues_.size();
   }
 
-  const set<const Residue*> ResidueDB::getResidues(const String& residue_set) const
+  const ResidueDB::ResidueConstSetT ResidueDB::getResidues(const String& residue_set) const
   {
     if (!residues_by_set_.has(residue_set))
     {
@@ -417,7 +417,7 @@ namespace OpenMS
     return res_ptr;
   }
 
-  const set<String>& ResidueDB::getResidueSets() const
+  const std::set<std::string>& ResidueDB::getResidueSets() const
   {
     return residue_sets_;
   }
