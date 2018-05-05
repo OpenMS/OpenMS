@@ -869,8 +869,8 @@ namespace OpenMS
 #endif
 
 
-    set<const Residue *> residues(ResidueDB::getInstance()->getResidues("Natural20"));
-    for (StringList::const_iterator it = var_modifications_.begin(); it != var_modifications_.end(); ++it)
+    auto residues(ResidueDB::getInstance()->getResidues("Natural20"));
+    for (auto it = var_modifications_.begin(); it != var_modifications_.end(); ++it)
     {
       residues.insert(ResidueDB::getInstance()->getModifiedResidue(*it));
     }
@@ -882,10 +882,10 @@ namespace OpenMS
     for (StringList::const_iterator pathway_it = pathways.begin(); pathway_it != pathways.end(); ++pathway_it)
     {
       String pathway = *pathway_it;
-      for (set<const Residue *>::const_iterator it = residues.begin(); it != residues.end(); ++it)
+      for (auto it = residues.begin(); it != residues.end(); ++it)
       {
         s2 = name_to_state_[pathway];
-        for (set<const Residue *>::const_iterator jt = residues.begin(); jt != residues.end(); ++jt)
+        for (auto jt = residues.begin(); jt != residues.end(); ++jt)
         {
           AASequence first_aa, second_aa;
           first_aa += *it;
@@ -900,7 +900,7 @@ namespace OpenMS
             Size count(0);
             double sum(0);
             // "rows" of the amino acid matrix
-            for (set<const Residue *>::const_iterator kt = residues.begin(); kt != residues.end(); ++kt)
+            for (auto kt = residues.begin(); kt != residues.end(); ++kt)
             {
               AASequence third_aa;
               third_aa += *kt;
@@ -912,7 +912,7 @@ namespace OpenMS
               }
             }
             // "columns" of the amino acid matrix
-            for (set<const Residue *>::const_iterator kt = residues.begin(); kt != residues.end(); ++kt)
+            for (auto kt = residues.begin(); kt != residues.end(); ++kt)
             {
               AASequence third_aa;
               third_aa += *kt;
@@ -954,7 +954,7 @@ namespace OpenMS
     {
       String sc_res = *it;
 
-      for (set<const Residue *>::const_iterator jt = residues.begin(); jt != residues.end(); ++jt)
+      for (auto jt = residues.begin(); jt != residues.end(); ++jt)
       {
         AASequence second_aa;
         second_aa += *jt;
@@ -965,7 +965,7 @@ namespace OpenMS
         {
           Size count(0);
           double sum(0);
-          for (set<const Residue *>::const_iterator kt = residues.begin(); kt != residues.end(); ++kt)
+          for (auto kt = residues.begin(); kt != residues.end(); ++kt)
           {
             AASequence third_aa;
             third_aa += *kt;
@@ -994,7 +994,7 @@ namespace OpenMS
     {
       String pathway = *pathway_it;
       s2 = name_to_state_[pathway];
-      for (set<const Residue *>::const_iterator it = residues.begin(); it != residues.end(); ++it)
+      for (auto it = residues.begin(); it != residues.end(); ++it)
       {
         AASequence first_aa;
         first_aa += *it;
@@ -1003,7 +1003,7 @@ namespace OpenMS
         {
           Size count(0);
           double sum(0);
-          for (set<const Residue *>::const_iterator jt = residues.begin(); jt != residues.end(); ++jt)
+          for (auto jt = residues.begin(); jt != residues.end(); ++jt)
           {
             AASequence second_aa;
             second_aa += *jt;

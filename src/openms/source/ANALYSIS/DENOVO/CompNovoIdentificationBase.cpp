@@ -638,8 +638,8 @@ for (set<Size>::const_iterator it = used_pos.begin(); it != used_pos.end(); ++it
     // init residue mass table
     String residue_set(param_.getValue("residue_set"));
 
-    set<const Residue *> residues = ResidueDB::getInstance()->getResidues(residue_set);
-    for (set<const Residue *>::const_iterator it = residues.begin(); it != residues.end(); ++it)
+    auto residues = ResidueDB::getInstance()->getResidues(residue_set);
+    for (auto it = residues.begin(); it != residues.end(); ++it)
     {
       aa_to_weight_[(*it)->getOneLetterCode()[0]] = (*it)->getMonoWeight(Residue::Internal);
     }

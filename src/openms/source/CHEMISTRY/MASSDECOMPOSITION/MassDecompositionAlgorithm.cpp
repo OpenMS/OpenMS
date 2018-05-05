@@ -58,9 +58,9 @@ namespace OpenMS
     defaults_.setValue("variable_modifications", ListUtils::create<String>(""), "variable modifications, specified using UniMod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)' or 'Oxidation (M)'");
     defaults_.setValidStrings("variable_modifications", all_mods);
     defaults_.setValue("residue_set", "Natural19WithoutI", "The predefined amino acid set that should be used, see doc of ResidueDB for possible residue sets", ListUtils::create<String>("advanced"));
-    set<String> residue_sets = ResidueDB::getInstance()->getResidueSets();
+    auto residue_sets = ResidueDB::getInstance()->getResidueSets();
     vector<String> valid_strings;
-    for (set<String>::const_iterator it = residue_sets.begin(); it != residue_sets.end(); ++it)
+    for (auto it = residue_sets.begin(); it != residue_sets.end(); ++it)
     {
       valid_strings.push_back(*it);
     }
@@ -103,9 +103,9 @@ namespace OpenMS
 
     Map<char, double> aa_to_weight;
 
-    set<const Residue *> residues = ResidueDB::getInstance()->getResidues((String)param_.getValue("residue_set"));
+    auto residues = ResidueDB::getInstance()->getResidues((String)param_.getValue("residue_set"));
 
-    for (set<const Residue *>::const_iterator it = residues.begin(); it != residues.end(); ++it)
+    for (auto it = residues.begin(); it != residues.end(); ++it)
     {
       aa_to_weight[(*it)->getOneLetterCode()[0]] = (*it)->getMonoWeight(Residue::Internal);
     }

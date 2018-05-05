@@ -54,7 +54,7 @@ namespace OpenMS
   CrossLinksDB::~CrossLinksDB()
   {
     modification_names_.clear();
-    for (vector<ResidueModification*>::iterator it = mods_.begin(); it != mods_.end(); ++it)
+    for (auto it = mods_.begin(); it != mods_.end(); ++it)
     {
       delete *it;
     }
@@ -320,8 +320,8 @@ namespace OpenMS
       if (it->second.getUniModRecordId() > 0)
       {
         //cerr << "Found UniMod PSI-MOD mapping: " << it->second.getPSIMODAccession() << " " << it->second.getUniModAccession() << endl;
-        set<const ResidueModification*> mods = modification_names_[it->second.getUniModAccession()];
-        for (set<const ResidueModification*>::const_iterator mit = mods.begin(); mit != mods.end(); ++mit)
+        auto mods = modification_names_[String(it->second.getUniModAccession())];
+        for (auto mit = mods.begin(); mit != mods.end(); ++mit)
         {
           //cerr << "Adding PSIMOD accession: " << it->second.getPSIMODAccession() << " " << it->second.getUniModAccession() << endl;
           modification_names_[it->second.getPSIMODAccession()].insert(*mit);
@@ -349,7 +349,7 @@ namespace OpenMS
           synonyms.insert(mods_.back()->getFullId());
 
           // now check each of the names and link it to the residue modification
-          for (set<String>::const_iterator nit = synonyms.begin(); nit != synonyms.end(); ++nit)
+          for (auto nit = synonyms.begin(); nit != synonyms.end(); ++nit)
           {
             modification_names_[*nit].insert(mods_.back());
           }
@@ -362,7 +362,7 @@ namespace OpenMS
   {
     modifications.clear();
 
-    for (vector<ResidueModification*>::const_iterator it = mods_.begin(); it != mods_.end(); ++it)
+    for (auto it = mods_.begin(); it != mods_.end(); ++it)
     {
       if ((*it)->getPSIMODAccession() != "")
       {

@@ -81,10 +81,9 @@ namespace OpenMS
     {
       ResidueDB* res_db;
       res_db = ResidueDB::getInstance();
-      std::set<const Residue*> all_aa = res_db->getResidues("Natural20");
+      auto all_aa = res_db->getResidues("Natural20");
       std::set<String> residues;
-      std::set<const Residue*>::const_iterator aa_it;
-      for (aa_it = all_aa.begin(); aa_it != all_aa.end(); ++aa_it)
+      for (auto aa_it = all_aa.begin(); aa_it != all_aa.end(); ++aa_it)
       {
         residues.insert((*aa_it)->getOneLetterCode());
       }
