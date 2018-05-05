@@ -64,23 +64,22 @@ public:
     /** @name Typedefs
     */
     //@{
-
+#if OPENMS_HAS_TBB
+    typedef tbb::concurrent_unordered_set<Residue*> ResidueSetT;
+    typedef tbb::concurrent_unordered_set<const Residue*> ResidueConstSetT;
+    typedef tbb::concurrent_unordered_set<Residue*>::iterator ResidueIterator;
+    typedef tbb::concurrent_unordered_set<const Residue*>::const_iterator ResidueConstIterator;
+#else
     typedef std::set<Residue*> ResidueSetT;
     typedef std::set<const Residue*> ResidueConstSetT;
     typedef std::set<Residue*>::iterator ResidueIterator;
     typedef std::set<const Residue*>::const_iterator ResidueConstIterator;
+#endif
+
     //@}
 
     /// this member function serves as a replacement of the constructor
-    inline static ResidueDB* getInstance()
-    {
-      static ResidueDB* db_ = nullptr;
-      if (db_ == nullptr)
-      {
-        db_ = new ResidueDB;
-      }
-      return db_;
-    }
+    static ResidueDB* getInstance();
 
     /** @name Constructors and Destructors
     */

@@ -57,6 +57,16 @@ namespace OpenMS
     buildResidueNames_();
   }
 
+  ResidueDB* ResidueDB::getInstance()
+  {
+    static ResidueDB* db_ = nullptr;
+    if (db_ == nullptr)
+    {
+      db_ = new ResidueDB;
+    }
+    return db_;
+  }
+
   ResidueDB::~ResidueDB()
   {
     clear_();
