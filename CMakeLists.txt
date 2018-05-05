@@ -95,8 +95,8 @@ list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake/Windows")
 #------------------------------------------------------------------------------
 
 set(OPENMS_PACKAGE_VERSION_MAJOR "2")
-set(OPENMS_PACKAGE_VERSION_MINOR "3")
-set(OPENMS_PACKAGE_VERSION_PATCH "0")
+set(OPENMS_PACKAGE_VERSION_MINOR "4")
+set(OPENMS_PACKAGE_VERSION_PATCH "0-alpha")
 
 #------------------------------------------------------------------------------
 # retrieve detailed informations on the working copy (git)
@@ -111,17 +111,17 @@ message(STATUS "Building OpenMS ${OPENMS_PACKAGE_VERSION_MAJOR}.${OPENMS_PACKAGE
 if(NOT GIT_TRACKING)
   set(OPENMS_GIT_SHORT_SHA1 "disabled")
   set(OPENMS_GIT_SHORT_REFSPEC "disabled")
-  message(STATUS "  [CMake is not tracking Git commits and branching. To enable use '-D GIT_TRACKING=ON'.]")
+  message(STATUS "  [CMake is not tracking Git commits and branching ('-D GIT_TRACKING=Off')]")
 elseif(OPENMS_GIT_SHORT_REFSPEC EQUAL "GIT-NOTFOUND" OR ${OPENMS_GIT_SHORT_REFSPEC} EQUAL "HEAD-HASH-NOTFOUND")
   set(OPENMS_GIT_SHORT_SHA1 "exported")
   set(OPENMS_GIT_SHORT_REFSPEC "exported")
-  message(STATUS "  [CMake is not tracking Git commits and branching. Git not found.]")
+  message(STATUS "  [CMake cannot track Git commits and branching, since Git was not found. ('-D GIT_TRACKING=On')]")
 else()
   # everything found, print some status information
   message(STATUS "  - Repository revision ${OPENMS_GIT_SHORT_SHA1}")
   message(STATUS "  - Repository branch ${OPENMS_GIT_SHORT_REFSPEC}")
   message(STATUS "  - Repository last change date ${OPENMS_GIT_LC_DATE}")
-  message(STATUS "  [CMake is tracking Git commits and branching. To disable use '-D GIT_TRACKING=OFF'.]")
+  message(STATUS "  [CMake is tracking Git commits and branching ('-D GIT_TRACKING=On')]")
 endif()
 
 #------------------------------------------------------------------------------

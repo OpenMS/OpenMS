@@ -41,13 +41,12 @@
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/TextFile.h>
-#include <OpenMS/CHEMISTRY/IsotopeDistribution.h>
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CHEMISTRY/Element.h>
 #include <OpenMS/CHEMISTRY/ElementDB.h>
-#include <OpenMS/CHEMISTRY/IsotopeDistribution.h>
+#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmIdentification.h>
 
 #include <boost/math/special_functions/fpclassify.hpp>
@@ -508,7 +507,7 @@ namespace OpenMS
       // get isotope distribution for peptide:
       Size n_isotopes = (isotope_pmin_ > 0.0) ? 10 : n_isotopes_;
       IsotopeDistribution iso_dist = 
-        seq.getFormula(Residue::Full, 0).getIsotopeDistribution(n_isotopes);
+        seq.getFormula(Residue::Full, 0).getIsotopeDistribution(CoarseIsotopePatternGenerator(n_isotopes));
       if (isotope_pmin_ > 0.0)
       {
         iso_dist.trimLeft(isotope_pmin_);
@@ -671,11 +670,11 @@ namespace OpenMS
       transition.setPrecursorMZ(mz);
       transition.setProductMZ(mz + Constants::C13C12_MASSDIFF_U * 
                               float(counter) / charge);
-      transition.setLibraryIntensity(iso_it->second);
+      transition.setLibraryIntensity(iso_it->getIntensity());
       transition.setMetaValue("annotation", annotation);
       transition.setPeptideRef(peptide_id);
       library_.addTransition(transition);
-      isotope_probs_[transition_name] = iso_it->second;
+      isotope_probs_[transition_name] = iso_it->getIntensity();
     }
   }
 

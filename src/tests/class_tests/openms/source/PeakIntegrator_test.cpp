@@ -55,7 +55,7 @@ const double right = 3.022891666;
 
 // Toy chromatogram
 // data is taken from raw LC-MS/MS data points acquired for L-Glutamate in RBCs
-vector<double> position = {
+const vector<double> position = {
   2.23095,2.239716667,2.248866667,2.25765,2.266416667,
   2.275566667,2.2847,2.293833333,2.304066667,2.315033333,2.325983333,2.336566667,
   2.3468,2.357016667,2.367283333,2.377183333,2.387083333,2.39735,2.40725,2.4175,
@@ -73,7 +73,7 @@ vector<double> position = {
   3.190133333,3.198016667,3.205916667,3.213166667
 };
 
-vector<double> intensity = {
+const vector<double> intensity = {
   1447,2139,1699,755,1258,1070,944,1258,1573,1636,
   1762,1447,1133,1321,1762,1133,1447,2391,692,1636,2957,1321,1573,1196,1258,881,
   1384,2076,1133,1699,1384,692,1636,1133,1573,1825,1510,2391,4342,10382,17618,
@@ -138,6 +138,7 @@ constexpr const char* INTEGRATION_TYPE_SIMPSON = "simpson";
 constexpr const char* BASELINE_TYPE_BASETOBASE = "base_to_base";
 constexpr const char* BASELINE_TYPE_VERTICALDIVISION_MIN = "vertical_division_min";
 constexpr const char* BASELINE_TYPE_VERTICALDIVISION_MAX = "vertical_division_max";
+
 
 START_SECTION(PeakIntegrator())
 {

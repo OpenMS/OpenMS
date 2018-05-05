@@ -579,7 +579,7 @@ namespace OpenMS
       spectra_combo_box_->addItems(qsl);
       spectra_combo_box_->setCurrentIndex(curr);
 
-      LayerData::ExperimentSharedPtrType exp;
+      LayerData::ConstExperimentSharedPtrType exp;
       exp = cl.getPeakData();
 
       if (cl.chromatogram_flag_set())
