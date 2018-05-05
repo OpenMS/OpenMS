@@ -57,7 +57,7 @@ find_package(XercesC REQUIRED)
 
 #------------------------------------------------------------------------------
 # BOOST
-find_boost(iostreams date_time math_c99 regex)
+find_boost(iostreams date_time math_c99 regex system thread)
 
 if(Boost_FOUND)
   message(STATUS "Found Boost version ${Boost_MAJOR_VERSION}.${Boost_MINOR_VERSION}.${Boost_SUBMINOR_VERSION}" )
