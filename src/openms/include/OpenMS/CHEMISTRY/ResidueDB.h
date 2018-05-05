@@ -64,6 +64,9 @@ public:
     /** @name Typedefs
     */
     //@{
+
+    typedef std::set<Residue*> ResidueSetT;
+    typedef std::set<const Residue*> ResidueConstSetT;
     typedef std::set<Residue*>::iterator ResidueIterator;
     typedef std::set<const Residue*>::const_iterator ResidueConstIterator;
     //@}
@@ -135,10 +138,10 @@ public:
 
        @throw Exception::ElementNotFound if the specified residue set is not defined
     */
-    const std::set<const Residue*> getResidues(const String& residue_set = "All") const;
+    const ResidueConstSetT getResidues(const String& residue_set = "All") const;
 
     /// returns all residue sets that are registered which this instance
-    const std::set<String>& getResidueSets() const;
+    const std::set<std::string>& getResidueSets() const;
 
     /// sets the residues from given file
     void setResidues(const String& filename);
@@ -226,6 +229,6 @@ protected:
 
     Map<String, std::set<const Residue*> > residues_by_set_;
 
-    std::set<String> residue_sets_;
+    std::set<std::string> residue_sets_;
   };
 }
