@@ -38,6 +38,10 @@
 
 ///////////////////////////
 
+#ifdef _OPENMP
+#include <omp.h>
+#endif
+
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/CHEMISTRY/ResidueDB.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
@@ -1158,6 +1162,34 @@ START_SECTION([EXTRA] testing terminal modifications)
   TEST_EQUAL(aaNoMod.getCTerminalModificationName(), "")
   TEST_EQUAL(aaNtermMod.getCTerminalModificationName(), "")
   TEST_EQUAL(aaCtermMod.getCTerminalModificationName(), "Label:18O(2)")
+}
+END_SECTION
+
+START_SECTION([EXTRA] multithreaded example)
+{
+  static ResidueDB* rdb = ResidueDB::getInstance();
+
+  int nr_iterations (5e3), test (0);
+#ifdef _OPENMP
+#pragma omp parallel for
+#endif
+  for (int k = 1; k < nr_iterations + 1; k++)
+  {
+    auto aa = AASequence::fromString("TEST[" +  String(0.14*k) + "]PEPTIDE");
+
+#ifdef _OPENMP
+#pragma omp critical (add_test)
+#endif
+    {
+// #ifdef _OPENMP
+//       std::cout << " thread " << omp_get_thread_num() << " work on " << k << std::endl;
+// #else
+//       std::cout << " no thread here, " << " work on " << k << " and add " << aa.size() << std::endl;
+// #endif
+      test += aa.size();
+    }
+  }
+  TEST_EQUAL(test, nr_iterations*11)
 }
 END_SECTION
 
