@@ -48,16 +48,19 @@
 
 #include <iostream>
 
+#ifdef _OPENMP
+#define _MULTITHREADING_ON
 #include <boost/thread.hpp>
-#include <boost/thread/locks.hpp>
-#include <boost/chrono.hpp>
+#endif
 
 using namespace std;
 
 namespace OpenMS
 {
 
+#ifdef _MULTITHREADING_ON
   static boost::shared_mutex mutex;
+#endif
 
   ResidueDB::ResidueDB()
   {
@@ -71,7 +74,9 @@ namespace OpenMS
     static ResidueDB* db_ = nullptr;
 
     // unique lock (make sure we only create one instance)
+#ifdef _MULTITHREADING_ON
     boost::unique_lock<boost::shared_mutex> lock{mutex};
+#endif
 
     if (db_ == nullptr)
     {
@@ -88,7 +93,9 @@ namespace OpenMS
   const Residue* ResidueDB::getResidue(const String& name) const
   {
     // non-unique read lock
+#ifdef _MULTITHREADING_ON
     boost::shared_lock<boost::shared_mutex> lock{mutex};
+#endif
 
     if (residue_names_.find(name) != residue_names_.end())
     {
@@ -100,7 +107,9 @@ namespace OpenMS
   const Residue* ResidueDB::getResidue(const unsigned char& one_letter_code) const
   {
     // non-unique read lock
+#ifdef _MULTITHREADING_ON
     boost::shared_lock<boost::shared_mutex> lock{mutex};
+#endif
 
     return residue_by_one_letter_code_[one_letter_code];
   }
@@ -108,7 +117,9 @@ namespace OpenMS
   Size ResidueDB::getNumberOfResidues() const
   {
     // non-unique read lock
+#ifdef _MULTITHREADING_ON
     boost::shared_lock<boost::shared_mutex> lock{mutex};
+#endif
 
     return residues_.size();
   }
@@ -116,13 +127,20 @@ namespace OpenMS
   Size ResidueDB::getNumberOfModifiedResidues() const
   {
     // non-unique read lock
+#ifdef _MULTITHREADING_ON
     boost::shared_lock<boost::shared_mutex> lock{mutex};
+#endif
 
     return modified_residues_.size();
   }
 
   const ResidueDB::ResidueConstSetT ResidueDB::getResidues(const String& residue_set) const
   {
+    // non-unique read lock
+#ifdef _MULTITHREADING_ON
+    boost::shared_lock<boost::shared_mutex> lock{mutex};
+#endif
+
     if (residues_by_set_.find(residue_set) == residues_by_set_.end())
     {
       throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Residue set cannot be found: '" + residue_set + "'");
@@ -134,7 +152,9 @@ namespace OpenMS
   void ResidueDB::setResidues(const String& file_name)
   {
     // unique lock
+#ifdef _MULTITHREADING_ON
     boost::unique_lock<boost::shared_mutex> lock{mutex};
+#endif
 
     clearResidues_();
     readResiduesFromFile_(file_name);
@@ -144,7 +164,9 @@ namespace OpenMS
   void ResidueDB::addResidue(const Residue& residue)
   {
     // unique lock
+#ifdef _MULTITHREADING_ON
     boost::unique_lock<boost::shared_mutex> lock{mutex};
+#endif
 
     Residue* r = new Residue(residue);
     addResidue_(r);
@@ -211,7 +233,9 @@ namespace OpenMS
   bool ResidueDB::hasResidue(const String& res_name) const
   {
     // non-unique read lock
+#ifdef _MULTITHREADING_ON
     boost::shared_lock<boost::shared_mutex> lock{mutex};
+#endif
 
     if (residue_names_.find(res_name) != residue_names_.end())
     {
@@ -223,7 +247,9 @@ namespace OpenMS
   bool ResidueDB::hasResidue(const Residue* residue) const
   {
     // non-unique read lock
+#ifdef _MULTITHREADING_ON
     boost::shared_lock<boost::shared_mutex> lock{mutex};
+#endif
 
     if (const_residues_.find(residue) != const_residues_.end() ||
         const_modified_residues_.find(residue) != const_modified_residues_.end())
@@ -499,7 +525,9 @@ namespace OpenMS
   const Residue* ResidueDB::getModifiedResidue(const String& modification)
   {
     // non-unique read lock
+#ifdef _MULTITHREADING_ON
     boost::shared_lock<boost::shared_mutex> lock{mutex};
+#endif
 
     // terminal mods. don't apply to residue (side chain), so don't consider them:
     const ResidueModification& mod = ModificationsDB::getInstance()->getModification(modification, "", ResidueModification::ANYWHERE);
@@ -508,11 +536,10 @@ namespace OpenMS
 
   const Residue* ResidueDB::getModifiedResidue(const Residue* residue, const String& modification)
   {
-    // unique lock
-    // boost::unique_lock<boost::shared_mutex> lock{mutex};
-
     // get upgradeable access (right now we dont need a unique lock)
+#ifdef _MULTITHREADING_ON
     boost::upgrade_lock<boost::shared_mutex> lock{mutex};
+#endif
 
     OPENMS_PRECONDITION(!modification.empty(), "Modification cannot be empty")
 
@@ -542,7 +569,9 @@ namespace OpenMS
     //res->setLossNames(vector<String>());
 
     // now we do need to have unique access
+#ifdef _MULTITHREADING_ON
     boost::upgrade_to_unique_lock<boost::shared_mutex> uniqueLock(lock);
+#endif
     {
       // now register this modified residue
       addResidue_(res);
