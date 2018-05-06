@@ -98,7 +98,7 @@ namespace OpenMS
 
   const ResidueDB::ResidueConstSetT ResidueDB::getResidues(const String& residue_set) const
   {
-    if (!residues_by_set_.has(residue_set))
+    if (residues_by_set_.find(residue_set) == residues_by_set_.end())
     {
       throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Residue set cannot be found: '" + residue_set + "'");
     }
