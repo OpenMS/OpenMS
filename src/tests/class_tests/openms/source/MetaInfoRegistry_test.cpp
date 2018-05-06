@@ -39,6 +39,10 @@
 
 #include <OpenMS/METADATA/MetaInfoRegistry.h>
 
+#ifdef _OPENMP
+#include <omp.h>
+#endif
+
 ///////////////////////////
 
 START_TEST(MetaInfoRegistry, "$Id$")
@@ -172,6 +176,30 @@ START_SECTION((MetaInfoRegistry& operator=(const MetaInfoRegistry& rhs)))
 	TEST_STRING_EQUAL(mir2.getUnit(1025), "sec")
 	TEST_STRING_EQUAL(mir2.getUnit("testname"), "")
 	TEST_STRING_EQUAL(mir2.getUnit("retention time"), "sec")
+END_SECTION
+
+START_SECTION([EXTRA] multithreaded example)
+{
+  int nr_iterations (1e5), test (0);
+#ifdef _OPENMP
+#pragma omp parallel for
+#endif
+  for (int k = 1; k < nr_iterations + 1; k++)
+  {
+    std::string val = "newValue";
+    
+    UInt index = mir.registerName(val);
+    mir.setDescription(index, val);
+
+#ifdef _OPENMP
+#pragma omp critical (add_test)
+#endif
+    {
+      test += index;
+    }
+  }
+  TEST_EQUAL(test, 1027 * 100)
+}
 END_SECTION
 
 /////////////////////////////////////////////////////////////
