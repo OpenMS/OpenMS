@@ -64,17 +64,10 @@ public:
     /** @name Typedefs
     */
     //@{
-#if OPENMS_HAS_TBB
-    typedef tbb::concurrent_unordered_set<Residue*> ResidueSetT;
-    typedef tbb::concurrent_unordered_set<const Residue*> ResidueConstSetT;
-    typedef tbb::concurrent_unordered_set<Residue*>::iterator ResidueIterator;
-    typedef tbb::concurrent_unordered_set<const Residue*>::const_iterator ResidueConstIterator;
-#else
-    typedef std::set<Residue*> ResidueSetT;
+    typedef std::set<std::string> ResidueSetT;
     typedef std::set<const Residue*> ResidueConstSetT;
     typedef std::set<Residue*>::iterator ResidueIterator;
     typedef std::set<const Residue*>::const_iterator ResidueConstIterator;
-#endif
 
     //@}
 
@@ -140,7 +133,7 @@ public:
     const ResidueConstSetT getResidues(const String& residue_set = "All") const;
 
     /// returns all residue sets that are registered which this instance
-    const std::set<std::string>& getResidueSets() const;
+    const ResidueSetT& getResidueSets() const;
 
     /// sets the residues from given file
     void setResidues(const String& filename);
