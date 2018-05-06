@@ -86,7 +86,6 @@ namespace OpenMS
     }
   }
 
-
   Size ModificationsDB::getNumberOfModifications() const
   {
     return mods_.size();
@@ -98,7 +97,7 @@ namespace OpenMS
     {
       throw Exception::IndexOverflow(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, index, mods_.size());
     }
-    return *mods_.at(index);
+    return mods_.at(index);
   }
 
 
