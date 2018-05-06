@@ -44,12 +44,20 @@
 
 #include <fstream>
 
+#ifdef _OPENMP
+#define _MULTITHREADING_ON
+#include <boost/thread.hpp>
+#endif
+
 using namespace std;
 
 namespace OpenMS
 {
   bool ModificationsDB::is_instantiated_ = false;
   
+#ifdef _MULTITHREADING_ON
+  static boost::shared_mutex mutex_mdb;
+#endif
 
   ModificationsDB::ModificationsDB(OpenMS::String unimod_file, OpenMS::String psimod_file, OpenMS::String xlmod_file)
   {
@@ -71,9 +79,12 @@ namespace OpenMS
     is_instantiated_ = true;
   }
 
-
   bool ModificationsDB::isInstantiated()
   {
+    // non-unique read lock
+#ifdef _MULTITHREADING_ON
+    boost::shared_lock<boost::shared_mutex> lock{mutex_mdb};
+#endif
     return is_instantiated_;
   }
 
@@ -88,11 +99,20 @@ namespace OpenMS
 
   Size ModificationsDB::getNumberOfModifications() const
   {
+    // non-unique read lock
+#ifdef _MULTITHREADING_ON
+    boost::shared_lock<boost::shared_mutex> lock{mutex_mdb};
+#endif
     return mods_.size();
   }
 
   const ResidueModification& ModificationsDB::getModification(Size index) const
   {
+    // non-unique read lock
+#ifdef _MULTITHREADING_ON
+    boost::shared_lock<boost::shared_mutex> lock{mutex_mdb};
+#endif
+
     if (index >= mods_.size())
     {
       throw Exception::IndexOverflow(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, index, mods_.size());
@@ -103,6 +123,11 @@ namespace OpenMS
 
   void ModificationsDB::searchModifications(set<const ResidueModification*>& mods, const String& mod_name, const String& residue, ResidueModification::TermSpecificity term_spec) const
   {
+    // non-unique read lock
+#ifdef _MULTITHREADING_ON
+    boost::shared_lock<boost::shared_mutex> lock{mutex_mdb};
+#endif
+
     mods.clear();
 
     if (modification_names_.find(mod_name) == modification_names_.end())
@@ -126,6 +151,11 @@ namespace OpenMS
 
   const ResidueModification& ModificationsDB::getModification(const String& mod_name, const String& residue, ResidueModification::TermSpecificity term_spec) const
   {
+    // non-unique read lock
+#ifdef _MULTITHREADING_ON
+    boost::shared_lock<boost::shared_mutex> lock{mutex_mdb};
+#endif
+
     set<const ResidueModification*> mods;
     // if residue is specified, try residue-specific search first to avoid
     // ambiguities (e.g. "Carbamidomethyl (N-term)"/"Carbamidomethyl (C)"):
@@ -160,6 +190,11 @@ namespace OpenMS
 
   bool ModificationsDB::has(String modification) const
   {
+    // non-unique read lock
+#ifdef _MULTITHREADING_ON
+    boost::shared_lock<boost::shared_mutex> lock{mutex_mdb};
+#endif
+
     OPENMS_PRECONDITION( modification_names_.find(modification) == modification_names_.end() || (int)findModificationIndex(modification) >= 0,
         "The modification being present implies that it can be found."); // NOTE: some very smart compilers may remove this statement ...
     return modification_names_.find(modification) != modification_names_.end();
@@ -167,6 +202,11 @@ namespace OpenMS
 
   Size ModificationsDB::findModificationIndex(const String & mod_name) const
   {
+    // non-unique read lock
+#ifdef _MULTITHREADING_ON
+    boost::shared_lock<boost::shared_mutex> lock{mutex_mdb};
+#endif
+
     if (modification_names_.find(mod_name) == modification_names_.end())
     {
       throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, mod_name);
@@ -194,6 +234,10 @@ namespace OpenMS
 
   void ModificationsDB::searchModificationsByDiffMonoMass(vector<String>& mods, double mass, double max_error, const String& residue, ResidueModification::TermSpecificity term_spec)
   {
+    // non-unique read lock
+#ifdef _MULTITHREADING_ON
+    boost::shared_lock<boost::shared_mutex> lock{mutex_mdb};
+#endif
     mods.clear();
 
     for (auto it = mods_.begin(); it != mods_.end(); ++it)
@@ -212,6 +256,11 @@ namespace OpenMS
   const ResidueModification* ModificationsDB::getBestModificationByMonoMass(double mass, double max_error, const String& residue,
                                                                             ResidueModification::TermSpecificity term_spec)
   {
+    // non-unique read lock
+#ifdef _MULTITHREADING_ON
+    boost::shared_lock<boost::shared_mutex> lock{mutex_mdb};
+#endif
+
     double min_error = max_error;
     const ResidueModification* mod = nullptr;
     const Residue* residue_ = ResidueDB::getInstance()->getResidue(residue); // is NULL if not found
@@ -249,6 +298,11 @@ namespace OpenMS
 
   const ResidueModification* ModificationsDB::getBestModificationByDiffMonoMass(double mass, double max_error, const String& residue, ResidueModification::TermSpecificity term_spec)
   {
+    // non-unique read lock
+#ifdef _MULTITHREADING_ON
+    boost::shared_lock<boost::shared_mutex> lock{mutex_mdb};
+#endif
+
     double min_error = max_error;
     const ResidueModification* mod = nullptr;
     for (auto it = mods_.begin(); it != mods_.end(); ++it)
@@ -271,6 +325,11 @@ namespace OpenMS
 
   void ModificationsDB::readFromUnimodXMLFile(const String& filename)
   {
+    // unique lock
+#ifdef _MULTITHREADING_ON
+    boost::unique_lock<boost::shared_mutex> lock{mutex_mdb};
+#endif
+
     vector<ResidueModification*> new_mods;
     UnimodXMLFile().load(filename, new_mods);
 
@@ -293,12 +352,23 @@ namespace OpenMS
 
   void ModificationsDB::addModification(ResidueModification* new_mod)
   {
+    // get upgradeable access (right now we dont need a unique lock)
+#ifdef _MULTITHREADING_ON
+    boost::upgrade_lock<boost::shared_mutex> lock{mutex_mdb};
+#endif
+
     if (has(new_mod->getFullId()))
     {
       throw Exception::InvalidValue(__FILE__, __LINE__,
                                     OPENMS_PRETTY_FUNCTION,
                                     "Modification already exists in ModificationsDB.", String(new_mod->getFullId()));
     }
+
+    // now we do need to have unique access
+#ifdef _MULTITHREADING_ON
+    boost::upgrade_to_unique_lock<boost::shared_mutex> uniqueLock(lock);
+#endif
+
     modification_names_[new_mod->getFullId()].insert(new_mod);
     modification_names_[new_mod->getId()].insert(new_mod);
     modification_names_[new_mod->getFullName()].insert(new_mod);
@@ -309,6 +379,11 @@ namespace OpenMS
 
   void ModificationsDB::readFromOBOFile(const String& filename)
   {
+    // unique lock
+#ifdef _MULTITHREADING_ON
+    boost::unique_lock<boost::shared_mutex> lock{mutex_mdb};
+#endif
+    
     ResidueModification mod;
     // add multiple mods for multiple specificities
     //Map<String, ResidueModification> all_mods;
@@ -609,6 +684,11 @@ namespace OpenMS
 
   void ModificationsDB::getAllSearchModifications(vector<String>& modifications) const
   {
+    // non-unique read lock
+#ifdef _MULTITHREADING_ON
+    boost::shared_lock<boost::shared_mutex> lock{mutex_mdb};
+#endif
+
     modifications.clear();
 
     for (auto it = mods_.begin(); it != mods_.end(); ++it)
@@ -630,10 +710,10 @@ namespace OpenMS
     });
   }
 
-
   bool ModificationsDB::residuesMatch_(const String& residue, char origin) const
   {
     return (residue.empty() || (origin == residue[0]) || (residue == "X") || (origin == 'X') || (residue == "."));
   }
 
 } // namespace OpenMS
+
