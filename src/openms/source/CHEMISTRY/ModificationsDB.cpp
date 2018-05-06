@@ -196,8 +196,8 @@ namespace OpenMS
   void ModificationsDB::searchModificationsByDiffMonoMass(vector<String>& mods, double mass, double max_error, const String& residue, ResidueModification::TermSpecificity term_spec)
   {
     mods.clear();
-    for (vector<ResidueModification*>::const_iterator it = mods_.begin();
-         it != mods_.end(); ++it)
+
+    for (auto it = mods_.begin(); it != mods_.end(); ++it)
     {
       if ((fabs((*it)->getDiffMonoMass() - mass) <= max_error) &&
           residuesMatch_(residue, (*it)->getOrigin()) &&
@@ -216,8 +216,8 @@ namespace OpenMS
     double min_error = max_error;
     const ResidueModification* mod = nullptr;
     const Residue* residue_ = ResidueDB::getInstance()->getResidue(residue); // is NULL if not found
-    for (vector<ResidueModification*>::const_iterator it = mods_.begin();
-         it != mods_.end(); ++it)
+
+    for (auto it = mods_.begin(); it != mods_.end(); ++it)
     {
       double mono_mass = (*it)->getMonoMass();
       if ((mono_mass <= 0) && !residue.empty())
@@ -252,8 +252,7 @@ namespace OpenMS
   {
     double min_error = max_error;
     const ResidueModification* mod = nullptr;
-    for (vector<ResidueModification*>::const_iterator it = mods_.begin();
-         it != mods_.end(); ++it)
+    for (auto it = mods_.begin(); it != mods_.end(); ++it)
     {
       // using less instead of less-or-equal will pick the first matching
       // modification of equally heavy modifications (in our case this is the
