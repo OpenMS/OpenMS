@@ -34,6 +34,7 @@
 //
 
 #include <OpenMS/CHEMISTRY/ResidueDB.h>
+
 #include <OpenMS/CHEMISTRY/ResidueModification.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/CHEMISTRY/Residue.h>
@@ -47,12 +48,20 @@
 
 #include <iostream>
 
+#include <boost/thread.hpp>
+#include <boost/thread/locks.hpp>
+#include <boost/chrono.hpp>
+
 using namespace std;
 
 namespace OpenMS
 {
+
+  static boost::shared_mutex mutex;
+
   ResidueDB::ResidueDB()
   {
+    // private constructor that is called from getInstance which acquires the lock (no lock needed here)
     readResiduesFromFile_("CHEMISTRY/Residues.xml");
     buildResidueNames_();
   }
@@ -60,6 +69,10 @@ namespace OpenMS
   ResidueDB* ResidueDB::getInstance()
   {
     static ResidueDB* db_ = nullptr;
+
+    // unique lock (make sure we only create one instance)
+    boost::unique_lock<boost::shared_mutex> lock{mutex};
+
     if (db_ == nullptr)
     {
       db_ = new ResidueDB;
@@ -74,6 +87,9 @@ namespace OpenMS
 
   const Residue* ResidueDB::getResidue(const String& name) const
   {
+    // non-unique read lock
+    boost::shared_lock<boost::shared_mutex> lock{mutex};
+
     if (residue_names_.find(name) != residue_names_.end())
     {
       return residue_names_.at(name);
@@ -83,16 +99,25 @@ namespace OpenMS
 
   const Residue* ResidueDB::getResidue(const unsigned char& one_letter_code) const
   {
+    // non-unique read lock
+    boost::shared_lock<boost::shared_mutex> lock{mutex};
+
     return residue_by_one_letter_code_[one_letter_code];
   }
 
   Size ResidueDB::getNumberOfResidues() const
   {
+    // non-unique read lock
+    boost::shared_lock<boost::shared_mutex> lock{mutex};
+
     return residues_.size();
   }
 
   Size ResidueDB::getNumberOfModifiedResidues() const
   {
+    // non-unique read lock
+    boost::shared_lock<boost::shared_mutex> lock{mutex};
+
     return modified_residues_.size();
   }
 
@@ -108,6 +133,9 @@ namespace OpenMS
 
   void ResidueDB::setResidues(const String& file_name)
   {
+    // unique lock
+    boost::unique_lock<boost::shared_mutex> lock{mutex};
+
     clearResidues_();
     readResiduesFromFile_(file_name);
     buildResidueNames_();
@@ -115,6 +143,9 @@ namespace OpenMS
 
   void ResidueDB::addResidue(const Residue& residue)
   {
+    // unique lock
+    boost::unique_lock<boost::shared_mutex> lock{mutex};
+
     Residue* r = new Residue(residue);
     addResidue_(r);
   }
@@ -179,6 +210,9 @@ namespace OpenMS
 
   bool ResidueDB::hasResidue(const String& res_name) const
   {
+    // non-unique read lock
+    boost::shared_lock<boost::shared_mutex> lock{mutex};
+
     if (residue_names_.find(res_name) != residue_names_.end())
     {
       return true;
@@ -188,6 +222,9 @@ namespace OpenMS
 
   bool ResidueDB::hasResidue(const Residue* residue) const
   {
+    // non-unique read lock
+    boost::shared_lock<boost::shared_mutex> lock{mutex};
+
     if (const_residues_.find(residue) != const_residues_.end() ||
         const_modified_residues_.find(residue) != const_modified_residues_.end())
     {
@@ -418,6 +455,7 @@ namespace OpenMS
 
   const ResidueDB::ResidueSetT& ResidueDB::getResidueSets() const
   {
+    // TODO: potentially unsafe to give out the std::set (we dont know what the user does with it)
     return residue_sets_;
   }
 
@@ -460,6 +498,9 @@ namespace OpenMS
 
   const Residue* ResidueDB::getModifiedResidue(const String& modification)
   {
+    // non-unique read lock
+    boost::shared_lock<boost::shared_mutex> lock{mutex};
+
     // terminal mods. don't apply to residue (side chain), so don't consider them:
     const ResidueModification& mod = ModificationsDB::getInstance()->getModification(modification, "", ResidueModification::ANYWHERE);
     return getModifiedResidue(getResidue(mod.getOrigin()), mod.getFullId());
@@ -467,10 +508,16 @@ namespace OpenMS
 
   const Residue* ResidueDB::getModifiedResidue(const Residue* residue, const String& modification)
   {
+    // unique lock
+    // boost::unique_lock<boost::shared_mutex> lock{mutex};
+
+    // get upgradeable access (right now we dont need a unique lock)
+    boost::upgrade_lock<boost::shared_mutex> lock{mutex};
+
     OPENMS_PRECONDITION(!modification.empty(), "Modification cannot be empty")
+
     // search if the mod already exists
     String res_name = residue->getName();
-
     if (residue_names_.find(res_name) == residue_names_.end())
     {
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
@@ -494,8 +541,12 @@ namespace OpenMS
     //res->setLossFormulas(vector<EmpiricalFormula>());
     //res->setLossNames(vector<String>());
 
-    // now register this modified residue
-    addResidue_(res);
+    // now we do need to have unique access
+    boost::upgrade_to_unique_lock<boost::shared_mutex> uniqueLock(lock);
+    {
+      // now register this modified residue
+      addResidue_(res);
+    }
     return res;
   }
 
