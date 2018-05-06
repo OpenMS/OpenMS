@@ -159,30 +159,30 @@ namespace OpenMS
     return **mods.begin();
   }
 
-
   bool ModificationsDB::has(String modification) const
   {
-    OPENMS_PRECONDITION(!modification_names_.has(modification) || (int)findModificationIndex(modification) >= 0,
+    OPENMS_PRECONDITION( modification_names_.find(modification) == modification_names_.end() || (int)findModificationIndex(modification) >= 0,
         "The modification being present implies that it can be found."); // NOTE: some very smart compilers may remove this statement ...
-    return modification_names_.has(modification);
+    return modification_names_.find(modification) != modification_names_.end();
   }
 
   Size ModificationsDB::findModificationIndex(const String & mod_name) const
   {
-    if (!modification_names_.has(mod_name))
+    if (modification_names_.find(mod_name) == modification_names_.end())
     {
       throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, mod_name);
     }
 
-    if (modification_names_[mod_name].size() > 1)
+    if (modification_names_.at(mod_name).size() > 1)
     {
-      throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "more than one element of name '" + mod_name + "' found!");
+      throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                       "More than one element of name '" + mod_name + "' found!");
     }
 
-    const ResidueModification* mod = *modification_names_[mod_name].begin();
+    auto mod = *modification_names_.at(mod_name).begin();
     for (Size i = 0; i != mods_.size(); ++i)
     {
-      if (mods_[i] == mod)
+      if (mods_.at(i) == mod)
       {
         return i;
       }
