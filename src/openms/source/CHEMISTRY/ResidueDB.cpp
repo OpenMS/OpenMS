@@ -54,7 +54,7 @@ using namespace std;
 namespace OpenMS
 {
 
-  STATIC_LOCK(mutex) 
+  STATIC_LOCK(mutex_rdb) 
 
   ResidueDB::ResidueDB()
   {
@@ -68,7 +68,7 @@ namespace OpenMS
     static ResidueDB* db_ = nullptr;
 
     // unique lock (make sure we only create one instance)
-    OPENMS_UNIQUELOCK(mutex, lock)
+    OPENMS_UNIQUELOCK(mutex_rdb, lock)
 
     if (db_ == nullptr)
     {
@@ -84,7 +84,7 @@ namespace OpenMS
 
   const Residue* ResidueDB::getResidue(const String& name) const
   {
-    OPENMS_NONUNIQUELOCK(mutex, lock)
+    OPENMS_NONUNIQUELOCK(mutex_rdb, lock)
 
     if (residue_names_.find(name) != residue_names_.end())
     {
@@ -95,25 +95,25 @@ namespace OpenMS
 
   const Residue* ResidueDB::getResidue(const unsigned char& one_letter_code) const
   {
-    OPENMS_NONUNIQUELOCK(mutex, lock)
+    OPENMS_NONUNIQUELOCK(mutex_rdb, lock)
     return residue_by_one_letter_code_[one_letter_code];
   }
 
   Size ResidueDB::getNumberOfResidues() const
   {
-    OPENMS_NONUNIQUELOCK(mutex, lock)
+    OPENMS_NONUNIQUELOCK(mutex_rdb, lock)
     return residues_.size();
   }
 
   Size ResidueDB::getNumberOfModifiedResidues() const
   {
-    OPENMS_NONUNIQUELOCK(mutex, lock)
+    OPENMS_NONUNIQUELOCK(mutex_rdb, lock)
     return modified_residues_.size();
   }
 
   const ResidueDB::ResidueConstSetT ResidueDB::getResidues(const String& residue_set) const
   {
-    OPENMS_NONUNIQUELOCK(mutex, lock)
+    OPENMS_NONUNIQUELOCK(mutex_rdb, lock)
     if (residues_by_set_.find(residue_set) == residues_by_set_.end())
     {
       throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Residue set cannot be found: '" + residue_set + "'");
@@ -124,7 +124,7 @@ namespace OpenMS
 
   void ResidueDB::setResidues(const String& file_name)
   {
-    OPENMS_UNIQUELOCK(mutex, lock)
+    OPENMS_UNIQUELOCK(mutex_rdb, lock)
     clearResidues_();
     readResiduesFromFile_(file_name);
     buildResidueNames_();
@@ -132,7 +132,7 @@ namespace OpenMS
 
   void ResidueDB::addResidue(const Residue& residue)
   {
-    OPENMS_UNIQUELOCK(mutex, lock)
+    OPENMS_UNIQUELOCK(mutex_rdb, lock)
     Residue* r = new Residue(residue);
     addResidue_(r);
   }
@@ -197,7 +197,7 @@ namespace OpenMS
 
   bool ResidueDB::hasResidue(const String& res_name) const
   {
-    OPENMS_NONUNIQUELOCK(mutex, lock)
+    OPENMS_NONUNIQUELOCK(mutex_rdb, lock)
     if (residue_names_.find(res_name) != residue_names_.end())
     {
       return true;
@@ -207,7 +207,7 @@ namespace OpenMS
 
   bool ResidueDB::hasResidue(const Residue* residue) const
   {
-    OPENMS_NONUNIQUELOCK(mutex, lock)
+    OPENMS_NONUNIQUELOCK(mutex_rdb, lock)
     if (const_residues_.find(residue) != const_residues_.end() ||
         const_modified_residues_.find(residue) != const_modified_residues_.end())
     {
@@ -481,7 +481,7 @@ namespace OpenMS
 
   const Residue* ResidueDB::getModifiedResidue(const String& modification)
   {
-    OPENMS_NONUNIQUELOCK(mutex, lock)
+    OPENMS_NONUNIQUELOCK(mutex_rdb, lock)
 
     // terminal mods. don't apply to residue (side chain), so don't consider them:
     const ResidueModification& mod = ModificationsDB::getInstance()->getModification(modification, "", ResidueModification::ANYWHERE);
@@ -491,7 +491,7 @@ namespace OpenMS
   const Residue* ResidueDB::getModifiedResidue(const Residue* residue, const String& modification)
   {
     // get upgradeable access (right now we dont need a unique lock)
-    OPENMS_UPGRADEABLE_UNIQUELOCK(mutex, lock) 
+    OPENMS_UPGRADEABLE_UNIQUELOCK(mutex_rdb, lock) 
 
     OPENMS_PRECONDITION(!modification.empty(), "Modification cannot be empty")
 
