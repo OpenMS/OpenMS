@@ -77,11 +77,10 @@ namespace OpenMS
     return is_instantiated_;
   }
 
-
   ModificationsDB::~ModificationsDB()
   {
     modification_names_.clear();
-    for (vector<ResidueModification*>::iterator it = mods_.begin(); it != mods_.end(); ++it)
+    for (auto it = mods_.begin(); it != mods_.end(); ++it)
     {
       delete *it;
     }
@@ -92,7 +91,6 @@ namespace OpenMS
   {
     return mods_.size();
   }
-
 
   const ResidueModification& ModificationsDB::getModification(Size index) const
   {
