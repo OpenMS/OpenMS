@@ -106,15 +106,14 @@ namespace OpenMS
   {
     mods.clear();
 
-    if (!modification_names_.has(mod_name))
+    if (modification_names_.find(mod_name) == modification_names_.end())
     {
       throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                        mod_name);
     }
 
-    const set<const ResidueModification*>& temp = modification_names_[mod_name];
-    for (set<const ResidueModification*>::const_iterator it = temp.begin();
-         it != temp.end(); ++it)
+    auto temp = modification_names_.at(std::string(mod_name));
+    for (auto it = temp.begin(); it != temp.end(); ++it)
     {
       if (residuesMatch_(residue, (*it)->getOrigin()) &&
           (term_spec == ResidueModification::NUMBER_OF_TERM_SPECIFICITY ||
@@ -141,11 +140,15 @@ namespace OpenMS
 
     if (mods.empty())
     {
-      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Retrieving the modification failed. It is not available for the residue '" + String(residue) + "' and term specificity " + String(Int(term_spec)) + ".", mod_name);
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+          "Retrieving the modification failed. It is not available for the residue '" +
+          String(residue) + "' and term specificity " + String(Int(term_spec)) + ".", mod_name);
     }
     if (mods.size() > 1)
     {
-      LOG_WARN << "Warning (ModificationsDB::getModification): more than one modification with name '" + mod_name + "', residue '" + residue + "', specificity '" + String(Int(term_spec)) << "' found, picking the first one of:";
+      LOG_WARN << "Warning (ModificationsDB::getModification): more than one modification with name '" +
+        mod_name + "', residue '" + residue + "', specificity '" + String(Int(term_spec)) <<
+        "' found, picking the first one of:";
       for (set<const ResidueModification*>::const_iterator it = mods.begin();
            it != mods.end(); ++it)
       {
