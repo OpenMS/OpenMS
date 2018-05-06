@@ -128,14 +128,26 @@
 #define OPENMS_NONUNIQUELOCK(name, lockname) \
     boost::shared_lock<boost::shared_mutex> lockname{name};
 
+#define STRINGIFY(a) #a
+
+#define OPENMS_THREAD_CRITICAL(name) \
+  _Pragma( STRINGIFY( omp critical (name) ) )
+
 #else
 
 // NOP for a single threaded environment
+
 #define STATIC_LOCK(name) 
+
 #define OPENMS_UNIQUELOCK(name) 
+
 #define OPENMS_UPGRADEABLE_UNIQUELOCK(name, lockname) 
+
 #define OPENMS_UPGRADE_UNIQUELOCK(name, lockname) 
+
 #define OPENMS_NONUNIQUELOCK(name) 
+
+#define OPENMS_THREAD_CRITICAL(name)
 
 #endif
 
