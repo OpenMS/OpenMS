@@ -474,15 +474,17 @@ namespace OpenMS
     if (residue_names_.find(res_name) == residue_names_.end())
     {
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                       String("Residue with name " + res_name + " was not registered in residue DB, register first!").c_str());
+          String("Residue with name " + res_name + " was not registered in residue DB, register first!").c_str());
     }
 
     // terminal mods. don't apply to residue (side chain), so don't consider them:
-    const ResidueModification& mod = ModificationsDB::getInstance()->getModification(modification, residue->getOneLetterCode(), ResidueModification::ANYWHERE);
+    const ResidueModification& mod = ModificationsDB::getInstance()->getModification(
+        modification, residue->getOneLetterCode(), ResidueModification::ANYWHERE);
     String id = mod.getId();
     if (id.empty()) id = mod.getFullId();
 
-    if (residue_mod_names_.has(res_name) && residue_mod_names_[res_name].has(id))
+    if (residue_mod_names_.find(res_name) != residue_mod_names_.end() && 
+        residue_mod_names_[res_name].find(id) != residue_mod_names_[res_name].end())
     {
       return residue_mod_names_[res_name][id];
     }
