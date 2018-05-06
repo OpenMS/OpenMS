@@ -14,6 +14,7 @@ Helpers.h
 LogConfigHandler.h
 LogStream.h
 Macros.h
+MultiThreading.h
 PrecisionWrapper.h
 ProgressLogger.h
 SingletonRegistry.h
