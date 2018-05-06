@@ -35,14 +35,11 @@
 #include <sstream>
 
 #include <OpenMS/METADATA/MetaInfoRegistry.h>
-#include <OpenMS/CONCEPT/MultiThreading.h>
 
 using namespace std;
 
 namespace OpenMS
 {
-
-  STATIC_LOCK(mutex_mi) 
 
   MetaInfoRegistry::MetaInfoRegistry() :
     next_index_(1024), name_to_index_(), index_to_name_(), index_to_description_(), index_to_unit_()
@@ -124,195 +121,203 @@ namespace OpenMS
 
   MetaInfoRegistry& MetaInfoRegistry::operator=(const MetaInfoRegistry& rhs)
   {
-
     if (this == &rhs) return *this;
 
-    OPENMS_UNIQUELOCK(mutex_mi, lock)
-
-    next_index_ = rhs.next_index_;
-    name_to_index_ = rhs.name_to_index_;
-    index_to_name_ = rhs.index_to_name_;
-    index_to_description_ = rhs.index_to_description_;
-    index_to_unit_ = rhs.index_to_unit_;
+#pragma omp critical (MetaInfoRegistry)
+    {
+      next_index_ = rhs.next_index_;
+      name_to_index_ = rhs.name_to_index_;
+      index_to_name_ = rhs.index_to_name_;
+      index_to_description_ = rhs.index_to_description_;
+      index_to_unit_ = rhs.index_to_unit_;
+    }
     return *this;
   }
 
   UInt MetaInfoRegistry::registerName(const String& name, const String& description, const String& unit)
   {
     UInt rv;
-    // get upgradeable access (right now we dont need a unique lock)
-    OPENMS_UPGRADEABLE_UNIQUELOCK(mutex_mi, lock) 
-
-    map<String, UInt>::iterator it = name_to_index_.find(name);
-    if (it == name_to_index_.end())
+#pragma omp critical (MetaInfoRegistry)
     {
-      // now we do need to have unique access
-      OPENMS_UPGRADE_UNIQUELOCK(lock, uniqueLock)
-      name_to_index_[name] = next_index_;
-      index_to_name_[next_index_] = name;
-      index_to_description_[next_index_] = description;
-      index_to_unit_[next_index_] = unit;
-      rv = next_index_++;
-    }
-    else
-    {
-      rv = it->second;
+      map<String, UInt>::iterator it = name_to_index_.find(name);
+      if (it == name_to_index_.end())
+      {
+        name_to_index_[name] = next_index_;
+        index_to_name_[next_index_] = name;
+        index_to_description_[next_index_] = description;
+        index_to_unit_[next_index_] = unit;
+        rv = next_index_++;
+      }
+      else
+      {
+        rv = it->second;
+      }
     }
     return rv;
   }
 
   void MetaInfoRegistry::setDescription(UInt index, const String& description)
   {
-    OPENMS_UNIQUELOCK(mutex_mi, uniqueLock)
-
     map<UInt, String>::iterator pos;
-    pos = index_to_description_.find(index);
-    if (pos != index_to_description_.end())
+#pragma omp critical (MetaInfoRegistry)
     {
-      pos->second = description;
-    }
-    else
-    {
-      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Unregistered index!", String(index));
+      pos = index_to_description_.find(index);
+      if (pos != index_to_description_.end())
+      {
+        pos->second = description;
+      }
+      else
+      {
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Unregistered index!", String(index));
+      }
     }
   }
 
   void MetaInfoRegistry::setDescription(const String& name, const String& description)
   {
-    OPENMS_UNIQUELOCK(mutex_mi, uniqueLock)
-
     map<String, UInt>::iterator pos;
-    pos = name_to_index_.find(name);
-    if (pos != name_to_index_.end())
+#pragma omp critical (MetaInfoRegistry)
     {
-      index_to_description_[pos->second] = description;
-    }
-    else
-    {
-      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Unregistered name!", name);
+      pos = name_to_index_.find(name);
+      if (pos != name_to_index_.end())
+      {
+        index_to_description_[pos->second] = description;
+      }
+      else
+      {
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Unregistered name!", name);
+      }
     }
   }
 
   void MetaInfoRegistry::setUnit(UInt index, const String& unit)
   {
-    OPENMS_UNIQUELOCK(mutex_mi, uniqueLock)
-
     map<UInt, String>::iterator pos;
-    pos = index_to_unit_.find(index);
-    if (pos != index_to_unit_.end())
+#pragma omp critical (MetaInfoRegistry)
     {
-      pos->second = unit;
-    }
-    else
-    {
-      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Unregistered index!", String(index));
+      pos = index_to_unit_.find(index);
+      if (pos != index_to_unit_.end())
+      {
+        pos->second = unit;
+      }
+      else
+      {
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Unregistered index!", String(index));
+      }
     }
   }
 
   void MetaInfoRegistry::setUnit(const String& name, const String& unit)
   {
-    OPENMS_UNIQUELOCK(mutex_mi, uniqueLock)
-
     map<String, UInt>::iterator pos;
-    pos = name_to_index_.find(name);
-    if (pos != name_to_index_.end())
+#pragma omp critical (MetaInfoRegistry)
     {
-      index_to_unit_[pos->second] = unit;
-    }
-    else
-    {
-      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Unregistered name!", name);
+      pos = name_to_index_.find(name);
+      if (pos != name_to_index_.end())
+      {
+        index_to_unit_[pos->second] = unit;
+      }
+      else
+      {
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Unregistered name!", name);
+      }
     }
   }
 
   UInt MetaInfoRegistry::getIndex(const String& name) const
   {
-    OPENMS_NONUNIQUELOCK(mutex_mi, lock)
-
     UInt rv = UInt(-1);
-    map<String, UInt>::const_iterator it = name_to_index_.find(name);
-    if (it != name_to_index_.end())
+#pragma omp critical (MetaInfoRegistry)
     {
-      rv = it->second;
+      map<String, UInt>::const_iterator it = name_to_index_.find(name);
+      if (it != name_to_index_.end())
+      {
+        rv = it->second;
+      }
     }
     return rv;
   }
 
   String MetaInfoRegistry::getDescription(UInt index) const
   {
-    OPENMS_NONUNIQUELOCK(mutex_mi, lock)
-
     String result;
-    map<UInt, String>::const_iterator it = index_to_description_.find(index);
-    if (it == index_to_description_.end())
+#pragma omp critical (MetaInfoRegistry)
     {
-      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Unregistered index!", String(index));
+      map<UInt, String>::const_iterator it = index_to_description_.find(index);
+      if (it == index_to_description_.end())
+      {
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Unregistered index!", String(index));
+      }
+      result = it->second;
     }
-    result = it->second;
     return result;
   }
 
   String MetaInfoRegistry::getDescription(const String& name) const
   {
-    OPENMS_NONUNIQUELOCK(mutex_mi, lock)
-
     String rv;
-    UInt index = getIndex(name);
+    UInt index = getIndex(name); // this has to be outside the OpenMP "critical" block!
     if (index == UInt(-1)) // not found
     {
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Unregistered Name!", name);
     }
     else
     {
-      rv = (index_to_description_.find(index))->second;
+#pragma omp critical (MetaInfoRegistry)
+      {
+        rv = (index_to_description_.find(index))->second;
+      }
     }
     return rv;
   }
 
   String MetaInfoRegistry::getUnit(UInt index) const
   {
-    OPENMS_NONUNIQUELOCK(mutex_mi, lock)
-
     String result;
-    map<UInt, String>::const_iterator it = index_to_unit_.find(index);
-    if (it == index_to_unit_.end())
+#pragma omp critical (MetaInfoRegistry)
     {
-      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Unregistered index!", String(index));
+      map<UInt, String>::const_iterator it = index_to_unit_.find(index);
+      if (it == index_to_unit_.end())
+      {
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Unregistered index!", String(index));
+      }
+      result = it->second;
     }
-    result = it->second;
     return result;
   }
 
   String MetaInfoRegistry::getUnit(const String& name) const
   {
-    OPENMS_NONUNIQUELOCK(mutex_mi, lock)
-
     String rv;
-    UInt index = getIndex(name);
+    UInt index = getIndex(name); // this has to be outside the OpenMP "critical" block!
     if (index == UInt(-1)) // not found
     {
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Unregistered Name!", name);
     }
     else
     {
-      rv = (index_to_unit_.find(index))->second;
+#pragma omp critical (MetaInfoRegistry)
+      {
+        rv = (index_to_unit_.find(index))->second;
+      }
     }
     return rv;
   }
 
   String MetaInfoRegistry::getName(UInt index) const
   {
-    OPENMS_NONUNIQUELOCK(mutex_mi, lock)
-
     String rv;
-    map<UInt, String>::const_iterator it = index_to_name_.find(index);
-    if (it != index_to_name_.end())
+#pragma omp critical (MetaInfoRegistry)
     {
-      rv = it->second;
-    }
-    else
-    {
-      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Unregistered index!", String(index));
+      map<UInt, String>::const_iterator it = index_to_name_.find(index);
+      if (it != index_to_name_.end())
+      {
+        rv = it->second;
+      }
+      else
+      {
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Unregistered index!", String(index));
+      }
     }
     return rv;
   }
