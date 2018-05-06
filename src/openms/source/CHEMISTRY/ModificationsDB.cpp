@@ -275,7 +275,7 @@ namespace OpenMS
     vector<ResidueModification*> new_mods;
     UnimodXMLFile().load(filename, new_mods);
 
-    for (vector<ResidueModification*>::iterator it = new_mods.begin(); it != new_mods.end(); ++it)
+    for (auto it = new_mods.begin(); it != new_mods.end(); ++it)
     {
       // create full ID based on other information:
       (*it)->setFullId();
@@ -296,7 +296,9 @@ namespace OpenMS
   {
     if (has(new_mod->getFullId()))
     {
-      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Modification already exists in ModificationsDB.", String(new_mod->getFullId()));
+      throw Exception::InvalidValue(__FILE__, __LINE__,
+                                    OPENMS_PRETTY_FUNCTION,
+                                    "Modification already exists in ModificationsDB.", String(new_mod->getFullId()));
     }
     modification_names_[new_mod->getFullId()].insert(new_mod);
     modification_names_[new_mod->getId()].insert(new_mod);
@@ -568,8 +570,8 @@ namespace OpenMS
       if (it->second.getUniModRecordId() > 0)
       {
         //cerr << "Found UniMod PSI-MOD mapping: " << it->second.getPSIMODAccession() << " " << it->second.getUniModAccession() << endl;
-        set<const ResidueModification*> mods = modification_names_[it->second.getUniModAccession()];
-        for (set<const ResidueModification*>::const_iterator mit = mods.begin(); mit != mods.end(); ++mit)
+        auto mods = modification_names_[it->second.getUniModAccession()];
+        for (auto mit = mods.begin(); mit != mods.end(); ++mit)
         {
           //cerr << "Adding PSIMOD accession: " << it->second.getPSIMODAccession() << " " << it->second.getUniModAccession() << endl;
           modification_names_[it->second.getPSIMODAccession()].insert(*mit);
@@ -610,7 +612,7 @@ namespace OpenMS
   {
     modifications.clear();
 
-    for (vector<ResidueModification*>::const_iterator it = mods_.begin(); it != mods_.end(); ++it)
+    for (auto it = mods_.begin(); it != mods_.end(); ++it)
     {
       if ((*it)->getUniModRecordId() > 0)
       {
