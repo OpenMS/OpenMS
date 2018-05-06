@@ -75,7 +75,7 @@ namespace OpenMS
 
   bool ModificationsDB::isInstantiated()
   {
-    OPENMS_NONUNIQUELOCK(mutex, lock)
+    OPENMS_NONUNIQUELOCK(mutex_mdb, lock)
     return is_instantiated_;
   }
 
@@ -90,13 +90,13 @@ namespace OpenMS
 
   Size ModificationsDB::getNumberOfModifications() const
   {
-    OPENMS_NONUNIQUELOCK(mutex, lock)
+    OPENMS_NONUNIQUELOCK(mutex_mdb, lock)
     return mods_.size();
   }
 
   const ResidueModification& ModificationsDB::getModification(Size index) const
   {
-    OPENMS_NONUNIQUELOCK(mutex, lock)
+    OPENMS_NONUNIQUELOCK(mutex_mdb, lock)
 
     if (index >= mods_.size())
     {
@@ -108,7 +108,7 @@ namespace OpenMS
 
   void ModificationsDB::searchModifications(set<const ResidueModification*>& mods, const String& mod_name, const String& residue, ResidueModification::TermSpecificity term_spec) const
   {
-    OPENMS_NONUNIQUELOCK(mutex, lock)
+    OPENMS_NONUNIQUELOCK(mutex_mdb, lock)
 
     mods.clear();
 
@@ -133,7 +133,7 @@ namespace OpenMS
 
   const ResidueModification& ModificationsDB::getModification(const String& mod_name, const String& residue, ResidueModification::TermSpecificity term_spec) const
   {
-    OPENMS_NONUNIQUELOCK(mutex, lock)
+    OPENMS_NONUNIQUELOCK(mutex_mdb, lock)
 
     set<const ResidueModification*> mods;
     // if residue is specified, try residue-specific search first to avoid
@@ -169,7 +169,7 @@ namespace OpenMS
 
   bool ModificationsDB::has(String modification) const
   {
-    OPENMS_NONUNIQUELOCK(mutex, lock)
+    OPENMS_NONUNIQUELOCK(mutex_mdb, lock)
     OPENMS_PRECONDITION( modification_names_.find(modification) == modification_names_.end() || (int)findModificationIndex(modification) >= 0,
         "The modification being present implies that it can be found."); // NOTE: some very smart compilers may remove this statement ...
     return modification_names_.find(modification) != modification_names_.end();
@@ -177,7 +177,7 @@ namespace OpenMS
 
   Size ModificationsDB::findModificationIndex(const String & mod_name) const
   {
-    OPENMS_NONUNIQUELOCK(mutex, lock)
+    OPENMS_NONUNIQUELOCK(mutex_mdb, lock)
 
     if (modification_names_.find(mod_name) == modification_names_.end())
     {
@@ -206,7 +206,7 @@ namespace OpenMS
 
   void ModificationsDB::searchModificationsByDiffMonoMass(vector<String>& mods, double mass, double max_error, const String& residue, ResidueModification::TermSpecificity term_spec)
   {
-    OPENMS_NONUNIQUELOCK(mutex, lock)
+    OPENMS_NONUNIQUELOCK(mutex_mdb, lock)
 
     mods.clear();
     for (auto it = mods_.begin(); it != mods_.end(); ++it)
@@ -225,7 +225,7 @@ namespace OpenMS
   const ResidueModification* ModificationsDB::getBestModificationByMonoMass(double mass, double max_error, const String& residue,
                                                                             ResidueModification::TermSpecificity term_spec)
   {
-    OPENMS_NONUNIQUELOCK(mutex, lock)
+    OPENMS_NONUNIQUELOCK(mutex_mdb, lock)
 
     double min_error = max_error;
     const ResidueModification* mod = nullptr;
@@ -264,7 +264,7 @@ namespace OpenMS
 
   const ResidueModification* ModificationsDB::getBestModificationByDiffMonoMass(double mass, double max_error, const String& residue, ResidueModification::TermSpecificity term_spec)
   {
-    OPENMS_NONUNIQUELOCK(mutex, lock)
+    OPENMS_NONUNIQUELOCK(mutex_mdb, lock)
 
     double min_error = max_error;
     const ResidueModification* mod = nullptr;
@@ -288,7 +288,7 @@ namespace OpenMS
 
   void ModificationsDB::readFromUnimodXMLFile(const String& filename)
   {
-    OPENMS_UNIQUELOCK(mutex, lock)
+    OPENMS_UNIQUELOCK(mutex_mdb, lock)
 
     vector<ResidueModification*> new_mods;
     UnimodXMLFile().load(filename, new_mods);
@@ -313,7 +313,7 @@ namespace OpenMS
   void ModificationsDB::addModification(ResidueModification* new_mod)
   {
     // get upgradeable access (prevent deadlock with has() call)
-    OPENMS_UPGRADEABLE_UNIQUELOCK(mutex, lock) 
+    OPENMS_UPGRADEABLE_UNIQUELOCK(mutex_mdb, lock) 
 
     if (has(new_mod->getFullId()))
     {
@@ -334,7 +334,7 @@ namespace OpenMS
 
   void ModificationsDB::readFromOBOFile(const String& filename)
   {
-    OPENMS_UNIQUELOCK(mutex, lock)
+    OPENMS_UNIQUELOCK(mutex_mdb, lock)
     
     ResidueModification mod;
     // add multiple mods for multiple specificities
@@ -636,7 +636,7 @@ namespace OpenMS
 
   void ModificationsDB::getAllSearchModifications(vector<String>& modifications) const
   {
-    OPENMS_NONUNIQUELOCK(mutex, lock)
+    OPENMS_NONUNIQUELOCK(mutex_mdb, lock)
 
     modifications.clear();
 
