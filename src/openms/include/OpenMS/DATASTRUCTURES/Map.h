@@ -96,6 +96,7 @@ public:
     using Base::find;
     using Base::empty;
     using Base::count;
+    using Base::at;
 
     using typename Base::iterator;
     using typename Base::const_iterator;
