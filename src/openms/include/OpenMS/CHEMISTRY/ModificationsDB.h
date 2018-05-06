@@ -134,6 +134,15 @@ public:
     void addModification(ResidueModification * new_mod);
 
     /**
+       @brief Add a new modification to ModificationsDB.
+
+       Threadsafe alternative to addModification, will not throw if a
+       modification already exists but guarantees that getModification() will
+       be successful using the same fullID.
+    */
+    void ensureModificationIsAdded(ResidueModification * new_mod);
+
+    /**
        @brief Returns the index of the modification in the mods_ vector; a unique name must be given
 
        @throw Exception::ElementNotFound if not exactly one matching modification was found
@@ -244,5 +253,8 @@ private:
     /// Adds modifications from a given file in Unimod XML format
     void readFromUnimodXMLFile(const String& filename);
     
+    /// Adds modifications
+    void addModification_(ResidueModification * new_mod);
+
   };
 }

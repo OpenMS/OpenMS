@@ -314,9 +314,20 @@ namespace OpenMS
     }
   }
 
+
+  void ModificationsDB::ensureModificationIsAdded(ResidueModification* new_mod)
+  {
+    OPENMS_THREAD_CRITICAL(ModificationsDB)
+    {
+    if (!has(new_mod->getFullId()))
+    {
+      addModification_(new_mod);
+    }
+    }
+  }
   void ModificationsDB::addModification(ResidueModification* new_mod)
   {
-#pragma omp critical (MetaInfoRegistry)
+    OPENMS_THREAD_CRITICAL(ModificationsDB)
     {
     if (has(new_mod->getFullId()))
     {
@@ -324,14 +335,18 @@ namespace OpenMS
                                     OPENMS_PRETTY_FUNCTION,
                                     "Modification already exists in ModificationsDB.", String(new_mod->getFullId()));
     }
+    addModification_(new_mod);
+    }
+  }
 
+  void ModificationsDB::addModification_(ResidueModification* new_mod)
+  {
     modification_names_[new_mod->getFullId()].insert(new_mod);
     modification_names_[new_mod->getId()].insert(new_mod);
     modification_names_[new_mod->getFullName()].insert(new_mod);
     modification_names_[new_mod->getUniModAccession()].insert(new_mod);
 
     mods_.push_back(new_mod); // we probably want that
-    }
   }
 
   void ModificationsDB::readFromOBOFile(const String& filename)
