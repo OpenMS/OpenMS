@@ -98,7 +98,7 @@ namespace OpenMS
     {
       throw Exception::IndexOverflow(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, index, mods_.size());
     }
-    return *mods_[index];
+    return *mods_.at(index);
   }
 
 
