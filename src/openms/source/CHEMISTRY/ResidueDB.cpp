@@ -103,7 +103,7 @@ namespace OpenMS
       throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Residue set cannot be found: '" + residue_set + "'");
     }
 
-    return residues_by_set_[residue_set];
+    return residues_by_set_.at(residue_set);
   }
 
   void ResidueDB::setResidues(const String& file_name)
@@ -256,8 +256,7 @@ namespace OpenMS
 
   void ResidueDB::clearResidues_()
   {
-    set<Residue*>::iterator it;
-    for (it = residues_.begin(); it != residues_.end(); ++it)
+    for (auto it = residues_.begin(); it != residues_.end(); ++it)
     {
       delete *it;
     }
@@ -409,7 +408,7 @@ namespace OpenMS
       res_ptr->setLowMassIons(low_mass_ions);
     }
 
-    for (set<String>::const_iterator it = res_ptr->getResidueSets().begin(); it != res_ptr->getResidueSets().end(); ++it)
+    for (auto it = res_ptr->getResidueSets().begin(); it != res_ptr->getResidueSets().end(); ++it)
     {
       residues_by_set_[*it].insert(res_ptr);
     }
@@ -417,7 +416,7 @@ namespace OpenMS
     return res_ptr;
   }
 
-  const std::set<std::string>& ResidueDB::getResidueSets() const
+  const ResidueDB::ResidueSetT& ResidueDB::getResidueSets() const
   {
     return residue_sets_;
   }
@@ -430,8 +429,7 @@ namespace OpenMS
       residue_by_one_letter_code_[i] = nullptr;
     }
 
-    set<Residue*>::iterator it;
-    for (it = residues_.begin(); it != residues_.end(); ++it)
+    for (auto it = residues_.begin(); it != residues_.end(); ++it)
     {
       residue_names_[(*it)->getName()] = *it;
       if ((*it)->getThreeLetterCode() != "")
