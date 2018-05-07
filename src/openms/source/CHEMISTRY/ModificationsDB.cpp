@@ -133,9 +133,7 @@ namespace OpenMS
 
   const ResidueModification& ModificationsDB::getModification(const String& mod_name, const String& residue, ResidueModification::TermSpecificity term_spec) const
   {
-    const ResidueModification* mod;
-#pragma omp critical (MetaInfoRegistry)
-    {
+    OPENMS_NONUNIQUELOCK(mutex_mdb, lock)
 
     set<const ResidueModification*> mods;
     // if residue is specified, try residue-specific search first to avoid
@@ -166,9 +164,7 @@ namespace OpenMS
       }
       LOG_WARN << "\n";
     }
-    mod = *mods.begin();
-    }
-    return *mod;
+    return **mods.begin();
   }
 
   bool ModificationsDB::has(String modification) const
@@ -327,20 +323,18 @@ namespace OpenMS
   }
   void ModificationsDB::addModification(ResidueModification* new_mod)
   {
-    OPENMS_THREAD_CRITICAL(ModificationsDB)
-    {
+    // get upgradeable access (prevent deadlock with has() call)
+    OPENMS_UPGRADEABLE_UNIQUELOCK(mutex_mdb, lock) 
+
     if (has(new_mod->getFullId()))
     {
       throw Exception::InvalidValue(__FILE__, __LINE__,
                                     OPENMS_PRETTY_FUNCTION,
                                     "Modification already exists in ModificationsDB.", String(new_mod->getFullId()));
     }
-    addModification_(new_mod);
-    }
-  }
 
-  void ModificationsDB::addModification_(ResidueModification* new_mod)
-  {
+    OPENMS_UPGRADE_UNIQUELOCK(lock, uniqueLock)
+
     modification_names_[new_mod->getFullId()].insert(new_mod);
     modification_names_[new_mod->getId()].insert(new_mod);
     modification_names_[new_mod->getFullName()].insert(new_mod);
