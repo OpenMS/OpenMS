@@ -32,7 +32,9 @@
 // $Authors: Andreas Bertsch, Timo Sachsenberg $
 // --------------------------------------------------------------------------
 //
+
 #include <OpenMS/CHEMISTRY/ElementDB.h>
+
 #include <OpenMS/CHEMISTRY/Element.h>
 
 #include <OpenMS/DATASTRUCTURES/Param.h>
@@ -41,12 +43,16 @@
 
 #include <OpenMS/SYSTEM/File.h>
 
+#include <OpenMS/CONCEPT/MultiThreading.h>
+
 #include <iostream>
 
 using namespace std;
 
 namespace OpenMS
 {
+  STATIC_LOCK(mutex_edb) 
+
   ElementDB::ElementDB()
   {
     readFromFile_("CHEMISTRY/Elements.xml");
@@ -57,23 +63,45 @@ namespace OpenMS
     clear_();
   }
 
+  const ElementDB * ElementDB::getInstance()
+  {
+    static ElementDB * db_ = nullptr;
+
+    // unique lock (make sure we only create one instance)
+    OPENMS_UNIQUELOCK(mutex_edb, lock)
+
+    if (db_ == nullptr)
+    {
+      db_ = new ElementDB;
+    }
+    return db_;
+  }
+
   const Map<String, const Element*>& ElementDB::getNames() const
   {
+    // TODO: this is dangerous in a multithreaded environment, we cannot guarantee that these references are valid
+    OPENMS_NONUNIQUELOCK(mutex_edb, lock)
     return names_;
   }
 
   const Map<String, const Element*>& ElementDB::getSymbols() const
   {
+    // TODO: this is dangerous in a multithreaded environment, we cannot guarantee that these references are valid
+    OPENMS_NONUNIQUELOCK(mutex_edb, lock)
     return symbols_;
   }
 
   const Map<UInt, const Element*>& ElementDB::getAtomicNumbers() const
   {
+    // TODO: this is dangerous in a multithreaded environment, we cannot guarantee that these references are valid
+    OPENMS_NONUNIQUELOCK(mutex_edb, lock)
     return atomic_numbers_;
   }
 
   const Element* ElementDB::getElement(const String& name) const
   {
+    OPENMS_NONUNIQUELOCK(mutex_edb, lock)
+
     if (names_.has(name))
     {
       return names_[name];
@@ -90,6 +118,8 @@ namespace OpenMS
 
   const Element* ElementDB::getElement(UInt atomic_number) const
   {
+    OPENMS_NONUNIQUELOCK(mutex_edb, lock)
+
     if (atomic_numbers_.has(atomic_number))
     {
       return atomic_numbers_[atomic_number];
@@ -99,11 +129,13 @@ namespace OpenMS
 
   bool ElementDB::hasElement(const String& name) const
   {
+    OPENMS_NONUNIQUELOCK(mutex_edb, lock)
     return names_.has(name) || symbols_.has(name);
   }
 
   bool ElementDB::hasElement(UInt atomic_number) const
   {
+    OPENMS_NONUNIQUELOCK(mutex_edb, lock)
     return atomic_numbers_.has(atomic_number);
   }
 

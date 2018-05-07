@@ -74,15 +74,7 @@ public:
     */
     //@{
     /// returns a pointer to the singleton instance of the element db
-    inline static const ElementDB * getInstance()
-    {
-      static ElementDB * db_ = nullptr;
-      if (db_ == nullptr)
-      {
-        db_ = new ElementDB;
-      }
-      return db_;
-    }
+    static const ElementDB * getInstance();
 
     /// returns a hashmap that contains names mapped to pointers to the elements
     const Map<String, const Element *> & getNames() const;
