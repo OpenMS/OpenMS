@@ -55,6 +55,29 @@ const ElementDB* e_ptr = nullptr;
 const ElementDB* e_nullPointer = nullptr;
 const Element * elem_nullPointer = nullptr;
 
+START_SECTION([EXTRA] multithreaded example)
+{
+  int nr_iterations (100), test (0);
+#ifdef _OPENMP
+#pragma omp parallel for
+#endif
+  for (int k = 1; k < nr_iterations + 1; k++)
+  {
+
+    auto edb = ElementDB::getInstance();
+    const Element * e1 = edb->getElement("Carbon");
+
+#ifdef _OPENMP
+#pragma omp critical (add_test)
+#endif
+    {
+      test += e1->getAtomicNumber();
+    }
+  }
+  TEST_EQUAL(test, 6 * 100)
+}
+END_SECTION
+
 START_SECTION(static const ElementDB* getInstance())
 	e_ptr = ElementDB::getInstance();
 	TEST_NOT_EQUAL(e_ptr, e_nullPointer)
@@ -102,29 +125,6 @@ END_SECTION
 
 START_SECTION(bool hasElement(UInt atomic_number) const)
 	TEST_EQUAL(e_ptr->hasElement(6), true)
-END_SECTION
-
-START_SECTION([EXTRA] multithreaded example)
-{
-  int nr_iterations (100), test (0);
-#ifdef _OPENMP
-#pragma omp parallel for
-#endif
-  for (int k = 1; k < nr_iterations + 1; k++)
-  {
-
-    auto edb = ElementDB::getInstance();
-    const Element * e1 = edb->getElement("Carbon");
-
-#ifdef _OPENMP
-#pragma omp critical (add_test)
-#endif
-    {
-      test += e1->getAtomicNumber();
-    }
-  }
-  TEST_EQUAL(test, 6 * 100)
-}
 END_SECTION
 
 /////////////////////////////////////////////////////////////
