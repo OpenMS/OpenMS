@@ -290,6 +290,87 @@ START_SECTION((bool addModification(ResidueModification* modification)))
   TEST_EQUAL(ptr->has("Phospho (E)"), true);
 }
 END_SECTION
+
+START_SECTION((bool ensureModificationIsAdded(ResidueModification* modification)))
+{
+  TEST_EQUAL(ptr->has("Phospho (W)"), false);
+  ResidueModification* modification = new ResidueModification();
+  modification->setFullId("Phospho (W)");
+  ptr->ensureModificationIsAdded(modification);
+  TEST_EQUAL(ptr->has("Phospho (W)"), true);
+}
+END_SECTION
+
+START_SECTION([EXTRA] multithreaded example)
+{
+  // All measurements are best of three (wall time, Linux, 8 threads)
+  //
+  // Serial execution of code:
+  // 1e6 iterations -> 6.36 seconds
+  // Parallel execution of code:
+  // 1e6 iterations -> 9.79 seconds with boost::shared_mutex
+  // 1e6 iterations -> 6.28 seconds with std::mutex
+  // 1e6 iterations -> 4.64 seconds with pragma critical
+
+  static ModificationsDB* mdb = ModificationsDB::getInstance();
+
+  int nr_iterations (1e4), test (0);
+#ifdef _OPENMP
+#pragma omp parallel for
+#endif
+  for (int k = 1; k < nr_iterations + 1; k++)
+  {
+    int mod_id = k;
+    String modname = "mod" + String(mod_id);
+    ResidueModification * new_mod = new ResidueModification();
+    new_mod->setFullId(modname);
+    new_mod->setMonoMass( 0.11 * mod_id);
+    new_mod->setAverageMass(1.0);
+    new_mod->setDiffMonoMass( 0.05 * mod_id);
+    mdb->addModification(new_mod);
+
+    int tmp = (int)mdb->getModification(modname).getAverageMass();
+
+#ifdef _OPENMP
+#pragma omp critical (add_test)
+#endif
+    {
+      test += tmp;
+    }
+  }
+  TEST_EQUAL(test, nr_iterations*1.0)
+
+  // Every modification is the same
+  test = 0;
+  for (int k = 1; k < nr_iterations + 1; k++)
+  {
+    int mod_id = 42;
+    String modname = "mod" + String(mod_id);
+    if (!mdb->has(modname)) 
+    {
+      ResidueModification * new_mod = new ResidueModification();
+      new_mod->setFullId(modname);
+      new_mod->setMonoMass( 0.11 * mod_id);
+      new_mod->setAverageMass(1.0);
+      new_mod->setDiffMonoMass( 0.05 * mod_id);
+      mdb->ensureModificationIsAdded(new_mod);
+      // mdb->addModification(new_mod); // this is not safe!
+    }
+
+    int tmp = (int)mdb->getModification(modname).getAverageMass();
+
+#ifdef _OPENMP
+#pragma omp critical (add_test)
+#endif
+    {
+      test += tmp;
+    }
+  }
+  TEST_EQUAL(test, nr_iterations*1.0)
+
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
