@@ -438,9 +438,11 @@ class SimpleSearchEngine :
       vector<vector<AnnotatedHit> > annotated_hits(spectra.size(), vector<AnnotatedHit>());
       for (auto & a : annotated_hits) { a.reserve(2 * top_hits); }
 
+#ifdef _OPENMP
       // we want to do locking at the spectrum level so we get good parallelisation 
       vector<omp_lock_t> annotated_hits_lock(annotated_hits.size());
       for (size_t i = 0; i != annotated_hits_lock.size(); i++) { omp_init_lock(&(annotated_hits_lock[i])); }
+#endif
 
       progresslogger.startProgress(0, 1, "Load database from FASTA file...");
       FASTAFile fastaFile;
@@ -572,8 +574,10 @@ class SimpleSearchEngine :
               ah.peptide_mod_index = mod_pep_idx;
               ah.score = score;
 
+#ifdef _OPENMP
               omp_set_lock(&(annotated_hits_lock[scan_index]));
               {
+#endif
                 annotated_hits[scan_index].push_back(ah);
 
                 // prevent vector from growing indefinitly (memory) but don't shrink the vector every time
@@ -582,9 +586,11 @@ class SimpleSearchEngine :
                   std::partial_sort(annotated_hits[scan_index].begin(), annotated_hits[scan_index].begin() + top_hits, annotated_hits[scan_index].end(), AnnotatedHit::hasBetterScore);
                   annotated_hits[scan_index].resize(top_hits); 
                 }
+#ifdef _OPENMP
               }
               omp_unset_lock(&(annotated_hits_lock[scan_index]));
-            }
+#endif
+	    }
           }
         }
       }
@@ -646,8 +652,10 @@ class SimpleSearchEngine :
       // write ProteinIdentifications and PeptideIdentifications to IdXML
       IdXMLFile().store(out_idxml, protein_ids, peptide_ids);
 
+#ifdef _OPENMP
       // free locks
       for (size_t i = 0; i != annotated_hits_lock.size(); i++) { omp_destroy_lock(&(annotated_hits_lock[i])); }
+#endif
 
       return EXECUTION_OK;
     }
