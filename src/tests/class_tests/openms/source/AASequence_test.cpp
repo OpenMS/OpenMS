@@ -1167,8 +1167,6 @@ END_SECTION
 
 START_SECTION([EXTRA] multithreaded example)
 {
-  static ResidueDB* rdb = ResidueDB::getInstance();
-
   // All measurements are best of three (wall time, Linux, 8 threads)
   //
   // Serial execution of code:
