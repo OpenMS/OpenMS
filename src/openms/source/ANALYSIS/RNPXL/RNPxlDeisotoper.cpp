@@ -53,6 +53,8 @@ void Deisotoper::deisotopeAndSingleCharge(MSSpectrum& in,
                                         bool make_single_charged,
                                         bool annotate_charge)
 {
+  OPENMS_PRECONDITION(in.isSorted(), "Spectrum must be sorted.");
+
   if (min_isopeaks < 2 || max_isopeaks < 2 || min_isopeaks > max_isopeaks)
   {
     throw Exception::IllegalArgument(__FILE__, 
