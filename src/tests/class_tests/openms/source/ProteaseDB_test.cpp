@@ -54,6 +54,34 @@ START_TEST(ProteaseDB, "$Id$")
 ProteaseDB* ptr = nullptr;
 ProteaseDB* nullPointer = nullptr;
 String RKP("(?<=R)(?!P)");
+
+START_SECTION([EXTRA] multithreaded example)
+{
+
+  int nr_iterations (1e2), test (0);
+#ifdef _OPENMP
+#pragma omp parallel for
+#endif
+  for (int k = 1; k < nr_iterations + 1; k++)
+  {
+    auto p = ProteaseDB::getInstance();
+    int tmp (0);
+    if (p->hasEnzyme("Trypsin"), true)
+    {
+      tmp++;
+    }
+
+#ifdef _OPENMP
+#pragma omp critical (add_test)
+#endif
+    {
+      test += tmp;
+    }
+  }
+  TEST_EQUAL(test, nr_iterations)
+}
+END_SECTION
+
 START_SECTION(ProteaseDB* getInstance())
     ptr = ProteaseDB::getInstance();
     TEST_NOT_EQUAL(ptr, nullPointer)
