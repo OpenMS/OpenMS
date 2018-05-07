@@ -45,7 +45,6 @@
     Specifically of interest are read-write locks which allow multiple readers
     but only one writer. A sample implementation will look like this:
 
-
     @code
 
     STATIC_LOCK(SomeSingleton_mutex) 
@@ -93,10 +92,41 @@
 #ifdef _OPENMP
 #define OPENMS_MULTITHREADING_ON
 #include <boost/thread.hpp>
+#include <mutex>
+#include <omp.h>
 #endif
 
 
+/// Parameter: mutex vs openmp critical sections
+///   replace all mutexes with OpenMP critical sections:
+// #define USE_OPENMP_CRITICAL
+
+/// Parameter: std::mutex vs boost::shared_mutex 
+///   use std::mutex instead of boostd::shared_mutex (which allows more fine grained locking) 
+///   note: if USE_OPENMP_CRITICAL is defined, neither will be selected
+// #define USE_STD_MUTEX
+
 #ifdef OPENMS_MULTITHREADING_ON
+
+#ifndef USE_OPENMP_CRITICAL
+
+#ifdef USE_STD_MUTEX
+
+#define STATIC_LOCK(name) \
+  static std::mutex name;
+
+#define OPENMS_UNIQUELOCK(name, lockname) \
+  std::lock_guard<std::mutex> lockname(name);
+
+#define OPENMS_UPGRADEABLE_UNIQUELOCK(name, lockname) \
+  std::lock_guard<std::mutex> lockname(name);
+
+#define OPENMS_UPGRADE_UNIQUELOCK(name, lockname)
+
+#define OPENMS_NONUNIQUELOCK(name, lockname) \
+  std::lock_guard<std::mutex> lockname(name);
+
+#else // USE_STD_MUTEX
 
 /**
     @brief Initialize a lock (static).
@@ -127,6 +157,26 @@
 */
 #define OPENMS_NONUNIQUELOCK(name, lockname) \
     boost::shared_lock<boost::shared_mutex> lockname{name};
+#endif // USE_STD_MUTEX
+
+#else // USE_OPENMP_CRITICAL
+
+#define STATIC_LOCK(name) 
+
+#define OPENMS_UNIQUELOCK(name, lockname) \
+  OPENMS_THREAD_CRITICAL(name)
+
+#define OPENMS_UPGRADEABLE_UNIQUELOCK(name, lockname) \
+  OPENMS_THREAD_CRITICAL(name)
+
+#define OPENMS_UPGRADE_UNIQUELOCK(name, lockname) \
+  OPENMS_THREAD_CRITICAL(name)
+
+#define OPENMS_NONUNIQUELOCK(name, lockname) \
+  OPENMS_THREAD_CRITICAL(name)
+
+#endif // USE_OPENMP_CRITICAL
+
 
 #define STRINGIFY(a) #a
 
@@ -152,4 +202,6 @@
 #endif
 
 /** @} */ // end of Multithreading
+
+
 
