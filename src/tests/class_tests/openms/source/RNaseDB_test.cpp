@@ -65,7 +65,7 @@ START_SECTION([EXTRA] multithreaded example)
   {
     auto p = RNaseDB::getInstance();
     int tmp (0);
-    if (p->hasEnzyme("Trypsin"), true)
+    if (p->hasEnzyme("RNase_T1"))
     {
       tmp++;
     }
