@@ -1169,7 +1169,22 @@ START_SECTION([EXTRA] multithreaded example)
 {
   static ResidueDB* rdb = ResidueDB::getInstance();
 
-  int nr_iterations (5e3), test (0);
+  // All measurements are best of three (wall time, Linux, 8 threads)
+  //
+  // Serial execution of code:
+  // 5e4 iterations -> 5.42 seconds
+  //
+  // Parallel execution of code:
+  // original code:
+  // 5e4 iterations -> 4.01 seconds with boost::shared_mutex
+  // 5e4 iterations -> 8.05 seconds with std::mutex
+  //
+  // refactored code that throws exception outside block:
+  // 5e4 iterations -> 8.55 seconds with omp critical
+  // 5e4 iterations -> 8.59 seconds with std::mutex
+  // 5e4 iterations -> 3.94 seconds with boost::shared_mutex
+  int nr_iterations (5e4), test (0);
+
 #ifdef _OPENMP
 #pragma omp parallel for
 #endif
@@ -1181,11 +1196,6 @@ START_SECTION([EXTRA] multithreaded example)
 #pragma omp critical (add_test)
 #endif
     {
-// #ifdef _OPENMP
-//       std::cout << " thread " << omp_get_thread_num() << " work on " << k << std::endl;
-// #else
-//       std::cout << " no thread here, " << " work on " << k << " and add " << aa.size() << std::endl;
-// #endif
       test += aa.size();
     }
   }
