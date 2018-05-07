@@ -47,7 +47,7 @@
 
     @code
 
-    STATIC_LOCK(SomeSingleton_mutex) 
+    STATIC_LOCK(SomeSingleton_mutex)
     class SomeSingleton
     {
       int readData()
@@ -80,6 +80,12 @@
     @note The scope of the lock is controlled by RAII, therefore the lock is
     released as soon as it is out of scope.
 
+    @note The actual implementation will only provide shared locks if compiled
+    with boost thread library, these can be replaced with STL mutexes or OpenMP
+    critical sections which only a allow a single thread per block but are much
+    more efficient in locking and have less overhead per acquired lock (see
+    parameters below).
+
     The current implementation uses boost, this can be replaced with C++17
     mutexes at some point.
 
@@ -91,7 +97,6 @@
 
 #ifdef _OPENMP
 #define OPENMS_MULTITHREADING_ON
-#include <boost/thread.hpp>
 #include <mutex>
 #include <omp.h>
 #endif
@@ -101,8 +106,8 @@
 ///   replace all mutexes with OpenMP critical sections:
 // #define USE_OPENMP_CRITICAL
 
-/// Parameter: std::mutex vs boost::shared_mutex 
-///   use std::mutex instead of boostd::shared_mutex (which allows more fine grained locking) 
+/// Parameter: std::mutex vs boost::shared_mutex
+///   use std::mutex instead of boostd::shared_mutex (which allows more fine grained locking)
 ///   note: if USE_OPENMP_CRITICAL is defined, neither will be selected
 // #define USE_STD_MUTEX
 
@@ -127,6 +132,8 @@
   std::lock_guard<std::mutex> lockname(name);
 
 #else // USE_STD_MUTEX
+
+#include <boost/thread.hpp>
 
 /**
     @brief Initialize a lock (static).
@@ -161,7 +168,7 @@
 
 #else // USE_OPENMP_CRITICAL
 
-#define STATIC_LOCK(name) 
+#define STATIC_LOCK(name)
 
 #define OPENMS_UNIQUELOCK(name, lockname) \
   OPENMS_THREAD_CRITICAL(name)
@@ -187,15 +194,15 @@
 
 // NOP for a single threaded environment
 
-#define STATIC_LOCK(name) 
+#define STATIC_LOCK(name)
 
-#define OPENMS_UNIQUELOCK(name) 
+#define OPENMS_UNIQUELOCK(name, lockname)
 
-#define OPENMS_UPGRADEABLE_UNIQUELOCK(name, lockname) 
+#define OPENMS_UPGRADEABLE_UNIQUELOCK(name, lockname)
 
-#define OPENMS_UPGRADE_UNIQUELOCK(name, lockname) 
+#define OPENMS_UPGRADE_UNIQUELOCK(name, lockname)
 
-#define OPENMS_NONUNIQUELOCK(name) 
+#define OPENMS_NONUNIQUELOCK(name, lockname)
 
 #define OPENMS_THREAD_CRITICAL(name)
 
