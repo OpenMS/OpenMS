@@ -216,7 +216,7 @@ START_SECTION([EXTRA] multithreaded example)
   // The shared_mutex code is an order of magnitude slower (10-20x) for both
   // cases. It seems for this case, most case is spent in locking / unlocking
   // the mutex.
-  int nr_iterations (1e7), test (0);
+  int nr_iterations (1e6), test (0);
 #ifdef _OPENMP
 #pragma omp parallel for
 #endif
