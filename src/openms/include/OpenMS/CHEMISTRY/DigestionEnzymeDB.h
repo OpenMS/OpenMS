@@ -41,6 +41,8 @@
 #include <OpenMS/FORMAT/ParamXMLFile.h>
 #include <OpenMS/SYSTEM/File.h>
 
+#include <OpenMS/CONCEPT/MultiThreading.h>
+
 #include <boost/unordered_map.hpp>
 #include <set>
 
@@ -55,6 +57,7 @@ namespace OpenMS
     @p DigestionEnzymeType should be a subclass of DigestionEnzyme.
     @p InstanceType should be a subclass of DigestionEnzymeDB ("Curiously Recurring Template Pattern", see https://stackoverflow.com/a/34519373).
   */
+  STATIC_LOCK(mutex_digestion_et) 
   template<typename DigestionEnzymeType, typename InstanceType> class DigestionEnzymeDB
   {
   public:
@@ -70,6 +73,10 @@ namespace OpenMS
     static InstanceType* getInstance()
     {
       static InstanceType* db_ = nullptr;
+
+      // unique lock (make sure we only create one instance)
+      OPENMS_UNIQUELOCK(mutex_digestion_et, lock)
+
       if (db_ == nullptr)
       {
         db_ = new InstanceType;
@@ -98,6 +105,8 @@ namespace OpenMS
     /// @note enzymes are registered in regular and in toLowercase() style, if unsure use toLowercase
     const DigestionEnzymeType* getEnzyme(const String& name) const
     {
+      OPENMS_NONUNIQUELOCK(mutex_digestion_et, lock)
+
       if (enzyme_names_.find(name) == enzyme_names_.end())
       {
         throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, name);
@@ -109,6 +118,8 @@ namespace OpenMS
     /// @throw Exception::IllegalArgument if enzyme regex  is unregistered.
     const DigestionEnzymeType* getEnzymeByRegEx(const String& cleavage_regex) const
     {
+      OPENMS_NONUNIQUELOCK(mutex_digestion_et, lock)
+
       if (!enzyme_regex_.has(cleavage_regex))
       {
         // @TODO: why does this use a different exception than "getEnzyme"?
@@ -121,6 +132,8 @@ namespace OpenMS
     /// returns all the enzyme names (does NOT include synonym names)
     void getAllNames(std::vector<String>& all_names) const
     {
+      OPENMS_NONUNIQUELOCK(mutex_digestion_et, lock)
+
       all_names.clear();
       for (ConstEnzymeIterator it = const_enzymes_.begin(); it != const_enzymes_.end(); ++it)
       {
@@ -135,18 +148,21 @@ namespace OpenMS
     /// returns true if the db contains a enzyme with the given name (supports synonym names)
     bool hasEnzyme(const String& name) const
     {
+      OPENMS_NONUNIQUELOCK(mutex_digestion_et, lock)
       return (enzyme_names_.find(name) != enzyme_names_.end());
     }
 
     /// returns true if the db contains a enzyme with the given regex
     bool hasRegEx(const String& cleavage_regex) const
     {
+      OPENMS_NONUNIQUELOCK(mutex_digestion_et, lock)
       return enzyme_regex_.has(cleavage_regex);
     }
 
     /// returns true if the db contains the enzyme of the given pointer
     bool hasEnzyme(const DigestionEnzymeType* enzyme) const
     {
+      OPENMS_NONUNIQUELOCK(mutex_digestion_et, lock)
       return (const_enzymes_.find(enzyme) != const_enzymes_.end() );
     }
     //@}
@@ -159,8 +175,11 @@ namespace OpenMS
 
     //@}
   protected:
+
     DigestionEnzymeDB(const String& db_file = "")
     {
+      // private constructor that is called from getInstance which acquires the lock (no lock needed here)
+
       if (!db_file.empty())
       {
         readEnzymesFromFile_(db_file);
