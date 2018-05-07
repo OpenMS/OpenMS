@@ -57,6 +57,33 @@ unsigned nofIdsToGenerate = 100000;
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
+START_SECTION([EXTRA] multithreaded example)
+{
+
+  /* test for collisions, test will be different for every test execution */
+  OpenMS::UniqueIdGenerator::setSeed(std::time(nullptr));
+  std::vector<OpenMS::UInt64> ids;
+  ids.reserve(nofIdsToGenerate);
+#ifdef _OPENMP
+#pragma omp parallel for
+#endif
+  for (unsigned i=0; i<nofIdsToGenerate; ++i)
+  {
+    OpenMS::UInt64 tmp = OpenMS::UniqueIdGenerator::getUniqueId();
+#ifdef _OPENMP
+#pragma omp critical (add_test)
+#endif
+    {
+      ids.push_back(tmp);
+    }
+  }
+  std::sort(ids.begin(), ids.end());
+  // check if the generated ids contain (at least) two equal ones
+  std::vector<OpenMS::UInt64>::iterator iter = std::adjacent_find(ids.begin(), ids.end());
+  TEST_EQUAL(iter == ids.end(), true);
+}
+END_SECTION
+
 START_SECTION((UniqueIdGenerator()))
 {
   // singleton has private ctor
