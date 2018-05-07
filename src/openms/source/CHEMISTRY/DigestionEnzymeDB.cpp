@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Xiao Liang  $
+// $Maintainer: Xiao Liang $
 // $Authors: Xiao Liang, Chris Bielow $
 // --------------------------------------------------------------------------
 //

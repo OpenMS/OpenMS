@@ -47,6 +47,8 @@ namespace OpenMS
   class OPENMS_DLLAPI DigestionEnzymeRNA: public DigestionEnzyme
   {
   public:
+    using DigestionEnzyme::DigestionEnzyme;
+
     /// sets the 3' gain (as a nucleotide modification code)
     void setThreePrimeGain(const String& value);
 
