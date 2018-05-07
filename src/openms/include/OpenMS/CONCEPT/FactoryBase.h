@@ -41,9 +41,9 @@ namespace OpenMS
   /**
     @brief Base class for Factory<T>
 
-        Just be able to use dynamic_cast on a pointer
+    Just be able to use dynamic_cast on a pointer
 
-        @ingroup Concept
+    @ingroup Concept
     */
   class OPENMS_DLLAPI FactoryBase
   {

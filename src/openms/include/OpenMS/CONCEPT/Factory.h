@@ -39,6 +39,8 @@
 #include <OpenMS/CONCEPT/SingletonRegistry.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 
+#include <OpenMS/CONCEPT/MultiThreading.h>
+
 #include <map>
 #include <typeinfo>
 
@@ -49,13 +51,14 @@ namespace OpenMS
   /**
     @brief Returns FactoryProduct* based on the name of the desired concrete FactoryProduct
 
-        Every factory product base class T has to implement the static function registerChildren that registers all classes S derived from T at Factory<T>.
+    Every factory product base class T has to implement the static function registerChildren that registers all classes S derived from T at Factory<T>.
 
-        Every class S derived from T has to implement the function "static T* create()" which is going to be registered at Factory<T>.
-        Additionally the function "static String getProductName()" is required, which returns the name the class is registered by.
+    Every class S derived from T has to implement the function "static T* create()" which is going to be registered at Factory<T>.
+    Additionally the function "static String getProductName()" is required, which returns the name the class is registered by.
 
-        @ingroup Concept
+    @ingroup Concept
   */
+  STATIC_LOCK(mutex_factory) 
   template <typename FactoryProduct>
   class Factory :
     public FactoryBase
@@ -80,6 +83,12 @@ private:
     /// singleton access to Factory
     static Factory * instance_()
     {
+
+      // Note: registerChildren is implemented by derived classes and will
+      // likely call registerProduct() which will then in turn call instance_
+      // -> this means we cannot use a critical section / mutex here as we will
+      // deadlock in a multithreaded environment.
+
       if (!instance_ptr_)
       {
         // name of this Factory
@@ -110,6 +119,10 @@ public:
     /// return FactoryProduct according to unique identifier @p name
     static FactoryProduct * create(const String & name)
     {
+      // unique lock (make sure we only create one instance)
+      //  -> this is the safer place to put the lock (not in instance_())
+      OPENMS_UNIQUELOCK(mutex_factory, lock)
+
       MapIterator it = instance_()->inventory_.find(name);
       if (it != instance_()->inventory_.end())
       {
