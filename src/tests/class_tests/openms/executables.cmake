@@ -369,6 +369,7 @@ set(chemistry_executables_list
   ModificationsDB_test
   CrossLinksDB_test
   ProteaseDB_test
+  RNaseDB_test
   ProteaseDigestion_test
   ResidueDB_test
   ResidueModification_test
