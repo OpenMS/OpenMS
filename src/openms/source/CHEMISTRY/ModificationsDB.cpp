@@ -313,14 +313,15 @@ namespace OpenMS
 
   void ModificationsDB::ensureModificationIsAdded(ResidueModification* new_mod)
   {
-    OPENMS_THREAD_CRITICAL(ModificationsDB)
-    {
+    // get upgradeable access (prevent deadlock with has() call)
+    OPENMS_UPGRADEABLE_UNIQUELOCK(mutex_mdb, lock) 
     if (!has(new_mod->getFullId()))
     {
+      OPENMS_UPGRADE_UNIQUELOCK(lock, uniqueLock)
       addModification_(new_mod);
     }
-    }
   }
+
   void ModificationsDB::addModification(ResidueModification* new_mod)
   {
     // get upgradeable access (prevent deadlock with has() call)
@@ -334,7 +335,11 @@ namespace OpenMS
     }
 
     OPENMS_UPGRADE_UNIQUELOCK(lock, uniqueLock)
+    addModification_(new_mod);
+  }
 
+  void ModificationsDB::addModification_(ResidueModification* new_mod)
+  {
     modification_names_[new_mod->getFullId()].insert(new_mod);
     modification_names_[new_mod->getId()].insert(new_mod);
     modification_names_[new_mod->getFullName()].insert(new_mod);
