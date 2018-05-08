@@ -67,22 +67,20 @@ END_SECTION
 
 START_SECTION((template<typename PeakConstIterator> SpectrumSettings::SpectrumType estimateType(const PeakConstIterator& begin, const PeakConstIterator& end) const))
 	DTAFile file;
-	PeakMap exp;
-	exp.resize(4);
+	MSSpectrum spec;
 	PeakTypeEstimator pte;
 	// raw data (with zeros)
-	file.load(OPENMS_GET_TEST_DATA_PATH("PeakTypeEstimator_raw.dta"),exp[0]);
-	// TOF raw data (without zeros)
-	file.load(OPENMS_GET_TEST_DATA_PATH("PeakTypeEstimator_rawTOF.dta"),exp[1]);
-	//peak data
-	file.load(OPENMS_GET_TEST_DATA_PATH("PeakTypeEstimator_peak.dta"),exp[2]);
-	//too few data points
-	exp[3].resize(4);
-	
-	TEST_EQUAL(pte.estimateType(exp[0].begin(),exp[0].end()), SpectrumSettings::PROFILE);
-	TEST_EQUAL(pte.estimateType(exp[1].begin(),exp[1].end()), SpectrumSettings::PROFILE);
-	TEST_EQUAL(pte.estimateType(exp[2].begin(),exp[2].end()), SpectrumSettings::CENTROID);
-	TEST_EQUAL(pte.estimateType(exp[3].begin(),exp[3].end()), SpectrumSettings::UNKNOWN);
+	file.load(OPENMS_GET_TEST_DATA_PATH("PeakTypeEstimator_raw.dta"), spec);
+  TEST_EQUAL(PeakTypeEstimator::estimateType(spec.begin(), spec.end()), SpectrumSettings::PROFILE);
+  // TOF raw data (without zeros)
+	file.load(OPENMS_GET_TEST_DATA_PATH("PeakTypeEstimator_rawTOF.dta"), spec);
+  TEST_EQUAL(PeakTypeEstimator::estimateType(spec.begin(), spec.end()), SpectrumSettings::PROFILE);
+  // peak data
+	file.load(OPENMS_GET_TEST_DATA_PATH("PeakTypeEstimator_peak.dta"), spec);
+  TEST_EQUAL(PeakTypeEstimator::estimateType(spec.begin(), spec.end()), SpectrumSettings::CENTROID);
+  // too few data points
+  spec.resize(4);
+	TEST_EQUAL(PeakTypeEstimator::estimateType(spec.begin(), spec.end()), SpectrumSettings::UNKNOWN);
 END_SECTION
 
 /////////////////////////////////////////////////////////////
