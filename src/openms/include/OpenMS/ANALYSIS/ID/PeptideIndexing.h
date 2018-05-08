@@ -55,6 +55,7 @@
 #include <atomic>
 #include <algorithm>
 #include <fstream>
+#include <boost/algorithm/string/find.hpp>
 
 namespace OpenMS
 {
@@ -128,7 +129,8 @@ public:
       PEPTIDE_IDS_EMPTY,
       DATABASE_CONTAINS_MULTIPLES,
       ILLEGAL_PARAMETERS,
-      UNEXPECTED_RESULT
+      UNEXPECTED_RESULT,
+      DECOYSTRING_EMPTY,
     };
 
     /// Default constructor
@@ -137,7 +139,94 @@ public:
     /// Default destructor
     ~PeptideIndexing() override;
 
-    /// forward for old interface and pyOpenMS; use run<T>() for more control
+     template<typename T>
+     const std::string findDecoyString(FASTAContainer<T> &proteins, std::vector<ProteinIdentification> &prot_ids, std::vector<PeptideIdentification> &pep_ids)
+     {
+       const size_t PROTEIN_CACHE_SIZE = 4e5;
+
+       while (true)
+       {
+         bool has_active_data = proteins.activateCache();
+
+         if (!has_active_data) break;
+         SignedSize prot_count = (SignedSize)proteins.chunkSize();
+
+         {
+           proteins.cacheChunk(PROTEIN_CACHE_SIZE);
+           for (SignedSize i = 0; i < prot_count; ++i)
+           {
+             const String& seq = proteins.chunkAt(i).identifier; //protein description?
+             boost::iterator_range<std::string::const_iterator> rng;
+
+             // remove all alphanumeric characters
+             seq.erase(std::remove_if(seq.begin(), seq.end(), [](char c) { return !std::isalpha(c); } ), seq.end());
+
+             // search for case insensitive occurence of the possible decoys
+             for (const auto &pair : decoy_occur_prefix_) {
+               if (boost::ifind_first(seq, pair.first))
+               {
+                 if (seq.hasPrefix(pair.first))
+                 {
+                   decoy_occur_prefix_[pair.first]++;
+                 }
+                 else
+                 {
+                   decoy_occur_suffix_[pair.first]++;
+                 }
+               }
+             }
+           }
+         }
+       }
+
+       // determine decoy
+       const std::string &determinedDecoyString = determinedDecoyString;
+
+       if (determinedDecoyString.empty())
+       {
+         LOG_ERROR << "Error: Unable to determine decoy string" << std::endl;
+         return DECOYSTRING_EMPTY; // function of course does not return ExitCodes
+       }
+
+       return determinedDecoyString;
+     }
+
+     std::string determineDecoyString() const
+     {
+       std::string determinedDecoyString;
+       int all_prefix_occur;
+       int all_suffix_occur;
+       for (const auto &pair : decoy_occur_prefix_)
+       {
+         all_prefix_occur += pair.second;
+       }
+
+       for (const auto &pair : decoy_occur_suffix_)
+       {
+         all_suffix_occur += decoy_occur_suffix_;
+       }
+
+       for (const auto &pair : decoy_occur_prefix_)
+       {
+         if (pair.second / all_prefix_occur > 0.5)
+         {
+           determinedDecoyString = pair.first;
+         }
+       }
+
+       for (const auto &pair : decoy_occur_suffix_)
+       {
+         if (pair.second / all_suffix_occur > 0.5)
+         {
+           determinedDecoyString = pair.first;
+         }
+       }
+
+       return determinedDecoyString;
+     }
+
+
+     /// forward for old interface and pyOpenMS; use run<T>() for more control
     inline ExitCodes run(std::vector<FASTAFile::FASTAEntry>& proteins, std::vector<ProteinIdentification>& prot_ids, std::vector<PeptideIdentification>& pep_ids)
     {
       FASTAContainer<TFI_Vector> protein_container(proteins);
@@ -819,6 +908,13 @@ protected:
 
     Int aaa_max_;
     Int mm_max_;
+
+    // common decoy string to number of occurences in fasta
+    // could use <std::pair<std::string, std::string> as keys???
+    std::map<std::string, int> decoy_occur_prefix_ = {{"decoy", 0}, {"rev", 0}, {"reverse", 0}, {"dev", 0}, {"iddecoy", 0},
+                                                  {"xxx", 0}, {"shuffle", 0}, {"shuffled", 0}, {"random", 0}};
+     std::map<std::string, int> decoy_occur_suffix_ = {{"decoy", 0}, {"rev", 0}, {"reverse", 0}, {"dev", 0}, {"iddecoy", 0},
+                                                    {"xxx", 0}, {"shuffle", 0}, {"shuffled", 0}, {"random", 0}};
 
   };
 }
