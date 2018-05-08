@@ -86,7 +86,7 @@ namespace OpenMS
     //Parameter handling
     defaults_.setValue("highlighted_peak_color", "#ff0000", "Highlighted peak color.");
     defaults_.setValue("icon_color", "#000000", "Peak icon color.");
-    defaults_.setValue("peak_color", "#000000", "Peak color.");
+    defaults_.setValue("peak_color", "#0000ff", "Peak color.");
     defaults_.setValue("annotation_color", "#000055", "Annotation color.");
     defaults_.setValue("background_color", "#ffffff", "Background color.");
     defaults_.setValue("show_legend", "false", "Annotate each layer with its name on the canvas.");
@@ -716,6 +716,8 @@ namespace OpenMS
         QPen icon_pen = QPen(QColor(layer.param.getValue("icon_color").toQString()), 1);
         QPen pen(QColor(layer.param.getValue("peak_color").toQString()), 1);
         pen.setStyle(peak_penstyle_[i]);
+        // TODO option for variable pen width
+        // pen.setWidthF(1.5);
         painter->setPen(pen);
         updatePercentageFactor_(i);
         vbegin = getLayer_(i).getCurrentSpectrum().MZBegin(visible_area_.minX());
@@ -1073,24 +1075,26 @@ namespace OpenMS
     peak_penstyle_.push_back(Qt::SolidLine);
 
 
-    //Change peak color if this is not the first layer
+    // Change peak color if this is not the first layer
     switch (current_layer_ % 5)
     {
     case 0:
+      getCurrentLayer_().param.setValue("peak_color", "#0000ff");
+      getCurrentLayer_().param.setValue("annotation_color", "#005500");
       break;
 
     case 1:
-      getCurrentLayer_().param.setValue("peak_color", "#00ff00");
+      getCurrentLayer_().param.setValue("peak_color", "#00cc00");
       getCurrentLayer_().param.setValue("annotation_color", "#005500");
       break;
 
     case 2:
-      getCurrentLayer_().param.setValue("peak_color", "#ff00ff");
+      getCurrentLayer_().param.setValue("peak_color", "#cc0000");
       getCurrentLayer_().param.setValue("annotation_color", "#550055");
       break;
 
     case 3:
-      getCurrentLayer_().param.setValue("peak_color", "#00ffff");
+      getCurrentLayer_().param.setValue("peak_color", "#00cccc");
       getCurrentLayer_().param.setValue("annotation_color", "#005555");
       break;
 
