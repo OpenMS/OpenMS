@@ -56,14 +56,14 @@ public:
         If at least two neighbouring sampling points to either side of a local maximum are found within 1 Th,
         the peak is considered a profile peak. The intensities need to decline on both shoulders.
         
-        All sampling points sucessfully assigned as shoulder points are not considered for searching the next highest peak
+        All sampling points successfully assigned as shoulder points are not considered for searching the next highest peak
         (except local minima at the end of a shoulder, which can be used for shoulders from left and right).
         
         If 5 peaks or 50% of total spectral intensity has been looked at, we compare the number of peaks hithero classified 
         as centroided (C) vs profile (P).
         If P / (C+P) > 0.75, the spectrum is considered profile; centroided otherwise.
 
-        @note if there are fewer than 5 peaks in the iterator range SpectrumSettings::UNKNOWN is returned
+        @note if there are less than 5 peaks in the iterator range SpectrumSettings::UNKNOWN is returned
        */
     template <typename PeakConstIterator>
     static SpectrumSettings::SpectrumType estimateType(const PeakConstIterator& begin, const PeakConstIterator& end)
