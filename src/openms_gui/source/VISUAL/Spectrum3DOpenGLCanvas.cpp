@@ -311,7 +311,6 @@ namespace OpenMS
         delete(painter_);
       }
     }
-    update();
   }
 
   void Spectrum3DOpenGLCanvas::drawAxesLegend_()
