@@ -58,7 +58,6 @@ namespace OpenMS
 
     @ingroup Concept
   */
-  STATIC_LOCK(mutex_factory) 
   template <typename FactoryProduct>
   class Factory :
     public FactoryBase
@@ -120,7 +119,10 @@ public:
     static FactoryProduct * create(const String & name)
     {
       // unique lock (make sure we only create one instance)
-      //  -> this is the safer place to put the lock (not in instance_())
+      //  -> Since we may call Factory<FactoryProduct>::create for another
+      //     FactoryProduct during initialization, we have to implement locking
+      //     per template class specialization.
+      STATIC_LOCK(mutex_factory)
       OPENMS_UNIQUELOCK(mutex_factory, lock)
 
       MapIterator it = instance_()->inventory_.find(name);
