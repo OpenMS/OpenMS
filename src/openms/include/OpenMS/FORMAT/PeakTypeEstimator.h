@@ -68,6 +68,7 @@ public:
     template <typename PeakConstIterator>
     static SpectrumSettings::SpectrumType estimateType(const PeakConstIterator& begin, const PeakConstIterator& end)
     {
+      typename typedef PeakConstIterator::value_type PeakT;
       // abort if there are less than 5 peak in the iterator range
       if (end - begin < 5)
       {
@@ -79,9 +80,9 @@ public:
       int centroid_evidence = 0; // number of peaks found to be centroided
 
       // copy data, since we need to modify
-      std::vector<PeakConstIterator::value_type> data(begin, end);
+      std::vector<PeakT> data(begin, end);
       // total intensity of spectrum
-      double total_int = std::accumulate(begin, end, 0.0, [](double int_, PeakConstIterator::value_type& it) { return int_ + it.getIntensity(); } );
+      double total_int = std::accumulate(begin, end, 0.0, [](double int_, PeakT& it) { return int_ + it.getIntensity(); } );
       double explained_int = 0;
       // get the 5 highest peaks
       for (int i = 0; i < max_peaks; ++i)
