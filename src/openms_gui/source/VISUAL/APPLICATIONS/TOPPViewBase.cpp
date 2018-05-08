@@ -2568,7 +2568,6 @@ namespace OpenMS
       connect(sw2->getHorizontalProjection(), SIGNAL(sendCursorStatus(double, double)), this, SLOT(showCursorStatus(double, double)));
       connect(sw2->getVerticalProjection(), SIGNAL(sendCursorStatus(double, double)), this, SLOT(showCursorStatusInvert(double, double)));
       connect(sw2, SIGNAL(showSpectrumAs1D(int)), this, SLOT(showSpectrumAs1D(int)));
-      connect(sw2, SIGNAL(showSpectrumAs1D(int)), identificationview_behavior_, SLOT(showSpectrumAs1D(int)));
 //      connect(sw2, SIGNAL(showSpectrumAs1D(std::vector<int, std::allocator<int> >)), this, SLOT(showSpectrumAs1D(std::vector<int, std::allocator<int> >)));
       connect(sw2, SIGNAL(showCurrentPeaksAs3D()), this, SLOT(showCurrentPeaksAs3D()));
     }
@@ -3392,7 +3391,6 @@ namespace OpenMS
         identificationview_behavior_->showSpectrumAs1D(index);
       }
     }
-
   }
 
   void TOPPViewBase::showSpectrumAs1D(std::vector<int, std::allocator<int> > indices)
@@ -3413,9 +3411,7 @@ namespace OpenMS
       {
         spectraview_behavior_->showSpectrumAs1D(indices);
       }
-
     }
-
   }
 
   void TOPPViewBase::showCurrentPeaksAs2D()
