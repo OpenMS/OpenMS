@@ -28,8 +28,8 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Timo Sachsenberg $
-// $Authors: Marc Sturm, Marcel Schilling $
+// $Maintainer: Chris Bielow $
+// $Authors: Chris Bielow $
 // --------------------------------------------------------------------------
 
 #pragma once
@@ -68,7 +68,7 @@ public:
     template <typename PeakConstIterator>
     static SpectrumSettings::SpectrumType estimateType(const PeakConstIterator& begin, const PeakConstIterator& end)
     {
-      typename typedef PeakConstIterator::value_type PeakT;
+      typedef typename PeakConstIterator::value_type PeakT;
       // abort if there are less than 5 peak in the iterator range
       if (end - begin < 5)
       {
