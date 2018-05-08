@@ -41,6 +41,7 @@
 namespace OpenMS
 {
 
+class MSSpectrum;
 
 class OPENMS_DLLAPI Deisotoper
 {
@@ -48,8 +49,7 @@ class OPENMS_DLLAPI Deisotoper
 
   /* @brief Detect isotopic clusters in a fragment spectrum.
 
-     Note: spectrum must must be sorted by m/z
-
+   * @param [spectra] Input spectra (sorted by m/z)
    * @param [min_charge] The minimum charge considered
    * @param [max_charge] The maximum charge considered
    * @param [fragment_tolerance] The tolerance used to match isotopic peaks
@@ -61,16 +61,16 @@ class OPENMS_DLLAPI Deisotoper
    * @param [annotate_charge] Annotate the charge to the peaks in the IntegerDataArray: "charge" (0 for unknown charge)
    * 	     Note: If make_single_charged is selected, the original charge (>=1) gets annotated.
    */
-  static void deisotopeAndSingleCharge(MSSpectrum& in, 
-                                          double fragment_tolerance, 
+  static void deisotopeAndSingleCharge(MSSpectrum & spectra, 
+            double fragment_tolerance, 
 					  bool fragment_unit_ppm, 
-                                          int min_charge = 1, 
+            int min_charge = 1, 
 					  int max_charge = 3,
-                                          bool keep_only_deisotoped = false, 
-                                          unsigned int min_isopeaks = 3, 
+            bool keep_only_deisotoped = false, 
+            unsigned int min_isopeaks = 3, 
 					  unsigned int max_isopeaks = 10, 
-                                          bool make_single_charged = true,
-                                          bool annotate_charge = false);
+            bool make_single_charged = true,
+             bool annotate_charge = false);
 };
 
 }

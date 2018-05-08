@@ -42,18 +42,18 @@ namespace OpenMS
 {
 
 // static
-void Deisotoper::deisotopeAndSingleCharge(MSSpectrum& in, 
-                                        double fragment_tolerance, 
+void Deisotoper::deisotopeAndSingleCharge(MSSpectrum& spectra, 
+                      double fragment_tolerance, 
       				        bool fragment_unit_ppm, 
-                                        int min_charge, 
-					int max_charge,
-                                        bool keep_only_deisotoped, 
-                                        unsigned int min_isopeaks, 
+                      int min_charge, 
+					            int max_charge,
+                      bool keep_only_deisotoped, 
+                      unsigned int min_isopeaks, 
       				        unsigned int max_isopeaks, 
-                                        bool make_single_charged,
-                                        bool annotate_charge)
+                      bool make_single_charged,
+                      bool annotate_charge)
 {
-  OPENMS_PRECONDITION(in.isSorted(), "Spectrum must be sorted.");
+  OPENMS_PRECONDITION(spectra.isSorted(), "Spectrum must be sorted.");
 
   if (min_isopeaks < 2 || max_isopeaks < 2 || min_isopeaks > max_isopeaks)
   {
@@ -63,16 +63,16 @@ void Deisotoper::deisotopeAndSingleCharge(MSSpectrum& in,
 		    "Minimum/maximum number of isotopic peaks must be at least 2 (and min_isopeaks <= max_isopeaks).");
   }
 
-  if (in.empty()) { return; }
+  if (spectra.empty()) { return; }
 
-  MSSpectrum old_spectrum = in;
+  MSSpectrum old_spectrum = spectra;
 
   // reserve integer data array to store charge of peaks
   if (annotate_charge) 
   {
     // expand to hold one additional integer data array to hold the charge
-    in.getIntegerDataArrays().resize(in.getIntegerDataArrays().size() + 1);
-    in.getIntegerDataArrays().back().setName("charge");
+    spectra.getIntegerDataArrays().resize(spectra.getIntegerDataArrays().size() + 1);
+    spectra.getIntegerDataArrays().back().setName("charge");
   }
 
   // determine charge seeds and extend them
@@ -100,15 +100,15 @@ void Deisotoper::deisotopeAndSingleCharge(MSSpectrum& in,
           const unsigned int p = old_spectrum.findNearest(expected_mz);
           const double tolerance_dalton = fragment_unit_ppm ? fragment_tolerance * expected_mz * 1e-6 : fragment_tolerance;
           const double distance_to_closest = fabs(old_spectrum[p].getMZ() - expected_mz);
-	  if (distance_to_closest > tolerance_dalton) // test for missing peak
+	        if (distance_to_closest > tolerance_dalton) // test for missing peak
           {
             if (i < min_isopeaks) { has_min_isopeaks = false;}
-	    break;
+	          break;
           }
           else
           {
             // Possible improvement: include proper averagine model filtering. for now start at the second peak to test hypothesis
-	    // Note: this is a common approach used in several other search engines
+	          // Note: this is a common approach used in several other search engines
             unsigned int n_extensions = extensions.size();
             if (n_extensions != 0)
             {
@@ -116,7 +116,7 @@ void Deisotoper::deisotopeAndSingleCharge(MSSpectrum& in,
               {
                 if (i < min_isopeaks) { has_min_isopeaks = false; }
                break;
-	      }
+	            }
             }
 
             // averagine check passed
@@ -126,7 +126,7 @@ void Deisotoper::deisotopeAndSingleCharge(MSSpectrum& in,
 
         if (has_min_isopeaks)
         {
-	  // std::cout << "min peaks at " << current_mz << " " << " extensions: " << extensions.size() << std::endl;
+	        // std::cout << "min peaks at " << current_mz << " " << " extensions: " << extensions.size() << std::endl;
           mono_isotopic_peak[current_peak] = q;
           for (unsigned int i = 0; i != extensions.size(); ++i)
           {
@@ -138,7 +138,7 @@ void Deisotoper::deisotopeAndSingleCharge(MSSpectrum& in,
     }
   }
 
-  in.clear(false);
+  spectra.clear(false);
   for (unsigned int i = 0; i != old_spectrum.size(); ++i)
   {
     int z = mono_isotopic_peak[i];
@@ -149,22 +149,22 @@ void Deisotoper::deisotopeAndSingleCharge(MSSpectrum& in,
       // if already single charged or no decharging selected keep peak as it is
       if (!make_single_charged)
       {
-        in.push_back(old_spectrum[i]);
+        spectra.push_back(old_spectrum[i]);
 
         // add peak charge to annotation array
         if (annotate_charge)
         {
-          in.getIntegerDataArrays().back().push_back(z);
+          spectra.getIntegerDataArrays().back().push_back(z);
         }
       }
       else
       {
         Peak1D p = old_spectrum[i];
         p.setMZ(p.getMZ() * z - (z - 1) * Constants::PROTON_MASS_U);
-        in.push_back(p);
+        spectra.push_back(p);
 
         // add peak charge to annotation array
-        if (annotate_charge) { in.getIntegerDataArrays().back().push_back(z); }
+        if (annotate_charge) { spectra.getIntegerDataArrays().back().push_back(z); }
       }
     }
     else
@@ -172,10 +172,10 @@ void Deisotoper::deisotopeAndSingleCharge(MSSpectrum& in,
       // keep all unassigned peaks
       if (features[i] < 0)
       {
-        in.push_back(old_spectrum[i]);
+        spectra.push_back(old_spectrum[i]);
 
         // add peak charge to annotation array
-        if (annotate_charge) { in.getIntegerDataArrays().back().push_back(z); }
+        if (annotate_charge) { spectra.getIntegerDataArrays().back().push_back(z); }
         continue;
       }
 
@@ -184,26 +184,26 @@ void Deisotoper::deisotopeAndSingleCharge(MSSpectrum& in,
       {
         if (!make_single_charged)
         {
-          in.push_back(old_spectrum[i]);
+          spectra.push_back(old_spectrum[i]);
 
-          if (annotate_charge) { in.getIntegerDataArrays().back().push_back(z); }
+          if (annotate_charge) { spectra.getIntegerDataArrays().back().push_back(z); }
         }
         else // make single charged
         {
           Peak1D p = old_spectrum[i];
           p.setMZ(p.getMZ() * z - (z - 1) * Constants::PROTON_MASS_U);
-          in.push_back(p);
+          spectra.push_back(p);
 
+          // annotate the original charge
           if (annotate_charge)
           {
-            // annotate the original charge
-            in.getIntegerDataArrays().back().push_back(z);
+            spectra.getIntegerDataArrays().back().push_back(z);
           }
         }
       }
     }
   }
-  in.sortByPosition();
+  spectra.sortByPosition();
 }
 } // namespace
 
