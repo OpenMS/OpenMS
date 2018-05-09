@@ -82,7 +82,7 @@ public:
       // copy data, since we need to modify
       std::vector<PeakT> data(begin, end);
       // total intensity of spectrum
-      double total_int = std::accumulate(begin, end, 0.0, [](double int_, PeakT& it) { return int_ + it.getIntensity(); } );
+      double total_int = std::accumulate(begin, end, 0.0, [](double int_, const PeakT& p) { return int_ + p.getIntensity(); } );
       double explained_int = 0;
       // get the 5 highest peaks
       for (int i = 0; i < max_peaks; ++i)
