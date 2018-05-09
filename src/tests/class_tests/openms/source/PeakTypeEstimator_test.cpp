@@ -68,7 +68,6 @@ END_SECTION
 START_SECTION((template<typename PeakConstIterator> SpectrumSettings::SpectrumType estimateType(const PeakConstIterator& begin, const PeakConstIterator& end) const))
 	DTAFile file;
 	MSSpectrum spec;
-	PeakTypeEstimator pte;
 	// raw data (with zeros)
 	file.load(OPENMS_GET_TEST_DATA_PATH("PeakTypeEstimator_raw.dta"), spec);
   TEST_EQUAL(PeakTypeEstimator::estimateType(spec.begin(), spec.end()), SpectrumSettings::PROFILE);
