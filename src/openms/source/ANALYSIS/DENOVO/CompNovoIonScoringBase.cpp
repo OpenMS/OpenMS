@@ -219,7 +219,7 @@ namespace OpenMS
     for (PeakSpectrum::ConstIterator it1 = it; it1 != CID_spec.end(); ++it1)
     {
       double it1_pos(it1->getPosition()[0]);
-      if (fabs(fabs(actual_pos - it1_pos) - Constants::NEUTRON_MASS_U / (double)charge) < fragment_mass_tolerance_)
+      if (fabs(fabs(actual_pos - it1_pos) - Constants::C13C12_MASSDIFF_U / (double)charge) < fragment_mass_tolerance_)
       {
         iso_pattern.push_back(it1->getIntensity());
         actual_pos = it1_pos;
