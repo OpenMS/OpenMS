@@ -426,7 +426,7 @@ protected:
       exp[exp_index].sortByPosition();
 
       // deisotope
-      Deisotoper::deisotopeAndSingleChargeMSSpectrum(exp[exp_index], 
+      Deisotoper::deisotopeAndSingleCharge(exp[exp_index], 
                                          fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, 
                                          1, 3, 
                                          false, 
@@ -1576,10 +1576,12 @@ protected:
     // preallocate storage for PSMs
     vector<vector<AnnotatedHit> > annotated_hits(spectra.size(), vector<AnnotatedHit>());
     for (auto & a : annotated_hits) { a.reserve(2 * report_top_hits); }
-     
+
+#ifdef _OPENMP     
     // we want to do locking at the spectrum level so we get good parallelisation 
     vector<omp_lock_t> annotated_hits_lock(annotated_hits.size());
     for (size_t i = 0; i != annotated_hits_lock.size(); i++) { omp_init_lock(&(annotated_hits_lock[i])); }
+#endif
 
     // load fasta file
     progresslogger.startProgress(0, 1, "Load database from FASTA file...");
@@ -1804,7 +1806,9 @@ protected:
                   LOG_DEBUG << "best score in pre-score: " << score << endl;
 #endif
 
+#ifdef _OPENMP 
                   omp_set_lock(&(annotated_hits_lock[scan_index]));
+#endif
                   {
                     annotated_hits[scan_index].push_back(ah);
 
@@ -1815,7 +1819,9 @@ protected:
                       annotated_hits[scan_index].resize(report_top_hits); 
                     }
                   }
+#ifdef _OPENMP 
                   omp_unset_lock(&(annotated_hits_lock[scan_index]));
+#endif
                 }
               }
               else  // score peptide with RNA adduct
@@ -1948,7 +1954,9 @@ protected:
                     LOG_DEBUG << "best score in pre-score: " << score << endl;
 #endif
 
+#ifdef _OPENMP
                     omp_set_lock(&(annotated_hits_lock[scan_index]));
+#endif
                     {
                       annotated_hits[scan_index].push_back(ah);
 
@@ -1959,7 +1967,9 @@ protected:
                         annotated_hits[scan_index].resize(report_top_hits); 
                       }
                     }
+#ifdef _OPENMP
                     omp_unset_lock(&(annotated_hits_lock[scan_index]));
+#endif
                   }
                 } // for every nucleotide in the precursor
               }
@@ -2020,7 +2030,9 @@ protected:
                 LOG_DEBUG << "best score in pre-score: " << score << endl;
 #endif
 
+#ifdef _OPENMP
                 omp_set_lock(&(annotated_hits_lock[scan_index]));
+#endif
                 {
                   annotated_hits[scan_index].push_back(ah);
 
@@ -2031,7 +2043,9 @@ protected:
                     annotated_hits[scan_index].resize(report_top_hits); 
                   }
                 }
+#ifdef _OPENMP
                 omp_unset_lock(&(annotated_hits_lock[scan_index]));
+#endif
               }
             }
           }
@@ -2173,9 +2187,11 @@ protected:
       csv_file.store(out_csv);
     }
  
+ #ifdef _OPENMP
     // free locks
     for (size_t i = 0; i != annotated_hits_lock.size(); i++) { omp_destroy_lock(&(annotated_hits_lock[i])); }
-   
+ #endif
+
     return EXECUTION_OK;
   }
 
