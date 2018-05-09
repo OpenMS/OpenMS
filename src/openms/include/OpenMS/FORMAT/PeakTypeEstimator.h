@@ -106,8 +106,9 @@ public:
         if (idx == -1) break;
 
         // check left and right peak shoulders and count number of sample points
-        PeakConstIterator it_max = data.begin() + idx;
-        PeakConstIterator it = it_max;
+        typedef typename std::vector<PeakT>::iterator PeakIterator; // non-const version, since we need to modify the peaks
+        PeakIterator it_max = data.begin() + idx;
+        PeakIterator it = it_max;
         double int_last = int_max;
         while (it != data.begin() 
                && it->getIntensity() <= int_last        // at most 100% of last sample point
