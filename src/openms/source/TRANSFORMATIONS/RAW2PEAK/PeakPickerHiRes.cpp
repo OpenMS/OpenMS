@@ -56,7 +56,7 @@ namespace OpenMS
     defaults_.setValue("missing", 1, "Maximum number of missing points allowed when extending a peak to the left or to the right. A missing data point occurs if the spacing between two subsequent data points exceeds 'spacing_difference * min_spacing'. 'min_spacing' is the smaller of the two spacings from the peak apex to its two neighboring points. Not applicable to chromatograms.", ListUtils::create<String>("advanced"));
     defaults_.setMinInt("missing", 0);
 
-    defaults_.setValue("ms_levels", ListUtils::create<Int>("1"), "List of MS levels for which the peak picking is applied. Other scans are copied to the output without changes.");
+    defaults_.setValue("ms_levels", ListUtils::create<Int>(""), "List of MS levels for which the peak picking is applied. If empty, auto mode is enabled, all peaks which aren't picked yet will get picked. Other scans are copied to the output without changes.");
     defaults_.setMinInt("ms_levels", 1);
 
     defaults_.setValue("report_FWHM", "false", "Add metadata for FWHM (as floatDataArray named 'FWHM' or 'FWHM_ppm', depending on param 'report_FWHM_unit') for each picked peak.");

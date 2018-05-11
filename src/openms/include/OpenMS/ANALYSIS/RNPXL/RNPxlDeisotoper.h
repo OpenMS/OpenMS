@@ -28,64 +28,50 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Chris Bielow $
-// $Authors: Chris Bielow $
+// $Maintainer: Timo Sachsenberg $
+// $Authors: Timo Sachsenberg $
 // --------------------------------------------------------------------------
 
 #pragma once
 
-// OpenMS_GUI config
-#include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
-
-//Qt
-#include <QtWidgets/QApplication>
+#include <OpenMS/KERNEL/StandardTypes.h>
+#include <OpenMS/CONCEPT/Types.h>
+#include <OpenMS/CONCEPT/Constants.h>
 
 namespace OpenMS
 {
-  /**
-    @brief Extension to the QApplication for running TOPPs GUI tools.
 
-    Basically re-implements notify of QApplication to prevent ungraceful exit.
-  */
-  class OPENMS_GUI_DLLAPI QApplicationTOPP :
-    public QApplication
-  {
+class MSSpectrum;
 
-    Q_OBJECT
+class OPENMS_DLLAPI Deisotoper
+{
+  public:
 
-public:
-    /// Constructor (no NOT remove the "&" from argc, since Qt will segfault on some platforms otherwise!)
-    QApplicationTOPP(int& argc, char** argv);
+  /* @brief Detect isotopic clusters in a fragment spectrum.
 
-    /// Destructor
-    ~QApplicationTOPP() override;
-
-    /**
-      @brief: Catch exceptions in Qt GUI applications, preventing ungraceful exit
-
-      Re-implementing QApplication::notify() to catch exception thrown in event
-      handlers (which is most likely OpenMS code).
-    */
-    bool notify(QObject* rec, QEvent* ev) override;
-
-    /**
-      Reimplemented from QApplication, to handle QEvent::FileOpen to enable handling of odoc event on MacOSX
-    */
-    bool event(QEvent*) override;
-
-    /**
-      @brief Show the About-Dialog with License and Citation for all GUI tools
-
-      @param parent Parent widget (usually 'this')
-      @param toolname name of the tool (used as heading)
-    */
-    static void showAboutDialog(QWidget* parent, const QString& toolname);
-
-
-signals:
-    void fileOpen(QString file);
-
-  };
+   * @param [spectra] Input spectra (sorted by m/z)
+   * @param [min_charge] The minimum charge considered
+   * @param [max_charge] The maximum charge considered
+   * @param [fragment_tolerance] The tolerance used to match isotopic peaks
+   * @oaram [fragment_unit_ppm] Whether ppm or m/z is used as tolerance
+   * @param [keep_only_deisotoped] Only monoisotopic peaks of fragments with isotopic pattern are retained
+   * @param [min_isopeaks] The minimum number of isotopic peaks (at least 2) required for an isotopic cluster
+   * @param [max_isopeaks] The maximum number of isotopic peaks (at least 2) considered for an isotopic cluster
+   * @param [make_single_charged] Convert deisotoped monoisotopic peak to single charge
+   * @param [annotate_charge] Annotate the charge to the peaks in the IntegerDataArray: "charge" (0 for unknown charge)
+   * 	     Note: If make_single_charged is selected, the original charge (>=1) gets annotated.
+   */
+  static void deisotopeAndSingleCharge(MSSpectrum & spectra, 
+            double fragment_tolerance, 
+					  bool fragment_unit_ppm, 
+            int min_charge = 1, 
+					  int max_charge = 3,
+            bool keep_only_deisotoped = false, 
+            unsigned int min_isopeaks = 3, 
+					  unsigned int max_isopeaks = 10, 
+            bool make_single_charged = true,
+             bool annotate_charge = false);
+};
 
 }
 

@@ -352,7 +352,7 @@ for content in Dir.entries($lib_dir)
   if fixable(content, $lib_dir)
     if isFramework(content)
 #      handleFramework($lib_dir + content, $lib_dir)
-    else
+    elsif (content.end_with?(".dylib") or content.end_with?(".so"))
       handleDyLib($lib_dir + content, $lib_dir)
     end
   else
