@@ -74,14 +74,14 @@ public:
             @param fwd_ids forward peptide identifications
             @param rev_ids reverse peptide identifications
     */
-    void apply(std::vector<PeptideIdentification> & fwd_ids, std::vector<PeptideIdentification> & rev_ids);
+    void apply(std::vector<PeptideIdentification> & fwd_ids, std::vector<PeptideIdentification> & rev_ids) const;
 
     /**
         @brief Calculates the FDR of one run from a concatenated sequence db search
 
-@param id peptide identifications, containing target and decoy hits
+        @param id peptide identifications, containing target and decoy hits
     */
-    void apply(std::vector<PeptideIdentification> & id);
+    void apply(std::vector<PeptideIdentification> & id) const;
 
     /**
         @brief Calculates the FDR of two runs, a forward run and decoy run on protein level
@@ -89,7 +89,7 @@ public:
         @param fwd_ids forward protein identifications
         @param rev_ids reverse protein identifications
     */
-    void apply(std::vector<ProteinIdentification> & fwd_ids, std::vector<ProteinIdentification> & rev_ids);
+    void apply(std::vector<ProteinIdentification> & fwd_ids, std::vector<ProteinIdentification> & rev_ids) const;
 
     /**
         @brief Calculate the FDR of one run from a concatenated sequence db search
@@ -97,7 +97,7 @@ public:
 
         @param ids protein identifications, containing target and decoy hits
     */
-    void apply(std::vector<ProteinIdentification> & ids);
+    void apply(std::vector<ProteinIdentification> & ids) const;
 
 private:
     ///Not implemented
@@ -107,7 +107,7 @@ private:
     FalseDiscoveryRate & operator=(const FalseDiscoveryRate &);
 
     /// calculates the fdr stored into fdrs, given two vectors of scores
-    void calculateFDRs_(Map<double, double> & score_to_fdr, std::vector<double> & target_scores, std::vector<double> & decoy_scores, bool q_value, bool higher_score_better);
+    void calculateFDRs_(Map<double, double> & score_to_fdr, std::vector<double> & target_scores, std::vector<double> & decoy_scores, bool q_value, bool higher_score_better) const;
 
   };
 
