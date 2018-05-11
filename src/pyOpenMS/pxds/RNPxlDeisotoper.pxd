@@ -9,7 +9,7 @@ cdef extern from "<OpenMS/ANALYSIS/RNPXL/RNPxlDeisotoper.h>" namespace "OpenMS":
 
 # COMMENT: wrap static methods
 cdef extern from "<OpenMS/ANALYSIS/RNPXL/RNPxlDeisotoper.h>" namespace "OpenMS::Deisotoper":
-        void deisotopeAndSingleCharge(MSSpectrum & sepctra, 
+        void deisotopeAndSingleCharge(MSSpectrum & spectra, 
                 double fragment_tolerance, 
                 bool fragment_unit_ppm, 
                 int min_charge, 
