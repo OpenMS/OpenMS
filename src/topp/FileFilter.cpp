@@ -135,50 +135,53 @@ public:
   }
 
 private:
-  static FeatureMap makeUnique(const FeatureMap& feature_map) {
+  static FeatureMap makeUnique(const FeatureMap& feature_map) 
+  {
+    // Map that maps charge and sequence to highest intensity feature.
     std::map<std::pair<Int, AASequence>, const Feature*> feature_set;
+    // Feature map of unique features with highest intensities, return value.
     FeatureMap unique_features;
-    for (auto fm_it = feature_map.begin(); fm_it != feature_map.end(); ++fm_it) {
-      Int charge = fm_it->getCharge();
-      
-      // XXX: Raise an error if there are multiple identifications?
-      // XXX: If len(peptideidentifications) > 1 error
-      std::vector<PeptideIdentification> pep_ids = fm_it->getPeptideIdentifications();
+    for (FeatureMap::const_iterator fm_it = feature_map.begin(); fm_it != feature_map.end(); ++fm_it) 
+    {
+      const Int charge = fm_it->getCharge();
+      const std::vector<PeptideIdentification> pep_ids = fm_it->getPeptideIdentifications();
 
-      if(!pep_ids.empty()) {
-
+      if(!pep_ids.empty()) 
+      {
         if (pep_ids.size() != 1)
         {
           throw OpenMS::Exception::IllegalArgument(__FILE__, __LINE__, __FUNCTION__, "Features may contain at most one identification. Run IDConflictResolver first to remove ambiguities!");
         }
 
-        for () {
-            
-        }
+        // Assumption: first hit returned by `getHits()` has always highest search engine score
+        // TODO: Is this assumption reasonable or do we need to sort the hits first?
+        const PeptideHit highest_score_hit = pep_ids.begin()->getHits().front();
+        const AASequence sequence = highest_score_hit.getSequence();
+        const std::pair<Int, AASequence> pair = std::make_pair(charge, sequence);
+        const Feature* feature_ptr = &(*fm_it);
 
-
-        AASequence sequence = peptide_identifications.begin()->getHits().front().getSequence();
-        // sequence = ?
-        auto pair = std::make_pair(charge, sequence);
-        auto feature_in_map = feature_set.find(pair);
-        auto feature_ptr = &(*fm_it);
-
-        if (feature_set.find(pair) != feature_set.end()) {
-          if (feature_set[pair]->getIntensity() < feature_ptr->getIntensity()) {
+        // TODO: This has potential for performance optimizations through caching.
+        if (feature_set.find(pair) != feature_set.end()) 
+        {
+          if (feature_set[pair]->getIntensity() < feature_ptr->getIntensity()) 
+          {
             feature_set[pair] = feature_ptr;            
           }
-        } else{
+        } else
+        {
             feature_set[pair] = feature_ptr;
         }
       }
     }
 
-    for (auto const& element : feature_set) {
+    // Copy (unique) features from feature_set over into a FeatureMap
+    for (auto const& element : feature_set) 
+    {
       unique_features.push_back(*(element.second));
     }
-    // Copy features in feature_set into a FeatureMap
     return unique_features;
   }
+
   static bool checkPeptideIdentification_(BaseFeature& feature, const bool remove_annotated_features, const bool remove_unannotated_features, const StringList& sequences, const StringList& accessions, const bool keep_best_score_id, const bool remove_clashes)
   {
     //flag: remove_annotated_features and non-empty peptideIdentifications
