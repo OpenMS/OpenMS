@@ -137,6 +137,10 @@ public:
 private:
   static FeatureMap makeUnique(const FeatureMap& feature_map) 
   {
+    // Copy (unique) features from `feature_set` over into a fresh FeatureMap
+    FeatureMap unique_features = feature_map;
+    unique_features.clear(false);
+
     // A set of features disguised as a std::map.
     // Uniqueness criterion/key is a pair <charge, sequence> for each feature.
     typedef std::map<std::pair<Int, AASequence>, const Feature*> FeatureSet;
@@ -146,7 +150,7 @@ private:
     {
       const std::vector<PeptideIdentification> pep_ids = fm_it->getPeptideIdentifications();
 
-      if (!pep_ids.empty()) 
+      if (!pep_ids.empty())
       {
         if (pep_ids.size() != 1) 
         {
@@ -168,12 +172,13 @@ private:
         {
           feature_in_set->second = &(*fm_it);
         }
+      } else 
+      {
+        // Maintain features without peptide identifications.
+        unique_features.push_back(*fm_it);
       }
     }
 
-    // Copy (unique) features from `feature_set` over into a fresh FeatureMap
-    FeatureMap unique_features = feature_map;
-    unique_features.clear(false);
     for (auto const& element : feature_set) 
     {
       const Feature feature = *(element.second);
