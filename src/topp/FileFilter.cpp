@@ -137,7 +137,15 @@ public:
 private:
   static FeatureMap makeUnique(const FeatureMap& feature_map) 
   {
-    // Copy (unique) features from `feature_set` over into a fresh FeatureMap
+    // Flag: `f_and_c:make_unique`
+    
+    // This function does two things:
+    // 1. create a std::map `feature_set` that maps pairs of <charge, sequence> 
+    // to a pointer to the feature with the highest intensity for this sequence.
+    // 2. construct a FeatureMap that contains all unannotated features in `feature_map`
+    // and all features that are in `feature_set`.
+    
+    // Copy (unique) features from `feature_set` over into a fresh FeatureMap.
     FeatureMap unique_features = feature_map;
     unique_features.clear(false);
 
@@ -146,6 +154,8 @@ private:
     typedef std::map<std::pair<Int, AASequence>, const Feature*> FeatureSet;
     FeatureSet feature_set;
 
+    // 1. create a std::map `feature_set` mapping pairs <charge, sequence> to a pointer to 
+    // the feature with the highest intensity for this sequence.
     for (FeatureMap::const_iterator fm_it = feature_map.begin(); fm_it != feature_map.end(); ++fm_it) 
     {
       const std::vector<PeptideIdentification> pep_ids = fm_it->getPeptideIdentifications();
@@ -179,6 +189,7 @@ private:
       }
     }
 
+    // 2. copy features from `feature_set` into our new FeatureMap.
     for (auto const& element : feature_set) 
     {
       const Feature feature = *(element.second);
@@ -442,8 +453,7 @@ protected:
     registerStringOption_("f_and_c:charge", "[min]:[max]", ":", "Charge range to extract", false);
     registerStringOption_("f_and_c:size", "[min]:[max]", ":", "Size range to extract", false);
     registerStringList_("f_and_c:remove_meta", "<name> 'lt|eq|gt' <value>", StringList(), "Expects a 3-tuple (=3 entries in the list), i.e. <name> 'lt|eq|gt' <value>; the first is the name of meta value, followed by the comparison operator (equal, less or greater) and the value to compare to. All comparisons are done after converting the given value to the corresponding data value type of the meta value (for lists, this simply compares length, not content!)!", false);
-    // XXX MFreidank: add help description
-    registerFlag_("f_and_c:make_unique", "DESCRIPTION", false);
+    registerFlag_("f_and_c:make_unique", "Filter for unique sequence/charge state combinations. In a single map, peptides with the same sequence and charge states may appear. If this flag is set only the feature with the highest intensity will pass this filter. (Features without identification will pass automatically, see also: `id:remove_unannotated_features`).", false);
 
     addEmptyLine_();
     // XXX: Change description
