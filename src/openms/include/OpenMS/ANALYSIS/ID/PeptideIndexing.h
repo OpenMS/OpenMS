@@ -56,6 +56,7 @@
 #include <algorithm>
 #include <fstream>
 #include <boost/algorithm/string/find.hpp>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 
 namespace OpenMS
 {
@@ -139,92 +140,6 @@ public:
     /// Default destructor
     ~PeptideIndexing() override;
 
-     template<typename T>
-     const std::string findDecoyString(FASTAContainer<T> &proteins, std::vector<ProteinIdentification> &prot_ids, std::vector<PeptideIdentification> &pep_ids)
-     {
-       const size_t PROTEIN_CACHE_SIZE = 4e5;
-
-       while (true)
-       {
-         bool has_active_data = proteins.activateCache();
-
-         if (!has_active_data) break;
-         SignedSize prot_count = (SignedSize)proteins.chunkSize();
-
-         {
-           proteins.cacheChunk(PROTEIN_CACHE_SIZE);
-           for (SignedSize i = 0; i < prot_count; ++i)
-           {
-             const String& seq = proteins.chunkAt(i).identifier; //protein description?
-             boost::iterator_range<std::string::const_iterator> rng;
-
-             // remove all alphanumeric characters
-             seq.erase(std::remove_if(seq.begin(), seq.end(), [](char c) { return !std::isalpha(c); } ), seq.end());
-
-             // search for case insensitive occurence of the possible decoys
-             for (const auto &pair : decoy_occur_prefix_) {
-               if (boost::ifind_first(seq, pair.first))
-               {
-                 if (seq.hasPrefix(pair.first))
-                 {
-                   decoy_occur_prefix_[pair.first]++;
-                 }
-                 else
-                 {
-                   decoy_occur_suffix_[pair.first]++;
-                 }
-               }
-             }
-           }
-         }
-       }
-
-       // determine decoy
-       const std::string &determinedDecoyString = determinedDecoyString;
-
-       if (determinedDecoyString.empty())
-       {
-         LOG_ERROR << "Error: Unable to determine decoy string" << std::endl;
-         return DECOYSTRING_EMPTY; // function of course does not return ExitCodes
-       }
-
-       return determinedDecoyString;
-     }
-
-     std::string determineDecoyString() const
-     {
-       std::string determinedDecoyString;
-       int all_prefix_occur;
-       int all_suffix_occur;
-       for (const auto &pair : decoy_occur_prefix_)
-       {
-         all_prefix_occur += pair.second;
-       }
-
-       for (const auto &pair : decoy_occur_suffix_)
-       {
-         all_suffix_occur += decoy_occur_suffix_;
-       }
-
-       for (const auto &pair : decoy_occur_prefix_)
-       {
-         if (pair.second / all_prefix_occur > 0.5)
-         {
-           determinedDecoyString = pair.first;
-         }
-       }
-
-       for (const auto &pair : decoy_occur_suffix_)
-       {
-         if (pair.second / all_suffix_occur > 0.5)
-         {
-           determinedDecoyString = pair.first;
-         }
-       }
-
-       return determinedDecoyString;
-     }
-
 
      /// forward for old interface and pyOpenMS; use run<T>() for more control
     inline ExitCodes run(std::vector<FASTAFile::FASTAEntry>& proteins, std::vector<ProteinIdentification>& prot_ids, std::vector<PeptideIdentification>& pep_ids)
@@ -271,6 +186,25 @@ public:
     template<typename T>
     ExitCodes run(FASTAContainer<T>& proteins, std::vector<ProteinIdentification>& prot_ids, std::vector<PeptideIdentification>& pep_ids)
     {
+      // no decoy string provided? try to deduce from data
+      if (decoy_string_.empty())
+      {
+        LOG_INFO << "No decoy string provided. Trying to determine from data." << std::endl;
+        ExitCodes e = findDecoyString_(proteins, decoy_string_, prefix_);
+        if (e == EXIT_SUCCESS)
+        {
+          String position = prefix_ ? "prefix" : "suffix";
+          LOG_INFO << "Using " << position << " decoy string '" << decoy_string_ << "'" << std::endl;
+        }
+        else
+        {
+          LOG_ERROR << "Failed to determine decoy string automatically!" << std::endl;
+          return DECOYSTRING_EMPTY;
+        }
+
+        proteins.reset(); // need to reset
+      }
+
       //-------------------------------------------------------------
       // parsing parameters
       //-------------------------------------------------------------
@@ -766,8 +700,156 @@ public:
       return EXECUTION_OK;
     }
 
-protected:
-    struct PeptideProteinMatchInformation
+ protected:
+
+     using MapDecoyStringToPrefixSuffixCount = std::map<std::string, std::pair<int, int>>;
+     using MapCaseInsensitiveToCaseSensitiveDecoyString = std::map<std::string, std::string>;
+
+     template<typename T>
+     ExitCodes findDecoyString_(FASTAContainer<T> & proteins,
+                                std::string & decoy_string,
+                                bool & is_prefix)
+     {
+       // Common decoy strings in fasta files. Used to determine if a protein is target/decoy automatically.
+       // Note: decoy prefixes/suffices must be provided in lower case and must only contain alphanumeric characters
+        MapDecoyStringToPrefixSuffixCount decoy_count = {{"decoy", {0,0}}, {"rev", {0,0}},
+                                                                 {"reverse", {0,0}}, {"dev", {0,0}},
+                                                                 {"iddecoy", {0,0}}, {"xxx", {0,0}},
+                                                                 {"shuffle", {0,0}}, {"shuffled", {0,0}},
+                                                                 {"random", {0,0}}};
+
+
+       // map case insensitive strings back to original case (as used in fasta)
+       MapCaseInsensitiveToCaseSensitiveDecoyString decoy_case_sensitive;
+
+       const size_t PROTEIN_CACHE_SIZE = 4e5;
+
+       while (true)
+       {
+         proteins.cacheChunk(PROTEIN_CACHE_SIZE);
+         bool has_active_data = proteins.activateCache();
+
+
+         if (!has_active_data) break;
+         auto prot_count = (SignedSize)proteins.chunkSize();
+
+         {
+           for (SignedSize i = 0; i < prot_count; ++i)
+           {
+             String seq = proteins.chunkAt(i).identifier;
+             String seq_lower = seq;
+             seq_lower.toLower();
+
+             // remove all non-alphanumeric characters
+             seq_lower.erase(std::remove_if(seq_lower.begin(), seq_lower.end(),
+                                            [](char c) { return !std::isalpha(c); } ), seq_lower.end());
+
+             // search for case insensitive occurrence of the possible decoys
+             for (auto pair : decoy_count)
+             {
+               if (seq_lower.hasPrefix(pair.first))
+               {
+                 // count observed (ignoring case)
+                 decoy_count[pair.first].first++;
+                 // store observed (case sensitive)
+                 std::string seq_decoy = StringUtils::prefix(seq, pair.first.length());
+                 decoy_case_sensitive[pair.first] = seq_decoy;
+               }
+               else if (seq_lower.hasSuffix(pair.first))
+               {
+                 decoy_count[pair.first].second++;
+                 // store observed (case sensitive)
+                 std::string seq_decoy = StringUtils::suffix(seq, pair.first.length());
+                 decoy_case_sensitive[pair.first] = seq_decoy;
+               }
+             }
+           }
+         }
+       }
+
+       // DEBUG only: print counts of found decoys
+       for (auto & a : decoy_count) LOG_DEBUG << a.first << "\t" << a.second.first << "\t" << a.second.second << std::endl;
+
+       return determineDecoyStringFromCounts_(decoy_count, decoy_case_sensitive, decoy_string, is_prefix);
+     }
+
+     ExitCodes determineDecoyStringFromCounts_(const MapDecoyStringToPrefixSuffixCount & decoy_count,
+                                     const MapCaseInsensitiveToCaseSensitiveDecoyString & decoy_case_sensitive,
+                                     std::string & decoy_string,
+                                     bool & is_prefix) const
+     {
+       int all_prefix_occur(0), all_suffix_occur(0);
+
+       // count observed decoy prefixes
+       for (const auto &pair : decoy_count)
+       {
+         all_prefix_occur += pair.second.first;
+       }
+
+       // count observed decoy suffixes
+       for (const auto &pair : decoy_count)
+       {
+         all_suffix_occur += pair.second.second;
+       }
+
+       if (all_prefix_occur == all_suffix_occur)
+       {
+         LOG_ERROR << "Error: Unable to determine decoy string" << std::endl;
+         return DECOYSTRING_EMPTY;
+       }
+
+       // if a decoy prefix occured at least 80% -> set it as prefix decoy
+       for (const auto & pair : decoy_count)
+       {
+         const std::string & case_insensitive_decoy_string = pair.first;
+         const std::pair<int, int> & prefix_suffix_counts = pair.second;
+         double freq_prefix = static_cast<double>(prefix_suffix_counts.first) / static_cast<double>(all_prefix_occur);
+         if (freq_prefix > 0.8)
+         {
+           is_prefix = true;
+           decoy_string = decoy_case_sensitive.at(case_insensitive_decoy_string);
+
+           if (prefix_suffix_counts.first != all_prefix_occur)
+           {
+             LOG_WARN << "More than one decoy prefix observed!" << std::endl;
+             LOG_WARN << "Using most frequent decoy prefix (" << freq_prefix * 100 <<"%)" << std::endl;
+           }
+
+         }
+
+       }
+
+       // if a decoy suffix occured at least 80% -> set it as suffix decoy
+       for (const auto & pair : decoy_count)
+       {
+         const std::string & case_insensitive_decoy_string = pair.first;
+         const std::pair<int, int> & prefix_suffix_counts = pair.second;
+         double freq_suffix = static_cast<double>(prefix_suffix_counts.second) / static_cast<double>(all_suffix_occur);
+         if (freq_suffix > 0.8)
+         {
+           is_prefix = false;
+           decoy_string = decoy_case_sensitive.at(case_insensitive_decoy_string);
+
+           if (prefix_suffix_counts.first != all_suffix_occur)
+           {
+             LOG_WARN << "More than one decoy suffix observed!" << std::endl;
+             LOG_WARN << "Using most frequent decoy suffix (" << freq_suffix * 100 <<"%)" << std::endl;
+           }
+
+         }
+       }
+
+       if (decoy_string.empty())
+       {
+         LOG_ERROR << "Error: Unable to determine decoy string" << std::endl;
+         return DECOYSTRING_EMPTY;
+       }
+
+       return EXECUTION_OK;
+     }
+
+
+     struct PeptideProteinMatchInformation
     {
       /// index of the protein the peptide is contained in
       OpenMS::Size protein_index;
@@ -909,12 +991,6 @@ protected:
     Int aaa_max_;
     Int mm_max_;
 
-    // common decoy string to number of occurences in fasta
-    // could use <std::pair<std::string, std::string> as keys???
-    std::map<std::string, int> decoy_occur_prefix_ = {{"decoy", 0}, {"rev", 0}, {"reverse", 0}, {"dev", 0}, {"iddecoy", 0},
-                                                  {"xxx", 0}, {"shuffle", 0}, {"shuffled", 0}, {"random", 0}};
-     std::map<std::string, int> decoy_occur_suffix_ = {{"decoy", 0}, {"rev", 0}, {"reverse", 0}, {"dev", 0}, {"iddecoy", 0},
-                                                    {"xxx", 0}, {"shuffle", 0}, {"shuffled", 0}, {"random", 0}};
 
   };
 }

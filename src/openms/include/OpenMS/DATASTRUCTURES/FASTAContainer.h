@@ -198,6 +198,17 @@ public:
     return f_.atEnd() && offsets_.empty();
   }
 
+  /// reset
+  void reset()
+  {
+    f_.setPosition(0);
+    offsets_.clear();
+    data_fg_.clear();
+    data_bg_.clear();
+    chunk_offset_ = 0;
+  }
+
+
   /** @brief NOT the number of entries in the FASTA file, but merely the number of already read entries (since we do not know how many are still to come)
 
       @note Data in the background cache is included here, i.e. access to size()-1 using readAt() might be slow 
@@ -298,6 +309,11 @@ public:
   size_t size() const
   {
     return data_.size();
+  }
+
+  /// reset
+  void reset()
+  {
   }
 
 private:
