@@ -134,10 +134,10 @@ protected:
      * Checks if there are peaks at m/z positions corresponding to the pattern
      * and that the primary peak position is not blacklisted.
      *
-     * @param it_mz    m/z iterator of the primary
+     * @param it_mz    m/z iterator of the primary peak
      * @param it_rt_begin    RT iterator of the very first spectrum of the experiment (needed to determine indices)
      * @param it_rt_band_begin    RT iterator of the first spectrum in the RT band
-     * @param it_rt_band_end    RT iterator of the last spectrum in the RT band
+     * @param it_rt_band_end    RT iterator of the spectrum after the last spectrum in the RT band
      * @param pattern    m/z pattern to search for
      * @param peak    filter result output
      *
