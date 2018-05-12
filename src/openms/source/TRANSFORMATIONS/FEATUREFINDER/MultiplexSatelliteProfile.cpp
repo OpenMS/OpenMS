@@ -43,7 +43,7 @@ namespace OpenMS
   {
   }
 
-  double MultiplexSatelliteProfile::getRT() const
+  float MultiplexSatelliteProfile::getRT() const
   {
     return rt_;
   }
@@ -53,7 +53,7 @@ namespace OpenMS
     return mz_;
   }
   
-  double MultiplexSatelliteProfile::getIntensity() const
+  float MultiplexSatelliteProfile::getIntensity() const
   {
     return intensity_;
   }
