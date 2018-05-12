@@ -110,7 +110,7 @@ public:
 protected:
     /**
      * @brief construct an MS experiment from exp_picked_ containing
-     * peaks which have not previously blacklisted in blacklist_
+     * peaks which have not been previously blacklisted in blacklist_
      * 
      * @param mapping    index mapping of 'white' peak positions to their position in the corresponding, original spectrum 
      */
