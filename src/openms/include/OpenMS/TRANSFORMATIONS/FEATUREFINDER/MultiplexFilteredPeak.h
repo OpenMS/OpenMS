@@ -56,7 +56,14 @@ namespace OpenMS
    * Each MultiplexFilteredPeak consists of a primary peak and a set of satellite peaks.
    * The primary peak is a peak in the mono-isotopic masstrace of the lightest peptide
    * in the multiplet. The satellite peaks are peaks that form the m/z shift pattern
-   * relative to the primary peak within a retention time range rt_band_.
+   * relative to the primary peak within a retention time range rt_band_. They are the
+   * evidence on which grounds a peak may pass the filteres.
+   *
+   * Note that in both centroid and profile mode, centroided data are filtered. (One of
+   * the first steps in the profile mode algorithm is the peak picking of the profile
+   * data.) Consequently in both modes, centroided peaks make up a final filtered peak.
+   * @see size(). In profile mode, we additional store the profile data points that make
+   * up these peak. @see sizeProfile().
    * 
    * @see MultiplexPeakPattern
    */
