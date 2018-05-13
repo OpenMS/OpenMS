@@ -198,7 +198,7 @@ public:
     return f_.atEnd() && offsets_.empty();
   }
 
-  /// reset
+  /// resets reading of the FASTA file, enables fresh reading of the FASTA from the beginning
   void reset()
   {
     f_.setPosition(0);
@@ -311,7 +311,7 @@ public:
     return data_.size();
   }
 
-  /// reset
+  /// required for template parameters!
   void reset()
   {
   }

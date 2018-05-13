@@ -202,7 +202,7 @@ public:
           return DECOYSTRING_EMPTY;
         }
 
-        proteins.reset(); // need to reset
+        proteins.reset(); // reset caching
       }
 
       //-------------------------------------------------------------
@@ -713,10 +713,10 @@ public:
        // Common decoy strings in fasta files. Used to determine if a protein is target/decoy automatically.
        // Note: decoy prefixes/suffices must be provided in lower case and must only contain alphanumeric characters
         MapDecoyStringToPrefixSuffixCount decoy_count = {{"decoy", {0,0}}, {"rev", {0,0}},
-                                                                 {"reverse", {0,0}}, {"dev", {0,0}},
-                                                                 {"iddecoy", {0,0}}, {"xxx", {0,0}},
-                                                                 {"shuffle", {0,0}}, {"shuffled", {0,0}},
-                                                                 {"random", {0,0}}};
+                                                          {"reverse", {0,0}}, {"dev", {0,0}},
+                                                          {"iddecoy", {0,0}}, {"xxx", {0,0}},
+                                                          {"shuffle", {0,0}}, {"shuffled", {0,0}},
+                                                          {"random", {0,0}}};
 
 
        // map case insensitive strings back to original case (as used in fasta)
@@ -728,7 +728,6 @@ public:
        {
          proteins.cacheChunk(PROTEIN_CACHE_SIZE);
          bool has_active_data = proteins.activateCache();
-
 
          if (!has_active_data) break;
          auto prot_count = (SignedSize)proteins.chunkSize();
@@ -768,7 +767,7 @@ public:
        }
 
        // DEBUG only: print counts of found decoys
-       for (auto & a : decoy_count) LOG_DEBUG << a.first << "\t" << a.second.first << "\t" << a.second.second << std::endl;
+       for (auto &a : decoy_count) LOG_DEBUG << a.first << "\t" << a.second.first << "\t" << a.second.second << std::endl;
 
        return determineDecoyStringFromCounts_(decoy_count, decoy_case_sensitive, decoy_string, is_prefix);
      }
@@ -794,7 +793,7 @@ public:
 
        if (all_prefix_occur == all_suffix_occur)
        {
-         LOG_ERROR << "Error: Unable to determine decoy string" << std::endl;
+         LOG_ERROR << "Unable to determine decoy string" << std::endl;
          return DECOYSTRING_EMPTY;
        }
 
@@ -816,7 +815,6 @@ public:
            }
 
          }
-
        }
 
        // if a decoy suffix occured at least 80% -> set it as suffix decoy
@@ -841,7 +839,7 @@ public:
 
        if (decoy_string.empty())
        {
-         LOG_ERROR << "Error: Unable to determine decoy string" << std::endl;
+         LOG_ERROR << "Unable to determine decoy string" << std::endl;
          return DECOYSTRING_EMPTY;
        }
 
