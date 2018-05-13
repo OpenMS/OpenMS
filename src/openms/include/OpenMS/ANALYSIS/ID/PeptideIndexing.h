@@ -55,7 +55,6 @@
 #include <atomic>
 #include <algorithm>
 #include <fstream>
-#include <boost/algorithm/string/find.hpp>
 #include <OpenMS/DATASTRUCTURES/StringUtils.h>
 
 namespace OpenMS
@@ -756,6 +755,7 @@ public:
                }
                else if (seq_lower.hasSuffix(pair.first))
                {
+                 // count observed (ignoring case)
                  decoy_count[pair.first].second++;
                  // store observed (case sensitive)
                  std::string seq_decoy = StringUtils::suffix(seq, pair.first.length());
