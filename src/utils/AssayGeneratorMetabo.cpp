@@ -444,21 +444,21 @@ protected:
       // calculate max intensity peak and threshold
       float max_int = 0.0;
       float min_int = numeric_limits<float>::max();
-      for(MSSpectrum::const_iterator spec_it = transition_spectrum.begin(); spec_it != transition_spectrum.end(); ++spec_it)
+      for (MSSpectrum::const_iterator spec_it = transition_spectrum.begin(); spec_it != transition_spectrum.end(); ++spec_it)
       {
         //find the max intensity peak
-        if(spec_it->getIntensity() > max_int)
+        if (spec_it->getIntensity() > max_int)
         {
           max_int = spec_it->getIntensity();
         }
-        if(spec_it->getIntensity() < min_int)
+        if (spec_it->getIntensity() < min_int)
         {
           min_int = spec_it->getIntensity();
         }
       }
 
       // no peaks or all peaks have same intensity (single peak / noise)
-      if (min_int >= max_int){ continue;}
+      if (min_int >= max_int) { continue; }
 
       // threshold should be at x % of the maximum intensity
       // hard minimal threshold of min_int * 1.1
@@ -468,7 +468,7 @@ protected:
       AssayRow row;
       int transition_counter = 1;
 
-      for(MSSpectrum::iterator spec_it = transition_spectrum.begin(); spec_it != transition_spectrum.end(); ++spec_it)
+      for (MSSpectrum::iterator spec_it = transition_spectrum.begin(); spec_it != transition_spectrum.end(); ++spec_it)
       {
         float current_int = spec_it->getIntensity();
         double current_mz = spec_it->getMZ();
