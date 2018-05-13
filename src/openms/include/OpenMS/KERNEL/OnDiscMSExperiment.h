@@ -170,6 +170,11 @@ public:
       return boost::static_pointer_cast<const ExperimentalSettings>(meta_ms_experiment_);
     }
 
+    boost::shared_ptr<PeakMap> getMetaData() const
+    {
+      return meta_ms_experiment_;
+    }
+
     /// alias for getSpectrum
     inline MSSpectrum operator[](Size n)
     {
@@ -237,7 +242,6 @@ private:
       f.setOptions(options);
       f.load(filename, *meta_ms_experiment_.get());
     }
-
 
 protected:
 

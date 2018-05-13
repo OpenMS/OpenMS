@@ -501,7 +501,22 @@ public:
       {
         for (Size scan_idx = 0; scan_idx != input.size(); ++scan_idx)
         {
-          if (!ListUtils::contains(ms_levels_, input[scan_idx].getMSLevel()))
+          if (ms_levels_.empty()) // auto mode
+          {
+            SpectrumSettings::SpectrumType spectrum_type = input[scan_idx].getType();
+            if (spectrum_type == SpectrumSettings::CENTROID)
+            {
+              output[scan_idx] = input[scan_idx];
+            }
+            else
+            {
+              std::vector<PeakBoundary> boundaries_s; // peak boundaries of a single spectrum
+
+              pick(input[scan_idx], output[scan_idx], boundaries_s);
+              boundaries_spec.push_back(boundaries_s);
+            }
+          }
+          else if (!ListUtils::contains(ms_levels_, input[scan_idx].getMSLevel())) // manual mode
           {
             output[scan_idx] = input[scan_idx];
           }
@@ -557,15 +572,30 @@ public:
       Size progress = 0;
       startProgress(0, input.size() + input.getNrChromatograms(), "picking peaks");
 
+      // resize output with respect to input
+      output.resize(input.size());
+
       if (input.getNrSpectra() > 0)
       {
-
-        // resize output with respect to input
-        output.resize(input.size());
-
         for (Size scan_idx = 0; scan_idx != input.size(); ++scan_idx)
         {
-          if (!ListUtils::contains(ms_levels_, input[scan_idx].getMSLevel()))
+          if (ms_levels_.empty()) //auto mode
+          {
+            MSSpectrum s = input[scan_idx];
+            s.sortByPosition();
+
+            // determine type of spectral data (profile or centroided)
+            SpectrumSettings::SpectrumType spectrumType = s.getType();
+            if (spectrumType == SpectrumSettings::CENTROID)
+            {
+              output[scan_idx] = input[scan_idx];
+            }
+            else
+            {
+              pick(s, output[scan_idx]);
+            }
+          }
+          else if (!ListUtils::contains(ms_levels_, input[scan_idx].getMSLevel())) // manual mode
           {
             output[scan_idx] = input[scan_idx];
           }

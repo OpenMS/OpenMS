@@ -1,3 +1,4 @@
+
 # --------------------------------------------------------------------------
 #                   OpenMS -- Open-Source Mass Spectrometry
 # --------------------------------------------------------------------------
@@ -559,6 +560,12 @@ set_tests_properties("TOPP_FileFilter_43_read_again" PROPERTIES DEPENDS "TOPP_Fi
 add_test("TOPP_FileFilter_44" ${TOPP_BIN_PATH}/FileFilter -test -in ${DATA_DIR_TOPP}/FileFilter_44_input.mzML -out FileFilter_44.tmp -test -in_type mzML -out_type mzML)
 add_test("TOPP_FileFilter_44_out" ${DIFF} -in1 FileFilter_44.tmp -in2 ${DATA_DIR_TOPP}/FileFilter_44_output.mzML )
 set_tests_properties("TOPP_FileFilter_44_out" PROPERTIES DEPENDS "TOPP_FileFilter_44")
+add_test("TOPP_FileFilter_45" ${TOPP_BIN_PATH}/FileFilter -test -in ${DATA_DIR_TOPP}/FileFilter_45_input.featureXML -id:sequences_whitelist "YSFS" "STLIPPPSK(Label:13C(6)15N(2))" -out FileFilter_45.tmp)
+add_test("TOPP_FileFilter_45_out" ${DIFF} -in1 FileFilter_45.tmp -in2 ${DATA_DIR_TOPP}/FileFilter_45_output.featureXML)
+set_tests_properties("TOPP_FileFilter_45_out" PROPERTIES DEPENDS "TOPP_FileFilter_45")
+add_test("TOPP_FileFilter_46" ${TOPP_BIN_PATH}/FileFilter -test -in ${DATA_DIR_TOPP}/FileFilter_46_input.featureXML -id:sequences_whitelist "YSFS" "STLIPPPSK(Label:13C(6)15N(2))" -id:sequence_comparison_method "exact" -out FileFilter_46.tmp)
+add_test("TOPP_FileFilter_46_out" ${DIFF} -in1 FileFilter_46.tmp -in2 ${DATA_DIR_TOPP}/FileFilter_46_output.featureXML)
+set_tests_properties("TOPP_FileFilter_46_out" PROPERTIES DEPENDS "TOPP_FileFilter_46")
 
 #------------------------------------------------------------------------------
 # FileInfo tests
@@ -1180,6 +1187,19 @@ ${TOPP_BIN_PATH}/OpenSwathDecoyGenerator -test -in ${DATA_DIR_TOPP}/OpenSwathDec
   add_test("TOPP_OpenSwathAnalyzer_test_7_backgroundSubtraction" ${TOPP_BIN_PATH}/OpenSwathAnalyzer -in ${DATA_DIR_TOPP}/OpenSwathAnalyzer_1_input_chrom.mzML -tr ${DATA_DIR_TOPP}/OpenSwathAnalyzer_1_input.TraML -out OpenSwathAnalyzer_7_output.featureXML.tmp -ini ${DATA_DIR_TOPP}/OpenSwathAnalyzer_7_backgroundSubtraction.ini -test)
   add_test("TOPP_OpenSwathAnalyzer_test_7_backgroundSubtraction_out1" ${DIFF} -whitelist "id=" -in1 OpenSwathAnalyzer_7_output.featureXML.tmp -in2 ${DATA_DIR_TOPP}/OpenSwathAnalyzer_7_output.featureXML)
   set_tests_properties("TOPP_OpenSwathAnalyzer_test_7_backgroundSubtraction_out1" PROPERTIES DEPENDS "TOPP_OpenSwathAnalyzer_test_7_backgroundSubtraction")
+  add_test("TOPP_OpenSwathAnalyzer_test_8" ${TOPP_BIN_PATH}/OpenSwathAnalyzer -in ${DATA_DIR_TOPP}/OpenSwathAnalyzer_1_input_chrom.mzML -tr ${DATA_DIR_TOPP}/OpenSwathAnalyzer_1_input.TraML -out OpenSwathAnalyzer_8_output.featureXML.tmp -rt_norm ${DATA_DIR_TOPP}/OpenSwathAnalyzer_input.trafoXML -algorithm:TransitionGroupPicker:PeakPickerMRM:peak_width 40.0 -algorithm:TransitionGroupPicker:PeakPickerMRM:method legacy -algorithm:Scores:use_ms1_mi -algorithm:Scores:use_mi_score -algorithm:Scores:use_total_mi_score -test)
+  add_test("TOPP_OpenSwathAnalyzer_test_8_out1" ${DIFF} -whitelist "id="  -in1 OpenSwathAnalyzer_8_output.featureXML.tmp -in2 ${DATA_DIR_TOPP}/OpenSwathAnalyzer_8_output.featureXML)
+  set_tests_properties("TOPP_OpenSwathAnalyzer_test_8_out1" PROPERTIES DEPENDS "TOPP_OpenSwathAnalyzer_test_8")
+
+  add_test("TOPP_OpenSwathAnalyzer_test_9" ${TOPP_BIN_PATH}/OpenSwathAnalyzer -in ${DATA_DIR_TOPP}/OpenSwathAnalyzer_1_input_chrom.mzML -tr ${DATA_DIR_TOPP}/OpenSwathAnalyzer_1_input.TraML -out OpenSwathAnalyzer_9_output.featureXML.tmp -rt_norm ${DATA_DIR_TOPP}/OpenSwathAnalyzer_input.trafoXML -algorithm:TransitionGroupPicker:PeakPickerMRM:peak_width 40.0 -algorithm:TransitionGroupPicker:PeakPickerMRM:method legacy -algorithm:Scores:use_mi_score -test)
+  add_test("TOPP_OpenSwathAnalyzer_test_9_out1" ${DIFF} -whitelist "id="  -in1 OpenSwathAnalyzer_9_output.featureXML.tmp -in2 ${DATA_DIR_TOPP}/OpenSwathAnalyzer_9_output.featureXML)
+  set_tests_properties("TOPP_OpenSwathAnalyzer_test_9_out1" PROPERTIES DEPENDS "TOPP_OpenSwathAnalyzer_test_9")
+  add_test("TOPP_OpenSwathAnalyzer_test_10" ${TOPP_BIN_PATH}/OpenSwathAnalyzer -in ${DATA_DIR_TOPP}/OpenSwathAnalyzer_1_input_chrom.mzML -tr ${DATA_DIR_TOPP}/OpenSwathAnalyzer_1_input.TraML -out OpenSwathAnalyzer_10_output.featureXML.tmp -rt_norm ${DATA_DIR_TOPP}/OpenSwathAnalyzer_input.trafoXML -algorithm:TransitionGroupPicker:PeakPickerMRM:peak_width 40.0 -algorithm:TransitionGroupPicker:PeakPickerMRM:method legacy -algorithm:Scores:use_mi_score -algorithm:Scores:use_total_mi_score -test)
+  add_test("TOPP_OpenSwathAnalyzer_test_10_out1" ${DIFF} -whitelist "id="  -in1 OpenSwathAnalyzer_10_output.featureXML.tmp -in2 ${DATA_DIR_TOPP}/OpenSwathAnalyzer_10_output.featureXML)
+  set_tests_properties("TOPP_OpenSwathAnalyzer_test_10_out1" PROPERTIES DEPENDS "TOPP_OpenSwathAnalyzer_test_10")
+  add_test("TOPP_OpenSwathAnalyzer_test_11" ${TOPP_BIN_PATH}/OpenSwathAnalyzer -in ${DATA_DIR_TOPP}/OpenSwathAnalyzer_1_input_chrom.mzML -tr ${DATA_DIR_TOPP}/OpenSwathAnalyzer_1_input.TraML -out OpenSwathAnalyzer_11_output.featureXML.tmp -rt_norm ${DATA_DIR_TOPP}/OpenSwathAnalyzer_input.trafoXML -algorithm:TransitionGroupPicker:PeakPickerMRM:peak_width 40.0 -algorithm:TransitionGroupPicker:PeakPickerMRM:method legacy -algorithm:Scores:use_total_mi_score -test)
+  add_test("TOPP_OpenSwathAnalyzer_test_11_out1" ${DIFF} -whitelist "id="  -in1 OpenSwathAnalyzer_11_output.featureXML.tmp -in2 ${DATA_DIR_TOPP}/OpenSwathAnalyzer_11_output.featureXML)
+  set_tests_properties("TOPP_OpenSwathAnalyzer_test_11_out1" PROPERTIES DEPENDS "TOPP_OpenSwathAnalyzer_test_11")
 
   add_test("TOPP_OpenSwathRTNormalizer_test_1" ${TOPP_BIN_PATH}/OpenSwathRTNormalizer -in ${DATA_DIR_TOPP}/OpenSwathRTNormalizer_1_input.mzML -tr ${DATA_DIR_TOPP}/OpenSwathRTNormalizer_1_input.TraML -out OpenSwathRTNormalizer_1_output.trafoXML.tmp -test)
   add_test("TOPP_OpenSwathRTNormalizer_test_1_out1" ${DIFF} -in1 OpenSwathRTNormalizer_1_output.trafoXML.tmp -in2 ${DATA_DIR_TOPP}/OpenSwathRTNormalizer_1_output.trafoXML)
@@ -1253,6 +1273,11 @@ ${TOPP_BIN_PATH}/OpenSwathDecoyGenerator -test -in ${DATA_DIR_TOPP}/OpenSwathDec
   add_test("UTILS_MRMTransitionGroupPicker_test_1" ${TOPP_BIN_PATH}/MRMTransitionGroupPicker -in ${DATA_DIR_TOPP}/MRMTransitionGroupPicker_1_input.mzML -tr ${DATA_DIR_TOPP}/MRMTransitionGroupPicker_1_input.TraML -out MRMTransitionGroupPicker_test_1.featureXML.tmp -test -algorithm:PeakPickerMRM:remove_overlapping_peaks true -algorithm:PeakPickerMRM:method legacy -algorithm:PeakPickerMRM:peak_width 40.0)
   add_test("UTILS_MRMTransitionGroupPicker_test_1_out" ${DIFF} -whitelist "id=" -in1 MRMTransitionGroupPicker_test_1.featureXML.tmp -in2 ${DATA_DIR_TOPP}/MRMTransitionGroupPicker_1_output.featureXML)
   set_tests_properties("UTILS_MRMTransitionGroupPicker_test_1_out" PROPERTIES DEPENDS "UTILS_MRMTransitionGroupPicker_test_1")
+
+  # test MI scoring
+  add_test("UTILS_MRMTransitionGroupPicker_test_2" ${TOPP_BIN_PATH}/MRMTransitionGroupPicker -in ${DATA_DIR_TOPP}/MRMTransitionGroupPicker_1_input.mzML -tr ${DATA_DIR_TOPP}/MRMTransitionGroupPicker_1_input.TraML -out MRMTransitionGroupPicker_test_2.featureXML.tmp -test -algorithm:PeakPickerMRM:remove_overlapping_peaks true -algorithm:PeakPickerMRM:method legacy -algorithm:PeakPickerMRM:peak_width 40.0 -algorithm:compute_total_mi)
+  add_test("UTILS_MRMTransitionGroupPicker_test_2_out" ${DIFF} -whitelist "id=" -in1 MRMTransitionGroupPicker_test_2.featureXML.tmp -in2 ${DATA_DIR_TOPP}/MRMTransitionGroupPicker_2_output.featureXML)
+  set_tests_properties("UTILS_MRMTransitionGroupPicker_test_2_out" PROPERTIES DEPENDS "UTILS_MRMTransitionGroupPicker_test_2")
 
   #------------------------------------------------------------------------------
   # OpenSwath Workflow tests
@@ -1372,6 +1397,21 @@ ${TOPP_BIN_PATH}/OpenSwathDecoyGenerator -test -in ${DATA_DIR_TOPP}/OpenSwathDec
   add_test("TOPP_OpenSwathFileSplitter_1_out2" ${DIFF} -whitelist "id=" -in1 openswath_tmpfile_4.mzML -in2 ${DATA_DIR_TOPP}/openswath_tmpfile_4.mzML)
   set_tests_properties("TOPP_OpenSwathFileSplitter_1_out1" PROPERTIES DEPENDS "TOPP_OpenSwathFileSplitter_1")
   set_tests_properties("TOPP_OpenSwathFileSplitter_1_out2" PROPERTIES DEPENDS "TOPP_OpenSwathFileSplitter_1")
+
+  # Test MS1 MI scoring
+  add_test("TOPP_OpenSwathWorkflow_18" ${TOPP_BIN_PATH}/OpenSwathWorkflow -in ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.mzML -tr ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.TraML -rt_norm ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.trafoXML -out_features OpenSwathWorkflow_18.featureXML.tmp -test -use_ms1_traces -Scoring:Scores:use_ms1_mi)
+  add_test("TOPP_OpenSwathWorkflow_18_out1" ${DIFF} -whitelist "id=" -in1 OpenSwathWorkflow_18.featureXML.tmp -in2 ${DATA_DIR_TOPP}/OpenSwathWorkflow_18_output.featureXML)
+  set_tests_properties("TOPP_OpenSwathWorkflow_18_out1" PROPERTIES DEPENDS "TOPP_OpenSwathWorkflow_18")
+
+  # Test MS2 MI scoring
+  add_test("TOPP_OpenSwathWorkflow_19" ${TOPP_BIN_PATH}/OpenSwathWorkflow -in ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.mzML -tr ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.TraML -rt_norm ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.trafoXML -out_features OpenSwathWorkflow_19.featureXML.tmp -test -use_ms1_traces -Scoring:Scores:use_mi_score)
+  add_test("TOPP_OpenSwathWorkflow_19_out1" ${DIFF} -whitelist "id=" -in1 OpenSwathWorkflow_19.featureXML.tmp -in2 ${DATA_DIR_TOPP}/OpenSwathWorkflow_19_output.featureXML)
+  set_tests_properties("TOPP_OpenSwathWorkflow_19_out1" PROPERTIES DEPENDS "TOPP_OpenSwathWorkflow_19")
+
+  # Test MS2 MI scoring and total MI scoring
+  add_test("TOPP_OpenSwathWorkflow_20" ${TOPP_BIN_PATH}/OpenSwathWorkflow -in ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.mzML -tr ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.TraML -rt_norm ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.trafoXML -out_features OpenSwathWorkflow_20.featureXML.tmp -test -use_ms1_traces -Scoring:Scores:use_mi_score -Scoring:Scores:use_total_mi_score)
+  add_test("TOPP_OpenSwathWorkflow_20_out1" ${DIFF} -whitelist "id=" -in1 OpenSwathWorkflow_20.featureXML.tmp -in2 ${DATA_DIR_TOPP}/OpenSwathWorkflow_20_output.featureXML)
+  set_tests_properties("TOPP_OpenSwathWorkflow_20_out1" PROPERTIES DEPENDS "TOPP_OpenSwathWorkflow_20")
 
 endif(NOT DISABLE_OPENSWATH)
 

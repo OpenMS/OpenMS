@@ -584,7 +584,6 @@ protected:
     ) const;
 
 private:
-
     /** @name Parameters
       The user is supposed to select a value for these parameters.
       By default, the integration_type_ is "intensity_sum" and the baseline_type_ is "base_to_base".
@@ -641,4 +640,3 @@ private:
     ///@}
   };
 }
-

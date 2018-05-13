@@ -54,7 +54,7 @@ echo.
 
 if not exist %SLN% (
   ECHO.
-  ECHO The .sln file '%SLN%' was not found. This script should be invoked from the root of the build tree after configuring with cmake (make sure you use one of the Visual Studio Generators and *not* the nmake Generator). Change CWD and try again!
+  ECHO The .sln file '%SLN%' was not found. This script should be invoked from the root of the build tree after configuring with cmake ^(make sure you use one of the Visual Studio Generators and *not* the nmake Generator^). Change CWD and try again!
   goto end
 )
 

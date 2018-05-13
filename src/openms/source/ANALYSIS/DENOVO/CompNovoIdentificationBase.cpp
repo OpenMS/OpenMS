@@ -34,11 +34,10 @@
 //
 
 #include <OpenMS/ANALYSIS/DENOVO/CompNovoIdentificationBase.h>
-
+#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h>
 #include <OpenMS/CHEMISTRY/ModificationDefinitionsSet.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/CHEMISTRY/ResidueDB.h>
-#include <OpenMS/CHEMISTRY/IsotopeDistribution.h>
 
 // #define MIN_DOUBLE_MZ 900.0
 
@@ -584,16 +583,16 @@ for (set<Size>::const_iterator it = used_pos.begin(); it != used_pos.end(); ++it
 
   void CompNovoIdentificationBase::initIsotopeDistributions_()
   {
-    IsotopeDistribution iso_dist(max_isotope_);
+    CoarseIsotopePatternGenerator solver(max_isotope_);
     for (Size i = 1; i <= max_mz_ * 2; ++i)
     {
-      iso_dist.estimateFromPeptideWeight((double)i);
+      auto iso_dist = solver.estimateFromPeptideWeight((double)i);
       iso_dist.renormalize();
       vector<double> iso(max_isotope_, 0.0);
 
       for (Size j = 0; j != iso_dist.size(); ++j)
       {
-        iso[j] = iso_dist.getContainer()[j].second;
+        iso[j] = iso_dist.getContainer()[j].getIntensity();
       }
       isotope_distributions_[i] = iso;
     }
