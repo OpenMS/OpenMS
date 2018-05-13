@@ -241,7 +241,7 @@ protected:
     setValidFormats_(TOPPMSFraggerAdapter::out, ListUtils::create<String>("idXML"), true);
 
     // Optional output file
-    registerOutputFile_(TOPPMSFraggerAdapter::opt_out, "optional_output", "<file>", "MSFragger optional output file", false);
+    registerOutputFile_(TOPPMSFraggerAdapter::opt_out, "<file>", "", "MSFragger optional output file", false);
     setValidFormats_(TOPPMSFraggerAdapter::opt_out, ListUtils::create<String>("pepXML"), true);
     
     // Path to database to search
@@ -386,10 +386,7 @@ protected:
 
 
   ExitCodes main_(int, const char**) final override
-  {
-    // input file linked to tmp folder
-    QString link_name;
- 
+  {  
     try
     {
       // java executable
@@ -416,7 +413,7 @@ protected:
       }
 
       // input, output, database name
-      const String arg_database = this->getStringOption_(TOPPMSFraggerAdapter::database);
+      const String database = this->getStringOption_(TOPPMSFraggerAdapter::database);
       input_file = (this->getStringOption_(TOPPMSFraggerAdapter::in)).toQString();
       output_file = this->getStringOption_(TOPPMSFraggerAdapter::out);
       optional_output_file = this->getStringOption_(TOPPMSFraggerAdapter::opt_out);
@@ -540,31 +537,14 @@ protected:
       const QFileInfo tmp_param_file(this->working_directory, "fragger.params");
       this->parameter_file_path =  String(tmp_param_file.absoluteFilePath());
 
-      // create a link to the FASTA database in the temporary directory (since MSFragger needs to construct the pepindex)
-      // in the temp directory
-      const QFileInfo database_fileinfo(arg_database.toQString());
-      const QString database_path = QFileInfo(this->working_directory, database_fileinfo.fileName()).absoluteFilePath();
-      if (QFile::link(database_fileinfo.absoluteFilePath(), database_path) == false)
-      {
-        _fatalError("Could not create link to database in tmp directory: " + String(this->working_directory));
-      }
-
-      // create link to the input file in the temp directory
-      const QFileInfo file_info(input_file);
-      link_name = QFileInfo(this->working_directory, file_info.fileName()).absoluteFilePath();
-
-      if (QFile::link(file_info.absoluteFilePath(), link_name) == false)
-      {
-        _fatalError("Could not create link to input file in tmp directory: " + String(this->working_directory));
-      }
-
       writeDebug_("Parameter file for MSFragger: '" + this->parameter_file_path + "'", TOPPMSFraggerAdapter::LOG_LEVEL_VERBOSE);
       writeDebug_("Working Directory: '" + String(this->working_directory) + "'", TOPPMSFraggerAdapter::LOG_LEVEL_VERBOSE);
       writeDebug_("If you want to keep the working directory and the parameter file, set the -debug to 2", 1);
       ofstream os(this->parameter_file_path.c_str());
 
+
       // Write all the parameters into the file
-      os << "database_name = " << String(database_path)
+      os << "database_name = " << String(database)
                                << "\nnum_threads = " << this->getIntOption_("threads")
                                << "\n\nprecursor_mass_tolerance = " << arg_precursor_mass_tolerance
                                << "\nprecursor_mass_units = " << (arg_precursor_mass_unit == "Da" ? 0 : 1)
@@ -648,7 +628,7 @@ protected:
     process_params << "-Xmx" + QString::number(this->getIntOption_(java_heapmemory)) + "m"
         << "-jar" << this->exe.toQString()
         << this->parameter_file_path.toQString()
-        << link_name;
+        << input_file;
 
     QProcess process_msfragger;
     process_msfragger.setWorkingDirectory(this->working_directory);
@@ -669,11 +649,16 @@ protected:
     if (process_msfragger.waitForFinished(-1) == false || process_msfragger.exitCode() != 0)
     {
       LOG_FATAL_ERROR << "FATAL: Invocation of MSFraggerAdapter has failed. Error code was: " << process_msfragger.exitCode() << std::endl;
+      const QString msfragger_stdout(process_msfragger.readAllStandardOutput());
+      const QString msfragger_stderr(process_msfragger.readAllStandardError());
+      writeLog_(msfragger_stdout);
+      writeLog_(msfragger_stderr);
+      writeLog_(String(process_msfragger.exitCode()));
       return EXTERNAL_PROGRAM_ERROR;
     }
 
     // convert from pepXML to idXML
-    String pepxmlfile = File::removeExtension(link_name) + "." + "pepXML";
+    String pepxmlfile = File::removeExtension(input_file) + "." + "pepXML";
     std::vector<PeptideIdentification> peptide_identifications;
     std::vector<ProteinIdentification> protein_identifications;
     PepXMLFile().load(pepxmlfile, protein_identifications, peptide_identifications);
@@ -683,11 +668,23 @@ protected:
     }
     IdXMLFile().store(output_file, protein_identifications, peptide_identifications);
 
-    // copies the .pepXML to the specified foler 
-    if (opt_out.empty() == false)
+    // remove the msfragger pepXML output from the user lcoation
+
+    if (optional_output_file.empty())
     {
-      // Copy the output files of MSFragger to the user location (optional pepXML only)
-      QFile::copy((File::removeExtension(link_name) + ".pepXML").toQString(), QFileInfo(this->optional_output_file.toQString()).absoluteFilePath());
+      File::remove(pepxmlfile);
+    }
+    else
+    {
+    // rename the pepXML file to the opt_out
+      QFile::rename(pepxmlfile.toQString(), optional_output_file.toQString()); 
+    }
+
+    // remove ".pepindex" database file
+    if (this->debug_level_ < 2)
+    {
+      String db_index = this->getStringOption_(TOPPMSFraggerAdapter::database) + ".1.pepindex"; 
+      File::remove(db_index);
     }
    
     return EXECUTION_OK;

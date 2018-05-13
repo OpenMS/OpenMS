@@ -32,8 +32,7 @@
 // $Authors: Hannes Roest $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FORMAT_INDEXEDMZMLHANDLER_H
-#define OPENMS_FORMAT_INDEXEDMZMLHANDLER_H
+#pragma once
 
 #include <OpenMS/config.h>
 #include <OpenMS/CONCEPT/Types.h>
@@ -224,6 +223,4 @@ namespace Internal
   };
 }
 }
-
-#endif // OPENMS_FORMAT_HANDLERS_INDEXEDMZMLHANDLER_H
 

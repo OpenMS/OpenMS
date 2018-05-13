@@ -32,8 +32,7 @@
 // $Authors: Chris Bielow $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_DATASTRUCTURES_FASTACONTAINER_H
-#define OPENMS_DATASTRUCTURES_FASTACONTAINER_H
+#pragma once
 
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
@@ -307,4 +306,3 @@ private:
 
 } // namespace OpenMS
 
-#endif // OPENMS_DATASTRUCTURES_FASTACONTAINER_H

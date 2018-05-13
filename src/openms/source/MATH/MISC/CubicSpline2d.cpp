@@ -34,7 +34,6 @@
 
 #include <OpenMS/MATH/MISC/CubicSpline2d.h>
 
-
 #include <OpenMS/CONCEPT/Exception.h>
 
 #include <algorithm>

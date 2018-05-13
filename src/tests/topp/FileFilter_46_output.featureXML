@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<featureMap version="1.9" id="fm_7478034797829266976" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/FeatureXML_1_9.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<dataProcessing completion_time="1999-12-31T23:59:59">
+		<software name="FileFilter" version="version_string" />
+		<processingAction name="Data filtering" />
+		<UserParam type="string" name="parameter: mode" value="test_mode"/>
+	</dataProcessing>
+	<IdentificationRun id="PI_0" date="2011-02-02T13:04:21" search_engine="Mascot" search_engine_version="2.2.04">
+		<SearchParameters db="regulatedPeptides" db_version="regulatedPeptides_appended_20100831.fasta" taxonomy="" mass_type="monoisotopic" charges="" enzyme="trypsin" missed_cleavages="2" precursor_peak_tolerance="10" precursor_peak_tolerance_ppm="false" peak_mass_tolerance="0.5" peak_mass_tolerance_ppm="false" >
+			<FixedModification name="Carbamidomethyl (C)" />
+			<VariableModification name="Oxidation (M)" />
+		</SearchParameters>
+		<ProteinIdentification score_type="Mascot" higher_score_better="true" significance_threshold="0">
+			<ProteinHit id="PH_0" accession="sp|P02663|CASA2_BOVIN" score="520" sequence="">
+			</ProteinHit>
+			<ProteinHit id="PH_1" accession="sp|P02662|CASA1_BOVIN" score="520" sequence="">
+			</ProteinHit>
+			<ProteinHit id="PH_2" accession="sp|P02663|CASA2_BOVIN_rev" score="0" sequence="">
+			</ProteinHit>
+		</ProteinIdentification>
+	</IdentificationRun>
+	<IdentificationRun id="PI_1" date="2011-01-10T10:32:51" search_engine="Mascot" search_engine_version="2.2.04">
+		<SearchParameters db="sgd_orf_trans_all" db_version="sgd_orf_trans_all_20100105.fasta" taxonomy="" mass_type="monoisotopic" charges="" enzyme="trypsin" missed_cleavages="2" precursor_peak_tolerance="10" precursor_peak_tolerance_ppm="false" peak_mass_tolerance="0.5" peak_mass_tolerance_ppm="false" >
+			<FixedModification name="Carbamidomethyl (C)" />
+			<FixedModification name="Label:13C(6)15N(2) (K)" />
+			<FixedModification name="Label:13C(6)15N(4) (R)" />
+			<VariableModification name="Oxidation (M)" />
+		</SearchParameters>
+		<ProteinIdentification score_type="Mascot" higher_score_better="true" significance_threshold="0">
+			<ProteinHit id="PH_3" accession="YDL217C" score="2922" sequence="">
+			</ProteinHit>
+			<ProteinHit id="PH_4" accession="YEL020W-A" score="1586" sequence="">
+			</ProteinHit>
+			<ProteinHit id="PH_5" accession="YBR091C" score="1214" sequence="">
+			</ProteinHit>
+			<ProteinHit id="PH_6" accession="YJL054W" score="877" sequence="">
+			</ProteinHit>
+			<ProteinHit id="PH_7" accession="YOR297C" score="369" sequence="">
+			</ProteinHit>
+			<ProteinHit id="PH_8" accession="YJL180C" score="36" sequence="">
+			</ProteinHit>
+			<ProteinHit id="PH_9" accession="YNL243W" score="32" sequence="">
+			</ProteinHit>
+			<ProteinHit id="PH_10" accession="YPR068C" score="30" sequence="">
+			</ProteinHit>
+			<ProteinHit id="PH_11" accession="YNL294C" score="20" sequence="">
+			</ProteinHit>
+			<ProteinHit id="PH_12" accession="YNR051C" score="16" sequence="">
+			</ProteinHit>
+		</ProteinIdentification>
+	</IdentificationRun>
+	<UnassignedPeptideIdentification identification_run_ref="PI_0" score_type="Mascot" higher_score_better="true" significance_threshold="13" MZ="317.699279785156" RT="2869.4172" >
+		<PeptideHit score="32.37" sequence="LNFLK" charge="2" aa_before="R" aa_after="K" protein_refs="PH_0">
+			<UserParam type="float" name="homology_threshold" value="0"/>
+			<UserParam type="float" name="identity_threshold" value="13"/>
+			<UserParam type="float" name="EValue" value="0.00058"/>
+		</PeptideHit>
+	</UnassignedPeptideIdentification>
+	<UnassignedPeptideIdentification identification_run_ref="PI_0" score_type="Mascot" higher_score_better="true" significance_threshold="13" MZ="437.7255859375" RT="1741.1794" >
+		<PeptideHit score="15.74" sequence="NMAINPSK" charge="2" aa_before="K" aa_after="E" protein_refs="PH_0">
+			<UserParam type="float" name="homology_threshold" value="0"/>
+			<UserParam type="float" name="identity_threshold" value="13"/>
+			<UserParam type="float" name="EValue" value="0.027"/>
+		</PeptideHit>
+	</UnassignedPeptideIdentification>
+	<UnassignedPeptideIdentification identification_run_ref="PI_0" score_type="Mascot" higher_score_better="true" significance_threshold="13" MZ="490.283447265625" RT="3723.2741" >
+		<PeptideHit score="10.49" sequence="FALPQYLK" charge="2" aa_before="K" aa_after="T" protein_refs="PH_0">
+			<UserParam type="float" name="homology_threshold" value="0"/>
+			<UserParam type="float" name="identity_threshold" value="13"/>
+			<UserParam type="float" name="EValue" value="0.089"/>
+		</PeptideHit>
+	</UnassignedPeptideIdentification>
+	<featureList count="1">
+		<feature id="f_2448305435028036088">
+			<position dim="0">4274.85589562269</position>
+			<position dim="1">474.290427996916</position>
+			<intensity>122876</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0.853556</overallquality>
+			<charge>2</charge>
+			<convexhull nr="0">
+				<pt x="4265.6506" y="474.29043534369" />
+				<pt x="4266.9471" y="474.29031550213" />
+				<pt x="4268.2355" y="474.290459548509" />
+				<pt x="4269.171" y="474.290823527598" />
+				<pt x="4270.2258" y="474.291028136401" />
+				<pt x="4271.2185" y="474.290081199183" />
+				<pt x="4272.6386" y="474.290531208286" />
+				<pt x="4274.0332" y="474.290147095043" />
+				<pt x="4275.9386" y="474.290650148934" />
+				<pt x="4277.7903" y="474.290574636898" />
+				<pt x="4279.1603" y="474.29027224407" />
+				<pt x="4280.1202" y="474.290148451408" />
+				<pt x="4281.4771" y="474.289822150441" />
+				<pt x="4282.3935" y="474.29045194369" />
+				<pt x="4283.3959" y="474.290924276107" />
+				<pt x="4284.3972" y="474.290577672558" />
+				<pt x="4285.7656" y="474.289989764521" />
+				<pt x="4284.3972" y="474.290577672558" />
+				<pt x="4283.3959" y="474.290924276107" />
+				<pt x="4282.3935" y="474.29045194369" />
+				<pt x="4281.4771" y="474.289822150441" />
+				<pt x="4280.1202" y="474.290148451408" />
+				<pt x="4279.1603" y="474.29027224407" />
+				<pt x="4277.7903" y="474.290574636898" />
+				<pt x="4275.9386" y="474.290650148934" />
+				<pt x="4274.0332" y="474.290147095043" />
+				<pt x="4272.6386" y="474.290531208286" />
+				<pt x="4271.2185" y="474.290081199183" />
+				<pt x="4270.2258" y="474.291028136401" />
+				<pt x="4269.171" y="474.290823527598" />
+				<pt x="4268.2355" y="474.290459548509" />
+				<pt x="4266.9471" y="474.29031550213" />
+			</convexhull>
+			<convexhull nr="1">
+				<pt x="4271.2185" y="474.791755204598" />
+				<pt x="4274.0332" y="474.791915619941" />
+				<pt x="4275.9386" y="474.792392613009" />
+				<pt x="4277.7903" y="474.792394355704" />
+				<pt x="4279.1603" y="474.79243404241" />
+				<pt x="4280.1202" y="474.791233879927" />
+				<pt x="4281.4771" y="474.791926824973" />
+				<pt x="4282.3935" y="474.792154124919" />
+				<pt x="4284.3972" y="474.792336461439" />
+				<pt x="4282.3935" y="474.792154124919" />
+				<pt x="4281.4771" y="474.791926824973" />
+				<pt x="4280.1202" y="474.791233879927" />
+				<pt x="4279.1603" y="474.79243404241" />
+				<pt x="4277.7903" y="474.792394355704" />
+				<pt x="4275.9386" y="474.792392613009" />
+				<pt x="4274.0332" y="474.791915619941" />
+			</convexhull>
+			<PeptideIdentification identification_run_ref="PI_1" score_type="Mascot" higher_score_better="true" significance_threshold="17" MZ="474.290405273438" RT="4276.9455" >
+				<PeptideHit score="0.25" sequence="STLIPPPSK(Label:13C(6)15N(2))" charge="2">
+					<UserParam type="float" name="homology_threshold" value="0"/>
+					<UserParam type="float" name="identity_threshold" value="17"/>
+					<UserParam type="float" name="EValue" value="2.7"/>
+				</PeptideHit>
+			</PeptideIdentification>
+			<UserParam type="int" name="label" value="1501"/>
+			<UserParam type="int" name="spectrum_index" value="3333"/>
+			<UserParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=5221"/>
+		</feature>
+	</featureList>
+</featureMap>

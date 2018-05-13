@@ -32,8 +32,7 @@
 // $Authors: Eugen Netz $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_MATH_STATISTICS_CUMULATIVEBINOMIAL_H
-#define OPENMS_MATH_STATISTICS_CUMULATIVEBINOMIAL_H
+#pragma once
 
 #include <OpenMS/CONCEPT/Types.h>
 
@@ -67,4 +66,3 @@ public:
   } // namespace Math
 } // namespace OpenMS
 
-#endif // OPENMS_MATH_STATISTICS_CUMULATIVEBINOMIAL_H

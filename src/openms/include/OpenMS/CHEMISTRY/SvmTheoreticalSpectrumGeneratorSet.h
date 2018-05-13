@@ -33,8 +33,7 @@
 // --------------------------------------------------------------------------
 
 
-#ifndef OPENMS_CHEMISTRY_SVMTHEORETICALSPECTRUMGENERATORSET_H
-#define OPENMS_CHEMISTRY_SVMTHEORETICALSPECTRUMGENERATORSET_H
+#pragma once
 
 #include <OpenMS/KERNEL/StandardDeclarations.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
@@ -102,4 +101,3 @@ protected:
 
 
 
-#endif

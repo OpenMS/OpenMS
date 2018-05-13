@@ -32,8 +32,7 @@
 // $Authors: Christian Ehrlich, Chris Bielow $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_MATH_STATISTICS_QUADRATICREGRESSION_H
-#define OPENMS_MATH_STATISTICS_QUADRATICREGRESSION_H
+#pragma once
 
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/CONCEPT/Exception.h>
@@ -183,4 +182,3 @@ protected:
   } //namespace
 } //namespace
 
-#endif // OPENMS_MATH_STATISTICS_QUADRATICREGRESSION_H

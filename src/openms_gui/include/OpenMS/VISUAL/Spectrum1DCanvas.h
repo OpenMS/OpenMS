@@ -32,8 +32,7 @@
 // $Authors: Marc Sturm, Timo Sachsenberg, Chris Bielow $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_VISUAL_SPECTRUM1DCANVAS_H
-#define OPENMS_VISUAL_SPECTRUM1DCANVAS_H
+#pragma once
 
 // OpenMS_GUI config
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
@@ -181,7 +180,7 @@ public slots:
     void activateLayer(Size layer_index) override;
     // Docu in base class
     void removeLayer(Size layer_index) override;
-    //docu in base class
+    // Docu in base class
     void updateLayer(Size i) override;
 
     /**
@@ -309,4 +308,3 @@ protected:
   };
 } // namespace OpenMS
 
-#endif

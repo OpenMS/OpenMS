@@ -2192,7 +2192,8 @@ namespace OpenMS
           {
             return false;
           }
-      } else 
+      }
+      else 
       { // do not allow silent execution with invalid edges
         return false;
       }

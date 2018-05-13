@@ -32,8 +32,7 @@
 // $Authors: $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FORMAT_PEPNOVOINFILE_H
-#define OPENMS_FORMAT_PEPNOVOINFILE_H
+#pragma once
 
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/CHEMISTRY/ModificationDefinitionsSet.h>
@@ -107,4 +106,3 @@ private:
 
 } // namespace OpenMS
 
-#endif // OPENMS_FORMAT_PEPNOVOINFILE_H

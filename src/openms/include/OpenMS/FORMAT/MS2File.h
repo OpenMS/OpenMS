@@ -32,8 +32,7 @@
 // $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FORMAT_MS2FILE_H
-#define OPENMS_FORMAT_MS2FILE_H
+#pragma once
 
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/CONCEPT/Exception.h>
@@ -204,4 +203,3 @@ protected:
 
 } // namespace OpenMS
 
-#endif // OPENMS_FORMAT_MS2FILE_H

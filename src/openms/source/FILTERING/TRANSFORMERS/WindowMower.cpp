@@ -74,7 +74,8 @@ namespace OpenMS
     if (sliding)
     {
       filterPeakSpectrumForTopNInSlidingWindow(spectrum);
-    } else
+    }
+    else
     {
       filterPeakSpectrumForTopNInJumpingWindow(spectrum);
     }
@@ -88,7 +89,8 @@ namespace OpenMS
       if (sliding)
       {
         filterPeakSpectrumForTopNInSlidingWindow(*it);
-      } else
+      }
+      else
       {
         filterPeakSpectrumForTopNInJumpingWindow(*it);
       }

@@ -32,8 +32,7 @@
 // $Authors: $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_CONCEPT_FACTORYBASE_H
-#define OPENMS_CONCEPT_FACTORYBASE_H
+#pragma once
 
 #include <OpenMS/config.h>
 
@@ -55,4 +54,3 @@ public:
   };
 
 }
-#endif // OPENMS_CONCEPT_FACTORYBASE_H

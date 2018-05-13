@@ -135,7 +135,7 @@ namespace OpenMS
       {
         if (config.estimate_fixed_point)
         {
-          // estimate fixed point either by mass accuracy or by using maximal permissable value
+          // estimate fixed point either by mass accuracy or by using maximal permissible value
           if (config.linear_fp_mass_acc > 0)
           {
             fixedPoint = numpress::MSNumpress::optimalLinearFixedPointMass(&in[0], dataSize, config.linear_fp_mass_acc);

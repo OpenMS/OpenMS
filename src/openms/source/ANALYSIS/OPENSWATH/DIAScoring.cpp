@@ -35,12 +35,12 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/DIAScoring.h>
 
 #include <OpenMS/CONCEPT/Constants.h>
-#include <OpenMS/CHEMISTRY/IsotopeDistribution.h>
+#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h>
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmPickedHelperStructs.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithm.h>
-#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/ALGO/StatsHelpers.h>
-#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/SpectrumHelpers.h> // integrateWindow
+#include <OpenMS/OPENSWATHALGO/ALGO/StatsHelpers.h>
+#include <OpenMS/OPENSWATHALGO/DATAACCESS/SpectrumHelpers.h> // integrateWindow
 #include <OpenMS/ANALYSIS/OPENSWATH/DIAHelper.h>
 
 #include <OpenMS/ANALYSIS/OPENSWATH/DIAPrescoring.h>
@@ -355,8 +355,14 @@ namespace OpenMS
 
       // Compute ratio between the (presumed) monoisotopic peak intensity and the now found peak
       double ratio;
-      if (mono_int != 0) { ratio = intensity / mono_int; }
-      else { ratio = 0; }
+      if (mono_int != 0)
+      {
+        ratio = intensity / mono_int;
+      }
+      else
+      {
+        ratio = 0;
+      }
       if (ratio > max_ratio) {max_ratio = ratio;}
 
       double ddiff_ppm = std::fabs(mz - (mono_mz - 1.0 / (double) ch)) * 1000000 / mono_mz;
@@ -389,19 +395,19 @@ namespace OpenMS
     {
       // create the theoretical distribution from the sum formula
       EmpiricalFormula empf(sum_formula);
-      isotope_dist = empf.getIsotopeDistribution(dia_nr_isotopes_);
+      isotope_dist = empf.getIsotopeDistribution(CoarseIsotopePatternGenerator(dia_nr_isotopes_));
     }
     else
     {
       // create the theoretical distribution from the peptide weight
-      isotope_dist.setMaxIsotope(dia_nr_isotopes_ + 1);
-      isotope_dist.estimateFromPeptideWeight(std::fabs(product_mz * putative_fragment_charge));
+      CoarseIsotopePatternGenerator solver(dia_nr_isotopes_ + 1);
+      isotope_dist = solver.estimateFromPeptideWeight(std::fabs(product_mz * putative_fragment_charge));
     }
 
 
     for (IsotopeDistribution::Iterator it = isotope_dist.begin(); it != isotope_dist.end(); ++it)
     {
-      isotopes.intensity.push_back(it->second);
+      isotopes.intensity.push_back(it->getIntensity());
     }
     isotopes.optional_begin = 0;
     isotopes.optional_end = dia_nr_isotopes_;

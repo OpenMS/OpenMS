@@ -223,8 +223,7 @@ namespace OpenMS
         //update maximum likelihood
         maxlike = new_maxlike;
         ++itns;
-      }
-      while (!stop_em_init);
+      } while (!stop_em_init);
 
       //-------------------------------------------------------------
       // Finished fitting
@@ -588,9 +587,18 @@ namespace OpenMS
       // Set fixed e-value threshold
       const double smallest_e_value_ = numeric_limits<double>::denorm_min();
 
-      if (engine == "OMSSA") { return (-1) * log10(max(hit.getScore(), smallest_e_value_)); }
-      else if (engine == "MYRIMATCH" ) { return hit.getScore(); }
-      else if (engine == "XTANDEM") { return (-1) * log10(max((double)hit.getMetaValue("E-Value"), smallest_e_value_)); }
+      if (engine == "OMSSA")
+      {
+        return (-1) * log10(max(hit.getScore(), smallest_e_value_));
+      }
+      else if (engine == "MYRIMATCH" ) 
+      {
+        return hit.getScore();
+      }
+      else if (engine == "XTANDEM")
+      {
+        return (-1) * log10(max((double)hit.getMetaValue("E-Value"), smallest_e_value_));
+      }
       else if (engine == "MASCOT")
       {
         // issue #740: unable to fit data with score 0
@@ -608,7 +616,10 @@ namespace OpenMS
           return (-1) * log10(max((double)hit.getMetaValue("expect"), smallest_e_value_));
         }
       }
-      else if (engine == "SPECTRAST") { return 100 * hit.getScore(); } // f-val
+      else if (engine == "SPECTRAST")
+      {
+        return 100 * hit.getScore(); // f-val
+      }
       else if (engine == "SIMTANDEM")
       {
         if (hit.metaValueExists("E-Value"))

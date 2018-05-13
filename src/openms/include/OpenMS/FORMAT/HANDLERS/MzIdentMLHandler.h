@@ -32,8 +32,7 @@
 // $Authors: Mathias Walzer, Andreas Bertsch $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FORMAT_HANDLERS_MZIDENTMLHANDLER_H
-#define OPENMS_FORMAT_HANDLERS_MZIDENTMLHANDLER_H
+#pragma once
 
 #include <OpenMS/KERNEL/StandardTypes.h>
 
@@ -176,4 +175,3 @@ private:
   } // namespace Internal
 } // namespace OpenMS
 
-#endif

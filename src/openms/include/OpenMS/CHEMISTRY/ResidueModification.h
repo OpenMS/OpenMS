@@ -33,8 +33,7 @@
 // --------------------------------------------------------------------------
 //
 
-#ifndef OPENMS_CHEMISTRY_RESIDUEMODIFICATION_H
-#define OPENMS_CHEMISTRY_RESIDUEMODIFICATION_H
+#pragma once
 
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
@@ -379,4 +378,3 @@ protected:
   };
 }
 
-#endif // OPENMS_CHEMISTRY_RESIDUEMODIFICATION_H

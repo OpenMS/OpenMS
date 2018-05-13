@@ -301,17 +301,43 @@ def testIsotopeDistribution():
     """
     ins = pyopenms.IsotopeDistribution()
 
-    ins.setMaxIsotope(5)
-    ins.getMaxIsotope()
     ins.getMax()
     ins.getMin()
     ins.size()
     ins.clear()
-    ins.estimateFromPeptideWeight(500)
     ins.renormalize()
     ins.trimLeft(6.0)
     ins.trimRight(8.0)
 
+@report
+def testCoarseIsotopePatternGenerator():
+    """
+    @tests: CoarseIsotopePatternGenerator
+    CoarseIsotopePatternGenerator.__init__
+    CoarseIsotopePatternGenerator.getMaxIsotope()
+    CoarseIsotopePatternGenerator.setMaxIsotope()
+    CoarseIsotopePatternGenerator.estimateFromPeptideWeight()
+    """
+
+    iso = pyopenms.CoarseIsotopePatternGenerator()
+    iso.setMaxIsotope(5)
+    assert iso.getMaxIsotope() == 5
+    res = iso.estimateFromPeptideWeight(500)
+
+    methanol = pyopenms.EmpiricalFormula("CH3OH")
+    water = pyopenms.EmpiricalFormula("H2O")
+    mw = methanol + water
+    iso_dist = mw.getIsotopeDistribution(pyopenms.CoarseIsotopePatternGenerator(3))
+    assert len(iso_dist.getContainer()) == 3, len(iso_dist.getContainer())
+    iso_dist = mw.getIsotopeDistribution(pyopenms.CoarseIsotopePatternGenerator(0))
+    assert len(iso_dist.getContainer()) == 18, len(iso_dist.getContainer()) 
+
+    iso = pyopenms.CoarseIsotopePatternGenerator(10)
+    isod = iso.run(methanol)
+    assert len(isod.getContainer()) == 10, len(isod.getContainer()) 
+    assert isod.getContainer()[0].getMZ() == 32.0, isod.getContainer()[0].getMZ()
+    assert isod.getContainer()[0].getIntensity() - 0.986442089081 < 1e-5
+    
 @report
 def testEmpiricalFormula():
     """
@@ -333,7 +359,7 @@ def testEmpiricalFormula():
 
     ins.getMonoWeight()
     ins.getAverageWeight()
-    ins.getIsotopeDistribution(1)
+    ins.getIsotopeDistribution(pyopenms.CoarseIsotopePatternGenerator(0))
     # ins.getNumberOf(0)
     # ins.getNumberOf(b"test")
     ins.getNumberOfAtoms()
@@ -4197,11 +4223,17 @@ def testVersion():
     assert vd.version_minor == 2
     assert vd.version_patch == 1
 
+    vd = pyopenms.VersionDetails.create(b"19.2.1-alpha")
+    assert vd.version_major == 19
+    assert vd.version_minor == 2
+    assert vd.version_patch == 1
+    assert vd.pre_release_identifier == b"alpha"
+
     assert vd == vd
     assert not vd < vd
     assert not vd > vd
 
-    assert  isinstance(pyopenms.version.version, str)
+    assert isinstance(pyopenms.version.version, str)
 
 @report
 def testInspectInfile():

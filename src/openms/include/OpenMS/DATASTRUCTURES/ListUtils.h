@@ -32,8 +32,7 @@
 // $Authors: Stephan Aiche $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_DATASTRUCTURES_LISTUTILS_H
-#define OPENMS_DATASTRUCTURES_LISTUTILS_H
+#pragma once
 
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/CONCEPT/Exception.h>
@@ -247,4 +246,3 @@ public:
 
 } // namespace OpenMS
 
-#endif // OPENMS_DATASTRUCTURES_LISTUTILS_H

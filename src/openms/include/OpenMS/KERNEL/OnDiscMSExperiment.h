@@ -32,8 +32,7 @@
 // $Authors: Hannes Roest $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_KERNEL_ONDISCMSEXPERIMENT_H
-#define OPENMS_KERNEL_ONDISCMSEXPERIMENT_H
+#pragma once
 
 #include <OpenMS/INTERFACES/DataStructures.h>
 
@@ -171,6 +170,11 @@ public:
       return boost::static_pointer_cast<const ExperimentalSettings>(meta_ms_experiment_);
     }
 
+    boost::shared_ptr<PeakMap> getMetaData() const
+    {
+      return meta_ms_experiment_;
+    }
+
     /// alias for getSpectrum
     inline MSSpectrum operator[](Size n)
     {
@@ -239,7 +243,6 @@ private:
       f.load(filename, *meta_ms_experiment_.get());
     }
 
-
 protected:
 
     /// The filename of the underlying data file
@@ -254,5 +257,4 @@ typedef OpenMS::OnDiscMSExperiment OnDiscPeakMap;
 
 } // namespace OpenMS
 
-#endif // OPENMS_KERNEL_ONDISCMSEXPERIMENT_H
 

@@ -32,8 +32,7 @@
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_METADATA_METAINFOREGISTRY_H
-#define OPENMS_METADATA_METAINFOREGISTRY_H
+#pragma once
 
 #include <map>
 #include <string>
@@ -179,4 +178,3 @@ private:
 #pragma warning( pop )
 #endif
 
-#endif // OPENMS_METADATA_METAINFOREGISTRY_H

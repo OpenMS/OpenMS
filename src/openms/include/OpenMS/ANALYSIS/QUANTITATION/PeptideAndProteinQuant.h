@@ -32,8 +32,7 @@
 // $Authors: Hendrik Weisser $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_QUANTITATION_PEPTIDEANDPROTEINQUANT_H
-#define OPENMS_ANALYSIS_QUANTITATION_PEPTIDEANDPROTEINQUANT_H
+#pragma once
 
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
@@ -274,4 +273,3 @@ private:
 
 } // namespace
 
-#endif // OPENMS_ANALYSIS_QUANTITATION_PEPTIDEANDPROTEINQUANT_H

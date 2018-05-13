@@ -88,7 +88,7 @@ namespace OpenMS
   }
 
 
-  // Enumerate all pairs of peptides from the searched database and calculate their masses (inlcuding mono-links and loop-links)
+  // Enumerate all pairs of peptides from the searched database and calculate their masses (including mono-links and loop-links)
   vector<OPXLDataStructs::XLPrecursor> OPXLHelper::enumerateCrossLinksAndMasses(const vector<OPXLDataStructs::AASeqWithMass>&  peptides, double cross_link_mass, const DoubleList& cross_link_mass_mono_link, const StringList& cross_link_residue1, const StringList& cross_link_residue2, vector< double >& spectrum_precursors, double precursor_mass_tolerance, bool precursor_mass_tolerance_unit_ppm)
   {
     // initialize empty vector for the results
@@ -199,7 +199,8 @@ namespace OpenMS
         if (peptides[p2].peptide_mass < min_second_peptide_mass)
         {
           continue;
-        } else if (peptides[p2].peptide_mass > max_second_peptide_mass)
+        }
+        else if (peptides[p2].peptide_mass > max_second_peptide_mass)
         {
           break;
         }
@@ -258,7 +259,8 @@ namespace OpenMS
         if (fasta_db[fasta_index].sequence.hasPrefix(cit->getString()))
         {
           position = OPXLDataStructs::N_TERM;
-        } else if (fasta_db[fasta_index].sequence.hasSuffix(cit->getString()))
+        }
+        else if (fasta_db[fasta_index].sequence.hasSuffix(cit->getString()))
         {
           position = OPXLDataStructs::C_TERM;
         }
@@ -314,7 +316,7 @@ namespace OpenMS
         vector<AASequence> all_modified_peptides;
 
         // generate all modified variants of a peptide
-        // Note: no critial section is needed despite ResidueDB not beeing thread sage.
+        // Note: no critical section is needed despite ResidueDB not being thread safe.
         //       It is only written to on introduction of novel modified residues. These residues have been already added above (single thread context).
         {
           AASequence aas = AASequence::fromString(cit->getString());
@@ -379,7 +381,8 @@ namespace OpenMS
             if (seq_second.substr(k, 1) == cross_link_residue2[x]) link_pos_second.push_back(k);
           }
         }
-      } else
+      } 
+      else
       {
         // Second position defining a mono-link and the second positions on the same peptide for loop links (only one of these two is valid for any specific precursor)
         if (!is_loop)
@@ -404,7 +407,8 @@ namespace OpenMS
       if (seq_second.size() > seq_first.size())
       {
         alpha_first = false;
-      } else if (seq_second.size() == seq_first.size() && peptide_second.getMonoWeight() > peptide_first.getMonoWeight())
+      }
+      else if (seq_second.size() == seq_first.size() && peptide_second.getMonoWeight() > peptide_first.getMonoWeight())
       {
         alpha_first = false;
       }

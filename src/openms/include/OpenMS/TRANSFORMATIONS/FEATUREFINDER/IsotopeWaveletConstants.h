@@ -32,8 +32,7 @@
 // $Authors: Rene Hussong$
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_TRANSFORMATIONS_FEATUREFINDER_ISOTOPEWAVELETCONSTANTS_H
-#define OPENMS_TRANSFORMATIONS_FEATUREFINDER_ISOTOPEWAVELETCONSTANTS_H
+#pragma once
 
 namespace OpenMS
 {
@@ -90,4 +89,3 @@ namespace OpenMS
   }
 }
 
-#endif

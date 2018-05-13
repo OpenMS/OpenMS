@@ -32,8 +32,7 @@
 // $Authors: Stephan Aiche, Chris Bielow$
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_SIMULATION_RTSIMULATION_H
-#define OPENMS_SIMULATION_RTSIMULATION_H
+#pragma once
 
 #include <OpenMS/DATASTRUCTURES/Map.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
@@ -166,4 +165,3 @@ protected:
 
 }
 
-#endif

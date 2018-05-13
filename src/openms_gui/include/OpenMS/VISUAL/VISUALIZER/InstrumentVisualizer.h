@@ -32,8 +32,7 @@
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_VISUAL_VISUALIZER_INSTRUMENTVISUALIZER_H
-#define OPENMS_VISUAL_VISUALIZER_INSTRUMENTVISUALIZER_H
+#pragma once
 
 // OpenMS_GUI config
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
@@ -86,4 +85,3 @@ protected:
     void update_() override;
   };
 }
-#endif

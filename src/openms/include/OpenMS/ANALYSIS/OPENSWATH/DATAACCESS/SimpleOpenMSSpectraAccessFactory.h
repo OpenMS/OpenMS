@@ -32,12 +32,11 @@
 // $Authors:  Hannes Roest, Witold Wolski $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_OPENSWATH_DATAACCESS_SIMPLEOPENMSSPECTRAACCESSFACTORY_H
-#define OPENMS_ANALYSIS_OPENSWATH_DATAACCESS_SIMPLEOPENMSSPECTRAACCESSFACTORY_H
+#pragma once
 
 #include <fstream>
 
-#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/ISpectrumAccess.h>
+#include <OpenMS/OPENSWATHALGO/DATAACCESS/ISpectrumAccess.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <boost/shared_ptr.hpp>
@@ -58,5 +57,4 @@ namespace OpenMS
   };
 }
 
-#endif // OPENMS_ANALYSIS_OPENSWATH_DATAACCESS_SIMPLEOPENMSSPECTRAACCESSFACTORY_H
 

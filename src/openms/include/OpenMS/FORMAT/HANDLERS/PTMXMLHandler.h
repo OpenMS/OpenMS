@@ -32,8 +32,7 @@
 // $Authors: $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FORMAT_HANDLERS_PTMXMLHANDLER_H
-#define OPENMS_FORMAT_HANDLERS_PTMXMLHANDLER_H
+#pragma once
 
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
 
@@ -80,4 +79,3 @@ protected:
 
 } // namespace OpenMS
 
-#endif // OPENMS_FORMAT_HANDLERS_PTMXMLHANDLER_H
