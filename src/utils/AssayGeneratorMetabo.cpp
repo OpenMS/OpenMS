@@ -86,11 +86,11 @@ using namespace std;
   1. Input mzML and featureXML
   2. Annotate precursor mz and intensity
   3. Filter feature by convexhull size
-  4. Assign precursors to distinct feature
+  4. Assign precursors to specific feature
   5. Extract feature meta information (if possible)
   6. Find MS2 spectrum with highest intensity precursor for one feature
-  7. Dependent on the method use the MS2 with the highest intensity precursor or a conensus spectrum
-     for the transition caclulation
+  7. Dependent on the method use the MS2 with the highest intensity precursor or a consensus spectrum
+     for the transition calculation
   8. Calculate thresholds (maximum and minimum intensity for transition peak)
   9. Extract and write transitions
 
