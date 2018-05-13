@@ -39,6 +39,9 @@
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/KDTreeFeatureMaps.h>
 #include <OpenMS/FORMAT/TextFile.h>
+#include <OpenMS/COMPARISON/SPECTRA/BinnedSpectrum.h>
+#include <OpenMS/COMPARISON/SPECTRA/BinnedSpectralContrastAngle.h>
+#include <OpenMS/FILTERING/TRANSFORMERS/SpectraMerger.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -50,28 +53,46 @@ using namespace std;
 /**
   @page UTILS_AssayGeneratorMetabo AssayGeneratorMetabo
 
-  @brief Assay Library Generator using DDA data (Metabolomics)
+  @brief Generates an assay library using DDA data (Metabolomics)
 
+    <CENTER>
+      <table>
+          <tr>
+              <td ALIGN = "center" BGCOLOR="#EBEBEB"> potential predecessor tools </td>
+              <td VALIGN="middle" ROWSPAN=2> \f$ \longrightarrow \f$ AssayGeneratorMetabo \f$ \longrightarrow \f$</td>
+              <td ALIGN = "center" BGCOLOR="#EBEBEB"> potential successor tools </td>
+          </tr>
+          <tr>
+              <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_FeatureFinderMetabo </td>
+              <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref OpenSWATH pipeline </td>
+          </tr>
+          <tr>
+              <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref Utils_AccurateMassSearch </td>
+          </tr>
+      </table>
+  </CENTER>
 
+  Build an assay library from DDA data (MS and MS/MS) (mzML).
+  Please provide a list of features found in the data (featureXML).
 
-  mzml blablabla
+  Features can be detected using the FeatureFinderMetabo (FFM) and identifcation information
+  can be applied using the AccurateMassSearch feautreXML output.
 
-  featureXML blabalbla
+  Note: Please set the "report_confex_hulls" parameter to "true" when using the FFM.
 
-  // For DDA data -> FeatureFinderMetabo -> AccurateMassSearch -> AssayGeneratorMetabo
-  // Right now only works with DDA data (later for DIA data?)
-      // take featureXML from accurate mass search get the feature information
-    // get all MS2 spectra of same precursor (make a consensusspectrum(? - scoring))
-    // reduce to one MS2
-        // highest intenstiy
-        // total ion count ms2
-        // consensus_spectrum
-    // iterate over peaks in spectra an search for highest one
-    // then second and third highest if possible
-    // extract the intensity (from consesusspectrum -> transistion)
-    // every further Transision which is at least of 10% of highest intensity
-    // integrate further information from .tsv for exampl
-    // extract feature information (precursor(?)
+  If the FFM featureXML is used the "use_known_unknowns" flag is used automatically.
+
+  Internal procedure AssayGeneratorMetabo:
+  1. Input mzML and featureXML
+  2. Annotate precursor mz and intensity
+  3. Filter feature by convexhull size
+  4. Assign precursors to distinct feature
+  5. Extract feature meta information (if possible)
+  6. Find MS2 spectrum with highest intensity precursor for one feature
+  7. Dependent on the method use the MS2 with the highest intensity precursor or a conensus spectrum
+     for the transition caclulation
+  8. Calculate thresholds (maximum and minimum intensity for transition peak)
+  9. Extract and write transitions
 
   <B>The command line parameters of this tool are:</B>
   @verbinclude UTILS_SiriusAdapter.cli
@@ -92,6 +113,7 @@ struct AssayRow
   String compound_name;
   String smiles;
   String sumformula;
+  String adduct;
   String transition_group_id;
   String transition_id;
   bool decoy; 
@@ -119,17 +141,25 @@ protected:
     registerOutputFile_("out", "<file>", "", "Assay library output file");
     setValidFormats_("out", ListUtils::create<String>("tsv"));
 
-    // The report_confex_hulls parameter have to be enabled in the FeatureFinderMetabo
+    registerStringOption_("method", "<choice>", "highest_intensity", "",false);
+    setValidStrings_("method", ListUtils::create<String>("highest_intensity,consensus_spectrum"));
+
+    registerDoubleOption_("precursor_mz_tolerance", "<num>", 0.005, "Tolerance window (left and right) for precursor selection", false);
+    registerDoubleOption_("precursor_rt_tolerance", "<num>", 5, "Tolerance window (left and right) for precursor selection", false);
+
+    registerDoubleOption_("cosine_similarity_threshold", "<num>", 0.98, "Threshold for cosine similarity of MS2 spectras of same precursor used for consensus spectrum", false);
+
     registerIntOption_("filter_by_convex_hulls", "<num>", 2, "Features have to have at least x MassTraces", false);
 
     registerDoubleOption_("transition_threshold", "<num>", 10, "Further transitions need at least x% of the maximum intensity (default 10%)", false);
 
-    registerFlag_("use_known_unknowns", "Use features which have no identification as well", false);
+    registerFlag_("use_known_unknowns", "Use features without identification", false);
+
   }
 
   // map precursors to closest feature and retrieve annotated metadata (if possible)
   // extract meta information from featureXML (MetaboliteAdductDecharger)
-  map<const BaseFeature*, vector<size_t>> extractMetaInformation(const PeakMap & spectra, const KDTreeFeatureMaps& fp_map_kd)
+  map<const BaseFeature*, vector<size_t>> extractMetaInformation(const PeakMap & spectra, const KDTreeFeatureMaps& fp_map_kd, const double& precursor_mz_tolerance, const double& precursor_rt_tolerance)
   {
     map<const BaseFeature*, vector<size_t>> map_feature_to_precursors;
 
@@ -149,8 +179,7 @@ protected:
         // query features in tolerance window
         vector<Size> matches;
 
-        // TODO: optimize query mz
-        fp_map_kd.queryRegion(rt - 5.0, rt + 5.0, mz - 0.2, mz + 0.2, matches, true);
+        fp_map_kd.queryRegion(rt - precursor_rt_tolerance, rt + precursor_rt_tolerance, mz - precursor_mz_tolerance, mz + precursor_mz_tolerance, matches, true);
 
         // no precursor matches the feature information found
         if (matches.empty()) { continue; }
@@ -198,7 +227,7 @@ protected:
     return max_intensity_it - spectrum1.begin();
   }
 
-  // annotate precursor intenstiy based on precursor spectrum and highest intensity peak in tolerance window
+  // annotate precursor intensity based on precursor spectrum and highest intensity peak in tolerance window
   void annotatePrecursorIntensity(PeakMap& spectra, double left_tolerance, double right_tolerance)
   {
     for (PeakMap::Iterator s_it = spectra.begin(); s_it != spectra.end(); ++s_it)
@@ -211,7 +240,11 @@ protected:
 
       MSSpectrum& spectrum = *s_it;
       vector<Precursor>& precursor = spectrum.getPrecursors();
-      //TODO: Throw exception if precursor vector is empty
+
+      if (precursor.empty())
+      {
+        throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Error: Invalid MS2 spectrum without precursor");
+      }
 
       double test_mz = precursor[0].getMZ();
 
@@ -247,19 +280,47 @@ protected:
     String in = getStringOption_("in");
     String id = getStringOption_("in_id");
     String out = getStringOption_("out");
+    String method = getStringOption_("method");
+    double precursor_mz_tol = getDoubleOption_("precursor_mz_tolerance");
+    double precursor_rt_tol = getDoubleOption_("precursor_rt_tolerance");
+    double cosine_sim_threshold = getDoubleOption_("cosine_similarity_threshold");
+    bool method_consensus_spectrum = method == "consensus_spectrum" ? true : false;
+
     unsigned int hull_size_filter = getIntOption_("filter_by_convex_hulls");
     double transition_threshold = getDoubleOption_("transition_threshold");
     bool use_known_unknowns = getFlag_("use_known_unknowns");
 
-    //load mzML
+    // load mzML
     MzMLFile mzml;
     PeakMap spectra;
     mzml.load(in, spectra);
 
-    //load featurexml
+    // load featurexml
     FeatureXMLFile fxml;
     FeatureMap feature_map;
     fxml.load(id, feature_map);
+
+    // check if correct featureXML is given and set use_known_unkowns parameter if no id information is available
+    const std::vector<DataProcessing>& processing = feature_map.getDataProcessing();
+    for (auto it = processing.begin(); it != processing.end(); ++it)
+    {
+      if (it->getSoftware().getName() == "FeatureFinderMetabo")
+      {
+        // check if convex hulls parameter was used in the FeatureFinderMetabo
+        if (it->getMetaValue("parameter: algorithm:ffm:report_convex_hulls") != "true")
+        {
+          throw Exception::InvalidParameter(__FILE__,
+                                            __LINE__,
+                                            OPENMS_PRETTY_FUNCTION,
+                                            "Please provide a valid feature XML file with reported convex hulls.");
+        }
+        // if id information is missing set use_known_unknowns to true
+        if (feature_map.getProteinIdentifications().empty())
+        {
+          use_known_unknowns = true;
+        }
+      }
+    }
 
     // annotate precursor mz and intensity
     annotatePrecursorIntensity(spectra, 0.2, 0.2);
@@ -278,7 +339,7 @@ protected:
     fp_map_kd.addMaps(v_fp);
 
     // read FeatureMap in KDTree for feature-precursor assignment
-    map<const BaseFeature*, vector<size_t> > map_feature_to_precursors = extractMetaInformation(spectra, fp_map_kd);
+    map<const BaseFeature*, vector<size_t> > map_feature_to_precursors = extractMetaInformation(spectra, fp_map_kd, precursor_mz_tol, precursor_rt_tol);
 
     std::vector<AssayRow> assaylib;
     int transition_group_counter = 0;
@@ -288,7 +349,7 @@ protected:
          ++it)
     {
 
-      String description("UNKNOWN"), sumformula("UNKNOWN");
+      String description("UNKNOWN"), sumformula("UNKNOWN"), adduct("UNKNOWN");
       const BaseFeature* min_distance_feature = it->first;
 
       // extract metadata from featureXML
@@ -297,15 +358,22 @@ protected:
       {
         description = min_distance_feature->getPeptideIdentifications()[0].getHits()[0].getMetaValue("description");
         sumformula = min_distance_feature->getPeptideIdentifications()[0].getHits()[0].getMetaValue("chemical_formula");
+        adduct = min_distance_feature->getPeptideIdentifications()[0].getHits()[0].getMetaValue("modifications");
+
+        // change format of adduct information M+H;1+ -> [M+H]1+
+        String adduct_prefix = adduct.prefix(';').trim();
+        String adduct_suffix = adduct.suffix(';').trim();
+        adduct = "["+adduct_prefix+"]"+adduct_suffix;
       }
 
       // check if known unknown should be used
-      if (description == "UNKNOWN" && sumformula == "UNKNOWN" && !use_known_unknowns) { continue; }
+      if (description == "UNKNOWN" && sumformula == "UNKNOWN" && adduct == "UNKNOWN" && !use_known_unknowns) { continue; }
 
       double spectrum_rt = 0.0;
       double highest_precursor_mz = 0.0;
       float highest_precursor_int = 0.0;
       MSSpectrum highest_precursor_int_spectrum;
+      MSSpectrum transition_spectrum;
 
       // find precursor/spectrum with highest intensity precursor
       std::vector<size_t> index = it->second;
@@ -318,9 +386,6 @@ protected:
         double precursor_mz = precursor[0].getMZ();
         float precursor_int = precursor[0].getIntensity();
 
-        // TODO: add other methods
-        // e.g. pearson correlation + consensusspectrum
-
         // spectrum with highest intensity precursor
         if (precursor_int > highest_precursor_int)
         {
@@ -329,12 +394,57 @@ protected:
           highest_precursor_int_spectrum = spectra[*index_it];
           spectrum_rt = spectra[*index_it].getRT();
         }
+        transition_spectrum = highest_precursor_int_spectrum;
       }
 
+      // if only one MS2 is available and the consensus method is used - jump right to the transition list calculation
+      // fallback: highest intensity precursor
+      if (method_consensus_spectrum && index.size() >= 2)
+      {
+        // transform to binned spectra
+        std::vector<BinnedSpectrum> binned;
+        std::vector<MSSpectrum> similar_spectra;
+        MSExperiment exp;
+        const BinnedSpectrum binned_highest_int(highest_precursor_int_spectrum, BinnedSpectrum::DEFAULT_BIN_WIDTH_HIRES, false, 1);
+
+        // calculation of contrast angle (cosine simiarity)
+        for (std::vector<size_t>::iterator index_it = index.begin(); index_it != index.end(); ++index_it)
+        {
+          const MSSpectrum &spectrum = spectra[*index_it];
+          const BinnedSpectrum binned_spectrum(spectrum, BinnedSpectrum::DEFAULT_BIN_WIDTH_HIRES, false, 1);
+
+          BinnedSpectralContrastAngle bspa;
+          double cosine_sim = bspa(binned_highest_int, binned_spectrum);
+
+          if (cosine_sim > cosine_sim_threshold)
+          {
+            similar_spectra.push_back(spectrum);
+            exp.addSpectrum(spectrum);
+          }
+        }
+        // calculate consensus spectrum
+        exp.sortSpectra();
+        SpectraMerger merger;
+        Param p;
+        p.setValue("precursor_method:mz_tolerance", precursor_mz_tol*2);
+        p.setValue("precursor_method:rt_tolerance", precursor_rt_tol*2);
+        merger.setParameters(p);
+
+        // all MS spectra should have the same precursor
+        merger.mergeSpectraPrecursors(exp);
+
+        // check if all precursors have been merged if not use highest intensity precursor
+        if (exp.getSpectra().size() < 2)
+        {
+          transition_spectrum = exp.getSpectra()[0];;
+        }
+      }
+
+      // transition calculations
       // calculate max intensity peak and threshold
       float max_int = 0.0;
       float min_int = numeric_limits<float>::max();
-      for(MSSpectrum::iterator spec_it = highest_precursor_int_spectrum.begin(); spec_it != highest_precursor_int_spectrum.end(); ++spec_it)
+      for(MSSpectrum::const_iterator spec_it = transition_spectrum.begin(); spec_it != transition_spectrum.end(); ++spec_it)
       {
         //find the max intensity peak
         if(spec_it->getIntensity() > max_int)
@@ -351,13 +461,14 @@ protected:
       if (min_int >= max_int){ continue;}
 
       // threshold should be at x % of the maximum intensity
+      // hard minimal threshold of min_int * 1.1
       float threshold_transition = max_int * (transition_threshold/100);
       float threshold_noise = min_int * 1.1;
 
       AssayRow row;
       int transition_counter = 1;
 
-      for(MSSpectrum::iterator spec_it = highest_precursor_int_spectrum.begin(); spec_it != highest_precursor_int_spectrum.end(); ++spec_it)
+      for(MSSpectrum::iterator spec_it = transition_spectrum.begin(); spec_it != transition_spectrum.end(); ++spec_it)
       {
         float current_int = spec_it->getIntensity();
         double current_mz = spec_it->getMZ();
@@ -372,9 +483,9 @@ protected:
           row.library_int = rel_int;
           row.normalized_rt = spectrum_rt;
           row.compound_name = description;
-          //TODO: add simles to AccurateMassSearchMetadata (FeatureXML)
-          row.smiles = "none";
+          row.smiles = "none"; // not in AccurateMassSearch output yet
           row.sumformula = sumformula;
+          row.adduct = adduct;
           row.transition_group_id = String(transition_group_counter)+"_"+sumformula;
           row.transition_id = String(transition_counter)+"_"+sumformula;
           row.decoy = 0;
@@ -391,12 +502,12 @@ protected:
 
     // write output
     TextFile tf;
-    tf.addLine("PrecursorMz\tProductMz\tLibraryIntensity\tRetentionTime\tCompoundName\tSMILES\tSumFormula\tTransitionId\tTransitionGroupId\tDecoy\n");
+    tf.addLine("PrecursorMz\tProductMz\tLibraryIntensity\tRetentionTime\tCompoundName\tSMILES\tSumFormula\tTransitionId\tTransitionGroupId\tAdduct\tDecoy\n");
     for (auto & entry : assaylib)
     {
       tf.addLine(String(entry.precursor_mz)+"\t"+String(entry.product_mz)+"\t"+String(entry.library_int)+"\t"+String(entry.normalized_rt)+
                  "\t"+entry.compound_name+"\t"+entry.smiles+"\t"+entry.sumformula+"\t"+entry.transition_group_id+"\t"+entry.transition_id+
-                 "\t"+entry.decoy+"\n");
+                 "\t"+entry.adduct+ "\t"+entry.decoy+"\n");
     }
     tf.store(out);
 
@@ -409,5 +520,4 @@ int main(int argc, const char ** argv)
   TOPPAssayGeneratorMetabo tool;
   return tool.main(argc, argv);
 }
-
 /// @endcond
