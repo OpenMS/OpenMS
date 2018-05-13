@@ -2041,6 +2041,29 @@ add_test("UTILS_AccurateMassSearch_1" ${TOPP_BIN_PATH}/AccurateMassSearch -test 
 add_test("UTILS_AccurateMassSearch_1_out1" ${DIFF} -in1 AccurateMassSearch_1_output.tmp -in2 ${DATA_DIR_TOPP}/AccurateMassSearch_1_output.csv -whitelist "")
 set_tests_properties("UTILS_AccurateMassSearch_1_out1" PROPERTIES DEPENDS "UTILS_AccurateMassSearch_1")
 
+# AssayGeneratorMetabo
+# use FeatureFinderMetabo data
+add_test("UTILS_AssayGeneratorMetabo_1" ${TOPP_BIN_PATH}/AssayGeneratorMetabo -test -in ${DATA_DIR_TOPP}/AssayGeneratorMetabo_input.mzML -in_id ${DATA_DIR_TOPP}/AssayGeneratorMetabo_ffm_input.featureXML -out AssayGeneratorMetabo_ffm_output.tmp)
+add_test("UTILS_AssayGeneratorMetabo_1_out1" ${DIFF} -in1 AssayGeneratorMetabo_ffm_output.tmp -in2 ${DATA_DIR_TOPP}/AssayGeneratorMetabo_ffm_output.tsv -whitelist "")
+set_tests_properties("UTILS_AssayGeneratorMetabo_1_out1" PROPERTIES DEPENDS "UTILS_AssayGeneratorMetabo_1")
+# use AccurateMassSearch data
+add_test("UTILS_AssayGeneratorMetabo_2" ${TOPP_BIN_PATH}/AssayGeneratorMetabo -test -in ${DATA_DIR_TOPP}/AssayGeneratorMetabo_input.mzML -in_id ${DATA_DIR_TOPP}/AssayGeneratorMetabo_ams_input.featureXML -out AssayGeneratorMetabo_ams_output.tmp)
+add_test("UTILS_AssayGeneratorMetabo_2_out1" ${DIFF} -in1 AssayGeneratorMetabo_ams_output.tmp -in2 ${DATA_DIR_TOPP}/AssayGeneratorMetabo_ams_output.tsv -whitelist "")
+set_tests_properties("UTILS_AssayGeneratorMetabo_2_out1" PROPERTIES DEPENDS "UTILS_AssayGeneratorMetabo_2")
+# use FeatureFinderMetabo data with method consenesus_spectrum
+add_test("UTILS_AssayGeneratorMetabo_3" ${TOPP_BIN_PATH}/AssayGeneratorMetabo -test -in ${DATA_DIR_TOPP}/AssayGeneratorMetabo_input.mzML -in_id ${DATA_DIR_TOPP}/AssayGeneratorMetabo_ffm_input.featureXML -out AssayGeneratorMetabo_ffm_output_consensus.tmp -method consensus_spectrum)
+add_test("UTILS_AssayGeneratorMetabo_3_out1" ${DIFF} -in1 AssayGeneratorMetabo_ffm_output_consensus.tmp -in2 ${DATA_DIR_TOPP}/AssayGeneratorMetabo_ffm_output_consensus.tsv -whitelist "")
+set_tests_properties("UTILS_AssayGeneratorMetabo_3_out1" PROPERTIES DEPENDS "UTILS_AssayGeneratorMetabo_3")
+# use AccurateMassSearch data with method consensus_spectrum
+add_test("UTILS_AssayGeneratorMetabo_4" ${TOPP_BIN_PATH}/AssayGeneratorMetabo -test -in ${DATA_DIR_TOPP}/AssayGeneratorMetabo_input.mzML -in_id ${DATA_DIR_TOPP}/AssayGeneratorMetabo_ams_input.featureXML -out AssayGeneratorMetabo_ams_output_consensus.tmp -method consensus_spectrum)
+add_test("UTILS_AssayGeneratorMetabo_4_out1" ${DIFF} -in1 AssayGeneratorMetabo_ams_output_consensus.tmp -in2 ${DATA_DIR_TOPP}/AssayGeneratorMetabo_ams_output_consensus.tsv -whitelist "")
+set_tests_properties("UTILS_AssayGeneratorMetabo_4_out1" PROPERTIES DEPENDS "UTILS_AssayGeneratorMetabo_4")
+# use AccurateMassSearch data with method consensus_spectrum and use_known_unkowns
+add_test("UTILS_AssayGeneratorMetabo_5" ${TOPP_BIN_PATH}/AssayGeneratorMetabo -test -in ${DATA_DIR_TOPP}/AssayGeneratorMetabo_input.mzML -in_id ${DATA_DIR_TOPP}/AssayGeneratorMetabo_ams_input.featureXML -out AssayGeneratorMetabo_ams_uku_output_consensus.tmp -method consensus_spectrum -use_known_unknowns)
+add_test("UTILS_AssayGeneratorMetabo_5_out1" ${DIFF} -in1 AssayGeneratorMetabo_ams_uku_output_consensus.tmp -in2 ${DATA_DIR_TOPP}/AssayGeneratorMetabo_ams_uku_output_consensus.tsv -whitelist "")
+set_tests_properties("UTILS_AssayGeneratorMetabo_5_out1" PROPERTIES DEPENDS "UTILS_AssayGeneratorMetabo_5")
+
+
 # ImageCreator:
 if(WITH_GUI)
   add_test("UTILS_ImageCreator_1" ${TOPP_BIN_PATH}/ImageCreator -test -in ${DATA_DIR_TOPP}/ImageCreator_1_input.mzML -out ImageCreator1.bmp -width 20 -height 15)
