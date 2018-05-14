@@ -48,7 +48,7 @@ using namespace std;
 std::vector<FASTAFile::FASTAEntry> toFASTAVec(const QStringList& sl_prot, const QStringList& identifier = QStringList())
 {
   std::vector<FASTAFile::FASTAEntry> proteins;
-  for (Size i = 0; i < sl_prot.size(); ++i)
+  for (auto i = 0; i < sl_prot.size(); ++i)
   {
     String id = i < identifier.size() ? identifier[i] : String(i); // use identifier if given; or create automatically
     proteins.push_back(FASTAFile::FASTAEntry(id, "", sl_prot[int(i)]));
@@ -60,7 +60,7 @@ std::vector<FASTAFile::FASTAEntry> toFASTAVec(const QStringList& sl_prot, const 
 std::vector<PeptideIdentification> toPepVec(const QStringList& sl_pep)
 {
   std::vector<PeptideIdentification> pep_vec;
-  for (Size i = 0; i < sl_pep.size(); ++i)
+  for (auto i = 0; i < sl_pep.size(); ++i)
   {
     PeptideHit hit;
     hit.setSequence(AASequence::fromString(sl_pep[int(i)]));
@@ -96,12 +96,16 @@ END_SECTION
 
 START_SECTION((ExitCodes run(std::vector<FASTAFile::FASTAEntry>& proteins, std::vector<ProteinIdentification>& prot_ids, std::vector<PeptideIdentification>& pep_ids)))
 {
+  // regression test: https://github.com/OpenMS/OpenMS/issues/3447
   {
     PeptideIndexing indexer;
     std::vector<FASTAFile::FASTAEntry> proteins = toFASTAVec(QStringList() << "AAAKEEEKTTTK");
     std::vector<ProteinIdentification> prot_ids;
     std::vector<PeptideIdentification> pep_ids = toPepVec(QStringList() << "EEEK(Label:13C(6))");
     indexer.run(proteins, prot_ids, pep_ids);
+    TEST_EQUAL(pep_ids[0].getHits()[0].extractProteinAccessionsSet().size(), 1); // one exact hit
+    indexer.run(proteins, prot_ids, pep_ids);
+    TEST_EQUAL(pep_ids[0].getHits()[0].extractProteinAccessionsSet().size(), 1); // one exact hit
   }
 
   PeptideIndexing pi;
@@ -158,7 +162,7 @@ START_SECTION((ExitCodes run(std::vector<FASTAFile::FASTAEntry>& proteins, std::
     pi.setParameters(p);
     std::vector<FASTAFile::FASTAEntry> proteins_local = proteins;
     std::vector<PeptideIdentification> pep_ids_local = pep_ids;
-    PeptideIndexing::ExitCodes r = pi.run(proteins_local, prot_ids, pep_ids_local);
+    pi.run(proteins_local, prot_ids, pep_ids_local);
     for (Size i = 0; i < pep_ids.size(); ++i)
     {
       set<String> protein_accessions = pep_ids_local[i].getHits()[0].extractProteinAccessionsSet();
@@ -188,7 +192,7 @@ START_SECTION((ExitCodes run(std::vector<FASTAFile::FASTAEntry>& proteins, std::
   pep_ids = toPepVec(QStringList() << "NENE" << "NEDE" << "DENE" << "DEDE"); // 4 hits;
   r = pi.run(proteins, prot_ids, pep_ids);
   TEST_EQUAL(proteins.size(), 2) // one removed!
-  for (int i = 0; i < pep_ids.size(); ++i) TEST_EQUAL(pep_ids[i].getHits()[0].extractProteinAccessionsSet().size(), 1); // one hit!
+  for (Size i = 0; i < pep_ids.size(); ++i) TEST_EQUAL(pep_ids[i].getHits()[0].extractProteinAccessionsSet().size(), 1); // one hit!
   // ... however, if sequences are not equal: bail out
   proteins = toFASTAVec(QStringList() << "BEBE" << "PROTEIN" << "NOT*BEBE", QStringList() << "P_BEBE" << "P_PROTEIN" << "P_BEBE"); //
   pep_ids = toPepVec(QStringList() << "NENE" << "NEDE" << "DENE" << "DEDE"); // 4 hits;
@@ -202,12 +206,12 @@ START_SECTION((ExitCodes run(std::vector<FASTAFile::FASTAEntry>& proteins, std::
   proteins = toFASTAVec(QStringList() << "BEBEI" << "BEBEL"); //
   pep_ids = toPepVec(QStringList() << "NENEL" << "NEDEL" << "DENEI" << "DEDEI"); // each PSM hits either one or two proteins, depending on I/L setting;
   r = pi.run(proteins, prot_ids, pep_ids);
-  for (int i = 0; i < pep_ids.size(); ++i) TEST_EQUAL(pep_ids[i].getHits()[0].extractProteinAccessionsSet().size(), 1); // one hit!
+  for (Size i = 0; i < pep_ids.size(); ++i) TEST_EQUAL(pep_ids[i].getHits()[0].extractProteinAccessionsSet().size(), 1); // one hit!
   // ... separate
   p.setValue("IL_equivalent", "true"); // default
   pi.setParameters(p);
   r = pi.run(proteins, prot_ids, pep_ids);
-  for (int i = 0; i < 4; ++i) TEST_EQUAL(pep_ids[i].getHits()[0].extractProteinAccessionsSet().size(), 2); // two hits!
+  for (Size i = 0; i < 4; ++i) TEST_EQUAL(pep_ids[i].getHits()[0].extractProteinAccessionsSet().size(), 2); // two hits!
   TEST_EQUAL(pep_ids[0].getHits()[0].getSequence().toUnmodifiedString(), "NENEL"); // make sure the PEPTIDE(!) sequence itself is unchanged
   TEST_EQUAL(pep_ids[2].getHits()[0].getSequence().toUnmodifiedString(), "DENEI"); // make sure the PEPTIDE(!) sequence itself is unchanged
 
@@ -218,7 +222,7 @@ START_SECTION((ExitCodes run(std::vector<FASTAFile::FASTAEntry>& proteins, std::
   proteins = toFASTAVec(QStringList() << "BEBE"); //
   pep_ids = toPepVec(QStringList() << "NEKNE" << "NEE"); // 1 insertion, 1 deletion;
   r = pi.run(proteins, prot_ids, pep_ids);
-  for (int i = 0; i < pep_ids.size(); ++i) TEST_EQUAL(pep_ids[i].getHits()[0].extractProteinAccessionsSet().size(), 0); // no hits
+  for (Size i = 0; i < pep_ids.size(); ++i) TEST_EQUAL(pep_ids[i].getHits()[0].extractProteinAccessionsSet().size(), 0); // no hits
 
  
 
