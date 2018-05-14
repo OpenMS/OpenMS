@@ -35,7 +35,7 @@
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/test_config.h>
 
-#include <Qt/qstringlist.h>
+#include <QtCore/QStringList>
 
 ///////////////////////////
 #include <OpenMS/ANALYSIS/ID/PeptideIndexing.h>
