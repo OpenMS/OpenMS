@@ -46,7 +46,7 @@ using namespace std;
 
 namespace OpenMS
 {
-  MultiplexFilteredPeak::MultiplexFilteredPeak(double mz, double rt, size_t mz_idx, size_t rt_idx) :
+  MultiplexFilteredPeak::MultiplexFilteredPeak(double mz, float rt, size_t mz_idx, size_t rt_idx) :
     mz_(mz), rt_(rt), mz_idx_(mz_idx), rt_idx_(rt_idx)
   {
   }
@@ -56,7 +56,7 @@ namespace OpenMS
     return mz_;
   }
 
-  double MultiplexFilteredPeak::getRT() const
+  float MultiplexFilteredPeak::getRT() const
   {
     return rt_;
   }
@@ -81,7 +81,7 @@ namespace OpenMS
     satellites_.insert(std::make_pair(pattern_idx, satellite));
   }
   
-  void MultiplexFilteredPeak::addSatelliteProfile(double rt, double mz, double intensity, size_t pattern_idx)
+  void MultiplexFilteredPeak::addSatelliteProfile(float rt, double mz, float intensity, size_t pattern_idx)
   {
     satellites_profile_.insert(std::make_pair(pattern_idx, MultiplexSatelliteProfile(rt, mz, intensity)));
   }

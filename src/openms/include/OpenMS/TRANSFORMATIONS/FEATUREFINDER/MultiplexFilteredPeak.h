@@ -74,7 +74,7 @@ namespace OpenMS
     /**
      * @brief constructor
      */
-    MultiplexFilteredPeak(double mz, double rt, size_t mz_idx, size_t rt_idx);
+    MultiplexFilteredPeak(double mz, float rt, size_t mz_idx, size_t rt_idx);
 
     /**
      * @brief returns m/z of the peak
@@ -84,7 +84,7 @@ namespace OpenMS
     /**
      * @brief returns RT of the peak
      */
-    double getRT() const;
+    float getRT() const;
     
     /**
      * @brief returns the index of the peak in the spectrum
@@ -106,7 +106,7 @@ namespace OpenMS
     /**
      * @brief add a satellite data point
      */
-    void addSatelliteProfile(double rt, double mz, double intensity, size_t pattern_idx);
+    void addSatelliteProfile(float rt, double mz, float intensity, size_t pattern_idx);
     
     void addSatelliteProfile(const MultiplexSatelliteProfile& satellite, size_t pattern_idx);
     
@@ -142,7 +142,7 @@ namespace OpenMS
      * It is the input for the subsequent clustering step. 
      */
     double mz_;
-    double rt_;
+    float rt_;
     
     /**
      * @brief indices of the primary peak position in the centroided experiment
