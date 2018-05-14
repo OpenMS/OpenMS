@@ -60,11 +60,6 @@ namespace OpenMS
         /**
          * @brief adds a single peak to the results
          */
-        void addPeak(double mz, double rt, size_t mz_idx, size_t rt_idx);
-        
-        /**
-         * @brief adds a single peak to the results
-         */
         void addPeak(const MultiplexFilteredPeak& peak);
         
         /**

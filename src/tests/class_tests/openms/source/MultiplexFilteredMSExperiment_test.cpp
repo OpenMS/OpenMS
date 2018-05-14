@@ -54,12 +54,14 @@ START_SECTION(MultiplexFilteredMSExperiment())
 END_SECTION
 
 MultiplexFilteredMSExperiment exp;
-exp.addPeak(654.32, 2345.67, 24, 110);
+MultiplexFilteredPeak peak(654.32, 2345.67, 24, 110);
+exp.addPeak(peak);
 size_t n;
 
-START_SECTION(addPeak(double mz, double rt, size_t mz_idx, size_t rt_idx))
+START_SECTION(addPeak(const MultiplexFilteredPeak& peak))
   n = exp.size();
-  exp.addPeak(655.32, 2346.67, 25, 111);
+  MultiplexFilteredPeak peak_temp(655.32, 2346.67, 25, 111);
+  exp.addPeak(peak_temp);
   TEST_EQUAL(exp.size(), n + 1);
 END_SECTION
 

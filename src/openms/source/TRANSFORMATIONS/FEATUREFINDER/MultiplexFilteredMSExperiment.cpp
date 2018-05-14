@@ -55,12 +55,6 @@ namespace OpenMS
   {
   }
 
-  void MultiplexFilteredMSExperiment::addPeak(double mz, double rt, size_t mz_idx, size_t rt_idx)
-  {
-    MultiplexFilteredPeak peak(mz, rt, mz_idx, rt_idx);
-    result_.push_back(peak);
-  }
-
   void MultiplexFilteredMSExperiment::addPeak(const MultiplexFilteredPeak& peak)
   {
     result_.push_back(peak);
