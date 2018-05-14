@@ -105,7 +105,7 @@ if(APPLE)
                                ${OPENGL_gl_LIBRARY}
                                ${OPENGL_glu_LIBRARY})
 elseif(MSVC)
-  list(APPEND OPENMS_DEP_LIBRARIES opengl32.lib)
+  list(APPEND OPENMS_GUI_DEP_LIBRARIES opengl32.lib)
 endif()
 
 #------------------------------------------------------------------------------
