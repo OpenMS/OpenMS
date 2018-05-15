@@ -50,6 +50,8 @@
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
+#include <memory>
+
 using namespace OpenMS;
 using namespace std;
 
@@ -1311,7 +1313,7 @@ protected:
     const bool enable_rt_check = (rt_tol >= 0);
     const bool enable_sim_check = (sim_tol > -1);
 
-    PeakSpectrumCompareFunctor* comp_function = Factory<PeakSpectrumCompareFunctor>::create("ZhangSimilarityScore");
+    std::unique_ptr<PeakSpectrumCompareFunctor> comp_function(Factory<PeakSpectrumCompareFunctor>::create("ZhangSimilarityScore"));
 
     set<Size> list_idx;
 
