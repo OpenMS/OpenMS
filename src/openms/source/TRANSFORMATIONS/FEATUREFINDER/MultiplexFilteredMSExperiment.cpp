@@ -73,9 +73,10 @@ namespace OpenMS
   vector<double> MultiplexFilteredMSExperiment::getMZ() const
   {
     vector<double> mz;
+    mz.resize(result_.size());
     for (size_t i = 0; i < result_.size(); ++i)
     {
-      mz.push_back(result_[i].getMZ());
+      mz[i] = result_[i].getMZ();
     }
     return mz;
   }
@@ -88,9 +89,10 @@ namespace OpenMS
   vector<double> MultiplexFilteredMSExperiment::getRT() const
   {
     vector<double> rt;
+    rt.resize(result_.size());
     for (size_t i = 0; i < result_.size(); ++i)
     {
-      rt.push_back(result_[i].getRT());
+      rt[i] = result_[i].getRT();
     }
     return rt;
   }
