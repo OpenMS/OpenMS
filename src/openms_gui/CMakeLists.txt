@@ -98,6 +98,7 @@ set(OpenMS_GUI_PRIVATE_DEP_LIBRARIES "")
 # --------------------------------------------------------------------------
 # handle OpenGL and QTPrintSupport on macosx systems
 if(APPLE)
+  find_package(OpenGL REQUIRED)
   # The QPA plugin libqcocoa.dylib that is silently loaded by QApplication in QT
   # on Mac depends on QtPrintSupport. If we do not link, it will not be packaged.
   set(OpenMS_GUI_PRIVATE_DEP_LIBRARIES ${Qt5PrintSupport_LIBRARIES})
@@ -118,8 +119,8 @@ openms_add_library(TARGET_NAME OpenMS_GUI
 		   # The Qt5Widgets_INCLUDES also includes the include directories for
 		   # dependencies QtCore and QtGui
                                      ${Qt5Widgets_INCLUDE_DIRS}
-				     ${Qt5Svg_INCLUDE_DIRS}
-				     ${Qt5Network_INCLUDE_DIRS}
+				                             ${Qt5Svg_INCLUDE_DIRS}
+				                             ${Qt5Network_INCLUDE_DIRS}
                    LINK_LIBRARIES ${OpenMS_GUI_DEP_LIBRARIES}
                    PRIVATE_LINK_LIBRARIES ${OpenMS_GUI_PRIVATE_DEP_LIBRARIES}
                    DLL_EXPORT_PATH "OpenMS/VISUAL/")
