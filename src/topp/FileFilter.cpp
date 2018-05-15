@@ -1281,8 +1281,8 @@ protected:
     }
 
     // create new experiment
-    PeakMap exp2 = (SpectrumSettings)exp; // copy meta data
-    exp2.clear(false); // clear spectra
+    PeakMap exp2;
+    exp.getExperimentalSettings() = (ExperimentalSettings)exp.getExperimentalSettings(); // copy meta data
 
     for (Size i = 0; i != exp.size(); ++i)
     {
