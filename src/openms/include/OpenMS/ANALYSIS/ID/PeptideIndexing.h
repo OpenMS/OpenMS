@@ -720,9 +720,7 @@ public:
        while (true)
        {
          proteins.cacheChunk(PROTEIN_CACHE_SIZE);
-         bool has_active_data = proteins.activateCache();
-
-         if (!has_active_data) break;
+         if (!proteins.activateCache()) break;
          auto prot_count = (SignedSize)proteins.chunkSize();
          all_proteins_count += prot_count;
 
