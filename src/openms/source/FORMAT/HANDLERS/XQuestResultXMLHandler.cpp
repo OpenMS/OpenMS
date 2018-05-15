@@ -390,10 +390,20 @@ namespace OpenMS
         this->rt_light_ = rt_split[0].toDouble();
         this->rt_heavy_ = rt_split[1].toDouble();
 
-        StringList mz_split;
-        StringUtils::split(this->attributeAsString_(attributes, "mzscans"), ":", mz_split);
-        this->mz_light_ = mz_split[0].toDouble();
-        this->mz_heavy_ = mz_split[1].toDouble();
+        String mz_scans = this->attributeAsString_(attributes, "mzscans");
+        if (!mz_scans.empty())
+        {
+          StringList mz_split;
+          StringUtils::split(this->attributeAsString_(attributes, "mzscans"), ":", mz_split);
+          this->mz_light_ = mz_split[0].toDouble();
+          this->mz_heavy_ = mz_split[1].toDouble();
+        }
+        else
+        {
+          double mz_precursor = this->attributeAsString_(attributes, "mz_precursor").toDouble();
+          this->mz_light_ = mz_precursor;
+          this->mz_heavy_ = mz_precursor;
+        }
 
         // Update min and max precursor charge
         UInt charge_precursor = this->attributeAsInt_(attributes, "charge_precursor");
@@ -409,16 +419,18 @@ namespace OpenMS
         }
           this->charges_.insert(charge_precursor);
 
+          // spectrum="C_Lee_141014_CRM_dialysis_NCE20_1.05723.05723.3_C_Lee_141014_CRM_dialysis_NCE20_1.05723.05723.3"
           String spectrum = this->attributeAsString_(attributes, "spectrum");
           vector<String> split_spectrum;
 
           // read input filename (will not contain file type this way)
+          // TODO split on middle "_"???
           StringUtils::split(spectrum, ".c.", split_spectrum);
           String file_name = split_spectrum[0];
           if (std::find(this->ms_run_path_.begin(), this->ms_run_path_.end(), file_name) == this->ms_run_path_.end())
           {
             this->ms_run_path_.push_back(file_name);
-      }
+          }
           this->spectrum_input_file_ = file_name;
 
           // read spectrum indices
