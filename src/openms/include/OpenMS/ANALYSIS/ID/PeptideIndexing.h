@@ -188,18 +188,11 @@ public:
       // no decoy string provided? try to deduce from data
       if (decoy_string_.empty())
       {
-        LOG_INFO << "No decoy string provided. Trying to determine from data." << std::endl;
-        ExitCodes e = findDecoyString_(proteins, decoy_string_, prefix_);
-        if (e == EXIT_SUCCESS)
+        if (!findDecoyString_(proteins, decoy_string_, prefix_))
         {
-          String position = prefix_ ? "prefix" : "suffix";
-          LOG_INFO << "Using " << position << " decoy string '" << decoy_string_ << "'" << std::endl;
-        }
-        else
-        {
-          LOG_ERROR << "Failed to determine decoy string automatically!" << std::endl;
           return DECOYSTRING_EMPTY;
         }
+        LOG_INFO << "Using " << (prefix_ ? "prefix" : "suffix") << " decoy string '" << decoy_string_ << "'" << std::endl;
 
         proteins.reset(); // reset caching
       }
@@ -701,25 +694,26 @@ public:
 
  protected:
 
-     using MapDecoyStringToPrefixSuffixCount = std::map<std::string, std::pair<int, int>>;
-     using MapCaseInsensitiveToCaseSensitiveDecoyString = std::map<std::string, std::string>;
+     using DecoyStringToAffixCount = std::map<std::string, std::pair<int, int>>;
+     using CaseInsensitiveToCaseSensitiveDecoy = std::map<std::string, std::string>;
 
      template<typename T>
-     ExitCodes findDecoyString_(FASTAContainer<T> & proteins,
-                                std::string & decoy_string,
-                                bool & is_prefix)
+     bool findDecoyString_(FASTAContainer<T>& proteins,
+                                std::string& decoy_string,
+                                bool& is_prefix)
      {
        // Common decoy strings in fasta files. Used to determine if a protein is target/decoy automatically.
        // Note: decoy prefixes/suffices must be provided in lower case and must only contain alphanumeric characters
-        MapDecoyStringToPrefixSuffixCount decoy_count = {{"decoy", {0,0}}, {"rev", {0,0}},
+        DecoyStringToAffixCount decoy_count = {{"decoy", {0,0}}, {"rev", {0,0}},
                                                           {"reverse", {0,0}}, {"dev", {0,0}},
                                                           {"iddecoy", {0,0}}, {"xxx", {0,0}},
-                                                          {"shuffle", {0,0}}, {"shuffled", {0,0}},
+                                                          {"shuffle", {0,0}}, {"pseudo", {0,0}},
                                                           {"random", {0,0}}};
 
-
        // map case insensitive strings back to original case (as used in fasta)
-       MapCaseInsensitiveToCaseSensitiveDecoyString decoy_case_sensitive;
+       CaseInsensitiveToCaseSensitiveDecoy decoy_case_sensitive;
+
+       int all_prefix_occur(0), all_suffix_occur(0), all_proteins_count(0);
 
        const size_t PROTEIN_CACHE_SIZE = 4e5;
 
@@ -730,6 +724,7 @@ public:
 
          if (!has_active_data) break;
          auto prot_count = (SignedSize)proteins.chunkSize();
+         all_proteins_count += prot_count;
 
          {
            for (SignedSize i = 0; i < prot_count; ++i)
@@ -747,6 +742,7 @@ public:
              {
                if (seq_lower.hasPrefix(pair.first))
                {
+                 all_prefix_occur++;
                  // count observed (ignoring case)
                  decoy_count[pair.first].first++;
                  // store observed (case sensitive)
@@ -755,6 +751,7 @@ public:
                }
                else if (seq_lower.hasSuffix(pair.first))
                {
+                 all_suffix_occur++;
                  // count observed (ignoring case)
                  decoy_count[pair.first].second++;
                  // store observed (case sensitive)
@@ -769,81 +766,67 @@ public:
        // DEBUG only: print counts of found decoys
        for (auto &a : decoy_count) LOG_DEBUG << a.first << "\t" << a.second.first << "\t" << a.second.second << std::endl;
 
-       return determineDecoyStringFromCounts_(decoy_count, decoy_case_sensitive, decoy_string, is_prefix);
-     }
-
-     ExitCodes determineDecoyStringFromCounts_(const MapDecoyStringToPrefixSuffixCount & decoy_count,
-                                     const MapCaseInsensitiveToCaseSensitiveDecoyString & decoy_case_sensitive,
-                                     std::string & decoy_string,
-                                     bool & is_prefix) const
-     {
-       int all_prefix_occur(0), all_suffix_occur(0);
-
-       // count observed decoy prefixes
-       for (const auto &pair : decoy_count)
-       {
-         all_prefix_occur += pair.second.first;
-       }
-
-       // count observed decoy suffixes
-       for (const auto &pair : decoy_count)
-       {
-         all_suffix_occur += pair.second.second;
-       }
-
        if (all_prefix_occur == all_suffix_occur)
        {
-         LOG_ERROR << "Unable to determine decoy string" << std::endl;
-         return DECOYSTRING_EMPTY;
+         LOG_ERROR << "Unable to determine decoy string!" << std::endl;
+         return false;
        }
 
-       // if a decoy prefix occured at least 80% -> set it as prefix decoy
-       for (const auto & pair : decoy_count)
+       // side case: prefix_reverse == prefix_rev -> if reverse occurs, then rev will be found as well -> remove rev findings
+       if (decoy_count["rev"].first == decoy_count["reverse"].first)
+       {
+         all_prefix_occur -= decoy_count["rev"].first;
+         decoy_count["rev"].first = 0;
+       }
+
+       // if a decoy prefix occurred at least 80% -> set it as prefix decoy
+       for (const auto& pair : decoy_count)
        {
          const std::string & case_insensitive_decoy_string = pair.first;
-         const std::pair<int, int> & prefix_suffix_counts = pair.second;
+         const std::pair<int, int>& prefix_suffix_counts = pair.second;
          double freq_prefix = static_cast<double>(prefix_suffix_counts.first) / static_cast<double>(all_prefix_occur);
-         if (freq_prefix > 0.8)
+         double freq_prefix_in_proteins = static_cast<double>(prefix_suffix_counts.first) / static_cast<double>(all_proteins_count);
+
+         if (freq_prefix > 0.8 && freq_prefix_in_proteins > 0.4)
          {
            is_prefix = true;
-           decoy_string = decoy_case_sensitive.at(case_insensitive_decoy_string);
+           decoy_string = decoy_case_sensitive[case_insensitive_decoy_string];
 
            if (prefix_suffix_counts.first != all_prefix_occur)
            {
              LOG_WARN << "More than one decoy prefix observed!" << std::endl;
-             LOG_WARN << "Using most frequent decoy prefix (" << freq_prefix * 100 <<"%)" << std::endl;
+             LOG_WARN << "Using most frequent decoy prefix (" << (int) freq_prefix * 100 <<"%)" << std::endl;
            }
 
+           return true;
          }
        }
 
-       // if a decoy suffix occured at least 80% -> set it as suffix decoy
-       for (const auto & pair : decoy_count)
+       // if a decoy suffix occurred at least 80% -> set it as suffix decoy
+       for (const auto& pair : decoy_count)
        {
-         const std::string & case_insensitive_decoy_string = pair.first;
-         const std::pair<int, int> & prefix_suffix_counts = pair.second;
+         const std::string& case_insensitive_decoy_string = pair.first;
+         const std::pair<int, int>& prefix_suffix_counts = pair.second;
          double freq_suffix = static_cast<double>(prefix_suffix_counts.second) / static_cast<double>(all_suffix_occur);
-         if (freq_suffix > 0.8)
+         double freq_suffix_in_proteins = static_cast<double>(prefix_suffix_counts.second) / static_cast<double>(all_proteins_count);
+
+         if (freq_suffix > 0.8 && freq_suffix_in_proteins > 0.4)
          {
            is_prefix = false;
-           decoy_string = decoy_case_sensitive.at(case_insensitive_decoy_string);
+           decoy_string = decoy_case_sensitive[case_insensitive_decoy_string];
 
            if (prefix_suffix_counts.first != all_suffix_occur)
            {
              LOG_WARN << "More than one decoy suffix observed!" << std::endl;
-             LOG_WARN << "Using most frequent decoy suffix (" << freq_suffix * 100 <<"%)" << std::endl;
+             LOG_WARN << "Using most frequent decoy suffix (" << (int) freq_suffix * 100 <<"%)" << std::endl;
            }
 
+           return true;
          }
        }
 
-       if (decoy_string.empty())
-       {
          LOG_ERROR << "Unable to determine decoy string" << std::endl;
-         return DECOYSTRING_EMPTY;
-       }
-
-       return EXECUTION_OK;
+         return false;
      }
 
 
