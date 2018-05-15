@@ -870,7 +870,8 @@ protected:
         if (ret != EXECUTION_OK) { return (ExitCodes)ret; }
       }
 
-      // filter spectra if the occur in spectra:blackorwhitelist:file in rt/mz/similarity tolerance window
+      // filter spectra if they occur in spectra:blackorwhitelist:file 
+      // (determined by comparing rt/mz/similarity)
       String lib_file_name = getStringOption_("spectra:blackorwhitelist:file");
       if (!lib_file_name.empty())
       {
