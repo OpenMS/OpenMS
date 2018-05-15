@@ -1282,7 +1282,7 @@ protected:
 
     // create new experiment
     PeakMap exp2;
-    exp.getExperimentalSettings() = (ExperimentalSettings)exp.getExperimentalSettings(); // copy meta data
+    exp2.getExperimentalSettings() = (ExperimentalSettings)exp.getExperimentalSettings(); // copy meta data
 
     for (Size i = 0; i != exp.size(); ++i)
     {
