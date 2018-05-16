@@ -719,14 +719,12 @@ public:
        }
        std::sort(prefix_regex.rbegin(), prefix_regex.rend());
 
-       // Setup regex string -> create prefix- and suffix pattern to match to
-       std::string regexstr_prefix = std::string("^(") + ListUtils::concatenate<std::string>(prefix_regex, "|") + ")";
-       // suffix: remove leading '^', add latter '$'
-       std::string regexstr_suffix(regexstr_prefix.begin() + 1, regexstr_prefix.end());
-       regexstr_suffix.insert(regexstr_suffix.end(), '$');
+       // Setup prefix- and suffix regex strings
+       const std::string regexstr_prefix = std::string("^(") + ListUtils::concatenate<std::string>(prefix_regex, "|") + ")";
+       const std::string regexstr_suffix = std::string("(") + ListUtils::concatenate<std::string>(prefix_regex, "|") + ")$";
 
-       boost::regex pattern_prefix(regexstr_prefix);
-       boost::regex pattern_suffix(regexstr_suffix);
+       const boost::regex pattern_prefix(regexstr_prefix);
+       const boost::regex pattern_suffix(regexstr_suffix);
 
        int all_prefix_occur(0), all_suffix_occur(0), all_proteins_count(0);
        const size_t PROTEIN_CACHE_SIZE = 4e5;
@@ -743,13 +741,11 @@ public:
            for (SignedSize i = 0; i < prot_count; ++i)
            {
              String seq = proteins.chunkAt(i).identifier;
+             // remove all non-alphanumeric characters
+             seq.erase(std::remove_if(seq.begin(), seq.end(),
+                                      [](char c) { return !std::isalpha(c); }), seq.end());
              String seq_lower = seq;
              seq_lower.toLower();
-
-             // remove all non-alphanumeric characters
-             seq_lower.erase(std::remove_if(seq_lower.begin(), seq_lower.end(),
-                                            [](char c) { return !std::isalpha(c); }), seq_lower.end());
-
 
              boost::smatch sm;
              // search for prefix
