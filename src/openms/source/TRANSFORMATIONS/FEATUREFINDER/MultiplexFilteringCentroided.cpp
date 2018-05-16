@@ -134,8 +134,10 @@ namespace OpenMS
       filter_results.push_back(result);
     }
     
+#ifdef DEBUG
     // clock for monitoring run time performance
     LOG_INFO << "\nThe filtering step of the algorithm took " << (float)(clock()-start)/CLOCKS_PER_SEC << " seconds.\n\n";
+#endif
 
     endProgress();
     
