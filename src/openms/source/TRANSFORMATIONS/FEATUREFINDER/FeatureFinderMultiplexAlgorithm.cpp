@@ -55,6 +55,8 @@
 #include <fstream>
 #include <algorithm>
 
+// #define DEBUG
+
 using namespace std;
 
 namespace OpenMS
@@ -218,11 +220,13 @@ namespace OpenMS
     
     sort(list.begin(), list.end(), lessPattern);
     
+#ifdef DEBUG
     // debug output
-    /*for (int i = 0; i < list.size(); ++i)
-     {
-     std::cout << "charge = " << list[i].getCharge() << "+    shift = " << list[i].getMassShiftAt(1) << " Da\n";
-     }*/
+    for (int i = 0; i < list.size(); ++i)
+    {
+      std::cout << "charge = " << list[i].getCharge() << "+    shift = " << list[i].getMassShiftAt(1) << " Da\n";
+    }
+#endif
     
     return list;
   }
@@ -615,12 +619,12 @@ namespace OpenMS
               if ((satellite_it_2->second.getRTidx() == satellite_it->second.getRTidx()) && (satellite_it_2->second.getMZidx() == satellite_it->second.getMZidx()))
               {
                 satellite_in_set = true;
-                continue;
+                break;
               }
             }
             if (satellite_in_set)
             {
-              continue;
+              break;
             }
             
             satellites.insert(std::make_pair(satellite_it->first, MultiplexSatelliteCentroided(satellite_it->second.getRTidx(), satellite_it->second.getMZidx())));
@@ -720,7 +724,7 @@ namespace OpenMS
           if (box.maxX() - box.minX() < static_cast<double>(param_.getValue("algorithm:rt_min")))
           {
             abort = true;
-            continue;
+            break;
           }
           
           features.push_back(feature);
@@ -880,7 +884,7 @@ namespace OpenMS
           if (box.maxX() - box.minX() < static_cast<double>(param_.getValue("algorithm:rt_min")))
           {
             abort = true;
-            continue;
+            break;
           }
           
           features.push_back(feature);
@@ -1062,7 +1066,7 @@ namespace OpenMS
      */
     if (centroided)
     {
-      //consensus_map.setPrimaryMSRunPath(exp_centroid_.getPrimaryMSRunPath());
+      consensus_map.setPrimaryMSRunPath(exp_centroid_.getPrimaryMSRunPath());
       //feature_map.setPrimaryMSRunPath(exp_centroid_.getPrimaryMSRunPath());
       generateMapsCentroided_(patterns, filter_results, cluster_results);
     }
