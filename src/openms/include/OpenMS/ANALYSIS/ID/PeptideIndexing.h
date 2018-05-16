@@ -56,7 +56,6 @@
 #include <algorithm>
 #include <fstream>
 #include <OpenMS/DATASTRUCTURES/StringUtils.h>
-#include <regex>
 
 namespace OpenMS
 {
