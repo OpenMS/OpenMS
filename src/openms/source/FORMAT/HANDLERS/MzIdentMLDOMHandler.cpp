@@ -1712,7 +1712,8 @@ namespace OpenMS
         if (userParamUnits_alpha[i] == "xsd:double")
         {
           ph_alpha.setMetaValue(userParamNames_alpha[i], userParamValues_alpha[i].toDouble());
-        } else
+        }
+        else
         {
           ph_alpha.setMetaValue(userParamNames_alpha[i], userParamValues_alpha[i]);
         }
@@ -1790,7 +1791,8 @@ namespace OpenMS
           if (userParamUnits_beta[i] == "xsd:double")
           {
             ph_beta.setMetaValue(userParamNames_beta[i], userParamValues_beta[i].toDouble());
-          } else
+          }
+          else
           {
             ph_beta.setMetaValue(userParamNames_beta[i], userParamValues_beta[i]);
           }

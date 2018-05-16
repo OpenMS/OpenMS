@@ -402,10 +402,14 @@ protected:
         hit.setMetaValue("SpecId", scan_identifier);
         hit.setMetaValue("ScanNr", scan_number);
         
-        if (!hit.metaValueExists("target_decoy") || hit.getMetaValue("target_decoy").toString().empty()) continue;
+        if (!hit.metaValueExists("target_decoy") 
+          || hit.getMetaValue("target_decoy").toString().empty()) 
+        {
+          continue;
+        }
         
         int label = 1;
-        if (String(hit.getMetaValue("target_decoy")).hasSubstring("decoy"))
+        if (hit.getMetaValue("target_decoy") == "decoy")
         {
           label = -1;
         }
@@ -452,9 +456,21 @@ protected:
         String aa_after(hit.getPeptideEvidences().front().getAAAfter());
         aa_before = aa_before=="["?'-':aa_before;
         aa_after = aa_after=="]"?'-':aa_after;
-        sequence += aa_before; 
-        sequence += "." + hit.getSequence().toString() + ".";
+        sequence += aa_before;
+        // In OpenMS sequence nomenclature, dots are set only for modified N/C-term modifications, e.g. .(Dimethyl)VGDMYTSSDIFDSVR
+        // In Percolator sequence nomenclature, dots are always present for all N/C-term modifications, e.g. R.(Dimethyl)VGDMYTSSDIFDSVR.F
+        // Consequently, dots need only be added for unmodified N/C-termini.
+        if (hit.getSequence().getNTerminalModificationName().empty())
+        {
+          sequence += ".";
+        }
+        sequence += hit.getSequence().toString();
+        if (hit.getSequence().getCTerminalModificationName().empty())
+        {
+          sequence += ".";
+        }
         sequence += aa_after;
+        
         hit.setMetaValue("Peptide", sequence);
         
         //proteinId1
@@ -564,7 +580,7 @@ protected:
               pht->setMetaValue("target_decoy", "target");
             }
           }
-          else if (pht->getMetaValue("target_decoy").toString().hasSubstring("decoy"))
+          else if (pht->getMetaValue("target_decoy").toString() == "decoy")
           {
             found_decoys = true;
           }

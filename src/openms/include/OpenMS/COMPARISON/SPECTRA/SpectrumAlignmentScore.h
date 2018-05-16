@@ -32,8 +32,7 @@
 // $Authors: $
 // --------------------------------------------------------------------------
 //
-#ifndef OPENMS_COMPARISON_SPECTRA_SPECTRUMALIGNMENTSCORE_H
-#define OPENMS_COMPARISON_SPECTRA_SPECTRUMALIGNMENTSCORE_H
+#pragma once
 
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/KERNEL/Peak1D.h>
@@ -115,4 +114,3 @@ protected:
   };
 
 }
-#endif //OPENMS_COMPARISON_SPECTRA_SPECTRUMALIGNMENTSCORE_H

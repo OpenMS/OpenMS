@@ -32,8 +32,7 @@
 // $Authors: Stephan Aiche, Marc Sturm $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_CONCEPT_GLOBALEXCEPTIONHANDLER_H
-#define OPENMS_CONCEPT_GLOBALEXCEPTIONHANDLER_H
+#pragma once
 
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/CONCEPT/Exception.h>
@@ -217,4 +216,3 @@ protected:
 
 } // namespace OpenMS
 
-#endif // OPENMS_CONCEPT_GLOBALEXCEPTIONHANDLER_H

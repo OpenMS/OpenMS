@@ -32,8 +32,7 @@
 // $Authors: Stephan Aiche $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_QUANTITATION_ISOBARICQUANTITATIONMETHOD_H
-#define OPENMS_ANALYSIS_QUANTITATION_ISOBARICQUANTITATIONMETHOD_H
+#pragma once
 
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
@@ -151,4 +150,3 @@ protected:
   };
 } // namespace
 
-#endif // OPENMS_ANALYSIS_QUANTITATION_ISOBARICQUANTITATIONMETHOD_H

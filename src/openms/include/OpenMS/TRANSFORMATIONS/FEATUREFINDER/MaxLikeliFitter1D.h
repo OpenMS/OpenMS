@@ -32,8 +32,7 @@
 // $Authors: $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_TRANSFORMATIONS_FEATUREFINDER_MAXLIKELIFITTER1D_H
-#define OPENMS_TRANSFORMATIONS_FEATUREFINDER_MAXLIKELIFITTER1D_H
+#pragma once
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/Fitter1D.h>
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
@@ -139,4 +138,3 @@ protected:
   };
 }
 
-#endif // OPENMS_TRANSFORMATIONS_FEATUREFINDER_MAXLIKELIFITTER1D_H

@@ -33,8 +33,7 @@
 // --------------------------------------------------------------------------
 //
 
-#ifndef OPENMS_FILTERING_TRANSFORMERS_GOODDIFFFILTER_H
-#define OPENMS_FILTERING_TRANSFORMERS_GOODDIFFFILTER_H
+#pragma once
 
 #include <OpenMS/FILTERING/TRANSFORMERS/FilterFunctor.h>
 
@@ -146,4 +145,3 @@ private:
   };
 }
 
-#endif // OPENMS_FILTERING_TRANSFORMERS_GOODDIFFFILTER_H

@@ -32,8 +32,7 @@
 // $Authors: Marc Sturm, Chris Bielow $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FORMAT_HANDLERS_XMLHANDLER_H
-#define OPENMS_FORMAT_HANDLERS_XMLHANDLER_H
+#pragma once
 
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/CONCEPT/Macros.h>
@@ -80,7 +79,7 @@ namespace OpenMS
         return result;
       }
 
-      // Converts from a narrow-character string to a wide-charactr string.
+      // Converts from a narrow-character string to a wide-character string.
       inline XercesString fromNative_(const String& str) const
       {
         return fromNative_(str.c_str());
@@ -737,5 +736,4 @@ private:
   }   // namespace Internal
 } // namespace OpenMS
 
-#endif // OPENMS_FORMAT_HANDLERS_XMLHANDLER_H
 

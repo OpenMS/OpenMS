@@ -73,7 +73,7 @@ int main()
   search_parameters.charges = "+2";  
   protein_id.setSearchParameters(search_parameters);
  
-  // Some seach engine meta data 
+  // Some search engine meta data 
   protein_id.setSearchEngineVersion("v1.0.0");
   protein_id.setSearchEngine("SearchEngine");
   protein_id.setScoreType("HyperScore");

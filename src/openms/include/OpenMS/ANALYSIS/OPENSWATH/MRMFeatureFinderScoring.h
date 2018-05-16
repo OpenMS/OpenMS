@@ -32,8 +32,7 @@
 // $Authors: Hannes Roest $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_OPENSWATH_MRMFEATUREFINDERSCORING_H
-#define OPENMS_ANALYSIS_OPENSWATH_MRMFEATUREFINDERSCORING_H
+#pragma once
 
 #define USE_SP_INTERFACE
 
@@ -54,7 +53,7 @@
 #include <OpenMS/KERNEL/MSChromatogram.h>
 #include <OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>
 
-#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/SwathMap.h>
+#include <OpenMS/OPENSWATHALGO/DATAACCESS/SwathMap.h>
 
 #include <boost/shared_ptr.hpp>
 #include <boost/make_shared.hpp>
@@ -261,6 +260,8 @@ private:
      * @param native_ids_detection The native IDs of the detecting transitions
      * @param sn_win_len_ The signal to noise window length
      * @param sn_bin_count_ The signal to noise bin count
+     * @param det_intensity_ratio_score The intensity score of the detection transitions for normalization
+     * @param det_mi_ratio_score The MI score of the detection transitions for normalization
      * @param write_log_messages Whether to write signal to noise log messages
      * @value a struct of type OpenSwath_Scores containing either target or decoy values
     */
@@ -270,6 +271,8 @@ private:
                                           const std::vector<std::string> & native_ids_detection,
                                           const double sn_win_len_,
                                           const unsigned int sn_bin_count_,
+                                          const double det_intensity_ratio_score,
+                                          const double det_mi_ratio_score,
                                           bool write_log_messages,
                                           std::vector<OpenSwath::SwathMap> swath_maps);
 
@@ -282,6 +285,7 @@ private:
     int stop_report_after_feature_;
     bool write_convex_hull_;
     bool strict_;
+    String scoring_model_;
 
     // scoring parameters
     double rt_normalization_factor_;
@@ -304,5 +308,4 @@ private:
 }
 
 #undef run_identifier
-#endif // OPENMS_ANALYSIS_OPENSWATH_MRMFEATUREFINDERSCORING_H
 

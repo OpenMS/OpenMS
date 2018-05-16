@@ -72,7 +72,8 @@ namespace OpenMS
       {
         return indent + "<cvParam cvRef=\"MS\" accession=\"MS:1002748\" name=\"MS-Numpress short logged float compression followed by zlib compression\" />";
       }
-    } else
+    }
+    else
     {
       if (np.np_compression == MSNumpressCoder::NONE || !use_numpress)
       {
@@ -151,10 +152,10 @@ namespace OpenMS
     }
   }
 
-  void MzMLHandlerHelper::decodeBase64Arrays(std::vector<BinaryData> & data_, bool skipXMLCheck)
+  void MzMLHandlerHelper::decodeBase64Arrays(std::vector<BinaryData>& data, const bool skipXMLCheck)
   {
     // decode all base64 arrays
-    for (auto& bindata : data_)
+    for (auto& bindata : data)
     {
       // remove whitespaces from binary data
       // this should not be necessary, but linebreaks inside the base64 data are unfortunately no exception
@@ -220,6 +221,17 @@ namespace OpenMS
             bindata.size = bindata.floats_32.size();
           }
         }
+
+        // check for unit multiplier and correct our units (e.g. seconds vs minutes)
+        double unit_multiplier = bindata.unit_multiplier;
+        if (unit_multiplier != 1.0 && bindata.precision == BinaryData::PRE_64)
+        {
+          for (auto& it : bindata.floats_64) it = it * unit_multiplier;
+        }
+        else if (unit_multiplier != 1.0 && bindata.precision == BinaryData::PRE_32)
+        {
+          for (auto& it : bindata.floats_32) it = it * unit_multiplier;
+        }
       }
       else if (bindata.data_type == BinaryData::DT_INT)
       {
@@ -264,10 +276,10 @@ namespace OpenMS
 
   }
 
-  void MzMLHandlerHelper::computeDataProperties_(std::vector<BinaryData>& data_, bool& precision_64, SignedSize& index, const String& index_name)
+  void MzMLHandlerHelper::computeDataProperties_(const std::vector<BinaryData>& data, bool& precision_64, SignedSize& index, const String& index_name)
   {
     SignedSize i(0);
-    for (auto const&  bindata : data_)
+    for (auto const&  bindata : data)
     {
       if (bindata.meta.getName() == index_name)
       {
@@ -279,80 +291,86 @@ namespace OpenMS
     }
   }
 
-  bool MzMLHandlerHelper::handleBinaryDataArrayCVParam(std::vector<BinaryData>& data_,
-    const String& accession, const String& value, const String& name)
+  bool MzMLHandlerHelper::handleBinaryDataArrayCVParam(std::vector<BinaryData>& data,
+    const String& accession, const String& value, const String& name, const String& unit_accession)
   {
     //MS:1000518 ! binary data type
     if (accession == "MS:1000523") //64-bit float
     {
-      data_.back().precision = BinaryData::PRE_64;
-      data_.back().data_type = BinaryData::DT_FLOAT;
+      data.back().precision = BinaryData::PRE_64;
+      data.back().data_type = BinaryData::DT_FLOAT;
     }
     else if (accession == "MS:1000521") //32-bit float
     {
-      data_.back().precision = BinaryData::PRE_32;
-      data_.back().data_type = BinaryData::DT_FLOAT;
+      data.back().precision = BinaryData::PRE_32;
+      data.back().data_type = BinaryData::DT_FLOAT;
     }
     else if (accession == "MS:1000519") //32-bit integer
     {
-      data_.back().precision = BinaryData::PRE_32;
-      data_.back().data_type = BinaryData::DT_INT;
+      data.back().precision = BinaryData::PRE_32;
+      data.back().data_type = BinaryData::DT_INT;
     }
     else if (accession == "MS:1000522") //64-bit integer
     {
-      data_.back().precision = BinaryData::PRE_64;
-      data_.back().data_type = BinaryData::DT_INT;
+      data.back().precision = BinaryData::PRE_64;
+      data.back().data_type = BinaryData::DT_INT;
     }
     else if (accession == "MS:1001479")
     {
-      data_.back().precision = BinaryData::PRE_NONE;
-      data_.back().data_type = BinaryData::DT_STRING;
+      data.back().precision = BinaryData::PRE_NONE;
+      data.back().data_type = BinaryData::DT_STRING;
     }
     //MS:1000513 ! binary data array
     else if (accession == "MS:1000786") // non-standard binary data array (with name as value)
     {
-      data_.back().meta.setName(value);
+      data.back().meta.setName(value);
     }
     //MS:1000572 ! binary data compression type
     else if (accession == "MS:1000574") //zlib compression
     {
-      data_.back().compression = true;
+      data.back().compression = true;
     }
     else if (accession == "MS:1002312") //numpress compression: linear
     {
-      data_.back().np_compression = MSNumpressCoder::LINEAR;
+      data.back().np_compression = MSNumpressCoder::LINEAR;
     }
     else if (accession == "MS:1002313") //numpress compression: pic
     {
-      data_.back().np_compression = MSNumpressCoder::PIC;
+      data.back().np_compression = MSNumpressCoder::PIC;
     }
     else if (accession == "MS:1002314") //numpress compression: slof
     {
-      data_.back().np_compression = MSNumpressCoder::SLOF;
+      data.back().np_compression = MSNumpressCoder::SLOF;
     }
     else if (accession == "MS:1002746") //numpress compression: linear + zlib
     {
-      data_.back().np_compression = MSNumpressCoder::LINEAR;
-      data_.back().compression = true;
+      data.back().np_compression = MSNumpressCoder::LINEAR;
+      data.back().compression = true;
     }
     else if (accession == "MS:1002747") //numpress compression: pic + zlib
     {
-      data_.back().np_compression = MSNumpressCoder::PIC;
-      data_.back().compression = true;
+      data.back().np_compression = MSNumpressCoder::PIC;
+      data.back().compression = true;
     }
     else if (accession == "MS:1002748") //numpress compression: slof + zlib
     {
-      data_.back().np_compression = MSNumpressCoder::SLOF;
-      data_.back().compression = true;
+      data.back().np_compression = MSNumpressCoder::SLOF;
+      data.back().compression = true;
     }
     else if (accession == "MS:1000576") // no compression
     {
-      data_.back().compression = false;
-      data_.back().np_compression = MSNumpressCoder::NONE;
+      data.back().compression = false;
+      data.back().np_compression = MSNumpressCoder::NONE;
     }
     else if (accession == "MS:1000514" || accession == "MS:1000515" || accession == "MS:1000595")    // handle m/z, intensity, rt
     {
-      data_.back().meta.setName(name);
+      data.back().meta.setName(name);
+
+      // time array is given in minutes instead of seconds, we need to convert
+      if (accession == "MS:1000595" && unit_accession == "UO:0000031")
+      {
+        data.back().unit_multiplier = 60.0;
+      }
     }
     else
     {

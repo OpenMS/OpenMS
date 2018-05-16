@@ -32,8 +32,7 @@
 // $Authors: Hannes Roest $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_TARGETED_MRMMAPPING_H
-#define OPENMS_ANALYSIS_TARGETED_MRMMAPPING_H
+#pragma once
 
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 
@@ -106,4 +105,3 @@ protected:
   };
 }
 
-#endif // OPENMS_ANALYSIS_TARGETED_MRMMAPPING_H

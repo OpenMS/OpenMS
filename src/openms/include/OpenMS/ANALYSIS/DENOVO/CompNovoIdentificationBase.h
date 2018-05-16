@@ -33,8 +33,7 @@
 // --------------------------------------------------------------------------
 
 
-#ifndef OPENMS_ANALYSIS_DENOVO_COMPNOVOIDENTIFICATIONBASE_H
-#define OPENMS_ANALYSIS_DENOVO_COMPNOVOIDENTIFICATIONBASE_H
+#pragma once
 
 // OpenMS includes
 #include <OpenMS/METADATA/PeptideIdentification.h>
@@ -254,4 +253,3 @@ protected:
   }
 }
 
-#endif

@@ -32,8 +32,7 @@
 // $Authors: Martin Langwisch $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FORMAT_SEQUESTINFILE_H
-#define OPENMS_FORMAT_SEQUESTINFILE_H
+#pragma once
 
 #include <OpenMS/DATASTRUCTURES/String.h>
 
@@ -296,4 +295,3 @@ protected:
 
 } // namespace OpenMS
 
-#endif // OPENMS_FORMAT_SEQUESTINFILE_H

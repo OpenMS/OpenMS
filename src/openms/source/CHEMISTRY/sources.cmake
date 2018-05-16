@@ -14,12 +14,9 @@ DigestionEnzyme.cpp
 DigestionEnzymeProtein.cpp
 DigestionEnzymeRNA.cpp
 DigestionEnzymeDB.cpp
-IsotopeDistribution.cpp
 ModificationDefinition.cpp
 ModificationDefinitionsSet.cpp
 ModificationsDB.cpp
-ModifierRep.cpp
-PepIterator.cpp
 ProteaseDB.cpp
 ProteaseDigestion.cpp
 Residue.cpp
@@ -33,7 +30,6 @@ TheoreticalSpectrumGeneratorXLMS.cpp
 SvmTheoreticalSpectrumGenerator.cpp
 SvmTheoreticalSpectrumGeneratorTrainer.cpp
 SvmTheoreticalSpectrumGeneratorSet.cpp
-TrypticIterator.cpp
 WeightWrapper.cpp
 )
 
@@ -48,4 +44,3 @@ set(OpenMS_sources ${OpenMS_sources} ${sources})
 
 ### source group definition
 source_group("Source Files\\CHEMISTRY" FILES ${sources})
-

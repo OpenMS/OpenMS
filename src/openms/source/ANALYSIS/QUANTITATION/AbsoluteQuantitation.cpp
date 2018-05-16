@@ -191,7 +191,8 @@ namespace OpenMS
     // extract out the calibration points
     TransformationModel::DataPoints data;
     TransformationModel::DataPoint point;
-    for (size_t i = 0; i < component_concentrations.size(); i++){
+    for (size_t i = 0; i < component_concentrations.size(); i++)
+    {
       point.first = component_concentrations[i].actual_concentration/component_concentrations[i].IS_actual_concentration;
       double ratio = calculateRatio(component_concentrations[i].feature, component_concentrations[i].IS_feature,feature_name);
       point.second = ratio/component_concentrations[i].dilution_factor; // adjust based on the dilution factor
@@ -306,7 +307,7 @@ namespace OpenMS
     //Potential Optimizations: create a map for each unknown FeatureMap
     // to reduce multiple loops
 
-    // initalize all other variables
+    // initialize all other variables
     Feature empty_feature;
     size_t IS_component_it, IS_component_group_it;
 
@@ -625,7 +626,7 @@ namespace OpenMS
       AbsoluteQuantitationMethod& component_aqm = quant_method.second;
       if (cc.count(component_name) && optimization_method_ == "iterative")
       {
-        // optimize the calibraiton curve for the component
+        // optimize the calibration curve for the component
         Param optimized_params;
         bool optimal_calibration_found = optimizeCalibrationCurveIterative(
           cc[component_name],

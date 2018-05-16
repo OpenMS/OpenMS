@@ -32,8 +32,7 @@
 // $Authors: Chris Bielow, Stephan Aiche, Andreas Bertsch$
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_CONCEPT_LOGSTREAM_H
-#define OPENMS_CONCEPT_LOGSTREAM_H
+#pragma once
 
 #include <OpenMS/DATASTRUCTURES/String.h>
 
@@ -467,4 +466,3 @@ private:
 
 } // namespace OpenMS
 
-#endif // OPENMS_CONCEPT_LOGSTREAM_H

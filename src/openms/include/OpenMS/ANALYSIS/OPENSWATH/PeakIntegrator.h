@@ -32,8 +32,7 @@
 // $Authors: Douglas McCloskey, Pasquale Domenico Colaianni $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_OPENSWATH_PEAKINTEGRATOR_H
-#define OPENMS_ANALYSIS_OPENSWATH_PEAKINTEGRATOR_H
+#pragma once
 
 #include <OpenMS/config.h> // OPENMS_DLLAPI
 #include <OpenMS/CONCEPT/LogStream.h>
@@ -45,8 +44,24 @@
 
 namespace OpenMS
 {
+
   /**
     @brief Compute the area, background and shape metrics of a peak.
+
+    The area computation is performed in integratePeak() and it supports
+    integration by simple sum of the intensity, integration by Simpson's rule
+    implementations for an odd number of unequally spaced points or integration
+    by the trapezoid rule.
+
+    The background computation is performed in estimateBackground() and it
+    supports three different approaches to baseline correction, namely
+    computing a rectangular shape under the peak based on the minimum value of
+    the peak borders (vertical_division_min), a rectangular shape based on the
+    maximum value of the beak borders (vertical_division_max) or a trapezoidal
+    shape based on a straight line between the peak borders (base_to_base).
+
+    Peak shape metrics are computed in calculatePeakShapeMetrics() and multiple
+    metrics are supported.
 
     The containers supported by the methods are MSChromatogram and MSSpectrum.
   */
@@ -102,7 +117,8 @@ public:
     ///@}
 
     /** @name calculatePeakShapeMetrics() output
-      The calculatePeakShapeMetrics() method uses this struct to save its results.
+      
+        The calculatePeakShapeMetrics() method uses this struct to save its results.
     */
     ///@{
     struct PeakShapeMetrics
@@ -193,8 +209,9 @@ public:
     ///@}
 
     /** @name Constant expressions for parameters
-      Constants expressions used throughout the code and tests to set
-      the integration and baseline types.
+      
+        Constants expressions used throughout the code and tests to set
+        the integration and baseline types.
     */
     ///@{
     /// Integration type: intensity sum
@@ -205,8 +222,12 @@ public:
     static constexpr const char* INTEGRATION_TYPE_SIMPSON = "simpson";
     /// Baseline type: base to base
     static constexpr const char* BASELINE_TYPE_BASETOBASE = "base_to_base";
-    /// Baseline type: vertical division
+    /// Baseline type: vertical division (min of end points; only for backwards compatibility)
     static constexpr const char* BASELINE_TYPE_VERTICALDIVISION = "vertical_division";
+    /// Baseline type: vertical division (min of end points)
+    static constexpr const char* BASELINE_TYPE_VERTICALDIVISION_MIN = "vertical_division_min";
+    /// Baseline type: vertical division (max of end points)
+    static constexpr const char* BASELINE_TYPE_VERTICALDIVISION_MAX = "vertical_division_max";
     ///@}
 
     /**
@@ -218,6 +239,8 @@ public:
       - "intensity_sum" for the simple sum of the intensities
 
       @note Make sure the chromatogram is sorted with respect to retention time.
+
+      @throw Exception::InvalidParameter for class parameter `integration_type`.
 
       @param[in] chromatogram The chromatogram which contains the peak
       @param[in] left The left retention time boundary
@@ -239,6 +262,8 @@ public:
 
       @note Make sure the chromatogram is sorted with respect to retention time.
 
+      @throw Exception::InvalidParameter for class parameter `integration_type`.
+
       @param[in] chromatogram The chromatogram which contains the peak
       @param[in] left The iterator to the first point
       @param[in] right The iterator to the last point
@@ -259,6 +284,8 @@ public:
 
       @note Make sure the spectrum is sorted with respect to mass-to-charge ratio.
 
+      @throw Exception::InvalidParameter for class parameter `integration_type`.
+
       @param[in] spectrum The spectrum which contains the peak
       @param[in] left The left mass-to-charge ratio boundary
       @param[in] right The right mass-to-charge ratio boundary
@@ -278,6 +305,8 @@ public:
       - "intensity_sum" for the simple sum of the intensities
 
       @note Make sure the spectrum is sorted with respect to mass-to-charge ratio.
+
+      @throw Exception::InvalidParameter for class parameter `integration_type`.
 
       @param[in] spectrum The spectrum which contains the peak
       @param[in] left The iterator to the first point
@@ -303,6 +332,8 @@ public:
       integratePeak().
 
       @note Make sure the chromatogram is sorted with respect to retention time.
+
+      @throw Exception::InvalidParameter for class parameter `baseline_type`.
 
       @param[in] chromatogram The chromatogram which contains the peak
       @param[in] left The left retention time boundary
@@ -331,6 +362,8 @@ public:
 
       @note Make sure the chromatogram is sorted with respect to retention time.
 
+      @throw Exception::InvalidParameter for class parameter `baseline_type`.
+
       @param[in] chromatogram The chromatogram which contains the peak
       @param[in] left The iterator to the first point
       @param[in] right The iterator to the last point
@@ -358,6 +391,8 @@ public:
 
       @note Make sure the spectrum is sorted with respect to mass-to-charge ratio.
 
+      @throw Exception::InvalidParameter for class parameter `baseline_type`.
+
       @param[in] spectrum The spectrum which contains the peak
       @param[in] left The left mass-to-charge ratio boundary
       @param[in] right The right mass-to-charge ratio boundary
@@ -384,6 +419,8 @@ public:
       integratePeak().
 
       @note Make sure the spectrum is sorted with respect to mass-to-charge ratio.
+
+      @throw Exception::InvalidParameter for class parameter `baseline_type`.
 
       @param[in] spectrum The spectrum which contains the peak
       @param[in] left The iterator to the first point
@@ -559,7 +596,7 @@ private:
     String integration_type_ = INTEGRATION_TYPE_INTENSITYSUM;
     /**
       The baseline type to use in estimateBackground().
-      Possible values are: "vertical_division", "base_to_base".
+      Possible values are: "vertical_division_max", "vertical_division_min", "base_to_base".
     */
     String baseline_type_ = BASELINE_TYPE_BASETOBASE;
     ///@}
@@ -568,6 +605,7 @@ private:
       The Simpson's rule implementations for an odd number of unequally spaced points.
     */
     ///@{
+
     /**
       @brief Simpson's rule algorithm
 
@@ -583,6 +621,7 @@ private:
       @return The computed area
     */
     double simpson(MSChromatogram::ConstIterator it_begin, MSChromatogram::ConstIterator it_end) const;
+
     /**
       @brief Simpson's rule algorithm
 
@@ -601,5 +640,3 @@ private:
     ///@}
   };
 }
-
-#endif // OPENMS_ANALYSIS_OPENSWATH_PEAKINTEGRATOR_H

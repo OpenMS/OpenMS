@@ -32,8 +32,7 @@
 // $Authors: Stephan Aiche$
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_SIMULATION_LABELING_LABELFREELABELER_H
-#define OPENMS_SIMULATION_LABELING_LABELFREELABELER_H
+#pragma once
 
 #include <OpenMS/SIMULATION/LABELING/BaseLabeler.h>
 
@@ -85,4 +84,3 @@ public:
   };
 } // namespace OpenMS
 
-#endif //#ifndef OPENMS_SIMULATION_LABELING_LABELFREELABELER_H

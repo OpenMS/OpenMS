@@ -32,8 +32,7 @@
 // $Authors: $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_MATH_STATISTICS_ROCCURVE_H
-#define OPENMS_MATH_STATISTICS_ROCCURVE_H
+#pragma once
 
 #include <OpenMS/config.h>
 #include <OpenMS/CONCEPT/Types.h>
@@ -115,4 +114,3 @@ public:
     };
   }
 }
-#endif // OPENMS_MATH_STATISTICS_ROCCURVE_H

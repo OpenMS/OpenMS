@@ -115,12 +115,17 @@ namespace OpenMS
           MSChromatogram c = chromatogram_map.getChromatograms()[i];
           Precursor precursor = c.getPrecursor();
           String pepref = targeted_exp.getTransitions()[j].getPeptideRef();
+          precursor.setMetaValue("peptide_sequence", pepref);
+          precursor.setMetaValue("description", targeted_exp.getTransitions()[j].getNativeID());
           for (Size pep_idx = 0; pep_idx < targeted_exp.getPeptides().size(); pep_idx++)
           {
             const OpenMS::TargetedExperiment::Peptide * pep = &targeted_exp.getPeptides()[pep_idx];
             if (pep->id == pepref)
             {
-              precursor.setMetaValue("peptide_sequence", pep->sequence);
+              if (!pep->sequence.empty())
+              {
+                precursor.setMetaValue("peptide_sequence", pep->sequence);
+              }
               break;
             }
           }
@@ -152,6 +157,13 @@ namespace OpenMS
       else if (map_multiple_assays_)
       {
         for (auto & c : mapped_chroms) output.addChromatogram(c);
+        if (mapped_chroms.size() > 1)
+        {
+          LOG_WARN << "Chromatogram " + String(chromatogram.getNativeID()) <<
+            " with " + String(chromatogram.getPrecursor().getMZ()) <<
+            " -> " + String(chromatogram.getProduct().getMZ()) <<
+            " maps to multiple assays!" << std::endl;
+        }
       }
       else
       {
@@ -161,7 +173,7 @@ namespace OpenMS
           throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Chromatogram " + String(chromatogram.getNativeID()) + \
            " with " + String(chromatogram.getPrecursor().getMZ()) + \
             " -> " + String(chromatogram.getProduct().getMZ()) + \
-              "maps to multiple assays! Either decrease your mapping tolerance or set map_multiple_assays to true.");
+              " maps to multiple assays! Either decrease your mapping tolerance or set map_multiple_assays to true.");
         }
       }
     }

@@ -32,8 +32,7 @@
 // $Authors:  Marc Sturm, Clemens Groepl $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_APPLICATIONS_TOPPBASE_H
-#define OPENMS_APPLICATIONS_TOPPBASE_H
+#pragma once
 
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/GlobalExceptionHandler.h>
@@ -946,4 +945,3 @@ private:
 
 } // namespace OpenMS
 
-#endif //OPENMS_APPLICATIONS_TOPPBASE_H

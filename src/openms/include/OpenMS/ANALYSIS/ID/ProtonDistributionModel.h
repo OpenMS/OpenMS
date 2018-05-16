@@ -33,8 +33,7 @@
 // --------------------------------------------------------------------------
 
 
-#ifndef OPENMS_ANALYSIS_ID_PROTONDISTRIBUTIONMODEL_H
-#define OPENMS_ANALYSIS_ID_PROTONDISTRIBUTIONMODEL_H
+#pragma once
 
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/CHEMISTRY/Residue.h>
@@ -172,4 +171,3 @@ protected:
 
   };
 }
-#endif // OPENMS_ANALYSIS_ID_PROTONDISTRIBUTIONMODEL_H

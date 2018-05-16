@@ -32,13 +32,13 @@
 // $Authors: Cornelia Friedle $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_VISUAL_SPECTRUM3DOPENGLCANVAS_H
-#define OPENMS_VISUAL_SPECTRUM3DOPENGLCANVAS_H
+#pragma once
 
 // OpenMS_GUI config
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
 #include <QOpenGLWidget>
+#include <QOpenGLFunctions>
 
 // OpenMS
 #include <OpenMS/DATASTRUCTURES/DRange.h>
@@ -56,7 +56,8 @@ namespace OpenMS
   */
 
   class OPENMS_GUI_DLLAPI Spectrum3DOpenGLCanvas :
-    public QOpenGLWidget
+    public QOpenGLWidget, 
+    protected QOpenGLFunctions
   {
     Q_OBJECT
 
@@ -232,4 +233,3 @@ protected slots:
     void actionModeChange();
   };
 }
-#endif

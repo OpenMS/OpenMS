@@ -32,8 +32,7 @@
 // $Authors: $
 // --------------------------------------------------------------------------
 //
-#ifndef OPENMS_FILTERING_TRANSFORMERS_BERNNORM_H
-#define OPENMS_FILTERING_TRANSFORMERS_BERNNORM_H
+#pragma once
 
 #include <OpenMS/KERNEL/StandardTypes.h>
 
@@ -154,4 +153,3 @@ private:
 
 } // namespace OpenMS
 
-#endif //OPENMS_FILTERING_TRANSFORMERS_BERNNORM_H

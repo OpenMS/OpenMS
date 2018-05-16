@@ -32,8 +32,7 @@
 // $Authors: Eugen Netz $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_XLMS_XQUESTSCORES_H
-#define OPENMS_ANALYSIS_XLMS_XQUESTSCORES_H
+#pragma once
 
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
@@ -139,4 +138,3 @@ namespace OpenMS
 
 }
 
-#endif // XQUESTSCORES_H

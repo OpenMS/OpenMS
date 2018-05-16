@@ -32,8 +32,7 @@
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_METADATA_HPLC_H
-#define OPENMS_METADATA_HPLC_H
+#pragma once
 
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
@@ -115,4 +114,3 @@ protected:
 
 } // namespace OpenMS
 
-#endif // OPENMS_METADATA_HPLC_H

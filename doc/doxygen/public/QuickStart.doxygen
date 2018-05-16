@@ -1,76 +1,76 @@
 // --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry               
+//                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
 // ETH Zurich, and Freie Universitaet Berlin 2002-2017.
-// 
+//
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
 //    notice, this list of conditions and the following disclaimer.
 //  * Redistributions in binary form must reproduce the above copyright
 //    notice, this list of conditions and the following disclaimer in the
 //    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution 
-//    may be used to endorse or promote products derived from this software 
+//  * Neither the name of any author or any participating institution
+//    may be used to endorse or promote products derived from this software
 //    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS. 
+// For a full list of authors, refer to the file AUTHORS.
 // --------------------------------------------------------------------------
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING 
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
+// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 // --------------------------------------------------------------------------
 // $Maintainer: Chris Bielow $
 // $Authors: Chris Bielow $
 // --------------------------------------------------------------------------
 
 /**
-  
-  @page Quickstart Quickstart guide to OpenMS/TOPP
-  
+
+  @page Quickstart User Quickstart Guide
+
   If you want a short glance at the most important concepts and how to use tools quickly, this guide is right for you.
 	You should still read the whole documentation at some point though.
-  
+
 	@section basic_Concepts Basic Concepts of OpenMS/TOPP
 
   @b %OpenMS: The name of our library, which contains the algorithms. You cannot use this directly, unless you are a programmer.<br>
 	@b TOPPView: View and explore LC-MS data, alignments, groups, peptide identifications and more!<br>
 	@b TOPPAS: A graphical workflow design tool, which allows to create pipelines from all TOPP tools (and UTILS).<br>
-	@b TOPP @b tools: A set of command line tools, each of which is a building block of an analysis pipeline. 
+	@b TOPP @b tools: A set of command line tools, each of which is a building block of an analysis pipeline.
 	         These tools chained together in a way that fits the requirements of the user.
 					 Accessible from a command prompt/shell or via TOPPAS.
 					 See also: @subpage TOPP_tutorial and @subpage TOPP_documentation <br>
 	@b UTILS: Similar to TOPP tools, but with more supporting character, which you'd rarely use in a productive pipeline - but rather during pipeline construction or
 						parameter optimization.
 						See also: @subpage UTILS_documentation
-	
+
 	@section run_tool How to run a tool
-    
+
     We'd recommend using TOPPAS. A good start are the example pipelines (see "File" --> "Open example file" within TOPPAS).
-    In parallel you can read the documentation of the tools (see @subpage TOPP_tutorial, @subpage TOPP_documentation) 
+    In parallel you can read the documentation of the tools (see @subpage TOPP_tutorial, @subpage TOPP_documentation)
     and the one of TOPPAS (@subpage TOPPAS_tutorial).
-    
+
     Alternatively, you can use the command line and call tools directly. In this case you'll probably want
     to use some type of shell script for automation.
-            
-										
+
+
 	@section parameters Adapting your pipeline parameters
-	
+
 		The default parameters of each tool can usually be tweaked to fit your data and improve results.
-		
+
 		@subsection parameters_where Where do you change them?!
-	
+
 		@b TOPPAS: Double-click the node of which you want to change the parameters. A short docu for each parameter will show up once you select it.
 		        All parameters which would be available on the command line and in the INI file are shown here as well.
-		
+
 		@b Command @b line: Very basic parameters can be set on the command line, e.g. <tt>FileFilter -rt 1000:2000 ....</tt>.<br>
 									Doing this for all parameters would create a very long list, thus, we use so-called ".ini" files to provide full parameter sets to TOPP tools.
 		              If no INI file is given, default parameters are used.
@@ -82,15 +82,15 @@
 									e.g. <br>
 									<tt>FileFilter -write_ini filefilter.ini</tt>
 									</p>
-									
+
 									Now, you can edit the INI file (which is a XML file) using our @subpage TOPP_INIFileEditor, which is another GUI tool shipped with %OpenMS
 									and similar to the one build into TOPPAS.
 
 		@subsection parameters_feed How do I feed the INI file to a tool?!
 
-		@b TOPPAS: Once you changed the parameters of a node and clicked "Ok", the parameters are in effect. Because they are part of the TOPPAS workflow, they are saved 
+		@b TOPPAS: Once you changed the parameters of a node and clicked "Ok", the parameters are in effect. Because they are part of the TOPPAS workflow, they are saved
 		           together with the workflow.
-		
+
 		@b Command @b line: Simply supply the INI file via the <tt>-ini</tt> flag, e.g.,
 									<p>
 									<tt>&lt;tool&gt; -ini &lt;file&gt;</tt>
@@ -99,11 +99,11 @@
 									e.g. <br>
 									<tt>FileFilter -ini filefilter.ini</tt>
 									</p>
-									
+
     @subsection parameters_how What parameters need changing and to what value?!
-		
+
 		This is tricky and its not possible to give a general answer. In general, you should read the tool description, change the parameters
-		and	compare the results using TOPPView if possible. If that does not help try the %OpenMS mailing list and ask, but provide us with 
+		and	compare the results using TOPPView if possible. If that does not help try the %OpenMS mailing list and ask, but provide us with
 		the details	we need in order to help you (see <a href="www.openms.de/BUGS">www.openms.de/BUGS</a>).
 
 */

@@ -34,6 +34,7 @@
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureDistance.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
+#include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
 
 using namespace std;
 
@@ -81,6 +82,9 @@ namespace OpenMS
     defaults_.setSectionDescription("distance_intensity", "Distance component based on differences in relative intensity (usually relative to highest peak in the whole data set)");
     defaults_.setValue("ignore_charge", "false", "false [default]: pairing requires equal charge state (or at least one unknown charge '0'); true: Pairing irrespective of charge state");
     defaults_.setValidStrings("ignore_charge", ListUtils::create<String>("true,false"));
+    defaults_.setValue("ignore_adduct", "true", "true [default]: pairing requires equal adducts (or at least one without adduct annotation); true: Pairing irrespective of adducts");
+    defaults_.setValidStrings("ignore_adduct", ListUtils::create<String>("true,false"));
+
 
     defaultsToParam_();
   }
@@ -120,6 +124,7 @@ namespace OpenMS
     total_weight_reciprocal_ = 1 / (params_rt_.weight + params_mz_.weight +
                                     params_intensity_.weight);
     ignore_charge_ = String(param_.getValue("ignore_charge")) == "true";
+    ignore_adduct_ = String(param_.getValue("ignore_adduct")) == "true";
   }
 
   double FeatureDistance::distance_(double diff, const DistanceParams_ & params) const
@@ -134,8 +139,8 @@ namespace OpenMS
       double tmp(diff * params.norm_factor);
       return tmp * tmp * params.weight;
     }
-    else 
-    { 
+    else
+    {
       // this pow() is REALLY expensive, since it uses a 'double' as exponent,
       // using 'int' will make it faster, but we will loose fractional
       // exponents (might be useful?).
@@ -152,6 +157,17 @@ namespace OpenMS
       if (charge_left != charge_right)
       {
         if ((charge_left != 0) && (charge_right != 0))
+        {
+          return make_pair(false, infinity);
+        }
+      }
+    }
+
+    if (!ignore_adduct_)
+    {
+      if (left.metaValueExists("dc_charge_adducts") && right.metaValueExists("dc_charge_adducts"))
+      {
+        if (EmpiricalFormula(left.getMetaValue("dc_charge_adducts")) != EmpiricalFormula(right.getMetaValue("dc_charge_adducts")))
         {
           return make_pair(false, infinity);
         }

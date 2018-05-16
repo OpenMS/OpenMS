@@ -40,11 +40,13 @@
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/TextFile.h>
-#include <OpenMS/CHEMISTRY/IsotopeDistribution.h>
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
 #include <OpenMS/CHEMISTRY/Element.h>
 #include <OpenMS/CHEMISTRY/ElementDB.h>
+#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopeDistribution.h>
+#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h>
+#include <boost/math/special_functions/fpclassify.hpp>
 
 #include <QtCore/QDir>
 
@@ -181,10 +183,8 @@ namespace OpenMS
     {
       max_isotopes += 1000;
       IsotopeDistribution isotopes;
-      std::vector<std::pair<Size, double> > container;
-      container.push_back(std::make_pair(12, abundance_12C / 100.0));
-      container.push_back(std::make_pair(13, 1.0 - (abundance_12C / 100.0)));
-      isotopes.set(container);
+      isotopes.insert(12, abundance_12C / 100.0);
+      isotopes.insert(13, 1.0 - (abundance_12C / 100.0));
       carbon->setIsotopeDistribution(isotopes);
     }
 
@@ -195,10 +195,8 @@ namespace OpenMS
     {
       max_isotopes += 1000;
       IsotopeDistribution isotopes;
-      std::vector<std::pair<Size, double> > container;
-      container.push_back(std::make_pair(14, abundance_14N / 100.0));
-      container.push_back(std::make_pair(15, 1.0 - (abundance_14N / 100.0)));
-      isotopes.set(container);
+      isotopes.insert(14, abundance_14N / 100.0);
+      isotopes.insert(15, 1.0 - (abundance_14N / 100.0));
       nitrogen->setIsotopeDistribution(isotopes);
     }
 
@@ -396,9 +394,8 @@ namespace OpenMS
       for (Size index = 0; index < num_isotopes; ++index)
       {
         //if(debug_) log_ << "Calculating iso dist for mass: " << 0.5*mass_window_width_ + index * mass_window_width_ << std::endl;
-        IsotopeDistribution d;
-        d.setMaxIsotope(max_isotopes);
-        d.estimateFromPeptideWeight(0.5 * mass_window_width_ + index * mass_window_width_);
+        CoarseIsotopePatternGenerator solver(max_isotopes);
+        auto d = solver.estimateFromPeptideWeight(0.5 * mass_window_width_ + index * mass_window_width_);
         //trim left and right. And store the number of isotopes on the left, to reconstruct the monoisotopic peak
         Size size_before = d.size();
         d.trimLeft(intensity_percentage_optional_);
@@ -407,7 +404,7 @@ namespace OpenMS
 
         for (IsotopeDistribution::Iterator it = d.begin(); it != d.end(); ++it)
         {
-          isotope_distributions_[index].intensity.push_back(it->second);
+          isotope_distributions_[index].intensity.push_back(it->getIntensity());
           //if(debug_) log_ << " - " << it->second << std::endl;
         }
 

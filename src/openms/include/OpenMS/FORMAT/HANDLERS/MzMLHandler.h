@@ -32,8 +32,7 @@
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FORMAT_HANDLERS_MZMLHANDLER_H
-#define OPENMS_FORMAT_HANDLERS_MZMLHANDLER_H
+#pragma once
 
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
@@ -410,4 +409,3 @@ protected:
   } // namespace Internal
 } // namespace OpenMS
 
-#endif

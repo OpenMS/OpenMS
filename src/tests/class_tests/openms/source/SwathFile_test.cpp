@@ -40,7 +40,7 @@
 
 ///////////////////////////
 #include <OpenMS/FORMAT/MzMLFile.h>
-#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/SwathMap.h>
+#include <OpenMS/OPENSWATHALGO/DATAACCESS/SwathMap.h>
 #include <OpenMS/METADATA/Precursor.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 

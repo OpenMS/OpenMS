@@ -389,12 +389,13 @@ namespace OpenMS
     return current_layer_;
   }
 
-  bool SpectrumCanvas::addLayer(ExperimentSharedPtrType map, const String & filename)
+  bool SpectrumCanvas::addLayer(ExperimentSharedPtrType map, ODExperimentSharedPtrType od_map, const String & filename)
   {
     layers_.resize(layers_.size() + 1);
     layers_.back().param = param_;
     layers_.back().filename = filename;
-    layers_.back().getPeakData() = map;
+    layers_.back().setPeakData(map);
+    layers_.back().setOnDiscPeakData(od_map);
 
     if (layers_.back().getPeakData()->getChromatograms().size() != 0 
         && layers_.back().getPeakData()->size() != 0)
@@ -712,44 +713,51 @@ namespace OpenMS
     {
       const AreaType & area = getVisibleArea();
       const ExperimentType & peaks = *layer.getPeakData();
-      //copy experimental settings
+      // copy experimental settings
       map.ExperimentalSettings::operator=(peaks);
-      //reserve space for the correct number of spectra in RT range
+      // get begin / end of the range
+      ExperimentType::ConstIterator peak_start = layer.getPeakData()->begin();
       ExperimentType::ConstIterator begin = layer.getPeakData()->RTBegin(area.minPosition()[1]);
       ExperimentType::ConstIterator end = layer.getPeakData()->RTEnd(area.maxPosition()[1]);
+      Size begin_idx = std::distance(peak_start, begin);
+      Size end_idx = std::distance(peak_start, end);
 
-      //Exception for Spectrum1DCanvas, here we copy the currently visualized spectrum
+      // Exception for Spectrum1DCanvas, here we copy the currently visualized spectrum
       bool is_1d = (getName() == "Spectrum1DCanvas");
       if (is_1d)
       {
-        begin = layer.getPeakData()->begin() + layer.getCurrentSpectrumIndex();
-        end = begin + 1;
+        begin_idx = layer.getCurrentSpectrumIndex();
+        end_idx = begin_idx + 1;
       }
 
+      // reserve space for the correct number of spectra in RT range
       map.reserve(end - begin);
-      //copy spectra
-      for (ExperimentType::ConstIterator it = begin; it != end; ++it)
+      // copy spectra
+      for (Size it_idx = begin_idx; it_idx < end_idx; ++it_idx)
       {
         SpectrumType spectrum;
-        //copy spectrum meta information
-        spectrum.SpectrumSettings::operator=(* it);
-        spectrum.setRT(it->getRT());
-        spectrum.setMSLevel(it->getMSLevel());
-        spectrum.setPrecursors(it->getPrecursors());
-        //copy peak information
-        if (!is_1d && it->getMSLevel() > 1 && !it->getPrecursors().empty())       //MS^n (n>1) spectra are copied if their precursor is in the m/z range
+        SpectrumType spectrum_ref = layer.getSpectrum(it_idx);
+        // copy spectrum meta information
+        spectrum.SpectrumSettings::operator=(spectrum_ref);
+        spectrum.setRT(spectrum_ref.getRT());
+        spectrum.setMSLevel(spectrum_ref.getMSLevel());
+        spectrum.setPrecursors(spectrum_ref.getPrecursors());
+        // copy peak information
+        if (!is_1d && spectrum_ref.getMSLevel() > 1 && !spectrum_ref.getPrecursors().empty())
         {
-          if (it->getPrecursors()[0].getMZ() >= area.minPosition()[0] && it->getPrecursors()[0].getMZ() <= area.maxPosition()[0])
+          //MS^n (n>1) spectra are copied if their precursor is in the m/z range
+          if (spectrum_ref.getPrecursors()[0].getMZ() >= area.minPosition()[0] && spectrum_ref.getPrecursors()[0].getMZ() <= area.maxPosition()[0])
           {
-            spectrum.insert(spectrum.begin(), it->begin(), it->end());
+            spectrum.insert(spectrum.begin(), spectrum_ref.begin(), spectrum_ref.end());
             map.addSpectrum(spectrum);
           }
         }
-        else         // MS1(0) spectra are cropped to the m/z range
+        else
         {
-          for (SpectrumType::ConstIterator it2 = it->MZBegin(area.minPosition()[0]); it2 != it->MZEnd(area.maxPosition()[0]); ++it2)
+          // MS1 spectra are cropped to the m/z range
+          for (SpectrumType::ConstIterator it2 = spectrum_ref.MZBegin(area.minPosition()[0]); it2 != spectrum_ref.MZEnd(area.maxPosition()[0]); ++it2)
           {
-            if (layer.filters.passes(*it, it2 - it->begin()))
+            if (layer.filters.passes(spectrum_ref, it2 - spectrum_ref.begin()))
             {
               spectrum.push_back(*it2);
             }
@@ -865,11 +873,11 @@ namespace OpenMS
     {
       if (layer.type == LayerData::DT_PEAK)
       {
-        dlg.add(*layer.getPeakData());
-        //Exception for Spectrum1DCanvas, here we add the meta data of the one spectrum
+        dlg.add(*layer.getPeakDataMuteable());
+        // Exception for Spectrum1DCanvas, here we add the meta data of the one spectrum
         if (getName() == "Spectrum1DCanvas")
         {
-          dlg.add((*layer.getPeakData())[layer.getCurrentSpectrumIndex()]);
+          dlg.add((*layer.getPeakDataMuteable())[layer.getCurrentSpectrumIndex()]);
         }
       }
       else if (layer.type == LayerData::DT_FEATURE)
@@ -893,7 +901,7 @@ namespace OpenMS
     {
       if (layer.type == LayerData::DT_PEAK)
       {
-        dlg.add((*layer.getPeakData())[index]);
+        dlg.add((*layer.getPeakDataMuteable())[index]);
       }
       else if (layer.type == LayerData::DT_FEATURE)
       {

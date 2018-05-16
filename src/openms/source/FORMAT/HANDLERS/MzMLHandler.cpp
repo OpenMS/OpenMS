@@ -59,8 +59,8 @@ namespace OpenMS
       chromatogram_count(0),
       skip_chromatogram_(false),
       skip_spectrum_(false),
-      rt_set_(false) /* ,
-              validator_(mapping_, cv_) */
+      rt_set_(false) // ,
+      // validator_(mapping_, cv_)
     {
       cv_.loadFromOBO("MS", File::find("/CV/psi-ms.obo"));
       cv_.loadFromOBO("PATO", File::find("/CV/quality.obo"));
@@ -96,8 +96,8 @@ namespace OpenMS
       chromatogram_count(0),
       skip_chromatogram_(false),
       skip_spectrum_(false),
-      rt_set_(false) /* ,
-              validator_(mapping_, cv_) */
+      rt_set_(false) // ,
+      // validator_(mapping_, cv_) */
     {
       cv_.loadFromOBO("MS", File::find("/CV/psi-ms.obo"));
       cv_.loadFromOBO("PATO", File::find("/CV/quality.obo"));
@@ -463,10 +463,10 @@ namespace OpenMS
       //Abort if no m/z or intensity array is present
       if (int_index == -1 || rt_index == -1)
       {
-        //if defaultArrayLength > 0 : warn that no m/z or int arrays is present
+        //if defaultArrayLength > 0 : warn that no time or int arrays is present
         if (default_arr_length != 0)
         {
-          warning(LOAD, String("The m/z or intensity array of chromatogram '") +
+          warning(LOAD, String("The time or intensity array of chromatogram '") +
               inp_chromatogram.getNativeID() + "' is missing and default_arr_length is " + default_arr_length + ".");
         }
         return;
@@ -1339,7 +1339,7 @@ namespace OpenMS
       //------------------------- binaryDataArray ----------------------------
       else if (parent_tag == "binaryDataArray")
       {
-        if (!MzMLHandlerHelper::handleBinaryDataArrayCVParam(data_, accession, value, name))
+        if (!MzMLHandlerHelper::handleBinaryDataArrayCVParam(data_, accession, value, name, unit_accession))
         {
           if (cv_.isChildOf(accession, "MS:1000513")) //other array names as string
           {

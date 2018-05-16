@@ -32,8 +32,7 @@
 // $Authors: Hendrik Weisser, Chris Bielow $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_KERNEL_BASEFEATURE_H
-#define OPENMS_KERNEL_BASEFEATURE_H
+#pragma once
 
 #include <OpenMS/KERNEL/RichPeak2D.h>
 
@@ -181,4 +180,3 @@ protected:
 
 } // namespace OpenMS
 
-#endif // OPENMS_KERNEL_BASEFEATURE_H

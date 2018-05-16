@@ -1,4 +1,4 @@
-PrecursorMz	ProductMz	PrecursorCharge	ProductCharge	LibraryIntensity	NormalizedRetentionTime	PeptideSequence	ModifiedPeptideSequence	PeptideGroupLabel	LabelType	CompoundName	SumFormula	SMILES	ProteinId	UniprotId	FragmentType	FragmentSeriesNumber	Annotation	CollisionEnergy	PrecursorIonMobility	TransitionGroupId	TransitionId	Decoy	DetectingTransition	IdentifyingTransition
+PrecursorMz	ProductMz	PrecursorCharge	ProductCharge	LibraryIntensity	NormalizedRetentionTime	PeptideSequence	ModifiedPeptideSequence	PeptideGroupLabel	LabelType	CompoundName	SumFormula	SMILES	ProteinId	UniprotId	FragmentType	FragmentSeriesNumber	Annotation	CollisionEnergy	PrecursorIonMobility	TransitionGroupId	TransitionId	Decoy	DetectingTransition	IdentifyingTransition	QuantifyingTransition
 278.1245	89.02496338	-1	NA	0.0628155785	-1					N-(1-Deoxy-1-fructosyl)valine	C11H21NO7					-1	NA	1	-1	compound_1	tr5	0	1	0	1
 278.1245	96.08149719	-1	NA	0.5492898082	-1					N-(1-Deoxy-1-fructosyl)valine	C11H21NO7					-1	NA	1	-1	compound_1	tr6	0	1	0	1
 278.1245	101.0606232	-1	NA	0.0987432789	-1					N-(1-Deoxy-1-fructosyl)valine	C11H21NO7					-1	NA	1	-1	compound_1	tr7	0	1	0	1

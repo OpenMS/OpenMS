@@ -32,8 +32,7 @@
 // $Authors: $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_COMPARISON_CLUSTERING_CLUSTERANALYZER_H
-#define OPENMS_COMPARISON_CLUSTERING_CLUSTERANALYZER_H
+#pragma once
 
 #include <OpenMS/DATASTRUCTURES/DistanceMatrix.h>
 #include <OpenMS/DATASTRUCTURES/BinaryTreeNode.h>
@@ -152,4 +151,3 @@ private:
   bool compareBinaryTreeNode(const BinaryTreeNode & x, const BinaryTreeNode & y);
 
 }
-#endif //OPENMS_COMPARISON_CLUSTERING_CLUSTERANALYZER_H

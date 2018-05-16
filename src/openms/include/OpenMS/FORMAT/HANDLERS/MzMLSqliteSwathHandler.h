@@ -32,14 +32,13 @@
 // $Authors: Hannes Roest
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FORMAT_HANDLERS_MZMLSQLITESWATHHANDLER_H
-#define OPENMS_FORMAT_HANDLERS_MZMLSQLITESWATHHANDLER_H
+#pragma once
 
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/FORMAT/Base64.h>
 #include <OpenMS/FORMAT/MSNumpressCoder.h>
 
-#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/SwathMap.h>
+#include <OpenMS/OPENSWATHALGO/DATAACCESS/SwathMap.h>
 
 // forward declarations
 struct sqlite3;
@@ -121,4 +120,3 @@ protected:
   }   // namespace Internal
 } // namespace OpenMS
 
-#endif // OPENMS_FORMAT_HANDLERS_MZMLSQLITESWATHHANDLER_H
