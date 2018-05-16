@@ -890,6 +890,7 @@ protected:
       }
 
 
+
       //-------------------------------------------------------------
       // writing output
       //-------------------------------------------------------------
@@ -1307,7 +1308,7 @@ protected:
     return EXECUTION_OK;
   }
 
-  ExitCodes filterByBlackOrWhiteList(bool is_blacklist, PeakMap& exp, const PeakMap& lib_file, double rt_tol, double mz_tol, double sim_tol, bool unit_ppm)
+  ExitCodes filterByBlackOrWhiteList(bool is_blacklist, PeakMap& exp, const PeakMap& lib_file, double rt_tol, double mz_tol, double sim_tol,  bool unit_ppm)
   {
     const bool enable_mz_check = (mz_tol >= 0);
     const bool enable_rt_check = (rt_tol >= 0);
@@ -1382,6 +1383,7 @@ protected:
     exp = exp2;
     return EXECUTION_OK;
   }
+
 };
 
 int main(int argc, const char** argv)

@@ -74,3 +74,4 @@ class OPENMS_DLLAPI Deisotoper
 };
 
 }
+

@@ -590,7 +590,7 @@ class SimpleSearchEngine :
               }
               omp_unset_lock(&(annotated_hits_lock[scan_index]));
 #endif
-      	    }
+	    }
           }
         }
       }
