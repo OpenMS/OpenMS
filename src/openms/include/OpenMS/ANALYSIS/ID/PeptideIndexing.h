@@ -720,13 +720,7 @@ public:
        std::sort(prefix_regex.rbegin(), prefix_regex.rend());
 
        // Setup regex string -> create prefix- and suffix pattern to match to
-       std::string regexstr_prefix = "^(";
-       for (const std::string &prefix : prefix_regex)
-       {
-         regexstr_prefix += prefix + "|";
-       }
-       regexstr_prefix = regexstr_prefix.substr(0, regexstr_prefix.length() - 1); // remove last '|'
-       regexstr_prefix += ")";
+       std::string regexstr_prefix = std::string("^(") + ListUtils::concatenate<std::string>(prefix_regex, "|") + ")";
        // suffix: remove leading '^', add latter '$'
        std::string regexstr_suffix(regexstr_prefix.begin() + 1, regexstr_prefix.end());
        regexstr_suffix.insert(regexstr_suffix.end(), '$');
