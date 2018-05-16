@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Lukas Zimmermann $
+// $Maintainer: Eugen Netz $
 // $Authors: Lukas Zimmermann $
 // --------------------------------------------------------------------------
 
@@ -419,14 +419,20 @@ namespace OpenMS
         }
           this->charges_.insert(charge_precursor);
 
-          // spectrum="C_Lee_141014_CRM_dialysis_NCE20_1.05723.05723.3_C_Lee_141014_CRM_dialysis_NCE20_1.05723.05723.3"
+          // read input filename (will not contain file type this way), example:
+          // "C_Lee_141014_CRM_dialysis_NCE20_1.06904.06904.3_C_Lee_141014_CRM_dialysis_NCE20_1.06904.06904.3"
           String spectrum = this->attributeAsString_(attributes, "spectrum");
-          vector<String> split_spectrum;
 
-          // read input filename (will not contain file type this way)
-          // TODO split on middle "_"???
-          StringUtils::split(spectrum, ".c.", split_spectrum);
-          String file_name = split_spectrum[0];
+          // split into light and heavy (or light and light if unlabeled)
+          StringList split_spectra = XQuestResultXMLHandler::splitByMiddle(spectrum, '_');
+          vector<String> split_spectrum_light;
+          vector<String> split_spectrum_heavy;
+          // split away the spectrum indices from the file name
+          StringUtils::split(split_spectra[0], ".", split_spectrum_light);
+          StringUtils::split(split_spectra[1], ".", split_spectrum_heavy);
+
+
+          String file_name = split_spectrum_light[0];
           if (std::find(this->ms_run_path_.begin(), this->ms_run_path_.end(), file_name) == this->ms_run_path_.end())
           {
             this->ms_run_path_.push_back(file_name);
@@ -434,12 +440,22 @@ namespace OpenMS
           this->spectrum_input_file_ = file_name;
 
           // read spectrum indices
-          vector<String> split_spectrum2;
-          vector<String> split_spectrum3;
-          StringUtils::split(split_spectrum[1], ".", split_spectrum2);
-          StringUtils::split(split_spectrum[2], ".", split_spectrum3);
-          this->spectrum_index_light_ = split_spectrum2[0].toInt();
-          this->spectrum_index_heavy_ = split_spectrum3[1].toInt();
+          // vector<String> split_spectrum2;
+          // vector<String> split_spectrum3;
+          // StringUtils::split(split_spectrum[1], ".", split_spectrum2);
+          // StringUtils::split(split_spectrum[2], ".", split_spectrum3);
+          // this->spectrum_index_light_ = split_spectrum2[0].toInt();
+          // this->spectrum_index_heavy_ = split_spectrum3[1].toInt();
+          if (split_spectrum_light[split_spectrum_light.size()-1].size() > 1)
+          {
+            this->spectrum_index_light_ = split_spectrum_light[split_spectrum_light.size()-1].toInt();
+            this->spectrum_index_heavy_ = split_spectrum_heavy[split_spectrum_heavy.size()-1].toInt();
+          }
+          else
+          {
+            this->spectrum_index_light_ = split_spectrum_light[split_spectrum_light.size()-2].toInt();
+            this->spectrum_index_heavy_ = split_spectrum_heavy[split_spectrum_heavy.size()-2].toInt();
+          }
         }
         else
         {
@@ -725,6 +741,43 @@ namespace OpenMS
         this->peptide_id_meta_values_.clear();
         this->pep_ids_->push_back(peptide_identification);
         this->n_hits_++;
+      }
+    }
+
+    StringList XQuestResultXMLHandler::splitByNth(const String& input, const char separator, const Size n)
+    {
+      StringList list;
+      Size current_index = 0;
+
+      Size count = 0;
+      while(current_index < input.size() && count < n)
+      {
+        current_index++;
+        if(input.at(current_index) == separator)
+        {
+          count++;
+        }
+      }
+
+      list.push_back(input.prefix(current_index));
+      list.push_back(input.suffix(input.size()-current_index-1));
+
+      return list;
+    }
+
+    StringList XQuestResultXMLHandler::splitByMiddle(const String& input, const char separator)
+    {
+      // count separators
+      Size n = std::count(input.begin(), input.end(), separator);
+
+      if ( (n != 0) && (n % 2 == 1) )
+      {
+        n = (n / 2) + 1;
+        return splitByNth(input, separator, n);
+      }
+      else
+      {
+         throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "The separator has to occur in the input string an uneven number of times (and at least once).");
       }
     }
 
