@@ -342,7 +342,7 @@ RNPxlModificationMassesResult RNPxlModificationsGenerator::initModificationMasse
 
       // check if nucleotide formula contains a cross-linkable amino acid
       bool has_xl_nt(false);
-      for (auto const & c : nucleotide_style_formula) { if (can_xl.count(c) > 0) { has_xl_nt = true; }; break; }
+      for (auto const & c : nucleotide_style_formula) { if (can_xl.count(c) > 0) { has_xl_nt = true; break;};  }
       if (not has_xl_nt) 
       { 
         violates_restriction.push_back(make_pair(mit->first, s)); 
