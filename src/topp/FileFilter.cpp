@@ -50,6 +50,8 @@
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
+#include <memory>
+
 using namespace OpenMS;
 using namespace std;
 
@@ -868,7 +870,8 @@ protected:
         if (ret != EXECUTION_OK) { return (ExitCodes)ret; }
       }
 
-      // filter spectra if the occur in spectra:blackorwhitelist:file in rt/mz/similarity tolerance window
+      // filter spectra if they occur in spectra:blackorwhitelist:file 
+      // (determined by comparing rt/mz/similarity)
       String lib_file_name = getStringOption_("spectra:blackorwhitelist:file");
       if (!lib_file_name.empty())
       {
@@ -885,7 +888,6 @@ protected:
         int ret = filterByBlackOrWhiteList(is_blacklist, exp, lib_file, tol_rt, tol_mz, tol_sim, is_ppm);
         if (ret != EXECUTION_OK) { return (ExitCodes)ret; }
       }
-
 
 
       //-------------------------------------------------------------
@@ -1278,8 +1280,8 @@ protected:
     }
 
     // create new experiment
-    PeakMap exp2 = exp; // copy meta data
-    exp2.clear(false); // clear spectra
+    PeakMap exp2;
+    exp2.getExperimentalSettings() = (ExperimentalSettings)exp.getExperimentalSettings(); // copy meta data
 
     for (Size i = 0; i != exp.size(); ++i)
     {
@@ -1305,13 +1307,13 @@ protected:
     return EXECUTION_OK;
   }
 
-  ExitCodes filterByBlackOrWhiteList(bool is_blacklist, PeakMap& exp, const PeakMap& lib_file, double rt_tol, double mz_tol, double sim_tol,  bool unit_ppm)
+  ExitCodes filterByBlackOrWhiteList(bool is_blacklist, PeakMap& exp, const PeakMap& lib_file, double rt_tol, double mz_tol, double sim_tol, bool unit_ppm)
   {
     const bool enable_mz_check = (mz_tol >= 0);
     const bool enable_rt_check = (rt_tol >= 0);
     const bool enable_sim_check = (sim_tol > -1);
 
-    PeakSpectrumCompareFunctor* comp_function = Factory<PeakSpectrumCompareFunctor>::create("ZhangSimilarityScore");
+    std::unique_ptr<PeakSpectrumCompareFunctor> comp_function(Factory<PeakSpectrumCompareFunctor>::create("ZhangSimilarityScore"));
 
     set<Size> list_idx;
 
@@ -1380,7 +1382,6 @@ protected:
     exp = exp2;
     return EXECUTION_OK;
   }
-
 };
 
 int main(int argc, const char** argv)

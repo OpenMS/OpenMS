@@ -38,6 +38,7 @@
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
 #include <QOpenGLWidget>
+#include <QOpenGLFunctions>
 
 // OpenMS
 #include <OpenMS/DATASTRUCTURES/DRange.h>
@@ -55,7 +56,8 @@ namespace OpenMS
   */
 
   class OPENMS_GUI_DLLAPI Spectrum3DOpenGLCanvas :
-    public QOpenGLWidget
+    public QOpenGLWidget, 
+    protected QOpenGLFunctions
   {
     Q_OBJECT
 

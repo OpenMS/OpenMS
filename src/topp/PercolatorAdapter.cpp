@@ -402,10 +402,14 @@ protected:
         hit.setMetaValue("SpecId", scan_identifier);
         hit.setMetaValue("ScanNr", scan_number);
         
-        if (!hit.metaValueExists("target_decoy") || hit.getMetaValue("target_decoy").toString().empty()) continue;
+        if (!hit.metaValueExists("target_decoy") 
+          || hit.getMetaValue("target_decoy").toString().empty()) 
+        {
+          continue;
+        }
         
         int label = 1;
-        if (String(hit.getMetaValue("target_decoy")).hasSubstring("decoy"))
+        if (hit.getMetaValue("target_decoy") == "decoy")
         {
           label = -1;
         }
@@ -576,7 +580,7 @@ protected:
               pht->setMetaValue("target_decoy", "target");
             }
           }
-          else if (pht->getMetaValue("target_decoy").toString().hasSubstring("decoy"))
+          else if (pht->getMetaValue("target_decoy").toString() == "decoy")
           {
             found_decoys = true;
           }
