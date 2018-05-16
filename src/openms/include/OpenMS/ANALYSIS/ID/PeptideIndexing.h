@@ -756,8 +756,9 @@ public:
              seq_lower.erase(std::remove_if(seq_lower.begin(), seq_lower.end(),
                                             [](char c) { return !std::isalpha(c); }), seq_lower.end());
 
-             // search for prefix
+
              boost::smatch sm;
+             // search for prefix
              bool found_prefix = boost::regex_search(seq_lower, sm, pattern_prefix);
              if (found_prefix)
              {
