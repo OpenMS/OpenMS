@@ -93,8 +93,8 @@ namespace OpenMS
     // list of filter results for each peak pattern
     std::vector<MultiplexFilteredMSExperiment> filter_results;
     
-    // clock for monitoring run performance
-    //unsigned int start = clock();
+    // clock for monitoring run time performance
+    unsigned int start = clock();
     
     // construct navigators for all spline spectra
     std::vector<SplineSpectrum::Navigator> navigators;
@@ -233,8 +233,8 @@ namespace OpenMS
       filter_results.push_back(result);
     }
     
-    // clock for monitoring run performance
-    //std::cout << "\nThat took me " << (float)(clock()-start)/CLOCKS_PER_SEC << " seconds.\n";
+    // clock for monitoring run time performance
+    LOG_INFO << "\nThe filtering step of the algorithm took " << (float)(clock()-start)/CLOCKS_PER_SEC << " seconds.\n\n";
 
     endProgress();
 
