@@ -56,6 +56,7 @@
 #include <algorithm>
 #include <fstream>
 #include <OpenMS/DATASTRUCTURES/StringUtils.h>
+#include <regex>
 
 namespace OpenMS
 {
@@ -693,7 +694,6 @@ public:
     }
 
  protected:
-
      using DecoyStringToAffixCount = std::map<std::string, std::pair<int, int>>;
      using CaseInsensitiveToCaseSensitiveDecoy = std::map<std::string, std::string>;
 
@@ -702,26 +702,48 @@ public:
                                 std::string& decoy_string,
                                 bool& is_prefix)
      {
-       // Common decoy strings in fasta files. Used to determine if a protein is target/decoy automatically.
+       // Common decoy strings in fasta files
        // Note: decoy prefixes/suffices must be provided in lower case and must only contain alphanumeric characters
-        DecoyStringToAffixCount decoy_count = {{"decoy", {0,0}}, {"rev", {0,0}},
-                                                          {"reverse", {0,0}}, {"dev", {0,0}},
+        DecoyStringToAffixCount decoy_count = {{"decoy", {0,0}}, {"reverse", {0,0}},
+                                                          {"rev", {0,0}}, {"dev", {0,0}},
                                                           {"iddecoy", {0,0}}, {"xxx", {0,0}},
-                                                          {"shuffle", {0,0}}, {"pseudo", {0,0}},
-                                                          {"random", {0,0}}};
-
-       // map case insensitive strings back to original case (as used in fasta)
+                                                          {"shuffled", {0,0}}, {"shuffle", {0,0}},
+                                                          {"pseudo", {0,0}}, {"random", {0, 0}}};
+       // Map case insensitive strings back to original case (as used in fasta)
        CaseInsensitiveToCaseSensitiveDecoy decoy_case_sensitive;
 
-       int all_prefix_occur(0), all_suffix_occur(0), all_proteins_count(0);
+       // Setup regex vector, sort descending
+       std::vector<std::string> prefix_regex;
+       for (const auto& pair : decoy_count)
+       {
+         prefix_regex.push_back(pair.first);
+       }
+       std::sort(prefix_regex.rbegin(), prefix_regex.rend());
 
+       // Setup regex string -> create prefix- and suffix pattern to match to
+       std::string regexstr_prefix = "^(";
+       for (const std::string &prefix : prefix_regex)
+       {
+         regexstr_prefix += prefix + "|";
+       }
+       regexstr_prefix = regexstr_prefix.substr(0, regexstr_prefix.length() - 1); // remove last '|'
+       regexstr_prefix += ")";
+       // suffix: remove leading '^', add latter '$'
+       std::string regexstr_suffix(regexstr_prefix.begin() + 1, regexstr_prefix.end());
+       regexstr_suffix.insert(regexstr_suffix.end(), '$');
+
+       boost::regex pattern_prefix(regexstr_prefix);
+       boost::regex pattern_suffix(regexstr_suffix);
+
+       int all_prefix_occur(0), all_suffix_occur(0), all_proteins_count(0);
        const size_t PROTEIN_CACHE_SIZE = 4e5;
 
        while (true)
        {
          proteins.cacheChunk(PROTEIN_CACHE_SIZE);
          if (!proteins.activateCache()) break;
-         auto prot_count = (SignedSize)proteins.chunkSize();
+
+         auto prot_count = (SignedSize) proteins.chunkSize();
          all_proteins_count += prot_count;
 
          {
@@ -733,29 +755,33 @@ public:
 
              // remove all non-alphanumeric characters
              seq_lower.erase(std::remove_if(seq_lower.begin(), seq_lower.end(),
-                                            [](char c) { return !std::isalpha(c); } ), seq_lower.end());
+                                            [](char c) { return !std::isalpha(c); }), seq_lower.end());
 
-             // search for case insensitive occurrence of the possible decoys
-             for (auto pair : decoy_count)
+             // search for prefix
+             boost::smatch sm;
+             bool found_prefix = boost::regex_search(seq_lower, sm, pattern_prefix);
+             if (found_prefix)
              {
-               if (seq_lower.hasPrefix(pair.first))
-               {
-                 all_prefix_occur++;
-                 // count observed (ignoring case)
-                 decoy_count[pair.first].first++;
-                 // store observed (case sensitive)
-                 std::string seq_decoy = StringUtils::prefix(seq, pair.first.length());
-                 decoy_case_sensitive[pair.first] = seq_decoy;
-               }
-               else if (seq_lower.hasSuffix(pair.first))
-               {
-                 all_suffix_occur++;
-                 // count observed (ignoring case)
-                 decoy_count[pair.first].second++;
-                 // store observed (case sensitive)
-                 std::string seq_decoy = StringUtils::suffix(seq, pair.first.length());
-                 decoy_case_sensitive[pair.first] = seq_decoy;
-               }
+               std::string match = sm[0];
+               all_prefix_occur++;
+               // count observed (ignoring case)
+               decoy_count[match].first++;
+               // store observed (case sensitive)
+               std::string seq_decoy = StringUtils::prefix(seq, match.length());
+               decoy_case_sensitive[match] = seq_decoy;
+             }
+
+             // search for suffix
+             bool found_suffix = boost::regex_search(seq_lower, sm, pattern_suffix);
+             if (found_suffix)
+             {
+               std::string match = sm[0];
+               all_suffix_occur++;
+               // count observed (ignoring case)
+               decoy_count[match].second++;
+               // store observed (case sensitive)
+               std::string seq_decoy = StringUtils::suffix(seq, match.length());
+               decoy_case_sensitive[match] = seq_decoy;
              }
            }
          }
@@ -770,14 +796,7 @@ public:
          return false;
        }
 
-       // side case: prefix_reverse == prefix_rev -> if reverse occurs, then rev will be found as well -> remove rev findings
-       if (decoy_count["rev"].first == decoy_count["reverse"].first)
-       {
-         all_prefix_occur -= decoy_count["rev"].first;
-         decoy_count["rev"].first = 0;
-       }
-
-       // if a decoy prefix occurred at least 80% -> set it as prefix decoy
+       // Decoy prefix occurred at least 80% of all prefixes + observed in at least 40% of all proteins -> set it as prefix decoy
        for (const auto& pair : decoy_count)
        {
          const std::string & case_insensitive_decoy_string = pair.first;
@@ -800,7 +819,7 @@ public:
          }
        }
 
-       // if a decoy suffix occurred at least 80% -> set it as suffix decoy
+       // Decoy suffix occurred at least 80% of all suffixes + observed in at least 40% of all proteins -> set it as suffix decoy
        for (const auto& pair : decoy_count)
        {
          const std::string& case_insensitive_decoy_string = pair.first;
@@ -813,7 +832,7 @@ public:
            is_prefix = false;
            decoy_string = decoy_case_sensitive[case_insensitive_decoy_string];
 
-           if (prefix_suffix_counts.first != all_suffix_occur)
+           if (prefix_suffix_counts.second != all_suffix_occur)
            {
              LOG_WARN << "More than one decoy suffix observed!" << std::endl;
              LOG_WARN << "Using most frequent decoy suffix (" << (int) freq_suffix * 100 <<"%)" << std::endl;
