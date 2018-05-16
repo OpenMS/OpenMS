@@ -169,7 +169,7 @@ class FragmentAnnotationHelper
     return fas;
   }
 
-  static addShiftedPeakFragmentAnnotation_(const std::map<Size, std::vector<FragmentAnnotationDetail_>>& shifted_b_ions,
+  static void addShiftedPeakFragmentAnnotation_(const std::map<Size, std::vector<FragmentAnnotationDetail_>>& shifted_b_ions,
                                          const std::map<Size, std::vector<FragmentAnnotationDetail_>>& shifted_y_ions,
                                          const std::map<Size, std::vector<FragmentAnnotationDetail_>>& shifted_a_ions,
                                          const std::vector<PeptideHit::PeakAnnotation>& shifted_immonium_ions,
