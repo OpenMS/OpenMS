@@ -43,6 +43,8 @@
 #include <OpenMS/ANALYSIS/QUANTITATION/KDTreeFeatureMaps.h>
 #include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
 #include <OpenMS/CHEMISTRY/Element.h>
+#include <OpenMS/SYSTEM/File.h>
+
 #include <QtCore/QProcess>
 #include <QDir>
 #include <QDebug>
@@ -95,16 +97,17 @@ class TOPPSiriusAdapter :
 public:
   TOPPSiriusAdapter() :
     TOPPBase("SiriusAdapter", "Tool for metabolite identification using single and tandem mass spectrometry", false,
-    {
-      {"Kai Dührkop and Sebastian Böcker",
-       "Fragmentation trees reloaded",
-       "J Cheminform; 2016", 
-       "10.1186/s13321-016-0116-8"},
-      {"Kai Dührkop, Huibin Shen, Marvin Meusel, Juho Rousu, and Sebastian Böcker",
-       "Searching molecular structure databases with tandem mass spectra using CSI:FingerID",
-       "Proceedings of the National Academy of Sciences; 2015",
-       "10.1073/pnas.1509788112"} 
-    }){}
+      {
+        {"Kai Dührkop and Sebastian Böcker",
+         "Fragmentation trees reloaded",
+         "J Cheminform; 2016", 
+         "10.1186/s13321-016-0116-8"},
+        {"Kai Dührkop, Huibin Shen, Marvin Meusel, Juho Rousu, and Sebastian Böcker",
+         "Searching molecular structure databases with tandem mass spectra using CSI:FingerID",
+         "Proceedings of the National Academy of Sciences; 2015",
+         "10.1073/pnas.1509788112"} 
+      })
+    {}
 
 protected:
 
@@ -341,7 +344,7 @@ protected:
     {
       writeLog_( "FATAL: External invocation of Sirius failed. Standard output and error were:");
       const QString sirius_stdout(qp.readAllStandardOutput());
-      const QString sirius_stderr(qp.readAllStandardOutput());
+      const QString sirius_stderr(qp.readAllStandardError());
       writeLog_(sirius_stdout);
       writeLog_(sirius_stderr);
       writeLog_(String(qp.exitCode()));

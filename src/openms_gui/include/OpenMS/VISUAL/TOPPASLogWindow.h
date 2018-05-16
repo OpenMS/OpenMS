@@ -32,14 +32,13 @@
 // $Authors: Johannes Junker $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_VISUAL_TOPPASLOGWINDOW_H
-#define OPENMS_VISUAL_TOPPASLOGWINDOW_H
+#pragma once
 
 // OpenMS_GUI config
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
 //QT
-#include <QtGui/QTextEdit>
+#include <QtWidgets/QTextEdit>
 class QContextMenuEvent;
 
 namespace OpenMS
@@ -80,4 +79,3 @@ namespace OpenMS
 
   };
 }
-#endif // OPENMS_VISUAL_TOPPASLOGWINDOW_H

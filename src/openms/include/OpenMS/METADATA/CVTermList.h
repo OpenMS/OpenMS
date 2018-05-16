@@ -32,8 +32,7 @@
 // $Authors: Andreas Bertsch, Mathias Walzer $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_METADATA_CVTERMLIST_H
-#define OPENMS_METADATA_CVTERMLIST_H
+#pragma once
 
 #include <OpenMS/METADATA/CVTerm.h>
 #include <OpenMS/METADATA/MetaInfoInterface.h>
@@ -126,4 +125,3 @@ protected:
 
 } // namespace OpenMS
 
-#endif // OPENMS_DATASTRUCTURES_CVTERMLIST_H

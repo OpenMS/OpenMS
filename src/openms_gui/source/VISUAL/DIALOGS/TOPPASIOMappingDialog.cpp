@@ -34,6 +34,8 @@
 
 // OpenMS includes
 #include <OpenMS/VISUAL/DIALOGS/TOPPASIOMappingDialog.h>
+#include <ui_TOPPASIOMappingDialog.h>
+
 #include <OpenMS/VISUAL/TOPPASInputFileListVertex.h>
 #include <OpenMS/VISUAL/TOPPASOutputFileListVertex.h>
 #include <OpenMS/VISUAL/TOPPASMergerVertex.h>
@@ -43,7 +45,7 @@
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/DATASTRUCTURES/ListUtilsIO.h>
 
-#include <QtGui/QMessageBox>
+#include <QtWidgets/QMessageBox>
 
 #include <iostream>
 #include <sstream>
@@ -51,30 +53,36 @@
 namespace OpenMS
 {
   TOPPASIOMappingDialog::TOPPASIOMappingDialog(TOPPASEdge* parent)
+    : ui_(new Ui::TOPPASIOMappingDialogTemplate)
   {
+    ui_->setupUi(this);
     edge_ = parent;
-    setupUi(this);
-    connect(ok_button, SIGNAL(clicked()), this, SLOT(checkValidity_()));
-    connect(cancel_button, SIGNAL(clicked()), this, SLOT(reject()));
+    connect(ui_->ok_button, SIGNAL(clicked()), this, SLOT(checkValidity_()));
+    connect(ui_->cancel_button, SIGNAL(clicked()), this, SLOT(reject()));
 
     fillComboBoxes_();
+  }
+
+  TOPPASIOMappingDialog::~TOPPASIOMappingDialog()
+  {
+    delete ui_;
   }
 
   int TOPPASIOMappingDialog::firstExec()
   {
     // check if only 1 parameter, if yes: select it
-    if (source_combo->count() == 2)     // <select> + 1 parameter
+    if (ui_->source_combo->count() == 2)     // <select> + 1 parameter
     {
-      source_combo->setCurrentIndex(1);
+      ui_->source_combo->setCurrentIndex(1);
     }
-    if (target_combo->count() == 2)
+    if (ui_->target_combo->count() == 2)
     {
-      target_combo->setCurrentIndex(1);
+      ui_->target_combo->setCurrentIndex(1);
     }
 
     // is there only 1 possible mapping? -> do not show dialog
-    if ((source_combo->count() == 2 || source_combo->count() == 0) &&
-        (target_combo->count() == 2 || target_combo->count() == 0))
+    if ((ui_->source_combo->count() == 2 || ui_->source_combo->count() == 0) &&
+        (ui_->target_combo->count() == 2 || ui_->target_combo->count() == 0))
     {
       checkValidity_();
       return QDialog::Accepted;
@@ -106,16 +114,16 @@ namespace OpenMS
     {
       QVector<TOPPASToolVertex::IOInfo> source_output_files;
       source_tool->getOutputParameters(source_output_files);
-      source_label->setText(source_tool->getName().toQString());
+      ui_->source_label->setText(source_tool->getName().toQString());
       if (source_tool->getType() != "")
       {
-        source_type_label->setText("(" + source_tool->getType().toQString() + ")");
+        ui_->source_type_label->setText("(" + source_tool->getType().toQString() + ")");
       }
       else
       {
-        source_type_label->setVisible(false);
+        ui_->source_type_label->setVisible(false);
       }
-      source_combo->addItem("<select>");
+      ui_->source_combo->addItem("<select>");
       foreach(TOPPASToolVertex::IOInfo info, source_output_files)
       {
         String item_name;
@@ -133,46 +141,46 @@ namespace OpenMS
         ss << info.valid_types;
         item_name += ss.str();
 
-        source_combo->addItem(item_name.toQString());
+        ui_->source_combo->addItem(item_name.toQString());
       }
-      if (source_combo->count() == 2) // only 1 parameter
+      if (ui_->source_combo->count() == 2) // only 1 parameter
       {
-        source_combo->setCurrentIndex(1);
+        ui_->source_combo->setCurrentIndex(1);
       }
     }
     else if (source_list || source_merger || source_splitter)
     {
       if (source_list)
       {
-        source_label->setText("List");
+        ui_->source_label->setText("List");
       }
       else if (source_merger)
       {
-        source_label->setText(source_merger->roundBasedMode() ? "Merger" : "Collector");
+        ui_->source_label->setText(source_merger->roundBasedMode() ? "Merger" : "Collector");
       }
       else if (source_splitter)
       {
-        source_label->setText("Splitter");
+        ui_->source_label->setText("Splitter");
       }
-      source_type_label->setVisible(false);
-      source_combo->setVisible(false);
-      source_parameter_label->setVisible(false);
+      ui_->source_type_label->setVisible(false);
+      ui_->source_combo->setVisible(false);
+      ui_->source_parameter_label->setVisible(false);
     }
 
     if (target_tool)
     {
       QVector<TOPPASToolVertex::IOInfo> target_input_files;
       target_tool->getInputParameters(target_input_files);
-      target_label->setText(target_tool->getName().toQString());
+      ui_->target_label->setText(target_tool->getName().toQString());
       if (target_tool->getType() != "")
       {
-        target_type_label->setText("(" + target_tool->getType().toQString() + ")");
+        ui_->target_type_label->setText("(" + target_tool->getType().toQString() + ")");
       }
       else
       {
-        target_type_label->setVisible(false);
+        ui_->target_type_label->setVisible(false);
       }
-      target_combo->addItem("<select>");
+      ui_->target_combo->addItem("<select>");
       int param_counter = -1;
       foreach(TOPPASToolVertex::IOInfo info, target_input_files)
       {
@@ -211,31 +219,31 @@ namespace OpenMS
         ss << info.valid_types;
         item_name += ss.str();
 
-        target_combo->addItem(item_name.toQString());
+        ui_->target_combo->addItem(item_name.toQString());
         target_input_param_indices_.push_back(param_counter);
       }
-      if (target_combo->count() == 2) // only 1 parameter
+      if (ui_->target_combo->count() == 2) // only 1 parameter
       {
-        target_combo->setCurrentIndex(1);
+        ui_->target_combo->setCurrentIndex(1);
       }
     }
     else if (target_list || target_merger || target_splitter)
     {
       if (target_list)
       {
-        target_label->setText("List");
+        ui_->target_label->setText("List");
       }
       else if (target_merger)
       {
-        target_label->setText(target_merger->roundBasedMode() ? "Merger" : "Collector");
+        ui_->target_label->setText(target_merger->roundBasedMode() ? "Merger" : "Collector");
       }
       else if (target_splitter)
       {
-        target_label->setText("Splitter");
+        ui_->target_label->setText("Splitter");
       }
-      target_type_label->setVisible(false);
-      target_combo->setVisible(false);
-      target_parameter_label->setVisible(false);
+      ui_->target_type_label->setVisible(false);
+      ui_->target_combo->setVisible(false);
+      ui_->target_parameter_label->setVisible(false);
     }
 
     int source_out = edge_->getSourceOutParam();
@@ -243,11 +251,11 @@ namespace OpenMS
     int combo_index = target_input_param_indices_.indexOf(target_in) + 1;
     if (source_out != -1)
     {
-      source_combo->setCurrentIndex(source_out + 1);
+      ui_->source_combo->setCurrentIndex(source_out + 1);
     }
     if (combo_index != 0)
     {
-      target_combo->setCurrentIndex(combo_index);
+      ui_->target_combo->setCurrentIndex(combo_index);
     }
 
     resize(width(), 0);
@@ -255,8 +263,8 @@ namespace OpenMS
 
   void TOPPASIOMappingDialog::checkValidity_()
   {
-    const QString& source_text = source_combo->currentText();
-    const QString& target_text = target_combo->currentText();
+    const QString& source_text = ui_->source_combo->currentText();
+    const QString& target_text = ui_->target_combo->currentText();
 
     TOPPASVertex* source = edge_->getSourceVertex();
     TOPPASVertex* target = edge_->getTargetVertex();
@@ -276,12 +284,12 @@ namespace OpenMS
 
     if (source_tool)
     {
-      edge_->setSourceOutParam(source_combo->currentIndex() - 1);
+      edge_->setSourceOutParam(ui_->source_combo->currentIndex() - 1);
     }
     if (target_tool)
     {
       int target_index;
-      int tci = target_combo->currentIndex() - 1;
+      int tci = ui_->target_combo->currentIndex() - 1;
       if (0 <= tci && tci < target_input_param_indices_.size())
       {
         target_index = target_input_param_indices_[tci];

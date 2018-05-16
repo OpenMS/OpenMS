@@ -32,8 +32,7 @@
 // $Authors: Timo Sachsenberg $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_RNPXL_RNPXLMARKERIONEXTRACTOR_H
-#define OPENMS_ANALYSIS_RNPXL_RNPXLMARKERIONEXTRACTOR_H
+#pragma once
 
 #include <OpenMS/KERNEL/StandardTypes.h>
 
@@ -54,5 +53,4 @@ namespace OpenMS
   };
 }
 
-#endif
 

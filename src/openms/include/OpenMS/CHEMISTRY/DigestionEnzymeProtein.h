@@ -33,8 +33,7 @@
 // --------------------------------------------------------------------------
 //
 
-#ifndef OPENMS_CHEMISTRY_DIGESTIONENZYMEPROTEIN_H
-#define OPENMS_CHEMISTRY_DIGESTIONENZYMEPROTEIN_H
+#pragma once
 
 #include <OpenMS/CHEMISTRY/DigestionEnzyme.h>
 
@@ -190,4 +189,3 @@ namespace OpenMS
   typedef DigestionEnzymeProtein Protease;
 }
 
-#endif

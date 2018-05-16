@@ -32,8 +32,7 @@
 // $Authors: $
 // --------------------------------------------------------------------------
 //
-#ifndef OPENMS_COMPARISON_SPECTRA_SPECTRUMPRECURSORCOMPARATOR_H
-#define OPENMS_COMPARISON_SPECTRA_SPECTRUMPRECURSORCOMPARATOR_H
+#pragma once
 
 #include <OpenMS/COMPARISON/SPECTRA/PeakSpectrumCompareFunctor.h>
 
@@ -91,4 +90,3 @@ public:
 
 }
 
-#endif //OPENMS_COMPARISON_SPECTRA_SPECTRUMPRECURSORCOMPARATOR_H

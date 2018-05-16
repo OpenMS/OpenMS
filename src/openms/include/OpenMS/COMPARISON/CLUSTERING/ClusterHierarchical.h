@@ -38,8 +38,7 @@
 // $Authors: $
 // --------------------------------------------------------------------------
 //
-#ifndef OPENMS_COMPARISON_CLUSTERING_CLUSTERHIERARCHICAL_H
-#define OPENMS_COMPARISON_CLUSTERING_CLUSTERHIERARCHICAL_H
+#pragma once
 
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/DATASTRUCTURES/DistanceMatrix.h>
@@ -212,5 +211,4 @@ public:
   };
 
 }
-#endif //OPENMS_COMPARISON_CLUSTERING_CLUSTERHIERARCHICAL_H
 

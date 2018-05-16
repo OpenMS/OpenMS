@@ -34,7 +34,6 @@
 
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/DataAccessHelper.h>
 
-#include <OpenMS/ANALYSIS/TARGETED/TargetedExperimentHelper.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 
 namespace OpenMS
@@ -201,7 +200,12 @@ namespace OpenMS
     if (pep.hasRetentionTime())
     {
       p.rt = pep.getRetentionTime();
+      if (pep.getRetentionTimeUnit() == TargetedExperimentHelper::RetentionTime::RTUnit::MINUTE)
+      {
+        p.rt = 60 * pep.getRetentionTime();
+      }
     }
+    p.setDriftTime(pep.getDriftTime());
 
     if (pep.hasCharge())
     {
@@ -230,7 +234,6 @@ namespace OpenMS
     // Mapping of peptide modifications (don't do this for metabolites...)
     if (p.isPeptide())
     {
-
       OpenMS::AASequence aa_sequence = TargetedExperimentHelper::getAASequence(pep);
 
       if (aa_sequence.hasNTerminalModification())
@@ -268,7 +271,12 @@ namespace OpenMS
     if (compound.hasRetentionTime())
     {
       comp.rt = compound.getRetentionTime();
+      if (compound.getRetentionTimeUnit() == TargetedExperimentHelper::RetentionTime::RTUnit::MINUTE)
+      {
+        comp.rt = 60 * compound.getRetentionTime();
+      }
     }
+    comp.setDriftTime(compound.getDriftTime());
 
     if (compound.hasCharge())
     {

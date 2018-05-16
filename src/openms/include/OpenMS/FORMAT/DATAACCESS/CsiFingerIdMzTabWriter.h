@@ -32,8 +32,7 @@
 // $Authors: Oliver Alka $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_HOST_CSIFINGERIDMZTABWRITER_H
-#define OPENMS_HOST_CSIFINGERIDMZTABWRITER_H
+#pragma once
 
 namespace OpenMS
 {
@@ -64,6 +63,7 @@ namespace OpenMS
           struct CsiAdapterIdentification
           {
             OpenMS::String scan_index;
+            OpenMS::String scan_number;
             std::vector<CsiAdapterHit> hits;
           };
 
@@ -87,4 +87,3 @@ namespace OpenMS
       };
 }
 
-#endif //OPENMS_HOST_CSIFINGERIDMZTABWRITER_H

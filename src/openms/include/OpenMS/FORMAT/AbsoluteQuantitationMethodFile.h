@@ -32,8 +32,7 @@
 // $Authors: Douglas McCloskey, Pasquale Domenico Colaianni $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FORMAT_ABSOLUTEQUANTITATIONMETHODFILE_H
-#define OPENMS_FORMAT_ABSOLUTEQUANTITATIONMETHODFILE_H
+#pragma once
 
 
 #include <OpenMS/ANALYSIS/QUANTITATION/AbsoluteQuantitationMethod.h>
@@ -110,4 +109,3 @@ protected:
 
 } // namespace OpenMS
 
-#endif // OPENMS_FORMAT_ABSOLUTEQUANTITATIONMETHODFILE_H

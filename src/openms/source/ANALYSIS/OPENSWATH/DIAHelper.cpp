@@ -35,7 +35,7 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/DIAHelper.h>
 
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
-#include <OpenMS/CHEMISTRY/IsotopeDistribution.h>
+#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmPickedHelperStructs.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithm.h>
 
@@ -110,16 +110,15 @@ namespace OpenMS
     {
       typedef OpenMS::FeatureFinderAlgorithmPickedHelperStructs::TheoreticalIsotopePattern TheoreticalIsotopePattern;
       // create the theoretical distribution
-      IsotopeDistribution d;
+      CoarseIsotopePatternGenerator solver(nr_isotopes);
       TheoreticalIsotopePattern isotopes;
-      d.setMaxIsotope(nr_isotopes);
       //std::cout << product_mz * charge << std::endl;
-      d.estimateFromPeptideWeight(product_mz * charge);
+      auto d = solver.estimateFromPeptideWeight(product_mz * charge);
 
       double mass = product_mz;
       for (IsotopeDistribution::Iterator it = d.begin(); it != d.end(); ++it)
       {
-        isotopesSpec.push_back(std::make_pair(mass, it->second));
+        isotopesSpec.push_back(std::make_pair(mass, it->getIntensity()));
         mass += mannmass;
       }
     } //end of dia_isotope_corr_sub

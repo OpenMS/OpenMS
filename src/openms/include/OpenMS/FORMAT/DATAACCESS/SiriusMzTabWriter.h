@@ -32,8 +32,7 @@
 // $Authors: Oliver Alka $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FORMAT_DATAACCESS_SIRIUSMZTABWRITER_H
-#define OPENMS_FORMAT_DATAACCESS_SIRIUSMZTABWRITER_H
+#pragma once
 
 namespace OpenMS
 {
@@ -65,6 +64,7 @@ namespace OpenMS
     struct SiriusAdapterIdentification
     {
       OpenMS::String scan_index;
+      OpenMS::String scan_number;
       std::vector<SiriusAdapterHit> hits;
     };
 
@@ -77,7 +77,7 @@ namespace OpenMS
     @brief Extract scan_index from filepath
     */
     static String extract_scan_index(const String & path);
-
+ 
     /**
     @brief Conversion of sirius output to mzTab
     
@@ -94,4 +94,3 @@ namespace OpenMS
 
 }
 
-#endif //OPENMS_FORMAT_DATAACCESS_SIRIUSMZTABWRITER_H

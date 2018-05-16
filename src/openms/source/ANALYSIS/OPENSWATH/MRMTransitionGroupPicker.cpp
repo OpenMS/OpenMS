@@ -35,9 +35,6 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMTransitionGroupPicker.h>
 
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerHiRes.h>
-#include <OpenMS/FILTERING/NOISEESTIMATION/SignalToNoiseEstimatorMedian.h>
-#include <OpenMS/FILTERING/SMOOTHING/SavitzkyGolayFilter.h>
-#include <OpenMS/FILTERING/SMOOTHING/GaussFilter.h>
 
 namespace OpenMS
 {
@@ -60,7 +57,7 @@ namespace OpenMS
     defaults_.setValue("peak_integration", "original", "Calculate the peak area and height either the smoothed or the raw chromatogram data.", ListUtils::create<String>("advanced"));
     defaults_.setValidStrings("peak_integration", ListUtils::create<String>("original,smoothed"));
 
-    defaults_.setValue("background_subtraction", "none", "Try to apply a background subtraction to the peak (experimental). The background is estimated as the average noise at the peak boundaries (original) or at the exact left and right peak positions (exact).  The same original or smoothed chromatogram specified by peak_integration will be used for background estimation.", ListUtils::create<String>("advanced"));
+    defaults_.setValue("background_subtraction", "none", "Remove background from peak signal using estimated noise levels. The 'original' method is only provided for historical purposes, please use the 'exact' method and set parameters using the PeakIntegrator: settings. The same original or smoothed chromatogram specified by peak_integration will be used for background estimation.", ListUtils::create<String>("advanced"));
     defaults_.setValidStrings("background_subtraction", ListUtils::create<String>("none,original,exact"));
 
     defaults_.setValue("recalculate_peaks", "false", "Tries to get better peak picking by looking at peak consistency of all picked peaks. Tries to use the consensus (median) peak border if theof variation within the picked peaks is too large.", ListUtils::create<String>("advanced"));
@@ -80,6 +77,12 @@ namespace OpenMS
     
     defaults_.setValue("compute_peak_shape_metrics", "false", "Calulates various peak shape metrics (e.g., tailing) that can be used for downstream QC/QA.", ListUtils::create<String>("advanced"));
     defaults_.setValidStrings("compute_peak_shape_metrics", ListUtils::create<String>("true,false"));
+
+    defaults_.setValue("compute_total_mi", "false", "Compute mutual information metrics for individual transitions that can be used for OpenSWATH/IPF scoring.", ListUtils::create<String>("advanced"));
+    defaults_.setValidStrings("compute_total_mi", ListUtils::create<String>("true,false"));
+
+    defaults_.setValue("boundary_selection_method", "largest", "Method to use when selecting the best boundaries for peaks.", ListUtils::create<String>("advanced"));
+    defaults_.setValidStrings("boundary_selection_method", ListUtils::create<String>("largest,widest"));
 
     defaults_.insert("PeakPickerMRM:", PeakPickerMRM().getDefaults());
     defaults_.insert("PeakIntegrator:", PeakIntegrator().getDefaults());
@@ -114,9 +117,11 @@ namespace OpenMS
     recalculate_peaks_max_z_ = (double)param_.getValue("recalculate_peaks_max_z");
     compute_peak_quality_ = (bool)param_.getValue("compute_peak_quality").toBool();
     compute_peak_shape_metrics_ = (bool)param_.getValue("compute_peak_shape_metrics").toBool();
+    compute_total_mi_ = (bool)param_.getValue("compute_total_mi").toBool();
     min_qual_ = (double)param_.getValue("minimal_quality");
     min_peak_width_ = (double)param_.getValue("min_peak_width");
     resample_boundary_ = (double)param_.getValue("resample_boundary");
+    boundary_selection_method_ = param_.getValue("boundary_selection_method");
 
     picker_.setParameters(param_.copy("PeakPickerMRM:", true));
     pi_.setParameters(param_.copy("PeakIntegrator:", true));
@@ -135,6 +140,28 @@ namespace OpenMS
           largest = picked_chroms[k][i].getIntensity();
           chr_idx = (int)k;
           peak_idx = (int)i;
+        }
+      }
+    }
+  }
+
+  void MRMTransitionGroupPicker::findWidestPeakIndices(const std::vector<MSChromatogram>& picked_chroms, Int& chrom_idx, Int& point_idx) const
+  {
+    double max_width{0};
+    for (Size i = 0; i < picked_chroms.size(); ++i)
+    {
+      for (Size k = 0; k < picked_chroms[i].size(); ++k)
+      {
+        const double left_rt = picked_chroms[i].getFloatDataArrays()[1][k];
+        const double right_rt = picked_chroms[i].getFloatDataArrays()[2][k];
+        const double local_peak_width = right_rt - left_rt;
+        LOG_DEBUG << "findWidestPeakIndices(): local_peak_width=" << local_peak_width << std::endl;
+        if (local_peak_width > max_width)
+        {
+          max_width = local_peak_width;
+          chrom_idx = static_cast<Int>(i);
+          point_idx = static_cast<Int>(k);
+          LOG_DEBUG << "findWidestPeakIndices(): max_width=" << max_width << "; chrom_idx=" << chrom_idx << "; point_idx=" << point_idx << std::endl;
         }
       }
     }

@@ -32,8 +32,7 @@
 // $Authors: $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FILTERING_BASELINE_MORPHOLOGICALFILTER_H
-#define OPENMS_FILTERING_BASELINE_MORPHOLOGICALFILTER_H
+#pragma once
 
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
@@ -586,4 +585,3 @@ private:
 
 } // namespace OpenMS
 
-#endif

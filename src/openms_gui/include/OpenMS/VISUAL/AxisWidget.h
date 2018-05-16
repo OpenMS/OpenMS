@@ -32,14 +32,13 @@
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_VISUAL_AXISWIDGET_H
-#define OPENMS_VISUAL_AXISWIDGET_H
+#pragma once
 
 // OpenMS_GUI config
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
 // QT
-#include <QtGui/QWidget>
+#include <QtWidgets>
 class QPaintEvent;
 
 // OpenMS
@@ -170,4 +169,3 @@ protected:
   };
 } // namespace OpenMS
 
-#endif

@@ -38,7 +38,7 @@
 
 #include <OpenMS/test_config.h>
 #include <OpenMS/CONCEPT/ClassTest.h>
-#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/ALGO/MRMScoring.h>
+#include <OpenMS/OPENSWATHALGO/ALGO/MRMScoring.h>
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
 
 using namespace OpenMS;

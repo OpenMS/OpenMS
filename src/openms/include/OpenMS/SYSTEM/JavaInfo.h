@@ -32,8 +32,7 @@
 // $Authors: Timo Sachsenberg, Chris Bielow $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_SYSTEM_JAVAINFO_H
-#define OPENMS_SYSTEM_JAVAINFO_H
+#pragma once
 
 #include <OpenMS/config.h>
 
@@ -62,4 +61,3 @@ public:
 
 }
 
-#endif // OPENMS_SYSTEM_JAVAINFO_H

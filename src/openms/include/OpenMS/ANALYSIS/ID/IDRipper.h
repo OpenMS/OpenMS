@@ -31,8 +31,7 @@
 // $Maintainer: Timo Sachsenberg $
 // $Authors: Immanuel Luhn $
 // --------------------------------------------------------------------------
-#ifndef OPENMS_ANALYSIS_ID_IDRIPPER_H
-#define OPENMS_ANALYSIS_ID_IDRIPPER_H
+#pragma once
 
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
@@ -93,4 +92,3 @@ private:
 
 } // namespace OpenMS
 
-#endif // OPENMS_ANALYSIS_ID_IDRIPPER_H

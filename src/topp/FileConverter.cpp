@@ -505,7 +505,8 @@ protected:
         if (uid_postprocessing == "ensure")
         {
           fm.applyMemberFunction(&UniqueIdInterface::ensureUniqueId);
-        } else if (uid_postprocessing == "reassign")
+        }
+        else if (uid_postprocessing == "reassign")
         {
           fm.applyMemberFunction(&UniqueIdInterface::setUniqueId);
         }
@@ -557,7 +558,8 @@ protected:
         if (uid_postprocessing == "ensure")
         {
           fm.applyMemberFunction(&UniqueIdInterface::ensureUniqueId);
-        } else if (uid_postprocessing == "reassign")
+        }
+        else if (uid_postprocessing == "reassign")
         {
           fm.applyMemberFunction(&UniqueIdInterface::setUniqueId);
         }

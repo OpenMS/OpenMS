@@ -32,8 +32,7 @@
 // $Authors: Andreas Bertsch, Marc Sturm, Sven Nahnsen, Hendrik Weisser $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_ID_CONSENSUSIDALGORITHMWORST_H
-#define OPENMS_ANALYSIS_ID_CONSENSUSIDALGORITHMWORST_H
+#pragma once
 
 #include <OpenMS/ANALYSIS/ID/ConsensusIDAlgorithmIdentity.h>
 
@@ -67,4 +66,3 @@ namespace OpenMS
 
 } // namespace OpenMS
 
-#endif // OPENMS_ANALYSIS_ID_CONSENSUSIDALGORITHMWORST_H

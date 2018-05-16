@@ -32,8 +32,7 @@
 // $Authors: $
 // --------------------------------------------------------------------------
 //
-#ifndef OPENMS_MATH_STATISTICS_GUMBELDISTRIBUTIONFITTER_H
-#define OPENMS_MATH_STATISTICS_GUMBELDISTRIBUTIONFITTER_H
+#pragma once
 
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/DATASTRUCTURES/DPosition.h>
@@ -106,4 +105,3 @@ private:
   }
 }
 
-#endif

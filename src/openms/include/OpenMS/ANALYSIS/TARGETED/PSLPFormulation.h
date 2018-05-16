@@ -32,8 +32,7 @@
 // $Authors: $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_TARGETED_PSLPFORMULATION_H
-#define OPENMS_ANALYSIS_TARGETED_PSLPFORMULATION_H
+#pragma once
 
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
@@ -240,4 +239,3 @@ protected:
 
 } // namespace
 
-#endif // OPENMS_ANALYSIS_ID_PSLPFORMULATION_H

@@ -32,13 +32,14 @@
 // $Authors: Oliver Alka $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_ID_SIRIUSMSCONVERTER_H
-#define OPENMS_ANALYSIS_ID_SIRIUSMSCONVERTER_H
+#pragma once
 
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/DATASTRUCTURES/StringListUtils.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/METADATA/SpectrumLookup.h>
+#include <OpenMS/METADATA/SourceFile.h>
 
 namespace OpenMS
 {
@@ -70,4 +71,3 @@ public:
 
 }
 
-#endif //OPENMS_ANALYSIS_ID_SIRIUSMSCONVERTER_H

@@ -37,11 +37,11 @@
 #include <OpenMS/VISUAL/DIALOGS/LayerStatisticsDialog.h>
 #include <OpenMS/VISUAL/AxisWidget.h>
 
-#include <QtGui/QGridLayout>
-#include <QtGui/QScrollBar>
-#include <QtGui/QCloseEvent>
-#include <QtGui/QMessageBox>
-#include <QtGui/QFileDialog>
+#include <QtWidgets/QGridLayout>
+#include <QtWidgets/QScrollBar>
+#include <QCloseEvent>
+#include <QtWidgets/QMessageBox>
+#include <QtWidgets/QFileDialog>
 #include <QtCore/QMimeData>
 
 using namespace std;
@@ -345,7 +345,7 @@ namespace OpenMS
 
   void SpectrumWidget::dropEvent(QDropEvent* event)
   {
-    emit dropReceived(event->mimeData(), event->source(), window_id_);
+    emit dropReceived(event->mimeData(), dynamic_cast<QWidget*>(event->source()), window_id_);
     event->acceptProposedAction();
   }
 

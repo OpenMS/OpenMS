@@ -31,10 +31,10 @@
 // $Maintainer: Lukas Zimmermann $
 // $Authors: Lukas Zimmermann, Eugen Netz $
 // --------------------------------------------------------------------------
-#ifndef OPENMS_FORMAT_XQUESTRESULTXMLFILE_H
-#define OPENMS_FORMAT_XQUESTRESULTXMLFILE_H
+#pragma once
 
 #include <OpenMS/FORMAT/XMLFile.h>
+#include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/ANALYSIS/XLMS/OPXLDataStructs.h>
@@ -43,7 +43,8 @@ namespace OpenMS
 {
 
   class OPENMS_DLLAPI XQuestResultXMLFile :
-    public Internal::XMLFile
+    public Internal::XMLFile,
+    public ProgressLogger
   {
 public:
     XQuestResultXMLFile();
@@ -52,19 +53,22 @@ public:
     /**
      * @brief Load the content of the xquest.xml file into the provided data structures.
      * @param filename Filename of the file which is to be loaded.
-     * @param csms Where the spectra with identifications of the input file will be loaded to.
+     * @param pep_ids Where the spectra with identifications of the input file will be loaded to.
      * @param prot_ids Where the protein identification of the input file will be loaded to.
-     * @param min_n_hits_per_spectrum How many minimum hits a spectrum must contain to be loaded to @p csms.
-     * @param load_to_peptideHit Whether the data will be loaded as meta values also into the peptide hits, instead just into the PeptideIdentification
      */
     void load(const String & filename,
-              std::vector< std::vector< PeptideIdentification > > & csms,
-              std::vector< ProteinIdentification > & prot_ids,
-              Size min_n_hits_per_spectrum = 0,
-              bool load_to_peptideHit = false);
+              std::vector< PeptideIdentification > & pep_ids,
+              std::vector< ProteinIdentification > & prot_ids
+            );
 
-    // Currently not implemented
-    //void store(const String &, std::vector< std::vector< PeptideIdentification > > & );
+    /**
+        @brief Stores the identifications in a xQuest XML file.
+
+        @exception Exception::UnableToCreateFile is thrown if the file could not be created
+    */
+    void store(const String& filename,
+               const std::vector<ProteinIdentification>& poid,
+               const std::vector<PeptideIdentification>& peid) const;
 
     /**
      * @brief Returns the total number of hits in the file
@@ -83,35 +87,6 @@ public:
      * @return Maximum score among the hits in the file.
      */
     double getMaxScore() const;
-
-    // TODO redo these functions
-
-     /**
-      * @brief Writes xquest.xml output files containing XL-MS identification results
-      * @param Path and filename for the output file
-      * @param The base_name should be the name of the input spectra file without the file ending. Used as part of an identifier string for the spectra.
-      * @param The PeptideIdentifications from a XL-MS search
-      * @param CrossLinkSpectrumMatches, from which the IDs were generated.
-      * @param The spectra, that were searched as a PeakMap
-      * @param The unit of the precursor mass tolerance ("Da" or "ppm")
-      * @param The unit of the fragment mass tolerance ("Da" or "ppm")
-      * @param The precursor mass tolerance
-      * @param The fragment mass tolerance for common ions
-      * @param The fragment mass tolerance for cross-linked ions
-      * @param The name of the cross-link reagent
-      * @param The mass of the cross-link reagent when linking two peptides
-      * @param List of possible masses for the cross-link, if it is attached to a peptide on one side
-      * @param Path and filename of the target protein database
-      * @param Path and filename of the decoy protein database
-      * @param Residues, that the first side of the cross-linker can react with
-      * @param Residues, that the second side of the cross-linker can react with
-      * @param The difference of mass between the two types of cross-linkers, if labeled linkers were used. Should be 0 for label-free linkers.
-      * @param Name of the Enzyme used for digestion
-      * @param Number of allowed missed cleavages
-      */
-      static void writeXQuestXML(String out_file, String base_name, const std::vector< PeptideIdentification >& peptide_ids, const std::vector< std::vector< OPXLDataStructs::CrossLinkSpectrumMatch > >& all_top_csms, const PeakMap& spectra,
-                                                  String precursor_mass_tolerance_unit, String fragment_mass_tolerance_unit, double precursor_mass_tolerance, double fragment_mass_tolerance, double fragment_mass_tolerance_xlinks, String cross_link_name,
-                                                  double cross_link_mass_light, DoubleList cross_link_mass_mono_link, String in_fasta, String in_decoy_fasta, StringList cross_link_residue1, StringList cross_link_residue2, double cross_link_mass_iso_shift, String enzyme_name, Size missed_cleavages);
 
      /**
       * @brief Writes spec.xml output containing matching peaks between heavy and light spectra after comparing and filtering
@@ -157,4 +132,3 @@ private:
     double max_score_; // Maximum score encountered in file
   };
 } // namespace OpenMS
-#endif // OPENMS_FORMAT_XQUESTRESULTXMLFILE_H

@@ -42,12 +42,12 @@
 #include <OpenMS/VISUAL/MultiGradientSelector.h>
 #include <OpenMS/SYSTEM/FileWatcher.h>
 
-#include <QtGui/QResizeEvent>
-#include <QtGui/QComboBox>
-#include <QtGui/QSpinBox>
-#include <QtGui/QMenu>
-#include <QtGui/QFileDialog>
-#include <QtGui/QMessageBox>
+#include <QResizeEvent>
+#include <QtWidgets/QComboBox>
+#include <QtWidgets/QSpinBox>
+#include <QtWidgets/QMenu>
+#include <QtWidgets/QFileDialog>
+#include <QtWidgets/QMessageBox>
 
 using namespace std;
 
@@ -192,6 +192,10 @@ namespace OpenMS
   {
 #endif
 
+    // make sure OpenGL already properly initialized
+    QOpenGLContext *ctx = QOpenGLContext::currentContext();
+    if (!ctx || !ctx->isValid()) return;
+    
     if (update_buffer_)
     {
       update_buffer_ = false;
@@ -202,7 +206,6 @@ namespace OpenMS
       openglwidget()->initializeGL();
     }
     openglwidget()->resizeGL(width(), height());
-    openglwidget()->glDraw();
   }
 
   void Spectrum3DCanvas::showCurrentLayerPreferences()

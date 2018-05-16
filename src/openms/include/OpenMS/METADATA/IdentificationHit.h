@@ -32,8 +32,7 @@
 // $Authors: $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_METADATA_IDENTIFICATIONHIT_H
-#define OPENMS_METADATA_IDENTIFICATIONHIT_H
+#pragma once
 
 #include <OpenMS/METADATA/MetaInfoInterface.h>
 
@@ -125,4 +124,3 @@ protected:
   };
 
 } //namespace OpenMS
-#endif // OPENMS_METADATA_IDENTIFICATIONHIT_H

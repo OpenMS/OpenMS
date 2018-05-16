@@ -34,7 +34,10 @@
 
 // OpenMS includes
 #include <OpenMS/VISUAL/DIALOGS/TOPPViewPrefDialog.h>
-#include <QtGui/QFileDialog>
+#include <ui_TOPPViewPrefDialog.h>
+
+
+#include <QtWidgets/QFileDialog>
 
 using namespace std;
 
@@ -43,11 +46,17 @@ namespace OpenMS
   namespace Internal
   {
     TOPPViewPrefDialog::TOPPViewPrefDialog(QWidget * parent) :
-      QDialog(parent)
+      QDialog(parent),
+      ui_(new Ui::TOPPViewPrefDialogTemplate)
     {
-      setupUi(this);
+      ui_->setupUi(this);
       connect(findChild<QPushButton *>("browse_default"), SIGNAL(clicked()), this, SLOT(browseDefaultPath_()));
       connect(findChild<QPushButton *>("browse_temp"), SIGNAL(clicked()), this, SLOT(browseTempPath_()));
+    }
+
+    TOPPViewPrefDialog::~TOPPViewPrefDialog()
+    {
+      delete ui_;
     }
 
     void TOPPViewPrefDialog::browseDefaultPath_()
@@ -69,4 +78,4 @@ namespace OpenMS
     }
 
   }   //namespace Internal
-} //namspace OpenMS
+} //namespace OpenMS

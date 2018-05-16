@@ -32,8 +32,7 @@
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_KERNEL_PEAKINDEX_H
-#define OPENMS_KERNEL_PEAKINDEX_H
+#pragma once
 
 
 #include <OpenMS/CONCEPT/Types.h>
@@ -156,4 +155,3 @@ namespace OpenMS
 
 } // namespace OpenMS
 
-#endif // OPENMS_KERNEL_PEAKINDEX_H

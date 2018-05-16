@@ -33,27 +33,30 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/VISUAL/ParamEditor.h>
+#include <ui_ParamEditor.h>
+
 #include <OpenMS/DATASTRUCTURES/Param.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/DATASTRUCTURES/ListUtilsIO.h>
 #include <OpenMS/VISUAL/ListEditor.h>
 #include <OpenMS/SYSTEM/File.h>
 
-#include <QtGui/QMessageBox>
-#include <QtGui/QComboBox>
-#include <QtGui/QLineEdit>
-#include <QtGui/QShortcut>
-#include <QtGui/QMenu>
-#include <QtGui/QItemSelection>
+#include <QtWidgets/QMessageBox>
+#include <QtWidgets/QComboBox>
+#include <QtWidgets/QLineEdit>
+#include <QtWidgets/QShortcut>
+#include <QtWidgets/QMenu>
+#include <QItemSelection>
 #include <QtCore/QStringList>
-#include <QtGui/QLabel>
-#include <QtGui/QFileDialog>
+#include <QtWidgets/QLabel>
+#include <QtWidgets/QFileDialog>
 
 #include <stack>
 #include <limits>
 #include <sstream>
 
 using namespace std;
+
 
 /*
 
@@ -448,9 +451,10 @@ namespace OpenMS
     QWidget(parent),
     param_(nullptr),
     modified_(false),
-    advanced_mode_(false)
+    advanced_mode_(false),
+    ui_(new Ui::ParamEditorTemplate)
   {
-    setupUi(this);
+    ui_->setupUi(this);
     tree_ = new Internal::ParamTree(this);
     tree_->setMinimumSize(450, 200);
     tree_->setAllColumnsShowFocus(true);
@@ -461,13 +465,19 @@ namespace OpenMS
     dynamic_cast<QVBoxLayout *>(layout())->insertWidget(0, tree_, 1);
     tree_->setItemDelegate(new Internal::ParamEditorDelegate(tree_));       // the delegate from above is set
     connect(tree_->itemDelegate(), SIGNAL(modified(bool)), this, SLOT(setModified(bool)));
-    connect(advanced_, SIGNAL(toggled(bool)), this, SLOT(toggleAdvancedMode(bool)));
+    connect(ui_->advanced_, SIGNAL(toggled(bool)), this, SLOT(toggleAdvancedMode(bool)));
     connect(tree_, SIGNAL(selected(const QModelIndex &)), this, SLOT(showDocumentation(const QModelIndex &)));
+  }
+
+
+  ParamEditor::~ParamEditor()
+  {
+    delete ui_;
   }
 
   void ParamEditor::showDocumentation(const QModelIndex & index)
   {
-    doc_->setText(index.sibling(index.row(), 1).data(Qt::UserRole).toString());
+    ui_->doc_->setText(index.sibling(index.row(), 1).data(Qt::UserRole).toString());
   }
 
   void ParamEditor::load(Param & param)

@@ -32,15 +32,14 @@
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_VISUAL_HISTOGRAMWIDGET_H
-#define OPENMS_VISUAL_HISTOGRAMWIDGET_H
+#pragma once
 
 // OpenMS_GUI config
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
 // QT
-#include <QtGui/QWidget>
-#include <QtGui/QPixmap>
+#include <QtWidgets>
+#include <QPixmap>
 class QPaintEvent;
 class QResizeEvent;
 class QMouseEvent;
@@ -145,4 +144,3 @@ protected slots:
 } // namespace OpenMS
 
 
-#endif

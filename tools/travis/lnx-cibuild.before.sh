@@ -55,7 +55,6 @@ build_contrib SQLITE
 # leave contrib
 popd
 
-
 # build custom cppcheck if we want to perform style tests
 if [ "${ENABLE_STYLE_TESTING}" = "ON" ]; then
   git clone git://github.com/danmar/cppcheck.git
@@ -69,5 +68,4 @@ else
   cp -R THIRDPARTY/Linux/64bit/* _thirdparty/
   cp -R THIRDPARTY/All/* _thirdparty/
 fi
-
 

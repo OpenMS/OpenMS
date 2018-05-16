@@ -34,8 +34,6 @@
 
 #include <OpenMS/ANALYSIS/ID/ConsensusIDAlgorithmWorst.h>
 
-#include <cmath>
-
 using namespace std;
 
 namespace OpenMS

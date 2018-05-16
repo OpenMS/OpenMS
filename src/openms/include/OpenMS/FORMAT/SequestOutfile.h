@@ -32,8 +32,7 @@
 // $Authors: Martin Langwisch $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FORMAT_SEQUESTOUTFILE_H
-#define OPENMS_FORMAT_SEQUESTOUTFILE_H
+#pragma once
 
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
@@ -137,4 +136,3 @@ private:
 
 } //namespace OpenMS
 
-#endif // OPENMS_FORMAT_SEQUESTOUTFILE_H

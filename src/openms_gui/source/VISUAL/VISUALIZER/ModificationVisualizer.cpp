@@ -35,9 +35,9 @@
 #include <OpenMS/VISUAL/VISUALIZER/ModificationVisualizer.h>
 
 //QT
-#include <QtGui/QTextEdit>
-#include <QtGui/QComboBox>
-#include <QtGui/QLineEdit>
+#include <QtWidgets/QTextEdit>
+#include <QtWidgets/QComboBox>
+#include <QtWidgets/QLineEdit>
 
 #include <iostream>
 #include <vector>

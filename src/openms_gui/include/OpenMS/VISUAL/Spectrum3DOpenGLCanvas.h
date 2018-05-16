@@ -32,13 +32,12 @@
 // $Authors: Cornelia Friedle $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_VISUAL_SPECTRUM3DOPENGLCANVAS_H
-#define OPENMS_VISUAL_SPECTRUM3DOPENGLCANVAS_H
+#pragma once
 
 // OpenMS_GUI config
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
-#include <QtOpenGL/QGLWidget>
+#include <QOpenGLWidget>
 
 // OpenMS
 #include <OpenMS/DATASTRUCTURES/DRange.h>
@@ -56,7 +55,7 @@ namespace OpenMS
   */
 
   class OPENMS_GUI_DLLAPI Spectrum3DOpenGLCanvas :
-    public QGLWidget
+    public QOpenGLWidget
   {
     Q_OBJECT
 
@@ -79,27 +78,14 @@ public:
 
         Destroys the OpenGLWidget and all associated data.
     */
-    ~Spectrum3DOpenGLCanvas() override;
+    virtual ~Spectrum3DOpenGLCanvas();
+
     ///virtual function provided from QGLWidget
     void initializeGL() override;
     /// virtual function provided from QGLWidget
     void resizeGL(int w, int h) override;
     /// virtual function provided from QGLWidget
     void paintGL() override;
-    /// Builds up a display list for the 3D view
-    GLuint makeDataAsStick();
-    /// Builds up a display list for the axes
-    GLuint makeAxes();
-    /// Builds up a display list for axis ticks
-    GLuint makeAxesTicks();
-    /// Builds up a display list for the birds-eye view
-    GLuint makeDataAsTopView();
-    /// Builds up a display list for the background
-    GLuint makeGround();
-    /// Builds up a display list for grid lines
-    GLuint makeGridLines();
-    /// Draws the axis texts (since Qt 4.3 these cannot be put into display lists anymore...)
-    void drawAxesLegend();
 
     /** @name Reimplemented QT events */
     //@{
@@ -108,47 +94,60 @@ public:
     void mousePressEvent(QMouseEvent * e) override;
     void focusOutEvent(QFocusEvent * e) override;
     //@}
-
-    /// computes the dataset supposed to be drawn when a section has been selected in zoom mode
-    void computeSelection();
-
+    
     /// updates the min and max values of the intensity
     void updateIntensityScale();
+protected:
+    /// helper function to project point to device space
+    GLint project_(GLdouble objx, GLdouble objy, GLdouble objz, GLdouble * winx, GLdouble * winy); 
+    /// helper function to transform point using matrix m (homogeneous coordinates)
+    void transformPoint_(GLdouble out[4], const GLdouble m[16], const GLdouble in[4]);
+    ///helper function to replicate old behaviour of QGLWidget
+    void renderText_(double x, double y, double z, const QString & text);
+    ///helper function to replicate old behaviour of QGLWidget
+    void qglColor_(QColor color);
+    ///helper function to replicate old behaviour of QGLWidget
+    void qglClearColor_(QColor clearColor);
+    /// Builds up a display list for the 3D view
+    GLuint makeDataAsStick_();
+    /// Builds up a display list for the axes
+    GLuint makeAxes_();
+    /// Builds up a display list for axis ticks
+    GLuint makeAxesTicks_();
+    /// Builds up a display list for the birds-eye view
+    GLuint makeDataAsTopView_();
+    /// Builds up a display list for the background
+    GLuint makeGround_();
+    /// Builds up a display list for grid lines
+    GLuint makeGridLines_();
+    /// Draws the axis texts
+    void drawAxesLegend_();
+
+    /// computes the dataset supposed to be drawn when a section has been selected in zoom mode
+    void computeSelection_();
 
     /// calculates the zoom area , which is shown
-    void dataToZoomArray(double x_1, double y_1, double x_2, double y_2);
+    void dataToZoomArray_(double x_1, double y_1, double x_2, double y_2);
 
     /// returns the BB-rt-coordinate :  value --> BB-coordinates
-    double scaledRT(double rt);
+    double scaledRT_(double rt);
     /// returns the rt-value : BB-coordinates  --> value
-    double scaledInversRT(double mz);
+    double scaledInversRT_(double mz);
     /// returns the BB-mz-coordinate :  values --> BB-coordinates
-    double scaledMZ(double mz);
+    double scaledMZ_(double mz);
     ///  returns the mz-value : BB-coordinates  --> value
-    double scaledInversMZ(double mz);
+    double scaledInversMZ_(double mz);
     /// returns the BB-intensity -coordinate :  values --> BB-coordinates
-    double scaledIntensity(float intensity, Size layer_index);
+    double scaledIntensity_(float intensity, Size layer_index);
 
     /// recalculates the dot gradient interpolation values.
     void recalculateDotGradient_(Size layer);
     ///calculate the ticks for the gridlines
     void calculateGridLines_();
 
-    /// return width
-    float width() const { return width_; }
-    float height() const { return height_; }
-
-    /// return xRot_
-    int xRotation() const { return xrot_; }
-    /// return yRot_
-    int yRotation() const { return yrot_; }
-    /// return zRot_
-    int zRotation() const { return zrot_; }
     /// normalize the angel
     void normalizeAngle(int * angle);
-    //document me
-    void setAngels(int xrot, int yrot, int zrot);
-    //document me
+    // set translation vector to 0
     void resetTranslation();
     //document me
     void timeMessure();
@@ -184,7 +183,7 @@ public:
     /// member z-variable that stores the original angle during zoom mode
     int zrot_tmp_;
 
-
+    QPainter* painter_ = nullptr;
 
     /// member variables for the zoom-mode
     QPoint mouse_move_end_, mouse_move_begin_;
@@ -232,4 +231,3 @@ protected slots:
     void actionModeChange();
   };
 }
-#endif

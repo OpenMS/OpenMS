@@ -32,11 +32,11 @@
 // $Authors: Nico Pfeifer, Mathias Walzer, Hendrik Weisser $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FILTERING_ID_IDFILTER_H
-#define OPENMS_FILTERING_ID_IDFILTER_H
+#pragma once
 
 #include <OpenMS/config.h>
 #include <OpenMS/CHEMISTRY/ProteaseDigestion.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/METADATA/PeptideEvidence.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
@@ -1093,4 +1093,3 @@ public:
 
 } // namespace OpenMS
 
-#endif // OPENMS_FILTERING_ID_IDFILTER_H

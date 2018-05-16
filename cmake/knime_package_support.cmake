@@ -52,6 +52,7 @@ set(PAYLOAD_SHARE_PATH ${PAYLOAD_PATH}/share)
 # script directory
 set(SCRIPT_DIRECTORY ${PROJECT_SOURCE_DIR}/cmake/knime/)
 
+# variables for the scripts
 set(ARCH "")
 if(OPENMS_64BIT_ARCHITECTURE)
   set(ARCH "64")
@@ -76,16 +77,16 @@ add_custom_target(
   COMMAND ${CMAKE_COMMAND} -D SCRIPT_DIR=${SCRIPT_DIRECTORY} -D SOURCE_PATH=${PROJECT_SOURCE_DIR} -D TARGET_PATH=${KNIME_PLUGIN_DIRECTORY} -D OPENMS_VERSION=${CF_OPENMS_PACKAGE_VERSION} -P ${SCRIPT_DIRECTORY}configure_plugin_properties.cmake
 )
 
-# copy the icons
+# copy the icons (at configure time??)
 file(COPY        ${PROJECT_SOURCE_DIR}/cmake/knime/icons
      DESTINATION ${KNIME_PLUGIN_DIRECTORY}
      PATTERN ".git" EXCLUDE)
 
-# list of all tools that can generate CTDs
+# list of all tools that can generate CTDs and do not include GUI libraries
 set(CTD_executables ${TOPP_TOOLS} ${UTILS_TOOLS})
 
-# remove tools that do not produce CTDs
-list(REMOVE_ITEM CTD_executables OpenMSInfo GenericWrapper InspectAdapter MascotAdapter SvmTheoreticalSpectrumGeneratorTrainer OpenSwathMzMLFileCacher PepNovoAdapter IDEvaluator)
+# remove tools that do not produce CTDs or should not be shipped (because of dependencies or specifics that can not be resolved in KNIME)
+list(REMOVE_ITEM CTD_executables OpenMSInfo ExecutePipeline INIUpdater ImageCreator GenericWrapper InspectAdapter MascotAdapter SvmTheoreticalSpectrumGeneratorTrainer OpenSwathMzMLFileCacher PepNovoAdapter)
 
 # pseudo-ctd target
 add_custom_target(
@@ -97,7 +98,7 @@ add_custom_target(
   DEPENDS TOPP UTILS
 )
 
-# call the tools
+# call the tools to write ctds
 foreach(TOOL ${CTD_executables})
   add_custom_command(
     TARGET  create_ctds POST_BUILD
@@ -105,9 +106,12 @@ foreach(TOOL ${CTD_executables})
   )
 endforeach()
 
-# remove those parts of the CTDs we cannot model in KNIME
+# remove those parts of the CTDs we cannot or do not want to model in KNIME
+# e.g. paths to executables that we ship and whose directories are in path environment
 add_custom_target(
   final_ctds
+  # MaRaClusterAdapter
+  COMMAND ${CMAKE_COMMAND} -D SCRIPT_DIR=${SCRIPT_DIRECTORY} -DTOOLNAME=MaRaClusterAdapter -DPARAM=maracluster_executable -D CTD_PATH=${CTD_PATH} -P ${SCRIPT_DIRECTORY}remove_parameter_from_ctd.cmake
   # OMSSAAdapter
   COMMAND ${CMAKE_COMMAND} -D SCRIPT_DIR=${SCRIPT_DIRECTORY} -DTOOLNAME=OMSSAAdapter -DPARAM=omssa_executable -D CTD_PATH=${CTD_PATH} -P ${SCRIPT_DIRECTORY}remove_parameter_from_ctd.cmake
   # CruxAdapter
@@ -164,10 +168,7 @@ add_custom_target(
 
 # copy the binaries
 foreach(TOOL ${CTD_executables})
-  set(tool_path ${TOPP_BIN_PATH}/${TOOL})
-  if(WIN32)
-    set(tool_path "${tool_path}.exe")
-  endif()
+  set(tool_path ${TOPP_BIN_PATH}/${TOOL}${CMAKE_EXECUTABLE_SUFFIX})
   add_custom_command(
     TARGET  prepare_knime_payload_binaries POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy ${tool_path} "${PAYLOAD_BIN_PATH}/"
@@ -184,84 +185,60 @@ add_custom_target(
   DEPENDS prepare_knime_payload_binaries
 )
 
-# assemble the libraries, this differs drastically between the different platforms
-if (APPLE)
+# assemble the libraries
+if (APPLE) ## On APPLE use our script because the executables need to be relinked
   add_custom_command(
     TARGET prepare_knime_payload_libs POST_BUILD
     COMMAND ${PROJECT_SOURCE_DIR}/cmake/MacOSX/fix_dependencies.rb -l ${PAYLOAD_LIB_PATH} -b ${PAYLOAD_BIN_PATH}
   )
-elseif(WIN32)
-  # assemble required libraries for win32
-  # OpenMS, OpenMS_GUI, OpenSWATHAlgo, Qt, xerces, sqlite
-  add_custom_command(
-    TARGET prepare_knime_payload_libs POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:OpenMS> ${PAYLOAD_LIB_PATH}
-    COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:OpenMS_GUI> ${PAYLOAD_LIB_PATH}
-    COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:OpenSwathAlgo> ${PAYLOAD_LIB_PATH}
-    COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:SuperHirn> ${PAYLOAD_LIB_PATH}
-  )
-
-  function(copy_library lib target_path)
-    string(REGEX REPLACE "lib$" "dll" target_dll "${lib}")
-    file(TO_NATIVE_PATH "${target_dll}" target_native)
-    add_custom_command(
-      TARGET prepare_knime_payload_libs POST_BUILD
-      COMMAND ${CMAKE_COMMAND} -E copy "${target_native}" "${target_path}"
-    )
-  endfunction()
-
-  set(QT_PAYLOAD_LIBS "QTCORE;QTGUI;QTNETWORK;QTOPENGL;QTSQL;QTSVG;QTWEBKIT;PHONON")
-  foreach(QT_PAYLOAD_LIB ${QT_PAYLOAD_LIBS})
-    set(target_lib "${QT_${QT_PAYLOAD_LIB}_LIBRARY_RELEASE}")
-    copy_library(${target_lib} ${PAYLOAD_LIB_PATH})
+else()
+  ## Assemble common required libraries for win and lnx
+  ## Note that we do not need the QT plugins or QTGui libraries since we do not include GUI tools here.
+  foreach (KNIME_TOOLS_DEPENDENCY OpenMS OpenSwathAlgo SuperHirn)
+	  add_custom_command(
+		TARGET prepare_knime_payload_libs POST_BUILD
+		COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:${KNIME_TOOLS_DEPENDENCY}> ${PAYLOAD_LIB_PATH}
+	  )
   endforeach()
-
   
-  ## Include needed contrib dll-libraries other than QT
-  # Caution: The ..._LIBRARY variables from the find packages point to the *.lib files
+  foreach (KNIME_TOOLS_QT5_DEPENDENCY ${OpenMS_QT_COMPONENTS})
+    add_custom_command(
+		TARGET prepare_knime_payload_libs POST_BUILD
+		COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:Qt5::${KNIME_TOOLS_QT5_DEPENDENCY}> ${PAYLOAD_LIB_PATH}
+	)
+  endforeach()
+endif()
+
+if(WIN32) ## Add dynamic libraries if you linked to them.
+  ## TODO Check how we can auto-determine which are static and dynamic and only install dynamic ones here.
+  ## For now we got rid of dynamic libs on Win (except for QT above).
+  
+  ## TODO if we update our modules we can use properties of the imported targets.
+  #add_custom_command(
+  #  TARGET prepare_knime_payload_libs POST_BUILD
+  #  COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:XercesC::XercesC> ${PAYLOAD_LIB_PATH}
+  #  COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:SQLite::sqlite_shared> ${PAYLOAD_LIB_PATH}
+  #  )
+
+  ## If you need to install dynamic libs use the following snippets:
+  # Caution: The ..._LIBRARY variables from the find packages might point to the *.lib files
   # instead of the *.dlls
   
   # xerces-c
-  get_filename_component(xerces_path "${XercesC_LIBRARY_RELEASE}" PATH)
-  file(TO_NATIVE_PATH "${xerces_path}/xerces-c_3_1.dll" target_native_xerces)
-  add_custom_command(
-      TARGET prepare_knime_payload_libs POST_BUILD
-      COMMAND ${CMAKE_COMMAND} -E copy "${target_native_xerces}" "${PAYLOAD_LIB_PATH}"
-  )
+  # get_filename_component(xerces_path "${XercesC_LIBRARY_RELEASE}" PATH)
+  # file(TO_NATIVE_PATH "${xerces_path}/xerces-c_3_1.dll" target_native_xerces)
+  # add_custom_command(
+      # TARGET prepare_knime_payload_libs POST_BUILD
+      # COMMAND ${CMAKE_COMMAND} -E copy "${target_native_xerces}" "${PAYLOAD_LIB_PATH}"
+  # )
     
   # sqlite3
-  get_filename_component(sqlite_path "${SQLITE_LIBRARY}" PATH)
-  file(TO_NATIVE_PATH "${sqlite_path}/sqlite3.dll" target_native_sqlite)
-  add_custom_command(
-      TARGET prepare_knime_payload_libs POST_BUILD
-      COMMAND ${CMAKE_COMMAND} -E copy "${target_native_sqlite}" "${PAYLOAD_LIB_PATH}"
-  )
-else()
-  # assemble required libraries for lnx
-  set(QT_PAYLOAD_LIBS "QTCORE;QTGUI;QTNETWORK;QTOPENGL;QTSQL;QTSVG;QTWEBKIT;PHONON")
-  foreach(QT_PAYLOAD_LIB ${QT_PAYLOAD_LIBS})
-    if(NOT "${QT_${QT_PAYLOAD_LIB}_LIBRARY_RELEASE}" STREQUAL "QT_${QT_PAYLOAD_LIB}_LIBRARY_RELEASE-NOTFOUND")
-      set(target_lib "${QT_${QT_PAYLOAD_LIB}_LIBRARY_RELEASE}")
-      add_custom_command(
-        TARGET prepare_knime_payload_libs POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy "${target_lib}" "${PAYLOAD_LIB_PATH}"
-      )
-    endif()
-  endforeach()
-
-  # additionally query the executables and libs for the qt libs
-  add_custom_command(
-    TARGET prepare_knime_payload_libs POST_BUILD
-    COMMAND ${PROJECT_SOURCE_DIR}/cmake/knime/find_qt_libs.sh ${PROJECT_BINARY_DIR}/bin ${PROJECT_BINARY_DIR}/lib ${PAYLOAD_LIB_PATH}
-  )
-
-  add_custom_command(
-    TARGET prepare_knime_payload_libs POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_BINARY_DIR}/lib/libOpenMS.so ${PAYLOAD_LIB_PATH}
-    COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_BINARY_DIR}/lib/libOpenMS_GUI.so ${PAYLOAD_LIB_PATH}
-    COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_BINARY_DIR}/lib/libOpenSwathAlgo.so ${PAYLOAD_LIB_PATH}
-    COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_BINARY_DIR}/lib/libSuperHirn.so ${PAYLOAD_LIB_PATH}
-  )
+  # get_filename_component(sqlite_path "${SQLite_LIBRARY}" PATH)
+  # file(TO_NATIVE_PATH "${sqlite_path}/sqlite3.dll" target_native_sqlite)
+  # add_custom_command(
+      # TARGET prepare_knime_payload_libs POST_BUILD
+      # COMMAND ${CMAKE_COMMAND} -E copy "${target_native_sqlite}" "${PAYLOAD_LIB_PATH}"
+  # )
 endif()
 
 # handle the binaries.ini
@@ -274,6 +251,8 @@ add_custom_target(
 set(FOLDER_STRUCTURE_MESSAGE "You can clone all Thirdparty binaries from our OpenMS/THIRDPARTY Git repository but you have to flatten the folder structure such that it is only one level deep with the versions specific for your platform. Do not change the folder names.")
 
 # check if we have valid search engines
+## TODO check if we still need this. Maintenance. Maybe check for non-empty and otherwise just copy everything.
+## Would also allow custom packages.
 if(NOT EXISTS ${SEARCH_ENGINES_DIRECTORY})
   message(FATAL_ERROR "Please specify the path to the search engines to build the KNIME packages. ${FOLDER_STRUCTURE_MESSAGE} Then call cmake again with cmake -D SEARCH_ENGINES_DIRECTORY=<Path-To-Checkedout-SE>.")
 elseif(NOT EXISTS ${SEARCH_ENGINES_DIRECTORY}/OMSSA OR NOT EXISTS ${SEARCH_ENGINES_DIRECTORY}/XTandem OR NOT EXISTS ${SEARCH_ENGINES_DIRECTORY}/MSGFPlus)
@@ -283,7 +262,7 @@ elseif(NOT EXISTS ${SEARCH_ENGINES_DIRECTORY}/Fido)
 elseif(NOT EXISTS ${SEARCH_ENGINES_DIRECTORY}/LuciPHOr2)
   message(FATAL_ERROR "The given search engine directory seems to have an invalid layout (LuciPHOr2 is missing). ${FOLDER_STRUCTURE_MESSAGE}")
 elseif(NOT EXISTS ${SEARCH_ENGINES_DIRECTORY}/Percolator)
-  message(FATAL_ERROR "The given search engine directory seems to have an invalid layout (Percolator is missing). Please check use the one from the SVN.")
+  message(FATAL_ERROR "The given search engine directory seems to have an invalid layout (Percolator is missing). ${FOLDER_STRUCTURE_MESSAGE}")
 elseif(NOT APPLE AND NOT EXISTS ${SEARCH_ENGINES_DIRECTORY}/MyriMatch)
   message(FATAL_ERROR "The given search engine directory seems to have an invalid layout (MyriMatch is missing). ${FOLDER_STRUCTURE_MESSAGE}")
 endif()

@@ -33,12 +33,12 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/VISUAL/SpectraViewWidget.h>
-#include <QtGui/QVBoxLayout>
-#include <QtGui/QTreeWidget>
-#include <QtGui/QComboBox>
-#include <QtGui/QLineEdit>
-#include <QtGui/QHeaderView>
-#include <QtGui/QMenu>
+#include <QtWidgets/QVBoxLayout>
+#include <QtWidgets/QTreeWidget>
+#include <QtWidgets/QComboBox>
+#include <QtWidgets/QLineEdit>
+#include <QtWidgets/QHeaderView>
+#include <QtWidgets/QMenu>
 
 namespace OpenMS
 {
@@ -579,7 +579,7 @@ namespace OpenMS
       spectra_combo_box_->addItems(qsl);
       spectra_combo_box_->setCurrentIndex(curr);
 
-      LayerData::ExperimentSharedPtrType exp;
+      LayerData::ConstExperimentSharedPtrType exp;
       exp = cl.getPeakData();
 
       if (cl.chromatogram_flag_set())
@@ -633,13 +633,13 @@ namespace OpenMS
           QString mz_string = QString::number(mit->first.getMZ());
           QString charge = QString::number(mit->first.getCharge());
           QString description = "";
-          if (mit->first.metaValueExists("peptide_sequence"))
-          {
-            description = String(mit->first.getMetaValue("peptide_sequence")).toQString();
-          }
           if (mit->first.metaValueExists("description"))
           {
             description = String(mit->first.getMetaValue("description")).toQString();
+          }
+          if (mit->first.metaValueExists("peptide_sequence"))
+          {
+            description = String(mit->first.getMetaValue("peptide_sequence")).toQString();
           }
 
           // Show all: iterate over all chromatograms corresponding to the current precursor and add action containing all chromatograms

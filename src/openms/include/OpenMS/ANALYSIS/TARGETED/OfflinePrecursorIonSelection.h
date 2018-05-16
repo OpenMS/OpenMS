@@ -32,8 +32,7 @@
 // $Authors: Alexandra Zerck $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_TARGETED_OFFLINEPRECURSORIONSELECTION_H
-#define OPENMS_ANALYSIS_TARGETED_OFFLINEPRECURSORIONSELECTION_H
+#pragma once
 
 
 #include <OpenMS/KERNEL/FeatureMap.h>
@@ -134,5 +133,4 @@ private:
  
 }
 
-#endif //  OPENMS_ANALYSIS_ID_OFFLINEPRECURSORIONSELECTION_H
 

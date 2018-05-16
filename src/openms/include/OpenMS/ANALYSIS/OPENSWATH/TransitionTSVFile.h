@@ -32,11 +32,10 @@
 // $Authors: Hannes Roest $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_OPENSWATH_TRANSITIONTSVFILE_H
-#define OPENMS_ANALYSIS_OPENSWATH_TRANSITIONTSVFILE_H
+#pragma once
 
 #include <OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>
-#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/TransitionExperiment.h>
+#include <OpenMS/OPENSWATHALGO/DATAACCESS/TransitionExperiment.h>
 
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/CHEMISTRY/ResidueModification.h>
@@ -113,6 +112,7 @@ protected:
       String fragment_charge;
       int fragment_nr;
       double fragment_mzdelta;
+      double drift_time;
       int fragment_modification;
       String fragment_type;
       String uniprot_id;
@@ -131,6 +131,7 @@ protected:
         fragment_charge("NA"),
         fragment_nr(-1),
         fragment_mzdelta(-1),
+        drift_time(-1),
         fragment_modification(0),
         detecting_transition(true),
         identifying_transition(false),
@@ -301,5 +302,4 @@ public:
   };
 }
 
-#endif // OPENMS_ANALYSIS_OPENSWATH_TRANSITIONTSVREADER_H
 

@@ -32,13 +32,12 @@
 // $Authors: Timo Sachsenberg $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_VISUAL_SPECTRAVIEWWIDGET_H
-#define OPENMS_VISUAL_SPECTRAVIEWWIDGET_H
+#pragma once
 
-#include <QWidget>
-#include <QtGui/QLineEdit>
-#include <QtGui/QComboBox>
-#include <QtGui/QTreeWidget>
+#include <QtWidgets>
+#include <QLineEdit>
+#include <QComboBox>
+#include <QTreeWidget>
 
 #include <OpenMS/VISUAL/LayerData.h>
 
@@ -85,4 +84,3 @@ private slots:
   };
 }
 
-#endif // OPENMS_VISUAL_SPECTRAVIEWWIDGET_H

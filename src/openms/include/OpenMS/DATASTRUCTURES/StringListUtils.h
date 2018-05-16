@@ -32,8 +32,7 @@
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_DATASTRUCTURES_STRINGLISTUTILS_H
-#define OPENMS_DATASTRUCTURES_STRINGLISTUTILS_H
+#pragma once
 
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
@@ -254,4 +253,3 @@ protected:
 
 } // namespace OPENMS
 
-#endif // OPENMS_DATASTRUCTURES_STRINGLISTUTILS_H

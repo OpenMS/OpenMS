@@ -32,11 +32,10 @@
 // $Authors: Hannes Roest $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_OPENSWATH_OPENSWATHTSVWRITER_H
-#define OPENMS_ANALYSIS_OPENSWATH_OPENSWATHTSVWRITER_H
+#pragma once
 
 // Interfaces
-#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/TransitionExperiment.h>
+#include <OpenMS/OPENSWATHALGO/DATAACCESS/TransitionExperiment.h>
 
 #include <OpenMS/KERNEL/FeatureMap.h>
 
@@ -113,5 +112,4 @@ namespace OpenMS
 
 }
 
-#endif // OPENMS_ANALYSIS_OPENSWATH_OPENSWATHTSVWRITER_H
 

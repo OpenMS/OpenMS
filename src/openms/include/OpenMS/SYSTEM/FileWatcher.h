@@ -33,8 +33,7 @@
 // --------------------------------------------------------------------------
 
 
-#ifndef OPENMS_SYSTEM_FILEWATCHER_H
-#define OPENMS_SYSTEM_FILEWATCHER_H
+#pragma once
 
 //OpenMS
 #include <OpenMS/CONCEPT/Types.h>
@@ -113,4 +112,3 @@ protected:
   // OPENMS_DLLAPI extern FileWatcher myFileWatcher_instance;
 }
 
-#endif // OPENMS_SYSTEM_FILE_H

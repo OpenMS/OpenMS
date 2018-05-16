@@ -33,9 +33,6 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/ID/ConsensusIDAlgorithmPEPMatrix.h>
-#include <OpenMS/CONCEPT/LogStream.h>
-
-#include <cmath>
 
 using namespace std;
 

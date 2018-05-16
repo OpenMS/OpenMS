@@ -36,10 +36,10 @@
 #include <OpenMS/VISUAL/VISUALIZER/SampleVisualizer.h>
 
 //QT
-#include <QtGui/QTextEdit>
-#include <QtGui/QValidator>
-#include <QtGui/QLineEdit>
-#include <QtGui/QComboBox>
+#include <QtWidgets/QTextEdit>
+#include <QValidator>
+#include <QtWidgets/QLineEdit>
+#include <QtWidgets/QComboBox>
 
 #include <iostream>
 

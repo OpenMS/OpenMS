@@ -32,8 +32,7 @@
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_VISUAL_METADATABROWSER_H
-#define OPENMS_VISUAL_METADATABROWSER_H
+#pragma once
 
 // OpenMS_GUI config
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
@@ -44,8 +43,8 @@
 #include <OpenMS/KERNEL/ConsensusMap.h>
 
 //QT
-#include <QtGui/QDialog>
-#include <QtGui/QTreeWidget>
+#include <QtWidgets/QDialog>
+#include <QtWidgets/QTreeWidget>
 class QTreeWidgetItem;
 class QPushButton;
 class QStackedWidget;
@@ -110,7 +109,7 @@ namespace OpenMS
 public:
 
     /// Constructor with flag for edit mode
-    MetaDataBrowser(bool editable = FALSE, QWidget * parent = nullptr, bool modal = FALSE);
+    MetaDataBrowser(bool editable = false, QWidget * parent = nullptr, bool modal = false);
 
     /// Adds a peak map
     void add(PeakMap & exp)
@@ -279,4 +278,3 @@ protected:
     QTreeWidget * treeview_;
   };
 }
-#endif

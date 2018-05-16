@@ -32,8 +32,7 @@
 // $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_CHEMISTRY_CROSSLINKSDB_H
-#define OPENMS_CHEMISTRY_CROSSLINKSDB_H
+#pragma once
 
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 
@@ -90,4 +89,3 @@ namespace OpenMS
   };
 }
 
-#endif // CROSSLINKSDB_H

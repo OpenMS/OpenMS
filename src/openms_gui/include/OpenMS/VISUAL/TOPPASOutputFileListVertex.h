@@ -32,8 +32,7 @@
 // $Authors: Johannes Junker, Chris Bielow $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_VISUAL_TOPPASOUTPUTFILELISTVERTEX_H
-#define OPENMS_VISUAL_TOPPASOUTPUTFILELISTVERTEX_H
+#pragma once
 
 // OpenMS_GUI config
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
@@ -114,4 +113,3 @@ protected:
   };
 }
 
-#endif

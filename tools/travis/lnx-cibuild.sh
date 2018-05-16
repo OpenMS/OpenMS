@@ -63,12 +63,16 @@ export PATH=${SOURCE_DIRECTORY}/_thirdparty/Comet:$PATH
 export PATH=${SOURCE_DIRECTORY}/_thirdparty/Sirius:$PATH
 export PATH=${SOURCE_DIRECTORY}/_thirdparty/SpectraST:$PATH
 export PATH=${SOURCE_DIRECTORY}/_thirdparty/Percolator:$PATH
+export PATH=${SOURCE_DIRECTORY}/_thirdparty/MaRaCluster:$PATH
 export PATH=${SOURCE_DIRECTORY}/_thirdparty/crux:$PATH
 
 # if we perform style tests, add cppcheck to path
 if [ "$ENABLE_STYLE_TESTING" = "ON" ]; then
   export PATH=${SOURCE_DIRECTORY}/cppcheck:$PATH
 fi
+
+QT_ENV_SCRIPT=$(find /opt -name 'qt*-env.sh')
+source $QT_ENV_SCRIPT
 
 # Make sure we use the same python as before to install all the pip packages
 # cmake tends to have a different opinion of where python is...

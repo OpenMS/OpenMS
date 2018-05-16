@@ -33,7 +33,6 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/UniqueIdInterface.h>
-#include <iomanip>
 
 namespace OpenMS
 {
