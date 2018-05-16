@@ -78,6 +78,9 @@ namespace OpenMS
     defaults_.setValue("compute_peak_shape_metrics", "false", "Calulates various peak shape metrics (e.g., tailing) that can be used for downstream QC/QA.", ListUtils::create<String>("advanced"));
     defaults_.setValidStrings("compute_peak_shape_metrics", ListUtils::create<String>("true,false"));
 
+    defaults_.setValue("compute_total_mi", "false", "Compute mutual information metrics for individual transitions that can be used for OpenSWATH/IPF scoring.", ListUtils::create<String>("advanced"));
+    defaults_.setValidStrings("compute_total_mi", ListUtils::create<String>("true,false"));
+
     defaults_.setValue("boundary_selection_method", "largest", "Method to use when selecting the best boundaries for peaks.", ListUtils::create<String>("advanced"));
     defaults_.setValidStrings("boundary_selection_method", ListUtils::create<String>("largest,widest"));
 
@@ -114,6 +117,7 @@ namespace OpenMS
     recalculate_peaks_max_z_ = (double)param_.getValue("recalculate_peaks_max_z");
     compute_peak_quality_ = (bool)param_.getValue("compute_peak_quality").toBool();
     compute_peak_shape_metrics_ = (bool)param_.getValue("compute_peak_shape_metrics").toBool();
+    compute_total_mi_ = (bool)param_.getValue("compute_total_mi").toBool();
     min_qual_ = (double)param_.getValue("minimal_quality");
     min_peak_width_ = (double)param_.getValue("min_peak_width");
     resample_boundary_ = (double)param_.getValue("resample_boundary");

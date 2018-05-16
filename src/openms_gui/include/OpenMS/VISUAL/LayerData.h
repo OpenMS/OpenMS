@@ -39,6 +39,7 @@
 
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/KERNEL/OnDiscMSExperiment.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
@@ -56,7 +57,29 @@ namespace OpenMS
   /**
   @brief Class that stores the data for one layer
 
-      @ingroup SpectrumWidgets
+  The data for a layer can be peak data, feature data (feature, consensus),
+  chromatogram or peptide identification data. 
+
+  For 2D and 3D data, the data is generally accessible through getPeakData()
+  while features are accessible through getFeatureMap() and getConsensusMap().
+  For 1D data, the current spectrum must be accessed through
+  getCurrentSpectrum().
+
+  Peak data is stored using a shared pointer to an MSExperiment data structure
+  as well as a shared pointer to a OnDiscMSExperiment data structure. Note that
+  the actual data may not be in memory as this is not efficient for large files
+  and therefore may have to be retrieved from disk on-demand. 
+
+  @note The spectrum for 1D viewing retrieved through getCurrentSpectrum() may
+  be different than the one retrieved through getPeakData()[index] due to the
+  getCurrentSpectrum() being loaded from disk on-demoand and the calling code
+  cannot assume that they are the same. Therefore all calls in Spectrum1DCanvas
+  should only go through getCurrentSpectrum() and never through getPeakData().
+
+  @note Layer is mainly used as a member variable of SpectrumCanvas which holds
+  a vector of LayerData objects.
+
+  @ingroup SpectrumWidgets
   */
   class LayerData
   {
@@ -66,12 +89,12 @@ public:
     /// Dataset types
     enum DataType
     {
-      DT_PEAK,                ///< Spectrum profile or centroided data
+      DT_PEAK,            ///< Spectrum profile or centroided data
       DT_FEATURE,         ///< Feature data
       DT_CONSENSUS,       ///< Consensus feature data
       DT_CHROMATOGRAM,    ///< Chromatogram data
       DT_IDENT,           ///< Peptide identification data
-      DT_UNKNOWN              ///< Undefined data type indicating an error
+      DT_UNKNOWN          ///< Undefined data type indicating an error
     };
 
     /// Flags that determine which information is shown.
@@ -93,11 +116,11 @@ public:
     /// Label used in visualization
     enum LabelType
     {
-      L_NONE,                           ///< No label is displayed
-      L_INDEX,                          ///< The element number is used
-      L_META_LABEL,                 ///< The 'label' meta information is used
-      L_ID,                                 ///< The best peptide hit of the first identification run is used
-      L_ID_ALL,                         ///< All peptide hits of the first identification run are used
+      L_NONE,             ///< No label is displayed
+      L_INDEX,            ///< The element number is used
+      L_META_LABEL,       ///< The 'label' meta information is used
+      L_ID,               ///< The best peptide hit of the first identification run is used
+      L_ID_ALL,           ///< All peptide hits of the first identification run are used
       SIZE_OF_LABEL_TYPE
     };
 
@@ -121,6 +144,11 @@ public:
 
     /// SharedPtr on MSExperiment
     typedef boost::shared_ptr<ExperimentType> ExperimentSharedPtrType;
+
+    typedef boost::shared_ptr<const ExperimentType> ConstExperimentSharedPtrType;
+
+    /// SharedPtr on On-Disc MSExperiment
+    typedef boost::shared_ptr<OnDiscMSExperiment> ODExperimentSharedPtrType;
 
     //@}
 
@@ -146,14 +174,13 @@ public:
       features(new FeatureMapType()),
       consensus(new ConsensusMapType()),
       peaks(new ExperimentType()),
+      on_disc_peaks(new OnDiscMSExperiment()),
       chromatograms(new ExperimentType()),
-      current_spectrum_(0)
+      current_spectrum_(0),
+      cached_spectrum_()
     {
       annotations_1d.resize(1);
     }
-
-    /// Returns a const reference to the current spectrum (1d view)
-    const ExperimentType::SpectrumType & getCurrentSpectrum() const;
 
     /// Returns a const reference to the current feature data
     const FeatureMapSharedPtrType & getFeatureMap() const
@@ -179,19 +206,46 @@ public:
       return consensus;
     }
 
-    /// Returns a const reference to the current peak data
-    const ExperimentSharedPtrType & getPeakData() const
+    /**
+    @brief Returns a const reference to the current in-memory peak data
+
+    @note Do *not* use this function to access the current spectrum for the 1D view
+    @note Be careful when using this function as the actual peak data 
+    may not be loaded completely in memory, in which case the spectra will be empty.
+    */
+    const ConstExperimentSharedPtrType getPeakData() const;
+
+    /**
+    @brief Returns a mutable reference to the current in-memory peak data
+
+    @note Do *not* use this function to access the current spectrum for the 1D view
+    @note Be careful when using this function as the actual peak data 
+    may not be loaded completely in memory, in which case the spectra will be empty.
+    */
+    const ExperimentSharedPtrType & getPeakDataMuteable() {return peaks;}
+
+    /**
+    @brief Set the current in-memory peak data
+    */
+    void setPeakData(ExperimentSharedPtrType p)
     {
-      return peaks;
+      peaks = p;
+      updateCache_();
     }
 
-    /// Returns a mutable reference to the current peak data
-    ExperimentSharedPtrType & getPeakData()
+    /// Set the current on-disc data
+    void setOnDiscPeakData(ODExperimentSharedPtrType p)
     {
-      return peaks;
+      on_disc_peaks = p;
     }
 
-    /// Returns a const reference to the current chromatogram data
+    /// Returns a mutable reference to the on-disc data
+    const ODExperimentSharedPtrType & getOnDiscPeakData() const
+    {
+      return on_disc_peaks;
+    }
+
+    /// Returns a mutable reference to the current chromatogram data
     const ExperimentSharedPtrType & getChromatogramData() const
     {
       return chromatograms;
@@ -203,52 +257,81 @@ public:
       return chromatograms;
     }
 
-    /// Returns a const reference to the annotations of the current spectrum (1d view)
+    /// Returns a const reference to the annotations of the current spectrum (1D view)
     const Annotations1DContainer & getCurrentAnnotations() const
     {
       return annotations_1d[current_spectrum_];
     }
 
-    /// Returns a mutable reference to the annotations of the current spectrum (1d view)
+    /// Returns a mutable reference to the annotations of the current spectrum (1D view)
     Annotations1DContainer & getCurrentAnnotations()
     {
       return annotations_1d[current_spectrum_];
     }
 
-    /// Returns a const reference to the annotations of the current spectrum (1d view)
+    /// Returns a const reference to the annotations of the current spectrum (1D view)
     const Annotations1DContainer & getAnnotations(Size spectrum_index) const
     {
       return annotations_1d[spectrum_index];
     }
 
-    /// Returns a mutable reference to the annotations of the current spectrum (1d view)
+    /// Returns a mutable reference to the annotations of the current spectrum (1D view)
     Annotations1DContainer & getAnnotations(Size spectrum_index)
     {
       return annotations_1d[spectrum_index];
     }
 
-    /// Returns a mutable reference to the current spectrum (1d view)
-    ExperimentType::SpectrumType & getCurrentSpectrum()
-    {
-      return (*peaks)[current_spectrum_];
-    }
+    /**
+    @brief Returns a mutable reference to the current spectrum (1D view)
 
-    /// Get the index of the current spectrum
+    @note Only use this function to access the current spectrum for the 1D view
+    */
+    ExperimentType::SpectrumType & getCurrentSpectrum();
+
+    /**
+    @brief Returns a const reference to the current spectrum (1D view)
+
+    @note Only use this function to access the current spectrum for the 1D view
+    */
+    const ExperimentType::SpectrumType & getCurrentSpectrum() const;
+
+    /// Returns a copy of the required spectrum
+    ExperimentType::SpectrumType getSpectrum(Size spectrum_idx) const
+    {
+      if (spectrum_idx == current_spectrum_) return cached_spectrum_;
+
+      if ((*peaks)[spectrum_idx].size() > 0)
+      {
+        return (*peaks)[spectrum_idx];
+      }
+      else if (!on_disc_peaks->empty())
+      {
+        return on_disc_peaks->getSpectrum(spectrum_idx);
+      }
+      return (*peaks)[spectrum_idx];
+    }
+      
+    /// Get the index of the current spectrum (1D view)
     Size getCurrentSpectrumIndex() const
     {
       return current_spectrum_;
     }
 
-    /// Set the index of the current spectrum
+    /// Set the index of the current spectrum (1D view)
     void setCurrentSpectrumIndex(Size index)
     {
       current_spectrum_ = index;
+      updateCache_();
     }
-
-    /// Check whether the current layer is a chromatogram
-    // we need this specifically because this->type will *not* distinguish
-    // chromatogram and spectra data since we need to store chromatograms for
-    // the 1D case in a layer that looks like PEAK data to all tools.
+    
+    /**
+    @brief Check whether the current layer is a chromatogram
+     
+    This is needed because type will *not* distinguish properly between
+    chromatogram and spectra data. This is due to the fact that we store 
+    chromatograms for display in 1D in a data layer using MSSpectrum and 
+    so the layer looks like PEAK data to tools. 
+    */
     bool chromatogram_flag_set() const
     {
       return this->getPeakData()->size() > 0 &&
@@ -256,20 +339,28 @@ public:
              this->getPeakData()->getMetaValue("is_chromatogram").toBool();
     }
 
-    // set the chromatogram flag
+    /// set the chromatogram flag
     void set_chromatogram_flag()
     {
-      this->getPeakData()->setMetaValue("is_chromatogram", "true");
+      peaks->setMetaValue("is_chromatogram", "true");
     }
 
-    // remove the chromatogram flag
+    /// remove the chromatogram flag
     void remove_chromatogram_flag()
     {
       if (this->chromatogram_flag_set())
       {
-        this->getPeakData()->removeMetaValue("is_chromatogram");
+        peaks->removeMetaValue("is_chromatogram");
       }
     }
+    
+    /**
+    @brief Update ranges of all data structures
+
+    Updates ranges of all tracked data structures 
+    (spectra, chromatograms, features etc).
+    */
+    void updateRanges();
 
     /// updates the PeakAnnotations in the current PeptideHit with manually changed annotations
     /// if no PeptideIdentification or PeptideHit for the spectrum exist, it is generated
@@ -325,6 +416,10 @@ public:
     int peptide_hit_index;
 
 private:
+
+    /// Update current cached spectrum for easy retrieval
+    void updateCache_();
+
     /// updates the PeakAnnotations in the current PeptideHit with manually changed annotations
     void updatePeptideHitAnnotations_(PeptideHit& hit);
 
@@ -337,11 +432,18 @@ private:
     /// peak data
     ExperimentSharedPtrType peaks;
 
+    /// on disc peak data
+    ODExperimentSharedPtrType on_disc_peaks;
+
     /// chromatogram data
     ExperimentSharedPtrType chromatograms;
 
     /// Index of the current spectrum
     Size current_spectrum_;
+
+    /// Current cached spectrum
+    ExperimentType::SpectrumType cached_spectrum_;
+
   };
 
   /// Print the contents to a stream.

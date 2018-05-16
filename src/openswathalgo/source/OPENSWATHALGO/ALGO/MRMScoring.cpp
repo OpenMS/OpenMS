@@ -451,4 +451,157 @@ namespace OpenSwath
 
     return ss.str();
   }
+
+  const std::vector< std::vector<double> >& MRMScoring::getMIMatrix() const
+  {
+    return mi_matrix_;
+  }
+
+  void MRMScoring::initializeMIMatrix(OpenSwath::IMRMFeature* mrmfeature, std::vector<String> native_ids)
+  {
+    std::vector<double> intensityi, intensityj;
+    mi_matrix_.resize(native_ids.size());
+    for (std::size_t i = 0; i < native_ids.size(); i++)
+    {
+      String native_id = native_ids[i];
+      FeatureType fi = mrmfeature->getFeature(native_id);
+      mi_matrix_[i].resize(native_ids.size());
+      intensityi.clear();
+      fi->getIntensity(intensityi);
+      for (std::size_t j = i; j < native_ids.size(); j++)
+      {
+        String native_id2 = native_ids[j];
+        FeatureType fj = mrmfeature->getFeature(native_id2);
+        intensityj.clear();
+        fj->getIntensity(intensityj);
+        // compute ranked mutual information
+        mi_matrix_[i][j] = Scoring::rankedMutualInformation(intensityi, intensityj);
+      }
+    }
+  }
+
+  void MRMScoring::initializeMS1MI(OpenSwath::IMRMFeature* mrmfeature, std::vector<String> native_ids, std::string precursor_id)
+  {
+    std::vector<double> intensityi, intensity_ms1;
+    mrmfeature->getPrecursorFeature(precursor_id)->getIntensity(intensity_ms1);
+    ms1_mi_vector_.resize(native_ids.size());
+    for (std::size_t i = 0; i < native_ids.size(); i++)
+    {
+      String native_id = native_ids[i];
+      FeatureType fi = mrmfeature->getFeature(native_id);
+      intensityi.clear();
+      fi->getIntensity(intensityi);
+      ms1_mi_vector_[i] = Scoring::rankedMutualInformation(intensityi, intensity_ms1);
+    }
+  }
+
+  void MRMScoring::initializeMIIdMatrix(OpenSwath::IMRMFeature* mrmfeature, std::vector<String> native_ids_identification, std::vector<String> native_ids_detection)
+  { 
+    std::vector<double> intensityi, intensityj;
+    mi_matrix_.resize(native_ids_identification.size());
+    for (std::size_t i = 0; i < native_ids_identification.size(); i++)
+    { 
+      String native_id = native_ids_identification[i];
+      FeatureType fi = mrmfeature->getFeature(native_id);
+      mi_matrix_[i].resize(native_ids_detection.size());
+      intensityi.clear();
+      fi->getIntensity(intensityi);
+      for (std::size_t j = 0; j < native_ids_detection.size(); j++)
+      {
+        String native_id2 = native_ids_detection[j];
+        FeatureType fj = mrmfeature->getFeature(native_id2);
+        intensityj.clear();
+        fj->getIntensity(intensityj);
+        // compute ranked mutual information
+        mi_matrix_[i][j] = Scoring::rankedMutualInformation(intensityi, intensityj);
+      }
+    }
+  }
+
+  double MRMScoring::calcMIScore()
+  {
+    OPENSWATH_PRECONDITION(mi_matrix_.size() > 1, "Expect mutual information matrix of at least 2x2");
+
+    std::vector<double> mi_scores;
+    for (std::size_t i = 0; i < mi_matrix_.size(); i++)
+    {
+      for (std::size_t j = i; j < mi_matrix_.size(); j++)
+      {
+        mi_scores.push_back(mi_matrix_[i][j]);
+      }
+    }
+    OpenSwath::mean_and_stddev msc;
+    msc = std::for_each(mi_scores.begin(), mi_scores.end(), msc);
+    return msc.mean();
+  }
+
+  double MRMScoring::calcMIScore_weighted(
+    const std::vector<double>& normalized_library_intensity)
+  {
+    OPENSWATH_PRECONDITION(mi_matrix_.size() > 1, "Expect mutual information matrix of at least 2x2");
+
+    std::vector<double> mi_scores;
+    for (std::size_t i = 0; i < mi_matrix_.size(); i++)
+    {
+      mi_scores.push_back(mi_matrix_[i][i]
+        * normalized_library_intensity[i]
+        * normalized_library_intensity[i]);
+#ifdef MRMSCORING_TESTING
+      std::cout << "_mi_weighted " << i << " " << i << " " << mi_matrix_[i][i] << " weight " <<
+        normalized_library_intensity[i] * normalized_library_intensity[i] << std::endl;
+#endif
+      for (std::size_t j = i + 1; j < mi_matrix_.size(); j++)
+      {
+        mi_scores.push_back(mi_matrix_[i][j]
+          * normalized_library_intensity[i]
+          * normalized_library_intensity[j] * 2);
+#ifdef MRMSCORING_TESTING
+        std::cout << "_mi_weighted " << i << " " << j << " " << mi_matrix_[i][j] << " weight " <<
+          normalized_library_intensity[i] * normalized_library_intensity[j] * 2 << std::endl;
+#endif
+      }
+    }
+    return std::accumulate(mi_scores.begin(), mi_scores.end(), 0.0);
+  }
+
+  double MRMScoring::calcMS1MIScore()
+  {
+    OPENSWATH_PRECONDITION(ms1_mi_vector_.size() > 1, "Expect mutual information vector of a size of least 2");
+
+    std::vector<double> mi_scores;
+    for (std::size_t i = 0; i < ms1_mi_vector_.size(); i++)
+    {
+      mi_scores.push_back(ms1_mi_vector_[i]);
+    }
+    OpenSwath::mean_and_stddev msc;
+    msc = std::for_each(mi_scores.begin(), mi_scores.end(), msc);
+    return msc.mean();
+  }
+
+  std::string MRMScoring::calcIndMIIdScore()
+  {
+    OPENSWATH_PRECONDITION(mi_matrix_.size() > 0 && mi_matrix_[0].size() > 1, "Expect mutual information matrix of at least 2x1");
+
+    std::vector<double> mi_scores;
+    for (std::size_t i = 0; i < mi_matrix_.size(); i++)
+    {
+      double mi_scores_id = 0;
+      for (std::size_t j = 0; j < mi_matrix_[0].size(); j++)
+      {
+        mi_scores_id += mi_matrix_[i][j];
+      }
+      mi_scores.push_back(mi_scores_id / mi_matrix_[0].size());
+    }
+
+    std::stringstream ss;
+    for (size_t i = 0; i <mi_scores.size(); i++)
+    {
+      if (i != 0)
+        ss << ";";
+      ss << mi_scores[i];
+    }
+
+    return ss.str();
+  }
+
 }

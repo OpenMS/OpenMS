@@ -99,6 +99,10 @@ public:
     const XCorrMatrixType& getXCorrMatrix() const;
     //@}
 
+    /// non-mutable access to the MI matrix
+    const std::vector< std::vector<double> > & getMIMatrix() const;
+    //@}
+
     /** @name Scores */
     //@{
     /// Initialize the scoring object and building the cross-correlation matrix
@@ -148,6 +152,20 @@ public:
     static std::string calcIndSNScore(OpenSwath::IMRMFeature* mrmfeature, 
         std::vector<OpenSwath::ISignalToNoisePtr>& signal_noise_estimators);
 
+    /// Initialize the scoring object and building the MI matrix
+    void initializeMIMatrix(OpenSwath::IMRMFeature* mrmfeature, std::vector<String> native_ids);
+
+    /// Initialize the mutual information vector with the MS1 trace
+    void initializeMS1MI(OpenSwath::IMRMFeature* mrmfeature, std::vector<String> native_ids, std::string precursor_id);
+
+    /// Initialize the scoring object and building the mutual information matrix of identification vs detection chromatograms
+    void initializeMIIdMatrix(OpenSwath::IMRMFeature* mrmfeature, std::vector<String> native_ids_identification, std::vector<String> native_ids_detection);
+
+    double calcMIScore();
+    double calcMIScore_weighted(const std::vector<double>& normalized_library_intensity);
+    double calcMS1MIScore();
+    std::string calcIndMIIdScore();
+
     //@}
 
 private:
@@ -159,6 +177,13 @@ private:
 
     /// the precomputed cross correlation with the MS1 trace
     std::vector<XCorrArrayType> ms1_xcorr_vector_;
+    //@}
+
+    /// the precomputed mutual information matrix
+    std::vector< std::vector<double> > mi_matrix_;
+
+    /// the precomputed mutual information with the MS1 trace
+    std::vector<double> ms1_mi_vector_;
     //@}
 
   };

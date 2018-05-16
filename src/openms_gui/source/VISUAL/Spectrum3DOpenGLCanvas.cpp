@@ -180,8 +180,13 @@ namespace OpenMS
 
   void Spectrum3DOpenGLCanvas::initializeGL()
   {
-    makeCurrent();
-    glEnable(GL_DEPTH_TEST);
+    initializeOpenGLFunctions();
+
+    // The following line triggered a bug where the whole screen would turn
+    // black during scrolling (specifically it seems that multiple calls to
+    // this function causes the issue):
+    // glEnable(GL_DEPTH_TEST);
+
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     QColor color(canvas_3d_.param_.getValue("background_color").toQString());
@@ -308,7 +313,6 @@ namespace OpenMS
         delete(painter_);
       }
     }
-    update();
   }
 
   void Spectrum3DOpenGLCanvas::drawAxesLegend_()

@@ -24,6 +24,7 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/PeakIntegrator.h>" namespace "OpenM
         PI_PeakShapeMetrics calculatePeakShapeMetrics(MSChromatogram chromatogram, double left, double right, double peak_height, double peak_apex_pos) nogil except +
         PI_PeakShapeMetrics calculatePeakShapeMetrics(MSSpectrum spectrum, double left, double right, double peak_height, double peak_apex_pos) nogil except +
 
+
 cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/PeakIntegrator.h>" namespace "OpenMS::PeakIntegrator":
 
     cdef cppclass PI_PeakArea "OpenMS::PeakIntegrator::PeakArea":

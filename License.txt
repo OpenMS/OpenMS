@@ -189,3 +189,8 @@ Crux:
   - License:
   http://www.apache.org/licenses/LICENSE-2.0
 
+MaRaCluster:
+  - URL and source code:
+  https://github.com/statisticalbiotechnology/maracluster
+  - License
+  http://www.apache.org/licenses/LICENSE-2.0.html

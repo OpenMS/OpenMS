@@ -38,13 +38,17 @@
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/Factory.h>
 #include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/CONCEPT/VersionInfo.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/VISUAL/APPLICATIONS/MISC/QApplicationTOPP.h>
 #include <OpenMS/VISUAL/GUIProgressLoggerImpl.h>
 
 //Qt
 #include <QApplication>
+#include <QtWidgets/QGridLayout>
+#include <QtWidgets/QLabel>
 #include <QtWidgets/QStyleFactory>
+#include <QtWidgets/QPushButton>
 #include <QMessageBox>
 #include <QFile>
 #include <QFileOpenEvent>
@@ -122,6 +126,52 @@ namespace OpenMS
     default:
       return QApplication::event(event);
     }
+  }
+
+  void QApplicationTOPP::showAboutDialog(QWidget* parent, const QString& toolname)
+  {
+    // dialog and grid layout
+    QDialog* dlg = new QDialog(parent);
+    QGridLayout* grid = new QGridLayout(dlg);
+    dlg->setWindowTitle("About " + toolname);
+
+    // image
+    QLabel* label = new QLabel(dlg);
+    label->setPixmap(QPixmap(":/TOPP_about.png"));
+    grid->addWidget(label, 0, 0);
+
+    // text
+    QString text = QString("<BR>"
+      "<FONT size=+3>%1</font><BR>"
+      "<BR>"
+      "Version %2 %3"
+      "<BR>"
+      "OpenMS and TOPP is free software available under the<BR>"
+      "BSD 3-Clause License (BSD-new)<BR>"
+      "<BR>"
+      "<BR>"
+      "<BR>"
+      "<BR>"
+      "<BR>"
+      "Any published work based on TOPP and OpenMS shall cite these papers:<BR>"
+      "Roest, Sachsenberg, Aiche, Bielow, Weisser et al., Nat Methods (2016), 13(9):741-748<BR>"
+      "Kohlbacher et al., Bioinformatics (2007), 23:e191-e197<BR>")
+    .arg(toolname)
+    .arg(VersionInfo::getVersion().toQString())
+    .arg( // if we have a revision, embed it also into the shown version number
+      VersionInfo::getRevision().empty() ? "" : QString(" (") + VersionInfo::getRevision().toQString() + ")");
+
+    label = new QLabel(text, dlg);
+
+    grid->addWidget(label, 0, 1, Qt::AlignTop | Qt::AlignLeft);
+
+    // close button
+    QPushButton* button = new QPushButton("Close", dlg);
+    grid->addWidget(button, 1, 1, Qt::AlignBottom | Qt::AlignRight);
+    connect(button, SIGNAL(clicked()), dlg, SLOT(close()));
+
+    // execute
+    dlg->exec();
   }
 
 }
