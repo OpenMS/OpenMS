@@ -1066,7 +1066,7 @@ namespace OpenMS
      */
     if (centroided)
     {
-      consensus_map.setPrimaryMSRunPath(exp_centroid_.getPrimaryMSRunPath());
+      //consensus_map.setPrimaryMSRunPath(exp_centroid_.getPrimaryMSRunPath());
       //feature_map.setPrimaryMSRunPath(exp_centroid_.getPrimaryMSRunPath());
       generateMapsCentroided_(patterns, filter_results, cluster_results);
     }
