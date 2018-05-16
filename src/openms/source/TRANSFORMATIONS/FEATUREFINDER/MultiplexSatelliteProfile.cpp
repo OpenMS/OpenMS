@@ -38,7 +38,7 @@ using namespace std;
 
 namespace OpenMS
 {
-  MultiplexSatelliteProfile::MultiplexSatelliteProfile(double rt, double mz, double intensity) :
+  MultiplexSatelliteProfile::MultiplexSatelliteProfile(float rt, double mz, float intensity) :
     rt_(rt), mz_(mz), intensity_(intensity)
   {
   }

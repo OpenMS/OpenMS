@@ -51,7 +51,7 @@ namespace OpenMS
     /**
      * @brief constructor
      */
-    MultiplexSatelliteProfile(double rt, double mz, double intensity);
+    MultiplexSatelliteProfile(float rt, double mz, float intensity);
     
     /**
      * @brief returns the RT of the satellite data point
