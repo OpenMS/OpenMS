@@ -40,6 +40,8 @@
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFilteringProfile.h>
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
 
+// #define DEBUG
+
 using namespace std;
 using namespace boost::math;
 
@@ -219,11 +221,13 @@ namespace OpenMS
         }
         
       }
-      
+ 
+#ifdef DEBUG
       // write filtered peaks to debug output
-      /*std::stringstream debug_out;
+      std::stringstream debug_out;
       debug_out << "filter_result_" << pattern_idx << ".consensusXML";
-      result.writeDebugOutput(exp_picked_, debug_out.str());*/
+      result.writeDebugOutput(exp_picked_, debug_out.str());
+#endif
       
       // add results of this pattern to list
       filter_results.push_back(result);
