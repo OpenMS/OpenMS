@@ -35,6 +35,7 @@
 #include <OpenMS/ANALYSIS/MAPMATCHING/QTClusterFinder.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
+#include <OpenMS/KERNEL/FeatureHandle.h>
 
 // #define DEBUG_QTCLUSTERFINDER
 
@@ -337,7 +338,12 @@ namespace OpenMS
          it = elements.begin(); it != elements.end(); ++it)
     {
       feature.insert(it->first, it->second->getFeature());
+      if(it->second->getFeature().metaValueExists("dc_charge_adducts"))
+      {
+        feature.setMetaValue(String(it->second->getFeature().getUniqueId()), it->second->getFeature().getMetaValue("dc_charge_adducts"));
+      }
     }
+
     feature.computeConsensus();
 
 #ifdef DEBUG_QTCLUSTERFINDER
