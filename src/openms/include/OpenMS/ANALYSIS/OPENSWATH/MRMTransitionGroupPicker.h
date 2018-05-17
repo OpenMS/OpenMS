@@ -260,7 +260,6 @@ public:
         {
           for (Size k = 0; k < picked_chroms.size(); k++)
           {
-            double intensity(-1);
             double peak_apex_dist_min = 1e6;
             int min_dist = -1;
             for (Size i = 0; i < picked_chroms[k].size(); i++)
