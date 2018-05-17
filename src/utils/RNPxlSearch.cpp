@@ -1001,7 +1001,7 @@ protected:
           for (auto& k : unshifted_y_ions[ion_index]) { c_noshifts[i] += k.intensity; }
         }
 
-/*
+#ifdef DEBUG_RNPXLSEARCH
         cout << "n:";
         for (auto& k : n_shifts) cout << k << " ";
         cout << endl;
@@ -1014,13 +1014,14 @@ protected:
         cout << "c0:";
         for (auto& k : c_noshifts) cout << k << " ";
         cout << endl;
-*/
+#endif
 
         // Rules implemented:
         // 1. if cross-link on AA, then the prefix or suffix ending at this AA must be shifted
         // 2. if the previous AA in the prefix / suffix had a stronger shifted signal, then the current on is not the correct one
         // 3. if the current AA is cross-linked, then the previous AA is not cross-linked and we should observe an unshifted prefix / suffix ion
         // 4. if the current AA is cross-linked, we should observe a shifted prefix / suffix ion for the next AA, too
+        // 5. Sum up all intensities of shifted prefix / suffix ions
         for (Size i = 0; i != sites_sum_score.size(); ++i)
         {
           sites_sum_score[i] = 0.0;
@@ -1031,7 +1032,8 @@ protected:
             if (i >= 1 && n_shifts[i - 1] > n_shifts[i]) continue; // Strong signal from shifted AA before the current one? Then skip it.
             if (i >= 1 && n_noshifts[i - 1] == 0) continue; // continue if unshifted AA is missing before (left of) the shifted one.
             if (i < n_shifts.size()-1 && n_shifts[i + 1] == 0) continue; // Need a shifted ladder after (maybe too conservative?)
-            sites_sum_score[i] += n_shifts[i];
+            // sum up all intensities from this position and all longer prefixes that also carry the NA
+            for (Size j = i; j != sites_sum_score.size(); ++j) { sites_sum_score[i] += n_shifts[j]; }
           }
 
           if (c_shifts[i] > 0)
@@ -1040,13 +1042,15 @@ protected:
             if (i < c_noshifts.size()-1 && c_noshifts[i + 1] == 0) continue; // continue if unshifted AA is missing before (right of) the shifted one.
             if (i >=1 && c_shifts[i - 1] == 0) continue; // Need a shifted ladder after (maybe too conservative?)
             sites_sum_score[i] += c_shifts[i];
+            // sum up all intensities from this position and all longer suffixes that also carry the NA
+            for (int j = i; j >= 0; --j) { sites_sum_score[i] += c_shifts[j]; }
           }
         }
-/*
-        cout << "s:";
+#ifdef DEBUG_RNPXLSEARCH
+        cout << "site sum score (shifted a/b/y-ions):";
         for (auto& k : sites_sum_score) cout << k << " ";
         cout << endl;
-*/
+#endif
 
         #ifdef DEBUG_RNPXLSEARCH
           LOG_DEBUG << "Localisation based on immonium ions: ";
@@ -1065,11 +1069,12 @@ protected:
             }
           }
         }
-/*
-        cout << "s:";
+#ifdef DEBUG_RNPXLSEARCH
+        cout << "site sum score (shifted a/b/y-ions & immonium ions):";
         for (auto& k : sites_sum_score) cout << k << " ";
         cout << endl;
-*/
+#endif
+
         String best_localization = unmodified_sequence;
         double best_localization_score = 0;
         String localization_scores;
@@ -2121,12 +2126,12 @@ protected:
     {
       // partition ids into cross-links and peptides
       auto it = std::partition(peptide_ids.begin(), peptide_ids.end(), 
-       [](PeptideIdentification pid) 
+       [](const PeptideIdentification& pid) 
        {
          auto const & hits = pid.getHits();
          // predicate: check if best hit is a cross-link
-         if (hits.empty() 
-           && hits.front().getMetaValue("target_decoy") == "target") 
+         if (!hits.empty() && 
+            !hits.front().getMetaValue("RNPxl:RNA").toString().empty())
          { 
            return true;
          }
