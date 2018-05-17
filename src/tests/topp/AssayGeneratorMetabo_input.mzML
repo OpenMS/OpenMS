@@ -88,9 +88,9 @@
 			</processingMethod>
 			<processingMethod order="0" softwareRef="so_dp_sp_0_pm_1">
 				<cvParam cvRef="MS" accession="MS:1000035" name="peak picking" />
-				<cvParam cvRef="MS" accession="MS:1000747" name="completion time" value="2018-05-04+10:25" />
-				<userParam name="parameter: in" type="xsd:string" value="/Volumes/Transfer/OpenSWATH/20180219_Data/Data/converted/DDA/PestMix1pos-PestMix1.mzML"/>
-				<userParam name="parameter: out" type="xsd:string" value="/private/var/folders/mz/8dz2f2mx0fl159nrypn6p4h40000gn/T/knime_Peak_Picking85008/knime_fs-ZipLoopStart_2_4-85011/000/000/5_5_PeakPickerHiRes_0/PestMix1pos-PestMix1.mzML"/>
+				<cvParam cvRef="MS" accession="MS:1000747" name="completion time" value="2018-05-13+11:21" />
+				<userParam name="parameter: in" type="xsd:string" value="/Volumes/Transfer/OpenSWATH/20180219_Data/Data/newmsconvert_converted/DDA/PestMix1pos-PestMix1.mzML"/>
+				<userParam name="parameter: out" type="xsd:string" value="/private/var/folders/mz/8dz2f2mx0fl159nrypn6p4h40000gn/T/knime_Peak_Picking7229/knime_fs-ZipLoopStart_0_4-7236/000/000/5_5_PeakPickerHiRes_0/PestMix1pos-PestMix1.mzML"/>
 				<userParam name="parameter: processOption" type="xsd:string" value="inmemory"/>
 				<userParam name="parameter: log" type="xsd:string" value=""/>
 				<userParam name="parameter: debug" type="xsd:integer" value="0"/>
@@ -117,9 +117,9 @@
 			</processingMethod>
 			<processingMethod order="0" softwareRef="so_dp_sp_0_pm_2">
 				<cvParam cvRef="MS" accession="MS:1001486" name="data filtering" />
-				<cvParam cvRef="MS" accession="MS:1000747" name="completion time" value="2018-05-07+14:31" />
-				<userParam name="parameter: in" type="xsd:string" value="/Users/alka/Desktop/OpenSWATH_Metabolomics/testdata/PestMix1pos-PestMix1.mzML"/>
-				<userParam name="parameter: out" type="xsd:string" value="/private/var/folders/mz/8dz2f2mx0fl159nrypn6p4h40000gn/T/knime_Testing_Stuff70026/knime_fs-FileFilter_2_6-70032/000/000/FileFilter_0/PestMix1pos-PestMix1.mzML"/>
+				<cvParam cvRef="MS" accession="MS:1000747" name="completion time" value="2018-05-17+15:23" />
+				<userParam name="parameter: in" type="xsd:string" value="/Users/alka/Desktop/OpenSWATH_Metabolomics/testdata/test/PestMix1pos-PestMix1.mzML"/>
+				<userParam name="parameter: out" type="xsd:string" value="/private/var/folders/mz/8dz2f2mx0fl159nrypn6p4h40000gn/T/knime_Testing_Stuff60805/knime_fs-FileFilter_4_6-60807/000/000/FileFilter_0/PestMix1pos-PestMix1.mzML"/>
 				<userParam name="parameter: log" type="xsd:string" value=""/>
 				<userParam name="parameter: debug" type="xsd:integer" value="0"/>
 				<userParam name="parameter: threads" type="xsd:integer" value="1"/>
@@ -145,7 +145,7 @@
 				<userParam name="parameter: peak_options:rm_pc_charge" type="xsd:string" value="[]"/>
 				<userParam name="parameter: peak_options:pc_mz_range" type="xsd:string" value=":"/>
 				<userParam name="parameter: peak_options:pc_mz_list" type="xsd:string" value="[]"/>
-				<userParam name="parameter: peak_options:level" type="xsd:string" value="[1, 2, 3]"/>
+				<userParam name="parameter: peak_options:level" type="xsd:string" value="[1, 2]"/>
 				<userParam name="parameter: peak_options:sort_peaks" type="xsd:string" value="false"/>
 				<userParam name="parameter: peak_options:no_chromatograms" type="xsd:string" value="false"/>
 				<userParam name="parameter: peak_options:remove_chromatograms" type="xsd:string" value="false"/>
@@ -178,10 +178,10 @@
 				<userParam name="parameter: consensus:blackorwhitelist:mz" type="xsd:double" value="0.01"/>
 				<userParam name="parameter: consensus:blackorwhitelist:use_ppm_tolerance" type="xsd:string" value="false"/>
 				<userParam name="parameter: f_and_c:charge" type="xsd:string" value=":"/>
-				<userParam name="parameter: f_and_c:size" type="xsd:string" value="2:"/>
+				<userParam name="parameter: f_and_c:size" type="xsd:string" value=":"/>
 				<userParam name="parameter: f_and_c:remove_meta" type="xsd:string" value="[]"/>
 				<userParam name="parameter: id:remove_clashes" type="xsd:string" value="false"/>
-				<userParam name="parameter: id:keep_best_score_id" type="xsd:string" value="false"/>
+				<userParam name="parameter: id:keep_best_score_id" type="xsd:string" value="true"/>
 				<userParam name="parameter: id:sequences_whitelist" type="xsd:string" value="[]"/>
 				<userParam name="parameter: id:accessions_whitelist" type="xsd:string" value="[]"/>
 				<userParam name="parameter: id:remove_annotated_features" type="xsd:string" value="false"/>

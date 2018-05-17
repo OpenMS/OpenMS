@@ -42,6 +42,7 @@
 #include <OpenMS/COMPARISON/SPECTRA/BinnedSpectrum.h>
 #include <OpenMS/COMPARISON/SPECTRA/BinnedSpectralContrastAngle.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/SpectraMerger.h>
+#include <OpenMS/MATH/MISC/MathFunctions.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -144,8 +145,17 @@ protected:
     registerStringOption_("method", "<choice>", "highest_intensity", "",false);
     setValidStrings_("method", ListUtils::create<String>("highest_intensity,consensus_spectrum"));
 
-    registerDoubleOption_("precursor_mz_tolerance", "<num>", 0.005, "Tolerance window (left and right) for precursor selection", false);
-    registerDoubleOption_("precursor_rt_tolerance", "<num>", 5, "Tolerance window (left and right) for precursor selection", false);
+    registerDoubleOption_("precursor_mz_tolerance", "<num>", 0.005, "Tolerance window for precursor selection (Feature selection in regard to the precursor)", false);
+    registerStringOption_("precursor_mz_tolerance_unit", "<choice>", "Da", "Unit of the precursor_mz_tolerance", false);
+    setValidStrings_("precursor_mz_tolerance_unit", ListUtils::create<String>("Da,ppm"));
+
+    registerDoubleOption_("precursor_mz_distance", "<num>", 0.0001, "Max m/z distance of the precursor entries of two spectra to be merged in [Da].", false);
+
+    registerDoubleOption_("precursor_recalibration_window", "<num>", 0.1, "Tolerance window for precursor selection (Annotation of precursor mz and intensity)", false, true);
+    registerStringOption_("precursor_recalibration_window_unit", "<choice>", "Da", "Unit of the precursor_mz_tolerance_annotation", false, true);
+    setValidStrings_("precursor_recalibration_window_unit", ListUtils::create<String>("Da,ppm"));
+
+    registerDoubleOption_("precursor_rt_tolerance", "<num>", 5, "Tolerance window (left and right) for precursor selection [Da]", false);
 
     registerDoubleOption_("cosine_similarity_threshold", "<num>", 0.98, "Threshold for cosine similarity of MS2 spectras of same precursor used for consensus spectrum", false);
 
@@ -153,15 +163,14 @@ protected:
 
     registerDoubleOption_("transition_threshold", "<num>", 10, "Further transitions need at least x% of the maximum intensity (default 10%)", false);
 
-    registerFlag_("use_known_unknowns", "Use features without identification", false);
-
+    registerFlag_("use_known_unknowns", "Use features without identification information", false);
   }
 
   // map precursors to closest feature and retrieve annotated metadata (if possible)
   // extract meta information from featureXML (MetaboliteAdductDecharger)
-  map<const BaseFeature*, vector<size_t>> extractMetaInformation(const PeakMap & spectra, const KDTreeFeatureMaps& fp_map_kd, const double& precursor_mz_tolerance, const double& precursor_rt_tolerance)
+  map<const BaseFeature*, std::vector<size_t>> extractMetaInformation(const PeakMap & spectra, const KDTreeFeatureMaps& fp_map_kd, const double& precursor_mz_tolerance, const double& precursor_rt_tolerance, bool ppm)
   {
-    map<const BaseFeature*, vector<size_t>> map_feature_to_precursors;
+    map<const BaseFeature*, vector<size_t>> feature_ms2_spectra_map;
 
     // map precursors to closest feature and retrieve annotated metadata (if possible)
     for (size_t index = 0; index != spectra.size(); ++index)
@@ -179,7 +188,9 @@ protected:
         // query features in tolerance window
         vector<Size> matches;
 
-        fp_map_kd.queryRegion(rt - precursor_rt_tolerance, rt + precursor_rt_tolerance, mz - precursor_mz_tolerance, mz + precursor_mz_tolerance, matches, true);
+        // get mz tolerance window
+        std::pair<double,double> mz_tolerance_window = Math::getTolWindow(mz, precursor_mz_tolerance, ppm);
+        fp_map_kd.queryRegion(rt - precursor_rt_tolerance, rt + precursor_rt_tolerance, mz_tolerance_window.first, mz_tolerance_window.second, matches, true);
 
         // no precursor matches the feature information found
         if (matches.empty()) { continue; }
@@ -199,27 +210,30 @@ protected:
         }
         const BaseFeature* min_distance_feature = fp_map_kd.feature(min_distance_feature_index);
 
-        map_feature_to_precursors[min_distance_feature].push_back(index);
+        feature_ms2_spectra_map[min_distance_feature].push_back(index);
       }
     }
-    return map_feature_to_precursors;
+    return feature_ms2_spectra_map;
   }
 
   // precursor correction (highest intensity)
-  Int getHighestIntensityPeakInMZRange(double test_mz, const MSSpectrum& spectrum1, double left_tolerance, double right_tolerance)
+  Int getHighestIntensityPeakInMZRange(double test_mz, const MSSpectrum& spectrum1, double tolerance, bool ppm)
   {
-    MSSpectrum::ConstIterator left = spectrum1.MZBegin(test_mz - left_tolerance);
-    MSSpectrum::ConstIterator right = spectrum1.MZEnd(test_mz + right_tolerance);
+
+    // get tolerance window and left/right iterator
+    std::pair<double,double> tolerance_window = Math::getTolWindow(test_mz, tolerance, ppm);
+    MSSpectrum::ConstIterator left = spectrum1.MZBegin(tolerance_window.first);
+    MSSpectrum::ConstIterator right = spectrum1.MZBegin(tolerance_window.second);
 
     // no MS1 precursor peak in +- tolerance window found
-    if (left == right || left->getMZ() > test_mz + right_tolerance)
+    if (left == right || left > right)
     {
-      return -1;
+        return -1;
     }
 
     MSSpectrum::ConstIterator max_intensity_it = std::max_element(left, right, Peak1D::IntensityLess());
 
-    if (max_intensity_it == right)
+    if (max_intensity_it == right || max_intensity_it == left)
     {
       return -1;
     }
@@ -228,7 +242,7 @@ protected:
   }
 
   // annotate precursor intensity based on precursor spectrum and highest intensity peak in tolerance window
-  void annotatePrecursorIntensity(PeakMap& spectra, double left_tolerance, double right_tolerance)
+  void annotatePrecursorIntensity(PeakMap& spectra, double tolerance, bool ppm)
   {
     for (PeakMap::Iterator s_it = spectra.begin(); s_it != spectra.end(); ++s_it)
     {
@@ -248,21 +262,21 @@ protected:
 
       double test_mz = precursor[0].getMZ();
 
-      // find corresponding precursor specturm
+      // find corresponding precursor spectrum
       PeakMap::ConstIterator s_it2 = spectra.getPrecursorSpectrum(s_it);
 
       // no precursor spectrum found
       if (s_it2 == spectra.end())
       {
-        LOG_WARN << "No MS1 Spectrum was found to the specific precursor" << std::endl;
+        LOG_WARN << "No MS1 spectrum was found to the specific precursor" << std::endl;
         continue;
       }
 
       const MSSpectrum& precursor_spectrum = *s_it2;
-      Int mono_index = getHighestIntensityPeakInMZRange(test_mz, precursor_spectrum, left_tolerance, right_tolerance);
+      Int mono_index = getHighestIntensityPeakInMZRange(test_mz, precursor_spectrum, tolerance, ppm);
       if (mono_index == -1)
       {
-        LOG_WARN << "No precusor peak in MS1 spectrum found." << std::endl;
+        LOG_WARN << "No precursor peak in MS1 spectrum found, please ensure that the tolerance is set correctly." << std::endl;
         continue;
       }
       const Peak1D& max_mono_peak = precursor_spectrum[mono_index];
@@ -281,11 +295,20 @@ protected:
     String id = getStringOption_("in_id");
     String out = getStringOption_("out");
     String method = getStringOption_("method");
-    double precursor_mz_tol = getDoubleOption_("precursor_mz_tolerance");
-    double precursor_rt_tol = getDoubleOption_("precursor_rt_tolerance");
-    double cosine_sim_threshold = getDoubleOption_("cosine_similarity_threshold");
     bool method_consensus_spectrum = method == "consensus_spectrum" ? true : false;
 
+    double precursor_mz_tol = getDoubleOption_("precursor_mz_tolerance");
+    String unit_prec = getStringOption_("precursor_mz_tolerance_unit");
+    bool ppm_prec = unit_prec == "ppm" ? true : false;
+
+    double precursor_rt_tol = getDoubleOption_("precursor_rt_tolerance");
+    double pre_recal_win = getDoubleOption_("precursor_recalibration_window");
+    String pre_recal_win_unit = getStringOption_("precursor_recalibration_window_unit");
+    bool ppm_recal = pre_recal_win_unit == "ppm" ? true : false;
+
+    double precursor_mz_distance = getDoubleOption_("precursor_mz_distance");
+
+    double cosine_sim_threshold = getDoubleOption_("cosine_similarity_threshold");
     unsigned int hull_size_filter = getIntOption_("filter_by_convex_hulls");
     double transition_threshold = getDoubleOption_("transition_threshold");
     bool use_known_unknowns = getFlag_("use_known_unknowns");
@@ -294,6 +317,18 @@ protected:
     MzMLFile mzml;
     PeakMap spectra;
     mzml.load(in, spectra);
+
+    // determine type of spectral data (profile or centroided)
+    SpectrumSettings::SpectrumType spectrum_type = spectra[0].getType();
+
+    if (spectrum_type == SpectrumSettings::PROFILE)
+    {
+      if (!getFlag_("force"))
+      {
+        throw OpenMS::Exception::FileEmpty(__FILE__, __LINE__, __FUNCTION__,
+                                           "Error: Profile data provided but centroided spectra expected.");
+      }
+    }
 
     // load featurexml
     FeatureXMLFile fxml;
@@ -323,7 +358,7 @@ protected:
     }
 
     // annotate precursor mz and intensity
-    annotatePrecursorIntensity(spectra, 0.2, 0.2);
+    annotatePrecursorIntensity(spectra, pre_recal_win, ppm_recal);
 
     // filter feature by convexhull size
     auto map_it = remove_if(feature_map.begin(), feature_map.end(),
@@ -339,18 +374,21 @@ protected:
     fp_map_kd.addMaps(v_fp);
 
     // read FeatureMap in KDTree for feature-precursor assignment
-    map<const BaseFeature*, vector<size_t> > map_feature_to_precursors = extractMetaInformation(spectra, fp_map_kd, precursor_mz_tol, precursor_rt_tol);
+    // only spectra with precursors are in the map - no need to check for presence of precursors
+    map<const BaseFeature*, std::vector<size_t> > feature_ms2_spectra_map = extractMetaInformation(spectra, fp_map_kd, precursor_mz_tol, precursor_rt_tol, ppm_prec);
 
     std::vector<AssayRow> assaylib;
     int transition_group_counter = 0;
 
-    for (std::map<const BaseFeature*, std::vector<size_t>>::iterator it = map_feature_to_precursors.begin();
-         it != map_feature_to_precursors.end();
+    for (std::map<const BaseFeature*, std::vector<size_t>>::iterator it = feature_ms2_spectra_map.begin();
+         it != feature_ms2_spectra_map.end();
          ++it)
     {
 
       String description("UNKNOWN"), sumformula("UNKNOWN"), adduct("UNKNOWN");
+      double feature_rt;
       const BaseFeature* min_distance_feature = it->first;
+      feature_rt = min_distance_feature->getRT();
 
       // extract metadata from featureXML
       if (!(min_distance_feature->getPeptideIdentifications().empty()) &&
@@ -369,7 +407,6 @@ protected:
       // check if known unknown should be used
       if (description == "UNKNOWN" && sumformula == "UNKNOWN" && adduct == "UNKNOWN" && !use_known_unknowns) { continue; }
 
-      double spectrum_rt = 0.0;
       double highest_precursor_mz = 0.0;
       float highest_precursor_int = 0.0;
       MSSpectrum highest_precursor_int_spectrum;
@@ -392,7 +429,6 @@ protected:
           highest_precursor_int = precursor_int;
           highest_precursor_mz = precursor_mz;
           highest_precursor_int_spectrum = spectra[*index_it];
-          spectrum_rt = spectra[*index_it].getRT();
         }
         transition_spectrum = highest_precursor_int_spectrum;
       }
@@ -426,7 +462,7 @@ protected:
         exp.sortSpectra();
         SpectraMerger merger;
         Param p;
-        p.setValue("precursor_method:mz_tolerance", precursor_mz_tol*2);
+        p.setValue("precursor_method:mz_tolerance", precursor_mz_distance);
         p.setValue("precursor_method:rt_tolerance", precursor_rt_tol*2);
         merger.setParameters(p);
 
@@ -436,7 +472,7 @@ protected:
         // check if all precursors have been merged if not use highest intensity precursor
         if (exp.getSpectra().size() < 2)
         {
-          transition_spectrum = exp.getSpectra()[0];;
+          transition_spectrum = exp.getSpectra()[0];
         }
       }
 
@@ -481,13 +517,14 @@ protected:
           row.precursor_mz = highest_precursor_mz;
           row.product_mz = current_mz;
           row.library_int = rel_int;
-          row.normalized_rt = spectrum_rt;
+          row.normalized_rt = feature_rt;
           row.compound_name = description;
           row.smiles = "none"; // not in AccurateMassSearch output yet
           row.sumformula = sumformula;
           row.adduct = adduct;
-          row.transition_group_id = String(transition_group_counter)+"_"+sumformula;
-          row.transition_id = String(transition_counter)+"_"+sumformula;
+          // for conversion to TRAML transition_id need to be unique _ due to multiple adducts with the same sumformula -> adduct information will be appended to name
+          row.transition_group_id = String(transition_group_counter)+"_"+sumformula+"_"+adduct;
+          row.transition_id = String(transition_group_counter)+"_"+String(transition_counter)+"_"+sumformula+"_"+adduct;
           row.decoy = 0;
           transition_counter += 1;
         }
@@ -500,14 +537,15 @@ protected:
        transition_group_counter += 1;
     }
 
+    // TODO: use TransitionTSVWriter writer for output
     // write output
     TextFile tf;
-    tf.addLine("PrecursorMz\tProductMz\tLibraryIntensity\tRetentionTime\tCompoundName\tSMILES\tSumFormula\tTransitionId\tTransitionGroupId\tAdduct\tDecoy\n");
+    tf.addLine("PrecursorMz\tProductMz\tLibraryIntensity\tRetentionTime\tCompoundName\tSMILES\tSumFormula\ttransition_name\ttransition_group_id\tAdduct\tDecoy\n");
     for (auto & entry : assaylib)
     {
       tf.addLine(String(entry.precursor_mz)+"\t"+String(entry.product_mz)+"\t"+String(entry.library_int)+"\t"+String(entry.normalized_rt)+
-                 "\t"+entry.compound_name+"\t"+entry.smiles+"\t"+entry.sumformula+"\t"+entry.transition_group_id+"\t"+entry.transition_id+
-                 "\t"+entry.adduct+ "\t"+entry.decoy+"\n");
+                 "\t"+entry.compound_name+"\t"+entry.smiles+"\t"+entry.sumformula+"\t"+entry.transition_id+"\t"+entry.transition_group_id+
+                 "\t"+entry.adduct+"\t"+entry.decoy+"\n");
     }
     tf.store(out);
 
