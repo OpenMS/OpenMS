@@ -338,7 +338,7 @@ namespace OpenMS
          it = elements.begin(); it != elements.end(); ++it)
     {
       feature.insert(it->first, it->second->getFeature());
-      if(it->second->getFeature().metaValueExists("dc_charge_adducts"))
+      if (it->second->getFeature().metaValueExists("dc_charge_adducts"))
       {
         feature.setMetaValue(String(it->second->getFeature().getUniqueId()), it->second->getFeature().getMetaValue("dc_charge_adducts"));
       }
