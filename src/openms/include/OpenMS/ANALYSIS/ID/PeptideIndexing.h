@@ -73,7 +73,8 @@ namespace OpenMS
         E.g., "sw|P33354_DECOY|YEHR_ECOLI Uncharacterized lipop..." is <b>invalid</b>, since the tool has no knowledge of how SwissProt entries are build up.
         A correct identifier could be "DECOY_sw|P33354|YEHR_ECOLI Uncharacterized li ..." or "sw|P33354|YEHR_ECOLI_DECOY Uncharacterized li", depending on whether you are
         using prefix or suffix annotation.<br>
-        This tool will also report some helpful target/decoy statistics when it is done.
+  
+  Some helpful target/decoy statistics will be reported when done.
 
   By default this tool will fail if an unmatched peptide occurs, i.e. if the database does not contain the corresponding protein.
   You can force it to return successfully in this case by using the flag @p allow_unmatched.
@@ -111,8 +112,11 @@ namespace OpenMS
   or <tt>none</tt> (essentially allowing all hits, no matter their context). These settings should not be used (due to high risk of reporting false positives),
   unless the search engine was instructed to search peptides in the same way.
   
+  The FASTA file should not contain duplicate protein accessions (since accessions are not validated) if a correct unique-matching annotation is important (target/decoy annotation is still correct).
+
   Threading:
   This tool support multiple threads (@p threads option) to speed up computation, at the cost of little extra memory.
+
 */
 
  class OPENMS_DLLAPI PeptideIndexing :
@@ -126,7 +130,6 @@ public:
       EXECUTION_OK,
       DATABASE_EMPTY,
       PEPTIDE_IDS_EMPTY,
-      DATABASE_CONTAINS_MULTIPLES,
       ILLEGAL_PARAMETERS,
       UNEXPECTED_RESULT
     };

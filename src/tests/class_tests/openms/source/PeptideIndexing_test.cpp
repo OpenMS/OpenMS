@@ -185,19 +185,14 @@ START_SECTION((ExitCodes run(std::vector<FASTAFile::FASTAEntry>& proteins, std::
   r = pi.run(proteins, prot_ids, pep_ids);
   TEST_EQUAL(r, PeptideIndexing::PEPTIDE_IDS_EMPTY);
 
-  // duplicate accession -- just a warning, nothing else; second protein will be removed
+  // duplicate accession -- will not be detected and the peptide will have two protein hits.
+  // However, extractProteinAccessionsSet() returns a set<>, i.e. only one hit.
   p.setValue("aaa_max", 2);
   pi.setParameters(p);
   proteins = toFASTAVec(QStringList() << "BEBE" << "PROTEIN" << "BEBE", QStringList() << "P_BEBE" << "P_PROTEIN" << "P_BEBE"); //
   pep_ids = toPepVec(QStringList() << "NENE" << "NEDE" << "DENE" << "DEDE"); // 4 hits;
   r = pi.run(proteins, prot_ids, pep_ids);
-  TEST_EQUAL(proteins.size(), 2) // one removed!
-  for (Size i = 0; i < pep_ids.size(); ++i) TEST_EQUAL(pep_ids[i].getHits()[0].extractProteinAccessionsSet().size(), 1); // one hit!
-  // ... however, if sequences are not equal: bail out
-  proteins = toFASTAVec(QStringList() << "BEBE" << "PROTEIN" << "NOT*BEBE", QStringList() << "P_BEBE" << "P_PROTEIN" << "P_BEBE"); //
-  pep_ids = toPepVec(QStringList() << "NENE" << "NEDE" << "DENE" << "DEDE"); // 4 hits;
-  r = pi.run(proteins, prot_ids, pep_ids);
-  TEST_EQUAL(r, PeptideIndexing::DATABASE_CONTAINS_MULTIPLES)
+  TEST_EQUAL(proteins.size(), 3) // all three present
    
   // I/L conversion
   p.setValue("aaa_max", 2); // testing I / L conversion, with additional ambAA's to saturate the max_aaa = 2 constraint to ensure that internally 'J' is not used for 'I' or 'L', since 'J' is unknown to SeqAn and will get converted to 'X' 
