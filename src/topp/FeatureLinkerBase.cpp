@@ -219,7 +219,7 @@ protected:
           it->clearMetaInfo();
           if(adduct != "")
           {
-          it->setMetaValue("dc_charge_adducts", adduct);
+            it->setMetaValue("dc_charge_adducts", adduct);
           }
 
         }
