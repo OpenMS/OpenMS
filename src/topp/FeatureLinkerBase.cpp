@@ -210,14 +210,14 @@ protected:
         {
           String adduct;
           //exception: addduct information
-          if(it->metaValueExists("dc_charge_adducts"))
+          if (it->metaValueExists("dc_charge_adducts"))
           {
             adduct = it->getMetaValue("dc_charge_adducts");
           }
           it->getSubordinates().clear();
           it->getConvexHulls().clear();
           it->clearMetaInfo();
-          if(adduct != "")
+          if (adduct != "")
           {
             it->setMetaValue("dc_charge_adducts", adduct);
           }
