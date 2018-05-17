@@ -361,7 +361,7 @@ namespace OpenMS
     {
       double mz = peak.getMZ() + patterns_[pattern_idx].getMZShiftAt(it.first);
       
-      // Extend the RT boundary by rt_band_ erlier
+      // Extend the RT boundary by rt_band_ earlier
       MSExperiment::ConstIterator it_rt_begin = exp_picked_.begin() + (it.second).first;
       it_rt_begin = exp_picked_.RTBegin(it_rt_begin->getRT() - 2 * rt_band_);
       

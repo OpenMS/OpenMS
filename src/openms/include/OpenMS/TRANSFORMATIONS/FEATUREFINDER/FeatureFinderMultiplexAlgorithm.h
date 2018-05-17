@@ -129,7 +129,7 @@ protected:
    * @param filter_results    filter results for each of the patterns
    * @param cluster_results    clusters of filter results
    */
-  void generateMapsCentroided_(const std::vector<MultiplexIsotopicPeakPattern>& patterns, const std::vector<MultiplexFilteredMSExperiment> filter_results, std::vector<std::map<int, GridBasedCluster> >& cluster_results);
+  void generateMapsCentroided_(const std::vector<MultiplexIsotopicPeakPattern>& patterns, const std::vector<MultiplexFilteredMSExperiment>& filter_results, std::vector<std::map<int, GridBasedCluster> >& cluster_results);
   
   /**
    * @brief generates consensus and feature maps containing all peptide multiplets
