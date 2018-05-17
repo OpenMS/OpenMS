@@ -32,8 +32,7 @@
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_DATASTRUCTURES_STRING_H
-#define OPENMS_DATASTRUCTURES_STRING_H
+#pragma once
 
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/OpenMSConfig.h>
@@ -548,4 +547,3 @@ public:
 
 } // namespace OPENMS
 
-#endif // OPENMS_DATASTRUCTURES_STRING_H

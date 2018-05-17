@@ -32,8 +32,7 @@
 // $Authors: Timo Sachsenberg $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_VISUAL_TOPPVIEWIDENTIFICATIONVIEWBEHAVIOR_H
-#define OPENMS_VISUAL_TOPPVIEWIDENTIFICATIONVIEWBEHAVIOR_H
+#pragma once
 
 // #include <OpenMS/CHEMISTRY/NASequence.h>
 #include <OpenMS/METADATA/SpectrumSettings.h>
@@ -147,4 +146,3 @@ namespace OpenMS
   };
 }
 
-#endif // OPENMS_VISUAL_TOPPVIEWIDENTIFICATIONVIEWBEHAVIOR_H

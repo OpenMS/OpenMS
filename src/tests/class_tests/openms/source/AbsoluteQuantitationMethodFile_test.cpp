@@ -63,7 +63,7 @@ AbsoluteQuantitationMethodFile* ptr = nullptr;
 AbsoluteQuantitationMethodFile* nullPointer = nullptr;
 const String in_file_1 = OPENMS_GET_TEST_DATA_PATH("AbsoluteQuantitationMethodFile_in_1.csv");
 const String in_file_2 = OPENMS_GET_TEST_DATA_PATH("AbsoluteQuantitationMethodFile_in_2.csv");
-const String out_file = OPENMS_GET_TEST_DATA_PATH("AbsoluteQuantitationMethodFile_out.csv");
+const String out_file = File::getTemporaryFile();
 
 START_SECTION((AbsoluteQuantitationMethodFile()))
 	ptr = new AbsoluteQuantitationMethodFile();

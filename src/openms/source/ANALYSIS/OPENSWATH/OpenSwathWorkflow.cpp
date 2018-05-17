@@ -47,6 +47,7 @@ namespace OpenMS
     const ChromExtractParams & cp_irt,
     const Param & irt_detection_param,
     const String & mz_correction_function,
+    const String& irt_mzml_out,
     Size debug_level,
     bool sonar,
     bool load_into_memory)
@@ -56,21 +57,25 @@ namespace OpenMS
     simpleExtractChromatograms(swath_maps, irt_transitions, irt_chromatograms, cp_irt, sonar, load_into_memory);
 
     // debug output of the iRT chromatograms
-    if (debug_level > 1)
+    if (irt_mzml_out.empty() && debug_level > 1)
+      {
+        String irt_mzml_out = "debug_irts.mzML";
+      }
+    if (!irt_mzml_out.empty())
     {
       try
       {
         PeakMap exp;
         exp.setChromatograms(irt_chromatograms);
-        MzMLFile().store("debug_irts.mzML", exp);
+        MzMLFile().store(irt_mzml_out, exp);
       }
       catch (OpenMS::Exception::UnableToCreateFile& /*e*/)
       {
-        LOG_DEBUG << "Error creating file 'debug_irts.mzML', not writing out iRT chromatogram file"  << std::endl;
+        LOG_DEBUG << "Error creating file " + irt_mzml_out + ", not writing out iRT chromatogram file"  << std::endl;
       }
       catch (OpenMS::Exception::BaseException& /*e*/)
       {
-        LOG_DEBUG << "Error writing to file 'debug_irts.mzML', not writing out iRT chromatogram file"  << std::endl;
+        LOG_DEBUG << "Error writing to file " + irt_mzml_out + ", not writing out iRT chromatogram file"  << std::endl;
       }
     }
     LOG_DEBUG << "Extracted number of chromatograms from iRT files: " << irt_chromatograms.size() <<  std::endl;
@@ -312,7 +317,7 @@ namespace OpenMS
 
           extractor.prepare_coordinates(tmp_out, coordinates, transition_exp_used, cp.rt_extraction_window, false);
           extractor.extractChromatograms(current_swath_map, tmp_out, coordinates, cp.mz_extraction_window,
-              cp.ppm, cp.extraction_function);
+                cp.ppm, cp.im_extraction_window, cp.extraction_function);
           extractor.return_chromatogram(tmp_out, coordinates,
               transition_exp_used, SpectrumSettings(), tmp_chromatograms, false);
 
@@ -518,7 +523,7 @@ namespace OpenMS
             // Step 2.2: prepare the extraction coordinates and extract chromatograms
             prepareExtractionCoordinates_(chrom_list, coordinates, transition_exp_used, false, trafo_inverse, cp);
             extractor.extractChromatograms(current_swath_map, chrom_list, coordinates, cp.mz_extraction_window,
-                cp.ppm, cp.extraction_function);
+                cp.ppm, cp.im_extraction_window, cp.extraction_function);
 
             // Step 2.3: convert chromatograms back to OpenMS::MSChromatogram and write to output
             std::vector< OpenMS::MSChromatogram > chromatograms;
@@ -624,7 +629,7 @@ namespace OpenMS
         // prepare the extraction coordinates and extract chromatogram
         prepareExtractionCoordinates_(chrom_list, coordinates, transition_exp_used, true, trafo_inverse, cp);
         extractor.extractChromatograms(ms1_map_, chrom_list, coordinates, cp.mz_extraction_window,
-            cp.ppm, cp.extraction_function);
+            cp.ppm, cp.im_extraction_window, cp.extraction_function);
 
         std::vector< OpenMS::MSChromatogram > chromatograms;
         extractor.return_chromatogram(chrom_list, coordinates, transition_exp_used,  SpectrumSettings(), chromatograms, true);
@@ -645,7 +650,7 @@ namespace OpenMS
           // are guaranteed to overlap.
           chromatograms[j].setNativeID( chromatograms[j].getNativeID() +  "_Precursor_i0");
           // write MS1 chromatograms to disk
-          ms1_chromatograms [ coordinates[j].id ] = chrom_list[j];
+          ms1_chromatograms[coordinates[j].id] = chrom_list[j];
 
           // only write precursor chromatograms that have a corresponding swath windows
           for (SignedSize i = 0; i < boost::numeric_cast<SignedSize>(swath_maps.size()); ++i)
@@ -695,7 +700,15 @@ namespace OpenMS
 
     MRMTransitionGroupPicker trgroup_picker;
 
-    trgroup_picker.setParameters(feature_finder_param.copy("TransitionGroupPicker:", true));
+    Param trgroup_picker_param = feature_finder_param.copy("TransitionGroupPicker:", true);
+
+    // If use_total_mi_score is defined, we need to instruct MRMTransitionGroupPicker to compute the score
+    if ((bool)feature_finder_param.getValue("Scores:use_total_mi_score").toBool())
+    {
+      trgroup_picker_param.setValue("compute_total_mi", "true");
+    }
+
+    trgroup_picker.setParameters(trgroup_picker_param);
     featureFinder.setParameters(feature_finder_param);
     featureFinder.prepareProteinPeptideMaps_(transition_exp);
 
@@ -814,7 +827,7 @@ namespace OpenMS
       }
 
       // Add to the output tsv if given
-      if (tsv_writer.isActive())
+      if (tsv_writer.isActive() && output.size() > 0) // implies that detection_assay_it was set
       {
         const OpenSwath::LightCompound pep = transition_exp.getCompounds()[ assay_peptide_map[id] ];
         const TransitionType* transition = assay_it->second[detection_assay_it];
@@ -822,7 +835,7 @@ namespace OpenMS
       }
 
       // Add to the output osw if given
-      if (osw_writer.isActive())
+      if (osw_writer.isActive() && output.size() > 0) // implies that detection_assay_it was set
       {
         const OpenSwath::LightCompound pep = transition_exp.getCompounds()[ assay_peptide_map[id] ];
         const TransitionType* transition = assay_it->second[detection_assay_it];
@@ -937,8 +950,14 @@ namespace OpenMS
     // When extracting MS1/precursor transitions, we iterate over compounds.
     // Otherwise (for SWATH/fragment ions), we iterate over the transitions.
     Size itersize;
-    if (ms1) {itersize = transition_exp_used.getCompounds().size();}
-    else     {itersize = transition_exp_used.getTransitions().size();}
+    if (ms1)
+    {
+      itersize = transition_exp_used.getCompounds().size();
+    }
+    else
+    {
+      itersize = transition_exp_used.getTransitions().size();
+    }
 
     for (Size i = 0; i < itersize; i++)
     {
@@ -981,6 +1000,7 @@ namespace OpenMS
       }
 
       double rt = pep.rt;
+      coord.ion_mobility = pep.getDriftTime();
       coord.rt_start = rt - rt_extraction_window / 2.0;
       coord.rt_end = rt + rt_extraction_window / 2.0;
       coordinates.push_back(coord);
@@ -1248,7 +1268,7 @@ namespace OpenMS
 
         extractor.extractChromatograms(used_maps[map_idx].sptr,
             tmp_chromatogram_list, coordinates_used,
-            cp.mz_extraction_window, cp.ppm, cp.extraction_function);
+            cp.mz_extraction_window, cp.ppm, cp.im_extraction_window, cp.extraction_function);
 
         // In order to reach maximal sensitivity and identify peaks in
         // the data, we will aggregate the data by adding all

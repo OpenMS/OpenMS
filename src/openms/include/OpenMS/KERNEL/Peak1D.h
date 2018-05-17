@@ -32,8 +32,7 @@
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_KERNEL_PEAK1D_H
-#define OPENMS_KERNEL_PEAK1D_H
+#pragma once
 
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/DATASTRUCTURES/DPosition.h>
@@ -276,4 +275,3 @@ protected:
 
 } // namespace OpenMS
 
-#endif // OPENMS_KERNEL_PEAK1D_H

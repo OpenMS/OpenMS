@@ -33,8 +33,7 @@
 // --------------------------------------------------------------------------
 
 
-#ifndef OPENMS_ANALYSIS_MAPMATCHING_MAPALIGNMENTTRANSFORMER_H
-#define OPENMS_ANALYSIS_MAPMATCHING_MAPALIGNMENTTRANSFORMER_H
+#pragma once
 
 #include <vector>
 #include <OpenMS/config.h>
@@ -107,5 +106,4 @@ namespace OpenMS
   };
 } // namespace OpenMS
 
-#endif // OPENMS_ANALYSIS_MAPMATCHING_MAPALIGNMENTTRANSFORMER_H
 

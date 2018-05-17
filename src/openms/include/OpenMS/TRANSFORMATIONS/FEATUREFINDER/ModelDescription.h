@@ -32,8 +32,7 @@
 // $Authors: $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_TRANSFORMATIONS_FEATUREFINDER_MODELDESCRIPTION_H
-#define OPENMS_TRANSFORMATIONS_FEATUREFINDER_MODELDESCRIPTION_H
+#pragma once
 
 #include <OpenMS/DATASTRUCTURES/Param.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/BaseModel.h>
@@ -161,4 +160,3 @@ protected:
     Param parameters_;
   };
 }
-#endif // OPENMS_TRANSFORMATIONS_FEATUREFINDER_MODELDESCRIPTION_H

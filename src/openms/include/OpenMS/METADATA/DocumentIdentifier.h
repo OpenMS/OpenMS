@@ -32,8 +32,7 @@
 // $Authors: $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_METADATA_DOCUMENTIDENTIFIER_H
-#define OPENMS_METADATA_DOCUMENTIDENTIFIER_H
+#pragma once
 
 // OpenMS
 #include <OpenMS/DATASTRUCTURES/String.h>
@@ -113,4 +112,3 @@ protected:
   };
 } // namespace OpenMS
 
-#endif // OPENMS_METADATA_DOCUMENTIDENTIFIER_H

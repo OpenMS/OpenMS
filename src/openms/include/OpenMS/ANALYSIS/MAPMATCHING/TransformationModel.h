@@ -32,8 +32,7 @@
 // $Authors: Hendrik Weisser $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_MAPMATCHING_TRANSFORMATIONMODEL_H
-#define OPENMS_ANALYSIS_MAPMATCHING_TRANSFORMATIONMODEL_H
+#pragma once
 
 #include <OpenMS/DATASTRUCTURES/Param.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
@@ -122,7 +121,7 @@ namespace OpenMS
     virtual void unWeightData(DataPoints& data);
     
     /**
-    @brief Check for a valid wighting function string
+    @brief Check for a valid weighting function string
     */
     bool checkValidWeight(const String& weight, const std::vector<String>& valid_weights) const;
 
@@ -180,4 +179,3 @@ namespace OpenMS
 
 } // end of namespace OpenMS
 
-#endif // OPENMS_ANALYSIS_MAPMATCHING_TRANSFORMATIONMODEL_H

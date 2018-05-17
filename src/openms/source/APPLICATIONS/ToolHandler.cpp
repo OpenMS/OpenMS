@@ -46,7 +46,6 @@ namespace OpenMS
   {
     ToolListType tools_map;
 
-    tools_map["AdditiveSeries"] = Internal::ToolDescription("AdditiveSeries", "Quantitation");
     tools_map["BaselineFilter"] = Internal::ToolDescription("BaselineFilter", "Signal processing and preprocessing");
     tools_map["CompNovo"] = Internal::ToolDescription("CompNovo", "Identification");
     tools_map["CompNovoCID"] = Internal::ToolDescription("CompNovoCID", "Identification");
@@ -95,6 +94,7 @@ namespace OpenMS
     tools_map["MapNormalizer"] = Internal::ToolDescription("MapNormalizer", "Signal processing and preprocessing");
     tools_map["MapRTTransformer"] = Internal::ToolDescription("MapRTTransformer", "Map Alignment");
     tools_map["MapStatistics"] = Internal::ToolDescription("MapStatistics", "File Handling");
+    tools_map["MaRaClusterAdapter"] = Internal::ToolDescription("MaRaClusterAdapter", "ID Processing");
     tools_map["MascotAdapter"] = Internal::ToolDescription("MascotAdapter", "Identification");
     tools_map["MascotAdapterOnline"] = Internal::ToolDescription("MascotAdapterOnline", "Identification");
     tools_map["MassTraceExtractor"] = Internal::ToolDescription("MassTraceExtractor", "Signal processing and preprocessing");

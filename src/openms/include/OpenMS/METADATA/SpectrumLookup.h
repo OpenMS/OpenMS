@@ -32,8 +32,7 @@
 // $Authors: Hendrik Weisser $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_METADATA_SPECTRUMLOOKUP_H
-#define OPENMS_METADATA_SPECTRUMLOOKUP_H
+#pragma once
 
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
@@ -275,4 +274,3 @@ namespace OpenMS
 
 } //namespace OpenMS
 
-#endif // OPENMS_METADATA_SPECTRUMLOOKUP_H

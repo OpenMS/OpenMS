@@ -32,8 +32,7 @@
 // $Authors: Chris Bielow $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_SIMULATION_LABELING_ITRAQLABELER_H
-#define OPENMS_SIMULATION_LABELING_ITRAQLABELER_H
+#pragma once
 
 #include <OpenMS/ANALYSIS/QUANTITATION/ItraqConstants.h>
 #include <OpenMS/DATASTRUCTURES/Utils/MatrixUtils.h>
@@ -142,4 +141,3 @@ protected:
   };
 } // namespace OpenMS
 
-#endif //#ifndef OPENMS_SIMULATION_LABELING_ITRAQLabeler_H

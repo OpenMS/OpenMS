@@ -181,9 +181,9 @@ namespace OpenMS
 
   }
 
-  std::map<int, MS1Signal> * FeatureLCProfile::getLCelutionSignalMap(){ return &LCelutionSignals; }
-  std::map<int, MS1Signal>::iterator FeatureLCProfile::getLCelutionSignalsStart(){ return LCelutionSignals.begin(); }
-  std::map<int, MS1Signal>::reverse_iterator FeatureLCProfile::getLastLCelutionSignal(){ return LCelutionSignals.rbegin(); }
-  std::map<int, MS1Signal>::iterator FeatureLCProfile::getLCelutionSignalsEnd(){ return LCelutionSignals.end(); }
-  int FeatureLCProfile::getNbLCelutionSignals(){ return (int) LCelutionSignals.size(); }
+  std::map<int, MS1Signal> * FeatureLCProfile::getLCelutionSignalMap() { return &LCelutionSignals; }
+  std::map<int, MS1Signal>::iterator FeatureLCProfile::getLCelutionSignalsStart() { return LCelutionSignals.begin(); }
+  std::map<int, MS1Signal>::reverse_iterator FeatureLCProfile::getLastLCelutionSignal() { return LCelutionSignals.rbegin(); }
+  std::map<int, MS1Signal>::iterator FeatureLCProfile::getLCelutionSignalsEnd() { return LCelutionSignals.end(); }
+  int FeatureLCProfile::getNbLCelutionSignals() { return (int) LCelutionSignals.size(); }
 }

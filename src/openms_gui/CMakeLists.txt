@@ -38,14 +38,16 @@ cmake_minimum_required(VERSION 3.0.0 FATAL_ERROR)
 # --------------------------------------------------------------------------
 # Find Qt
 #---------------------------------------------------------------------------
-set (OpenMS_GUI_QT_COMPONENTS Widgets Network Svg OpenGL Concurrent)
+set (TEMP_OpenMS_GUI_QT_COMPONENTS Gui Widgets Network Svg OpenGL Concurrent)
 ##TODO Why is Concurrent here, if not linked, but only includes? Header only?
 
 # On macOS the platform plugin of QT requires PrintSupport. We link
 # so it's packaged via the bundling/dependency tools/scripts
 if (APPLE)
-  set (OpenMS_GUI_QT_COMPONENTS ${OpenMS_GUI_QT_COMPONENTS} PrintSupport)
+  set (TEMP_OpenMS_GUI_QT_COMPONENTS ${TEMP_OpenMS_GUI_QT_COMPONENTS} PrintSupport)
 endif()
+
+set(OpenMS_GUI_QT_COMPONENTS ${TEMP_OpenMS_GUI_QT_COMPONENTS} CACHE INTERNAL "QT components for GUI lib")
 
 find_package(Qt5 COMPONENTS ${OpenMS_GUI_QT_COMPONENTS} REQUIRED)
 
@@ -57,15 +59,6 @@ ENDIF()
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
-
-
-# The Qt5Widgets_INCLUDES also includes the include directories for
-# dependencies QtCore and QtGui
-include_directories(${Qt5Widgets_INCLUDE_DIRS})
-include_directories(${Qt5Svg_INCLUDE_DIRS})
-include_directories(${Qt5OpenGL_INCLUDE_DIRS})
-include_directories(${Qt5Network_INCLUDE_DIRS})
-include_directories(${Qt5Concurrent_INCLUDE_DIRS})
 
 # We need add -DQT_WIDGETS_LIB when using QtWidgets in Qt 5.
 add_definitions(${Qt5Widgets_DEFINITIONS})
@@ -125,6 +118,13 @@ openms_add_library(TARGET_NAME OpenMS_GUI
                    HEADER_FILES ${OpenMSVisual_sources_h}
                    INTERNAL_INCLUDES ${PROJECT_SOURCE_DIR}/include ${PROJECT_BINARY_DIR}/include
                    EXTERNAL_INCLUDES ${OpenMS_INCLUDE_DIRECTORIES}
+		   # The Qt5Widgets_INCLUDES also includes the include directories for
+		   # dependencies QtCore and QtGui
+                                     ${Qt5Widgets_INCLUDE_DIRS}
+				     ${Qt5Svg_INCLUDE_DIRS}
+				     ${Qt5OpenGL_INCLUDE_DIRS}
+				     ${Qt5Network_INCLUDE_DIRS}
+				     ${Qt5Concurrent_INCLUDE_DIRS}
                    LINK_LIBRARIES ${OpenMS_GUI_DEP_LIBRARIES}
                    PRIVATE_LINK_LIBRARIES ${OpenMS_GUI_PRIVATE_DEP_LIBRARIES}
                    DLL_EXPORT_PATH "OpenMS/VISUAL/")

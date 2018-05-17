@@ -32,8 +32,7 @@
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_KERNEL_RANGEMANAGER_H
-#define OPENMS_KERNEL_RANGEMANAGER_H
+#pragma once
 
 #include <OpenMS/DATASTRUCTURES/DRange.h>
 
@@ -204,4 +203,3 @@ protected:
   };
 }  // namespace OpenMS
 
-#endif  // OPENMS_KERNEL_DRANGE_H

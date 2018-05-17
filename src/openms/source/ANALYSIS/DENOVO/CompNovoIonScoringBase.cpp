@@ -34,8 +34,7 @@
 //
 
 #include <OpenMS/ANALYSIS/DENOVO/CompNovoIonScoringBase.h>
-
-#include <OpenMS/CHEMISTRY/IsotopeDistribution.h>
+#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h>
 
 #include <numeric>
 
@@ -220,7 +219,7 @@ namespace OpenMS
     for (PeakSpectrum::ConstIterator it1 = it; it1 != CID_spec.end(); ++it1)
     {
       double it1_pos(it1->getPosition()[0]);
-      if (fabs(fabs(actual_pos - it1_pos) - Constants::NEUTRON_MASS_U / (double)charge) < fragment_mass_tolerance_)
+      if (fabs(fabs(actual_pos - it1_pos) - Constants::C13C12_MASSDIFF_U / (double)charge) < fragment_mass_tolerance_)
       {
         iso_pattern.push_back(it1->getIntensity());
         actual_pos = it1_pos;
@@ -251,8 +250,8 @@ namespace OpenMS
     }
 
     // get the theoretical isotope distribution
-    IsotopeDistribution iso_dist(iso_pattern.size());
-    iso_dist.estimateFromPeptideWeight((it_pos - charge * Constants::PROTON_MASS_U) * charge + Constants::PROTON_MASS_U);
+    CoarseIsotopePatternGenerator solver(iso_pattern.size());
+    auto iso_dist = solver.estimateFromPeptideWeight((it_pos - charge * Constants::PROTON_MASS_U) * charge + Constants::PROTON_MASS_U);
 
     // compare the distribution sizes
     if (iso_dist.size() != iso_pattern.size())
@@ -267,8 +266,8 @@ namespace OpenMS
     double numerator(0), auto1(0), auto2(0);
     for (Size i = 0; i != iso_dist.size(); ++i)
     {
-      numerator += iso_dist.getContainer()[i].second * iso_pattern[i];
-      auto1 += iso_dist.getContainer()[i].second * iso_dist.getContainer()[i].second;
+      numerator += iso_dist.getContainer()[i].getIntensity() * iso_pattern[i];
+      auto1 += iso_dist.getContainer()[i].getIntensity() * iso_dist.getContainer()[i].getIntensity();
       auto2 += iso_pattern[i] * iso_pattern[i];
     }
 
@@ -352,8 +351,8 @@ namespace OpenMS
 
 
     // get the theoretical isotope distribution
-    IsotopeDistribution iso_dist(iso_pattern.size());
-    iso_dist.estimateFromPeptideWeight(it_pos * (double)charge - (double)(charge - 1) * Constants::PROTON_MASS_U);
+    CoarseIsotopePatternGenerator solver(UInt(iso_pattern.size()));
+    auto iso_dist = solver.estimateFromPeptideWeight(it_pos * (double)charge - (double)(charge - 1) * Constants::PROTON_MASS_U);
 
     // compare the distribution sizes
     if (iso_dist.size() != iso_pattern.size())
@@ -368,8 +367,8 @@ namespace OpenMS
     double numerator(0), auto1(0), auto2(0);
     for (Size i = 0; i != iso_dist.size(); ++i)
     {
-      numerator += iso_dist.getContainer()[i].second * iso_pattern[i];
-      auto1 += iso_dist.getContainer()[i].second * iso_dist.getContainer()[i].second;
+      numerator += iso_dist.getContainer()[i].getIntensity() * iso_pattern[i];
+      auto1 += iso_dist.getContainer()[i].getIntensity() * iso_dist.getContainer()[i].getIntensity();
       auto2 += iso_pattern[i] * iso_pattern[i];
     }
 
@@ -386,23 +385,23 @@ namespace OpenMS
   void CompNovoIonScoringBase::initIsotopeDistributions_()
   {
     double max_mz(param_.getValue("max_mz"));
-    UInt max_isotope(param_.getValue("max_isotope"));
-    IsotopeDistribution iso_dist(max_isotope);
+    Size max_isotope(param_.getValue("max_isotope"));
+    CoarseIsotopePatternGenerator solver(max_isotope);
     for (Size i = 1; i <= max_mz; ++i)
     {
-      iso_dist.estimateFromPeptideWeight((double)i);
+      auto iso_dist = solver.estimateFromPeptideWeight((double)i);
       iso_dist.renormalize();
       vector<double> iso(max_isotope, 0.0);
 
       for (Size j = 0; j != iso_dist.size(); ++j)
       {
-        iso[j] = iso_dist.getContainer()[j].second;
+        iso[j] = iso_dist.getContainer()[j].getIntensity();
       }
       isotope_distributions_[i] = iso;
     }
   }
 
-  void    CompNovoIonScoringBase::updateMembers_()
+  void CompNovoIonScoringBase::updateMembers_()
   {
     fragment_mass_tolerance_ = (double)param_.getValue("fragment_mass_tolerance");
 

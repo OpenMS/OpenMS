@@ -32,8 +32,7 @@
 // $Authors: Stephan Aiche, Chris Bielow $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_QUANTITATION_ISOBARICQUANTIFIERSTATISTICS_H
-#define OPENMS_ANALYSIS_QUANTITATION_ISOBARICQUANTIFIERSTATISTICS_H
+#pragma once
 
 #include <OpenMS/CONCEPT/Types.h>
 
@@ -76,4 +75,3 @@ namespace OpenMS
   };
 } // namespace
 
-#endif // OPENMS_ANALYSIS_QUANTITATION_ISOBARICQUANTIFIERSTATISTICS_H

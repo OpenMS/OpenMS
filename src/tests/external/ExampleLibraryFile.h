@@ -32,8 +32,7 @@
 // $Authors: Chris Bielow $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMSEXTERNAL_EXAMPLELIBRARYFILE_H
-#define OPENMSEXTERNAL_EXAMPLELIBRARYFILE_H
+#pragma once
 
 #include <string>
 
@@ -52,4 +51,3 @@ public:
 
 }
 
-#endif // OPENMSEXTERNAL_EXAMPLELIBRARYFILE_H

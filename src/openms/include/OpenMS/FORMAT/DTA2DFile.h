@@ -32,8 +32,7 @@
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FORMAT_DTA2DFILE_H
-#define OPENMS_FORMAT_DTA2DFILE_H
+#pragma once
 
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/FORMAT/OPTIONS/PeakFileOptions.h>
@@ -334,4 +333,3 @@ public:
 
 } // namespace OpenMS
 
-#endif // OPENMS_FORMAT_DTA2DFILE_H

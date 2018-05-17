@@ -32,8 +32,7 @@
 // $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FORMAT_HANDLERS_UNIMODXMLHANDLER_H
-#define OPENMS_FORMAT_HANDLERS_UNIMODXMLHANDLER_H
+#pragma once
 
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
 #include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
@@ -95,4 +94,3 @@ private:
   }   // namespace Internal
 } // namespace OpenMS
 
-#endif // OPENMS_FORMAT_HANDLERS_XTANDEMXMLHANDLER_H

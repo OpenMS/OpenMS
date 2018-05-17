@@ -1,5 +1,4 @@
 set(concept_executables_list
-  BinaryComposeFunctionAdapter_test
   ClassTest_test
   Exception_Base_test
   FactoryBase_test
@@ -11,7 +10,6 @@ set(concept_executables_list
   VersionInfo_test
   LogConfigHandler_test
   LogStream_test
-  UnaryComposeFunctionAdapter_test
   UniqueIdGenerator_test
   UniqueIdIndexer_test
   UniqueIdInterface_test
@@ -149,7 +147,6 @@ set(format_executables_list
   AbsoluteQuantitationStandardsFile_test
   Base64_test
   MSNumpressCoder_test
-  BigString_test
   Bzip2Ifstream_test
   Bzip2InputStream_test
   ChromeleonFile_test
@@ -253,6 +250,7 @@ set(math_executables_list
   BSpline2d_test
   CubicSpline2d_test
   CumulativeBinomial_test
+  EmgGradientDescent_test
   GammaDistributionFitter_test
   GaussFitter_test
   GumbelDistributionFitter_test
@@ -358,21 +356,18 @@ set(comparison_executables_list
 set(chemistry_executables_list
   AAIndex_test
   AASequence_test
+  CoarseIsotopeDistribution_test
   DigestionEnzymeProtein_test
   ElementDB_test
   Element_test
   EmpiricalFormula_test
   EnzymaticDigestionLogModel_test
   EnzymaticDigestion_test
-  FastaIteratorIntern_test
-  FastaIterator_test
   IsotopeDistribution_test
   ModificationDefinition_test
   ModificationDefinitionsSet_test
   ModificationsDB_test
   CrossLinksDB_test
-  ModifierRep_test
-  PepIterator_test
   ProteaseDB_test
   ProteaseDigestion_test
   ResidueDB_test
@@ -384,7 +379,6 @@ set(chemistry_executables_list
   SvmTheoreticalSpectrumGeneratorSet_test
   TheoreticalSpectrumGenerator_test
   TheoreticalSpectrumGeneratorXLMS_test
-  TrypticIterator_test
   WeightWrapper_test
   IMSAlphabetTextParser_test
   IMSElement_test
@@ -479,6 +473,7 @@ set(analysis_executables_list
   MetaboliteSpectralMatching_test
   ModifiedPeptideGenerator_test
   OfflinePrecursorIonSelection_test
+  PeptideIndexing_test
   PeptideAndProteinQuant_test
   PeakIntensityPredictor_test
   PScore_test
@@ -498,6 +493,7 @@ set(analysis_executables_list
   QTClusterFinder_test
   QuantitativeExperimentalDesign_test
   ReactionMonitoringTransition_test
+  RNPxlDeisotoper_test
   RNPxlModificationsGenerator_test
   SVMWrapper_test
   SimplePairFinder_test
@@ -534,7 +530,6 @@ set(transformations_executables_list
   EmgModel_test
   ExtendedIsotopeFitter1D_test
   ExtendedIsotopeModel_test
-  FeaFiModule_test
   FeatureFinderAlgorithmIsotopeWavelet_test
   FeatureFinderAlgorithmMRM_test
   FeatureFinderAlgorithmPickedHelperStructs_test

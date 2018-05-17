@@ -32,8 +32,7 @@
 // $Authors: Chris Bielow $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FORMAT_KROENIKFILE_H
-#define OPENMS_FORMAT_KROENIKFILE_H
+#pragma once
 
 #include <OpenMS/CONCEPT/Exception.h>
 
@@ -95,4 +94,3 @@ public:
   };
 } // namespace OpenMS
 
-#endif // OPENMS_FORMAT_KROENIKFILE_H

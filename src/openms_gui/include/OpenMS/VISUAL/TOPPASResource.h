@@ -32,8 +32,7 @@
 // $Authors: Johannes Junker $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_VISUAL_TOPPASRESOURCE_H
-#define OPENMS_VISUAL_TOPPASRESOURCE_H
+#pragma once
 
 // OpenMS_GUI config
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
@@ -90,4 +89,3 @@ protected:
   };
 }
 
-#endif

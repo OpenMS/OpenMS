@@ -32,8 +32,7 @@
 // $Authors: Marc Sturm, Stephan Aiche, Chris Bielow $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_DATASTRUCTURES_STRINGUTILS_H
-#define OPENMS_DATASTRUCTURES_STRINGUTILS_H
+#pragma once
 
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
@@ -783,26 +782,28 @@ public:
 
   static String& removeWhitespaces(String& this_s)
   {
-    std::string::iterator it = this_s.begin();
-    std::string::iterator dest = it;
-    std::string::iterator it_end = this_s.end();
+    std::string::const_iterator it = this_s.begin();
+    std::string::iterator dest = this_s.begin();
+    std::string::const_iterator it_end = this_s.end();
+    bool has_spaces(false);
     while (it != it_end)
     {
       const char c = *it;
       if (c == ' ' || c == '\t' || c == '\n' || c == '\r')
       {
         ++it;
+        has_spaces = true;
         continue; // no need to copy a whitespace
       }
       // copy to the left, if we had a whitespace before
-      if (dest != it) *dest = *it;
+      if (has_spaces) *dest = *it;
       // advance both
       ++dest;
       ++it;
     }
 
     // shorten result
-    if (dest != it) this_s.resize(dest - this_s.begin());
+    if (has_spaces) this_s.resize(dest - this_s.begin());
 
     return this_s;
   }
@@ -860,4 +861,3 @@ public:
 
 } // namespace OPENMS
 
-#endif // OPENMS_DATASTRUCTURES_STRINGUTILS_H

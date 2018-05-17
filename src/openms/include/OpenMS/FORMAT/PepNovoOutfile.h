@@ -32,8 +32,7 @@
 // $Authors: Sandro Andreotti, Chris Bielow $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FORMAT_PEPNOVOOUTFILE_H
-#define OPENMS_FORMAT_PEPNOVOOUTFILE_H
+#pragma once
 
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
@@ -106,4 +105,3 @@ public:
 
 } //namespace OpenMS
 
-#endif // OPENMS_FORMAT_PEPNOVOOUTFILE_H

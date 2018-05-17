@@ -137,7 +137,7 @@ START_SECTION((Size peptideCount(const AASequence& protein)))
     TEST_EQUAL(pd.peptideCount(AASequence::fromString("ACRPDEKA")), 3)
 END_SECTION
 
-START_SECTION((void digest(const AASequence &protein, std::vector<AASequence>&output) const))
+START_SECTION((Size digest(const AASequence& protein, std::vector<AASequence>& output, Size min_length = 1, Size max_length = 0) const))
     ProteaseDigestion pd;
     vector<AASequence> out;
 
@@ -195,6 +195,11 @@ START_SECTION((void digest(const AASequence &protein, std::vector<AASequence>&ou
     TEST_EQUAL(out[2].toString(), "E")
     TEST_EQUAL(out[3].toString(), "ARCDR")
     TEST_EQUAL(out[4].toString(), "CDRE")
+    Size discarded = pd.digest(AASequence::fromString("ARCDRE"), out, 3, 4);
+    TEST_EQUAL(out.size(), 2)
+    TEST_EQUAL(out[0].toString(), "CDR")
+    TEST_EQUAL(out[1].toString(), "CDRE")
+    TEST_EQUAL(discarded, 3)
 
     pd.digest(AASequence::fromString("RKR"), out);
     TEST_EQUAL(out.size(), 5)
@@ -219,6 +224,11 @@ START_SECTION((void digest(const AASequence &protein, std::vector<AASequence>&ou
     TEST_EQUAL(out[2].toString(), "E.(Amidated)")
     TEST_EQUAL(out[3].toString(), "ARCDR")
     TEST_EQUAL(out[4].toString(), "CDRE.(Amidated)")
+    discarded = pd.digest(AASequence::fromString("ARCDRE.(Amidated)"), out, 3, 4);
+    TEST_EQUAL(out.size(), 2)
+    TEST_EQUAL(out[0].toString(), "CDR")
+    TEST_EQUAL(out[1].toString(), "CDRE.(Amidated)")
+    TEST_EQUAL(discarded, 3)
 
     // ------------------------
     // Trypsin/P

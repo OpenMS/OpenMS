@@ -42,7 +42,7 @@
 
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
-#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/SwathMap.h>
+#include <OpenMS/OPENSWATHALGO/DATAACCESS/SwathMap.h>
 
 using namespace OpenMS;
 

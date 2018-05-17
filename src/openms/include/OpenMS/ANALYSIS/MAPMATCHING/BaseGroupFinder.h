@@ -32,8 +32,7 @@
 // $Authors: Clemens Groepl, Marc Sturm $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_MAPMATCHING_BASEGROUPFINDER_H
-#define OPENMS_ANALYSIS_MAPMATCHING_BASEGROUPFINDER_H
+#pragma once
 
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
@@ -101,4 +100,3 @@ private:
 
 } // namespace OpenMS
 
-#endif  // OPENMS_ANALYSIS_MAPMATCHING_BASEGROUPFINDER_H

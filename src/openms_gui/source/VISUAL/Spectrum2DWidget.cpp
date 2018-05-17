@@ -68,17 +68,18 @@ namespace OpenMS
     grid_->setRowStretch(1, 3);
 
     SpectrumCanvas::ExperimentSharedPtrType shr_ptr = SpectrumCanvas::ExperimentSharedPtrType(new SpectrumCanvas::ExperimentType());
+    LayerData::ODExperimentSharedPtrType od_dummy(new OnDiscMSExperiment());
     MSSpectrum dummy_spec;
     dummy_spec.push_back(Peak1D());
     shr_ptr->addSpectrum(dummy_spec);
 
     projection_vert_ = new  Spectrum1DWidget(Param(), this);
     projection_vert_->hide();
-    projection_vert_->canvas()->addLayer(shr_ptr);
+    projection_vert_->canvas()->addLayer(shr_ptr, od_dummy);
     grid_->addWidget(projection_vert_, 1, 3, 2, 1);
 
     projection_horz_ = new Spectrum1DWidget(Param(), this);
-    projection_horz_->canvas()->addLayer(shr_ptr);
+    projection_horz_->canvas()->addLayer(shr_ptr, od_dummy);
     projection_horz_->hide();
     grid_->addWidget(projection_horz_, 0, 1, 1, 2);
 
@@ -350,6 +351,7 @@ namespace OpenMS
 
   void Spectrum2DWidget::horizontalProjection(ExperimentSharedPtrType exp)
   {
+    LayerData::ODExperimentSharedPtrType od_dummy(new OnDiscMSExperiment());
     projection_horz_->canvas()->mzToXAxis(true); // determines the orientation of the data
     projection_horz_->canvas()->setSwappedAxis(canvas()->isMzToXAxis());
     projection_horz_->showLegend(false);
@@ -357,7 +359,7 @@ namespace OpenMS
     Spectrum1DCanvas::DrawModes mode = projection_horz_->canvas()->getDrawMode();
     Spectrum1DCanvas::IntensityModes intensity = projection_horz_->canvas()->getIntensityMode();
     projection_horz_->canvas()->removeLayer(0);
-    projection_horz_->canvas()->addLayer(exp);
+    projection_horz_->canvas()->addLayer(exp, od_dummy);
     projection_horz_->canvas()->setDrawMode(mode);
     projection_horz_->canvas()->setIntensityMode(intensity);
     grid_->setColumnStretch(3, 2);
@@ -367,13 +369,14 @@ namespace OpenMS
 
   void Spectrum2DWidget::verticalProjection(ExperimentSharedPtrType exp)
   {
+    LayerData::ODExperimentSharedPtrType od_dummy(new OnDiscMSExperiment());
     projection_vert_->canvas()->mzToXAxis(false); // determines the orientation of the data
     projection_vert_->canvas()->setSwappedAxis(canvas()->isMzToXAxis());
     projection_vert_->showLegend(false);
     Spectrum1DCanvas::DrawModes mode = projection_vert_->canvas()->getDrawMode();
     Spectrum1DCanvas::IntensityModes intensity = projection_vert_->canvas()->getIntensityMode();
     projection_vert_->canvas()->removeLayer(0);
-    projection_vert_->canvas()->addLayer(exp);
+    projection_vert_->canvas()->addLayer(exp, od_dummy);
     projection_vert_->canvas()->setDrawMode(mode);
     projection_vert_->canvas()->setIntensityMode(intensity);
     grid_->setRowStretch(0, 2);

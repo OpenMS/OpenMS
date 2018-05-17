@@ -59,11 +59,14 @@
 
 //QT
 #include <QApplication>
+#include <QPainter>
 #include <QtWidgets/QSplashScreen>
 #include <QtCore/QDir>
 
+
 //OpenMS
 #include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/CONCEPT/VersionInfo.h>
 #include <OpenMS/DATASTRUCTURES/Map.h>
 #include <OpenMS/SYSTEM/StopWatch.h>
 #include <OpenMS/VISUAL/APPLICATIONS/TOPPASBase.h>
@@ -168,10 +171,14 @@ int main(int argc, const char** argv)
 
     a.connect(&a, SIGNAL(fileOpen(QString)), mw, SLOT(openToppasFile(QString)));
 
-    // Create the splashscreen that is displayed while the application loads
-    QSplashScreen* splash_screen = new QSplashScreen(QPixmap(":/TOPPAS_Splashscreen.png"));
+    // Create the splashscreen that is displayed while the application loads (version is drawn dynamically)
+    QPixmap qpm(":/TOPPAS_Splashscreen.png");
+    QPainter pt_ver(&qpm);
+    pt_ver.setFont(QFont("Helvetica [Cronyx]", 15, 2, true));
+    pt_ver.setPen(QColor(44, 50, 152));
+    pt_ver.drawText(490, 84, VersionInfo::getVersion().toQString());
+    QSplashScreen* splash_screen = new QSplashScreen(qpm);
     splash_screen->show();
-    splash_screen->showMessage("Loading parameters");
     QApplication::processEvents();
     StopWatch stop_watch;
     stop_watch.start();

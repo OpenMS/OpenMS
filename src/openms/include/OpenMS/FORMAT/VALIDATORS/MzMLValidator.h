@@ -32,8 +32,7 @@
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FORMAT_VALIDATORS_MZMLVALIDATOR_H
-#define OPENMS_FORMAT_VALIDATORS_MZMLVALIDATOR_H
+#pragma once
 
 #include <OpenMS/FORMAT/VALIDATORS/SemanticValidator.h>
 
@@ -100,4 +99,3 @@ private:
 
 } // namespace OpenMS
 
-#endif

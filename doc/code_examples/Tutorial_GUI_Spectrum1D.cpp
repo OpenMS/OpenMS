@@ -32,6 +32,7 @@
 #include <OpenMS/VISUAL/Spectrum1DWidget.h>
 #include <OpenMS/FORMAT/DTAFile.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
+#include <OpenMS/KERNEL/OnDiscMSExperiment.h>
 #include <OpenMS/VISUAL/LayerData.h>
 
 using namespace OpenMS;
@@ -49,8 +50,9 @@ Int main(int argc, const char ** argv)
   exp.resize(1);
   DTAFile().load(tutorial_data_path + "/data/Tutorial_Spectrum1D.dta", exp[0]);
   LayerData::ExperimentSharedPtrType exp_sptr(new PeakMap(exp));
+  LayerData::ODExperimentSharedPtrType on_disc_exp_sptr(new OnDiscMSExperiment());
   Spectrum1DWidget * widget = new Spectrum1DWidget(Param(), nullptr);
-  widget->canvas()->addLayer(exp_sptr);
+  widget->canvas()->addLayer(exp_sptr, on_disc_exp_sptr);
   widget->show();
 
   return app.exec();

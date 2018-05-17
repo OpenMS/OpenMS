@@ -45,7 +45,7 @@ Int main()
   // .getResidue("C") would work as well
   Element carbon = *db->getElement("Carbon"); 
 
-  // outout name, symbol, monoisotopic weight and average weight
+  // output name, symbol, monoisotopic weight and average weight
   cout << carbon.getName() << " "
        << carbon.getSymbol() << " "
        << carbon.getMonoWeight() << " "

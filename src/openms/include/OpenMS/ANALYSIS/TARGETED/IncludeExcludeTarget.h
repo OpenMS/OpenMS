@@ -32,8 +32,7 @@
 // $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_TARGETED_INCLUDEEXCLUDETARGET_H
-#define OPENMS_ANALYSIS_TARGETED_INCLUDEEXCLUDETARGET_H
+#pragma once
 
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/METADATA/CVTermList.h>
@@ -173,4 +172,3 @@ protected:
   };
 }
 
-#endif // OPENMS_ANALYSIS_TARGETED_INCLUDEEXCLUDETARGET_H

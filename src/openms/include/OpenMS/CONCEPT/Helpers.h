@@ -32,8 +32,7 @@
 // $Authors: Hannes Roest $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_CONCEPT_HELPERS_H
-#define OPENMS_CONCEPT_HELPERS_H
+#pragma once
 
 #include <vector>
 #include <boost/shared_ptr.hpp>
@@ -101,4 +100,3 @@ namespace OpenMS
 }
 
 
-#endif //OPENMS_CONCEPT_HELPERS_H

@@ -32,8 +32,7 @@
 // $Authors: Cornelia Friedle $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_VISUAL_SPECTRUM3DWIDGET_H
-#define OPENMS_VISUAL_SPECTRUM3DWIDGET_H
+#pragma once
 
 // OpenMS_GUI config
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
@@ -92,4 +91,3 @@ public slots:
 
 } //namespace
 
-#endif

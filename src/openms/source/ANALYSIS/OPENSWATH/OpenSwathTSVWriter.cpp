@@ -130,8 +130,8 @@ namespace OpenMS
           String aggr_prec_Fragment_Annotation = "";
           for (std::vector<Feature>::const_iterator sub_it = feature_it->getSubordinates().begin(); sub_it != feature_it->getSubordinates().end(); ++sub_it)
           {
-            sprintf(intensity_char, "%f", sub_it->getIntensity());
-            sprintf(intensity_apex_char, "%f", (double)sub_it->getMetaValue("peak_apex_int"));
+            snprintf(intensity_char, 40, "%f", sub_it->getIntensity());
+            snprintf(intensity_apex_char, 40, "%f", (double)sub_it->getMetaValue("peak_apex_int"));
             if (sub_it->metaValueExists("FeatureLevel") && sub_it->getMetaValue("FeatureLevel") == "MS2")
             {
               aggr_Peak_Area += (String)intensity_char + ";";
@@ -186,6 +186,16 @@ namespace OpenMS
             protein_name = pep.protein_refs[0];
           }
 
+          String main_var = "0";
+          if (feature_it->metaValueExists("main_var_xx_swath_prelim_score"))
+          {
+            main_var = (String)feature_it->getMetaValue("main_var_xx_swath_prelim_score");
+          }
+          else if (feature_it->metaValueExists("main_var_xx_lda_prelim_score"))
+          {
+            main_var = (String)feature_it->getMetaValue("main_var_xx_lda_prelim_score");
+          }
+
           String line = "";
           line += id + "_run0"
             + "\t" + group_label
@@ -204,7 +214,7 @@ namespace OpenMS
             + "\t" + (String)feature_it->getMetaValue("assay_rt")
             + "\t" + (String)feature_it->getMetaValue("delta_rt")
             + "\t" + (String)feature_it->getMetaValue("leftWidth")
-            + "\t" + (String)feature_it->getMetaValue("main_var_xx_swath_prelim_score")
+            + "\t" + main_var
             + "\t" + (String)feature_it->getMetaValue("norm_RT")
             + "\t" + (String)feature_it->getMetaValue("nr_peaks")
             + "\t" + (String)feature_it->getMetaValue("peak_apices_sum")

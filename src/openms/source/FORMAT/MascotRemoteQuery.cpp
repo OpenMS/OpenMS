@@ -38,6 +38,7 @@
 #include <QtGui/QTextDocument>
 #include <QNetworkReply>
 #include <QNetworkProxy>
+#include <QSslSocket>
 
 // #define MASCOTREMOTEQUERY_DEBUG
 // #define MASCOTREMOTEQUERY_DEBUG_FULL_QUERY
@@ -77,7 +78,7 @@ namespace OpenMS
     defaults_.setValidStrings("login", ListUtils::create<String>("true,false"));
     defaults_.setValue("username", "", "Name of the user if login is used (Mascot security must be enabled!)");
     defaults_.setValue("password", "", "Password of the user if login is used (Mascot security must be enabled!)");
-    defaults_.setValue("use_ssl", "false", "Flag indicating wether the server uses HTTPS or not.");
+    defaults_.setValue("use_ssl", "false", "Flag indicating whether you want to send requests to an HTTPS server or not (HTTP). Requires OpenSSL to be installed (see openssl.org)");
     defaults_.setValidStrings("use_ssl", ListUtils::create<String>("true,false"));
 
     // Mascot export options
@@ -124,7 +125,7 @@ namespace OpenMS
     // start a second one while the first one is still running.
     if (manager_)
     {
-      throw OpenMS::Exception::IllegalArgument(__FILE__, __LINE__, __FUNCTION__,
+      throw OpenMS::Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
           "Error: Please call run() only once per MascotRemoteQuery.");
     }
     manager_ = new QNetworkAccessManager(this);
@@ -135,7 +136,13 @@ namespace OpenMS
     }
     else
     {
+#ifndef QT_NO_SSL
       manager_->connectToHostEncrypted(host_name_.c_str(), (UInt)param_.getValue("host_port"));
+#else
+      // should not happen since it is checked during parameter reading. Kept for safety.
+      throw OpenMS::Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+          "Error: Usage of SSL encryption requested but the linked QT library was not compiled with SSL support. Please recompile QT.");
+#endif
     }
 
     connect(this, SIGNAL(gotRedirect(QNetworkReply *)), this, SLOT(followRedirect(QNetworkReply *)));
@@ -672,8 +679,22 @@ namespace OpenMS
       server_path_ = "/" + server_path_;
 
     host_name_ = param_.getValue("hostname");
+    
     use_ssl_ = param_.getValue("use_ssl").toBool();
-
+#ifndef QT_NO_SSL
+    if (use_ssl_ && !QSslSocket::supportsSsl())
+    {
+      throw OpenMS::Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+          "Error: Usage of SSL encryption requested but the OpenSSL library was not found at runtime. Please install OpenSSL system-wide.");
+    }
+#else
+    if (use_ssl_)
+    {
+      throw OpenMS::Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+          "Error: Usage of SSL encryption requested but the linked QT library was not compiled with SSL support. Please recompile QT.");
+    }
+#endif
+    
     boundary_ = param_.getValue("boundary");
     cookie_ = "";
     mascot_xml_ = "";

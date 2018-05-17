@@ -32,8 +32,7 @@
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_METADATA_SAMPLETREATMENT_H
-#define OPENMS_METADATA_SAMPLETREATMENT_H
+#pragma once
 
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/METADATA/MetaInfoInterface.h>
@@ -118,4 +117,3 @@ private:
   };
 } // namespace OpenMS
 
-#endif // OPENMS_METADATA_SAMPLETREATMENT_H

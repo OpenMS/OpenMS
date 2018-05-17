@@ -32,8 +32,7 @@
 // $Authors: Douglas McCloskey, Pasquale Domenico Colaianni $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_OPENSWATH_TARGETEDSPECTRAEXTRACTOR_H
-#define OPENMS_ANALYSIS_OPENSWATH_TARGETEDSPECTRAEXTRACTOR_H
+#pragma once
 
 #include <OpenMS/config.h> // OPENMS_DLLAPI
 #include <OpenMS/ANALYSIS/OPENSWATH/TransitionTSVFile.h>
@@ -207,7 +206,7 @@ private:
       For each transition in the target list, annotateSpectra() looks for
       the first spectrum whose RT time falls within the RT Window, whose
       left and right limits are computed at each analyzed spectrum.
-      Also the spectrum's percursor MZ is checked against the transition MZ.
+      Also the spectrum's precursor MZ is checked against the transition MZ.
     */
     double rt_window_;
 
@@ -259,4 +258,3 @@ private:
   };
 }
 
-#endif // OPENMS_ANALYSIS_OPENSWATH_TARGETEDSPECTRAEXTRACTOR_H

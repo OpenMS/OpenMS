@@ -32,8 +32,7 @@
 // $Authors: Marc Sturm, Stephan Aiche $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_CONCEPT_PROGRESSLOGGER_H
-#define OPENMS_CONCEPT_PROGRESSLOGGER_H
+#pragma once
 
 #include <OpenMS/CONCEPT/Types.h>
 
@@ -131,4 +130,3 @@ protected:
 
 } // namespace OpenMS
 
-#endif //OPENMS_CONCEPT_PROGRESSLOGGER_H

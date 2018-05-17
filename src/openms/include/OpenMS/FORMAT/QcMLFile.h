@@ -32,8 +32,7 @@
 // $Authors: Mathias Walzer $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FORMAT_QCMLFILE_H
-#define OPENMS_FORMAT_QCMLFILE_H
+#pragma once
 
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
@@ -205,4 +204,3 @@ protected:
 
 } // namespace OpenMS
 
-#endif // OPENMS_FORMAT_QCMLFILE_H

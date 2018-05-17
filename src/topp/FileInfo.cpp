@@ -46,7 +46,7 @@
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
-#include <OpenMS/FORMAT/IndexedMzMLFile.h>
+#include <OpenMS/FORMAT/HANDLERS/IndexedMzMLHandler.h>
 #include <OpenMS/FORMAT/MzDataFile.h>
 #include <OpenMS/FORMAT/MzIdentMLFile.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
@@ -71,7 +71,7 @@ using namespace std;
 
 /**
   @page TOPP_FileInfo FileInfo
-  @brief Shows basic information about the data in an OpenMS readable file.
+  @brief Shows basic information about the data in an %OpenMS readable file.
 
   <CENTER>
   <table>
@@ -171,18 +171,31 @@ protected:
   template <class Map>
   void writeRangesMachineReadable_(const Map& map, ostream &os)
   {
-    os << "retention time (min)"
+    os << "general: ranges: retention time: min"
        << "\t" << String::number(map.getMin()[Peak2D::RT], 2) << "\n"
-       << "retention time (max)"
+       << "general: ranges: retention time: max"
        << "\t" << String::number(map.getMax()[Peak2D::RT], 2) << "\n"
-       << "mass-to-charge (min)"
+       << "general: ranges: mass-to-charge: min"
        << "\t" << String::number(map.getMin()[Peak2D::MZ], 2) << "\n"
-       << "mass-to-charge (max)"
+       << "general: ranges: mass-to-charge: max"
        << "\t" << String::number(map.getMax()[Peak2D::MZ], 2) << "\n"
-       << "intensity (min)"
+       << "general: ranges: intensity: min"
        << "\t" << String::number(map.getMinInt(), 2) << "\n"
-       << "intensity (max)"
+       << "general: ranges: intensity: max"
        << "\t" << String::number(map.getMaxInt(), 2) << "\n";
+  }
+
+  template <class T>
+  void writeSummaryStatisticsMachineReadable_(const Math::SummaryStatistics<T> &stats, ostream &os, String title)
+  {
+    os << "statistics: " << title << ": num. of values" << "\t" << stats.count    << "\n"
+       << "statistics: " << title << ": mean"           << "\t" << stats.mean     << "\n"
+       << "statistics: " << title << ": minimum"        << "\t" << stats.min      << "\n"
+       << "statistics: " << title << ": lower quartile" << "\t" << stats.lowerq   << "\n"
+       << "statistics: " << title << ": median"         << "\t" << stats.median   << "\n"
+       << "statistics: " << title << ": upper quartile" << "\t" << stats.upperq   << "\n"
+       << "statistics: " << title << ": maximum"        << "\t" << stats.max      << "\n"
+       << "statistics: " << title << ": variance"       << "\t" << stats.variance << "\n";
   }
 
   ExitCodes outputTo_(ostream &os, ostream &os_tsv)
@@ -217,9 +230,9 @@ protected:
        << "File name: " << in << "\n"
        << "File type: " << FileTypes::typeToName(in_type) << "\n";
 
-    os_tsv << "file name"
+    os_tsv << "general: file name"
            << "\t" << in << "\n"
-           << "file type"
+           << "general: file type"
            << "\t" << FileTypes::typeToName(in_type) << "\n";
 
     PeakMap exp;
@@ -366,7 +379,7 @@ protected:
       }
 
       std::cout << "Checking mzML file for valid indices ... " << std::endl;
-      IndexedMzMLFile ifile;
+      Internal::IndexedMzMLHandler ifile;
       ifile.openFile(in);
       if (ifile.getParsingSuccess())
       {
@@ -414,7 +427,7 @@ protected:
       typedef std::unordered_map<size_t, vector<ptrdiff_t> > SHashmap;
       SHashmap m_headers;
       SHashmap m_seqs;
-      
+
       std::hash<string> s_hash;
       for (auto loopiter = entries.begin(); loopiter != entries.end(); ++loopiter)
       {
@@ -451,7 +464,7 @@ protected:
           // add our own hash
           m_seqs[id_seq] = { std::distance(entries.begin(), loopiter) };
         }
-        
+
         for (char a : loopiter->sequence)
         {
           ++aacids[a];
@@ -491,6 +504,9 @@ protected:
 
       os << "Number of features: " << feat.size() << "\n"
          << "\n";
+      os_tsv << "general: number of features" << "\t"
+             << feat.size() << "\n";
+
       writeRangesHumanReadable_(feat, os);
       writeRangesMachineReadable_(feat, os_tsv);
 
@@ -507,12 +523,18 @@ protected:
       }
 
       os << "Total ion current in features: " << tic << "\n";
+      os_tsv << "general: total ion current in features" << "\t"
+             << tic << "\n";
+
       os << "\n"
          << "Charge distribution:"
          << "\n";
       for (auto it = charges.begin(); it != charges.end(); ++it)
       {
         os << "  charge " << it->first << ": " << it->second << "\n";
+        os_tsv << "general: charge distribution: charge: "
+               << it->first << "\t"
+               << it->second << "\n";
       }
 
       os << "\n"
@@ -520,10 +542,15 @@ protected:
       for (auto it = numberofids.begin(); it != numberofids.end(); ++it)
       {
         os << "  " << it->first << " IDs: " << it->second << "\n";
+        os_tsv << "general: distribution of peptide identifications (IDs) per feature: IDs: "
+               << it->first << "\t"
+               << it->second << "\n";
       }
 
       os << "\n"
          << "Unassigned peptide identifications: " << feat.getUnassignedPeptideIdentifications().size() << "\n";
+      os_tsv << "general: unassigned peptide identifications" << "\t"
+             << feat.getUnassignedPeptideIdentifications().size() << "\n";
     }
     else if (in_type == FileTypes::CONSENSUSXML) //consensus features
     {
@@ -607,11 +634,11 @@ protected:
       std::cout << "\n\n" << mu.delta("loading idXML") << std::endl;
 
       // export metadata to second output stream
-      os_tsv << "database"
+      os_tsv << "general: database"
              << "\t" << id_data.proteins[0].getSearchParameters().db << "\n"
-             << "database version"
+             << "general: database version"
              << "\t" << id_data.proteins[0].getSearchParameters().db_version << "\n"
-             << "taxonomy"
+             << "general: taxonomy"
              << "\t" << id_data.proteins[0].getSearchParameters().taxonomy << "\n";
 
       // calculations
@@ -654,7 +681,7 @@ protected:
       }
       if (peptide_length.empty())
       { // avoid invalid-range exception when computing mean()
-        peptide_length.push_back(0); 
+        peptide_length.push_back(0);
       }
 
       os << "Number of:"
@@ -680,14 +707,16 @@ protected:
         os << it->first << " " << it->second;
       }
 
-      os_tsv << "peptide hits"
-             << "\t" << peptide_hit_count << "\n";
-      os_tsv << "non-redundant peptide hits (only hits that differ in sequence and/or modifications): "
-             << "\t" << peptides.size() << "\n";
-      os_tsv << "protein hits"
-             << "\t" << protein_hit_count << "\n";
-      os_tsv << "non-redundant protein hits (only hits that differ in the accession)"
+      os_tsv << "general: num. of runs" << "\t" << runs_count << "\n";
+      os_tsv << "general: num. of protein hits" << "\t" << protein_hit_count << "\n";
+      os_tsv << "general: num. of non-redundant protein hits (only hits that differ in the accession)"
              << "\t" << proteins.size() << "\n";
+      os_tsv << "general: num. of matched spectra" << "\t" << spectrum_count << "\n";
+      os_tsv << "general: num. of peptide hits" << "\t" << peptide_hit_count << "\n";
+      os_tsv << "general: num. of modified top-hits" << "\t" << modified_peptide_count << "\n";
+      os_tsv << "general: num. of non-redundant peptide hits (only hits that differ in sequence and/or modifications): "
+             << "\t" << peptides.size() << "\n";
+
     }
     else if (in_type == FileTypes::PEPXML)
     {
@@ -726,8 +755,8 @@ protected:
       map<Size, UInt> level_annotated_picked;
       map<Size, UInt> level_estimated_picked;
       map<Size, UInt> counts;
-      for (Size i = 0; i != exp.size(); ++i) 
-      { 
+      for (Size i = 0; i != exp.size(); ++i)
+      {
         // read stored metadata
         auto peak_type = exp[i].getType();
 
@@ -753,8 +782,8 @@ protected:
           }
           level_annotated_picked[level] = peak_type;
         }
-        
-        // estimate peak type once for every level (take a spectrum with enough peaks for stable estimation) 
+
+        // estimate peak type once for every level (take a spectrum with enough peaks for stable estimation)
         if (level_estimated_picked.count(level) == 0 && exp[i].size() > 10)
         {
           level_estimated_picked[level] = PeakTypeEstimator().estimateType(exp[i].begin(), exp[i].end());
@@ -799,10 +828,10 @@ protected:
       writeRangesMachineReadable_(exp, os_tsv);
 
       // write peak types (centroided / profile mode)
-      os << "Peak type metadata (estimated)\n"; 
+      os << "Peak type metadata (estimated)\n";
       for (auto const l : levels)
       {
-        os << "  level " << l << ": " 
+        os << "  level " << l << ": "
            << SpectrumSettings::NamesOfSpectrumType[level_annotated_picked[l]] << " ("
            << SpectrumSettings::NamesOfSpectrumType[level_estimated_picked[l]] << ")\n";
       }
@@ -1097,6 +1126,8 @@ protected:
       {
         os << "Document ID: " << feat.getIdentifier() << "\n"
            << "\n";
+        os_tsv << "meta: document ID" << "\t"
+               << feat.getIdentifier() << "\n";
       }
       else if (in_type == FileTypes::CONSENSUSXML) //consensus features
       {
@@ -1107,6 +1138,8 @@ protected:
       {
         os << "Document ID: " << id_data.identifier << "\n"
            << "\n";
+        os_tsv << "meta: document ID" << "\t"
+               << id_data.identifier;
       }
       else if (in_type == FileTypes::PEPXML)
       {
@@ -1256,16 +1289,34 @@ protected:
           os << "  software name:    " << dp[i].getSoftware().getName() << "\n";
           os << "  software version: " << dp[i].getSoftware().getVersion() << "\n";
           os << "  completion time:  " << dp[i].getCompletionTime().get() << "\n";
+
+          os_tsv << "data processing: " << (i + 1)
+                 << ": software name" << "\t"
+                 << dp[i].getSoftware().getName() << "\n";
+          os_tsv << "data processing: " << (i + 1)
+                 << ": software version" << "\t"
+                 << dp[i].getSoftware().getVersion() << "\n";
+          os_tsv << "data processing: " << (i + 1)
+                 << ": completion time" << "\t"
+                 << dp[i].getCompletionTime().get() << "\n";
+
           os << "  actions:          ";
+          os_tsv << "data processing: " << (i + 1)
+                 << ": actions" << "\t";
           for (set<DataProcessing::ProcessingAction>::const_iterator it = dp[i].getProcessingActions().begin();
                it != dp[i].getProcessingActions().end(); ++it)
           {
             if (it != dp[i].getProcessingActions().begin())
+            {
               os << ", ";
+              os_tsv << ", ";
+            }
             os << DataProcessing::NamesOfProcessingAction[*it];
+            os_tsv << DataProcessing::NamesOfProcessingAction[*it];
           }
           os << "\n"
              << "\n";
+          os_tsv << "\n";
         }
       }
     }
@@ -1301,30 +1352,40 @@ protected:
           peak_widths[idx] = fm_iter->getWidth();
         }
 
+        Math::SummaryStatistics<vector<double>> intensities_summary;
+        intensities_summary = Math::SummaryStatistics<vector<double>>(intensities);
         os.precision(writtenDigits<>(Feature::IntensityType()));
-        os << "Intensities:"
-           << "\n"
-           << Math::SummaryStatistics<vector<double>>(intensities) << "\n";
+        os << "Intensities:" << "\n" << intensities_summary << "\n";
+        os_tsv.precision(writtenDigits<>(Feature::IntensityType()));
+        writeSummaryStatisticsMachineReadable_(intensities_summary, os_tsv, "intensities");
 
+        Math::SummaryStatistics<vector<double>> peak_widths_summary;
+        peak_widths_summary = Math::SummaryStatistics<vector<double>>(peak_widths);
         os.precision(writtenDigits<>(Feature::QualityType()));
-        os << "Feature FWHM in RT dimension:"
-           << "\n"
-           << Math::SummaryStatistics<vector<double>>(peak_widths) << "\n";
+        os << "Feature FWHM in RT dimension:" << "\n" << peak_widths_summary << "\n";
+        os_tsv.precision(writtenDigits<>(Feature::QualityType()));
+        writeSummaryStatisticsMachineReadable_(peak_widths_summary, os_tsv, "feature FWHM in RT dimension");
 
+        Math::SummaryStatistics<vector<double>> overall_qualities_summary;
+        overall_qualities_summary = Math::SummaryStatistics<vector<double>>(overall_qualities);
         os.precision(writtenDigits<>(Feature::QualityType()));
-        os << "Overall qualities:"
-           << "\n"
-           << Math::SummaryStatistics<vector<double>>(overall_qualities) << "\n";
+        os << "Overall qualities:" << "\n" << overall_qualities_summary << "\n";
+        os_tsv.precision(writtenDigits<>(Feature::QualityType()));
+        writeSummaryStatisticsMachineReadable_(overall_qualities_summary, os_tsv, "overall qualities");
 
+        Math::SummaryStatistics<vector<double>> rt_qualities_summary;
+        rt_qualities_summary = Math::SummaryStatistics<vector<double>>(rt_qualities);
         os.precision(writtenDigits<>(Feature::QualityType()));
-        os << "Qualities in retention time dimension:"
-           << "\n"
-           << Math::SummaryStatistics<vector<double>>(rt_qualities) << "\n";
+        os << "Qualities in retention time dimension:" << "\n" << rt_qualities_summary << "\n";
+        os_tsv.precision(writtenDigits<>(Feature::QualityType()));
+        writeSummaryStatisticsMachineReadable_(rt_qualities_summary, os_tsv, "qualities in retention time dimension");
 
+        Math::SummaryStatistics<vector<double>> mz_qualities_summary;
+        mz_qualities_summary = Math::SummaryStatistics<vector<double>>(mz_qualities);
         os.precision(writtenDigits<>(Feature::QualityType()));
-        os << "Qualities in mass-to-charge dimension:"
-           << "\n"
-           << Math::SummaryStatistics<vector<double>>(mz_qualities) << "\n";
+        os << "Qualities in mass-to-charge dimension:" << "\n" << mz_qualities_summary << "\n";
+        os_tsv.precision(writtenDigits<>(Feature::QualityType()));
+        writeSummaryStatisticsMachineReadable_(mz_qualities_summary, os_tsv, "qualities in mass-to-charge dimension");
       }
       else if (in_type == FileTypes::CONSENSUSXML) //consensus features
       {

@@ -32,8 +32,7 @@
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_METADATA_SOURCEFILE_H
-#define OPENMS_METADATA_SOURCEFILE_H
+#pragma once
 
 #include <OpenMS/METADATA/CVTermList.h>
 
@@ -122,4 +121,3 @@ protected:
   };
 } // namespace OpenMS
 
-#endif // OPENMS_METADATA_SOURCEFILE_H
