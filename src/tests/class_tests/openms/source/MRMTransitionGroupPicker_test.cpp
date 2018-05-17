@@ -355,9 +355,9 @@ START_SECTION((template < typename SpectrumT, typename TransitionT > void pickTr
     TEST_REAL_SIMILAR(mrmfeature.getFeature("1").getMetaValue("peak_apex_int"), 16);
     TEST_REAL_SIMILAR(mrmfeature.getFeature("2").getMetaValue("peak_apex_int"), 11);
     TEST_REAL_SIMILAR(mrmfeature.getFeature("3").getMetaValue("peak_apex_int"), 3);
-    TEST_REAL_SIMILAR(mrmfeature.getFeature("1").getMetaValue("peak_apex_position"), 507385.32);
-    TEST_REAL_SIMILAR(mrmfeature.getFeature("2").getMetaValue("peak_apex_position"), 0.0);
-    TEST_REAL_SIMILAR(mrmfeature.getFeature("3").getMetaValue("peak_apex_position"), 507385.32);
+    TEST_REAL_SIMILAR(mrmfeature.getFeature("1").getMetaValue("peak_apex_position"), 14);
+    TEST_REAL_SIMILAR(mrmfeature.getFeature("2").getMetaValue("peak_apex_position"), 6);
+    TEST_REAL_SIMILAR(mrmfeature.getFeature("3").getMetaValue("peak_apex_position"), 6);
 
   }
 }

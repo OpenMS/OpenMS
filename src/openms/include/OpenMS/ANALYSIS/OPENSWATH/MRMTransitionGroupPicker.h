@@ -264,7 +264,8 @@ public:
             int min_dist = -1;
             for (Size i = 0; i < picked_chroms[k].size(); i++)
             {
-              PeakIntegrator::PeakArea pa_tmp = pi_.integratePeak(picked_chroms[k], best_left, best_right); // get the peak apex
+              PeakIntegrator::PeakArea pa_tmp = pi_.integratePeak(  // get the peak apex
+                picked_chroms[k], picked_chroms[k].getFloatDataArrays()[1][i], picked_chroms[k].getFloatDataArrays()[2][i]); 
               if (std::fabs(pa_tmp.apex_pos - peak_apex) < peak_apex_dist_min)
                 min_dist = (int)i;
             }
