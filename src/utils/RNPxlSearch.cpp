@@ -162,6 +162,7 @@ protected:
 
     registerTOPPSubsection_("peptide", "Peptide Options");
     registerIntOption_("peptide:min_size", "<num>", 6, "Minimum size a peptide must have after digestion to be considered in the search.", false, true);
+    registerIntOption_("peptide:max_size", "<num>", 1e6, "Maximum size a peptide may have after digestion to be considered in the search.", false, true);
     registerIntOption_("peptide:missed_cleavages", "<num>", 1, "Number of missed cleavages.", false, false);
 
     StringList all_enzymes;
@@ -1595,7 +1596,8 @@ protected:
     set<StringView> processed_petides;
 
     // set minimum size of peptide after digestion
-    auto min_peptide_length = (Size)getIntOption_("peptide:min_size");
+    Size min_peptide_length = (Size)getIntOption_("peptide:min_size");
+    Size max_peptide_length = (Size)getIntOption_("peptide:max_size");
 
     Size count_proteins(0), count_peptides(0);
 
@@ -1619,7 +1621,7 @@ protected:
 
       auto const & current_fasta_entry = fasta_db[fasta_index];
 
-      digestor.digestUnmodified(current_fasta_entry.sequence, current_digest, min_peptide_length);
+      digestor.digestUnmodified(current_fasta_entry.sequence, current_digest, min_peptide_length, max_peptide_length);
 
       for (auto cit = current_digest.begin(); cit != current_digest.end(); ++cit)
       {
