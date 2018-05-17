@@ -253,35 +253,31 @@ public:
       }
       else
       {
-        // Pick the most intense peak for each chromatogram and use this for
-        // the current peak. Note that we will only set the most intense peak
+        // Pick the peak with the closest apex to the consensus apex for each chromatogram.
+        // Use the closest peak for the current peak. Note that we will only set the closest peak
         // per chromatogram to zero, so if there are two peaks for some transitions, we will get
         // to them later. If there is no peak, then we transfer transition boundaries from "master" peak.
         {
           for (Size k = 0; k < picked_chroms.size(); k++)
           {
             double intensity(-1);
-            int maxi = -1;
+            double peak_apex_dist_min = 1e6;
+            int min_dist = -1;
             for (Size i = 0; i < picked_chroms[k].size(); i++)
             {
-              if (picked_chroms[k][i].getMZ() >= best_left && picked_chroms[k][i].getMZ() <= best_right)
-              {
-                if (picked_chroms[k][i].getIntensity() >= intensity)
-                {
-                  intensity = picked_chroms[k][i].getIntensity();
-                  maxi = (int)i;
-                }
-              }
+              PeakIntegrator::PeakArea pa_tmp = pi_.integratePeak(picked_chroms[k], best_left, best_right); // get the peak apex
+              if (std::fabs(pa_tmp.apex_pos - peak_apex) < peak_apex_dist_min)
+                min_dist = (int)i;
             }
             
             // Select master peak boundaries, or in the case we found at least one peak, the local peak boundaries 
             double l = best_left;
             double r = best_right;
-            if (maxi >= 0)
+            if (min_dist >= 0)
             {
-              double l = picked_chroms[k].getFloatDataArrays()[1][maxi];
-              double r = picked_chroms[k].getFloatDataArrays()[2][maxi];
-              picked_chroms[k][maxi].setIntensity(0.0); // only remove one peak per transition
+              double l = picked_chroms[k].getFloatDataArrays()[1][min_dist];
+              double r = picked_chroms[k].getFloatDataArrays()[2][min_dist];
+              picked_chroms[k][min_dist].setIntensity(0.0); // only remove one peak per transition
             }
             
             left_edges.push_back(l);
