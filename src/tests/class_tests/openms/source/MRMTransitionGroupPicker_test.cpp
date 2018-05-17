@@ -346,18 +346,18 @@ START_SECTION((template < typename SpectrumT, typename TransitionT > void pickTr
 
     TEST_EQUAL(transition_group.getFeatures().size(), 1)
     MRMFeature mrmfeature = transition_group.getFeatures()[0];
-    TEST_REAL_SIMILAR(mrmfeature.getRT(), 1492.83060);
-    TEST_REAL_SIMILAR(mrmfeature.getMetaValue("leftWidth"), 1481.84);
-    TEST_REAL_SIMILAR(mrmfeature.getMetaValue("rightWidth"), 1501.23);
-    TEST_REAL_SIMILAR(mrmfeature.getFeature("1").getIntensity(), 507385.32);
-    TEST_REAL_SIMILAR(mrmfeature.getFeature("2").getIntensity(), 507385.32);
-    TEST_REAL_SIMILAR(mrmfeature.getFeature("3").getIntensity(), 507385.32);
-    TEST_REAL_SIMILAR(mrmfeature.getFeature("1").getMetaValue("peak_apex_int"), 507385.32);
-    TEST_REAL_SIMILAR(mrmfeature.getFeature("2").getMetaValue("peak_apex_int"), 0.0);
-    TEST_REAL_SIMILAR(mrmfeature.getFeature("3").getMetaValue("peak_apex_int"), 507385.32);
-    TEST_REAL_SIMILAR(mrmfeature.getFeature("1").getMetaValue("peak_apex_pos"), 507385.32);
-    TEST_REAL_SIMILAR(mrmfeature.getFeature("2").getMetaValue("peak_apex_pos"), 0.0);
-    TEST_REAL_SIMILAR(mrmfeature.getFeature("3").getMetaValue("peak_apex_pos"), 507385.32);
+    TEST_REAL_SIMILAR(mrmfeature.getRT(), 13.8705382);
+    TEST_REAL_SIMILAR(mrmfeature.getMetaValue("leftWidth"), 6);
+    TEST_REAL_SIMILAR(mrmfeature.getMetaValue("rightWidth"), 21);
+    TEST_REAL_SIMILAR(mrmfeature.getFeature("1").getIntensity(), 143);
+    TEST_REAL_SIMILAR(mrmfeature.getFeature("2").getIntensity(), 128);
+    TEST_REAL_SIMILAR(mrmfeature.getFeature("3").getIntensity(), 48);
+    TEST_REAL_SIMILAR(mrmfeature.getFeature("1").getMetaValue("peak_apex_int"), 16);
+    TEST_REAL_SIMILAR(mrmfeature.getFeature("2").getMetaValue("peak_apex_int"), 11);
+    TEST_REAL_SIMILAR(mrmfeature.getFeature("3").getMetaValue("peak_apex_int"), 3);
+    TEST_REAL_SIMILAR(mrmfeature.getFeature("1").getMetaValue("peak_apex_position"), 507385.32);
+    TEST_REAL_SIMILAR(mrmfeature.getFeature("2").getMetaValue("peak_apex_position"), 0.0);
+    TEST_REAL_SIMILAR(mrmfeature.getFeature("3").getMetaValue("peak_apex_position"), 507385.32);
 
   }
 }
