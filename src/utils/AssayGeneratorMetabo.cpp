@@ -420,6 +420,7 @@ protected:
         const vector<Precursor> &precursor = spectrum.getPrecursors();
 
         // get m/z and intensity of precursor
+        // only spectra with precursors are in the map, therefore no need to check for their presence
         double precursor_mz = precursor[0].getMZ();
         float precursor_int = precursor[0].getIntensity();
 
