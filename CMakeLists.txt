@@ -128,6 +128,7 @@ endif()
 # Additional versioning information for packaging
 # If it is not built from a release branch (or master) it will add the branch name
 # and the last change date to everything that can handle strings in the version (eg. installer filenames).
+message("foo")
 if(${OPENMS_GIT_SHORT_REFSPEC} MATCHES "release*" OR ${OPENMS_GIT_SHORT_REFSPEC} MATCHES "master")
   set(OPENMS_PACKAGE_VERSION_PRERELEASE_IDENTIFIER "")
   set(OPENMS_PACKAGE_VERSION_FULLSTRING "${OPENMS_PACKAGE_VERSION}")

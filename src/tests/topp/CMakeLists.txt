@@ -131,7 +131,7 @@ endforeach()
 # one arbitrary TOPP tool)
 #------------------------------------------------------------------------------
 add_test("TOPPWRITEINI_OVERWRITE" ${TOPP_BIN_PATH}/PeakPickerWavelet -test -write_ini "WRITE_INI.ini.tmp" -ini "${DATA_DIR_TOPP}/WRITE_INI_IN.ini")
-add_test("TOPPWRITEINI_OVERWRITE_out" ${DIFF} -in1 WRITE_INI.ini.tmp -in2 "${DATA_DIR_TOPP}/WRITE_INI_OUT.ini")
+add_test("TOPPWRITEINI_OVERWRITE_out" ${DIFF} -in1 WRITE_INI.ini.tmp -in2 "${DATA_DIR_TOPP}/WRITE_INI_OUT.ini" -whitelist "version")
 set_tests_properties("TOPPWRITEINI_OVERWRITE_out" PROPERTIES DEPENDS "TOPPWRITEINI_OVERWRITE")
 ##
 ## Test if invalid arguments or values (from INI or CLI) lead to immediate exit
@@ -2154,14 +2154,14 @@ set_tests_properties("UTILS_MultiplexResolver_3_out3" PROPERTIES DEPENDS "UTILS_
 # INIUpdater:
 if(WITH_GUI)
   add_test("UTILS_INIUpdater_1" ${TOPP_BIN_PATH}/INIUpdater -test -in ${DATA_DIR_TOPP}/INIUpdater_1_noupdate.toppas -out INIUpdater_1_noupdate.toppas.tmp)
-  add_test("UTILS_INIUpdater_1_out" ${DIFF} -in1 INIUpdater_1_noupdate.toppas.tmp -in2 ${DATA_DIR_TOPP}/INIUpdater_1_noupdate.toppas )
+  add_test("UTILS_INIUpdater_1_out" ${DIFF} -in1 INIUpdater_1_noupdate.toppas.tmp -in2 ${DATA_DIR_TOPP}/INIUpdater_1_noupdate.toppas -whitelist "version")
   set_tests_properties("UTILS_INIUpdater_1_out" PROPERTIES DEPENDS "UTILS_INIUpdater_1")
 
   add_test("UTILS_INIUpdater_2" ${TOPP_BIN_PATH}/INIUpdater -test -in ${DATA_DIR_TOPP}/INIUpdater_2_broken.toppas -out INIUpdater_2_broken.toppas.tmp)
   set_tests_properties("UTILS_INIUpdater_2" PROPERTIES WILL_FAIL 1)
 
   add_test("UTILS_INIUpdater_3" ${TOPP_BIN_PATH}/INIUpdater -test -in ${DATA_DIR_TOPP}/INIUpdater_3_old.toppas -out INIUpdater_3_old.toppas.tmp)
-  add_test("UTILS_INIUpdater_3_out" ${DIFF} -in1 INIUpdater_3_old.toppas.tmp -in2 ${DATA_DIR_TOPP}/INIUpdater_3_old_out.toppas )
+  add_test("UTILS_INIUpdater_3_out" ${DIFF} -in1 INIUpdater_3_old.toppas.tmp -in2 ${DATA_DIR_TOPP}/INIUpdater_3_old_out.toppas -whitelist "version")
   set_tests_properties("UTILS_INIUpdater_3_out" PROPERTIES DEPENDS "UTILS_INIUpdater_3")
 endif()
 
