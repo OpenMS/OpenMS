@@ -358,24 +358,6 @@ START_SECTION((template <typename SpectrumT, typename TransitionT> MRMFeature cr
     TEST_REAL_SIMILAR(mrmfeature.getFeature("2").getIntensity()/mrmfeature.getFeature("1").getIntensity(), 8.44773) // ratio should be stable
   }
 
-  // background subtraction with peak integrator
-  {
-    MRMTransitionGroupPicker picker;
-    Param picker_param = picker.getDefaults();
-    picker_param.setValue("PeakPickerMRM::method", "legacy"); // old parameters
-    picker_param.setValue("PeakPickerMRM::peak_width", 40.0); // old parameters
-    picker_param.setValue("background_subtraction", "exact");
-    picker.setParameters(picker_param);
-
-    MRMFeature mrmfeature = picker.createMRMFeature(transition_group, picked_chroms, smoothed_chroms, chr_idx, peak_idx);
-
-    TEST_REAL_SIMILAR(mrmfeature.getFeature("2").getIntensity(), 514590); // slightly reduced value due to background subtraction
-    TEST_REAL_SIMILAR((double)mrmfeature.getFeature("2").getMetaValue("peak_apex_int"), 155331.37806798); // slightly reduced value due to background subtraction
-    TEST_REAL_SIMILAR(mrmfeature.getFeature("1").getIntensity(), 61009.7); // slightly reduced value due to background subtraction
-    TEST_REAL_SIMILAR((double)mrmfeature.getFeature("1").getMetaValue("peak_apex_int"), 30251.2414481247); // slightly reduced value due to background subtraction
-    TEST_REAL_SIMILAR(mrmfeature.getFeature("2").getIntensity()/mrmfeature.getFeature("1").getIntensity(), 8.43456040596823) // ratio should be stable
-  }
-
   // integration with Simpon's rule (with background subtraction)
   {
     MRMTransitionGroupPicker picker;
@@ -393,6 +375,50 @@ START_SECTION((template <typename SpectrumT, typename TransitionT> MRMFeature cr
     TEST_REAL_SIMILAR(mrmfeature.getFeature("1").getIntensity(), 168685); // slightly reduced value due to background subtraction
     TEST_REAL_SIMILAR((double)mrmfeature.getFeature("1").getMetaValue("peak_apex_int"), 30251.2414481247); // slightly reduced value due to background subtraction
     TEST_REAL_SIMILAR(mrmfeature.getFeature("2").getIntensity()/mrmfeature.getFeature("1").getIntensity(), 8.42957) // ratio should be stable
+  }
+
+  // background subtraction with peak integrator
+  {
+    MRMTransitionGroupPicker picker;
+    Param picker_param = picker.getDefaults();
+    picker_param.setValue("PeakPickerMRM::method", "legacy"); // old parameters
+    picker_param.setValue("PeakPickerMRM::peak_width", 40.0); // old parameters
+    picker_param.setValue("background_subtraction", "exact");
+    picker.setParameters(picker_param);
+
+    MRMFeature mrmfeature = picker.createMRMFeature(transition_group, picked_chroms, smoothed_chroms, chr_idx, peak_idx);
+
+    TEST_REAL_SIMILAR(mrmfeature.getFeature("2").getIntensity(), 514590); // slightly reduced value due to background subtraction
+    TEST_REAL_SIMILAR((double)mrmfeature.getFeature("2").getMetaValue("peak_apex_int"), 155331.37806798); // slightly reduced value due to background subtraction
+    TEST_REAL_SIMILAR(mrmfeature.getFeature("2").getMetaValue("peak_apex_position"), 0); 
+    TEST_REAL_SIMILAR(mrmfeature.getFeature("2").getRT(), 0); 
+    TEST_REAL_SIMILAR(mrmfeature.getFeature("1").getIntensity(), 61009.7); // slightly reduced value due to background subtraction
+    TEST_REAL_SIMILAR((double)mrmfeature.getFeature("1").getMetaValue("peak_apex_int"), 30251.2414481247); // slightly reduced value due to background subtraction
+    TEST_REAL_SIMILAR(mrmfeature.getFeature("2").getIntensity()/mrmfeature.getFeature("1").getIntensity(), 8.43456040596823) // ratio should be stable
+    TEST_REAL_SIMILAR(mrmfeature.getFeature("1").getMetaValue("peak_apex_position"), 0);
+    TEST_REAL_SIMILAR(mrmfeature.getFeature("1").getRT(), 0);
+  }
+
+  // no consensus boundary
+  {
+    MRMTransitionGroupPicker picker;
+    Param picker_param = picker.getDefaults();
+    picker_param.setValue("PeakPickerMRM::method", "legacy"); // old parameters
+    picker_param.setValue("PeakPickerMRM::peak_width", 40.0); // old parameters
+    picker_param.setValue("background_subtraction", "exact");
+    picker_param.setValue("use_consensus", "false");
+    picker.setParameters(picker_param);
+
+    MRMFeature mrmfeature = picker.createMRMFeature(transition_group, picked_chroms, smoothed_chroms, chr_idx, peak_idx);
+
+    TEST_REAL_SIMILAR(mrmfeature.getFeature("2").getIntensity(), 514590);
+    TEST_REAL_SIMILAR((double)mrmfeature.getFeature("2").getMetaValue("peak_apex_int"), 155331.37806798);
+    TEST_REAL_SIMILAR(mrmfeature.getFeature("2").getMetaValue("peak_apex_position"), 0);
+    TEST_REAL_SIMILAR(mrmfeature.getFeature("2").getRT(), 0);
+    TEST_REAL_SIMILAR(mrmfeature.getFeature("1").getIntensity(), 61009.7);
+    TEST_REAL_SIMILAR((double)mrmfeature.getFeature("1").getMetaValue("peak_apex_int"), 30251.2414481247);
+    TEST_REAL_SIMILAR(mrmfeature.getFeature("1").getMetaValue("peak_apex_position"), 0);
+    TEST_REAL_SIMILAR(mrmfeature.getFeature("1").getRT(), 0);
   }
 }
 END_SECTION
