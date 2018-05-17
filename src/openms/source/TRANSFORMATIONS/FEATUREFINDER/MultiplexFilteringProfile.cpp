@@ -93,9 +93,11 @@ namespace OpenMS
     // list of filter results for each peak pattern
     std::vector<MultiplexFilteredMSExperiment> filter_results;
     
+#ifdef DEBUG
     // clock for monitoring run time performance
     unsigned int start = clock();
-    
+#endif
+
     // construct navigators for all spline spectra
     std::vector<SplineSpectrum::Navigator> navigators;
     for (std::vector<SplineSpectrum>::iterator it = exp_spline_profile_.begin(); it < exp_spline_profile_.end(); ++it)

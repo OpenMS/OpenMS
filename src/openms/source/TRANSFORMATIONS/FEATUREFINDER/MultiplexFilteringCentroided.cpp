@@ -60,10 +60,12 @@ namespace OpenMS
     
     // list of filter results for each peak pattern
     vector<MultiplexFilteredMSExperiment> filter_results;
-    
+
+#ifdef DEBUG
     // clock for monitoring run time performance
     unsigned int start = clock();
-    
+#endif
+
     // loop over all patterns
     for (unsigned pattern_idx = 0; pattern_idx < patterns_.size(); ++pattern_idx)
     {
