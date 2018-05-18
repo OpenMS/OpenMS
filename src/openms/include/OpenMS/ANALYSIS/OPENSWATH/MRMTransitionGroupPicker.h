@@ -285,6 +285,8 @@ public:
             {
               double l = picked_chroms[k].getFloatDataArrays()[1][min_dist];
               double r = picked_chroms[k].getFloatDataArrays()[2][min_dist];
+              printf("\tbest left (%.2f), right (%.2f)\n", best_left, best_right);
+              printf("\tl (%.2f), r (%.2f)\n", local_left, local_right);
               picked_chroms[k][min_dist].setIntensity(0.0); // only remove one peak per transition
             }
             
