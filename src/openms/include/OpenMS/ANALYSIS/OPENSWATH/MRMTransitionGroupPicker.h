@@ -339,7 +339,7 @@ public:
           local_left = left_edges[k];
           local_right = right_edges[k];
           printf("\tbest left (%.2f), right (%.2f)\n", best_left, best_right);
-          printf("\tlocal left (%.2f), right (%.2f)\n", picked_chroms[k].getFloatDataArrays()[1][i], picked_chroms[k].getFloatDataArrays()[2][i]);
+          printf("\tlocal left (%.2f), right (%.2f)\n", local_left, local_right);
         }
 
         const SpectrumT& chromatogram = selectChromHelper_(transition_group, transition_group.getTransitions()[k].getNativeID()); 
