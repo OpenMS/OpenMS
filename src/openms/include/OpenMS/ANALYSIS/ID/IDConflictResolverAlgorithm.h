@@ -81,8 +81,9 @@ public:
   **/
   static void resolve(ConsensusMap & features);
 
-  /** @brief TODO DOKU
-   
+  /** @brief In a single (feature/consensus) map, peptides with the same sequence and charge states may appear. 
+    Only the feature with the highest intensity will pass this filter. 
+    (Features without any identification pass this filter automatically)
   **/
   template<class T>
   static void makeUnique(T & map)

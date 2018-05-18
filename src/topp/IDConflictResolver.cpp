@@ -110,19 +110,21 @@ protected:
     setValidFormats_("in", ListUtils::create<String>("featureXML,consensusXML"));
     registerOutputFile_("out", "<file>", "", "Output file (data with one peptide identification per feature)");
     setValidFormats_("out", ListUtils::create<String>("featureXML,consensusXML"));
-    registerFlag_("make_unique", "Filter for unique sequence/charge state combinations. In a single map, peptides with the same sequence and charge states may appear. If this flag is set only the feature with the highest intensity will pass this filter. (Features without identification will pass automatically).", false);
+
+    registerStringOption_("method", "<method>", "within_features", "within_features: Peptide features may have been annotated with multiple IDs. One of these PSMs will have the highest score and only that one will remain. Consequently, the total number of peptide features remains unchanged. -among_features: In a feature map multiple features multiple features might have top-scoring IDs. One of these peptide features will have the highest intensity and only that one will remain. Consequently, fewer peptide features will remain in the feature map.", false);
+    setValidStrings_("method", ListUtils::create<String>("within_features,among_features"));
   }
 
   ExitCodes main_(int, const char **) override
   {
     String in = getStringOption_("in"), out = getStringOption_("out");
-    bool make_unique = getFlag_("make_unique");
+    String method = getStringOption_("method");
     FileTypes::Type in_type = FileHandler::getType(in);
     if (in_type == FileTypes::FEATUREXML)
     {
       FeatureMap features;
       FeatureXMLFile().load(in, features);
-      if (make_unique) 
+      if (method == "among_features") 
       {
         IDConflictResolverAlgorithm::makeUnique(features);
       }
@@ -138,7 +140,7 @@ protected:
     {
       ConsensusMap consensus;
       ConsensusXMLFile().load(in, consensus);
-      if (make_unique) 
+      if (method == "among_features") 
       {
         IDConflictResolverAlgorithm::makeUnique(consensus);
       }
