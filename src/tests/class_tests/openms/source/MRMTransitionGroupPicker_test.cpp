@@ -420,7 +420,23 @@ START_SECTION((template < typename SpectrumT, typename TransitionT > void pickTr
     picker_param.setValue("resample_boundary", 1.0);
     picker_param.setValue("PeakPickerMRM:gauss_width", 10.0);
     picker_param.setValue("PeakPickerMRM:peak_width", -1.0);
-    picker_param.setValue("PeakPickerMRM:signal_to_noise", 0.8);
+    picker_param.setValue("PeakPickerMRM:signal_to_noise", 0.9);
+    picker_param.setValue("PeakPickerMRM:method", "corrected");
+    picker_param.setValue("use_consensus", "false");
+    trgroup_picker.setParameters(picker_param);
+    trgroup_picker.pickTransitionGroup(transition_group);
+  }
+  { // transition group 2
+    printf("test5\n");
+    MRMTransitionGroupType transition_group;
+    setup_transition_group2(transition_group);
+
+    MRMTransitionGroupPicker trgroup_picker;
+    Param picker_param = trgroup_picker.getDefaults();
+    picker_param.setValue("resample_boundary", 1.0);
+    picker_param.setValue("PeakPickerMRM:gauss_width", 9.0);
+    picker_param.setValue("PeakPickerMRM:peak_width", -1.0);
+    picker_param.setValue("PeakPickerMRM:signal_to_noise", 0.9);
     picker_param.setValue("PeakPickerMRM:method", "corrected");
     picker_param.setValue("use_consensus", "false");
     trgroup_picker.setParameters(picker_param);
@@ -435,31 +451,13 @@ START_SECTION((template < typename SpectrumT, typename TransitionT > void pickTr
     Param picker_param = trgroup_picker.getDefaults();
     picker_param.setValue("resample_boundary", 1.0);
     picker_param.setValue("PeakPickerMRM:gauss_width", 10.0);
-    picker_param.setValue("PeakPickerMRM:peak_width", -1.0);
-    picker_param.setValue("PeakPickerMRM:signal_to_noise", 0.9);
+    picker_param.setValue("PeakPickerMRM:peak_width", 10.0);
+    picker_param.setValue("PeakPickerMRM:signal_to_noise", 1.0);
     picker_param.setValue("PeakPickerMRM:method", "corrected");
     picker_param.setValue("use_consensus", "false");
     trgroup_picker.setParameters(picker_param);
     trgroup_picker.pickTransitionGroup(transition_group);
   }
-
-  { // transition group 2
-    printf("test6\n");
-    MRMTransitionGroupType transition_group;
-    setup_transition_group2(transition_group);
-
-    MRMTransitionGroupPicker trgroup_picker;
-    Param picker_param = trgroup_picker.getDefaults();
-    picker_param.setValue("resample_boundary", 1.0);
-    picker_param.setValue("PeakPickerMRM:gauss_width", 10.0);
-    picker_param.setValue("PeakPickerMRM:peak_width", -1.0);
-    picker_param.setValue("PeakPickerMRM:signal_to_noise", 0.7);
-    picker_param.setValue("PeakPickerMRM:method", "corrected");
-    picker_param.setValue("use_consensus", "false");
-    trgroup_picker.setParameters(picker_param);
-    trgroup_picker.pickTransitionGroup(transition_group);
-  }
-
 }
 END_SECTION
 
