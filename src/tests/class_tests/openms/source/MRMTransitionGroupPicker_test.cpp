@@ -348,7 +348,7 @@ START_SECTION((template < typename SpectrumT, typename TransitionT > void pickTr
     trgroup_picker.setParameters(picker_param);
     trgroup_picker.pickTransitionGroup(transition_group);
 
-    TEST_EQUAL(transition_group.getFeatures().size(), 2)
+    TEST_EQUAL(transition_group.getFeatures().size(), 1);
     MRMFeature mrmfeature = transition_group.getFeatures()[0];
     TEST_REAL_SIMILAR(mrmfeature.getRT(), 14);
     TEST_REAL_SIMILAR(mrmfeature.getMetaValue("leftWidth"), 7);
@@ -379,7 +379,7 @@ START_SECTION((template < typename SpectrumT, typename TransitionT > void pickTr
     trgroup_picker.setParameters(picker_param);
     trgroup_picker.pickTransitionGroup(transition_group);
 
-    TEST_EQUAL(transition_group.getFeatures().size(), 2)
+    TEST_EQUAL(transition_group.getFeatures().size(), 2);
     MRMFeature mrmfeature = transition_group.getFeatures()[0];
     TEST_REAL_SIMILAR(mrmfeature.getRT(), 14);
     TEST_REAL_SIMILAR(mrmfeature.getMetaValue("leftWidth"), 7);
