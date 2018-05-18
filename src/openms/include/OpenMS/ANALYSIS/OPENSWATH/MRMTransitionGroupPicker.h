@@ -272,7 +272,10 @@ public:
               printf("local left (%.2f), right (%.2f)\n", picked_chroms[k].getFloatDataArrays()[1][i], picked_chroms[k].getFloatDataArrays()[2][i]);
               printf("peak apex pos (%.2f) - (%.2f)\n", pa_tmp.apex_pos, peak_apex);
               if (std::fabs(pa_tmp.apex_pos - peak_apex) < peak_apex_dist_min)
+              {
                 min_dist = (int)i;
+                printf("min_dist %i\n", min_dist);
+              }
             }
             
             // Select master peak boundaries, or in the case we found at least one peak, the local peak boundaries 
