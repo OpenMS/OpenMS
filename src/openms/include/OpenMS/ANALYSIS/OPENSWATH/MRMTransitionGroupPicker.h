@@ -270,8 +270,8 @@ public:
               printf("chrom array iter: %i\n", i);
               printf("best left (%.2f), right (%.2f)\n", best_left, best_right);
               printf("local left (%.2f), right (%.2f)\n", picked_chroms[k].getFloatDataArrays()[1][i], picked_chroms[k].getFloatDataArrays()[2][i]);
-              printf("peak apex pos (%.2f) - (%.2f)\n", pa_tmp.apex_pos, peak_apex);
-              if (std::fabs(pa_tmp.apex_pos - peak_apex) < peak_apex_dist_min)
+              printf("peak apex pos (%.2f) - (%.2f) = %.2f\n", pa_tmp.apex_pos, peak_apex, std::fabs(pa_tmp.apex_pos - peak_apex));
+              if (pa_tmp.apex_pos > 0.0 && std::fabs(pa_tmp.apex_pos - peak_apex) < peak_apex_dist_min)
               {
                 min_dist = (int)i;
                 printf("min_dist %i\n", min_dist);
@@ -338,6 +338,8 @@ public:
         {
           local_left = left_edges[k];
           local_right = right_edges[k];
+          printf("\tbest left (%.2f), right (%.2f)\n", best_left, best_right);
+          printf("\tlocal left (%.2f), right (%.2f)\n", picked_chroms[k].getFloatDataArrays()[1][i], picked_chroms[k].getFloatDataArrays()[2][i]);
         }
 
         const SpectrumT& chromatogram = selectChromHelper_(transition_group, transition_group.getTransitions()[k].getNativeID()); 
