@@ -92,6 +92,8 @@ using namespace OpenMS;
   PeptideIndexer supports relative database filenames, which (when not found in the current working directory) are looked up in the directories specified
   by @p OpenMS.ini:id_db_dir (see @subpage TOPP_advanced).
 
+  Further details can be found in the underlying PeptideIndexing implementation.
+  
   @note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
 
   <B>The command line parameters of this tool are:</B>

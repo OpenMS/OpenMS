@@ -107,9 +107,6 @@ endif()
 if (TBB_FOUND)
  list(APPEND OPENMS_DEP_LIBRARIES ${TBB_LIBRARIES})
 endif()
-if (MSVC) ## TODO check if necessary, does it need to go to OpenMS_GUI?
-	list(APPEND OPENMS_DEP_LIBRARIES opengl32.lib)
-endif()
 if (WITH_CRAWDAD) ## TODO check if still necessary
   list(APPEND OPENMS_DEP_LIBRARIES ${Crawdad_LIBRARY})
 endif()
