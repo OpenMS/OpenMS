@@ -151,7 +151,7 @@ void setup_transition_group2(MRMTransitionGroupType & transition_group)
   static const double rtdata_3[] = {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29};
 
   static const double intdata_1[] = {3,3,3,3,3,3,3,3,4,6,8,12,14,15,16,15,14,12,8,6,4,3,3,3,3,3,3,3,3,3};
-  static const double intdata_2[] = {3,3,4,6,8,10,11,11,10,8,6,4,4,6,8,10,11,11,10,8,6,4,3,3,3,3,3,3,3,3};
+  static const double intdata_2[] = {3,3,4,6,8,10,11,11,10,8,6,4,3,4,6,8,10,11,11,10,8,6,4,3,3,3,3,3,3,3};
   static const double intdata_3[] =  {3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3};
 
   // Transition trace 1
