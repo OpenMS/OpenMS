@@ -339,10 +339,10 @@ START_SECTION((template < typename SpectrumT, typename TransitionT > void pickTr
 
     MRMTransitionGroupPicker trgroup_picker;
     Param picker_param = trgroup_picker.getDefaults();
-    picker_param.setValue("resample_boundary", 0.5);
-    picker_param.setValue("PeakPickerMRM:gauss_width", 0.1);
+    picker_param.setValue("resample_boundary", 1.0);
+    picker_param.setValue("PeakPickerMRM:gauss_width", 1.0);
     picker_param.setValue("PeakPickerMRM:peak_width", -1.0);
-    picker_param.setValue("PeakPickerMRM:signal_to_noise", 0.01);
+    picker_param.setValue("PeakPickerMRM:signal_to_noise", 0.1);
     picker_param.setValue("PeakPickerMRM:method", "corrected");
     picker_param.setValue("use_consensus", "false");
     trgroup_picker.setParameters(picker_param);
