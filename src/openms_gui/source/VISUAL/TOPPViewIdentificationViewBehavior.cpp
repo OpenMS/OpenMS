@@ -63,7 +63,7 @@ namespace OpenMS
 
   void TOPPViewIdentificationViewBehavior::showSpectrumAs1D(int index)
   {
-    // call without selecting an identification
+    // Show spectrum "index" without selecting an identification
     showSpectrumAs1D(index, -1, -1);
   }
 
@@ -78,8 +78,10 @@ namespace OpenMS
     {
       // open new 1D widget with the current default parameters
       Spectrum1DWidget* w = new Spectrum1DWidget(tv_->getSpectrumParameters(1), (QWidget*)tv_->getWorkspace());
-      // add data
-      if (!w->canvas()->addLayer(exp_sptr, od_exp_sptr, layer.filename) || (Size)spectrum_index >= w->canvas()->getCurrentLayer().getPeakData()->size())
+
+      // add data and return if something went wrong
+      if (!w->canvas()->addLayer(exp_sptr, od_exp_sptr, layer.filename) 
+        || (Size)spectrum_index >= w->canvas()->getCurrentLayer().getPeakData()->size())
       {
         return;
       }
@@ -103,21 +105,28 @@ namespace OpenMS
 
       tv_->showSpectrumWidgetInWindow(w, caption);
 
-      // special behavior
+      ///////////////////////////////////////////////////////////////////////////////
+      // Visualisation of ID data
+
+      // if no peptide identification or peptide hit index provided we can return now
       if (peptide_id_index == -1 || peptide_hit_index == -1) { return; }
 
+      // get peptide identification
       const vector<PeptideIdentification>& pis = w->canvas()->getCurrentLayer().getCurrentSpectrum().getPeptideIdentifications();
+
       if (!pis.empty())
       {
         switch (ms_level)
         {
-          // mass fingerprint annotation of name etc
+          // mass fingerprint annotation of name etc.
           case 1: { addPeakAnnotations_(pis); break; }
+
           // annotation with stored fragments or synthesized theoretical spectrum
           case 2:
           {
             // check if index in bounds and hits are present
-            if (peptide_id_index < static_cast<int>(pis.size()) && peptide_hit_index < static_cast<int>(pis[peptide_id_index].getHits().size()))
+            if (peptide_id_index < static_cast<int>(pis.size()) 
+              && peptide_hit_index < static_cast<int>(pis[peptide_id_index].getHits().size()))
             {
               // get hit
               PeptideHit ph = pis[peptide_id_index].getHits()[peptide_hit_index];
@@ -129,7 +138,7 @@ namespace OpenMS
               else
               {
                 // otherwise, use stored fragment annotations
-                addAnnotationsSpectrumLayer_(ph);
+                addPeakAnnotationsFromID_(ph);
               }
             }
             break;
@@ -167,7 +176,6 @@ namespace OpenMS
     cols.push_back(Qt::red);
     cols.push_back(Qt::gray);
     cols.push_back(Qt::darkYellow);
-
 
     if (!current_layer.getCurrentSpectrum().isSorted())
     {
@@ -267,7 +275,9 @@ namespace OpenMS
     activate1DSpectrum(index, -1, -1);
   }
 
-  void TOPPViewIdentificationViewBehavior::activate1DSpectrum(int spectrum_index, int peptide_id_index, int peptide_hit_index)
+  void TOPPViewIdentificationViewBehavior::activate1DSpectrum(int spectrum_index, 
+    int peptide_id_index, 
+    int peptide_hit_index)
   {
     Spectrum1DWidget* widget_1D = tv_->getActive1DWidget();
 
@@ -322,7 +332,7 @@ namespace OpenMS
             else
             {
               // otherwise, use stored fragment annotations
-              addAnnotationsSpectrumLayer_(ph);
+              addPeakAnnotationsFromID_(ph);
 
               if (ph.metaValueExists("xl_chain")) // if this meta value exists, this should be an XLMS annotation
               {
@@ -1051,150 +1061,107 @@ namespace OpenMS
     widget_1D->canvas()->setTextBox(QString());
   }
 
-  void TOPPViewIdentificationViewBehavior::addAnnotationsSpectrumLayer_(const PeptideHit& hit, bool align)
+  void TOPPViewIdentificationViewBehavior::addPeakAnnotationsFromID_(const PeptideHit& hit)
   {
+    // get annotations and sequence
     const vector<PeptideHit::PeakAnnotation>& annotations =
       hit.getPeakAnnotations();
+
     String seq = hit.getSequence().toString();
-    if (seq.empty()) seq = hit.getMetaValue("label");
+    if (seq.empty()) 
+    { // no sequence information stored? use label
+      if (hit.metaValueExists("label")) seq = hit.getMetaValue("label"); 
+    }
 
     SpectrumCanvas* current_canvas = tv_->getActive1DWidget()->canvas();
     LayerData& current_layer = current_canvas->getCurrentLayer();
-    Size current_spectrum_layer_index = current_canvas->activeLayerIndex();
-    Size current_spectrum_index = current_layer.getCurrentSpectrumIndex();
-
     const MSSpectrum& current_spectrum = current_layer.getCurrentSpectrum();
-    if (align)
+
+    if (current_spectrum.empty())
     {
-      if (current_spectrum.empty())
-      {
-        LOG_WARN << "Spectrum is empty! Nothing to annotate!" << endl;
-      }
-      else if (!current_spectrum.isSorted())
-      {
-        QMessageBox::warning(tv_, "Error", "The spectrum is not sorted! Aborting!"); // @TODO: improve error message
-        return;
-      }
+      LOG_WARN << "Spectrum is empty! Nothing to annotate!" << endl;
+    }
+    else if (!current_spectrum.isSorted())
+    {
+      QMessageBox::warning(tv_, "Error", "The spectrum is not sorted! Aborting!"); // @TODO: improve error message
+      return;
     }
 
-    MSSpectrum ann_spectrum;
-    vector<String> labels;
+    // init all peak colors to black (=no annotation) 
+    current_layer.peak_colors_1d.assign(current_spectrum.size(), Qt::black);
+
     for (const auto& ann : annotations)
     {
-      Peak1D peak(ann.mz, ann.intensity);
-      if (align) // align to the measured spectrum
+      // find matching peak in experimental spectrum
+      Int peak_idx = current_spectrum.findNearest(ann.mz, 1e-2);
+      if (peak_idx == -1) // no match
       {
-        // @TODO: avoid magic constant (m/z tolerance)
-        Int peak_idx = current_spectrum.findNearest(ann.mz, 1e-2);
-        if (peak_idx == -1) // no match
-        {
-          LOG_WARN << "Annotation present for missing peak. m/z: " << ann.mz
-                   << endl;
-          continue;
-        }
-        peak = current_spectrum[peak_idx];
+        LOG_WARN << "Annotation present for missing peak. m/z: " << ann.mz
+                  << endl;
+        continue;
       }
-      ann_spectrum.push_back(peak);
 
       String label = ann.annotation;
+
       // write out positive and negative charges with the correct sign at the end of the annotation string
       switch (ann.charge)
       {
-      case 0: break;
-      case 1: label += "+"; break;
-      case 2: label += "++"; break;
-      case -1: label += "-"; break;
-      case -2: label += "--"; break;
-      default: label += ((ann.charge > 0) ? "+" : "") + String(ann.charge);
+        case 0: break;
+        case 1: label += "+"; break;
+        case 2: label += "++"; break;
+        case -1: label += "-"; break;
+        case -2: label += "--"; break;
+        default: label += ((ann.charge > 0) ? "+" : "") + String(ann.charge);
       }
-      labels.push_back(label);
-    }
-    ann_spectrum.sortByPosition();
 
-    if (ann_spectrum.getMaxInt() <= 1.0) // undo scaling of intensities
-    {
-      double max_int = current_layer.getCurrentSpectrum().getMaxInt();
-      for (auto& peak : ann_spectrum)
+      QColor color(Qt::black);
+      QColor peak_color(Qt::black);
+
+      // XL-MS specific coloring of the labels, green for linear fragments and red for cross-linked fragments
+      if (label.hasSubstring("[alpha|") 
+        || label.hasSubstring("[beta|"))
       {
-        peak.setIntensity(peak.getIntensity() * max_int);
+        if (label.hasSubstring("|ci$"))
+        {
+          color = Qt::darkGreen;
+          peak_color = Qt::green;
+        }
+        else if (label.hasSubstring("|xi$"))
+        {
+          color = Qt::darkRed;
+          peak_color = Qt::red;
+        }
       }
-    }
+      else // different colors for left/right fragments (e.g. b/y ions)
+      {
+        color = (label.at(0) < 'n') ? Qt::darkRed : Qt::darkGreen;
+        peak_color = (label.at(0) < 'n') ? Qt::red : Qt::green;
+      }
 
-    PeakMap new_exp;
-    new_exp.addSpectrum(ann_spectrum);
-    LayerData::ODExperimentSharedPtrType od_dummy(new OnDiscMSExperiment());
-    ExperimentSharedPtrType new_exp_sptr(new PeakMap(new_exp));
-    FeatureMapSharedPtrType f_dummy(new FeatureMapType());
-    ConsensusMapSharedPtrType c_dummy(new ConsensusMapType());
-    vector<PeptideIdentification> p_dummy;
+      DPosition<2> position(current_spectrum[peak_idx].getMZ(),
+        current_spectrum[peak_idx].getIntensity());
+
+      Annotation1DItem* item = new Annotation1DPeakItem(position, label.toQString(), color);
+      current_layer.peak_colors_1d[peak_idx] = peak_color;
+
+      item->setSelected(false);
+      tv_->getActive1DWidget()->canvas()->getCurrentLayer().getCurrentAnnotations().push_front(item);
+    }
 
     // Block update events for identification widget
     tv_->getSpectraIdentificationViewWidget()->ignore_update = true;
 
-    String layer_caption = seq + " (identification view)";
-    tv_->addData(f_dummy, c_dummy, p_dummy, new_exp_sptr, od_dummy, LayerData::DT_PEAK, true, false, false, "", layer_caption);
+    // zoom visible area to real data range:
+    DRange<2> visible_area = tv_->getActive1DWidget()->canvas()->getVisibleArea();
+    double min_mz = tv_->getActive1DWidget()->canvas()->getCurrentLayer().getCurrentSpectrum().getMin()[0];
+    double max_mz = tv_->getActive1DWidget()->canvas()->getCurrentLayer().getCurrentSpectrum().getMax()[0];
+    double delta_mz = max_mz - min_mz;
+    visible_area.setMin(min_mz - 0.1 * delta_mz);
+    visible_area.setMax(max_mz + 0.1 * delta_mz);
+    tv_->getActive1DWidget()->canvas()->setVisibleArea(visible_area);
 
-    // get layer index of new layer
-    Size theoretical_spectrum_layer_index = tv_->getActive1DWidget()->canvas()->activeLayerIndex();
-
-    // kind of a hack to check whether adding the layer was successful
-    if (current_spectrum_layer_index != theoretical_spectrum_layer_index)
-    {
-      // Ensure theoretical spectrum is drawn as sticks
-      tv_->setDrawMode1D(Spectrum1DCanvas::DM_PEAKS);
-      // ensure intensities are on the same scale as the measured spectrum:
-      tv_->setIntensityMode(SpectrumCanvas::IM_SNAP);
-
-      // Add ion names to the annotations spectrum
-      for (Size i = 0; i != ann_spectrum.size(); ++i)
-      {
-        DPosition<2> position(ann_spectrum[i].getMZ(),
-                              ann_spectrum[i].getIntensity());
-        const String& label = labels[i];
-        QColor color;
-        QColor peak_color;
-        LayerData& annotated_layer = current_canvas->getCurrentLayer();
-        // XL-MS specific coloring of the labels, green for linear fragments and red for cross-linked fragments
-        if (label.hasSubstring("[alpha|") || label.hasSubstring("[beta|"))
-        {
-          if (label.hasSubstring("|ci$"))
-          {
-            color = Qt::darkGreen;
-            peak_color = Qt::green;
-          }
-          else if (label.hasSubstring("|xi$"))
-          {
-            color = Qt::darkRed;
-            peak_color = Qt::red;
-          }
-        }
-        else // different colors for left/right fragments (e.g. b/y ions)
-        {
-          color = (label.at(0) < 'n') ? Qt::darkRed : Qt::darkGreen;
-          peak_color = (label.at(0) < 'n') ? Qt::red : Qt::green;
-        }
-
-        Annotation1DItem* item = new Annotation1DPeakItem(position, label.toQString(), color);
-        annotated_layer.peak_colors_1d.push_back(peak_color);
-        item->setSelected(false);
-        tv_->getActive1DWidget()->canvas()->getCurrentLayer().getCurrentAnnotations().push_front(item);
-      }
-
-      tv_->getActive1DWidget()->canvas()->activateLayer(current_spectrum_layer_index);
-      tv_->getActive1DWidget()->canvas()->getCurrentLayer().setCurrentSpectrumIndex(current_spectrum_index);
-
-      // zoom visible area to real data range:
-      DRange<2> visible_area = tv_->getActive1DWidget()->canvas()->getVisibleArea();
-      double min_mz = tv_->getActive1DWidget()->canvas()->getCurrentLayer().getCurrentSpectrum().getMin()[0];
-      double max_mz = tv_->getActive1DWidget()->canvas()->getCurrentLayer().getCurrentSpectrum().getMax()[0];
-      double delta_mz = max_mz - min_mz;
-      visible_area.setMin(min_mz - 0.1 * delta_mz);
-      visible_area.setMax(max_mz + 0.1 * delta_mz);
-      tv_->getActive1DWidget()->canvas()->setVisibleArea(visible_area);
-
-      tv_->updateLayerBar();
-      tv_->getSpectraIdentificationViewWidget()->ignore_update = false;
-    }
+    tv_->updateLayerBar();
+    tv_->getSpectraIdentificationViewWidget()->ignore_update = false;
   }
 
 

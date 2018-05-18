@@ -108,8 +108,8 @@ namespace OpenMS
     /// Adds a theoretical spectrum as set from the preferences dialog for the peptide hit.
     void addTheoreticalSpectrumLayer_(const PeptideHit& ph);
 
-    /// Adds spectrum comprising annotated peaks
-    void addAnnotationsSpectrumLayer_(const PeptideHit& hit, bool align = false);
+    /// Add peak annotatios from id data structure
+    void addPeakAnnotationsFromID_(const PeptideHit& hit);
 
     /// removes all layer with theoretical spectrum generated in identification view
     void removeTheoreticalSpectrumLayer_();
