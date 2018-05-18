@@ -32,67 +32,48 @@
 // $Authors: Lars Nilse $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/CONCEPT/Constants.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexDeltaMasses.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexIsotopicPeakPattern.h>
-
-using namespace std;
+//#include <OpenMS/CONCEPT/Macros.h>
+#include <OpenMS/MATH/STATISTICS/LinearRegressionWithoutIntercept.h>
 
 namespace OpenMS
 {
-
-  MultiplexIsotopicPeakPattern::MultiplexIsotopicPeakPattern(int c, int ppp, MultiplexDeltaMasses ms, int msi) :
-    charge_(c), peaks_per_peptide_(ppp), mass_shifts_(ms), mass_shift_index_(msi)
+  namespace Math
   {
-    // generate m/z shifts
-    for (unsigned i = 0; i < mass_shifts_.getDeltaMasses().size(); ++i)
+
+    LinearRegressionWithoutIntercept::LinearRegressionWithoutIntercept() :
+    sum_xx_(0), sum_xy_(0), n_(0)
     {
-      for (int j = 0; j < peaks_per_peptide_; ++j)
+    }
+    
+    void LinearRegressionWithoutIntercept::addData(double x, double y)
+    {
+      sum_xx_ += x * x;
+      sum_xy_ += x * y;
+      
+      ++n_;
+    }
+    
+    void LinearRegressionWithoutIntercept::addData(std::vector<double>& x, std::vector<double>& y)
+    {
+      for (unsigned i = 0; i < x.size(); ++i)
       {
-        const std::vector<MultiplexDeltaMasses::DeltaMass>& delta_masses = mass_shifts_.getDeltaMasses();
-        mz_shifts_.push_back((delta_masses[i].delta_mass + j * Constants::C13C12_MASSDIFF_U) / charge_);
+        addData(x[i], y[i]);
       }
     }
-  }
 
-  int MultiplexIsotopicPeakPattern::getCharge() const
-  {
-    return charge_;
-  }
+    /**
+     * @brief returns the slope of the estimated regression line.
+     */
+    double LinearRegressionWithoutIntercept::getSlope()
+    {
+      if (n_ < 2)
+      {
+        return std::numeric_limits<double>::quiet_NaN(); // not enough data
+      }
+      
+      return sum_xy_ / sum_xx_;
+    }
 
-  int MultiplexIsotopicPeakPattern::getPeaksPerPeptide() const
-  {
-    return peaks_per_peptide_;
   }
-
-  MultiplexDeltaMasses MultiplexIsotopicPeakPattern::getMassShifts() const
-  {
-    return mass_shifts_;
-  }
-
-  int MultiplexIsotopicPeakPattern::getMassShiftIndex() const
-  {
-    return mass_shift_index_;
-  }
-
-  unsigned MultiplexIsotopicPeakPattern::getMassShiftCount() const
-  {
-    return mass_shifts_.getDeltaMasses().size();
-  }
-
-  double MultiplexIsotopicPeakPattern::getMassShiftAt(size_t i) const
-  {
-    return mass_shifts_.getDeltaMasses()[i].delta_mass;
-  }
-
-  double MultiplexIsotopicPeakPattern::getMZShiftAt(size_t i) const
-  {
-    return mz_shifts_[i];
-  }
-
-  unsigned MultiplexIsotopicPeakPattern::getMZShiftCount() const
-  {
-    return mz_shifts_.size();
-  }
-
 }
+

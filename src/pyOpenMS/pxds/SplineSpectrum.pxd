@@ -17,7 +17,7 @@ cdef extern from "<OpenMS/FILTERING/DATAREDUCTION/SplineSpectrum.h>" namespace "
 
         double getMzMax() nogil except +
 
-        int getSplineCount() nogil except +
+        int size() nogil except +
         
         SplineSpectrum_Navigator getNavigator() nogil except +
 

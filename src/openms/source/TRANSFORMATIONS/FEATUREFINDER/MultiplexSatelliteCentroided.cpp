@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,31 +32,25 @@
 // $Authors: Lars Nilse $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFilterResultRaw.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexSatelliteCentroided.h>
 
 using namespace std;
 
 namespace OpenMS
 {
-
-  MultiplexFilterResultRaw::MultiplexFilterResultRaw(double mz, std::vector<double> mz_shifts, std::vector<double> intensities) :
-    mz_(mz), mz_shifts_(mz_shifts), intensities_(intensities)
+  MultiplexSatelliteCentroided::MultiplexSatelliteCentroided(size_t rt_idx, size_t mz_idx) :
+    rt_idx_(rt_idx), mz_idx_(mz_idx)
   {
   }
 
-  double MultiplexFilterResultRaw::getMZ() const
+  size_t MultiplexSatelliteCentroided::getMZidx() const
   {
-    return mz_;
+    return mz_idx_;
   }
 
-  std::vector<double> MultiplexFilterResultRaw::getMZShifts() const
+  size_t MultiplexSatelliteCentroided::getRTidx() const
   {
-    return mz_shifts_;
+    return rt_idx_;
   }
-
-  std::vector<double> MultiplexFilterResultRaw::getIntensities() const
-  {
-    return intensities_;
-  }
-
+  
 }
