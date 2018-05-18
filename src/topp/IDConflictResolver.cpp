@@ -102,6 +102,80 @@ public:
   {
   }
 
+private:
+  // registerFlag_("f_and_c:make_unique", "Filter for unique sequence/charge state combinations. In a single map, peptides with the same sequence and charge states may appear. If this flag is set only the feature with the highest intensity will pass this filter. (Features without identification will pass automatically, see also: `id:remove_unannotated_features`).", false);
+  // TODO: Move this to /home/admin/Code/OpenMS-MFreidank/OpenMS/src/openms/source/ANALYSIS/ID/IDConflictResolverAlgorithm.cpp?
+  static FeatureMap makeUnique_(const FeatureMap& feature_map) 
+  {
+    // Copy (unique) features from `feature_set` over into a fresh FeatureMap.
+    FeatureMap unique_features = feature_map;
+    unique_features.clear(false);
+
+    // A std::map tracking the set of unique features.
+    // Uniqueness criterion/key is a pair <charge, sequence> for each feature.
+    typedef std::map<std::pair<Int, AASequence>, const Feature*> FeatureSet;
+    FeatureSet feature_set;
+
+    // 1. create a std::map `feature_set` mapping pairs <charge, sequence> to a pointer to 
+    // the feature with the highest intensity for this sequence.
+    for (const Feature& feature : feature_map) 
+    {
+      const std::vector<PeptideIdentification>& pep_ids = feature.getPeptideIdentifications();
+
+      if (!pep_ids.empty())
+      {
+        if (pep_ids.size() != 1) 
+        {
+          throw OpenMS::Exception::IllegalArgument(__FILE__, __LINE__, __FUNCTION__, "Features may contain at most one identification. Run IDConflictResolver first to remove ambiguities!");
+        }
+
+        // Assumption: first hit returned by `getHits()` has always highest search engine score.
+        // TODO: Is this assumption reasonable or do we need to sort the hits first?
+        const std::vector<PeptideHit>& hits = pep_ids.front().getHits();
+        if (!hits.empty()) 
+        {
+          const PeptideHit& highest_score_hit = hits.front();
+          // Pair <charge, sequence> of charge of the new feature and the sequence of its highest scoring peptide hit.
+          // TODO: const&?
+          const std::pair<Int, AASequence> pair = std::make_pair(feature.getCharge(), highest_score_hit.getSequence());
+
+          // If a <charge, sequence> pair is not yet in the FeatureSet or new feature `fm_it` 
+          // has higher intensity than its counterpart `feature_set[<charge, sequence>]`
+          // store a pointer to `fm_it` in `feature_set`.
+          const FeatureSet::iterator feature_in_set = feature_set.find(pair);
+          if (feature_in_set != feature_set.end()) 
+          {
+            if (feature_in_set->second->getIntensity() < feature.getIntensity()) 
+            {
+              // Replace feature in the set.
+              feature_in_set->second = &(feature);
+            }
+          }
+          else 
+          {
+            // Feature is not yet in our set -- add it.
+            feature_set[pair] = &(feature);
+          }
+        }
+      }
+      else
+      {
+        // Maintain features without peptide identifications.
+        unique_features.push_back(feature);
+      }
+    }
+    // 2. copy features from `feature_set` into our new FeatureMap.
+    for (auto const& element : feature_set) 
+    {
+      unique_features.push_back(*(element.second);
+    }
+    return unique_features;
+  }
+
+
+
+protected:
+
   void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "Input file (data annotated with identifications)");

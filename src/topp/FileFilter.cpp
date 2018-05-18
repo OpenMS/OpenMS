@@ -139,68 +139,6 @@ public:
   }
 
 private:
-  static FeatureMap makeUnique(const FeatureMap& feature_map) 
-  {
-    // Flag: `f_and_c:make_unique`
-    
-    // This function does two things:
-    // 1. create a std::map `feature_set` that maps pairs of <charge, sequence> 
-    // to a pointer to the feature with the highest intensity for this sequence.
-    // 2. construct a FeatureMap that contains all unannotated features in `feature_map`
-    // and all features that are in `feature_set`.
-    
-    // Copy (unique) features from `feature_set` over into a fresh FeatureMap.
-    FeatureMap unique_features = feature_map;
-    unique_features.clear(false);
-
-    // A set of features disguised as a std::map.
-    // Uniqueness criterion/key is a pair <charge, sequence> for each feature.
-    typedef std::map<std::pair<Int, AASequence>, const Feature*> FeatureSet;
-    FeatureSet feature_set;
-
-    // 1. create a std::map `feature_set` mapping pairs <charge, sequence> to a pointer to 
-    // the feature with the highest intensity for this sequence.
-    for (FeatureMap::const_iterator fm_it = feature_map.begin(); fm_it != feature_map.end(); ++fm_it) 
-    {
-      const std::vector<PeptideIdentification> pep_ids = fm_it->getPeptideIdentifications();
-
-      if (!pep_ids.empty())
-      {
-        if (pep_ids.size() != 1) 
-        {
-          throw OpenMS::Exception::IllegalArgument(__FILE__, __LINE__, __FUNCTION__, "Features may contain at most one identification. Run IDConflictResolver first to remove ambiguities!");
-        }
-
-        // Assumption: first hit returned by `getHits()` has always highest search engine score.
-        // TODO: Is this assumption reasonable or do we need to sort the hits first?
-        const PeptideHit highest_score_hit = pep_ids.begin()->getHits().front();
-
-        // Pair <charge, sequence> of charge of the new feature and the sequence of its highest scoring peptide hit.
-        const std::pair<Int, AASequence> pair = std::make_pair(fm_it->getCharge(), highest_score_hit.getSequence());
-
-        // If a <charge, sequence> pair is not yet in the FeatureSet or new feature `fm_it` 
-        // has higher intensity than its counterpart `feature_set[<charge, sequence>]`
-        // store a pointer to `fm_it` in `feature_set`.
-        const FeatureSet::iterator feature_in_set = feature_set.find(pair);
-        if (feature_in_set == feature_set.end() || feature_in_set->second->getIntensity() < fm_it->getIntensity()) 
-        {
-          feature_in_set->second = &(*fm_it);
-        }
-      } else 
-      {
-        // Maintain features without peptide identifications.
-        unique_features.push_back(*fm_it);
-      }
-    }
-
-    // 2. copy features from `feature_set` into our new FeatureMap.
-    for (auto const& element : feature_set) 
-    {
-      const Feature feature = *(element.second);
-      unique_features.push_back(feature);
-    }
-    return unique_features;
-  }
 
   static bool sequenceIsWhiteListed_(const AASequence& peptide_hit_sequence, 
                                      const StringList& whitelist, 
@@ -469,7 +407,6 @@ protected:
     registerStringOption_("f_and_c:charge", "[min]:[max]", ":", "Charge range to extract", false);
     registerStringOption_("f_and_c:size", "[min]:[max]", ":", "Size range to extract", false);
     registerStringList_("f_and_c:remove_meta", "<name> 'lt|eq|gt' <value>", StringList(), "Expects a 3-tuple (=3 entries in the list), i.e. <name> 'lt|eq|gt' <value>; the first is the name of meta value, followed by the comparison operator (equal, less or greater) and the value to compare to. All comparisons are done after converting the given value to the corresponding data value type of the meta value (for lists, this simply compares length, not content!)!", false);
-    registerFlag_("f_and_c:make_unique", "Filter for unique sequence/charge state combinations. In a single map, peptides with the same sequence and charge states may appear. If this flag is set only the feature with the highest intensity will pass this filter. (Features without identification will pass automatically, see also: `id:remove_unannotated_features`).", false);
 
     addEmptyLine_();
     // XXX: Change description
@@ -596,7 +533,6 @@ protected:
     String charge = getStringOption_("f_and_c:charge");
     String size = getStringOption_("f_and_c:size");
     String q = getStringOption_("feature:q");
-    bool make_unique = getFlag_("f_and_c:make_unique");
     String remove_collision_energy = getStringOption_("spectra:remove_collision_energy");
     String select_collision_energy = getStringOption_("spectra:select_collision_energy");
     String remove_isolation_width = getStringOption_("spectra:remove_isolation_window_width");
@@ -1022,12 +958,6 @@ protected:
         }
         //update minimum and maximum position/intensity
         map_sm.updateRanges();
-
-        // Make unique.
-        if (make_unique) 
-        {
-            map_sm = makeUnique(map_sm);
-        }
 
         // sort if desired
         if (sort)
