@@ -1132,8 +1132,8 @@ namespace OpenMS
           peak_color = Qt::red;
         }
       }
-      else // different colors for left/right fragments (e.g. b/y ions)
-      {
+      else 
+      { // different colors for left/right fragments (e.g. b/y ions)
         color = (label.at(0) < 'n') ? Qt::darkRed : Qt::darkGreen;
         peak_color = (label.at(0) < 'n') ? Qt::red : Qt::green;
       }
@@ -1141,7 +1141,12 @@ namespace OpenMS
       DPosition<2> position(current_spectrum[peak_idx].getMZ(),
         current_spectrum[peak_idx].getIntensity());
 
-      Annotation1DItem* item = new Annotation1DPeakItem(position, label.toQString(), color);
+      Annotation1DItem* item = new Annotation1DPeakItem(
+        position, 
+        label.toQString(), 
+        color);
+
+      // set peak color
       current_layer.peak_colors_1d[peak_idx] = peak_color;
 
       item->setSelected(false);

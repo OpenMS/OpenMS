@@ -1004,11 +1004,12 @@ namespace OpenMS
     QPen pen(QColor(layer.param.getValue("annotation_color").toQString()));
     QPen selected_pen;
 
-    //make selected items a little brighter
+    // make selected items a little brighter
     int sel_red = pen.color().red() + 50;
     int sel_green = pen.color().green() + 50;
     int sel_blue = pen.color().blue() + 50;
-    //check if rgb out of bounds
+
+    // check if rgb out of bounds
     sel_red = sel_red > 255 ? 255 : sel_red;
     sel_green = sel_green > 255 ? 255 : sel_green;
     sel_blue = sel_blue > 255 ? 255 : sel_blue;
