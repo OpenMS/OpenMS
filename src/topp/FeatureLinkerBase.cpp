@@ -178,9 +178,7 @@ protected:
         }
       }
 
-
       vector<FeatureMap > maps(ins.size());
-      //vector<MapType> maps(ins.size());
       FeatureXMLFile f;
       FeatureFileOptions param = f.getOptions();
       // to save memory don't load convex hulls and subordinates
@@ -217,17 +215,14 @@ protected:
           it->getSubordinates().clear();
           it->getConvexHulls().clear();
           it->clearMetaInfo();
-          if (adduct != "")
+          if (!adduct.empty())
           {
             it->setMetaValue("dc_charge_adducts", adduct);
           }
 
         }
 
-        //do not convert? loses information
-        //MapConversion::convert(i, tmp, maps[i]);
         maps[i] = tmp;
-
         maps[i].updateRanges();
 
         setProgress(progress++);
