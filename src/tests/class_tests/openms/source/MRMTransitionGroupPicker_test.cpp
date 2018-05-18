@@ -339,10 +339,10 @@ START_SECTION((template < typename SpectrumT, typename TransitionT > void pickTr
 
     MRMTransitionGroupPicker trgroup_picker;
     Param picker_param = trgroup_picker.getDefaults();
-    picker_param.setValue("resample_boundary", 1.0);
-    picker_param.setValue("PeakPickerMRM:gauss_width", 1.0);
-    picker_param.setValue("PeakPickerMRM:peak_width", -1.0);
-    picker_param.setValue("PeakPickerMRM:signal_to_noise", 0.1);
+    // picker_param.setValue("resample_boundary", 1.0);
+    // picker_param.setValue("PeakPickerMRM:gauss_width", 1.0);
+    // picker_param.setValue("PeakPickerMRM:peak_width", -1.0);
+    // picker_param.setValue("PeakPickerMRM:signal_to_noise", 0.1);
     picker_param.setValue("PeakPickerMRM:method", "corrected");
     picker_param.setValue("use_consensus", "false");
     trgroup_picker.setParameters(picker_param);
@@ -362,7 +362,150 @@ START_SECTION((template < typename SpectrumT, typename TransitionT > void pickTr
     TEST_REAL_SIMILAR(mrmfeature.getFeature("1").getMetaValue("peak_apex_position"), 14);
     TEST_REAL_SIMILAR(mrmfeature.getFeature("2").getMetaValue("peak_apex_position"), 6); // consensus = 6
     TEST_REAL_SIMILAR(mrmfeature.getFeature("3").getMetaValue("peak_apex_position"), 6);
+  }
+  { // transition group 2
+    printf("test2");
+    MRMTransitionGroupType transition_group;
+    setup_transition_group2(transition_group);
 
+    MRMTransitionGroupPicker trgroup_picker;
+    Param picker_param = trgroup_picker.getDefaults();
+    // picker_param.setValue("resample_boundary", 1.0);
+    picker_param.setValue("PeakPickerMRM:gauss_width", 1.0);
+    // picker_param.setValue("PeakPickerMRM:peak_width", -1.0);
+    // picker_param.setValue("PeakPickerMRM:signal_to_noise", 0.1);
+    picker_param.setValue("PeakPickerMRM:method", "corrected");
+    picker_param.setValue("use_consensus", "false");
+    trgroup_picker.setParameters(picker_param);
+    trgroup_picker.pickTransitionGroup(transition_group);
+  }
+  { // transition group 2
+    printf("test3");
+    MRMTransitionGroupType transition_group;
+    setup_transition_group2(transition_group);
+
+    MRMTransitionGroupPicker trgroup_picker;
+    Param picker_param = trgroup_picker.getDefaults();
+    // picker_param.setValue("resample_boundary", 1.0);
+    // picker_param.setValue("PeakPickerMRM:gauss_width", 1.0);
+    picker_param.setValue("PeakPickerMRM:peak_width", -1.0);
+    // picker_param.setValue("PeakPickerMRM:signal_to_noise", 0.1);
+    picker_param.setValue("PeakPickerMRM:method", "corrected");
+    picker_param.setValue("use_consensus", "false");
+    trgroup_picker.setParameters(picker_param);
+    trgroup_picker.pickTransitionGroup(transition_group);
+  }
+  { // transition group 2
+    printf("test4");
+    MRMTransitionGroupType transition_group;
+    setup_transition_group2(transition_group);
+
+    MRMTransitionGroupPicker trgroup_picker;
+    Param picker_param = trgroup_picker.getDefaults();
+    // picker_param.setValue("resample_boundary", 1.0);
+    // picker_param.setValue("PeakPickerMRM:gauss_width", 1.0);
+    // picker_param.setValue("PeakPickerMRM:peak_width", -1.0);
+    picker_param.setValue("PeakPickerMRM:signal_to_noise", 0.1);
+    picker_param.setValue("PeakPickerMRM:method", "corrected");
+    picker_param.setValue("use_consensus", "false");
+    trgroup_picker.setParameters(picker_param);
+    trgroup_picker.pickTransitionGroup(transition_group);
+  }
+  { // transition group 2
+    printf("test5");
+    MRMTransitionGroupType transition_group;
+    setup_transition_group2(transition_group);
+
+    MRMTransitionGroupPicker trgroup_picker;
+    Param picker_param = trgroup_picker.getDefaults();
+    picker_param.setValue("resample_boundary", 1.0);
+    picker_param.setValue("PeakPickerMRM:gauss_width", 1.0);
+    picker_param.setValue("PeakPickerMRM:peak_width", -1.0);
+    picker_param.setValue("PeakPickerMRM:signal_to_noise", 0.1);
+    picker_param.setValue("PeakPickerMRM:method", "corrected");
+    picker_param.setValue("use_consensus", "false");
+    trgroup_picker.setParameters(picker_param);
+    trgroup_picker.pickTransitionGroup(transition_group);
+  }
+  { // transition group 2
+    printf("test6");
+    MRMTransitionGroupType transition_group;
+    setup_transition_group2(transition_group);
+
+    MRMTransitionGroupPicker trgroup_picker;
+    Param picker_param = trgroup_picker.getDefaults();
+    picker_param.setValue("resample_boundary", 1.0);
+    picker_param.setValue("PeakPickerMRM:gauss_width", 1.0);
+    picker_param.setValue("PeakPickerMRM:peak_width", -1.0);
+    picker_param.setValue("PeakPickerMRM:signal_to_noise", 1.0);
+    picker_param.setValue("PeakPickerMRM:method", "corrected");
+    picker_param.setValue("use_consensus", "false");
+    trgroup_picker.setParameters(picker_param);
+    trgroup_picker.pickTransitionGroup(transition_group);
+  }
+  { // transition group 2
+    printf("test7");
+    MRMTransitionGroupType transition_group;
+    setup_transition_group2(transition_group);
+
+    MRMTransitionGroupPicker trgroup_picker;
+    Param picker_param = trgroup_picker.getDefaults();
+    picker_param.setValue("resample_boundary", 1.0);
+    picker_param.setValue("PeakPickerMRM:gauss_width", 0.1);
+    picker_param.setValue("PeakPickerMRM:peak_width", -1.0);
+    picker_param.setValue("PeakPickerMRM:signal_to_noise", 0.1);
+    picker_param.setValue("PeakPickerMRM:method", "corrected");
+    picker_param.setValue("use_consensus", "false");
+    trgroup_picker.setParameters(picker_param);
+    trgroup_picker.pickTransitionGroup(transition_group);
+  }
+  { // transition group 2
+    printf("test8");
+    MRMTransitionGroupType transition_group;
+    setup_transition_group2(transition_group);
+
+    MRMTransitionGroupPicker trgroup_picker;
+    Param picker_param = trgroup_picker.getDefaults();
+    picker_param.setValue("resample_boundary", 1.0);
+    picker_param.setValue("PeakPickerMRM:gauss_width", 10.0);
+    picker_param.setValue("PeakPickerMRM:peak_width", -1.0);
+    picker_param.setValue("PeakPickerMRM:signal_to_noise", 0.1);
+    picker_param.setValue("PeakPickerMRM:method", "corrected");
+    picker_param.setValue("use_consensus", "false");
+    trgroup_picker.setParameters(picker_param);
+    trgroup_picker.pickTransitionGroup(transition_group);
+  }
+  { // transition group 2
+    printf("test9");
+    MRMTransitionGroupType transition_group;
+    setup_transition_group2(transition_group);
+
+    MRMTransitionGroupPicker trgroup_picker;
+    Param picker_param = trgroup_picker.getDefaults();
+    picker_param.setValue("resample_boundary", 1.0);
+    picker_param.setValue("PeakPickerMRM:gauss_width", 1.0);
+    picker_param.setValue("PeakPickerMRM:peak_width", 1.0);
+    picker_param.setValue("PeakPickerMRM:signal_to_noise", 0.1);
+    picker_param.setValue("PeakPickerMRM:method", "corrected");
+    picker_param.setValue("use_consensus", "false");
+    trgroup_picker.setParameters(picker_param);
+    trgroup_picker.pickTransitionGroup(transition_group);
+  }
+  { // transition group 2
+    printf("test9");
+    MRMTransitionGroupType transition_group;
+    setup_transition_group2(transition_group);
+
+    MRMTransitionGroupPicker trgroup_picker;
+    Param picker_param = trgroup_picker.getDefaults();
+    picker_param.setValue("resample_boundary", 1.0);
+    picker_param.setValue("PeakPickerMRM:gauss_width", 1.0);
+    picker_param.setValue("PeakPickerMRM:peak_width", -1.0);
+    picker_param.setValue("PeakPickerMRM:signal_to_noise", 0.01);
+    picker_param.setValue("PeakPickerMRM:method", "corrected");
+    picker_param.setValue("use_consensus", "false");
+    trgroup_picker.setParameters(picker_param);
+    trgroup_picker.pickTransitionGroup(transition_group);
   }
 }
 END_SECTION
