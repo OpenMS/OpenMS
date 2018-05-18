@@ -260,12 +260,16 @@ public:
         {
           for (Size k = 0; k < picked_chroms.size(); k++)
           {
+            printf("picked chrom iter: %i\n", k);
             double peak_apex_dist_min = 1e6;
             int min_dist = -1;
             for (Size i = 0; i < picked_chroms[k].size(); i++)
             {
               PeakIntegrator::PeakArea pa_tmp = pi_.integratePeak(  // get the peak apex
                 picked_chroms[k], picked_chroms[k].getFloatDataArrays()[1][i], picked_chroms[k].getFloatDataArrays()[2][i]); 
+              printf("chrom array iter: %i\n", i);
+              printf("best left (%.2f), right (%.2f)\n", best_left, best_right);
+              printf("local left (%.2f), right (%.2f)\n", picked_chroms[k].getFloatDataArrays()[1][i], picked_chroms[k].getFloatDataArrays()[2][i]);
               if (std::fabs(pa_tmp.apex_pos - peak_apex) < peak_apex_dist_min)
                 min_dist = (int)i;
             }
