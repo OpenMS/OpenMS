@@ -354,75 +354,13 @@ START_SECTION((template < typename SpectrumT, typename TransitionT > void pickTr
     TEST_REAL_SIMILAR(mrmfeature.getMetaValue("leftWidth"), 7);
     TEST_REAL_SIMILAR(mrmfeature.getMetaValue("rightWidth"), 21);
     TEST_REAL_SIMILAR(mrmfeature.getFeature("1").getIntensity(), 140);
-    TEST_REAL_SIMILAR(mrmfeature.getFeature("2").getIntensity(), 128); // consensus = 117
-    TEST_REAL_SIMILAR(mrmfeature.getFeature("3").getIntensity(), 48);
+    TEST_REAL_SIMILAR(mrmfeature.getFeature("2").getIntensity(), 58); // consensus = 117
+    TEST_REAL_SIMILAR(mrmfeature.getFeature("3").getIntensity(), 45);
     TEST_REAL_SIMILAR(mrmfeature.getFeature("1").getMetaValue("peak_apex_int"), 16);
     TEST_REAL_SIMILAR(mrmfeature.getFeature("2").getMetaValue("peak_apex_int"), 11);
     TEST_REAL_SIMILAR(mrmfeature.getFeature("3").getMetaValue("peak_apex_int"), 3);
     TEST_REAL_SIMILAR(mrmfeature.getFeature("1").getMetaValue("peak_apex_position"), 14);
-    TEST_REAL_SIMILAR(mrmfeature.getFeature("2").getMetaValue("peak_apex_position"), 6); // consensus = 7
-    TEST_REAL_SIMILAR(mrmfeature.getFeature("3").getMetaValue("peak_apex_position"), 7);
-  }
-  { // transition group 2
-    printf("test2\n");
-    MRMTransitionGroupType transition_group;
-    setup_transition_group2(transition_group);
-
-    MRMTransitionGroupPicker trgroup_picker;
-    Param picker_param = trgroup_picker.getDefaults();
-    picker_param.setValue("resample_boundary", 1.0);
-    picker_param.setValue("PeakPickerMRM:gauss_width", 10.0);
-    picker_param.setValue("PeakPickerMRM:peak_width", -1.0);
-    picker_param.setValue("PeakPickerMRM:signal_to_noise", 0.5);
-    picker_param.setValue("PeakPickerMRM:method", "corrected");
-    picker_param.setValue("use_consensus", "false");
-    trgroup_picker.setParameters(picker_param);
-    trgroup_picker.pickTransitionGroup(transition_group);
-
-    TEST_EQUAL(transition_group.getFeatures().size(), 2)
-    MRMFeature mrmfeature = transition_group.getFeatures()[0];
-    TEST_REAL_SIMILAR(mrmfeature.getRT(), 14);
-    TEST_REAL_SIMILAR(mrmfeature.getMetaValue("leftWidth"), 7);
-    TEST_REAL_SIMILAR(mrmfeature.getMetaValue("rightWidth"), 21);
-    TEST_REAL_SIMILAR(mrmfeature.getFeature("1").getIntensity(), 140);
-    TEST_REAL_SIMILAR(mrmfeature.getFeature("2").getIntensity(), 128); // consensus = 117
-    TEST_REAL_SIMILAR(mrmfeature.getFeature("3").getIntensity(), 48);
-    TEST_REAL_SIMILAR(mrmfeature.getFeature("1").getMetaValue("peak_apex_int"), 16);
-    TEST_REAL_SIMILAR(mrmfeature.getFeature("2").getMetaValue("peak_apex_int"), 11);
-    TEST_REAL_SIMILAR(mrmfeature.getFeature("3").getMetaValue("peak_apex_int"), 3);
-    TEST_REAL_SIMILAR(mrmfeature.getFeature("1").getMetaValue("peak_apex_position"), 14);
-    TEST_REAL_SIMILAR(mrmfeature.getFeature("2").getMetaValue("peak_apex_position"), 6); // consensus = 7
-    TEST_REAL_SIMILAR(mrmfeature.getFeature("3").getMetaValue("peak_apex_position"), 7);
-  }
-  { // transition group 2
-    printf("test4\n");
-    MRMTransitionGroupType transition_group;
-    setup_transition_group2(transition_group);
-
-    MRMTransitionGroupPicker trgroup_picker;
-    Param picker_param = trgroup_picker.getDefaults();
-    picker_param.setValue("resample_boundary", 1.0);
-    picker_param.setValue("PeakPickerMRM:gauss_width", 10.0);
-    picker_param.setValue("PeakPickerMRM:peak_width", -1.0);
-    picker_param.setValue("PeakPickerMRM:signal_to_noise", 0.9);
-    picker_param.setValue("PeakPickerMRM:method", "corrected");
-    picker_param.setValue("use_consensus", "false");
-    trgroup_picker.setParameters(picker_param);
-    trgroup_picker.pickTransitionGroup(transition_group);
-
-    TEST_EQUAL(transition_group.getFeatures().size(), 2)
-    MRMFeature mrmfeature = transition_group.getFeatures()[0];
-    TEST_REAL_SIMILAR(mrmfeature.getRT(), 14);
-    TEST_REAL_SIMILAR(mrmfeature.getMetaValue("leftWidth"), 7);
-    TEST_REAL_SIMILAR(mrmfeature.getMetaValue("rightWidth"), 21);
-    TEST_REAL_SIMILAR(mrmfeature.getFeature("1").getIntensity(), 140);
-    TEST_REAL_SIMILAR(mrmfeature.getFeature("2").getIntensity(), 128); // consensus = 117
-    TEST_REAL_SIMILAR(mrmfeature.getFeature("3").getIntensity(), 48);
-    TEST_REAL_SIMILAR(mrmfeature.getFeature("1").getMetaValue("peak_apex_int"), 16);
-    TEST_REAL_SIMILAR(mrmfeature.getFeature("2").getMetaValue("peak_apex_int"), 11);
-    TEST_REAL_SIMILAR(mrmfeature.getFeature("3").getMetaValue("peak_apex_int"), 3);
-    TEST_REAL_SIMILAR(mrmfeature.getFeature("1").getMetaValue("peak_apex_position"), 14);
-    TEST_REAL_SIMILAR(mrmfeature.getFeature("2").getMetaValue("peak_apex_position"), 6); // consensus = 7
+    TEST_REAL_SIMILAR(mrmfeature.getFeature("2").getMetaValue("peak_apex_position"), 16); // consensus = 7
     TEST_REAL_SIMILAR(mrmfeature.getFeature("3").getMetaValue("peak_apex_position"), 7);
   }
 }

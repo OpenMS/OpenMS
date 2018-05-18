@@ -260,21 +260,15 @@ public:
         {
           for (Size k = 0; k < picked_chroms.size(); k++)
           {
-            printf("picked chrom iter: %i\n", k);
             double peak_apex_dist_min = 1e6;
             int min_dist = -1;
             for (Size i = 0; i < picked_chroms[k].size(); i++)
             {
               PeakIntegrator::PeakArea pa_tmp = pi_.integratePeak(  // get the peak apex
                 picked_chroms[k], picked_chroms[k].getFloatDataArrays()[1][i], picked_chroms[k].getFloatDataArrays()[2][i]); 
-              printf("chrom array iter: %i\n", i);
-              printf("best left (%.2f), right (%.2f)\n", best_left, best_right);
-              printf("local left (%.2f), right (%.2f)\n", picked_chroms[k].getFloatDataArrays()[1][i], picked_chroms[k].getFloatDataArrays()[2][i]);
-              printf("peak apex pos (%.2f) - (%.2f) = %.2f\n", pa_tmp.apex_pos, peak_apex, std::fabs(pa_tmp.apex_pos - peak_apex));
               if (pa_tmp.apex_pos > 0.0 && std::fabs(pa_tmp.apex_pos - peak_apex) < peak_apex_dist_min)
               {
                 min_dist = (int)i;
-                printf("min_dist %i\n", min_dist);
               }
             }
             
@@ -285,8 +279,6 @@ public:
             {
               l = picked_chroms[k].getFloatDataArrays()[1][min_dist];
               r = picked_chroms[k].getFloatDataArrays()[2][min_dist];
-              printf("\tbest left (%.2f), right (%.2f)\n", best_left, best_right);
-              printf("\tl (%.2f), r (%.2f)\n", l, r);
               picked_chroms[k][min_dist].setIntensity(0.0); // only remove one peak per transition
             }
             
@@ -340,8 +332,6 @@ public:
         {
           local_left = left_edges[k];
           local_right = right_edges[k];
-          printf("\tbest left (%.2f), right (%.2f)\n", best_left, best_right);
-          printf("\tlocal left (%.2f), right (%.2f)\n", local_left, local_right);
         }
 
         const SpectrumT& chromatogram = selectChromHelper_(transition_group, transition_group.getTransitions()[k].getNativeID()); 
