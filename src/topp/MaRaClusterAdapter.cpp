@@ -86,7 +86,8 @@ using namespace std;
   The default value is -10, lower values will result in smaller but purer clusters. If specified peptide search results
   can be provided as idXML files and the MaRaCluster Adapter will annotate cluster ids as attributes to each peptide
   identification, which will be outputed as a merged idXML. Moreover the merged idXML containing only scan numbers,
-  cluster ids and file origin can be outputed without prior peptide identification searches.
+  cluster ids and file origin can be outputed without prior peptide identification searches. The assigned cluster ids in
+  the respective idXML are equal to the scanindex of the produced clustered mzML.
   </p>
 
   <B>The command line parameters of this tool are:</B>
@@ -411,7 +412,7 @@ protected:
             String scan_identifier = getScanIdentifier_(it, peptide_ids.begin());
             Int scan_number = getScanNumber_(scan_identifier);
             MaRaClusterResult res(file_idx, scan_number);
-            Int cluster_id = specid_to_clusterid_map[res];
+            Int cluster_id = specid_to_clusterid_map[res] - 1;
             it->setMetaValue("cluster_id", cluster_id);
             String filename = in_list[file_idx];
             it->setMetaValue("file_origin", filename);
@@ -430,11 +431,12 @@ protected:
         for (Map<MaRaClusterResult,Int>::iterator sid = specid_to_clusterid_map.begin(); sid != specid_to_clusterid_map.end(); ++sid) {
           Int scan_nr = sid->first.scan_nr;
           Int file_id = sid->first.file_idx;
+          Int cluster_id = sid->second;
           PeptideIdentification pid;
           PeptideHit pih;
           pid.insertHit(pih);
           pid.setMetaValue("spectrum_reference", "scan=" + String(scan_nr));
-          pid.setMetaValue("cluster_id", sid->second);
+          pid.setMetaValue("cluster_id", cluster_id - 1);
           pid.setMetaValue("file_origin", in_list[file_id]);
           all_peptide_ids.push_back(pid);
         }
