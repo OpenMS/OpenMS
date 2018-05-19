@@ -4,12 +4,20 @@
 #
 # Execute as:
 # 
-#   sudo docker run --net=host -v `pwd`:/data hroest/manylinux_qt_contrib /bin/bash /data/create-manylinux.sh
+#   sudo docker run --net=host -v `pwd`:/data hroest/manylinux_qt_contrib:v2 /bin/bash /data/create-manylinux.sh
 #
 
-git clone -b Release2.2.0 https://github.com/OpenMS/OpenMS.git
+set -e
+
+wget https://github.com/OpenMS/OpenMS/releases/download/Release2.3.0/OpenMS-2.3.0-src.tar.gz -O OpenMS-2.3.0-src.tar.gz
+tar xzvf OpenMS-2.3.0-src.tar.gz
+mv OpenMS-2.3.0/ OpenMS
+
+# Apply a patches / fixes
 cd OpenMS
-git apply /data/manylinux.patch
+wget https://raw.githubusercontent.com/hroest/OpenMS/0f3a2e8833d18fc54b7de86e6d67ab7349e828a0/src/pyOpenMS/README.rst -O src/pyOpenMS/README.rst
+sed -i 's/@CF_OPENMS_PACKAGE_VERSION@/2.3.0.4/' src/pyOpenMS/env.py.in
+patch -p0 src/pyOpenMS/pyopenms/__init__.py < /data/manylinux.patch 
 cd /
 
 
