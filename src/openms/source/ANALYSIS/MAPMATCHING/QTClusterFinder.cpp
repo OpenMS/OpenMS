@@ -337,10 +337,11 @@ namespace OpenMS
     for (OpenMSBoost::unordered_map<Size, OpenMS::GridFeature*>::const_iterator
          it = elements.begin(); it != elements.end(); ++it)
     {
-      feature.insert(it->first, it->second->getFeature());
-      if (it->second->getFeature().metaValueExists("dc_charge_adducts"))
+      BaseFeature& elem_feat = const_cast<BaseFeature&>(it->second->getFeature());
+      feature.insert(it->first, elem_feat);
+      if (elem_feat.metaValueExists("dc_charge_adducts"))
       {
-        feature.setMetaValue(String(it->second->getFeature().getUniqueId()), it->second->getFeature().getMetaValue("dc_charge_adducts"));
+        feature.setMetaValue(String(elem_feat.getUniqueId()), elem_feat.getMetaValue("dc_charge_adducts"));
       }
     }
 
