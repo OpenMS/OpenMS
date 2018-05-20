@@ -398,6 +398,7 @@ protected:
     readMClusterOutputAsMap_(consensus_output_file, specid_to_clusterid_map, filename_to_file_idx);
     file_idx = 0;
 
+    //output idXML containing scannumber and cluster id annotation
     if (!out.empty())
     {
       const StringList id_in = getStringList_("id_in");
@@ -412,6 +413,7 @@ protected:
             String scan_identifier = getScanIdentifier_(it, peptide_ids.begin());
             Int scan_number = getScanNumber_(scan_identifier);
             MaRaClusterResult res(file_idx, scan_number);
+            // cluster index - 1 is equal to scan_number in consensus.mzML
             Int cluster_id = specid_to_clusterid_map[res] - 1;
             it->setMetaValue("cluster_id", cluster_id);
             String filename = in_list[file_idx];
@@ -436,6 +438,7 @@ protected:
           PeptideHit pih;
           pid.insertHit(pih);
           pid.setMetaValue("spectrum_reference", "scan=" + String(scan_nr));
+          // cluster index - 1 is equal to scan_number in consensus.mzML
           pid.setMetaValue("cluster_id", cluster_id - 1);
           pid.setMetaValue("file_origin", in_list[file_id]);
           all_peptide_ids.push_back(pid);
@@ -461,6 +464,7 @@ protected:
       IdXMLFile().store(out, all_protein_ids, all_peptide_ids);
     }
 
+    //output consensus mzML
     if (!consensus_out.empty())
     {
       QStringList arguments_consensus;
