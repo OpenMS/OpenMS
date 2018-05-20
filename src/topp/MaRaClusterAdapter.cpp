@@ -162,19 +162,28 @@ protected:
   {
     static const bool is_required(true);
     static const bool is_advanced_option(true);
-    
+   
+    //input 
     registerInputFileList_("in", "<files>", StringList(), "Input file(s)", is_required);
     setValidFormats_("in", ListUtils::create<String>("mzML,mgf"));
     registerInputFileList_("id_in", "<files>", StringList(), "Optional idXML Input file(s) in the same order as mzML files - for Maracluster Cluster annotation", !is_required);
     setValidFormats_("id_in", ListUtils::create<String>("idXML"));
+
+    //output
     registerOutputFile_("out", "<file>", "", "Output file in idXML format", !is_required);
     setValidFormats_("out", ListUtils::create<String>("idXML"));
     registerOutputFile_("consensus_out", "<file>", "", "Consensus spectra in mzML format", !is_required);
     setValidFormats_("consensus_out", ListUtils::create<String>("mzML"));
+
+    //pvalue cutoff
     registerDoubleOption_("pcut", "<value>", -10.0, "log(p-value) cutoff, has to be < 0.0. Default: -10.0.", !is_required);
     setMaxFloat_("pcut", 0.0);
     registerIntOption_("min_cluster_size", "<value>", 1, "minimum number of spectra in a cluster for consensus spectra", !is_required);
+
+    // minimal cluster size
     setMinInt_("min_cluster_size", 1);
+
+    // executable
     registerInputFile_("maracluster_executable", "<executable>",
         // choose the default value according to the platform where it will be executed
         #ifdef OPENMS_WINDOWSPLATFORM
@@ -194,6 +203,7 @@ protected:
 
   }
 
+  // read and parse clustering output csv to store specnumber and clusterid associations
   void readMClusterOutputAsMap_(String mcout_file, Map<MaRaClusterResult, Int>& specid_to_clusterid_map, const std::map<String, Int>& filename_to_idx_map)
   {
     CsvFile csv_file(mcout_file, '\t');
