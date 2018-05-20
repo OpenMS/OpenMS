@@ -245,8 +245,8 @@ namespace OpenMS
       // mass trace is empty OR no points left of apex in mass trace OR no points right of apex in mass trace
       if (tmp_ints.empty() || max_idx < 1 || max_idx >= tmp_ints.size() - 1)
       {
-        fwhm_start_idx_ = 0;
-        fwhm_end_idx_ = 0;
+        fwhm_start_idx_ = 1;
+        fwhm_end_idx_ = 1;
         return 0;
       }
 
