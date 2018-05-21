@@ -160,7 +160,7 @@ protected:
     setMinInt_("allowed_missed_cleavages", 0);
     setMaxInt_("allowed_missed_cleavages", 5);
     //Fragment Ions
-    registerDoubleOption_("fragment_bin_tolerance", "<tolerance>", 0.02, "Bin size (in Da) for matching fragment ions. Ion trap: 1.0005, high res: 0.02. CAUTION: Low tolerances have heavy impact on RAM usage. Consider using use_sparse_matrix and/or spectrum_batch_size.", false, true);
+    registerDoubleOption_("fragment_bin_tolerance", "<tolerance>", 0.02, "Bin size (in Da) for matching fragment ions. Ion trap: 1.0005, high res: 0.02. CAUTION: Low tolerances have heavy impact on RAM usage. Consider using use_sparse_matrix and/or spectrum_batch_size.", false, true); 
     setMinFloat_("fragment_bin_tolerance", 0.01);
     registerDoubleOption_("fragment_bin_offset", "<fraction>", 0.0, "Offset of fragment bins scaled by tolerance. Ion trap: 0.4, high res: 0.0.", false, true);
     setMinFloat_("fragment_bin_offset", 0.0);
@@ -206,7 +206,7 @@ protected:
     setMaxInt_("max_precursor_charge", 9);
     registerStringOption_("clip_nterm_methionine", "<bool>", "false", "If set to true, also considers the peptide sequence w/o N-term methionine separately and applies appropriate N-term mods to it", false, false);
     setValidStrings_("clip_nterm_methionine", ListUtils::create<String>("true,false"));
-    registerIntOption_("spectrum_batch_size", "<posnum>", 1000, "max. number of spectra to search at a time; use 0 to search the entire scan range in one batch", false, true);
+    registerIntOption_("spectrum_batch_size", "<posnum>", 20000, "max. number of spectra to search at a time; use 0 to search the entire scan range in one batch", false, true);
     setMinInt_("spectrum_batch_size", 0);
     registerDoubleList_("mass_offsets", "<doubleoffset1, doubleoffset2,...>", {0.0}, "One or more mass offsets to search (values subtracted from deconvoluted precursor mass). Has to include 0.0 if you want the default mass to be searched.", false, true);
 
@@ -382,7 +382,7 @@ protected:
     String instrument = getStringOption_("instrument");
     double bin_tol = getDoubleOption_("fragment_bin_tolerance");
     double bin_offset = getDoubleOption_("fragment_bin_offset");
-    if (instrument == "low_res" && (bin_tol < 0.9 || bin_offset < 0.1))
+    if (instrument == "low_res" && (bin_tol < 0.9 || bin_offset <= 0.2))
     {
       LOG_WARN << "Fragment bin size or tolerance is quite low for low res instruments." << "\n";
     }

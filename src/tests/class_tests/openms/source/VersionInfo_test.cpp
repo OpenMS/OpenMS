@@ -70,12 +70,9 @@ START_SECTION((static VersionDetails getVersionStruct()))
   detail.version_major = 2;
   detail.version_minor = 4;
   detail.version_patch = 0;
-  detail.pre_release_identifier = "alpha";
   TEST_EQUAL(VersionInfo::getVersionStruct().version_major, detail.version_major);
   TEST_EQUAL(VersionInfo::getVersionStruct().version_minor, detail.version_minor);
   TEST_EQUAL(VersionInfo::getVersionStruct().version_patch, detail.version_patch);
-  TEST_EQUAL(VersionInfo::getVersionStruct().pre_release_identifier, detail.pre_release_identifier);
-  TEST_EQUAL(VersionInfo::getVersionStruct() == detail, true);
 }
 END_SECTION
 

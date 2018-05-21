@@ -1,28 +1,15 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
-<?xml-stylesheet type="text/xsl" href="file:////nfs/wsi/abi/old-data/sachsenb/OpenMS_IDE/share/OpenMS/XSL/ConsensusXML.xsl"?>
-<consensusXML version="1.7" id="cm_5233264595117471314" experiment_type="labeled_MS1" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/ConsensusXML_1_7.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-	<UserParam type="stringList" name="spectra_data" value="[file:///Z:/home/samwein/.wine/drive_c/Xcalibur/data/raws/let7_1um_150709024552_150828005253.raw]"/>
+<?xml-stylesheet type="text/xsl" href="file:////Users/lars/Code/OpenMS-develop/OpenMS/share/OpenMS/XSL/ConsensusXML.xsl"?>
+<consensusXML version="1.7" id="cm_17749660155506638460" experiment_type="labeled_MS1" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/ConsensusXML_1_7.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 	<mapList count="1">
-		<map id="0" name="FeatureFinderMultiplex_10.tmp" label="no_label" size="3">
+		<map id="0" name="FeatureFinderMultiplex_3_output.consensusXML" label="no_label" size="1">
 		</map>
 	</mapList>
 	<consensusElementList>
-		<consensusElement id="e_4835329514588776807" quality="1" charge="10">
-			<centroid rt="2788.07689412228" mz="681.975664083433" it="414280"/>
+		<consensusElement id="e_7804704400743266335" quality="1" charge="5">
+			<centroid rt="2789.97969121779" mz="656.311239281175" it="3414.25"/>
 			<groupedElementList>
-				<element map="0" id="0" rt="2788.07689412228" mz="681.975664083433" it="414280" charge="10"/>
-			</groupedElementList>
-		</consensusElement>
-		<consensusElement id="e_17749660155506638460" quality="1" charge="10">
-			<centroid rt="2789.25786714835" mz="678.182132322327" it="1.66066e+06"/>
-			<groupedElementList>
-				<element map="0" id="0" rt="2789.25786714835" mz="678.182132322327" it="1.66066e+06" charge="10"/>
-			</groupedElementList>
-		</consensusElement>
-		<consensusElement id="e_7804704400743266335" quality="1" charge="10">
-			<centroid rt="2790.62890478831" mz="683.773267540068" it="429244"/>
-			<groupedElementList>
-				<element map="0" id="0" rt="2790.62890478831" mz="683.773267540068" it="429244" charge="10"/>
+				<element map="0" id="0" rt="2789.97969121779" mz="656.311239281175" it="3414.25" charge="5"/>
 			</groupedElementList>
 		</consensusElement>
 	</consensusElementList>

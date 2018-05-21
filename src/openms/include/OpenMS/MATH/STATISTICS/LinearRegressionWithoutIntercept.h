@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,77 +34,67 @@
 
 #pragma once
 
-#include <OpenMS/KERNEL/StandardTypes.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFilterResultPeak.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFilterResultRaw.h>
+#include <OpenMS/CONCEPT/Exception.h>
 
+#include <cmath>
 #include <vector>
-#include <algorithm>
-#include <iostream>
 
 namespace OpenMS
 {
+  namespace Math
+  {
     /**
-     * @brief data structure storing all peaks (and optionally their raw data points)
-     * corresponding to one specific peak pattern
-     * 
-     * @see MultiplexPeakPattern
-     */
-    class OPENMS_DLLAPI MultiplexFilterResult
-    {
-        public:
-        /**
-         * @brief constructor
-         */
-        MultiplexFilterResult();
-        
-        /**
-         * @brief adds a single peak to the results
-         */
-        void addFilterResultPeak(double mz, double rt, std::vector<double> mzShifts, std::vector<double> intensities, std::vector<MultiplexFilterResultRaw> result);
-        
-        /**
-         * @brief returns a single peak from the results
-         */
-        MultiplexFilterResultPeak getFilterResultPeak(int i) const;
-        
-        /**
-         * @brief returns a single raw data point from peak i in the result
-         */
-        MultiplexFilterResultRaw getFilterResultRaw(int i, int j) const;
-        
-        /**
-         * @brief returns m/z of a single peak
-         */
-        double getMZ(int i) const;
-        
-        /**
-         * @brief returns m/z positions of all peaks
-         */
-        std::vector<double> getMZ() const;
-        
-        /**
-         * @brief returns RT of a single peak
-         */
-        double getRT(int i) const;
-        
-        /**
-         * @brief returns RT of all peaks
-         */
-        std::vector<double> getRT() const;
-        
-        /**
-         * @brief returns number of peaks in the result
-         */
-        int size() const;
-        
-        private:
-        /**
-         * @brief peaks which passed the peak pattern filter
-         */
-        std::vector<MultiplexFilterResultPeak> result_;
+      @brief This class offers functions to perform least-squares fits to a straight line model, \f$ Y(c,x) = c_0 + c_1 x \f$.
 
-   };
-  
-}
+      @ingroup Math
+    */
+    class OPENMS_DLLAPI LinearRegressionWithoutIntercept
+    {
+      public:
+
+      /// Constructor
+      LinearRegressionWithoutIntercept();
+      
+      /**
+       * @brief adds an observation (x,y) to the regression data set.
+       *
+       * @param x    independent variable value
+       * @param y    dependent variable value
+       */
+      void addData(double x, double y);
+      
+      /**
+       * @brief adds observations (x,y) to the regression data set.
+       *
+       * @param x    vector of independent variable values
+       * @param y    vector of dependent variable values
+       */
+      void addData(std::vector<double>& x, std::vector<double>& y);
+      
+      /**
+       * @brief returns the slope of the estimated regression line.
+       */
+      double getSlope();
+
+      private:
+      /**
+       * @brief total variation in x
+       */
+      double sum_xx_;
+      
+      /**
+       * @brief sum of products
+       */
+      double sum_xy_;
+      
+      /**
+       * @brief number of observations
+       */
+      int n_;
+      
+    };
+
+  } // namespace Math
+} // namespace OpenMS
+
 

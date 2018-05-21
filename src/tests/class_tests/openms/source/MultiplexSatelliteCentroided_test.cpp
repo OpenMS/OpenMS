@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -35,53 +35,31 @@
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/test_config.h>
 
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFilterResultRaw.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexSatelliteCentroided.h>
 
 using namespace OpenMS;
 
-START_TEST(MultiplexFilterResultRaw, "$Id$")
+START_TEST(MultiplexSatelliteCentroided, "$Id$")
 
-std::vector<double> mz_shifts;
-mz_shifts.push_back(0);
-mz_shifts.push_back(0.501677);
-mz_shifts.push_back(3.01591);
-mz_shifts.push_back(3.51759);
+MultiplexSatelliteCentroided* nullPointer = nullptr;
+MultiplexSatelliteCentroided* ptr;
 
-std::vector<double> intensities;
-intensities.push_back(1789.0714);
-intensities.push_back(1492.1012);
-intensities.push_back(333.1105);
-intensities.push_back(325.0520);
-
-MultiplexFilterResultRaw* nullPointer = nullptr;
-MultiplexFilterResultRaw* ptr;
-
-START_SECTION(MultiplexFilterResultRaw(double mz, std::vector<double> mz_shifts, std::vector<double> intensities))
-    MultiplexFilterResultRaw result(817.0411, mz_shifts, intensities);
-    TEST_EQUAL(result.getMZ(), 817.0411);
-    ptr = new MultiplexFilterResultRaw(817.0411, mz_shifts, intensities);
-    TEST_NOT_EQUAL(ptr, nullPointer);
-    delete ptr;
+START_SECTION(MultiplexSatelliteCentroided(size_t rt_idx, size_t mz_idx))
+  MultiplexSatelliteCentroided satellite(4, 7);
+  TEST_EQUAL(satellite.getMZidx(), 7);
+  ptr = new MultiplexSatelliteCentroided(4, 7);
+  TEST_NOT_EQUAL(ptr, nullPointer);
+  delete ptr;
 END_SECTION
 
-MultiplexFilterResultRaw result(817.0411, mz_shifts, intensities);
-
-START_SECTION(double getMZ() const)
-  TEST_EQUAL(result.getMZ(), 817.0411);
+START_SECTION(size_t getMZidx())
+  MultiplexSatelliteCentroided satellite(4, 7);
+  TEST_EQUAL(satellite.getMZidx(), 7);
 END_SECTION
 
-START_SECTION(std::vector<double> getMZShifts() const)
-  TEST_EQUAL(result.getMZShifts()[0], 0);
-  TEST_EQUAL(result.getMZShifts()[1], 0.501677);
-  TEST_EQUAL(result.getMZShifts()[2], 3.01591);
-  TEST_EQUAL(result.getMZShifts()[3], 3.51759);
-END_SECTION
-
-START_SECTION(std::vector<double> getIntensities() const)
-  TEST_EQUAL(result.getIntensities()[0], 1789.0714);
-  TEST_EQUAL(result.getIntensities()[1], 1492.1012);
-  TEST_EQUAL(result.getIntensities()[2], 333.1105);
-  TEST_EQUAL(result.getIntensities()[3], 325.0520);
+START_SECTION(size_t getRTidx())
+  MultiplexSatelliteCentroided satellite(4, 7);
+  TEST_EQUAL(satellite.getRTidx(), 4);
 END_SECTION
 
 END_TEST
