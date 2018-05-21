@@ -283,6 +283,21 @@ namespace OpenMS
         scores.log_sn_score = std::log(scores.sn_ratio);
       }
     }
+
+    // Mutual information scoring
+    if (su_.use_mi_score_)
+    {
+      mrmscore_.initializeMIMatrix(imrmfeature, native_ids);
+      scores.mi_score = mrmscore_.calcMIScore();
+      scores.weighted_mi_score = mrmscore_.calcMIScore_weighted(normalized_library_intensity);
+    }
+
+    // check that the MS1 feature is present and that the MS1 MI should be calculated
+    if (imrmfeature->getPrecursorIDs().size() > 0 && su_.use_ms1_mi)
+    {
+      mrmscore_.initializeMS1MI(imrmfeature, native_ids, precursor_feature_id); // perform cross-correlation on monoisotopic precursor
+      scores.ms1_mi_score = mrmscore_.calcMS1MIScore();
+    }
   }
 
   void OpenSwathScoring::calculateChromatographicIdScores(
@@ -309,6 +324,13 @@ namespace OpenMS
     if (su_.use_sn_score_)
     {
       idscores.ind_log_sn_score = mrmscore_.calcIndSNScore(imrmfeature, signal_noise_estimators);
+    }
+
+    // Mutual information scoring
+    if (su_.use_mi_score_)
+    {
+      mrmscore_.initializeMIIdMatrix(imrmfeature, native_ids_identification, native_ids_detection);
+      idscores.ind_mi_score = mrmscore_.calcIndMIIdScore();
     }
   }
 

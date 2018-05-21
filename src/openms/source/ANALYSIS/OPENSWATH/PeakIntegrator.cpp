@@ -118,8 +118,10 @@ namespace OpenMS
   void PeakIntegrator::getDefaultParameters(Param& params)
   {
     params.clear();
+
     params.setValue("integration_type", INTEGRATION_TYPE_INTENSITYSUM, "The integration technique to use in integratePeak() and estimateBackground() which uses either the summed intensity, integration by Simpson's rule or trapezoidal integration.");
     params.setValidStrings("integration_type", ListUtils::create<String>("intensity_sum,simpson,trapezoid"));
+
     params.setValue("baseline_type", BASELINE_TYPE_BASETOBASE, "The baseline type to use in estimateBackground() based on the peak boundaries. A rectangular baseline shape is computed based either on the minimal intensity of the peak boundaries, the maximum intensity or the average intensity (base_to_base).");
     params.setValidStrings("baseline_type", ListUtils::create<String>("base_to_base,vertical_division,vertical_division_min,vertical_division_max"));
   }
@@ -147,7 +149,7 @@ namespace OpenMS
     std::function<double(const double, const double)>
     compute_peak_area_intensity_sum = [&p](const double left, const double right)
     {
-      LOG_WARN << "\nWARNING: intensity_sum method is being used.\n";
+      // LOG_WARN << "WARNING: intensity_sum method is being used." << std::endl;
       double peak_area { 0.0 };
       for (typename PeakContainerT::ConstIterator it = p.PosBegin(left); it != p.PosEnd(right); ++it)
       {

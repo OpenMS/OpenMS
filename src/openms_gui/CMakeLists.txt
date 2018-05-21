@@ -60,15 +60,6 @@ set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
-
-# The Qt5Widgets_INCLUDES also includes the include directories for
-# dependencies QtCore and QtGui
-include_directories(${Qt5Widgets_INCLUDE_DIRS})
-include_directories(${Qt5Svg_INCLUDE_DIRS})
-include_directories(${Qt5OpenGL_INCLUDE_DIRS})
-include_directories(${Qt5Network_INCLUDE_DIRS})
-include_directories(${Qt5Concurrent_INCLUDE_DIRS})
-
 # We need add -DQT_WIDGETS_LIB when using QtWidgets in Qt 5.
 add_definitions(${Qt5Widgets_DEFINITIONS})
 add_definitions(${Qt5Svg_DEFINITIONS})
@@ -127,6 +118,13 @@ openms_add_library(TARGET_NAME OpenMS_GUI
                    HEADER_FILES ${OpenMSVisual_sources_h}
                    INTERNAL_INCLUDES ${PROJECT_SOURCE_DIR}/include ${PROJECT_BINARY_DIR}/include
                    EXTERNAL_INCLUDES ${OpenMS_INCLUDE_DIRECTORIES}
+		   # The Qt5Widgets_INCLUDES also includes the include directories for
+		   # dependencies QtCore and QtGui
+                                     ${Qt5Widgets_INCLUDE_DIRS}
+				     ${Qt5Svg_INCLUDE_DIRS}
+				     ${Qt5OpenGL_INCLUDE_DIRS}
+				     ${Qt5Network_INCLUDE_DIRS}
+				     ${Qt5Concurrent_INCLUDE_DIRS}
                    LINK_LIBRARIES ${OpenMS_GUI_DEP_LIBRARIES}
                    PRIVATE_LINK_LIBRARIES ${OpenMS_GUI_PRIVATE_DEP_LIBRARIES}
                    DLL_EXPORT_PATH "OpenMS/VISUAL/")

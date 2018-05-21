@@ -463,10 +463,17 @@ endif()
 message(STATUS "Py extra args ${PY_EXTRA_ARGS}")
 
 
-add_custom_target(pyopenms_build
-          COMMAND ${PYTHON_EXECUTABLE} setup.py build_ext ${PY_EXTRA_ARGS}
-          DEPENDS pyopenms_create_cpp
-          WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS )
+IF(${CMAKE_SYSTEM_NAME} MATCHES "Linux" AND PY_NO_OUTPUT)
+  add_custom_target(pyopenms_build
+            COMMAND ${PYTHON_EXECUTABLE} setup.py build_ext ${PY_EXTRA_ARGS} 2> /dev/null
+            DEPENDS pyopenms_create_cpp
+            WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS )
+ELSE()
+  add_custom_target(pyopenms_build
+            COMMAND ${PYTHON_EXECUTABLE} setup.py build_ext ${PY_EXTRA_ARGS}
+            DEPENDS pyopenms_create_cpp
+            WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS )
+ENDIF()
 
 add_dependencies(pyopenms_build OpenMS)
 
@@ -477,13 +484,23 @@ add_custom_command(
   )
 endif()
 
-add_custom_target(pyopenms
-          COMMAND ${PYTHON_EXECUTABLE} setup.py bdist_egg
-          COMMAND ${PYTHON_EXECUTABLE} setup.py bdist_wheel
-          COMMAND ${PYTHON_EXECUTABLE} setup.py bdist --format=zip
-          COMMAND ${PYTHON_EXECUTABLE} setup.py build_ext --inplace
-          DEPENDS pyopenms_build
-          WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS )
+IF(${CMAKE_SYSTEM_NAME} MATCHES "Linux" AND PY_NO_OUTPUT)
+  add_custom_target(pyopenms
+            COMMAND ${PYTHON_EXECUTABLE} setup.py bdist_egg 2> /dev/null
+            COMMAND ${PYTHON_EXECUTABLE} setup.py bdist_wheel 2> /dev/null
+            COMMAND ${PYTHON_EXECUTABLE} setup.py bdist --format=zip 2> /dev/null
+            COMMAND ${PYTHON_EXECUTABLE} setup.py build_ext --inplace 2> /dev/null
+            DEPENDS pyopenms_build
+            WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS )
+ELSE()
+  add_custom_target(pyopenms
+            COMMAND ${PYTHON_EXECUTABLE} setup.py bdist_egg
+            COMMAND ${PYTHON_EXECUTABLE} setup.py bdist_wheel
+            COMMAND ${PYTHON_EXECUTABLE} setup.py bdist --format=zip
+            COMMAND ${PYTHON_EXECUTABLE} setup.py build_ext --inplace
+            DEPENDS pyopenms_build
+            WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS )
+ENDIF()
 
 
 ###########################################################################

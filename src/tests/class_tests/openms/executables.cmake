@@ -250,6 +250,7 @@ set(math_executables_list
   BSpline2d_test
   CubicSpline2d_test
   CumulativeBinomial_test
+  EmgGradientDescent_test
   GammaDistributionFitter_test
   GaussFitter_test
   GumbelDistributionFitter_test
@@ -355,6 +356,7 @@ set(comparison_executables_list
 set(chemistry_executables_list
   AAIndex_test
   AASequence_test
+  CoarseIsotopeDistribution_test
   DigestionEnzymeProtein_test
   ElementDB_test
   Element_test
@@ -490,6 +492,7 @@ set(analysis_executables_list
   QTClusterFinder_test
   QuantitativeExperimentalDesign_test
   ReactionMonitoringTransition_test
+  RNPxlDeisotoper_test
   RNPxlModificationsGenerator_test
   SVMWrapper_test
   SimplePairFinder_test

@@ -65,14 +65,18 @@ namespace OpenMS
   /**
       @brief Base class for visualization canvas classes
 
-      This class is the base class for the spectrum data views.
+      This class is the base class for the spectrum data views which are used
+      for 1D, 2D and 3D visualization of data. In TOPPView, each SpectrumCanvas
+      is paired with an enclosing SpectrumWidget (see also the
+      getSpectrumWidget() function that provides a back-reference).  To provide
+      additional spectrum views, you can derive from this class and you should
+      also create a subclass from SpectrumWidget which encloses your class
+      derived from SpectrumCanvas. A spectrum canvas can display multiple data
+      layers at the same time (see layers_ member variable).
 
-      It also provides commonly used constants such as ActionModes or IntensityModes.
-
-      To provide additional spectrum views, you can derive from this class.
-      You should also create a subclass from SpectrumWidget which encloses
-      your class derived from SpectrumCanvas. To integrate your class into
-      TOPPView, you also need to derive a class from SpectrumWidget.
+      The actual data to be displayed is stored as a vector of LayerData
+      objects which hold the actual data.  It also stores information about the
+      commonly used constants such as ActionModes or IntensityModes.
 
       All derived classes should follow these interface conventions:
       - Translate mode
@@ -82,12 +86,12 @@ namespace OpenMS
         - Activated using the CTRL key
         - Zoom stack traversal with CTRL+/CTRL- or mouses wheel
         - Pressing the @em Backspace key resets the zoom (and stack)
-  - Measure mode
-    - Activated using the SHIFT key
+      - Measure mode
+        - Activated using the SHIFT key
 
-  @improvement Add log mode (Hiwi)
+      @improvement Add log mode (Hiwi)
 
-  @todo Allow reordering the layer list by drag-and-drop (Hiwi, Johannes)
+      @todo Allow reordering the layer list by drag-and-drop (Hiwi, Johannes)
 
       @htmlinclude OpenMS_SpectrumCanvas.parameters
 
@@ -107,6 +111,8 @@ public:
     typedef LayerData::ExperimentType ExperimentType;
     /// Main managed data type (experiment)
     typedef LayerData::ExperimentSharedPtrType ExperimentSharedPtrType;
+    typedef LayerData::ConstExperimentSharedPtrType ConstExperimentSharedPtrType;
+    typedef LayerData::ODExperimentSharedPtrType ODExperimentSharedPtrType;
     /// Main data type (features)
     typedef LayerData::FeatureMapType FeatureMapType;
     /// Main managed data type (features)
@@ -131,19 +137,19 @@ public:
     typedef DRange<2> AreaType;
 
 
-    ///Mouse action modes
+    /// Mouse action modes
     enum ActionModes
     {
-      AM_TRANSLATE,       ///< translate
-      AM_ZOOM,                  ///< zoom
-      AM_MEASURE          ///< measure
+      AM_TRANSLATE,   ///< translate
+      AM_ZOOM,        ///< zoom
+      AM_MEASURE      ///< measure
     };
 
-    ///Display modes of intensity
+    /// Display modes of intensity
     enum IntensityModes
     {
-      IM_NONE,                  ///< Normal mode: f(x)=x
-      IM_PERCENTAGE,        ///< Shows intensities normalized by layer maximum: f(x)=x/max(x)*100
+      IM_NONE,        ///< Normal mode: f(x)=x
+      IM_PERCENTAGE,  ///< Shows intensities normalized by layer maximum: f(x)=x/max(x)*100
       IM_SNAP,        ///< Shows the maximum displayed intensity as if it was the overall maximum intensity
       IM_LOG          ///< Logarithmic mode
     };
@@ -340,17 +346,21 @@ public:
     virtual void activateLayer(Size layer_index) = 0;
     ///removes the layer with index @p layer_index
     virtual void removeLayer(Size layer_index) = 0;
+
     /**
         @brief Add a peak data layer
 
-        If chromatograms are present, a chromatogram layer is shown. Otherwise a peak layer is shown. Make sure to remove chromatograms from peak data and vice versa.
+        If chromatograms are present, a chromatogram layer is shown. Otherwise
+        a peak layer is shown. Make sure to remove chromatograms from peak data
+        and vice versa.
 
-  @param map Shared Pointer to input map. It can be performed in constant time and does not double the required memory.
+        @param map Shared pointer to input map. It can be performed in constant time and does not double the required memory.
+        @param od_map Shared pointer to on disk data which potentially caches some data to save memory (the map can be empty, but do not pass nullptr).
         @param filename This @em absolute filename is used to monitor changes in the file and reload the data
 
         @return If a new layer was created
     */
-    bool addLayer(ExperimentSharedPtrType map, const String & filename = "");
+    bool addLayer(ExperimentSharedPtrType map, ODExperimentSharedPtrType od_map, const String & filename = "");
 
     /**
         @brief Add a feature data layer
@@ -657,26 +667,20 @@ protected:
     double getIdentificationMZ_(const Size layer_index,
                                     const PeptideIdentification & peptide) const;
 
-    ///Method that is called when a new layer has been added
+    /// Method that is called when a new layer has been added
     virtual bool finishAdding_() = 0;
 
-    ///Returns the layer with index @p index
+    /// Returns the layer with index @p index
     inline LayerData & getLayer_(Size index)
     {
       OPENMS_PRECONDITION(index < layers_.size(), "SpectrumCanvas::getLayer_(index) index overflow");
       return layers_[index];
     }
 
-    ///Returns the currently active layer
+    /// Returns the currently active layer
     inline LayerData & getCurrentLayer_()
     {
       return getLayer_(current_layer_);
-    }
-
-    /// Returns the currently active layer (mutable)
-    inline ExperimentSharedPtrType currentPeakData_()
-    {
-      return getCurrentLayer_().getPeakData();
     }
 
     ///@name reimplemented QT events
@@ -745,11 +749,11 @@ protected:
     */
     virtual void updateScrollbars_();
 
-
     /**
         @brief Convert widget to chart coordinates
 
         Translates widget coordinates to chart coordinates.
+
         @param x the widget coordinate x
         @param y the widget coordinate y
         @return chart coordinates
@@ -822,7 +826,7 @@ protected:
       }
     }
 
-    ///Helper function to paint grid lines
+    /// Helper function to paint grid lines
     virtual void paintGridLines_(QPainter & painter);
 
     /// Buffer that stores the actual peak information

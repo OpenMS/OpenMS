@@ -180,7 +180,7 @@ public slots:
     void activateLayer(Size layer_index) override;
     // Docu in base class
     void removeLayer(Size layer_index) override;
-    //docu in base class
+    // Docu in base class
     void updateLayer(Size i) override;
 
     /**

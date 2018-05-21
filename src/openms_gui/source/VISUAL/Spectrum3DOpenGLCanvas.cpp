@@ -180,6 +180,8 @@ namespace OpenMS
 
   void Spectrum3DOpenGLCanvas::initializeGL()
   {
+    initializeOpenGLFunctions();
+
     // The following line triggered a bug where the whole screen would turn
     // black during scrolling (specifically it seems that multiple calls to
     // this function causes the issue):
@@ -311,7 +313,6 @@ namespace OpenMS
         delete(painter_);
       }
     }
-    update();
   }
 
   void Spectrum3DOpenGLCanvas::drawAxesLegend_()

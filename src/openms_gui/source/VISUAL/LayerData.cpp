@@ -33,6 +33,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/VISUAL/LayerData.h>
+
 #include <OpenMS/VISUAL/ANNOTATION/Annotation1DPeakItem.h>
 
 using namespace std;
@@ -40,11 +41,6 @@ using namespace std;
 namespace OpenMS
 {
   const std::string LayerData::NamesOfLabelType[] = {"None", "Index", "Label meta data", "Peptide identification", "All peptide identifications"};
-
-  const LayerData::ExperimentType::SpectrumType & LayerData::getCurrentSpectrum() const
-  {
-    return (*peaks)[current_spectrum_];
-  }
 
   std::ostream & operator<<(std::ostream & os, const LayerData & rhs)
   {
@@ -56,14 +52,49 @@ namespace OpenMS
     return os;
   }
 
+  const LayerData::ConstExperimentSharedPtrType LayerData::getPeakData() const
+  {
+    return boost::static_pointer_cast<const ExperimentType>(peaks);
+  }
+
+  void LayerData::updateRanges()
+  {
+    peaks->updateRanges();
+    features->updateRanges();
+    consensus->updateRanges();
+    // on_disc_peaks->updateRanges(); // note: this is not going to work since its on disk! We currently don't have a good way to access these ranges
+    chromatograms->updateRanges();
+    cached_spectrum_.updateRanges();
+  }
+
+  void LayerData::updateCache_()
+  {
+    if (peaks->getNrSpectra() > current_spectrum_ && (*peaks)[current_spectrum_].size() > 0)
+    {
+      cached_spectrum_ = (*peaks)[current_spectrum_];
+    }
+    else if (on_disc_peaks->getNrSpectra() > current_spectrum_)
+    {
+      cached_spectrum_ = on_disc_peaks->getSpectrum(current_spectrum_);
+    }
+  }
+
+  LayerData::ExperimentType::SpectrumType & LayerData::getCurrentSpectrum()
+  {
+    return cached_spectrum_;
+  }
+
+  const LayerData::ExperimentType::SpectrumType & LayerData::getCurrentSpectrum() const
+  {
+    return cached_spectrum_;
+  }
+
   void LayerData::synchronizePeakAnnotations()
   {
-    int spectrum_index = getCurrentSpectrumIndex();
-
     // Return if no valid peak layer attached
     if (getPeakData()->size() == 0 || type != LayerData::DT_PEAK) { return; }
 
-    MSSpectrum & spectrum = (*getPeakData())[spectrum_index];
+    MSSpectrum & spectrum = getCurrentSpectrum();
     int ms_level = spectrum.getMSLevel();
 
     if (ms_level == 2)
@@ -98,7 +129,7 @@ namespace OpenMS
         // copy user annotations to fragment annotation vector
         Annotations1DContainer & las = getAnnotations(current_spectrum_);
 
-        // no annoations so we don't need to synchronize
+        // no annotations so we don't need to synchronize
         bool has_peak_annotation(false);
         for (auto& a : las)
         {
@@ -112,7 +143,7 @@ namespace OpenMS
         pep_id.setIdentifier("Unknown");
 
         // create a dummy ProteinIdentification for all ID-less PeakAnnotations
-        vector<ProteinIdentification>& prot_ids = getPeakData()->getProteinIdentifications();
+        vector<ProteinIdentification>& prot_ids = getPeakDataMuteable()->getProteinIdentifications();
         if (prot_ids.back().getIdentifier() != String("Unknown"))
         {
           ProteinIdentification prot_id;
@@ -182,21 +213,19 @@ namespace OpenMS
 
   void LayerData::removePeakAnnotationsFromPeptideHit(const std::vector<Annotation1DItem*>& selected_annotations)
   {
-    int spectrum_index = getCurrentSpectrumIndex();
-
     // Return if no valid peak layer attached
     if (getPeakData()->size() == 0 || type != LayerData::DT_PEAK) { return; }
 
     // no ID selected
     if (peptide_id_index == -1 || peptide_hit_index == -1) { return; }
 
-    MSSpectrum & spectrum = (*getPeakData())[spectrum_index];
+    MSSpectrum & spectrum = getCurrentSpectrum();
     int ms_level = spectrum.getMSLevel();
 
     // wrong MS level
     if (ms_level < 2) { return; }
 
-    // extract Peptideidentification and PeptideHit if possible.
+    // extract PeptideIdentification and PeptideHit if possible.
     // that this function returns prematurely is unlikely,
     // since we are deleting existing annotations,
     // that have to be somewhere, but better make sure
@@ -237,4 +266,5 @@ namespace OpenMS
     }
     if (annotations_changed) { hit.setPeakAnnotations(fas); }
   }
+
 } //Namespace
