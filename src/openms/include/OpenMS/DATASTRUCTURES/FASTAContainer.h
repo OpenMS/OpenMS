@@ -261,9 +261,12 @@ public:
   */
   bool activateCache()
   {
-    static int count = 0;
-    ++count;
-    return (count == 1); // only true on first call.
+    if (!activate_count_)
+    { 
+      activate_count_ = 1;
+      return true;
+    }
+    return false; 
   }
 
   /** @brief no-op (since data is already fully available as vector)
@@ -271,10 +274,12 @@ public:
   */
   bool cacheChunk(int /*suggested_size*/)
   {
-    // NOOP, since we already have all the data...
-    static int count = 0;
-    ++count;
-    return (count == 1); // only true on first call.
+    if (!cache_count_)
+    { 
+      cache_count_ = 1;
+      return true;
+    }
+    return false; 
   }
 
   /** @brief active data spans the full range, i.e. size of container
@@ -318,6 +323,8 @@ public:
 
 private:
   const std::vector<FASTAFile::FASTAEntry>& data_; ///< reference to existing data
+  int activate_count_ = 0;
+  int cache_count_ = 0;
 };
 
 } // namespace OpenMS

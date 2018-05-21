@@ -343,7 +343,7 @@ namespace OpenMS
     for (IsotopeDistribution::ConstIterator it = dist.begin(); it != dist.end(); ++it, ++j)
     {
       // TODO: this is usually dominated by 13C-12C mass shift which deviates a bit from neutron mass
-      p.setMZ((double)(pos + j * Constants::NEUTRON_MASS_U) / (double)charge);
+      p.setMZ((double)(pos + j * Constants::C13C12_MASSDIFF_U) / (double)charge);
       p.setIntensity(intensity * it->getIntensity());
       if (add_metainfo_) // one entry per peak
       {
@@ -407,7 +407,7 @@ namespace OpenMS
         double j(0.0);
         for (IsotopeDistribution::ConstIterator iso = dist.begin(); iso != dist.end(); ++iso, ++j)
         {
-          p.setMZ((double)(loss_pos + j * Constants::NEUTRON_MASS_U) / (double)charge);
+          p.setMZ((double)(loss_pos + j * Constants::C13C12_MASSDIFF_U) / (double)charge);
           p.setIntensity(intensity * rel_loss_intensity_ * iso->getIntensity());
           if (add_metainfo_)
           {
@@ -583,7 +583,7 @@ namespace OpenMS
       double j(0.0);
       for (IsotopeDistribution::ConstIterator it = dist.begin(); it != dist.end(); ++it, ++j)
       {
-        p.setMZ((double)(mono_pos + j * Constants::NEUTRON_MASS_U) / (double)charge);
+        p.setMZ((double)(mono_pos + j * Constants::C13C12_MASSDIFF_U) / (double)charge);
         p.setIntensity(pre_int_ *  it->getIntensity());
         if (add_metainfo_)
         {
@@ -615,7 +615,7 @@ namespace OpenMS
       UInt j(0);
       for (IsotopeDistribution::ConstIterator it = dist.begin(); it != dist.end(); ++it, ++j)
       {
-        p.setMZ((double)(mono_pos + j * Constants::NEUTRON_MASS_U) / (double)charge);
+        p.setMZ((double)(mono_pos + j * Constants::C13C12_MASSDIFF_U) / (double)charge);
         p.setIntensity(pre_int_H2O_ *  it->getIntensity());
         if (add_metainfo_)
         {
@@ -648,7 +648,7 @@ namespace OpenMS
       UInt j(0);
       for (IsotopeDistribution::ConstIterator it = dist.begin(); it != dist.end(); ++it, ++j)
       {
-        p.setMZ((double)(mono_pos + j * Constants::NEUTRON_MASS_U) / (double)charge);
+        p.setMZ((double)(mono_pos + j * Constants::C13C12_MASSDIFF_U) / (double)charge);
         p.setIntensity(pre_int_NH3_ *  it->getIntensity());
         if (add_metainfo_)
         {

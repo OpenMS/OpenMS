@@ -28,92 +28,50 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Lars Nilse $
-// $Authors: Lars Nilse $
+// $Maintainer: Timo Sachsenberg $
+// $Authors: Timo Sachsenberg $
 // --------------------------------------------------------------------------
 
 #pragma once
 
 #include <OpenMS/KERNEL/StandardTypes.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFilterResultRaw.h>
-
-#include <vector>
-#include <algorithm>
-#include <iostream>
+#include <OpenMS/CONCEPT/Types.h>
+#include <OpenMS/CONCEPT/Constants.h>
 
 namespace OpenMS
 {
-  /**
-   * @brief data structure storing a single peak that passed all filters
-   * 
-   * Each peak filter result corresponds to a successful search for a particular
-   * peak pattern in the centroided data. The actual m/z shifts seen in the filter
-   * result might differ from the theoretical shifts listed in the peak pattern.
-   * 
-   * @see MultiplexPeakPattern
+
+class MSSpectrum;
+
+class OPENMS_DLLAPI Deisotoper
+{
+  public:
+
+  /* @brief Detect isotopic clusters in a fragment spectrum.
+
+   * @param [spectra] Input spectra (sorted by m/z)
+   * @param [min_charge] The minimum charge considered
+   * @param [max_charge] The maximum charge considered
+   * @param [fragment_tolerance] The tolerance used to match isotopic peaks
+   * @oaram [fragment_unit_ppm] Whether ppm or m/z is used as tolerance
+   * @param [keep_only_deisotoped] Only monoisotopic peaks of fragments with isotopic pattern are retained
+   * @param [min_isopeaks] The minimum number of isotopic peaks (at least 2) required for an isotopic cluster
+   * @param [max_isopeaks] The maximum number of isotopic peaks (at least 2) considered for an isotopic cluster
+   * @param [make_single_charged] Convert deisotoped monoisotopic peak to single charge
+   * @param [annotate_charge] Annotate the charge to the peaks in the IntegerDataArray: "charge" (0 for unknown charge)
+   * 	     Note: If make_single_charged is selected, the original charge (>=1) gets annotated.
    */
-  class OPENMS_DLLAPI MultiplexFilterResultPeak
-  {
-    public:
-    /**
-     * @brief constructor
-     */
-    MultiplexFilterResultPeak(double mz, double rt, std::vector<double> mz_shifts,
-                              std::vector<double> intensities, std::vector<MultiplexFilterResultRaw> rawDataPoints);
+  static void deisotopeAndSingleCharge(MSSpectrum & spectra, 
+            double fragment_tolerance, 
+					  bool fragment_unit_ppm, 
+            int min_charge = 1, 
+					  int max_charge = 3,
+            bool keep_only_deisotoped = false, 
+            unsigned int min_isopeaks = 3, 
+					  unsigned int max_isopeaks = 10, 
+            bool make_single_charged = true,
+             bool annotate_charge = false);
+};
 
-     /**
-     * @brief returns m/z of the peak
-     */
-     double getMZ() const;
-     
-     /**
-     * @brief returns RT of the peak
-     */
-     double getRT() const;
-     
-    /**
-     * @brief returns m/z shifts
-     */
-    std::vector<double> getMZShifts() const;
-
-    /**
-     * @brief returns intensities
-     */
-    std::vector<double> getIntensities() const;
-    
-    /**
-     * @brief returns the number of raw data points belonging to the peak
-     */
-     int size() const;
-     
-     /**
-     * @brief returns a single raw data point belonging to the peak
-     */
-     MultiplexFilterResultRaw getFilterResultRaw(int i) const;
-     
-     private:
-    /**
-     * @brief position of the peak
-     */
-    double mz_;
-    double rt_;
-
-    /**
-     * @brief m/z shifts at which peaks corresponding to a pattern were found
-     */
-    std::vector<double> mz_shifts_;
-
-    /**
-     * @brief peak intensities at mz_ + mz_shifts_
-     */
-    std::vector<double> intensities_;
-
-    /**
-     * @brief (optional) raw data points corresponding to the peak
-     */
-    std::vector<MultiplexFilterResultRaw> raw_data_points_;
- 
-  };
-  
 }
 

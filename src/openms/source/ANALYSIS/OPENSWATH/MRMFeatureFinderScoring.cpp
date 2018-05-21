@@ -814,13 +814,9 @@ namespace OpenMS
         if (!swath_present)
         {
           mrmfeature->addScore("main_var_xx_lda_prelim_score", xx_lda_prescore);
-          mrmfeature->addScore("xx_lda_prelim_score", xx_lda_prescore);
-          mrmfeature->setOverallQuality(xx_lda_prescore);
         }
-        else
-        {
-          mrmfeature->addScore("xx_lda_prelim_score", xx_lda_prescore);
-        }
+        mrmfeature->setOverallQuality(xx_lda_prescore);
+        mrmfeature->addScore("xx_lda_prelim_score", xx_lda_prescore);
 
         // Add the DIA / SWATH scores
         if (swath_present && su_.use_dia_scores_)

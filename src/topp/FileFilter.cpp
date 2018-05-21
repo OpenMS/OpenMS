@@ -44,9 +44,13 @@
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/FILTERING/NOISEESTIMATION/SignalToNoiseEstimatorMedian.h>
+#include <OpenMS/COMPARISON/SPECTRA/ZhangSimilarityScore.h>
+#include <OpenMS/CONCEPT/Factory.h>
 
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
+
+#include <memory>
 
 using namespace OpenMS;
 using namespace std;
@@ -355,6 +359,18 @@ protected:
     registerStringOption_("spectra:select_polarity", "<polarity>", "", "Retain MSn scans with a certain scan polarity", false);
     setValidStrings_("spectra:select_polarity", IonSource::NamesOfPolarity, (int)IonSource::SIZE_OF_POLARITY);
 
+    registerTOPPSubsection_("spectra:blackorwhitelist", "Black or white listing of of MS2 spectra by spectral similarity");
+    registerInputFile_("spectra:blackorwhitelist:file", "<file>", "",   "Input file containing MS2 spectra that should be retained or removed from the mzML file!\n"
+                                                                        "Matching tolerances are taken from 'spectra:blackorwhitelist:similarity_threshold|rt|mz' options.\n", false);
+    setValidFormats_("spectra:blackorwhitelist:file", ListUtils::create<String>("mzML"));
+    registerDoubleOption_("spectra:blackorwhitelist:similarity_threshold", "<similarity>", -1, "Similarity threshold when matching MS2 spectra. (-1 = disabled).", false);
+    registerDoubleOption_("spectra:blackorwhitelist:rt", "tolerance", 0.01, "Retention tolerance [s] when matching precursor positions. (-1 = disabled)", false);
+    registerDoubleOption_("spectra:blackorwhitelist:mz", "tolerance", 0.01, "m/z tolerance [Th] when matching precursor positions. (-1 = disabled)", false);
+    registerStringOption_("spectra:blackorwhitelist:use_ppm_tolerance", "", "false", "If ppm tolerance should be used. Otherwise Da are used.", false, false);
+    registerStringOption_("spectra:blackorwhitelist:blacklist", "", "true", "True: remove matched MS2. False: retain matched MS2 spectra. Other levels are kept", false, false);
+    setValidStrings_("spectra:blackorwhitelist:blacklist", ListUtils::create<String>("false,true"));
+    setMinFloat_("spectra:blackorwhitelist:similarity_threshold", -1.0);
+    setMaxFloat_("spectra:blackorwhitelist:similarity_threshold", 1.0);
 
     addEmptyLine_();
     registerTOPPSubsection_("feature", "Feature data options");
@@ -835,22 +851,45 @@ protected:
 
       // check if filtering by consensus feature is enabled
       String consensus_blackorwhitelist = getStringOption_("consensus:blackorwhitelist:file");
-
       if (!consensus_blackorwhitelist.empty())
       {
-        LOG_INFO << "Filtering out MS2 spectra from raw file using consensus features ..." << std::endl;
+        LOG_INFO << "Filtering MS2 spectra from raw file using consensus features ..." << std::endl;
         IntList il = getIntList_("consensus:blackorwhitelist:maps");
         set<UInt64> maps(il.begin(), il.end());
         double rt_tol = getDoubleOption_("consensus:blackorwhitelist:rt");
         double mz_tol = getDoubleOption_("consensus:blackorwhitelist:mz");
         bool is_ppm = getStringOption_("consensus:blackorwhitelist:use_ppm_tolerance") == "false" ? false : true;
         bool is_blacklist = getStringOption_("consensus:blackorwhitelist:blacklist") == "true" ? true : false;
-        int ret = filterByBlackOrWhiteList(is_blacklist, exp, consensus_blackorwhitelist, rt_tol, mz_tol, is_ppm, maps);
-        if (ret != EXECUTION_OK)
-        {
-          return (ExitCodes)ret;
-        }
+        
+        ConsensusMap consensus_map;
+        ConsensusXMLFile cxml_file;
+        cxml_file.load(consensus_blackorwhitelist, consensus_map);
+        consensus_map.sortByMZ();
+
+        int ret = filterByBlackOrWhiteList(is_blacklist, exp, consensus_map, rt_tol, mz_tol, is_ppm, maps);
+        if (ret != EXECUTION_OK) { return (ExitCodes)ret; }
       }
+
+      // filter spectra if they occur in spectra:blackorwhitelist:file 
+      // (determined by comparing rt/mz/similarity)
+      String lib_file_name = getStringOption_("spectra:blackorwhitelist:file");
+      if (!lib_file_name.empty())
+      {
+        LOG_INFO << "Filtering MS2 spectra based on precursor rt, mz, and spectral similarity ..." << std::endl;
+        double tol_rt = getDoubleOption_("spectra:blackorwhitelist:rt");
+        double tol_mz = getDoubleOption_("spectra:blackorwhitelist:mz");
+        double tol_sim = getDoubleOption_("spectra:blackorwhitelist:similarity_threshold");
+        bool is_ppm = getStringOption_("spectra:blackorwhitelist:use_ppm_tolerance") == "true" ? true : false; 
+        bool is_blacklist = getStringOption_("spectra:blackorwhitelist:blacklist") == "true" ? true : false;
+
+        PeakMap lib_file;
+        MzMLFile().load(lib_file_name, lib_file);
+
+        int ret = filterByBlackOrWhiteList(is_blacklist, exp, lib_file, tol_rt, tol_mz, tol_sim, is_ppm);
+        if (ret != EXECUTION_OK) { return (ExitCodes)ret; }
+      }
+
+
 
       //-------------------------------------------------------------
       // writing output
@@ -1191,13 +1230,8 @@ protected:
     return EXECUTION_OK;
   }
 
-  ExitCodes filterByBlackOrWhiteList(bool is_blacklist, MapType& exp, const String& consensus_blacklist, double rt_tol, double mz_tol, bool unit_ppm, std::set<UInt64> map_ids)
+  ExitCodes filterByBlackOrWhiteList(bool is_blacklist, MapType& exp, const ConsensusMap& consensus_map, double rt_tol, double mz_tol, bool unit_ppm, std::set<UInt64> map_ids)
   {
-    ConsensusMap consensus_map;
-    ConsensusXMLFile cxml_file;
-    cxml_file.load(consensus_blacklist, consensus_map);
-    consensus_map.sortByMZ();
-
     std::vector<Peak2D> feature_pos;
     // if map_id are specified, only use these for blacklisting
     for (ConsensusMap::const_iterator c_it = consensus_map.begin(); c_it != consensus_map.end(); ++c_it)
@@ -1247,6 +1281,82 @@ protected:
     }
 
     // create new experiment
+    PeakMap exp2;
+    exp2.getExperimentalSettings() = (ExperimentalSettings)exp.getExperimentalSettings(); // copy meta data
+
+    for (Size i = 0; i != exp.size(); ++i)
+    {
+      // don't need to sort list as it is increasing
+      if (is_blacklist)
+      {
+        // blacklist: add all spectra not contained in list
+        if (find(list_idx.begin(), list_idx.end(), i) == list_idx.end())
+        {
+          exp2.addSpectrum(exp[i]);
+        }
+      }
+      else   // whitelist: add all non MS2 spectra, and MS2 only if in list
+      {
+        if (exp[i].getMSLevel() != 2 || find(list_idx.begin(), list_idx.end(), i) != list_idx.end())
+        {
+          exp2.addSpectrum(exp[i]);
+        }
+      }
+    }
+
+    exp = exp2;
+    return EXECUTION_OK;
+  }
+
+  ExitCodes filterByBlackOrWhiteList(bool is_blacklist, PeakMap& exp, const PeakMap& lib_file, double rt_tol, double mz_tol, double sim_tol,  bool unit_ppm)
+  {
+    const bool enable_mz_check = (mz_tol >= 0);
+    const bool enable_rt_check = (rt_tol >= 0);
+    const bool enable_sim_check = (sim_tol > -1);
+
+    std::unique_ptr<PeakSpectrumCompareFunctor> comp_function(Factory<PeakSpectrumCompareFunctor>::create("ZhangSimilarityScore"));
+
+    set<Size> list_idx;
+
+    for (auto const & lib_spectrum : lib_file)
+    {
+      if (!lib_spectrum.getPrecursors().empty())
+      {
+        // extract precursor positions from query file
+        double lib_mz = lib_spectrum.getPrecursors()[0].getMZ();
+        double lib_rt = lib_spectrum.getRT();
+
+        // look-up matching spectra in input file (TODO: use KD-tree)
+        int exp_index = -1;
+        for (auto const & exp_spectrum : exp)
+        {
+          // keep track of current spectrum index
+          ++exp_index;
+
+          // TODO: extend to other MS levels and multiple precursors
+          if (exp_spectrum.getMSLevel() != 2 || exp_spectrum.getPrecursors().empty()) { continue; }
+
+          // skip if m/z's don't match
+          const double pc_mz = exp_spectrum.getPrecursors()[0].getMZ();
+          const double mz_tol_da = unit_ppm ? pc_mz * 1e-6 * mz_tol : mz_tol;
+          if (enable_mz_check && fabs(pc_mz - lib_mz) > mz_tol_da) { continue; }
+
+          // skip if rt's don't match
+          const double pc_rt = exp_spectrum.getRT();
+          if (enable_rt_check && fabs(pc_rt - lib_rt) > rt_tol) { continue; }
+
+          // skip if not similar enough
+          if (enable_sim_check && (*comp_function)(exp_spectrum, lib_spectrum) < sim_tol) { continue; }
+
+          writeDebug_("Similarity score: " + String((*comp_function)(exp_spectrum, lib_spectrum)), 10);
+
+          // we have matching spectra
+          list_idx.insert(exp_index); 
+        }
+      }
+    }
+
+    // create new experiment
     PeakMap exp2 = exp; // copy meta data
     exp2.clear(false); // clear spectra
 
@@ -1261,7 +1371,7 @@ protected:
           exp2.addSpectrum(exp[i]);
         }
       }
-      else   // whitelist: add all non MS2 spectra, and MS2 only if in list
+      else   // whitelist: add all non-MS2 spectra + matched MS2 spectra
       {
         if (exp[i].getMSLevel() != 2 || find(list_idx.begin(), list_idx.end(), i) != list_idx.end())
         {
