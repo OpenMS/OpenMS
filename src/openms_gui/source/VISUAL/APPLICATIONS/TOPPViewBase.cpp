@@ -3473,11 +3473,10 @@ namespace OpenMS
     double IM_BINNING = 1e5;
 
     const LayerData& layer = getActiveCanvas()->getCurrentLayer();
-    ExperimentSharedPtrType exp_sptr = layer.getPeakData();
 
     // Get current spectrum
     auto spidx = layer.getCurrentSpectrumIndex();
-    MSSpectrum tmps = exp_sptr->getSpectrum(spidx);
+    MSSpectrum tmps = layer.getCurrentSpectrum();
 
     if (!containsIMData(tmps))
     {
@@ -3516,7 +3515,7 @@ namespace OpenMS
     Spectrum2DWidget* w = new Spectrum2DWidget(getSpectrumParameters(2), ws_);
 
     // add data
-    if (!w->canvas()->addLayer(tmpe, layer.filename))
+    if (!w->canvas()->addLayer(tmpe, SpectrumCanvas::ODExperimentSharedPtrType(new OnDiscMSExperiment()), layer.filename))
     {
       return;
     }
