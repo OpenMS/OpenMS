@@ -319,6 +319,8 @@ public:
   /// required for template parameters!
   void reset()
   {
+    activate_count_ = 0;
+    cache_count_ = 0;
   }
 
 private:

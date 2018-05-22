@@ -2311,6 +2311,7 @@ protected:
     // reindex ids
     PeptideIndexing indexer;
     Param param_pi = indexer.getParameters();
+    param_pi.setValue("decoy_string", "rev_");
     param_pi.setValue("decoy_string_position", "prefix");
     param_pi.setValue("enzyme:specificity", "none");
     param_pi.setValue("missing_decoy_action", "warn");

@@ -116,6 +116,11 @@ using namespace std;
     mm_max_ = static_cast<Int>(param_.getValue("mismatches_max"));
   }
 
+const String &PeptideIndexing::getDecoy_string_() const
+{
+  return decoy_string_;
+}
+
 
 /// @endcond
 
