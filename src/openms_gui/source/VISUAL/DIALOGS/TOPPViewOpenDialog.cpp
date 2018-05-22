@@ -134,7 +134,7 @@ namespace OpenMS
     map_as_2d_disabled_ = true;
   }
 
-  void TOPPViewOpenDialog::disableCutoff(bool cutoff_on)
+  void TOPPViewOpenDialog::disableCutoff(bool /* cutoff_on */)
   {
     ui_->intensity_cutoff_->setChecked(false);
   }

@@ -3547,7 +3547,6 @@ namespace OpenMS
     }
 
     // Get current spectrum
-    auto spidx = layer.getCurrentSpectrumIndex();
     MSSpectrum tmps = layer.getCurrentSpectrum();
 
     // Add spectra into a MSExperiment, sort and prepare it for display
@@ -3555,14 +3554,13 @@ namespace OpenMS
 
     // Collect all MS2 spectra with the same precursor as the current spectrum
     // (they are in the same SWATH window)
-    double upper(0), lower(0);
     String caption_add = "";
     if (!tmps.getPrecursors().empty())
     {
       // Get precursor isolation windows
       const auto& prec = tmps.getPrecursors()[0];
-      lower = prec.getMZ() - prec.getIsolationWindowLowerOffset();
-      upper = prec.getMZ() + prec.getIsolationWindowUpperOffset();
+      double lower = prec.getMZ() - prec.getIsolationWindowLowerOffset();
+      double upper = prec.getMZ() + prec.getIsolationWindowUpperOffset();
 
       Size k = 0;
       for (const auto& spec : (*layer.getPeakData() ) )
