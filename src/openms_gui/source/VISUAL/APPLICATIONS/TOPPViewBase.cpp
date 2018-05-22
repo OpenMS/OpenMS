@@ -1330,15 +1330,20 @@ namespace OpenMS
                              vector<PeptideIdentification>& peptides,
                              ExperimentSharedPtrType peak_map,
                              ODExperimentSharedPtrType on_disc_peak_map,
-                             LayerData::DataType data_type, bool show_as_1d,
-                             bool show_options, bool as_new_window,
-                             const String& filename, const String& caption,
-                             UInt window_id, Size spectrum_id)
+                             LayerData::DataType data_type,
+                             bool show_as_1d,
+                             bool show_options,
+                             bool as_new_window,
+                             const String& filename,
+                             const String& caption,
+                             UInt window_id,
+                             Size spectrum_id)
   {
     // initialize flags with defaults from the parameters
     bool maps_as_2d = ((String)param_.getValue("preferences:default_map_view") == "2d");
     bool maps_as_1d = false;
     bool use_intensity_cutoff = ((String)param_.getValue("preferences:intensity_cutoff") == "on");
+    bool is_dia_data = false;
 
     // feature, consensus feature and identifications can be merged
     bool mergeable = ((data_type == LayerData::DT_FEATURE) ||
@@ -1367,7 +1372,7 @@ namespace OpenMS
       as_new_window = false;
     }
 
-    //create dialog no matter if it is shown or not. It is used to determine the flags.
+    // create dialog no matter if it is shown or not. It is used to determine the flags.
     TOPPViewOpenDialog dialog(caption, as_new_window, maps_as_2d, use_intensity_cutoff, this);
 
     //disable opening in new window when there is no active window or feature/ID data is to be opened, but the current window is a 3D window
@@ -1418,9 +1423,17 @@ namespace OpenMS
     }
 
     use_intensity_cutoff = dialog.isCutoffEnabled();
+    is_dia_data = dialog.isDataDIA();
     Int merge_layer = dialog.getMergeLayer();
 
-    //determine the window to open the data in
+    // If we are dealing with DIA data, store this directly in the peak map
+    // (ensures we will keep track of this flag from now on).
+    if (is_dia_data)
+    {
+      peak_map->setMetaValue("is_dia_data", "true");
+    }
+
+    // determine the window to open the data in
     if (as_new_window) //new window
     {
       if (maps_as_1d) // 2d in 1d window
@@ -1479,13 +1492,13 @@ namespace OpenMS
         {
           if (TOPPViewBase::hasMS1Zeros(*(target_window->canvas()->getCurrentLayer().getPeakData())))
           {
-            //create filter
+            // create filter
             DataFilters::DataFilter filter;
             filter.field = DataFilters::INTENSITY;
             filter.op = DataFilters::GREATER_EQUAL;
             filter.value = 0.001;
             statusBar()->showMessage("Note: Data contains zero values.\nA filter will be added to hide these values.\nYou can reenable data points with zero intensity by removing the filter.");
-            ///add filter
+            // add filter
             DataFilters filters;
             filters.add(filter);
             target_window->canvas()->setFilters(filters);
@@ -2570,6 +2583,7 @@ namespace OpenMS
       connect(sw1, SIGNAL(showCurrentPeaksAs2D()), this, SLOT(showCurrentPeaksAs2D()));
       connect(sw1, SIGNAL(showCurrentPeaksAs3D()), this, SLOT(showCurrentPeaksAs3D()));
       connect(sw1, SIGNAL(showCurrentPeaksAsIonMobility()), this, SLOT(showCurrentPeaksAsIonMobility()));
+      connect(sw1, SIGNAL(showCurrentPeaksAsDIA()), this, SLOT(showCurrentPeaksAsDIA()));
     }
 
     // 2D spectrum specific signals
@@ -3510,6 +3524,95 @@ namespace OpenMS
 
     String caption = layer.name;
     caption += " (Ion Mobility Scan " + String(spidx) + ")";
+    // remove 3D suffix added when opening data in 3D mode (see below showCurrentPeaksAs3D())
+    if (caption.hasSuffix(CAPTION_3D_SUFFIX_))
+    {
+      caption = caption.prefix(caption.rfind(CAPTION_3D_SUFFIX_));
+    }
+    w->canvas()->setLayerName(w->canvas()->activeLayerIndex(), caption);
+    showSpectrumWidgetInWindow(w, caption);
+    updateLayerBar();
+    updateViewBar();
+    updateFilterBar();
+    updateMenu();
+  }
+
+  void TOPPViewBase::showCurrentPeaksAsDIA()
+  {
+    const LayerData& layer = getActiveCanvas()->getCurrentLayer();
+
+    if (!layer.isDIAData())
+    {
+      std::cout << "Layer does not contain DIA / SWATH-MS data" << std::endl;
+      return;
+    }
+
+    // Get current spectrum
+    auto spidx = layer.getCurrentSpectrumIndex();
+    MSSpectrum tmps = layer.getCurrentSpectrum();
+
+    // Add spectra into a MSExperiment, sort and prepare it for display
+    ExperimentSharedPtrType tmpe(new OpenMS::MSExperiment() );
+
+    // Collect all MS2 spectra with the same precursor as the current spectrum
+    // (they are in the same SWATH window)
+    double upper(0), lower(0);
+    String caption_add = "";
+    if (!tmps.getPrecursors().empty())
+    {
+      // Get precursor isolation windows
+      const auto& prec = tmps.getPrecursors()[0];
+      lower = prec.getMZ() - prec.getIsolationWindowLowerOffset();
+      upper = prec.getMZ() + prec.getIsolationWindowUpperOffset();
+
+      Size k = 0;
+      for (const auto& spec : (*layer.getPeakData() ) )
+      {
+        if (spec.getMSLevel() == 2 && !spec.getPrecursors().empty() )
+        {
+          if (fabs(spec.getPrecursors()[0].getMZ() - tmps.getPrecursors()[0].getMZ() ) < 1e-4 )
+          {
+            // Get the spectrum in question (from memory or disk) and add to
+            // the newly created MSExperiment
+            if (spec.size() > 0)
+            {
+              // Get data from memory - copy data and tell TOPPView that this
+              // is MS1 data so that it will be displayed properly in 2D and 3D
+              // view
+              MSSpectrum t = spec;
+              t.setMSLevel(1);
+              tmpe->addSpectrum(t);
+            }
+            else if (layer.getOnDiscPeakData()->getNrSpectra() > k)
+            {
+              // Get data from disk - copy data and tell TOPPView that this is
+              // MS1 data so that it will be displayed properly in 2D and 3D
+              // view
+              MSSpectrum t = layer.getOnDiscPeakData()->getSpectrum(k);
+              t.setMSLevel(1);
+              tmpe->addSpectrum(t);
+            }
+          }
+        }
+        k++;
+      }
+      caption_add = "(DIA window " + String(lower) + " - " + String(upper) + ")";
+    }
+    
+    tmpe->sortSpectra();
+    tmpe->updateRanges();
+
+    // open new 2D widget
+    Spectrum2DWidget* w = new Spectrum2DWidget(getSpectrumParameters(2), ws_);
+
+    // add data
+    if (!w->canvas()->addLayer(tmpe, SpectrumCanvas::ODExperimentSharedPtrType(new OnDiscMSExperiment()), layer.filename))
+    {
+      return;
+    }
+
+    String caption = layer.name;
+    caption += caption_add;
     // remove 3D suffix added when opening data in 3D mode (see below showCurrentPeaksAs3D())
     if (caption.hasSuffix(CAPTION_3D_SUFFIX_))
     {

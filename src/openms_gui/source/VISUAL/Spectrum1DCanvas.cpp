@@ -1431,6 +1431,11 @@ namespace OpenMS
         context_menu->addAction("Switch to ion mobility view");
       }
 
+      if (getCurrentLayer().isDIAData())
+      {
+        context_menu->addAction("Switch to DIA-MS view");
+      }
+
       //add external context menu
       if (context_add_)
       {
@@ -1515,6 +1520,10 @@ namespace OpenMS
         else if (result->text() == "Switch to ion mobility view")
         {
           emit showCurrentPeaksAsIonMobility();
+        }
+        else if (result->text() == "Switch to DIA-MS view")
+        {
+          emit showCurrentPeaksAsDIA();
         }
       }
     }

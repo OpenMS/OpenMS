@@ -179,6 +179,9 @@ signals:
     /// Requests to display all spectra in ion mobility plot
     void showCurrentPeaksAsIonMobility();
 
+    /// Requests to display all spectra as DIA
+    void showCurrentPeaksAsDIA();
+
 public slots:
     // Docu in base class
     void activateLayer(Size layer_index) override;

@@ -337,6 +337,20 @@ public:
       this->getPeakData()->setMetaValue("is_ion_mobility", "true");
     }
 
+    /// Check whether the current layer contains DIA (SWATH-MS) data
+    bool isDIAData() const
+    {
+      return this->getPeakData()->size() > 0 &&
+             this->getPeakData()->metaValueExists("is_dia_data") &&
+             this->getPeakData()->getMetaValue("is_dia_data").toBool();
+    }
+
+    /// Label the current layer as DIA (SWATH-MS) data
+    void labelAsDIAData()
+    {
+      peaks->setMetaValue("is_dia_data", "true");
+    }
+
     /**
     @brief Check whether the current layer is a chromatogram
      
