@@ -323,7 +323,34 @@ public:
       current_spectrum_ = index;
       updateCache_();
     }
-    
+
+    /// Check whether the current layer should be represented as ion mobility
+    bool isIonMobilityData() const
+    {
+      return this->getPeakData()->size() > 0 &&
+             this->getPeakData()->metaValueExists("is_ion_mobility") &&
+             this->getPeakData()->getMetaValue("is_ion_mobility").toBool();
+    }
+
+    void labelAsIonMobilityData() const
+    {
+      peaks->setMetaValue("is_ion_mobility", "true");
+    }
+
+    /// Check whether the current layer contains DIA (SWATH-MS) data
+    bool isDIAData() const
+    {
+      return this->getPeakData()->size() > 0 &&
+             this->getPeakData()->metaValueExists("is_dia_data") &&
+             this->getPeakData()->getMetaValue("is_dia_data").toBool();
+    }
+
+    /// Label the current layer as DIA (SWATH-MS) data
+    void labelAsDIAData()
+    {
+      peaks->setMetaValue("is_dia_data", "true");
+    }
+
     /**
     @brief Check whether the current layer is a chromatogram
      

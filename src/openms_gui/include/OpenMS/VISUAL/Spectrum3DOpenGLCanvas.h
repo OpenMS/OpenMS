@@ -96,6 +96,10 @@ public:
     void mousePressEvent(QMouseEvent * e) override;
     void focusOutEvent(QFocusEvent * e) override;
     //@}
+
+    void setXLabel(const QString& l) { x_label_ = l; }
+    void setYLabel(const QString& l) { y_label_ = l; }
+    void setZLabel(const QString& l) { z_label_ = l; }
     
     /// updates the min and max values of the intensity
     void updateIntensityScale();
@@ -227,6 +231,10 @@ protected:
     double trans_x_;
     /// y_translation
     double trans_y_;
+
+    QString x_label_;
+    QString y_label_;
+    QString z_label_;
 
 protected slots:
     /// Slot that reacts on action mode changes
