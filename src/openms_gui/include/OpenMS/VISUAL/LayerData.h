@@ -334,7 +334,7 @@ public:
 
     void labelAsIonMobilityData() const
     {
-      this->getPeakData()->setMetaValue("is_ion_mobility", "true");
+      peaks->setMetaValue("is_ion_mobility", "true");
     }
 
     /// Check whether the current layer contains DIA (SWATH-MS) data
