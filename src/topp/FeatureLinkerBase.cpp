@@ -178,7 +178,7 @@ protected:
         }
       }
 
-      vector<ConsensusMap > maps(ins.size());
+      vector<FeatureMap > maps(ins.size());
       FeatureXMLFile f;
       FeatureFileOptions param = f.getOptions();
       // to save memory don't load convex hulls and subordinates
@@ -206,13 +206,23 @@ protected:
         for (FeatureMap::Iterator it = tmp.begin(); it != tmp.end();
              ++it)
         {
+          String adduct;
+          //exception: addduct information
+          if (it->metaValueExists("dc_charge_adducts"))
+          {
+            adduct = it->getMetaValue("dc_charge_adducts");
+          }
           it->getSubordinates().clear();
           it->getConvexHulls().clear();
           it->clearMetaInfo();
+          if (!adduct.empty())
+          {
+            it->setMetaValue("dc_charge_adducts", adduct);
+          }
+
         }
 
-        MapConversion::convert(i, tmp, maps[i]);
-
+        maps[i] = tmp;
         maps[i].updateRanges();
 
         setProgress(progress++);
@@ -240,7 +250,7 @@ protected:
         writeDebug_(String("Stored in ") + String(maps.size()) + " maps.", 3);
         for (Size i = 1; i <= frac2run.size(); ++i)
         {
-          vector<ConsensusMap> fraction_maps;
+          vector<FeatureMap> fraction_maps;
           for (set<unsigned>::const_iterator sit = frac2run[i].begin(); sit != frac2run[i].end(); ++sit)
           {
             fraction_maps.push_back(maps[*sit - 1]); // TODO: *sit is currently the run identifier but we need to know the corresponding feature index in ins

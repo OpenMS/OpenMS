@@ -172,8 +172,15 @@ public:
 signals:
     /// Requests to display all spectra in 2D plot
     void showCurrentPeaksAs2D();
+
     /// Requests to display all spectra in 3D plot
     void showCurrentPeaksAs3D();
+
+    /// Requests to display all spectra in ion mobility plot
+    void showCurrentPeaksAsIonMobility();
+
+    /// Requests to display all spectra as DIA
+    void showCurrentPeaksAsDIA();
 
 public slots:
     // Docu in base class

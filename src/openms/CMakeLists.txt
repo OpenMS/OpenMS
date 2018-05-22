@@ -44,7 +44,10 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 #
 # prefix a variable with 'CF_' if it is used to configure a file!
 # e.g., CF_LibOpenMSExport
-set(CF_OPENMS_PACKAGE_VERSION "${OPENMS_PACKAGE_VERSION_FULLSTRING}" CACHE INTERNAL "OpenMS VERSION" FORCE)
+
+# Version should not have unescaped "_" because it is used in the Latex tutorials
+set(CF_OPENMS_PACKAGE_VERSION "${OPENMS_PACKAGE_VERSION}" CACHE INTERNAL "OpenMS VERSION" FORCE)
+set(CF_OPENMS_PACKAGE_VERSION_FULLSTRING "${OPENMS_PACKAGE_VERSION_FULLSTRING}" CACHE INTERNAL "OpenMS version with additional identifier" FORCE)
 
 #------------------------------------------------------------------------------
 # En/disable assertions

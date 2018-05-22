@@ -54,11 +54,36 @@ for rt_idx in range(NR_RT_SAMPLES):
     sp = MSSpectrum()
     sp.setRT(rt_idx)
     sp.setMSLevel(1)
+
+    base_int = 100 - abs(20 - rt_idx)*(100)/25.0  # shift the precursor slightly
+    base_int = max(5, base_int)
+
+    fda = pyopenms.FloatDataArray()
+    fda.setName("Ion Mobility")
+    fda.resize(100)
+
     for i in range(100):
         p = Peak1D()
         p.setMZ(100+i)
-        p.setIntensity(100+i)
+        p.setIntensity(base_int+i)
         sp.push_back(p)
+        fda[i] = 10
+
+    for i in range(10):
+        p = Peak1D()
+        p.setMZ(412.502)
+        p.setIntensity(base_int+ (i-5))
+        sp.push_back(p)
+        fda.push_back( 99 + (i-5) )
+
+    for i in range(10):
+        p = Peak1D()
+        p.setMZ(417.502)
+        p.setIntensity(base_int+ (i-5))
+        sp.push_back(p)
+        fda.push_back( 152 + (i-5) )
+
+    sp.setFloatDataArrays([fda])
     exp.addSpectrum(sp)
 
 # Create MS2 spectra
@@ -74,7 +99,6 @@ for rt_idx in range(NR_RT_SAMPLES):
     allim = []
 
     for im_idx in range(NR_IM_BINS):
-        # print("======================================= ion mobility", im_idx)
         sp = MSSpectrum()
         p = pyopenms.Precursor()
         p.setIsolationWindowLowerOffset(12)
