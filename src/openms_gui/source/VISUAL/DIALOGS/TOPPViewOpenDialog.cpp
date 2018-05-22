@@ -60,10 +60,6 @@ namespace OpenMS
     ui_->setupUi(this);
 
     //init map view
-    QButtonGroup * button_group = new QButtonGroup(this);
-    button_group->addButton(ui_->d1_);
-    button_group->addButton(ui_->d2_);
-    button_group->addButton(ui_->d3_);
     if (!as_2d)
     {
       ui_->d1_->setChecked(true);
@@ -76,26 +72,12 @@ namespace OpenMS
     }
 
     //init intensity cutoff
-    button_group = new QButtonGroup(this);
-    button_group->addButton(ui_->cutoff_);
-    button_group->addButton(ui_->nocutoff_);
-    if (!cutoff)
+    if (cutoff)
     {
-      ui_->nocutoff_->setChecked(true);
-      ui_->nocutoff_->setFocus();
-    }
-    else
-    {
-      ui_->cutoff_->setChecked(true);
-      ui_->cutoff_->setFocus();
+      ui_->intensity_cutoff_->setChecked(true);
     }
 
     //init open as
-    button_group = new QButtonGroup(this);
-    button_group->addButton(ui_->window_);
-    button_group->addButton(ui_->layer_);
-    button_group->addButton(ui_->merge_);
-    connect(button_group, SIGNAL(buttonClicked(QAbstractButton *)), this, SLOT(updateViewMode_(QAbstractButton *)));
     if (!as_window)
     {
       ui_->layer_->setChecked(true);
@@ -119,34 +101,27 @@ namespace OpenMS
 
   bool TOPPViewOpenDialog::viewMapAs2D() const
   {
-    if (ui_->d2_->isChecked())
-      return true;
-
-    return false;
+    return ui_->d2_->isChecked();
   }
 
   bool TOPPViewOpenDialog::viewMapAs1D() const
   {
-    if (ui_->d1_->isChecked())
-      return true;
-
-    return false;
+    return ui_->d1_->isChecked();
   }
 
   bool TOPPViewOpenDialog::isCutoffEnabled() const
   {
-    if (ui_->cutoff_->isChecked())
-      return true;
+    return ui_->intensity_cutoff_->isChecked();
+  }
 
-    return false;
+  bool TOPPViewOpenDialog::isDataDIA() const
+  {
+    return ui_->dia_data_->isChecked();
   }
 
   bool TOPPViewOpenDialog::openAsNewWindow() const
   {
-    if (ui_->window_->isChecked())
-      return true;
-
-    return false;
+    return ui_->window_->isChecked();
   }
 
   void TOPPViewOpenDialog::disableDimension(bool as_2d)
@@ -161,9 +136,7 @@ namespace OpenMS
 
   void TOPPViewOpenDialog::disableCutoff(bool cutoff_on)
   {
-    ui_->cutoff_->setChecked(cutoff_on);
-    ui_->cutoff_->setEnabled(false);
-    ui_->nocutoff_->setEnabled(false);
+    ui_->intensity_cutoff_->setChecked(false);
   }
 
   void TOPPViewOpenDialog::disableLocation(bool as_window)
@@ -200,7 +173,7 @@ namespace OpenMS
 
   void TOPPViewOpenDialog::setMergeLayers(const Map<Size, String> & layers)
   {
-    //remove all items
+    // remove all items
     ui_->merge_combo_->clear();
 
     if (layers.size() != 0)
