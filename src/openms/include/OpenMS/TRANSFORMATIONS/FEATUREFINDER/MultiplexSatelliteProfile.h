@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,47 +32,52 @@
 // $Authors: Lars Nilse $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFilterResultRaw.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFilterResultPeak.h>
-
-using namespace std;
+#pragma once
 
 namespace OpenMS
 {
-
-  MultiplexFilterResultPeak::MultiplexFilterResultPeak(double mz, double rt, std::vector<double> mz_shifts, vector<double> intensities, vector<MultiplexFilterResultRaw> raw_data_points) :
-    mz_(mz), rt_(rt), mz_shifts_(mz_shifts), intensities_(intensities), raw_data_points_(raw_data_points)
+  /**
+   * @brief data structure storing a single satellite data point
+   *
+   * The satellite data point is a spline-interpolated point of profile MSExperiment.
+   * The triplet of RT, m/z and intensity is therefore stored explicitly.
+   * 
+   * @see MultiplexFilteredPeak, MultiplexSatelliteCentroided
+   */
+  class OPENMS_DLLAPI MultiplexSatelliteProfile
   {
-  }
+    public:
 
-  double MultiplexFilterResultPeak::getMZ() const
-  {
-    return mz_;
-  }
-
-  double MultiplexFilterResultPeak::getRT() const
-  {
-    return rt_;
-  }
-
-  vector<double> MultiplexFilterResultPeak::getMZShifts() const
-  {
-    return mz_shifts_;
-  }
-
-  vector<double> MultiplexFilterResultPeak::getIntensities() const
-  {
-    return intensities_;
-  }
-
-  int MultiplexFilterResultPeak::size() const
-  {
-    return raw_data_points_.size();
-  }
-
-  MultiplexFilterResultRaw MultiplexFilterResultPeak::getFilterResultRaw(int i) const
-  {
-    return raw_data_points_[i];
-  }
-
+    /**
+     * @brief constructor
+     */
+    MultiplexSatelliteProfile(float rt, double mz, float intensity);
+    
+    /**
+     * @brief returns the RT of the satellite data point
+     */
+    float getRT() const;
+    
+    /**
+     * @brief returns the m/z of the satellite data point
+     */
+    double getMZ() const;
+    
+    /**
+     * @brief returns the intensity of the satellite data point
+     */
+    float getIntensity() const;
+    
+    private:
+     
+    /**
+     * @brief position and intensity of the data point within the spline-interpolated experiment
+     */
+    float rt_;
+    double mz_;
+    float intensity_;
+    
+  };
+  
 }
+

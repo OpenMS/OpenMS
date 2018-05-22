@@ -195,7 +195,7 @@ namespace OpenMS
     return mz_max_;
   }
 
-  size_t SplineSpectrum::getSplineCount() const
+  size_t SplineSpectrum::size() const
   {
     return packages_.size();
   }

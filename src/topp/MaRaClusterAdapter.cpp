@@ -86,7 +86,8 @@ using namespace std;
   The default value is -10, lower values will result in smaller but purer clusters. If specified peptide search results
   can be provided as idXML files and the MaRaCluster Adapter will annotate cluster ids as attributes to each peptide
   identification, which will be outputed as a merged idXML. Moreover the merged idXML containing only scan numbers,
-  cluster ids and file origin can be outputed without prior peptide identification searches.
+  cluster ids and file origin can be outputed without prior peptide identification searches. The assigned cluster ids in
+  the respective idXML are equal to the scanindex of the produced clustered mzML.
   </p>
 
   <B>The command line parameters of this tool are:</B>
@@ -161,19 +162,28 @@ protected:
   {
     static const bool is_required(true);
     static const bool is_advanced_option(true);
-    
+   
+    //input 
     registerInputFileList_("in", "<files>", StringList(), "Input file(s)", is_required);
     setValidFormats_("in", ListUtils::create<String>("mzML,mgf"));
     registerInputFileList_("id_in", "<files>", StringList(), "Optional idXML Input file(s) in the same order as mzML files - for Maracluster Cluster annotation", !is_required);
     setValidFormats_("id_in", ListUtils::create<String>("idXML"));
+
+    //output
     registerOutputFile_("out", "<file>", "", "Output file in idXML format", !is_required);
     setValidFormats_("out", ListUtils::create<String>("idXML"));
     registerOutputFile_("consensus_out", "<file>", "", "Consensus spectra in mzML format", !is_required);
     setValidFormats_("consensus_out", ListUtils::create<String>("mzML"));
+
+    //pvalue cutoff
     registerDoubleOption_("pcut", "<value>", -10.0, "log(p-value) cutoff, has to be < 0.0. Default: -10.0.", !is_required);
     setMaxFloat_("pcut", 0.0);
     registerIntOption_("min_cluster_size", "<value>", 1, "minimum number of spectra in a cluster for consensus spectra", !is_required);
+
+    // minimal cluster size
     setMinInt_("min_cluster_size", 1);
+
+    // executable
     registerInputFile_("maracluster_executable", "<executable>",
         // choose the default value according to the platform where it will be executed
         #ifdef OPENMS_WINDOWSPLATFORM
@@ -193,6 +203,7 @@ protected:
 
   }
 
+  // read and parse clustering output csv to store specnumber and clusterid associations
   void readMClusterOutputAsMap_(String mcout_file, Map<MaRaClusterResult, Int>& specid_to_clusterid_map, const std::map<String, Int>& filename_to_idx_map)
   {
     CsvFile csv_file(mcout_file, '\t');
@@ -397,6 +408,7 @@ protected:
     readMClusterOutputAsMap_(consensus_output_file, specid_to_clusterid_map, filename_to_file_idx);
     file_idx = 0;
 
+    //output idXML containing scannumber and cluster id annotation
     if (!out.empty())
     {
       const StringList id_in = getStringList_("id_in");
@@ -411,7 +423,8 @@ protected:
             String scan_identifier = getScanIdentifier_(it, peptide_ids.begin());
             Int scan_number = getScanNumber_(scan_identifier);
             MaRaClusterResult res(file_idx, scan_number);
-            Int cluster_id = specid_to_clusterid_map[res];
+            // cluster index - 1 is equal to scan_number in consensus.mzML
+            Int cluster_id = specid_to_clusterid_map[res] - 1;
             it->setMetaValue("cluster_id", cluster_id);
             String filename = in_list[file_idx];
             it->setMetaValue("file_origin", filename);
@@ -430,11 +443,13 @@ protected:
         for (Map<MaRaClusterResult,Int>::iterator sid = specid_to_clusterid_map.begin(); sid != specid_to_clusterid_map.end(); ++sid) {
           Int scan_nr = sid->first.scan_nr;
           Int file_id = sid->first.file_idx;
+          Int cluster_id = sid->second;
           PeptideIdentification pid;
           PeptideHit pih;
           pid.insertHit(pih);
           pid.setMetaValue("spectrum_reference", "scan=" + String(scan_nr));
-          pid.setMetaValue("cluster_id", sid->second);
+          // cluster index - 1 is equal to scan_number in consensus.mzML
+          pid.setMetaValue("cluster_id", cluster_id - 1);
           pid.setMetaValue("file_origin", in_list[file_id]);
           all_peptide_ids.push_back(pid);
         }
@@ -459,6 +474,7 @@ protected:
       IdXMLFile().store(out, all_protein_ids, all_peptide_ids);
     }
 
+    //output consensus mzML
     if (!consensus_out.empty())
     {
       QStringList arguments_consensus;

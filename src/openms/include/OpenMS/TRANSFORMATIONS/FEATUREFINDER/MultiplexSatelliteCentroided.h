@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,66 +32,55 @@
 // $Authors: Lars Nilse $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFilterResult.h>
+#pragma once
 
-using namespace std;
+#include <OpenMS/KERNEL/StandardTypes.h>
+
+#include <map>
+#include <vector>
+#include <algorithm>
+#include <iostream>
 
 namespace OpenMS
 {
-
-  MultiplexFilterResult::MultiplexFilterResult()
+  /**
+   * @brief data structure storing a single satellite peak
+   *
+   * The satellite peak is part of a centroided MSExperiment.
+   * Hence indices rt_idx_ and mz_idx_ are sufficient to specify RT, m/z and intensity.
+   * 
+   * @see MultiplexFilteredPeak, MultiplexSatelliteProfile
+   */
+  class OPENMS_DLLAPI MultiplexSatelliteCentroided
   {
-  }
+    public:
 
-  void MultiplexFilterResult::addFilterResultPeak(double mz, double rt, vector<double> mz_shifts, std::vector<double> intensities, vector<MultiplexFilterResultRaw> raw_data_points)
-  {
-    MultiplexFilterResultPeak peak(mz, rt, mz_shifts, intensities, raw_data_points);
-    result_.push_back(peak);
-  }
-
-  MultiplexFilterResultPeak MultiplexFilterResult::getFilterResultPeak(int i) const
-  {
-    return result_[i];
-  }
-
-  MultiplexFilterResultRaw MultiplexFilterResult::getFilterResultRaw(int i, int j) const
-  {
-    return result_[i].getFilterResultRaw(j);
-  }
-
-  double MultiplexFilterResult::getMZ(int i) const
-  {
-    return result_[i].getMZ();
-  }
-
-  vector<double> MultiplexFilterResult::getMZ() const
-  {
-    vector<double> mz;
-    for (unsigned i = 0; i < result_.size(); ++i)
-    {
-      mz.push_back(result_[i].getMZ());
-    }
-    return mz;
-  }
-
-  double MultiplexFilterResult::getRT(int i) const
-  {
-    return result_[i].getRT();
-  }
-
-  vector<double> MultiplexFilterResult::getRT() const
-  {
-    vector<double> rt;
-    for (unsigned i = 0; i < result_.size(); ++i)
-    {
-      rt.push_back(result_[i].getRT());
-    }
-    return rt;
-  }
-
-  int MultiplexFilterResult::size() const
-  {
-    return result_.size();
-  }
-
+    /**
+     * @brief constructor
+     */
+    MultiplexSatelliteCentroided(size_t rt_idx, size_t mz_idx);
+    
+    /**
+     * @brief returns the m/z index of the satellite peak
+     */
+    size_t getMZidx() const;
+     
+    /**
+     * @brief returns the RT index of the satellite peak
+     */
+    size_t getRTidx() const;
+    
+    private:
+     
+    /**
+     * @brief indices of the satellite peak position in the centroided experiment
+     * 
+     * Spectral index and peak index within the spectrum of the satellite peak.
+     */
+    size_t rt_idx_;
+    size_t mz_idx_;
+    
+  };
+  
 }
+

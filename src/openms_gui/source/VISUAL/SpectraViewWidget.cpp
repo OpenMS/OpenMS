@@ -66,7 +66,7 @@ namespace OpenMS
     ///@improvement write the visibility-status of the columns in toppview.ini and read at start
 
     QStringList qsl; // names of searchable columns
-    qsl << "index" << "RT" << "PC m/z" << "dissociation" << "scan" << "zoom";
+    qsl << "index" << "RT" << "precursor m/z" << "dissociation" << "scan" << "zoom";
 
     QStringList header_labels; /// @improvement make this global to change only once (otherwise changes must be applied in several slots too!)
     header_labels.append(QString("MS level"));
@@ -314,6 +314,20 @@ namespace OpenMS
       parent_stack.push_back(nullptr);
       bool fail = false;
 
+      if (cl.isIonMobilityData())
+      {
+        // replace RT with Ion Mobility as a header
+        QStringList header_labels;
+        header_labels.append(QString("MS level"));
+        header_labels.append(QString("index"));
+        header_labels.append(QString("Ion Mobility"));
+        header_labels.append(QString("precursor m/z"));
+        header_labels.append(QString("dissociation"));
+        header_labels.append(QString("scan type"));
+        header_labels.append(QString("zoom"));
+        spectra_treewidget_->setHeaderLabels(header_labels);
+      }
+
       for (Size i = 0; i < cl.getPeakData()->size(); ++i)
       {
         const MSSpectrum& current_spec = (*cl.getPeakData())[i];
@@ -382,16 +396,16 @@ namespace OpenMS
 
         if (!current_precursors.empty() || current_spec.metaValueExists("analyzer scan offset"))
         {
-          double pc_val;
+          double precursor_mz;
           if (current_spec.metaValueExists("analyzer scan offset"))
           {
-            pc_val = current_spec.getMetaValue("analyzer scan offset");
+            precursor_mz = current_spec.getMetaValue("analyzer scan offset");
             item->setText(4, "-");
           }
           else 
           {
             const Precursor& current_pc = current_precursors[0];
-            pc_val = current_pc.getMZ();
+            precursor_mz = current_pc.getMZ();
             if (!current_pc.getActivationMethods().empty())
             {
               QString t;
@@ -410,7 +424,7 @@ namespace OpenMS
               item->setText(4, "-");
             }
           }
-          item->setText(3, QString::number(pc_val));
+          item->setText(3, QString::number(precursor_mz));
         }
         else
         {
