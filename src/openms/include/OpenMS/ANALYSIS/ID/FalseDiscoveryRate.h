@@ -182,7 +182,7 @@ private:
           }
           else
           {
-            return std::string(hit.getMetaValue("target_decoy"))[0] != 't';
+            return std::string(hit.getMetaValue("target_decoy"))[0] == 't';
           }
       }
     };

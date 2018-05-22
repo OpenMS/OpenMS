@@ -76,9 +76,9 @@ namespace OpenMS
     //typedefs
     //typedef ProteinIdentification::ProteinGroup ProteinGroup;
 
-    typedef boost::variant<PeptideHit*, ProteinHit*, ProteinGroup*, PeptideCluster*> IDPointer;
-    typedef boost::variant<const PeptideHit*, const ProteinHit*, const ProteinGroup*, const PeptideCluster*> IDPointerConst;
-    //TODO check the impact of different datastructures to store nodes/edges
+    typedef boost::variant<ProteinHit*, ProteinGroup*, PeptideCluster*, PeptideHit*> IDPointer;
+    typedef boost::variant<const ProteinHit*, const ProteinGroup*, const PeptideCluster*, const PeptideHit*> IDPointerConst;
+    //TODO check the impact of different datastructures to store nodes/edges (maybe also use directed graph?)
     typedef boost::adjacency_list <boost::setS, boost::vecS, boost::undirectedS, IDPointer> Graph;
     typedef boost::adjacency_list <boost::setS, boost::vecS, boost::undirectedS, IDPointerConst> GraphConst;
     typedef boost::graph_traits<Graph>::vertex_descriptor vertex_t;
@@ -164,6 +164,7 @@ namespace OpenMS
 
       void operator()(ProteinHit* prot, double posterior) const
       {
+        std::cout << "set score " << posterior << " for " << prot->getAccession() << std::endl;
         prot->setScore(posterior);
       }
 
@@ -182,17 +183,44 @@ namespace OpenMS
 
     /// Visits nodes in the boost graph (ptrs to an ID Object) and depending on their type creates a random
     /// variable or "Dependency" to add into the InferenceGraph
-/*    class RVVisitor:
+    /*class DependencyVisitor:
         public boost::static_visitor<Dependency>
     {
     public:
+      const MessagePasserFactory& mpf;
 
-      Dependency operator()(const PeptideHit* pep, const std::vector<vertex_t>& neighbors) const
+      DependencyVisitor(const MessagePasserFactory& mpf):
+      mpf(mpf)
+      {}
+
+      Dependency operator()(const PeptideHit* pep, const std::vector<vertex_t>& neighbors, const FilteredGraph& fg) const
+      {
+        std::vector<IDBoostGraph::vertex_t> incoming{};
+        for (const auto& nb : neighbors)
+        {
+          if (fg[nb].which() <= 2)
+          {
+            incoming.push_back(nb);
+          }
+        }
+        if (incoming.size() != 1)
+        {
+          std::cerr << "Incoming nodes for pep are more than 1. Sth went wrong." << std::endl;
+        }
+        return mpf.createPeptideEvidenceFactor()
+      }
+
+      Dependency operator()(const ProteinHit* prot, const std::vector<vertex_t>& neighbors, const FilteredGraph& fg) const
+      {
+        return prot->getAccession();
+      }
+
+      Dependency operator()(const PeptideCluster* pc, const std::vector<vertex_t>& neighbors, const FilteredGraph& fg) const
       {
         return pep->getSequence().toUnmodifiedString();
       }
 
-      Dependency operator()(const ProteinHit* prot, const std::vector<vertex_t>& neighbors) const
+      Dependency operator()(const ProteinGroup* pg, const std::vector<vertex_t>& neighbors, const FilteredGraph& fg) const
       {
         return prot->getAccession();
       }

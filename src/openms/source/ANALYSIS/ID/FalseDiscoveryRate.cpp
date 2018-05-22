@@ -824,7 +824,10 @@ namespace OpenMS
     std::vector<std::pair<double,bool>> scores_labels;
     getScores_(scores_labels, ids);
     std::sort(scores_labels.rbegin(), scores_labels.rend());
-    return diffEstimatedEmpirical_(scores_labels, pepCutoff) * diffWeight + rocN_(scores_labels, fpCutoff) * (1 - diffWeight);
+    double diff = diffEstimatedEmpirical_(scores_labels, pepCutoff);
+    double auc = rocN_(scores_labels, fpCutoff);
+    std::cout << "eval diff= " << diff << " and rocN= " << auc << std::endl;
+    return diff * diffWeight + auc * (1 - diffWeight);
   }
 
 
@@ -834,7 +837,7 @@ namespace OpenMS
     double diffArea = 0.0;
     double est = 0.0, estPrev = 0.0, emp = 0.0, empPrev = 0.0;
     double pepSum = 0.0;
-    UInt truePos = 0u, falsePos = 0u, truePosPrev = 0u, falsePosPrev = 0u;
+    UInt truePos = 0u, falsePos = 0u; //, truePosPrev = 0u, falsePosPrev = 0u;
 
     auto pit = scores_labels.cbegin();
     for (; pit != scores_labels.end()-1; ++pit)
@@ -849,8 +852,8 @@ namespace OpenMS
         emp = static_cast<double>(falsePos) / (truePos + falsePos);
         diffArea += trapezoidal_area_xEqy(estPrev, est, empPrev, emp);
 
-        truePosPrev = truePos;
-        falsePosPrev = falsePos;
+        //truePosPrev = truePos;
+        //falsePosPrev = falsePos;
         estPrev = est;
         empPrev = emp;
       }
@@ -862,7 +865,9 @@ namespace OpenMS
     est = pepSum / (truePos + falsePos);
     emp = static_cast<double>(falsePos) / (truePos + falsePos);
     diffArea += trapezoidal_area_xEqy(estPrev, est, empPrev, emp);
-    diffArea /= std::min(est, pepCutoff); //scale by max PEP value achievable (= width); height = empFDR can be 1.0
+
+    //scale by max PEP value achievable (= width); height = empFDR can be 1.0
+    diffArea /= std::min(est, pepCutoff);
 
     return diffArea;
   }
@@ -870,14 +875,12 @@ namespace OpenMS
   double FalseDiscoveryRate::rocN_(const std::vector<std::pair<double, bool>>& scores_labels, UInt fpCutoff)
   {
     double rocN = 0.0;
-    double pepSum = 0.0;
     UInt truePos = 0u, falsePos = 0u, truePosPrev = 0u, falsePosPrev = 0u;
 
     auto pit = scores_labels.cbegin();
-    for (; pit != scores_labels.end()-1; ++pit)
+    for (; pit != scores_labels.cend()-1; ++pit)
     {
       pit->second ? truePos++ : falsePos++;
-      pepSum += (1 - pit->first);
 
       //Look ahead. Running variables have already been incremented
       if ((pit+1)->first != pit->first)
@@ -891,9 +894,9 @@ namespace OpenMS
 
     //Last item if not returned. Always add areas there
     pit->second ? truePos++ : falsePos++;
-    pepSum += (1 - pit->first);
     rocN += trapezoidal_area(falsePos, falsePosPrev, truePos, truePosPrev);
 
+    if (falsePos == 0) return 1;
     return rocN / (falsePos * truePos);
   }
 
@@ -1015,7 +1018,7 @@ namespace OpenMS
     scores_labels.reserve(scores_labels.size() + id.getHits().size());
     std::transform(id.getHits().begin(), id.getHits().end(),
                    std::back_inserter(scores_labels),
-                   [&](const ProteinHit& hit) { return std::make_pair<double,bool>(hit.getScore(), std::string(hit.getMetaValue("target_decoy"))[0] != 't'); });
+                   [&](const ProteinHit& hit) { return std::make_pair<double,bool>(hit.getScore(), std::string(hit.getMetaValue("target_decoy"))[0] == 't'); });
 
   }
 
@@ -1055,14 +1058,14 @@ namespace OpenMS
       {
         for (const PeptideHit& hit : id.getHits())
         {
-          if (charge == 0 || charge == hit.getCharge()) scores_labels.push_back(getScoreLabel_(hit, FalseDiscoveryRate::FalseFunctor<const PeptideHit&>()));
+          if (charge == 0 || charge == hit.getCharge()) scores_labels.push_back(getScoreLabel_(hit, FalseDiscoveryRate::TrueFunctor<const PeptideHit&>()));
         }
       }
       else
       {
         //TODO for speed I assume that they are sorted and first = best.
         //id.sort();
-        if (charge == 0 || charge == id.getHits()[0].getCharge()) scores_labels.push_back(getScoreLabel_(id.getHits()[0], FalseDiscoveryRate::FalseFunctor<const PeptideHit&>()));
+        if (charge == 0 || charge == id.getHits()[0].getCharge()) scores_labels.push_back(getScoreLabel_(id.getHits()[0], FalseDiscoveryRate::TrueFunctor<const PeptideHit&>()));
       }
     }
 
@@ -1074,14 +1077,14 @@ namespace OpenMS
       {
         for (const PeptideHit& hit : id.getHits())
         {
-          if (charge == 0 || charge == hit.getCharge()) scores_labels.push_back(getScoreLabel_(hit, FalseDiscoveryRate::TrueFunctor<const PeptideHit&>()));
+          if (charge == 0 || charge == hit.getCharge()) scores_labels.push_back(getScoreLabel_(hit, FalseDiscoveryRate::FalseFunctor<const PeptideHit&>()));
         }
       }
       else
       {
         //TODO for speed I assume that they are sorted.
         //id.sort();
-        if (charge == 0 || charge == id.getHits()[0].getCharge()) scores_labels.push_back(getScoreLabel_(id.getHits()[0], FalseDiscoveryRate::TrueFunctor<const PeptideHit&>()));
+        if (charge == 0 || charge == id.getHits()[0].getCharge()) scores_labels.push_back(getScoreLabel_(id.getHits()[0], FalseDiscoveryRate::FalseFunctor<const PeptideHit&>()));
       }
     }
 
