@@ -191,13 +191,24 @@ public:
       // no decoy string provided? try to deduce from data
       if (decoy_string_.empty())
       {
-        if (!findDecoyString_(proteins, decoy_string_, prefix_))
+        bool is_decoy_string_auto_successful = findDecoyString_(proteins);
+
+        if (!is_decoy_string_auto_successful && contains_decoys_)
         {
           return DECOYSTRING_EMPTY;
         }
-        LOG_INFO << "Using " << (prefix_ ? "prefix" : "suffix") << " decoy string '" << decoy_string_ << "'" << std::endl;
+        else if (!is_decoy_string_auto_successful && !contains_decoys_)
+        {
+          LOG_WARN << "Unable to determine decoy string automatically, not enough decoys were detected! Using default " << (prefix_ ? "prefix" : "suffix") << " decoy string '" << decoy_string_ << "\n"
+                   << "If you think that this is false, please provide a decoy_string and its position manually!" << std::endl;
+        }
+        else
+        {
+          // decoy string and position was extracted successfully
+          LOG_INFO << "Using " << (prefix_ ? "prefix" : "suffix") << " decoy string '" << decoy_string_ << "'" << std::endl;
+        }
 
-        proteins.reset(); // reset caching
+        proteins.reset();
       }
 
       //-------------------------------------------------------------
@@ -702,9 +713,7 @@ public:
      using CaseInsensitiveToCaseSensitiveDecoy = std::map<std::string, std::string>;
 
      template<typename T>
-     bool findDecoyString_(FASTAContainer<T>& proteins,
-                                std::string& decoy_string,
-                                bool& is_prefix)
+     bool findDecoyString_(FASTAContainer<T>& proteins)
      {
        // Common decoy strings in fasta files
        // Note: decoy prefixes/suffices must be provided in lower case and must only contain alphanumeric characters
@@ -785,6 +794,15 @@ public:
        // DEBUG only: print counts of found decoys
        for (auto &a : decoy_count) LOG_DEBUG << a.first << "\t" << a.second.first << "\t" << a.second.second << std::endl;
 
+       // less than 40% of proteins are decoys -> won't be able to determine a decoy string and a position
+       if (all_prefix_occur + all_suffix_occur < 0.4 * all_proteins_count) {
+         decoy_string_ = "DECOY_";
+         prefix_ = true;
+
+         contains_decoys_ = false;
+         return false;
+       }
+
        if (all_prefix_occur == all_suffix_occur)
        {
          LOG_ERROR << "Unable to determine decoy string!" << std::endl;
@@ -801,8 +819,8 @@ public:
 
          if (freq_prefix > 0.8 && freq_prefix_in_proteins > 0.4)
          {
-           is_prefix = true;
-           decoy_string = decoy_case_sensitive[case_insensitive_decoy_string];
+           prefix_ = true;
+           decoy_string_ = decoy_case_sensitive[case_insensitive_decoy_string];
 
            if (prefix_suffix_counts.first != all_prefix_occur)
            {
@@ -824,8 +842,8 @@ public:
 
          if (freq_suffix > 0.8 && freq_suffix_in_proteins > 0.4)
          {
-           is_prefix = false;
-           decoy_string = decoy_case_sensitive[case_insensitive_decoy_string];
+           prefix_ = false;
+           decoy_string_ = decoy_case_sensitive[case_insensitive_decoy_string];
 
            if (prefix_suffix_counts.second != all_suffix_occur)
            {
@@ -837,8 +855,8 @@ public:
          }
        }
 
-         LOG_ERROR << "Unable to determine decoy string" << std::endl;
-         return false;
+       LOG_ERROR << "Unable to determine decoy string and its position. Please provide a decoy string and its position as parameters." << std::endl;
+       return false;
      }
 
 
@@ -971,6 +989,7 @@ public:
 
     String decoy_string_;
     bool prefix_;
+    bool contains_decoys_;
     String missing_decoy_action_;
     String enzyme_name_;
     String enzyme_specificity_;
