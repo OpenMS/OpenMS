@@ -204,19 +204,6 @@ protected:
     registerIntOption_(TOPPXFDR::param_minscore, "<minscore>", 0, "Minimum score to be considered for FDR calculation", false);
   }
 
-  void checkDeltaScore()
-  {
-    for (auto cls : this->specref_to_rank_to_pepidx)
-    {
-      map<Size,Size> ranks = cls.second;
-      for (auto rank : ranks)
-      {
-        vector<PeptideHit> &hits = this->all_pep_ids[rank.second].getHits();
-        cout << rank.first << "\t" << hits[0].getMetaValue("delta_score") << std::endl;
-      }
-    }
-  }
-
     /**
    * @brief Prepares vector of PeptideIdentification such that it can be processed downstream.
    * The encompassed steps are:
@@ -307,16 +294,6 @@ protected:
       }
       assignTypes(pep_id, this->cross_link_classes[i]);
     }
-
-    // Sort the rank_one index vector by the score
-//    std::sort(this->rank_one_pep_idx.begin(), this->rank_one_pep_idx.end(),
-//
-//        [this](const Size &index1, const Size& index2) -> bool
-//        {
-//            return ( getCrosslinkScore(all_pep_ids[index1]) > getCrosslinkScore(all_pep_ids[index2]));
-//        }
-//    );
-
   }
 
 
@@ -480,9 +457,7 @@ protected:
     }
   }
 
-
-
-    // the main_ function is called after all parameters are read
+  // the main_ function is called after all parameters are read
   ExitCodes main_(int, const char **) final
   {
     // Tool Arguments
@@ -524,7 +499,6 @@ protected:
       const Size min_ions_matched = getMinIonsMatched(pep_id);
       const String id = getId(pep_id);
 
-
       // Only consider peptide identifications which  fullfill all filter criteria specified by the user
       if (   (arg_minborder == -1 || arg_minborder <= error_rel)   // minborder disabled or fullfilled
           && (arg_maxborder == -1 || arg_maxborder >= error_rel)   // maxborder disabled or fullfilled
@@ -538,7 +512,6 @@ protected:
 
         for (const String &cross_link_class : this->cross_link_classes[idx])
         {
-
           scores[cross_link_class].push_back(score);
         }
       }
@@ -552,7 +525,6 @@ protected:
     {
       writeLog_(score.first + ": " + score.second.size());
     }
-
 
     // Generate Histograms of the scores for each class
     // Use cumulative histograms to count the number of scores above consecutive thresholds
@@ -573,7 +545,6 @@ protected:
     // Calculate FDR for intralinks
     vector< double > fdr_intralinks;
     this->fdr_xprophet(cum_histograms, TOPPXFDR::crosslink_class_intralinks, TOPPXFDR::crosslink_class_intradecoys, TOPPXFDR::crosslink_class_fulldecoysintralinks, fdr_intralinks, false);
-
 
     // Calculate FDR for monolinks and looplinks
     vector< double > fdr_monolinks;
@@ -665,6 +636,7 @@ protected:
         LOG_WARN << "WARNING: Crosslink could not be identified as either interlink, intralink, or monolink, so no FDR will be available." << endl;
       }
     }
+
     // Write idXML
     if ( ! arg_out_idXML.empty())
     {
@@ -681,7 +653,6 @@ protected:
     {
       XQuestResultXMLFile().store(arg_out_xquest, all_prot_ids, all_pep_ids);
     }
-//  checkDeltaScore();
     return EXECUTION_OK;
   }
 
@@ -729,7 +700,7 @@ private:
 
   bool validateDataStructures() const
   {
-    // Ensure that we have as many rank one pep ids as spectr
+    // Ensure that we have as many rank one pep ids as spectra
     if (this->rank_one_pep_idx.size() != this->specref_to_rank_to_pepidx.size())
     {
       logFatal("Not each spectrum has a number one ranked peptide.");
