@@ -54,7 +54,7 @@ class TestHandler
 {
   public:
   	
-		TestHandler(const String& name)
+		explicit TestHandler(const String& name)
 			: DefaultParamHandler(name)
 		{
 			defaults_.setValue("int",0,"intdesc");

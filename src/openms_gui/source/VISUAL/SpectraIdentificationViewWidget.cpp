@@ -967,7 +967,7 @@ namespace OpenMS
       hits[num_ph].setMetaValue("selected", sel);
     }
     pep_id[num_id].setHits(hits);
-    (*layer_->getPeakData())[spectrum_index].setPeptideIdentifications(pep_id);
+    (*layer_->getPeakDataMuteable())[spectrum_index].setPeptideIdentifications(pep_id);
 
   }
 

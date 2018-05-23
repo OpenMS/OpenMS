@@ -793,6 +793,7 @@ protected:
       // Extract required attributes of the peptide_identification (filter criteria)
       PeptideIdentification & pep_id = all_ids[rank_one_ids[order_score[i]]];
 
+      assert(delta_scores.size() > rank_one_ids[order_score[i]]);
       double delta_score = delta_scores[rank_one_ids[order_score[i]]];
       Size ions_matched = n_min_ions_matched[order_score[i]];
 

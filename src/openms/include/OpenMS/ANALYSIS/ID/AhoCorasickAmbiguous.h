@@ -43,7 +43,7 @@
 #ifdef NDEBUG
 #define DEBUG_ONLY if (false)
 #else
-#define DEBUG_ONLY if (true)
+#define DEBUG_ONLY if (false)
 #endif
 
 // the SeqAn implementation comes first. To use the OpenMS interface, see below.

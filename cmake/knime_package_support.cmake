@@ -110,6 +110,8 @@ endforeach()
 # e.g. paths to executables that we ship and whose directories are in path environment
 add_custom_target(
   final_ctds
+  # MaRaClusterAdapter
+  COMMAND ${CMAKE_COMMAND} -D SCRIPT_DIR=${SCRIPT_DIRECTORY} -DTOOLNAME=MaRaClusterAdapter -DPARAM=maracluster_executable -D CTD_PATH=${CTD_PATH} -P ${SCRIPT_DIRECTORY}remove_parameter_from_ctd.cmake
   # OMSSAAdapter
   COMMAND ${CMAKE_COMMAND} -D SCRIPT_DIR=${SCRIPT_DIRECTORY} -DTOOLNAME=OMSSAAdapter -DPARAM=omssa_executable -D CTD_PATH=${CTD_PATH} -P ${SCRIPT_DIRECTORY}remove_parameter_from_ctd.cmake
   # CruxAdapter

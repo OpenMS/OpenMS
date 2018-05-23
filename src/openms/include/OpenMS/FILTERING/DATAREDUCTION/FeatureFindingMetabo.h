@@ -284,6 +284,8 @@ e conditions are fulfilled. Mainly the
     bool use_mz_scoring_C13_;
     bool report_convex_hulls_;
     bool report_chromatograms_;
+
+    bool remove_single_traces_;
   };
 
 }

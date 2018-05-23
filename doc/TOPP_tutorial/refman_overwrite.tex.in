@@ -44,7 +44,7 @@
 \begin{titlepage}
 \vspace*{7cm}
 \begin{center}
-{\Large TOPP and TOPPView Tutorial\\[1ex]\large Version: @CF_OPENMS_PACKAGE_VERSION@ }\\
+{\Large TOPP and TOPPView Tutorial\\[1ex]\large Version: @CF_OPENMS_PACKAGE_VERSION_FULLSTRING@ }\\
 \end{center}
 \end{titlepage}
 

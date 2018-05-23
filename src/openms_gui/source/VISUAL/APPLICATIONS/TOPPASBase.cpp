@@ -36,6 +36,7 @@
 #include <cstdlib>
 
 #include <OpenMS/VISUAL/APPLICATIONS/TOPPASBase.h>
+#include <OpenMS/VISUAL/APPLICATIONS/MISC/QApplicationTOPP.h>
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/CONCEPT/VersionInfo.h>
@@ -1114,40 +1115,7 @@ namespace OpenMS
 
   void TOPPASBase::showAboutDialog()
   {
-    //dialog and grid layout
-    QDialog* dlg = new QDialog(this);
-    QGridLayout* grid = new QGridLayout(dlg);
-    dlg->setWindowTitle("About TOPPAS");
-
-    QLabel* label = new QLabel(dlg);
-    label->setPixmap(QPixmap(":/TOPP_about.png"));
-    grid->addWidget(label, 0, 0);
-
-    //text
-    QString text = QString("<BR>"
-                           "<FONT size=+3>TOPPAS</font><BR>"
-                           "<BR>"
-                           "Version: %1%2<BR>"
-                           "<BR>"
-                           "OpenMS and TOPP is free software available under the<BR>"
-                           "BSD 3-Clause Licence (BSD-new)<BR>"
-                           "<BR>"
-                           "<BR>"
-                           "<BR>"
-                           "<BR>"
-                           "<BR>"
-                           "Any published work based on TOPP and OpenMS shall cite these papers:<BR>"
-                           "Sturm et al., BMC Bioinformatics (2008), 9, 163<BR>"
-                           "Kohlbacher et al., Bioinformatics (2007), 23:e191-e197<BR>"
-                           ).arg(VersionInfo::getVersion().toQString()
-                           ).arg( // if we have a revision, embed it also into the shown version number
-                              VersionInfo::getRevision() != "" ? QString(" (") + VersionInfo::getRevision().toQString() + ")" : "");
-    
-    QLabel* text_label = new QLabel(text, dlg);
-    grid->addWidget(text_label, 0, 1, Qt::AlignTop | Qt::AlignLeft);
-
-    //execute
-    dlg->exec();
+    QApplicationTOPP::showAboutDialog(this, "TOPPAS");
   }
 
   void TOPPASBase::updateMenu()

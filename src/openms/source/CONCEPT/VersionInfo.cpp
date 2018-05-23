@@ -31,7 +31,9 @@
 // $Maintainer: Chris Bielow $
 // $Authors: Clemens Groepl, Chris Bielow $
 // --------------------------------------------------------------------------
+
 #include <OpenMS/CONCEPT/VersionInfo.h>
+
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/CONCEPT/Exception.h>
 
@@ -49,16 +51,20 @@ namespace OpenMS
 
   bool VersionInfo::VersionDetails::operator<(const VersionInfo::VersionDetails & rhs) const
   {
-    return (this->version_major  < rhs.version_major)
-           || (this->version_major == rhs.version_major && this->version_minor  < rhs.version_minor)
-           || (this->version_major == rhs.version_major && this->version_minor == rhs.version_minor && this->version_patch < rhs.version_patch);
+    return (this->version_major < rhs.version_major)
+           || (this->version_major == rhs.version_major && this->version_minor < rhs.version_minor)
+           || (this->version_major == rhs.version_major && this->version_minor == rhs.version_minor && this->version_patch < rhs.version_patch)
+           // note: if one version is pre-release, then it should compare as "less than"
+           || (this->version_major == rhs.version_major && this->version_minor == rhs.version_minor && this->version_patch == rhs.version_patch && 
+                (!this->pre_release_identifier.empty() && rhs.pre_release_identifier.empty()) );
   }
 
   bool VersionInfo::VersionDetails::operator==(const VersionInfo::VersionDetails & rhs) const
   {
     return this->version_major == rhs.version_major &&
       this->version_minor == rhs.version_minor &&
-      this->version_patch == rhs.version_patch;
+      this->version_patch == rhs.version_patch &&
+      this->pre_release_identifier == rhs.pre_release_identifier;
   }
 
   bool VersionInfo::VersionDetails::operator!=(const VersionInfo::VersionDetails & rhs) const
@@ -78,7 +84,9 @@ namespace OpenMS
     size_t first_dot = version.find('.');
     // we demand at least one "."
     if (first_dot == string::npos)
+    {
       return VersionInfo::VersionDetails::EMPTY;
+    }
 
     try
     {
@@ -102,18 +110,27 @@ namespace OpenMS
 
     // if there is no second dot: return
     if (second_dot == string::npos)
+    {
       return result;
+    }
 
-    // returns npos if no third "." is found - which does not hurt
-    size_t third_dot = version.find('.', second_dot + 1);
+    // returns npos if no final pre-release dash "-" is found - which does not hurt
+    size_t pre_release_dash = version.find('-', second_dot + 1);
     try
     {
-      result.version_patch = String(version.substr(second_dot + 1, third_dot - (second_dot + 1))).toInt();
+      result.version_patch = String(version.substr(second_dot + 1, pre_release_dash - (second_dot + 1))).toInt();
     }
     catch (Exception::ConversionError & /*e*/)
     {
       return VersionInfo::VersionDetails::EMPTY;
     }
+
+    if (pre_release_dash == string::npos)
+    {
+      return result;
+    }
+
+    result.pre_release_identifier = String(version.substr(pre_release_dash + 1, version.size() - (pre_release_dash + 1)));
 
     return result;
   }

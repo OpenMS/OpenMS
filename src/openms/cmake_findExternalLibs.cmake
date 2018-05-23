@@ -155,7 +155,7 @@ find_package(Qt5 COMPONENTS ${OpenMS_QT_COMPONENTS} REQUIRED)
 
 IF (NOT Qt5Core_FOUND)
   message(STATUS "QT5Core not found!")
-	message(FATAL_ERROR "To find a custom Qt installation use: cmake <..more options..> -D QT_QMAKE_EXECUTABLE='<path_to_qmake(.exe)' <src-dir>")
+  message(FATAL_ERROR "To find a custom Qt installation use: cmake <..more options..> -DCMAKE_PREFIX_PATH='<path_to_parent_folder_of_lib_folder_withAllQt5Libs>' <src-dir>")
 ENDIF()
 
 

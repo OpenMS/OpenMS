@@ -173,11 +173,11 @@ namespace OpenMS
     << element.average_weight_ << " "
     << element.mono_weight_;
 
-    for (IsotopeDistribution::ConstIterator it = element.isotopes_.begin(); it != element.isotopes_.end(); ++it)
+    for (const auto& isotope : element.isotopes_)
     {
-      if (it->second > 0.0f)
+      if (isotope.getIntensity() > 0.0f)
       {
-        os << " " << it->first << "=" << it->second * 100 << "%";
+        os << " " << isotope.getPosition() << "=" << isotope.getIntensity() * 100 << "%";
       }
     }
     return os;

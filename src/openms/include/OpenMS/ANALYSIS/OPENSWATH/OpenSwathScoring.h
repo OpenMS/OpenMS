@@ -65,12 +65,15 @@ namespace OpenMS
     bool use_elution_model_score_;
     bool use_intensity_score_;
     bool use_total_xic_score_;
+    bool use_total_mi_score_;
     bool use_nr_peaks_score_;
     bool use_sn_score_;
+    bool use_mi_score_;
     bool use_dia_scores_;
     bool use_sonar_scores;
     bool use_ms1_correlation;
     bool use_ms1_fullscan;
+    bool use_ms1_mi;
     bool use_uis_scores;
     
     OpenSwath_Scores_Usage() :
@@ -81,12 +84,15 @@ namespace OpenMS
       use_elution_model_score_(true),
       use_intensity_score_(true),
       use_total_xic_score_(true),
+      use_total_mi_score_(true),
       use_nr_peaks_score_(true),
       use_sn_score_(true),
+      use_mi_score_(true),
       use_dia_scores_(true),
       use_sonar_scores(true),
       use_ms1_correlation(true),
       use_ms1_fullscan(true),
+      use_ms1_mi(true),
       use_uis_scores(true)
     {}
 
@@ -125,8 +131,13 @@ namespace OpenMS
     int ind_num_transitions;
     std::string ind_transition_names;
     std::string ind_area_intensity;
+    std::string ind_total_area_intensity;
+    std::string ind_intensity_score;
     std::string ind_apex_intensity;
+    std::string ind_total_mi;
     std::string ind_log_intensity;
+    std::string ind_intensity_ratio;
+    std::string ind_mi_ratio;
 
     double weighted_coelution_score;
     double weighted_xcorr_shape;
@@ -137,6 +148,7 @@ namespace OpenMS
     double ms1_ppm_score;
     double ms1_isotope_correlation;
     double ms1_isotope_overlap;
+    double ms1_mi_score;
 
     double sonar_sn;
     double sonar_diff;
@@ -151,6 +163,9 @@ namespace OpenMS
     double total_xic;
     double nr_peaks;
     double sn_ratio;
+    double mi_score;
+    std::string ind_mi_score;
+    double weighted_mi_score;
 
     double rt_difference;
     double normalized_experimental_rt;
@@ -182,7 +197,14 @@ namespace OpenMS
       ind_log_sn_score(""),
       ind_num_transitions(0),
       ind_transition_names(""),
+      ind_area_intensity(""),
+      ind_total_area_intensity(""),
+      ind_intensity_score(""),
+      ind_apex_intensity(""),
+      ind_total_mi(""),
       ind_log_intensity(""),
+      ind_intensity_ratio(""),
+      ind_mi_ratio(""),
       weighted_coelution_score(0),
       weighted_xcorr_shape(0),
       weighted_massdev_score(0),
@@ -191,6 +213,7 @@ namespace OpenMS
       ms1_ppm_score(0),
       ms1_isotope_correlation(0),
       ms1_isotope_overlap(0),
+      ms1_mi_score(0),
       sonar_sn(0),
       sonar_diff(0),
       sonar_trend(0),
@@ -203,6 +226,9 @@ namespace OpenMS
       total_xic(0),
       nr_peaks(0),
       sn_ratio(0),
+      mi_score(0),
+      ind_mi_score(""),
+      weighted_mi_score(0),
       dotprod_score_dia(0),
       manhatt_score_dia(0)
     {

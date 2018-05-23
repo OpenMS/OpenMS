@@ -60,7 +60,7 @@ public:
     /// Destructor
     ~QApplicationTOPP() override;
 
-    /*
+    /**
       @brief: Catch exceptions in Qt GUI applications, preventing ungraceful exit
 
       Re-implementing QApplication::notify() to catch exception thrown in event
@@ -68,10 +68,19 @@ public:
     */
     bool notify(QObject* rec, QEvent* ev) override;
 
-    /*
+    /**
       Reimplemented from QApplication, to handle QEvent::FileOpen to enable handling of odoc event on MacOSX
     */
     bool event(QEvent*) override;
+
+    /**
+      @brief Show the About-Dialog with License and Citation for all GUI tools
+
+      @param parent Parent widget (usually 'this')
+      @param toolname name of the tool (used as heading)
+    */
+    static void showAboutDialog(QWidget* parent, const QString& toolname);
+
 
 signals:
     void fileOpen(QString file);

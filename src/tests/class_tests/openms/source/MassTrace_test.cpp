@@ -452,9 +452,6 @@ test_mt.setSmoothedIntensities(smoothed_ints);
 
 START_SECTION((double getIntensity(bool smoothed) const))
 {
-  TEST_EXCEPTION(Exception::InvalidValue, test_mt.getIntensity(true));
-  TEST_EXCEPTION(Exception::InvalidValue, test_mt.getIntensity(false));
-
   test_mt.estimateFWHM(true);
 
   double smoothed_area = test_mt.getIntensity(true);
@@ -511,7 +508,7 @@ test_mt2.updateWeightedMeanMZ();
 START_SECTION((double getFWHM() const))
 {
   double test_mt_fwhm = test_mt.getFWHM();
-  TEST_REAL_SIMILAR(test_mt_fwhm, 4.01);
+  TEST_REAL_SIMILAR(test_mt_fwhm, 3.05481743986255);
 }
 END_SECTION
                                          
@@ -600,8 +597,8 @@ START_SECTION((double estimateFWHM(bool use_smoothed_ints = false)))
   double test_fwhm1 = test_mt.estimateFWHM(false);
   double test_fwhm2 = test_mt.estimateFWHM(true);
 
-  TEST_REAL_SIMILAR(test_fwhm1, 4.01);
-  TEST_REAL_SIMILAR(test_fwhm2, 4.01);
+  TEST_REAL_SIMILAR(test_fwhm1, 3.07921244222942);
+  TEST_REAL_SIMILAR(test_fwhm2, 3.05481743986255);
 }
 END_SECTION
 

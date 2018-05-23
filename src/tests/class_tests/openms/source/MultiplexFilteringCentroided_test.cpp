@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -35,17 +35,15 @@
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/test_config.h>
 
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFilterResult.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFilterResultRaw.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFilterResultPeak.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFilteringCentroided.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFilteredMSExperiment.h>
 
 using namespace OpenMS;
 
 START_TEST(MultiplexFilteringCentroided, "$Id$")
 
 // read data
-PeakMap exp;
+MSExperiment exp;
 MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("MultiplexFiltering.mzML"), exp);
 exp.updateRanges();
 
@@ -58,21 +56,22 @@ picker.setParameters(param);
 std::vector<PeakPickerHiRes::PeakBoundary> boundaries;
 std::vector<std::vector<PeakPickerHiRes::PeakBoundary> > boundaries_exp_s;
 std::vector<std::vector<PeakPickerHiRes::PeakBoundary> > boundaries_exp_c;
-PeakMap exp_picked;
+MSExperiment exp_picked;
 picker.pickExperiment(exp, exp_picked, boundaries_exp_s, boundaries_exp_c);
 
 // set parameters
 int charge_min = 1;
 int charge_max = 4;
-int peaks_per_peptide_min = 3;
-int peaks_per_peptide_max = 6;
-bool missing_peaks = false;
+int isotopes_per_peptide_min = 3;
+int isotopes_per_peptide_max = 6;
 double intensity_cutoff = 10.0;
+double rt_band = 3;
+double mz_tolerance = 40;
+bool mz_tolerance_unit = true;    // ppm (true), Da (false)
 double peptide_similarity = 0.8;
 double averagine_similarity = 0.75;
 double averagine_similarity_scaling = 0.75;
-double mz_tolerance = 40;
-bool mz_tolerance_unit = true;    // ppm (true), Da (false)
+String averagine_type="peptide";
 
 // construct list of peak patterns
 MultiplexDeltaMasses shifts1;
@@ -87,33 +86,33 @@ shifts2.getDeltaMasses().push_back(MultiplexDeltaMasses::DeltaMass(2*8.044370279
 std::vector<MultiplexIsotopicPeakPattern> patterns;
 for (int c = charge_max; c >= charge_min; --c)
 {
-    MultiplexIsotopicPeakPattern pattern1(c, peaks_per_peptide_max, shifts1, 0);
+    MultiplexIsotopicPeakPattern pattern1(c, isotopes_per_peptide_max, shifts1, 0);
     patterns.push_back(pattern1);
-    MultiplexIsotopicPeakPattern pattern2(c, peaks_per_peptide_max, shifts2, 1);
+    MultiplexIsotopicPeakPattern pattern2(c, isotopes_per_peptide_max, shifts2, 1);
     patterns.push_back(pattern2);
 }
 
 MultiplexFilteringCentroided* nullPointer = nullptr;
 MultiplexFilteringCentroided* ptr;
 
-START_SECTION(MultiplexFilteringCentroided(const PeakMap& exp_picked, const std::vector<MultiplexIsotopicPeakPattern> patterns, int peaks_per_peptide_min, int peaks_per_peptide_max, bool missing_peaks, double intensity_cutoff, double mz_tolerance, bool mz_tolerance_unit, double peptide_similarity, double averagine_similarity, double averagine_similarity_scaling))
-    MultiplexFilteringCentroided filtering(exp_picked, patterns, peaks_per_peptide_min, peaks_per_peptide_max, missing_peaks, intensity_cutoff, mz_tolerance, mz_tolerance_unit, peptide_similarity, averagine_similarity, averagine_similarity_scaling);
-    ptr = new MultiplexFilteringCentroided(exp_picked, patterns, peaks_per_peptide_min, peaks_per_peptide_max, missing_peaks, intensity_cutoff, mz_tolerance, mz_tolerance_unit, peptide_similarity, averagine_similarity, averagine_similarity_scaling);
-    TEST_NOT_EQUAL(ptr, nullPointer);
-    delete ptr;
+START_SECTION(MultiplexFilteringCentroided(const MSExperiment& exp_picked, const std::vector<MultiplexIsotopicPeakPattern>& patterns, int isotopes_per_peptide_min, int isotopes_per_peptide_max, double intensity_cutoff, double rt_band, double mz_tolerance, bool mz_tolerance_unit, double peptide_similarity, double averagine_similarity, double averagine_similarity_scaling, String averagine_type="peptide"))
+  MultiplexFilteringCentroided filtering(exp_picked, patterns, isotopes_per_peptide_min, isotopes_per_peptide_max, intensity_cutoff, rt_band, mz_tolerance, mz_tolerance_unit, peptide_similarity, averagine_similarity, averagine_similarity_scaling, averagine_type);
+  ptr = new MultiplexFilteringCentroided(exp_picked, patterns, isotopes_per_peptide_min, isotopes_per_peptide_max, intensity_cutoff, rt_band, mz_tolerance, mz_tolerance_unit, peptide_similarity, averagine_similarity, averagine_similarity_scaling, averagine_type);
+  TEST_NOT_EQUAL(ptr, nullPointer);
+  delete ptr;
 END_SECTION
 
-MultiplexFilteringCentroided filtering(exp_picked, patterns, peaks_per_peptide_min, peaks_per_peptide_max, missing_peaks, intensity_cutoff, mz_tolerance, mz_tolerance_unit, peptide_similarity, averagine_similarity, averagine_similarity_scaling);
+MultiplexFilteringCentroided filtering(exp_picked, patterns, isotopes_per_peptide_min, isotopes_per_peptide_max, intensity_cutoff, rt_band, mz_tolerance, mz_tolerance_unit, peptide_similarity, averagine_similarity, averagine_similarity_scaling, averagine_type);
 
 START_SECTION(std::vector<MultiplexFilterResult> filter())
-    std::vector<MultiplexFilterResult> results = filtering.filter();
+    std::vector<MultiplexFilteredMSExperiment> results = filtering.filter();
     TEST_EQUAL(results[0].size(), 0);
     TEST_EQUAL(results[1].size(), 0);
     TEST_EQUAL(results[2].size(), 0);
     TEST_EQUAL(results[3].size(), 0);
     TEST_EQUAL(results[4].size(), 4);
-    TEST_EQUAL(results[5].size(), 3);
-    TEST_EQUAL(results[6].size(), 2);
+    TEST_EQUAL(results[5].size(), 4);
+    TEST_EQUAL(results[6].size(), 4);
     TEST_EQUAL(results[7].size(), 0);
 END_SECTION
 

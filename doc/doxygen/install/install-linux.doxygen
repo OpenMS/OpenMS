@@ -186,7 +186,7 @@
   href="http://download.qt.io/official_releases/qt">http://download.qt.io/official_releases/qt</a>
   (use a 5.x version), if it is not provided on your server or the version on
   your environment is too old. Then you can use the traditional
-  <tt>./configure --prefix=/path && gmake && gmake install</tt> sequence to compile
+  <tt>./configure --prefix=/path && make && make install</tt> sequence to compile
   and install Qt (note that you should set the <tt>--prefix=/path</tt> to a local directory assuming
   you don't have root privileges).
 

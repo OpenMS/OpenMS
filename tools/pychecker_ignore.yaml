@@ -1569,7 +1569,6 @@ PyOpenMSChecker:
     - OpenMS::Annotation1DPeakItem
     - OpenMS::Annotation1DDistanceItem
     - OpenMS::Annotation1DTextItem
-    - OpenMS::IDEvaluationBase
     - OpenMS::TOPPViewBase
     - OpenMS::INIFileEditorWindow
     - OpenMS::TOPPASBase

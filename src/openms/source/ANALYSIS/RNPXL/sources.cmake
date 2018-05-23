@@ -6,6 +6,7 @@ set(sources_list
 HyperScore.cpp
 ModifiedPeptideGenerator.cpp
 PScore.cpp
+RNPxlDeisotoper.cpp
 RNPxlReport.cpp
 RNPxlMarkerIonExtractor.cpp
 RNPxlModificationsGenerator.cpp
