@@ -243,10 +243,10 @@ namespace OpenMS
       double half_max_int(tmp_ints[max_idx] / 2.0);
 
       // mass trace is empty OR no points left of apex in mass trace OR no points right of apex in mass trace
-      if (tmp_ints.empty() || max_idx < 1 || max_idx >= tmp_ints.size() - 1)
+      if (tmp_ints.empty() || max_idx == 0 || max_idx == tmp_ints.size() - 1)
       {
-        fwhm_start_idx_ = 1;
-        fwhm_end_idx_ = 1;
+        fwhm_start_idx_ = 0;
+        fwhm_end_idx_ = 0;
         return 0;
       }
 
@@ -340,9 +340,10 @@ namespace OpenMS
 
     double MassTrace::computeFwhmAreaSmooth() const
     {
-      if (fwhm_start_idx_ == 0 && fwhm_end_idx_ == 0)
+      if (fwhm_start_idx_ == 0 
+       && fwhm_end_idx_ == 0)
       {
-        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "FWHM beginning/ending indices not computed? Aborting...", String(fwhm_start_idx_) + String(" ") + String(fwhm_end_idx_));
+        return 0;
       }
 
       double t_area(0.0);
@@ -361,9 +362,10 @@ namespace OpenMS
 
     double MassTrace::computeFwhmArea() const
     {
-      if (fwhm_start_idx_ == 0 && fwhm_end_idx_ == 0)
+      if (fwhm_start_idx_ == 0 
+       && fwhm_end_idx_ == 0)
       {
-        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "FWHM beginning/ending indices not computed? Aborting...", String(fwhm_start_idx_) + String(" ") + String(fwhm_end_idx_));
+        return 0;
       }
 
       double t_area(0);
