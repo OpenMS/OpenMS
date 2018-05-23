@@ -228,7 +228,7 @@ public:
         picked_chroms[chr_idx][peak_idx] << " with borders " << best_left << " " <<
         best_right << " (" << best_right - best_left << ")" << std::endl;
 
-      if (recalculate_peaks_)
+      if (use_consensus_ && recalculate_peaks_)
       {
         // This may change best_left / best_right
         recalculatePeakBorders_(picked_chroms, best_left, best_right, recalculate_peaks_max_z_);
@@ -238,20 +238,66 @@ public:
           peak_apex = (best_left + best_right) / 2.0;
         }
       }
-      picked_chroms[chr_idx][peak_idx].setIntensity(0.0);
 
-      // Remove other, overlapping, picked peaks (in this and other
-      // chromatograms) and then ensure that at least one peak is set to zero
-      // (the currently best peak).
-      remove_overlapping_features(picked_chroms, best_left, best_right);
+      std::vector< double > left_edges;
+      std::vector< double > right_edges;
+      double min_left = best_left;
+      double max_right = best_right;
+      if (use_consensus_)
+      {
+        // Remove other, overlapping, picked peaks (in this and other
+        // chromatograms) and then ensure that at least one peak is set to zero
+        // (the currently best peak).
+        remove_overlapping_features(picked_chroms, best_left, best_right);
+      }
+      else
+      {
+        // Pick the peak with the closest apex to the consensus apex for each chromatogram.
+        // Use the closest peak for the current peak. Note that we will only set the closest peak
+        // per chromatogram to zero, so if there are two peaks for some transitions, we will get
+        // to them later. If there is no peak, then we transfer transition boundaries from "master" peak.
+        {
+          for (Size k = 0; k < picked_chroms.size(); k++)
+          {
+            double peak_apex_dist_min = 1e6;
+            int min_dist = -1;
+            for (Size i = 0; i < picked_chroms[k].size(); i++)
+            {
+              PeakIntegrator::PeakArea pa_tmp = pi_.integratePeak(  // get the peak apex
+                picked_chroms[k], picked_chroms[k].getFloatDataArrays()[1][i], picked_chroms[k].getFloatDataArrays()[2][i]); 
+              if (pa_tmp.apex_pos > 0.0 && std::fabs(pa_tmp.apex_pos - peak_apex) < peak_apex_dist_min)
+              {
+                min_dist = (int)i;
+              }
+            }
+            
+            // Select master peak boundaries, or in the case we found at least one peak, the local peak boundaries 
+            double l = best_left;
+            double r = best_right;
+            if (min_dist >= 0)
+            {
+              l = picked_chroms[k].getFloatDataArrays()[1][min_dist];
+              r = picked_chroms[k].getFloatDataArrays()[2][min_dist];
+              picked_chroms[k][min_dist].setIntensity(0.0); // only remove one peak per transition
+            }
+            
+            left_edges.push_back(l);
+            right_edges.push_back(r);
+            // ensure we remember the overall maxima / minima
+            if (l < min_left) {min_left = l;}
+            if (r > max_right) {max_right = r;}
+          }
+        }
+      }
+      picked_chroms[chr_idx][peak_idx].setIntensity(0.0); // ensure that we set at least one peak to zero
 
       // Check for minimal peak width -> return empty feature (Intensity zero)
-      if (min_peak_width_ > 0.0 && std::fabs(best_right - best_left) < min_peak_width_) 
+      if (use_consensus_ && min_peak_width_ > 0.0 && std::fabs(best_right - best_left) < min_peak_width_) 
       {
         return mrmFeature;
       }
 
-      if (compute_peak_quality_)
+      if (use_consensus_ && compute_peak_quality_)
       {
         String outlier = "none";
         double qual = computeQuality_(transition_group, picked_chroms, chr_idx, best_left, best_right, outlier);
@@ -265,11 +311,12 @@ public:
       }
 
       // Prepare linear resampling of all the chromatograms, here creating the
-      // empty master_peak_container with the same RT (m/z) values as the reference
-      // chromatogram.
+      // empty master_peak_container with the same RT (m/z) values as the
+      // reference chromatogram. We use the overall minimal left boundary and
+      // maximal right boundary to prepare the container.
       SpectrumT master_peak_container;
       const SpectrumT& ref_chromatogram = selectChromHelper_(transition_group, picked_chroms[chr_idx].getNativeID());
-      prepareMasterContainer_(ref_chromatogram, master_peak_container, best_left, best_right);
+      prepareMasterContainer_(ref_chromatogram, master_peak_container, min_left, max_right);
 
       // Iterate over initial transitions / chromatograms (note that we may
       // have a different number of picked chromatograms than total transitions
@@ -277,6 +324,15 @@ public:
       double total_intensity = 0; double total_peak_apices = 0; double total_xic = 0; double total_mi = 0;
       for (Size k = 0; k < transition_group.getTransitions().size(); k++)
       {
+
+        double local_left = best_left;
+        double local_right = best_right;
+        if (!use_consensus_)
+        {
+          local_left = left_edges[k];
+          local_right = right_edges[k];
+        }
+
         const SpectrumT& chromatogram = selectChromHelper_(transition_group, transition_group.getTransitions()[k].getNativeID()); 
         if (transition_group.getTransitions()[k].isDetectingTransition())
         {
@@ -333,7 +389,7 @@ public:
         // resample the current chromatogram
         if (peak_integration_ == "original")
         {
-          used_chromatogram = resampleChromatogram_(chromatogram, master_peak_container, best_left, best_right);
+          used_chromatogram = resampleChromatogram_(chromatogram, master_peak_container, local_left, local_right);
           // const SpectrumT& used_chromatogram = chromatogram; // instead of resampling
         }
         else if (peak_integration_ == "smoothed" && smoothed_chroms.size() <= k)
@@ -343,7 +399,7 @@ public:
         }        
         else if (peak_integration_ == "smoothed")
         {
-          used_chromatogram = resampleChromatogram_(smoothed_chroms[k], master_peak_container, best_left, best_right);
+          used_chromatogram = resampleChromatogram_(smoothed_chroms[k], master_peak_container, local_left, local_right);
         }
         else
         {
@@ -356,7 +412,7 @@ public:
         f.setQuality(0, quality);
         f.setOverallQuality(quality);
 
-        PeakIntegrator::PeakArea pa = pi_.integratePeak(used_chromatogram, best_left, best_right);
+        PeakIntegrator::PeakArea pa = pi_.integratePeak(used_chromatogram, local_left, local_right);
         double peak_integral = pa.area;
         double peak_apex_int = pa.height;
         f.setMetaValue("peak_apex_position", pa.apex_pos);
@@ -371,15 +427,15 @@ public:
           }
           else if (background_subtraction_ == "original")
           {
-            const double intensity_left = chromatogram.PosBegin(best_left)->getIntensity();
-            const double intensity_right = (chromatogram.PosEnd(best_right) - 1)->getIntensity();
-            const UInt n_points = std::distance(chromatogram.PosBegin(best_left), chromatogram.PosEnd(best_right));
+            const double intensity_left = chromatogram.PosBegin(local_left)->getIntensity();
+            const double intensity_right = (chromatogram.PosEnd(local_right) - 1)->getIntensity();
+            const UInt n_points = std::distance(chromatogram.PosBegin(local_left), chromatogram.PosEnd(local_right));
             avg_noise_level = (intensity_right + intensity_left) / 2;
             background = avg_noise_level * n_points;
           }
           else if (background_subtraction_ == "exact")
           {
-            PeakIntegrator::PeakBackground pb = pi_.estimateBackground(used_chromatogram, best_left, best_right, pa.apex_pos);
+            PeakIntegrator::PeakBackground pb = pi_.estimateBackground(used_chromatogram, local_left, local_right, pa.apex_pos);
             background = pb.area;
             avg_noise_level = pb.height;
           }
@@ -424,7 +480,7 @@ public:
         // Calculate peak shape metrics that will be used for later QC
         if (compute_peak_shape_metrics_)
         {
-          PeakIntegrator::PeakShapeMetrics psm = pi_.calculatePeakShapeMetrics(used_chromatogram, best_left, best_right, peak_apex_int, pa.apex_pos);
+          PeakIntegrator::PeakShapeMetrics psm = pi_.calculatePeakShapeMetrics(used_chromatogram, local_left, local_right, peak_apex_int, pa.apex_pos);
           f.setMetaValue("width_at_5", psm.width_at_5);
           f.setMetaValue("width_at_10", psm.width_at_10);
           f.setMetaValue("width_at_50", psm.width_at_50);
@@ -450,38 +506,45 @@ public:
       // extracted here, only for fragment traces
       for (Size k = 0; k < transition_group.getPrecursorChromatograms().size(); k++)
       {
-        
         const SpectrumT& chromatogram = transition_group.getPrecursorChromatograms()[k];
         Size prec_idx = transition_group.getChromatograms().size() + k;
+
+        double local_left = best_left;
+        double local_right = best_right;
+        if (!use_consensus_ && right_edges.size() > prec_idx && left_edges.size() > prec_idx)
+        {
+          local_left = left_edges[prec_idx];
+          local_right = right_edges[prec_idx];
+        }
 
         SpectrumT used_chromatogram;
         // resample the current chromatogram
         if (peak_integration_ == "original")
         {
-          used_chromatogram = resampleChromatogram_(chromatogram, master_peak_container, best_left, best_right);
+          used_chromatogram = resampleChromatogram_(chromatogram, master_peak_container, local_left, local_right);
           // const SpectrumT& used_chromatogram = chromatogram; // instead of resampling
         }
         else if (peak_integration_ == "smoothed" && smoothed_chroms.size() <= prec_idx)
         {
           throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-            "Tried to calculate peak area and height without any smoothed chromatograms");
-        }        
+            "Tried to calculate peak area and height without any smoothed chromatograms for precursors");
+        }
         else if (peak_integration_ == "smoothed")
         {
-          used_chromatogram = resampleChromatogram_(smoothed_chroms[prec_idx], master_peak_container, best_left, best_right);
+          used_chromatogram = resampleChromatogram_(smoothed_chroms[prec_idx], master_peak_container, local_left, local_right);
         }
         else
         {
           throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
             String("Peak integration chromatogram ") + peak_integration_ + " is not a valid method for MRMTransitionGroupPicker");
-        }   
+        }
 
         Feature f;
         double quality = 0;
         f.setQuality(0, quality);
         f.setOverallQuality(quality);
 
-        PeakIntegrator::PeakArea pa = pi_.integratePeak(used_chromatogram, best_left, best_right);
+        PeakIntegrator::PeakArea pa = pi_.integratePeak(used_chromatogram, local_left, local_right);
         double peak_integral = pa.area;
         double peak_apex_int = pa.height;
 
@@ -496,15 +559,15 @@ public:
           }
           else if (background_subtraction_ == "original")
           {
-            const double intensity_left = chromatogram.PosBegin(best_left)->getIntensity();
-            const double intensity_right = (chromatogram.PosEnd(best_right) - 1)->getIntensity();
-            const UInt n_points = std::distance(chromatogram.PosBegin(best_left), chromatogram.PosEnd(best_right));
+            const double intensity_left = chromatogram.PosBegin(local_left)->getIntensity();
+            const double intensity_right = (chromatogram.PosEnd(local_right) - 1)->getIntensity();
+            const UInt n_points = std::distance(chromatogram.PosBegin(local_left), chromatogram.PosEnd(local_right));
             avg_noise_level = (intensity_right + intensity_left) / 2;
             background = avg_noise_level * n_points;
           }
           else if (background_subtraction_ == "exact")
           {
-            PeakIntegrator::PeakBackground pb = pi_.estimateBackground(used_chromatogram, best_left, best_right, pa.apex_pos);
+            PeakIntegrator::PeakBackground pb = pi_.estimateBackground(used_chromatogram, local_left, local_right, pa.apex_pos);
             background = pb.area;
             avg_noise_level = pb.height;
           }
@@ -984,6 +1047,7 @@ protected:
     String background_subtraction_;
     bool recalculate_peaks_;
     bool use_precursors_;
+    bool use_consensus_;
     bool compute_peak_quality_;
     bool compute_peak_shape_metrics_;
     bool compute_total_mi_;
