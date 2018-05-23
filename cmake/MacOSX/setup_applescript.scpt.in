@@ -44,13 +44,13 @@ on run argv
     				set statusbar visible to false
     				set the bounds to {theXOrigin, theYOrigin, theBottomRightX, theBottomRightY}
     				set statusbar visible to false
-            set the position of item "@CPACK_PACKAGE_INSTALL_DIRECTORY@-Darwin" to {470, 140}
+            set the position of item "@CPACK_PACKAGE_FILE_NAME@" to {470, 140}
 
             -- change the icon of the OpenMS Folder.
             
-            do shell script("cd /Volumes/@CPACK_PACKAGE_INSTALL_DIRECTORY@-Darwin
+            do shell script("cd /Volumes/@CPACK_PACKAGE_FILE_NAME@
             # Rename to just OpenMS-version
-            mv '@CPACK_PACKAGE_INSTALL_DIRECTORY@-Darwin' '@CPACK_PACKAGE_INSTALL_DIRECTORY@'
+            mv '@CPACK_PACKAGE_FILE_NAME@' '@OPENMS_DMG_FOLDER_NAME@'
             # Take an image and make the image its own icon:
             sips -i @OPENMS_LOGO@ >> ~/logfile.log 2>&1
 
@@ -58,13 +58,13 @@ on run argv
             DeRez -only icns @OPENMS_LOGO@ > /tmp/tmpicns.rsrc
 
             # append this resource to the file you want to icon-ize.
-            Rez -append /tmp/tmpicns.rsrc -o $'@CPACK_PACKAGE_INSTALL_DIRECTORY@/Icon\r'
+            Rez -append /tmp/tmpicns.rsrc -o $'@OPENMS_DMG_FOLDER_NAME@/Icon\r'
 
             # Use the resource to set the icon.
-            SetFile -a C @CPACK_PACKAGE_INSTALL_DIRECTORY@
+            SetFile -a C @OPENMS_DMG_FOLDER_NAME@
 
             # Hide the Icon\r file from Finder.
-            SetFile -a V $'@CPACK_PACKAGE_INSTALL_DIRECTORY@/Icon\r'
+            SetFile -a V $'@OPENMS_DMG_FOLDER_NAME@/Icon\r'
 
             # clean up.
             rm /tmp/tmpicns.rsrc
